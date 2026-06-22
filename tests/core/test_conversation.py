@@ -1,0 +1,215 @@
+"""Tests for Conversation module — strict TDD, RED first, then GREEN."""
+
+import json
+import os
+
+import pytest
+
+
+# ─── add_message ──────────────────────────────────────────────────────────────
+
+
+def test_add_user_message():
+    """Given a fresh Conversation, add a user message."""
+    from ollamachat.core.conversation import Conversation
+
+    conv = Conversation()
+    conv.add_message("user", "Hola")
+    assert len(conv.messages) == 1
+    assert conv.messages[0]["role"] == "user"
+    assert conv.messages[0]["content"] == "Hola"
+    import re
+
+    assert re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}", conv.messages[0]["timestamp"])
+
+
+def test_add_user_message_with_image():
+    """Given a user message with an image, images key is preserved."""
+    from ollamachat.core.conversation import Conversation
+
+    conv = Conversation()
+    conv.add_message("user", "¿Qué ves?", images=["iVBORw0KGgoAAAANSUhEUg..."])
+    assert conv.messages[0]["images"] == ["iVBORw0KGgoAAAANSUhEUg..."]
+
+
+def test_assistant_message_without_images():
+    """Given an assistant message, no images key is present."""
+    from ollamachat.core.conversation import Conversation
+
+    conv = Conversation()
+    conv.add_message("assistant", "Hola, ¿en qué te ayudo?")
+    assert "images" not in conv.messages[0]
+
+
+# ─── get_messages_for_api ────────────────────────────────────────────────────
+
+
+def test_get_messages_strips_timestamp():
+    """Given mixed messages, get_messages_for_api strips timestamps."""
+    from ollamachat.core.conversation import Conversation
+
+    conv = Conversation()
+    conv.add_message("system", "Eres útil.")
+    conv.add_message("user", "Hola")
+    conv.add_message("assistant", "¿En qué te ayudo?")
+
+    result = conv.get_messages_for_api()
+    assert len(result) == 3
+    for msg in result:
+        assert "timestamp" not in msg
+    assert result[0] == {"role": "system", "content": "Eres útil."}
+    assert result[1] == {"role": "user", "content": "Hola"}
+    assert result[2] == {"role": "assistant", "content": "¿En qué te ayudo?"}
+
+
+def test_api_payload_preserves_images():
+    """Given a message with images, API payload preserves them without timestamp."""
+    from ollamachat.core.conversation import Conversation
+
+    conv = Conversation()
+    conv.add_message("user", "ver imagen", images=["AAAA"])
+    result = conv.get_messages_for_api()
+    assert result[0]["images"] == ["AAAA"]
+    assert "timestamp" not in result[0]
+
+
+# ─── to_dict / from_dict ─────────────────────────────────────────────────────
+
+
+def test_round_trip_without_images():
+    """Given a conversation without images, to_dict/from_dict round-trips."""
+    from ollamachat.core.conversation import Conversation
+
+    conv = Conversation()
+    conv.add_message("user", "Hola")
+    conv.add_message("assistant", "¿En qué te ayudo?")
+
+    d = conv.to_dict()
+    conv2 = Conversation.from_dict(d)
+    assert conv2.messages == conv.messages
+    assert len(conv2.messages) == 2
+
+
+def test_round_trip_with_images():
+    """Given a conversation with images, to_dict/from_dict round-trips."""
+    from ollamachat.core.conversation import Conversation
+
+    conv = Conversation()
+    conv.add_message("user", "ver imagen", images=["iVBORw0..."])
+
+    d = conv.to_dict()
+    conv2 = Conversation.from_dict(d)
+    assert conv2.messages[0]["images"] == ["iVBORw0..."]
+
+
+# ─── save / load ──────────────────────────────────────────────────────────────
+
+
+def test_save_to_disk(tmp_path):
+    """Given a conversation, save writes valid JSON with UTF-8."""
+    from ollamachat.core.conversation import Conversation
+
+    conv = Conversation()
+    conv.add_message("user", "Hola")
+    conv.add_message("assistant", "¿En qué te ayudo?")
+    conv.add_message("user", "ver imagen", images=["iVBORw0..."])
+
+    filepath = tmp_path / "chat.json"
+    Conversation.save(conv, filepath)
+    assert filepath.exists()
+
+    with open(filepath, encoding="utf-8") as f:
+        data = json.load(f)
+    assert data == conv.to_dict()
+
+    # Verify non-ASCII is not escaped
+    content = filepath.read_text(encoding="utf-8")
+    assert "¿" in content  # literal non-ASCII preserved
+
+
+def test_load_from_disk(tmp_path):
+    """Given a saved file, load returns an equivalent conversation."""
+    from ollamachat.core.conversation import Conversation
+
+    conv = Conversation()
+    conv.add_message("user", "Hola")
+    conv.add_message("assistant", "¿En qué te ayudo?")
+
+    filepath = tmp_path / "chat.json"
+    Conversation.save(conv, filepath)
+
+    conv2 = Conversation.load(filepath)
+    assert len(conv2.messages) == 2
+    assert conv2.messages[0]["content"] == "Hola"
+    assert conv2.messages[0]["role"] == "user"
+    assert conv2.messages[1]["content"] == "¿En qué te ayudo?"
+
+
+def test_load_missing_file_raises(tmp_path):
+    """Given no file, load raises FileNotFoundError."""
+    from ollamachat.core.conversation import Conversation
+
+    missing = tmp_path / "missing.json"
+    with pytest.raises(FileNotFoundError) as exc_info:
+        Conversation.load(missing)
+    assert str(missing) in str(exc_info.value)
+
+
+def test_atomic_write_uses_tmp(tmp_path):
+    """Given save, the write goes to .tmp first then replaces target."""
+    from ollamachat.core.conversation import Conversation
+
+    conv = Conversation()
+    conv.add_message("user", "test")
+
+    filepath = tmp_path / "chat.json"
+    Conversation.save(conv, filepath)
+
+    # The .tmp file should be gone after save
+    assert not filepath.with_suffix(".tmp").exists()
+    assert filepath.exists()
+    # Verify content
+    loaded = Conversation.load(filepath)
+    assert len(loaded.messages) == 1
+
+
+# ─── clear ────────────────────────────────────────────────────────────────────
+
+
+def test_clear_empties_messages():
+    """Given a conversation with messages, clear empties them."""
+    from ollamachat.core.conversation import Conversation
+
+    conv = Conversation()
+    conv.add_message("user", "Hola")
+    conv.add_message("assistant", "¿En qué te ayudo?")
+
+    conv.clear()
+    assert conv.messages == []
+    assert conv.get_messages_for_api() == []
+
+
+def test_clear_allows_reuse():
+    """Given a cleared conversation, adding new messages works."""
+    from ollamachat.core.conversation import Conversation
+
+    conv = Conversation()
+    conv.add_message("user", "Hola")
+    conv.clear()
+
+    conv.add_message("user", "de nuevo")
+    assert len(conv.messages) == 1
+    assert conv.messages[0]["content"] == "de nuevo"
+
+
+# ─── images preserve order ────────────────────────────────────────────────────
+
+
+def test_images_preserve_order():
+    """Given multiple images, get_messages_for_api preserves order."""
+    from ollamachat.core.conversation import Conversation
+
+    conv = Conversation()
+    conv.add_message("user", "ver", images=["img1", "img2", "img3"])
+    api_msgs = conv.get_messages_for_api()
+    assert api_msgs[0]["images"] == ["img1", "img2", "img3"]

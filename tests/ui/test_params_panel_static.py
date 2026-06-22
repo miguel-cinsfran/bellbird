@@ -86,6 +86,7 @@ def test_every_control_preceded_by_statictext():
         "wx.TextCtrl",
         "wx.SpinCtrl",
         "wx.Choice",
+        "wx.ComboBox",
     }
 
     # Find all function/method definitions
@@ -137,6 +138,54 @@ def test_only_boxsizer_used():
 
     assert not found_forbidden, (
         "Forbidden sizers found:\n" + "\n".join(found_forbidden)
+    )
+
+
+def test_scan_models_button_present():
+    """scan_models_button with name=scan_models_button and label 'Buscar modelos'."""
+    source_path = _get_ui_path("params_panel.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    found_scan = False
+    found_browse = False
+    found_old_refresh = False
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            func_name = _get_func_name(node)
+            if func_name == "wx.Button":
+                has_name = any(
+                    kw.arg == "name"
+                    and isinstance(kw.value, ast.Constant)
+                    and kw.value.value == "scan_models_button"
+                    for kw in node.keywords
+                    if kw.arg is not None
+                )
+                if has_name:
+                    found_scan = True
+                has_browse = any(
+                    kw.arg == "name"
+                    and isinstance(kw.value, ast.Constant)
+                    and kw.value.value == "browse_model_button"
+                    for kw in node.keywords
+                    if kw.arg is not None
+                )
+                if has_browse:
+                    found_browse = True
+                has_old = any(
+                    kw.arg == "name"
+                    and isinstance(kw.value, ast.Constant)
+                    and kw.value.value == "refresh_models_button"
+                    for kw in node.keywords
+                    if kw.arg is not None
+                )
+                if has_old:
+                    found_old_refresh = True
+
+    assert found_scan, "Missing scan_models_button (name='scan_models_button')"
+    assert found_browse, "Missing browse_model_button (name='browse_model_button')"
+    assert not found_old_refresh, (
+        "refresh_models_button should be removed (replaced by scan_models_button)"
     )
 
 

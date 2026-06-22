@@ -1,9 +1,11 @@
 """ParamsPanel — model selection and sampling parameter controls.
 
-Left-hand panel (280px) of MainWindow with model selector, system prompt,
+Left-hand panel (280px) of MainWindow with .gguf model selector, system prompt,
 and LLM sampling controls. Every widget is named and preceded by a
 StaticText label for screen reader compatibility.
 """
+
+from pathlib import Path
 
 import wx
 
@@ -19,6 +21,7 @@ class ParamsPanel(wx.Panel):
     def __init__(self, parent: wx.Window, speech) -> None:
         super().__init__(parent, size=(280, -1))
         self._speech = speech
+        self._basename_to_path: dict[str, str] = {}
         self._build_ui()
 
     def _build_ui(self) -> None:
@@ -26,19 +29,26 @@ class ParamsPanel(wx.Panel):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         # ── Model Selector ──────────────────────────────────────────────
-        sizer.Add(wx.StaticText(self, label="Modelo:"), flag=wx.LEFT | wx.TOP, border=8)
+        sizer.Add(
+            wx.StaticText(self, label="Modelo (.gguf):"),
+            flag=wx.LEFT | wx.TOP, border=8,
+        )
         model_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.model_selector = wx.Choice(
-            self, name="model_selector"
+        self.model_selector = wx.ComboBox(
+            self, name="model_selector",
         )
         model_sizer.Add(self.model_selector, proportion=1, flag=wx.EXPAND)
 
-        self.refresh_models_button = wx.Button(
-            self, label="Actualizar modelos", name="refresh_models_button"
+        self.scan_models_button = wx.Button(
+            self, label="Buscar modelos", name="scan_models_button"
         )
-        model_sizer.Add(
-            self.refresh_models_button, flag=wx.LEFT, border=4
+        model_sizer.Add(self.scan_models_button, flag=wx.LEFT, border=4)
+
+        self.browse_model_button = wx.Button(
+            self, label="Explorar...", name="browse_model_button"
         )
+        model_sizer.Add(self.browse_model_button, flag=wx.LEFT, border=4)
+
         sizer.Add(model_sizer, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=8)
 
         # ── System Prompt ───────────────────────────────────────────────
@@ -162,28 +172,50 @@ class ParamsPanel(wx.Panel):
 
         self.SetSizer(sizer)
 
-    def set_models(self, models: list[str]) -> None:
-        """Populate the model selector with model names.
+    def set_models(self, paths: list[str]) -> None:
+        """Populate the model selector with .gguf file basenames.
 
         Args:
-            models: List of model name strings.
+            paths: List of absolute paths to .gguf files.
         """
         self.model_selector.Clear()
-        for model_name in models:
-            self.model_selector.Append(model_name)
-        if models:
+        self._basename_to_path.clear()
+        for path_str in paths:
+            path = Path(path_str)
+            self._basename_to_path[path.name] = str(path)
+            self.model_selector.Append(path.name)
+        if paths:
             self.model_selector.SetSelection(0)
 
     def get_model(self) -> str:
-        """Get the currently selected model name.
+        """Get the full absolute path of the selected model.
+
+        Resolution order:
+        1. If the ComboBox value matches a key in _basename_to_path,
+           return the mapped absolute path.
+        2. If the value looks like a path (contains /, \\, or :) and
+           the file exists on disk, return it verbatim.
+        3. Otherwise return "".
 
         Returns:
-            Model name string, or "" if none selected.
+            Absolute path string, or "" if no valid model selected.
         """
-        sel = self.model_selector.GetSelection()
-        if sel == wx.NOT_FOUND:
+        value = self.model_selector.GetValue()
+        if not value:
             return ""
-        return self.model_selector.GetString(sel)
+
+        # Rule 1: basename lookup
+        if value in self._basename_to_path:
+            return self._basename_to_path[value]
+
+        # Rule 2: typed path
+        if any(c in value for c in ("\\", "/", ":")):
+            p = Path(value)
+            if p.is_file():
+                return str(p.resolve())
+
+        # Rule 3: not found
+        return ""
 
     def get_system_prompt(self) -> str:
         """Get the current system prompt text.
@@ -205,12 +237,12 @@ class ParamsPanel(wx.Panel):
         """Get the current sampling parameters as a dict.
 
         Returns:
-            Dict with keys: temperature, num_predict, top_p, top_k,
+            Dict with keys: temperature, max_tokens, top_p, top_k,
             repeat_penalty.
         """
         return {
             "temperature": self.temperature_slider.GetValue() / 100.0,
-            "num_predict": self.max_tokens_spin.GetValue(),
+            "max_tokens": self.max_tokens_spin.GetValue(),
             "top_p": self.top_p_slider.GetValue() / 100.0,
             "top_k": self.top_k_spin.GetValue(),
             "repeat_penalty": self.repeat_penalty_slider.GetValue() / 100.0,

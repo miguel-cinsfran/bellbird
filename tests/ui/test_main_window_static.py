@@ -172,44 +172,62 @@ def test_status_bar():
     assert found_statusbar, "No wx.StatusBar / CreateStatusBar found in source"
 
 
-def test_start_ollama_button_present():
-    """A 'Iniciar Ollama' button with name=start_ollama_button is built."""
+def test_start_server_button_present():
+    """A 'Iniciar servidor' button with name=start_server_button is built."""
     source_path = _get_ui_path("main_window.py")
     source = source_path.read_text(encoding="utf-8")
     tree = ast.parse(source)
 
-    found_button = False
+    found_start = False
+    found_stop = False
     for node in ast.walk(tree):
         if isinstance(node, ast.Call):
             func_name = _get_func_name(node)
             if func_name == "wx.Button":
-                has_name = any(
+                has_start = any(
                     kw.arg == "name"
                     and isinstance(kw.value, ast.Constant)
-                    and kw.value.value == "start_ollama_button"
+                    and kw.value.value == "start_server_button"
                     for kw in node.keywords
                     if kw.arg is not None
                 )
-                if has_name:
-                    found_button = True
-                    break
+                if has_start:
+                    found_start = True
+                has_stop = any(
+                    kw.arg == "name"
+                    and isinstance(kw.value, ast.Constant)
+                    and kw.value.value == "stop_server_button"
+                    for kw in node.keywords
+                    if kw.arg is not None
+                )
+                if has_stop:
+                    found_stop = True
 
-    assert found_button, (
-        "No wx.Button with name='start_ollama_button' found in source"
+    assert found_start, (
+        "No wx.Button with name='start_server_button' found in source"
+    )
+    assert found_stop, (
+        "No wx.Button with name='stop_server_button' found in source"
     )
 
 
-def test_start_ollama_handler_invokes_runner():
-    """_on_start_ollama calls start_ollama from ollamachat.core.ollama_runner."""
+def test_start_server_handler_invokes_runner():
+    """_on_start_server calls start_server from ollamachat.core.llama_runner."""
     source_path = _get_ui_path("main_window.py")
     source = source_path.read_text(encoding="utf-8")
 
-    # The handler should import and call the runner function.
-    assert "from ollamachat.core.ollama_runner import start_ollama" in source, (
-        "MainWindow must import start_ollama from ollamachat.core.ollama_runner"
+    # The handler should import from the new module.
+    assert "from ollamachat.core.llama_runner import" in source, (
+        "MainWindow must import from ollamachat.core.llama_runner"
     )
-    assert "start_ollama(self._client)" in source, (
-        "_on_start_ollama must call start_ollama(self._client)"
+    assert "from ollamachat.core.llama_client import LlamaClient" in source, (
+        "MainWindow must import LlamaClient from ollamachat.core.llama_client"
+    )
+    assert "start_server(" in source, (
+        "_on_start_server must call start_server"
+    )
+    assert "stop_server()" in source, (
+        "_on_stop_server must call stop_server()"
     )
 
 

@@ -2,15 +2,22 @@
 
 Integrates ParamsPanel (left) and ChatPanel (right) in a SplitterWindow,
 manages menu bar, accelerator table, status bar, and coordinates the
-full send/receive flow between OllamaClient, Conversation, and Speech.
+full send/receive flow between LlamaClient, LlamaRunner, Conversation,
+and Speech.
 """
 
 import wx
 
 from ollamachat.core.conversation import Conversation
+from ollamachat.core.llama_client import LlamaClient
+from ollamachat.core.llama_runner import (
+    find_gguf_models,
+    find_llama_server,
+    get_install_command,
+    start_server,
+    stop_server,
+)
 from ollamachat.core.logger import get_logger
-from ollamachat.core.ollama_client import OllamaClient
-from ollamachat.core.ollama_runner import start_ollama
 from ollamachat.core.speech import Speech
 from ollamachat.ui.chat_panel import ChatPanel
 from ollamachat.ui.params_panel import ParamsPanel
@@ -28,7 +35,7 @@ class MainWindow(wx.Frame):
         self, parent: wx.Window | None = None, title: str = "OllamaChat"
     ) -> None:
         super().__init__(parent, title=title, size=(1100, 700))
-        self._client = OllamaClient()
+        self._client = LlamaClient()
         self._conversation = Conversation()
         self._speech = Speech()
         self._current_response: str = ""
@@ -37,6 +44,7 @@ class MainWindow(wx.Frame):
         self._build_menu()
         self._build_accelerators()
         self._create_status_bar()
+        self.Bind(wx.EVT_CLOSE, self._on_close)
         self._startup_check()
 
     # ── UI Construction ───────────────────────────────────────────────────
@@ -55,12 +63,20 @@ class MainWindow(wx.Frame):
             self.params_panel, self.chat_panel, sashPosition=280
         )
 
-        # ── Top toolbar: start Ollama server ───────────────────────────
-        self.start_ollama_button = wx.Button(
-            self, label="Iniciar Ollama", name="start_ollama_button"
+        # ── Top toolbar: server controls ──────────────────────────────
+        self.start_server_button = wx.Button(
+            self, label="Iniciar servidor", name="start_server_button"
         )
-        self.start_ollama_button.Bind(
-            wx.EVT_BUTTON, lambda evt: self._on_start_ollama()
+        self.start_server_button.Bind(
+            wx.EVT_BUTTON, lambda evt: self._on_start_server()
+        )
+
+        self.stop_server_button = wx.Button(
+            self, label="Detener servidor", name="stop_server_button"
+        )
+        self.stop_server_button.Disable()
+        self.stop_server_button.Bind(
+            wx.EVT_BUTTON, lambda evt: self._on_stop_server()
         )
 
         toolbar_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -69,7 +85,11 @@ class MainWindow(wx.Frame):
             flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, border=4,
         )
         toolbar_sizer.Add(
-            self.start_ollama_button, flag=wx.ALIGN_CENTER_VERTICAL
+            self.start_server_button, flag=wx.ALIGN_CENTER_VERTICAL
+        )
+        toolbar_sizer.Add(
+            self.stop_server_button, flag=wx.ALIGN_CENTER_VERTICAL | wx.LEFT,
+            border=4,
         )
 
         # Wire up chat panel actions to MainWindow handlers
@@ -81,9 +101,12 @@ class MainWindow(wx.Frame):
             wx.EVT_BUTTON, lambda evt: self.new_conversation()
         )
 
-        # Wire up refresh models button
-        self.params_panel.refresh_models_button.Bind(
-            wx.EVT_BUTTON, lambda evt: self._refresh_models()
+        # Wire up params_panel buttons
+        self.params_panel.scan_models_button.Bind(
+            wx.EVT_BUTTON, lambda evt: self._scan_models()
+        )
+        self.params_panel.browse_model_button.Bind(
+            wx.EVT_BUTTON, lambda evt: self._on_browse_model()
         )
 
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -160,7 +183,7 @@ class MainWindow(wx.Frame):
         # Bind accelerators
         self.Bind(
             wx.EVT_MENU,
-            lambda evt: self._refresh_models(),
+            lambda evt: self._scan_models(),
             id=wx.ID_REFRESH,
         )
         self.Bind(
@@ -182,66 +205,117 @@ class MainWindow(wx.Frame):
     # ── Startup ────────────────────────────────────────────────────────────
 
     def _startup_check(self) -> None:
-        """Check if Ollama is running and populate model list."""
+        """Classify server state into three states and announce."""
         log = get_logger()
-        if self._client.check_running():
-            log.info("Startup: Ollama detected")
-            self.status_bar.SetStatusText("Conectado", 0)
-            self._speech.speak("Conectado", interrupt=True)
-            self._refresh_models()
-        else:
+        install_cmd = get_install_command()
+
+        if find_llama_server() is None:
+            log.warning("Startup: llama-server not installed")
             msg = (
-                "No se puede conectar a Ollama en "
-                "http://localhost:11434. "
-                "Asegurate de que Ollama esté instalado y ejecutándose."
+                f"llama-server no instalado. Instalalo con: {install_cmd}."
             )
-            log.warning("Startup: Ollama not detected")
-            self.status_bar.SetStatusText("Desconectado", 0)
+            self.status_bar.SetStatusText("llama-server no instalado", 0)
             self._speech.speak(msg, interrupt=True)
             wx.MessageDialog(
                 self,
                 message=msg,
-                caption="Ollama no detectado",
+                caption="llama-server no instalado",
                 style=wx.OK | wx.ICON_WARNING,
             ).ShowModal()
+            return
 
-    def _refresh_models(self) -> None:
-        """Refresh the model list from Ollama."""
+        if not self._client.check_running():
+            log.info("Startup: llama-server installed but not running")
+            self.status_bar.SetStatusText("Servidor detenido", 0)
+            self._speech.speak(
+                "Servidor detenido. Selecciona un modelo y pulsa Iniciar servidor.",
+                interrupt=True,
+            )
+            return
+
+        loaded = self._client.get_loaded_model()
+        log.info(f"Startup: connected, model={loaded!r}")
+        self.status_bar.SetStatusText(f"Conectado: {loaded}", 0)
+        self._speech.speak(
+            f"Conectado. Modelo cargado: {loaded}.", interrupt=True
+        )
+        self._scan_models()
+
+    def _scan_models(self) -> None:
+        """Scan for .gguf files and populate the model selector."""
         log = get_logger()
-        models = self._client.list_models()
-        self.params_panel.set_models(models)
-        if models:
-            log.info(f"Models refreshed: {len(models)} available")
-            self.status_bar.SetStatusText(f"Modelo: {models[0]}", 1)
-            self._speech.speak(f"Modelo: {models[0]}", interrupt=True)
+        paths = find_gguf_models()
+        self.params_panel.set_models(paths)
+        if paths:
+            log.info(f"Scan: {len(paths)} .gguf file(s) found")
+            self._speech.speak(
+                f"{len(paths)} modelos encontrados", interrupt=True
+            )
         else:
-            log.warning("No models returned from Ollama")
+            log.warning("Scan: no .gguf files found")
+            self._speech.speak(
+                "Ningún modelo .gguf encontrado", interrupt=True
+            )
 
-    def _on_start_ollama(self) -> None:
-        """Start the Ollama server via subprocess.
-
-        Delegates the actual subprocess work to
-        :func:`ollamachat.core.ollama_runner.start_ollama` and only
-        handles the UI side: logging, status bar updates, and the
-        spoken announcement.
-        """
+    def _on_start_server(self) -> None:
+        """Start llama-server with the selected model."""
         log = get_logger()
-        log.info("Start Ollama button clicked")
+        log.info("Start server button clicked")
 
-        self.status_bar.SetStatusText("Iniciando Ollama...", 0)
-        self._speech.speak("Iniciando Ollama", interrupt=True)
+        model_path = self.params_panel.get_model()
+        if not model_path:
+            msg = "Selecciona primero un modelo .gguf"
+            self._speech.speak(msg, interrupt=True)
+            return
 
-        ok, message = start_ollama(self._client)
-        log.info(f"start_ollama returned ok={ok}, message={message!r}")
-        self._speech.speak(message, interrupt=True)
+        self.start_server_button.Disable()
+        self.status_bar.SetStatusText("Iniciando servidor...", 0)
+        self._speech.speak("Iniciando servidor...", interrupt=True)
+
+        ok, message = start_server(model_path, self._client)
+        log.info(f"start_server returned ok={ok}, message={message!r}")
 
         if ok:
-            self.status_bar.SetStatusText("Conectado", 0)
-            if "ya está" not in message:
-                # Only refresh models if we just started the server
-                self._refresh_models()
+            self.status_bar.SetStatusText("Servidor listo", 0)
+            if "corriendo" not in message:
+                self._scan_models()
+            self.stop_server_button.Enable()
         else:
-            self.status_bar.SetStatusText("Error", 0)
+            self.status_bar.SetStatusText("Error al iniciar", 0)
+
+        self._speech.speak(message, interrupt=True)
+        self.start_server_button.Enable()
+
+    def _on_stop_server(self) -> None:
+        """Stop the running llama-server."""
+        log = get_logger()
+        log.info("Stop server button clicked")
+
+        self.status_bar.SetStatusText("Deteniendo servidor...", 0)
+        self._speech.speak("Deteniendo servidor...", interrupt=True)
+
+        stop_server()
+
+        self.status_bar.SetStatusText("Servidor detenido", 0)
+        self._speech.speak("Servidor detenido", interrupt=True)
+        self.stop_server_button.Disable()
+        self.start_server_button.Enable()
+
+    def _on_browse_model(self) -> None:
+        """Open file dialog to pick a .gguf file and set it as the model."""
+        wildcard = "Modelos GGUF (*.gguf)|*.gguf"
+        dialog = wx.FileDialog(
+            self,
+            message="Seleccionar modelo .gguf",
+            defaultDir="",
+            defaultFile="",
+            wildcard=wildcard,
+            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
+        )
+        if dialog.ShowModal() == wx.ID_OK:
+            filepath = dialog.GetPath()
+            self.params_panel.set_models([filepath])
+        dialog.Destroy()
 
     # ── Message Send Flow ──────────────────────────────────────────────────
 
@@ -273,7 +347,15 @@ class MainWindow(wx.Frame):
                 f"[Contenido del archivo adjuntado]\n{attached_text}"
             )
         if attached_images:
-            user_msg["images"] = attached_images
+            # Build OpenAI content-array format
+            parts: list[dict] = [{"type": "text", "text": user_text}]
+            for b64, mime in attached_images:
+                url = f"data:{mime};base64,{b64}"
+                parts.append({
+                    "type": "image_url",
+                    "image_url": {"url": url},
+                })
+            user_msg["content"] = parts
         api_messages.append(user_msg)
 
         # Clear input and attachment
@@ -281,11 +363,11 @@ class MainWindow(wx.Frame):
         self.chat_panel.clear_attachment()
 
         # Add to conversation and display (augmented content if text attached)
-        self._conversation.add_message("user", user_msg["content"], images=attached_images)
-        self.chat_panel.append_user_message(user_msg["content"])
+        display_content = user_msg["content"]
+        self._conversation.add_message("user", display_content)
+        self.chat_panel.append_user_message(user_text)
 
         # Start generation
-        model = self.params_panel.get_model()
         options = self.params_panel.get_params()
         self._current_response = ""
 
@@ -296,7 +378,6 @@ class MainWindow(wx.Frame):
         self._speech.speak("Generando respuesta...", interrupt=True)
 
         self._client.chat_stream(
-            model=model,
             messages=api_messages,
             options=options,
             on_token=self._on_token,
@@ -414,6 +495,19 @@ class MainWindow(wx.Frame):
         self.chat_panel.clear()
         self._current_response = ""
         self._speech.speak("Nueva conversación", interrupt=True)
+
+    # ── Window Close ──────────────────────────────────────────────────────────
+
+    def _on_close(self, event: wx.CloseEvent) -> None:
+        """Handle window close: stop llama-server before exiting.
+
+        This is a blocking call (5s max for graceful shutdown) but the
+        app is closing so no UI responsiveness is needed.
+        """
+        log = get_logger()
+        log.info("Window closing, stopping llama-server")
+        stop_server()
+        event.Skip()
 
     # ── Help Dialogs ────────────────────────────────────────────────────────
 

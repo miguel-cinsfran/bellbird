@@ -122,17 +122,18 @@ class LlamaClient:
         import wx  # Import wx only when needed (core/ is wx-free at top level)
 
         try:
+            # Build the request body. The model key is set to "local" because
+            # llama-server serves a single model chosen at startup; the API
+            # requires the field but ignores its value. Sampling parameters
+            # live at the root of the body (NOT nested in an options object)
+            # because llama-server's OpenAI-compatible endpoint expects the
+            # OpenAI schema, not the Ollama schema.
             body: dict[str, Any] = {
                 "model": "local",
                 "messages": messages,
                 "stream": True,
             }
-            # Flatten sampling parameters into the root of the body
-            # Rename num_predict -> max_tokens for OpenAI compatibility
-            opts = dict(options)
-            if "num_predict" in opts:
-                opts["max_tokens"] = opts.pop("num_predict")
-            body.update(opts)
+            body.update(options)
 
             response = self._session.post(
                 f"{self.base_url}/v1/chat/completions",
@@ -141,9 +142,13 @@ class LlamaClient:
                 timeout=60,
             )
 
-            # Buffer for handling partial SSE lines split across iter_lines chunks
-            _buffer = ""
-
+            # SSE parser. requests.iter_lines() already buffers bytes until
+            # a newline, so each yielded item is a complete SSE line. We
+            # therefore only need to handle the line-level protocol here:
+            # skip blank/comment/event lines, recognize the "[DONE]"
+            # terminator, parse data: lines as JSON, extract the delta
+            # content, and forward it to on_token via wx.CallAfter.
+            # Malformed JSON lines are silently skipped (REQ-LLAMA-003).
             for line in response.iter_lines():
                 if self._stop_event.is_set():
                     break
@@ -151,40 +156,25 @@ class LlamaClient:
                     continue
 
                 decoded = line.decode("utf-8") if isinstance(line, bytes) else line
+                if not decoded.startswith("data: "):
+                    continue  # blank, ":comment", "event:...", "id:..." → skip
 
-                if decoded.startswith("data: "):
-                    payload = decoded[len("data: "):]
-                    if payload == "[DONE]":
-                        break
+                payload = decoded[len("data: "):]
+                if payload == "[DONE]":
+                    break
 
-                    # Try to parse as standalone JSON; if it fails,
-                    # accumulate in buffer for partial chunk handling
-                    try:
-                        chunk = json.loads(payload)
-                        _buffer = ""
-                    except json.JSONDecodeError:
-                        _buffer += payload
-                        # Try the combined buffer
-                        try:
-                            chunk = json.loads(_buffer)
-                            _buffer = ""
-                        except json.JSONDecodeError:
-                            continue
+                try:
+                    chunk = json.loads(payload)
+                except json.JSONDecodeError:
+                    continue  # malformed data line, skip
 
-                    content = chunk.get("choices", [{}])[0].get("delta", {}).get("content", "")
-                    if content:
-                        wx.CallAfter(on_token, content)
-                elif _buffer:
-                    # Non-data line while buffer is active — treat as continuation
-                    try:
-                        chunk = json.loads(_buffer + decoded)
-                        _buffer = ""
-                        content = chunk.get("choices", [{}])[0].get("delta", {}).get("content", "")
-                        if content:
-                            wx.CallAfter(on_token, content)
-                    except json.JSONDecodeError:
-                        _buffer += decoded
-                # else: non-data line (empty, event:, id:) — skip
+                content = (
+                    chunk.get("choices", [{}])[0]
+                    .get("delta", {})
+                    .get("content", "")
+                )
+                if content:
+                    wx.CallAfter(on_token, content)
 
             wx.CallAfter(on_done)
 

@@ -56,94 +56,108 @@ def find_llama_server() -> str | None:
     return str(Path(found).resolve())
 
 
+def _is_windows() -> bool:
+    """Return True if the current platform is Windows.
+
+    Extracted as a function so tests can mock it without triggering
+    pathlib.WindowsPath instantiation in non-Windows environments.
+    """
+    return os.name == "nt"
+
+
+def _get_standard_paths() -> list[str]:
+    """Return the list of standard model paths on Windows.
+
+    Returns absolute path strings. Returns [] on non-Windows platforms.
+    Extracted as a function so tests can mock it.
+    """
+    if not _is_windows():
+        return []
+    home = os.path.expanduser("~")
+    paths = [
+        os.path.join(home, "models"),
+        os.path.join(home, "Downloads"),
+        os.path.join(home, ".cache", "huggingface", "hub"),
+        os.path.join(home, ".lmstudio", "models"),
+    ]
+    local_app_data = os.environ.get("LOCALAPPDATA", "")
+    if local_app_data:
+        paths.append(os.path.join(local_app_data, "nomic.ai", "GPT4All"))
+    return paths
+
+
 def find_gguf_models(extra_paths: list[str] | None = None) -> list[str]:
     """Scan standard locations for .gguf model files.
 
-    On Windows (os.name == "nt"), scans:
-    - %%USERPROFILE%%\\models\\ (non-recursive)
-    - %%USERPROFILE%%\\Downloads\\ (non-recursive)
-    - %%USERPROFILE%%\\.cache\\huggingface\\hub\\ (recursive, depth 5)
-    - %%USERPROFILE%%\\.lmstudio\\models\\ (non-recursive)
-    - %%LOCALAPPDATA%%\\nomic.ai\\GPT4All\\ (non-recursive)
-    - extra_paths (if provided, non-recursive)
+    On Windows, scans the standard paths (returned by
+    :func:`_get_standard_paths`) plus any caller-provided ``extra_paths``.
+    The HuggingFace cache is scanned recursively to depth 5; all other
+    locations are scanned non-recursively.
 
-    On non-Windows, returns [] (extra_paths is also skipped).
+    On non-Windows, returns [] (per REQ-LLAMA-006: the function is
+    platform-aware and the standard Windows paths are absent on Linux
+    / WSL). This keeps the behavior deterministic in CI.
+
+    The scan uses ``os.path`` and ``os.scandir`` so it does not depend
+    on the pathlib Path class flavor. This matters for tests that
+    simulate a Windows environment on a POSIX host.
 
     Returns:
         Sorted list of absolute .gguf paths, deduplicated. Never raises.
     """
-    paths_to_scan: list[tuple[str, bool]] = []
+    # REQ-LLAMA-006: on non-Windows the function MUST return [].
+    if not _is_windows():
+        return []
 
-    # On non-Windows, skip the Windows-specific standard paths but still scan
-    # extra_paths for dev testing convenience.
-    if os.name != "nt":
-        collected: set[str] = set()
-        if extra_paths:
-            for p in extra_paths:
-                base = Path(p)
-                if base.is_dir():
-                    _scan_non_recursive(base, collected)
-        return sorted(collected, key=lambda p: Path(p).name.lower())
-
-    home = Path.home()
-    # Non-recursive standard paths
-    for subdir in ("models", "Downloads"):
-        paths_to_scan.append((str(home / subdir), False))
-    # Recursive: HuggingFace cache (depth 5)
-    paths_to_scan.append((str(home / ".cache" / "huggingface" / "hub"), True))
-    # Non-recursive: LM Studio, GPT4All
-    paths_to_scan.append((str(home / ".lmstudio" / "models"), False))
-    local_app_data = os.environ.get("LOCALAPPDATA", "")
-    if local_app_data:
-        paths_to_scan.append((str(Path(local_app_data) / "nomic.ai" / "GPT4All"), False))
-
-    # Extra paths (non-recursive, provided by caller)
+    # Build (path, recursive) list. The HuggingFace cache is at index 2
+    # in the standard paths and is the only recursive one.
+    paths_to_scan: list[tuple[str, bool]] = [
+        (p, i == 2) for i, p in enumerate(_get_standard_paths())
+    ]
     if extra_paths:
         for p in extra_paths:
             paths_to_scan.append((p, False))
 
     collected: set[str] = set()
     for dir_path, recursive in paths_to_scan:
-        base = Path(dir_path)
-        if not base.is_dir():
+        if not os.path.isdir(dir_path):
             continue
-
         if recursive:
-            # Manual recursion with depth cap of 5
-            _scan_recursive(base, collected, max_depth=5)
+            _scan_recursive_os(dir_path, collected, current_depth=0, max_depth=5)
         else:
-            _scan_non_recursive(base, collected)
+            _scan_non_recursive_os(dir_path, collected)
 
-    # Sort by basename, deduplicated
-    return sorted(collected, key=lambda p: Path(p).name.lower())
+    return sorted(collected, key=lambda p: os.path.basename(p).lower())
 
 
-def _scan_non_recursive(base: Path, collected: set[str]) -> None:
+def _scan_non_recursive_os(dir_path: str, collected: set[str]) -> None:
     """Add .gguf files from a single directory (non-recursive)."""
-    for entry in base.iterdir():
-        if entry.is_file() and entry.suffix.lower() == ".gguf":
-            collected.add(str(entry.resolve()))
+    try:
+        with os.scandir(dir_path) as it:
+            for entry in it:
+                if entry.is_file() and entry.name.lower().endswith(".gguf"):
+                    collected.add(os.path.abspath(entry.path))
+    except OSError:
+        pass
 
 
-def _scan_recursive(base: Path, collected: set[str], max_depth: int) -> None:
-    """Recursively add .gguf files, up to a given depth."""
-    _scan_recursive_impl(base, collected, current_depth=0, max_depth=max_depth)
-
-
-def _scan_recursive_impl(
-    base: Path, collected: set[str], current_depth: int, max_depth: int
+def _scan_recursive_os(
+    dir_path: str, collected: set[str], current_depth: int, max_depth: int
 ) -> None:
-    """Internal recursive scanner with depth tracking."""
+    """Recursively add .gguf files, up to a given depth."""
     if current_depth > max_depth:
         return
     try:
-        for entry in base.iterdir():
-            if entry.is_file() and entry.suffix.lower() == ".gguf":
-                collected.add(str(entry.resolve()))
-            elif entry.is_dir() and current_depth < max_depth:
-                _scan_recursive_impl(entry, collected, current_depth + 1, max_depth)
-    except PermissionError:
-        pass  # Skip directories we cannot read
+        with os.scandir(dir_path) as it:
+            for entry in it:
+                if entry.is_file() and entry.name.lower().endswith(".gguf"):
+                    collected.add(os.path.abspath(entry.path))
+                elif entry.is_dir() and current_depth < max_depth:
+                    _scan_recursive_os(
+                        entry.path, collected, current_depth + 1, max_depth
+                    )
+    except OSError:
+        pass
 
 
 def start_server(

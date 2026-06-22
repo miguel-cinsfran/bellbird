@@ -185,7 +185,7 @@ class TestLlamaClient:
         """Given options, the POST body has correct shape (no options sub-object)."""
         options = {
             "temperature": 0.7,
-            "num_predict": 256,
+            "max_tokens": 256,
             "top_p": 0.9,
             "top_k": 40,
             "repeat_penalty": 1.1,
@@ -208,7 +208,6 @@ class TestLlamaClient:
         assert body["stream"] is True
         assert body["messages"] == messages
         assert body["temperature"] == 0.7
-        assert "max_tokens" in body
         assert body["max_tokens"] == 256
         assert body["top_p"] == 0.9
         assert body["top_k"] == 40
@@ -239,16 +238,19 @@ class TestLlamaClient:
         assert on_done.call_count == 1
         assert on_error.call_count == 0
 
-    def test_chat_stream_handles_partial_chunks(self, mock_session, mock_call_after):
-        """Given SSE data split across iter_lines chunks, tokens are forwarded."""
-        # iter_lines yields two incomplete data: lines that together form
-        # a single valid JSON payload. The implementation accumulates partial
-        # data fields until JSON parses successfully.
-        # Note: mock iter_lines returns lines without trailing newlines,
-        # mimicking real iter_lines behavior.
+    def test_chat_stream_handles_blank_and_comment_lines(self, mock_session, mock_call_after):
+        """Given blank lines and SSE comments interleaved with valid events,
+        the parser skips them and forwards only valid events.
+
+        requests.iter_lines() already buffers bytes until a newline, so
+        each yielded line is a complete SSE line. The parser is only
+        responsible for line-level filtering (blank, comment, event, id).
+        """
         self._stub_stream(mock_session, [
-            b'data: {"choices":[{"delta":{"content":"',
-            b'data: assembled"}}]}',
+            b'',                                          # blank (SSE event separator)
+            b': heartbeat comment',                       # SSE comment
+            b'data: {"choices":[{"delta":{"content":"ok"}}]}',
+            b'',                                          # blank
             b'data: [DONE]',
         ])
 
@@ -263,7 +265,7 @@ class TestLlamaClient:
         time.sleep(0.1)
 
         assert on_token.call_count == 1
-        assert on_token.call_args[0][0] == "assembled"
+        assert on_token.call_args[0][0] == "ok"
         assert on_done.call_count == 1
         assert on_error.call_count == 0
 

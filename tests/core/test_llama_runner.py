@@ -1,5 +1,6 @@
 """Tests for LlamaRunner module — strict TDD, RED first, then GREEN."""
 
+import os
 import subprocess
 import sys
 from unittest.mock import MagicMock, patch
@@ -35,6 +36,16 @@ class TestLlamaRunner:
 
     # ── find_gguf_models ────────────────────────────────────────────────
 
+    def test_find_gguf_models_non_windows_returns_empty(self, tmp_path):
+        """On non-Windows (os.name != 'nt'), the function MUST return []
+        even when extra_paths contains real .gguf files (REQ-LLAMA-006)."""
+        (tmp_path / "x.gguf").write_text("")
+
+        from ollamachat.core.llama_runner import find_gguf_models
+
+        result = find_gguf_models(extra_paths=[str(tmp_path)])
+        assert result == []
+
     def test_find_gguf_models_filters_extensions(self, tmp_path):
         """Given a dir with .gguf and .safetensors, only .gguf files are returned."""
         (tmp_path / "a.gguf").write_text("")
@@ -43,7 +54,13 @@ class TestLlamaRunner:
 
         from ollamachat.core.llama_runner import find_gguf_models
 
-        result = find_gguf_models(extra_paths=[str(tmp_path)])
+        with patch(
+            "ollamachat.core.llama_runner._is_windows", return_value=True
+        ), patch(
+            "ollamachat.core.llama_runner._get_standard_paths",
+            return_value=[str(tmp_path)],
+        ):
+            result = find_gguf_models(extra_paths=[str(tmp_path)])
         assert len(result) == 2
         assert all(p.endswith(".gguf") for p in result)
         # Sorted by basename: a.gguf, b.gguf
@@ -54,8 +71,12 @@ class TestLlamaRunner:
         """Given non-existent extra_paths, returns [] without raising."""
         from ollamachat.core.llama_runner import find_gguf_models
 
-        result = find_gguf_models(extra_paths=["/does/not/exist"])
-        # On non-Windows, returns [] (extra_paths also skipped on non-Windows per spec)
+        with patch(
+            "ollamachat.core.llama_runner._is_windows", return_value=True
+        ), patch(
+            "ollamachat.core.llama_runner._get_standard_paths", return_value=[]
+        ):
+            result = find_gguf_models(extra_paths=["/does/not/exist"])
         assert result == []
 
     def test_find_gguf_models_extra_paths(self, tmp_path):
@@ -64,24 +85,18 @@ class TestLlamaRunner:
 
         from ollamachat.core.llama_runner import find_gguf_models
 
-        result = find_gguf_models(extra_paths=[str(tmp_path)])
+        with patch(
+            "ollamachat.core.llama_runner._is_windows", return_value=True
+        ), patch(
+            "ollamachat.core.llama_runner._get_standard_paths", return_value=[]
+        ):
+            result = find_gguf_models(extra_paths=[str(tmp_path)])
         assert len(result) == 1
         assert "phi-3.gguf" in result[0]
 
-    def test_find_gguf_models_non_windows_skips_standard_paths(self, tmp_path):
-        """On non-Windows, only standard Windows paths are skipped; extra_paths works."""
-        (tmp_path / "test.gguf").write_text("")
-
-        from ollamachat.core.llama_runner import find_gguf_models
-
-        # On non-Windows (os.name != 'nt'), standard Windows paths are skipped,
-        # but extra_paths is still scanned for dev testing convenience.
-        result = find_gguf_models(extra_paths=[str(tmp_path)])
-        assert len(result) == 1
-        assert "test.gguf" in result[0]
-
     def test_find_gguf_models_respects_recursive_depth(self, tmp_path):
-        """Given a nested structure, only files at depth <= 5 are returned."""
+        """The HuggingFace cache (3rd standard path) is scanned recursively
+        to depth 5; extra_paths and other standard paths are non-recursive."""
         # Create structure at depths 1, 3, 5, 7
         (tmp_path / "depth1.gguf").write_text("")
         d3 = tmp_path / "a" / "b" / "c"
@@ -96,13 +111,36 @@ class TestLlamaRunner:
 
         from ollamachat.core.llama_runner import find_gguf_models
 
-        # extra_paths is scanned with non-recursive scan on non-Windows,
-        # so only depth1.gguf (at root) is found.
-        result = find_gguf_models(extra_paths=[str(tmp_path)])
-        # On non-Windows, extra_paths is scanned non-recursively, so only
-        # depth1.gguf at the root dir is returned
-        assert len(result) == 1
-        assert "depth1.gguf" in result[0]
+        # Make the recursive HF cache (index 2) point at our tmp_path.
+        # Other standard paths are non-existent and will be skipped.
+        standard = ["/nonexistent", "/nonexistent", str(tmp_path), "/nonexistent"]
+        with patch(
+            "ollamachat.core.llama_runner._is_windows", return_value=True
+        ), patch(
+            "ollamachat.core.llama_runner._get_standard_paths",
+            return_value=standard,
+        ):
+            result = find_gguf_models()
+        # Depth 1, 3, 5 are within the cap; depth 7 is excluded.
+        assert len(result) == 3
+        basenames = [os.path.basename(p) for p in result]
+        assert "depth1.gguf" in basenames
+        assert "depth3.gguf" in basenames
+        assert "depth5.gguf" in basenames
+        assert "depth7.gguf" not in basenames
+
+    def test_find_gguf_models_is_windows_guard(self):
+        """When _is_windows returns False, find_gguf_models returns [] regardless
+        of extra_paths (the platform gate is the first check)."""
+        from ollamachat.core.llama_runner import find_gguf_models
+
+        # Real WSL is non-Windows, so the default behavior is already [].
+        # This test asserts the platform gate explicitly.
+        with patch(
+            "ollamachat.core.llama_runner._is_windows", return_value=False
+        ):
+            result = find_gguf_models(extra_paths=["/nonexistent/x.gguf"])
+        assert result == []
 
     # ── get_install_command ─────────────────────────────────────────────
 

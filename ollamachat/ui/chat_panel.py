@@ -24,7 +24,7 @@ class ChatPanel(wx.Panel):
         super().__init__(parent)
         self._speech = speech
         self._on_send_callback = on_send
-        self._attached_images: list[str] = []
+        self._attached_images: list[tuple[str, str]] = []  # (base64, mime)
         self._attached_text: str | None = None
         self._build_ui()
 
@@ -177,11 +177,30 @@ class ChatPanel(wx.Panel):
         self.attach_button.Enable()
         self.stop_button.Disable()
 
+    def _infer_mime(self, ext: str) -> str:
+        """Infer MIME type from file extension.
+
+        Args:
+            ext: Lowercase file extension without dot.
+
+        Returns:
+            MIME type string (e.g. 'image/jpeg').
+        """
+        mime_map = {
+            "jpg": "image/jpeg",
+            "jpeg": "image/jpeg",
+            "png": "image/png",
+            "bmp": "image/bmp",
+            "gif": "image/gif",
+        }
+        return mime_map.get(ext, "image/jpeg")
+
     def attach_file(self, filepath: str) -> None:
         """Attach a file to the next message.
 
         Image files (jpg, jpeg, png, bmp, gif) are base64-encoded and
-        stored in _attached_images. Other files are read as UTF-8 text.
+        stored in _attached_images as (base64, mime) tuples. Other files
+        are read as UTF-8 text.
 
         Args:
             filepath: Path to the file to attach.
@@ -192,7 +211,8 @@ class ChatPanel(wx.Panel):
         if ext in ("jpg", "jpeg", "png", "bmp", "gif"):
             with open(path, "rb") as f:
                 encoded = base64.b64encode(f.read()).decode("utf-8")
-            self._attached_images = [encoded]
+            mime = self._infer_mime(ext)
+            self._attached_images = [(encoded, mime)]
             self._attached_text = None
             self.attachment_label.SetLabel(path.name)
             self._speech.speak(f"Imagen adjuntada: {path.name}", interrupt=True)
@@ -210,11 +230,11 @@ class ChatPanel(wx.Panel):
                     f"No se pudo adjuntar: {path.name}", interrupt=True
                 )
 
-    def get_attached_images(self) -> list[str]:
-        """Get the list of base64-encoded attached images.
+    def get_attached_images(self) -> list[tuple[str, str]]:
+        """Get the list of attached images as (base64, mime) tuples.
 
         Returns:
-            List of base64 image strings.
+            List of (base64, mime) tuples.
         """
         return self._attached_images
 

@@ -17,13 +17,15 @@ class TestLlamaRunner:
     # ── find_llama_server ───────────────────────────────────────────────
 
     def test_find_llama_server_found_in_path(self):
-        """Given shutil.which returns a path, find_llama_server returns it."""
+        """Given shutil.which returns a path, find_llama_server returns it resolved."""
+        from pathlib import Path
+
         with patch("bellbird.core.llama_runner.shutil.which") as mock_which:
             mock_which.return_value = "/usr/bin/llama-server"
             from bellbird.core.llama_runner import find_llama_server
 
             result = find_llama_server()
-            assert result == "/usr/bin/llama-server"
+            assert Path(result) == Path("/usr/bin/llama-server").resolve()
 
     def test_find_llama_server_returns_none(self):
         """Given shutil.which returns None, find_llama_server returns None."""

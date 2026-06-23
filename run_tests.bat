@@ -15,9 +15,9 @@ echo.
     echo.
     uv run pytest tests/ -v --tb=short 2>&1
     echo.
-    echo === SMOKE TEST ^(smoke_test.py --no-gui^) ===
+    echo === SMOKE TEST ^(smoke_test.py^) ===
     echo.
-    uv run python smoke_test.py --no-gui 2>&1
+    uv run python smoke_test.py 2>&1
 ) > "%TMPFILE%"
 
 echo.

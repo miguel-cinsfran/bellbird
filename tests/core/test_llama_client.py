@@ -383,3 +383,111 @@ class TestLlamaClient:
         assert on_token.call_args[0][0] == "hello"
         assert on_done.call_count == 1
         assert on_error.call_count == 0
+
+    # ── tool_calls (v0.4.0) ──────────────────────────────────────────────
+
+    def test_chat_stream_passes_tools_in_body(self, mock_session, mock_call_after):
+        """Given tools are passed, the POST body contains tools and tool_choice."""
+        self._stub_stream(mock_session, [
+            b'data: {"choices":[{"delta":{"content":"ok"}}]}',
+            b'data: [DONE]',
+        ])
+
+        from ollamachat.core.llama_client import LlamaClient
+
+        client = LlamaClient(session=mock_session)
+        on_token = Mock()
+        on_done = Mock()
+        on_error = Mock()
+
+        tools = [{"type": "function", "function": {"name": "shell_execute"}}]
+        client.chat_stream([], {}, on_token, on_done, on_error, tools=tools)
+        time.sleep(0.1)
+
+        _, kwargs = mock_session.post.call_args
+        body = kwargs["json"]
+        assert body["tools"] == tools
+        assert body["tool_choice"] == "auto"
+
+    def test_chat_stream_no_tools_when_none(self, mock_session, mock_call_after):
+        """Given tools=None, the POST body does NOT contain tools or tool_choice."""
+        self._stub_stream(mock_session, [
+            b'data: {"choices":[{"delta":{"content":"ok"}}]}',
+            b'data: [DONE]',
+        ])
+
+        from ollamachat.core.llama_client import LlamaClient
+
+        client = LlamaClient(session=mock_session)
+        on_token = Mock()
+        on_done = Mock()
+        on_error = Mock()
+
+        # tools defaults to None — no tools/tool_choice in body
+        client.chat_stream([], {}, on_token, on_done, on_error)
+        time.sleep(0.1)
+
+        _, kwargs = mock_session.post.call_args
+        body = kwargs["json"]
+        assert "tools" not in body
+        assert "tool_choice" not in body
+
+    def test_chat_stream_calls_on_tool_call(self, mock_session, mock_call_after):
+        """Given SSE with tool_calls delta and finish_reason=tool_calls,
+        on_tool_call is called with parsed args."""
+        self._stub_stream(mock_session, [
+            b'data: {"choices":[{"delta":{"content":"I will run that."}}]}',
+            b'data: {"choices":[{"finish_reason":"tool_calls","delta":{"tool_calls":[{"index":0,"id":"call_abc","function":{"name":"shell_execute","arguments":"{\\"command\\":\\"ls\\"}"}}]}}]}',
+            b'data: [DONE]',
+        ])
+
+        from ollamachat.core.llama_client import LlamaClient
+
+        client = LlamaClient(session=mock_session)
+        on_token = Mock()
+        on_done = Mock()
+        on_error = Mock()
+        on_tool_call = Mock()
+
+        client.chat_stream([], {}, on_token, on_done, on_error,
+                           on_tool_call=on_tool_call)
+        time.sleep(0.1)
+
+        assert on_tool_call.call_count == 1
+        name, call_id, args = on_tool_call.call_args[0]
+        assert name == "shell_execute"
+        assert call_id == "call_abc"
+        assert args == {"command": "ls"}
+        assert on_token.call_count == 1
+        assert on_done.call_count == 1
+        assert on_error.call_count == 0
+
+    def test_chat_stream_accumulates_tool_call_arguments(self, mock_session, mock_call_after):
+        """Given tool_call arguments split across 3 SSE chunks,
+        on_tool_call receives the reassembled dict."""
+        self._stub_stream(mock_session, [
+            b'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call_x","function":{"name":"shell_execute","arguments":"{"}}]}}]}',
+            b'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"arguments":"\\"command\\": \\"ls\\""}}]}}]}',
+            b'data: {"choices":[{"finish_reason":"tool_calls","delta":{"tool_calls":[{"index":0,"function":{"arguments":"}"}}]}}]}',
+            b'data: [DONE]',
+        ])
+
+        from ollamachat.core.llama_client import LlamaClient
+
+        client = LlamaClient(session=mock_session)
+        on_token = Mock()
+        on_done = Mock()
+        on_error = Mock()
+        on_tool_call = Mock()
+
+        client.chat_stream([], {}, on_token, on_done, on_error,
+                           on_tool_call=on_tool_call)
+        time.sleep(0.1)
+
+        assert on_tool_call.call_count == 1
+        name, call_id, args = on_tool_call.call_args[0]
+        assert name == "shell_execute"
+        assert call_id == "call_x"
+        assert args == {"command": "ls"}
+        assert on_done.call_count == 1
+        assert on_error.call_count == 0

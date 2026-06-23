@@ -111,14 +111,14 @@ def test_message_list_present():
     """ChatPanel has a message_list ListBox."""
     source_path = _get_ui_path("chat_panel.py")
     source = source_path.read_text(encoding="utf-8")
-    assert 'name="message_list"' in source or "name='message_list'" in source
+    assert 'name="Historial de mensajes"' in source or "name='Historial de mensajes'" in source
 
 
 def test_stream_display_present():
     """ChatPanel has a stream_display TextCtrl with TE_READONLY."""
     source_path = _get_ui_path("chat_panel.py")
     source = source_path.read_text(encoding="utf-8")
-    assert 'name="stream_display"' in source or "name='stream_display'" in source
+    assert 'name="Respuesta en curso"' in source or "name='Respuesta en curso'" in source
 
 
 def test_history_list_exists_in_init():
@@ -144,7 +144,7 @@ def test_input_has_process_enter():
                 has_input_name = any(
                     kw.arg == "name"
                     and isinstance(kw.value, ast.Constant)
-                    and kw.value.value == "message_input"
+                    and kw.value.value == "Campo de mensaje"
                     for kw in node.keywords
                     if kw.arg is not None
                 )

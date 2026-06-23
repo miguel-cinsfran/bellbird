@@ -150,7 +150,7 @@ def test_stream_display_no_te_rich2():
     # Sanity: the stream_display widget must still exist with the
     # read-only style flag (so a future refactor that drops the widget
     # entirely is caught here too).
-    assert 'name="stream_display"' in source, (
+    assert 'name="Respuesta en curso"' in source, (
         "stream_display widget must still exist in chat_panel.py"
     )
     assert "TE_READONLY" in source, (

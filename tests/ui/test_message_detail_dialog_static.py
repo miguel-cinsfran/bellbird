@@ -43,7 +43,7 @@ def test_content_text_present():
     """MessageDetailDialog has a content_text TextCtrl."""
     source_path = _get_ui_path("message_detail_dialog.py")
     source = source_path.read_text(encoding="utf-8")
-    assert 'name="content_text"' in source or "name='content_text'" in source
+    assert 'name="Contenido del mensaje"' in source or "name='Contenido del mensaje'" in source
 
 
 def test_open_browser_button_present():

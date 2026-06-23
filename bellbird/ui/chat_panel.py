@@ -47,7 +47,7 @@ class ChatPanel(wx.Panel):
         )
         self.message_list = wx.ListBox(
             self,
-            name="message_list",
+            name="Historial de mensajes",
         )
         self.message_list.Bind(wx.EVT_CONTEXT_MENU, self._on_message_context_menu)
         self.message_list.Bind(wx.EVT_KEY_DOWN, self._on_list_key)
@@ -62,7 +62,7 @@ class ChatPanel(wx.Panel):
         self.stream_display = wx.TextCtrl(
             self,
             style=wx.TE_MULTILINE | wx.TE_READONLY,
-            name="stream_display",
+            name="Respuesta en curso",
             size=(-1, 80),
         )
         sizer.Add(self.stream_display, proportion=0, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=8)
@@ -85,9 +85,12 @@ class ChatPanel(wx.Panel):
         self.message_input = wx.TextCtrl(
             self,
             style=wx.TE_MULTILINE | wx.TE_PROCESS_ENTER,
-            name="message_input",
+            name="Campo de mensaje",
         )
         self.message_input.Bind(wx.EVT_TEXT_ENTER, self._on_input_enter)
+        self.message_input.SetToolTip(
+            "Escribe tu mensaje. Enter envía, Shift+Enter inserta nueva línea."
+        )
         sizer.Add(self.message_input, proportion=0, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=8)
 
         # ── Action Buttons ──────────────────────────────────────────────────

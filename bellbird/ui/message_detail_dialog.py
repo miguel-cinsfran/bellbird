@@ -41,7 +41,7 @@ class MessageDetailDialog(wx.Dialog):
         self.content_text = wx.TextCtrl(
             self,
             style=wx.TE_MULTILINE | wx.TE_READONLY,
-            name="content_text",
+            name="Contenido del mensaje",
             value=strip_markdown(text),
         )
         sizer.Add(self.content_text, proportion=1,

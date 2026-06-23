@@ -1121,14 +1121,14 @@ def test_model_selector_in_frame():
             if func_name == "wx.ComboBox":
                 # Check parent= is self (the Frame, not a child panel)
                 for kw in node.keywords:
-                    if kw.arg == "name" and isinstance(kw.value, ast.Constant) and kw.value.value == "model_selector":
+                    if kw.arg == "name" and isinstance(kw.value, ast.Constant) and kw.value.value == "Selector de modelo":
                         found = True
                         break
             if found:
                 break
 
     assert found, (
-        "model_selector (wx.ComboBox with name='model_selector') must be "
+        "model_selector (wx.ComboBox with name='Selector de modelo') must be "
         "created in MainWindow (parent=self)"
     )
 

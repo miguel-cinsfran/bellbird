@@ -112,11 +112,14 @@ class MainWindow(wx.Frame):
         main_panel = wx.Panel(self)
 
         # ── Model selector ────────────────────────────────────────────
-        self.model_selector = wx.ComboBox(main_panel, name="model_selector")
+        self.model_selector = wx.ComboBox(main_panel, name="Selector de modelo")
         if self._config.last_model:
             self.model_selector.SetValue(self._config.last_model)
         self.model_selector.Bind(wx.EVT_COMBOBOX, self._on_model_select)
         self.model_selector.Bind(wx.EVT_TEXT, self._on_model_text_change)
+        self.model_selector.SetToolTip(
+            "Selecciona un modelo .gguf o escribe la ruta completa."
+        )
 
         self.scan_models_button = wx.Button(
             main_panel, label="Buscar modelos", name="scan_models_button"

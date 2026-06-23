@@ -91,7 +91,7 @@ class PreferencesDialog(wx.Dialog):
         )
 
         self.extra_folders_list = wx.ListBox(
-            panel, name="extra_folders_list",
+            panel, name="Carpetas de modelos adicionales",
             choices=self._config.extra_model_folders,
         )
         sizer.Add(self.extra_folders_list, proportion=1,
@@ -132,7 +132,7 @@ class PreferencesDialog(wx.Dialog):
         )
         self.pref_system_prompt = wx.TextCtrl(
             panel, value=self._config.system_prompt,
-            style=wx.TE_MULTILINE, size=(-1, 80), name="pref_system_prompt",
+            style=wx.TE_MULTILINE, size=(-1, 80), name="Prompt de sistema",
         )
         sizer.Add(self.pref_system_prompt,
                   flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=8)

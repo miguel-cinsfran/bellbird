@@ -1324,6 +1324,11 @@ class MainWindow(wx.Frame):
         """Open the PreferencesDialog, persist on OK, leave untouched on Cancel."""
         dlg = PreferencesDialog(self, self._config)
         if dlg.ShowModal() == wx.ID_OK:
+            old_port = self._config.port
             self._config = dlg.get_config()
             save_config(self._config)
+            if self._config.port != old_port:
+                self._client = LlamaClient(
+                    base_url=f"http://localhost:{self._config.port}"
+                )
         dlg.Destroy()

@@ -1291,3 +1291,32 @@ def test_version_0_5_0():
     assert 'version = "0.5.0"' in source, (
         "pyproject.toml must have version = \"0.5.0\""
     )
+
+
+def test_show_preferences_recreates_client_on_port_change() -> None:
+    """_show_preferences must recreate self._client when the port changes.
+
+    When the user changes self._config.port in Preferences and clicks OK,
+    the LlamaClient URL must be updated to match. Without this, start_server
+    launches llama-server on the new port but polls the old port for the
+    health check, causing a spurious timeout failure.
+    """
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    import re
+    m = re.search(
+        r"def _show_preferences\(self\) -> None:.*?(?=\n    def |\nclass |\Z)",
+        source,
+        re.DOTALL,
+    )
+    assert m is not None, "_show_preferences method not found"
+    body = m.group(0)
+    assert "self._client = LlamaClient(" in body, (
+        "_show_preferences must recreate self._client with the new port "
+        "when self._config.port changes. Otherwise start_server polls the "
+        "old port and reports a false timeout."
+    )
+    assert "old_port" in body, (
+        "_show_preferences must compare old and new port before recreating "
+        "the client (guard: if self._config.port != old_port)."
+    )

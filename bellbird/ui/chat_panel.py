@@ -23,10 +23,13 @@ class ChatPanel(wx.Panel):
         speech: Speech instance for token announcements.
     """
 
-    def __init__(self, parent: wx.Window, speech, on_send: callable | None = None) -> None:
+    def __init__(self, parent: wx.Window, speech,
+                 on_send: callable | None = None,
+                 on_delete_message: callable | None = None) -> None:
         super().__init__(parent)
         self._speech = speech
         self._on_send_callback = on_send
+        self._on_delete_callback = on_delete_message
         self._attached_images: list[tuple[str, str]] = []  # (base64, mime)
         self._attached_text: str | None = None
         self._history: list[tuple[str, str]] = []
@@ -317,12 +320,15 @@ class ChatPanel(wx.Panel):
         sel = self.message_list.GetSelection()
         if sel == wx.NOT_FOUND:
             return
+        role = self._history[sel][0]  # capture BEFORE pop
         self._history.pop(sel)
         self.message_list.Delete(sel)
         count = self.message_list.GetCount()
         if count > 0:
             new_sel = min(sel, count - 1)
             self.message_list.SetSelection(new_sel)
+        if self._on_delete_callback:
+            self._on_delete_callback(sel, role)
         self._speech.speak("Mensaje eliminado", interrupt=False)
 
     # ── Key routing ────────────────────────────────────────────────────────

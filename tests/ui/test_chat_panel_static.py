@@ -385,6 +385,50 @@ def test_no_emoji_in_tool_prefixes():
         assert prefix.isascii(), f"{prefix} contains non-ASCII characters"
 
 
+def test_chat_panel_accepts_on_delete_callback():
+    """ChatPanel.__init__ accepts an on_delete_message callback parameter (BUG 1)."""
+    source_path = _get_ui_path("chat_panel.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    init_params: list[str] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == "__init__":
+            for parent in ast.walk(tree):
+                if isinstance(parent, ast.ClassDef) and parent.name == "ChatPanel":
+                    for item in parent.body:
+                        if isinstance(item, ast.FunctionDef) and item.name == "__init__":
+                            init_params = [a.arg for a in item.args.args]
+                            break
+
+    assert "on_delete_message" in init_params, (
+        "ChatPanel.__init__ must accept an 'on_delete_message' parameter (BUG 1). "
+        f"Found params: {init_params}"
+    )
+
+
+def test_on_context_delete_calls_callback():
+    """_on_context_delete calls the on_delete callback (BUG 1)."""
+    source_path = _get_ui_path("chat_panel.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    found_callback_call = False
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == "_on_context_delete":
+            for child in ast.walk(node):
+                if isinstance(child, ast.Call):
+                    func_name = _get_func_name(child)
+                    if "_on_delete_callback" in func_name:
+                        found_callback_call = True
+                        break
+
+    assert found_callback_call, (
+        "_on_context_delete must call self._on_delete_callback() to sync "
+        "Conversation.messages with the deleted _history entry (BUG 1)."
+    )
+
+
 def test_end_generation_skips_empty_preview() -> None:
     """Regression for B3: message_list.Append must be INSIDE the strip() guard.
 

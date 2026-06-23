@@ -103,7 +103,9 @@ class MainWindow(wx.Frame):
 
         self.params_panel = ParamsPanel(self.splitter, self._speech)
         self.chat_panel = ChatPanel(
-            self.splitter, self._speech, on_send=self.send_message
+            self.splitter, self._speech,
+            on_send=self.send_message,
+            on_delete_message=self._on_history_delete,
         )
 
         self.splitter.SplitVertically(
@@ -740,6 +742,26 @@ class MainWindow(wx.Frame):
             on_tool_call=self._on_tool_call,
             tools=tools,
         )
+
+    def _on_history_delete(self, index: int, role: str) -> None:
+        """Sync Conversation.messages with the deleted history entry.
+
+        Called by ChatPanel._on_context_delete after the user deletes
+        a message from the history list. System-role rows (tool blocked/
+        denied) are UI-only and have no Conversation counterpart.
+
+        Args:
+            index: Pre-pop position in _history of the deleted entry.
+            role: Role of the deleted entry.
+        """
+        if role == "system":
+            return
+        system_count = sum(
+            1 for r, _ in self.chat_panel._history[:index] if r == "system"
+        )
+        conv_index = index - system_count
+        if 0 <= conv_index < len(self._conversation.messages):
+            self._conversation.messages.pop(conv_index)
 
     def _on_token(self, token: str) -> None:
         """Handle a token fragment from the stream.

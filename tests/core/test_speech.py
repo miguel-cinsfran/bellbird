@@ -71,22 +71,28 @@ def test_constructor_with_available_output(mock_auto):
 
 def test_constructor_import_error():
     """Given ImportError on accessible_output2, Speech() is silent."""
-    # Ensure accessible_output2 cannot be imported
-    saved_modules = {}
-    for key in list(sys.modules.keys()):
-        if "accessible_output2" in key:
-            saved_modules[key] = sys.modules.pop(key)
+    import builtins
+    real_import = builtins.__import__
+
+    def _block_a2(name, *args, **kwargs):
+        if "accessible_output2" in name:
+            raise ImportError(f"blocked: {name}")
+        return real_import(name, *args, **kwargs)
+
+    # Remove from sys.modules so Python must call __import__ (not cache hit).
+    saved_modules = {k: sys.modules.pop(k) for k in list(sys.modules) if "accessible_output2" in k}
 
     _reload_speech()
-
     from bellbird.core.speech import Speech
 
-    speech = Speech()
+    try:
+        with patch("builtins.__import__", side_effect=_block_a2):
+            speech = Speech()
+    finally:
+        sys.modules.update(saved_modules)
+
     assert speech._output is None
     assert speech.is_silent
-
-    # Restore
-    sys.modules.update(saved_modules)
 
 
 def test_constructor_oserror():

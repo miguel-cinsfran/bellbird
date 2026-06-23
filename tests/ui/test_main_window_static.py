@@ -1108,3 +1108,141 @@ def test_f6_has_four_targets():
     assert "restart_server_button" in method_source, (
         "_on_f6_cycle must reference restart_server_button as the 4th target"
     )
+
+
+# ─── v0.5.0 layout refactor AST tests (TDD RED until implementation) ──────
+
+
+def test_no_splitter_window():
+    """'SplitterWindow' must NOT appear in main_window.py source."""
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    assert "SplitterWindow" not in source, (
+        "SplitterWindow must be removed from MainWindow in v0.5.0"
+    )
+
+
+def test_model_selector_in_frame():
+    """model_selector is created as a direct child of the Frame (self)."""
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    found = False
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            func_name = _get_func_name(node)
+            if func_name == "wx.ComboBox":
+                # Check parent= is self (the Frame, not a child panel)
+                for kw in node.keywords:
+                    if kw.arg == "name" and isinstance(kw.value, ast.Constant) and kw.value.value == "model_selector":
+                        found = True
+                        break
+            if found:
+                break
+
+    assert found, (
+        "model_selector (wx.ComboBox with name='model_selector') must be "
+        "created in MainWindow (parent=self)"
+    )
+
+
+def test_menu_servidor_present():
+    """_build_menu source must contain 'Servidor' menu."""
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    # Find _build_menu method
+    method = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == "_build_menu":
+            method = node
+            break
+
+    assert method is not None, "_build_menu method not found"
+    source_lines = source.splitlines()
+    start = method.lineno - 1
+    end = method.end_lineno
+    method_source = "\n".join(source_lines[start:end])
+
+    assert "Servidor" in method_source, (
+        "_build_menu must contain a 'Servidor' menu between Archivo and Ayuda"
+    )
+
+
+def test_params_from_config():
+    """send_message must reference self._config.temperature instead of params_panel.get_params()."""
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    method = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == "send_message":
+            method = node
+            break
+
+    assert method is not None, "send_message method not found"
+    source_lines = source.splitlines()
+    start = method.lineno - 1
+    end = method.end_lineno
+    method_source = "\n".join(source_lines[start:end])
+
+    # Must read from self._config fields, not from params_panel accessors
+    assert "self._config.temperature" in method_source, (
+        "send_message must read temperature from self._config.temperature, "
+        "not from params_panel.get_params()"
+    )
+    assert "self._config.system_prompt" in method_source or 'system_prompt' in method_source, (
+        "send_message must read system_prompt from self._config.system_prompt"
+    )
+
+
+def test_f6_cycle_target_is_model_selector():
+    """F6 cycle first target is self.model_selector (not self.params_panel.model_selector)."""
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    method = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == "_on_f6_cycle":
+            method = node
+            break
+
+    assert method is not None, "_on_f6_cycle method not found"
+    source_lines = source.splitlines()
+    start = method.lineno - 1
+    end = method.end_lineno
+    method_source = "\n".join(source_lines[start:end])
+
+    # Target 0 must reference self.model_selector, NOT self.params_panel.model_selector
+    assert "self.params_panel.model_selector" not in method_source, (
+        "F6 cycle target 0 must NOT reference self.params_panel.model_selector"
+    )
+    assert "self.model_selector" in method_source, (
+        "F6 cycle must reference self.model_selector as the first target"
+    )
+
+
+def test_window_size_900_650():
+    """Frame super().__init__ uses size=(900, 650)."""
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    assert "size=(900, 650)" in source, (
+        "MainWindow's super().__init__ must use size=(900, 650)"
+    )
+
+
+def test_version_0_5_0():
+    """pyproject.toml has version = '0.5.0'."""
+    import pathlib
+    proj_path = (
+        pathlib.Path(__file__).resolve().parent.parent.parent
+        / "pyproject.toml"
+    )
+    source = proj_path.read_text(encoding="utf-8")
+    assert 'version = "0.5.0"' in source, (
+        "pyproject.toml must have version = \"0.5.0\""
+    )

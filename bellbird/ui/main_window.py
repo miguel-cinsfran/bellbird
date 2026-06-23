@@ -525,22 +525,7 @@ class MainWindow(wx.Frame):
             ).ShowModal()
             return
 
-        self.restart_server_button.Disable()
-        self.status_bar.SetStatusText("Iniciando servidor...", 0)
-        self._speech.speak("Iniciando servidor...", interrupt=True)
-
-        ok, message = start_server(model_path, self._client)
-        log.info(f"start_server returned ok={ok}, message={message!r}")
-
-        if ok:
-            self.status_bar.SetStatusText("Servidor listo", 0)
-            if "corriendo" not in message:
-                self._scan_models()
-        else:
-            self.status_bar.SetStatusText("Error al iniciar", 0)
-
-        self._speech.speak(message, interrupt=True)
-        self._sync_button_state(ok)
+        self._on_use_model()
 
     def _on_stop_server(self) -> None:
         """Stop the running llama-server."""
@@ -773,6 +758,8 @@ class MainWindow(wx.Frame):
         Args:
             token: Token text from the LLM.
         """
+        if not self._is_generating:
+            return
         self._current_response += token
         self.chat_panel.append_assistant_chunk(token)
         self._maybe_beep()
@@ -780,6 +767,8 @@ class MainWindow(wx.Frame):
 
     def _on_done(self) -> None:
         """Handle stream completion."""
+        if not self._is_generating:
+            return
         self._speech.flush_token_buffer()
         self._speech.speak("Respuesta completa", interrupt=True)
 
@@ -898,6 +887,8 @@ class MainWindow(wx.Frame):
         Args:
             error_text: Error description.
         """
+        if not self._is_generating:
+            return
         self._current_response = ""
         self.chat_panel.append_assistant_chunk(f"\n[Error: {error_text}]")
         self.chat_panel.end_generation()
@@ -1012,6 +1003,11 @@ class MainWindow(wx.Frame):
 
     def new_conversation(self) -> None:
         """Start a new conversation, clearing current state."""
+        if self._is_generating:
+            self._client.abort()
+            self._speech.stop()
+            self._speech.clear_buffer()
+            self._is_generating = False
         self._conversation.clear()
         self.chat_panel.clear()
         self._current_response = ""

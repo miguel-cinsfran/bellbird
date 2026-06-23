@@ -352,13 +352,20 @@ class ChatPanel(wx.Panel):
             return
 
         # Printable character (no Ctrl/Alt/Meta)
+        # Use GetUnicodeKey() instead of GetKeyCode() so non-ASCII chars
+        # (ñ, á, é, í, ó, ú, ¿, ¡, etc.) route to the input correctly.
+        # GetKeyCode() returns the virtual key code which is wrong for
+        # non-ASCII chars on Windows; the user is Spanish-speaking so
+        # this matters for the target audience.
         if not event.ControlDown() and not event.AltDown() and not event.MetaDown():
-            char = chr(key) if 32 <= key <= 126 else None
-            if char is not None:
-                self.message_input.SetFocus()
-                self.message_input.AppendText(char)
-                self.message_input.SetInsertionPointEnd()
-                return
+            unicode_key = event.GetUnicodeKey()
+            if unicode_key != 0:
+                char = chr(unicode_key)
+                if char.isprintable() or char == " ":
+                    self.message_input.SetFocus()
+                    self.message_input.AppendText(char)
+                    self.message_input.SetInsertionPointEnd()
+                    return
 
         event.Skip()
 

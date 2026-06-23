@@ -265,6 +265,26 @@ def test_stream_display_uses_rich2():
     assert "TE_READONLY" in source, "stream_display must use TE_READONLY style"
 
 
+def test_on_list_key_uses_unicode_key_not_ascii_range() -> None:
+    """Regression for B4: _on_list_key must use GetUnicodeKey, not the ASCII range.
+
+    The target user is Spanish-speaking; without GetUnicodeKey, pressing
+    ñ, á, é, í, ó, ú, ¿, ¡ in the message list causes the focus to jump
+    to the input but the character is lost. The 32-126 ASCII range
+    check must be removed.
+    """
+    from pathlib import Path
+    src = Path("ollamachat/ui/chat_panel.py").read_text(encoding="utf-8")
+    assert "GetUnicodeKey" in src, (
+        "_on_list_key must use event.GetUnicodeKey() to support non-ASCII "
+        "characters (ñ, á, é, í, ó, ú, etc.) for the Spanish-speaking target user"
+    )
+    assert "32 <= key <= 126" not in src, (
+        "The ASCII range check `32 <= key <= 126` must be removed — "
+        "it incorrectly rejects non-ASCII printable characters"
+    )
+
+
 def test_end_generation_skips_empty_preview() -> None:
     """Regression for B3: message_list.Append must be inside the strip() guard.
 

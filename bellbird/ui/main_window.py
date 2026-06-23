@@ -195,7 +195,7 @@ class MainWindow(wx.Frame):
             wx.EVT_BUTTON, lambda evt: self.new_conversation()
         )
 
-    # ── Model control helpers (inlined from params_panel.py) ────────────
+    # ── Model control helpers ──
 
     def set_models(self, paths: list[str]) -> None:
         """Populate the model selector with .gguf file basenames.

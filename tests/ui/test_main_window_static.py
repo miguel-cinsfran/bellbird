@@ -1,7 +1,8 @@
 """Static/AST tests for MainWindow — accessibility and structure verification.
 
-Tests verify: menus present, accelerator table bindings, SplitterWindow
-with ParamsPanel left (280px), status bar, and import-only check.
+Tests verify: menus present (Archivo / Servidor / Ayuda), accelerator table
+bindings, vertical BoxSizer with top model row + ChatPanel full-width, status
+bar, and import-only check.
 """
 
 import ast
@@ -1153,7 +1154,13 @@ def test_menu_servidor_present():
 
 
 def test_params_from_config():
-    """send_message must reference self._config.temperature instead of params_panel.get_params()."""
+    """send_message must build the options dict from self._config.<field>, not from params_panel.get_params().
+
+    Strengthened from a string-presence check to an AST-walk: locates the
+    options dict literal inside send_message and verifies that each sampling
+    field key is mapped to self._config.<field>. Also asserts that no
+    legacy params_panel accessor is called.
+    """
     source_path = _get_ui_path("main_window.py")
     source = source_path.read_text(encoding="utf-8")
     tree = ast.parse(source)
@@ -1163,21 +1170,74 @@ def test_params_from_config():
         if isinstance(node, ast.FunctionDef) and node.name == "send_message":
             method = node
             break
-
     assert method is not None, "send_message method not found"
-    source_lines = source.splitlines()
-    start = method.lineno - 1
-    end = method.end_lineno
-    method_source = "\n".join(source_lines[start:end])
 
-    # Must read from self._config fields, not from params_panel accessors
-    assert "self._config.temperature" in method_source, (
-        "send_message must read temperature from self._config.temperature, "
-        "not from params_panel.get_params()"
+    # Find the options dict literal: a dict with at least "temperature" and
+    # "max_tokens" string keys. (Other dicts in the method won't match.)
+    options_dict = None
+    for node in ast.walk(method):
+        if not isinstance(node, ast.Dict):
+            continue
+        keys = [
+            k.value
+            for k in node.keys
+            if isinstance(k, ast.Constant) and isinstance(k.value, str)
+        ]
+        if "temperature" in keys and "max_tokens" in keys:
+            options_dict = node
+            break
+
+    assert options_dict is not None, (
+        "send_message must build an options dict with at least 'temperature' "
+        "and 'max_tokens' keys"
     )
-    assert "self._config.system_prompt" in method_source or 'system_prompt' in method_source, (
-        "send_message must read system_prompt from self._config.system_prompt"
-    )
+
+    # Build a map: key string -> AST value node
+    field_map: dict[str, ast.AST] = {}
+    for k, v in zip(options_dict.keys, options_dict.values):
+        if isinstance(k, ast.Constant) and isinstance(k.value, str):
+            field_map[k.value] = v
+
+    # Each sampling field must come from self._config.<same field>
+    for field in ("temperature", "max_tokens", "top_p", "top_k", "repeat_penalty"):
+        assert field in field_map, (
+            f"options dict is missing the {field!r} key"
+        )
+        value = field_map[field]
+        assert isinstance(value, ast.Attribute), (
+            f"options[{field!r}] must be an attribute access "
+            f"(e.g. self._config.{field}), got: {ast.dump(value)}"
+        )
+        # value should be self._config.<field>
+        # i.e. value = Attribute(value=Attribute(value=Name('self'), attr='_config'), attr=field)
+        inner = value.value
+        assert (
+            isinstance(inner, ast.Attribute)
+            and inner.attr == "_config"
+            and isinstance(inner.value, ast.Name)
+            and inner.value.id == "self"
+        ), (
+            f"options[{field!r}] must be self._config.{field}, "
+            f"got: {ast.unparse(value)}"
+        )
+        assert value.attr == field, (
+            f"options[{field!r}] key is wired to self._config.{value.attr!r}; "
+            f"expected self._config.{field}"
+        )
+
+    # The send flow must not call any legacy params_panel accessor
+    method_source_lines = source.splitlines()[method.lineno - 1:method.end_lineno]
+    method_source = "\n".join(method_source_lines)
+    for forbidden in (
+        "params_panel.get_params",
+        "params_panel.get_system_prompt",
+        "params_panel.get_tools_enabled",
+        "params_panel.set_system_prompt",
+    ):
+        assert forbidden not in method_source, (
+            f"send_message must not call {forbidden}() "
+            f"(replaced by self._config reads)"
+        )
 
 
 def test_f6_cycle_target_is_model_selector():

@@ -80,6 +80,11 @@ Antes de implementar cualquier cosa nueva: leer el spec de la capability en
 - Verificación con NVDA real en Windows pendiente. v0.4.0 cambia UI (PermissionDialog, checkbox tools).
   Probar en Windows antes de v0.5.0.
 
+## gh CLI
+
+Usar siempre para tareas de GitHub: `gh repo view`, `gh issue list`, `gh pr list`,
+`gh pr view <n>`, `gh issue view <n>`, `gh run list`. No abrir URLs manualmente.
+
 ## Contexto profundo
 
 1. `AGENTS.md` — reglas completas, layout, arquitectura, decisiones de diseño

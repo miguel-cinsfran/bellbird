@@ -6,9 +6,18 @@ full send/receive flow between LlamaClient, LlamaRunner, Conversation,
 and Speech.
 """
 
+import os
+import sys
+import tempfile
+import threading
+import time
+import webbrowser
+
 import wx
 
 from pathlib import Path
+
+import markdown
 
 from ollamachat.core.conversation import Conversation
 from ollamachat.core.llama_client import LlamaClient
@@ -41,6 +50,14 @@ class MainWindow(wx.Frame):
         self._conversation = Conversation()
         self._speech = Speech()
         self._current_response: str = ""
+        self._is_generating = False
+        self._is_closing = False
+        self._temp_html_files: list[str] = []
+        self._last_usage: dict | None = None
+        self._focus_cycle_index = 0
+        self._last_beep_time = 0.0
+        self._loading_timer: threading.Timer | None = None
+        self._model_load_thread: threading.Thread | None = None
 
         self._build_ui()
         self._build_menu()
@@ -66,10 +83,10 @@ class MainWindow(wx.Frame):
         )
 
         # ── Top toolbar: server controls ──────────────────────────────
-        self.start_server_button = wx.Button(
-            self, label="Iniciar servidor", name="start_server_button"
+        self.restart_server_button = wx.Button(
+            self, label="Reiniciar servidor", name="restart_server_button"
         )
-        self.start_server_button.Bind(
+        self.restart_server_button.Bind(
             wx.EVT_BUTTON, lambda evt: self._on_start_server()
         )
 
@@ -87,7 +104,7 @@ class MainWindow(wx.Frame):
             flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, border=4,
         )
         toolbar_sizer.Add(
-            self.start_server_button, flag=wx.ALIGN_CENTER_VERTICAL
+            self.restart_server_button, flag=wx.ALIGN_CENTER_VERTICAL
         )
         toolbar_sizer.Add(
             self.stop_server_button, flag=wx.ALIGN_CENTER_VERTICAL | wx.LEFT,
@@ -206,7 +223,7 @@ class MainWindow(wx.Frame):
 
     def _sync_button_state(self, server_running: bool) -> None:
         """Sync start/stop button enable state with server running state."""
-        self.start_server_button.Enable()
+        self.restart_server_button.Enable()
         if server_running:
             self.stop_server_button.Enable()
         else:
@@ -294,7 +311,7 @@ class MainWindow(wx.Frame):
             ).ShowModal()
             return
 
-        self.start_server_button.Disable()
+        self.restart_server_button.Disable()
         self.status_bar.SetStatusText("Iniciando servidor...", 0)
         self._speech.speak("Iniciando servidor...", interrupt=True)
 

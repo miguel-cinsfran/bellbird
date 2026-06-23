@@ -172,8 +172,8 @@ def test_status_bar():
     assert found_statusbar, "No wx.StatusBar / CreateStatusBar found in source"
 
 
-def test_start_server_button_present():
-    """A 'Iniciar servidor' button with name=start_server_button is built."""
+def test_restart_server_button_present():
+    """A 'Reiniciar servidor' button with name=restart_server_button is built."""
     source_path = _get_ui_path("main_window.py")
     source = source_path.read_text(encoding="utf-8")
     tree = ast.parse(source)
@@ -187,7 +187,7 @@ def test_start_server_button_present():
                 has_start = any(
                     kw.arg == "name"
                     and isinstance(kw.value, ast.Constant)
-                    and kw.value.value == "start_server_button"
+                    and kw.value.value == "restart_server_button"
                     for kw in node.keywords
                     if kw.arg is not None
                 )
@@ -204,7 +204,7 @@ def test_start_server_button_present():
                     found_stop = True
 
     assert found_start, (
-        "No wx.Button with name='start_server_button' found in source"
+        "No wx.Button with name='restart_server_button' found in source"
     )
     assert found_stop, (
         "No wx.Button with name='stop_server_button' found in source"

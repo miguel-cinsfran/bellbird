@@ -305,6 +305,32 @@ def test_get_tools_enabled_method_exists():
     assert found, "get_tools_enabled method not found in ParamsPanel"
 
 
+# ─── v0.4.1 keyboard navigation improvements ────────────────────────────
+
+
+def test_model_selector_has_evt_text_binding():
+    """EVT_TEXT appears in _build_ui for model_selector."""
+    source_path = _get_ui_path("params_panel.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    method = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == "_build_ui":
+            method = node
+            break
+
+    assert method is not None, "_build_ui method not found"
+    source_lines = source.splitlines()
+    start = method.lineno - 1
+    end = method.end_lineno
+    method_source = "\n".join(source_lines[start:end])
+
+    assert "EVT_TEXT" in method_source, (
+        "EVT_TEXT binding must appear in _build_ui for model_selector"
+    )
+
+
 def _get_func_name(node: ast.Call) -> str:
     """Extract the full function name from a Call node (e.g. wx.BoxSizer -> wx.BoxSizer)."""
     if isinstance(node.func, ast.Attribute):

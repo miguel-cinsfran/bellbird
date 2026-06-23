@@ -60,6 +60,9 @@ class ParamsPanel(wx.Panel):
         self.model_selector.Bind(
             wx.EVT_COMBOBOX, self._on_model_select
         )
+        self.model_selector.Bind(
+            wx.EVT_TEXT, self._on_model_text_change
+        )
 
         # ── System Prompt ───────────────────────────────────────────────
         sizer.Add(
@@ -197,6 +200,20 @@ class ParamsPanel(wx.Panel):
     def _on_model_select(self, event: wx.CommandEvent) -> None:
         """Handle model selector selection change."""
         if self.model_selector.GetCount() > 0:
+            self.use_model_button.Enable()
+        else:
+            self.use_model_button.Disable()
+
+    def _on_model_text_change(self, event: wx.CommandEvent) -> None:
+        """Enable use_model_button when the combo box has any non-empty text.
+
+        EVT_COMBOBOX only fires when the user picks from the dropdown.
+        EVT_TEXT fires on every keystroke and on programmatic value changes
+        (including set_models repopulation). The handler is idempotent:
+        Enable/Disable based on stripped value emptiness, no speech.
+        """
+        value = self.model_selector.GetValue().strip()
+        if value:
             self.use_model_button.Enable()
         else:
             self.use_model_button.Disable()

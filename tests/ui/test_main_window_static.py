@@ -417,6 +417,167 @@ def test_model_load_worker_binds_defaults_before_try() -> None:
     assert msg_pos < try_pos, 'message = "Error..." must appear BEFORE the try: block'
 
 
+# ─── Tool calling (v0.4.0) ────────────────────────────────────────────────
+
+
+def test_permission_manager_initialized():
+    """MainWindow.__init__ initializes self._permission_manager = PermissionManager()."""
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    found = False
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == "__init__":
+            for child in ast.walk(node):
+                if isinstance(child, ast.Assign):
+                    for target in child.targets:
+                        if (isinstance(target, ast.Attribute)
+                                and target.attr == "_permission_manager"):
+                            if (isinstance(child.value, ast.Call)
+                                    and _get_func_name(child.value) == "PermissionManager"):
+                                found = True
+                                break
+
+    assert found, (
+        "self._permission_manager = PermissionManager() not found in __init__"
+    )
+
+
+def test_tool_executor_initialized():
+    """MainWindow.__init__ initializes self._tool_executor = ToolExecutor()."""
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    found = False
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == "__init__":
+            for child in ast.walk(node):
+                if isinstance(child, ast.Assign):
+                    for target in child.targets:
+                        if (isinstance(target, ast.Attribute)
+                                and target.attr == "_tool_executor"):
+                            if (isinstance(child.value, ast.Call)
+                                    and _get_func_name(child.value) == "ToolExecutor"):
+                                found = True
+                                break
+
+    assert found, (
+        "self._tool_executor = ToolExecutor() not found in __init__"
+    )
+
+
+def test_on_tool_call_method_exists():
+    """MainWindow has _on_tool_call method."""
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    found = False
+    for node in ast.walk(tree):
+        if (isinstance(node, ast.FunctionDef)
+                and node.name == "_on_tool_call"):
+            # Ensure it's inside MainWindow class
+            for parent_node in ast.walk(tree):
+                if (isinstance(parent_node, ast.ClassDef)
+                        and parent_node.name == "MainWindow"):
+                    for item in parent_node.body:
+                        if (isinstance(item, ast.FunctionDef)
+                                and item.name == "_on_tool_call"):
+                            found = True
+                            break
+
+    assert found, "_on_tool_call method not found in MainWindow"
+
+
+def test_run_tool_and_show_method_exists():
+    """MainWindow has _run_tool_and_show method."""
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    found = False
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef) and node.name == "MainWindow":
+            for item in node.body:
+                if (isinstance(item, ast.FunctionDef)
+                        and item.name == "_run_tool_and_show"):
+                    found = True
+                    break
+
+    assert found, "_run_tool_and_show method not found in MainWindow"
+
+
+def test_on_tool_result_method_exists():
+    """MainWindow has _on_tool_result method."""
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    found = False
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef) and node.name == "MainWindow":
+            for item in node.body:
+                if (isinstance(item, ast.FunctionDef)
+                        and item.name == "_on_tool_result"):
+                    found = True
+                    break
+
+    assert found, "_on_tool_result method not found in MainWindow"
+
+
+def test_continue_after_tool_method_exists():
+    """MainWindow has _continue_after_tool method."""
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    found = False
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef) and node.name == "MainWindow":
+            for item in node.body:
+                if (isinstance(item, ast.FunctionDef)
+                        and item.name == "_continue_after_tool"):
+                    found = True
+                    break
+
+    assert found, "_continue_after_tool method not found in MainWindow"
+
+
+def test_shell_tool_definition_at_module_level():
+    """SHELL_TOOL_DEFINITION is assigned at module level, not inside a class."""
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    # Check that SHELL_TOOL_DEFINITION appears at module level (NOT inside ClassDef)
+    def _is_shell_tool_assign(node: ast.AST) -> bool:
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name) and target.id == "SHELL_TOOL_DEFINITION":
+                    return True
+        return False
+
+    # Find all assignments at module level
+    module_level_assign = any(
+        _is_shell_tool_assign(node) for node in tree.body
+    )
+    assert module_level_assign, (
+        "SHELL_TOOL_DEFINITION must be assigned at module level "
+        "(top of file, not inside class MainWindow)"
+    )
+
+    # Verify it's NOT inside a ClassDef
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef):
+            for item in node.body:
+                if _is_shell_tool_assign(item):
+                    assert False, (
+                        "SHELL_TOOL_DEFINITION must NOT be inside class MainWindow"
+                    )
+
+
 def _get_attr_name(node: ast.AST) -> str:
     """Extract the dotted name from a nested attribute node."""
     if isinstance(node, ast.Attribute):

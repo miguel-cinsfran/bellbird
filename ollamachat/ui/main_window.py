@@ -32,6 +32,31 @@ from ollamachat.core.logger import get_logger
 from ollamachat.core.speech import Speech
 from ollamachat.ui.chat_panel import ChatPanel
 from ollamachat.ui.params_panel import ParamsPanel
+from ollamachat.core.permission_manager import PermissionManager
+from ollamachat.core.tool_executor import ToolExecutor, ToolResult
+from ollamachat.ui.permission_dialog import PermissionDialog
+
+SHELL_TOOL_DEFINITION = {
+    "type": "function",
+    "function": {
+        "name": "shell_execute",
+        "description": (
+            "Ejecuta un comando en PowerShell en el sistema Windows del "
+            "usuario. Usa esto para operaciones de archivos, sistema, o "
+            "cuando el usuario lo pide explicitamente."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "command": {
+                    "type": "string",
+                    "description": "El comando de PowerShell a ejecutar.",
+                }
+            },
+            "required": ["command"],
+        },
+    },
+}
 
 
 class MainWindow(wx.Frame):
@@ -54,6 +79,8 @@ class MainWindow(wx.Frame):
         self._is_closing = False
         self._temp_html_files: list[str] = []
         self._last_usage: dict | None = None
+        self._permission_manager = PermissionManager()
+        self._tool_executor = ToolExecutor()
         self._focus_cycle_index = 0
         self._last_beep_time = 0.0
         self._loading_timer: threading.Timer | None = None
@@ -701,6 +728,8 @@ class MainWindow(wx.Frame):
         self.status_bar.SetStatusText("Generando respuesta...", 2)
         self._speech.speak("Generando respuesta...", interrupt=True)
 
+        tools = [SHELL_TOOL_DEFINITION] if self.params_panel.get_tools_enabled() else None
+
         self._client.chat_stream(
             messages=api_messages,
             options=options,
@@ -708,6 +737,8 @@ class MainWindow(wx.Frame):
             on_done=self._on_done,
             on_error=self._on_error,
             on_usage=self._on_usage,
+            on_tool_call=self._on_tool_call,
+            tools=tools,
         )
 
     def _on_token(self, token: str) -> None:
@@ -738,6 +769,96 @@ class MainWindow(wx.Frame):
         self._is_generating = False
         self.status_bar.SetStatusText("", 2)
         self._current_response = ""
+
+    # ── Tool calling (v0.4.0) ─────────────────────────────────────────────
+
+    def _on_tool_call(self, tool_name: str, tool_call_id: str, args: dict) -> None:
+        """Callback cuando el modelo solicita ejecutar una herramienta."""
+        command = args.get("command", str(args))
+
+        if self._permission_manager.is_system_destructive(command):
+            self._speech.speak(
+                f"Comando bloqueado por seguridad: {command[:80]}", interrupt=True
+            )
+            self.chat_panel.append_tool_blocked(tool_name, command)
+            return
+
+        if self._permission_manager.has_session_grant(tool_name):
+            self._speech.speak(
+                f"Ejecutando {tool_name}: {command[:50]}", interrupt=True
+            )
+            self._run_tool_and_show(tool_name, tool_call_id, command)
+            return
+
+        self._speech.speak(
+            "El modelo quiere ejecutar un comando. Escucha el comando y confirma.",
+            interrupt=True,
+        )
+        risk = self._permission_manager.classify_risk(command)
+        dlg = PermissionDialog(self, tool_name, command, risk)
+        result = dlg.ShowModal()
+        dlg.Destroy()
+
+        if result == wx.ID_YES:
+            self._run_tool_and_show(tool_name, tool_call_id, command)
+        elif result == wx.ID_OK:
+            self._permission_manager.grant_session(tool_name)
+            self._run_tool_and_show(tool_name, tool_call_id, command)
+        else:
+            self._speech.speak("Ejecucion denegada.", interrupt=True)
+            self.chat_panel.append_tool_denied(tool_name)
+
+    def _run_tool_and_show(
+        self, tool_name: str, tool_call_id: str, command: str
+    ) -> None:
+        """Ejecuta la tool en hilo de fondo para no bloquear la UI."""
+        def worker() -> None:
+            result = self._tool_executor.run(tool_name, command)
+            wx.CallAfter(self._on_tool_result, result, tool_call_id)
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _on_tool_result(self, result, tool_call_id: str) -> None:
+        """Callback en hilo principal con el resultado de la herramienta."""
+        self.chat_panel.append_tool_output(result.to_display_text())
+        self._speech.speak(
+            f"Comando completado, codigo {result.returncode}. Consultando al modelo.",
+            interrupt=True,
+        )
+        tool_msg = result.to_tool_message()
+        tool_msg["tool_call_id"] = tool_call_id
+        self._conversation.add_message("tool", tool_msg["content"])
+        self._continue_after_tool(tool_msg)
+
+    def _continue_after_tool(self, tool_msg: dict) -> None:
+        """Reenvía la conversación al modelo con el resultado de la tool."""
+        api_messages = []
+        system_prompt = self.params_panel.get_system_prompt()
+        if system_prompt.strip():
+            api_messages.append({"role": "system", "content": system_prompt})
+        api_messages.extend(self._conversation.get_messages_for_api())
+
+        tools = (
+            [SHELL_TOOL_DEFINITION]
+            if self.params_panel.get_tools_enabled()
+            else None
+        )
+
+        self._current_response = ""
+        self.chat_panel.start_generation()
+        self._is_generating = True
+        self.chat_panel.append_assistant_prefix()
+        self.status_bar.SetStatusText("Consultando al modelo...", 2)
+
+        self._client.chat_stream(
+            messages=api_messages,
+            options=self.params_panel.get_params(),
+            on_token=self._on_token,
+            on_done=self._on_done,
+            on_error=self._on_error,
+            on_usage=self._on_usage,
+            on_tool_call=self._on_tool_call,
+            tools=tools,
+        )
 
     def _on_error(self, error_text: str) -> None:
         """Handle stream error.

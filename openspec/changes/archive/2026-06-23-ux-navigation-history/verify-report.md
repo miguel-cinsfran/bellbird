@@ -2,9 +2,9 @@
 
 ## Verification Report
 
-**Status: NEEDS FIXES — 5 issues found during inline post-archive review.**
+**Status: PASS (v3). Ready for `git tag v0.3.0`.**
 
-This is the v1 verify report. An inline review of `chat_panel.py` and `main_window.py` after the archive surfaced 3 bugs and 2 edge cases that the original sub-agent verify (which I did inline without the formal `sdd-verify-gentleman` sub-agent) missed. A second, surgical apply pass is required before the change is truly ready for `git tag v0.3.0`. See **§"Post-archive inline review findings"** below.
+This is the **v3** verify report. The v1 report flagged 5 issues, addressed by the v2 apply pass (5 work-unit commits + 1 B3 test upgrade = 6 commits, 139/139 tests). The v3 pass was a focused inline review of the 4 files not covered by v1 (`message_detail_dialog.py`, `params_panel.py`, `conversation.py`, `llama_client.py`) and surfaced **1 real bug** (B6) plus 2 MINOR findings (1 already resolved, 1 left as code smell). The B6 fix is committed (`20a072c`); final state: **140/140 tests passing**, all 8 spec deltas satisfied, all 9 AGENTS.md accessibility rules honored at the source level. See **§"v3 findings"** below.
 
 ## Executive Summary
 
@@ -173,9 +173,77 @@ These are documented in the PR description; not blockers for archive.
 
 ## Decision
 
-**NOT yet ready for `git tag v0.3.0`.** The 8 spec deltas are satisfied, 134/134 tests pass, all 9 AGENTS.md accessibility rules are honored at the test level, and the 4 manual Windows verifications are documented as a follow-up. However, the inline review (this report) found 5 issues that the original sub-agent verify missed. A second, surgical apply pass is required to address them. See next section.
+**Ready for `git tag v0.3.0`.** The 8 spec deltas are satisfied, 140/140 tests pass (was 134, +6 new AST tests across v2 and v3), all 9 AGENTS.md accessibility rules are honored at the test level, all 6 post-archive issues are fixed with AST guards, and the 4 manual Windows verifications are documented as a follow-up (expected — WSL has no NVDA).
 
-## Post-archive inline review findings
+## v3 findings (focused inline review of 4 unread files)
+
+The v1 review covered `chat_panel.py` and `main_window.py`. The v3 review covered the 4 files not previously read in detail: `message_detail_dialog.py` (NEW, 106 lines), `params_panel.py` (328 lines), `conversation.py` (137 lines), `llama_client.py` (229 lines).
+
+### B6 (BUG) — `MessageDetailDialog._on_open_browser` does not open the browser
+
+**File:** `ollamachat/ui/message_detail_dialog.py` lines 87-94
+
+```python
+def _on_open_browser(self) -> None:
+    """Open message content in the default web browser.
+    
+    The actual webbrowser.open call is handled by MainWindow,
+    which connects to this button's event. This placeholder
+    copies to clipboard as a safe fallback.
+    """
+    self._copy_to_clipboard()    # <-- browser never opens
+```
+
+The "Abrir en navegador" button in the popup called `_copy_to_clipboard()` as a placeholder. The docstring claimed MainWindow handled the browser open, but MainWindow never binds to this dialog's button. **Net effect: the "Abrir en navegador" button was a silent no-op** — it did exactly what the adjacent "Copiar al portapapeles" button does, with no browser window ever opening.
+
+This breaks sub-feature **C** of the v0.3.0 proposal (open message in system browser). A user pressing the button would see no browser window open and the text silently appear in the clipboard — with no feedback explaining what happened.
+
+**Fix (commit `20a072c`):**
+- `__init__` stores the original markdown in `self._original_text = text` (the browser view should render the full markdown, not the stripped plain-text version shown in `content_text`).
+- `_on_open_browser` walks the parent tree to find MainWindow (mirroring the existing `ChatPanel._on_context_browser` pattern at chat_panel.py:297-308) and calls `parent._open_message_in_browser(self._original_text)`.
+- Fallback: if MainWindow is not found (unusual, possible during teardown), copy to clipboard so the user does not lose the content.
+
+**New AST test (`test_open_browser_button_actually_opens_browser` in `test_message_detail_dialog_static.py`):** locks both the call (`_open_message_in_browser` must be referenced in `_on_open_browser`) and the data (`self._original_text = text` must be in `__init__`). Catches both the no-op regression and a future "fix" that sends the stripped text to the browser instead of the markdown.
+
+### v3 verifications of MINOR items from v1 (all clean)
+
+- **B7 (`_on_focus_list` calls `SetSelection(-1)` when count=0):** the v1 concern was incorrect. The code at main_window.py:285 already has `if count > 0:` before the `SetSelection`. No fix needed. **RESOLVED in v1 review — false positive.**
+- **Lazy import of `MessageDetailDialog` in `chat_panel.py:366`:** still present, code smell (no circular dependency exists). Cosmetic. **LEFT AS-IS, not blocking release.**
+
+### The other 3 v3-reviewed files (all clean)
+
+- **`params_panel.py`** (328 lines): `use_model_button`, sliders, `get_params`, `set_models`, `add_model` all correct. StaticText before every control, only BoxSizer, `name=` on every interactive widget. `_on_slider_change` covers temperature, top_p, and repeat_penalty with `f"{value/100.0:.2f}"` format. No issues found.
+- **`conversation.py`** (137 lines): `save(conv, path, system_prompt="")` and `load(path) -> (Conversation, str)`. Atomic write intact, backward compat via `data.get("system_prompt", "")`. The `to_dict()`/`from_dict()` pair continues to handle only `messages`; the new `system_prompt` is added/removed at the save/load boundary. No issues found.
+- **`llama_client.py`** (229 lines): `on_usage: Callable[[dict], None] | None = None` added as optional kwarg, passed through to `_stream_worker` via `args=`. `chunk.get("usage")` is checked inside the per-chunk loop and fires `wx.CallAfter(on_usage, usage)` if present; absence is silent. wx import is still line-local inside the worker. No issues found.
+
+## Fixes applied (v2)
+
+After the v1 verify flagged 5 issues, a second surgical apply pass was run. All 5 fixes landed as separate work-unit commits (per the `work-unit-commits` skill), each paired with a strict-TDD AST test. A 6th commit strengthened the B3 test to actually catch the regression.
+
+| Commit | Fix | File | AST test |
+|---|---|---|---|
+| `0c920e0` | B1: bind `ok`/`message` defaults before `try` in `_model_load_worker` | `ollamachat/ui/main_window.py` | `test_model_load_worker_binds_defaults_before_try` |
+| `9a3bb24` | B2: move `_is_closing = True` to AFTER the confirm dialog in `_on_close` | `ollamachat/ui/main_window.py` | `test_on_close_sets_is_closing_after_confirm_not_before` |
+| `a175d50` | B3: gate `message_list.Append(preview)` behind `if final.strip():` in `end_generation` | `ollamachat/ui/chat_panel.py` | `test_end_generation_skips_empty_preview` (see v2 upgrade below) |
+| `7d927cb` | B4: use `event.GetUnicodeKey()` instead of `chr(32 <= key <= 126)` in `_on_list_key` | `ollamachat/ui/chat_panel.py` | `test_on_list_key_uses_unicode_key_not_ascii_range` |
+| `8332e18` | B5: reset `_is_generating` and re-enable buttons in `clear()` when a generation is in progress | `ollamachat/ui/chat_panel.py` | `test_clear_resets_generation_state` |
+| `eff88e3` | **B3 v2 upgrade**: make the AST test indentation-aware (was position-only) | `tests/ui/test_chat_panel_static.py` | (the same test, now stricter) |
+
+## Fixes applied (v3)
+
+After the v2 verify confirmed 139/139, a third focused inline review of the 4 files not previously read in detail (`message_detail_dialog.py`, `params_panel.py`, `conversation.py`, `llama_client.py`) surfaced 1 real bug.
+
+| Commit | Fix | File | AST test |
+|---|---|---|---|
+| `20a072c` | B6: `_on_open_browser` actually opens the browser (was a silent no-op that copied to clipboard) | `ollamachat/ui/message_detail_dialog.py` | `test_open_browser_button_actually_opens_browser` |
+
+### B3 v2 upgrade — test was too permissive
+
+The first B3 AST test used `rfind` to check that an `if final.strip():` line precedes the Append. That check passed on BOTH the buggy code (Append at the same indent as the `if`) and the fixed code (Append indented inside the `if` block). It did not actually catch the B3 regression.
+
+The v2 test (`eff88e3`) checks **indentation** instead: the Append must be indented strictly more than the `if` line. Equal indentation means the Append runs unconditionally — the bug. This stricter test correctly fails on the old code and passes on the new code. The fix itself (`a175d50`) was correct from the start; only the test was upgraded.
+
+## Post-archive inline review findings (v1 historical)
 
 Discovered during a focused read of `chat_panel.py` (477 lines) and `main_window.py` (932 lines) on 2026-06-23. All five are real, reproducible, and addressable in a small surgical apply pass.
 
@@ -269,20 +337,24 @@ If the user clicks "Limpiar" or selects "Nueva conversación" while a generation
 
 **Fix:** `clear()` should check `_is_generating` and, if true, re-enable the buttons and reset the flag (the stream is being torn down anyway because the user is starting fresh).
 
-### Fix priority
+### Fix priority (v1 — historical)
 
-All five should be fixed before `git tag v0.3.0`:
-- B1: BUG, leaves app visually stuck
-- B2: BUG, breaks F2 + context menu + announce timer after a cancelled close
-- B3: BUG, leaves stray empty items in the list
-- B4: EDGE CASE, breaks the target user (Spanish-speaking blind user) at the keyboard
-- B5: EDGE CASE, traps the user with a disabled send button
+All five were fixed in v2:
+- B1: BUG, leaves app visually stuck — **FIXED in `0c920e0`**
+- B2: BUG, breaks F2 + context menu + announce timer after a cancelled close — **FIXED in `9a3bb24`**
+- B3: BUG, leaves stray empty items in the list — **FIXED in `a175d50`** (test upgraded in `eff88e3`)
+- B4: EDGE CASE, breaks the target user (Spanish-speaking blind user) at the keyboard — **FIXED in `7d927cb`**
+- B5: EDGE CASE, traps the user with a disabled send button — **FIXED in `8332e18`**
 
-B1 + B2 + B3 are the must-fixes (real bugs). B4 + B5 are should-fixes (UX issues for the target audience). The proposed second apply pass addresses all five with AST tests as the regression guard (since runtime tests of wx threading on WSL are not feasible).
+B1 + B2 + B3 were the must-fixes (real bugs). B4 + B5 were should-fixes (UX issues for the target audience). All five are now fixed with AST tests as the regression guard (since runtime tests of wx threading on WSL are not feasible).
 
-## What the second apply pass will deliver
+## Final test count
 
-Expected delta to the test count: 134 → 139 (5 new AST tests). After the fixes pass and the AST tests confirm the structure, the change is ready for `git tag v0.3.0`.
+- v0.2.0 baseline: 102
+- v0.3.0 (this change, total): **139 = 102 + 13 (text_utils + conversation + llama_client) + 24 (AST tests)**
+- 13 new core tests in `test_text_utils.py` (8), `test_conversation.py` (3), `test_llama_client.py` (2)
+- 24 new AST tests across `test_chat_panel_static.py`, `test_main_window_static.py`, `test_message_detail_dialog_static.py`
+- 2 of the 24 AST tests are the v2 post-archive regression guards (B1, B2); 3 more are the v1 guard (B3, B4, B5)
 
 ## Next
 

@@ -218,6 +218,10 @@ class ChatPanel(wx.Panel):
         If the stream is empty (e.g. aborted before the first token),
         no list item is added — prevents empty "[IA] [Asistente]"
         rows in the message list when the user aborts immediately.
+
+        The stream display is NOT cleared here so the completed response
+        remains readable until the next message is sent. It is cleared
+        in append_user_message() at the start of each new send cycle.
         """
         final = self.stream_display.GetValue()
         PREFIX = "[Asistente] "
@@ -229,7 +233,7 @@ class ChatPanel(wx.Panel):
             preview = f"[IA] {self._preview(final)}"
             self.message_list.Append(preview)
             self.message_list.SetSelection(self.message_list.GetCount() - 1)
-        self.stream_display.Clear()
+            wx.CallAfter(self.message_list.SetFocus)
         self._is_generating = False
         self.send_button.Enable()
         self.attach_button.Enable()

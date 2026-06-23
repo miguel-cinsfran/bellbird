@@ -26,9 +26,18 @@ class BellbirdConfig:
     tools_enabled: bool = False
 
 
+_MIGRATIONS: dict[str, object] = {
+    # max_tokens was 512 before v0.5.1 reasoning-model support. Any saved
+    # config with the old default is silently bumped so reasoning models
+    # can finish their thinking phase before producing output.
+    "max_tokens": (512, 4096),
+}
+
+
 def load_config() -> BellbirdConfig:
     """Load config from CONFIG_PATH. Returns BellbirdConfig() on missing/
     corrupt file. Unknown JSON keys filtered by __dataclass_fields__.
+    Applies one-time migrations for fields whose old default is known.
     """
     if not CONFIG_PATH.is_file():
         return BellbirdConfig()
@@ -36,7 +45,11 @@ def load_config() -> BellbirdConfig:
         with open(CONFIG_PATH, "r", encoding="utf-8") as f:
             data = json.load(f)
         known = {f.name for f in BellbirdConfig.__dataclass_fields__.values()}
-        return BellbirdConfig(**{k: v for k, v in data.items() if k in known})
+        filtered = {k: v for k, v in data.items() if k in known}
+        for field_name, (old_val, new_val) in _MIGRATIONS.items():
+            if filtered.get(field_name) == old_val:
+                filtered[field_name] = new_val
+        return BellbirdConfig(**filtered)
     except (json.JSONDecodeError, OSError):
         return BellbirdConfig()
 

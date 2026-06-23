@@ -500,3 +500,26 @@ class ChatPanel(wx.Panel):
         self.stream_display.Clear()
         self._clear_input()
         self.clear_attachment()
+
+    # ── Tool output display (v0.4.0) ──────────────────────────────────────
+
+    def append_tool_output(self, text: str) -> None:
+        """Muestra el resultado de una herramienta en el historial."""
+        self._history.append(("tool", text))
+        preview = f"[Herramienta] {self._preview(text)}"
+        self.message_list.Append(preview)
+        self.message_list.SetSelection(self.message_list.GetCount() - 1)
+
+    def append_tool_blocked(self, tool_name: str, command: str) -> None:
+        """Muestra que un comando fue bloqueado por seguridad."""
+        text = f"[Bloqueado] {tool_name}: {command}"
+        self._history.append(("system", text))
+        self.message_list.Append(f"[Bloqueado] {self._preview(text)}")
+        self.message_list.SetSelection(self.message_list.GetCount() - 1)
+
+    def append_tool_denied(self, tool_name: str) -> None:
+        """Muestra que el usuario denegó la ejecución."""
+        text = f"[Denegado] {tool_name}"
+        self._history.append(("system", text))
+        self.message_list.Append(text)
+        self.message_list.SetSelection(self.message_list.GetCount() - 1)

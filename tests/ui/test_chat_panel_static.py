@@ -314,6 +314,77 @@ def test_on_list_key_uses_unicode_key_not_ascii_range() -> None:
     )
 
 
+# ─── Tool append methods (v0.4.0) ──────────────────────────────────────────
+
+
+def test_append_tool_output_method_exists():
+    """ChatPanel has append_tool_output(self, text: str) -> None method."""
+    source_path = _get_ui_path("chat_panel.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    found = False
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == "append_tool_output":
+            found = True
+            args = [a.arg for a in node.args.args]
+            assert "self" in args, "append_tool_output must have self"
+            assert "text" in args, "append_tool_output must have text parameter"
+            break
+
+    assert found, "append_tool_output method not found in ChatPanel"
+
+
+def test_append_tool_blocked_method_exists():
+    """ChatPanel has append_tool_blocked(self, tool_name: str, command: str) -> None."""
+    source_path = _get_ui_path("chat_panel.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    found = False
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == "append_tool_blocked":
+            found = True
+            args = [a.arg for a in node.args.args]
+            assert "self" in args
+            assert "tool_name" in args, "append_tool_blocked must have tool_name parameter"
+            assert "command" in args, "append_tool_blocked must have command parameter"
+            break
+
+    assert found, "append_tool_blocked method not found in ChatPanel"
+
+
+def test_append_tool_denied_method_exists():
+    """ChatPanel has append_tool_denied(self, tool_name: str) -> None."""
+    source_path = _get_ui_path("chat_panel.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    found = False
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == "append_tool_denied":
+            found = True
+            args = [a.arg for a in node.args.args]
+            assert "self" in args
+            assert "tool_name" in args, "append_tool_denied must have tool_name parameter"
+            break
+
+    assert found, "append_tool_denied method not found in ChatPanel"
+
+
+def test_no_emoji_in_tool_prefixes():
+    """Tool prefixes [Herramienta], [Bloqueado], [Denegado] are pure ASCII."""
+    source_path = _get_ui_path("chat_panel.py")
+    source = source_path.read_text(encoding="utf-8")
+    assert "[Herramienta]" in source, "[Herramienta] prefix not found"
+    assert "[Bloqueado]" in source, "[Bloqueado] prefix not found"
+    assert "[Denegado]" in source, "[Denegado] prefix not found"
+
+    # Check they're pure ASCII
+    for prefix in ("[Herramienta]", "[Bloqueado]", "[Denegado]"):
+        assert prefix.isascii(), f"{prefix} contains non-ASCII characters"
+
+
 def test_end_generation_skips_empty_preview() -> None:
     """Regression for B3: message_list.Append must be INSIDE the strip() guard.
 

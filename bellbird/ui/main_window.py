@@ -1200,7 +1200,7 @@ class MainWindow(wx.Frame):
         the _on_close pattern. Stock labels (Yes/No) are safe per AGENTS.md:
         only custom Spanish labels trigger MSAA regressions.
         """
-        if self._conversation.messages:
+        if self._conversation.messages and self._config.confirm_new_conversation:
             dlg = wx.MessageDialog(
                 self,
                 message=(

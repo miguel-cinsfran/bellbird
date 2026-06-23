@@ -52,6 +52,26 @@ def test_strip_list_items():
     assert "• b" in result
 
 
+def test_strip_numbered_list_items():
+    """Given numbered list items, strip_markdown replaces "1. " with bullet.
+
+    NVDA would otherwise read "1. item" as "uno punto item" — unintuitive
+    for screen-reader users. Bullets are the same shape used for unordered
+    lists, so the spoken result is consistent across both list kinds.
+    """
+    from bellbird.core.text_utils import strip_markdown
+
+    result = strip_markdown("1. first\n2. second\n3. third")
+    assert result.startswith("• first")
+    assert "• second" in result
+    assert "• third" in result
+    # The original digit markers must be gone — otherwise NVDA would
+    # still read "uno punto".
+    assert "1." not in result
+    assert "2." not in result
+    assert "3." not in result
+
+
 def test_strip_empty_string():
     """Given an empty string, strip_markdown returns empty string."""
     from bellbird.core.text_utils import strip_markdown

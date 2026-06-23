@@ -61,7 +61,7 @@ class ChatPanel(wx.Panel):
         )
         self.stream_display = wx.TextCtrl(
             self,
-            style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_RICH2,
+            style=wx.TE_MULTILINE | wx.TE_READONLY,
             name="stream_display",
             size=(-1, 80),
         )

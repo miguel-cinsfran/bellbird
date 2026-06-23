@@ -255,14 +255,23 @@ def test_no_conversation_display_reference():
     )
 
 
-def test_stream_display_uses_rich2():
-    """stream_display TextCtrl uses TE_RICH2 style."""
+def test_stream_display_does_not_use_rich2():
+    """stream_display TextCtrl does NOT use TE_RICH2 (v0.5.1 accessibility fix).
+
+    wx.TE_RICH2 enables the Windows RichEdit control, which can have
+    inconsistent behavior with NVDA and adds nothing here (the control
+    is plain text, read-only). Per the v0.5.1 audit, stream_display
+    uses wx.TE_MULTILINE | wx.TE_READONLY only.
+    """
     source_path = _get_ui_path("chat_panel.py")
     source = source_path.read_text(encoding="utf-8")
-    # Check that name="stream_display" is accompanied by TE_RICH2
-    # Simple search: look for stream_display and TE_RICH2 in close proximity
-    assert "TE_RICH2" in source, "stream_display must use TE_RICH2 style"
+    assert "TE_RICH2" not in source, (
+        "stream_display must NOT use TE_RICH2 (v0.5.1 audit) — it enables "
+        "the Windows RichEdit control, which can be inconsistent with NVDA "
+        "and adds nothing for a plain-text readonly display"
+    )
     assert "TE_READONLY" in source, "stream_display must use TE_READONLY style"
+    assert "TE_MULTILINE" in source, "stream_display must use TE_MULTILINE style"
 
 
 def test_clear_resets_generation_state() -> None:

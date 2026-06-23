@@ -681,6 +681,10 @@ def test_new_conversation_has_confirmation() -> None:
         "new_conversation's confirmation dialog must use wx.NO_DEFAULT "
         "so the safe option (cancel) is the default selection."
     )
+    assert "self._config.confirm_new_conversation" in body, (
+        "new_conversation must check self._config.confirm_new_conversation "
+        "before showing the dialog — the preference must actually take effect."
+    )
 
 
 def test_on_start_server_does_not_call_start_server_directly() -> None:

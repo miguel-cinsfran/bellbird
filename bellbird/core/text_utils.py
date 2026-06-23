@@ -13,7 +13,7 @@ def strip_markdown(text: str) -> str:
 
     Applies a fixed pipeline of regex substitutions in this order:
     headers → bold → italic → fenced code → inline code → links →
-    list items → strip().
+    numbered lists → list items → strip().
 
     Args:
         text: Markdown-formatted input string.
@@ -40,6 +40,11 @@ def strip_markdown(text: str) -> str:
 
     # Links: [text](url) or [text](url "title")
     text = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", text)
+
+    # Numbered list items: "1. " → "• "
+    # Handled before bullet items so the dash case doesn't shadow the
+    # digit. NVDA would otherwise read "1. item" as "uno punto item".
+    text = re.sub(r"^[\s]*\d+\.\s+", "• ", text, flags=re.MULTILINE)
 
     # List items: - or * or + at line start → bullet character
     text = re.sub(r"^[\s]*[-*+]\s+", "• ", text, flags=re.MULTILINE)

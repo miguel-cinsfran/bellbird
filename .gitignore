@@ -1,6 +1,6 @@
 .atl/
 opencode.json*
-ollamachat/data/
+bellbird/data/
 __pycache__/
 *.pyc
 .venv/
@@ -18,3 +18,4 @@ CLAUDE.md
 CONOCIMIENTO_WXPYTHON_ACCESIBLE.md
 PROMPT_*.txt
 openspec/
+prompts/

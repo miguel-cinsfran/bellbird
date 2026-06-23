@@ -74,11 +74,19 @@ def test_no_grid_sizer():
 
 
 def test_set_escape_id_called():
-    """SetEscapeId(wx.ID_CANCEL) is called in the dialog source."""
+    """SetEscapeId(wx.ID_CANCEL) is called in the dialog source.
+
+    Verifies the specific argument wx.ID_CANCEL (not just any SetEscapeId call),
+    so a future refactor that calls SetEscapeId(wx.ID_OK) — which would break
+    Escape-key cancel — would fail this test.
+    """
+    import re
     source_path = _get_ui_path("preferences_dialog.py")
     source = source_path.read_text(encoding="utf-8")
-    assert "SetEscapeId" in source, (
-        "SetEscapeId not found in preferences_dialog.py"
+    pattern = r"SetEscapeId\s*\(\s*wx\.ID_CANCEL\s*\)"
+    assert re.search(pattern, source), (
+        "SetEscapeId(wx.ID_CANCEL) not found in preferences_dialog.py — "
+        "Escape must cancel the dialog, not confirm it"
     )
 
 

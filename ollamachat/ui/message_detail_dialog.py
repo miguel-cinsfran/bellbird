@@ -25,6 +25,11 @@ class MessageDetailDialog(wx.Dialog):
     ) -> None:
         title = "Mensaje de Tú" if role == "user" else "Mensaje de IA"
         super().__init__(parent, title=title, name="message_detail_dialog")
+        # Keep the original markdown text so _on_open_browser can pass
+        # it to MainWindow._open_message_in_browser for rendering. The
+        # content_text below shows the stripped plain-text version; the
+        # browser view should show the full markdown rendered as HTML.
+        self._original_text = text
 
         sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -87,11 +92,23 @@ class MessageDetailDialog(wx.Dialog):
     def _on_open_browser(self) -> None:
         """Open message content in the default web browser.
 
-        The actual webbrowser.open call is handled by MainWindow,
-        which connects to this button's event. This placeholder
-        copies to clipboard as a safe fallback.
+        Walks the parent tree to find the MainWindow and calls its
+        `_open_message_in_browser(text)` method with the original
+        markdown. Matches the pattern used by ChatPanel._on_context_browser.
+
+        If MainWindow is not found (unusual but possible during teardown),
+        falls back to copying the stripped text to the clipboard so the
+        user does not lose the content.
         """
-        self._copy_to_clipboard()
+        parent = self.GetParent()
+        while parent is not None and not hasattr(
+            parent, "_open_message_in_browser"
+        ):
+            parent = parent.GetParent()
+        if parent is not None:
+            parent._open_message_in_browser(self._original_text)
+        else:
+            self._copy_to_clipboard()
 
     def _on_copy(self) -> None:
         """Copy message content to clipboard."""

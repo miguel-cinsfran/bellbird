@@ -125,3 +125,46 @@ def test_no_message_dialog():
         "MessageDetailDialog must not use wx.MessageDialog. "
         "Use wx.Dialog with native wx.Button widgets instead."
     )
+
+
+def test_open_browser_button_actually_opens_browser() -> None:
+    """Regression for B6: the 'Abrir en navegador' button must open the browser.
+
+    The original implementation called _copy_to_clipboard() as a
+    placeholder, so the button did the same as the copy button — the
+    browser never opened. The fix walks the parent tree to find
+    MainWindow and calls its _open_message_in_browser method.
+
+    Without this guard, a future refactor could silently re-break the
+    browser-open feature (sub-feature C in the v0.3.0 proposal).
+    """
+    import re
+    source_path = _get_ui_path("message_detail_dialog.py")
+    source = source_path.read_text(encoding="utf-8")
+    m = re.search(
+        r"def _on_open_browser\(self\) -> None:.*?(?=\n    def |\nclass |\Z)",
+        source,
+        re.DOTALL,
+    )
+    assert m is not None, "_on_open_browser not found in message_detail_dialog.py"
+    body = m.group(0)
+    assert "_open_message_in_browser" in body, (
+        "_on_open_browser must call _open_message_in_browser — "
+        "otherwise the 'Abrir en navegador' button does nothing useful "
+        "(B6 regression: the button would just copy to clipboard)"
+    )
+    # Sanity: the original text must be stored so the browser gets
+    # the full markdown, not the stripped version shown in content_text.
+    init_body_match = re.search(
+        r"def __init__\(.*?\) -> None:.*?(?=\n    def |\nclass |\Z)",
+        source,
+        re.DOTALL,
+    )
+    assert init_body_match is not None, "__init__ not found"
+    init_body = init_body_match.group(0)
+    assert "self._original_text = text" in init_body, (
+        "__init__ must store the original markdown text in self._original_text "
+        "so _on_open_browser can pass it to _open_message_in_browser for "
+        "rendering. Without this, the browser would receive the stripped "
+        "plain-text version and lose the markdown formatting."
+    )

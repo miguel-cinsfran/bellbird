@@ -833,9 +833,9 @@ class MainWindow(wx.Frame):
         self._conversation.add_message(
             "tool", tool_msg["content"], tool_call_id=tool_call_id
         )
-        self._continue_after_tool(tool_msg)
+        self._continue_after_tool()
 
-    def _continue_after_tool(self, tool_msg: dict) -> None:
+    def _continue_after_tool(self) -> None:
         """Reenvía la conversación al modelo con el resultado de la tool."""
         api_messages = []
         system_prompt = self.params_panel.get_system_prompt()

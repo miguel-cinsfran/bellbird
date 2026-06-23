@@ -126,6 +126,7 @@ class Conversation:
         """
         data = conv.to_dict()
         full = {"system_prompt": system_prompt, **data}
+        filepath = Path(filepath)  # wx.FileDialog.GetPath() returns str, not Path
         tmp_path = filepath.with_suffix(".tmp")
         with open(tmp_path, "w", encoding="utf-8") as f:
             json.dump(full, f, indent=2, ensure_ascii=False)

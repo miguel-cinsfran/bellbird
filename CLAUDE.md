@@ -13,10 +13,12 @@ App de escritorio wxPython para chatear con modelos .gguf locales via llama-serv
 
 ## Estado actual
 
-- Versión: 0.2.0, tests 102/102
-- v0.3.0 en progreso: openspec en `openspec/changes/2026-06-22-ux-navigation-history/`
-- Prompt listo para opencode: `PROMPT_UX_NAVEGACION.txt` (v0.3.0) y `PROMPT_TOOL_CALLING.txt` (v0.4.0)
-- Verificación con NVDA real en Windows: **pendiente** (nunca se ha probado v0.2.0 en vivo)
+- Versión: 0.4.0, tests 186/186
+- v0.4.0 archivado en `openspec/changes/archive/2026-06-23-v0.4.0-tool-calling-*/`
+- v0.4.0 incluye: tool calling (shell_execute), PermissionDialog, PermissionManager, ToolExecutor
+- Bug conocido: mensaje assistant con `tool_calls` no se guarda en Conversation para el segundo turno.
+  Llama-server puede rechazar el request si el Jinja template del modelo lo requiere. Ver v0.4.1.
+- Verificación con NVDA real en Windows: **pendiente** (nunca se ha probado nada en vivo)
 
 ## Correr tests
 
@@ -72,12 +74,11 @@ Antes de implementar cualquier cosa nueva: leer el spec de la capability en
 ## Workflow con opencode
 
 - Tras cada prompt de opencode: revisar commits + leer verify-report + correr tests **antes** de
-  pasar al siguiente prompt. No encadenar `PROMPT_UX_NAVEGACION.txt` → `PROMPT_TOOL_CALLING.txt`
-  sin revisión intermedia.
+  pasar al siguiente prompt.
 - Los archivos `PROMPT_*.txt` y `CONOCIMIENTO_WXPYTHON_ACCESIBLE.md` son para lectura humana.
   Borrarlos del directorio raíz antes de abrir el chat de opencode (para que no los lea como contexto).
-- Verificación con NVDA real en Windows pendiente desde v0.2.0. v0.3.0 cambia toda la UI.
-  Esperar esa prueba antes de pasar a v0.4.0.
+- Verificación con NVDA real en Windows pendiente. v0.4.0 cambia UI (PermissionDialog, checkbox tools).
+  Probar en Windows antes de v0.5.0.
 
 ## Contexto profundo
 

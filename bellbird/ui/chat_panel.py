@@ -362,7 +362,15 @@ class ChatPanel(wx.Panel):
             return
 
         # Delete (Supr) → remove the selected history row.
-        if key == wx.WXK_DELETE and not event.ControlDown():
+        # Gate on _is_generating to match the context-menu behavior: while
+        # the model is streaming, the delete item is omitted from the menu,
+        # and the Supr keyboard binding follows the same gate per the spec
+        # scenario "Delete is a no-op during generation".
+        if (
+            key == wx.WXK_DELETE
+            and not event.ControlDown()
+            and not self._is_generating
+        ):
             self._on_context_delete()
             return
 

@@ -910,8 +910,16 @@ class MainWindow(wx.Frame):
     # ── Abort ──────────────────────────────────────────────────────────────
 
     def abort_generation(self) -> None:
-        """Abort the current generation."""
+        """Abort the current generation with full silence.
+
+        The sequence MUST be: abort → stop → clear_buffer so the network
+        request is cancelled first, then the speech engine stops any
+        current utterance, then the token-chunk buffer is discarded
+        without speaking.
+        """
         self._client.abort()
+        self._speech.stop()
+        self._speech.clear_buffer()
 
     # ── Usage & Browser ─────────────────────────────────────────────────────
 

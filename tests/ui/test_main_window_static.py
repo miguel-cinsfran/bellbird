@@ -623,3 +623,194 @@ def _get_attr_name(node: ast.AST) -> str:
     elif isinstance(node, ast.Name):
         return node.id
     return "<unknown>"
+
+
+# ─── v0.4.0 server lifecycle + new conversation fixes ─────────────────────
+
+
+def test_new_conversation_calls_abort() -> None:
+    """Regression for BUG 1: new_conversation must abort the active stream.
+
+    Without abort, the background stream keeps running and its
+    callbacks (_on_token, _on_done, _on_error) arrive via wx.CallAfter,
+    writing tokens of the previous session into the new empty
+    conversation. The body of new_conversation must contain a call to
+    self._client.abort() (typically guarded by `if self._is_generating`).
+    """
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    method = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == "new_conversation":
+            method = node
+            break
+
+    assert method is not None, "new_conversation method not found in main_window.py"
+
+    has_abort = False
+    for node in ast.walk(method):
+        if isinstance(node, ast.Call):
+            func_name = _get_func_name(node)
+            if func_name == "self._client.abort":
+                has_abort = True
+                break
+
+    assert has_abort, (
+        "new_conversation must call self._client.abort() to stop the "
+        "background stream when a generation is active. Without this, "
+        "the previous session's tokens leak into the new conversation."
+    )
+
+
+def test_on_start_server_does_not_call_start_server_directly() -> None:
+    """Regression for BUG 2: _on_start_server must not block the main thread.
+
+    Previously _on_start_server called start_server() directly, which
+    runs a poll loop with time.sleep(0.2) for up to 60 seconds on the
+    UI thread. The fix delegates to _on_use_model, which runs the
+    load in a background thread with periodic announcements.
+
+    This test asserts that the body of _on_start_server contains NO
+    direct call to start_server(), and DOES call self._on_use_model.
+    """
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    method = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == "_on_start_server":
+            method = node
+            break
+
+    assert method is not None, "_on_start_server method not found in main_window.py"
+
+    for node in ast.walk(method):
+        if isinstance(node, ast.Call):
+            func_name = _get_func_name(node)
+            assert func_name != "start_server", (
+                "_on_start_server must NOT call start_server() directly — "
+                "it would block the main thread for up to 60s. Delegate "
+                "to self._on_use_model (background thread + announce timer)."
+            )
+
+    delegates_to_use_model = False
+    for node in ast.walk(method):
+        if isinstance(node, ast.Call):
+            func_name = _get_func_name(node)
+            if func_name == "self._on_use_model":
+                delegates_to_use_model = True
+                break
+
+    assert delegates_to_use_model, (
+        "_on_start_server must delegate to self._on_use_model so the "
+        "server start runs in a background thread with periodic "
+        "announcements (and so _on_start_server_done updates the title)."
+    )
+
+
+# ─── v0.4.1 accessible_output2 Usage Polish ───────────────────────────────
+
+
+def test_abort_generation_calls_speech_stop_and_clear_buffer() -> None:
+    """abort_generation body contains _speech.stop and _speech.clear_buffer.
+
+    The order MUST be: _client.abort → _speech.stop → _speech.clear_buffer.
+    """
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    method = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == "abort_generation":
+            method = node
+            break
+
+    assert method is not None, "abort_generation not found in main_window.py"
+
+    # Collect method calls in body order
+    calls = []
+    for stmt in ast.walk(method):
+        if isinstance(stmt, ast.Call):
+            func_name = _get_func_name(stmt)
+            if func_name in ("self._client.abort", "self._speech.stop", "self._speech.clear_buffer"):
+                calls.append(func_name)
+
+    assert "self._client.abort" in calls, (
+        "abort_generation must call self._client.abort()"
+    )
+    assert "self._speech.stop" in calls, (
+        "abort_generation must call self._speech.stop()"
+    )
+    assert "self._speech.clear_buffer" in calls, (
+        "abort_generation must call self._speech.clear_buffer()"
+    )
+
+    # Verify order: abort → stop → clear_buffer
+    abort_idx = calls.index("self._client.abort")
+    stop_idx = calls.index("self._speech.stop")
+    clear_idx = calls.index("self._speech.clear_buffer")
+    assert abort_idx < stop_idx < clear_idx, (
+        f"Expected order abort → stop → clear_buffer, got: {calls}"
+    )
+
+
+# ─── v0.4.1 stream callback guards (BUG 1 race) ───────────────────────────
+
+
+def test_callbacks_guard_on_is_generating() -> None:
+    """Regression for BUG 1 race: stream callbacks must drop late events.
+
+    When new_conversation aborts an active stream, 1-2 tokens may
+    already be in the wx.CallAfter queue before the abort signal
+    reaches the background thread. _on_token, _on_done, and _on_error
+    must each open with `if not self._is_generating: return` to drop
+    those late callbacks. Otherwise:
+      - _on_token: writes a stale token to the cleared chat_panel and
+        resurrects _current_response
+      - _on_done: speaks "Respuesta completa" over the user's
+        "Nueva conversación" and re-saves a partial response
+      - _on_error: pops a modal error dialog and marks status bar
+        "Error" while the user is already in a new conversation
+    """
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    for method_name in ("_on_token", "_on_done", "_on_error"):
+        method = None
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef) and node.name == method_name:
+                method = node
+                break
+        assert method is not None, f"{method_name} not found in main_window.py"
+
+        # First non-docstring statement must be the guard `if`.
+        first_stmt = None
+        for stmt in method.body:
+            if (isinstance(stmt, ast.Expr)
+                    and isinstance(stmt.value, ast.Constant)
+                    and isinstance(stmt.value.value, str)):
+                continue  # docstring
+            first_stmt = stmt
+            break
+
+        assert first_stmt is not None, f"{method_name} has no body"
+        assert isinstance(first_stmt, ast.If), (
+            f"{method_name} first executable statement must be an `if` "
+            "guard against BUG 1 race. "
+            f"Got: {type(first_stmt).__name__}"
+        )
+        assert len(first_stmt.body) == 1 and isinstance(
+            first_stmt.body[0], ast.Return
+        ), f"{method_name} guard body must be a single `return`"
+
+        # The guard condition must reference self._is_generating.
+        cond_dump = ast.dump(first_stmt.test)
+        assert "_is_generating" in cond_dump, (
+            f"{method_name} guard condition must reference "
+            f"self._is_generating. Got: {cond_dump}"
+        )

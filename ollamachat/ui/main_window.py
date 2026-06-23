@@ -604,6 +604,7 @@ class MainWindow(wx.Frame):
             on_token=self._on_token,
             on_done=self._on_done,
             on_error=self._on_error,
+            on_usage=self._on_usage,
         )
 
     def _on_token(self, token: str) -> None:
@@ -659,6 +660,38 @@ class MainWindow(wx.Frame):
     def abort_generation(self) -> None:
         """Abort the current generation."""
         self._client.abort()
+
+    # ── Usage & Browser ─────────────────────────────────────────────────────
+
+    def _on_usage(self, usage: dict) -> None:
+        """Handle usage stats from the LLM stream.
+
+        Args:
+            usage: Dict with prompt_tokens, completion_tokens, total_tokens.
+        """
+        self._last_usage = usage
+        self.status_bar.SetStatusText(
+            f"Tokens: {usage.get('total_tokens', 0)}", 1
+        )
+
+    def _open_message_in_browser(self, text: str) -> None:
+        """Open message content in the default browser via a temp HTML file.
+
+        Args:
+            text: Markdown text to render as HTML.
+        """
+        html = markdown.markdown(text, extensions=[])
+        full_html = (
+            "<!doctype html><meta charset='utf-8'>"
+            f"<body>{html}</body>"
+        )
+        with tempfile.NamedTemporaryFile(
+            suffix=".html", delete=False, mode="w", encoding="utf-8"
+        ) as f:
+            f.write(full_html)
+            temp_path = f.name
+        self._temp_html_files.append(temp_path)
+        webbrowser.open(f"file:///{temp_path}")
 
     # ── Save / Load ─────────────────────────────────────────────────────────
 

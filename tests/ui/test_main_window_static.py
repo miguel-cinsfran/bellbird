@@ -714,6 +714,53 @@ def test_on_start_server_does_not_call_start_server_directly() -> None:
 # ─── v0.4.1 accessible_output2 Usage Polish ───────────────────────────────
 
 
+def test_maybe_beep_guards_on_screen_reader() -> None:
+    """_maybe_beep returns early when screen reader is active, before winsound.
+
+    The guard must appear after the platform check and before any
+    winsound.Beep call or throttle logic.
+    """
+    import re
+    source_path = _get_ui_path("main_window.py")
+    src = source_path.read_text(encoding="utf-8")
+    m = re.search(
+        r"def _maybe_beep\(self\) -> None:.*?"
+        r"(?=\n    def |\nclass |\Z)",
+        src, re.DOTALL,
+    )
+    assert m is not None, "_maybe_beep not found"
+    body = m.group(0)
+
+    # Find positions of key statements
+    platform_guard_pos = body.find('if sys.platform != "win32":')
+    sr_guard_pos = body.find("self._speech.is_screen_reader_active()")
+    throttle_pos = body.find("time.monotonic()")
+    beep_pos = body.find("winsound.Beep")
+
+    assert platform_guard_pos >= 0, (
+        "Platform guard (sys.platform != 'win32') must be present"
+    )
+    assert sr_guard_pos >= 0, (
+        "is_screen_reader_active() guard must be present"
+    )
+    assert beep_pos >= 0, "winsound.Beep must be present"
+
+    # Screen-reader guard must come after platform guard and before throttle
+    assert sr_guard_pos > platform_guard_pos, (
+        "is_screen_reader_active() guard must come AFTER platform check"
+    )
+    assert sr_guard_pos < beep_pos, (
+        "is_screen_reader_active() guard must come BEFORE winsound.Beep"
+    )
+    # Verify the guard returns early
+    sr_return = body.find(
+        "if self._speech.is_screen_reader_active():\n            return"
+    )
+    assert sr_return >= 0, (
+        "is_screen_reader_active guard must be an early-return pattern"
+    )
+
+
 def test_abort_generation_calls_speech_stop_and_clear_buffer() -> None:
     """abort_generation body contains _speech.stop and _speech.clear_buffer.
 

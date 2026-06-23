@@ -602,6 +602,8 @@ class MainWindow(wx.Frame):
         """Emit a Windows beep during token generation (throttled to 1/s)."""
         if sys.platform != "win32":
             return
+        if self._speech.is_screen_reader_active():
+            return
         now = time.monotonic()
         if now - self._last_beep_time < 1.0:
             return

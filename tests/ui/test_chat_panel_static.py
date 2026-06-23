@@ -315,10 +315,16 @@ def test_on_list_key_uses_unicode_key_not_ascii_range() -> None:
 
 
 def test_end_generation_skips_empty_preview() -> None:
-    """Regression for B3: message_list.Append must be inside the strip() guard.
+    """Regression for B3: message_list.Append must be INSIDE the strip() guard.
 
     Without this guard, aborting a stream before the first token
     arrives leaves a stray "[IA] [Asistente] " row in the list.
+
+    The check is on INDENTATION, not just position: the Append must be
+    indented strictly more than the `if final.strip():` line so that
+    Python syntactically places it inside the block. A position-only
+    check (e.g. `rfind`) would pass on the buggy code because the guard
+    is above the Append even when the Append is NOT inside the block.
     """
     import re
     from pathlib import Path
@@ -330,18 +336,35 @@ def test_end_generation_skips_empty_preview() -> None:
     )
     assert m is not None, "end_generation not found in chat_panel.py"
     body = m.group(0)
-    append_pos = body.find("self.message_list.Append(preview)")
-    assert append_pos > 0, "message_list.Append(preview) not found"
-    # The Append must be inside an `if final.strip():` block — i.e. the
-    # most recent occurrence of `if final.strip():` must precede the Append.
-    strip_pos = body.rfind("if final.strip():", 0, append_pos)
-    assert strip_pos > 0, (
-        "message_list.Append(preview) must be inside an "
-        "`if final.strip():` block — currently the Append happens "
-        "unconditionally and leaves stray empty list items"
+
+    # 1) Find the Append line and capture its indentation.
+    append_match = re.search(
+        r"^(\s+)self\.message_list\.Append\(preview\)",
+        body, re.MULTILINE,
     )
-    assert strip_pos < append_pos, (
-        "The `if final.strip():` guard must come BEFORE the Append"
+    assert append_match is not None, "message_list.Append(preview) line not found"
+    append_indent = len(append_match.group(1))
+
+    # 2) Find ALL `if final.strip():` lines and take the LAST one
+    #    (the one that guards the Append, if any).
+    if_matches = list(re.finditer(
+        r"^(\s*)if final\.strip\(\):",
+        body, re.MULTILINE,
+    ))
+    assert if_matches, "`if final.strip():` line not found in end_generation"
+    latest_if = if_matches[-1]
+    if_indent = len(latest_if.group(1))
+
+    # 3) The Append must be inside the block: its indentation must be
+    #    STRICTLY GREATER than the if's indentation. If they are equal,
+    #    the Append is at the same level as the if and runs regardless
+    #    of the condition — the BUG.
+    assert append_indent > if_indent, (
+        f"message_list.Append(preview) (indent={append_indent}) must be "
+        f"indented MORE than `if final.strip():` (indent={if_indent}) "
+        f"to be syntactically inside the block. Current code has the "
+        f"Append at the same level as the guard, so it runs even when "
+        f"the stream is empty — B3 regression."
     )
 
 

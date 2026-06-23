@@ -91,6 +91,10 @@ class MainWindow(wx.Frame):
         self._model_load_thread: threading.Thread | None = None
         self._basename_to_path: dict[str, str] = {}
 
+        # Must be defined before _build_menu() which uses them for Append() IDs.
+        self.ID_START_SERVER = wx.NewIdRef()
+        self.ID_STOP_SERVER = wx.NewIdRef()
+
         self._build_ui()
         self._build_menu()
         self._build_accelerators()
@@ -304,19 +308,16 @@ class MainWindow(wx.Frame):
         menu_new = archivo_menu.Append(
             wx.ID_NEW, "Nueva conversación\tCtrl+N", "Comenzar una nueva conversación"
         )
-        menu_new.SetName("menu_new")
         self.Bind(wx.EVT_MENU, lambda evt: self.new_conversation(), menu_new)
 
         menu_open = archivo_menu.Append(
             wx.ID_OPEN, "Abrir\tCtrl+O", "Abrir una conversación guardada"
         )
-        menu_open.SetName("menu_open")
         self.Bind(wx.EVT_MENU, lambda evt: self.load_conversation(), menu_open)
 
         menu_save = archivo_menu.Append(
             wx.ID_SAVE, "Guardar\tCtrl+S", "Guardar la conversación actual"
         )
-        menu_save.SetName("menu_save")
         self.Bind(wx.EVT_MENU, lambda evt: self.save_conversation(), menu_save)
 
         archivo_menu.AppendSeparator()
@@ -325,13 +326,11 @@ class MainWindow(wx.Frame):
             wx.ID_PREFERENCES, "Preferencias\tCtrl+,",
             "Abrir el diálogo de preferencias",
         )
-        menu_prefs.SetName("menu_preferences")
         self.Bind(wx.EVT_MENU, lambda evt: self._show_preferences(), menu_prefs)
 
         menu_exit = archivo_menu.Append(
             wx.ID_EXIT, "Salir\tAlt+F4", "Salir de Bellbird"
         )
-        menu_exit.SetName("menu_exit")
         self.Bind(wx.EVT_MENU, lambda evt: self.Close(), menu_exit)
 
         menu_bar.Append(archivo_menu, "Archivo")
@@ -339,27 +338,24 @@ class MainWindow(wx.Frame):
         # ── Servidor menu ─────────────────────────────────────────────
         servidor_menu = wx.Menu()
 
-        menu_start = servidor_menu.Append(
+        servidor_menu.Append(
             self.ID_START_SERVER, "Iniciar servidor\tF7",
             "Iniciar llama-server con el modelo seleccionado",
         )
-        menu_start.SetName("menu_start_server")
         # Bound to _on_use_model via ID_START_SERVER in _build_accelerators
 
-        menu_stop = servidor_menu.Append(
+        servidor_menu.Append(
             self.ID_STOP_SERVER, "Detener servidor\tCtrl+F7",
             "Detener llama-server",
         )
-        menu_stop.SetName("menu_stop_server")
         # Bound to _on_stop_server via ID_STOP_SERVER in _build_accelerators
 
         servidor_menu.AppendSeparator()
 
-        menu_scan = servidor_menu.Append(
+        servidor_menu.Append(
             wx.ID_REFRESH, "Buscar modelos\tF5",
             "Buscar modelos .gguf en el sistema",
         )
-        menu_scan.SetName("menu_scan_models")
         # Bound to _scan_models via wx.ID_REFRESH in _build_accelerators
 
         menu_bar.Append(servidor_menu, "Servidor")
@@ -369,7 +365,6 @@ class MainWindow(wx.Frame):
         menu_about = ayuda_menu.Append(
             wx.ID_ABOUT, "Acerca de", "Acerca de Bellbird"
         )
-        menu_about.SetName("menu_about")
         self.Bind(wx.EVT_MENU, lambda evt: self._show_about(), menu_about)
 
         self.ID_SHORTCUTS = wx.NewIdRef()
@@ -378,7 +373,6 @@ class MainWindow(wx.Frame):
             "Atajos de teclado",
             "Ver atajos de teclado disponibles",
         )
-        menu_shortcuts.SetName("menu_shortcuts")
         self.Bind(
             wx.EVT_MENU, lambda evt: self._show_shortcuts(), menu_shortcuts
         )
@@ -398,8 +392,7 @@ class MainWindow(wx.Frame):
         self.ID_FOCUS_USE = wx.NewIdRef()
         self.ID_F2 = wx.NewIdRef()
         self.ID_F6 = wx.NewIdRef()
-        self.ID_START_SERVER = wx.NewIdRef()
-        self.ID_STOP_SERVER = wx.NewIdRef()
+        # ID_START_SERVER and ID_STOP_SERVER defined in __init__ (before _build_menu)
 
         accel_entries = [
             wx.AcceleratorEntry(wx.ACCEL_CTRL, ord("N"), wx.ID_NEW),

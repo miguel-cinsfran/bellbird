@@ -4,7 +4,7 @@ Cliente de escritorio accesible para chatear con modelos locales .gguf via llama
 Diseñado para usuarios ciegos en Windows 11 con NVDA o JAWS.
 
 Stack: Python 3.12, wxPython 4.2+, accessible-output2 0.17+, requests 2.31+.
-Tests: pytest (102/102 pasan en el ultimo verify).
+Tests: pytest (134/134 pasan en el ultimo verify).
 
 ## Reglas criticas (no negociables)
 
@@ -76,7 +76,7 @@ openspec/             # artefactos SDD (ver seccion abajo)
 
 ## Tests
 
-- Windows: `uv sync` primero, despues `uv run pytest -xvs`. 102/102 pasan.
+- Windows: `uv sync` primero, despues `uv run pytest -xvs`. 134/134 pasan.
 - WSL / Linux sin wxPython: wxPython no tiene wheel de Linux por defecto, falla al compilar desde source. Usar `uv run --no-sync pytest -xvs`. Los tests de `core/` y smoke + tests AST de UI pasan igual (los AST leen el codigo fuente, no importan wx).
 
 ## Como iterar una nueva version
@@ -121,8 +121,8 @@ Para una sesion nueva, leer en este orden:
 
 ## Estado actual
 
-- Version: 0.2.0
-- Tests: 102/102 pasan
+- Version: 0.3.0
+- Tests: 134/134 pasan
 - Backend: llama-server (llama.cpp) via API OpenAI-compatible. Ollama eliminado.
 - SUGGESTION pendientes (no bloqueantes): set_models([]) sin anuncio de voz, _on_close bloquea 5s, stop_server_button re-enable redundante
 - Verificacion manual en Windows: pendiente (UI con NVDA, streaming, botones servidor)

@@ -82,6 +82,8 @@ class LlamaClient:
         on_done: Callable[[], None],
         on_error: Callable[[str], None],
         on_usage: Callable[[dict], None] | None = None,
+        on_tool_call: Callable[[str, str, dict], None] | None = None,
+        tools: list[dict] | None = None,
     ) -> None:
         """Start a streaming chat in a background daemon thread.
 
@@ -101,6 +103,9 @@ class LlamaClient:
             on_done: Called once on successful completion via wx.CallAfter.
             on_error: Called once on error via wx.CallAfter.
             on_usage: Optional callback for usage stats dict via wx.CallAfter.
+            on_tool_call: Optional callback for tool_calls delta, receives
+                (tool_name, tool_call_id, arguments_dict) via wx.CallAfter.
+            tools: Optional OpenAI-format tool catalog forwarded to the model.
         """
         # A1/A3: stop any in-flight stream before starting a new one.
         # Set the event first so the worker notices at its next line
@@ -118,7 +123,7 @@ class LlamaClient:
         self._stop_event.clear()
         self._stream_thread = threading.Thread(
             target=self._stream_worker,
-            args=(messages, options, on_token, on_done, on_error, on_usage),
+            args=(messages, options, on_token, on_done, on_error, on_usage, on_tool_call, tools),
             daemon=True,
         )
         self._stream_thread.start()
@@ -135,6 +140,8 @@ class LlamaClient:
         on_done: Callable[[], None],
         on_error: Callable[[str], None],
         on_usage: Callable[[dict], None] | None = None,
+        on_tool_call: Callable[[str, str, dict], None] | None = None,
+        tools: list[dict] | None = None,
     ) -> None:
         """Background thread worker for streaming chat.
 
@@ -157,6 +164,10 @@ class LlamaClient:
                 "stream": True,
             }
             body.update(options)
+
+            if tools is not None:
+                body["tools"] = tools
+                body["tool_choice"] = "auto"
 
             # D9: use a context manager so the connection is released
             # back to the pool on exit even if an exception escapes
@@ -184,6 +195,9 @@ class LlamaClient:
                 # terminator, parse data: lines as JSON, extract the delta
                 # content, and forward it to on_token via wx.CallAfter.
                 # Malformed JSON lines are silently skipped (REQ-LLAMA-003).
+                # Tool-call deltas are accumulated by index and dispatched
+                # when finish_reason == "tool_calls".
+                _tc_buffer: dict[int, dict] = {}
                 for line in response.iter_lines():
                     if self._stop_event.is_set():
                         break
@@ -203,6 +217,31 @@ class LlamaClient:
                     except json.JSONDecodeError:
                         continue  # malformed data line, skip
 
+                    # Tool-call delta accumulation: extract before content
+                    # so we capture finish_reason even on the final chunk.
+                    finish_reason = (
+                        chunk.get("choices", [{}])[0]
+                        .get("finish_reason") or ""
+                    )
+                    tool_calls_delta = (
+                        chunk.get("choices", [{}])[0]
+                        .get("delta", {})
+                        .get("tool_calls", [])
+                    )
+                    for tc in tool_calls_delta:
+                        idx = tc["index"]
+                        if idx not in _tc_buffer:
+                            _tc_buffer[idx] = {"id": "", "name": "", "arguments": ""}
+                        entry = _tc_buffer[idx]
+                        if "id" in tc:
+                            entry["id"] = tc["id"]
+                        if "function" in tc:
+                            fn = tc["function"]
+                            if "name" in fn:
+                                entry["name"] = fn["name"]
+                            if "arguments" in fn:
+                                entry["arguments"] += fn["arguments"]
+
                     # Usage callback: fire before content extraction so
                     # the on_usage hook runs even on the final chunk
                     # which may contain usage but no delta content.
@@ -218,6 +257,18 @@ class LlamaClient:
                     )
                     if content:
                         wx.CallAfter(on_token, content)
+
+                    # Dispatch tool_calls when finish_reason signals it.
+                    if finish_reason == "tool_calls" and on_tool_call is not None:
+                        for entry in _tc_buffer.values():
+                            try:
+                                args = json.loads(entry["arguments"])
+                            except json.JSONDecodeError:
+                                args = {"raw": entry["arguments"]}
+                            wx.CallAfter(
+                                on_tool_call, entry["name"], entry["id"], args
+                            )
+                        _tc_buffer.clear()
 
             wx.CallAfter(on_done)
 

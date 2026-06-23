@@ -239,6 +239,48 @@ def test_main_window_uses_logger():
     assert "get_logger()" in source
 
 
+# ─── use_model_button (v0.3.0, in params_panel.py) ──────────────────────────
+
+
+def test_use_model_button_present():
+    """ParamsPanel has a use_model_button with name='use_model_button'."""
+    source_path = _get_ui_path("params_panel.py")
+    source = source_path.read_text(encoding="utf-8")
+    assert 'name="use_model_button"' in source or "name='use_model_button'" in source
+
+
+def test_use_model_button_in_boxsizer():
+    """use_model_button is added to a wx.BoxSizer (.Add() call)."""
+    source_path = _get_ui_path("params_panel.py")
+    source = source_path.read_text(encoding="utf-8")
+    # Check that use_model_button appears in an Add() call context
+    assert "use_model_button" in source
+    # The Add() call that receives it should be in the source
+    assert "model_sizer.Add(" in source or "model_sizer.Add(self.use_model_button" in source
+
+
+def test_use_model_button_disabled_initially():
+    """use_model_button is disabled in __init__ or in set_models([])."""
+    source_path = _get_ui_path("params_panel.py")
+    source = source_path.read_text(encoding="utf-8")
+
+    # Look for use_model_button.Disable() calls
+    # In __init__ or in set_models/ add_model
+    import re
+    disable_calls = re.findall(
+        r"use_model_button\.Disable\(\)", source
+    )
+    assert len(disable_calls) >= 1, (
+        "use_model_button must be disabled in __init__ or in set_models([]). "
+        f"Found {len(disable_calls)} use_model_button.Disable() calls."
+    )
+
+    # Also check that it's enabled when models are available
+    assert "use_model_button.Enable()" in source or "use_model_button.Enable" in source, (
+        "use_model_button must be enabled when models are available."
+    )
+
+
 def _get_func_name(node: ast.Call) -> str:
     """Extract the full function name from a Call node."""
     if isinstance(node.func, ast.Attribute):

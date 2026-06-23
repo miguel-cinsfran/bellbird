@@ -49,7 +49,17 @@ class ParamsPanel(wx.Panel):
         )
         model_sizer.Add(self.browse_model_button, flag=wx.LEFT, border=4)
 
+        self.use_model_button = wx.Button(
+            self, label="Usar modelo", name="use_model_button"
+        )
+        self.use_model_button.Disable()
+        model_sizer.Add(self.use_model_button, flag=wx.LEFT, border=4)
+
         sizer.Add(model_sizer, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=8)
+
+        self.model_selector.Bind(
+            wx.EVT_COMBOBOX, self._on_model_select
+        )
 
         # ── System Prompt ───────────────────────────────────────────────
         sizer.Add(
@@ -172,6 +182,13 @@ class ParamsPanel(wx.Panel):
 
         self.SetSizer(sizer)
 
+    def _on_model_select(self, event: wx.CommandEvent) -> None:
+        """Handle model selector selection change."""
+        if self.model_selector.GetCount() > 0:
+            self.use_model_button.Enable()
+        else:
+            self.use_model_button.Disable()
+
     def set_models(self, paths: list[str]) -> None:
         """Populate the model selector with .gguf file basenames.
 
@@ -188,6 +205,9 @@ class ParamsPanel(wx.Panel):
             self.model_selector.Append(path.name)
         if paths:
             self.model_selector.SetSelection(0)
+            self.use_model_button.Enable()
+        else:
+            self.use_model_button.Disable()
 
     def add_model(self, path_str: str) -> bool:
         """Add a single .gguf file to the selector without clearing existing entries.
@@ -220,6 +240,7 @@ class ParamsPanel(wx.Panel):
         self._basename_to_path[basename] = str(path)
         self.model_selector.Append(basename)
         self.model_selector.SetSelection(self.model_selector.GetCount() - 1)
+        self.use_model_button.Enable()
         return True
 
     def get_model(self) -> str:

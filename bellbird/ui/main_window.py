@@ -310,46 +310,46 @@ class MainWindow(wx.Frame):
         # ── Archivo menu ──────────────────────────────────────────────
         archivo_menu = wx.Menu()
         menu_new = archivo_menu.Append(
-            wx.ID_NEW, "Nueva conversación\tCtrl+N", "Comenzar una nueva conversación"
+            wx.ID_NEW, "&Nueva conversación\tCtrl+N", "Comenzar una nueva conversación"
         )
         self.Bind(wx.EVT_MENU, lambda evt: self.new_conversation(), menu_new)
 
         menu_open = archivo_menu.Append(
-            wx.ID_OPEN, "Abrir\tCtrl+O", "Abrir una conversación guardada"
+            wx.ID_OPEN, "&Abrir\tCtrl+O", "Abrir una conversación guardada"
         )
         self.Bind(wx.EVT_MENU, lambda evt: self.load_conversation(), menu_open)
 
         menu_save = archivo_menu.Append(
-            wx.ID_SAVE, "Guardar\tCtrl+S", "Guardar la conversación actual"
+            wx.ID_SAVE, "&Guardar\tCtrl+S", "Guardar la conversación actual"
         )
         self.Bind(wx.EVT_MENU, lambda evt: self.save_conversation(), menu_save)
 
         archivo_menu.AppendSeparator()
 
         menu_prefs = archivo_menu.Append(
-            wx.ID_PREFERENCES, "Preferencias\tCtrl+,",
+            wx.ID_PREFERENCES, "&Preferencias\tCtrl+,",
             "Abrir el diálogo de preferencias",
         )
         self.Bind(wx.EVT_MENU, lambda evt: self._show_preferences(), menu_prefs)
 
         menu_exit = archivo_menu.Append(
-            wx.ID_EXIT, "Salir\tAlt+F4", "Salir de Bellbird"
+            wx.ID_EXIT, "&Salir\tAlt+F4", "Salir de Bellbird"
         )
         self.Bind(wx.EVT_MENU, lambda evt: self.Close(), menu_exit)
 
-        menu_bar.Append(archivo_menu, "Archivo")
+        menu_bar.Append(archivo_menu, "&Archivo")
 
         # ── Servidor menu ─────────────────────────────────────────────
         servidor_menu = wx.Menu()
 
         servidor_menu.Append(
-            self.ID_START_SERVER, "Iniciar servidor\tF7",
+            self.ID_START_SERVER, "&Iniciar servidor\tF7",
             "Iniciar llama-server con el modelo seleccionado",
         )
         # Bound to _on_use_model via ID_START_SERVER in _build_accelerators
 
         servidor_menu.Append(
-            self.ID_STOP_SERVER, "Detener servidor\tCtrl+F7",
+            self.ID_STOP_SERVER, "&Detener servidor\tCtrl+F7",
             "Detener llama-server",
         )
         # Bound to _on_stop_server via ID_STOP_SERVER in _build_accelerators
@@ -357,31 +357,31 @@ class MainWindow(wx.Frame):
         servidor_menu.AppendSeparator()
 
         servidor_menu.Append(
-            wx.ID_REFRESH, "Buscar modelos\tF5",
+            wx.ID_REFRESH, "&Buscar modelos\tF5",
             "Buscar modelos .gguf en el sistema",
         )
         # Bound to _scan_models via wx.ID_REFRESH in _build_accelerators
 
-        menu_bar.Append(servidor_menu, "Servidor")
+        menu_bar.Append(servidor_menu, "&Servidor")
 
         # ── Ayuda menu ────────────────────────────────────────────────
         ayuda_menu = wx.Menu()
         menu_about = ayuda_menu.Append(
-            wx.ID_ABOUT, "Acerca de", "Acerca de Bellbird"
+            wx.ID_ABOUT, "&Acerca de", "Acerca de Bellbird"
         )
         self.Bind(wx.EVT_MENU, lambda evt: self._show_about(), menu_about)
 
         self.ID_SHORTCUTS = wx.NewIdRef()
         menu_shortcuts = ayuda_menu.Append(
             self.ID_SHORTCUTS,
-            "Atajos de teclado",
+            "A&tajos de teclado",
             "Ver atajos de teclado disponibles",
         )
         self.Bind(
             wx.EVT_MENU, lambda evt: self._show_shortcuts(), menu_shortcuts
         )
 
-        menu_bar.Append(ayuda_menu, "Ayuda")
+        menu_bar.Append(ayuda_menu, "A&yuda")
 
         self.SetMenuBar(menu_bar)
 

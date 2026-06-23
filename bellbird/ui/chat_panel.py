@@ -269,18 +269,18 @@ class ChatPanel(wx.Panel):
             A wx.Menu with copy, browser, and conditional delete items.
         """
         menu = wx.Menu()
-        menu_copy = wx.MenuItem(menu, wx.ID_COPY, "Copiar mensaje\tCtrl+C")
+        menu_copy = wx.MenuItem(menu, wx.ID_COPY, "&Copiar mensaje\tCtrl+C")
         menu.Append(menu_copy)
         self.Bind(wx.EVT_MENU, lambda evt: self._on_context_copy(), menu_copy)
 
         menu_browser = wx.MenuItem(
-            menu, wx.ID_ANY, "Abrir en navegador\tCtrl+Enter"
+            menu, wx.ID_ANY, "&Abrir en navegador\tCtrl+Enter"
         )
         menu.Append(menu_browser)
         self.Bind(wx.EVT_MENU, lambda evt: self._on_context_browser(), menu_browser)
 
         if not self._is_generating:
-            menu_delete = wx.MenuItem(menu, wx.ID_DELETE, "Eliminar mensaje")
+            menu_delete = wx.MenuItem(menu, wx.ID_DELETE, "&Eliminar mensaje")
             menu.Append(menu_delete)
             self.Bind(wx.EVT_MENU, lambda evt: self._on_context_delete(), menu_delete)
 

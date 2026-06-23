@@ -6,6 +6,7 @@ dependencies = [
     "wxpython>=4.2",
     "accessible-output2>=0.17",
     "requests>=2.31",
+    "markdown>=3.5",
 ]
 
 [dependency-groups]

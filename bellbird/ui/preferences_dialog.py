@@ -14,6 +14,14 @@ import wx
 from bellbird.core.config import BellbirdConfig
 
 
+def _parse_stop_text(text: str) -> list[str]:
+    """Parse multiline stop-strings text into a cleaned list.
+
+    Strips whitespace per line, drops empty lines, handles \\r\\n.
+    """
+    return [line.strip() for line in text.splitlines() if line.strip()]
+
+
 class PreferencesDialog(wx.Dialog):
     """Preferences dialog with 5-tab notebook editing BellbirdConfig.
 
@@ -121,7 +129,7 @@ class PreferencesDialog(wx.Dialog):
         notebook.AddPage(panel, "General")
 
     def _build_model_page(self, notebook: wx.Notebook) -> None:
-        """Build Modelo tab: system prompt + 6 sampling controls."""
+        """Build Modelo tab: system prompt + 2 primary samplers (temp + min_p) + max_tokens."""
         panel = wx.Panel(notebook, name="model_page")
         sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -157,6 +165,26 @@ class PreferencesDialog(wx.Dialog):
         sizer.Add(temp_sizer, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=8)
         self.pref_temp_slider.Bind(wx.EVT_SLIDER, self._on_slider_change)
 
+        # ── Min-p slider ───────────────────────────────────────────────
+        sizer.Add(
+            wx.StaticText(panel, label="Min-p:"),
+            flag=wx.LEFT | wx.TOP, border=8,
+        )
+        min_p_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.pref_min_p_slider = wx.Slider(
+            panel, minValue=0, maxValue=100,
+            value=int(self._config.min_p * 100),
+            name="pref_min_p_slider", style=wx.SL_HORIZONTAL,
+        )
+        self.pref_min_p_label = wx.StaticText(
+            panel, label=f"{self._config.min_p:.2f}",
+            name="min_p_value_label",
+        )
+        min_p_sizer.Add(self.pref_min_p_slider, proportion=1, flag=wx.EXPAND)
+        min_p_sizer.Add(self.pref_min_p_label, flag=wx.LEFT, border=4)
+        sizer.Add(min_p_sizer, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=8)
+        self.pref_min_p_slider.Bind(wx.EVT_SLIDER, self._on_slider_change)
+
         # ── Max tokens ─────────────────────────────────────────────────
         sizer.Add(
             wx.StaticText(panel, label="Máximo de tokens:"),
@@ -169,59 +197,6 @@ class PreferencesDialog(wx.Dialog):
         )
         sizer.Add(self.pref_max_tokens_spin,
                   flag=wx.LEFT | wx.RIGHT, border=8)
-
-        # ── Top-p slider ───────────────────────────────────────────────
-        sizer.Add(
-            wx.StaticText(panel, label="Top-p:"),
-            flag=wx.LEFT | wx.TOP, border=8,
-        )
-        top_p_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.pref_top_p_slider = wx.Slider(
-            panel, minValue=0, maxValue=100,
-            value=int(self._config.top_p * 100),
-            name="pref_top_p_slider", style=wx.SL_HORIZONTAL,
-        )
-        self.pref_top_p_label = wx.StaticText(
-            panel, label=f"{self._config.top_p:.2f}",
-            name="top_p_value_label",
-        )
-        top_p_sizer.Add(self.pref_top_p_slider, proportion=1, flag=wx.EXPAND)
-        top_p_sizer.Add(self.pref_top_p_label, flag=wx.LEFT, border=4)
-        sizer.Add(top_p_sizer, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=8)
-        self.pref_top_p_slider.Bind(wx.EVT_SLIDER, self._on_slider_change)
-
-        # ── Top-k ──────────────────────────────────────────────────────
-        sizer.Add(
-            wx.StaticText(panel, label="Top-k:"),
-            flag=wx.LEFT | wx.TOP, border=8,
-        )
-        self.pref_top_k_spin = wx.SpinCtrl(
-            panel, min=1, max=200,
-            initial=self._config.top_k,
-            name="pref_top_k_spin",
-        )
-        sizer.Add(self.pref_top_k_spin,
-                  flag=wx.LEFT | wx.RIGHT, border=8)
-
-        # ── Repeat penalty slider ──────────────────────────────────────
-        sizer.Add(
-            wx.StaticText(panel, label="Penalización de repetición:"),
-            flag=wx.LEFT | wx.TOP, border=8,
-        )
-        rp_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.pref_repeat_slider = wx.Slider(
-            panel, minValue=100, maxValue=200,
-            value=int(self._config.repeat_penalty * 100),
-            name="pref_repeat_slider", style=wx.SL_HORIZONTAL,
-        )
-        self.pref_repeat_label = wx.StaticText(
-            panel, label=f"{self._config.repeat_penalty:.2f}",
-            name="repeat_value_label",
-        )
-        rp_sizer.Add(self.pref_repeat_slider, proportion=1, flag=wx.EXPAND)
-        rp_sizer.Add(self.pref_repeat_label, flag=wx.LEFT, border=4)
-        sizer.Add(rp_sizer, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=8)
-        self.pref_repeat_slider.Bind(wx.EVT_SLIDER, self._on_slider_change)
 
         sizer.AddStretchSpacer()
         panel.SetSizer(sizer)
@@ -272,9 +247,88 @@ class PreferencesDialog(wx.Dialog):
         notebook.AddPage(panel, "Herramientas")
 
     def _build_advanced_page(self, notebook: wx.Notebook) -> None:
-        """Build Avanzado tab: ctx_size, GPU layers, Port spin controls."""
+        """Build Avanzado tab: moved samplers + seed + stop + server fields."""
         panel = wx.Panel(notebook, name="advanced_page")
         sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # ── Top-p slider (moved from Modelo) ───────────────────────────
+        sizer.Add(
+            wx.StaticText(panel, label="Top-p:"),
+            flag=wx.LEFT | wx.TOP, border=8,
+        )
+        top_p_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.pref_top_p_slider = wx.Slider(
+            panel, minValue=0, maxValue=100,
+            value=int(self._config.top_p * 100),
+            name="pref_top_p_slider", style=wx.SL_HORIZONTAL,
+        )
+        self.pref_top_p_label = wx.StaticText(
+            panel, label=f"{self._config.top_p:.2f}",
+            name="top_p_value_label",
+        )
+        top_p_sizer.Add(self.pref_top_p_slider, proportion=1, flag=wx.EXPAND)
+        top_p_sizer.Add(self.pref_top_p_label, flag=wx.LEFT, border=4)
+        sizer.Add(top_p_sizer, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=8)
+        self.pref_top_p_slider.Bind(wx.EVT_SLIDER, self._on_slider_change)
+
+        # ── Top-k (moved from Modelo) ──────────────────────────────────
+        sizer.Add(
+            wx.StaticText(panel, label="Top-k:"),
+            flag=wx.LEFT | wx.TOP, border=8,
+        )
+        self.pref_top_k_spin = wx.SpinCtrl(
+            panel, min=1, max=200,
+            initial=self._config.top_k,
+            name="pref_top_k_spin",
+        )
+        sizer.Add(self.pref_top_k_spin,
+                  flag=wx.LEFT | wx.RIGHT, border=8)
+
+        # ── Repeat penalty slider (moved from Modelo) ──────────────────
+        sizer.Add(
+            wx.StaticText(panel, label="Penalización de repetición:"),
+            flag=wx.LEFT | wx.TOP, border=8,
+        )
+        rp_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.pref_repeat_slider = wx.Slider(
+            panel, minValue=100, maxValue=200,
+            value=int(self._config.repeat_penalty * 100),
+            name="pref_repeat_slider", style=wx.SL_HORIZONTAL,
+        )
+        self.pref_repeat_label = wx.StaticText(
+            panel, label=f"{self._config.repeat_penalty:.2f}",
+            name="repeat_value_label",
+        )
+        rp_sizer.Add(self.pref_repeat_slider, proportion=1, flag=wx.EXPAND)
+        rp_sizer.Add(self.pref_repeat_label, flag=wx.LEFT, border=4)
+        sizer.Add(rp_sizer, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=8)
+        self.pref_repeat_slider.Bind(wx.EVT_SLIDER, self._on_slider_change)
+
+        # ── Seed spin (new) ────────────────────────────────────────────
+        sizer.Add(
+            wx.StaticText(panel, label="Semilla:"),
+            flag=wx.LEFT | wx.TOP, border=8,
+        )
+        self.pref_seed_spin = wx.SpinCtrl(
+            panel, min=-1, max=2147483647,
+            initial=self._config.seed,
+            name="pref_seed_spin",
+        )
+        sizer.Add(self.pref_seed_spin,
+                  flag=wx.LEFT | wx.RIGHT, border=8)
+
+        # ── Stop text (new) ────────────────────────────────────────────
+        sizer.Add(
+            wx.StaticText(panel, label="Cadenas de parada (una por línea):"),
+            flag=wx.LEFT | wx.TOP, border=8,
+        )
+        self.pref_stop_text = wx.TextCtrl(
+            panel, value="\n".join(self._config.stop),
+            style=wx.TE_MULTILINE, size=(-1, 60),
+            name="pref_stop_text",
+        )
+        sizer.Add(self.pref_stop_text,
+                  flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=8)
 
         # ── Context size ───────────────────────────────────────────────
         sizer.Add(
@@ -345,6 +399,9 @@ class PreferencesDialog(wx.Dialog):
         if slider == self.pref_temp_slider:
             label = self.pref_temp_label
             fmt_value = f"{slider.GetValue() / 100.0:.2f}"
+        elif slider == self.pref_min_p_slider:
+            label = self.pref_min_p_label
+            fmt_value = f"{slider.GetValue() / 100.0:.2f}"
         elif slider == self.pref_top_p_slider:
             label = self.pref_top_p_label
             fmt_value = f"{slider.GetValue() / 100.0:.2f}"
@@ -363,7 +420,7 @@ class PreferencesDialog(wx.Dialog):
         self.EndModal(wx.ID_OK)
 
     def _apply_config(self) -> None:
-        """Read all 12 user-editable controls into self._config.
+        """Read all user-editable controls into self._config.
 
         BellbirdConfig.last_model is intentionally NOT exposed here —
         it is set by the model-load flow (MainWindow._on_start_server_done).
@@ -371,11 +428,14 @@ class PreferencesDialog(wx.Dialog):
         self._config.system_prompt = self.pref_system_prompt.GetValue()
         self._config.temperature = self.pref_temp_slider.GetValue() / 100.0
         self._config.max_tokens = self.pref_max_tokens_spin.GetValue()
+        self._config.min_p = self.pref_min_p_slider.GetValue() / 100.0
         self._config.top_p = self.pref_top_p_slider.GetValue() / 100.0
         self._config.top_k = self.pref_top_k_spin.GetValue()
         self._config.repeat_penalty = (
             self.pref_repeat_slider.GetValue() / 100.0
         )
+        self._config.seed = self.pref_seed_spin.GetValue()
+        self._config.stop = _parse_stop_text(self.pref_stop_text.GetValue())
         self._config.extra_model_folders = list(
             self.extra_folders_list.GetItems()
         )

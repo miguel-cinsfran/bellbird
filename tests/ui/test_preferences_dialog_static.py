@@ -155,3 +155,261 @@ def test_all_controls_have_name():
     assert not calls_without_name, (
         "Widgets missing name=:\n" + "\n".join(calls_without_name)
     )
+
+
+# ─── Phase 4: samplers-modernos — min_p slider, seed spin, stop text (v0.7.2) ─
+
+
+def _get_method_source(source: str, tree: ast.AST, method_name: str) -> str | None:
+    """Extract raw source of a method from the PreferencesDialog class."""
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef) and node.name == "PreferencesDialog":
+            for item in node.body:
+                if isinstance(item, ast.FunctionDef) and item.name == method_name:
+                    source_lines = source.splitlines()
+                    return "\n".join(source_lines[item.lineno - 1:item.end_lineno])
+    return None
+
+
+def test_min_p_slider_present():
+    """pref_min_p_slider exists with name= and preceded by StaticText(label='Min-p:')."""
+    source_path = _get_ui_path("preferences_dialog.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    # Find _build_model_page
+    method = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef) and node.name == "PreferencesDialog":
+            for item in node.body:
+                if isinstance(item, ast.FunctionDef) and item.name == "_build_model_page":
+                    method = item
+                    break
+    assert method is not None, "_build_model_page method not found"
+
+    # Check the raw source, not the ast-unparsed version (which normalizes quotes)
+    source_lines = source.splitlines()
+    start = method.lineno - 1
+    end = method.end_lineno
+    method_source = "\n".join(source_lines[start:end])
+    assert 'name="pref_min_p_slider"' in method_source, (
+        "pref_min_p_slider with name='pref_min_p_slider' must be in _build_model_page"
+    )
+    assert "Min-p:" in method_source, (
+        "pref_min_p_slider must be preceded by wx.StaticText(label='Min-p:')"
+    )
+
+
+def test_seed_spin_present_in_advanced():
+    """pref_seed_spin is constructed inside _build_advanced_page, not _build_model_page."""
+    source_path = _get_ui_path("preferences_dialog.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    # Find both methods
+    advanced = None
+    model = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef) and node.name == "PreferencesDialog":
+            for item in node.body:
+                if isinstance(item, ast.FunctionDef):
+                    if item.name == "_build_advanced_page":
+                        advanced = item
+                    elif item.name == "_build_model_page":
+                        model = item
+
+    assert advanced is not None, "_build_advanced_page not found"
+    assert model is not None, "_build_model_page not found"
+
+    source_lines = source.splitlines()
+    advanced_src = "\n".join(source_lines[advanced.lineno - 1:advanced.end_lineno])
+    model_src = "\n".join(source_lines[model.lineno - 1:model.end_lineno])
+
+    assert 'name="pref_seed_spin"' in advanced_src, (
+        "pref_seed_spin must be constructed inside _build_advanced_page"
+    )
+    assert 'name="pref_seed_spin"' not in model_src, (
+        "pref_seed_spin must NOT be in _build_model_page"
+    )
+    assert "Semilla:" in advanced_src, (
+        "pref_seed_spin must be preceded by wx.StaticText(label='Semilla:')"
+    )
+
+
+def test_stop_text_present_in_advanced():
+    """pref_stop_text with style=wx.TE_MULTILINE is in _build_advanced_page."""
+    source_path = _get_ui_path("preferences_dialog.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    advanced = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef) and node.name == "PreferencesDialog":
+            for item in node.body:
+                if isinstance(item, ast.FunctionDef) and item.name == "_build_advanced_page":
+                    advanced = item
+                    break
+
+    assert advanced is not None, "_build_advanced_page not found"
+    source_lines = source.splitlines()
+    advanced_src = "\n".join(source_lines[advanced.lineno - 1:advanced.end_lineno])
+
+    assert 'name="pref_stop_text"' in advanced_src, (
+        "pref_stop_text with name='pref_stop_text' must be in _build_advanced_page"
+    )
+    assert "TE_MULTILINE" in advanced_src, (
+        "pref_stop_text must use style=wx.TE_MULTILINE"
+    )
+    assert "Cadenas de parada" in advanced_src, (
+        "pref_stop_text must be preceded by wx.StaticText with 'Cadenas de parada' label"
+    )
+
+
+def test_no_grid_sizer_in_preferences():
+    """No GridSizer/FlexGridSizer/GridBagSizer in preferences_dialog.py."""
+    source_path = _get_ui_path("preferences_dialog.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    forbidden_sizers = {
+        "wx.GridSizer",
+        "wx.FlexGridSizer",
+        "wx.GridBagSizer",
+    }
+    found_forbidden = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            func_name = _get_func_name(node)
+            if func_name in forbidden_sizers:
+                found_forbidden.append(f"Line {node.lineno}: {func_name}")
+
+    assert not found_forbidden, (
+        "Forbidden sizers found:\n" + "\n".join(found_forbidden)
+    )
+
+
+def test_top_p_k_repeat_moved_to_advanced():
+    """top_p/top_k/repeat_penalty controls are in _build_advanced_page, NOT _build_model_page."""
+    source_path = _get_ui_path("preferences_dialog.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    advanced = None
+    model = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef) and node.name == "PreferencesDialog":
+            for item in node.body:
+                if isinstance(item, ast.FunctionDef):
+                    if item.name == "_build_advanced_page":
+                        advanced = item
+                    elif item.name == "_build_model_page":
+                        model = item
+
+    assert advanced is not None, "_build_advanced_page not found"
+    assert model is not None, "_build_model_page not found"
+
+    source_lines = source.splitlines()
+    advanced_src = "\n".join(source_lines[advanced.lineno - 1:advanced.end_lineno])
+    model_src = "\n".join(source_lines[model.lineno - 1:model.end_lineno])
+
+    for name in ("pref_top_p_slider", "pref_top_k_spin", "pref_repeat_slider"):
+        assert f'name="{name}"' in advanced_src, (
+            f"{name} must be in _build_advanced_page"
+        )
+        assert f'name="{name}"' not in model_src, (
+            f"{name} must NOT be in _build_model_page"
+        )
+
+
+def test_max_tokens_stays_in_modelo():
+    """pref_max_tokens_spin is in _build_model_page, NOT _build_advanced_page."""
+    source_path = _get_ui_path("preferences_dialog.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    advanced = None
+    model = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef) and node.name == "PreferencesDialog":
+            for item in node.body:
+                if isinstance(item, ast.FunctionDef):
+                    if item.name == "_build_advanced_page":
+                        advanced = item
+                    elif item.name == "_build_model_page":
+                        model = item
+
+    assert advanced is not None, "_build_advanced_page not found"
+    assert model is not None, "_build_model_page not found"
+
+    source_lines = source.splitlines()
+    model_src = "\n".join(source_lines[model.lineno - 1:model.end_lineno])
+    advanced_src = "\n".join(source_lines[advanced.lineno - 1:advanced.end_lineno])
+
+    assert 'name="pref_max_tokens_spin"' in model_src, (
+        "pref_max_tokens_spin must be in _build_model_page"
+    )
+    assert 'name="pref_max_tokens_spin"' not in advanced_src, (
+        "pref_max_tokens_spin must NOT be in _build_advanced_page"
+    )
+
+
+def test_apply_config_reads_new_fields():
+    """_apply_config body has assignments to self._config.min_p, .seed, .stop."""
+    source_path = _get_ui_path("preferences_dialog.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    method_source = _get_method_source(source, tree, "_apply_config")
+    assert method_source is not None, "_apply_config method not found"
+
+    assert "self._config.min_p" in method_source, (
+        "_apply_config must assign to self._config.min_p"
+    )
+    assert "self._config.seed" in method_source, (
+        "_apply_config must assign to self._config.seed"
+    )
+    assert "self._config.stop" in method_source, (
+        "_apply_config must assign to self._config.stop"
+    )
+
+
+def test_min_p_value_label_present():
+    """pref_min_p_label (min_p_value_label) is constructed in _build_model_page."""
+    source_path = _get_ui_path("preferences_dialog.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    model = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef) and node.name == "PreferencesDialog":
+            for item in node.body:
+                if isinstance(item, ast.FunctionDef) and item.name == "_build_model_page":
+                    model = item
+                    break
+
+    assert model is not None, "_build_model_page not found"
+    source_lines = source.splitlines()
+    model_src = "\n".join(source_lines[model.lineno - 1:model.end_lineno])
+
+    assert 'name="min_p_value_label"' in model_src, (
+        "pref_min_p_label with name='min_p_value_label' must be in _build_model_page"
+    )
+
+
+def test_max_tokens_spin_has_name_and_statictext():
+    """pref_max_tokens_spin has name= and preceding StaticText with Spanish label."""
+    source = _get_ui_path("preferences_dialog.py").read_text(encoding="utf-8")
+    assert 'name="pref_max_tokens_spin"' in source, (
+        "pref_max_tokens_spin must have name='pref_max_tokens_spin'"
+    )
+    assert "Máximo de tokens:" in source, (
+        "pref_max_tokens_spin must be preceded by 'Máximo de tokens:' StaticText"
+    )
+
+
+def test_on_slider_change_dispatches_min_p():
+    """_on_slider_change has an elif branch for pref_min_p_slider."""
+    source = _get_ui_path("preferences_dialog.py").read_text(encoding="utf-8")
+    assert "pref_min_p_slider" in source, (
+        "_on_slider_change must dispatch on pref_min_p_slider"
+    )

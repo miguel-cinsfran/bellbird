@@ -20,6 +20,9 @@ class BellbirdConfig:
     top_p: float = 0.90
     top_k: int = 40
     repeat_penalty: float = 1.10
+    min_p: float = 0.05
+    seed: int = -1
+    stop: list[str] = field(default_factory=list)
     system_prompt: str = ""
     last_model: str = ""
     extra_model_folders: list[str] = field(default_factory=list)

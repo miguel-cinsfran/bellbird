@@ -371,6 +371,81 @@ def test_mmproj_offload_default_is_true():
     assert cfg.mmproj_offload is True
 
 
+def test_min_p_default():
+    """GIVEN a fresh BellbirdConfig()
+    THEN min_p == 0.05 (2026 consensus)."""
+    cfg = BellbirdConfig()
+    assert cfg.min_p == 0.05
+
+
+def test_seed_default():
+    """GIVEN a fresh BellbirdConfig()
+    THEN seed == -1 (aleatorio sentinel)."""
+    cfg = BellbirdConfig()
+    assert cfg.seed == -1
+
+
+def test_stop_default():
+    """GIVEN a fresh BellbirdConfig()
+    THEN stop == [] (no stop strings sentinel)."""
+    cfg = BellbirdConfig()
+    assert cfg.stop == []
+
+
+def test_stop_default_is_per_instance():
+    """GIVEN two fresh BellbirdConfig() instances
+    WHEN one appends a stop string
+    THEN the other instance still has an empty list."""
+    a = BellbirdConfig()
+    b = BellbirdConfig()
+    a.stop.append("</s>")
+    assert b.stop == []
+
+
+def test_round_trip_with_new_fields(monkeypatch, tmp_path):
+    """GIVEN BellbirdConfig with non-default min_p/seed/stop
+    WHEN save_config then load_config
+    THEN the loaded config preserves all three new fields."""
+    cfg = BellbirdConfig(min_p=0.10, seed=42, stop=["</s>", "[/INST]"])
+    path = tmp_path / "config.json"
+    save_config(cfg, path)
+    from bellbird.core import config as config_module
+    monkeypatch.setattr(config_module, "CONFIG_PATH", path)
+    loaded = load_config()
+    assert loaded.min_p == 0.10
+    assert loaded.seed == 42
+    assert loaded.stop == ["</s>", "[/INST]"]
+
+
+def test_missing_new_keys_use_defaults(monkeypatch, tmp_path):
+    """GIVEN a config.json from v0.7.1 without min_p/seed/stop
+    WHEN load_config() runs
+    THEN the loaded config has the documented defaults for the new fields."""
+    import json
+    path = tmp_path / "config.json"
+    data = {"port": 8080, "temperature": 0.7}
+    path.write_text(json.dumps(data), encoding="utf-8")
+    from bellbird.core import config as config_module
+    monkeypatch.setattr(config_module, "CONFIG_PATH", path)
+    result = load_config()
+    assert result.min_p == 0.05
+    assert result.seed == -1
+    assert result.stop == []
+
+
+def test_migrations_dict_unchanged():
+    """GIVEN the _MIGRATIONS dict
+    THEN it has exactly one entry (max_tokens 512->4096)
+    AND no entry references min_p, seed, or stop."""
+    from bellbird.core.config import _MIGRATIONS
+    assert len(_MIGRATIONS) == 1
+    assert "max_tokens" in _MIGRATIONS
+    assert _MIGRATIONS["max_tokens"] == (512, 4096)
+    assert "min_p" not in _MIGRATIONS
+    assert "seed" not in _MIGRATIONS
+    assert "stop" not in _MIGRATIONS
+
+
 def test_mmproj_offload_round_trip_false(monkeypatch, tmp_path):
     """GIVEN BellbirdConfig(mmproj_offload=False)
     WHEN save_config then load_config

@@ -437,4 +437,96 @@ def test_reasoning_does_not_appear_in_api_payload():
     assert result[2]["content"] == "¿En qué te ayudo?"
 
 
+# ─── tool_calls round-trip (v0.7.5) ──────────────────────────────────────────
+
+
+def test_add_assistant_message_with_tool_calls():
+    """Given an assistant message with tool_calls, the key is stored."""
+    from bellbird.core.conversation import Conversation
+
+    tc = [{"id": "call_1", "type": "function",
+           "function": {"name": "shell", "arguments": '{"cmd": "ls"}'}}]
+    conv = Conversation()
+    conv.add_message("assistant", "Running...", tool_calls=tc)
+    assert "tool_calls" in conv.messages[0]
+    assert conv.messages[0]["tool_calls"] == tc
+
+
+def test_get_messages_propagates_tool_calls():
+    """get_messages_for_api includes tool_calls for assistant messages."""
+    from bellbird.core.conversation import Conversation
+
+    tc = [{"id": "call_1", "type": "function",
+           "function": {"name": "shell", "arguments": '{}'}}]
+    conv = Conversation()
+    conv.add_message("assistant", "", tool_calls=tc)
+    api = conv.get_messages_for_api()
+    assert "tool_calls" in api[0]
+    assert api[0]["tool_calls"] == tc
+
+
+def test_get_messages_omits_tool_calls_when_absent():
+    """get_messages_for_api does NOT include tool_calls when absent."""
+    from bellbird.core.conversation import Conversation
+
+    conv = Conversation()
+    conv.add_message("assistant", "Simple response")
+    api = conv.get_messages_for_api()
+    assert "tool_calls" not in api[0]
+
+
+def test_tool_calls_ignored_on_non_assistant():
+    """tool_calls kwarg silently ignored for non-assistant roles."""
+    from bellbird.core.conversation import Conversation
+
+    conv = Conversation()
+    conv.add_message("user", "do it", tool_calls=[{"id": "x"}])
+    assert "tool_calls" not in conv.messages[0]
+
+
+def test_tool_calls_round_trip_through_save_load(tmp_path):
+    """Save + load preserves tool_calls key verbatim."""
+    from bellbird.core.conversation import Conversation
+
+    tc = [{"id": "call_xyz", "type": "function",
+           "function": {"name": "shell", "arguments": '{"cmd": "ls"}'}}]
+    conv = Conversation()
+    conv.add_message("assistant", "", tool_calls=tc)
+    filepath = tmp_path / "chat.json"
+    Conversation.save(conv, filepath)
+    loaded, _ = Conversation.load(filepath)
+    assert "tool_calls" in loaded.messages[0]
+    assert loaded.messages[0]["tool_calls"] == tc
+
+
+def test_legacy_message_no_tool_calls_still_works():
+    """A legacy message without tool_calls loads and serializes fine."""
+    from bellbird.core.conversation import Conversation
+
+    conv = Conversation()
+    conv.add_message("user", "hi")
+    conv.add_message("assistant", "hello")
+    api = conv.get_messages_for_api()
+    assert {"role": "user", "content": "hi"} == api[0]
+    assert {"role": "assistant", "content": "hello"} == api[1]
+    assert len(api) == 2
+
+
+def test_tool_calls_in_order_with_tool():
+    """Assistant msg with tool_calls precedes following tool message in API."""
+    from bellbird.core.conversation import Conversation
+
+    tc = [{"id": "c1", "type": "function",
+           "function": {"name": "sh", "arguments": '{"x":"y"}'}}]
+    conv = Conversation()
+    conv.add_message("assistant", "", tool_calls=tc)
+    conv.add_message("tool", "output", tool_call_id="c1")
+    api = conv.get_messages_for_api()
+    assert len(api) == 2
+    assert api[0]["role"] == "assistant"
+    assert "tool_calls" in api[0]
+    assert api[1]["role"] == "tool"
+    assert api[1]["tool_call_id"] == "c1"
+
+
 

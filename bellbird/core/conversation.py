@@ -36,6 +36,7 @@ class Conversation:
         images: list[str] | None = None,
         tool_call_id: str | None = None,
         reasoning: str = "",
+        tool_calls: list[dict] | None = None,
     ) -> None:
         """Append a message to the conversation.
 
@@ -52,6 +53,9 @@ class Conversation:
                 locally but stripped from API payloads. Defaults to ``""``
                 for backward compatibility with existing code that does not
                 pass this parameter.
+            tool_calls: Optional list of tool call dicts for role="assistant".
+                Each dict has ``id``, ``type``, and ``function`` keys.
+                Ignored for non-assistant roles.
         """
         msg: dict[str, Any] = {
             "role": role,
@@ -64,22 +68,25 @@ class Conversation:
             msg["tool_call_id"] = tool_call_id
         if reasoning:
             msg["reasoning"] = reasoning
+        if tool_calls is not None and role == "assistant":
+            msg["tool_calls"] = tool_calls
         self.messages.append(msg)
 
     def get_messages_for_api(self) -> list[dict[str, Any]]:
         """Return messages in the format required by the Ollama API.
 
-        Strips the timestamp key and preserves images and tool_call_id
-        if present. For role="tool" messages, the tool_call_id MUST be
-        present so the model can correlate the result with the
-        assistant's tool_calls[].id (OpenAI-compatible API requirement).
+        Strips the timestamp key and preserves images, tool_call_id,
+        and tool_calls if present. For role="tool" messages, the
+        tool_call_id MUST be present so the model can correlate the
+        result with the assistant's tool_calls[].id (OpenAI-compatible
+        API requirement).
 
         The ``reasoning`` key is LOCAL-ONLY — it MUST NOT appear in the
         API payload. This is a pinned invariant.
 
         Returns:
             List of message dicts with role, content, and optional
-            images and tool_call_id.
+            images, tool_call_id, and tool_calls.
         """
         result: list[dict[str, Any]] = []
         for msg in self.messages:
@@ -91,6 +98,8 @@ class Conversation:
                 api_msg["images"] = msg["images"]
             if "tool_call_id" in msg:
                 api_msg["tool_call_id"] = msg["tool_call_id"]
+            if "tool_calls" in msg:
+                api_msg["tool_calls"] = msg["tool_calls"]
             # timestamp is stripped (API rejects unknown fields)
             # reasoning is local-only (MUST NOT appear in API payload)
             result.append(api_msg)

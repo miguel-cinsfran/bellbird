@@ -1373,3 +1373,123 @@ def test_show_preferences_recreates_client_on_port_change() -> None:
         "_show_preferences must compare old and new port before recreating "
         "the client (guard: if self._config.port != old_port)."
     )
+
+
+# ─── v0.6.0 non-blocking startup (Task 4) ──────────────────────────────
+
+
+def test_init_no_sync_calls() -> None:
+    """__init__ must NOT contain direct calls to synchronous startup functions.
+
+    The startup probe now runs on a background thread. Direct calls to
+    _startup_check, check_running, find_llama_server, get_loaded_model,
+    or _scan_models in __init__ would block the window from showing.
+    """
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    method = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == "__init__":
+            method = node
+            break
+    assert method is not None, "__init__ not found in main_window.py"
+
+    forbidden = {
+        "_startup_check",
+        "check_running",
+        "find_llama_server",
+        "get_loaded_model",
+        "_scan_models",
+    }
+    for node in ast.walk(method):
+        if isinstance(node, ast.Call):
+            func_name = _get_func_name(node)
+            # Only flag bare calls to these functions (not method defs)
+            for forbid in forbidden:
+                if forbid in func_name:
+                    assert False, (
+                        f"__init__ must NOT call {forbid}() directly. "
+                        f"Found: {func_name} at line {node.lineno}. "
+                        f"The startup probe runs on a background thread."
+                    )
+
+
+def test_init_has_start_probe_thread() -> None:
+    """__init__ must call self._start_probe_thread() after building the UI."""
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    method = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == "__init__":
+            method = node
+            break
+    assert method is not None, "__init__ not found"
+
+    has_probe = False
+    for node in ast.walk(method):
+        if isinstance(node, ast.Call):
+            func_name = _get_func_name(node)
+            if func_name == "self._start_probe_thread":
+                has_probe = True
+                break
+
+    assert has_probe, (
+        "__init__ must call self._start_probe_thread() to run the "
+        "startup probe on a background thread."
+    )
+
+
+def test_start_probe_thread_method_exists() -> None:
+    """MainWindow has a _start_probe_thread method."""
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    found = False
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef) and node.name == "MainWindow":
+            for item in node.body:
+                if isinstance(item, ast.FunctionDef) and item.name == "_start_probe_thread":
+                    found = True
+                    break
+    assert found, "_start_probe_thread method not found in MainWindow"
+
+
+def test_on_startup_probe_done_method_exists() -> None:
+    """MainWindow has a _on_startup_probe_done method."""
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    found = False
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef) and node.name == "MainWindow":
+            for item in node.body:
+                if isinstance(item, ast.FunctionDef) and item.name == "_on_startup_probe_done":
+                    found = True
+                    break
+    assert found, "_on_startup_probe_done method not found in MainWindow"
+
+
+def test_on_scan_done_method_exists() -> None:
+    """MainWindow has a _on_scan_done method (threaded scan callback)."""
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    found = False
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef) and node.name == "MainWindow":
+            for item in node.body:
+                if isinstance(item, ast.FunctionDef) and item.name == "_on_scan_done":
+                    found = True
+                    break
+    assert found, "_on_scan_done method not found in MainWindow"
+
+
+
+

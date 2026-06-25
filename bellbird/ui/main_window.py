@@ -81,6 +81,7 @@ class MainWindow(wx.Frame):
         self._speech = Speech()
         self._current_response: str = ""
         self._is_generating = False
+        self._aborted = False
         self._is_closing = False
         self._temp_html_files: list[str] = []
         self._last_usage: dict | None = None
@@ -101,7 +102,7 @@ class MainWindow(wx.Frame):
         self._build_accelerators()
         self._create_status_bar()
         self.Bind(wx.EVT_CLOSE, self._on_close)
-        self._startup_check()
+        self._start_probe_thread()
         wx.CallAfter(self._set_initial_focus)
 
     # ── UI Construction ───────────────────────────────────────────────────
@@ -669,20 +670,109 @@ class MainWindow(wx.Frame):
         self._sync_button_state(True)
         self._scan_models()
 
-    def _scan_models(self) -> None:
-        """Scan for .gguf files and populate the model selector."""
+    def _start_probe_thread(self) -> None:
+        """Run the startup probe on a daemon thread.
+
+        Spawns a daemon thread that calls ``core.startup.probe()`` and
+        posts the result back via ``wx.CallAfter``. The window is already
+        shown before any I/O, so the user sees "Iniciando…" immediately.
+        """
+        from bellbird.core.startup import probe
+        import bellbird.core.llama_runner as runner_mod
+
+        def worker() -> None:
+            result = probe(self._client, runner_mod)
+            wx.CallAfter(self._on_startup_probe_done, result)
+
+        t = threading.Thread(target=worker, daemon=True)
+        t.start()
+
+    def _on_startup_probe_done(self, result) -> None:
+        """Handle the startup probe result on the main thread.
+
+        Updates the status bar, speaks the outcome, and triggers a
+        background model scan. Early-returns if the window is closing.
+        """
+        if self._is_closing:
+            return
+
         log = get_logger()
-        paths = find_gguf_models()
+
+        if result.server_path is None:
+            log.warning("Startup: llama-server not installed")
+            install_cmd = get_install_command()
+            msg = (
+                f"llama-server no instalado. "
+                f"Instalalo con: {install_cmd}."
+            )
+            self.status_bar.SetStatusText("llama-server no instalado", 0)
+            self._speech.speak(msg, interrupt=True)
+            wx.MessageDialog(
+                self,
+                message=msg,
+                caption="llama-server no instalado",
+                style=wx.OK | wx.ICON_WARNING,
+            ).ShowModal()
+            # Still scan models — the user may have a portable install
+            self._scan_models()
+            return
+
+        if not result.is_running:
+            log.info("Startup: llama-server installed but not running")
+            self.status_bar.SetStatusText("Servidor detenido", 0)
+            self._speech.speak(
+                "Servidor detenido. "
+                "Selecciona un modelo y pulsa Iniciar servidor.",
+                interrupt=True,
+            )
+            self._scan_models()
+            return
+
+        # Server is running and healthy
+        loaded = result.loaded_model or ""
+        log.info("Startup: connected, model=%r", loaded)
+        if loaded:
+            self.status_bar.SetStatusText(f"Conectado: {loaded}", 0)
+        else:
+            self.status_bar.SetStatusText("Conectado", 0)
+        self._sync_button_state(True)
+        if loaded:
+            self._speech.output(f"Modelo: {Path(loaded).stem}")
+        else:
+            self._speech.speak(
+                "Conectado. Sin modelo cargado.", interrupt=True,
+            )
+        self._scan_models()
+
+    def _scan_models(self) -> None:
+        """Scan for .gguf files on a background thread.
+
+        Launches a daemon thread that calls ``find_gguf_models()`` and
+        posts the result via ``wx.CallAfter``. Avoids blocking the main
+        thread during filesystem traversal.
+        """
+        def worker() -> None:
+            paths = find_gguf_models()
+            wx.CallAfter(self._on_scan_done, paths)
+
+        t = threading.Thread(target=worker, daemon=True)
+        t.start()
+
+    def _on_scan_done(self, paths: list[str]) -> None:
+        """Handle the model scan result on the main thread."""
+        if self._is_closing:
+            return
+        log = get_logger()
         self.set_models(paths)
         if paths:
             log.info(f"Scan: {len(paths)} .gguf file(s) found")
             self._speech.speak(
-                f"{len(paths)} modelos encontrados", interrupt=True
+                f"{len(paths)} modelos encontrados", interrupt=True,
             )
         else:
             log.warning("Scan: no .gguf files found")
             self._speech.speak(
-                "Ningún modelo .gguf encontrado", interrupt=True
+                "Ningún modelo .gguf encontrado", interrupt=True,
             )
 
     def _on_start_server(self) -> None:
@@ -763,10 +853,13 @@ class MainWindow(wx.Frame):
         self._speech.speak(text, interrupt=True)
 
     def _set_initial_focus(self) -> None:
-        """Set initial focus based on server state."""
-        if self._client.check_running():
-            self.chat_panel.message_input.SetFocus()
-        elif self.model_selector.GetCount() > 0:
+        """Set initial focus based on model availability, without I/O.
+
+        Called via wx.CallAfter after the window is shown. The startup
+        probe runs on a background thread; focus is adjusted later when
+        the probe result arrives.
+        """
+        if self.model_selector.GetCount() > 0:
             self.use_model_button.SetFocus()
         else:
             self.scan_models_button.SetFocus()

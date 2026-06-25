@@ -7,6 +7,9 @@ echo ============================================================
 echo  Bellbird — suite de tests + smoke test
 echo ============================================================
 echo.
+echo NOTA: tests/ui/test_mainwindow_construction.py requiere wxPython
+echo       (se salta automaticamente en WSL/CI via importorskip)
+echo.
 echo Corriendo... (puede tardar ~20 segundos)
 echo.
 

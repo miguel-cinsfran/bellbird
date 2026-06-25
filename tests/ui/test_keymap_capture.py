@@ -9,6 +9,8 @@ import pytest
 
 wx = pytest.importorskip("wx")
 
+import unittest.mock
+
 from bellbird.core.keymap import DEFAULT_KEYMAP, Keymap, KEYMAP_MOD_CTRL, KEYMAP_MOD_ALT, _format_combo
 from bellbird.ui.preferences_dialog import (
     PreferencesDialog,
@@ -197,15 +199,27 @@ class TestCaptureDialog:
     def test_conflict_rejection_keeps_previous_binding(self):
         """GIVEN a combo used by another action
         WHEN the user accepts with that combo
-        THEN the dialog closes with ID_CANCEL (binding unchanged)."""
+        THEN the dialog speaks the conflict, ends with ID_CANCEL (binding unchanged)."""
         app = wx.App()
-        from bellbird.core.config import BellbirdConfig
+        mock_speech = unittest.mock.Mock()
+        dlg = _CaptureDialog(None, Keymap(DEFAULT_KEYMAP), "copy_last", mock_speech)
 
-        # create a keymap where copy_last is Ctrl+Shift+C and new_conversation is Ctrl+N
-        km = Keymap(DEFAULT_KEYMAP)
-        # Simulate capturing the conflict: Ctrl+N is taken by new_conversation
-        # We'll test find_conflict directly — _CaptureDialog._on_accept uses it
-        assert km.find_conflict(KEYMAP_MOD_CTRL, ord("N")) == "new_conversation"
+        # Simulate capturing Ctrl+N (used by new_conversation)
+        dlg._capture._captured = True
+        dlg._capture._captured_modifiers = KEYMAP_MOD_CTRL
+        dlg._capture._captured_keycode = ord("N")
+
+        with unittest.mock.patch.object(dlg, "EndModal") as mock_endmodal:
+            dlg._on_accept(None)
+
+        # Verify Spanish announcement
+        mock_speech.speak.assert_called_once()
+        msg = mock_speech.speak.call_args[0][0]
+        assert "Combinación ya usada por" in msg
+        # Verify dialog closes with CANCEL (binding unchanged)
+        mock_endmodal.assert_called_once_with(wx.ID_CANCEL)
+
+        dlg.Destroy()
         app.MainLoop()
 
     def test_no_conflict_returns_ok(self):
@@ -316,21 +330,23 @@ class TestMainWindowShowPreferences:
         from bellbird.ui.main_window import MainWindow
 
         app = wx.App()
-        cfg = BellbirdConfig(keymap_overrides={"copy_last": (KEYMAP_MOD_ALT, ord("C"))})
         frame = MainWindow(title="Test")
 
-        # Snapshot old_overrides
-        old_overrides = dict(frame._config.keymap_overrides)
+        with unittest.mock.patch.object(
+            frame, "rebuild_accelerator_table",
+        ) as mock_rebuild:
+            with unittest.mock.patch.object(
+                PreferencesDialog, "ShowModal",
+            ) as mock_show:
+                def _side_effect(self_):
+                    self_._config.keymap_overrides["new_conversation"] = (
+                        KEYMAP_MOD_ALT, ord("N"),
+                    )
+                    return wx.ID_OK
+                mock_show.side_effect = _side_effect
+                frame._show_preferences()
 
-        # Simulate what _show_preferences does: old_overrides differ from new
-        new_overrides = dict(old_overrides)
-        new_overrides["new_conversation"] = (KEYMAP_MOD_ALT, ord("N"))
-
-        # The test for the diff is: when overrides differ, rebuild is called.
-        # We can verify the call by checking rebuild_accelerator_table is reachable.
-        assert hasattr(frame, "rebuild_accelerator_table")
-        assert callable(frame.rebuild_accelerator_table)
-
+        mock_rebuild.assert_called_once()
         frame.Destroy()
         app.MainLoop()
 
@@ -344,10 +360,15 @@ class TestMainWindowShowPreferences:
         app = wx.App()
         frame = MainWindow(title="Test")
 
-        old_overrides = dict(frame._config.keymap_overrides)
-        # If unchanged, the comparison in _show_preferences is equal
-        assert old_overrides == frame._config.keymap_overrides
+        with unittest.mock.patch.object(
+            frame, "rebuild_accelerator_table",
+        ) as mock_rebuild:
+            with unittest.mock.patch.object(
+                PreferencesDialog, "ShowModal", return_value=wx.ID_OK,
+            ):
+                frame._show_preferences()
 
+        mock_rebuild.assert_not_called()
         frame.Destroy()
         app.MainLoop()
 
@@ -359,24 +380,17 @@ class TestMainWindowShowPreferences:
         from bellbird.ui.main_window import MainWindow
 
         app = wx.App()
-        cfg = BellbirdConfig(keymap_overrides={"copy_last": (KEYMAP_MOD_ALT, ord("C"))})
         frame = MainWindow(title="Test")
 
-        # On Cancel, the existing code path leaves config untouched
-        # We verify the source has the correct cancel guard
-        import ast
-        import inspect
+        with unittest.mock.patch.object(
+            frame, "rebuild_accelerator_table",
+        ) as mock_rebuild:
+            with unittest.mock.patch.object(
+                PreferencesDialog, "ShowModal", return_value=wx.ID_CANCEL,
+            ):
+                frame._show_preferences()
 
-        source = inspect.getsource(MainWindow._show_preferences)
-        tree = ast.parse(source)
-
-        # Check that old_overrides is created BEFORE ShowModal
-        # and that rebuild_accelerator_table is only called inside the OK branch
-        has_snapshot = "old_overrides" in source
-        assert has_snapshot, (
-            "_show_preferences must snapshot keymap_overrides before ShowModal"
-        )
-
+        mock_rebuild.assert_not_called()
         frame.Destroy()
         app.MainLoop()
 

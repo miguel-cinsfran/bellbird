@@ -274,6 +274,7 @@ class TestLlamaClient:
             "top_p": 0.9,
             "top_k": 40,
             "repeat_penalty": 1.1,
+            "min_p": 0.05,
         }
         messages = [{"role": "user", "content": "hello"}]
         self._stub_stream(mock_session, [
@@ -297,6 +298,7 @@ class TestLlamaClient:
         assert body["top_p"] == 0.9
         assert body["top_k"] == 40
         assert body["repeat_penalty"] == 1.1
+        assert body["min_p"] == 0.05
         # Verify NO options sub-object
         assert "options" not in body
 

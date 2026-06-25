@@ -32,13 +32,12 @@ from bellbird.core.startup import probe as startup_probe
 from bellbird.core.logger import get_logger, get_log_path
 from bellbird.core.speech import Speech
 from bellbird.ui.chat_panel import ChatPanel
-from bellbird.core.config import load_config
+from bellbird.core.config import BellbirdConfig, load_config, save_config
 from bellbird.core.model_meta import find_mmproj_for_model
 from bellbird.core.permission_manager import PermissionManager
 from bellbird.core.tool_executor import ToolExecutor, ToolResult
 from bellbird.ui.permission_dialog import PermissionDialog
 from bellbird.ui.preferences_dialog import PreferencesDialog
-from bellbird.core.config import save_config
 
 SHELL_TOOL_DEFINITION = {
     "type": "function",
@@ -61,6 +60,27 @@ SHELL_TOOL_DEFINITION = {
         },
     },
 }
+
+
+def _build_options(config: BellbirdConfig) -> dict[str, object]:
+    """Build the sampling parameters dict with omission semantics.
+
+    min_p is always included. seed is included only when >= 0.
+    stop is included only when non-empty (copied to avoid mutation leaks).
+    """
+    options: dict[str, object] = {
+        "temperature": config.temperature,
+        "max_tokens": config.max_tokens,
+        "top_p": config.top_p,
+        "top_k": config.top_k,
+        "repeat_penalty": config.repeat_penalty,
+        "min_p": config.min_p,
+    }
+    if config.seed >= 0:
+        options["seed"] = config.seed
+    if config.stop:
+        options["stop"] = list(config.stop)
+    return options
 
 
 class MainWindow(wx.Frame):
@@ -878,15 +898,18 @@ class MainWindow(wx.Frame):
 
         temp = self._config.temperature
         topp = self._config.top_p
+        min_p = self._config.min_p
         temp_str = f"{temp:.2f}".replace(".", ",")
         topp_str = f"{topp:.2f}".replace(".", ",")
+        minp_str = f"{min_p:.2f}".replace(".", ",")
 
         gen_str = "Generando: Sí" if self._is_generating else "Generando: No"
         vision_str = "Imágenes: sí" if self._vision_capable else "Imágenes: no"
 
         text = (
             f"Modelo {model_str}. {server_str}. {msg_str}. {tokens_str}. "
-            f"Temperatura {temp_str}. Top-p {topp_str}. {gen_str}. "
+            f"Temperatura {temp_str}. Top-p {topp_str}. "
+            f"Min-p {minp_str}. {gen_str}. "
             f"{vision_str}."
         )
         self._speech.speak(text, interrupt=True)
@@ -1046,13 +1069,7 @@ class MainWindow(wx.Frame):
             self.chat_panel.append_user_message("[imagen enviada]")
 
         # Start generation
-        options = {
-            "temperature": self._config.temperature,
-            "max_tokens": self._config.max_tokens,
-            "top_p": self._config.top_p,
-            "top_k": self._config.top_k,
-            "repeat_penalty": self._config.repeat_penalty,
-        }
+        options = _build_options(self._config)
         self._current_response = ""
 
         self.chat_panel.start_generation()
@@ -1246,13 +1263,7 @@ class MainWindow(wx.Frame):
 
         self._client.chat_stream(
             messages=api_messages,
-            options={
-                "temperature": self._config.temperature,
-                "max_tokens": self._config.max_tokens,
-                "top_p": self._config.top_p,
-                "top_k": self._config.top_k,
-                "repeat_penalty": self._config.repeat_penalty,
-            },
+            options=_build_options(self._config),
             on_token=self._on_token,
             on_done=self._on_done,
             on_error=self._on_error,

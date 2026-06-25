@@ -1280,17 +1280,19 @@ def test_menu_servidor_present():
 
 
 def test_params_from_config():
-    """send_message must build the options dict from self._config.<field>, not from params_panel.get_params().
+    """send_message calls _build_options(self._config); _build_options reads from config fields.
 
-    Strengthened from a string-presence check to an AST-walk: locates the
-    options dict literal inside send_message and verifies that each sampling
-    field key is mapped to self._config.<field>. Also asserts that no
-    legacy params_panel accessor is called.
+    Refactored for v0.7.2: the inline options dict was extracted into
+    _build_options(). send_message now calls the helper. This test
+    verifies that _build_options reads each sampling field from config
+    and that send_message delegates to _build_options instead of
+    building an inline dict.
     """
     source_path = _get_ui_path("main_window.py")
     source = source_path.read_text(encoding="utf-8")
     tree = ast.parse(source)
 
+    # 1. Verify send_message calls _build_options(self._config)
     method = None
     for node in ast.walk(tree):
         if isinstance(node, ast.FunctionDef) and node.name == "send_message":
@@ -1298,10 +1300,46 @@ def test_params_from_config():
             break
     assert method is not None, "send_message method not found"
 
-    # Find the options dict literal: a dict with at least "temperature" and
-    # "max_tokens" string keys. (Other dicts in the method won't match.)
-    options_dict = None
+    calls_build_options = False
     for node in ast.walk(method):
+        if isinstance(node, ast.Call):
+            func_name = ast.unparse(node.func)
+            if "_build_options" in func_name:
+                calls_build_options = True
+                break
+    assert calls_build_options, (
+        "send_message must call _build_options(self._config) "
+        "instead of building an inline options dict"
+    )
+
+    # 2. Verify no inline dict with temperature/max_tokens in send_message
+    has_inline_options = False
+    for node in ast.walk(method):
+        if not isinstance(node, ast.Dict):
+            continue
+        keys = [
+            k.value
+            for k in node.keys
+            if isinstance(k, ast.Constant) and isinstance(k.value, str)
+        ]
+        if "temperature" in keys and "max_tokens" in keys:
+            has_inline_options = True
+            break
+    assert not has_inline_options, (
+        "send_message must NOT build an inline options dict; "
+        "use _build_options(self._config) instead"
+    )
+
+    # 3. Verify _build_options function has the correct field mappings
+    build_func = None
+    for node in tree.body:
+        if isinstance(node, ast.FunctionDef) and node.name == "_build_options":
+            build_func = node
+            break
+    assert build_func is not None, "_build_options function not found"
+
+    options_dict = None
+    for node in ast.walk(build_func):
         if not isinstance(node, ast.Dict):
             continue
         keys = [
@@ -1314,7 +1352,7 @@ def test_params_from_config():
             break
 
     assert options_dict is not None, (
-        "send_message must build an options dict with at least 'temperature' "
+        "_build_options must contain a dict literal with at least 'temperature' "
         "and 'max_tokens' keys"
     )
 
@@ -1324,34 +1362,30 @@ def test_params_from_config():
         if isinstance(k, ast.Constant) and isinstance(k.value, str):
             field_map[k.value] = v
 
-    # Each sampling field must come from self._config.<same field>
-    for field in ("temperature", "max_tokens", "top_p", "top_k", "repeat_penalty"):
+    # Each sampling field must come from config.<same field> (not self._config)
+    for field in ("temperature", "max_tokens", "top_p", "top_k", "repeat_penalty", "min_p"):
         assert field in field_map, (
-            f"options dict is missing the {field!r} key"
+            f"_build_options dict is missing the {field!r} key"
         )
         value = field_map[field]
         assert isinstance(value, ast.Attribute), (
-            f"options[{field!r}] must be an attribute access "
-            f"(e.g. self._config.{field}), got: {ast.dump(value)}"
+            f"_build_options[{field!r}] must be an attribute access "
+            f"(e.g. config.{field}), got: {ast.dump(value)}"
         )
-        # value should be self._config.<field>
-        # i.e. value = Attribute(value=Attribute(value=Name('self'), attr='_config'), attr=field)
         inner = value.value
         assert (
-            isinstance(inner, ast.Attribute)
-            and inner.attr == "_config"
-            and isinstance(inner.value, ast.Name)
-            and inner.value.id == "self"
+            isinstance(inner, ast.Name)
+            and inner.id == "config"
         ), (
-            f"options[{field!r}] must be self._config.{field}, "
+            f"_build_options[{field!r}] must be config.{field}, not self._config.{field}, "
             f"got: {ast.unparse(value)}"
         )
         assert value.attr == field, (
-            f"options[{field!r}] key is wired to self._config.{value.attr!r}; "
-            f"expected self._config.{field}"
+            f"_build_options[{field!r}] key is wired to config.{value.attr!r}; "
+            f"expected config.{field}"
         )
 
-    # The send flow must not call any legacy params_panel accessor
+    # 4. The send flow must not call any legacy params_panel accessor
     method_source_lines = source.splitlines()[method.lineno - 1:method.end_lineno]
     method_source = "\n".join(method_source_lines)
     for forbidden in (
@@ -1781,5 +1815,181 @@ def test_restart_dialog_uses_wx_dialog_not_message_dialog():
     )
     assert 'name="restart_no_button"' in src, (
         "No button must have name='restart_no_button'"
+    )
+
+
+# ─── Phase 3: samplers-modernos — min_p, seed, stop (v0.7.2) ───────────────
+
+
+def test_build_options_helper_exists():
+    """_build_options is defined as a module-level function with BellbirdConfig param."""
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    # Find module-level function def
+    found = False
+    for node in tree.body:
+        if isinstance(node, ast.FunctionDef) and node.name == "_build_options":
+            found = True
+            # Check first param name (should be config, type BellbirdConfig)
+            args = node.args.args
+            assert len(args) >= 1, "_build_options must have at least 1 parameter"
+            # Return type should be dict
+            if node.returns is not None:
+                returns_ast = ast.unparse(node.returns)
+                assert "dict" in returns_ast, (
+                    f"_build_options return type should be dict, got: {returns_ast}"
+                )
+            break
+
+    assert found, (
+        "_build_options must be defined as a module-level function in main_window.py"
+    )
+
+
+def test_build_options_dict_contains_min_p():
+    """_build_options dict literal always includes min_p key."""
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    func = None
+    for node in tree.body:
+        if isinstance(node, ast.FunctionDef) and node.name == "_build_options":
+            func = node
+            break
+
+    assert func is not None, "_build_options function not found"
+
+    # Find the options dict literal inside the function body
+    found_min_p = False
+    for node in ast.walk(func):
+        if isinstance(node, ast.Dict):
+            keys = [k.value for k in node.keys if isinstance(k, ast.Constant) and isinstance(k.value, str)]
+            if "temperature" in keys and "max_tokens" in keys:
+                found_min_p = "min_p" in keys
+                break
+
+    assert found_min_p, (
+        "_build_options dict must include 'min_p' key"
+    )
+
+
+def test_build_options_seed_conditional():
+    """_build_options has 'if config.seed >= 0:' guard for seed key."""
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    func = None
+    for node in tree.body:
+        if isinstance(node, ast.FunctionDef) and node.name == "_build_options":
+            func = node
+            break
+
+    assert func is not None, "_build_options function not found"
+
+    has_seed_guard = False
+    for node in ast.walk(func):
+        if isinstance(node, ast.If):
+            cond = ast.unparse(node.test)
+            if "seed" in cond and ">= 0" in cond:
+                has_seed_guard = True
+                break
+
+    assert has_seed_guard, (
+        "_build_options must have 'if config.seed >= 0:' guard for seed"
+    )
+
+
+def test_build_options_stop_conditional():
+    """_build_options has 'if config.stop:' guard for stop key."""
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    func = None
+    for node in tree.body:
+        if isinstance(node, ast.FunctionDef) and node.name == "_build_options":
+            func = node
+            break
+
+    assert func is not None, "_build_options function not found"
+
+    has_stop_guard = False
+    for node in ast.walk(func):
+        if isinstance(node, ast.If):
+            cond = ast.unparse(node.test)
+            if cond == "config.stop":
+                has_stop_guard = True
+                break
+
+    assert has_stop_guard, (
+        "_build_options must have 'if config.stop:' guard for stop"
+    )
+
+
+def test_both_call_sites_use_build_options():
+    """Both send_message and _continue_after_tool call _build_options(self._config)."""
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    # Find methods in MainWindow class
+    class_node = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef) and node.name == "MainWindow":
+            class_node = node
+            break
+
+    assert class_node is not None, "MainWindow class not found"
+
+    def _method_calls_build_options(method_name: str) -> bool:
+        for item in class_node.body:
+            if isinstance(item, ast.FunctionDef) and item.name == method_name:
+                for call in ast.walk(item):
+                    if isinstance(call, ast.Call):
+                        func_name = ast.unparse(call.func)
+                        if "_build_options" in func_name:
+                            return True
+        return False
+
+    assert _method_calls_build_options("send_message"), (
+        "send_message must call _build_options(self._config)"
+    )
+    assert _method_calls_build_options("_continue_after_tool"), (
+        "_continue_after_tool must call _build_options(self._config)"
+    )
+
+
+def test_f2_includes_min_p():
+    """_announce_session_status references self._config.min_p and includes 'Min-p'."""
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    # Find _announce_session_status method
+    method = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef) and node.name == "MainWindow":
+            for item in node.body:
+                if isinstance(item, ast.FunctionDef) and item.name == "_announce_session_status":
+                    method = item
+                    break
+
+    assert method is not None, "_announce_session_status method not found"
+
+    # Extract method source
+    source_lines = source.splitlines()
+    start = method.lineno - 1
+    end = method.end_lineno
+    method_source = "\n".join(source_lines[start:end])
+
+    assert "self._config.min_p" in method_source, (
+        "_announce_session_status must reference self._config.min_p"
+    )
+    assert "Min-p" in method_source, (
+        "_announce_session_status must include 'Min-p' in the status string"
     )
 

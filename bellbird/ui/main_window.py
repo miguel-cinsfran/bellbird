@@ -33,6 +33,7 @@ from bellbird.core.logger import get_logger, get_log_path
 from bellbird.core.speech import Speech
 from bellbird.ui.chat_panel import ChatPanel
 from bellbird.core.config import BellbirdConfig, load_config, save_config
+from bellbird.core.keymap import Keymap, DEFAULT_KEYMAP, KEYMAP_MOD_NONE
 from bellbird.core.model_meta import find_mmproj_for_model
 from bellbird.core.permission_manager import PermissionManager
 from bellbird.core.tool_executor import ToolExecutor, ToolResult
@@ -124,6 +125,14 @@ class MainWindow(wx.Frame):
         # Must be defined before _build_menu() which uses them for Append() IDs.
         self.ID_START_SERVER = wx.NewIdRef()
         self.ID_STOP_SERVER = wx.NewIdRef()
+
+        # Keymap accelerator IDs — populated by _build_accelerators, reused on rebuild.
+        # start_server/stop_server use the existing IDs so menu items keep working.
+        self._action_ids: dict[str, wx.NewIdRef] = {
+            "start_server": self.ID_START_SERVER,
+            "stop_server": self.ID_STOP_SERVER,
+        }
+        self._keymap: Keymap = Keymap(DEFAULT_KEYMAP)
 
         self._build_ui()
         self._build_menu()
@@ -408,94 +417,98 @@ class MainWindow(wx.Frame):
         self.SetMenuBar(menu_bar)
 
     def _build_accelerators(self) -> None:
-        """Build accelerator table for keyboard shortcuts."""
-        # Define custom IDs for new accelerators
-        self.ID_FOCUS_INPUT = wx.NewIdRef()
-        self.ID_FOCUS_LIST = wx.NewIdRef()
-        self.ID_FOCUS_MODEL = wx.NewIdRef()
-        self.ID_FOCUS_TEMP = wx.NewIdRef()
-        self.ID_FOCUS_SYSPROMPT = wx.NewIdRef()
-        self.ID_FOCUS_USE = wx.NewIdRef()
-        self.ID_F2 = wx.NewIdRef()
-        self.ID_F6 = wx.NewIdRef()
-        # ID_START_SERVER and ID_STOP_SERVER defined in __init__ (before _build_menu)
+        """Build accelerator table from the resolved keymap.
 
-        accel_entries = [
-            wx.AcceleratorEntry(wx.ACCEL_CTRL, ord("N"), wx.ID_NEW),
-            wx.AcceleratorEntry(wx.ACCEL_CTRL, ord("O"), wx.ID_OPEN),
-            wx.AcceleratorEntry(wx.ACCEL_CTRL, ord("S"), wx.ID_SAVE),
-            wx.AcceleratorEntry(wx.ACCEL_NORMAL, wx.WXK_F5, wx.ID_REFRESH),
-            wx.AcceleratorEntry(wx.ACCEL_NORMAL, wx.WXK_ESCAPE, wx.ID_STOP),
-            wx.AcceleratorEntry(wx.ACCEL_ALT, ord("1"), self.ID_FOCUS_INPUT),
-            wx.AcceleratorEntry(wx.ACCEL_ALT, ord("2"), self.ID_FOCUS_LIST),
-            wx.AcceleratorEntry(wx.ACCEL_ALT, ord("3"), self.ID_FOCUS_MODEL),
-            # Alt+4 and Alt+5 removed in v0.5.0 (controls moved to PrefsDialog)
-            wx.AcceleratorEntry(wx.ACCEL_ALT, ord("6"), self.ID_FOCUS_USE),
-            wx.AcceleratorEntry(wx.ACCEL_NORMAL, wx.WXK_F2, self.ID_F2),
-            wx.AcceleratorEntry(wx.ACCEL_NORMAL, wx.WXK_F6, self.ID_F6),
-            wx.AcceleratorEntry(wx.ACCEL_NORMAL, wx.WXK_F7, self.ID_START_SERVER),
-            wx.AcceleratorEntry(wx.ACCEL_CTRL, wx.WXK_F7, self.ID_STOP_SERVER),
-            wx.AcceleratorEntry(wx.ACCEL_CTRL, ord(","), wx.ID_PREFERENCES),
-        ]
+        Iterates ``Keymap(defaults=DEFAULT_KEYMAP, overrides=...)`` and
+        creates one ``wx.AcceleratorEntry`` per action. Handlers are bound
+        via EVT_MENU with the action's command ID. The ``exit`` action
+        is handled by the window manager and is excluded from the table.
+        """
+        km = Keymap(DEFAULT_KEYMAP, overrides=self._config.keymap_overrides)
+        self._keymap = km
 
-        # Bind standard accelerators
-        self.Bind(
-            wx.EVT_MENU,
-            lambda evt: self._scan_models(),
-            id=wx.ID_REFRESH,
-        )
-        self.Bind(
-            wx.EVT_MENU,
-            lambda evt: self.abort_generation(),
-            id=wx.ID_STOP,
-        )
+        # Handler dispatch: action_id → callable.
+        # These are the single source of truth for what each accelerator does.
+        from collections.abc import Callable
+        handlers: dict[str, Callable[[], None]] = {
+            "new_conversation": lambda: self.new_conversation(),
+            "open_conversation": lambda: self.load_conversation(),
+            "save_conversation": lambda: self.save_conversation(),
+            "preferences": lambda: self._show_preferences(),
+            "exit": lambda: self.Close(),
+            "announce_status": lambda: self._announce_session_status(),
+            "scan_models": lambda: self._scan_models(),
+            "cycle_panels": lambda: self._on_f6_cycle(),
+            "start_server": lambda: self._on_use_model(),
+            "stop_server": lambda: self._on_stop_server(),
+            "abort_generation": lambda: self.abort_generation(),
+            "focus_chat": lambda: self.chat_panel.message_input.SetFocus(),
+            "focus_params": lambda: self._on_focus_list(),
+            "focus_models": lambda: self.model_selector.SetFocus(),
+            "focus_server": lambda: self._on_focus_use(),
+            "copy_last": lambda: self._on_copy_last(),
+            "delete_last_exchange": lambda: self._on_delete_last_exchange(),
+            "edit_previous": lambda: self._on_edit_previous(),
+            "edit_next": lambda: self._on_edit_next(),
+            "regenerate": lambda: self._on_regenerate_last(),
+        }
 
-        # Bind new focus accelerators
-        self.Bind(
-            wx.EVT_MENU,
-            lambda evt: self.chat_panel.message_input.SetFocus(),
-            id=self.ID_FOCUS_INPUT,
-        )
-        self.Bind(
-            wx.EVT_MENU,
-            lambda evt: self._on_focus_list(),
-            id=self.ID_FOCUS_LIST,
-        )
-        self.Bind(
-            wx.EVT_MENU,
-            lambda evt: self.model_selector.SetFocus(),
-            id=self.ID_FOCUS_MODEL,
-        )
-        # Alt+4 (ID_FOCUS_TEMP) and Alt+5 (ID_FOCUS_SYSPROMPT) removed in
-        # v0.5.0 — those controls live in PreferencesDialog now.
-        self.Bind(
-            wx.EVT_MENU,
-            lambda evt: self._on_focus_use(),
-            id=self.ID_FOCUS_USE,
-        )
-        self.Bind(
-            wx.EVT_MENU,
-            lambda evt: self._announce_session_status(),
-            id=self.ID_F2,
-        )
-        self.Bind(
-            wx.EVT_MENU,
-            lambda evt: self._on_f6_cycle(),
-            id=self.ID_F6,
-        )
-        self.Bind(
-            wx.EVT_MENU,
-            lambda evt: self._on_use_model(),
-            id=self.ID_START_SERVER,
-        )
-        self.Bind(
-            wx.EVT_MENU,
-            lambda evt: self._on_stop_server(),
-            id=self.ID_STOP_SERVER,
-        )
+        accel_entries: list[wx.AcceleratorEntry] = []
+        # exit is handled by the window manager — skip it in the accelerator table
+        skip_actions = {"exit"}
+
+        for action_id, binding in km.actions.items():
+            if action_id in skip_actions:
+                continue
+            # Create or reuse the wx command ID for this action
+            if action_id not in self._action_ids:
+                self._action_ids[action_id] = wx.NewIdRef()
+            cmd_id = self._action_ids[action_id]
+            entry = wx.AcceleratorEntry(binding.modifiers, binding.keycode, cmd_id)
+            accel_entries.append(entry)
+
+            # Bind the handler — capture by value to avoid closure issues
+            handler = handlers.get(action_id)
+            if handler is not None:
+                self.Bind(
+                    wx.EVT_MENU,
+                    lambda evt, h=handler: h(),
+                    id=cmd_id,
+                )
 
         accel_table = wx.AcceleratorTable(accel_entries)
         self.SetAcceleratorTable(accel_table)
+
+    def rebuild_accelerator_table(self) -> None:
+        """Re-run the keymap-to-AcceleratorTable conversion.
+
+        Idempotent: ``wx.NewIdRef()`` instances created in ``__init__``
+        are reused (rebuild does NOT leak new ids). Callable after
+        ``__init__`` without restarting the process.
+        """
+        self._build_accelerators()
+
+    # ── Quick-action handler stubs (chat_panel methods wired in v0.8.0) ──────
+
+    def _on_copy_last(self) -> None:
+        """Copy the last message in the chat history to clipboard."""
+        self.chat_panel.copy_last_message()
+
+    def _on_delete_last_exchange(self) -> None:
+        """Remove the last user/assistant exchange pair."""
+        self.chat_panel.delete_last_exchange()
+
+    def _on_edit_previous(self) -> None:
+        """Load the previous user message into the input for editing."""
+        self.chat_panel.edit_message("prev")
+
+    def _on_edit_next(self) -> None:
+        """No-op: 'next' is ambiguous after truncation."""
+        self.chat_panel.edit_message("next")
+
+    def _on_regenerate_last(self) -> None:
+        """Remove the last assistant response and re-send the same user prompt."""
+        self.chat_panel.regenerate_last()
 
     def _on_focus_list(self) -> None:
         """Focus the message list and announce the last item."""

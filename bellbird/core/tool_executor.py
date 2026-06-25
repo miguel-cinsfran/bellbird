@@ -107,8 +107,11 @@ class ToolExecutor:
                               returncode, cancelled=cancelled)
         except subprocess.TimeoutExpired:
             if proc is not None:
-                proc.kill()
-                proc.wait(timeout=5)
+                try:
+                    proc.kill()
+                    proc.wait(timeout=5)
+                except Exception:
+                    pass
             return ToolResult(tool_name, command, "",
                               f"Timeout despues de {timeout}s.", 1)
         except Exception as e:

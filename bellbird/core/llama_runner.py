@@ -249,6 +249,10 @@ def start_server(
         # It feeds each line through parse_stderr_line; on FAIL it
         # records the reason and terminates the process so the poll
         # loop below can return early.
+        # _early_exit / _ok_ready are mutated by the reader thread
+        # and read by the poll loop. Under CPython's GIL, individual
+        # list.append() / len() / index access are atomic — no Lock
+        # needed. Project targets CPython only (requires-python=">=3.12").
         _early_exit: list[tuple[bool, str]] = []
         _ok_ready: list[bool] = []
 

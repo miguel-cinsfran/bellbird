@@ -28,6 +28,7 @@ from bellbird.core.llama_runner import (
     start_server,
     stop_server,
 )
+from bellbird.core.startup import probe as startup_probe
 from bellbird.core.logger import get_logger, get_log_path
 from bellbird.core.speech import Speech
 from bellbird.ui.chat_panel import ChatPanel
@@ -677,11 +678,10 @@ class MainWindow(wx.Frame):
         posts the result back via ``wx.CallAfter``. The window is already
         shown before any I/O, so the user sees "Iniciando…" immediately.
         """
-        from bellbird.core.startup import probe
         import bellbird.core.llama_runner as runner_mod
 
         def worker() -> None:
-            result = probe(self._client, runner_mod)
+            result = startup_probe(self._client, runner_mod)
             wx.CallAfter(self._on_startup_probe_done, result)
 
         t = threading.Thread(target=worker, daemon=True)

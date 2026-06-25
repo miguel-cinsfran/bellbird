@@ -55,6 +55,38 @@ class LlamaClient:
         except Exception:
             return False
 
+    def check_state(self) -> str:
+        """Ternary server health state.
+
+        Returns:
+            ``"loading"`` — 503 with ``error.message`` containing ``"Loading model"``.
+            ``"dead"``    — connection refused, timeout, 5xx without a loading message,
+                          or any non-200/503 response.
+            ``"ready"``   — 200 OK with ``{"status": "ok"}``.
+
+        Never raises. Timeout: 5s per call.
+        """
+        try:
+            response = self._session.get(
+                f"{self.base_url}/health", timeout=5
+            )
+            if response.status_code == 200:
+                body = response.json()
+                return "ready" if body.get("status") == "ok" else "dead"
+            if response.status_code == 503:
+                try:
+                    body = response.json()
+                    err = body.get("error", {})
+                    msg = (err.get("message") or "") if isinstance(err, dict) else ""
+                    if "loading model" in msg.lower():
+                        return "loading"
+                except Exception:
+                    pass
+                return "dead"
+            return "dead"
+        except Exception:
+            return "dead"
+
     def get_loaded_model(self) -> str:
         """Get the id of the currently loaded model.
 

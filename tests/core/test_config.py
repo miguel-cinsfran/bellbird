@@ -458,3 +458,27 @@ def test_mmproj_offload_round_trip_false(monkeypatch, tmp_path):
     monkeypatch.setattr(config_module, "CONFIG_PATH", path)
     loaded = load_config()
     assert loaded.mmproj_offload is False
+
+
+# ── max_tool_iterations (v0.7.5) ──────────────────────────────────────────
+
+
+def test_max_tool_iterations_default():
+    """GIVEN a fresh BellbirdConfig()
+    THEN max_tool_iterations == 5."""
+    cfg = BellbirdConfig()
+    assert cfg.max_tool_iterations == 5
+
+
+def test_max_tool_iterations_overridable(monkeypatch, tmp_path):
+    """GIVEN config JSON with max_tool_iterations: 10
+    WHEN load_config()
+    THEN max_tool_iterations == 10."""
+    import json
+    path = tmp_path / "config.json"
+    data = {"max_tool_iterations": 10}
+    path.write_text(json.dumps(data), encoding="utf-8")
+    from bellbird.core import config as config_module
+    monkeypatch.setattr(config_module, "CONFIG_PATH", path)
+    result = load_config()
+    assert result.max_tool_iterations == 10

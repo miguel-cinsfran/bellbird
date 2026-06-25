@@ -34,6 +34,7 @@ class BellbirdConfig:
     model_mmproj: dict[str, str] = field(default_factory=dict)
     mmproj_offload: bool = True
     request_timeout: int = 120
+    max_tool_iterations: int = 5
 
     def get_mmproj_for(self, model_path: str | Path) -> str | None:
         """Look up the mmproj path for a model by basename.

@@ -1,8 +1,8 @@
-"""PreferencesDialog — preferences dialog with 5-tab notebook.
+"""PreferencesDialog — preferences dialog with 6-tab notebook.
 
-Reads/writes BellbirdConfig fields via wx.Notebook with 5 tabs:
-General, Modelo, Chat, Herramientas, Avanzado. Every control has name=
-and a preceding StaticText label. Speech resolution for sliders walks
+Reads/writes BellbirdConfig fields via wx.Notebook with 6 tabs:
+General, Modelo, Chat, Herramientas, Avanzado, Atajos. Every control has
+name= and a preceding StaticText label. Speech resolution for sliders walks
 the parent chain to find the MainWindow._speech attribute (same pattern
 as MessageDetailDialog._on_open_browser).
 """
@@ -12,6 +12,37 @@ import dataclasses
 import wx
 
 from bellbird.core.config import BellbirdConfig
+from bellbird.core.keymap import (
+    DEFAULT_KEYMAP,
+    Keymap,
+    _format_combo,
+)
+
+
+# ─── Spanish action labels (stable, one per DEFAULT_KEYMAP entry) ──────────────
+
+_ACTION_LABELS: dict[str, str] = {
+    "abort_generation": "Detener generación",
+    "announce_status": "Estado de sesión",
+    "copy_last": "Copiar último mensaje",
+    "cycle_panels": "Ciclar paneles",
+    "delete_last_exchange": "Eliminar último intercambio",
+    "edit_next": "Editar siguiente",
+    "edit_previous": "Editar anterior",
+    "exit": "Salir",
+    "focus_chat": "Enfocar chat",
+    "focus_models": "Enfocar modelos",
+    "focus_params": "Enfocar parámetros",
+    "focus_server": "Enfocar servidor",
+    "new_conversation": "Nueva conversación",
+    "open_conversation": "Abrir conversación",
+    "preferences": "Preferencias",
+    "regenerate": "Regenerar respuesta",
+    "save_conversation": "Guardar conversación",
+    "scan_models": "Buscar modelos",
+    "start_server": "Iniciar servidor",
+    "stop_server": "Detener servidor",
+}
 
 
 def _parse_stop_text(text: str) -> list[str]:
@@ -22,8 +53,213 @@ def _parse_stop_text(text: str) -> list[str]:
     return [line.strip() for line in text.splitlines() if line.strip()]
 
 
+# ─── Key capture controls ─────────────────────────────────────────────────────
+
+
+class KeyCaptureControl(wx.Panel):
+    """Single-shot key capture panel.
+
+    Binds ``EVT_KEY_DOWN`` and, on the next event with a non-modifier
+    keycode, displays a formatted label and speaks it. ``Tab`` and
+    ``Escape`` are reserved: Tab speaks "Tecla reservada" and does NOT
+    advance focus; Escape closes the parent dialog. Single-shot per
+    construction — re-show the control for a new capture.
+
+    Args:
+        parent: Parent wx window (the capture mini-dialog).
+        speech: Speech instance (or anything with a ``speak`` method).
+    """
+
+    def __init__(self, parent: wx.Window, speech: object) -> None:
+        super().__init__(parent, name="key_capture_panel")
+        self._speech = speech
+        self._captured_modifiers: int = 0
+        self._captured_keycode: int = 0
+        self._captured: bool = False
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        sizer.Add(
+            wx.StaticText(self, label="Pulsa la combinación de teclas:"),
+            flag=wx.ALL, border=8,
+        )
+        self._capture_label = wx.StaticText(
+            self, label="", name="key_capture_label",
+        )
+        sizer.Add(self._capture_label, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM, border=8)
+
+        self.SetSizer(sizer)
+        self.Bind(wx.EVT_KEY_DOWN, self._on_key_down)
+
+    # ── Properties ──────────────────────────────────────────────────────
+
+    @property
+    def captured(self) -> bool:
+        """True if a non-modifier key has been captured."""
+        return self._captured
+
+    @property
+    def captured_modifiers(self) -> int:
+        """Captured modifier bitmask."""
+        return self._captured_modifiers
+
+    @property
+    def captured_keycode(self) -> int:
+        """Captured keycode."""
+        return self._captured_keycode
+
+    # ── Event handler ───────────────────────────────────────────────────
+
+    def _on_key_down(self, event: wx.KeyEvent) -> None:
+        """Handle EVT_KEY_DOWN: capture the next non-modifier key."""
+        keycode = event.GetKeyCode()
+        modifiers = event.GetModifiers()
+
+        # Reserved keys
+        if keycode == wx.WXK_TAB:
+            self._speak("Tecla reservada")
+            return  # Consumed — do NOT advance focus
+
+        if keycode == wx.WXK_ESCAPE:
+            self._speak("Tecla reservada")
+            wx.CallAfter(self._close_parent_dialog)
+            return
+
+        # Modifier-only keys — ignore, wait for the next key
+        if keycode in (wx.WXK_SHIFT, wx.WXK_CONTROL, wx.WXK_ALT, wx.WXK_MENU):
+            return
+
+        # Capture this key
+        self._captured_modifiers = modifiers
+        self._captured_keycode = keycode
+        self._captured = True
+
+        label = _format_combo(modifiers, keycode)
+        self._capture_label.SetLabel(label)
+        self._speak(label)
+
+        # Let the event propagate so it doesn't interfere with other controls
+        event.Skip()
+
+    # ── Helpers ──────────────────────────────────────────────────────────
+
+    def _speak(self, text: str) -> None:
+        """Announce text via speech, if available."""
+        if self._speech is not None:
+            try:
+                self._speech.speak(text, interrupt=True)
+            except Exception:
+                pass
+
+    def _close_parent_dialog(self) -> None:
+        """Close the parent mini-dialog with wx.ID_CANCEL (Escape path)."""
+        parent = self.GetParent()
+        if isinstance(parent, wx.Dialog):
+            parent.EndModal(wx.ID_CANCEL)
+
+
+class _CaptureDialog(wx.Dialog):
+    """Modal mini-dialog for capturing a key combination.
+
+    Contains a ``KeyCaptureControl``, an "Aceptar" button, and a
+    "Cancelar" button. On Accept, validates the captured combo against
+    ``keymap.find_conflict()``. On collision, speaks a Spanish message,
+    closes with ``wx.ID_CANCEL``, and keeps the previous binding.
+
+    Args:
+        parent: Parent wx window.
+        keymap: ``Keymap`` instance (resolved state for conflict
+                detection).
+        action_id: The action id being rebound.
+        speech: Speech instance for announcements.
+    """
+
+    def __init__(
+        self,
+        parent: wx.Window,
+        keymap: Keymap,
+        action_id: str,
+        speech: object,
+    ) -> None:
+        super().__init__(
+            parent, name="keymap_capture_dialog", title="Capturar atajo",
+        )
+        self._keymap = keymap
+        self._action_id = action_id
+        self._speech = speech
+
+        root = wx.BoxSizer(wx.VERTICAL)
+
+        # Capture panel
+        self._capture = KeyCaptureControl(self, speech)
+        root.Add(self._capture, flag=wx.EXPAND | wx.ALL, border=8)
+
+        # ── Buttons ─────────────────────────────────────────────────────
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.accept_btn = wx.Button(
+            self, label="Aceptar", name="key_capture_accept_button",
+        )
+        self.accept_btn.Bind(wx.EVT_BUTTON, self._on_accept)
+        self.accept_btn.Disable()  # Enabled after capture
+        btn_sizer.Add(self.accept_btn, flag=wx.RIGHT, border=4)
+
+        self.cancel_btn = wx.Button(
+            self, label="Cancelar", name="key_capture_cancel_button",
+        )
+        self.cancel_btn.Bind(
+            wx.EVT_BUTTON, lambda e: self.EndModal(wx.ID_CANCEL),
+        )
+        btn_sizer.Add(self.cancel_btn)
+
+        root.Add(btn_sizer, flag=wx.ALIGN_CENTER | wx.BOTTOM, border=8)
+
+        self.SetSizer(root)
+        self.SetEscapeId(wx.ID_CANCEL)
+        self.Fit()
+        self.SetInitialSize()
+        # Focus the capture panel so EVT_KEY_DOWN fires immediately
+        wx.CallAfter(self._capture.SetFocus)
+
+    # ── Event handlers ──────────────────────────────────────────────────
+
+    def _on_accept(self, event: wx.CommandEvent) -> None:
+        """Validate the captured combo and close with ID_OK or ID_CANCEL."""
+        if not self._capture.captured:
+            return  # Should not happen (button is disabled), but guard
+
+        mod = self._capture.captured_modifiers
+        kc = self._capture.captured_keycode
+
+        # Check for conflicts excluding the action itself
+        conflict = self._keymap.find_conflict(mod, kc)
+        if conflict is not None and conflict != self._action_id:
+            label = _ACTION_LABELS.get(conflict, conflict)
+            msg = f"Combinación ya usada por {label}"
+            self._speak(msg)
+            self.EndModal(wx.ID_CANCEL)
+            return
+
+        self.EndModal(wx.ID_OK)
+
+    def get_captured_combo(self) -> tuple[int, int]:
+        """Return the captured ``(modifiers, keycode)`` pair."""
+        return (self._capture.captured_modifiers, self._capture.captured_keycode)
+
+    def _speak(self, text: str) -> None:
+        """Announce text via speech, if available."""
+        if self._speech is not None:
+            try:
+                self._speech.speak(text, interrupt=True)
+            except Exception:
+                pass
+
+
+# ─── PreferencesDialog ─────────────────────────────────────────────────────────
+
+
 class PreferencesDialog(wx.Dialog):
-    """Preferences dialog with 5-tab notebook editing BellbirdConfig.
+    """Preferences dialog with 6-tab notebook editing BellbirdConfig.
 
     Args:
         parent: Parent wx window.
@@ -48,8 +284,14 @@ class PreferencesDialog(wx.Dialog):
                 break
             p = p.GetParent()
 
+        # Keymap for Atajos tab — rebuilt from config overrides
+        self._keymap = Keymap(DEFAULT_KEYMAP,
+                              overrides=self._config.keymap_overrides)
+        # Row widgets keyed by action_id: {action_id: {...}}
+        self._keymap_rows: dict[str, dict[str, wx.Window]] = {}
+
         self._build_ui()
-        self.SetSize((520, 480))
+        self.SetSize((620, 520))
         wx.CallAfter(self._focus_first_control)
 
     def _build_ui(self) -> None:
@@ -63,6 +305,7 @@ class PreferencesDialog(wx.Dialog):
         self._build_chat_page(notebook)
         self._build_tools_page(notebook)
         self._build_advanced_page(notebook)
+        self._build_keymap_page(notebook)
 
         main_sizer.Add(notebook, proportion=1,
                        flag=wx.EXPAND | wx.ALL, border=8)
@@ -372,6 +615,118 @@ class PreferencesDialog(wx.Dialog):
         sizer.AddStretchSpacer()
         panel.SetSizer(sizer)
         notebook.AddPage(panel, "Avanzado")
+
+    def _build_keymap_page(self, notebook: wx.Notebook) -> None:
+        """Build Atajos tab: one row per DEFAULT_KEYMAP entry.
+
+        Each row has a Spanish action-label StaticText, the current binding
+        StaticText, a "Cambiar" button, and a "Restablecer" button.
+        Actions are sorted alphabetically by action_id for stability.
+        """
+        panel = wx.Panel(notebook, name="keymap_page")
+        outer_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        outer_sizer.Add(
+            wx.StaticText(panel, label="Atajos de teclado (pulsa Cambiar para reasignar):"),
+            flag=wx.LEFT | wx.TOP | wx.BOTTOM, border=8,
+        )
+
+        # Scrollable container for the row list
+        scroll = wx.ScrolledWindow(panel, name="keymap_scroll")
+        scroll_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        sorted_ids = sorted(DEFAULT_KEYMAP.keys())
+        for action_id in sorted_ids:
+            row_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+            # Spanish action label
+            action_label = _ACTION_LABELS.get(action_id, action_id)
+            label_st = wx.StaticText(scroll, label=action_label,
+                                     name=f"keymap_action_{action_id}")
+            row_sizer.Add(label_st, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, border=8)
+
+            # Current binding display (computed from resolved combo, not label)
+            resolved = self._keymap.actions.get(action_id)
+            binding_text = (
+                _format_combo(resolved.modifiers, resolved.keycode)
+                if resolved else ""
+            )
+            binding_st = wx.StaticText(scroll, label=binding_text,
+                                       name=f"keymap_binding_{action_id}")
+            row_sizer.Add(binding_st, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, border=8)
+
+            # Cambiar button
+            cambiar_btn = wx.Button(
+                scroll, label="Cambiar", name="keymap_capture_button",
+            )
+            cambiar_btn.Bind(
+                wx.EVT_BUTTON,
+                lambda e, aid=action_id: self._on_cambiar(aid),
+            )
+            row_sizer.Add(cambiar_btn, flag=wx.RIGHT, border=4)
+
+            # Restablecer button
+            restablecer_btn = wx.Button(
+                scroll, label="Restablecer", name="keymap_reset_button",
+            )
+            restablecer_btn.Bind(
+                wx.EVT_BUTTON,
+                lambda e, aid=action_id: self._on_restablecer(aid),
+            )
+            row_sizer.Add(restablecer_btn)
+
+            scroll_sizer.Add(row_sizer, flag=wx.ALL, border=4)
+
+            self._keymap_rows[action_id] = {
+                "label": label_st,
+                "binding": binding_st,
+                "cambiar": cambiar_btn,
+                "restablecer": restablecer_btn,
+            }
+
+        scroll.SetSizer(scroll_sizer)
+
+        # Configure scroll rate and auto-scroll
+        scroll.SetScrollRate(0, 16)
+        scroll_sizer.Fit(scroll)
+
+        outer_sizer.Add(scroll, proportion=1, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=8)
+
+        panel.SetSizer(outer_sizer)
+        notebook.AddPage(panel, "Atajos")
+
+    # ── Atajos tab event handlers ──────────────────────────────────────────
+
+    def _on_cambiar(self, action_id: str) -> None:
+        """Open capture dialog for ``action_id`` and apply the captured combo."""
+        dlg = _CaptureDialog(self, self._keymap, action_id, self._speech)
+        result = dlg.ShowModal()
+        if result == wx.ID_OK:
+            mod, kc = dlg.get_captured_combo()
+            # Update in-memory config override
+            self._config.keymap_overrides[action_id] = (mod, kc)
+            # Rebuild keymap and update row display
+            self._rebuild_keymap_row(action_id)
+        dlg.Destroy()
+
+    def _on_restablecer(self, action_id: str) -> None:
+        """Remove the override for ``action_id``, reverting to default."""
+        self._config.keymap_overrides.pop(action_id, None)
+        self._rebuild_keymap_row(action_id)
+
+    def _rebuild_keymap_row(self, action_id: str) -> None:
+        """Rebuild the resolved keymap and update the row for ``action_id``."""
+        self._keymap = Keymap(DEFAULT_KEYMAP,
+                              overrides=self._config.keymap_overrides)
+        row = self._keymap_rows.get(action_id)
+        if row is None:
+            return
+        resolved = self._keymap.actions.get(action_id)
+        binding_text = (
+            _format_combo(resolved.modifiers, resolved.keycode)
+            if resolved else ""
+        )
+        row["binding"].SetLabel(binding_text)
 
     # ── Event Handlers ─────────────────────────────────────────────────────
 

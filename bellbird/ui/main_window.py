@@ -1847,11 +1847,23 @@ class MainWindow(wx.Frame):
             subprocess.Popen(["xdg-open", str(log_path)])
 
     def _show_preferences(self) -> None:
-        """Open the PreferencesDialog, persist on OK, leave untouched on Cancel."""
+        """Open the PreferencesDialog, persist on OK, leave untouched on Cancel.
+
+        On OK, compares the previous ``keymap_overrides`` with the new ones
+        returned by the dialog. If they differ, calls
+        ``self.rebuild_accelerator_table()`` BEFORE assigning
+        ``self._config`` so the new bindings are live without a restart.
+        """
+        # Snapshot keymap_overrides before the dialog modifies them
+        old_overrides = dict(self._config.keymap_overrides)
         dlg = PreferencesDialog(self, self._config)
         if dlg.ShowModal() == wx.ID_OK:
+            new_config = dlg.get_config()
+            # Diff keymap_overrides — rebuild accelerator table if changed
+            if new_config.keymap_overrides != old_overrides:
+                self.rebuild_accelerator_table()
             old_port = self._config.port
-            self._config = dlg.get_config()
+            self._config = new_config
             save_config(self._config)
             if self._config.port != old_port:
                 self._client = LlamaClient(

@@ -183,6 +183,142 @@ def test_no_message_dialog():
     )
 
 
+# ─── v0.7.5 editable + mnemonics + focus-by-level ───────────────────────────
+
+
+def test_command_text_is_editable():
+    """command_text wx.TextCtrl does NOT have TE_READONLY in its style."""
+    source_path = _get_ui_path("permission_dialog.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            func_name = _get_func_name(node)
+            if func_name == "wx.TextCtrl" or func_name == "TextCtrl":
+                has_style = False
+                style_src = ""
+                for kw in node.keywords:
+                    if kw.arg == "style" and kw.arg is not None:
+                        has_style = True
+                        style_src = ast.unparse(kw.value)
+                        break
+                    if kw.arg == "style":
+                        has_style = True
+                        style_src = ast.unparse(kw.value)
+                        break
+                if has_style:
+                    assert "TE_READONLY" not in style_src, (
+                        f"command_text style must NOT contain TE_READONLY; "
+                        f"got: {style_src}"
+                    )
+
+
+def test_mnemonics_present():
+    """Button labels contain mnemonics (Per &Permitir una vez, &sesión, &Denegar)."""
+    source_path = _get_ui_path("permission_dialog.py")
+    source = source_path.read_text(encoding="utf-8")
+    assert 'label="&Permitir una vez"' in source, (
+        "allow_once_button label must contain '&Permitir una vez' mnemonic"
+    )
+    assert 'label="Permitir en &sesión"' in source or "label='Permitir en &sesión'" in source, (
+        "allow_session_button label must contain 'Permitir en &sesión' mnemonic"
+    )
+    assert 'label="&Denegar"' in source, (
+        "deny_button label must contain '&Denegar' mnemonic"
+    )
+
+
+def test_default_focus_by_risk_defined():
+    """_default_focus_for_risk method exists and returns correct controls."""
+    source_path = _get_ui_path("permission_dialog.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    # Check the helper method exists
+    method_found = False
+    for node in ast.walk(tree):
+        if (isinstance(node, ast.FunctionDef)
+                and node.name == "_default_focus_for_risk"):
+            method_found = True
+            # Check returns deny_button for RED
+            source_lines = source.splitlines()
+            start = node.lineno - 1
+            end = node.end_lineno
+            body = "\n".join(source_lines[start:end])
+            assert "return self.deny_button" in body, (
+                "_default_focus_for_risk must return deny_button for RED"
+            )
+            assert "return self.allow_once_button" in body, (
+                "_default_focus_for_risk must return allow_once_button for GREEN/YELLOW"
+            )
+            break
+    assert method_found, "_default_focus_for_risk method not found"
+
+
+def test_risk_label_updatable():
+    """risk_label is a StaticText with name='risk_label'."""
+    source_path = _get_ui_path("permission_dialog.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    found = False
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            func_name = _get_func_name(node)
+            if func_name == "wx.StaticText" or func_name == "StaticText":
+                has_name = any(
+                    kw.arg == "name"
+                    and isinstance(kw.value, ast.Constant)
+                    and kw.value.value == "risk_label"
+                    for kw in node.keywords
+                    if kw.arg is not None
+                )
+                if has_name:
+                    found = True
+                    break
+    assert found, "No wx.StaticText with name='risk_label' found"
+
+
+def test_evt_text_handler_bound():
+    """EVT_TEXT is bound to command_text for re-classify on edit."""
+    source_path = _get_ui_path("permission_dialog.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    has_evt_text = False
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            func_name = _get_func_name(node)
+            if func_name == "self.command_text.Bind" or "command_text.Bind" in func_name:
+                for arg in node.args:
+                    if isinstance(arg, ast.Attribute):
+                        if "EVT_TEXT" in arg.attr:
+                            has_evt_text = True
+                            break
+                    elif isinstance(arg, ast.Name) and "EVT_TEXT" in arg.id:
+                        has_evt_text = True
+                        break
+    assert has_evt_text, (
+        "EVT_TEXT must be bound to command_text for live re-classify"
+    )
+
+
+def test_get_command_method_exists():
+    """Dialog has a get_command() public method."""
+    source_path = _get_ui_path("permission_dialog.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    found = False
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == "get_command":
+            found = True
+            break
+    assert found, "get_command method not found in PermissionDialog"
+
+
+
 def test_no_emoji_in_risk_labels():
     """risk_labels dict values in _build_ui are pure ASCII."""
     source_path = _get_ui_path("permission_dialog.py")

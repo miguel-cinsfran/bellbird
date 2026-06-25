@@ -290,4 +290,5 @@ DEFAULT_KEYMAP: dict[str, Binding] = {
     "edit_previous": Binding(KEYMAP_MOD_ALT, 315, "Alt+Up"),  # wx.WXK_UP
     "edit_next": Binding(KEYMAP_MOD_ALT, 317, "Alt+Down"),  # wx.WXK_DOWN
     "regenerate": Binding(KEYMAP_MOD_CTRL, ord("R"), "Ctrl+R"),
+    "find_in_history": Binding(KEYMAP_MOD_CTRL, ord("F"), "Ctrl+F"),
 }

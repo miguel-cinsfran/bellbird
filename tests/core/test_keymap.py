@@ -138,9 +138,10 @@ class TestDefaultKeymap:
             "edit_previous",
             "edit_next",
             "regenerate",
+            "find_in_history",
         }
         assert set(DEFAULT_KEYMAP.keys()) == expected_ids
-        assert len(DEFAULT_KEYMAP) == 20
+        assert len(DEFAULT_KEYMAP) == 21
 
     def test_labels_match_spec(self):
         expected_labels = {
@@ -164,6 +165,7 @@ class TestDefaultKeymap:
             "edit_previous": "Alt+Up",
             "edit_next": "Alt+Down",
             "regenerate": "Ctrl+R",
+            "find_in_history": "Ctrl+F",
         }
         for action_id, binding in DEFAULT_KEYMAP.items():
             assert binding.label == expected_labels[action_id], (
@@ -422,7 +424,7 @@ class TestAstNoWxImport:
         # This is tested by the import at the top of this file already
         # happening successfully. The test exists as a documented scenario.
         from bellbird.core.keymap import Binding, Keymap, DEFAULT_KEYMAP
-        assert len(DEFAULT_KEYMAP) == 20
+        assert len(DEFAULT_KEYMAP) == 21
 
 
 # ─── Logger warning on dropped overrides ────────────────────────────────────

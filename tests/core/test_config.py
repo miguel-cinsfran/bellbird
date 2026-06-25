@@ -607,3 +607,258 @@ def test_max_tool_iterations_overridable(monkeypatch, tmp_path):
     monkeypatch.setattr(config_module, "CONFIG_PATH", path)
     result = load_config()
     assert result.max_tool_iterations == 10
+
+
+# ── restore_last_session / last_session_path / recent_files (v0.8.2) ──────
+
+
+def test_restore_last_session_default_is_true():
+    """GIVEN a fresh BellbirdConfig()
+    THEN restore_last_session is True."""
+    cfg = BellbirdConfig()
+    assert cfg.restore_last_session is True
+
+
+def test_last_session_path_default_is_empty():
+    """GIVEN a fresh BellbirdConfig()
+    THEN last_session_path == ''."""
+    cfg = BellbirdConfig()
+    assert cfg.last_session_path == ""
+
+
+def test_recent_files_default_is_empty_list():
+    """GIVEN a fresh BellbirdConfig()
+    THEN recent_files == []."""
+    cfg = BellbirdConfig()
+    assert cfg.recent_files == []
+
+
+def test_recent_files_default_is_per_instance():
+    """GIVEN two fresh BellbirdConfig() instances
+    WHEN one gets an appended file path
+    THEN the other instance still has an empty list."""
+    a = BellbirdConfig()
+    b = BellbirdConfig()
+    a.recent_files.append("/path/a.json")
+    assert b.recent_files == []
+
+
+def test_load_config_with_new_fields_present(monkeypatch, tmp_path):
+    """GIVEN a JSON file containing the 3 new fields
+    WHEN load_config() is called
+    THEN the fields are loaded with the correct values."""
+    import json
+    path = tmp_path / "config.json"
+    data = {
+        "restore_last_session": False,
+        "last_session_path": "/home/user/bellbird/last.json",
+        "recent_files": ["/home/user/a.json", "/home/user/b.json"],
+        "port": 8080,
+    }
+    path.write_text(json.dumps(data), encoding="utf-8")
+    from bellbird.core import config as config_module
+    monkeypatch.setattr(config_module, "CONFIG_PATH", path)
+    result = load_config()
+    assert result.restore_last_session is False
+    assert result.last_session_path == "/home/user/bellbird/last.json"
+    assert result.recent_files == ["/home/user/a.json", "/home/user/b.json"]
+
+
+def test_load_config_with_new_fields_missing(monkeypatch, tmp_path):
+    """GIVEN a JSON file from v0.8.1 without the 3 new fields
+    WHEN load_config() is called on v0.8.2
+    THEN the defaults for the new fields are applied."""
+    import json
+    path = tmp_path / "config.json"
+    data = {"port": 8080, "temperature": 0.7}
+    path.write_text(json.dumps(data), encoding="utf-8")
+    from bellbird.core import config as config_module
+    monkeypatch.setattr(config_module, "CONFIG_PATH", path)
+    result = load_config()
+    assert result.restore_last_session is True
+    assert result.last_session_path == ""
+    assert result.recent_files == []
+
+
+def test_load_config_with_extra_unknown_fields(monkeypatch, tmp_path):
+    """GIVEN a JSON file with new fields AND a hypothetical future_field
+    WHEN load_config() runs
+    THEN the new fields are loaded AND future_field is silently dropped."""
+    import json
+    path = tmp_path / "config.json"
+    data = {
+        "restore_last_session": False,
+        "last_session_path": "/tmp/session.json",
+        "recent_files": ["/tmp/a.json"],
+        "future_field": "should_be_ignored",
+    }
+    path.write_text(json.dumps(data), encoding="utf-8")
+    from bellbird.core import config as config_module
+    monkeypatch.setattr(config_module, "CONFIG_PATH", path)
+    result = load_config()
+    assert result.restore_last_session is False
+    assert result.last_session_path == "/tmp/session.json"
+    assert result.recent_files == ["/tmp/a.json"]
+    assert not hasattr(result, "future_field")
+
+
+def test_save_config_roundtrip_new_fields(monkeypatch, tmp_path):
+    """GIVEN BellbirdConfig with non-default values for the 3 new fields
+    WHEN save_config then load_config
+    THEN the loaded config preserves all 3 new fields."""
+    cfg = BellbirdConfig(
+        restore_last_session=False,
+        last_session_path="/tmp/session.json",
+        recent_files=["/tmp/a.json", "/tmp/b.json"],
+    )
+    path = tmp_path / "config.json"
+    save_config(cfg, path)
+    from bellbird.core import config as config_module
+    monkeypatch.setattr(config_module, "CONFIG_PATH", path)
+    loaded = load_config()
+    assert loaded.restore_last_session is False
+    assert loaded.last_session_path == "/tmp/session.json"
+    assert loaded.recent_files == ["/tmp/a.json", "/tmp/b.json"]
+
+
+def test_migrations_dict_unchanged_new_fields_not_in_migrations():
+    """GIVEN the _MIGRATIONS dict
+    THEN it has exactly one entry (max_tokens 512->4096)
+    AND no entry references restore_last_session, last_session_path, or recent_files."""
+    from bellbird.core.config import _MIGRATIONS
+    assert len(_MIGRATIONS) == 1
+    assert "max_tokens" in _MIGRATIONS
+    assert _MIGRATIONS["max_tokens"] == (512, 4096)
+    assert "restore_last_session" not in _MIGRATIONS
+    assert "last_session_path" not in _MIGRATIONS
+    assert "recent_files" not in _MIGRATIONS
+
+
+# ── update_recents / remove_from_recents / should_auto_restore (v0.8.2) ───
+
+
+def test_update_recents_basic():
+    """GIVEN an empty recent_files list
+    WHEN update_recents('/p/a.json', [])
+    THEN the path is added at the front."""
+    from bellbird.core.config import update_recents
+
+    result = update_recents("/p/a.json", [])
+    assert result[0] == "/p/a.json"
+    assert len(result) == 1
+
+
+def test_update_recents_dedup():
+    """GIVEN a list with an existing path
+    WHEN update_recents with the same path
+    THEN the path moves to front, no duplicate."""
+    from bellbird.core.config import update_recents
+
+    result = update_recents("/p/a.json", ["/p/b.json", "/p/a.json", "/p/c.json"])
+    assert result[0] == "/p/a.json"
+    assert result.count("/p/a.json") == 1
+    assert len(result) == 3
+
+
+def test_update_recents_cap_10():
+    """GIVEN 12 paths added in order
+    WHEN update_recents for each
+    THEN recent_files has at most 10 entries (most recent first)."""
+    from bellbird.core.config import update_recents
+
+    recent: list[str] = []
+    for i in range(12):
+        recent = update_recents(f"/p/file{i}.json", recent)
+    assert len(recent) == 10
+    assert recent[0] == "/p/file11.json"
+    assert recent[-1] == "/p/file2.json"
+
+
+def test_update_recents_mru_order():
+    """GIVEN multiple paths added
+    WHEN update_recents
+    THEN entries are in MRU order (most recent first)."""
+    from bellbird.core.config import update_recents
+
+    recent = update_recents("/p/a.json", [])
+    recent = update_recents("/p/b.json", recent)
+    recent = update_recents("/p/c.json", recent)
+    assert recent == ["/p/c.json", "/p/b.json", "/p/a.json"]
+
+
+def test_update_recents_uses_absolute_paths():
+    """GIVEN a relative path
+    WHEN update_recents
+    THEN the path is stored as absolute."""
+    from bellbird.core.config import update_recents
+
+    result = update_recents("relative/path/chat.json", [])
+    assert result[0] != "relative/path/chat.json"
+    assert result[0].startswith("/")
+
+
+def test_remove_from_recents_present():
+    """GIVEN a list with a path
+    WHEN remove_from_recents
+    THEN the path is removed."""
+    from bellbird.core.config import remove_from_recents
+
+    result = remove_from_recents("/p/a.json", ["/p/a.json", "/p/b.json"])
+    assert "/p/a.json" not in result
+    assert result == ["/p/b.json"]
+
+
+def test_remove_from_recents_absent():
+    """GIVEN a list without a path
+    WHEN remove_from_recents
+    THEN no error, list unchanged."""
+    from bellbird.core.config import remove_from_recents
+
+    result = remove_from_recents("/p/zzz.json", ["/p/a.json"])
+    assert result == ["/p/a.json"]
+
+
+def test_should_auto_restore_toggle_off(tmp_path):
+    """GIVEN restore_last_session=False
+    WHEN should_auto_restore
+    THEN returns False even if path exists."""
+    from bellbird.core.config import should_auto_restore
+
+    file = tmp_path / "session.json"
+    file.write_text("{}", encoding="utf-8")
+    cfg = BellbirdConfig(restore_last_session=False, last_session_path=str(file))
+    assert should_auto_restore(cfg) is False
+
+
+def test_should_auto_restore_path_empty(tmp_path):
+    """GIVEN last_session_path=''
+    WHEN should_auto_restore
+    THEN returns False."""
+    from bellbird.core.config import should_auto_restore
+
+    cfg = BellbirdConfig(restore_last_session=True, last_session_path="")
+    assert should_auto_restore(cfg) is False
+
+
+def test_should_auto_restore_path_missing():
+    """GIVEN last_session_path points to non-existent file
+    WHEN should_auto_restore
+    THEN returns False."""
+    from bellbird.core.config import should_auto_restore
+
+    cfg = BellbirdConfig(
+        restore_last_session=True, last_session_path="/nonexistent/path.json"
+    )
+    assert should_auto_restore(cfg) is False
+
+
+def test_should_auto_restore_ok(tmp_path):
+    """GIVEN toggle on AND path exists AND non-empty
+    WHEN should_auto_restore
+    THEN returns True."""
+    from bellbird.core.config import should_auto_restore
+
+    file = tmp_path / "session.json"
+    file.write_text("{}", encoding="utf-8")
+    cfg = BellbirdConfig(restore_last_session=True, last_session_path=str(file))
+    assert should_auto_restore(cfg) is True

@@ -11,6 +11,7 @@ Usage:
 """
 
 import json
+import unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -175,6 +176,53 @@ class Conversation:
         # Standard pop: remove the trailing message
         self.messages.pop()
 
+    def to_markdown(self, system_prompt: str = "") -> str:
+        """Serialize the conversation to a human-readable Markdown string.
+
+        Args:
+            system_prompt: Optional system prompt text to include as
+                ``## Mensaje del sistema``. Omitted when empty.
+
+        Returns:
+            UTF-8 Markdown string with the full transcript.
+        """
+        role_labels: dict[str, str] = {
+            "user": "Usuario",
+            "assistant": "Asistente",
+            "tool": "Herramienta",
+        }
+
+        lines: list[str] = ["# Conversación", ""]
+
+        if system_prompt:
+            lines.append("## Mensaje del sistema")
+            lines.append("")
+            lines.append(system_prompt)
+            lines.append("")
+
+        for msg in self.messages:
+            role = msg.get("role", "")
+            content = msg.get("content", "")
+            label = role_labels.get(role, role)
+
+            lines.append(f"## {label}")
+            lines.append("")
+
+            if content:
+                lines.append(content)
+
+            # Emit tool_calls as a fenced JSON block under the assistant heading
+            if role == "assistant" and msg.get("tool_calls"):
+                if content:
+                    lines.append("")
+                lines.append("```json")
+                lines.append(json.dumps(msg["tool_calls"], indent=2, ensure_ascii=False))
+                lines.append("```")
+
+            lines.append("")
+
+        return "\n".join(lines)
+
     @classmethod
     def save(
         cls, conv: "Conversation", filepath: Path, system_prompt: str = ""
@@ -215,3 +263,57 @@ class Conversation:
         sp: str = data.get("system_prompt", "")
         body = {"messages": data.get("messages", [])}
         return cls.from_dict(body), sp
+
+
+# ─── Module-level helpers ────────────────────────────────────────────────────
+
+
+def _normalize(text: str) -> str:
+    """Casefold and strip diacritics for accent-insensitive comparison.
+
+    Applies NFKD normalization, removes combining marks (diacritics),
+    then casefolds the result. Pure, wx-free.
+    """
+    nfkd = unicodedata.normalize("NFKD", text)
+    return "".join(c for c in nfkd if not unicodedata.combining(c)).casefold()
+
+
+def find_in_history(
+    items: list[tuple[str, str]],
+    query: str,
+    start_index: int,
+    wrap: bool = True,
+) -> int:
+    """Find the next match in a history list, case+accent-insensitive, with wrap.
+
+    Args:
+        items: List of ``(role, text)`` tuples (e.g. ``ChatPanel._history``).
+        query: Search text. Empty query always returns ``-1``.
+        start_index: 1-based position to search **strictly after**.
+            Pass ``0`` to start from the first element.
+        wrap: If ``True``, wraps from end to start when no match found
+            after ``start_index``.
+
+    Returns:
+        1-based index of the next match, or ``-1`` if no match found.
+    """
+    if not query or not items:
+        return -1
+
+    query_norm = _normalize(query)
+    n = len(items)
+
+    # Search strictly after start_index (1-based) to end
+    for i in range(start_index + 1, n + 1):
+        _, text = items[i - 1]
+        if query_norm in _normalize(text):
+            return i
+
+    # Wrap from beginning to start_index (inclusive)
+    if wrap:
+        for i in range(1, start_index + 1):
+            _, text = items[i - 1]
+            if query_norm in _normalize(text):
+                return i
+
+    return -1

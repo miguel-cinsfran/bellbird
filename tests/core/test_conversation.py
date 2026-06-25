@@ -695,4 +695,176 @@ def test_tool_calls_in_order_with_tool():
     assert api[1]["tool_call_id"] == "c1"
 
 
+# ─── to_markdown (v0.8.2) ──────────────────────────────────────────────────
+
+
+def test_to_markdown_basic():
+    """GIVEN a Conversation with system_prompt and 3 messages (user, assistant, tool)
+    WHEN to_markdown() is called
+    THEN the output starts with '# Conversación' AND contains role headings AND content."""
+    from bellbird.core.conversation import Conversation
+
+    conv = Conversation()
+    conv.add_message("user", "Hola")
+    conv.add_message("assistant", "¿En qué te ayudo?")
+    conv.add_message("tool", "ok", tool_call_id="c1")
+
+    result = conv.to_markdown(system_prompt="Eres útil.")
+
+    assert result.startswith("# Conversación")
+    assert "## Mensaje del sistema\n\nEres útil." in result
+    assert "## Usuario\n\nHola" in result
+    assert "## Asistente\n\n¿En qué te ayudo?" in result
+    assert "## Herramienta\n\nok" in result
+
+
+def test_to_markdown_with_unicode():
+    """GIVEN messages with accents, emojis, and symbols
+    WHEN to_markdown() is called
+    THEN the output preserves all unicode characters."""
+    from bellbird.core.conversation import Conversation
+
+    conv = Conversation()
+    conv.add_message("user", "café, olé, niño, Münster, 日本語")
+    conv.add_message("assistant", "¡Claro! 😊 ¡Por supuesto!")
+
+    result = conv.to_markdown()
+
+    assert "café" in result
+    assert "olé" in result
+    assert "niño" in result
+    assert "Münster" in result
+    assert "日本語" in result
+    assert "😊" in result
+
+
+def test_to_markdown_with_tool_calls():
+    """GIVEN an assistant message with tool_calls
+    WHEN to_markdown() is called
+    THEN tool_calls appear as a fenced JSON block AND images/reasoning are excluded."""
+    from bellbird.core.conversation import Conversation
+
+    tc = [{"id": "c1", "type": "function",
+           "function": {"name": "shell_execute", "arguments": "{}"}}]
+    conv = Conversation()
+    conv.add_message("assistant", "", tool_calls=tc)
+    conv.add_message("tool", "ls output", tool_call_id="c1")
+    conv.add_message("user", "con imagen", images=["AAAA"])
+    # Add reasoning to a second user message
+    conv.add_message("user", "texto normal", reasoning="pensando...")
+
+    result = conv.to_markdown()
+
+    assert "```json" in result
+    assert '"shell_execute"' in result
+    # images and reasoning are NOT emitted
+    assert "AAAA" not in result
+    assert "pensando..." not in result
+    assert "ls output" in result
+
+
+def test_to_markdown_empty_messages():
+    """GIVEN a fresh Conversation with no messages AND empty system_prompt
+    WHEN to_markdown() is called
+    THEN the result starts with '# Conversación' AND has no '##' headings AND no exception."""
+    from bellbird.core.conversation import Conversation
+
+    conv = Conversation()
+    result = conv.to_markdown()
+
+    assert result.startswith("# Conversación")
+    assert "##" not in result
+
+
+# ─── find_in_history (v0.8.2) ─────────────────────────────────────────────
+
+
+def test_find_in_history_basic_match():
+    """GIVEN items with 3 rows and query present AFTER start_index
+    WHEN find_in_history(items, query, 1, wrap=False)
+    THEN returns the index of the match."""
+    from bellbird.core.conversation import find_in_history
+
+    items = [("user", "primero"), ("assistant", "segundo"), ("user", "tercero")]
+    result = find_in_history(items, "segundo", 1, wrap=False)
+    # start_index=1 → search from 1-based position 2 → found at 1-based position 2
+    assert result == 2
+
+
+def test_find_in_history_wrap():
+    """GIVEN match only BEFORE start_index
+    WHEN find_in_history with wrap=True
+    THEN wraps and returns the index."""
+    from bellbird.core.conversation import find_in_history
+
+    items = [("user", "primero"), ("assistant", "segundo")]
+    result = find_in_history(items, "primero", 1, wrap=True)
+    assert result == 1  # wraps to position 1
+
+
+def test_find_in_history_case_insensitive():
+    """GIVEN query with different case
+    WHEN find_in_history
+    THEN match is case-insensitive."""
+    from bellbird.core.conversation import find_in_history
+
+    items = [("user", "HOLA mundo")]
+    result = find_in_history(items, "hola", 0, wrap=False)
+    assert result == 1  # position 1 matches
+
+
+def test_find_in_history_accent_insensitive():
+    """GIVEN query without accents matching text with accents
+    WHEN find_in_history
+    THEN match is accent-insensitive."""
+    from bellbird.core.conversation import find_in_history
+
+    items = [("user", "el niño jugó")]
+    result = find_in_history(items, "nino", 0, wrap=False)
+    assert result == 1  # position 1 matches
+
+
+def test_find_in_history_no_match():
+    """GIVEN query that does not appear in any row
+    WHEN find_in_history
+    THEN returns -1."""
+    from bellbird.core.conversation import find_in_history
+
+    items = [("user", "Hola"), ("assistant", "mundo")]
+    result = find_in_history(items, "zzz", 0, wrap=False)
+    assert result == -1
+
+
+def test_find_in_history_empty_text():
+    """GIVEN empty query string
+    WHEN find_in_history
+    THEN returns -1 (never matches)."""
+    from bellbird.core.conversation import find_in_history
+
+    items = [("user", "Hola")]
+    result = find_in_history(items, "", 0, wrap=True)
+    assert result == -1
+
+
+def test_find_in_history_empty_history():
+    """GIVEN empty items list
+    WHEN find_in_history
+    THEN returns -1."""
+    from bellbird.core.conversation import find_in_history
+
+    result = find_in_history([], "hola", 0, wrap=True)
+    assert result == -1
+
+
+def test_find_in_history_skip_system_rows():
+    """GIVEN items with system rows (UI-only)
+    WHEN find_in_history
+    THEN searches system rows too (operates on _history as-is)."""
+    from bellbird.core.conversation import find_in_history
+
+    items = [("system", "tool blocked"), ("user", "Hola"), ("assistant", "mundo")]
+    result = find_in_history(items, "tool blocked", 0, wrap=False)
+    assert result == 1  # system rows ARE included
+
+
 

@@ -8,6 +8,8 @@ bar, and import-only check.
 import ast
 import pathlib
 
+import pytest
+
 
 def _get_ui_path(filename: str) -> pathlib.Path:
     return (
@@ -1179,27 +1181,77 @@ def test_no_splitter_window():
 
 
 def test_model_selector_in_frame():
-    """model_selector is created as a direct child of the Frame (self)."""
+    """model_selector is created as a direct child of the Frame (self)
+    with style=wx.CB_READONLY for NVDA screen-reader accessibility."""
     source_path = _get_ui_path("main_window.py")
     source = source_path.read_text(encoding="utf-8")
     tree = ast.parse(source)
 
     found = False
+    style_checked = False
     for node in ast.walk(tree):
         if isinstance(node, ast.Call):
             func_name = _get_func_name(node)
             if func_name == "wx.ComboBox":
-                # Check parent= is self (the Frame, not a child panel)
                 for kw in node.keywords:
                     if kw.arg == "name" and isinstance(kw.value, ast.Constant) and kw.value.value == "Selector de modelo":
                         found = True
-                        break
-            if found:
-                break
+                    if kw.arg == "style":
+                        style_src = ast.unparse(kw.value)
+                        assert "CB_READONLY" in style_src, (
+                            f"model_selector must be read-only (style=wx.CB_READONLY);"
+                            f" got {style_src}"
+                        )
+                        style_checked = True
+                if found and style_checked:
+                    break
 
     assert found, (
         "model_selector (wx.ComboBox with name='Selector de modelo') must be "
         "created in MainWindow (parent=self)"
+    )
+    assert style_checked, (
+        "model_selector ComboBox must declare a 'style' kwarg (wx.CB_READONLY)"
+    )
+
+
+def test_model_selector_has_no_text_change_handler():
+    """Read-only combo must not bind EVT_TEXT or define _on_model_text_change."""
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == "_on_model_text_change":
+            pytest.fail("_on_model_text_change must be removed (combo is read-only)")
+    assert "EVT_TEXT" not in source, (
+        "EVT_TEXT must not be bound in main_window.py (combo is read-only)"
+    )
+
+
+def test_set_models_reselects_last_model():
+    """set_models must find and select last_model when it exists in the list."""
+    source_path = _get_ui_path("main_window.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    method = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == "set_models":
+            method = node
+            break
+    assert method is not None, "set_models method not found"
+
+    source_lines = source.splitlines()
+    start = method.lineno - 1
+    end = method.end_lineno
+    method_source = "\n".join(source_lines[start:end])
+
+    assert "FindString" in method_source, (
+        "set_models must use FindString to locate last_model in the list"
+    )
+    assert "last_model" in method_source, (
+        "set_models must reference self._config.last_model for reselection"
     )
 
 

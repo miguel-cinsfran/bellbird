@@ -118,13 +118,12 @@ class MainWindow(wx.Frame):
         # StaticText created BEFORE ComboBox: Windows UIA assigns accName by
         # z-order (creation order), not sizer order.
         modelo_label = wx.StaticText(main_panel, label="Modelo:")
-        self.model_selector = wx.ComboBox(main_panel, name="Selector de modelo")
-        if self._config.last_model:
-            self.model_selector.SetValue(self._config.last_model)
+        self.model_selector = wx.ComboBox(
+            main_panel, name="Selector de modelo", style=wx.CB_READONLY
+        )
         self.model_selector.Bind(wx.EVT_COMBOBOX, self._on_model_select)
-        self.model_selector.Bind(wx.EVT_TEXT, self._on_model_text_change)
         self.model_selector.SetToolTip(
-            "Selecciona un modelo .gguf o escribe la ruta completa."
+            "Selecciona un modelo .gguf. Para rutas personalizadas usa Explorar..."
         )
 
         self.scan_models_button = wx.Button(
@@ -213,6 +212,8 @@ class MainWindow(wx.Frame):
         """Populate the model selector with .gguf file basenames.
 
         Replaces the entire selection. Used by the "Buscar modelos" scan.
+        After populating, selects the previously-used model (last_model)
+        if it is in the list; otherwise selects the first entry.
 
         Args:
             paths: List of absolute paths to .gguf files.
@@ -223,11 +224,15 @@ class MainWindow(wx.Frame):
             path = Path(path_str)
             self._basename_to_path[path.name] = str(path)
             self.model_selector.Append(path.name)
-        if paths:
-            self.model_selector.SetSelection(0)
-            self.use_model_button.Enable()
-        else:
+        if self.model_selector.GetCount() == 0:
             self.use_model_button.Disable()
+            return
+        preferred = self._config.last_model
+        idx = self.model_selector.FindString(preferred) if preferred else wx.NOT_FOUND
+        if idx == wx.NOT_FOUND:
+            idx = 0
+        self.model_selector.SetSelection(idx)
+        self.use_model_button.Enable()
 
     def add_model(self, path_str: str) -> bool:
         """Add a single .gguf file to the selector without clearing.
@@ -263,44 +268,22 @@ class MainWindow(wx.Frame):
     def get_model(self) -> str:
         """Get the full absolute path of the selected model.
 
-        Resolution order:
-        1. If the ComboBox value matches a key in _basename_to_path,
-           return the mapped absolute path.
-        2. If the value looks like a path (contains /, \\, or :) and
-           the file exists on disk, return it verbatim.
-        3. Otherwise return ''.
+        The selector is read-only, so the value is always one of the
+        basenames populated by set_models / add_model. Resolution is a
+        single dict lookup; the typed-path rule from the editable era
+        is gone (manual paths now go through Explorar... + add_model).
 
         Returns:
             Absolute path string, or '' if no valid model selected.
         """
-        value = self.model_selector.GetValue()
+        value = self.model_selector.GetStringSelection()
         if not value:
             return ""
-
-        # Rule 1: basename lookup
-        if value in self._basename_to_path:
-            return self._basename_to_path[value]
-
-        # Rule 2: typed path
-        if any(c in value for c in ("\\", "/", ":")):
-            p = Path(value)
-            if p.is_file():
-                return str(p.resolve())
-
-        # Rule 3: not found
-        return ""
+        return self._basename_to_path.get(value, "")
 
     def _on_model_select(self, event: wx.CommandEvent) -> None:
         """Handle model selector selection change."""
         if self.model_selector.GetCount() > 0:
-            self.use_model_button.Enable()
-        else:
-            self.use_model_button.Disable()
-
-    def _on_model_text_change(self, event: wx.CommandEvent) -> None:
-        """Enable use_model_button when the combo box has any non-empty text."""
-        value = self.model_selector.GetValue().strip()
-        if value:
             self.use_model_button.Enable()
         else:
             self.use_model_button.Disable()
@@ -615,6 +598,8 @@ class MainWindow(wx.Frame):
             self.status_bar.SetStatusText("Servidor listo", 0)
             loaded = self._client.get_loaded_model()
             self._update_title(loaded or None)
+            if loaded:
+                self._persist_last_model(Path(loaded).name)
             if "corriendo" not in message:
                 self._scan_models()
             if loaded:
@@ -623,6 +608,19 @@ class MainWindow(wx.Frame):
             self.status_bar.SetStatusText("Error al iniciar", 0)
         self._sync_button_state(ok)
         self._speech.speak(message, interrupt=True)
+
+    def _persist_last_model(self, basename: str) -> None:
+        """Save the just-loaded model basename to the persisted config.
+
+        Called from the main thread (via wx.CallAfter) on successful load.
+        Best-effort: a write failure is logged but never blocks the UI.
+        """
+        if basename and self._config.last_model != basename:
+            self._config.last_model = basename
+            try:
+                save_config(self._config)
+            except OSError as e:
+                get_logger().warning(f"Failed to persist last_model: {e}")
 
     def _update_title(self, model: str | None) -> None:
         """Update the window title to show the loaded model."""

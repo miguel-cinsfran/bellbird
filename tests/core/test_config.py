@@ -470,6 +470,131 @@ def test_max_tool_iterations_default():
     assert cfg.max_tool_iterations == 5
 
 
+# ── keymap_overrides (v0.8.0) ──────────────────────────────────────────
+
+
+def test_keymap_overrides_default_is_empty_dict():
+    """GIVEN a fresh BellbirdConfig()
+    THEN keymap_overrides == {} (not shared across instances)."""
+    a = BellbirdConfig()
+    b = BellbirdConfig()
+    a.keymap_overrides["copy_last"] = (3, 67)
+    assert b.keymap_overrides == {}
+
+
+def test_keymap_overrides_default_on_missing_key(monkeypatch, tmp_path):
+    """GIVEN a v0.7.x config.json without keymap_overrides key
+    WHEN load_config() runs
+    THEN the loaded cfg.keymap_overrides == {}."""
+    import json
+
+    path = tmp_path / "config.json"
+    path.write_text(json.dumps({"port": 8080}), encoding="utf-8")
+    from bellbird.core import config as config_module
+
+    monkeypatch.setattr(config_module, "CONFIG_PATH", path)
+    result = load_config()
+    assert result.keymap_overrides == {}
+
+
+def test_keymap_overrides_round_trip(monkeypatch, tmp_path):
+    """GIVEN BellbirdConfig with keymap_overrides
+    WHEN save_config then load_config
+    THEN the loaded cfg.keymap_overrides round-trips to the same shape."""
+    cfg = BellbirdConfig(keymap_overrides={"copy_last": (3, 67)})
+    path = tmp_path / "config.json"
+    save_config(cfg, path)
+    from bellbird.core import config as config_module
+
+    monkeypatch.setattr(config_module, "CONFIG_PATH", path)
+    loaded = load_config()
+    # The load must normalise list to tuple
+    val = loaded.keymap_overrides["copy_last"]
+    assert val == (3, 67), f"Expected (3, 67), got {val!r}"
+
+
+def test_keymap_overrides_unknown_id_does_not_crash(monkeypatch, tmp_path):
+    """GIVEN config.json with unknown action id in keymap_overrides
+    WHEN load_config() runs
+    THEN no KeyError is raised (the drop is Keymap's job)."""
+    import json
+
+    path = tmp_path / "config.json"
+    data = {"keymap_overrides": {"ghost_action": [0, 81]}}
+    path.write_text(json.dumps(data), encoding="utf-8")
+    from bellbird.core import config as config_module
+
+    monkeypatch.setattr(config_module, "CONFIG_PATH", path)
+    # The config layer does not validate action ids; Keymap.from_overrides_dict does
+    result = load_config()
+    assert "ghost_action" in result.keymap_overrides
+
+
+def test_keymap_overrides_non_int_falls_back(monkeypatch, tmp_path):
+    """GIVEN config.json with string value instead of (int, int) pair
+    WHEN load_config() runs
+    THEN falls back to defaults (BellbirdConfig(), corrupt-config policy)."""
+    import json
+
+    path = tmp_path / "config.json"
+    data = {"keymap_overrides": {"copy_last": "Ctrl+Shift+C"}}
+    path.write_text(json.dumps(data), encoding="utf-8")
+    from bellbird.core import config as config_module
+
+    monkeypatch.setattr(config_module, "CONFIG_PATH", path)
+    result = load_config()
+    assert result.keymap_overrides == {}
+
+
+def test_keymap_overrides_non_int_tuple_falls_back(monkeypatch, tmp_path):
+    """GIVEN config.json with non-int values inside the list pair
+    WHEN load_config() runs
+    THEN falls back to defaults."""
+    import json
+
+    path = tmp_path / "config.json"
+    data = {"keymap_overrides": {"copy_last": [1.5, "C"]}}
+    path.write_text(json.dumps(data), encoding="utf-8")
+    from bellbird.core import config as config_module
+
+    monkeypatch.setattr(config_module, "CONFIG_PATH", path)
+    result = load_config()
+    assert result.keymap_overrides == {}
+
+
+# ── _MIGRATIONS regression guard ──────────────────────────────────────────
+
+
+def test_migrations_dict_unchanged_no_new_entries():
+    """GIVEN the _MIGRATIONS dict
+    THEN it has exactly one entry (max_tokens 512->4096)
+    AND no entry references keymap_overrides."""
+    from bellbird.core.config import _MIGRATIONS
+    assert len(_MIGRATIONS) == 1
+    assert "max_tokens" in _MIGRATIONS
+    assert _MIGRATIONS["max_tokens"] == (512, 4096)
+    assert "keymap_overrides" not in _MIGRATIONS
+
+
+def test_keymap_overrides_list_to_tuple_normalisation(monkeypatch, tmp_path):
+    """GIVEN config.json with list-of-two-ints for keymap_overrides
+    WHEN load_config() runs
+    THEN the value is normalised to a tuple of ints."""
+    import json
+
+    path = tmp_path / "config.json"
+    data = {"keymap_overrides": {"copy_last": [1 | 2, 67]}}
+    path.write_text(json.dumps(data), encoding="utf-8")
+    from bellbird.core import config as config_module
+
+    monkeypatch.setattr(config_module, "CONFIG_PATH", path)
+    result = load_config()
+    val = result.keymap_overrides["copy_last"]
+    assert isinstance(val, tuple), f"Expected tuple, got {type(val).__name__}"
+    assert len(val) == 2
+    assert all(isinstance(v, int) for v in val)
+
+
 def test_max_tool_iterations_overridable(monkeypatch, tmp_path):
     """GIVEN config JSON with max_tool_iterations: 10
     WHEN load_config()

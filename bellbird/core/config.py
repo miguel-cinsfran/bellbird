@@ -35,6 +35,7 @@ class BellbirdConfig:
     mmproj_offload: bool = True
     request_timeout: int = 120
     max_tool_iterations: int = 5
+    keymap_overrides: dict[str, tuple[int, int]] = field(default_factory=dict)
 
     def get_mmproj_for(self, model_path: str | Path) -> str | None:
         """Look up the mmproj path for a model by basename.
@@ -86,11 +87,26 @@ def load_config() -> BellbirdConfig:
             data = json.load(f)
         known = {f.name for f in BellbirdConfig.__dataclass_fields__.values()}
         filtered = {k: v for k, v in data.items() if k in known}
+        # Normalise keymap_overrides from JSON lists to tuples
+        if "keymap_overrides" in filtered:
+            raw = filtered["keymap_overrides"]
+            if isinstance(raw, dict):
+                normalised: dict[str, tuple[int, int]] = {}
+                for k, v in raw.items():
+                    if isinstance(v, (list, tuple)) and len(v) == 2:
+                        a, b = v
+                        if isinstance(a, int) and isinstance(b, int):
+                            normalised[k] = (a, b)
+                        else:
+                            raise TypeError(f"Non-int in keymap_overrides[{k!r}]: {v!r}")
+                    else:
+                        raise TypeError(f"Invalid keymap_overrides[{k!r}]: {v!r}")
+                filtered["keymap_overrides"] = normalised
         for field_name, (old_val, new_val) in _MIGRATIONS.items():
             if filtered.get(field_name) == old_val:
                 filtered[field_name] = new_val
         return BellbirdConfig(**filtered)
-    except (json.JSONDecodeError, OSError):
+    except (json.JSONDecodeError, OSError, TypeError):
         return BellbirdConfig()
 
 

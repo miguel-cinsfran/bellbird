@@ -208,6 +208,8 @@ class MainWindow(wx.Frame):
             main_panel, self._speech,
             on_send=self.send_message,
             on_delete_message=self._on_history_delete,
+            on_regenerate_send=self._on_regenerate_send_callback,
+            on_truncate_history=self._on_truncate_history_callback,
         )
 
         # ── Root vertical sizer ───────────────────────────────────────
@@ -509,6 +511,44 @@ class MainWindow(wx.Frame):
     def _on_regenerate_last(self) -> None:
         """Remove the last assistant response and re-send the same user prompt."""
         self.chat_panel.regenerate_last()
+
+    def _on_regenerate_send_callback(self, text: str, user_idx: int) -> None:
+        """Callback from ChatPanel.regenerate_last: re-attach images and send.
+
+        Looks up the user message in ``Conversation.messages`` (adjusting for
+        system rows in ``_history``) and re-attaches any stored images before
+        calling ``send_message``.
+        """
+        # Compute conversation index (subtract system rows before the target)
+        system_count = sum(
+            1 for r, _ in self.chat_panel._history[:user_idx] if r == "system"
+        )
+        conv_idx = user_idx - system_count
+
+        # Re-attach images from the stored user message if any
+        if 0 <= conv_idx < len(self._conversation.messages):
+            user_msg = self._conversation.messages[conv_idx]
+            stored_images = user_msg.get("images")
+            if stored_images:
+                # Rebuild list of (base64, mime) tuples
+                restored: list[tuple[str, str]] = []
+                for img_b64 in stored_images:
+                    restored.append((img_b64, "image/png"))
+                self.chat_panel._attached_images = restored
+                self.chat_panel.attachment_label.SetLabel(
+                    f"[{len(restored)} image(s)]"
+                )
+            else:
+                self.chat_panel._attached_images = []
+                self.chat_panel.attachment_label.SetLabel("(ninguno)")
+
+        # Trigger the send flow
+        self.send_message()
+
+    def _on_truncate_history_callback(self, conv_idx: int) -> None:
+        """Callback from ChatPanel.edit_message: truncate Conversation."""
+        if 0 <= conv_idx < len(self._conversation.messages):
+            self._conversation.truncate_to(conv_idx)
 
     def _on_focus_list(self) -> None:
         """Focus the message list and announce the last item."""

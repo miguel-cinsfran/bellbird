@@ -25,11 +25,15 @@ class ChatPanel(wx.Panel):
 
     def __init__(self, parent: wx.Window, speech,
                  on_send=None,
-                 on_delete_message=None) -> None:
+                 on_delete_message=None,
+                 on_regenerate_send=None,
+                 on_truncate_history=None) -> None:
         super().__init__(parent)
         self._speech = speech
         self._on_send_callback = on_send
         self._on_delete_callback = on_delete_message
+        self._on_regenerate_send_callback = on_regenerate_send
+        self._on_truncate_callback = on_truncate_history
         self._attached_images: list[tuple[str, str]] = []  # (base64, mime)
         self._attached_text: str | None = None
         self._history: list[tuple[str, str]] = []
@@ -258,26 +262,86 @@ class ChatPanel(wx.Panel):
     # ── Context menu ───────────────────────────────────────────────────────
 
     def _build_context_menu(self) -> wx.Menu:
-        """Build the context menu for the message list.
+        """Build the context menu for the message list (7 items when idle).
 
-        Returns:
-            A wx.Menu with copy, browser, and conditional delete items.
+        Items:
+        1. Copiar mensaje (Ctrl+C)
+        2. Copiar último (Ctrl+Shift+C)
+        3. Abrir en navegador (Ctrl+Enter)
+        4. Editar mensaje anterior (Alt+Up)
+        5. Eliminar mensaje (Supr) — removed mid-generation
+        6. Borrar último intercambio (Ctrl+K) — removed mid-generation
+        7. Regenerar última respuesta (Ctrl+R) — removed mid-generation
         """
         menu = wx.Menu()
+
+        # 1. Copy selected message
         menu_copy = wx.MenuItem(menu, wx.ID_COPY, "&Copiar mensaje\tCtrl+C")
         menu.Append(menu_copy)
         self.Bind(wx.EVT_MENU, lambda evt: self._on_context_copy(), menu_copy)
 
+        # 2. Copy last (Ctrl+Shift+C)
+        menu_copy_last = wx.MenuItem(
+            menu, wx.ID_ANY, "Copiar último\tCtrl+Shift+C",
+            name="menu_copy_last",
+        )
+        menu.Append(menu_copy_last)
+        self.Bind(
+            wx.EVT_MENU, lambda evt: self.copy_last_message(), menu_copy_last,
+        )
+
+        # 3. Open in browser (Ctrl+Enter)
         menu_browser = wx.MenuItem(
-            menu, wx.ID_ANY, "&Abrir en navegador\tCtrl+Enter"
+            menu, wx.ID_ANY, "&Abrir en navegador\tCtrl+Enter",
+            name="menu_open_browser",
         )
         menu.Append(menu_browser)
         self.Bind(wx.EVT_MENU, lambda evt: self._on_context_browser(), menu_browser)
 
+        # 4. Edit previous message (Alt+Up)
+        menu_edit = wx.MenuItem(
+            menu, wx.ID_ANY, "&Editar mensaje anterior\tAlt+Up",
+            name="menu_edit_message",
+        )
+        menu.Append(menu_edit)
+        self.Bind(
+            wx.EVT_MENU, lambda evt: self.edit_message("prev"), menu_edit,
+        )
+
         if not self._is_generating:
-            menu_delete = wx.MenuItem(menu, wx.ID_DELETE, "&Eliminar mensaje")
+            # 5. Delete message (Supr)
+            menu_delete = wx.MenuItem(
+                menu, wx.ID_DELETE, "&Eliminar mensaje",
+                name="menu_delete_message",
+            )
             menu.Append(menu_delete)
-            self.Bind(wx.EVT_MENU, lambda evt: self._on_context_delete(), menu_delete)
+            self.Bind(
+                wx.EVT_MENU, lambda evt: self._on_context_delete(), menu_delete,
+            )
+
+            # 6. Delete last exchange (Ctrl+K)
+            menu_del_last = wx.MenuItem(
+                menu, wx.ID_ANY, "Borrar último intercambio\tCtrl+K",
+                name="menu_delete_last_exchange",
+            )
+            menu.Append(menu_del_last)
+            self.Bind(
+                wx.EVT_MENU,
+                lambda evt: self.delete_last_exchange(),
+                menu_del_last,
+            )
+
+            # 7. Regenerate last response (Ctrl+R)
+            menu_regen = wx.MenuItem(
+                menu, wx.ID_ANY, "Regenerar última respuesta\tCtrl+R",
+                name="menu_regenerate_last",
+            )
+            menu.Append(menu_regen)
+            self.Bind(
+                wx.EVT_MENU,
+                lambda evt: self.regenerate_last(),
+                menu_regen,
+            )
 
         return menu
 
@@ -531,6 +595,177 @@ class ChatPanel(wx.Panel):
         self._history.clear()
         self._clear_input()
         self.clear_attachment()
+
+    # ── Quick actions (v0.8.0) ─────────────────────────────────────────────
+
+    def copy_last_message(self) -> None:
+        """Copy the FULL text of the last assistant (or user) message.
+
+        - Last assistant row wins over last user row.
+        - Empty history → no-op + ``"Nada que copiar"``.
+        """
+        if not self._history:
+            self._speech.speak("Nada que copiar", interrupt=False)
+            return
+        # Find last assistant; fallback to last user
+        text: str | None = None
+        for role, t in reversed(self._history):
+            if role == "assistant" and text is None:
+                text = t
+            if role == "user" and text is None:
+                text = t
+            if text is not None:
+                break
+        if text is None:
+            self._speech.speak("Nada que copiar", interrupt=False)
+            return
+        # Copy FULL text to clipboard
+        if wx.TheClipboard.Open():
+            wx.TheClipboard.SetData(wx.TextDataObject(text))
+            wx.TheClipboard.Close()
+        self._speech.speak("Último mensaje copiado", interrupt=False)
+
+    def delete_last_exchange(self) -> None:
+        """Remove the last user/assistant exchange pair.
+
+        An "exchange" is either the last ``(user, assistant)`` pair or a
+        single trailing ``(user, ...)`` when there is no matching assistant.
+        No-op mid-generation with ``"Generación en curso"``.
+        """
+        if self._is_generating:
+            self._speech.speak("Generación en curso", interrupt=False)
+            return
+        if len(self._history) < 1:
+            return
+        # Remove trailing assistant + user (or just trailing user)
+        if len(self._history) >= 2 and self._history[-1][0] == "assistant":
+            # Exchange: user + assistant at the end
+            # Remove assistant first (capture role before pop)
+            role_a = self._history[-1][0]
+            index_a = len(self._history) - 1
+            self._history.pop(index_a)
+            self.message_list.Delete(index_a)
+            if self._on_delete_callback:
+                self._on_delete_callback(index_a, role_a)
+
+            # Remove user
+            role_u = self._history[-1][0]
+            index_u = len(self._history) - 1
+            self._history.pop(index_u)
+            self.message_list.Delete(index_u)
+            if self._on_delete_callback:
+                self._on_delete_callback(index_u, role_u)
+        else:
+            # Single trailing user row
+            role = self._history[-1][0]
+            index = len(self._history) - 1
+            self._history.pop(index)
+            self.message_list.Delete(index)
+            if self._on_delete_callback:
+                self._on_delete_callback(index, role)
+
+        # Update selection
+        count = self.message_list.GetCount()
+        if count > 0:
+            self.message_list.SetSelection(count - 1)
+        self._speech.speak("Último intercambio eliminado", interrupt=False)
+
+    def edit_message(self, direction: str) -> None:
+        """Load a previous user message into the input for editing.
+
+        ``"prev"`` targets the last user message before the last assistant.
+        ``"next"`` is a no-op with ``"No hay mensaje siguiente"``.
+        """
+        if direction == "next":
+            self._speech.speak("No hay mensaje siguiente", interrupt=False)
+            return
+
+        # direction == "prev": find last user row that is not the very last row
+        # (the last user row is the one we might be editing)
+        user_idx: int | None = None
+        for i in range(len(self._history) - 1, -1, -1):
+            if self._history[i][0] == "user":
+                user_idx = i
+                break
+
+        if user_idx is None:
+            self._speech.speak("No hay mensaje anterior", interrupt=False)
+            return
+
+        text = self._history[user_idx][1]
+        self.message_input.SetValue(text)
+        self.message_input.SetInsertionPointEnd()
+        self.message_input.SetFocus()
+
+        # Compute conversation index (subtract system rows before the target)
+        system_count = sum(
+            1 for r, _ in self._history[:user_idx] if r == "system"
+        )
+        conv_idx = user_idx - system_count
+
+        # Truncate Conversation via callback
+        if self._on_truncate_callback:
+            self._on_truncate_callback(conv_idx)
+
+        # Trim _history and rebuild display
+        new_history = self._history[: user_idx + 1]
+        self.set_history(new_history)
+        self._speech.speak("Mensaje cargado para editar", interrupt=False)
+
+    def regenerate_last(self) -> None:
+        """Pop the last assistant response and re-send the same user prompt.
+
+        No-op mid-generation or when no assistant row exists.
+        """
+        if self._is_generating:
+            self._speech.speak("Generación en curso", interrupt=False)
+            return
+
+        # Find the last assistant row
+        assistant_idx: int | None = None
+        for i in range(len(self._history) - 1, -1, -1):
+            if self._history[i][0] == "assistant":
+                assistant_idx = i
+                break
+
+        if assistant_idx is None:
+            self._speech.speak("Nada que regenerar", interrupt=False)
+            return
+
+        # Find the user row that precedes this assistant
+        user_idx: int | None = None
+        for i in range(assistant_idx - 1, -1, -1):
+            if self._history[i][0] == "user":
+                user_idx = i
+                break
+
+        if user_idx is None:
+            self._speech.speak("Nada que regenerar", interrupt=False)
+            return
+
+        user_text = self._history[user_idx][1]
+
+        # Capture role before popping
+        role = self._history[assistant_idx][0]
+        index = assistant_idx
+
+        # Pop assistant row from _history and message_list
+        self._history.pop(index)
+        self.message_list.Delete(index)
+
+        # Sync Conversation
+        if self._on_delete_callback:
+            self._on_delete_callback(index, role)
+
+        # Set input to user text and trigger send
+        self.message_input.SetValue(user_text)
+        self.message_input.SetInsertionPointEnd()
+
+        # Call the regenerate send callback (handles image re-attachment)
+        if self._on_regenerate_send_callback:
+            self._on_regenerate_send_callback(user_text, user_idx)
+        elif self._on_send_callback:
+            self._on_send_callback()
 
     # ── Tool output display (v0.4.0) ──────────────────────────────────────
 

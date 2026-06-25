@@ -33,6 +33,10 @@ from bellbird.core.startup import parse_stderr_line
 _server_process: subprocess.Popen | None = None
 _lock = threading.RLock()
 
+# Track whether the last successful launch included a non-None mmproj path.
+# Reset on stop_server() and at the start of each start_server() call.
+_vision_capable: bool = False
+
 # Windows subprocess creation flag: prevents a console window from
 # flashing when the spawned process is started.
 _CREATE_NO_WINDOW = 0x08000000
@@ -168,6 +172,8 @@ def start_server(
     ctx_size: int = 4096,
     n_gpu_layers: int = 99,
     timeout: float = 60.0,
+    mmproj: str | None = None,
+    mmproj_offload: bool = True,
 ) -> tuple[bool, str]:
     """Start llama-server with the given model.
 
@@ -190,13 +196,17 @@ def start_server(
         ctx_size: Context size in tokens (default 4096).
         n_gpu_layers: GPU layers offload (default 99 = all).
         timeout: Maximum seconds to wait for the server to start.
+        mmproj: Path to multimodal projector .gguf, or None for text-only.
+        mmproj_offload: If False, pass ``--no-mmproj-offload`` to save VRAM.
 
     Returns:
         (ok, message) tuple.
     """
-    global _server_process
+    global _server_process, _vision_capable
 
     with _lock:
+        # Reset vision flag at the start of every launch attempt.
+        _vision_capable = False
         # Step 1: Stop any tracked process first
         stop_server()
 
@@ -214,6 +224,10 @@ def start_server(
             "--n-gpu-layers", str(n_gpu_layers),
             "--jinja",
         ]
+        if mmproj is not None:
+            argv.extend(["--mmproj", mmproj])
+        if not mmproj_offload:
+            argv.append("--no-mmproj-offload")
 
         # Step 4: Spawn — capture stderr so we can detect known errors
         # early instead of waiting the full polling timeout.
@@ -310,14 +324,23 @@ def start_server(
         # Success: stderr OK signal or health endpoint ready
         if _ok_ready:
             reader.join(timeout=1.0)
+            if mmproj is not None:
+                _vision_capable = True
             return True, "Servidor listo"
 
         state = client.check_state()
         if state == "ready":
             reader.join(timeout=1.0)
+            if mmproj is not None:
+                _vision_capable = True
             return True, "Servidor listo"
 
     return False, f"El servidor no responde dentro de {timeout}s"
+
+
+def is_vision_capable() -> bool:
+    """Return True iff the last successful launch included a non-None mmproj path."""
+    return _vision_capable
 
 
 def stop_server() -> None:
@@ -325,16 +348,19 @@ def stop_server() -> None:
 
     Sends terminate(), waits up to 5s for graceful exit, falls back to
     kill() if needed. Idempotent — safe to call when no process is tracked.
+    Resets the vision-capable flag to False.
     """
-    global _server_process
+    global _server_process, _vision_capable
 
     with _lock:
         proc = _server_process
         if proc is None:
+            _vision_capable = False
             return
         if proc.poll() is not None:
             # Already exited
             _server_process = None
+            _vision_capable = False
             return
 
         # Graceful shutdown
@@ -348,6 +374,7 @@ def stop_server() -> None:
             if proc.poll() is not None:
                 # Exited gracefully
                 _server_process = None
+                _vision_capable = False
                 return
 
         # Force kill
@@ -358,6 +385,7 @@ def stop_server() -> None:
             pass  # Last resort: don't raise if kill fails
 
         _server_process = None
+        _vision_capable = False
 
 
 def get_install_command() -> str:

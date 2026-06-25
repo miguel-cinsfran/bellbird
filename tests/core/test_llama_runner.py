@@ -482,3 +482,209 @@ class TestLlamaRunner:
         # Should not raise
         stop_server()
         assert runner_mod._server_process is None
+
+    # ── start_server — mmproj ───────────────────────────────────────────
+
+    def test_start_server_no_mmproj_defaults_v0_6_0_argv(self):
+        """Given no mmproj kwargs, argv is byte-identical to v0.6.0."""
+        client = self._make_client(check_running_result=False)
+        popen_mock = self._make_proc()
+
+        with patch("bellbird.core.llama_runner.subprocess.Popen",
+                   return_value=popen_mock) as popen_patch:
+            from bellbird.core.llama_runner import start_server
+
+            ok, message = start_server("/fake/model.gguf", client, timeout=0.5)
+
+        popen_patch.assert_called_once()
+        args, _ = popen_patch.call_args
+        argv = args[0]
+        assert "--mmproj" not in argv
+        assert "--no-mmproj-offload" not in argv
+        assert "--model" in argv
+        assert "--jinja" in argv
+        assert "--n-gpu-layers" in argv
+
+    def test_start_server_with_mmproj_contains_flag(self):
+        """Given mmproj path, argv contains --mmproj <path>."""
+        client = self._make_client(check_running_result=False)
+        popen_mock = self._make_proc()
+
+        with patch("bellbird.core.llama_runner.subprocess.Popen",
+                   return_value=popen_mock) as popen_patch:
+            from bellbird.core.llama_runner import start_server
+
+            ok, message = start_server(
+                "/fake/model.gguf", client, timeout=0.5,
+                mmproj="/fake/mmproj.gguf",
+            )
+
+        popen_patch.assert_called_once()
+        args, _ = popen_patch.call_args
+        argv = args[0]
+        assert "--mmproj" in argv
+        idx = argv.index("--mmproj")
+        assert argv[idx + 1] == "/fake/mmproj.gguf"
+        assert "--jinja" in argv
+        assert "--n-gpu-layers" in argv
+
+    def test_start_server_mmproj_offload_false(self):
+        """Given mmproj_offload=False, argv contains --no-mmproj-offload."""
+        client = self._make_client(check_running_result=False)
+        popen_mock = self._make_proc()
+
+        with patch("bellbird.core.llama_runner.subprocess.Popen",
+                   return_value=popen_mock) as popen_patch:
+            from bellbird.core.llama_runner import start_server
+
+            ok, message = start_server(
+                "/fake/model.gguf", client, timeout=0.5,
+                mmproj="/fake/mmproj.gguf",
+                mmproj_offload=False,
+            )
+
+        popen_patch.assert_called_once()
+        args, _ = popen_patch.call_args
+        argv = args[0]
+        assert "--mmproj" in argv
+        assert "--no-mmproj-offload" in argv
+        assert "--jinja" in argv
+
+    def test_start_server_mmproj_offload_true_by_default(self):
+        """Given mmproj_offload=True (default), argv does NOT contain --no-mmproj-offload."""
+        client = self._make_client(check_running_result=False)
+        popen_mock = self._make_proc()
+
+        with patch("bellbird.core.llama_runner.subprocess.Popen",
+                   return_value=popen_mock) as popen_patch:
+            from bellbird.core.llama_runner import start_server
+
+            ok, message = start_server(
+                "/fake/model.gguf", client, timeout=0.5,
+                mmproj="/fake/mmproj.gguf",
+            )
+
+        popen_patch.assert_called_once()
+        args, _ = popen_patch.call_args
+        argv = args[0]
+        assert "--mmproj" in argv
+        assert "--no-mmproj-offload" not in argv
+
+    # ── is_vision_capable ────────────────────────────────────────────────
+
+    def test_is_vision_capable_default_false(self):
+        """Before any launch, is_vision_capable() returns False."""
+        from bellbird.core.llama_runner import is_vision_capable, stop_server
+
+        stop_server()  # reset state
+        assert is_vision_capable() is False
+
+    def test_is_vision_capable_true_after_vl_launch(self):
+        """After a successful launch with mmproj, is_vision_capable() returns True."""
+        import bellbird.core.llama_runner as runner_mod
+        runner_mod._server_process = None
+
+        client = MagicMock()
+        client.check_running.side_effect = [False]
+        client.check_state.side_effect = ["dead", "dead", "ready"]
+
+        popen_mock = self._make_proc()
+
+        with patch("bellbird.core.llama_runner.subprocess.Popen",
+                   return_value=popen_mock):
+            from bellbird.core.llama_runner import start_server, is_vision_capable
+
+            ok, msg = start_server(
+                "/fake/model.gguf", client, timeout=1.0,
+                mmproj="/fake/mmproj.gguf",
+            )
+            assert ok is True
+            assert is_vision_capable() is True
+
+    def test_is_vision_capable_false_after_text_launch(self):
+        """After a successful launch without mmproj, is_vision_capable() returns False."""
+        import bellbird.core.llama_runner as runner_mod
+        runner_mod._server_process = None
+
+        client = MagicMock()
+        client.check_running.side_effect = [False]
+        client.check_state.side_effect = ["dead", "dead", "ready"]
+
+        popen_mock = self._make_proc()
+
+        with patch("bellbird.core.llama_runner.subprocess.Popen",
+                   return_value=popen_mock):
+            from bellbird.core.llama_runner import start_server, is_vision_capable
+
+            ok, msg = start_server("/fake/model.gguf", client, timeout=1.0)
+            assert ok is True
+            assert is_vision_capable() is False
+
+    def test_is_vision_capable_resets_on_next_start_server(self):
+        """Calling start_server again resets the flag regardless of new mmproj."""
+        import bellbird.core.llama_runner as runner_mod
+        runner_mod._server_process = None
+
+        client = MagicMock()
+        client.check_running.side_effect = [False, False]
+        client.check_state.side_effect = [
+            "dead", "dead", "ready",  # first launch
+            "dead", "dead", "ready",  # second launch
+        ]
+
+        popen_mock1 = self._make_proc()
+        popen_mock2 = self._make_proc()
+
+        def popen_side(*args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            return popen_mock1 if call_count == 1 else popen_mock2
+
+        call_count = 0
+
+        with patch("bellbird.core.llama_runner.subprocess.Popen",
+                   side_effect=popen_side):
+            from bellbird.core.llama_runner import start_server, is_vision_capable
+
+            # First: VL launch → vision capable
+            ok1, _ = start_server(
+                "/fake/model.gguf", client, timeout=1.0,
+                mmproj="/fake/mmproj.gguf",
+            )
+            assert ok1 is True
+            assert is_vision_capable() is True
+
+            # Make old process appear exited
+            runner_mod._server_process.poll.return_value = 0
+
+            # Second: text launch → resets to False
+            ok2, _ = start_server("/fake/model.gguf", client, timeout=1.0)
+            assert ok2 is True
+            assert is_vision_capable() is False
+
+    def test_is_vision_capable_resets_on_stop_server(self):
+        """After stop_server, is_vision_capable() returns False."""
+        import bellbird.core.llama_runner as runner_mod
+        runner_mod._server_process = None
+
+        client = MagicMock()
+        client.check_running.side_effect = [False]
+        client.check_state.side_effect = ["dead", "dead", "ready"]
+
+        popen_mock = self._make_proc()
+
+        with patch("bellbird.core.llama_runner.subprocess.Popen",
+                   return_value=popen_mock):
+            from bellbird.core.llama_runner import start_server, stop_server, is_vision_capable
+
+            ok, _ = start_server(
+                "/fake/model.gguf", client, timeout=1.0,
+                mmproj="/fake/mmproj.gguf",
+            )
+            assert ok is True
+            assert is_vision_capable() is True
+
+            # Make process appear exited
+            runner_mod._server_process.poll.return_value = 0
+            stop_server()
+            assert is_vision_capable() is False

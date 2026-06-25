@@ -25,6 +25,30 @@ Todas las versiones notables del proyecto Bellbird.
 - 3 tests `test_use_model_button_*` reescritos para apuntar a `main_window.py` en vez de `params_panel.py`.
 - Red: ~218 tests (222 baseline - 1 splitter - 10 params_panel + 7 nuevos).
 
+## [0.7.0] - 2026-06-25
+
+### Agregado
+- **Multimodal `--mmproj`**: `LlamaRunner.start_server` acepta `mmproj` y `mmproj_offload`. Los flags `--mmproj <path>` y `--no-mmproj-offload` se pasan a llama-server para soporte de modelos de visión.
+- **Auto-detección conservadora**: nuevo módulo `core/model_meta.py` con `find_mmproj_for_model()`. Busca siblings en 3 patrones prioritarios: `mmproj-*.gguf`, `*mmproj*.gguf`, `*.mmproj.gguf`. Rechaza múltiples matches en pattern 1 (retorna None → usuario elige).
+- **Per-model pairing persistido**: `BellbirdConfig.model_mmproj: dict[str, str]` guarda la ruta del projector por basename del modelo. `get_mmproj_for()` verifica existencia del archivo antes de retornar.
+- **Resolución integrada en UI**: `_on_use_model` resuelve mmproj en cadena: (1) cache de config, (2) auto-detect, (3) `wx.FileDialog` manual. Persiste la elección automáticamente.
+- **Vision flag**: `MainWindow._vision_capable: bool` seteado tras launch exitoso con mmproj. Reseteado en stop_server, new_conversation y model switch.
+- **F2 "Imágenes: sí/no"**: el anuncio de estado F2 incluye el estado de visión.
+- **Send guard sin visión**: si hay imágenes adjuntas pero el modelo no es vision-capable, se habla una advertencia en español y se envían solo los textos (sin partes image_url). No crash, no modal.
+- **Config `mmproj_offload`**: campo `mmproj_offload: bool = True` en `BellbirdConfig`. Opt-out de offload de VRAM para el projector.
+- **`is_vision_capable()`**: getter module-level en `llama_runner` accesible desde UI.
+- **Nuevos tests**: 9 tests en `test_model_meta.py`, 9 en `test_config.py`, 9 en `test_llama_runner.py`, 6 AST en `test_main_window_static.py`. Total: 33 nuevos tests.
+
+### Cambiado
+- `pyproject.toml` bumped a v0.7.0 (semver minor — nueva feature).
+- `AGENTS.md` actualizado con estado actual.
+- `test_version_0_6_0` renombrado a `test_version_0_7_0`.
+
+### Conocido
+- Verificación manual con NVDA en Windows 11 pendiente: attach image en modelo sin visión, F2 status vision line, dialog de selección mmproj.
+- Las entradas huérfanas en `model_mmproj` (modelo borrado) son inocuas: `get_mmproj_for()` retorna None si el archivo no existe. Cleanup futuro opcional.
+- `--no-mmproj-offload` solo desde config; sin checkbox en UI (deferido a prompt 13).
+
 ## [Pendiente] — Roadmap
 
 ### v0.4.2 (bug conocido)

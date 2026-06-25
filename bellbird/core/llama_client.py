@@ -198,6 +198,7 @@ class LlamaClient:
                 "model": "local",
                 "messages": messages,
                 "stream": True,
+                "stream_options": {"include_usage": True},
             }
             body.update(options)
 

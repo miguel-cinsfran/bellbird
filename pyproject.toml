@@ -1,12 +1,13 @@
 [project]
 name = "bellbird"
-version = "0.5.0"
+version = "0.5.3"
 requires-python = ">=3.12"
 dependencies = [
     "wxpython>=4.2",
     "accessible-output2>=0.17",
     "requests>=2.31",
     "markdown>=3.5",
+    "platformdirs>=4",
 ]
 
 [dependency-groups]

@@ -24,6 +24,17 @@ def _count_accelerator_entries(frame: wx.Frame) -> int:
     return table.GetEntryCount()
 
 
+def _get_accelerator_entries(
+    table: wx.AcceleratorTable,
+) -> list[tuple[int, int, int]]:
+    """Extract (flags, keycode, command) triples from an accelerator table."""
+    entries: list[tuple[int, int, int]] = []
+    for i in range(table.GetEntryCount()):
+        entry = table.GetEntry(i)
+        entries.append((entry.GetFlags(), entry.GetKeyCode(), entry.GetCommand()))
+    return entries
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # Accelerator Table
 # ══════════════════════════════════════════════════════════════════════════════
@@ -75,21 +86,29 @@ class TestOverrideReflection:
     def test_override_reflected_in_table(self):
         """GIVEN config with new_conversation overridden to Alt+N
         WHEN accelerator table is built
-        THEN the table has the correct number of entries."""
+        THEN the table has Alt+N (override) and NOT Ctrl+N (default)."""
+        from unittest.mock import patch
         from bellbird.ui.main_window import MainWindow
 
         cfg = BellbirdConfig(
             keymap_overrides={"new_conversation": (KEYMAP_MOD_ALT, ord("N"))}
         )
         app = wx.App()
-        # Use the config directly — MainWindow creates its own via load_config.
-        # For testing, we pass through the overridden config.
-        frame = MainWindow(title="Test")
-        expected = len(DEFAULT_KEYMAP) - 1
-        count = _count_accelerator_entries(frame)
-        assert count == expected
-        frame.Destroy()
-        app.MainLoop()
+        with patch("bellbird.core.config.load_config", return_value=cfg):
+            frame = MainWindow(title="Test")
+        try:
+            table = frame.GetAcceleratorTable()
+            entries = _get_accelerator_entries(table)
+            combos = [(f, kc) for f, kc, _ in entries]
+            assert (KEYMAP_MOD_ALT, ord("N")) in combos, (
+                "Override Alt+N should be present in accelerator table"
+            )
+            assert (KEYMAP_MOD_CTRL, ord("N")) not in combos, (
+                "Default Ctrl+N should NOT be in accelerator table"
+            )
+        finally:
+            frame.Destroy()
+            app.MainLoop()
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -140,21 +159,44 @@ class TestShortcutsDialog:
 
 
 class TestRebuildAcceleratorTable:
-    """rebuild_accelerator_table is idempotent and reflects new overrides."""
+    """rebuild_accelerator_table is idempotent and does not leak ids."""
 
-    def test_rebuild_does_not_crash(self):
+    def test_rebuild_is_idempotent(self):
         """GIVEN MainWindow is constructed
-        WHEN rebuild_accelerator_table is called twice
-        THEN no exception is raised."""
+        WHEN rebuild_accelerator_table is called twice with the same config
+        THEN table entries are identical and _action_ids size is stable."""
         from bellbird.ui.main_window import MainWindow
 
         app = wx.App()
         frame = MainWindow(title="Test")
         try:
+            # ── First build ──────────────────────────────────────────
+            entries1 = _get_accelerator_entries(frame.GetAcceleratorTable())
+            ids_before = len(frame._action_ids)
+
+            # ── Rebuild once ─────────────────────────────────────────
             frame.rebuild_accelerator_table()
+            entries2 = _get_accelerator_entries(frame.GetAcceleratorTable())
+            ids_after_first = len(frame._action_ids)
+
+            assert entries1 == entries2, (
+                "Table entries should be identical after first rebuild"
+            )
+            assert ids_before == ids_after_first, (
+                "_action_ids should not grow on first rebuild"
+            )
+
+            # ── Rebuild again ────────────────────────────────────────
             frame.rebuild_accelerator_table()
-        except Exception as e:
-            pytest.fail(f"rebuild_accelerator_table raised: {e}")
+            entries3 = _get_accelerator_entries(frame.GetAcceleratorTable())
+            ids_after_second = len(frame._action_ids)
+
+            assert entries2 == entries3, (
+                "Table entries should be identical after second rebuild"
+            )
+            assert ids_after_first == ids_after_second, (
+                "_action_ids should not leak on multiple rebuilds"
+            )
         finally:
             frame.Destroy()
             app.MainLoop()

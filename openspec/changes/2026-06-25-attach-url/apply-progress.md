@@ -121,3 +121,30 @@ All 4 spec delta files exist in `openspec/changes/2026-06-25-attach-url/specs/`:
 ```
 feat(ui): add Adjuntar URL dialog, fetch worker, and attach_url wiring
 ```
+
+## WU-2.5: Verify Fixes (post-verify remediation) ✅ COMPLETED
+
+- **Date**: 2026-06-25
+- **Triggered by**: verify-report 2 CRITICAL + 1 WARNING que bloqueaban archive limpio.
+
+### Issues Resueltos
+
+- **C1 (timer race)**: `_make_announce_timer` ahora detecta el slot del caller (`_loading_timer` o `_url_fetch_timer`) en creación, y el re-arm escribe a ese MISMO slot solo si el slot todavía contiene el timer chained (no si ya fue cancelado). Patrón "scan-on-create + write-if-unchanged". Backwards-compat con el call site existente (`_on_use_model`).
+- **C2 (spec violation speech)**: `ChatPanel.attach_url` ahora llama `self._speech.speak(f"Contenido adjunto: {origin_label}", interrupt=True)` después de setear el label, con try/except. Cumplimiento literal del contrato spec de `chat/spec.md`.
+- **W1 (menu name=)**: `menu_attach_url` ahora se construye con `wx.MenuItem(..., name="menu_attach_url")` (en lugar de `archivo_menu.Append` que no acepta `name=`). NVDA ahora puede asociar el item al nombre accesible.
+
+### Aceptado como Deuda (v0.8.4)
+
+- **W2 (menu enable/disable lifecycle)**: el gate interno en `_on_attach_url` cubre correctness; el menu state disabled sería solo discoverability. Patrón NO está unificado en el proyecto (ni `menu_export` ni `menu_find` lo tienen), mejor hacer un cleanup de menu lifecycle en un change dedicado.
+- **S1, S3, S4, S5**: SUGGESTION no-bloqueantes.
+
+### Tests Post-Fix
+
+- 594 passed, 14 skipped en WSL.
+- Working tree limpio.
+
+### Commit
+
+```
+f9d9a99 fix(ui): correct CRITICAL verify findings for attach-url
+```

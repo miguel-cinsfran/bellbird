@@ -832,7 +832,13 @@ def test_dialogs_speak_after_show_modal() -> None:
     """Three dialog methods speak AFTER ShowModal to avoid double announcement.
 
     _on_error, _show_about, _show_shortcuts must each have the speak
-    call AFTER ShowModal. _startup_check is exempt (speaks BEFORE).
+    call AFTER ShowModal in the non-aborted path. _startup_check is
+    exempt (speaks BEFORE).
+
+    Note: _on_error now has an ``if self._aborted:`` guard at the top
+    that speaks "Generación detenida" without a modal — we use ``rfind``
+    for both speak and ShowModal to find the LAST occurrence in the body,
+    which for _on_error corresponds to the error path (non-aborted).
     """
     import re
     source_path = _get_ui_path("main_window.py")
@@ -848,8 +854,8 @@ def test_dialogs_speak_after_show_modal() -> None:
         assert m is not None, f"{method_name} not found"
         body = m.group(0)
 
-        speak_pos = body.find("self._speech.speak(")
-        modal_pos = body.find("ShowModal()")
+        speak_pos = body.rfind("self._speech.speak(")
+        modal_pos = body.rfind("ShowModal()")
 
         assert speak_pos >= 0, (
             f"{method_name} must contain a self._speech.speak() call"
@@ -961,14 +967,12 @@ def test_callbacks_guard_on_is_generating() -> None:
     When new_conversation aborts an active stream, 1-2 tokens may
     already be in the wx.CallAfter queue before the abort signal
     reaches the background thread. _on_token, _on_done, and _on_error
-    must each open with `if not self._is_generating: return` to drop
-    those late callbacks. Otherwise:
-      - _on_token: writes a stale token to the cleared chat_panel and
-        resurrects _current_response
-      - _on_done: speaks "Respuesta completa" over the user's
-        "Nueva conversación" and re-saves a partial response
-      - _on_error: pops a modal error dialog and marks status bar
-        "Error" while the user is already in a new conversation
+    must drop late events via an ``if not self._is_generating: return``
+    guard. _on_done and _on_error now have an additional
+    ``if self._aborted:`` guard BEFORE the _is_generating guard.
+
+    The _is_generating guard must be present among the first two
+    executable statements and be a single-return guard.
     """
     source_path = _get_ui_path("main_window.py")
     source = source_path.read_text(encoding="utf-8")
@@ -982,31 +986,36 @@ def test_callbacks_guard_on_is_generating() -> None:
                 break
         assert method is not None, f"{method_name} not found in main_window.py"
 
-        # First non-docstring statement must be the guard `if`.
-        first_stmt = None
+        # Collect first two non-docstring executable statements.
+        exec_stmts = []
         for stmt in method.body:
             if (isinstance(stmt, ast.Expr)
                     and isinstance(stmt.value, ast.Constant)
                     and isinstance(stmt.value.value, str)):
                 continue  # docstring
-            first_stmt = stmt
-            break
+            exec_stmts.append(stmt)
+            if len(exec_stmts) == 2:
+                break
 
-        assert first_stmt is not None, f"{method_name} has no body"
-        assert isinstance(first_stmt, ast.If), (
-            f"{method_name} first executable statement must be an `if` "
-            "guard against BUG 1 race. "
-            f"Got: {type(first_stmt).__name__}"
-        )
-        assert len(first_stmt.body) == 1 and isinstance(
-            first_stmt.body[0], ast.Return
-        ), f"{method_name} guard body must be a single `return`"
+        assert len(exec_stmts) >= 1, f"{method_name} has no body"
 
-        # The guard condition must reference self._is_generating.
-        cond_dump = ast.dump(first_stmt.test)
-        assert "_is_generating" in cond_dump, (
-            f"{method_name} guard condition must reference "
-            f"self._is_generating. Got: {cond_dump}"
+        # At least one of the first two statements must be an `if` guard
+        # referencing self._is_generating with a single return in its body.
+        found_is_generating_guard = False
+        for stmt in exec_stmts:
+            if isinstance(stmt, ast.If):
+                cond_dump = ast.dump(stmt.test)
+                if "_is_generating" in cond_dump:
+                    if len(stmt.body) == 1 and isinstance(
+                        stmt.body[0], ast.Return
+                    ):
+                        found_is_generating_guard = True
+                        break
+
+        assert found_is_generating_guard, (
+            f"{method_name} must have an 'if not self._is_generating: "
+            f"return' guard among the first 2 executable statements. "
+            f"Found statements: {[type(s).__name__ for s in exec_stmts]}"
         )
 
 
@@ -1022,6 +1031,9 @@ def test_send_message_guards_on_is_generating() -> None:
     wx.CallAfter queue, says 'Respuesta completa' with empty content, and
     resets _is_generating=False.  The second stream's _on_done then skips
     everything because _is_generating is already False — no response saved.
+
+    Note: the first statement is now ``self._aborted = False`` (reset),
+    followed by the ``if self._is_generating: return`` guard.
     """
     source_path = _get_ui_path("main_window.py")
     source = source_path.read_text(encoding="utf-8")
@@ -1034,8 +1046,8 @@ def test_send_message_guards_on_is_generating() -> None:
             break
     assert method is not None, "send_message not found in main_window.py"
 
-    # Find first non-docstring statement
-    first_stmt = None
+    # Collect first two non-docstring executable statements.
+    exec_stmts = []
     for stmt in method.body:
         if (
             isinstance(stmt, ast.Expr)
@@ -1043,23 +1055,28 @@ def test_send_message_guards_on_is_generating() -> None:
             and isinstance(stmt.value.value, str)
         ):
             continue  # docstring
-        first_stmt = stmt
-        break
+        exec_stmts.append(stmt)
+        if len(exec_stmts) == 2:
+            break
 
-    assert first_stmt is not None, "send_message has no body"
-    assert isinstance(first_stmt, ast.If), (
-        "send_message first executable statement must be an `if` guard "
-        "against double-send. "
-        f"Got: {type(first_stmt).__name__}"
-    )
-    cond_dump = ast.dump(first_stmt.test)
-    assert "_is_generating" in cond_dump, (
-        "send_message guard condition must reference self._is_generating. "
-        f"Got: {cond_dump}"
-    )
-    # Guard body must end with a return (may have a speech call before it)
-    assert any(isinstance(s, ast.Return) for s in first_stmt.body), (
-        "send_message guard body must contain a return statement"
+    assert len(exec_stmts) >= 1, "send_message has no body"
+
+    # Find the _is_generating guard among the first two statements.
+    found_guard = False
+    for stmt in exec_stmts:
+        if isinstance(stmt, ast.If):
+            cond_dump = ast.dump(stmt.test)
+            if "_is_generating" in cond_dump:
+                assert any(isinstance(s, ast.Return) for s in stmt.body), (
+                    "send_message guard body must contain a return statement"
+                )
+                found_guard = True
+                break
+
+    assert found_guard, (
+        "send_message must have an 'if self._is_generating: return' guard "
+        "among the first 2 executable statements. "
+        f"Found: {[type(s).__name__ for s in exec_stmts]}"
     )
 
 

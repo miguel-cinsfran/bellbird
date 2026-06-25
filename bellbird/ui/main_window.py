@@ -913,6 +913,7 @@ class MainWindow(wx.Frame):
         Accepts plain text, text with images, or images only. If neither
         text nor images are present, the message is ignored.
         """
+        self._aborted = False  # Reset abort flag before each new generation
         if self._is_generating:
             self._speech.speak("Ya se está generando una respuesta", interrupt=False)
             return
@@ -1062,7 +1063,18 @@ class MainWindow(wx.Frame):
         self._speech.announce_token_chunk(token)
 
     def _on_done(self) -> None:
-        """Handle stream completion."""
+        """Handle stream completion or abort confirmation."""
+        # Abort path: check FIRST so an aborted generation is never
+        # saved as "Respuesta completa". This is additive to the
+        # v0.4.1 two-layer race defense (self._is_generating guard).
+        if self._aborted:
+            self._speech.speak("Generación detenida", interrupt=True)
+            self.chat_panel.end_generation()
+            self._current_response = ""
+            self._aborted = False
+            self.status_bar.SetStatusText("", 2)
+            return
+
         if not self._is_generating:
             return
         log = get_logger()
@@ -1150,6 +1162,7 @@ class MainWindow(wx.Frame):
 
     def _continue_after_tool(self) -> None:
         """Reenvía la conversación al modelo con el resultado de la tool."""
+        self._aborted = False  # Reset abort flag before re-launching the stream
         api_messages = []
         system_prompt = self._config.system_prompt
         if system_prompt.strip():
@@ -1186,11 +1199,20 @@ class MainWindow(wx.Frame):
         )
 
     def _on_error(self, error_text: str) -> None:
-        """Handle stream error.
+        """Handle stream error or abort confirmation.
 
         Args:
-            error_text: Error description.
+            error_text: Error description. Ignored when ``self._aborted``
+                is True (the abort path takes precedence).
         """
+        if self._aborted:
+            self._speech.speak("Generación detenida", interrupt=True)
+            self.chat_panel.end_generation()
+            self._current_response = ""
+            self._aborted = False
+            self.status_bar.SetStatusText("", 2)
+            return
+
         if not self._is_generating:
             return
         log = get_logger()
@@ -1211,13 +1233,16 @@ class MainWindow(wx.Frame):
     # ── Abort ──────────────────────────────────────────────────────────────
 
     def abort_generation(self) -> None:
-        """Abort the current generation with full silence.
+        """Abort the current generation and drop the partial response.
 
-        The sequence MUST be: abort → stop → clear_buffer so the network
-        request is cancelled first, then the speech engine stops any
-        current utterance, then the token-chunk buffer is discarded
-        without speaking.
+        The flag order MUST be: _aborted = True → _is_generating = False
+        → client.abort(), so by the time the stream worker fires
+        _on_done via wx.CallAfter, both flags are already set and the
+        partial response is discarded instead of being saved as
+        "Respuesta completa".
         """
+        self._aborted = True
+        self._is_generating = False
         self._client.abort()
         self._speech.stop()
         self._speech.clear_buffer()

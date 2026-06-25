@@ -198,3 +198,19 @@ def test_extra_model_folders_default_is_empty_list():
     b = BellbirdConfig()
     a.extra_model_folders.append("/x")
     assert b.extra_model_folders == []
+
+
+def test_load_config_applies_max_tokens_migration(monkeypatch, tmp_path):
+    """GIVEN a config.json persisted with the legacy max_tokens default (512)
+    WHEN load_config() reads it
+    THEN _MIGRATIONS bumps max_tokens to 4096 so reasoning models can finish
+    their thinking phase before producing output (v0.5.1+ default)."""
+    from bellbird.core import config as config_module
+
+    cfg_file = tmp_path / "config.json"
+    cfg_file.write_text('{"max_tokens": 512}', encoding="utf-8")
+    monkeypatch.setattr(config_module, "CONFIG_PATH", cfg_file)
+
+    result = load_config()
+
+    assert result.max_tokens == 4096

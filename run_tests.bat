@@ -18,6 +18,10 @@ echo.
     echo.
     uv run pytest tests/ -v --tb=short 2>&1
     echo.
+    echo === WX-RUNTIME TESTS (chat_panel + message_detail_dialog) ===
+    echo.
+    uv run pytest tests/ui/test_chat_panel_runtime.py tests/ui/test_message_detail_dialog_runtime.py -v --tb=short 2>&1
+    echo.
     echo === SMOKE TEST ^(smoke_test.py^) ===
     echo.
     uv run python smoke_test.py 2>&1

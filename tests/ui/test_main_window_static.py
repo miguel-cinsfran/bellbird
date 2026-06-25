@@ -1436,16 +1436,16 @@ def test_window_size_900_650():
     )
 
 
-def test_version_0_7_2():
-    """pyproject.toml has version = '0.7.2'."""
+def test_version_0_7_3():
+    """pyproject.toml has version = '0.7.3'."""
     import pathlib
     proj_path = (
         pathlib.Path(__file__).resolve().parent.parent.parent
         / "pyproject.toml"
     )
     source = proj_path.read_text(encoding="utf-8")
-    assert 'version = "0.7.2"' in source, (
-        "pyproject.toml must have version = \"0.7.2\""
+    assert 'version = "0.7.3"' in source, (
+        "pyproject.toml must have version = \"0.7.3\""
     )
 
 
@@ -1991,5 +1991,104 @@ def test_f2_includes_min_p():
     )
     assert "Min-p" in method_source, (
         "_announce_session_status must include 'Min-p' in the status string"
+    )
+
+
+# ─── v0.7.3 unified-chat-list: focus courtesy guard (D8 / Task 4.3) ────
+
+
+def test_focus_courtesy_only_when_user_still_on_placeholder() -> None:
+    """_on_done must guard SetSelection with a GetSelection equality check.
+
+    When a generation finishes, the focus-courtesy invariant (D8) says:
+    only restore the selection to the streaming placeholder if the user
+    hasn't navigated away. If they moved to a different message, don't
+    steal their position.
+
+    This test verifies that SetSelection is called INSIDE a conditional
+    block that first checks GetSelection() == streaming_index.
+    """
+    import re
+    from pathlib import Path
+    src = Path("bellbird/ui/main_window.py").read_text(encoding="utf-8")
+    m = re.search(
+        r"def _on_done\(self\) -> None:.*?"
+        r"(?=\n    def |\nclass |\Z)",
+        src, re.DOTALL,
+    )
+    assert m is not None, "_on_done not found in main_window.py"
+    body = m.group(0)
+
+    # Both GetSelection() and SetSelection( must appear in _on_done
+    get_pos = body.find(".GetSelection()")
+    set_pos = body.find(".SetSelection(")
+    assert get_pos >= 0, "GetSelection() call not found in _on_done"
+    assert set_pos >= 0, "SetSelection() call not found in _on_done"
+
+    # The SetSelection must appear AFTER a GetSelection == comparison,
+    # proving the guard is present.
+    assert set_pos > get_pos, (
+        "SetSelection() must appear AFTER a GetSelection() guard check "
+        "in _on_done — otherwise the focus courtesy invariant is broken"
+    )
+
+    # Verify there is a conditional (if) between them, meaning SetSelection
+    # is guarded.
+    snippet_between = body[get_pos:set_pos]
+    assert "if " in snippet_between, (
+        "SetSelection() must be inside a conditional block guarded by "
+        "the GetSelection() equality check. Expected 'if' between "
+        "GetSelection() and SetSelection()."
+    )
+
+
+# ─── v0.7.3 unified-chat-list: browser HTML invariants (D8 / Task 4.3) ──
+
+
+def test_open_message_in_browser_uses_correct_markdown_extensions_and_html_lang() -> None:
+    """_open_message_in_browser uses markdown extensions, html lang='es', and details wrapper.
+
+    Pinned invariants from the spec and design:
+    - Markdown extensions: fenced_code, tables, sane_lists, nl2br
+    - HTML lang attribute set to Spanish ('es')
+    - <details><summary>Razonamiento</summary> wrapper when reasoning is present
+    """
+    from pathlib import Path
+    src = Path("bellbird/ui/main_window.py").read_text(encoding="utf-8")
+
+    # Markdown extensions must appear in reasonable proximity to each other
+    # (they're all in the same markdown.markdown() call)
+    assert '"fenced_code"' in src or "'fenced_code'" in src, (
+        "Markdown extension 'fenced_code' not found in main_window.py"
+    )
+    assert '"tables"' in src or "'tables'" in src, (
+        "Markdown extension 'tables' not found in main_window.py"
+    )
+    assert '"sane_lists"' in src or "'sane_lists'" in src, (
+        "Markdown extension 'sane_lists' not found in main_window.py"
+    )
+    assert '"nl2br"' in src or "'nl2br'" in src, (
+        "Markdown extension 'nl2br' not found in main_window.py"
+    )
+
+    # <html lang='es'> — check both quoting variants
+    has_html_lang_es = (
+        "<html lang='es'>" in src
+        or '<html lang="es">' in src
+        or "lang='es'" in src
+        or 'lang="es"' in src
+    )
+    assert has_html_lang_es, (
+        "<html lang='es'> attribute not found in main_window.py"
+    )
+
+    # <details> and <summary>Razonamiento</summary> wrapper
+    assert "<details>" in src or "<details>" in src, (
+        "<details> element not found in main_window.py — "
+        "the reasoning wrapper is missing"
+    )
+    assert "<summary>Razonamiento</summary>" in src, (
+        "<summary>Razonamiento</summary> not found in main_window.py — "
+        "the reasoning details header is missing"
     )
 

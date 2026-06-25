@@ -35,6 +35,7 @@ class Conversation:
         content: str,
         images: list[str] | None = None,
         tool_call_id: str | None = None,
+        reasoning: str = "",
     ) -> None:
         """Append a message to the conversation.
 
@@ -47,6 +48,10 @@ class Conversation:
                 compatible API requires tool messages to carry the matching
                 tool_call_id so the model can correlate the result with the
                 call. Ignored for non-tool roles.
+            reasoning: Optional reasoning/chain-of-thought text. Persisted
+                locally but stripped from API payloads. Defaults to ``""``
+                for backward compatibility with existing code that does not
+                pass this parameter.
         """
         msg: dict[str, Any] = {
             "role": role,
@@ -57,6 +62,8 @@ class Conversation:
             msg["images"] = images
         if tool_call_id is not None and role == "tool":
             msg["tool_call_id"] = tool_call_id
+        if reasoning:
+            msg["reasoning"] = reasoning
         self.messages.append(msg)
 
     def get_messages_for_api(self) -> list[dict[str, Any]]:
@@ -66,6 +73,9 @@ class Conversation:
         if present. For role="tool" messages, the tool_call_id MUST be
         present so the model can correlate the result with the
         assistant's tool_calls[].id (OpenAI-compatible API requirement).
+
+        The ``reasoning`` key is LOCAL-ONLY — it MUST NOT appear in the
+        API payload. This is a pinned invariant.
 
         Returns:
             List of message dicts with role, content, and optional
@@ -81,6 +91,8 @@ class Conversation:
                 api_msg["images"] = msg["images"]
             if "tool_call_id" in msg:
                 api_msg["tool_call_id"] = msg["tool_call_id"]
+            # timestamp is stripped (API rejects unknown fields)
+            # reasoning is local-only (MUST NOT appear in API payload)
             result.append(api_msg)
         return result
 

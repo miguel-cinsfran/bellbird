@@ -344,3 +344,97 @@ def test_tool_call_id_round_trip_through_save_load(tmp_path):
 
     loaded, _ = Conversation.load(filepath)
     assert loaded.messages[1]["tool_call_id"] == "call_xyz789"
+
+
+# ─── reasoning field (v0.7.3) ──────────────────────────────────────────────────
+
+
+def test_add_assistant_message_with_reasoning():
+    """Given an assistant message with reasoning, the field is persisted."""
+    from bellbird.core.conversation import Conversation
+
+    conv = Conversation()
+    conv.add_message("assistant", "La respuesta es 42.", reasoning="let me think step by step...")
+    assert conv.messages[0]["reasoning"] == "let me think step by step..."
+    assert conv.messages[0]["content"] == "La respuesta es 42."
+
+
+def test_add_message_defaults_empty_reasoning():
+    """Given an assistant message without reasoning, get returns ''."""
+    from bellbird.core.conversation import Conversation
+
+    conv = Conversation()
+    conv.add_message("assistant", "R")
+    assert conv.messages[0].get("reasoning", "") == ""
+
+
+def test_get_messages_for_api_excludes_reasoning():
+    """Given a message with non-empty reasoning, API payload has no reasoning key."""
+    from bellbird.core.conversation import Conversation
+
+    conv = Conversation()
+    conv.add_message("assistant", "X", reasoning="secret thoughts")
+    api_msgs = conv.get_messages_for_api()
+    assert "reasoning" not in api_msgs[0]
+    # The stored messages list is UNCHANGED
+    assert "reasoning" in conv.messages[0]
+
+
+def test_reasoning_round_trip_through_to_dict_from_dict():
+    """save+load preserves reasoning verbatim."""
+    from bellbird.core.conversation import Conversation
+
+    conv = Conversation()
+    conv.add_message("user", "Hola")
+    conv.add_message("assistant", "Respuesta", reasoning="paso 1...\npaso 2...")
+
+    d = conv.to_dict()
+    conv2 = Conversation.from_dict(d)
+    assert conv2.messages[1]["reasoning"] == "paso 1...\npaso 2..."
+    assert conv2.messages[0]["content"] == "Hola"
+
+
+def test_missing_reasoning_key_backward_compat(tmp_path):
+    """Given a v0.7.1 file without reasoning, load works and get returns ''."""
+    from bellbird.core.conversation import Conversation
+
+    filepath = tmp_path / "old.json"
+    data = {
+        "messages": [
+            {"role": "assistant", "content": "R", "timestamp": "2024-01-01T00:00:00"},
+        ]
+    }
+    import json
+    with open(filepath, "w", encoding="utf-8") as f:
+        json.dump(data, f)
+
+    conv, _ = Conversation.load(filepath)
+    assert conv.messages[0].get("reasoning", "") == ""
+
+
+def test_to_dict_omits_empty_reasoning():
+    """Given reasoning == '', to_dict does NOT contain a 'reasoning' key."""
+    from bellbird.core.conversation import Conversation
+
+    conv = Conversation()
+    conv.add_message("assistant", "R")
+    d = conv.to_dict()
+    assert "reasoning" not in d["messages"][0]
+
+
+def test_reasoning_does_not_appear_in_api_payload():
+    """Integration: send_message_for_api does not contain reasoning key."""
+    from bellbird.core.conversation import Conversation
+
+    conv = Conversation()
+    conv.add_message("system", "Eres útil.")
+    conv.add_message("user", "Hola")
+    conv.add_message("assistant", "¿En qué te ayudo?", reasoning="pensando...")
+
+    result = conv.get_messages_for_api()
+    for msg in result:
+        assert "reasoning" not in msg, f"Unexpected reasoning key in {msg}"
+    assert result[2]["content"] == "¿En qué te ayudo?"
+
+
+

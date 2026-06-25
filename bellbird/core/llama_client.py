@@ -10,6 +10,7 @@ All streaming callbacks are marshalled to the wx main thread via wx.CallAfter.
 """
 
 import json
+import re
 import threading
 from collections.abc import Callable
 from typing import Any
@@ -17,6 +18,105 @@ from typing import Any
 import requests
 
 from bellbird.core.logger import get_logger
+
+
+class _ThinkTagParser:
+    """Parses inline <think>/<thinking>/<thought> tags from a token stream.
+
+    Conservative matching: an opening tag is only recognised when followed
+    by whitespace, end-of-line, or end-of-stream — this avoids false
+    positives on literal ``<think>`` in user code or markdown examples.
+
+    Tags are case-insensitive. Tags split across arbitrary ``feed()``
+    calls are handled via an internal buffer.
+    """
+
+    # Opening tag: case-insensitive <think>/<thinking>/<thought>
+    # followed by whitespace or end-of-string (conservative guard).
+    _OPEN_RE = re.compile(
+        r"<(?:think|thinking|thought)>(?=\s|$)", re.IGNORECASE
+    )
+    # Closing tag: case-insensitive </think>/</thinking>/</thought>.
+    # No conservative guard on closing tags.
+    _CLOSE_RE = re.compile(
+        r"</(?:think|thinking|thought)>", re.IGNORECASE
+    )
+
+    def __init__(self) -> None:
+        self._buf: str = ""
+        self._in_reasoning: bool = False
+
+    def feed(self, chunk: str) -> list[tuple[str, str]]:
+        """Process a chunk and return emitted (type, text) pairs.
+
+        Args:
+            chunk: A token fragment from the stream.
+
+        Returns:
+            List of ``("content", text)`` or ``("reasoning", text)`` tuples.
+        """
+        self._buf += chunk
+        return self._parse_buffer()
+
+    def flush(self) -> list[tuple[str, str]]:
+        """Flush remaining buffer content.
+
+        Returns:
+            Any pending (type, text) tuples for text that never
+            completed a tag boundary.
+        """
+        out = self._parse_buffer(final=True)
+        if self._buf:
+            tag = "reasoning" if self._in_reasoning else "content"
+            out.append((tag, self._buf))
+            self._buf = ""
+        return out
+
+    def _parse_buffer(self, final: bool = False) -> list[tuple[str, str]]:
+        """Scan the internal buffer for complete tags.
+
+        Args:
+            final: When True, emit everything (used by ``flush()``).
+
+        Returns:
+            Emitted (type, text) tuples from this scan pass.
+        """
+        results: list[tuple[str, str]] = []
+        while True:
+            if self._in_reasoning:
+                m = self._CLOSE_RE.search(self._buf)
+                if m:
+                    before = self._buf[: m.start()]
+                    if before:
+                        results.append(("reasoning", before))
+                    self._buf = self._buf[m.end() :]
+                    self._in_reasoning = False
+                    # Strip a single trailing \n or space after closing tag
+                    # (per spec: conservative whitespace stripping on content
+                    # transition).
+                    if self._buf and self._buf[0] in ("\n", " "):
+                        self._buf = self._buf[1:]
+                    continue  # look for more tags in the remainder
+                # No closing tag found. If we're at final flush, emit
+                # everything; otherwise keep the buffer for future chunks.
+                if final:
+                    results.append(("reasoning", self._buf))
+                    self._buf = ""
+                break
+            else:
+                m = self._OPEN_RE.search(self._buf)
+                if m:
+                    before = self._buf[: m.start()]
+                    if before:
+                        results.append(("content", before))
+                    self._buf = self._buf[m.end() :]
+                    self._in_reasoning = True
+                    continue
+                if final:
+                    results.append(("content", self._buf))
+                    self._buf = ""
+                break
+        return results
 
 
 class LlamaClient:
@@ -120,6 +220,7 @@ class LlamaClient:
         on_usage: Callable[[dict], None] | None = None,
         on_tool_call: Callable[[str, str, dict], None] | None = None,
         tools: list[dict] | None = None,
+        on_reasoning: Callable[[str], None] | None = None,
     ) -> None:
         """Start a streaming chat in a background daemon thread.
 
@@ -142,6 +243,11 @@ class LlamaClient:
             on_tool_call: Optional callback for tool_calls delta, receives
                 (tool_name, tool_call_id, arguments_dict) via wx.CallAfter.
             tools: Optional OpenAI-format tool catalog forwarded to the model.
+            on_reasoning: Optional callback for reasoning/chain-of-thought
+                text via wx.CallAfter. Receives reasoning text fragments
+                from ``delta.reasoning_content`` and parsed inline
+                ``<think>``/``<thinking>``/``<thought>`` blocks. When
+                ``None``, reasoning text is silently dropped.
         """
         # A1/A3: stop any in-flight stream before starting a new one.
         # Set the event first so the worker notices at its next line
@@ -159,7 +265,7 @@ class LlamaClient:
         self._stop_event.clear()
         self._stream_thread = threading.Thread(
             target=self._stream_worker,
-            args=(messages, options, on_token, on_done, on_error, on_usage, on_tool_call, tools),
+            args=(messages, options, on_token, on_done, on_error, on_usage, on_tool_call, tools, on_reasoning),
             daemon=True,
         )
         self._stream_thread.start()
@@ -178,6 +284,7 @@ class LlamaClient:
         on_usage: Callable[[dict], None] | None = None,
         on_tool_call: Callable[[str, str, dict], None] | None = None,
         tools: list[dict] | None = None,
+        on_reasoning: Callable[[str], None] | None = None,
     ) -> None:
         """Background thread worker for streaming chat.
 
@@ -247,6 +354,7 @@ class LlamaClient:
                 # Tool-call deltas are accumulated by index and dispatched
                 # when finish_reason == "tool_calls".
                 _tc_buffer: dict[int, dict] = {}
+                _think_parser = _ThinkTagParser()
                 total_content_len = 0
                 total_reasoning_len = 0
                 chunk_count = 0
@@ -311,16 +419,26 @@ class LlamaClient:
                             wx.CallAfter(on_usage, usage)
 
                     delta = chunk.get("choices", [{}])[0].get("delta", {})
+                    reasoning_content = delta.get("reasoning_content") or ""
                     content = delta.get("content") or ""
-                    reasoning = delta.get("reasoning_content") or ""
 
-                    if reasoning:
-                        total_reasoning_len += len(reasoning)
+                    # Route delta.reasoning_content to on_reasoning ONLY
+                    # (NOT through the parser — it is the SSE-native channel).
+                    if reasoning_content:
+                        total_reasoning_len += len(reasoning_content)
                         if not in_reasoning_phase:
                             in_reasoning_phase = True
-                            log.info("stream_worker: reasoning phase started")
-                        wx.CallAfter(on_token, reasoning)
+                            log.info("stream_worker: reasoning phase started (delta)")
+                        if on_reasoning is not None:
+                            wx.CallAfter(on_reasoning, reasoning_content)
 
+                    # Feed delta.content through the inline tag parser
+                    # so <think>/<thinking>/<thought> blocks are split
+                    # into reasoning and content channels.
+                    # Optimization: if the content has no '<' AND the
+                    # parser buffer is empty, dispatch directly without
+                    # the parser to preserve per-chunk granularity for
+                    # normal (non-tag) content.
                     if content:
                         total_content_len += len(content)
                         if not first_token_logged:
@@ -330,7 +448,18 @@ class LlamaClient:
                                 log.info("stream_worker: first token received")
                             first_token_logged = True
                             in_reasoning_phase = False
-                        wx.CallAfter(on_token, content)
+                        if "<" in content or _think_parser._buf:
+                            for tag, text in _think_parser.feed(content):
+                                if not text:
+                                    continue
+                                if tag == "reasoning":
+                                    total_reasoning_len += len(text)
+                                    if on_reasoning is not None:
+                                        wx.CallAfter(on_reasoning, text)
+                                else:
+                                    wx.CallAfter(on_token, text)
+                        else:
+                            wx.CallAfter(on_token, content)
 
                     if finish_reason:
                         log.info(
@@ -349,6 +478,18 @@ class LlamaClient:
                                 on_tool_call, entry["name"], entry["id"], args
                             )
                         _tc_buffer.clear()
+
+            # Flush any remaining content from the inline tag parser
+            # (e.g. text after the last <think> block that never closed).
+            for tag, text in _think_parser.flush():
+                if not text:
+                    continue
+                if tag == "reasoning":
+                    total_reasoning_len += len(text)
+                    if on_reasoning is not None:
+                        wx.CallAfter(on_reasoning, text)
+                else:
+                    wx.CallAfter(on_token, text)
 
             log.info(
                 "stream_worker: done — chunks=%d content=%d chars reasoning=%d chars",

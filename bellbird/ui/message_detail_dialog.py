@@ -18,10 +18,13 @@ class MessageDetailDialog(wx.Dialog):
         parent: Parent wx window.
         role: Message role ('user' or 'assistant'), used for the title.
         text: Full message text (markdown, will be stripped for display).
+        reasoning: Optional reasoning/chain-of-thought text. When non-empty,
+            shown between the content and the actions.
     """
 
     def __init__(
-        self, parent: wx.Window, role: str, text: str
+        self, parent: wx.Window, role: str, text: str,
+        reasoning: str | None = None,
     ) -> None:
         title = "Mensaje de Tú" if role == "user" else "Mensaje de IA"
         super().__init__(parent, title=title, name="message_detail_dialog")
@@ -30,6 +33,7 @@ class MessageDetailDialog(wx.Dialog):
         # content_text below shows the stripped plain-text version; the
         # browser view should show the full markdown rendered as HTML.
         self._original_text = text
+        self._reasoning = reasoning
 
         sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -46,6 +50,21 @@ class MessageDetailDialog(wx.Dialog):
         )
         sizer.Add(self.content_text, proportion=1,
                   flag=wx.EXPAND | wx.ALL, border=8)
+
+        # ── Reasoning (conditional) ──────────────────────────────────────
+        if reasoning:
+            sizer.Add(
+                wx.StaticText(self, label="Razonamiento:"),
+                flag=wx.LEFT | wx.RIGHT, border=8,
+            )
+            self.reasoning_text = wx.TextCtrl(
+                self,
+                style=wx.TE_MULTILINE | wx.TE_READONLY,
+                name="Razonamiento del mensaje",
+                value=strip_markdown(reasoning),
+            )
+            sizer.Add(self.reasoning_text, proportion=0,
+                      flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=8)
 
         # ── Actions ──────────────────────────────────────────────────────
         sizer.Add(
@@ -106,7 +125,10 @@ class MessageDetailDialog(wx.Dialog):
         ):
             parent = parent.GetParent()
         if parent is not None:
-            parent._open_message_in_browser(self._original_text)
+            parent._open_message_in_browser(
+                self._original_text,
+                reasoning=self._reasoning,
+            )
         else:
             self._copy_to_clipboard()
 

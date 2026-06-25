@@ -114,11 +114,12 @@ def test_message_list_present():
     assert 'name="Historial de mensajes"' in source or "name='Historial de mensajes'" in source
 
 
-def test_stream_display_present():
-    """ChatPanel has a stream_display TextCtrl with TE_READONLY."""
+def test_stream_display_absent():
+    """ChatPanel no longer has a stream_display TextCtrl."""
     source_path = _get_ui_path("chat_panel.py")
     source = source_path.read_text(encoding="utf-8")
-    assert 'name="Respuesta en curso"' in source or "name='Respuesta en curso'" in source
+    assert 'name="Respuesta en curso"' not in source and "name='Respuesta en curso'" not in source
+    assert "stream_display" not in source
 
 
 def test_history_list_exists_in_init():
@@ -255,23 +256,19 @@ def test_no_conversation_display_reference():
     )
 
 
-def test_stream_display_does_not_use_rich2():
-    """stream_display TextCtrl does NOT use TE_RICH2 (v0.5.1 accessibility fix).
+def test_no_te_rich2_in_chat_panel():
+    """chat_panel.py does NOT use TE_RICH2 (v0.5.1 accessibility fix).
 
     wx.TE_RICH2 enables the Windows RichEdit control, which can have
-    inconsistent behavior with NVDA and adds nothing here (the control
-    is plain text, read-only). Per the v0.5.1 audit, stream_display
-    uses wx.TE_MULTILINE | wx.TE_READONLY only.
+    inconsistent behavior with NVDA. The stream_display widget was
+    removed in v0.7.3; any remaining TextCtrl must also avoid TE_RICH2.
     """
     source_path = _get_ui_path("chat_panel.py")
     source = source_path.read_text(encoding="utf-8")
     assert "TE_RICH2" not in source, (
-        "stream_display must NOT use TE_RICH2 (v0.5.1 audit) — it enables "
-        "the Windows RichEdit control, which can be inconsistent with NVDA "
-        "and adds nothing for a plain-text readonly display"
+        "chat_panel.py must NOT use TE_RICH2 (v0.5.1 audit) — it enables "
+        "the Windows RichEdit control, which can be inconsistent with NVDA"
     )
-    assert "TE_READONLY" in source, "stream_display must use TE_READONLY style"
-    assert "TE_MULTILINE" in source, "stream_display must use TE_MULTILINE style"
 
 
 def test_clear_resets_generation_state() -> None:
@@ -438,80 +435,77 @@ def test_on_context_delete_calls_callback():
     )
 
 
-def test_end_generation_strips_asistente_prefix():
-    """end_generation strips the '[Asistente] ' prefix from persisted history (BUG 2)."""
+def test_end_generation_accepts_final_text():
+    """end_generation accepts a final_text parameter instead of reading stream_display."""
     source_path = _get_ui_path("chat_panel.py")
     source = source_path.read_text(encoding="utf-8")
     tree = ast.parse(source)
 
-    found_startswith = False
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == "end_generation":
+            args = [a.arg for a in node.args.args]
+            assert "final_text" in args, (
+                f"end_generation must accept final_text parameter. Found: {args}"
+            )
+            break
+
+
+def test_end_generation_handles_empty():
+    """end_generation has a Delete path for empty final_text (abort)."""
+    source_path = _get_ui_path("chat_panel.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    found_delete = False
     for node in ast.walk(tree):
         if isinstance(node, ast.FunctionDef) and node.name == "end_generation":
             for child in ast.walk(node):
                 if isinstance(child, ast.Call):
                     func_name = _get_func_name(child)
-                    if "startswith" in func_name:
-                        found_startswith = True
+                    if "Delete" in func_name:
+                        found_delete = True
                         break
 
-    assert found_startswith, (
-        "end_generation must strip the '[Asistente] ' prefix from stream_display "
-        "content before appending to _history (BUG 2). Expected a .startswith() call "
-        "in the method body."
+    assert found_delete, (
+        "end_generation must call self.message_list.Delete() when "
+        "final_text is empty (abort path)"
     )
 
 
-def test_end_generation_skips_empty_preview() -> None:
-    """Regression for B3: message_list.Append must be INSIDE the strip() guard.
+def test_streaming_index_exists():
+    """ChatPanel.__init__ initializes self._streaming_index."""
+    source_path = _get_ui_path("chat_panel.py")
+    source = source_path.read_text(encoding="utf-8")
+    assert "self._streaming_index" in source
 
-    Without this guard, aborting a stream before the first token
-    arrives leaves a stray "[IA] [Asistente] " row in the list.
 
-    The check is on INDENTATION, not just position: the Append must be
-    indented strictly more than the `if final.strip():` line so that
-    Python syntactically places it inside the block. A position-only
-    check (e.g. `rfind`) would pass on the buggy code because the guard
-    is above the Append even when the Append is NOT inside the block.
-    """
+def test_update_streaming_preview_method_exists():
+    """ChatPanel has an update_streaming_preview method."""
+    source_path = _get_ui_path("chat_panel.py")
+    source = source_path.read_text(encoding="utf-8")
+    assert "def update_streaming_preview" in source
+
+
+def test_preview_uses_strip_markdown():
+    """update_streaming_preview calls strip_markdown on the preview text."""
+    source_path = _get_ui_path("chat_panel.py")
+    source = source_path.read_text(encoding="utf-8")
+    # Find the update_streaming_preview method body
+    tree = ast.parse(source)
+    method_body = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == "update_streaming_preview":
+            method_body = node
+            break
+
+    assert method_body is not None, "update_streaming_preview method not found"
     import re
-    from pathlib import Path
-    src = Path("bellbird/ui/chat_panel.py").read_text(encoding="utf-8")
-    m = re.search(
-        r"def end_generation\(self\) -> None:.*?"
-        r"(?=\n    def |\nclass |\Z)",
-        src, re.DOTALL,
-    )
-    assert m is not None, "end_generation not found in chat_panel.py"
-    body = m.group(0)
-
-    # 1) Find the Append line and capture its indentation.
-    append_match = re.search(
-        r"^(\s+)self\.message_list\.Append\(preview\)",
-        body, re.MULTILINE,
-    )
-    assert append_match is not None, "message_list.Append(preview) line not found"
-    append_indent = len(append_match.group(1))
-
-    # 2) Find ALL `if final.strip():` lines and take the LAST one
-    #    (the one that guards the Append, if any).
-    if_matches = list(re.finditer(
-        r"^(\s*)if final\.strip\(\):",
-        body, re.MULTILINE,
-    ))
-    assert if_matches, "`if final.strip():` line not found in end_generation"
-    latest_if = if_matches[-1]
-    if_indent = len(latest_if.group(1))
-
-    # 3) The Append must be inside the block: its indentation must be
-    #    STRICTLY GREATER than the if's indentation. If they are equal,
-    #    the Append is at the same level as the if and runs regardless
-    #    of the condition — the BUG.
-    assert append_indent > if_indent, (
-        f"message_list.Append(preview) (indent={append_indent}) must be "
-        f"indented MORE than `if final.strip():` (indent={if_indent}) "
-        f"to be syntactically inside the block. Current code has the "
-        f"Append at the same level as the guard, so it runs even when "
-        f"the stream is empty — B3 regression."
+    source_lines = source.splitlines()
+    start = method_body.lineno - 1
+    end = min(method_body.end_lineno or len(source_lines), len(source_lines))
+    body_text = "\n".join(source_lines[start:end])
+    assert "strip_markdown" in body_text, (
+        "update_streaming_preview must call strip_markdown on text"
     )
 
 

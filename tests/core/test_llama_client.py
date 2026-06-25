@@ -616,3 +616,346 @@ class TestLlamaClient:
 
         assert on_tool_call.call_count == 0
         assert on_done.call_count == 1
+
+
+# ─── on_reasoning routing (v0.7.3) ────────────────────────────────────────────
+
+
+class TestLlamaClientReasoning:
+    """Tests for the ``on_reasoning`` callback in ``chat_stream``."""
+
+    def test_reasoning_content_routes_only_to_on_reasoning(self, mock_session, mock_call_after):
+        """``delta.reasoning_content`` fires ``on_reasoning``, NOT ``on_token``."""
+        self._stub_stream(mock_session, [
+            b'data: {"choices":[{"delta":{"reasoning_content":"Let me think","content":""}}]}',
+            b'data: {"choices":[{"delta":{"content":"Answer"}}]}',
+            b'data: [DONE]',
+        ])
+
+        from bellbird.core.llama_client import LlamaClient
+
+        client = LlamaClient(session=mock_session)
+        on_token = Mock()
+        on_done = Mock()
+        on_error = Mock()
+        on_reasoning = Mock()
+
+        client.chat_stream(
+            [], {}, on_token, on_done, on_error,
+            on_reasoning=on_reasoning,
+        )
+        import time
+        time.sleep(0.2)
+
+        assert on_reasoning.call_count == 1, (
+            f"on_reasoning called {on_reasoning.call_count} times, expected 1"
+        )
+        assert "Let me think" in on_reasoning.call_args[0][0], (
+            f"on_reasoning got {on_reasoning.call_args[0][0]!r}"
+        )
+        assert on_token.call_count == 1, (
+            f"on_token called {on_token.call_count} times, expected 1 (only content)"
+        )
+        assert "Answer" in on_token.call_args[0][0]
+        assert on_done.call_count == 1
+        assert on_error.call_count == 0
+
+    def test_reasoning_skipped_when_callback_none(self, mock_session, mock_call_after):
+        """``on_reasoning=None`` with reasoning_content present does not crash."""
+        self._stub_stream(mock_session, [
+            b'data: {"choices":[{"delta":{"reasoning_content":"thinking...","content":""}}]}',
+            b'data: {"choices":[{"delta":{"content":"result"}}]}',
+            b'data: [DONE]',
+        ])
+
+        from bellbird.core.llama_client import LlamaClient
+
+        client = LlamaClient(session=mock_session)
+        on_token = Mock()
+        on_done = Mock()
+        on_error = Mock()
+
+        # No on_reasoning passed — should not crash
+        client.chat_stream([], {}, on_token, on_done, on_error)
+        import time
+        time.sleep(0.2)
+
+        assert on_token.call_count == 1
+        assert on_done.call_count == 1
+        assert on_error.call_count == 0
+
+    def test_content_chunks_pass_through_parser(self, mock_session, mock_call_after):
+        """Inline <think> in delta.content triggers on_reasoning via parser."""
+        self._stub_stream(mock_session, [
+            b'data: {"choices":[{"delta":{"content":"<think> hidden</think> visible"}}]}',
+            b'data: [DONE]',
+        ])
+
+        from bellbird.core.llama_client import LlamaClient
+
+        client = LlamaClient(session=mock_session)
+        on_token = Mock()
+        on_done = Mock()
+        on_error = Mock()
+        on_reasoning = Mock()
+
+        client.chat_stream(
+            [], {}, on_token, on_done, on_error,
+            on_reasoning=on_reasoning,
+        )
+        import time
+        time.sleep(0.2)
+
+        assert on_reasoning.call_count == 1, (
+            f"on_reasoning called {on_reasoning.call_count} times"
+        )
+        reasoning_text = on_reasoning.call_args[0][0]
+        assert "hidden" in reasoning_text, f"got {reasoning_text!r}"
+        assert on_token.call_count == 1
+        token_text = on_token.call_args[0][0]
+        assert "visible" in token_text, f"got {token_text!r}"
+        assert on_done.call_count == 1
+
+    def test_parser_does_not_get_delta_reasoning_content(self, mock_session, mock_call_after):
+        """When ``delta.reasoning_content`` is present, it is NOT fed to parser."""
+        self._stub_stream(mock_session, [
+            b'data: {"choices":[{"delta":{"reasoning_content":"X","content":""}}]}',
+            b'data: [DONE]',
+        ])
+
+        from bellbird.core.llama_client import LlamaClient
+
+        client = LlamaClient(session=mock_session)
+        on_token = Mock()
+        on_done = Mock()
+        on_error = Mock()
+        on_reasoning = Mock()
+
+        client.chat_stream(
+            [], {}, on_token, on_done, on_error,
+            on_reasoning=on_reasoning,
+        )
+        import time
+        time.sleep(0.2)
+
+        assert on_reasoning.call_count == 1
+        # on_token should NOT be called (content is empty and reasoning
+        # content was not fed to the parser)
+        assert on_token.call_count == 0, (
+            f"on_token was called {on_token.call_count} times — "
+            "reasoning_content should NOT go through the parser"
+        )
+        assert on_done.call_count == 1
+
+    # Helper — reuse the same pattern from TestLlamaClient
+    def _stub_stream(self, mock_session, lines: list[bytes]):
+        """Helper: stub POST to return a response whose iter_lines yields lines."""
+        from unittest.mock import MagicMock
+
+        mock_response = MagicMock()
+        mock_response.iter_lines.return_value = lines
+        mock_response.status_code = 200
+        mock_response.reason = "OK"
+        ctx = MagicMock()
+        ctx.__enter__.return_value = mock_response
+        ctx.__exit__.return_value = False
+        mock_session.post.return_value = ctx
+
+
+# ─── _ThinkTagParser (v0.7.3) ────────────────────────────────────────────────
+
+
+class TestThinkTagParser:
+    """Tests for the inline <think>/<thinking>/<thought> tag parser.
+
+    All test chunks include the opening '<' character,
+    split across feed() calls to simulate token streaming.
+    """
+
+    def test_split_across_two_chunks(self):
+        """Given <thi> nk> Hello</think> World, reasoning=Hello content=World.
+
+        Note: the opening tag must be followed by whitespace (conservative
+        match), so the chunk after the complete <think> starts with space.
+        """
+        from bellbird.core.llama_client import _ThinkTagParser
+
+        p = _ThinkTagParser()
+        out = []
+        out.extend(p.feed("<thi"))
+        out.extend(p.feed("nk> Hello</think>"))
+        out.extend(p.feed("World"))
+        out.extend(p.flush())
+
+        reasoning_text = "".join(text for t, text in out if t == "reasoning")
+        content_text = "".join(text for t, text in out if t == "content")
+        assert "Hello" in reasoning_text, f"reasoning={reasoning_text!r}"
+        assert "World" in content_text, f"content={content_text!r}"
+
+    def test_split_across_three_chunks(self):
+        """Given <thin> k> deep\n thought</think> out."""
+        from bellbird.core.llama_client import _ThinkTagParser
+
+        p = _ThinkTagParser()
+        out = []
+        out.extend(p.feed("<thin"))
+        out.extend(p.feed("k> deep\n"))
+        out.extend(p.feed("thought</think>out"))
+        out.extend(p.flush())
+
+        reasoning_text = "".join(text for t, text in out if t == "reasoning")
+        content_text = "".join(text for t, text in out if t == "content")
+        assert "deep" in reasoning_text, f"reasoning={reasoning_text!r}"
+        assert "thought" in reasoning_text
+        assert "out" in content_text, f"content={content_text!r}"
+
+    def test_split_across_four_chunks(self):
+        """Given <th> ink> A\nB\n C</think> D."""
+        from bellbird.core.llama_client import _ThinkTagParser
+
+        p = _ThinkTagParser()
+        out = []
+        out.extend(p.feed("<th"))
+        out.extend(p.feed("ink> "))
+        out.extend(p.feed("A\nB\n"))
+        out.extend(p.feed("C</think>D"))
+        out.extend(p.flush())
+
+        reasoning_text = "".join(text for t, text in out if t == "reasoning")
+        content_text = "".join(text for t, text in out if t == "content")
+        assert "A" in reasoning_text, f"reasoning={reasoning_text!r}"
+        assert "B" in reasoning_text
+        assert "C" in reasoning_text
+        assert "D" in content_text, f"content={content_text!r}"
+
+    def test_case_insensitive(self):
+        """Given <THINK>, <Thinking>, <thought> all work case-insensitively."""
+        from bellbird.core.llama_client import _ThinkTagParser
+
+        p = _ThinkTagParser()
+        out = []
+        out.extend(p.feed("<THINK> Hello</THINK> World"))
+        out.extend(p.flush())
+        assert any(t == "reasoning" for t, _ in out)
+        assert any(t == "content" for t, _ in out)
+
+        p2 = _ThinkTagParser()
+        out2 = []
+        out2.extend(p2.feed("<Thinking> Hi</Thinking> There"))
+        out2.extend(p2.flush())
+        assert any(t == "reasoning" for t, _ in out2)
+
+        p3 = _ThinkTagParser()
+        out3 = []
+        out3.extend(p3.feed("<thought> secret</thought> visible"))
+        out3.extend(p3.flush())
+        assert any(t == "reasoning" for t, _ in out3)
+
+    def test_false_positive_guard(self):
+        """Given literal <think> inside code, no block is opened.
+
+        <think> followed by non-whitespace is NOT an opening tag.
+        """
+        from bellbird.core.llama_client import _ThinkTagParser
+
+        p = _ThinkTagParser()
+        out = []
+        out.extend(p.feed('print("<think>Hello")'))
+        out.extend(p.flush())
+        # No reasoning should be emitted — all content
+        assert all(t == "content" for t, _ in out), (
+            f"Expected all content, got {out}"
+        )
+
+    def test_false_positive_guard_with_newline(self):
+        """Given <think>\\n then content, the block IS opened."""
+        from bellbird.core.llama_client import _ThinkTagParser
+
+        p = _ThinkTagParser()
+        out = []
+        out.extend(p.feed("<think>\n"))
+        out.extend(p.feed("explanation\n"))
+        out.extend(p.feed("</think>\n"))
+        out.extend(p.feed("Answer"))
+        out.extend(p.flush())
+        reasoning_text = "".join(text for t, text in out if t == "reasoning")
+        content_text = "".join(text for t, text in out if t == "content")
+        assert "explanation" in reasoning_text, f"reasoning={reasoning_text!r}"
+        assert "Answer" in content_text, f"content={content_text!r}"
+
+    def test_fresh_parser_per_stream(self):
+        """Given separate parsers, no state carries over."""
+        from bellbird.core.llama_client import _ThinkTagParser
+
+        p1 = _ThinkTagParser()
+        out1 = []
+        out1.extend(p1.feed("<think> secret</think> done"))
+        out1.extend(p1.flush())
+        assert any(t == "reasoning" for t, _ in out1)
+
+        # A fresh parser starts clean (no leftover state from p1)
+        p2 = _ThinkTagParser()
+        out2 = []
+        out2.extend(p2.feed("no tags here"))
+        out2.extend(p2.flush())
+        assert all(t == "content" for t, _ in out2), (
+            f"Fresh parser leaked state: {out2}"
+        )
+
+    def test_all_three_tag_names(self):
+        """Three separate parsers handle <think>, <thinking>, <thought>."""
+        from bellbird.core.llama_client import _ThinkTagParser
+
+        for tag in ("think", "thinking", "thought"):
+            p = _ThinkTagParser()
+            out = []
+            out.extend(p.feed(f"<{tag}> inner </{tag}> outer"))
+            out.extend(p.flush())
+            reasoning = [text for t, text in out if t == "reasoning"]
+            content = [text for t, text in out if t == "content"]
+            assert reasoning, f"No reasoning for <{tag}>"
+            assert "inner" in "".join(reasoning), f"reasoning={reasoning}"
+            assert "outer" in "".join(content), f"content={content}"
+
+
+# ─── AST invariants (v0.7.3) ──────────────────────────────────────────────────
+
+
+def test_ast_stream_worker_does_not_call_on_token_with_reasoning_content():
+    """``_stream_worker`` does NOT call ``wx.CallAfter(on_token, ...)`` with
+    ``delta.reasoning_content``.
+
+    Reasoning content must be routed to ``on_reasoning`` only. The worker
+    code must NOT have ``wx.CallAfter(on_token, reasoning)`` or similar
+    patterns (line 322 in the v0.7.1 code).
+    """
+    import pathlib
+    src = (
+        pathlib.Path(__file__).resolve().parent.parent.parent
+        / "bellbird/core/llama_client.py"
+    ).read_text(encoding="utf-8")
+
+    # The _stream_worker should reference reasoning_content only in the
+    # context of on_reasoning, not on_token.
+    # Simple check: find the _stream_worker method and verify no
+    # CallAfter(on_token, reasoning) pattern exists.
+    import re
+    m = re.search(
+        r"def _stream_worker\(.*?\) -> None:.*?(?=\n    def |\nclass |\Z)",
+        src, re.DOTALL,
+    )
+    assert m is not None, "_stream_worker method not found in llama_client.py"
+    body = m.group(0)
+
+    # The old bug was: wx.CallAfter(on_token, reasoning)
+    # Verify this pattern is NOT present
+    assert "wx.CallAfter(on_token, reasoning)" not in body, (
+        "BUG REINTRODUCED: _stream_worker calls wx.CallAfter(on_token, reasoning) "
+        "— reasoning content must go to on_reasoning only"
+    )
+
+    # Verify that reasoning_content is associated with on_reasoning
+    assert "on_reasoning" in body, (
+        "_stream_worker must reference on_reasoning to handle "
+        "reasoning_content routing"
+    )

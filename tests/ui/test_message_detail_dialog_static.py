@@ -1,6 +1,7 @@
 """Static/AST tests for MessageDetailDialog — accessibility compliance via source.
 
-Tests verify: name= on all controls, BoxSizer only, MessageDialog ban.
+Tests verify: name= on all controls, BoxSizer only, MessageDialog ban,
+and reasoning-section presence/absence logic.
 """
 
 import ast
@@ -216,4 +217,114 @@ def test_open_browser_button_actually_opens_browser() -> None:
         "so _on_open_browser can pass it to _open_message_in_browser for "
         "rendering. Without this, the browser would receive the stripped "
         "plain-text version and lose the markdown formatting."
+    )
+
+
+def test_reasoning_text_present_when_reasoning_provided():
+    """The dialog creates reasoning_text when reasoning kwarg is non-None."""
+    source_path = _get_ui_path("message_detail_dialog.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    # Check: if reasoning: block creates reasoning_text TextCtrl
+    has_conditional = any(
+        _check_reasoning_if(node)
+        for node in ast.walk(tree)
+        if isinstance(node, ast.If)
+    )
+    assert has_conditional, (
+        "MessageDetailDialog must have a conditional block that creates "
+        "reasoning_text when the reasoning kwarg is truthy"
+    )
+
+
+def _check_reasoning_if(node: ast.If) -> bool:
+    """Check if an ast.If block is the reasoning conditional."""
+    # Look for: if reasoning: ... wx.TextCtrl(..., name="Razonamiento del mensaje")
+    for child in ast.walk(node):
+        if isinstance(child, ast.Call):
+            func_name = _get_func_name(child)
+            if func_name == "wx.TextCtrl":
+                for kw in child.keywords:
+                    if (
+                        kw.arg == "name"
+                        and isinstance(kw.value, ast.Constant)
+                        and "Razonamiento" in str(kw.value.value)
+                    ):
+                        return True
+    return False
+
+
+def test_reasoning_text_absent_when_none():
+    """When reasoning is None/empty, the reasoning section is skipped."""
+    # This is the inverse: reasoning_text should not be unconditionally created
+    source_path = _get_ui_path("message_detail_dialog.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    # Verify reasoning_text is only created inside an "if" block
+    reasoning_text_creations = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            func_name = _get_func_name(node)
+            if func_name == "wx.TextCtrl":
+                for kw in node.keywords:
+                    if (
+                        kw.arg == "name"
+                        and isinstance(kw.value, ast.Constant)
+                        and "Razonamiento del mensaje" in str(kw.value.value)
+                    ):
+                        reasoning_text_creations.append(node)
+
+    assert len(reasoning_text_creations) >= 1, (
+        "Expected at least one wx.TextCtrl with name='Razonamiento del mensaje'"
+    )
+
+    # Check that at least one is inside an if statement
+    if not reasoning_text_creations:
+        return  # will be caught above
+
+    # Find which ones are inside an if
+    inside_if = False
+    for node in ast.walk(tree):
+        if isinstance(node, ast.If):
+            for child in ast.walk(node):
+                if isinstance(child, ast.Call):
+                    func_name = _get_func_name(child)
+                    if func_name == "wx.TextCtrl":
+                        for kw in child.keywords:
+                            if (
+                                kw.arg == "name"
+                                and isinstance(kw.value, ast.Constant)
+                                and "Razonamiento del mensaje" in str(kw.value.value)
+                            ):
+                                inside_if = True
+
+    assert inside_if, (
+        "The reasoning_text TextCtrl must be created inside an 'if reasoning:' "
+        "block so it's absent when reasoning is None/empty"
+    )
+
+
+def test_reasoning_label_has_name():
+    """The Razonamiento StaticText label exists in source."""
+    source_path = _get_ui_path("message_detail_dialog.py")
+    source = source_path.read_text(encoding="utf-8")
+    assert "Razonamiento:" in source, (
+        "Expected 'Razonamiento:' StaticText label in message_detail_dialog.py"
+    )
+
+
+def test_reasoning_text_proportion_zero():
+    """reasoning_text sizer Add uses proportion=0 (fixed height)."""
+    source_path = _get_ui_path("message_detail_dialog.py")
+    source = source_path.read_text(encoding="utf-8")
+    # Simple source scan: check that reasoning_text is added with proportion=0
+    # Find the sizer.Add call that references reasoning_text
+    import re
+    # Look for Add(self.reasoning_text, proportion=0, ...)
+    pattern = r"Add\(self\.reasoning_text.*?proportion=0"
+    assert re.search(pattern, source, re.DOTALL), (
+        "reasoning_text must be added to its sizer with proportion=0 "
+        "(fixed height, not stealing space from content_text)"
     )

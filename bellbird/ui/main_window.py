@@ -105,6 +105,7 @@ class MainWindow(wx.Frame):
         self._conversation = Conversation()
         self._speech = Speech()
         self._current_response: str = ""
+        self._current_reasoning: str = ""
         self._is_generating = False
         self._aborted = False
         self._is_closing = False
@@ -1071,10 +1072,10 @@ class MainWindow(wx.Frame):
         # Start generation
         options = _build_options(self._config)
         self._current_response = ""
+        self._current_reasoning = ""
 
         self.chat_panel.start_generation()
         self._is_generating = True
-        self.chat_panel.append_assistant_prefix()
 
         log.info(
             "send_message: user text=%r tools_enabled=%s",
@@ -1095,6 +1096,7 @@ class MainWindow(wx.Frame):
             on_usage=self._on_usage,
             on_tool_call=self._on_tool_call,
             tools=tools,
+            on_reasoning=self._on_reasoning,
         )
 
     def _on_history_delete(self, index: int, role: str) -> None:
@@ -1118,17 +1120,43 @@ class MainWindow(wx.Frame):
             self._conversation.messages.pop(conv_index)
 
     def _on_token(self, token: str) -> None:
-        """Handle a token fragment from the stream.
+        """Handle a content token fragment from the stream.
+
+        Reasoning content is routed via ``_on_reasoning`` and must NOT
+        reach this callback. The ``_stream_worker`` guarantees this:
+        ``delta.reasoning_content`` and parser-emitted reasoning slices
+        go to ``on_reasoning`` only.
 
         Args:
-            token: Token text from the LLM.
+            token: Content token text from the LLM.
         """
         if not self._is_generating:
             return
         self._current_response += token
-        self.chat_panel.append_assistant_chunk(token)
+        self.chat_panel.update_streaming_preview(self._current_response)
         self._maybe_beep()
         self._speech.announce_token_chunk(token)
+
+    def _on_reasoning(self, reasoning_text: str) -> None:
+        """Handle a reasoning fragment from the stream.
+
+        Reasoning is never read aloud by default. On the first chunk
+        of a turn, ``"Pensando…"`` is spoken once to indicate the model
+        is thinking. Subsequent chunks are accumulated silently.
+
+        MUST NOT update ``_current_response`` and MUST NOT call
+        ``chat_panel.update_streaming_preview`` — reasoning is not
+        displayed in the chat list.
+
+        Args:
+            reasoning_text: A reasoning/chain-of-thought fragment.
+        """
+        if not self._is_generating:
+            return
+        if not self._current_reasoning:
+            # First reasoning chunk of this turn — announce once
+            self._speech.speak("Pensando…", interrupt=False)
+        self._current_reasoning += reasoning_text
 
     def _on_done(self) -> None:
         """Handle stream completion or abort confirmation."""
@@ -1139,6 +1167,7 @@ class MainWindow(wx.Frame):
             self._speech.speak("Generación detenida", interrupt=True)
             self.chat_panel.end_generation()
             self._current_response = ""
+            self._current_reasoning = ""
             self._aborted = False
             self.status_bar.SetStatusText("", 2)
             return
@@ -1150,18 +1179,34 @@ class MainWindow(wx.Frame):
         self._speech.flush_token_buffer()
         self._speech.speak("Respuesta completa", interrupt=True)
 
-        # Save assistant message to conversation
+        # Save assistant message to conversation (including reasoning)
         if self._current_response.strip():
             self._conversation.add_message(
-                "assistant", self._current_response
+                "assistant", self._current_response,
+                reasoning=self._current_reasoning,
             )
 
-        # Separate assistant response from the next user message visually.
-        self.chat_panel.append_assistant_chunk("\n")
-        self.chat_panel.end_generation()
+        # Focus courtesy: capture the streaming index before it is
+        # reset by end_generation(). Only SetSelection back to the
+        # streaming row if the user is still on the placeholder.
+        # If they navigated away, don't steal their position.
+        cp = self.chat_panel
+        last_streaming_idx = cp._streaming_index
+        do_focus = (
+            last_streaming_idx is not None
+            and cp.message_list.GetSelection() == last_streaming_idx
+        )
+
+        # Promote placeholder to final preview
+        self.chat_panel.end_generation(final_text=self._current_response)
+
+        if do_focus:
+            cp.message_list.SetSelection(last_streaming_idx)
+
         self._is_generating = False
         self.status_bar.SetStatusText("", 2)
         self._current_response = ""
+        self._current_reasoning = ""
 
     # ── Tool calling (v0.4.0) ─────────────────────────────────────────────
 
@@ -1256,9 +1301,9 @@ class MainWindow(wx.Frame):
         )
 
         self._current_response = ""
+        self._current_reasoning = ""
         self.chat_panel.start_generation()
         self._is_generating = True
-        self.chat_panel.append_assistant_prefix()
         self.status_bar.SetStatusText("Consultando al modelo...", 2)
 
         self._client.chat_stream(
@@ -1270,6 +1315,7 @@ class MainWindow(wx.Frame):
             on_usage=self._on_usage,
             on_tool_call=self._on_tool_call,
             tools=tools,
+            on_reasoning=self._on_reasoning,
         )
 
     def _on_error(self, error_text: str) -> None:
@@ -1283,6 +1329,7 @@ class MainWindow(wx.Frame):
             self._speech.speak("Generación detenida", interrupt=True)
             self.chat_panel.end_generation()
             self._current_response = ""
+            self._current_reasoning = ""
             self._aborted = False
             self.status_bar.SetStatusText("", 2)
             return
@@ -1291,9 +1338,9 @@ class MainWindow(wx.Frame):
             return
         log = get_logger()
         log.error("_on_error: %s", error_text)
-        self._current_response = ""
-        self.chat_panel.append_assistant_chunk(f"\n[Error: {error_text}]")
-        self.chat_panel.end_generation()
+        self._current_response = error_text
+        self._current_reasoning = ""
+        self.chat_panel.end_generation(final_text=error_text)
         self._is_generating = False
         self.status_bar.SetStatusText("Error", 2)
 
@@ -1441,6 +1488,7 @@ class MainWindow(wx.Frame):
         self._client.abort()
         self._speech.stop()
         self._speech.clear_buffer()
+        self._current_reasoning = ""
 
     # ── Usage & Browser ─────────────────────────────────────────────────────
 
@@ -1455,16 +1503,29 @@ class MainWindow(wx.Frame):
             f"Tokens: {usage.get('total_tokens', 0)}", 1
         )
 
-    def _open_message_in_browser(self, text: str) -> None:
+    def _open_message_in_browser(self, text: str, reasoning: str | None = None) -> None:
         """Open message content in the default browser via a temp HTML file.
 
         Args:
             text: Markdown text to render as HTML.
+            reasoning: Optional reasoning/chain-of-thought text. When provided,
+                wrapped in a ``<details>`` element above the content.
         """
-        html = markdown.markdown(text, extensions=[])
+        html = markdown.markdown(
+            text,
+            extensions=["fenced_code", "tables", "sane_lists", "nl2br"],
+        )
+        reasoning_html = ""
+        if reasoning:
+            escaped = reasoning.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            reasoning_html = (
+                "<details><summary>Razonamiento</summary>"
+                f"<pre><code>{escaped}</code></pre>"
+                "</details>"
+            )
         full_html = (
-            "<!doctype html><meta charset='utf-8'>"
-            f"<body>{html}</body>"
+            "<!doctype html><html lang='es'><meta charset='utf-8'>"
+            f"<body>{reasoning_html}{html}</body></html>"
         )
         with tempfile.NamedTemporaryFile(
             suffix=".html", delete=False, mode="w", encoding="utf-8"

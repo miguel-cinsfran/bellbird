@@ -133,28 +133,26 @@ def test_no_hardcoded_colours():
 
 
 def test_stream_display_no_te_rich2():
-    """chat_panel.py does NOT use wx.TE_RICH2 (v0.5.1 accessibility fix).
+    """chat_panel.py does NOT contain stream_display (removed in v0.7.3).
 
-    wx.TE_RICH2 enables the Windows RichEdit control, which can have
-    inconsistent behavior with NVDA and adds nothing here (the control
-    is plain text, read-only). The change is in chat_panel.py at the
-    stream_display TextCtrl constructor.
+    The stream_display TextCtrl was removed as part of the single-ListBox
+    refactor. TE_RICH2 absence is already covered by test_no_hardcoded_colours.
     """
     source_path = _get_ui_path("chat_panel.py")
     source = source_path.read_text(encoding="utf-8")
+    assert 'name="Respuesta en curso"' not in source, (
+        "stream_display widget (name='Respuesta en curso') must be removed "
+        "in the single-ListBox refactor"
+    )
+
+
+def test_reasoning_text_does_not_use_rich2():
+    """message_detail_dialog.py reasoning_text does NOT use TE_RICH2."""
+    source_path = _get_ui_path("message_detail_dialog.py")
+    source = source_path.read_text(encoding="utf-8")
     assert "TE_RICH2" not in source, (
-        "chat_panel.py must NOT use wx.TE_RICH2 (v0.5.1 audit) — it enables "
-        "the Windows RichEdit control, which can be inconsistent with NVDA "
-        "and adds nothing for a plain-text readonly display"
-    )
-    # Sanity: the stream_display widget must still exist with the
-    # read-only style flag (so a future refactor that drops the widget
-    # entirely is caught here too).
-    assert 'name="Respuesta en curso"' in source, (
-        "stream_display widget must still exist in chat_panel.py"
-    )
-    assert "TE_READONLY" in source, (
-        "stream_display must still use TE_READONLY (read-only plain text)"
+        "message_detail_dialog.py must NOT use TE_RICH2 — it enables "
+        "the Windows RichEdit control, which can be inconsistent with NVDA"
     )
 
 

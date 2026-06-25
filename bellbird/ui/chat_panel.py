@@ -1,8 +1,8 @@
-"""ChatPanel — dual view conversation display and message input.
+"""ChatPanel — single-ListBox conversation display and message input.
 
-Provides the main chat interface with two display areas:
-- message_list (ListBox): navigable history of message previews
-- stream_display (TextCtrl): live streaming response area (~4 lines)
+Provides the main chat interface with one display area:
+- message_list (ListBox): navigable history of message previews,
+  including the in-progress streaming row (placeholder → preview → final).
 Plus multiline message input with Enter/Shift+Enter handling,
 and action buttons (send, stop, attach, clear).
 """
@@ -34,10 +34,11 @@ class ChatPanel(wx.Panel):
         self._attached_text: str | None = None
         self._history: list[tuple[str, str]] = []
         self._is_generating: bool = False
+        self._streaming_index: int | None = None
         self._build_ui()
 
     def _build_ui(self) -> None:
-        """Build the chat panel layout with dual view."""
+        """Build the chat panel layout with single-ListBox conversation display."""
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         # ── History List (ListBox) ───────────────────────────────────────
@@ -53,19 +54,6 @@ class ChatPanel(wx.Panel):
         self.message_list.Bind(wx.EVT_KEY_DOWN, self._on_list_key)
         self.message_list.Bind(wx.EVT_LISTBOX_DCLICK, self._on_message_dclick)
         sizer.Add(self.message_list, proportion=1, flag=wx.EXPAND | wx.ALL, border=8)
-
-        # ── Stream Display (TextCtrl) ────────────────────────────────────
-        sizer.Add(
-            wx.StaticText(self, label="Respuesta actual:"),
-            flag=wx.LEFT | wx.RIGHT, border=8,
-        )
-        self.stream_display = wx.TextCtrl(
-            self,
-            style=wx.TE_MULTILINE | wx.TE_READONLY,
-            name="Respuesta en curso",
-            size=(-1, 80),
-        )
-        sizer.Add(self.stream_display, proportion=0, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=8)
 
         # ── Attachment Label ────────────────────────────────────────────────
         sizer.Add(
@@ -190,50 +178,50 @@ class ChatPanel(wx.Panel):
         preview = f"[Tú] {self._preview(text)}"
         self.message_list.Append(preview)
         self.message_list.SetSelection(self.message_list.GetCount() - 1)
-        self.stream_display.Clear()
-
-    def append_assistant_prefix(self) -> None:
-        """Clear the stream display and add the assistant prefix."""
-        self.stream_display.Clear()
-        self.stream_display.AppendText("[Asistente] ")
-
-    def append_assistant_chunk(self, token: str) -> None:
-        """Append a token fragment to the streaming display.
-
-        Args:
-            token: Token text from the LLM stream.
-        """
-        self.stream_display.AppendText(token)
 
     def start_generation(self) -> None:
-        """Disable send and attach buttons during generation."""
+        """Append a placeholder row and disable send/attach during generation."""
         self._is_generating = True
         self.send_button.Disable()
         self.attach_button.Disable()
         self.stop_button.Enable()
+        self.message_list.Append("[IA] (generando…)")
+        self._streaming_index = self.message_list.GetCount() - 1
 
-    def end_generation(self) -> None:
-        """Move stream content to history and re-enable buttons.
+    def update_streaming_preview(self, text: str) -> None:
+        """Update the in-place preview of the streaming response.
 
-        If the stream is empty (e.g. aborted before the first token),
-        no list item is added — prevents empty "[IA] [Asistente]"
-        rows in the message list when the user aborts immediately.
+        MUST NOT call ``SetSelection`` or ``SetFocus`` — the user may be
+        navigating other messages.
 
-        The stream display is NOT cleared here so the completed response
-        remains readable until the next message is sent. It is cleared
-        in append_user_message() at the start of each new send cycle.
+        Args:
+            text: The accumulated response text so far.
         """
-        final = self.stream_display.GetValue()
-        PREFIX = "[Asistente] "
-        if final.startswith(PREFIX):
-            final = final[len(PREFIX):]
-        final = final.rstrip("\n")
-        if final.strip():
-            self._history.append(("assistant", final))
-            preview = f"[IA] {self._preview(final)}"
-            self.message_list.Append(preview)
-            self.message_list.SetSelection(self.message_list.GetCount() - 1)
-            wx.CallAfter(self.message_list.SetFocus)
+        if self._streaming_index is None:
+            return
+        preview = f"[IA] {self._preview(strip_markdown(text))}"
+        self.message_list.SetString(self._streaming_index, preview)
+
+    def end_generation(self, final_text: str = "") -> None:
+        """Promote or remove the placeholder row and re-enable buttons.
+
+        Non-empty path: the placeholder is promoted to a final preview,
+        the full text is appended to ``_history``.
+        Empty path (aborted before first token): the placeholder is
+        removed from ``message_list``.
+
+        Args:
+            final_text: The complete response text. When empty (default),
+                the placeholder is deleted and nothing is appended to
+                history.
+        """
+        if final_text:
+            self._history.append(("assistant", final_text))
+            preview = f"[IA] {self._preview(strip_markdown(final_text))}"
+            self.message_list.SetString(self._streaming_index, preview)
+        else:
+            self.message_list.Delete(self._streaming_index)
+        self._streaming_index = None
         self._is_generating = False
         self.send_button.Enable()
         self.attach_button.Enable()
@@ -402,9 +390,25 @@ class ChatPanel(wx.Panel):
         if sel == wx.NOT_FOUND:
             return
         role, text = self._history[sel]
+        # Look up reasoning from MainWindow._conversation
+        reasoning: str | None = None
+        parent = self.GetParent()
+        while parent is not None and not hasattr(parent, "_conversation"):
+            parent = parent.GetParent()
+        if parent is not None:
+            # Compute the conversation message index matching this history row.
+            # System-role rows (tool blocked/denied) have no counterpart.
+            if role != "system":
+                system_count = sum(
+                    1 for r, _ in self._history[:sel] if r == "system"
+                )
+                conv_index = sel - system_count
+                if 0 <= conv_index < len(parent._conversation.messages):
+                    reasoning = parent._conversation.messages[conv_index].get("reasoning") or None
+
         from bellbird.ui.message_detail_dialog import MessageDetailDialog
 
-        dlg = MessageDetailDialog(self, role, text)
+        dlg = MessageDetailDialog(self, role, text, reasoning=reasoning)
         dlg.ShowModal()
         dlg.Destroy()
 
@@ -522,9 +526,9 @@ class ChatPanel(wx.Panel):
             self.attach_button.Enable()
             self.stop_button.Disable()
             self._is_generating = False
+        self._streaming_index = None
         self.message_list.Clear()
         self._history.clear()
-        self.stream_display.Clear()
         self._clear_input()
         self.clear_attachment()
 

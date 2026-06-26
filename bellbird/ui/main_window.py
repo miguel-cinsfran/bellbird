@@ -1202,13 +1202,16 @@ class MainWindow(wx.Frame):
         Double-F2 within 1.5 s switches to ``mode="long"`` (full breakdown).
         """
         # Double-F2 detection (T-WU2-02)
+        # When a 2nd press lands within 1.5s of the 1st, switch to "long"
+        # and clear the timestamp so a 3rd press starts the "short" cycle
+        # again. Do NOT overwrite the None reset on the next line.
         now = time.monotonic()
         if self._last_f2_mono is not None and (now - self._last_f2_mono) <= 1.5:
             mode: str = "long"
-            self._last_f2_mono = None  # reset so third press starts short cycle
+            self._last_f2_mono = None
         else:
             mode = "short"
-        self._last_f2_mono = now
+            self._last_f2_mono = now
 
         # Build SessionSnapshot
         loaded = self._client.get_loaded_model()

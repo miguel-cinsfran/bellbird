@@ -837,6 +837,56 @@ class TestDoubleF2:
             finally:
                 frame.Destroy()
 
+    def test_triple_f2_starts_short_again(self, app):
+        """Regression: 3rd F2 within 1.5s of 2nd must restart short cycle.
+
+        The C1 verify finding (CRITICAL): the unconditional
+        `self._last_f2_mono = now` after the if/else block overrode the
+        spec-mandated reset to None on the long-mode branch, so a 3rd
+        press produced "long" instead of the spec-required "short".
+        """
+        frame, config, _, fake_speech = _make_frame(app)
+        config.status_toggles = {"model_name": True}
+        frame._client.get_loaded_model = MagicMock(return_value="TestModel")
+        frame._client.check_state = MagicMock(return_value="ready")
+        frame._current_n_ctx = 4096
+        frame._latest_prompt_tokens = None
+        frame._latest_completion_tokens = None
+        frame._latest_tok_per_s = None
+        frame._vram_free_mb = None
+        frame._vram_total_mb = None
+        frame._fit_status = None
+        frame._is_generating = False
+
+        with patch("bellbird.ui.main_window.time.monotonic") as mock_time:
+            # Press 1 at t=100, press 2 at t=100.3 (long), press 3 at t=100.6.
+            # After the fix, press 3 must NOT be "long" (the cycle must restart).
+            mock_time.side_effect = [100.0, 100.3, 100.6]
+            try:
+                frame._announce_session_status()  # press 1 — short
+                first_text = fake_speech.last_message
+                fake_speech.last_message = ""
+                frame._announce_session_status()  # press 2 — long (within 1.5s)
+                second_text = fake_speech.last_message
+                fake_speech.last_message = ""
+                frame._announce_session_status()  # press 3 — must be short again
+                third_text = fake_speech.last_message
+                assert first_text != "", "Press 1 should produce speech"
+                assert second_text != "", "Press 2 should produce speech"
+                assert third_text != "", "Press 3 should produce speech"
+                # The third press text must match the first press text (both "short")
+                # and differ from the second press ("long").
+                assert first_text == third_text, (
+                    f"Press 3 should be 'short' (matches press 1). "
+                    f"Got press 1={first_text!r}, press 3={third_text!r}"
+                )
+                assert second_text != first_text, (
+                    f"Press 2 should be 'long' (differs from press 1). "
+                    f"Got press 1={first_text!r}, press 2={second_text!r}"
+                )
+            finally:
+                frame.Destroy()
+
 
 # ─── WU-2: Context Meter (T-WU2-03) ───────────────────────────────────────────
 

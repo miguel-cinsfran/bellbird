@@ -44,6 +44,7 @@ _ACTION_LABELS: dict[str, str] = {
     "regenerate": "Regenerar respuesta",
     "save_conversation": "Guardar conversación",
     "scan_models": "Buscar modelos",
+    "read_selected_message": "Leer mensaje seleccionado",
     "start_server": "Iniciar servidor",
     "stop_server": "Detener servidor",
 }
@@ -313,6 +314,7 @@ class PreferencesDialog(wx.Dialog):
         self._build_tools_page(notebook)
         self._build_advanced_page(notebook)
         self._build_keymap_page(notebook)
+        self._build_audio_page(notebook)
         self._build_status_page(notebook)
 
         main_sizer.Add(notebook, proportion=1,
@@ -725,6 +727,139 @@ class PreferencesDialog(wx.Dialog):
         panel.SetSizer(outer_sizer)
         notebook.AddPage(panel, "Atajos")
 
+    def _build_audio_page(self, notebook: wx.Notebook) -> None:
+        """Build Audio tab: voice, rate, auto-speak, notifications, sounds.
+
+        Four groups, no grid sizers per AGENTS.md.
+        """
+        panel = wx.Panel(notebook, name="audio_page")
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # ── "Voz del sistema" group ────────────────────────────────────
+        sizer.Add(
+            wx.StaticText(panel, label="Voz del sistema:"),
+            flag=wx.LEFT | wx.TOP, border=8,
+        )
+
+        sizer.Add(
+            wx.StaticText(panel, label="Voz:"),
+            flag=wx.LEFT | wx.TOP, border=8,
+        )
+        self.pref_system_voice_choice = wx.Choice(
+            panel, choices=[], name="pref_system_voice_choice",
+        )
+        sizer.Add(
+            self.pref_system_voice_choice,
+            flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=8,
+        )
+
+        voice_btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.pref_test_voice_button = wx.Button(
+            panel, label="Probar", name="pref_test_voice_button",
+        )
+        self.pref_test_voice_button.Bind(
+            wx.EVT_BUTTON, self._on_test_voice,
+        )
+        voice_btn_sizer.Add(
+            self.pref_test_voice_button, flag=wx.RIGHT, border=4,
+        )
+
+        self.pref_select_voice_button = wx.Button(
+            panel, label="Seleccionar voz...",
+            name="pref_select_voice_button",
+        )
+        self.pref_select_voice_button.Bind(
+            wx.EVT_BUTTON, self._on_select_voice,
+        )
+        voice_btn_sizer.Add(self.pref_select_voice_button)
+
+        sizer.Add(voice_btn_sizer, flag=wx.LEFT | wx.TOP, border=8)
+
+        sizer.Add(
+            wx.StaticText(panel, label="Velocidad:"),
+            flag=wx.LEFT | wx.TOP, border=8,
+        )
+        rate_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.pref_rate_slider = wx.Slider(
+            panel, minValue=-10, maxValue=10,
+            value=self._config.system_voice_rate,
+            name="pref_rate_slider", style=wx.SL_HORIZONTAL,
+        )
+        self.pref_rate_label = wx.StaticText(
+            panel,
+            label=str(self._config.system_voice_rate),
+            name="pref_rate_label",
+        )
+        rate_sizer.Add(self.pref_rate_slider, proportion=1, flag=wx.EXPAND)
+        rate_sizer.Add(self.pref_rate_label, flag=wx.LEFT, border=4)
+        sizer.Add(rate_sizer, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=8)
+        self.pref_rate_slider.Bind(wx.EVT_SLIDER, self._on_voice_rate_change)
+
+        # ── "Lectura automática" group ─────────────────────────────────
+        sizer.Add(
+            wx.StaticText(panel, label="Lectura automática:"),
+            flag=wx.LEFT | wx.TOP, border=8,
+        )
+        self.pref_auto_speak_checkbox = wx.CheckBox(
+            panel,
+            label="Leer respuestas automáticamente con la voz del sistema",
+            name="pref_auto_speak_checkbox",
+        )
+        self.pref_auto_speak_checkbox.SetValue(
+            self._config.auto_speak_responses,
+        )
+        sizer.Add(
+            self.pref_auto_speak_checkbox,
+            flag=wx.LEFT | wx.RIGHT | wx.BOTTOM, border=8,
+        )
+
+        # ── "Notificaciones" group ─────────────────────────────────────
+        sizer.Add(
+            wx.StaticText(panel, label="Notificaciones:"),
+            flag=wx.LEFT | wx.TOP, border=8,
+        )
+        self.pref_notifications_checkbox = wx.CheckBox(
+            panel, label="Notificaciones del sistema",
+            name="pref_notifications_checkbox",
+        )
+        self.pref_notifications_checkbox.SetValue(
+            self._config.notifications_enabled,
+        )
+        sizer.Add(
+            self.pref_notifications_checkbox,
+            flag=wx.LEFT | wx.RIGHT, border=8,
+        )
+
+        self.pref_sounds_checkbox = wx.CheckBox(
+            panel, label="Sonidos",
+            name="pref_sounds_checkbox",
+        )
+        self.pref_sounds_checkbox.SetValue(self._config.sounds_enabled)
+        sizer.Add(
+            self.pref_sounds_checkbox,
+            flag=wx.LEFT | wx.RIGHT, border=8,
+        )
+
+        sizer.Add(
+            wx.StaticText(panel, label="Tema de sonido:"),
+            flag=wx.LEFT | wx.TOP, border=8,
+        )
+        self.pref_sound_theme_choice = wx.Choice(
+            panel, choices=["default", "none"],
+            name="pref_sound_theme_choice",
+        )
+        self.pref_sound_theme_choice.SetStringSelection(
+            self._config.sound_theme,
+        )
+        sizer.Add(
+            self.pref_sound_theme_choice,
+            flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=8,
+        )
+
+        sizer.AddStretchSpacer()
+        panel.SetSizer(sizer)
+        notebook.AddPage(panel, "Audio")
+
     def _build_status_page(self, notebook: wx.Notebook) -> None:
         """Build Estado (F2) tab: one CheckBox per status toggle.
 
@@ -821,6 +956,45 @@ class PreferencesDialog(wx.Dialog):
             if resolved else ""
         )
         row["binding"].SetLabel(binding_text)
+
+    # ── Audio tab event handlers ──────────────────────────────────────────────
+
+    def _on_test_voice(self, event: wx.CommandEvent) -> None:
+        """Play a test phrase with the currently selected voice/rate."""
+        from bellbird.core.system_voice import SystemVoice
+
+        voice_name = self.pref_system_voice_choice.GetStringSelection()
+        rate = self.pref_rate_slider.GetValue()
+        sv = SystemVoice(voice_name=voice_name, rate=rate)
+        sv.speak("Esta es una prueba de la voz del sistema")
+
+    def _on_select_voice(self, event: wx.CommandEvent) -> None:
+        """Open the VoiceDialog to select voice and rate."""
+        from bellbird.ui.voice_dialog import VoiceDialog
+        from bellbird.core.system_voice import SystemVoice
+
+        voices = SystemVoice.voices()
+        current_voice = self.pref_system_voice_choice.GetStringSelection()
+        current_rate = self.pref_rate_slider.GetValue()
+        dlg = VoiceDialog(
+            self, voices,
+            current_voice=current_voice,
+            current_rate=current_rate,
+        )
+        if dlg.ShowModal() == wx.ID_OK:
+            selected_voice = dlg.get_voice()
+            selected_rate = dlg.get_rate()
+            if selected_voice in voices:
+                self.pref_system_voice_choice.SetStringSelection(
+                    selected_voice,
+                )
+            self.pref_rate_slider.SetValue(selected_rate)
+            self.pref_rate_label.SetLabel(str(selected_rate))
+        dlg.Destroy()
+
+    def _on_voice_rate_change(self, event: wx.CommandEvent) -> None:
+        """Update the rate label as the voice-rate slider moves."""
+        self.pref_rate_label.SetLabel(str(self.pref_rate_slider.GetValue()))
 
     # ── Advanced tab helpers ───────────────────────────────────────────────────
 
@@ -933,6 +1107,22 @@ class PreferencesDialog(wx.Dialog):
         self._config.ctx_size = self.pref_ctx_size_spin.GetValue()
         self._config.n_gpu_layers = self.pref_gpu_layers_spin.GetValue()
         self._config.port = self.pref_port_spin.GetValue()
+
+        # v0.10.0: audio output
+        self._config.system_voice_name = (
+            self.pref_system_voice_choice.GetStringSelection()
+        )
+        self._config.system_voice_rate = self.pref_rate_slider.GetValue()
+        self._config.auto_speak_responses = (
+            self.pref_auto_speak_checkbox.GetValue()
+        )
+        self._config.notifications_enabled = (
+            self.pref_notifications_checkbox.GetValue()
+        )
+        self._config.sounds_enabled = self.pref_sounds_checkbox.GetValue()
+        self._config.sound_theme = (
+            self.pref_sound_theme_choice.GetStringSelection()
+        )
 
         # Save per-model tunings (T-WU2-07)
         model_path = self._config.last_model

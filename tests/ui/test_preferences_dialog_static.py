@@ -617,3 +617,144 @@ def test_model_tunings_no_auto_prune():
                         pytest.fail(
                             f"Auto-prune found at line {node.lineno}: {node.func.attr} on model_tunings in preferences"
                         )
+
+
+# ─── WU-2: Audio tab (v0.10.0) ──────────────────────────────────────────────────
+
+
+def test_audio_tab_exists():
+    """Audio tab is present in the preferences notebook."""
+    source = _get_ui_path("preferences_dialog.py").read_text(encoding="utf-8")
+    assert 'name="audio_page"' in source, (
+        "Audio tab page must have name='audio_page'"
+    )
+    assert 'notebook.AddPage(panel, "Audio")' in source, (
+        "Audio tab must be added to the notebook with label 'Audio'"
+    )
+    assert "_build_audio_page" in source, (
+        "Audio tab must be built by _build_audio_page method"
+    )
+
+
+def test_audio_tab_controls_have_names():
+    """Audio tab controls have the expected name= attributes."""
+    source = _get_ui_path("preferences_dialog.py").read_text(encoding="utf-8")
+    expected_names = [
+        "pref_system_voice_choice",
+        "pref_test_voice_button",
+        "pref_select_voice_button",
+        "pref_rate_slider",
+        "pref_rate_label",
+        "pref_auto_speak_checkbox",
+        "pref_notifications_checkbox",
+        "pref_sounds_checkbox",
+        "pref_sound_theme_choice",
+    ]
+    for name in expected_names:
+        assert f'name="{name}"' in source, (
+            f"Audio tab is missing control with {name!r}"
+        )
+
+
+def test_audio_tab_controls_preceded_by_statictext():
+    """Each Audio tab interactive control has a preceding wx.StaticText."""
+    source = _get_ui_path("preferences_dialog.py").read_text(encoding="utf-8")
+    import re
+    m = re.search(
+        r"def _build_audio_page\(self.*?\).*?:.*?(?=\n    def |\nclass |\Z)",
+        source,
+        re.DOTALL,
+    )
+    assert m is not None, "_build_audio_page method not found"
+    body = m.group(0)
+    assert "wx.StaticText" in body, (
+        "_build_audio_page must create wx.StaticText labels"
+    )
+
+
+def test_audio_tab_has_spanish_labels():
+    """Audio tab contains the expected Spanish labels."""
+    source = _get_ui_path("preferences_dialog.py").read_text(encoding="utf-8")
+    expected_labels = [
+        "Voz del sistema",
+        "Voz:",
+        "Velocidad:",
+        "Lectura automática",
+        "Notificaciones:",
+        "Tema de sonido:",
+    ]
+    for label in expected_labels:
+        assert label in source, (
+            f"Audio tab is missing label: {label!r}"
+        )
+
+
+def test_audio_tab_no_grid_sizer():
+    """Audio tab (and whole file) has no GridSizer."""
+    source = _get_ui_path("preferences_dialog.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    forbidden_sizers = {
+        "wx.GridSizer",
+        "wx.FlexGridSizer",
+        "wx.GridBagSizer",
+    }
+    found_forbidden = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            func_name = _get_func_name(node)
+            if func_name in forbidden_sizers:
+                found_forbidden.append(f"Line {node.lineno}: {func_name}")
+    assert not found_forbidden, (
+        "Forbidden sizers found:\n" + "\n".join(found_forbidden)
+    )
+
+
+def test_audio_tab_apply_config_wired():
+    """_apply_config saves the 6 new audio fields."""
+    source = _get_ui_path("preferences_dialog.py").read_text(encoding="utf-8")
+    import re
+    m = re.search(
+        r"def _apply_config.*?:.*?(?=\n    def |\nclass |\Z)",
+        source,
+        re.DOTALL,
+    )
+    assert m is not None, "_apply_config method not found"
+    body = m.group(0)
+    audio_fields = [
+        "system_voice_name",
+        "system_voice_rate",
+        "auto_speak_responses",
+        "notifications_enabled",
+        "sounds_enabled",
+        "sound_theme",
+    ]
+    for field in audio_fields:
+        assert f"self._config.{field}" in body, (
+            f"_apply_config must save {field}"
+        )
+
+
+def test_read_selected_message_label_exists():
+    """_ACTION_LABELS has an entry for read_selected_message."""
+    source = _get_ui_path("preferences_dialog.py").read_text(encoding="utf-8")
+    assert '"read_selected_message": "Leer mensaje seleccionado"' in source, (
+        "_ACTION_LABELS must include 'read_selected_message' "
+        "with Spanish label"
+    )
+
+
+def test_audio_tab_built_after_keymap_before_status():
+    """_build_audio_page is called between keymap and status pages."""
+    source = _get_ui_path("preferences_dialog.py").read_text(encoding="utf-8")
+    assert "_build_keymap_page(notebook)" in source
+    assert "_build_audio_page(notebook)" in source
+    assert "_build_status_page(notebook)" in source
+    keymap_idx = source.index("_build_keymap_page(notebook)")
+    audio_idx = source.index("_build_audio_page(notebook)")
+    status_idx = source.index("_build_status_page(notebook)")
+    assert keymap_idx < audio_idx, (
+        "Audio tab must be AFTER Atajos tab"
+    )
+    assert audio_idx < status_idx, (
+        "Audio tab must be BEFORE Estado (F2) tab"
+    )

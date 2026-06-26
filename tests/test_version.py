@@ -1,10 +1,10 @@
-"""Test that bellbird's package version is 0.9.0."""
+"""Test that bellbird's package version is 0.10.0."""
 
 import bellbird
 
 
-def test_version_is_0_9_0():
+def test_version_is_0_10_0():
     """GIVEN the bellbird package
     WHEN __version__ is read
-    THEN it equals '0.9.0'."""
-    assert bellbird.__version__ == "0.9.0"
+    THEN it equals '0.10.0'."""
+    assert bellbird.__version__ == "0.10.0"

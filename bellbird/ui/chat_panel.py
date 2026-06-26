@@ -148,6 +148,27 @@ class ChatPanel(wx.Panel):
         """
         return self._history[index]
 
+    def get_selected_message_text(self) -> str:
+        """Get the full text of the currently selected message.
+
+        Returns empty string when no message is selected, when the
+        selection is out of range, or when the streaming placeholder
+        ``[IA] (generando…)`` is selected.
+
+        Returns:
+            Full text content of the selected message, or ``""``.
+        """
+        sel = self.message_list.GetSelection()
+        if sel == wx.NOT_FOUND:
+            return ""
+        if 0 <= sel < len(self._history):
+            text = self._history[sel][1]
+            # Streaming placeholder check
+            if text.startswith("[IA] (generando"):
+                return ""
+            return text
+        return ""
+
     def get_history(self) -> list[tuple[str, str]]:
         """Get a copy of the full history list.
 

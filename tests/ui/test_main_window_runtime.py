@@ -1078,3 +1078,107 @@ class TestPreSendGuard:
             )
         finally:
             frame.Destroy()
+
+
+# ─── WU-2: Notifier + F8 handler (v0.10.0) ──────────────────────────────────────
+
+
+class TestNotifierWiring:
+    """Notifier construction and basic wiring in MainWindow."""
+
+    def test_notifier_exists(self, app):
+        """MainWindow constructs _notifier with a callable notify."""
+        frame, config, _, _ = _make_frame(app)
+        try:
+            assert hasattr(frame, "_notifier"), (
+                "MainWindow must have _notifier attribute"
+            )
+            assert hasattr(frame._notifier, "notify"), (
+                "Notifier must have a notify method"
+            )
+            assert callable(frame._notifier.notify), (
+                "notify must be callable"
+            )
+        finally:
+            frame.Destroy()
+
+    def test_notifier_has_focus_check(self, app):
+        """Notifier is constructed with a focus_check lambda."""
+        frame, config, _, _ = _make_frame(app)
+        try:
+            # The focus_check is callable and returns a bool
+            result = frame._notifier._focus_check()
+            assert isinstance(result, bool), (
+                "focus_check must return a bool"
+            )
+        finally:
+            frame.Destroy()
+
+    def test_on_read_selected_message_exists(self, app):
+        """_on_read_selected_message method exists and is callable."""
+        frame, config, _, _ = _make_frame(app)
+        try:
+            assert hasattr(frame, "_on_read_selected_message"), (
+                "MainWindow must have _on_read_selected_message method"
+            )
+            assert callable(frame._on_read_selected_message), (
+                "_on_read_selected_message must be callable"
+            )
+        finally:
+            frame.Destroy()
+
+    def test_on_read_selected_message_gates_on_generating(self, app):
+        """_on_read_selected_message speaks guard message mid-generation."""
+        frame, config, _, fake_speech = _make_frame(app)
+        try:
+            frame.chat_panel._is_generating = True
+            frame._on_read_selected_message()
+            assert "Generación en curso" in fake_speech.last_message, (
+                f"Expected 'Generación en curso', got {fake_speech.last_message!r}"
+            )
+        finally:
+            frame.Destroy()
+
+    def test_f8_action_id_registered(self, app):
+        """read_selected_message is in the _action_ids dict (F8 binding)."""
+        frame, config, _, _ = _make_frame(app)
+        try:
+            assert "read_selected_message" in frame._action_ids, (
+                "read_selected_message must be registered in _action_ids"
+            )
+            # Verify the handler dict in _build_accelerators has it
+            # We can check the handlers dict by introspecting the source
+        finally:
+            frame.Destroy()
+
+
+class TestSystemVoiceConstruction:
+    """SystemVoice and SoundPlayer construction in MainWindow."""
+
+    def test_system_voice_constructed(self, app):
+        """MainWindow constructs _system_voice in __init__."""
+        frame, config, _, _ = _make_frame(app)
+        try:
+            assert hasattr(frame, "_system_voice"), (
+                "MainWindow must have _system_voice"
+            )
+            from bellbird.core.system_voice import SystemVoice
+            assert isinstance(frame._system_voice, SystemVoice), (
+                "_system_voice must be a SystemVoice instance"
+            )
+        finally:
+            frame.Destroy()
+
+    def test_sound_player_constructed(self, app):
+        """MainWindow constructs _sound_player in __init__."""
+        frame, config, _, _ = _make_frame(app)
+        try:
+            assert hasattr(frame, "_sound_player"), (
+                "MainWindow must have _sound_player"
+            )
+            from bellbird.core.sound_player import SoundPlayer
+            assert isinstance(frame._sound_player, SoundPlayer), (
+                "_sound_player must be a SoundPlayer instance"
+            )
+        finally:
+            frame.Destroy()

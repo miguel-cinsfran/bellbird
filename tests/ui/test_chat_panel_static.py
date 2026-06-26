@@ -114,6 +114,23 @@ def test_message_list_present():
     assert 'name="Historial de mensajes"' in source or "name='Historial de mensajes'" in source
 
 
+def test_get_selected_message_text_exists():
+    """ChatPanel has a get_selected_message_text method."""
+    source_path = _get_ui_path("chat_panel.py")
+    source = source_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    found = False
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == "get_selected_message_text":
+            found = True
+            args = [a.arg for a in node.args.args]
+            assert "self" in args, "get_selected_message_text must have self parameter"
+            break
+
+    assert found, "get_selected_message_text method not found in ChatPanel"
+
+
 def test_stream_display_absent():
     """ChatPanel no longer has a stream_display TextCtrl."""
     source_path = _get_ui_path("chat_panel.py")

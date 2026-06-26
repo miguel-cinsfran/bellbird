@@ -45,6 +45,11 @@ from bellbird.core.permission_manager import PermissionManager
 from bellbird.core.tool_executor import ToolExecutor, ToolResult
 from bellbird.ui.permission_dialog import PermissionDialog
 from bellbird.ui.preferences_dialog import PreferencesDialog
+from bellbird.ui.wx_notifier import WxToastSender
+from bellbird.core.notifier import Notifier
+from bellbird.core.system_voice import SystemVoice
+from bellbird.core.sound_player import SoundPlayer
+from bellbird.core.text_utils import strip_markdown
 from bellbird.core.status_formatter import SessionSnapshot, format_status
 from bellbird.core.context_advisor import read_vram, estimate_fit, pre_send_check, PreSendSnapshot, token_count
 from bellbird.core.model_meta import read_gguf_metadata, estimate_size_bytes, GGUFMetadata
@@ -93,6 +98,13 @@ def _build_options(config: BellbirdConfig) -> dict[str, object]:
     return options
 
 
+class _NullToastSender:
+    """No-op toast sender for non-win32 platforms."""
+
+    def show(self, title: str, message: str, timeout: int = 5) -> None:
+        pass
+
+
 class MainWindow(wx.Frame):
     """Top-level application window.
 
@@ -114,6 +126,27 @@ class MainWindow(wx.Frame):
         )
         self._conversation = Conversation()
         self._speech = Speech()
+
+        # Audio output subsystems (v0.10.0)
+        self._sound_player = SoundPlayer(
+            theme=self._config.sound_theme,
+        )
+        self._system_voice = SystemVoice(
+            voice_name=self._config.system_voice_name,
+            rate=self._config.system_voice_rate,
+        )
+        if sys.platform == "win32":
+            self._toast = WxToastSender(parent=self)
+        else:
+            self._toast = _NullToastSender()
+        self._notifier = Notifier(
+            focus_check=lambda: not self.IsActive(),
+            toast_sender=self._toast,
+            sound_player=self._sound_player,
+            notifications_enabled=self._config.notifications_enabled,
+            sounds_enabled=self._config.sounds_enabled,
+            sound_theme=self._config.sound_theme,
+        )
         self._current_response: str = ""
         self._current_reasoning: str = ""
         self._is_generating = False
@@ -515,6 +548,7 @@ class MainWindow(wx.Frame):
             "regenerate": lambda: self._on_regenerate_last(),
             "find_in_history": lambda: self._on_find(),
             "attach_url": lambda: self._on_attach_url(),
+            "read_selected_message": lambda: self._on_read_selected_message(),
         }
 
         accel_entries: list[wx.AcceleratorEntry] = []
@@ -573,6 +607,23 @@ class MainWindow(wx.Frame):
     def _on_regenerate_last(self) -> None:
         """Remove the last assistant response and re-send the same user prompt."""
         self.chat_panel.regenerate_last()
+
+    def _on_read_selected_message(self) -> None:
+        """Read the selected message using system voice (F8).
+
+        Gates on mid-generation: if generating, speaks and returns.
+        Silently returns when no message is selected or the selected
+        text is empty (streaming placeholder).
+        """
+        if self.chat_panel._is_generating:
+            self._speech.speak("Generación en curso", interrupt=False)
+            return
+        text = self.chat_panel.get_selected_message_text()
+        if not text:
+            self._speech.speak("Nada que leer", interrupt=False)
+            return
+        plain = strip_markdown(text)
+        self._speech.speak_with_system_voice(plain, self._system_voice)
 
     def _on_regenerate_send_callback(self, text: str, user_idx: int) -> None:
         """Callback from ChatPanel.regenerate_last: re-attach images and send.
@@ -981,6 +1032,8 @@ class MainWindow(wx.Frame):
             self.status_bar.SetStatusText("Error al iniciar", 0)
         self._sync_button_state(ok)
         self._speech.speak(message, interrupt=True)
+        if ok:
+            self._notifier.notify("server_ready", "Servidor listo")
 
     def _persist_last_model(self, basename: str) -> None:
         """Save the just-loaded model basename to the persisted config.
@@ -1109,6 +1162,7 @@ class MainWindow(wx.Frame):
         self._sync_button_state(True)
         if loaded:
             self._speech.output(f"Modelo: {Path(loaded).stem}")
+            self._notifier.notify("model_loaded", Path(loaded).stem)
         else:
             self._speech.speak(
                 "Conectado. Sin modelo cargado.", interrupt=True,
@@ -1563,6 +1617,7 @@ class MainWindow(wx.Frame):
         log.info("_on_done: response_len=%d chars", len(self._current_response))
         self._speech.flush_token_buffer()
         self._speech.speak("Respuesta completa", interrupt=True)
+        self._notifier.notify("generation_complete", "Respuesta completa")
 
         # Save assistant message to conversation (including reasoning).
         # Skip when a tool call is pending: _on_tool_result will save the
@@ -1621,6 +1676,9 @@ class MainWindow(wx.Frame):
         self._speech.speak(
             "El modelo quiere ejecutar un comando. Escucha el comando y confirma.",
             interrupt=True,
+        )
+        self._notifier.notify(
+            "tool_request", "El modelo quiere ejecutar un comando",
         )
         dlg = PermissionDialog(
             self, tool_name, command, risk,
@@ -1803,6 +1861,7 @@ class MainWindow(wx.Frame):
             style=wx.OK | wx.ICON_ERROR,
         ).ShowModal()
         self._speech.speak(error_text, interrupt=True)
+        self._notifier.notify("error", "Error")
 
     def _run_connection_watchdog(self, error_text: str) -> None:
         """Check server state on a daemon thread for connection errors.
@@ -1839,6 +1898,7 @@ class MainWindow(wx.Frame):
             self._speech.speak(
                 "El servidor se detuvo. ¿Reiniciar?", interrupt=True
             )
+            self._notifier.notify("error", "Servidor caído")
             self._show_restart_dialog()
         elif state == "loading":
             self._speech.speak(

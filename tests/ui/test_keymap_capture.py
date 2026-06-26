@@ -25,15 +25,17 @@ from bellbird.ui.preferences_dialog import (
 # ══════════════════════════════════════════════════════════════════════════════
 
 
-class TestSixTabOrder:
-    """Six tabs present in source — General → Modelo → Chat → Herramientas → Avanzado → Atajos."""
+class TestTabOrder:
+    """9 tabs present in source — labels come from AddPage literals in
+    _build_ui, which include the ``&`` mnemonic prefix."""
 
     def _extract_tab_labels(self) -> list[str]:
-        """Parse _build_ui to extract AddPage label literals."""
+        """Parse the full PreferencesDialog class source to extract AddPage
+        label literals (with & mnemonics) from all _build_*_page methods."""
         import ast
         import inspect
 
-        source = inspect.getsource(PreferencesDialog._build_ui)
+        source = inspect.getsource(PreferencesDialog)
         tree = ast.parse(source)
 
         labels: list[str] = []
@@ -54,16 +56,21 @@ class TestSixTabOrder:
         Visitor().visit(tree)
         return labels
 
-    def test_six_tabs_present(self):
-        """The _build_ui method adds exactly 6 tabs with the expected labels."""
+    def test_nine_tabs_present(self):
+        """The _build_ui method adds exactly 9 tabs with the expected labels."""
         from bellbird.ui.preferences_dialog import PreferencesDialog
         labels = self._extract_tab_labels()
-        assert len(labels) == 6, f"Expected 6 tab labels, got {len(labels)}: {labels}"
+        assert len(labels) == 9, f"Expected 9 tab labels, got {len(labels)}: {labels}"
 
     def test_tab_order(self):
-        """Tab order is General → Modelo → Chat → Herramientas → Avanzado → Atajos."""
+        """Tab order is &General → &Modelo → C&hat → &Lectura → &Herramientas →
+        &Avanzado → A&tajos → A&udio → &Estado (F2)."""
         labels = self._extract_tab_labels()
-        expected = ["General", "Modelo", "Chat", "Herramientas", "Avanzado", "Atajos"]
+        expected = [
+            "&General", "&Modelo", "C&hat", "&Lectura",
+            "&Herramientas", "&Avanzado", "A&tajos", "A&udio",
+            "&Estado (F2)",
+        ]
         assert labels == expected, f"Tab order mismatch: {labels} != {expected}"
 
 

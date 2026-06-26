@@ -113,12 +113,29 @@ Documentar decisiones en el mensaje de commit.
   `finish_reason == "tool_calls"`; guard de iteraciones; "permitir en sesión" es
   **granular por riesgo**, no por nombre de tool.
 - **Contexto/F2:** el cliente envía `"stream_options": {"include_usage":true}` (sin eso
-  `usage` NO llega en streaming y el % de contexto no funciona).
+  `usage` NO llega en streaming y el % de contexto no funciona); conteo por
+  `POST /tokenize`; un único formateador para F2 + barra de estado.
 - **Multimodal:** `start_server` pasa `--mmproj` para activar visión; empareja mmproj
   por modelo; avisa si se adjunta imagen a un modelo sin visión.
 - **Config/log:** `platformdirs` — jamás escribir dentro del paquete ni en `Program Files`.
 - **API llama.cpp:** tok/s = `timings.predicted_per_second`; `n_ctx`/`meta` por `GET /props`.
   CLI: `-c/--ctx-size`, `-ngl/--n-gpu-layers`, `--jinja`.
+
+## Revisión del trabajo de opencode (cuando vuelva ~julio)
+
+Cuando Miguel vuelva con el resultado de una capa, revisar así:
+1. Abrir el diff/commits + el verify-report. Identificar qué prompt fue y leer su
+   sección **Done When** + el **§** del doc de investigación que referencia.
+2. Correr `uv run --no-sync pytest -xvs` (en WSL: core + AST). Confirmar verde.
+3. Contrastar el diff contra: **Reglas críticas de UI**, **regla de seguridad**, y el
+   **checklist de gotchas** de arriba.
+4. **Tests:** confirmar que lo nuevo wx-runtime quedó con `pytest.importorskip("wx")` y
+   registrado en `run_tests.bat`. Lo `core/` sí corre en WSL.
+5. Bug **pequeño y acotado** → arreglar inline. Grande o cambia diseño → nuevo prompt.
+
+**Prompts (gentle-ai):** deben ser **ricos ~7–9k caracteres** (no 1–2k). Inlinean:
+objetivo, estado con `archivo:línea`, hechos verificados, alcance, archivos a tocar,
+casos de test, criterios "done". Fuente de diseño: `openspec/research/2026-06-24-investigacion-ux-y-toolcalling.md`.
 
 ## gh CLI — tareas e investigación
 

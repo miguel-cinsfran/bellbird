@@ -1,3 +1,0 @@
-wxpython>=4.2
-accessible-output2>=0.17
-requests>=2.31

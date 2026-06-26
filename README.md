@@ -7,7 +7,7 @@ Usa [llama.cpp](https://github.com/ggerganov/llama.cpp) como backend. Los modelo
 
 ## Estado
 
-v0.4.0 — en desarrollo activo. Sin verificación formal con NVDA todavía.
+v0.11.0 — en desarrollo activo. Sin verificación formal con NVDA todavía.
 
 ## Tests
 

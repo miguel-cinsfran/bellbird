@@ -30,3 +30,30 @@
 - `_extract_tab_labels` now uses `inspect.getsource(PreferencesDialog)` (full class) instead of `PreferencesDialog._build_ui` (method only) — needed because `AddPage` calls are in helper methods, not in `_build_ui` directly
 - Class renamed to `TestTabOrder` instead of `TestNineTabOrder` to avoid future rename churn
 - No changes to `bellbird/` source — zero diffs in production code
+
+---
+
+# Apply Progress — WU-2
+
+**Change**: `windows-tests-more-coverage`
+**Date**: 2026-06-26
+**WU**: 2 of 2
+**Status**: Complete
+
+## Commits
+
+1. `chore(tests): simplify run_tests.bat to single pytest call + comment list`
+2. `chore(smoke): auto-discover UI modules via pkgutil.iter_modules`
+
+## Test Count Delta (WSL)
+
+| Metric | Before | After | Delta |
+|--------|--------|-------|-------|
+| Passed | 846 | 846 | 0 |
+| Skipped | 19 | 19 | 0 |
+| Failed | 0 | 0 | 0 |
+
+- `run_tests.bat`: single `uv run pytest tests/ -v --tb=short` on line 39, plus a 16-line REM comment block listing wx-runtime files (documentation, not execution). Single `uv run python smoke_test.py` call.
+- `smoke_test.py`: `_MODULOS_UI` replaced by `_descubrir_modulos_ui()` using `pkgutil.iter_modules` — auto-discovers 9 UI modules (was 5 hardcoded).
+- `README.md`: added `## Tests` section with 4-level table.
+- Zero changes to `bellbird/` source.

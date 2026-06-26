@@ -222,10 +222,24 @@ class TestSpecDatas:
     """REQ-BUILD-4: datas bundles sound assets."""
 
     def test_spec_datas_bundles_sounds(self):
-        """spec datas includes the WAV glob pattern and destination."""
+        """spec datas includes the WAV glob pattern and the correct
+        destination. The destination MUST be ``bellbird/data/sounds/default``
+        (with the ``bellbird/`` prefix) because ``core/sound_player.py``
+        resolves sounds via ``Path(__file__).parent.parent / "data" / "sounds"``
+        and ``__file__`` is the sound_player module under the package.
+
+        Under a frozen PyInstaller build, the package layout is preserved
+        (bellbird/core/sound_player.pyc is at Bellbird/bellbird/core/), so
+        the bundled datas must land at Bellbird/bellbird/data/sounds/default/.
+        A destination of just ``data/sounds/default`` would land them at
+        Bellbird/data/sounds/default/ and ``Path.is_file()`` would silently
+        return False, breaking notification sounds with no error."""
         spec = _extract_spec(_read_script())
         assert "bellbird/data/sounds/default/*.wav" in spec
-        assert "data/sounds/default" in spec
+        assert "'bellbird/data/sounds/default'" in spec, (
+            "datas destination must include the 'bellbird/' prefix; "
+            "see sound_player.py path resolution"
+        )
 
     def test_spec_datas_non_empty(self):
         """spec datas list is not empty."""
@@ -333,6 +347,31 @@ class TestGlobalAssertions:
         # But 'ollamachat' as a product name must be gone.
         assert "ollamachat" not in script, (
             "script still contains 'ollamachat' branding"
+        )
+
+    def test_leeme_no_ollama_operational_instructions(self):
+        """The LEEME.txt heredoc does not instruct the user to install
+        or start ``Ollama`` — Bellbird uses ``llama-server`` from
+        llama.cpp, not Ollama. Telling the user to ``ollama pull
+        llama3.2`` or to click an "Iniciar Ollama" button that does
+        not exist would lead them to install the wrong software and
+        fail at runtime."""
+        script = _read_script()
+        leeme_start = script.index("BELLBIRD v${VERSION}")
+        leeme_end = script.index("ATENCION", leeme_start) if "ATENCION" in script[leeme_start:] else len(script)
+        leeme = script[leeme_start:leeme_end]
+        # "ollama" the lowercase server command must not appear in
+        # operational instructions. Bellbird's name contains the
+        # substring "ollama" — but only in a few legitimate places
+        # (the project name "Bellbird" itself doesn't, so a literal
+        # "ollama pull" or "Iniciar Ollama" should be gone).
+        assert "ollama pull" not in leeme.lower(), (
+            "LEEME.txt still instructs the user to run 'ollama pull' — "
+            "Bellbird uses llama-server, not Ollama"
+        )
+        assert "iniciar ollama" not in leeme.lower(), (
+            "LEEME.txt still references an 'Iniciar Ollama' button — "
+            "Bellbird uses 'Iniciar servidor' (F7) with llama-server"
         )
 
     def test_script_zip_name_is_bellbird(self):

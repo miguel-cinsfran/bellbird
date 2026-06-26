@@ -200,23 +200,22 @@ QUE HACER
    Si no lo tenes, bajalo de https://www.python.org/downloads/
    Durante la instalacion, marca la opcion "Add Python to PATH".
 
-3. Asegurate de tener Ollama instalado y corriendo, con al menos un
-   modelo descargado. Si no, bajalo de https://ollama.com/download
-   y en una terminal ejecutá: ollama pull llama3.2
+ 3. Asegurate de tener un modelo GGUF descargado. Si no tenes ninguno,
+   busca alguno en Hugging Face (formato .gguf) y descargalo a una
+   carpeta local (por ejemplo D:\modelos\).
 
-4. Doble click en build.bat y esperá. La primera vez tarda entre
+ 4. Doble click en build.bat y esperá. La primera vez tarda entre
    5 y 10 minutos porque tiene que descargar wxPython (que es pesado)
    y compilar todo. Las veces siguientes tarda segundos.
 
-5. Cuando build.bat termina, andá a la carpeta recien creada
+ 5. Cuando build.bat termina, andá a la carpeta recien creada
    dist\Bellbird\ y hace doble click en Bellbird.exe.
 
-6. La primera vez, si Ollama no esta corriendo, te aparece un dialogo
-   y la aplicacion lo anuncia por voz. Apreta el boton "Iniciar Ollama"
-   que esta arriba de todo para arrancarlo. Despues F5 recarga la lista
-   de modelos.
+ 6. La primera vez que inicies la app, andá a "Servidor" en el menu
+   y hace click en "Buscar modelos" (F5). Selecciona la carpeta donde
+   guardaste tus modelos .gguf. Despues "Iniciar servidor" (F7).
 
-7. Para conversar: escribi en el campo de abajo y aprieta Enter.
+ 7. Para conversar: escribi en el campo de abajo y aprieta Enter.
    Shift+Enter inserta salto de linea sin enviar.
 
 ATAJOS DE TECLADO
@@ -236,8 +235,9 @@ PROBLEMAS COMUNES
 
 - build.bat dice "Python no encontrado": instalá Python y reiniciá
   la terminal (o reintenta con doble click).
-- La aplicacion dice "No se puede conectar a Ollama": inicia Ollama
-  desde el menu inicio, o hace click en "Iniciar Ollama" arriba.
+- La aplicacion dice "No se puede conectar al servidor": asegurate
+  de haber iniciado el servidor con F7 despues de seleccionar la
+  carpeta de modelos con F5.
 - La aplicacion se abre sin voz: instalá NVDA (gratis) o JAWS.
   accessible-output2 los detecta automaticamente.
 - Cualquier otro error: revisá el archivo %LOCALAPPDATA%\\Bellbird\\data\\bellbird.log.
@@ -267,7 +267,7 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[
-        ('bellbird/data/sounds/default/*.wav', 'data/sounds/default'),
+        ('bellbird/data/sounds/default/*.wav', 'bellbird/data/sounds/default'),
     ],
     hiddenimports=[
         'wx',

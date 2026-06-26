@@ -9,6 +9,21 @@ Usa [llama.cpp](https://github.com/ggerganov/llama.cpp) como backend. Los modelo
 
 v0.4.0 — en desarrollo activo. Sin verificación formal con NVDA todavía.
 
+## Tests
+
+Tres niveles de prueba, según el entorno:
+
+| Nivel | Entorno | Comando |
+|-------|---------|---------|
+| `core/` (lógica pura, sin wx) | WSL | `uv run --no-sync pytest -xvs` |
+| `ui/` estático (AST, sin wx) | WSL | `uv run --no-sync pytest -xvs` |
+| `ui/` runtime (wx real) | Windows | `run_tests.bat` |
+| `smoke_test.py` (UIA tree walk) | Windows + pywinauto | `uv run python smoke_test.py` |
+
+Los tests `*_runtime.py` se saltan automáticamente en WSL/CI
+via `pytest.importorskip("wx")`. En Windows se ejecutan con
+wx real y cubren comportamiento que el AST no ve.
+
 ## Build (Windows .exe)
 
 Bellbird can be packaged as a standalone Windows executable via PyInstaller.

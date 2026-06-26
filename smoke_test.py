@@ -22,6 +22,7 @@ Para la fase 3 hace falta:  pip install pywinauto
 from __future__ import annotations
 
 import os
+import pkgutil
 import sys
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
@@ -42,13 +43,14 @@ _MODULOS_CORE = [
     "bellbird.core.tool_executor",
 ]
 
-_MODULOS_UI = [
-    "bellbird.ui.chat_panel",
-    "bellbird.ui.message_detail_dialog",
-    "bellbird.ui.permission_dialog",
-    "bellbird.ui.preferences_dialog",
-    "bellbird.ui.main_window",
-]
+def _descubrir_modulos_ui() -> list[str]:
+    """Descubre automaticamente los modulos de bellbird.ui via pkgutil."""
+    import bellbird.ui as _ui_pkg
+    return sorted(
+        f"bellbird.ui.{mod.name}"
+        for mod in pkgutil.iter_modules(_ui_pkg.__path__)
+        if not mod.name.startswith("_")
+    )
 
 
 def _titulo(texto):
@@ -80,7 +82,9 @@ def fase2_gui() -> bool:
         return True
     ok = True
     print(f"  wxPython {wx.version()}")
-    for nombre in _MODULOS_UI:
+    modulos_ui = _descubrir_modulos_ui()
+    print(f"  Modulos auto-descubiertos: {len(modulos_ui)}")
+    for nombre in modulos_ui:
         try:
             __import__(nombre)
             print(f"  [ok]    import {nombre}")

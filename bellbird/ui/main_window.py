@@ -45,6 +45,9 @@ from bellbird.core.permission_manager import PermissionManager
 from bellbird.core.tool_executor import ToolExecutor, ToolResult
 from bellbird.ui.permission_dialog import PermissionDialog
 from bellbird.ui.preferences_dialog import PreferencesDialog
+from bellbird.core.status_formatter import SessionSnapshot, format_status
+from bellbird.core.context_advisor import read_vram, estimate_fit, pre_send_check, PreSendSnapshot, token_count
+from bellbird.core.model_meta import read_gguf_metadata, estimate_size_bytes, GGUFMetadata
 
 SHELL_TOOL_DEFINITION = {
     "type": "function",
@@ -132,6 +135,19 @@ class MainWindow(wx.Frame):
         self._recent_items: dict[int, str] = {}
         self._recents_menu: wx.Menu | None = None
         self._archivo_menu: wx.Menu | None = None
+
+        # v0.9.0: context advisor + toggleable F2 state
+        self._latest_prompt_tokens: int | None = None
+        self._latest_completion_tokens: int | None = None
+        self._latest_tok_per_s: float | None = None
+        self._current_n_ctx: int | None = None
+        self._vram_free_mb: int | None = None
+        self._vram_total_mb: int | None = None
+        self._fit_status: str | None = None
+        self._pre_send_warned_this_conv: bool = False
+        self._context_warned_for_turn: bool = False
+        self._last_f2_mono: float | None = None
+        self._meter_threshold_fired: bool = False
 
         # Must be defined before _build_menu() which uses them for Append() IDs.
         self.ID_START_SERVER = wx.NewIdRef()
@@ -842,6 +858,14 @@ class MainWindow(wx.Frame):
             except OSError:
                 pass  # best-effort persistence
 
+        # Restore per-model tunings (T-WU2-07)
+        if basename in self._config.model_tunings:
+            saved = self._config.model_tunings[basename]
+            if "ctx_size" in saved:
+                self._config.ctx_size = saved["ctx_size"]
+            if "n_gpu_layers" in saved:
+                self._config.n_gpu_layers = saved["n_gpu_layers"]
+
         self.use_model_button.Disable()
         self.restart_server_button.Disable()
         self._speech.speak(
@@ -1169,41 +1193,61 @@ class MainWindow(wx.Frame):
     # ── Session Status (F2) ──────────────────────────────────────────────────
 
     def _announce_session_status(self) -> None:
-        """Announce the current session status via speech (F2)."""
-        model_str = "sin modelo cargado"
+        """Announce the current session status via speech (F2).
+
+        Uses ``SessionSnapshot`` + ``format_status`` to build the string.
+        Routes through ``speech.output()`` (voz+braille) when idle and
+        ``speech.speak(..., interrupt=False)`` during generation.
+
+        Double-F2 within 1.5 s switches to ``mode="long"`` (full breakdown).
+        """
+        # Double-F2 detection (T-WU2-02)
+        now = time.monotonic()
+        if self._last_f2_mono is not None and (now - self._last_f2_mono) <= 1.5:
+            mode: str = "long"
+            self._last_f2_mono = None  # reset so third press starts short cycle
+        else:
+            mode = "short"
+        self._last_f2_mono = now
+
+        # Build SessionSnapshot
         loaded = self._client.get_loaded_model()
-        if loaded:
-            model_str = Path(loaded).stem
+        model_name = Path(loaded).stem if loaded else ""
 
-        server_str = (
-            "en ejecución" if self._client.check_running() else "detenido"
+        server_state = self._client.check_state()
+
+        progress_tokens = (
+            self._latest_completion_tokens if self._is_generating else None
         )
 
-        msg_count = len(self._conversation.messages) // 2
-        msg_str = f"{msg_count} mensajes" if msg_count > 0 else "sin mensajes"
-
-        tokens_str = "Tokens: sin información"
-        if self._last_usage:
-            total = self._last_usage.get("total_tokens", 0)
-            tokens_str = f"{total} tokens"
-
-        temp = self._config.temperature
-        topp = self._config.top_p
-        min_p = self._config.min_p
-        temp_str = f"{temp:.2f}".replace(".", ",")
-        topp_str = f"{topp:.2f}".replace(".", ",")
-        minp_str = f"{min_p:.2f}".replace(".", ",")
-
-        gen_str = "Generando: Sí" if self._is_generating else "Generando: No"
-        vision_str = "Imágenes: sí" if self._vision_capable else "Imágenes: no"
-
-        text = (
-            f"Modelo {model_str}. {server_str}. {msg_str}. {tokens_str}. "
-            f"Temperatura {temp_str}. Top-p {topp_str}. "
-            f"Min-p {minp_str}. {gen_str}. "
-            f"{vision_str}."
+        snapshot = SessionSnapshot(
+            model_name=model_name,
+            n_ctx=self._current_n_ctx,
+            prompt_tokens=self._latest_prompt_tokens,
+            completion_tokens=self._latest_completion_tokens,
+            progress_tokens=progress_tokens,
+            last_tok_per_s=self._latest_tok_per_s,
+            server_state=server_state,
+            vram_free_mb=self._vram_free_mb,
+            vram_total_mb=self._vram_total_mb,
+            fit_status=self._fit_status,
+            message_count=len(self._conversation.messages),
+            temperature=self._config.temperature,
+            top_p=self._config.top_p,
+            max_tokens=self._config.max_tokens,
+            is_generating=self._is_generating,
         )
-        self._speech.speak(text, interrupt=True)
+
+        toggles = self._config.status_toggles_as_set()
+        text = format_status(snapshot, toggles, mode)
+
+        if not text:
+            return  # all toggles off — no speech
+
+        if self._is_generating:
+            self._speech.speak(text, interrupt=False)
+        else:
+            self._speech.output(text)
 
     def _set_initial_focus(self) -> None:
         """Set initial focus based on model availability, without I/O.
@@ -1359,6 +1403,43 @@ class MainWindow(wx.Frame):
         else:
             self.chat_panel.append_user_message("[imagen enviada]")
 
+        # ── Pre-send guard (T-WU2-04) ──────────────────────────────────
+        joined_text = user_text
+        if attached_text:
+            joined_text = f"{user_text}\n\n{attached_text}" if user_text.strip() else attached_text
+        model_path = self.get_model()
+        vram_free = read_vram()[0] if self._vram_free_mb is None else self._vram_free_mb
+        model_bytes = estimate_size_bytes(model_path) if model_path else None
+        token_est = token_count(
+            joined_text, self._client.base_url, self._client._session, timeout=5.0
+        ) or 0
+
+        presend_snap = PreSendSnapshot(
+            estimated_tokens=token_est,
+            n_ctx=self._current_n_ctx,
+            safe_mode=self._config.safe_vram_mode,
+            warn_once=self._pre_send_warned_this_conv,
+            vram_free_mb=vram_free,
+            model_size_bytes=model_bytes,
+        )
+        verdict = pre_send_check(presend_snap)
+        if verdict.decision == "block":
+            self._speech.speak(
+                verdict.reason_es or "Contexto lleno; iniciá nueva conversación",
+                interrupt=True,
+            )
+            return
+        elif verdict.decision == "warn":
+            self._speech.speak(
+                verdict.reason_es or "Vas a exceder el contexto",
+                interrupt=True,
+            )
+            self._pre_send_warned_this_conv = True
+        # "allow" → proceed silently
+
+        # Reset context meter threshold for the new generation
+        self._meter_threshold_fired = False
+
         # Start generation
         options = _build_options(self._config)
         self._current_response = ""
@@ -1394,6 +1475,7 @@ class MainWindow(wx.Frame):
             on_done=self._on_done,
             on_error=self._on_error,
             on_usage=self._on_usage,
+            on_timings=self._on_timings,
             on_tool_call=self._on_tool_call,
             tools=tools,
             on_reasoning=self._on_reasoning,
@@ -1667,6 +1749,7 @@ class MainWindow(wx.Frame):
             on_done=self._on_done,
             on_error=self._on_error,
             on_usage=self._on_usage,
+            on_timings=self._on_timings,
             on_tool_call=self._on_tool_call,
             tools=tools,
             on_reasoning=self._on_reasoning,
@@ -1846,6 +1929,16 @@ class MainWindow(wx.Frame):
 
     # ── Usage & Browser ─────────────────────────────────────────────────────
 
+    def _on_timings(self, timings: dict) -> None:
+        """Handle timings from the LLM stream.
+
+        Args:
+            timings: Dict with predicted_per_second (and possibly other fields).
+        """
+        tok_per_s = timings.get("predicted_per_second")
+        if tok_per_s is not None:
+            self._latest_tok_per_s = float(tok_per_s)
+
     def _on_usage(self, usage: dict) -> None:
         """Handle usage stats from the LLM stream.
 
@@ -1853,9 +1946,44 @@ class MainWindow(wx.Frame):
             usage: Dict with prompt_tokens, completion_tokens, total_tokens.
         """
         self._last_usage = usage
-        self.status_bar.SetStatusText(
-            f"Tokens: {usage.get('total_tokens', 0)}", 1
+        pt = usage.get("prompt_tokens")
+        ct = usage.get("completion_tokens")
+        if pt is not None:
+            self._latest_prompt_tokens = int(pt)
+        if ct is not None:
+            self._latest_completion_tokens = int(ct)
+        self._update_context_meter(
+            self._latest_prompt_tokens or 0,
+            self._latest_completion_tokens or 0,
+            self._current_n_ctx,
         )
+
+    def _update_context_meter(
+        self, prompt_tokens: int, completion_tokens: int, n_ctx: int | None
+    ) -> None:
+        """Update status bar field 1 with the live context meter.
+
+        Called from ``_on_usage`` after caching the latest token counts.
+
+        Args:
+            prompt_tokens: Prompt token count.
+            completion_tokens: Completion token count.
+            n_ctx: Context window size, or ``None`` if unknown.
+        """
+        total = prompt_tokens + completion_tokens
+        if n_ctx is None:
+            self.status_bar.SetStatusText(f"Contexto: {total} tokens", 1)
+            return
+
+        pct = round(100 * total / n_ctx)
+        self.status_bar.SetStatusText(
+            f"Contexto: {total}/{n_ctx} ({pct} %)", 1
+        )
+
+        # Threshold announce: >= 85 %, one-shot per generation
+        if pct >= 85 and self._is_generating and not self._meter_threshold_fired:
+            self._speech.speak("Contexto casi lleno", interrupt=False)
+            self._meter_threshold_fired = True
 
     def _open_message_in_browser(self, text: str, reasoning: str | None = None) -> None:
         """Open message content in the default browser via a temp HTML file.
@@ -2154,6 +2282,8 @@ class MainWindow(wx.Frame):
         self.chat_panel.clear()
         self._current_response = ""
         self._tool_iteration_count = 0
+        self._pre_send_warned_this_conv = False
+        self._context_warned_for_turn = False
         self._speech.speak("Nueva conversación", interrupt=True)
 
     # ── Window Close ──────────────────────────────────────────────────────────

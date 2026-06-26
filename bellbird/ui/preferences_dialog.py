@@ -1,13 +1,14 @@
-"""PreferencesDialog — preferences dialog with 6-tab notebook.
+"""PreferencesDialog — preferences dialog with 7-tab notebook.
 
-Reads/writes BellbirdConfig fields via wx.Notebook with 6 tabs:
-General, Modelo, Chat, Herramientas, Avanzado, Atajos. Every control has
-name= and a preceding StaticText label. Speech resolution for sliders walks
-the parent chain to find the MainWindow._speech attribute (same pattern
-as MessageDetailDialog._on_open_browser).
+Reads/writes BellbirdConfig fields via wx.Notebook with 7 tabs:
+General, Modelo, Chat, Herramientas, Avanzado, Atajos, Estado (F2).
+Every control has name= and a preceding StaticText label. Speech resolution
+for sliders walks the parent chain to find the MainWindow._speech attribute
+(same pattern as MessageDetailDialog._on_open_browser).
 """
 
 import dataclasses
+from pathlib import Path
 
 import wx
 
@@ -17,6 +18,9 @@ from bellbird.core.keymap import (
     Keymap,
     _format_combo,
 )
+from bellbird.core.status_formatter import DEFAULT_STATUS_TOGGLES
+from bellbird.core.context_advisor import estimate_fit, read_vram
+from bellbird.core.model_meta import read_gguf_metadata, estimate_size_bytes, GGUFMetadata
 
 
 # ─── Spanish action labels (stable, one per DEFAULT_KEYMAP entry) ──────────────
@@ -290,6 +294,9 @@ class PreferencesDialog(wx.Dialog):
         # Row widgets keyed by action_id: {action_id: {...}}
         self._keymap_rows: dict[str, dict[str, wx.Window]] = {}
 
+        # Cache VRAM once at dialog construction for Avanzado's Ayuda de encaje
+        self._vram_cache: tuple[int | None, int | None] = read_vram()
+
         self._build_ui()
         self.SetSize((620, 520))
         wx.CallAfter(self._focus_first_control)
@@ -306,6 +313,7 @@ class PreferencesDialog(wx.Dialog):
         self._build_tools_page(notebook)
         self._build_advanced_page(notebook)
         self._build_keymap_page(notebook)
+        self._build_status_page(notebook)
 
         main_sizer.Add(notebook, proportion=1,
                        flag=wx.EXPAND | wx.ALL, border=8)
@@ -599,6 +607,26 @@ class PreferencesDialog(wx.Dialog):
         sizer.Add(self.pref_gpu_layers_spin,
                   flag=wx.LEFT | wx.RIGHT, border=8)
 
+        # ── Ayuda de encaje (T-WU2-06) ────────────────────────────────
+        sizer.Add(
+            wx.StaticText(panel, label="&Ayuda de encaje:"),
+            flag=wx.LEFT | wx.TOP, border=8,
+        )
+        self.pref_fit_help = wx.StaticText(
+            panel, label="",
+            name="pref_fit_help",
+        )
+        sizer.Add(self.pref_fit_help,
+                  flag=wx.LEFT | wx.RIGHT | wx.BOTTOM, border=8)
+
+        # Refresh fit help on context size or GPU layer changes
+        self.pref_ctx_size_spin.Bind(
+            wx.EVT_SPINCTRL, self._on_advanced_spin_change,
+        )
+        self.pref_gpu_layers_spin.Bind(
+            wx.EVT_SPINCTRL, self._on_advanced_spin_change,
+        )
+
         # ── Server port ────────────────────────────────────────────────
         sizer.Add(
             wx.StaticText(panel, label="Puerto del servidor:"),
@@ -614,6 +642,8 @@ class PreferencesDialog(wx.Dialog):
 
         sizer.AddStretchSpacer()
         panel.SetSizer(sizer)
+        # Populate the fit help with the initial estimate
+        self._refresh_fit_help()
         notebook.AddPage(panel, "Avanzado")
 
     def _build_keymap_page(self, notebook: wx.Notebook) -> None:
@@ -695,6 +725,70 @@ class PreferencesDialog(wx.Dialog):
         panel.SetSizer(outer_sizer)
         notebook.AddPage(panel, "Atajos")
 
+    def _build_status_page(self, notebook: wx.Notebook) -> None:
+        """Build Estado (F2) tab: one CheckBox per status toggle.
+
+        Each toggle has a preceding ``wx.StaticText`` label with a mnemonic
+        ``&`` per AGENTS.md accessibility rules. CheckBox name pattern:
+        ``pref_status_toggle_<toggle_name>``.
+        """
+        panel = wx.Panel(notebook, name="status_page")
+        outer_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        outer_sizer.Add(
+            wx.StaticText(
+                panel, label="Componentes del estado de sesión (F2):"
+            ),
+            flag=wx.LEFT | wx.TOP | wx.BOTTOM, border=8,
+        )
+
+        # Labels in Spanish, same order as DEFAULT_STATUS_TOGGLES
+        toggle_labels: dict[str, str] = {
+            "model_name": "&Modelo",
+            "context_pct": "&Porcentaje de contexto",
+            "max_tokens": "&Máx tokens/respuesta",
+            "server": "&Servidor",
+            "vram": "&VRAM libre",
+            "fit": "&Encaje",
+            "message_count": "&Mensajes",
+            "temperature": "&Temperatura",
+            "top_p": "&Top-p",
+            "tok_per_s": "&Tok/s última",
+            "is_generating": "&Generando",
+        }
+
+        self._status_checkboxes: dict[str, wx.CheckBox] = {}
+
+        for toggle_name in DEFAULT_STATUS_TOGGLES:
+            row_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+            label_text = toggle_labels.get(toggle_name, toggle_name)
+            lbl = wx.StaticText(
+                panel, label=label_text,
+                name=f"lbl_{toggle_name}",
+            )
+            row_sizer.Add(lbl, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, border=8)
+
+            chk = wx.CheckBox(
+                panel, name=f"chk_{toggle_name}",
+            )
+            chk.SetValue(self._config.status_toggles.get(toggle_name, True))
+            chk.Bind(
+                wx.EVT_CHECKBOX,
+                lambda evt, t=toggle_name: self._on_status_toggle(t, evt),
+            )
+            row_sizer.Add(chk, flag=wx.ALIGN_CENTER_VERTICAL)
+
+            outer_sizer.Add(
+                row_sizer, flag=wx.LEFT | wx.RIGHT | wx.TOP, border=8,
+            )
+
+            self._status_checkboxes[toggle_name] = chk
+
+        outer_sizer.AddStretchSpacer()
+        panel.SetSizer(outer_sizer)
+        notebook.AddPage(panel, "&Estado (F2)")
+
     # ── Atajos tab event handlers ──────────────────────────────────────────
 
     def _on_cambiar(self, action_id: str) -> None:
@@ -727,6 +821,44 @@ class PreferencesDialog(wx.Dialog):
             if resolved else ""
         )
         row["binding"].SetLabel(binding_text)
+
+    # ── Advanced tab helpers ───────────────────────────────────────────────────
+
+    def _refresh_fit_help(self) -> None:
+        """Re-evaluate the fit heuristic and update the help StaticText.
+
+        Uses cached VRAM (probed once at dialog construction) to avoid
+        ``nvidia-smi`` overhead on every spin click. Reads the model
+        metadata if available; falls back to a sentinel when no model is
+        loaded.
+        """
+        ctx_size = self.pref_ctx_size_spin.GetValue()
+        vram_free = self._vram_cache[0]
+
+        model_path = self._config.last_model
+        meta: GGUFMetadata | None = None
+        if model_path:
+            meta = read_gguf_metadata(model_path)
+        if meta is None:
+            size_bytes = estimate_size_bytes(model_path) if model_path else None
+            meta = GGUFMetadata(
+                block_count=0, context_length=0, file_type="unknown",
+                size_bytes=size_bytes or 0,
+            )
+
+        report = estimate_fit(meta, ctx_size, vram_free)
+        self.pref_fit_help.SetLabel(report.reason_es)
+
+    def _on_advanced_spin_change(self, event: wx.CommandEvent) -> None:
+        """Handle spin changes on ctx_size or n_gpu_layers: refresh fit help."""
+        event.Skip()  # let the spin control process the value change
+        self._refresh_fit_help()
+
+    # ── Status tab event handlers ─────────────────────────────────────────────
+
+    def _on_status_toggle(self, toggle_name: str, event: wx.CommandEvent) -> None:
+        """Update the in-memory config when a status toggle checkbox changes."""
+        self._config.status_toggles[toggle_name] = event.IsChecked()
 
     # ── Event Handlers ─────────────────────────────────────────────────────
 
@@ -801,6 +933,16 @@ class PreferencesDialog(wx.Dialog):
         self._config.ctx_size = self.pref_ctx_size_spin.GetValue()
         self._config.n_gpu_layers = self.pref_gpu_layers_spin.GetValue()
         self._config.port = self.pref_port_spin.GetValue()
+
+        # Save per-model tunings (T-WU2-07)
+        model_path = self._config.last_model
+        if model_path:
+            basename = Path(model_path).name
+            self._config.model_tunings[basename] = {
+                "ctx_size": self._config.ctx_size,
+                "n_gpu_layers": self._config.n_gpu_layers,
+                "threads": None,
+            }
 
     def get_config(self) -> BellbirdConfig:
         """Return the (possibly edited) config copy.

@@ -1862,12 +1862,18 @@ def test_find_mmproj_imported():
     )
 
 
-def test_f2_status_contains_vision_string():
-    """_announce_session_status generates a string with 'Imágenes:'."""
+def test_f2_uses_format_status():
+    """_announce_session_status uses format_status from core."""
     source_path = _get_ui_path("main_window.py")
     source = source_path.read_text(encoding="utf-8")
-    assert "Imágenes:" in source, (
-        "F2 status must contain 'Imágenes: sí/no'"
+    assert "format_status" in source, (
+        "F2 handler must use format_status from core.status_formatter"
+    )
+    assert "SessionSnapshot" in source, (
+        "F2 handler must build a SessionSnapshot"
+    )
+    assert "status_toggles_as_set" in source, (
+        "F2 handler must call status_toggles_as_set()"
     )
 
 
@@ -2201,7 +2207,7 @@ def test_both_call_sites_use_build_options():
 
 
 def test_f2_includes_min_p():
-    """_announce_session_status references self._config.min_p and includes 'Min-p'."""
+    """_announce_session_status builds a SessionSnapshot with config fields."""
     source_path = _get_ui_path("main_window.py")
     source = source_path.read_text(encoding="utf-8")
     tree = ast.parse(source)
@@ -2223,11 +2229,20 @@ def test_f2_includes_min_p():
     end = method.end_lineno
     method_source = "\n".join(source_lines[start:end])
 
-    assert "self._config.min_p" in method_source, (
-        "_announce_session_status must reference self._config.min_p"
+    assert "SessionSnapshot(" in method_source, (
+        "_announce_session_status must build a SessionSnapshot"
     )
-    assert "Min-p" in method_source, (
-        "_announce_session_status must include 'Min-p' in the status string"
+    assert "self._config.temperature" in method_source, (
+        "_announce_session_status must read temperature from config"
+    )
+    assert "self._config.top_p" in method_source, (
+        "_announce_session_status must read top_p from config"
+    )
+    assert "self._config.max_tokens" in method_source, (
+        "_announce_session_status must read max_tokens from config"
+    )
+    assert "format_status(" in method_source, (
+        "_announce_session_status must call format_status()"
     )
 
 

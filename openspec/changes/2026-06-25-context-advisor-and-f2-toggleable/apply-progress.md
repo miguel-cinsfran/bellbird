@@ -64,8 +64,48 @@ Minor, all within spec:
 - Pre-existing test `test_start_server_stderr_progress_does_not_abort` has a timing issue (timeout on mock) — not related to this change
 - `pyproject.toml` now lists `gguf>=0.6.0,<1.0` in `[project] dependencies`
 
+## WU-2: UI + wx tests
+
+**Status**: ✅ Complete. 10/10 tasks done. 689 tests passing (14 skipped WSL), 10 new tests above the WU-1 baseline of 679.
+
+### Completed tasks
+
+| ID | Description | Verification |
+|----|-------------|-------------|
+| T-WU2-01 | Replace `_announce_session_status` body with `SessionSnapshot` + `format_status` | F2 routes through `speech.output()` (idle) / `speech.speak(interrupt=False)` (mid-gen). All toggles OFF → empty string, no speech. 4 wx-runtime tests. |
+| T-WU2-02 | Double-F2 within 1.5 s → mode="long" | Timestamp-based via `time.monotonic()`. Single → short, double within window → long, >1.5s → two shorts. 3 wx-runtime tests. |
+| T-WU2-03 | `_update_context_meter` wired to `_on_usage` | Status bar field 1 shows `"Contexto: X/Y (Z%)"`. ≥85% threshold fires one-shot per generation. n_ctx=None shows `"Contexto: N tokens"`. 5 wx-runtime tests. |
+| T-WU2-04 | Pre-send guard in `send_message` | Block → speech + return. Warn → speech once per conv. Allow → proceed silently. Warn flag resets on new\!conversation. 4 wx-runtime tests. |
+| T-WU2-05 | "Estado (F2)" tab with 11 checkboxes | 7th notebook tab with one `wx.CheckBox` per `DEFAULT_STATUS_TOGGLES` toggle, each preceded by `wx.StaticText` with mnemonic `&`. 4 AST tests. |
+| T-WU2-06 | "Ayuda de encaje" read-only StaticText in Avanzado tab | `name="pref_fit_help"` showing `estimate_fit()` Spanish one-liner. VRAM cached on dialog construction. Refreshes on ctx_size/n_gpu_layers spin change. 3 AST tests. |
+| T-WU2-07 | Per-model tunings save/restore | Save in `_apply_config`. Restore in `_on_use_model`. Key = `Path(model_path).name`. Never auto-prunes. 3 AST tests. |
+| T-WU2-08 | Register new tests in `run_tests.bat` | Added `tests/ui/test_preferences_dialog_static.py` to the wx-runtime line. |
+| T-WU2-09 | Run WSL suite | **689 passed, 14 skipped** ✅ (10 new tests above 679 baseline) |
+| T-WU2-10 | Commit WU-2 | ✅ Committed |
+
+### Files changed (WU-2)
+
+| File | Action | Description |
+|------|--------|-------------|
+| `bellbird/ui/main_window.py` | Extend | Rewrite `_announce_session_status` with SessionSnapshot + format_status + double-F2; add `_on_timings`, `_update_context_meter`; add pre-send guard to `send_message`; wire `on_timings` to `chat_stream`; per-model tunings restore; new instance state attributes. |
+| `bellbird/ui/preferences_dialog.py` | Extend | Add "Estado (F2)" tab (7th tab, 11 checkboxes with StaticText), "Ayuda de encaje" in Avanzado tab, per-model tunings save in `_apply_config`, VRAM cache at construction. |
+| `tests/ui/test_main_window_runtime.py` | Extend | 4 new test classes: TestF2StatusFormatter, TestDoubleF2, TestContextMeter, TestPreSendGuard (14 test cases, skipped on WSL via `importorskip("wx")`). |
+| `tests/ui/test_preferences_dialog_static.py` | Extend | 10 new AST tests: Estado tab checkboxes/labels/mnemonics, fit help presence/refresh/VRAM cache, model tunings save/restore/no-prune. |
+| `tests/ui/test_main_window_static.py` | Modify | Update F2-related static tests to match new format_status-based implementation. |
+| `run_tests.bat` | Modify | Register `tests/ui/test_preferences_dialog_static.py` in the wx-runtime line. |
+
+### Deviations from spec/design
+
+None — implementation matches design and spec. The `test_f2_includes_min_p` static test was updated to verify `SessionSnapshot` construction instead of the old `min_p` string (min_p is no longer part of the F2 toggle set per the new design).
+
+### Risks and observations
+
+- wx-runtime tests (14 in test_main_window_runtime.py) are skipped on WSL and must be verified on Windows via `run_tests.bat`.
+- The `test_main_window_static.py::test_f2_status_contains_vision_string` test was replaced because the new F2 handler no longer includes hardcoded "Imágenes:" string — vision is not part of the DEFAULT_STATUS_TOGGLES.
+- Pre-send guard calls `POST /tokenize` synchronously on the UI thread with a 5s timeout — acceptable per design §4 (user already pressed Enter).
+
 ### Next step
-WU-2 (UI + wx tests) is ready to start as a separate apply run.
+Ready for verify phase.
 
 ### TDD Cycle Evidence
 

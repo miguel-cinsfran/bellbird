@@ -134,68 +134,68 @@ All tasks in WU-1 run `uv run --no-sync pytest -xvs` on WSL. No wx imports.
 
 **~600-800 lines | Depends on WU-1 — all WU-1 tasks committed and green.**
 
-- [ ] T-WU2-01 — Replace `_announce_session_status` body with `SessionSnapshot` + `format_status`
+- [x] T-WU2-01 — Replace `_announce_session_status` body with `SessionSnapshot` + `format_status`
   - **Files**: `bellbird/ui/main_window.py` (extend), `tests/ui/test_main_window_runtime.py` (extend)
   - **Acceptance**: Handler reads `self._config.status_toggles_as_set()`, builds `SessionSnapshot`, calls `format_status(snapshot, toggles, "short")`, then `speech.output(text)` if not generating else `speech.speak(text, interrupt=False)`.
   - **Test plan**: 4 wx-runtime cases (importorskip) — F2 with ALL toggles ON, F2 with ALL toggles OFF → no speech, F2 mid-gen uses interrupt=False, F2 mid-gen uses progress_tokens.
   - **Strict-TDD**: yes
   - **Depends on**: T-WU1-07, T-WU1-08, T-WU1-12
 
-- [ ] T-WU2-02 — Add double-F2 detection
+- [x] T-WU2-02 — Add double-F2 detection
   - **Files**: `bellbird/ui/main_window.py`, `tests/ui/test_main_window_runtime.py`
   - **Acceptance**: 1.5s window via `time.monotonic()`. First F2 = "short", second F2 within window = "long". After 1.5s window resets.
   - **Test plan**: 3 cases — single F2 = short, two F2s within 1.5s = long, two F2s 2s apart = two shorts.
   - **Strict-TDD**: yes
   - **Depends on**: T-WU2-01
 
-- [ ] T-WU2-03 — Add `_update_context_meter` wired to `_on_usage`
+- [x] T-WU2-03 — Add `_update_context_meter` wired to `_on_usage`
   - **Files**: `bellbird/ui/main_window.py`, `tests/ui/test_main_window_runtime.py`
   - **Acceptance**: Sets status bar field 1 to `"Contexto: 1200/4096 (29 %)"`. Triggers `speech.speak(..., interrupt=False)` at ≥85% threshold (one-shot per generation, resets on new generation).
   - **Test plan**: 5 cases — happy update, threshold fires once, no refire same gen, n_ctx None shows "Contexto: ?", threshold reset on new generation.
   - **Strict-TDD**: yes
   - **Depends on**: T-WU1-07, T-WU1-08, T-WU2-01
 
-- [ ] T-WU2-04 — Add pre-send guard in `send_message`
+- [x] T-WU2-04 — Add pre-send guard in `send_message`
   - **Files**: `bellbird/ui/main_window.py`, `tests/ui/test_main_window_runtime.py`
   - **Acceptance**: Calls `ContextAdvisor.pre_send_check(snapshot)` before posting. Block → speech + return. Warn → speech once. Allow → proceed. Warn resets per conversation.
   - **Test plan**: 4 cases — allow path, warn path (no re-warn), block path (returns early), warn resets on new conversation.
   - **Strict-TDD**: yes
   - **Depends on**: T-WU1-06, T-WU1-12
 
-- [ ] T-WU2-05 — Add "Estado (F2)" tab in preferences with 11 checkboxes
+- [x] T-WU2-05 — Add "Estado (F2)" tab in preferences with 11 checkboxes
   - **Files**: `bellbird/ui/preferences_dialog.py` (extend), `tests/ui/test_preferences_dialog_static.py` (extend)
   - **Acceptance**: New notebook tab "Estado (F2)" with one `wx.CheckBox` per toggle, each preceded by `wx.StaticText` (AGENTS.md rule). Order matches `DEFAULT_STATUS_TOGGLES`. Mnemónicos `&` on labels.
   - **Test plan**: 4 AST cases — 11 checkboxes present, each has StaticText label, each has `name=`, mnemonics valid.
   - **Strict-TDD**: yes (AST + importorskip)
   - **Depends on**: T-WU1-07, T-WU1-12
 
-- [ ] T-WU2-06 — Add "Ayuda de encaje" StaticText to "Avanzado" tab
+- [x] T-WU2-06 — Add "Ayuda de encaje" StaticText to "Avanzado" tab
   - **Files**: `bellbird/ui/preferences_dialog.py`, `tests/ui/test_preferences_dialog_static.py`
   - **Acceptance**: Read-only `wx.StaticText` showing fit heuristic result. VRAM cached at dialog construction (no per-spin subprocess). Re-evaluates `estimate_fit` on ctx_size/n_gpu_layers spin change.
   - **Test plan**: 3 cases — StaticText read-only, VRAM fetched once (not per spin), fit refreshes on spin change.
   - **Strict-TDD**: yes (AST + importorskip)
   - **Depends on**: T-WU1-03, T-WU1-04, T-WU1-12
 
-- [ ] T-WU2-07 — Wire per-model tunings (save/restore)
+- [x] T-WU2-07 — Wire per-model tunings (save/restore)
   - **Files**: `bellbird/ui/preferences_dialog.py`, `bellbird/ui/main_window.py`, `tests/ui/test_preferences_dialog_static.py`
   - **Acceptance**: Save to `model_tunings` dict in `_apply_config`. Restore on model load / app startup. Key = `Path(model_path).name`. Never auto-prune.
   - **Test plan**: 3 cases — save writes to config, restore loads from config, no auto-prune on missing file.
   - **Strict-TDD**: yes
   - **Depends on**: T-WU1-12, T-WU2-05
 
-- [ ] T-WU2-08 — Register new wx-runtime tests in `run_tests.bat`
+- [x] T-WU2-08 — Register new wx-runtime tests in `run_tests.bat`
   - **Files**: `run_tests.bat` (modify)
   - **Acceptance**: Append test file paths for the new wx-runtime tests to the existing line (currently L23).
   - **Strict-TDD**: N/A
   - **Depends on**: T-WU2-01 through T-WU2-07
 
-- [ ] T-WU2-09 — Run WSL suite again
+- [x] T-WU2-09 — Run WSL suite again
   - **Files**: none
   - **Acceptance**: `uv run --no-sync pytest -xvs` green, zero failures/errors. All WU-1 + WU-2 WSL-compatible tests pass.
   - **Strict-TDD**: N/A
   - **Depends on**: T-WU2-08
 
-- [ ] T-WU2-10 — Commit WU-2
+- [x] T-WU2-10 — Commit WU-2
   - **Files**: `git add -f` for updated `apply-progress.md` and `tasks.md`
   - **Acceptance**: `git log --oneline -1` shows `feat(ui): toggleable F2 + context meter + pre-send guard (v0.9.0 WU-2)`. `git status --short` clean. NO AI attribution.
   - **Strict-TDD**: N/A

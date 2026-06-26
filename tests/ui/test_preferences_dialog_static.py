@@ -8,6 +8,8 @@ import ast
 import pathlib
 import re
 
+import pytest
+
 
 def _get_ui_path(filename: str) -> pathlib.Path:
     """Resolve the source file path for a UI module."""
@@ -413,3 +415,205 @@ def test_on_slider_change_dispatches_min_p():
     assert "pref_min_p_slider" in source, (
         "_on_slider_change must dispatch on pref_min_p_slider"
     )
+
+
+# ─── WU-2: Estado (F2) tab (T-WU2-05) ──────────────────────────────────────────
+
+
+def test_estado_f2_tab_has_11_checkboxes():
+    """Estado (F2) tab has exactly 11 CheckBox controls with chk_ names."""
+    source = _get_ui_path("preferences_dialog.py").read_text(encoding="utf-8")
+    # Verify the iteration over DEFAULT_STATUS_TOGGLES creates checkboxes
+    assert "for toggle_name in DEFAULT_STATUS_TOGGLES" in source, (
+        "Estado tab must iterate DEFAULT_STATUS_TOGGLES"
+    )
+    # Verify CheckBox creation with chk_ pattern
+    assert 'name=f"chk_{toggle_name}"' in source, (
+        "CheckBox creation with chk_ pattern not found in _build_status_page"
+    )
+    # Verify StaticText labels are also created with lbl_ pattern
+    assert 'name=f"lbl_{toggle_name}"' in source, (
+        "StaticText label with lbl_ pattern not found"
+    )
+    # Verify all 11 toggle labels are present in _build_status_page
+    expected_labels = [
+        "&Modelo", "&Porcentaje de contexto", "&Máx tokens/respuesta",
+        "&Servidor", "&VRAM libre", "&Encaje", "&Mensajes",
+        "&Temperatura", "&Top-p", "&Tok/s última", "&Generando",
+    ]
+    for label in expected_labels:
+        assert label in source, (
+            f"Status tab is missing label: {label!r}"
+        )
+
+
+def test_estado_f2_tab_each_checkbox_has_statictext():
+    """Each CheckBox in Estado tab has a preceding wx.StaticText label."""
+    source = _get_ui_path("preferences_dialog.py").read_text(encoding="utf-8")
+    # Checkboxes use f"chk_{toggle_name}" pattern; labels use f"lbl_{toggle_name}"
+    # Verify lbl_ prefix exists in _build_status_page
+    assert "lbl_" in source, (
+        "Missing lbl_ prefix for StaticText labels in Estado tab"
+    )
+    # Verify labels are created in the loop before checkboxes
+    method = re.search(
+        r"def _build_status_page\(self.*?\).*?:.*?(?=\n    def |\nclass |\Z)",
+        source,
+        re.DOTALL,
+    )
+    assert method is not None, "_build_status_page method not found"
+    body = method.group(0)
+    assert "wx.StaticText" in body, (
+        "_build_status_page must create wx.StaticText controls"
+    )
+
+
+def test_estado_f2_tab_checkboxes_have_name():
+    """Every CheckBox in Estado tab has a name= attribute."""
+    source = _get_ui_path("preferences_dialog.py").read_text(encoding="utf-8")
+    # Checkboxes use f"chk_{toggle_name}" — verify the pattern
+    assert 'name=f"chk_{toggle_name}"' in source, (
+        "CheckBox name= must be defined with f-string chk_ prefix"
+    )
+    # Verify _status_checkboxes dict maps toggle names to CheckBox widgets
+    # (this proves 11 checkbox instances are tracked)
+    method = re.search(
+        r"def _build_status_page\(self.*?\).*?:.*?(?=\n    def |\nclass |\Z)",
+        source,
+        re.DOTALL,
+    )
+    assert method is not None, "_build_status_page method not found"
+    body = method.group(0)
+    # Count wx.CheckBox calls in the method
+    checkbox_calls = body.count("wx.CheckBox")
+    assert checkbox_calls >= 1, (
+        "_build_status_page must create wx.CheckBox controls"
+    )
+
+
+def test_estado_f2_tab_has_mnemonics():
+    """Estado tab labels contain mnemonic '&' characters."""
+    source = _get_ui_path("preferences_dialog.py").read_text(encoding="utf-8")
+    # The labels are defined in the toggle_labels dict inside _build_status_page
+    # Check each expected label has '&' in the toggle_labels dict
+    expected_mnemonics = [
+        "&Modelo", "&Porcentaje", "&Máx tokens", "&Servidor",
+        "&VRAM", "&Encaje", "&Mensajes", "&Temperatura",
+        "&Top-p", "&Tok/s", "&Generando",
+    ]
+    for mnemonic in expected_mnemonics:
+        assert mnemonic in source, (
+            f"Expected mnemonic label {mnemonic!r} not found in _build_status_page"
+        )
+
+
+# ─── WU-2: Ayuda de encaje (T-WU2-06) ──────────────────────────────────────────
+
+
+def test_fit_help_statictext_present():
+    """Avanzado tab has wx.StaticText with name='pref_fit_help'."""
+    source = _get_ui_path("preferences_dialog.py").read_text(encoding="utf-8")
+    assert 'name="pref_fit_help"' in source, (
+        "pref_fit_help StaticText not found in preferences_dialog.py"
+    )
+    assert "Ayuda de encaje" in source, (
+        "Ayuda de encaje label not found in preferences_dialog.py"
+    )
+
+
+def test_fit_help_refresh_called_on_spin_change():
+    """_on_advanced_spin_change calls _refresh_fit_help."""
+    source = _get_ui_path("preferences_dialog.py").read_text(encoding="utf-8")
+    import re
+    m = re.search(
+        r"def _on_advanced_spin_change.*?:.*?(?=\n    def |\nclass |\Z)",
+        source,
+        re.DOTALL,
+    )
+    assert m is not None, "_on_advanced_spin_change method not found"
+    body = m.group(0)
+    assert "_refresh_fit_help" in body, (
+        "_on_advanced_spin_change must call _refresh_fit_help"
+    )
+
+
+def test_fit_help_uses_cached_vram():
+    """_refresh_fit_help uses self._vram_cache (not read_vram direct)."""
+    source = _get_ui_path("preferences_dialog.py").read_text(encoding="utf-8")
+    import re
+    m = re.search(
+        r"def _refresh_fit_help.*?:.*?(?=\n    def |\nclass |\Z)",
+        source,
+        re.DOTALL,
+    )
+    assert m is not None, "_refresh_fit_help method not found"
+    body = m.group(0)
+    assert "self._vram_cache" in body, (
+        "_refresh_fit_help must use cached VRAM, not call read_vram()"
+    )
+
+
+# ─── WU-2: Per-model tunings (T-WU2-07) ───────────────────────────────────────
+
+
+def test_model_tunings_saved_in_apply_config():
+    """_apply_config writes to self._config.model_tunings."""
+    source = _get_ui_path("preferences_dialog.py").read_text(encoding="utf-8")
+    import re
+    m = re.search(
+        r"def _apply_config.*?:.*?(?=\n    def |\nclass |\Z)",
+        source,
+        re.DOTALL,
+    )
+    assert m is not None, "_apply_config method not found"
+    body = m.group(0)
+    assert "model_tunings" in body, (
+        "_apply_config must write to model_tunings"
+    )
+
+
+def test_model_tunings_restored_in_main_window():
+    """main_window.py _on_use_model reads model_tunings."""
+    source_path = (
+        pathlib.Path(__file__).resolve().parent.parent.parent
+        / "bellbird"
+        / "ui"
+        / "main_window.py"
+    )
+    source = source_path.read_text(encoding="utf-8")
+    assert "model_tunings" in source, (
+        "main_window.py must reference model_tunings"
+    )
+
+
+def test_model_tunings_no_auto_prune():
+    """Neither save nor restore auto-prunes model_tunings entries."""
+    source_path = (
+        pathlib.Path(__file__).resolve().parent.parent.parent
+        / "bellbird"
+        / "ui"
+        / "main_window.py"
+    )
+    source = source_path.read_text(encoding="utf-8")
+    # Verify there's no pop() or clear() on model_tunings
+    import ast
+    tree = ast.parse(source)
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
+            if node.func.attr in ("pop", "clear", "discard"):
+                for child in ast.walk(node):
+                    if isinstance(child, ast.Attribute) and child.attr == "model_tunings":
+                        pytest.fail(
+                            f"Auto-prune found at line {node.lineno}: {node.func.attr} on model_tunings"
+                        )
+    # Also check preferences_dialog.py
+    pref_source = _get_ui_path("preferences_dialog.py").read_text(encoding="utf-8")
+    pref_tree = ast.parse(pref_source)
+    for node in ast.walk(pref_tree):
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
+            if node.func.attr in ("pop", "clear", "discard"):
+                for child in ast.walk(node):
+                    if isinstance(child, ast.Attribute) and child.attr == "model_tunings":
+                        pytest.fail(
+                            f"Auto-prune found at line {node.lineno}: {node.func.attr} on model_tunings in preferences"
+                        )

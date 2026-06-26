@@ -9,6 +9,21 @@ Usa [llama.cpp](https://github.com/ggerganov/llama.cpp) como backend. Los modelo
 
 v0.4.0 — en desarrollo activo. Sin verificación formal con NVDA todavía.
 
+## Build (Windows .exe)
+
+Bellbird can be packaged as a standalone Windows executable via PyInstaller.
+From WSL:
+
+1. Run `scripts/build_windows.sh` — it runs the test suite, then assembles a
+   build kit zip under `dist/bellbird_v<version>_<timestamp>.zip`.
+2. Copy the zip to a Windows 11 machine and unzip.
+3. Double-click `build.bat` inside the unzipped folder (first run takes ~5–10 min).
+4. The executable lands at `dist\Bellbird\Bellbird.exe`.
+
+Requirements: Python 3.12+, uv (recommended) or pip. On Windows, `pyinstaller`
+and `pywinauto` are declared with `sys_platform == 'win32'` markers and pulled
+in only when building.
+
 ## Atajos de teclado
 
 | Tecla | Acción |

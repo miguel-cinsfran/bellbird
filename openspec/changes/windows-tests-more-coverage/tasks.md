@@ -66,7 +66,7 @@
 
 ## Phase 2 — WU-2: pipeline + docs (4 tasks, ~200 LOC)
 
-- [ ] **2.1** Simplify `run_tests.bat`:
+- [x] **2.1** Simplify `run_tests.bat`:
       - Drop line 23's explicit pytest list
       - Add a 4-6 line comment block between lines 21-22 listing which
         `tests/ui/*.py` files are wx-runtime (chat_panel_runtime,
@@ -79,7 +79,7 @@
         system_voice_runtime) — for documentation, not execution
       - Keep the `setlocal` and `TMPFILE` patterns intact
 
-- [ ] **2.2** Fix `smoke_test.py::_MODULOS_UI`:
+- [x] **2.2** Fix `smoke_test.py::_MODULOS_UI`:
       - Remove the hardcoded list (lines 45-51)
       - Add a function `_discover_ui_modules() -> list[str]` that uses
         `pkgutil.iter_modules(bellbird.ui.__path__)` and returns the
@@ -88,7 +88,7 @@
         the constant
       - Add `import pkgutil` at the top
 
-- [ ] **2.3** Add "Tests" section to `README.md` (in English, matches
+- [x] **2.3** Add "Tests" section to `README.md` (in English, matches
       the existing "Build" section):
       - Section header: `## Tests`
       - 4-row table: level / scope / command
@@ -99,7 +99,7 @@
       - One-paragraph note that WSL skips wx-runtime tests via
         `pytest.importorskip("wx")`
 
-- [ ] **2.4** Run WSL verification:
+- [x] **2.4** Run WSL verification:
       - `uv run --no-sync pytest -xvs` — confirm 846 + 0 new passes,
         +4 file-skips, no regressions
       - `uv run python smoke_test.py --no-gui` — confirm Fase 1

@@ -67,6 +67,9 @@ class BellbirdConfig:
     filter_strip_emojis: bool = True
     filter_strip_code_blocks: bool = True
 
+    # v0.12.0: active persona (None = no-persona mode, empty system prompt)
+    persona_activa: str | None = None
+
     def status_toggles_as_set(self) -> set[str]:
         """Return the set of toggle names whose value is ``True``.
 

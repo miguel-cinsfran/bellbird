@@ -45,6 +45,7 @@ from bellbird.core.permission_manager import PermissionManager
 from bellbird.core.tool_executor import ToolExecutor, ToolResult
 from bellbird.ui.permission_dialog import PermissionDialog
 from bellbird.ui.preferences_dialog import PreferencesDialog
+from bellbird.ui.personas_dialog import PersonasDialog
 from bellbird.ui.wx_notifier import WxToastSender
 from bellbird.core.notifier import Notifier
 from bellbird.core.system_voice import SystemVoice
@@ -458,6 +459,16 @@ class MainWindow(wx.Frame):
         # Bound to _scan_models via wx.ID_REFRESH in _build_accelerators
 
         menu_bar.Append(servidor_menu, "&Servidor")
+
+        # ── Personas menu ─────────────────────────────────────────────
+        personas_menu = wx.Menu()
+        self.ID_PERSONAS = wx.NewIdRef()
+        menu_personas = personas_menu.Append(
+            self.ID_PERSONAS, "&Gestionar personas...\tCtrl+P",
+            "Seleccionar o editar personas / asistentes",
+        )
+        self.Bind(wx.EVT_MENU, lambda evt: self._show_personas(), menu_personas)
+        menu_bar.Append(personas_menu, "&Personas")
 
         # ── Ayuda menu ────────────────────────────────────────────────
         ayuda_menu = wx.Menu()
@@ -2424,3 +2435,11 @@ class MainWindow(wx.Frame):
                     base_url=f"http://localhost:{self._config.port}"
                 )
         dlg.Destroy()
+
+    def _show_personas(self) -> None:
+        """Open the PersonasDialog to select or manage personas."""
+        dlg = PersonasDialog(self, self._config)
+        dlg.ShowModal()
+        dlg.save_if_dirty()
+        dlg.Destroy()
+        save_config(self._config)

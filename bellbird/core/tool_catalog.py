@@ -136,7 +136,7 @@ def get_enabled_tools(config) -> list[dict] | None:
     if not config.tools_enabled:
         return None
     tools = [SHELL_TOOL]
-    if getattr(config, "file_tools_enabled", False):
+    if config.file_tools_enabled:
         tools.extend(ALL_FILE_TOOLS)
     return tools
 

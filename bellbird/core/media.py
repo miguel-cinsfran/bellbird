@@ -81,9 +81,8 @@ def images_from_zip(zip_path: str) -> tuple[list[tuple[str, str]], Optional[str]
         return [], str(e)
     finally:
         if tmp_dir:
-            import shutil as _shutil
             try:
-                _shutil.rmtree(tmp_dir, ignore_errors=True)
+                shutil.rmtree(tmp_dir, ignore_errors=True)
             except Exception:
                 pass
 
@@ -126,8 +125,7 @@ def keyframes_from_video(
         return [], str(e)
     finally:
         if tmp_dir:
-            import shutil as _shutil
             try:
-                _shutil.rmtree(tmp_dir, ignore_errors=True)
+                shutil.rmtree(tmp_dir, ignore_errors=True)
             except Exception:
                 pass

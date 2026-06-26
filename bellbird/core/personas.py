@@ -167,12 +167,7 @@ def load_personas() -> list[Persona]:
     for item in data:
         p = Persona.from_dict(item)
         seen_ids.add(p.id)
-        if p.builtin and p.id in builtin_map:
-            # Use saved overrides for fields the user may have edited,
-            # but preserve builtin=True from the canonical record.
-            result.append(p)
-        else:
-            result.append(p)
+        result.append(p)
 
     # Append any built-ins not present in the saved file (new additions).
     for p in builtin_map.values():

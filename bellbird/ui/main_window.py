@@ -1546,8 +1546,9 @@ class MainWindow(wx.Frame):
         log = get_logger()
         log.info("_on_done: response_len=%d chars", len(self._current_response))
         self._speech.flush_token_buffer()
-        self._speech.speak("Respuesta completa", interrupt=True)
-        self._notifier.notify("generation_complete", "Respuesta completa")
+        if not self._tool_executing:
+            self._speech.speak("Respuesta completa", interrupt=True)
+            self._notifier.notify("generation_complete", "Respuesta completa")
 
         # Save assistant message to conversation (including reasoning).
         # Skip when a tool call is pending: _on_tool_result will save the
@@ -1577,8 +1578,11 @@ class MainWindow(wx.Frame):
 
         self._is_generating = False
         self.status_bar.SetStatusText("", 2)
-        self._current_response = ""
-        self._current_reasoning = ""
+        # When a tool call is pending, _on_tool_result still needs
+        # _current_response to build the assistant+tool_calls message.
+        if not self._tool_executing:
+            self._current_response = ""
+            self._current_reasoning = ""
 
     # ── Tool calling (v0.4.0) ─────────────────────────────────────────────
 
@@ -1592,6 +1596,7 @@ class MainWindow(wx.Frame):
                 f"Comando bloqueado por seguridad: {command[:80]}", interrupt=True
             )
             self.chat_panel.append_tool_blocked(tool_name, command)
+            self._tool_executing = False
             return
 
         if tool_name in FILE_TOOL_NAMES:
@@ -1630,6 +1635,7 @@ class MainWindow(wx.Frame):
         else:
             self._speech.speak("Ejecucion denegada.", interrupt=True)
             self.chat_panel.append_tool_denied(tool_name)
+            self._tool_executing = False
 
     def _run_tool_and_show(
         self, tool_name: str, tool_call_id: str, command: str,
@@ -1642,11 +1648,11 @@ class MainWindow(wx.Frame):
             else:
                 result = self._tool_executor.run(tool_name, command)
             wx.CallAfter(
-                self._on_tool_result, result, tool_call_id, tool_name, command,
+                self._on_tool_result, result, tool_call_id, tool_name, command, args,
             )
         threading.Thread(target=worker, daemon=True).start()
 
-    def _on_tool_result(self, result, tool_call_id: str, tool_name: str = "", command: str = "") -> None:
+    def _on_tool_result(self, result, tool_call_id: str, tool_name: str = "", command: str = "", args: dict | None = None) -> None:
         """Callback en hilo principal con el resultado de la herramienta."""
         self._tool_executing = False
         log = get_logger()
@@ -1666,12 +1672,16 @@ class MainWindow(wx.Frame):
         # Build and insert the assistant+tool_calls message (required by
         # the OpenAI contract for the 2nd turn).
         if tool_name:
+            if args is not None:
+                arguments_str = json.dumps(args)
+            else:
+                arguments_str = json.dumps({"command": command})
             tool_call_entry = {
                 "id": tool_call_id,
                 "type": "function",
                 "function": {
                     "name": tool_name,
-                    "arguments": json.dumps({"command": command}),
+                    "arguments": arguments_str,
                 },
             }
             self._conversation.add_message(

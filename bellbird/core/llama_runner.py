@@ -536,6 +536,21 @@ def get_install_command() -> str:
     return "winget install ggml.llamacpp"
 
 
+def auto_cuda_binary() -> str | None:
+    """Return path to the locally-installed CUDA llama-server binary, or None.
+
+    Checks the standard download location used by download_server_binary().
+    If the binary exists it was intentionally downloaded by the user, so it
+    is safe to use automatically when no manual path is configured.
+    """
+    import os
+    local_app = os.environ.get("LOCALAPPDATA", "")
+    if not local_app:
+        return None
+    p = Path(local_app) / "Bellbird" / "llama-server-cuda" / "llama-server.exe"
+    return str(p) if p.exists() else None
+
+
 def download_server_binary(
     variant: str,
     dest_dir: Path,

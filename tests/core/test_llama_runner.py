@@ -197,6 +197,38 @@ class TestLlamaRunner:
         result = get_install_command()
         assert result == "winget install ggml.llamacpp"
 
+    # ── auto_cuda_binary ────────────────────────────────────────────────
+
+    def test_auto_cuda_binary_returns_path_when_exists(self, tmp_path):
+        """Given the CUDA binary exists, auto_cuda_binary returns its path."""
+        cuda_dir = tmp_path / "Bellbird" / "llama-server-cuda"
+        cuda_dir.mkdir(parents=True)
+        exe = cuda_dir / "llama-server.exe"
+        exe.write_text("")
+
+        from bellbird.core.llama_runner import auto_cuda_binary
+
+        with patch.dict(os.environ, {"LOCALAPPDATA": str(tmp_path)}):
+            result = auto_cuda_binary()
+        assert result == str(exe)
+
+    def test_auto_cuda_binary_returns_none_when_missing(self, tmp_path):
+        """Given no CUDA binary, auto_cuda_binary returns None."""
+        from bellbird.core.llama_runner import auto_cuda_binary
+
+        with patch.dict(os.environ, {"LOCALAPPDATA": str(tmp_path)}):
+            result = auto_cuda_binary()
+        assert result is None
+
+    def test_auto_cuda_binary_returns_none_without_localappdata(self):
+        """Given LOCALAPPDATA is not set, auto_cuda_binary returns None."""
+        from bellbird.core.llama_runner import auto_cuda_binary
+
+        env = {k: v for k, v in os.environ.items() if k != "LOCALAPPDATA"}
+        with patch.dict(os.environ, env, clear=True):
+            result = auto_cuda_binary()
+        assert result is None
+
     # ── start_server ────────────────────────────────────────────────────
 
     def _make_client(self, check_running_result=True):

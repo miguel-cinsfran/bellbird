@@ -22,6 +22,7 @@ from bellbird import __version__ as _BELLBIRD_VERSION
 from bellbird.core.conversation import Conversation
 from bellbird.core.llama_client import LlamaClient
 from bellbird.core.llama_runner import (
+    auto_cuda_binary,
     download_server_binary,
     find_gguf_models,
     find_llama_server,
@@ -1028,7 +1029,7 @@ class MainWindow(wx.Frame):
                 ctx_size=self._config.ctx_size,
                 n_gpu_layers=self._config.n_gpu_layers,
                 mmproj=mmproj_path,
-                server_binary=self._config.llama_server_path or None,
+                server_binary=self._effective_server_binary(),
             )
         except Exception as e:
             message = f"Error: {type(e).__name__}: {e}"
@@ -1252,12 +1253,9 @@ class MainWindow(wx.Frame):
                 # is gone.
                 vision_suffix = " con visión" if vision_capable else ""
                 gpu_suffix = ""
-                if self._config.llama_server_path:
-                    parent_name = Path(self._config.llama_server_path).parent.name.lower()
-                    if "vulkan" in parent_name:
-                        gpu_suffix = ", GPU Vulkan"
-                    elif "cuda" in parent_name:
-                        gpu_suffix = ", GPU CUDA"
+                backend = self._active_server_backend()
+                if backend:
+                    gpu_suffix = f", {backend}"
                 self._speech.output(
                     f"Servidor listo. Modelo {Path(loaded).stem}{vision_suffix}{gpu_suffix}"
                 )
@@ -1515,9 +1513,18 @@ class MainWindow(wx.Frame):
         except Exception:
             self._active_persona_name = pid
 
+    def _effective_server_binary(self) -> str | None:
+        """Resolve which llama-server binary to use.
+
+        Priority: manual config > auto-CUDA (if downloaded) > system PATH (None).
+        """
+        if self._config.llama_server_path:
+            return self._config.llama_server_path
+        return auto_cuda_binary()
+
     def _active_server_backend(self) -> str:
         """Return a short label for the active llama-server backend, or ''."""
-        path = self._config.llama_server_path
+        path = self._effective_server_binary() or ""
         if not path:
             return ""
         parent = Path(path).parent.name.lower()

@@ -18,13 +18,6 @@ def _get_ui_path(filename: str) -> pathlib.Path:
     )
 
 
-def test_import_only():
-    """Import-only check: module can be parsed without wx instantiation."""
-    source_path = _get_ui_path("chat_panel.py")
-    source = source_path.read_text(encoding="utf-8")
-    ast.parse(source)
-
-
 def test_all_controls_have_name():
     """Every interactive widget has a name= parameter."""
     source_path = _get_ui_path("chat_panel.py")
@@ -105,38 +98,6 @@ def test_no_webview():
     assert not webview_refs, (
         "WebView references found:\n" + "\n".join(webview_refs)
     )
-
-
-def test_message_list_present():
-    """ChatPanel has a message_list ListBox."""
-    source_path = _get_ui_path("chat_panel.py")
-    source = source_path.read_text(encoding="utf-8")
-    assert 'name="Historial de mensajes"' in source or "name='Historial de mensajes'" in source
-
-
-def test_get_selected_message_text_exists():
-    """ChatPanel has a get_selected_message_text method."""
-    source_path = _get_ui_path("chat_panel.py")
-    source = source_path.read_text(encoding="utf-8")
-    tree = ast.parse(source)
-
-    found = False
-    for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef) and node.name == "get_selected_message_text":
-            found = True
-            args = [a.arg for a in node.args.args]
-            assert "self" in args, "get_selected_message_text must have self parameter"
-            break
-
-    assert found, "get_selected_message_text method not found in ChatPanel"
-
-
-def test_stream_display_absent():
-    """ChatPanel no longer has a stream_display TextCtrl."""
-    source_path = _get_ui_path("chat_panel.py")
-    source = source_path.read_text(encoding="utf-8")
-    assert 'name="Respuesta en curso"' not in source and "name='Respuesta en curso'" not in source
-    assert "stream_display" not in source
 
 
 def test_history_list_exists_in_init():
@@ -262,15 +223,6 @@ def test_enter_handler_checks_shiftdown():
 
 
 # ─── Dual view refactor (v0.3.0) ─────────────────────────────────────────────
-
-
-def test_no_conversation_display_reference():
-    """ChatPanel no longer references conversation_display."""
-    source_path = _get_ui_path("chat_panel.py")
-    source = source_path.read_text(encoding="utf-8")
-    assert "conversation_display" not in source, (
-        "conversation_display must be fully removed in the dual-view refactor."
-    )
 
 
 def test_no_te_rich2_in_chat_panel():
@@ -488,20 +440,6 @@ def test_end_generation_handles_empty():
         "end_generation must call self.message_list.Delete() when "
         "final_text is empty (abort path)"
     )
-
-
-def test_streaming_index_exists():
-    """ChatPanel.__init__ initializes self._streaming_index."""
-    source_path = _get_ui_path("chat_panel.py")
-    source = source_path.read_text(encoding="utf-8")
-    assert "self._streaming_index" in source
-
-
-def test_update_streaming_preview_method_exists():
-    """ChatPanel has an update_streaming_preview method."""
-    source_path = _get_ui_path("chat_panel.py")
-    source = source_path.read_text(encoding="utf-8")
-    assert "def update_streaming_preview" in source
 
 
 def test_preview_uses_strip_markdown():

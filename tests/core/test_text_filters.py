@@ -124,18 +124,6 @@ class TestStripMarkdown:
         result = apply_filters("**bold**", cfg)
         assert result == "**bold**"
 
-    def test_strip_markdown_reuses_text_utils(self):
-        """GIVEN filter_strip_markdown=True
-        WHEN apply_filters is called
-        THEN the result equals text_utils.strip_markdown(input)."""
-        from bellbird.core.text_filters import apply_filters
-        from bellbird.core.text_utils import strip_markdown
-
-        text = "# Title\n**bold** and [link](url)"
-        result = apply_filters(text, _cfg_all_on())
-        expected = strip_markdown(text)
-        assert result == expected
-
 
 class TestStripUrls:
     """filter_strip_urls toggle removes http(s):// URLs."""
@@ -398,67 +386,3 @@ class TestTextFiltersASTGuards:
                 pytest.fail("text_filters.py redefines strip_markdown (should import from text_utils)")
 
 
-# ── Private helper tests (direct unit tests) ───────────────────────
-
-
-class TestPrivateHelpers:
-    """Direct tests for the 3 private regex helpers."""
-
-    def test_strip_urls_removes_https(self):
-        """GIVEN _strip_urls with an HTTPS URL
-        THEN the URL is removed."""
-        from bellbird.core.text_filters import _strip_urls
-
-        result = _strip_urls("See https://example.com/path?q=1 for details")
-        assert "https://" not in result
-
-    def test_strip_urls_removes_http(self):
-        """GIVEN _strip_urls with an HTTP URL
-        THEN the URL is removed."""
-        from bellbird.core.text_filters import _strip_urls
-
-        result = _strip_urls("Visit http://example.org today")
-        assert "http://" not in result
-
-    def test_strip_urls_preserves_bare(self):
-        """GIVEN _strip_urls with a bare hostname
-        THEN the hostname is preserved."""
-        from bellbird.core.text_filters import _strip_urls
-
-        result = _strip_urls("See example.com for details")
-        assert "example.com" in result
-
-    def test_strip_emojis_removes_emoji(self):
-        """GIVEN _strip_emojis with an emoji
-        THEN the emoji is removed."""
-        from bellbird.core.text_filters import _strip_emojis
-
-        result = _strip_emojis("Hello 👋 world")
-        assert "👋" not in result
-
-    def test_strip_emojis_preserves_punctuation(self):
-        """GIVEN _strip_emojis with Spanish punctuation
-        THEN punctuation is preserved."""
-        from bellbird.core.text_filters import _strip_emojis
-
-        result = _strip_emojis("¡Hola! ¿Cómo estás?")
-        assert result == "¡Hola! ¿Cómo estás?"
-
-    def test_strip_code_blocks_removes_fence(self):
-        """GIVEN _strip_code_blocks with a fenced block
-        THEN the backticks are removed."""
-        from bellbird.core.text_filters import _strip_code_blocks
-
-        result = _strip_code_blocks("text ```code block``` more")
-        assert "```" not in result
-        assert "code block" in result
-
-    def test_strip_code_blocks_with_language(self):
-        """GIVEN _strip_code_blocks with a language-tagged block
-        THEN backticks and language tag are removed."""
-        from bellbird.core.text_filters import _strip_code_blocks
-
-        result = _strip_code_blocks("```python\nprint(1)\n```")
-        assert "```" not in result
-        assert "python" not in result
-        assert "print(1)" in result

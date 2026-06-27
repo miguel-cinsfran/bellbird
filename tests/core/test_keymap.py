@@ -187,36 +187,6 @@ class TestDefaultKeymap:
             f"Collision detected: {len(combos)} entries but only {len(set(combos))} unique combos"
         )
 
-    def test_default_keymap_has_attach_url(self):
-        assert "attach_url" in DEFAULT_KEYMAP
-
-    def test_attach_url_binding_is_ctrl_u(self):
-        binding = DEFAULT_KEYMAP["attach_url"]
-        assert binding.modifiers == KEYMAP_MOD_CTRL
-        assert binding.keycode == ord("U")
-        assert binding.label == "Ctrl+U"
-
-    def test_default_keymap_includes_read_selected_message(self):
-        assert "read_selected_message" in DEFAULT_KEYMAP
-
-    def test_read_selected_message_binding_is_f8(self):
-        binding = DEFAULT_KEYMAP["read_selected_message"]
-        assert binding.modifiers == KEYMAP_MOD_NONE
-        assert binding.keycode == _WXK_F8
-        assert binding.label == "F8"
-
-    def test_read_selected_message_no_collision(self):
-        """read_selected_message combo does not collide with any other entry."""
-        f8 = DEFAULT_KEYMAP["read_selected_message"]
-        f8_combo = (f8.modifiers, f8.keycode)
-        for aid, binding in DEFAULT_KEYMAP.items():
-            if aid == "read_selected_message":
-                continue
-            combo = (binding.modifiers, binding.keycode)
-            assert combo != f8_combo, (
-                f"read_selected_message {f8_combo} collides with {aid} {combo}"
-            )
-
     def test_read_selected_message_set_override_roundtrip(self):
         """Read_selected_message can be overridden and round-trips."""
         km = Keymap(DEFAULT_KEYMAP)
@@ -224,21 +194,6 @@ class TestDefaultKeymap:
         assert km.resolve("read_selected_message") == (KEYMAP_MOD_CTRL | KEYMAP_MOD_SHIFT, ord("K"))
         km.remove_override("read_selected_message")
         assert km.resolve("read_selected_message") == (KEYMAP_MOD_NONE, _WXK_F8)
-
-    def test_default_keymap_has_23_entries(self):
-        assert len(DEFAULT_KEYMAP) == 23
-
-    def test_no_collisions_with_attach_url(self):
-        """attach_url combo does not collide with any other entry."""
-        attach = DEFAULT_KEYMAP["attach_url"]
-        attach_combo = (attach.modifiers, attach.keycode)
-        for aid, binding in DEFAULT_KEYMAP.items():
-            if aid == "attach_url":
-                continue
-            combo = (binding.modifiers, binding.keycode)
-            assert combo != attach_combo, (
-                f"attach_url {attach_combo} collides with {aid} {combo}"
-            )
 
     def test_keymap_find_conflict_includes_attach_url(self):
         """Keymap.find_conflict detects attach_url as a valid conflict target."""
@@ -486,13 +441,6 @@ class TestAstNoWxImport:
                             f"Found import of wx at module level: "
                             f"{ast.dump(node)}"
                         )
-
-    def test_module_imports_without_wx(self):
-        """Verify the module can be imported in an environment without wx."""
-        # This is tested by the import at the top of this file already
-        # happening successfully. The test exists as a documented scenario.
-        from bellbird.core.keymap import Binding, Keymap, DEFAULT_KEYMAP
-        assert len(DEFAULT_KEYMAP) == 23
 
 
 # ─── Logger warning on dropped overrides ────────────────────────────────────

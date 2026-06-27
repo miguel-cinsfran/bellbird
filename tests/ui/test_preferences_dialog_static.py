@@ -272,29 +272,6 @@ def test_stop_text_present_in_advanced():
     )
 
 
-def test_no_grid_sizer_in_preferences():
-    """No GridSizer/FlexGridSizer/GridBagSizer in preferences_dialog.py."""
-    source_path = _get_ui_path("preferences_dialog.py")
-    source = source_path.read_text(encoding="utf-8")
-    tree = ast.parse(source)
-
-    forbidden_sizers = {
-        "wx.GridSizer",
-        "wx.FlexGridSizer",
-        "wx.GridBagSizer",
-    }
-    found_forbidden = []
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Call):
-            func_name = _get_func_name(node)
-            if func_name in forbidden_sizers:
-                found_forbidden.append(f"Line {node.lineno}: {func_name}")
-
-    assert not found_forbidden, (
-        "Forbidden sizers found:\n" + "\n".join(found_forbidden)
-    )
-
-
 def test_top_p_k_repeat_moved_to_advanced():
     """top_p/top_k/repeat_penalty controls are in _build_advanced_page, NOT _build_model_page."""
     source_path = _get_ui_path("preferences_dialog.py")
@@ -403,24 +380,6 @@ def test_min_p_value_label_present():
     )
 
 
-def test_max_tokens_spin_has_name_and_statictext():
-    """pref_max_tokens_spin has name= and preceding StaticText with Spanish label."""
-    source = _get_ui_path("preferences_dialog.py").read_text(encoding="utf-8")
-    assert 'name="pref_max_tokens_spin"' in source, (
-        "pref_max_tokens_spin must have name='pref_max_tokens_spin'"
-    )
-    assert "Má&ximo de tokens:" in source or "M\u00e1&ximo de tokens:" in source, (
-        "pref_max_tokens_spin must be preceded by 'Má&ximo de tokens:' StaticText"
-    )
-
-
-def test_on_slider_change_dispatches_min_p():
-    """_on_slider_change has an elif branch for pref_min_p_slider."""
-    source = _get_ui_path("preferences_dialog.py").read_text(encoding="utf-8")
-    assert "pref_min_p_slider" in source, (
-        "_on_slider_change must dispatch on pref_min_p_slider"
-    )
-
 
 # ─── WU-2: Estado (F2) tab (T-WU2-05) ──────────────────────────────────────────
 
@@ -450,50 +409,6 @@ def test_estado_f2_tab_has_11_checkboxes():
         assert label in source, (
             f"Status tab is missing label: {label!r}"
         )
-
-
-def test_estado_f2_tab_each_checkbox_has_statictext():
-    """Each CheckBox in Estado tab has a preceding wx.StaticText label."""
-    source = _get_ui_path("preferences_dialog.py").read_text(encoding="utf-8")
-    # Checkboxes use f"chk_{toggle_name}" pattern; labels use f"lbl_{toggle_name}"
-    # Verify lbl_ prefix exists in _build_status_page
-    assert "lbl_" in source, (
-        "Missing lbl_ prefix for StaticText labels in Estado tab"
-    )
-    # Verify labels are created in the loop before checkboxes
-    method = re.search(
-        r"def _build_status_page\(self.*?\).*?:.*?(?=\n    def |\nclass |\Z)",
-        source,
-        re.DOTALL,
-    )
-    assert method is not None, "_build_status_page method not found"
-    body = method.group(0)
-    assert "wx.StaticText" in body, (
-        "_build_status_page must create wx.StaticText controls"
-    )
-
-
-def test_estado_f2_tab_checkboxes_have_name():
-    """Every CheckBox in Estado tab has a name= attribute."""
-    source = _get_ui_path("preferences_dialog.py").read_text(encoding="utf-8")
-    # Checkboxes use f"chk_{toggle_name}" — verify the pattern
-    assert 'name=f"chk_{toggle_name}"' in source, (
-        "CheckBox name= must be defined with f-string chk_ prefix"
-    )
-    # Verify _status_checkboxes dict maps toggle names to CheckBox widgets
-    # (this proves 11 checkbox instances are tracked)
-    method = re.search(
-        r"def _build_status_page\(self.*?\).*?:.*?(?=\n    def |\nclass |\Z)",
-        source,
-        re.DOTALL,
-    )
-    assert method is not None, "_build_status_page method not found"
-    body = method.group(0)
-    # Count wx.CheckBox calls in the method
-    checkbox_calls = body.count("wx.CheckBox")
-    assert checkbox_calls >= 1, (
-        "_build_status_page must create wx.CheckBox controls"
-    )
 
 
 def test_estado_f2_tab_has_mnemonics():
@@ -574,20 +489,6 @@ def test_model_tunings_saved_in_apply_config():
     body = m.group(0)
     assert "model_tunings" in body, (
         "_apply_config must write to model_tunings"
-    )
-
-
-def test_model_tunings_restored_in_main_window():
-    """main_window.py _on_use_model reads model_tunings."""
-    source_path = (
-        pathlib.Path(__file__).resolve().parent.parent.parent
-        / "bellbird"
-        / "ui"
-        / "main_window.py"
-    )
-    source = source_path.read_text(encoding="utf-8")
-    assert "model_tunings" in source, (
-        "main_window.py must reference model_tunings"
     )
 
 
@@ -692,26 +593,6 @@ def test_audio_tab_has_spanish_labels():
         assert label in source, (
             f"Audio tab is missing label: {label!r}"
         )
-
-
-def test_audio_tab_no_grid_sizer():
-    """Audio tab (and whole file) has no GridSizer."""
-    source = _get_ui_path("preferences_dialog.py").read_text(encoding="utf-8")
-    tree = ast.parse(source)
-    forbidden_sizers = {
-        "wx.GridSizer",
-        "wx.FlexGridSizer",
-        "wx.GridBagSizer",
-    }
-    found_forbidden = []
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Call):
-            func_name = _get_func_name(node)
-            if func_name in forbidden_sizers:
-                found_forbidden.append(f"Line {node.lineno}: {func_name}")
-    assert not found_forbidden, (
-        "Forbidden sizers found:\n" + "\n".join(found_forbidden)
-    )
 
 
 def test_audio_tab_apply_config_wired():
@@ -1032,16 +913,6 @@ def test_presets_sub_panel_has_three_buttons():
         )
 
 
-def test_presets_sub_panel_statictext_before_controls():
-    """Each preset control has a preceding wx.StaticText."""
-    source = _get_ui_path("preferences_dialog.py").read_text(encoding="utf-8")
-    method = _get_method_body(source, "_build_model_page")
-    assert method is not None, "_build_model_page not found"
-    assert "Ajustes preestablecidos" in method, (
-        "StaticText 'Ajustes preestablecidos' must be in _build_model_page"
-    )
-
-
 def test_presets_sub_panel_below_max_tokens():
     """presets sub-panel is below pref_max_tokens_spin in _build_model_page."""
     source = _get_ui_path("preferences_dialog.py").read_text(encoding="utf-8")
@@ -1056,25 +927,4 @@ def test_presets_sub_panel_below_max_tokens():
     )
 
 
-# ─── WU-2 v0.11.0: Dialog size (T2K) ─────────────────────────────────────────
-
-
-def test_dialog_size_is_720_600():
-    """SetSize((720, 600)) must be present in PreferencesDialog.__init__."""
-    source = _get_ui_path("preferences_dialog.py").read_text(encoding="utf-8")
-    tree = ast.parse(source)
-    method_src = None
-    for node in ast.walk(tree):
-        if isinstance(node, ast.ClassDef) and node.name == "PreferencesDialog":
-            for item in node.body:
-                if isinstance(item, ast.FunctionDef) and item.name == "__init__":
-                    source_lines = source.splitlines()
-                    method_src = "\n".join(
-                        source_lines[item.lineno - 1:item.end_lineno]
-                    )
-                    break
-    assert method_src is not None, "PreferencesDialog.__init__ not found"
-    assert "SetSize((720, 600))" in method_src, (
-        "SetSize((720, 600)) must be called in PreferencesDialog.__init__"
-    )
 

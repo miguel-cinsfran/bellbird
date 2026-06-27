@@ -471,27 +471,6 @@ class TestLlamaClient:
         assert on_usage.call_count == 1
         assert on_usage.call_args[0][0]["total_tokens"] == 4
 
-    def test_chat_stream_no_error_when_usage_absent(self, mock_session, mock_call_after):
-        """Given a stream with no usage key, no error and normal callbacks fire."""
-        self._stub_stream(mock_session, [
-            b'data: {"choices":[{"delta":{"content":"hello"}}]}',
-            b'data: [DONE]',
-        ])
-
-        from bellbird.core.llama_client import LlamaClient
-
-        client = LlamaClient(session=mock_session)
-        on_token = Mock()
-        on_done = Mock()
-        on_error = Mock()
-
-        # No on_usage passed (default None) — should not error
-        client.chat_stream([], {}, on_token, on_done, on_error)
-        time.sleep(0.1)
-
-        assert on_token.call_count == 1
-        assert on_token.call_args[0][0] == "hello"
-        assert on_done.call_count == 1
         assert on_error.call_count == 0
 
     # ── tool_calls (v0.4.0) ──────────────────────────────────────────────
@@ -1041,18 +1020,13 @@ class TestCheckToolSupport:
         # Only one HTTP call
         mock_session.get.assert_called_once()
 
-    def test_check_tool_support_connection_error(self, mock_session):
-        """Given ConnectionError, returns False without raising."""
-        mock_session.get.side_effect = requests.ConnectionError("refused")
-
-        from bellbird.core.llama_client import LlamaClient
-
-        client = LlamaClient(session=mock_session)
-        assert client.check_tool_support() is False
-
-    def test_check_tool_support_timeout(self, mock_session):
-        """Given Timeout, returns False without raising."""
-        mock_session.get.side_effect = requests.exceptions.Timeout("timed out")
+    @pytest.mark.parametrize("exc", [
+        requests.ConnectionError("refused"),
+        requests.exceptions.Timeout("timed out"),
+    ])
+    def test_check_tool_support_network_error(self, mock_session, exc):
+        """Given a network exception, returns False without raising."""
+        mock_session.get.side_effect = exc
 
         from bellbird.core.llama_client import LlamaClient
 

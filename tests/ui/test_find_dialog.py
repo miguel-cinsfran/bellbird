@@ -66,26 +66,15 @@ class TestFindDialog:
             dlg.Destroy()
             parent.Destroy()
 
-    def test_find_dialog_set_on_find_fires_next(self):
-        """set_on_find callback fires with +1 for 'Buscar siguiente'."""
+    @pytest.mark.parametrize("direction", [1, -1])
+    def test_find_dialog_set_on_find_fires(self, direction):
+        """set_on_find callback fires with the given direction (+1 or -1)."""
         app, parent, dlg = _make_dialog()
         try:
             results = []
-            dlg.set_on_find(lambda direction: results.append(direction))
-            dlg._fire_callback(1)
-            assert results == [1], f"Expected [1], got {results}"
-        finally:
-            dlg.Destroy()
-            parent.Destroy()
-
-    def test_find_dialog_set_on_find_fires_prev(self):
-        """set_on_find callback fires with -1 for 'Buscar anterior'."""
-        app, parent, dlg = _make_dialog()
-        try:
-            results = []
-            dlg.set_on_find(lambda direction: results.append(direction))
-            dlg._fire_callback(-1)
-            assert results == [-1], f"Expected [-1], got {results}"
+            dlg.set_on_find(lambda d: results.append(d))
+            dlg._fire_callback(direction)
+            assert results == [direction]
         finally:
             dlg.Destroy()
             parent.Destroy()

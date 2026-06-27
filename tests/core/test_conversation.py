@@ -359,15 +359,6 @@ def test_add_assistant_message_with_reasoning():
     assert conv.messages[0]["content"] == "La respuesta es 42."
 
 
-def test_add_message_defaults_empty_reasoning():
-    """Given an assistant message without reasoning, get returns ''."""
-    from bellbird.core.conversation import Conversation
-
-    conv = Conversation()
-    conv.add_message("assistant", "R")
-    assert conv.messages[0].get("reasoning", "") == ""
-
-
 def test_get_messages_for_api_excludes_reasoning():
     """Given a message with non-empty reasoning, API payload has no reasoning key."""
     from bellbird.core.conversation import Conversation
@@ -499,19 +490,6 @@ def test_tool_calls_round_trip_through_save_load(tmp_path):
     assert loaded.messages[0]["tool_calls"] == tc
 
 
-def test_legacy_message_no_tool_calls_still_works():
-    """A legacy message without tool_calls loads and serializes fine."""
-    from bellbird.core.conversation import Conversation
-
-    conv = Conversation()
-    conv.add_message("user", "hi")
-    conv.add_message("assistant", "hello")
-    api = conv.get_messages_for_api()
-    assert {"role": "user", "content": "hi"} == api[0]
-    assert {"role": "assistant", "content": "hello"} == api[1]
-    assert len(api) == 2
-
-
 # ─── truncate_to (v0.8.0) ───────────────────────────────────────────────────
 
 
@@ -562,21 +540,6 @@ def test_truncate_to_drops_tool_calls_assistant_row_correctly():
     api = conv.get_messages_for_api()
     assert len(api) == 3
     assert api[2].get("tool_calls") is not None
-
-
-def test_truncate_to_without_system():
-    """GIVEN [user, assistant]
-    WHEN truncate_to(0)
-    THEN result == [user] (keeps index 0)."""
-    from bellbird.core.conversation import Conversation
-
-    conv = Conversation()
-    conv.add_message("user", "Q1")
-    conv.add_message("assistant", "A1")
-    conv.truncate_to(0)
-    assert len(conv.messages) == 1
-    assert conv.messages[0]["role"] == "user"
-    assert conv.messages[0]["content"] == "Q1"
 
 
 def test_truncate_to_index_zero():

@@ -122,15 +122,19 @@ def test_speak_with_output(mock_auto):
     mock_auto.return_value.speak.assert_called_once_with("Hola", interrupt=True)
 
 
-def test_speak_when_silent():
-    """Given silent speech, speak does nothing and raises no exception."""
+@pytest.mark.parametrize("method,args", [
+    ("speak", ("Hola",)),
+    ("output", ("texto",)),
+    ("stop", ()),
+])
+def test_method_when_silent(method, args):
+    """Given silent speech, every public output method does not raise."""
     from bellbird.core.speech import Speech
 
     speech = Speech()
-    speech._output = None  # force silent
+    speech._output = None
     speech.is_silent = True
-
-    speech.speak("Hola")  # should not raise
+    getattr(speech, method)(*args)
 
 
 def test_speak_with_non_string_text(mock_auto):
@@ -153,17 +157,6 @@ def test_output_when_available(mock_auto):
     mock_auto.return_value.output.assert_called_once_with("Línea en braille")
 
 
-def test_output_when_silent():
-    """Given silent speech, output does not raise."""
-    from bellbird.core.speech import Speech
-
-    speech = Speech()
-    speech._output = None
-    speech.is_silent = True
-
-    speech.output("texto")  # should not raise
-
-
 # ─── stop Method ──────────────────────────────────────────────────────────────
 
 
@@ -174,17 +167,6 @@ def test_stop_when_available(mock_auto):
     speech = Speech()
     speech.stop()
     mock_auto.return_value.stop.assert_called_once()
-
-
-def test_stop_when_silent():
-    """Given silent speech, stop does not raise."""
-    from bellbird.core.speech import Speech
-
-    speech = Speech()
-    speech._output = None
-    speech.is_silent = True
-
-    speech.stop()  # should not raise
 
 
 # ─── announce_token_chunk — Flushing Logic ────────────────────────────────────

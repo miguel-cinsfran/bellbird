@@ -111,7 +111,6 @@ def test_migrate_legacy_legacy_exists_copies(monkeypatch, tmp_path):
     assert new_config.exists()
     content = json.loads(new_config.read_text(encoding="utf-8"))
     assert content["temperature"] == 0.42
-    # Legacy file must NOT be deleted
     assert legacy.exists()
 
 
@@ -138,7 +137,6 @@ def test_migrate_legacy_new_exists_no_overwrite(monkeypatch, tmp_path):
     config_module.migrate_legacy_config()
 
     content = json.loads(new_config.read_text(encoding="utf-8"))
-    # Must still have the original new value, NOT overwritten
     assert content["temperature"] == 0.99
 
 
@@ -152,11 +150,9 @@ def test_migrate_legacy_legacy_missing_noop(monkeypatch, tmp_path):
     new_config = new_dir / "config.json"
     assert not new_config.exists()
 
-    # LEGACY_CONFIG_PATH points to non-existent file
     monkeypatch.setattr(config_module, "LEGACY_CONFIG_PATH", tmp_path / "nope.json")
     monkeypatch.setattr(config_module, "CONFIG_PATH", new_config)
 
-    # Must not raise
     config_module.migrate_legacy_config()
 
     assert not new_config.exists()
@@ -178,18 +174,30 @@ def test_migrate_legacy_copy_raises_swallowed(monkeypatch, tmp_path):
     monkeypatch.setattr(config_module, "LEGACY_CONFIG_PATH", legacy)
     monkeypatch.setattr(config_module, "CONFIG_PATH", new_config)
 
-    # Make shutil.copy2 raise PermissionError
     import shutil
-
-    original_copy2 = shutil.copy2
 
     def failing_copy2(src, dst, **kwargs):
         raise PermissionError("access denied")
 
     monkeypatch.setattr(shutil, "copy2", failing_copy2)
 
-    # Must not raise
     config_module.migrate_legacy_config()
+
+
+def test_scalar_field_defaults():
+    """All scalar fields have the documented default values."""
+    cfg = BellbirdConfig()
+    assert cfg.last_model == ""
+    assert cfg.request_timeout == 120
+    assert cfg.mmproj_offload is True
+    assert cfg.min_p == 0.05
+    assert cfg.seed == -1
+    assert cfg.stop == []
+    assert cfg.max_tool_iterations == 5
+    assert cfg.url_max_chars == 50000
+    assert cfg.restore_last_session is True
+    assert cfg.last_session_path == ""
+    assert cfg.recent_files == []
 
 
 def test_extra_model_folders_default_is_empty_list():
@@ -200,13 +208,6 @@ def test_extra_model_folders_default_is_empty_list():
     b = BellbirdConfig()
     a.extra_model_folders.append("/x")
     assert b.extra_model_folders == []
-
-
-def test_last_model_default_is_empty_string():
-    """GIVEN a fresh BellbirdConfig()
-    THEN .last_model == ""."""
-    cfg = BellbirdConfig()
-    assert cfg.last_model == ""
 
 
 def test_last_model_persists_on_save_load(monkeypatch, tmp_path):
@@ -269,8 +270,6 @@ def test_model_mmproj_unknown_key_dropped(monkeypatch, tmp_path):
     """GIVEN JSON with model_mmproj AND a future_field key
     WHEN load_config() reads it
     THEN model_mmproj is loaded and future_field is silently dropped."""
-    import json
-
     path = tmp_path / "config.json"
     data = {
         "model_mmproj": {"a.gguf": "C:\\m\\p.gguf"},
@@ -290,9 +289,7 @@ def test_model_mmproj_basename_lookup():
     WHEN accessing via Path().name
     THEN returns the stored value regardless of parent dir."""
     cfg = BellbirdConfig(model_mmproj={"vl.gguf": "C:\\m\\p.gguf"})
-    # Direct dict access uses basename
     assert cfg.model_mmproj.get("vl.gguf") == "C:\\m\\p.gguf"
-    # Same basename regardless of parent path
     from pathlib import Path
 
     key = Path("/other/path/vl.gguf").name
@@ -314,7 +311,6 @@ def test_get_mmproj_for_missing_file_returns_none(tmp_path):
     THEN returns None."""
     proj = tmp_path / "p.gguf"
     cfg = BellbirdConfig(model_mmproj={"model.gguf": str(proj)})
-    # File does not exist
     result = cfg.get_mmproj_for(tmp_path / "model.gguf")
     assert result is None
 
@@ -330,27 +326,7 @@ def test_get_mmproj_for_valid_entry_returns_resolved_path(tmp_path):
     assert result == str(proj.resolve())
 
 
-# ── mmproj_offload ────────────────────────────────────────────────────────
-
-
-def test_request_timeout_default_is_120():
-    """GIVEN a fresh BellbirdConfig()
-    THEN request_timeout == 120."""
-    cfg = BellbirdConfig()
-    assert cfg.request_timeout == 120
-
-
-def test_request_timeout_missing_in_json_uses_default(monkeypatch, tmp_path):
-    """GIVEN a config.json without request_timeout
-    WHEN load_config() is called
-    THEN request_timeout is 120 (field default)."""
-    import json
-    path = tmp_path / "config.json"
-    path.write_text(json.dumps({"port": 8080}), encoding="utf-8")
-    from bellbird.core import config as config_module
-    monkeypatch.setattr(config_module, "CONFIG_PATH", path)
-    result = load_config()
-    assert result.request_timeout == 120
+# ── request_timeout / mmproj_offload ──────────────────────────────────────
 
 
 def test_request_timeout_custom_persists(monkeypatch, tmp_path):
@@ -366,32 +342,7 @@ def test_request_timeout_custom_persists(monkeypatch, tmp_path):
     assert loaded.request_timeout == 300
 
 
-def test_mmproj_offload_default_is_true():
-    """GIVEN a fresh BellbirdConfig()
-    THEN mmproj_offload is True."""
-    cfg = BellbirdConfig()
-    assert cfg.mmproj_offload is True
-
-
-def test_min_p_default():
-    """GIVEN a fresh BellbirdConfig()
-    THEN min_p == 0.05 (2026 consensus)."""
-    cfg = BellbirdConfig()
-    assert cfg.min_p == 0.05
-
-
-def test_seed_default():
-    """GIVEN a fresh BellbirdConfig()
-    THEN seed == -1 (aleatorio sentinel)."""
-    cfg = BellbirdConfig()
-    assert cfg.seed == -1
-
-
-def test_stop_default():
-    """GIVEN a fresh BellbirdConfig()
-    THEN stop == [] (no stop strings sentinel)."""
-    cfg = BellbirdConfig()
-    assert cfg.stop == []
+# ── sampler fields (min_p / seed / stop) ──────────────────────────────────
 
 
 def test_stop_default_is_per_instance():
@@ -423,7 +374,6 @@ def test_missing_new_keys_use_defaults(monkeypatch, tmp_path):
     """GIVEN a config.json from v0.7.1 without min_p/seed/stop
     WHEN load_config() runs
     THEN the loaded config has the documented defaults for the new fields."""
-    import json
     path = tmp_path / "config.json"
     data = {"port": 8080, "temperature": 0.7}
     path.write_text(json.dumps(data), encoding="utf-8")
@@ -438,7 +388,7 @@ def test_missing_new_keys_use_defaults(monkeypatch, tmp_path):
 def test_migrations_dict_unchanged():
     """GIVEN the _MIGRATIONS dict
     THEN it has exactly one entry (max_tokens 512->4096)
-    AND no entry references min_p, seed, or stop."""
+    AND no entry references min_p, seed, stop, audio fields, or recent-session fields."""
     from bellbird.core.config import _MIGRATIONS
     assert len(_MIGRATIONS) == 1
     assert "max_tokens" in _MIGRATIONS
@@ -446,6 +396,11 @@ def test_migrations_dict_unchanged():
     assert "min_p" not in _MIGRATIONS
     assert "seed" not in _MIGRATIONS
     assert "stop" not in _MIGRATIONS
+    assert "keymap_overrides" not in _MIGRATIONS
+    assert "system_voice_name" not in _MIGRATIONS
+    assert "restore_last_session" not in _MIGRATIONS
+    assert "param_presets" not in _MIGRATIONS
+    assert "filter_strip_markdown" not in _MIGRATIONS
 
 
 def test_mmproj_offload_round_trip_false(monkeypatch, tmp_path):
@@ -465,13 +420,6 @@ def test_mmproj_offload_round_trip_false(monkeypatch, tmp_path):
 # ── max_tool_iterations (v0.7.5) ──────────────────────────────────────────
 
 
-def test_max_tool_iterations_default():
-    """GIVEN a fresh BellbirdConfig()
-    THEN max_tool_iterations == 5."""
-    cfg = BellbirdConfig()
-    assert cfg.max_tool_iterations == 5
-
-
 # ── keymap_overrides (v0.8.0) ──────────────────────────────────────────
 
 
@@ -488,8 +436,6 @@ def test_keymap_overrides_default_on_missing_key(monkeypatch, tmp_path):
     """GIVEN a v0.7.x config.json without keymap_overrides key
     WHEN load_config() runs
     THEN the loaded cfg.keymap_overrides == {}."""
-    import json
-
     path = tmp_path / "config.json"
     path.write_text(json.dumps({"port": 8080}), encoding="utf-8")
     from bellbird.core import config as config_module
@@ -510,7 +456,6 @@ def test_keymap_overrides_round_trip(monkeypatch, tmp_path):
 
     monkeypatch.setattr(config_module, "CONFIG_PATH", path)
     loaded = load_config()
-    # The load must normalise list to tuple
     val = loaded.keymap_overrides["copy_last"]
     assert val == (3, 67), f"Expected (3, 67), got {val!r}"
 
@@ -519,15 +464,12 @@ def test_keymap_overrides_unknown_id_does_not_crash(monkeypatch, tmp_path):
     """GIVEN config.json with unknown action id in keymap_overrides
     WHEN load_config() runs
     THEN no KeyError is raised (the drop is Keymap's job)."""
-    import json
-
     path = tmp_path / "config.json"
     data = {"keymap_overrides": {"ghost_action": [0, 81]}}
     path.write_text(json.dumps(data), encoding="utf-8")
     from bellbird.core import config as config_module
 
     monkeypatch.setattr(config_module, "CONFIG_PATH", path)
-    # The config layer does not validate action ids; Keymap.from_overrides_dict does
     result = load_config()
     assert "ghost_action" in result.keymap_overrides
 
@@ -536,8 +478,6 @@ def test_keymap_overrides_non_int_falls_back(monkeypatch, tmp_path):
     """GIVEN config.json with string value instead of (int, int) pair
     WHEN load_config() runs
     THEN falls back to defaults (BellbirdConfig(), corrupt-config policy)."""
-    import json
-
     path = tmp_path / "config.json"
     data = {"keymap_overrides": {"copy_last": "Ctrl+Shift+C"}}
     path.write_text(json.dumps(data), encoding="utf-8")
@@ -552,8 +492,6 @@ def test_keymap_overrides_non_int_tuple_falls_back(monkeypatch, tmp_path):
     """GIVEN config.json with non-int values inside the list pair
     WHEN load_config() runs
     THEN falls back to defaults."""
-    import json
-
     path = tmp_path / "config.json"
     data = {"keymap_overrides": {"copy_last": [1.5, "C"]}}
     path.write_text(json.dumps(data), encoding="utf-8")
@@ -564,29 +502,30 @@ def test_keymap_overrides_non_int_tuple_falls_back(monkeypatch, tmp_path):
     assert result.keymap_overrides == {}
 
 
+def test_keymap_overrides_list_to_tuple_normalisation(monkeypatch, tmp_path):
+    """GIVEN config.json with list-of-two-ints for keymap_overrides
+    WHEN load_config() runs
+    THEN the value is normalised to a tuple of ints."""
+    path = tmp_path / "config.json"
+    data = {"keymap_overrides": {"copy_last": [1 | 2, 67]}}
+    path.write_text(json.dumps(data), encoding="utf-8")
+    from bellbird.core import config as config_module
+
+    monkeypatch.setattr(config_module, "CONFIG_PATH", path)
+    result = load_config()
+    val = result.keymap_overrides["copy_last"]
+    assert isinstance(val, tuple), f"Expected tuple, got {type(val).__name__}"
+    assert len(val) == 2
+    assert all(isinstance(v, int) for v in val)
+
+
 # ── url_max_chars (v0.8.3) ────────────────────────────────────────────────
-
-
-def test_url_max_chars_default_is_50000():
-    """GIVEN a fresh BellbirdConfig()
-    THEN url_max_chars == 50000."""
-    cfg = BellbirdConfig()
-    assert cfg.url_max_chars == 50000
-
-
-def test_url_max_chars_is_int():
-    """GIVEN a fresh BellbirdConfig()
-    WHEN reading url_max_chars
-    THEN it is an int (not a string)."""
-    cfg = BellbirdConfig()
-    assert isinstance(cfg.url_max_chars, int)
 
 
 def test_load_config_with_url_max_chars_present(monkeypatch, tmp_path):
     """GIVEN a JSON file containing url_max_chars
     WHEN load_config() is called
     THEN url_max_chars is loaded with the custom value."""
-    import json
     path = tmp_path / "config.json"
     data = {"url_max_chars": 80000, "port": 8080}
     path.write_text(json.dumps(data), encoding="utf-8")
@@ -594,20 +533,6 @@ def test_load_config_with_url_max_chars_present(monkeypatch, tmp_path):
     monkeypatch.setattr(config_module, "CONFIG_PATH", path)
     result = load_config()
     assert result.url_max_chars == 80000
-
-
-def test_load_config_without_url_max_chars_uses_default(monkeypatch, tmp_path):
-    """GIVEN a JSON file from v0.8.2 without url_max_chars
-    WHEN load_config() is called
-    THEN url_max_chars == 50000 (default)."""
-    import json
-    path = tmp_path / "config.json"
-    data = {"port": 8080}
-    path.write_text(json.dumps(data), encoding="utf-8")
-    from bellbird.core import config as config_module
-    monkeypatch.setattr(config_module, "CONFIG_PATH", path)
-    result = load_config()
-    assert result.url_max_chars == 50000
 
 
 def test_save_config_roundtrip_url_max_chars(monkeypatch, tmp_path):
@@ -623,59 +548,10 @@ def test_save_config_roundtrip_url_max_chars(monkeypatch, tmp_path):
     assert loaded.url_max_chars == 80000
 
 
-def test_load_config_with_extra_unknown_fields_still_works_with_url_max_chars(monkeypatch, tmp_path):
-    """GIVEN a JSON file with url_max_chars AND a future_field
-    WHEN load_config() runs
-    THEN url_max_chars is loaded and future_field is silently dropped."""
-    import json
-    path = tmp_path / "config.json"
-    data = {"url_max_chars": 60000, "future_field": "x", "port": 8080}
-    path.write_text(json.dumps(data), encoding="utf-8")
-    from bellbird.core import config as config_module
-    monkeypatch.setattr(config_module, "CONFIG_PATH", path)
-    result = load_config()
-    assert result.url_max_chars == 60000
-    assert not hasattr(result, "future_field")
-
-
-# ── _MIGRATIONS regression guard ──────────────────────────────────────────
-
-
-def test_migrations_dict_unchanged_no_new_entries():
-    """GIVEN the _MIGRATIONS dict
-    THEN it has exactly one entry (max_tokens 512->4096)
-    AND no entry references keymap_overrides."""
-    from bellbird.core.config import _MIGRATIONS
-    assert len(_MIGRATIONS) == 1
-    assert "max_tokens" in _MIGRATIONS
-    assert _MIGRATIONS["max_tokens"] == (512, 4096)
-    assert "keymap_overrides" not in _MIGRATIONS
-
-
-def test_keymap_overrides_list_to_tuple_normalisation(monkeypatch, tmp_path):
-    """GIVEN config.json with list-of-two-ints for keymap_overrides
-    WHEN load_config() runs
-    THEN the value is normalised to a tuple of ints."""
-    import json
-
-    path = tmp_path / "config.json"
-    data = {"keymap_overrides": {"copy_last": [1 | 2, 67]}}
-    path.write_text(json.dumps(data), encoding="utf-8")
-    from bellbird.core import config as config_module
-
-    monkeypatch.setattr(config_module, "CONFIG_PATH", path)
-    result = load_config()
-    val = result.keymap_overrides["copy_last"]
-    assert isinstance(val, tuple), f"Expected tuple, got {type(val).__name__}"
-    assert len(val) == 2
-    assert all(isinstance(v, int) for v in val)
-
-
 def test_max_tool_iterations_overridable(monkeypatch, tmp_path):
     """GIVEN config JSON with max_tool_iterations: 10
     WHEN load_config()
     THEN max_tool_iterations == 10."""
-    import json
     path = tmp_path / "config.json"
     data = {"max_tool_iterations": 10}
     path.write_text(json.dumps(data), encoding="utf-8")
@@ -686,27 +562,6 @@ def test_max_tool_iterations_overridable(monkeypatch, tmp_path):
 
 
 # ── restore_last_session / last_session_path / recent_files (v0.8.2) ──────
-
-
-def test_restore_last_session_default_is_true():
-    """GIVEN a fresh BellbirdConfig()
-    THEN restore_last_session is True."""
-    cfg = BellbirdConfig()
-    assert cfg.restore_last_session is True
-
-
-def test_last_session_path_default_is_empty():
-    """GIVEN a fresh BellbirdConfig()
-    THEN last_session_path == ''."""
-    cfg = BellbirdConfig()
-    assert cfg.last_session_path == ""
-
-
-def test_recent_files_default_is_empty_list():
-    """GIVEN a fresh BellbirdConfig()
-    THEN recent_files == []."""
-    cfg = BellbirdConfig()
-    assert cfg.recent_files == []
 
 
 def test_recent_files_default_is_per_instance():
@@ -723,7 +578,6 @@ def test_load_config_with_new_fields_present(monkeypatch, tmp_path):
     """GIVEN a JSON file containing the 3 new fields
     WHEN load_config() is called
     THEN the fields are loaded with the correct values."""
-    import json
     path = tmp_path / "config.json"
     data = {
         "restore_last_session": False,
@@ -744,7 +598,6 @@ def test_load_config_with_new_fields_missing(monkeypatch, tmp_path):
     """GIVEN a JSON file from v0.8.1 without the 3 new fields
     WHEN load_config() is called on v0.8.2
     THEN the defaults for the new fields are applied."""
-    import json
     path = tmp_path / "config.json"
     data = {"port": 8080, "temperature": 0.7}
     path.write_text(json.dumps(data), encoding="utf-8")
@@ -754,28 +607,6 @@ def test_load_config_with_new_fields_missing(monkeypatch, tmp_path):
     assert result.restore_last_session is True
     assert result.last_session_path == ""
     assert result.recent_files == []
-
-
-def test_load_config_with_extra_unknown_fields(monkeypatch, tmp_path):
-    """GIVEN a JSON file with new fields AND a hypothetical future_field
-    WHEN load_config() runs
-    THEN the new fields are loaded AND future_field is silently dropped."""
-    import json
-    path = tmp_path / "config.json"
-    data = {
-        "restore_last_session": False,
-        "last_session_path": "/tmp/session.json",
-        "recent_files": ["/tmp/a.json"],
-        "future_field": "should_be_ignored",
-    }
-    path.write_text(json.dumps(data), encoding="utf-8")
-    from bellbird.core import config as config_module
-    monkeypatch.setattr(config_module, "CONFIG_PATH", path)
-    result = load_config()
-    assert result.restore_last_session is False
-    assert result.last_session_path == "/tmp/session.json"
-    assert result.recent_files == ["/tmp/a.json"]
-    assert not hasattr(result, "future_field")
 
 
 def test_save_config_roundtrip_new_fields(monkeypatch, tmp_path):
@@ -795,19 +626,6 @@ def test_save_config_roundtrip_new_fields(monkeypatch, tmp_path):
     assert loaded.restore_last_session is False
     assert loaded.last_session_path == "/tmp/session.json"
     assert loaded.recent_files == ["/tmp/a.json", "/tmp/b.json"]
-
-
-def test_migrations_dict_unchanged_new_fields_not_in_migrations():
-    """GIVEN the _MIGRATIONS dict
-    THEN it has exactly one entry (max_tokens 512->4096)
-    AND no entry references restore_last_session, last_session_path, or recent_files."""
-    from bellbird.core.config import _MIGRATIONS
-    assert len(_MIGRATIONS) == 1
-    assert "max_tokens" in _MIGRATIONS
-    assert _MIGRATIONS["max_tokens"] == (512, 4096)
-    assert "restore_last_session" not in _MIGRATIONS
-    assert "last_session_path" not in _MIGRATIONS
-    assert "recent_files" not in _MIGRATIONS
 
 
 # ── update_recents / remove_from_recents / should_auto_restore (v0.8.2) ───
@@ -938,6 +756,18 @@ def test_should_auto_restore_path_missing():
     assert should_auto_restore(cfg) is False
 
 
+def test_should_auto_restore_ok(tmp_path):
+    """GIVEN toggle on AND path exists AND non-empty
+    WHEN should_auto_restore
+    THEN returns True."""
+    from bellbird.core.config import should_auto_restore
+
+    file = tmp_path / "session.json"
+    file.write_text("{}", encoding="utf-8")
+    cfg = BellbirdConfig(restore_last_session=True, last_session_path=str(file))
+    assert should_auto_restore(cfg) is True
+
+
 # ─── v0.9.0: 4 new fields (T-WU1-12) ────────────────────────────────────────
 
 
@@ -1003,7 +833,6 @@ class TestV090Config:
         """GIVEN BellbirdConfig with all 4 new fields set
         WHEN save then load
         THEN all 4 fields round-trip."""
-        import json
         from bellbird.core.config import BellbirdConfig, save_config, load_config
         from bellbird.core import config as config_module
 
@@ -1028,7 +857,6 @@ class TestV090Config:
         """GIVEN a v0.8.3 config.json WITHOUT the 4 new fields
         WHEN load_config() runs
         THEN the new fields have their defaults."""
-        import json
         from bellbird.core import config as config_module
         from bellbird.core.config import load_config
 
@@ -1066,26 +894,6 @@ class TestV090Config:
         result = cfg.status_toggles_as_set()
         assert result == set()
 
-    def test_migrations_dict_unchanged_no_new_entries(self):
-        """GIVEN the _MIGRATIONS dict
-        THEN it still has exactly one entry (max_tokens) — no migration
-        entry for the 4 new fields."""
-        from bellbird.core.config import _MIGRATIONS
-        assert len(_MIGRATIONS) == 1
-        assert "max_tokens" in _MIGRATIONS
-
-
-def test_should_auto_restore_ok(tmp_path):
-    """GIVEN toggle on AND path exists AND non-empty
-    WHEN should_auto_restore
-    THEN returns True."""
-    from bellbird.core.config import should_auto_restore
-
-    file = tmp_path / "session.json"
-    file.write_text("{}", encoding="utf-8")
-    cfg = BellbirdConfig(restore_last_session=True, last_session_path=str(file))
-    assert should_auto_restore(cfg) is True
-
 
 # ─── v0.10.0: 6 new audio output fields (T-WU1 T1A) ────────────────────────
 
@@ -1093,40 +901,15 @@ def test_should_auto_restore_ok(tmp_path):
 class TestV0100AudioConfig:
     """Tests for the 6 new BellbirdConfig audio output fields."""
 
-    def test_system_voice_name_default_empty(self):
+    def test_audio_field_defaults(self):
         """GIVEN a fresh BellbirdConfig()
-        THEN system_voice_name == ''."""
+        THEN all 6 audio fields have their documented defaults."""
         cfg = BellbirdConfig()
         assert cfg.system_voice_name == ""
-
-    def test_system_voice_rate_default_zero(self):
-        """GIVEN a fresh BellbirdConfig()
-        THEN system_voice_rate == 0."""
-        cfg = BellbirdConfig()
         assert cfg.system_voice_rate == 0
-
-    def test_auto_speak_responses_default_false(self):
-        """GIVEN a fresh BellbirdConfig()
-        THEN auto_speak_responses is False (safe default, never auto)."""
-        cfg = BellbirdConfig()
         assert cfg.auto_speak_responses is False
-
-    def test_notifications_enabled_default_true(self):
-        """GIVEN a fresh BellbirdConfig()
-        THEN notifications_enabled is True."""
-        cfg = BellbirdConfig()
         assert cfg.notifications_enabled is True
-
-    def test_sounds_enabled_default_true(self):
-        """GIVEN a fresh BellbirdConfig()
-        THEN sounds_enabled is True."""
-        cfg = BellbirdConfig()
         assert cfg.sounds_enabled is True
-
-    def test_sound_theme_default_default(self):
-        """GIVEN a fresh BellbirdConfig()
-        THEN sound_theme == 'default'."""
-        cfg = BellbirdConfig()
         assert cfg.sound_theme == "default"
 
     def test_6_new_fields_roundtrip(self, monkeypatch, tmp_path):
@@ -1159,7 +942,6 @@ class TestV0100AudioConfig:
         """GIVEN a v0.9.0 config.json WITHOUT the 6 new fields
         WHEN load_config() runs
         THEN the new fields have their documented defaults."""
-        import json
         from bellbird.core import config as config_module
 
         path = tmp_path / "config.json"
@@ -1175,48 +957,6 @@ class TestV0100AudioConfig:
         assert loaded.sounds_enabled is True
         assert loaded.sound_theme == "default"
 
-    def test_missing_6_new_keys_with_extra_unknown_field(self, monkeypatch, tmp_path):
-        """GIVEN a JSON file with extra unknown key AND the 6 new fields set
-        WHEN load_config() runs
-        THEN the new fields load AND future_field is silently dropped."""
-        import json
-        from bellbird.core import config as config_module
-
-        path = tmp_path / "config.json"
-        data = {
-            "system_voice_name": "Helena",
-            "system_voice_rate": 5,
-            "auto_speak_responses": False,
-            "notifications_enabled": True,
-            "sounds_enabled": False,
-            "sound_theme": "none",
-            "future_field": "x",
-        }
-        path.write_text(json.dumps(data), encoding="utf-8")
-        monkeypatch.setattr(config_module, "CONFIG_PATH", path)
-        loaded = load_config()
-        assert loaded.system_voice_name == "Helena"
-        assert loaded.system_voice_rate == 5
-        assert loaded.auto_speak_responses is False
-        assert loaded.notifications_enabled is True
-        assert loaded.sounds_enabled is False
-        assert loaded.sound_theme == "none"
-        assert not hasattr(loaded, "future_field")
-
-    def test_migrations_dict_unchanged_no_audio_entries(self):
-        """GIVEN the _MIGRATIONS dict
-        THEN it still has exactly one entry (max_tokens)
-        AND no entry references any of the 6 new audio fields."""
-        from bellbird.core.config import _MIGRATIONS
-        assert len(_MIGRATIONS) == 1
-        assert "max_tokens" in _MIGRATIONS
-        assert "system_voice_name" not in _MIGRATIONS
-        assert "system_voice_rate" not in _MIGRATIONS
-        assert "auto_speak_responses" not in _MIGRATIONS
-        assert "notifications_enabled" not in _MIGRATIONS
-        assert "sounds_enabled" not in _MIGRATIONS
-        assert "sound_theme" not in _MIGRATIONS
-
 
 # ─── v0.11.0: 5 new fields (param_presets + 4 filter_strip_*) ───────────────
 
@@ -1224,28 +964,13 @@ class TestV0100AudioConfig:
 class TestV0110Config:
     """Tests for the 5 new BellbirdConfig fields (v0.11.0)."""
 
-    def test_filter_strip_markdown_default_true(self):
+    def test_filter_strip_defaults(self):
         """GIVEN a fresh BellbirdConfig()
-        THEN filter_strip_markdown is True."""
+        THEN all 4 filter_strip fields default to True."""
         cfg = BellbirdConfig()
         assert cfg.filter_strip_markdown is True
-
-    def test_filter_strip_urls_default_true(self):
-        """GIVEN a fresh BellbirdConfig()
-        THEN filter_strip_urls is True."""
-        cfg = BellbirdConfig()
         assert cfg.filter_strip_urls is True
-
-    def test_filter_strip_emojis_default_true(self):
-        """GIVEN a fresh BellbirdConfig()
-        THEN filter_strip_emojis is True."""
-        cfg = BellbirdConfig()
         assert cfg.filter_strip_emojis is True
-
-    def test_filter_strip_code_blocks_default_true(self):
-        """GIVEN a fresh BellbirdConfig()
-        THEN filter_strip_code_blocks is True."""
-        cfg = BellbirdConfig()
         assert cfg.filter_strip_code_blocks is True
 
     def test_param_presets_default_empty(self):
@@ -1263,11 +988,6 @@ class TestV0110Config:
         from bellbird.core.preset import ParamPreset
         a.param_presets.append(ParamPreset(name="x", temperature=0.7))
         assert b.param_presets == []
-
-    def test_v0110_5_new_fields_count(self):
-        """GIVEN BellbirdConfig.__dataclass_fields__
-        THEN there are at least 39 fields (34 + 5)."""
-        assert len(BellbirdConfig.__dataclass_fields__) >= 39
 
     def test_v0110_filter_toggles_round_trip(self, monkeypatch, tmp_path):
         """GIVEN BellbirdConfig with all 4 filter toggles set
@@ -1294,7 +1014,6 @@ class TestV0110Config:
         """GIVEN BellbirdConfig with a ParamPreset list
         WHEN save then load
         THEN the param_presets list round-trips as a list of ParamPreset."""
-        import json
         from bellbird.core import config as config_module
         from bellbird.core.preset import ParamPreset
 
@@ -1331,7 +1050,6 @@ class TestV0110Config:
         """GIVEN a config.json WITHOUT the 5 new fields (v0.10.0 style)
         WHEN load_config() runs on v0.11.0
         THEN defaults are applied (no error)."""
-        import json
         from bellbird.core import config as config_module
 
         path = tmp_path / "config.json"
@@ -1339,65 +1057,14 @@ class TestV0110Config:
         path.write_text(json.dumps(data), encoding="utf-8")
         monkeypatch.setattr(config_module, "CONFIG_PATH", path)
         loaded = load_config()
-        # All 5 new fields should have their defaults
         assert loaded.param_presets == []
         assert loaded.filter_strip_markdown is True
         assert loaded.filter_strip_urls is True
         assert loaded.filter_strip_emojis is True
         assert loaded.filter_strip_code_blocks is True
 
-    def test_v0110_forward_compat_with_unknown_field(self, monkeypatch, tmp_path):
-        """GIVEN a config.json with the 5 new fields + a future_field
-        WHEN load_config() runs
-        THEN new fields are loaded and future_field is silently dropped."""
-        import json
-        from bellbird.core import config as config_module
-        from bellbird.core.preset import ParamPreset
 
-        path = tmp_path / "config.json"
-        data = {
-            "param_presets": [
-                {
-                    "name": "test",
-                    "temperature": 0.8,
-                    "min_p": 0.05,
-                    "max_tokens": 1024,
-                    "top_p": 0.9,
-                    "top_k": 40,
-                    "repeat_penalty": 1.1,
-                    "seed": -1,
-                },
-            ],
-            "filter_strip_markdown": False,
-            "filter_strip_urls": True,
-            "filter_strip_emojis": False,
-            "filter_strip_code_blocks": True,
-            "future_field": "should_drop",
-        }
-        path.write_text(json.dumps(data), encoding="utf-8")
-        monkeypatch.setattr(config_module, "CONFIG_PATH", path)
-        loaded = load_config()
-        assert len(loaded.param_presets) == 1
-        assert loaded.param_presets[0].name == "test"
-        assert loaded.filter_strip_markdown is False
-        assert loaded.filter_strip_urls is True
-        assert loaded.filter_strip_emojis is False
-        assert loaded.filter_strip_code_blocks is True
-        assert not hasattr(loaded, "future_field")
-
-    def test_v0110_no_migration_entry(self):
-        """GIVEN the _MIGRATIONS dict
-        THEN it still has exactly one entry (max_tokens)
-        AND no entry references any of the 5 new fields."""
-        from bellbird.core.config import _MIGRATIONS
-
-        assert len(_MIGRATIONS) == 1
-        assert "max_tokens" in _MIGRATIONS
-        assert "param_presets" not in _MIGRATIONS
-        assert "filter_strip_markdown" not in _MIGRATIONS
-        assert "filter_strip_urls" not in _MIGRATIONS
-        assert "filter_strip_emojis" not in _MIGRATIONS
-        assert "filter_strip_code_blocks" not in _MIGRATIONS
+# ─── migration invariants ─────────────────────────────────────────────────────
 
 
 def test_migrations_bump_max_tokens_512_to_4096(monkeypatch, tmp_path):
@@ -1410,8 +1077,6 @@ def test_migrations_bump_max_tokens_512_to_4096(monkeypatch, tmp_path):
     to the post-v0.5.1 default of 4096 so reasoning models can complete
     their thinking phase.
     """
-    import json
-
     from bellbird.core import config as config_module
 
     path = tmp_path / "config.json"
@@ -1426,8 +1091,6 @@ def test_migrations_does_not_touch_max_tokens_when_not_512(monkeypatch, tmp_path
     """GIVEN a JSON config with a non-default ``max_tokens`` (not 512)
     WHEN load_config() runs
     THEN ``max_tokens`` is preserved as-is (no false-positive migration)."""
-    import json
-
     from bellbird.core import config as config_module
 
     path = tmp_path / "config.json"

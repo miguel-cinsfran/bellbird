@@ -70,19 +70,13 @@ class TestFetchResult:
 class TestSchemeGuard:
     """Pre-request scheme validation — no requests call made."""
 
-    def test_invalid_scheme_file(self):
-        result = fetch_text("file:///etc/passwd")
-        assert result.ok is False
-        assert "scheme no permitido" in result.error
-        assert result.status_code is None
-
-    def test_invalid_scheme_ftp(self):
-        result = fetch_text("ftp://example.com/file.txt")
-        assert result.ok is False
-        assert "scheme no permitido" in result.error
-
-    def test_invalid_scheme_gopher(self):
-        result = fetch_text("gopher://example.com")
+    @pytest.mark.parametrize("url", [
+        "file:///etc/passwd",
+        "ftp://example.com/file.txt",
+        "gopher://example.com",
+    ])
+    def test_invalid_scheme_rejected(self, url):
+        result = fetch_text(url)
         assert result.ok is False
         assert "scheme no permitido" in result.error
 
@@ -252,40 +246,23 @@ class TestHttpErrors:
 class TestNetworkErrors:
     """Network errors produce ok=False, never raise."""
 
-    def test_fetch_text_network_error_returns_result(self, monkeypatch):
+    @pytest.mark.parametrize("exc_class,msg", [
+        ("ConnectionError", "connection refused"),
+        ("Timeout", "timed out"),
+        ("RequestException", "generic"),
+    ])
+    def test_fetch_text_network_error_returns_result(self, monkeypatch, exc_class, msg):
         import requests
         import bellbird.core.web_fetch as wf
+        exc = getattr(requests.exceptions, exc_class)(msg)
         monkeypatch.setattr(
             wf.requests, "get",
-            lambda url, **kw: (_ for _ in ()).throw(requests.exceptions.ConnectionError("connection refused")),
+            lambda url, **kw: (_ for _ in ()).throw(exc),
         )
         result = fetch_text("https://example.com")
         assert result.ok is False
         assert result.error
         assert result.status_code is None
-
-    def test_fetch_text_timeout_returns_result(self, monkeypatch):
-        import requests
-        import bellbird.core.web_fetch as wf
-        monkeypatch.setattr(
-            wf.requests, "get",
-            lambda url, **kw: (_ for _ in ()).throw(requests.exceptions.Timeout("timed out")),
-        )
-        result = fetch_text("https://example.com")
-        assert result.ok is False
-        assert result.error
-        assert result.status_code is None
-
-    def test_fetch_text_generic_request_exception(self, monkeypatch):
-        import requests
-        import bellbird.core.web_fetch as wf
-        monkeypatch.setattr(
-            wf.requests, "get",
-            lambda url, **kw: (_ for _ in ()).throw(requests.exceptions.RequestException("generic")),
-        )
-        result = fetch_text("https://example.com")
-        assert result.ok is False
-        assert result.error
 
 
 # ─── fetch_text — malformed URLs ───────────────────────────────────────────────
@@ -299,22 +276,14 @@ class TestMalformedUrls:
         assert result.ok is False
         assert result.error
 
-    def test_fetch_text_http_scheme_works(self, monkeypatch):
+    @pytest.mark.parametrize("url", ["http://example.com", "HTTPS://example.com"])
+    def test_fetch_text_valid_scheme_works(self, monkeypatch, url):
         import bellbird.core.web_fetch as wf
         monkeypatch.setattr(
             wf.requests, "get",
-            lambda url, **kw: MockResponse(text="<p>ok</p>"),
+            lambda u, **kw: MockResponse(text="<p>ok</p>"),
         )
-        result = fetch_text("http://example.com")
-        assert result.ok is True
-
-    def test_fetch_text_https_scheme_works(self, monkeypatch):
-        import bellbird.core.web_fetch as wf
-        monkeypatch.setattr(
-            wf.requests, "get",
-            lambda url, **kw: MockResponse(text="<p>ok</p>"),
-        )
-        result = fetch_text("HTTPS://example.com")
+        result = fetch_text(url)
         assert result.ok is True
 
 

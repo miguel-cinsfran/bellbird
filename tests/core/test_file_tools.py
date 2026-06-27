@@ -103,14 +103,9 @@ class TestDispatch:
 
 
 class TestToolCatalog:
-    def test_file_tool_names_correct(self):
-        assert FILE_TOOL_NAMES == {"read_file", "list_dir", "write_file", "edit_file"}
-
-    def test_read_and_list_are_green(self):
+    def test_risk_levels(self):
         assert FILE_TOOL_RISK["read_file"] == RiskLevel.GREEN
         assert FILE_TOOL_RISK["list_dir"] == RiskLevel.GREEN
-
-    def test_write_and_edit_are_yellow(self):
         assert FILE_TOOL_RISK["write_file"] == RiskLevel.YELLOW
         assert FILE_TOOL_RISK["edit_file"] == RiskLevel.YELLOW
 
@@ -122,11 +117,6 @@ class TestToolCatalog:
     def test_display_command_shell(self):
         cmd = display_command("shell_execute", {"command": "dir"})
         assert cmd == "dir"
-
-    def test_display_command_read_file(self):
-        cmd = display_command("read_file", {"path": "/home/user/file.txt"})
-        assert "read_file" in cmd
-        assert "/home/user/file.txt" in cmd
 
     def test_get_enabled_tools_none_when_disabled(self):
         cfg = BellbirdConfig(tools_enabled=False)

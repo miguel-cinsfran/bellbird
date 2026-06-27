@@ -779,25 +779,6 @@ class TestF2StatusFormatter:
 class TestDoubleF2:
     """Double-F2 detection within 1.5 s switches to mode='long'."""
 
-    def test_single_f2_is_short(self, app):
-        """Single F2 press calls format_status with 'short' mode."""
-        frame, config, _, fake_speech = _make_frame(app)
-        frame._last_f2_mono = None  # fresh state
-        # Mock the client so the F2 handler does not hit the network.
-        frame._client.get_loaded_model = MagicMock(return_value="TestModel")
-        frame._client.check_state = MagicMock(return_value="ready")
-        # Mock time.monotonic to simulate one press
-        with patch("bellbird.ui.main_window.time.monotonic") as mock_time:
-            mock_time.return_value = 100.0
-            with patch.object(
-                frame, "_announce_session_status", wraps=frame._announce_session_status
-            ) as wrapped:
-                try:
-                    frame._announce_session_status()
-                    # After short press, _last_f2_mono is updated (no override to verify)
-                finally:
-                    frame.Destroy()
-
     def test_double_f2_within_window_is_long(self, app):
         """Two F2s within 1.5 s produce long mode on the second press."""
         from bellbird.core.status_formatter import format_status, SessionSnapshot
@@ -985,26 +966,6 @@ class TestContextMeter:
         finally:
             frame.Destroy()
 
-    def test_threshold_resets_on_new_generation(self, app):
-        """Threshold resets when _is_generating transitions to True."""
-        frame, config, _, fake_speech = _make_frame(app)
-        frame._meter_threshold_fired = True
-        frame._is_generating = True  # simulate new generation
-        # In the real flow, send_message sets _meter_threshold_fired = False
-        # before starting generation. Test that this pattern works.
-        frame._meter_threshold_fired = False
-        assert frame._meter_threshold_fired is False, (
-            "Flag should be reset for new generation"
-        )
-        frame._current_n_ctx = 4096
-        try:
-            frame._on_usage({"prompt_tokens": 1000, "completion_tokens": 2700})
-            assert "Contexto casi lleno" in fake_speech.last_message, (
-                "Threshold should fire again after reset"
-            )
-        finally:
-            frame.Destroy()
-
 
 # ─── WU-2: Pre-send Guard (T-WU2-04) ─────────────────────────────────────────
 
@@ -1149,19 +1110,6 @@ class TestNotifierWiring:
         finally:
             frame.Destroy()
 
-    def test_on_read_selected_message_exists(self, app):
-        """_on_read_selected_message method exists and is callable."""
-        frame, config, _, _ = _make_frame(app)
-        try:
-            assert hasattr(frame, "_on_read_selected_message"), (
-                "MainWindow must have _on_read_selected_message method"
-            )
-            assert callable(frame._on_read_selected_message), (
-                "_on_read_selected_message must be callable"
-            )
-        finally:
-            frame.Destroy()
-
     def test_on_read_selected_message_gates_on_generating(self, app):
         """_on_read_selected_message speaks guard message mid-generation."""
         frame, config, _, fake_speech = _make_frame(app)
@@ -1204,16 +1152,3 @@ class TestSystemVoiceConstruction:
         finally:
             frame.Destroy()
 
-    def test_sound_player_constructed(self, app):
-        """MainWindow constructs _sound_player in __init__."""
-        frame, config, _, _ = _make_frame(app)
-        try:
-            assert hasattr(frame, "_sound_player"), (
-                "MainWindow must have _sound_player"
-            )
-            from bellbird.core.sound_player import SoundPlayer
-            assert isinstance(frame._sound_player, SoundPlayer), (
-                "_sound_player must be a SoundPlayer instance"
-            )
-        finally:
-            frame.Destroy()

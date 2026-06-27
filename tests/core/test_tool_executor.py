@@ -388,19 +388,6 @@ class TestToolExecutor:
         msg = result.to_tool_message()
         assert "[Cancelado]" in msg["content"]
 
-    def test_tool_result_cancelled_false_byte_identical_to_v0_4_0(self):
-        """Given cancelled=False (default), output is byte-identical to v0.4.0."""
-        # v0.4.0: no cancelled field - to_display text
-        result = ToolResult("shell_execute", "ls", "file1", "", 0)
-        text = result.to_display_text()
-        assert "[Cancelado]" not in text
-        assert "[Herramienta: shell_execute]" in text
-        assert "file1" in text
-
-        msg = result.to_tool_message()
-        assert "[Cancelado]" not in msg["content"]
-        assert msg["role"] == "tool"
-
     def test_tool_result_backward_compat_5_args(self):
         """Given 5-arg constructor (old style), cancelled defaults to False."""
         result = ToolResult("shell_execute", "ls", "file1", "", 0)

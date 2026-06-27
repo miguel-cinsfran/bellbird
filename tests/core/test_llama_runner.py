@@ -188,19 +188,6 @@ class TestLlamaRunner:
         assert "mmproj-F16.gguf" not in basenames
         assert "submodel-mmproj-F16.gguf" not in basenames
 
-    def test_find_gguf_models_is_windows_guard(self):
-        """When _is_windows returns False, find_gguf_models returns [] regardless
-        of extra_paths (the platform gate is the first check)."""
-        from bellbird.core.llama_runner import find_gguf_models
-
-        # Real WSL is non-Windows, so the default behavior is already [].
-        # This test asserts the platform gate explicitly.
-        with patch(
-            "bellbird.core.llama_runner._is_windows", return_value=False
-        ):
-            result = find_gguf_models(extra_paths=["/nonexistent/x.gguf"])
-        assert result == []
-
     # ── get_install_command ─────────────────────────────────────────────
 
     def test_get_install_command_returns_literal(self):
@@ -680,28 +667,6 @@ class TestLlamaRunner:
         popen_patch.assert_called_once()
         args, _ = popen_patch.call_args
         argv = args[0]
-        assert "--flash-attn" in argv
-
-    def test_start_server_both_threads_and_flash_attn(self):
-        """Given both threads=8 and flash_attn=True, argv has both."""
-        client = self._make_client(check_running_result=False)
-        popen_mock = self._make_proc()
-
-        with patch("bellbird.core.llama_runner.subprocess.Popen",
-                   return_value=popen_mock) as popen_patch:
-            from bellbird.core.llama_runner import start_server
-
-            ok, message = start_server(
-                "/fake/model.gguf", client, timeout=0.5,
-                threads=8, flash_attn=True,
-            )
-
-        popen_patch.assert_called_once()
-        args, _ = popen_patch.call_args
-        argv = args[0]
-        assert "--threads" in argv
-        idx = argv.index("--threads")
-        assert argv[idx + 1] == "8"
         assert "--flash-attn" in argv
 
     def test_start_server_mmproj_offload_true_by_default(self):

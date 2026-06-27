@@ -268,6 +268,23 @@ class TestLlamaRunner:
         assert "--port" in argv
         assert "--jinja" in argv
 
+    def test_start_server_custom_binary_used_in_argv(self):
+        """Given server_binary is provided, it becomes argv[0] instead of 'llama-server'."""
+        client = self._make_client(check_running_result=False)
+        popen_mock = self._make_proc()
+
+        custom = "/custom/llama-server-vulkan/llama-server.exe"
+        with patch(
+            "bellbird.core.llama_runner.subprocess.Popen",
+            return_value=popen_mock,
+        ) as popen_patch:
+            from bellbird.core.llama_runner import start_server
+
+            start_server("/fake/model.gguf", client, timeout=0.5, server_binary=custom)
+
+        args, _ = popen_patch.call_args
+        assert args[0][0] == custom
+
     def test_start_server_success_after_3_polls(self):
         """Given health checks succeed after 3 polls, returns (True, '...listo')."""
         client = MagicMock()

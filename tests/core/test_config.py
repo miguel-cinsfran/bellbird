@@ -1042,6 +1042,7 @@ class TestV090Config:
         assert len(loaded.status_toggles) == 13
         assert loaded.model_tunings == {}
         assert loaded.pre_send_warn is True
+        assert loaded.llama_server_path == ""
 
     def test_status_toggles_as_set_returns_true_keys(self):
         """GIVEN BellbirdConfig with partial toggles

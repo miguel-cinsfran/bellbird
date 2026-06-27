@@ -22,6 +22,7 @@ from bellbird import __version__ as _BELLBIRD_VERSION
 from bellbird.core.conversation import Conversation
 from bellbird.core.llama_client import LlamaClient
 from bellbird.core.llama_runner import (
+    download_server_binary,
     find_gguf_models,
     find_llama_server,
     get_install_command,
@@ -172,6 +173,8 @@ class MainWindow(wx.Frame):
         self.ID_START_SERVER = wx.NewIdRef()
         self.ID_STOP_SERVER = wx.NewIdRef()
         self.ID_MMPROJ_SELECT = wx.NewIdRef()
+        self.ID_DOWNLOAD_GPU = wx.NewIdRef()
+        self.ID_USE_SYSTEM_SERVER = wx.NewIdRef()
 
         # Keymap accelerator IDs — populated by _build_accelerators, reused on rebuild.
         # start_server/stop_server use the existing IDs so menu items keep working.
@@ -472,6 +475,19 @@ class MainWindow(wx.Frame):
             "Asignar archivo mmproj al modelo cargado (necesario para imágenes/visión)",
         )
         self.Bind(wx.EVT_MENU, lambda evt: self._on_select_mmproj(), menu_mmproj)
+
+        servidor_menu.AppendSeparator()
+        menu_download_gpu = servidor_menu.Append(
+            self.ID_DOWNLOAD_GPU, "Descargar llama-server &Vulkan (GPU)...",
+            "Descargar build GPU de llama-server (~32 MB). Usa la GPU en vez de la CPU para inferencia.",
+        )
+        self.Bind(wx.EVT_MENU, lambda evt: self._on_download_gpu_server(), menu_download_gpu)
+
+        menu_use_system = servidor_menu.Append(
+            self.ID_USE_SYSTEM_SERVER, "Usar llama-server del &sistema",
+            "Volver al llama-server instalado en el sistema (winget, solo CPU)",
+        )
+        self.Bind(wx.EVT_MENU, lambda evt: self._on_use_system_server(), menu_use_system)
 
         menu_bar.Append(servidor_menu, "&Servidor")
 
@@ -996,6 +1012,7 @@ class MainWindow(wx.Frame):
                 ctx_size=self._config.ctx_size,
                 n_gpu_layers=self._config.n_gpu_layers,
                 mmproj=mmproj_path,
+                server_binary=self._config.llama_server_path or None,
             )
         except Exception as e:
             message = f"Error: {type(e).__name__}: {e}"
@@ -1041,6 +1058,65 @@ class MainWindow(wx.Frame):
         stem = Path(mmproj_path).stem
         self._speech.speak(
             f"mmproj guardado: {stem}. Recarga el modelo para activar visión.",
+            interrupt=True,
+        )
+
+    def _on_download_gpu_server(self) -> None:
+        """Download and activate the Vulkan GPU build of llama-server (~32 MB)."""
+        import os as _os
+        dest_dir = Path(_os.environ.get("LOCALAPPDATA", str(Path.home()))) / "Bellbird" / "llama-server-vulkan"
+        exe_path = dest_dir / "llama-server.exe"
+
+        if exe_path.exists() and self._config.llama_server_path == str(exe_path):
+            self._speech.speak("La versión GPU (Vulkan) ya está activa.", interrupt=True)
+            return
+
+        self._speech.speak(
+            "Descargando llama-server con soporte Vulkan (GPU), unos 32 megabytes. "
+            "Esto puede tardar un minuto...",
+            interrupt=True,
+        )
+
+        def _worker() -> None:
+            ok, result = download_server_binary("vulkan", dest_dir)
+            wx.CallAfter(self._on_download_gpu_done, ok, result)
+
+        threading.Thread(target=_worker, daemon=True).start()
+
+    def _on_download_gpu_done(self, ok: bool, result: str) -> None:
+        """Called on the UI thread when the GPU binary download finishes."""
+        if not ok:
+            self._speech.speak(f"Error al descargar: {result}", interrupt=True)
+            return
+
+        self._config.llama_server_path = result
+        try:
+            from bellbird.core.config import save_config
+            save_config(self._config)
+        except Exception:
+            get_logger().exception("_on_download_gpu_done: failed to save config")
+
+        self._speech.speak(
+            "Descarga completada. llama-server GPU (Vulkan) activado. "
+            "Los próximos modelos usarán la tarjeta gráfica.",
+            interrupt=True,
+        )
+
+    def _on_use_system_server(self) -> None:
+        """Revert to the system llama-server binary (from PATH / winget)."""
+        if not self._config.llama_server_path:
+            self._speech.speak("Ya se está usando el llama-server del sistema.", interrupt=True)
+            return
+
+        self._config.llama_server_path = ""
+        try:
+            from bellbird.core.config import save_config
+            save_config(self._config)
+        except Exception:
+            get_logger().exception("_on_use_system_server: failed to save config")
+
+        self._speech.speak(
+            "Volviendo al llama-server del sistema (instalado por winget, solo CPU).",
             interrupt=True,
         )
 
@@ -1095,7 +1171,16 @@ class MainWindow(wx.Frame):
                 # display. Safe now that the clobbering _scan_models() re-announce
                 # is gone.
                 vision_suffix = " con visión" if vision_capable else ""
-                self._speech.output(f"Servidor listo. Modelo {Path(loaded).stem}{vision_suffix}")
+                gpu_suffix = ""
+                if self._config.llama_server_path:
+                    parent_name = Path(self._config.llama_server_path).parent.name.lower()
+                    if "vulkan" in parent_name:
+                        gpu_suffix = ", GPU Vulkan"
+                    elif "cuda" in parent_name:
+                        gpu_suffix = ", GPU CUDA"
+                self._speech.output(
+                    f"Servidor listo. Modelo {Path(loaded).stem}{vision_suffix}{gpu_suffix}"
+                )
             else:
                 self._speech.output("Servidor listo")
             self._notifier.notify("server_ready", "Servidor listo")

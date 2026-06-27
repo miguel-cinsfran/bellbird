@@ -257,6 +257,7 @@ def start_server(
     mmproj_offload: bool = True,
     threads: int | None = None,
     flash_attn: bool = False,
+    server_binary: str | None = None,
 ) -> tuple[bool, str]:
     """Start llama-server with the given model.
 
@@ -281,6 +282,8 @@ def start_server(
         timeout: Maximum seconds to wait for the server to start.
         mmproj: Path to multimodal projector .gguf, or None for text-only.
         mmproj_offload: If False, pass ``--no-mmproj-offload`` to save VRAM.
+        server_binary: Absolute path to llama-server binary, or None to use
+            the system binary resolved via PATH.
 
     Returns:
         (ok, message) tuple.
@@ -317,8 +320,9 @@ def start_server(
                 return False, "No se pudo liberar el puerto para cambiar de modelo"
 
         # Step 3: Build argv
+        binary = server_binary if server_binary else "llama-server"
         argv = [
-            "llama-server",
+            binary,
             "--model", model_path,
             "--port", str(port),
             "--host", "127.0.0.1",
@@ -530,3 +534,105 @@ def get_install_command() -> str:
         The literal string "winget install ggml.llamacpp".
     """
     return "winget install ggml.llamacpp"
+
+
+def download_server_binary(
+    variant: str,
+    dest_dir: Path,
+    progress_cb: "Callable[[int, int], None] | None" = None,
+) -> tuple[bool, str]:
+    """Download a GPU-accelerated llama-server binary from GitHub releases.
+
+    Downloads the requested build variant from the latest llama.cpp release,
+    extracts all files into *dest_dir*, and returns the path to the exe.
+
+    Args:
+        variant: ``"vulkan"`` or ``"cuda-12.4"`` or ``"cuda-13.3"``.
+        dest_dir: Directory to extract the binary and DLLs into.
+        progress_cb: Optional ``(downloaded_bytes, total_bytes)`` callback
+            invoked during download.
+
+    Returns:
+        ``(True, exe_path)`` on success, ``(False, error_message)`` on failure.
+        Never raises.
+    """
+    import json
+    import tempfile
+    import urllib.error
+    import urllib.request
+    import zipfile
+
+    try:
+        # Resolve latest release tag and find asset download URL.
+        api_url = "https://api.github.com/repos/ggml-org/llama.cpp/releases/latest"
+        req = urllib.request.Request(
+            api_url, headers={"User-Agent": "bellbird/1.0"}
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            release = json.load(resp)
+
+        tag = release.get("tag_name", "")
+        assets: list[dict] = release.get("assets", [])
+
+        if variant == "vulkan":
+            pattern = f"llama-{tag}-bin-win-vulkan-x64.zip"
+        elif variant.startswith("cuda"):
+            cuda_ver = variant.replace("cuda-", "") if "-" in variant else "12.4"
+            pattern = f"llama-{tag}-bin-win-cuda-{cuda_ver}-x64.zip"
+        else:
+            return False, f"Variante desconocida: {variant!r}"
+
+        asset = next(
+            (a for a in assets if a.get("name") == pattern), None
+        )
+        if asset is None:
+            return False, (
+                f"No se encontró el asset {pattern!r} en el release {tag}. "
+                "Comprobá la conexión y que la versión esté disponible."
+            )
+
+        download_url: str = asset["browser_download_url"]
+        total_size: int = asset.get("size", 0)
+
+        # Download to a temp file with progress.
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        tmp_fd, tmp_path = tempfile.mkstemp(suffix=".zip", dir=dest_dir)
+        os.close(tmp_fd)
+
+        downloaded = [0]
+
+        def _reporthook(block: int, block_size: int, total: int) -> None:
+            downloaded[0] = min(block * block_size, total if total > 0 else block * block_size)
+            if progress_cb:
+                progress_cb(downloaded[0], total if total > 0 else total_size)
+
+        urllib.request.urlretrieve(download_url, tmp_path, reporthook=_reporthook)
+
+        # Extract all files flat into dest_dir (handle any subdirectory in the zip).
+        with zipfile.ZipFile(tmp_path) as zf:
+            has_server = any(
+                Path(n).name.lower() == "llama-server.exe"
+                for n in zf.namelist()
+            )
+            if not has_server:
+                os.unlink(tmp_path)
+                return False, "El zip descargado no contiene llama-server.exe"
+
+            for info in zf.infolist():
+                filename = Path(info.filename).name
+                if not filename:  # directory entry
+                    continue
+                data = zf.read(info.filename)
+                (dest_dir / filename).write_bytes(data)
+
+        os.unlink(tmp_path)
+
+        exe_path = dest_dir / "llama-server.exe"
+        if not exe_path.exists():
+            return False, "llama-server.exe no aparece en el directorio de destino"
+        return True, str(exe_path)
+
+    except urllib.error.URLError as exc:
+        return False, f"Error de red: {exc.reason}"
+    except Exception as exc:
+        return False, f"Error inesperado al descargar: {exc}"

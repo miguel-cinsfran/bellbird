@@ -73,6 +73,11 @@ class BellbirdConfig:
     # v0.12.0: file tools (read_file, list_dir, write_file, edit_file)
     file_tools_enabled: bool = False
 
+    # v0.13.0: custom llama-server binary (GPU acceleration).
+    # Empty string = use system binary from PATH (winget default, CPU-only).
+    # Set to an absolute path to use a downloaded GPU build (Vulkan/CUDA).
+    llama_server_path: str = ""
+
     def status_toggles_as_set(self) -> set[str]:
         """Return the set of toggle names whose value is ``True``.
 

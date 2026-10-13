@@ -289,10 +289,14 @@ def revisar(cliente, destino, parada=None) -> Revision:
             problemas.append(f"El audio del escritorio {entrada.nombre} "
                              "está silenciado.")
     if not any(fuente.visible for fuente in fuentes):
-        problemas.append("La escena no tiene ninguna fuente visible.")
+        problemas.append("La escena no tiene ninguna fuente visible. "
+                         "Para agregar una: Transmisión, sección Escena, "
+                         "elegir la ventana en Ventana que se captura y "
+                         "pulsar Usar esa ventana.")
     if imagen is True:
-        problemas.append("La imagen está vacía: lo que muestra la escena está "
-                         "en negro o transparente. ¿Está abierto el juego?")
+        problemas.append("La imagen está vacía: la escena se ve en negro. "
+                         "Revisar que la ventana capturada esté abierta y "
+                         "no minimizada.")
     return Revision(destino, perfil, coleccion, lienzo.get("baseWidth"),
                     lienzo.get("baseHeight"), escena, tuple(fuentes),
                     tuple(audio), imagen, tuple(problemas))

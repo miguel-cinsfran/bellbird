@@ -90,8 +90,8 @@ class TransmisionDialog(wx.Dialog):
     def __init__(self, parent, gestor=None, alternar_panel=None,
                  supervisar=None, guardar_usuario=None, usuario_tiktok="",
                  asegurar=None, guardar_destino=None):
-        super().__init__(parent, title="Transmisión", size=(620, 680),
-                         name="DialogoTransmision")
+        super().__init__(parent, title="Transmisión", size=(680, 680),
+                          name="DialogoTransmision")
         self._gestor = gestor or GestorPanelObs()
         self._asegurar = (asegurar if asegurar is not None
                           else obs_lanzador.asegurar_obs)
@@ -142,14 +142,30 @@ class TransmisionDialog(wx.Dialog):
 
         sizer_transmitir, padre_transmitir = caja_de_grupo(zona, "Transmitir")
         self._sizer_transmitir = sizer_transmitir
+        self._rotulos_transmision = []
+
+        def nuevo_rotulo(padre, texto):
+            rotulo = wx.StaticText(padre, label=texto)
+            rotulo.SetForegroundColour(_T.text)
+            self._rotulos_transmision.append(rotulo)
+            return rotulo
+
+        def fila_campo(sizer, rotulo, control, proporcion=0):
+            fila = wx.BoxSizer(wx.HORIZONTAL)
+            fila.Add(rotulo, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 6)
+            fila.Add(control, 1, wx.EXPAND | wx.ALL, 6)
+            sizer.Add(fila, proporcion, wx.EXPAND, 0)
+
+        rotulo_destino = nuevo_rotulo(padre_transmitir, "Transmitir a:")
         self.cho_destino = wx.Choice(padre_transmitir, choices=list(DESTINOS),
                                      name="Transmitir a")
         nombre_accesible(self.cho_destino, "Transmitir a")
-        sizer_transmitir.Add(self.cho_destino, 0, wx.EXPAND | wx.ALL, 6)
+        fila_campo(sizer_transmitir, rotulo_destino, self.cho_destino)
+        rotulo_usuario = nuevo_rotulo(padre_transmitir, "Tu usuario de TikTok:")
         self.txt_usuario_tiktok = wx.TextCtrl(
             padre_transmitir, value=self._usuario_tiktok, name="Tu usuario de TikTok")
         nombre_accesible(self.txt_usuario_tiktok, "Tu usuario de TikTok")
-        sizer_transmitir.Add(self.txt_usuario_tiktok, 0, wx.EXPAND | wx.ALL, 6)
+        fila_campo(sizer_transmitir, rotulo_usuario, self.txt_usuario_tiktok)
         self.btn_destino = self._boton(padre_transmitir, "Preparar desti&no", "Preparar destino")
         sizer_transmitir.Add(self.btn_destino, 0, wx.ALL, 6)
         self.btn_transmitir = self._boton(
@@ -163,14 +179,16 @@ class TransmisionDialog(wx.Dialog):
         contenido.Add(sizer_transmitir, 0, wx.EXPAND | wx.ALL, 10)
 
         sizer_escena, padre_escena = caja_de_grupo(zona, "Escena")
+        rotulo_escena = nuevo_rotulo(padre_escena, "Escena:")
         self.cho_escena = wx.Choice(padre_escena, name="Escena")
         nombre_accesible(self.cho_escena, "Escena")
-        sizer_escena.Add(self.cho_escena, 0, wx.EXPAND | wx.ALL, 6)
+        fila_campo(sizer_escena, rotulo_escena, self.cho_escena)
         self.btn_poner_al_aire = self._boton(padre_escena, "Poner al &aire", "Poner al aire")
         sizer_escena.Add(self.btn_poner_al_aire, 0, wx.ALL, 6)
+        rotulo_ventana = nuevo_rotulo(padre_escena, "Ventana que se captura:")
         self.cho_ventana = wx.Choice(padre_escena, name="Ventana que se captura")
         nombre_accesible(self.cho_ventana, "Ventana que se captura")
-        sizer_escena.Add(self.cho_ventana, 0, wx.EXPAND | wx.ALL, 6)
+        fila_campo(sizer_escena, rotulo_ventana, self.cho_ventana)
         self.btn_usar_ventana = self._boton(padre_escena, "Usar esa &ventana", "Usar esa ventana")
         sizer_escena.Add(self.btn_usar_ventana, 0, wx.ALL, 6)
         self.btn_captura = self._boton(
@@ -184,6 +202,7 @@ class TransmisionDialog(wx.Dialog):
         self.txt_estado.SetBackgroundColour(_T.field)
         self.txt_estado.SetForegroundColour(_T.text)
         nombre_accesible(self.txt_estado, "Estado de la transmisión")
+        self.txt_estado.SetMinSize((-1, 110))
         sizer_escena.Add(self.txt_estado, 1, wx.EXPAND | wx.ALL, 6)
         contenido.Add(sizer_escena, 1, wx.EXPAND | wx.ALL, 10)
 
@@ -196,24 +215,28 @@ class TransmisionDialog(wx.Dialog):
         sizer_panel.Add(self.chk_panel_chat, 0, wx.ALL, 6)
         self.btn_preparar = self._boton(padre_panel, "Preparar e&l panel", "Preparar el panel")
         sizer_panel.Add(self.btn_preparar, 0, wx.ALL, 6)
+        rotulo_fuente = nuevo_rotulo(padre_panel, "Fuente:")
         self.cho_fuente = wx.Choice(padre_panel, name="Fuente")
         nombre_accesible(self.cho_fuente, "Fuente")
-        sizer_panel.Add(self.cho_fuente, 0, wx.EXPAND | wx.ALL, 6)
+        fila_campo(sizer_panel, rotulo_fuente, self.cho_fuente)
+        rotulo_posicion = nuevo_rotulo(padre_panel, "Posición del panel:")
         self.cho_posicion = wx.Choice(
             padre_panel, choices=[nombre.replace("-", " ").capitalize()
                                   for nombre in obs_disposicion.ANCLAJES],
             name="Posición del panel")
         nombre_accesible(self.cho_posicion, "Posición del panel")
-        sizer_panel.Add(self.cho_posicion, 0, wx.EXPAND | wx.ALL, 6)
+        fila_campo(sizer_panel, rotulo_posicion, self.cho_posicion)
         self.btn_colocar = self._boton(
             padre_panel, "&Colocar en esa posición", "Colocar en esa posición")
         sizer_panel.Add(self.btn_colocar, 0, wx.ALL, 6)
+        rotulo_ancho = nuevo_rotulo(padre_panel, "Ancho del panel en píxeles:")
         self.sp_ancho = ContadorAccesible(padre_panel, min=100, max=4000, initial=460,
                                           name="Ancho del panel en píxeles")
+        fila_campo(sizer_panel, rotulo_ancho, self.sp_ancho)
+        rotulo_alto = nuevo_rotulo(padre_panel, "Alto del panel en píxeles:")
         self.sp_alto = ContadorAccesible(padre_panel, min=100, max=4000, initial=620,
                                          name="Alto del panel en píxeles")
-        sizer_panel.Add(self.sp_ancho, 0, wx.EXPAND | wx.ALL, 6)
-        sizer_panel.Add(self.sp_alto, 0, wx.EXPAND | wx.ALL, 6)
+        fila_campo(sizer_panel, rotulo_alto, self.sp_alto)
         self.btn_tamano = self._boton(padre_panel, "Apl&icar tamaño", "AplicarTamano")
         sizer_panel.Add(self.btn_tamano, 0, wx.ALL, 6)
         self.chk_mostrar = wx.CheckBox(padre_panel, label="&Mostrar el panel en la escena",
@@ -235,6 +258,10 @@ class TransmisionDialog(wx.Dialog):
         self.btn_restaurar = self._boton(padre_panel, "&Restablecer", "RestablecerTransmision")
         sizer_panel.Add(self.btn_restaurar, 0, wx.ALL, 6)
         contenido.Add(sizer_panel, 0, wx.EXPAND | wx.ALL, 10)
+        ancho_rotulo = max(rotulo.GetBestSize().GetWidth()
+                           for rotulo in self._rotulos_transmision)
+        for rotulo in self._rotulos_transmision:
+            rotulo.SetMinSize((ancho_rotulo, -1))
         zona.SetSizer(contenido)
         caja.Add(zona, 1, wx.EXPAND)
 

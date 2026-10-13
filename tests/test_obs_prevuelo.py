@@ -204,9 +204,13 @@ class RevisarTest(unittest.TestCase):
             "Pulsa Preparar destino.",
             "El micrófono Mic/Aux está silenciado.",
             "El audio del escritorio Audio del escritorio está silenciado.",
-            "La escena no tiene ninguna fuente visible.",
-            "La imagen está vacía: lo que muestra la escena está en negro "
-            "o transparente. ¿Está abierto el juego?"])
+            "La escena no tiene ninguna fuente visible. "
+            "Para agregar una: Transmisión, sección Escena, "
+            "elegir la ventana en Ventana que se captura y "
+            "pulsar Usar esa ventana.",
+            "La imagen está vacía: la escena se ve en negro. "
+            "Revisar que la ventana capturada esté abierta y "
+            "no minimizada."])
 
     def test_escena_sin_fuentes_visibles(self):
         doble = DoblePrevuelo(
@@ -214,7 +218,10 @@ class RevisarTest(unittest.TestCase):
                         "sceneItemEnabled": False}],
             imagen=imagen_dato(png_plano(2, 2, (200, 0, 0, 255))))
         revision = revisar(doble, "TikTok")
-        self.assertIn("La escena no tiene ninguna fuente visible.",
+        self.assertIn("La escena no tiene ninguna fuente visible. "
+                      "Para agregar una: Transmisión, sección Escena, "
+                      "elegir la ventana en Ventana que se captura y "
+                      "pulsar Usar esa ventana.",
                       revision.problemas)
 
     def test_imagen_vacia_da_problema(self):
@@ -222,8 +229,9 @@ class RevisarTest(unittest.TestCase):
             imagen=imagen_dato(png_plano(3, 3, (0, 0, 0, 0))))
         revision = revisar(doble, "TikTok")
         self.assertIs(revision.imagen_vacia, True)
-        self.assertIn("La imagen está vacía: lo que muestra la escena está "
-                      "en negro o transparente. ¿Está abierto el juego?",
+        self.assertIn("La imagen está vacía: la escena se ve en negro. "
+                      "Revisar que la ventana capturada esté abierta y "
+                      "no minimizada.",
                       revision.problemas)
 
     def test_imagen_ilesa_da_none_sin_problema(self):

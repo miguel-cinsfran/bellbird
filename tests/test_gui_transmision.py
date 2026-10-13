@@ -889,10 +889,47 @@ class TestTransmisionDialog(unittest.TestCase):
         self.assertIs(acciones[indice + 1], dialogo.txt_usuario_tiktok)
         self.assertIs(acciones[indice + 2], dialogo.btn_destino)
         sizer = dialogo._sizer_transmitir
-        ventanas = [elemento.GetWindow() for elemento in sizer.GetChildren()]
-        indice = ventanas.index(dialogo.cho_destino)
-        self.assertIs(ventanas[indice + 1], dialogo.txt_usuario_tiktok)
-        self.assertIs(ventanas[indice + 2], dialogo.btn_destino)
+        # Cada campo va en su fila horizontal: el sizer guarda filas, y el
+        # campo es la segunda ventana de su fila, después del rótulo.
+        secuencia = []
+        for elemento in sizer.GetChildren():
+            ventana = elemento.GetWindow()
+            if ventana is not None:
+                secuencia.append(ventana)
+                continue
+            fila = elemento.GetSizer()
+            if fila is not None:
+                interiores = [hijo.GetWindow()
+                              for hijo in fila.GetChildren()]
+                secuencia.append(interiores[1] if len(interiores) > 1
+                                 else None)
+        indice = secuencia.index(dialogo.cho_destino)
+        self.assertIs(secuencia[indice + 1], dialogo.txt_usuario_tiktok)
+        self.assertIs(secuencia[indice + 2], dialogo.btn_destino)
+
+    def test_cada_campo_tiene_su_rotulo_visible_antes(self):
+        casos = [
+            (self.dialogo.cho_destino, "Transmitir a:"),
+            (self.dialogo.txt_usuario_tiktok, "Tu usuario de TikTok:"),
+            (self.dialogo.cho_escena, "Escena:"),
+            (self.dialogo.cho_ventana, "Ventana que se captura:"),
+            (self.dialogo.cho_fuente, "Fuente:"),
+            (self.dialogo.cho_posicion, "Posición del panel:"),
+            (self.dialogo.sp_ancho, "Ancho del panel en píxeles:"),
+            (self.dialogo.sp_alto, "Alto del panel en píxeles:"),
+        ]
+        for control, esperado in casos:
+            with self.subTest(control=control.GetName()):
+                hijos = list(control.GetParent().GetChildren())
+                indice = hijos.index(control)
+                self.assertGreater(indice, 0)
+                rotulo = hijos[indice - 1]
+                self.assertIsInstance(rotulo, wx.StaticText)
+                self.assertEqual(rotulo.GetLabel(), esperado)
+
+    def test_estado_muestra_varias_lineas(self):
+        self.assertGreaterEqual(
+            self.dialogo.txt_estado.GetMinSize().GetHeight(), 110)
 
     def test_contenido_en_zona_desplazable_y_cerrar_fuera(self):
         zona = self.dialogo._zona_desplazable

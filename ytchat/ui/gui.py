@@ -477,6 +477,7 @@ class YTChatFrame(wx.Frame):
         self._sc_totales: dict[str, float] = {}
         self._live_chat_id = ""
         self._video_id_sesion = ""   # vídeo de YouTube de la conexión vigente
+        self._enlace_directo = ""   # URL del directo conectado, solo si es live
         self._causa_sin_chat = ""
         self._mensajes_programados = programados.cargar(
             paths.mensajes_programados())
@@ -535,6 +536,8 @@ class YTChatFrame(wx.Frame):
         m = wx.Menu()
         self.mi_conectar = m.Append(wx.ID_ANY, "&Conectar" + self._accel("conectar"))
         self.mi_desconectar = m.Append(wx.ID_ANY, "&Desconectar" + self._accel("desconectar"))
+        self.mi_copiar_enlace = m.Append(
+            wx.ID_ANY, "Copiar &enlace del directo" + self._accel("copiar_enlace"))
         m.AppendSeparator()
         mi_historial = m.Append(
             wx.ID_ANY, "&Historial de directos…" + self._accel("abrir_historial"))
@@ -543,6 +546,7 @@ class YTChatFrame(wx.Frame):
         mb.Append(m, "&Archivo")
         self.Bind(wx.EVT_MENU, lambda e: wx.CallAfter(self._conectar_si_procede), self.mi_conectar)
         self.Bind(wx.EVT_MENU, lambda e: self._desconectar_si_procede(), self.mi_desconectar)
+        self._bind_menu(self.mi_copiar_enlace, self._copiar_enlace_directo)
         self.Bind(wx.EVT_MENU, lambda e: wx.CallAfter(self._on_historial), mi_historial)
         self.Bind(wx.EVT_MENU, lambda e: self.Close(), mi_salir)
 
@@ -1229,6 +1233,11 @@ class YTChatFrame(wx.Frame):
             lista = historial.upsert(historial.cargar(ruta), plataforma, clave,
                                      url, titulo, canal, directo=directo)
             historial.guardar(ruta, lista)
+            # Solo un directo deja enlace copiable; un vídeo grabado lo vacía.
+            if directo:
+                self._enlace_directo = url
+            else:
+                self._enlace_directo = ""
         except Exception as exc:
             logger.debug("registrar historial: %s", exc)
 
@@ -1854,6 +1863,15 @@ class YTChatFrame(wx.Frame):
         _snd.reproducir("copiar")
         anunciar("Mensaje copiado")
 
+    def _copiar_enlace_directo(self):
+        enlace = getattr(self, "_enlace_directo", "")
+        if not enlace:
+            anunciar("No hay ningún directo conectado.")
+            return
+        self._clipboard_set(enlace)
+        _snd.reproducir("copiar")
+        anunciar("Enlace del directo copiado.")
+
     def _copiar_todo(self):
         data = self._get_selected_data()
         if data is None:
@@ -2155,6 +2173,7 @@ class YTChatFrame(wx.Frame):
         toca las preferencias del usuario (filtro, voz, sonidos, tema)."""
         self._live_chat_id = ""
         self._video_id_sesion = ""
+        self._enlace_directo = ""
         self._causa_sin_chat = ""
         self._tipo_video = deteccion.DESCONOCIDO
         self._es_tiktok = False

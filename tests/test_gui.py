@@ -2449,5 +2449,112 @@ class TestCierreVentana(unittest.TestCase):
                 self.assertFalse(hilo_real.is_alive())
 
 
+class TestCopiarEnlaceDirecto(unittest.TestCase):
+
+    def _frame(self):
+        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame._alive = True
+        frame._enlace_directo = ""
+        frame._clipboard_set = mock.Mock()
+        frame._ruta_historial = mock.Mock(return_value="historial.json")
+        return frame
+
+    def _registrar(self, frame, plataforma, url, directo):
+        with mock.patch.object(gui.historial, "cargar", return_value=[]), \
+                mock.patch.object(gui.historial, "upsert", return_value=[]), \
+                mock.patch.object(gui.historial, "guardar"):
+            frame.registrar_historial(plataforma, "clave", url, "título",
+                                      "canal", directo)
+
+    def test_registrar_directo_youtube_y_copiar_copia_suena_y_anuncia(self):
+        frame = self._frame()
+        url = "https://www.youtube.com/watch?v=abcdefghijk"
+        self._registrar(frame, "youtube", url, True)
+        self.assertEqual(frame._enlace_directo, url)
+        with mock.patch.object(gui._snd, "reproducir") as sonar, \
+                mock.patch.object(gui, "anunciar") as anunciar:
+            frame._copiar_enlace_directo()
+        frame._clipboard_set.assert_called_once_with(url)
+        sonar.assert_called_once_with("copiar")
+        anunciar.assert_called_once_with("Enlace del directo copiado.")
+
+    def test_registrar_video_no_directo_y_copiar_avisa_sin_copiar(self):
+        frame = self._frame()
+        self._registrar(frame, "youtube",
+                        "https://www.youtube.com/watch?v=abcdefghijk", False)
+        self.assertEqual(frame._enlace_directo, "")
+        with mock.patch.object(gui._snd, "reproducir") as sonar, \
+                mock.patch.object(gui, "anunciar") as anunciar:
+            frame._copiar_enlace_directo()
+        frame._clipboard_set.assert_not_called()
+        sonar.assert_not_called()
+        anunciar.assert_called_once_with("No hay ningún directo conectado.")
+
+    def test_registrar_directo_tiktok_y_copiar_copia(self):
+        frame = self._frame()
+        url = "https://www.tiktok.com/@usuario/live"
+        self._registrar(frame, "tiktok", url, True)
+        self.assertEqual(frame._enlace_directo, url)
+        with mock.patch.object(gui._snd, "reproducir"), \
+                mock.patch.object(gui, "anunciar") as anunciar:
+            frame._copiar_enlace_directo()
+        frame._clipboard_set.assert_called_once_with(url)
+        anunciar.assert_called_once_with("Enlace del directo copiado.")
+
+    def test_tras_desconectar_no_hay_enlace(self):
+        frame = self._frame()
+        frame._enlace_directo = "https://www.youtube.com/watch?v=abcdefghijk"
+        frame._live_chat_id = ""
+        frame._video_id_sesion = ""
+        frame._causa_sin_chat = ""
+        frame._tipo_video = gui.deteccion.DESCONOCIDO
+        frame._es_tiktok = False
+        frame._descartes_avisado = False
+        frame._descartar_pendientes = mock.Mock()
+        frame._chat = mock.Mock()
+        frame.lb_chat = mock.Mock()
+        frame._sc_totales = {}
+        frame._metadatos = {}
+        frame.txt_info = mock.Mock()
+        frame._rep_panel = mock.Mock()
+        frame._com_panel = mock.Mock()
+        frame._worker = mock.Mock()
+        frame._stats = mock.Mock()
+        frame._actualizar_sb = mock.Mock()
+        frame._reiniciar_datos_sesion()
+        self.assertEqual(frame._enlace_directo, "")
+        with mock.patch.object(gui, "anunciar") as anunciar:
+            frame._copiar_enlace_directo()
+        frame._clipboard_set.assert_not_called()
+        anunciar.assert_called_once_with("No hay ningún directo conectado.")
+
+    def test_item_de_menu_existe_con_su_atajo(self):
+        frame = mock.Mock()
+        frame._accel.side_effect = (
+            lambda accion: "\tCtrl+Shift+E" if accion == "copiar_enlace" else "")
+        elementos = []
+
+        def crear_menu():
+            menu = mock.MagicMock()
+
+            def agregar(*args):
+                elemento = mock.Mock()
+                elementos.append((args[-1], elemento))
+                return elemento
+
+            menu.Append.side_effect = agregar
+            menu.AppendRadioItem.side_effect = lambda *args: mock.Mock()
+            menu.AppendCheckItem.side_effect = lambda *args: mock.Mock()
+            return menu
+
+        with mock.patch.object(gui.wx, "Menu", side_effect=crear_menu), \
+                mock.patch.object(gui.wx, "MenuBar"):
+            gui.YTChatFrame._build_menubar(frame)
+        etiquetas = [etiqueta for etiqueta, _ in elementos]
+        candidata = next(e for e in etiquetas if "enlace del directo" in e)
+        self.assertIn("Copiar &enlace del directo", candidata)
+        self.assertIn("\tCtrl+Shift+E", candidata)
+
+
 if __name__ == "__main__":
     unittest.main()

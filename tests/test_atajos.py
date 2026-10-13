@@ -206,6 +206,8 @@ class TestParsearAtajos(unittest.TestCase):
                 ("abrir_preferencias", "ctrl+shift+p", "ctrl+shift"),
                 ("abrir_historial", "ctrl+shift+h", "ctrl+shift"),
                 ("marcar_incidencia", "ctrl+shift+i", "ctrl+shift"),
+                ("abrir_transmision", "ctrl+shift+t", "ctrl+shift"),
+                ("copiar_enlace", "ctrl+shift+e", "ctrl+shift"),
                 ("obs_micro", "ctrl+shift+m", "ctrl+shift")):
             self.assertEqual(ATAJOS_DEFAULTS[accion], valor)
             self.assertTrue(atajo_valido_para_area(accion, valor),
@@ -223,6 +225,8 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertIn('self._accel("abrir_historial")', fuente)
         self.assertIn('self._accel("abrir_preferencias")', fuente)
         self.assertIn('self._accel("marcar_incidencia")', fuente)
+        self.assertIn('self._accel("abrir_transmision")', fuente)
+        self.assertIn('self._accel("copiar_enlace")', fuente)
         self.assertIn('self._accel("obs_micro")', fuente)
         self.assertNotIn("\\tAlt+L", fuente)
         self.assertNotIn("\\tCtrl+F", fuente)

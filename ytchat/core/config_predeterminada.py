@@ -68,6 +68,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("abrir_historial", "ctrl+shift+h"),
         ("marcar_incidencia", "ctrl+shift+i"),
         ("abrir_transmision", "ctrl+shift+t"),
+        ("copiar_enlace", "ctrl+shift+e"),
         ("obs_micro", "ctrl+shift+m"),
         ("conectar", "alt+c"),
         ("desconectar", "alt+d"),

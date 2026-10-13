@@ -146,7 +146,7 @@ ATAJOS_GRUPOS = [
      ["conectar", "desconectar", "enviar_chat", "ir_lista"]),
     ("Ventanas y paneles (Ctrl+Shift)",
      ["abrir_preferencias", "abrir_historial", "marcar_incidencia",
-      "abrir_transmision", "obs_micro"]),
+       "abrir_transmision", "copiar_enlace", "obs_micro"]),
     ("Voz y lectura (teclas F)",
      ["pausa", "detener_tts", "velocidad_menos", "velocidad_mas",
       "volumen_menos", "volumen_mas", "silenciar_lectura",

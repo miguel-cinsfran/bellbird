@@ -253,6 +253,19 @@ class TestCargarConfiguracion(unittest.TestCase):
         cfg = self._cargar_en("[lectura]\nformato_prefijo = mensaje_nombre\n")
         self.assertEqual(cfg["formato_prefijo"], "mensaje_nombre")
 
+    def test_destino_de_transmision_ausente_queda_vacio(self):
+        cfg = self._cargar_en("[voz]\nvoz = 0\n")
+        self.assertEqual(cfg["transmision_destino"], "")
+
+    def test_destino_de_transmision_valido_se_conserva(self):
+        for destino in ("TikTok", "YouTube"):
+            cfg = self._cargar_en(f"[transmision]\ndestino = {destino}\n")
+            self.assertEqual(cfg["transmision_destino"], destino)
+
+    def test_destino_de_transmision_invalido_queda_vacio(self):
+        cfg = self._cargar_en("[transmision]\ndestino = Twitch\n")
+        self.assertEqual(cfg["transmision_destino"], "")
+
     def test_inyecta_seccion_descargas_con_defaults(self):
         # Sin [descargas] en el INI, cargar_configuracion debe inyectar los
         # defaults canónicos y devolverlos en el dict.

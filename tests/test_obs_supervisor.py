@@ -460,5 +460,61 @@ class AsegurarObsTest(BaseSupervisor):
         self.assertIn("iniciar", gestores[0].llamadas)
 
 
+class AlTerminarTest(BaseSupervisor):
+    def test_fin_normal_avisa_una_vez(self):
+        armado = self.armar(estados=[muestra(False)])
+        supervisor, _anuncios, _chats, _gs, _, _, _ = armado
+        terminados = []
+        supervisor._al_terminar = lambda: terminados.append(True)
+        self.iniciar_y_esperar_fin(supervisor)
+        self.assertEqual(terminados, [True])
+
+    def test_con_error_avisa_una_vez(self):
+        armado = self.armar(fallo="conectar")
+        supervisor, _anuncios, _chats, _gs, _, _, _ = armado
+        terminados = []
+        supervisor._al_terminar = lambda: terminados.append(True)
+        self.iniciar_y_esperar_fin(supervisor)
+        self.assertEqual(terminados, [True])
+
+    def test_al_detener_avisa_una_vez(self):
+        gestores = []
+        terminados = []
+
+        def crear_gestor():
+            gestor = GestorFalso([muestra(True, duracion=10)] * 500)
+            gestores.append(gestor)
+            return gestor
+
+        supervisor = SupervisorTransmision(
+            "YouTube", "",
+            al_anunciar=lambda frase, sonido: None,
+            al_conectar_chat=lambda url: None,
+            crear_gestor=crear_gestor,
+            esperar_salida=lambda cliente, parada=None: "enviando",
+            esperar_en_vivo=lambda u, parada=None, limite=None: ResultadoEspera(
+                False, False),
+            dormir=time.sleep, reloj=time.monotonic,
+            intervalo_salud=0.05,
+            asegurar=lambda probar, al_anunciar=None, parada=None: False,
+            al_terminar=lambda: terminados.append(True))
+        supervisor.iniciar()
+        self.assertTrue(esperar_condicion(
+            lambda: gestores and "estado" in gestores[0].llamadas))
+        supervisor.detener()
+        self.assertFalse(supervisor.activo)
+        self.assertEqual(terminados, [True])
+
+    def test_si_avisa_mal_se_traga_la_excepcion(self):
+        armado = self.armar(estados=[muestra(False)])
+        supervisor, _anuncios, _chats, gestores, _, _, _ = armado
+
+        def _romper():
+            raise RuntimeError("boom al avisar")
+        supervisor._al_terminar = _romper
+        self.iniciar_y_esperar_fin(supervisor)
+        self.assertEqual(gestores[0].cerrado, 1)
+
+
 if __name__ == "__main__":
     unittest.main()

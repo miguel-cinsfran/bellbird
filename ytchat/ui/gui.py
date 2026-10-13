@@ -465,6 +465,9 @@ class YTChatFrame(wx.Frame):
         self._titulo_stream = ""
         self._tipo_video = deteccion.DESCONOCIDO
         self._es_tiktok = False   # para que F2 distinga TikTok de YouTube (ambos LIVE)
+        self._usuario_tiktok_sesion = ""   # usuario del directo conectado
+        self._conexion_propia = False   # la pidió la transmisión
+        self._obs_transmitiendo = False   # OBS emite sin supervisor a la vista
         self._descartes_avisado = False
 
         self._chat = ListaChat(MAX_ITEMS_CHAT)
@@ -750,6 +753,40 @@ class YTChatFrame(wx.Frame):
         guardar_opcion(RUTA_CONFIG, "tiktok", "usuario", usuario)
         return usuario
 
+    def _guardar_destino_transmision(self, destino):
+        from ytchat.obs.obs_destinos import DESTINOS
+        destino = destino if destino in DESTINOS else ""
+        self._config["transmision_destino"] = destino
+        guardar_opcion(RUTA_CONFIG, "transmision", "destino", destino)
+        return destino
+
+    def _actualizar_boton_directo(self) -> None:
+        boton = getattr(self, "_boton_directo", None)
+        if boton is None:
+            return
+        from ytchat.obs import transmision_directa
+        propio = transmision_directa.es_directo_propio(
+            self._es_tiktok,
+            getattr(self, "_usuario_tiktok_sesion", ""),
+            self._config.get("tiktok_usuario", ""),
+            getattr(self, "_conexion_propia", False))
+        try:
+            transmitiendo = bool(self._supervisar_transmision("activo"))
+        except Exception:
+            transmitiendo = False
+        transmitiendo = (transmitiendo
+                         or bool(getattr(self, "_obs_transmitiendo", False)))
+        boton.actualizar(self._conectado, self._conectando, propio,
+                         transmitiendo)
+
+    def _al_terminar_supervisor(self) -> None:
+        def _termino():
+            if not self._alive:
+                return
+            self._obs_transmitiendo = False
+            self._actualizar_boton_directo()
+        wx.CallAfter(_termino)
+
     def _supervisar_transmision(self, accion, destino="", usuario=""):
         if accion == "activo":
             supervisor = getattr(self, "_supervisor", None)
@@ -781,13 +818,16 @@ class YTChatFrame(wx.Frame):
                         self.txt_url.SetValue(url)
                     except Exception:
                         pass
+                    self._conexion_propia = True
                     self._on_conectar(None)
                 wx.CallAfter(_conectar)
 
             self._supervisor = SupervisorTransmision(
                 destino, usuario, al_anunciar=al_anunciar,
-                al_conectar_chat=al_conectar_chat)
+                al_conectar_chat=al_conectar_chat,
+                al_terminar=self._al_terminar_supervisor)
             self._supervisor.iniciar()
+            self._actualizar_boton_directo()
             return
         if accion == "detener":
             supervisor = getattr(self, "_supervisor", None)
@@ -795,6 +835,7 @@ class YTChatFrame(wx.Frame):
                 return
             diagnostico.crear_hilo(
                 supervisor.detener, "DetenerSupervisor").start()
+            self._actualizar_boton_directo()
             return
 
     def _on_actualizar_ytdlp(self, event):
@@ -881,6 +922,9 @@ class YTChatFrame(wx.Frame):
         _pintar(self.btn_conectar, _T.primary, _T.primary_t)
         self.btn_conectar.SetFont(self.btn_conectar.GetFont().Bold())
         row.Add(self.btn_conectar, 0, wx.ALIGN_CENTER_VERTICAL)
+        from ytchat.ui.boton_directo import BotonDirecto
+        self._boton_directo = BotonDirecto(panel, self.btn_conectar, self)
+        row.Add(self._boton_directo.boton, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 8)
         vs.Add(row, 0, wx.EXPAND | wx.ALL, 12)
 
         self.lbl_tipo = wx.StaticText(panel, label=self._texto_tipo, name="TipoVideo")
@@ -1299,6 +1343,7 @@ class YTChatFrame(wx.Frame):
             anunciar("Conectando")
             if self.on_conectar_cb:
                 self.on_conectar_cb(url)
+            self._actualizar_boton_directo()
 
     def url_invalida(self):
         """La URL/ID no es válida: restaurar la UI y avisar (sin esperas)."""
@@ -1328,7 +1373,8 @@ class YTChatFrame(wx.Frame):
         abrir_transmision(self, self._cambiar_overlay,
                           supervisar=self._supervisar_transmision,
                           guardar_usuario=self._guardar_usuario_tiktok,
-                          usuario_tiktok=self._config.get("tiktok_usuario", ""))
+                          usuario_tiktok=self._config.get("tiktok_usuario", ""),
+                          guardar_destino=self._guardar_destino_transmision)
 
     def _on_obs_micro(self, event):
         def _alternar():
@@ -2175,6 +2221,8 @@ class YTChatFrame(wx.Frame):
         self._video_id_sesion = ""
         self._enlace_directo = ""
         self._causa_sin_chat = ""
+        self._usuario_tiktok_sesion = ""
+        self._conexion_propia = False
         self._tipo_video = deteccion.DESCONOCIDO
         self._es_tiktok = False
         self._descartes_avisado = False
@@ -2283,6 +2331,7 @@ class YTChatFrame(wx.Frame):
             self.nb.ChangeSelection(PAG_COMENTARIOS)
         else:
             self._fijar_tipo("Tipo no determinado: intentando leer el chat.")
+        self._actualizar_boton_directo()
 
     def configurar_tiktok(self, usuario: str, url_flujo: str) -> None:
         """Prepara la ventana para un directo de TikTok: chat en limpio, pestaña
@@ -2292,6 +2341,7 @@ class YTChatFrame(wx.Frame):
             return
         self._tipo_video = deteccion.LIVE
         self._es_tiktok = True
+        self._usuario_tiktok_sesion = usuario or ""
         self._descartar_pendientes()
         self._chat.limpiar()
         self._sc_totales.clear()
@@ -2305,6 +2355,7 @@ class YTChatFrame(wx.Frame):
         except Exception as exc: logger.debug("reproductor tiktok: %s", exc)
         self._fijar_tipo(f"Directo de TikTok de @{usuario}: leyendo el chat.")
         self.nb.ChangeSelection(PAG_CHAT)
+        self._actualizar_boton_directo()
 
     def set_url(self, url: str) -> None:
         self.txt_url.SetValue(url)
@@ -2430,6 +2481,7 @@ class YTChatFrame(wx.Frame):
         self.mi_desconectar.Enable(conectado)
         self.txt_url.Enable(not conectado)
         self._actualizar_menus_por_conexion()
+        self._actualizar_boton_directo()
 
     def _actualizar_menus_por_conexion(self) -> None:
         """Deshabilita en la barra de menú lo que solo aplica con una conexión

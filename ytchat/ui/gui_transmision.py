@@ -22,6 +22,28 @@ from ytchat.voice import sound_player
 logger = diagnostico.obtener_logger(__name__)
 
 
+def confirmar_transmision(padre, revision) -> bool:
+    """Pide confirmar el inicio del directo con la revisión a la vista.
+
+    Mismo texto, título, etiquetas y regla de cancelación por defecto
+    que la ventana Transmisión: si la revisión trae problemas, el foco
+    arranca en Cancelar.
+    """
+    from ytchat.obs import obs_prevuelo
+    frase = obs_prevuelo.frase_revision(revision)
+    problemas = bool(getattr(revision, "problemas", ()))
+    estilo = wx.OK | wx.CANCEL
+    if problemas:
+        estilo |= wx.CANCEL_DEFAULT
+    dialogo = wx.MessageDialog(
+        padre, frase, "Antes de transmitir", estilo)
+    try:
+        dialogo.SetOKCancelLabels(_ETIQUETA_TRANSMITIR, "&Cancelar")
+        return dialogo.ShowModal() == wx.ID_OK
+    finally:
+        dialogo.Destroy()
+
+
 _TEXTO_LIENZO = (
     "El programa de emisión compone lo que ven los espectadores sobre un\n"
     "rectángulo de tamaño fijo, llamado lienzo. No es la pantalla del equipo\n"
@@ -67,7 +89,7 @@ class TransmisionDialog(wx.Dialog):
 
     def __init__(self, parent, gestor=None, alternar_panel=None,
                  supervisar=None, guardar_usuario=None, usuario_tiktok="",
-                 asegurar=None):
+                 asegurar=None, guardar_destino=None):
         super().__init__(parent, title="Transmisión", size=(620, 680),
                          name="DialogoTransmision")
         self._gestor = gestor or GestorPanelObs()
@@ -76,6 +98,7 @@ class TransmisionDialog(wx.Dialog):
         self._alternar_panel = alternar_panel
         self._supervisar = supervisar
         self._guardar_usuario = guardar_usuario
+        self._guardar_destino = guardar_destino
         self._usuario_tiktok = usuario_tiktok or ""
         self._restablecer = {}
         self._ultimo_snap = None
@@ -516,22 +539,14 @@ class TransmisionDialog(wx.Dialog):
         return self._gestor.revisar(destino)
 
     def _revision_lista(self, revision, destino, usuario):
-        from ytchat.obs import obs_prevuelo
-        frase = obs_prevuelo.frase_revision(revision)
-        problemas = bool(getattr(revision, "problemas", ()))
-        estilo = wx.OK | wx.CANCEL
-        if problemas:
-            estilo |= wx.CANCEL_DEFAULT
-        dialogo = wx.MessageDialog(
-            self, frase, "Antes de transmitir", estilo)
-        try:
-            dialogo.SetOKCancelLabels(_ETIQUETA_TRANSMITIR, "&Cancelar")
-            acepta = dialogo.ShowModal() == wx.ID_OK
-        finally:
-            dialogo.Destroy()
-        if not acepta:
+        if not confirmar_transmision(self, revision):
             anunciar("No se transmitió.")
             return
+        if self._guardar_destino is not None:
+            try:
+                self._guardar_destino(destino)
+            except Exception:
+                pass
         try:
             self._supervisar("iniciar", destino, usuario)
         except Exception as error:
@@ -584,11 +599,16 @@ class TransmisionDialog(wx.Dialog):
         # El destino se captura en el hilo principal y viaja como argumento;
         # los hilos de trabajo no leen controles de wx.
         resultado = self._gestor.preparar_destino(destino)
-        return resultado, self._cargar_inicial()
+        return resultado, self._cargar_inicial(), destino
 
     def _destino_preparado(self, datos):
-        resultado, inicial = datos
+        resultado, inicial, destino = datos
         self._poblar_inicial(inicial)
+        if self._guardar_destino is not None:
+            try:
+                self._guardar_destino(destino)
+            except Exception:
+                pass
         anunciar(obs_destinos.frase_destino_listo(resultado))
         self.btn_transmitir.SetFocus()
 
@@ -877,10 +897,12 @@ class TransmisionDialog(wx.Dialog):
 
 
 def abrir_transmision(parent, alternar_panel=None, supervisar=None,
-                      guardar_usuario=None, usuario_tiktok="") -> None:
+                      guardar_usuario=None, usuario_tiktok="",
+                      guardar_destino=None) -> None:
     dialogo = TransmisionDialog(
         parent, alternar_panel=alternar_panel, supervisar=supervisar,
-        guardar_usuario=guardar_usuario, usuario_tiktok=usuario_tiktok)
+        guardar_usuario=guardar_usuario, usuario_tiktok=usuario_tiktok,
+        guardar_destino=guardar_destino)
     try:
         dialogo.ShowModal()
     finally:

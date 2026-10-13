@@ -53,9 +53,9 @@ class SupervisorTransmision:
                  crear_gestor=GestorPanelObs,
                  esperar_salida=obs_salida.esperar_salida,
                  esperar_en_vivo=tiktok_vivo.esperar_en_vivo,
-                 dormir=time.sleep, reloj=time.monotonic,
-                 intervalo_salud=5.0, limite_tiktok=120.0,
-                 asegurar=None):
+                  dormir=time.sleep, reloj=time.monotonic,
+                  intervalo_salud=5.0, limite_tiktok=120.0,
+                  asegurar=None, al_terminar=None):
         self._destino = destino
         self._usuario = usuario_tiktok or ""
         self._al_anunciar = al_anunciar or (lambda frase, sonido: None)
@@ -69,6 +69,7 @@ class SupervisorTransmision:
         self._limite_tiktok = limite_tiktok
         self._asegurar = (asegurar if asegurar is not None
                           else obs_lanzador.asegurar_obs)
+        self._al_terminar = al_terminar
         self._parada = threading.Event()
         self._corte = threading.Event()
         self._hilo = None
@@ -219,6 +220,11 @@ class SupervisorTransmision:
             if gestor is not None:
                 try:
                     gestor.cerrar()
+                except Exception:
+                    pass
+            if self._al_terminar is not None:
+                try:
+                    self._al_terminar()
                 except Exception:
                     pass
 

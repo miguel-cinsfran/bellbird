@@ -566,6 +566,11 @@ def cargar_configuracion() -> dict:
     if filtro_activo not in ("todos", "texto", "superchat", "miembro"):
         filtro_activo = "todos"
 
+    from ytchat.obs import obs_destinos as _destinos
+    destino = _gs(p, "transmision", "destino")
+    if destino not in _destinos.DESTINOS:
+        destino = ""
+
     return {
         "voz": _gs(p, "voz", "voz"),
         "velocidad": _pi(p, "voz", "velocidad", lo=50, hi=500),
@@ -596,6 +601,7 @@ def cargar_configuracion() -> dict:
         "silenciar_lectura": _pb(p, "sesion", "silenciar_lectura"),
         "tiktok_anunciar_entradas": _pb(p, "tiktok", "anunciar_entradas"),
         "tiktok_usuario": _gs(p, "tiktok", "usuario"),
+        "transmision_destino": destino,
         "programados_activo": _pb(p, "programados", "activo"),
         "registro_detallado": _pb(p, "diagnostico", "registro_detallado"),  # configurar_logging se adelanta al diccionario.
         "overlay_activo": _pb(p, "overlay", "activo"),

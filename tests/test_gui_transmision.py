@@ -975,5 +975,125 @@ class TestCargaInicialAseguraObs(unittest.TestCase):
         falso._gestor.conectar.assert_not_called()
 
 
+class TestConfirmarTransmisionSinVentana(unittest.TestCase):
+    # Sin ventana: el MessageDialog va simulado, así no se abre nada.
+
+    def _revision(self, problemas=()):
+        from ytchat.obs import obs_prevuelo
+        return obs_prevuelo.Revision(
+            "TikTok", "TikTok", "TikTok", 720, 1280, "Principal",
+            (), (), None, tuple(problemas))
+
+    def _confirmar(self, revision, resultado):
+        creados = []
+
+        def fabrica(*args, **kwargs):
+            dialogo = mock.Mock()
+            dialogo.ShowModal.return_value = resultado
+            creados.append((args, dialogo))
+            return dialogo
+
+        with mock.patch.object(gui_transmision.wx, "MessageDialog", fabrica):
+            acepta = gui_transmision.confirmar_transmision(
+                mock.sentinel.padre, revision)
+        return acepta, creados
+
+    def test_aceptar_devuelve_verdadero_con_mismo_texto_y_etiquetas(self):
+        from ytchat.obs import obs_prevuelo
+        revision = self._revision()
+        acepta, creados = self._confirmar(revision, wx.ID_OK)
+        self.assertTrue(acepta)
+        args, dialogo = creados[0]
+        self.assertEqual(args[0], mock.sentinel.padre)
+        self.assertEqual(args[1], obs_prevuelo.frase_revision(revision))
+        self.assertEqual(args[2], "Antes de transmitir")
+        self.assertEqual(args[3], wx.OK | wx.CANCEL)
+        dialogo.SetOKCancelLabels.assert_called_once_with(
+            "&Transmitir", "&Cancelar")
+        dialogo.Destroy.assert_called_once_with()
+
+    def test_cancelar_devuelve_falso(self):
+        acepta, creados = self._confirmar(self._revision(), wx.ID_CANCEL)
+        self.assertFalse(acepta)
+        creados[0][1].Destroy.assert_called_once_with()
+
+    def test_con_problemas_cancelar_queda_por_defecto(self):
+        _acepta, creados = self._confirmar(
+            self._revision(("La imagen está vacía.",)), wx.ID_CANCEL)
+        self.assertEqual(creados[0][0][3],
+                         wx.OK | wx.CANCEL | wx.CANCEL_DEFAULT)
+
+
+class TestGuardarDestinoSinVentana(unittest.TestCase):
+    # Sin ventana: los métodos del diálogo se llaman sin ligar sobre un
+    # objeto falso, así no se crea ningún control.
+
+    def _falso(self, **extras):
+        falso = mock.Mock()
+        falso._guardar_destino = mock.Mock()
+        falso._supervisar = mock.Mock()
+        for clave, valor in extras.items():
+            setattr(falso, clave, valor)
+        return falso
+
+    def test_al_confirmar_guarda_el_destino_e_inicia(self):
+        falso = self._falso()
+        revision = mock.sentinel.revision
+        with mock.patch.object(gui_transmision, "confirmar_transmision",
+                               return_value=True) as confirmar:
+            gui_transmision.TransmisionDialog._revision_lista(
+                falso, revision, "TikTok", "usuario")
+        confirmar.assert_called_once_with(falso, revision)
+        falso._guardar_destino.assert_called_once_with("TikTok")
+        falso._supervisar.assert_called_once_with(
+            "iniciar", "TikTok", "usuario")
+
+    def test_al_cancelar_no_guarda_ni_inicia(self):
+        falso = self._falso()
+        with mock.patch.object(gui_transmision, "confirmar_transmision",
+                               return_value=False), \
+                mock.patch.object(gui_transmision, "anunciar") as anunciar:
+            gui_transmision.TransmisionDialog._revision_lista(
+                falso, mock.sentinel.revision, "TikTok", "usuario")
+        falso._guardar_destino.assert_not_called()
+        falso._supervisar.assert_not_called()
+        anunciar.assert_called_once_with("No se transmitió.")
+
+    def test_si_guardar_falla_igual_inicia(self):
+        falso = self._falso()
+        falso._guardar_destino.side_effect = RuntimeError("disco lleno")
+        with mock.patch.object(gui_transmision, "confirmar_transmision",
+                               return_value=True):
+            gui_transmision.TransmisionDialog._revision_lista(
+                falso, mock.sentinel.revision, "YouTube", "")
+        falso._supervisar.assert_called_once_with("iniciar", "YouTube", "")
+
+    def test_al_preparar_destino_lo_guarda_y_anuncia_listo(self):
+        from ytchat.obs import obs_destinos
+        falso = self._falso()
+        resultado = {"destino": "TikTok", "perfil": "TikTok",
+                     "coleccion": "TikTok", "ancho": 720, "alto": 1280}
+        with mock.patch.object(gui_transmision, "anunciar") as anunciar:
+            gui_transmision.TransmisionDialog._destino_preparado(
+                falso, (resultado, mock.sentinel.inicial, "TikTok"))
+        falso._poblar_inicial.assert_called_once_with(mock.sentinel.inicial)
+        falso._guardar_destino.assert_called_once_with("TikTok")
+        anunciar.assert_called_once_with(
+            obs_destinos.frase_destino_listo(resultado))
+        falso.btn_transmitir.SetFocus.assert_called_once_with()
+
+    def test_preparar_en_hilo_devuelve_resultado_inicial_y_destino(self):
+        gestor = mock.Mock()
+        gestor.preparar_destino.return_value = mock.sentinel.resultado
+        falso = types.SimpleNamespace(
+            _gestor=gestor, _cargar_inicial=mock.Mock(
+                return_value=mock.sentinel.inicial))
+        datos = gui_transmision.TransmisionDialog._preparar_destino_en_hilo(
+            falso, "TikTok")
+        gestor.preparar_destino.assert_called_once_with("TikTok")
+        self.assertEqual(datos, (mock.sentinel.resultado,
+                                 mock.sentinel.inicial, "TikTok"))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -2140,7 +2140,7 @@ class TestCierreVentana(unittest.TestCase):
 
         class DobleSupervisor:
             def __init__(self, destino, usuario, al_anunciar=None,
-                         al_conectar_chat=None):
+                         al_conectar_chat=None, al_terminar=None):
                 creados.append((destino, usuario, al_anunciar,
                                 al_conectar_chat))
                 self.iniciado = False
@@ -2170,7 +2170,7 @@ class TestCierreVentana(unittest.TestCase):
 
         class DobleSupervisor:
             def __init__(self, destino, usuario, al_anunciar=None,
-                         al_conectar_chat=None):
+                         al_conectar_chat=None, al_terminar=None):
                 creados.append((al_anunciar, al_conectar_chat))
 
             def iniciar(self):
@@ -2198,7 +2198,7 @@ class TestCierreVentana(unittest.TestCase):
 
         class DobleSupervisor:
             def __init__(self, destino, usuario, al_anunciar=None,
-                         al_conectar_chat=None):
+                         al_conectar_chat=None, al_terminar=None):
                 creados.append((al_anunciar, al_conectar_chat))
 
             def iniciar(self):
@@ -2224,7 +2224,7 @@ class TestCierreVentana(unittest.TestCase):
 
         class DobleSupervisor:
             def __init__(self, destino, usuario, al_anunciar=None,
-                         al_conectar_chat=None):
+                         al_conectar_chat=None, al_terminar=None):
                 creados.append((al_anunciar, al_conectar_chat))
 
             def iniciar(self):
@@ -2249,7 +2249,7 @@ class TestCierreVentana(unittest.TestCase):
 
         class DobleSupervisor:
             def __init__(self, destino, usuario, al_anunciar=None,
-                         al_conectar_chat=None):
+                         al_conectar_chat=None, al_terminar=None):
                 creados.append((al_anunciar, al_conectar_chat))
 
             def iniciar(self):

@@ -622,9 +622,11 @@ class TestTransmisionDialog(unittest.TestCase):
         self.gestor.transmitiendo = True
         self.gestor.grabando = True
         self.dialogo._actualizar(Evento())
-        self.assertEqual(self.dialogo.btn_transmitir.GetLabel(), "&Detener la transmisión")
+        self.assertEqual(self.dialogo.btn_transmitir.GetLabel(),
+                         gui_transmision._ETIQUETA_DETENER_TRANSMISION)
         self.assertEqual(self.dialogo.btn_transmitir.GetName(), "Detener la transmisión")
-        self.assertEqual(self.dialogo.btn_grabar.GetLabel(), "&Detener la grabación")
+        self.assertEqual(self.dialogo.btn_grabar.GetLabel(),
+                         gui_transmision._ETIQUETA_DETENER_GRABACION)
         self.assertEqual(self.dialogo.btn_grabar.GetName(), "Detener la grabación")
         self.assertTrue(self.dialogo.btn_pausar_grabacion.IsEnabled())
         self.assertIn("Transmitiendo desde hace 1 min", self.anuncios)
@@ -635,20 +637,91 @@ class TestTransmisionDialog(unittest.TestCase):
 
     def test_destino_va_antes_de_transmitir_en_las_acciones(self):
         acciones = self.dialogo._acciones
-        indice = acciones.index(self.dialogo.btn_restaurar)
-        self.assertIs(acciones[indice + 1], self.dialogo.cho_destino)
-        self.assertIs(acciones[indice + 2], self.dialogo.txt_usuario_tiktok)
-        self.assertIs(acciones[indice + 3], self.dialogo.btn_destino)
-        self.assertIs(acciones[indice + 4], self.dialogo.btn_transmitir)
+        self.assertLess(acciones.index(self.dialogo.btn_grabar),
+                        acciones.index(self.dialogo.cho_escena))
+        self.assertLess(acciones.index(self.dialogo.btn_actualizar),
+                        acciones.index(self.dialogo.chk_panel_chat))
 
     def test_destino_va_antes_de_transmitir_en_el_sizer(self):
-        sizer = self.dialogo.cho_destino.GetParent().GetSizer()
-        ventanas = [elemento.GetWindow() for elemento in sizer.GetChildren()]
-        indice = ventanas.index(self.dialogo.btn_restaurar)
-        self.assertIs(ventanas[indice + 1], self.dialogo.cho_destino)
-        self.assertIs(ventanas[indice + 2], self.dialogo.txt_usuario_tiktok)
-        self.assertIs(ventanas[indice + 3], self.dialogo.btn_destino)
-        self.assertIs(ventanas[indice + 4], self.dialogo.btn_transmitir)
+        sizer = self.dialogo._zona_desplazable.GetSizer()
+        cajas = [elemento.GetSizer().GetStaticBox().GetLabel()
+                 for elemento in sizer.GetChildren()
+                 if elemento.GetSizer() is not None]
+        self.assertEqual(cajas, ["Transmitir", "Escena",
+                                "Panel de chat, solo YouTube"])
+        exterior = self.dialogo.btn_cerrar.GetParent().GetSizer()
+        ventanas = [elemento.GetWindow() for elemento in exterior.GetChildren()
+                    if elemento.GetWindow() is not None]
+        self.assertIs(ventanas[-1], self.dialogo.btn_cerrar)
+
+    def _nombres_en_orden(self, ventana):
+        nombres = []
+        for hijo in ventana.GetChildren():
+            if isinstance(hijo, (wx.Choice, wx.TextCtrl, wx.Button,
+                                 wx.CheckBox, wx.SpinCtrl)):
+                nombres.append(hijo.GetName())
+            nombres.extend(self._nombres_en_orden(hijo))
+        return nombres
+
+    def test_orden_de_tab_en_el_orden_de_uso(self):
+        self.assertEqual(self._nombres_en_orden(self.dialogo), [
+            "Transmitir a", "Tu usuario de TikTok", "Preparar destino",
+            "Transmitir", "Grabar", "Pausar la grabación",
+            "Escena", "Poner al aire", "GuardarCaptura", "ActualizarEstado",
+            "Estado de la transmisión",
+            "Panel de chat para transmitir", "Preparar el panel", "Fuente",
+            "Posición del panel", "Colocar en esa posición",
+            "Ancho del panel en píxeles", "Alto del panel en píxeles",
+            "AplicarTamano", "MostrarPanel", "FijarPanel", "PonerAlFrente",
+            "AjusteFino", "Cómo se coloca el panel", "QueEsElLienzo",
+            "RestablecerTransmision", "CerrarTransmision",
+        ])
+
+    @staticmethod
+    def _letra_de_atajo(etiqueta):
+        posicion = etiqueta.find("&")
+        if posicion < 0 or posicion + 1 >= len(etiqueta):
+            return ""
+        return etiqueta[posicion + 1].upper()
+
+    def test_letras_de_atajo_unicas_ascii_y_sin_v(self):
+        letras = [self._letra_de_atajo(etiqueta)
+                  for etiqueta in self._etiquetas_de_botones(self.dialogo)]
+        letras = [letra for letra in letras if letra]
+        self.assertEqual(len(letras), len(set(letras)), letras)
+        for letra in letras:
+            self.assertTrue(letra.isascii(), letra)
+        self.assertNotIn("V", letras)
+        self.assertEqual(
+            self._letra_de_atajo(gui_transmision._ETIQUETA_DETENER_TRANSMISION),
+            self._letra_de_atajo(gui_transmision._ETIQUETA_TRANSMITIR))
+        self.assertEqual(
+            self._letra_de_atajo(gui_transmision._ETIQUETA_DETENER_GRABACION),
+            self._letra_de_atajo(gui_transmision._ETIQUETA_GRABAR))
+
+    def _etiquetas_de_botones(self, ventana):
+        etiquetas = []
+        for hijo in ventana.GetChildren():
+            if isinstance(hijo, wx.Button):
+                etiquetas.append(hijo.GetLabel())
+            etiquetas.extend(self._etiquetas_de_botones(hijo))
+        return etiquetas
+
+    def test_tres_secciones_con_sus_titulos(self):
+        titulos = [hijo.GetLabel() for hijo in self._cajas(self.dialogo)]
+        self.assertEqual(titulos, ["Transmitir", "Escena",
+                                  "Panel de chat, solo YouTube"])
+
+    def _cajas(self, ventana):
+        cajas = []
+        for hijo in ventana.GetChildren():
+            if isinstance(hijo, wx.StaticBox):
+                cajas.append(hijo)
+            cajas.extend(self._cajas(hijo))
+        return cajas
+
+    def test_foco_inicial_en_transmitir_a(self):
+        self.assertIs(self.dialogo.FindFocus(), self.dialogo.cho_destino)
 
     def test_controles_de_destino_tienen_nombres_y_opciones(self):
         self.assertEqual(self.dialogo.cho_destino.GetStrings(),
@@ -739,11 +812,27 @@ class TestTransmisionDialog(unittest.TestCase):
         indice = acciones.index(dialogo.cho_destino)
         self.assertIs(acciones[indice + 1], dialogo.txt_usuario_tiktok)
         self.assertIs(acciones[indice + 2], dialogo.btn_destino)
-        sizer = dialogo.cho_destino.GetParent().GetSizer()
+        sizer = dialogo._sizer_transmitir
         ventanas = [elemento.GetWindow() for elemento in sizer.GetChildren()]
         indice = ventanas.index(dialogo.cho_destino)
         self.assertIs(ventanas[indice + 1], dialogo.txt_usuario_tiktok)
         self.assertIs(ventanas[indice + 2], dialogo.btn_destino)
+
+    def test_contenido_en_zona_desplazable_y_cerrar_fuera(self):
+        zona = self.dialogo._zona_desplazable
+        self.assertIsInstance(zona, wx.ScrolledWindow)
+        self.assertTrue(zona.GetWindowStyleFlag() & wx.VSCROLL)
+        self.assertTrue(self._esta_dentro(self.dialogo.cho_destino, zona))
+        self.assertFalse(self._esta_dentro(self.dialogo.btn_cerrar, zona))
+
+    @staticmethod
+    def _esta_dentro(control, antecesor):
+        ventana = control.GetParent()
+        while ventana is not None:
+            if ventana is antecesor:
+                return True
+            ventana = ventana.GetParent()
+        return False
 
     def test_campo_usuario_arranca_con_el_guardado(self):
         self.dialogo.Destroy()
@@ -778,7 +867,7 @@ class TestTransmisionDialog(unittest.TestCase):
         supervisar.assert_any_call("iniciar", "TikTok", "usuario")
         guardar.assert_called_once_with("usuario")
         self.assertEqual(self.dialogo.btn_transmitir.GetLabel(),
-                         "&Detener la transmisión")
+                         gui_transmision._ETIQUETA_DETENER_TRANSMISION)
         self.assertEqual(self.dialogo.btn_transmitir.GetName(),
                          "Detener la transmisión")
         dialogo_falso = creados[0][2]
@@ -796,7 +885,8 @@ class TestTransmisionDialog(unittest.TestCase):
                          supervisar.call_args_list)
         self.assertEqual(self.anuncios[-1], "No se transmitió.")
         guardar.assert_not_called()
-        self.assertEqual(self.dialogo.btn_transmitir.GetLabel(), "&Transmitir")
+        self.assertEqual(self.dialogo.btn_transmitir.GetLabel(),
+                         gui_transmision._ETIQUETA_TRANSMITIR)
 
     def test_revision_con_problemas_deja_cancelar_por_defecto(self):
         supervisar, _ = self._dialogo_con_supervisor()
@@ -827,11 +917,12 @@ class TestTransmisionDialog(unittest.TestCase):
         supervisar.return_value = True
         self.dialogo._actualizar_boton(
             self.dialogo.btn_transmitir,
-            "&Detener la transmisión", "Detener la transmisión")
+            gui_transmision._ETIQUETA_DETENER_TRANSMISION, "Detener la transmisión")
         self.anuncios.clear()
         self._pulsar_transmitir()
         supervisar.assert_any_call("detener")
-        self.assertEqual(self.dialogo.btn_transmitir.GetLabel(), "&Transmitir")
+        self.assertEqual(self.dialogo.btn_transmitir.GetLabel(),
+                         gui_transmision._ETIQUETA_TRANSMITIR)
         self.assertNotIn("Transmisión detenida", self.anuncios)
 
     def test_transmitir_sin_supervisor_sigue_el_camino_viejo(self):

@@ -55,7 +55,7 @@ _TEXTO_LIENZO = (
     "mensajes, y solo tapan lo que hay justo debajo de ellas.")
 
 _TEXTO_COMO_SE_COLOCA = (
-    "Este diálogo no crea escenas ni agrega fuentes cualesquiera. Hace una sola\n"
+    "Este diálogo no crea escenas ni agrega fuentes cualesquiera, salvo la captura de ventana desde la sección Escena. Hace una sola\n"
     "cosa: pone el panel de chat de esta aplicación dentro de una escena de OBS\n"
     "y lo coloca donde quieras.\n\n"
     "El orden es este.\n\n"
@@ -65,7 +65,7 @@ _TEXTO_COMO_SE_COLOCA = (
     "ven los espectadores: para eso está el botón Poner al aire.\n\n"
     "Tres. Elige qué fuente vas a mover en el desplegable Fuente. Normalmente es\n"
     "el panel de chat, pero puedes mover cualquier fuente que ya exista en la\n"
-    "escena. Este diálogo no agrega fuentes que no sean el panel: eso se hace\n"
+    "escena. Este diálogo solo agrega el panel y la captura de ventana: lo demás se hace\n"
     "desde OBS.\n\n"
     "Cuatro. Coloca la fuente. Tienes dos formas. El desplegable Posición más su\n"
     "botón la lleva a una de nueve posiciones fijas. El Ajuste fino la mueve de\n"
@@ -101,6 +101,7 @@ class TransmisionDialog(wx.Dialog):
         self._guardar_destino = guardar_destino
         self._usuario_tiktok = usuario_tiktok or ""
         self._restablecer = {}
+        self._valores_ventana = []
         self._ultimo_snap = None
         self._ajuste_en_curso = False
         self._ajuste_transformacion = None
@@ -167,6 +168,11 @@ class TransmisionDialog(wx.Dialog):
         sizer_escena.Add(self.cho_escena, 0, wx.EXPAND | wx.ALL, 6)
         self.btn_poner_al_aire = self._boton(padre_escena, "Poner al &aire", "Poner al aire")
         sizer_escena.Add(self.btn_poner_al_aire, 0, wx.ALL, 6)
+        self.cho_ventana = wx.Choice(padre_escena, name="Ventana que se captura")
+        nombre_accesible(self.cho_ventana, "Ventana que se captura")
+        sizer_escena.Add(self.cho_ventana, 0, wx.EXPAND | wx.ALL, 6)
+        self.btn_usar_ventana = self._boton(padre_escena, "Usar esa &ventana", "Usar esa ventana")
+        sizer_escena.Add(self.btn_usar_ventana, 0, wx.ALL, 6)
         self.btn_captura = self._boton(
             padre_escena, "Guardar una capt&ura de la escena…", "GuardarCaptura")
         sizer_escena.Add(self.btn_captura, 0, wx.ALL, 6)
@@ -237,7 +243,8 @@ class TransmisionDialog(wx.Dialog):
         panel.SetSizer(caja)
         self._acciones = (self.cho_destino, self.txt_usuario_tiktok, self.btn_destino,
                           self.btn_transmitir, self.btn_grabar, self.btn_pausar_grabacion,
-                          self.cho_escena, self.btn_poner_al_aire, self.btn_captura,
+                          self.cho_escena, self.btn_poner_al_aire, self.cho_ventana,
+                          self.btn_usar_ventana, self.btn_captura,
                           self.btn_actualizar, self.chk_panel_chat, self.btn_preparar,
                           self.cho_fuente, self.cho_posicion, self.btn_colocar,
                           self.sp_ancho, self.sp_alto, self.btn_tamano, self.chk_mostrar,
@@ -248,6 +255,7 @@ class TransmisionDialog(wx.Dialog):
         self.chk_panel_chat.Bind(wx.EVT_CHECKBOX, self._alternar_panel_chat)
         self.cho_escena.Bind(wx.EVT_CHOICE, self._cambiar_escena)
         self.btn_poner_al_aire.Bind(wx.EVT_BUTTON, self._poner_al_aire)
+        self.btn_usar_ventana.Bind(wx.EVT_BUTTON, self._usar_ventana)
         self.cho_fuente.Bind(wx.EVT_CHOICE, self._cambiar_fuente)
         # Recorrer con flechas dispara EVT_CHOICE y esto sale al aire.
         self.btn_colocar.Bind(wx.EVT_BUTTON, self._colocar)
@@ -352,19 +360,21 @@ class TransmisionDialog(wx.Dialog):
         fuentes = self._gestor.fuentes(escena)
         fuente = NOMBRE_FUENTE if NOMBRE_FUENTE in fuentes else (fuentes[0] if fuentes else "")
         snap = self._gestor.instantanea(escena, fuente=fuente)
+        opciones, actual = self._gestor.ventanas(escena)
         return (escenas, escena, al_aire, fuentes, fuente, snap,
                 self._gestor.transformacion(escena, fuente=fuente),
                 self._gestor.estado_transmision(), self._gestor.estado_grabacion(),
-                self._gestor.perfil_actual())
+                self._gestor.perfil_actual(), opciones, actual)
 
     def _poblar_inicial(self, datos):
         # Puebla los controles sin anunciar: la carga inicial anuncia aparte
         # y el destino preparado reusa esto para refrescar en silencio.
-        escenas, escena, al_aire, fuentes, fuente, snap, transformacion, transmision, grabacion, perfil = datos
+        escenas, escena, al_aire, fuentes, fuente, snap, transformacion, transmision, grabacion, perfil, opciones, actual = datos
         self.cho_escena.Set(list(escenas))
         if escena:
             self.cho_escena.SetStringSelection(escena)
         self._cargar_fuentes(fuentes, fuente)
+        self._cargar_ventanas(opciones, actual)
         self._mostrar_snap(snap)
         if perfil in DESTINOS:
             self.cho_destino.SetStringSelection(perfil)
@@ -374,7 +384,7 @@ class TransmisionDialog(wx.Dialog):
 
     def _inicial_cargada(self, datos):
         self._poblar_inicial(datos)
-        escenas, escena, al_aire, fuentes, fuente, snap, transformacion, transmision, grabacion, perfil = datos
+        escenas, escena, al_aire, fuentes, fuente, snap, transformacion, transmision, grabacion, perfil, opciones, actual = datos
         anunciar(obs_disposicion.describir_preparacion(
             snap.conectado, overlay_servidor.esta_encendido(),
             overlay_servidor.puerto_actual(), NOMBRE_FUENTE in fuentes))
@@ -404,6 +414,22 @@ class TransmisionDialog(wx.Dialog):
             self.cho_fuente.SetStringSelection(fuente)
         if not fuentes:
             self.txt_estado.SetValue("La escena no tiene fuentes.")
+
+    def _cargar_ventanas(self, opciones, actual):
+        self._valores_ventana = [valor for _, valor in opciones or ()]
+        self.cho_ventana.Set([texto for texto, _ in opciones or ()])
+        if actual in self._valores_ventana:
+            self.cho_ventana.SetSelection(self._valores_ventana.index(actual))
+        elif not opciones:
+            pass
+        else:
+            self.cho_ventana.SetSelection(wx.NOT_FOUND)
+
+    def _valor_ventana(self):
+        indice = self.cho_ventana.GetSelection()
+        if indice == wx.NOT_FOUND or indice < 0 or indice >= len(self._valores_ventana):
+            return ""
+        return self._valores_ventana[indice]
 
     def _escena(self):
         return self.cho_escena.GetStringSelection()
@@ -476,12 +502,14 @@ class TransmisionDialog(wx.Dialog):
 
     def _leer_estados(self, escena, fuente):
         return (self._leer(escena, fuente), self._gestor.escena_al_aire(),
-                self._gestor.estado_transmision(), self._gestor.estado_grabacion())
+                self._gestor.estado_transmision(), self._gestor.estado_grabacion(),
+                *self._gestor.ventanas(escena))
 
     def _estados_leidos(self, datos):
-        snap, al_aire, transmision, grabacion = datos
+        snap, al_aire, transmision, grabacion, opciones, actual = datos
         self._mostrar_snap(snap)
         self._mostrar_estados(transmision, grabacion, al_aire)
+        self._cargar_ventanas(opciones, actual)
         self._anunciar_snap(snap)
         self._anunciar_estados(transmision, grabacion, al_aire)
 
@@ -489,6 +517,36 @@ class TransmisionDialog(wx.Dialog):
         escena = self._escena()
         self._en_hilo(lambda: self._gestor.poner_escena_al_aire(escena),
                       self._escena_puesta_al_aire)
+
+    def _usar_ventana(self, event):
+        escena = self._escena()
+        valor = self._valor_ventana()
+        if not valor:
+            anunciar("Elige primero una ventana en Ventana que se captura.")
+            return
+        self._en_hilo(lambda: self._aplicar_ventana(escena, valor),
+                      self._ventana_aplicada)
+
+    def _aplicar_ventana(self, escena, valor):
+        # Escena y valor viajan como argumentos: los hilos no leen controles.
+        frase = self._gestor.usar_ventana(escena, valor)
+        fuentes = self._gestor.fuentes(escena)
+        fuente = NOMBRE_FUENTE if NOMBRE_FUENTE in fuentes else (fuentes[0] if fuentes else "")
+        snap = self._gestor.instantanea(escena, fuente=fuente)
+        al_aire = self._gestor.escena_al_aire()
+        transmision = self._gestor.estado_transmision()
+        grabacion = self._gestor.estado_grabacion()
+        opciones, actual = self._gestor.ventanas(escena)
+        return (frase, fuentes, fuente, snap, al_aire, transmision,
+                grabacion, opciones, actual)
+
+    def _ventana_aplicada(self, datos):
+        frase, fuentes, fuente, snap, al_aire, transmision, grabacion, opciones, actual = datos
+        self._cargar_fuentes(fuentes, fuente)
+        self._mostrar_snap(snap)
+        self._mostrar_estados(transmision, grabacion, al_aire)
+        self._cargar_ventanas(opciones, actual)
+        anunciar(frase)
 
     def _escena_puesta_al_aire(self, escena):
         anunciar(self._frase_escena_al_aire(escena))
@@ -653,11 +711,13 @@ class TransmisionDialog(wx.Dialog):
     def _leer_escena(self, escena):
         fuentes = self._gestor.fuentes(escena)
         fuente = NOMBRE_FUENTE if NOMBRE_FUENTE in fuentes else (fuentes[0] if fuentes else "")
-        return fuentes, fuente, self._gestor.instantanea(escena, fuente=fuente)
+        return (fuentes, fuente, self._gestor.instantanea(escena, fuente=fuente),
+                *self._gestor.ventanas(escena))
 
     def _escena_cambiada(self, datos):
-        fuentes, fuente, snap = datos
+        fuentes, fuente, snap, opciones, actual = datos
         self._cargar_fuentes(fuentes, fuente)
+        self._cargar_ventanas(opciones, actual)
         if fuentes:
             self._mostrar_snap(snap)
             self._anunciar_snap(snap)

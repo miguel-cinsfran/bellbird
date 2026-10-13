@@ -206,6 +206,9 @@ class CableadoDialogoTest(unittest.TestCase):
             def fuentes(self, escena):
                 return ("Chat YTChat",)
 
+            def ventanas(self, escena, parada=None):
+                return ((), "")
+
             def instantanea(self, escena, fuente=""):
                 return mock.Mock()
 

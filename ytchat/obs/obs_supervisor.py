@@ -53,9 +53,9 @@ class SupervisorTransmision:
                  crear_gestor=GestorPanelObs,
                  esperar_salida=obs_salida.esperar_salida,
                  esperar_en_vivo=tiktok_vivo.esperar_en_vivo,
-                  dormir=time.sleep, reloj=time.monotonic,
-                  intervalo_salud=5.0, limite_tiktok=120.0,
-                  asegurar=None, al_terminar=None):
+                 dormir=time.sleep, reloj=time.monotonic,
+                 intervalo_salud=5.0, limite_tiktok=120.0,
+                 asegurar=None, al_terminar=None):
         self._destino = destino
         self._usuario = usuario_tiktok or ""
         self._al_anunciar = al_anunciar or (lambda frase, sonido: None)

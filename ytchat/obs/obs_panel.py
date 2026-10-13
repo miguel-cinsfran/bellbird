@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from ytchat.obs import obs_disposicion
+from ytchat.obs import obs_captura
 from ytchat.obs import obs_cliente
 from ytchat.obs import obs_destinos
 
@@ -111,6 +112,12 @@ class GestorPanelObs:
     def revisar(self, destino, parada=None):
         from ytchat.obs import obs_prevuelo
         return obs_prevuelo.revisar(self._cliente, destino, parada)
+
+    def ventanas(self, escena, parada=None):
+        return obs_captura.ventanas(self._cliente, escena, parada)
+
+    def usar_ventana(self, escena, item_value, parada=None):
+        return obs_captura.usar_ventana(self._cliente, escena, item_value, parada)
 
     def _elementos(self, escena, parada=None):
         datos = self._pedir("GetSceneItemList", {"sceneName": escena}, parada)

@@ -36,6 +36,11 @@ class GestorFalso:
         self.grabando = False
         self.grabacion_en_pausa = False
         self.escena_resultante = "Principal"
+        self.opciones_ventana = (("Champions, de juego.exe",
+                                  "Champions:Ventana:juego.exe"),
+                                 ("Charla, de otro.exe",
+                                  "Charla:Ventana:otro.exe"))
+        self.actual_ventana = "Champions:Ventana:juego.exe"
 
     def conectar(self):
         if self.fallo:
@@ -113,6 +118,14 @@ class GestorFalso:
         return obs_prevuelo.Revision(
             destino, destino, destino, 720, 1280, "Principal",
             (), (), None, tuple(problemas))
+
+    def ventanas(self, escena, parada=None):
+        self.llamadas.append(("ventanas", escena))
+        return tuple(self.opciones_ventana), self.actual_ventana
+
+    def usar_ventana(self, escena, valor, parada=None):
+        self.llamadas.append(("usar_ventana", escena, valor))
+        return "Ahora se captura Champions, de juego.exe."
 
 
 class HiloInmediato:
@@ -346,6 +359,67 @@ class TestTransmisionDialog(unittest.TestCase):
         self.assertIs(self.dialogo._acciones[indice + 1], self.dialogo.btn_poner_al_aire)
         self.assertEqual(self.dialogo.btn_poner_al_aire.GetName(), "Poner al aire")
 
+    def test_ventana_va_entre_poner_al_aire_y_captura_en_acciones_y_tab(self):
+        acciones = self.dialogo._acciones
+        indice = acciones.index(self.dialogo.btn_poner_al_aire)
+        self.assertIs(acciones[indice + 1], self.dialogo.cho_ventana)
+        self.assertIs(acciones[indice + 2], self.dialogo.btn_usar_ventana)
+        self.assertIs(acciones[indice + 3], self.dialogo.btn_captura)
+        self.assertEqual(self.dialogo.cho_ventana.GetName(), "Ventana que se captura")
+        self.assertEqual(self.dialogo.btn_usar_ventana.GetName(), "Usar esa ventana")
+        self.assertEqual(self.dialogo.btn_usar_ventana.GetLabel(), "Usar esa &ventana")
+
+    def test_carga_inicial_llena_las_ventanas_y_elige_la_actual(self):
+        self.assertEqual(self.dialogo.cho_ventana.GetStrings(),
+                         ["Champions, de juego.exe", "Charla, de otro.exe"])
+        self.assertEqual(self.dialogo.cho_ventana.GetStringSelection(),
+                         "Champions, de juego.exe")
+        self.assertEqual(self.dialogo._valor_ventana(),
+                         "Champions:Ventana:juego.exe")
+
+    def test_cargar_ventanas_vacias_deja_el_desplegable_vacio(self):
+        self.dialogo._cargar_ventanas((), "")
+        self.assertEqual(self.dialogo.cho_ventana.GetStrings(), [])
+        self.assertEqual(self.dialogo._valor_ventana(), "")
+
+    def test_elegir_en_el_desplegable_de_ventanas_no_cambia_nada(self):
+        self.gestor.usar_ventana = mock.Mock()
+        self.dialogo.cho_ventana.SetSelection(1)
+        evento = wx.CommandEvent(wx.EVT_CHOICE.typeId,
+                                 self.dialogo.cho_ventana.GetId())
+        self.dialogo.cho_ventana.GetEventHandler().ProcessEvent(evento)
+        self.gestor.usar_ventana.assert_not_called()
+
+    def test_usar_ventana_sin_seleccion_solo_avisa(self):
+        self.dialogo.cho_ventana.SetSelection(wx.NOT_FOUND)
+        self.dialogo._usar_ventana(Evento())
+        self.assertEqual(self.anuncios,
+                         ["Elige primero una ventana en Ventana que se captura."])
+        self.assertNotIn("usar_ventana",
+                         [llamada[0] for llamada in self.gestor.llamadas])
+
+    def test_usar_ventana_llama_con_escena_y_valor_y_anuncia_solo_la_frase(self):
+        self.dialogo.cho_escena.SetStringSelection("Principal")
+        self.dialogo.cho_ventana.SetSelection(0)
+        self.gestor.llamadas.clear()
+        self.dialogo._usar_ventana(Evento())
+        self.assertIn(("usar_ventana", "Principal",
+                       "Champions:Ventana:juego.exe"), self.gestor.llamadas)
+        self.assertEqual(self.anuncios,
+                         ["Ahora se captura Champions, de juego.exe."])
+        self.assertIn(("ventanas", "Principal"), self.gestor.llamadas)
+
+    def test_cambiar_escena_vuelve_a_pedir_las_ventanas(self):
+        self.gestor.llamadas.clear()
+        self.dialogo.cho_escena.SetStringSelection("Juego")
+        self.dialogo._cambiar_escena(Evento())
+        self.assertIn(("ventanas", "Juego"), self.gestor.llamadas)
+
+    def test_actualizar_estado_vuelve_a_pedir_las_ventanas(self):
+        self.gestor.llamadas.clear()
+        self.dialogo._actualizar(Evento())
+        self.assertIn(("ventanas", "Principal"), self.gestor.llamadas)
+
     def test_boton_como_se_coloca_tiene_nombre_y_es_una_accion(self):
         self.assertEqual(self.dialogo.btn_como_se_coloca.GetName(), "Cómo se coloca el panel")
         self.assertIn(self.dialogo.btn_como_se_coloca, self.dialogo._acciones)
@@ -552,7 +626,8 @@ class TestTransmisionDialog(unittest.TestCase):
             for accion in (dialogo._actualizar, dialogo._poner_al_aire, dialogo._preparar,
                            dialogo._cambiar_escena, dialogo._cambiar_fuente, dialogo._colocar,
                            dialogo._tamano, dialogo._mostrar, dialogo._fijar, dialogo._frente,
-                           dialogo._restaurar, dialogo._iniciar_ajuste):
+                           dialogo._restaurar, dialogo._iniciar_ajuste,
+                           dialogo._usar_ventana):
                 with self.subTest(accion=accion.__name__):
                     accion(Evento())
                     self.assertFalse(dialogo._operacion_en_vuelo)
@@ -667,7 +742,8 @@ class TestTransmisionDialog(unittest.TestCase):
         self.assertEqual(self._nombres_en_orden(self.dialogo), [
             "Transmitir a", "Tu usuario de TikTok", "Preparar destino",
             "Transmitir", "Grabar", "Pausar la grabación",
-            "Escena", "Poner al aire", "GuardarCaptura", "ActualizarEstado",
+            "Escena", "Poner al aire", "Ventana que se captura",
+            "Usar esa ventana", "GuardarCaptura", "ActualizarEstado",
             "Estado de la transmisión",
             "Panel de chat para transmitir", "Preparar el panel", "Fuente",
             "Posición del panel", "Colocar en esa posición",
@@ -684,14 +760,14 @@ class TestTransmisionDialog(unittest.TestCase):
             return ""
         return etiqueta[posicion + 1].upper()
 
-    def test_letras_de_atajo_unicas_ascii_y_sin_v(self):
+    def test_letras_de_atajo_unicas_y_ascii_con_v_para_la_ventana(self):
         letras = [self._letra_de_atajo(etiqueta)
                   for etiqueta in self._etiquetas_de_botones(self.dialogo)]
         letras = [letra for letra in letras if letra]
         self.assertEqual(len(letras), len(set(letras)), letras)
         for letra in letras:
             self.assertTrue(letra.isascii(), letra)
-        self.assertNotIn("V", letras)
+        self.assertIn("V", letras)
         self.assertEqual(
             self._letra_de_atajo(gui_transmision._ETIQUETA_DETENER_TRANSMISION),
             self._letra_de_atajo(gui_transmision._ETIQUETA_TRANSMITIR))
@@ -947,6 +1023,7 @@ class TestCargaInicialAseguraObs(unittest.TestCase):
         gestor.estado_transmision.return_value = {}
         gestor.estado_grabacion.return_value = {}
         gestor.perfil_actual.return_value = ""
+        gestor.ventanas.return_value = ((), "")
         return types.SimpleNamespace(_gestor=gestor, _asegurar=asegurar)
 
     def test_asegurar_se_llama_antes_de_conectar(self):

@@ -459,6 +459,26 @@ class GestorPanelObsTest(unittest.TestCase):
             self.assertIs(gestor.preparar_destino("TikTok", parada), esperado)
         preparar.assert_called_once_with(doble, "TikTok", parada)
 
+    def test_ventanas_delega_en_obs_captura(self):
+        doble = DobleObs()
+        gestor = self.gestor(doble)
+        parada = object()
+        esperado = ((("Juego, de juego.exe", "Juego:X:juego.exe"),), "")
+        with mock.patch.object(obs_panel.obs_captura, "ventanas",
+                               return_value=esperado) as ventanas:
+            self.assertIs(gestor.ventanas("Escena", parada), esperado)
+        ventanas.assert_called_once_with(doble, "Escena", parada)
+
+    def test_usar_ventana_delega_en_obs_captura(self):
+        doble = DobleObs()
+        gestor = self.gestor(doble)
+        parada = object()
+        with mock.patch.object(obs_panel.obs_captura, "usar_ventana",
+                               return_value="Ahora se captura Juego.") as usar:
+            self.assertEqual(gestor.usar_ventana("Escena", "Juego:X:juego.exe", parada),
+                             "Ahora se captura Juego.")
+        usar.assert_called_once_with(doble, "Escena", "Juego:X:juego.exe", parada)
+
     def test_iniciar_transmision_pide_startstream(self):
         doble = DobleObs()
         parada = object()

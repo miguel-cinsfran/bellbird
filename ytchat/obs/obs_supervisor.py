@@ -15,6 +15,7 @@ import time
 from ytchat.capture import tiktok_vivo
 from ytchat.core import diagnostico
 from ytchat.obs import obs_cliente
+from ytchat.obs import obs_lanzador
 from ytchat.obs import obs_salida
 from ytchat.obs.obs_panel import GestorPanelObs
 
@@ -53,7 +54,8 @@ class SupervisorTransmision:
                  esperar_salida=obs_salida.esperar_salida,
                  esperar_en_vivo=tiktok_vivo.esperar_en_vivo,
                  dormir=time.sleep, reloj=time.monotonic,
-                 intervalo_salud=5.0, limite_tiktok=120.0):
+                 intervalo_salud=5.0, limite_tiktok=120.0,
+                 asegurar=None):
         self._destino = destino
         self._usuario = usuario_tiktok or ""
         self._al_anunciar = al_anunciar or (lambda frase, sonido: None)
@@ -65,6 +67,8 @@ class SupervisorTransmision:
         self._reloj = reloj
         self._intervalo_salud = intervalo_salud
         self._limite_tiktok = limite_tiktok
+        self._asegurar = (asegurar if asegurar is not None
+                          else obs_lanzador.asegurar_obs)
         self._parada = threading.Event()
         self._corte = threading.Event()
         self._hilo = None
@@ -137,10 +141,26 @@ class SupervisorTransmision:
     def _anunciar(self, frase, sonido) -> None:
         self._al_anunciar(frase, sonido)
 
+    def _probar_obs(self) -> None:
+        gestor = self._crear_gestor()
+        try:
+            gestor.conectar(self._parada)
+        finally:
+            try:
+                gestor.cerrar()
+            except Exception:
+                pass
+
     def _supervisar(self) -> None:
         gestor = None
         try:
             self._anunciar("Comenzando la transmisión.", "conectando")
+            if self._parada.is_set():
+                return
+            self._asegurar(self._probar_obs,
+                           al_anunciar=lambda frase: self._anunciar(
+                               frase, None),
+                           parada=self._parada)
             if self._parada.is_set():
                 return
             gestor = self._crear_gestor()

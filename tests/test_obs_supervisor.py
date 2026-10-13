@@ -10,6 +10,7 @@ import time
 import unittest
 
 from ytchat.capture.tiktok_vivo import ResultadoEspera
+from ytchat.obs import obs_cliente
 from ytchat.obs import obs_supervisor
 from ytchat.obs.obs_supervisor import SupervisorTransmision, duracion_legible
 
@@ -115,7 +116,8 @@ class BaseSupervisor(unittest.TestCase):
             esperar_salida=esperar_salida,
             esperar_en_vivo=esperar_en_vivo,
             dormir=reloj.dormir, reloj=reloj.reloj,
-            intervalo_salud=intervalo)
+            intervalo_salud=intervalo,
+            asegurar=lambda probar, al_anunciar=None, parada=None: False)
         return (supervisor, anuncios, chats, gestores, llamadas_salida,
                 llamadas_vivo, reloj)
 
@@ -283,7 +285,8 @@ class DetenerTest(BaseSupervisor):
             esperar_en_vivo=lambda u, parada=None, limite=None: ResultadoEspera(
                 False, False),
             dormir=reloj.dormir, reloj=reloj.reloj,
-            intervalo_salud=1000.0)
+            intervalo_salud=1000.0,
+            asegurar=lambda probar, al_anunciar=None, parada=None: False)
         supervisor.iniciar()
         # Espera a que el hilo entre en vigilancia.
         self.assertTrue(esperar_condicion(
@@ -331,7 +334,8 @@ class DetenerRapidoTest(BaseSupervisor):
             esperar_salida=lambda cliente, parada=None: "enviando",
             esperar_en_vivo=lambda u, parada=None, limite=None: ResultadoEspera(
                 False, False),
-            intervalo_salud=5.0)
+            intervalo_salud=5.0,
+            asegurar=lambda probar, al_anunciar=None, parada=None: False)
         supervisor.iniciar()
         self.assertTrue(esperar_condicion(
             lambda: gestores and "estado" in gestores[0].llamadas))
@@ -362,7 +366,8 @@ class AbandonarTest(BaseSupervisor):
             esperar_en_vivo=lambda u, parada=None, limite=None: ResultadoEspera(
                 False, False),
             dormir=time.sleep, reloj=time.monotonic,
-            intervalo_salud=0.05)
+            intervalo_salud=0.05,
+            asegurar=lambda probar, al_anunciar=None, parada=None: False)
         supervisor.iniciar()
         self.assertTrue(esperar_condicion(
             lambda: gestores and "estado" in gestores[0].llamadas))
@@ -382,6 +387,77 @@ class ExcepcionTest(BaseSupervisor):
         self.assertEqual(len(errores), 1)
         self.assertEqual(chats, [])
         self.assertEqual(gestores[0].cerrado, 1)
+
+
+class AsegurarObsTest(BaseSupervisor):
+    def test_con_obs_cerrado_anuncia_abriendo_antes_de_lo_de_siempre(self):
+        armado = self.armar(destino="YouTube", estados=[muestra(False)])
+        supervisor, anuncios, _, gestores, _, _, _ = armado
+
+        def asegurar(probar, al_anunciar=None, parada=None):
+            probar()
+            al_anunciar("Abriendo OBS. Puede tardar hasta un minuto.")
+            return True
+
+        supervisor._asegurar = asegurar
+        self.iniciar_y_esperar_fin(supervisor)
+        self.assertEqual(anuncios[0],
+                         ("Comenzando la transmisión.", "conectando"))
+        self.assertEqual(anuncios[1],
+                         ("Abriendo OBS. Puede tardar hasta un minuto.", None))
+        self.assertEqual(anuncios[2][1], "conectado")
+        # La prueba usó un gestor y el trabajo real otro, ambos cerrados.
+        self.assertGreaterEqual(len(gestores), 2)
+        self.assertTrue(all(gestor.cerrado == 1 for gestor in gestores))
+
+    def test_sin_obs_anuncia_el_texto_exactoy_no_transmite(self):
+        from ytchat.obs.obs_lanzador import ObsNoInstalado
+        armado = self.armar(destino="YouTube", estados=[muestra(False)])
+        supervisor, anuncios, _, gestores, _, _, _ = armado
+
+        def asegurar(probar, al_anunciar=None, parada=None):
+            raise ObsNoInstalado(
+                "OBS no está instalado en este equipo. Instálalo desde "
+                "obsproject.com y vuelve a intentarlo.")
+        supervisor._asegurar = asegurar
+        self.iniciar_y_esperar_fin(supervisor)
+        self.assertEqual(anuncios[0],
+                         ("Comenzando la transmisión.", "conectando"))
+        self.assertEqual(anuncios[1], (
+            "OBS no está instalado en este equipo. Instálalo desde "
+            "obsproject.com y vuelve a intentarlo.", "error"))
+        self.assertFalse(any("iniciar" in gestor.llamadas
+                             for gestor in gestores))
+
+    def test_asegurar_abre_obs_antes_del_primer_conectar(self):
+        armado = self.armar(destino="YouTube", estados=[muestra(False)])
+        supervisor, anuncios, _, gestores, _, _, _ = armado
+        abierto = []
+
+        def crear_gestor():
+            gestor = GestorFalso([muestra(False)])
+            gestores.append(gestor)
+            conectar_real = gestor.conectar
+
+            def conectar(parada=None):
+                if not abierto:
+                    gestor.llamadas.append("conectar")
+                    raise obs_cliente.ObsError(
+                        "No se pudo conectar con OBS.")
+                return conectar_real(parada)
+
+            gestor.conectar = conectar
+            return gestor
+
+        def asegurar(probar, al_anunciar=None, parada=None):
+            abierto.append(True)
+            return True
+
+        supervisor._crear_gestor = crear_gestor
+        supervisor._asegurar = asegurar
+        self.iniciar_y_esperar_fin(supervisor)
+        self.assertTrue(gestores)
+        self.assertIn("iniciar", gestores[0].llamadas)
 
 
 if __name__ == "__main__":

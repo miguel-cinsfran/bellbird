@@ -1,11 +1,13 @@
 """Pruebas del diálogo de Transmisión sin conectar con OBS."""
 
+import types
 import unittest
 from unittest import mock
 
 from ytchat.ui import gui_transmision
 from ytchat.obs import obs_cliente
 from ytchat.obs import obs_disposicion
+from ytchat.obs import obs_lanzador
 
 try:
     import wx
@@ -136,6 +138,11 @@ class EventoTecla:
     def Skip(self): self.se_omitio = True
 
 
+def _asegurar_sin_obs(*args, **kwargs):
+    # Doble del lanzador real: no toca OBS y finge que ya estaba en ejecución.
+    return False
+
+
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestTransmisionDialog(unittest.TestCase):
 
@@ -154,7 +161,8 @@ class TestTransmisionDialog(unittest.TestCase):
         ]
         for parche in self.parches: parche.start()
         self.gestor = GestorFalso()
-        self.dialogo = gui_transmision.TransmisionDialog(None, self.gestor)
+        self.dialogo = gui_transmision.TransmisionDialog(
+            None, self.gestor, asegurar=_asegurar_sin_obs)
         self.anuncios.clear()
 
     def tearDown(self):
@@ -164,7 +172,8 @@ class TestTransmisionDialog(unittest.TestCase):
     def test_fallo_al_abrir_desactiva_controles_y_muestra_error(self):
         self.dialogo.Destroy()
         gestor = GestorFalso(fallo=True)
-        self.dialogo = gui_transmision.TransmisionDialog(None, gestor)
+        self.dialogo = gui_transmision.TransmisionDialog(
+            None, gestor, asegurar=_asegurar_sin_obs)
         self.assertIn("OBS no está disponible", self.dialogo.txt_estado.GetValue())
         self.assertFalse(self.dialogo.cho_escena.IsEnabled())
         self.assertFalse(self.dialogo.btn_tamano.IsEnabled())
@@ -184,7 +193,8 @@ class TestTransmisionDialog(unittest.TestCase):
         self.dialogo.Destroy()
         alternar = mock.Mock(side_effect=(True, False))
         self.dialogo = gui_transmision.TransmisionDialog(
-            None, self.gestor, alternar_panel=alternar)
+            None, self.gestor, alternar_panel=alternar,
+            asegurar=_asegurar_sin_obs)
 
         self.dialogo.chk_panel_chat.SetValue(True)
         self.dialogo._alternar_panel_chat(Evento())
@@ -196,7 +206,8 @@ class TestTransmisionDialog(unittest.TestCase):
     def test_casilla_del_panel_se_desmarca_si_no_se_pudo_encender(self):
         self.dialogo.Destroy()
         self.dialogo = gui_transmision.TransmisionDialog(
-            None, self.gestor, alternar_panel=mock.Mock(return_value=False))
+            None, self.gestor, alternar_panel=mock.Mock(return_value=False),
+            asegurar=_asegurar_sin_obs)
 
         self.dialogo.chk_panel_chat.SetValue(True)
         self.dialogo._alternar_panel_chat(Evento())
@@ -210,7 +221,8 @@ class TestTransmisionDialog(unittest.TestCase):
     def test_activar_fallo_mantiene_habilitada_la_casilla_con_callback(self):
         self.dialogo.Destroy()
         self.dialogo = gui_transmision.TransmisionDialog(
-            None, self.gestor, alternar_panel=mock.Mock())
+            None, self.gestor, alternar_panel=mock.Mock(),
+            asegurar=_asegurar_sin_obs)
 
         self.dialogo._activar(False)
 
@@ -220,7 +232,8 @@ class TestTransmisionDialog(unittest.TestCase):
     def test_activar_exito_habilita_la_casilla_con_callback(self):
         self.dialogo.Destroy()
         self.dialogo = gui_transmision.TransmisionDialog(
-            None, self.gestor, alternar_panel=mock.Mock())
+            None, self.gestor, alternar_panel=mock.Mock(),
+            asegurar=_asegurar_sin_obs)
 
         self.dialogo._activar(True)
 
@@ -269,7 +282,8 @@ class TestTransmisionDialog(unittest.TestCase):
              mock.patch.object(gui_transmision.overlay_servidor, "puerto_actual",
                                return_value=None), \
              mock.patch.object(gui_transmision.overlay_servidor, "encender", encender):
-            dialogo = gui_transmision.TransmisionDialog(None, gestor)
+            dialogo = gui_transmision.TransmisionDialog(
+                None, gestor, asegurar=_asegurar_sin_obs)
         self.addCleanup(dialogo.Destroy)
         self.assertIn("Falta preparar el panel. El panel de chat está apagado.", self.anuncios)
         self.assertIn("Al aire: Principal", self.anuncios)
@@ -646,7 +660,8 @@ class TestTransmisionDialog(unittest.TestCase):
     def test_destino_inicial_muestra_el_perfil_actual_si_es_un_destino(self):
         self.dialogo.Destroy()
         self.gestor.perfil = "YouTube"
-        self.dialogo = gui_transmision.TransmisionDialog(None, self.gestor)
+        self.dialogo = gui_transmision.TransmisionDialog(
+            None, self.gestor, asegurar=_asegurar_sin_obs)
         self.anuncios.clear()
         self.assertEqual(self.dialogo.cho_destino.GetStringSelection(),
                          "YouTube")
@@ -654,7 +669,8 @@ class TestTransmisionDialog(unittest.TestCase):
     def test_destino_inicial_sin_seleccion_si_el_perfil_no_es_un_destino(self):
         self.dialogo.Destroy()
         self.gestor.perfil = "N5000-Grabacion"
-        self.dialogo = gui_transmision.TransmisionDialog(None, self.gestor)
+        self.dialogo = gui_transmision.TransmisionDialog(
+            None, self.gestor, asegurar=_asegurar_sin_obs)
         self.anuncios.clear()
         self.assertEqual(self.dialogo.cho_destino.GetSelection(), wx.NOT_FOUND)
 
@@ -697,7 +713,8 @@ class TestTransmisionDialog(unittest.TestCase):
         self.dialogo.Destroy()
         self.dialogo = gui_transmision.TransmisionDialog(
             None, self.gestor, supervisar=supervisar,
-            guardar_usuario=guardar, usuario_tiktok=usuario)
+            guardar_usuario=guardar, usuario_tiktok=usuario,
+            asegurar=_asegurar_sin_obs)
         self.anuncios.clear()
         return supervisar, guardar
 
@@ -731,7 +748,8 @@ class TestTransmisionDialog(unittest.TestCase):
     def test_campo_usuario_arranca_con_el_guardado(self):
         self.dialogo.Destroy()
         dialogo = gui_transmision.TransmisionDialog(
-            None, self.gestor, usuario_tiktok="amigo")
+            None, self.gestor, usuario_tiktok="amigo",
+            asegurar=_asegurar_sin_obs)
         self.addCleanup(dialogo.Destroy)
         self.assertEqual(dialogo.txt_usuario_tiktok.GetValue(), "amigo")
 
@@ -821,6 +839,49 @@ class TestTransmisionDialog(unittest.TestCase):
         self._pulsar_transmitir()
         self.assertIn(("alternar_transmision",), self.gestor.llamadas)
         self.assertEqual(self.anuncios[-1], "Transmisión iniciada")
+
+
+class TestCargaInicialAseguraObs(unittest.TestCase):
+    # Sin ventana: se llama a _cargar_inicial como función sobre un objeto
+    # falso, así no se crea ningún diálogo ni se toca OBS.
+
+    def _falso(self, orden, asegurar):
+        gestor = mock.Mock()
+        gestor.conectar.side_effect = lambda: orden.append("conectar")
+        gestor.escenas.return_value = ("Principal",)
+        gestor.escena_al_aire.return_value = "Principal"
+        gestor.fuentes.return_value = ("Chat YTChat",)
+        gestor.instantanea.return_value = mock.sentinel.snap
+        gestor.transformacion.return_value = {}
+        gestor.estado_transmision.return_value = {}
+        gestor.estado_grabacion.return_value = {}
+        gestor.perfil_actual.return_value = ""
+        return types.SimpleNamespace(_gestor=gestor, _asegurar=asegurar)
+
+    def test_asegurar_se_llama_antes_de_conectar(self):
+        orden = []
+
+        def asegurar(probar, **kwargs):
+            orden.append("asegurar")
+            return False
+
+        falso = self._falso(orden, asegurar)
+        gui_transmision.TransmisionDialog._cargar_inicial(falso)
+        self.assertEqual(orden[:2], ["asegurar", "conectar"])
+        falso._gestor.conectar.assert_called_once_with()
+
+    def test_sin_obs_instalado_no_conecta_y_deja_salir_el_error(self):
+        orden = []
+
+        def asegurar(probar, **kwargs):
+            orden.append("asegurar")
+            raise obs_lanzador.ObsNoInstalado("OBS no está instalado")
+
+        falso = self._falso(orden, asegurar)
+        with self.assertRaises(obs_lanzador.ObsNoInstalado):
+            gui_transmision.TransmisionDialog._cargar_inicial(falso)
+        self.assertEqual(orden, ["asegurar"])
+        falso._gestor.conectar.assert_not_called()
 
 
 if __name__ == "__main__":

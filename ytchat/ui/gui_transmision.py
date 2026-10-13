@@ -11,6 +11,7 @@ from ytchat.obs import obs_cliente
 from ytchat.obs import obs_destinos
 from ytchat.obs import obs_disposicion
 from ytchat.obs import obs_estado
+from ytchat.obs import obs_lanzador
 from ytchat.obs.obs_destinos import DESTINOS
 from ytchat.core import diagnostico
 from ytchat.obs import overlay_servidor
@@ -60,10 +61,13 @@ _RUTA_PANEL_CHAT = "/chat"
 class TransmisionDialog(wx.Dialog):
 
     def __init__(self, parent, gestor=None, alternar_panel=None,
-                 supervisar=None, guardar_usuario=None, usuario_tiktok=""):
+                 supervisar=None, guardar_usuario=None, usuario_tiktok="",
+                 asegurar=None):
         super().__init__(parent, title="Transmisión", size=(620, 680),
                          name="DialogoTransmision")
         self._gestor = gestor or GestorPanelObs()
+        self._asegurar = (asegurar if asegurar is not None
+                          else obs_lanzador.asegurar_obs)
         self._alternar_panel = alternar_panel
         self._supervisar = supervisar
         self._guardar_usuario = guardar_usuario
@@ -282,6 +286,8 @@ class TransmisionDialog(wx.Dialog):
         event.Skip()
 
     def _cargar_inicial(self):
+        self._asegurar(lambda: self._gestor.conectar(),
+                       al_anunciar=lambda frase: wx.CallAfter(anunciar, frase))
         self._gestor.conectar()
         escenas = self._gestor.escenas()
         al_aire = self._gestor.escena_al_aire()

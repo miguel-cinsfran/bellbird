@@ -106,7 +106,12 @@ if defined VLCDIR (
   )
   REM Generar la cache de plugins del set recortado evita el escaneo en el
   REM primer arranque, que hacia que la app tardara en abrir.
-  if exist "%VLCDIR%\vlc-cache-gen.exe" "%VLCDIR%\vlc-cache-gen.exe" "%OUT%\vlc\plugins" >nul 2>nul
+  REM Ruta absoluta: con ruta relativa la cache salia vacia.
+  if exist "%VLCDIR%\vlc-cache-gen.exe" "%VLCDIR%\vlc-cache-gen.exe" "%CD%\%OUT%\vlc\plugins" >nul 2>nul
+  REM Solo aviso, no corta la construccion: si la cache sale vacia el
+  REM reproductor tarda en arrancar pero la app igual funciona.
+  if not exist "%OUT%\vlc\plugins\plugins.dat" echo    AVISO: la cache de plugins de VLC salio vacia y el reproductor tardara en arrancar.
+  if exist "%OUT%\vlc\plugins\plugins.dat" for %%f in ("%OUT%\vlc\plugins\plugins.dat") do if %%~zf LSS 10000 echo    AVISO: la cache de plugins de VLC salio vacia y el reproductor tardara en arrancar.
 )
 
 echo == Empaquetando ffmpeg (mux audio+video de yt-dlp en el gestor de descargas) ==

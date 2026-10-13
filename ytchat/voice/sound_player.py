@@ -5,6 +5,10 @@ este último solo admite UN sonido a la vez: el tick de un mensaje nuevo
 cortaría el ding del Super Chat anterior. Cada reproducción abre un
 alias MCI propio, así dos sonidos pueden solaparse.
 
+Todo MCI vive en un único hilo de sonido: `reproducir` solo encola la
+ruta y vuelve, así ningún sonido congela la ventana aunque el disco vaya
+lento. Ese mismo hilo abre, reproduce y barre los alias.
+
 Fuera de Windows el módulo es un no-op silencioso, para que el mismo
 código se pueda probar en Linux.
 """
@@ -13,6 +17,7 @@ from __future__ import annotations
 
 import itertools
 import logging
+import queue
 import sys
 import threading
 import time
@@ -36,8 +41,14 @@ _alias_lock = threading.Lock()
 _alias_contador = itertools.count(1)
 _alias_prefijo = "ytcsnd"
 
-_sweeper_thread: threading.Thread | None = None
-_sweeper_stop = threading.Event()
+# Cola de rutas pendientes para el hilo de sonido. Acotada: en una
+# avalancha de mensajes no sirve encadenar ticks atrasados, el nuevo se
+# descarta en silencio cuando está llena.
+_MAX_PENDIENTES = 4
+_cola_sonidos: queue.Queue = queue.Queue(maxsize=_MAX_PENDIENTES)
+
+_hilo_sonido: threading.Thread | None = None
+_parada_sonido = threading.Event()
 
 # MCI reserva memoria por cada alias abierto. Si nunca los cerramos, se
 # acumulan. El barrido cierra cada alias cuando MCI dice que ya no suena
@@ -91,9 +102,11 @@ def cargar(config_sonidos: dict) -> None:
     _eventos = {k: v for k, v in config_sonidos.get("eventos", {}).items() if v}
     _volumen = max(0.0, min(1.0, float(config_sonidos.get("volumen", 0.7))))
     _activo  = bool(config_sonidos.get("activar", True))
+    _vaciar_cola()
     if _activo and _eventos:
         _init_backend()
-        _iniciar_sweeper()
+        if _backend_winmm:
+            _iniciar_hilo_sonido()
     logger.info("sound_player: %d evento(s), activo=%s, vol=%.2f",
                 len(_eventos), _activo, _volumen)
 
@@ -108,31 +121,36 @@ def esta_silenciado() -> bool:
 
 
 def reproducir(evento: str) -> None:
-    """Nunca lanza: cualquier fallo se ignora en debug. Seguro desde cualquier hilo."""
+    """Nunca lanza: cualquier fallo se ignora en debug. Seguro desde cualquier hilo.
+
+    Con backend winmm solo encola la ruta y vuelve: ni `resolve`, ni
+    `exists`, ni MCI en el hilo que llama. El hilo de sonido comprueba que
+    el archivo existe antes de reproducirlo.
+    """
     if _silenciado_usuario or not _activo:
         return
     ruta = _eventos.get(evento)
-    if not ruta or not ruta.exists():
+    if not ruta:
         return
     if _backend_winmm:
-        _reproducir_winmm(ruta)
+        _iniciar_hilo_sonido()
+        try:
+            _cola_sonidos.put_nowait(ruta)
+        except queue.Full:
+            pass
     else:
+        if not ruta.exists():
+            return
         _reproducir_fallback(ruta)
 
 
 def cerrar() -> None:
-    _sweeper_stop.set()
-    if _sweeper_thread and _sweeper_thread.is_alive():
-        _sweeper_thread.join(timeout=1.0)
+    _parada_sonido.set()
+    if _hilo_sonido and _hilo_sonido.is_alive():
+        _hilo_sonido.join(timeout=1.0)
+    _vaciar_cola()
     if _backend_winmm:
-        with _alias_lock:
-            alias_abiertos = list(_alias_activos.keys())
-            _alias_activos.clear()
-        for a in alias_abiertos:
-            try:
-                _mci(f"close {a}")
-            except Exception:
-                pass
+        _cerrar_alias_abiertos()
 
 
 # ── Backend MCI ───────────────────────────────────────────────────────────────
@@ -158,25 +176,62 @@ def _reproducir_winmm(ruta: Path) -> None:
         except Exception: pass
 
 
-def _iniciar_sweeper() -> None:
-    global _sweeper_thread
-    if _sweeper_thread is not None and _sweeper_thread.is_alive():
+def _iniciar_hilo_sonido() -> None:
+    global _hilo_sonido
+    if _hilo_sonido is not None and _hilo_sonido.is_alive():
         return
-    _sweeper_stop.clear()
-    _sweeper_thread = threading.Thread(
-        target=_sweeper_loop, daemon=True, name="SoundSweeper")
-    _sweeper_thread.start()
+    _parada_sonido.clear()
+    _hilo_sonido = diagnostico.crear_hilo(_bucle_sonido, "Sonidos")
+    _hilo_sonido.start()
 
 
-def _sweeper_loop() -> None:
-    while not _sweeper_stop.is_set():
-        _sweeper_stop.wait(timeout=0.5)
-        if _sweeper_stop.is_set():
-            break
+def _vaciar_cola() -> None:
+    try:
+        while True:
+            _cola_sonidos.get_nowait()
+    except queue.Empty:
+        pass
+
+
+def _bucle_sonido() -> None:
+    while not _parada_sonido.is_set():
+        try:
+            ruta = _cola_sonidos.get(timeout=0.5)
+        except queue.Empty:
+            pass
+        else:
+            _reproducir_en_hilo(ruta)
         try:
             _barrer_alias()
         except Exception as exc:
-            logger.debug("sweeper: %s", exc)
+            logger.debug("sonidos: %s", exc)
+    # Los alias abiertos se cierran desde este mismo hilo antes de terminar.
+    try:
+        _cerrar_alias_abiertos()
+    except Exception as exc:
+        logger.debug("sonidos al cerrar: %s", exc)
+
+
+def _reproducir_en_hilo(ruta: Path) -> None:
+    """Reproduce una ruta encolada. La comprobación de que el archivo existe
+    se hace acá, en el hilo de sonido, nunca en el hilo que llama."""
+    try:
+        if not ruta.exists():
+            return
+        _reproducir_winmm(ruta)
+    except Exception as exc:
+        logger.debug("sonidos: %s", exc)
+
+
+def _cerrar_alias_abiertos() -> None:
+    with _alias_lock:
+        alias_abiertos = list(_alias_activos.keys())
+        _alias_activos.clear()
+    for a in alias_abiertos:
+        try:
+            _mci(f"close {a}")
+        except Exception:
+            pass
 
 
 def _barrer_alias() -> None:

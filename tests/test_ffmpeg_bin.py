@@ -80,6 +80,21 @@ class PruebasConstruccion(unittest.TestCase):
     def test_sigue_copiando_ffmpeg_a_la_raiz(self):
         self.assertIn('"%OUT%\\ffmpeg.exe"', self._construir())
 
+    def test_cache_vlc_se_genera_con_ruta_absoluta(self):
+        lineas = self._construir().splitlines()
+        llamadas = [linea for linea in lineas if "vlc-cache-gen.exe" in linea
+                    and "if exist" in linea.lower()]
+        self.assertTrue(llamadas)
+        for linea in llamadas:
+            self.assertIn("%CD%", linea)
+
+    def test_cache_vlc_avisa_si_sale_vacia(self):
+        texto = self._construir()
+        self.assertIn("plugins.dat", texto)
+        self.assertIn("10000", texto)
+        self.assertIn("AVISO: la cache de plugins de VLC salio vacia",
+                      texto)
+
 
 if __name__ == "__main__":
     unittest.main()

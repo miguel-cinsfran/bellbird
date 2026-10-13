@@ -327,3 +327,20 @@ class ClienteYouTube:
             part="snippet",
             body={"snippet": {"parentId": parent_id, "textOriginal": texto}},
         ).execute()
+
+    def clave_emision(self) -> tuple[str, str] | None:
+        """Devuelve (servidor, clave) de emisión reutilizable de la cuenta."""
+        resp = self._escritura().liveStreams().list(
+            part="id,snippet,cdn,status,contentDetails",
+            mine=True, maxResults=50).execute()
+        flujos = [flujo for flujo in resp.get("items", []) or []
+                  if (flujo.get("contentDetails") or {}).get("isReusable")]
+        flujos.sort(key=lambda flujo: (
+            (flujo.get("snippet") or {}).get("title") != "Default stream key"))
+        for flujo in flujos:
+            ingestion = (flujo.get("cdn") or {}).get("ingestionInfo") or {}
+            servidor = ingestion.get("ingestionAddress") or ""
+            clave = ingestion.get("streamName") or ""
+            if servidor and clave:
+                return (servidor, clave)
+        return None

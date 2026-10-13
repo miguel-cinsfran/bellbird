@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from ytchat.obs import obs_disposicion
 from ytchat.obs import obs_cliente
+from ytchat.obs import obs_destinos
 
 
 NOMBRE_FUENTE = "Chat YTChat"
@@ -92,6 +93,14 @@ class GestorPanelObs:
 
     def alternar_pausa_grabacion(self, parada=None) -> bool:
         return bool(self._pedir("ToggleRecordPause", parada=parada).get("outputPaused", False))
+
+    def perfil_actual(self, parada=None) -> str:
+        datos = self._pedir("GetProfileList", parada=parada)
+        return datos.get("currentProfileName", "")
+
+    def preparar_destino(self, destino, parada=None) -> dict:
+        return obs_destinos.preparar_para_transmitir(
+            self._cliente, destino, parada)
 
     def _elementos(self, escena, parada=None):
         datos = self._pedir("GetSceneItemList", {"sceneName": escena}, parada)

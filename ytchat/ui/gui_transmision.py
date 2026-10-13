@@ -8,8 +8,10 @@ import wx
 
 from ytchat.obs import ajuste_fino
 from ytchat.obs import obs_cliente
+from ytchat.obs import obs_destinos
 from ytchat.obs import obs_disposicion
 from ytchat.obs import obs_estado
+from ytchat.obs.obs_destinos import DESTINOS
 from ytchat.core import diagnostico
 from ytchat.obs import overlay_servidor
 from ytchat.ui.gui import ContadorAccesible, _T, anunciar, nombre_accesible
@@ -148,24 +150,30 @@ class TransmisionDialog(wx.Dialog):
             panel, "C&ómo se coloca el panel", "Cómo se coloca el panel")
         self.btn_lienzo = self._boton(panel, "&Qué es el lienzo", "QueEsElLienzo")
         self.btn_restaurar = self._boton(panel, "&Restablecer", "RestablecerTransmision")
+        self.cho_destino = wx.Choice(panel, choices=list(DESTINOS),
+                                     name="Transmitir a")
+        nombre_accesible(self.cho_destino, "Transmitir a")
+        self.btn_destino = self._boton(panel, "Preparar desti&no", "Preparar destino")
         self.btn_transmitir = self._boton(panel, "&Transmitir", "Transmitir")
         self.btn_grabar = self._boton(panel, "&Grabar", "Grabar")
         self.btn_pausar_grabacion = self._boton(
             panel, "Pausar la gra&bación", "Pausar la grabación")
         for boton in (self.btn_frente, self.btn_ajuste, self.btn_captura,
-                      self.btn_como_se_coloca, self.btn_lienzo, self.btn_restaurar, self.btn_transmitir,
-                      self.btn_grabar, self.btn_pausar_grabacion):
+                       self.btn_como_se_coloca, self.btn_lienzo, self.btn_restaurar, self.cho_destino,
+                       self.btn_destino, self.btn_transmitir,
+                       self.btn_grabar, self.btn_pausar_grabacion):
             caja.Add(boton, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
         self.btn_cerrar = self._boton(panel, "C&errar", "CerrarTransmision", wx.ID_CANCEL)
         caja.Add(self.btn_cerrar, 0, wx.ALIGN_RIGHT | wx.ALL, 10)
         panel.SetSizer(caja)
         self._acciones = (self.btn_actualizar, self.btn_preparar, self.chk_panel_chat,
-                          self.cho_escena,
-                          self.btn_poner_al_aire, self.cho_fuente, self.cho_posicion,
-                          self.btn_colocar, self.sp_ancho, self.sp_alto, self.btn_tamano, self.chk_mostrar,
-                          self.chk_fijar, self.btn_frente, self.btn_ajuste, self.btn_captura,
-                          self.btn_como_se_coloca, self.btn_restaurar, self.btn_transmitir, self.btn_grabar,
-                          self.btn_pausar_grabacion)
+                           self.cho_escena,
+                           self.btn_poner_al_aire, self.cho_fuente, self.cho_posicion,
+                           self.btn_colocar, self.sp_ancho, self.sp_alto, self.btn_tamano, self.chk_mostrar,
+                           self.chk_fijar, self.btn_frente, self.btn_ajuste, self.btn_captura,
+                           self.btn_como_se_coloca, self.btn_restaurar, self.cho_destino, self.btn_destino,
+                           self.btn_transmitir, self.btn_grabar,
+                           self.btn_pausar_grabacion)
         self.btn_actualizar.Bind(wx.EVT_BUTTON, self._actualizar)
         self.btn_preparar.Bind(wx.EVT_BUTTON, self._preparar)
         self.chk_panel_chat.Bind(wx.EVT_CHECKBOX, self._alternar_panel_chat)
@@ -184,6 +192,7 @@ class TransmisionDialog(wx.Dialog):
         self.btn_como_se_coloca.Bind(wx.EVT_BUTTON, self._como_se_coloca)
         self.btn_lienzo.Bind(wx.EVT_BUTTON, self._lienzo)
         self.btn_restaurar.Bind(wx.EVT_BUTTON, self._restaurar)
+        self.btn_destino.Bind(wx.EVT_BUTTON, self._preparar_destino)
         self.btn_transmitir.Bind(wx.EVT_BUTTON, self._transmitir)
         self.btn_grabar.Bind(wx.EVT_BUTTON, self._grabar)
         self.btn_pausar_grabacion.Bind(wx.EVT_BUTTON, self._pausar_grabacion)
@@ -274,19 +283,30 @@ class TransmisionDialog(wx.Dialog):
         snap = self._gestor.instantanea(escena, fuente=fuente)
         return (escenas, escena, al_aire, fuentes, fuente, snap,
                 self._gestor.transformacion(escena, fuente=fuente),
-                self._gestor.estado_transmision(), self._gestor.estado_grabacion())
+                self._gestor.estado_transmision(), self._gestor.estado_grabacion(),
+                self._gestor.perfil_actual())
 
-    def _inicial_cargada(self, datos):
-        escenas, escena, al_aire, fuentes, fuente, snap, transformacion, transmision, grabacion = datos
+    def _poblar_inicial(self, datos):
+        # Puebla los controles sin anunciar: la carga inicial anuncia aparte
+        # y el destino preparado reusa esto para refrescar en silencio.
+        escenas, escena, al_aire, fuentes, fuente, snap, transformacion, transmision, grabacion, perfil = datos
         self.cho_escena.Set(list(escenas))
         if escena:
             self.cho_escena.SetStringSelection(escena)
         self._cargar_fuentes(fuentes, fuente)
         self._mostrar_snap(snap)
+        if perfil in DESTINOS:
+            self.cho_destino.SetStringSelection(perfil)
+        else:
+            self.cho_destino.SetSelection(wx.NOT_FOUND)
+        self._mostrar_estados(transmision, grabacion, al_aire)
+
+    def _inicial_cargada(self, datos):
+        self._poblar_inicial(datos)
+        escenas, escena, al_aire, fuentes, fuente, snap, transformacion, transmision, grabacion, perfil = datos
         anunciar(obs_disposicion.describir_preparacion(
             snap.conectado, overlay_servidor.esta_encendido(),
             overlay_servidor.puerto_actual(), NOMBRE_FUENTE in fuentes))
-        self._mostrar_estados(transmision, grabacion, al_aire)
         self._anunciar_estados(transmision, grabacion, al_aire)
 
     def _mostrar_snap(self, snap):
@@ -431,6 +451,29 @@ class TransmisionDialog(wx.Dialog):
     def _pausa_grabacion_alternada(self, en_pausa):
         accion = "grabacion_en_pausa" if en_pausa else "grabacion_reanudada"
         anunciar(obs_estado.frase_resultado(accion))
+
+    def _preparar_destino(self, event):
+        # Elegir en el desplegable no prepara nada por sí solo: recorrerlo
+        # con flechas dispara EVT_CHOICE y eso saldría al aire sin querer.
+        destino = self.cho_destino.GetStringSelection()
+        if not destino:
+            anunciar("Elige primero a dónde transmitir, en Transmitir a.")
+            return
+        anunciar(f"Preparando OBS para {destino}. Puede tardar unos segundos.")
+        self._en_hilo(lambda: self._preparar_destino_en_hilo(destino),
+                      self._destino_preparado)
+
+    def _preparar_destino_en_hilo(self, destino):
+        # El destino se captura en el hilo principal y viaja como argumento;
+        # los hilos de trabajo no leen controles de wx.
+        resultado = self._gestor.preparar_destino(destino)
+        return resultado, self._cargar_inicial()
+
+    def _destino_preparado(self, datos):
+        resultado, inicial = datos
+        self._poblar_inicial(inicial)
+        anunciar(obs_destinos.frase_destino_listo(resultado))
+        self.btn_transmitir.SetFocus()
 
     def _preparar(self, event):
         escena = self._escena()

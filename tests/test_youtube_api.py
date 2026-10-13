@@ -186,8 +186,74 @@ class TestMensajeError(unittest.TestCase):
         self.assertIn("Error de la API", mensaje_error_api("algo raro"))
 
 
-class TestCableadoChatDirecto(unittest.TestCase):
+class ServicioFlujosFalso:
+    def __init__(self, flujos):
+        self.flujos = flujos
+        self.parametros = {}
 
+    def liveStreams(self):
+        return self
+
+    def list(self, **kwargs):
+        self.parametros = kwargs
+        return self
+
+    def execute(self):
+        return {"items": self.flujos}
+
+
+def flujo(titulo, reutilizable=True, servidor="rtmp://a.rtmp.youtube.com/live2",
+          clave="clave"):
+    return {"snippet": {"title": titulo},
+            "contentDetails": {"isReusable": reutilizable},
+            "cdn": {"ingestionInfo": {"ingestionAddress": servidor,
+                                      "streamName": clave}}}
+
+
+class TestClaveEmision(unittest.TestCase):
+
+    def cliente(self, flujos):
+        cliente = ClienteYouTube({"token": "{}"})
+        servicio = ServicioFlujosFalso(flujos)
+        cliente._svc_escritura = servicio
+        return cliente, servicio
+
+    def test_prefiere_default_entre_reutilizables(self):
+        cliente, _ = self.cliente([
+            flujo("Otro", clave="otra"),
+            flujo("Default stream key", clave="elegida"),
+        ])
+        self.assertEqual(cliente.clave_emision(),
+                         ("rtmp://a.rtmp.youtube.com/live2", "elegida"))
+
+    def test_ignora_los_no_reutilizables(self):
+        cliente, _ = self.cliente([
+            flujo("Ajena", reutilizable=False, clave="ajena"),
+            flujo("Mía", clave="mia"),
+        ])
+        self.assertEqual(cliente.clave_emision(),
+                         ("rtmp://a.rtmp.youtube.com/live2", "mia"))
+
+    def test_sin_reutilizables_devuelve_none(self):
+        cliente, _ = self.cliente([flujo("Ajena", reutilizable=False)])
+        self.assertIsNone(cliente.clave_emision())
+        cliente_vacio, _ = self.cliente([])
+        self.assertIsNone(cliente_vacio.clave_emision())
+
+    def test_sin_campos_de_ingesta_devuelve_none(self):
+        cliente, _ = self.cliente([{"snippet": {"title": "Default stream key"},
+                                    "contentDetails": {"isReusable": True},
+                                    "cdn": {}}])
+        self.assertIsNone(cliente.clave_emision())
+
+    def test_pide_los_flujos_propios(self):
+        cliente, servicio = self.cliente([flujo("Default stream key")])
+        cliente.clave_emision()
+        self.assertTrue(servicio.parametros.get("mine"))
+        self.assertIn("contentDetails", servicio.parametros.get("part", ""))
+
+
+class TestCableadoChatDirecto(unittest.TestCase):
     def test_entrega_la_causa_a_la_interfaz(self):
         import main
         llamadas = []

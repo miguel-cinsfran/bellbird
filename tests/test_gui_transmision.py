@@ -29,6 +29,7 @@ class GestorFalso:
         self.snap_nuevo = self.snap
         self.transformacion_inicial = {"positionX": 32, "positionY": 18, "alignment": 5}
         self.tiene_panel = True
+        self.perfil = ""
         self.transmitiendo = False
         self.grabando = False
         self.grabacion_en_pausa = False
@@ -92,6 +93,17 @@ class GestorFalso:
         self.grabacion_en_pausa = not self.grabacion_en_pausa
         self.llamadas.append(("alternar_pausa_grabacion",))
         return self.grabacion_en_pausa
+    def perfil_actual(self, parada=None):
+        self.llamadas.append(("perfil_actual",))
+        return self.perfil
+    def preparar_destino(self, destino, parada=None):
+        self.llamadas.append(("preparar_destino", destino))
+        self.perfil = destino
+        vertical = destino == "TikTok"
+        return {"destino": destino, "perfil": destino,
+                "coleccion": destino if vertical else "Sin Título",
+                "ancho": 720 if vertical else 1280,
+                "alto": 1280 if vertical else 720}
 
 
 class HiloInmediato:
@@ -599,6 +611,76 @@ class TestTransmisionDialog(unittest.TestCase):
 
     def test_pausa_esta_deshabilitada_si_no_se_esta_grabando(self):
         self.assertFalse(self.dialogo.btn_pausar_grabacion.IsEnabled())
+
+    def test_destino_va_antes_de_transmitir_en_las_acciones(self):
+        acciones = self.dialogo._acciones
+        indice = acciones.index(self.dialogo.btn_restaurar)
+        self.assertIs(acciones[indice + 1], self.dialogo.cho_destino)
+        self.assertIs(acciones[indice + 2], self.dialogo.btn_destino)
+        self.assertIs(acciones[indice + 3], self.dialogo.btn_transmitir)
+
+    def test_destino_va_antes_de_transmitir_en_el_sizer(self):
+        sizer = self.dialogo.cho_destino.GetParent().GetSizer()
+        ventanas = [elemento.GetWindow() for elemento in sizer.GetChildren()]
+        indice = ventanas.index(self.dialogo.btn_restaurar)
+        self.assertIs(ventanas[indice + 1], self.dialogo.cho_destino)
+        self.assertIs(ventanas[indice + 2], self.dialogo.btn_destino)
+        self.assertIs(ventanas[indice + 3], self.dialogo.btn_transmitir)
+
+    def test_controles_de_destino_tienen_nombres_y_opciones(self):
+        self.assertEqual(self.dialogo.cho_destino.GetStrings(),
+                         ["TikTok", "YouTube"])
+        self.assertEqual(self.dialogo.cho_destino.GetName(), "Transmitir a")
+        self.assertEqual(self.dialogo.btn_destino.GetName(), "Preparar destino")
+        self.assertEqual(self.dialogo.btn_destino.GetLabel(), "Preparar desti&no")
+
+    def test_destino_inicial_muestra_el_perfil_actual_si_es_un_destino(self):
+        self.dialogo.Destroy()
+        self.gestor.perfil = "YouTube"
+        self.dialogo = gui_transmision.TransmisionDialog(None, self.gestor)
+        self.anuncios.clear()
+        self.assertEqual(self.dialogo.cho_destino.GetStringSelection(),
+                         "YouTube")
+
+    def test_destino_inicial_sin_seleccion_si_el_perfil_no_es_un_destino(self):
+        self.dialogo.Destroy()
+        self.gestor.perfil = "N5000-Grabacion"
+        self.dialogo = gui_transmision.TransmisionDialog(None, self.gestor)
+        self.anuncios.clear()
+        self.assertEqual(self.dialogo.cho_destino.GetSelection(), wx.NOT_FOUND)
+
+    def test_preparar_destino_sin_seleccion_solo_avisa(self):
+        self.dialogo.cho_destino.SetSelection(wx.NOT_FOUND)
+        self.dialogo.btn_destino.GetEventHandler().ProcessEvent(
+            wx.CommandEvent(wx.EVT_BUTTON.typeId, self.dialogo.btn_destino.GetId()))
+        self.assertEqual(
+            self.anuncios,
+            ["Elige primero a dónde transmitir, en Transmitir a."])
+        self.assertNotIn("preparar_destino",
+                         [llamada[0] for llamada in self.gestor.llamadas])
+
+    def test_elegir_en_el_desplegable_no_prepara_nada(self):
+        self.gestor.preparar_destino = mock.Mock()
+        self.dialogo.cho_destino.SetStringSelection("TikTok")
+        evento = wx.CommandEvent(wx.EVT_CHOICE.typeId,
+                                 self.dialogo.cho_destino.GetId())
+        self.dialogo.cho_destino.GetEventHandler().ProcessEvent(evento)
+        self.gestor.preparar_destino.assert_not_called()
+
+    def test_boton_prepara_con_el_destino_elegido_y_enfoca_transmitir(self):
+        self.dialogo.cho_destino.SetStringSelection("TikTok")
+        with mock.patch.object(self.dialogo.btn_transmitir, "SetFocus") as foco:
+            self.dialogo.btn_destino.GetEventHandler().ProcessEvent(
+                wx.CommandEvent(wx.EVT_BUTTON.typeId, self.dialogo.btn_destino.GetId()))
+        self.assertIn(("preparar_destino", "TikTok"), self.gestor.llamadas)
+        self.assertEqual(
+            self.anuncios,
+            ["Preparando OBS para TikTok. Puede tardar unos segundos.",
+             "Listo para transmitir a TikTok. "
+             "Formato vertical, 720 por 1280."])
+        foco.assert_called_once_with()
+        self.assertEqual(self.dialogo.cho_destino.GetStringSelection(),
+                         "TikTok")
 
 
 if __name__ == "__main__":

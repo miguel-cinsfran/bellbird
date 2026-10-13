@@ -20,12 +20,14 @@ def elemento(identificador, nombre, indice, x=32, y=882, ancho=460, alto=620,
 
 class DobleObs:
     def __init__(self, elementos=None, entradas=(), escena="Escena", escenas=None,
-                 silencios=None, grupos=None):
+                  silencios=None, grupos=None, perfiles=(), perfil_actual=""):
         self.elementos = list(elementos or ())
         self.entradas = list(entradas)
         self.grupos = dict(grupos or {})
         self.escena = escena
         self.escenas = tuple(escenas if escenas is not None else (escena,))
+        self.perfiles = list(perfiles)
+        self.perfil_actual = perfil_actual
         self.llamadas = []
         self.conectado = True
         self.siguiente_id = 20
@@ -88,6 +90,9 @@ class DobleObs:
             return {"responseData": {}}
         if tipo == "GetVideoSettings":
             return {"responseData": {"baseWidth": 1600, "baseHeight": 900}}
+        if tipo == "GetProfileList":
+            return {"responseData": {"profiles": list(self.perfiles),
+                                     "currentProfileName": self.perfil_actual}}
         if tipo in ("CreateSceneItem", "CreateInput"):
             self.siguiente_id += 1
             nuevo = elemento(self.siguiente_id, obs_panel.NOMBRE_FUENTE, 0)
@@ -436,6 +441,23 @@ class GestorPanelObsTest(unittest.TestCase):
         self.assertFalse(self.gestor(doble).escalar("Escena", 640, 360))
         self.assertNotIn("SetSceneItemTransform",
                          [llamada[0] for llamada in doble.llamadas])
+
+    def test_perfil_actual_devuelve_el_perfil_en_uso(self):
+        doble = DobleObs(perfiles=["TikTok", "YouTube"],
+                         perfil_actual="TikTok")
+        self.assertEqual(self.gestor(doble).perfil_actual(), "TikTok")
+        self.assertEqual(doble.llamadas[-1][0], "GetProfileList")
+
+    def test_preparar_destino_delega_en_obs_destinos(self):
+        doble = DobleObs()
+        gestor = self.gestor(doble)
+        parada = object()
+        esperado = {"destino": "TikTok"}
+        with mock.patch.object(obs_panel.obs_destinos,
+                               "preparar_para_transmitir",
+                               return_value=esperado) as preparar:
+            self.assertIs(gestor.preparar_destino("TikTok", parada), esperado)
+        preparar.assert_called_once_with(doble, "TikTok", parada)
 
 
 if __name__ == "__main__":

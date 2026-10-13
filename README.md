@@ -15,6 +15,7 @@ Versión 2.1.0 · Windows 10 y 11 · [novedades de cada versión](CHANGELOG.md).
 - [Lectura del chat](#lectura-del-chat)
 - [Comentarios de vídeos](#comentarios-de-vídeos)
 - [Reproductor](#reproductor)
+- [Transmitir en directo desde la aplicación](#transmitir-en-directo-desde-la-aplicación)
 - [Panel de chat para transmitir](#panel-de-chat-para-transmitir)
 - [Componer la escena desde la aplicación](#componer-la-escena-desde-la-aplicación)
 - [Mensajes automáticos](#mensajes-automáticos)
@@ -175,6 +176,62 @@ La primera vez que se abre la aplicación, el reproductor tarda unos segundos en
 quedar disponible. Durante esa preparación se anuncia «Preparando el
 reproductor», y al terminar, «Reproductor listo».
 
+## Transmitir en directo desde la aplicación
+
+Con OBS Studio, el directo se empieza y se termina desde la aplicación, sin
+abrir OBS ni la página de Restream. Está pensado para transmitir a TikTok a
+través de Restream, y también admite YouTube.
+
+### Lo que hace falta preparar una sola vez
+
+- **OBS Studio instalado**, con su servidor websocket activado (ver
+  [Componer la escena desde la aplicación](#componer-la-escena-desde-la-aplicación)).
+  Si OBS está cerrado, la aplicación lo abre sola en el área de notificación,
+  sin quitarle el foco al lector de pantalla. Si no está instalado, lo avisa.
+- **Un perfil de OBS por destino**, llamado `TikTok` o `YouTube`, con su
+  servicio de emisión configurado. Para TikTok, el servicio es Restream, con
+  el canal de TikTok activado en Restream.
+- **El destino y el usuario**, en la ventana *Transmisión*, sección
+  *Transmitir*: el desplegable *Transmitir a* y, para TikTok, el campo *Tu
+  usuario de TikTok*. Los dos se recuerdan.
+- **Qué se transmite**: en la sección *Escena* de la misma ventana, el
+  desplegable *Ventana que se captura* lista las ventanas abiertas, por
+  ejemplo un juego o un navegador. Al pulsar *Usar esa ventana*, la escena la
+  captura a pantalla completa. Si la escena no tenía ninguna captura, se crea.
+  OBS recuerda la ventana elegida para las próximas veces.
+
+### Empezar y terminar
+
+Junto al botón *Conectar* está el botón **Transmitir en directo**. Aparece en
+la pantalla de inicio y mientras se está conectado al propio directo, nunca en
+el directo de otra persona ni en un vídeo grabado.
+
+Al pulsarlo:
+
+1. Se abre OBS si hacía falta y se pasa al perfil y a la escena del destino.
+2. Se lee una **revisión** antes de salir al aire: destino, formato, escena,
+   fuentes, audio y cualquier problema, como una escena vacía, una imagen en
+   negro o un micrófono silenciado. Con problemas, el botón seleccionado de
+   inicio es *Cancelar*.
+3. Al aceptar, empieza la transmisión. La aplicación confirma que la señal
+   sale y, en TikTok, espera a que el directo aparezca y conecta el chat sola,
+   sin pegar ningún enlace. Se anuncia «Tu directo de TikTok ya está al aire».
+4. Durante el directo vigila la conexión y avisa por voz si hay problemas.
+
+Mientras se transmite, el botón pasa a decir **Finalizar directo**. Pide
+confirmación, y la opción seleccionada de inicio es seguir transmitiendo, para
+que un `Intro` accidental no corte el directo.
+
+Cerrar la aplicación no corta el directo. Al volver a abrirla y pulsar
+*Transmitir en directo*, se anuncia que OBS ya está transmitiendo y el botón
+pasa a *Finalizar directo*.
+
+*Archivo, Copiar enlace del directo*, o `Ctrl+Mayúsculas+E`, copia la
+dirección del directo conectado para pasársela a alguien.
+
+Todo sigue pudiendo hacerse a mano desde OBS. La aplicación usa el mismo
+servidor websocket que el complemento de OBS para NVDA, y no impide nada.
+
 ## Panel de chat para transmitir
 
 Muestra el chat solo, en grande y sin el resto de la interfaz, para que lo vean
@@ -227,10 +284,15 @@ websocket de OBS*. Deja el servidor encendido y la aplicación se queda con el p
 contraseña. También puede hacerse a mano dentro del propio OBS, en
 *Herramientas, Configuración del servidor WebSocket*.
 
-La ventana permite:
+La ventana está dividida en tres secciones: *Transmitir*, *Escena* y *Panel de
+chat, solo YouTube*. El panel de chat no se usa en TikTok, porque TikTok ya
+muestra los comentarios sobre el vídeo. La ventana permite:
 
-- Elegir la **escena** y, dentro de ella, **qué fuente** se va a mover: el panel
-  de chat, la cámara, la captura del juego o cualquier otra.
+- Elegir el **destino**, preparar OBS para él, y transmitir o detener. Es lo
+  mismo que el botón de la ventana principal.
+- Elegir la **escena**, ponerla al aire y elegir **qué ventana se captura**.
+- Elegir, dentro de la escena, **qué fuente** se va a mover: el panel de
+  chat, la cámara, la captura del juego o cualquier otra.
 - Llevarla a una de las **nueve posiciones habituales**, por ejemplo inferior
   derecha o superior centro.
 - Cambiarle el **tamaño**, mostrarla u ocultarla, **fijarla** para no moverla
@@ -241,8 +303,7 @@ La ventana permite:
 - Guardar una **captura de la escena** en un archivo, para enseñársela a alguien
   que vea.
 - **Restablecer** todo lo hecho desde que se abrió la ventana.
-- **Transmitir, grabar, pausar** la grabación y **poner al aire** la escena elegida.
-  Son botones de la misma ventana.
+- **Grabar y pausar** la grabación.
 
 Cada cambio se anuncia con lo que hace falta saber: en qué posición quedó, qué
 tamaño tiene, qué parte de la pantalla ocupa, cuánto se recorta si se sale del
@@ -442,7 +503,8 @@ Ventanas y paneles:
 - `Ctrl+Mayúsculas+P` abrir Preferencias.
 - `Ctrl+Mayúsculas+H` abrir el historial de directos.
 - `Ctrl+Mayúsculas+I` marcar una incidencia en el registro.
-- `Ctrl+Mayúsculas+T` abrir la ventana Transmisión, con el panel de chat.
+- `Ctrl+Mayúsculas+T` abrir la ventana Transmisión.
+- `Ctrl+Mayúsculas+E` copiar el enlace del directo conectado.
 - `Ctrl+Mayúsculas+M` silenciar o activar el micrófono de OBS.
 
 Navegación, no personalizables:

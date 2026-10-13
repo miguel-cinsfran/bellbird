@@ -232,6 +232,8 @@ cada versión</a>.</p>
 <li><a href="#lectura-del-chat">Lectura del chat</a></li>
 <li><a href="#comentarios-de-vídeos">Comentarios de vídeos</a></li>
 <li><a href="#reproductor">Reproductor</a></li>
+<li><a href="#transmitir-en-directo-desde-la-aplicación">Transmitir en
+directo desde la aplicación</a></li>
 <li><a href="#panel-de-chat-para-transmitir">Panel de chat para
 transmitir</a></li>
 <li><a href="#componer-la-escena-desde-la-aplicación">Componer la escena
@@ -389,6 +391,67 @@ se reproduce igual.</p>
 <p>La primera vez que se abre la aplicación, el reproductor tarda unos
 segundos en quedar disponible. Durante esa preparación se anuncia
 «Preparando el reproductor», y al terminar, «Reproductor listo».</p>
+<h2 id="transmitir-en-directo-desde-la-aplicación">Transmitir en directo
+desde la aplicación</h2>
+<p>Con OBS Studio, el directo se empieza y se termina desde la
+aplicación, sin abrir OBS ni la página de Restream. Está pensado para
+transmitir a TikTok a través de Restream, y también admite YouTube.</p>
+<h3 id="lo-que-hace-falta-preparar-una-sola-vez">Lo que hace falta
+preparar una sola vez</h3>
+<ul>
+<li><strong>OBS Studio instalado</strong>, con su servidor websocket
+activado (ver <a href="#componer-la-escena-desde-la-aplicación">Componer
+la escena desde la aplicación</a>). Si OBS está cerrado, la aplicación
+lo abre sola en el área de notificación, sin quitarle el foco al lector
+de pantalla. Si no está instalado, lo avisa.</li>
+<li><strong>Un perfil de OBS por destino</strong>, llamado
+<code>TikTok</code> o <code>YouTube</code>, con su servicio de emisión
+configurado. Para TikTok, el servicio es Restream, con el canal de
+TikTok activado en Restream.</li>
+<li><strong>El destino y el usuario</strong>, en la ventana
+<em>Transmisión</em>, sección <em>Transmitir</em>: el desplegable
+<em>Transmitir a</em> y, para TikTok, el campo <em>Tu usuario de
+TikTok</em>. Los dos se recuerdan.</li>
+<li><strong>Qué se transmite</strong>: en la sección <em>Escena</em> de
+la misma ventana, el desplegable <em>Ventana que se captura</em> lista
+las ventanas abiertas, por ejemplo un juego o un navegador. Al pulsar
+<em>Usar esa ventana</em>, la escena la captura a pantalla completa. Si
+la escena no tenía ninguna captura, se crea. OBS recuerda la ventana
+elegida para las próximas veces.</li>
+</ul>
+<h3 id="empezar-y-terminar">Empezar y terminar</h3>
+<p>Junto al botón <em>Conectar</em> está el botón <strong>Transmitir en
+directo</strong>. Aparece en la pantalla de inicio y mientras se está
+conectado al propio directo, nunca en el directo de otra persona ni en
+un vídeo grabado.</p>
+<p>Al pulsarlo:</p>
+<ol type="1">
+<li>Se abre OBS si hacía falta y se pasa al perfil y a la escena del
+destino.</li>
+<li>Se lee una <strong>revisión</strong> antes de salir al aire:
+destino, formato, escena, fuentes, audio y cualquier problema, como una
+escena vacía, una imagen en negro o un micrófono silenciado. Con
+problemas, el botón seleccionado de inicio es <em>Cancelar</em>.</li>
+<li>Al aceptar, empieza la transmisión. La aplicación confirma que la
+señal sale y, en TikTok, espera a que el directo aparezca y conecta el
+chat sola, sin pegar ningún enlace. Se anuncia «Tu directo de TikTok ya
+está al aire».</li>
+<li>Durante el directo vigila la conexión y avisa por voz si hay
+problemas.</li>
+</ol>
+<p>Mientras se transmite, el botón pasa a decir <strong>Finalizar
+directo</strong>. Pide confirmación, y la opción seleccionada de inicio
+es seguir transmitiendo, para que un <code>Intro</code> accidental no
+corte el directo.</p>
+<p>Cerrar la aplicación no corta el directo. Al volver a abrirla y
+pulsar <em>Transmitir en directo</em>, se anuncia que OBS ya está
+transmitiendo y el botón pasa a <em>Finalizar directo</em>.</p>
+<p><em>Archivo, Copiar enlace del directo</em>, o
+<code>Ctrl+Mayúsculas+E</code>, copia la dirección del directo conectado
+para pasársela a alguien.</p>
+<p>Todo sigue pudiendo hacerse a mano desde OBS. La aplicación usa el
+mismo servidor websocket que el complemento de OBS para NVDA, y no
+impide nada.</p>
 <h2 id="panel-de-chat-para-transmitir">Panel de chat para
 transmitir</h2>
 <p>Muestra el chat solo, en grande y sin el resto de la interfaz, para
@@ -437,11 +500,19 @@ botón <em>Activar el servidor websocket de OBS</em>. Deja el servidor
 encendido y la aplicación se queda con el puerto y la contraseña.
 También puede hacerse a mano dentro del propio OBS, en <em>Herramientas,
 Configuración del servidor WebSocket</em>.</p>
-<p>La ventana permite:</p>
+<p>La ventana está dividida en tres secciones: <em>Transmitir</em>,
+<em>Escena</em> y <em>Panel de chat, solo YouTube</em>. El panel de chat
+no se usa en TikTok, porque TikTok ya muestra los comentarios sobre el
+vídeo. La ventana permite:</p>
 <ul>
-<li>Elegir la <strong>escena</strong> y, dentro de ella, <strong>qué
-fuente</strong> se va a mover: el panel de chat, la cámara, la captura
-del juego o cualquier otra.</li>
+<li>Elegir el <strong>destino</strong>, preparar OBS para él, y
+transmitir o detener. Es lo mismo que el botón de la ventana
+principal.</li>
+<li>Elegir la <strong>escena</strong>, ponerla al aire y elegir
+<strong>qué ventana se captura</strong>.</li>
+<li>Elegir, dentro de la escena, <strong>qué fuente</strong> se va a
+mover: el panel de chat, la cámara, la captura del juego o cualquier
+otra.</li>
 <li>Llevarla a una de las <strong>nueve posiciones habituales</strong>,
 por ejemplo inferior derecha o superior centro.</li>
 <li>Cambiarle el <strong>tamaño</strong>, mostrarla u ocultarla,
@@ -455,9 +526,7 @@ de un píxel con <code>Mayúsculas</code>. <code>Intro</code> confirma y
 para enseñársela a alguien que vea.</li>
 <li><strong>Restablecer</strong> todo lo hecho desde que se abrió la
 ventana.</li>
-<li><strong>Transmitir, grabar, pausar</strong> la grabación y
-<strong>poner al aire</strong> la escena elegida. Son botones de la
-misma ventana.</li>
+<li><strong>Grabar y pausar</strong> la grabación.</li>
 </ul>
 <p>Cada cambio se anuncia con lo que hace falta saber: en qué posición
 quedó, qué tamaño tiene, qué parte de la pantalla ocupa, cuánto se
@@ -650,8 +719,9 @@ audio.</li>
 <li><code>Ctrl+Mayúsculas+H</code> abrir el historial de directos.</li>
 <li><code>Ctrl+Mayúsculas+I</code> marcar una incidencia en el
 registro.</li>
-<li><code>Ctrl+Mayúsculas+T</code> abrir la ventana Transmisión, con el
-panel de chat.</li>
+<li><code>Ctrl+Mayúsculas+T</code> abrir la ventana Transmisión.</li>
+<li><code>Ctrl+Mayúsculas+E</code> copiar el enlace del directo
+conectado.</li>
 <li><code>Ctrl+Mayúsculas+M</code> silenciar o activar el micrófono de
 OBS.</li>
 </ul>

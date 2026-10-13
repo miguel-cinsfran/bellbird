@@ -595,6 +595,7 @@ def cargar_configuracion() -> dict:
         "guardar_historial": guardar,
         "silenciar_lectura": _pb(p, "sesion", "silenciar_lectura"),
         "tiktok_anunciar_entradas": _pb(p, "tiktok", "anunciar_entradas"),
+        "tiktok_usuario": _gs(p, "tiktok", "usuario"),
         "programados_activo": _pb(p, "programados", "activo"),
         "registro_detallado": _pb(p, "diagnostico", "registro_detallado"),  # configurar_logging se adelanta al diccionario.
         "overlay_activo": _pb(p, "overlay", "activo"),

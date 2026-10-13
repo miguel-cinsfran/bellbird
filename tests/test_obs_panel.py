@@ -459,6 +459,20 @@ class GestorPanelObsTest(unittest.TestCase):
             self.assertIs(gestor.preparar_destino("TikTok", parada), esperado)
         preparar.assert_called_once_with(doble, "TikTok", parada)
 
+    def test_iniciar_transmision_pide_startstream(self):
+        doble = DobleObs()
+        parada = object()
+        self.gestor(doble).iniciar_transmision(parada)
+        self.assertEqual(doble.llamadas[-1][0], "StartStream")
+        self.assertIs(doble.llamadas[-1][2], parada)
+
+    def test_detener_transmision_pide_stopstream(self):
+        doble = DobleObs()
+        parada = object()
+        self.gestor(doble).detener_transmision(parada)
+        self.assertEqual(doble.llamadas[-1][0], "StopStream")
+        self.assertIs(doble.llamadas[-1][2], parada)
+
 
 if __name__ == "__main__":
     unittest.main()

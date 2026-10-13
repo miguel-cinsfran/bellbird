@@ -105,6 +105,13 @@ class GestorFalso:
                 "ancho": 720 if vertical else 1280,
                 "alto": 1280 if vertical else 720}
 
+    def revisar(self, destino, parada=None):
+        from ytchat.obs import obs_prevuelo
+        problemas = getattr(self, "problemas_revision", ())
+        return obs_prevuelo.Revision(
+            destino, destino, destino, 720, 1280, "Principal",
+            (), (), None, tuple(problemas))
+
 
 class HiloInmediato:
 
@@ -616,16 +623,18 @@ class TestTransmisionDialog(unittest.TestCase):
         acciones = self.dialogo._acciones
         indice = acciones.index(self.dialogo.btn_restaurar)
         self.assertIs(acciones[indice + 1], self.dialogo.cho_destino)
-        self.assertIs(acciones[indice + 2], self.dialogo.btn_destino)
-        self.assertIs(acciones[indice + 3], self.dialogo.btn_transmitir)
+        self.assertIs(acciones[indice + 2], self.dialogo.txt_usuario_tiktok)
+        self.assertIs(acciones[indice + 3], self.dialogo.btn_destino)
+        self.assertIs(acciones[indice + 4], self.dialogo.btn_transmitir)
 
     def test_destino_va_antes_de_transmitir_en_el_sizer(self):
         sizer = self.dialogo.cho_destino.GetParent().GetSizer()
         ventanas = [elemento.GetWindow() for elemento in sizer.GetChildren()]
         indice = ventanas.index(self.dialogo.btn_restaurar)
         self.assertIs(ventanas[indice + 1], self.dialogo.cho_destino)
-        self.assertIs(ventanas[indice + 2], self.dialogo.btn_destino)
-        self.assertIs(ventanas[indice + 3], self.dialogo.btn_transmitir)
+        self.assertIs(ventanas[indice + 2], self.dialogo.txt_usuario_tiktok)
+        self.assertIs(ventanas[indice + 3], self.dialogo.btn_destino)
+        self.assertIs(ventanas[indice + 4], self.dialogo.btn_transmitir)
 
     def test_controles_de_destino_tienen_nombres_y_opciones(self):
         self.assertEqual(self.dialogo.cho_destino.GetStrings(),
@@ -681,6 +690,137 @@ class TestTransmisionDialog(unittest.TestCase):
         foco.assert_called_once_with()
         self.assertEqual(self.dialogo.cho_destino.GetStringSelection(),
                          "TikTok")
+
+    def _dialogo_con_supervisor(self, usuario=""):
+        supervisar = mock.Mock(return_value=False)
+        guardar = mock.Mock()
+        self.dialogo.Destroy()
+        self.dialogo = gui_transmision.TransmisionDialog(
+            None, self.gestor, supervisar=supervisar,
+            guardar_usuario=guardar, usuario_tiktok=usuario)
+        self.anuncios.clear()
+        return supervisar, guardar
+
+    def _dialogo_falso(self, creados, resultado):
+        def fabrica(*args, **kwargs):
+            dialogo = mock.Mock()
+            dialogo.ShowModal.return_value = resultado
+            creados.append((args, kwargs, dialogo))
+            return dialogo
+        return fabrica
+
+    def _pulsar_transmitir(self):
+        self.dialogo.btn_transmitir.GetEventHandler().ProcessEvent(
+            wx.CommandEvent(wx.EVT_BUTTON.typeId,
+                            self.dialogo.btn_transmitir.GetId()))
+
+    def test_campo_usuario_va_entre_destino_y_preparar(self):
+        dialogo = self.dialogo
+        self.assertEqual(dialogo.txt_usuario_tiktok.GetName(),
+                         "Tu usuario de TikTok")
+        acciones = dialogo._acciones
+        indice = acciones.index(dialogo.cho_destino)
+        self.assertIs(acciones[indice + 1], dialogo.txt_usuario_tiktok)
+        self.assertIs(acciones[indice + 2], dialogo.btn_destino)
+        sizer = dialogo.cho_destino.GetParent().GetSizer()
+        ventanas = [elemento.GetWindow() for elemento in sizer.GetChildren()]
+        indice = ventanas.index(dialogo.cho_destino)
+        self.assertIs(ventanas[indice + 1], dialogo.txt_usuario_tiktok)
+        self.assertIs(ventanas[indice + 2], dialogo.btn_destino)
+
+    def test_campo_usuario_arranca_con_el_guardado(self):
+        self.dialogo.Destroy()
+        dialogo = gui_transmision.TransmisionDialog(
+            None, self.gestor, usuario_tiktok="amigo")
+        self.addCleanup(dialogo.Destroy)
+        self.assertEqual(dialogo.txt_usuario_tiktok.GetValue(), "amigo")
+
+    def test_transmitir_tiktok_sin_usuario_avisa_y_enfoca(self):
+        supervisar, _ = self._dialogo_con_supervisor()
+        self.dialogo.cho_destino.SetStringSelection("TikTok")
+        self.dialogo.txt_usuario_tiktok.SetValue("")
+        with mock.patch.object(self.dialogo.txt_usuario_tiktok,
+                               "SetFocus") as foco:
+            self._pulsar_transmitir()
+        self.assertEqual(
+            self.anuncios,
+            ["Escribe tu usuario de TikTok en Tu usuario de TikTok."])
+        foco.assert_called_once_with()
+        self.assertNotIn(mock.call("iniciar", "TikTok", mock.ANY),
+                         supervisar.call_args_list)
+
+    def test_transmitir_aceptar_inicia_y_guarda_el_usuario(self):
+        supervisar, guardar = self._dialogo_con_supervisor()
+        self.dialogo.cho_destino.SetStringSelection("TikTok")
+        self.dialogo.txt_usuario_tiktok.SetValue("@usuario")
+        creados = []
+        with mock.patch.object(gui_transmision.wx, "MessageDialog",
+                               self._dialogo_falso(creados, wx.ID_OK)):
+            self._pulsar_transmitir()
+        supervisar.assert_any_call("iniciar", "TikTok", "usuario")
+        guardar.assert_called_once_with("usuario")
+        self.assertEqual(self.dialogo.btn_transmitir.GetLabel(),
+                         "&Detener la transmisión")
+        self.assertEqual(self.dialogo.btn_transmitir.GetName(),
+                         "Detener la transmisión")
+        dialogo_falso = creados[0][2]
+        dialogo_falso.SetOKCancelLabels.assert_called_once_with(
+            "&Transmitir", "&Cancelar")
+
+    def test_transmitir_cancelar_no_inicia(self):
+        supervisar, guardar = self._dialogo_con_supervisor()
+        self.dialogo.cho_destino.SetStringSelection("YouTube")
+        creados = []
+        with mock.patch.object(gui_transmision.wx, "MessageDialog",
+                               self._dialogo_falso(creados, wx.ID_CANCEL)):
+            self._pulsar_transmitir()
+        self.assertNotIn(mock.call("iniciar", mock.ANY, mock.ANY),
+                         supervisar.call_args_list)
+        self.assertEqual(self.anuncios[-1], "No se transmitió.")
+        guardar.assert_not_called()
+        self.assertEqual(self.dialogo.btn_transmitir.GetLabel(), "&Transmitir")
+
+    def test_revision_con_problemas_deja_cancelar_por_defecto(self):
+        supervisar, _ = self._dialogo_con_supervisor()
+        self.gestor.problemas_revision = ("La imagen está vacía.",)
+        self.dialogo.cho_destino.SetStringSelection("YouTube")
+        creados = []
+        with mock.patch.object(gui_transmision.wx, "MessageDialog",
+                               self._dialogo_falso(creados, wx.ID_CANCEL)):
+            self._pulsar_transmitir()
+        args, _, _ = creados[0]
+        estilo = args[3]
+        self.assertTrue(estilo & wx.CANCEL_DEFAULT)
+        self.assertNotIn(mock.call("iniciar", mock.ANY, mock.ANY),
+                         supervisar.call_args_list)
+
+    def test_revision_sin_problemas_no_fuerza_cancelar(self):
+        self._dialogo_con_supervisor()
+        self.dialogo.cho_destino.SetStringSelection("YouTube")
+        creados = []
+        with mock.patch.object(gui_transmision.wx, "MessageDialog",
+                               self._dialogo_falso(creados, wx.ID_CANCEL)):
+            self._pulsar_transmitir()
+        args, _, _ = creados[0]
+        self.assertFalse(args[3] & wx.CANCEL_DEFAULT)
+
+    def test_transmitir_con_supervisor_activo_detiene_sin_repetir_anuncio(self):
+        supervisar, _ = self._dialogo_con_supervisor()
+        supervisar.return_value = True
+        self.dialogo._actualizar_boton(
+            self.dialogo.btn_transmitir,
+            "&Detener la transmisión", "Detener la transmisión")
+        self.anuncios.clear()
+        self._pulsar_transmitir()
+        supervisar.assert_any_call("detener")
+        self.assertEqual(self.dialogo.btn_transmitir.GetLabel(), "&Transmitir")
+        self.assertNotIn("Transmisión detenida", self.anuncios)
+
+    def test_transmitir_sin_supervisor_sigue_el_camino_viejo(self):
+        self.dialogo.cho_destino.SetStringSelection("YouTube")
+        self._pulsar_transmitir()
+        self.assertIn(("alternar_transmision",), self.gestor.llamadas)
+        self.assertEqual(self.anuncios[-1], "Transmisión iniciada")
 
 
 if __name__ == "__main__":

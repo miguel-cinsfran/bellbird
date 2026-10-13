@@ -59,11 +59,15 @@ _RUTA_PANEL_CHAT = "/chat"
 
 class TransmisionDialog(wx.Dialog):
 
-    def __init__(self, parent, gestor=None, alternar_panel=None):
+    def __init__(self, parent, gestor=None, alternar_panel=None,
+                 supervisar=None, guardar_usuario=None, usuario_tiktok=""):
         super().__init__(parent, title="Transmisión", size=(620, 680),
                          name="DialogoTransmision")
         self._gestor = gestor or GestorPanelObs()
         self._alternar_panel = alternar_panel
+        self._supervisar = supervisar
+        self._guardar_usuario = guardar_usuario
+        self._usuario_tiktok = usuario_tiktok or ""
         self._restablecer = {}
         self._ultimo_snap = None
         self._ajuste_en_curso = False
@@ -153,6 +157,9 @@ class TransmisionDialog(wx.Dialog):
         self.cho_destino = wx.Choice(panel, choices=list(DESTINOS),
                                      name="Transmitir a")
         nombre_accesible(self.cho_destino, "Transmitir a")
+        self.txt_usuario_tiktok = wx.TextCtrl(
+            panel, value=self._usuario_tiktok, name="Tu usuario de TikTok")
+        nombre_accesible(self.txt_usuario_tiktok, "Tu usuario de TikTok")
         self.btn_destino = self._boton(panel, "Preparar desti&no", "Preparar destino")
         self.btn_transmitir = self._boton(panel, "&Transmitir", "Transmitir")
         self.btn_grabar = self._boton(panel, "&Grabar", "Grabar")
@@ -160,7 +167,7 @@ class TransmisionDialog(wx.Dialog):
             panel, "Pausar la gra&bación", "Pausar la grabación")
         for boton in (self.btn_frente, self.btn_ajuste, self.btn_captura,
                        self.btn_como_se_coloca, self.btn_lienzo, self.btn_restaurar, self.cho_destino,
-                       self.btn_destino, self.btn_transmitir,
+                       self.txt_usuario_tiktok, self.btn_destino, self.btn_transmitir,
                        self.btn_grabar, self.btn_pausar_grabacion):
             caja.Add(boton, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
         self.btn_cerrar = self._boton(panel, "C&errar", "CerrarTransmision", wx.ID_CANCEL)
@@ -171,7 +178,8 @@ class TransmisionDialog(wx.Dialog):
                            self.btn_poner_al_aire, self.cho_fuente, self.cho_posicion,
                            self.btn_colocar, self.sp_ancho, self.sp_alto, self.btn_tamano, self.chk_mostrar,
                            self.chk_fijar, self.btn_frente, self.btn_ajuste, self.btn_captura,
-                           self.btn_como_se_coloca, self.btn_restaurar, self.cho_destino, self.btn_destino,
+                           self.btn_como_se_coloca, self.btn_restaurar, self.cho_destino,
+                           self.txt_usuario_tiktok, self.btn_destino,
                            self.btn_transmitir, self.btn_grabar,
                            self.btn_pausar_grabacion)
         self.btn_actualizar.Bind(wx.EVT_BUTTON, self._actualizar)
@@ -422,7 +430,75 @@ class TransmisionDialog(wx.Dialog):
         anunciar(self._frase_escena_al_aire(escena))
 
     def _transmitir(self, event):
-        self._en_hilo(self._gestor.alternar_transmision, self._transmision_alternada)
+        if self._supervisar is None:
+            self._en_hilo(self._gestor.alternar_transmision, self._transmision_alternada)
+            return
+        try:
+            con_supervisor = bool(self._supervisar("activo"))
+        except Exception:
+            con_supervisor = False
+        if con_supervisor or self.btn_transmitir.GetLabel() == "&Detener la transmisión":
+            if con_supervisor:
+                try:
+                    self._supervisar("detener")
+                except Exception:
+                    pass
+                self._actualizar_boton(
+                    self.btn_transmitir, "&Transmitir", "Transmitir")
+                return
+            self._en_hilo(self._gestor.alternar_transmision, self._transmision_alternada)
+            return
+        destino = self.cho_destino.GetStringSelection()
+        if not destino:
+            anunciar("Elige primero a dónde transmitir, en Transmitir a.")
+            return
+        usuario = ""
+        if destino == "TikTok":
+            from ytchat.capture import tiktok_vivo
+            usuario = tiktok_vivo.usuario_tiktok(
+                self.txt_usuario_tiktok.GetValue())
+            if not usuario:
+                anunciar("Escribe tu usuario de TikTok en Tu usuario de TikTok.")
+                self.txt_usuario_tiktok.SetFocus()
+                return
+            if usuario != self._usuario_tiktok and self._guardar_usuario is not None:
+                try:
+                    self._guardar_usuario(usuario)
+                except Exception:
+                    pass
+                self._usuario_tiktok = usuario
+        self._en_hilo(lambda: self._revisar_prevuelo(destino),
+                      lambda revision: self._revision_lista(revision, destino, usuario))
+
+    def _revisar_prevuelo(self, destino):
+        # El destino viaja como argumento: los hilos no leen controles de wx.
+        return self._gestor.revisar(destino)
+
+    def _revision_lista(self, revision, destino, usuario):
+        from ytchat.obs import obs_prevuelo
+        frase = obs_prevuelo.frase_revision(revision)
+        problemas = bool(getattr(revision, "problemas", ()))
+        estilo = wx.OK | wx.CANCEL
+        if problemas:
+            estilo |= wx.CANCEL_DEFAULT
+        dialogo = wx.MessageDialog(
+            self, frase, "Antes de transmitir", estilo)
+        try:
+            dialogo.SetOKCancelLabels("&Transmitir", "&Cancelar")
+            acepta = dialogo.ShowModal() == wx.ID_OK
+        finally:
+            dialogo.Destroy()
+        if not acepta:
+            anunciar("No se transmitió.")
+            return
+        try:
+            self._supervisar("iniciar", destino, usuario)
+        except Exception as error:
+            self._fallo(obs_cliente.mensaje_de_fallo_obs(error))
+            return
+        self._actualizar_boton(
+            self.btn_transmitir,
+            "&Detener la transmisión", "Detener la transmisión")
 
     def _transmision_alternada(self, activa):
         self._actualizar_boton(
@@ -759,8 +835,11 @@ class TransmisionDialog(wx.Dialog):
             pass
 
 
-def abrir_transmision(parent, alternar_panel=None) -> None:
-    dialogo = TransmisionDialog(parent, alternar_panel=alternar_panel)
+def abrir_transmision(parent, alternar_panel=None, supervisar=None,
+                      guardar_usuario=None, usuario_tiktok="") -> None:
+    dialogo = TransmisionDialog(
+        parent, alternar_panel=alternar_panel, supervisar=supervisar,
+        guardar_usuario=guardar_usuario, usuario_tiktok=usuario_tiktok)
     try:
         dialogo.ShowModal()
     finally:

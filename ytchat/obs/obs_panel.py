@@ -88,6 +88,12 @@ class GestorPanelObs:
     def alternar_transmision(self, parada=None) -> bool:
         return bool(self._pedir("ToggleStream", parada=parada).get("outputActive", False))
 
+    def iniciar_transmision(self, parada=None) -> None:
+        self._pedir("StartStream", parada=parada)
+
+    def detener_transmision(self, parada=None) -> None:
+        self._pedir("StopStream", parada=parada)
+
     def alternar_grabacion(self, parada=None) -> bool:
         return bool(self._pedir("ToggleRecord", parada=parada).get("outputActive", False))
 
@@ -101,6 +107,10 @@ class GestorPanelObs:
     def preparar_destino(self, destino, parada=None) -> dict:
         return obs_destinos.preparar_para_transmitir(
             self._cliente, destino, parada)
+
+    def revisar(self, destino, parada=None):
+        from ytchat.obs import obs_prevuelo
+        return obs_prevuelo.revisar(self._cliente, destino, parada)
 
     def _elementos(self, escena, parada=None):
         datos = self._pedir("GetSceneItemList", {"sceneName": escena}, parada)

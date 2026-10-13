@@ -497,6 +497,7 @@ class YTChatFrame(wx.Frame):
         self._diagnostico_censo = self._diagnostico_marca
         self._diagnostico_parada = threading.Event()
         self._obs_vigilante = None
+        self._supervisor = None
 
         _pintar(self, bg=_T.bg)
         self._build_menubar()
@@ -737,6 +738,60 @@ class YTChatFrame(wx.Frame):
         guardar_opcion(RUTA_CONFIG, "overlay", "activo", "false")
         anunciar("Panel de chat apagado")
         return False
+
+    def _guardar_usuario_tiktok(self, usuario):
+        from ytchat.capture import tiktok_vivo
+        usuario = tiktok_vivo.usuario_tiktok(usuario)
+        self._config["tiktok_usuario"] = usuario
+        guardar_opcion(RUTA_CONFIG, "tiktok", "usuario", usuario)
+        return usuario
+
+    def _supervisar_transmision(self, accion, destino="", usuario=""):
+        if accion == "activo":
+            supervisor = getattr(self, "_supervisor", None)
+            return bool(supervisor is not None and supervisor.activo)
+        if accion == "iniciar":
+            supervisor = getattr(self, "_supervisor", None)
+            if supervisor is not None and supervisor.activo:
+                anunciar("Ya hay una transmisión en curso.")
+                return
+            from ytchat.obs.obs_supervisor import SupervisorTransmision
+
+            def al_anunciar(frase, sonido):
+                def _decir():
+                    if not self._alive:
+                        return
+                    if sonido:
+                        _snd.reproducir(sonido)
+                    anunciar(frase)
+                wx.CallAfter(_decir)
+
+            def al_conectar_chat(url):
+                def _conectar():
+                    if not self._alive:
+                        return
+                    if self._conectado or self._conectando:
+                        anunciar("El chat ya estaba conectado, no lo cambié.")
+                        return
+                    try:
+                        self.txt_url.SetValue(url)
+                    except Exception:
+                        pass
+                    self._on_conectar(None)
+                wx.CallAfter(_conectar)
+
+            self._supervisor = SupervisorTransmision(
+                destino, usuario, al_anunciar=al_anunciar,
+                al_conectar_chat=al_conectar_chat)
+            self._supervisor.iniciar()
+            return
+        if accion == "detener":
+            supervisor = getattr(self, "_supervisor", None)
+            if supervisor is None:
+                return
+            diagnostico.crear_hilo(
+                supervisor.detener, "DetenerSupervisor").start()
+            return
 
     def _on_actualizar_ytdlp(self, event):
         anunciar("Buscando la última versión de yt-dlp")
@@ -1261,7 +1316,10 @@ class YTChatFrame(wx.Frame):
 
     def _on_transmision(self, event):
         from ytchat.ui.gui_transmision import abrir_transmision
-        abrir_transmision(self, self._cambiar_overlay)
+        abrir_transmision(self, self._cambiar_overlay,
+                          supervisar=self._supervisar_transmision,
+                          guardar_usuario=self._guardar_usuario_tiktok,
+                          usuario_tiktok=self._config.get("tiktok_usuario", ""))
 
     def _on_obs_micro(self, event):
         def _alternar():
@@ -1877,6 +1935,13 @@ class YTChatFrame(wx.Frame):
         self._alive = False
         self._diagnostico_parada.set()
         self._actualizar_vigilante_obs_cierre()
+        supervisor = getattr(self, "_supervisor", None)
+        if supervisor is not None and supervisor.activo:
+            try:
+                supervisor.abandonar()
+            except Exception:
+                pass
+            self._supervisor = None
         try:    self._timer.Stop()
         except Exception: pass
         try:    self._diagnostico_timer.Stop()

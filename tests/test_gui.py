@@ -2124,6 +2124,175 @@ class TestCierreVentana(unittest.TestCase):
         self.assertFalse(frame._config["overlay_activo"])
         guardar.assert_not_called()
 
+    def test_guardar_usuario_tiktok_quita_arroba_y_persiste(self):
+        frame = self._frame()
+        frame._config = {}
+        with mock.patch.object(gui, "guardar_opcion") as guardar:
+            resultado = frame._guardar_usuario_tiktok("@szeiryugaming")
+        self.assertEqual(resultado, "szeiryugaming")
+        self.assertEqual(frame._config["tiktok_usuario"], "szeiryugaming")
+        guardar.assert_called_once_with(
+            gui.RUTA_CONFIG, "tiktok", "usuario", "szeiryugaming")
+
+    def test_supervisar_iniciar_crea_el_supervisor_y_lo_arranca(self):
+        frame = self._frame()
+        creados = []
+
+        class DobleSupervisor:
+            def __init__(self, destino, usuario, al_anunciar=None,
+                         al_conectar_chat=None):
+                creados.append((destino, usuario, al_anunciar,
+                                al_conectar_chat))
+                self.iniciado = False
+
+            def iniciar(self):
+                self.iniciado = True
+
+        with mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+                        DobleSupervisor):
+            frame._supervisar_transmision("iniciar", "TikTok", "u")
+        self.assertEqual(len(creados), 1)
+        destino, usuario, al_anunciar, al_conectar_chat = creados[0]
+        self.assertEqual(destino, "TikTok")
+        self.assertEqual(usuario, "u")
+        self.assertTrue(callable(al_anunciar))
+        self.assertTrue(callable(al_conectar_chat))
+        self.assertTrue(frame._supervisor.iniciado)
+
+    def test_supervisor_conectar_chat_sin_conexion_pone_url_y_conecta(self):
+        frame = self._frame()
+        frame._alive = True
+        frame._conectado = False
+        frame._conectando = False
+        frame.txt_url = mock.Mock()
+        frame._on_conectar = mock.Mock()
+        creados = []
+
+        class DobleSupervisor:
+            def __init__(self, destino, usuario, al_anunciar=None,
+                         al_conectar_chat=None):
+                creados.append((al_anunciar, al_conectar_chat))
+
+            def iniciar(self):
+                pass
+
+        with mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+                        DobleSupervisor):
+            frame._supervisar_transmision("iniciar", "TikTok", "u")
+        _al_anunciar, al_conectar_chat = creados[0]
+        with mock.patch.object(gui.wx, "CallAfter",
+                               side_effect=lambda funcion: funcion()):
+            al_conectar_chat("https://www.tiktok.com/@u/live")
+        frame.txt_url.SetValue.assert_called_once_with(
+            "https://www.tiktok.com/@u/live")
+        frame._on_conectar.assert_called_once_with(None)
+
+    def test_supervisor_conectar_chat_ya_conectado_no_cambia_y_avisa(self):
+        frame = self._frame()
+        frame._alive = True
+        frame._conectado = True
+        frame._conectando = False
+        frame.txt_url = mock.Mock()
+        frame._on_conectar = mock.Mock()
+        creados = []
+
+        class DobleSupervisor:
+            def __init__(self, destino, usuario, al_anunciar=None,
+                         al_conectar_chat=None):
+                creados.append((al_anunciar, al_conectar_chat))
+
+            def iniciar(self):
+                pass
+
+        with mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+                        DobleSupervisor):
+            frame._supervisar_transmision("iniciar", "TikTok", "u")
+        _al_anunciar, al_conectar_chat = creados[0]
+        with mock.patch.object(gui.wx, "CallAfter",
+                               side_effect=lambda funcion: funcion()), \
+                mock.patch.object(gui, "anunciar") as anunciar:
+            al_conectar_chat("https://www.tiktok.com/@u/live")
+        frame._on_conectar.assert_not_called()
+        frame.txt_url.SetValue.assert_not_called()
+        anunciar.assert_called_once_with(
+            "El chat ya estaba conectado, no lo cambié.")
+
+    def test_supervisor_anunciar_reproduce_sonido_y_anuncia(self):
+        frame = self._frame()
+        frame._alive = True
+        creados = []
+
+        class DobleSupervisor:
+            def __init__(self, destino, usuario, al_anunciar=None,
+                         al_conectar_chat=None):
+                creados.append((al_anunciar, al_conectar_chat))
+
+            def iniciar(self):
+                pass
+
+        with mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+                        DobleSupervisor):
+            frame._supervisar_transmision("iniciar", "TikTok", "u")
+        al_anunciar, _al_conectar_chat = creados[0]
+        with mock.patch.object(gui.wx, "CallAfter",
+                               side_effect=lambda funcion: funcion()), \
+                mock.patch.object(gui._snd, "reproducir") as reproducir, \
+                mock.patch.object(gui, "anunciar") as anunciar:
+            al_anunciar("x", "conectado")
+        reproducir.assert_called_once_with("conectado")
+        anunciar.assert_called_once_with("x")
+
+    def test_supervisor_anunciar_con_ventana_muerta_no_hace_nada(self):
+        frame = self._frame()
+        frame._alive = True
+        creados = []
+
+        class DobleSupervisor:
+            def __init__(self, destino, usuario, al_anunciar=None,
+                         al_conectar_chat=None):
+                creados.append((al_anunciar, al_conectar_chat))
+
+            def iniciar(self):
+                pass
+
+        with mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+                        DobleSupervisor):
+            frame._supervisar_transmision("iniciar", "TikTok", "u")
+        al_anunciar, _al_conectar_chat = creados[0]
+        frame._alive = False
+        with mock.patch.object(gui.wx, "CallAfter",
+                               side_effect=lambda funcion: funcion()), \
+                mock.patch.object(gui._snd, "reproducir") as reproducir, \
+                mock.patch.object(gui, "anunciar") as anunciar:
+            al_anunciar("x", "conectado")
+        reproducir.assert_not_called()
+        anunciar.assert_not_called()
+
+    def test_supervisar_iniciar_con_transmision_en_curso_no_crea_otro(self):
+        frame = self._frame()
+        previo = mock.Mock()
+        previo.activo = True
+        frame._supervisor = previo
+        with mock.patch.object(gui, "anunciar") as anunciar, \
+                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision") as fabrica:
+            frame._supervisar_transmision("iniciar", "TikTok", "u")
+        anunciar.assert_called_once_with("Ya hay una transmisión en curso.")
+        fabrica.assert_not_called()
+        self.assertIs(frame._supervisor, previo)
+
+    def test_cerrar_con_supervisor_activo_abandona_sin_detener(self):
+        frame = self._frame()
+        supervisor = mock.Mock()
+        supervisor.activo = True
+        frame._supervisor = supervisor
+        with mock.patch.object(gui.diagnostico, "hilos_vivos_de_la_aplicacion", return_value=()), \
+                mock.patch.object(gui, "anunciar"), \
+                mock.patch.object(gui.overlay_servidor, "apagar"):
+            frame._on_close(None)
+        supervisor.abandonar.assert_called_once_with()
+        supervisor.detener.assert_not_called()
+        self.assertIsNone(frame._supervisor)
+
     def test_cerrar_apaga_el_overlay(self):
         frame = self._frame()
         with mock.patch.object(gui.diagnostico, "hilos_vivos_de_la_aplicacion", return_value=()), \

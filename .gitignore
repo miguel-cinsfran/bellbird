@@ -49,27 +49,9 @@ historial_lives.json
 # Datos del usuario desde la 2.1: configuracion, credenciales, historiales, logs y caches.
 /data/
 
-# Andamiaje de trabajo con agentes: no se versiona.
-# Viaja si se copia la carpeta, no con un git clone.
-.agents/
-.claude/
-.codex/
-.claudeignore
-.atl/
-CLAUDE.md
-claude.md
-AGENTS.md
-.ignore
-.mcp.json
-opencode.json
-MD/
-herramientas/
-
 # El banco de QA si se versiona; sus grabaciones no. Llevan la salida
 # cruda de la aplicacion, con el identificador del video que se estuvo viendo.
 qa/salida/
-prompts/
-INFORME_*.md
 
 # Scripts .bat locales sueltos. Los oficiales del proyecto SÍ se versionan.
 *.bat
@@ -86,9 +68,6 @@ desktop.ini
 # Logs que manda el amigo para diagnosticar. No se suben.
 todosloslogs.txt
 
-# carpeta que deja Playwright al capturar
-.playwright-mcp/
-
 # Cache de win32com, se regenera sola al cargar SAPI5.
 gen_py/
 
@@ -96,9 +75,3 @@ gen_py/
 # La fuente canonica es config_predeterminada.py y la copia legible es
 # config.predeterminado.ini. Ver MD/configuracion-predeterminada.md.
 /config.ini
-
-# graft's local graph cache — regenerable, not committed (run `graft build`).
-/graft/
-
-# Índice local de búsqueda
-.tgrep/

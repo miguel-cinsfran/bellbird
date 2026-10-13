@@ -26,6 +26,7 @@ import importlib.util
 import logging
 import re
 import sys
+import time
 
 from ytchat.core import diagnostico
 from ytchat.core import paths
@@ -162,6 +163,31 @@ def _info_de_sala(client) -> dict:
     }
 
 
+def es_previo_a_conexion(creado_ms, conectado_s, margen_s=5.0) -> bool:
+    """¿El evento se creó más de `margen_s` antes de conectar? Ante la duda
+    (sin hora, hora 0 o todavía sin conectar) es Falso: se lee."""
+    try:
+        if isinstance(creado_ms, bool):
+            return False
+        if not isinstance(creado_ms, (int, float)):
+            return False
+        if creado_ms <= 0:
+            return False
+        if conectado_s is None or isinstance(conectado_s, bool):
+            return False
+        return (creado_ms / 1000) < (float(conectado_s) - float(margen_s))
+    except Exception:
+        return False
+
+
+def _creado_ms(evento):
+    """ms de creación del evento (`common.create_time`); 0 si no se puede leer."""
+    try:
+        return getattr(getattr(evento, "common", None), "create_time", 0)
+    except Exception:
+        return 0
+
+
 async def _vigilar_parada(client, parada) -> None:
     """Convierte el Event de parada (mundo de hilos) en un disconnect (asyncio)."""
     try:
@@ -214,10 +240,12 @@ def _sesion(usuario, parada, on_evento, on_estado, on_info, on_espectadores,
         return exc
     clase_suscripcion = _clase_suscripcion(modulo_eventos)
     error: list = [None]
+    hora_conexion: list = [None]
     _autor = autor_de_evento
 
     @client.on(ConnectEvent)
     async def _on_connect(evento):
+        hora_conexion[0] = time.time()
         try:
             if on_info:
                 on_info(_info_de_sala(client))
@@ -228,11 +256,15 @@ def _sesion(usuario, parada, on_evento, on_estado, on_info, on_espectadores,
 
     @client.on(CommentEvent)
     async def _on_comment(evento):
+        if es_previo_a_conexion(_creado_ms(evento), hora_conexion[0]):
+            return
         autor, canal_id = _autor(evento)
         on_evento(autor, (evento.comment or "").strip(), TIPO_TEXTO, "", canal_id)
 
     @client.on(GiftEvent)
     async def _on_gift(evento):
+        if es_previo_a_conexion(_creado_ms(evento), hora_conexion[0]):
+            return
         # Los regalos «en racha» disparan un evento por repetición: solo se
         # anuncia el final de la racha, con el total, para no inundar el TTS.
         if getattr(evento, "streaking", False):
@@ -291,7 +323,12 @@ def _sesion(usuario, parada, on_evento, on_estado, on_info, on_espectadores,
     async def _correr():
         vigia = asyncio.create_task(_vigilar_parada(client, parada))
         try:
-            await client.connect(fetch_room_info=True)
+            # Sin los eventos iniciales: al entrar se leen en voz alta los
+            # mensajes anteriores a la conexion. Vale tambien para cada
+            # reconexion, que pasa por esta misma llamada. El ConnectEvent
+            # sigue llegando igual, asi que _on_connect no se toca.
+            await client.connect(fetch_room_info=True,
+                                 process_connect_events=False)
         finally:
             vigia.cancel()
 

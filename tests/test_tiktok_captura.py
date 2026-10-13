@@ -1,12 +1,15 @@
 """Tests de la lógica pura de tiktok_captura (detección de URLs y errores)."""
 
+import asyncio
+import sys
 import threading
+import types
 import unittest
 from unittest import mock
 
 from ytchat.capture import tiktok_captura
 from ytchat.capture.tiktok_captura import (usuario_de_url, _mensaje_error, _es_error_permanente,
-                            _mejor_flujo, autor_de_evento)
+                            _mejor_flujo, autor_de_evento, es_previo_a_conexion)
 
 
 class TestUsuarioDeUrl(unittest.TestCase):
@@ -196,6 +199,177 @@ class TestAutorDeEvento(unittest.TestCase):
         nombre, ident = autor_de_evento(self._EventoUserCrash())
         self.assertEqual(nombre, "Usuario")
         self.assertEqual(ident, "")
+
+
+class TestSinEventosIniciales(unittest.TestCase):
+    """Al conectar no se leen los mensajes anteriores: la llamada a
+    `connect` ignora el paquete inicial de eventos."""
+
+    class _ClienteFalso:
+        room_info = {}
+
+        def __init__(self):
+            self.conexion_kwargs = {}
+
+        def on(self, evento):
+            def decorar(func):
+                return func
+            return decorar
+
+        async def connect(self, **kwargs):
+            self.conexion_kwargs.update(kwargs)
+
+        async def disconnect(self):
+            pass
+
+    def _modulos_falsos(self, cliente):
+        mod_eventos = types.ModuleType("TikTokLive.events")
+        for nombre in ("ConnectEvent", "CommentEvent", "GiftEvent",
+                       "DisconnectEvent", "LiveEndEvent", "RoomUserSeqEvent",
+                       "JoinEvent", "SubscribeEvent"):
+            setattr(mod_eventos, nombre, type(nombre, (), {}))
+        mod_tiktok = types.ModuleType("TikTokLive")
+        mod_tiktok.TikTokLiveClient = lambda unique_id: cliente
+        mod_tiktok.events = mod_eventos
+        return mod_tiktok, mod_eventos
+
+    def test_connect_ignora_los_eventos_iniciales(self):
+        cliente = self._ClienteFalso()
+        mod_tiktok, mod_eventos = self._modulos_falsos(cliente)
+        parada = threading.Event()
+        parada.set()
+        with mock.patch.dict(sys.modules, {"TikTokLive": mod_tiktok,
+                                           "TikTokLive.events": mod_eventos}):
+            error = tiktok_captura._sesion(
+                "pepe", parada, lambda *a: None, None, None, None)
+        self.assertIsNone(error)
+        self.assertEqual(cliente.conexion_kwargs.get("process_connect_events"),
+                         False)
+        self.assertTrue(cliente.conexion_kwargs.get("fetch_room_info"))
+
+
+class TestEsPrevioAConexion(unittest.TestCase):
+    """El filtro descarta lo creado más de 5 s antes de conectar; ante la
+    duda (sin hora, hora 0, sin conectar) se lee."""
+
+    CONECTADO = 1750000000.0
+
+    def test_previo_diez_segundos_antes_se_descarta(self):
+        self.assertTrue(es_previo_a_conexion((self.CONECTADO - 10) * 1000,
+                                             self.CONECTADO))
+
+    def test_dentro_del_margen_tres_segundos_antes_se_lee(self):
+        self.assertFalse(es_previo_a_conexion((self.CONECTADO - 3) * 1000,
+                                              self.CONECTADO))
+
+    def test_posterior_se_lee(self):
+        self.assertFalse(es_previo_a_conexion((self.CONECTADO + 2) * 1000,
+                                              self.CONECTADO))
+
+    def test_hora_cero_se_lee(self):
+        self.assertFalse(es_previo_a_conexion(0, self.CONECTADO))
+
+    def test_hora_none_se_lee(self):
+        self.assertFalse(es_previo_a_conexion(None, self.CONECTADO))
+
+    def test_sin_conectar_se_lee(self):
+        self.assertFalse(es_previo_a_conexion((self.CONECTADO - 10) * 1000,
+                                              None))
+
+    def test_frontera_exacta_del_margen_se_lee(self):
+        # El descarte es estricto (<), no menor o igual.
+        self.assertFalse(es_previo_a_conexion((self.CONECTADO - 5.0) * 1000,
+                                              self.CONECTADO))
+
+
+class TestFiltroPrevios(unittest.TestCase):
+    """Tras el ConnectEvent, lo viejo no llega a on_evento y lo nuevo sí."""
+
+    CONECTADO = 1750000000.0
+
+    class _ClienteFalso:
+        room_info = {}
+
+        def __init__(self):
+            self.manejadores = {}
+            self.conexion_kwargs = {}
+
+        def on(self, evento):
+            def decorar(func):
+                self.manejadores[evento] = func
+                return func
+            return decorar
+
+        async def connect(self, **kwargs):
+            self.conexion_kwargs.update(kwargs)
+
+        async def disconnect(self):
+            pass
+
+    def _modulos_falsos(self, cliente):
+        mod_eventos = types.ModuleType("TikTokLive.events")
+        for nombre in ("ConnectEvent", "CommentEvent", "GiftEvent",
+                       "DisconnectEvent", "LiveEndEvent", "RoomUserSeqEvent",
+                       "JoinEvent", "SubscribeEvent"):
+            setattr(mod_eventos, nombre, type(nombre, (), {}))
+        mod_tiktok = types.ModuleType("TikTokLive")
+        mod_tiktok.TikTokLiveClient = lambda unique_id: cliente
+        mod_tiktok.events = mod_eventos
+        return mod_tiktok, mod_eventos
+
+    def _sesion_conectada(self):
+        cliente = self._ClienteFalso()
+        mod_tiktok, mod_eventos = self._modulos_falsos(cliente)
+        recibidos = []
+        parada = threading.Event()
+        parada.set()
+        with mock.patch.dict(sys.modules, {"TikTokLive": mod_tiktok,
+                                           "TikTokLive.events": mod_eventos}):
+            error = tiktok_captura._sesion(
+                "pepe", parada, lambda *a: recibidos.append(a),
+                lambda *a: None, lambda d: None, None)
+        self.assertIsNone(error)
+        with mock.patch("time.time", return_value=self.CONECTADO):
+            asyncio.run(cliente.manejadores[mod_eventos.ConnectEvent](
+                mod_eventos.ConnectEvent()))
+        return cliente, mod_eventos, recibidos
+
+    def _comentario(self, creado_ms, texto="hola"):
+        comun = types.SimpleNamespace(create_time=creado_ms)
+        autor = types.SimpleNamespace(nick_name="Pepe", id="1")
+        return types.SimpleNamespace(common=comun, comment=texto,
+                                     user_info=autor)
+
+    def _regalo(self, creado_ms):
+        comun = types.SimpleNamespace(create_time=creado_ms)
+        autor = types.SimpleNamespace(nick_name="Pepe", id="1")
+        regalo = types.SimpleNamespace(name="Rosa", diamond_count=1)
+        return types.SimpleNamespace(common=comun, gift=regalo,
+                                     repeat_count=1, streaking=False,
+                                     user_info=autor)
+
+    def test_comentario_viejo_no_llega_y_nuevo_si(self):
+        cliente, mod_eventos, recibidos = self._sesion_conectada()
+        viejo = self._comentario((self.CONECTADO - 10) * 1000, "viejo")
+        nuevo = self._comentario((self.CONECTADO + 1) * 1000, "nuevo")
+        asyncio.run(cliente.manejadores[mod_eventos.CommentEvent](viejo))
+        self.assertEqual(recibidos, [])
+        asyncio.run(cliente.manejadores[mod_eventos.CommentEvent](nuevo))
+        self.assertEqual(len(recibidos), 1)
+        self.assertIn("nuevo", recibidos[0][1])
+
+    def test_regalo_viejo_no_llega(self):
+        cliente, mod_eventos, recibidos = self._sesion_conectada()
+        asyncio.run(cliente.manejadores[mod_eventos.GiftEvent](
+            self._regalo((self.CONECTADO - 10) * 1000)))
+        self.assertEqual(recibidos, [])
+
+    def test_evento_sin_common_llega(self):
+        cliente, mod_eventos, recibidos = self._sesion_conectada()
+        autor = types.SimpleNamespace(nick_name="Pepe", id="1")
+        sin_hora = types.SimpleNamespace(comment="sin hora", user_info=autor)
+        asyncio.run(cliente.manejadores[mod_eventos.CommentEvent](sin_hora))
+        self.assertEqual(len(recibidos), 1)
 
 
 if __name__ == "__main__":

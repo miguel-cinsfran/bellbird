@@ -27,6 +27,7 @@ class MensajeChat:
     hora: str
     tipo: str
     monto: str
+    rol: str = ""
 
 
 class ListaChat:

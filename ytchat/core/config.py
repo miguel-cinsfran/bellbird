@@ -301,7 +301,9 @@ tema = default
 
 _EVENTOS_SONIDO = [
     "app_inicio", "conectando", "conectado", "desconectado",
-    "mensaje_nuevo", "superchat", "nuevo_miembro", "error",
+    "mensaje_nuevo", "mensaje_propietario", "mensaje_moderador",
+    "mensaje_verificado", "mensaje_miembro",
+    "superchat", "nuevo_miembro", "error",
     "pausa", "reanudar", "copiar", "voz_cambiada",
     # v0.6 online y acciones que antes reutilizaban otros sonidos:
     "enviado", "comentario", "moderacion", "cola_vaciada",

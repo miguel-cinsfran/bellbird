@@ -1,0 +1,344 @@
+"""Roles de autor de YouTube y sonido por rol."""
+
+import queue
+import sys
+import threading
+import types
+import unittest
+from unittest import mock
+
+import main
+from ytchat.core import sonidos_eventos
+from ytchat.core.config import (
+    TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,
+)
+
+
+class AutorFalso:
+    def __init__(self, **atributos):
+        for clave, valor in atributos.items():
+            setattr(self, clave, valor)
+
+
+class TestRolDeAutor(unittest.TestCase):
+    def test_cada_atributo_solo(self):
+        self.assertEqual(
+            sonidos_eventos.rol_de_autor(AutorFalso(isChatOwner=True)),
+            sonidos_eventos.ROL_PROPIETARIO)
+        self.assertEqual(
+            sonidos_eventos.rol_de_autor(AutorFalso(isChatModerator=True)),
+            sonidos_eventos.ROL_MODERADOR)
+        self.assertEqual(
+            sonidos_eventos.rol_de_autor(AutorFalso(isVerified=True)),
+            sonidos_eventos.ROL_VERIFICADO)
+        self.assertEqual(
+            sonidos_eventos.rol_de_autor(AutorFalso(isChatSponsor=True)),
+            sonidos_eventos.ROL_MIEMBRO)
+
+    def test_precedencia(self):
+        autor = AutorFalso(isChatModerator=True, isVerified=True,
+                           isChatSponsor=True)
+        self.assertEqual(sonidos_eventos.rol_de_autor(autor),
+                         sonidos_eventos.ROL_MODERADOR)
+        autor = AutorFalso(isChatOwner=True, isChatModerator=True,
+                           isVerified=True, isChatSponsor=True)
+        self.assertEqual(sonidos_eventos.rol_de_autor(autor),
+                         sonidos_eventos.ROL_PROPIETARIO)
+        autor = AutorFalso(isVerified=True, isChatSponsor=True)
+        self.assertEqual(sonidos_eventos.rol_de_autor(autor),
+                         sonidos_eventos.ROL_VERIFICADO)
+
+    def test_none_y_sin_atributos(self):
+        self.assertEqual(sonidos_eventos.rol_de_autor(None), "")
+        self.assertEqual(sonidos_eventos.rol_de_autor(object()), "")
+        self.assertEqual(sonidos_eventos.rol_de_autor(AutorFalso()), "")
+
+    def test_nunca_lanza(self):
+        class AutorRoto:
+            @property
+            def isChatOwner(self):
+                raise RuntimeError("falla")
+        self.assertEqual(sonidos_eventos.rol_de_autor(AutorRoto()), "")
+
+
+class TestSonidoDeMensaje(unittest.TestCase):
+    def test_comun_con_rol(self):
+        self.assertEqual(
+            sonidos_eventos.sonido_de_mensaje(
+                TIPO_TEXTO, sonidos_eventos.ROL_PROPIETARIO),
+            "mensaje_propietario")
+        self.assertEqual(
+            sonidos_eventos.sonido_de_mensaje(
+                TIPO_TEXTO, sonidos_eventos.ROL_MODERADOR),
+            "mensaje_moderador")
+        self.assertEqual(
+            sonidos_eventos.sonido_de_mensaje(
+                TIPO_TEXTO, sonidos_eventos.ROL_VERIFICADO),
+            "mensaje_verificado")
+        self.assertEqual(
+            sonidos_eventos.sonido_de_mensaje(
+                TIPO_TEXTO, sonidos_eventos.ROL_MIEMBRO),
+            "mensaje_miembro")
+
+    def test_comun_sin_rol(self):
+        self.assertEqual(sonidos_eventos.sonido_de_mensaje(TIPO_TEXTO, ""), "mensaje_nuevo")
+        self.assertEqual(sonidos_eventos.sonido_de_mensaje(TIPO_TEXTO), "mensaje_nuevo")
+        self.assertEqual(sonidos_eventos.sonido_de_mensaje(TIPO_ENTRADA, ""), "mensaje_nuevo")
+
+    def test_superchat_suena_una_sola_vez(self):
+        for tipo in (TIPO_SUPERCHAT, TIPO_STICKER):
+            self.assertEqual(
+                sonidos_eventos.sonido_de_mensaje(
+                    tipo, sonidos_eventos.ROL_MODERADOR), "superchat")
+
+    def test_miembro_nuevo_no_usa_rol(self):
+        self.assertEqual(
+            sonidos_eventos.sonido_de_mensaje(
+                TIPO_MIEMBRO, sonidos_eventos.ROL_MODERADOR), "nuevo_miembro")
+
+
+def _config_minima(**extras):
+    base = {
+        "usuarios_silenciados": [], "palabras_silenciadas": [],
+        "silenciados_ocultar": set(), "silenciados_runtime": set(),
+        "silenciar_lectura": False, "limpiar_emojis": False,
+        "eliminar_urls": False, "max_longitud_mensaje": 200,
+        "umbral_solo_nombre": 0, "formato_prefijo": "nombre_mensaje",
+        "estrategia": "todas", "tamanio_maximo": 10,
+    }
+    base.update(extras)
+    return base
+
+
+class TestProcesarEntranteConRol(unittest.TestCase):
+    def test_entrega_el_rol_a_on_message(self):
+        recibidos = []
+
+        def on_message(autor, mensaje, hora, tipo, monto, canal_id, rol=""):
+            recibidos.append(rol)
+
+        main.procesar_entrante("Ana", "hola", TIPO_TEXTO, "", "canal",
+                               queue.Queue(), _config_minima(), main.Stats(),
+                               on_message=on_message, rol="moderador")
+        self.assertEqual(recibidos, ["moderador"])
+
+    def test_sin_rol_queda_igual(self):
+        recibidos = []
+
+        def on_message(autor, mensaje, hora, tipo, monto, canal_id, rol=""):
+            recibidos.append(rol)
+
+        main.procesar_entrante("Ana", "hola", TIPO_TEXTO, "", "canal",
+                               queue.Queue(), _config_minima(), main.Stats(),
+                               on_message=on_message)
+        self.assertEqual(recibidos, [""])
+
+
+class TestCableadoCapturaYouTube(unittest.TestCase):
+    def _item_pytchat(self, moderador=True):
+        autor = types.SimpleNamespace(
+            name="Ana", channelId="CANAL1", isChatOwner=False,
+            isChatModerator=moderador, isVerified=False, isChatSponsor=False)
+        return types.SimpleNamespace(
+            author=autor, message="hola", type="textMessage",
+            timestamp=None)
+
+    def test_item_falso_con_moderador_llega_a_on_message_con_rol(self):
+        item = self._item_pytchat(moderador=True)
+
+        class ChatFalso:
+            def __init__(self, items):
+                self._items = items
+                self._vivo = True
+
+            def is_alive(self):
+                return self._vivo
+
+            def get(self):
+                self._vivo = False
+                chat = self
+
+                class Lote:
+                    def sync_items(self):
+                        return chat._items
+                return Lote()
+
+            def raise_for_status(self):
+                return None
+
+        chat = ChatFalso([item])
+        pytchat_falso = types.SimpleNamespace(create=lambda **k: chat)
+        recibidos = []
+
+        def on_message(autor, mensaje, hora, tipo, monto, canal_id, rol=""):
+            recibidos.append((autor, rol))
+
+        parada = threading.Event()
+        with mock.patch.dict(sys.modules, {"pytchat": pytchat_falso}), \
+                mock.patch.object(main, "_cliente_pytchat",
+                                  return_value=mock.Mock(close=lambda: None)), \
+                mock.patch.object(main._snd, "reproducir"):
+            main._captura_en_loop("dQw4w9WgXcQ", queue.Queue(),
+                                  _config_minima(reconectar=False),
+                                  parada, main.Stats(),
+                                  on_message=on_message,
+                                  on_estado=None, sesion_activa=None)
+        self.assertEqual(recibidos, [("Ana", "moderador")])
+
+
+class TestReenvioRolConexion(unittest.TestCase):
+    def _conexiones(self):
+        from ytchat.capture.conexion import Conexiones
+        from ytchat.capture.sesiones import RegistroSesiones
+        return Conexiones(queue.Queue(), {}, mock.Mock(), threading.Event(),
+                          crear_hilo=lambda *a, **k: _HiloInerte(),
+                          registro=RegistroSesiones())
+
+    def _gui_falsa_con_agregar_real(self):
+        llamadas = []
+
+        def agregar_mensaje_chat(autor, mensaje, hora, tipo=main.TIPO_TEXTO,
+                                 monto="", canal_id="", plataforma="",
+                                 rol=""):
+            llamadas.append((autor, mensaje, hora, tipo, monto, canal_id,
+                             plataforma, rol))
+
+        class MarcoFalso:
+            _alive = True
+
+            def __getattr__(self, nombre):
+                if nombre == "agregar_mensaje_chat":
+                    return agregar_mensaje_chat
+                return mock.Mock()
+
+        return MarcoFalso(), llamadas
+
+    def _parche_gui(self, frame):
+        falsa = types.SimpleNamespace(_gui_frame=frame)
+        anterior = sys.modules.get("ytchat.ui.gui")
+        sys.modules["ytchat.ui.gui"] = falsa
+        from ytchat import ui as _paquete_ui
+        parche = mock.patch.object(_paquete_ui, "gui", falsa, create=True)
+        parche.start()
+        return anterior, parche
+
+    def _restaurar_gui(self, anterior, parche):
+        parche.stop()
+        if anterior is None:
+            sys.modules.pop("ytchat.ui.gui", None)
+        else:
+            sys.modules["ytchat.ui.gui"] = anterior
+
+    def test_youtube_reenvia_el_rol(self):
+        import wx
+        conexiones = self._conexiones()
+        frame, llamadas = self._gui_falsa_con_agregar_real()
+        anterior, parche = self._parche_gui(frame)
+        callbacks = {}
+        try:
+            def captura(*args, **kwargs):
+                callbacks.update(kwargs)
+
+            def hilo(objetivo, nombre, **kwargs):
+                return _HiloEjecuta(objetivo) if nombre == "Chat" else _HiloInerte()
+
+            conexiones._crear_hilo = hilo
+            with mock.patch.object(main, "obtener_info_video",
+                                   return_value=("T", main.deteccion.LIVE, {})), \
+                    mock.patch.object(main.deteccion, "tiene_chat_en_vivo",
+                                      return_value=True), \
+                    mock.patch.object(main, "captura_con_reconexion",
+                                      side_effect=captura), \
+                    mock.patch("ytchat.obs.overlay_servidor.difundir"), \
+                    mock.patch.object(wx, "CallAfter",
+                                      side_effect=lambda fn, *a, **k: fn(*a, **k)):
+                conexiones.conectar("dQw4w9WgXcQ")
+                callbacks["on_message"]("Ana", "hola", "12:00", main.TIPO_TEXTO,
+                                        "", "CANAL1", rol="moderador")
+        finally:
+            self._restaurar_gui(anterior, parche)
+        self.assertEqual(len(llamadas), 1)
+        self.assertEqual(llamadas[0][7], "moderador")
+        self.assertEqual(llamadas[0][6], "youtube")
+
+    def test_tiktok_reenvia_el_rol_por_defecto(self):
+        import wx
+        conexiones = self._conexiones()
+        frame, llamadas = self._gui_falsa_con_agregar_real()
+        anterior, parche = self._parche_gui(frame)
+        callbacks = {}
+        try:
+            def captura(*args, **kwargs):
+                callbacks.update(kwargs)
+
+            def hilo(objetivo, nombre, **kwargs):
+                return _HiloEjecuta(objetivo) if nombre == "TikTok" else _HiloInerte()
+
+            conexiones._crear_hilo = hilo
+            from ytchat.capture import tiktok_captura
+            with mock.patch.object(main, "procesar_entrante",
+                                   side_effect=lambda *a, **k: k["on_message"](
+                                       "Ana", "hola", "12:00", main.TIPO_TEXTO,
+                                       "", "TIKID", rol="")), \
+                    mock.patch.object(tiktok_captura, "capturar_con_reconexion",
+                                      side_effect=captura), \
+                    mock.patch("ytchat.obs.overlay_servidor.difundir"), \
+                    mock.patch.object(wx, "CallAfter",
+                                      side_effect=lambda fn, *a, **k: fn(*a, **k)):
+                conexiones._conectar_tiktok("pepe")
+                callbacks["on_evento"]("Ana", "hola", main.TIPO_TEXTO, "", "TIKID")
+        finally:
+            self._restaurar_gui(anterior, parche)
+        self.assertEqual(len(llamadas), 1)
+        self.assertEqual(llamadas[0][7], "")
+        self.assertEqual(llamadas[0][6], "tiktok")
+
+
+class _HiloInerte:
+    def start(self):
+        return None
+
+
+class _HiloEjecuta:
+    def __init__(self, objetivo):
+        self.objetivo = objetivo
+
+    def start(self):
+        self.objetivo()
+
+
+class TestSonidoGuiPorRol(unittest.TestCase):
+    def _frame(self):
+        from ytchat.ui import gui
+        from ytchat.ui.lista_chat import ListaChat
+        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame._chat = ListaChat(max_items=500)
+        frame._pendientes = []
+        frame._pendientes_timer = None
+        frame._filtro = None
+        frame._config = {"limpiar_emojis": True}
+        frame._autor_esta_oculto = lambda autor: False
+        frame._sumar_superchat = mock.Mock()
+        frame.lb_chat = mock.Mock()
+        return frame
+
+    def _procesar(self, frame, tipo, rol):
+        from ytchat.ui import gui
+        from ytchat.ui.lista_chat import MensajeChat
+        registro = MensajeChat(plataforma="youtube", autor="Ana",
+                               identificador="C", texto="hola", hora="12:00",
+                               tipo=tipo, monto="", rol=rol)
+        with mock.patch.object(gui._snd, "reproducir") as reproducir:
+            frame._procesar_mensaje_chat(registro)
+        return reproducir.call_args.args[0]
+
+    def test_verificado_reproduce_su_evento(self):
+        self.assertEqual(self._procesar(self._frame(), TIPO_TEXTO, "verificado"),
+                         "mensaje_verificado")
+
+    def test_sin_rol_reproduce_comun(self):
+        self.assertEqual(self._procesar(self._frame(), TIPO_TEXTO, ""), "mensaje_nuevo")
+
+
+if __name__ == "__main__":
+    unittest.main()

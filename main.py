@@ -37,6 +37,7 @@ from ytchat.core import avisos_red
 from ytchat.downloads import ytdlp_bin
 from ytchat.capture import conexion
 from ytchat.capture import alias
+from ytchat.core.sonidos_eventos import rol_de_autor
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -373,7 +374,7 @@ def debe_leer_tts(autor: str, config: dict) -> bool:
 
 def procesar_entrante(autor, mensaje, tipo, monto, canal_id, cola, config, stats,
                       on_message=None, sesion_activa=None,
-                      etiqueta_monto="Super Chat"):
+                      etiqueta_monto="Super Chat", rol=""):
     """Pipeline común de cada mensaje entrante (YouTube y TikTok): contadores,
     filtros, texto TTS, aviso a la GUI y encolado de lectura.
 
@@ -409,7 +410,7 @@ def procesar_entrante(autor, mensaje, tipo, monto, canal_id, cola, config, stats
 
     hora = datetime.now().strftime('%H:%M:%S')
     if on_message:
-        on_message(autor, mensaje, hora, tipo, monto, canal_id)
+        on_message(autor, mensaje, hora, tipo, monto, canal_id, rol=rol)
 
     if debe_leer_tts(autor, config) and (sesion_activa is None or sesion_activa()):
         item = {"texto_tts": tts_text, "autor": autor_visible}
@@ -565,6 +566,7 @@ def _captura_en_loop(video_id, cola, config, parada, stats, on_message, on_estad
                     autor_obj = getattr(c, "author", None)
                     autor    = _str(autor_obj and autor_obj.name, "Usuario")
                     canal_id = _str(autor_obj and getattr(autor_obj, "channelId", None), "")
+                    rol      = rol_de_autor(autor_obj)
                     mensaje  = _str(getattr(c, "message", None), "")
                     tipo_raw = _str(getattr(c, "type", None), "textMessage")
                     tipo     = _TIPO_MAP.get(tipo_raw, None)
@@ -577,7 +579,7 @@ def _captura_en_loop(video_id, cola, config, parada, stats, on_message, on_estad
                     procesar_entrante(autor, mensaje, tipo, monto, canal_id,
                                       cola, config, stats,
                                       on_message=on_message,
-                                      sesion_activa=sesion_activa)
+                                      sesion_activa=sesion_activa, rol=rol)
 
                 err_con = 0
             except Exception as exc:

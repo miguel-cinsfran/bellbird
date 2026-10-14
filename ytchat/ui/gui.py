@@ -27,6 +27,7 @@ from ytchat.core.config import (
 from ytchat.core.config import (parsear_atajos, detectar_conflictos_atajos,
                     guardar_opcion)
 from ytchat.core import paths
+from ytchat.core import sonidos_eventos
 from ytchat.capture import deteccion
 from ytchat.capture import metadatos
 from ytchat.capture import estado_sesion
@@ -2173,7 +2174,8 @@ class YTChatFrame(wx.Frame):
 
     def agregar_mensaje_chat(self, autor: str, mensaje: str, hora: str,
                              tipo: str = TIPO_TEXTO, monto: str = "",
-                             canal_id: str = "", plataforma: str = "") -> None:
+                             canal_id: str = "", plataforma: str = "",
+                             rol: str = "") -> None:
         if not self._alive:
             return
         # Si ya no estamos conectados, descartar: puede ser un mensaje rezagado
@@ -2188,7 +2190,7 @@ class YTChatFrame(wx.Frame):
         # Append/Delete por mensaje mientras NVDA navega la lista.
         registro = MensajeChat(
             plataforma=plataforma, autor=autor, identificador=canal_id,
-            texto=mensaje, hora=hora, tipo=tipo, monto=monto)
+            texto=mensaje, hora=hora, tipo=tipo, monto=monto, rol=rol)
         self._pendientes.append(registro)
         # Si el temporizador ya corre, NO reiniciarlo: con un chat activo
         # (mensajes cada menos de MS_VOLCADO_CHAT) reiniciar pospondría el
@@ -2217,7 +2219,8 @@ class YTChatFrame(wx.Frame):
         elif registro.tipo == TIPO_MIEMBRO:
             _snd.reproducir("nuevo_miembro")
         else:
-            _snd.reproducir("mensaje_nuevo")
+            _snd.reproducir(sonidos_eventos.sonido_de_mensaje(registro.tipo,
+                                                             registro.rol))
 
         if visible:
             self.lb_chat.Append(self._format_display(

@@ -390,6 +390,11 @@ TEMAS = {
         "conectado.wav":     gen_conectado,
         "desconectado.wav":  gen_desconectado,
         "mensaje_nuevo.wav": gen_mensaje,
+        # Sonidos provisorios de roles hasta que el dueño elija los definitivos.
+        "mensaje_propietario.wav": gen_superchat,
+        "mensaje_moderador.wav": gen_moderacion,
+        "mensaje_verificado.wav": gen_copiar,
+        "mensaje_miembro.wav": gen_miembro,
         "superchat.wav":     gen_superchat,
         "nuevo_miembro.wav": gen_miembro,
         "error.wav":         gen_error,
@@ -409,6 +414,11 @@ TEMAS = {
         "conectado.wav":     s_conectado,
         "desconectado.wav":  s_desconectado,
         "mensaje_nuevo.wav": s_mensaje,
+        # Sonidos provisorios de roles hasta que el dueño elija los definitivos.
+        "mensaje_propietario.wav": s_superchat,
+        "mensaje_moderador.wav": s_moderacion,
+        "mensaje_verificado.wav": s_copiar,
+        "mensaje_miembro.wav": s_miembro,
         "superchat.wav":     s_superchat,
         "nuevo_miembro.wav": s_miembro,
         "error.wav":         s_error,

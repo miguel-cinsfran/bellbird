@@ -561,6 +561,48 @@ class FraseEstadoTest(BaseSupervisor):
         finally:
             supervisor.abandonar()
 
+    def test_tiktok_confirmado_termina_en_ya_se_ve(self):
+        armado = self.armar(
+            estados=[muestra(True, duracion=180)] * 50)
+        supervisor, _, _, _, _, _, _ = armado
+        supervisor.iniciar()
+        try:
+            self.assertTrue(esperar_condicion(
+                lambda: supervisor.frase_estado().startswith(
+                    "Directo a TikTok:")))
+            self.assertTrue(supervisor.frase_estado().endswith(
+                ", ya se ve en TikTok"))
+        finally:
+            supervisor.abandonar()
+
+    def test_tiktok_sin_confirmar_termina_en_aviso(self):
+        armado = self.armar(
+            en_vivo=False, estados=[muestra(True, duracion=180)] * 50)
+        supervisor, _, _, _, _, _, _ = armado
+        supervisor.iniciar()
+        try:
+            self.assertTrue(esperar_condicion(
+                lambda: supervisor.frase_estado().startswith(
+                    "Directo a TikTok:")))
+            self.assertTrue(supervisor.frase_estado().endswith(
+                ", sin confirmar en TikTok"))
+        finally:
+            supervisor.abandonar()
+
+    def test_youtube_no_menciona_tiktok(self):
+        armado = self.armar(
+            destino="YouTube", estados=[muestra(True, duracion=180)] * 50)
+        supervisor, _, _, _, _, _, _ = armado
+        supervisor.iniciar()
+        try:
+            self.assertTrue(esperar_condicion(
+                lambda: supervisor.frase_estado().startswith(
+                    "Directo a YouTube:")))
+            frase = supervisor.frase_estado()
+            self.assertNotIn("TikTok", frase.split(":", 1)[1])
+        finally:
+            supervisor.abandonar()
+
     def test_duracion_que_avanza_se_actualiza_en_frase(self):
         estados = [muestra(True, duracion=10)]
         estados += [muestra(True, duracion=180)] * 50

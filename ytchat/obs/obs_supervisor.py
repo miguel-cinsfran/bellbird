@@ -76,6 +76,7 @@ class SupervisorTransmision:
         self._hilo = None
         self._ultimo_estado = None
         self._ultima_frase = ""
+        self._tiktok_confirmado = None
 
     @property
     def activo(self) -> bool:
@@ -98,6 +99,10 @@ class SupervisorTransmision:
             except Exception:
                 frase = ""
             if frase:
+                if self._tiktok_confirmado is True:
+                    frase += ", ya se ve en TikTok"
+                elif self._tiktok_confirmado is False:
+                    frase += ", sin confirmar en TikTok"
                 return f"Directo a {self._destino}: {frase}"
         texto = (self._ultima_frase or "").strip()
         if texto.endswith("."):
@@ -216,17 +221,20 @@ class SupervisorTransmision:
                 if self._parada.is_set():
                     return
                 if resultado.en_vivo:
+                    self._tiktok_confirmado = True
                     self._anunciar(
                         "Tu directo de TikTok ya está al aire.", "conectado")
                     self._al_conectar_chat(
                         tiktok_vivo.url_directo(self._usuario))
                 elif getattr(resultado, "cuenta_sin_directos", False):
+                    self._tiktok_confirmado = False
                     self._anunciar(
                         f"OBS está transmitiendo, pero TikTok todavía no "
                         f"muestra ningún directo de {self._usuario}. "
                         "Revisa que en Restream esté activado TikTok.",
                         "error")
                 else:
+                    self._tiktok_confirmado = False
                     self._anunciar(
                         "OBS está transmitiendo, pero TikTok todavía no "
                         "muestra el directo.", "error")

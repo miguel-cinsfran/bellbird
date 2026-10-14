@@ -406,6 +406,14 @@ que sea posible dejar solo lo relevante y que el anuncio no se alargue. Ahí
 también se activan los datos de OBS, como si está transmitiendo, grabando o con
 una escena al aire. Vienen desactivados de fábrica.
 
+Mientras YTChat supervisa un directo propio, iniciado con el botón
+*Transmitir en directo*, `F2` empieza siempre por el punto en que está, aunque
+los datos de OBS estén desactivados: por ejemplo, que espera a que TikTok
+muestre el directo, o cuánto lleva al aire y si TikTok ya lo confirmó.
+
+`F3` anuncia quién mandó el último mensaje que leyó la voz, sin necesidad de
+volver a la lista del chat. Si el autor tiene un alias, dice el alias.
+
 ## Directos de TikTok
 
 Se admiten direcciones con el formato `tiktok.com/@usuario/live`. La aplicación
@@ -485,7 +493,7 @@ Voz y lectura:
 - `F9` y `F10` velocidad de la voz.
 - `F11` y `F12` volumen de la voz.
 - `F4` silenciar la lectura, `F7` silenciar los sonidos.
-- `F2` anunciar el estado.
+- `F2` anunciar el estado, `F3` anunciar el autor del último mensaje leído.
 
 Reproductor:
 

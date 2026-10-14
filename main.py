@@ -412,7 +412,7 @@ def procesar_entrante(autor, mensaje, tipo, monto, canal_id, cola, config, stats
         on_message(autor, mensaje, hora, tipo, monto, canal_id)
 
     if debe_leer_tts(autor, config) and (sesion_activa is None or sesion_activa()):
-        item = {"texto_tts": tts_text}
+        item = {"texto_tts": tts_text, "autor": autor_visible}
         # Multi-voz: los eventos (Super Chats, regalos, miembros, entradas) se
         # leen con otra voz si está activado; los mensajes normales, con la base.
         if config.get("multivoz") and tipo in (TIPO_SUPERCHAT, TIPO_STICKER,

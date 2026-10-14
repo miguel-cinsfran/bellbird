@@ -150,7 +150,7 @@ ATAJOS_GRUPOS = [
     ("Voz y lectura (teclas F)",
      ["pausa", "detener_tts", "velocidad_menos", "velocidad_mas",
       "volumen_menos", "volumen_mas", "silenciar_lectura",
-      "silenciar_sonidos", "anunciar_estado"]),
+      "silenciar_sonidos", "anunciar_estado", "anunciar_autor"]),
     ("Ventana y navegación (fijos)",
      ["salir", "region_siguiente", "region_anterior"]),
 ]

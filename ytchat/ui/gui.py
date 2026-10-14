@@ -565,6 +565,7 @@ class YTChatFrame(wx.Frame):
         mi_rep  = m.Append(wx.ID_ANY, "Ir al &Reproductor")
         m.AppendSeparator()
         mi_estado = m.Append(wx.ID_ANY, "Anunciar &estado" + self._accel("anunciar_estado"))
+        mi_autor = m.Append(wx.ID_ANY, "Anunciar a&utor del último mensaje" + self._accel("anunciar_autor"))
         mb.Append(m, "&Ver")
         self.Bind(wx.EVT_MENU, lambda e: self._navegar_region(+1), mi_sig)
         self.Bind(wx.EVT_MENU, lambda e: self._navegar_region(-1), mi_ant)
@@ -574,6 +575,7 @@ class YTChatFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, lambda e: self._ir_pestana(PAG_COMENTARIOS), mi_com)
         self.Bind(wx.EVT_MENU, lambda e: self._ir_region(REG_REPRODUCTOR), mi_rep)
         self._bind_menu(mi_estado, self._anunciar_estado)
+        self._bind_menu(mi_autor, self._anunciar_autor)
         # De «Ver», solo tiene sentido con conexión la navegación por paneles;
         # «Ir a conexión (URL)» y «Anunciar estado» quedan siempre disponibles.
         self._mi_ver_conexion = [mi_sig, mi_ant, mi_lista, mi_chat, mi_com, mi_rep]
@@ -1638,6 +1640,14 @@ class YTChatFrame(wx.Frame):
         texto = estado_sesion.formatear_estado(self._snapshot_sesion(), toggles)
         anunciar(texto or "Sin información de estado.")
 
+    def _anunciar_autor(self):
+        # Por el lector, no por la voz: no espera detrás de la cola.
+        autor = self._worker.ultimo_autor() or ""
+        if autor:
+            anunciar(f"Último mensaje leído de {autor}")
+        else:
+            anunciar("Todavía no se leyó ningún mensaje.")
+
     # ── Enviar al chat del directo (API oficial) ─────────────────────────────
 
     def _on_enviar_live(self, event):
@@ -1934,7 +1944,8 @@ class YTChatFrame(wx.Frame):
         if data is None:
             return
         from ytchat.voice.tts_worker import construir_tts
-        self._cola.put({"texto_tts": construir_tts(data.autor, data.texto, self._config)})
+        self._cola.put({"texto_tts": construir_tts(data.autor, data.texto, self._config),
+                        "autor": data.autor})
 
     def _abrir_enlace(self):
         data = self._get_selected_data()

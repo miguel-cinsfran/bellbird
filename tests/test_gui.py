@@ -1812,6 +1812,25 @@ class TestEstadoObsEnF2(unittest.TestCase):
             frame._actualizar_vigilante_obs()
         clase.return_value.detener.assert_called_once_with()
 
+class TestAnunciarAutor(unittest.TestCase):
+    def _frame(self, autor):
+        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame._worker = mock.Mock()
+        frame._worker.ultimo_autor.return_value = autor
+        return frame
+
+    def test_con_autor_anuncia_el_nombre(self):
+        frame = self._frame("Ana")
+        with mock.patch.object(gui, "anunciar") as anunciar:
+            frame._anunciar_autor()
+        anunciar.assert_called_once_with("Último mensaje leído de Ana")
+
+    def test_sin_autor_avisa_que_todavia_no_se_leyo(self):
+        frame = self._frame("")
+        with mock.patch.object(gui, "anunciar") as anunciar:
+            frame._anunciar_autor()
+        anunciar.assert_called_once_with("Todavía no se leyó ningún mensaje.")
+
 class TestActualizarYtdlp(unittest.TestCase):
 
     class Dialogo:
@@ -2554,6 +2573,35 @@ class TestCopiarEnlaceDirecto(unittest.TestCase):
         candidata = next(e for e in etiquetas if "enlace del directo" in e)
         self.assertIn("Copiar &enlace del directo", candidata)
         self.assertIn("\tCtrl+Shift+E", candidata)
+
+    def test_item_de_menu_anunciar_autor_enlazado(self):
+        frame = mock.Mock()
+        frame._accel.side_effect = (
+            lambda accion: "\tF3" if accion == "anunciar_autor" else "")
+        elementos = []
+
+        def crear_menu():
+            menu = mock.MagicMock()
+
+            def agregar(*args):
+                elemento = mock.Mock()
+                elementos.append((args[-1], elemento))
+                return elemento
+
+            menu.Append.side_effect = agregar
+            menu.AppendRadioItem.side_effect = lambda *args: mock.Mock()
+            menu.AppendCheckItem.side_effect = lambda *args: mock.Mock()
+            return menu
+
+        with mock.patch.object(gui.wx, "Menu", side_effect=crear_menu), \
+                mock.patch.object(gui.wx, "MenuBar"):
+            gui.YTChatFrame._build_menubar(frame)
+        esperado = frame._accel("anunciar_autor")
+        etiqueta, elemento = next(
+            (etiqueta, elemento) for etiqueta, elemento in elementos
+            if "a&utor del último mensaje" in etiqueta)
+        self.assertIn(esperado, etiqueta)
+        frame._bind_menu.assert_any_call(elemento, frame._anunciar_autor)
 
 
 if __name__ == "__main__":

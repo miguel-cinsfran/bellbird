@@ -360,7 +360,8 @@ class ComentariosPanel(wx.Panel):
             anunciar("Sin comentario seleccionado")
             return
         from ytchat.voice.tts_worker import construir_tts
-        self._cola.put({"texto_tts": construir_tts(c.autor, c.texto, self._config)})
+        self._cola.put({"texto_tts": construir_tts(c.autor, c.texto, self._config),
+                        "autor": c.autor})
 
     def _copiar(self):
         c = self._seleccionado()

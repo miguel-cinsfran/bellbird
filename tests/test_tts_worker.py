@@ -1,7 +1,9 @@
 """Tests de la lógica pura de tts_worker (sanitización, formato, rate)."""
 
+import queue
 import sys
 import threading
+import time
 import types
 import unittest
 from unittest import mock
@@ -142,6 +144,67 @@ class TestPurgaArmada(unittest.TestCase):
         llamadas = worker._voz.Speak.call_args_list
         self.assertEqual(llamadas[0].args[0], "mensaje largo")
         self.assertEqual(llamadas[1].args, ("", tts_worker.SVSF_ASYNC | tts_worker.SVSF_PURGE_BEFORE))
+
+
+class TestUltimoAutor(unittest.TestCase):
+    """El worker recuerda quién mandó lo que empezó a leer (F3)."""
+
+    def _worker_en_marcha(self, hablados):
+        cola = queue.Queue()
+        worker = tts_worker.TTSWorker(cola, {})
+        worker._init_com = lambda: None
+        worker._create_voice = lambda: mock.Mock()
+        worker._hablar = lambda texto, voz=None: hablados.append(texto)
+        worker.start()
+        self.assertTrue(worker.esperar_inicio(timeout=5))
+        self.addCleanup(worker.detener)
+        return worker, cola
+
+    def _esperar_autor(self, worker, esperado, timeout=5.0):
+        fin = time.monotonic() + timeout
+        while time.monotonic() < fin:
+            if worker.ultimo_autor() == esperado:
+                return
+            time.sleep(0.02)
+        self.assertEqual(worker.ultimo_autor(), esperado)
+
+    def _esperar_hablados(self, hablados, cantidad, timeout=5.0):
+        fin = time.monotonic() + timeout
+        while time.monotonic() < fin:
+            if len(hablados) >= cantidad:
+                return
+            time.sleep(0.02)
+        self.assertGreaterEqual(len(hablados), cantidad)
+
+    def test_empieza_sin_autor(self):
+        worker, _cola = self._worker_en_marcha([])
+        self.assertEqual(worker.ultimo_autor(), "")
+
+    def test_registra_el_autor_que_empieza_a_leer(self):
+        hablados = []
+        worker, cola = self._worker_en_marcha(hablados)
+        cola.put({"texto_tts": "hola", "autor": "Ana"})
+        self._esperar_autor(worker, "Ana")
+        self.assertEqual(hablados, ["hola"])
+
+    def test_un_item_sin_autor_no_borra_el_anterior(self):
+        hablados = []
+        worker, cola = self._worker_en_marcha(hablados)
+        cola.put({"texto_tts": "hola", "autor": "Ana"})
+        self._esperar_autor(worker, "Ana")
+        cola.put({"texto_tts": "aviso interno"})
+        self._esperar_hablados(hablados, 2)
+        self.assertEqual(worker.ultimo_autor(), "Ana")
+
+    def test_un_item_con_texto_vacio_no_cambia_el_autor(self):
+        hablados = []
+        worker, cola = self._worker_en_marcha(hablados)
+        cola.put({"texto_tts": "hola", "autor": "Ana"})
+        self._esperar_autor(worker, "Ana")
+        cola.put({"texto_tts": "   ", "autor": "Beto"})
+        time.sleep(1.0)   # el bucle lo salta sin hablar (timeout 0,3)
+        self.assertEqual(hablados, ["hola"])
+        self.assertEqual(worker.ultimo_autor(), "Ana")
 
 
 class TestSanitizar(unittest.TestCase):

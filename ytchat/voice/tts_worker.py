@@ -94,6 +94,10 @@ class TTSWorker(threading.Thread):
         self._rate   = _wpm_a_rate(config.get("velocidad", 175))
         self._volume = max(0, min(100, int(config.get("volumen", 1.0) * 100)))
         self._purge_pending = threading.Event()
+        # Autor del último mensaje que la voz empezó a leer, para anunciarlo
+        # con F3 sin volver a la lista. Se registra en run() justo antes de
+        # hablar; asignar una cadena es atómico en CPython y no lleva lock.
+        self._ultimo_autor = ""
         # Multi-voz: colección de voces cacheada y qué voz está activa ahora. La
         # voz «base» es la del menú/preferencias; un mensaje puede pedir otra
         # (p. ej. eventos con una voz distinta) y se cambia solo para ese.
@@ -130,6 +134,12 @@ class TTSWorker(threading.Thread):
                 continue
             self._active.wait()
             try:
+                # El autor viaja en el item y se guarda al empezar a leerlo,
+                # no al encolar: entre medias hay cola y descartes. Un item
+                # sin autor (avisos internos) no borra el anterior.
+                autor = item.get("autor") or ""
+                if autor:
+                    self._ultimo_autor = autor
                 self._hablar(texto, item.get("voz")); _err = 0
             except Exception as exc:
                 _err += 1
@@ -333,3 +343,9 @@ class TTSWorker(threading.Thread):
 
     def get_volume(self) -> int:
         return self._volume
+
+    def ultimo_autor(self) -> str:
+        """Autor del último mensaje que la voz empezó a leer.
+
+        Cadena vacía si todavía no se leyó nada."""
+        return self._ultimo_autor

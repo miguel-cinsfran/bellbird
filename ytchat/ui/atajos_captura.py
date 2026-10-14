@@ -31,6 +31,7 @@ _ETIQUETAS = {
     "volumen_mas": "Subir volumen del TTS (fijo)",
     "silenciar_lectura": "Silenciar lectura TTS",
     "silenciar_sonidos": "Silenciar sonidos", "anunciar_estado": "Anunciar estado",
+    "anunciar_autor": "Anunciar autor del último mensaje",
     "region_siguiente": "Región siguiente", "region_anterior": "Región anterior",
 }
 

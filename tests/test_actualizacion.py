@@ -446,5 +446,48 @@ class TestRamaMain(unittest.TestCase):
         principal.assert_not_called()
 
 
+class TestTextosAviso(unittest.TestCase):
+
+    def test_ok_anuncia_la_version_nueva(self):
+        from ytchat.core.config import APP_NAME
+        self.assertEqual(
+            actualizacion.texto_resultado(
+                {"resultado": "ok", "desde": "2.2.0", "hacia": "2.3.0"},
+                "2.2.0"),
+            f"{APP_NAME} se actualizó a la versión 2.3.0.")
+
+    def test_fallo_dice_motivo_y_version_actual(self):
+        self.assertEqual(
+            actualizacion.texto_resultado(
+                {"resultado": "fallo", "motivo": "corte de luz"}, "2.2.0"),
+            "La actualización no se completó: corte de luz. "
+            "Sigue la versión 2.2.0.")
+
+    def test_sin_resultado_da_vacio(self):
+        for resultado in (None, {}, {"resultado": "raro"}, "ok", 42):
+            with self.subTest(resultado=resultado):
+                self.assertEqual(
+                    actualizacion.texto_resultado(resultado, "2.2.0"), "")
+
+    def test_ok_sin_hacia_usa_la_actual(self):
+        from ytchat.core.config import APP_NAME
+        self.assertEqual(
+            actualizacion.texto_resultado({"resultado": "ok"}, "2.2.0"),
+            f"{APP_NAME} se actualizó a la versión 2.2.0.")
+
+    def test_debe_avisar_solo_una_vez_por_version(self):
+        self.assertTrue(actualizacion.debe_avisar("2.3.0", "2.2.0", ""))
+        self.assertTrue(actualizacion.debe_avisar("2.3.0", "2.2.0", None))
+        self.assertFalse(actualizacion.debe_avisar("2.3.0", "2.2.0", "2.3.0"))
+        # La avisada con menos partes cuenta como la misma.
+        self.assertFalse(actualizacion.debe_avisar("2.3.0", "2.2.0", "2.3"))
+
+    def test_debe_avisar_compara_por_componentes(self):
+        self.assertTrue(actualizacion.debe_avisar("2.10.0", "2.9.0", ""))
+        self.assertFalse(actualizacion.debe_avisar("2.9.0", "2.10.0", ""))
+        self.assertFalse(actualizacion.debe_avisar("2.10.0", "2.10.0", ""))
+        self.assertFalse(actualizacion.debe_avisar("basura", "2.9.0", ""))
+
+
 if __name__ == "__main__":
     unittest.main()

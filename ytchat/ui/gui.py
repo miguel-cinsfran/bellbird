@@ -704,6 +704,7 @@ class YTChatFrame(wx.Frame):
         mi_guia = m.Append(wx.ID_ANY, "&Guía de configuración de la API…")
         mi_incidente = m.Append(
             wx.ID_ANY, "&Marcar incidencia" + self._accel("marcar_incidencia"))
+        mi_actualizar_app = m.Append(wx.ID_ANY, "&Buscar actualizaciones…")
         mi_about = m.Append(wx.ID_ABOUT, "&Acerca de")
         mb.Append(m, "A&yuda")
         self.Bind(wx.EVT_MENU, lambda e: webbrowser.open(
@@ -711,6 +712,8 @@ class YTChatFrame(wx.Frame):
             mi_guia)
         self.Bind(wx.EVT_MENU, lambda e: wx.CallAfter(
             self._on_marcar_incidencia, None), mi_incidente)
+        self.Bind(wx.EVT_MENU, lambda e: wx.CallAfter(
+            self._on_actualizar_app, None), mi_actualizar_app)
         self.Bind(wx.EVT_MENU, lambda e: wx.CallAfter(self._on_about, None), mi_about)
 
         self.SetMenuBar(mb)
@@ -959,6 +962,10 @@ class YTChatFrame(wx.Frame):
             ventana.en_hilo_principal(_terminar, estado, texto)
 
         diagnostico.crear_hilo(_run, "ActualizarYtdlp").start()
+
+    def _on_actualizar_app(self, event):
+        from ytchat.ui import gui_actualizar_app
+        gui_actualizar_app.abrir_ventana_actualizacion(self)
 
     # ── Construcción de la UI ────────────────────────────────────────────────
 
@@ -2794,6 +2801,10 @@ def iniciar_gui(config, cola, stats, worker, parada,
         frame.txt_url.SetFocus()
     except Exception:
         pass
+    from ytchat.ui import gui_actualizar_app
+    gui_actualizar_app.programar_confirmacion_arranque()
+    gui_actualizar_app.programar_resultado_actualizacion()
+    gui_actualizar_app.programar_aviso_version()
     diagnostico.crear_hilo(
         lambda: _snd.reproducir("app_inicio"), "SonidoInicio").start()
     wx.CallAfter(frame._arrancar_precalentamiento)

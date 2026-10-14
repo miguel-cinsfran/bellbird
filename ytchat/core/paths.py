@@ -140,6 +140,11 @@ def carpeta_vlc_empaquetada() -> Path:
     return carpeta_instalacion() / "vlc"
 
 
+def ejecutable_actual() -> str:
+    """Nombre simple del ejecutable que está corriendo."""
+    return Path(sys.executable).name
+
+
 def carpeta_interna() -> Path:
     return carpeta_instalacion() / "_internal"
 

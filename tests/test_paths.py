@@ -73,6 +73,19 @@ class TestRaices(unittest.TestCase):
                          paths.carpeta_instalacion() / "data")
 
 
+class TestEjecutableActual(unittest.TestCase):
+
+    def test_devuelve_el_nombre_simple_del_ejecutable(self):
+        self.assertEqual(paths.ejecutable_actual(),
+                         Path(sys.executable).name)
+
+    def test_no_incluye_la_carpeta(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            exe = str(Path(tmp) / "YTChatTTS.exe")
+            with mock.patch.object(sys, "executable", exe):
+                self.assertEqual(paths.ejecutable_actual(), "YTChatTTS.exe")
+
+
 class TestFunciones(unittest.TestCase):
 
     def test_cada_dato_cuelga_de_carpeta_datos(self):

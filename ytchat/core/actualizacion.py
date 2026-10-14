@@ -27,11 +27,13 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from ytchat.core import paths
+from ytchat.core.config import APP_NAME
 
 
 URL_ULTIMA_VERSION = (
     "https://api.github.com/repos/miguel-cinsfran/bellbird/releases/latest"
 )
+URL_PAGINA_RELEASES = "https://github.com/miguel-cinsfran/bellbird/releases/latest"
 USER_AGENT = "ytchat-tts/2.0"
 TIEMPO_ESPERA = 30
 
@@ -88,6 +90,19 @@ def hay_version_nueva(actual: str | None, publicada: str | None) -> bool:
     if tupla_actual is None or tupla_publicada is None:
         return False
     return tupla_publicada > tupla_actual
+
+
+def debe_avisar(version_publicada: str | None, version_actual: str | None,
+                ultima_avisada: str | None) -> bool:
+    """Verdadero solo si hay versión nueva y todavía no se avisó esa.
+
+    La avisada se compara como tupla, así «2.10» y «2.10.0» cuentan como
+    la misma y no se repite el aviso.
+    """
+    if not hay_version_nueva(version_actual, version_publicada):
+        return False
+    return (version_como_tupla(version_publicada)
+            != version_como_tupla(ultima_avisada))
 
 
 # ── Consulta ───────────────────────────────────────────────────────────────
@@ -407,6 +422,21 @@ def tomar_resultado(instalacion: str | os.PathLike | None = None) -> dict | None
         return datos if isinstance(datos, dict) else None
     except OSError:
         return None
+
+
+def texto_resultado(resultado: dict | None, version_actual: str) -> str:
+    """Texto para anunciar lo que dejó `tomar_resultado`. Vacío si no hay nada."""
+    if not isinstance(resultado, dict):
+        return ""
+    estado = resultado.get("resultado")
+    if estado == "ok":
+        hacia = resultado.get("hacia") or version_actual
+        return f"{APP_NAME} se actualizó a la versión {hacia}."
+    if estado == "fallo":
+        motivo = resultado.get("motivo") or "motivo desconocido"
+        return (f"La actualización no se completó: {motivo}. "
+                f"Sigue la versión {version_actual}.")
+    return ""
 
 
 def lanzar_instalador(carpeta_paquete: str | os.PathLike, ejecutable: str,

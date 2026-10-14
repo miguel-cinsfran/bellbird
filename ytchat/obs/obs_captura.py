@@ -176,10 +176,14 @@ def ventanas(cliente, escena, parada=None, dormir=time.sleep,
     _quitar_sonda(cliente, escena, parada)
     _esperar_sonda_fuera(cliente, escena, parada, dormir=dormir,
                          reloj=reloj)
-    cliente.pedir("CreateInput", {"sceneName": escena,
-                                 "inputName": NOMBRE_SONDA,
-                                 "inputKind": "window_capture",
-                                 "sceneItemEnabled": False}, parada=parada)
+    # OBS no borra la sonda suelta aunque RemoveInput responda éxito, y
+    # crearla de nuevo falla con 601 (medido el 14/10/2026): se reutiliza.
+    if not _sonda_en_lista(cliente, parada):
+        cliente.pedir("CreateInput", {"sceneName": escena,
+                                      "inputName": NOMBRE_SONDA,
+                                      "inputKind": "window_capture",
+                                      "sceneItemEnabled": False},
+                      parada=parada)
     try:
         items = _datos(
             cliente, "GetInputPropertiesListPropertyItems",

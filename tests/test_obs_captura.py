@@ -18,7 +18,8 @@ def item(nombre, valor, habilitado=True):
 class Doble:
     def __init__(self, elementos=(), entradas=(), propiedades=(),
                  ajustes=None, video=None, falla_lista=False,
-                 tarda_en_borrar=0, falla_borrado=False):
+                 tarda_en_borrar=0, falla_borrado=False,
+                 retiene_sonda=False):
         self.elementos = list(elementos)
         self.entradas = list(entradas)
         self.propiedades = list(propiedades)
@@ -27,6 +28,7 @@ class Doble:
         self.falla_lista = falla_lista
         self.tarda_en_borrar = tarda_en_borrar
         self.falla_borrado = falla_borrado
+        self.retiene_sonda = retiene_sonda
         self._consultas_pendientes = 0
         self._borrado_diferido = False
         self.llamadas = []
@@ -75,6 +77,11 @@ class Doble:
             nombre = (datos or {}).get("inputName", "")
             if self.falla_borrado:
                 raise obs_cliente.ObsError("no encontrado")
+            if (self.retiene_sonda
+                    and nombre == obs_captura.NOMBRE_SONDA):
+                # Como OBS 32.2.2 con la sonda suelta (medido el
+                # 14/10/2026): éxito sin borrarla de la lista.
+                return {"responseData": {}}
             if any(actual.get("sourceName") == nombre
                    for actual in self.elementos):
                 # Como OBS 32.2.2: éxito sin borrar la entrada en escena.
@@ -289,6 +296,22 @@ class VentanasTest(unittest.TestCase):
                     if llamada[0] == "RemoveInput"]
         self.assertEqual(borrados, [obs_captura.NOMBRE_SONDA])
         self.assertEqual(doble.entradas, [])
+
+    def test_sonda_suelta_irrompible_se_reusa_sin_crear(self):
+        doble = Doble(
+            entradas=({"inputName": obs_captura.NOMBRE_SONDA,
+                        "inputKind": "window_capture"},),
+            propiedades=self._propiedades(), retiene_sonda=True)
+        opciones, actual = obs_captura.ventanas(doble, "Escena")
+        self.assertEqual(opciones, (("Champions, de juego.exe",
+                                     "Champions:Ventana:juego.exe"),
+                                    ("Charla, de otro.exe",
+                                     "Charla:Ventana:otro.exe")))
+        self.assertEqual(actual, "")
+        self.assertNotIn("CreateInput", doble.tipos())
+        lista = [llamada for llamada in doble.llamadas
+                 if llamada[0] == "GetInputPropertiesListPropertyItems"][0]
+        self.assertEqual(lista[1]["inputName"], obs_captura.NOMBRE_SONDA)
 
     def test_si_la_sonda_sigue_tras_borrar_se_avisa_el_error(self):
         doble = Doble(

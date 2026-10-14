@@ -366,16 +366,6 @@ def debe_actualizar_texto_progreso(anterior: int | None, actual: int | None) -> 
     return anterior is None or actual >= anterior + 10 or actual == 100
 
 
-def sondear_cancelacion(terminado, dialogo, cancelado, reprogramar) -> bool:
-    """Un tic del sondeo del dialogo de descarga. Devuelve si se reprogramó."""
-    if terminado.is_set():
-        return False
-    if dialogo.WasCancelled():
-        cancelado.set()
-    reprogramar()
-    return True
-
-
 def _descargar_archivo(url: str, destino: Path, aviso=None, cancelar=None) -> None:
     solicitud = Request(url, headers={"User-Agent": USER_AGENT})
     with urlopen(solicitud, timeout=TIEMPO_ESPERA) as respuesta:
@@ -486,7 +476,7 @@ def actualizar_ytdlp(avisar_antes_descarga=None, aviso_progreso=None,
     if not firma:
         return "otro_fallo", version_instalada, version_nueva
     if avisar_antes_descarga is not None:
-        avisar_antes_descarga()
+        avisar_antes_descarga(version_nueva)
     resultado = descargar_ytdlp(url_ejecutable, firma, _ruta_actualizada(),
                                 aviso_progreso, cancelar)
     if resultado.correcta:

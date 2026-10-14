@@ -42,42 +42,6 @@ class PruebasYtdlpBin(unittest.TestCase):
         self.assertTrue(ytdlp_bin.debe_actualizar_texto_progreso(0, 10))
         self.assertTrue(ytdlp_bin.debe_actualizar_texto_progreso(90, 100))
 
-    def test_sondeo_terminado_no_reprograma(self):
-        terminado = threading.Event()
-        terminado.set()
-        dialogo = MagicMock()
-        cancelado = threading.Event()
-        reprogramar = MagicMock()
-
-        self.assertFalse(ytdlp_bin.sondear_cancelacion(
-            terminado, dialogo, cancelado, reprogramar))
-        dialogo.WasCancelled.assert_not_called()
-        reprogramar.assert_not_called()
-
-    def test_sondeo_activo_reprograma_sin_cancelar(self):
-        terminado = threading.Event()
-        dialogo = MagicMock()
-        dialogo.WasCancelled.return_value = False
-        cancelado = threading.Event()
-        reprogramar = MagicMock()
-
-        self.assertTrue(ytdlp_bin.sondear_cancelacion(
-            terminado, dialogo, cancelado, reprogramar))
-        self.assertFalse(cancelado.is_set())
-        reprogramar.assert_called_once_with()
-
-    def test_sondeo_cancelado_marca_y_reprograma(self):
-        terminado = threading.Event()
-        dialogo = MagicMock()
-        dialogo.WasCancelled.return_value = True
-        cancelado = threading.Event()
-        reprogramar = MagicMock()
-
-        self.assertTrue(ytdlp_bin.sondear_cancelacion(
-            terminado, dialogo, cancelado, reprogramar))
-        self.assertTrue(cancelado.is_set())
-        reprogramar.assert_called_once_with()
-
     def test_descarga_usa_content_length_y_avisos_de_progreso(self):
         contenido = b"0123456789"
         respuesta = MagicMock()
@@ -534,9 +498,9 @@ class PruebasYtdlpBin(unittest.TestCase):
                 patch.object(ytdlp_bin, "urlopen") as abrir, \
                 patch.object(ytdlp_bin, "descargar_ytdlp", side_effect=lambda *a: (orden.append("descarga"), ytdlp_bin.ResultadoDescarga(True, ""))[1]):
             abrir.return_value.__enter__.return_value.read.return_value = b"a" * 64 + b"  yt-dlp.exe\n"
-            resultado = ytdlp_bin.actualizar_ytdlp(lambda: orden.append("aviso"))
+            resultado = ytdlp_bin.actualizar_ytdlp(lambda version: orden.append(("aviso", version)))
         self.assertEqual("actualizado", resultado[0])
-        self.assertEqual(["aviso", "descarga"], orden)
+        self.assertEqual([("aviso", "2026.08.21"), "descarga"], orden)
 
     def test_actualizar_no_avisa_si_no_hay_descarga(self):
         aviso = MagicMock()

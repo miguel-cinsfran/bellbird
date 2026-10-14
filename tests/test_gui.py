@@ -1860,164 +1860,218 @@ class TestAnunciarAutor(unittest.TestCase):
 
 class TestActualizarYtdlp(unittest.TestCase):
 
-    class Dialogo:
-        def __init__(self, cancelado=False):
-            self.cancelado = cancelado
-            self.actualizaciones = []
-            self.destruido = False
+    class _Evento:
+        def __init__(self):
+            self._marcado = False
 
-        def WasCancelled(self):
-            return self.cancelado
+        def is_set(self):
+            return self._marcado
 
-        def Update(self, *argumentos):
-            self.actualizaciones.append(argumentos)
+        def set(self):
+            self._marcado = True
 
-        def Destroy(self):
-            self.destruido = True
+    class VentanaFalsa:
+        """Doble de DialogoActualizacion: no abre nada en pantalla."""
 
-    def _ejecutar(self, resultado):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
-        anuncios = []
-        dialogos = []
+        def __init__(self, padre, titulo):
+            evento = TestActualizarYtdlp._Evento()
+            self.padre = padre
+            self.titulo = titulo
+            self.mostrada = False
+            self.elevada = False
+            self._cerrado = False
+            self._cancelado = evento
+            self.estados = []
+            self.anuncios = []
+            self.progresos = []
+            self.textos_sin_anunciar = []
+            self.txt_estado = mock.Mock()
+            self.txt_estado.SetValue.side_effect = self.textos_sin_anunciar.append
+            self.btn_cerrar = mock.Mock()
+
+        @property
+        def cerrado(self):
+            return self._cerrado
+
+        @property
+        def cancelado(self):
+            return self._cancelado
+
+        def Show(self):
+            self.mostrada = True
+
+        def Raise(self):
+            self.elevada = True
+
+        def estado(self, texto):
+            self.estados.append(texto)
+            self.anuncios.append(texto)
+
+        def progreso(self, porcentaje):
+            self.progresos.append(porcentaje)
+
+        def en_hilo_principal(self, funcion, *args):
+            if self._cerrado:
+                return
+            funcion(*args)
+
+        def cerrar(self):
+            self._cerrado = True
+            self._cancelado.set()
+
+    def _ejecutar(self, doble, frame=None):
+        if frame is None:
+            frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        ventanas = []
         hilo = mock.Mock()
         hilo.start.side_effect = lambda: hilo.target()
 
         def crear(target, nombre):
             hilo.target = target
+            hilo.nombre = nombre
             return hilo
 
-        with mock.patch.object(gui, "anunciar", side_effect=anuncios.append), \
-                mock.patch.object(gui.diagnostico, "crear_hilo", side_effect=crear), \
-                mock.patch.object(gui.wx, "CallAfter", side_effect=lambda fn, *args: fn(*args)), \
-                mock.patch.object(gui.wx, "MessageBox", side_effect=lambda *args: dialogos.append(args)), \
-                mock.patch.object(ytdlp_bin, "actualizar_ytdlp", return_value=resultado):
-            gui.YTChatFrame._on_actualizar_ytdlp(frame, None)
-        return anuncios, dialogos, hilo
+        def fabrica(padre, titulo):
+            ventana = self.VentanaFalsa(padre, titulo)
+            ventanas.append(ventana)
+            return ventana
 
-    def test_activar_anuncia_antes_de_empezar(self):
-        anuncios, dialogos, hilo = self._ejecutar(("ya_al_dia", "2026.08.20", "2026.08.20"))
-        self.assertIn("Buscando", anuncios[0])
-        hilo.start.assert_called_once()
-
-    def test_cada_desenlace_anuncia_su_texto(self):
-        casos = (
-            (("actualizado", "2026.08.20", "2026.08.21"), "actualizó"),
-            (("ya_al_dia", "2026.08.20", "2026.08.20"), "al día"),
-            (("sin_conexion", "2026.08.20", ""), "conexión"),
-            (("firma_incorrecta", "2026.08.20", "2026.08.21"), "No se instaló nada"),
-            (("otro_fallo", "2026.08.20", "2026.08.21"), "No se pudo actualizar"),
-        )
-        for resultado, esperado in casos:
-            with self.subTest(esperado=esperado):
-                anuncios, dialogos, _ = self._ejecutar(resultado)
-                self.assertIn("Buscando", anuncios[0])
-                self.assertTrue(any(esperado in texto[0] for texto in dialogos))
-
-    def test_fallo_de_red_no_propaga_excepcion_y_anuncia(self):
-        anuncios, dialogos, hilo = self._ejecutar(("sin_conexion", "", ""))
-        self.assertIn("conexión", dialogos[-1][0])
-        hilo.start.assert_called_once()
-
-    def test_pasa_el_estado_sin_mirar_el_motivo(self):
-        with mock.patch.object(gui, "anunciar"), \
-                mock.patch.object(gui.diagnostico, "crear_hilo") as crear, \
-                mock.patch.object(gui.wx, "CallAfter", side_effect=lambda fn, *args: fn(*args)), \
-                mock.patch.object(gui.wx, "MessageBox"), \
-                mock.patch.object(ytdlp_bin, "mensaje_de_actualizacion") as mensaje, \
-                mock.patch.object(ytdlp_bin, "actualizar_ytdlp", return_value=("firma_incorrecta", "", "2026.08.21")):
-            hilo = mock.Mock()
-            hilo.start.side_effect = lambda: hilo.target()
-            crear.side_effect = lambda target, nombre: setattr(hilo, "target", target) or hilo
-            gui.YTChatFrame._on_actualizar_ytdlp(gui.YTChatFrame.__new__(gui.YTChatFrame), None)
-        mensaje.assert_called_once_with("firma_incorrecta", "", "2026.08.21")
-
-    def test_cancelar_usa_was_cancelled_y_muestra_mensaje_propio(self):
-        dialogo = self.Dialogo(cancelado=True)
-        hilo = mock.Mock()
-        hilo.start.side_effect = lambda: hilo.target()
-
-        def crear(target, nombre):
-            hilo.target = target
-            return hilo
-
-        def actualizar(antes, progreso, cancelar):
-            antes()
-            self.assertTrue(cancelar())
-            return "cancelado", "2026.08.20", "2026.08.21"
-
-        with mock.patch.object(gui, "anunciar"), \
-                mock.patch.object(gui.diagnostico, "crear_hilo", side_effect=crear), \
-                mock.patch.object(gui.wx, "CallAfter", side_effect=lambda fn, *args: fn(*args)), \
-                mock.patch.object(gui.wx, "CallLater"), \
-                mock.patch.object(gui.wx, "ProgressDialog", return_value=dialogo), \
+        with mock.patch("ytchat.ui.gui_actualizacion.DialogoActualizacion",
+                        side_effect=fabrica), \
+                mock.patch.object(gui.wx, "ProgressDialog") as dialogo, \
                 mock.patch.object(gui.wx, "MessageBox") as mensaje, \
-                mock.patch.object(ytdlp_bin, "actualizar_ytdlp", side_effect=actualizar):
-            gui.YTChatFrame._on_actualizar_ytdlp(gui.YTChatFrame.__new__(gui.YTChatFrame), None)
-        self.assertIn("Se canceló la descarga de yt-dlp.", mensaje.call_args.args[0])
-        self.assertTrue(dialogo.destruido)
+                mock.patch.object(gui.diagnostico, "crear_hilo", side_effect=crear), \
+                mock.patch.object(ytdlp_bin, "actualizar_ytdlp", side_effect=doble):
+            gui.YTChatFrame._on_actualizar_ytdlp(frame, None)
+        return frame, ventanas, hilo, dialogo, mensaje
 
-    def test_icono_de_resultado_distingue_fallo_y_acierto(self):
-        for estado, icono in (
-                ("actualizado", gui.wx.ICON_INFORMATION),
-                ("otro_fallo", gui.wx.ICON_ERROR)):
-            with self.subTest(estado=estado):
-                _, dialogos, _ = self._ejecutar((estado, "", "2026.08.21"))
-                self.assertEqual(icono, dialogos[-1][2] & (gui.wx.ICON_ERROR | gui.wx.ICON_INFORMATION))
+    def test_activar_anuncia_busqueda_antes_de_empezar(self):
+        def doble(avisar, progreso, cancelar):
+            return "ya_al_dia", "2026.08.20", "2026.08.20"
 
-    def test_anuncia_antes_de_descargar_y_al_terminar(self):
-        anuncios = []
-        hilo = mock.Mock()
-        hilo.start.side_effect = lambda: hilo.target()
+        frame, ventanas, hilo, _, _ = self._ejecutar(doble)
+        ventana = ventanas[0]
+        self.assertEqual("Actualizar yt-dlp", ventana.titulo)
+        self.assertTrue(ventana.mostrada)
+        self.assertIn("Buscando", ventana.anuncios[0])
+        hilo.start.assert_called_once_with()
+        self.assertEqual("ActualizarYtdlp", hilo.nombre)
 
-        def crear(target, nombre):
-            hilo.target = target
-            return hilo
-
-        def actualizar(aviso, _progreso, _cancelar):
-            aviso()
+    def test_con_version_nueva_anuncia_descarga(self):
+        def doble(avisar, progreso, cancelar):
+            avisar("2026.08.21")
             return "actualizado", "2026.08.20", "2026.08.21"
 
-        with mock.patch.object(gui, "anunciar", side_effect=anuncios.append), \
-                mock.patch.object(gui.diagnostico, "crear_hilo", side_effect=crear), \
-                mock.patch.object(gui.wx, "CallAfter", side_effect=lambda fn, *args: fn(*args)), \
-                mock.patch.object(gui.wx, "MessageBox") as mensaje, \
-                mock.patch.object(gui.wx, "ProgressDialog") as progreso, \
-                mock.patch.object(gui.wx, "CallLater"), \
-                mock.patch.object(ytdlp_bin, "actualizar_ytdlp", side_effect=actualizar):
-            progreso.return_value.IsCancelled.return_value = False
-            gui.YTChatFrame._on_actualizar_ytdlp(gui.YTChatFrame.__new__(gui.YTChatFrame), None)
-        self.assertIn("Buscando", anuncios[0])
-        progreso.assert_called_once()
-        self.assertEqual(1, mensaje.call_count)
-        self.assertIn("actualizó", mensaje.call_args.args[0])
+        _, ventanas, _, _, _ = self._ejecutar(doble)
+        self.assertTrue(any(
+            "Hay una versión nueva de yt-dlp, la 2026.08.21" in texto
+            for texto in ventanas[0].anuncios))
 
+    def test_cada_desenlace_anuncia_su_texto_y_deja_la_barra(self):
+        casos = (
+            ("actualizado", "2026.08.20", "2026.08.21"),
+            ("ya_al_dia", "2026.08.20", "2026.08.20"),
+            ("sin_conexion", "2026.08.20", ""),
+            ("firma_incorrecta", "2026.08.20", "2026.08.21"),
+            ("otro_fallo", "2026.08.20", "2026.08.21"),
+        )
+        for resultado in casos:
+            with self.subTest(estado=resultado[0]):
+                _, ventanas, _, _, _ = self._ejecutar(
+                    lambda a, p, c, r=resultado: r)
+                ventana = ventanas[0]
+                self.assertIn("Buscando", ventana.anuncios[0])
+                self.assertEqual(
+                    ytdlp_bin.mensaje_de_actualizacion(*resultado),
+                    ventana.anuncios[-1])
+                if ytdlp_bin.resultado_actualizacion_es_fallo(resultado[0]):
+                    self.assertEqual(0, ventana.progresos[-1])
+                else:
+                    self.assertEqual(100, ventana.progresos[-1])
 
-    def test_sondeo_de_cancelacion_se_reprograma(self):
-        dialogo = self.Dialogo()
-        hilo = mock.Mock()
-        hilo.start.side_effect = lambda: hilo.target()
+    def test_pasa_las_versiones_al_mensaje_final(self):
+        def doble(avisar, progreso, cancelar):
+            return "firma_incorrecta", "", "2026.08.21"
 
-        def crear(target, nombre):
-            hilo.target = target
-            return hilo
+        with mock.patch.object(ytdlp_bin, "mensaje_de_actualizacion",
+                               return_value="hecho") as mensaje:
+            _, ventanas, _, _, _ = self._ejecutar(doble)
+        mensaje.assert_called_once_with("firma_incorrecta", "", "2026.08.21")
+        self.assertEqual("hecho", ventanas[0].anuncios[-1])
 
-        def actualizar(antes, _progreso, _cancelar):
-            antes()
-            return "cancelado", "2026.08.20", "2026.08.21"
+    def test_ventana_cerrada_descarta_el_resultado(self):
+        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
 
-        with mock.patch.object(gui, "anunciar"), \
-                mock.patch.object(gui.diagnostico, "crear_hilo", side_effect=crear), \
-                mock.patch.object(gui.wx, "CallAfter", side_effect=lambda fn, *args: fn(*args)), \
-                mock.patch.object(gui.wx, "CallLater") as call_later, \
-                mock.patch.object(gui.wx, "ProgressDialog", return_value=dialogo), \
-                mock.patch.object(gui.wx, "MessageBox"), \
-                mock.patch.object(ytdlp_bin, "actualizar_ytdlp", side_effect=actualizar):
-            gui.YTChatFrame._on_actualizar_ytdlp(
-                gui.YTChatFrame.__new__(gui.YTChatFrame), None)
+        def doble(avisar, progreso, cancelar):
+            frame._ventana_actualizar_ytdlp.cerrar()
+            return "actualizado", "2026.08.20", "2026.08.21"
 
-        call_later.assert_called_once()
-        self.assertEqual(call_later.call_args.args[0], 100)
-        self.assertTrue(callable(call_later.call_args.args[1]))
+        _, ventanas, _, _, _ = self._ejecutar(doble, frame)
+        self.assertEqual(1, len(ventanas[0].anuncios))
+
+    def test_progreso_con_decenas_no_anuncia_y_no_usa_dialogos_viejos(self):
+        def doble(avisar, progreso, cancelar):
+            for porcentaje in (10, 20, 40, 100):
+                progreso(porcentaje, 0, 100)
+            return "actualizado", "2026.08.20", "2026.08.21"
+
+        _, ventanas, _, dialogo, mensaje = self._ejecutar(doble)
+        ventana = ventanas[0]
+        self.assertEqual([10, 20, 40, 100, 100], ventana.progresos)
+        self.assertIn("Descargando yt-dlp: 40 por ciento",
+                      ventana.textos_sin_anunciar)
+        self.assertFalse(any("por ciento" in texto
+                             for texto in ventana.anuncios))
+        dialogo.assert_not_called()
+        mensaje.assert_not_called()
+
+    def test_cancelacion_cableada_a_la_ventana(self):
+        capturada = {}
+
+        def doble(avisar, progreso, cancelar):
+            capturada["cancelar"] = cancelar
+            return "ya_al_dia", "2026.08.20", "2026.08.20"
+
+        _, ventanas, _, _, _ = self._ejecutar(doble)
+        ventana = ventanas[0]
+        self.assertFalse(capturada["cancelar"]())
+        ventana.cerrar()
+        self.assertTrue(capturada["cancelar"]())
+
+    def test_excepcion_termina_en_otro_fallo(self):
+        def doble(avisar, progreso, cancelar):
+            raise RuntimeError("boom")
+
+        with mock.patch.object(gui, "logger"):
+            _, ventanas, _, _, _ = self._ejecutar(doble)
+        self.assertEqual(
+            ytdlp_bin.mensaje_de_actualizacion("otro_fallo", motivo="boom"),
+            ventanas[0].anuncios[-1])
+        self.assertEqual(0, ventanas[0].progresos[-1])
+
+    def test_segunda_pulsacion_reutiliza_la_ventana(self):
+        def doble(avisar, progreso, cancelar):
+            return "ya_al_dia", "2026.08.20", "2026.08.20"
+
+        frame, ventanas, _, _, _ = self._ejecutar(doble)
+        primera = ventanas[0]
+        anuncios = len(primera.anuncios)
+        _, ventanas2, hilo2, _, _ = self._ejecutar(doble, frame)
+        self.assertEqual([], ventanas2)
+        self.assertTrue(primera.elevada)
+        primera.btn_cerrar.SetFocus.assert_called()
+        hilo2.start.assert_not_called()
+        self.assertEqual(anuncios, len(primera.anuncios))
+
+    def test_ventana_cerrada_permite_abrir_otra(self):
+        def doble(avisar, progreso, cancelar):
+            return "ya_al_dia", "2026.08.20", "2026.08.20"
+
+        frame, ventanas, _, _, _ = self._ejecutar(doble)
+        ventanas[0].cerrar()
+        _, ventanas2, hilo2, _, _ = self._ejecutar(doble, frame)
+        self.assertEqual(1, len(ventanas2))
+        hilo2.start.assert_called_once_with()
 
 
 class TestCierreVentana(unittest.TestCase):

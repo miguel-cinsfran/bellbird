@@ -896,43 +896,59 @@ class YTChatFrame(wx.Frame):
             return
 
     def _on_actualizar_ytdlp(self, event):
-        anunciar("Buscando la última versión de yt-dlp")
-        cancelado = threading.Event()
-        dialogo = None
-        terminado = threading.Event()
+        from ytchat.ui.gui_actualizacion import DialogoActualizacion
+        abierta = getattr(self, "_ventana_actualizar_ytdlp", None)
+        if abierta is not None and not abierta.cerrado:
+            try:
+                abierta.Raise()
+            except Exception:
+                pass
+            try:
+                abierta.btn_cerrar.SetFocus()
+            except Exception:
+                pass
+            return
+        ventana = DialogoActualizacion(self, "Actualizar yt-dlp")
+        self._ventana_actualizar_ytdlp = ventana
+        ventana.Show()
+        ventana.estado("Buscando la última versión de yt-dlp.")
         ultimo_texto = None
 
-        def _crear_dialogo():
-            nonlocal dialogo
-            dialogo = wx.ProgressDialog(
-                APP_NAME, "Descargando yt-dlp", 100, self,
-                style=wx.PD_APP_MODAL | wx.PD_CAN_ABORT)
+        def _avisar(version_nueva):
+            ventana.en_hilo_principal(
+                _mostrar_descarga, version_nueva)
 
-            def _comprobar_cancelacion():
-                ytdlp_bin.sondear_cancelacion(
-                    terminado, dialogo, cancelado,
-                    lambda: wx.CallLater(100, _comprobar_cancelacion))
-
-            _comprobar_cancelacion()
+        def _mostrar_descarga(version_nueva):
+            ventana.estado(
+                f"Hay una versión nueva de yt-dlp, la {version_nueva}. "
+                "Descargando.")
 
         def _progreso(porcentaje, _descargado, _total):
-            wx.CallAfter(_actualizar_progreso, porcentaje)
+            ventana.en_hilo_principal(_actualizar_progreso, porcentaje)
 
         def _actualizar_progreso(porcentaje):
             nonlocal ultimo_texto
-            if dialogo is None:
-                return
-            texto = "Descargando yt-dlp"
+            ventana.progreso(porcentaje)
             if ytdlp_bin.debe_actualizar_texto_progreso(ultimo_texto, porcentaje):
                 ultimo_texto = porcentaje
-                texto = f"Descargando yt-dlp: {porcentaje} por ciento"
-            dialogo.Update(porcentaje if porcentaje is not None else 0, texto)
+                ventana.txt_estado.SetValue(
+                    f"Descargando yt-dlp: {porcentaje} por ciento")
+
+        def _terminar(estado, texto):
+            if ytdlp_bin.resultado_actualizacion_es_fallo(estado):
+                ventana.progreso(0)
+            else:
+                ventana.progreso(100)
+            ventana.estado(texto)
+            try:
+                ventana.btn_cerrar.SetFocus()
+            except Exception:
+                pass
 
         def _run():
             try:
                 estado, version_actual, version_nueva = ytdlp_bin.actualizar_ytdlp(
-                    lambda: wx.CallAfter(_crear_dialogo),
-                    _progreso, cancelado.is_set)
+                    _avisar, _progreso, ventana.cancelado.is_set)
                 texto = ytdlp_bin.mensaje_de_actualizacion(
                     estado, version_actual, version_nueva)
             except Exception as exc:
@@ -940,15 +956,7 @@ class YTChatFrame(wx.Frame):
                 estado = "otro_fallo"
                 texto = ytdlp_bin.mensaje_de_actualizacion(
                     "otro_fallo", motivo=str(exc))
-            icono = (wx.ICON_ERROR if ytdlp_bin.resultado_actualizacion_es_fallo(estado)
-                     else wx.ICON_INFORMATION)
-            def _terminar():
-                terminado.set()
-                if dialogo is not None:
-                    dialogo.Destroy()
-                wx.MessageBox(texto, APP_NAME, wx.OK | icono, self)
-
-            wx.CallAfter(_terminar)
+            ventana.en_hilo_principal(_terminar, estado, texto)
 
         diagnostico.crear_hilo(_run, "ActualizarYtdlp").start()
 

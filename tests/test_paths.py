@@ -31,6 +31,7 @@ RUTAS_DE_INSTALACION = [
     ("descargas_por_defecto", "Descargas"),
     ("carpeta_sonidos", "sounds"),
     ("config_predeterminada_ini", "config.predeterminado.ini"),
+    ("cliente_app", "cliente_app.json"),
     ("ffmpeg_empaquetado", paths.NOMBRE_FFMPEG),
     ("ytdlp_empaquetado", paths.NOMBRE_YTDLP),
     ("carpeta_vlc_empaquetada", "vlc"),

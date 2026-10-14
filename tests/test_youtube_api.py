@@ -385,7 +385,8 @@ class TestCableadoChatDirecto(unittest.TestCase):
             "hay_video": True, "hay_directo": True, "live_chat_id": ""}))
         modulos = {
             "ytchat.youtube.credenciales": types.SimpleNamespace(hay_lectura=lambda: True,
-                                                     cargar=lambda: {}),
+                                                      cargar=lambda: {},
+                                                      efectivas=lambda *a, **k: {}),
             "ytchat.youtube.youtube_api": types.SimpleNamespace(
                 google_disponible=lambda: True, ClienteYouTube=lambda _: cliente),
             "ytchat.ui.gui": types.SimpleNamespace(_gui_frame=frame),

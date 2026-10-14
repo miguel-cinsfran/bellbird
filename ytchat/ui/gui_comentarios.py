@@ -188,7 +188,7 @@ class ComentariosPanel(wx.Panel):
     # ── Carga ────────────────────────────────────────────────────────────────
 
     def _cliente(self) -> youtube_api.ClienteYouTube:
-        return youtube_api.ClienteYouTube(credenciales.cargar())
+        return youtube_api.ClienteYouTube(credenciales.efectivas())
 
     def _recargar(self):
         if self._video_id:

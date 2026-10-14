@@ -189,7 +189,8 @@ class PruebasCableadoConexiones(unittest.TestCase):
             return HiloInerte()
 
         credenciales_falso = types.SimpleNamespace(hay_lectura=lambda: True,
-                                                   cargar=lambda: {})
+                                                    cargar=lambda: {},
+                                                    efectivas=lambda *a, **k: {})
         youtube_api_falso = types.SimpleNamespace(google_disponible=lambda: True,
                                                   ClienteYouTube=ClienteFalso)
         llamadas = []

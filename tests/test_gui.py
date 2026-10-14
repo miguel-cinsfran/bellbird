@@ -2700,8 +2700,11 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
                   "privacidad": "public"}
         with mock.patch.object(gui.credenciales, "cargar",
                                return_value={"token": "t"}), \
+                mock.patch.object(gui.credenciales, "efectivas",
+                                   return_value={"token": "t",
+                                                 "api_key": "k-prueba"}) as efectivas, \
                 mock.patch.object(gui.credenciales, "hay_sesion",
-                                  return_value=True), \
+                                   return_value=True), \
                 mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo",
                            return_value=pedido) as pedir, \
                 mock.patch.object(gui.youtube_api, "ClienteYouTube") as cliente, \
@@ -2721,7 +2724,9 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
             gui.RUTA_CONFIG, "transmision", "youtube_descripcion", "algo")
         guardar.assert_any_call(
             gui.RUTA_CONFIG, "transmision", "youtube_privacidad", "public")
-        cliente.assert_called_once_with({"token": "t"})
+        cliente.assert_called_once_with({"token": "t",
+                                           "api_key": "k-prueba"})
+        efectivas.assert_called_once_with({"token": "t"})
         self.assertEqual(len(creados), 1)
         self.assertTrue(callable(creados[0]["preparar_emision"]))
         self.assertTrue(callable(creados[0]["esperar_emision"]))

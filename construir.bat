@@ -159,6 +159,15 @@ copy /y "docs\README.html" "%OUT%\Leeme.html" >nul
 REM Solo en la raiz: sus enlaces (docs/...) se calculan desde ahi y dentro de docs/ quedaban rotos.
 del /q "%OUT%\docs\README.html" >nul 2>&1
 
+REM Cliente de Google de la app: si esta en la raiz, viaja junto al exe
+REM para que quien no tenga credenciales propias igual pueda iniciar sesion.
+REM Si no esta, el paquete sale sin cliente y cada persona necesitara el suyo.
+if exist "cliente_app.json" (
+  copy /y "cliente_app.json" "%OUT%\" >nul
+) else (
+  echo    AVISO: sin cliente_app.json; el paquete saldra sin cliente de Google y cada persona necesitara credenciales propias.
+)
+
 REM Por higiene: nada de log ni credenciales en el paquete que se envia.
 del /q "%OUT%\ytchat.log" 2>nul
 del /q "%OUT%\credenciales.json" 2>nul

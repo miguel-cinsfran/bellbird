@@ -76,15 +76,70 @@ def guardar_campo(clave: str, valor) -> bool:
         return guardar(datos)
 
 
-def hay_lectura(datos: dict | None = None) -> bool:
-    """¿Hay API key para leer comentarios?"""
+# Claves que aporta el cliente de Google de la app (sin token: la sesión
+# es siempre de la persona, nunca compartida).
+_CLAVES_APP = ("oauth_client_id", "oauth_client_secret", "api_key")
+
+
+def cliente_app() -> dict:
+    """Lee el cliente de Google que viaja con la app. Nunca lanza: si el
+    archivo falta, está roto o no trae las claves, devuelve cadenas vacías."""
+    datos = {k: "" for k in _CLAVES_APP}
+    try:
+        bruto = archivos.leer_json(paths.cliente_app(), None)
+    except Exception:
+        return datos
+    if not isinstance(bruto, dict):
+        return datos
+    for k in _CLAVES_APP:
+        valor = bruto.get(k, "")
+        datos[k] = valor if isinstance(valor, str) else ""
+    return datos
+
+
+def efectivas(datos: dict | None = None) -> dict:
+    """Mezcla las credenciales propias con las de la app, sin escribir nada.
+
+    El ID y el secreto van juntos: solo se toman los de la app si los dos
+    propios están vacíos (un ID propio con el secreto de la app no sirve).
+    La API key va sola. El token no se toca nunca."""
+    base = dict(datos) if datos is not None else cargar()
+    for k, v in _DEFECTO.items():
+        base.setdefault(k, v)
+    try:
+        app = cliente_app()
+    except Exception:
+        return base
+    if not (base.get("oauth_client_id") or "").strip() \
+            and not (base.get("oauth_client_secret") or "").strip():
+        base["oauth_client_id"] = app["oauth_client_id"]
+        base["oauth_client_secret"] = app["oauth_client_secret"]
+    if not (base.get("api_key") or "").strip():
+        base["api_key"] = app["api_key"]
+    return base
+
+
+def usa_cliente_de_la_app(datos: dict | None = None) -> bool:
+    """¿Se está usando el cliente OAuth de la app (la persona no puso el suyo)?"""
     d = datos if datos is not None else cargar()
+    if ((d.get("oauth_client_id") or "").strip()):
+        return False
+    try:
+        app = cliente_app()
+    except Exception:
+        return False
+    return bool((app.get("oauth_client_id") or "").strip())
+
+
+def hay_lectura(datos: dict | None = None) -> bool:
+    """¿Hay API key para leer comentarios (propia o de la app)?"""
+    d = efectivas(datos)
     return bool((d.get("api_key") or "").strip())
 
 
 def hay_oauth_configurado(datos: dict | None = None) -> bool:
-    """¿Están puestos el client id y el secret del OAuth?"""
-    d = datos if datos is not None else cargar()
+    """¿Están puestos el client id y el secret del OAuth (propios o de la app)?"""
+    d = efectivas(datos)
     return bool((d.get("oauth_client_id") or "").strip()
                 and (d.get("oauth_client_secret") or "").strip())
 

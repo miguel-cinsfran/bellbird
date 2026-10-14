@@ -849,7 +849,7 @@ class YTChatFrame(wx.Frame):
                     anunciar(str(exc))
                     return
                 preparar, esperar = emision.ganchos_youtube(
-                    youtube_api.ClienteYouTube(datos), cuerpo,
+                    youtube_api.ClienteYouTube(credenciales.efectivas(datos)), cuerpo,
                     lambda nuevo: credenciales.guardar_campo("token", nuevo))
                 ganchos = {"preparar_emision": preparar,
                            "esperar_emision": esperar}
@@ -1729,7 +1729,7 @@ class YTChatFrame(wx.Frame):
 
         def _run():
             try:
-                cli = youtube_api.ClienteYouTube(credenciales.cargar())
+                cli = youtube_api.ClienteYouTube(credenciales.efectivas())
                 accion(cli)
                 if cli.token_actualizado():
                     credenciales.guardar_campo("token", cli.token_actualizado())
@@ -1800,7 +1800,7 @@ class YTChatFrame(wx.Frame):
 
         def _run():
             try:
-                cli = youtube_api.ClienteYouTube(credenciales.cargar())
+                cli = youtube_api.ClienteYouTube(credenciales.efectivas())
                 cli.enviar_mensaje_live(lcid, texto)
                 if cli.token_actualizado():
                     credenciales.guardar_campo("token", cli.token_actualizado())

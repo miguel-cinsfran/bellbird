@@ -215,6 +215,24 @@ class TestConstruirBat(unittest.TestCase):
             "la guarda de config.ini debe aparecer antes de comprimir el zip",
         )
 
+    def test_construir_copia_el_cliente_de_la_app_antes_del_zip(self):
+        base = Path(__file__).parent.parent
+        texto = (base / "construir.bat").read_text(encoding="utf-8")
+        self.assertIn('cliente_app.json', texto)
+        self.assertIn('copy /y "cliente_app.json" "%OUT%\\"', texto)
+        # la copia va antes de comprimir y antes de la higiene que borra datos
+        indice_copia = texto.find('copy /y "cliente_app.json"')
+        indice_zip = texto.lower().find("compress-archive")
+        self.assertGreater(indice_copia, -1)
+        self.assertLess(indice_copia, indice_zip)
+        # el borrado de credenciales.json sigue intacto
+        self.assertIn('del /q "%OUT%\\credenciales.json"', texto)
+        # ASCII puro, como el resto del archivo
+        for numero, linea in enumerate(
+                (base / "construir.bat").read_bytes().splitlines(), 1):
+            self.assertFalse(any(byte > 127 for byte in linea),
+                             f"construir.bat:{numero} tiene bytes fuera de ASCII")
+
 
 class TestGitignore(unittest.TestCase):
     def test_gitignore_ignora_config_y_no_ignora_predeterminado(self):

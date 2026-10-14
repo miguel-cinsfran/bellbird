@@ -86,7 +86,7 @@ class Conexiones:
                     return
                 if not self._registro.vigente(gen):
                     return
-                cliente = youtube_api.ClienteYouTube(credenciales.cargar())
+                cliente = youtube_api.ClienteYouTube(credenciales.efectivas())
                 # La primera consulta va nada más conectar (antes se esperaba
                 # un minuto entero sin espectadores ni hora de inicio); las
                 # siguientes, cada minuto.

@@ -157,7 +157,7 @@ def _clasificar_por_api(video_id: str) -> str:
         from ytchat.youtube import youtube_api
         if not (youtube_api.google_disponible() and credenciales.hay_lectura()):
             return deteccion.DESCONOCIDO
-        cli = youtube_api.ClienteYouTube(credenciales.cargar())
+        cli = youtube_api.ClienteYouTube(credenciales.efectivas())
         resp = cli._lectura().videos().list(
             part="snippet", id=video_id).execute()
         items = resp.get("items", []) or []
@@ -300,7 +300,7 @@ def _resolver_live_chat_id(video_id: str) -> None:
         if hay_credenciales:
             try:
                 datos = youtube_api.ClienteYouTube(
-                    credenciales.cargar()).datos_chat_directo(video_id)
+                    credenciales.efectivas()).datos_chat_directo(video_id)
                 hay_video = datos["hay_video"]
                 hay_directo = datos["hay_directo"]
                 lcid = datos["live_chat_id"]

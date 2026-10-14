@@ -942,6 +942,8 @@ class PreferenciasDialog(wx.Dialog):
         else:
             texto = "Estado: sin sesión. Solo lectura de comentarios (si hay API key)."
             self.btn_api_logout.Disable()
+        if credenciales.usa_cliente_de_la_app():
+            texto += " Se usa el cliente de Google de la aplicación."
         if not youtube_api.google_disponible():
             self.btn_api_login.Disable()
         self.lbl_estado_api.SetLabel(texto)
@@ -960,10 +962,18 @@ class PreferenciasDialog(wx.Dialog):
         cid = self.txt_cid.GetValue().strip()
         secret = self.txt_secret.GetValue().strip()
         if not (cid and secret):
-            wx.MessageBox("Rellena el ID y el secreto de cliente OAuth antes de "
-                          "iniciar sesión.", "Faltan datos", wx.OK | wx.ICON_WARNING, self)
-            return
-        self._api_guardar(None)
+            # Sin cliente propio, vale el que trae la app: la persona solo
+            # pulsa «Iniciar sesión», sin guardar nada en sus campos.
+            efectivas = credenciales.efectivas()
+            cid_app = (efectivas.get("oauth_client_id") or "").strip()
+            secret_app = (efectivas.get("oauth_client_secret") or "").strip()
+            if not (cid_app and secret_app):
+                wx.MessageBox("Rellena el ID y el secreto de cliente OAuth antes de "
+                              "iniciar sesión.", "Faltan datos", wx.OK | wx.ICON_WARNING, self)
+                return
+            cid, secret = cid_app, secret_app
+        else:
+            self._api_guardar(None)
         self._login_en_curso = True
         self.btn_api_login.Disable()
         anunciar("Abriendo el navegador para iniciar sesión. Autoriza y vuelve aquí.")

@@ -22,6 +22,7 @@ _RAIZ_DESARROLLO = Path(__file__).resolve().parent.parent.parent
 
 # Nombres que antes vivían duplicados en cada módulo que los usaba.
 NOMBRE_CREDENCIALES = "credenciales.json"
+NOMBRE_CLIENTE_APP = "cliente_app.json"
 NOMBRE_FFMPEG = "ffmpeg.exe" if os.name == "nt" else "ffmpeg"
 NOMBRE_YTDLP = "yt-dlp.exe"
 
@@ -139,3 +140,9 @@ def carpeta_vlc_empaquetada() -> Path:
 
 def carpeta_interna() -> Path:
     return carpeta_instalacion() / "_internal"
+
+
+def cliente_app() -> Path:
+    # El cliente de Google de la app viaja junto al ejecutable: no es un
+    # dato del usuario y por eso cuelga de la instalación, no de los datos.
+    return carpeta_instalacion() / NOMBRE_CLIENTE_APP

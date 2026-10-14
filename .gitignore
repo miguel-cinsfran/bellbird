@@ -36,6 +36,8 @@ ytchat-fallos.log
 
 # Secretos de la API de YouTube (los gestiona la app desde Configuración)
 credenciales.json
+# Cliente OAuth y API key de la app: viajan solo dentro del paquete.
+cliente_app.json
 alias.json
 
 # Historial de sesión (opción guardar_historial en config.ini)

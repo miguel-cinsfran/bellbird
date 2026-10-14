@@ -7,14 +7,21 @@ Esta guía explica cómo activar las funciones online de YTChat TTS:
 - **Enviar mensajes** al chat del directo.
 - **Publicar y responder** comentarios.
 
-Todo se gestiona desde el botón **Configuración** de la aplicación; no hay que
-editar archivos a mano. Lo único que se hace fuera de la app, una sola vez, es
-crear las credenciales en Google Cloud, y eso es lo que cubre esta guía.
+**Esta guía es opcional.** La aplicación trae su propio acceso a Google:
+para usar estas funciones basta con pulsar *Iniciar sesión* en *Preferencias,
+API y sesión*, sin crear nada en Google Cloud. Esta guía es para quien
+prefiera usar credenciales propias.
 
-> **Por qué cada usuario crea sus propias credenciales.** YouTube reparte la
-> cuota de uso *por proyecto*. Si cada persona usa las suyas, tiene su propia
-> cuota diaria completa, no necesita que Google verifique nada y no comparte
-> límites con nadie. Es la forma más sana y privada de usar la API.
+> **Por qué alguien querría credenciales propias.** YouTube reparte la cuota de
+> uso *por proyecto*. Con el acceso de la aplicación, la cuota diaria se
+> comparte entre todas las personas que la usan. Con credenciales propias, la
+> cuota completa es solo de quien las creó, y no hace falta que Google
+> verifique nada. Si se cargan en la aplicación, se usan esas en lugar de las
+> de la aplicación.
+
+Todo se gestiona desde *Preferencias* en la aplicación; no hay que editar
+archivos a mano. Lo único que se hace fuera, una sola vez, es crear las
+credenciales en Google Cloud, y eso es lo que cubre esta guía.
 
 La parte de moderar y comentar es opcional. Para **leer comentarios** basta con
 la API key, o sea los pasos 1 a 3; el resto se puede saltar.

@@ -179,8 +179,8 @@ reproductor», y al terminar, «Reproductor listo».
 ## Transmitir en directo desde la aplicación
 
 Con OBS Studio, el directo se empieza y se termina desde la aplicación, sin
-abrir OBS ni la página de Restream. Está pensado para transmitir a TikTok a
-través de Restream, y también admite YouTube.
+abrir OBS ni la página de Restream. Transmite a TikTok a través de Restream,
+y a YouTube directamente con la cuenta de Google.
 
 ### Lo que hace falta preparar una sola vez
 
@@ -188,9 +188,13 @@ través de Restream, y también admite YouTube.
   [Componer la escena desde la aplicación](#componer-la-escena-desde-la-aplicación)).
   Si OBS está cerrado, la aplicación lo abre sola en el área de notificación,
   sin quitarle el foco al lector de pantalla. Si no está instalado, lo avisa.
-- **Un perfil de OBS por destino**, llamado `TikTok` o `YouTube`, con su
-  servicio de emisión configurado. Para TikTok, el servicio es Restream, con
-  el canal de TikTok activado en Restream.
+- **Para TikTok, un perfil de OBS llamado `TikTok`**, con Restream como
+  servicio de emisión y el canal de TikTok activado en Restream.
+- **Para YouTube, la sesión de Google iniciada** (ver [Funciones con la API
+  de YouTube](#funciones-con-la-api-de-youtube)) y los directos activados en
+  la cuenta de YouTube. El perfil de OBS no hace falta prepararlo: si no
+  existe un perfil llamado `YouTube`, se crea, y antes de cada directo se le
+  carga la clave de emisión de la cuenta.
 - **El destino y el usuario**, en la ventana *Transmisión*, sección
   *Transmitir*: el desplegable *Transmitir a* y, para TikTok, el campo *Tu
   usuario de TikTok*. Los dos se recuerdan.
@@ -213,14 +217,21 @@ Al pulsarlo:
    fuentes, audio y cualquier problema, como una escena vacía, una imagen en
    negro o un micrófono silenciado. Con problemas, el botón seleccionado de
    inicio es *Cancelar*.
-3. Al aceptar, empieza la transmisión. La aplicación confirma que la señal
-   sale y, en TikTok, espera a que el directo aparezca y conecta el chat sola,
-   sin pegar ningún enlace. Se anuncia «Tu directo de TikTok ya está al aire».
-4. Durante el directo vigila la conexión y avisa por voz si hay problemas.
+3. Para YouTube, una ventana pide el **título**, una **descripción**
+   opcional y la **privacidad**: público, no listado o privado. Se recuerdan
+   para la próxima vez. «No listado» sirve para probar sin que el directo
+   aparezca en el canal. Al pulsar *Crear directo*, se crea en el canal.
+4. Empieza la transmisión. La aplicación confirma que la señal sale, espera a
+   que el directo aparezca en TikTok o en YouTube y conecta el chat sola, sin
+   pegar ningún enlace. Se anuncia «Tu directo de TikTok ya está al aire» o
+   «Tu directo de YouTube ya está al aire».
+5. Durante el directo vigila la conexión y avisa por voz si hay problemas.
 
 Mientras se transmite, el botón pasa a decir **Finalizar directo**. Pide
 confirmación, y la opción seleccionada de inicio es seguir transmitiendo, para
-que un `Intro` accidental no corte el directo.
+que un `Intro` accidental no corte el directo. En YouTube, el directo termina
+solo al cortar la señal, y YouTube puede tardar alrededor de un minuto en
+mostrarlo como terminado.
 
 Cerrar la aplicación no corta el directo. Al volver a abrirla y pulsar
 *Transmitir en directo*, se anuncia que OBS ya está transmitiendo y el botón
@@ -454,20 +465,31 @@ API de YouTube. Si se supera, se avisa al enviar indicando la longitud actual.
 
 ## Funciones con la API de YouTube
 
-Tres funciones requieren credenciales propias y sesión de Google iniciada:
+Cuatro funciones requieren la sesión de Google iniciada:
 
 - **Moderar el chat**: expulsar temporalmente o vetar a un usuario, desde el
   menú contextual de la lista.
 - **Escribir en el chat del directo**, desde el cuadro que hay debajo
   de la lista, en la pestaña *Chat en vivo*.
 - **Publicar y responder comentarios** en vídeos ya publicados.
+- **Crear el directo de YouTube** al transmitir desde la aplicación.
 
 Si la sesión de Google caduca, la aplicación lo anuncia con voz y se puede volver
 a iniciar desde *Preferencias, API y sesión*.
 
-Cada usuario emplea credenciales propias, creadas en su cuenta de Google. La
-guía paso a paso, redactada para leerse con lector de pantalla, está en
-[docs/CONFIGURACION_API.md](docs/CONFIGURACION_API.md).
+Para iniciar sesión no hace falta crear nada en Google Cloud: la aplicación
+trae su propio acceso. Basta con pulsar *Iniciar sesión* en *Preferencias, API
+y sesión* y autorizar con la cuenta de Google en el navegador. Mientras Google
+no termine de verificar la aplicación, muestra un aviso de aplicación no
+verificada: para seguir, se abre la opción avanzada de esa página y se elige
+continuar a ytchat-tts.
+
+Con el acceso de la aplicación, la cuota diaria de la API de YouTube se
+comparte entre todas las personas que la usan. Quien prefiera usar
+credenciales propias, con su propia cuota, puede crearlas en su cuenta de
+Google siguiendo [docs/CONFIGURACION_API.md](docs/CONFIGURACION_API.md), una
+guía paso a paso redactada para leerse con lector de pantalla. Si se cargan,
+se usan esas.
 
 Sin credenciales, la aplicación funciona igual para todo lo demás: leer el chat,
 el reproductor, las descargas, el panel de transmisión y el historial no las

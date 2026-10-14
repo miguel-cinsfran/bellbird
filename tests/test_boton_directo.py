@@ -68,7 +68,7 @@ class TestBotonDirectoVentana(unittest.TestCase):
             frame = gui.YTChatFrame(None, configuracion, queue.Queue(),
                                     stats, worker, threading.Event())
         self.addCleanup(frame.Destroy)
-        frame.Show()
+        frame.ShowWithoutActivating()
         gui.wx.Yield()
         return frame
 

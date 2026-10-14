@@ -581,7 +581,7 @@ class TestVentanaReal(unittest.TestCase):
             frame = gui.YTChatFrame(None, configuracion, queue.Queue(), stats, worker,
                                     __import__("threading").Event())
         self.addCleanup(frame.Destroy)
-        frame.Show()
+        frame.ShowWithoutActivating()
         gui.wx.Yield()
         return frame
 

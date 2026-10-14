@@ -203,8 +203,8 @@ class ServicioFlujosFalso:
 
 
 def flujo(titulo, reutilizable=True, servidor="rtmp://a.rtmp.youtube.com/live2",
-          clave="clave"):
-    return {"snippet": {"title": titulo},
+          clave="clave", id_flujo="flujo-1"):
+    return {"id": id_flujo, "snippet": {"title": titulo},
             "contentDetails": {"isReusable": reutilizable},
             "cdn": {"ingestionInfo": {"ingestionAddress": servidor,
                                       "streamName": clave}}}
@@ -251,6 +251,128 @@ class TestClaveEmision(unittest.TestCase):
         cliente.clave_emision()
         self.assertTrue(servicio.parametros.get("mine"))
         self.assertIn("contentDetails", servicio.parametros.get("part", ""))
+
+
+class TestFlujoReutilizable(unittest.TestCase):
+
+    def cliente(self, flujos):
+        cliente = ClienteYouTube({"token": "{}"})
+        servicio = ServicioFlujosFalso(flujos)
+        cliente._svc_escritura = servicio
+        return cliente, servicio
+
+    def test_devuelve_id_servidor_y_clave(self):
+        cliente, _ = self.cliente([
+            flujo("Otro", clave="otra", id_flujo="flujo-otra"),
+            flujo("Default stream key", clave="elegida",
+                  id_flujo="flujo-elegida"),
+        ])
+        self.assertEqual(cliente.flujo_reutilizable(),
+                         ("flujo-elegida",
+                          "rtmp://a.rtmp.youtube.com/live2", "elegida"))
+
+    def test_saltea_flujos_sin_id(self):
+        sin_id = {"snippet": {"title": "Default stream key"},
+                  "contentDetails": {"isReusable": True},
+                  "cdn": {"ingestionInfo": {
+                      "ingestionAddress": "rtmp://a.rtmp.youtube.com/live2",
+                      "streamName": "clave"}}}
+        cliente, _ = self.cliente([sin_id])
+        self.assertIsNone(cliente.flujo_reutilizable())
+
+    def test_sin_reutilizables_devuelve_none(self):
+        cliente, _ = self.cliente([flujo("Ajena", reutilizable=False,
+                                        id_flujo="flujo-ajena")])
+        self.assertIsNone(cliente.flujo_reutilizable())
+
+    def test_clave_emision_usa_el_flujo(self):
+        cliente, _ = self.cliente([
+            flujo("Default stream key", clave="elegida",
+                  id_flujo="flujo-elegida"),
+        ])
+        self.assertEqual(cliente.clave_emision(),
+                         ("rtmp://a.rtmp.youtube.com/live2", "elegida"))
+
+
+class ServicioEmisionFalso:
+    def __init__(self, respuesta):
+        self.respuesta = respuesta
+        self.metodo = ""
+        self.parametros = {}
+
+    def liveBroadcasts(self):
+        return self
+
+    def insert(self, **kwargs):
+        self.metodo = "insert"
+        self.parametros = kwargs
+        return self
+
+    def bind(self, **kwargs):
+        self.metodo = "bind"
+        self.parametros = kwargs
+        return self
+
+    def list(self, **kwargs):
+        self.metodo = "list"
+        self.parametros = kwargs
+        return self
+
+    def delete(self, **kwargs):
+        self.metodo = "delete"
+        self.parametros = kwargs
+        return self
+
+    def execute(self):
+        return self.respuesta
+
+
+class TestEmisionApi(unittest.TestCase):
+
+    def cliente(self, respuesta):
+        cliente = ClienteYouTube({"token": "{}"})
+        servicio = ServicioEmisionFalso(respuesta)
+        cliente._svc_escritura = servicio
+        return cliente, servicio
+
+    def test_crear_emision_devuelve_el_id(self):
+        cliente, servicio = self.cliente({"id": "vid123"})
+        cuerpo = {"snippet": {"title": "Hola"}}
+        self.assertEqual(cliente.crear_emision(cuerpo), "vid123")
+        self.assertEqual(servicio.metodo, "insert")
+        self.assertEqual(
+            servicio.parametros.get("part"), "snippet,status,contentDetails")
+        self.assertEqual(servicio.parametros.get("body"), cuerpo)
+
+    def test_vincular_emision_manda_los_parametros(self):
+        cliente, servicio = self.cliente({})
+        cliente.vincular_emision("vid123", "flujo-1")
+        self.assertEqual(servicio.metodo, "bind")
+        self.assertEqual(servicio.parametros.get("id"), "vid123")
+        self.assertEqual(servicio.parametros.get("part"), "id,contentDetails")
+        self.assertEqual(servicio.parametros.get("streamId"), "flujo-1")
+
+    def test_estado_emision_devuelve_el_ciclo(self):
+        cliente, servicio = self.cliente(
+            {"items": [{"status": {"lifeCycleStatus": "live"}}]})
+        self.assertEqual(cliente.estado_emision("vid123"), "live")
+        self.assertEqual(servicio.metodo, "list")
+        self.assertEqual(servicio.parametros.get("part"), "status")
+        self.assertEqual(servicio.parametros.get("id"), "vid123")
+
+    def test_estado_emision_sin_items_devuelve_vacio(self):
+        cliente, _ = self.cliente({"items": []})
+        self.assertEqual(cliente.estado_emision("vid123"), "")
+
+    def test_borrar_emision_manda_el_id(self):
+        cliente, servicio = self.cliente({})
+        cliente.borrar_emision("vid123")
+        self.assertEqual(servicio.metodo, "delete")
+        self.assertEqual(servicio.parametros.get("id"), "vid123")
+
+    def test_directos_no_activados(self):
+        self.assertIn("directos activados",
+                      mensaje_error_api("liveStreamingNotEnabled: algo"))
 
 
 class TestCableadoChatDirecto(unittest.TestCase):

@@ -141,6 +141,9 @@ def mensaje_error_api(exc) -> str:
         return "Este vídeo no tiene un chat en vivo activo."
     if "rate" in low and "limit" in low:
         return "Demasiadas peticiones seguidas. Espera unos segundos."
+    if "livestreamingnotenabled" in low:
+        return ("La cuenta de YouTube no tiene los directos activados. "
+                "Se activan en YouTube Studio y pueden tardar hasta 24 horas.")
     return f"Error de la API de YouTube: {texto}"
 
 
@@ -328,8 +331,8 @@ class ClienteYouTube:
             body={"snippet": {"parentId": parent_id, "textOriginal": texto}},
         ).execute()
 
-    def clave_emision(self) -> tuple[str, str] | None:
-        """Devuelve (servidor, clave) de emisión reutilizable de la cuenta."""
+    def flujo_reutilizable(self) -> tuple[str, str, str] | None:
+        """Devuelve (id, servidor, clave) de emisión reutilizable."""
         resp = self._escritura().liveStreams().list(
             part="id,snippet,cdn,status,contentDetails",
             mine=True, maxResults=50).execute()
@@ -338,9 +341,45 @@ class ClienteYouTube:
         flujos.sort(key=lambda flujo: (
             (flujo.get("snippet") or {}).get("title") != "Default stream key"))
         for flujo in flujos:
+            id_flujo = flujo.get("id") or ""
+            if not id_flujo:
+                continue
             ingestion = (flujo.get("cdn") or {}).get("ingestionInfo") or {}
             servidor = ingestion.get("ingestionAddress") or ""
             clave = ingestion.get("streamName") or ""
             if servidor and clave:
-                return (servidor, clave)
+                return (id_flujo, servidor, clave)
         return None
+
+    def clave_emision(self) -> tuple[str, str] | None:
+        """Devuelve (servidor, clave) de emisión reutilizable de la cuenta."""
+        flujo = self.flujo_reutilizable()
+        if flujo is None:
+            return None
+        return (flujo[1], flujo[2])
+
+    def crear_emision(self, cuerpo: dict) -> str:
+        """Crea el directo y devuelve el id del vídeo."""
+        resp = self._escritura().liveBroadcasts().insert(
+            part="snippet,status,contentDetails", body=cuerpo).execute()
+        return resp.get("id", "") or ""
+
+    def vincular_emision(self, id_video: str, id_flujo: str) -> None:
+        """Ata la emisión al flujo reutilizable de la cuenta."""
+        self._escritura().liveBroadcasts().bind(
+            id=id_video, part="id,contentDetails",
+            streamId=id_flujo).execute()
+
+    def estado_emision(self, id_video: str) -> str:
+        """Estado del ciclo de vida de la emisión ("live", "ready"...)."""
+        resp = self._escritura().liveBroadcasts().list(
+            part="status", id=id_video).execute()
+        items = resp.get("items", []) or []
+        if not items:
+            return ""
+        return ((items[0].get("status") or {}).get("lifeCycleStatus")
+                or "")
+
+    def borrar_emision(self, id_video: str) -> None:
+        """Borra una emisión programada de la cuenta."""
+        self._escritura().liveBroadcasts().delete(id=id_video).execute()

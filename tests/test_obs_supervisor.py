@@ -13,6 +13,7 @@ from ytchat.capture.tiktok_vivo import ResultadoEspera
 from ytchat.obs import obs_cliente
 from ytchat.obs import obs_supervisor
 from ytchat.obs.obs_supervisor import SupervisorTransmision, duracion_legible
+from ytchat.youtube import emision
 
 
 class RelojFalso:
@@ -612,6 +613,109 @@ class FraseEstadoTest(BaseSupervisor):
         try:
             self.assertTrue(esperar_condicion(
                 lambda: "3 min" in supervisor.frase_estado()))
+        finally:
+            supervisor.abandonar()
+
+
+class YouTubeEmisionTest(BaseSupervisor):
+    def armar_con_ganchos(self, estados=None, espera=True,
+                          preparar_falla=None, intervalo=1000.0):
+        reloj = RelojFalso()
+        anuncios = []
+        chats = []
+        gestores = []
+        orden = []
+        llamadas_preparar = []
+        llamadas_espera = []
+
+        def crear_gestor():
+            gestor = GestorFalso(estados)
+            gestores.append(gestor)
+            original = gestor.iniciar_transmision
+
+            def iniciar(parada=None):
+                orden.append("iniciar")
+                return original(parada)
+
+            gestor.iniciar_transmision = iniciar
+            return gestor
+
+        def preparar(cliente, parada):
+            orden.append("preparar")
+            llamadas_preparar.append((cliente, parada))
+            if preparar_falla is not None:
+                raise preparar_falla
+            return "vid123"
+
+        def esperar(id_video, parada, limite):
+            llamadas_espera.append((id_video, limite))
+            return espera
+
+        supervisor = SupervisorTransmision(
+            "YouTube", "",
+            al_anunciar=lambda frase, sonido: anuncios.append(
+                (frase, sonido)),
+            al_conectar_chat=chats.append,
+            crear_gestor=crear_gestor,
+            esperar_salida=lambda cliente, parada=None: "enviando",
+            esperar_en_vivo=lambda u, parada=None, limite=None: (
+                ResultadoEspera(False, False)),
+            dormir=reloj.dormir, reloj=reloj.reloj,
+            intervalo_salud=intervalo,
+            asegurar=lambda probar, al_anunciar=None, parada=None: False,
+            preparar_emision=preparar, esperar_emision=esperar)
+        return (supervisor, anuncios, chats, gestores, orden,
+                llamadas_preparar, llamadas_espera)
+
+    def test_youtube_feliz_con_orden_y_url(self):
+        armado = self.armar_con_ganchos()
+        (supervisor, anuncios, chats, gestores, orden,
+         llamadas_preparar, llamadas_espera) = armado
+        self.iniciar_y_esperar_fin(supervisor)
+        self.assertEqual(anuncios, [
+            ("Comenzando la transmisión.", "conectando"),
+            ("Creando el directo en YouTube.", None),
+            ("OBS está enviando la señal a YouTube.", "conectado"),
+            ("Esperando a que YouTube muestre el directo.", None),
+            ("Tu directo de YouTube ya está al aire.", "conectado"),
+        ])
+        self.assertEqual(
+            chats, ["https://www.youtube.com/watch?v=vid123"])
+        self.assertEqual(orden, ["preparar", "iniciar"])
+        self.assertIs(llamadas_preparar[0][0], gestores[0])
+        self.assertEqual(llamadas_espera, [("vid123", 120.0)])
+        self.assertEqual(gestores[0].cerrado, 1)
+
+    def test_preparar_que_falla_no_inicia(self):
+        armado = self.armar_con_ganchos(
+            preparar_falla=emision.EmisionError("falla youtube"))
+        (supervisor, anuncios, chats, gestores, orden,
+         _preparar, espera) = armado
+        self.iniciar_y_esperar_fin(supervisor)
+        self.assertEqual(anuncios, [
+            ("Comenzando la transmisión.", "conectando"),
+            ("Creando el directo en YouTube.", None),
+            ("falla youtube", "error"),
+        ])
+        self.assertEqual(chats, [])
+        self.assertEqual(espera, [])
+        self.assertNotIn("iniciar", gestores[0].llamadas)
+        self.assertNotIn("iniciar", orden)
+        self.assertEqual(gestores[0].cerrado, 1)
+
+    def test_sin_confirmar_avisa_y_frase_lo_dice(self):
+        armado = self.armar_con_ganchos(
+            estados=[muestra(True, duracion=180)] * 50, espera=False)
+        (supervisor, anuncios, chats, _gestores, _orden,
+         _preparar, _espera) = armado
+        supervisor.iniciar()
+        try:
+            self.assertTrue(esperar_condicion(
+                lambda: ("OBS está transmitiendo, pero YouTube todavía "
+                         "no muestra el directo.", "error") in anuncios))
+            self.assertEqual(chats, [])
+            self.assertTrue(supervisor.frase_estado().endswith(
+                ", sin confirmar en YouTube"))
         finally:
             supervisor.abandonar()
 

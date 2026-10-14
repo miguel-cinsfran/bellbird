@@ -19,6 +19,7 @@ from ytchat.obs import obs_estado
 from ytchat.obs import obs_lanzador
 from ytchat.obs import obs_salida
 from ytchat.obs.obs_panel import GestorPanelObs
+from ytchat.youtube import emision
 
 # La misma frase no se repite antes de este plazo durante la vigilancia.
 PLAZO_REPETICION = 60.0
@@ -56,7 +57,8 @@ class SupervisorTransmision:
                  esperar_en_vivo=tiktok_vivo.esperar_en_vivo,
                  dormir=time.sleep, reloj=time.monotonic,
                  intervalo_salud=5.0, limite_tiktok=120.0,
-                 asegurar=None, al_terminar=None):
+                 asegurar=None, al_terminar=None,
+                 preparar_emision=None, esperar_emision=None):
         self._destino = destino
         self._usuario = usuario_tiktok or ""
         self._al_anunciar = al_anunciar or (lambda frase, sonido: None)
@@ -71,12 +73,15 @@ class SupervisorTransmision:
         self._asegurar = (asegurar if asegurar is not None
                           else obs_lanzador.asegurar_obs)
         self._al_terminar = al_terminar
+        self._preparar_emision = preparar_emision
+        self._esperar_emision = esperar_emision
+        self._id_video = None
         self._parada = threading.Event()
         self._corte = threading.Event()
         self._hilo = None
         self._ultimo_estado = None
         self._ultima_frase = ""
-        self._tiktok_confirmado = None
+        self._destino_confirmado = None
 
     @property
     def activo(self) -> bool:
@@ -99,10 +104,10 @@ class SupervisorTransmision:
             except Exception:
                 frase = ""
             if frase:
-                if self._tiktok_confirmado is True:
-                    frase += ", ya se ve en TikTok"
-                elif self._tiktok_confirmado is False:
-                    frase += ", sin confirmar en TikTok"
+                if self._destino_confirmado is True:
+                    frase += f", ya se ve en {self._destino}"
+                elif self._destino_confirmado is False:
+                    frase += f", sin confirmar en {self._destino}"
                 return f"Directo a {self._destino}: {frase}"
         texto = (self._ultima_frase or "").strip()
         if texto.endswith("."):
@@ -200,10 +205,18 @@ class SupervisorTransmision:
             gestor.conectar(self._parada)
             if self._parada.is_set():
                 return
+            cliente = getattr(gestor, "_cliente", gestor)
+            if self._preparar_emision is not None:
+                self._anunciar("Creando el directo en YouTube.", None)
+                try:
+                    self._id_video = self._preparar_emision(
+                        cliente, self._parada)
+                except emision.EmisionError as error:
+                    self._anunciar(str(error), "error")
+                    return
             gestor.iniciar_transmision(self._parada)
             if self._parada.is_set():
                 return
-            cliente = getattr(gestor, "_cliente", gestor)
             veredicto = self._esperar_salida(cliente, self._parada)
             if self._parada.is_set():
                 return
@@ -221,22 +234,42 @@ class SupervisorTransmision:
                 if self._parada.is_set():
                     return
                 if resultado.en_vivo:
-                    self._tiktok_confirmado = True
+                    self._destino_confirmado = True
                     self._anunciar(
                         "Tu directo de TikTok ya está al aire.", "conectado")
                     self._al_conectar_chat(
                         tiktok_vivo.url_directo(self._usuario))
                 elif getattr(resultado, "cuenta_sin_directos", False):
-                    self._tiktok_confirmado = False
+                    self._destino_confirmado = False
                     self._anunciar(
                         f"OBS está transmitiendo, pero TikTok todavía no "
                         f"muestra ningún directo de {self._usuario}. "
                         "Revisa que en Restream esté activado TikTok.",
                         "error")
                 else:
-                    self._tiktok_confirmado = False
+                    self._destino_confirmado = False
                     self._anunciar(
                         "OBS está transmitiendo, pero TikTok todavía no "
+                        "muestra el directo.", "error")
+            elif self._destino == "YouTube" and self._id_video \
+                    and self._esperar_emision is not None:
+                self._anunciar(
+                    "Esperando a que YouTube muestre el directo.", None)
+                ok = self._esperar_emision(
+                    self._id_video, self._parada, self._limite_tiktok)
+                if self._parada.is_set():
+                    return
+                if ok:
+                    self._destino_confirmado = True
+                    self._anunciar(
+                        "Tu directo de YouTube ya está al aire.",
+                        "conectado")
+                    self._al_conectar_chat(
+                        emision.url_video(self._id_video))
+                else:
+                    self._destino_confirmado = False
+                    self._anunciar(
+                        "OBS está transmitiendo, pero YouTube todavía no "
                         "muestra el directo.", "error")
             elif self._destino == "TikTok":
                 self._anunciar(

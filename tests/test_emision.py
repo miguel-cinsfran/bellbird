@@ -3,6 +3,7 @@
 import threading
 import unittest
 from datetime import datetime
+from unittest import mock
 
 from ytchat.obs import obs_cliente
 from ytchat.obs.obs_destinos import Destino
@@ -235,6 +236,35 @@ class TestEsperarEnVivo(unittest.TestCase):
                                 dormir=reloj.dormir, reloj=reloj.reloj)
         self.assertTrue(visto)
         self.assertEqual(len(intentos), 3)
+
+
+class TestGanchosYoutube(unittest.TestCase):
+
+    def test_preparar_llama_a_preparar_en_youtube(self):
+        cliente_yt = mock.Mock()
+        cuerpo = {"snippet": {"title": "Hola"}}
+        parada = threading.Event()
+        preparar, _esperar = emision.ganchos_youtube(
+            cliente_yt, cuerpo, guardar_token="guardar")
+        with mock.patch.object(emision, "preparar_en_youtube",
+                               return_value="vid123") as preparar_en:
+            devuelto = preparar("obs", parada)
+        self.assertEqual(devuelto, "vid123")
+        preparar_en.assert_called_once_with(
+            cliente_yt, "obs", cuerpo, parada=parada,
+            guardar_token="guardar")
+
+    def test_esperar_llama_a_esperar_en_vivo(self):
+        cliente_yt = mock.Mock()
+        _preparar, esperar = emision.ganchos_youtube(
+            cliente_yt, {}, guardar_token=None)
+        parada = threading.Event()
+        with mock.patch.object(emision, "esperar_en_vivo",
+                               return_value=True) as esperar_en:
+            visto = esperar("vid123", parada, 30.0)
+        self.assertTrue(visto)
+        esperar_en.assert_called_once_with(
+            cliente_yt.estado_emision, "vid123", parada, limite=30.0)
 
 
 if __name__ == "__main__":

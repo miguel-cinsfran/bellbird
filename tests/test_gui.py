@@ -2631,5 +2631,134 @@ class TestCopiarEnlaceDirecto(unittest.TestCase):
         frame._bind_menu.assert_any_call(elemento, frame._anunciar_autor)
 
 
+class TestSupervisarDirectoYoutube(unittest.TestCase):
+    # Cableado de _supervisar_transmision para destino YouTube, sin ventanas:
+    # pedir_datos_directo y el supervisor son dobles.
+
+    def _frame(self):
+        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame._alive = True
+        frame._supervisor = None
+        frame._config = {
+            "transmision_youtube_titulo": "",
+            "transmision_youtube_descripcion": "",
+            "transmision_youtube_privacidad": "unlisted",
+        }
+        frame._actualizar_boton_directo = mock.Mock()
+        return frame
+
+    def _doble_supervisor(self, creados):
+        class DobleSupervisor:
+            def __init__(self, destino, usuario, al_anunciar=None,
+                         al_conectar_chat=None, al_terminar=None,
+                         preparar_emision=None, esperar_emision=None):
+                creados.append({
+                    "destino": destino, "usuario": usuario,
+                    "preparar_emision": preparar_emision,
+                    "esperar_emision": esperar_emision})
+                self.iniciado = False
+
+            def iniciar(self):
+                self.iniciado = True
+
+        return DobleSupervisor
+
+    def test_sin_sesion_anuncia_y_no_arranca_ni_pide_datos(self):
+        frame = self._frame()
+        with mock.patch.object(gui.credenciales, "cargar", return_value={}), \
+                mock.patch.object(gui.credenciales, "hay_sesion",
+                                  return_value=False), \
+                mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo") as pedir, \
+                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision") as fabrica, \
+                mock.patch.object(gui, "anunciar") as anunciar:
+            frame._supervisar_transmision("iniciar", "YouTube", "")
+        anunciar.assert_called_once_with(
+            "Para transmitir a YouTube hace falta iniciar sesión con "
+            "Google, en Preferencias, pestaña API y sesión.")
+        pedir.assert_not_called()
+        fabrica.assert_not_called()
+        self.assertIsNone(frame._supervisor)
+
+    def test_cancelado_anuncia_y_no_arranca(self):
+        frame = self._frame()
+        with mock.patch.object(gui.credenciales, "cargar", return_value={"token": "t"}), \
+                mock.patch.object(gui.credenciales, "hay_sesion",
+                                  return_value=True), \
+                mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo",
+                           return_value=None), \
+                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision") as fabrica, \
+                mock.patch.object(gui, "anunciar") as anunciar:
+            frame._supervisar_transmision("iniciar", "YouTube", "")
+        anunciar.assert_called_once_with("No se transmitió.")
+        fabrica.assert_not_called()
+        self.assertIsNone(frame._supervisor)
+
+    def test_con_datos_guarda_y_arranca_con_ganchos(self):
+        frame = self._frame()
+        creados = []
+        pedido = {"titulo": "Hola", "descripcion": "algo",
+                  "privacidad": "public"}
+        with mock.patch.object(gui.credenciales, "cargar",
+                               return_value={"token": "t"}), \
+                mock.patch.object(gui.credenciales, "hay_sesion",
+                                  return_value=True), \
+                mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo",
+                           return_value=pedido) as pedir, \
+                mock.patch.object(gui.youtube_api, "ClienteYouTube") as cliente, \
+                mock.patch.object(gui, "guardar_opcion") as guardar, \
+                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+                           self._doble_supervisor(creados)), \
+                mock.patch.object(gui, "anunciar") as anunciar:
+            frame._supervisar_transmision("iniciar", "YouTube", "")
+        pedir.assert_called_once_with(frame, "", "", "unlisted")
+        self.assertEqual(frame._config["transmision_youtube_titulo"], "Hola")
+        self.assertEqual(frame._config["transmision_youtube_descripcion"], "algo")
+        self.assertEqual(frame._config["transmision_youtube_privacidad"], "public")
+        self.assertEqual(guardar.call_count, 3)
+        guardar.assert_any_call(
+            gui.RUTA_CONFIG, "transmision", "youtube_titulo", "Hola")
+        guardar.assert_any_call(
+            gui.RUTA_CONFIG, "transmision", "youtube_descripcion", "algo")
+        guardar.assert_any_call(
+            gui.RUTA_CONFIG, "transmision", "youtube_privacidad", "public")
+        cliente.assert_called_once_with({"token": "t"})
+        self.assertEqual(len(creados), 1)
+        self.assertTrue(callable(creados[0]["preparar_emision"]))
+        self.assertTrue(callable(creados[0]["esperar_emision"]))
+        self.assertTrue(frame._supervisor.iniciado)
+        anunciar.assert_not_called()
+
+    def test_titulo_vacio_anuncia_y_no_arranca(self):
+        frame = self._frame()
+        pedido = {"titulo": "   ", "descripcion": "", "privacidad": "unlisted"}
+        with mock.patch.object(gui.credenciales, "cargar",
+                               return_value={"token": "t"}), \
+                mock.patch.object(gui.credenciales, "hay_sesion",
+                                  return_value=True), \
+                mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo",
+                           return_value=pedido), \
+                mock.patch.object(gui, "guardar_opcion"), \
+                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision") as fabrica, \
+                mock.patch.object(gui, "anunciar") as anunciar:
+            frame._supervisar_transmision("iniciar", "YouTube", "")
+        anunciar.assert_called_once_with("Falta el título del directo.")
+        fabrica.assert_not_called()
+        self.assertIsNone(frame._supervisor)
+
+    def test_tiktok_arranca_sin_ganchos_y_sin_pedir_datos(self):
+        frame = self._frame()
+        creados = []
+        with mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo") as pedir, \
+                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+                           self._doble_supervisor(creados)):
+            frame._supervisar_transmision("iniciar", "TikTok", "u")
+        pedir.assert_not_called()
+        self.assertEqual(len(creados), 1)
+        self.assertEqual(creados[0]["destino"], "TikTok")
+        self.assertIsNone(creados[0]["preparar_emision"])
+        self.assertIsNone(creados[0]["esperar_emision"])
+        self.assertTrue(frame._supervisor.iniciado)
+
+
 if __name__ == "__main__":
     unittest.main()

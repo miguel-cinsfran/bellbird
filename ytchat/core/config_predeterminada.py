@@ -116,6 +116,12 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
     ("obs", [
         ("microfono", ""),
     ]),
+    ("transmision", [
+        ("destino", ""),
+        ("youtube_titulo", ""),
+        ("youtube_descripcion", ""),
+        ("youtube_privacidad", "unlisted"),
+    ]),
     ("estado", [
         ("estado", "true"),
         ("titulo", "true"),
@@ -221,6 +227,12 @@ def generar_texto() -> str:
             partes.append("# Panel de chat para transmitir por navegador (overlay web).\n")
         elif sec == "obs":
             partes.append("# Integración con OBS: nombre de la fuente de micrófono.\n")
+        elif sec == "transmision":
+            partes.append(
+                "# Transmisión: destino del directo y datos del directo de\n"
+                "# YouTube (se piden al transmitir y se recuerdan). La\n"
+                "# descripción guarda los saltos de línea como \\n.\n"
+            )
         elif sec == "estado":
             partes.append(
                 "# Componentes que anuncia F2. true se dice, false se omite.\n"

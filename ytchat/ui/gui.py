@@ -762,6 +762,25 @@ class YTChatFrame(wx.Frame):
         guardar_opcion(RUTA_CONFIG, "transmision", "destino", destino)
         return destino
 
+    def _guardar_datos_directo_youtube(self, titulo, descripcion, privacidad):
+        from ytchat.core.config import codificar_texto_ini
+        from ytchat.youtube.emision import PRIVACIDADES, PRIVACIDAD_INICIAL
+        titulo = (titulo or "").strip()[:100]
+        descripcion = descripcion or ""
+        if privacidad not in PRIVACIDADES:
+            privacidad = PRIVACIDAD_INICIAL
+        self._config["transmision_youtube_titulo"] = titulo
+        self._config["transmision_youtube_descripcion"] = descripcion
+        self._config["transmision_youtube_privacidad"] = privacidad
+        guardar_opcion(RUTA_CONFIG, "transmision", "youtube_titulo",
+                       codificar_texto_ini(titulo))
+        guardar_opcion(RUTA_CONFIG, "transmision", "youtube_descripcion",
+                       codificar_texto_ini(descripcion))
+        guardar_opcion(RUTA_CONFIG, "transmision", "youtube_privacidad",
+                       privacidad)
+        return {"titulo": titulo, "descripcion": descripcion,
+                "privacidad": privacidad}
+
     def _actualizar_boton_directo(self) -> None:
         boton = getattr(self, "_boton_directo", None)
         if boton is None:
@@ -798,6 +817,42 @@ class YTChatFrame(wx.Frame):
             if supervisor is not None and supervisor.activo:
                 anunciar("Ya hay una transmisión en curso.")
                 return
+            ganchos = {}
+            if destino == "YouTube":
+                from datetime import timezone
+                from ytchat.ui.gui_directo_youtube import pedir_datos_directo
+                from ytchat.youtube import emision
+                datos = credenciales.cargar()
+                if not credenciales.hay_sesion(datos):
+                    anunciar("Para transmitir a YouTube hace falta iniciar "
+                            "sesión con Google, en Preferencias, pestaña API "
+                            "y sesión.")
+                    return
+                pedido = pedir_datos_directo(
+                    self,
+                    self._config.get("transmision_youtube_titulo", ""),
+                    self._config.get("transmision_youtube_descripcion", ""),
+                    self._config.get("transmision_youtube_privacidad",
+                                     emision.PRIVACIDAD_INICIAL))
+                if pedido is None:
+                    anunciar("No se transmitió.")
+                    return
+                guardados = self._guardar_datos_directo_youtube(
+                    pedido["titulo"], pedido["descripcion"],
+                    pedido["privacidad"])
+                try:
+                    cuerpo = emision.cuerpo_emision(
+                        guardados["titulo"], guardados["descripcion"],
+                        guardados["privacidad"],
+                        datetime.now(timezone.utc).isoformat())
+                except emision.EmisionError as exc:
+                    anunciar(str(exc))
+                    return
+                preparar, esperar = emision.ganchos_youtube(
+                    youtube_api.ClienteYouTube(datos), cuerpo,
+                    lambda nuevo: credenciales.guardar_campo("token", nuevo))
+                ganchos = {"preparar_emision": preparar,
+                           "esperar_emision": esperar}
             from ytchat.obs.obs_supervisor import SupervisorTransmision
 
             def al_anunciar(frase, sonido):
@@ -827,7 +882,7 @@ class YTChatFrame(wx.Frame):
             self._supervisor = SupervisorTransmision(
                 destino, usuario, al_anunciar=al_anunciar,
                 al_conectar_chat=al_conectar_chat,
-                al_terminar=self._al_terminar_supervisor)
+                al_terminar=self._al_terminar_supervisor, **ganchos)
             self._supervisor.iniciar()
             self._actualizar_boton_directo()
             return

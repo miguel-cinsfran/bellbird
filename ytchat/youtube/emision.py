@@ -100,6 +100,24 @@ def preparar_en_youtube(cliente_yt, cliente_obs, cuerpo, parada=None,
                 guardar_token(nuevo)
 
 
+def ganchos_youtube(cliente_yt, cuerpo, guardar_token):
+    """Devuelve (preparar_emision, esperar_emision) para el supervisor.
+
+    Adapta `preparar_en_youtube` y `esperar_en_vivo` a las firmas que
+    espera `SupervisorTransmision`, con el cliente y el cuerpo ya fijos.
+    """
+    def preparar_emision(cliente_obs, parada):
+        return preparar_en_youtube(
+            cliente_yt, cliente_obs, cuerpo, parada=parada,
+            guardar_token=guardar_token)
+
+    def esperar_emision(id_video, parada, limite=120.0):
+        return esperar_en_vivo(
+            cliente_yt.estado_emision, id_video, parada, limite=limite)
+
+    return preparar_emision, esperar_emision
+
+
 def esperar_en_vivo(consultar_estado, id_video, parada=None, cada=5.0,
                     limite=120.0, dormir=time.sleep,
                     reloj=time.monotonic) -> bool:

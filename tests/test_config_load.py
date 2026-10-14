@@ -266,6 +266,74 @@ class TestCargarConfiguracion(unittest.TestCase):
         cfg = self._cargar_en("[transmision]\ndestino = Twitch\n")
         self.assertEqual(cfg["transmision_destino"], "")
 
+    def test_directo_youtube_arranca_vacio_y_no_listado(self):
+        cfg = self._cargar_en("[voz]\nvoz = 0\n")
+        self.assertEqual(cfg["transmision_youtube_titulo"], "")
+        self.assertEqual(cfg["transmision_youtube_descripcion"], "")
+        self.assertEqual(cfg["transmision_youtube_privacidad"], "unlisted")
+
+    def test_directo_youtube_privacidad_valida_se_conserva(self):
+        for privacidad in ("public", "unlisted", "private"):
+            cfg = self._cargar_en(
+                f"[transmision]\nyoutube_privacidad = {privacidad}\n")
+            self.assertEqual(cfg["transmision_youtube_privacidad"], privacidad)
+
+    def test_directo_youtube_privacidad_invalida_cae_a_no_listado(self):
+        cfg = self._cargar_en("[transmision]\nyoutube_privacidad = solo-yo\n")
+        self.assertEqual(cfg["transmision_youtube_privacidad"], "unlisted")
+
+    def _ida_y_vuelta_ini(self, texto: str) -> str:
+        ruta = Path(self._tmp.name) / "ida.ini"
+        ruta.write_text("[transmision]\nyoutube_titulo = "
+                        f"{config.codificar_texto_ini(texto)}\n",
+                        encoding="utf-8")
+        leido = config._mk_parser()
+        leido.read(ruta, encoding="utf-8")
+        return config.decodificar_texto_ini(
+            config._gs(leido, "transmision", "youtube_titulo"))
+
+    def test_directo_youtube_texto_libre_ida_y_vuelta(self):
+        textos = [
+            "Al 100% en Champions",
+            "Jugando #3 ; ranked",
+            "línea uno\nlínea dos",
+            "C:\\carpeta\\nueva",
+            "50%% y %(x)s",
+            "mezcla \\ % # ;\n fin",
+        ]
+        for texto in textos:
+            with self.subTest(texto=texto):
+                codificado = config.codificar_texto_ini(texto)
+                self.assertNotIn("\n", codificado)
+                self.assertNotIn("%", codificado)
+                self.assertNotIn("#", codificado)
+                self.assertNotIn(";", codificado)
+                self.assertEqual(self._ida_y_vuelta_ini(texto), texto)
+
+    def test_directo_youtube_texto_libre_combinaciones_de_dos(self):
+        caracteres = ["\\", "\n", "%", "#", ";", "x", "2", "3", "b",
+                      "á", "é", " "]
+        for primero in caracteres:
+            for segundo in caracteres:
+                texto = primero + segundo
+                with self.subTest(texto=repr(texto)):
+                    # Los espacios de los bordes se pierden (`_gs` hace
+                    # `strip`) y está bien: solo ellos se recortan, porque
+                    # el resto de los caracteres viaja escapado.
+                    self.assertEqual(self._ida_y_vuelta_ini(texto),
+                                     texto.strip(" "))
+
+    def test_directo_youtube_retornos_carro_se_normalizan(self):
+        self.assertEqual(self._ida_y_vuelta_ini("uno\r\ndos\rtres"),
+                         "uno\ndos\ntres")
+
+    def test_directo_youtube_titulo_con_porcentaje_carga(self):
+        titulo = "Al 100% en Champions"
+        cfg = self._cargar_en(
+            "[transmision]\n"
+            f"youtube_titulo = {config.codificar_texto_ini(titulo)}\n")
+        self.assertEqual(cfg["transmision_youtube_titulo"], titulo)
+
     def test_inyecta_seccion_descargas_con_defaults(self):
         # Sin [descargas] en el INI, cargar_configuracion debe inyectar los
         # defaults canónicos y devolverlos en el dict.

@@ -350,6 +350,54 @@ def _lista(v: str) -> list:
     return [x.strip().lower() for x in v.split(",") if x.strip()]
 
 
+def codificar_texto_ini(texto: str | None) -> str:
+    """Codifica un texto libre para guardarlo en una línea del INI.
+
+    El parser (`_mk_parser`, con interpolación y comentarios en línea)
+    interpreta `%`, `#` y `;`, así que se escapan junto con la barra
+    invertida y el salto de línea. `decodificar_texto_ini` lo restaura.
+    """
+    plano = (texto or "").replace("\r\n", "\n").replace("\r", "\n")
+    plano = plano.replace("\\", "\\\\")
+    plano = plano.replace("\n", "\\n")
+    plano = plano.replace("%", "\\x25")
+    plano = plano.replace("#", "\\x23")
+    plano = plano.replace(";", "\\x3b")
+    return plano
+
+
+def decodificar_texto_ini(valor: str | None) -> str:
+    """Restaura un texto guardado con `codificar_texto_ini`.
+
+    Recorre el texto una sola vez: solo deshace las cinco secuencias
+    exactas (`\\\\`, `\\n`, `\\x25`, `\\x23`, `\\x3b`). Una barra seguida
+    de cualquier otra cosa se deja tal cual, para que lo que la persona
+    escribió vuelva idéntico.
+    """
+    texto = valor or ""
+    salida: list[str] = []
+    i = 0
+    while i < len(texto):
+        if texto[i] == "\\" and i + 1 < len(texto):
+            siguiente = texto[i + 1]
+            if siguiente == "\\":
+                salida.append("\\")
+                i += 2
+                continue
+            if siguiente == "n":
+                salida.append("\n")
+                i += 2
+                continue
+            secuencia = texto[i + 1:i + 4]
+            if secuencia in ("x25", "x23", "x3b"):
+                salida.append({"x25": "%", "x23": "#", "x3b": ";"}[secuencia])
+                i += 4
+                continue
+        salida.append(texto[i])
+        i += 1
+    return "".join(salida)
+
+
 def guardar_opcion(ruta: Path | None, seccion: str, clave: str, valor: str) -> bool:
     """Actualiza una clave en el INI preservando comentarios y orden.
 
@@ -571,6 +619,11 @@ def cargar_configuracion() -> dict:
     if destino not in _destinos.DESTINOS:
         destino = ""
 
+    from ytchat.youtube import emision as _emision
+    privacidad = _gs(p, "transmision", "youtube_privacidad")
+    if privacidad not in _emision.PRIVACIDADES:
+        privacidad = _emision.PRIVACIDAD_INICIAL
+
     return {
         "voz": _gs(p, "voz", "voz"),
         "velocidad": _pi(p, "voz", "velocidad", lo=50, hi=500),
@@ -602,6 +655,11 @@ def cargar_configuracion() -> dict:
         "tiktok_anunciar_entradas": _pb(p, "tiktok", "anunciar_entradas"),
         "tiktok_usuario": _gs(p, "tiktok", "usuario"),
         "transmision_destino": destino,
+        "transmision_youtube_titulo": decodificar_texto_ini(
+            _gs(p, "transmision", "youtube_titulo")),
+        "transmision_youtube_descripcion": decodificar_texto_ini(
+            _gs(p, "transmision", "youtube_descripcion")),
+        "transmision_youtube_privacidad": privacidad,
         "programados_activo": _pb(p, "programados", "activo"),
         "registro_detallado": _pb(p, "diagnostico", "registro_detallado"),  # configurar_logging se adelanta al diccionario.
         "overlay_activo": _pb(p, "overlay", "activo"),

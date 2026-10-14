@@ -357,6 +357,32 @@ class PrepararParaTransmitirTest(unittest.TestCase):
                 "Listo para transmitir a TikTok. "
                 "Formato cuadrado, 800 por 800.")
 
+    def test_youtube_sin_perfil_lo_crea_y_lo_dice(self):
+        doble = self.doble_medicion(
+            perfiles=["N5000-Grabacion", "Sin Título", "TikTok"],
+            actual="Sin Título", coleccion_actual="Sin Título")
+        self.assertNotIn("YouTube", doble.visibles)
+        resultado, _ = self.preparar(doble, "YouTube")
+        creaciones = [datos for tipo, datos in doble.llamadas
+                      if tipo == "CreateProfile"]
+        self.assertEqual(len(creaciones), 1)
+        self.assertEqual(creaciones[0].get("profileName"), "YouTube")
+        self.assertTrue(resultado["perfil_creado"])
+        self.assertTrue(
+            frase_destino_listo(resultado).startswith(
+                "Se creó en OBS el perfil YouTube."))
+
+    def test_youtube_con_perfil_no_crea_ni_cambia_la_frase(self):
+        doble = self.doble_medicion(actual="YouTube",
+                                    coleccion_actual="Sin Título")
+        resultado, _ = self.preparar(doble, "YouTube")
+        self.assertFalse(resultado["perfil_creado"])
+        self.assertNotIn("CreateProfile", doble.tipos())
+        self.assertEqual(
+            frase_destino_listo(resultado),
+            "Listo para transmitir a YouTube. "
+            "Formato horizontal, 1920 por 1080.")
+
     def test_coleccion_para(self):
         with self.subTest(caso="mismo nombre"):
             self.assertEqual(

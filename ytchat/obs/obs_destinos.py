@@ -14,6 +14,12 @@ from ytchat.obs import obs_cliente
 
 DESTINOS = ("TikTok", "YouTube")
 
+# Perfiles que esta ruta sí deja crear al que falta: el supervisor carga
+# servidor y clave de la cuenta en el perfil YouTube antes de arrancar OBS,
+# así que uno nuevo no emite al vacío. TikTok sigue pidiendo su clave de
+# Restream a mano y por eso no está acá.
+PERFILES_QUE_SE_CREAN = ("YouTube",)
+
 
 @dataclass(frozen=True, slots=True)
 class Destino:
@@ -100,10 +106,13 @@ def preparar_para_transmitir(cliente, destino, parada=None, espera=60.0,
                              reloj=time.monotonic):
     """Deja OBS listo para transmitir al destino: perfil y colección."""
     perfiles = (_lista_perfiles(cliente, parada).get("profiles", ()) or ())
-    if destino not in perfiles:
-        # Esta ruta nunca crea perfiles: un perfil vacío emitiría a ningún lado.
+    if destino not in perfiles and destino not in PERFILES_QUE_SE_CREAN:
+        # Solo los perfiles de PERFILES_QUE_SE_CREAN dejan que
+        # preparar_destino cree el que falta; cualquier otro perfil vacío
+        # emitiría a ningún lado.
         raise obs_cliente.ObsError(
             f"OBS no tiene un perfil llamado {destino}.")
+    perfil_creado = destino not in perfiles
     preparar_destino(cliente, Destino(destino), parada=parada, espera=espera,
                      intervalo=intervalo, dormir=dormir, reloj=reloj)
     colecciones = (_lista_colecciones(cliente, parada).get(
@@ -117,7 +126,8 @@ def preparar_para_transmitir(cliente, destino, parada=None, espera=60.0,
     lienzo = (cliente.pedir("GetVideoSettings", parada=parada).get(
         "responseData", {}) or {})
     return {"destino": destino, "perfil": destino, "coleccion": coleccion,
-            "ancho": lienzo.get("baseWidth"), "alto": lienzo.get("baseHeight")}
+            "ancho": lienzo.get("baseWidth"), "alto": lienzo.get("baseHeight"),
+            "perfil_creado": perfil_creado}
 
 
 def frase_destino_listo(resultado):
@@ -129,8 +139,11 @@ def frase_destino_listo(resultado):
         formato = "horizontal"
     else:
         formato = "cuadrado"
-    return (f"Listo para transmitir a {resultado['destino']}. "
-            f"Formato {formato}, {ancho} por {alto}.")
+    frase = (f"Listo para transmitir a {resultado['destino']}. "
+             f"Formato {formato}, {ancho} por {alto}.")
+    if resultado.get("perfil_creado"):
+        frase = f"Se creó en OBS el perfil {resultado['destino']}. " + frase
+    return frase
 
 
 def preparar_destino(cliente, destino, parada=None, espera=60.0,

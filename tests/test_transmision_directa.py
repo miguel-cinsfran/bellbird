@@ -75,10 +75,12 @@ class EtiquetaTest(unittest.TestCase):
 
 
 class GestorFalso:
-    def __init__(self, transmitiendo=False, perfil="TikTok", fallo=None):
+    def __init__(self, transmitiendo=False, perfil="TikTok", fallo=None,
+                 resultado_preparar=None):
         self.transmitiendo = transmitiendo
         self.perfil = perfil
         self.fallo = fallo
+        self.resultado_preparar = resultado_preparar
         self.llamadas = []
         self.cierres = 0
 
@@ -97,6 +99,7 @@ class GestorFalso:
         self.llamadas.append(("preparar", destino))
         if self.fallo == "preparar":
             raise RuntimeError("boom al preparar")
+        return self.resultado_preparar
 
     def revisar(self, destino, *args, **kwargs):
         self.llamadas.append(("revisar", destino))
@@ -167,6 +170,24 @@ class PrepararTest(unittest.TestCase):
         _resultado, registro, _anuncios = self._preparar(
             gestor, parada=parada)
         self.assertIs(registro[0][3], parada)
+
+    def test_perfil_creado_se_anuncia(self):
+        gestor = GestorFalso(transmitiendo=False, perfil="Sin Título",
+                             resultado_preparar={"perfil_creado": True})
+        _resultado, _registro, anuncios = self._preparar(gestor, "YouTube")
+        self.assertIn("Se creó en OBS el perfil YouTube.", anuncios)
+
+    def test_sin_perfil_creado_no_hay_anuncio_extra(self):
+        with self.subTest(caso="None"):
+            gestor = GestorFalso(transmitiendo=False, perfil="YouTube",
+                                 resultado_preparar=None)
+            _resultado, _registro, anuncios = self._preparar(gestor, "YouTube")
+            self.assertNotIn("Se creó en OBS el perfil YouTube.", anuncios)
+        with self.subTest(caso="False"):
+            gestor = GestorFalso(transmitiendo=False, perfil="YouTube",
+                                 resultado_preparar={"perfil_creado": False})
+            _resultado, _registro, anuncios = self._preparar(gestor, "YouTube")
+            self.assertNotIn("Se creó en OBS el perfil YouTube.", anuncios)
 
 
 class FinalizarTest(unittest.TestCase):

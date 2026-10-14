@@ -219,5 +219,46 @@ class PruebasInfoVideoCancelable(unittest.TestCase):
         respaldo.assert_called_once()
 
 
+class TestCableadoClasificarPorApi(unittest.TestCase):
+    def test_clasificar_por_api_usa_credenciales_efectivas(self):
+        construidos = []
+
+        class LecturaFalsa:
+            def videos(self):
+                return self
+
+            def list(self, **kwargs):
+                return self
+
+            def execute(self):
+                return {"items": [{"snippet": {"liveBroadcastContent": "live"}}]}
+
+        class ClienteRegistra:
+            def __init__(self, credenciales):
+                construidos.append(credenciales)
+
+            def _lectura(self):
+                return LecturaFalsa()
+
+        credenciales_falso = types.SimpleNamespace(
+            hay_lectura=lambda: True,
+            cargar=lambda: {"origen": "cargar"},
+            efectivas=lambda *a, **k: {"origen": "efectivas"})
+        youtube_api_falso = types.SimpleNamespace(
+            google_disponible=lambda: True, ClienteYouTube=ClienteRegistra)
+        # `from ytchat.youtube import x` mira primero el atributo del paquete:
+        # sin estos parches usaría el módulo real si otra prueba ya lo importó.
+        from ytchat import youtube as _paquete_youtube
+        with patch.dict(sys.modules, {"ytchat.youtube.credenciales": credenciales_falso,
+                                       "ytchat.youtube.youtube_api": youtube_api_falso}), \
+                patch.object(_paquete_youtube, "credenciales",
+                             credenciales_falso, create=True), \
+                patch.object(_paquete_youtube, "youtube_api",
+                             youtube_api_falso, create=True):
+            tipo = main._clasificar_por_api("A" * 11)
+        self.assertEqual(tipo, main.deteccion.LIVE)
+        self.assertEqual(construidos, [{"origen": "efectivas"}])
+
+
 if __name__ == "__main__":
     unittest.main()

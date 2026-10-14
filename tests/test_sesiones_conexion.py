@@ -226,6 +226,61 @@ class PruebasCableadoConexiones(unittest.TestCase):
         self.assertEqual(esperas, [60])
         self.assertIn((frame.set_espectadores, (42,)), llamadas)
 
+    def test_los_detalles_del_directo_usan_credenciales_efectivas(self):
+        import main
+        import wx
+        construidos = []
+        hilos = {}
+        frame = mock.Mock()
+        frame._alive = True
+        self.gui_falsa._gui_frame = frame
+
+        class ClienteRegistra:
+            def __init__(self, credenciales):
+                construidos.append(credenciales)
+
+            def detalles_directo(self, vid):
+                return {"espectadores": 42, "comienzo": "12:00"}
+
+        def hilo(objetivo, nombre, **kwargs):
+            if nombre == "Chat":
+                return HiloEjecuta(objetivo)
+            hilos[nombre] = objetivo
+            return HiloInerte()
+
+        credenciales_falso = types.SimpleNamespace(
+            hay_lectura=lambda: True,
+            cargar=lambda: {"origen": "cargar"},
+            efectivas=lambda *a, **k: {"origen": "efectivas"})
+        youtube_api_falso = types.SimpleNamespace(google_disponible=lambda: True,
+                                                  ClienteYouTube=ClienteRegistra)
+        # `from ytchat.youtube import x` mira primero el atributo del paquete:
+        # sin estos parches usaría el módulo real si otra prueba ya lo importó.
+        from ytchat import youtube as _paquete_youtube
+        with mock.patch.object(main, "obtener_info_video",
+                               return_value=("Título", main.deteccion.LIVE, {})), \
+                mock.patch.object(main.deteccion, "tiene_chat_en_vivo", return_value=True), \
+                mock.patch.object(main, "captura_con_reconexion"), \
+                mock.patch.dict(sys.modules, {"ytchat.youtube.credenciales": credenciales_falso,
+                                              "ytchat.youtube.youtube_api": youtube_api_falso}), \
+                mock.patch.object(_paquete_youtube, "credenciales",
+                                  credenciales_falso, create=True), \
+                mock.patch.object(_paquete_youtube, "youtube_api",
+                                  youtube_api_falso, create=True), \
+                mock.patch.object(wx, "CallAfter",
+                                  side_effect=lambda fn, *a, **k: None):
+            self.conexiones._crear_hilo = hilo
+            self.conexiones.conectar("dQw4w9WgXcQ")
+            parada = self.registro.sesiones[0].parada
+
+            def esperar(timeout=None):
+                parada.set()
+                return True
+            with mock.patch.object(parada, "wait", side_effect=esperar):
+                hilos["DetallesDirecto"]()
+
+        self.assertEqual(construidos, [{"origen": "efectivas"}])
+
     def test_youtube_sesion_vieja_no_difunde(self):
         import main
         callbacks = {}

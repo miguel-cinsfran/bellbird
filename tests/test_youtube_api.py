@@ -408,6 +408,45 @@ class TestCableadoChatDirecto(unittest.TestCase):
             main._resolver_live_chat_id("abc")
         self.assertEqual(llamadas, [("", "chat_desactivado", "abc")])
 
+    def test_resolver_live_chat_id_usa_credenciales_efectivas(self):
+        import main
+        construidos = []
+        llamadas = []
+        frame = types.SimpleNamespace(
+            _alive=True, set_live_chat_id=lambda *args: llamadas.append(args))
+        cliente = mock.Mock(datos_chat_directo=mock.Mock(return_value={
+            "hay_video": True, "hay_directo": True, "live_chat_id": ""}))
+
+        def cliente_registra(credenciales):
+            construidos.append(credenciales)
+            return cliente
+
+        modulos = {
+            "ytchat.youtube.credenciales": types.SimpleNamespace(
+                hay_lectura=lambda: True,
+                cargar=lambda: {"origen": "cargar"},
+                efectivas=lambda *a, **k: {"origen": "efectivas"}),
+            "ytchat.youtube.youtube_api": types.SimpleNamespace(
+                google_disponible=lambda: True, ClienteYouTube=cliente_registra),
+            "ytchat.ui.gui": types.SimpleNamespace(_gui_frame=frame),
+            "wx": types.SimpleNamespace(CallAfter=lambda funcion, *args: funcion(*args)),
+        }
+        # `from ytchat.x import y` mira primero el atributo del paquete:
+        # sin estos parches usaría el módulo real si otra prueba ya lo importó.
+        from ytchat import ui as _paquete_ui, youtube as _paquete_youtube
+        with mock.patch.dict(sys.modules, modulos), \
+                mock.patch.object(_paquete_youtube, "credenciales",
+                                  modulos["ytchat.youtube.credenciales"],
+                                  create=True), \
+                mock.patch.object(_paquete_youtube, "youtube_api",
+                                  modulos["ytchat.youtube.youtube_api"],
+                                  create=True), \
+                mock.patch.object(_paquete_ui, "gui",
+                                  modulos["ytchat.ui.gui"],
+                                  create=True):
+            main._resolver_live_chat_id("abc")
+        self.assertEqual(construidos, [{"origen": "efectivas"}])
+
 
 if __name__ == "__main__":
     unittest.main()

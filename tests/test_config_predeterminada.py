@@ -88,7 +88,7 @@ class TestMigracion(unittest.TestCase):
         self.assertEqual(cfg["voz"], "5")
         self.assertIn("voz = 5", texto)
         # conserva vacío intencional: la clave sigue existiendo y el valor no se reemplaza por default
-        p = configparser.ConfigParser(inline_comment_prefixes=("#", ";"))
+        p = config._mk_parser()
         p.read(tmp / "config.ini", encoding="utf-8")
         self.assertTrue(p.has_option("obs", "microfono"))
         self.assertEqual(p.get("obs", "microfono").strip(), "")
@@ -250,7 +250,7 @@ class TestReconexionYSonidos(unittest.TestCase):
 
     def test_plantilla_sounds_sin_activar(self):
         base = Path(__file__).parent.parent
-        p = configparser.ConfigParser(inline_comment_prefixes=("#", ";"))
+        p = config._mk_parser()
         p.read(base / "sounds.ini", encoding="utf-8")
         self.assertTrue(p.has_section("sonidos"))
         self.assertFalse(p.has_option("sonidos", "activar"))

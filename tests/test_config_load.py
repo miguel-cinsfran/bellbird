@@ -245,6 +245,28 @@ class TestCargarConfiguracion(unittest.TestCase):
         self.assertEqual(cfg["palabras_silenciadas"], ["spam", "publicidad"])
         self.assertEqual(cfg["usuarios_silenciados"], ["bot1", "bot2"])
 
+    def test_palabra_silenciada_con_porcentaje_se_lee_tal_cual(self):
+        cfg = self._cargar_en(
+            "[filtros]\npalabras_silenciadas = spam, 100%\n")
+        self.assertEqual(cfg["palabras_silenciadas"], ["spam", "100%"])
+
+    def test_usuario_silenciado_con_numeral_y_punto_y_coma_se_lee_entero(self):
+        cfg = self._cargar_en(
+            "[filtros]\nusuarios_silenciados = bot #1 ; prueba\n")
+        self.assertEqual(cfg["usuarios_silenciados"], ["bot #1 ; prueba"])
+
+    def test_carpeta_descargas_con_porcentaje_y_comentario_se_lee_entera(self):
+        cfg = self._cargar_en(
+            "[descargas]\ncarpeta = C:\\Descargas\\50% #2\n")
+        self.assertEqual(cfg["descargas_carpeta"], "C:\\Descargas\\50% #2")
+
+    def test_lineas_de_comentario_con_numeral_y_punto_y_coma_se_ignoran(self):
+        cfg = self._cargar_en(
+            "[filtros]\n# comentario con numeral\n"
+            "; comentario con punto y coma\n"
+            "palabras_silenciadas = spam\n")
+        self.assertEqual(cfg["palabras_silenciadas"], ["spam"])
+
     def test_formato_invalido_cae_a_default(self):
         cfg = self._cargar_en("[lectura]\nformato_prefijo = raro\n")
         self.assertEqual(cfg["formato_prefijo"], "nombre_mensaje")

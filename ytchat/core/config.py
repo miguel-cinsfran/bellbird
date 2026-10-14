@@ -314,7 +314,9 @@ _TEMA_DEFECTO = "default"
 
 
 def _mk_parser() -> configparser.ConfigParser:
-    return configparser.ConfigParser(inline_comment_prefixes=("#", ";"), default_section="__none__")
+    # Lo que escribe la persona se lee tal cual, sin interpolación ni
+    # comentarios en línea: un `%`, `#` o `;` en un valor no lo toca.
+    return configparser.ConfigParser(interpolation=None, default_section="__none__")
 
 
 def _fallback(sec: str, k: str) -> str:

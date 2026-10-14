@@ -516,5 +516,63 @@ class AlTerminarTest(BaseSupervisor):
         self.assertEqual(gestores[0].cerrado, 1)
 
 
+class FraseEstadoTest(BaseSupervisor):
+    def test_vacia_antes_de_iniciar(self):
+        supervisor, _, _, _, _, _, _ = self.armar()
+        self.assertEqual(supervisor.frase_estado(), "")
+
+    def test_esperando_a_tiktok_repite_la_ultima_frase_sin_punto(self):
+        liberado = threading.Event()
+        armado = self.armar(estados=[muestra(True, duracion=10)])
+        supervisor, anuncios, _, _, _, _, _ = armado
+        real = supervisor._esperar_en_vivo
+
+        def esperar_bloqueado(usuario, parada=None, limite=None):
+            liberado.wait(2.0)
+            return real(usuario, parada, limite)
+
+        supervisor._esperar_en_vivo = esperar_bloqueado
+        supervisor.iniciar()
+        try:
+            self.assertTrue(esperar_condicion(
+                lambda: any(a[0].startswith("Esperando a que TikTok")
+                            for a in anuncios)))
+            self.assertEqual(
+                supervisor.frase_estado(),
+                "Esperando a que TikTok muestre el directo")
+        finally:
+            liberado.set()
+            supervisor.abandonar()
+
+    def test_transmitiendo_nombra_el_destino_y_la_duracion(self):
+        armado = self.armar(
+            estados=[muestra(True, duracion=180)] * 50)
+        supervisor, _, _, _, _, _, _ = armado
+        supervisor.iniciar()
+        try:
+            self.assertTrue(esperar_condicion(
+                lambda: supervisor.frase_estado().startswith(
+                    "Directo a TikTok:")))
+            frase = supervisor.frase_estado()
+            self.assertTrue(frase.startswith(
+                "Directo a TikTok: Transmitiendo desde hace"))
+            # _duracion(180) se lee «3 min».
+            self.assertIn("3 min", frase)
+        finally:
+            supervisor.abandonar()
+
+    def test_duracion_que_avanza_se_actualiza_en_frase(self):
+        estados = [muestra(True, duracion=10)]
+        estados += [muestra(True, duracion=180)] * 50
+        armado = self.armar(estados=estados)
+        supervisor, _, _, _, _, _, _ = armado
+        supervisor.iniciar()
+        try:
+            self.assertTrue(esperar_condicion(
+                lambda: "3 min" in supervisor.frase_estado()))
+        finally:
+            supervisor.abandonar()
+
+
 if __name__ == "__main__":
     unittest.main()

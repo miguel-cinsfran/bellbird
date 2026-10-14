@@ -195,5 +195,37 @@ class TestCoherencia(unittest.TestCase):
             "Panel de chat activo en el puerto 9000, pero nadie lo está mostrando.")
 
 
+class TestTransmisionSupervisada(unittest.TestCase):
+
+    def test_supervisada_sola_sale_sin_toggles(self):
+        s = SnapshotSesion(
+            transmision_supervisada="Esperando a que TikTok muestre el directo")
+        self.assertEqual(
+            formatear_estado(s, set()),
+            "Esperando a que TikTok muestre el directo.")
+
+    def test_supervisada_va_primero_y_tapa_a_obs(self):
+        s = SnapshotSesion(
+            titulo="Charla", obs_transmision="Transmitiendo desde hace 1 min",
+            transmision_supervisada="Directo a TikTok: Transmitiendo desde hace 3 min")
+        out = formatear_estado(s, {"titulo", "obs_transmision"})
+        self.assertTrue(out.startswith(
+            "Directo a TikTok: Transmitiendo desde hace 3 min"))
+        self.assertIn("Charla", out)
+        self.assertNotIn("Transmitiendo desde hace 1 min", out)
+
+    def test_modo_largo_con_etiqueta_propia(self):
+        s = SnapshotSesion(
+            transmision_supervisada="Esperando a que TikTok muestre el directo")
+        out = formatear_estado(s, set(), "largo")
+        self.assertTrue(out.split("\n")[0].startswith("Transmisión: "))
+        self.assertIn("Esperando a que TikTok muestre el directo", out)
+
+    def test_sin_supervisada_obs_sigue_igual(self):
+        s = SnapshotSesion(obs_transmision="Transmitiendo desde hace 1 min")
+        self.assertEqual(formatear_estado(s, {"obs_transmision"}),
+                         "Transmitiendo desde hace 1 min.")
+
+
 if __name__ == "__main__":
     unittest.main()

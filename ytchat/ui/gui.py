@@ -1592,6 +1592,10 @@ class YTChatFrame(wx.Frame):
         estado_obs = _seguro(lambda: vigilante.estado(), None) if vigilante else None
         transmision = estado_obs.transmision if estado_obs else None
         grabacion = estado_obs.grabacion if estado_obs else None
+        supervisor = getattr(self, "_supervisor", None)
+        supervisada = _seguro(
+            lambda: supervisor.frase_estado()
+            if supervisor is not None and supervisor.activo else "", "")
         return estado_sesion.SnapshotSesion(
             conectado=self._conectado,
             tipo=tipo,
@@ -1624,6 +1628,7 @@ class YTChatFrame(wx.Frame):
                 grabacion["outputTimecode"]) if grabacion else ""),
             obs_escena=(obs_estado.frase_escena_al_aire(estado_obs.escena)
                         if estado_obs else ""),
+            transmision_supervisada=supervisada,
         )
 
     def _total_aportes_texto(self) -> str:

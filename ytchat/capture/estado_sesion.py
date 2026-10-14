@@ -53,6 +53,7 @@ class SnapshotSesion:
     obs_transmision: str = ""
     obs_grabacion: str = ""
     obs_escena: str = ""
+    transmision_supervisada: str = ""
 
 
 # Orden canónico de los componentes: estado → contenido → actividad → ajustes.
@@ -227,8 +228,14 @@ def formatear_estado(snap: SnapshotSesion, toggles, modo: str = "corto") -> str:
     Función pura y determinista; los componentes sin dato se omiten.
     """
     partes = []
+    supervisada = (snap.transmision_supervisada or "").strip()
+    if supervisada:
+        partes.append(f"Transmisión: {supervisada}" if modo == "largo"
+                      else supervisada)
     for nombre in COMPONENTES:
         if nombre not in toggles:
+            continue
+        if supervisada and nombre == "obs_transmision":
             continue
         txt = _render(nombre, snap, largo=(modo == "largo"))
         if txt:

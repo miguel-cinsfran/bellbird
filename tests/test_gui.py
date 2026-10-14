@@ -1812,6 +1812,33 @@ class TestEstadoObsEnF2(unittest.TestCase):
             frame._actualizar_vigilante_obs()
         clase.return_value.detener.assert_called_once_with()
 
+class TestTransmisionSupervisadaEnF2(unittest.TestCase):
+    def _frame(self, supervisor):
+        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame._config = {"estado_toggles": set(), "programados_activo": False}
+        frame._obs_vigilante = None
+        frame._supervisor = supervisor
+        frame.__dict__.update(_conectado=False, _es_tiktok=False,
+            _tipo_video=gui.deteccion.DESCONOCIDO, _titulo_stream="", _metadatos={},
+            _sc_totales={}, _mensajes_programados=[])
+        return frame
+
+    def test_supervisor_activo_llega_al_snapshot(self):
+        supervisor = mock.Mock()
+        supervisor.activo = True
+        supervisor.frase_estado.return_value = "Esperando a que TikTok muestre el directo"
+        snapshot = self._frame(supervisor)._snapshot_sesion()
+        self.assertEqual(snapshot.transmision_supervisada,
+                         "Esperando a que TikTok muestre el directo")
+
+    def test_supervisor_inactivo_deja_el_campo_vacio(self):
+        supervisor = mock.Mock()
+        supervisor.activo = False
+        supervisor.frase_estado.return_value = "Esperando a que TikTok muestre el directo"
+        snapshot = self._frame(supervisor)._snapshot_sesion()
+        self.assertEqual(snapshot.transmision_supervisada, "")
+        supervisor.frase_estado.assert_not_called()
+
 class TestAnunciarAutor(unittest.TestCase):
     def _frame(self, autor):
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)

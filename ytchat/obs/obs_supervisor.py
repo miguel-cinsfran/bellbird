@@ -15,6 +15,7 @@ import time
 from ytchat.capture import tiktok_vivo
 from ytchat.core import diagnostico
 from ytchat.obs import obs_cliente
+from ytchat.obs import obs_estado
 from ytchat.obs import obs_lanzador
 from ytchat.obs import obs_salida
 from ytchat.obs.obs_panel import GestorPanelObs
@@ -73,10 +74,35 @@ class SupervisorTransmision:
         self._parada = threading.Event()
         self._corte = threading.Event()
         self._hilo = None
+        self._ultimo_estado = None
+        self._ultima_frase = ""
 
     @property
     def activo(self) -> bool:
         return self._hilo is not None and self._hilo.is_alive()
+
+    def frase_estado(self) -> str:
+        """Fase actual para F2, sin repetir lo ya anunciado.
+
+        Si ya se leyó un estado con transmisión activa, nombra el
+        destino con la duración del último estado; si no, repite la
+        última frase anunciada sin el punto final."""
+        ultimo = self._ultimo_estado
+        if ultimo is not None and bool(ultimo.get("outputActive")):
+            try:
+                frase = obs_estado.frase_transmision(
+                    ultimo.get("outputActive"),
+                    ultimo.get("outputDuration", 0),
+                    ultimo.get("outputSkippedFrames", 0),
+                    ultimo.get("outputTotalFrames", 0))
+            except Exception:
+                frase = ""
+            if frase:
+                return f"Directo a {self._destino}: {frase}"
+        texto = (self._ultima_frase or "").strip()
+        if texto.endswith("."):
+            texto = texto[:-1].rstrip()
+        return texto
 
     def iniciar(self) -> None:
         if self.activo:
@@ -140,6 +166,7 @@ class SupervisorTransmision:
             self._dormir(segundos)
 
     def _anunciar(self, frase, sonido) -> None:
+        self._ultima_frase = frase if isinstance(frase, str) else ""
         self._al_anunciar(frase, sonido)
 
     def _probar_obs(self) -> None:
@@ -230,6 +257,10 @@ class SupervisorTransmision:
 
     def _vigilar(self, gestor) -> None:
         anterior = gestor.estado_transmision(self._parada)
+        try:
+            self._ultimo_estado = dict(anterior)
+        except Exception:
+            self._ultimo_estado = anterior
         if self._parada.is_set() or self._corte.is_set():
             return
         if not anterior.get("outputActive"):
@@ -240,6 +271,10 @@ class SupervisorTransmision:
             if self._parada.is_set() or self._corte.is_set():
                 return
             actual = gestor.estado_transmision(self._parada)
+            try:
+                self._ultimo_estado = dict(actual)
+            except Exception:
+                self._ultimo_estado = actual
             if not actual.get("outputActive"):
                 if self._corte.is_set() or self._parada.is_set():
                     return

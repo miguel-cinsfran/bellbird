@@ -71,7 +71,7 @@ _TEXTO_COMO_SE_COLOCA = (
     "botón la lleva a una de nueve posiciones fijas. El Ajuste fino la mueve de\n"
     "a poco con las flechas, y confirma con Intro.\n\n"
     "Cinco. El tamaño se cambia con Ancho y Alto y se aplica con su botón.\n\n"
-    "El cuadro Estado de la transmisión describe en todo momento dónde está la\n"
+    "El cuadro Estado del panel describe en todo momento dónde está la\n"
     "fuente, de qué tamaño es, si se sale del lienzo y si tapa a otras. Se\n"
     "actualiza solo con cada cambio.\n\n"
     "Restablecer deshace todo lo que hiciste desde que abriste esta ventana.")
@@ -196,14 +196,6 @@ class TransmisionDialog(wx.Dialog):
         sizer_escena.Add(self.btn_captura, 0, wx.ALL, 6)
         self.btn_actualizar = self._boton(padre_escena, "Actualizar e&stado", "ActualizarEstado")
         sizer_escena.Add(self.btn_actualizar, 0, wx.ALL, 6)
-        self.txt_estado = wx.TextCtrl(
-            padre_escena, style=wx.TE_MULTILINE | wx.TE_READONLY,
-            name="Estado de la transmisión")
-        self.txt_estado.SetBackgroundColour(_T.field)
-        self.txt_estado.SetForegroundColour(_T.text)
-        nombre_accesible(self.txt_estado, "Estado de la transmisión")
-        self.txt_estado.SetMinSize((-1, 110))
-        sizer_escena.Add(self.txt_estado, 1, wx.EXPAND | wx.ALL, 6)
         contenido.Add(sizer_escena, 1, wx.EXPAND | wx.ALL, 10)
 
         sizer_panel, padre_panel = caja_de_grupo(zona, "Panel de chat, solo YouTube")
@@ -219,6 +211,14 @@ class TransmisionDialog(wx.Dialog):
         self.cho_fuente = wx.Choice(padre_panel, name="Fuente")
         nombre_accesible(self.cho_fuente, "Fuente")
         fila_campo(sizer_panel, rotulo_fuente, self.cho_fuente)
+        self.txt_estado = wx.TextCtrl(
+            padre_panel, style=wx.TE_MULTILINE | wx.TE_READONLY,
+            name="Estado del panel")
+        self.txt_estado.SetBackgroundColour(_T.field)
+        self.txt_estado.SetForegroundColour(_T.text)
+        nombre_accesible(self.txt_estado, "Estado del panel")
+        self.txt_estado.SetMinSize((-1, 110))
+        sizer_panel.Add(self.txt_estado, 1, wx.EXPAND | wx.ALL, 6)
         rotulo_posicion = nuevo_rotulo(padre_panel, "Posición del panel:")
         self.cho_posicion = wx.Choice(
             padre_panel, choices=[nombre.replace("-", " ").capitalize()
@@ -500,7 +500,6 @@ class TransmisionDialog(wx.Dialog):
             _ETIQUETA_DETENER_GRABACION if grabando else _ETIQUETA_GRABAR,
             "Detener la grabación" if grabando else "Grabar")
         self.btn_pausar_grabacion.Enable(grabando)
-        self.txt_estado.AppendText(f"\n{self._frase_escena_al_aire(al_aire)}")
 
     @staticmethod
     def _frase_transmision(estado):

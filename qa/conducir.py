@@ -1455,7 +1455,7 @@ def escenario_transmision(app: Aplicacion, args, res: Resultado):
                  "no se exigen en el orden de Tab")
     auditar_dialogo(
         app, res, "Transmisión", "Transmisión", vueltas_tab=25,
-        esperados=("Estado de la transmisión", "Actualizar estado", "Preparar el panel", "Escena",
+        esperados=("Estado del panel", "Actualizar estado", "Preparar el panel", "Escena",
                    "Poner al aire", "Fuente",
                    "Posición del panel", "Ancho del panel", "Alto del panel",
                    "Aplicar tamaño", "Mostrar el panel", "Fijar el panel",

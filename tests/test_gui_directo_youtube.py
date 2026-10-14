@@ -103,6 +103,11 @@ class TestDialogoDirectoVentana(unittest.TestCase):
         self.assertTrue(estilo & wx.TE_MULTILINE)
         self.assertFalse(estilo & wx.TE_PROCESS_TAB)
 
+    def test_titulo_con_ancho_minimo_para_que_no_se_corte(self):
+        dialogo = self._dialogo(titulo="Hola")
+        self.assertGreaterEqual(
+            dialogo.txt_titulo.GetMinSize().GetWidth(), 420)
+
     def test_botones_y_foco(self):
         dialogo = self._dialogo(titulo="Hola")
         self.assertEqual(dialogo.btn_crear.GetLabel(), "&Crear directo")

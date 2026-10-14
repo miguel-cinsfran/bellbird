@@ -86,6 +86,7 @@ class DialogoDirectoYoutube(wx.Dialog):
         fila.Add(self.btn_cancelar, 0)
         vs.Add(fila, 0, wx.ALIGN_RIGHT | wx.ALL, 10)
 
+        self.txt_titulo.SetMinSize((420, -1))
         self.SetSizerAndFit(vs)
         self.btn_crear.Bind(wx.EVT_BUTTON, self._al_crear)
         self.Bind(wx.EVT_CHAR_HOOK, self._al_tecla)

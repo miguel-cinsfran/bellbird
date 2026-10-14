@@ -744,8 +744,8 @@ class TestTransmisionDialog(unittest.TestCase):
             "Transmitir", "Grabar", "Pausar la grabación",
             "Escena", "Poner al aire", "Ventana que se captura",
             "Usar esa ventana", "GuardarCaptura", "ActualizarEstado",
-            "Estado de la transmisión",
             "Panel de chat para transmitir", "Preparar el panel", "Fuente",
+            "Estado del panel",
             "Posición del panel", "Colocar en esa posición",
             "Ancho del panel en píxeles", "Alto del panel en píxeles",
             "AplicarTamano", "MostrarPanel", "FijarPanel", "PonerAlFrente",
@@ -930,6 +930,41 @@ class TestTransmisionDialog(unittest.TestCase):
     def test_estado_muestra_varias_lineas(self):
         self.assertGreaterEqual(
             self.dialogo.txt_estado.GetMinSize().GetHeight(), 110)
+
+    def test_estado_del_panel_nombre_padre_y_orden(self):
+        self.assertEqual(self.dialogo.txt_estado.GetName(), "Estado del panel")
+        self.assertIs(self.dialogo.txt_estado.GetParent(),
+                      self.dialogo.cho_fuente.GetParent())
+        hijos = list(self.dialogo.cho_fuente.GetParent().GetChildren())
+        self.assertEqual(hijos.index(self.dialogo.txt_estado),
+                         hijos.index(self.dialogo.cho_fuente) + 1)
+        self.assertLess(hijos.index(self.dialogo.txt_estado),
+                        hijos.index(self.dialogo.cho_posicion))
+
+    def test_estado_del_panel_sigue_siendo_lectura_multilinea(self):
+        estilo = self.dialogo.txt_estado.GetWindowStyleFlag()
+        self.assertTrue(estilo & wx.TE_READONLY)
+        self.assertTrue(estilo & wx.TE_MULTILINE)
+
+    def test_mostrar_estados_no_agrega_la_escena_al_aire(self):
+        self.dialogo._mostrar_snap(self.gestor.snap)
+        self.dialogo._mostrar_estados(self.gestor.estado_transmision(),
+                                      self.gestor.estado_grabacion(),
+                                      "Principal")
+        self.assertNotIn("Al aire: Principal",
+                         self.dialogo.txt_estado.GetValue())
+
+    def test_mostrar_estados_sigue_actualizando_los_botones(self):
+        self.gestor.transmitiendo = True
+        self.gestor.grabando = True
+        self.dialogo._mostrar_estados(self.gestor.estado_transmision(),
+                                      self.gestor.estado_grabacion(),
+                                      "Principal")
+        self.assertEqual(self.dialogo.btn_transmitir.GetLabel(),
+                         gui_transmision._ETIQUETA_DETENER_TRANSMISION)
+        self.assertEqual(self.dialogo.btn_grabar.GetLabel(),
+                         gui_transmision._ETIQUETA_DETENER_GRABACION)
+        self.assertTrue(self.dialogo.btn_pausar_grabacion.IsEnabled())
 
     def test_contenido_en_zona_desplazable_y_cerrar_fuera(self):
         zona = self.dialogo._zona_desplazable

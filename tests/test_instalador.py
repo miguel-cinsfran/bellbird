@@ -1,0 +1,367 @@
+"""Pruebas del instalador sobre carpetas temporales reales."""
+
+import json
+import subprocess
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+from ytchat.core import instalador
+from ytchat.core import paths
+
+
+DESDE = "2.1.0"
+HACIA = "2.2.0"
+EXE_VIEJO = "Viejo.exe"
+EXE_NUEVO = "Nuevo.exe"
+
+GUIÓN_OK = (
+    "import sys, time\n"
+    "open(sys.argv[1], 'w').write('ok')\n"
+)
+GUIÓN_MALO = "import time\ntime.sleep(30)\n"
+GUIÓN_SALE = "pass\n"
+
+
+def _foto(carpeta: Path) -> dict:
+    foto = {}
+    for ruta in sorted(carpeta.rglob("*")):
+        if ruta.is_file():
+            foto[str(ruta.relative_to(carpeta))] = ruta.read_bytes()
+    return foto
+
+
+def _es_estado(clave: str) -> bool:
+    return Path(clave).parts[:2] == ("data", "actualizacion")
+
+
+def _sin_estado(foto: dict) -> dict:
+    return {k: v for k, v in foto.items() if not _es_estado(k)}
+
+
+def _foto_datos_usuario(carpeta_data: Path) -> dict:
+    return {k: v for k, v in _foto(carpeta_data).items()
+            if Path(k).parts[0] != "actualizacion"}
+
+
+class BaseInstalador(unittest.TestCase):
+    guion_nuevo = GUIÓN_OK
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        self.addCleanup(self._cerrar_registro)
+        tmp = Path(self._tmp.name)
+        self.instalacion = tmp / "instalacion"
+        self.fuente_paquete = tmp / "fuente"
+        self.guion_ok = tmp / "guion_ok.py"
+        self.guion_ok.write_text(GUIÓN_OK, encoding="utf-8")
+        self.guion_malo = tmp / "guion_malo.py"
+        self.guion_malo.write_text(GUIÓN_MALO, encoding="utf-8")
+        self.guion_sale = tmp / "guion_sale.py"
+        self.guion_sale.write_text(GUIÓN_SALE, encoding="utf-8")
+        self._armar_instalacion()
+        self._armar_paquete()
+        self.lanzados = []
+        self.matados = []
+        self._procesos = []
+        self.addCleanup(self._cosechar_procesos)
+
+    def _cerrar_registro(self):
+        import logging
+        for manejador in list(instalador.logger.handlers):
+            instalador.logger.removeHandler(manejador)
+            try:
+                manejador.close()
+            except Exception:
+                pass
+        logging.shutdown()
+
+    def _armar_instalacion(self, exe_viejo=EXE_VIEJO):
+        inst = self.instalacion
+        (inst / exe_viejo).parent.mkdir(parents=True, exist_ok=True)
+        (inst / exe_viejo).write_bytes(b"viejo-exe")
+        (inst / "_internal" / "viejo.dll").parent.mkdir(parents=True)
+        (inst / "_internal" / "viejo.dll").write_bytes(b"viejo-dll")
+        (inst / "programa.txt").write_bytes(b"programa viejo")
+        datos = inst / "data"
+        (datos / "config.ini").parent.mkdir(parents=True, exist_ok=True)
+        (datos / "config.ini").write_bytes(b"config del usuario")
+        (inst / "Descargas" / "video.mp4").parent.mkdir(parents=True)
+        (inst / "Descargas" / "video.mp4").write_bytes(b"video")
+        (inst / "sounds" / "existe.wav").parent.mkdir(parents=True)
+        (inst / "sounds" / "existe.wav").write_bytes(b"sonido viejo")
+
+    def _armar_paquete(self, exe_nuevo=EXE_NUEVO, hacia=HACIA):
+        fuente = self.fuente_paquete
+        fuente.mkdir(parents=True, exist_ok=True)
+        (fuente / exe_nuevo).write_bytes(b"nuevo-exe")
+        (fuente / "_internal" / "nuevo.dll").parent.mkdir(parents=True)
+        (fuente / "_internal" / "nuevo.dll").write_bytes(b"nuevo-dll")
+        (fuente / "programa.txt").write_bytes(b"programa nuevo")
+        (fuente / "sounds" / "existe.wav").parent.mkdir(parents=True)
+        (fuente / "sounds" / "existe.wav").write_bytes(b"sonido nuevo")
+        (fuente / "sounds" / "agregado.wav").write_bytes(b"sonido agregado")
+        (fuente / paths.NOMBRE_MANIFIESTO).write_text(
+            json.dumps({"version": hacia, "ejecutable": exe_nuevo}),
+            encoding="utf-8")
+
+    def _orden_para(self, guion_nuevo=None):
+        arranque = str(paths.arranque_confirmado_en(self.instalacion))
+
+        def traducir(ruta):
+            self.lanzados.append(Path(ruta).name)
+            if Path(ruta).name == EXE_NUEVO:
+                guion = self.guion_ok if guion_nuevo is None else guion_nuevo
+                return [sys.executable, str(guion), arranque]
+            return [sys.executable, str(self.guion_sale)]
+
+        return traducir
+
+    def _lanzar(self, orden):
+        proceso = subprocess.Popen(orden)
+        self._procesos.append(proceso)
+        return proceso
+
+    def _cosechar_procesos(self):
+        for proceso in self._procesos:
+            try:
+                proceso.wait(timeout=10)
+            except Exception:
+                try:
+                    proceso.kill()
+                except Exception:
+                    pass
+        self._procesos = []
+
+    def _matar(self, proceso):
+        self.matados.append(proceso)
+        try:
+            proceso.terminate()
+        except Exception:
+            pass
+        try:
+            proceso.wait(timeout=10)
+        except Exception:
+            try:
+                proceso.kill()
+            except Exception:
+                pass
+
+    def test_exito(self):
+        foto_datos = _foto(self.instalacion / "data")
+        self.assertEqual(set(foto_datos), {"config.ini"})
+        foto_descargas = _foto(self.instalacion / "Descargas")
+        ok = instalador.instalar(
+            self.fuente_paquete, self.instalacion, 1234, EXE_VIEJO, DESDE,
+            esperar_pid=lambda pid, tope: True,
+            lanzar=self._lanzar, matar=self._matar,
+            orden_para=self._orden_para())
+        self.assertTrue(ok)
+        # Archivos del programa nuevos.
+        self.assertEqual((self.instalacion / EXE_NUEVO).read_bytes(), b"nuevo-exe")
+        self.assertEqual((self.instalacion / "programa.txt").read_bytes(),
+                         b"programa nuevo")
+        self.assertEqual((self.instalacion / "_internal" / "nuevo.dll").read_bytes(),
+                         b"nuevo-dll")
+        self.assertFalse((self.instalacion / "_internal" / "viejo.dll").exists())
+        # Usuario intacto byte a byte.
+        self.assertEqual(_foto_datos_usuario(self.instalacion / "data"),
+                         foto_datos)
+        self.assertEqual(_foto(self.instalacion / "Descargas"), foto_descargas)
+        # Sonidos: el existente no se pisa, el nuevo se agrega.
+        self.assertEqual((self.instalacion / "sounds" / "existe.wav").read_bytes(),
+                         b"sonido viejo")
+        self.assertEqual((self.instalacion / "sounds" / "agregado.wav").read_bytes(),
+                         b"sonido agregado")
+        # Limpieza y resultado.
+        self.assertFalse(paths.respaldo_actualizacion_en(self.instalacion).exists())
+        self.assertFalse(paths.actualizacion_pendiente_en(self.instalacion).exists())
+        resultado = json.loads(
+            paths.resultado_actualizacion_en(self.instalacion).read_text(
+                encoding="utf-8"))
+        self.assertEqual(resultado,
+                         {"resultado": "ok", "desde": DESDE, "hacia": HACIA})
+        self.assertTrue(paths.registro_actualizacion_en(self.instalacion).is_file())
+
+    def test_nuevo_no_confirma_vuelve_atras(self):
+        foto_programa = _sin_estado(_foto(self.instalacion))
+        # Saca data/actualizacion de la foto: el registro y el resultado
+        # viven ahí y sí cambian.
+        ok = instalador.instalar(
+            self.fuente_paquete, self.instalacion, 1234, EXE_VIEJO, DESDE,
+            esperar_pid=lambda pid, tope: True,
+            lanzar=self._lanzar, matar=self._matar,
+            orden_para=self._orden_para(guion_nuevo=self.guion_malo),
+            tope_arranque=2)
+        self.assertFalse(ok)
+        ahora = _sin_estado(_foto(self.instalacion))
+        self.assertEqual(ahora, foto_programa)
+        self.assertEqual((self.instalacion / EXE_VIEJO).read_bytes(), b"viejo-exe")
+        self.assertIn(EXE_VIEJO, self.lanzados)
+        self.assertFalse(paths.actualizacion_pendiente_en(self.instalacion).exists())
+        resultado = json.loads(
+            paths.resultado_actualizacion_en(self.instalacion).read_text(
+                encoding="utf-8"))
+        self.assertEqual(resultado["resultado"], "fallo")
+        self.assertTrue(resultado["motivo"])
+
+    def test_archivo_que_no_se_puede_mover(self):
+        import os
+        real_replace = os.replace
+        respaldo = paths.respaldo_actualizacion_en(self.instalacion)
+        llamadas = {"n": 0}
+
+        def _falla_una(origen, destino):
+            if Path(origen).name == "programa.txt" and llamadas["n"] == 0:
+                llamadas["n"] += 1
+                raise OSError("archivo en uso")
+            return real_replace(origen, destino)
+
+        import unittest.mock as mock
+        foto_antes = _foto(self.instalacion)
+        with mock.patch.object(os, "replace", side_effect=_falla_una):
+            ok = instalador.instalar(
+                self.fuente_paquete, self.instalacion, 1234, EXE_VIEJO, DESDE,
+                esperar_pid=lambda pid, tope: True,
+                lanzar=self._lanzar, matar=self._matar,
+                orden_para=self._orden_para())
+        self.assertFalse(ok)
+        ahora = _foto(self.instalacion)
+        # Solo puede diferir data/actualizacion (registro y resultado).
+        for clave in set(foto_antes) | set(ahora):
+            if _es_estado(clave):
+                continue
+            self.assertEqual(ahora.get(clave), foto_antes.get(clave),
+                             f"cambió {clave}")
+        self.assertIn(EXE_VIEJO, self.lanzados)
+        resultado = json.loads(
+            paths.resultado_actualizacion_en(self.instalacion).read_text(
+                encoding="utf-8"))
+        self.assertEqual(resultado["resultado"], "fallo")
+
+    def test_pid_no_termina_no_toca_nada(self):
+        foto_antes = _sin_estado(_foto(self.instalacion))
+        ok = instalador.instalar(
+            self.fuente_paquete, self.instalacion, 1234, EXE_VIEJO, DESDE,
+            esperar_pid=lambda pid, tope: False,
+            lanzar=self._lanzar, matar=self._matar,
+            orden_para=self._orden_para())
+        self.assertFalse(ok)
+        ahora = _sin_estado(_foto(self.instalacion))
+        self.assertEqual(ahora, foto_antes)
+        self.assertEqual(self.lanzados, [])
+        self.assertFalse(
+            paths.resultado_actualizacion_en(self.instalacion).exists())
+
+    def test_renombre_de_app_el_viejo_desaparece(self):
+        ok = instalador.instalar(
+            self.fuente_paquete, self.instalacion, 1234, EXE_VIEJO, DESDE,
+            esperar_pid=lambda pid, tope: True,
+            lanzar=self._lanzar, matar=self._matar,
+            orden_para=self._orden_para())
+        self.assertTrue(ok)
+        self.assertTrue((self.instalacion / EXE_NUEVO).is_file())
+        self.assertFalse((self.instalacion / EXE_VIEJO).exists())
+
+
+class TestTemasSonido(BaseInstalador):
+    """Los temas del paquete reemplazan a los instalados, los propios quedan."""
+
+    def _armar_instalacion(self, exe_viejo=EXE_VIEJO):
+        super()._armar_instalacion(exe_viejo=exe_viejo)
+        (self.instalacion / "sounds" / "themes" / "default").mkdir(
+            parents=True, exist_ok=True)
+        (self.instalacion / "sounds" / "themes" / "default" / "a.wav"
+         ).write_bytes(b"tema viejo a")
+        (self.instalacion / "sounds" / "themes" / "mio").mkdir(
+            parents=True, exist_ok=True)
+        (self.instalacion / "sounds" / "themes" / "mio" / "x.wav"
+         ).write_bytes(b"tema mio x")
+
+    def _armar_paquete(self, exe_nuevo=EXE_NUEVO, hacia=HACIA):
+        super()._armar_paquete(exe_nuevo=exe_nuevo, hacia=hacia)
+        (self.fuente_paquete / "sounds" / "themes" / "default").mkdir(
+            parents=True, exist_ok=True)
+        (self.fuente_paquete / "sounds" / "themes" / "default" / "a.wav"
+         ).write_bytes(b"tema nuevo a")
+        (self.fuente_paquete / "sounds" / "themes" / "default" / "nuevo.wav"
+         ).write_bytes(b"tema nuevo")
+
+    def test_exito_reemplaza_tema_y_conserva_el_propio(self):
+        ok = instalador.instalar(
+            self.fuente_paquete, self.instalacion, 1234, EXE_VIEJO, DESDE,
+            esperar_pid=lambda pid, tope: True,
+            lanzar=self._lanzar, matar=self._matar,
+            orden_para=self._orden_para())
+        self.assertTrue(ok)
+        self.assertEqual(
+            (self.instalacion / "sounds" / "themes" / "default" / "a.wav"
+             ).read_bytes(), b"tema nuevo a")
+        self.assertEqual(
+            (self.instalacion / "sounds" / "themes" / "default" / "nuevo.wav"
+             ).read_bytes(), b"tema nuevo")
+        self.assertEqual(
+            (self.instalacion / "sounds" / "themes" / "mio" / "x.wav"
+             ).read_bytes(), b"tema mio x")
+
+    def test_sin_confirmacion_devuelve_temas(self):
+        ok = instalador.instalar(
+            self.fuente_paquete, self.instalacion, 1234, EXE_VIEJO, DESDE,
+            esperar_pid=lambda pid, tope: True,
+            lanzar=self._lanzar, matar=self._matar,
+            orden_para=self._orden_para(guion_nuevo=self.guion_malo),
+            tope_arranque=2)
+        self.assertFalse(ok)
+        self.assertEqual(
+            (self.instalacion / "sounds" / "themes" / "default" / "a.wav"
+             ).read_bytes(), b"tema viejo a")
+        self.assertFalse(
+            (self.instalacion / "sounds" / "themes" / "default" / "nuevo.wav"
+             ).exists())
+        self.assertEqual(
+            (self.instalacion / "sounds" / "themes" / "mio" / "x.wav"
+             ).read_bytes(), b"tema mio x")
+
+    def test_fallo_al_arrancar_lo_nuevo_vuelve_atras(self):
+        foto_programa = _sin_estado(_foto(self.instalacion))
+
+        def traducir(ruta):
+            self.lanzados.append(Path(ruta).name)
+            if Path(ruta).name == EXE_NUEVO:
+                raise RuntimeError("no abre")
+            return [sys.executable, str(self.guion_sale)]
+
+        ok = instalador.instalar(
+            self.fuente_paquete, self.instalacion, 1234, EXE_VIEJO, DESDE,
+            esperar_pid=lambda pid, tope: True,
+            lanzar=self._lanzar, matar=self._matar,
+            orden_para=traducir)
+        self.assertFalse(ok)
+        self.assertEqual(_sin_estado(_foto(self.instalacion)), foto_programa)
+        respaldo = paths.respaldo_actualizacion_en(self.instalacion)
+        self.assertTrue(not respaldo.exists()
+                        or not any(respaldo.rglob("*")))
+        self.assertIn(EXE_VIEJO, self.lanzados)
+        resultado = json.loads(
+            paths.resultado_actualizacion_en(self.instalacion).read_text(
+                encoding="utf-8"))
+        self.assertEqual(resultado["resultado"], "fallo")
+        self.assertTrue(resultado["motivo"])
+
+
+class TestPrincipalInstalador(unittest.TestCase):
+
+    def test_argumentos_cortos_devuelve_uno(self):
+        self.assertEqual(instalador.principal_instalador([]), 1)
+        self.assertEqual(instalador.principal_instalador(
+            ["--instalar-actualizacion", "solo"]), 1)
+
+    def test_pid_no_numerico_devuelve_uno(self):
+        self.assertEqual(instalador.principal_instalador(
+            ["--instalar-actualizacion", "inst", "no-numero", "V.exe", "1.0"]), 1)
+
+
+if __name__ == "__main__":
+    unittest.main()

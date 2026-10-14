@@ -42,6 +42,10 @@ TODAS_LAS_FUNCIONES = (
     [nombre for nombre, _ in RUTAS_DE_DATOS]
     + [nombre for nombre, _ in RUTAS_DE_INSTALACION]
     + ["pagina_overlay", "datos_a_migrar"]
+    + ["carpeta_actualizacion", "paquete_descargado", "paquete_extraido",
+       "respaldo_actualizacion", "actualizacion_pendiente",
+       "arranque_confirmado", "resultado_actualizacion",
+       "registro_actualizacion"]
 )
 
 
@@ -143,6 +147,51 @@ class TestDatosAMigrar(unittest.TestCase):
                 self.assertEqual(set(migradas), esperadas)
                 for ruta in migradas:
                     self.assertEqual(ruta.parent, datos)
+
+
+class TestActualizacion(unittest.TestCase):
+
+    RUTAS = [
+        ("carpeta_actualizacion", "actualizacion"),
+        ("paquete_descargado", "paquete.zip"),
+        ("paquete_extraido", "nueva"),
+        ("respaldo_actualizacion", "respaldo"),
+        ("actualizacion_pendiente", "pendiente.json"),
+        ("arranque_confirmado", "arranque-ok"),
+        ("resultado_actualizacion", "resultado.json"),
+        ("registro_actualizacion", "registro.log"),
+    ]
+
+    def test_cuelgan_de_datos_actualizacion(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            instalacion = Path(tmp) / "app"
+            with mock.patch.object(paths, "carpeta_instalacion",
+                                   return_value=instalacion):
+                self.assertEqual(paths.carpeta_actualizacion(),
+                                 paths.carpeta_datos() / "actualizacion")
+                for nombre, esperado in self.RUTAS[1:]:
+                    with self.subTest(funcion=nombre):
+                        self.assertEqual(
+                            getattr(paths, nombre)(),
+                            paths.carpeta_actualizacion() / esperado)
+
+    def test_variantes_en_con_instalacion_explicita(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            instalacion = Path(tmp) / "app"
+            with mock.patch.object(paths, "carpeta_instalacion",
+                                   return_value=instalacion):
+                for nombre, _ in self.RUTAS:
+                    with self.subTest(funcion=nombre):
+                        self.assertEqual(
+                            getattr(paths, nombre)(),
+                            getattr(paths, nombre + "_en")(instalacion))
+                # La variante _en no usa las raíces globales.
+                otra = Path(tmp) / "otra"
+                self.assertEqual(paths.paquete_descargado_en(otra),
+                                 otra / "data" / "actualizacion" / "paquete.zip")
+
+    def test_nombre_del_manifiesto(self):
+        self.assertEqual(paths.NOMBRE_MANIFIESTO, "paquete.json")
 
 
 class TestAyudante(unittest.TestCase):

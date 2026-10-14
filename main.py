@@ -665,6 +665,11 @@ def iniciar_interfaz(config, cola, stats, worker, parada, iniciar_gui_fn=None):
 
 
 def main():
+    # Modo instalador: corre dentro del exe nuevo mientras la app vieja
+    # se cierra. Va primero que todo, sin logging, sin mutex ni ventanas.
+    if len(sys.argv) > 1 and sys.argv[1] == "--instalar-actualizacion":
+        from ytchat.core import instalador
+        sys.exit(instalador.principal_instalador())
     # Aquí y no al importar el módulo: así los tests y el smoke test pueden
     # importar main sin crear el handler de ytchat.log (contaminaba el log real).
     try:

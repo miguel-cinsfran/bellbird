@@ -181,17 +181,30 @@ if errorlevel 1 (
 )
 if exist "%OUT%\config.ini" ( echo ERROR: config.ini quedo en el paquete y pisaria el del usuario. & pause & exit /b 1 )
 
+echo == Escribiendo el manifiesto del paquete ==
+REM Lo lee el instalador para saber que version trae el zip y cual es su exe.
+call uv run python -c "import json;json.dump({'version':'%VER%','ejecutable':'YTChatTTS.exe'},open(r'%OUT%\paquete.json','w'))"
+if not exist "%OUT%\paquete.json" ( echo ERROR: no se pudo escribir paquete.json. & pause & exit /b 1 )
+
 echo == Comprimiendo a "%OUT%.zip" ==
 REM Borra zips de cualquier version anterior (incluido el viejo sin version).
 del /q "YTChat TTS.zip" 2>nul
 del /q "YTChat TTS v*.zip" 2>nul
+del /q "YTChat TTS.zip.sha256" 2>nul
+del /q "YTChat TTS v*.zip.sha256" 2>nul
 powershell -NoProfile -Command "Compress-Archive -Path '%OUT%' -DestinationPath '%OUT%.zip' -Force"
+
+echo == Firmando el zip ==
+REM SHA-256 en minusculas, dos espacios y el nombre del zip. El actualizador
+REM lo usa para verificar la descarga antes de instalar.
+powershell -NoProfile -Command "(Get-FileHash -Path '%OUT%.zip' -Algorithm SHA256).Hash.ToLower() + '  %OUT%.zip' | Set-Content -NoNewline '%OUT%.zip.sha256'"
 
 echo.
 echo ============================================================================
 echo  Listo.
 echo    Carpeta: "%OUT%"        (para probar: "%OUT%\YTChatTTS.exe")
 echo    ZIP    : "%OUT%.zip"    (esto es lo que mandas al amigo)
+echo    FIRMA  : "%OUT%.zip.sha256"    (subelo junto al zip a la release)
 echo  El amigo solo descomprime y abre YTChatTTS.exe; no necesita nada mas.
 echo ============================================================================
 pause

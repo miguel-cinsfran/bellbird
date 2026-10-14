@@ -234,6 +234,28 @@ class TestConstruirBat(unittest.TestCase):
                              f"construir.bat:{numero} tiene bytes fuera de ASCII")
 
 
+    def test_construir_escribe_manifiesto_y_firma(self):
+        base = Path(__file__).parent.parent
+        texto = (base / "construir.bat").read_text(encoding="utf-8")
+        # Manifiesto con la versión y el ejecutable, antes de comprimir.
+        self.assertIn("paquete.json", texto)
+        self.assertIn("'ejecutable':'YTChatTTS.exe'", texto)
+        indice_manifiesto = texto.find("paquete.json")
+        indice_zip = texto.lower().find("compress-archive")
+        self.assertGreater(indice_manifiesto, -1)
+        self.assertLess(indice_manifiesto, indice_zip)
+        # Firma SHA-256 del zip, después de comprimir.
+        self.assertIn(".zip.sha256", texto)
+        self.assertIn("Get-FileHash", texto)
+        indice_firma = texto.find("Get-FileHash")
+        self.assertGreater(indice_firma, indice_zip)
+        # Se borran las firmas viejas donde se borran los zips viejos.
+        self.assertIn('del /q "YTChat TTS v*.zip.sha256"', texto)
+        # El resumen final menciona la firma, sin tildes por ser ASCII.
+        self.assertIn("FIRMA", texto)
+        self.assertIn("subelo junto al zip a la release", texto)
+
+
 class TestGitignore(unittest.TestCase):
     def test_gitignore_ignora_config_y_no_ignora_predeterminado(self):
         base = Path(__file__).parent.parent

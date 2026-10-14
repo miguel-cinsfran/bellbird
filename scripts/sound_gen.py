@@ -470,7 +470,7 @@ def main():
     total = 0
     for t in temas:
         destino = Path(args.destino) if args.destino else (THEMES_DIR / t)
-        print(f"\n  Tema '{t}' → {destino}")
+        print(f"\n  Tema '{t}' -> {destino}")
         print("-" * 60)
         n = generar_tema(t, destino, sobreescribir=args.forzar)
         total += n

@@ -2,6 +2,9 @@
 
 import contextlib
 import io
+import os
+import subprocess
+import sys
 import tempfile
 import unittest
 import wave
@@ -53,6 +56,19 @@ class PruebasSoundGen(unittest.TestCase):
                         self.assertGreater(ruta.stat().st_size, 0, nombre)
                         with wave.open(str(ruta), "rb") as wav:
                             self.assertEqual(wav.getnchannels(), 2, nombre)
+
+    def test_genera_tema_default_con_consola_cp1252(self):
+        with tempfile.TemporaryDirectory(dir=Path.cwd()) as directorio:
+            destino = Path(directorio) / "salida"
+            entorno = dict(os.environ)
+            entorno["PYTHONIOENCODING"] = "cp1252"
+            guion = Path(sound_gen.__file__)
+            proc = subprocess.run(
+                [sys.executable, str(guion), "-t", "default", "-d", str(destino)],
+                capture_output=True, text=True, env=entorno, timeout=60)
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            generados = list(destino.glob("*.wav"))
+            self.assertEqual(len(generados), len(sound_gen.TEMAS["default"]))
 
     def test_generar_tema_omite_archivos_ya_existentes(self):
         with tempfile.TemporaryDirectory(dir=Path.cwd()) as directorio:

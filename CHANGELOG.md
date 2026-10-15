@@ -36,6 +36,15 @@ según quién escribe y qué pasa en el directo.
   pasárselo a alguien.
 - **`F2` dice primero en qué está el directo** que supervisa la aplicación, y
   si TikTok o YouTube ya lo muestran.
+- **Un corte de internet no termina el directo de YouTube.** Si OBS pierde
+  la conexión, por ejemplo al cambiar de wifi, YouTube espera a que vuelva
+  la señal en vez de cerrar el directo, y la aplicación avisa que OBS está
+  reconectando. Al finalizar desde la aplicación o desde OBS, la aplicación
+  cierra el directo en YouTube.
+- **El panel de chat no queda tapado.** Si otra fuente de la escena, como
+  una captura de pantalla o de la cámara, queda encima del panel, la
+  aplicación lo pone adelante al salir al aire y durante el directo, y dice
+  qué fuente lo tapaba.
 
 ### Iniciar sesión con Google
 
@@ -89,6 +98,8 @@ según quién escribe y qué pasa en el directo.
 ### Otros cambios
 
 - **`F3` dice el autor del último mensaje leído.**
+- **La aplicación ya no se cierra sola al finalizar un directo.** Lo
+  provocaba el propio registro de fallos, que anotaba de más.
 - **Los sonidos ya no frenan la ventana,** y el reproductor tarda menos en
   arrancar la primera vez.
 - **La configuración admite `%`, `#` y `;`** en los textos, por ejemplo en un

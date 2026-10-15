@@ -269,7 +269,8 @@ class TestVentana(unittest.TestCase):
             return actualizacion.ResultadoDescarga(True, "paquete descargado")
         _, ventana = self._abrir_descargable(descargar)
         self.assertIn(f"Listo para instalar. {APP_NAME} se cierra y vuelve "
-                      "a abrirse sola. Si hay un chat conectado o un directo "
+                      "a abrirse sola en alrededor de un minuto. Si hay un "
+                      "chat conectado o un directo "
                       "en curso, se corta.", ventana.anuncios)
         self.assertEqual("&Instalar y reiniciar", ventana.accion_etiqueta)
 
@@ -450,6 +451,22 @@ class TestGanchos(unittest.TestCase):
         app.programar_aviso_version()
         anunciar.assert_not_called()
         guardar.assert_not_called()
+
+    def test_consulta_limpia_restos_antes_de_consultar(self):
+        self._reloj()
+        orden = []
+        self._doble(mock.patch.object(
+            actualizacion, "limpiar_restos",
+            side_effect=lambda *a: orden.append("limpiar")))
+        def _consultar(*a, **k):
+            orden.append("consultar")
+            return None
+        self._doble(mock.patch.object(
+            actualizacion, "consultar_ultima_version",
+            side_effect=_consultar))
+        self._doble(mock.patch.object(app, "anunciar"))
+        app.programar_aviso_version()
+        self.assertEqual(["limpiar", "consultar"], orden)
 
     def test_ganchos_nunca_revientan(self):
         self._reloj()

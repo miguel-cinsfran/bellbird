@@ -185,6 +185,71 @@ class BaseInstalador(unittest.TestCase):
                          {"resultado": "ok", "desde": DESDE, "hacia": HACIA})
         self.assertTrue(paths.registro_actualizacion_en(self.instalacion).is_file())
 
+    def test_exito_escribe_resultado_antes_de_borrar_respaldo(self):
+        import shutil as shutil_real
+        import unittest.mock as mock
+        real_rmtree = shutil_real.rmtree
+        respaldo = paths.respaldo_actualizacion_en(self.instalacion)
+        visto = {}
+        def _espiar(ruta, *args, **kwargs):
+            if Path(ruta) == respaldo:
+                visto["resultado_existe"] = paths.resultado_actualizacion_en(
+                    self.instalacion).is_file()
+            return real_rmtree(ruta, *args, **kwargs)
+        with mock.patch.object(shutil_real, "rmtree", side_effect=_espiar):
+            ok = instalador.instalar(
+                self.fuente_paquete, self.instalacion, 1234, EXE_VIEJO, DESDE,
+                esperar_pid=lambda pid, tope: True,
+                lanzar=self._lanzar, matar=self._matar,
+                orden_para=self._orden_para())
+        self.assertTrue(ok)
+        self.assertIn("resultado_existe", visto)
+        self.assertTrue(
+            visto["resultado_existe"],
+            "resultado.json debe existir cuando empieza el borrado del respaldo")
+
+    def test_fallo_sin_confirmacion_escribe_resultado_antes_de_lanzar_viejo(self):
+        vistos = []
+        def _lanzar_orden(orden):
+            if len(orden) > 1 and Path(orden[1]).name == self.guion_sale.name:
+                vistos.append(paths.resultado_actualizacion_en(
+                    self.instalacion).is_file())
+            return self._lanzar(orden)
+        ok = instalador.instalar(
+            self.fuente_paquete, self.instalacion, 1234, EXE_VIEJO, DESDE,
+            esperar_pid=lambda pid, tope: True,
+            lanzar=_lanzar_orden, matar=self._matar,
+            orden_para=self._orden_para(guion_nuevo=self.guion_malo),
+            tope_arranque=2)
+        self.assertFalse(ok)
+        self.assertTrue(vistos, "el ejecutable viejo debe lanzarse al volver atrás")
+        self.assertTrue(
+            all(vistos),
+            "resultado.json debe existir cuando se lanza el ejecutable viejo")
+
+    def test_fallo_lanzamiento_escribe_resultado_antes_de_lanzar_viejo(self):
+        vistos = []
+        def _lanzar_orden(orden):
+            if len(orden) > 1 and Path(orden[1]).name == self.guion_sale.name:
+                vistos.append(paths.resultado_actualizacion_en(
+                    self.instalacion).is_file())
+            return self._lanzar(orden)
+        def traducir(ruta):
+            self.lanzados.append(Path(ruta).name)
+            if Path(ruta).name == EXE_NUEVO:
+                raise RuntimeError("no abre")
+            return [sys.executable, str(self.guion_sale)]
+        ok = instalador.instalar(
+            self.fuente_paquete, self.instalacion, 1234, EXE_VIEJO, DESDE,
+            esperar_pid=lambda pid, tope: True,
+            lanzar=_lanzar_orden, matar=self._matar,
+            orden_para=traducir)
+        self.assertFalse(ok)
+        self.assertTrue(vistos, "el ejecutable viejo debe lanzarse al volver atrás")
+        self.assertTrue(
+            all(vistos),
+            "resultado.json debe existir cuando se lanza el ejecutable viejo")
+
     def test_nuevo_no_confirma_vuelve_atras(self):
         foto_programa = _sin_estado(_foto(self.instalacion))
         # Saca data/actualizacion de la foto: el registro y el resultado

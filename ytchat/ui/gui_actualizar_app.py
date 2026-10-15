@@ -115,6 +115,10 @@ def _consultar_en_hilo() -> None:
 
 def _consultar_version() -> None:
     try:
+        actualizacion.limpiar_restos()
+    except Exception as exc:
+        logger.warning("aviso de versión: %s", exc)
+    try:
         paquete = actualizacion.consultar_ultima_version()
     except Exception as exc:
         logger.warning("aviso de versión: %s", exc)
@@ -289,8 +293,8 @@ def abrir_ventana_actualizacion(frame) -> None:
 
     def _mostrar_listo(raiz, ejecutable):
         ventana.estado(f"Listo para instalar. {APP_NAME} se cierra y vuelve "
-                       "a abrirse sola. Si hay un chat conectado o un directo "
-                       "en curso, se corta.")
+                       "a abrirse sola en alrededor de un minuto. Si hay un "
+                       "chat conectado o un directo en curso, se corta.")
         ventana.ofrecer_accion(
             "&Instalar y reiniciar",
             lambda: _instalar(raiz, ejecutable))

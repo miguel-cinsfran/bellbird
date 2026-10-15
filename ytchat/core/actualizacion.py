@@ -393,17 +393,13 @@ def confirmar_arranque(version_actual: str,
 def tomar_resultado(instalacion: str | os.PathLike | None = None) -> dict | None:
     """Lee `resultado.json`, lo borra y lo devuelve como dict.
 
-    Además borra la carpeta `nueva` si quedó. Nunca lanza; ante un
+    No toca la carpeta `nueva`: el instalador corre desde ahí y puede
+    seguir vivo borrando el respaldo. Los restos los borra
+    `limpiar_restos` en un arranque posterior. Nunca lanza; ante un
     archivo corrupto devuelve None y lo borra.
     """
     try:
         base = Path(instalacion) if instalacion is not None else paths.carpeta_instalacion()
-        try:
-            nueva = paths.paquete_extraido_en(base)
-            if nueva.exists():
-                _borrar_arbol(nueva)
-        except OSError:
-            pass
         archivo = paths.resultado_actualizacion_en(base)
         if not archivo.is_file():
             return None
@@ -422,6 +418,35 @@ def tomar_resultado(instalacion: str | os.PathLike | None = None) -> dict | None
         return datos if isinstance(datos, dict) else None
     except OSError:
         return None
+
+
+def limpiar_restos(instalacion: str | os.PathLike | None = None) -> None:
+    """Borra `nueva` y `paquete.zip` si no hay instalación en curso.
+
+    Solo borra cuando NO existen ni `pendiente.json` ni `resultado.json`,
+    es decir, en un arranque posterior donde ningún instalador puede estar
+    corriendo. Nunca lanza.
+    """
+    try:
+        base = Path(instalacion) if instalacion is not None else paths.carpeta_instalacion()
+        if paths.actualizacion_pendiente_en(base).is_file():
+            return
+        if paths.resultado_actualizacion_en(base).is_file():
+            return
+        try:
+            nueva = paths.paquete_extraido_en(base)
+            if nueva.exists():
+                _borrar_arbol(nueva)
+        except OSError:
+            pass
+        try:
+            zip_paquete = paths.paquete_descargado_en(base)
+            if zip_paquete.is_file():
+                zip_paquete.unlink()
+        except OSError:
+            pass
+    except OSError:
+        pass
 
 
 def texto_resultado(resultado: dict | None, version_actual: str) -> str:

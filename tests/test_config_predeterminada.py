@@ -244,11 +244,19 @@ class TestConstruirBat(unittest.TestCase):
         indice_zip = texto.lower().find("compress-archive")
         self.assertGreater(indice_manifiesto, -1)
         self.assertLess(indice_manifiesto, indice_zip)
-        # Firma SHA-256 del zip, después de comprimir.
+        # Firma SHA-256 del zip, después de comprimir, calculada con
+        # Python y hashlib: el powershell viejo no veia Get-FileHash
+        # cuando hereda PSModulePath de PowerShell 7.
         self.assertIn(".zip.sha256", texto)
-        self.assertIn("Get-FileHash", texto)
-        indice_firma = texto.find("Get-FileHash")
+        self.assertNotIn("Get-FileHash", texto)
+        self.assertIn("hashlib", texto)
+        indice_firma = texto.find("hashlib")
         self.assertGreater(indice_firma, indice_zip)
+        # Si la firma no existe, el script se detiene con error.
+        self.assertIn('if not exist "%OUT%.zip.sha256"', texto)
+        indice_guarda = texto.find('if not exist "%OUT%.zip.sha256"')
+        self.assertGreater(indice_guarda, indice_firma)
+        self.assertIn("exit /b 1", texto[indice_guarda:indice_guarda + 200])
         # Se borran las firmas viejas donde se borran los zips viejos.
         self.assertIn('del /q "YTChat TTS v*.zip.sha256"', texto)
         # El resumen final menciona la firma, sin tildes por ser ASCII.

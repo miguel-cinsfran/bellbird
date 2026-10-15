@@ -196,8 +196,11 @@ powershell -NoProfile -Command "Compress-Archive -Path '%OUT%' -DestinationPath 
 
 echo == Firmando el zip ==
 REM SHA-256 en minusculas, dos espacios y el nombre del zip. El actualizador
-REM lo usa para verificar la descarga antes de instalar.
-powershell -NoProfile -Command "(Get-FileHash -Path '%OUT%.zip' -Algorithm SHA256).Hash.ToLower() + '  %OUT%.zip' | Set-Content -NoNewline '%OUT%.zip.sha256'"
+REM lo usa para verificar la descarga antes de instalar. Se calcula con
+REM Python y hashlib, igual que paquete.json: el powershell viejo heredaba
+REM PSModulePath de PowerShell 7 y no encontraba su modulo de huella.
+call uv run python -c "import hashlib;h=hashlib.sha256(open(r'%OUT%.zip','rb').read()).hexdigest().lower();open(r'%OUT%.zip.sha256','w').write(h+'  %OUT%.zip')"
+if not exist "%OUT%.zip.sha256" ( echo ERROR: no se pudo firmar el zip. & pause & exit /b 1 )
 
 echo.
 echo ============================================================================

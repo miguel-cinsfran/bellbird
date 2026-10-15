@@ -394,7 +394,64 @@ class TestEstado(unittest.TestCase):
             self.assertEqual(datos["resultado"], "ok")
             self.assertFalse(
                 paths.resultado_actualizacion_en(base).exists())
+            # No toca `nueva`: el instalador corre desde ahí y puede
+            # seguir vivo. Los restos los borra `limpiar_restos`.
+            self.assertTrue(
+                (paths.paquete_extraido_en(base) / "resto.txt").is_file())
+
+    def test_limpiar_restos_borra_nueva_y_zip_sin_estado(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            paths.carpeta_actualizacion_en(base).mkdir(parents=True)
+            paths.paquete_extraido_en(base).mkdir(parents=True)
+            (paths.paquete_extraido_en(base) / "resto.txt").write_text(
+                "x", encoding="utf-8")
+            paths.paquete_descargado_en(base).write_bytes(b"zip")
+            actualizacion.limpiar_restos(base)
             self.assertFalse(paths.paquete_extraido_en(base).exists())
+            self.assertFalse(paths.paquete_descargado_en(base).exists())
+
+    def test_limpiar_restos_no_borra_con_pendiente(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            paths.carpeta_actualizacion_en(base).mkdir(parents=True)
+            paths.actualizacion_pendiente_en(base).write_text(
+                json.dumps({"desde": "2.2.0", "hacia": "2.3.0"}),
+                encoding="utf-8")
+            paths.paquete_extraido_en(base).mkdir(parents=True)
+            (paths.paquete_extraido_en(base) / "resto.txt").write_text(
+                "x", encoding="utf-8")
+            paths.paquete_descargado_en(base).write_bytes(b"zip")
+            actualizacion.limpiar_restos(base)
+            self.assertTrue(
+                (paths.paquete_extraido_en(base) / "resto.txt").is_file())
+            self.assertTrue(paths.paquete_descargado_en(base).is_file())
+
+    def test_limpiar_restos_no_borra_con_resultado(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            paths.carpeta_actualizacion_en(base).mkdir(parents=True)
+            paths.resultado_actualizacion_en(base).write_text(
+                json.dumps({"resultado": "ok", "hacia": "2.3.0"}),
+                encoding="utf-8")
+            paths.paquete_extraido_en(base).mkdir(parents=True)
+            (paths.paquete_extraido_en(base) / "resto.txt").write_text(
+                "x", encoding="utf-8")
+            paths.paquete_descargado_en(base).write_bytes(b"zip")
+            actualizacion.limpiar_restos(base)
+            self.assertTrue(
+                (paths.paquete_extraido_en(base) / "resto.txt").is_file())
+            self.assertTrue(paths.paquete_descargado_en(base).is_file())
+
+    def test_limpiar_restos_nunca_lanza(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            # Sin carpeta de actualización: no debe levantar.
+            actualizacion.limpiar_restos(base)
 
     def test_tomar_resultado_corrupto_devuelve_none_y_borra(self):
         import tempfile

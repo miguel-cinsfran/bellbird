@@ -298,13 +298,14 @@ def instalar(paquete: str | os.PathLike, instalacion: str | os.PathLike,
                 os.replace(respaldo / nombre, instalacion / nombre)
             except OSError:
                 pass
+        motivo = ("no se pudo mover un archivo de la versión anterior, "
+                  "quizá sigue abierto en otro programa")
+        _fallo(motivo)
         try:
             _arrancar(ejecutable_viejo)
         except Exception:
             pass
-        return _fallo(
-            "no se pudo mover un archivo de la versión anterior, "
-            "quizá sigue abierto en otro programa")
+        return False
     logger.info("respaldo listo con: %s", ", ".join(movidas) or "nada previo")
 
     # Paso e: copia lo nuevo. Cada tema de `sounds/themes` del paquete
@@ -366,8 +367,10 @@ def instalar(paquete: str | os.PathLike, instalacion: str | os.PathLike,
                                          carpeta_sonidos, sonidos_agregados)
     except OSError as error:
         logger.error("no se pudo copiar el paquete: %s", error)
+        motivo = "no se pudo copiar la versión nueva"
+        _fallo(motivo)
         _volver_atras()
-        return _fallo("no se pudo copiar la versión nueva")
+        return False
     logger.info("copia lista: %s", ", ".join(copiadas) or "nada")
 
     # Paso f: marca pendiente, lanza lo nuevo y espera la confirmación.
@@ -381,14 +384,18 @@ def instalar(paquete: str | os.PathLike, instalacion: str | os.PathLike,
         except OSError:
             pass
     except OSError as error:
+        motivo = f"no se pudo marcar la actualización pendiente: {error}"
+        _fallo(motivo)
         _volver_atras()
-        return _fallo(f"no se pudo marcar la actualización pendiente: {error}")
+        return False
     proceso_nuevo = None
     try:
         proceso_nuevo = _arrancar(ejecutable_nuevo)
     except Exception as error:
+        motivo = f"la versión nueva no se pudo abrir: {error}"
+        _fallo(motivo)
         _volver_atras()
-        return _fallo(f"la versión nueva no se pudo abrir: {error}")
+        return False
     logger.info("versión nueva lanzada, espera confirmación")
     inicio = time.monotonic()
     confirmado = False
@@ -398,9 +405,16 @@ def instalar(paquete: str | os.PathLike, instalacion: str | os.PathLike,
             break
         time.sleep(INTERVALO_ARRANQUE)
 
-    # Paso g: confirmó, se limpia.
+    # Paso g: confirmó, se escribe el resultado antes de limpiar.
     if confirmado:
         logger.info("versión %s confirmada", hacia)
+        try:
+            resultado.parent.mkdir(parents=True, exist_ok=True)
+            resultado.write_text(json.dumps(
+                {"resultado": "ok", "desde": desde, "hacia": hacia},
+                ensure_ascii=False), encoding="utf-8")
+        except OSError:
+            pass
         try:
             if respaldo.exists():
                 shutil.rmtree(respaldo)
@@ -410,22 +424,18 @@ def instalar(paquete: str | os.PathLike, instalacion: str | os.PathLike,
             pendiente.unlink()
         except OSError:
             pass
-        try:
-            resultado.write_text(json.dumps(
-                {"resultado": "ok", "desde": desde, "hacia": hacia},
-                ensure_ascii=False), encoding="utf-8")
-        except OSError:
-            pass
         return True
 
-    # Paso h: no confirmó, todo vuelve atrás.
+    # Paso h: no confirmó, se escribe el fallo antes de volver atrás.
     logger.error("la versión nueva no llegó a abrirse")
     try:
         matar(proceso_nuevo)
     except Exception:
         pass
+    motivo = "la versión nueva no llegó a abrirse"
+    _fallo(motivo)
     _volver_atras()
-    return _fallo("la versión nueva no llegó a abrirse")
+    return False
 
 
 def _borrar_sonidos_agregados(instalacion: Path, nombres: list[str]) -> None:

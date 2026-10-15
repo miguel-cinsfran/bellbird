@@ -31,10 +31,40 @@ código 2; con fallos sale con código 1.
 un minuto desde la aplicación real, conducida por UI Automation, lo
 finaliza y lo borra. Crea y borra un vídeo de verdad en el canal de la
 sesión de Google iniciada, así que sin sesión se niega a correr. Deja la
-configuración y OBS como estaban, y el informe queda en `qa/salida/`.
+configuración (incluidos `config.ini` y `sounds.ini`) y OBS como estaban,
+y el informe queda en `qa/salida/`.
+
+Durante la prueba todo suena al 12 %: deja la voz, los sonidos y el
+reproductor al 12 % y al terminar restaura la configuración del dueño
+exactamente como estaba. Si no hay `sounds.ini`, no lo crea.
 
     python herramientas/escritorio_aparte.py .venv\Scripts\python.exe qa/directo_real.py
     python qa/directo_real.py --help
+
+Corre en el escritorio aparte y con sesión de Google iniciada: necesita
+el escritorio aparte porque conduce la aplicación por UI Automation, y la
+sesión porque crea un directo real. Sin sesión se niega a correr.
+
+Qué arma antes de salir al aire: activa el panel en la configuración, abre
+las dos ventanas de color de `ventana_de_prueba.py` («Cámara de prueba» en
+verde y «Aplicación de prueba» en magenta) y, una vez que la app abrió
+OBS, agrega encima del panel sus dos capturas de ventana a pantalla
+completa. Así la escena queda como la de quien usa la app, con cosas
+tapando el panel.
+
+Qué comprueba al aire: que la app anunció que puso el panel adelante, que
+YouTube tiene `enableAutoStop` en False (espera la señal manual), manda
+tres «Comentario de prueba» al chat del directo por API y los busca en la
+lista del chat de la app, y mira la imagen de la escena al aire pedida a
+OBS: pasa si menos del 60 % del rectángulo del panel son los colores de
+las ventanas y hay algo más. El PNG queda en la carpeta temporal y su ruta
+sale en el detalle del paso. Al finalizar espera hasta 30 s que YouTube dé
+el directo por terminado («complete») y recién ahí borra el vídeo.
+
+Si falla a mitad, la limpieza detiene la transmisión y finaliza el directo
+por API, borra el vídeo si se creó, quita las dos capturas (y el panel si
+lo creó la herramienta), cierra las ventanas de prueba y deja la
+configuración y OBS como estaban.
 
 No entra en la corrida completa ni en ningún hook: gasta minutos, toca la
 red y necesita OBS y una cuenta con clave de emisión reutilizable.

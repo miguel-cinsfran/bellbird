@@ -5,6 +5,16 @@ la aplicación real, conducida por UI Automation (Invoke, sin teclas),
 comprueba cada paso, lo finaliza, BORRA el vídeo del canal y deja la
 configuración y OBS como estaban.
 
+Antes de salir al aire arma la escena como la de quien usa la app: dos
+ventanas de color («Cámara de prueba» y «Aplicación de prueba», de
+`qa/ventana_de_prueba.py`) capturadas encima del panel de chat. Al aire
+comprueba que la app puso el panel adelante, que YouTube espera la señal
+manual, manda tres comentarios al chat, los busca en la lista de la app y
+mira en la imagen de OBS que el panel se ve. Al finalizar espera que
+YouTube dé el directo por terminado y recién ahí borra el vídeo. Si falla
+a mitad, la limpieza detiene la transmisión, finaliza por API, borra el
+vídeo y desarma la escena igual.
+
 No corre dentro de la suite ni del hook: crea y borra un vídeo de verdad
 en el canal de la sesión iniciada. Se lanza dentro del escritorio aparte,
 que es donde la aplicación hija queda visible para UI Automation:
@@ -39,11 +49,42 @@ DESCRIPCION_PRUEBA = (
     "Directo de prueba de YTChat, se borra al terminar."
 )
 
+# Volumen al que suena todo durante la prueba, para no molestar a quien
+# trabaja en la misma PC: voz, sonidos y reproductor quedan al 12 %.
+VOLUMEN_PRUEBA = 0.12
+
+# Escena de prueba: imita la de quien usa la app, con dos capturas de
+# ventana encima del panel de chat. Título y color de cada ventana.
+VENTANA_CAMARA = ("Cámara de prueba", "00C000")
+VENTANA_APLICACION = ("Aplicación de prueba", "C000C0")
+FUENTE_CAMARA = "Prueba YTChat cámara"
+FUENTE_APLICACION = "Prueba YTChat aplicación"
+ANUNCIO_PANEL_ADELANTE = "el panel de chat estaba detrás de"
+COMENTARIOS_PRUEBA = ("Comentario de prueba 1", "Comentario de prueba 2",
+                      "Comentario de prueba 3")
+# Tamaño con el que se crea el panel si la escena no lo tenía, igual que
+# los valores iniciales del diálogo de transmisión.
+PANEL_ANCHO = 460
+PANEL_ALTO = 620
+COLORES_VENTANAS = ((0, 192, 0), (192, 0, 192))
+
 # Fragmentos que anuncian un error al salir al aire, en vez del éxito.
 ERRORES_AL_AIRE = ("no se pudo", "error", "falló", "no tiene")
 OK_AL_AIRE = "ya está al aire"
 OK_CHAT = "conectado al directo"
 OK_FIN = ("detenid", "finaliz", "terminó")
+
+# Auxiliar de wx para decodificar PNG sin ventanas: guarda la instancia
+# para que el recolector no la libere mientras se usa la imagen.
+_APP_WX = None
+
+
+def _asegurar_app_wx() -> None:
+    """Crea un wx.App mínimo si todavía no existe, sin abrir ventanas."""
+    import wx
+    global _APP_WX
+    if wx.GetApp() is None:
+        _APP_WX = wx.App(False)
 
 
 def armar_titulo(hora: str) -> str:
@@ -83,6 +124,160 @@ def decidir_cerrar_obs(estaba_abierto: bool) -> bool:
     return not bool(estaba_abierto)
 
 
+def _respaldar_sonidos(ruta, respaldo) -> bool:
+    """Respalda `sounds.ini` en `respaldo`; si no existe no crea nada."""
+    try:
+        shutil.copy2(ruta, respaldo)
+        return True
+    except OSError:
+        return False
+
+
+def _restaurar_sonidos(ruta, respaldo, habia: bool) -> None:
+    """Restaura `sounds.ini` desde el respaldo, si lo había."""
+    try:
+        if habia:
+            shutil.copy2(respaldo, ruta)
+    except OSError:
+        pass
+
+
+# Umbral de la comprobación visual: el panel pasa si al menos el 2 % de sus
+# píxeles no son del color de las ventanas de prueba que lo tapaban. El panel
+# tiene fondo transparente y solo pinta las cajas de los mensajes, así que aun
+# adelante deja ver casi todo lo de abajo; tapado del todo por un color liso
+# da 0 %.
+UMBRAL_PANEL_VISIBLE = 0.02
+# Margen por canal al comparar colores, para que la compresión del PNG no
+# convierta un verde casi exacto en un falso tapado.
+TOLERANCIA_COLOR = 32
+
+
+def _coincide_alguno(pixel, colores, tolerancia) -> bool:
+    """Si el píxel cae dentro del margen de alguno de los colores dados."""
+    try:
+        r, g, b = pixel
+    except (TypeError, ValueError):
+        return False
+    margen = max(0, tolerancia)
+    for color in colores or ():
+        try:
+            cr, cg, cb = color
+        except (TypeError, ValueError):
+            continue
+        if max(abs(r - cr), abs(g - cg), abs(b - cb)) <= margen:
+            return True
+    return False
+
+
+def fraccion_de_color(pixeles, colores, tolerancia) -> float:
+    """Qué parte de los píxeles coincide con alguno de los colores dados.
+
+    Cada píxel y cada color son ternas (rojo, verde, azul). Sin píxeles
+    devuelve 0.0.
+    """
+    lista = list(pixeles or [])
+    if not lista:
+        return 0.0
+    tapados = sum(1 for pixel in lista
+                  if _coincide_alguno(pixel, colores, tolerancia))
+    return tapados / len(lista)
+
+
+def panel_visible(pixeles, colores) -> bool:
+    """Si el panel se ve en la captura: al menos un 2 % propio.
+
+    Pasa cuando al menos el 2 % de los píxeles no es de ninguno de los colores
+    de las ventanas de prueba (si todo es verde o magenta, se sigue viendo la
+    ventana, no el panel).
+    """
+    lista = list(pixeles or [])
+    if not lista:
+        return False
+    tapados = sum(1 for pixel in lista
+                  if _coincide_alguno(pixel, colores, TOLERANCIA_COLOR))
+    libres = len(lista) - tapados
+    return libres / len(lista) >= UMBRAL_PANEL_VISIBLE
+
+
+def rectangulo_del_panel(transformacion, ancho_captura, ancho_lienzo,
+                         alto_captura=None, alto_lienzo=None) -> tuple:
+    """Rectángulo del panel en píxeles de la captura, recortado a ella.
+
+    Escala con el cociente entre el ancho de la captura y el del lienzo, por
+    si OBS devolvió la imagen a otro tamaño. Lo que queda fuera se recorta;
+    si el panel está entero fuera, el ancho o el alto dan cero.
+    """
+    datos = transformacion or {}
+
+    def numero(clave):
+        try:
+            return float(datos.get(clave, 0) or 0)
+        except (TypeError, ValueError):
+            return 0.0
+
+    try:
+        escala = (ancho_captura / ancho_lienzo) if ancho_lienzo else 1.0
+    except (TypeError, ZeroDivisionError):
+        escala = 1.0
+    if not escala > 0:
+        escala = 1.0
+    ancho_fuente = numero("width") or numero("sourceWidth")
+    alto_fuente = numero("height") or numero("sourceHeight")
+    x = int(round(numero("positionX") * escala))
+    y = int(round(numero("positionY") * escala))
+    ancho = int(round(max(0.0, ancho_fuente) * escala))
+    alto = int(round(max(0.0, alto_fuente) * escala))
+    izquierda = max(0, x)
+    arriba = max(0, y)
+    derecha = x + ancho
+    if ancho_captura:
+        derecha = min(derecha, ancho_captura)
+    abajo = y + alto
+    if alto_captura:
+        abajo = min(abajo, alto_captura)
+    return (izquierda, arriba, max(0, derecha - izquierda),
+            max(0, abajo - arriba))
+
+
+def id_para_limpiar(id_conocido, encontrado_por_titulo,
+                    pulso_transmitir) -> str:
+    """Qué id usar en la limpieza: el conocido gana, si no el hallado.
+
+    Sin id conocido y con Transmitir pulsado (o salida al aire, que lo
+    implica) se usa lo encontrado por título; sin pulsar no se busca y
+    se devuelve cadena vacía.
+    """
+    if (id_conocido or ""):
+        return id_conocido
+    if not pulso_transmitir:
+        return ""
+    return encontrado_por_titulo or ""
+
+
+def pasos_de_limpieza(salio_al_aire, finalizado, id_video,
+                      creo_panel, pulso_transmitir=False) -> list:
+    """Orden de la limpieza final, pase lo que pase, del punto 5 del encargo.
+
+    Si salió al aire y YouTube no lo dio por terminado, primero se detiene
+    la transmisión y se finaliza por API; si la falla fue antes de salir al
+    aire pero ya se había pulsado «Transmitir», se intenta lo mismo porque
+    la app pudo haber creado la emisión igual. Después se borra el vídeo
+    pendiente, se quitan las capturas de prueba (y el panel si lo creó la
+    herramienta), se cierran las ventanas y se deja todo como estaba.
+    """
+    pasos = []
+    if (salio_al_aire or bool(pulso_transmitir)) and not finalizado:
+        pasos.append("detener_y_finalizar")
+    if id_video:
+        pasos.append("borrar_video")
+    pasos.append("quitar_capturas")
+    if creo_panel:
+        pasos.append("quitar_panel")
+    pasos.extend(("cerrar_ventanas", "cerrar_app_y_restaurar"))
+    return pasos
+
+
 def _ayuda() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Directo real de prueba: crea un «No listado» de un "
@@ -109,6 +304,7 @@ _LANZADOR = """\
 import os, sys, time
 REPO = {repo!r}
 LOG = os.environ.get("DIRECTO_REAL_ANUNCIOS", "")
+LOG_CHAT = os.environ.get("DIRECTO_REAL_CHAT", "")
 sys.path.insert(0, REPO)
 os.chdir(REPO)
 sys.argv = [os.path.join(REPO, "main.py")]
@@ -124,6 +320,38 @@ def _anunciar(texto, urgente=True):
     _orig(texto, urgente)
 
 g.anunciar = _anunciar
+_orig_agregar = g.YTChatFrame.agregar_mensaje_chat
+
+def _agregar_mensaje(self, *args, **kwargs):
+    try:
+        autor = kwargs.get("autor", args[0] if len(args) > 0 else "")
+        mensaje = kwargs.get("mensaje", args[1] if len(args) > 1 else "")
+        hora = kwargs.get("hora", args[2] if len(args) > 2 else "")
+        with open(LOG_CHAT, "a", encoding="utf-8") as f:
+            f.write(str(hora) + " " + str(autor) + ": " + str(mensaje)
+                    + "\\n")
+    except OSError:
+        pass
+    return _orig_agregar(self, *args, **kwargs)
+
+g.YTChatFrame.agregar_mensaje_chat = _agregar_mensaje
+import ytchat.player.reproductor as _rep
+_orig_rep_init = _rep.ReproductorPanel.__init__
+
+def _rep_init(self, *a, **k):
+    _orig_rep_init(self, *a, **k)
+    try:
+        self._vol = 12
+    except Exception:
+        pass
+    try:
+        sld = getattr(self, "sld_vol", None)
+        if sld is not None:
+            sld.SetValue(12)
+    except Exception:
+        pass
+
+_rep.ReproductorPanel.__init__ = _rep_init
 import main
 main.main()
 """
@@ -319,6 +547,328 @@ def _borrar_video(cliente, credenciales, id_video: str) -> tuple[bool, str]:
     return (True, "")
 
 
+def _abrir_ventanas_prueba() -> list:
+    """Abre las dos ventanas de color que tapan el panel en la escena."""
+    guion = RAIZ / "qa" / "ventana_de_prueba.py"
+    procesos = []
+    for titulo, color in (VENTANA_CAMARA, VENTANA_APLICACION):
+        procesos.append(subprocess.Popen(
+            [sys.executable, str(guion), "--titulo", titulo,
+             "--color", color]))
+    return procesos
+
+
+def _cerrar_ventanas_prueba(procesos) -> None:
+    for proceso in procesos or ():
+        try:
+            if proceso.poll() is None:
+                proceso.terminate()
+        except Exception:
+            pass
+
+
+def _puerto_panel(ruta_config) -> int:
+    """Puerto del panel leído del config.ini, sin migrar ni salir."""
+    import configparser
+    parser = configparser.ConfigParser()
+    try:
+        if parser.read(ruta_config, encoding="utf-8"):
+            return int(parser.get("overlay", "puerto", fallback="8730"))
+    except (configparser.Error, ValueError):
+        pass
+    return 8730
+
+
+def _gestor_obs():
+    from ytchat.obs.obs_panel import GestorPanelObs
+    gestor = GestorPanelObs()
+    gestor.conectar()
+    return gestor
+
+
+def _valores_ventanas(gestor, escena, segundos: int = 15) -> dict:
+    """Valor `window` de OBS para cada ventana de prueba, por título."""
+    from ytchat.obs import obs_captura
+    esperados = (VENTANA_CAMARA[0], VENTANA_APLICACION[0])
+    fin = time.time() + segundos
+    valores: dict = {}
+    while True:
+        try:
+            opciones, _ = obs_captura.ventanas(gestor._cliente, escena)
+        except Exception:
+            opciones = ()
+        valores = {}
+        for legible, valor in opciones or ():
+            for titulo in esperados:
+                if titulo in (legible or "") or titulo in (valor or ""):
+                    valores[titulo] = valor
+        if len(valores) == len(esperados) or time.time() >= fin:
+            return valores
+        time.sleep(1)
+
+
+def _quitar_fuente(gestor, escena: str, nombre: str,
+                   borrar_entrada: bool = False) -> None:
+    """Saca la fuente de la escena y, si es propia, borra la entrada."""
+    try:
+        elementos = gestor._pedir(
+            "GetSceneItemList", {"sceneName": escena}).get(
+            "sceneItems", ()) or ()
+    except Exception:
+        return
+    for elemento in elementos:
+        if elemento.get("sourceName") == nombre \
+                and elemento.get("sceneItemId") is not None:
+            try:
+                gestor._pedir("RemoveSceneItem",
+                              {"sceneName": escena,
+                               "sceneItemId": elemento.get("sceneItemId")})
+            except Exception:
+                pass
+    if borrar_entrada:
+        try:
+            gestor._pedir("RemoveInput", {"inputName": nombre})
+        except Exception:
+            pass
+
+
+def _crear_captura(gestor, escena: str, nombre: str, valor_ventana: str,
+                   ancho: int, alto: int) -> None:
+    """Agrega una captura de ventana a pantalla completa sobre el panel."""
+    _quitar_fuente(gestor, escena, nombre, borrar_entrada=True)
+    respuesta = gestor._pedir(
+        "CreateInput", {"sceneName": escena, "inputName": nombre,
+                        "inputKind": "window_capture",
+                        "inputSettings": {"window": valor_ventana},
+                        "sceneItemEnabled": True}) or {}
+    identificador = respuesta.get("sceneItemId")
+    if identificador is None:
+        elementos = gestor._pedir(
+            "GetSceneItemList", {"sceneName": escena}).get(
+            "sceneItems", ()) or ()
+        for elemento in elementos:
+            if elemento.get("sourceName") == nombre:
+                identificador = elemento.get("sceneItemId")
+                break
+    if identificador is None:
+        raise RuntimeError(f"OBS no devolvió el elemento «{nombre}»")
+    gestor._pedir("SetSceneItemTransform",
+                  {"sceneName": escena, "sceneItemId": identificador,
+                   "sceneItemTransform": {
+                       "positionX": 0, "positionY": 0, "alignment": 5,
+                       "boundsType": "OBS_BOUNDS_SCALE_INNER",
+                       "boundsAlignment": 0,
+                       "boundsWidth": ancho, "boundsHeight": alto}})
+
+
+def _armar_escena_prueba(gestor, url_panel: str) -> tuple[str, bool]:
+    """Deja la escena al aire como la de quien usa la app.
+
+    Devuelve (escena, creo_panel): el panel solo se crea si no estaba, y se
+    anota para quitarlo después. Las dos capturas quedan encima del panel.
+    """
+    from ytchat.obs.obs_panel import NOMBRE_FUENTE
+    escena = gestor.escena_al_aire()
+    if not escena:
+        raise RuntimeError("OBS no tiene escena al aire")
+    creo_panel = False
+    if NOMBRE_FUENTE not in gestor.fuentes(escena):
+        gestor.asegurar_fuente(escena, url_panel, PANEL_ANCHO, PANEL_ALTO)
+        creo_panel = True
+    lienzo = gestor._pedir("GetVideoSettings") or {}
+    ancho = lienzo.get("baseWidth", 0) or 1920
+    alto = lienzo.get("baseHeight", 0) or 1080
+    valores = _valores_ventanas(gestor, escena)
+    for nombre, titulo in ((FUENTE_CAMARA, VENTANA_CAMARA[0]),
+                           (FUENTE_APLICACION, VENTANA_APLICACION[0])):
+        if titulo not in valores:
+            raise RuntimeError(
+                f"OBS no ve la ventana «{titulo}» en sus capturas")
+        _crear_captura(gestor, escena, nombre, valores[titulo], ancho, alto)
+        gestor.al_frente(escena, fuente=nombre)
+    return (escena, creo_panel)
+
+
+def _live_chat_id(cliente, id_video: str) -> str:
+    resp = cliente._escritura().liveBroadcasts().list(
+        part="snippet", id=id_video).execute()
+    items = resp.get("items", []) or []
+    if not items:
+        return ""
+    return ((items[0].get("snippet") or {}).get("liveChatId") or "")
+
+
+def _auto_stop(cliente, id_video: str):
+    """Valor de `enableAutoStop`: False si YouTube espera la señal manual."""
+    resp = cliente._escritura().liveBroadcasts().list(
+        part="contentDetails", id=id_video).execute()
+    items = resp.get("items", []) or []
+    if not items:
+        return None
+    return ((items[0].get("contentDetails") or {}).get("enableAutoStop"))
+
+
+def _comentario_faltante(ruta_chat, comentarios,
+                         segundos: int = 30) -> tuple[str | None,
+                                                      list[str] | None]:
+    """Primer comentario que no aparece en el archivo del chat, o None.
+
+    Devuelve (faltante, leídos): leídos lleva las líneas del archivo,
+    o None si todavía no se pudo leer el archivo.
+    """
+    fin = time.time() + segundos
+    leidos: list[str] | None = None
+    while True:
+        try:
+            with open(ruta_chat, encoding="utf-8") as f:
+                texto = f.read()
+            leidos = texto.splitlines()
+        except OSError:
+            texto = ""
+        faltante = next((comentario for comentario in comentarios
+                         if comentario not in texto), None)
+        if faltante is None:
+            return (None, leidos)
+        if time.time() >= fin:
+            return (faltante, leidos)
+        time.sleep(1)
+
+
+def _detalle_lista_chat(leidos: list[str] | None) -> str:
+    """Cuántas líneas tenía el archivo del chat y las tres últimas."""
+    if leidos is None:
+        return "no se encontró el archivo del chat"
+    if not leidos:
+        return "lista vacía (0 elementos)"
+    ultimos = ", ".join(f"«{texto}»" for texto in leidos[-3:])
+    return f"{len(leidos)} elementos; últimos: {ultimos}"
+
+
+def _transformacion_panel(gestor, escena: str) -> dict:
+    from ytchat.obs.obs_panel import NOMBRE_FUENTE
+    elementos = gestor._pedir(
+        "GetSceneItemList", {"sceneName": escena}).get(
+        "sceneItems", ()) or ()
+    for elemento in elementos:
+        if elemento.get("sourceName") == NOMBRE_FUENTE:
+            return elemento.get("sceneItemTransform", {}) or {}
+    return {}
+
+
+def _pixeles_panel(ruta_png: str, rectangulo) -> tuple[list, int, int]:
+    """Píxeles (rojo, verde, azul) del rectángulo, sin abrir ventanas."""
+    import wx
+    _asegurar_app_wx()
+    imagen = wx.Image(ruta_png, wx.BITMAP_TYPE_PNG)
+    ancho, alto = imagen.GetWidth(), imagen.GetHeight()
+    datos = imagen.GetData()
+    x, y, ancho_rec, alto_rec = rectangulo
+    x = max(0, min(x, ancho))
+    y = max(0, min(y, alto))
+    ancho_rec = max(0, min(ancho_rec, ancho - x))
+    alto_rec = max(0, min(alto_rec, alto - y))
+    pixeles = []
+    for fila in range(y, y + alto_rec):
+        base = (fila * ancho + x) * 3
+        for columna in range(ancho_rec):
+            i = base + columna * 3
+            pixeles.append((datos[i], datos[i + 1], datos[i + 2]))
+    return (pixeles, ancho, alto)
+
+
+def _comprobar_panel_en_imagen(gestor, escena: str, destino_png: str,
+                               segundos: int = 15) -> tuple[bool, str]:
+    """Si el panel se ve en la imagen que OBS saca al aire.
+
+    Devuelve (pasa, detalle): el detalle lleva la ruta del PNG guardado.
+    """
+    datos = None
+    fin = time.time() + segundos
+    while True:
+        try:
+            datos = gestor._pedir("GetSourceScreenshot",
+                                  {"sourceName": escena,
+                                   "imageFormat": "png"}) or {}
+            if datos.get("imageData"):
+                break
+        except Exception:
+            datos = None
+        if time.time() >= fin:
+            break
+        time.sleep(1)
+    crudo = (datos or {}).get("imageData", "") or ""
+    if "," in crudo:
+        crudo = crudo.split(",", 1)[1]
+    if not crudo:
+        return (False, "OBS no devolvió la imagen")
+    import base64
+    try:
+        os.makedirs(os.path.dirname(os.path.abspath(destino_png)),
+                    exist_ok=True)
+    except OSError:
+        pass
+    with open(destino_png, "wb") as f:
+        f.write(base64.b64decode(crudo))
+    lienzo = gestor._pedir("GetVideoSettings") or {}
+    transformacion = _transformacion_panel(gestor, escena)
+    if not transformacion:
+        return (False, f"sin panel en la escena ({destino_png})")
+    ancho_img, alto_img = _tamano_imagen(destino_png)
+    rectangulo = rectangulo_del_panel(
+        transformacion, ancho_img, lienzo.get("baseWidth", 0) or ancho_img,
+        alto_img, lienzo.get("baseHeight", 0) or alto_img)
+    pixeles, _, _ = _pixeles_panel(destino_png, rectangulo)
+    if panel_visible(pixeles, COLORES_VENTANAS):
+        return (True, destino_png)
+    return (False, f"el panel sigue tapado ({destino_png})")
+
+
+def _tamano_imagen(ruta_png: str) -> tuple[int, int]:
+    import wx
+    _asegurar_app_wx()
+    imagen = wx.Image(ruta_png, wx.BITMAP_TYPE_PNG)
+    return (imagen.GetWidth(), imagen.GetHeight())
+
+
+def _esperar_estado(cliente, id_video: str, esperado: str = "complete",
+                    segundos: int = 30, intervalo: int = 3) -> str:
+    """Estado del ciclo de vida hasta que llegue el esperado o venza."""
+    ultimo = ""
+    fin = time.time() + segundos
+    while True:
+        try:
+            ultimo = cliente.estado_emision(id_video) or ""
+        except Exception:
+            pass
+        if ultimo == esperado:
+            return ultimo
+        if time.time() >= fin:
+            return ultimo
+        time.sleep(intervalo)
+
+
+def _detener_y_finalizar(gestor, cliente, credenciales,
+                         id_video: str) -> tuple[bool, str]:
+    """Detiene la transmisión y finaliza por API, lo mejor que se pueda."""
+    errores = []
+    if gestor is not None:
+        try:
+            gestor.detener_transmision()
+        except Exception as exc:
+            errores.append(f"OBS no se detuvo: {exc}")
+    if id_video:
+        try:
+            cliente.finalizar_emision(id_video)
+            _guardar_token_si_renovo(cliente, credenciales)
+        except Exception as exc:
+            errores.append(f"la API no finalizó: {exc}")
+    else:
+        errores.append("sin id del vídeo")
+    if errores:
+        return (False, "; ".join(errores))
+    return (True, "transmisión detenida y directo finalizado")
+
+
 def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
     from ytchat.core import config, paths
     from ytchat.youtube import credenciales
@@ -335,6 +885,7 @@ def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
 
     raiz = paths.carpeta_instalacion()
     ruta_config = paths.config_ini()
+    ruta_sonidos = paths.sounds_ini()
     respaldo = tempfile.mktemp(prefix="directo-real-config-",
                                 suffix=".ini")
     try:
@@ -342,20 +893,32 @@ def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
     except OSError as exc:
         print(f"No se pudo respaldar config.ini: {exc}")
         return ([("respaldo de config.ini", False, str(exc))], 2)
+    respaldo_sonidos = tempfile.mktemp(prefix="directo-real-sounds-",
+                                       suffix=".ini")
+    habia_sonidos = _respaldar_sonidos(ruta_sonidos, respaldo_sonidos)
 
     hora = time.strftime("%H:%M")
     titulo = armar_titulo(hora)
     tmpdir = tempfile.mkdtemp(prefix="directo-real-")
     ruta_anuncios = os.path.join(tmpdir, "anuncios.txt")
+    ruta_chat = os.path.join(tmpdir, "chat.txt")
     ruta_lanzador = os.path.join(tmpdir, "app_directo_real.py")
     open(ruta_anuncios, "w").close()
+    open(ruta_chat, "w").close()
     salida: list[tuple[str, bool, str]] = pasos
     app = None
     principal = None
     estaba_obs = _obs_en_ejecucion()
     id_video = ""
-    borrado = False
+    borrado_id = ""
     enlace_manual = ""
+    salio_al_aire = False
+    finalizado = False
+    pulso_transmitir = False
+    creo_panel = False
+    escena_prueba = ""
+    gestor_obs = None
+    ventanas_prueba: list = []
 
     try:
         from ytchat.core.config import codificar_texto_ini
@@ -368,8 +931,18 @@ def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
                               codificar_texto_ini(DESCRIPCION_PRUEBA))
         config.guardar_opcion(ruta_config, "transmision",
                               "youtube_privacidad", PRIVACIDAD_ESPERADA)
+        config.guardar_opcion(ruta_config, "overlay", "activo", "true")
+        config.guardar_opcion(ruta_config, "voz", "volumen",
+                              str(VOLUMEN_PRUEBA))
+        if habia_sonidos:
+            config.guardar_opcion(ruta_sonidos, "sonidos", "volumen",
+                                  str(VOLUMEN_PRUEBA))
+            detalle_volumen = "volumen al 12 %"
+        else:
+            detalle_volumen = "volumen al 12 % (sin sounds.ini, no se creó)"
         anotar("configuración previa", True,
-               f"destino YouTube, título «{titulo}», privacidad unlisted")
+               f"destino YouTube, título «{titulo}», privacidad unlisted, "
+               f"panel activado, {detalle_volumen}")
         if not estaba_obs:
             _limpiar_sentinel()
             anotar("OBS sin modo seguro", True, "sentinel limpio")
@@ -379,8 +952,16 @@ def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
 
         with open(ruta_lanzador, "w", encoding="utf-8") as f:
             f.write(_LANZADOR.format(repo=str(raiz)))
+        try:
+            ventanas_prueba = _abrir_ventanas_prueba()
+            anotar("ventanas de prueba", True,
+                   "«Cámara de prueba» y «Aplicación de prueba» abiertas")
+        except Exception as exc:
+            anotar("ventanas de prueba", False, str(exc))
+            return (salida, 1)
         entorno = dict(os.environ,
-                       DIRECTO_REAL_ANUNCIOS=ruta_anuncios)
+                       DIRECTO_REAL_ANUNCIOS=ruta_anuncios,
+                       DIRECTO_REAL_CHAT=ruta_chat)
         app = subprocess.Popen([sys.executable, ruta_lanzador],
                                cwd=str(raiz), env=entorno)
         try:
@@ -417,8 +998,21 @@ def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
             anotar("diálogo del directo", True,
                    f"título «{titulo_campo}», privacidad «{privacidad}», "
                    f"revisión «{revision}»")
+            try:
+                gestor_obs = _gestor_obs()
+                url_panel = (f"http://127.0.0.1:{_puerto_panel(ruta_config)}"
+                             f"/chat")
+                escena_prueba, creo_panel = _armar_escena_prueba(
+                    gestor_obs, url_panel)
+                anotar("escena de prueba", True,
+                       f"escena «{escena_prueba}» con dos capturas sobre el "
+                       f"panel" + (" (panel creado)" if creo_panel else ""))
+            except Exception as exc:
+                anotar("escena de prueba", False, str(exc))
+                return (salida, 1)
             marca = len(_leer_anuncios(ruta_anuncios))
             _control(directo, "Transmitir", "Button").invoke()
+            pulso_transmitir = True
         except RuntimeError as exc:
             anotar("diálogo del directo", False, str(exc))
             return (salida, 1)
@@ -434,7 +1028,48 @@ def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
             anotar("salir al aire", False, f"la app anunció «{resultado}»")
             return (salida, 1)
         anotar("salir al aire", True, "«ya está al aire»")
+        salio_al_aire = True
         id_video = extraer_id_video(_leer_anuncios(ruta_anuncios)[marca:])
+        if ANUNCIO_PANEL_ADELANTE in _leer_anuncios(ruta_anuncios)[marca:].lower():
+            anotar("panel adelante", True, "la app lo puso adelante")
+        else:
+            anotar("panel adelante", False,
+                   "sin «El panel de chat estaba detrás de» en los anuncios")
+            return (salida, 1)
+
+        try:
+            cliente, creds = _cliente_youtube()
+        except Exception as exc:
+            anotar("YouTube espera la señal", False,
+                   f"sin cliente API: {exc}")
+            return (salida, 1)
+        try:
+            if not id_video:
+                id_video, _, _ = _buscar_video_por_titulo(cliente, titulo)
+            _guardar_token_si_renovo(cliente, creds)
+        except Exception as exc:
+            anotar("YouTube espera la señal", False,
+                   f"no se pudo buscar por API: {exc}")
+            return (salida, 1)
+        if not id_video:
+            anotar("YouTube espera la señal", False,
+                   "ni los anuncios ni la API dejaron el id: se detiene "
+                   "sin tocar nada")
+            return (salida, 1)
+        enlace_manual = "https://www.youtube.com/watch?v=" + id_video
+        try:
+            auto_stop = _auto_stop(cliente, id_video)
+        except Exception as exc:
+            anotar("YouTube espera la señal", False,
+                   f"no se pudo leer contentDetails: {exc}")
+            return (salida, 1)
+        if auto_stop is False:
+            anotar("YouTube espera la señal", True,
+                   "enableAutoStop en False")
+        else:
+            anotar("YouTube espera la señal", False,
+                   f"enableAutoStop en {auto_stop!r}, se esperaba False")
+            return (salida, 1)
 
         marca_chat = len(_leer_anuncios(ruta_anuncios))
         resultado = _esperar_anuncio(ruta_anuncios, (OK_CHAT,),
@@ -444,8 +1079,50 @@ def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
                    f"sin «Conectado al directo» en {args.timeout_chat} s")
             return (salida, 1)
         anotar("chat conectado", True, "«Conectado al directo»")
+        try:
+            id_chat = _live_chat_id(cliente, id_video)
+        except Exception as exc:
+            anotar("comentarios enviados", False,
+                   f"no se pudo leer el liveChatId: {exc}")
+            return (salida, 1)
+        if not id_chat:
+            anotar("comentarios enviados", False,
+                   "la API no devolvió liveChatId para el vídeo")
+            return (salida, 1)
+        try:
+            for comentario in COMENTARIOS_PRUEBA:
+                cliente.enviar_mensaje_live(id_chat, comentario)
+            _guardar_token_si_renovo(cliente, creds)
+            anotar("comentarios enviados", True,
+                   f"{len(COMENTARIOS_PRUEBA)} al chat del directo")
+        except Exception as exc:
+            anotar("comentarios enviados", False, str(exc))
+            return (salida, 1)
+        faltante, leidos = _comentario_faltante(ruta_chat, COMENTARIOS_PRUEBA, 30)
+        if faltante is None:
+            anotar("comentarios en la app", True,
+                   "los tres están en la lista del chat")
+        else:
+            anotar("comentarios en la app", False,
+                   f"«{faltante}» no apareció en 30 s "
+                   f"({_detalle_lista_chat(leidos)})")
+            return (salida, 1)
         time.sleep(max(0, args.duracion))
         anotar("directo al aire", True, f"{args.duracion} s")
+
+        try:
+            destino_foto = raiz / "qa" / "salida"
+            destino_foto.mkdir(parents=True, exist_ok=True)
+            ruta_png = str(destino_foto
+                           / f"directo-real-{time.strftime('%H%M%S')}.png")
+            pasa, detalle = _comprobar_panel_en_imagen(
+                gestor_obs, escena_prueba, ruta_png)
+        except Exception as exc:
+            anotar("panel visible en la imagen", False, str(exc))
+            return (salida, 1)
+        anotar("panel visible en la imagen", pasa, detalle)
+        if not pasa:
+            return (salida, 1)
 
         try:
             marca_fin = len(_leer_anuncios(ruta_anuncios))
@@ -464,25 +1141,15 @@ def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
             return (salida, 1)
         anotar("finalizar directo", True, "«Transmisión detenida»")
 
-        try:
-            cliente, creds = _cliente_youtube()
-        except Exception as exc:
-            anotar("borrar el vídeo", False, f"sin cliente API: {exc}")
+        estado = _esperar_estado(cliente, id_video)
+        if estado == "complete":
+            finalizado = True
+            anotar("YouTube terminó el directo", True, "estado «complete»")
+        else:
+            anotar("YouTube terminó el directo", False,
+                   f"estado «{estado or 'desconocido'}» tras 30 s, "
+                   f"bórralo a mano: {enlace_manual}")
             return (salida, 1)
-        try:
-            if not id_video:
-                id_video, _, _ = _buscar_video_por_titulo(cliente, titulo)
-            _guardar_token_si_renovo(cliente, creds)
-        except Exception as exc:
-            anotar("borrar el vídeo", False,
-                   f"no se pudo buscar por API: {exc}")
-            return (salida, 1)
-        if not id_video:
-            anotar("borrar el vídeo", False,
-                   "ni los anuncios ni la API dejaron el id: se detiene "
-                   "sin tocar nada")
-            return (salida, 1)
-        enlace_manual = "https://www.youtube.com/watch?v=" + id_video
         try:
             borrado, motivo = _borrar_video(cliente, creds, id_video)
         except Exception as exc:
@@ -495,37 +1162,163 @@ def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
                    f"{motivo}, bórralo a mano: {enlace_manual}")
             return (salida, 1)
         anotar("borrar el vídeo", True, f"id {id_video}")
+        borrado_id = id_video
+        id_video = ""
+        enlace_manual = ""
         return (salida, 0)
     finally:
-        try:
-            if principal is not None:
-                try:
-                    principal.close()
-                    time.sleep(8)
-                except Exception:
-                    pass
-            if app is not None and app.poll() is None:
-                try:
-                    app.kill()
-                except Exception:
-                    pass
-            if decidir_cerrar_obs(estaba_obs) and _obs_en_ejecucion():
-                _cerrar_obs()
-        finally:
+        id_por_titulo = False
+        if not id_video and (salio_al_aire or pulso_transmitir) \
+                and not finalizado:
             try:
-                shutil.copy2(respaldo, ruta_config)
-            except OSError:
+                cliente_busqueda, creds_busqueda = _cliente_youtube()
+                try:
+                    hallado, titulo_hallado, privacidad_hallada = \
+                        _buscar_video_por_titulo(cliente_busqueda, titulo)
+                    _guardar_token_si_renovo(cliente_busqueda, creds_busqueda)
+                except Exception:
+                    hallado, titulo_hallado, privacidad_hallada = ("", "", "")
+                candidato = hallado \
+                    if hallado and es_borrable(titulo_hallado,
+                                               privacidad_hallada) else ""
+                resuelto = id_para_limpiar(
+                    id_video, candidato, salio_al_aire or pulso_transmitir)
+                if resuelto:
+                    id_video = resuelto
+                    id_por_titulo = True
+                    if not enlace_manual:
+                        enlace_manual = "https://www.youtube.com/watch?v=" \
+                            + id_video
+            except Exception:
                 pass
+        for paso in pasos_de_limpieza(salio_al_aire, finalizado, id_video,
+                                      creo_panel, pulso_transmitir):
             try:
-                os.remove(respaldo)
-            except OSError:
-                pass
+                if paso == "detener_y_finalizar":
+                    if gestor_obs is None:
+                        try:
+                            gestor_obs = _gestor_obs()
+                        except Exception:
+                            gestor_obs = None
+                    try:
+                        cliente_fin, creds_fin = _cliente_youtube()
+                    except Exception as exc:
+                        anotar(paso, False, f"sin cliente API: {exc}")
+                        continue
+                    bien, detalle = _detener_y_finalizar(
+                        gestor_obs, cliente_fin, creds_fin, id_video)
+                    if bien:
+                        finalizado = True
+                    if bien and id_por_titulo:
+                        detalle = f"{detalle} (id por título «{titulo}»)"
+                    if not bien and not id_video:
+                        detalle = (f"{detalle} (se buscó por título "
+                                   f"«{titulo}» sin éxito)")
+                    anotar(paso, bien, detalle)
+                elif paso == "borrar_video":
+                    try:
+                        cliente_fin, creds_fin = _cliente_youtube()
+                    except Exception as exc:
+                        anotar(paso, False,
+                               "sin cliente API, bórralo a mano: "
+                               f"{enlace_manual or id_video} ({exc})")
+                        continue
+                    try:
+                        borrado, motivo = _borrar_video(
+                            cliente_fin, creds_fin, id_video)
+                    except Exception as exc:
+                        anotar(paso, False,
+                               "no se pudo borrar, bórralo a mano: "
+                               f"{enlace_manual} ({exc})")
+                        continue
+                    if borrado:
+                        detalle_borrado = f"id {id_video} (limpieza)"
+                        if id_por_titulo:
+                            detalle_borrado = (
+                                f"id {id_video} (por título «{titulo}», "
+                                f"limpieza)")
+                        anotar(paso, True, detalle_borrado)
+                        borrado_id = borrado_id or id_video
+                        id_video = ""
+                        enlace_manual = ""
+                    else:
+                        anotar(paso, False,
+                               f"{motivo}, bórralo a mano: {enlace_manual}")
+                elif paso in ("quitar_capturas", "quitar_panel"):
+                    if not escena_prueba:
+                        anotar(paso, True, "la escena no se llegó a armar")
+                        continue
+                    if gestor_obs is None:
+                        try:
+                            gestor_obs = _gestor_obs()
+                        except Exception as exc:
+                            anotar(paso, False,
+                                   f"sin conexión a OBS: {exc}")
+                            continue
+                    if paso == "quitar_capturas":
+                        _quitar_fuente(gestor_obs, escena_prueba,
+                                       FUENTE_CAMARA, borrar_entrada=True)
+                        _quitar_fuente(gestor_obs, escena_prueba,
+                                       FUENTE_APLICACION, borrar_entrada=True)
+                        anotar(paso, True,
+                               "«Prueba YTChat cámara» y «Prueba YTChat "
+                               "aplicación» fuera de la escena")
+                    else:
+                        from ytchat.obs.obs_panel import NOMBRE_FUENTE
+                        _quitar_fuente(gestor_obs, escena_prueba,
+                                       NOMBRE_FUENTE)
+                        anotar(paso, True,
+                               "panel creado fuera de la escena")
+                elif paso == "cerrar_ventanas":
+                    _cerrar_ventanas_prueba(ventanas_prueba)
+                    anotar(paso, True, "ventanas de prueba cerradas")
+                elif paso == "cerrar_app_y_restaurar":
+                    try:
+                        if principal is not None:
+                            try:
+                                principal.close()
+                                time.sleep(8)
+                            except Exception:
+                                pass
+                        if app is not None and app.poll() is None:
+                            try:
+                                app.kill()
+                            except Exception:
+                                pass
+                        if gestor_obs is not None:
+                            try:
+                                gestor_obs.cerrar()
+                            except Exception:
+                                pass
+                        if decidir_cerrar_obs(estaba_obs) \
+                                and _obs_en_ejecucion():
+                            _cerrar_obs()
+                    finally:
+                        try:
+                            shutil.copy2(respaldo, ruta_config)
+                        except OSError:
+                            pass
+                        try:
+                            os.remove(respaldo)
+                        except OSError:
+                            pass
+                        _restaurar_sonidos(ruta_sonidos,
+                                           respaldo_sonidos, habia_sonidos)
+                        try:
+                            os.remove(respaldo_sonidos)
+                        except OSError:
+                            pass
+                    anotar(paso, True,
+                           "app cerrada, config.ini y sounds.ini "
+                           "restaurados")
+            except Exception as exc:
+                anotar(paso, False, f"falló la limpieza: {exc}")
         anuncios = _leer_anuncios(ruta_anuncios)
         lineas = [f"{nombre}: {'bien' if bien else 'falló'}"
                   + (f" ({detalle})" if detalle else "")
                   for nombre, bien, detalle in salida]
-        if borrado:
-            lineas.append(f"vídeo borrado: bien (id {id_video})")
+        if borrado_id:
+            lineas.append(f"vídeo borrado: bien (id {borrado_id})")
         elif enlace_manual:
             lineas.append(f"vídeo sin borrar: {enlace_manual}")
         texto = "\n".join(lineas) + "\n\n--- anuncios ---\n" + anuncios

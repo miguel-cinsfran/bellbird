@@ -87,6 +87,176 @@ class TestDecidirCerrarObs(unittest.TestCase):
         self.assertTrue(directo_real.decidir_cerrar_obs(False))
 
 
+VERDE = (0, 192, 0)
+MAGENTA = (192, 0, 192)
+AZUL = (30, 60, 200)
+BLANCO = (255, 255, 255)
+COLORES_PRUEBA = (VERDE, MAGENTA)
+
+
+class TestFraccionDeColor(unittest.TestCase):
+
+    def test_todo_verde_da_uno(self):
+        pixeles = [VERDE] * 10
+        self.assertEqual(
+            directo_real.fraccion_de_color(pixeles, COLORES_PRUEBA, 0), 1.0)
+
+    def test_nada_verde_da_cero(self):
+        pixeles = [AZUL] * 10
+        self.assertEqual(
+            directo_real.fraccion_de_color(pixeles, COLORES_PRUEBA, 0), 0.0)
+
+    def test_mitad_y_mitad_da_medio(self):
+        pixeles = [VERDE] * 5 + [AZUL] * 5
+        self.assertEqual(
+            directo_real.fraccion_de_color(pixeles, COLORES_PRUEBA, 0), 0.5)
+
+    def test_mezcla_verde_y_magenta_cuenta_todo(self):
+        pixeles = [VERDE] * 3 + [MAGENTA] * 3 + [AZUL] * 4
+        self.assertEqual(
+            directo_real.fraccion_de_color(pixeles, COLORES_PRUEBA, 0), 0.6)
+
+    def test_sin_pixeles_da_cero(self):
+        self.assertEqual(
+            directo_real.fraccion_de_color([], COLORES_PRUEBA, 0), 0.0)
+
+    def test_tolerancia_acepta_casi_verde(self):
+        pixeles = [(5, 187, 3)]
+        self.assertEqual(
+            directo_real.fraccion_de_color(pixeles, COLORES_PRUEBA, 0), 0.0)
+        self.assertEqual(
+            directo_real.fraccion_de_color(pixeles, COLORES_PRUEBA, 32), 1.0)
+
+
+class TestPanelVisible(unittest.TestCase):
+
+    def test_todo_verde_no_se_ve(self):
+        self.assertFalse(directo_real.panel_visible(
+            [VERDE] * 100, COLORES_PRUEBA))
+
+    def test_todo_magenta_no_se_ve(self):
+        self.assertFalse(directo_real.panel_visible(
+            [MAGENTA] * 100, COLORES_PRUEBA))
+
+    def test_mitad_verde_y_mitad_magenta_no_se_ve(self):
+        self.assertFalse(directo_real.panel_visible(
+            [VERDE] * 50 + [MAGENTA] * 50, COLORES_PRUEBA))
+
+    def test_cinco_por_ciento_blanco_se_ve(self):
+        self.assertTrue(directo_real.panel_visible(
+            [VERDE] * 95 + [BLANCO] * 5, COLORES_PRUEBA))
+
+    def test_uno_por_ciento_blanco_no_se_ve(self):
+        self.assertFalse(directo_real.panel_visible(
+            [VERDE] * 99 + [BLANCO], COLORES_PRUEBA))
+
+    def test_sin_pixeles_no_se_ve(self):
+        self.assertFalse(directo_real.panel_visible([], COLORES_PRUEBA))
+
+
+class TestRectanguloDelPanel(unittest.TestCase):
+
+    def test_mismo_tamano_no_escala(self):
+        transformacion = {"positionX": 1400, "positionY": 400,
+                          "width": 460, "height": 620}
+        self.assertEqual(
+            directo_real.rectangulo_del_panel(transformacion, 1920, 1920),
+            (1400, 400, 460, 620))
+
+    def test_captura_a_la_mitad_escala(self):
+        transformacion = {"positionX": 1400, "positionY": 400,
+                          "width": 460, "height": 620}
+        self.assertEqual(
+            directo_real.rectangulo_del_panel(transformacion, 960, 1920),
+            (700, 200, 230, 310))
+
+    def test_fuera_del_lienzo_da_vacio(self):
+        transformacion = {"positionX": 2000, "positionY": 100,
+                          "width": 460, "height": 620}
+        self.assertEqual(
+            directo_real.rectangulo_del_panel(transformacion, 1920, 1920),
+            (2000, 100, 0, 620))
+
+    def test_parcialmente_fuera_se_recorta(self):
+        transformacion = {"positionX": 1800, "positionY": 900,
+                          "width": 460, "height": 300}
+        self.assertEqual(
+            directo_real.rectangulo_del_panel(transformacion, 1920, 1920,
+                                              1080, 1080),
+            (1800, 900, 120, 180))
+
+    def test_sin_lienzo_no_divide(self):
+        transformacion = {"positionX": 10, "positionY": 20,
+                          "width": 30, "height": 40}
+        self.assertEqual(
+            directo_real.rectangulo_del_panel(transformacion, 1920, 0),
+            (10, 20, 30, 40))
+
+
+class TestIdParaLimpiar(unittest.TestCase):
+
+    def test_id_conocido_gana(self):
+        self.assertEqual(
+            directo_real.id_para_limpiar("abc123", "hallado456", True),
+            "abc123")
+        self.assertEqual(
+            directo_real.id_para_limpiar("abc123", "hallado456", False),
+            "abc123")
+
+    def test_sin_id_y_con_hallazgo_usa_el_hallazgo(self):
+        self.assertEqual(
+            directo_real.id_para_limpiar("", "hallado456", True),
+            "hallado456")
+
+    def test_sin_pulsar_no_busca(self):
+        self.assertEqual(
+            directo_real.id_para_limpiar("", "hallado456", False), "")
+        self.assertEqual(
+            directo_real.id_para_limpiar("", "", False), "")
+
+    def test_sin_hallazgo_da_vacio(self):
+        self.assertEqual(directo_real.id_para_limpiar("", "", True), "")
+
+
+class TestPasosDeLimpieza(unittest.TestCase):
+
+    def test_todo_pendiente_en_orden(self):
+        self.assertEqual(
+            directo_real.pasos_de_limpieza(True, False, "abc123", True),
+            ["detener_y_finalizar", "borrar_video", "quitar_capturas",
+             "quitar_panel", "cerrar_ventanas", "cerrar_app_y_restaurar"])
+
+    def test_sin_nada_pendiente_solo_cierra(self):
+        self.assertEqual(
+            directo_real.pasos_de_limpieza(False, False, "", False),
+            ["quitar_capturas", "cerrar_ventanas", "cerrar_app_y_restaurar"])
+
+    def test_finalizado_no_detiene(self):
+        self.assertEqual(
+            directo_real.pasos_de_limpieza(True, True, "abc123", False),
+            ["borrar_video", "quitar_capturas", "cerrar_ventanas",
+             "cerrar_app_y_restaurar"])
+
+    def test_sin_video_no_borra(self):
+        self.assertEqual(
+            directo_real.pasos_de_limpieza(True, False, "", False),
+            ["detener_y_finalizar", "quitar_capturas", "cerrar_ventanas",
+             "cerrar_app_y_restaurar"])
+
+    def test_pulso_sin_salir_detiene_por_si_creo_emision(self):
+        self.assertEqual(
+            directo_real.pasos_de_limpieza(False, False, "abc123", False,
+                                           True),
+            ["detener_y_finalizar", "borrar_video", "quitar_capturas",
+             "cerrar_ventanas", "cerrar_app_y_restaurar"])
+
+    def test_pulso_sin_id_igual_detiene_para_avisar_titulo(self):
+        self.assertEqual(
+            directo_real.pasos_de_limpieza(False, False, "", False, True),
+            ["detener_y_finalizar", "quitar_capturas", "cerrar_ventanas",
+             "cerrar_app_y_restaurar"])
+
+
 class TestLeerValor(unittest.TestCase):
 
     def test_lista_devuelve_lo_elegido(self):
@@ -138,6 +308,131 @@ class TestLeerValor(unittest.TestCase):
                 return "texto"
 
         self.assertEqual(directo_real._leer_valor(Roto()), "texto")
+
+
+class TestDetalleListaChat(unittest.TestCase):
+
+    def test_sin_archivo_avisa(self):
+        self.assertEqual(
+            directo_real._detalle_lista_chat(None),
+            "no se encontró el archivo del chat")
+
+    def test_lista_vacia(self):
+        self.assertEqual(
+            directo_real._detalle_lista_chat([]),
+            "lista vacía (0 elementos)")
+
+    def test_cuenta_y_muestra_los_tres_ultimos(self):
+        detalle = directo_real._detalle_lista_chat(
+            ["uno", "dos", "tres", "cuatro"])
+        self.assertIn("4 elementos", detalle)
+        self.assertIn("«dos»", detalle)
+        self.assertIn("«cuatro»", detalle)
+        self.assertNotIn("«uno»", detalle)
+
+    def test_con_menos_de_tres_muestra_todo(self):
+        detalle = directo_real._detalle_lista_chat(["uno", "dos"])
+        self.assertIn("2 elementos", detalle)
+        self.assertIn("«uno»", detalle)
+        self.assertIn("«dos»", detalle)
+
+
+class TestComentarioFaltante(unittest.TestCase):
+
+    def _ruta_con(self, lineas):
+        import os
+        import tempfile
+        fd, ruta = tempfile.mkstemp(suffix=".txt")
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write("\n".join(lineas) + ("\n" if lineas else ""))
+        self.addCleanup(os.remove, ruta)
+        return ruta
+
+    def test_todo_presente_devuelve_none(self):
+        ruta = self._ruta_con(
+            ["10:00 Ana: Comentario de prueba 1", "10:01 Luis: otro"])
+        faltante, leidos = directo_real._comentario_faltante(
+            ruta, ["Comentario de prueba 1"], segundos=0)
+        self.assertIsNone(faltante)
+        self.assertEqual(leidos, ["10:00 Ana: Comentario de prueba 1",
+                                  "10:01 Luis: otro"])
+
+    def test_faltante_devuelve_lo_leido(self):
+        ruta = self._ruta_con(["algo", "otro", "más", "último"])
+        faltante, leidos = directo_real._comentario_faltante(
+            ruta, ["Comentario de prueba 1"], segundos=0)
+        self.assertEqual(faltante, "Comentario de prueba 1")
+        self.assertEqual(leidos, ["algo", "otro", "más", "último"])
+
+    def test_sin_archivo_devuelve_none_como_leido(self):
+        import os
+        import shutil
+        import tempfile
+        carpeta = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, carpeta, True)
+        ruta = os.path.join(carpeta, "chat.txt")
+        faltante, leidos = directo_real._comentario_faltante(
+            ruta, ["Comentario de prueba 1"], segundos=0)
+        self.assertEqual(faltante, "Comentario de prueba 1")
+        self.assertIsNone(leidos)
+
+
+class TestVolumenPrueba(unittest.TestCase):
+
+    def test_constante_al_doce_por_ciento(self):
+        self.assertEqual(directo_real.VOLUMEN_PRUEBA, 0.12)
+
+    def test_lanzador_compila_y_fija_reproductor(self):
+        fuente = directo_real._LANZADOR.format(repo="C:/x")
+        compile(fuente, "lanzador", "exec")
+        self.assertIn("ReproductorPanel", fuente)
+        self.assertIn("self._vol = 12", fuente)
+        self.assertIn("sld_vol", fuente)
+        self.assertIn("SetValue(12)", fuente)
+
+
+class TestRespaldoSonidos(unittest.TestCase):
+
+    def _ruta_con(self, contenido: bytes):
+        import os
+        import tempfile
+        fd, ruta = tempfile.mkstemp(suffix=".ini")
+        with os.fdopen(fd, "wb") as f:
+            f.write(contenido)
+        self.addCleanup(os.remove, ruta)
+        return ruta
+
+    def test_respalda_escribe_y_restaura_byte_a_byte(self):
+        import os
+        import tempfile
+        from ytchat.core import config
+        original = b"[sonidos]\nvolumen = 0.7\n"
+        ruta = self._ruta_con(original)
+        fd, respaldo = tempfile.mkstemp(suffix=".ini")
+        os.close(fd)
+        self.addCleanup(os.remove, respaldo)
+        self.assertTrue(directo_real._respaldar_sonidos(ruta, respaldo))
+        self.assertTrue(config.guardar_opcion(
+            Path(ruta), "sonidos", "volumen",
+            str(directo_real.VOLUMEN_PRUEBA)))
+        with open(ruta, encoding="utf-8") as f:
+            self.assertIn("0.12", f.read())
+        directo_real._restaurar_sonidos(ruta, respaldo, True)
+        with open(ruta, "rb") as f:
+            self.assertEqual(f.read(), original)
+
+    def test_sin_archivo_no_crea_nada(self):
+        import os
+        import shutil
+        import tempfile
+        carpeta = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, carpeta, True)
+        ruta = os.path.join(carpeta, "sounds.ini")
+        respaldo = os.path.join(carpeta, "respaldo.ini")
+        self.assertFalse(directo_real._respaldar_sonidos(ruta, respaldo))
+        self.assertFalse(os.path.exists(ruta))
+        directo_real._restaurar_sonidos(ruta, respaldo, False)
+        self.assertFalse(os.path.exists(ruta))
 
 
 if __name__ == "__main__":

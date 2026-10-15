@@ -36,6 +36,24 @@ def ventana_legible(item_name) -> str:
     return f"{resto}, de {programa}"
 
 
+def es_ventana_sin_titulo(item_name) -> bool:
+    """Dice si el nombre que da OBS es de una ventana sin título."""
+    texto = str(item_name or "").strip()
+    if not texto:
+        return True
+    if not texto.startswith("["):
+        return False
+    cierre = texto.find("]")
+    if cierre < 0:
+        return False
+    resto = texto[cierre + 1:].strip()
+    if resto.startswith(":"):
+        resto = resto[1:].strip()
+    if not resto:
+        return True
+    return resto.lower() == "(null)"
+
+
 def _legible_desde_valor(item_value) -> str:
     # El valor trae lo mismo que el nombre pero en otro orden,
     # "Título:Clase:programa.exe"; así la frase sale sin pedir la lista.
@@ -92,13 +110,15 @@ def captura_de_escena(cliente, escena, parada=None):
     return candidatas[0]
 
 
-def _opciones(items) -> tuple:
+def _opciones(items, conservar="") -> tuple:
     opciones = []
     for item in items or ():
         if item.get("itemEnabled", True) is False:
             continue
         valor = item.get("itemValue", "") or ""
         if not valor:
+            continue
+        if valor != conservar and es_ventana_sin_titulo(item.get("itemName", "")):
             continue
         opciones.append((ventana_legible(item.get("itemName", "")), valor))
     return tuple(opciones)
@@ -172,7 +192,8 @@ def ventanas(cliente, escena, parada=None, dormir=time.sleep,
             parada).get("propertyItems", ()) or ()
         ajustes = _datos(cliente, "GetInputSettings", {"inputName": nombre},
                          parada).get("inputSettings", {}) or {}
-        return _opciones(items), str(ajustes.get("window", "") or "")
+        actual = str(ajustes.get("window", "") or "")
+        return _opciones(items, conservar=actual), actual
     _quitar_sonda(cliente, escena, parada)
     _esperar_sonda_fuera(cliente, escena, parada, dormir=dormir,
                          reloj=reloj)

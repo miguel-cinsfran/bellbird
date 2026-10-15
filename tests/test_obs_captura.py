@@ -152,6 +152,71 @@ class VentanaLegibleTest(unittest.TestCase):
                          "Pantalla completa")
 
 
+class SinTituloTest(unittest.TestCase):
+    def test_nulo_de_python_es_sin_titulo(self):
+        self.assertTrue(
+            obs_captura.es_ventana_sin_titulo("[python.exe]: (null)"))
+
+    def test_titulo_vacio_es_sin_titulo(self):
+        self.assertTrue(obs_captura.es_ventana_sin_titulo("[x.exe]: "))
+
+    def test_nulo_con_espacios_y_mayusculas_es_sin_titulo(self):
+        self.assertTrue(
+            obs_captura.es_ventana_sin_titulo("[x.exe]:   (NULL)  "))
+
+    def test_con_titulo_no_es_sin_titulo(self):
+        self.assertFalse(
+            obs_captura.es_ventana_sin_titulo("[chrome.exe]: YouTube"))
+
+    def test_sin_corchetes_con_texto_no_es_sin_titulo(self):
+        self.assertFalse(
+            obs_captura.es_ventana_sin_titulo("Bloc de notas"))
+
+    def test_vacia_es_sin_titulo(self):
+        self.assertTrue(obs_captura.es_ventana_sin_titulo(""))
+
+
+class OpcionesTest(unittest.TestCase):
+    def test_descarta_las_sin_titulo(self):
+        items = (item("[python.exe]: (null)",
+                      "(null):Ventana:python.exe"),
+                 item("[chrome.exe]: YouTube",
+                      "YouTube:Ventana:chrome.exe"))
+        self.assertEqual(
+            obs_captura._opciones(items),
+            (("YouTube, de chrome.exe", "YouTube:Ventana:chrome.exe"),))
+
+    def test_conserva_la_actual_aunque_sea_sin_titulo(self):
+        items = (item("[python.exe]: (null)",
+                      "(null):Ventana:python.exe"),
+                 item("[chrome.exe]: YouTube",
+                      "YouTube:Ventana:chrome.exe"))
+        opciones = obs_captura._opciones(
+            items, conservar="(null):Ventana:python.exe")
+        self.assertEqual(
+            opciones,
+            (("(null), de python.exe", "(null):Ventana:python.exe"),
+             ("YouTube, de chrome.exe", "YouTube:Ventana:chrome.exe")))
+
+
+class VentanasSinTituloTest(unittest.TestCase):
+    def test_con_captura_sin_titulo_la_conserva_en_opciones(self):
+        propiedades = (
+            item("[python.exe]: (null)", "(null):Ventana:python.exe"),
+            item("[chrome.exe]: YouTube", "YouTube:Ventana:chrome.exe"))
+        doble = Doble(
+            elementos=(elemento(5, "Juego", "window_capture"),),
+            entradas=({"inputName": "Juego", "inputKind": "window_capture"},),
+            propiedades=propiedades,
+            ajustes={"window": "(null):Ventana:python.exe"})
+        opciones, actual = obs_captura.ventanas(doble, "Escena")
+        self.assertEqual(actual, "(null):Ventana:python.exe")
+        self.assertEqual(
+            opciones,
+            (("(null), de python.exe", "(null):Ventana:python.exe"),
+             ("YouTube, de chrome.exe", "YouTube:Ventana:chrome.exe")))
+
+
 class CapturaDeEscenaTest(unittest.TestCase):
     def test_prefiere_las_habilitadas(self):
         doble = Doble(

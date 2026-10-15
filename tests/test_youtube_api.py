@@ -18,6 +18,9 @@ class ServicioFalso:
     def videos(self):
         return self
 
+    def channels(self):
+        return self
+
     def list(self, **kwargs):
         self.parametros = kwargs
         return self
@@ -63,20 +66,61 @@ class TestDatosChatDirecto(unittest.TestCase):
 
     def test_sin_video(self):
         self.assertEqual(self.cliente({"items": []}).datos_chat_directo("abc"), {
-            "hay_video": False, "hay_directo": False, "live_chat_id": ""})
+            "hay_video": False, "hay_directo": False, "live_chat_id": "",
+            "canal_id": ""})
 
     def test_video_que_no_es_directo(self):
         self.assertEqual(self.cliente({"items": [{}]}).datos_chat_directo("abc"), {
-            "hay_video": True, "hay_directo": False, "live_chat_id": ""})
+            "hay_video": True, "hay_directo": False, "live_chat_id": "",
+            "canal_id": ""})
 
     def test_directo_con_chat(self):
         self.assertEqual(self.cliente({"items": [{"liveStreamingDetails": {
             "activeLiveChatId": "chat"}}]}).datos_chat_directo("abc"), {
-            "hay_video": True, "hay_directo": True, "live_chat_id": "chat"})
+            "hay_video": True, "hay_directo": True, "live_chat_id": "chat",
+            "canal_id": ""})
+
+    def test_devuelve_el_canal_del_directo(self):
+        self.assertEqual(self.cliente({"items": [
+            {"snippet": {"channelId": "UCpropio"},
+             "liveStreamingDetails": {"activeLiveChatId": "chat"}},
+        ]}).datos_chat_directo("abc"), {
+            "hay_video": True, "hay_directo": True, "live_chat_id": "chat",
+            "canal_id": "UCpropio"})
+
+    def test_pide_el_snippet_en_la_misma_llamada(self):
+        servicio = ServicioFalso({"items": []})
+        cliente = ClienteYouTube({"api_key": "clave"})
+        cliente._svc_lectura = servicio
+        cliente.datos_chat_directo("abc")
+        self.assertIn("snippet", servicio.parametros.get("part", ""))
 
     def test_resolvedor_conserva_el_id(self):
         self.assertEqual(self.cliente({"items": [{"liveStreamingDetails": {
             "activeLiveChatId": "chat"}}]}).resolver_live_chat_id("abc"), "chat")
+
+
+class TestIdCanalPropio(unittest.TestCase):
+
+    def cliente(self, respuesta):
+        cliente = ClienteYouTube({"token": "{}"})
+        cliente._svc_escritura = ServicioFalso(respuesta)
+        return cliente
+
+    def test_devuelve_el_id_del_canal_de_la_sesion(self):
+        cliente = self.cliente({"items": [{"id": "UCpropio"}]})
+        self.assertEqual(cliente.id_canal_propio(), "UCpropio")
+
+    def test_sin_items_devuelve_vacio(self):
+        self.assertEqual(self.cliente({"items": []}).id_canal_propio(), "")
+
+    def test_pide_los_canales_propios(self):
+        servicio = ServicioFalso({"items": [{"id": "UCpropio"}]})
+        cliente = ClienteYouTube({"token": "{}"})
+        cliente._svc_escritura = servicio
+        cliente.id_canal_propio()
+        self.assertTrue(servicio.parametros.get("mine"))
+        self.assertEqual(servicio.parametros.get("part"), "id")
 
 
 class TestNormalizarComentario(unittest.TestCase):
@@ -438,6 +482,7 @@ class TestCableadoChatDirecto(unittest.TestCase):
             "hay_video": True, "hay_directo": True, "live_chat_id": ""}))
         modulos = {
             "ytchat.youtube.credenciales": types.SimpleNamespace(hay_lectura=lambda: True,
+                                                      hay_sesion=lambda: False,
                                                       cargar=lambda: {},
                                                       efectivas=lambda *a, **k: {}),
             "ytchat.youtube.youtube_api": types.SimpleNamespace(
@@ -459,7 +504,7 @@ class TestCableadoChatDirecto(unittest.TestCase):
                                   modulos["ytchat.ui.gui"],
                                   create=True):
             main._resolver_live_chat_id("abc")
-        self.assertEqual(llamadas, [("", "chat_desactivado", "abc")])
+        self.assertEqual(llamadas, [("", "chat_desactivado", "abc", False)])
 
     def test_resolver_live_chat_id_usa_credenciales_efectivas(self):
         import main
@@ -477,6 +522,7 @@ class TestCableadoChatDirecto(unittest.TestCase):
         modulos = {
             "ytchat.youtube.credenciales": types.SimpleNamespace(
                 hay_lectura=lambda: True,
+                hay_sesion=lambda: False,
                 cargar=lambda: {"origen": "cargar"},
                 efectivas=lambda *a, **k: {"origen": "efectivas"}),
             "ytchat.youtube.youtube_api": types.SimpleNamespace(
@@ -499,6 +545,72 @@ class TestCableadoChatDirecto(unittest.TestCase):
                                   create=True):
             main._resolver_live_chat_id("abc")
         self.assertEqual(construidos, [{"origen": "efectivas"}])
+
+    def _resolver_con(self, datos, sesion, canal_propio="UCpropio",
+                      falla_datos=False):
+        import main
+        llamadas = []
+        frame = types.SimpleNamespace(
+            _alive=True, set_live_chat_id=lambda *args: llamadas.append(args))
+        cliente = mock.Mock()
+        if falla_datos:
+            cliente.datos_chat_directo = mock.Mock(side_effect=RuntimeError("caído"))
+        else:
+            cliente.datos_chat_directo = mock.Mock(return_value=datos)
+        cliente.id_canal_propio = mock.Mock(return_value=canal_propio)
+        modulos = {
+            "ytchat.youtube.credenciales": types.SimpleNamespace(
+                hay_lectura=lambda: True,
+                hay_sesion=lambda: sesion,
+                cargar=lambda: {},
+                efectivas=lambda *a, **k: {}),
+            "ytchat.youtube.youtube_api": types.SimpleNamespace(
+                google_disponible=lambda: True, ClienteYouTube=lambda _: cliente),
+            "ytchat.ui.gui": types.SimpleNamespace(_gui_frame=frame),
+            "wx": types.SimpleNamespace(CallAfter=lambda funcion, *args: funcion(*args)),
+        }
+        from ytchat import ui as _paquete_ui, youtube as _paquete_youtube
+        with mock.patch.dict(sys.modules, modulos), \
+                mock.patch.object(_paquete_youtube, "credenciales",
+                                  modulos["ytchat.youtube.credenciales"],
+                                  create=True), \
+                mock.patch.object(_paquete_youtube, "youtube_api",
+                                  modulos["ytchat.youtube.youtube_api"],
+                                  create=True), \
+                mock.patch.object(_paquete_ui, "gui",
+                                  modulos["ytchat.ui.gui"],
+                                  create=True):
+            main._resolver_live_chat_id("abc")
+        return llamadas, cliente
+
+    def _datos(self, canal_id):
+        return {"hay_video": True, "hay_directo": True, "live_chat_id": "chat",
+                "canal_id": canal_id}
+
+    def test_directo_propio_cuando_coincide_el_canal(self):
+        llamadas, cliente = self._resolver_con(self._datos("UCpropio"), True)
+        self.assertEqual(len(llamadas), 1)
+        self.assertEqual(llamadas[0][0], "chat")
+        self.assertEqual(llamadas[0][2], "abc")
+        self.assertTrue(llamadas[0][3])
+        self.assertEqual(cliente.id_canal_propio.call_count, 1)
+
+    def test_directo_ajeno_cuando_difiere_el_canal(self):
+        llamadas, cliente = self._resolver_con(self._datos("UCotro"), True,
+                                               canal_propio="UCpropio")
+        self.assertEqual(llamadas[0][0], "chat")
+        self.assertFalse(llamadas[0][3])
+
+    def test_sin_sesion_no_pide_el_canal_propio(self):
+        llamadas, cliente = self._resolver_con(self._datos("UCpropio"), False)
+        cliente.id_canal_propio.assert_not_called()
+        self.assertFalse(llamadas[0][3])
+
+    def test_si_la_api_falla_propio_queda_en_falso(self):
+        llamadas, _cliente = self._resolver_con(self._datos("UCpropio"), True,
+                                                falla_datos=True)
+        self.assertEqual(len(llamadas), 1)
+        self.assertFalse(llamadas[0][3])
 
 
 if __name__ == "__main__":

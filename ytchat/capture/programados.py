@@ -73,6 +73,17 @@ def elegir_envio(mensajes: list[dict], ahora: float,
     return min(vencidos, key=lambda mensaje: mensaje["proximo"]) if vencidos else None
 
 
+def puede_enviar(activo: bool, conectado: bool, es_tiktok: bool,
+                 live_chat_id: str, propio: bool, sesion: bool) -> bool:
+    """Dice si los mensajes automáticos pueden mandarse ahora mismo.
+
+    Solo al chat de un directo propio de YouTube con sesión iniciada: en
+    un directo ajeno la app lee pero no escribe.
+    """
+    return bool(activo and conectado and not es_tiktok and live_chat_id
+                and propio and sesion)
+
+
 def describir_mensaje(mensaje: dict) -> str:
     """Devuelve la línea accesible que representa un mensaje."""
     estado = "Activo" if mensaje.get("activo", False) else "Pausado"

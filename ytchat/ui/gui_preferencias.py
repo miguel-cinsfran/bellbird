@@ -169,7 +169,7 @@ class PreferenciasDialog(wx.Dialog):
         self.nb.AddPage(self._pag_cola(self.nb), "Cola de lectura")
         self.nb.AddPage(self._pag_interfaz(self.nb), "Interfaz y sonidos")
         self.nb.AddPage(self._pag_reproductor(self.nb), "Reproductor")
-        self.nb.AddPage(self._pag_conexion(self.nb), "Conexion")
+        self.nb.AddPage(self._pag_conexion(self.nb), "Conexión")
         self.nb.AddPage(self._pag_filtros(self.nb), "Filtros")
         self.nb.AddPage(self._pag_estado(self.nb), "Estado (F2)")
         self.nb.AddPage(self._pag_atajos(self.nb), "Atajos")
@@ -822,6 +822,7 @@ class PreferenciasDialog(wx.Dialog):
         self.lista_programados = wx.ListBox(p, choices=[
             programados.describir_mensaje(m) for m in self._mensajes_programados
         ], name="ListaProgramados")
+        nombre_accesible(self.lista_programados, "Mensajes automáticos guardados")
         vs.Add(self.lista_programados, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
 
         vs.Add(self._fila_label(p, "&Texto del mensaje"), 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
@@ -840,6 +841,9 @@ class PreferenciasDialog(wx.Dialog):
 
         self.chk_mensaje_activo = wx.CheckBox(
             p, label="&Enviar este mensaje", name="MensajeActivo")
+        # Un mensaje nuevo nace activo: si no, quien lo agrega y activa los
+        # automáticos no ve salir nada porque quedó «Pausado».
+        self.chk_mensaje_activo.SetValue(True)
         vs.Add(self.chk_mensaje_activo, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
 
         fila = wx.BoxSizer(wx.HORIZONTAL)

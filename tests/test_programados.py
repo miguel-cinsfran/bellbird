@@ -94,6 +94,23 @@ class TestElegirEnvio(unittest.TestCase):
         return programados.elegir_envio(self.mensajes, ahora, ultimo_envio)
 
 
+class TestPuedeEnviar(unittest.TestCase):
+    def test_todo_en_verdadero_permite_enviar(self):
+        self.assertTrue(programados.puede_enviar(
+            True, True, False, "chat", True, True))
+
+    def test_cada_condicion_en_falso_lo_impide(self):
+        base = {"activo": True, "conectado": True, "es_tiktok": False,
+                "live_chat_id": "chat", "propio": True, "sesion": True}
+        for campo, apagado in (("activo", False), ("conectado", False),
+                               ("es_tiktok", True), ("live_chat_id", ""),
+                               ("propio", False), ("sesion", False)):
+            with self.subTest(campo=campo):
+                caso = dict(base)
+                caso[campo] = apagado
+                self.assertFalse(programados.puede_enviar(**caso))
+
+
 class TestDescribirProximo(unittest.TestCase):
     def test_sin_mensajes_activos(self):
         self.assertEqual(programados.describir_proximo([], 0), "")

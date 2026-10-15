@@ -1291,7 +1291,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
         self.assertEqual(
             [dialogo.nb.GetPageText(i) for i in range(dialogo.nb.GetPageCount())],
             ["Voz", "Lectura", "Cola de lectura", "Interfaz y sonidos",
-             "Reproductor", "Conexion", "Filtros",
+              "Reproductor", "Conexión", "Filtros",
              "Estado (F2)", "Atajos", "API y sesión", "Mensajes automáticos",
              "Transmisión", "Diagnóstico"])
 
@@ -1315,6 +1315,16 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             control = self._buscar(dialogo, nombre)
             self.assertIsNotNone(control)
             self.assertEqual(control.GetParent().GetName(), pagina)
+
+    def test_mensaje_nuevo_nace_activo(self):
+        dialogo = self._dialogo()
+        self.assertTrue(dialogo.chk_mensaje_activo.GetValue())
+
+    def test_lista_de_programados_tiene_nombre_accesible(self):
+        dialogo = self._dialogo()
+        control = self._buscar(dialogo, "Mensajes automáticos guardados")
+        self.assertIsNotNone(control)
+        self.assertIs(control, dialogo.lista_programados)
 
     def test_microfono_guardado_se_conserva_sin_consultar_obs(self):
         with mock.patch.object(gui, "_listar_voces_sapi5", return_value=["Voz de prueba"]):
@@ -1587,6 +1597,8 @@ class TestProgramadorGui(unittest.TestCase):
         frame._conectado = True
         frame._es_tiktok = False
         frame._live_chat_id = "chat"
+        frame._chat_propio = True
+        frame._conexion_propia = False
         return frame
 
     def test_envio_exitoso_avanza_el_reloj(self):
@@ -1694,6 +1706,14 @@ class TestProgramadorGui(unittest.TestCase):
             frame._procesar_programado()
         enviar.assert_not_called()
 
+    def test_apagado_no_pide_sesion_api(self):
+        frame = self._frame(programados_activo=False)
+        with mock.patch.object(frame, "_sesion_api_disponible") as sesion, \
+                mock.patch.object(frame, "_enviar_programado") as enviar:
+            frame._procesar_programado()
+        sesion.assert_not_called()
+        enviar.assert_not_called()
+
     def test_no_envia_en_tiktok(self):
         frame = self._frame()
         frame._es_tiktok = True
@@ -1701,6 +1721,48 @@ class TestProgramadorGui(unittest.TestCase):
                 mock.patch.object(frame, "_enviar_programado") as enviar:
             frame._procesar_programado()
         enviar.assert_not_called()
+
+    def test_no_envia_en_directo_ajeno(self):
+        frame = self._frame()
+        frame._chat_propio = False
+        frame._conexion_propia = False
+        with mock.patch.object(frame, "_sesion_api_disponible", return_value=True), \
+                mock.patch.object(frame, "_enviar_programado") as enviar:
+            frame._procesar_programado()
+        enviar.assert_not_called()
+
+    def test_envia_si_la_conexion_es_propia(self):
+        frame = self._frame()
+        frame._chat_propio = False
+        frame._conexion_propia = True
+        with mock.patch.object(frame, "_sesion_api_disponible", return_value=True), \
+                mock.patch.object(frame, "_enviar_programado") as enviar:
+            frame._procesar_programado()
+        enviar.assert_called_once()
+
+    def test_el_reloj_no_arranca_hasta_poder_mandar(self):
+        frame = self._frame()
+        frame._conectado = False
+        frame._programados_reloj_iniciado = False
+        mensaje = frame._mensajes_programados[0]
+        with mock.patch.object(frame, "_sesion_api_disponible", return_value=True), \
+                mock.patch.object(gui.time, "time", return_value=1000.0):
+            frame._procesar_programado()
+        self.assertFalse(frame._programados_reloj_iniciado)
+        self.assertEqual(mensaje["proximo"], 0.0)
+        frame._conectado = True
+        with mock.patch.object(frame, "_sesion_api_disponible", return_value=True), \
+                mock.patch.object(gui.time, "time", return_value=1000.0):
+            frame._procesar_programado()
+        self.assertTrue(frame._programados_reloj_iniciado)
+        self.assertGreater(mensaje["proximo"], 0.0)
+
+    def test_al_desconectar_el_reloj_vuelve_a_empezar(self):
+        frame = self._frame()
+        frame._conectado = False
+        with mock.patch.object(frame, "_sesion_api_disponible", return_value=True):
+            frame._procesar_programado()
+        self.assertFalse(frame._programados_reloj_iniciado)
 
     def test_no_envia_si_elegir_devuelve_none(self):
         frame = self._frame()
@@ -1733,6 +1795,46 @@ class TestProgramadorGui(unittest.TestCase):
         frame._sc_totales = {}
         snapshot = frame._snapshot_sesion()
         self.assertEqual(snapshot.programados_proximo, "")
+
+
+class TestPreferenciasRecargaProgramados(unittest.TestCase):
+
+    def _frame(self):
+        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame._config = {}
+        frame._mensajes_programados = [{"texto": "Viejo", "minutos_min": 10,
+                                        "minutos_max": 10, "activo": True,
+                                        "proximo": 900.0}]
+        frame._programados_reloj_iniciado = True
+        frame._aplicar_preferencias_en_caliente = mock.Mock()
+        frame._actualizar_estado_online = mock.Mock()
+        return frame
+
+    def _correr(self, frame, acepto, nuevos):
+        with tempfile.TemporaryDirectory() as temporal:
+            ruta = Path(temporal) / "mensajes_programados.json"
+            ruta.write_text(json.dumps(nuevos, ensure_ascii=False),
+                            encoding="utf-8")
+            with mock.patch.object(gui_preferencias, "abrir_preferencias",
+                                   return_value=acepto), \
+                    mock.patch.object(gui.paths, "mensajes_programados",
+                                      return_value=ruta):
+                frame._on_preferencias(None)
+        return frame
+
+    def test_aceptar_recarga_la_lista_y_rearma_el_reloj(self):
+        frame = self._correr(self._frame(), True, [{"texto": "Nuevo"}])
+        self.assertEqual([m["texto"] for m in frame._mensajes_programados],
+                         ["Nuevo"])
+        self.assertFalse(frame._programados_reloj_iniciado)
+        frame._aplicar_preferencias_en_caliente.assert_called_once()
+
+    def test_cancelar_tambien_recarga_la_lista(self):
+        frame = self._correr(self._frame(), False, [{"texto": "Nuevo"}])
+        self.assertEqual([m["texto"] for m in frame._mensajes_programados],
+                         ["Nuevo"])
+        self.assertFalse(frame._programados_reloj_iniciado)
+        frame._aplicar_preferencias_en_caliente.assert_not_called()
 
 
 class TestDescartesGui(unittest.TestCase):
@@ -1831,6 +1933,17 @@ class TestLiveChatIdPorSesion(unittest.TestCase):
         frame = self._frame("abc")
         frame.set_live_chat_id("chat", "causa")
         self.assertEqual((frame._live_chat_id, frame._causa_sin_chat), ("chat", "causa"))
+
+    def test_por_defecto_el_directo_es_ajeno(self):
+        frame = self._frame("abc")
+        frame.set_live_chat_id("chat", "causa")
+        self.assertFalse(frame._chat_propio)
+
+    def test_guarda_si_el_directo_es_propio(self):
+        frame = self._frame("abc")
+        frame.set_live_chat_id("chat", "causa", video_id="abc", propio=True)
+        self.assertEqual(frame._live_chat_id, "chat")
+        self.assertTrue(frame._chat_propio)
 
     def test_set_tipo_video_fija_el_video_de_la_sesion(self):
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)

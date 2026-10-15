@@ -470,6 +470,7 @@ class YTChatFrame(wx.Frame):
         self._es_tiktok = False   # para que F2 distinga TikTok de YouTube (ambos LIVE)
         self._usuario_tiktok_sesion = ""   # usuario del directo conectado
         self._conexion_propia = False   # la pidió la transmisión
+        self._chat_propio = False   # el directo conectado es del canal propio
         self._obs_transmitiendo = False   # OBS emite sin supervisor a la vista
         self._descartes_avisado = False
 
@@ -1446,7 +1447,13 @@ class YTChatFrame(wx.Frame):
     def _on_preferencias(self, event):
         try:
             from ytchat.ui.gui_preferencias import abrir_preferencias
-            if abrir_preferencias(self, self._config):
+            acepto = abrir_preferencias(self, self._config)
+            # La lista ya se guardó en disco al tocar sus botones: se relee
+            # haya aceptado o no, y el reloj se arma de nuevo con la lista nueva.
+            self._mensajes_programados = programados.cargar(
+                paths.mensajes_programados())
+            self._programados_reloj_iniciado = False
+            if acepto:
                 self._aplicar_preferencias_en_caliente()
         except Exception as exc:
             logger.warning("No se pudo abrir preferencias: %s", exc)
@@ -1863,15 +1870,24 @@ class YTChatFrame(wx.Frame):
             anunciar("Los mensajes automáticos se detuvieron por un error del servicio.")
 
     def _procesar_programado(self) -> None:
-        ahora = time.time()
-        self._iniciar_programados_si_corresponde(ahora)
-        if not self._config.get("programados_activo", False):
+        propio = bool(self._chat_propio or self._conexion_propia)
+        activo = bool(self._config.get("programados_activo", False))
+        if not programados.puede_enviar(
+                activo, self._conectado, self._es_tiktok,
+                self._live_chat_id, propio, True):
+            # Sin las condiciones para mandar, el reloj no corre: al
+            # reconectar arranca de nuevo en vez de salir todo de golpe.
             self._programados_reloj_iniciado = False
             return
-        if not self._conectado or self._es_tiktok or not self._live_chat_id:
+        if not programados.puede_enviar(
+                activo, self._conectado, self._es_tiktok,
+                self._live_chat_id, propio, self._sesion_api_disponible()):
+            # Sin las condiciones para mandar, el reloj no corre: al
+            # reconectar arranca de nuevo en vez de salir todo de golpe.
+            self._programados_reloj_iniciado = False
             return
-        if not self._sesion_api_disponible():
-            return
+        ahora = time.time()
+        self._iniciar_programados_si_corresponde(ahora)
         if self._programado_en_curso:
             return
         mensaje = programados.elegir_envio(
@@ -2343,6 +2359,7 @@ class YTChatFrame(wx.Frame):
         self._causa_sin_chat = ""
         self._usuario_tiktok_sesion = ""
         self._conexion_propia = False
+        self._chat_propio = False
         self._tipo_video = deteccion.DESCONOCIDO
         self._es_tiktok = False
         self._descartes_avisado = False
@@ -2391,7 +2408,7 @@ class YTChatFrame(wx.Frame):
         anunciar(msg)
 
     def set_live_chat_id(self, live_chat_id: str, causa: str = "",
-                         video_id: str | None = None) -> None:
+                         video_id: str | None = None, propio: bool = False) -> None:
         if not self._alive:
             return
         if video_id is not None and video_id != self._video_id_sesion:
@@ -2401,6 +2418,7 @@ class YTChatFrame(wx.Frame):
             return
         self._live_chat_id = live_chat_id or ""
         self._causa_sin_chat = causa or ""
+        self._chat_propio = bool(propio)
         self._actualizar_estado_online()
 
     def set_espectadores(self, n: int) -> None:

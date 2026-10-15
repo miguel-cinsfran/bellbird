@@ -264,13 +264,25 @@ class ClienteYouTube:
     def datos_chat_directo(self, video_id: str) -> dict:
         """Devuelve los datos de disponibilidad del chat de un directo."""
         resp = self._lectura().videos().list(
-            part="liveStreamingDetails", id=video_id).execute()
+            part="liveStreamingDetails,snippet", id=video_id).execute()
         items = resp.get("items", []) or []
         if not items:
-            return {"hay_video": False, "hay_directo": False, "live_chat_id": ""}
+            return {"hay_video": False, "hay_directo": False, "live_chat_id": "",
+                    "canal_id": ""}
         det = items[0].get("liveStreamingDetails")
+        canal_id = (items[0].get("snippet") or {}).get("channelId", "") or ""
         return {"hay_video": True, "hay_directo": det is not None,
-                "live_chat_id": (det or {}).get("activeLiveChatId", "") or ""}
+                "live_chat_id": (det or {}).get("activeLiveChatId", "") or "",
+                "canal_id": canal_id}
+
+    def id_canal_propio(self) -> str:
+        """Devuelve el id del canal de la sesión (cliente de escritura)."""
+        resp = self._escritura().channels().list(
+            part="id", mine=True).execute()
+        items = resp.get("items", []) or []
+        if not items:
+            return ""
+        return items[0].get("id", "") or ""
 
     def resolver_live_chat_id(self, video_id: str) -> str:
         return self.datos_chat_directo(video_id)["live_chat_id"]

@@ -292,6 +292,7 @@ def _resolver_live_chat_id(video_id: str) -> None:
     (que va por pytchat, sin API) sigue funcionando igual.
     """
     lcid = ""
+    propio = False
     hay_credenciales = consulta_fallo = hay_video = hay_directo = False
     try:
         from ytchat.youtube import credenciales
@@ -301,11 +302,19 @@ def _resolver_live_chat_id(video_id: str) -> None:
                             and credenciales.hay_lectura())
         if hay_credenciales:
             try:
-                datos = youtube_api.ClienteYouTube(
-                    credenciales.efectivas()).datos_chat_directo(video_id)
+                cliente = youtube_api.ClienteYouTube(
+                    credenciales.efectivas())
+                datos = cliente.datos_chat_directo(video_id)
                 hay_video = datos["hay_video"]
                 hay_directo = datos["hay_directo"]
                 lcid = datos["live_chat_id"]
+                if credenciales.hay_sesion():
+                    try:
+                        canal_id = datos.get("canal_id", "") or ""
+                        propio = bool(canal_id) and canal_id == cliente.id_canal_propio()
+                    except Exception as exc:
+                        logger.debug("resolver_live_chat_id (canal propio): %s", exc)
+                        propio = False
             except Exception as exc:
                 logger.debug("resolver_live_chat_id: %s", exc)
                 consulta_fallo = True
@@ -314,7 +323,8 @@ def _resolver_live_chat_id(video_id: str) -> None:
         import wx
         from ytchat.ui import gui as _gm
         if _gm._gui_frame and _gm._gui_frame._alive:
-            wx.CallAfter(_gm._gui_frame.set_live_chat_id, lcid, causa, video_id)
+            wx.CallAfter(_gm._gui_frame.set_live_chat_id, lcid, causa,
+                         video_id, propio)
     except Exception as exc:
         logger.debug("resolver_live_chat_id: %s", exc)
 

@@ -1,6 +1,7 @@
 """Tests de helpers de captura de main: errores, cola y filtros."""
 
 import queue
+import threading
 import unittest
 from unittest import mock
 
@@ -32,6 +33,58 @@ class TestErrores(unittest.TestCase):
 
     def test_no_es_permanente(self):
         self.assertFalse(_es_error_permanente("timeout temporal de red"))
+
+    def test_sin_canal_se_traduce(self):
+        crudo = ("Cannot find channel id for video id:5Hs2r-yrEeo. "
+                 "This video id seems to be invalid.")
+        self.assertIn("todavía no muestra este vídeo",
+                      _mensaje_error_amigable(crudo))
+
+    def test_sin_canal_no_es_permanente(self):
+        crudo = ("Cannot find channel id for video id:5Hs2r-yrEeo. "
+                 "This video id seems to be invalid.")
+        self.assertFalse(_es_error_permanente(crudo))
+
+
+class TestReconexionRegistro(unittest.TestCase):
+
+    def _config(self):
+        return {"reconectar": True, "max_intentos": 0,
+                "espera_entre_intentos": 0}
+
+    def _correr(self, errores, parada):
+        estados = []
+        fallos = list(errores)
+
+        def captura(video_id, cola, cfg, ps, stats, on_message,
+                    on_estado, sesion_activa):
+            err = fallos.pop(0) if fallos else None
+            if not fallos:
+                parada.set()
+            return err
+
+        with mock.patch.object(main, "_captura", side_effect=captura), \
+                mock.patch.object(main._snd, "reproducir"), \
+                self.assertLogs(main.logger, level="WARNING") as registro:
+            main.captura_con_reconexion(
+                "v", queue.Queue(), self._config(), parada, Stats(),
+                on_estado=lambda tipo, texto: estados.append((tipo, texto)))
+        return estados, registro.output
+
+    def test_fallo_con_error_deja_el_texto_en_warning(self):
+        _estados, salida = self._correr(
+            [RuntimeError("boom"), RuntimeError("boom")],
+            threading.Event())
+        self.assertTrue(
+            any("Reconexión del chat" in linea and "boom" in linea
+                for linea in salida))
+
+    def test_cierre_sin_error_deja_el_motivo_en_warning(self):
+        _estados, salida = self._correr([None, None], threading.Event())
+        self.assertTrue(
+            any("Reconexión del chat" in linea
+                and "la conexión se cerró sin error" in linea
+                for linea in salida))
 
 
 class TestEncolar(unittest.TestCase):

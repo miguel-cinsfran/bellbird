@@ -9,9 +9,21 @@ from ytchat.obs import obs_cliente
 from ytchat.obs.obs_destinos import Destino
 from ytchat.youtube import emision
 from ytchat.youtube.emision import (
-    EmisionError, cuerpo_emision, esperar_en_vivo, preparar_en_youtube,
-    titulo_por_defecto, url_video,
+    EmisionError, chat_legible, cuerpo_emision, esperar_en_vivo,
+    preparar_en_youtube, titulo_por_defecto, url_video,
 )
+
+
+class TestChatLegible(unittest.TestCase):
+
+    def test_publico_se_lee(self):
+        self.assertTrue(chat_legible("public"))
+
+    def test_no_listado_se_lee(self):
+        self.assertTrue(chat_legible("unlisted"))
+
+    def test_privado_no_se_lee(self):
+        self.assertFalse(chat_legible("private"))
 
 
 class TestCuerpoEmision(unittest.TestCase):

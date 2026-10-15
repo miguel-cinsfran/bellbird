@@ -488,6 +488,8 @@ def captura_con_reconexion(video_id, cola, config, parada, stats, on_message=Non
             parada.set(); break
         sfx = f" de {mi}" if mi else ""
         espera = config["espera_entre_intentos"]
+        motivo = str(err) if err is not None else "la conexión se cerró sin error"
+        logger.warning("Reconexión del chat, intento %s: %s", intentos, motivo)
         if on_estado: on_estado("reintentando", f"Reintentando en {espera} segundos (intento {intentos}{sfx})...")
         stats.inc("reconexiones")
         _snd.reproducir("conectando")
@@ -645,6 +647,10 @@ def _mensaje_error_amigable(exc) -> str:
     t = str(exc).lower()
     if "invalid video id" in t:
         return "El ID de vídeo no es válido. Revisa la URL."
+    if "cannot find channel id" in t:
+        return ("YouTube todavía no muestra este vídeo. Pasa en los "
+                "primeros segundos de un directo y siempre con los "
+                "directos privados.")
     if "private" in t:
         return "Este directo es privado. No se puede acceder."
     if "members only" in t:

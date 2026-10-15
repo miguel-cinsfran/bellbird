@@ -876,6 +876,15 @@ class YTChatFrame(wx.Frame):
                 def _conectar():
                     if not self._alive:
                         return
+                    if destino == "YouTube":
+                        from ytchat.youtube import emision as _emision
+                        if not _emision.chat_legible(
+                                guardados["privacidad"]):
+                            anunciar(
+                                "El directo es privado y YouTube no deja "
+                                "leer su chat. Para leerlo, transmite como "
+                                "público o no listado.")
+                            return
                     if self._conectado or self._conectando:
                         anunciar("El chat ya estaba conectado, no lo cambié.")
                         return

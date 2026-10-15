@@ -2778,6 +2778,7 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
                          preparar_emision=None, esperar_emision=None):
                 creados.append({
                     "destino": destino, "usuario": usuario,
+                    "al_conectar_chat": al_conectar_chat,
                     "preparar_emision": preparar_emision,
                     "esperar_emision": esperar_emision})
                 self.iniciado = False
@@ -2908,6 +2909,56 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
         self.assertIsNone(creados[0]["preparar_emision"])
         self.assertIsNone(creados[0]["esperar_emision"])
         self.assertTrue(frame._supervisor.iniciado)
+
+    def _conectar_chat_youtube(self, frame, privacidad):
+        creados = []
+        pedido = {"titulo": "Hola", "descripcion": "algo",
+                  "privacidad": privacidad}
+        with mock.patch.object(gui.credenciales, "cargar",
+                               return_value={"token": "t"}), \
+                mock.patch.object(gui.credenciales, "hay_sesion",
+                                   return_value=True), \
+                mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo",
+                           return_value=pedido), \
+                mock.patch.object(gui.youtube_api, "ClienteYouTube"), \
+                mock.patch.object(gui, "guardar_opcion"), \
+                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+                           self._doble_supervisor(creados)):
+            frame._supervisar_transmision("iniciar", "YouTube", "")
+        return creados[0]["al_conectar_chat"]
+
+    def test_privado_no_conecta_el_chat_y_avisa(self):
+        frame = self._frame()
+        frame._alive = True
+        frame._conectado = False
+        frame._conectando = False
+        frame.txt_url = mock.Mock()
+        frame._on_conectar = mock.Mock()
+        al_conectar_chat = self._conectar_chat_youtube(frame, "private")
+        with mock.patch.object(gui.wx, "CallAfter",
+                               side_effect=lambda funcion: funcion()), \
+                mock.patch.object(gui, "anunciar") as anunciar:
+            al_conectar_chat("https://www.youtube.com/watch?v=abc123")
+        frame._on_conectar.assert_not_called()
+        frame.txt_url.SetValue.assert_not_called()
+        anunciar.assert_called_once_with(
+            "El directo es privado y YouTube no deja leer su chat. Para "
+            "leerlo, transmite como público o no listado.")
+
+    def test_no_listado_si_conecta_el_chat(self):
+        frame = self._frame()
+        frame._alive = True
+        frame._conectado = False
+        frame._conectando = False
+        frame.txt_url = mock.Mock()
+        frame._on_conectar = mock.Mock()
+        al_conectar_chat = self._conectar_chat_youtube(frame, "unlisted")
+        with mock.patch.object(gui.wx, "CallAfter",
+                               side_effect=lambda funcion: funcion()), \
+                mock.patch.object(gui, "anunciar") as anunciar:
+            al_conectar_chat("https://www.youtube.com/watch?v=abc123")
+        frame._on_conectar.assert_called_once_with(None)
+        anunciar.assert_not_called()
 
 
 class TestOrillaChat(unittest.TestCase):

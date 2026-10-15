@@ -22,6 +22,11 @@ ETIQUETAS_PRIVACIDAD = {"public": "Público", "unlisted": "No listado",
 PRIVACIDAD_INICIAL = "unlisted"
 
 
+def chat_legible(privacidad) -> bool:
+    """Dice si el chat se puede leer por la vía pública con esa privacidad."""
+    return privacidad != "private"
+
+
 class EmisionError(Exception):
     """Fallo listo para anunciar tal cual."""
 

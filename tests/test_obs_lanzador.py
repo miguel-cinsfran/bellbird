@@ -153,7 +153,8 @@ class AsegurarObsTest(unittest.TestCase):
         anuncia = mock.Mock()
         resultado = asegurar_obs(probar, al_anunciar=anuncia,
                                  en_ejecucion=lambda: True,
-                                 buscar=buscar, abrir=abrir)
+                                 buscar=buscar, abrir=abrir,
+                                 hubo_cierre_incorrecto=lambda: False)
         self.assertFalse(resultado)
         buscar.assert_not_called()
         abrir.assert_not_called()
@@ -166,7 +167,8 @@ class AsegurarObsTest(unittest.TestCase):
         with self.assertRaises(ObsNoInstalado) as contexto:
             asegurar_obs(mock.Mock(), al_anunciar=anuncia,
                          en_ejecucion=lambda: False,
-                         buscar=lambda: "", abrir=abrir)
+                         buscar=lambda: "", abrir=abrir,
+                         hubo_cierre_incorrecto=lambda: False)
         self.assertEqual(
             str(contexto.exception),
             "OBS no está instalado en este equipo. Instálalo desde "
@@ -190,7 +192,8 @@ class AsegurarObsTest(unittest.TestCase):
                                  en_ejecucion=lambda: False,
                                  buscar=lambda: RUTA_PRINCIPAL,
                                  abrir=abrir, dormir=reloj.dormir,
-                                 reloj=reloj.reloj)
+                                 reloj=reloj.reloj,
+                                 hubo_cierre_incorrecto=lambda: False)
         self.assertTrue(resultado)
         self.assertEqual(len(intentos), 3)
         abrir.assert_called_once_with(RUTA_PRINCIPAL)
@@ -205,7 +208,8 @@ class AsegurarObsTest(unittest.TestCase):
                          en_ejecucion=lambda: False,
                          buscar=lambda: RUTA_PRINCIPAL,
                          abrir=mock.Mock(), dormir=reloj.dormir,
-                         reloj=reloj.reloj, limite=10.0, intervalo=2.0)
+                         reloj=reloj.reloj, limite=10.0, intervalo=2.0,
+                         hubo_cierre_incorrecto=lambda: False)
         self.assertEqual(
             str(contexto.exception),
             "OBS se abrió pero no responde. Comprueba que su servidor "
@@ -220,7 +224,8 @@ class AsegurarObsTest(unittest.TestCase):
         probar = mock.Mock()
         resultado = asegurar_obs(probar, al_anunciar=anuncia, parada=parada,
                                  en_ejecucion=mock.Mock(),
-                                 buscar=buscar, abrir=abrir)
+                                 buscar=buscar, abrir=abrir,
+                                 hubo_cierre_incorrecto=lambda: False)
         self.assertTrue(resultado)
         anuncia.assert_not_called()
         buscar.assert_not_called()

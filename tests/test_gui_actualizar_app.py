@@ -17,7 +17,10 @@ from ytchat.core.config import APP_NAME, APP_VERSION
 from ytchat.ui import gui_actualizar_app as app
 
 
-def _paquete(version="2.2.0", notas="novedades"):
+VERSION_NUEVA = "99.0.0"
+
+
+def _paquete(version=VERSION_NUEVA, notas="novedades"):
     return actualizacion.PaqueteElegido(
         version=version, notas=notas,
         url_zip="https://ejemplo.com/bajada/App.zip",
@@ -168,8 +171,8 @@ class TestVentana(unittest.TestCase):
 
     def test_desde_fuente_no_instala_y_ofrece_la_pagina(self):
         _, ventana, red = self._abrir(
-            consultar=_paquete("2.2.0"), frozen=False)
-        self.assertIn("Hay una versión nueva, la 2.2.0. "
+            consultar=_paquete(VERSION_NUEVA), frozen=False)
+        self.assertIn(f"Hay una versión nueva, la {VERSION_NUEVA}. "
                       f"La instalada es la {APP_VERSION}. "
                       "Desde el código fuente no se instala: "
                       "se actualiza con git.", ventana.anuncios)
@@ -180,7 +183,7 @@ class TestVentana(unittest.TestCase):
 
     def test_sin_permiso_sugiere_descargar_a_mano(self):
         _, ventana, red = self._abrir(
-            consultar=_paquete("2.2.0"), frozen=True, admite=False)
+            consultar=_paquete(VERSION_NUEVA), frozen=True, admite=False)
         self.assertIn("La carpeta del programa no admite cambios. Se puede "
                       "descargar a mano desde la página.", ventana.anuncios[-1])
         self.assertEqual("&Abrir la página", ventana.accion_etiqueta)
@@ -189,8 +192,8 @@ class TestVentana(unittest.TestCase):
 
     def test_con_permiso_ofrece_descargar(self):
         _, ventana, _ = self._abrir(
-            consultar=_paquete("2.2.0"), frozen=True, admite=True)
-        self.assertEqual("Hay una versión nueva, la 2.2.0. "
+            consultar=_paquete(VERSION_NUEVA), frozen=True, admite=True)
+        self.assertEqual(f"Hay una versión nueva, la {VERSION_NUEVA}. "
                          f"La instalada es la {APP_VERSION}.",
                          ventana.anuncios[-1])
         self.assertEqual(["novedades"], ventana.notas_vistas)
@@ -201,7 +204,7 @@ class TestVentana(unittest.TestCase):
                   "validar": lambda *a: "App.exe"}
         params.update(kwargs)
         frame, ventana, _ = self._abrir(
-            consultar=_paquete("2.2.0"), frozen=True, admite=True,
+            consultar=_paquete(VERSION_NUEVA), frozen=True, admite=True,
             descargar=descargar, **params)
         ventana.pulsar_accion()
         return frame, ventana
@@ -211,7 +214,7 @@ class TestVentana(unittest.TestCase):
             return actualizacion.ResultadoDescarga(False, "descarga cancelada")
         _, ventana = self._abrir_descargable(descargar)
         self.assertIsNone(ventana.accion)
-        self.assertIn("Descargando la versión 2.2.0.", ventana.anuncios)
+        self.assertIn(f"Descargando la versión {VERSION_NUEVA}.", ventana.anuncios)
 
     def test_fallo_de_red_dice_el_motivo(self):
         def descargar(*args, **kwargs):
@@ -243,14 +246,14 @@ class TestVentana(unittest.TestCase):
             ventana.cerrar()
             return actualizacion.ResultadoDescarga(False, "descarga cancelada")
         frame, ventana, _ = self._abrir(
-            consultar=_paquete("2.2.0"), frozen=True, admite=True,
+            consultar=_paquete(VERSION_NUEVA), frozen=True, admite=True,
             descargar=descargar,
             extraer=lambda *a: Path("raiz"),
             validar=lambda *a: "App.exe")
         ventana.pulsar_accion()
         self.assertNotIn("Descarga cancelada.", ventana.anuncios)
         self.assertEqual(
-            "Descargando la versión 2.2.0.", ventana.anuncios[-1])
+            f"Descargando la versión {VERSION_NUEVA}.", ventana.anuncios[-1])
 
     def test_paquete_invalido(self):
         def extraer(*args):
@@ -318,7 +321,7 @@ class TestVentana(unittest.TestCase):
             return actualizacion.ResultadoDescarga(True, "paquete descargado")
         _, ventana = self._abrir_descargable(descargar)
         self.assertEqual([10, 25, 40, 100], ventana.progresos)
-        self.assertIn("Descargando la versión 2.2.0: 40 por ciento",
+        self.assertIn(f"Descargando la versión {VERSION_NUEVA}: 40 por ciento",
                       ventana.textos_sin_anunciar)
         self.assertFalse(any("por ciento" in texto
                              for texto in ventana.anuncios))
@@ -391,13 +394,13 @@ class TestGanchos(unittest.TestCase):
         demoras = self._reloj()
         self._doble(mock.patch.object(
             actualizacion, "tomar_resultado",
-            return_value={"resultado": "ok", "hacia": "2.2.0"}))
+            return_value={"resultado": "ok", "hacia": VERSION_NUEVA}))
         anunciar = self._doble(mock.patch.object(app, "anunciar"))
         sonido = self._doble(mock.patch.object(app._snd, "reproducir"))
         app.programar_resultado_actualizacion()
         self.assertEqual([4000], demoras)
         anunciar.assert_called_once_with(
-            f"{APP_NAME} se actualizó a la versión 2.2.0.")
+            f"{APP_NAME} se actualizó a la versión {VERSION_NUEVA}.")
         sonido.assert_not_called()
 
     def test_resultado_fallido_anuncia_y_suena_error(self):

@@ -13,6 +13,7 @@ Versión 2.1.0 · Windows 10 y 11 · [novedades de cada versión](CHANGELOG.md).
 - [Puesta en marcha](#puesta-en-marcha)
 - [Primeros pasos](#primeros-pasos)
 - [Lectura del chat](#lectura-del-chat)
+  - [Sonidos](#sonidos)
 - [Comentarios de vídeos](#comentarios-de-vídeos)
 - [Reproductor](#reproductor)
 - [Transmitir en directo desde la aplicación](#transmitir-en-directo-desde-la-aplicación)
@@ -26,6 +27,7 @@ Versión 2.1.0 · Windows 10 y 11 · [novedades de cada versión](CHANGELOG.md).
 - [Funciones con la API de YouTube](#funciones-con-la-api-de-youtube)
 - [Atajos de teclado](#atajos-de-teclado)
 - [Accesibilidad](#accesibilidad)
+- [Actualizar la aplicación](#actualizar-la-aplicación)
 - [Configuración](#configuración)
 - [Problemas frecuentes](#problemas-frecuentes)
 - [Licencia](#licencia)
@@ -79,7 +81,9 @@ comentarios.
 ## Lectura del chat
 
 Cada mensaje se lee con la voz configurada y va acompañado de un sonido, que es
-distinto según se trate de un mensaje normal, un Super Chat o una membresía.
+distinto según se trate de un mensaje normal, un Super Chat o una membresía, y
+según quién escribe: el dueño del canal, un moderador, una cuenta verificada o
+un miembro tienen cada uno su sonido (ver [Sonidos](#sonidos)).
 
 Dentro de la lista de mensajes:
 
@@ -107,6 +111,35 @@ lo que se lee, entre cuatro:
 En *Preferencias, Voz* se puede activar una **segunda voz para los eventos**, de
 modo que los Super Chats, los regalos, las membresías y las entradas se
 distingan de los mensajes normales.
+
+### Sonidos
+
+Hay un sonido para cada cosa que pasa, para enterarse sin esperar a la voz:
+
+- **Mensajes**: el común, el del dueño del canal, el de un moderador, el de una
+  cuenta verificada y el de un miembro.
+- **Dinero y apoyo**: Super Chat, miembro nuevo y, en TikTok, tres sonidos de
+  regalo según su tamaño (una moneda, varias monedas o una lluvia de monedas
+  con una melodía) y un cofre.
+- **TikTok**: alguien sigue el canal, comparte el directo, da «me gusta» o
+  entra al directo, y el fin del directo.
+- **La aplicación**: arranque, conectando, conectado, desconectado, error,
+  mensaje enviado, comentario publicado, moderación, copiar, pausa, reanudar,
+  voz cambiada y cola vaciada.
+- **Orilla**: al llegar con las flechas al principio o al final de la lista
+  del chat, de los comentarios o del historial.
+
+`F7` silencia todos los sonidos. Para silenciar uno solo, se deja vacía su
+línea en el archivo `sounds.ini` de la carpeta `data`, por ejemplo
+`me_gusta =`.
+
+El tema de sonido se elige en *Preferencias, Interfaz*. Por ahora los dos
+temas que trae la aplicación, `default` y `suave`, suenan igual. Para hacer uno
+propio se copia la carpeta `sounds/themes/default` con otro
+nombre y se reemplazan los archivos `.wav` que se quieran, con el mismo nombre.
+Al actualizar la aplicación, los sonidos que hayas cambiado o agregado se
+conservan. El archivo `sounds/CREDITOS.md` dice de dónde salió cada sonido:
+todos son de dominio público.
 
 ### Alias para los nombres difíciles de escuchar
 
@@ -195,9 +228,10 @@ y a YouTube directamente con la cuenta de Google.
   la cuenta de YouTube. El perfil de OBS no hace falta prepararlo: si no
   existe un perfil llamado `YouTube`, se crea, y antes de cada directo se le
   carga la clave de emisión de la cuenta.
-- **El destino y el usuario**, en la ventana *Transmisión*, sección
-  *Transmitir*: el desplegable *Transmitir a* y, para TikTok, el campo *Tu
-  usuario de TikTok*. Los dos se recuerdan.
+- **El destino y el usuario** se eligen al pulsar *Transmitir en directo*
+  (ver más abajo) y se recuerdan. También se pueden cambiar en la ventana
+  *Transmisión*, sección *Transmitir*: el desplegable *Transmitir a* guarda
+  la elección en cuanto se cambia.
 - **Qué se transmite**: en la sección *Escena* de la misma ventana, el
   desplegable *Ventana que se captura* lista las ventanas abiertas, por
   ejemplo un juego o un navegador. Al pulsar *Usar esa ventana*, la escena la
@@ -212,15 +246,24 @@ el directo de otra persona ni en un vídeo grabado.
 
 Al pulsarlo:
 
-1. Se abre OBS si hacía falta y se pasa al perfil y a la escena del destino.
-2. Se lee una **revisión** antes de salir al aire: destino, formato, escena,
-   fuentes, audio y cualquier problema, como una escena vacía, una imagen en
-   negro o un micrófono silenciado. Con problemas, el botón seleccionado de
-   inicio es *Cancelar*.
-3. Para YouTube, una ventana pide el **título**, una **descripción**
-   opcional y la **privacidad**: público, no listado o privado. Se recuerdan
-   para la próxima vez. «No listado» sirve para probar sin que el directo
-   aparezca en el canal. Al pulsar *Crear directo*, se crea en el canal.
+1. Una ventana pequeña, *Transmitir a*, pregunta el destino: YouTube o
+   TikTok, con el de la vez anterior ya seleccionado, así que basta con
+   `Intro`. Para TikTok pide también el usuario. `Escape` cancela.
+2. Se abre OBS si hacía falta y se pasa al perfil y a la escena del destino.
+3. Se prepara una **revisión** antes de salir al aire: destino, formato,
+   escena, fuentes, audio y cualquier problema, como una escena vacía, una
+   imagen en negro o un micrófono silenciado.
+   - Para **TikTok**, la revisión se lee en una confirmación con los botones
+     *Transmitir* y *Cancelar*.
+   - Para **YouTube**, una sola ventana pide el **título**, una
+     **descripción** opcional y la **privacidad** (público, no listado o
+     privado), y muestra la revisión en el cuadro *Revisión de OBS*. El
+     título, la descripción y la privacidad se recuerdan para la próxima
+     vez. «No listado» sirve para probar sin que el directo aparezca en el
+     canal. Al pulsar *Transmitir*, se crea el directo en el canal.
+
+   Si la revisión encuentra problemas, el botón seleccionado de inicio es
+   *Cancelar*.
 4. Empieza la transmisión. La aplicación confirma que la señal sale, espera a
    que el directo aparezca en TikTok o en YouTube y conecta el chat sola, sin
    pegar ningún enlace. Se anuncia «Tu directo de TikTok ya está al aire» o
@@ -431,6 +474,15 @@ Se admiten direcciones con el formato `tiktok.com/@usuario/live`. La aplicación
 lee el chat, los regalos y las suscripciones con la misma voz, y muestra el
 vídeo del directo en el reproductor.
 
+También avisa, cada cosa con su sonido, cuando alguien sigue el canal
+(«Ana sigue el canal»), comparte el directo o envía un cofre. Los «me gusta»
+llegan de a muchos, así que solo suenan, como mucho uno cada tres segundos, y
+no se leen ni se agregan a la lista. Los regalos suenan distinto según su
+tamaño en diamantes: hasta 99, hasta 999 y desde 1000.
+
+Al conectar, TikTok manda los últimos mensajes del directo. La aplicación los
+descarta para no leer lo que ya pasó.
+
 Es una modalidad de **solo lectura**: TikTok no ofrece una interfaz oficial que
 permita comentar ni moderar, de modo que esas funciones no están disponibles.
 Opcionalmente puede anunciarse la entrada de cada espectador, desde
@@ -582,6 +634,29 @@ Es el criterio principal del proyecto, no un añadido posterior.
 El panel de chat para transmitir es la única excepción deliberada: no recibe
 foco ni aparece en el recorrido del teclado, porque es una salida destinada a
 los espectadores. El chat accesible es la lista de la ventana principal.
+
+## Actualizar la aplicación
+
+En *Ayuda, Buscar actualizaciones* se abre una ventana que dice si hay una
+versión nueva. Si la hay, muestra sus novedades en el cuadro *Novedades* y
+ofrece *Descargar e instalar*. La descarga se comprueba con su firma antes de
+usarla. Al terminar, *Instalar y reiniciar* cierra la aplicación, que vuelve a
+abrirse sola en alrededor de un minuto ya actualizada, y lo anuncia. Si
+estaba conectado un chat o un directo, se corta.
+
+Se conservan la carpeta `data` (configuración, sesión de Google, historial y
+registros), la carpeta `Descargas` y los sonidos que hayas cambiado o
+agregado. Si la versión nueva no llega a abrirse, se vuelve sola a la
+anterior y lo dice al arrancar.
+
+Al arrancar, si hay una versión nueva, la aplicación lo anuncia una sola vez
+por versión. Si la aplicación está en una carpeta sin permiso de escritura,
+como *Archivos de programa*, la ventana ofrece abrir la página de descarga
+para hacerlo a mano.
+
+yt-dlp, la herramienta que usan el reproductor y las descargas, se actualiza
+aparte desde *Herramientas, Actualizar yt-dlp*, con su propia ventana de
+progreso.
 
 ## Configuración
 

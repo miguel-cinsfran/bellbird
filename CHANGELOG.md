@@ -3,6 +3,97 @@
 Qué cambia en cada versión, en lenguaje llano. El detalle técnico está en el
 historial de git.
 
+## 2.2.0, octubre de 2026
+
+Esta versión permite empezar y terminar un directo de YouTube o de TikTok
+desde la propia aplicación, sin abrir OBS ni la página de Restream. Iniciar
+sesión con Google ya no exige crear credenciales propias. La aplicación se
+actualiza sola, los sonidos son grabaciones nuevas y hay sonidos distintos
+según quién escribe y qué pasa en el directo.
+
+### Transmitir en directo
+
+- **Botón Transmitir en directo en la ventana principal.** Al pulsarlo se
+  elige el destino, YouTube o TikTok, con el de la vez anterior ya
+  seleccionado. La aplicación abre OBS si hace falta, sin quitarle el foco al
+  lector de pantalla, pasa al perfil de ese destino y lee una revisión antes
+  de salir al aire: formato, escena, fuentes, audio y cualquier problema,
+  como una escena vacía o un micrófono silenciado. Mientras se transmite, el
+  mismo botón dice **Finalizar directo**.
+- **YouTube sin tocar la página de YouTube.** Una sola ventana pide el
+  título, la descripción y la privacidad (público, no listado o privado), y
+  muestra la revisión de OBS. Al pulsar *Transmitir*, la aplicación crea el
+  directo en el canal, carga la clave en OBS, empieza a transmitir, espera a
+  que YouTube lo muestre y conecta el chat sola. El título y la descripción
+  se recuerdan para la próxima vez.
+- **TikTok a través de Restream.** La aplicación usa el perfil de OBS
+  llamado `TikTok`, espera a que TikTok muestre el directo y conecta el chat.
+- **Elegir qué se transmite.** En la ventana *Transmisión*
+  (`Ctrl+Mayúsculas+T`) se elige la ventana que captura la escena, por
+  ejemplo un juego. Esa ventana está ordenada por secciones y sus campos
+  dicen qué hacer cuando falta algo.
+- **`Ctrl+Mayúsculas+E` copia el enlace del directo** conectado, para
+  pasárselo a alguien.
+- **`F2` dice primero en qué está el directo** que supervisa la aplicación, y
+  si TikTok o YouTube ya lo muestran.
+
+### Iniciar sesión con Google
+
+- **Sin credenciales propias.** Antes había que crear un proyecto en Google
+  Cloud y cargar su cliente. Ahora basta con pulsar *Iniciar sesión* en
+  *Preferencias, API y sesión*: la aplicación trae su propio cliente. Google
+  muestra un aviso de aplicación no verificada, que se pasa con *Opciones
+  avanzadas* y *Continuar*. Quien ya tenía credenciales propias las sigue
+  usando.
+
+### Actualizaciones
+
+- **La aplicación se actualiza sola.** En *Ayuda, Buscar actualizaciones*
+  una ventana dice si hay una versión nueva, muestra sus novedades en un
+  cuadro que se puede recorrer, y la descarga e instala con un botón. La aplicación se cierra y vuelve a
+  abrirse en alrededor de un minuto. Si la versión nueva no llega a abrirse,
+  se vuelve sola a la anterior y lo dice al arrancar. La configuración, la
+  sesión, el historial, las descargas y los sonidos que hayas cambiado se
+  conservan.
+- **Aviso al arrancar.** Si hay una versión nueva, se anuncia una sola vez.
+- **Actualizar yt-dlp tiene ventana propia,** con el estado, una barra de
+  progreso y cada paso anunciado: buscando, descargando y el resultado.
+
+### Sonidos
+
+- **Sonidos nuevos.** Todos los sonidos son grabaciones nuevas, de dominio
+  público, elegidas una por una para que se distingan entre sí. El archivo
+  `sounds/CREDITOS.md` dice de dónde salió cada uno.
+- **Un sonido según quién escribe.** Los mensajes del dueño del canal, de un
+  moderador, de una cuenta verificada y de un miembro suenan distinto del
+  mensaje común.
+- **Orilla.** Al llegar con las flechas al principio o al final de la lista
+  del chat, de los comentarios o del historial, suena un golpe sordo.
+- **Fin del directo.** Cuando un directo de TikTok termina suena una puerta
+  que se cierra, y no el sonido de desconexión.
+
+### Directos de TikTok
+
+- **Más cosas del directo.** Además del chat y los regalos, se lee quién
+  sigue el canal, quién comparte el directo y quién envía un cofre, cada uno
+  con su sonido. Los «me gusta» solo suenan, como mucho uno cada tres
+  segundos, para no tapar el chat.
+- **Los regalos suenan según su tamaño:** una moneda los chicos, varias los
+  medianos y una lluvia de monedas con una melodía los grandes.
+- **Quien entra al directo tiene su propio sonido,** una puerta que se abre,
+  cuando la entrada está activada en *Preferencias, Lectura*.
+- **No se leen los mensajes viejos al conectar.** TikTok manda al conectar
+  los últimos mensajes del directo. Ya se descartaban los de antes de la
+  conexión, y ahora también los que TikTok marca como antiguos.
+
+### Otros cambios
+
+- **`F3` dice el autor del último mensaje leído.**
+- **Los sonidos ya no frenan la ventana,** y el reproductor tarda menos en
+  arrancar la primera vez.
+- **La configuración admite `%`, `#` y `;`** en los textos, por ejemplo en un
+  título de directo, sin que se pierdan al guardar.
+
 ## 2.1.0, octubre de 2026
 
 Esta versión añade un panel de chat para la emisión, la posibilidad de
@@ -325,7 +416,7 @@ pasan a una carpeta propia.
 - **Ya no se abre una ventana negra al arrancar.** Aparecía un instante y le
   robaba el foco al lector de pantalla. Ahora la consulta se hace por detrás.
 
-## 2.0.1 — agosto de 2026
+## 2.0.1, agosto de 2026
 
 Versión de arreglos. No trae funciones nuevas grandes: trae que las que ya
 había molesten menos y avisen mejor.
@@ -366,7 +457,7 @@ había molesten menos y avisen mejor.
 - Se quitó una entrada de menú que ya no llevaba a ninguna parte, y los avisos
   también salen por línea braille.
 
-## 2.0.0 — julio de 2026
+## 2.0.0, julio de 2026
 
 - **Directos de TikTok, ya finos.** La primera versión los estrenó y esta los
   deja fiables: se leen todos los comentarios con su autor, se oye el vídeo del
@@ -398,7 +489,7 @@ había molesten menos y avisen mejor.
   actual, la pantalla completa lleva el título del vídeo, y en los directos se
   indica «En directo» en lugar de una barra de progreso confusa.
 
-## 1.0.0 — julio de 2026
+## 1.0.0, julio de 2026
 
 Primera versión. Lectura del chat de YouTube Live con voces SAPI5; comentarios
 de vídeos con lectura, respuesta y publicación; reproductor de vídeo integrado

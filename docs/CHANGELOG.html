@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="es" xml:lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="generator" content="pandoc 3.10.1" />
+  <meta name="generator" content="pandoc 3.10" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <title>YTChat TTS — Novedades</title>
   <style>
@@ -41,6 +41,7 @@
       body {
         background-color: transparent;
         color: black;
+        font-size: 12pt;
       }
       p, h2, h3 {
         orphans: 3;
@@ -219,6 +220,112 @@
 <h1 id="novedades-de-ytchat-tts">Novedades de YTChat TTS</h1>
 <p>Qué cambia en cada versión, en lenguaje llano. El detalle técnico
 está en el historial de git.</p>
+<h2 id="220-octubre-de-2026">2.2.0, octubre de 2026</h2>
+<p>Esta versión permite empezar y terminar un directo de YouTube o de
+TikTok desde la propia aplicación, sin abrir OBS ni la página de
+Restream. Iniciar sesión con Google ya no exige crear credenciales
+propias. La aplicación se actualiza sola, los sonidos son grabaciones
+nuevas y hay sonidos distintos según quién escribe y qué pasa en el
+directo.</p>
+<h3 id="transmitir-en-directo">Transmitir en directo</h3>
+<ul>
+<li><strong>Botón Transmitir en directo en la ventana
+principal.</strong> Al pulsarlo se elige el destino, YouTube o TikTok,
+con el de la vez anterior ya seleccionado. La aplicación abre OBS si
+hace falta, sin quitarle el foco al lector de pantalla, pasa al perfil
+de ese destino y lee una revisión antes de salir al aire: formato,
+escena, fuentes, audio y cualquier problema, como una escena vacía o un
+micrófono silenciado. Mientras se transmite, el mismo botón dice
+<strong>Finalizar directo</strong>.</li>
+<li><strong>YouTube sin tocar la página de YouTube.</strong> Una sola
+ventana pide el título, la descripción y la privacidad (público, no
+listado o privado), y muestra la revisión de OBS. Al pulsar
+<em>Transmitir</em>, la aplicación crea el directo en el canal, carga la
+clave en OBS, empieza a transmitir, espera a que YouTube lo muestre y
+conecta el chat sola. El título y la descripción se recuerdan para la
+próxima vez.</li>
+<li><strong>TikTok a través de Restream.</strong> La aplicación usa el
+perfil de OBS llamado <code>TikTok</code>, espera a que TikTok muestre
+el directo y conecta el chat.</li>
+<li><strong>Elegir qué se transmite.</strong> En la ventana
+<em>Transmisión</em> (<code>Ctrl+Mayúsculas+T</code>) se elige la
+ventana que captura la escena, por ejemplo un juego. Esa ventana está
+ordenada por secciones y sus campos dicen qué hacer cuando falta
+algo.</li>
+<li><strong><code>Ctrl+Mayúsculas+E</code> copia el enlace del
+directo</strong> conectado, para pasárselo a alguien.</li>
+<li><strong><code>F2</code> dice primero en qué está el directo</strong>
+que supervisa la aplicación, y si TikTok o YouTube ya lo muestran.</li>
+</ul>
+<h3 id="iniciar-sesión-con-google">Iniciar sesión con Google</h3>
+<ul>
+<li><strong>Sin credenciales propias.</strong> Antes había que crear un
+proyecto en Google Cloud y cargar su cliente. Ahora basta con pulsar
+<em>Iniciar sesión</em> en <em>Preferencias, API y sesión</em>: la
+aplicación trae su propio cliente. Google muestra un aviso de aplicación
+no verificada, que se pasa con <em>Opciones avanzadas</em> y
+<em>Continuar</em>. Quien ya tenía credenciales propias las sigue
+usando.</li>
+</ul>
+<h3 id="actualizaciones">Actualizaciones</h3>
+<ul>
+<li><strong>La aplicación se actualiza sola.</strong> En <em>Ayuda,
+Buscar actualizaciones</em> una ventana dice si hay una versión nueva,
+muestra sus novedades en un cuadro que se puede recorrer, y la descarga
+e instala con un botón. La aplicación se cierra y vuelve a abrirse en
+alrededor de un minuto. Si la versión nueva no llega a abrirse, se
+vuelve sola a la anterior y lo dice al arrancar. La configuración, la
+sesión, el historial, las descargas y los sonidos que hayas cambiado se
+conservan.</li>
+<li><strong>Aviso al arrancar.</strong> Si hay una versión nueva, se
+anuncia una sola vez.</li>
+<li><strong>Actualizar yt-dlp tiene ventana propia,</strong> con el
+estado, una barra de progreso y cada paso anunciado: buscando,
+descargando y el resultado.</li>
+</ul>
+<h3 id="sonidos">Sonidos</h3>
+<ul>
+<li><strong>Sonidos nuevos.</strong> Todos los sonidos son grabaciones
+nuevas, de dominio público, elegidas una por una para que se distingan
+entre sí. El archivo <code>sounds/CREDITOS.md</code> dice de dónde salió
+cada uno.</li>
+<li><strong>Un sonido según quién escribe.</strong> Los mensajes del
+dueño del canal, de un moderador, de una cuenta verificada y de un
+miembro suenan distinto del mensaje común.</li>
+<li><strong>Orilla.</strong> Al llegar con las flechas al principio o al
+final de la lista del chat, de los comentarios o del historial, suena un
+golpe sordo.</li>
+<li><strong>Fin del directo.</strong> Cuando un directo de TikTok
+termina suena una puerta que se cierra, y no el sonido de
+desconexión.</li>
+</ul>
+<h3 id="directos-de-tiktok">Directos de TikTok</h3>
+<ul>
+<li><strong>Más cosas del directo.</strong> Además del chat y los
+regalos, se lee quién sigue el canal, quién comparte el directo y quién
+envía un cofre, cada uno con su sonido. Los «me gusta» solo suenan, como
+mucho uno cada tres segundos, para no tapar el chat.</li>
+<li><strong>Los regalos suenan según su tamaño:</strong> una moneda los
+chicos, varias los medianos y una lluvia de monedas con una melodía los
+grandes.</li>
+<li><strong>Quien entra al directo tiene su propio sonido,</strong> una
+puerta que se abre, cuando la entrada está activada en <em>Preferencias,
+Lectura</em>.</li>
+<li><strong>No se leen los mensajes viejos al conectar.</strong> TikTok
+manda al conectar los últimos mensajes del directo. Ya se descartaban
+los de antes de la conexión, y ahora también los que TikTok marca como
+antiguos.</li>
+</ul>
+<h3 id="otros-cambios">Otros cambios</h3>
+<ul>
+<li><strong><code>F3</code> dice el autor del último mensaje
+leído.</strong></li>
+<li><strong>Los sonidos ya no frenan la ventana,</strong> y el
+reproductor tarda menos en arrancar la primera vez.</li>
+<li><strong>La configuración admite <code>%</code>, <code>#</code> y
+<code>;</code></strong> en los textos, por ejemplo en un título de
+directo, sin que se pierdan al guardar.</li>
+</ul>
 <h2 id="210-octubre-de-2026">2.1.0, octubre de 2026</h2>
 <p>Esta versión añade un panel de chat para la emisión, la posibilidad
 de escribir en el chat desde la propia aplicación y una ventana para
@@ -593,7 +700,7 @@ sesión terminó bien.</li>
 Aparecía un instante y le robaba el foco al lector de pantalla. Ahora la
 consulta se hace por detrás.</li>
 </ul>
-<h2 id="201--agosto-de-2026">2.0.1 — agosto de 2026</h2>
+<h2 id="201-agosto-de-2026">2.0.1, agosto de 2026</h2>
 <p>Versión de arreglos. No trae funciones nuevas grandes: trae que las
 que ya había molesten menos y avisen mejor.</p>
 <ul>
@@ -640,7 +747,7 @@ programa.</li>
 <li>Se quitó una entrada de menú que ya no llevaba a ninguna parte, y
 los avisos también salen por línea braille.</li>
 </ul>
-<h2 id="200--julio-de-2026">2.0.0 — julio de 2026</h2>
+<h2 id="200-julio-de-2026">2.0.0, julio de 2026</h2>
 <ul>
 <li><strong>Directos de TikTok, ya finos.</strong> La primera versión
 los estrenó y esta los deja fiables: se leen todos los comentarios con
@@ -678,7 +785,7 @@ pausarlo vuelve al momento actual, la pantalla completa lleva el título
 del vídeo, y en los directos se indica «En directo» en lugar de una
 barra de progreso confusa.</li>
 </ul>
-<h2 id="100--julio-de-2026">1.0.0 — julio de 2026</h2>
+<h2 id="100-julio-de-2026">1.0.0, julio de 2026</h2>
 <p>Primera versión. Lectura del chat de YouTube Live con voces SAPI5;
 comentarios de vídeos con lectura, respuesta y publicación; reproductor
 de vídeo integrado con pantalla completa manejable por teclado;

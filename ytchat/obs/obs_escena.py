@@ -13,6 +13,9 @@ from ytchat.obs import obs_disposicion
 
 # Cubre este porcentaje del lienzo o más y se considera imagen completa.
 _UMBRAL_TODO = 95.0
+# Tapada en este porcentaje o más por una fuente visible de más adelante,
+# se considera que no aparece en la imagen.
+_UMBRAL_TAPA_ENTERA = 95.0
 # Por debajo de este porcentaje de tapa o de recorte no se dice nada.
 _UMBRAL_AVISO = 10.0
 
@@ -156,12 +159,15 @@ def _frase_fuente(numero, elemento, rect, delanteros, lienzo_ancho,
         posicion = _texto_anclaje(rect, lienzo_ancho, lienzo_alto) or "en una posición libre"
         tamano = f"{int(round(rect[2]))} por {int(round(rect[3]))} píxeles"
     if not visible:
-        estado = "oculta"
+        estado = "oculta en OBS"
     else:
         tapa, porcentaje = _quien_mas_tapa(rect, delanteros) if rect is not None else (None, 0.0)
-        if tapa is not None and porcentaje >= _UMBRAL_AVISO:
-            estado = (f"se ve, pero tapada en un {int(round(porcentaje))} "
-                      f"por ciento por {tapa}")
+        if tapa is not None and porcentaje >= _UMBRAL_TAPA_ENTERA:
+            estado = (f"visible en OBS, pero no aparece en la imagen: "
+                      f"la tapa entera {tapa}")
+        elif tapa is not None and porcentaje >= _UMBRAL_AVISO:
+            estado = (f"se ve en parte: {tapa} tapa el "
+                      f"{int(round(porcentaje))} por ciento")
         else:
             estado = "se ve"
     if rect is not None and lienzo_ancho and lienzo_alto:

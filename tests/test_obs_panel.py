@@ -261,8 +261,8 @@ class GestorPanelObsTest(unittest.TestCase):
             "Escena al aire: Escena. 2 fuentes, de adelante hacia atrás.\n"
             "1: Juego, captura de juego, ocupa toda la imagen, se ve.\n"
             "2: Chat YTChat, navegador, esquina inferior izquierda, "
-            "460 por 620 píxeles, se ve, pero tapada en un "
-            "100 por ciento por Juego.")
+            "460 por 620 píxeles, visible en OBS, pero no aparece en "
+            "la imagen: la tapa entera Juego.")
 
     def test_descripcion_escena_con_clase_desconocida_no_muestra_la_clase(self):
         doble = DobleObs(

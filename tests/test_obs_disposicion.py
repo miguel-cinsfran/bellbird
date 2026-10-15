@@ -244,10 +244,20 @@ class DescripcionTest(unittest.TestCase):
         self.assertEqual(obs.describir(s, ("tamano",)), "460 por 620, 29% del ancho.")
         self.assertEqual(obs.describir(s, ("capa",)), "Lo tapa Cámara.")
         self.assertEqual(obs.describir(s, ("solape",)), "Superpone al 12% de Cámara.")
-        self.assertEqual(obs.describir(s, ("visible",)), "Oculto.")
+        self.assertEqual(obs.describir(s, ("visible",)), "Oculto en OBS.")
         self.assertEqual(obs.describir(s, ("bloqueada",)), "Fijado.")
         self.assertEqual(obs.describir(s, ("fuera",)), "Queda fuera del lienzo el 12% del panel.")
         self.assertEqual(obs.describir(s, ("aspecto",)), "14 mensajes, letra 18.")
+
+    def test_visible_largo_y_corto(self):
+        visible = obs.SnapshotPanel(conectado=True, visible=True)
+        oculto = obs.SnapshotPanel(conectado=True, visible=False)
+        self.assertEqual(obs.describir(visible, ("visible",), "largo"),
+                         "Visible en OBS: sí")
+        self.assertEqual(obs.describir(oculto, ("visible",), "largo"),
+                         "Visible en OBS: no")
+        self.assertEqual(obs.describir(visible, ("visible",)), "")
+        self.assertEqual(obs.describir(oculto, ("visible",)), "Oculto en OBS.")
 
     def test_fuera_corto_indica_recorte(self):
         snap = obs.SnapshotPanel(conectado=True, fuera=22.4)
@@ -278,7 +288,7 @@ class DescripcionTest(unittest.TestCase):
                               mensajes_visibles=14, tamano_letra=18)
         esperado = ("OBS: conectado\nEscena: Juego, no al aire\nTamaño: 460 por 620 píxeles, "
                     "29% del ancho de pantalla\nCapa: no lo tapa nada\n"
-                    "No se superpone con ninguna otra fuente\nVisible: sí\n"
+                    "No se superpone con ninguna otra fuente\nVisible en OBS: sí\n"
                     "Fijado: no\nAspecto: 14 mensajes visibles, tamaño de letra 18\n"
                     "El fondo del panel es transparente. Solo se ven las tarjetas de los mensajes, "
                     "apiladas contra el borde inferior.")

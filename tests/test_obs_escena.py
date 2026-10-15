@@ -63,8 +63,8 @@ class DescribirEscenaTest(unittest.TestCase):
             "Escena al aire: Principal. 2 fuentes, de adelante hacia atrás.\n"
             "1: Captura, captura de pantalla, ocupa toda la imagen, se ve.\n"
             "2: Panel, navegador, esquina inferior izquierda, "
-            "460 por 620 píxeles, se ve, pero tapada en un "
-            "100 por ciento por Captura.")
+            "460 por 620 píxeles, visible en OBS, pero no aparece en "
+            "la imagen: la tapa entera Captura.")
 
     def test_fuente_oculta_no_dice_tapada(self):
         frase = obs_escena.describir_escena(
@@ -73,7 +73,7 @@ class DescribirEscenaTest(unittest.TestCase):
              elemento(2, "Captura", 1, 800, 450, 1600, 900, 0)],
             *LIENZO, {"Panel": "navegador", "Captura": "captura de pantalla"})
         self.assertIn("2: Panel, navegador, esquina inferior izquierda, "
-                      "460 por 620 píxeles, oculta.", frase)
+                      "460 por 620 píxeles, oculta en OBS.", frase)
 
     def test_captura_oculta_no_tapa(self):
         frase = obs_escena.describir_escena(
@@ -102,7 +102,35 @@ class DescribirEscenaTest(unittest.TestCase):
              elemento(2, "B", 1, 32, 262, 460, 186, 5),
              elemento(3, "A", 2, 32, 262, 230, 620, 5)],
             *LIENZO, {"Panel": "navegador", "A": "imagen", "B": "texto"})
-        self.assertIn("tapada en un 50 por ciento por A", frase)
+        self.assertIn("se ve en parte: A tapa el 50 por ciento", frase)
+
+    def test_tapada_entera_en_el_borde_95(self):
+        # El frente cubre 460 por 589 de 460 por 620: 95 % justo.
+        frase = obs_escena.describir_escena(
+            "Principal",
+            [elemento(1, "Panel", 0, 32, 882, 460, 620, 9),
+             elemento(2, "Aviso", 1, 32, 262, 460, 589, 5)],
+            *LIENZO, {"Panel": "navegador", "Aviso": "texto"})
+        self.assertIn("visible en OBS, pero no aparece en la imagen: "
+                      "la tapa entera Aviso", frase)
+
+    def test_tapada_en_parte_justo_debajo_del_95(self):
+        # El frente cubre 460 por 581 de 460 por 620: 94 % redondeado.
+        frase = obs_escena.describir_escena(
+            "Principal",
+            [elemento(1, "Panel", 0, 32, 882, 460, 620, 9),
+             elemento(2, "Aviso", 1, 32, 262, 460, 581, 5)],
+            *LIENZO, {"Panel": "navegador", "Aviso": "texto"})
+        self.assertIn("se ve en parte: Aviso tapa el 94 por ciento", frase)
+
+    def test_tapada_en_parte_en_el_borde_10(self):
+        # El frente cubre 460 por 62 de 460 por 620: 10 % justo.
+        frase = obs_escena.describir_escena(
+            "Principal",
+            [elemento(1, "Panel", 0, 32, 882, 460, 620, 9),
+             elemento(2, "Aviso", 1, 32, 262, 460, 62, 5)],
+            *LIENZO, {"Panel": "navegador", "Aviso": "texto"})
+        self.assertIn("se ve en parte: Aviso tapa el 10 por ciento", frase)
 
     def test_parcialmente_fuera_de_la_imagen(self):
         # 200 de 800 píxeles a la derecha del lienzo: 25 % fuera.

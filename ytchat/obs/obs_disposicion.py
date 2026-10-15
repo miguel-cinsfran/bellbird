@@ -197,7 +197,8 @@ def _render(nombre: str, s: SnapshotPanel, largo: bool) -> str:
                   for nombre, porcentaje in s.solapes]
         return "Superpone " + " y ".join(partes)
     if nombre == "visible":
-        return f"Visible: {'sí' if s.visible else 'no'}" if largo else ("" if s.visible else "Oculto")
+        return (f"Visible en OBS: {'sí' if s.visible else 'no'}" if largo
+                else ("" if s.visible else "Oculto en OBS"))
     if nombre == "bloqueada":
         return f"Fijado: {'sí' if s.bloqueada else 'no'}" if largo else ("Fijado" if s.bloqueada else "")
     if nombre == "fuera":

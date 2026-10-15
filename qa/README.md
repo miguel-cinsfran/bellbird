@@ -25,6 +25,20 @@ viendo.
 Una corrida con comprobaciones sin probar no dice «Sin fallos» y sale con
 código 2; con fallos sale con código 1.
 
+## Directo real de prueba
+
+`directo_real.py` hace un directo de YouTube «No listado» de alrededor de
+un minuto desde la aplicación real, conducida por UI Automation, lo
+finaliza y lo borra. Crea y borra un vídeo de verdad en el canal de la
+sesión de Google iniciada, así que sin sesión se niega a correr. Deja la
+configuración y OBS como estaban, y el informe queda en `qa/salida/`.
+
+    python herramientas/escritorio_aparte.py .venv\Scripts\python.exe qa/directo_real.py
+    python qa/directo_real.py --help
+
+No entra en la corrida completa ni en ningún hook: gasta minutos, toca la
+red y necesita OBS y una cuenta con clave de emisión reutilizable.
+
 ## Cómo funciona
 
 Son dos piezas.

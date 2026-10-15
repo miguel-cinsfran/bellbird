@@ -274,6 +274,45 @@ class PruebasStderr(unittest.TestCase):
         proceso.wait.assert_called_once_with(timeout=5)
 
 
+class PruebasNivelDeLinea(unittest.TestCase):
+    """Los dos avisos repetidos de ffmpeg van a DEBUG, el resto a WARNING."""
+
+    def test_keepalive_fallido_va_a_debug(self):
+        import logging
+        texto = ("[hls @ 000001] keepalive request failed for "
+                 "'https://x/seg.ts', retrying")
+        self.assertEqual(relevo_ffmpeg.nivel_de_linea(texto), logging.DEBUG)
+
+    def test_conexion_reutilizada_va_a_debug(self):
+        import logging
+        texto = "Cannot reuse HTTP connection for different host: a vs b"
+        self.assertEqual(relevo_ffmpeg.nivel_de_linea(texto), logging.DEBUG)
+
+    def test_dato_invalido_sigue_en_warning(self):
+        import logging
+        self.assertEqual(
+            relevo_ffmpeg.nivel_de_linea("Invalid data found when processing input"),
+            logging.WARNING)
+
+    def test_403_sigue_en_warning(self):
+        import logging
+        self.assertEqual(
+            relevo_ffmpeg.nivel_de_linea("HTTP error 403 Forbidden"),
+            logging.WARNING)
+
+    def test_volcar_stderr_reparte_una_en_debug_y_dos_en_warning(self):
+        import logging
+        flujo = io.BytesIO(
+            b"[hls @ 1] keepalive request failed for 'https://x/seg.ts'\n"
+            b"HTTP error 403 Forbidden\n"
+            b"Invalid data found when processing input\n")
+        with self.assertLogs(relevo_ffmpeg.logger, level="DEBUG") as registro:
+            relevo_ffmpeg.volcar_stderr(flujo, 4242)
+        niveles = sorted(r.levelno for r in registro.records)
+        self.assertEqual(
+            niveles, [logging.DEBUG, logging.WARNING, logging.WARNING])
+
+
 class PruebasRelevosVivos(unittest.TestCase):
     """Un relevo iniciado queda registrado para matarlo al salir de la app
     aunque nadie llegue a llamar a detener() (cierre durante la preparación)."""

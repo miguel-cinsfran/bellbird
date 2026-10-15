@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import atexit
 import io
+import logging
 import socket
 import subprocess
 import time
@@ -93,6 +94,16 @@ def direccion_relevo(puerto: int) -> str:
     return f"tcp://127.0.0.1:{puerto}"
 
 
+def nivel_de_linea(texto: str) -> int:
+    """Nivel para una línea de stderr de ffmpeg: los dos avisos repetidos
+    de keepalive van a DEBUG, el resto sigue en WARNING."""
+    if "keepalive request failed" in texto:
+        return logging.DEBUG
+    if "Cannot reuse HTTP connection for different host" in texto:
+        return logging.DEBUG
+    return logging.WARNING
+
+
 def volcar_stderr(flujo, pid) -> None:
     """Pasa al registro cada línea que ffmpeg escriba por stderr.
 
@@ -107,7 +118,8 @@ def volcar_stderr(flujo, pid) -> None:
         for linea in iter(flujo.readline, b""):
             texto = linea.decode("utf-8", errors="replace").rstrip()
             if texto:
-                logger.warning("RELEVO_FFMPEG pid=%s: %s", pid, texto)
+                logger.log(nivel_de_linea(texto),
+                           "RELEVO_FFMPEG pid=%s: %s", pid, texto)
     except Exception as exc:
         logger.debug("lector de stderr del relevo: %s", exc)
     finally:

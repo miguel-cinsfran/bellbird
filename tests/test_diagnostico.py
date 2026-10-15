@@ -438,3 +438,59 @@ class DiagnosticoTest(unittest.TestCase):
         finally:
             with diagnostico._bloqueo_hilos:
                 diagnostico._hilos_vivos.discard(hilo)
+
+    def test_instalar_capturadores_activa_faulthandler_solo_hilo_propio(self):
+        anterior_sys = sys.excepthook
+        anterior_hilos = threading.excepthook
+        anterior = diagnostico._ARCHIVO_FALLOS
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                try:
+                    with patch("faulthandler.enable") as activar:
+                        diagnostico.instalar_capturadores(Path(tmp) / "fallos.log")
+                    self.assertEqual(activar.call_count, 1)
+                    self.assertFalse(activar.call_args.kwargs.get("all_threads", True))
+                finally:
+                    if diagnostico._ARCHIVO_FALLOS is not None:
+                        diagnostico._ARCHIVO_FALLOS.close()
+                        diagnostico._ARCHIVO_FALLOS = None
+        finally:
+            sys.excepthook = anterior_sys
+            threading.excepthook = anterior_hilos
+            diagnostico._ARCHIVO_FALLOS = anterior
+
+    def test_faulthandler_real_solo_vuelca_el_hilo_propio(self):
+        import subprocess
+        with tempfile.TemporaryDirectory() as tmp:
+            ruta = str(Path(tmp) / "fallos.log")
+            guion = (
+                "import sys, threading, time, ctypes\n"
+                "from ytchat.core import diagnostico\n"
+                "ruta = sys.argv[1]\n"
+                "diagnostico.instalar_capturadores(ruta, version='prueba')\n"
+                "listo = threading.Event()\n"
+                "fin = threading.Event()\n"
+                "def espera():\n"
+                "    listo.set()\n"
+                "    fin.wait(timeout=10)\n"
+                "hilo = threading.Thread(target=espera, daemon=True)\n"
+                "hilo.start()\n"
+                "listo.wait(timeout=5)\n"
+                "try:\n"
+                "    ctypes.windll.kernel32.RaiseException(0x80010108, 0, 0, None)\n"
+                "except OSError:\n"
+                "    pass\n"
+                "time.sleep(1.0)\n"
+                "fin.set()\n"
+                "hilo.join(timeout=5)\n"
+            )
+            proceso = subprocess.run(
+                [sys.executable, "-c", guion, ruta],
+                capture_output=True, text=True, timeout=60)
+            self.assertEqual(
+                proceso.returncode, 0,
+                f"el subproceso falló: returncode={proceso.returncode} "
+                f"stderr={proceso.stderr[-2000:]}")
+            contenido = Path(ruta).read_text(encoding="utf-8", errors="replace")
+            self.assertIn("Windows fatal exception: code 0x80010108", contenido)
+            self.assertNotIn("Thread 0x", contenido)

@@ -266,7 +266,8 @@ def instalar_capturadores(ruta_fallos: str | Path, version: str = "desconocida")
         _ARCHIVO_FALLOS.write(
             componer_cabecera_fallos(version, datetime.now().astimezone()) + "\n")
         _ARCHIVO_FALLOS.flush()
-        faulthandler.enable(_ARCHIVO_FALLOS)
+        # Solo el hilo propio: leer otros hilos en marcha puede tumbar la app.
+        faulthandler.enable(_ARCHIVO_FALLOS, all_threads=False)
     except Exception as exc:
         logger.warning("No se pudo activar faulthandler: %s", exc)
 

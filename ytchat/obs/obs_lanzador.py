@@ -10,8 +10,14 @@ from ytchat.obs import obs_cliente
 
 TEXTO_ABRIENDO = ("Abriendo OBS en segundo plano, en el área de "
                   "notificación. Puede tardar hasta un minuto.")
+TEXTO_MODO_SEGURO = ("OBS se cerró mal la última vez y va a preguntar si "
+                     "iniciar en modo seguro. Busca su ventana con Alt+Tab "
+                     "y elige iniciar normalmente.")
 TEXTO_SIN_RESPUESTA = ("OBS se abrió pero no responde. Comprueba que su "
                        "servidor websocket esté activado.")
+TEXTO_SIN_RESPUESTA_MODO_SEGURO = (
+    "OBS no responde. Puede estar esperando que contestes si iniciar "
+    "en modo seguro: busca su ventana con Alt+Tab.")
 
 _CLAVE_OBS = r"SOFTWARE\OBS Studio"
 _CLAVE_OBS_32 = r"SOFTWARE\WOW6432Node\OBS Studio"
@@ -53,6 +59,22 @@ def ruta_obs(leer_registro=None, existe=os.path.isfile, entorno=os.environ):
     return ""
 
 
+def cierre_incorrecto_previo(carpeta=None, listar=os.listdir):
+    """Dice si OBS se cerró mal antes, por sus archivos sentinel run_*.
+
+    True si hay algún archivo cuyo nombre empieza con «run_» en la
+    carpeta `%APPDATA%\\obs-studio\\.sentinel`. Carpeta inexistente o
+    ilegible da False, para no frenar la apertura por avisar."""
+    if carpeta is None:
+        carpeta = os.path.join(os.environ.get("APPDATA", ""),
+                               "obs-studio", ".sentinel")
+    try:
+        nombres = listar(carpeta)
+    except (OSError, ValueError):
+        return False
+    return any(str(nombre).startswith("run_") for nombre in nombres)
+
+
 def abrir_obs(ruta, popen=subprocess.Popen):
     """Abre OBS minimizado y sin activarse; no espera ni guarda el proceso."""
     carpeta = os.path.dirname(ruta)
@@ -72,7 +94,8 @@ def asegurar_obs(probar_conexion, al_anunciar=None, parada=None,
                  en_ejecucion=obs_activacion.obs_esta_en_ejecucion,
                  buscar=ruta_obs, abrir=abrir_obs,
                  dormir=time.sleep, reloj=time.monotonic,
-                 limite=120.0, intervalo=2.0):
+                 limite=120.0, intervalo=2.0,
+                 hubo_cierre_incorrecto=cierre_incorrecto_previo):
     """Abre OBS si no corre y espera a que su websocket responda."""
     if parada is not None and parada.is_set():
         return True
@@ -83,8 +106,11 @@ def asegurar_obs(probar_conexion, al_anunciar=None, parada=None,
         raise ObsNoInstalado("OBS no está instalado en este equipo. "
                              "Instálalo desde obsproject.com y vuelve a "
                              "intentarlo.")
+    modo_seguro = bool(hubo_cierre_incorrecto())
     if al_anunciar is not None:
         al_anunciar(TEXTO_ABRIENDO)
+        if modo_seguro:
+            al_anunciar(TEXTO_MODO_SEGURO)
     abrir(ruta)
     inicio = reloj()
     while True:
@@ -96,6 +122,8 @@ def asegurar_obs(probar_conexion, al_anunciar=None, parada=None,
         except Exception:
             pass
         if reloj() - inicio >= limite:
+            if modo_seguro:
+                raise obs_cliente.ObsError(TEXTO_SIN_RESPUESTA_MODO_SEGURO)
             raise obs_cliente.ObsError(TEXTO_SIN_RESPUESTA)
         if parada is not None and dormir is time.sleep:
             parada.wait(intervalo)

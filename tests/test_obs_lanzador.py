@@ -1,6 +1,7 @@
 """Pruebas del lanzador de OBS y del cableado del diálogo, sin ventanas."""
 
 import os
+import tempfile
 import threading
 import unittest
 from unittest import mock
@@ -91,6 +92,46 @@ class AbrirObsTest(unittest.TestCase):
         with self.assertRaises(obs_cliente.ObsError) as contexto:
             abrir_obs("C:\\OBS\\bin\\64bit\\obs64.exe", popen=popen_falso)
         self.assertEqual(str(contexto.exception), "No se pudo abrir OBS.")
+
+
+class CierreIncorrectoPrevioTest(unittest.TestCase):
+    def test_con_run_da_true(self):
+        falso = lambda carpeta: ["run_20240101", "otra_cosa.txt"]
+        self.assertTrue(obs_lanzador.cierre_incorrecto_previo(
+            "alguna", listar=falso))
+
+    def test_sin_run_da_false(self):
+        falso = lambda carpeta: ["config.json", "logs.txt"]
+        self.assertFalse(obs_lanzador.cierre_incorrecto_previo(
+            "alguna", listar=falso))
+
+    def test_carpeta_vacia_da_false(self):
+        self.assertFalse(obs_lanzador.cierre_incorrecto_previo(
+            "alguna", listar=lambda carpeta: []))
+
+    def test_carpeta_inexistente_da_false(self):
+        def listar(carpeta):
+            raise FileNotFoundError("no existe")
+        self.assertFalse(obs_lanzador.cierre_incorrecto_previo(
+            "alguna", listar=listar))
+
+    def test_carpeta_ilegible_da_false(self):
+        def listar(carpeta):
+            raise PermissionError("sin permiso")
+        self.assertFalse(obs_lanzador.cierre_incorrecto_previo(
+            "alguna", listar=listar))
+
+    def test_carpeta_real_con_run(self):
+        with tempfile.TemporaryDirectory() as carpeta:
+            abierto = open(os.path.join(carpeta, "run_12345"), "w")
+            abierto.close()
+            self.assertTrue(obs_lanzador.cierre_incorrecto_previo(carpeta))
+
+    def test_carpeta_real_sin_run(self):
+        with tempfile.TemporaryDirectory() as carpeta:
+            abierto = open(os.path.join(carpeta, "config.json"), "w")
+            abierto.close()
+            self.assertFalse(obs_lanzador.cierre_incorrecto_previo(carpeta))
 
 
 class RelojFalso:
@@ -185,6 +226,80 @@ class AsegurarObsTest(unittest.TestCase):
         buscar.assert_not_called()
         abrir.assert_not_called()
         probar.assert_not_called()
+
+    def test_con_cierre_incorrecto_anuncia_los_dos_en_orden(self):
+        reloj = RelojFalso()
+        anuncia = mock.Mock()
+        orden = []
+        anuncia.side_effect = lambda frase: orden.append(frase)
+
+        def consultar():
+            orden.append("consultar")
+            return True
+
+        def abrir_orden(ruta):
+            orden.append("abrir")
+
+        resultado = asegurar_obs(mock.Mock(),
+                                 al_anunciar=anuncia,
+                                 en_ejecucion=lambda: False,
+                                 buscar=lambda: RUTA_PRINCIPAL,
+                                 abrir=abrir_orden, dormir=reloj.dormir,
+                                 reloj=reloj.reloj,
+                                 hubo_cierre_incorrecto=consultar)
+        self.assertTrue(resultado)
+        self.assertEqual(
+            orden,
+            ["consultar",
+             obs_lanzador.TEXTO_ABRIENDO,
+             obs_lanzador.TEXTO_MODO_SEGURO,
+             "abrir"])
+
+    def test_sin_cierre_incorrecto_solo_anuncia_abriendo(self):
+        reloj = RelojFalso()
+        anuncia = mock.Mock()
+        resultado = asegurar_obs(mock.Mock(),
+                                 al_anunciar=anuncia,
+                                 en_ejecucion=lambda: False,
+                                 buscar=lambda: RUTA_PRINCIPAL,
+                                 abrir=mock.Mock(), dormir=reloj.dormir,
+                                 reloj=reloj.reloj,
+                                 hubo_cierre_incorrecto=lambda: False)
+        self.assertTrue(resultado)
+        anuncia.assert_called_once_with(obs_lanzador.TEXTO_ABRIENDO)
+
+    def test_vence_con_cierre_incorrecto_nombra_modo_seguro(self):
+        reloj = RelojFalso()
+        with self.assertRaises(obs_cliente.ObsError) as contexto:
+            asegurar_obs(mock.Mock(side_effect=obs_cliente.ObsError("no")),
+                         en_ejecucion=lambda: False,
+                         buscar=lambda: RUTA_PRINCIPAL,
+                         abrir=mock.Mock(), dormir=reloj.dormir,
+                         reloj=reloj.reloj, limite=10.0, intervalo=2.0,
+                         hubo_cierre_incorrecto=lambda: True)
+        self.assertEqual(str(contexto.exception),
+                         obs_lanzador.TEXTO_SIN_RESPUESTA_MODO_SEGURO)
+
+    def test_vence_sin_cierre_incorrecto_texto_de_siempre(self):
+        reloj = RelojFalso()
+        with self.assertRaises(obs_cliente.ObsError) as contexto:
+            asegurar_obs(mock.Mock(side_effect=obs_cliente.ObsError("no")),
+                         en_ejecucion=lambda: False,
+                         buscar=lambda: RUTA_PRINCIPAL,
+                         abrir=mock.Mock(), dormir=reloj.dormir,
+                         reloj=reloj.reloj, limite=10.0, intervalo=2.0,
+                         hubo_cierre_incorrecto=lambda: False)
+        self.assertEqual(str(contexto.exception),
+                         obs_lanzador.TEXTO_SIN_RESPUESTA)
+
+    def test_ya_abierto_no_consulta_cierre(self):
+        consultar = mock.Mock(return_value=True)
+        resultado = asegurar_obs(mock.Mock(), al_anunciar=mock.Mock(),
+                                 en_ejecucion=lambda: True,
+                                 buscar=mock.Mock(), abrir=mock.Mock(),
+                                 hubo_cierre_incorrecto=consultar)
+        self.assertFalse(resultado)
+        consultar.assert_not_called()
 
 
 @unittest.skipUnless(_HAY_GUI, "wxPython no está instalado")

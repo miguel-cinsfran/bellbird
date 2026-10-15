@@ -29,6 +29,7 @@ from ytchat.core.config import (
 from ytchat.core.config import (parsear_atajos, detectar_conflictos_atajos,
                     guardar_opcion)
 from ytchat.core import paths
+from ytchat.core import anuncio_ajuste
 from ytchat.core import sonidos_eventos
 from ytchat.capture import deteccion
 from ytchat.capture import metadatos
@@ -1641,13 +1642,15 @@ class YTChatFrame(wx.Frame):
         r = self._worker.get_rate()
         wpm = max(50, min(500, r * 20 + 180))
         guardar_opcion(RUTA_CONFIG, "voz", "velocidad", str(wpm))
-        anunciar(f"Velocidad de la voz: {r:+d}")
+        anunciar(anuncio_ajuste.COMPARTIDO.frase(
+            "velocidad_voz", f"Velocidad de la voz: {r:+d}", f"{r:+d}"))
 
     def _ajustar_volume(self, delta):
         self._worker.cambiar_volumen(delta)
         v = self._worker.get_volume()
         guardar_opcion(RUTA_CONFIG, "voz", "volumen", f"{v / 100:.2f}")
-        anunciar(f"Volumen de la voz: {v}%")
+        anunciar(anuncio_ajuste.COMPARTIDO.frase(
+            "volumen_voz", f"Volumen de la voz: {v}%", f"{v}%"))
 
     def _toggle_silenciar_sonidos(self):
         nuevo = not _snd.esta_silenciado()

@@ -3321,5 +3321,27 @@ class TestFinDirectoGui(unittest.TestCase):
         reproducir.assert_called_once_with("desconectado")
 
 
+class TestCableadoAnuncioAjuste(unittest.TestCase):
+    def test_ajustar_volume_repetido_acorta_y_otro_control_completa(self):
+        from ytchat.core import anuncio_ajuste
+        from ytchat.core.anuncio_ajuste import AnuncioAjuste
+        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        volumen = [40]
+        velocidad = [0]
+        frame._worker = mock.Mock()
+        frame._worker.cambiar_volumen.side_effect = lambda delta: volumen.__setitem__(0, volumen[0] + delta)
+        frame._worker.get_volume.side_effect = lambda: volumen[0]
+        frame._worker.cambiar_rate.side_effect = lambda delta: velocidad.__setitem__(0, velocidad[0] + delta)
+        frame._worker.get_rate.side_effect = lambda: velocidad[0]
+        with mock.patch.object(anuncio_ajuste, "COMPARTIDO", AnuncioAjuste()), \
+                mock.patch.object(gui, "guardar_opcion"), \
+                mock.patch.object(gui, "anunciar") as anunciar:
+            gui.YTChatFrame._ajustar_volume(frame, +5)
+            gui.YTChatFrame._ajustar_volume(frame, +5)
+            gui.YTChatFrame._ajustar_rate(frame, +1)
+        dichos = [llamada.args[0] for llamada in anunciar.call_args_list]
+        self.assertEqual(dichos, ["Volumen de la voz: 45%", "50%", "Velocidad de la voz: +1"])
+
+
 if __name__ == "__main__":
     unittest.main()

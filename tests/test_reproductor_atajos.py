@@ -5,6 +5,7 @@ donde no esté instalado (p. ej. CI en Linux), como el resto de lo que toca GUI.
 """
 
 import unittest
+from unittest import mock
 
 try:
     import wx  # noqa: F401
@@ -43,6 +44,25 @@ class TestComboWx(unittest.TestCase):
         self.assertIsNone(self.combo("xyz+q"))
         self.assertIsNone(self.combo("ctrl+"))
         self.assertIsNone(self.combo(None))
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestCableadoAnuncioAjuste(unittest.TestCase):
+
+    def test_flecha_registra_y_ajustar_anuncia_solo_el_valor(self):
+        from ytchat.core import anuncio_ajuste
+        from ytchat.core.anuncio_ajuste import AnuncioAjuste
+        from ytchat.player import reproductor
+        panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
+        panel._vol = 40
+        panel._player = None
+        panel.sld_vol = mock.Mock()
+        with mock.patch.object(anuncio_ajuste, "COMPARTIDO", AnuncioAjuste()), \
+                mock.patch.object(reproductor, "anunciar") as anunciar:
+            panel._vol_flecha(+1)
+            anunciar.assert_not_called()
+            panel.ajustar_volumen(+1)
+        anunciar.assert_called_once_with("42 por ciento")
 
 
 if __name__ == "__main__":

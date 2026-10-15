@@ -245,13 +245,27 @@ def _envolver_marcador_historico(client) -> None:
         return
     try:
         if asyncio.iscoroutinefunction(original):
-            async def _envuelto(respuesta, sobre=None, *args, **kwargs):
-                return _marcar_historicos(
-                    sobre, await original(respuesta, sobre, *args, **kwargs))
+            async def _envuelto(*args, **kwargs):
+                eventos = await original(*args, **kwargs)
+                try:
+                    sobre = kwargs.get("webcast_response_message")
+                    if sobre is None and len(args) >= 2:
+                        sobre = args[1]
+                    return _marcar_historicos(sobre, eventos)
+                except Exception as exc:
+                    logger.debug("marcador is_history: %s", exc)
+                    return eventos
         else:
-            def _envuelto(respuesta, sobre=None, *args, **kwargs):
-                return _marcar_historicos(
-                    sobre, original(respuesta, sobre, *args, **kwargs))
+            def _envuelto(*args, **kwargs):
+                eventos = original(*args, **kwargs)
+                try:
+                    sobre = kwargs.get("webcast_response_message")
+                    if sobre is None and len(args) >= 2:
+                        sobre = args[1]
+                    return _marcar_historicos(sobre, eventos)
+                except Exception as exc:
+                    logger.debug("marcador is_history: %s", exc)
+                    return eventos
         client._parse_webcast_response_message = _envuelto
     except Exception as exc:
         logger.debug("no se pudo envolver _parse_webcast_response_message: %s", exc)

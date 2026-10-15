@@ -6,6 +6,7 @@ objetos REALES de la librería, los textos que se leen y el sonido en la GUI.
 """
 
 import asyncio
+import inspect
 import queue
 import sys
 import threading
@@ -228,6 +229,94 @@ class TestEnvoltorioHistoricoReal(unittest.TestCase):
     def test_sin_metodo_no_rompe_la_captura(self):
         _envolver_marcador_historico(types.SimpleNamespace())
         _envolver_marcador_historico(None)
+
+    def test_llamada_por_nombre_como_la_libreria(self):
+        # TikTokLive 6.6.6 llama SIEMPRE con argumentos por nombre
+        # (webcast_response=, webcast_response_message=): el envoltorio
+        # tiene que aceptar esa llamada y marcar igual que por posición.
+        from TikTokLive import TikTokLiveClient
+        from TikTokLiveProto.v3.webcast.model import message as mm
+        from TikTokLiveProto.v3.webcast.shared import message as sm
+        cliente = TikTokLiveClient(unique_id="prueba_historico_kw")
+        _envolver_marcador_historico(cliente)
+
+        async def _parsear(historico):
+            carga = mm.WebcastChatMessage(content="hola").SerializeToString()
+            sobre = sm.BaseProtoMessage(
+                method="WebcastChatMessage", payload=carga,
+                is_history=historico)
+            eventos = await cliente._parse_webcast_response_message(
+                webcast_response=sm.ProtoMessageFetchResult(),
+                webcast_response_message=sobre)
+            comentarios = [e for e in eventos
+                           if type(e).__name__ == "CommentEvent"]
+            self.assertEqual(len(comentarios), 1)
+            return comentarios[0]
+
+        historico = asyncio.run(_parsear(True))
+        nuevo = asyncio.run(_parsear(False))
+        self.assertTrue(es_historico(historico))
+        self.assertFalse(es_historico(nuevo))
+
+    def test_contrato_libreria_llama_por_nombre(self):
+        # Si la librería deja de llamar con webcast_response_message=,
+        # el envoltorio por nombre quedaría desactualizado: avisar.
+        from TikTokLive.client.client import TikTokLiveClient
+        fuente = inspect.getsource(
+            TikTokLiveClient._parse_webcast_response)
+        self.assertIn("_parse_webcast_response_message(", fuente)
+        self.assertIn("webcast_response_message=", fuente)
+
+    def test_marca_que_falla_devuelve_eventos_igual(self):
+        # Un evento que no acepta atributos nuevos (lanza KeyError al
+        # anotar): el envoltorio devuelve los eventos del original.
+        class _EventoQueExplota:
+            def __setattr__(self, nombre, valor):
+                if nombre == "_ytchat_historico":
+                    raise KeyError("no acepta marcas")
+                object.__setattr__(self, nombre, valor)
+
+        evento = _EventoQueExplota()
+
+        async def _original(*args, **kwargs):
+            return [evento]
+
+        cliente = types.SimpleNamespace(
+            _parse_webcast_response_message=_original)
+        _envolver_marcador_historico(cliente)
+        eventos = asyncio.run(
+            cliente._parse_webcast_response_message(
+                webcast_response=object(),
+                webcast_response_message=types.SimpleNamespace(
+                    is_history=True)))
+        self.assertEqual(eventos, [evento])
+
+    def test_rama_sincrona_por_nombre_y_con_fallo(self):
+        # La rama síncrona acepta la llamada por nombre y también
+        # degrada a los eventos sin marcar si anotar falla.
+        def _original(*args, **kwargs):
+            return ["ev"]
+
+        cliente = types.SimpleNamespace(
+            _parse_webcast_response_message=_original)
+        _envolver_marcador_historico(cliente)
+        self.assertFalse(asyncio.iscoroutinefunction(
+            cliente._parse_webcast_response_message))
+        eventos = cliente._parse_webcast_response_message(
+            webcast_response=object(),
+            webcast_response_message=types.SimpleNamespace(
+                is_history=True))
+        self.assertEqual(eventos, ["ev"])
+        with mock.patch.object(tiktok_captura, "_marcar_historicos",
+                               side_effect=KeyError("falla al marcar")):
+            cliente2 = types.SimpleNamespace(
+                _parse_webcast_response_message=_original)
+            _envolver_marcador_historico(cliente2)
+            eventos2 = cliente2._parse_webcast_response_message(
+                webcast_response=object(),
+                webcast_response_message=types.SimpleNamespace(
+                    is_history=True))
+            self.assertEqual(eventos2, ["ev"])
 
 
 class TestTextosEntranteNuevos(unittest.TestCase):

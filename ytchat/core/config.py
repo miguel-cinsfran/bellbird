@@ -719,8 +719,6 @@ def cargar_sonidos() -> dict:
                         or _TEMA_DEFECTO)
         except Exception: pass
 
-    carpeta_tema = paths.carpeta_sonidos() / _TEMAS_DIR / tema
-
     eventos: dict[str, Path | None] = {}
     for ev in _EVENTOS_SONIDO:
         # 1) Ruta explícita en sounds.ini (override avanzado, máxima prioridad).
@@ -737,9 +735,19 @@ def cargar_sonidos() -> dict:
             eventos[ev] = ruta_ev
             continue
         # 2) Si no, el archivo del tema: sounds/themes/<tema>/<evento>.wav
-        eventos[ev] = carpeta_tema / f"{ev}.wav"
+        eventos[ev] = _ruta_evento_tema(tema, ev)
 
     return {"activar": activar, "volumen": volumen, "eventos": eventos}
+
+
+def _ruta_evento_tema(tema: str, evento: str) -> Path:
+    """Ruta del `.wav` de un evento dentro de un tema."""
+    return paths.carpeta_sonidos() / _TEMAS_DIR / tema / f"{evento}.wav"
+
+
+def ruta_muestra_tema(tema: str, evento: str = "mensaje_nuevo") -> Path:
+    """Ruta de la muestra que suena al recorrer la lista de temas."""
+    return _ruta_evento_tema(tema, evento)
 
 
 # ── Helpers de temas de sonido (para el diálogo de Preferencias) ──────────────

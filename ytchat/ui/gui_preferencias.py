@@ -245,6 +245,7 @@ class PreferenciasDialog(wx.Dialog):
         _tc(self.cho_tema)
         actual = cfg.tema_sonido_actual()
         self.cho_tema.SetSelection(temas.index(actual) if actual in temas else 0)
+        self.cho_tema.Bind(wx.EVT_CHOICE, self._on_muestra_tema)
         vs.Add(self.cho_tema, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         self.chk_total_sc = wx.CheckBox(p, label="Mostrar el total de &Super Chats en la barra de estado",
@@ -261,6 +262,16 @@ class PreferenciasDialog(wx.Dialog):
 
         p.SetSizer(vs)
         return p
+
+    def _on_muestra_tema(self, event):
+        """Suena la muestra del tema elegido sin cambiar el tema activo."""
+        try:
+            tema = self.cho_tema.GetStringSelection()
+            if tema:
+                _snd.reproducir_archivo(cfg.ruta_muestra_tema(tema))
+        except Exception:
+            pass
+        event.Skip()
 
     def _pag_cola(self, parent):
         p = self._make_panel(parent, "PagCola")

@@ -138,6 +138,54 @@ class PruebasSoundPlayer(unittest.TestCase):
         sound_player.cerrar()
 
 
+class PruebasReproducirArchivo(unittest.TestCase):
+    def setUp(self):
+        try:
+            while True:
+                sound_player._cola_sonidos.get_nowait()
+        except queue.Empty:
+            pass
+        parches = (
+            mock.patch.object(sound_player, "_volumen", 0.7),
+            mock.patch.object(sound_player, "_activo", True),
+            mock.patch.object(sound_player, "_silenciado_usuario", False),
+            mock.patch.object(sound_player, "_backend_winmm", True),
+            mock.patch.object(sound_player, "_iniciar_hilo_sonido"),
+        )
+        for parche in parches:
+            parche.start()
+            self.addCleanup(parche.stop)
+        self.addCleanup(self._drenar)
+
+    def _drenar(self):
+        try:
+            while True:
+                sound_player._cola_sonidos.get_nowait()
+        except queue.Empty:
+            pass
+
+    def test_encola_la_ruta_sin_tocar_disco(self):
+        ruta = Path("no-existe.wav")
+        sound_player.reproducir_archivo(ruta)
+        self.assertEqual(sound_player._cola_sonidos.qsize(), 1)
+        self.assertEqual(sound_player._cola_sonidos.get_nowait(), ruta)
+
+    def test_silenciado_no_encola(self):
+        sound_player.silenciar_todo(True)
+        with mock.patch.object(sound_player, "_iniciar_hilo_sonido") as iniciar:
+            sound_player.reproducir_archivo(Path("mensaje.wav"))
+        iniciar.assert_not_called()
+        self.assertTrue(sound_player._cola_sonidos.empty())
+        sound_player.silenciar_todo(False)
+
+    def test_desactivado_no_encola(self):
+        with mock.patch.object(sound_player, "_activo", False), \
+                mock.patch.object(sound_player, "_iniciar_hilo_sonido") as iniciar:
+            sound_player.reproducir_archivo(Path("mensaje.wav"))
+        iniciar.assert_not_called()
+        self.assertTrue(sound_player._cola_sonidos.empty())
+
+
 class PruebasHiloSonido(unittest.TestCase):
     """`reproducir` no ejecuta nada en el hilo que llama: todo MCI
     (abrir, reproducir, barrer, cerrar) vive en el hilo de sonido."""

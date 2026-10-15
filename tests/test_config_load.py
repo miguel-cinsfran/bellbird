@@ -535,6 +535,25 @@ class TestCargarConfiguracion(unittest.TestCase):
             self.assertTrue(sound_player._cola_sonidos.empty())
         sound_player.cerrar()
 
+    def test_ruta_muestra_tema_usa_mensaje_nuevo_por_defecto(self):
+        from ytchat.core import config
+        with redirigir_rutas(self._tmp.name):
+            ruta = config.ruta_muestra_tema("suave")
+        self.assertEqual(
+            ruta, Path(self._tmp.name) / "sounds" / "themes" / "suave"
+            / "mensaje_nuevo.wav")
+
+    def test_cargar_sonidos_arma_las_mismas_rutas_que_muestra(self):
+        from ytchat.core import config
+        with redirigir_rutas(self._tmp.name):
+            (Path(self._tmp.name) / "sounds.ini").write_text(
+                "[sonidos]\nactivar = true\ntema = suave\n", encoding="utf-8")
+            sonidos = config.cargar_sonidos()
+            muestra = config.ruta_muestra_tema("suave", "copiar")
+            defecto = config.ruta_muestra_tema("suave")
+        self.assertEqual(sonidos["eventos"]["mensaje_nuevo"], defecto)
+        self.assertEqual(sonidos["eventos"]["copiar"], muestra)
+
 
 if __name__ == "__main__":
     unittest.main()

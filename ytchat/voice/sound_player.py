@@ -120,6 +120,25 @@ def esta_silenciado() -> bool:
     return _silenciado_usuario or not _activo
 
 
+def _encolar(ruta: Path) -> None:
+    """Encola para el hilo de sonido o usa el fallback sin hilo.
+
+    Con backend winmm solo encola y vuelve: ni `resolve`, ni `exists`,
+    ni MCI en el hilo que llama. El hilo de sonido comprueba que el
+    archivo existe antes de reproducirlo.
+    """
+    if _backend_winmm:
+        _iniciar_hilo_sonido()
+        try:
+            _cola_sonidos.put_nowait(ruta)
+        except queue.Full:
+            pass
+    else:
+        if not ruta.exists():
+            return
+        _reproducir_fallback(ruta)
+
+
 def reproducir(evento: str) -> None:
     """Nunca lanza: cualquier fallo se ignora en debug. Seguro desde cualquier hilo.
 
@@ -132,16 +151,24 @@ def reproducir(evento: str) -> None:
     ruta = _eventos.get(evento)
     if not ruta:
         return
-    if _backend_winmm:
-        _iniciar_hilo_sonido()
-        try:
-            _cola_sonidos.put_nowait(ruta)
-        except queue.Full:
-            pass
-    else:
-        if not ruta.exists():
+    _encolar(ruta)
+
+
+def reproducir_archivo(ruta: Path | str | None) -> None:
+    """Suena un archivo concreto sin cambiar el tema activo.
+
+    Mismas reglas que `reproducir`: no hace nada si el usuario silenció
+    todo o los sonidos están desactivados, nunca lanza, y con winmm solo
+    encola. Si el archivo no existe, no suena nada.
+    """
+    try:
+        if _silenciado_usuario or not _activo:
             return
-        _reproducir_fallback(ruta)
+        if not ruta:
+            return
+        _encolar(Path(ruta))
+    except Exception:
+        pass
 
 
 def cerrar() -> None:

@@ -101,5 +101,57 @@ class TestTablaOpcionesSimples(unittest.TestCase):
                 self.assertIsNot(pred.obtener(seccion, clave, marca), marca)
 
 
+class TestMuestraTema(unittest.TestCase):
+    """Cableado del EVT_CHOICE de «Tema de sonido». Abre ventanas: la corre
+    el advisor, no se corre acá."""
+
+    def setUp(self):
+        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.ruta = Path.cwd()
+        self.parche_ruta = redirigir_rutas(self.ruta)
+        self.parche_ruta.__enter__()
+        self.addCleanup(self.parche_ruta.__exit__, None, None, None)
+
+    def _dialogo(self):
+        with mock.patch.object(gui, "_listar_voces_sapi5", return_value=["Voz de prueba"]):
+            dialogo = gui_preferencias.PreferenciasDialog(None, {})
+        self.addCleanup(dialogo.Destroy)
+        return dialogo
+
+    def test_cambiar_tema_suena_muestra_sin_guardar(self):
+        from ytchat.core import config as cfg
+        dialogo = gui_preferencias.PreferenciasDialog.__new__(
+            gui_preferencias.PreferenciasDialog)
+        dialogo.cho_tema = mock.Mock()
+        dialogo.cho_tema.GetStringSelection.return_value = "suave"
+        evento = mock.Mock()
+        esperada = cfg.ruta_muestra_tema("suave")
+        with mock.patch.object(gui_preferencias._snd, "reproducir_archivo") as sonar, \
+                mock.patch.object(gui_preferencias.cfg, "guardar_opcion") as guardar, \
+                mock.patch.object(gui_preferencias.cfg, "cargar_sonidos") as recarga:
+            dialogo._on_muestra_tema(evento)
+        sonar.assert_called_once_with(esperada)
+        guardar.assert_not_called()
+        recarga.assert_not_called()
+        evento.Skip.assert_called_once_with()
+
+    def test_elegir_tema_en_control_suena_muestra(self):
+        from ytchat.core import config as cfg
+        dialogo = self._dialogo()
+        actual = dialogo.cho_tema.GetSelection()
+        total = dialogo.cho_tema.GetCount()
+        self.assertGreaterEqual(total, 2)
+        indice = (actual + 1) % total
+        tema_elegido = dialogo.cho_tema.GetString(indice)
+        dialogo.cho_tema.SetSelection(indice)
+        evento = gui.wx.CommandEvent(gui.wx.wxEVT_CHOICE, dialogo.cho_tema.GetId())
+        evento.SetEventObject(dialogo.cho_tema)
+        evento.SetInt(indice)
+        esperada = cfg.ruta_muestra_tema(tema_elegido)
+        with mock.patch.object(gui_preferencias._snd, "reproducir_archivo") as sonar:
+            dialogo.cho_tema.GetEventHandler().ProcessEvent(evento)
+        sonar.assert_called_once_with(esperada)
+
+
 if __name__ == "__main__":
     unittest.main()

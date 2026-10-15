@@ -1466,6 +1466,325 @@ def escenario_transmision(app: Aplicacion, args, res: Resultado):
         esperados_en_tab=esperados_tab)
 
 
+def _estado_actualizacion_asentado(app: Aplicacion, titulo: str,
+                                  segundos: float = 30.0) -> str:
+    """Espera a que la ventana deje de decir que está buscando.
+
+    Devuelve el texto del cuadro de estado, o cadena vacía si no se pudo
+    leer. Si a los 30 segundos sigue buscando, se sigue igual con lo que
+    haya: la búsqueda depende de la red, y una red lenta no es un defecto
+    de la ventana.
+    """
+    estado = ""
+    limite = time.time() + segundos
+    while time.time() < limite:
+        try:
+            controles = app.arbol(titulo)
+        except Exception:
+            time.sleep(0.5)
+            continue
+        for c in controles:
+            if (c.get("nombre") or "") == "Estado":
+                estado = c.get("valor") or ""
+                break
+        if estado and "buscando" not in estado.lower():
+            break
+        time.sleep(0.5)
+    return estado
+
+
+def _auditar_actualizacion(app: Aplicacion, res: Resultado, etiqueta_menu: str,
+                           titulo: str) -> bool:
+    """Abre una ventana de actualización, espera a que se asiente y la audita.
+
+    Replica `auditar_dialogo`, con la espera en el medio: estas ventanas
+    nacen buscando en un hilo aparte, y auditar en el primer instante mide
+    la pantalla de espera, no la ventana. NUNCA pulsa el botón de acción:
+    solo se cierra con `cerrar_ventana`.
+    """
+    app.pedir("frente")
+    try:
+        app.abrir_por_menu(etiqueta_menu)
+    except Exception as exc:
+        res.fallo(f"{titulo}: no se pudo disparar «{etiqueta_menu}», {exc}")
+        return False
+
+    dlg = app.esperar_ventana(titulo, segundos=15)
+    if dlg is None:
+        res.fallo(f"{titulo}: el menú no abrió ninguna ventana con ese título")
+        return False
+    res.nota(f"{titulo}: abre desde «{etiqueta_menu}», clase {dlg['clase']}")
+
+    estado = _estado_actualizacion_asentado(app, titulo)
+    if estado and "buscando" in estado.lower():
+        res.nota(f"{titulo}: sigue buscando a los 30 s, se audita igual; "
+                 f"dice «{estado[:70]}»")
+    elif estado:
+        res.nota(f"{titulo}: dice «{estado[:90]}»")
+    else:
+        res.nota(f"{titulo}: no se pudo leer el cuadro de estado")
+
+    controles = app.arbol(titulo)
+    revisar_nombres(controles, res, titulo)
+
+    juntos = " ".join(
+        ((c.get("nombre") or "") + " " + (c.get("etiqueta") or ""))
+        for c in controles).replace("&", "").lower()
+    for e in ("Estado", "Progreso", "Novedades", "Cerrar"):
+        if e.lower() not in juntos:
+            res.fallo(f"{titulo}: no aparece nada llamado «{e}»")
+
+    orden = recorrer_tab(app, res, titulo, vueltas=10, ventana=titulo)
+    res.nota(f"{titulo}, orden de Tab, {len(orden)} paradas: "
+             + " > ".join(orden[:12]))
+
+    app.pedir("cerrar_ventana", ventana=titulo)
+    if app.esperar_ventana(titulo, segundos=4) is not None:
+        res.fallo(f"{titulo}: el diálogo no cerró")
+    return True
+
+
+def escenario_actualizaciones(app: Aplicacion, args, res: Resultado):
+    """Las dos ventanas de actualización, que nadie recorría.
+
+    Las dos usan el mismo `DialogoActualizacion` genérico: estado, progreso,
+    novedades y cerrar. Cada una busca en un hilo aparte nada más abrir, así
+    que se espera a que el estado se asiente antes de auditar. La búsqueda de
+    yt-dlp puede dejar un binario preparado si hay versión nueva, pero
+    instalarlo pide el botón de acción y ese no se pulsa nunca.
+    """
+    _auditar_actualizacion(app, res, "Buscar actualizaciones",
+                           "Buscar actualizaciones")
+    _auditar_actualizacion(app, res, "Actualizar yt-dlp", "Actualizar yt-dlp")
+
+
+def _destino_guardado_en_disco() -> str:
+    """El destino de transmisión que guarda el `config.ini`, o cadena vacía."""
+    import configparser
+    try:
+        from ytchat.core import paths
+        parser = configparser.ConfigParser(interpolation=None)
+        parser.read(paths.config_ini(), encoding="utf-8")
+        return parser.get("transmision", "destino", fallback="").strip()
+    except Exception:
+        return ""
+
+
+def escenario_transmitir_destino(app: Aplicacion, args, res: Resultado):
+    """El camino a «Transmitir a» y al «Directo de YouTube», sin crear nada.
+
+    Se abre por el mismo botón que usa la aplicación, no por menú: ese
+    diálogo no cuelga de ningún menú. Primero se audita y se cancela, y
+    después se vuelve con YouTube elegido para llegar al segundo diálogo.
+
+    NUNCA se pulsa «Transmitir»: eso crearía un directo real. Si el segundo
+    diálogo no aparece porque no hay sesión de Google, se anota y no cuenta
+    como fallo: eso no lo decide el código.
+    """
+    app.pedir("frente")
+
+    # El botón solo se ve desconectado. Si se llega conectado, el escenario
+    # corre en el lugar equivocado de la corrida, igual que le pasa a `chat`.
+    conectado_ya = any(
+        i["habilitado"] for i in app.menus()
+        if not i.get("submenu")
+        and "desconectar" in (i.get("camino") or "").lower())
+    if conectado_ya:
+        res.fallo("transmitir_destino: llegué con la aplicación conectada; "
+                  "este escenario necesita el botón «Transmitir en directo», "
+                  "que solo se ve desconectado")
+        return
+
+    boton = next((c for c in app.arbol()
+                  if (c.get("nombre") or "") == "Transmitir en directo"), None)
+    if boton is None:
+        res.fallo("transmitir_destino: no hay botón «Transmitir en directo» "
+                  "en el árbol")
+        return
+    if not boton.get("visible") or not boton.get("habilitado"):
+        res.fallo("transmitir_destino: el botón «Transmitir en directo» está "
+                  "oculto o deshabilitado")
+        return
+
+    # 1. Abrir, auditar y cancelar: no se abre nada más.
+    try:
+        app.pedir("pulsar", nombre="Transmitir en directo", tiempo=8.0)
+    except Exception:
+        pass  # el diálogo es modal y se come la respuesta, como en `conectar`
+    if app.esperar_ventana("Transmitir a", segundos=15) is None:
+        res.fallo("transmitir_destino: el botón no abrió «Transmitir a»")
+        return
+    res.nota("«Transmitir a» abre desde el botón «Transmitir en directo»")
+
+    controles = app.arbol("Transmitir a")
+    revisar_nombres(controles, res, "Transmitir a")
+    juntos = " ".join(
+        ((c.get("nombre") or "") + " " + (c.get("etiqueta") or ""))
+        for c in controles).replace("&", "").lower()
+    for e in ("Transmitir a", "Continuar", "Cancelar"):
+        if e.lower() not in juntos:
+            res.fallo(f"Transmitir a: no aparece nada llamado «{e}»")
+    orden = recorrer_tab(app, res, "Transmitir a", vueltas=10,
+                         ventana="Transmitir a")
+    res.nota("Transmitir a, orden de Tab, %d paradas: %s"
+             % (len(orden), " > ".join(orden[:10])))
+
+    n = len(app.anuncios)
+    app.pedir("pulsar", nombre="Cancelar")
+    if app.esperar_ventana("Transmitir a", segundos=4) is not None:
+        res.fallo("transmitir_destino: «Transmitir a» no cerró con «Cancelar»")
+        return
+    if app.dijo("No se transmitió", desde=n):
+        res.nota("transmitir_destino: «Cancelar» anuncia que no se transmitió")
+    else:
+        res.fallo("transmitir_destino: «Cancelar» no anunció nada")
+    if app.esperar_ventana("Directo de YouTube", segundos=3) is not None:
+        res.fallo("transmitir_destino: tras «Cancelar» se abrió algo más")
+
+    # 2. Con YouTube elegido, «Continuar» lleva al «Directo de YouTube».
+    # Pulsar «Continuar» guarda el destino en la configuración, así que se
+    # respalda antes y se restaura en un `finally`, como hace `directo_real`.
+    # La lista se cambia por teclado: escribir la inicial salta a la primera
+    # coincidencia, y la Y solo la tiene YouTube.
+    previo = _destino_guardado_en_disco()
+    estaba_obs = obs_abierto()
+    try:
+        try:
+            app.pedir("pulsar", nombre="Transmitir en directo", tiempo=8.0)
+        except Exception:
+            pass  # modal otra vez: la respuesta llega cuando se cierre
+        if app.esperar_ventana("Transmitir a", segundos=15) is None:
+            res.fallo("transmitir_destino: al abrir por segunda vez no "
+                      "apareció «Transmitir a»")
+            return
+        try:
+            app.pedir("foco", ventana="Transmitir a", nombre="Transmitir a")
+        except Exception as exc:
+            res.fallo(f"transmitir_destino: no se llega a la lista, {exc}")
+            app.pedir("cerrar_ventana", ventana="Transmitir a")
+            return
+        try:
+            app.teclas("y")
+        except VentanaNoActiva as exc:
+            res.no_probado(f"transmitir_destino: no se pudo elegir YouTube, "
+                           f"{exc}")
+            app.pedir("cerrar_ventana", ventana="Transmitir a")
+            return
+        time.sleep(0.5)
+
+        n = len(app.anuncios)
+        app.pedir("pulsar", nombre="Continuar")
+        if app.esperar_ventana("Transmitir a", segundos=5) is not None:
+            if app.dijo("Falta el usuario", desde=n):
+                res.fallo("transmitir_destino: la lista no quedó en YouTube, "
+                          "sigue pidiendo el usuario de TikTok")
+            else:
+                res.fallo("transmitir_destino: «Continuar» no cerró el diálogo")
+            app.pedir("cerrar_ventana", ventana="Transmitir a")
+            return
+        if app.dijo("Revisando OBS", desde=n):
+            res.nota("transmitir_destino: «Continuar» pasa a revisar OBS")
+
+        # La revisión de OBS corre en un hilo: el diálogo tarda lo que tarde.
+        # Se espera a cualquiera de los tres finales: el diálogo de YouTube,
+        # el de confirmación de TikTok (la lista no era YouTube), o un anuncio
+        # que explique por qué no hay diálogo (sin sesión, sin OBS, o ya al
+        # aire, que también vale: no se interfiere con lo que ya emite).
+        motivo = ""
+        limite = time.time() + 120
+        while time.time() < limite:
+            try:
+                visibles = [v.get("titulo") or "" for v in app.ventanas()]
+            except Exception:
+                visibles = []
+            if any("Directo de YouTube" in t for t in visibles):
+                break
+            if any(t.strip() == "Transmisión" for t in visibles):
+                motivo = "tiktok"
+                break
+            dichos = " ".join(a.get("texto", "") for a in app.anuncios[n:])
+            dichos = dichos.lower()
+            if "sesión" in dichos or "sesion" in dichos:
+                motivo = "sesion"
+                break
+            if "ya está transmitiendo" in dichos:
+                motivo = "emitiendo"
+                break
+            if ("no se pudo" in dichos or "rechazó" in dichos
+                    or "no encuentra" in dichos or "no pudo" in dichos
+                    or "error" in dichos):
+                motivo = "obs"
+                break
+            time.sleep(1.0)
+
+        if motivo == "tiktok":
+            res.fallo("transmitir_destino: «Continuar» llevó a «Transmisión», "
+                      "o sea que el destino no era YouTube")
+            app.pedir("cerrar_ventana", ventana="Transmisión")
+            return
+        if motivo in ("sesion", "emitiendo", "obs"):
+            porques = {
+                "sesion": "no hay sesión de Google iniciada",
+                "emitiendo": "OBS ya está transmitiendo",
+                "obs": "OBS no está disponible o falló la revisión",
+            }
+            res.nota("transmitir_destino: «Directo de YouTube» no apareció, "
+                     + porques[motivo] + "; no cuenta como fallo")
+            return
+        if app.esperar_ventana("Directo de YouTube", segundos=2) is None:
+            dichos = " ".join(a.get("texto", "") for a in app.anuncios[n:])
+            res.fallo("transmitir_destino: «Directo de YouTube» no apareció "
+                      f"en 120 s; dijo «{dichos[:120]}»")
+            return
+
+        controles = app.arbol("Directo de YouTube")
+        revisar_nombres(controles, res, "Directo de YouTube")
+        juntos = " ".join(
+            ((c.get("nombre") or "") + " " + (c.get("etiqueta") or ""))
+            for c in controles).replace("&", "").lower()
+        for e in ("Título del directo", "Descripción del directo",
+                  "Privacidad", "Revisión de OBS", "Transmitir", "Cancelar"):
+            if e.lower() not in juntos:
+                res.fallo(f"Directo de YouTube: no aparece nada llamado "
+                          f"«{e}»")
+        orden = recorrer_tab(app, res, "Directo de YouTube", vueltas=14,
+                             ventana="Directo de YouTube")
+        res.nota("Directo de YouTube, orden de Tab, %d paradas: %s"
+                 % (len(orden), " > ".join(orden[:10])))
+        # Se cierra con «Cancelar»: pulsar «Transmitir» crearía un directo.
+        app.pedir("cerrar_ventana", ventana="Directo de YouTube")
+        if app.esperar_ventana("Directo de YouTube", segundos=4) is not None:
+            res.fallo("transmitir_destino: «Directo de YouTube» no cerró")
+    finally:
+        try:
+            from ytchat.core import paths
+            from ytchat.core.config import guardar_opcion
+            guardar_opcion(paths.config_ini(), "transmision", "destino",
+                           previo)
+        except Exception as exc:
+            res.nota("transmitir_destino: no se pudo restaurar el destino "
+                     f"guardado ({exc})")
+        else:
+            res.nota("transmitir_destino: el destino guardado vuelve a "
+                     f"«{previo or 'vacío'}»")
+        # Si la revisión abrió OBS y no estaba, se lo cierra: el banco no
+        # puede dejarle al dueño una aplicación abierta que no tenía.
+        if not estaba_obs and obs_abierto():
+            res.nota("transmitir_destino: la revisión abrió OBS y no estaba, "
+                     "se lo cierra")
+            import subprocess
+            try:
+                subprocess.run(["taskkill", "/IM", "obs64.exe"],
+                               capture_output=True, timeout=30)
+                time.sleep(5)
+                if obs_abierto():
+                    subprocess.run(["taskkill", "/F", "/IM", "obs64.exe"],
+                                   capture_output=True, timeout=30)
+            except Exception as exc:
+                res.nota("transmitir_destino: no se pudo cerrar OBS "
+                         f"({exc})")
+
+
 def escenario_ayuda(app: Aplicacion, args, res: Resultado):
     """El menú Ayuda, que abre ventanas de texto largo."""
     items = [i for i in app.menus()
@@ -3074,8 +3393,12 @@ def escenario_cierre(app: Aplicacion, args, res: Resultado):
 # llaman `gui*`: sin ellos el descubrimiento miraria para otro lado.
 SUPERFICIES = {
     "gui.py": "principal",
+    "gui_actualizacion.py": "actualizaciones",
+    "gui_actualizar_app.py": "actualizaciones",
     "gui_comentarios.py": "comentarios",
     "gui_descargas.py": "descargas",
+    "gui_directo_youtube.py": "transmitir_destino",
+    "gui_elegir_destino.py": "transmitir_destino",
     "gui_historial.py": "historial",
     "gui_transmision.py": "transmision",
     "gui_preferencias.py": "preferencias",
@@ -3129,6 +3452,8 @@ ESCENARIOS = {
     "ayuda": escenario_ayuda,
     "dialogos_ayuda": escenario_dialogos_ayuda,
     "chat": escenario_chat,
+    "actualizaciones": escenario_actualizaciones,
+    "transmitir_destino": escenario_transmitir_destino,
     "comentarios": escenario_comentarios,
     "conectar": escenario_conectar,
     "menu_chat": escenario_menu_chat,
@@ -3217,8 +3542,13 @@ def main() -> int:
                    # conectar, y en cuanto `chat` simula una sesion ese estado
                    # no vuelve. Corrido despues, pasaba por el motivo
                    # equivocado. Mismo motivo que `reproductor`.
-                   "conectar", "captura_atajo", "redactar",
-                   "overlay", "chat", "menu_chat",
+                    "conectar", "captura_atajo", "redactar",
+                    # `transmitir_destino` va acá y no es capricho: necesita
+                    # el botón «Transmitir en directo», que solo se ve
+                    # desconectado, y `redactar` es el último que deja ese
+                    # estado antes de que `chat` simule una sesión.
+                    "actualizaciones", "transmitir_destino",
+                    "overlay", "chat", "menu_chat",
                    "comentarios", "tiktok", "avisos_wx", "diagnostico", "cierre"]
         # Un escenario registrado que no este ni aca ni entre los excluidos no
         # se corre NUNCA con `todos`, y no lo dice nadie. Paso el 25/08/2026:

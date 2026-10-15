@@ -724,8 +724,13 @@ def cargar_sonidos() -> dict:
     eventos: dict[str, Path | None] = {}
     for ev in _EVENTOS_SONIDO:
         # 1) Ruta explícita en sounds.ini (override avanzado, máxima prioridad).
-        raw = p.get("sonidos", ev, fallback="").strip()
-        if raw:
+        # Una clave PRESENTE con valor vacío silencia el evento (None); una
+        # clave AUSENTE cae al archivo del tema, como antes.
+        if p.has_option("sonidos", ev):
+            raw = (p.get("sonidos", ev, fallback="") or "").strip()
+            if not raw:
+                eventos[ev] = None
+                continue
             ruta_ev = Path(raw)
             if not ruta_ev.is_absolute():
                 ruta_ev = paths.carpeta_instalacion() / ruta_ev

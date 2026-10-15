@@ -486,6 +486,55 @@ class TestCargarConfiguracion(unittest.TestCase):
             self.assertEqual(sonidos["eventos"]["superchat"],
                              inst / "MisSonidos/mio.wav")
 
+    def test_sonido_con_valor_vacio_silencia_el_evento(self):
+        from ytchat.core import config
+        with redirigir_rutas(self._tmp.name):
+            (Path(self._tmp.name) / "sounds.ini").write_text(
+                "[sonidos]\nactivar = true\ncopiar =\n", encoding="utf-8")
+            sonidos = config.cargar_sonidos()
+        self.assertIsNone(sonidos["eventos"]["copiar"])
+
+    def test_sonido_sin_clave_usa_el_archivo_del_tema(self):
+        from ytchat.core import config
+        with redirigir_rutas(self._tmp.name):
+            (Path(self._tmp.name) / "sounds.ini").write_text(
+                "[sonidos]\nactivar = true\n", encoding="utf-8")
+            sonidos = config.cargar_sonidos()
+        self.assertEqual(
+            sonidos["eventos"]["copiar"],
+            Path(self._tmp.name) / "sounds" / "themes" / "default" / "copiar.wav")
+
+    def test_override_sonido_absoluto_se_respeta(self):
+        from ytchat.core import config
+        destino = Path(self._tmp.name) / "mio.wav"
+        with redirigir_rutas(self._tmp.name):
+            (Path(self._tmp.name) / "sounds.ini").write_text(
+                f"[sonidos]\nactivar = true\nsuperchat = {destino}\n",
+                encoding="utf-8")
+            sonidos = config.cargar_sonidos()
+        self.assertEqual(sonidos["eventos"]["superchat"], destino)
+
+    def test_evento_silenciado_no_encola_nada_en_sound_player(self):
+        from ytchat.core import config
+        from ytchat.voice import sound_player
+        with redirigir_rutas(self._tmp.name):
+            (Path(self._tmp.name) / "sounds.ini").write_text(
+                "[sonidos]\nactivar = true\ncopiar =\n", encoding="utf-8")
+            sonidos = config.cargar_sonidos()
+        with mock.patch.object(sound_player, "_init_backend"), \
+             mock.patch.object(sound_player, "_iniciar_hilo_sonido"), \
+             mock.patch.object(sound_player, "_reproducir_fallback") as fallback:
+            sound_player.cargar(sonidos)
+            try:
+                while True:
+                    sound_player._cola_sonidos.get_nowait()
+            except Exception:
+                pass
+            sound_player.reproducir("copiar")
+            fallback.assert_not_called()
+            self.assertTrue(sound_player._cola_sonidos.empty())
+        sound_player.cerrar()
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -11,6 +11,7 @@ import main
 from ytchat.core import sonidos_eventos
 from ytchat.core.config import (
     TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,
+    TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
 )
 
 
@@ -83,7 +84,9 @@ class TestSonidoDeMensaje(unittest.TestCase):
     def test_comun_sin_rol(self):
         self.assertEqual(sonidos_eventos.sonido_de_mensaje(TIPO_TEXTO, ""), "mensaje_nuevo")
         self.assertEqual(sonidos_eventos.sonido_de_mensaje(TIPO_TEXTO), "mensaje_nuevo")
-        self.assertEqual(sonidos_eventos.sonido_de_mensaje(TIPO_ENTRADA, ""), "mensaje_nuevo")
+
+    def test_entrada_suena_su_evento(self):
+        self.assertEqual(sonidos_eventos.sonido_de_mensaje(TIPO_ENTRADA, ""), "entrada")
 
     def test_superchat_suena_una_sola_vez(self):
         for tipo in (TIPO_SUPERCHAT, TIPO_STICKER):
@@ -95,6 +98,58 @@ class TestSonidoDeMensaje(unittest.TestCase):
         self.assertEqual(
             sonidos_eventos.sonido_de_mensaje(
                 TIPO_MIEMBRO, sonidos_eventos.ROL_MODERADOR), "nuevo_miembro")
+
+    def test_eventos_nuevos_de_tiktok_suenan_su_evento(self):
+        for tipo in (TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA):
+            self.assertEqual(sonidos_eventos.sonido_de_mensaje(tipo, ""), tipo)
+            self.assertEqual(
+                sonidos_eventos.sonido_de_mensaje(
+                    tipo, sonidos_eventos.ROL_MODERADOR), tipo)
+
+
+class TestTramoRegalo(unittest.TestCase):
+    def test_bordes(self):
+        self.assertEqual(sonidos_eventos.tramo_regalo(1), "regalo_chico")
+        self.assertEqual(sonidos_eventos.tramo_regalo(99), "regalo_chico")
+        self.assertEqual(sonidos_eventos.tramo_regalo(100), "regalo_mediano")
+        self.assertEqual(sonidos_eventos.tramo_regalo(999), "regalo_mediano")
+        self.assertEqual(sonidos_eventos.tramo_regalo(1000), "regalo_grande")
+        self.assertEqual(sonidos_eventos.tramo_regalo(5000), "regalo_grande")
+
+    def test_sin_diamantes_es_chico(self):
+        self.assertEqual(sonidos_eventos.tramo_regalo(0), "regalo_chico")
+
+
+class TestSonidoRegaloTikTok(unittest.TestCase):
+    def test_regalo_de_250_diamantes_es_mediano(self):
+        self.assertEqual(
+            sonidos_eventos.sonido_de_mensaje(
+                TIPO_SUPERCHAT, "", "250 diamantes", "tiktok"),
+            "regalo_mediano")
+
+    def test_regalo_grande(self):
+        self.assertEqual(
+            sonidos_eventos.sonido_de_mensaje(
+                TIPO_SUPERCHAT, "", "1500 diamantes", "tiktok"),
+            "regalo_grande")
+
+    def test_regalo_sin_numero_es_chico(self):
+        self.assertEqual(
+            sonidos_eventos.sonido_de_mensaje(
+                TIPO_SUPERCHAT, "", "", "tiktok"), "regalo_chico")
+        self.assertEqual(
+            sonidos_eventos.sonido_de_mensaje(
+                TIPO_SUPERCHAT, "", "regalo", "tiktok"), "regalo_chico")
+
+    def test_superchat_de_youtube_sigue_igual(self):
+        self.assertEqual(
+            sonidos_eventos.sonido_de_mensaje(
+                TIPO_SUPERCHAT, "", "5 €", "youtube"), "superchat")
+        self.assertEqual(
+            sonidos_eventos.sonido_de_mensaje(TIPO_SUPERCHAT, ""), "superchat")
+        self.assertEqual(
+            sonidos_eventos.sonido_de_mensaje(
+                TIPO_STICKER, "", "250 diamantes", "tiktok"), "superchat")
 
 
 def _config_minima(**extras):

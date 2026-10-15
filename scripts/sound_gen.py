@@ -407,6 +407,16 @@ TEMAS = {
         "comentario.wav":    gen_comentario,
         "moderacion.wav":    gen_moderacion,
         "cola_vaciada.wav":  gen_cola_vaciada,
+        # Sonidos provisorios de eventos de TikTok hasta que el dueño elija
+        # los definitivos: reutilizan otros generadores, nunca el común.
+        "seguir.wav":         gen_miembro,
+        "compartir.wav":      gen_enviado,
+        "cofre.wav":          gen_superchat,
+        "me_gusta.wav":       gen_copiar,
+        "regalo_chico.wav":   gen_comentario,
+        "regalo_mediano.wav": gen_conectado,
+        "regalo_grande.wav":  gen_app_inicio,
+        "entrada.wav":        gen_reanudar,
     },
     "suave": {
         "app_inicio.wav":    s_app_inicio,
@@ -431,6 +441,16 @@ TEMAS = {
         "comentario.wav":    s_comentario,
         "moderacion.wav":    s_moderacion,
         "cola_vaciada.wav":  s_cola_vaciada,
+        # Sonidos provisorios de eventos de TikTok hasta que el dueño elija
+        # los definitivos: reutilizan otros generadores, nunca el común.
+        "seguir.wav":         s_miembro,
+        "compartir.wav":      s_enviado,
+        "cofre.wav":          s_superchat,
+        "me_gusta.wav":       s_copiar,
+        "regalo_chico.wav":   s_comentario,
+        "regalo_mediano.wav": s_conectado,
+        "regalo_grande.wav":  s_app_inicio,
+        "entrada.wav":        s_reanudar,
     },
 }
 

@@ -3,9 +3,18 @@
 Puro y sin wx: decide qué sonido suena para un mensaje común según el rol
 de su autor (pytchat ya lo da en `author`, se leía solo nombre y canal).
 Un mensaje suena UNA sola vez: el sonido de rol reemplaza al común.
+
+Los regalos de TikTok llegan como superchat con el monto en diamantes
+(«250 diamantes») y suenan según el tramo; el resto de eventos de TikTok
+suena con el evento del mismo nombre.
 """
 
-from ytchat.core.config import TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO
+import re
+
+from ytchat.core.config import (
+    TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,
+    TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
+)
 
 ROL_PROPIETARIO = "propietario"
 ROL_MODERADOR = "moderador"
@@ -39,10 +48,52 @@ def rol_de_autor(autor) -> str:
     return ""
 
 
-def sonido_de_mensaje(tipo: str, rol: str = "") -> str:
-    """Nombre del evento de sonido para un mensaje ya clasificado."""
-    if tipo in (TIPO_SUPERCHAT, TIPO_STICKER):
+def sonido_de_mensaje(tipo: str, rol: str = "", monto: str = "",
+                      plataforma: str = "") -> str:
+    """Nombre del evento de sonido para un mensaje ya clasificado.
+
+    `monto` y `plataforma` solo importan para el regalo de TikTok: llega
+    como superchat con «N diamantes» y suena según su tramo; el Super Chat
+    y el sticker de YouTube siguen siendo «superchat».
+    """
+    if tipo == TIPO_SUPERCHAT or tipo == TIPO_STICKER:
+        if (plataforma or "").lower() == "tiktok" and tipo == TIPO_SUPERCHAT:
+            return tramo_regalo(_diamantes_de_monto(monto))
         return "superchat"
     if tipo == TIPO_MIEMBRO:
         return "nuevo_miembro"
+    if tipo == TIPO_SEGUIR:
+        return "seguir"
+    if tipo == TIPO_COMPARTIR:
+        return "compartir"
+    if tipo == TIPO_COFRE:
+        return "cofre"
+    if tipo == TIPO_ME_GUSTA:
+        return "me_gusta"
+    if tipo == TIPO_ENTRADA:
+        return "entrada"
     return _SONIDO_POR_ROL.get(rol or "", "mensaje_nuevo")
+
+
+def tramo_regalo(diamantes: int) -> str:
+    """Tramo de sonido de un regalo de TikTok según sus diamantes."""
+    try:
+        total = int(diamantes)
+    except (TypeError, ValueError):
+        return "regalo_chico"
+    if total >= 1000:
+        return "regalo_grande"
+    if total >= 100:
+        return "regalo_mediano"
+    return "regalo_chico"
+
+
+def _diamantes_de_monto(monto: str) -> int:
+    """Número de diamantes del texto del monto («250 diamantes»); 0 si no hay."""
+    m = re.search(r"(\d+)", monto or "")
+    if not m:
+        return 0
+    try:
+        return int(m.group(1))
+    except (TypeError, ValueError):
+        return 0

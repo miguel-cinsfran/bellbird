@@ -35,6 +35,10 @@ TIPO_SUPERCHAT = "superchat"
 TIPO_STICKER   = "sticker"
 TIPO_MIEMBRO   = "member"
 TIPO_ENTRADA   = "entrada"   # alguien entra al directo (solo TikTok, opcional)
+TIPO_SEGUIR    = "seguir"    # alguien sigue el canal (solo TikTok)
+TIPO_COMPARTIR = "compartir" # alguien comparte el directo (solo TikTok)
+TIPO_COFRE     = "cofre"     # cofre de regalos (solo TikTok)
+TIPO_ME_GUSTA  = "me_gusta"  # me gusta del directo (solo TikTok, solo suena)
 
 FILTROS = [
     ("Todos",        None),
@@ -308,6 +312,9 @@ _EVENTOS_SONIDO = [
     # v0.6 online y acciones que antes reutilizaban otros sonidos:
     "enviado", "comentario", "moderacion", "cola_vaciada",
     "transporte_en_curso",
+    # Eventos de TikTok y tramos de regalo por tamaño en diamantes:
+    "seguir", "compartir", "cofre", "me_gusta",
+    "regalo_chico", "regalo_mediano", "regalo_grande", "entrada",
 ]
 
 # Carpeta base de temas y tema por defecto.

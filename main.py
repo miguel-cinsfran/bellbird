@@ -23,6 +23,7 @@ warnings.filterwarnings("ignore", message=".*get_event_loop.*")
 from ytchat.core.config import (
     APP_NAME, APP_VERSION,
     TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,
+    TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
     configurar_logging, cargar_configuracion, cargar_sonidos,
 )
 from ytchat.core import paths
@@ -403,6 +404,12 @@ def procesar_entrante(autor, mensaje, tipo, monto, canal_id, cola, config, stats
         tts_text = f"Nuevo miembro: {autor_visible}"
     elif tipo == TIPO_ENTRADA:
         tts_text = f"{autor_visible} entró"
+    elif tipo == TIPO_SEGUIR:
+        tts_text = f"{autor_visible} sigue el canal"
+    elif tipo == TIPO_COMPARTIR:
+        tts_text = f"{autor_visible} compartió el directo"
+    elif tipo == TIPO_COFRE:
+        tts_text = f"{autor_visible} envió un cofre"
     elif umbral > 0 and cola.qsize() >= umbral:
         tts_text = sanitizar(autor_visible, config["limpiar_emojis"], False, 50) or "Usuario"
     else:
@@ -412,12 +419,17 @@ def procesar_entrante(autor, mensaje, tipo, monto, canal_id, cola, config, stats
     if on_message:
         on_message(autor, mensaje, hora, tipo, monto, canal_id, rol=rol)
 
+    if tipo == TIPO_ME_GUSTA:
+        return  # el me gusta solo suena en la GUI, no se lee ni se encola
+
     if debe_leer_tts(autor, config) and (sesion_activa is None or sesion_activa()):
         item = {"texto_tts": tts_text, "autor": autor_visible}
         # Multi-voz: los eventos (Super Chats, regalos, miembros, entradas) se
         # leen con otra voz si está activado; los mensajes normales, con la base.
         if config.get("multivoz") and tipo in (TIPO_SUPERCHAT, TIPO_STICKER,
-                                               TIPO_MIEMBRO, TIPO_ENTRADA):
+                                               TIPO_MIEMBRO, TIPO_ENTRADA,
+                                               TIPO_SEGUIR, TIPO_COMPARTIR,
+                                               TIPO_COFRE):
             try:    item["voz"] = int(config.get("voz_eventos", 0))
             except (TypeError, ValueError): pass
         encolar(cola, item, config, stats)

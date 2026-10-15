@@ -30,7 +30,10 @@ import time
 
 from ytchat.core import diagnostico
 from ytchat.core import paths
-from ytchat.core.config import TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_MIEMBRO, TIPO_ENTRADA
+from ytchat.core.config import (
+    TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_MIEMBRO, TIPO_ENTRADA,
+    TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
+)
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -188,6 +191,72 @@ def _creado_ms(evento):
         return 0
 
 
+def es_historico(evento) -> bool:
+    """¿TikTok lo marcó como mensaje viejo (`is_history` del sobre)? El cliente
+    de la librería no copia esa marca a los eventos, así que la anota el
+    envoltorio de `_envolver_marcador_historico`. Ante la duda, es Falso."""
+    try:
+        return bool(getattr(evento, "_ytchat_historico", False))
+    except Exception:
+        return False
+
+
+def debe_pasar_me_gusta(ultimo, ahora, intervalo=3.0) -> bool:
+    """¿Este me gusta puede pasar? Como mucho UNO cada `intervalo` segundos:
+    los me gusta llegan de a montones y saturarían el sonido. `ultimo` es el
+    `time.monotonic()` del último que pasó, o None si aún no pasó ninguno.
+    Ante la duda, pasa."""
+    try:
+        if ultimo is None:
+            return True
+        return (float(ahora) - float(ultimo)) >= float(intervalo)
+    except (TypeError, ValueError):
+        return True
+
+
+def _marcar_historicos(sobre, eventos):
+    """Anota `_ytchat_historico` en cada evento si el sobre trae `is_history`.
+    Devuelve los eventos tal cual (mismo objeto), para no cambiar el retorno
+    del método envuelto."""
+    try:
+        historico = bool(getattr(sobre, "is_history", False))
+    except Exception:
+        historico = False
+    if historico and eventos:
+        for ev in eventos:
+            try:
+                ev._ytchat_historico = True
+            except Exception:
+                pass
+    return eventos
+
+
+def _envolver_marcador_historico(client) -> None:
+    """Envuelve `client._parse_webcast_response_message` para copiar la marca
+    `is_history` del sobre a cada evento devuelto (ver `es_historico`).
+
+    Respeta si el método es síncrono o asíncrono y su valor de retorno. Si el
+    método no existe o el envoltorio falla, solo se registra y la captura
+    sigue con el margen de 5 s de siempre."""
+    original = getattr(client, "_parse_webcast_response_message", None)
+    if original is None:
+        logger.debug("sin marcador is_history: el cliente no trae "
+                     "_parse_webcast_response_message")
+        return
+    try:
+        if asyncio.iscoroutinefunction(original):
+            async def _envuelto(respuesta, sobre=None, *args, **kwargs):
+                return _marcar_historicos(
+                    sobre, await original(respuesta, sobre, *args, **kwargs))
+        else:
+            def _envuelto(respuesta, sobre=None, *args, **kwargs):
+                return _marcar_historicos(
+                    sobre, original(respuesta, sobre, *args, **kwargs))
+        client._parse_webcast_response_message = _envuelto
+    except Exception as exc:
+        logger.debug("no se pudo envolver _parse_webcast_response_message: %s", exc)
+
+
 async def _vigilar_parada(client, parada) -> None:
     """Convierte el Event de parada (mundo de hilos) en un disconnect (asyncio)."""
     try:
@@ -235,12 +304,20 @@ def _sesion(usuario, parada, on_evento, on_estado, on_info, on_espectadores,
                                        RoomUserSeqEvent, JoinEvent)
         from TikTokLive import events as modulo_eventos
         client = TikTokLiveClient(unique_id=usuario)
+        _envolver_marcador_historico(client)
     except Exception as exc:
         logger.debug("preparación TikTok: %s", exc)
         return exc
     clase_suscripcion = _clase_suscripcion(modulo_eventos)
+    # Seguir, compartir, cofre y me gusta existen en la TikTokLive instalada;
+    # si en otra versión falta alguna clase, ese manejador no se registra.
+    clase_seguir = getattr(modulo_eventos, "FollowEvent", None)
+    clase_compartir = getattr(modulo_eventos, "ShareEvent", None)
+    clase_cofre = getattr(modulo_eventos, "EnvelopeEvent", None)
+    clase_me_gusta = getattr(modulo_eventos, "LikeEvent", None)
     error: list = [None]
     hora_conexion: list = [None]
+    ultimo_me_gusta: list = [None]
     _autor = autor_de_evento
 
     @client.on(ConnectEvent)
@@ -256,14 +333,16 @@ def _sesion(usuario, parada, on_evento, on_estado, on_info, on_espectadores,
 
     @client.on(CommentEvent)
     async def _on_comment(evento):
-        if es_previo_a_conexion(_creado_ms(evento), hora_conexion[0]):
+        if es_historico(evento) or es_previo_a_conexion(
+                _creado_ms(evento), hora_conexion[0]):
             return
         autor, canal_id = _autor(evento)
         on_evento(autor, (evento.comment or "").strip(), TIPO_TEXTO, "", canal_id)
 
     @client.on(GiftEvent)
     async def _on_gift(evento):
-        if es_previo_a_conexion(_creado_ms(evento), hora_conexion[0]):
+        if es_historico(evento) or es_previo_a_conexion(
+                _creado_ms(evento), hora_conexion[0]):
             return
         # Los regalos «en racha» disparan un evento por repetición: solo se
         # anuncia el final de la racha, con el total, para no inundar el TTS.
@@ -282,14 +361,62 @@ def _sesion(usuario, parada, on_evento, on_estado, on_info, on_espectadores,
     if clase_suscripcion is not None:
         @client.on(clase_suscripcion)
         async def _on_subscribe(evento):
+            if es_historico(evento) or es_previo_a_conexion(
+                    _creado_ms(evento), hora_conexion[0]):
+                return
             autor, canal_id = _autor(evento)
             on_evento(autor, "", TIPO_MIEMBRO, "", canal_id)
+
+    if clase_seguir is not None:
+        @client.on(clase_seguir)
+        async def _on_follow(evento):
+            if es_historico(evento) or es_previo_a_conexion(
+                    _creado_ms(evento), hora_conexion[0]):
+                return
+            autor, canal_id = _autor(evento)
+            on_evento(autor, "", TIPO_SEGUIR, "", canal_id)
+
+    if clase_compartir is not None:
+        @client.on(clase_compartir)
+        async def _on_share(evento):
+            if es_historico(evento) or es_previo_a_conexion(
+                    _creado_ms(evento), hora_conexion[0]):
+                return
+            autor, canal_id = _autor(evento)
+            on_evento(autor, "", TIPO_COMPARTIR, "", canal_id)
+
+    if clase_cofre is not None:
+        @client.on(clase_cofre)
+        async def _on_envelope(evento):
+            if es_historico(evento) or es_previo_a_conexion(
+                    _creado_ms(evento), hora_conexion[0]):
+                return
+            autor, canal_id = _autor(evento)
+            on_evento(autor, "", TIPO_COFRE, "", canal_id)
+
+    if clase_me_gusta is not None:
+        # Los me gusta llegan de a montones: como mucho UNO cada 3 s por
+        # sesión, para no saturar el sonido (ver debe_pasar_me_gusta).
+        @client.on(clase_me_gusta)
+        async def _on_like(evento):
+            if es_historico(evento) or es_previo_a_conexion(
+                    _creado_ms(evento), hora_conexion[0]):
+                return
+            ahora = time.monotonic()
+            if not debe_pasar_me_gusta(ultimo_me_gusta[0], ahora):
+                return
+            ultimo_me_gusta[0] = ahora
+            autor, canal_id = _autor(evento)
+            on_evento(autor, "", TIPO_ME_GUSTA, "", canal_id)
 
     if anunciar_entradas:
         # Quién entra al directo. Solo si el usuario lo pidió: en directos
         # grandes son constantes y saturarían el TTS.
         @client.on(JoinEvent)
         async def _on_join(evento):
+            if es_historico(evento) or es_previo_a_conexion(
+                    _creado_ms(evento), hora_conexion[0]):
+                return
             autor, canal_id = _autor(evento)
             on_evento(autor, "", TIPO_ENTRADA, "", canal_id)
 

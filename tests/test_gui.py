@@ -822,6 +822,34 @@ class TestAliasEnLaLista(unittest.TestCase):
         self.assertEqual(texto, "Carlos: hola, 12:00")
 
 
+class TestFilasEventosTikTok(unittest.TestCase):
+
+    def _frame(self):
+        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame._config = {"limpiar_emojis": True}
+        return frame
+
+    def test_seguir_dice_que_paso(self):
+        texto = self._frame()._format_display("Ana", "", "12:00", config.TIPO_SEGUIR, "")
+
+        self.assertEqual(texto, "Ana sigue el canal, 12:00")
+
+    def test_compartir_dice_que_paso(self):
+        texto = self._frame()._format_display("Ana", "", "12:00", config.TIPO_COMPARTIR, "")
+
+        self.assertEqual(texto, "Ana compartió el directo, 12:00")
+
+    def test_cofre_dice_que_paso(self):
+        texto = self._frame()._format_display("Ana", "", "12:00", config.TIPO_COFRE, "")
+
+        self.assertEqual(texto, "Ana envió un cofre, 12:00")
+
+    def test_comentario_comun_no_cambia(self):
+        texto = self._frame()._format_display("Ana", "hola", "12:00", config.TIPO_TEXTO, "")
+
+        self.assertEqual(texto, "Ana: hola, 12:00")
+
+
 class DialogoAliasFalso:
 
     def __init__(self, aceptar, valor):
@@ -1112,6 +1140,48 @@ class TestIdentidadModeracionChat(unittest.TestCase):
             menu.handlers[identificador_ban](None)
         frame._moderar.assert_called_once_with("xX_gamer_29384756_Xx", "CANAL1", None)
         alias.usar({})
+
+
+class TestMeGustaFueraDelModelo(unittest.TestCase):
+    """El me gusta suena sin tocar ni el modelo ni la lista."""
+
+    def _frame(self):
+        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame._chat = ListaChat(max_items=500)
+        frame._filtro = None
+        frame._config = {"limpiar_emojis": True}
+        frame._autor_esta_oculto = lambda autor: False
+        frame._sumar_superchat = mock.Mock()
+        frame.lb_chat = mock.Mock()
+        filas = []
+        frame.lb_chat.Append.side_effect = lambda texto: filas.append(texto)
+        frame.lb_chat.Delete.side_effect = lambda i: filas.pop(i)
+        frame._filas = filas
+        return frame
+
+    def _registro(self, tipo, texto):
+        return MensajeChat(plataforma="tiktok", autor="Ana",
+                           identificador="C", texto=texto, hora="12:00",
+                           tipo=tipo, monto="", rol="")
+
+    def test_me_gusta_no_toca_modelo_ni_lista(self):
+        from ytchat.core.config import TIPO_TEXTO, TIPO_ME_GUSTA
+        frame = self._frame()
+        primero = self._registro(TIPO_TEXTO, "primero")
+        me_gusta = self._registro(TIPO_ME_GUSTA, "")
+        segundo = self._registro(TIPO_TEXTO, "segundo")
+        with mock.patch.object(gui._snd, "reproducir") as reproducir:
+            self.assertTrue(frame._procesar_mensaje_chat(primero))
+            self.assertFalse(frame._procesar_mensaje_chat(me_gusta))
+            self.assertTrue(frame._procesar_mensaje_chat(segundo))
+        self.assertEqual(len(frame._chat.todos), 2)
+        self.assertEqual(len(frame._filas), 2)
+        self.assertIs(frame._chat.dato_en_fila(1), segundo)
+        self.assertEqual(frame._filas[1], frame._format_display(
+            segundo.autor, segundo.texto, segundo.hora,
+            segundo.tipo, segundo.monto))
+        sonidos = [llamada.args[0] for llamada in reproducir.call_args_list]
+        self.assertEqual(sonidos.count("me_gusta"), 1)
 
 
 class TestProgramadosEnPreferencias(unittest.TestCase):

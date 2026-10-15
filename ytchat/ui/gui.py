@@ -22,6 +22,8 @@ import wx
 from ytchat.core.config import (
     APP_NAME, APP_VERSION,
     TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,
+    TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE,
+    TIPO_ME_GUSTA,
     FILTROS,
 )
 from ytchat.core.config import (parsear_atajos, detectar_conflictos_atajos,
@@ -2204,6 +2206,14 @@ class YTChatFrame(wx.Frame):
         if self._autor_esta_oculto(registro.autor):
             return False
 
+        if registro.tipo == TIPO_ME_GUSTA:
+            # El me gusta solo suena: no toca ni el modelo ni la lista, para
+            # no desalinear fila ↔ mensaje.
+            _snd.reproducir(sonidos_eventos.sonido_de_mensaje(
+                registro.tipo, registro.rol, registro.monto,
+                registro.plataforma))
+            return False
+
         # El modelo (lista_chat) recorta el historial y nos dice cuántas filas
         # viejas borrar por arriba, manteniendo fila ↔ mensaje siempre alineados
         # (antes se descontaba dos veces y, pasados 500 mensajes, copiar o
@@ -2214,7 +2224,9 @@ class YTChatFrame(wx.Frame):
             self.lb_chat.Delete(0)
 
         if registro.tipo in (TIPO_SUPERCHAT, TIPO_STICKER):
-            _snd.reproducir("superchat")
+            _snd.reproducir(sonidos_eventos.sonido_de_mensaje(
+                registro.tipo, registro.rol, registro.monto,
+                registro.plataforma))
             self._sumar_superchat(registro.monto)
         elif registro.tipo == TIPO_MIEMBRO:
             _snd.reproducir("nuevo_miembro")
@@ -2545,6 +2557,12 @@ class YTChatFrame(wx.Frame):
             return f"⭐ NUEVO MIEMBRO: {autor}, {hora}"
         if tipo == TIPO_ENTRADA:
             return f"👋 {autor} entró, {hora}"
+        if tipo == TIPO_SEGUIR:
+            return f"{autor} sigue el canal, {hora}"
+        if tipo == TIPO_COMPARTIR:
+            return f"{autor} compartió el directo, {hora}"
+        if tipo == TIPO_COFRE:
+            return f"{autor} envió un cofre, {hora}"
         return f"{autor}: {msg}, {hora}"
 
     def _rebuild_listbox(self) -> None:

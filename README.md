@@ -463,8 +463,10 @@ una escena al aire. Vienen desactivados de fábrica.
 `Ctrl+F2` describe la escena que OBS tiene al aire: qué fuentes tiene, de
 adelante hacia atrás, dónde está cada una, su tamaño, si se ve y qué la tapa.
 Por ejemplo: «2: Chat YTChat, navegador, cerca de la esquina inferior
-izquierda, 460 por 620 píxeles, se ve, pero tapada en un 100 por ciento por
-Captura de pantalla». Si OBS no está abierto, lo dice y no lo abre. La misma
+izquierda, 460 por 620 píxeles, visible en OBS, pero no aparece en la imagen:
+la tapa entera Captura de pantalla». «Visible» u «oculta» es lo que marca el
+botón de visibilidad de esa fuente en OBS; si aparece en la imagen depende
+además de lo que tenga encima. Si OBS no está abierto, lo dice y no lo abre. La misma
 descripción está en la ventana *Transmisión*, en la sección *Cómo se ve la
 escena*.
 

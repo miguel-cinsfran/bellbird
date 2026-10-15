@@ -117,6 +117,11 @@ según quién escribe y qué pasa en el directo.
   al conectar.
 - **Al recorrer los temas de sonido en Preferencias suena una muestra** de
   cada uno, sin cambiar el tema hasta aceptar.
+- **Al ajustar varias veces el mismo valor se dice solo el número.** La
+  primera vez, por ejemplo, «Volumen de la voz: 40%», y las siguientes solo
+  «45%», mientras sigas con el mismo control dentro del minuto. Al pasar a
+  otro, como la velocidad, vuelve a decir el nombre. En el deslizador de
+  volumen del reproductor el número ya no se oye dos veces.
 - **Los sonidos ya no frenan la ventana,** y el reproductor tarda menos en
   arrancar la primera vez.
 - **La configuración admite `%`, `#` y `;`** en los textos, por ejemplo en un

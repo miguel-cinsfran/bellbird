@@ -159,5 +159,55 @@ class TestComentariosPanel(unittest.TestCase):
         self.panel._recargar.assert_called_once()
 
 
+class TestOrillaComentarios(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        cls.frame = wx.Frame(None)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.frame.Destroy()
+
+    def setUp(self):
+        self.panel = gui_comentarios.ComentariosPanel(
+            self.frame, queue.Queue(), {"tamanio_fuente_chat": 12})
+        self.addCleanup(self.panel.Destroy)
+        self.panel.lb.Append("Ana: hola")
+        self.panel.lb.Append("Luis: chau")
+        self.parche_sonido = mock.patch.object(
+            gui_comentarios._snd, "reproducir")
+        self.reproducir = self.parche_sonido.start()
+        self.addCleanup(self.parche_sonido.stop)
+
+    def _tecla(self, codigo):
+        evento = mock.Mock()
+        evento.GetKeyCode.return_value = codigo
+        evento.ControlDown.return_value = False
+        return evento
+
+    def test_arriba_en_primera_fila_suena_y_se_omite(self):
+        self.panel.lb.SetSelection(0)
+        evento = self._tecla(wx.WXK_UP)
+        self.panel._on_key(evento)
+        self.reproducir.assert_called_once_with("orilla")
+        evento.Skip.assert_called_once_with()
+
+    def test_abajo_en_ultima_fila_suena_y_se_omite(self):
+        self.panel.lb.SetSelection(1)
+        evento = self._tecla(wx.WXK_DOWN)
+        self.panel._on_key(evento)
+        self.reproducir.assert_called_once_with("orilla")
+        evento.Skip.assert_called_once_with()
+
+    def test_arriba_en_segunda_fila_no_suena(self):
+        self.panel.lb.SetSelection(1)
+        evento = self._tecla(wx.WXK_UP)
+        self.panel._on_key(evento)
+        self.reproducir.assert_not_called()
+        evento.Skip.assert_called_once_with()
+
+
 if __name__ == "__main__":
     unittest.main()

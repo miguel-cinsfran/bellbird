@@ -21,6 +21,36 @@ ROL_MODERADOR = "moderador"
 ROL_VERIFICADO = "verificado"
 ROL_MIEMBRO = "miembro"
 
+# Códigos de flecha de wx (wx.WXK_UP / wx.WXK_DOWN) con nombre, para no
+# importar wx en este módulo puro.
+TECLA_FLECHA_ARRIBA = 315
+TECLA_FLECHA_ABAJO = 317
+
+
+def es_orilla(tecla, seleccion, total) -> bool:
+    """¿La flecha intenta salir de la lista por un borde?
+
+    Verdadero si es flecha arriba con la selección en la primera fila, o
+    flecha abajo con la selección en la última, o cualquiera de las dos
+    con la lista vacía. Con nada elegido (-1) y lista no vacía, falso.
+    Nunca lanza: lo no numérico también es falso.
+    """
+    if tecla not in (TECLA_FLECHA_ARRIBA, TECLA_FLECHA_ABAJO):
+        return False
+    try:
+        total = int(total)
+    except (TypeError, ValueError):
+        return False
+    if total <= 0:
+        return True
+    try:
+        seleccion = int(seleccion)
+    except (TypeError, ValueError):
+        return False
+    if tecla == TECLA_FLECHA_ARRIBA:
+        return seleccion == 0
+    return seleccion == total - 1
+
 _SONIDO_POR_ROL = {
     ROL_PROPIETARIO: "mensaje_propietario",
     ROL_MODERADOR: "mensaje_moderador",

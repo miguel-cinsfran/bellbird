@@ -372,5 +372,40 @@ class TestFiltroPrevios(unittest.TestCase):
         self.assertEqual(len(recibidos), 1)
 
 
+class TestFinDirecto(unittest.TestCase):
+    def test_fin_del_directo_emite_fin_directo(self):
+        estados = []
+        parada = threading.Event()
+        config = {"reconectar": True, "max_intentos": 0,
+                  "espera_entre_intentos": 10,
+                  "tiktok_anunciar_entradas": False}
+        with mock.patch.object(tiktok_captura, "disponible",
+                               return_value=True), \
+                mock.patch.object(tiktok_captura, "_sesion",
+                                   return_value=None):
+            tiktok_captura.capturar_con_reconexion(
+                "pepe", config, parada, lambda *a: None,
+                on_estado=lambda *a: estados.append(a))
+        self.assertIn(
+            ("fin_directo", "El directo de TikTok ha terminado."), estados)
+        self.assertTrue(parada.is_set())
+
+    def test_fin_del_directo_no_suena_desconectado(self):
+        estados = []
+        parada = threading.Event()
+        config = {"reconectar": True, "max_intentos": 0,
+                  "espera_entre_intentos": 10,
+                  "tiktok_anunciar_entradas": False}
+        with mock.patch.object(tiktok_captura, "disponible",
+                               return_value=True), \
+                mock.patch.object(tiktok_captura, "_sesion",
+                                   return_value=None):
+            tiktok_captura.capturar_con_reconexion(
+                "pepe", config, parada, lambda *a: None,
+                on_estado=lambda *a: estados.append(a))
+        tipos = [tipo for tipo, _texto in estados]
+        self.assertNotIn("desconectado", tipos)
+
+
 if __name__ == "__main__":
     unittest.main()

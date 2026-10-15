@@ -50,7 +50,7 @@ class PruebasSoundGen(unittest.TestCase):
             with contextlib.redirect_stdout(io.StringIO()):
                 for tema, sonidos in sound_gen.TEMAS.items():
                     destino = raiz / tema
-                    self.assertEqual(sound_gen.generar_tema(tema, destino), 29)
+                    self.assertEqual(sound_gen.generar_tema(tema, destino), 31)
                     for nombre in sonidos:
                         ruta = destino / nombre
                         self.assertGreater(ruta.stat().st_size, 0, nombre)
@@ -74,7 +74,7 @@ class PruebasSoundGen(unittest.TestCase):
         with tempfile.TemporaryDirectory(dir=Path.cwd()) as directorio:
             destino = Path(directorio)
             with contextlib.redirect_stdout(io.StringIO()):
-                self.assertEqual(sound_gen.generar_tema("default", destino), 29)
+                self.assertEqual(sound_gen.generar_tema("default", destino), 31)
                 self.assertEqual(sound_gen.generar_tema("default", destino), 0)
 
 

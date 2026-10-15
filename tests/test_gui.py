@@ -2889,5 +2889,105 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
         self.assertTrue(frame._supervisor.iniciado)
 
 
+class TestOrillaChat(unittest.TestCase):
+    def _frame(self, seleccion, total):
+        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame.lb_chat = mock.Mock()
+        frame.lb_chat.GetSelection.return_value = seleccion
+        frame.lb_chat.GetCount.return_value = total
+        frame._copiar_mensaje = mock.Mock()
+        frame._mostrar_menu_chat = mock.Mock()
+        return frame
+
+    def _tecla(self, codigo):
+        evento = mock.Mock()
+        evento.GetKeyCode.return_value = codigo
+        evento.ControlDown.return_value = False
+        return evento
+
+    def test_arriba_en_primera_fila_suena_y_se_omite(self):
+        from ytchat.core import sonidos_eventos
+        frame = self._frame(0, 5)
+        evento = self._tecla(sonidos_eventos.TECLA_FLECHA_ARRIBA)
+        with mock.patch.object(gui._snd, "reproducir") as reproducir:
+            frame._on_chat_key(evento)
+        reproducir.assert_called_once_with("orilla")
+        evento.Skip.assert_called_once_with()
+
+    def test_abajo_en_ultima_fila_suena_y_se_omite(self):
+        from ytchat.core import sonidos_eventos
+        frame = self._frame(4, 5)
+        evento = self._tecla(sonidos_eventos.TECLA_FLECHA_ABAJO)
+        with mock.patch.object(gui._snd, "reproducir") as reproducir:
+            frame._on_chat_key(evento)
+        reproducir.assert_called_once_with("orilla")
+        evento.Skip.assert_called_once_with()
+
+    def test_arriba_en_segunda_fila_no_suena(self):
+        from ytchat.core import sonidos_eventos
+        frame = self._frame(1, 5)
+        evento = self._tecla(sonidos_eventos.TECLA_FLECHA_ARRIBA)
+        with mock.patch.object(gui._snd, "reproducir") as reproducir:
+            frame._on_chat_key(evento)
+        reproducir.assert_not_called()
+        evento.Skip.assert_called_once_with()
+
+
+class TestFinDirectoGui(unittest.TestCase):
+    """«fin_directo» cierra igual que «desconectado»: solo cambia el sonido."""
+
+    def _frame_conectado(self):
+        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame._alive = True
+        frame._conectado = True
+        frame._pendientes_timer = None
+        frame._pendientes = []
+        frame._chat = mock.Mock()
+        frame.lb_chat = mock.Mock()
+        frame._sc_totales = {}
+        frame._mostrar_zona = mock.Mock()
+        frame.set_titulo_stream = mock.Mock()
+        frame._fijar_tipo = mock.Mock()
+        frame._set_conectado_ui = mock.Mock()
+        frame._actualizar_estado_online = mock.Mock()
+        frame._actualizar_sb = mock.Mock()
+        frame.txt_url = mock.Mock()
+        frame.txt_info = mock.Mock()
+        frame._rep_panel = mock.Mock()
+        frame._com_panel = mock.Mock()
+        frame._worker = mock.Mock()
+        frame._stats = mock.Mock()
+        return frame
+
+    def _desconectar(self, frame, *args):
+        with mock.patch.object(gui._snd, "reproducir") as reproducir, \
+                mock.patch.object(gui, "anunciar") as anunciar, \
+                mock.patch.object(gui.wx, "CallAfter",
+                                  side_effect=lambda fn, *a, **k: fn(*a, **k)):
+            frame.set_conectado(*args)
+        return reproducir, anunciar
+
+    def test_fin_directo_suena_distinto_y_cierra_igual(self):
+        normal = self._frame_conectado()
+        rep_normal, _an_normal = self._desconectar(normal, False)
+        fin = self._frame_conectado()
+        rep_fin, _an_fin = self._desconectar(fin, False, "fin_directo")
+        rep_normal.assert_called_once_with("desconectado")
+        rep_fin.assert_called_once_with("fin_directo")
+        self.assertEqual(normal._mostrar_zona.call_args,
+                         fin._mostrar_zona.call_args)
+        self.assertEqual(normal.set_titulo_stream.call_args,
+                         fin.set_titulo_stream.call_args)
+        self.assertEqual(normal._fijar_tipo.call_args,
+                         fin._fijar_tipo.call_args)
+        self.assertEqual(normal._set_conectado_ui.call_args,
+                         fin._set_conectado_ui.call_args)
+
+    def test_por_defecto_sigue_sonando_desconectado(self):
+        frame = self._frame_conectado()
+        reproducir, _anunciar = self._desconectar(frame, False)
+        reproducir.assert_called_once_with("desconectado")
+
+
 if __name__ == "__main__":
     unittest.main()

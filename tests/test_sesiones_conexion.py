@@ -387,5 +387,72 @@ class TestPlataformaMensajesChat(unittest.TestCase):
         self.assertEqual(kwargs.get("plataforma"), "tiktok")
 
 
+class PruebasFinDirectoTiktok(unittest.TestCase):
+    """«fin_directo» cierra igual que «desconectado»: solo cambia el sonido."""
+
+    def setUp(self):
+        self.gui_falsa = types.SimpleNamespace(_gui_frame=None)
+        self.modulo_gui_anterior = sys.modules.get("ytchat.ui.gui")
+        sys.modules["ytchat.ui.gui"] = self.gui_falsa
+        from ytchat import ui as _paquete_ui
+        self._parche_paquete = mock.patch.object(
+            _paquete_ui, "gui", self.gui_falsa, create=True)
+        self._parche_paquete.start()
+        self.registro = RegistroEspia()
+        self.conexiones = Conexiones(
+            queue.Queue(), {}, mock.Mock(), threading.Event(),
+            crear_hilo=crear_hilo_inerte, registro=self.registro)
+
+    def tearDown(self):
+        self._parche_paquete.stop()
+        if self.modulo_gui_anterior is None:
+            sys.modules.pop("ytchat.ui.gui", None)
+        else:
+            sys.modules["ytchat.ui.gui"] = self.modulo_gui_anterior
+
+    def _callbacks_tiktok(self):
+        callbacks = {}
+        def hilo(objetivo, nombre, **kwargs):
+            return HiloEjecuta(objetivo) if nombre == "TikTok" else HiloInerte()
+        def captura(*args, **kwargs):
+            callbacks.update(kwargs)
+        self.conexiones._crear_hilo = hilo
+        from ytchat.capture import tiktok_captura
+        with mock.patch.object(tiktok_captura, "capturar_con_reconexion",
+                               side_effect=captura):
+            self.conexiones._conectar_tiktok("pepe")
+        return callbacks
+
+    def test_fin_directo_cierra_igual_que_desconectado_con_otro_sonido(self):
+        import wx
+        callbacks = self._callbacks_tiktok()
+        frame = mock.Mock()
+        frame._alive = True
+        self.gui_falsa._gui_frame = frame
+        self.gui_falsa.anunciar = mock.Mock()
+        llamadas = []
+        def call_after(fn, *args, **kwargs):
+            llamadas.append((fn, args))
+            return mock.Mock()
+        with mock.patch.object(wx, "CallAfter", side_effect=call_after):
+            callbacks["on_estado"](
+                "desconectado", "El directo de TikTok ha terminado.")
+        llamadas_desc = list(llamadas)
+        del llamadas[:]
+        with mock.patch.object(wx, "CallAfter", side_effect=call_after):
+            callbacks["on_estado"](
+                "fin_directo", "El directo de TikTok ha terminado.")
+        llamadas_fin = list(llamadas)
+        # Las mismas funciones en el mismo orden (cierra sesión, borra
+        # título y anuncia con el mismo texto).
+        self.assertEqual([fn for fn, _a in llamadas_desc],
+                         [fn for fn, _a in llamadas_fin])
+        self.assertEqual(len(llamadas_desc), 3)
+        # La única diferencia: el sonido que se pide a set_conectado.
+        self.assertEqual(llamadas_desc[0][1], (False, "desconectado"))
+        self.assertEqual(llamadas_fin[0][1], (False, "fin_directo"))
+        self.assertEqual(llamadas_desc[1:], llamadas_fin[1:])
+
+
 if __name__ == "__main__":
     unittest.main()

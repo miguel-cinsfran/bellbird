@@ -13,6 +13,8 @@ from ytchat.core import diagnostico
 import wx
 
 from ytchat.core import historial
+from ytchat.core import sonidos_eventos
+from ytchat.voice import sound_player as _snd
 from ytchat.ui.gui import anunciar, nombre_accesible, _T, _pintar
 
 logger = diagnostico.obtener_logger(__name__)
@@ -119,6 +121,15 @@ class HistorialDialog(wx.Dialog):
 
     def _on_key(self, event):
         k = event.GetKeyCode()
+        # La orilla aplica a la lista que generó el evento y no consume la
+        # tecla: NVDA sigue leyendo la fila.
+        lb = event.GetEventObject()
+        try:
+            seleccion, total = lb.GetSelection(), lb.GetCount()
+        except Exception:
+            seleccion, total = -1, 0
+        if sonidos_eventos.es_orilla(k, seleccion, total):
+            _snd.reproducir("orilla")
         if k in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
             self._conectar()
         elif k == wx.WXK_DELETE:

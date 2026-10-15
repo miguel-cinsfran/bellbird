@@ -176,5 +176,72 @@ class PruebasHistorialDialog(unittest.TestCase):
                 self.assertEqual(nombre, control.GetName())
 
 
+class PruebasOrillaHistorial(unittest.TestCase):
+
+    def setUp(self):
+        self.app = (gui_historial.wx.App(False) if not gui_historial.wx.App.Get()
+                    else gui_historial.wx.App.Get())
+        self.temporal = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporal.cleanup)
+        self.ruta = Path(self.temporal.name) / "historial.json"
+
+    def _dialogo_dos_filas(self):
+        primera = entrada("youtube", "primera", "https://youtube.com/watch?v=primera")
+        segunda = entrada("youtube", "segunda", "https://youtube.com/watch?v=segunda")
+        self.ruta.write_text(json.dumps([primera, segunda]), encoding="utf-8")
+        dialogo = gui_historial.HistorialDialog(None, self.ruta, mock.Mock())
+        self.addCleanup(dialogo.Destroy)
+        return dialogo
+
+    def _tecla_sobre(self, codigo, lista):
+        evento = mock.Mock()
+        evento.GetKeyCode.return_value = codigo
+        evento.GetEventObject.return_value = lista
+        return evento
+
+    def test_arriba_en_primera_fila_suena_y_se_omite(self):
+        dialogo = self._dialogo_dos_filas()
+        lista = dialogo._listas["youtube"]
+        lista.SetSelection(0)
+        evento = self._tecla_sobre(gui_historial.wx.WXK_UP, lista)
+        with mock.patch.object(gui_historial._snd, "reproducir") as reproducir:
+            dialogo._on_key(evento)
+        reproducir.assert_called_once_with("orilla")
+        evento.Skip.assert_called_once_with()
+
+    def test_abajo_en_ultima_fila_suena_y_se_omite(self):
+        dialogo = self._dialogo_dos_filas()
+        lista = dialogo._listas["youtube"]
+        lista.SetSelection(1)
+        evento = self._tecla_sobre(gui_historial.wx.WXK_DOWN, lista)
+        with mock.patch.object(gui_historial._snd, "reproducir") as reproducir:
+            dialogo._on_key(evento)
+        reproducir.assert_called_once_with("orilla")
+        evento.Skip.assert_called_once_with()
+
+    def test_arriba_en_segunda_fila_no_suena(self):
+        dialogo = self._dialogo_dos_filas()
+        lista = dialogo._listas["youtube"]
+        lista.SetSelection(1)
+        evento = self._tecla_sobre(gui_historial.wx.WXK_UP, lista)
+        with mock.patch.object(gui_historial._snd, "reproducir") as reproducir:
+            dialogo._on_key(evento)
+        reproducir.assert_not_called()
+        evento.Skip.assert_called_once_with()
+
+    def test_orilla_aplica_a_la_lista_que_genero_el_evento(self):
+        dialogo = self._dialogo_dos_filas()
+        youtube = dialogo._listas["youtube"]
+        tiktok = dialogo._listas["tiktok"]
+        youtube.SetSelection(1)
+        tiktok.SetSelection(gui_historial.wx.NOT_FOUND)
+        evento = self._tecla_sobre(gui_historial.wx.WXK_UP, tiktok)
+        with mock.patch.object(gui_historial._snd, "reproducir") as reproducir:
+            dialogo._on_key(evento)
+        # La lista de TikTok está vacía: suena aunque YouTube esté en la fila 1.
+        reproducir.assert_called_once_with("orilla")
+        evento.Skip.assert_called_once_with()
+
+
 if __name__ == "__main__":
     unittest.main()

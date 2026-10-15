@@ -15,6 +15,7 @@ import threading
 import wx
 
 from ytchat.core import diagnostico
+from ytchat.core import sonidos_eventos
 from ytchat.youtube import credenciales
 from ytchat.youtube import youtube_api
 from ytchat.voice import sound_player as _snd
@@ -306,6 +307,10 @@ class ComentariosPanel(wx.Panel):
 
     def _on_key(self, event):
         k = event.GetKeyCode()
+        # La orilla suena sin consumir la tecla: NVDA sigue leyendo la fila.
+        if sonidos_eventos.es_orilla(k, self.lb.GetSelection(),
+                                     self.lb.GetCount()):
+            _snd.reproducir("orilla")
         if k == ord('C') and event.ControlDown():
             self._copiar()
         elif k == wx.WXK_WINDOWS_MENU:

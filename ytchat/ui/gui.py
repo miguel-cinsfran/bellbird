@@ -1883,6 +1883,10 @@ class YTChatFrame(wx.Frame):
 
     def _on_chat_key(self, event):
         k = event.GetKeyCode()
+        # La orilla suena sin consumir la tecla: NVDA sigue leyendo la fila.
+        if sonidos_eventos.es_orilla(k, self.lb_chat.GetSelection(),
+                                     self.lb_chat.GetCount()):
+            _snd.reproducir("orilla")
         if k == ord('C') and event.ControlDown():
             self._copiar_mensaje()
         elif k == wx.WXK_WINDOWS_MENU:
@@ -2285,7 +2289,8 @@ class YTChatFrame(wx.Frame):
             self._pendientes_timer = None
         self._pendientes.clear()
 
-    def set_conectado(self, conectado: bool) -> None:
+    def set_conectado(self, conectado: bool,
+                        sonido_desconexion: str = "desconectado") -> None:
         if not self._alive:
             return
         estaba = self._conectado
@@ -2304,7 +2309,9 @@ class YTChatFrame(wx.Frame):
                 self._mostrar_zona(False)
                 self.set_titulo_stream("")
                 self._fijar_tipo(MENSAJE_INICIAL)
-                _snd.reproducir("desconectado")
+                # El fin del directo de TikTok llega con su propio sonido;
+                # el resto de los cortes sigue sonando «desconectado».
+                _snd.reproducir(sonido_desconexion)
                 anunciar("Desconectado")
                 # Sacar el foco del panel del reproductor ANTES de que quede
                 # oculto: si el foco sigue dentro, wx tarda en repintar y el

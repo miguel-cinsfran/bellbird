@@ -315,6 +315,9 @@ _EVENTOS_SONIDO = [
     # Eventos de TikTok y tramos de regalo por tamaño en diamantes:
     "seguir", "compartir", "cofre", "me_gusta",
     "regalo_chico", "regalo_mediano", "regalo_grande", "entrada",
+    # Orilla de las listas y fin del directo de TikTok (suena distinto a
+    # «desconectado», que sigue para YouTube y el resto de los cortes):
+    "orilla", "fin_directo",
 ]
 
 # Carpeta base de temas y tema por defecto.

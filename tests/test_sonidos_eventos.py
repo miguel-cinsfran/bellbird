@@ -107,6 +107,49 @@ class TestSonidoDeMensaje(unittest.TestCase):
                     tipo, sonidos_eventos.ROL_MODERADOR), tipo)
 
 
+class TestEsOrilla(unittest.TestCase):
+    ARRIBA = sonidos_eventos.TECLA_FLECHA_ARRIBA
+    ABAJO = sonidos_eventos.TECLA_FLECHA_ABAJO
+
+    def test_arriba_en_primera_fila(self):
+        self.assertTrue(sonidos_eventos.es_orilla(self.ARRIBA, 0, 5))
+
+    def test_abajo_en_ultima_fila(self):
+        self.assertTrue(sonidos_eventos.es_orilla(self.ABAJO, 4, 5))
+
+    def test_adentro_no_es_orilla(self):
+        self.assertFalse(sonidos_eventos.es_orilla(self.ARRIBA, 1, 5))
+        self.assertFalse(sonidos_eventos.es_orilla(self.ABAJO, 0, 5))
+        self.assertFalse(sonidos_eventos.es_orilla(self.ABAJO, 3, 5))
+
+    def test_lista_vacia_ambas_flechas(self):
+        self.assertTrue(sonidos_eventos.es_orilla(self.ARRIBA, -1, 0))
+        self.assertTrue(sonidos_eventos.es_orilla(self.ABAJO, -1, 0))
+
+    def test_sin_seleccion_y_lista_con_filas(self):
+        self.assertFalse(sonidos_eventos.es_orilla(self.ARRIBA, -1, 5))
+        self.assertFalse(sonidos_eventos.es_orilla(self.ABAJO, -1, 5))
+
+    def test_una_sola_fila_es_ambas_orillas(self):
+        self.assertTrue(sonidos_eventos.es_orilla(self.ARRIBA, 0, 1))
+        self.assertTrue(sonidos_eventos.es_orilla(self.ABAJO, 0, 1))
+
+    def test_otra_tecla_nunca_es_orilla(self):
+        self.assertFalse(sonidos_eventos.es_orilla(ord("C"), 0, 5))
+        self.assertFalse(sonidos_eventos.es_orilla(13, 0, 1))
+        self.assertFalse(sonidos_eventos.es_orilla(self.ARRIBA + 1, 0, 0))
+
+    def test_lo_no_numerico_no_lanza_y_es_falso(self):
+        self.assertFalse(sonidos_eventos.es_orilla(self.ARRIBA, None, 5))
+        self.assertFalse(sonidos_eventos.es_orilla(self.ARRIBA, 0, None))
+        self.assertFalse(sonidos_eventos.es_orilla(self.ARRIBA, "x", "y"))
+
+    def test_constantes_coinciden_con_wx(self):
+        import wx
+        self.assertEqual(sonidos_eventos.TECLA_FLECHA_ARRIBA, wx.WXK_UP)
+        self.assertEqual(sonidos_eventos.TECLA_FLECHA_ABAJO, wx.WXK_DOWN)
+
+
 class TestTramoRegalo(unittest.TestCase):
     def test_bordes(self):
         self.assertEqual(sonidos_eventos.tramo_regalo(1), "regalo_chico")

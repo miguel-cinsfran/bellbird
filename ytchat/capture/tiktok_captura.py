@@ -577,8 +577,10 @@ def capturar_con_reconexion(usuario, config, parada, on_evento,
             break
         if err is None:
             # Conexión que terminó sola (fin del directo): no reintentamos.
+            # Suena «fin_directo», no «desconectado» (ese sigue para YouTube
+            # y el resto de los cortes).
             if on_estado:
-                on_estado("desconectado", "El directo de TikTok ha terminado.")
+                on_estado("fin_directo", "El directo de TikTok ha terminado.")
             parada.set()
             break
         if not config.get("reconectar", True):

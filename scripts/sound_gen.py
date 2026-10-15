@@ -417,6 +417,11 @@ TEMAS = {
         "regalo_mediano.wav": gen_conectado,
         "regalo_grande.wav":  gen_app_inicio,
         "entrada.wav":        gen_reanudar,
+        # Provisorios hasta que el dueño elija los definitivos (los WAV ya
+        # existen y no se pisan): la orilla es un tic breve, el fin del
+        # directo un gesto de cierre como el de desconexión.
+        "orilla.wav":         gen_copiar,
+        "fin_directo.wav":    gen_desconectado,
     },
     "suave": {
         "app_inicio.wav":    s_app_inicio,
@@ -451,6 +456,11 @@ TEMAS = {
         "regalo_mediano.wav": s_conectado,
         "regalo_grande.wav":  s_app_inicio,
         "entrada.wav":        s_reanudar,
+        # Provisorios hasta que el dueño elija los definitivos (los WAV ya
+        # existen y no se pisan): la orilla es un toque breve, el fin del
+        # directo un gesto de cierre como el de desconexión.
+        "orilla.wav":         s_copiar,
+        "fin_directo.wav":    s_desconectado,
     },
 }
 

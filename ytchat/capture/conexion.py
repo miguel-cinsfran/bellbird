@@ -216,8 +216,12 @@ class Conexiones:
                 _snd.reproducir("error")
                 wx.CallAfter(frame.set_conectado, False)
                 wx.CallAfter(frame.set_titulo_stream, "")
-            elif tipo_estado == "desconectado":
-                wx.CallAfter(frame.set_conectado, False)
+            elif tipo_estado in ("desconectado", "fin_directo"):
+                # «fin_directo» cierra igual que «desconectado»: solo cambia
+                # el sonido que reproduce set_conectado al desconectar.
+                sonido = ("fin_directo" if tipo_estado == "fin_directo"
+                          else "desconectado")
+                wx.CallAfter(frame.set_conectado, False, sonido)
                 wx.CallAfter(frame.set_titulo_stream, "")
             from ytchat.ui.gui import anunciar
             wx.CallAfter(anunciar, texto)

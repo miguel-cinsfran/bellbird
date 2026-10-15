@@ -36,6 +36,9 @@ según quién escribe y qué pasa en el directo.
   pasárselo a alguien.
 - **`F2` dice primero en qué está el directo** que supervisa la aplicación, y
   si TikTok o YouTube ya lo muestran.
+- **`F2` dice cómo volver al directo** cuando el reproductor va por detrás:
+  «10 segundos por detrás del directo. Pulsa Ctrl+Fin para volver al
+  directo.», con el atajo que tengas configurado.
 - **Un corte de internet no termina el directo de YouTube.** Si OBS pierde
   la conexión, por ejemplo al cambiar de wifi, YouTube espera a que vuelva
   la señal en vez de cerrar el directo, y la aplicación avisa que OBS está

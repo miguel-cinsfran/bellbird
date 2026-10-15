@@ -134,6 +134,9 @@ def mensaje_error_api(exc) -> str:
         return "No se encontró el vídeo. Revisa la URL o el ID."
     if "keyinvalid" in low or "api key not valid" in low or "badrequest" in low and "key" in low:
         return "La API key no es válida. Revísala en Configuración."
+    if "livestreamingnotenabled" in low:
+        return ("La cuenta de YouTube no tiene los directos activados. "
+                "Se activan en YouTube Studio y pueden tardar hasta 24 horas.")
     if "insufficientpermissions" in low or "forbidden" in low:
         return ("No tienes permiso para esta acción. Debes ser el dueño o "
                 "moderador del directo, y haber iniciado sesión.")
@@ -141,9 +144,6 @@ def mensaje_error_api(exc) -> str:
         return "Este vídeo no tiene un chat en vivo activo."
     if "rate" in low and "limit" in low:
         return "Demasiadas peticiones seguidas. Espera unos segundos."
-    if "livestreamingnotenabled" in low:
-        return ("La cuenta de YouTube no tiene los directos activados. "
-                "Se activan en YouTube Studio y pueden tardar hasta 24 horas.")
     return f"Error de la API de YouTube: {texto}"
 
 

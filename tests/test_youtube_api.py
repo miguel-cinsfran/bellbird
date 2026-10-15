@@ -182,6 +182,11 @@ class TestMensajeError(unittest.TestCase):
     def test_sin_permiso(self):
         self.assertIn("permiso", mensaje_error_api("insufficientPermissions"))
 
+    def test_prohibido_con_directos_no_activados_avisa_de_activarlos(self):
+        texto = ("403 Forbidden: liveStreamingNotEnabled: "
+                 "el directo no está activado")
+        self.assertIn("directos activados", mensaje_error_api(texto))
+
     def test_generico(self):
         self.assertIn("Error de la API", mensaje_error_api("algo raro"))
 

@@ -46,6 +46,176 @@ class TestGuardarDestino(unittest.TestCase):
             gui.RUTA_CONFIG, "transmision", "destino", "")
 
 
+class TestTransmitirSinVentana(unittest.TestCase):
+    # Sin ventana: pedir_destino y la revisión de OBS van con dobles.
+
+    def _boton(self, **config):
+        from ytchat.ui import boton_directo
+        boton = boton_directo.BotonDirecto.__new__(
+            boton_directo.BotonDirecto)
+        marco = mock.Mock()
+        marco._alive = True
+        marco._config = {"transmision_destino": "TikTok",
+                         "tiktok_usuario": "guardado"}
+        marco._config.update(config)
+        marco._guardar_destino_transmision = mock.Mock(
+            side_effect=lambda d: marco._config.update(
+                {"transmision_destino": d}) or d)
+        marco._guardar_usuario_tiktok = mock.Mock(
+            side_effect=lambda u: marco._config.update(
+                {"tiktok_usuario": u}) or u)
+        marco._supervisar_transmision = mock.Mock()
+        marco._actualizar_boton_directo = mock.Mock()
+        boton._marco = marco
+        boton.boton = mock.Mock()
+        return boton, marco
+
+    def test_cancelar_anuncia_y_no_revisa(self):
+        from ytchat.ui import boton_directo
+        boton, marco = self._boton()
+        with mock.patch(
+                "ytchat.ui.gui_elegir_destino.pedir_destino",
+                return_value=None) as pedir, \
+                mock.patch.object(boton_directo.diagnostico,
+                                  "crear_hilo") as hilos, \
+                mock.patch.object(boton_directo, "anunciar") as anunciar:
+            boton._transmitir()
+        pedir.assert_called_once_with(marco, "TikTok", "guardado")
+        anunciar.assert_called_once_with("No se transmitió.")
+        hilos.assert_not_called()
+        marco._guardar_destino_transmision.assert_not_called()
+
+    def test_youtube_guarda_y_revisa_aunque_el_guardado_decia_tiktok(self):
+        from ytchat.ui import boton_directo
+        boton, marco = self._boton(transmision_destino="TikTok",
+                                   tiktok_usuario="guardado")
+        hilos = []
+        revision = mock.sentinel.revision
+        preparacion = SimpleNamespace(ya_transmitiendo=False,
+                                      revision=revision)
+
+        class Hilo:
+            def __init__(self, target, *args, **kwargs):
+                self.target = target
+
+            def start(self):
+                hilos.append(self.target)
+                self.target()
+
+        with mock.patch(
+                "ytchat.ui.gui_elegir_destino.pedir_destino",
+                return_value=("YouTube", "")), \
+                mock.patch.object(boton_directo.diagnostico,
+                                  "crear_hilo",
+                                  side_effect=lambda f, n: Hilo(f)), \
+                mock.patch.object(boton_directo.transmision_directa,
+                                  "preparar",
+                                  return_value=preparacion) as preparar, \
+                mock.patch.object(boton_directo, "anunciar"), \
+                mock.patch.object(boton_directo._snd, "reproducir"), \
+                mock.patch.object(boton_directo.wx,
+                                  "CallAfter",
+                                  side_effect=lambda f, *a: f(*a)):
+            boton._transmitir()
+        marco._guardar_destino_transmision.assert_called_once_with(
+            "YouTube")
+        preparar.assert_called_once()
+        args, _ = preparar.call_args
+        self.assertEqual(args[1], "YouTube")
+        marco._supervisar_transmision.assert_called_once_with(
+            "iniciar", "YouTube", "", revision=revision)
+
+    def test_tiktok_guarda_usuario_y_revisa(self):
+        from ytchat.ui import boton_directo
+        boton, marco = self._boton()
+        preparacion = SimpleNamespace(ya_transmitiendo=False,
+                                      revision=mock.sentinel.revision)
+
+        class Hilo:
+            def __init__(self, target, *args, **kwargs):
+                self.target = target
+
+            def start(self):
+                self.target()
+
+        with mock.patch(
+                "ytchat.ui.gui_elegir_destino.pedir_destino",
+                return_value=("TikTok", "nuevo")), \
+                mock.patch.object(boton_directo.diagnostico,
+                                  "crear_hilo",
+                                  side_effect=lambda f, n: Hilo(f)), \
+                mock.patch.object(boton_directo.transmision_directa,
+                                  "preparar",
+                                  return_value=preparacion), \
+                mock.patch.object(boton_directo, "anunciar"), \
+                mock.patch.object(boton_directo._snd, "reproducir"), \
+                mock.patch(
+                    "ytchat.ui.gui_transmision.confirmar_transmision",
+                    return_value=True), \
+                mock.patch.object(boton_directo.wx,
+                                  "CallAfter",
+                                  side_effect=lambda f, *a: f(*a)):
+            boton._transmitir()
+        marco._guardar_destino_transmision.assert_called_once_with(
+            "TikTok")
+        marco._guardar_usuario_tiktok.assert_called_once_with("nuevo")
+
+
+class TestRevisionListaSinVentana(unittest.TestCase):
+    # Sin ventana: confirmar y supervisar van con dobles.
+
+    def _boton(self):
+        from ytchat.ui import boton_directo
+        boton = boton_directo.BotonDirecto.__new__(
+            boton_directo.BotonDirecto)
+        marco = mock.Mock()
+        marco._alive = True
+        marco._supervisar_transmision = mock.Mock()
+        marco._actualizar_boton_directo = mock.Mock()
+        boton._marco = marco
+        boton.boton = mock.Mock()
+        return boton, marco
+
+    def test_youtube_no_confirma_y_pasa_la_revision(self):
+        from ytchat.ui import boton_directo
+        boton, marco = self._boton()
+        revision = mock.sentinel.revision
+        preparacion = SimpleNamespace(ya_transmitiendo=False,
+                                      revision=revision)
+        with mock.patch(
+                "ytchat.ui.gui_transmision.confirmar_transmision") as confirmar:
+            boton._revision_lista(preparacion, "YouTube", "")
+        confirmar.assert_not_called()
+        marco._supervisar_transmision.assert_called_once_with(
+            "iniciar", "YouTube", "", revision=revision)
+
+    def test_tiktok_confirma_como_hoy(self):
+        from ytchat.ui import boton_directo
+        boton, marco = self._boton()
+        preparacion = SimpleNamespace(ya_transmitiendo=False,
+                                      revision=mock.sentinel.revision)
+        with mock.patch(
+                "ytchat.ui.gui_transmision.confirmar_transmision",
+                return_value=True) as confirmar:
+            boton._revision_lista(preparacion, "TikTok", "usuario")
+        confirmar.assert_called_once_with(marco, preparacion.revision)
+        marco._supervisar_transmision.assert_called_once_with(
+            "iniciar", "TikTok", "usuario")
+
+    def test_tiktok_cancelar_anuncia_y_no_inicia(self):
+        from ytchat.ui import boton_directo
+        boton, marco = self._boton()
+        preparacion = SimpleNamespace(ya_transmitiendo=False,
+                                      revision=mock.sentinel.revision)
+        with mock.patch(
+                "ytchat.ui.gui_transmision.confirmar_transmision",
+                return_value=False), \
+                mock.patch.object(boton_directo, "anunciar") as anunciar:
+            boton._revision_lista(preparacion, "TikTok", "usuario")
+        anunciar.assert_called_once_with("No se transmitió.")
+        marco._supervisar_transmision.assert_not_called()
+
+
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestBotonDirectoVentana(unittest.TestCase):
     # Con ventana: las corre el advisor. No correr aquí.

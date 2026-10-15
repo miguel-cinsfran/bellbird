@@ -814,7 +814,8 @@ class YTChatFrame(wx.Frame):
             self._actualizar_boton_directo()
         wx.CallAfter(_termino)
 
-    def _supervisar_transmision(self, accion, destino="", usuario=""):
+    def _supervisar_transmision(self, accion, destino="", usuario="",
+                                  revision=None):
         if accion == "activo":
             supervisor = getattr(self, "_supervisor", None)
             return bool(supervisor is not None and supervisor.activo)
@@ -839,7 +840,8 @@ class YTChatFrame(wx.Frame):
                     self._config.get("transmision_youtube_titulo", ""),
                     self._config.get("transmision_youtube_descripcion", ""),
                     self._config.get("transmision_youtube_privacidad",
-                                     emision.PRIVACIDAD_INICIAL))
+                                     emision.PRIVACIDAD_INICIAL),
+                    revision)
                 if pedido is None:
                     anunciar("No se transmitió.")
                     return

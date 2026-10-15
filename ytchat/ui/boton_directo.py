@@ -60,22 +60,23 @@ class BotonDirecto:
 
     def _transmitir(self):
         marco = self._marco
-        from ytchat.obs import obs_destinos
-        destino = marco._config.get("transmision_destino", "") or ""
-        if destino not in obs_destinos.DESTINOS:
-            destino = ""
-        usuario = ""
-        if not destino:
-            anunciar("Elige a dónde transmitir en la ventana Transmisión.")
-            marco._on_transmision(None)
+        from ytchat.ui.gui_elegir_destino import pedir_destino
+        destino_guardado = marco._config.get("transmision_destino", "") or ""
+        usuario_guardado = marco._config.get("tiktok_usuario", "") or ""
+        elegido = pedir_destino(marco, destino_guardado, usuario_guardado)
+        if elegido is None:
+            anunciar("No se transmitió.")
             return
+        destino, usuario = elegido
+        try:
+            marco._guardar_destino_transmision(destino)
+        except Exception:
+            pass
         if destino == "TikTok":
-            usuario = marco._config.get("tiktok_usuario", "") or ""
-            if not usuario:
-                anunciar("Escribe tu usuario de TikTok en la ventana "
-                          "Transmisión.")
-                marco._on_transmision(None)
-                return
+            try:
+                usuario = marco._guardar_usuario_tiktok(usuario)
+            except Exception:
+                pass
         _snd.reproducir("conectando")
         anunciar("Revisando OBS antes de transmitir.")
         self.boton.Disable()
@@ -109,6 +110,12 @@ class BotonDirecto:
             marco._obs_transmitiendo = True
             anunciar("OBS ya está transmitiendo. Con este mismo botón "
                       "puedes finalizar el directo.")
+            marco._actualizar_boton_directo()
+            return
+        if destino == "YouTube":
+            marco._supervisar_transmision(
+                "iniciar", destino, usuario,
+                revision=preparacion.revision)
             marco._actualizar_boton_directo()
             return
         from ytchat.ui.gui_transmision import confirmar_transmision

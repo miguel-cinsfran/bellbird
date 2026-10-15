@@ -2837,7 +2837,7 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
                            self._doble_supervisor(creados)), \
                 mock.patch.object(gui, "anunciar") as anunciar:
             frame._supervisar_transmision("iniciar", "YouTube", "")
-        pedir.assert_called_once_with(frame, "", "", "unlisted")
+        pedir.assert_called_once_with(frame, "", "", "unlisted", None)
         self.assertEqual(frame._config["transmision_youtube_titulo"], "Hola")
         self.assertEqual(frame._config["transmision_youtube_descripcion"], "algo")
         self.assertEqual(frame._config["transmision_youtube_privacidad"], "public")
@@ -2873,6 +2873,27 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
         anunciar.assert_called_once_with("Falta el título del directo.")
         fabrica.assert_not_called()
         self.assertIsNone(frame._supervisor)
+
+    def test_revision_llega_a_la_ventana_del_directo(self):
+        frame = self._frame()
+        creados = []
+        pedido = {"titulo": "Hola", "descripcion": "algo",
+                  "privacidad": "public"}
+        revision = mock.sentinel.revision
+        with mock.patch.object(gui.credenciales, "cargar",
+                               return_value={"token": "t"}), \
+                mock.patch.object(gui.credenciales, "hay_sesion",
+                                   return_value=True), \
+                mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo",
+                           return_value=pedido) as pedir, \
+                mock.patch.object(gui.youtube_api, "ClienteYouTube"), \
+                mock.patch.object(gui, "guardar_opcion"), \
+                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+                           self._doble_supervisor(creados)):
+            frame._supervisar_transmision(
+                "iniciar", "YouTube", "", revision=revision)
+        pedir.assert_called_once_with(frame, "", "", "unlisted", revision)
+        self.assertEqual(len(creados), 1)
 
     def test_tiktok_arranca_sin_ganchos_y_sin_pedir_datos(self):
         frame = self._frame()

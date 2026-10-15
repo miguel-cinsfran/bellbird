@@ -296,6 +296,7 @@ class TransmisionDialog(wx.Dialog):
         self.btn_como_se_coloca.Bind(wx.EVT_BUTTON, self._como_se_coloca)
         self.btn_lienzo.Bind(wx.EVT_BUTTON, self._lienzo)
         self.btn_restaurar.Bind(wx.EVT_BUTTON, self._restaurar)
+        self.cho_destino.Bind(wx.EVT_CHOICE, self._al_cambiar_destino)
         self.btn_destino.Bind(wx.EVT_BUTTON, self._preparar_destino)
         self.btn_transmitir.Bind(wx.EVT_BUTTON, self._transmitir)
         self.btn_grabar.Bind(wx.EVT_BUTTON, self._grabar)
@@ -667,6 +668,17 @@ class TransmisionDialog(wx.Dialog):
     def _pausa_grabacion_alternada(self, en_pausa):
         accion = "grabacion_en_pausa" if en_pausa else "grabacion_reanudada"
         anunciar(obs_estado.frase_resultado(accion))
+
+    def _al_cambiar_destino(self, event):
+        # Solo guarda lo elegido, sin anunciar ni preparar: recorrerlo
+        # con flechas dispara EVT_CHOICE y preparar ahí saldría al aire.
+        if self._guardar_destino is not None:
+            try:
+                self._guardar_destino(
+                    self.cho_destino.GetStringSelection())
+            except Exception:
+                pass
+        event.Skip()
 
     def _preparar_destino(self, event):
         # Elegir en el desplegable no prepara nada por sí solo: recorrerlo

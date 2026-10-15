@@ -841,6 +841,16 @@ class TestTransmisionDialog(unittest.TestCase):
         self.dialogo.cho_destino.GetEventHandler().ProcessEvent(evento)
         self.gestor.preparar_destino.assert_not_called()
 
+    def test_cambiar_la_lista_guarda_el_destino_sin_anunciar(self):
+        guardar = mock.Mock()
+        self.dialogo._guardar_destino = guardar
+        self.dialogo.cho_destino.SetStringSelection("YouTube")
+        self.dialogo.cho_destino.GetEventHandler().ProcessEvent(
+            wx.CommandEvent(wx.EVT_CHOICE.typeId,
+                            self.dialogo.cho_destino.GetId()))
+        guardar.assert_called_once_with("YouTube")
+        self.assertEqual(self.anuncios, [])
+
     def test_boton_prepara_con_el_destino_elegido_y_enfoca_transmitir(self):
         self.dialogo.cho_destino.SetStringSelection("TikTok")
         with mock.patch.object(self.dialogo.btn_transmitir, "SetFocus") as foco:

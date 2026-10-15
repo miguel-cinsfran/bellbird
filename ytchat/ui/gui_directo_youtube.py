@@ -38,7 +38,7 @@ def resultado_directo(titulo, descripcion, privacidad) -> dict:
 
 class DialogoDirectoYoutube(wx.Dialog):
     def __init__(self, padre, titulo="", descripcion="",
-                 privacidad=PRIVACIDAD_INICIAL):
+                 privacidad=PRIVACIDAD_INICIAL, revision=None):
         super().__init__(padre, title="Directo de YouTube",
                          name="DialogoDirectoYoutube")
         if privacidad not in PRIVACIDADES:
@@ -77,10 +77,22 @@ class DialogoDirectoYoutube(wx.Dialog):
         nombre_accesible(self.cho_privacidad, "Privacidad")
         vs.Add(self.cho_privacidad, 0, wx.EXPAND | wx.ALL, 10)
 
+        from ytchat.obs import obs_prevuelo
+        texto_revision = (obs_prevuelo.frase_revision(revision)
+                          if revision is not None else "")
+        rotulo_revision = wx.StaticText(self, label="Revisión de OBS:")
+        vs.Add(rotulo_revision, 0, wx.LEFT | wx.RIGHT, 10)
+        self.txt_revision = wx.TextCtrl(
+            self, value=texto_revision,
+            style=wx.TE_MULTILINE | wx.TE_READONLY,
+            name="Revisión de OBS")
+        self.txt_revision.SetMinSize(
+            (-1, 3 * self.txt_revision.GetCharHeight() + 12))
+        nombre_accesible(self.txt_revision, "Revisión de OBS")
+        vs.Add(self.txt_revision, 0, wx.EXPAND | wx.ALL, 10)
+
         fila = wx.BoxSizer(wx.HORIZONTAL)
-        # Cancelar lleva la letra en la «a» para no repetir la C de Crear.
-        self.btn_crear = wx.Button(self, wx.ID_OK, "&Crear directo")
-        self.btn_crear.SetDefault()
+        self.btn_crear = wx.Button(self, wx.ID_OK, "&Transmitir")
         self.btn_cancelar = wx.Button(self, wx.ID_CANCEL, "C&ancelar")
         fila.Add(self.btn_crear, 0, wx.RIGHT, 6)
         fila.Add(self.btn_cancelar, 0)
@@ -90,7 +102,13 @@ class DialogoDirectoYoutube(wx.Dialog):
         self.SetSizerAndFit(vs)
         self.btn_crear.Bind(wx.EVT_BUTTON, self._al_crear)
         self.Bind(wx.EVT_CHAR_HOOK, self._al_tecla)
-        self.txt_titulo.SetFocus()
+        if revision is not None and bool(
+                getattr(revision, "problemas", ())):
+            self.btn_cancelar.SetDefault()
+            self.btn_cancelar.SetFocus()
+        else:
+            self.btn_crear.SetDefault()
+            self.txt_titulo.SetFocus()
 
     @property
     def datos(self):
@@ -119,9 +137,10 @@ class DialogoDirectoYoutube(wx.Dialog):
 
 
 def pedir_datos_directo(padre, titulo="", descripcion="",
-                        privacidad=PRIVACIDAD_INICIAL):
+                        privacidad=PRIVACIDAD_INICIAL, revision=None):
     """Pide título, descripción y privacidad. Dict o None si se cancela."""
-    dialogo = DialogoDirectoYoutube(padre, titulo, descripcion, privacidad)
+    dialogo = DialogoDirectoYoutube(
+        padre, titulo, descripcion, privacidad, revision)
     try:
         if dialogo.ShowModal() == wx.ID_OK:
             return dialogo.datos

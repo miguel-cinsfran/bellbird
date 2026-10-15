@@ -110,11 +110,42 @@ class TestDialogoDirectoVentana(unittest.TestCase):
 
     def test_botones_y_foco(self):
         dialogo = self._dialogo(titulo="Hola")
-        self.assertEqual(dialogo.btn_crear.GetLabel(), "&Crear directo")
+        self.assertEqual(dialogo.btn_crear.GetLabel(), "&Transmitir")
         self.assertEqual(dialogo.btn_crear.GetId(), wx.ID_OK)
         self.assertEqual(dialogo.btn_cancelar.GetLabel(), "C&ancelar")
         self.assertEqual(dialogo.btn_cancelar.GetId(), wx.ID_CANCEL)
         self.assertEqual(dialogo.FindFocus(), dialogo.txt_titulo)
+
+    def test_revision_a_la_vista_lectura_y_orden(self):
+        from ytchat.obs import obs_prevuelo
+        revision = obs_prevuelo.Revision(
+            "YouTube", "YouTube", "Sin Título", 1280, 720, "Principal",
+            (), (), None, ())
+        dialogo = self._dialogo(titulo="Hola", revision=revision)
+        self.assertEqual(dialogo.txt_revision.GetName(), "Revisión de OBS")
+        self.assertEqual(dialogo.txt_revision.GetValue(),
+                         obs_prevuelo.frase_revision(revision))
+        estilo = dialogo.txt_revision.GetWindowStyle()
+        self.assertTrue(estilo & wx.TE_MULTILINE)
+        self.assertTrue(estilo & wx.TE_READONLY)
+        orden = [h.GetName() for h in dialogo.GetChildren()
+                 if h.GetName() in ("Título del directo",
+                                    "Descripción del directo", "Privacidad",
+                                    "Revisión de OBS")]
+        self.assertEqual(orden, ["Título del directo",
+                                 "Descripción del directo", "Privacidad",
+                                 "Revisión de OBS"])
+        self.assertEqual(dialogo.FindFocus(), dialogo.txt_titulo)
+
+    def test_revision_con_problemas_enfoca_cancelar(self):
+        from ytchat.obs import obs_prevuelo
+        revision = obs_prevuelo.Revision(
+            "YouTube", "YouTube", "Sin Título", 1280, 720, "Principal",
+            (), (), None, ("La imagen está vacía.",))
+        dialogo = self._dialogo(titulo="Hola", revision=revision)
+        self.assertIn("La imagen está vacía.",
+                      dialogo.txt_revision.GetValue())
+        self.assertEqual(dialogo.FindFocus(), dialogo.btn_cancelar)
 
     def test_crear_con_titulo_vacio_anuncia_y_sigue_abierto(self):
         dialogo = self._dialogo(titulo="Hola")

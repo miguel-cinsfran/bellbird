@@ -281,8 +281,9 @@ class TestCableadoClienteApp(unittest.TestCase):
                            return_value=dict(pedido)), \
                 mock.patch.object(frame, "_guardar_datos_directo_youtube",
                                   return_value=dict(pedido)), \
-                mock.patch.object(emision, "ganchos_youtube",
-                                  return_value=(mock.Mock(), mock.Mock())), \
+                 mock.patch.object(emision, "ganchos_youtube",
+                                   return_value=(mock.Mock(), mock.Mock(),
+                                                 mock.Mock())), \
                 mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision"):
             frame._supervisar_transmision("iniciar", destino="YouTube")
         cliente.assert_called_once()

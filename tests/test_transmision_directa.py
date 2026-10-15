@@ -4,8 +4,8 @@ import unittest
 
 from ytchat.obs import transmision_directa
 from ytchat.obs.transmision_directa import (
-    Preparacion, boton_visible, es_directo_propio, etiqueta, finalizar,
-    preparar)
+    FalloCierreYoutube, Preparacion, boton_visible, es_directo_propio,
+    etiqueta, finalizar, preparar)
 
 
 class EsDirectoPropioTest(unittest.TestCase):
@@ -210,6 +210,42 @@ class FinalizarTest(unittest.TestCase):
         gestor.detener_transmision = _romper
         with self.assertRaises(RuntimeError):
             finalizar(gestor)
+        self.assertEqual(gestor.llamadas[-1], "cerrar")
+
+    def test_con_perfil_youtube_llama_despues_de_detener(self):
+        gestor = GestorFalso(transmitiendo=True, perfil="YouTube")
+        llamadas = []
+        finalizar(gestor,
+                  finalizar_youtube=lambda: llamadas.append("youtube"))
+        self.assertEqual(llamadas, ["youtube"])
+        self.assertLess(gestor.llamadas.index("detener"),
+                        len(gestor.llamadas) - 1)
+        self.assertEqual(gestor.llamadas[-1], "cerrar")
+        self.assertIn("perfil", gestor.llamadas)
+        self.assertLess(gestor.llamadas.index("perfil"),
+                        gestor.llamadas.index("detener"))
+
+    def test_con_otro_perfil_no_toca_youtube(self):
+        gestor = GestorFalso(transmitiendo=True, perfil="TikTok")
+        llamadas = []
+        finalizar(gestor,
+                  finalizar_youtube=lambda: llamadas.append("youtube"))
+        self.assertEqual(llamadas, [])
+        self.assertIn("detener", gestor.llamadas)
+
+    def test_sin_callable_no_lee_el_perfil(self):
+        gestor = GestorFalso(transmitiendo=True, perfil="YouTube")
+        finalizar(gestor)
+        self.assertNotIn("perfil", gestor.llamadas)
+
+    def test_fallo_en_youtube_sale_como_fallo_de_cierre(self):
+        gestor = GestorFalso(transmitiendo=True, perfil="YouTube")
+
+        def _romper():
+            raise RuntimeError("cuota agotada")
+        with self.assertRaises(FalloCierreYoutube) as contexto:
+            finalizar(gestor, finalizar_youtube=_romper)
+        self.assertIn("YouTube no confirmó", str(contexto.exception))
         self.assertEqual(gestor.llamadas[-1], "cerrar")
 
 

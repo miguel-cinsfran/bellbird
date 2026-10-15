@@ -45,7 +45,7 @@ def cuerpo_emision(titulo, descripcion, privacidad, inicio_iso) -> dict:
             "status": {"privacyStatus": privacidad,
                        "selfDeclaredMadeForKids": False},
             "contentDetails": {"enableAutoStart": True,
-                               "enableAutoStop": True}}
+                               "enableAutoStop": False}}
 
 
 def titulo_por_defecto(ahora: datetime) -> str:
@@ -105,12 +105,40 @@ def preparar_en_youtube(cliente_yt, cliente_obs, cuerpo, parada=None,
                 guardar_token(nuevo)
 
 
-def ganchos_youtube(cliente_yt, cuerpo, guardar_token):
-    """Devuelve (preparar_emision, esperar_emision) para el supervisor.
+def finalizar_en_youtube(cliente_yt, id_video) -> bool:
+    """Finaliza o borra la emisión según su estado, y devuelve True.
 
-    Adapta `preparar_en_youtube` y `esperar_en_vivo` a las firmas que
-    espera `SupervisorTransmision`, con el cliente y el cuerpo ya fijos.
+    Con el directo al aire ("live", "liveStarting", "testing") lo pasa a
+    terminada; si nunca salió ("created", "ready") lo borra para no dejar
+    directos huérfanos; si ya terminó o no existe no hace nada. Las
+    excepciones de la API salen hacia quien llama.
     """
+    estado = cliente_yt.estado_emision(id_video)
+    if estado in ("live", "liveStarting", "testing"):
+        cliente_yt.finalizar_emision(id_video)
+    elif estado in ("created", "ready"):
+        cliente_yt.borrar_emision(id_video)
+    return True
+
+
+def ganchos_youtube(cliente_yt, cuerpo, guardar_token):
+    """Devuelve (preparar, esperar, finalizar) para el supervisor.
+
+    Adapta `preparar_en_youtube`, `esperar_en_vivo` y
+    `finalizar_en_youtube` a las firmas que espera
+    `SupervisorTransmision`, con el cliente y el cuerpo ya fijos.
+    """
+
+    def _guardar_si_hay_nuevo():
+        if guardar_token is None:
+            return
+        try:
+            nuevo = cliente_yt.token_actualizado()
+        except Exception:
+            nuevo = None
+        if nuevo:
+            guardar_token(nuevo)
+
     def preparar_emision(cliente_obs, parada):
         return preparar_en_youtube(
             cliente_yt, cliente_obs, cuerpo, parada=parada,
@@ -120,7 +148,13 @@ def ganchos_youtube(cliente_yt, cuerpo, guardar_token):
         return esperar_en_vivo(
             cliente_yt.estado_emision, id_video, parada, limite=limite)
 
-    return preparar_emision, esperar_emision
+    def finalizar_emision(id_video):
+        try:
+            return finalizar_en_youtube(cliente_yt, id_video)
+        finally:
+            _guardar_si_hay_nuevo()
+
+    return preparar_emision, esperar_emision, finalizar_emision
 
 
 def esperar_en_vivo(consultar_estado, id_video, parada=None, cada=5.0,

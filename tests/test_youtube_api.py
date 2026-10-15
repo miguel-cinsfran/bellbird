@@ -328,6 +328,11 @@ class ServicioEmisionFalso:
         self.parametros = kwargs
         return self
 
+    def transition(self, **kwargs):
+        self.metodo = "transition"
+        self.parametros = kwargs
+        return self
+
     def execute(self):
         return self.respuesta
 
@@ -374,6 +379,37 @@ class TestEmisionApi(unittest.TestCase):
         cliente.borrar_emision("vid123")
         self.assertEqual(servicio.metodo, "delete")
         self.assertEqual(servicio.parametros.get("id"), "vid123")
+
+    def test_finalizar_emision_pasa_a_terminada(self):
+        cliente, servicio = self.cliente({})
+        cliente.finalizar_emision("vid123")
+        self.assertEqual(servicio.metodo, "transition")
+        self.assertEqual(
+            servicio.parametros.get("broadcastStatus"), "complete")
+        self.assertEqual(servicio.parametros.get("id"), "vid123")
+        self.assertEqual(servicio.parametros.get("part"), "status")
+
+    def test_emisiones_activas_pide_las_activas(self):
+        cliente, servicio = self.cliente({"items": []})
+        self.assertEqual(cliente.emisiones_activas(), [])
+        self.assertEqual(servicio.metodo, "list")
+        self.assertEqual(
+            servicio.parametros.get("broadcastStatus"), "active")
+        self.assertEqual(
+            servicio.parametros.get("broadcastType"), "all")
+        self.assertEqual(
+            servicio.parametros.get("part"), "id,contentDetails,status")
+
+    def test_emisiones_activas_devuelve_id_y_flujo(self):
+        cliente, _servicio = self.cliente({"items": [
+            {"id": "vid1",
+             "contentDetails": {"boundStreamId": "flujo-1"}},
+            {"id": "vid2",
+             "contentDetails": {"boundStreamId": "flujo-2"}},
+            {"contentDetails": {"boundStreamId": "sin-id"}},
+        ]})
+        self.assertEqual(cliente.emisiones_activas(),
+                         [("vid1", "flujo-1"), ("vid2", "flujo-2")])
 
     def test_directos_no_activados(self):
         self.assertIn("directos activados",

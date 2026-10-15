@@ -86,15 +86,37 @@ def preparar(gestor, destino: str, asegurar: Callable, al_anunciar: Callable,
             pass
 
 
-def finalizar(gestor) -> None:
+class FalloCierreYoutube(Exception):
+    """OBS se detuvo pero YouTube no confirmó el fin del directo."""
+
+
+def finalizar(gestor, finalizar_youtube=None) -> None:
     """Detiene el directo si OBS transmite, para finalizar sin supervisor.
 
-    Conecta, detiene solo con `outputActive` y cierra en `finally`.
+    Conecta, detiene solo con `outputActive` y cierra en `finally`. Con
+    `finalizar_youtube` y perfil de OBS en "YouTube" (leído antes de
+    detener), lo llama después de detener OBS para cerrar el directo en
+    YouTube; si eso falla, sale como `FalloCierreYoutube`.
     """
     try:
         gestor.conectar()
+        perfil = None
+        if finalizar_youtube is not None:
+            try:
+                perfil = gestor.perfil_actual()
+            except Exception:
+                perfil = None
         if bool(gestor.estado_transmision().get("outputActive", False)):
             gestor.detener_transmision()
+        if finalizar_youtube is not None and perfil == "YouTube":
+            try:
+                finalizar_youtube()
+            except FalloCierreYoutube:
+                raise
+            except Exception as exc:
+                raise FalloCierreYoutube(
+                    "YouTube no confirmó el fin del directo. "
+                    "Finalízalo en YouTube Studio.") from exc
     finally:
         try:
             gestor.cerrar()

@@ -21,6 +21,8 @@ from ytchat.obs import obs_salida
 from ytchat.obs.obs_panel import GestorPanelObs
 from ytchat.youtube import emision
 
+logger = diagnostico.obtener_logger(__name__)
+
 # La misma frase no se repite antes de este plazo durante la vigilancia.
 PLAZO_REPETICION = 60.0
 
@@ -58,7 +60,8 @@ class SupervisorTransmision:
                  dormir=time.sleep, reloj=time.monotonic,
                  intervalo_salud=5.0, limite_tiktok=120.0,
                  asegurar=None, al_terminar=None,
-                 preparar_emision=None, esperar_emision=None):
+                 preparar_emision=None, esperar_emision=None,
+                 finalizar_emision=None):
         self._destino = destino
         self._usuario = usuario_tiktok or ""
         self._al_anunciar = al_anunciar or (lambda frase, sonido: None)
@@ -75,7 +78,10 @@ class SupervisorTransmision:
         self._al_terminar = al_terminar
         self._preparar_emision = preparar_emision
         self._esperar_emision = esperar_emision
+        self._finalizar_emision = finalizar_emision
         self._id_video = None
+        self._cerrojo_fin = threading.Lock()
+        self._fin_youtube = False
         self._parada = threading.Event()
         self._corte = threading.Event()
         self._hilo = None
@@ -119,6 +125,9 @@ class SupervisorTransmision:
             return
         self._parada.clear()
         self._corte.clear()
+        self._id_video = None
+        with self._cerrojo_fin:
+            self._fin_youtube = False
         self._hilo = diagnostico.crear_hilo(
             self._supervisar, "SupervisorTransmision")
         self._hilo.start()
@@ -153,6 +162,7 @@ class SupervisorTransmision:
                 self._al_anunciar("Transmisión detenida.", None)
             except Exception:
                 pass
+            self._finalizar_youtube_si_toca()
         hilo = self._hilo
         if hilo is not None:
             hilo.join(2.0)
@@ -296,6 +306,33 @@ class SupervisorTransmision:
                 except Exception:
                     pass
 
+    def _finalizar_youtube_si_toca(self) -> None:
+        # Cierra el directo en YouTube una sola vez por emisión, solo con
+        # id de vídeo (los directos de TikTok no tienen). Corre en el hilo
+        # que ya llamó: detener() o la vigilancia, sin hilos nuevos.
+        gancho = self._finalizar_emision
+        id_video = self._id_video
+        if gancho is None or not id_video:
+            return
+        with self._cerrojo_fin:
+            if self._fin_youtube:
+                return
+            self._fin_youtube = True
+        try:
+            gancho(id_video)
+        except Exception as error:
+            try:
+                self._anunciar(
+                    "YouTube no confirmó el fin del directo. "
+                    "Finalízalo en YouTube Studio.", "error")
+            except Exception:
+                pass
+            try:
+                logger.warning("no se pudo finalizar la emisión %s: %s",
+                               id_video, error)
+            except Exception:
+                pass
+
     def _vigilar(self, gestor) -> None:
         anterior = gestor.estado_transmision(self._parada)
         try:
@@ -326,6 +363,7 @@ class SupervisorTransmision:
                 self._anunciar(
                     "La transmisión terminó. "
                     f"Duró {duracion_legible(segundos)}.", None)
+                self._finalizar_youtube_si_toca()
                 return
             frase = obs_salida.problema_en_directo(anterior, actual)
             if frase:

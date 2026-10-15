@@ -2775,12 +2775,14 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
         class DobleSupervisor:
             def __init__(self, destino, usuario, al_anunciar=None,
                          al_conectar_chat=None, al_terminar=None,
-                         preparar_emision=None, esperar_emision=None):
+                         preparar_emision=None, esperar_emision=None,
+                         finalizar_emision=None):
                 creados.append({
                     "destino": destino, "usuario": usuario,
                     "al_conectar_chat": al_conectar_chat,
                     "preparar_emision": preparar_emision,
-                    "esperar_emision": esperar_emision})
+                    "esperar_emision": esperar_emision,
+                    "finalizar_emision": finalizar_emision})
                 self.iniciado = False
 
             def iniciar(self):
@@ -2855,6 +2857,7 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
         self.assertEqual(len(creados), 1)
         self.assertTrue(callable(creados[0]["preparar_emision"]))
         self.assertTrue(callable(creados[0]["esperar_emision"]))
+        self.assertTrue(callable(creados[0]["finalizar_emision"]))
         self.assertTrue(frame._supervisor.iniciado)
         anunciar.assert_not_called()
 
@@ -2908,6 +2911,7 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
         self.assertEqual(creados[0]["destino"], "TikTok")
         self.assertIsNone(creados[0]["preparar_emision"])
         self.assertIsNone(creados[0]["esperar_emision"])
+        self.assertIsNone(creados[0]["finalizar_emision"])
         self.assertTrue(frame._supervisor.iniciado)
 
     def _conectar_chat_youtube(self, frame, privacidad):

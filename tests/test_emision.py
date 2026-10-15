@@ -39,7 +39,7 @@ class TestCuerpoEmision(unittest.TestCase):
         self.assertFalse(cuerpo["status"]["selfDeclaredMadeForKids"])
         self.assertTrue(
             cuerpo["contentDetails"]["enableAutoStart"])
-        self.assertTrue(cuerpo["contentDetails"]["enableAutoStop"])
+        self.assertFalse(cuerpo["contentDetails"]["enableAutoStop"])
 
     def test_recorta_titulo_y_descripcion(self):
         cuerpo = cuerpo_emision("x" * 150, "y" * 6000, "public",
@@ -250,13 +250,58 @@ class TestEsperarEnVivo(unittest.TestCase):
         self.assertEqual(len(intentos), 3)
 
 
+class TestFinalizarEnYoutube(unittest.TestCase):
+
+    def _cliente(self, estado):
+        cliente = mock.Mock()
+        cliente.estado_emision.return_value = estado
+        return cliente
+
+    def test_al_aire_finaliza(self):
+        for estado in ("live", "liveStarting", "testing"):
+            with self.subTest(estado=estado):
+                cliente = self._cliente(estado)
+                self.assertTrue(
+                    emision.finalizar_en_youtube(cliente, "vid123"))
+                cliente.estado_emision.assert_called_once_with("vid123")
+                cliente.finalizar_emision.assert_called_once_with(
+                    "vid123")
+                cliente.borrar_emision.assert_not_called()
+
+    def test_sin_salir_borra(self):
+        for estado in ("created", "ready"):
+            with self.subTest(estado=estado):
+                cliente = self._cliente(estado)
+                self.assertTrue(
+                    emision.finalizar_en_youtube(cliente, "vid123"))
+                cliente.borrar_emision.assert_called_once_with("vid123")
+                cliente.finalizar_emision.assert_not_called()
+
+    def test_terminada_o_ausente_no_hace_nada(self):
+        for estado in ("complete", "revoked", ""):
+            with self.subTest(estado=estado):
+                cliente = self._cliente(estado)
+                self.assertTrue(
+                    emision.finalizar_en_youtube(cliente, "vid123"))
+                cliente.finalizar_emision.assert_not_called()
+                cliente.borrar_emision.assert_not_called()
+
+    def test_excepcion_sale(self):
+        cliente = mock.Mock()
+        cliente.estado_emision.side_effect = RuntimeError("falla de red")
+        with self.assertRaises(RuntimeError):
+            emision.finalizar_en_youtube(cliente, "vid123")
+        cliente.finalizar_emision.assert_not_called()
+        cliente.borrar_emision.assert_not_called()
+
+
 class TestGanchosYoutube(unittest.TestCase):
 
     def test_preparar_llama_a_preparar_en_youtube(self):
         cliente_yt = mock.Mock()
         cuerpo = {"snippet": {"title": "Hola"}}
         parada = threading.Event()
-        preparar, _esperar = emision.ganchos_youtube(
+        preparar, _esperar, _finalizar = emision.ganchos_youtube(
             cliente_yt, cuerpo, guardar_token="guardar")
         with mock.patch.object(emision, "preparar_en_youtube",
                                return_value="vid123") as preparar_en:
@@ -268,7 +313,7 @@ class TestGanchosYoutube(unittest.TestCase):
 
     def test_esperar_llama_a_esperar_en_vivo(self):
         cliente_yt = mock.Mock()
-        _preparar, esperar = emision.ganchos_youtube(
+        _preparar, esperar, _finalizar = emision.ganchos_youtube(
             cliente_yt, {}, guardar_token=None)
         parada = threading.Event()
         with mock.patch.object(emision, "esperar_en_vivo",
@@ -277,6 +322,27 @@ class TestGanchosYoutube(unittest.TestCase):
         self.assertTrue(visto)
         esperar_en.assert_called_once_with(
             cliente_yt.estado_emision, "vid123", parada, limite=30.0)
+
+    def test_finalizar_llama_a_finalizar_en_youtube(self):
+        cliente_yt = mock.Mock()
+        _preparar, _esperar, finalizar = emision.ganchos_youtube(
+            cliente_yt, {}, guardar_token=None)
+        with mock.patch.object(emision, "finalizar_en_youtube",
+                               return_value=True) as finalizar_en:
+            devuelto = finalizar("vid123")
+        self.assertTrue(devuelto)
+        finalizar_en.assert_called_once_with(cliente_yt, "vid123")
+
+    def test_finalizar_guarda_el_token_renovado(self):
+        cliente_yt = mock.Mock()
+        cliente_yt.token_actualizado.return_value = "nuevo-token"
+        guardados = []
+        _preparar, _esperar, finalizar = emision.ganchos_youtube(
+            cliente_yt, {}, guardar_token=guardados.append)
+        with mock.patch.object(emision, "finalizar_en_youtube",
+                               return_value=True):
+            finalizar("vid123")
+        self.assertEqual(guardados, ["nuevo-token"])
 
 
 if __name__ == "__main__":

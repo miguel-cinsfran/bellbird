@@ -856,11 +856,12 @@ class YTChatFrame(wx.Frame):
                 except emision.EmisionError as exc:
                     anunciar(str(exc))
                     return
-                preparar, esperar = emision.ganchos_youtube(
+                preparar, esperar, finalizar = emision.ganchos_youtube(
                     youtube_api.ClienteYouTube(credenciales.efectivas(datos)), cuerpo,
                     lambda nuevo: credenciales.guardar_campo("token", nuevo))
                 ganchos = {"preparar_emision": preparar,
-                           "esperar_emision": esperar}
+                           "esperar_emision": esperar,
+                           "finalizar_emision": finalizar}
             from ytchat.obs.obs_supervisor import SupervisorTransmision
 
             def al_anunciar(frase, sonido):

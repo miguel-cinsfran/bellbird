@@ -145,15 +145,65 @@ class BotonDirecto:
             marco._actualizar_boton_directo()
             return
 
+        finalizar_youtube = self._cierre_en_youtube()
+
         def _detener():
             try:
-                transmision_directa.finalizar(GestorPanelObs())
+                transmision_directa.finalizar(
+                    GestorPanelObs(),
+                    finalizar_youtube=finalizar_youtube)
             except Exception as error:
                 wx.CallAfter(self._finalizada_con_error, error)
             else:
                 wx.CallAfter(self._finalizada)
 
         diagnostico.crear_hilo(_detener, "BotonDirectoFinalizar").start()
+
+    def _cierre_en_youtube(self):
+        """Callable sin argumentos que cierra el directo en YouTube.
+
+        Solo con sesión iniciada, con las mismas credenciales que arma
+        `gui.py` al supervisar: busca las emisiones activas atadas al
+        flujo reutilizable de la cuenta y las finaliza. Sin sesión
+        devuelve None y OBS se detiene como hoy.
+        """
+        try:
+            from ytchat.youtube import credenciales, emision, youtube_api
+        except Exception:
+            return None
+        try:
+            datos = credenciales.cargar()
+        except Exception:
+            return None
+        if not credenciales.hay_sesion(datos):
+            return None
+        try:
+            cliente = youtube_api.ClienteYouTube(
+                credenciales.efectivas(datos))
+        except Exception:
+            return None
+
+        def _cerrar():
+            try:
+                flujo = cliente.flujo_reutilizable()
+                id_flujo = flujo[0] if flujo else ""
+                if not id_flujo:
+                    return
+                for id_video, atado in cliente.emisiones_activas():
+                    if atado == id_flujo:
+                        emision.finalizar_en_youtube(cliente, id_video)
+            finally:
+                try:
+                    nuevo = cliente.token_actualizado()
+                except Exception:
+                    nuevo = None
+                if nuevo:
+                    try:
+                        credenciales.guardar_campo("token", nuevo)
+                    except Exception:
+                        pass
+
+        return _cerrar
 
     def _finalizada(self):
         marco = self._marco
@@ -166,6 +216,16 @@ class BotonDirecto:
 
     def _finalizada_con_error(self, error):
         if not self._marco._alive:
+            return
+        if isinstance(error, transmision_directa.FalloCierreYoutube):
+            _snd.reproducir("error")
+            anunciar(str(error))
+            try:
+                diagnostico.obtener_logger(__name__).warning(
+                    "cierre en YouTube sin supervisor: %s",
+                    error.__cause__ or error)
+            except Exception:
+                pass
             return
         _snd.reproducir("error")
         anunciar(obs_cliente.mensaje_de_fallo_obs(error))

@@ -720,5 +720,163 @@ class YouTubeEmisionTest(BaseSupervisor):
             supervisor.abandonar()
 
 
+class FinalizarYoutubeTest(BaseSupervisor):
+    def armar_youtube(self, estados, intervalo=0.01, espera=True,
+                      finalizar=None):
+        anuncios = []
+        gestores = []
+        llamadas_finalizar = []
+
+        def crear_gestor():
+            gestor = GestorFalso(estados)
+            gestores.append(gestor)
+            return gestor
+
+        def preparar(cliente, parada):
+            return "vid123"
+
+        def esperar(id_video, parada, limite):
+            return espera
+
+        def finalizar_hook(id_video):
+            llamadas_finalizar.append(id_video)
+            if finalizar is not None:
+                raise finalizar
+
+        supervisor = SupervisorTransmision(
+            "YouTube", "",
+            al_anunciar=lambda frase, sonido: anuncios.append(
+                (frase, sonido)),
+            al_conectar_chat=lambda url: None,
+            crear_gestor=crear_gestor,
+            esperar_salida=lambda cliente, parada=None: "enviando",
+            esperar_en_vivo=lambda u, parada=None, limite=None: (
+                ResultadoEspera(False, False)),
+            dormir=time.sleep, reloj=time.monotonic,
+            intervalo_salud=intervalo,
+            asegurar=lambda probar, al_anunciar=None, parada=None: False,
+            preparar_emision=preparar, esperar_emision=esperar,
+            finalizar_emision=finalizar_hook)
+        return supervisor, anuncios, gestores, llamadas_finalizar
+
+    def test_vigilar_cierra_en_youtube_al_apagarse_obs(self):
+        estados = [muestra(True, duracion=61),
+                   muestra(False, duracion=61)]
+        armado = self.armar_youtube(estados)
+        supervisor, anuncios, _gestores, llamadas = armado
+        self.iniciar_y_esperar_fin(supervisor)
+        self.assertEqual(llamadas, ["vid123"])
+        self.assertIn(
+            ("La transmisión terminó. Duró 1 minuto y 1 segundo.", None),
+            anuncios)
+
+    def test_reconectando_no_cierra(self):
+        estados = [muestra(True, duracion=10, reconectando=True)] * 50
+        armado = self.armar_youtube(estados, intervalo=0.01)
+        supervisor, anuncios, gestores, llamadas = armado
+        supervisor.iniciar()
+        try:
+            self.assertTrue(esperar_condicion(
+                lambda: gestores and gestores[0].llamadas.count(
+                    "estado") >= 5))
+            self.assertEqual(llamadas, [])
+            frase = ("Se cortó la conexión con el servicio, "
+                     "OBS está reconectando.")
+            self.assertTrue(esperar_condicion(
+                lambda: frase in [texto for texto, _ in anuncios]))
+        finally:
+            supervisor.abandonar()
+        self.assertEqual(llamadas, [])
+        avisos = [texto for texto, _ in anuncios if texto == frase]
+        self.assertEqual(len(avisos), 1)
+
+    def test_detener_cierra_una_vez_y_vigilar_no_repite(self):
+        estados = [muestra(True, duracion=10)] * 500
+        armado = self.armar_youtube(estados)
+        supervisor, anuncios, gestores, llamadas = armado
+        supervisor.iniciar()
+        try:
+            self.assertTrue(esperar_condicion(
+                lambda: gestores and "estado" in gestores[0].llamadas))
+            supervisor.detener()
+            self.assertEqual(llamadas, ["vid123"])
+            self.assertIn(("Transmisión detenida.", None), anuncios)
+            # La vigilancia ve OBS apagado después: no se vuelve a llamar.
+            supervisor._parada.clear()
+            supervisor._corte.clear()
+            supervisor._vigilar(GestorFalso(
+                [muestra(False, duracion=61)]))
+            self.assertEqual(llamadas, ["vid123"])
+        finally:
+            if supervisor.activo:
+                supervisor.abandonar()
+
+    def test_abandonar_no_cierra(self):
+        estados = [muestra(True, duracion=10)] * 500
+        armado = self.armar_youtube(estados)
+        supervisor, _anuncios, gestores, llamadas = armado
+        supervisor.iniciar()
+        try:
+            self.assertTrue(esperar_condicion(
+                lambda: gestores and "estado" in gestores[0].llamadas))
+        finally:
+            supervisor.abandonar()
+        self.assertEqual(llamadas, [])
+
+    def test_sin_id_de_video_no_cierra(self):
+        # TikTok nunca fija _id_video: detener no toca YouTube.
+        anuncios = []
+        gestores = []
+        llamadas = []
+
+        def crear_gestor():
+            gestor = GestorFalso([muestra(True, duracion=10)] * 500)
+            gestores.append(gestor)
+            return gestor
+
+        supervisor = SupervisorTransmision(
+            "TikTok", "amigo",
+            al_anunciar=lambda frase, sonido: anuncios.append(
+                (frase, sonido)),
+            al_conectar_chat=lambda url: None,
+            crear_gestor=crear_gestor,
+            esperar_salida=lambda cliente, parada=None: "enviando",
+            esperar_en_vivo=lambda u, parada=None, limite=None: (
+                ResultadoEspera(True, False)),
+            dormir=time.sleep, reloj=time.monotonic,
+            intervalo_salud=0.01,
+            asegurar=lambda probar, al_anunciar=None, parada=None: False,
+            finalizar_emision=llamadas.append)
+        supervisor.iniciar()
+        try:
+            self.assertTrue(esperar_condicion(
+                lambda: gestores and "estado" in gestores[0].llamadas))
+            supervisor.detener()
+        finally:
+            if supervisor.activo:
+                supervisor.abandonar()
+        self.assertEqual(llamadas, [])
+        self.assertIn(("Transmisión detenida.", None), anuncios)
+
+    def test_si_youtube_falla_avisa_con_sonido_de_error(self):
+        estados = [muestra(True, duracion=10)] * 500
+        armado = self.armar_youtube(
+            estados, finalizar=RuntimeError("cuota agotada"))
+        supervisor, anuncios, gestores, llamadas = armado
+        supervisor.iniciar()
+        try:
+            self.assertTrue(esperar_condicion(
+                lambda: gestores and "estado" in gestores[0].llamadas))
+            supervisor.detener()
+            self.assertEqual(llamadas, ["vid123"])
+        finally:
+            if supervisor.activo:
+                supervisor.abandonar()
+        self.assertIn(
+            ("YouTube no confirmó el fin del directo. "
+             "Finalízalo en YouTube Studio.", "error"),
+            anuncios)
+
+
 if __name__ == "__main__":
     unittest.main()

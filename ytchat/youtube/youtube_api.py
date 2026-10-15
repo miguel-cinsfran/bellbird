@@ -383,3 +383,24 @@ class ClienteYouTube:
     def borrar_emision(self, id_video: str) -> None:
         """Borra una emisión programada de la cuenta."""
         self._escritura().liveBroadcasts().delete(id=id_video).execute()
+
+    def finalizar_emision(self, id_video: str) -> None:
+        """Pasa a terminada una emisión que salió al aire."""
+        self._escritura().liveBroadcasts().transition(
+            broadcastStatus="complete", id=id_video,
+            part="status").execute()
+
+    def emisiones_activas(self) -> list[tuple[str, str]]:
+        """Pares (id, boundStreamId) de las emisiones activas."""
+        resp = self._escritura().liveBroadcasts().list(
+            broadcastStatus="active", broadcastType="all",
+            part="id,contentDetails,status", maxResults=50).execute()
+        salida = []
+        for item in resp.get("items", []) or []:
+            id_video = item.get("id") or ""
+            if not id_video:
+                continue
+            atado = (item.get("contentDetails") or {}).get(
+                "boundStreamId") or ""
+            salida.append((id_video, atado))
+        return salida

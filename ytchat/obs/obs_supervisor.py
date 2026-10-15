@@ -189,6 +189,25 @@ class SupervisorTransmision:
         self._ultima_frase = frase if isinstance(frase, str) else ""
         self._al_anunciar(frase, sonido)
 
+    def _panel_tapado(self, gestor):
+        # Los dobles viejos de las pruebas no tienen el método y se salta.
+        traer = getattr(gestor, "traer_panel_adelante", None)
+        if traer is None:
+            return None
+        try:
+            return traer(self._parada)
+        except Exception as error:
+            try:
+                logger.debug("no se pudo poner el panel delante: %s", error)
+            except Exception:
+                pass
+            return None
+
+    def _anunciar_panel_tapado(self, nombre) -> None:
+        self._anunciar(
+            f"El panel de chat estaba detrás de «{nombre}». "
+            "Lo puse adelante.", None)
+
     def _probar_obs(self) -> None:
         gestor = self._crear_gestor()
         try:
@@ -224,6 +243,9 @@ class SupervisorTransmision:
                 except emision.EmisionError as error:
                     self._anunciar(str(error), "error")
                     return
+            nombre = self._panel_tapado(gestor)
+            if nombre:
+                self._anunciar_panel_tapado(nombre)
             gestor.iniciar_transmision(self._parada)
             if self._parada.is_set():
                 return
@@ -372,4 +394,14 @@ class SupervisorTransmision:
                 if ultimo is None or ahora - ultimo >= PLAZO_REPETICION:
                     self._anunciar(frase, "error")
                     ultimos_avisos[frase] = ahora
+            nombre = self._panel_tapado(gestor)
+            if nombre:
+                frase_panel = (
+                    f"El panel de chat estaba detrás de «{nombre}». "
+                    "Lo puse adelante.")
+                ahora = self._reloj()
+                ultimo = ultimos_avisos.get(frase_panel)
+                if ultimo is None or ahora - ultimo >= PLAZO_REPETICION:
+                    self._anunciar(frase_panel, None)
+                    ultimos_avisos[frase_panel] = ahora
             anterior = actual

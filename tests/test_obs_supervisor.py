@@ -878,5 +878,100 @@ class FinalizarYoutubeTest(BaseSupervisor):
             anuncios)
 
 
+class PanelAdelanteTest(BaseSupervisor):
+    FRASE = ("El panel de chat estaba detrás de "
+             "«Captura de pantalla». Lo puse adelante.")
+
+    def armar_con_panel(self, respuestas, estados=None, intervalo=5.0):
+        reloj = RelojFalso()
+        anuncios = []
+        gestores = []
+        llamadas = []
+        respuestas = list(respuestas)
+        estados = list(estados if estados is not None
+                       else [muestra(False)])
+
+        def crear_gestor():
+            gestor = GestorFalso(estados)
+            gestores.append(gestor)
+
+            def traer(parada=None):
+                llamadas.append(True)
+                if len(llamadas) <= len(respuestas):
+                    return respuestas[len(llamadas) - 1]
+                return respuestas[-1]
+
+            gestor.traer_panel_adelante = traer
+            return gestor
+
+        supervisor = SupervisorTransmision(
+            "YouTube", "",
+            al_anunciar=lambda frase, sonido: anuncios.append(
+                (frase, sonido)),
+            al_conectar_chat=lambda url: None,
+            crear_gestor=crear_gestor,
+            esperar_salida=lambda cliente, parada=None: "enviando",
+            esperar_en_vivo=lambda u, parada=None, limite=None: (
+                ResultadoEspera(False, False)),
+            dormir=reloj.dormir, reloj=reloj.reloj,
+            intervalo_salud=intervalo,
+            asegurar=lambda probar, al_anunciar=None, parada=None: False)
+        return supervisor, anuncios, gestores, llamadas
+
+    def test_al_salir_al_aire_anuncia_el_panel_tapado(self):
+        armado = self.armar_con_panel(["Captura de pantalla"])
+        supervisor, anuncios, gestores, llamadas = armado
+        self.iniciar_y_esperar_fin(supervisor)
+        self.assertTrue(llamadas)
+        self.assertIn((self.FRASE, None), anuncios)
+
+    def test_vigilar_anuncia_una_vez_por_minuto(self):
+        # El panel queda tapado a mitad del directo: la primera llamada es
+        # la de antes de transmitir y no hay nada encima todavía.
+        estados = [muestra(True, duracion=10)] * 5
+        estados.append(muestra(False, duracion=30))
+        respuestas = [None] + ["Captura de pantalla"] * 10
+        armado = self.armar_con_panel(respuestas, estados=estados)
+        supervisor, anuncios, _gestores, llamadas = armado
+        self.iniciar_y_esperar_fin(supervisor, plazo=3.0)
+        apariciones = [a for a in anuncios if a[0] == self.FRASE]
+        self.assertTrue(len(llamadas) >= 3)
+        self.assertEqual(len(apariciones), 1)
+        self.assertEqual(apariciones[0][1], None)
+
+    def test_si_traer_falla_el_directo_sigue(self):
+        reloj = RelojFalso()
+        anuncios = []
+        gestores = []
+
+        def crear_gestor():
+            gestor = GestorFalso([muestra(False)])
+            gestores.append(gestor)
+
+            def traer(parada=None):
+                raise RuntimeError("boom al traer")
+
+            gestor.traer_panel_adelante = traer
+            return gestor
+
+        supervisor = SupervisorTransmision(
+            "YouTube", "",
+            al_anunciar=lambda frase, sonido: anuncios.append(
+                (frase, sonido)),
+            al_conectar_chat=lambda url: None,
+            crear_gestor=crear_gestor,
+            esperar_salida=lambda cliente, parada=None: "enviando",
+            esperar_en_vivo=lambda u, parada=None, limite=None: (
+                ResultadoEspera(False, False)),
+            dormir=reloj.dormir, reloj=reloj.reloj,
+            intervalo_salud=1000.0,
+            asegurar=lambda probar, al_anunciar=None, parada=None: False)
+        self.iniciar_y_esperar_fin(supervisor)
+        self.assertIn(("OBS está enviando la señal a YouTube.", "conectado"),
+                      anuncios)
+        self.assertFalse(any(frase.startswith("El panel de chat")
+                             for frase, _ in anuncios))
+
+
 if __name__ == "__main__":
     unittest.main()

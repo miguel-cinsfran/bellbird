@@ -12,6 +12,32 @@ NOMBRE_FUENTE = "Chat YTChat"
 TIPO_FUENTE = "browser_source"
 
 
+def fuente_encima_del_panel(elementos, fuente=NOMBRE_FUENTE):
+    """Nombre de la fuente visible que tapa al panel, o None.
+
+    Mira la lista `sceneItems` de `GetSceneItemList` y devuelve la fuente
+    visible de índice más alto por encima del panel. Devuelve None si el
+    panel está arriba, si está oculto, si no está en la lista o si solo lo
+    tapan fuentes ocultas. Ocultar el panel es decisión de la persona.
+    """
+    panel = next((elemento for elemento in elementos
+                  if elemento.get("sourceName") == fuente), None)
+    if panel is None:
+        return None
+    if not panel.get("sceneItemEnabled", True):
+        return None
+    indice_panel = panel.get("sceneItemIndex", 0)
+    encima = [elemento for elemento in elementos
+              if elemento is not panel
+              and elemento.get("sceneItemIndex", 0) > indice_panel
+              and elemento.get("sceneItemEnabled", True)
+              and elemento.get("sourceName")]
+    if not encima:
+        return None
+    return max(encima, key=lambda elemento: elemento.get("sceneItemIndex", 0)).get(
+        "sourceName")
+
+
 class GestorPanelObs:
     def __init__(self, cliente=None, ajustes=None):
         if cliente is None:
@@ -281,6 +307,21 @@ class GestorPanelObs:
             "sceneName": escena, "sceneItemId": elemento["sceneItemId"],
             "sceneItemIndex": indice_mayor,
         }, parada)
+
+    def traer_panel_adelante(self, parada=None):
+        """Sube el panel si otra fuente visible lo tapa en la escena al aire.
+
+        Devuelve el nombre de la fuente que lo tapaba, o None si ya estaba
+        arriba. No crea el panel si no existe y no pide nada más a OBS
+        cuando no hay nada encima.
+        """
+        escena = self.escena_al_aire(parada)
+        elementos = self._elementos(escena, parada)
+        nombre = fuente_encima_del_panel(elementos)
+        if nombre is None:
+            return None
+        self.al_frente(escena, parada)
+        return nombre
 
     def fuentes(self, escena, parada=None) -> tuple:
         if escena not in self.escenas(parada):

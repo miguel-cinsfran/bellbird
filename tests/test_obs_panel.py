@@ -494,5 +494,74 @@ class GestorPanelObsTest(unittest.TestCase):
         self.assertIs(doble.llamadas[-1][2], parada)
 
 
+class FuenteEncimaDelPanelTest(unittest.TestCase):
+    def test_panel_arriba_no_devuelve_nada(self):
+        elementos = [elemento(1, obs_panel.NOMBRE_FUENTE, 2),
+                     elemento(2, "Juego", 1)]
+        self.assertIsNone(obs_panel.fuente_encima_del_panel(elementos))
+
+    def test_panel_tapado_por_una_visible_devuelve_su_nombre(self):
+        elementos = [elemento(1, obs_panel.NOMBRE_FUENTE, 0),
+                     elemento(2, "Captura de pantalla", 1)]
+        self.assertEqual(obs_panel.fuente_encima_del_panel(elementos),
+                         "Captura de pantalla")
+
+    def test_tapado_solo_por_ocultas_no_devuelve_nada(self):
+        elementos = [elemento(1, obs_panel.NOMBRE_FUENTE, 0),
+                     elemento(2, "Captura de pantalla", 1, visible=False)]
+        self.assertIsNone(obs_panel.fuente_encima_del_panel(elementos))
+
+    def test_panel_oculto_no_devuelve_nada(self):
+        elementos = [elemento(1, obs_panel.NOMBRE_FUENTE, 0, visible=False),
+                     elemento(2, "Captura de pantalla", 1)]
+        self.assertIsNone(obs_panel.fuente_encima_del_panel(elementos))
+
+    def test_sin_panel_no_devuelve_nada(self):
+        elementos = [elemento(2, "Captura de pantalla", 1)]
+        self.assertIsNone(obs_panel.fuente_encima_del_panel(elementos))
+
+    def test_varias_encima_devuelve_la_de_indice_mas_alto(self):
+        elementos = [elemento(1, obs_panel.NOMBRE_FUENTE, 0),
+                     elemento(2, "Captura de pantalla", 1),
+                     elemento(3, "Captura de ventana", 3),
+                     elemento(4, "Aviso", 2)]
+        self.assertEqual(obs_panel.fuente_encima_del_panel(elementos),
+                         "Captura de ventana")
+
+
+class TraerPanelAdelanteTest(unittest.TestCase):
+    def gestor(self, doble):
+        return obs_panel.GestorPanelObs(doble)
+
+    def test_con_algo_encima_pide_subir_y_devuelve_el_nombre(self):
+        doble = DobleObs([elemento(1, obs_panel.NOMBRE_FUENTE, 0),
+                          elemento(2, "Captura de pantalla", 1)])
+        nombre = self.gestor(doble).traer_panel_adelante()
+        self.assertEqual(nombre, "Captura de pantalla")
+        self.assertIn("SetSceneItemIndex",
+                      [llamada[0] for llamada in doble.llamadas])
+
+    def test_sin_nada_encima_no_pide_nada_y_devuelve_none(self):
+        doble = DobleObs([elemento(1, obs_panel.NOMBRE_FUENTE, 2),
+                          elemento(2, "Juego", 1)])
+        self.assertIsNone(self.gestor(doble).traer_panel_adelante())
+        self.assertNotIn("SetSceneItemIndex",
+                         [llamada[0] for llamada in doble.llamadas])
+
+    def test_sin_panel_no_pide_subir(self):
+        doble = DobleObs([elemento(2, "Juego", 1)])
+        self.assertIsNone(self.gestor(doble).traer_panel_adelante())
+        self.assertNotIn("SetSceneItemIndex",
+                         [llamada[0] for llamada in doble.llamadas])
+
+    def test_panel_oculto_no_pide_subir(self):
+        doble = DobleObs([elemento(1, obs_panel.NOMBRE_FUENTE, 0,
+                                  visible=False),
+                          elemento(2, "Captura de pantalla", 1)])
+        self.assertIsNone(self.gestor(doble).traer_panel_adelante())
+        self.assertNotIn("SetSceneItemIndex",
+                         [llamada[0] for llamada in doble.llamadas])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -243,6 +243,36 @@ class GestorPanelObsTest(unittest.TestCase):
         self.assertEqual(self.gestor(doble).fuentes("Escena"),
                          ("Cámara", "Chat YTChat", "Juego"))
 
+    def test_descripcion_escena_pide_escena_elementos_lienzo_y_entradas(self):
+        doble = DobleObs(
+            [elemento(1, obs_panel.NOMBRE_FUENTE, 0),
+             elemento(2, "Juego", 1, x=800, y=450, ancho=1600, alto=900,
+                      alineacion=0)],
+            entradas=[{"inputName": obs_panel.NOMBRE_FUENTE,
+                       "inputKind": "browser_source"},
+                      {"inputName": "Juego", "inputKind": "game_capture"}])
+        frase = self.gestor(doble).descripcion_escena()
+        tipos = [llamada[0] for llamada in doble.llamadas]
+        for pedido in ("GetCurrentProgramScene", "GetSceneItemList",
+                       "GetVideoSettings", "GetInputList"):
+            self.assertIn(pedido, tipos)
+        self.assertEqual(
+            frase,
+            "Escena al aire: Escena. 2 fuentes, de adelante hacia atrás.\n"
+            "1: Juego, captura de juego, ocupa toda la imagen, se ve.\n"
+            "2: Chat YTChat, navegador, esquina inferior izquierda, "
+            "460 por 620 píxeles, se ve, pero tapada en un "
+            "100 por ciento por Juego.")
+
+    def test_descripcion_escena_con_clase_desconocida_no_muestra_la_clase(self):
+        doble = DobleObs(
+            [elemento(1, "Rara", 0, x=800, y=450, ancho=1600, alto=900,
+                      alineacion=0)],
+            entradas=[{"inputName": "Rara", "inputKind": "clase_nueva"}])
+        frase = self.gestor(doble).descripcion_escena()
+        self.assertIn("1: Rara, ocupa toda la imagen, se ve.", frase)
+        self.assertNotIn("clase_nueva", frase)
+
     def test_fuentes_devuelve_vacio_sin_fuentes_o_escena(self):
         self.assertEqual(self.gestor(DobleObs([])).fuentes("Escena"), ())
         self.assertEqual(self.gestor(DobleObs(escenas=())).fuentes("Ausente"), ())

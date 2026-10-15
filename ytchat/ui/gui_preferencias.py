@@ -103,7 +103,7 @@ _TECLA_WX_A_TEXTO = {
 _AREA_AYUDA = {
     "ctrl": "Debe ser Ctrl y una tecla (por ejemplo Ctrl+P).",
     "alt":  "Debe ser Alt y una tecla (por ejemplo Alt+C).",
-    "f":    "Debe ser una tecla de función, de F1 a F12.",
+    "f":    "Debe ser una tecla de función, de F1 a F12, sola o con Ctrl (por ejemplo F2 o Ctrl+F2).",
 }
 
 
@@ -1173,6 +1173,7 @@ _ETIQUETAS_ATAJO = {
     "silenciar_sonidos": "Silenciar sonidos",
     "anunciar_estado":   "Anunciar estado",
     "anunciar_autor":    "Anunciar autor del último mensaje",
+    "describir_escena":  "Describir la escena de OBS",
     "region_siguiente":  "Región siguiente",
     "region_anterior":   "Región anterior",
 }

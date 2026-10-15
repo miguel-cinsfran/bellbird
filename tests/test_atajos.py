@@ -34,6 +34,12 @@ class TestNormalizarAtajo(unittest.TestCase):
         self.assertEqual(_normalizar_atajo("f5"), "f5")
         self.assertEqual(_normalizar_atajo("F12"), "f12")
 
+    def test_ctrl_mas_fkey(self):
+        self.assertEqual(_normalizar_atajo("ctrl+f2"), "ctrl+f2")
+        self.assertEqual(_normalizar_atajo("Ctrl+Shift+F5"), "ctrl+shift+f5")
+        self.assertIsNone(_normalizar_atajo("ctrl+f13"))
+        self.assertIsNone(_normalizar_atajo("shift+f2"))
+
     def test_fkey_fuera_de_rango(self):
         self.assertIsNone(_normalizar_atajo("f13"))
 
@@ -136,7 +142,7 @@ class TestParsearAtajos(unittest.TestCase):
                 self.assertIn(accion, ATAJOS_FIJOS_DEFAULTS)
                 continue
             if area == "f":
-                self.assertRegex(normalizado, r"^f(1[0-2]|[1-9])$")
+                self.assertRegex(normalizado, r"^(ctrl\+)?f(1[0-2]|[1-9])$")
             else:
                 self.assertTrue(normalizado.startswith(area + "+"))
         self.assertEqual(set(ATAJOS_FIJOS_DEFAULTS) | {
@@ -209,6 +215,7 @@ class TestParsearAtajos(unittest.TestCase):
                 ("abrir_transmision", "ctrl+shift+t", "ctrl+shift"),
                 ("copiar_enlace", "ctrl+shift+e", "ctrl+shift"),
                 ("anunciar_autor", "f3", "f"),
+                ("describir_escena", "ctrl+f2", "f"),
                 ("obs_micro", "ctrl+shift+m", "ctrl+shift")):
             self.assertEqual(ATAJOS_DEFAULTS[accion], valor)
             self.assertTrue(atajo_valido_para_area(accion, valor),
@@ -229,6 +236,7 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertIn('self._accel("abrir_transmision")', fuente)
         self.assertIn('self._accel("copiar_enlace")', fuente)
         self.assertIn('self._accel("anunciar_autor")', fuente)
+        self.assertIn('self._accel("describir_escena")', fuente)
         self.assertIn('self._accel("obs_micro")', fuente)
         self.assertNotIn("\\tAlt+L", fuente)
         self.assertNotIn("\\tCtrl+F", fuente)

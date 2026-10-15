@@ -39,6 +39,10 @@ class TestCapturaAtajos(unittest.TestCase):
         import wx
         self.assertEqual(self.gp._combo_a_texto(wx.MOD_CONTROL, wx.WXK_LEFT), "ctrl+left")
 
+    def test_combo_ctrl_fkey(self):
+        import wx
+        self.assertEqual(self.gp._combo_a_texto(wx.MOD_CONTROL, wx.WXK_F2), "ctrl+f2")
+
     def test_combo_shift_se_normaliza_y_rechaza_otros_modificadores(self):
         import wx
         # Ctrl+Shift se captura tal cual y otros modificadores siguen siendo inválidos.

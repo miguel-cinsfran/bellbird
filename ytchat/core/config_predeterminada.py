@@ -84,6 +84,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("silenciar_sonidos", "f7"),
         ("anunciar_estado", "f2"),
         ("anunciar_autor", "f3"),
+        ("describir_escena", "ctrl+f2"),
     ]),
     ("ui", [
         ("tamanio_fuente_chat", "12"),

@@ -36,6 +36,17 @@ class TestAtajosCaptura(unittest.TestCase):
             "rechazado", None,
             "No vale aquí. Debe ser Ctrl y una tecla (por ejemplo Ctrl+P)."))
 
+    def test_describir_escena_acepta_ctrl_f2(self):
+        resultado = atajos_captura.resolver("describir_escena", "ctrl+f2", {})
+        self.assertEqual(resultado, (
+            "capturado", "ctrl+f2",
+            "Capturado: Ctrl+F2. Se aplica al pulsar Guardar."))
+
+    def test_describir_escena_rechaza_otro_modificador(self):
+        resultado = atajos_captura.resolver("describir_escena", "alt+e", {})
+        self.assertEqual(resultado[0], "rechazado")
+        self.assertIn("F1 a F12", resultado[2])
+
     def test_choque_con_otra_accion(self):
         resultado = atajos_captura.resolver("rep_play", "ctrl+k", self.valores)
         self.assertEqual(resultado, (

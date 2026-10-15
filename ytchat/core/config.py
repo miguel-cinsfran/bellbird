@@ -154,7 +154,8 @@ ATAJOS_GRUPOS = [
     ("Voz y lectura (teclas F)",
      ["pausa", "detener_tts", "velocidad_menos", "velocidad_mas",
       "volumen_menos", "volumen_mas", "silenciar_lectura",
-      "silenciar_sonidos", "anunciar_estado", "anunciar_autor"]),
+      "silenciar_sonidos", "anunciar_estado", "anunciar_autor",
+      "describir_escena"]),
     ("Ventana y navegación (fijos)",
      ["salir", "region_siguiente", "region_anterior"]),
 ]
@@ -166,11 +167,13 @@ ATAJOS_AREA = {ac: _AREA_POR_GRUPO[i]
                for i, (_titulo, acs) in enumerate(ATAJOS_GRUPOS) for ac in acs}
 
 _SIMBOLOS_PERMITIDOS = {",", ".", ";", "'", "[", "]", "/", "-"}
-# Teclas con nombre admitidas (además de una letra/símbolo o una tecla F).
+# Teclas con nombre admitidas (además de una letra/símbolo o una tecla F,
+# sola o con Ctrl como en Ctrl+F2).
 _TECLAS_NOMBRE = {"enter", "left", "right", "up", "down", "space", "end"}
 # Ctrl+Shift debe probarse antes que Ctrl para no quedarse con «shift+tecla».
 _RE_ATAJO = re.compile(r"^(ctrl\+shift|ctrl|alt)\+(.+)$", re.IGNORECASE)
 _RE_FKEY  = re.compile(r"^f(1[0-2]|[1-9])$", re.IGNORECASE)
+_RE_CTRL_FKEY = re.compile(r"^ctrl\+f(1[0-2]|[1-9])$", re.IGNORECASE)
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -188,9 +191,11 @@ def todos_los_atajos_default() -> dict[str, str]:
 
 
 def _normalizar_atajo(valor: str | None) -> str | None:
-    """Normaliza a 'ctrl+x' / 'alt+enter' / 'ctrl+left' / 'f5'. None si no vale.
+    """Normaliza a 'ctrl+x' / 'alt+enter' / 'ctrl+left' / 'f5' / 'ctrl+f2'.
+    None si no vale.
 
-    Ctrl+Shift, Ctrl o Alt + tecla, o una tecla F sin modificador.
+    Ctrl+Shift, Ctrl o Alt + tecla, una tecla F sin modificador, o Ctrl
+    más una tecla F (como Ctrl+F2).
     """
     if valor is None:
         return None
@@ -203,7 +208,7 @@ def _normalizar_atajo(valor: str | None) -> str | None:
     if not m:
         return None
     mod, key = m.group(1), m.group(2)
-    if key in _TECLAS_NOMBRE:
+    if key in _TECLAS_NOMBRE or _RE_FKEY.match(key):
         return f"{mod}+{key}"
     if len(key) == 1 and key.isascii() and (key.isalnum() or key in _SIMBOLOS_PERMITIDOS):
         return f"{mod}+{key}"
@@ -213,14 +218,16 @@ def _normalizar_atajo(valor: str | None) -> str | None:
 def atajo_valido_para_area(accion: str, normalizado: str | None) -> bool:
     """¿El atajo respeta el modificador del área de la acción?
 
-    Reproductor → Ctrl, app → Alt, voz → tecla F. Vacío (desactivado) o acción
-    sin área definida se aceptan sin restricción.
+    Reproductor → Ctrl, app → Alt, voz → tecla F sola o con Ctrl
+    (como Ctrl+F2). Vacío (desactivado) o acción sin área definida se
+    aceptan sin restricción.
     """
     area = ATAJOS_AREA.get(accion)
     if not normalizado or area is None:
         return True
     if area == "f":
-        return bool(_RE_FKEY.match(normalizado))
+        return bool(_RE_FKEY.match(normalizado)
+                    or _RE_CTRL_FKEY.match(normalizado))
     # Ctrl+Shift pertenece a su área propia, no a la general de Ctrl.
     if area == "ctrl" and normalizado.startswith("ctrl+shift+"):
         return False

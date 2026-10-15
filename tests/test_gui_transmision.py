@@ -81,6 +81,9 @@ class GestorFalso:
     def instantanea(self, *args, **kwargs):
         self.instantaneas.append((args, kwargs.get("fuente")))
         return self.snap
+    def descripcion_escena(self, parada=None):
+        return ("Escena al aire: Principal. 1 fuente, de adelante hacia atrás.\n"
+                "1: Juego, captura de pantalla, ocupa toda la imagen, se ve.")
     def captura_de_escena(self, *args): self.llamadas.append(("captura_de_escena",) + args)
     def estado_transmision(self):
         return {"outputActive": self.transmitiendo, "outputDuration": 61,
@@ -723,6 +726,7 @@ class TestTransmisionDialog(unittest.TestCase):
                  for elemento in sizer.GetChildren()
                  if elemento.GetSizer() is not None]
         self.assertEqual(cajas, ["Transmitir", "Escena",
+                                "Cómo se ve la escena",
                                 "Panel de chat, solo YouTube"])
         exterior = self.dialogo.btn_cerrar.GetParent().GetSizer()
         ventanas = [elemento.GetWindow() for elemento in exterior.GetChildren()
@@ -744,6 +748,7 @@ class TestTransmisionDialog(unittest.TestCase):
             "Transmitir", "Grabar", "Pausar la grabación",
             "Escena", "Poner al aire", "Ventana que se captura",
             "Usar esa ventana", "GuardarCaptura", "ActualizarEstado",
+            "Cómo se ve la escena",
             "Panel de chat para transmitir", "Preparar el panel", "Fuente",
             "Estado del panel",
             "Posición del panel", "Colocar en esa posición",
@@ -783,9 +788,10 @@ class TestTransmisionDialog(unittest.TestCase):
             etiquetas.extend(self._etiquetas_de_botones(hijo))
         return etiquetas
 
-    def test_tres_secciones_con_sus_titulos(self):
+    def test_cuatro_secciones_con_sus_titulos(self):
         titulos = [hijo.GetLabel() for hijo in self._cajas(self.dialogo)]
         self.assertEqual(titulos, ["Transmitir", "Escena",
+                                  "Cómo se ve la escena",
                                   "Panel de chat, solo YouTube"])
 
     def _cajas(self, ventana):
@@ -924,6 +930,7 @@ class TestTransmisionDialog(unittest.TestCase):
             (self.dialogo.cho_escena, "Escena:"),
             (self.dialogo.cho_ventana, "Ventana que se captura:"),
             (self.dialogo.cho_fuente, "Fuente:"),
+            (self.dialogo.txt_estado, "Estado del panel:"),
             (self.dialogo.cho_posicion, "Posición del panel:"),
             (self.dialogo.sp_ancho, "Ancho del panel en píxeles:"),
             (self.dialogo.sp_alto, "Alto del panel en píxeles:"),
@@ -947,7 +954,10 @@ class TestTransmisionDialog(unittest.TestCase):
                       self.dialogo.cho_fuente.GetParent())
         hijos = list(self.dialogo.cho_fuente.GetParent().GetChildren())
         self.assertEqual(hijos.index(self.dialogo.txt_estado),
-                         hijos.index(self.dialogo.cho_fuente) + 1)
+                         hijos.index(self.dialogo.cho_fuente) + 2)
+        rotulo = hijos[hijos.index(self.dialogo.cho_fuente) + 1]
+        self.assertIsInstance(rotulo, wx.StaticText)
+        self.assertEqual(rotulo.GetLabel(), "Estado del panel:")
         self.assertLess(hijos.index(self.dialogo.txt_estado),
                         hijos.index(self.dialogo.cho_posicion))
 
@@ -955,6 +965,38 @@ class TestTransmisionDialog(unittest.TestCase):
         estilo = self.dialogo.txt_estado.GetWindowStyleFlag()
         self.assertTrue(estilo & wx.TE_READONLY)
         self.assertTrue(estilo & wx.TE_MULTILINE)
+
+    def test_vista_escena_nombre_lectura_y_una_oracion_por_linea(self):
+        vista = self.dialogo.txt_vista_escena
+        self.assertEqual(vista.GetName(), "Cómo se ve la escena")
+        estilo = vista.GetWindowStyleFlag()
+        self.assertTrue(estilo & wx.TE_READONLY)
+        self.assertTrue(estilo & wx.TE_MULTILINE)
+        self.assertEqual(vista.GetValue(), self.gestor.descripcion_escena())
+        self.assertGreaterEqual(len(vista.GetValue().splitlines()), 2)
+        # El título del grupo ya dice «Cómo se ve la escena»: sin rótulo
+        # repetido encima del cuadro, que el cuadro se anuncia solo.
+        rotulos = [hijo.GetLabel() for hijo in vista.GetParent().GetChildren()
+                   if isinstance(hijo, wx.StaticText)]
+        self.assertNotIn("Cómo se ve la escena:", rotulos)
+
+    def test_vista_escena_va_entre_la_escena_y_el_panel(self):
+        cajas = [control.GetParent() for control in (
+            self.dialogo.cho_destino, self.dialogo.cho_escena,
+            self.dialogo.txt_vista_escena, self.dialogo.chk_panel_chat)]
+        for caja in cajas:
+            self.assertIsInstance(caja, wx.StaticBox)
+        hijos = list(self.dialogo._zona_desplazable.GetChildren())
+        indices = [hijos.index(caja) for caja in cajas]
+        self.assertEqual(indices, sorted(indices))
+        self.assertEqual(len(set(indices)), 4)
+
+    def test_actualizar_estado_refresca_la_vista(self):
+        self.gestor.descripcion_escena = lambda parada=None: (
+            "Escena al aire: Juego. No tiene fuentes.")
+        self.dialogo._actualizar(Evento())
+        self.assertEqual(self.dialogo.txt_vista_escena.GetValue(),
+                         "Escena al aire: Juego. No tiene fuentes.")
 
     def test_mostrar_estados_no_agrega_la_escena_al_aire(self):
         self.dialogo._mostrar_snap(self.gestor.snap)
@@ -1132,6 +1174,42 @@ class TestCargaInicialAseguraObs(unittest.TestCase):
             gui_transmision.TransmisionDialog._cargar_inicial(falso)
         self.assertEqual(orden, ["asegurar"])
         falso._gestor.conectar.assert_not_called()
+
+
+class TestVistaEscenaSinVentana(unittest.TestCase):
+    # Sin ventana: los métodos se llaman sobre un objeto falso, así no se
+    # crea ningún control ni se toca OBS.
+
+    def test_leer_estados_pide_la_descripcion_en_el_hilo(self):
+        gestor = mock.Mock()
+        gestor.instantanea.return_value = mock.sentinel.snap
+        gestor.escena_al_aire.return_value = "Principal"
+        gestor.estado_transmision.return_value = mock.sentinel.transmision
+        gestor.estado_grabacion.return_value = mock.sentinel.grabacion
+        gestor.ventanas.return_value = (mock.sentinel.opciones, mock.sentinel.actual)
+        gestor.descripcion_escena.return_value = mock.sentinel.descripcion
+        falso = types.SimpleNamespace(
+            _gestor=gestor,
+            _leer=lambda escena, fuente: gestor.instantanea(
+                escena, fuente=fuente))
+        datos = gui_transmision.TransmisionDialog._leer_estados(
+            falso, "Principal", "Cámara")
+        gestor.descripcion_escena.assert_called_once_with()
+        self.assertIs(datos[-1], mock.sentinel.descripcion)
+
+    def test_estados_leidos_muestra_la_vista(self):
+        falso = mock.Mock()
+        gui_transmision.TransmisionDialog._estados_leidos(
+            falso, (mock.sentinel.snap, mock.sentinel.al_aire,
+                    mock.sentinel.transmision, mock.sentinel.grabacion,
+                    mock.sentinel.opciones, mock.sentinel.actual,
+                    mock.sentinel.descripcion))
+        falso._mostrar_vista.assert_called_once_with(mock.sentinel.descripcion)
+
+    def test_mostrar_vista_vacia_deja_el_cuadro_vacio(self):
+        falso = mock.Mock()
+        gui_transmision.TransmisionDialog._mostrar_vista(falso, "")
+        falso.txt_vista_escena.SetValue.assert_called_once_with("")
 
 
 class TestConfirmarTransmisionSinVentana(unittest.TestCase):

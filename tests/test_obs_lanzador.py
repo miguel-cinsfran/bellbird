@@ -344,6 +344,9 @@ class CableadoDialogoTest(unittest.TestCase):
             def perfil_actual(self):
                 return ""
 
+            def descripcion_escena(self, parada=None):
+                return ""
+
         def asegurar_doble(probar_conexion, al_anunciar=None, parada=None):
             orden.append("asegurar")
             al_anunciar("Abriendo OBS en segundo plano, en el área de "

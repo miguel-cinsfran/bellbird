@@ -198,6 +198,17 @@ class TransmisionDialog(wx.Dialog):
         sizer_escena.Add(self.btn_actualizar, 0, wx.ALL, 6)
         contenido.Add(sizer_escena, 1, wx.EXPAND | wx.ALL, 10)
 
+        sizer_vista, padre_vista = caja_de_grupo(zona, "Cómo se ve la escena")
+        self.txt_vista_escena = wx.TextCtrl(
+            padre_vista, style=wx.TE_MULTILINE | wx.TE_READONLY,
+            name="Cómo se ve la escena")
+        self.txt_vista_escena.SetBackgroundColour(_T.field)
+        self.txt_vista_escena.SetForegroundColour(_T.text)
+        nombre_accesible(self.txt_vista_escena, "Cómo se ve la escena")
+        self.txt_vista_escena.SetMinSize((-1, 110))
+        sizer_vista.Add(self.txt_vista_escena, 1, wx.EXPAND | wx.ALL, 6)
+        contenido.Add(sizer_vista, 0, wx.EXPAND | wx.ALL, 10)
+
         sizer_panel, padre_panel = caja_de_grupo(zona, "Panel de chat, solo YouTube")
         self.chk_panel_chat = wx.CheckBox(
             padre_panel, label="&Panel de chat para transmitir",
@@ -211,6 +222,8 @@ class TransmisionDialog(wx.Dialog):
         self.cho_fuente = wx.Choice(padre_panel, name="Fuente")
         nombre_accesible(self.cho_fuente, "Fuente")
         fila_campo(sizer_panel, rotulo_fuente, self.cho_fuente)
+        rotulo_estado = nuevo_rotulo(padre_panel, "Estado del panel:")
+        sizer_panel.Add(rotulo_estado, 0, wx.ALL, 6)
         self.txt_estado = wx.TextCtrl(
             padre_panel, style=wx.TE_MULTILINE | wx.TE_READONLY,
             name="Estado del panel")
@@ -392,18 +405,20 @@ class TransmisionDialog(wx.Dialog):
         return (escenas, escena, al_aire, fuentes, fuente, snap,
                 self._gestor.transformacion(escena, fuente=fuente),
                 self._gestor.estado_transmision(), self._gestor.estado_grabacion(),
-                self._gestor.perfil_actual(), opciones, actual)
+                self._gestor.perfil_actual(), opciones, actual,
+                self._gestor.descripcion_escena())
 
     def _poblar_inicial(self, datos):
         # Puebla los controles sin anunciar: la carga inicial anuncia aparte
         # y el destino preparado reusa esto para refrescar en silencio.
-        escenas, escena, al_aire, fuentes, fuente, snap, transformacion, transmision, grabacion, perfil, opciones, actual = datos
+        escenas, escena, al_aire, fuentes, fuente, snap, transformacion, transmision, grabacion, perfil, opciones, actual, descripcion = datos
         self.cho_escena.Set(list(escenas))
         if escena:
             self.cho_escena.SetStringSelection(escena)
         self._cargar_fuentes(fuentes, fuente)
         self._cargar_ventanas(opciones, actual)
         self._mostrar_snap(snap)
+        self._mostrar_vista(descripcion)
         if perfil in DESTINOS:
             self.cho_destino.SetStringSelection(perfil)
         else:
@@ -412,7 +427,7 @@ class TransmisionDialog(wx.Dialog):
 
     def _inicial_cargada(self, datos):
         self._poblar_inicial(datos)
-        escenas, escena, al_aire, fuentes, fuente, snap, transformacion, transmision, grabacion, perfil, opciones, actual = datos
+        escenas, escena, al_aire, fuentes, fuente, snap, transformacion, transmision, grabacion, perfil, opciones, actual, descripcion = datos
         anunciar(obs_disposicion.describir_preparacion(
             snap.conectado, overlay_servidor.esta_encendido(),
             overlay_servidor.puerto_actual(), NOMBRE_FUENTE in fuentes))
@@ -435,6 +450,9 @@ class TransmisionDialog(wx.Dialog):
             self.sp_alto.SetValue(snap.alto)
         self.chk_mostrar.SetValue(snap.visible)
         self.chk_fijar.SetValue(snap.bloqueada)
+
+    def _mostrar_vista(self, descripcion):
+        self.txt_vista_escena.SetValue(descripcion or "")
 
     def _cargar_fuentes(self, fuentes, fuente=""):
         self.cho_fuente.Set(list(fuentes))
@@ -530,11 +548,13 @@ class TransmisionDialog(wx.Dialog):
     def _leer_estados(self, escena, fuente):
         return (self._leer(escena, fuente), self._gestor.escena_al_aire(),
                 self._gestor.estado_transmision(), self._gestor.estado_grabacion(),
-                *self._gestor.ventanas(escena))
+                *self._gestor.ventanas(escena),
+                self._gestor.descripcion_escena())
 
     def _estados_leidos(self, datos):
-        snap, al_aire, transmision, grabacion, opciones, actual = datos
+        snap, al_aire, transmision, grabacion, opciones, actual, descripcion = datos
         self._mostrar_snap(snap)
+        self._mostrar_vista(descripcion)
         self._mostrar_estados(transmision, grabacion, al_aire)
         self._cargar_ventanas(opciones, actual)
         self._anunciar_snap(snap)

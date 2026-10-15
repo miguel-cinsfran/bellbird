@@ -2867,6 +2867,149 @@ class TestCopiarEnlaceDirecto(unittest.TestCase):
         self.assertIn(esperado, etiqueta)
         frame._bind_menu.assert_any_call(elemento, frame._anunciar_autor)
 
+    def test_item_de_menu_describir_escena_enlazado(self):
+        frame = mock.Mock()
+        frame._accel.side_effect = (
+            lambda accion: "\tCtrl+F2" if accion == "describir_escena" else "")
+        elementos = []
+
+        def crear_menu():
+            menu = mock.MagicMock()
+
+            def agregar(*args):
+                elemento = mock.Mock()
+                elementos.append((args[-1], elemento))
+                return elemento
+
+            menu.Append.side_effect = agregar
+            menu.AppendRadioItem.side_effect = lambda *args: mock.Mock()
+            menu.AppendCheckItem.side_effect = lambda *args: mock.Mock()
+            return menu
+
+        with mock.patch.object(gui.wx, "Menu", side_effect=crear_menu), \
+                mock.patch.object(gui.wx, "MenuBar"):
+            gui.YTChatFrame._build_menubar(frame)
+        esperado = frame._accel("describir_escena")
+        etiqueta, elemento = next(
+            (etiqueta, elemento) for etiqueta, elemento in elementos
+            if "Describir la escena" in etiqueta)
+        self.assertIn("Describir la escena de &OBS", etiqueta)
+        self.assertIn(esperado, etiqueta)
+        frame._bind_menu.assert_any_call(elemento, frame._describir_escena)
+
+    def test_letras_de_acceso_unicas_en_cada_menu(self):
+        # Dos entradas del mismo menú con la misma letra no ejecutan nada:
+        # pulsar la letra salta entre las dos. Se recorre la barra y se
+        # nombra el menú y las entradas repetidas.
+        menus = []
+
+        def crear_menu():
+            menu = mock.MagicMock()
+            menu._etiquetas = []
+
+            def agregar(*args):
+                if args and isinstance(args[-1], str):
+                    menu._etiquetas.append(args[-1])
+                return mock.Mock()
+
+            def agregar_submenu(*args):
+                if len(args) >= 2 and isinstance(args[1], str):
+                    menu._etiquetas.append(args[1])
+                if args and hasattr(args[0], "_etiquetas"):
+                    args[0]._titulo_submenu = (
+                        args[1] if len(args) >= 2 else "")
+                return mock.Mock()
+
+            menu.Append.side_effect = agregar
+            menu.AppendRadioItem.side_effect = agregar
+            menu.AppendCheckItem.side_effect = agregar
+            menu.AppendSubMenu.side_effect = agregar_submenu
+            menus.append(menu)
+            return menu
+
+        anexados = []
+
+        def crear_barra():
+            barra = mock.MagicMock()
+
+            def anexar(menu, titulo):
+                anexados.append((titulo, menu))
+                return True
+
+            barra.Append.side_effect = anexar
+            return barra
+
+        frame = mock.Mock()
+        frame._accel.return_value = ""
+        with mock.patch.object(gui.wx, "Menu", side_effect=crear_menu), \
+                mock.patch.object(gui.wx, "MenuBar", side_effect=crear_barra):
+            gui.YTChatFrame._build_menubar(frame)
+
+        def letra_de_acceso(etiqueta):
+            texto = etiqueta.split("\t")[0]
+            posicion = texto.find("&")
+            while posicion != -1:
+                if posicion + 1 < len(texto):
+                    if texto[posicion + 1] == "&":
+                        posicion = texto.find("&", posicion + 2)
+                        continue
+                    return texto[posicion + 1].upper()
+                break
+            return ""
+
+        for titulo, menu in anexados:
+            vistas = {}
+            for etiqueta in menu._etiquetas:
+                letra = letra_de_acceso(etiqueta)
+                if not letra:
+                    continue
+                vistas.setdefault(letra, []).append(etiqueta)
+            for letra, repetidas in vistas.items():
+                self.assertEqual(
+                    len(repetidas), 1,
+                    f"Menú {titulo}: la letra {letra} se repite en "
+                    f"{repetidas}")
+        for menu in menus:
+            titulo = getattr(menu, "_titulo_submenu", "")
+            if not titulo:
+                continue
+            vistas = {}
+            for etiqueta in menu._etiquetas:
+                letra = letra_de_acceso(etiqueta)
+                if not letra:
+                    continue
+                vistas.setdefault(letra, []).append(etiqueta)
+            for letra, repetidas in vistas.items():
+                self.assertEqual(
+                    len(repetidas), 1,
+                    f"Menú {titulo}: la letra {letra} se repite en "
+                    f"{repetidas}")
+
+    def test_describir_escena_sin_obs_anuncia_y_no_crea_el_gestor(self):
+        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame._descripcion_escena_en_curso = False
+        with mock.patch.object(gui.obs_activacion, "obs_esta_en_ejecucion",
+                               return_value=False) as en_ejecucion, \
+                mock.patch.object(gui, "GestorPanelObs") as gestor, \
+                mock.patch.object(gui, "anunciar") as anunciar, \
+                mock.patch.object(gui.diagnostico, "crear_hilo") as crear_hilo:
+            gui.YTChatFrame._describir_escena(frame)
+        en_ejecucion.assert_called_once_with()
+        anunciar.assert_called_once_with("OBS no está abierto.")
+        gestor.assert_not_called()
+        crear_hilo.assert_not_called()
+
+    def test_describir_escena_en_curso_no_lanza_otro_hilo(self):
+        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame._descripcion_escena_en_curso = True
+        with mock.patch.object(gui.obs_activacion, "obs_esta_en_ejecucion") as en_ejecucion, \
+                mock.patch.object(gui.diagnostico, "crear_hilo") as crear_hilo, \
+                mock.patch.object(gui, "anunciar") as anunciar:
+            gui.YTChatFrame._describir_escena(frame)
+        en_ejecucion.assert_not_called()
+        crear_hilo.assert_not_called()
+        anunciar.assert_not_called()
+
 
 class TestSupervisarDirectoYoutube(unittest.TestCase):
     # Cableado de _supervisar_transmision para destino YouTube, sin ventanas:

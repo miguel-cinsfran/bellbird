@@ -50,6 +50,8 @@ from ytchat.capture import alias
 from ytchat.obs import obs_audio
 from ytchat.obs import obs_estado
 from ytchat.obs import obs_vigilante
+from ytchat.obs import obs_activacion
+from ytchat.obs import obs_cliente
 from ytchat.obs.obs_panel import GestorPanelObs
 from ytchat.ui.gui_redactar import PanelRedactar
 
@@ -506,6 +508,7 @@ class YTChatFrame(wx.Frame):
         self._diagnostico_parada = threading.Event()
         self._obs_vigilante = None
         self._supervisor = None
+        self._descripcion_escena_en_curso = False
 
         _pintar(self, bg=_T.bg)
         self._build_menubar()
@@ -570,6 +573,7 @@ class YTChatFrame(wx.Frame):
         m.AppendSeparator()
         mi_estado = m.Append(wx.ID_ANY, "Anunciar &estado" + self._accel("anunciar_estado"))
         mi_autor = m.Append(wx.ID_ANY, "Anunciar a&utor del último mensaje" + self._accel("anunciar_autor"))
+        mi_escena = m.Append(wx.ID_ANY, "Describir la escena de &OBS" + self._accel("describir_escena"))
         mb.Append(m, "&Ver")
         self.Bind(wx.EVT_MENU, lambda e: self._navegar_region(+1), mi_sig)
         self.Bind(wx.EVT_MENU, lambda e: self._navegar_region(-1), mi_ant)
@@ -580,6 +584,7 @@ class YTChatFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, lambda e: self._ir_region(REG_REPRODUCTOR), mi_rep)
         self._bind_menu(mi_estado, self._anunciar_estado)
         self._bind_menu(mi_autor, self._anunciar_autor)
+        self._bind_menu(mi_escena, self._describir_escena)
         # De «Ver», solo tiene sentido con conexión la navegación por paneles;
         # «Ir a conexión (URL)» y «Anunciar estado» quedan siempre disponibles.
         self._mi_ver_conexion = [mi_sig, mi_ant, mi_lista, mi_chat, mi_com, mi_rep]
@@ -1744,6 +1749,36 @@ class YTChatFrame(wx.Frame):
             anunciar(f"Último mensaje leído de {autor}")
         else:
             anunciar("Todavía no se leyó ningún mensaje.")
+
+    def _describir_escena(self):
+        if self._descripcion_escena_en_curso:
+            return
+        if not obs_activacion.obs_esta_en_ejecucion():
+            anunciar("OBS no está abierto.")
+            return
+        self._descripcion_escena_en_curso = True
+
+        def _trabajo():
+            gestor = None
+            try:
+                gestor = GestorPanelObs()
+                gestor.conectar()
+                texto = gestor.descripcion_escena()
+            except Exception as error:
+                texto = obs_cliente.mensaje_de_fallo_obs(error)
+            finally:
+                if gestor is not None:
+                    try:
+                        gestor.cerrar()
+                    except Exception:
+                        pass
+                wx.CallAfter(self._anunciar_descripcion_escena, texto)
+
+        diagnostico.crear_hilo(_trabajo, "DescribirEscena").start()
+
+    def _anunciar_descripcion_escena(self, texto):
+        self._descripcion_escena_en_curso = False
+        anunciar(texto or "Sin información de la escena.")
 
     # ── Enviar al chat del directo (API oficial) ─────────────────────────────
 

@@ -45,6 +45,16 @@ según quién escribe y qué pasa en el directo.
   una captura de pantalla o de la cámara, queda encima del panel, la
   aplicación lo pone adelante al salir al aire y durante el directo, y dice
   qué fuente lo tapaba.
+- **`Ctrl+F2` describe la escena de OBS:** qué fuentes tiene, cuál está
+  adelante, dónde está cada una, si se ve y qué la tapa. La ventana
+  *Transmisión* muestra lo mismo en su propia sección, *Cómo se ve la
+  escena*, y el estado del panel tiene su propio rótulo.
+- **Un directo no queda al aire sin imagen.** Al abrir la aplicación, si
+  tienes un directo de YouTube al aire mientras OBS no transmite, por
+  ejemplo porque cerraste OBS después de cerrar la aplicación, te pregunta
+  si finalizarlo.
+- **La lista de ventanas para capturar ya no trae ventanas sin título,**
+  que se leían como «(null)».
 
 ### Iniciar sesión con Google
 
@@ -100,6 +110,13 @@ según quién escribe y qué pasa en el directo.
 - **`F3` dice el autor del último mensaje leído.**
 - **La aplicación ya no se cierra sola al finalizar un directo.** Lo
   provocaba el propio registro de fallos, que anotaba de más.
+- **Los mensajes automáticos solo se mandan a tu propio directo.** Antes se
+  mandaban a cualquier directo de YouTube conectado con la sesión iniciada,
+  también al de otro canal. Además, lo que cambias en Preferencias se aplica
+  sin reiniciar, un mensaje nuevo nace activo y el primero no sale de golpe
+  al conectar.
+- **Al recorrer los temas de sonido en Preferencias suena una muestra** de
+  cada uno, sin cambiar el tema hasta aceptar.
 - **Los sonidos ya no frenan la ventana,** y el reproductor tarda menos en
   arrancar la primera vez.
 - **La configuración admite `%`, `#` y `;`** en los textos, por ejemplo en un

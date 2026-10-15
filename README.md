@@ -460,6 +460,14 @@ que sea posible dejar solo lo relevante y que el anuncio no se alargue. Ahí
 también se activan los datos de OBS, como si está transmitiendo, grabando o con
 una escena al aire. Vienen desactivados de fábrica.
 
+`Ctrl+F2` describe la escena que OBS tiene al aire: qué fuentes tiene, de
+adelante hacia atrás, dónde está cada una, su tamaño, si se ve y qué la tapa.
+Por ejemplo: «2: Chat YTChat, navegador, cerca de la esquina inferior
+izquierda, 460 por 620 píxeles, se ve, pero tapada en un 100 por ciento por
+Captura de pantalla». Si OBS no está abierto, lo dice y no lo abre. La misma
+descripción está en la ventana *Transmisión*, en la sección *Cómo se ve la
+escena*.
+
 Mientras YTChat supervisa un directo propio, iniciado con el botón
 *Transmitir en directo*, `F2` empieza siempre por el punto en que está, aunque
 los datos de OBS estén desactivados: por ejemplo, que espera a que TikTok

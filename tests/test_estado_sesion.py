@@ -227,5 +227,42 @@ class TestTransmisionSupervisada(unittest.TestCase):
                          "Transmitiendo desde hace 1 min.")
 
 
+class TestDesfaseConVuelta(unittest.TestCase):
+
+    def test_con_desfase_y_atajo_de_fabrica(self):
+        s = SnapshotSesion(desfase_directo="10 segundos por detrás del directo",
+                           atajo_directo="Ctrl+Fin")
+        self.assertEqual(
+            formatear_estado(s, {"desfase_directo"}),
+            "10 segundos por detrás del directo. "
+            "Pulsa Ctrl+Fin para volver al directo.")
+
+    def test_largo_agrega_la_vuelta(self):
+        s = SnapshotSesion(desfase_directo="10 segundos por detrás del directo",
+                           atajo_directo="Ctrl+Fin")
+        self.assertEqual(
+            formatear_estado(s, {"desfase_directo"}, "largo"),
+            "Reproductor: 10 segundos por detrás del directo. "
+            "Pulsa Ctrl+Fin para volver al directo.")
+
+    def test_atajo_cambiado_usa_el_configurado(self):
+        s = SnapshotSesion(desfase_directo="10 segundos por detrás del directo",
+                           atajo_directo="Alt+D")
+        self.assertIn("Pulsa Alt+D para volver al directo.",
+                      formatear_estado(s, {"desfase_directo"}))
+
+    def test_sin_atajo_da_la_ruta_del_menu(self):
+        s = SnapshotSesion(desfase_directo="10 segundos por detrás del directo",
+                           atajo_directo="")
+        self.assertEqual(
+            formatear_estado(s, {"desfase_directo"}),
+            "10 segundos por detrás del directo. "
+            "Para volver: menú Reproductor, Ir al directo.")
+
+    def test_sin_desfase_no_agrega_nada(self):
+        s = SnapshotSesion(desfase_directo="", atajo_directo="Ctrl+Fin")
+        self.assertEqual(formatear_estado(s, {"desfase_directo"}), "")
+
+
 if __name__ == "__main__":
     unittest.main()

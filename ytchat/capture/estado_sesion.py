@@ -54,6 +54,8 @@ class SnapshotSesion:
     obs_grabacion: str = ""
     obs_escena: str = ""
     transmision_supervisada: str = ""
+    atajo_directo: str = ""   # texto legible del atajo de Ir al directo
+                              # (p. ej. «Ctrl+Fin»); "" si está desactivado
 
 
 # Orden canónico de los componentes: estado → contenido → actividad → ajustes.
@@ -168,7 +170,17 @@ def _render(nombre: str, s: SnapshotSesion, largo: bool) -> str:
         texto = (s.desfase_directo or "").strip()
         if not texto:
             return ""
-        return f"Reproductor: {texto}" if largo else texto
+        base = f"Reproductor: {texto}" if largo else texto
+        atajo = (s.atajo_directo or "").strip()
+        if atajo:
+            vuelta = f"Pulsa {atajo} para volver al directo"
+        else:
+            vuelta = "Para volver: menú Reproductor, Ir al directo"
+        # En largo la línea es una frase completa y lleva su punto; en corto
+        # lo pone el punto final de la frase armada.
+        if largo:
+            return f"{base}. {vuelta}."
+        return f"{base}. {vuelta}"
 
     if nombre == "mensajes_leidos":
         n = _fmt_num(s.mensajes_leidos)

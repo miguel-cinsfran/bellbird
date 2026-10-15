@@ -57,6 +57,10 @@ class TestAtajosCaptura(unittest.TestCase):
         self.assertEqual(resultado, (
             "desactivado", "", "Reproducir o pausa sin atajo. Desactivado."))
 
+    def test_mostrar_atajo_sigue_en_ingles_de_menu(self):
+        # El formato de menú no se usa para leer; para eso está atajo_legible.
+        self.assertEqual(atajos_captura.mostrar_atajo("ctrl+end"), "Ctrl+End")
+
     def test_textos_de_etiqueta_y_espera(self):
         self.assertEqual(
             atajos_captura.mostrar_atajo("alt+enter"), "Alt+Enter")
@@ -204,6 +208,45 @@ class TestAtajosCaptura(unittest.TestCase):
         boton.SetLabel.assert_called_once_with(
             "Reproducir o pausa: Ctrl+Q")
         anunciar.assert_called_once_with("Sin cambios")
+
+
+class TestAtajoLegible(unittest.TestCase):
+
+    def test_fabrica_da_ctrl_fin(self):
+        self.assertEqual(atajos_captura.atajo_legible("ctrl+end"), "Ctrl+Fin")
+
+    def test_letra_cambiada_en_mayuscula(self):
+        self.assertEqual(atajos_captura.atajo_legible("alt+d"), "Alt+D")
+
+    def test_funcion_sola(self):
+        self.assertEqual(atajos_captura.atajo_legible("f2"), "F2")
+
+    def test_teclas_con_nombre_en_espanol(self):
+        casos = {
+            "ctrl+home": "Ctrl+Inicio",
+            "ctrl+left": "Ctrl+Flecha izquierda",
+            "ctrl+right": "Ctrl+Flecha derecha",
+            "ctrl+up": "Ctrl+Flecha arriba",
+            "ctrl+down": "Ctrl+Flecha abajo",
+            "ctrl+pageup": "Ctrl+Re Pág",
+            "ctrl+pagedown": "Ctrl+Av Pág",
+            "ctrl+delete": "Ctrl+Supr",
+            "alt+enter": "Alt+Intro",
+            "alt+space": "Alt+Espacio",
+            "ctrl+backspace": "Ctrl+Retroceso",
+            "ctrl+escape": "Ctrl+Escape",
+            "ctrl+shift+f5": "Ctrl+Mayús+F5",
+        }
+        for guardado, esperado in casos.items():
+            with self.subTest(guardado=guardado):
+                self.assertEqual(atajos_captura.atajo_legible(guardado), esperado)
+
+    def test_tab_solo(self):
+        self.assertEqual(atajos_captura.atajo_legible("ctrl+tab"), "Ctrl+Tab")
+
+    def test_sin_atajo_da_vacio(self):
+        self.assertEqual(atajos_captura.atajo_legible(""), "")
+        self.assertEqual(atajos_captura.atajo_legible(None), "")
 
 
 if __name__ == "__main__":

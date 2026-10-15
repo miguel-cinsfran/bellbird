@@ -46,6 +46,43 @@ def mostrar_atajo(valor: str) -> str:
     return "+".join(partes)
 
 
+# Tecla guardada → nombre en español para leer en voz alta. Cubre las teclas
+# con nombre que admite la app; lo no listado (letras, dígitos, F1 a F12)
+# sale en mayúscula.
+_NOMBRE_TECLA_LEER = {
+    "home": "Inicio", "end": "Fin",
+    "left": "Flecha izquierda", "right": "Flecha derecha",
+    "up": "Flecha arriba", "down": "Flecha abajo",
+    "pageup": "Re Pág", "pagedown": "Av Pág",
+    "delete": "Supr", "insert": "Ins",
+    "enter": "Intro", "return": "Intro",
+    "space": "Espacio", "backspace": "Retroceso", "back": "Retroceso",
+    "escape": "Escape", "esc": "Escape", "tab": "Tab",
+}
+_MOD_LEER = {"ctrl": "Ctrl", "alt": "Alt", "shift": "Mayús"}
+
+
+def atajo_legible(texto_guardado: str | None) -> str:
+    """Texto en español de un atajo guardado, para leer en voz alta.
+
+    «ctrl+end» → «Ctrl+Fin», «alt+d» → «Alt+D», «f2» → «F2».
+    "" si no hay atajo (desactivado en Preferencias).
+    """
+    if not texto_guardado:
+        return ""
+    partes = []
+    for parte in str(texto_guardado).strip().lower().replace(" ", "").split("+"):
+        if not parte:
+            continue
+        if parte in _MOD_LEER:
+            partes.append(_MOD_LEER[parte])
+        elif parte in _NOMBRE_TECLA_LEER:
+            partes.append(_NOMBRE_TECLA_LEER[parte])
+        else:
+            partes.append(parte.upper())
+    return "+".join(partes)
+
+
 def etiqueta_boton(etiqueta: str, valor: str) -> str:
     """Devuelve la etiqueta completa de un botón de atajo."""
     return f"{etiqueta}: {mostrar_atajo(valor)}"

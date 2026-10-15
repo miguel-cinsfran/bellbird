@@ -81,9 +81,11 @@ class TestDesfaseEnF2(unittest.TestCase):
     def test_corto_y_largo_incluyen_el_desfase(self):
         s = SnapshotSesion(desfase_directo="30 segundos por detrás del directo")
         self.assertEqual(formatear_estado(s, {"desfase_directo"}),
-                         "30 segundos por detrás del directo.")
+                         "30 segundos por detrás del directo. "
+                         "Para volver: menú Reproductor, Ir al directo.")
         self.assertEqual(formatear_estado(s, {"desfase_directo"}, "largo"),
-                         "Reproductor: 30 segundos por detrás del directo")
+                         "Reproductor: 30 segundos por detrás del directo. "
+                         "Para volver: menú Reproductor, Ir al directo.")
 
     def test_vacio_se_omite(self):
         self.assertEqual(formatear_estado(SnapshotSesion(), {"desfase_directo"}), "")
@@ -152,6 +154,17 @@ class TestSnapshotDesfase(unittest.TestCase):
         frame = _frame_con_panel("En el directo", 0)
         snap = gui.YTChatFrame._snapshot_sesion(frame)
         self.assertEqual(snap.desfase_directo, "")
+
+    def test_con_desfase_y_atajo_el_texto_de_f2_dice_como_volver(self):
+        from ytchat.core.config import Atajo
+        from ytchat.ui import gui
+        frame = _frame_con_panel("10 segundos por detrás del directo", 10)
+        frame._atajos = {"rep_directo": Atajo(
+            accion="rep_directo", texto="ctrl+end", tecla="end")}
+        snap = gui.YTChatFrame._snapshot_sesion(frame)
+        self.assertEqual(snap.atajo_directo, "Ctrl+Fin")
+        self.assertIn("Pulsa Ctrl+Fin para volver al directo",
+                      formatear_estado(snap, {"desfase_directo"}))
 
 
 if __name__ == "__main__":

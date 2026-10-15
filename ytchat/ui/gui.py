@@ -37,6 +37,7 @@ from ytchat.capture import estado_sesion
 from ytchat.core import historial
 from ytchat.ui.lista_chat import ListaChat, MensajeChat
 from ytchat.ui.busqueda_lista import buscar_prefijo, coincide
+from ytchat.ui import atajos_captura
 from ytchat.voice import sound_player as _snd
 from ytchat.youtube import credenciales
 from ytchat.youtube import youtube_api
@@ -1688,6 +1689,9 @@ class YTChatFrame(wx.Frame):
         def _seguro(fn, defecto):
             try:    return fn()
             except Exception: return defecto
+        def _texto_atajo_directo():
+            at = (self._atajos or {}).get("rep_directo")
+            return at.texto if at is not None else ""
         vigilante = getattr(self, "_obs_vigilante", None)
         estado_obs = _seguro(lambda: vigilante.estado(), None) if vigilante else None
         transmision = estado_obs.transmision if estado_obs else None
@@ -1705,6 +1709,8 @@ class YTChatFrame(wx.Frame):
             segundos_directo=_seguro(lambda: int(time.time() - datetime.fromisoformat(
                 meta["comienzo_directo"].replace("Z", "+00:00")).timestamp()), None),
             desfase_directo=_seguro(lambda: self._rep_panel.frase_posicion_directo() if self._rep_panel._desfase_relevo_segundos() > 0 else "", ""),
+            atajo_directo=_seguro(
+                lambda: atajos_captura.atajo_legible(_texto_atajo_directo()), ""),
             mensajes_leidos=_seguro(lambda: self._stats.leidos, 0),
             aportes=_seguro(lambda: self._stats.superchats, 0),
             total_aportes=self._total_aportes_texto(),

@@ -1,5 +1,6 @@
 """Pruebas del instalador sobre carpetas temporales reales."""
 
+import hashlib
 import json
 import subprocess
 import sys
@@ -340,10 +341,24 @@ class TestTemasSonido(BaseInstalador):
             parents=True, exist_ok=True)
         (self.instalacion / "sounds" / "themes" / "default" / "a.wav"
          ).write_bytes(b"tema viejo a")
+        (self.instalacion / "sounds" / "themes" / "default" / "b.wav"
+         ).write_bytes(b"b del usuario")
+        (self.instalacion / "sounds" / "themes" / "default" / "Bot.wav"
+         ).write_bytes(b"agregado por el usuario")
         (self.instalacion / "sounds" / "themes" / "mio").mkdir(
             parents=True, exist_ok=True)
         (self.instalacion / "sounds" / "themes" / "mio" / "x.wav"
          ).write_bytes(b"tema mio x")
+        # Manifiesto viejo: a.wav sigue igual al distribuido, b.wav lo
+        # cambió el usuario y Bot.wav no figura porque lo agregó él.
+        manifiesto = {
+            "themes/default/a.wav":
+                hashlib.sha256(b"tema viejo a").hexdigest(),
+            "themes/default/b.wav":
+                hashlib.sha256(b"tema original b").hexdigest(),
+        }
+        (self.instalacion / paths.NOMBRE_MANIFIESTO_SONIDOS).write_text(
+            json.dumps(manifiesto), encoding="utf-8")
 
     def _armar_paquete(self, exe_nuevo=EXE_NUEVO, hacia=HACIA):
         super()._armar_paquete(exe_nuevo=exe_nuevo, hacia=hacia)
@@ -351,8 +366,20 @@ class TestTemasSonido(BaseInstalador):
             parents=True, exist_ok=True)
         (self.fuente_paquete / "sounds" / "themes" / "default" / "a.wav"
          ).write_bytes(b"tema nuevo a")
+        (self.fuente_paquete / "sounds" / "themes" / "default" / "b.wav"
+         ).write_bytes(b"tema nuevo b")
         (self.fuente_paquete / "sounds" / "themes" / "default" / "nuevo.wav"
          ).write_bytes(b"tema nuevo")
+        manifiesto = {
+            "themes/default/a.wav":
+                hashlib.sha256(b"tema nuevo a").hexdigest(),
+            "themes/default/b.wav":
+                hashlib.sha256(b"tema nuevo b").hexdigest(),
+            "themes/default/nuevo.wav":
+                hashlib.sha256(b"tema nuevo").hexdigest(),
+        }
+        (self.fuente_paquete / paths.NOMBRE_MANIFIESTO_SONIDOS).write_text(
+            json.dumps(manifiesto), encoding="utf-8")
 
     def test_exito_reemplaza_tema_y_conserva_el_propio(self):
         ok = instalador.instalar(
@@ -370,6 +397,73 @@ class TestTemasSonido(BaseInstalador):
         self.assertEqual(
             (self.instalacion / "sounds" / "themes" / "mio" / "x.wav"
              ).read_bytes(), b"tema mio x")
+
+    def test_sonido_cambiado_por_el_usuario_sobrevive_byte_a_byte(self):
+        ok = instalador.instalar(
+            self.fuente_paquete, self.instalacion, 1234, EXE_VIEJO, DESDE,
+            esperar_pid=lambda pid, tope: True,
+            lanzar=self._lanzar, matar=self._matar,
+            orden_para=self._orden_para())
+        self.assertTrue(ok)
+        self.assertEqual(
+            (self.instalacion / "sounds" / "themes" / "default" / "b.wav"
+             ).read_bytes(), b"b del usuario")
+
+    def test_sonido_agregado_por_el_usuario_sobrevive(self):
+        ok = instalador.instalar(
+            self.fuente_paquete, self.instalacion, 1234, EXE_VIEJO, DESDE,
+            esperar_pid=lambda pid, tope: True,
+            lanzar=self._lanzar, matar=self._matar,
+            orden_para=self._orden_para())
+        self.assertTrue(ok)
+        self.assertEqual(
+            (self.instalacion / "sounds" / "themes" / "default" / "Bot.wav"
+             ).read_bytes(), b"agregado por el usuario")
+
+    def test_manifiesto_nuevo_queda_instalado(self):
+        ok = instalador.instalar(
+            self.fuente_paquete, self.instalacion, 1234, EXE_VIEJO, DESDE,
+            esperar_pid=lambda pid, tope: True,
+            lanzar=self._lanzar, matar=self._matar,
+            orden_para=self._orden_para())
+        self.assertTrue(ok)
+        instalado = json.loads(
+            (self.instalacion / paths.NOMBRE_MANIFIESTO_SONIDOS).read_text(
+                encoding="utf-8"))
+        esperado = json.loads(
+            (self.fuente_paquete / paths.NOMBRE_MANIFIESTO_SONIDOS
+             ).read_text(encoding="utf-8"))
+        self.assertEqual(instalado, esperado)
+
+    def test_registro_anota_los_sonidos_conservados(self):
+        ok = instalador.instalar(
+            self.fuente_paquete, self.instalacion, 1234, EXE_VIEJO, DESDE,
+            esperar_pid=lambda pid, tope: True,
+            lanzar=self._lanzar, matar=self._matar,
+            orden_para=self._orden_para())
+        self.assertTrue(ok)
+        registro = paths.registro_actualizacion_en(
+            self.instalacion).read_text(encoding="utf-8")
+        self.assertIn("themes/default/b.wav", registro)
+        self.assertIn("themes/default/Bot.wav", registro)
+        self.assertNotIn("themes/default/a.wav", registro)
+
+    def test_vuelta_atras_deja_la_mezcla_como_estaba_byte_a_byte(self):
+        foto_antes = _sin_estado(_foto(self.instalacion))
+        ok = instalador.instalar(
+            self.fuente_paquete, self.instalacion, 1234, EXE_VIEJO, DESDE,
+            esperar_pid=lambda pid, tope: True,
+            lanzar=self._lanzar, matar=self._matar,
+            orden_para=self._orden_para(guion_nuevo=self.guion_malo),
+            tope_arranque=2)
+        self.assertFalse(ok)
+        self.assertEqual(_sin_estado(_foto(self.instalacion)), foto_antes)
+        self.assertEqual(
+            (self.instalacion / "sounds" / "themes" / "default" / "b.wav"
+             ).read_bytes(), b"b del usuario")
+        self.assertEqual(
+            (self.instalacion / "sounds" / "themes" / "default" / "Bot.wav"
+             ).read_bytes(), b"agregado por el usuario")
 
     def test_sin_confirmacion_devuelve_temas(self):
         ok = instalador.instalar(
@@ -414,6 +508,49 @@ class TestTemasSonido(BaseInstalador):
                 encoding="utf-8"))
         self.assertEqual(resultado["resultado"], "fallo")
         self.assertTrue(resultado["motivo"])
+
+
+class TestTemasSinManifiestoViejo(BaseInstalador):
+    """Sin manifiesto no hay forma de distinguir: ante la duda se conserva."""
+
+    def _armar_instalacion(self, exe_viejo=EXE_VIEJO):
+        super()._armar_instalacion(exe_viejo=exe_viejo)
+        (self.instalacion / "sounds" / "themes" / "default").mkdir(
+            parents=True, exist_ok=True)
+        (self.instalacion / "sounds" / "themes" / "default" / "a.wav"
+         ).write_bytes(b"tema viejo a")
+        (self.instalacion / "sounds" / "themes" / "default" / "igual.wav"
+         ).write_bytes(b"tema igual")
+        (self.instalacion / "sounds" / "themes" / "default" / "Bot.wav"
+         ).write_bytes(b"agregado por el usuario")
+
+    def _armar_paquete(self, exe_nuevo=EXE_NUEVO, hacia=HACIA):
+        super()._armar_paquete(exe_nuevo=exe_nuevo, hacia=hacia)
+        (self.fuente_paquete / "sounds" / "themes" / "default").mkdir(
+            parents=True, exist_ok=True)
+        (self.fuente_paquete / "sounds" / "themes" / "default" / "a.wav"
+         ).write_bytes(b"tema nuevo a")
+        (self.fuente_paquete / "sounds" / "themes" / "default" / "igual.wav"
+         ).write_bytes(b"tema igual")
+        (self.fuente_paquete / "sounds" / "themes" / "default" / "nuevo.wav"
+         ).write_bytes(b"tema nuevo")
+
+    def test_distinto_sobrevive_identico_queda_nuevo_y_agregado_sobrevive(self):
+        ok = instalador.instalar(
+            self.fuente_paquete, self.instalacion, 1234, EXE_VIEJO, DESDE,
+            esperar_pid=lambda pid, tope: True,
+            lanzar=self._lanzar, matar=self._matar,
+            orden_para=self._orden_para())
+        self.assertTrue(ok)
+        tema = self.instalacion / "sounds" / "themes" / "default"
+        self.assertEqual((tema / "a.wav").read_bytes(), b"tema viejo a")
+        self.assertEqual((tema / "igual.wav").read_bytes(), b"tema igual")
+        self.assertEqual((tema / "Bot.wav").read_bytes(),
+                         b"agregado por el usuario")
+        self.assertEqual((tema / "nuevo.wav").read_bytes(), b"tema nuevo")
+        registro = paths.registro_actualizacion_en(
+            self.instalacion).read_text(encoding="utf-8")
+        self.assertIn("sin manifiesto viejo", registro)
 
 
 class TestPrincipalInstalador(unittest.TestCase):

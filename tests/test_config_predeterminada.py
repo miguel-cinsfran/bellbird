@@ -234,6 +234,36 @@ class TestConstruirBat(unittest.TestCase):
                              f"construir.bat:{numero} tiene bytes fuera de ASCII")
 
 
+    def test_construir_escribe_manifiesto_de_sonidos(self):
+        base = Path(__file__).parent.parent
+        texto = (base / "construir.bat").read_text(encoding="utf-8")
+        lineas = texto.splitlines()
+        # La línea que lo genera usa Python con hashlib y SHA-256, igual
+        # que paquete.json, y va a columna cero: fuera de todo bloque if,
+        # donde un paréntesis rompería el script.
+        indice_genera = -1
+        for i, linea in enumerate(lineas):
+            if "sonidos.json" in linea and "hashlib" in linea:
+                self.assertFalse(
+                    linea[:1].isspace(),
+                    f"construir.bat:{i + 1} debe ir fuera de los bloques if",
+                )
+                indice_genera = i
+                break
+        self.assertGreater(
+            indice_genera, -1,
+            "construir.bat debe generar sonidos.json con hashlib",
+        )
+        ventana = "\n".join(lineas[indice_genera:indice_genera + 1])
+        self.assertIn("sha256", ventana)
+        # Guarda con salida de error si no quedó escrito, antes del zip.
+        indice_guarda = texto.find('if not exist "%OUT%\\sonidos.json"')
+        self.assertGreater(indice_guarda, -1)
+        self.assertIn("exit /b 1", texto[indice_guarda:indice_guarda + 200])
+        indice_zip = texto.lower().find("compress-archive")
+        inicio_guarda = texto.lower().find('%out%\\sonidos.json')
+        self.assertLess(inicio_guarda, indice_zip)
+
     def test_construir_escribe_manifiesto_y_firma(self):
         base = Path(__file__).parent.parent
         texto = (base / "construir.bat").read_text(encoding="utf-8")
@@ -250,7 +280,7 @@ class TestConstruirBat(unittest.TestCase):
         self.assertIn(".zip.sha256", texto)
         self.assertNotIn("Get-FileHash", texto)
         self.assertIn("hashlib", texto)
-        indice_firma = texto.find("hashlib")
+        indice_firma = texto.find("hashlib", indice_zip)
         self.assertGreater(indice_firma, indice_zip)
         # Si la firma no existe, el script se detiene con error.
         self.assertIn('if not exist "%OUT%.zip.sha256"', texto)

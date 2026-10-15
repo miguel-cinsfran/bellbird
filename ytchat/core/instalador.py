@@ -10,6 +10,7 @@ del módulo hacia ese archivo.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import os
@@ -156,6 +157,91 @@ def _copiar_entrada(origen: Path, destino: Path) -> None:
         shutil.copy2(origen, destino)
 
 
+def _huella_sha256(ruta: Path) -> str | None:
+    """SHA-256 en minúsculas del archivo, o None si no se puede leer."""
+    try:
+        resumen = hashlib.sha256()
+        with open(ruta, "rb") as abierto:
+            while True:
+                bloque = abierto.read(65536)
+                if not bloque:
+                    break
+                resumen.update(bloque)
+        return resumen.hexdigest().lower()
+    except OSError:
+        return None
+
+
+def _leer_manifiesto_sonidos(instalacion: Path) -> dict | None:
+    """Manifiesto viejo de sonidos, o None si no hay o no se entiende."""
+    try:
+        datos = json.loads(
+            (instalacion / paths.NOMBRE_MANIFIESTO_SONIDOS).read_text(
+                encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if not isinstance(datos, dict):
+        return None
+    return {clave: str(valor).lower() for clave, valor in datos.items()
+            if isinstance(clave, str) and isinstance(valor, str)}
+
+
+def _es_del_usuario(ruta_respaldo: Path, relativa: str, par_nuevo: Path,
+                    manifiesto_viejo: dict | None) -> bool:
+    """Dice si el sonido del respaldo lo cambió o agregó el usuario.
+
+    `relativa` es la ruta con `/` como separador, relativa a `sounds/`.
+    Con manifiesto viejo, es del usuario si no figura con exactamente
+    esa huella. Sin manifiesto no hay forma de distinguir: ante la duda
+    es del usuario, salvo que sea byte a byte igual al nuevo.
+    """
+    if manifiesto_viejo is not None:
+        huella_vieja = manifiesto_viejo.get(relativa)
+        if huella_vieja is None:
+            return True
+        return _huella_sha256(ruta_respaldo) != huella_vieja
+    if not par_nuevo.is_file() or par_nuevo.is_symlink():
+        return True
+    return _huella_sha256(ruta_respaldo) != _huella_sha256(par_nuevo)
+
+
+def _devolver_sonidos_usuario(respaldo: Path, instalacion: Path, tema: str,
+                              manifiesto_viejo: dict | None) -> None:
+    """Copia de vuelta al tema nuevo los sonidos del usuario del respaldo.
+
+    Pasa después de copiar el tema nuevo: cada archivo del usuario pisa
+    al del paquete si tiene el mismo nombre. El respaldo queda intacto,
+    así que la vuelta atrás sigue devolviendo la carpeta vieja entera.
+    """
+    base_respaldo = respaldo / "sounds"
+    origen_tema = base_respaldo / "themes" / tema
+    if not origen_tema.is_dir():
+        return
+    try:
+        archivos = sorted(origen_tema.rglob("*"))
+    except OSError:
+        return
+    for origen in archivos:
+        if origen.is_dir() or origen.is_symlink():
+            continue
+        try:
+            relativa = origen.relative_to(base_respaldo).as_posix()
+            destino = (instalacion / "sounds" / "themes" / tema
+                       / origen.relative_to(origen_tema))
+        except ValueError:
+            continue
+        if not _es_del_usuario(origen, relativa, destino, manifiesto_viejo):
+            continue
+        try:
+            destino.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(origen, destino)
+        except OSError as error:
+            logger.error("no se pudo conservar el sonido %s: %s",
+                         relativa, error)
+            continue
+        logger.info("sonido del usuario conservado: %s", relativa)
+
+
 def _temas_del_paquete(paquete: Path) -> list[str]:
     """Nombres de los temas que trae el paquete en `sounds/themes`."""
     temas = paquete / "sounds" / "themes"
@@ -257,6 +343,13 @@ def instalar(paquete: str | os.PathLike, instalacion: str | os.PathLike,
     entradas = _entradas_a_reemplazar(paquete, ejecutable_viejo)
     logger.info("entradas a reemplazar: %s", ", ".join(entradas) or "ninguna")
 
+    # Manifiesto viejo de sonidos: se lee antes de mover nada, porque
+    # `sonidos.json` es una entrada de primer nivel y se reemplaza.
+    manifiesto_viejo = _leer_manifiesto_sonidos(instalacion)
+    if manifiesto_viejo is None:
+        logger.info("sin manifiesto viejo de sonidos: "
+                    "ante la duda se conserva lo del usuario")
+
     # Paso d: mueve lo viejo al respaldo con os.replace.
     try:
         if respaldo.exists():
@@ -356,6 +449,8 @@ def instalar(paquete: str | os.PathLike, instalacion: str | os.PathLike,
                         _borrar_entrada(destino_tema)
                         _copiar_entrada(hijo, destino_tema)
                         temas_copiados.append(hijo.name)
+                        _devolver_sonidos_usuario(respaldo, instalacion,
+                                                  hijo.name, manifiesto_viejo)
                     else:
                         _agregar_sonido_faltante(
                             hijo, carpeta_sonidos / "themes" / hijo.name,

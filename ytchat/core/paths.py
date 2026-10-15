@@ -27,6 +27,9 @@ NOMBRE_FFMPEG = "ffmpeg.exe" if os.name == "nt" else "ffmpeg"
 NOMBRE_YTDLP = "yt-dlp.exe"
 # Manifiesto que construir.bat escribe en la raíz del paquete distribuible.
 NOMBRE_MANIFIESTO = "paquete.json"
+# Huellas de los sonidos de cada tema, para que el instalador conserve
+# los que el usuario cambió o agregó al actualizar.
+NOMBRE_MANIFIESTO_SONIDOS = "sonidos.json"
 
 
 def carpeta_instalacion() -> Path:

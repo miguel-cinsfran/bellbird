@@ -206,6 +206,9 @@ class TestActualizacion(unittest.TestCase):
     def test_nombre_del_manifiesto(self):
         self.assertEqual(paths.NOMBRE_MANIFIESTO, "paquete.json")
 
+    def test_nombre_del_manifiesto_de_sonidos(self):
+        self.assertEqual(paths.NOMBRE_MANIFIESTO_SONIDOS, "sonidos.json")
+
 
 class TestAyudante(unittest.TestCase):
 

@@ -186,6 +186,13 @@ REM Lo lee el instalador para saber que version trae el zip y cual es su exe.
 call uv run python -c "import json;json.dump({'version':'%VER%','ejecutable':'YTChatTTS.exe'},open(r'%OUT%\paquete.json','w'))"
 if not exist "%OUT%\paquete.json" ( echo ERROR: no se pudo escribir paquete.json. & pause & exit /b 1 )
 
+echo == Escribiendo el manifiesto de sonidos ==
+REM Huellas SHA-256 de cada archivo de sounds/themes, con ruta relativa a
+REM sounds/ y / como separador. Lo lee el instalador para conservar los
+REM sonidos que el usuario cambio o agrego al actualizar.
+call uv run python -c "import hashlib,json,pathlib;base=pathlib.Path('sounds');tema=base/'themes';archivos=sorted(tema.rglob('*')) if tema.is_dir() else [];datos={a.relative_to(base).as_posix():hashlib.sha256(a.read_bytes()).hexdigest().lower() for a in archivos if a.is_file()};open(r'%OUT%\sonidos.json','w').write(json.dumps(datos,sort_keys=True))"
+if not exist "%OUT%\sonidos.json" ( echo ERROR: no se pudo escribir sonidos.json. & pause & exit /b 1 )
+
 echo == Comprimiendo a "%OUT%.zip" ==
 REM Borra zips de cualquier version anterior (incluido el viejo sin version).
 del /q "YTChat TTS.zip" 2>nul

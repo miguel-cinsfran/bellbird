@@ -390,11 +390,11 @@ class ClienteYouTube:
             broadcastStatus="complete", id=id_video,
             part="status").execute()
 
-    def emisiones_activas(self) -> list[tuple[str, str]]:
-        """Pares (id, boundStreamId) de las emisiones activas."""
+    def emisiones_activas(self) -> list[tuple[str, str, str]]:
+        """Tríos (id, boundStreamId, título) de las emisiones activas."""
         resp = self._escritura().liveBroadcasts().list(
             broadcastStatus="active", broadcastType="all",
-            part="id,contentDetails,status", maxResults=50).execute()
+            part="id,contentDetails,status,snippet", maxResults=50).execute()
         salida = []
         for item in resp.get("items", []) or []:
             id_video = item.get("id") or ""
@@ -402,5 +402,6 @@ class ClienteYouTube:
                 continue
             atado = (item.get("contentDetails") or {}).get(
                 "boundStreamId") or ""
-            salida.append((id_video, atado))
+            titulo = (item.get("snippet") or {}).get("title") or ""
+            salida.append((id_video, atado, titulo))
         return salida

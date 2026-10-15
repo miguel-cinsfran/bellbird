@@ -189,7 +189,7 @@ class BotonDirecto:
                 id_flujo = flujo[0] if flujo else ""
                 if not id_flujo:
                     return
-                for id_video, atado in cliente.emisiones_activas():
+                for id_video, atado, _titulo in cliente.emisiones_activas():
                     if atado == id_flujo:
                         emision.finalizar_en_youtube(cliente, id_video)
             finally:

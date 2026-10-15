@@ -2841,10 +2841,11 @@ def iniciar_gui(config, cola, stats, worker, parada,
         frame.txt_url.SetFocus()
     except Exception:
         pass
-    from ytchat.ui import gui_actualizar_app
+    from ytchat.ui import gui_actualizar_app, gui_directo_huerfano
     gui_actualizar_app.programar_confirmacion_arranque()
     gui_actualizar_app.programar_resultado_actualizacion()
     gui_actualizar_app.programar_aviso_version()
+    gui_directo_huerfano.programar_revision(frame)
     diagnostico.crear_hilo(
         lambda: _snd.reproducir("app_inicio"), "SonidoInicio").start()
     wx.CallAfter(frame._arrancar_precalentamiento)

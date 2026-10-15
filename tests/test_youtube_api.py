@@ -398,18 +398,30 @@ class TestEmisionApi(unittest.TestCase):
         self.assertEqual(
             servicio.parametros.get("broadcastType"), "all")
         self.assertEqual(
-            servicio.parametros.get("part"), "id,contentDetails,status")
+            servicio.parametros.get("part"), "id,contentDetails,status,snippet")
 
-    def test_emisiones_activas_devuelve_id_y_flujo(self):
+    def test_emisiones_activas_devuelve_id_flujo_y_titulo(self):
+        cliente, _servicio = self.cliente({"items": [
+            {"id": "vid1",
+             "contentDetails": {"boundStreamId": "flujo-1"},
+             "snippet": {"title": "Charla"}},
+            {"id": "vid2",
+             "contentDetails": {"boundStreamId": "flujo-2"},
+             "snippet": {"title": "Música"}},
+            {"contentDetails": {"boundStreamId": "sin-id"},
+             "snippet": {"title": "Sin id"}},
+        ]})
+        self.assertEqual(cliente.emisiones_activas(),
+                         [("vid1", "flujo-1", "Charla"),
+                          ("vid2", "flujo-2", "Música")])
+
+    def test_emisiones_activas_sin_titulo_devuelve_vacio(self):
         cliente, _servicio = self.cliente({"items": [
             {"id": "vid1",
              "contentDetails": {"boundStreamId": "flujo-1"}},
-            {"id": "vid2",
-             "contentDetails": {"boundStreamId": "flujo-2"}},
-            {"contentDetails": {"boundStreamId": "sin-id"}},
         ]})
         self.assertEqual(cliente.emisiones_activas(),
-                         [("vid1", "flujo-1"), ("vid2", "flujo-2")])
+                         [("vid1", "flujo-1", "")])
 
     def test_directos_no_activados(self):
         self.assertIn("directos activados",

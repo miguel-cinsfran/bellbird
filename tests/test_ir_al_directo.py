@@ -143,10 +143,10 @@ class TestRepDirectoWx(unittest.TestCase):
         self.assertEqual(gp._tecla_texto(wx.WXK_END), "end")
 
     def test_menu_usa_acelerador_y_enlace(self):
-        from ytchat.ui import gui
-        fuente = inspect.getsource(gui.YTChatFrame._build_menubar)
+        from ytchat.ui import gui_menu
+        fuente = inspect.getsource(gui_menu.construir_menu)
         self.assertIn('"&Ir al directo"', fuente)
-        self.assertIn('self._accel("rep_directo")', fuente)
+        self.assertIn('._accel("rep_directo")', fuente)
         self.assertIn('"ir_al_directo"', fuente)
 
 

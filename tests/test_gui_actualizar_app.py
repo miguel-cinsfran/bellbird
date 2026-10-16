@@ -735,7 +735,9 @@ class TestCableado(unittest.TestCase):
         self.assertIn("programar_resultado_actualizacion(frame)", cuerpo)
 
     def test_menu_ayuda_ofrece_buscar_antes_de_acerca(self):
-        texto = self._texto_gui()
+        ruta = (Path(__file__).resolve().parent.parent
+                / "ytchat" / "ui" / "gui_menu.py")
+        texto = ruta.read_text(encoding="utf-8")
         self.assertIn("&Buscar actualizaciones…", texto)
         self.assertLess(texto.index("&Buscar actualizaciones…"),
                         texto.index("&Acerca de"))

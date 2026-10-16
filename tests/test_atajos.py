@@ -11,6 +11,7 @@ from ytchat.core.config import (
 )
 from ytchat.ui import gui_preferencias
 from ytchat.ui import gui
+from ytchat.ui import gui_menu
 from ytchat.ui import atajos_captura
 from ytchat.core import config
 from ytchat.ui.gui_preferencias import _ETIQUETAS_ATAJO, etiqueta_de_accion
@@ -227,17 +228,17 @@ class TestParsearAtajos(unittest.TestCase):
             })
 
     def test_menus_usan_el_sistema_para_los_nuevos_atajos(self):
-        fuente = inspect.getsource(gui.YTChatFrame._build_menubar)
-        self.assertIn('self._accel("ir_lista")', fuente)
-        self.assertIn('self._accel("pantalla_completa")', fuente)
-        self.assertIn('self._accel("abrir_historial")', fuente)
-        self.assertIn('self._accel("abrir_preferencias")', fuente)
-        self.assertIn('self._accel("marcar_incidencia")', fuente)
-        self.assertIn('self._accel("abrir_transmision")', fuente)
-        self.assertIn('self._accel("copiar_enlace")', fuente)
-        self.assertIn('self._accel("anunciar_autor")', fuente)
-        self.assertIn('self._accel("describir_escena")', fuente)
-        self.assertIn('self._accel("obs_micro")', fuente)
+        fuente = inspect.getsource(gui_menu.construir_menu)
+        self.assertIn('._accel("ir_lista")', fuente)
+        self.assertIn('._accel("pantalla_completa")', fuente)
+        self.assertIn('._accel("abrir_historial")', fuente)
+        self.assertIn('._accel("abrir_preferencias")', fuente)
+        self.assertIn('._accel("marcar_incidencia")', fuente)
+        self.assertIn('._accel("abrir_transmision")', fuente)
+        self.assertIn('._accel("copiar_enlace")', fuente)
+        self.assertIn('._accel("anunciar_autor")', fuente)
+        self.assertIn('._accel("describir_escena")', fuente)
+        self.assertIn('._accel("obs_micro")', fuente)
         self.assertNotIn("\\tAlt+L", fuente)
         self.assertNotIn("\\tCtrl+F", fuente)
 

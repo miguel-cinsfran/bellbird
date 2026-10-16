@@ -78,3 +78,6 @@ gen_py/
 # La fuente canonica es config_predeterminada.py y la copia legible es
 # config.predeterminado.ini. Ver MD/configuracion-predeterminada.md.
 /config.ini
+
+# Índice local del código, se regenera.
+/graft/

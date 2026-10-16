@@ -3,6 +3,48 @@
 Qué cambia en cada versión, en lenguaje llano. El detalle técnico está en el
 historial de git.
 
+## 2.3.0, octubre de 2026
+
+Más voces para leer el chat y más opciones al crear un directo de YouTube.
+
+### Voces
+
+- **Página Voces en Preferencias.** Ahí eliges el motor de voz, la voz, la
+  velocidad, el volumen y el tono. *Probar voz* te deja oír cómo suena antes
+  de guardar, y al guardar el cambio se aplica sin reiniciar.
+- **Tres motores de voz.** Las voces de Windows de siempre (SAPI 5), las
+  voces OneCore de Windows, y ElevenLabs, que genera la voz en internet con
+  la clave de tu cuenta.
+- **ElevenLabs no deja el chat mudo.** Si se corta internet, la clave no
+  sirve o se acaba el saldo, el mensaje se lee con la voz de Windows y la
+  aplicación te lo avisa una vez. Puedes ponerle un tope de caracteres por
+  sesión y usarlo solo con Super Chats, miembros, cofres, el dueño del canal
+  y los moderadores. *Comprobar clave* te dice cuántas voces tiene tu cuenta
+  y cuántos caracteres usaste este mes.
+- **Tu voz ya no cambia sola al instalar otra.** Antes se guardaba el lugar
+  de la voz en la lista, y una voz nueva corría la lista. Ahora se guarda el
+  nombre. La primera vez que abras esta versión, tu voz guardada se convierte
+  sola.
+- **La velocidad va de 0 a 100.** F9 y F10 la mueven de 5 en 5 y la
+  aplicación dice el número. La velocidad que tenías suena igual que antes.
+- **Los anuncios vuelven solos si reinicias el lector de pantalla.** Si
+  abres o reinicias NVDA o JAWS con la aplicación ya abierta, los anuncios
+  vuelven a sonar a los pocos segundos.
+
+### Directo de YouTube
+
+- **La ventana del directo tiene más opciones,** y todas se recuerdan para
+  la próxima vez:
+  - latencia normal, baja o ultrabaja. Con ultrabaja el chat llega casi en
+    el momento;
+  - hecho para niños. Si lo marcas, YouTube apaga el chat del directo;
+  - permitir rebobinar el directo;
+  - categoría y etiquetas;
+  - miniatura, una imagen JPG o PNG de hasta 2 MB que eliges con el cuadro
+    de Windows.
+- **Si YouTube no acepta la miniatura, la categoría o las etiquetas,** el
+  directo sale igual y la aplicación te dice por qué.
+
 ## 2.2.1, octubre de 2026
 
 Arreglos para actualizar sin trabas y un paquete más liviano.

@@ -218,10 +218,10 @@
 </head>
 <body>
 <h1 id="ytchat-tts">YTChat TTS</h1>
-<p>Lector del chat de YouTube Live con las voces SAPI5 de Windows,
-pensado para personas ciegas o con baja visión que transmiten en
-directo. La interfaz completa se maneja con el teclado y está probada
-con NVDA.</p>
+<p>Lector del chat de YouTube Live con las voces de Windows o de
+ElevenLabs, pensado para personas ciegas o con baja visión que
+transmiten en directo. La interfaz completa se maneja con el teclado y
+está probada con NVDA.</p>
 <p>Versión 2.1.0 · Windows 10 y 11 · <a href="docs/CHANGELOG.html">novedades de
 cada versión</a>.</p>
 <h2 id="índice">Índice</h2>
@@ -259,18 +259,20 @@ aplicación</a></li>
 </ul>
 <h2 id="qué-hace">Qué hace</h2>
 <p>La aplicación toma la dirección de un directo o de un vídeo de
-YouTube, se conecta y lee el chat en voz alta con una voz SAPI5 de
-Windows. Alrededor de esa función principal ofrece un reproductor de
-vídeo integrado, lectura de comentarios, moderación del chat, un panel
-para mostrar el chat a los espectadores durante una transmisión, envío
-automático de mensajes al chat, descarga de vídeo y audio, e historial
-de directos vistos.</p>
+YouTube, se conecta y lee el chat en voz alta con una voz de Windows o
+de ElevenLabs. Alrededor de esa función principal ofrece un reproductor
+de vídeo integrado, lectura de comentarios, moderación del chat, un
+panel para mostrar el chat a los espectadores durante una transmisión,
+envío automático de mensajes al chat, descarga de vídeo y audio, e
+historial de directos vistos.</p>
 <p>También admite directos de TikTok, en modo de solo lectura.</p>
 <h2 id="requisitos">Requisitos</h2>
 <ul>
 <li>Windows 10 o Windows 11.</li>
-<li>Al menos una voz SAPI5 instalada. Se comprueba en <em>Configuración,
-Hora e idioma, Voz</em>.</li>
+<li>Al menos una voz de Windows instalada. Se comprueba en
+<em>Configuración, Hora e idioma, Voz</em>.</li>
+<li>ElevenLabs es opcional: hace falta una cuenta y su clave de la
+API.</li>
 <li>Conexión a internet.</li>
 </ul>
 <p>No hace falta instalar Python ni ningún reproductor: la versión
@@ -315,9 +317,10 @@ del chat.</li>
 </ul>
 <p>La lectura se pausa y se reanuda con <code>F5</code>, y
 <code>F8</code> interrumpe la frase en curso. La velocidad se ajusta con
-<code>F9</code> y <code>F10</code>, y el volumen de la voz con
-<code>F11</code> y <code>F12</code>. <code>F4</code> silencia la lectura
-sin desconectar, y <code>F7</code> silencia los sonidos.</p>
+<code>F9</code> y <code>F10</code>, de 0 a 100 en pasos de 5, y el
+volumen de la voz con <code>F11</code> y <code>F12</code>.
+<code>F4</code> silencia la lectura sin desconectar, y <code>F7</code>
+silencia los sonidos.</p>
 <p>En <em>Herramientas, Preferencias, Filtros</em> se configuran las
 palabras y los usuarios que no deben leerse. En <em>Preferencias,
 Lectura</em> se elige el formato de lo que se lee, entre cuatro:</p>
@@ -330,9 +333,23 @@ esperar.</li>
 <li><strong>Solo el mensaje</strong>.</li>
 <li><strong>Solo el nombre</strong>.</li>
 </ul>
-<p>En <em>Preferencias, Voz</em> se puede activar una <strong>segunda
-voz para los eventos</strong>, de modo que los Super Chats, los regalos,
-las membresías y las entradas se distingan de los mensajes normales.</p>
+<p>En <em>Preferencias, Voces</em> se elige el <strong>motor de
+voz</strong>: las voces SAPI 5 de Windows, las voces OneCore de Windows
+o ElevenLabs. Ahí mismo se ajustan la voz, la velocidad, el volumen y el
+tono, y <em>Probar voz</em> deja oír el resultado antes de guardar. La
+voz se guarda por su nombre, así que instalar otra voz no cambia la
+elegida.</p>
+<p>Con ElevenLabs se escribe la clave de la cuenta y se pulsa
+<em>Comprobar clave</em>, que carga las voces y dice cuántos caracteres
+se usaron en el mes. Se puede poner un tope de caracteres por sesión y
+usar ElevenLabs solo con Super Chats, miembros, cofres, el dueño del
+canal y los moderadores. Si no hay internet, la clave falla o se acaba
+el saldo, el mensaje se lee con la voz de Windows de respaldo y se avisa
+una vez. La clave se guarda en <code>credenciales.json</code>, nunca en
+<code>config.ini</code>.</p>
+<p>En la misma página se puede activar una <strong>segunda voz para los
+eventos</strong>, de modo que los Super Chats, los regalos, las
+membresías y las entradas se distingan de los mensajes normales.</p>
 <h3 id="sonidos">Sonidos</h3>
 <p>Hay un sonido para cada cosa que pasa, para enterarse sin esperar a
 la voz:</p>
@@ -486,10 +503,17 @@ con los botones <em>Transmitir</em> y <em>Cancelar</em>.</li>
 <li>Para <strong>YouTube</strong>, una sola ventana pide el
 <strong>título</strong>, una <strong>descripción</strong> opcional y la
 <strong>privacidad</strong> (público, no listado o privado), y muestra
-la revisión en el cuadro <em>Revisión de OBS</em>. El título, la
-descripción y la privacidad se recuerdan para la próxima vez. «No
-listado» sirve para probar sin que el directo aparezca en el canal. Al
-pulsar <em>Transmitir</em>, se crea el directo en el canal.</li>
+la revisión en el cuadro <em>Revisión de OBS</em>. También tiene, todas
+opcionales: la <strong>latencia</strong> (normal, baja o ultrabaja; con
+ultrabaja el chat llega casi en el momento), <strong>hecho para
+niños</strong> (YouTube apaga el chat), <strong>permitir
+rebobinar</strong>, <strong>categoría</strong>,
+<strong>etiquetas</strong> y <strong>miniatura</strong>, una imagen JPG
+o PNG de hasta 2 MB. Si YouTube rechaza la miniatura, la categoría o las
+etiquetas, el directo sale igual y se dice el motivo. Todo se recuerda
+para la próxima vez. «No listado» sirve para probar sin que el directo
+aparezca en el canal. Al pulsar <em>Transmitir</em>, se crea el directo
+en el canal.</li>
 </ul>
 <p>Si la revisión encuentra problemas, el botón seleccionado de inicio
 es <em>Cancelar</em>.</p></li>
@@ -927,10 +951,11 @@ actualiza aparte desde <em>Herramientas, Actualizar yt-dlp</em>, con su
 propia ventana de progreso.</p>
 <h2 id="configuración">Configuración</h2>
 <p>Casi todo se ajusta en <em>Herramientas, Preferencias</em>, repartido
-en trece categorías: voz, lectura, cola de lectura, interfaz y sonidos,
-reproductor, conexión, filtros, estado (F2), atajos, API y sesión,
-mensajes automáticos, transmisión y diagnóstico. Los cambios se aplican
-al pulsar <em>Guardar</em>, y <em>Cancelar</em> los descarta.</p>
+en trece categorías: voces, lectura, cola de lectura, interfaz y
+sonidos, reproductor, conexión, filtros, estado (F2), atajos, API y
+sesión, mensajes automáticos, transmisión y diagnóstico. Los cambios se
+aplican al pulsar <em>Guardar</em>, y <em>Cancelar</em> los
+descarta.</p>
 <p>Los ajustes se guardan en <code>config.ini</code> y
 <code>sounds.ini</code>, dentro de la carpeta <code>data</code> que está
 junto al ejecutable. Ambos son archivos de texto que pueden editarse con
@@ -942,9 +967,11 @@ se mueven solos a la carpeta <code>data</code> al abrir la versión
 nueva. No hace falta copiarlos a mano.</p>
 <h2 id="problemas-frecuentes">Problemas frecuentes</h2>
 <p><strong>No hay voces disponibles.</strong> Se añade una en
-<em>Configuración, Hora e idioma, Voz</em>. Las voces neurales de
-Windows 11 no aparecen en SAPI5 de forma predeterminada; la herramienta
-gratuita <em>TTSVoicePatcher</em> permite exponerlas.</p>
+<em>Configuración, Hora e idioma, Voz</em>. Si las voces SAPI 5 no
+aparecen, se puede probar el motor OneCore en <em>Preferencias,
+Voces</em>. Las voces neurales de Windows 11 no aparecen en SAPI 5 de
+forma predeterminada; la herramienta gratuita <em>TTSVoicePatcher</em>
+permite exponerlas.</p>
 <p><strong>Aparece «Windows protegió tu PC» al abrir el
 ejecutable.</strong> Es el filtro SmartScreen, porque el ejecutable no
 está firmado digitalmente. Se continúa con <em>Más información, Ejecutar

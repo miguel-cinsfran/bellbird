@@ -38,6 +38,24 @@ Más voces para leer el chat y más opciones al crear un directo de YouTube.
   sonido al pulsar *Guardar* y, ya de vuelta en la ventana principal, la
   aplicación dice «Preferencias guardadas» junto con cualquier otro aviso.
 
+### Actualizaciones y avisos
+
+- **Si hay una versión nueva, se abre su ventana al arrancar.** Muestra las
+  novedades y tiene dos botones: *Descargar e instalar* y *Más tarde*. Con
+  *Más tarde* se cierra y la próxima vez que abras la aplicación vuelve a
+  preguntar. Antes solo lo decía en voz una vez, y si estabas leyendo otra
+  cosa con el lector, te lo perdías.
+- **Las novedades se leen bien.** Ya no empiezan con líneas en blanco ni
+  traen asteriscos, cada punto va en una sola línea con su viñeta y el
+  cursor queda al comienzo.
+- **Los avisos importantes abren su ventana.** El resultado de una
+  actualización recién instalada y el fin de una descarga con el gestor
+  cerrado ya no se dicen solo en voz. Si en ese momento hay un chat
+  conectado, una transmisión o otra ventana abierta, esperan a que
+  termines para no sacarte del lugar.
+- **Al arrancar ya no dice «Preparando el reproductor» ni «Reproductor
+  listo».** El reproductor se prepara igual, en silencio.
+
 ### Sonidos
 
 - **El tema «suave» vuelve a sonar distinto.** Desde la 2.2.0 sus sonidos

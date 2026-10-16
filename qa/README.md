@@ -102,7 +102,7 @@ Los escenarios que terminan en `directo_` tocan la red, y `reproductor_en_marcha
 también: pide un vídeo grabado y un directo reales. No entran en la corrida
 completa: gastan minutos y dependen de que haya alguien emitiendo en ese momento.
 
-## Cinco trampas que costaron una tarde
+## Seis trampas que costaron una tarde
 
 Están escritas acá porque hicieron que el banco diera por roto algo que
 funcionaba, o peor, por bueno algo que nunca miró. Todas son fáciles de volver
@@ -189,7 +189,19 @@ F24, que no usa ninguna aplicación ni NVDA, repite el `Raise`, y solo da
 Transmisión solo exige los controles de OBS en el orden de Tab con OBS abierto:
 sin él nacen deshabilitados a propósito y wx los saca del Tab.
 
-Y la regla que sale de las cinco: cuando el instrumento y el código no
+**Un cuadro nativo con solo Sí y No no responde a Escape.** Medido el
+15/10/2026 con «Directo sin imagen», que ofrece «Finalizar directo» y
+«Dejarlo al aire» sin Cancelar: ni Escape ni cerrar lo mueven. El banco lo
+intentaba cerrar con Escape, el cuadro quedaba abierto, y con ese modal en
+pantalla fallaron después redactar, transmitir_destino, el menú del chat,
+comentarios y el cierre de la aplicación: siete fallos que no eran de esos
+escenarios. Corridos solos, pasaban.
+
+Lo que se hace es pulsar el botón por su nombre con UI Automation y comprobar
+que el cuadro desapareció. La regla: si un escenario deja algo abierto, los
+fallos aparecen en los escenarios que vienen después.
+
+Y la regla que sale de las seis: cuando el instrumento y el código no
 coinciden, mirar primero el instrumento.
 
 ## Lo que esto no prueba

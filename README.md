@@ -133,8 +133,9 @@ Hay un sonido para cada cosa que pasa, para enterarse sin esperar a la voz:
 línea en el archivo `sounds.ini` de la carpeta `data`, por ejemplo
 `me_gusta =`.
 
-El tema de sonido se elige en *Preferencias, Interfaz*. Por ahora los dos
-temas que trae la aplicación, `default` y `suave`, suenan igual. Para hacer uno
+El tema de sonido se elige en *Preferencias, Interfaz*. Al recorrer la lista
+suena una muestra de cada tema, y el tema cambia recién al guardar. Por ahora
+los dos temas que trae la aplicación, `default` y `suave`, suenan igual. Para hacer uno
 propio se copia la carpeta `sounds/themes/default` con otro
 nombre y se reemplazan los archivos `.wav` que se quieran, con el mismo nombre.
 Al actualizar la aplicación, los sonidos que hayas cambiado o agregado se
@@ -269,16 +270,23 @@ Al pulsarlo:
    pegar ningún enlace. Se anuncia «Tu directo de TikTok ya está al aire» o
    «Tu directo de YouTube ya está al aire».
 5. Durante el directo vigila la conexión y avisa por voz si hay problemas.
+   Si se corta internet, por ejemplo al cambiar de wifi, avisa que OBS está
+   reconectando, y YouTube espera a que vuelva la señal sin terminar el
+   directo.
 
 Mientras se transmite, el botón pasa a decir **Finalizar directo**. Pide
 confirmación, y la opción seleccionada de inicio es seguir transmitiendo, para
-que un `Intro` accidental no corte el directo. En YouTube, el directo termina
-solo al cortar la señal, y YouTube puede tardar alrededor de un minuto en
-mostrarlo como terminado.
+que un `Intro` accidental no corte el directo. En YouTube, la aplicación
+detiene OBS y termina el directo en el canal. También lo termina si la
+transmisión se detiene desde OBS. Si YouTube no lo confirma, lo avisa para
+terminarlo a mano en YouTube Studio.
 
 Cerrar la aplicación no corta el directo. Al volver a abrirla y pulsar
 *Transmitir en directo*, se anuncia que OBS ya está transmitiendo y el botón
-pasa a *Finalizar directo*.
+pasa a *Finalizar directo*. Si al abrirla encuentra un directo de YouTube
+tuyo al aire mientras OBS no transmite, por ejemplo porque se cerró OBS
+después de la aplicación, pregunta si finalizarlo. La opción seleccionada de
+inicio es dejarlo al aire.
 
 *Archivo, Copiar enlace del directo*, o `Ctrl+Mayúsculas+E`, copia la
 dirección del directo conectado para pasársela a alguien.
@@ -338,13 +346,19 @@ websocket de OBS*. Deja el servidor encendido y la aplicación se queda con el p
 contraseña. También puede hacerse a mano dentro del propio OBS, en
 *Herramientas, Configuración del servidor WebSocket*.
 
-La ventana está dividida en tres secciones: *Transmitir*, *Escena* y *Panel de
-chat, solo YouTube*. El panel de chat no se usa en TikTok, porque TikTok ya
+La ventana está dividida en cuatro secciones: *Transmitir*, *Escena*, *Cómo
+se ve la escena* y *Panel de chat, solo YouTube*. El panel de chat no se usa en TikTok, porque TikTok ya
 muestra los comentarios sobre el vídeo. La ventana permite:
 
 - Elegir el **destino**, preparar OBS para él, y transmitir o detener. Es lo
   mismo que el botón de la ventana principal.
 - Elegir la **escena**, ponerla al aire y elegir **qué ventana se captura**.
+  La lista de ventanas no incluye las que no tienen título.
+- Leer **cómo se ve la escena**, en un cuadro de solo lectura con una línea
+  por fuente, de adelante hacia atrás: dónde está, qué tamaño tiene, si está
+  visible u oculta en OBS y si aparece en la imagen o algo la tapa. Se
+  actualiza al abrir la ventana y con *Actualizar estado*. Lo mismo se oye en
+  cualquier momento con `Ctrl+F2`.
 - Elegir, dentro de la escena, **qué fuente** se va a mover: el panel de
   chat, la cámara, la captura del juego o cualquier otra.
 - Llevarla a una de las **nueve posiciones habituales**, por ejemplo inferior
@@ -366,6 +380,10 @@ pregunta que no puede responderse mirando.
 
 Así puede armarse una escena completa a ciegas: el juego en el centro, la cámara
 en un recuadro más pequeño arriba a la derecha y el chat en una esquina.
+
+Si otra fuente queda encima del panel de chat, por ejemplo una captura de
+pantalla agregada después en OBS, la aplicación pone el panel adelante al salir
+al aire y también durante el directo, y dice qué fuente lo tapaba.
 
 Con otros programas de emisión, o si se prefiere hacerlo a mano, las propiedades
 de la fuente permiten escribir la anchura y la altura, y en OBS el diálogo de
@@ -399,8 +417,13 @@ cada envío se programa en un momento distinto dentro del rango.
 
 Condiciones y límites, que conviene tener presentes:
 
-- Requiere sesión de Google iniciada y un directo de YouTube conectado. En
+- Requiere sesión de Google iniciada y estar conectado a un directo de
+  YouTube **propio**. En el directo de otro canal no se envían nunca. En
   TikTok no funciona, porque no existe una interfaz oficial para escribir.
+- Lo que se agrega, cambia o quita en Preferencias se aplica sin reiniciar.
+  Un mensaje nuevo nace marcado para enviarse.
+- La cuenta del tiempo empieza al conectar el directo, así que el primer
+  mensaje no sale de golpe al conectar.
 - El intervalo mínimo admitido son cinco minutos.
 - Cada mensaje admite doscientos caracteres como máximo.
 - YouTube suele bloquear los enlaces en el chat en vivo. Al escribir un mensaje
@@ -530,7 +553,8 @@ API de YouTube. Si se supera, se avisa al enviar indicando la longitud actual.
 Cuatro funciones requieren la sesión de Google iniciada:
 
 - **Moderar el chat**: expulsar temporalmente o vetar a un usuario, desde el
-  menú contextual de la lista.
+  menú contextual de la lista. Funciona en el propio directo y en los de otros
+  canales donde seas moderador. Si no lo eres, YouTube lo rechaza y se avisa.
 - **Escribir en el chat del directo**, desde el cuadro que hay debajo
   de la lista, en la pestaña *Chat en vivo*.
 - **Publicar y responder comentarios** en vídeos ya publicados.
@@ -578,6 +602,12 @@ Voz y lectura:
 - `F11` y `F12` volumen de la voz.
 - `F4` silenciar la lectura, `F7` silenciar los sonidos.
 - `F2` anunciar el estado, `F3` anunciar el autor del último mensaje leído.
+- `Ctrl+F2` describir la escena de OBS.
+
+Al ajustar varias veces seguidas la velocidad o el volumen, la primera vez se
+dice el nombre y el valor, por ejemplo «Volumen de la voz: 40%», y las
+siguientes solo el valor, mientras se siga con el mismo ajuste dentro del
+minuto. Al pasar a otro, vuelve a decirse el nombre.
 
 Reproductor:
 
@@ -585,7 +615,8 @@ Reproductor:
 - `Ctrl+Flecha izquierda` y `Ctrl+Flecha derecha` retroceder y avanzar un
   minuto.
 - `Ctrl+Flecha arriba` y `Ctrl+Flecha abajo` volumen del reproductor.
-- `Ctrl+Fin` ir al directo.
+- `Ctrl+Fin` ir al directo. Cuando el reproductor va por detrás, `F2` lo
+  recuerda con el atajo que tengas configurado.
 - `Ctrl+D` detener, `Ctrl+M` silenciar el audio.
 - `Ctrl+F` pantalla completa.
 - `Ctrl+S` abrir el gestor de descargas.

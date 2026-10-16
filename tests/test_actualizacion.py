@@ -238,6 +238,26 @@ class TestExtraerPaquete(unittest.TestCase):
             self.assertEqual((raiz / "raiz.txt").read_text(
                 encoding="utf-8"), "r")
 
+    def test_extraer_dos_veces_seguidas_sobre_mismo_destino(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            _hacer_zip(tmp / "p.zip", {
+                "raiz/_internal/sub/x.txt": "contenido",
+                "raiz/_internal/otro.txt": "otro",
+                "raiz/leeme.txt": "hola",
+            })
+            primera = actualizacion.extraer_paquete(tmp / "p.zip", tmp / "nueva")
+            self.assertTrue((primera / "_internal" / "sub" / "x.txt").is_file())
+            segunda = actualizacion.extraer_paquete(tmp / "p.zip", tmp / "nueva")
+            self.assertEqual(segunda, tmp / "nueva" / "raiz")
+            self.assertEqual(
+                (segunda / "_internal" / "sub" / "x.txt").read_text(
+                    encoding="utf-8"), "contenido")
+            self.assertEqual(
+                (segunda / "_internal" / "otro.txt").read_text(
+                    encoding="utf-8"), "otro")
+
     def test_rechaza_puntos_y_absoluta_sin_dejar_nada_fuera(self):
         import tempfile
         for mala in ("../fuera.txt", "app/../../fuera.txt", "/absoluta.txt"):
@@ -486,6 +506,19 @@ class TestEstado(unittest.TestCase):
             actualizacion.limpiar_restos(base)
             self.assertFalse(paths.paquete_extraido_en(base).exists())
             self.assertFalse(paths.paquete_descargado_en(base).exists())
+
+    def test_limpiar_restos_con_anidadas_borra_entera(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            paths.carpeta_actualizacion_en(base).mkdir(parents=True)
+            nueva = paths.paquete_extraido_en(base)
+            (nueva / "raiz" / "_internal" / "sub").mkdir(parents=True)
+            (nueva / "raiz" / "_internal" / "sub" / "x.txt").write_text(
+                "x", encoding="utf-8")
+            (nueva / "raiz" / "leeme.txt").write_text("hola", encoding="utf-8")
+            actualizacion.limpiar_restos(base)
+            self.assertFalse(nueva.exists())
 
     def test_limpiar_restos_no_borra_con_pendiente(self):
         import tempfile

@@ -368,7 +368,6 @@ def _borrar_arbol(carpeta: Path) -> None:
     for hijo in sorted(carpeta.iterdir()):
         if hijo.is_dir() and not hijo.is_symlink():
             _borrar_arbol(hijo)
-            hijo.rmdir()
         else:
             hijo.unlink()
     carpeta.rmdir()

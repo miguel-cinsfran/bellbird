@@ -754,6 +754,7 @@ def cargar_configuracion() -> dict:
         "transmision_youtube_lista_titulo": decodificar_texto_ini(
             _gs(p, "transmision", "youtube_lista_titulo")),
         "programados_activo": _pb(p, "programados", "activo"),
+        "buscar_actualizaciones_al_iniciar": _pb(p, "actualizaciones", "buscar_al_iniciar"),
         "registro_detallado": _pb(p, "diagnostico", "registro_detallado"),  # configurar_logging se adelanta al diccionario.
         "overlay_activo": _pb(p, "overlay", "activo"),
         "overlay_puerto": _pi(p, "overlay", "puerto", lo=1),

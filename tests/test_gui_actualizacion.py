@@ -117,5 +117,76 @@ class TestDialogoActualizacion(unittest.TestCase):
         self.assertNotIn("ytdlp", fuente)
 
 
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestReajuste(unittest.TestCase):
+    """Reajuste a su contenido: abren ventanas, las corre el advisor."""
+
+    def setUp(self):
+        self.app = wx.App.Get() or wx.App(False)
+
+    def _dialogo(self, titulo="Actualizar algo"):
+        dialogo = actualizacion.DialogoActualizacion(None, titulo)
+        self.addCleanup(self._destruir, dialogo)
+        return dialogo
+
+    @staticmethod
+    def _destruir(dialogo):
+        try:
+            dialogo.Destroy()
+        except Exception:
+            pass
+
+    def _visibles_con_alto_y_dentro(self, dialogo):
+        area = dialogo.GetClientSize()
+        for control in (dialogo.txt_estado, dialogo.gauge,
+                        dialogo.txt_notas, dialogo.btn_accion,
+                        dialogo.btn_cerrar):
+            with self.subTest(control=control.GetName() or control.GetLabel()):
+                if not control.IsShown():
+                    continue
+                self.assertGreater(control.GetSize().GetHeight(), 0)
+                pos = control.GetPosition()
+                tam = control.GetSize()
+                self.assertGreaterEqual(pos.x, 0)
+                self.assertGreaterEqual(pos.y, 0)
+                self.assertLessEqual(pos.x + tam.width, area.width)
+                self.assertLessEqual(pos.y + tam.height, area.height)
+
+    def _orden_tab(self, dialogo):
+        self.assertEqual(
+            list(dialogo.GetChildren()),
+            [dialogo.txt_estado, dialogo.gauge, dialogo.txt_notas,
+             dialogo.btn_accion, dialogo.btn_cerrar])
+
+    def test_notas_y_accion_reajustan_y_caben(self):
+        dialogo = self._dialogo()
+        dialogo.notas("Una novedad larga. " * 20)
+        dialogo.ofrecer_accion("&Descargar e instalar", lambda: None)
+        dialogo.Layout()
+        self._visibles_con_alto_y_dentro(dialogo)
+        self._orden_tab(dialogo)
+
+    def test_quitar_accion_y_mas_tarde_reajustan_y_caben(self):
+        dialogo = self._dialogo()
+        dialogo.notas("Una novedad larga. " * 20)
+        dialogo.ofrecer_accion("&Descargar e instalar", lambda: None)
+        dialogo.quitar_accion()
+        dialogo.etiqueta_cerrar("&Más tarde")
+        dialogo.Layout()
+        self._visibles_con_alto_y_dentro(dialogo)
+        self._orden_tab(dialogo)
+
+    def test_botones_en_una_misma_fila_y_redimensionable(self):
+        dialogo = self._dialogo()
+        dialogo.notas("Una novedad larga. " * 20)
+        dialogo.ofrecer_accion("&Descargar e instalar", lambda: None)
+        dialogo.Layout()
+        self.assertTrue(dialogo.GetWindowStyleFlag() & wx.RESIZE_BORDER)
+        self.assertEqual(dialogo.btn_accion.GetPosition().y,
+                         dialogo.btn_cerrar.GetPosition().y)
+        self.assertLess(dialogo.btn_accion.GetPosition().x,
+                        dialogo.btn_cerrar.GetPosition().x)
+
+
 if __name__ == "__main__":
     unittest.main()

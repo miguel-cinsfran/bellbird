@@ -107,6 +107,7 @@ _OPCIONES_SIMPLES = (
     ("chk_reconectar", "reconexion", "reconectar", "reconectar", bool, True),
     ("sp_espera_reconexion", "reconexion", "espera_entre_intentos", "espera_entre_intentos", int, 15),
     ("sp_max_intentos", "reconexion", "max_intentos", "max_intentos", int, 20),
+    ("chk_buscar_actualizaciones", "actualizaciones", "buscar_al_iniciar", "buscar_actualizaciones_al_iniciar", bool, True),
     ("chk_registro_detallado", "diagnostico", "registro_detallado", "registro_detallado", bool, False),
     ("sp_puerto_overlay", "overlay", "puerto", "overlay_puerto", int, 8730),
 )
@@ -222,7 +223,7 @@ class PreferenciasDialog(wx.Dialog):
         self.lista_categorias.SetFocus()
 
     def _cargar_opciones_simples(self):
-        """Vuelca la config en los 19 controles de la tabla. El valor por
+        """Vuelca la config en los 20 controles de la tabla. El valor por
         defecto de cada fila es el de fábrica, y se usa tanto si la config no
         trae la clave como si el valor no se puede convertir al tipo."""
         for atributo, _seccion, _clave, en_memoria, tipo, por_defecto in _OPCIONES_SIMPLES:
@@ -365,6 +366,11 @@ class PreferenciasDialog(wx.Dialog):
             p, min=0, max=100,
             name="Número máximo de intentos")
         vs.Add(self.sp_max_intentos, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        self.chk_buscar_actualizaciones = wx.CheckBox(
+            p, label="Buscar &actualizaciones al iniciar",
+            name="Buscar actualizaciones al iniciar")
+        vs.Add(self.chk_buscar_actualizaciones, 0, wx.ALL, 10)
 
         p.SetSizer(vs)
         return p

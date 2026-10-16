@@ -160,6 +160,13 @@ def _consultar_version(frame) -> None:
     except Exception as exc:
         logger.warning("aviso de versión: %s", exc)
     try:
+        config = getattr(frame, "_config", None) or {}
+        buscar = config.get("buscar_actualizaciones_al_iniciar", True)
+    except Exception:
+        buscar = True
+    if not buscar:
+        return
+    try:
         paquete = actualizacion.consultar_ultima_version()
     except Exception as exc:
         logger.warning("aviso de versión: %s", exc)

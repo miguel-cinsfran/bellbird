@@ -660,6 +660,36 @@ class TestGanchos(unittest.TestCase):
         anunciar.assert_not_called()
         guardar.assert_not_called()
 
+    def test_opcion_desmarcada_no_consulta_pero_limpia(self):
+        self._reloj()
+        limpiar = self._doble(mock.patch.object(
+            actualizacion, "limpiar_restos"))
+        consultar = self._doble(mock.patch.object(
+            actualizacion, "consultar_ultima_version"))
+        frame = types.SimpleNamespace(
+            _config={"buscar_actualizaciones_al_iniciar": False})
+        app.programar_aviso_version(frame)
+        limpiar.assert_called_once_with()
+        consultar.assert_not_called()
+
+    def test_opcion_marcada_consulta(self):
+        self._reloj()
+        self._doble(mock.patch.object(actualizacion, "limpiar_restos"))
+        consultar = self._doble(mock.patch.object(
+            actualizacion, "consultar_ultima_version", return_value=None))
+        frame = types.SimpleNamespace(
+            _config={"buscar_actualizaciones_al_iniciar": True})
+        app.programar_aviso_version(frame)
+        consultar.assert_called_once_with()
+
+    def test_sin_clave_consulta_por_defecto(self):
+        self._reloj()
+        self._doble(mock.patch.object(actualizacion, "limpiar_restos"))
+        consultar = self._doble(mock.patch.object(
+            actualizacion, "consultar_ultima_version", return_value=None))
+        app.programar_aviso_version(self._frame())
+        consultar.assert_called_once_with()
+
     def test_consulta_limpia_restos_antes_de_consultar(self):
         self._reloj()
         orden = []

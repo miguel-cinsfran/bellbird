@@ -1483,6 +1483,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("reconexion", "reconectar"),
             ("reconexion", "espera_entre_intentos"),
             ("reconexion", "max_intentos"),
+            ("actualizaciones", "buscar_al_iniciar"),
             ("diagnostico", "registro_detallado"),
             ("overlay", "puerto"), ("obs", "microfono"),
         ]

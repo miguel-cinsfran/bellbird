@@ -161,6 +161,9 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("carpeta", "Descargas"),
         ("enumerar", "false"),
     ]),
+    ("actualizaciones", [
+        ("buscar_al_iniciar", "true"),
+    ]),
 ]
 
 # Mapa para consultas rápidas por sección y clave (con orden preservado)
@@ -263,6 +266,8 @@ def generar_texto() -> str:
                 "# Gestor de descargas con yt-dlp. Formato: mp4 | webm | mp3 | m4a.\n"
                 "# Bitrate solo para audio. Carpeta portable junto al ejecutable.\n"
             )
+        elif sec == "actualizaciones":
+            partes.append("# Buscar actualizaciones de la app al iniciar.\n")
         for clave, valor in pares:
             if valor == "":
                 partes.append(f"{clave} =\n")

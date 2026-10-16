@@ -277,6 +277,14 @@ class TestCargarConfiguracion(unittest.TestCase):
         self.assertEqual(cfg["estrategia"], "limite")
         self.assertTrue(cfg["reconectar"])
 
+    def test_buscar_actualizaciones_por_defecto_true(self):
+        cfg = self._cargar_en(config._CONFIG_FALLBACK)
+        self.assertTrue(cfg["buscar_actualizaciones_al_iniciar"])
+
+    def test_buscar_actualizaciones_false_se_conserva(self):
+        cfg = self._cargar_en("[actualizaciones]\nbuscar_al_iniciar = false\n")
+        self.assertFalse(cfg["buscar_actualizaciones_al_iniciar"])
+
     def test_overlay_tiene_defaults_y_se_persiste_en_el_ejemplo(self):
         cfg = self._cargar_en(config._CONFIG_FALLBACK)
         self.assertFalse(cfg["overlay_activo"])

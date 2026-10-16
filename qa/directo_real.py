@@ -45,6 +45,8 @@ sys.path.insert(0, str(RAIZ / "qa"))
 
 PREFIJO_TITULO = "Prueba de YTChat"
 PRIVACIDAD_ESPERADA = "unlisted"
+PREFIJO_LISTA = "Prueba de YTChat lista"
+PRIVACIDAD_LISTA = "private"
 DESCRIPCION_PRUEBA = (
     "Directo de prueba de YTChat, se borra al terminar."
 )
@@ -109,6 +111,17 @@ def es_borrable(titulo: str, privacidad: str) -> bool:
         and (privacidad or "") == PRIVACIDAD_ESPERADA
 
 
+def armar_titulo_lista(hora: str) -> str:
+    """Título de la lista de prueba con la hora, para encontrarla después."""
+    return f"{PREFIJO_LISTA} {(hora or '').strip()}".strip()
+
+
+def es_lista_borrable(titulo: str, privacidad: str) -> bool:
+    """Solo se borra la lista que creó la prueba: prefijo propio y privada."""
+    return (titulo or "").startswith(PREFIJO_LISTA) \
+        and (privacidad or "") == PRIVACIDAD_LISTA
+
+
 def extraer_id_video(texto: str) -> str:
     """Saca el id del vídeo de un anuncio o registro, o cadena vacía."""
     texto = texto or ""
@@ -165,6 +178,20 @@ def estado_miniatura(anuncios: str) -> tuple[bool, str]:
     if "no se pudo poner la miniatura" in texto:
         return (False, "la app anunció que no pudo poner la miniatura")
     return (True, "sin avisos: la miniatura quedó")
+
+
+def estado_lista(anuncios: str, en_la_lista: bool) -> tuple[bool, str]:
+    """Si el directo quedó en la lista, leyendo anuncios y API.
+
+    El anuncio de la app gana aunque la API diga que sí: si la app avisó que
+    no pudo agregarlo, se le cree a la app. Sin ese aviso, manda la API.
+    """
+    texto = (anuncios or "").lower()
+    if "no se pudo agregar el directo a la lista" in texto:
+        return (False, "la app anunció que no pudo agregarlo a la lista")
+    if en_la_lista:
+        return (True, "el directo está en la lista")
+    return (False, "la API no muestra el directo en la lista")
 
 
 def decidir_cerrar_obs(estaba_abierto: bool) -> bool:
@@ -595,6 +622,43 @@ def _borrar_video(cliente, credenciales, id_video: str) -> tuple[bool, str]:
     return (True, "")
 
 
+def _crear_lista(cliente, titulo: str) -> str:
+    """Crea una lista de reproducción privada y devuelve su id."""
+    resp = cliente._escritura().playlists().insert(
+        part="snippet,status",
+        body={"snippet": {"title": titulo,
+                          "description": "Lista de prueba de YTChat, "
+                                         "se borra al terminar."},
+              "status": {"privacyStatus": PRIVACIDAD_LISTA}}).execute()
+    return (resp or {}).get("id") or ""
+
+
+def _video_en_lista(cliente, id_lista: str, id_video: str) -> bool:
+    """Si la lista ya muestra el vídeo, según la API."""
+    resp = cliente._escritura().playlistItems().list(
+        part="id", playlistId=id_lista, videoId=id_video,
+        maxResults=5).execute()
+    return bool((resp or {}).get("items"))
+
+
+def _borrar_lista(cliente, id_lista: str) -> tuple[bool, str]:
+    """Borra la lista, solo si es de la prueba; devuelve (borrada, motivo)."""
+    resp = cliente._escritura().playlists().list(
+        part="snippet,status", id=id_lista).execute()
+    items = (resp or {}).get("items", []) or []
+    if not items:
+        return (False, f"no se borra: la lista «{id_lista}» no existe")
+    snippet = items[0].get("snippet") or {}
+    estado = items[0].get("status") or {}
+    titulo = snippet.get("title") or ""
+    privacidad = estado.get("privacyStatus") or ""
+    if not es_lista_borrable(titulo, privacidad):
+        return (False, f"no se borra: título «{titulo}» con privacidad "
+                       f"«{privacidad}», no es de la prueba")
+    cliente._escritura().playlists().delete(id=id_lista).execute()
+    return (True, "")
+
+
 def _abrir_ventanas_prueba() -> list:
     """Abre las dos ventanas de color que tapan el panel en la escena."""
     guion = RAIZ / "qa" / "ventana_de_prueba.py"
@@ -973,6 +1037,7 @@ def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
 
     hora = time.strftime("%H:%M")
     titulo = armar_titulo(hora)
+    titulo_lista = armar_titulo_lista(hora)
     tmpdir = tempfile.mkdtemp(prefix="directo-real-")
     ruta_anuncios = os.path.join(tmpdir, "anuncios.txt")
     ruta_chat = os.path.join(tmpdir, "chat.txt")
@@ -984,6 +1049,7 @@ def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
     principal = None
     estaba_obs = _obs_en_ejecucion()
     id_video = ""
+    id_lista = ""
     borrado_id = ""
     enlace_manual = ""
     salio_al_aire = False
@@ -1004,6 +1070,22 @@ def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
         except Exception as exc:
             ruta_miniatura = ""
             detalle_miniatura = f"sin miniatura ({exc})"
+        try:
+            cliente_lista, creds_lista = _cliente_youtube()
+            id_lista = _crear_lista(cliente_lista, titulo_lista)
+            _guardar_token_si_renovo(cliente_lista, creds_lista)
+            if not id_lista:
+                raise RuntimeError("la API no devolvió el id de la lista")
+            config.guardar_opcion(ruta_config, "transmision", "youtube_lista",
+                                  id_lista)
+            config.guardar_opcion(ruta_config, "transmision",
+                                  "youtube_lista_titulo",
+                                  codificar_texto_ini(titulo_lista))
+        except Exception as exc:
+            anotar("lista de prueba", False, str(exc))
+            return (salida, 1)
+        anotar("lista de prueba", True,
+               f"lista «{titulo_lista}» (id {id_lista})")
         config.guardar_opcion(ruta_config, "transmision", "destino",
                               "YouTube")
         config.guardar_opcion(ruta_config, "transmision", "youtube_titulo",
@@ -1189,6 +1271,28 @@ def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
             _leer_anuncios(ruta_anuncios)[marca:])
         anotar("miniatura del directo", bien_miniatura, detalle_miniatura)
         if not bien_miniatura:
+            return (salida, 1)
+
+        en_la_lista = False
+        error_lista = ""
+        fin_lista = time.time() + 30
+        while True:
+            try:
+                en_la_lista = _video_en_lista(cliente, id_lista, id_video)
+                _guardar_token_si_renovo(cliente, creds)
+                error_lista = ""
+            except Exception as exc:
+                en_la_lista = False
+                error_lista = str(exc)
+            if en_la_lista or time.time() >= fin_lista:
+                break
+            time.sleep(3)
+        bien_lista, detalle_lista = estado_lista(
+            _leer_anuncios(ruta_anuncios)[marca:], en_la_lista)
+        if not bien_lista and error_lista:
+            detalle_lista = f"{detalle_lista} ({error_lista})"
+        anotar("lista de reproducción", bien_lista, detalle_lista)
+        if not bien_lista:
             return (salida, 1)
 
         marca_chat = len(_leer_anuncios(ruta_anuncios))
@@ -1433,6 +1537,19 @@ def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
                            "restaurados")
             except Exception as exc:
                 anotar(paso, False, f"falló la limpieza: {exc}")
+        if id_lista:
+            try:
+                cliente_lista, creds_lista = _cliente_youtube()
+                borrada, motivo = _borrar_lista(cliente_lista, id_lista)
+                _guardar_token_si_renovo(cliente_lista, creds_lista)
+            except Exception as exc:
+                borrada, motivo = False, str(exc)
+            if borrada:
+                anotar("borrar la lista", True, f"id {id_lista}")
+            else:
+                anotar("borrar la lista", False,
+                       f"{motivo}, bórrala a mano en YouTube Studio: "
+                       f"id {id_lista}")
         anuncios = _leer_anuncios(ruta_anuncios)
         lineas = [f"{nombre}: {'bien' if bien else 'falló'}"
                   + (f" ({detalle})" if detalle else "")

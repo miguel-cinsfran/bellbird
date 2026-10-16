@@ -41,6 +41,37 @@ class TestEsBorrable(unittest.TestCase):
         self.assertFalse(directo_real.es_borrable("", "unlisted"))
 
 
+class TestArmarTituloLista(unittest.TestCase):
+
+    def test_con_hora(self):
+        self.assertEqual(directo_real.armar_titulo_lista("20:15"),
+                         "Prueba de YTChat lista 20:15")
+
+    def test_sin_hora_no_deja_basura(self):
+        self.assertEqual(directo_real.armar_titulo_lista("  "),
+                         "Prueba de YTChat lista")
+
+
+class TestEsListaBorrable(unittest.TestCase):
+
+    def test_lo_propio_privado_se_borra(self):
+        self.assertTrue(directo_real.es_lista_borrable(
+            "Prueba de YTChat lista 20:15", "private"))
+
+    def test_exige_privacidad_privada(self):
+        self.assertFalse(directo_real.es_lista_borrable(
+            "Prueba de YTChat lista 20:15", "public"))
+        self.assertFalse(directo_real.es_lista_borrable(
+            "Prueba de YTChat lista 20:15", "unlisted"))
+        self.assertFalse(directo_real.es_lista_borrable(
+            "Prueba de YTChat lista 20:15", ""))
+
+    def test_exige_titulo_de_la_prueba(self):
+        self.assertFalse(directo_real.es_lista_borrable(
+            "Mi lista", "private"))
+        self.assertFalse(directo_real.es_lista_borrable("", "private"))
+
+
 class TestExtraerIdVideo(unittest.TestCase):
 
     def test_url_watch(self):
@@ -152,6 +183,30 @@ class TestEstadoMiniatura(unittest.TestCase):
             "No se pudo poner la miniatura: Error de la API.")
         self.assertFalse(bien)
         self.assertIn("no pudo", detalle)
+
+
+class TestEstadoLista(unittest.TestCase):
+
+    def test_sin_aviso_y_en_la_lista_pasa(self):
+        bien, detalle = directo_real.estado_lista("ya está al aire", True)
+        self.assertTrue(bien)
+        self.assertIn("está en la lista", detalle)
+
+    def test_sin_aviso_y_fuera_de_la_lista_falla(self):
+        bien, detalle = directo_real.estado_lista("ya está al aire", False)
+        self.assertFalse(bien)
+        self.assertIn("no muestra", detalle)
+
+    def test_el_aviso_de_fallo_gana_aunque_la_api_diga_que_si(self):
+        bien, detalle = directo_real.estado_lista(
+            "No se pudo agregar el directo a la lista: cuota", True)
+        self.assertFalse(bien)
+        self.assertIn("no pudo agregarlo", detalle)
+
+    def test_el_aviso_no_distingue_mayusculas(self):
+        bien, _ = directo_real.estado_lista(
+            "no se pudo agregar el directo a la lista", False)
+        self.assertFalse(bien)
 
 
 class TestDecidirCerrarObs(unittest.TestCase):
@@ -509,6 +564,70 @@ class TestRespaldoSonidos(unittest.TestCase):
         self.assertFalse(os.path.exists(ruta))
         directo_real._restaurar_sonidos(ruta, respaldo, False)
         self.assertFalse(os.path.exists(ruta))
+
+
+class _ServicioListasFalso:
+    """Doble mínimo de `playlists()`: `list`, `delete` y `execute`."""
+
+    def __init__(self, items):
+        self.items = items
+        self.borrados: list = []
+
+    def playlists(self):
+        return self
+
+    def list(self, **kwargs):
+        return self
+
+    def delete(self, **kwargs):
+        self.borrados.append(kwargs.get("id"))
+        return self
+
+    def execute(self):
+        return {"items": self.items}
+
+
+class _ClienteListasFalso:
+
+    def __init__(self, items):
+        self.servicio = _ServicioListasFalso(items)
+
+    def _escritura(self):
+        return self.servicio
+
+
+class TestBorrarLista(unittest.TestCase):
+
+    def test_lista_de_la_prueba_se_borra(self):
+        cliente = _ClienteListasFalso([{
+            "snippet": {"title": "Prueba de YTChat lista 20:15"},
+            "status": {"privacyStatus": "private"}}])
+        borrada, motivo = directo_real._borrar_lista(cliente, "abc123")
+        self.assertTrue(borrada)
+        self.assertEqual(cliente.servicio.borrados, ["abc123"])
+
+    def test_lista_ajena_no_se_borra(self):
+        cliente = _ClienteListasFalso([{
+            "snippet": {"title": "Mi lista"},
+            "status": {"privacyStatus": "private"}}])
+        borrada, motivo = directo_real._borrar_lista(cliente, "abc123")
+        self.assertFalse(borrada)
+        self.assertEqual(cliente.servicio.borrados, [])
+        self.assertIn("no se borra", motivo)
+
+    def test_lista_publica_no_se_borra(self):
+        cliente = _ClienteListasFalso([{
+            "snippet": {"title": "Prueba de YTChat lista 20:15"},
+            "status": {"privacyStatus": "public"}}])
+        borrada, _ = directo_real._borrar_lista(cliente, "abc123")
+        self.assertFalse(borrada)
+        self.assertEqual(cliente.servicio.borrados, [])
+
+    def test_sin_items_no_borra(self):
+        cliente = _ClienteListasFalso([])
+        borrada, _ = directo_real._borrar_lista(cliente, "abc123")
+        self.assertFalse(borrada)
+        self.assertEqual(cliente.servicio.borrados, [])
 
 
 if __name__ == "__main__":

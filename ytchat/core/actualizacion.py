@@ -105,6 +105,53 @@ def debe_avisar(version_publicada: str | None, version_actual: str | None,
             != version_como_tupla(ultima_avisada))
 
 
+# ── Novedades ──────────────────────────────────────────────────────────────
+
+_VINETA = "\u2022 "
+_ENLACE_RE = re.compile(r"\[([^\]]*)\]\(([^)]*)\)")
+_ENCABEZADO_RE = re.compile(r"^#{1,6}\s*")
+_PUNTO_RE = re.compile(r"^[-*\u2022]\s+(.*)$")
+
+
+def _limpiar_marcas(texto: str) -> str:
+    """Saca el Markdown de una línea: enlaces, encabezado, énfasis y código."""
+    texto = _ENLACE_RE.sub(r"\1", texto)
+    texto = _ENCABEZADO_RE.sub("", texto)
+    return texto.replace("**", "").replace("__", "").replace("`", "")
+
+
+def notas_legibles(texto: str | None) -> str:
+    """Convierte el cuerpo Markdown de una release en texto llano para leer.
+
+    Junta los cortes de línea blandos, reduce cada párrafo y cada punto de
+    lista a una sola línea y quita las marcas de Markdown. No deja líneas
+    vacías ni espacios en los bordes, y es idempotente.
+    """
+    if not isinstance(texto, str):
+        return ""
+    texto = texto.replace("\r\n", "\n").replace("\r", "\n")
+    bloques = []
+    actual = None
+    for linea in texto.split("\n"):
+        contenido = linea.strip()
+        if not contenido:
+            if actual is not None:
+                bloques.append(actual)
+                actual = None
+            continue
+        punto = _PUNTO_RE.match(contenido)
+        if punto:
+            if actual is not None:
+                bloques.append(actual)
+            actual = _VINETA + _limpiar_marcas(punto.group(1).strip())
+            continue
+        contenido = _limpiar_marcas(contenido)
+        actual = contenido if actual is None else f"{actual} {contenido}"
+    if actual is not None:
+        bloques.append(actual)
+    return "\n".join(bloque.strip() for bloque in bloques if bloque.strip())
+
+
 # ── Consulta ───────────────────────────────────────────────────────────────
 
 def _es_https(url: object) -> bool:

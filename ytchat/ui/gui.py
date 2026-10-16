@@ -2995,7 +2995,7 @@ def iniciar_gui(config, cola, stats, worker, parada,
     from ytchat.ui import gui_actualizar_app, gui_directo_huerfano
     gui_actualizar_app.programar_confirmacion_arranque()
     gui_actualizar_app.programar_resultado_actualizacion()
-    gui_actualizar_app.programar_aviso_version()
+    gui_actualizar_app.programar_aviso_version(frame)
     gui_directo_huerfano.programar_revision(frame)
     diagnostico.crear_hilo(
         lambda: _snd.reproducir("app_inicio"), "SonidoInicio").start()

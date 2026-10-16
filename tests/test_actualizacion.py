@@ -52,6 +52,81 @@ class TestVersiones(unittest.TestCase):
                 self.assertFalse(actualizacion.hay_version_nueva("2.3.0", basura))
 
 
+CUERPO_221 = (
+    "\r\n\r\nArreglos para actualizar sin trabas y un paquete más liviano."
+    "\r\n\r\n- **OBS ya no traba las actualizaciones.** El OBS que abría la "
+    "aplicación\r\n  usaba archivos de la carpeta de YTChat, y mientras "
+    "siguiera abierto la\r\n  actualización no podía reemplazarlos. Ahora OBS "
+    "usa los suyos.\r\n- **Si una actualización no puede completarse porque un "
+    "archivo está en\r\n  uso,** el aviso dice que puede ser OBS y que lo "
+    "cierres antes de volver a\r\n  intentarlo. Esto sirve también para pasar "
+    "de la 2.2.0 a esta versión: si\r\n  abriste OBS desde la 2.2.0, ciérralo "
+    "antes de actualizar.\r\n- **El paquete baja de 175 a 147 MB.** Ya no "
+    "lleva documentos de otros\r\n  servicios de Google ni una biblioteca que "
+    "la aplicación no usa.\r\n"
+)
+
+
+class TestNotasLegibles(unittest.TestCase):
+
+    def test_cuerpo_real_de_la_221(self):
+        limpio = actualizacion.notas_legibles(CUERPO_221)
+        lineas = limpio.split("\n")
+        self.assertEqual(
+            lineas[0],
+            "Arreglos para actualizar sin trabas y un paquete más liviano.")
+        self.assertNotIn("**", limpio)
+        self.assertNotIn("\n\n", limpio)
+        self.assertFalse(limpio.startswith("\n"))
+        self.assertFalse(limpio.endswith("\n"))
+        self.assertEqual(len([l for l in lineas if l.startswith("• ")]), 3)
+        medio = lineas[2]
+        self.assertIn("Si una actualización no puede completarse", medio)
+        self.assertIn("el aviso dice que puede ser OBS", medio)
+
+    def test_vacio_none_y_espacios(self):
+        for entrada in (None, "", "   ", "\n\n\n", "\r\n \r\n"):
+            with self.subTest(entrada=entrada):
+                self.assertEqual(actualizacion.notas_legibles(entrada), "")
+
+    def test_no_texto_devuelve_vacio(self):
+        for entrada in (42, [], {}):
+            with self.subTest(entrada=entrada):
+                self.assertEqual(actualizacion.notas_legibles(entrada), "")
+
+    def test_propiedades_sobre_varias_entradas(self):
+        entradas = (
+            "", None, "   ", "\n\n",
+            "texto sin markdown",
+            "una línea\r\ny otra",
+            "- uno\n- dos\n- tres",
+            "* uno\n  continuación\n* dos",
+            "Ver [la página](https://ejemplo.com) para más",
+            "## Sección",
+            "## Sección\n- **punto** con `código`",
+        )
+        for entrada in entradas:
+            with self.subTest(entrada=entrada):
+                limpio = actualizacion.notas_legibles(entrada)
+                self.assertFalse(limpio.startswith("\n"))
+                self.assertFalse(limpio.endswith("\n"))
+                self.assertNotIn("\n\n", limpio)
+                for linea in limpio.split("\n"):
+                    self.assertEqual(linea, linea.strip())
+                    self.assertNotIn("**", linea)
+                    self.assertNotIn("__", linea)
+                self.assertEqual(actualizacion.notas_legibles(limpio), limpio)
+
+    def test_cuerpo_real_idempotente(self):
+        limpio = actualizacion.notas_legibles(CUERPO_221)
+        self.assertEqual(actualizacion.notas_legibles(limpio), limpio)
+
+    def test_punto_con_vineta_y_enlace(self):
+        limpio = actualizacion.notas_legibles(
+            "- **Uno** cortado\n  sigue acá\n- ver [dos](http://x.y)")
+        self.assertEqual(limpio, "• Uno cortado sigue acá\n• ver dos")
+
+
 class TestElegirPaquete(unittest.TestCase):
 
     def test_paquete_valido(self):

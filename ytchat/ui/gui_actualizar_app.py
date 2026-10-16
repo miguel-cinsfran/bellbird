@@ -97,23 +97,28 @@ def _anunciar_resultado() -> None:
         logger.warning("resultado de actualización: %s", exc)
 
 
-def programar_aviso_version() -> None:
-    """A los 10000 ms consulta en un hilo si hay versión nueva y avisa."""
+def programar_aviso_version(frame) -> None:
+    """A los 10000 ms consulta en un hilo si hay versión nueva y avisa.
+
+    Empaquetada, sin chat conectado y sin transmisión en curso, abre la
+    ventana de actualización al arrancar. En cualquier otro caso se queda
+    con el anuncio hablado, una vez por versión.
+    """
     try:
-        wx.CallLater(10000, _consultar_en_hilo)
+        wx.CallLater(10000, _consultar_en_hilo, frame)
     except Exception as exc:
         logger.warning("aviso de versión: %s", exc)
 
 
-def _consultar_en_hilo() -> None:
+def _consultar_en_hilo(frame) -> None:
     try:
         diagnostico.crear_hilo(
-            _consultar_version, "BuscarActualizacion").start()
+            lambda: _consultar_version(frame), "BuscarActualizacion").start()
     except Exception as exc:
         logger.warning("aviso de versión: %s", exc)
 
 
-def _consultar_version() -> None:
+def _consultar_version(frame) -> None:
     try:
         actualizacion.limpiar_restos()
     except Exception as exc:
@@ -126,13 +131,30 @@ def _consultar_version() -> None:
     if paquete is None:
         logger.debug("aviso de versión: sin conexión o sin paquete compatible")
         return
+    if not actualizacion.hay_version_nueva(APP_VERSION, paquete.version):
+        return
+    wx.CallAfter(_decidir_aviso, frame, paquete)
+
+
+def _decidir_aviso(frame, paquete) -> None:
+    """En el hilo principal decide entre abrir la ventana o solo hablar."""
+    try:
+        empaquetada = bool(getattr(sys, "frozen", False))
+        if (empaquetada and not frame._conectado
+                and not frame._supervisar_transmision("activo")):
+            abrir_ventana_actualizacion(frame, paquete=paquete,
+                                        al_arrancar=True)
+            return
+    except Exception as exc:
+        logger.warning("aviso de versión: %s", exc)
+        return
     try:
         avisada = leer_version_avisada()
     except Exception as exc:
         logger.warning("aviso de versión: %s", exc)
         return
     if actualizacion.debe_avisar(paquete.version, APP_VERSION, avisada):
-        wx.CallAfter(_avisar_version, paquete.version)
+        _avisar_version(paquete.version)
 
 
 def _avisar_version(version: str) -> None:
@@ -148,8 +170,12 @@ def _avisar_version(version: str) -> None:
 # La abre el menú Ayuda. Con una abierta, el menú le da el foco en vez de
 # abrir otra, igual que `_on_actualizar_ytdlp`.
 
-def abrir_ventana_actualizacion(frame) -> None:
-    """Abre la ventana de actualización o enfoca la ya abierta."""
+def abrir_ventana_actualizacion(frame, paquete=None, al_arrancar=False) -> None:
+    """Abre la ventana de actualización o enfoca la ya abierta.
+
+    Con `paquete` no consulta la red: muestra esa respuesta directamente.
+    Con `al_arrancar` el botón Cerrar pasa a decir «Más tarde».
+    """
     from ytchat.ui.gui_actualizacion import DialogoActualizacion
     abierta = getattr(frame, "_ventana_actualizar_app", None)
     if abierta is not None and not abierta.cerrado:
@@ -164,8 +190,9 @@ def abrir_ventana_actualizacion(frame) -> None:
         return
     ventana = DialogoActualizacion(frame, "Buscar actualizaciones")
     frame._ventana_actualizar_app = ventana
+    if al_arrancar:
+        ventana.etiqueta_cerrar("&Más tarde")
     ventana.Show()
-    ventana.estado("Buscando la última versión.")
     ultimo_texto = None
     paquete_elegido = None
 
@@ -309,4 +336,8 @@ def abrir_ventana_actualizacion(frame) -> None:
             return
         frame.Close()
 
+    if paquete is not None:
+        _mostrar_respuesta(paquete)
+        return
+    ventana.estado("Buscando la última versión.")
     diagnostico.crear_hilo(_run_consulta, "BuscarActualizacion").start()

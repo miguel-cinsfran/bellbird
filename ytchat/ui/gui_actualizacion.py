@@ -11,6 +11,7 @@ import threading
 
 import wx
 
+from ytchat.core.actualizacion import notas_legibles
 from ytchat.ui.gui import anunciar, nombre_accesible
 
 
@@ -39,7 +40,7 @@ class DialogoActualizacion(wx.Dialog):
             self, value="", style=wx.TE_MULTILINE | wx.TE_READONLY,
             name="Novedades")
         self.txt_notas.SetMinSize(
-            (-1, 4 * self.txt_notas.GetCharHeight() + 12))
+            (-1, 12 * self.txt_notas.GetCharHeight() + 12))
         nombre_accesible(self.txt_notas, "Novedades")
         vs.Add(self.txt_notas, 1, wx.EXPAND | wx.ALL, 10)
         self.txt_notas.Hide()
@@ -89,11 +90,24 @@ class DialogoActualizacion(wx.Dialog):
             self.gauge.SetValue(int(porcentaje))
 
     def notas(self, texto) -> None:
-        self.txt_notas.SetValue(texto or "")
-        if texto:
+        limpio = notas_legibles(texto)
+        self.txt_notas.SetValue(limpio)
+        if limpio:
             self.txt_notas.Show()
+            try:
+                self.txt_notas.SetInsertionPoint(0)
+                self.txt_notas.ShowPosition(0)
+            except Exception:
+                pass
         else:
             self.txt_notas.Hide()
+        try:
+            self.Layout()
+        except Exception:
+            pass
+
+    def etiqueta_cerrar(self, etiqueta) -> None:
+        self.btn_cerrar.SetLabel(etiqueta)
         try:
             self.Layout()
         except Exception:

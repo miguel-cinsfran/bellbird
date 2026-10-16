@@ -58,6 +58,7 @@ class VentanaFalsa:
         self.txt_estado = mock.Mock()
         self.txt_estado.SetValue.side_effect = self.textos_sin_anunciar.append
         self.btn_cerrar = mock.Mock()
+        self.etiqueta_cerrar_vista = None
 
     @property
     def cerrado(self):
@@ -91,6 +92,9 @@ class VentanaFalsa:
         self.accion_etiqueta = None
         self.accion = None
 
+    def etiqueta_cerrar(self, etiqueta):
+        self.etiqueta_cerrar_vista = etiqueta
+
     def en_hilo_principal(self, funcion, *args):
         if self._cerrado:
             return
@@ -112,7 +116,8 @@ class TestVentana(unittest.TestCase):
         return doble
 
     def _abrir(self, consultar=None, frozen=False, admite=True,
-               descargar=None, extraer=None, validar=None, frame=None):
+               descargar=None, extraer=None, validar=None, frame=None,
+               paquete=None, al_arrancar=False):
         if frame is None:
             frame = types.SimpleNamespace(Close=mock.Mock())
         ventanas = []
@@ -131,8 +136,10 @@ class TestVentana(unittest.TestCase):
         self._doble(mock.patch(
             "ytchat.ui.gui_actualizacion.DialogoActualizacion",
             side_effect=fabrica))
-        self._doble(mock.patch.object(
-            actualizacion, "consultar_ultima_version", return_value=consultar))
+        if paquete is None:
+            self._doble(mock.patch.object(
+                actualizacion, "consultar_ultima_version",
+                return_value=consultar))
         self._doble(mock.patch.object(
             app.diagnostico, "crear_hilo", side_effect=crear))
         self._doble(mock.patch.object(sys, "frozen", frozen, create=True))
@@ -148,7 +155,8 @@ class TestVentana(unittest.TestCase):
             self._doble(mock.patch.object(
                 actualizacion, "validar_paquete", side_effect=validar))
         red = self._doble(mock.patch("webbrowser.open"))
-        app.abrir_ventana_actualizacion(frame)
+        app.abrir_ventana_actualizacion(frame, paquete=paquete,
+                                       al_arrancar=al_arrancar)
         return frame, (ventanas[0] if ventanas else None), red
 
     def test_titulo_y_busqueda_inicial(self):
@@ -354,6 +362,28 @@ class TestVentana(unittest.TestCase):
         self.assertTrue(ventana2.mostrada)
         self.assertIsNot(ventana, ventana2)
 
+    def test_con_paquete_no_consulta_la_red(self):
+        consulta = self._doble(mock.patch.object(
+            actualizacion, "consultar_ultima_version",
+            side_effect=AssertionError("no debe consultar la red")))
+        _, ventana, _ = self._abrir(
+            paquete=_paquete(VERSION_NUEVA), frozen=True, admite=True)
+        consulta.assert_not_called()
+        self.assertNotIn("Buscando la última versión.", ventana.anuncios)
+        self.assertIn(f"Hay una versión nueva, la {VERSION_NUEVA}. "
+                      f"La instalada es la {APP_VERSION}.", ventana.anuncios)
+        self.assertEqual("&Descargar e instalar", ventana.accion_etiqueta)
+
+    def test_al_arrancar_el_cierre_dice_mas_tarde(self):
+        _, ventana, _ = self._abrir(
+            paquete=_paquete(VERSION_NUEVA), frozen=True, admite=True,
+            al_arrancar=True)
+        self.assertEqual("&Más tarde", ventana.etiqueta_cerrar_vista)
+
+    def test_desde_el_menu_el_cierre_no_cambia(self):
+        _, ventana, _ = self._abrir(consultar=_paquete(APP_VERSION, ""))
+        self.assertIsNone(ventana.etiqueta_cerrar_vista)
+
 
 class TestGanchos(unittest.TestCase):
 
@@ -381,6 +411,75 @@ class TestGanchos(unittest.TestCase):
             return hilo
         self._doble(mock.patch.object(app.diagnostico, "crear_hilo", side_effect=crear))
         return demoras
+
+    def _frame(self, conectado=False, transmitiendo=False):
+        return types.SimpleNamespace(
+            _conectado=conectado,
+            _supervisar_transmision=lambda accion: transmitiendo)
+
+    def _preparar_aviso(self, version=VERSION_NUEVA, frozen=False,
+                        conectado=False, transmitiendo=False, avisada=""):
+        self._reloj()
+        self._doble(mock.patch.object(sys, "frozen", frozen, create=True))
+        self._doble(mock.patch.object(actualizacion, "limpiar_restos"))
+        self._doble(mock.patch.object(
+            actualizacion, "consultar_ultima_version",
+            return_value=_paquete(version)))
+        anunciar = self._doble(mock.patch.object(app, "anunciar"))
+        self._doble(mock.patch.object(
+            app, "leer_version_avisada", return_value=avisada))
+        guardar = self._doble(mock.patch.object(app, "guardar_version_avisada"))
+        abrir = self._doble(mock.patch.object(
+            app, "abrir_ventana_actualizacion"))
+        frame = self._frame(conectado=conectado, transmitiendo=transmitiendo)
+        app.programar_aviso_version(frame)
+        return frame, anunciar, guardar, abrir
+
+    def test_empaquetado_sin_conexion_abre_ventana_al_arrancar(self):
+        frame, anunciar, guardar, abrir = self._preparar_aviso(frozen=True)
+        abrir.assert_called_once()
+        args, kwargs = abrir.call_args
+        self.assertIs(args[0], frame)
+        self.assertEqual(kwargs["paquete"].version, VERSION_NUEVA)
+        self.assertTrue(kwargs["al_arrancar"])
+        anunciar.assert_not_called()
+        guardar.assert_not_called()
+
+    def test_empaquetado_con_version_ya_avisada_abre_igual(self):
+        _, anunciar, guardar, abrir = self._preparar_aviso(
+            frozen=True, avisada=VERSION_NUEVA)
+        abrir.assert_called_once()
+        anunciar.assert_not_called()
+        guardar.assert_not_called()
+
+    def test_empaquetado_con_chat_conectado_hace_aviso_hablado(self):
+        _, anunciar, guardar, abrir = self._preparar_aviso(
+            frozen=True, conectado=True)
+        abrir.assert_not_called()
+        anunciar.assert_called_once_with(
+            f"Hay una versión nueva de {APP_NAME}, la {VERSION_NUEVA}. "
+            "Para instalarla: menú Ayuda, Buscar actualizaciones.")
+        guardar.assert_called_once_with(VERSION_NUEVA)
+
+    def test_empaquetado_con_transmision_hace_aviso_hablado(self):
+        _, anunciar, guardar, abrir = self._preparar_aviso(
+            frozen=True, transmitiendo=True)
+        abrir.assert_not_called()
+        anunciar.assert_called_once()
+        guardar.assert_called_once_with(VERSION_NUEVA)
+
+    def test_sin_empaquetar_hace_aviso_hablado(self):
+        _, anunciar, guardar, abrir = self._preparar_aviso(frozen=False)
+        abrir.assert_not_called()
+        anunciar.assert_called_once()
+        guardar.assert_called_once_with(VERSION_NUEVA)
+
+    def test_sin_version_nueva_no_hace_nada(self):
+        _, anunciar, guardar, abrir = self._preparar_aviso(
+            version=APP_VERSION, frozen=True)
+        abrir.assert_not_called()
+        anunciar.assert_not_called()
+        guardar.assert_not_called()
 
     def test_confirmacion_programada_y_llamada(self):
         demoras = self._reloj()
@@ -426,6 +525,7 @@ class TestGanchos(unittest.TestCase):
 
     def test_aviso_una_sola_vez_por_version_y_guarda(self):
         demoras = self._reloj()
+        self._doble(mock.patch.object(sys, "frozen", False, create=True))
         self._doble(mock.patch.object(
             actualizacion, "consultar_ultima_version",
             return_value=_paquete("9.9.9")))
@@ -433,7 +533,8 @@ class TestGanchos(unittest.TestCase):
         leer = self._doble(mock.patch.object(
             app, "leer_version_avisada", return_value=""))
         guardar = self._doble(mock.patch.object(app, "guardar_version_avisada"))
-        app.programar_aviso_version()
+        frame = self._frame()
+        app.programar_aviso_version(frame)
         self.assertEqual([10000], demoras)
         anunciar.assert_called_once_with(
             f"Hay una versión nueva de {APP_NAME}, la 9.9.9. "
@@ -442,7 +543,7 @@ class TestGanchos(unittest.TestCase):
         # Ya avisada: silencio.
         anunciar.reset_mock()
         leer.return_value = "9.9.9"
-        app.programar_aviso_version()
+        app.programar_aviso_version(frame)
         anunciar.assert_not_called()
 
     def test_sin_conexion_no_anuncia(self):
@@ -451,7 +552,7 @@ class TestGanchos(unittest.TestCase):
             actualizacion, "consultar_ultima_version", return_value=None))
         anunciar = self._doble(mock.patch.object(app, "anunciar"))
         guardar = self._doble(mock.patch.object(app, "guardar_version_avisada"))
-        app.programar_aviso_version()
+        app.programar_aviso_version(self._frame())
         anunciar.assert_not_called()
         guardar.assert_not_called()
 
@@ -468,7 +569,7 @@ class TestGanchos(unittest.TestCase):
             actualizacion, "consultar_ultima_version",
             side_effect=_consultar))
         self._doble(mock.patch.object(app, "anunciar"))
-        app.programar_aviso_version()
+        app.programar_aviso_version(self._frame())
         self.assertEqual(["limpiar", "consultar"], orden)
 
     def test_ganchos_nunca_revientan(self):
@@ -485,7 +586,7 @@ class TestGanchos(unittest.TestCase):
         with mock.patch.object(app, "logger"):
             app.programar_confirmacion_arranque()
             app.programar_resultado_actualizacion()
-            app.programar_aviso_version()
+            app.programar_aviso_version(self._frame())
 
     def test_version_avisada_se_guarda_con_guardar_opcion(self):
         import configparser
@@ -500,6 +601,36 @@ class TestGanchos(unittest.TestCase):
             self.assertEqual("9.9.9", parser.get("actualizaciones", "avisada"))
             self.assertEqual("0", parser.get("voz", "voz"))
             self.assertEqual("", app.leer_version_avisada(Path(tmp) / "nada.ini"))
+
+
+class TestDialogoNotas(unittest.TestCase):
+    """La lógica de los métodos del diálogo, sin wx: self doble."""
+
+    def _doble(self):
+        return mock.Mock()
+
+    def test_notas_limpia_markdown_y_ubica_el_cursor(self):
+        from ytchat.ui import gui_actualizacion as ui
+        doble = self._doble()
+        ui.DialogoActualizacion.notas(doble, "\r\n\r\n- **Uno** seguido")
+        doble.txt_notas.SetValue.assert_called_once_with("• Uno seguido")
+        doble.txt_notas.Show.assert_called_once_with()
+        doble.txt_notas.SetInsertionPoint.assert_called_once_with(0)
+        doble.txt_notas.ShowPosition.assert_called_once_with(0)
+
+    def test_notas_vacias_ocultan_el_cuadro(self):
+        from ytchat.ui import gui_actualizacion as ui
+        doble = self._doble()
+        ui.DialogoActualizacion.notas(doble, "   \r\n")
+        doble.txt_notas.SetValue.assert_called_once_with("")
+        doble.txt_notas.Hide.assert_called_once_with()
+        doble.txt_notas.SetInsertionPoint.assert_not_called()
+
+    def test_etiqueta_cerrar_cambia_el_boton(self):
+        from ytchat.ui import gui_actualizacion as ui
+        doble = self._doble()
+        ui.DialogoActualizacion.etiqueta_cerrar(doble, "&Más tarde")
+        doble.btn_cerrar.SetLabel.assert_called_once_with("&Más tarde")
 
 
 class TestCableado(unittest.TestCase):
@@ -520,6 +651,7 @@ class TestCableado(unittest.TestCase):
                        "programar_aviso_version"):
             with self.subTest(nombre=nombre):
                 self.assertIn(nombre, cuerpo)
+        self.assertIn("programar_aviso_version(frame)", cuerpo)
 
     def test_menu_ayuda_ofrece_buscar_antes_de_acerca(self):
         texto = self._texto_gui()

@@ -3,6 +3,20 @@
 Qué cambia en cada versión, en lenguaje llano. El detalle técnico está en el
 historial de git.
 
+## 2.2.1, octubre de 2026
+
+Arreglos para actualizar sin trabas y un paquete más liviano.
+
+- **OBS ya no traba las actualizaciones.** El OBS que abría la aplicación
+  usaba archivos de la carpeta de YTChat, y mientras siguiera abierto la
+  actualización no podía reemplazarlos. Ahora OBS usa los suyos.
+- **Si una actualización no puede completarse porque un archivo está en
+  uso,** el aviso dice que puede ser OBS y que lo cierres antes de volver a
+  intentarlo. Esto sirve también para pasar de la 2.2.0 a esta versión: si
+  abriste OBS desde la 2.2.0, ciérralo antes de actualizar.
+- **El paquete baja de 175 a 147 MB.** Ya no lleva documentos de otros
+  servicios de Google ni una biblioteca que la aplicación no usa.
+
 ## 2.2.0, octubre de 2026
 
 Esta versión permite empezar y terminar un directo de YouTube o de TikTok

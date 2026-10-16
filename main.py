@@ -701,6 +701,11 @@ def iniciar_interfaz(config, cola, stats, worker, parada, iniciar_gui_fn=None):
 
 
 def main():
+    # Autocomprobación del paquete: la corre construir.bat sobre el exe armado.
+    # Va antes que todo, sin logging, sin mutex ni ventanas.
+    if len(sys.argv) > 1 and sys.argv[1] == "--autocomprobar":
+        from ytchat.core import autocomprobacion
+        sys.exit(autocomprobacion.principal(sys.argv[2:]))
     # Modo instalador: corre dentro del exe nuevo mientras la app vieja
     # se cierra. Va primero que todo, sin logging, sin mutex ni ventanas.
     if len(sys.argv) > 1 and sys.argv[1] == "--instalar-actualizacion":

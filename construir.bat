@@ -197,6 +197,13 @@ if errorlevel 1 (
 if exist "%OUT%\config.ini" ( echo ERROR: config.ini quedo en el paquete y pisaria el del usuario. & pause & exit /b 1 )
 if not exist "%OUT%\_internal\googleapiclient\discovery_cache\documents\youtube.v3.json" ( echo ERROR: falta youtube.v3.json en el discovery cache; la app no podria hablar con la API. & pause & exit /b 1 )
 if not exist "%OUT%\_internal\prism\_native\_prism_cffi.pyd" ( echo ERROR: falta _prism_cffi.pyd en prism\_native; sin Prism la app arrancaria sin voz ni lector de pantalla. & pause & exit /b 1 )
+echo == Comprobando que el paquete carga lo critico ==
+del /q "%TEMP%\ytchat-autocomprobacion.txt" 2>nul
+start "" /wait "%OUT%\YTChatTTS.exe" --autocomprobar "%TEMP%\ytchat-autocomprobacion.txt"
+set "AUTOCOMP=%errorlevel%"
+type "%TEMP%\ytchat-autocomprobacion.txt" 2>nul
+if not "%AUTOCOMP%"=="0" ( echo ERROR: el paquete no carga todo lo critico, ver las lineas FALLA de arriba. & pause & exit /b 1 )
+rmdir /s /q "%OUT%\data" 2>nul
 set "OTROS_DOCS="
 for %%f in ("%OUT%\_internal\googleapiclient\discovery_cache\documents\*") do if /i not "%%~nxf"=="youtube.v3.json" set "OTROS_DOCS=1"
 if defined OTROS_DOCS echo    AVISO: quedaron documentos de API de Google ademas de youtube.v3.json en el paquete.

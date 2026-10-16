@@ -31,6 +31,13 @@ Más voces para leer el chat y más opciones al crear un directo de YouTube.
   abres o reinicias NVDA o JAWS con la aplicación ya abierta, los anuncios
   vuelven a sonar a los pocos segundos.
 
+### Preferencias
+
+- **Guardar es instantáneo y se oye.** Antes tardaba un momento y el aviso
+  se perdía al cerrarse la ventana. Ahora guarda todo de una vez, suena el
+  sonido al pulsar *Guardar* y, ya de vuelta en la ventana principal, la
+  aplicación dice «Preferencias guardadas» junto con cualquier otro aviso.
+
 ### Sonidos
 
 - **El tema «suave» vuelve a sonar distinto.** Desde la 2.2.0 sus sonidos

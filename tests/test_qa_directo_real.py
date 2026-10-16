@@ -78,6 +78,82 @@ class TestPrimerFaltante(unittest.TestCase):
             "YA ESTÁ AL AIRE", ["ya está al aire"]))
 
 
+class TestFaltasDeOpciones(unittest.TestCase):
+
+    def _contenido_ok(self, **cambios):
+        contenido = {"latencyPreference": "ultraLow", "enableDvr": False}
+        contenido.update(cambios)
+        return contenido
+
+    def _snippet_ok(self, **cambios):
+        snippet = {"categoryId": "20", "tags": ["prueba", "ytchat"]}
+        snippet.update(cambios)
+        return snippet
+
+    def test_todo_bien_no_falta_nada(self):
+        self.assertEqual(
+            directo_real.faltas_de_opciones(self._contenido_ok(),
+                                            self._snippet_ok()), [])
+
+    def test_latencia(self):
+        self.assertEqual(
+            directo_real.faltas_de_opciones(
+                self._contenido_ok(latencyPreference="normal"),
+                self._snippet_ok()),
+            ["latencia ultrabaja"])
+
+    def test_dvr(self):
+        self.assertEqual(
+            directo_real.faltas_de_opciones(
+                self._contenido_ok(enableDvr=True), self._snippet_ok()),
+            ["rebobinar apagado"])
+
+    def test_categoria(self):
+        self.assertEqual(
+            directo_real.faltas_de_opciones(
+                self._contenido_ok(), self._snippet_ok(categoryId="24")),
+            ["categoría Videojuegos"])
+
+    def test_las_etiquetas_no_cuentan(self):
+        self.assertEqual(
+            directo_real.faltas_de_opciones(
+                self._contenido_ok(), self._snippet_ok(tags=[])), [])
+
+    def test_varias_faltas_en_orden(self):
+        self.assertEqual(
+            directo_real.faltas_de_opciones(
+                self._contenido_ok(latencyPreference="normal",
+                                   enableDvr=True),
+                self._snippet_ok(categoryId="24", tags=[])),
+            ["latencia ultrabaja", "rebobinar apagado",
+             "categoría Videojuegos"])
+
+    def test_vacio_no_revienta(self):
+        self.assertEqual(len(directo_real.faltas_de_opciones(None, None)), 3)
+
+
+class TestEstadoMiniatura(unittest.TestCase):
+
+    def test_sin_avisos_pasa(self):
+        bien, detalle = directo_real.estado_miniatura(
+            "Tu directo de YouTube ya está al aire.")
+        self.assertTrue(bien)
+        self.assertIn("sin avisos", detalle)
+
+    def test_403_del_canal_sin_verificar_pasa(self):
+        from ytchat.youtube import youtube_api
+        bien, detalle = directo_real.estado_miniatura(
+            "Aviso: " + youtube_api.FRASE_MINiatura_SIN_VERIFICAR)
+        self.assertTrue(bien)
+        self.assertIn("verificado por teléfono", detalle)
+
+    def test_otro_fallo_no_pasa(self):
+        bien, detalle = directo_real.estado_miniatura(
+            "No se pudo poner la miniatura: Error de la API.")
+        self.assertFalse(bien)
+        self.assertIn("no pudo", detalle)
+
+
 class TestDecidirCerrarObs(unittest.TestCase):
 
     def test_si_estaba_abierto_no_se_cierra(self):

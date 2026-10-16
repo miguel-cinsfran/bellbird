@@ -354,6 +354,46 @@ class TestCargarConfiguracion(unittest.TestCase):
         cfg = self._cargar_en("[transmision]\nyoutube_privacidad = solo-yo\n")
         self.assertEqual(cfg["transmision_youtube_privacidad"], "unlisted")
 
+    def test_directo_youtube_opciones_por_defecto(self):
+        cfg = self._cargar_en("[voz]\nvoz = 0\n")
+        self.assertEqual(cfg["transmision_youtube_latencia"], "normal")
+        self.assertFalse(cfg["transmision_youtube_ninos"])
+        self.assertTrue(cfg["transmision_youtube_dvr"])
+        self.assertEqual(cfg["transmision_youtube_categoria"], "")
+        self.assertEqual(cfg["transmision_youtube_etiquetas"], "")
+        self.assertEqual(cfg["transmision_youtube_miniatura"], "")
+
+    def test_directo_youtube_latencia_valida_se_conserva(self):
+        for latencia in ("normal", "low", "ultraLow"):
+            cfg = self._cargar_en(
+                f"[transmision]\nyoutube_latencia = {latencia}\n")
+            self.assertEqual(cfg["transmision_youtube_latencia"], latencia)
+
+    def test_directo_youtube_latencia_invalida_cae_a_normal(self):
+        cfg = self._cargar_en("[transmision]\nyoutube_latencia = turbo\n")
+        self.assertEqual(cfg["transmision_youtube_latencia"], "normal")
+
+    def test_directo_youtube_ninos_y_dvr_se_leen(self):
+        cfg = self._cargar_en(
+            "[transmision]\nyoutube_ninos = true\nyoutube_dvr = false\n")
+        self.assertTrue(cfg["transmision_youtube_ninos"])
+        self.assertFalse(cfg["transmision_youtube_dvr"])
+
+    def test_directo_youtube_categoria_valida_se_conserva(self):
+        cfg = self._cargar_en("[transmision]\nyoutube_categoria = 20\n")
+        self.assertEqual(cfg["transmision_youtube_categoria"], "20")
+
+    def test_directo_youtube_categoria_invalida_queda_vacia(self):
+        cfg = self._cargar_en("[transmision]\nyoutube_categoria = 999\n")
+        self.assertEqual(cfg["transmision_youtube_categoria"], "")
+
+    def test_directo_youtube_miniatura_ruta_ida_y_vuelta(self):
+        ruta = "C:\\fotos\\miniatura.png"
+        cfg = self._cargar_en(
+            "[transmision]\nyoutube_miniatura = "
+            f"{config.codificar_texto_ini(ruta)}\n")
+        self.assertEqual(cfg["transmision_youtube_miniatura"], ruta)
+
     def _ida_y_vuelta_ini(self, texto: str) -> str:
         ruta = Path(self._tmp.name) / "ida.ini"
         ruta.write_text("[transmision]\nyoutube_titulo = "

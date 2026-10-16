@@ -3309,6 +3309,12 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
             "transmision_youtube_titulo": "",
             "transmision_youtube_descripcion": "",
             "transmision_youtube_privacidad": "unlisted",
+            "transmision_youtube_latencia": "normal",
+            "transmision_youtube_ninos": False,
+            "transmision_youtube_dvr": True,
+            "transmision_youtube_categoria": "",
+            "transmision_youtube_etiquetas": "",
+            "transmision_youtube_miniatura": "",
         }
         frame._actualizar_boton_directo = mock.Mock()
         return frame
@@ -3382,17 +3388,27 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
                            self._doble_supervisor(creados)), \
                 mock.patch.object(gui, "anunciar") as anunciar:
             frame._supervisar_transmision("iniciar", "YouTube", "")
-        pedir.assert_called_once_with(frame, "", "", "unlisted", None)
+        pedir.assert_called_once_with(frame, "", "", "unlisted", None,
+                                      "normal", False, True, "", "", "")
         self.assertEqual(frame._config["transmision_youtube_titulo"], "Hola")
         self.assertEqual(frame._config["transmision_youtube_descripcion"], "algo")
         self.assertEqual(frame._config["transmision_youtube_privacidad"], "public")
-        self.assertEqual(guardar.call_count, 3)
+        self.assertEqual(frame._config["transmision_youtube_latencia"], "normal")
+        self.assertFalse(frame._config["transmision_youtube_ninos"])
+        self.assertTrue(frame._config["transmision_youtube_dvr"])
+        self.assertEqual(guardar.call_count, 9)
         guardar.assert_any_call(
             gui.RUTA_CONFIG, "transmision", "youtube_titulo", "Hola")
         guardar.assert_any_call(
             gui.RUTA_CONFIG, "transmision", "youtube_descripcion", "algo")
         guardar.assert_any_call(
             gui.RUTA_CONFIG, "transmision", "youtube_privacidad", "public")
+        guardar.assert_any_call(
+            gui.RUTA_CONFIG, "transmision", "youtube_latencia", "normal")
+        guardar.assert_any_call(
+            gui.RUTA_CONFIG, "transmision", "youtube_ninos", "false")
+        guardar.assert_any_call(
+            gui.RUTA_CONFIG, "transmision", "youtube_dvr", "true")
         cliente.assert_called_once_with({"token": "t",
                                            "api_key": "k-prueba"})
         efectivas.assert_called_once_with({"token": "t"})
@@ -3438,7 +3454,8 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
                            self._doble_supervisor(creados)):
             frame._supervisar_transmision(
                 "iniciar", "YouTube", "", revision=revision)
-        pedir.assert_called_once_with(frame, "", "", "unlisted", revision)
+        pedir.assert_called_once_with(frame, "", "", "unlisted", revision,
+                                      "normal", False, True, "", "", "")
         self.assertEqual(len(creados), 1)
 
     def test_tiktok_arranca_sin_ganchos_y_sin_pedir_datos(self):
@@ -3456,10 +3473,11 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
         self.assertIsNone(creados[0]["finalizar_emision"])
         self.assertTrue(frame._supervisor.iniciado)
 
-    def _conectar_chat_youtube(self, frame, privacidad):
+    def _conectar_chat_youtube(self, frame, privacidad, **extra):
         creados = []
         pedido = {"titulo": "Hola", "descripcion": "algo",
                   "privacidad": privacidad}
+        pedido.update(extra)
         with mock.patch.object(gui.credenciales, "cargar",
                                return_value={"token": "t"}), \
                 mock.patch.object(gui.credenciales, "hay_sesion",
@@ -3505,6 +3523,25 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
             al_conectar_chat("https://www.youtube.com/watch?v=abc123")
         frame._on_conectar.assert_called_once_with(None)
         anunciar.assert_not_called()
+
+    def test_ninos_no_conecta_el_chat_y_avisa(self):
+        frame = self._frame()
+        frame._alive = True
+        frame._conectado = False
+        frame._conectando = False
+        frame.txt_url = mock.Mock()
+        frame._on_conectar = mock.Mock()
+        al_conectar_chat = self._conectar_chat_youtube(frame, "unlisted",
+                                                       ninos=True)
+        with mock.patch.object(gui.wx, "CallAfter",
+                               side_effect=lambda funcion: funcion()), \
+                mock.patch.object(gui, "anunciar") as anunciar:
+            al_conectar_chat("https://www.youtube.com/watch?v=abc123")
+        frame._on_conectar.assert_not_called()
+        frame.txt_url.SetValue.assert_not_called()
+        anunciar.assert_called_once_with(
+            "El directo está marcado como hecho para niños y YouTube no "
+            "tiene chat.")
 
 
 class TestOrillaChat(unittest.TestCase):

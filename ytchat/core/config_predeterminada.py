@@ -127,6 +127,12 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("youtube_titulo", ""),
         ("youtube_descripcion", ""),
         ("youtube_privacidad", "unlisted"),
+        ("youtube_latencia", "normal"),
+        ("youtube_ninos", "false"),
+        ("youtube_dvr", "true"),
+        ("youtube_categoria", ""),
+        ("youtube_etiquetas", ""),
+        ("youtube_miniatura", ""),
     ]),
     ("estado", [
         ("estado", "true"),

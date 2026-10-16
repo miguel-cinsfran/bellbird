@@ -1,51 +1,77 @@
 """Ventana para pedir los datos del directo de YouTube antes de transmitir.
 
-Modal pequeña como `DialogoRedactar`: título, descripción opcional y
-privacidad, que se recuerdan para la próxima vez. Pura salvo wx.
+Modal pequeña como `DialogoRedactar`: título, descripción, privacidad y las
+opciones del directo (latencia, hecho para niños, rebobinar, categoría,
+etiquetas y miniatura), que se recuerdan para la próxima vez. Pura salvo wx.
 """
 
 from __future__ import annotations
 
+import os
 from datetime import datetime
 
 import wx
 
 from ytchat.ui.gui import anunciar, nombre_accesible
 from ytchat.youtube.emision import (
+    CATEGORIAS,
+    ETIQUETAS_LATENCIA,
     ETIQUETAS_PRIVACIDAD,
+    LATENCIA_INICIAL,
+    LATENCIAS,
     PRIVACIDAD_INICIAL,
     PRIVACIDADES,
     EmisionError,
+    error_de_miniatura,
+    etiquetas_de_texto,
     titulo_por_defecto,
 )
 
+_FILTRO_IMAGENES = ("Imágenes JPG y PNG (*.jpg;*.jpeg;*.png)|"
+                    "*.jpg;*.jpeg;*.png")
 
-def resultado_directo(titulo, descripcion, privacidad) -> dict:
+
+def resultado_directo(titulo, descripcion, privacidad,
+                      latencia=LATENCIA_INICIAL, ninos=False, dvr=True,
+                      categoria="", etiquetas="", miniatura="") -> dict:
     """Valida los valores de la ventana y arma el dict del directo.
 
     Pura y sin ventanas: la usan el diálogo y las pruebas. El título
     vacío anuncia «Falta el título del directo.» vía excepción, igual
-    que `cuerpo_emision`.
+    que `cuerpo_emision`. La lista de etiquetas la arma
+    `etiquetas_de_texto` a partir del texto separado por comas.
     """
     titulo = (titulo or "").strip()
     if not titulo:
         raise EmisionError("Falta el título del directo.")
     if privacidad not in PRIVACIDADES:
         privacidad = PRIVACIDAD_INICIAL
+    if latencia not in LATENCIAS:
+        latencia = LATENCIA_INICIAL
+    if categoria not in {identificador for identificador, _texto in CATEGORIAS}:
+        categoria = ""
     return {"titulo": titulo[:100], "descripcion": descripcion or "",
-            "privacidad": privacidad}
+            "privacidad": privacidad, "latencia": latencia,
+            "ninos": bool(ninos), "dvr": bool(dvr), "categoria": categoria,
+            "etiquetas": etiquetas_de_texto(etiquetas),
+            "miniatura": (miniatura or "").strip()}
 
 
 class DialogoDirectoYoutube(wx.Dialog):
     def __init__(self, padre, titulo="", descripcion="",
-                 privacidad=PRIVACIDAD_INICIAL, revision=None):
+                 privacidad=PRIVACIDAD_INICIAL, revision=None,
+                 latencia=LATENCIA_INICIAL, ninos=False, dvr=True,
+                 categoria="", etiquetas="", miniatura=""):
         super().__init__(padre, title="Directo de YouTube",
                          name="DialogoDirectoYoutube")
         if privacidad not in PRIVACIDADES:
             privacidad = PRIVACIDAD_INICIAL
+        if latencia not in LATENCIAS:
+            latencia = LATENCIA_INICIAL
         if not (titulo or "").strip():
             titulo = titulo_por_defecto(datetime.now())
         self._datos = None
+        self._miniatura = (miniatura or "").strip()
 
         vs = wx.BoxSizer(wx.VERTICAL)
         rotulo_titulo = wx.StaticText(self, label="Título:")
@@ -77,6 +103,65 @@ class DialogoDirectoYoutube(wx.Dialog):
         nombre_accesible(self.cho_privacidad, "Privacidad")
         vs.Add(self.cho_privacidad, 0, wx.EXPAND | wx.ALL, 10)
 
+        rotulo_latencia = wx.StaticText(self, label="&Latencia:")
+        vs.Add(rotulo_latencia, 0, wx.LEFT | wx.RIGHT, 10)
+        self.cho_latencia = wx.Choice(
+            self, choices=[ETIQUETAS_LATENCIA[l] for l in LATENCIAS],
+            name="Latencia")
+        self.cho_latencia.SetSelection(LATENCIAS.index(latencia))
+        nombre_accesible(self.cho_latencia, "Latencia")
+        vs.Add(self.cho_latencia, 0, wx.EXPAND | wx.ALL, 10)
+
+        self.chk_ninos = wx.CheckBox(
+            self, label="Hecho para &niños (YouTube apaga el chat)",
+            name="Hecho para niños")
+        self.chk_ninos.SetValue(bool(ninos))
+        nombre_accesible(self.chk_ninos, "Hecho para niños")
+        vs.Add(self.chk_ninos, 0, wx.LEFT | wx.RIGHT, 10)
+
+        self.chk_dvr = wx.CheckBox(
+            self, label="Permitir re&bobinar el directo",
+            name="Permitir rebobinar")
+        self.chk_dvr.SetValue(bool(dvr))
+        nombre_accesible(self.chk_dvr, "Permitir rebobinar")
+        vs.Add(self.chk_dvr, 0, wx.LEFT | wx.RIGHT, 10)
+
+        rotulo_categoria = wx.StaticText(self, label="Cate&goría:")
+        vs.Add(rotulo_categoria, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
+        self.cho_categoria = wx.Choice(
+            self, choices=[texto for _id, texto in CATEGORIAS],
+            name="Categoría")
+        ids = [identificador for identificador, _texto in CATEGORIAS]
+        self.cho_categoria.SetSelection(
+            ids.index(categoria) if categoria in ids else 0)
+        nombre_accesible(self.cho_categoria, "Categoría")
+        vs.Add(self.cho_categoria, 0, wx.EXPAND | wx.ALL, 10)
+
+        rotulo_etiquetas = wx.StaticText(
+            self, label="&Etiquetas, separadas por comas:")
+        vs.Add(rotulo_etiquetas, 0, wx.LEFT | wx.RIGHT, 10)
+        self.txt_etiquetas = wx.TextCtrl(
+            self, value=etiquetas or "", name="Etiquetas")
+        nombre_accesible(self.txt_etiquetas, "Etiquetas")
+        vs.Add(self.txt_etiquetas, 0, wx.EXPAND | wx.ALL, 10)
+
+        rotulo_miniatura = wx.StaticText(self, label="Miniatura:")
+        vs.Add(rotulo_miniatura, 0, wx.LEFT | wx.RIGHT, 10)
+        self.txt_miniatura = wx.TextCtrl(
+            self, value=self._texto_miniatura(), style=wx.TE_READONLY,
+            name="Miniatura")
+        nombre_accesible(self.txt_miniatura, "Miniatura")
+        vs.Add(self.txt_miniatura, 0, wx.EXPAND | wx.ALL, 10)
+
+        fila_miniatura = wx.BoxSizer(wx.HORIZONTAL)
+        self.btn_elegir_miniatura = wx.Button(
+            self, label="Elegir &miniatura...", name="Elegir miniatura")
+        self.btn_quitar_miniatura = wx.Button(
+            self, label="&Quitar miniatura", name="Quitar miniatura")
+        fila_miniatura.Add(self.btn_elegir_miniatura, 0, wx.RIGHT, 6)
+        fila_miniatura.Add(self.btn_quitar_miniatura, 0)
+        vs.Add(fila_miniatura, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
         from ytchat.obs import obs_prevuelo
         texto_revision = (obs_prevuelo.frase_revision(revision)
                           if revision is not None else "")
@@ -101,6 +186,10 @@ class DialogoDirectoYoutube(wx.Dialog):
         self.txt_titulo.SetMinSize((420, -1))
         self.SetSizerAndFit(vs)
         self.btn_crear.Bind(wx.EVT_BUTTON, self._al_crear)
+        self.btn_elegir_miniatura.Bind(wx.EVT_BUTTON,
+                                       self._al_elegir_miniatura)
+        self.btn_quitar_miniatura.Bind(wx.EVT_BUTTON,
+                                       self._al_quitar_miniatura)
         self.Bind(wx.EVT_CHAR_HOOK, self._al_tecla)
         if revision is not None and bool(
                 getattr(revision, "problemas", ())):
@@ -114,15 +203,53 @@ class DialogoDirectoYoutube(wx.Dialog):
     def datos(self):
         return self._datos
 
+    def _texto_miniatura(self) -> str:
+        if not self._miniatura:
+            return "Ninguna"
+        return os.path.basename(self._miniatura)
+
     def _privacidad_elegida(self) -> str:
         return PRIVACIDADES[self.cho_privacidad.GetSelection()]
+
+    def _latencia_elegida(self) -> str:
+        return LATENCIAS[self.cho_latencia.GetSelection()]
+
+    def _categoria_elegida(self) -> str:
+        return CATEGORIAS[self.cho_categoria.GetSelection()][0]
+
+    def _al_elegir_miniatura(self, _event) -> None:
+        with wx.FileDialog(
+                self, "Elegir miniatura", wildcard=_FILTRO_IMAGENES,
+                style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as cuadro:
+            if cuadro.ShowModal() != wx.ID_OK:
+                return
+            ruta = cuadro.GetPath()
+        error = error_de_miniatura(ruta)
+        if error:
+            anunciar(error)
+            return
+        self._miniatura = ruta
+        nombre = os.path.basename(ruta)
+        self.txt_miniatura.SetValue(nombre)
+        anunciar("Miniatura: " + nombre)
+
+    def _al_quitar_miniatura(self, _event) -> None:
+        self._miniatura = ""
+        self.txt_miniatura.SetValue("Ninguna")
+        anunciar("Sin miniatura.")
 
     def _al_crear(self, _event) -> None:
         try:
             self._datos = resultado_directo(
                 self.txt_titulo.GetValue(),
                 self.txt_descripcion.GetValue(),
-                self._privacidad_elegida())
+                self._privacidad_elegida(),
+                self._latencia_elegida(),
+                self.chk_ninos.GetValue(),
+                self.chk_dvr.GetValue(),
+                self._categoria_elegida(),
+                self.txt_etiquetas.GetValue(),
+                self._miniatura)
         except EmisionError as exc:
             anunciar(str(exc))
             self.txt_titulo.SetFocus()
@@ -137,10 +264,13 @@ class DialogoDirectoYoutube(wx.Dialog):
 
 
 def pedir_datos_directo(padre, titulo="", descripcion="",
-                        privacidad=PRIVACIDAD_INICIAL, revision=None):
-    """Pide título, descripción y privacidad. Dict o None si se cancela."""
+                        privacidad=PRIVACIDAD_INICIAL, revision=None,
+                        latencia=LATENCIA_INICIAL, ninos=False, dvr=True,
+                        categoria="", etiquetas="", miniatura=""):
+    """Pide los datos del directo. Devuelve el dict o None si se cancela."""
     dialogo = DialogoDirectoYoutube(
-        padre, titulo, descripcion, privacidad, revision)
+        padre, titulo, descripcion, privacidad, revision, latencia,
+        ninos, dvr, categoria, etiquetas, miniatura)
     try:
         if dialogo.ShowModal() == wx.ID_OK:
             return dialogo.datos

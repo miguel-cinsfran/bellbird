@@ -757,24 +757,58 @@ class YTChatFrame(wx.Frame):
         guardar_opcion(RUTA_CONFIG, "transmision", "destino", destino)
         return destino
 
-    def _guardar_datos_directo_youtube(self, titulo, descripcion, privacidad):
+    def _guardar_datos_directo_youtube(self, titulo, descripcion, privacidad,
+                                       latencia=None, ninos=False, dvr=True,
+                                       categoria="", etiquetas=None,
+                                       miniatura=""):
         from ytchat.core.config import codificar_texto_ini
-        from ytchat.youtube.emision import PRIVACIDADES, PRIVACIDAD_INICIAL
+        from ytchat.youtube.emision import (
+            CATEGORIAS, LATENCIAS, LATENCIA_INICIAL, PRIVACIDADES,
+            PRIVACIDAD_INICIAL)
         titulo = (titulo or "").strip()[:100]
         descripcion = descripcion or ""
         if privacidad not in PRIVACIDADES:
             privacidad = PRIVACIDAD_INICIAL
+        if latencia not in LATENCIAS:
+            latencia = LATENCIA_INICIAL
+        if categoria not in {identificador for identificador, _t in CATEGORIAS}:
+            categoria = ""
+        etiquetas = list(etiquetas or [])
+        miniatura = (miniatura or "").strip()
+        nimios_texto = "true" if ninos else "false"
+        dvr_texto = "true" if dvr else "false"
+        etiquetas_texto = ", ".join(etiquetas)
         self._config["transmision_youtube_titulo"] = titulo
         self._config["transmision_youtube_descripcion"] = descripcion
         self._config["transmision_youtube_privacidad"] = privacidad
+        self._config["transmision_youtube_latencia"] = latencia
+        self._config["transmision_youtube_ninos"] = ninos
+        self._config["transmision_youtube_dvr"] = dvr
+        self._config["transmision_youtube_categoria"] = categoria
+        self._config["transmision_youtube_etiquetas"] = etiquetas_texto
+        self._config["transmision_youtube_miniatura"] = miniatura
         guardar_opcion(RUTA_CONFIG, "transmision", "youtube_titulo",
                        codificar_texto_ini(titulo))
         guardar_opcion(RUTA_CONFIG, "transmision", "youtube_descripcion",
                        codificar_texto_ini(descripcion))
         guardar_opcion(RUTA_CONFIG, "transmision", "youtube_privacidad",
                        privacidad)
+        guardar_opcion(RUTA_CONFIG, "transmision", "youtube_latencia",
+                       latencia)
+        guardar_opcion(RUTA_CONFIG, "transmision", "youtube_ninos",
+                       nimios_texto)
+        guardar_opcion(RUTA_CONFIG, "transmision", "youtube_dvr", dvr_texto)
+        guardar_opcion(RUTA_CONFIG, "transmision", "youtube_categoria",
+                       categoria)
+        guardar_opcion(RUTA_CONFIG, "transmision", "youtube_etiquetas",
+                       codificar_texto_ini(etiquetas_texto))
+        guardar_opcion(RUTA_CONFIG, "transmision", "youtube_miniatura",
+                       codificar_texto_ini(miniatura))
         return {"titulo": titulo, "descripcion": descripcion,
-                "privacidad": privacidad}
+                "privacidad": privacidad, "latencia": latencia,
+                "ninos": bool(ninos), "dvr": bool(dvr),
+                "categoria": categoria, "etiquetas": etiquetas,
+                "miniatura": miniatura}
 
     def _actualizar_boton_directo(self) -> None:
         boton = getattr(self, "_boton_directo", None)
@@ -830,24 +864,44 @@ class YTChatFrame(wx.Frame):
                     self._config.get("transmision_youtube_descripcion", ""),
                     self._config.get("transmision_youtube_privacidad",
                                      emision.PRIVACIDAD_INICIAL),
-                    revision)
+                    revision,
+                    self._config.get("transmision_youtube_latencia",
+                                     emision.LATENCIA_INICIAL),
+                    self._config.get("transmision_youtube_ninos", False),
+                    self._config.get("transmision_youtube_dvr", True),
+                    self._config.get("transmision_youtube_categoria", ""),
+                    self._config.get("transmision_youtube_etiquetas", ""),
+                    self._config.get("transmision_youtube_miniatura", ""))
                 if pedido is None:
                     anunciar("No se transmitió.")
                     return
                 guardados = self._guardar_datos_directo_youtube(
                     pedido["titulo"], pedido["descripcion"],
-                    pedido["privacidad"])
+                    pedido["privacidad"], pedido.get("latencia"),
+                    pedido.get("ninos", False), pedido.get("dvr", True),
+                    pedido.get("categoria", ""), pedido.get("etiquetas", []),
+                    pedido.get("miniatura", ""))
                 try:
                     cuerpo = emision.cuerpo_emision(
                         guardados["titulo"], guardados["descripcion"],
                         guardados["privacidad"],
-                        datetime.now(timezone.utc).isoformat())
+                        datetime.now(timezone.utc).isoformat(),
+                        latencia=guardados.get("latencia",
+                                               emision.LATENCIA_INICIAL),
+                        ninos=guardados.get("ninos", False),
+                        dvr=guardados.get("dvr", True))
                 except emision.EmisionError as exc:
                     anunciar(str(exc))
                     return
+                extras = {"categoria": guardados.get("categoria", ""),
+                          "etiquetas": guardados.get("etiquetas", []),
+                          "miniatura": guardados.get("miniatura", ""),
+                          "titulo": guardados["titulo"],
+                          "descripcion": guardados["descripcion"]}
                 preparar, esperar, finalizar = emision.ganchos_youtube(
                     youtube_api.ClienteYouTube(credenciales.efectivas(datos)), cuerpo,
-                    lambda nuevo: credenciales.guardar_campo("token", nuevo))
+                    lambda nuevo: credenciales.guardar_campo("token", nuevo),
+                    extras=extras, avisar=anunciar)
                 ganchos = {"preparar_emision": preparar,
                            "esperar_emision": esperar,
                            "finalizar_emision": finalizar}
@@ -868,6 +922,11 @@ class YTChatFrame(wx.Frame):
                         return
                     if destino == "YouTube":
                         from ytchat.youtube import emision as _emision
+                        if guardados.get("ninos"):
+                            anunciar(
+                                "El directo está marcado como hecho para "
+                                "niños y YouTube no tiene chat.")
+                            return
                         if not _emision.chat_legible(
                                 guardados["privacidad"]):
                             anunciar(

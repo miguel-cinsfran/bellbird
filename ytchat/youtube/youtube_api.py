@@ -153,6 +153,55 @@ def comentarios_desactivados(exc) -> bool:
     return "commentsdisabled" in texto or "disabled comments" in texto
 
 
+# Frase para cuando YouTube rechaza la miniatura por falta de verificación
+# telefónica del canal: `thumbnails.set` responde 403 en ese caso.
+FRASE_MINiatura_SIN_VERIFICAR = (
+    "YouTube no aceptó la miniatura: el canal tiene que estar verificado "
+    "por teléfono.")
+
+
+def es_error_403(exc) -> bool:
+    """True si la excepción de la API es un 403 (permiso insuficiente).
+
+    Mira el código del `HttpError` de googleapiclient (`resp.status` o
+    `status_code`) y, si no lo encuentra, el texto. Pura: no importa google.
+    """
+    codigo = None
+    try:
+        codigo = getattr(getattr(exc, "resp", None), "status", None)
+    except Exception:
+        codigo = None
+    if codigo is None:
+        try:
+            codigo = getattr(exc, "status_code", None)
+        except Exception:
+            codigo = None
+    if codigo is not None:
+        try:
+            return int(codigo) == 403
+        except (TypeError, ValueError):
+            pass
+    texto = str(exc).lower()
+    return "403" in texto or "forbidden" in texto
+
+
+def mensaje_error_miniatura(exc) -> str:
+    """Frase para anunciar un fallo al subir la miniatura.
+
+    El 403 casi siempre significa que el canal no está verificado por
+    teléfono; cualquier otro error se traduce con `mensaje_error_api`.
+    """
+    if es_error_403(exc):
+        return FRASE_MINiatura_SIN_VERIFICAR
+    return "No se pudo poner la miniatura: " + mensaje_error_api(exc)
+
+
+def _mimetype_imagen(ruta: str) -> str:
+    """Mimetype de la miniatura según la extensión del archivo."""
+    extension = (ruta or "").rsplit(".", 1)[-1].lower()
+    return "image/png" if extension == "png" else "image/jpeg"
+
+
 # ── OAuth2 (flujo de aplicación de escritorio) ───────────────────────────────
 
 def iniciar_sesion(client_id: str, client_secret: str) -> str:
@@ -375,6 +424,45 @@ class ClienteYouTube:
         resp = self._escritura().liveBroadcasts().insert(
             part="snippet,status,contentDetails", body=cuerpo).execute()
         return resp.get("id", "") or ""
+
+    def actualizar_categoria_y_etiquetas(self, id_video: str, titulo: str,
+                                         descripcion: str, categoria: str,
+                                         etiquetas) -> None:
+        """Cambia categoría y etiquetas del vídeo con videos.update.
+
+        `videos.update` exige mandar título y categoría aunque no cambien y
+        pisa la descripción si no se manda, así que el cuerpo lleva los
+        cuatro campos. Con categoría vacía, la toma del vídeo con
+        `videos.list` (1 unidad de cuota).
+        """
+        if not categoria:
+            resp = self._escritura().videos().list(
+                part="snippet", id=id_video).execute()
+            items = resp.get("items", []) or []
+            if items:
+                categoria = ((items[0].get("snippet") or {}).get("categoryId")
+                             or "")
+        cuerpo = {
+            "id": id_video,
+            "snippet": {
+                "title": titulo,
+                "description": descripcion,
+                "categoryId": categoria,
+                "tags": list(etiquetas or []),
+            },
+        }
+        self._escritura().videos().update(
+            part="snippet", body=cuerpo).execute()
+
+    def poner_miniatura(self, id_video: str, ruta: str) -> None:
+        """Sube la miniatura del vídeo con thumbnails.set.
+
+        Con un canal sin verificar por teléfono, YouTube responde 403.
+        """
+        from googleapiclient.http import MediaFileUpload
+        media = MediaFileUpload(ruta, mimetype=_mimetype_imagen(ruta))
+        self._escritura().thumbnails().set(
+            videoId=id_video, media_body=media).execute()
 
     def vincular_emision(self, id_video: str, id_flujo: str) -> None:
         """Ata la emisión al flujo reutilizable de la cuenta."""

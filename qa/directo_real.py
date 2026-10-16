@@ -49,6 +49,16 @@ DESCRIPCION_PRUEBA = (
     "Directo de prueba de YTChat, se borra al terminar."
 )
 
+# Opciones del directo que la prueba deja puestas y después comprueba contra
+# la API: latencia ultrabaja, rebobinar apagado, categoría Videojuegos y dos
+# etiquetas. La miniatura se genera en un archivo temporal de un solo color.
+LATENCIA_PRUEBA = "ultraLow"
+CATEGORIA_PRUEBA = "20"
+ETIQUETAS_PRUEBA = "prueba, ytchat"
+ANCHO_MINIATURA = 1280
+ALTO_MINIATURA = 720
+COLOR_MINIATURA = (30, 60, 120)
+
 # Volumen al que suena todo durante la prueba, para no molestar a quien
 # trabaja en la misma PC: voz, sonidos y reproductor quedan al 12 %.
 VOLUMEN_PRUEBA = 0.12
@@ -117,6 +127,43 @@ def primer_faltante(anuncios: str, fragmentos: list[str]) -> str | None:
         if (fragmento or "").lower() not in base:
             return fragmento
     return None
+
+
+def faltas_de_opciones(contenido, snippet) -> list[str]:
+    """Opciones pedidas que no llegaron al directo, según la API.
+
+    `contenido` es el `contentDetails` de liveBroadcasts y `snippet` el del
+    vídeo. Se pide latencia ultrabaja, rebobinar apagado (enableDvr False)
+    y categoría Videojuegos.
+    """
+    contenido = contenido or {}
+    snippet = snippet or {}
+    faltas: list[str] = []
+    if (contenido.get("latencyPreference") or "") != LATENCIA_PRUEBA:
+        faltas.append("latencia ultrabaja")
+    if contenido.get("enableDvr") is not False:
+        faltas.append("rebobinar apagado")
+    if (snippet.get("categoryId") or "") != CATEGORIA_PRUEBA:
+        faltas.append("categoría Videojuegos")
+    # Las etiquetas no se comprueban: la API no las devuelve en un directo.
+    return faltas
+
+
+def estado_miniatura(anuncios: str) -> tuple[bool, str]:
+    """Si la miniatura quedó bien o falló, leyendo los anuncios.
+
+    Pasa cuando no hubo anuncio de fallo. Un rechazo por canal sin verificar
+    por teléfono (403) también cuenta como bien: es lo esperado si la cuenta
+    no está verificada. Cualquier otro anuncio de fallo la marca mal.
+    """
+    from ytchat.youtube import youtube_api
+    texto = (anuncios or "").lower()
+    if youtube_api.FRASE_MINiatura_SIN_VERIFICAR.lower() in texto:
+        return (True, "el canal no está verificado por teléfono: YouTube la "
+                      "rechazó como se esperaba")
+    if "no se pudo poner la miniatura" in texto:
+        return (False, "la app anunció que no pudo poner la miniatura")
+    return (True, "sin avisos: la miniatura quedó")
 
 
 def decidir_cerrar_obs(estaba_abierto: bool) -> bool:
@@ -708,6 +755,32 @@ def _auto_stop(cliente, id_video: str):
     return ((items[0].get("contentDetails") or {}).get("enableAutoStop"))
 
 
+def _leer_opciones(cliente, id_video: str) -> tuple[dict, dict]:
+    """`contentDetails` del directo y `snippet` del vídeo, tal cual la API."""
+    resp = cliente._escritura().liveBroadcasts().list(
+        part="contentDetails", id=id_video).execute()
+    items = resp.get("items", []) or []
+    contenido = (items[0].get("contentDetails") or {}) if items else {}
+    resp_video = cliente._escritura().videos().list(
+        part="snippet", id=id_video).execute()
+    items_video = resp_video.get("items", []) or []
+    snippet = (items_video[0].get("snippet") or {}) if items_video else {}
+    return (contenido, snippet)
+
+
+def _crear_miniatura_prueba(destino: str) -> str:
+    """Genera un JPG de un solo color para subir como miniatura."""
+    import wx
+    _asegurar_app_wx()
+    imagen = wx.Image(ANCHO_MINIATURA, ALTO_MINIATURA)
+    rojo, verde, azul = COLOR_MINIATURA
+    imagen.SetRGB(wx.Rect(0, 0, ANCHO_MINIATURA, ALTO_MINIATURA),
+                  rojo, verde, azul)
+    if not imagen.SaveFile(destino, wx.BITMAP_TYPE_JPEG):
+        raise RuntimeError("no se pudo generar la miniatura de prueba")
+    return destino
+
+
 def _comentario_faltante(ruta_chat, comentarios,
                          segundos: int = 30) -> tuple[str | None,
                                                       list[str] | None]:
@@ -919,9 +992,17 @@ def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
     escena_prueba = ""
     gestor_obs = None
     ventanas_prueba: list = []
+    ruta_miniatura = ""
 
     try:
         from ytchat.core.config import codificar_texto_ini
+        ruta_miniatura = os.path.join(tmpdir, "miniatura-prueba.jpg")
+        try:
+            _crear_miniatura_prueba(ruta_miniatura)
+            detalle_miniatura = f"miniatura temporal «{ruta_miniatura}»"
+        except Exception as exc:
+            ruta_miniatura = ""
+            detalle_miniatura = f"sin miniatura ({exc})"
         config.guardar_opcion(ruta_config, "transmision", "destino",
                               "YouTube")
         config.guardar_opcion(ruta_config, "transmision", "youtube_titulo",
@@ -931,6 +1012,20 @@ def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
                               codificar_texto_ini(DESCRIPCION_PRUEBA))
         config.guardar_opcion(ruta_config, "transmision",
                               "youtube_privacidad", PRIVACIDAD_ESPERADA)
+        config.guardar_opcion(ruta_config, "transmision",
+                              "youtube_latencia", LATENCIA_PRUEBA)
+        config.guardar_opcion(ruta_config, "transmision",
+                              "youtube_ninos", "false")
+        config.guardar_opcion(ruta_config, "transmision",
+                              "youtube_dvr", "false")
+        config.guardar_opcion(ruta_config, "transmision",
+                              "youtube_categoria", CATEGORIA_PRUEBA)
+        config.guardar_opcion(ruta_config, "transmision",
+                              "youtube_etiquetas",
+                              codificar_texto_ini(ETIQUETAS_PRUEBA))
+        config.guardar_opcion(ruta_config, "transmision",
+                              "youtube_miniatura",
+                              codificar_texto_ini(ruta_miniatura))
         config.guardar_opcion(ruta_config, "overlay", "activo", "true")
         config.guardar_opcion(ruta_config, "voz", "volumen",
                               str(VOLUMEN_PRUEBA))
@@ -942,7 +1037,9 @@ def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
             detalle_volumen = "volumen al 12 % (sin sounds.ini, no se creó)"
         anotar("configuración previa", True,
                f"destino YouTube, título «{titulo}», privacidad unlisted, "
-               f"panel activado, {detalle_volumen}")
+               f"latencia {LATENCIA_PRUEBA}, rebobinar apagado, categoría "
+               f"{CATEGORIA_PRUEBA}, etiquetas {ETIQUETAS_PRUEBA}, "
+               f"{detalle_miniatura}, panel activado, {detalle_volumen}")
         if not estaba_obs:
             _limpiar_sentinel()
             anotar("OBS sin modo seguro", True, "sentinel limpio")
@@ -1069,6 +1166,28 @@ def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
         else:
             anotar("YouTube espera la señal", False,
                    f"enableAutoStop en {auto_stop!r}, se esperaba False")
+            return (salida, 1)
+
+        try:
+            contenido, snippet = _leer_opciones(cliente, id_video)
+            _guardar_token_si_renovo(cliente, creds)
+        except Exception as exc:
+            anotar("opciones del directo", False,
+                   f"no se pudieron leer de la API: {exc}")
+            return (salida, 1)
+        faltas = faltas_de_opciones(contenido, snippet)
+        if faltas:
+            anotar("opciones del directo", False,
+                   "no llegaron: " + ", ".join(faltas))
+            return (salida, 1)
+        anotar("opciones del directo", True,
+               "latencia ultrabaja, rebobinar apagado y categoría "
+               "Videojuegos; las etiquetas no se pueden comprobar por la "
+               "API y se revisan en YouTube Studio")
+        bien_miniatura, detalle_miniatura = estado_miniatura(
+            _leer_anuncios(ruta_anuncios)[marca:])
+        anotar("miniatura del directo", bien_miniatura, detalle_miniatura)
+        if not bien_miniatura:
             return (salida, 1)
 
         marca_chat = len(_leer_anuncios(ruta_anuncios))
@@ -1332,6 +1451,11 @@ def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
         except OSError:
             pass
         try:
+            if ruta_miniatura:
+                try:
+                    os.remove(ruta_miniatura)
+                except OSError:
+                    pass
             shutil.rmtree(tmpdir, ignore_errors=True)
         except Exception:
             pass

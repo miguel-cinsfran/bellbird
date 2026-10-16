@@ -6,6 +6,7 @@ parámetro, así se prueba con dobles sin tocar la API real.
 
 from __future__ import annotations
 
+import os
 import time
 from datetime import datetime
 
@@ -21,6 +22,30 @@ ETIQUETAS_PRIVACIDAD = {"public": "Público", "unlisted": "No listado",
                         "private": "Privado"}
 PRIVACIDAD_INICIAL = "unlisted"
 
+# Latencia del directo: valores que acepta `contentDetails.latencyPreference`.
+LATENCIAS = ("normal", "low", "ultraLow")
+ETIQUETAS_LATENCIA = {"normal": "Normal", "low": "Baja",
+                      "ultraLow": "Ultrabaja"}
+LATENCIA_INICIAL = "normal"
+
+# Categorías de YouTube ofrecidas en el diálogo: (id de la API, texto).
+CATEGORIAS = (
+    ("", "Sin cambiar"),
+    ("20", "Videojuegos"),
+    ("22", "Personas y blogs"),
+    ("24", "Entretenimiento"),
+    ("10", "Música"),
+    ("27", "Educación"),
+    ("28", "Ciencia y tecnología"),
+    ("17", "Deportes"),
+    ("23", "Comedia"),
+    ("25", "Noticias y política"),
+    ("26", "Consejos y estilo"),
+)
+
+# Límite de `snippet.tags`: la suma de los caracteres de todas las etiquetas.
+LIMITE_ETIQUETAS = 500
+
 
 def chat_legible(privacidad) -> bool:
     """Dice si el chat se puede leer por la vía pública con esa privacidad."""
@@ -31,8 +56,14 @@ class EmisionError(Exception):
     """Fallo listo para anunciar tal cual."""
 
 
-def cuerpo_emision(titulo, descripcion, privacidad, inicio_iso) -> dict:
-    """Arma el cuerpo de liveBroadcasts.insert para el directo."""
+def cuerpo_emision(titulo, descripcion, privacidad, inicio_iso,
+                   latencia="normal", ninos=False, dvr=True) -> dict:
+    """Arma el cuerpo de liveBroadcasts.insert para el directo.
+
+    Los tres últimos campos son opcionales: latencia (normal, low o
+    ultraLow), hecho para niños y permitir rebobinar. Una latencia
+    desconocida cae a normal, como los llamados de hoy.
+    """
     titulo = (titulo or "").strip()
     if not titulo:
         raise EmisionError("Falta el título del directo.")
@@ -40,12 +71,62 @@ def cuerpo_emision(titulo, descripcion, privacidad, inicio_iso) -> dict:
     descripcion = (descripcion or "").strip()[:5000]
     if privacidad not in PRIVACIDADES:
         raise ValueError(f"Privacidad inválida: {privacidad}.")
+    if latencia not in LATENCIAS:
+        latencia = LATENCIA_INICIAL
     return {"snippet": {"title": titulo, "description": descripcion,
                         "scheduledStartTime": inicio_iso},
             "status": {"privacyStatus": privacidad,
-                       "selfDeclaredMadeForKids": False},
+                       "selfDeclaredMadeForKids": bool(ninos)},
             "contentDetails": {"enableAutoStart": True,
-                               "enableAutoStop": False}}
+                               "enableAutoStop": False,
+                               "latencyPreference": latencia,
+                               "enableDvr": bool(dvr)}}
+
+
+def etiquetas_de_texto(texto) -> list[str]:
+    """Separa por comas, limpia y descarta repetidas sin pasar de 500.
+
+    Los espacios de los bordes y los huecos vacíos no cuentan. Las
+    repetidas se comparan sin distinguir mayúsculas y se conserva la
+    primera. La lista se corta en cuanto la suma de caracteres de las
+    etiquetas pasaría el límite de `snippet.tags`.
+    """
+    vistas: set[str] = set()
+    salida: list[str] = []
+    total = 0
+    for trozo in (texto or "").split(","):
+        etiqueta = trozo.strip()
+        if not etiqueta:
+            continue
+        clave = etiqueta.lower()
+        if clave in vistas:
+            continue
+        if total + len(etiqueta) > LIMITE_ETIQUETAS:
+            break
+        vistas.add(clave)
+        salida.append(etiqueta)
+        total += len(etiqueta)
+    return salida
+
+
+def error_de_miniatura(ruta, tamanio=os.path.getsize) -> str | None:
+    """None si la miniatura sirve; si no, la frase del defecto.
+
+    Exige un archivo existente con extensión JPG o PNG de 2 MB o menos.
+    `tamanio` se inyecta en las pruebas para no tocar el disco.
+    """
+    ruta = (ruta or "").strip()
+    if not ruta:
+        return "No se encontró el archivo de la miniatura."
+    if os.path.splitext(ruta)[1].lower() not in (".jpg", ".jpeg", ".png"):
+        return "La miniatura tiene que ser JPG o PNG."
+    try:
+        bytes_ = tamanio(ruta)
+    except OSError:
+        return "No se encontró el archivo de la miniatura."
+    if bytes_ > 2 * 1024 * 1024:
+        return "La miniatura pasa de 2 MB."
+    return None
 
 
 def titulo_por_defecto(ahora: datetime) -> str:
@@ -58,13 +139,52 @@ def url_video(id_video: str) -> str:
     return "https://www.youtube.com/watch?v=" + id_video
 
 
+def _aviso_extras(avisar, frase):
+    if avisar is None:
+        return
+    try:
+        avisar(frase)
+    except Exception as fallo:
+        logger.debug("no se pudo anunciar el aviso de extras: %s", fallo)
+
+
+def _aplicar_extras(cliente_yt, id_video, extras, avisar) -> None:
+    """Aplica categoría, etiquetas y miniatura después de dejar listo OBS.
+
+    Cada extra va en su propio try: si falla se avisa la frase y se sigue.
+    Un fallo nunca borra el directo ni se relanza.
+    """
+    if not extras:
+        return
+    categoria = (extras.get("categoria") or "").strip()
+    etiquetas = extras.get("etiquetas") or []
+    miniatura = (extras.get("miniatura") or "").strip()
+    if categoria or etiquetas:
+        try:
+            cliente_yt.actualizar_categoria_y_etiquetas(
+                id_video, extras.get("titulo") or "",
+                extras.get("descripcion") or "", categoria, etiquetas)
+        except Exception as exc:
+            _aviso_extras(
+                avisar,
+                "No se pudieron poner la categoría y las etiquetas: "
+                + youtube_api.mensaje_error_api(exc))
+    if miniatura:
+        try:
+            cliente_yt.poner_miniatura(id_video, miniatura)
+        except Exception as exc:
+            _aviso_extras(avisar, youtube_api.mensaje_error_miniatura(exc))
+
+
 def preparar_en_youtube(cliente_yt, cliente_obs, cuerpo, parada=None,
                         preparar_destino=obs_destinos.preparar_destino,
-                        guardar_token=None) -> str:
+                        guardar_token=None, extras=None, avisar=None) -> str:
     """Crea la emisión, la vincula y carga servidor y clave en OBS.
 
     Devuelve el id del vídeo. Si vincular o preparar fallan, borra la
     emisión para no dejar directos huérfanos y relanza el error original.
+    Después, y sin poder tumbar el directo, aplica los `extras` (categoría,
+    etiquetas y miniatura); cada fallo se anuncia con `avisar` y se sigue.
     """
     try:
         flujo = cliente_yt.flujo_reutilizable()
@@ -87,6 +207,7 @@ def preparar_en_youtube(cliente_yt, cliente_obs, cuerpo, parada=None,
                 logger.debug("no se pudo borrar la emisión %s: %s",
                              id_video, fallo_borrado)
             raise
+        _aplicar_extras(cliente_yt, id_video, extras, avisar)
         return id_video
     except EmisionError:
         raise
@@ -121,7 +242,8 @@ def finalizar_en_youtube(cliente_yt, id_video) -> bool:
     return True
 
 
-def ganchos_youtube(cliente_yt, cuerpo, guardar_token):
+def ganchos_youtube(cliente_yt, cuerpo, guardar_token, extras=None,
+                    avisar=None):
     """Devuelve (preparar, esperar, finalizar) para el supervisor.
 
     Adapta `preparar_en_youtube`, `esperar_en_vivo` y
@@ -142,7 +264,7 @@ def ganchos_youtube(cliente_yt, cuerpo, guardar_token):
     def preparar_emision(cliente_obs, parada):
         return preparar_en_youtube(
             cliente_yt, cliente_obs, cuerpo, parada=parada,
-            guardar_token=guardar_token)
+            guardar_token=guardar_token, extras=extras, avisar=avisar)
 
     def esperar_emision(id_video, parada, limite=120.0):
         return esperar_en_vivo(

@@ -644,6 +644,13 @@ def cargar_configuracion() -> dict:
     privacidad = _gs(p, "transmision", "youtube_privacidad")
     if privacidad not in _emision.PRIVACIDADES:
         privacidad = _emision.PRIVACIDAD_INICIAL
+    latencia = _gs(p, "transmision", "youtube_latencia")
+    if latencia not in _emision.LATENCIAS:
+        latencia = _emision.LATENCIA_INICIAL
+    categoria = _gs(p, "transmision", "youtube_categoria")
+    if categoria not in {identificador for identificador, _t
+                         in _emision.CATEGORIAS}:
+        categoria = ""
 
     # [voz]: el motor se valida contra los válidos de Prism (importarlos aquí
     # no arrastra Prism: motores lo importa de forma perezosa). La velocidad se
@@ -706,6 +713,14 @@ def cargar_configuracion() -> dict:
         "transmision_youtube_descripcion": decodificar_texto_ini(
             _gs(p, "transmision", "youtube_descripcion")),
         "transmision_youtube_privacidad": privacidad,
+        "transmision_youtube_latencia": latencia,
+        "transmision_youtube_ninos": _pb(p, "transmision", "youtube_ninos"),
+        "transmision_youtube_dvr": _pb(p, "transmision", "youtube_dvr"),
+        "transmision_youtube_categoria": categoria,
+        "transmision_youtube_etiquetas": decodificar_texto_ini(
+            _gs(p, "transmision", "youtube_etiquetas")),
+        "transmision_youtube_miniatura": decodificar_texto_ini(
+            _gs(p, "transmision", "youtube_miniatura")),
         "programados_activo": _pb(p, "programados", "activo"),
         "registro_detallado": _pb(p, "diagnostico", "registro_detallado"),  # configurar_logging se adelanta al diccionario.
         "overlay_activo": _pb(p, "overlay", "activo"),

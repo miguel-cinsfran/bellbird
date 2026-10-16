@@ -6,8 +6,9 @@ import types
 from unittest import mock
 
 from ytchat.youtube.youtube_api import (
-    ClienteYouTube, normalizar_comentario, parsear_pagina_comentarios,
-    comentarios_desactivados, mensaje_error_api,
+    ClienteYouTube, FRASE_MINiatura_SIN_VERIFICAR, normalizar_comentario,
+    parsear_pagina_comentarios, comentarios_desactivados, es_error_403,
+    mensaje_error_api, mensaje_error_miniatura,
 )
 
 
@@ -233,6 +234,34 @@ class TestMensajeError(unittest.TestCase):
 
     def test_generico(self):
         self.assertIn("Error de la API", mensaje_error_api("algo raro"))
+
+
+class TestErrorDeMiniaturaMensajes(unittest.TestCase):
+
+    def test_403_con_resp_status(self):
+        exc = mock.Mock()
+        exc.resp.status = 403
+        self.assertTrue(es_error_403(exc))
+
+    def test_403_con_status_code(self):
+        exc = mock.Mock(spec=[])
+        exc.status_code = 403
+        self.assertTrue(es_error_403(exc))
+
+    def test_403_por_texto(self):
+        self.assertTrue(es_error_403(RuntimeError("403 Forbidden")))
+        self.assertTrue(es_error_403(RuntimeError("algo forbidden")))
+
+    def test_otro_error_no_es_403(self):
+        self.assertFalse(es_error_403(RuntimeError("videoNotFound")))
+
+    def test_mensaje_403_es_la_frase_del_canal(self):
+        self.assertEqual(mensaje_error_miniatura(RuntimeError("forbidden")),
+                         FRASE_MINiatura_SIN_VERIFICAR)
+
+    def test_otro_error_se_traduce(self):
+        self.assertIn("No se pudo poner la miniatura",
+                      mensaje_error_miniatura(RuntimeError("videoNotFound")))
 
 
 class ServicioFlujosFalso:
@@ -470,6 +499,88 @@ class TestEmisionApi(unittest.TestCase):
     def test_directos_no_activados(self):
         self.assertIn("directos activados",
                       mensaje_error_api("liveStreamingNotEnabled: algo"))
+
+
+class ServicioOpcionesFalso:
+    def __init__(self, video_items=None):
+        self.video_items = video_items or []
+        self.list_kwargs = {}
+        self.update_kwargs = {}
+        self.set_kwargs = {}
+
+    def videos(self):
+        return self
+
+    def thumbnails(self):
+        return self
+
+    def list(self, **kwargs):
+        self.list_kwargs = kwargs
+        return self
+
+    def update(self, **kwargs):
+        self.update_kwargs = kwargs
+        return self
+
+    def set(self, **kwargs):
+        self.set_kwargs = kwargs
+        return self
+
+    def execute(self):
+        return {"items": self.video_items}
+
+
+class TestOpcionesVideo(unittest.TestCase):
+
+    def cliente(self, video_items=None):
+        cliente = ClienteYouTube({"token": "{}"})
+        servicio = ServicioOpcionesFalso(video_items)
+        cliente._svc_escritura = servicio
+        return cliente, servicio
+
+    def test_actualizar_manda_titulo_categoria_y_etiquetas(self):
+        cliente, servicio = self.cliente()
+        cliente.actualizar_categoria_y_etiquetas(
+            "vid123", "Título", "Descripción", "20", ["uno", "dos"])
+        self.assertEqual(servicio.update_kwargs.get("part"), "snippet")
+        cuerpo = servicio.update_kwargs.get("body")
+        self.assertEqual(cuerpo["id"], "vid123")
+        self.assertEqual(cuerpo["snippet"]["title"], "Título")
+        self.assertEqual(cuerpo["snippet"]["description"], "Descripción")
+        self.assertEqual(cuerpo["snippet"]["categoryId"], "20")
+        self.assertEqual(cuerpo["snippet"]["tags"], ["uno", "dos"])
+        self.assertEqual(servicio.list_kwargs, {})
+
+    def test_categoria_vacia_la_lee_del_video(self):
+        cliente, servicio = self.cliente([{"snippet": {"categoryId": "24"}}])
+        cliente.actualizar_categoria_y_etiquetas(
+            "vid123", "Título", "Descripción", "", ["uno"])
+        self.assertEqual(servicio.list_kwargs.get("part"), "snippet")
+        self.assertEqual(servicio.list_kwargs.get("id"), "vid123")
+        self.assertEqual(servicio.update_kwargs["body"]["snippet"]["categoryId"],
+                         "24")
+
+    def test_categoria_vacia_sin_video_queda_vacia(self):
+        cliente, servicio = self.cliente([])
+        cliente.actualizar_categoria_y_etiquetas(
+            "vid123", "T", "D", "", [])
+        self.assertEqual(servicio.update_kwargs["body"]["snippet"]["categoryId"],
+                         "")
+
+    def test_poner_miniatura_png(self):
+        cliente, servicio = self.cliente()
+        with mock.patch("googleapiclient.http.MediaFileUpload") as media:
+            cliente.poner_miniatura("vid123", "foto.png")
+        media.assert_called_once_with("foto.png", mimetype="image/png")
+        self.assertEqual(servicio.set_kwargs.get("videoId"), "vid123")
+        self.assertIs(servicio.set_kwargs.get("media_body"),
+                      media.return_value)
+
+    def test_poner_miniatura_jpg_por_defecto(self):
+        cliente, _servicio = self.cliente()
+        with mock.patch("googleapiclient.http.MediaFileUpload") as media:
+            cliente.poner_miniatura("vid123", "foto.jpg")
+        media.assert_called_once_with("foto.jpg", mimetype="image/jpeg")
 
 
 class TestCableadoChatDirecto(unittest.TestCase):

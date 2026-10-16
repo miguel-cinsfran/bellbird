@@ -277,9 +277,10 @@ Al pulsarlo:
      tiene, todas opcionales: la **latencia** (normal, baja o ultrabaja; con
      ultrabaja el chat llega casi en el momento), **hecho para niños** (YouTube
      apaga el chat), **permitir rebobinar**, **categoría**, **etiquetas** y
-     **miniatura**, una imagen JPG o PNG de hasta 2 MB. Si YouTube rechaza la
-     miniatura, la categoría o las etiquetas, el directo sale igual y se dice
-     el motivo. Todo se recuerda para la próxima vez. «No listado» sirve para probar sin que el directo aparezca en el
+     **miniatura**, una imagen JPG o PNG de hasta 2 MB, y la **lista de
+     reproducción** donde se guarda el directo, que se elige después de
+     pulsar *Cargar listas*. Si YouTube rechaza alguna de estas opciones, el
+     directo sale igual y se dice el motivo. Todo se recuerda para la próxima vez. «No listado» sirve para probar sin que el directo aparezca en el
      canal. Al pulsar *Transmitir*, se crea el directo en el canal.
 
    Si la revisión encuentra problemas, el botón seleccionado de inicio es

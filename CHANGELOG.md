@@ -41,9 +41,11 @@ Más voces para leer el chat y más opciones al crear un directo de YouTube.
   - permitir rebobinar el directo;
   - categoría y etiquetas;
   - miniatura, una imagen JPG o PNG de hasta 2 MB que eliges con el cuadro
-    de Windows.
-- **Si YouTube no acepta la miniatura, la categoría o las etiquetas,** el
-  directo sale igual y la aplicación te dice por qué.
+    de Windows;
+  - lista de reproducción de tu canal, para que el directo quede guardado
+    en ella. Las listas se traen con el botón «Cargar listas».
+- **Si YouTube no acepta la miniatura, la categoría, las etiquetas o la
+  lista,** el directo sale igual y la aplicación te dice por qué.
 
 ## 2.2.1, octubre de 2026
 

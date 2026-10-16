@@ -1551,6 +1551,12 @@ class YTChatFrame(wx.Frame):
             tono_cfg = max(0, min(100, int(self._config.get("tono", 50))))
             if tono_cfg != self._worker.get_tono():
                 self._worker.fijar_tono(tono_cfg)
+            # ElevenLabs: tope, «solo lo importante» y voz de respaldo también
+            # se aplican en caliente (el worker los lee solo al crearse).
+            self._worker.configurar_elevenlabs(
+                int(self._config.get("elevenlabs_tope", 0) or 0),
+                bool(self._config.get("elevenlabs_solo_importantes", False)),
+                self._config.get("voz_respaldo") or "")
         except Exception as exc:
             logger.debug("aplicar ajustes de voz desde preferencias: %s", exc)
         self._marcar_filtro()

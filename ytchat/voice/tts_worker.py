@@ -414,6 +414,24 @@ class TTSWorker(threading.Thread):
             self._voz_actual = idx
         logger.info("Voz base: %s", self._voces[idx])
 
+    def _configurar_elevenlabs(self, tope, solo_importantes, voz_respaldo) -> None:
+        """Aplica los ajustes de ElevenLabs leídos de Preferencias, ya dentro
+        del hilo del worker (el respaldo y sus ajustes le pertenecen)."""
+        self._tope_elevenlabs = max(0, _entero(tope, self._tope_elevenlabs))
+        self._solo_importantes = bool(solo_importantes)
+        nueva = voz_respaldo or ""
+        if nueva != self._voz_respaldo:
+            self._voz_respaldo = nueva
+            self._elegir_voz_respaldo()
+
+    def _elegir_voz_respaldo(self) -> None:
+        """Si el respaldo ya existe, le elige la voz nueva sin recrearlo."""
+        if self._respaldo is None:
+            return
+        voces = list(self._respaldo.voces())
+        idx = escala_voz.resolver_voz(self._voz_respaldo, voces)
+        self._respaldo.elegir_voz(0 if idx is None else idx)
+
     def _cambiar_motor(self, motor, voz) -> None:
         """Reemplaza el motor activo dentro del hilo del worker.
 
@@ -459,6 +477,8 @@ class TTSWorker(threading.Thread):
                     self._cambiar_voz_base(val)
                 elif cmd == "motor":
                     self._cambiar_motor(*val)
+                elif cmd == "elevenlabs":
+                    self._configurar_elevenlabs(*val)
                 elif cmd == "rate":
                     self._motor_de_comandos().fijar_velocidad(val)
                 elif cmd == "volume":
@@ -527,6 +547,14 @@ class TTSWorker(threading.Thread):
         El trabajo real ocurre en el hilo del worker: Prism no admite que un
         motor se cree en un hilo y se use en otro."""
         self._cmds.put(("motor", (motor, voz)))
+
+    def configurar_elevenlabs(self, tope, solo_importantes, voz_respaldo) -> None:
+        """Pide aplicar en caliente el tope, el «solo lo importante» y la voz
+        de respaldo de ElevenLabs.
+
+        El trabajo real ocurre en el hilo del worker, dueño del respaldo y de
+        sus ajustes; llamarlo desde la interfaz no toca la red ni el motor."""
+        self._cmds.put(("elevenlabs", (tope, solo_importantes, voz_respaldo)))
 
     def cambiar_rate(self, pasos: int) -> None:
         # El contador se actualiza AQUÍ (en el hilo del llamador) y al hilo TTS

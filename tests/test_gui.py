@@ -1471,6 +1471,8 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("voz", "motor"), ("voz", "voz"), ("voz", "voz_eventos"),
             ("voz", "multivoz"), ("voz", "velocidad_voz"),
             ("voz", "volumen"), ("voz", "tono"),
+            ("voz", "voz_respaldo"), ("voz", "elevenlabs_tope"),
+            ("voz", "elevenlabs_solo_importantes"),
             ("lectura", "formato_prefijo"),
             ("texto", "limpiar_emojis"), ("texto", "eliminar_urls"),
             ("tiktok", "anunciar_entradas"), ("texto", "max_longitud_mensaje"),
@@ -1493,6 +1495,218 @@ class TestCategoriasDePreferencias(unittest.TestCase):
                           if accion not in gui_preferencias.cfg.ATAJOS_FIJOS)
         self.assertEqual(sorted(claves), sorted(esperadas))
         self.assertEqual(len(claves), len(set(claves)))
+
+
+class TestPreferenciasElevenLabs(unittest.TestCase):
+    """La página «Voces» configura ElevenLabs sin editar archivos."""
+
+    def setUp(self):
+        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.ruta = Path(self.tmp.name)
+        self.parche_ruta = redirigir_rutas(self.ruta)
+        self.parche_ruta.__enter__()
+        self.addCleanup(self.parche_ruta.__exit__, None, None, None)
+
+    def _dialogo(self, configuracion=None):
+        with mock.patch.object(motores, "listar_voces",
+                               return_value=["Voz de prueba"]):
+            dialogo = gui_preferencias.PreferenciasDialog(
+                None, configuracion or {})
+        self.addCleanup(dialogo.Destroy)
+        return dialogo
+
+    @staticmethod
+    def _buscar(raiz, nombre):
+        pendientes = [raiz]
+        while pendientes:
+            control = pendientes.pop()
+            if control.GetName() == nombre:
+                return control
+            pendientes.extend(control.GetChildren())
+        return None
+
+    @staticmethod
+    def _mnemonicos(pagina):
+        tipos = (gui.wx.StaticText, gui.wx.Button, gui.wx.CheckBox,
+                 gui.wx.RadioButton)
+        letras = []
+        for control in pagina.GetChildren():
+            if not isinstance(control, tipos):
+                continue
+            etiqueta = control.GetLabel()
+            if "&" in etiqueta:
+                letras.append(etiqueta.split("&", 1)[1][:1].lower())
+        return letras
+
+    @staticmethod
+    def _pagina_voz(dialogo):
+        return next(p for p in dialogo._paginas() if p.GetName() == "PagVoz")
+
+    def test_controles_elevenlabs_visibles_solo_con_ese_motor(self):
+        dialogo = self._dialogo({"motor": "elevenlabs"})
+        for ctrl in dialogo._eleven_ctrls:
+            self.assertTrue(ctrl.IsShown())
+        for nombre in ("Clave de ElevenLabs", "Comprobar clave",
+                       "Tope de caracteres de ElevenLabs",
+                       "Solo lo importante con ElevenLabs",
+                       "Voz de Windows de respaldo"):
+            self.assertIsNotNone(self._buscar(dialogo, nombre))
+        self.assertFalse(dialogo.cho_voz.IsEnabled())
+        self.assertEqual(dialogo.cho_voz.GetStringSelection(),
+                         "(comprueba la clave)")
+
+        otro = self._dialogo({})
+        for ctrl in otro._eleven_ctrls:
+            self.assertFalse(ctrl.IsShown())
+
+    def test_los_mnemonicos_de_la_pagina_no_se_repiten(self):
+        dialogo = self._dialogo()
+        letras = self._mnemonicos(self._pagina_voz(dialogo))
+        self.assertTrue(letras)
+        self.assertEqual(len(letras), len(set(letras)), letras)
+        self.assertNotIn("g", letras)
+        self.assertNotIn("c", letras)
+
+    def test_comprobar_clave_con_error_deja_la_voz_deshabilitada(self):
+        from ytchat.voice import elevenlabs
+        dialogo = self._dialogo({"motor": "elevenlabs"})
+        dialogo.btn_comprobar_clave.Disable()
+        cliente = mock.Mock()
+        cliente.voces.side_effect = elevenlabs.ElevenLabsError(
+            elevenlabs.MOTIVO_CLAVE, "La clave de ElevenLabs no es válida.")
+        with mock.patch.object(elevenlabs, "ClienteElevenLabs",
+                               return_value=cliente), \
+                mock.patch.object(gui_preferencias.wx, "CallAfter",
+                                  side_effect=lambda f, *a: f(*a)), \
+                mock.patch.object(gui_preferencias, "anunciar") as anunciar:
+            dialogo._consultar_clave("mala", True)
+        self.assertFalse(dialogo.cho_voz.IsEnabled())
+        self.assertEqual(dialogo.cho_voz.GetStringSelection(),
+                         "(comprueba la clave)")
+        self.assertTrue(dialogo.btn_comprobar_clave.IsEnabled())
+        anunciar.assert_called_once_with("La clave de ElevenLabs no es válida.")
+
+    def test_comprobar_clave_con_exito_llena_voces_y_anuncia(self):
+        from ytchat.voice import elevenlabs
+        dialogo = self._dialogo({"motor": "elevenlabs"})
+        dialogo.btn_comprobar_clave.Disable()
+        cliente = mock.Mock()
+        cliente.voces.return_value = [("id1", "Ana"), ("id2", "Beto")]
+        cliente.saldo.return_value = (1234, 30000)
+        with mock.patch.object(elevenlabs, "ClienteElevenLabs",
+                               return_value=cliente), \
+                mock.patch.object(gui_preferencias.wx, "CallAfter",
+                                  side_effect=lambda f, *a: f(*a)), \
+                mock.patch.object(gui_preferencias, "anunciar") as anunciar:
+            dialogo._consultar_clave("buena", True)
+        self.assertEqual(dialogo.cho_voz.GetStrings(), ["Ana", "Beto"])
+        self.assertTrue(dialogo.cho_voz.IsEnabled())
+        anunciar.assert_called_once_with(
+            "Clave válida. 2 voces. Usados 1.234 de 30.000 caracteres este mes.")
+
+    def test_elegir_elevenlabs_muestra_los_controles(self):
+        dialogo = self._dialogo({})
+        for ctrl in dialogo._eleven_ctrls:
+            self.assertFalse(ctrl.IsShown())
+        dialogo.cho_motor.SetSelection(motores.MOTORES.index("elevenlabs"))
+        dialogo._on_motor_cambiado(None)
+        for ctrl in dialogo._eleven_ctrls:
+            self.assertTrue(ctrl.IsShown())
+        dialogo.cho_motor.SetSelection(0)
+        dialogo._on_motor_cambiado(None)
+        for ctrl in dialogo._eleven_ctrls:
+            self.assertFalse(ctrl.IsShown())
+
+    def test_guardar_con_elevenlabs_sin_voces_conserva_el_motor_anterior(self):
+        dialogo = self._dialogo({"motor": "sapi", "voz": "Voz de prueba"})
+        dialogo.cho_motor.SetSelection(motores.MOTORES.index("elevenlabs"))
+        dialogo._on_motor_cambiado(None)
+        self.assertEqual(dialogo._voces, [])
+        with mock.patch.object(gui_preferencias.cfg, "guardar_opcion",
+                               return_value=True) as guardar, \
+                mock.patch.object(gui_preferencias._snd, "reproducir"), \
+                mock.patch.object(gui_preferencias, "anunciar") as anunciar, \
+                mock.patch.object(dialogo, "EndModal"):
+            dialogo._on_guardar(None)
+        claves = [(llamada.args[1], llamada.args[2], llamada.args[3])
+                  for llamada in guardar.call_args_list]
+        self.assertNotIn(("voz", "motor", "elevenlabs"), claves)
+        anunciar.assert_any_call(
+            "El motor elegido no está disponible, se conserva el anterior.")
+
+    def test_guardar_clave_nueva_usa_credenciales_y_no_el_ini(self):
+        dialogo = self._dialogo({"motor": "elevenlabs"})
+        dialogo.txt_clave_eleven.SetValue("clave-secreta")
+        with mock.patch.object(gui_preferencias.cfg, "guardar_opcion",
+                               return_value=True) as guardar, \
+                mock.patch.object(gui_preferencias.credenciales,
+                                  "guardar_campo") as guardar_campo, \
+                mock.patch.object(gui_preferencias._snd, "reproducir"), \
+                mock.patch.object(gui_preferencias, "anunciar"), \
+                mock.patch.object(dialogo, "EndModal"):
+            dialogo._on_guardar(None)
+        guardar_campo.assert_called_once_with("elevenlabs_clave", "clave-secreta")
+        valores = [str(llamada.args[3]) for llamada in guardar.call_args_list]
+        self.assertNotIn("clave-secreta", valores)
+
+
+class TestAplicarPreferenciasMotor(unittest.TestCase):
+    """Aplicación en caliente del motor y la voz tras cerrar Preferencias."""
+
+    def setUp(self):
+        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+
+    def _frame(self, configuracion):
+        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame._config = dict(configuracion)
+        frame._conectado = False
+        frame._voz_idx = 0
+        frame.voz_submenu = mock.Mock()
+        frame.voz_submenu.GetMenuItems.return_value = []
+        frame.lb_chat = mock.Mock()
+        frame._rep_panel = mock.Mock()
+        for metodo in ("_build_menubar", "poblar_voces", "_aplicar_voz",
+                       "_marcar_filtro", "_sincronizar_checks", "_rebuild_listbox",
+                       "_set_conectado_ui", "_actualizar_estado_online",
+                       "set_metadatos_visible", "_actualizar_vigilante_obs"):
+            setattr(frame, metodo, mock.Mock())
+        frame._worker = mock.Mock()
+        return frame
+
+    def test_motor_distinto_cambia_el_motor_y_anuncia(self):
+        frame = self._frame({"motor": "onecore", "voz": "Voz B",
+                             "atajos_raw": {}})
+        frame._worker.motor_activo.return_value = "sapi"
+        with mock.patch.object(motores, "listar_voces",
+                               return_value=["Voz A", "Voz B"]), \
+                mock.patch.object(gui, "anunciar") as anunciar:
+            frame._aplicar_preferencias_en_caliente()
+        frame._worker.cambiar_motor.assert_called_once_with("onecore", "Voz B")
+        anunciar.assert_any_call("Motor de voz: Windows OneCore")
+
+    def test_mismo_motor_no_cambia_el_motor(self):
+        frame = self._frame({"motor": "onecore", "voz": "Voz B",
+                             "atajos_raw": {}})
+        frame._worker.motor_activo.return_value = "onecore"
+        with mock.patch.object(motores, "listar_voces",
+                               return_value=["Voz A", "Voz B"]), \
+                mock.patch.object(gui, "anunciar"):
+            frame._aplicar_preferencias_en_caliente()
+        frame._worker.cambiar_motor.assert_not_called()
+
+    def test_aplica_los_ajustes_de_elevenlabs_al_worker(self):
+        frame = self._frame({"motor": "elevenlabs", "atajos_raw": {},
+                             "elevenlabs_tope": 40000,
+                             "elevenlabs_solo_importantes": True,
+                             "voz_respaldo": "Lucía"})
+        frame._worker.motor_activo.return_value = "sapi"
+        with mock.patch.object(motores, "listar_voces", return_value=["Ana"]), \
+                mock.patch.object(gui, "anunciar"):
+            frame._aplicar_preferencias_en_caliente()
+        frame._worker.configurar_elevenlabs.assert_called_once_with(
+            40000, True, "Lucía")
 
 
 class TestGuardadoDeNuevasPreferencias(unittest.TestCase):

@@ -464,6 +464,23 @@ class TestRespaldoElevenLabs(unittest.TestCase):
         worker._hablar("uno", None, False)   # solo queda en el log
         self.assertEqual([t for t, _ in sapi.hablados], ["uno"])
 
+    def test_configurar_elevenlabs_aplica_en_el_hilo_del_worker(self):
+        worker, el, sapi = self._worker()
+        worker._conseguir_respaldo()
+        sapi.elegidas.clear()
+
+        # Encolado: todavía no se aplicó nada (lo hace el hilo del worker).
+        worker.configurar_elevenlabs(5000, True, "Voz B")
+        self.assertEqual(worker._tope_elevenlabs, 0)
+        worker._procesar_comandos()
+
+        self.assertEqual(worker._tope_elevenlabs, 5000)
+        self.assertTrue(worker._solo_importantes)
+        self.assertEqual(worker._voz_respaldo, "Voz B")
+        # La voz del respaldo ya creado cambia sin recrearlo.
+        self.assertIs(worker._respaldo, sapi)
+        self.assertEqual(sapi.elegidas, [1])
+
 
 class TestPrismReal(unittest.TestCase):
     """Ejecuta el envoltorio real de Prism: si Prism o las voces cambian de

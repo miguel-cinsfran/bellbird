@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import logging
 import threading
+import time
 import webbrowser
 
 import wx
@@ -62,6 +63,21 @@ _FORMATOS = [
     ("Solo el mensaje",  "solo_mensaje"),
     ("Solo el nombre",   "solo_nombre"),
 ]
+
+
+# Mensaje de los combinados de voz cuando todavía no se comprobó la clave de
+# ElevenLabs, distinto del de un motor sin voces instaladas.
+_SIN_CLAVE_ELEVEN = "(comprueba la clave)"
+_NO_HAY_VOCES = "(no hay voces disponibles)"
+
+
+def _miles(numero) -> str:
+    """Separa los miles con punto, como se escriben los números en español."""
+    try:
+        return f"{int(numero):,}".replace(",", ".")
+    except (TypeError, ValueError):
+        return str(numero)
+
 
 
 # Opciones que se guardan con el mismo molde (leer el control, escribir el
@@ -463,6 +479,7 @@ class PreferenciasDialog(wx.Dialog):
 
     def _pag_voz(self, parent):
         p = self._make_panel(parent, "PagVoz")
+        self._pag_voz_panel = p
         vs = wx.BoxSizer(wx.VERTICAL)
 
         from ytchat.voice import escala_voz
@@ -471,8 +488,10 @@ class PreferenciasDialog(wx.Dialog):
         motor_guardado = self._config.get("motor", "sapi")
         self._motor_idx = (motores.MOTORES.index(motor_guardado)
                            if motor_guardado in motores.MOTORES else 0)
+        es_eleven = motores.MOTORES[self._motor_idx] == "elevenlabs"
 
-        # Motor de voz (SAPI 5 u OneCore). Cambiarlo repuebla las voces de abajo.
+        # Motor de voz (SAPI 5, OneCore o ElevenLabs). Cambiarlo repuebla las
+        # voces de abajo.
         vs.Add(self._fila_label(p, "&Motor de voz:"),
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.cho_motor = wx.Choice(
@@ -483,15 +502,39 @@ class PreferenciasDialog(wx.Dialog):
         self.cho_motor.Bind(wx.EVT_CHOICE, self._on_motor_cambiado)
         vs.Add(self.cho_motor, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
+        # Clave de ElevenLabs y su comprobación. Solo se ven con ese motor: la
+        # clave es un secreto y va a credenciales.json, nunca al ini.
+        lbl_clave = self._fila_label(p, "Cl&ave de ElevenLabs:")
+        self.txt_clave_eleven = wx.TextCtrl(
+            p, value=credenciales.cargar().get("elevenlabs_clave", "") or "",
+            style=wx.TE_PASSWORD, name="Clave de ElevenLabs")
+        _tc(self.txt_clave_eleven)
+        vs.Add(lbl_clave, 0, wx.LEFT | wx.RIGHT, 10)
+        vs.Add(self.txt_clave_eleven, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        self.btn_comprobar_clave = wx.Button(
+            p, label="Compro&bar clave", name="Comprobar clave")
+        self.btn_comprobar_clave.SetBackgroundColour(_T.btn)
+        self.btn_comprobar_clave.SetForegroundColour(_T.btn_t)
+        self.btn_comprobar_clave.Bind(wx.EVT_BUTTON, self._on_comprobar_clave)
+        vs.Add(self.btn_comprobar_clave, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
         # Voz del motor elegido. También está en el menú Voz → Seleccionar voz;
         # aquí queda junto al resto de ajustes de lectura para encontrarla más
         # fácil.
         vs.Add(self._fila_label(p, "&Voz de lectura:"), 0, wx.LEFT | wx.RIGHT, 10)
-        self._voces = motores.listar_voces(motores.MOTORES[self._motor_idx])
-        self.cho_voz = wx.Choice(p, choices=self._voces or ["(no hay voces disponibles)"],
+        if es_eleven:
+            # Nunca se va a la red en el hilo de la interfaz: la lista queda
+            # vacía hasta que se compruebe la clave.
+            self._voces = []
+            vacio_voz = _SIN_CLAVE_ELEVEN
+        else:
+            self._voces = motores.listar_voces(motores.MOTORES[self._motor_idx])
+            vacio_voz = _NO_HAY_VOCES
+        self.cho_voz = wx.Choice(p, choices=self._voces or [vacio_voz],
                                  name="Voz de lectura")
         _tc(self.cho_voz)
-        self._cargar_voces(self.cho_voz, self._config.get("voz"))
+        self._cargar_voces(self.cho_voz, self._config.get("voz"), vacio=vacio_voz)
         vs.Add(self.cho_voz, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         # Velocidad, volumen y tono como valores absolutos 0..100.
@@ -530,8 +573,55 @@ class PreferenciasDialog(wx.Dialog):
         vs.Add(self.sp_tono, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         self.btn_probar_voz = wx.Button(p, label="&Probar voz", name="Probar voz")
+        self.btn_probar_voz.SetBackgroundColour(_T.btn)
+        self.btn_probar_voz.SetForegroundColour(_T.btn_t)
         self.btn_probar_voz.Bind(wx.EVT_BUTTON, self._on_probar_voz)
         vs.Add(self.btn_probar_voz, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        # Tope de caracteres por sesión (0 sin tope), «solo lo importante» y
+        # la voz de Windows de respaldo. Solo se ven con ElevenLabs.
+        lbl_tope = self._fila_label(
+            p, "T&ope de caracteres por sesión (0 sin tope):")
+        self.sp_tope_eleven = ContadorAccesible(
+            p, min=0, max=1000000,
+            initial=max(0, int(self._config.get("elevenlabs_tope", 0) or 0)),
+            name="Tope de caracteres de ElevenLabs")
+        self.sp_tope_eleven.SetIncrement(1000)
+        _tc(self.sp_tope_eleven)
+        vs.Add(lbl_tope, 0, wx.LEFT | wx.RIGHT, 10)
+        vs.Add(self.sp_tope_eleven, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        self.chk_solo_importantes = wx.CheckBox(
+            p, name="Solo lo importante con ElevenLabs",
+            label="U&sar ElevenLabs solo con Super Chats, miembros, cofres, "
+                  "dueño y moderadores")
+        self.chk_solo_importantes.SetForegroundColour(_T.text)
+        self.chk_solo_importantes.SetValue(
+            bool(self._config.get("elevenlabs_solo_importantes", False)))
+        vs.Add(self.chk_solo_importantes, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        lbl_respaldo = self._fila_label(p, "Voz de &Windows de respaldo:")
+        self._voces_respaldo = motores.listar_voces("sapi")
+        self.cho_voz_respaldo = wx.Choice(
+            p, choices=self._voces_respaldo or [_NO_HAY_VOCES],
+            name="Voz de Windows de respaldo")
+        _tc(self.cho_voz_respaldo)
+        if self._voces_respaldo:
+            idx_respaldo = escala_voz.resolver_voz(
+                self._config.get("voz_respaldo"), self._voces_respaldo)
+            self.cho_voz_respaldo.SetSelection(
+                0 if idx_respaldo is None else idx_respaldo)
+        else:
+            self.cho_voz_respaldo.SetSelection(0)
+            self.cho_voz_respaldo.Disable()
+        vs.Add(lbl_respaldo, 0, wx.LEFT | wx.RIGHT, 10)
+        vs.Add(self.cho_voz_respaldo, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        self._eleven_ctrls = [
+            lbl_clave, self.txt_clave_eleven, self.btn_comprobar_clave,
+            lbl_tope, self.sp_tope_eleven, self.chk_solo_importantes,
+            lbl_respaldo, self.cho_voz_respaldo,
+        ]
 
         # Multi-voz: una voz distinta para los eventos (Super Chats, regalos,
         # miembros, entradas). Desactivada por defecto.
@@ -545,10 +635,11 @@ class PreferenciasDialog(wx.Dialog):
 
         vs.Add(self._fila_label(p, "Voz para los &eventos:"), 0, wx.LEFT | wx.RIGHT, 10)
         self.cho_voz_eventos = wx.Choice(
-            p, choices=self._voces or ["(no hay voces disponibles)"],
+            p, choices=self._voces or [vacio_voz],
             name="Voz para los eventos")
         _tc(self.cho_voz_eventos)
-        self._cargar_voces(self.cho_voz_eventos, self._config.get("voz_eventos"))
+        self._cargar_voces(self.cho_voz_eventos, self._config.get("voz_eventos"),
+                           vacio=vacio_voz)
         self.cho_voz_eventos.Enable(bool(self._voces) and self.chk_multivoz.GetValue())
         self.chk_multivoz.Bind(
             wx.EVT_CHECKBOX,
@@ -557,12 +648,91 @@ class PreferenciasDialog(wx.Dialog):
 
         # El motor de prueba se cierra al cerrar el diálogo por cualquier camino.
         self._motor_prueba = None
+        self._probando_eleven = False
         self.Bind(wx.EVT_WINDOW_DESTROY, self._al_destruir)
 
         p.SetSizer(vs)
+        self._mostrar_controles_eleven(es_eleven)
+        if es_eleven and self.txt_clave_eleven.GetValue().strip():
+            # Con clave guardada, las voces se comprueban solas en segundo
+            # plano y se llenan; sin clave, todo queda a la espera.
+            self.btn_comprobar_clave.Disable()
+            self._comprobar_clave(anunciar_ok=False)
         return p
 
-    def _cargar_voces(self, choice, guardada) -> None:
+    def _mostrar_controles_eleven(self, visible: bool) -> None:
+        """Muestra u oculta los controles exclusivos de ElevenLabs. Ocultos
+        salen del orden de Tab y la página se vuelve a acomodar."""
+        for ctrl in getattr(self, "_eleven_ctrls", ()):
+            ctrl.Show(visible)
+        panel = getattr(self, "_pag_voz_panel", None)
+        if panel is not None:
+            panel.Layout()
+
+    def _preparar_voces_eleven(self, anunciar_ok: bool = False) -> None:
+        """Deja las voces en «(comprueba la clave)» y, si hay clave escrita, la
+        comprueba en segundo plano sin bloquear la interfaz."""
+        self._voces = []
+        self._cargar_voces(self.cho_voz, self._config.get("voz"),
+                           vacio=_SIN_CLAVE_ELEVEN)
+        self._cargar_voces(self.cho_voz_eventos, self._config.get("voz_eventos"),
+                           vacio=_SIN_CLAVE_ELEVEN)
+        self.cho_voz_eventos.Disable()
+        if self.txt_clave_eleven.GetValue().strip():
+            self.btn_comprobar_clave.Disable()
+            self._comprobar_clave(anunciar_ok)
+
+    def _on_comprobar_clave(self, event) -> None:
+        if not self.txt_clave_eleven.GetValue().strip():
+            anunciar("Escribe la clave de ElevenLabs.")
+            return
+        self.btn_comprobar_clave.Disable()
+        self._comprobar_clave(anunciar_ok=True)
+
+    def _comprobar_clave(self, anunciar_ok: bool) -> None:
+        """Lanza la comprobación en un hilo: voces y saldo van a la red y eso
+        nunca puede correr en el hilo de la interfaz."""
+        clave = self.txt_clave_eleven.GetValue().strip()
+        diagnostico.crear_hilo(
+            lambda: self._consultar_clave(clave, anunciar_ok),
+            "ComprobarClaveEleven").start()
+
+    def _consultar_clave(self, clave: str, anunciar_ok: bool) -> None:
+        from ytchat.voice import elevenlabs
+        try:
+            cliente = elevenlabs.ClienteElevenLabs(clave)
+            pares = cliente.voces()
+            usados, limite = cliente.saldo()
+        except Exception as exc:
+            wx.CallAfter(self._clave_fallo, str(exc))
+            return
+        wx.CallAfter(self._clave_ok, pares, usados, limite, anunciar_ok)
+
+    def _clave_ok(self, pares, usados, limite, anunciar_ok: bool) -> None:
+        if not self:   # el diálogo pudo cerrarse mientras se comprobaba
+            return
+        self.btn_comprobar_clave.Enable()
+        self._voces = [nombre for _id, nombre in pares]
+        self._cargar_voces(self.cho_voz, self._config.get("voz"),
+                           vacio=_SIN_CLAVE_ELEVEN)
+        self._cargar_voces(self.cho_voz_eventos, self._config.get("voz_eventos"),
+                           vacio=_SIN_CLAVE_ELEVEN)
+        self.cho_voz_eventos.Enable(bool(self._voces) and self.chk_multivoz.GetValue())
+        if anunciar_ok:
+            anunciar(f"Clave válida. {len(self._voces)} voces. "
+                     f"Usados {_miles(usados)} de {_miles(limite)} caracteres este mes.")
+
+    def _clave_fallo(self, mensaje) -> None:
+        if not self:
+            return
+        self.btn_comprobar_clave.Enable()
+        self._voces = []
+        self._cargar_voces(self.cho_voz, None, vacio=_SIN_CLAVE_ELEVEN)
+        self._cargar_voces(self.cho_voz_eventos, None, vacio=_SIN_CLAVE_ELEVEN)
+        self.cho_voz_eventos.Disable()
+        anunciar(mensaje)
+
+    def _cargar_voces(self, choice, guardada, vacio=_NO_HAY_VOCES) -> None:
         """Llena un combinado de voces y elige la guardada (o la primera). Sin
         voces deja el aviso deshabilitado, como antes."""
         from ytchat.voice import escala_voz
@@ -572,7 +742,7 @@ class PreferenciasDialog(wx.Dialog):
             choice.SetSelection(0 if idx is None else idx)
             choice.Enable(True)
         else:
-            choice.SetItems(["(no hay voces disponibles)"])
+            choice.SetItems([vacio])
             choice.SetSelection(0)
             choice.Disable()
 
@@ -583,15 +753,25 @@ class PreferenciasDialog(wx.Dialog):
 
     def _on_motor_cambiado(self, event) -> None:
         # Repuebla las voces del motor nuevo sin anunciar: el lector ya lee el
-        # valor del combinado al recorrerlo.
+        # valor del combinado al recorrerlo. Con ElevenLabs, además, se ocultan
+        # o muestran sus controles y se comprueba la clave en segundo plano.
         from ytchat.voice import motores
-        self._voces = motores.listar_voces(self._motor_elegido())
+        motor = self._motor_elegido()
+        if motor == "elevenlabs":
+            self._mostrar_controles_eleven(True)
+            self._preparar_voces_eleven()
+            return
+        self._mostrar_controles_eleven(False)
+        self._voces = motores.listar_voces(motor)
         self._cargar_voces(self.cho_voz, self._config.get("voz"))
         self._cargar_voces(self.cho_voz_eventos, self._config.get("voz_eventos"))
         self.cho_voz_eventos.Enable(bool(self._voces) and self.chk_multivoz.GetValue())
 
     def _on_probar_voz(self, event) -> None:
         from ytchat.voice import motores
+        if self._motor_elegido() == "elevenlabs":
+            self._probar_voz_elevenlabs()
+            return
         self._cerrar_motor_prueba()
         try:
             prueba = motores.MotorPrism(self._motor_elegido())
@@ -607,6 +787,51 @@ class PreferenciasDialog(wx.Dialog):
             prueba.hablar("Así suena esta voz.")
         except Exception as exc:
             logger.warning("Prueba de voz: %s", exc)
+
+    def _probar_voz_elevenlabs(self) -> None:
+        if not self._voces:
+            anunciar("Primero comprueba la clave.")
+            return
+        if self._probando_eleven:
+            return
+        self._probando_eleven = True
+        clave = self.txt_clave_eleven.GetValue().strip()
+        voz = self.cho_voz.GetStringSelection()
+        velocidad = self.sp_velocidad.GetValue()
+        volumen = self.sp_volumen.GetValue()
+        diagnostico.crear_hilo(
+            lambda: self._sonar_prueba_elevenlabs(clave, voz, velocidad, volumen),
+            "ProbarVozEleven").start()
+
+    def _sonar_prueba_elevenlabs(self, clave, voz, velocidad, volumen) -> None:
+        """Crea, usa y cierra el motor de la prueba DENTRO de su hilo: MCI y
+        Prism no son seguros entre hilos."""
+        from ytchat.voice import escala_voz
+        from ytchat.voice import motor_elevenlabs
+        prueba = None
+        try:
+            prueba = motor_elevenlabs.MotorElevenLabs(clave)
+            idx = escala_voz.resolver_voz(voz, prueba.voces())
+            prueba.elegir_voz(0 if idx is None else idx)
+            prueba.fijar_velocidad(velocidad)
+            prueba.fijar_volumen(volumen)
+            prueba.hablar("Así suena esta voz.")
+            while prueba.hablando():
+                time.sleep(0.05)
+        except Exception as exc:
+            wx.CallAfter(anunciar, str(exc))
+        finally:
+            if prueba is not None:
+                try:
+                    prueba.cerrar()
+                except Exception:
+                    pass
+            wx.CallAfter(self._fin_prueba_elevenlabs)
+
+    def _fin_prueba_elevenlabs(self) -> None:
+        if not self:
+            return
+        self._probando_eleven = False
 
     def _cerrar_motor_prueba(self) -> None:
         motor = getattr(self, "_motor_prueba", None)
@@ -1201,6 +1426,27 @@ class PreferenciasDialog(wx.Dialog):
             c["voz_eventos"] = nom_ev
         else:
             anunciar("El motor elegido no está disponible, se conserva el anterior.")
+
+        # Clave de ElevenLabs: es un secreto y va a credenciales.json, nunca al
+        # ini. Solo se escribe si cambió.
+        clave_eleven = self.txt_clave_eleven.GetValue().strip()
+        if clave_eleven != (credenciales.cargar().get("elevenlabs_clave", "") or ""):
+            credenciales.guardar_campo("elevenlabs_clave", clave_eleven)
+
+        # Tope, «solo lo importante» y voz de respaldo de ElevenLabs se guardan
+        # siempre, haya o no clave comprobada.
+        tope_eleven = self.sp_tope_eleven.GetValue()
+        self._set("voz", "elevenlabs_tope", str(tope_eleven))
+        c["elevenlabs_tope"] = tope_eleven
+        solo_importantes = self.chk_solo_importantes.GetValue()
+        self._set("voz", "elevenlabs_solo_importantes",
+                  "true" if solo_importantes else "false")
+        c["elevenlabs_solo_importantes"] = solo_importantes
+        voz_respaldo = (self.cho_voz_respaldo.GetStringSelection()
+                        if self._voces_respaldo else "")
+        self._set("voz", "voz_respaldo", voz_respaldo)
+        c["voz_respaldo"] = voz_respaldo
+
         self._cerrar_motor_prueba()
         from ytchat.voice import escala_voz
         velocidad = escala_voz.ajustar_velocidad(self.sp_velocidad.GetValue(), 0)

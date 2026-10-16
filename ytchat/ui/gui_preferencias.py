@@ -162,6 +162,8 @@ class PreferenciasDialog(wx.Dialog):
         self._iniciar_programados()
         self._cambios = False
         self._fallo_guardado = False
+        self._pendientes = []
+        self.avisos = []
         self.SetBackgroundColour(_T.bg)
         self._build_ui()
         self._ajustar_minimo()
@@ -1377,12 +1379,12 @@ class PreferenciasDialog(wx.Dialog):
     # ── Guardar ───────────────────────────────────────────────────────────────
 
     def _set(self, seccion, clave, valor):
-        if not cfg.guardar_opcion(self._ruta, seccion, clave, valor):
-            self._fallo_guardado = True
+        self._pendientes.append((seccion, clave, valor))
         self._cambios = True
 
     def _on_guardar(self, event):
         c = self._config
+        self._pendientes = []
         self._fallo_guardado = False
         registro_detallado_inicial = bool(c.get("registro_detallado", False))
         puerto_anterior = int(c.get("overlay_puerto", 8730))
@@ -1412,6 +1414,7 @@ class PreferenciasDialog(wx.Dialog):
         # Voz: motor, voz de lectura, voz de eventos, velocidad, volumen y tono.
         # Si el motor elegido no tiene voces no se guardan motor ni voz (se
         # conservan los anteriores); el resto de las opciones se guarda igual.
+        motor_no_disponible = False
         if self._voces:
             motor = self._motor_elegido()
             self._set("voz", "motor", motor)
@@ -1425,7 +1428,7 @@ class PreferenciasDialog(wx.Dialog):
             self._set("voz", "voz_eventos", nom_ev)
             c["voz_eventos"] = nom_ev
         else:
-            anunciar("El motor elegido no está disponible, se conserva el anterior.")
+            motor_no_disponible = True
 
         # Clave de ElevenLabs: es un secreto y va a credenciales.json, nunca al
         # ini. Solo se escribe si cambió.
@@ -1499,20 +1502,34 @@ class PreferenciasDialog(wx.Dialog):
             self._set("atajos", accion, valor)
             raw[accion] = valor
 
+        if not cfg.guardar_opciones(self._ruta, self._pendientes):
+            self._fallo_guardado = True
+
         if not self._fallo_guardado:
             _snd.reproducir("copiar")
-            anunciar("Preferencias guardadas")
         else:
             _snd.reproducir("error")
-            anunciar("Las preferencias se aplicaron, pero no se pudieron guardar "
-                     "en el disco. Se perderán al cerrar la aplicación.")
+
+        # Los avisos se juntan acá y los dice la ventana principal una sola vez,
+        # ya con el foco de vuelta en ella: anunciarlos antes de cerrar hacía que
+        # el cambio de foco los cortara entre sí.
+        self.avisos = []
+        if not self._fallo_guardado:
+            self.avisos.append("Preferencias guardadas.")
+        else:
+            self.avisos.append("Las preferencias se aplicaron, pero no se pudieron "
+                               "guardar en el disco. Se perderán al cerrar la "
+                               "aplicación.")
+        if motor_no_disponible:
+            self.avisos.append("El motor elegido no está disponible, se conserva el anterior.")
         if registro_detallado != registro_detallado_inicial:
-            anunciar("El cambio del registro detallado se aplica al reiniciar la aplicación")
+            self.avisos.append("El cambio del registro detallado se aplica al reiniciar "
+                               "la aplicación.")
         # El servidor del panel ya escucha en el puerto viejo; no se reinicia
         # solo, así que se avisa dónde se aplica.
         if puerto_overlay != puerto_anterior and c.get("overlay_activo", False):
-            anunciar("El puerto nuevo del panel de chat se aplica al apagarlo y "
-                     "volver a encenderlo desde el panel de transmisión")
+            self.avisos.append("El puerto nuevo del panel de chat se aplica al apagarlo y "
+                               "volver a encenderlo desde el panel de transmisión.")
         self.EndModal(wx.ID_OK)
 
     def hubo_cambios(self) -> bool:
@@ -1575,11 +1592,14 @@ def _lista(v: str) -> list:
     return [x.strip().lower() for x in v.split(",") if x.strip()]
 
 
-def abrir_preferencias(parent, config: dict, pagina=None) -> bool:
+def abrir_preferencias(parent, config: dict, pagina=None, avisos=None) -> bool:
     """Devuelve True si se guardaron cambios (para aplicarlos en caliente).
 
     Si `pagina` coincide con el texto de una pestaña (p. ej. "API y sesión"),
     esa queda seleccionada al abrir. Sin `pagina`, igual que siempre.
+    Si se pasa una lista en `avisos`, al cerrar con Guardar se le agregan los
+    avisos que armó el diálogo, para que la ventana principal los diga cuando
+    recupera el foco.
     """
     dlg = PreferenciasDialog(parent, config)
     try:
@@ -1592,6 +1612,8 @@ def abrir_preferencias(parent, config: dict, pagina=None) -> bool:
             except Exception as exc:
                 logger.debug("abrir_preferencias: no se pudo elegir página: %s", exc)
         res = dlg.ShowModal()
+        if res == wx.ID_OK and avisos is not None:
+            avisos.extend(dlg.avisos)
         return res == wx.ID_OK and dlg.hubo_cambios()
     finally:
         dlg.Destroy()

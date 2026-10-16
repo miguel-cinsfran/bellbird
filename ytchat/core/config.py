@@ -419,32 +419,20 @@ def decodificar_texto_ini(valor: str | None) -> str:
     return "".join(salida)
 
 
-def guardar_opcion(ruta: Path | None, seccion: str, clave: str, valor: str) -> bool:
-    """Actualiza una clave en el INI preservando comentarios y orden.
+def _aplicar_opcion(lineas: list[str], seccion: str, clave: str, valor: str) -> list[str]:
+    """Aplica un cambio sobre las líneas del INI y devuelve las líneas.
 
-    Escribe de forma atómica (temporal al lado + reemplazo). Devuelve True
-    si escribió o si `ruta` es None (no hay nada que guardar); False si no
-    pudo leer o escribir. El fallo se registra como aviso, porque el usuario
-    pierde datos.
+    Preserva comentarios y orden: reemplaza la clave si existe, la inserta
+    tras la última clave de la sección, o crea la sección al final si no
+    existe. Arregla el salto de línea final cuando hace falta.
     """
-    from ytchat.core import archivos
-
-    if ruta is None:
-        return True
-    try:
-        txt = ruta.read_text(encoding="utf-8")
-    except Exception as exc:
-        logger.warning("guardar_opcion: no se pudo leer %s: %s", ruta, exc)
-        return False
-
-    lines = txt.splitlines(keepends=True)
     sec_lower = seccion.lower()
     clave_lower = clave.lower()
     nueva = f"{clave} = {valor}\n"
     in_sec = False
     insert_pos = None
 
-    for i, line in enumerate(lines):
+    for i, line in enumerate(lineas):
         stripped = line.strip()
         if stripped.startswith("["):
             if in_sec:
@@ -460,32 +448,66 @@ def guardar_opcion(ruta: Path | None, seccion: str, clave: str, valor: str) -> b
                 continue
             k = stripped.split("=", 1)[0].strip().lower() if "=" in stripped else ""
             if k == clave_lower:
-                lines[i] = nueva
-                try:
-                    archivos.escribir_texto_atomico(ruta, "".join(lines))
-                except Exception as exc:
-                    logger.warning("guardar_opcion: no se pudo escribir %s: %s", ruta, exc)
-                    return False
-                return True
+                lineas[i] = nueva
+                return lineas
             insert_pos = i + 1
 
     if in_sec:
         if insert_pos is None:
-            insert_pos = len(lines)
+            insert_pos = len(lineas)
         # Si la línea anterior no termina en salto (final de archivo), la
         # clave nueva quedaría pegada a ella.
-        if insert_pos > 0 and not lines[insert_pos - 1].endswith("\n"):
-            lines[insert_pos - 1] += "\n"
-        lines.insert(insert_pos, nueva)
+        if insert_pos > 0 and not lineas[insert_pos - 1].endswith("\n"):
+            lineas[insert_pos - 1] += "\n"
+        lineas.insert(insert_pos, nueva)
     elif insert_pos is None:
-        lines.append(f"\n[{seccion}]\n{nueva}")
+        lineas.append(f"\n[{seccion}]\n{nueva}")
+    return lineas
+
+
+def guardar_opciones(ruta: Path | None, cambios: list[tuple[str, str, str]]) -> bool:
+    """Aplica varios cambios al INI en una sola lectura y una sola escritura.
+
+    `cambios` es una lista de tuplas `(seccion, clave, valor)` en orden. Se
+    aplican sobre las líneas en memoria con las mismas reglas que
+    `guardar_opcion`, y se escribe una sola vez de forma atómica (temporal al
+    lado + reemplazo). Devuelve True si escribió, si `ruta` es None o si la
+    lista está vacía; False si no pudo leer o escribir. El fallo se registra
+    como aviso, porque el usuario pierde datos.
+    """
+    from ytchat.core import archivos
+
+    if ruta is None:
+        return True
+    if not cambios:
+        return True
+    try:
+        txt = ruta.read_text(encoding="utf-8")
+    except Exception as exc:
+        logger.warning("guardar_opciones: no se pudo leer %s: %s", ruta, exc)
+        return False
+
+    lineas = txt.splitlines(keepends=True)
+    for seccion, clave, valor in cambios:
+        _aplicar_opcion(lineas, seccion, clave, valor)
 
     try:
-        archivos.escribir_texto_atomico(ruta, "".join(lines))
+        archivos.escribir_texto_atomico(ruta, "".join(lineas))
     except Exception as exc:
-        logger.warning("guardar_opcion: no se pudo escribir %s: %s", ruta, exc)
+        logger.warning("guardar_opciones: no se pudo escribir %s: %s", ruta, exc)
         return False
     return True
+
+
+def guardar_opcion(ruta: Path | None, seccion: str, clave: str, valor: str) -> bool:
+    """Actualiza una clave en el INI preservando comentarios y orden.
+
+    Escribe de forma atómica (temporal al lado + reemplazo). Devuelve True
+    si escribió o si `ruta` es None (no hay nada que guardar); False si no
+    pudo leer o escribir. El fallo se registra como aviso, porque el usuario
+    pierde datos.
+    """
+    return guardar_opciones(ruta, [(seccion, clave, valor)])
 
 
 # ── Helpers de descargas (formato, bitrate, carpeta, enumerar) ──────────────

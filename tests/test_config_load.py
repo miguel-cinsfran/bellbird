@@ -10,6 +10,7 @@ import logging
 from pathlib import Path
 from unittest import mock
 
+from ytchat.core import archivos
 from ytchat.core import config
 from tests.rutas_temporales import redirigir_rutas
 
@@ -140,6 +141,89 @@ class TestCargarConfiguracion(unittest.TestCase):
 
     def test_guardar_opcion_sin_ruta_devuelve_true(self):
         self.assertTrue(config.guardar_opcion(None, "a", "x", "2"))
+
+    def test_guardar_opciones_varias_secciones_escribe_una_sola_vez(self):
+        ruta = Path(self._tmp.name) / "config.ini"
+        ruta.write_text("[a]\nx = 1\n\n# final\n\n[b]\ny = 2\n", encoding="utf-8")
+        with mock.patch("ytchat.core.archivos.escribir_texto_atomico",
+                        wraps=archivos.escribir_texto_atomico) as escribir:
+            self.assertTrue(config.guardar_opciones(
+                ruta, [("a", "x", "9"), ("b", "z", "3"), ("c", "w", "4")]))
+        # Con guardar_opcion por opción serían tres escrituras; acá es una.
+        self.assertEqual(escribir.call_count, 1)
+        self.assertEqual(ruta.read_text(encoding="utf-8"),
+                         "[a]\nx = 9\n\n# final\n\n[b]\ny = 2\nz = 3\n\n[c]\nw = 4\n")
+
+    def test_guardar_opciones_clave_existente_la_reemplaza(self):
+        ruta = Path(self._tmp.name) / "config.ini"
+        ruta.write_text("[a]\nx = 1\n", encoding="utf-8")
+        self.assertTrue(config.guardar_opciones(ruta, [("a", "x", "2")]))
+        self.assertEqual(ruta.read_text(encoding="utf-8"), "[a]\nx = 2\n")
+
+    def test_guardar_opciones_clave_nueva_va_tras_la_ultima_de_la_seccion(self):
+        ruta = Path(self._tmp.name) / "config.ini"
+        ruta.write_text("[a]\nx = 1\n\n# comentario final\n\n[b]\ny = 2\n",
+                        encoding="utf-8")
+        self.assertTrue(config.guardar_opciones(ruta, [("a", "z", "3")]))
+        self.assertEqual(
+            ruta.read_text(encoding="utf-8"),
+            "[a]\nx = 1\nz = 3\n\n# comentario final\n\n[b]\ny = 2\n")
+
+    def test_guardar_opciones_seccion_nueva_va_al_final(self):
+        ruta = Path(self._tmp.name) / "config.ini"
+        ruta.write_text("[a]\nx = 1\n", encoding="utf-8")
+        self.assertTrue(config.guardar_opciones(ruta, [("b", "y", "2")]))
+        self.assertEqual(ruta.read_text(encoding="utf-8"),
+                         "[a]\nx = 1\n\n[b]\ny = 2\n")
+
+    def test_guardar_opciones_lista_vacia_no_escribe(self):
+        ruta = Path(self._tmp.name) / "config.ini"
+        ruta.write_text("[a]\nx = 1\n", encoding="utf-8")
+        with mock.patch("ytchat.core.archivos.escribir_texto_atomico") as escribir:
+            self.assertTrue(config.guardar_opciones(ruta, []))
+        escribir.assert_not_called()
+        self.assertEqual(ruta.read_text(encoding="utf-8"), "[a]\nx = 1\n")
+
+    def test_guardar_opciones_sin_ruta_devuelve_true(self):
+        self.assertTrue(config.guardar_opciones(None, [("a", "x", "2")]))
+
+    def test_guardar_opciones_fallo_de_lectura_devuelve_false(self):
+        ruta = Path(self._tmp.name) / "no_existe.ini"
+        self.assertFalse(config.guardar_opciones(ruta, [("a", "x", "2")]))
+
+    def test_guardar_opciones_fallo_de_escritura_devuelve_false(self):
+        import os
+        import stat
+        ruta = Path(self._tmp.name) / "config.ini"
+        antes = "[a]\nx = 1\n"
+        ruta.write_text(antes, encoding="utf-8")
+        os.chmod(ruta, stat.S_IREAD)
+        try:
+            self.assertFalse(config.guardar_opciones(
+                ruta, [("a", "x", "2"), ("b", "y", "3")]))
+            self.assertEqual(ruta.read_text(encoding="utf-8"), antes)
+            self.assertEqual(list(ruta.parent.glob("*.tmp")), [])
+        finally:
+            os.chmod(ruta, stat.S_IWRITE | stat.S_IREAD)
+
+    def test_guardar_opciones_equivale_a_guardar_opcion_una_por_una(self):
+        base = "[a]\nx = 1\n# comentario\n\n[b]\ny = 2\n\n[z]\nw = 9\n"
+        listas = [
+            [("a", "x", "10"), ("b", "y", "20"), ("z", "w", "90")],
+            [("a", "nueva", "1"), ("c", "k", "2"), ("a", "x", "3")],
+            [("b", "y", "0"), ("a", "nueva2", "77"), ("z", "w", "1")],
+        ]
+        for cambios in listas:
+            with self.subTest(cambios=cambios):
+                ruta_uno = Path(self._tmp.name) / "uno.ini"
+                ruta_lote = Path(self._tmp.name) / "lote.ini"
+                ruta_uno.write_text(base, encoding="utf-8")
+                ruta_lote.write_text(base, encoding="utf-8")
+                for seccion, clave, valor in cambios:
+                    config.guardar_opcion(ruta_uno, seccion, clave, valor)
+                config.guardar_opciones(ruta_lote, cambios)
+                self.assertEqual(ruta_lote.read_text(encoding="utf-8"),
+                                 ruta_uno.read_text(encoding="utf-8"))
 
     def test_regenera_si_falta(self):
         tmp = Path(self._tmp.name)

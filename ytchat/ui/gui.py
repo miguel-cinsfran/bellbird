@@ -1511,14 +1511,24 @@ class YTChatFrame(wx.Frame):
     def _on_preferencias(self, event):
         try:
             from ytchat.ui.gui_preferencias import abrir_preferencias
-            acepto = abrir_preferencias(self, self._config)
+            avisos = []
+            acepto = abrir_preferencias(self, self._config, avisos=avisos)
             # La lista ya se guardó en disco al tocar sus botones: se relee
             # haya aceptado o no, y el reloj se arma de nuevo con la lista nueva.
             self._mensajes_programados = programados.cargar(
                 paths.mensajes_programados())
             self._programados_reloj_iniciado = False
             if acepto:
-                self._aplicar_preferencias_en_caliente()
+                # El anuncio se difiere para que NVDA termine de decir el foco
+                # de la ventana principal antes de hablar, y sin interrumpir lo
+                # que diga _aplicar_preferencias_en_caliente.
+                def _aplicar_y_avisar():
+                    if not self._alive:
+                        return
+                    self._aplicar_preferencias_en_caliente()
+                    if avisos:
+                        anunciar(" ".join(avisos), urgente=False)
+                wx.CallLater(300, _aplicar_y_avisar)
         except Exception as exc:
             logger.warning("No se pudo abrir preferencias: %s", exc)
             wx.MessageBox(f"No se pudo abrir Preferencias:\n{exc}",

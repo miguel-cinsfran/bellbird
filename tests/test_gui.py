@@ -1453,13 +1453,15 @@ class TestCategoriasDePreferencias(unittest.TestCase):
 
     def test_guardar_escribe_las_mismas_claves(self):
         dialogo = self._dialogo()
-        with mock.patch.object(gui_preferencias.cfg, "guardar_opcion") as guardar, \
+        with mock.patch.object(gui_preferencias.cfg, "guardar_opciones") as guardar, \
                 mock.patch.object(gui_preferencias._snd, "reproducir"), \
                 mock.patch.object(gui_preferencias, "anunciar"), \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
 
-        claves = [(llamada.args[1], llamada.args[2]) for llamada in guardar.call_args_list]
+        guardar.assert_called_once()
+        claves = [(seccion, clave)
+                  for seccion, clave, _valor in guardar.call_args.args[1]]
         esperadas = [
             ("programados", "activo"),
             ("ui", "tamanio_fuente_chat"),
@@ -1624,22 +1626,23 @@ class TestPreferenciasElevenLabs(unittest.TestCase):
         dialogo.cho_motor.SetSelection(motores.MOTORES.index("elevenlabs"))
         dialogo._on_motor_cambiado(None)
         self.assertEqual(dialogo._voces, [])
-        with mock.patch.object(gui_preferencias.cfg, "guardar_opcion",
+        with mock.patch.object(gui_preferencias.cfg, "guardar_opciones",
                                return_value=True) as guardar, \
                 mock.patch.object(gui_preferencias._snd, "reproducir"), \
                 mock.patch.object(gui_preferencias, "anunciar") as anunciar, \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
-        claves = [(llamada.args[1], llamada.args[2], llamada.args[3])
-                  for llamada in guardar.call_args_list]
+        claves = [(seccion, clave, valor)
+                  for seccion, clave, valor in guardar.call_args.args[1]]
         self.assertNotIn(("voz", "motor", "elevenlabs"), claves)
-        anunciar.assert_any_call(
-            "El motor elegido no está disponible, se conserva el anterior.")
+        anunciar.assert_not_called()
+        self.assertIn("El motor elegido no está disponible, se conserva el anterior.",
+                      dialogo.avisos)
 
     def test_guardar_clave_nueva_usa_credenciales_y_no_el_ini(self):
         dialogo = self._dialogo({"motor": "elevenlabs"})
         dialogo.txt_clave_eleven.SetValue("clave-secreta")
-        with mock.patch.object(gui_preferencias.cfg, "guardar_opcion",
+        with mock.patch.object(gui_preferencias.cfg, "guardar_opciones",
                                return_value=True) as guardar, \
                 mock.patch.object(gui_preferencias.credenciales,
                                   "guardar_campo") as guardar_campo, \
@@ -1648,7 +1651,7 @@ class TestPreferenciasElevenLabs(unittest.TestCase):
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
         guardar_campo.assert_called_once_with("elevenlabs_clave", "clave-secreta")
-        valores = [str(llamada.args[3]) for llamada in guardar.call_args_list]
+        valores = [str(valor) for _seccion, _clave, valor in guardar.call_args.args[1]]
         self.assertNotIn("clave-secreta", valores)
 
 
@@ -1732,7 +1735,9 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
                 mock.patch.object(gui_preferencias, "anunciar") as anunciar, \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
-        return anunciar
+        # Los avisos ya no se dicen acá: los junta el diálogo y los dice la
+        # ventana principal cuando recupera el foco.
+        anunciar.assert_not_called()
 
     def _opciones_guardadas(self):
         parser = config._mk_parser()
@@ -1744,13 +1749,13 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
             dialogo = gui_preferencias.PreferenciasDialog(
                 None, {"motor": "onecore", "voz": "Voz vieja", "volumen": 0.5})
         self.addCleanup(dialogo.Destroy)
-        with mock.patch.object(gui_preferencias.cfg, "guardar_opcion") as guardar, \
+        with mock.patch.object(gui_preferencias.cfg, "guardar_opciones") as guardar, \
                 mock.patch.object(gui_preferencias._snd, "reproducir"), \
                 mock.patch.object(gui_preferencias, "anunciar") as anunciar, \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
-        claves = [(llamada.args[1], llamada.args[2])
-                  for llamada in guardar.call_args_list]
+        claves = [(seccion, clave)
+                  for seccion, clave, _valor in guardar.call_args.args[1]]
         self.assertNotIn(("voz", "motor"), claves)
         self.assertNotIn(("voz", "voz"), claves)
         self.assertIn(("voz", "velocidad_voz"), claves)
@@ -1758,8 +1763,9 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         self.assertIn(("voz", "tono"), claves)
         self.assertEqual(dialogo._config.get("motor"), "onecore")
         self.assertEqual(dialogo._config.get("voz"), "Voz vieja")
-        anunciar.assert_any_call(
-            "El motor elegido no está disponible, se conserva el anterior.")
+        anunciar.assert_not_called()
+        self.assertIn("El motor elegido no está disponible, se conserva el anterior.",
+                      dialogo.avisos)
 
     def test_cargar_configuracion_devuelve_registro_detallado_del_archivo(self):
         for valor, esperado in (("true", True), ("false", False)):
@@ -1784,7 +1790,7 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         dialogo.cho_microfono_obs.Append("Mic/Aux")
         dialogo.cho_microfono_obs.SetSelection(1)
 
-        anunciar = self._guardar(dialogo)
+        self._guardar(dialogo)
         opciones = self._opciones_guardadas()
 
         self.assertEqual(opciones.get("cola", "estrategia"), "todas")
@@ -1796,9 +1802,9 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         self.assertEqual(opciones.get("diagnostico", "registro_detallado"), "true")
         self.assertEqual(opciones.get("overlay", "puerto"), "9000")
         self.assertEqual(opciones.get("obs", "microfono"), "Mic/Aux")
-        anunciar.assert_has_calls([
-            mock.call("Preferencias guardadas"),
-            mock.call("El cambio del registro detallado se aplica al reiniciar la aplicación"),
+        self.assertEqual(dialogo.avisos, [
+            "Preferencias guardadas.",
+            "El cambio del registro detallado se aplica al reiniciar la aplicación.",
         ])
 
     def test_estrategia_guarda_la_clave_y_no_la_etiqueta(self):
@@ -1817,11 +1823,12 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         dialogo = self._dialogo({"overlay_activo": True, "overlay_puerto": 8730})
         dialogo.sp_puerto_overlay.SetValue(9000)
 
-        anunciar = self._guardar(dialogo)
+        self._guardar(dialogo)
 
-        anunciar.assert_any_call(
+        self.assertIn(
             "El puerto nuevo del panel de chat se aplica al apagarlo y "
-            "volver a encenderlo desde el panel de transmisión")
+            "volver a encenderlo desde el panel de transmisión.",
+            dialogo.avisos)
 
     def test_el_puerto_sin_cambios_o_con_el_panel_apagado_no_avisa(self):
         for configuracion, puerto in (
@@ -1830,9 +1837,8 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
             with self.subTest(configuracion=configuracion, puerto=puerto):
                 dialogo = self._dialogo(dict(configuracion))
                 dialogo.sp_puerto_overlay.SetValue(puerto)
-                anunciar = self._guardar(dialogo)
-                self.assertEqual([llamada.args[0] for llamada in anunciar.call_args_list],
-                                 ["Preferencias guardadas"])
+                self._guardar(dialogo)
+                self.assertEqual(dialogo.avisos, ["Preferencias guardadas."])
 
     def test_microfono_automatico_se_guarda_vacio(self):
         dialogo = self._dialogo({"obs_microfono": "Mic/Aux"})
@@ -1847,26 +1853,28 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         dialogo = self._dialogo()
         frase = ("Las preferencias se aplicaron, pero no se pudieron guardar "
                  "en el disco. Se perderán al cerrar la aplicación.")
-        with mock.patch.object(gui_preferencias.cfg, "guardar_opcion",
-                               side_effect=[False] + [True] * 500), \
+        with mock.patch.object(gui_preferencias.cfg, "guardar_opciones",
+                               return_value=False), \
                 mock.patch.object(gui_preferencias._snd, "reproducir") as sonar, \
                 mock.patch.object(gui_preferencias, "anunciar") as anunciar, \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
-        anunciar.assert_any_call(frase)
-        anunciados = [llamada.args[0] for llamada in anunciar.call_args_list]
-        self.assertNotIn("Preferencias guardadas", anunciados)
+        self.assertEqual(dialogo.avisos, [frase])
+        self.assertNotIn("Preferencias guardadas.", dialogo.avisos)
+        anunciar.assert_not_called()
         sonar.assert_any_call("error")
 
     def test_escritura_ok_anuncia_preferencias_guardadas(self):
         dialogo = self._dialogo()
-        with mock.patch.object(gui_preferencias.cfg, "guardar_opcion",
-                               return_value=True), \
+        with mock.patch.object(gui_preferencias.cfg, "guardar_opciones",
+                               return_value=True) as guardar, \
                 mock.patch.object(gui_preferencias._snd, "reproducir") as sonar, \
                 mock.patch.object(gui_preferencias, "anunciar") as anunciar, \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
-        anunciar.assert_any_call("Preferencias guardadas")
+        guardar.assert_called_once()
+        self.assertEqual(dialogo.avisos, ["Preferencias guardadas."])
+        anunciar.assert_not_called()
         sonar.assert_any_call("copiar")
 
 
@@ -2087,6 +2095,7 @@ class TestPreferenciasRecargaProgramados(unittest.TestCase):
 
     def _frame(self):
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame._alive = True
         frame._config = {}
         frame._mensajes_programados = [{"texto": "Viejo", "minutos_min": 10,
                                         "minutos_max": 10, "activo": True,
@@ -2096,13 +2105,15 @@ class TestPreferenciasRecargaProgramados(unittest.TestCase):
         frame._actualizar_estado_online = mock.Mock()
         return frame
 
-    def _correr(self, frame, acepto, nuevos):
+    def _correr(self, frame, acepto, nuevos, abrir=None):
         with tempfile.TemporaryDirectory() as temporal:
             ruta = Path(temporal) / "mensajes_programados.json"
             ruta.write_text(json.dumps(nuevos, ensure_ascii=False),
                             encoding="utf-8")
             with mock.patch.object(gui_preferencias, "abrir_preferencias",
-                                   return_value=acepto), \
+                                   side_effect=abrir, return_value=acepto), \
+                    mock.patch.object(gui.wx, "CallLater",
+                                      side_effect=lambda ms, fn: fn()), \
                     mock.patch.object(gui.paths, "mensajes_programados",
                                       return_value=ruta):
                 frame._on_preferencias(None)
@@ -2121,6 +2132,52 @@ class TestPreferenciasRecargaProgramados(unittest.TestCase):
                          ["Nuevo"])
         self.assertFalse(frame._programados_reloj_iniciado)
         frame._aplicar_preferencias_en_caliente.assert_not_called()
+
+    def test_guardar_aplica_y_despues_anuncia_sin_urgencia(self):
+        frame = self._frame()
+        orden = []
+        frame._aplicar_preferencias_en_caliente = mock.Mock(
+            side_effect=lambda: orden.append("aplicar"))
+
+        def abrir(parent, config, pagina=None, avisos=None):
+            avisos.append("Preferencias guardadas.")
+            return True
+
+        with tempfile.TemporaryDirectory() as temporal:
+            ruta = Path(temporal) / "mensajes_programados.json"
+            ruta.write_text("[]", encoding="utf-8")
+            with mock.patch.object(gui_preferencias, "abrir_preferencias",
+                                   side_effect=abrir), \
+                    mock.patch.object(gui.wx, "CallLater",
+                                      side_effect=lambda ms, fn: fn()), \
+                    mock.patch.object(gui.paths, "mensajes_programados",
+                                      return_value=ruta), \
+                    mock.patch.object(
+                        gui, "anunciar",
+                        side_effect=lambda texto, urgente=True:
+                            orden.append(("anunciar", texto, urgente))):
+                frame._on_preferencias(None)
+
+        self.assertEqual(orden, [
+            "aplicar",
+            ("anunciar", "Preferencias guardadas.", False),
+        ])
+
+    def test_cancelar_no_aplica_ni_anuncia(self):
+        frame = self._frame()
+        with tempfile.TemporaryDirectory() as temporal:
+            ruta = Path(temporal) / "mensajes_programados.json"
+            ruta.write_text("[]", encoding="utf-8")
+            with mock.patch.object(gui_preferencias, "abrir_preferencias",
+                                   return_value=False), \
+                    mock.patch.object(gui.wx, "CallLater") as diferir, \
+                    mock.patch.object(gui.paths, "mensajes_programados",
+                                      return_value=ruta), \
+                    mock.patch.object(gui, "anunciar") as anunciar:
+                frame._on_preferencias(None)
+        diferir.assert_not_called()
+        frame._aplicar_preferencias_en_caliente.assert_not_called()
+        anunciar.assert_not_called()
 
 
 class TestDescartesGui(unittest.TestCase):

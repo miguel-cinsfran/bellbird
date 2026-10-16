@@ -78,14 +78,18 @@ class TestTablaOpcionesSimples(unittest.TestCase):
                 control.SetValue(VALORES_SPIN[atributo])
                 valor = VALORES_SPIN[atributo]
                 esperados[(seccion, clave)] = (str(valor), en_memoria, valor)
-        with mock.patch.object(gui_preferencias.cfg, "guardar_opcion",
+        with mock.patch.object(gui_preferencias.cfg, "guardar_opciones",
                                return_value=True) as guardar, \
                 mock.patch.object(gui_preferencias._snd, "reproducir"), \
-                mock.patch.object(gui_preferencias, "anunciar"), \
+                mock.patch.object(gui_preferencias, "anunciar") as anunciar, \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
-        escritos = {(llamada.args[1], llamada.args[2]): llamada.args[3]
-                   for llamada in guardar.call_args_list}
+        # Un solo guardado con todos los cambios, y ningún anuncio dentro de
+        # _on_guardar: los avisos los dice la ventana principal al cerrar.
+        guardar.assert_called_once()
+        anunciar.assert_not_called()
+        escritos = {(seccion, clave): valor
+                    for seccion, clave, valor in guardar.call_args.args[1]}
         for (seccion, clave), (texto, en_memoria, valor) in esperados.items():
             with self.subTest(seccion=seccion, clave=clave):
                 self.assertEqual(escritos.get((seccion, clave)), texto)

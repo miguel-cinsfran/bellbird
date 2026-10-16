@@ -25,7 +25,12 @@ RUTAS_DE_DATOS = [
     ("log_fallos", "ytchat-fallos.log"),
     ("cache_audio", "cache-audio"),
     ("cache_video", "cache-video"),
+    ("audio_temporal", "audio_temporal"),
 ]
+
+# Única función de paths que crea su carpeta, así que no entra en la guarda
+# de «ninguna función crea nada en disco»: se prueba aparte.
+CREAN_CARPETA = {"audio_temporal"}
 
 RUTAS_DE_INSTALACION = [
     ("descargas_por_defecto", "Descargas"),
@@ -39,7 +44,7 @@ RUTAS_DE_INSTALACION = [
 ]
 
 TODAS_LAS_FUNCIONES = (
-    [nombre for nombre, _ in RUTAS_DE_DATOS]
+    [nombre for nombre, _ in RUTAS_DE_DATOS if nombre not in CREAN_CARPETA]
     + [nombre for nombre, _ in RUTAS_DE_INSTALACION]
     + ["pagina_overlay", "datos_a_migrar"]
     + ["carpeta_actualizacion", "paquete_descargado", "paquete_extraido",
@@ -125,6 +130,27 @@ class TestFunciones(unittest.TestCase):
                     with self.subTest(funcion=nombre):
                         getattr(paths, nombre)()
             self.assertFalse(destino.exists())
+
+
+class TestAudioTemporal(unittest.TestCase):
+    """`audio_temporal` es la única función que crea su carpeta al llamarse."""
+
+    def test_crea_la_carpeta_y_la_devuelve(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            datos = Path(tmp) / "datos"
+            with mock.patch.object(paths, "carpeta_datos", return_value=datos):
+                ruta = paths.audio_temporal()
+            self.assertEqual(ruta, datos / "audio_temporal")
+            self.assertTrue(ruta.is_dir())
+
+    def test_llamarla_de_nuevo_no_falla(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            datos = Path(tmp) / "datos"
+            with mock.patch.object(paths, "carpeta_datos", return_value=datos):
+                primera = paths.audio_temporal()
+                segunda = paths.audio_temporal()
+            self.assertEqual(primera, segunda)
+            self.assertTrue(segunda.is_dir())
 
 
 class TestDatosAMigrar(unittest.TestCase):

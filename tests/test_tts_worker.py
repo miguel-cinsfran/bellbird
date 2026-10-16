@@ -6,6 +6,7 @@ import time
 import unittest
 from unittest import mock
 
+from ytchat.voice import elevenlabs
 from ytchat.voice import motores
 from ytchat.voice import tts_worker
 from ytchat.voice.tts_worker import sanitizar, construir_tts
@@ -92,6 +93,28 @@ def _worker_con(motor, config=None):
     w = tts_worker.TTSWorker(queue.Queue(), config or {},
                              fabrica_motor=FabricaFalsa({"sapi": motor}))
     return w
+
+
+class MotorElevenlabsFalso(MotorFalso):
+    """Doble de ElevenLabs: mismo motor que MotorFalso, más el error y el
+    contador de caracteres que usa el worker para el respaldo y el tope."""
+
+    def __init__(self, voces=("Voz EL A", "Voz EL B")):
+        super().__init__(voces=voces, motor="elevenlabs")
+        self.falla = None
+        self.caracteres = 0
+
+    def hablar(self, texto):
+        self.hablados.append((texto, time.monotonic()))
+        if self.falla is not None:
+            raise self.falla
+        self.caracteres += len(texto)
+        self.t0 = time.monotonic()
+        self.hablando_ = True
+        return self.hablar_ok
+
+    def caracteres_usados(self):
+        return self.caracteres
 
 
 class TestArranque(unittest.TestCase):
@@ -363,6 +386,83 @@ class TestUltimoAutor(unittest.TestCase):
         cola.put({"texto_tts": "   ", "autor": "Beto"})
         time.sleep(0.5)
         self.assertEqual(worker.ultimo_autor(), "Ana")
+
+
+class TestRespaldoElevenLabs(unittest.TestCase):
+    """Con el motor en elevenlabs, el worker decide entre la nube y la voz de
+    Windows, y avisa una sola vez por racha."""
+
+    def _worker(self, **config):
+        el = MotorElevenlabsFalso()
+        el.duracion = 0.02
+        sapi = MotorFalso()
+        sapi.duracion = 0.02
+        base = {"motor": "elevenlabs"}
+        base.update(config)
+        fabrica = FabricaFalsa({"elevenlabs": el, "sapi": sapi})
+        worker = tts_worker.TTSWorker(queue.Queue(), base, fabrica_motor=fabrica)
+        worker._abrir_motor()
+        worker._avisos = []
+        worker.al_avisar = worker._avisos.append
+        return worker, el, sapi
+
+    def test_solo_importantes_manda_lo_comun_al_respaldo(self):
+        worker, el, sapi = self._worker(elevenlabs_solo_importantes=True)
+        worker._hablar("mensaje comun", None, False)
+        self.assertEqual([t for t, _ in el.hablados], [])
+        self.assertEqual([t for t, _ in sapi.hablados], ["mensaje comun"])
+        self.assertEqual(worker._avisos, [])
+
+    def test_el_item_importante_va_a_elevenlabs(self):
+        worker, el, sapi = self._worker(elevenlabs_solo_importantes=True)
+        worker._hablar("super chat", None, True)
+        self.assertEqual([t for t, _ in el.hablados], ["super chat"])
+        self.assertEqual([t for t, _ in sapi.hablados], [])
+
+    def test_tope_una_sola_vez_por_sesion(self):
+        worker, el, sapi = self._worker(elevenlabs_tope=10)
+        el.caracteres = 100
+        worker._hablar("hola", None, False)
+        worker._hablar("otra", None, False)
+        self.assertEqual([t for t, _ in sapi.hablados], ["hola", "otra"])
+        self.assertEqual([t for t, _ in el.hablados], [])
+        self.assertEqual(len(worker._avisos), 1)
+        self.assertIn("tope de caracteres", worker._avisos[0])
+
+    def test_error_reciente_va_al_respaldo_sin_reintentar(self):
+        worker, el, sapi = self._worker()
+        el.falla = elevenlabs.ElevenLabsError(
+            "red", "No se pudo conectar con ElevenLabs.")
+        worker._hablar("uno", None, False)
+        worker._hablar("dos", None, False)
+        # El segundo mensaje no vuelve a pedirle nada a ElevenLabs.
+        self.assertEqual([t for t, _ in el.hablados], ["uno"])
+        self.assertEqual([t for t, _ in sapi.hablados], ["uno", "dos"])
+        self.assertEqual(len(worker._avisos), 1)
+        self.assertIn("Se usa la voz de Windows", worker._avisos[0])
+
+    @mock.patch.object(tts_worker, "_VENTANA_ERROR_ELEVENLABS", 0.0)
+    def test_aviso_una_vez_por_racha_y_otra_tras_racha_nueva(self):
+        worker, el, sapi = self._worker()
+        el.falla = elevenlabs.ElevenLabsError(
+            "red", "No se pudo conectar con ElevenLabs.")
+        worker._hablar("uno", None, False)
+        worker._hablar("dos", None, False)
+        self.assertEqual(len(worker._avisos), 1)   # una sola vez por racha
+        el.falla = None
+        worker._hablar("tres", None, False)        # ElevenLabs lee bien
+        el.falla = elevenlabs.ElevenLabsError(
+            "red", "No se pudo conectar con ElevenLabs.")
+        worker._hablar("cuatro", None, False)      # racha nueva
+        self.assertEqual(len(worker._avisos), 2)
+
+    def test_sin_al_avisar_no_lanza(self):
+        worker, el, sapi = self._worker()
+        worker.al_avisar = None
+        el.falla = elevenlabs.ElevenLabsError(
+            "red", "No se pudo conectar con ElevenLabs.")
+        worker._hablar("uno", None, False)   # solo queda en el log
+        self.assertEqual([t for t, _ in sapi.hablados], ["uno"])
 
 
 class TestPrismReal(unittest.TestCase):

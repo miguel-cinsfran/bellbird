@@ -350,6 +350,26 @@ class TestTextosEntranteNuevos(unittest.TestCase):
             main.Stats(), on_message=lambda *a, **k: None)
         self.assertNotIn("voz", cola.get_nowait())
 
+    def test_importante_en_superchat_y_moderador(self):
+        cola = queue.Queue()
+        main.procesar_entrante("Ana", "hola", TIPO_SUPERCHAT, "$5", "canal",
+                               cola, _config_minima(), main.Stats(),
+                               on_message=lambda *a, **k: None)
+        self.assertTrue(cola.get_nowait().get("importante"))
+        cola_mod = queue.Queue()
+        main.procesar_entrante("Mod", "hola", TIPO_TEXTO, "", "canal",
+                               cola_mod, _config_minima(), main.Stats(),
+                               on_message=lambda *a, **k: None,
+                               rol=sonidos_eventos.ROL_MODERADOR)
+        self.assertTrue(cola_mod.get_nowait().get("importante"))
+
+    def test_mensaje_comun_no_es_importante(self):
+        cola = queue.Queue()
+        main.procesar_entrante("Ana", "hola", TIPO_TEXTO, "", "canal", cola,
+                               _config_minima(), main.Stats(),
+                               on_message=lambda *a, **k: None)
+        self.assertNotIn("importante", cola.get_nowait())
+
     def test_me_gusta_avisa_a_la_gui_pero_no_se_lee(self):
         cola = queue.Queue()
         avisos = []

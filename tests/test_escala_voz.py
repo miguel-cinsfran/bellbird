@@ -51,6 +51,31 @@ class TestPorcentajeAPrism(unittest.TestCase):
         self.assertEqual(escala_voz.porcentaje_a_prism(150), 1.0)
 
 
+class TestVelocidadAElevenlabs(unittest.TestCase):
+
+    def test_anclas(self):
+        self.assertEqual(escala_voz.velocidad_a_elevenlabs(0), 0.7)
+        self.assertEqual(escala_voz.velocidad_a_elevenlabs(50), 1.0)
+        self.assertEqual(escala_voz.velocidad_a_elevenlabs(100), 1.2)
+
+    def test_tramos_lineales(self):
+        self.assertEqual(escala_voz.velocidad_a_elevenlabs(25), 0.85)
+        self.assertEqual(escala_voz.velocidad_a_elevenlabs(75), 1.1)
+
+    def test_acotado(self):
+        self.assertEqual(escala_voz.velocidad_a_elevenlabs(-10), 0.7)
+        self.assertEqual(escala_voz.velocidad_a_elevenlabs(200), 1.2)
+
+    def test_monotono_y_en_rango(self):
+        anterior = 0.0
+        for pct in range(0, 101):
+            valor = escala_voz.velocidad_a_elevenlabs(pct)
+            self.assertGreaterEqual(valor, anterior)
+            self.assertGreaterEqual(valor, 0.7)
+            self.assertLessEqual(valor, 1.2)
+            anterior = valor
+
+
 class TestAjustarVelocidad(unittest.TestCase):
 
     def test_nunca_sale_del_rango(self):

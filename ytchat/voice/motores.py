@@ -13,9 +13,16 @@ from ytchat.voice import escala_voz
 
 logger = diagnostico.obtener_logger(__name__)
 
-MOTORES = ("sapi", "onecore")
-NOMBRES = {"sapi": "Windows SAPI 5", "onecore": "Windows OneCore"}
+MOTORES = ("sapi", "onecore", "elevenlabs")
+NOMBRES = {
+    "sapi": "Windows SAPI 5",
+    "onecore": "Windows OneCore",
+    "elevenlabs": "ElevenLabs, en la nube",
+}
 
+# Solo los motores de Prism tienen backend id. ElevenLabs tiene su propio
+# MotorElevenLabs, así que la validación de `MotorPrism` va contra `_IDS` y no
+# contra `MOTORES`: pedir «elevenlabs» desde Prism debe dar MotorNoDisponible.
 _IDS = {"sapi": "SAPI", "onecore": "ONE_CORE"}
 
 
@@ -32,10 +39,10 @@ class MotorPrism:
     """
 
     def __init__(self, motor, fabrica_contexto=None):
-        if motor not in MOTORES:
+        if motor not in _IDS:
             raise MotorNoDisponible(
                 f"Motor de voz desconocido: {motor!r} "
-                f"(válidos: {', '.join(MOTORES)})")
+                f"(válidos: {', '.join(_IDS)})")
         try:
             from prism import BackendId
             from prism.common import (
@@ -183,12 +190,40 @@ class MotorPrism:
         self._cerrado = True
 
 
+def crear_motor(motor, clave_elevenlabs=None):
+    """Crea el motor pedido. Lanza `MotorNoDisponible` si no se puede.
+
+    Para ElevenLabs, la clave se lee de `credenciales` cuando no se pasa (el
+    archivo es del usuario y nunca vive en config.ini). La importación de
+    `motor_elevenlabs` es perezosa: quien no usa ElevenLabs no lo carga.
+    """
+    if motor == "elevenlabs":
+        from ytchat.voice import motor_elevenlabs
+        if clave_elevenlabs is None:
+            from ytchat.youtube import credenciales
+            clave_elevenlabs = credenciales.cargar().get("elevenlabs_clave", "")
+        return motor_elevenlabs.MotorElevenLabs(clave_elevenlabs)
+    return MotorPrism(motor)
+
+
 def listar_voces(motor, fabrica_contexto=None) -> list[str]:
     """Devuelve las voces de un motor sin tocar el del hilo de voz.
 
-    Crea un `MotorPrism` propio y lo cierra. Lista vacía si el motor no está
-    disponible.
+    Crea una instancia propia y la cierra. Lista vacía si el motor no está
+    disponible (para ElevenLabs, sin clave guardada también es vacía).
     """
+    if motor == "elevenlabs":
+        try:
+            instancia = crear_motor("elevenlabs")
+        except MotorNoDisponible:
+            return []
+        try:
+            return list(instancia.voces())
+        finally:
+            try:
+                instancia.cerrar()
+            except Exception:
+                pass
     try:
         instancia = MotorPrism(motor, fabrica_contexto)
     except MotorNoDisponible:

@@ -34,6 +34,8 @@ _DEFECTO = {
     "oauth_client_id": "",
     "oauth_client_secret": "",
     "token": None,
+    # Clave de ElevenLabs: es un secreto, va acá y nunca a config.ini.
+    "elevenlabs_clave": "",
 }
 
 

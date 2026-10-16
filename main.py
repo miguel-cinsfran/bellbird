@@ -38,7 +38,7 @@ from ytchat.core import avisos_red
 from ytchat.downloads import ytdlp_bin
 from ytchat.capture import conexion
 from ytchat.capture import alias
-from ytchat.core.sonidos_eventos import rol_de_autor
+from ytchat.core.sonidos_eventos import rol_de_autor, ROL_PROPIETARIO, ROL_MODERADOR
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -434,6 +434,11 @@ def procesar_entrante(autor, mensaje, tipo, monto, canal_id, cola, config, stats
 
     if debe_leer_tts(autor, config) and (sesion_activa is None or sesion_activa()):
         item = {"texto_tts": tts_text, "autor": autor_visible}
+        # Importante: con ElevenLabs y «solo importantes» activado, esto decide
+        # qué sale por la nube. Son los eventos con aporte y los roles de peso.
+        if (tipo in (TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_COFRE)
+                or rol in (ROL_PROPIETARIO, ROL_MODERADOR)):
+            item["importante"] = True
         # Multi-voz: los eventos (Super Chats, regalos, miembros, entradas) se
         # leen con otra voz si está activado; los mensajes normales, con la base.
         if config.get("multivoz") and tipo in (TIPO_SUPERCHAT, TIPO_STICKER,

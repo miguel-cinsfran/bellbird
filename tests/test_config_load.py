@@ -260,6 +260,26 @@ class TestCargarConfiguracion(unittest.TestCase):
         cfg = self._cargar_en("[voz]\nmotor = onecore\n")
         self.assertEqual(cfg["motor"], "onecore")
 
+    def test_motor_elevenlabs_se_conserva(self):
+        cfg = self._cargar_en("[voz]\nmotor = elevenlabs\n")
+        self.assertEqual(cfg["motor"], "elevenlabs")
+
+    def test_claves_de_voz_de_elevenlabs(self):
+        cfg = self._cargar_en(config._CONFIG_FALLBACK)
+        self.assertEqual(cfg["voz_respaldo"], "")
+        self.assertEqual(cfg["elevenlabs_tope"], 30000)
+        self.assertFalse(cfg["elevenlabs_solo_importantes"])
+
+    def test_elevenlabs_tope_negativo_cae_a_cero(self):
+        cfg = self._cargar_en("[voz]\nelevenlabs_tope = -5\n")
+        self.assertEqual(cfg["elevenlabs_tope"], 0)
+
+    def test_elevenlabs_config_ausente_usa_los_defaults(self):
+        cfg = self._cargar_en("[voz]\nvolumen = 1.0\n")
+        self.assertEqual(cfg["voz_respaldo"], "")
+        self.assertEqual(cfg["elevenlabs_tope"], 30000)
+        self.assertFalse(cfg["elevenlabs_solo_importantes"])
+
     def test_clamp_volumen(self):
         cfg = self._cargar_en("[voz]\nvolumen = 5.0\n")
         self.assertEqual(cfg["volumen"], 1.0)

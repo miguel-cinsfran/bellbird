@@ -32,6 +32,9 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("tono", "50"),
         ("multivoz", "false"),
         ("voz_eventos", ""),
+        ("voz_respaldo", ""),
+        ("elevenlabs_tope", "30000"),
+        ("elevenlabs_solo_importantes", "false"),
     ]),
     ("cola", [
         ("estrategia", "limite"),
@@ -198,9 +201,14 @@ def generar_texto() -> str:
         # Comentarios útiles por sección (breves y prácticos)
         if sec == "voz":
             partes.append(
-                "# Motor de voz: sapi u onecore. Voz vacía es la primera del\n"
-                "# sistema; se guarda por nombre. Multivoz usa otra voz\n"
-                "# para eventos (Super Chats, regalos). Se cambia en Preferencias > Lectura.\n"
+                "# Motor de voz: sapi, onecore o elevenlabs. Voz vacía es la\n"
+                "# primera del sistema; se guarda por nombre. Multivoz usa otra\n"
+                "# voz para eventos (Super Chats, regalos). Se cambia en\n"
+                "# Preferencias > Lectura. Con ElevenLabs, voz_respaldo es la voz\n"
+                "# de Windows que suena si falla o se pasa el tope de caracteres\n"
+                "# (elevenlabs_tope, 0 sin tope), y elevenlabs_solo_importantes\n"
+                "# reserva la nube para Super Chats, stickers, miembros, cofres,\n"
+                "# el dueño del canal y los moderadores.\n"
             )
         elif sec == "cola":
             partes.append("# Cola de lectura: con límite descarta los más viejos si se llena.\n")

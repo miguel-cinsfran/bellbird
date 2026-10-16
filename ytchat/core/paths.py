@@ -6,7 +6,9 @@ biblioteca estándar, para no provocar imports circulares.
 
 Dos raíces: `carpeta_instalacion` (lo que viene con el programa) y
 `carpeta_datos` (lo que escribe el usuario, en la subcarpeta `data`).
-Ninguna función de este módulo crea nada en disco, solo devuelve rutas.
+Ninguna función de este módulo crea nada en disco, solo devuelve rutas, salvo
+`audio_temporal`, que sí crea su carpeta porque el motor de ElevenLabs necesita
+un lugar concreto donde dejar el WAV de cada frase.
 """
 
 from __future__ import annotations
@@ -93,6 +95,18 @@ def cache_audio() -> Path:
 
 def cache_video() -> Path:
     return carpeta_datos() / "cache-video"
+
+
+def audio_temporal() -> Path:
+    """Carpeta donde ElevenLabs deja el WAV de cada frase, creada si falta.
+
+    Única excepción del módulo: el motor necesita escribir ahí y comprobar que
+    quedó vacía, así que la ruta se arma y se crea en un solo lugar en vez de
+    que cada llamador la prepare por su cuenta.
+    """
+    carpeta = carpeta_datos() / "audio_temporal"
+    carpeta.mkdir(parents=True, exist_ok=True)
+    return carpeta
 
 
 def descargas_por_defecto() -> Path:

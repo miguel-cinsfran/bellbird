@@ -20,6 +20,7 @@ import time
 
 from ytchat.core import diagnostico
 from ytchat.voice import escala_voz
+from ytchat.voice import elevenlabs
 from ytchat.voice import motores
 
 logger = diagnostico.obtener_logger(__name__)
@@ -31,6 +32,13 @@ _ESPERA_SUBIDA = 1.0
 _PASO_SUBIDA = 0.005
 # Ritmo con que se mira la bajada mientras el motor suena.
 _PASO_ESPERA = 0.05
+
+# Tras un fallo de ElevenLabs no se reintenta la nube por este tiempo: si no,
+# cada mensaje sin red esperaría el tiempo agotado del cliente.
+_VENTANA_ERROR_ELEVENLABS = 60.0
+
+_MSG_TOPE = ("Se alcanzó el tope de caracteres de ElevenLabs de esta sesión. "
+             "Se usa la voz de Windows.")
 
 
 def _entero(valor, defecto: int) -> int:
@@ -101,9 +109,25 @@ class TTSWorker(threading.Thread):
         super().__init__(daemon=True, name="TTSWorker")
         self.cola   = cola
         self.config = config
-        # `None` usa el envoltorio real de Prism. Un doble permite probar el
-        # worker sin abrir un motor de verdad.
-        self._fabrica_motor = fabrica_motor or motores.MotorPrism
+        # Por defecto, la fábrica real (Prism o ElevenLabs según el motor).
+        # Un doble permite probar el worker sin abrir un motor de verdad.
+        self._fabrica_motor = fabrica_motor or motores.crear_motor
+        # Aviso al usuario (lo conecta la GUI con `anunciar`). Con None solo
+        # queda el registro en el log.
+        self.al_avisar = None
+        # Respaldo de Windows para ElevenLabs: se crea perezoso, en el hilo
+        # del worker, la primera vez que un mensaje tiene que ir ahí.
+        self._respaldo = None
+        self._voz_respaldo = config.get("voz_respaldo") or ""
+        self._tope_elevenlabs = max(0, _entero(config.get("elevenlabs_tope"), 0))
+        self._solo_importantes = bool(config.get("elevenlabs_solo_importantes"))
+        # Marca de tiempo del último fallo de ElevenLabs y estado de los avisos.
+        self._error_elevenlabs_ts = 0.0
+        self._aviso_dado = False
+        self._aviso_tope_dado = False
+        # Motor que está sonando ahora (principal o respaldo), para que la
+        # pausa, la purga, la velocidad y el volumen lleguen al correcto.
+        self._sonando = None
         self._ready  = threading.Event()
         self._error  = None
         self._active = threading.Event()
@@ -160,7 +184,8 @@ class TTSWorker(threading.Thread):
                     autor = item.get("autor") or ""
                     if autor:
                         self._ultimo_autor = autor
-                    self._hablar(texto, item.get("voz")); _err = 0
+                    self._hablar(texto, item.get("voz"),
+                                 item.get("importante", False)); _err = 0
                 except Exception as exc:
                     _err += 1
                     if _err <= 5:
@@ -213,6 +238,9 @@ class TTSWorker(threading.Thread):
     def _cerrar_motor(self) -> None:
         if self._motor is not None:
             self._motor.cerrar()
+        if self._respaldo is not None:
+            self._respaldo.cerrar()
+            self._respaldo = None
 
     # ── Voz y habla ──────────────────────────────────────────────────────────
 
@@ -227,7 +255,7 @@ class TTSWorker(threading.Thread):
         if idx != self._voz_actual and self._motor.elegir_voz(idx):
             self._voz_actual = idx
 
-    def _hablar(self, texto: str, voz=None) -> None:
+    def _hablar(self, texto: str, voz=None, importante=False) -> None:
         # Multi-voz: si el mensaje pide una voz concreta, se usa; si no, la base.
         self._aplicar_voz(voz)
         # Una purga pedida con la voz callada (p. ej. detener_actual() al
@@ -235,32 +263,126 @@ class TTSWorker(threading.Thread):
         # mensaje de cada reconexión se oía a medias. No había nada que cortar,
         # así que se descarta antes de hablar.
         self._purge_pending.clear()
-        if not self._motor.hablar(texto):
+        if self._motor.motor == "elevenlabs":
+            self._hablar_elevenlabs(texto, importante)
             return
-        # La subida del estado es asíncrona: hay que verla pasar a True o el
-        # bucle de abajo daría el mensaje por terminado antes de que suene.
-        limite = time.monotonic() + _ESPERA_SUBIDA
-        while not self._motor.hablando() and time.monotonic() < limite:
-            self._procesar_comandos()
-            if self._purge_pending.is_set():
-                self._purge_pending.clear()
-                self._motor.parar()
-                return
-            time.sleep(_PASO_SUBIDA)
-        # Bajada: mientras suene, se atienden comandos y purgas. La pausa se
-        # mira ANTES que `hablando()`: en OneCore la pausa deja el estado en
-        # False y mirarlo primero arrancaría el mensaje siguiente en pausa.
-        while True:
-            self._procesar_comandos()
-            if not self._active.is_set():
-                self._esperar_pausa()
-            if self._purge_pending.is_set():
-                self._purge_pending.clear()
-                self._motor.parar()
-                return
-            if not self._motor.hablando():
-                return
-            time.sleep(_PASO_ESPERA)
+        self._leer_frase(self._motor, texto)
+
+    def _hablar_elevenlabs(self, texto: str, importante: bool) -> None:
+        """Lee con ElevenLabs y cae al respaldo según el estado de la sesión."""
+        elegido = self._elegir_motor_elevenlabs(texto, importante)
+        if elegido is None:
+            return
+        if elegido is not self._motor:
+            # Ya se avisó al elegir (tope) o no corresponde aviso (solo
+            # importantes): el mensaje va derecho al respaldo.
+            self._leer_frase(elegido, texto)
+            return
+        try:
+            sono = self._leer_frase(elegido, texto)
+        except elevenlabs.ElevenLabsError as exc:
+            self._error_elevenlabs_ts = time.monotonic()
+            if not self._aviso_dado:
+                self._aviso_dado = True
+                self._avisar(f"{exc} Se usa la voz de Windows.")
+            respaldo = self._conseguir_respaldo()
+            if respaldo is not None:
+                self._leer_frase(respaldo, texto)
+            return
+        if sono:
+            # Un mensaje bien leído por ElevenLabs cierra la racha: el próximo
+            # fallo vuelve a avisar.
+            self._aviso_dado = False
+
+    def _elegir_motor_elevenlabs(self, texto: str, importante: bool):
+        """Motor para este mensaje: el principal o el respaldo de Windows."""
+        if self._solo_importantes and not importante:
+            return self._conseguir_respaldo()
+        tope = self._tope_elevenlabs
+        if tope > 0 and self._caracteres_elevenlabs() + len(texto) > tope:
+            if not self._aviso_tope_dado:
+                self._aviso_tope_dado = True
+                self._avisar(_MSG_TOPE)
+            return self._conseguir_respaldo()
+        if self._error_reciente():
+            return self._conseguir_respaldo()
+        return self._motor
+
+    def _caracteres_elevenlabs(self) -> int:
+        try:
+            return int(self._motor.caracteres_usados())
+        except Exception:
+            return 0
+
+    def _error_reciente(self) -> bool:
+        ts = self._error_elevenlabs_ts
+        return bool(ts) and (time.monotonic() - ts) < _VENTANA_ERROR_ELEVENLABS
+
+    def _conseguir_respaldo(self):
+        """Crea (una sola vez) la voz de Windows del respaldo, o None si falla."""
+        if self._respaldo is not None:
+            return self._respaldo
+        try:
+            respaldo = self._fabrica_motor("sapi")
+        except motores.MotorNoDisponible as exc:
+            logger.warning("No se pudo crear la voz de respaldo (%s).", exc)
+            return None
+        voces = list(respaldo.voces())
+        if not voces:
+            respaldo.cerrar()
+            logger.warning("La voz de respaldo no tiene voces instaladas.")
+            return None
+        idx = escala_voz.resolver_voz(self._voz_respaldo, voces)
+        respaldo.elegir_voz(0 if idx is None else idx)
+        respaldo.fijar_velocidad(self._rate)
+        respaldo.fijar_volumen(self._volume)
+        respaldo.fijar_tono(self._tono)
+        self._respaldo = respaldo
+        return respaldo
+
+    def _leer_frase(self, motor, texto: str) -> bool:
+        """Manda la frase a `motor` y espera a que termine. True si sonó."""
+        self._sonando = motor
+        try:
+            if not motor.hablar(texto):
+                return False
+            # La subida del estado es asíncrona: hay que verla pasar a True o
+            # el bucle de abajo daría el mensaje por terminado antes de sonar.
+            limite = time.monotonic() + _ESPERA_SUBIDA
+            while not motor.hablando() and time.monotonic() < limite:
+                self._procesar_comandos()
+                if self._purge_pending.is_set():
+                    self._purge_pending.clear()
+                    motor.parar()
+                    return True
+                time.sleep(_PASO_SUBIDA)
+            # Bajada: mientras suene, se atienden comandos y purgas. La pausa
+            # se mira ANTES que `hablando()`: en OneCore la pausa deja el
+            # estado en False y mirarlo primero arrancaría el siguiente en pausa.
+            while True:
+                self._procesar_comandos()
+                if not self._active.is_set():
+                    self._esperar_pausa()
+                if self._purge_pending.is_set():
+                    self._purge_pending.clear()
+                    motor.parar()
+                    return True
+                if not motor.hablando():
+                    return True
+                time.sleep(_PASO_ESPERA)
+        finally:
+            self._sonando = None
+
+    def _avisar(self, mensaje: str) -> None:
+        """Avisa al usuario (o solo al log) una vez por racha."""
+        logger.warning("TTS: %s", mensaje)
+        llamar = self.al_avisar
+        if llamar is None:
+            return
+        try:
+            llamar(mensaje)
+        except Exception as exc:
+            logger.debug("El aviso al usuario falló: %s", exc)
 
     def _esperar_pausa(self) -> None:
         """Pausa a mitad de frase sin dejar de atender comandos ni purgas.
@@ -268,14 +390,19 @@ class TTSWorker(threading.Thread):
         Antes el hilo quedaba en wait() pero la voz seguía sonando hasta acabar
         la frase; ahora se pausa el motor de verdad y los comandos (voz,
         velocidad, volumen, purga) se siguen atendiendo."""
-        self._motor.pausar()
+        motor = self._motor_de_comandos()
+        motor.pausar()
         try:
             while not self._active.wait(0.1):
                 self._procesar_comandos()
                 if self._purge_pending.is_set():
                     break   # Alt+D en pausa: se reanuda para poder purgar
         finally:
-            self._motor.reanudar()
+            motor.reanudar()
+
+    def _motor_de_comandos(self):
+        """Motor que recibe los ajustes: el que suena, o el principal si no hay."""
+        return self._sonando or self._motor
 
     def _cambiar_voz_base(self, val) -> None:
         idx = escala_voz.resolver_voz(val, self._voces)
@@ -333,11 +460,11 @@ class TTSWorker(threading.Thread):
                 elif cmd == "motor":
                     self._cambiar_motor(*val)
                 elif cmd == "rate":
-                    self._motor.fijar_velocidad(val)
+                    self._motor_de_comandos().fijar_velocidad(val)
                 elif cmd == "volume":
-                    self._motor.fijar_volumen(val)
+                    self._motor_de_comandos().fijar_volumen(val)
                 elif cmd == "tono":
-                    self._motor.fijar_tono(val)
+                    self._motor_de_comandos().fijar_tono(val)
                 elif cmd == "purge":
                     self._purge_pending.set()
             except Exception as exc:

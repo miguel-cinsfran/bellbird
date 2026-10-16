@@ -2,12 +2,15 @@
 
 import time
 import unittest
+from unittest import mock
 
 from prism import PrismError
 from prism.common import PrismAlreadyPausedError, PrismNotPausedError
 
 from ytchat.voice import escala_voz
-from ytchat.voice.motores import MotorNoDisponible, MotorPrism, listar_voces
+from ytchat.voice.motores import (
+    MotorNoDisponible, MotorPrism, crear_motor, listar_voces,
+)
 
 
 class _BackendFalso:
@@ -187,6 +190,48 @@ class TestMotorPrismReal(unittest.TestCase):
 
     def test_listar_voces_inexistente(self):
         self.assertEqual(listar_voces("inexistente"), [])
+
+
+class TestCrearMotor(unittest.TestCase):
+
+    def test_sapi_devuelve_motor_prism(self):
+        with mock.patch("ytchat.voice.motores.MotorPrism") as prism:
+            crear_motor("sapi")
+        prism.assert_called_once_with("sapi")
+
+    def test_elevenlabs_sin_clave_da_no_disponible(self):
+        with mock.patch("ytchat.youtube.credenciales.cargar",
+                        return_value={"elevenlabs_clave": ""}):
+            with self.assertRaises(MotorNoDisponible):
+                crear_motor("elevenlabs")
+
+    def test_elevenlabs_usa_la_clave_recibida(self):
+        with mock.patch("ytchat.voice.motor_elevenlabs.MotorElevenLabs") as motor:
+            crear_motor("elevenlabs", clave_elevenlabs="mi-clave")
+        motor.assert_called_once_with("mi-clave")
+
+    def test_elevenlabs_lee_la_clave_de_credenciales(self):
+        with mock.patch("ytchat.youtube.credenciales.cargar",
+                        return_value={"elevenlabs_clave": "guardada"}), \
+             mock.patch("ytchat.voice.motor_elevenlabs.MotorElevenLabs") as motor:
+            crear_motor("elevenlabs")
+        motor.assert_called_once_with("guardada")
+
+
+class TestListarVocesElevenlabs(unittest.TestCase):
+
+    def test_sin_clave_es_vacio(self):
+        with mock.patch("ytchat.youtube.credenciales.cargar",
+                        return_value={"elevenlabs_clave": ""}):
+            self.assertEqual(listar_voces("elevenlabs"), [])
+
+    def test_devuelve_los_nombres_y_cierra_el_motor(self):
+        motor = mock.Mock()
+        motor.voces.return_value = ["Voz A", "Voz B"]
+        with mock.patch("ytchat.voice.motores.crear_motor",
+                        return_value=motor):
+            self.assertEqual(listar_voces("elevenlabs"), ["Voz A", "Voz B"])
+        motor.cerrar.assert_called_once()
 
 
 if __name__ == "__main__":

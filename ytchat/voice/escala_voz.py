@@ -14,6 +14,10 @@ VELOCIDAD_NORMAL = 50
 
 _MOTOR_SAPI = "sapi"
 
+# ElevenLabs acepta `speed` entre 0.7 y 1.2, con 1.0 normal.
+_ELEVENLABS_MIN = 0.7
+_ELEVENLABS_MAX = 1.2
+
 
 def _a_multiplo(pct: int) -> int:
     return round(pct / PASO_VELOCIDAD) * PASO_VELOCIDAD
@@ -59,6 +63,23 @@ def velocidad_a_prism(motor: str, pct: int) -> float:
 def porcentaje_a_prism(pct: int) -> float:
     """Convierte un porcentaje 0..100 al float 0.0..1.0 para volumen y tono."""
     return min(1.0, max(0.0, int(pct) / 100))
+
+
+def velocidad_a_elevenlabs(pct: int) -> float:
+    """Convierte el porcentaje 0..100 a la velocidad de ElevenLabs (0.7 a 1.2).
+
+    50 es 1.0. Dos tramos lineales: de 0 a 50 va de 0.7 a 1.0, y de 50 a 100
+    de 1.0 a 1.2. Se acota y se redondea a cuatro decimales porque la cuenta
+    en float deja valores como 0.9999999 y la API espera 1.0 redondo.
+    """
+    valor = max(VELOCIDAD_MIN, min(VELOCIDAD_MAX, int(pct)))
+    if valor <= VELOCIDAD_NORMAL:
+        velocidad = _ELEVENLABS_MIN + (1.0 - _ELEVENLABS_MIN) * (
+            valor / VELOCIDAD_NORMAL)
+    else:
+        velocidad = 1.0 + (_ELEVENLABS_MAX - 1.0) * (
+            (valor - VELOCIDAD_NORMAL) / (VELOCIDAD_MAX - VELOCIDAD_NORMAL))
+    return round(min(_ELEVENLABS_MAX, max(_ELEVENLABS_MIN, velocidad)), 4)
 
 
 def resolver_voz(guardada, nombres) -> int | None:

@@ -10,6 +10,7 @@ silencio si la ventana ya se cerró.
 from __future__ import annotations
 
 import configparser
+import functools
 import logging
 import os
 import sys
@@ -23,6 +24,7 @@ from ytchat.core import diagnostico
 from ytchat.core import paths
 from ytchat.core.config import APP_NAME, APP_VERSION, guardar_opcion
 from ytchat.downloads import ytdlp_bin
+from ytchat.ui import aviso_diferido
 from ytchat.ui.gui import anunciar
 from ytchat.voice import sound_player as _snd
 
@@ -76,19 +78,30 @@ def _confirmar_arranque() -> None:
         logger.warning("confirmación de arranque: %s", exc)
 
 
-def programar_resultado_actualizacion() -> None:
-    """A los 4000 ms anuncia el resultado de la última actualización."""
+def programar_resultado_actualizacion(frame=None) -> None:
+    """A los 4000 ms muestra el resultado de la última actualización.
+
+    Recibe el frame para poder abrir la ventana del resultado cuando la
+    app está empaquetada; desde código fuente solo anuncia, como siempre.
+    """
     try:
-        wx.CallLater(4000, _anunciar_resultado)
+        wx.CallLater(4000, _anunciar_resultado, frame)
     except Exception as exc:
         logger.warning("resultado de actualización: %s", exc)
 
 
-def _anunciar_resultado() -> None:
+def _anunciar_resultado(frame=None) -> None:
     try:
         resultado = actualizacion.tomar_resultado()
         texto = actualizacion.texto_resultado(resultado, APP_VERSION)
         if not texto:
+            return
+        if frame is not None and bool(getattr(sys, "frozen", False)):
+            correcto = not (isinstance(resultado, dict)
+                            and resultado.get("resultado") == "fallo")
+            aviso_diferido.cuando_libre(
+                frame, _mostrar_resultado_en_ventana,
+                frame, texto, correcto)
             return
         anunciar(texto)
         if isinstance(resultado, dict) and resultado.get("resultado") == "fallo":
@@ -97,12 +110,30 @@ def _anunciar_resultado() -> None:
         logger.warning("resultado de actualización: %s", exc)
 
 
+def _mostrar_resultado_en_ventana(frame, texto: str, correcto: bool) -> None:
+    """Abre la ventana del resultado con su texto, su barra y el foco."""
+    from ytchat.ui.gui_actualizacion import DialogoActualizacion
+    ventana = DialogoActualizacion(frame, "Actualización")
+    ventana.Show()
+    ventana.estado(texto)
+    ventana.progreso(100 if correcto else 0)
+    try:
+        ventana.btn_cerrar.SetFocus()
+    except Exception:
+        pass
+    if not correcto:
+        try:
+            _snd.reproducir("error")
+        except Exception:
+            pass
+
+
 def programar_aviso_version(frame) -> None:
     """A los 10000 ms consulta en un hilo si hay versión nueva y avisa.
 
-    Empaquetada, sin chat conectado y sin transmisión en curso, abre la
-    ventana de actualización al arrancar. En cualquier otro caso se queda
-    con el anuncio hablado, una vez por versión.
+    Empaquetada abre la ventana de actualización al arrancar, esperando a
+    que el usuario quede libre si está ocupado. Desde código fuente se
+    queda con el anuncio hablado, una vez por versión.
     """
     try:
         wx.CallLater(10000, _consultar_en_hilo, frame)
@@ -137,16 +168,25 @@ def _consultar_version(frame) -> None:
 
 
 def _decidir_aviso(frame, paquete) -> None:
-    """En el hilo principal decide entre abrir la ventana o solo hablar."""
+    """En el hilo principal abre la ventana o, desde fuente, solo habla.
+
+    Empaquetada siempre abre la ventana de actualización al arrancar: si el
+    usuario está ocupado, la apertura espera a que quede libre. Desde código
+    fuente se queda con el anuncio hablado, una vez por versión.
+    """
     try:
         empaquetada = bool(getattr(sys, "frozen", False))
-        if (empaquetada and not frame._conectado
-                and not frame._supervisar_transmision("activo")):
-            abrir_ventana_actualizacion(frame, paquete=paquete,
-                                        al_arrancar=True)
-            return
     except Exception as exc:
         logger.warning("aviso de versión: %s", exc)
+        return
+    if empaquetada:
+        try:
+            aviso_diferido.cuando_libre(
+                frame,
+                functools.partial(abrir_ventana_actualizacion, frame,
+                                  paquete=paquete, al_arrancar=True))
+        except Exception as exc:
+            logger.warning("aviso de versión: %s", exc)
         return
     try:
         avisada = leer_version_avisada()

@@ -18,6 +18,7 @@ Apertura: `abrir(parent, url_inicial=None)` desde `gui._abrir_descargas`.
 from __future__ import annotations
 
 import logging
+import sys
 import threading
 from datetime import datetime
 
@@ -79,6 +80,9 @@ INTERVALO_REFRESCO_MS = 500
 # con el gestor cerrado también tiene que entrar en el historial.
 _dialogo_activo = None
 _registrados: set[str] = set()
+# Apertura del gestor ya encolada por un fin de descarga: varias descargas
+# que terminan mientras está ocupado abren el gestor una sola vez.
+_apertura_gestor_pendiente = False
 
 
 def _ruta_historial():
@@ -120,6 +124,44 @@ def _fin_descarga_en_gui(estado: str, mensaje: str, nombre: str, item) -> None:
     dialogo = _dialogo_activo
     if entrada is not None and dialogo is not None and dialogo._alive:
         dialogo._mostrar_entrada_historial(entrada)
+    _abrir_gestor_si_cerrado()
+
+
+def _abrir_gestor_si_cerrado() -> None:
+    """Abre el gestor si una descarga terminó con él cerrado.
+
+    Solo empaquetada: desde código fuente queda lo de hoy. Con el gestor
+    abierto tampoco cambia nada. Si ya hay una apertura encolada, no se
+    encola otra.
+    """
+    global _apertura_gestor_pendiente
+    try:
+        if _apertura_gestor_pendiente:
+            return
+        if not bool(getattr(sys, "frozen", False)):
+            return
+        dialogo = _dialogo_activo
+        if dialogo is not None and dialogo._alive:
+            return
+        from ytchat.ui import gui as _gui_main
+        principal = getattr(_gui_main, "_gui_frame", None)
+        if principal is None:
+            return
+        _apertura_gestor_pendiente = True
+        from ytchat.ui import aviso_diferido
+        aviso_diferido.cuando_libre(
+            principal, _abrir_gestor_y_liberar, principal)
+    except Exception as exc:
+        logger.warning("apertura del gestor: %s", exc)
+
+
+def _abrir_gestor_y_liberar(principal) -> None:
+    """Abre el gestor y libera la apertura pendiente, pase lo que pase."""
+    global _apertura_gestor_pendiente
+    try:
+        abrir(principal)
+    finally:
+        _apertura_gestor_pendiente = False
 
 
 def _avisar_fin_descarga(estado: str, mensaje: str, nombre: str, item=None) -> None:

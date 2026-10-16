@@ -492,7 +492,7 @@ class TestPrecalentamiento(unittest.TestCase):
         panel._precalentamiento_cancelado = False
         return panel
 
-    def test_anuncia_antes_del_trabajo_y_al_terminar(self):
+    def test_precalienta_en_silencio(self):
         panel = self._panel()
         orden = []
         hilo = mock.Mock()
@@ -506,18 +506,17 @@ class TestPrecalentamiento(unittest.TestCase):
 
         hilo.start.side_effect = iniciar
         panel._asegurar_instancia = lambda: orden.append("trabajo") or True
-        with mock.patch.object(reproductor, "anunciar",
-                               side_effect=lambda texto: orden.append(texto)), \
+        with mock.patch.object(reproductor, "anunciar") as anunciar, \
                 mock.patch.object(reproductor.diagnostico, "crear_hilo",
-                                  side_effect=crear), \
+                                   side_effect=crear), \
                 mock.patch.object(reproductor.wx, "CallAfter",
-                                  side_effect=lambda fn: fn()):
+                                   side_effect=lambda fn: fn()):
             panel._precalentar()
 
-        self.assertEqual(orden, [
-            "Preparando el reproductor", "trabajo", "Reproductor listo"])
+        self.assertEqual(orden, ["trabajo"])
+        anunciar.assert_not_called()
 
-    def test_si_falla_no_anuncia_que_esta_listo(self):
+    def test_si_falla_no_anuncia_nada(self):
         panel = self._panel()
         hilo = mock.Mock()
         def crear(target, _nombre):
@@ -527,12 +526,12 @@ class TestPrecalentamiento(unittest.TestCase):
         panel._asegurar_instancia = mock.Mock(side_effect=RuntimeError("fallo"))
         with mock.patch.object(reproductor, "anunciar") as anunciar, \
                 mock.patch.object(reproductor.diagnostico, "crear_hilo",
-                                  side_effect=crear):
+                                   side_effect=crear):
             panel._precalentar()
 
-        anunciar.assert_called_once_with("Preparando el reproductor")
+        anunciar.assert_not_called()
 
-    def test_si_se_cierra_no_anuncia_que_esta_listo(self):
+    def test_si_se_cierra_no_anuncia_nada(self):
         panel = self._panel()
         callbacks = []
         hilo = mock.Mock()
@@ -543,14 +542,14 @@ class TestPrecalentamiento(unittest.TestCase):
         panel._asegurar_instancia = mock.Mock(return_value=True)
         with mock.patch.object(reproductor, "anunciar") as anunciar, \
                 mock.patch.object(reproductor.diagnostico, "crear_hilo",
-                                  side_effect=crear), \
+                                   side_effect=crear), \
                 mock.patch.object(reproductor.wx, "CallAfter",
-                                  side_effect=lambda fn: callbacks.append(fn)):
+                                   side_effect=lambda fn: callbacks.append(fn)):
             panel._precalentar()
             panel._precalentamiento_cancelado = True
             callbacks[0]()
 
-        anunciar.assert_called_once_with("Preparando el reproductor")
+        anunciar.assert_not_called()
 
     def test_el_constructor_no_precalienta(self):
         with mock.patch.object(reproductor.wx.Panel, "__init__", return_value=None), \

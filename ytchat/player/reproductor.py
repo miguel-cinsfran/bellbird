@@ -683,12 +683,11 @@ class ReproductorPanel(wx.Panel):
                 return
             if listo:
                 wx.CallAfter(self._anunciar_precalentamiento_listo)
-        anunciar("Preparando el reproductor")
         diagnostico.crear_hilo(_run, "ReproductorWarmup").start()
 
     def _anunciar_precalentamiento_listo(self) -> None:
-        if not self._precalentamiento_cancelado:
-            anunciar("Reproductor listo")
+        # El precalentamiento no dice nada, ni al arrancar ni al terminar.
+        return
 
     def _asegurar_player(self) -> bool:
         # La instancia (lenta) puede venir ya precalentada; el reproductor y el

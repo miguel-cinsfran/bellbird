@@ -1,7 +1,9 @@
 """Pruebas de accesibilidad del selector de carpeta."""
 
+import sys
 import unittest
 import threading
+from types import SimpleNamespace
 from unittest import mock
 
 from ytchat.downloads import descargas
@@ -258,6 +260,106 @@ class TestGruposGestorDescargas(unittest.TestCase):
                 anunciar.assert_called_once_with("Se borró 1 entrada del historial")
             finally:
                 dialogo.Destroy()
+
+
+class TestAperturaGestorAlTerminar(unittest.TestCase):
+    """El fin con el gestor cerrado lo abre (empaquetada). Sin ventanas."""
+
+    def setUp(self):
+        gui_descargas._registrados.clear()
+        gui_descargas._apertura_gestor_pendiente = False
+        gui_descargas._dialogo_activo = None
+        self._n = 0
+        for parche in (
+                mock.patch.object(gui_descargas.historial_descargas,
+                                  "cargar", return_value=[]),
+                mock.patch.object(gui_descargas.historial_descargas,
+                                  "guardar"),
+                mock.patch.object(gui_descargas, "anunciar"),
+                mock.patch.object(gui_descargas._snd, "reproducir")):
+            parche.start()
+            self.addCleanup(parche.stop)
+
+    def tearDown(self):
+        gui_descargas._registrados.clear()
+        gui_descargas._apertura_gestor_pendiente = False
+        gui_descargas._dialogo_activo = None
+
+    def _item(self):
+        self._n += 1
+        return descargas.ItemDescarga(
+            f"item-{self._n}", "https://www.youtube.com/watch?v=abc",
+            "video", nombre="video.mp4", carpeta="C:/Descargas")
+
+    def _terminar(self, frozen=False, dialogo=None, principal=None):
+        if dialogo is not None and not hasattr(
+                dialogo, "_mostrar_entrada_historial"):
+            dialogo._mostrar_entrada_historial = mock.Mock()
+        with mock.patch.object(sys, "frozen", frozen, create=True), \
+                mock.patch("ytchat.ui.gui._gui_frame", principal), \
+                mock.patch("ytchat.ui.aviso_diferido.cuando_libre") \
+                as diferir:
+            gui_descargas._dialogo_activo = dialogo
+            item = self._item()
+            gui_descargas._fin_descarga_en_gui(
+                "completado", "", item.nombre, item)
+        return diferir
+
+    def test_empaquetada_con_gestor_cerrado_difiere_la_apertura(self):
+        principal = SimpleNamespace()
+        diferir = self._terminar(frozen=True, principal=principal)
+        diferir.assert_called_once()
+        self.assertIs(diferir.call_args.args[0], principal)
+        self.assertIs(diferir.call_args.args[1],
+                      gui_descargas._abrir_gestor_y_liberar)
+
+    def test_dos_fines_seguidos_abren_una_sola_vez(self):
+        principal = SimpleNamespace()
+        with mock.patch.object(sys, "frozen", True, create=True), \
+                mock.patch("ytchat.ui.gui._gui_frame", principal), \
+                mock.patch("ytchat.ui.aviso_diferido.cuando_libre") \
+                as diferir:
+            gui_descargas._fin_descarga_en_gui(
+                "completado", "", "a.mp4", self._item())
+            gui_descargas._fin_descarga_en_gui(
+                "completado", "", "b.mp4", self._item())
+        diferir.assert_called_once()
+
+    def test_con_gestor_abierto_no_difiere(self):
+        dialogo = SimpleNamespace(_alive=True)
+        diferir = self._terminar(
+            frozen=True, dialogo=dialogo, principal=SimpleNamespace())
+        diferir.assert_not_called()
+
+    def test_con_dialogo_muerto_lo_abre(self):
+        dialogo = SimpleNamespace(_alive=False)
+        diferir = self._terminar(
+            frozen=True, dialogo=dialogo, principal=SimpleNamespace())
+        diferir.assert_called_once()
+
+    def test_desde_fuente_no_difiere(self):
+        diferir = self._terminar(frozen=False, principal=SimpleNamespace())
+        diferir.assert_not_called()
+
+    def test_sin_principal_no_difiere(self):
+        diferir = self._terminar(frozen=True, principal=None)
+        diferir.assert_not_called()
+
+    def test_abrir_y_liberar_abre_y_libera(self):
+        principal = SimpleNamespace()
+        gui_descargas._apertura_gestor_pendiente = True
+        with mock.patch.object(gui_descargas, "abrir") as abrir:
+            gui_descargas._abrir_gestor_y_liberar(principal)
+        abrir.assert_called_once_with(principal)
+        self.assertFalse(gui_descargas._apertura_gestor_pendiente)
+
+    def test_abrir_y_liberar_libera_aunque_falle(self):
+        gui_descargas._apertura_gestor_pendiente = True
+        with mock.patch.object(gui_descargas, "abrir",
+                               side_effect=RuntimeError("boom")):
+            with self.assertRaises(RuntimeError):
+                gui_descargas._abrir_gestor_y_liberar(SimpleNamespace())
+        self.assertFalse(gui_descargas._apertura_gestor_pendiente)
 
 
 if __name__ == "__main__":

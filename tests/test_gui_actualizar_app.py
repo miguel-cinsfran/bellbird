@@ -418,7 +418,8 @@ class TestGanchos(unittest.TestCase):
             _supervisar_transmision=lambda accion: transmitiendo)
 
     def _preparar_aviso(self, version=VERSION_NUEVA, frozen=False,
-                        conectado=False, transmitiendo=False, avisada=""):
+                        conectado=False, transmitiendo=False, avisada="",
+                        diferir=False):
         self._reloj()
         self._doble(mock.patch.object(sys, "frozen", frozen, create=True))
         self._doble(mock.patch.object(actualizacion, "limpiar_restos"))
@@ -431,12 +432,20 @@ class TestGanchos(unittest.TestCase):
         guardar = self._doble(mock.patch.object(app, "guardar_version_avisada"))
         abrir = self._doble(mock.patch.object(
             app, "abrir_ventana_actualizacion"))
+        if diferir:
+            cuando_libre = self._doble(mock.patch.object(
+                app.aviso_diferido, "cuando_libre"))
+        else:
+            cuando_libre = self._doble(mock.patch.object(
+                app.aviso_diferido, "cuando_libre",
+                side_effect=lambda frame, funcion, *args, **kwargs: funcion(
+                    *args, **kwargs)))
         frame = self._frame(conectado=conectado, transmitiendo=transmitiendo)
         app.programar_aviso_version(frame)
-        return frame, anunciar, guardar, abrir
+        return frame, anunciar, guardar, abrir, cuando_libre
 
     def test_empaquetado_sin_conexion_abre_ventana_al_arrancar(self):
-        frame, anunciar, guardar, abrir = self._preparar_aviso(frozen=True)
+        frame, anunciar, guardar, abrir, _ = self._preparar_aviso(frozen=True)
         abrir.assert_called_once()
         args, kwargs = abrir.call_args
         self.assertIs(args[0], frame)
@@ -446,36 +455,47 @@ class TestGanchos(unittest.TestCase):
         guardar.assert_not_called()
 
     def test_empaquetado_con_version_ya_avisada_abre_igual(self):
-        _, anunciar, guardar, abrir = self._preparar_aviso(
+        _, anunciar, guardar, abrir, _ = self._preparar_aviso(
             frozen=True, avisada=VERSION_NUEVA)
         abrir.assert_called_once()
         anunciar.assert_not_called()
         guardar.assert_not_called()
 
-    def test_empaquetado_con_chat_conectado_hace_aviso_hablado(self):
-        _, anunciar, guardar, abrir = self._preparar_aviso(
-            frozen=True, conectado=True)
-        abrir.assert_not_called()
-        anunciar.assert_called_once_with(
-            f"Hay una versión nueva de {APP_NAME}, la {VERSION_NUEVA}. "
-            "Para instalarla: menú Ayuda, Buscar actualizaciones.")
-        guardar.assert_called_once_with(VERSION_NUEVA)
+    def test_empaquetado_ocupado_difiere_sin_hablar(self):
+        for ocupado in ("conectado", "transmitiendo"):
+            with self.subTest(ocupado=ocupado):
+                frame, anunciar, guardar, abrir, cuando_libre = \
+                    self._preparar_aviso(
+                        frozen=True, diferir=True,
+                        **{ocupado: True})
+                cuando_libre.assert_called_once()
+                self.assertIs(cuando_libre.call_args.args[0], frame)
+                abrir.assert_not_called()
+                anunciar.assert_not_called()
+                guardar.assert_not_called()
 
-    def test_empaquetado_con_transmision_hace_aviso_hablado(self):
-        _, anunciar, guardar, abrir = self._preparar_aviso(
-            frozen=True, transmitiendo=True)
+    def test_diferida_abre_la_ventana_al_quedar_libre(self):
+        frame, anunciar, guardar, abrir, cuando_libre = \
+            self._preparar_aviso(frozen=True, conectado=True, diferir=True)
         abrir.assert_not_called()
-        anunciar.assert_called_once()
-        guardar.assert_called_once_with(VERSION_NUEVA)
+        diferida = cuando_libre.call_args.args[1]
+        diferida()
+        abrir.assert_called_once()
+        args, kwargs = abrir.call_args
+        self.assertIs(args[0], frame)
+        self.assertEqual(kwargs["paquete"].version, VERSION_NUEVA)
+        self.assertTrue(kwargs["al_arrancar"])
+        anunciar.assert_not_called()
+        guardar.assert_not_called()
 
     def test_sin_empaquetar_hace_aviso_hablado(self):
-        _, anunciar, guardar, abrir = self._preparar_aviso(frozen=False)
+        _, anunciar, guardar, abrir, _ = self._preparar_aviso(frozen=False)
         abrir.assert_not_called()
         anunciar.assert_called_once()
         guardar.assert_called_once_with(VERSION_NUEVA)
 
     def test_sin_version_nueva_no_hace_nada(self):
-        _, anunciar, guardar, abrir = self._preparar_aviso(
+        _, anunciar, guardar, abrir, _ = self._preparar_aviso(
             version=APP_VERSION, frozen=True)
         abrir.assert_not_called()
         anunciar.assert_not_called()
@@ -510,6 +530,66 @@ class TestGanchos(unittest.TestCase):
         anunciar = self._doble(mock.patch.object(app, "anunciar"))
         sonido = self._doble(mock.patch.object(app._snd, "reproducir"))
         app.programar_resultado_actualizacion()
+        anunciar.assert_called_once_with(
+            "La actualización no se completó: corte de luz. "
+            f"Sigue la versión {APP_VERSION}.")
+        sonido.assert_called_once_with("error")
+
+    def _resultado_empaquetado(self, resultado, frozen=True):
+        """Corre el gancho del resultado con ventana falsa y lo devuelve."""
+        demoras = self._reloj()
+        self._doble(mock.patch.object(sys, "frozen", frozen, create=True))
+        self._doble(mock.patch.object(
+            actualizacion, "tomar_resultado", return_value=resultado))
+        ventanas = []
+
+        def fabrica(padre, titulo):
+            ventana = VentanaFalsa(padre, titulo)
+            ventanas.append(ventana)
+            return ventana
+
+        dialogo = self._doble(mock.patch(
+            "ytchat.ui.gui_actualizacion.DialogoActualizacion",
+            side_effect=fabrica))
+        anunciar = self._doble(mock.patch.object(app, "anunciar"))
+        sonido = self._doble(mock.patch.object(app._snd, "reproducir"))
+        self._doble(mock.patch.object(
+            app.aviso_diferido, "cuando_libre",
+            side_effect=lambda frame, funcion, *args, **kwargs: funcion(
+                *args, **kwargs)))
+        frame = self._frame()
+        app.programar_resultado_actualizacion(frame)
+        self.assertEqual([4000], demoras)
+        return (ventanas[0] if ventanas else None), anunciar, sonido, dialogo
+
+    def test_resultado_empaquetado_ok_abre_ventana_en_100(self):
+        ventana, anunciar, sonido, _ = self._resultado_empaquetado(
+            {"resultado": "ok", "hacia": VERSION_NUEVA})
+        self.assertEqual("Actualización", ventana.titulo)
+        self.assertTrue(ventana.mostrada)
+        self.assertIn(
+            f"{APP_NAME} se actualizó a la versión {VERSION_NUEVA}.",
+            ventana.estados)
+        self.assertEqual(100, ventana.progresos[-1])
+        ventana.btn_cerrar.SetFocus.assert_called()
+        anunciar.assert_not_called()
+        sonido.assert_not_called()
+
+    def test_resultado_empaquetado_fallido_abre_ventana_en_0_y_suena(self):
+        ventana, anunciar, sonido, _ = self._resultado_empaquetado(
+            {"resultado": "fallo", "motivo": "corte de luz"})
+        self.assertIn("La actualización no se completó: corte de luz. "
+                      f"Sigue la versión {APP_VERSION}.", ventana.estados)
+        self.assertEqual(0, ventana.progresos[-1])
+        ventana.btn_cerrar.SetFocus.assert_called()
+        anunciar.assert_not_called()
+        sonido.assert_called_once_with("error")
+
+    def test_resultado_desde_fuente_solo_anuncia_sin_ventana(self):
+        ventana, anunciar, sonido, dialogo = self._resultado_empaquetado(
+            {"resultado": "fallo", "motivo": "corte de luz"}, frozen=False)
+        self.assertIsNone(ventana)
+        dialogo.assert_not_called()
         anunciar.assert_called_once_with(
             "La actualización no se completó: corte de luz. "
             f"Sigue la versión {APP_VERSION}.")
@@ -652,6 +732,7 @@ class TestCableado(unittest.TestCase):
             with self.subTest(nombre=nombre):
                 self.assertIn(nombre, cuerpo)
         self.assertIn("programar_aviso_version(frame)", cuerpo)
+        self.assertIn("programar_resultado_actualizacion(frame)", cuerpo)
 
     def test_menu_ayuda_ofrece_buscar_antes_de_acerca(self):
         texto = self._texto_gui()

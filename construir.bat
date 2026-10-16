@@ -35,6 +35,10 @@ echo == Localizando el discovery doc de YouTube (solo ese, no el cache entero) =
 for /f "delims=" %%i in ('uv run python -c "import googleapiclient,os;print(os.path.join(os.path.dirname(googleapiclient.__file__),'discovery_cache','documents','youtube.v3.json'))"') do set "YTDOC=%%i"
 echo    %YTDOC%
 
+echo == Localizando el modulo nativo de Prism (el .pyd que PyInstaller no ve solo) ==
+for /f "delims=" %%i in ('uv run python -c "import prism,os;print(os.path.join(os.path.dirname(prism.__file__),'_native','_prism_cffi.pyd'))"') do set "PRISMCFFI=%%i"
+echo    %PRISMCFFI%
+
 echo == Localizando VLC (para empaquetar libVLC y que el amigo no instale nada) ==
 set "VLCDIR="
 if exist "C:\Program Files\VideoLAN\VLC\libvlc.dll" set "VLCDIR=C:\Program Files\VideoLAN\VLC"
@@ -64,6 +68,7 @@ call uv run pyinstaller main.py ^
   --distpath dist --workpath build --specpath build ^
   %ICONO% ^
   --collect-all prism ^
+  --add-binary "%PRISMCFFI%;prism\_native" ^
   --hidden-import _cffi_backend ^
   --collect-submodules googleapiclient ^
   --collect-submodules google_auth_oauthlib ^
@@ -191,6 +196,7 @@ if errorlevel 1 (
 )
 if exist "%OUT%\config.ini" ( echo ERROR: config.ini quedo en el paquete y pisaria el del usuario. & pause & exit /b 1 )
 if not exist "%OUT%\_internal\googleapiclient\discovery_cache\documents\youtube.v3.json" ( echo ERROR: falta youtube.v3.json en el discovery cache; la app no podria hablar con la API. & pause & exit /b 1 )
+if not exist "%OUT%\_internal\prism\_native\_prism_cffi.pyd" ( echo ERROR: falta _prism_cffi.pyd en prism\_native; sin Prism la app arrancaria sin voz ni lector de pantalla. & pause & exit /b 1 )
 set "OTROS_DOCS="
 for %%f in ("%OUT%\_internal\googleapiclient\discovery_cache\documents\*") do if /i not "%%~nxf"=="youtube.v3.json" set "OTROS_DOCS=1"
 if defined OTROS_DOCS echo    AVISO: quedaron documentos de API de Google ademas de youtube.v3.json en el paquete.

@@ -1,8 +1,11 @@
 # Créditos de los sonidos
 
-Todos los sonidos de `themes/default` y `themes/suave` son de dominio público
-(CC0): se pueden usar, modificar y redistribuir sin pedir permiso ni citar a
-nadie. Igual se deja constancia de dónde salió cada uno.
+Todos los sonidos de `themes/default` son de dominio público (CC0): se pueden
+usar, modificar y redistribuir sin pedir permiso ni citar a nadie. Igual se
+deja constancia de dónde salió cada uno.
+
+Los de `themes/suave` no salen de ningún paquete: son sintéticos y los genera
+`scripts/sound_gen.py -t suave`.
 
 Fuentes: los paquetes de audio de Kenney (https://kenney.nl/assets, CC0),
 Freesound (https://freesound.org, solo sonidos CC0) y OpenGameArt

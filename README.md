@@ -149,13 +149,15 @@ línea en el archivo `sounds.ini` de la carpeta `data`, por ejemplo
 `me_gusta =`.
 
 El tema de sonido se elige en *Preferencias, Interfaz*. Al recorrer la lista
-suena una muestra de cada tema, y el tema cambia recién al guardar. Por ahora
-los dos temas que trae la aplicación, `default` y `suave`, suenan igual. Para hacer uno
+suena una muestra de cada tema, y el tema cambia recién al guardar. La
+aplicación trae dos: `default`, con sonidos grabados, y `suave`, con sonidos
+sintéticos más cortos y tenues. Para hacer uno
 propio se copia la carpeta `sounds/themes/default` con otro
 nombre y se reemplazan los archivos `.wav` que se quieran, con el mismo nombre.
 Al actualizar la aplicación, los sonidos que hayas cambiado o agregado se
-conservan. El archivo `sounds/CREDITOS.md` dice de dónde salió cada sonido:
-todos son de dominio público.
+conservan. El archivo `sounds/CREDITOS.md` dice de dónde salió cada sonido del tema
+`default`: todos son de dominio público. Los de `suave` los genera la propia
+aplicación.
 
 ### Alias para los nombres difíciles de escuchar
 

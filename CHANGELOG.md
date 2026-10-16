@@ -31,6 +31,12 @@ Más voces para leer el chat y más opciones al crear un directo de YouTube.
   abres o reinicias NVDA o JAWS con la aplicación ya abierta, los anuncios
   vuelven a sonar a los pocos segundos.
 
+### Sonidos
+
+- **El tema «suave» vuelve a sonar distinto.** Desde la 2.2.0 sus sonidos
+  eran una copia de los del tema «default». Ahora son sonidos propios, más
+  cortos y tenues. Se elige en *Preferencias, Interfaz y sonidos*.
+
 ### Directo de YouTube
 
 - **La ventana del directo tiene más opciones,** y todas se recuerdan para

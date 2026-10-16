@@ -3419,6 +3419,38 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
         self.assertTrue(frame._supervisor.iniciado)
         anunciar.assert_not_called()
 
+    def test_ganchos_reciben_extras_y_avisar(self):
+        frame = self._frame()
+        creados = []
+        pedido = {"titulo": "Hola", "descripcion": "algo",
+                  "privacidad": "public", "categoria": "27",
+                  "etiquetas": ["uno", "dos"],
+                  "miniatura": "C:/tmp/mini.png"}
+        with mock.patch.object(gui.credenciales, "cargar",
+                               return_value={"token": "t"}), \
+                mock.patch.object(gui.credenciales, "efectivas",
+                                   return_value={"token": "t"}), \
+                mock.patch.object(gui.credenciales, "hay_sesion",
+                                   return_value=True), \
+                mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo",
+                           return_value=pedido), \
+                mock.patch.object(gui.youtube_api, "ClienteYouTube"), \
+                mock.patch.object(gui, "guardar_opcion"), \
+                mock.patch("ytchat.youtube.emision.ganchos_youtube",
+                           return_value=(mock.Mock(), mock.Mock(),
+                                         mock.Mock())) as ganchos, \
+                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+                           self._doble_supervisor(creados)), \
+                mock.patch.object(gui, "anunciar") as anunciar:
+            frame._supervisar_transmision("iniciar", "YouTube", "")
+        ganchos.assert_called_once()
+        extras = ganchos.call_args.kwargs["extras"]
+        self.assertEqual(extras["categoria"], "27")
+        self.assertEqual(extras["etiquetas"], ["uno", "dos"])
+        self.assertEqual(extras["miniatura"], "C:/tmp/mini.png")
+        self.assertEqual(ganchos.call_args.kwargs["avisar"], anunciar)
+        self.assertEqual(len(creados), 1)
+
     def test_titulo_vacio_anuncia_y_no_arranca(self):
         frame = self._frame()
         pedido = {"titulo": "   ", "descripcion": "", "privacidad": "unlisted"}

@@ -11,7 +11,6 @@ from __future__ import annotations
 import logging
 import random
 import re
-import shutil
 import threading
 import time
 import webbrowser
@@ -1661,7 +1660,8 @@ class YTChatFrame(wx.Frame):
     def _on_about(self, event):
         wx.MessageBox(
             f"{APP_NAME} v{APP_VERSION}\n\n"
-            "Lector accesible del chat de YouTube Live con voz SAPI5.",
+            "Lector accesible del chat de YouTube Live con voz de Windows "
+            "o de ElevenLabs.",
             "Acerca de", wx.OK | wx.ICON_INFORMATION, self)
 
     def _on_marcar_incidencia(self, event):

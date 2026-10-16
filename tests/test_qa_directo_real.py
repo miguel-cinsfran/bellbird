@@ -86,7 +86,7 @@ class TestFaltasDeOpciones(unittest.TestCase):
         return contenido
 
     def _snippet_ok(self, **cambios):
-        snippet = {"categoryId": "20", "tags": ["prueba", "ytchat"]}
+        snippet = {"categoryId": "27", "tags": ["prueba", "ytchat"]}
         snippet.update(cambios)
         return snippet
 
@@ -112,7 +112,7 @@ class TestFaltasDeOpciones(unittest.TestCase):
         self.assertEqual(
             directo_real.faltas_de_opciones(
                 self._contenido_ok(), self._snippet_ok(categoryId="24")),
-            ["categoría Videojuegos"])
+            ["categoría Educación"])
 
     def test_las_etiquetas_no_cuentan(self):
         self.assertEqual(
@@ -126,7 +126,7 @@ class TestFaltasDeOpciones(unittest.TestCase):
                                    enableDvr=True),
                 self._snippet_ok(categoryId="24", tags=[])),
             ["latencia ultrabaja", "rebobinar apagado",
-             "categoría Videojuegos"])
+             "categoría Educación"])
 
     def test_vacio_no_revienta(self):
         self.assertEqual(len(directo_real.faltas_de_opciones(None, None)), 3)

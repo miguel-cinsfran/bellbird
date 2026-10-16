@@ -49,11 +49,12 @@ DESCRIPCION_PRUEBA = (
     "Directo de prueba de YTChat, se borra al terminar."
 )
 
-# Opciones del directo que la prueba deja puestas y después comprueba contra
-# la API: latencia ultrabaja, rebobinar apagado, categoría Videojuegos y dos
-# etiquetas. La miniatura se genera en un archivo temporal de un solo color.
+# Opciones del directo que la prueba deja puestas y después comprueba: latencia
+# ultrabaja, rebobinar apagado y categoría Educación. Las etiquetas no se
+# comprueban contra la API, que no las devuelve en un directo: se revisan en
+# YouTube Studio. La miniatura se genera en un archivo temporal de un color.
 LATENCIA_PRUEBA = "ultraLow"
-CATEGORIA_PRUEBA = "20"
+CATEGORIA_PRUEBA = "27"
 ETIQUETAS_PRUEBA = "prueba, ytchat"
 ANCHO_MINIATURA = 1280
 ALTO_MINIATURA = 720
@@ -134,7 +135,7 @@ def faltas_de_opciones(contenido, snippet) -> list[str]:
 
     `contenido` es el `contentDetails` de liveBroadcasts y `snippet` el del
     vídeo. Se pide latencia ultrabaja, rebobinar apagado (enableDvr False)
-    y categoría Videojuegos.
+    y categoría Educación.
     """
     contenido = contenido or {}
     snippet = snippet or {}
@@ -144,7 +145,7 @@ def faltas_de_opciones(contenido, snippet) -> list[str]:
     if contenido.get("enableDvr") is not False:
         faltas.append("rebobinar apagado")
     if (snippet.get("categoryId") or "") != CATEGORIA_PRUEBA:
-        faltas.append("categoría Videojuegos")
+        faltas.append("categoría Educación")
     # Las etiquetas no se comprueban: la API no las devuelve en un directo.
     return faltas
 
@@ -1182,7 +1183,7 @@ def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
             return (salida, 1)
         anotar("opciones del directo", True,
                "latencia ultrabaja, rebobinar apagado y categoría "
-               "Videojuegos; las etiquetas no se pueden comprobar por la "
+               "Educación; las etiquetas no se pueden comprobar por la "
                "API y se revisan en YouTube Studio")
         bien_miniatura, detalle_miniatura = estado_miniatura(
             _leer_anuncios(ruta_anuncios)[marca:])

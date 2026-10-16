@@ -3,7 +3,7 @@
 Antes era una ventana aparte que volvía a pedir el enlace. Ahora es una pestaña
 del notebook: trabaja sobre el vídeo que ya está conectado (la barra superior),
 sin pedir el link otra vez. Reutiliza la cola del TTS, así que los comentarios
-se leen con la misma voz SAPI5. Leer solo necesita una API key; publicar y
+se leen con la misma voz que el chat. Leer solo necesita una API key; publicar y
 responder requieren haber iniciado sesión en Configuración.
 """
 

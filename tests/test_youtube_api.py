@@ -583,6 +583,109 @@ class TestOpcionesVideo(unittest.TestCase):
         media.assert_called_once_with("foto.jpg", mimetype="image/jpeg")
 
 
+class ServicioListasFalso:
+    def __init__(self, paginas=None, insert_respuesta=None):
+        self.paginas = list(paginas or [])
+        self.insert_respuesta = insert_respuesta or {}
+        self.list_kwargs = []
+        self.insert_kwargs = {}
+        self._pendiente = None
+
+    def playlists(self):
+        return self
+
+    def playlistItems(self):
+        return self
+
+    def list(self, **kwargs):
+        self.list_kwargs.append(kwargs)
+        self._pendiente = (self.paginas.pop(0) if self.paginas
+                           else {"items": []})
+        return self
+
+    def insert(self, **kwargs):
+        self.insert_kwargs = kwargs
+        self._pendiente = self.insert_respuesta
+        return self
+
+    def execute(self):
+        return self._pendiente
+
+
+class TestListasDelCanal(unittest.TestCase):
+
+    def cliente(self, paginas=None, insert_respuesta=None):
+        cliente = ClienteYouTube({"token": "{}"})
+        servicio = ServicioListasFalso(paginas, insert_respuesta)
+        cliente._svc_escritura = servicio
+        return cliente, servicio
+
+    def test_devuelve_los_pares_en_orden(self):
+        cliente, servicio = self.cliente([{"items": [
+            {"id": "PL1", "snippet": {"title": "Música"}},
+            {"id": "PL2", "snippet": {"title": "Charla"}},
+        ]}])
+        self.assertEqual(cliente.listas_del_canal(),
+                         [("PL1", "Música"), ("PL2", "Charla")])
+        self.assertTrue(servicio.list_kwargs[0].get("mine"))
+        self.assertEqual(servicio.list_kwargs[0].get("part"), "snippet")
+        self.assertEqual(servicio.list_kwargs[0].get("maxResults"), 50)
+
+    def test_sigue_next_page_token(self):
+        cliente, servicio = self.cliente([
+            {"items": [{"id": "PL1", "snippet": {"title": "Uno"}}],
+             "nextPageToken": "NEXT"},
+            {"items": [{"id": "PL2", "snippet": {"title": "Dos"}}]},
+        ])
+        self.assertEqual(cliente.listas_del_canal(),
+                         [("PL1", "Uno"), ("PL2", "Dos")])
+        self.assertEqual(len(servicio.list_kwargs), 2)
+        self.assertNotIn("pageToken", servicio.list_kwargs[0])
+        self.assertEqual(servicio.list_kwargs[1].get("pageToken"), "NEXT")
+
+    def test_para_en_cuatro_paginas(self):
+        paginas = [
+            {"items": [{"id": f"PL{i}", "snippet": {"title": "T"}}],
+             "nextPageToken": "NEXT"}
+            for i in range(6)
+        ]
+        cliente, servicio = self.cliente(paginas)
+        listas = cliente.listas_del_canal()
+        self.assertEqual(len(servicio.list_kwargs), 4)
+        self.assertEqual([id_ for id_, _t in listas],
+                         ["PL0", "PL1", "PL2", "PL3"])
+
+    def test_item_sin_id_se_descarta(self):
+        cliente, _servicio = self.cliente([{"items": [
+            {"snippet": {"title": "Sin id"}},
+            {"id": "PL1", "snippet": {"title": "Con id"}},
+        ]}])
+        self.assertEqual(cliente.listas_del_canal(), [("PL1", "Con id")])
+
+    def test_titulo_vacio_queda_sin_titulo(self):
+        cliente, _servicio = self.cliente([{"items": [
+            {"id": "PL1", "snippet": {"title": ""}},
+            {"id": "PL2"},
+        ]}])
+        self.assertEqual(cliente.listas_del_canal(),
+                         [("PL1", "Sin título"), ("PL2", "Sin título")])
+
+    def test_sin_listas_devuelve_vacio(self):
+        cliente, _servicio = self.cliente([{"items": []}])
+        self.assertEqual(cliente.listas_del_canal(), [])
+
+    def test_agregar_a_lista_manda_el_cuerpo_exacto(self):
+        cliente, servicio = self.cliente(insert_respuesta={})
+        cliente.agregar_a_lista("PL123", "vid123")
+        self.assertEqual(servicio.insert_kwargs.get("part"), "snippet")
+        self.assertEqual(servicio.insert_kwargs.get("body"), {
+            "snippet": {
+                "playlistId": "PL123",
+                "resourceId": {"kind": "youtube#video", "videoId": "vid123"},
+            },
+        })
+
+
 class TestCableadoChatDirecto(unittest.TestCase):
     def test_entrega_la_causa_a_la_interfaz(self):
         import main

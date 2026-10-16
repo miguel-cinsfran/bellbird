@@ -26,6 +26,9 @@ logger = diagnostico.obtener_logger(__name__)
 # Scope mínimo que cubre moderar, comentar y enviar mensajes al live.
 SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 
+# Tope de páginas al listar las listas del canal: 50 por página, 200 listas.
+MAX_PAGINAS_LISTAS = 4
+
 
 # ── Disponibilidad de las librerías de Google ────────────────────────────────
 
@@ -463,6 +466,42 @@ class ClienteYouTube:
         media = MediaFileUpload(ruta, mimetype=_mimetype_imagen(ruta))
         self._escritura().thumbnails().set(
             videoId=id_video, media_body=media).execute()
+
+    def listas_del_canal(self) -> list[tuple[str, str]]:
+        """Pares (id, título) de las listas de reproducción del canal.
+
+        Sigue `nextPageToken` hasta `MAX_PAGINAS_LISTAS` páginas (200 listas
+        como máximo) y para ahí. Un ítem sin id se descarta; un título vacío
+        queda como «Sin título». El orden es el que devuelve la API.
+        """
+        salida: list[tuple[str, str]] = []
+        pagina = ""
+        for _ in range(MAX_PAGINAS_LISTAS):
+            params = {"part": "snippet", "mine": True, "maxResults": 50}
+            if pagina:
+                params["pageToken"] = pagina
+            resp = self._escritura().playlists().list(**params).execute()
+            for item in resp.get("items", []) or []:
+                id_lista = item.get("id") or ""
+                if not id_lista:
+                    continue
+                titulo = ((item.get("snippet") or {}).get("title")
+                          or "").strip()
+                salida.append((id_lista, titulo or "Sin título"))
+            pagina = resp.get("nextPageToken", "") or ""
+            if not pagina:
+                break
+        return salida
+
+    def agregar_a_lista(self, id_lista: str, id_video: str) -> None:
+        """Agrega un vídeo a una lista de reproducción del canal."""
+        self._escritura().playlistItems().insert(
+            part="snippet",
+            body={"snippet": {
+                "playlistId": id_lista,
+                "resourceId": {"kind": "youtube#video", "videoId": id_video},
+            }},
+        ).execute()
 
     def vincular_emision(self, id_video: str, id_flujo: str) -> None:
         """Ata la emisión al flujo reutilizable de la cuenta."""

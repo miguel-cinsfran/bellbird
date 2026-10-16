@@ -45,7 +45,20 @@ class TestResultadoDirecto(unittest.TestCase):
         self.assertEqual(datos, {
             "titulo": "Hola", "descripcion": "línea1\nlínea2",
             "privacidad": "private", "latencia": "normal", "ninos": False,
-            "dvr": True, "categoria": "", "etiquetas": [], "miniatura": ""})
+            "dvr": True, "categoria": "", "etiquetas": [], "miniatura": "",
+            "lista": "", "lista_titulo": ""})
+
+    def test_lista_y_titulo_se_recortan(self):
+        datos = directo.resultado_directo(
+            "Hola", "", "public", lista=" PL9 ", lista_titulo=" Mi lista ")
+        self.assertEqual(datos["lista"], "PL9")
+        self.assertEqual(datos["lista_titulo"], "Mi lista")
+
+    def test_lista_vacia_deja_titulo_vacio(self):
+        datos = directo.resultado_directo(
+            "Hola", "", "public", lista="", lista_titulo="Algo")
+        self.assertEqual(datos["lista"], "")
+        self.assertEqual(datos["lista_titulo"], "")
 
     def test_opciones_se_conservan(self):
         datos = directo.resultado_directo(
@@ -209,6 +222,10 @@ class TestDialogoDirectoVentana(unittest.TestCase):
                          "Elegir miniatura")
         self.assertEqual(dialogo.btn_quitar_miniatura.GetName(),
                          "Quitar miniatura")
+        self.assertEqual(dialogo.cho_lista.GetName(),
+                         "Lista de reproducción")
+        self.assertEqual(dialogo.btn_cargar_listas.GetName(),
+                         "Cargar listas")
 
     def test_rotulos_con_mnemonicas(self):
         dialogo = self._dialogo(titulo="Hola")
@@ -225,6 +242,9 @@ class TestDialogoDirectoVentana(unittest.TestCase):
                          "Elegir &miniatura...")
         self.assertEqual(dialogo.btn_quitar_miniatura.GetLabel(),
                          "&Quitar miniatura")
+        self.assertIn("Lista de re&producción:", textos)
+        self.assertEqual(dialogo.btn_cargar_listas.GetLabel(),
+                         "Ca&rgar listas")
 
     def test_orden_de_tab_con_las_opciones(self):
         dialogo = self._dialogo(titulo="Hola")
@@ -232,6 +252,7 @@ class TestDialogoDirectoVentana(unittest.TestCase):
                    "Privacidad", "Latencia", "Hecho para niños",
                    "Permitir rebobinar", "Categoría", "Etiquetas",
                    "Miniatura", "Elegir miniatura", "Quitar miniatura",
+                   "Lista de reproducción", "Cargar listas",
                    "Revisión de OBS")
         orden = [h.GetName() for h in dialogo.GetChildren()
                  if h.GetName() in nombres]
@@ -298,6 +319,82 @@ class TestDialogoDirectoVentana(unittest.TestCase):
             dialogo._al_quitar_miniatura(mock.Mock())
         self.assertEqual(dialogo.txt_miniatura.GetValue(), "Ninguna")
         anunciar.assert_called_once_with("Sin miniatura.")
+
+    def test_selector_lista_sin_recordada(self):
+        dialogo = self._dialogo(titulo="Hola")
+        self.assertEqual(dialogo.cho_lista.GetCount(), 1)
+        self.assertEqual(dialogo.cho_lista.GetString(0), "Ninguna")
+        self.assertEqual(dialogo.cho_lista.GetSelection(), 0)
+
+    def test_selector_lista_con_recordada(self):
+        dialogo = self._dialogo(titulo="Hola", lista="PL9",
+                                lista_titulo="Mi lista")
+        self.assertEqual(
+            [dialogo.cho_lista.GetString(i)
+             for i in range(dialogo.cho_lista.GetCount())],
+            ["Ninguna", "Mi lista"])
+        self.assertEqual(dialogo.cho_lista.GetSelection(), 1)
+
+    def test_boton_cargar_listas_sin_cargador_deshabilitado(self):
+        dialogo = self._dialogo(titulo="Hola")
+        self.assertFalse(dialogo.btn_cargar_listas.IsEnabled())
+
+    def test_boton_cargar_listas_con_cargador_habilitado(self):
+        dialogo = self._dialogo(titulo="Hola", cargar_listas=lambda: [])
+        self.assertTrue(dialogo.btn_cargar_listas.IsEnabled())
+
+    def test_listas_ok_rellena_y_anuncia(self):
+        dialogo = self._dialogo(titulo="Hola", cargar_listas=lambda: [])
+        with mock.patch.object(directo, "anunciar") as anunciar:
+            dialogo._listas_ok([("PL1", "Uno"), ("PL2", "Dos")])
+        self.assertEqual(
+            [dialogo.cho_lista.GetString(i)
+             for i in range(dialogo.cho_lista.GetCount())],
+            ["Ninguna", "Uno", "Dos"])
+        anunciar.assert_called_once_with("2 listas.")
+
+    def test_listas_ok_una_anuncia_en_singular(self):
+        dialogo = self._dialogo(titulo="Hola", cargar_listas=lambda: [])
+        with mock.patch.object(directo, "anunciar") as anunciar:
+            dialogo._listas_ok([("PL1", "Uno")])
+        anunciar.assert_called_once_with("1 lista.")
+
+    def test_listas_ok_vacia_anuncia_sin_listas(self):
+        dialogo = self._dialogo(titulo="Hola", cargar_listas=lambda: [])
+        with mock.patch.object(directo, "anunciar") as anunciar:
+            dialogo._listas_ok([])
+        anunciar.assert_called_once_with("El canal no tiene listas.")
+
+    def test_listas_ok_conserva_la_elegida(self):
+        dialogo = self._dialogo(titulo="Hola", lista="PL2",
+                                lista_titulo="Dos",
+                                cargar_listas=lambda: [])
+        with mock.patch.object(directo, "anunciar"):
+            dialogo._listas_ok([("PL1", "Uno"), ("PL2", "Dos")])
+        self.assertEqual(dialogo.cho_lista.GetSelection(), 2)
+        self.assertEqual(dialogo._opcion_lista_elegida(), ("PL2", "Dos"))
+
+    def test_listas_fallo_anuncia_y_conserva(self):
+        dialogo = self._dialogo(titulo="Hola", lista="PL9",
+                                lista_titulo="Guardada",
+                                cargar_listas=lambda: [])
+        with mock.patch.object(directo, "anunciar") as anunciar:
+            dialogo._listas_fallo(RuntimeError("sin red"))
+        anunciar.assert_called_once_with(
+            "No se pudieron cargar las listas: "
+            "Error de la API de YouTube: sin red")
+        self.assertEqual(dialogo._opcion_lista_elegida(),
+                         ("PL9", "Guardada"))
+
+    def test_crear_devuelve_la_lista_elegida(self):
+        dialogo = self._dialogo(titulo="Hola", lista="PL9",
+                                lista_titulo="Mi lista",
+                                cargar_listas=lambda: [])
+        with mock.patch.object(dialogo, "EndModal") as fin:
+            dialogo._al_crear(mock.Mock())
+        self.assertEqual(dialogo._datos["lista"], "PL9")
+        self.assertEqual(dialogo._datos["lista_titulo"], "Mi lista")
+        fin.assert_called_once_with(wx.ID_OK)
 
     def test_pedir_datos_devuelve_dict_y_none(self):
         dialogo = self._dialogo(titulo="Hola")

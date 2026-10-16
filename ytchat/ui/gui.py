@@ -759,7 +759,8 @@ class YTChatFrame(wx.Frame):
     def _guardar_datos_directo_youtube(self, titulo, descripcion, privacidad,
                                        latencia=None, ninos=False, dvr=True,
                                        categoria="", etiquetas=None,
-                                       miniatura=""):
+                                       miniatura="", lista="",
+                                       lista_titulo=""):
         from ytchat.core.config import codificar_texto_ini
         from ytchat.youtube.emision import (
             CATEGORIAS, LATENCIAS, LATENCIA_INICIAL, PRIVACIDADES,
@@ -774,6 +775,8 @@ class YTChatFrame(wx.Frame):
             categoria = ""
         etiquetas = list(etiquetas or [])
         miniatura = (miniatura or "").strip()
+        lista = (lista or "").strip()
+        lista_titulo = (lista_titulo or "").strip() if lista else ""
         nimios_texto = "true" if ninos else "false"
         dvr_texto = "true" if dvr else "false"
         etiquetas_texto = ", ".join(etiquetas)
@@ -786,6 +789,8 @@ class YTChatFrame(wx.Frame):
         self._config["transmision_youtube_categoria"] = categoria
         self._config["transmision_youtube_etiquetas"] = etiquetas_texto
         self._config["transmision_youtube_miniatura"] = miniatura
+        self._config["transmision_youtube_lista"] = lista
+        self._config["transmision_youtube_lista_titulo"] = lista_titulo
         guardar_opcion(RUTA_CONFIG, "transmision", "youtube_titulo",
                        codificar_texto_ini(titulo))
         guardar_opcion(RUTA_CONFIG, "transmision", "youtube_descripcion",
@@ -803,11 +808,15 @@ class YTChatFrame(wx.Frame):
                        codificar_texto_ini(etiquetas_texto))
         guardar_opcion(RUTA_CONFIG, "transmision", "youtube_miniatura",
                        codificar_texto_ini(miniatura))
+        guardar_opcion(RUTA_CONFIG, "transmision", "youtube_lista", lista)
+        guardar_opcion(RUTA_CONFIG, "transmision", "youtube_lista_titulo",
+                       codificar_texto_ini(lista_titulo))
         return {"titulo": titulo, "descripcion": descripcion,
                 "privacidad": privacidad, "latencia": latencia,
                 "ninos": bool(ninos), "dvr": bool(dvr),
                 "categoria": categoria, "etiquetas": etiquetas,
-                "miniatura": miniatura}
+                "miniatura": miniatura, "lista": lista,
+                "lista_titulo": lista_titulo}
 
     def _actualizar_boton_directo(self) -> None:
         boton = getattr(self, "_boton_directo", None)
@@ -857,6 +866,8 @@ class YTChatFrame(wx.Frame):
                             "sesión con Google, en Preferencias, pestaña API "
                             "y sesión.")
                     return
+                cliente = youtube_api.ClienteYouTube(
+                    credenciales.efectivas(datos))
                 pedido = pedir_datos_directo(
                     self,
                     self._config.get("transmision_youtube_titulo", ""),
@@ -870,7 +881,12 @@ class YTChatFrame(wx.Frame):
                     self._config.get("transmision_youtube_dvr", True),
                     self._config.get("transmision_youtube_categoria", ""),
                     self._config.get("transmision_youtube_etiquetas", ""),
-                    self._config.get("transmision_youtube_miniatura", ""))
+                    self._config.get("transmision_youtube_miniatura", ""),
+                    self._config.get("transmision_youtube_lista", ""),
+                    self._config.get("transmision_youtube_lista_titulo", ""),
+                    emision.cargador_listas(
+                        cliente, lambda nuevo:
+                        credenciales.guardar_campo("token", nuevo)))
                 if pedido is None:
                     anunciar("No se transmitió.")
                     return
@@ -879,7 +895,8 @@ class YTChatFrame(wx.Frame):
                     pedido["privacidad"], pedido.get("latencia"),
                     pedido.get("ninos", False), pedido.get("dvr", True),
                     pedido.get("categoria", ""), pedido.get("etiquetas", []),
-                    pedido.get("miniatura", ""))
+                    pedido.get("miniatura", ""), pedido.get("lista", ""),
+                    pedido.get("lista_titulo", ""))
                 try:
                     cuerpo = emision.cuerpo_emision(
                         guardados["titulo"], guardados["descripcion"],
@@ -895,10 +912,11 @@ class YTChatFrame(wx.Frame):
                 extras = {"categoria": guardados.get("categoria", ""),
                           "etiquetas": guardados.get("etiquetas", []),
                           "miniatura": guardados.get("miniatura", ""),
+                          "lista": guardados.get("lista", ""),
                           "titulo": guardados["titulo"],
                           "descripcion": guardados["descripcion"]}
                 preparar, esperar, finalizar = emision.ganchos_youtube(
-                    youtube_api.ClienteYouTube(credenciales.efectivas(datos)), cuerpo,
+                    cliente, cuerpo,
                     lambda nuevo: credenciales.guardar_campo("token", nuevo),
                     extras=extras, avisar=anunciar)
                 ganchos = {"preparar_emision": preparar,

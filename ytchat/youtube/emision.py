@@ -139,6 +139,56 @@ def url_video(id_video: str) -> str:
     return "https://www.youtube.com/watch?v=" + id_video
 
 
+def opciones_lista(listas, id_recordado, titulo_recordado
+                   ) -> tuple[list[tuple[str, str]], int]:
+    """Opciones del selector de listas y el índice a seleccionar.
+
+    La primera opción siempre es («», «Ninguna»). Con `listas` en None
+    (todavía sin cargar) solo van «Ninguna» y, si hay id recordado, su
+    título. Con las listas cargadas van todas, y se elige la del id
+    recordado si está o «Ninguna» (índice 0) si no. Sin id recordado el
+    índice es siempre 0.
+    """
+    opciones: list[tuple[str, str]] = [("", "Ninguna")]
+    id_recordado = (id_recordado or "").strip()
+    if listas is None:
+        if id_recordado:
+            titulo = (titulo_recordado or "").strip() or "Lista guardada"
+            opciones.append((id_recordado, titulo))
+            return opciones, 1
+        return opciones, 0
+    for id_lista, titulo in listas:
+        opciones.append((id_lista, titulo))
+    if not id_recordado:
+        return opciones, 0
+    for indice, (id_lista, _titulo) in enumerate(opciones):
+        if id_lista == id_recordado:
+            return opciones, indice
+    return opciones, 0
+
+
+def cargador_listas(cliente_yt, guardar_token=None):
+    """Devuelve una función sin argumentos que carga las listas del canal.
+
+    Guarda el token renovado si hay uno, también cuando la consulta falla,
+    igual que `_guardar_si_hay_nuevo` de `ganchos_youtube`.
+    """
+
+    def cargar():
+        try:
+            return cliente_yt.listas_del_canal()
+        finally:
+            if guardar_token is not None:
+                try:
+                    nuevo = cliente_yt.token_actualizado()
+                except Exception:
+                    nuevo = None
+                if nuevo:
+                    guardar_token(nuevo)
+
+    return cargar
+
+
 def _aviso_extras(avisar, frase):
     if avisar is None:
         return
@@ -149,7 +199,7 @@ def _aviso_extras(avisar, frase):
 
 
 def _aplicar_extras(cliente_yt, id_video, extras, avisar) -> None:
-    """Aplica categoría, etiquetas y miniatura después de dejar listo OBS.
+    """Aplica categoría, etiquetas, miniatura y lista tras dejar listo OBS.
 
     Cada extra va en su propio try: si falla se avisa la frase y se sigue.
     Un fallo nunca borra el directo ni se relanza.
@@ -159,6 +209,7 @@ def _aplicar_extras(cliente_yt, id_video, extras, avisar) -> None:
     categoria = (extras.get("categoria") or "").strip()
     etiquetas = extras.get("etiquetas") or []
     miniatura = (extras.get("miniatura") or "").strip()
+    lista = (extras.get("lista") or "").strip()
     if categoria or etiquetas:
         try:
             cliente_yt.actualizar_categoria_y_etiquetas(
@@ -174,6 +225,14 @@ def _aplicar_extras(cliente_yt, id_video, extras, avisar) -> None:
             cliente_yt.poner_miniatura(id_video, miniatura)
         except Exception as exc:
             _aviso_extras(avisar, youtube_api.mensaje_error_miniatura(exc))
+    if lista:
+        try:
+            cliente_yt.agregar_a_lista(lista, id_video)
+        except Exception as exc:
+            _aviso_extras(
+                avisar,
+                "No se pudo agregar el directo a la lista: "
+                + youtube_api.mensaje_error_api(exc))
 
 
 def preparar_en_youtube(cliente_yt, cliente_obs, cuerpo, parada=None,

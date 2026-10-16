@@ -12,7 +12,9 @@ from datetime import datetime
 
 import wx
 
+from ytchat.core import diagnostico
 from ytchat.ui.gui import anunciar, nombre_accesible
+from ytchat.youtube import youtube_api
 from ytchat.youtube.emision import (
     CATEGORIAS,
     ETIQUETAS_LATENCIA,
@@ -24,6 +26,7 @@ from ytchat.youtube.emision import (
     EmisionError,
     error_de_miniatura,
     etiquetas_de_texto,
+    opciones_lista,
     titulo_por_defecto,
 )
 
@@ -33,7 +36,8 @@ _FILTRO_IMAGENES = ("Imágenes JPG y PNG (*.jpg;*.jpeg;*.png)|"
 
 def resultado_directo(titulo, descripcion, privacidad,
                       latencia=LATENCIA_INICIAL, ninos=False, dvr=True,
-                      categoria="", etiquetas="", miniatura="") -> dict:
+                      categoria="", etiquetas="", miniatura="", lista="",
+                      lista_titulo="") -> dict:
     """Valida los valores de la ventana y arma el dict del directo.
 
     Pura y sin ventanas: la usan el diálogo y las pruebas. El título
@@ -50,18 +54,22 @@ def resultado_directo(titulo, descripcion, privacidad,
         latencia = LATENCIA_INICIAL
     if categoria not in {identificador for identificador, _texto in CATEGORIAS}:
         categoria = ""
+    lista = (lista or "").strip()
+    lista_titulo = (lista_titulo or "").strip() if lista else ""
     return {"titulo": titulo[:100], "descripcion": descripcion or "",
             "privacidad": privacidad, "latencia": latencia,
             "ninos": bool(ninos), "dvr": bool(dvr), "categoria": categoria,
             "etiquetas": etiquetas_de_texto(etiquetas),
-            "miniatura": (miniatura or "").strip()}
+            "miniatura": (miniatura or "").strip(),
+            "lista": lista, "lista_titulo": lista_titulo}
 
 
 class DialogoDirectoYoutube(wx.Dialog):
     def __init__(self, padre, titulo="", descripcion="",
                  privacidad=PRIVACIDAD_INICIAL, revision=None,
                  latencia=LATENCIA_INICIAL, ninos=False, dvr=True,
-                 categoria="", etiquetas="", miniatura=""):
+                 categoria="", etiquetas="", miniatura="", lista="",
+                 lista_titulo="", cargar_listas=None):
         super().__init__(padre, title="Directo de YouTube",
                          name="DialogoDirectoYoutube")
         if privacidad not in PRIVACIDADES:
@@ -72,6 +80,7 @@ class DialogoDirectoYoutube(wx.Dialog):
             titulo = titulo_por_defecto(datetime.now())
         self._datos = None
         self._miniatura = (miniatura or "").strip()
+        self._cargar_listas = cargar_listas
 
         vs = wx.BoxSizer(wx.VERTICAL)
         rotulo_titulo = wx.StaticText(self, label="Título:")
@@ -162,6 +171,20 @@ class DialogoDirectoYoutube(wx.Dialog):
         fila_miniatura.Add(self.btn_quitar_miniatura, 0)
         vs.Add(fila_miniatura, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
+        self._opciones_lista, seleccion_lista = opciones_lista(
+            None, lista, lista_titulo)
+        rotulo_lista = wx.StaticText(self, label="Lista de re&producción:")
+        vs.Add(rotulo_lista, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
+        self.cho_lista = wx.Choice(
+            self, choices=[texto for _id, texto in self._opciones_lista],
+            name="Lista de reproducción")
+        self.cho_lista.SetSelection(seleccion_lista)
+        nombre_accesible(self.cho_lista, "Lista de reproducción")
+        vs.Add(self.cho_lista, 0, wx.EXPAND | wx.ALL, 10)
+        self.btn_cargar_listas = wx.Button(
+            self, label="Ca&rgar listas", name="Cargar listas")
+        vs.Add(self.btn_cargar_listas, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
         from ytchat.obs import obs_prevuelo
         texto_revision = (obs_prevuelo.frase_revision(revision)
                           if revision is not None else "")
@@ -190,6 +213,11 @@ class DialogoDirectoYoutube(wx.Dialog):
                                        self._al_elegir_miniatura)
         self.btn_quitar_miniatura.Bind(wx.EVT_BUTTON,
                                        self._al_quitar_miniatura)
+        if self._cargar_listas is None:
+            self.btn_cargar_listas.Disable()
+        else:
+            self.btn_cargar_listas.Bind(wx.EVT_BUTTON,
+                                        self._al_cargar_listas)
         self.Bind(wx.EVT_CHAR_HOOK, self._al_tecla)
         if revision is not None and bool(
                 getattr(revision, "problemas", ())):
@@ -217,6 +245,12 @@ class DialogoDirectoYoutube(wx.Dialog):
     def _categoria_elegida(self) -> str:
         return CATEGORIAS[self.cho_categoria.GetSelection()][0]
 
+    def _opcion_lista_elegida(self) -> tuple[str, str]:
+        indice = self.cho_lista.GetSelection()
+        if indice < 0 or indice >= len(self._opciones_lista):
+            return "", ""
+        return self._opciones_lista[indice]
+
     def _al_elegir_miniatura(self, _event) -> None:
         with wx.FileDialog(
                 self, "Elegir miniatura", wildcard=_FILTRO_IMAGENES,
@@ -238,7 +272,45 @@ class DialogoDirectoYoutube(wx.Dialog):
         self.txt_miniatura.SetValue("Ninguna")
         anunciar("Sin miniatura.")
 
+    def _al_cargar_listas(self, _event) -> None:
+        self.btn_cargar_listas.Disable()
+        anunciar("Cargando las listas.")
+
+        def _traer():
+            try:
+                listas = self._cargar_listas()
+            except Exception as exc:
+                wx.CallAfter(self._listas_fallo, exc)
+                return
+            wx.CallAfter(self._listas_ok, listas)
+
+        diagnostico.crear_hilo(_traer, "ListasYouTube").start()
+
+    def _listas_ok(self, listas) -> None:
+        if not self:
+            return
+        self.btn_cargar_listas.Enable()
+        id_elegido, titulo_elegido = self._opcion_lista_elegida()
+        self._opciones_lista, seleccion = opciones_lista(
+            listas, id_elegido, titulo_elegido)
+        self.cho_lista.SetItems([texto for _id, texto in self._opciones_lista])
+        self.cho_lista.SetSelection(seleccion)
+        if not listas:
+            anunciar("El canal no tiene listas.")
+        elif len(listas) == 1:
+            anunciar("1 lista.")
+        else:
+            anunciar(f"{len(listas)} listas.")
+
+    def _listas_fallo(self, exc) -> None:
+        if not self:
+            return
+        self.btn_cargar_listas.Enable()
+        anunciar("No se pudieron cargar las listas: "
+                 + youtube_api.mensaje_error_api(exc))
+
     def _al_crear(self, _event) -> None:
+        lista, lista_titulo = self._opcion_lista_elegida()
         try:
             self._datos = resultado_directo(
                 self.txt_titulo.GetValue(),
@@ -249,7 +321,9 @@ class DialogoDirectoYoutube(wx.Dialog):
                 self.chk_dvr.GetValue(),
                 self._categoria_elegida(),
                 self.txt_etiquetas.GetValue(),
-                self._miniatura)
+                self._miniatura,
+                lista,
+                lista_titulo)
         except EmisionError as exc:
             anunciar(str(exc))
             self.txt_titulo.SetFocus()
@@ -266,11 +340,13 @@ class DialogoDirectoYoutube(wx.Dialog):
 def pedir_datos_directo(padre, titulo="", descripcion="",
                         privacidad=PRIVACIDAD_INICIAL, revision=None,
                         latencia=LATENCIA_INICIAL, ninos=False, dvr=True,
-                        categoria="", etiquetas="", miniatura=""):
+                        categoria="", etiquetas="", miniatura="", lista="",
+                        lista_titulo="", cargar_listas=None):
     """Pide los datos del directo. Devuelve el dict o None si se cancela."""
     dialogo = DialogoDirectoYoutube(
         padre, titulo, descripcion, privacidad, revision, latencia,
-        ninos, dvr, categoria, etiquetas, miniatura)
+        ninos, dvr, categoria, etiquetas, miniatura, lista, lista_titulo,
+        cargar_listas)
     try:
         if dialogo.ShowModal() == wx.ID_OK:
             return dialogo.datos

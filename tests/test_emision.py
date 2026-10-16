@@ -203,6 +203,12 @@ class ClienteYTFalso:
         self.orden.append("miniatura")
         self.miniatura = (id_video, ruta)
 
+    def agregar_a_lista(self, id_lista, id_video):
+        if "lista" in self.fallos:
+            raise self.fallos["lista"]
+        self.orden.append("lista")
+        self.lista_agregada = (id_lista, id_video)
+
 
 class ErrorHttp403(Exception):
     def __init__(self):
@@ -349,6 +355,131 @@ class TestPrepararExtras(unittest.TestCase):
         self.assertEqual(avisos, [
             "YouTube no aceptó la miniatura: el canal tiene que estar "
             "verificado por teléfono."])
+
+    def test_agrega_a_la_lista_con_su_id(self):
+        cliente_yt = ClienteYTFalso()
+        avisos = []
+        extras = {"categoria": "", "etiquetas": [], "miniatura": "",
+                  "lista": "PL123", "titulo": "T", "descripcion": "D"}
+        self.assertEqual(self._correr(cliente_yt, extras, avisos.append),
+                         "vid123")
+        self.assertEqual(cliente_yt.lista_agregada, ("PL123", "vid123"))
+        self.assertEqual(avisos, [])
+
+    def test_sin_lista_no_se_llama(self):
+        cliente_yt = ClienteYTFalso()
+        extras = {"categoria": "", "etiquetas": [], "miniatura": "",
+                  "lista": "", "titulo": "T", "descripcion": "D"}
+        self._correr(cliente_yt, extras)
+        self.assertFalse(getattr(cliente_yt, "lista_agregada", None))
+
+    def test_fallo_de_lista_avisa_y_no_borra(self):
+        cliente_yt = ClienteYTFalso(
+            fallos={"lista": RuntimeError("quotaExceeded")})
+        avisos = []
+        extras = {"categoria": "", "etiquetas": [], "miniatura": "",
+                  "lista": "PL123", "titulo": "T", "descripcion": "D"}
+        self.assertEqual(self._correr(cliente_yt, extras, avisos.append),
+                         "vid123")
+        self.assertEqual(cliente_yt.borradas, [])
+        self.assertTrue(any("agregar el directo a la lista" in a
+                            for a in avisos))
+
+    def test_fallo_de_miniatura_no_impide_la_lista(self):
+        cliente_yt = ClienteYTFalso(
+            fallos={"miniatura": ErrorHttp403()})
+        avisos = []
+        extras = {"categoria": "", "etiquetas": [], "miniatura": "foto.jpg",
+                  "lista": "PL123", "titulo": "T", "descripcion": "D"}
+        self._correr(cliente_yt, extras, avisos.append)
+        self.assertEqual(cliente_yt.lista_agregada, ("PL123", "vid123"))
+
+
+class TestOpcionesLista(unittest.TestCase):
+
+    def test_sin_listas_cargadas_solo_ninguna(self):
+        opciones, indice = emision.opciones_lista(None, "", "")
+        self.assertEqual(opciones, [("", "Ninguna")])
+        self.assertEqual(indice, 0)
+
+    def test_sin_listas_cargadas_con_id_recordado(self):
+        opciones, indice = emision.opciones_lista(None, "PL9", "Mi lista")
+        self.assertEqual(opciones, [("", "Ninguna"), ("PL9", "Mi lista")])
+        self.assertEqual(indice, 1)
+
+    def test_sin_listas_cargadas_sin_titulo_usa_lista_guardada(self):
+        opciones, _indice = emision.opciones_lista(None, "PL9", "")
+        self.assertEqual(opciones[1], ("PL9", "Lista guardada"))
+
+    def test_con_listas_cargadas_agrega_todas(self):
+        opciones, indice = emision.opciones_lista(
+            [("PL1", "Uno"), ("PL2", "Dos")], "", "")
+        self.assertEqual(opciones, [("", "Ninguna"),
+                                    ("PL1", "Uno"), ("PL2", "Dos")])
+        self.assertEqual(indice, 0)
+
+    def test_selecciona_la_del_id_recordado(self):
+        _opciones, indice = emision.opciones_lista(
+            [("PL1", "Uno"), ("PL2", "Dos")], "PL2", "")
+        self.assertEqual(indice, 2)
+
+    def test_id_recordado_ausente_selecciona_ninguna(self):
+        _opciones, indice = emision.opciones_lista(
+            [("PL1", "Uno"), ("PL2", "Dos")], "PL9", "")
+        self.assertEqual(indice, 0)
+
+    def test_listas_cargadas_vacias_con_recordado_selecciona_ninguna(self):
+        opciones, indice = emision.opciones_lista([], "PL9", "")
+        self.assertEqual(opciones, [("", "Ninguna")])
+        self.assertEqual(indice, 0)
+
+    def test_primera_opcion_ninguna_e_indice_valido(self):
+        casos = [(None, "", ""), (None, "PL9", "T"), ([], "", ""),
+                 ([("PL1", "Uno")], "PL1", ""),
+                 ([("PL1", "Uno")], "PL9", "")]
+        for listas, id_rec, titulo in casos:
+            with self.subTest(listas=listas, id=id_rec):
+                opciones, indice = emision.opciones_lista(
+                    listas, id_rec, titulo)
+                self.assertEqual(opciones[0], ("", "Ninguna"))
+                self.assertGreaterEqual(indice, 0)
+                self.assertLess(indice, len(opciones))
+
+
+class TestCargadorListas(unittest.TestCase):
+
+    def test_devuelve_las_listas(self):
+        cliente = mock.Mock()
+        cliente.listas_del_canal.return_value = [("PL1", "Uno")]
+        cargar = emision.cargador_listas(cliente)
+        self.assertEqual(cargar(), [("PL1", "Uno")])
+        cliente.listas_del_canal.assert_called_once_with()
+
+    def test_guarda_el_token_renovado_con_exito(self):
+        cliente = mock.Mock()
+        cliente.listas_del_canal.return_value = []
+        cliente.token_actualizado.return_value = "nuevo-token"
+        guardados = []
+        emision.cargador_listas(cliente, guardados.append)()
+        self.assertEqual(guardados, ["nuevo-token"])
+
+    def test_guarda_el_token_tambien_si_falla(self):
+        cliente = mock.Mock()
+        cliente.listas_del_canal.side_effect = RuntimeError("sin red")
+        cliente.token_actualizado.return_value = "nuevo-token"
+        guardados = []
+        cargar = emision.cargador_listas(cliente, guardados.append)
+        with self.assertRaises(RuntimeError):
+            cargar()
+        self.assertEqual(guardados, ["nuevo-token"])
+
+    def test_sin_token_nuevo_no_guarda(self):
+        cliente = mock.Mock()
+        cliente.listas_del_canal.return_value = []
+        cliente.token_actualizado.return_value = None
+        guardados = []
+        emision.cargador_listas(cliente, guardados.append)()
+        self.assertEqual(guardados, [])
 
 
 class RelojFalso:

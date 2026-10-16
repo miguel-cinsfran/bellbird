@@ -394,6 +394,20 @@ class TestCargarConfiguracion(unittest.TestCase):
             f"{config.codificar_texto_ini(ruta)}\n")
         self.assertEqual(cfg["transmision_youtube_miniatura"], ruta)
 
+    def test_directo_youtube_lista_arranca_vacia(self):
+        cfg = self._cargar_en("[voz]\nvoz = 0\n")
+        self.assertEqual(cfg["transmision_youtube_lista"], "")
+        self.assertEqual(cfg["transmision_youtube_lista_titulo"], "")
+
+    def test_directo_youtube_lista_titulo_ida_y_vuelta(self):
+        titulo = "Mixes 100% #1 ; bravo"
+        cfg = self._cargar_en(
+            "[transmision]\nyoutube_lista = PL123\n"
+            "youtube_lista_titulo = "
+            f"{config.codificar_texto_ini(titulo)}\n")
+        self.assertEqual(cfg["transmision_youtube_lista"], "PL123")
+        self.assertEqual(cfg["transmision_youtube_lista_titulo"], titulo)
+
     def _ida_y_vuelta_ini(self, texto: str) -> str:
         ruta = Path(self._tmp.name) / "ida.ini"
         ruta.write_text("[transmision]\nyoutube_titulo = "

@@ -3315,6 +3315,8 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
             "transmision_youtube_categoria": "",
             "transmision_youtube_etiquetas": "",
             "transmision_youtube_miniatura": "",
+            "transmision_youtube_lista": "",
+            "transmision_youtube_lista_titulo": "",
         }
         frame._actualizar_boton_directo = mock.Mock()
         return frame
@@ -3389,14 +3391,15 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
                 mock.patch.object(gui, "anunciar") as anunciar:
             frame._supervisar_transmision("iniciar", "YouTube", "")
         pedir.assert_called_once_with(frame, "", "", "unlisted", None,
-                                      "normal", False, True, "", "", "")
+                                      "normal", False, True, "", "", "",
+                                      "", "", mock.ANY)
         self.assertEqual(frame._config["transmision_youtube_titulo"], "Hola")
         self.assertEqual(frame._config["transmision_youtube_descripcion"], "algo")
         self.assertEqual(frame._config["transmision_youtube_privacidad"], "public")
         self.assertEqual(frame._config["transmision_youtube_latencia"], "normal")
         self.assertFalse(frame._config["transmision_youtube_ninos"])
         self.assertTrue(frame._config["transmision_youtube_dvr"])
-        self.assertEqual(guardar.call_count, 9)
+        self.assertEqual(guardar.call_count, 11)
         guardar.assert_any_call(
             gui.RUTA_CONFIG, "transmision", "youtube_titulo", "Hola")
         guardar.assert_any_call(
@@ -3409,6 +3412,10 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
             gui.RUTA_CONFIG, "transmision", "youtube_ninos", "false")
         guardar.assert_any_call(
             gui.RUTA_CONFIG, "transmision", "youtube_dvr", "true")
+        guardar.assert_any_call(
+            gui.RUTA_CONFIG, "transmision", "youtube_lista", "")
+        guardar.assert_any_call(
+            gui.RUTA_CONFIG, "transmision", "youtube_lista_titulo", "")
         cliente.assert_called_once_with({"token": "t",
                                            "api_key": "k-prueba"})
         efectivas.assert_called_once_with({"token": "t"})
@@ -3425,7 +3432,7 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
         pedido = {"titulo": "Hola", "descripcion": "algo",
                   "privacidad": "public", "categoria": "27",
                   "etiquetas": ["uno", "dos"],
-                  "miniatura": "C:/tmp/mini.png"}
+                  "miniatura": "C:/tmp/mini.png", "lista": "PL123"}
         with mock.patch.object(gui.credenciales, "cargar",
                                return_value={"token": "t"}), \
                 mock.patch.object(gui.credenciales, "efectivas",
@@ -3448,8 +3455,29 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
         self.assertEqual(extras["categoria"], "27")
         self.assertEqual(extras["etiquetas"], ["uno", "dos"])
         self.assertEqual(extras["miniatura"], "C:/tmp/mini.png")
+        self.assertEqual(extras["lista"], "PL123")
         self.assertEqual(ganchos.call_args.kwargs["avisar"], anunciar)
         self.assertEqual(len(creados), 1)
+
+    def test_pedir_datos_recibe_un_cargador_de_listas(self):
+        frame = self._frame()
+        creados = []
+        pedido = {"titulo": "Hola", "descripcion": "algo",
+                  "privacidad": "public"}
+        with mock.patch.object(gui.credenciales, "cargar",
+                               return_value={"token": "t"}), \
+                mock.patch.object(gui.credenciales, "efectivas",
+                                   return_value={"token": "t"}), \
+                mock.patch.object(gui.credenciales, "hay_sesion",
+                                   return_value=True), \
+                mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo",
+                           return_value=pedido) as pedir, \
+                mock.patch.object(gui.youtube_api, "ClienteYouTube"), \
+                mock.patch.object(gui, "guardar_opcion"), \
+                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+                           self._doble_supervisor(creados)):
+            frame._supervisar_transmision("iniciar", "YouTube", "")
+        self.assertTrue(callable(pedir.call_args.args[-1]))
 
     def test_titulo_vacio_anuncia_y_no_arranca(self):
         frame = self._frame()
@@ -3487,7 +3515,8 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
             frame._supervisar_transmision(
                 "iniciar", "YouTube", "", revision=revision)
         pedir.assert_called_once_with(frame, "", "", "unlisted", revision,
-                                      "normal", False, True, "", "", "")
+                                      "normal", False, True, "", "", "",
+                                      "", "", mock.ANY)
         self.assertEqual(len(creados), 1)
 
     def test_tiktok_arranca_sin_ganchos_y_sin_pedir_datos(self):

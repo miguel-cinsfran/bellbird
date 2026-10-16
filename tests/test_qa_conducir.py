@@ -60,5 +60,11 @@ class TestLimpiarSentinelObs(unittest.TestCase):
             self.assertEqual(conducir.limpiar_sentinel_obs(), 0)
 
 
+class TestVueltasTabTransmision(unittest.TestCase):
+
+    def test_alcanza_los_28_controles_con_margen(self):
+        self.assertGreaterEqual(conducir.VUELTAS_TAB_TRANSMISION, 28 + 10)
+
+
 if __name__ == "__main__":
     unittest.main()

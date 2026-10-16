@@ -440,6 +440,10 @@ def revisar_nombres(controles: list[dict], res: Resultado, donde: str) -> None:
 # dos segundos; el margen es para una maquina cargada.
 SEGUNDOS_TAB_COMPLETO = 12.0
 
+# La ventana Transmision tiene 28 controles con OBS abierto y crece con cada
+# funcion nueva, asi que el tope de paradas necesita aire de sobra.
+VUELTAS_TAB_TRANSMISION = 40
+
 
 def recorrer_tab(app: Aplicacion, res: Resultado, donde: str,
                  vueltas: int = 20, ventana: str | None = None) -> list[str]:
@@ -1570,7 +1574,8 @@ def escenario_transmision(app: Aplicacion, args, res: Resultado):
         res.nota("Transmisión: OBS está cerrado, así que los controles de OBS "
                  "no se exigen en el orden de Tab")
     auditar_dialogo(
-        app, res, "Transmisión", "Transmisión", vueltas_tab=25,
+        app, res, "Transmisión", "Transmisión",
+        vueltas_tab=VUELTAS_TAB_TRANSMISION,
         esperados=("Estado del panel", "Actualizar estado", "Preparar el panel", "Escena",
                    "Poner al aire", "Fuente",
                    "Posición del panel", "Ancho del panel", "Alto del panel",

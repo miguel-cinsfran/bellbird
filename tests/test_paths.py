@@ -237,9 +237,9 @@ class TestFronteraReal(unittest.TestCase):
                 esperada.write_text("[voz]\nvelocidad = 200\n", encoding="utf-8")
                 cfg = config.cargar_configuracion()
             self.assertEqual(cfg["ruta_config"], esperada)
-            # 200 no es el valor por defecto (175): solo puede venir de ESE
-            # archivo, no de otro config.ini del disco.
-            self.assertEqual(cfg["velocidad"], 200)
+            # 200 wpm no es el valor por defecto (que da 50 en la escala nueva):
+            # solo puede venir de ESE archivo, no de otro config.ini del disco.
+            self.assertEqual(cfg["velocidad_voz"], 55)
 
 
 def _sin_comentarios(texto: str) -> str:

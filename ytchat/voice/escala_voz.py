@@ -87,3 +87,26 @@ def resolver_voz(guardada, nombres) -> int | None:
         if bajo in nombre.lower():
             return i
     return None
+
+
+def migrar_voz(guardada, nombres) -> str | None:
+    """Convierte una voz guardada por número a su nombre, una sola vez.
+
+    Solo convierte un entero en texto que caiga en rango; cualquier otro caso
+    (nombre ya guardado, vacío, fuera de rango) devuelve None, que significa
+    «no hay nada que migrar». La voz se guarda por nombre porque el número es
+    la posición en la lista: instalar una voz corre la lista y cambia la
+    elegida sin avisar.
+    """
+    if guardada is None:
+        return None
+    texto = str(guardada).strip()
+    if not texto:
+        return None
+    try:
+        idx = int(texto)
+    except ValueError:
+        return None
+    if 0 <= idx < len(nombres):
+        return nombres[idx]
+    return None

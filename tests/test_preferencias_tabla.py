@@ -9,6 +9,7 @@ from unittest import mock
 
 from ytchat.ui import gui
 from ytchat.ui import gui_preferencias
+from ytchat.voice import motores
 from ytchat.core import config_predeterminada as pred
 from tests.rutas_temporales import redirigir_rutas
 from pathlib import Path
@@ -59,7 +60,7 @@ class TestTablaOpcionesSimples(unittest.TestCase):
         self.addCleanup(self.parche_ruta.__exit__, None, None, None)
 
     def _dialogo(self):
-        with mock.patch.object(gui, "_listar_voces_sapi5", return_value=["Voz de prueba"]):
+        with mock.patch.object(motores, "listar_voces", return_value=["Voz de prueba"]):
             dialogo = gui_preferencias.PreferenciasDialog(None, {})
         self.addCleanup(dialogo.Destroy)
         return dialogo
@@ -113,7 +114,7 @@ class TestMuestraTema(unittest.TestCase):
         self.addCleanup(self.parche_ruta.__exit__, None, None, None)
 
     def _dialogo(self):
-        with mock.patch.object(gui, "_listar_voces_sapi5", return_value=["Voz de prueba"]):
+        with mock.patch.object(motores, "listar_voces", return_value=["Voz de prueba"]):
             dialogo = gui_preferencias.PreferenciasDialog(None, {})
         self.addCleanup(dialogo.Destroy)
         return dialogo

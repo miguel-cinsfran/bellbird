@@ -188,7 +188,7 @@ class TestCargarConfiguracion(unittest.TestCase):
 
     def test_valores_basicos(self):
         cfg = self._cargar_en(config._CONFIG_FALLBACK)
-        self.assertEqual(cfg["velocidad"], 175)
+        self.assertEqual(cfg["velocidad_voz"], 50)
         self.assertEqual(cfg["volumen"], 1.0)
         self.assertEqual(cfg["estrategia"], "limite")
         self.assertTrue(cfg["reconectar"])
@@ -226,9 +226,39 @@ class TestCargarConfiguracion(unittest.TestCase):
         self.assertTrue(cfg["overlay_activo"])
         self.assertEqual(cfg["overlay_puerto"], 1)
 
-    def test_clamp_velocidad(self):
-        cfg = self._cargar_en("[voz]\nvelocidad = 9000\n")
-        self.assertEqual(cfg["velocidad"], 500)
+    def test_velocidad_vieja_en_wpm_se_convierte(self):
+        cfg = self._cargar_en("[voz]\nvelocidad = 175\n")
+        self.assertEqual(cfg["velocidad_voz"], 50)
+
+    def test_velocidad_vieja_rapida_se_convierte_y_topea(self):
+        cfg = self._cargar_en("[voz]\nvelocidad = 400\n")
+        self.assertEqual(cfg["velocidad_voz"], 100)
+
+    def test_velocidad_vieja_se_fija_en_el_archivo(self):
+        # Sin fijarla, el arranque siguiente no vería `velocidad` (los defaults
+        # se escriben encima) y volvería a 50, cambiando la velocidad sola.
+        self._cargar_en("[voz]\nvelocidad = 400\n")
+        texto = (Path(self._tmp.name) / "config.ini").read_text(encoding="utf-8")
+        self.assertIn("velocidad_voz = 100", texto)
+        with redirigir_rutas(Path(self._tmp.name)):
+            cfg2 = config.cargar_configuracion()
+        self.assertEqual(cfg2["velocidad_voz"], 100)
+
+    def test_velocidad_voz_nueva_gana_a_la_vieja(self):
+        cfg = self._cargar_en("[voz]\nvelocidad_voz = 35\nvelocidad = 400\n")
+        self.assertEqual(cfg["velocidad_voz"], 35)
+
+    def test_velocidad_voz_ausente_cae_a_normal(self):
+        cfg = self._cargar_en("[voz]\nvolumen = 1.0\n")
+        self.assertEqual(cfg["velocidad_voz"], 50)
+
+    def test_motor_invalido_cae_a_sapi(self):
+        cfg = self._cargar_en("[voz]\nmotor = cualquiera\n")
+        self.assertEqual(cfg["motor"], "sapi")
+
+    def test_motor_valido_se_conserva(self):
+        cfg = self._cargar_en("[voz]\nmotor = onecore\n")
+        self.assertEqual(cfg["motor"], "onecore")
 
     def test_clamp_volumen(self):
         cfg = self._cargar_en("[voz]\nvolumen = 5.0\n")

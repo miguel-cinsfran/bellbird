@@ -338,9 +338,17 @@ class TestTextosEntranteNuevos(unittest.TestCase):
             cola = queue.Queue()
             main.procesar_entrante(
                 "Ana", "", tipo, "", "canal", cola,
-                _config_minima(multivoz=True, voz_eventos="2"),
+                _config_minima(multivoz=True, voz_eventos="Microsoft Pablo"),
                 main.Stats(), on_message=lambda *a, **k: None)
-            self.assertEqual(cola.get_nowait()["voz"], 2)
+            self.assertEqual(cola.get_nowait()["voz"], "Microsoft Pablo")
+
+    def test_sin_voz_de_eventos_no_marca_voz(self):
+        cola = queue.Queue()
+        main.procesar_entrante(
+            "Ana", "", TIPO_SEGUIR, "", "canal", cola,
+            _config_minima(multivoz=True, voz_eventos=""),
+            main.Stats(), on_message=lambda *a, **k: None)
+        self.assertNotIn("voz", cola.get_nowait())
 
     def test_me_gusta_avisa_a_la_gui_pero_no_se_lee(self):
         cola = queue.Queue()

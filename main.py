@@ -440,8 +440,9 @@ def procesar_entrante(autor, mensaje, tipo, monto, canal_id, cola, config, stats
                                                TIPO_MIEMBRO, TIPO_ENTRADA,
                                                TIPO_SEGUIR, TIPO_COMPARTIR,
                                                TIPO_COFRE):
-            try:    item["voz"] = int(config.get("voz_eventos", 0))
-            except (TypeError, ValueError): pass
+            voz_ev = config.get("voz_eventos")
+            if voz_ev:
+                item["voz"] = voz_ev
         encolar(cola, item, config, stats)
         stats.inc("leidos")
 
@@ -766,7 +767,7 @@ def main():
             import ctypes
             ctypes.windll.user32.MessageBoxW(
                 0,
-                "No se pudo iniciar el motor de voz (SAPI5).\n\n"
+                "No se pudo iniciar el motor de voz.\n\n"
                 "Comprueba que tienes al menos una voz instalada en\n"
                 "Configuración → Hora e idioma → Voz.",
                 APP_NAME,

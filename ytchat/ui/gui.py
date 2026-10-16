@@ -38,6 +38,7 @@ from ytchat.core import historial
 from ytchat.ui.lista_chat import ListaChat, MensajeChat
 from ytchat.ui.busqueda_lista import buscar_prefijo, coincide
 from ytchat.ui import atajos_captura
+from ytchat.voice import escala_voz
 from ytchat.voice import sound_player as _snd
 from ytchat.youtube import credenciales
 from ytchat.youtube import youtube_api
@@ -1518,8 +1519,9 @@ class YTChatFrame(wx.Frame):
         if voces_actuales:
             # Preferencias puede haber cambiado la voz: aplicarla en caliente.
             try:
-                idx_cfg = _resolver_idx_voz(self._config.get("voz", "0"), voces_actuales)
-                if idx_cfg != self._voz_idx:
+                idx_cfg = escala_voz.resolver_voz(
+                    self._config.get("voz"), voces_actuales)
+                if idx_cfg is not None and idx_cfg != self._voz_idx:
                     self._aplicar_voz(idx_cfg)
             except Exception as exc:
                 logger.debug("aplicar voz desde preferencias: %s", exc)
@@ -1600,8 +1602,10 @@ class YTChatFrame(wx.Frame):
         # llegamos aquí desde Preferencias hay que marcarlo a mano.
         try:    self.voz_submenu.FindItemByPosition(idx).Check(True)
         except Exception: pass
-        self._config["voz"] = str(idx)
-        guardar_opcion(RUTA_CONFIG, "voz", "voz", str(idx))
+        # Se guarda el NOMBRE, no el número: con el índice, instalar una voz
+        # corre la lista y la app hablaría con otra sin avisar.
+        self._config["voz"] = self._voz_nombre
+        guardar_opcion(RUTA_CONFIG, "voz", "voz", self._voz_nombre)
         _snd.reproducir("voz_cambiada")
         anunciar(f"Voz: {self._voz_nombre}")
 
@@ -1617,14 +1621,13 @@ class YTChatFrame(wx.Frame):
         anunciar(f"Filtro: {FILTROS[idx][0]}. {self.lb_chat.GetCount()} mensajes")
 
     def _ajustar_rate(self, delta):
-        # El worker actualiza su contador al instante (aplica a SAPI en su hilo),
-        # así que get_rate() ya devuelve el valor nuevo sin predecirlo aquí.
+        # El worker mueve su porcentaje al instante (lo aplica en su hilo), así
+        # que get_rate() ya devuelve el valor nuevo sin predecirlo aquí.
         self._worker.cambiar_rate(delta)
-        r = self._worker.get_rate()
-        wpm = max(50, min(500, r * 20 + 180))
-        guardar_opcion(RUTA_CONFIG, "voz", "velocidad", str(wpm))
+        pct = self._worker.get_rate()
+        guardar_opcion(RUTA_CONFIG, "voz", "velocidad_voz", str(pct))
         anunciar(anuncio_ajuste.COMPARTIDO.frase(
-            "velocidad_voz", f"Velocidad de la voz: {r:+d}", f"{r:+d}"))
+            "velocidad_voz", f"Velocidad de la voz: {pct}", f"{pct}"))
 
     def _ajustar_volume(self, delta):
         self._worker.cambiar_volumen(delta)
@@ -2700,7 +2703,7 @@ class YTChatFrame(wx.Frame):
             estado = f"Desconectado{sin_tts}"
         self.sb.SetStatusText(estado, 0)
 
-        try:    self.sb.SetStatusText(f"Voz vel: {self._worker.get_rate():+d}", 1)
+        try:    self.sb.SetStatusText(f"Voz vel: {self._worker.get_rate()}", 1)
         except Exception: self.sb.SetStatusText("Voz vel: --", 1)
 
         nombre = self._voz_nombre or "—"
@@ -2784,35 +2787,6 @@ def copiar_al_portapapeles(text: str) -> None:
         pass
 
 
-# ── Helpers de voces ─────────────────────────────────────────────────────────
-
-def _listar_voces_sapi5() -> list:
-    try:
-        import pythoncom
-        pythoncom.CoInitialize()
-    except Exception:
-        pass
-    try:
-        import win32com.client
-        tts   = win32com.client.Dispatch("SAPI.SpVoice")
-        voces = tts.GetVoices()
-        return [voces.Item(i).GetDescription() for i in range(voces.Count)]
-    except Exception:
-        return []
-
-
-def _resolver_idx_voz(cfg: str, voces: list) -> int:
-    try:
-        idx = int(cfg)
-        return idx if 0 <= idx < len(voces) else 0
-    except ValueError:
-        t = str(cfg).lower()
-        for i, v in enumerate(voces):
-            if t in v.lower():
-                return i
-        return 0
-
-
 # ── Entrada ──────────────────────────────────────────────────────────────────
 
 _gui_frame: YTChatFrame | None = None
@@ -2847,9 +2821,11 @@ def iniciar_gui(config, cola, stats, worker, parada,
     global _gui_frame, RUTA_CONFIG
 
     RUTA_CONFIG = paths.config_ini()
-    _lector_init()
 
     app = AplicacionYTChat(redirect=False)
+    # El lector de JAWS crea su COM en el hilo que lo inicializa: tiene que ser
+    # con la aplicación de wx ya en pie, y antes de crear el frame.
+    _lector_init()
     frame = YTChatFrame(None, config, cola, stats, worker, parada)
     _gui_frame = frame
     frame.on_conectar_cb    = iniciar_captura_cb
@@ -2859,8 +2835,17 @@ def iniciar_gui(config, cola, stats, worker, parada,
     h.setLevel(logging.INFO)
     logging.getLogger().addHandler(h)
 
-    voces = _listar_voces_sapi5()
-    frame.poblar_voces(voces, _resolver_idx_voz(config.get("voz", "0"), voces))
+    voces = worker.voces()
+    idx_voz = escala_voz.resolver_voz(config.get("voz"), voces)
+    frame.poblar_voces(voces, 0 if idx_voz is None else idx_voz)
+
+    # Conversión de una sola vez: los números de voz viejos pasan a nombre y se
+    # fijan en config.ini, así instalar una voz no cambia la voz elegida.
+    for clave in ("voz", "voz_eventos"):
+        nombre = escala_voz.migrar_voz(config.get(clave), voces)
+        if nombre is not None:
+            config[clave] = nombre
+            guardar_opcion(RUTA_CONFIG, "voz", clave, nombre)
 
     # Restaurar filtro de la sesión anterior.
     fa = config.get("filtro_activo", "todos")

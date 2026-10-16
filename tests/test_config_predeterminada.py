@@ -51,8 +51,8 @@ class TestPrimeraEjecucion(unittest.TestCase):
         texto = (tmp / "config.ini").read_text(encoding="utf-8")
         self.assertEqual(texto, pred.generar_texto())
         # valores clave del dict deben coincidir con la fuente
-        self.assertEqual(cfg["voz"], "0")
-        self.assertEqual(cfg["velocidad"], 175)
+        self.assertEqual(cfg["voz"], "")
+        self.assertEqual(cfg["velocidad_voz"], 50)
         self.assertEqual(cfg["volumen"], 1.0)
         self.assertEqual(cfg["estrategia"], "limite")
         self.assertEqual(cfg["formato_prefijo"], "nombre_mensaje")
@@ -111,14 +111,14 @@ class TestMigracion(unittest.TestCase):
 class TestFallbacksSeccion(unittest.TestCase):
     def test_fallbacks_distinguen_seccion_y_clave(self):
         # clave "voz" solo existe en [voz]; pedirla en [ui] debe dar fallback vacío
-        self.assertEqual(pred.obtener("voz", "voz"), "0")
+        self.assertEqual(pred.obtener("voz", "voz"), "")
         self.assertEqual(pred.obtener("ui", "voz"), "")
         # "activo" existe en varias secciones con mismo valor pero debe distinguirse por sección
         # si preguntamos una sección inexistente, debe dar fallback vacío
         self.assertEqual(pred.obtener("seccion_inexistente", "activo"), "")
         # a nivel de config._gs con parser vacío
         p = config._mk_parser()
-        self.assertEqual(config._gs(p, "voz", "voz"), "0")
+        self.assertEqual(config._gs(p, "voz", "voz"), "")
         self.assertEqual(config._gs(p, "ui", "voz"), "")
         self.assertEqual(config._gs(p, "overlay", "activo"), "false")
         self.assertEqual(config._gs(p, "programados", "activo"), "false")

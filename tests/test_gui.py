@@ -11,6 +11,7 @@ from unittest import mock
 from ytchat.ui import gui
 from ytchat.ui import gui_comentarios
 from ytchat.ui import gui_preferencias
+from ytchat.voice import motores
 from ytchat.core import config
 from ytchat.core import paths
 from ytchat.player import reproductor
@@ -65,15 +66,16 @@ class TestInicioGui(unittest.TestCase):
         frame.Raise.side_effect = lambda: orden.append("frente")
         configuracion = mock.Mock()
         configuracion.get.return_value = ""
+        worker = mock.Mock()
+        worker.voces.return_value = []
 
         with mock.patch.object(gui, "AplicacionYTChat", return_value=aplicacion), \
                 mock.patch.object(gui, "YTChatFrame", return_value=frame), \
                 redirigir_rutas("."), \
                 mock.patch.object(gui, "_lector_init"), \
-                mock.patch.object(gui, "_listar_voces_sapi5", return_value=[]), \
                 mock.patch.object(gui._snd, "reproducir"), \
                 mock.patch.object(gui.wx, "CallAfter"):
-            gui.iniciar_gui(configuracion, object(), object(), object(), object())
+            gui.iniciar_gui(configuracion, object(), object(), worker, object())
 
         self.assertEqual(orden, ["muestra", "frente", "foco"])
 
@@ -82,15 +84,16 @@ class TestInicioGui(unittest.TestCase):
         frame = mock.Mock()
         configuracion = mock.Mock()
         configuracion.get.return_value = ""
+        worker = mock.Mock()
+        worker.voces.return_value = []
 
         with mock.patch.object(gui, "AplicacionYTChat", return_value=aplicacion), \
                 mock.patch.object(gui, "YTChatFrame", return_value=frame), \
                 redirigir_rutas("."), \
                 mock.patch.object(gui, "_lector_init"), \
-                mock.patch.object(gui, "_listar_voces_sapi5", return_value=[]), \
                 mock.patch.object(gui._snd, "reproducir"), \
                 mock.patch.object(gui.wx, "CallAfter") as call_after:
-            gui.iniciar_gui(configuracion, object(), object(), object(), object())
+            gui.iniciar_gui(configuracion, object(), object(), worker, object())
 
         call_after.assert_any_call(frame._arrancar_precalentamiento)
 
@@ -1284,7 +1287,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
         self.addCleanup(self.parche_ruta.__exit__, None, None, None)
 
     def _dialogo(self):
-        with mock.patch.object(gui, "_listar_voces_sapi5", return_value=["Voz de prueba"]):
+        with mock.patch.object(motores, "listar_voces", return_value=["Voz de prueba"]):
             dialogo = gui_preferencias.PreferenciasDialog(None, {})
         self.addCleanup(dialogo.Destroy)
         return dialogo
@@ -1340,7 +1343,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
         self.assertIs(control, dialogo.lista_programados)
 
     def test_microfono_guardado_se_conserva_sin_consultar_obs(self):
-        with mock.patch.object(gui, "_listar_voces_sapi5", return_value=["Voz de prueba"]):
+        with mock.patch.object(motores, "listar_voces", return_value=["Voz de prueba"]):
             dialogo = gui_preferencias.PreferenciasDialog(
                 None, {"obs_microfono": "Mic/Aux"})
         self.addCleanup(dialogo.Destroy)
@@ -1471,7 +1474,7 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         self.addCleanup(parche.__exit__, None, None, None)
 
     def _dialogo(self, configuracion=None):
-        with mock.patch.object(gui, "_listar_voces_sapi5", return_value=["Voz de prueba"]):
+        with mock.patch.object(motores, "listar_voces", return_value=["Voz de prueba"]):
             dialogo = gui_preferencias.PreferenciasDialog(None, configuracion or {})
         self.addCleanup(dialogo.Destroy)
         return dialogo
@@ -3353,7 +3356,7 @@ class TestCableadoAnuncioAjuste(unittest.TestCase):
             gui.YTChatFrame._ajustar_volume(frame, +5)
             gui.YTChatFrame._ajustar_rate(frame, +1)
         dichos = [llamada.args[0] for llamada in anunciar.call_args_list]
-        self.assertEqual(dichos, ["Volumen de la voz: 45%", "50%", "Velocidad de la voz: +1"])
+        self.assertEqual(dichos, ["Volumen de la voz: 45%", "50%", "Velocidad de la voz: 1"])
 
 
 if __name__ == "__main__":

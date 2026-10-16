@@ -85,6 +85,12 @@ class TestResolverVoz(unittest.TestCase):
     def test_nombre_exacto(self):
         self.assertEqual(escala_voz.resolver_voz(self.VOCES[0], self.VOCES), 0)
 
+    def test_nombre_exacto_gana_al_fragmento(self):
+        # «Microsoft Helena» es fragmento de la primera y nombre exacto de la
+        # segunda: debe elegir la segunda, no la que aparece primero.
+        voces = ["Microsoft Helena Desktop - Spanish (Spain)", "Microsoft Helena"]
+        self.assertEqual(escala_voz.resolver_voz("Microsoft Helena", voces), 1)
+
     def test_fragmento_sin_mayusculas(self):
         self.assertEqual(escala_voz.resolver_voz("zira", self.VOCES), 1)
 
@@ -94,6 +100,29 @@ class TestResolverVoz(unittest.TestCase):
     def test_vacio_o_none(self):
         self.assertIsNone(escala_voz.resolver_voz("", self.VOCES))
         self.assertIsNone(escala_voz.resolver_voz(None, self.VOCES))
+
+
+class TestMigrarVoz(unittest.TestCase):
+
+    VOCES = ["Microsoft Helena", "Microsoft Pablo"]
+
+    def test_numero_en_rango_pasa_a_nombre(self):
+        self.assertEqual(escala_voz.migrar_voz("1", self.VOCES), "Microsoft Pablo")
+        self.assertEqual(escala_voz.migrar_voz(0, self.VOCES), "Microsoft Helena")
+
+    def test_numero_fuera_de_rango_no_migra(self):
+        self.assertIsNone(escala_voz.migrar_voz("9", self.VOCES))
+
+    def test_nombre_ya_guardado_no_migra(self):
+        self.assertIsNone(escala_voz.migrar_voz("Microsoft Pablo", self.VOCES))
+
+    def test_vacio_y_none_no_migran(self):
+        self.assertIsNone(escala_voz.migrar_voz("", self.VOCES))
+        self.assertIsNone(escala_voz.migrar_voz("   ", self.VOCES))
+        self.assertIsNone(escala_voz.migrar_voz(None, self.VOCES))
+
+    def test_sin_voces_no_migra(self):
+        self.assertIsNone(escala_voz.migrar_voz("0", []))
 
 
 if __name__ == "__main__":

@@ -8,9 +8,6 @@
 # Captura del chat en vivo de YouTube (InnerTube API)
 pytchat>=0.5.5
 
-# Acceso a SAPI5 y COM (Windows)
-pywin32>=305
-
 # Interfaz gráfica accesible
 wxPython>=4.2.2
 

@@ -465,17 +465,23 @@ class PreferenciasDialog(wx.Dialog):
         p = self._make_panel(parent, "PagVoz")
         vs = wx.BoxSizer(wx.VERTICAL)
 
-        # Voz SAPI5. También está en el menú Voz → Seleccionar voz; aquí queda
-        # junto al resto de ajustes de lectura para encontrarla más fácil.
+        # Voz del motor elegido. También está en el menú Voz → Seleccionar voz;
+        # aquí queda junto al resto de ajustes de lectura para encontrarla más
+        # fácil.
         vs.Add(self._fila_label(p, "&Voz de lectura:"), 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
-        from ytchat.ui.gui import _listar_voces_sapi5, _resolver_idx_voz
-        self._voces = _listar_voces_sapi5()
+        from ytchat.voice import escala_voz
+        from ytchat.voice import motores
+        self._voces = motores.listar_voces(self._config.get("motor", "sapi"))
+
+        def _seleccion(guardada):
+            idx = escala_voz.resolver_voz(guardada, self._voces)
+            return 0 if idx is None else idx
+
         self.cho_voz = wx.Choice(p, choices=self._voces or ["(no hay voces disponibles)"],
                                  name="Voz de lectura")
         _tc(self.cho_voz)
         if self._voces:
-            self.cho_voz.SetSelection(
-                _resolver_idx_voz(self._config.get("voz", "0"), self._voces))
+            self.cho_voz.SetSelection(_seleccion(self._config.get("voz")))
         else:
             self.cho_voz.SetSelection(0)
             self.cho_voz.Disable()
@@ -498,7 +504,7 @@ class PreferenciasDialog(wx.Dialog):
         _tc(self.cho_voz_eventos)
         if self._voces:
             self.cho_voz_eventos.SetSelection(
-                _resolver_idx_voz(self._config.get("voz_eventos", "0"), self._voces))
+                _seleccion(self._config.get("voz_eventos")))
         else:
             self.cho_voz_eventos.SetSelection(0)
         self.cho_voz_eventos.Enable(bool(self._voces) and self.chk_multivoz.GetValue())
@@ -1071,12 +1077,14 @@ class PreferenciasDialog(wx.Dialog):
 
         # Lectura
         if self._voces:
-            idx_voz = max(0, self.cho_voz.GetSelection())
-            self._set("voz", "voz", str(idx_voz))
-            c["voz"] = str(idx_voz)
-            idx_ev = max(0, self.cho_voz_eventos.GetSelection())
-            self._set("voz", "voz_eventos", str(idx_ev))
-            c["voz_eventos"] = str(idx_ev)
+            # Se guarda el nombre, no el número: el índice se corre al instalar
+            # una voz y la app hablaría con otra sin avisar.
+            nom_voz = self.cho_voz.GetStringSelection()
+            self._set("voz", "voz", nom_voz)
+            c["voz"] = nom_voz
+            nom_ev = self.cho_voz_eventos.GetStringSelection()
+            self._set("voz", "voz_eventos", nom_ev)
+            c["voz_eventos"] = nom_ev
 
         formato = _FORMATOS[self.rb_formato.GetSelection()][1]
         self._set("lectura", "formato_prefijo", formato)

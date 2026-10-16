@@ -25,11 +25,13 @@ from ytchat.core import paths
 # Orden canónico: sección -> lista ordenada de (clave, valor)
 _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
     ("voz", [
-        ("voz", "0"),
-        ("velocidad", "175"),
+        ("motor", "sapi"),
+        ("voz", ""),
+        ("velocidad_voz", "50"),
         ("volumen", "1.0"),
+        ("tono", "50"),
         ("multivoz", "false"),
-        ("voz_eventos", "0"),
+        ("voz_eventos", ""),
     ]),
     ("cola", [
         ("estrategia", "limite"),
@@ -196,7 +198,8 @@ def generar_texto() -> str:
         # Comentarios útiles por sección (breves y prácticos)
         if sec == "voz":
             partes.append(
-                "# Voz SAPI5: 0 es la primera del sistema. Multivoz usa otra voz\n"
+                "# Motor de voz: sapi u onecore. Voz vacía es la primera del\n"
+                "# sistema; se guarda por nombre. Multivoz usa otra voz\n"
                 "# para eventos (Super Chats, regalos). Se cambia en Preferencias > Lectura.\n"
             )
         elif sec == "cola":

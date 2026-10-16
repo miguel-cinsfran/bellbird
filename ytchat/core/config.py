@@ -645,10 +645,32 @@ def cargar_configuracion() -> dict:
     if privacidad not in _emision.PRIVACIDADES:
         privacidad = _emision.PRIVACIDAD_INICIAL
 
+    # [voz]: el motor se valida contra los válidos de Prism (importarlos aquí
+    # no arrastra Prism: motores lo importa de forma perezosa). La velocidad se
+    # guarda como porcentaje propio (0..100); la clave vieja en palabras por
+    # minuto se convierte una sola vez y se fija en el archivo, así el arranque
+    # siguiente no vuelve al valor de fábrica.
+    from ytchat.voice import escala_voz as _escala
+    from ytchat.voice import motores as _motores
+    motor = _gs(p, "voz", "motor").lower()
+    if motor not in _motores.MOTORES:
+        motor = "sapi"
+    if p.has_option("voz", "velocidad_voz"):
+        velocidad_voz = max(0, min(100, _gi(
+            _gs(p, "voz", "velocidad_voz"), _escala.VELOCIDAD_NORMAL)))
+    elif p.has_option("voz", "velocidad"):
+        velocidad_voz = _escala.velocidad_desde_wpm(
+            _gi(_gs(p, "voz", "velocidad"), 175))
+        guardar_opcion(ruta, "voz", "velocidad_voz", str(velocidad_voz))
+    else:
+        velocidad_voz = _escala.VELOCIDAD_NORMAL
+
     return {
+        "motor": motor,
         "voz": _gs(p, "voz", "voz"),
-        "velocidad": _pi(p, "voz", "velocidad", lo=50, hi=500),
+        "velocidad_voz": velocidad_voz,
         "volumen": _pf(p, "voz", "volumen"),
+        "tono": _pi(p, "voz", "tono", lo=0, hi=100),
         "multivoz": _pb(p, "voz", "multivoz"),
         "voz_eventos": _gs(p, "voz", "voz_eventos"),
         "estrategia": estrategia,

@@ -1,28 +1,50 @@
-"""Hilo TTS (SAPI5) y sanitización de texto.
+"""Hilo TTS con Prism (SAPI 5 u OneCore) y sanitización de texto.
 
-Speak se lanza en modo asíncrono con WaitUntilDone en tramos de 100 ms,
-lo que permite interrumpir un mensaje en curso (Alt+D) insertando un
-purge entre tramos.
+Prism unifica los motores de voz de Windows bajo una API. El motor se crea,
+se usa y se cierra DENTRO del hilo: Prism no es seguro entre hilos. Hablar es
+asíncrono y `hablando()` dice si el motor sigue sonando; eso permite
+interrumpir un mensaje en curso (Alt+D) sin cortar el siguiente por error.
+
+La subida y la bajada del estado no son simétricas: en SAPI `hablando()` tarda
+entre 14 y 18 ms en pasar a True tras `hablar`, y en OneCore la pausa lo deja
+en False mientras está en pausa. Por eso se espera la subida y la pausa se
+mira antes que el estado.
 """
 
 from __future__ import annotations
 
-import threading
 import queue
-import logging
 import re
+import threading
 import time
 
 from ytchat.core import diagnostico
+from ytchat.voice import escala_voz
+from ytchat.voice import motores
 
 logger = diagnostico.obtener_logger(__name__)
 
 _STOP = object()
 
-SVSF_ASYNC        = 1
-SVSF_PURGE_BEFORE = 2
-SVSF_IS_NOT_XML   = 16   # evita que '<' al inicio se interprete como XML SAPI
-_SPEAK_FLAGS      = SVSF_ASYNC | SVSF_IS_NOT_XML
+# Máximo de espera a que `hablando()` pase a True, y ritmo con que se lo mira.
+_ESPERA_SUBIDA = 1.0
+_PASO_SUBIDA = 0.005
+# Ritmo con que se mira la bajada mientras el motor suena.
+_PASO_ESPERA = 0.05
+
+
+def _entero(valor, defecto: int) -> int:
+    try:
+        return int(valor)
+    except (TypeError, ValueError):
+        return defecto
+
+
+def _volumen_inicial(valor) -> int:
+    try:
+        return max(0, min(100, int(float(valor) * 100)))
+    except (TypeError, ValueError):
+        return 100
 
 
 # ── Sanitización de texto ────────────────────────────────────────────────────
@@ -71,142 +93,199 @@ def construir_tts(autor: str, mensaje: str, config: dict) -> str:
     return f"{autor_limpio}: {mensaje}"
 
 
-# ── Conversión WPM → Rate SAPI5 ─────────────────────────────────────────────
-
-def _wpm_a_rate(wpm: int) -> int:
-    return max(-10, min(10, round((int(wpm) - 180) / 20)))
-
-
 # ── Hilo TTS ─────────────────────────────────────────────────────────────────
 
 class TTSWorker(threading.Thread):
 
-    def __init__(self, cola: queue.Queue, config: dict):
+    def __init__(self, cola: queue.Queue, config: dict, fabrica_motor=None):
         super().__init__(daemon=True, name="TTSWorker")
         self.cola   = cola
         self.config = config
+        # `None` usa el envoltorio real de Prism. Un doble permite probar el
+        # worker sin abrir un motor de verdad.
+        self._fabrica_motor = fabrica_motor or motores.MotorPrism
         self._ready  = threading.Event()
         self._error  = None
         self._active = threading.Event()
         self._active.set()
         self._paused = False
         self._cmds   = queue.Queue()
-        self._rate   = _wpm_a_rate(config.get("velocidad", 175))
-        self._volume = max(0, min(100, int(config.get("volumen", 1.0) * 100)))
+        # El contador de velocidad es el porcentaje propio (0..100, pasos de 5).
+        self._rate   = escala_voz.ajustar_velocidad(
+            _entero(config.get("velocidad_voz"), escala_voz.VELOCIDAD_NORMAL), 0)
+        self._volume = _volumen_inicial(config.get("volumen", 1.0))
+        self._tono   = max(0, min(100, _entero(config.get("tono"), 50)))
         self._purge_pending = threading.Event()
         # Autor del último mensaje que la voz empezó a leer, para anunciarlo
         # con F3 sin volver a la lista. Se registra en run() justo antes de
         # hablar; asignar una cadena es atómico en CPython y no lleva lock.
         self._ultimo_autor = ""
-        # Multi-voz: colección de voces cacheada y qué voz está activa ahora. La
-        # voz «base» es la del menú/preferencias; un mensaje puede pedir otra
-        # (p. ej. eventos con una voz distinta) y se cambia solo para ese.
-        self._voces_col = None
-        self._voz_base_idx = 0
-        self._voz_actual_idx = 0
+        # Motor, voces y voz activa. Todo se crea y se usa en el hilo del
+        # worker; la interfaz lee `voces()` solo después de `esperar_inicio`.
+        self._motor = None
+        self._voces: list[str] = []
+        self._voz_base = 0        # índice de la voz del menú/preferencias
+        self._voz_actual = None   # índice de la voz activa, o None antes de abrir
 
     def run(self):
         try:
-            # Dentro del try: si falta pywin32, la causa llega a _error (y al
-            # log) en vez de un «No se pudo iniciar el motor de voz» genérico.
-            self._init_com()
-            self._voz = self._create_voice()
+            self._abrir_motor()
         except Exception as exc:
             self._error = exc
             self._ready.set()
             logger.error("TTSWorker: %s", exc)
+            self._cerrar_motor()
             return
         self._ready.set()
-        logger.info("TTSWorker listo.")
+        logger.info("TTSWorker listo (motor %s).", self.motor_activo())
         _err = 0
-
-        while True:
-            self._active.wait()
-            self._procesar_comandos()
-            try:
-                item = self.cola.get(timeout=0.3)
-            except queue.Empty:
-                self._pump(); continue
-            if item is _STOP:
-                break
-            texto = (item.get("texto_tts") or "").strip()
-            if not texto:
-                continue
-            self._active.wait()
-            try:
-                # El autor viaja en el item y se guarda al empezar a leerlo,
-                # no al encolar: entre medias hay cola y descartes. Un item
-                # sin autor (avisos internos) no borra el anterior.
-                autor = item.get("autor") or ""
-                if autor:
-                    self._ultimo_autor = autor
-                self._hablar(texto, item.get("voz")); _err = 0
-            except Exception as exc:
-                _err += 1
-                if _err <= 5:
-                    logger.warning("TTS error: %s", exc)
-                elif _err == 6:
-                    logger.error("TTS: demasiados errores seguidos.")
+        try:
+            while True:
+                self._active.wait()
+                self._procesar_comandos()
+                try:
+                    item = self.cola.get(timeout=0.3)
+                except queue.Empty:
+                    continue
+                if item is _STOP:
+                    break
+                texto = (item.get("texto_tts") or "").strip()
+                if not texto:
+                    continue
+                self._active.wait()
+                try:
+                    # El autor viaja en el item y se guarda al empezar a leerlo,
+                    # no al encolar: entre medias hay cola y descartes. Un item
+                    # sin autor (avisos internos) no borra el anterior.
+                    autor = item.get("autor") or ""
+                    if autor:
+                        self._ultimo_autor = autor
+                    self._hablar(texto, item.get("voz")); _err = 0
+                except Exception as exc:
+                    _err += 1
+                    if _err <= 5:
+                        logger.warning("TTS error: %s", exc)
+                    elif _err == 6:
+                        logger.error("TTS: demasiados errores seguidos.")
+        finally:
+            self._cerrar_motor()
         logger.info("TTSWorker terminado.")
 
-    def _aplicar_voz_idx(self, idx) -> None:
-        """Cambia la voz activa de SAPI si hace falta (usa la colección cacheada,
-        sin recrearla). Silencioso ante índices fuera de rango o fallos."""
+    # ── Arranque y cierre del motor ──────────────────────────────────────────
+
+    def _abrir_motor(self) -> None:
+        """Crea el motor pedido (con respaldo a SAPI), carga las voces y aplica
+        velocidad, volumen y tono. Lanza si no hay ningún motor con voces."""
+        pedido = self.config.get("motor") or "sapi"
         try:
-            if (self._voces_col is not None and idx is not None
-                    and idx != self._voz_actual_idx
-                    and 0 <= idx < self._voces_col.Count):
-                self._voz.Voice = self._voces_col.Item(idx)
-                self._voz_actual_idx = idx
-        except Exception as exc:
-            logger.debug("cambiar voz a %s: %s", idx, exc)
+            self._motor = self._fabrica_motor(pedido)
+        except motores.MotorNoDisponible as exc:
+            if pedido == "sapi":
+                raise
+            logger.warning("El motor de voz %r no está disponible (%s); "
+                           "se usa Windows SAPI 5.", pedido, exc)
+            self._motor = self._fabrica_motor("sapi")
+
+        self._voces = list(self._motor.voces())
+        if not self._voces:
+            raise RuntimeError("El motor de voz no tiene voces instaladas.")
+
+        guardada = self.config.get("voz")
+        idx = escala_voz.resolver_voz(guardada, self._voces)
+        if idx is None:
+            if guardada:
+                # Voz guardada que ya no está instalada: avisar con la lista
+                # numerada. Vacío significa «la primera» y no es un problema.
+                nombres = "\n".join(f"  [{i}] {n}" for i, n in enumerate(self._voces))
+                logger.warning("Voz '%s' no encontrada; se usa la primera "
+                               "disponible.\n%s", guardada, nombres)
+            idx = 0
+        self._voz_base = idx
+        if self._motor.elegir_voz(idx):
+            self._voz_actual = idx
+
+        self._motor.fijar_velocidad(self._rate)
+        self._motor.fijar_volumen(self._volume)
+        self._motor.fijar_tono(self._tono)
+        logger.info("Voz: %s | Velocidad: %d | Volumen: %d%% | Tono: %d",
+                    self._voces[idx], self._rate, self._volume, self._tono)
+
+    def _cerrar_motor(self) -> None:
+        if self._motor is not None:
+            self._motor.cerrar()
+
+    # ── Voz y habla ──────────────────────────────────────────────────────────
+
+    def _aplicar_voz(self, voz) -> None:
+        """Cambia la voz activa si el mensaje pide otra (o vuelve a la base)."""
+        if voz is None:
+            idx = self._voz_base
+        else:
+            idx = escala_voz.resolver_voz(voz, self._voces)
+            if idx is None:
+                idx = self._voz_base
+        if idx != self._voz_actual and self._motor.elegir_voz(idx):
+            self._voz_actual = idx
 
     def _hablar(self, texto: str, voz=None) -> None:
         # Multi-voz: si el mensaje pide una voz concreta, se usa; si no, la base.
-        self._aplicar_voz_idx(voz if voz is not None else self._voz_base_idx)
+        self._aplicar_voz(voz)
         # Una purga pedida con la voz callada (p. ej. detener_actual() al
-        # reconectar) quedaba armada y cortaba el SIGUIENTE mensaje a los
-        # 100 ms: el primer mensaje de cada reconexión se oía a medias.
-        # No había nada que cortar, así que se descarta antes de hablar.
+        # reconectar) quedaba armada y cortaba el SIGUIENTE mensaje: el primer
+        # mensaje de cada reconexión se oía a medias. No había nada que cortar,
+        # así que se descarta antes de hablar.
         self._purge_pending.clear()
-        self._voz.Speak(texto, _SPEAK_FLAGS)
+        if not self._motor.hablar(texto):
+            return
+        # La subida del estado es asíncrona: hay que verla pasar a True o el
+        # bucle de abajo daría el mensaje por terminado antes de que suene.
+        limite = time.monotonic() + _ESPERA_SUBIDA
+        while not self._motor.hablando() and time.monotonic() < limite:
+            self._procesar_comandos()
+            if self._purge_pending.is_set():
+                self._purge_pending.clear()
+                self._motor.parar()
+                return
+            time.sleep(_PASO_SUBIDA)
+        # Bajada: mientras suene, se atienden comandos y purgas. La pausa se
+        # mira ANTES que `hablando()`: en OneCore la pausa deja el estado en
+        # False y mirarlo primero arrancaría el mensaje siguiente en pausa.
         while True:
-            try:
-                terminado = bool(self._voz.WaitUntilDone(100))
-            except Exception:
-                time.sleep(0.1)
-                try:    terminado = (self._voz.Status.RunningState == 1)
-                except Exception: terminado = True
-            if terminado:
-                break
             self._procesar_comandos()
             if not self._active.is_set():
                 self._esperar_pausa()
             if self._purge_pending.is_set():
                 self._purge_pending.clear()
-                try:
-                    self._voz.Speak("", SVSF_ASYNC | SVSF_PURGE_BEFORE)
-                    self._voz.WaitUntilDone(200)
-                except Exception: pass
-                break
+                self._motor.parar()
+                return
+            if not self._motor.hablando():
+                return
+            time.sleep(_PASO_ESPERA)
 
     def _esperar_pausa(self) -> None:
-        """Pausa a mitad de frase. Antes el hilo se quedaba en wait() pero
-        SAPI seguía sonando hasta acabar la frase y los comandos (voz,
-        velocidad, volumen, purga) no se atendían hasta reanudar. Ahora se
-        pausa la voz de verdad y se sigue vaciando la cola de comandos."""
-        try:    self._voz.Pause()
-        except Exception as exc:
-            logger.debug("Pause: %s", exc)
+        """Pausa a mitad de frase sin dejar de atender comandos ni purgas.
+
+        Antes el hilo quedaba en wait() pero la voz seguía sonando hasta acabar
+        la frase; ahora se pausa el motor de verdad y los comandos (voz,
+        velocidad, volumen, purga) se siguen atendiendo."""
+        self._motor.pausar()
         try:
             while not self._active.wait(0.1):
                 self._procesar_comandos()
                 if self._purge_pending.is_set():
                     break   # Alt+D en pausa: se reanuda para poder purgar
         finally:
-            try:    self._voz.Resume()
-            except Exception as exc:
-                logger.debug("Resume: %s", exc)
+            self._motor.reanudar()
+
+    def _cambiar_voz_base(self, val) -> None:
+        idx = escala_voz.resolver_voz(val, self._voces)
+        if idx is None:
+            logger.debug("Voz base %r no resuelta.", val)
+            return
+        self._voz_base = idx
+        if idx != self._voz_actual and self._motor.elegir_voz(idx):
+            self._voz_actual = idx
+        logger.info("Voz base: %s", self._voces[idx])
 
     def _procesar_comandos(self):
         while not self._cmds.empty():
@@ -214,75 +293,17 @@ class TTSWorker(threading.Thread):
             except queue.Empty: break
             try:
                 if cmd == "voice":
-                    # Cambia la voz BASE (la del menú); los mensajes normales la
-                    # usan y los eventos pueden pedir otra (multi-voz).
-                    if self._voces_col is not None and 0 <= val < self._voces_col.Count:
-                        self._voz_base_idx = val
-                        self._aplicar_voz_idx(val)
-                        logger.info("Voz base: %s",
-                                    self._voces_col.Item(val).GetDescription())
+                    self._cambiar_voz_base(val)
                 elif cmd == "rate":
-                    self._voz.Rate = max(-10, min(10, int(val)))
+                    self._motor.fijar_velocidad(val)
                 elif cmd == "volume":
-                    self._voz.Volume = max(0, min(100, int(val)))
+                    self._motor.fijar_volumen(val)
+                elif cmd == "tono":
+                    self._motor.fijar_tono(val)
                 elif cmd == "purge":
                     self._purge_pending.set()
             except Exception as exc:
                 logger.warning("Comando %s: %s", cmd, exc)
-
-    def _init_com(self):
-        try:
-            import pythoncom; pythoncom.CoInitialize()
-        except ImportError:
-            raise RuntimeError("pywin32 no instalado: pip install pywin32")
-        except Exception as exc:
-            logger.debug("CoInitialize: %s", exc)
-
-    def _create_voice(self):
-        try:    import win32com.client
-        except ImportError:
-            raise RuntimeError("win32com no disponible: pip install pywin32")
-        try:    tts = win32com.client.Dispatch("SAPI.SpVoice")
-        except Exception as exc:
-            raise RuntimeError(f"No se pudo crear SAPI.SpVoice: {exc}") from exc
-
-        voces = tts.GetVoices()
-        if voces.Count == 0:
-            raise RuntimeError("No hay voces SAPI5.")
-        idx = self._resolve_voice(self.config["voz"], voces)
-        if idx is None:
-            # Una voz desinstalada no debe impedir arrancar la app (antes:
-            # ValueError → «No se pudo iniciar el motor de voz» y salida).
-            nombres = "\n".join(f"  [{i}] {voces.Item(i).GetDescription()}" for i in range(voces.Count))
-            logger.warning("Voz '%s' no encontrada; se usa la primera disponible.\n%s",
-                           self.config["voz"], nombres)
-            idx = 0
-
-        tts.Voice  = voces.Item(idx)
-        tts.Volume = self._volume
-        tts.Rate   = self._rate
-        self._voces_col = voces      # cacheada para cambiar de voz sin recrearla
-        self._voz_base_idx = idx
-        self._voz_actual_idx = idx
-        logger.info("Voz: %s | Rate: %+d | Vol: %d%%",
-                    voces.Item(idx).GetDescription(), tts.Rate, tts.Volume)
-        return tts
-
-    def _resolve_voice(self, cfg, voces):
-        try:
-            idx = int(cfg)
-            if 0 <= idx < voces.Count: return idx
-            return 0
-        except ValueError: pass
-        term = str(cfg).lower()
-        for i in range(voces.Count):
-            if term in voces.Item(i).GetDescription().lower(): return i
-        return None
-
-    def _pump(self):
-        try:
-            import pythoncom; pythoncom.PumpWaitingMessages()
-        except Exception: pass
 
     # ── API pública ──────────────────────────────────────────────────────────
 
@@ -291,6 +312,14 @@ class TTSWorker(threading.Thread):
         if self._error:
             logger.error(str(self._error)); return False
         return True
+
+    def voces(self) -> list[str]:
+        """Nombres de voz del motor activo. Válida tras `esperar_inicio`."""
+        return list(self._voces)
+
+    def motor_activo(self) -> str:
+        """Motor que quedó activo de verdad: 'sapi' u 'onecore'."""
+        return self._motor.motor if self._motor is not None else ""
 
     def pausar(self):
         if not self._paused:
@@ -327,22 +356,29 @@ class TTSWorker(threading.Thread):
     def cambiar_voz(self, idx: int):
         self._cmds.put(("voice", idx))
 
-    def cambiar_rate(self, delta: int):
+    def cambiar_rate(self, pasos: int) -> None:
         # El contador se actualiza AQUÍ (en el hilo del llamador) y al hilo TTS
         # va el valor absoluto: así get_rate() devuelve el valor nuevo al
         # instante y pulsar rápido no desfasa lo anunciado/persistido.
-        self._rate = max(-10, min(10, self._rate + int(delta)))
+        self._rate = escala_voz.ajustar_velocidad(self._rate, pasos)
         self._cmds.put(("rate", self._rate))
 
     def cambiar_volumen(self, delta: int) -> None:
         self._volume = max(0, min(100, self._volume + int(delta)))
         self._cmds.put(("volume", self._volume))
 
+    def cambiar_tono(self, pct: int) -> None:
+        self._tono = max(0, min(100, _entero(pct, self._tono)))
+        self._cmds.put(("tono", self._tono))
+
     def get_rate(self) -> int:
         return self._rate
 
     def get_volume(self) -> int:
         return self._volume
+
+    def get_tono(self) -> int:
+        return self._tono
 
     def ultimo_autor(self) -> str:
         """Autor del último mensaje que la voz empezó a leer.

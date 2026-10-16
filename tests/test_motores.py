@@ -92,6 +92,14 @@ class TestMotorPrismConContextoFalso(unittest.TestCase):
         self.assertFalse(motor.hablar(""))
         self.assertEqual(backend.speaks, [])
 
+    def test_hablar_no_interrumpe(self):
+        # La purga y el corte de frase los maneja el worker con parar(); Prism
+        # no debe interrumpir por su cuenta al encolar.
+        backend = _BackendFalso()
+        motor = self._motor(backend=backend)
+        self.assertTrue(motor.hablar("hola"))
+        self.assertEqual(backend.speaks, [("hola", False)])
+
     def test_pausar_dos_veces_no_lanza(self):
         backend = _BackendFalso()
         motor = self._motor(backend=backend)

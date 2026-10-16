@@ -1,149 +1,255 @@
-"""Tests de la lógica pura de tts_worker (sanitización, formato, rate)."""
+"""Tests del worker TTS con Prism: arranque del motor, habla, pausa y atajos."""
 
 import queue
-import sys
 import threading
 import time
-import types
 import unittest
 from unittest import mock
 
+from ytchat.voice import motores
 from ytchat.voice import tts_worker
-from ytchat.voice.tts_worker import sanitizar, construir_tts, _wpm_a_rate
+from ytchat.voice.tts_worker import sanitizar, construir_tts
+
+
+class MotorFalso:
+    """Doble del envoltorio de Prism. Con `duracion` simula el habla real: el
+    estado sube a True recién a `subida` segundos y baja solo a `duracion`."""
+
+    def __init__(self, voces=("Voz A", "Voz B")):
+        self.motor = "sapi"
+        self._voces = list(voces)
+        self.hablando_ = False
+        self.subida = 0.0
+        self.duracion = 0.0
+        self.t0 = 0.0
+        self.hablar_ok = True
+        self.elegidas = []
+        self.hablados = []
+        self.paradas = 0
+        self.pausas = 0
+        self.reanudadas = 0
+        self.velocidad = self.volumen = self.tono = None
+        self.cerrado = False
+
+    def voces(self):
+        return list(self._voces)
+
+    def elegir_voz(self, idx):
+        self.elegidas.append(idx)
+        return True
+
+    def hablar(self, texto):
+        self.hablados.append((texto, time.monotonic()))
+        self.t0 = time.monotonic()
+        self.hablando_ = True
+        return self.hablar_ok
+
+    def hablando(self):
+        if self.duracion:
+            e = time.monotonic() - self.t0
+            return self.subida <= e < self.duracion
+        return self.hablando_
+
+    def parar(self):
+        self.hablando_ = False
+        self.paradas += 1
+
+    def pausar(self):
+        self.pausas += 1
+
+    def reanudar(self):
+        self.reanudadas += 1
+
+    def fijar_velocidad(self, pct):
+        self.velocidad = pct
+
+    def fijar_volumen(self, pct):
+        self.volumen = pct
+
+    def fijar_tono(self, pct):
+        self.tono = pct
+
+    def cerrar(self):
+        self.cerrado = True
+
+
+class FabricaFalsa:
+    """Fábrica de motores: devuelve el doble pedido o falla como Prism."""
+
+    def __init__(self, por_nombre, fallan=()):
+        self.por_nombre = por_nombre
+        self.fallan = set(fallan)
+        self.creados = []
+
+    def __call__(self, nombre):
+        self.creados.append(nombre)
+        if nombre in self.fallan:
+            raise motores.MotorNoDisponible(f"{nombre} no disponible")
+        return self.por_nombre[nombre]
+
+
+def _worker_con(motor, config=None):
+    w = tts_worker.TTSWorker(queue.Queue(), config or {},
+                             fabrica_motor=FabricaFalsa({"sapi": motor}))
+    return w
 
 
 class TestArranque(unittest.TestCase):
-    """El arranque del motor no debe tumbar la app por una voz desinstalada, y
-    un fallo de COM debe llegar con su causa."""
+    """El arranque no debe tumbar la app por una voz desinstalada ni por un
+    motor que falta: cae a la primera voz o a SAPI, y deja constancia."""
 
-    def _worker(self, voz):
-        worker = tts_worker.TTSWorker.__new__(tts_worker.TTSWorker)
-        worker.config = {"voz": voz}
-        worker._volume = 70
-        worker._rate = 0
-        worker._voces_col = None
-        worker._voz_base_idx = worker._voz_actual_idx = 0
-        return worker
+    def test_arranca_y_carga_voces_y_ajustes(self):
+        motor = MotorFalso()
+        worker = _worker_con(motor, {"velocidad_voz": 40, "volumen": 0.5, "tono": 30})
+        worker._abrir_motor()
+        self.assertEqual(worker.voces(), ["Voz A", "Voz B"])
+        self.assertEqual(worker.motor_activo(), "sapi")
+        self.assertEqual(motor.elegidas, [0])
+        self.assertEqual((motor.velocidad, motor.volumen, motor.tono), (40, 50, 30))
 
-    def _sapi(self, descripciones):
-        items = [mock.Mock(**{"GetDescription.return_value": d}) for d in descripciones]
-        voces = mock.Mock(Count=len(items))
-        voces.Item.side_effect = lambda i: items[i]
-        tts = mock.Mock()
-        tts.GetVoices.return_value = voces
-        client = types.SimpleNamespace(Dispatch=mock.Mock(return_value=tts))
-        return types.SimpleNamespace(client=client), client, tts, items
-
-    def test_voz_desinstalada_cae_a_la_primera_sin_abortar(self):
-        modulo, client, tts, items = self._sapi(["Microsoft Helena", "Microsoft Pablo"])
-        worker = self._worker("Lucía")
-        with mock.patch.dict(sys.modules, {"win32com": modulo, "win32com.client": client}), \
-                mock.patch.object(tts_worker.logger, "warning") as avisar:
-            voz = worker._create_voice()
-        self.assertIs(voz, tts)
-        self.assertIs(tts.Voice, items[0])
-        self.assertEqual(worker._voz_base_idx, 0)
+    def test_voz_desinstalada_cae_a_la_primera(self):
+        motor = MotorFalso()
+        worker = _worker_con(motor, {"voz": "Lucía"})
+        with mock.patch.object(tts_worker.logger, "warning") as avisar:
+            worker._abrir_motor()
+        self.assertEqual(motor.elegidas, [0])
         self.assertIn("no encontrada", avisar.call_args.args[0])
 
-    def test_voz_por_nombre_sigue_resolviendose(self):
-        modulo, client, tts, items = self._sapi(["Microsoft Helena", "Microsoft Pablo"])
-        worker = self._worker("pablo")
-        with mock.patch.dict(sys.modules, {"win32com": modulo, "win32com.client": client}):
-            worker._create_voice()
-        self.assertIs(tts.Voice, items[1])
-        self.assertEqual(worker._voz_base_idx, 1)
+    def test_voz_por_nombre_se_resuelve(self):
+        motor = MotorFalso()
+        worker = _worker_con(motor, {"voz": "Voz B"})
+        worker._abrir_motor()
+        self.assertEqual(motor.elegidas, [1])
 
-    def test_fallo_de_com_llega_a_error_con_su_causa(self):
-        worker = tts_worker.TTSWorker.__new__(tts_worker.TTSWorker)
-        worker._ready = threading.Event()
-        worker._error = None
-        worker._init_com = mock.Mock(side_effect=RuntimeError("pywin32 no instalado"))
-        worker._create_voice = mock.Mock()
-        worker.run()
-        self.assertTrue(worker._ready.is_set())
-        self.assertIn("pywin32", str(worker._error))
-        worker._create_voice.assert_not_called()
-        self.assertFalse(worker.esperar_inicio(timeout=0))
+    def test_motor_pedido_que_falta_usa_sapi(self):
+        sapi, onecore = MotorFalso(), MotorFalso()
+        fabrica = FabricaFalsa({"sapi": sapi, "onecore": onecore}, fallan=["onecore"])
+        worker = tts_worker.TTSWorker(queue.Queue(), {"motor": "onecore"},
+                                      fabrica_motor=fabrica)
+        worker._abrir_motor()
+        self.assertEqual(fabrica.creados, ["onecore", "sapi"])
+        self.assertEqual(worker.motor_activo(), "sapi")
 
+    def test_motor_sin_voces_es_error(self):
+        motor = MotorFalso(voces=[])
+        worker = _worker_con(motor)
+        worker.start()
+        self.addCleanup(worker.detener)
+        self.assertFalse(worker.esperar_inicio(timeout=5))
+        self.assertIn("voces", str(worker._error))
 
-class TestPausaAMitadDeFrase(unittest.TestCase):
-
-    def _worker(self):
-        worker = tts_worker.TTSWorker.__new__(tts_worker.TTSWorker)
-        worker._voz = mock.Mock()
-        worker._purge_pending = threading.Event()
-        worker._active = threading.Event()   # empieza en pausa
-        worker._voz_base_idx = 0
-        worker._aplicar_voz_idx = mock.Mock()
-        return worker
-
-    def test_en_pausa_se_pausa_la_voz_y_se_atienden_comandos(self):
-        worker = self._worker()
-        worker._voz.WaitUntilDone.side_effect = [False, True]
-        llamadas = []
-
-        def procesar():
-            llamadas.append(1)
-            if len(llamadas) >= 2:      # un comando llegó durante la pausa
-                worker._active.set()
-        worker._procesar_comandos = mock.Mock(side_effect=procesar)
-        worker._hablar("mensaje largo")
-        worker._voz.Pause.assert_called_once_with()
-        worker._voz.Resume.assert_called_once_with()
-        self.assertGreaterEqual(len(llamadas), 2)
-
-    def test_purga_durante_la_pausa_corta_la_frase_y_sigue_en_pausa(self):
-        worker = self._worker()
-        worker._voz.WaitUntilDone.side_effect = [False, False, True]
-        llamadas = []
-
-        def procesar():
-            llamadas.append(1)
-            if len(llamadas) == 2:      # Alt+D con la voz en pausa
-                worker._purge_pending.set()
-        worker._procesar_comandos = mock.Mock(side_effect=procesar)
-        worker._hablar("mensaje largo")
-        worker._voz.Resume.assert_called_once_with()
-        purgas = [c for c in worker._voz.Speak.call_args_list
-                  if c.args == ("", tts_worker.SVSF_ASYNC | tts_worker.SVSF_PURGE_BEFORE)]
-        self.assertEqual(len(purgas), 1)
-        self.assertFalse(worker._active.is_set())
+    def test_sapi_que_falla_no_se_respalda(self):
+        fabrica = FabricaFalsa({}, fallan=["sapi"])
+        worker = tts_worker.TTSWorker(queue.Queue(), {"motor": "sapi"},
+                                      fabrica_motor=fabrica)
+        worker.start()
+        self.addCleanup(worker.detener)
+        self.assertFalse(worker.esperar_inicio(timeout=5))
+        self.assertEqual(fabrica.creados, ["sapi"])
 
 
-class TestPurgaArmada(unittest.TestCase):
-    """Una purga pedida con la voz callada no debe cortar el mensaje siguiente."""
+class TestHabla(unittest.TestCase):
 
-    def _worker(self):
-        worker = tts_worker.TTSWorker.__new__(tts_worker.TTSWorker)
-        worker._voz = mock.Mock()
-        worker._voz.WaitUntilDone.return_value = True
-        worker._purge_pending = threading.Event()
-        worker._active = threading.Event()
-        worker._active.set()
-        worker._voz_base_idx = 0
-        worker._aplicar_voz_idx = mock.Mock()
+    def test_espera_la_subida_del_estado_antes_de_dar_por_terminado(self):
+        motor = MotorFalso()
+        motor.subida = 0.05
+        motor.duracion = 0.30
+        worker = _worker_con(motor)
+        worker._abrir_motor()
         worker._procesar_comandos = mock.Mock()
-        return worker
+        inicio = time.monotonic()
+        worker._hablar("mensaje")
+        transcurrido = time.monotonic() - inicio
+        # Sin esperar la subida, `hablando()` arranca en False y el mensaje se
+        # daría por terminado al instante (transcurrido casi cero).
+        self.assertGreaterEqual(transcurrido, 0.20)
 
-    def test_purga_pendiente_se_descarta_antes_de_hablar(self):
-        worker = self._worker()
+    def test_onecore_en_pausa_no_termina_la_frase(self):
+        motor = MotorFalso()
+        motor.hablando_ = True
+        worker = _worker_con(motor)
+        worker._abrir_motor()
+        pasos = {"n": 0}
+
+        def procesar():
+            pasos["n"] += 1
+            if pasos["n"] == 1:
+                worker._active.clear()       # pausa
+                motor.hablando_ = False      # OneCore calla el estado al pausar
+            if pasos["n"] == 3:
+                worker._active.set()         # reanudar
+                motor.hablando_ = False      # ...ya terminó
+
+        worker._procesar_comandos = mock.Mock(side_effect=procesar)
+        worker._hablar("mensaje")
+        self.assertEqual(motor.pausas, 1)
+        self.assertEqual(motor.reanudadas, 1)
+
+    def test_una_purga_armada_no_corta_el_mensaje_siguiente(self):
+        motor = MotorFalso()
+        motor.duracion = 0.1
+        worker = _worker_con(motor)
+        worker._abrir_motor()
+        worker._procesar_comandos = mock.Mock()
         worker._purge_pending.set()   # detener_actual() con la voz callada
         worker._hablar("primer mensaje tras reconectar")
-        self.assertFalse(worker._purge_pending.is_set())
-        worker._voz.Speak.assert_called_once_with(
-            "primer mensaje tras reconectar", tts_worker._SPEAK_FLAGS)
+        self.assertEqual(motor.paradas, 0)
+        self.assertEqual([t for t, _ in motor.hablados], ["primer mensaje tras reconectar"])
 
-    def test_purga_durante_la_lectura_sigue_cortando(self):
-        worker = self._worker()
-        worker._voz.WaitUntilDone.side_effect = [False, False, True]
-
-        def pedir_purga():
-            worker._purge_pending.set()
-        worker._procesar_comandos = mock.Mock(side_effect=pedir_purga)
+    def test_una_purga_durante_la_lectura_corta(self):
+        motor = MotorFalso()
+        motor.hablando_ = True
+        worker = _worker_con(motor)
+        worker._abrir_motor()
+        worker._procesar_comandos = mock.Mock(
+            side_effect=lambda: worker._purge_pending.set())
         worker._hablar("mensaje largo")
-        llamadas = worker._voz.Speak.call_args_list
-        self.assertEqual(llamadas[0].args[0], "mensaje largo")
-        self.assertEqual(llamadas[1].args, ("", tts_worker.SVSF_ASYNC | tts_worker.SVSF_PURGE_BEFORE))
+        self.assertEqual(motor.paradas, 1)
+
+
+class TestVozPorMensaje(unittest.TestCase):
+
+    def test_sin_voz_usa_la_base(self):
+        motor = MotorFalso()
+        worker = _worker_con(motor, {"voz": "Voz B"})
+        worker._abrir_motor()
+        motor.elegidas.clear()
+        worker._aplicar_voz(None)
+        self.assertEqual(motor.elegidas, [])   # ya es la base, no la re-elige
+
+    def test_voz_del_evento_se_aplica(self):
+        motor = MotorFalso()
+        worker = _worker_con(motor, {"voz": "Voz A"})
+        worker._abrir_motor()
+        motor.elegidas.clear()
+        worker._aplicar_voz("Voz B")
+        self.assertEqual(motor.elegidas, [1])
+
+    def test_voz_no_resuelta_cae_a_la_base(self):
+        motor = MotorFalso()
+        worker = _worker_con(motor, {"voz": "Voz A"})
+        worker._abrir_motor()
+        motor.elegidas.clear()
+        worker._aplicar_voz("Inexistente")
+        self.assertEqual(motor.elegidas, [])
+
+
+class TestAjustes(unittest.TestCase):
+
+    def test_rate_sube_de_a_cinco_en_porcentaje(self):
+        worker = tts_worker.TTSWorker(queue.Queue(), {"velocidad_voz": 50})
+        worker.cambiar_rate(1)
+        self.assertEqual(worker.get_rate(), 55)
+
+    def test_rate_baja_y_topea(self):
+        worker = tts_worker.TTSWorker(queue.Queue(), {"velocidad_voz": 5})
+        worker.cambiar_rate(-1)
+        self.assertEqual(worker.get_rate(), 0)
+
+    def test_volumen_topea_en_rango(self):
+        worker = tts_worker.TTSWorker(queue.Queue(), {"volumen": 0.9})
+        worker.cambiar_volumen(50)
+        self.assertEqual(worker.get_volume(), 100)
 
 
 class TestUltimoAutor(unittest.TestCase):
@@ -151,10 +257,10 @@ class TestUltimoAutor(unittest.TestCase):
 
     def _worker_en_marcha(self, hablados):
         cola = queue.Queue()
-        worker = tts_worker.TTSWorker(cola, {})
-        worker._init_com = lambda: None
-        worker._create_voice = lambda: mock.Mock()
-        worker._hablar = lambda texto, voz=None: hablados.append(texto)
+        motor = MotorFalso()
+        motor.duracion = 0.02
+        worker = tts_worker.TTSWorker(
+            cola, {}, fabrica_motor=FabricaFalsa({"sapi": motor}))
         worker.start()
         self.assertTrue(worker.esperar_inicio(timeout=5))
         self.addCleanup(worker.detener)
@@ -168,43 +274,49 @@ class TestUltimoAutor(unittest.TestCase):
             time.sleep(0.02)
         self.assertEqual(worker.ultimo_autor(), esperado)
 
-    def _esperar_hablados(self, hablados, cantidad, timeout=5.0):
-        fin = time.monotonic() + timeout
-        while time.monotonic() < fin:
-            if len(hablados) >= cantidad:
-                return
-            time.sleep(0.02)
-        self.assertGreaterEqual(len(hablados), cantidad)
-
     def test_empieza_sin_autor(self):
         worker, _cola = self._worker_en_marcha([])
         self.assertEqual(worker.ultimo_autor(), "")
 
     def test_registra_el_autor_que_empieza_a_leer(self):
-        hablados = []
-        worker, cola = self._worker_en_marcha(hablados)
+        worker, cola = self._worker_en_marcha([])
         cola.put({"texto_tts": "hola", "autor": "Ana"})
         self._esperar_autor(worker, "Ana")
-        self.assertEqual(hablados, ["hola"])
 
     def test_un_item_sin_autor_no_borra_el_anterior(self):
-        hablados = []
-        worker, cola = self._worker_en_marcha(hablados)
+        worker, cola = self._worker_en_marcha([])
         cola.put({"texto_tts": "hola", "autor": "Ana"})
         self._esperar_autor(worker, "Ana")
         cola.put({"texto_tts": "aviso interno"})
-        self._esperar_hablados(hablados, 2)
+        time.sleep(0.2)
         self.assertEqual(worker.ultimo_autor(), "Ana")
 
     def test_un_item_con_texto_vacio_no_cambia_el_autor(self):
-        hablados = []
-        worker, cola = self._worker_en_marcha(hablados)
+        worker, cola = self._worker_en_marcha([])
         cola.put({"texto_tts": "hola", "autor": "Ana"})
         self._esperar_autor(worker, "Ana")
         cola.put({"texto_tts": "   ", "autor": "Beto"})
-        time.sleep(1.0)   # el bucle lo salta sin hablar (timeout 0,3)
-        self.assertEqual(hablados, ["hola"])
+        time.sleep(0.5)
         self.assertEqual(worker.ultimo_autor(), "Ana")
+
+
+class TestPrismReal(unittest.TestCase):
+    """Ejecuta el envoltorio real de Prism: si Prism o las voces cambian de
+    forma incompatible, esto lo caza (volumen 0 para no sonar)."""
+
+    def test_habla_sin_sonido_con_el_motor_real(self):
+        if not motores.listar_voces("sapi"):
+            self.skipTest("no hay voces SAPI en este equipo")
+        cola = queue.Queue()
+        worker = tts_worker.TTSWorker(cola, {"motor": "sapi", "volumen": 0.0})
+        worker.start()
+        self.addCleanup(worker.detener)
+        self.assertTrue(worker.esperar_inicio(timeout=10))
+        self.assertTrue(worker.voces())
+        cola.put({"texto_tts": "prueba de voz", "autor": "QA"})
+        time.sleep(0.6)
+        worker.detener()
+        self.assertEqual(worker._error, None)
 
 
 class TestSanitizar(unittest.TestCase):
@@ -273,22 +385,6 @@ class TestConstruirTTS(unittest.TestCase):
 
     def test_autor_vacio_usa_placeholder(self):
         self.assertEqual(construir_tts("", "hola", self._cfg()), "Usuario: hola")
-
-
-class TestWpmARate(unittest.TestCase):
-
-    def test_valor_neutro(self):
-        self.assertEqual(_wpm_a_rate(180), 0)
-
-    def test_limite_inferior(self):
-        # El rate SAPI5 nunca baja de -10 por mucho que se reduzca el wpm.
-        self.assertEqual(_wpm_a_rate(-100), -10)
-
-    def test_limite_superior(self):
-        self.assertEqual(_wpm_a_rate(10000), 10)
-
-    def test_rapido(self):
-        self.assertEqual(_wpm_a_rate(220), 2)
 
 
 if __name__ == "__main__":

@@ -201,7 +201,7 @@ def _render(nombre: str, s: SnapshotSesion, largo: bool) -> str:
         return f"En cola: {n}" if largo else f"{n} en cola"
 
     if nombre == "voz":
-        return (f"Voz: velocidad {s.voz_velocidad:+d}, volumen {s.voz_volumen}%")
+        return (f"Voz: velocidad {s.voz_velocidad}, volumen {s.voz_volumen}%")
 
     if nombre == "lectura_silenciada":
         return "Lectura silenciada" if s.lectura_silenciada else ""

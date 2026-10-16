@@ -530,7 +530,7 @@ class TestCableado(unittest.TestCase):
 
 class TestConsultaReal(unittest.TestCase):
 
-    def test_release_actual_sin_firma_devuelve_none(self):
+    def test_consulta_real_devuelve_un_paquete_coherente_o_none(self):
         from urllib.request import Request, urlopen
         try:
             solicitud = Request(
@@ -540,8 +540,16 @@ class TestConsultaReal(unittest.TestCase):
                 respuesta.read(16)
         except Exception:
             self.skipTest("sin red")
-        # La 2.1.0 no trae .sha256: sin paquete compatible, sin excepción.
-        self.assertIsNone(actualizacion.consultar_ultima_version())
+        resultado = actualizacion.consultar_ultima_version()
+        if resultado is None:
+            return
+        self.assertTrue(resultado.version.startswith("v"), resultado.version)
+        self.assertTrue(resultado.url_zip.endswith(".zip"), resultado.url_zip)
+        self.assertEqual(resultado.url_zip + ".sha256", resultado.url_firma)
+        self.assertTrue(resultado.url_zip.startswith("https://github.com/"))
+        self.assertTrue(resultado.url_firma.startswith("https://github.com/"))
+        self.assertIsInstance(resultado.tamanio, int)
+        self.assertGreater(resultado.tamanio, 0)
 
 
 if __name__ == "__main__":

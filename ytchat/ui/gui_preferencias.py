@@ -108,6 +108,9 @@ _OPCIONES_SIMPLES = (
     ("sp_espera_reconexion", "reconexion", "espera_entre_intentos", "espera_entre_intentos", int, 15),
     ("sp_max_intentos", "reconexion", "max_intentos", "max_intentos", int, 20),
     ("chk_buscar_actualizaciones", "actualizaciones", "buscar_al_iniciar", "buscar_actualizaciones_al_iniciar", bool, True),
+    ("chk_confirmar_salida", "ui", "confirmar_salida", "confirmar_salida", bool, True),
+    ("chk_recordar_direccion", "ui", "recordar_direccion", "recordar_direccion", bool, True),
+    ("chk_sonido_inicio", "ui", "sonido_inicio", "sonido_inicio", bool, True),
     ("chk_registro_detallado", "diagnostico", "registro_detallado", "registro_detallado", bool, False),
     ("sp_puerto_overlay", "overlay", "puerto", "overlay_puerto", int, 8730),
 )
@@ -189,6 +192,7 @@ class PreferenciasDialog(wx.Dialog):
         self.lista_categorias = self.nb.GetListView()
         nombre_accesible(self.lista_categorias, "Categorías")
         _tc(self.lista_categorias, bg=_T.surface)
+        self.nb.AddPage(self._pag_general(self.nb), "General")
         self.nb.AddPage(self._pag_voz(self.nb), "Voces")
         self.nb.AddPage(self._pag_lectura(self.nb), "Lectura")
         self.nb.AddPage(self._pag_cola(self.nb), "Cola de lectura")
@@ -201,7 +205,6 @@ class PreferenciasDialog(wx.Dialog):
         self.nb.AddPage(self._pag_api(self.nb), "API y sesión")
         self.nb.AddPage(self._pag_programados(self.nb), "Mensajes automáticos")
         self.nb.AddPage(self._pag_transmision(self.nb), "Transmisión")
-        self.nb.AddPage(self._pag_diagnostico(self.nb), "Diagnóstico")
         # Mínimo explícito: si no, el libro pide el «mejor tamaño» de la página
         # más alta (Atajos, más de 1200 px) y el sizer lo desbordaría en vez
         # de dejar que la página se desplace.
@@ -344,6 +347,40 @@ class PreferenciasDialog(wx.Dialog):
         p.SetSizer(vs)
         return p
 
+    def _pag_general(self, parent):
+        p = self._make_panel(parent, "PagGeneral")
+        vs = wx.BoxSizer(wx.VERTICAL)
+
+        self.chk_buscar_actualizaciones = wx.CheckBox(
+            p, label="Buscar &actualizaciones al iniciar",
+            name="Buscar actualizaciones al iniciar")
+        vs.Add(self.chk_buscar_actualizaciones, 0, wx.ALL, 10)
+
+        self.chk_confirmar_salida = wx.CheckBox(
+            p, label="Preguntar antes de &salir si hay un chat conectado "
+                     "o una transmisión en curso",
+            name="Preguntar antes de salir si hay un chat conectado "
+                 "o una transmisión en curso")
+        vs.Add(self.chk_confirmar_salida, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        self.chk_recordar_direccion = wx.CheckBox(
+            p, label="&Recordar la última dirección",
+            name="Recordar la última dirección")
+        vs.Add(self.chk_recordar_direccion, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        self.chk_sonido_inicio = wx.CheckBox(
+            p, label="Reproducir el sonido de &inicio",
+            name="Reproducir el sonido de inicio")
+        vs.Add(self.chk_sonido_inicio, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        self.chk_registro_detallado = wx.CheckBox(
+            p, label="Guardar un registro &detallado para diagnosticar fallos",
+            name="Guardar un registro detallado para diagnosticar fallos")
+        vs.Add(self.chk_registro_detallado, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        p.SetSizer(vs)
+        return p
+
     def _pag_conexion(self, parent):
         p = self._make_panel(parent, "PagConexion")
         vs = wx.BoxSizer(wx.VERTICAL)
@@ -366,11 +403,6 @@ class PreferenciasDialog(wx.Dialog):
             p, min=0, max=100,
             name="Número máximo de intentos")
         vs.Add(self.sp_max_intentos, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-
-        self.chk_buscar_actualizaciones = wx.CheckBox(
-            p, label="Buscar &actualizaciones al iniciar",
-            name="Buscar actualizaciones al iniciar")
-        vs.Add(self.chk_buscar_actualizaciones, 0, wx.ALL, 10)
 
         p.SetSizer(vs)
         return p
@@ -408,16 +440,6 @@ class PreferenciasDialog(wx.Dialog):
         self.btn_activar_websocket_obs.Bind(
             wx.EVT_BUTTON, self._activar_servidor_websocket_obs)
 
-        p.SetSizer(vs)
-        return p
-
-    def _pag_diagnostico(self, parent):
-        p = self._make_panel(parent, "PagDiagnostico")
-        vs = wx.BoxSizer(wx.VERTICAL)
-        self.chk_registro_detallado = wx.CheckBox(
-            p, label="Guardar un registro &detallado para diagnosticar fallos",
-            name="Guardar un registro detallado para diagnosticar fallos")
-        vs.Add(self.chk_registro_detallado, 0, wx.ALL, 10)
         p.SetSizer(vs)
         return p
 

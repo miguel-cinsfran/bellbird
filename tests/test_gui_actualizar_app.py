@@ -320,6 +320,26 @@ class TestVentana(unittest.TestCase):
             [mock.call.lanzar(*esperado.args, **esperado.kwargs),
              mock.call.cerrar()], gestor.mock_calls)
 
+    def test_instalar_marca_cierre_sin_preguntar_antes_de_cerrar(self):
+        def descargar(*args, **kwargs):
+            return actualizacion.ResultadoDescarga(True, "paquete descargado")
+        self._doble(mock.patch.object(
+            actualizacion, "lanzar_instalador"))
+        frame, ventana = self._abrir_descargable(descargar)
+        vista_al_cerrar = []
+        cierre_real = frame.Close
+
+        def cerrar_con_chequeo():
+            vista_al_cerrar.append(
+                getattr(frame, "_cerrar_sin_preguntar", False))
+            return cierre_real()
+
+        frame.Close = cerrar_con_chequeo
+        ventana.pulsar_accion()
+        self.assertEqual(vista_al_cerrar, [True])
+        self.assertTrue(frame._cerrar_sin_preguntar)
+        cierre_real.assert_called_once_with()
+
     def test_instalar_con_excepcion_no_cierra(self):
         def descargar(*args, **kwargs):
             return actualizacion.ResultadoDescarga(True, "paquete descargado")

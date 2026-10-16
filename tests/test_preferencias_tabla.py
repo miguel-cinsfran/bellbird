@@ -1,6 +1,6 @@
 """Pruebas de la tabla de opciones simples de Preferencias.
 
-La lista de 20 va literal en este módulo, no se lee de la tabla nueva:
+La lista de 23 va literal en este módulo, no se lee de la tabla nueva:
 así protege la tabla en vez de repetirla.
 """
 
@@ -35,6 +35,9 @@ OPCIONES_ESPERADAS = [
     ("sp_espera_reconexion", "reconexion", "espera_entre_intentos", "espera_entre_intentos", int),
     ("sp_max_intentos", "reconexion", "max_intentos", "max_intentos", int),
     ("chk_buscar_actualizaciones", "actualizaciones", "buscar_al_iniciar", "buscar_actualizaciones_al_iniciar", bool),
+    ("chk_confirmar_salida", "ui", "confirmar_salida", "confirmar_salida", bool),
+    ("chk_recordar_direccion", "ui", "recordar_direccion", "recordar_direccion", bool),
+    ("chk_sonido_inicio", "ui", "sonido_inicio", "sonido_inicio", bool),
     ("chk_registro_detallado", "diagnostico", "registro_detallado", "registro_detallado", bool),
     ("sp_puerto_overlay", "overlay", "puerto", "overlay_puerto", int),
 ]
@@ -74,11 +77,11 @@ class TestTablaOpcionesSimples(unittest.TestCase):
             config[en_memoria] = (not por_defecto) if tipo is bool else por_defecto + 1
         return config
 
-    def test_tabla_tiene_20_filas_sin_repetir_y_cada_atributo_existe(self):
+    def test_tabla_tiene_23_filas_sin_repetir_y_cada_atributo_existe(self):
         tabla = gui_preferencias._OPCIONES_SIMPLES
-        self.assertEqual(len(tabla), 20)
+        self.assertEqual(len(tabla), 23)
         atributos = [fila[0] for fila in tabla]
-        self.assertEqual(len(set(atributos)), 20)
+        self.assertEqual(len(set(atributos)), 23)
         dialogo = self._dialogo()
         for atributo in atributos:
             with self.subTest(atributo=atributo):

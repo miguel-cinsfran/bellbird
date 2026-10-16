@@ -395,6 +395,7 @@ class _FlujoActualizacion:
         except Exception as exc:
             self.ventana.estado(f"No se pudo iniciar la instalación: {exc}.")
             return
+        self.frame._cerrar_sin_preguntar = True
         self.frame.Close()
 
 

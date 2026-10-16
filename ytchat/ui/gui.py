@@ -424,6 +424,27 @@ class _LogWx(wx.Log):
 
 # ── Frame principal ──────────────────────────────────────────────────────────
 
+def mensaje_confirmar_salida(confirmar_salida: bool, chat_conectado: bool,
+                             supervisor_activo: bool,
+                             obs_transmitiendo: bool) -> str | None:
+    """Mensaje para preguntar antes de salir, o None si no hay que preguntar.
+
+    Pura y sin wx: recibe la opción y los tres estados y decide. Lo
+    importante va primero, en tono de herramienta.
+    """
+    if not confirmar_salida:
+        return None
+    transmision = bool(supervisor_activo or obs_transmitiendo)
+    if chat_conectado and transmision:
+        return ("¿Salir de la aplicación? Hay un chat conectado y una "
+                "transmisión en curso.")
+    if chat_conectado:
+        return "¿Salir de la aplicación? Hay un chat conectado."
+    if transmision:
+        return "¿Salir de la aplicación? Hay una transmisión en curso."
+    return None
+
+
 class YTChatFrame(wx.Frame):
 
     def __init__(self, parent, config, cola, stats, worker, parada):
@@ -1589,6 +1610,27 @@ class YTChatFrame(wx.Frame):
     def _on_close(self, event):
         if self._apagando:
             return
+        if not getattr(self, "_cerrar_sin_preguntar", False):
+            supervisor = getattr(self, "_supervisor", None)
+            mensaje = mensaje_confirmar_salida(
+                (getattr(self, "_config", None) or {}).get(
+                    "confirmar_salida", True),
+                bool(getattr(self, "_conectado", False)),
+                bool(supervisor is not None and supervisor.activo),
+                bool(getattr(self, "_obs_transmitiendo", False)))
+            puede_vetar = callable(getattr(event, "CanVeto", None)) \
+                and event.CanVeto()
+            if mensaje is not None and puede_vetar:
+                dialogo = wx.MessageDialog(
+                    self, mensaje, "Salir",
+                    wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION | wx.CENTRE)
+                try:
+                    respuesta = dialogo.ShowModal()
+                finally:
+                    dialogo.Destroy()
+                if respuesta != wx.ID_YES:
+                    event.Veto()
+                    return
         self._apagando = True
         self._alive = False
         self._diagnostico_parada.set()
@@ -1802,6 +1844,11 @@ class YTChatFrame(wx.Frame):
         self._conectado = conectado
         if conectado:
             if not estaba:
+                if self._config.get("recordar_direccion", True):
+                    direccion = self.txt_url.GetValue()
+                    self._config["ultima_direccion"] = direccion
+                    guardar_opcion(RUTA_CONFIG, "sesion", "ultima_direccion",
+                                   direccion)
                 self._mostrar_zona(True)
                 self._region_idx = REG_CONTENIDO
                 self._anunciar_conectado()
@@ -2314,6 +2361,12 @@ def iniciar_gui(config, cola, stats, worker, parada,
 
     if url_inicial:
         frame.set_url(url_inicial)
+    elif config.get("recordar_direccion", True) and config.get("ultima_direccion", ""):
+        frame.set_url(config["ultima_direccion"])
+        try:
+            frame.txt_url.SelectAll()
+        except Exception:
+            pass
 
     frame.Show()
     try:
@@ -2326,8 +2379,9 @@ def iniciar_gui(config, cola, stats, worker, parada,
     gui_actualizar_app.programar_resultado_actualizacion(frame)
     gui_actualizar_app.programar_aviso_version(frame)
     gui_directo_huerfano.programar_revision(frame)
-    diagnostico.crear_hilo(
-        lambda: _snd.reproducir("app_inicio"), "SonidoInicio").start()
+    if config.get("sonido_inicio", True):
+        diagnostico.crear_hilo(
+            lambda: _snd.reproducir("app_inicio"), "SonidoInicio").start()
     wx.CallAfter(frame._arrancar_precalentamiento)
 
     if url_inicial and iniciar_captura_cb:

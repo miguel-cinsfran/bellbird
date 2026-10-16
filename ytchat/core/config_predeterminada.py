@@ -100,10 +100,14 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("mostrar_botones_reproductor", "true"),
         ("cache_video_mb", "1024"),
         ("mostrar_metadatos", "true"),
+        ("confirmar_salida", "true"),
+        ("recordar_direccion", "true"),
+        ("sonido_inicio", "true"),
     ]),
     ("sesion", [
         ("guardar_historial", "no"),
         ("silenciar_lectura", "false"),
+        ("ultima_direccion", ""),
     ]),
     ("tiktok", [
         ("anunciar_entradas", "false"),
@@ -238,8 +242,17 @@ def generar_texto() -> str:
             )
         elif sec == "ui":
             partes.append("# Interfaz: fuente del chat y opciones visibles.\n")
+            partes.append(
+                "# confirmar_salida pregunta antes de salir con chat o\n"
+                "# transmisión en curso; recordar_direccion guarda la última\n"
+                "# dirección conectada; sonido_inicio suena al arrancar.\n"
+            )
         elif sec == "sesion":
             partes.append("# Historial en disco: no, csv o txt. Silenciar lectura al arrancar.\n")
+            partes.append(
+                "# ultima_direccion es la última dirección conectada, para\n"
+                "# ofrecerla al arrancar si recordar_direccion está activado.\n"
+            )
         elif sec == "tiktok":
             partes.append(
                 "# Solo TikTok: anunciar quién entra al directo puede ser muchísimo.\n"

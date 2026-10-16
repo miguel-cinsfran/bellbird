@@ -1325,10 +1325,27 @@ class TestCategoriasDePreferencias(unittest.TestCase):
         dialogo = self._dialogo()
         self.assertEqual(
             [dialogo.nb.GetPageText(i) for i in range(dialogo.nb.GetPageCount())],
-            ["Voces", "Lectura", "Cola de lectura", "Interfaz y sonidos",
+            ["General", "Voces", "Lectura", "Cola de lectura", "Interfaz y sonidos",
               "Reproductor", "Conexión", "Filtros",
              "Estado (F2)", "Atajos", "API y sesión", "Mensajes automáticos",
-             "Transmisión", "Diagnóstico"])
+             "Transmisión"])
+
+    def test_pagina_general_primera_con_las_cinco_casillas_en_orden(self):
+        dialogo = self._dialogo()
+        self.assertEqual(dialogo.nb.GetPageText(0), "General")
+        pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagGeneral")
+        casillas = [h.GetName() for h in pagina.GetChildren()
+                    if isinstance(h, gui.wx.CheckBox)]
+        self.assertEqual(
+            casillas,
+            ["Buscar actualizaciones al iniciar",
+             "Preguntar antes de salir si hay un chat conectado "
+             "o una transmisión en curso",
+             "Recordar la última dirección",
+             "Reproducir el sonido de inicio",
+             "Guardar un registro detallado para diagnosticar fallos"])
+        self.assertFalse(any(p.GetName() == "PagDiagnostico"
+                             for p in dialogo._paginas()))
 
     def test_abre_con_el_foco_en_la_lista_de_categorias(self):
         dialogo = self._dialogo()
@@ -1337,6 +1354,13 @@ class TestCategoriasDePreferencias(unittest.TestCase):
     def test_controles_nuevos_tienen_su_nombre_accesible(self):
         dialogo = self._dialogo()
         for nombre, pagina in (
+                ("Buscar actualizaciones al iniciar", "PagGeneral"),
+                ("Preguntar antes de salir si hay un chat conectado "
+                 "o una transmisión en curso", "PagGeneral"),
+                ("Recordar la última dirección", "PagGeneral"),
+                ("Reproducir el sonido de inicio", "PagGeneral"),
+                ("Guardar un registro detallado para diagnosticar fallos",
+                 "PagGeneral"),
                 ("Estrategia de la cola", "PagCola"),
                 ("Tamaño máximo de la cola", "PagCola"),
                 ("Leer solo el nombre a partir de", "PagCola"),
@@ -1344,9 +1368,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
                 ("Espera entre intentos, en segundos", "PagConexion"),
                 ("Número máximo de intentos", "PagConexion"),
                 ("Puerto del panel de chat", "PagTransmision"),
-                ("Micrófono de OBS", "PagTransmision"),
-                ("Guardar un registro detallado para diagnosticar fallos",
-                 "PagDiagnostico")):
+                ("Micrófono de OBS", "PagTransmision")):
             control = self._buscar(dialogo, nombre)
             self.assertIsNotNone(control)
             self.assertEqual(control.GetParent().GetName(), pagina)
@@ -1484,6 +1506,9 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("reconexion", "espera_entre_intentos"),
             ("reconexion", "max_intentos"),
             ("actualizaciones", "buscar_al_iniciar"),
+            ("ui", "confirmar_salida"),
+            ("ui", "recordar_direccion"),
+            ("ui", "sonido_inicio"),
             ("diagnostico", "registro_detallado"),
             ("overlay", "puerto"), ("obs", "microfono"),
         ]
@@ -2728,6 +2753,86 @@ class TestCierreVentana(unittest.TestCase):
         frame._timer.Stop.assert_called_once_with()
         frame._diagnostico_timer.Stop.assert_called_once_with()
 
+    def _frame_conectado(self):
+        frame = self._frame()
+        frame._config = {"confirmar_salida": True}
+        frame._conectado = True
+        frame._supervisor = None
+        frame._obs_transmitiendo = False
+        return frame
+
+    @staticmethod
+    def _evento_vetable():
+        evento = mock.Mock()
+        evento.CanVeto.return_value = True
+        return evento
+
+    def test_con_chat_conectado_y_no_veta_el_cierre(self):
+        frame = self._frame_conectado()
+        evento = self._evento_vetable()
+        dialogo = mock.Mock()
+        dialogo.ShowModal.return_value = gui.wx.ID_NO
+        with mock.patch.object(gui.wx, "MessageDialog",
+                               return_value=dialogo) as crear:
+            frame._on_close(evento)
+
+        crear.assert_called_once()
+        args, _kwargs = crear.call_args
+        self.assertEqual(args[1],
+                         "¿Salir de la aplicación? Hay un chat conectado.")
+        self.assertEqual(args[2], "Salir")
+        dialogo.Destroy.assert_called_once_with()
+        evento.Veto.assert_called_once_with()
+        self.assertFalse(frame._apagando)
+        frame.Destroy.assert_not_called()
+
+    def test_con_chat_conectado_y_si_sigue_el_cierre(self):
+        frame = self._frame_conectado()
+        evento = self._evento_vetable()
+        dialogo = mock.Mock()
+        dialogo.ShowModal.return_value = gui.wx.ID_YES
+        with mock.patch.object(gui.wx, "MessageDialog",
+                               return_value=dialogo), \
+                mock.patch.object(gui.diagnostico, "hilos_vivos_de_la_aplicacion", return_value=()), \
+                mock.patch.object(gui, "anunciar"), \
+                mock.patch.object(gui.diagnostico.logger, "info"):
+            frame._on_close(evento)
+
+        evento.Veto.assert_not_called()
+        self.assertTrue(frame._apagando)
+        frame.Destroy.assert_called_once_with()
+
+    def test_con_marca_de_instalador_no_pregunta(self):
+        frame = self._frame_conectado()
+        frame._cerrar_sin_preguntar = True
+        evento = self._evento_vetable()
+        with mock.patch.object(gui.wx, "MessageDialog") as crear, \
+                mock.patch.object(gui.diagnostico, "hilos_vivos_de_la_aplicacion", return_value=()), \
+                mock.patch.object(gui, "anunciar"), \
+                mock.patch.object(gui.diagnostico.logger, "info"):
+            frame._on_close(evento)
+
+        crear.assert_not_called()
+        evento.Veto.assert_not_called()
+        frame.Destroy.assert_called_once_with()
+
+    def test_sin_actividad_no_pregunta(self):
+        frame = self._frame()
+        frame._config = {"confirmar_salida": True}
+        frame._conectado = False
+        frame._supervisor = None
+        frame._obs_transmitiendo = False
+        evento = self._evento_vetable()
+        with mock.patch.object(gui.wx, "MessageDialog") as crear, \
+                mock.patch.object(gui.diagnostico, "hilos_vivos_de_la_aplicacion", return_value=()), \
+                mock.patch.object(gui, "anunciar"), \
+                mock.patch.object(gui.diagnostico.logger, "info"):
+            frame._on_close(evento)
+
+        crear.assert_not_called()
+        evento.Veto.assert_not_called()
+        frame.Destroy.assert_called_once_with()
+
     def test_encender_el_overlay_con_el_puerto_ocupado_no_persiste_ni_miente(self):
         frame = self._frame()
         frame._config = {"overlay_puerto": 8730, "overlay_activo": False}
@@ -3076,6 +3181,55 @@ class TestCierreVentana(unittest.TestCase):
             if hilo_real is not None:
                 hilo_real.join(timeout=2)
                 self.assertFalse(hilo_real.is_alive())
+
+
+class TestUltimaDireccion(unittest.TestCase):
+    """`set_conectado(True)` guarda la dirección solo en la transición de
+    desconectado a conectado y con la opción activada."""
+
+    def _frame(self, configuracion):
+        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame._alive = True
+        frame._conectado = False
+        frame._config = dict(configuracion)
+        frame.txt_url = mock.Mock()
+        frame.txt_url.GetValue.return_value = "https://ejemplo.com/directo"
+        frame._mostrar_zona = mock.Mock()
+        frame._anunciar_conectado = mock.Mock()
+        frame._set_conectado_ui = mock.Mock()
+        frame._actualizar_estado_online = mock.Mock()
+        return frame
+
+    def test_con_opcion_activada_guarda_la_direccion(self):
+        frame = self._frame({"recordar_direccion": True})
+        with mock.patch.object(gui.wx, "CallAfter"), \
+                mock.patch.object(gui, "guardar_opcion") as guardar:
+            frame.set_conectado(True)
+
+        self.assertEqual(frame._config["ultima_direccion"],
+                         "https://ejemplo.com/directo")
+        guardar.assert_called_once_with(
+            gui.RUTA_CONFIG, "sesion", "ultima_direccion",
+            "https://ejemplo.com/directo")
+
+    def test_con_opcion_desactivada_no_guarda(self):
+        frame = self._frame({"recordar_direccion": False})
+        with mock.patch.object(gui.wx, "CallAfter"), \
+                mock.patch.object(gui, "guardar_opcion") as guardar:
+            frame.set_conectado(True)
+
+        self.assertNotIn("ultima_direccion", frame._config)
+        guardar.assert_not_called()
+
+    def test_solo_guarda_en_la_transicion_a_conectado(self):
+        frame = self._frame({"recordar_direccion": True})
+        frame._conectado = True
+        with mock.patch.object(gui.wx, "CallAfter"), \
+                mock.patch.object(gui, "guardar_opcion") as guardar:
+            frame.set_conectado(True)
+
+        self.assertNotIn("ultima_direccion", frame._config)
+        guardar.assert_not_called()
 
 
 class TestCopiarEnlaceDirecto(unittest.TestCase):

@@ -14,10 +14,9 @@ pywin32>=305
 # Interfaz gráfica accesible
 wxPython>=4.2.2
 
-# Puente con los lectores de pantalla NVDA y JAWS.
-# Opcional: si no está instalado o no hay lector activo, el programa
-# funciona igualmente pero sin anuncios hablados complementarios.
-accessible_output2>=0.17
+# Puente con NVDA, JAWS y otros lectores de pantalla.
+# Va acotado porque es versión 0.x y su API puede cambiar.
+prismatoid>=0.18.3,<0.19
 
 # ── Funciones online (OPCIONAL): YouTube Data API v3 ──────────────────────────
 # Necesarias solo para leer comentarios de vídeos, moderar el chat en vivo,

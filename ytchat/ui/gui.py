@@ -96,63 +96,43 @@ logger = diagnostico.obtener_logger(__name__)
 _OBS_COMPONENTES = frozenset(("obs_transmision", "obs_grabacion", "obs_escena"))
 
 
-# ── accessible_output2 (opcional) ───────────────────────────────────────────
-# Si no está instalado o no hay un lector de pantalla activo, los
+# ── Lector de pantalla (Prism, opcional) ────────────────────────────────────
+# Si Prism no está instalado o no hay un lector de pantalla activo, los
 # `anunciar()` son no-ops silenciosos; la app funciona igual.
 
-_ao2 = None
+_lector = None
 
 
-def _ao2_init():
-    global _ao2
+def _lector_init():
+    global _lector
     try:
-        from accessible_output2.outputs.auto import Auto
-        candidate = Auto()
-        for out in getattr(candidate, "outputs", []):
-            try:
-                if out.is_active() and "sapi" not in type(out).__name__.lower():
-                    _ao2 = candidate
-                    return
-            except Exception:
-                pass
-    except (AttributeError, ImportError):
-        try:
-            import win32com
-            shutil.rmtree(win32com.__gen_path__, ignore_errors=True)
-            from accessible_output2.outputs.auto import Auto
-            candidate = Auto()
-            for out in getattr(candidate, "outputs", []):
-                try:
-                    if out.is_active() and "sapi" not in type(out).__name__.lower():
-                        _ao2 = candidate
-                        return
-                except Exception:
-                    pass
-        except Exception as exc:
-            logger.warning("La aplicación se quedó sin salida para lector de pantalla: %s", exc)
+        from ytchat.voice.lector import Lector
+        _lector = Lector()
+        logger.info("Lector de pantalla: %s", _lector.nombre() or "ninguno")
     except Exception as exc:
         logger.warning("La aplicación se quedó sin salida para lector de pantalla: %s", exc)
 
 
 def anunciar(texto: str, urgente: bool = True) -> None:
-    if _ao2 is None:
+    if _lector is None:
         return
     if not wx.IsMainThread():
-        # accessible_output2 habla por COM (SAPI, JAWS) y no es seguro desde
-        # otros hilos; el vigilante de OBS y las descargas anuncian desde los
-        # suyos, así que se reenvía al hilo de la interfaz.
+        # Prism habla por COM (JAWS) y no es seguro desde otros hilos; el
+        # vigilante de OBS y las descargas anuncian desde los suyos, así que se
+        # reenvía al hilo de la interfaz, que es donde se crea y se usa el
+        # lector porque JAWS crea su COM ahí.
         try:    wx.CallAfter(anunciar, texto, urgente)
         except Exception: pass
         return
     try:
         # Casi todos responden a una tecla y deben llegar antes del próximo foco.
-        _ao2.speak(texto, interrupt=urgente)
+        _lector.speak(texto, interrupt=urgente)
     except Exception as exc:
         logger.warning("No se pudo anunciar con voz: %s", exc)
     # También a la línea braille, como hace TWBlue (output.speak): quien usa
     # pantalla braille sin voz recibe igualmente los anuncios de la app.
     try:
-        _ao2.braille(texto)
+        _lector.braille(texto)
     except Exception:
         pass
 
@@ -2867,7 +2847,7 @@ def iniciar_gui(config, cola, stats, worker, parada,
     global _gui_frame, RUTA_CONFIG
 
     RUTA_CONFIG = paths.config_ini()
-    _ao2_init()
+    _lector_init()
 
     app = AplicacionYTChat(redirect=False)
     frame = YTChatFrame(None, config, cola, stats, worker, parada)

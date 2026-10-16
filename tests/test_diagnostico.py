@@ -100,6 +100,22 @@ class DiagnosticoTest(unittest.TestCase):
         self.assertIn("ENTORNO inicio", texto)
         self.assertIn("Lector de pantalla activo: NVDA", texto)
 
+    def test_lector_activo_devuelve_el_nombre(self):
+        from ytchat.voice import lector as modulo_lector
+        falso = MagicMock()
+        falso.return_value.nombre.return_value = "NVDA"
+        with patch.object(modulo_lector, "Lector", falso):
+            self.assertEqual(diagnostico._lector_activo(), ("NVDA", None))
+
+    def test_lector_activo_sin_lector_explica_el_motivo(self):
+        from ytchat.voice import lector as modulo_lector
+        falso = MagicMock()
+        falso.return_value.nombre.return_value = None
+        with patch.object(modulo_lector, "Lector", falso):
+            self.assertEqual(
+                diagnostico._lector_activo(),
+                (None, "no se detectó un lector de pantalla activo"))
+
     def test_placa_video_oculta_la_ventana_del_subproceso(self):
         resultado = MagicMock(stdout="Placa", stderr="")
         with patch.object(diagnostico.os, "name", "nt"), \

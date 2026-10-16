@@ -63,7 +63,8 @@ call uv run pyinstaller main.py ^
   --onedir --windowed --noconfirm --clean --noupx ^
   --distpath dist --workpath build --specpath build ^
   %ICONO% ^
-  --collect-all accessible_output2 ^
+  --collect-all prism ^
+  --hidden-import _cffi_backend ^
   --collect-submodules googleapiclient ^
   --collect-submodules google_auth_oauthlib ^
   --collect-submodules pytchat ^

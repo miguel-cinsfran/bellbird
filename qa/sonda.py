@@ -37,7 +37,7 @@ VAR_RESULTADOS = "YTCHAT_QA_RESULTADOS"
 
 
 class GrabadorAnuncios:
-    """Ocupa el lugar de `accessible_output2` y escribe en vez de hablar.
+    """Ocupa el lugar del lector de pantalla y escribe en vez de hablar.
 
     Tiene que responder a `speak` y a `braille` porque `gui.anunciar` llama a
     los dos, y cada uno dentro de su propio try. Si alguno faltara, la
@@ -696,22 +696,22 @@ def instalar() -> str:
     from ytchat.ui import gui
     grabador = GrabadorAnuncios(ruta)
 
-    # No alcanza con asignar `gui._ao2` acá: `iniciar_gui` llama a `_ao2_init()`
-    # por dentro, después, y vuelve a poner el objeto real encima. Costó una
-    # corrida entera creer que la sonda estaba puesta cuando no lo estaba, y
-    # peor: creer que la aplicación no iba a hablar cuando sí podía.
-    if not hasattr(gui, "_ao2_init"):
+    # No alcanza con asignar `gui._lector` acá: `iniciar_gui` llama a
+    # `_lector_init()` por dentro, después, y vuelve a poner el objeto real
+    # encima. Costó una corrida entera creer que la sonda estaba puesta cuando
+    # no lo estaba, y peor: creer que la aplicación no iba a hablar cuando sí.
+    if not hasattr(gui, "_lector_init"):
         raise RuntimeError(
-            "gui ya no tiene _ao2_init: la sonda quedó vieja y no puede "
+            "gui ya no tiene _lector_init: la sonda quedó vieja y no puede "
             "garantizar que la aplicación no hable. Revisala antes de seguir.")
 
     def _init_grabando():
-        gui._ao2 = grabador
+        gui._lector = grabador
         grabador._apuntar("sonda", "la aplicación pidió inicializar la voz y "
                                    "se le dio el grabador")
 
-    gui._ao2_init = _init_grabando
-    gui._ao2 = grabador
+    gui._lector_init = _init_grabando
+    gui._lector = grabador
     grabador._apuntar("sonda", "grabador instalado antes de arrancar")
 
     try:

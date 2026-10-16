@@ -204,10 +204,10 @@ def _memoria_total() -> tuple[str | None, str | None]:
 
 def _lector_activo() -> tuple[str | None, str | None]:
     try:
-        from accessible_output2.outputs.auto import Auto
-        for salida in getattr(Auto(), "outputs", []):
-            if salida.is_active() and "sapi" not in type(salida).__name__.lower():
-                return type(salida).__name__, None
+        from ytchat.voice.lector import Lector
+        nombre = Lector().nombre()
+        if nombre:
+            return nombre, None
         return None, "no se detectó un lector de pantalla activo"
     except Exception as exc:
         return None, str(exc)

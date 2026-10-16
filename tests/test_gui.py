@@ -69,7 +69,7 @@ class TestInicioGui(unittest.TestCase):
         with mock.patch.object(gui, "AplicacionYTChat", return_value=aplicacion), \
                 mock.patch.object(gui, "YTChatFrame", return_value=frame), \
                 redirigir_rutas("."), \
-                mock.patch.object(gui, "_ao2_init"), \
+                mock.patch.object(gui, "_lector_init"), \
                 mock.patch.object(gui, "_listar_voces_sapi5", return_value=[]), \
                 mock.patch.object(gui._snd, "reproducir"), \
                 mock.patch.object(gui.wx, "CallAfter"):
@@ -86,13 +86,26 @@ class TestInicioGui(unittest.TestCase):
         with mock.patch.object(gui, "AplicacionYTChat", return_value=aplicacion), \
                 mock.patch.object(gui, "YTChatFrame", return_value=frame), \
                 redirigir_rutas("."), \
-                mock.patch.object(gui, "_ao2_init"), \
+                mock.patch.object(gui, "_lector_init"), \
                 mock.patch.object(gui, "_listar_voces_sapi5", return_value=[]), \
                 mock.patch.object(gui._snd, "reproducir"), \
                 mock.patch.object(gui.wx, "CallAfter") as call_after:
             gui.iniciar_gui(configuracion, object(), object(), object(), object())
 
         call_after.assert_any_call(frame._arrancar_precalentamiento)
+
+    def test_lector_init_deja_una_instancia_de_lector(self):
+        import prism
+        from ytchat.voice import lector as modulo_lector
+        contexto = mock.Mock()
+        contexto.create.side_effect = prism.PrismError("sin lector")
+        anterior = gui._lector
+        try:
+            with mock.patch.object(prism, "Context", return_value=contexto):
+                gui._lector_init()
+            self.assertIsInstance(gui._lector, modulo_lector.Lector)
+        finally:
+            gui._lector = anterior
 
     def test_asercion_de_wx_se_registra_sin_anunciarse(self):
         aplicacion = mock.Mock()
@@ -429,7 +442,7 @@ class TestRegistroEsAnunciable(unittest.TestCase):
 
     def test_anunciar_interrumpe_por_defecto(self):
         grabador = GrabadorDeVoz()
-        with mock.patch.object(gui, "_ao2", grabador):
+        with mock.patch.object(gui, "_lector", grabador):
             gui.anunciar("hola")
 
         self.assertEqual(grabador.hablado, ["hola"])
@@ -437,7 +450,7 @@ class TestRegistroEsAnunciable(unittest.TestCase):
 
     def test_anunciar_no_interrumpe_si_no_es_urgente(self):
         grabador = GrabadorDeVoz()
-        with mock.patch.object(gui, "_ao2", grabador):
+        with mock.patch.object(gui, "_lector", grabador):
             gui.anunciar("hola", urgente=False)
 
         self.assertEqual(grabador.interrupciones, [False])
@@ -445,7 +458,7 @@ class TestRegistroEsAnunciable(unittest.TestCase):
     def test_anunciar_desde_otro_hilo_se_reenvia_al_hilo_principal(self):
         # La voz va por COM: desde un hilo ajeno no se habla, se difiere.
         grabador = GrabadorDeVoz()
-        with mock.patch.object(gui, "_ao2", grabador), \
+        with mock.patch.object(gui, "_lector", grabador), \
                 mock.patch.object(gui.wx, "IsMainThread", return_value=False), \
                 mock.patch.object(gui.wx, "CallAfter") as diferir:
             gui.anunciar("hola", urgente=False)
@@ -456,7 +469,7 @@ class TestRegistroEsAnunciable(unittest.TestCase):
 
     def test_anunciar_envia_braille_en_los_dos_casos(self):
         grabador = GrabadorDeVoz()
-        with mock.patch.object(gui, "_ao2", grabador):
+        with mock.patch.object(gui, "_lector", grabador):
             gui.anunciar("urgente")
             gui.anunciar("no urgente", urgente=False)
 
@@ -465,7 +478,7 @@ class TestRegistroEsAnunciable(unittest.TestCase):
     def test_anunciar_registra_el_fallo_de_voz_sin_propagarse(self):
         salida = mock.Mock()
         salida.speak.side_effect = RuntimeError("COM no disponible")
-        with mock.patch.object(gui, "_ao2", salida), \
+        with mock.patch.object(gui, "_lector", salida), \
                 mock.patch.object(gui.logger, "warning") as registrar:
             gui.anunciar("hola")
 
@@ -475,7 +488,7 @@ class TestRegistroEsAnunciable(unittest.TestCase):
 
     def test_anunciar_no_registra_fallo_si_la_voz_responde(self):
         grabador = GrabadorDeVoz()
-        with mock.patch.object(gui, "_ao2", grabador), \
+        with mock.patch.object(gui, "_lector", grabador), \
                 mock.patch.object(gui.logger, "warning") as registrar:
             gui.anunciar("hola")
 
@@ -498,7 +511,7 @@ class TestRegistroEsAnunciable(unittest.TestCase):
         grabador = GrabadorDeVoz()
         registro = logging.LogRecord(
             "ytchat.diagnostico", logging.INFO, __file__, 1, "oculto", (), None)
-        with mock.patch.object(gui, "_ao2", grabador):
+        with mock.patch.object(gui, "_lector", grabador):
             gui.WxAnnouncingHandler().emit(registro)
 
         self.assertEqual(grabador.hablado, [])
@@ -508,7 +521,7 @@ class TestRegistroEsAnunciable(unittest.TestCase):
         grabador = GrabadorDeVoz()
         registro = logging.LogRecord(
             "ytchat.obs_vigilante", logging.INFO, __file__, 1, "OBS volvio a responder", (), None)
-        with mock.patch.object(gui, "_ao2", grabador):
+        with mock.patch.object(gui, "_lector", grabador):
             gui.WxAnnouncingHandler().emit(registro)
 
         self.assertEqual(grabador.hablado, ["OBS volvio a responder"])

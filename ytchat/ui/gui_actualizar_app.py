@@ -126,6 +126,11 @@ def _mostrar_resultado_en_ventana(frame, texto: str, correcto: bool) -> None:
             _snd.reproducir("error")
         except Exception:
             pass
+    else:
+        try:
+            _snd.reproducir("actualizacion_lista")
+        except Exception:
+            pass
 
 
 def programar_aviso_version(frame) -> None:
@@ -409,4 +414,9 @@ def abrir_ventana_actualizacion(frame, paquete=None, al_arrancar=False) -> None:
     if al_arrancar:
         ventana.etiqueta_cerrar("&Más tarde")
     ventana.Show()
+    if al_arrancar:
+        try:
+            _snd.reproducir("actualizacion_disponible")
+        except Exception:
+            pass
     _FlujoActualizacion(frame, ventana).arrancar(paquete)

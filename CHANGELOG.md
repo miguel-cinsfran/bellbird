@@ -48,11 +48,16 @@ Más voces para leer el chat y más opciones al crear un directo de YouTube.
 - **Las novedades se leen bien.** Ya no empiezan con líneas en blanco ni
   traen asteriscos, cada punto va en una sola línea con su viñeta y el
   cursor queda al comienzo.
-- **Los avisos importantes abren su ventana.** El resultado de una
-  actualización recién instalada y el fin de una descarga con el gestor
-  cerrado ya no se dicen solo en voz. Si en ese momento hay un chat
-  conectado, una transmisión o otra ventana abierta, esperan a que
-  termines para no sacarte del lugar.
+- **Al terminar una actualización se abre una ventana con el resultado.**
+  Si en ese momento hay un chat conectado, una transmisión u otra ventana
+  abierta, espera a que termines para no sacarte del lugar.
+- **Cada aviso tiene su sonido.** Descarga iniciada, terminada, con error y
+  cancelada; directo al aire, transmisión detenida y problema en la
+  transmisión; actualización disponible y lista; y una campanita para los
+  avisos generales, como el de mensajes descartados. Antes varios usaban
+  el mismo sonido y había que esperar a oír el texto para saber qué pasó.
+- **El tema «suave» ya no repite sonidos.** Diez eventos que sonaban igual
+  que otro tienen ahora su sonido propio.
 - **Al arrancar ya no dice «Preparando el reproductor» ni «Reproductor
   listo».** El reproductor se prepara igual, en silencio.
 

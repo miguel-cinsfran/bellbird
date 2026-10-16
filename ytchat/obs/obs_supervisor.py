@@ -159,7 +159,7 @@ class SupervisorTransmision:
             except Exception:
                 pass
             try:
-                self._al_anunciar("Transmisión detenida.", None)
+                self._al_anunciar("Transmisión detenida.", "transmision_detenida")
             except Exception:
                 pass
             self._finalizar_youtube_si_toca()
@@ -206,7 +206,7 @@ class SupervisorTransmision:
     def _anunciar_panel_tapado(self, nombre) -> None:
         self._anunciar(
             f"El panel de chat estaba detrás de «{nombre}». "
-            "Lo puse adelante.", None)
+            "Lo puse adelante.", "aviso")
 
     def _probar_obs(self) -> None:
         gestor = self._crear_gestor()
@@ -241,7 +241,7 @@ class SupervisorTransmision:
                     self._id_video = self._preparar_emision(
                         cliente, self._parada)
                 except emision.EmisionError as error:
-                    self._anunciar(str(error), "error")
+                    self._anunciar(str(error), "transmision_problema")
                     return
             nombre = self._panel_tapado(gestor)
             if nombre:
@@ -254,7 +254,7 @@ class SupervisorTransmision:
                 return
             frase = obs_salida.frase_salida(veredicto, self._destino)
             if veredicto != "enviando":
-                self._anunciar(frase, "error")
+                self._anunciar(frase, "transmision_problema")
                 return
             self._anunciar(frase, "conectado")
             if self._destino == "TikTok" and self._usuario:
@@ -268,7 +268,7 @@ class SupervisorTransmision:
                 if resultado.en_vivo:
                     self._destino_confirmado = True
                     self._anunciar(
-                        "Tu directo de TikTok ya está al aire.", "conectado")
+                        "Tu directo de TikTok ya está al aire.", "al_aire")
                     self._al_conectar_chat(
                         tiktok_vivo.url_directo(self._usuario))
                 elif getattr(resultado, "cuenta_sin_directos", False):
@@ -277,12 +277,12 @@ class SupervisorTransmision:
                         f"OBS está transmitiendo, pero TikTok todavía no "
                         f"muestra ningún directo de {self._usuario}. "
                         "Revisa que en Restream esté activado TikTok.",
-                        "error")
+                        "transmision_problema")
                 else:
                     self._destino_confirmado = False
                     self._anunciar(
                         "OBS está transmitiendo, pero TikTok todavía no "
-                        "muestra el directo.", "error")
+                        "muestra el directo.", "transmision_problema")
             elif self._destino == "YouTube" and self._id_video \
                     and self._esperar_emision is not None:
                 self._anunciar(
@@ -295,14 +295,14 @@ class SupervisorTransmision:
                     self._destino_confirmado = True
                     self._anunciar(
                         "Tu directo de YouTube ya está al aire.",
-                        "conectado")
+                        "al_aire")
                     self._al_conectar_chat(
                         emision.url_video(self._id_video))
                 else:
                     self._destino_confirmado = False
                     self._anunciar(
                         "OBS está transmitiendo, pero YouTube todavía no "
-                        "muestra el directo.", "error")
+                        "muestra el directo.", "transmision_problema")
             elif self._destino == "TikTok":
                 self._anunciar(
                     "No hay usuario de TikTok guardado: "
@@ -313,7 +313,7 @@ class SupervisorTransmision:
                 return
             try:
                 self._anunciar(
-                    obs_cliente.mensaje_de_fallo_obs(error), "error")
+                    obs_cliente.mensaje_de_fallo_obs(error), "transmision_problema")
             except Exception:
                 pass
         finally:
@@ -346,7 +346,7 @@ class SupervisorTransmision:
             try:
                 self._anunciar(
                     "YouTube no confirmó el fin del directo. "
-                    "Finalízalo en YouTube Studio.", "error")
+                    "Finalízalo en YouTube Studio.", "transmision_problema")
             except Exception:
                 pass
             try:
@@ -384,7 +384,7 @@ class SupervisorTransmision:
                     segundos = 0
                 self._anunciar(
                     "La transmisión terminó. "
-                    f"Duró {duracion_legible(segundos)}.", None)
+                    f"Duró {duracion_legible(segundos)}.", "transmision_detenida")
                 self._finalizar_youtube_si_toca()
                 return
             frase = obs_salida.problema_en_directo(anterior, actual)
@@ -392,7 +392,7 @@ class SupervisorTransmision:
                 ahora = self._reloj()
                 ultimo = ultimos_avisos.get(frase)
                 if ultimo is None or ahora - ultimo >= PLAZO_REPETICION:
-                    self._anunciar(frase, "error")
+                    self._anunciar(frase, "transmision_problema")
                     ultimos_avisos[frase] = ahora
             nombre = self._panel_tapado(gestor)
             if nombre:
@@ -402,6 +402,6 @@ class SupervisorTransmision:
                 ahora = self._reloj()
                 ultimo = ultimos_avisos.get(frase_panel)
                 if ultimo is None or ahora - ultimo >= PLAZO_REPETICION:
-                    self._anunciar(frase_panel, None)
+                    self._anunciar(frase_panel, "aviso")
                     ultimos_avisos[frase_panel] = ahora
             anterior = actual

@@ -283,6 +283,85 @@ def gen_cola_vaciada():
     return _normalizar(_perc(sweep, 0.004, 0.13), 0.55)
 
 
+# ── Avisos con sonido propio (encargo 174) ───────────────────────────────────
+# Familias por timbre: descargas en triangular con cuerpo (detune), transmisión
+# en seno cálido, actualización en barrido y acorde, y un aviso neutro en
+# campanita de dos notas. Dentro de cada familia el contorno dice el resultado.
+
+def gen_descarga_iniciada():
+    # Dos notas cortas ascendentes E5→G5: "arranca".
+    n1 = _perc(_detune(E5, 0.07, 0.36), 0.003, 0.06)
+    n2 = _perc(_detune(G5, 0.09, 0.38), 0.003, 0.08)
+    return _normalizar(_concat(n1, n2), 0.7)
+
+
+def gen_descarga_completada():
+    # Tres notas ascendentes que cierran en acorde mayor: "salió bien".
+    n1 = _perc(_detune(C5, 0.07, 0.34), 0.003, 0.06)
+    n2 = _perc(_detune(E5, 0.07, 0.34), 0.003, 0.06)
+    cierre = _perc(_suma(_detune(C5, 0.20, 0.30),
+                         _detune(E5, 0.20, 0.30),
+                         _detune(G5, 0.20, 0.32)), 0.004, 0.16)
+    return _normalizar(_concat(n1, n2, cierre), 0.75)
+
+
+def gen_descarga_fallida():
+    # Tercera menor descendente G5→E5: "salió mal", sin aspereza de error.
+    n1 = _perc(_detune(G5, 0.11, 0.36), 0.004, 0.10)
+    n2 = _perc(_detune(E5, 0.18, 0.36), 0.004, 0.15)
+    return _normalizar(_concat(n1, n2), 0.72)
+
+
+def gen_descarga_cancelada():
+    # Dos notas cortas descendentes E5→C5: "se cortó", espejo de la iniciada.
+    n1 = _perc(_detune(E5, 0.07, 0.34), 0.003, 0.06)
+    n2 = _perc(_detune(C5, 0.09, 0.34), 0.003, 0.08)
+    return _normalizar(_concat(n1, n2), 0.68)
+
+
+def gen_al_aire():
+    # Arpegio brillante C5-E5-G5-C6: el directo ya se ve.
+    notas = [_perc(_seno(f, d, 0.32), 0.003, t)
+             for f, d, t in ((C5, 0.07, 0.06), (E5, 0.07, 0.06),
+                             (G5, 0.07, 0.06), (C6, 0.14, 0.12))]
+    return _normalizar(_concat(*notas), 0.78)
+
+
+def gen_transmision_detenida():
+    # Descenso calmo G5-E5-C5: "se terminó", sin alarma.
+    notas = [_perc(_seno(f, d, 0.30), 0.005, t)
+             for f, d, t in ((G5, 0.12, 0.10), (E5, 0.12, 0.10),
+                             (C5, 0.22, 0.18))]
+    return _normalizar(_concat(*notas), 0.7)
+
+
+def gen_transmision_problema():
+    # Doble pulso grave A3 con hueco: insiste sin estridencia.
+    pulso = _perc(_seno(A3, 0.12, 0.40), 0.004, 0.10)
+    return _concat(pulso, _silencio(0.08), pulso, _silencio(0.02))
+
+
+def gen_aviso():
+    # Campanita neutra de dos notas E6→B5: avisa sin calificar.
+    n1 = _perc(_seno(E6, 0.12, 0.30), 0.002, 0.10)
+    n2 = _perc(_seno(B5, 0.22, 0.30), 0.002, 0.18)
+    return _normalizar(_concat(n1, n2), 0.65)
+
+
+def gen_actualizacion_disponible():
+    # Brillo ascendente C5→G5: "hay algo nuevo".
+    barrido = _glide(C5, G5, 0.22, 0.30)
+    return _normalizar(_perc(barrido, 0.004, 0.18), 0.7)
+
+
+def gen_actualizacion_lista():
+    # Acorde mayor C-E-G sostenido y resuelto: "quedó instalada".
+    acorde = _suma(_detune(C5, 0.45, 0.28),
+                   _detune(E5, 0.45, 0.28),
+                   _detune(G5, 0.45, 0.30))
+    return _normalizar(_perc(acorde, 0.005, 0.34), 0.75)
+
+
 # ── Tema "suave": senos cálidos con decaimiento tipo marimba/madera ───────────
 # Más redondo, bajo y mate que el tema por defecto: nada de aristas brillantes
 # ni regusto a videojuego. Mismo lenguaje de gestos (ascendente = abrir, etc.).
@@ -382,6 +461,138 @@ def s_cola_vaciada():
     return _normalizar(_perc(_glide(A5, D5, 0.18, 0.28), 0.005, 0.14), 0.5)
 
 
+# ── Avisos con sonido propio, versión suave ──────────────────────────────────
+# Los mismos gestos que en el tema por defecto, en madera cálida.
+
+def s_descarga_iniciada():
+    return _seq(_madera(D5, 0.07, 0.34, 0.06),
+                _madera(A5, 0.10, 0.36, 0.08))
+
+
+def s_descarga_completada():
+    # Tríada menor ascendente D-F-A con cierre largo: "salió bien".
+    return _seq(_madera(D5, 0.07, 0.34, 0.06),
+                _madera(F5, 0.07, 0.34, 0.06),
+                _madera(A5, 0.24, 0.38, 0.18))
+
+
+def s_descarga_fallida():
+    return _seq(_madera(G5, 0.11, 0.36, 0.09),
+                _madera(E5, 0.18, 0.36, 0.14))
+
+
+def s_descarga_cancelada():
+    return _seq(_madera(E5, 0.07, 0.32, 0.06),
+                _madera(C5, 0.10, 0.32, 0.08))
+
+
+def s_al_aire():
+    return _seq(_madera(C5, 0.07, 0.34, 0.06),
+                _madera(E5, 0.07, 0.34, 0.06),
+                _madera(G5, 0.07, 0.36, 0.06),
+                _madera(C6, 0.16, 0.38, 0.13))
+
+
+def s_transmision_detenida():
+    return _seq(_madera(G5, 0.13, 0.32, 0.10),
+                _madera(E5, 0.13, 0.32, 0.10),
+                _madera(C5, 0.24, 0.32, 0.18))
+
+
+def s_transmision_problema():
+    pulso = _madera(A3, 0.12, 0.40, 0.10)
+    return _concat(pulso, _silencio(0.08), pulso, _silencio(0.02))
+
+
+def s_aviso():
+    return _seq(_madera(E6, 0.10, 0.32, 0.08),
+                _madera(B5, 0.20, 0.34, 0.15))
+
+
+def s_actualizacion_disponible():
+    return _normalizar(_perc(_glide(C5, A5, 0.24, 0.28), 0.005, 0.18), 0.6)
+
+
+def s_actualizacion_lista():
+    return _normalizar(_perc(_suma(_seno(C5, 0.45, 0.30), _seno(E5, 0.45, 0.24),
+                                  _seno(G5, 0.45, 0.22)), 0.006, 0.34), 0.75)
+
+
+# ── Reemplazos del tema suave (encargo 174) ──────────────────────────────────
+# Generadores propios para los que eran copia de otro dentro del tema.
+# Cada uno conserva el gesto del evento con notas o duraciones distintas.
+
+def s_fin_directo():
+    # Cierre A5-D5-G4: termina abajo, distinto del descenso E5-C5.
+    return _seq(_madera(A5, 0.10, 0.32, 0.08),
+                _madera(D5, 0.10, 0.32, 0.08),
+                _madera(G4, 0.20, 0.32, 0.15))
+
+
+def s_cofre():
+    # Arpegio E5-G5-B5: premio, distinto de la campana del superchat.
+    return _seq(_madera(E5, 0.09, 0.34, 0.07),
+                _madera(G5, 0.09, 0.34, 0.07),
+                _madera(B5, 0.18, 0.36, 0.14))
+
+
+def s_mensaje_propietario():
+    # Campana en B5, registro más alto que la del superchat (F5).
+    f = B5
+    partes = [
+        _perc(_seno(f,       0.50, 0.32), 0.003, 0.38),
+        _perc(_seno(f * 2,   0.40, 0.11), 0.003, 0.24),
+        _perc(_seno(f * 3.05, 0.28, 0.05), 0.003, 0.13),
+    ]
+    return _normalizar(_suma(*partes), 0.76)
+
+
+def s_seguir():
+    # Subida G4-C5-E5: alguien llega, una cuarta más abajo que el miembro.
+    return _seq(_madera(G4, 0.10, 0.34, 0.08),
+                _madera(C5, 0.10, 0.36, 0.08),
+                _madera(E5, 0.20, 0.38, 0.15))
+
+
+def s_regalo_grande():
+    # Fanfarria E4-G4-C5-E5: cuatro notas, el inicio trae una más.
+    return _seq(_madera(E4, 0.09, 0.36, 0.07),
+                _madera(G4, 0.09, 0.36, 0.07),
+                _madera(C5, 0.09, 0.38, 0.07),
+                _madera(E5, 0.20, 0.40, 0.16))
+
+
+def s_entrada():
+    # Entrada D4-E4-G4: tres pasos ascendentes, no el salto de reanudar.
+    return _seq(_madera(D4, 0.09, 0.32, 0.07),
+                _madera(E4, 0.09, 0.32, 0.07),
+                _madera(G4, 0.18, 0.34, 0.14))
+
+
+def s_me_gusta():
+    # Toque doble y mínimo A5-E6: el gesto más chico del tema.
+    return _seq(_madera(A5, 0.08, 0.30, 0.06),
+                _madera(E6, 0.10, 0.30, 0.07))
+
+
+def s_mensaje_verificado():
+    # Doble F5-C6: confirma en otro registro que el comentario (G5-C6).
+    return _seq(_madera(F5, 0.08, 0.30, 0.06),
+                _madera(C6, 0.12, 0.32, 0.09))
+
+
+def s_orilla():
+    # Tope suave G4-D4: grave y corto, no el tic agudo de copiar.
+    return _seq(_madera(G4, 0.08, 0.32, 0.06),
+                _madera(D4, 0.12, 0.32, 0.09))
+
+
+def s_regalo_mediano():
+    # Díada D5-A5 sostenida: regalo medio, otra quinta que la de conectado.
+    return _normalizar(_perc(_suma(_seno(D5, 0.35, 0.30), _seno(A5, 0.35, 0.24)),
+                             0.006, 0.28), 0.75)
+
+
 # Catálogo de temas: nombre → {archivo (= evento) .wav : generador}.
 TEMAS = {
     "default": {
@@ -422,6 +633,17 @@ TEMAS = {
         # directo un gesto de cierre como el de desconexión.
         "orilla.wav":         gen_copiar,
         "fin_directo.wav":    gen_desconectado,
+        # Avisos con sonido propio (encargo 174).
+        "descarga_iniciada.wav":       gen_descarga_iniciada,
+        "descarga_completada.wav":     gen_descarga_completada,
+        "descarga_fallida.wav":        gen_descarga_fallida,
+        "descarga_cancelada.wav":      gen_descarga_cancelada,
+        "al_aire.wav":                 gen_al_aire,
+        "transmision_detenida.wav":    gen_transmision_detenida,
+        "transmision_problema.wav":    gen_transmision_problema,
+        "aviso.wav":                   gen_aviso,
+        "actualizacion_disponible.wav": gen_actualizacion_disponible,
+        "actualizacion_lista.wav":      gen_actualizacion_lista,
     },
     "suave": {
         "app_inicio.wav":    s_app_inicio,
@@ -430,9 +652,9 @@ TEMAS = {
         "desconectado.wav":  s_desconectado,
         "mensaje_nuevo.wav": s_mensaje,
         # Sonidos provisorios de roles hasta que el dueño elija los definitivos.
-        "mensaje_propietario.wav": s_superchat,
+        "mensaje_propietario.wav": s_mensaje_propietario,
         "mensaje_moderador.wav": s_moderacion,
-        "mensaje_verificado.wav": s_copiar,
+        "mensaje_verificado.wav": s_mensaje_verificado,
         "mensaje_miembro.wav": s_miembro,
         "superchat.wav":     s_superchat,
         "nuevo_miembro.wav": s_miembro,
@@ -448,19 +670,29 @@ TEMAS = {
         "cola_vaciada.wav":  s_cola_vaciada,
         # Sonidos provisorios de eventos de TikTok hasta que el dueño elija
         # los definitivos: reutilizan otros generadores, nunca el común.
-        "seguir.wav":         s_miembro,
+        "seguir.wav":         s_seguir,
         "compartir.wav":      s_enviado,
-        "cofre.wav":          s_superchat,
-        "me_gusta.wav":       s_copiar,
+        "cofre.wav":          s_cofre,
+        "me_gusta.wav":       s_me_gusta,
         "regalo_chico.wav":   s_comentario,
-        "regalo_mediano.wav": s_conectado,
-        "regalo_grande.wav":  s_app_inicio,
-        "entrada.wav":        s_reanudar,
-        # Provisorios hasta que el dueño elija los definitivos (los WAV ya
-        # existen y no se pisan): la orilla es un toque breve, el fin del
-        # directo un gesto de cierre como el de desconexión.
-        "orilla.wav":         s_copiar,
-        "fin_directo.wav":    s_desconectado,
+        "regalo_mediano.wav": s_regalo_mediano,
+        "regalo_grande.wav":  s_regalo_grande,
+        "entrada.wav":        s_entrada,
+        # La orilla y el fin del directo ya tienen generador propio; el resto
+        # de los provisorios sigue reutilizando otros generadores.
+        "orilla.wav":         s_orilla,
+        "fin_directo.wav":    s_fin_directo,
+        # Avisos con sonido propio (encargo 174).
+        "descarga_iniciada.wav":       s_descarga_iniciada,
+        "descarga_completada.wav":     s_descarga_completada,
+        "descarga_fallida.wav":        s_descarga_fallida,
+        "descarga_cancelada.wav":      s_descarga_cancelada,
+        "al_aire.wav":                 s_al_aire,
+        "transmision_detenida.wav":    s_transmision_detenida,
+        "transmision_problema.wav":    s_transmision_problema,
+        "aviso.wav":                   s_aviso,
+        "actualizacion_disponible.wav": s_actualizacion_disponible,
+        "actualizacion_lista.wav":      s_actualizacion_lista,
     },
 }
 

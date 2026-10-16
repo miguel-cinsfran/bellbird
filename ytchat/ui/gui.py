@@ -1663,6 +1663,10 @@ class YTChatFrame(wx.Frame):
     def _avisar_descartes(self) -> None:
         if descartes.hay_que_avisar(self._stats.descartados,
                                     self._descartes_avisado):
+            try:
+                _snd.reproducir("aviso")
+            except Exception:
+                pass
             anunciar(descartes.frase_aviso(
                 self._config.get("umbral_solo_nombre", 0)))
             self._descartes_avisado = True

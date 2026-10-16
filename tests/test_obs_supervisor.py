@@ -142,7 +142,7 @@ class CaminoFelizTest(BaseSupervisor):
             ("Comenzando la transmisión.", "conectando"),
             ("OBS está enviando la señal a Restream.", "conectado"),
             ("Esperando a que TikTok muestre el directo.", None),
-            ("Tu directo de TikTok ya está al aire.", "conectado"),
+            ("Tu directo de TikTok ya está al aire.", "al_aire"),
         ])
         self.assertEqual(chats, ["https://www.tiktok.com/@amigo/live"])
         self.assertEqual(vivo, [("amigo", 120.0)])
@@ -158,7 +158,7 @@ class SalidaFallidaTest(BaseSupervisor):
         self.iniciar_y_esperar_fin(supervisor)
         self.assertEqual(anuncios, [
             ("Comenzando la transmisión.", "conectando"),
-            ("OBS no empezó a transmitir.", "error"),
+            ("OBS no empezó a transmitir.", "transmision_problema"),
         ])
         self.assertEqual(chats, [])
         self.assertEqual(vivo, [])
@@ -179,7 +179,7 @@ class TikTokAusenteTest(BaseSupervisor):
         self.assertEqual(anuncios[3], (
             "OBS está transmitiendo, pero TikTok todavía no muestra "
             "ningún directo de amigo. Revisa que en Restream esté "
-            "activado TikTok.", "error"))
+            "activado TikTok.", "transmision_problema"))
 
     def test_sin_noticia_del_directo(self):
         armado = self.armar(en_vivo=False, sin_directos=False,
@@ -189,7 +189,7 @@ class TikTokAusenteTest(BaseSupervisor):
         self.assertEqual(chats, [])
         self.assertEqual(anuncios[-1], (
             "OBS está transmitiendo, pero TikTok todavía no muestra "
-            "el directo.", "error"))
+            "el directo.", "transmision_problema"))
 
 
 class DestinoYouTubeTest(BaseSupervisor):
@@ -238,7 +238,7 @@ class ProblemaRepetidoTest(BaseSupervisor):
         # 19 sondeos con problema en 95 s de reloj falso: avisa a los 5 s y
         # a los 65 s, y calla las repeticiones de en medio.
         self.assertEqual(len(apariciones), 2)
-        self.assertTrue(all(s == "error" for _, s in apariciones))
+        self.assertTrue(all(s == "transmision_problema" for _, s in apariciones))
         self.assertTrue(reloj.ahora >= 60.0)
 
 
@@ -254,7 +254,7 @@ class FinTransmisionTest(BaseSupervisor):
         supervisor._dormir = time.sleep
         self.iniciar_y_esperar_fin(supervisor)
         self.assertIn(
-            ("La transmisión terminó. Duró 1 minuto y 1 segundo.", None),
+            ("La transmisión terminó. Duró 1 minuto y 1 segundo.", "transmision_detenida"),
             anuncios)
 
     def test_duracion_legible(self):
@@ -297,7 +297,7 @@ class DetenerTest(BaseSupervisor):
         # El segundo gestor es el propio de detener(): paró OBS.
         self.assertGreaterEqual(len(gestores), 2)
         self.assertIn("detener", gestores[1].llamadas)
-        self.assertIn(("Transmisión detenida.", None), anuncios)
+        self.assertIn(("Transmisión detenida.", "transmision_detenida"), anuncios)
         self.assertFalse(any(frase.startswith("La transmisión terminó")
                              for frase, _ in anuncios))
 
@@ -376,7 +376,7 @@ class AbandonarTest(BaseSupervisor):
         self.assertFalse(supervisor.activo)
         self.assertEqual(len(gestores), 1)
         self.assertNotIn("detener", gestores[0].llamadas)
-        self.assertNotIn(("Transmisión detenida.", None), anuncios)
+        self.assertNotIn(("Transmisión detenida.", "transmision_detenida"), anuncios)
 
 
 class ExcepcionTest(BaseSupervisor):
@@ -384,7 +384,7 @@ class ExcepcionTest(BaseSupervisor):
         armado = self.armar(fallo="conectar")
         supervisor, anuncios, chats, gestores, _, _, _ = armado
         self.iniciar_y_esperar_fin(supervisor)
-        errores = [a for a in anuncios if a[1] == "error"]
+        errores = [a for a in anuncios if a[1] == "transmision_problema"]
         self.assertEqual(len(errores), 1)
         self.assertEqual(chats, [])
         self.assertEqual(gestores[0].cerrado, 1)
@@ -426,7 +426,7 @@ class AsegurarObsTest(BaseSupervisor):
                          ("Comenzando la transmisión.", "conectando"))
         self.assertEqual(anuncios[1], (
             "OBS no está instalado en este equipo. Instálalo desde "
-            "obsproject.com y vuelve a intentarlo.", "error"))
+            "obsproject.com y vuelve a intentarlo.", "transmision_problema"))
         self.assertFalse(any("iniciar" in gestor.llamadas
                              for gestor in gestores))
 
@@ -677,7 +677,7 @@ class YouTubeEmisionTest(BaseSupervisor):
             ("Creando el directo en YouTube.", None),
             ("OBS está enviando la señal a YouTube.", "conectado"),
             ("Esperando a que YouTube muestre el directo.", None),
-            ("Tu directo de YouTube ya está al aire.", "conectado"),
+            ("Tu directo de YouTube ya está al aire.", "al_aire"),
         ])
         self.assertEqual(
             chats, ["https://www.youtube.com/watch?v=vid123"])
@@ -695,7 +695,7 @@ class YouTubeEmisionTest(BaseSupervisor):
         self.assertEqual(anuncios, [
             ("Comenzando la transmisión.", "conectando"),
             ("Creando el directo en YouTube.", None),
-            ("falla youtube", "error"),
+            ("falla youtube", "transmision_problema"),
         ])
         self.assertEqual(chats, [])
         self.assertEqual(espera, [])
@@ -712,7 +712,7 @@ class YouTubeEmisionTest(BaseSupervisor):
         try:
             self.assertTrue(esperar_condicion(
                 lambda: ("OBS está transmitiendo, pero YouTube todavía "
-                         "no muestra el directo.", "error") in anuncios))
+                         "no muestra el directo.", "transmision_problema") in anuncios))
             self.assertEqual(chats, [])
             self.assertTrue(supervisor.frase_estado().endswith(
                 ", sin confirmar en YouTube"))
@@ -767,7 +767,7 @@ class FinalizarYoutubeTest(BaseSupervisor):
         self.iniciar_y_esperar_fin(supervisor)
         self.assertEqual(llamadas, ["vid123"])
         self.assertIn(
-            ("La transmisión terminó. Duró 1 minuto y 1 segundo.", None),
+            ("La transmisión terminó. Duró 1 minuto y 1 segundo.", "transmision_detenida"),
             anuncios)
 
     def test_reconectando_no_cierra(self):
@@ -800,7 +800,7 @@ class FinalizarYoutubeTest(BaseSupervisor):
                 lambda: gestores and "estado" in gestores[0].llamadas))
             supervisor.detener()
             self.assertEqual(llamadas, ["vid123"])
-            self.assertIn(("Transmisión detenida.", None), anuncios)
+            self.assertIn(("Transmisión detenida.", "transmision_detenida"), anuncios)
             # La vigilancia ve OBS apagado después: no se vuelve a llamar.
             supervisor._parada.clear()
             supervisor._corte.clear()
@@ -856,7 +856,7 @@ class FinalizarYoutubeTest(BaseSupervisor):
             if supervisor.activo:
                 supervisor.abandonar()
         self.assertEqual(llamadas, [])
-        self.assertIn(("Transmisión detenida.", None), anuncios)
+        self.assertIn(("Transmisión detenida.", "transmision_detenida"), anuncios)
 
     def test_si_youtube_falla_avisa_con_sonido_de_error(self):
         estados = [muestra(True, duracion=10)] * 500
@@ -874,7 +874,7 @@ class FinalizarYoutubeTest(BaseSupervisor):
                 supervisor.abandonar()
         self.assertIn(
             ("YouTube no confirmó el fin del directo. "
-             "Finalízalo en YouTube Studio.", "error"),
+             "Finalízalo en YouTube Studio.", "transmision_problema"),
             anuncios)
 
 
@@ -923,7 +923,7 @@ class PanelAdelanteTest(BaseSupervisor):
         supervisor, anuncios, gestores, llamadas = armado
         self.iniciar_y_esperar_fin(supervisor)
         self.assertTrue(llamadas)
-        self.assertIn((self.FRASE, None), anuncios)
+        self.assertIn((self.FRASE, "aviso"), anuncios)
 
     def test_vigilar_anuncia_una_vez_por_minuto(self):
         # El panel queda tapado a mitad del directo: la primera llamada es
@@ -937,7 +937,7 @@ class PanelAdelanteTest(BaseSupervisor):
         apariciones = [a for a in anuncios if a[0] == self.FRASE]
         self.assertTrue(len(llamadas) >= 3)
         self.assertEqual(len(apariciones), 1)
-        self.assertEqual(apariciones[0][1], None)
+        self.assertEqual(apariciones[0][1], "aviso")
 
     def test_si_traer_falla_el_directo_sigue(self):
         reloj = RelojFalso()

@@ -391,6 +391,19 @@ class TestVentana(unittest.TestCase):
             al_arrancar=True)
         self.assertEqual("&Más tarde", ventana.etiqueta_cerrar_vista)
 
+    def test_al_arrancar_suena_disponible(self):
+        with mock.patch.object(app._snd, "reproducir") as sonido:
+            self._abrir(
+                paquete=_paquete(VERSION_NUEVA), frozen=True, admite=True,
+                al_arrancar=True)
+        sonido.assert_called_once_with("actualizacion_disponible")
+
+    def test_desde_el_menu_no_suena_disponible(self):
+        with mock.patch.object(app._snd, "reproducir") as sonido:
+            self._abrir(consultar=_paquete(VERSION_NUEVA), frozen=True,
+                        admite=True)
+        sonido.assert_not_called()
+
     def test_desde_el_menu_el_cierre_no_cambia(self):
         _, ventana, _ = self._abrir(consultar=_paquete(APP_VERSION, ""))
         self.assertIsNone(ventana.etiqueta_cerrar_vista)
@@ -584,7 +597,7 @@ class TestGanchos(unittest.TestCase):
         self.assertEqual(100, ventana.progresos[-1])
         ventana.btn_cerrar.SetFocus.assert_called()
         anunciar.assert_not_called()
-        sonido.assert_not_called()
+        sonido.assert_called_once_with("actualizacion_lista")
 
     def test_resultado_empaquetado_fallido_abre_ventana_en_0_y_suena(self):
         ventana, anunciar, sonido, _ = self._resultado_empaquetado(

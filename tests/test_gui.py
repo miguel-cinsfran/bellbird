@@ -2193,10 +2193,12 @@ class TestDescartesGui(unittest.TestCase):
 
     def test_el_timer_anuncia_los_descartes_una_sola_vez(self):
         frame = self._frame()
-        with mock.patch.object(gui, "anunciar") as anunciar:
+        with mock.patch.object(gui, "anunciar") as anunciar, \
+                mock.patch.object(gui._snd, "reproducir") as sonido:
             frame._on_timer(None)
             frame._on_timer(None)
         anunciar.assert_called_once_with(gui.descartes.frase_aviso(0))
+        sonido.assert_called_once_with("aviso")
         self.assertTrue(frame._descartes_avisado)
 
     def test_el_snapshot_lleva_los_descartes_al_estado(self):

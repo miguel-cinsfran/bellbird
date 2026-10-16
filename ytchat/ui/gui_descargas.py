@@ -8,9 +8,9 @@ solo monta la UI y empuja progreso al `wx.ListCtrl` con `wx.CallAfter`.
 Accesibilidad (regla de oro NVDA):
   - Cada control interactivo tiene `name=` accesible.
   - Sin color personalizado en casillas ni radios (en Windows rompe su rol).
-  - Errores 3-vías: `_snd.reproducir("error")` + `anunciar()` + texto en la
-    columna Estado del `ListCtrl`. Nunca se re-lanza una excepción fuera del
-    hilo de descarga.
+  - Errores 3-vías: `_snd.reproducir("descarga_fallida")` + `anunciar()` +
+    texto en la columna Estado del `ListCtrl`. Nunca se re-lanza una
+    excepción fuera del hilo de descarga.
   - Toda mutación de la GUI desde el hilo de descarga va con `wx.CallAfter`.
 
 Apertura: `abrir(parent, url_inicial=None)` desde `gui._abrir_descargas`.
@@ -18,7 +18,6 @@ Apertura: `abrir(parent, url_inicial=None)` desde `gui._abrir_descargas`.
 from __future__ import annotations
 
 import logging
-import sys
 import threading
 from datetime import datetime
 
@@ -72,6 +71,12 @@ def nombrar_selector_carpeta(selector) -> None:
 
 
 _ESTADOS_FINALES = ("completado", "cancelado", "error")
+# Cada fin de descarga avisa con su sonido propio (encargo 174).
+_SONIDO_POR_FIN = {
+    "completado": "descarga_completada",
+    "error": "descarga_fallida",
+    "cancelado": "descarga_cancelada",
+}
 # Cada 500 ms el diálogo abierto vuelca el estado del gestor a sus filas.
 INTERVALO_REFRESCO_MS = 500
 
@@ -80,9 +85,6 @@ INTERVALO_REFRESCO_MS = 500
 # con el gestor cerrado también tiene que entrar en el historial.
 _dialogo_activo = None
 _registrados: set[str] = set()
-# Apertura del gestor ya encolada por un fin de descarga: varias descargas
-# que terminan mientras está ocupado abren el gestor una sola vez.
-_apertura_gestor_pendiente = False
 
 
 def _ruta_historial():
@@ -114,7 +116,7 @@ def _fin_descarga_en_gui(estado: str, mensaje: str, nombre: str, item) -> None:
     if not frase:
         return
     try:
-        _snd.reproducir("error" if estado == "error" else "copiar")
+        _snd.reproducir(_SONIDO_POR_FIN.get(estado, "descarga_cancelada"))
     except Exception:
         pass
     anunciar(frase)
@@ -124,44 +126,6 @@ def _fin_descarga_en_gui(estado: str, mensaje: str, nombre: str, item) -> None:
     dialogo = _dialogo_activo
     if entrada is not None and dialogo is not None and dialogo._alive:
         dialogo._mostrar_entrada_historial(entrada)
-    _abrir_gestor_si_cerrado()
-
-
-def _abrir_gestor_si_cerrado() -> None:
-    """Abre el gestor si una descarga terminó con él cerrado.
-
-    Solo empaquetada: desde código fuente queda lo de hoy. Con el gestor
-    abierto tampoco cambia nada. Si ya hay una apertura encolada, no se
-    encola otra.
-    """
-    global _apertura_gestor_pendiente
-    try:
-        if _apertura_gestor_pendiente:
-            return
-        if not bool(getattr(sys, "frozen", False)):
-            return
-        dialogo = _dialogo_activo
-        if dialogo is not None and dialogo._alive:
-            return
-        from ytchat.ui import gui as _gui_main
-        principal = getattr(_gui_main, "_gui_frame", None)
-        if principal is None:
-            return
-        _apertura_gestor_pendiente = True
-        from ytchat.ui import aviso_diferido
-        aviso_diferido.cuando_libre(
-            principal, _abrir_gestor_y_liberar, principal)
-    except Exception as exc:
-        logger.warning("apertura del gestor: %s", exc)
-
-
-def _abrir_gestor_y_liberar(principal) -> None:
-    """Abre el gestor y libera la apertura pendiente, pase lo que pase."""
-    global _apertura_gestor_pendiente
-    try:
-        abrir(principal)
-    finally:
-        _apertura_gestor_pendiente = False
 
 
 def _avisar_fin_descarga(estado: str, mensaje: str, nombre: str, item=None) -> None:
@@ -534,7 +498,7 @@ class GestorDescargasDialog(wx.Dialog):
         self.lista.SetItem(idx, 1, _texto_estado(estado, mensaje))
         if estado == "descargando":
             try:
-                _snd.reproducir("copiar")
+                _snd.reproducir("descarga_iniciada")
             except Exception:
                 pass
 

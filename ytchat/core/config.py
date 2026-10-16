@@ -325,6 +325,13 @@ _EVENTOS_SONIDO = [
     # Orilla de las listas y fin del directo de TikTok (suena distinto a
     # «desconectado», que sigue para YouTube y el resto de los cortes):
     "orilla", "fin_directo",
+    # Avisos del gestor de descargas, cada fin con su resultado:
+    "descarga_iniciada", "descarga_completada", "descarga_fallida",
+    "descarga_cancelada",
+    # Avisos del supervisor de transmisión y descartes del chat:
+    "al_aire", "transmision_detenida", "transmision_problema", "aviso",
+    # Ventanas que se abren solas al arrancar o al terminar bien:
+    "actualizacion_disponible", "actualizacion_lista",
 ]
 
 # Carpeta base de temas y tema por defecto.

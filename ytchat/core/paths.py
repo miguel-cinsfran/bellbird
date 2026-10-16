@@ -52,6 +52,12 @@ def config_ini() -> Path:
     return carpeta_datos() / "config.ini"
 
 
+def config_anterior() -> Path:
+    # Copia de respaldo de las preferencias anteriores: una sola, se pisa en
+    # cada importación o restablecimiento.
+    return carpeta_datos() / "config.anterior.ini"
+
+
 def credenciales() -> Path:
     return carpeta_datos() / NOMBRE_CREDENCIALES
 

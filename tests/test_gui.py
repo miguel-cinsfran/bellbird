@@ -1904,6 +1904,127 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         sonar.assert_any_call("copiar")
 
 
+class TestPreferenciasArchivoBotones(unittest.TestCase):
+    """Los cuatro botones de General. Abre ventanas: NO correr en esta máquina."""
+
+    def setUp(self):
+        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.ruta = Path(self.tmp.name)
+        (self.ruta / "config.ini").write_text("[voz]\nmotor = sapi\n",
+                                              encoding="utf-8")
+        parche = redirigir_rutas(self.ruta)
+        parche.__enter__()
+        self.addCleanup(parche.__exit__, None, None, None)
+
+    def _dialogo(self):
+        with mock.patch.object(motores, "listar_voces",
+                               return_value=["Voz de prueba"]):
+            dialogo = gui_preferencias.PreferenciasDialog(None, {})
+        self.addCleanup(dialogo.Destroy)
+        return dialogo
+
+    def _pagina_general(self, dialogo):
+        return next(p for p in dialogo._paginas() if p.GetName() == "PagGeneral")
+
+    def test_general_tiene_los_cuatro_botones_despues_de_las_casillas(self):
+        dialogo = self._dialogo()
+        pagina = self._pagina_general(dialogo)
+        hijos = pagina.GetChildren()
+        self.assertEqual(
+            [type(h).__name__ for h in hijos],
+            ["CheckBox"] * 5 + ["Button"] * 4)
+        self.assertEqual(
+            [h.GetName() for h in hijos if isinstance(h, gui.wx.Button)],
+            ["Abrir la carpeta de datos",
+             "Exportar las preferencias",
+             "Importar las preferencias",
+             "Restablecer todas las preferencias"])
+
+    def _cuadro_archivo(self, ruta):
+        cuadro = mock.MagicMock()
+        cuadro.ShowModal.return_value = gui.wx.ID_OK
+        cuadro.GetPath.return_value = str(ruta)
+        return cuadro
+
+    def test_importar_valido_cierra_sin_guardar(self):
+        dialogo = self._dialogo()
+        origen = self.ruta / "nuevo.ini"
+        origen.write_text("[voz]\nmotor = onecore\n", encoding="utf-8")
+        cuadro = self._cuadro_archivo(origen)
+        with mock.patch.object(gui_preferencias.wx, "FileDialog",
+                               return_value=cuadro) as crear, \
+                mock.patch.object(gui_preferencias.wx, "MessageBox"), \
+                mock.patch.object(gui_preferencias.cfg,
+                                  "guardar_opciones") as guardar, \
+                mock.patch.object(dialogo, "EndModal") as cerrar:
+            crear.return_value.__enter__.return_value = cuadro
+            dialogo._importar_prefs(None)
+        guardar.assert_not_called()
+        self.assertEqual((self.ruta / "config.ini").read_text(encoding="utf-8"),
+                         "[voz]\nmotor = onecore\n")
+        self.assertEqual((self.ruta / "config.anterior.ini").read_text(
+            encoding="utf-8"), "[voz]\nmotor = sapi\n")
+        cerrar.assert_called_once_with(gui.wx.ID_CANCEL)
+
+    def test_importar_invalido_no_cambia_nada_y_sigue_abierto(self):
+        dialogo = self._dialogo()
+        origen = self.ruta / "malo.txt"
+        origen.write_text("esto no es un ini\n", encoding="utf-8")
+        cuadro = self._cuadro_archivo(origen)
+        with mock.patch.object(gui_preferencias.wx, "FileDialog",
+                               return_value=cuadro) as crear, \
+                mock.patch.object(gui_preferencias.wx,
+                                  "MessageBox") as aviso, \
+                mock.patch.object(dialogo, "EndModal") as cerrar:
+            crear.return_value.__enter__.return_value = cuadro
+            dialogo._importar_prefs(None)
+        aviso.assert_called_once()
+        self.assertEqual((self.ruta / "config.ini").read_text(encoding="utf-8"),
+                         "[voz]\nmotor = sapi\n")
+        self.assertFalse((self.ruta / "config.anterior.ini").exists())
+        cerrar.assert_not_called()
+
+    def test_importar_error_escritura_muestra_aviso_y_sigue_abierto(self):
+        dialogo = self._dialogo()
+        origen = self.ruta / "nuevo.ini"
+        origen.write_text("[voz]\nmotor = onecore\n", encoding="utf-8")
+        cuadro = self._cuadro_archivo(origen)
+        with mock.patch.object(gui_preferencias.wx, "FileDialog",
+                               return_value=cuadro) as crear, \
+                mock.patch.object(gui_preferencias.wx,
+                                  "MessageBox") as aviso, \
+                mock.patch.object(gui_preferencias.preferencias_archivo,
+                                  "importar",
+                                  side_effect=OSError("disco lleno")), \
+                mock.patch.object(dialogo, "EndModal") as cerrar:
+            crear.return_value.__enter__.return_value = cuadro
+            dialogo._importar_prefs(None)
+        aviso.assert_called_once()
+        texto = aviso.call_args.args[0]
+        self.assertIn("No se pudieron importar las preferencias:", texto)
+        self.assertIn("disco lleno", texto)
+        cerrar.assert_not_called()
+
+    def test_restablecer_con_no_no_cambia_nada(self):
+        dialogo = self._dialogo()
+        respuesta = mock.Mock()
+        respuesta.ShowModal.return_value = gui.wx.ID_NO
+        with mock.patch.object(gui_preferencias.wx, "MessageDialog",
+                               return_value=respuesta) as crear, \
+                mock.patch.object(gui_preferencias.wx, "MessageBox") as aviso, \
+                mock.patch.object(dialogo, "EndModal") as cerrar:
+            dialogo._restablecer_prefs(None)
+        crear.assert_called_once()
+        respuesta.Destroy.assert_called_once_with()
+        aviso.assert_not_called()
+        cerrar.assert_not_called()
+        self.assertEqual((self.ruta / "config.ini").read_text(encoding="utf-8"),
+                         "[voz]\nmotor = sapi\n")
+        self.assertFalse((self.ruta / "config.anterior.ini").exists())
+
+
 class TestProgramadorGui(unittest.TestCase):
     def _frame(self, **config):
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)

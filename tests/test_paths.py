@@ -14,6 +14,7 @@ from tests.rutas_temporales import redirigir_rutas
 # (función de paths, nombre esperado en disco)
 RUTAS_DE_DATOS = [
     ("config_ini", "config.ini"),
+    ("config_anterior", "config.anterior.ini"),
     ("credenciales", "credenciales.json"),
     ("historial_lives", "historial_lives.json"),
     ("historial_descargas", "historial_descargas.json"),

@@ -582,6 +582,173 @@ class TestTemasSinManifiestoViejo(BaseInstalador):
         self.assertIn("sin manifiesto viejo", registro)
 
 
+class TestCaracterizacionFallos(BaseInstalador):
+    """Caminos de fallo de `instalar` sin cubrir al 16/10/2026.
+
+    Cada prueba fija el comportamiento de hoy: valor devuelto,
+    `resultado.json` exacto, instalación intacta byte a byte y si el
+    ejecutable viejo se relanza o no.
+    """
+
+    def test_paquete_invalido_no_toca_nada(self):
+        (self.fuente_paquete / paths.NOMBRE_MANIFIESTO).write_text(
+            json.dumps({"version": HACIA, "ejecutable": "malo.txt"}),
+            encoding="utf-8")
+        foto_antes = _sin_estado(_foto(self.instalacion))
+        ok = instalador.instalar(
+            self.fuente_paquete, self.instalacion, 1234, EXE_VIEJO, DESDE,
+            esperar_pid=lambda pid, tope: True,
+            lanzar=self._lanzar, matar=self._matar,
+            orden_para=self._orden_para())
+        self.assertFalse(ok)
+        resultado = json.loads(
+            paths.resultado_actualizacion_en(self.instalacion).read_text(
+                encoding="utf-8"))
+        self.assertEqual(
+            resultado,
+            {"resultado": "fallo",
+             "motivo": "el paquete no es válido: "
+                       "el ejecutable del paquete no es válido"})
+        self.assertEqual(_sin_estado(_foto(self.instalacion)), foto_antes)
+        self.assertEqual(self.lanzados, [])
+
+    def test_respaldo_previo_que_no_se_puede_vaciar(self):
+        import shutil as shutil_real
+        import unittest.mock as mock
+        respaldo = paths.respaldo_actualizacion_en(self.instalacion)
+        respaldo.mkdir(parents=True, exist_ok=True)
+        (respaldo / "viejo.txt").write_bytes(b"viejo")
+        real_rmtree = shutil_real.rmtree
+
+        def _falla(ruta, *args, **kwargs):
+            if Path(ruta) == respaldo:
+                raise OSError("bloqueado")
+            return real_rmtree(ruta, *args, **kwargs)
+
+        foto_antes = _sin_estado(_foto(self.instalacion))
+        with mock.patch.object(instalador.shutil, "rmtree",
+                               side_effect=_falla):
+            ok = instalador.instalar(
+                self.fuente_paquete, self.instalacion, 1234, EXE_VIEJO,
+                DESDE,
+                esperar_pid=lambda pid, tope: True,
+                lanzar=self._lanzar, matar=self._matar,
+                orden_para=self._orden_para())
+        self.assertFalse(ok)
+        resultado = json.loads(
+            paths.resultado_actualizacion_en(self.instalacion).read_text(
+                encoding="utf-8"))
+        self.assertEqual(
+            resultado,
+            {"resultado": "fallo",
+             "motivo": "no se pudo vaciar el respaldo: bloqueado"})
+        self.assertEqual(_sin_estado(_foto(self.instalacion)), foto_antes)
+        self.assertEqual(self.lanzados, [])
+
+    def test_vuelta_atras_devuelve_temas_y_entradas_ya_movidas(self):
+        import os
+        import unittest.mock as mock
+        for base in (self.instalacion, self.fuente_paquete):
+            for tema in ("default", "otro"):
+                carpeta = base / "sounds" / "themes" / tema
+                carpeta.mkdir(parents=True, exist_ok=True)
+                (carpeta / "a.wav").write_bytes(
+                    b"tema viejo " + tema.encode()
+                    if base == self.instalacion
+                    else b"tema nuevo " + tema.encode())
+        foto_antes = _sin_estado(_foto(self.instalacion))
+        real_replace = os.replace
+
+        def _falla_segundo_tema(origen, destino):
+            if Path(origen).name == "otro":
+                raise OSError("archivo en uso")
+            return real_replace(origen, destino)
+
+        with mock.patch.object(os, "replace",
+                               side_effect=_falla_segundo_tema):
+            ok = instalador.instalar(
+                self.fuente_paquete, self.instalacion, 1234, EXE_VIEJO,
+                DESDE,
+                esperar_pid=lambda pid, tope: True,
+                lanzar=self._lanzar, matar=self._matar,
+                orden_para=self._orden_para())
+        self.assertFalse(ok)
+        resultado = json.loads(
+            paths.resultado_actualizacion_en(self.instalacion).read_text(
+                encoding="utf-8"))
+        self.assertEqual(
+            resultado,
+            {"resultado": "fallo",
+             "motivo": "no se pudo mover un archivo de la versión anterior, "
+                       "quizá sigue abierto en otro programa, como OBS. "
+                       "Ciérralo y vuelve a intentarlo"})
+        self.assertEqual(_sin_estado(_foto(self.instalacion)), foto_antes)
+        self.assertIn(EXE_VIEJO, self.lanzados)
+        self.assertEqual((self.instalacion / "programa.txt").read_bytes(),
+                         b"programa viejo")
+        self.assertEqual(
+            (self.instalacion / "sounds" / "themes" / "default" / "a.wav"
+             ).read_bytes(), b"tema viejo default")
+        self.assertEqual(
+            (self.instalacion / "sounds" / "themes" / "otro" / "a.wav"
+             ).read_bytes(), b"tema viejo otro")
+
+    def test_fallo_al_copiar_vuelve_atras(self):
+        import unittest.mock as mock
+        foto_antes = _sin_estado(_foto(self.instalacion))
+        with mock.patch.object(instalador, "_copiar_entrada",
+                               side_effect=OSError("disco lleno")):
+            ok = instalador.instalar(
+                self.fuente_paquete, self.instalacion, 1234, EXE_VIEJO,
+                DESDE,
+                esperar_pid=lambda pid, tope: True,
+                lanzar=self._lanzar, matar=self._matar,
+                orden_para=self._orden_para())
+        self.assertFalse(ok)
+        resultado = json.loads(
+            paths.resultado_actualizacion_en(self.instalacion).read_text(
+                encoding="utf-8"))
+        self.assertEqual(
+            resultado,
+            {"resultado": "fallo",
+             "motivo": "no se pudo copiar la versión nueva"})
+        self.assertEqual(_sin_estado(_foto(self.instalacion)), foto_antes)
+        self.assertIn(EXE_VIEJO, self.lanzados)
+        self.assertFalse(
+            paths.actualizacion_pendiente_en(self.instalacion).exists())
+
+    def test_fallo_al_marcar_pendiente_vuelve_atras(self):
+        import unittest.mock as mock
+        foto_antes = _sin_estado(_foto(self.instalacion))
+        pendiente = paths.actualizacion_pendiente_en(self.instalacion)
+        real_write = Path.write_text
+
+        def _falla_escritura(uno_mismo, *args, **kwargs):
+            if uno_mismo == pendiente:
+                raise OSError("disco lleno")
+            return real_write(uno_mismo, *args, **kwargs)
+
+        with mock.patch.object(Path, "write_text", _falla_escritura):
+            ok = instalador.instalar(
+                self.fuente_paquete, self.instalacion, 1234, EXE_VIEJO,
+                DESDE,
+                esperar_pid=lambda pid, tope: True,
+                lanzar=self._lanzar, matar=self._matar,
+                orden_para=self._orden_para())
+        self.assertFalse(ok)
+        resultado = json.loads(
+            paths.resultado_actualizacion_en(self.instalacion).read_text(
+                encoding="utf-8"))
+        self.assertEqual(
+            resultado,
+            {"resultado": "fallo",
+             "motivo": "no se pudo marcar la actualización pendiente: "
+                       "disco lleno"})
+        self.assertEqual(_sin_estado(_foto(self.instalacion)), foto_antes)
+        self.assertIn(EXE_VIEJO, self.lanzados)
+        self.assertFalse(pendiente.exists())
+
+
 class TestPrincipalInstalador(unittest.TestCase):
 
     def test_argumentos_cortos_devuelve_uno(self):

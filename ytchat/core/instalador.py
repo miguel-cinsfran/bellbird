@@ -10,6 +10,8 @@ del módulo hacia ese archivo.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+from dataclasses import field
 import hashlib
 import json
 import logging
@@ -282,6 +284,266 @@ def _agregar_sonido_faltante(origen: Path, destino: Path, base_sonidos: Path,
         agregados.append(str(destino.relative_to(base_sonidos)))
 
 
+@dataclass
+class _Progreso:
+    """Lo movido y copiado hasta ahora, para deshacerlo al volver atrás."""
+    movidas: list[str] = field(default_factory=list)
+    temas_movidos: list[str] = field(default_factory=list)
+    copiadas: list[str] = field(default_factory=list)
+    temas_copiados: list[str] = field(default_factory=list)
+    sonidos_agregados: list[str] = field(default_factory=list)
+
+
+def _fallar(resultado: Path, motivo: str,
+            con_resultado: bool = True) -> bool:
+    logger.error("fallo: %s", motivo)
+    if con_resultado:
+        try:
+            resultado.parent.mkdir(parents=True, exist_ok=True)
+            resultado.write_text(json.dumps(
+                {"resultado": "fallo", "motivo": motivo},
+                ensure_ascii=False), encoding="utf-8")
+        except OSError:
+            pass
+    return False
+
+
+def _arrancar_en(instalacion: Path, nombre_exe: str, lanzar,
+                 orden_para):
+    return lanzar(orden_para(str(instalacion / nombre_exe)))
+
+
+def _relanzar_viejo(instalacion: Path, ejecutable_viejo: str, lanzar,
+                    orden_para) -> None:
+    try:
+        _arrancar_en(instalacion, ejecutable_viejo, lanzar, orden_para)
+    except Exception:
+        pass
+
+
+def _esperar_cierre(esperar_pid, pid: int, tope_cierre: float) -> bool:
+    logger.info("instalador: espera al pid %s", pid)
+    if not esperar_pid(pid, tope_cierre):
+        logger.error("la aplicación no se cerró a tiempo")
+        return False
+    logger.info("la aplicación se cerró")
+    return True
+
+
+def _validar_paquete(paquete: Path) -> tuple:
+    contenido = json.loads(
+        (paquete / paths.NOMBRE_MANIFIESTO).read_text(encoding="utf-8"))
+    hacia = contenido.get("version") if isinstance(contenido, dict) else None
+    ejecutable_nuevo = actualizacion.validar_paquete(paquete, hacia)
+    logger.info("paquete válido hacia la versión %s", hacia)
+    return hacia, ejecutable_nuevo
+
+
+def _manifiesto_viejo(instalacion: Path) -> dict | None:
+    # Se lee antes de mover nada, porque `sonidos.json` es una entrada
+    # de primer nivel y se reemplaza.
+    manifiesto = _leer_manifiesto_sonidos(instalacion)
+    if manifiesto is None:
+        logger.info("sin manifiesto viejo de sonidos: "
+                    "ante la duda se conserva lo del usuario")
+    return manifiesto
+
+
+def _vaciar_respaldo(respaldo: Path) -> str | None:
+    try:
+        if respaldo.exists():
+            shutil.rmtree(respaldo)
+    except OSError as error:
+        return f"no se pudo vaciar el respaldo: {error}"
+    return None
+
+
+def _deshacer_movidas(instalacion: Path, respaldo: Path,
+                      progreso: _Progreso) -> None:
+    for tema in reversed(progreso.temas_movidos):
+        try:
+            destino_tema = instalacion / "sounds" / "themes" / tema
+            destino_tema.parent.mkdir(parents=True, exist_ok=True)
+            os.replace(respaldo / "sounds" / "themes" / tema, destino_tema)
+        except OSError:
+            pass
+    for nombre in reversed(progreso.movidas):
+        try:
+            os.replace(respaldo / nombre, instalacion / nombre)
+        except OSError:
+            pass
+
+
+def _mover_al_respaldo(instalacion: Path, respaldo: Path,
+                       entradas: list[str], temas: list[str],
+                       progreso: _Progreso) -> None:
+    try:
+        respaldo.mkdir(parents=True, exist_ok=True)
+        for nombre in entradas:
+            origen = instalacion / nombre
+            if not origen.exists() and not origen.is_symlink():
+                continue
+            os.replace(origen, respaldo / nombre)
+            progreso.movidas.append(nombre)
+        for tema in temas:
+            origen_tema = instalacion / "sounds" / "themes" / tema
+            if not origen_tema.exists() and not origen_tema.is_symlink():
+                continue
+            destino_tema = respaldo / "sounds" / "themes" / tema
+            destino_tema.parent.mkdir(parents=True, exist_ok=True)
+            os.replace(origen_tema, destino_tema)
+            progreso.temas_movidos.append(tema)
+    except OSError as error:
+        logger.error("no se pudo mover %s al respaldo: %s",
+                     instalacion / nombre, error)
+        _deshacer_movidas(instalacion, respaldo, progreso)
+        raise
+
+
+def _copiar_raiz(paquete: Path, instalacion: Path,
+                 progreso: _Progreso) -> None:
+    for hijo in sorted(paquete.iterdir()):
+        if hijo.name == "sounds":
+            continue
+        destino = instalacion / hijo.name
+        _borrar_entrada(destino)
+        _copiar_entrada(hijo, destino)
+        progreso.copiadas.append(hijo.name)
+
+
+def _copiar_sonidos(paquete: Path, instalacion: Path, respaldo: Path,
+                    manifiesto_viejo: dict | None,
+                    progreso: _Progreso) -> None:
+    # Cada tema de `sounds/themes` del paquete reemplaza al instalado;
+    # el resto de `sounds` solo suma lo que falta.
+    origen_sonidos = paquete / "sounds"
+    if not origen_sonidos.is_dir():
+        return
+    carpeta_sonidos = instalacion / "sounds"
+    carpeta_sonidos.mkdir(parents=True, exist_ok=True)
+    origen_temas = origen_sonidos / "themes"
+    if origen_temas.is_dir():
+        for hijo in sorted(origen_temas.iterdir()):
+            if hijo.is_dir() and not hijo.is_symlink():
+                destino_tema = carpeta_sonidos / "themes" / hijo.name
+                _borrar_entrada(destino_tema)
+                _copiar_entrada(hijo, destino_tema)
+                progreso.temas_copiados.append(hijo.name)
+                _devolver_sonidos_usuario(respaldo, instalacion, hijo.name,
+                                          manifiesto_viejo)
+            else:
+                _agregar_sonido_faltante(
+                    hijo, carpeta_sonidos / "themes" / hijo.name,
+                    carpeta_sonidos, progreso.sonidos_agregados)
+    for hijo in sorted(origen_sonidos.iterdir()):
+        if hijo.name == "themes":
+            continue
+        _agregar_sonido_faltante(hijo, carpeta_sonidos / hijo.name,
+                                 carpeta_sonidos, progreso.sonidos_agregados)
+
+
+def _copiar_paquete(paquete: Path, instalacion: Path, respaldo: Path,
+                    manifiesto_viejo: dict | None,
+                    progreso: _Progreso) -> None:
+    _copiar_raiz(paquete, instalacion, progreso)
+    _copiar_sonidos(paquete, instalacion, respaldo, manifiesto_viejo,
+                    progreso)
+
+
+def _marcar_pendiente(pendiente: Path, arranque: Path, desde: str,
+                      hacia: str) -> None:
+    pendiente.parent.mkdir(parents=True, exist_ok=True)
+    pendiente.write_text(json.dumps(
+        {"desde": desde, "hacia": hacia}, ensure_ascii=False),
+        encoding="utf-8")
+    try:
+        arranque.unlink()
+    except OSError:
+        pass
+
+
+def _volver_atras(progreso: _Progreso, instalacion: Path, respaldo: Path,
+                  pendiente: Path, ejecutable_viejo: str, lanzar,
+                  orden_para) -> None:
+    # Vuelta atrás completa para todo fallo posterior al respaldo: borra
+    # lo copiado, devuelve el respaldo, borra el pendiente y lanza lo viejo.
+    for nombre in progreso.copiadas:
+        try:
+            _borrar_entrada(instalacion / nombre)
+        except OSError:
+            pass
+    for tema in progreso.temas_copiados:
+        try:
+            _borrar_entrada(instalacion / "sounds" / "themes" / tema)
+        except OSError:
+            pass
+    _borrar_sonidos_agregados(instalacion, progreso.sonidos_agregados)
+    _devolver_respaldo(respaldo, instalacion)
+    try:
+        pendiente.unlink()
+    except OSError:
+        pass
+    _relanzar_viejo(instalacion, ejecutable_viejo, lanzar, orden_para)
+
+
+def _esperar_confirmacion(arranque: Path, tope_arranque: float) -> bool:
+    inicio = time.monotonic()
+    while time.monotonic() - inicio < tope_arranque:
+        if arranque.is_file():
+            return True
+        time.sleep(INTERVALO_ARRANQUE)
+    return False
+
+
+def _cerrar_exito(respaldo: Path, pendiente: Path, resultado: Path,
+                  desde: str, hacia: str) -> None:
+    logger.info("versión %s confirmada", hacia)
+    try:
+        resultado.parent.mkdir(parents=True, exist_ok=True)
+        resultado.write_text(json.dumps(
+            {"resultado": "ok", "desde": desde, "hacia": hacia},
+            ensure_ascii=False), encoding="utf-8")
+    except OSError:
+        pass
+    try:
+        if respaldo.exists():
+            shutil.rmtree(respaldo)
+    except OSError:
+        pass
+    try:
+        pendiente.unlink()
+    except OSError:
+        pass
+
+
+def _lanzar_y_cerrar(instalacion: Path, ejecutable_nuevo: str,
+                     ejecutable_viejo: str, pendiente: Path, arranque: Path,
+                     respaldo: Path, resultado: Path, desde: str,
+                     hacia: str, lanzar, matar, orden_para,
+                     tope_arranque: float, progreso: _Progreso) -> bool:
+    try:
+        proceso_nuevo = _arrancar_en(instalacion, ejecutable_nuevo, lanzar,
+                                     orden_para)
+    except Exception as error:
+        _fallar(resultado, f"la versión nueva no se pudo abrir: {error}")
+        _volver_atras(progreso, instalacion, respaldo, pendiente,
+                      ejecutable_viejo, lanzar, orden_para)
+        return False
+    logger.info("versión nueva lanzada, espera confirmación")
+    if _esperar_confirmacion(arranque, tope_arranque):
+        _cerrar_exito(respaldo, pendiente, resultado, desde, hacia)
+        return True
+    logger.error("la versión nueva no llegó a abrirse")
+    try:
+        matar(proceso_nuevo)
+    except Exception:
+        pass
+    _fallar(resultado, "la versión nueva no llegó a abrirse")
+    _volver_atras(progreso, instalacion, respaldo, pendiente,
+                  ejecutable_viejo, lanzar, orden_para)
+    return False
+
+
 def instalar(paquete: str | os.PathLike, instalacion: str | os.PathLike,
              pid: int, ejecutable_viejo: str, desde: str,
              *, esperar_pid, lanzar, matar, tope_cierre: float = 60,
@@ -298,240 +560,57 @@ def instalar(paquete: str | os.PathLike, instalacion: str | os.PathLike,
     sin más. Devuelve verdadero si la versión nueva quedó instalada y
     confirmó.
     """
-    paquete = Path(paquete)
-    instalacion = Path(instalacion)
+    paquete, instalacion = Path(paquete), Path(instalacion)
     _preparar_registro(instalacion)
-
     respaldo = paths.respaldo_actualizacion_en(instalacion)
     pendiente = paths.actualizacion_pendiente_en(instalacion)
     arranque = paths.arranque_confirmado_en(instalacion)
     resultado = paths.resultado_actualizacion_en(instalacion)
-
-    def _fallo(motivo: str, con_resultado: bool = True) -> bool:
-        logger.error("fallo: %s", motivo)
-        if con_resultado:
-            try:
-                resultado.parent.mkdir(parents=True, exist_ok=True)
-                resultado.write_text(json.dumps(
-                    {"resultado": "fallo", "motivo": motivo},
-                    ensure_ascii=False), encoding="utf-8")
-            except OSError:
-                pass
+    progreso = _Progreso()
+    if not _esperar_cierre(esperar_pid, pid, tope_cierre):
         return False
-
-    def _arrancar(nombre_exe: str):
-        return lanzar(orden_para(str(instalacion / nombre_exe)))
-
-    # Paso a: espera a que termine la app vieja sin tocar nada.
-    logger.info("instalador: espera al pid %s", pid)
-    if not esperar_pid(pid, tope_cierre):
-        logger.error("la aplicación no se cerró a tiempo")
-        return False
-    logger.info("la aplicación se cerró")
-
-    # Paso b: manifiesto del paquete nuevo.
     try:
-        contenido = json.loads(
-            (paquete / paths.NOMBRE_MANIFIESTO).read_text(encoding="utf-8"))
-        hacia = contenido.get("version") if isinstance(contenido, dict) else None
-        ejecutable_nuevo = actualizacion.validar_paquete(paquete, hacia)
+        hacia, ejecutable_nuevo = _validar_paquete(paquete)
     except (actualizacion.PaqueteInvalido, OSError, ValueError) as error:
-        return _fallo(f"el paquete no es válido: {error}")
-    logger.info("paquete válido hacia la versión %s", hacia)
-
-    # Paso c: entradas a reemplazar.
+        return _fallar(resultado, f"el paquete no es válido: {error}")
     entradas = _entradas_a_reemplazar(paquete, ejecutable_viejo)
     logger.info("entradas a reemplazar: %s", ", ".join(entradas) or "ninguna")
-
-    # Manifiesto viejo de sonidos: se lee antes de mover nada, porque
-    # `sonidos.json` es una entrada de primer nivel y se reemplaza.
-    manifiesto_viejo = _leer_manifiesto_sonidos(instalacion)
-    if manifiesto_viejo is None:
-        logger.info("sin manifiesto viejo de sonidos: "
-                    "ante la duda se conserva lo del usuario")
-
-    # Paso d: mueve lo viejo al respaldo con os.replace.
+    manifiesto_viejo = _manifiesto_viejo(instalacion)
+    if (motivo := _vaciar_respaldo(respaldo)) is not None:
+        return _fallar(resultado, motivo)
     try:
-        if respaldo.exists():
-            shutil.rmtree(respaldo)
-    except OSError as error:
-        return _fallo(f"no se pudo vaciar el respaldo: {error}")
-    movidas: list[str] = []
-    temas = _temas_del_paquete(paquete)
-    temas_movidos: list[str] = []
-    try:
-        respaldo.mkdir(parents=True, exist_ok=True)
-        for nombre in entradas:
-            origen = instalacion / nombre
-            if not origen.exists() and not origen.is_symlink():
-                continue
-            os.replace(origen, respaldo / nombre)
-            movidas.append(nombre)
-        for tema in temas:
-            origen_tema = instalacion / "sounds" / "themes" / tema
-            if not origen_tema.exists() and not origen_tema.is_symlink():
-                continue
-            destino_tema = respaldo / "sounds" / "themes" / tema
-            destino_tema.parent.mkdir(parents=True, exist_ok=True)
-            os.replace(origen_tema, destino_tema)
-            temas_movidos.append(tema)
-    except OSError as error:
-        logger.error("no se pudo mover %s al respaldo: %s",
-                     instalacion / nombre, error)
-        for tema in reversed(temas_movidos):
-            try:
-                destino_tema = instalacion / "sounds" / "themes" / tema
-                destino_tema.parent.mkdir(parents=True, exist_ok=True)
-                os.replace(respaldo / "sounds" / "themes" / tema,
-                           destino_tema)
-            except OSError:
-                pass
-        for nombre in reversed(movidas):
-            try:
-                os.replace(respaldo / nombre, instalacion / nombre)
-            except OSError:
-                pass
-        motivo = ("no se pudo mover un archivo de la versión anterior, "
-                  "quizá sigue abierto en otro programa, como OBS. "
-                  "Ciérralo y vuelve a intentarlo")
-        _fallo(motivo)
-        try:
-            _arrancar(ejecutable_viejo)
-        except Exception:
-            pass
+        _mover_al_respaldo(instalacion, respaldo, entradas,
+                           _temas_del_paquete(paquete), progreso)
+    except OSError:
+        _fallar(resultado,
+                "no se pudo mover un archivo de la versión anterior, "
+                "quizá sigue abierto en otro programa, como OBS. "
+                "Ciérralo y vuelve a intentarlo")
+        _relanzar_viejo(instalacion, ejecutable_viejo, lanzar, orden_para)
         return False
-    logger.info("respaldo listo con: %s", ", ".join(movidas) or "nada previo")
-
-    # Paso e: copia lo nuevo. Cada tema de `sounds/themes` del paquete
-    # reemplaza al instalado; el resto de `sounds` solo suma lo que falta.
-    copiadas: list[str] = []
-    temas_copiados: list[str] = []
-    sonidos_agregados: list[str] = []
-    # Vuelta atrás completa para todo fallo posterior al paso d: borra
-    # lo copiado, devuelve el respaldo, borra el pendiente y lanza lo viejo.
-    def _volver_atras() -> None:
-        for nombre in copiadas:
-            try:
-                _borrar_entrada(instalacion / nombre)
-            except OSError:
-                pass
-        for tema in temas_copiados:
-            try:
-                _borrar_entrada(instalacion / "sounds" / "themes" / tema)
-            except OSError:
-                pass
-        _borrar_sonidos_agregados(instalacion, sonidos_agregados)
-        _devolver_respaldo(respaldo, instalacion)
-        try:
-            pendiente.unlink()
-        except OSError:
-            pass
-        try:
-            _arrancar(ejecutable_viejo)
-        except Exception:
-            pass
+    logger.info("respaldo listo con: %s", ", ".join(progreso.movidas) or "nada previo")
     try:
-        for hijo in sorted(paquete.iterdir()):
-            if hijo.name == "sounds":
-                continue
-            destino = instalacion / hijo.name
-            _borrar_entrada(destino)
-            _copiar_entrada(hijo, destino)
-            copiadas.append(hijo.name)
-        origen_sonidos = paquete / "sounds"
-        if origen_sonidos.is_dir():
-            carpeta_sonidos = instalacion / "sounds"
-            carpeta_sonidos.mkdir(parents=True, exist_ok=True)
-            origen_temas = origen_sonidos / "themes"
-            if origen_temas.is_dir():
-                for hijo in sorted(origen_temas.iterdir()):
-                    if hijo.is_dir() and not hijo.is_symlink():
-                        destino_tema = carpeta_sonidos / "themes" / hijo.name
-                        _borrar_entrada(destino_tema)
-                        _copiar_entrada(hijo, destino_tema)
-                        temas_copiados.append(hijo.name)
-                        _devolver_sonidos_usuario(respaldo, instalacion,
-                                                  hijo.name, manifiesto_viejo)
-                    else:
-                        _agregar_sonido_faltante(
-                            hijo, carpeta_sonidos / "themes" / hijo.name,
-                            carpeta_sonidos, sonidos_agregados)
-            for hijo in sorted(origen_sonidos.iterdir()):
-                if hijo.name == "themes":
-                    continue
-                _agregar_sonido_faltante(hijo, carpeta_sonidos / hijo.name,
-                                         carpeta_sonidos, sonidos_agregados)
+        _copiar_paquete(paquete, instalacion, respaldo, manifiesto_viejo,
+                        progreso)
     except OSError as error:
         logger.error("no se pudo copiar el paquete: %s", error)
-        motivo = "no se pudo copiar la versión nueva"
-        _fallo(motivo)
-        _volver_atras()
+        _fallar(resultado, "no se pudo copiar la versión nueva")
+        _volver_atras(progreso, instalacion, respaldo, pendiente,
+                      ejecutable_viejo, lanzar, orden_para)
         return False
-    logger.info("copia lista: %s", ", ".join(copiadas) or "nada")
-
-    # Paso f: marca pendiente, lanza lo nuevo y espera la confirmación.
+    logger.info("copia lista: %s", ", ".join(progreso.copiadas) or "nada")
     try:
-        pendiente.parent.mkdir(parents=True, exist_ok=True)
-        pendiente.write_text(json.dumps(
-            {"desde": desde, "hacia": hacia}, ensure_ascii=False),
-            encoding="utf-8")
-        try:
-            arranque.unlink()
-        except OSError:
-            pass
+        _marcar_pendiente(pendiente, arranque, desde, hacia)
     except OSError as error:
-        motivo = f"no se pudo marcar la actualización pendiente: {error}"
-        _fallo(motivo)
-        _volver_atras()
+        _fallar(resultado,
+                f"no se pudo marcar la actualización pendiente: {error}")
+        _volver_atras(progreso, instalacion, respaldo, pendiente,
+                      ejecutable_viejo, lanzar, orden_para)
         return False
-    proceso_nuevo = None
-    try:
-        proceso_nuevo = _arrancar(ejecutable_nuevo)
-    except Exception as error:
-        motivo = f"la versión nueva no se pudo abrir: {error}"
-        _fallo(motivo)
-        _volver_atras()
-        return False
-    logger.info("versión nueva lanzada, espera confirmación")
-    inicio = time.monotonic()
-    confirmado = False
-    while time.monotonic() - inicio < tope_arranque:
-        if arranque.is_file():
-            confirmado = True
-            break
-        time.sleep(INTERVALO_ARRANQUE)
-
-    # Paso g: confirmó, se escribe el resultado antes de limpiar.
-    if confirmado:
-        logger.info("versión %s confirmada", hacia)
-        try:
-            resultado.parent.mkdir(parents=True, exist_ok=True)
-            resultado.write_text(json.dumps(
-                {"resultado": "ok", "desde": desde, "hacia": hacia},
-                ensure_ascii=False), encoding="utf-8")
-        except OSError:
-            pass
-        try:
-            if respaldo.exists():
-                shutil.rmtree(respaldo)
-        except OSError:
-            pass
-        try:
-            pendiente.unlink()
-        except OSError:
-            pass
-        return True
-
-    # Paso h: no confirmó, se escribe el fallo antes de volver atrás.
-    logger.error("la versión nueva no llegó a abrirse")
-    try:
-        matar(proceso_nuevo)
-    except Exception:
-        pass
-    motivo = "la versión nueva no llegó a abrirse"
-    _fallo(motivo)
-    _volver_atras()
-    return False
+    return _lanzar_y_cerrar(
+        instalacion, ejecutable_nuevo, ejecutable_viejo, pendiente, arranque,
+        respaldo, resultado, desde, hacia, lanzar, matar, orden_para,
+        tope_arranque, progreso)
 
 
 def _borrar_sonidos_agregados(instalacion: Path, nombres: list[str]) -> None:

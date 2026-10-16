@@ -37,6 +37,7 @@ from ytchat.core import diagnostico
 from ytchat.core import avisos_red
 from ytchat.downloads import ytdlp_bin
 from ytchat.capture import conexion
+from ytchat.ui.vista_captura import VistaGui
 from ytchat.capture import alias
 from ytchat.core.sonidos_eventos import rol_de_autor, ROL_PROPIETARIO, ROL_MODERADOR
 
@@ -682,7 +683,8 @@ def _mensaje_error_amigable(exc) -> str:
 
 def armar_callbacks_captura(cola, config, stats, parada):
     """Arma una conexión y devuelve sus dos callbacks asociados."""
-    conexiones = conexion.Conexiones(cola, config, stats, parada)
+    conexiones = conexion.Conexiones(cola, config, stats, parada,
+                                       vista=VistaGui())
     return conexiones.conectar, conexiones.desconectar
 
 

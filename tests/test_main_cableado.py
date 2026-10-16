@@ -10,7 +10,7 @@ import main
 
 
 class ConexionFalsa:
-    def __init__(self, *args):
+    def __init__(self, *args, **kwargs):
         self.llamadas = []
 
     def conectar(self, url):

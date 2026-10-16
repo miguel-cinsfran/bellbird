@@ -37,6 +37,24 @@ def crear_hilo_inerte(*args, **kwargs):
     return HiloInerte()
 
 
+class VistaFalsa:
+    """Vista falsa que registra las llamadas (actúa como marco vivo)."""
+
+    def __init__(self):
+        self.llamadas = []
+        self.activa = True
+
+    def __getattr__(self, nombre):
+        if nombre.startswith("_"):
+            raise AttributeError(nombre)
+
+        def registrar(*args, **kwargs):
+            self.llamadas.append((nombre, args, kwargs))
+            return True
+
+        return registrar
+
+
 class PruebasSesiones(unittest.TestCase):
     def test_abrir_dos_veces_para_la_sesion_anterior(self):
         registro = RegistroSesiones()
@@ -71,26 +89,12 @@ class PruebasSesiones(unittest.TestCase):
 
 class PruebasCableadoConexiones(unittest.TestCase):
     def setUp(self):
-        self.gui_falsa = types.SimpleNamespace(_gui_frame=None)
-        self.modulo_gui_anterior = sys.modules.get("ytchat.ui.gui")
-        sys.modules["ytchat.ui.gui"] = self.gui_falsa
-        # `from ytchat.ui import gui` mira primero el atributo del paquete:
-        # sin esto usaría el módulo real si otra prueba ya lo importó.
-        from ytchat import ui as _paquete_ui
-        self._parche_paquete = mock.patch.object(
-            _paquete_ui, "gui", self.gui_falsa, create=True)
-        self._parche_paquete.start()
         self.registro = RegistroEspia()
+        self.vista = VistaFalsa()
         self.conexiones = Conexiones(
             queue.Queue(), {}, mock.Mock(), threading.Event(),
-            crear_hilo=crear_hilo_inerte, registro=self.registro)
-
-    def tearDown(self):
-        self._parche_paquete.stop()
-        if self.modulo_gui_anterior is None:
-            sys.modules.pop("ytchat.ui.gui", None)
-        else:
-            sys.modules["ytchat.ui.gui"] = self.modulo_gui_anterior
+            crear_hilo=crear_hilo_inerte, registro=self.registro,
+            vista=self.vista)
 
     def test_conectar_dos_veces_para_la_sesion_de_youtube(self):
         self.conexiones.conectar("dQw4w9WgXcQ")
@@ -166,13 +170,9 @@ class PruebasCableadoConexiones(unittest.TestCase):
 
     def test_los_detalles_del_directo_se_consultan_nada_mas_conectar(self):
         import main
-        import wx
         consultas = []
         esperas = []
         hilos = {}
-        frame = mock.Mock()
-        frame._alive = True
-        self.gui_falsa._gui_frame = frame
 
         class ClienteFalso:
             def __init__(self, credenciales):
@@ -193,7 +193,6 @@ class PruebasCableadoConexiones(unittest.TestCase):
                                                     efectivas=lambda *a, **k: {})
         youtube_api_falso = types.SimpleNamespace(google_disponible=lambda: True,
                                                   ClienteYouTube=ClienteFalso)
-        llamadas = []
         # `from ytchat.youtube import x` mira primero el atributo del paquete:
         # sin estos parches usaría el módulo real si otra prueba ya lo importó.
         from ytchat import youtube as _paquete_youtube
@@ -206,9 +205,7 @@ class PruebasCableadoConexiones(unittest.TestCase):
                 mock.patch.object(_paquete_youtube, "credenciales",
                                   credenciales_falso, create=True), \
                 mock.patch.object(_paquete_youtube, "youtube_api",
-                                  youtube_api_falso, create=True), \
-                mock.patch.object(wx, "CallAfter",
-                                  side_effect=lambda fn, *a, **k: llamadas.append((fn, a))):
+                                  youtube_api_falso, create=True):
             self.conexiones._crear_hilo = hilo
             self.conexiones.conectar("dQw4w9WgXcQ")
             parada = self.registro.sesiones[0].parada
@@ -224,16 +221,12 @@ class PruebasCableadoConexiones(unittest.TestCase):
         # Antes se esperaba un minuto entero antes de la primera consulta.
         self.assertEqual(consultas, ["dQw4w9WgXcQ"])
         self.assertEqual(esperas, [60])
-        self.assertIn((frame.set_espectadores, (42,)), llamadas)
+        self.assertIn(("set_espectadores", (42,), {}), self.vista.llamadas)
 
     def test_los_detalles_del_directo_usan_credenciales_efectivas(self):
         import main
-        import wx
         construidos = []
         hilos = {}
-        frame = mock.Mock()
-        frame._alive = True
-        self.gui_falsa._gui_frame = frame
 
         class ClienteRegistra:
             def __init__(self, credenciales):
@@ -266,9 +259,7 @@ class PruebasCableadoConexiones(unittest.TestCase):
                 mock.patch.object(_paquete_youtube, "credenciales",
                                   credenciales_falso, create=True), \
                 mock.patch.object(_paquete_youtube, "youtube_api",
-                                  youtube_api_falso, create=True), \
-                mock.patch.object(wx, "CallAfter",
-                                  side_effect=lambda fn, *a, **k: None):
+                                  youtube_api_falso, create=True):
             self.conexiones._crear_hilo = hilo
             self.conexiones.conectar("dQw4w9WgXcQ")
             parada = self.registro.sesiones[0].parada
@@ -299,91 +290,81 @@ class PruebasCableadoConexiones(unittest.TestCase):
             callbacks["on_message"]("Ana", "viejo", "12:00")
         difundir.assert_not_called()
 
+    def test_youtube_conectado_muestra_conectado_sin_anunciar(self):
+        import main
+        callbacks = {}
+        def captura(*args, **kwargs):
+            callbacks.update(kwargs)
+        with mock.patch.object(main, "obtener_info_video",
+                               return_value=("Título", main.deteccion.LIVE, {})), \
+                mock.patch.object(main.deteccion, "tiene_chat_en_vivo", return_value=True), \
+                mock.patch.object(main, "captura_con_reconexion", side_effect=captura), \
+                mock.patch("ytchat.obs.overlay_servidor.difundir"):
+            # Se filtra por nombre para que los hilos auxiliares no bloqueen la prueba.
+            self.conexiones._crear_hilo = lambda objetivo, nombre, **kwargs: (
+                HiloEjecuta(objetivo) if nombre == "Chat" else HiloInerte())
+            self.conexiones.conectar("dQw4w9WgXcQ")
+            self.vista.llamadas.clear()
+            callbacks["on_estado"]("conectado", "Conectado al chat en vivo.")
+        self.assertIn(("set_conectado", (True,), {}), self.vista.llamadas)
+        # set_conectado ya anuncia: el texto genérico no se repite.
+        self.assertFalse([n for n, _a, _k in self.vista.llamadas
+                          if n == "anunciar"])
+
 
 class TestPlataformaMensajesChat(unittest.TestCase):
     def setUp(self):
-        self.gui_falsa = types.SimpleNamespace(_gui_frame=None)
-        self.modulo_gui_anterior = sys.modules.get("ytchat.ui.gui")
-        sys.modules["ytchat.ui.gui"] = self.gui_falsa
-        # `from ytchat.ui import gui` mira primero el atributo del paquete:
-        # sin esto usaría el módulo real si otra prueba ya lo importó.
-        from ytchat import ui as _paquete_ui
-        self._parche_paquete = mock.patch.object(
-            _paquete_ui, "gui", self.gui_falsa, create=True)
-        self._parche_paquete.start()
         self.registro = RegistroEspia()
+        self.vista = VistaFalsa()
         self.conexiones = Conexiones(
             queue.Queue(), {}, mock.Mock(), threading.Event(),
-            crear_hilo=crear_hilo_inerte, registro=self.registro)
-
-    def tearDown(self):
-        self._parche_paquete.stop()
-        if self.modulo_gui_anterior is None:
-            sys.modules.pop("ytchat.ui.gui", None)
-        else:
-            sys.modules["ytchat.ui.gui"] = self.modulo_gui_anterior
+            crear_hilo=crear_hilo_inerte, registro=self.registro,
+            vista=self.vista)
 
     def test_youtube_entrega_plataforma_youtube_a_gui(self):
         import main
-        import wx
         callbacks = {}
         def hilo(objetivo, nombre, **kwargs):
             return HiloEjecuta(objetivo) if nombre == "Chat" else HiloInerte()
         def captura(*args, **kwargs):
             callbacks.update(kwargs)
-        frame = mock.Mock()
-        frame._alive = True
-        self.gui_falsa._gui_frame = frame
-        llamadas = []
-        def call_after(fn, *args, **kwargs):
-            llamadas.append((fn, args, kwargs))
-            # Capturar el método y argumentos sin ejecutar
-            return mock.Mock()
         with mock.patch.object(main, "obtener_info_video",
                                return_value=("Título", main.deteccion.LIVE, {})), \
                 mock.patch.object(main.deteccion, "tiene_chat_en_vivo", return_value=True), \
                 mock.patch.object(main, "captura_con_reconexion", side_effect=captura), \
-                mock.patch("ytchat.obs.overlay_servidor.difundir"), \
-                mock.patch.object(wx, "CallAfter", side_effect=call_after):
+                mock.patch("ytchat.obs.overlay_servidor.difundir"):
             self.conexiones._crear_hilo = hilo
             self.conexiones.conectar("dQw4w9WgXcQ")
             callbacks["on_message"]("Ana", "Hola", "12:00", monto="US$ 5", canal_id="CANAL123")
-        # Debe haber llamado a agregar_mensaje_chat con plataforma youtube
-        agregados = [(fn, a, kw) for fn, a, kw in llamadas if fn is frame.agregar_mensaje_chat]
+        # Debe haber llamado a agregar_mensaje con plataforma youtube
+        agregados = [(a, kw) for n, a, kw in self.vista.llamadas
+                     if n == "agregar_mensaje"]
         self.assertTrue(agregados)
-        fn, args, kwargs = agregados[0]
+        args, kwargs = agregados[0]
         self.assertEqual(kwargs.get("plataforma"), "youtube")
         # Verificar que canal_id también se entregó
         self.assertIn("CANAL123", args)
 
     def test_tiktok_entrega_plataforma_tiktok_a_gui(self):
         import main
-        import wx
         from ytchat.capture import tiktok_captura
         callbacks = {}
         def hilo(objetivo, nombre, **kwargs):
             return HiloEjecuta(objetivo) if nombre == "TikTok" else HiloInerte()
         def captura(*args, **kwargs):
             callbacks.update(kwargs)
-        frame = mock.Mock()
-        frame._alive = True
-        self.gui_falsa._gui_frame = frame
-        llamadas = []
-        def call_after(fn, *args, **kwargs):
-            llamadas.append((fn, args, kwargs))
-            return mock.Mock()
         self.conexiones._crear_hilo = hilo
         with mock.patch.object(main, "procesar_entrante",
                                side_effect=lambda *a, **k: k["on_message"](
                                    "Ana", "Hola", "12:00", main.TIPO_TEXTO, "regalo", "TIKID")), \
                 mock.patch.object(tiktok_captura, "capturar_con_reconexion", side_effect=captura), \
-                mock.patch("ytchat.obs.overlay_servidor.difundir"), \
-                mock.patch.object(wx, "CallAfter", side_effect=call_after):
+                mock.patch("ytchat.obs.overlay_servidor.difundir"):
             self.conexiones._conectar_tiktok("pepe")
             callbacks["on_evento"]("Ana", "Hola", main.TIPO_TEXTO, "regalo", "TIKID")
-        agregados = [(fn, a, kw) for fn, a, kw in llamadas if fn is frame.agregar_mensaje_chat]
+        agregados = [(a, kw) for n, a, kw in self.vista.llamadas
+                     if n == "agregar_mensaje"]
         self.assertTrue(agregados)
-        fn, args, kwargs = agregados[0]
+        args, kwargs = agregados[0]
         self.assertEqual(kwargs.get("plataforma"), "tiktok")
 
 
@@ -391,24 +372,12 @@ class PruebasFinDirectoTiktok(unittest.TestCase):
     """«fin_directo» cierra igual que «desconectado»: solo cambia el sonido."""
 
     def setUp(self):
-        self.gui_falsa = types.SimpleNamespace(_gui_frame=None)
-        self.modulo_gui_anterior = sys.modules.get("ytchat.ui.gui")
-        sys.modules["ytchat.ui.gui"] = self.gui_falsa
-        from ytchat import ui as _paquete_ui
-        self._parche_paquete = mock.patch.object(
-            _paquete_ui, "gui", self.gui_falsa, create=True)
-        self._parche_paquete.start()
         self.registro = RegistroEspia()
+        self.vista = VistaFalsa()
         self.conexiones = Conexiones(
             queue.Queue(), {}, mock.Mock(), threading.Event(),
-            crear_hilo=crear_hilo_inerte, registro=self.registro)
-
-    def tearDown(self):
-        self._parche_paquete.stop()
-        if self.modulo_gui_anterior is None:
-            sys.modules.pop("ytchat.ui.gui", None)
-        else:
-            sys.modules["ytchat.ui.gui"] = self.modulo_gui_anterior
+            crear_hilo=crear_hilo_inerte, registro=self.registro,
+            vista=self.vista)
 
     def _callbacks_tiktok(self):
         callbacks = {}
@@ -424,33 +393,27 @@ class PruebasFinDirectoTiktok(unittest.TestCase):
         return callbacks
 
     def test_fin_directo_cierra_igual_que_desconectado_con_otro_sonido(self):
-        import wx
         callbacks = self._callbacks_tiktok()
-        frame = mock.Mock()
-        frame._alive = True
-        self.gui_falsa._gui_frame = frame
-        self.gui_falsa.anunciar = mock.Mock()
-        llamadas = []
-        def call_after(fn, *args, **kwargs):
-            llamadas.append((fn, args))
-            return mock.Mock()
-        with mock.patch.object(wx, "CallAfter", side_effect=call_after):
-            callbacks["on_estado"](
-                "desconectado", "El directo de TikTok ha terminado.")
-        llamadas_desc = list(llamadas)
-        del llamadas[:]
-        with mock.patch.object(wx, "CallAfter", side_effect=call_after):
-            callbacks["on_estado"](
-                "fin_directo", "El directo de TikTok ha terminado.")
-        llamadas_fin = list(llamadas)
-        # Las mismas funciones en el mismo orden (cierra sesión, borra
+        # El _run de TikTok ya apagó la vista al terminar: solo importan
+        # las llamadas de on_estado.
+        self.vista.llamadas.clear()
+        callbacks["on_estado"](
+            "desconectado", "El directo de TikTok ha terminado.")
+        llamadas_desc = list(self.vista.llamadas)
+        self.vista.llamadas.clear()
+        callbacks["on_estado"](
+            "fin_directo", "El directo de TikTok ha terminado.")
+        llamadas_fin = list(self.vista.llamadas)
+        # Los mismos métodos en el mismo orden (cierra sesión, borra
         # título y anuncia con el mismo texto).
-        self.assertEqual([fn for fn, _a in llamadas_desc],
-                         [fn for fn, _a in llamadas_fin])
+        self.assertEqual([n for n, _a, _k in llamadas_desc],
+                         [n for n, _a, _k in llamadas_fin])
         self.assertEqual(len(llamadas_desc), 3)
         # La única diferencia: el sonido que se pide a set_conectado.
-        self.assertEqual(llamadas_desc[0][1], (False, "desconectado"))
-        self.assertEqual(llamadas_fin[0][1], (False, "fin_directo"))
+        self.assertEqual(llamadas_desc[0],
+                         ("set_conectado", (False, "desconectado"), {}))
+        self.assertEqual(llamadas_fin[0],
+                         ("set_conectado", (False, "fin_directo"), {}))
         self.assertEqual(llamadas_desc[1:], llamadas_fin[1:])
 
 

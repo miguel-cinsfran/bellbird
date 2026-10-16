@@ -284,112 +284,90 @@ class TestCableadoCapturaYouTube(unittest.TestCase):
         self.assertEqual(recibidos, [("Ana", "moderador")])
 
 
+class VistaFalsa:
+    """Vista falsa que registra las llamadas (actúa como marco vivo)."""
+
+    def __init__(self):
+        self.llamadas = []
+        self.activa = True
+
+    def __getattr__(self, nombre):
+        if nombre.startswith("_"):
+            raise AttributeError(nombre)
+
+        def registrar(*args, **kwargs):
+            self.llamadas.append((nombre, args, kwargs))
+            return True
+
+        return registrar
+
+
 class TestReenvioRolConexion(unittest.TestCase):
     def _conexiones(self):
         from ytchat.capture.conexion import Conexiones
         from ytchat.capture.sesiones import RegistroSesiones
-        return Conexiones(queue.Queue(), {}, mock.Mock(), threading.Event(),
-                          crear_hilo=lambda *a, **k: _HiloInerte(),
-                          registro=RegistroSesiones())
+        vista = VistaFalsa()
+        conexiones = Conexiones(
+            queue.Queue(), {}, mock.Mock(), threading.Event(),
+            crear_hilo=lambda *a, **k: _HiloInerte(),
+            registro=RegistroSesiones(), vista=vista)
+        return conexiones, vista
 
-    def _gui_falsa_con_agregar_real(self):
-        llamadas = []
-
-        def agregar_mensaje_chat(autor, mensaje, hora, tipo=main.TIPO_TEXTO,
-                                 monto="", canal_id="", plataforma="",
-                                 rol=""):
-            llamadas.append((autor, mensaje, hora, tipo, monto, canal_id,
-                             plataforma, rol))
-
-        class MarcoFalso:
-            _alive = True
-
-            def __getattr__(self, nombre):
-                if nombre == "agregar_mensaje_chat":
-                    return agregar_mensaje_chat
-                return mock.Mock()
-
-        return MarcoFalso(), llamadas
-
-    def _parche_gui(self, frame):
-        falsa = types.SimpleNamespace(_gui_frame=frame)
-        anterior = sys.modules.get("ytchat.ui.gui")
-        sys.modules["ytchat.ui.gui"] = falsa
-        from ytchat import ui as _paquete_ui
-        parche = mock.patch.object(_paquete_ui, "gui", falsa, create=True)
-        parche.start()
-        return anterior, parche
-
-    def _restaurar_gui(self, anterior, parche):
-        parche.stop()
-        if anterior is None:
-            sys.modules.pop("ytchat.ui.gui", None)
-        else:
-            sys.modules["ytchat.ui.gui"] = anterior
+    def _agregados(self, vista):
+        return [(a, kw) for n, a, kw in vista.llamadas
+                if n == "agregar_mensaje"]
 
     def test_youtube_reenvia_el_rol(self):
-        import wx
-        conexiones = self._conexiones()
-        frame, llamadas = self._gui_falsa_con_agregar_real()
-        anterior, parche = self._parche_gui(frame)
+        conexiones, vista = self._conexiones()
         callbacks = {}
-        try:
-            def captura(*args, **kwargs):
-                callbacks.update(kwargs)
+        def captura(*args, **kwargs):
+            callbacks.update(kwargs)
 
-            def hilo(objetivo, nombre, **kwargs):
-                return _HiloEjecuta(objetivo) if nombre == "Chat" else _HiloInerte()
+        def hilo(objetivo, nombre, **kwargs):
+            return _HiloEjecuta(objetivo) if nombre == "Chat" else _HiloInerte()
 
-            conexiones._crear_hilo = hilo
-            with mock.patch.object(main, "obtener_info_video",
-                                   return_value=("T", main.deteccion.LIVE, {})), \
-                    mock.patch.object(main.deteccion, "tiene_chat_en_vivo",
-                                      return_value=True), \
-                    mock.patch.object(main, "captura_con_reconexion",
-                                      side_effect=captura), \
-                    mock.patch("ytchat.obs.overlay_servidor.difundir"), \
-                    mock.patch.object(wx, "CallAfter",
-                                      side_effect=lambda fn, *a, **k: fn(*a, **k)):
-                conexiones.conectar("dQw4w9WgXcQ")
-                callbacks["on_message"]("Ana", "hola", "12:00", main.TIPO_TEXTO,
-                                        "", "CANAL1", rol="moderador")
-        finally:
-            self._restaurar_gui(anterior, parche)
-        self.assertEqual(len(llamadas), 1)
-        self.assertEqual(llamadas[0][7], "moderador")
-        self.assertEqual(llamadas[0][6], "youtube")
+        conexiones._crear_hilo = hilo
+        with mock.patch.object(main, "obtener_info_video",
+                               return_value=("T", main.deteccion.LIVE, {})), \
+                mock.patch.object(main.deteccion, "tiene_chat_en_vivo",
+                                  return_value=True), \
+                mock.patch.object(main, "captura_con_reconexion",
+                                  side_effect=captura), \
+                mock.patch("ytchat.obs.overlay_servidor.difundir"):
+            conexiones.conectar("dQw4w9WgXcQ")
+            callbacks["on_message"]("Ana", "hola", "12:00", main.TIPO_TEXTO,
+                                    "", "CANAL1", rol="moderador")
+        agregados = self._agregados(vista)
+        self.assertEqual(len(agregados), 1)
+        args, kwargs = agregados[0]
+        self.assertEqual(kwargs.get("rol"), "moderador")
+        self.assertEqual(kwargs.get("plataforma"), "youtube")
 
     def test_tiktok_reenvia_el_rol_por_defecto(self):
-        import wx
-        conexiones = self._conexiones()
-        frame, llamadas = self._gui_falsa_con_agregar_real()
-        anterior, parche = self._parche_gui(frame)
+        conexiones, vista = self._conexiones()
         callbacks = {}
-        try:
-            def captura(*args, **kwargs):
-                callbacks.update(kwargs)
+        def captura(*args, **kwargs):
+            callbacks.update(kwargs)
 
-            def hilo(objetivo, nombre, **kwargs):
-                return _HiloEjecuta(objetivo) if nombre == "TikTok" else _HiloInerte()
+        def hilo(objetivo, nombre, **kwargs):
+            return _HiloEjecuta(objetivo) if nombre == "TikTok" else _HiloInerte()
 
-            conexiones._crear_hilo = hilo
-            from ytchat.capture import tiktok_captura
-            with mock.patch.object(main, "procesar_entrante",
-                                   side_effect=lambda *a, **k: k["on_message"](
-                                       "Ana", "hola", "12:00", main.TIPO_TEXTO,
-                                       "", "TIKID", rol="")), \
-                    mock.patch.object(tiktok_captura, "capturar_con_reconexion",
-                                      side_effect=captura), \
-                    mock.patch("ytchat.obs.overlay_servidor.difundir"), \
-                    mock.patch.object(wx, "CallAfter",
-                                      side_effect=lambda fn, *a, **k: fn(*a, **k)):
-                conexiones._conectar_tiktok("pepe")
-                callbacks["on_evento"]("Ana", "hola", main.TIPO_TEXTO, "", "TIKID")
-        finally:
-            self._restaurar_gui(anterior, parche)
-        self.assertEqual(len(llamadas), 1)
-        self.assertEqual(llamadas[0][7], "")
-        self.assertEqual(llamadas[0][6], "tiktok")
+        conexiones._crear_hilo = hilo
+        from ytchat.capture import tiktok_captura
+        with mock.patch.object(main, "procesar_entrante",
+                               side_effect=lambda *a, **k: k["on_message"](
+                                   "Ana", "hola", "12:00", main.TIPO_TEXTO,
+                                   "", "TIKID", rol="")), \
+                mock.patch.object(tiktok_captura, "capturar_con_reconexion",
+                                  side_effect=captura), \
+                mock.patch("ytchat.obs.overlay_servidor.difundir"):
+            conexiones._conectar_tiktok("pepe")
+            callbacks["on_evento"]("Ana", "hola", main.TIPO_TEXTO, "", "TIKID")
+        agregados = self._agregados(vista)
+        self.assertEqual(len(agregados), 1)
+        args, kwargs = agregados[0]
+        self.assertEqual(kwargs.get("rol"), "")
+        self.assertEqual(kwargs.get("plataforma"), "tiktok")
 
 
 class _HiloInerte:

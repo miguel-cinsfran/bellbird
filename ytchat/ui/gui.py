@@ -1300,121 +1300,24 @@ class YTChatFrame(wx.Frame):
         anunciar("Lectura TTS silenciada" if nuevo else "Lectura TTS activada")
 
     def _snapshot_sesion(self) -> estado_sesion.SnapshotSesion:
-        """Reúne el estado actual para F2. Los datos del vídeo salen de los
-        metadatos capturados al conectar (título, canal, espectadores)."""
-        # Tipo: hay que distinguir TikTok de YouTube (ambos son LIVE por dentro).
-        if self._conectado and self._es_tiktok:
-            tipo = "live_tiktok"
-        elif self._tipo_video == deteccion.LIVE:
-            tipo = "live_youtube"
-        elif self._tipo_video == deteccion.VOD:
-            tipo = "vod"
-        elif self._tipo_video == deteccion.UPCOMING:
-            tipo = "upcoming"
-        else:
-            tipo = ""
-        meta = self._metadatos or {}
-        espectadores = meta.get("vistas")
-        try:    espectadores = int(espectadores) if espectadores is not None else None
-        except (TypeError, ValueError): espectadores = None
-        def _seguro(fn, defecto):
-            try:    return fn()
-            except Exception: return defecto
-        def _texto_atajo_directo():
-            at = (self._atajos or {}).get("rep_directo")
-            return at.texto if at is not None else ""
-        vigilante = getattr(self, "_obs_vigilante", None)
-        estado_obs = _seguro(lambda: vigilante.estado(), None) if vigilante else None
-        transmision = estado_obs.transmision if estado_obs else None
-        grabacion = estado_obs.grabacion if estado_obs else None
-        supervisor = getattr(self, "_supervisor", None)
-        supervisada = _seguro(
-            lambda: supervisor.frase_estado()
-            if supervisor is not None and supervisor.activo else "", "")
-        return estado_sesion.SnapshotSesion(
-            conectado=self._conectado,
-            tipo=tipo,
-            titulo=self._titulo_stream,
-            canal=(meta.get("canal") or "").strip(),
-            espectadores=espectadores,
-            segundos_directo=_seguro(lambda: int(time.time() - datetime.fromisoformat(
-                meta["comienzo_directo"].replace("Z", "+00:00")).timestamp()), None),
-            desfase_directo=_seguro(lambda: self._rep_panel.frase_posicion_directo() if self._rep_panel._desfase_relevo_segundos() > 0 else "", ""),
-            atajo_directo=_seguro(
-                lambda: atajos_captura.atajo_legible(_texto_atajo_directo()), ""),
-            mensajes_leidos=_seguro(lambda: self._stats.leidos, 0),
-            aportes=_seguro(lambda: self._stats.superchats, 0),
-            total_aportes=self._total_aportes_texto(),
-            en_cola=_seguro(lambda: self._cola.qsize(), 0),
-            voz_velocidad=_seguro(lambda: self._worker.get_rate(), 0),
-            voz_volumen=_seguro(lambda: self._worker.get_volume(), 0),
-            lectura_silenciada=bool(self._config.get("silenciar_lectura", False)),
-            overlay_puerto=overlay_servidor.puerto_actual(),
-            overlay_clientes=overlay_servidor.cuantos_miran(),
-            programados_proximo=(
-                programados.describir_proximo(self._mensajes_programados, time.time())
-                if self._config.get("programados_activo", False) else ""),
-            descartados=descartes.frase_estado(
-                _seguro(lambda: self._stats.descartados, 0)),
-            obs_transmision=(obs_estado.frase_transmision(
-                transmision["outputActive"], transmision["outputDuration"],
-                transmision["outputSkippedFrames"], transmision["outputTotalFrames"])
-                if transmision else ""),
-            obs_grabacion=(obs_estado.frase_grabacion(
-                grabacion["outputActive"], grabacion["outputPaused"],
-                grabacion["outputTimecode"]) if grabacion else ""),
-            obs_escena=(obs_estado.frase_escena_al_aire(estado_obs.escena)
-                        if estado_obs else ""),
-            transmision_supervisada=supervisada,
-        )
+        from ytchat.ui import gui_estado
+        return gui_estado.snapshot_sesion(self)
 
     def _total_aportes_texto(self) -> str:
-        """Solo el importe acumulado de Super Chats (sin el «SC: n»), para F2."""
-        if not self._sc_totales:
-            return ""
-        if len(self._sc_totales) == 1:
-            d, t = next(iter(self._sc_totales.items()))
-            return f"{d}{t:.2f}"
-        return ", ".join(f"{d}{t:.0f}" for d, t in self._sc_totales.items())
+        from ytchat.ui import gui_estado
+        return gui_estado.total_aportes_texto(self)
 
     def _anunciar_estado(self):
-        toggles = self._config.get("estado_toggles") or estado_sesion.ACTIVOS_DEFECTO
-        texto = estado_sesion.formatear_estado(self._snapshot_sesion(), toggles)
-        anunciar(texto or "Sin información de estado.")
+        from ytchat.ui import gui_estado
+        gui_estado.anunciar_estado(self)
 
     def _anunciar_autor(self):
-        # Por el lector, no por la voz: no espera detrás de la cola.
-        autor = self._worker.ultimo_autor() or ""
-        if autor:
-            anunciar(f"Último mensaje leído de {autor}")
-        else:
-            anunciar("Todavía no se leyó ningún mensaje.")
+        from ytchat.ui import gui_estado
+        gui_estado.anunciar_autor(self)
 
     def _describir_escena(self):
-        if self._descripcion_escena_en_curso:
-            return
-        if not obs_activacion.obs_esta_en_ejecucion():
-            anunciar("OBS no está abierto.")
-            return
-        self._descripcion_escena_en_curso = True
-
-        def _trabajo():
-            gestor = None
-            try:
-                gestor = GestorPanelObs()
-                gestor.conectar()
-                texto = gestor.descripcion_escena()
-            except Exception as error:
-                texto = obs_cliente.mensaje_de_fallo_obs(error)
-            finally:
-                if gestor is not None:
-                    try:
-                        gestor.cerrar()
-                    except Exception:
-                        pass
-                wx.CallAfter(self._anunciar_descripcion_escena, texto)
-
-        diagnostico.crear_hilo(_trabajo, "DescribirEscena").start()
+        from ytchat.ui import gui_estado
+        gui_estado.describir_escena(self)
 
     def _anunciar_descripcion_escena(self, texto):
         self._descripcion_escena_en_curso = False
@@ -1423,164 +1326,59 @@ class YTChatFrame(wx.Frame):
     # ── Enviar al chat del directo (API oficial) ─────────────────────────────
 
     def _on_enviar_live(self, event):
-        # Alt+Enter sin poder escribir (sin conexión, TikTok, sin sesión…): decir
-        # por qué en vez de callar; el motivo lo lleva el propio compositor.
-        motivo = self._panel_redactar.motivo()
-        if motivo:
-            anunciar(motivo)
-            return
-        self._panel_redactar.enfocar()
+        from ytchat.ui import gui_envio_chat
+        gui_envio_chat.on_enviar_live(self, event)
 
     def _enviar_live_redactado(self, texto):
-        lcid = self._live_chat_id
-        self._accion_api(lambda cli: cli.enviar_mensaje_live(lcid, texto),
-                         "Mensaje enviado al chat")
+        from ytchat.ui import gui_envio_chat
+        gui_envio_chat.enviar_live_redactado(self, texto)
 
     def _accion_api(self, accion, mensaje_ok: str, sonido: str = "enviado") -> None:
-        anunciar("Enviando")
-
-        def _run():
-            try:
-                cli = youtube_api.ClienteYouTube(credenciales.efectivas())
-                accion(cli)
-                if cli.token_actualizado():
-                    credenciales.guardar_campo("token", cli.token_actualizado())
-                wx.CallAfter(self._api_ok, mensaje_ok, sonido)
-            except Exception as exc:
-                logger.warning("acción API: %s", exc)
-                if youtube_api.sesion_caducada(exc):
-                    credenciales.cerrar_sesion()
-                wx.CallAfter(self._api_err, exc)
-
-        diagnostico.crear_hilo(_run, "AccionAPI").start()
+        from ytchat.ui import gui_envio_chat
+        gui_envio_chat.accion_api(self, accion, mensaje_ok, sonido)
 
     def _api_ok(self, mensaje, sonido: str = "enviado"):
-        if not self:   # la ventana pudo cerrarse mientras respondía la API
-            return
-        _snd.reproducir(sonido)
-        anunciar(mensaje)
+        from ytchat.ui import gui_envio_chat
+        gui_envio_chat.api_ok(self, mensaje, sonido)
 
     def _api_err(self, exc):
-        if not self:
-            return
-        if youtube_api.sesion_caducada(exc):
-            _snd.reproducir("error")
-            anunciar(youtube_api.mensaje_error_api(exc))
-            self._actualizar_estado_online()
-            try:
-                from ytchat.ui.gui_preferencias import ofrecer_iniciar_sesion
-                if ofrecer_iniciar_sesion(self, self._config):
-                    self._aplicar_preferencias_en_caliente()
-            except Exception as exc_:
-                logger.warning("No se pudo ofrecer iniciar sesión: %s", exc_)
-            return
-        _snd.reproducir("error")
-        msg = youtube_api.mensaje_error_api(exc)
-        anunciar(msg)
-        wx.MessageBox(msg, "Error de la API", wx.OK | wx.ICON_ERROR, self)
+        from ytchat.ui import gui_envio_chat
+        gui_envio_chat.api_err(self, exc)
 
     def _actualizar_estado_online(self):
-        self._actualizar_motivo_redaccion()
-        try:    self._com_panel.actualizar_estado()
-        except Exception: pass
+        from ytchat.ui import gui_envio_chat
+        gui_envio_chat.actualizar_estado_online(self)
 
     def _actualizar_motivo_redaccion(self):
-        try:
-            motivo = redaccion.motivo_chat(
-                self._conectado, self._es_tiktok, self._tipo_video == deteccion.LIVE,
-                youtube_api.google_disponible(), self._sesion_api_disponible(),
-                bool(self._live_chat_id), self._causa_sin_chat)
-            self._panel_redactar.establecer_motivo(motivo)
-        except Exception:
-            pass
+        from ytchat.ui import gui_envio_chat
+        gui_envio_chat.actualizar_motivo_redaccion(self)
 
     def _sesion_api_disponible(self) -> bool:
         return bool(youtube_api.google_disponible() and credenciales.hay_sesion())
 
     def _iniciar_programados_si_corresponde(self, ahora: float) -> None:
-        if self._programados_reloj_iniciado:
-            return
-        if not self._config.get("programados_activo", False):
-            return
-        programados.iniciar_reloj(self._mensajes_programados, ahora, random.randint)
-        self._programados_reloj_iniciado = True
+        from ytchat.ui import gui_envio_chat
+        gui_envio_chat.iniciar_programados_si_corresponde(self, ahora)
 
     def _enviar_programado(self, mensaje: dict, ahora: float) -> None:
-        self._programado_en_curso = True
-        lcid = self._live_chat_id
-        texto = mensaje.get("texto", "")
-
-        def _run():
-            try:
-                cli = youtube_api.ClienteYouTube(credenciales.efectivas())
-                cli.enviar_mensaje_live(lcid, texto)
-                if cli.token_actualizado():
-                    credenciales.guardar_campo("token", cli.token_actualizado())
-                wx.CallAfter(self._programado_enviado, mensaje)
-            except Exception as exc:
-                logger.warning("mensaje automático: error del servicio: %s", type(exc).__name__)
-                if youtube_api.sesion_caducada(exc):
-                    credenciales.cerrar_sesion()
-                wx.CallAfter(self._programado_fallo, exc)
-
-        diagnostico.crear_hilo(_run, "MensajeProgramado").start()
+        from ytchat.ui import gui_envio_chat
+        gui_envio_chat.enviar_programado(self, mensaje, ahora)
 
     def _programado_enviado(self, mensaje: dict) -> None:
-        self._programado_en_curso = False
-        ahora = time.time()
-        mensaje["proximo"] = programados.calcular_proximo(
-            mensaje.get("minutos_min", 10),
-            mensaje.get("minutos_max", mensaje.get("minutos_min", 10)),
-            ahora, random.randint)
-        self._programados_ultimo_envio = ahora
+        from ytchat.ui import gui_envio_chat
+        gui_envio_chat.programado_enviado(self, mensaje)
 
     def _programado_fallo(self, exc) -> None:
-        self._programado_en_curso = False
-        if not self._config.get("programados_activo", False):
-            return
-        self._config["programados_activo"] = False
-        if youtube_api.sesion_caducada(exc):
-            anunciar("Los mensajes automáticos se detuvieron porque la sesión de YouTube caducó.")
-        else:
-            anunciar("Los mensajes automáticos se detuvieron por un error del servicio.")
+        from ytchat.ui import gui_envio_chat
+        gui_envio_chat.programado_fallo(self, exc)
 
     def _procesar_programado(self) -> None:
-        propio = bool(self._chat_propio or self._conexion_propia)
-        activo = bool(self._config.get("programados_activo", False))
-        if not programados.puede_enviar(
-                activo, self._conectado, self._es_tiktok,
-                self._live_chat_id, propio, True):
-            # Sin las condiciones para mandar, el reloj no corre: al
-            # reconectar arranca de nuevo en vez de salir todo de golpe.
-            self._programados_reloj_iniciado = False
-            return
-        if not programados.puede_enviar(
-                activo, self._conectado, self._es_tiktok,
-                self._live_chat_id, propio, self._sesion_api_disponible()):
-            # Sin las condiciones para mandar, el reloj no corre: al
-            # reconectar arranca de nuevo en vez de salir todo de golpe.
-            self._programados_reloj_iniciado = False
-            return
-        ahora = time.time()
-        self._iniciar_programados_si_corresponde(ahora)
-        if self._programado_en_curso:
-            return
-        mensaje = programados.elegir_envio(
-            self._mensajes_programados, ahora, self._programados_ultimo_envio)
-        if mensaje is not None:
-            self._enviar_programado(mensaje, ahora)
+        from ytchat.ui import gui_envio_chat
+        gui_envio_chat.procesar_programado(self)
 
     def _moderar(self, autor: str, canal_id: str, segundos: int | None) -> None:
-        accion = "expulsar 5 minutos a" if segundos else "banear permanentemente a"
-        if wx.MessageBox(f"¿Seguro que quieres {accion} {autor}?",
-                         "Confirmar moderación",
-                         wx.YES_NO | wx.ICON_QUESTION, self) != wx.YES:
-            return
-        lcid = self._live_chat_id
-        ok = f"{autor} expulsado 5 minutos" if segundos else f"{autor} baneado del directo"
-        self._accion_api(
-            lambda cli: cli.banear_usuario(lcid, canal_id, segundos), ok,
-            sonido="moderacion")
+        from ytchat.ui import gui_envio_chat
+        gui_envio_chat.moderar(self, autor, canal_id, segundos)
 
     # ── Chat: teclado, menú, copiar, silenciar ───────────────────────────────
 

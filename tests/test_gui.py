@@ -97,6 +97,25 @@ class TestInicioGui(unittest.TestCase):
 
         call_after.assert_any_call(frame._arrancar_precalentamiento)
 
+    def test_iniciar_gui_guarda_el_nombre_de_la_voz_numerica(self):
+        aplicacion = mock.Mock()
+        frame = mock.Mock()
+        configuracion = {"voz": "1", "voz_eventos": ""}
+        worker = mock.Mock()
+        worker.voces.return_value = ["Voz A", "Voz B"]
+
+        with mock.patch.object(gui, "AplicacionYTChat", return_value=aplicacion), \
+                mock.patch.object(gui, "YTChatFrame", return_value=frame), \
+                redirigir_rutas("."), \
+                mock.patch.object(gui, "_lector_init"), \
+                mock.patch.object(gui._snd, "reproducir"), \
+                mock.patch.object(gui.wx, "CallAfter"), \
+                mock.patch.object(gui, "guardar_opcion") as guardar:
+            gui.iniciar_gui(configuracion, object(), object(), worker, object())
+
+        self.assertEqual(configuracion["voz"], "Voz B")
+        guardar.assert_any_call(mock.ANY, "voz", "voz", "Voz B")
+
     def test_lector_init_deja_una_instancia_de_lector(self):
         import prism
         from ytchat.voice import lector as modulo_lector
@@ -1306,7 +1325,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
         dialogo = self._dialogo()
         self.assertEqual(
             [dialogo.nb.GetPageText(i) for i in range(dialogo.nb.GetPageCount())],
-            ["Voz", "Lectura", "Cola de lectura", "Interfaz y sonidos",
+            ["Voces", "Lectura", "Cola de lectura", "Interfaz y sonidos",
               "Reproductor", "Conexión", "Filtros",
              "Estado (F2)", "Atajos", "API y sesión", "Mensajes automáticos",
              "Transmisión", "Diagnóstico"])
@@ -1331,6 +1350,19 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             control = self._buscar(dialogo, nombre)
             self.assertIsNotNone(control)
             self.assertEqual(control.GetParent().GetName(), pagina)
+
+    def test_pagina_voces_tiene_los_controles_en_el_orden_de_tab(self):
+        dialogo = self._dialogo()
+        pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagVoz")
+        esperados = ["Motor de voz", "Voz de lectura", "Velocidad de la voz",
+                     "Volumen de la voz", "Tono de la voz", "Probar voz",
+                     "MultiVoz", "Voz para los eventos"]
+        orden = [h.GetName() for h in pagina.GetChildren()
+                 if h.GetName() in esperados]
+        self.assertEqual(orden, esperados)
+        self.assertEqual(dialogo.sp_velocidad.GetIncrement(), 5)
+        self.assertEqual(dialogo.sp_volumen.GetIncrement(), 5)
+        self.assertEqual(dialogo.sp_tono.GetIncrement(), 5)
 
     def test_mensaje_nuevo_nace_activo(self):
         dialogo = self._dialogo()
@@ -1436,7 +1468,9 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("ui", "mostrar_metadatos"),
             ("ui", "mostrar_botones_reproductor"),
             ("ui", "cache_video_mb"),
-            ("voz", "voz"), ("voz", "voz_eventos"), ("voz", "multivoz"),
+            ("voz", "motor"), ("voz", "voz"), ("voz", "voz_eventos"),
+            ("voz", "multivoz"), ("voz", "velocidad_voz"),
+            ("voz", "volumen"), ("voz", "tono"),
             ("lectura", "formato_prefijo"),
             ("texto", "limpiar_emojis"), ("texto", "eliminar_urls"),
             ("tiktok", "anunciar_entradas"), ("texto", "max_longitud_mensaje"),
@@ -1490,6 +1524,28 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         parser = config._mk_parser()
         parser.read(self.ruta / "config.ini", encoding="utf-8")
         return parser
+
+    def test_motor_sin_voces_no_escribe_motor_ni_voz_y_avisa(self):
+        with mock.patch.object(motores, "listar_voces", return_value=[]):
+            dialogo = gui_preferencias.PreferenciasDialog(
+                None, {"motor": "onecore", "voz": "Voz vieja", "volumen": 0.5})
+        self.addCleanup(dialogo.Destroy)
+        with mock.patch.object(gui_preferencias.cfg, "guardar_opcion") as guardar, \
+                mock.patch.object(gui_preferencias._snd, "reproducir"), \
+                mock.patch.object(gui_preferencias, "anunciar") as anunciar, \
+                mock.patch.object(dialogo, "EndModal"):
+            dialogo._on_guardar(None)
+        claves = [(llamada.args[1], llamada.args[2])
+                  for llamada in guardar.call_args_list]
+        self.assertNotIn(("voz", "motor"), claves)
+        self.assertNotIn(("voz", "voz"), claves)
+        self.assertIn(("voz", "velocidad_voz"), claves)
+        self.assertIn(("voz", "volumen"), claves)
+        self.assertIn(("voz", "tono"), claves)
+        self.assertEqual(dialogo._config.get("motor"), "onecore")
+        self.assertEqual(dialogo._config.get("voz"), "Voz vieja")
+        anunciar.assert_any_call(
+            "El motor elegido no está disponible, se conserva el anterior.")
 
     def test_cargar_configuracion_devuelve_registro_detallado_del_archivo(self):
         for valor, esperado in (("true", True), ("false", False)):

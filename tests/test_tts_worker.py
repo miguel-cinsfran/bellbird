@@ -15,8 +15,8 @@ class MotorFalso:
     """Doble del envoltorio de Prism. Con `duracion` simula el habla real: el
     estado sube a True recién a `subida` segundos y baja solo a `duracion`."""
 
-    def __init__(self, voces=("Voz A", "Voz B")):
-        self.motor = "sapi"
+    def __init__(self, voces=("Voz A", "Voz B"), motor="sapi"):
+        self.motor = motor
         self._voces = list(voces)
         self.hablando_ = False
         self.subida = 0.0
@@ -251,6 +251,71 @@ class TestAjustes(unittest.TestCase):
         worker.cambiar_volumen(50)
         self.assertEqual(worker.get_volume(), 100)
 
+    def test_fijar_rate_deja_multiplo_de_cinco_y_lo_aplica(self):
+        motor = MotorFalso()
+        worker = tts_worker.TTSWorker(
+            queue.Queue(), {"velocidad_voz": 50},
+            fabrica_motor=FabricaFalsa({"sapi": motor}))
+        worker._abrir_motor()
+        worker.fijar_rate(52)
+        worker._procesar_comandos()
+        self.assertEqual(worker.get_rate(), 50)
+        self.assertEqual(motor.velocidad, 50)
+
+    def test_fijar_volumen_pct_absoluto_y_acotado(self):
+        motor = MotorFalso()
+        worker = tts_worker.TTSWorker(
+            queue.Queue(), {}, fabrica_motor=FabricaFalsa({"sapi": motor}))
+        worker._abrir_motor()
+        worker.fijar_volumen_pct(30)
+        worker.fijar_volumen_pct(180)
+        worker._procesar_comandos()
+        self.assertEqual(worker.get_volume(), 100)
+        self.assertEqual(motor.volumen, 100)
+
+
+class TestCambioDeMotor(unittest.TestCase):
+    """Cambiar de motor en caliente: el nuevo se crea en el hilo del worker,
+    toma los ajustes actuales y reemplaza al viejo solo si se pudo crear."""
+
+    def test_cambiar_motor_activa_el_nuevo_aplica_ajustes_y_cierra_el_viejo(self):
+        sapi = MotorFalso(voces=("Voz A", "Voz B"), motor="sapi")
+        onecore = MotorFalso(voces=("Microsoft Laura", "Microsoft David"),
+                             motor="onecore")
+        fabrica = FabricaFalsa({"sapi": sapi, "onecore": onecore})
+        worker = tts_worker.TTSWorker(
+            queue.Queue(), {"velocidad_voz": 40, "volumen": 0.5, "tono": 30},
+            fabrica_motor=fabrica)
+        worker._abrir_motor()
+
+        worker.cambiar_motor("onecore", "Microsoft Laura")
+        worker._procesar_comandos()
+
+        self.assertEqual(worker.motor_activo(), "onecore")
+        self.assertEqual(worker.voces(), ["Microsoft Laura", "Microsoft David"])
+        self.assertEqual(onecore.elegidas, [0])
+        self.assertEqual((onecore.velocidad, onecore.volumen, onecore.tono),
+                         (40, 50, 30))
+        self.assertTrue(sapi.cerrado)
+
+    def test_cambiar_motor_que_falla_conserva_el_viejo_y_sigue_hablando(self):
+        sapi = MotorFalso(motor="sapi")
+        sapi.duracion = 0.02
+        fabrica = FabricaFalsa({"sapi": sapi}, fallan=["onecore"])
+        worker = tts_worker.TTSWorker(
+            queue.Queue(), {}, fabrica_motor=fabrica)
+        worker._abrir_motor()
+
+        with mock.patch.object(tts_worker.logger, "warning") as avisar:
+            worker.cambiar_motor("onecore", None)
+            worker._procesar_comandos()
+
+        self.assertEqual(worker.motor_activo(), "sapi")
+        self.assertFalse(sapi.cerrado)
+        self.assertTrue(avisar.called)
+        worker._hablar("sigue hablando")
+        self.assertEqual([t for t, _ in sapi.hablados], ["sigue hablando"])
+
 
 class TestUltimoAutor(unittest.TestCase):
     """El worker recuerda quién mandó lo que empezó a leer (F3)."""
@@ -317,6 +382,23 @@ class TestPrismReal(unittest.TestCase):
         time.sleep(0.6)
         worker.detener()
         self.assertEqual(worker._error, None)
+
+    def test_cambia_de_sapi_a_onecore_con_el_motor_real(self):
+        if not motores.listar_voces("sapi"):
+            self.skipTest("no hay voces SAPI en este equipo")
+        if not motores.listar_voces("onecore"):
+            self.skipTest("OneCore no está disponible en este equipo")
+        worker = tts_worker.TTSWorker(
+            queue.Queue(), {"motor": "sapi", "volumen": 0.0})
+        worker.start()
+        self.addCleanup(worker.detener)
+        self.assertTrue(worker.esperar_inicio(timeout=10))
+        worker.cambiar_motor("onecore", None)
+        fin = time.monotonic() + 5.0
+        while worker.motor_activo() != "onecore" and time.monotonic() < fin:
+            time.sleep(0.02)
+        self.assertEqual(worker.motor_activo(), "onecore")
+        self.assertTrue(worker.voces())
 
 
 class TestSanitizar(unittest.TestCase):

@@ -164,7 +164,7 @@ class PreferenciasDialog(wx.Dialog):
         self.lista_categorias = self.nb.GetListView()
         nombre_accesible(self.lista_categorias, "Categorías")
         _tc(self.lista_categorias, bg=_T.surface)
-        self.nb.AddPage(self._pag_voz(self.nb), "Voz")
+        self.nb.AddPage(self._pag_voz(self.nb), "Voces")
         self.nb.AddPage(self._pag_lectura(self.nb), "Lectura")
         self.nb.AddPage(self._pag_cola(self.nb), "Cola de lectura")
         self.nb.AddPage(self._pag_interfaz(self.nb), "Interfaz y sonidos")
@@ -465,27 +465,73 @@ class PreferenciasDialog(wx.Dialog):
         p = self._make_panel(parent, "PagVoz")
         vs = wx.BoxSizer(wx.VERTICAL)
 
+        from ytchat.voice import escala_voz
+        from ytchat.voice import motores
+
+        motor_guardado = self._config.get("motor", "sapi")
+        self._motor_idx = (motores.MOTORES.index(motor_guardado)
+                           if motor_guardado in motores.MOTORES else 0)
+
+        # Motor de voz (SAPI 5 u OneCore). Cambiarlo repuebla las voces de abajo.
+        vs.Add(self._fila_label(p, "&Motor de voz:"),
+               0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
+        self.cho_motor = wx.Choice(
+            p, choices=[motores.NOMBRES[m] for m in motores.MOTORES],
+            name="Motor de voz")
+        _tc(self.cho_motor)
+        self.cho_motor.SetSelection(self._motor_idx)
+        self.cho_motor.Bind(wx.EVT_CHOICE, self._on_motor_cambiado)
+        vs.Add(self.cho_motor, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
         # Voz del motor elegido. También está en el menú Voz → Seleccionar voz;
         # aquí queda junto al resto de ajustes de lectura para encontrarla más
         # fácil.
-        vs.Add(self._fila_label(p, "&Voz de lectura:"), 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
-        from ytchat.voice import escala_voz
-        from ytchat.voice import motores
-        self._voces = motores.listar_voces(self._config.get("motor", "sapi"))
-
-        def _seleccion(guardada):
-            idx = escala_voz.resolver_voz(guardada, self._voces)
-            return 0 if idx is None else idx
-
+        vs.Add(self._fila_label(p, "&Voz de lectura:"), 0, wx.LEFT | wx.RIGHT, 10)
+        self._voces = motores.listar_voces(motores.MOTORES[self._motor_idx])
         self.cho_voz = wx.Choice(p, choices=self._voces or ["(no hay voces disponibles)"],
                                  name="Voz de lectura")
         _tc(self.cho_voz)
-        if self._voces:
-            self.cho_voz.SetSelection(_seleccion(self._config.get("voz")))
-        else:
-            self.cho_voz.SetSelection(0)
-            self.cho_voz.Disable()
+        self._cargar_voces(self.cho_voz, self._config.get("voz"))
         vs.Add(self.cho_voz, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        # Velocidad, volumen y tono como valores absolutos 0..100.
+        vs.Add(self._fila_label(p, "Ve&locidad (0 a 100):"),
+               0, wx.LEFT | wx.RIGHT, 10)
+        self.sp_velocidad = ContadorAccesible(
+            p, min=0, max=100,
+            initial=escala_voz.ajustar_velocidad(
+                int(self._config.get("velocidad_voz", escala_voz.VELOCIDAD_NORMAL)), 0),
+            name="Velocidad de la voz")
+        self.sp_velocidad.SetIncrement(5)
+        _tc(self.sp_velocidad)
+        vs.Add(self.sp_velocidad, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        try:
+            vol_pct = max(0, min(100, int(round(
+                float(self._config.get("volumen", 1.0)) * 100))))
+        except (TypeError, ValueError):
+            vol_pct = 100
+        vs.Add(self._fila_label(p, "Vol&umen (0 a 100):"),
+               0, wx.LEFT | wx.RIGHT, 10)
+        self.sp_volumen = ContadorAccesible(
+            p, min=0, max=100, initial=vol_pct, name="Volumen de la voz")
+        self.sp_volumen.SetIncrement(5)
+        _tc(self.sp_volumen)
+        vs.Add(self.sp_volumen, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        vs.Add(self._fila_label(p, "&Tono (0 a 100):"),
+               0, wx.LEFT | wx.RIGHT, 10)
+        self.sp_tono = ContadorAccesible(
+            p, min=0, max=100,
+            initial=max(0, min(100, int(self._config.get("tono", 50)))),
+            name="Tono de la voz")
+        self.sp_tono.SetIncrement(5)
+        _tc(self.sp_tono)
+        vs.Add(self.sp_tono, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        self.btn_probar_voz = wx.Button(p, label="&Probar voz", name="Probar voz")
+        self.btn_probar_voz.Bind(wx.EVT_BUTTON, self._on_probar_voz)
+        vs.Add(self.btn_probar_voz, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         # Multi-voz: una voz distinta para los eventos (Super Chats, regalos,
         # miembros, entradas). Desactivada por defecto.
@@ -502,19 +548,82 @@ class PreferenciasDialog(wx.Dialog):
             p, choices=self._voces or ["(no hay voces disponibles)"],
             name="Voz para los eventos")
         _tc(self.cho_voz_eventos)
-        if self._voces:
-            self.cho_voz_eventos.SetSelection(
-                _seleccion(self._config.get("voz_eventos")))
-        else:
-            self.cho_voz_eventos.SetSelection(0)
+        self._cargar_voces(self.cho_voz_eventos, self._config.get("voz_eventos"))
         self.cho_voz_eventos.Enable(bool(self._voces) and self.chk_multivoz.GetValue())
         self.chk_multivoz.Bind(
             wx.EVT_CHECKBOX,
             lambda e: self.cho_voz_eventos.Enable(bool(self._voces) and e.IsChecked()))
         vs.Add(self.cho_voz_eventos, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
+        # El motor de prueba se cierra al cerrar el diálogo por cualquier camino.
+        self._motor_prueba = None
+        self.Bind(wx.EVT_WINDOW_DESTROY, self._al_destruir)
+
         p.SetSizer(vs)
         return p
+
+    def _cargar_voces(self, choice, guardada) -> None:
+        """Llena un combinado de voces y elige la guardada (o la primera). Sin
+        voces deja el aviso deshabilitado, como antes."""
+        from ytchat.voice import escala_voz
+        if self._voces:
+            choice.SetItems(self._voces)
+            idx = escala_voz.resolver_voz(guardada, self._voces)
+            choice.SetSelection(0 if idx is None else idx)
+            choice.Enable(True)
+        else:
+            choice.SetItems(["(no hay voces disponibles)"])
+            choice.SetSelection(0)
+            choice.Disable()
+
+    def _motor_elegido(self) -> str:
+        from ytchat.voice import motores
+        i = self.cho_motor.GetSelection()
+        return motores.MOTORES[i] if 0 <= i < len(motores.MOTORES) else "sapi"
+
+    def _on_motor_cambiado(self, event) -> None:
+        # Repuebla las voces del motor nuevo sin anunciar: el lector ya lee el
+        # valor del combinado al recorrerlo.
+        from ytchat.voice import motores
+        self._voces = motores.listar_voces(self._motor_elegido())
+        self._cargar_voces(self.cho_voz, self._config.get("voz"))
+        self._cargar_voces(self.cho_voz_eventos, self._config.get("voz_eventos"))
+        self.cho_voz_eventos.Enable(bool(self._voces) and self.chk_multivoz.GetValue())
+
+    def _on_probar_voz(self, event) -> None:
+        from ytchat.voice import motores
+        self._cerrar_motor_prueba()
+        try:
+            prueba = motores.MotorPrism(self._motor_elegido())
+        except motores.MotorNoDisponible:
+            anunciar("No se pudo iniciar el motor de voz elegido.")
+            return
+        self._motor_prueba = prueba
+        try:
+            prueba.elegir_voz(self.cho_voz.GetSelection())
+            prueba.fijar_velocidad(self.sp_velocidad.GetValue())
+            prueba.fijar_volumen(self.sp_volumen.GetValue())
+            prueba.fijar_tono(self.sp_tono.GetValue())
+            prueba.hablar("Así suena esta voz.")
+        except Exception as exc:
+            logger.warning("Prueba de voz: %s", exc)
+
+    def _cerrar_motor_prueba(self) -> None:
+        motor = getattr(self, "_motor_prueba", None)
+        if motor is None:
+            return
+        self._motor_prueba = None
+        try:
+            motor.cerrar()
+        except Exception as exc:
+            logger.debug("Cerrar motor de prueba: %s", exc)
+
+    def _al_destruir(self, event) -> None:
+        # El evento sube desde los hijos, así que solo se atiende cuando el
+        # diálogo mismo se destruye.
+        if event.GetEventObject() is self:
+            self._cerrar_motor_prueba()
+        event.Skip()
 
     def _pag_lectura(self, parent):
         p = self._make_panel(parent, "PagLectura")
@@ -1075,8 +1184,13 @@ class PreferenciasDialog(wx.Dialog):
             except Exception as exc: logger.warning("recargar sonidos: %s", exc)
             self._cambios = True
 
-        # Lectura
+        # Voz: motor, voz de lectura, voz de eventos, velocidad, volumen y tono.
+        # Si el motor elegido no tiene voces no se guardan motor ni voz (se
+        # conservan los anteriores); el resto de las opciones se guarda igual.
         if self._voces:
+            motor = self._motor_elegido()
+            self._set("voz", "motor", motor)
+            c["motor"] = motor
             # Se guarda el nombre, no el número: el índice se corre al instalar
             # una voz y la app hablaría con otra sin avisar.
             nom_voz = self.cho_voz.GetStringSelection()
@@ -1085,6 +1199,19 @@ class PreferenciasDialog(wx.Dialog):
             nom_ev = self.cho_voz_eventos.GetStringSelection()
             self._set("voz", "voz_eventos", nom_ev)
             c["voz_eventos"] = nom_ev
+        else:
+            anunciar("El motor elegido no está disponible, se conserva el anterior.")
+        self._cerrar_motor_prueba()
+        from ytchat.voice import escala_voz
+        velocidad = escala_voz.ajustar_velocidad(self.sp_velocidad.GetValue(), 0)
+        self._set("voz", "velocidad_voz", str(velocidad))
+        c["velocidad_voz"] = velocidad
+        volumen = self.sp_volumen.GetValue()
+        self._set("voz", "volumen", f"{volumen / 100:.2f}")
+        c["volumen"] = round(volumen / 100.0, 2)
+        tono = self.sp_tono.GetValue()
+        self._set("voz", "tono", str(tono))
+        c["tono"] = tono
 
         formato = _FORMATOS[self.rb_formato.GetSelection()][1]
         self._set("lectura", "formato_prefijo", formato)

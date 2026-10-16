@@ -287,6 +287,42 @@ class TTSWorker(threading.Thread):
             self._voz_actual = idx
         logger.info("Voz base: %s", self._voces[idx])
 
+    def _cambiar_motor(self, motor, voz) -> None:
+        """Reemplaza el motor activo dentro del hilo del worker.
+
+        Prism exige un motor por hilo: el nuevo se crea aquí, se para y se
+        cierra el anterior solo si el nuevo se pudo crear y tiene voces. Si la
+        fábrica falla se conserva el motor viejo sin tocarlo, para no dejar al
+        worker mudo."""
+        try:
+            nuevo = self._fabrica_motor(motor)
+        except motores.MotorNoDisponible as exc:
+            logger.warning("El motor de voz %r no está disponible (%s); "
+                           "se conserva %s.", motor, exc, self.motor_activo())
+            return
+        voces = list(nuevo.voces())
+        if not voces:
+            logger.warning("El motor de voz %r no tiene voces; se conserva %s.",
+                           motor, self.motor_activo())
+            nuevo.cerrar()
+            return
+        if self._motor is not None:
+            self._motor.parar()
+            self._motor.cerrar()
+        self._motor = nuevo
+        self._voces = voces
+        idx = escala_voz.resolver_voz(voz, voces)
+        if idx is None:
+            idx = 0
+        self._voz_base = idx
+        self._voz_actual = None
+        if self._motor.elegir_voz(idx):
+            self._voz_actual = idx
+        self._motor.fijar_velocidad(self._rate)
+        self._motor.fijar_volumen(self._volume)
+        self._motor.fijar_tono(self._tono)
+        logger.info("Motor de voz: %s | Voz: %s", motor, self._voces[idx])
+
     def _procesar_comandos(self):
         while not self._cmds.empty():
             try:    cmd, val = self._cmds.get_nowait()
@@ -294,6 +330,8 @@ class TTSWorker(threading.Thread):
             try:
                 if cmd == "voice":
                     self._cambiar_voz_base(val)
+                elif cmd == "motor":
+                    self._cambiar_motor(*val)
                 elif cmd == "rate":
                     self._motor.fijar_velocidad(val)
                 elif cmd == "volume":
@@ -356,6 +394,13 @@ class TTSWorker(threading.Thread):
     def cambiar_voz(self, idx: int):
         self._cmds.put(("voice", idx))
 
+    def cambiar_motor(self, motor: str, voz) -> None:
+        """Pide cambiar de motor en caliente (SAPI u OneCore).
+
+        El trabajo real ocurre en el hilo del worker: Prism no admite que un
+        motor se cree en un hilo y se use en otro."""
+        self._cmds.put(("motor", (motor, voz)))
+
     def cambiar_rate(self, pasos: int) -> None:
         # El contador se actualiza AQUÍ (en el hilo del llamador) y al hilo TTS
         # va el valor absoluto: así get_rate() devuelve el valor nuevo al
@@ -370,6 +415,16 @@ class TTSWorker(threading.Thread):
     def cambiar_tono(self, pct: int) -> None:
         self._tono = max(0, min(100, _entero(pct, self._tono)))
         self._cmds.put(("tono", self._tono))
+
+    def fijar_rate(self, pct: int) -> None:
+        """Fija la velocidad en un valor absoluto (0..100, múltiplo de 5)."""
+        self._rate = escala_voz.ajustar_velocidad(_entero(pct, self._rate), 0)
+        self._cmds.put(("rate", self._rate))
+
+    def fijar_volumen_pct(self, pct: int) -> None:
+        """Fija el volumen en un porcentaje absoluto (0..100)."""
+        self._volume = max(0, min(100, _entero(pct, self._volume)))
+        self._cmds.put(("volume", self._volume))
 
     def get_rate(self) -> int:
         return self._rate

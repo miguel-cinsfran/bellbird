@@ -1513,18 +1513,46 @@ class YTChatFrame(wx.Frame):
         except Exception:
             voces_actuales = []
         self._build_menubar()
-        # Restaurar submenú de voz y filtro tras reconstruir (con lista vacía,
-        # poblar_voces repone el item «(no disponible)»).
-        self.poblar_voces(voces_actuales, self._voz_idx)
-        if voces_actuales:
-            # Preferencias puede haber cambiado la voz: aplicarla en caliente.
-            try:
-                idx_cfg = escala_voz.resolver_voz(
-                    self._config.get("voz"), voces_actuales)
-                if idx_cfg is not None and idx_cfg != self._voz_idx:
-                    self._aplicar_voz(idx_cfg)
-            except Exception as exc:
-                logger.debug("aplicar voz desde preferencias: %s", exc)
+        # Preferencias puede haber cambiado el motor o la voz: aplicarlo en
+        # caliente. Con el motor nuevo hay que repoblar el menú de voz.
+        try:
+            motor_cfg = self._config.get("motor") or "sapi"
+            if motor_cfg != (self._worker.motor_activo() or ""):
+                from ytchat.voice import motores
+                voces_nuevas = motores.listar_voces(motor_cfg)
+                idx_nuevo = escala_voz.resolver_voz(
+                    self._config.get("voz"), voces_nuevas)
+                self.poblar_voces(voces_nuevas, 0 if idx_nuevo is None else idx_nuevo)
+                self._worker.cambiar_motor(motor_cfg, self._config.get("voz"))
+                anunciar(f"Motor de voz: "
+                         f"{motores.NOMBRES.get(motor_cfg, motor_cfg)}")
+            else:
+                # Restaurar submenú de voz tras reconstruir (con lista vacía,
+                # poblar_voces repone el item «(no disponible)»).
+                self.poblar_voces(voces_actuales, self._voz_idx)
+                if voces_actuales:
+                    # Preferencias puede haber cambiado la voz: aplicarla.
+                    idx_cfg = escala_voz.resolver_voz(
+                        self._config.get("voz"), voces_actuales)
+                    if idx_cfg is not None and idx_cfg != self._voz_idx:
+                        self._aplicar_voz(idx_cfg)
+        except Exception as exc:
+            logger.debug("aplicar voz desde preferencias: %s", exc)
+        # Velocidad, volumen y tono absolutos: solo si cambiaron, sin anunciar.
+        try:
+            vel_cfg = escala_voz.ajustar_velocidad(
+                int(self._config.get("velocidad_voz", escala_voz.VELOCIDAD_NORMAL)), 0)
+            if vel_cfg != self._worker.get_rate():
+                self._worker.fijar_rate(vel_cfg)
+            vol_cfg = max(0, min(100, int(round(
+                float(self._config.get("volumen", 1.0)) * 100))))
+            if vol_cfg != self._worker.get_volume():
+                self._worker.fijar_volumen_pct(vol_cfg)
+            tono_cfg = max(0, min(100, int(self._config.get("tono", 50))))
+            if tono_cfg != self._worker.get_tono():
+                self._worker.fijar_tono(tono_cfg)
+        except Exception as exc:
+            logger.debug("aplicar ajustes de voz desde preferencias: %s", exc)
         self._marcar_filtro()
         self._sincronizar_checks()
         # Reconstruir la lista por si cambió "quitar emojis" o el filtro.

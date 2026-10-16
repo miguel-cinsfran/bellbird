@@ -531,260 +531,40 @@ class YTChatFrame(wx.Frame):
             ("&Reanudar lectura" if pausado else "&Pausar lectura") + self._accel("pausa"))
 
     def _cambiar_overlay(self, encender):
-        puerto = self._config.get("overlay_puerto", 8730)
-        if encender:
-            try:
-                overlay_servidor.encender(puerto)
-            except overlay_servidor.OverlayPuertoOcupadoError:
-                anunciar(f"No se pudo activar el panel, el puerto {puerto} está ocupado")
-                # El puerto ocupado solo afecta esta sesión, no la preferencia guardada.
-                self._config["overlay_activo"] = False
-                return False
-            self._config["overlay_activo"] = True
-            guardar_opcion(RUTA_CONFIG, "overlay", "activo", "true")
-            anunciar(f"Panel de chat activo en el puerto {puerto}")
-            return True
-        overlay_servidor.apagar()
-        self._config["overlay_activo"] = False
-        guardar_opcion(RUTA_CONFIG, "overlay", "activo", "false")
-        anunciar("Panel de chat apagado")
-        return False
+        from ytchat.ui import gui_transmitir
+        return gui_transmitir.cambiar_overlay(self, encender)
 
     def _guardar_usuario_tiktok(self, usuario):
-        from ytchat.capture import tiktok_vivo
-        usuario = tiktok_vivo.usuario_tiktok(usuario)
-        self._config["tiktok_usuario"] = usuario
-        guardar_opcion(RUTA_CONFIG, "tiktok", "usuario", usuario)
-        return usuario
+        from ytchat.ui import gui_transmitir
+        return gui_transmitir.guardar_usuario_tiktok(self, usuario)
 
     def _guardar_destino_transmision(self, destino):
-        from ytchat.obs.obs_destinos import DESTINOS
-        destino = destino if destino in DESTINOS else ""
-        self._config["transmision_destino"] = destino
-        guardar_opcion(RUTA_CONFIG, "transmision", "destino", destino)
-        return destino
+        from ytchat.ui import gui_transmitir
+        return gui_transmitir.guardar_destino_transmision(self, destino)
 
     def _guardar_datos_directo_youtube(self, titulo, descripcion, privacidad,
-                                       latencia=None, ninos=False, dvr=True,
-                                       categoria="", etiquetas=None,
-                                       miniatura="", lista="",
-                                       lista_titulo=""):
-        from ytchat.core.config import codificar_texto_ini
-        from ytchat.youtube.emision import (
-            CATEGORIAS, LATENCIAS, LATENCIA_INICIAL, PRIVACIDADES,
-            PRIVACIDAD_INICIAL)
-        titulo = (titulo or "").strip()[:100]
-        descripcion = descripcion or ""
-        if privacidad not in PRIVACIDADES:
-            privacidad = PRIVACIDAD_INICIAL
-        if latencia not in LATENCIAS:
-            latencia = LATENCIA_INICIAL
-        if categoria not in {identificador for identificador, _t in CATEGORIAS}:
-            categoria = ""
-        etiquetas = list(etiquetas or [])
-        miniatura = (miniatura or "").strip()
-        lista = (lista or "").strip()
-        lista_titulo = (lista_titulo or "").strip() if lista else ""
-        nimios_texto = "true" if ninos else "false"
-        dvr_texto = "true" if dvr else "false"
-        etiquetas_texto = ", ".join(etiquetas)
-        self._config["transmision_youtube_titulo"] = titulo
-        self._config["transmision_youtube_descripcion"] = descripcion
-        self._config["transmision_youtube_privacidad"] = privacidad
-        self._config["transmision_youtube_latencia"] = latencia
-        self._config["transmision_youtube_ninos"] = ninos
-        self._config["transmision_youtube_dvr"] = dvr
-        self._config["transmision_youtube_categoria"] = categoria
-        self._config["transmision_youtube_etiquetas"] = etiquetas_texto
-        self._config["transmision_youtube_miniatura"] = miniatura
-        self._config["transmision_youtube_lista"] = lista
-        self._config["transmision_youtube_lista_titulo"] = lista_titulo
-        guardar_opcion(RUTA_CONFIG, "transmision", "youtube_titulo",
-                       codificar_texto_ini(titulo))
-        guardar_opcion(RUTA_CONFIG, "transmision", "youtube_descripcion",
-                       codificar_texto_ini(descripcion))
-        guardar_opcion(RUTA_CONFIG, "transmision", "youtube_privacidad",
-                       privacidad)
-        guardar_opcion(RUTA_CONFIG, "transmision", "youtube_latencia",
-                       latencia)
-        guardar_opcion(RUTA_CONFIG, "transmision", "youtube_ninos",
-                       nimios_texto)
-        guardar_opcion(RUTA_CONFIG, "transmision", "youtube_dvr", dvr_texto)
-        guardar_opcion(RUTA_CONFIG, "transmision", "youtube_categoria",
-                       categoria)
-        guardar_opcion(RUTA_CONFIG, "transmision", "youtube_etiquetas",
-                       codificar_texto_ini(etiquetas_texto))
-        guardar_opcion(RUTA_CONFIG, "transmision", "youtube_miniatura",
-                       codificar_texto_ini(miniatura))
-        guardar_opcion(RUTA_CONFIG, "transmision", "youtube_lista", lista)
-        guardar_opcion(RUTA_CONFIG, "transmision", "youtube_lista_titulo",
-                       codificar_texto_ini(lista_titulo))
-        return {"titulo": titulo, "descripcion": descripcion,
-                "privacidad": privacidad, "latencia": latencia,
-                "ninos": bool(ninos), "dvr": bool(dvr),
-                "categoria": categoria, "etiquetas": etiquetas,
-                "miniatura": miniatura, "lista": lista,
-                "lista_titulo": lista_titulo}
+                                        latencia=None, ninos=False, dvr=True,
+                                        categoria="", etiquetas=None,
+                                        miniatura="", lista="",
+                                        lista_titulo=""):
+        from ytchat.ui import gui_transmitir
+        return gui_transmitir.guardar_datos_directo_youtube(
+            self, titulo, descripcion, privacidad, latencia, ninos, dvr,
+            categoria, etiquetas, miniatura, lista, lista_titulo)
 
     def _actualizar_boton_directo(self) -> None:
-        boton = getattr(self, "_boton_directo", None)
-        if boton is None:
-            return
-        from ytchat.obs import transmision_directa
-        propio = transmision_directa.es_directo_propio(
-            self._es_tiktok,
-            getattr(self, "_usuario_tiktok_sesion", ""),
-            self._config.get("tiktok_usuario", ""),
-            getattr(self, "_conexion_propia", False))
-        try:
-            transmitiendo = bool(self._supervisar_transmision("activo"))
-        except Exception:
-            transmitiendo = False
-        transmitiendo = (transmitiendo
-                         or bool(getattr(self, "_obs_transmitiendo", False)))
-        boton.actualizar(self._conectado, self._conectando, propio,
-                         transmitiendo)
+        from ytchat.ui import gui_transmitir
+        gui_transmitir.actualizar_boton_directo(self)
 
     def _al_terminar_supervisor(self) -> None:
-        def _termino():
-            if not self._alive:
-                return
-            self._obs_transmitiendo = False
-            self._actualizar_boton_directo()
-        wx.CallAfter(_termino)
+        from ytchat.ui import gui_transmitir
+        gui_transmitir.al_terminar_supervisor(self)
 
     def _supervisar_transmision(self, accion, destino="", usuario="",
                                   revision=None):
-        if accion == "activo":
-            supervisor = getattr(self, "_supervisor", None)
-            return bool(supervisor is not None and supervisor.activo)
-        if accion == "iniciar":
-            supervisor = getattr(self, "_supervisor", None)
-            if supervisor is not None and supervisor.activo:
-                anunciar("Ya hay una transmisión en curso.")
-                return
-            ganchos = {}
-            if destino == "YouTube":
-                from datetime import timezone
-                from ytchat.ui.gui_directo_youtube import pedir_datos_directo
-                from ytchat.youtube import emision
-                datos = credenciales.cargar()
-                if not credenciales.hay_sesion(datos):
-                    anunciar("Para transmitir a YouTube hace falta iniciar "
-                            "sesión con Google, en Preferencias, pestaña API "
-                            "y sesión.")
-                    return
-                cliente = youtube_api.ClienteYouTube(
-                    credenciales.efectivas(datos))
-                pedido = pedir_datos_directo(
-                    self,
-                    self._config.get("transmision_youtube_titulo", ""),
-                    self._config.get("transmision_youtube_descripcion", ""),
-                    self._config.get("transmision_youtube_privacidad",
-                                     emision.PRIVACIDAD_INICIAL),
-                    revision,
-                    self._config.get("transmision_youtube_latencia",
-                                     emision.LATENCIA_INICIAL),
-                    self._config.get("transmision_youtube_ninos", False),
-                    self._config.get("transmision_youtube_dvr", True),
-                    self._config.get("transmision_youtube_categoria", ""),
-                    self._config.get("transmision_youtube_etiquetas", ""),
-                    self._config.get("transmision_youtube_miniatura", ""),
-                    self._config.get("transmision_youtube_lista", ""),
-                    self._config.get("transmision_youtube_lista_titulo", ""),
-                    emision.cargador_listas(
-                        cliente, lambda nuevo:
-                        credenciales.guardar_campo("token", nuevo)))
-                if pedido is None:
-                    anunciar("No se transmitió.")
-                    return
-                guardados = self._guardar_datos_directo_youtube(
-                    pedido["titulo"], pedido["descripcion"],
-                    pedido["privacidad"], pedido.get("latencia"),
-                    pedido.get("ninos", False), pedido.get("dvr", True),
-                    pedido.get("categoria", ""), pedido.get("etiquetas", []),
-                    pedido.get("miniatura", ""), pedido.get("lista", ""),
-                    pedido.get("lista_titulo", ""))
-                try:
-                    cuerpo = emision.cuerpo_emision(
-                        guardados["titulo"], guardados["descripcion"],
-                        guardados["privacidad"],
-                        datetime.now(timezone.utc).isoformat(),
-                        latencia=guardados.get("latencia",
-                                               emision.LATENCIA_INICIAL),
-                        ninos=guardados.get("ninos", False),
-                        dvr=guardados.get("dvr", True))
-                except emision.EmisionError as exc:
-                    anunciar(str(exc))
-                    return
-                extras = {"categoria": guardados.get("categoria", ""),
-                          "etiquetas": guardados.get("etiquetas", []),
-                          "miniatura": guardados.get("miniatura", ""),
-                          "lista": guardados.get("lista", ""),
-                          "titulo": guardados["titulo"],
-                          "descripcion": guardados["descripcion"]}
-                preparar, esperar, finalizar = emision.ganchos_youtube(
-                    cliente, cuerpo,
-                    lambda nuevo: credenciales.guardar_campo("token", nuevo),
-                    extras=extras, avisar=anunciar)
-                ganchos = {"preparar_emision": preparar,
-                           "esperar_emision": esperar,
-                           "finalizar_emision": finalizar}
-            from ytchat.obs.obs_supervisor import SupervisorTransmision
-
-            def al_anunciar(frase, sonido):
-                def _decir():
-                    if not self._alive:
-                        return
-                    if sonido:
-                        _snd.reproducir(sonido)
-                    anunciar(frase)
-                wx.CallAfter(_decir)
-
-            def al_conectar_chat(url):
-                def _conectar():
-                    if not self._alive:
-                        return
-                    if destino == "YouTube":
-                        from ytchat.youtube import emision as _emision
-                        if guardados.get("ninos"):
-                            anunciar(
-                                "El directo está marcado como hecho para "
-                                "niños y YouTube no tiene chat.")
-                            return
-                        if not _emision.chat_legible(
-                                guardados["privacidad"]):
-                            anunciar(
-                                "El directo es privado y YouTube no deja "
-                                "leer su chat. Para leerlo, transmite como "
-                                "público o no listado.")
-                            return
-                    if self._conectado or self._conectando:
-                        anunciar("El chat ya estaba conectado, no lo cambié.")
-                        return
-                    try:
-                        self.txt_url.SetValue(url)
-                    except Exception:
-                        pass
-                    self._conexion_propia = True
-                    self._on_conectar(None)
-                wx.CallAfter(_conectar)
-
-            self._supervisor = SupervisorTransmision(
-                destino, usuario, al_anunciar=al_anunciar,
-                al_conectar_chat=al_conectar_chat,
-                al_terminar=self._al_terminar_supervisor, **ganchos)
-            self._supervisor.iniciar()
-            self._actualizar_boton_directo()
-            return
-        if accion == "detener":
-            supervisor = getattr(self, "_supervisor", None)
-            if supervisor is None:
-                return
-            diagnostico.crear_hilo(
-                supervisor.detener, "DetenerSupervisor").start()
-            self._actualizar_boton_directo()
-            return
+        from ytchat.ui import gui_transmitir
+        return gui_transmitir.supervisar_transmision(
+            self, accion, destino, usuario, revision)
 
     def _on_actualizar_ytdlp(self, event):
         from ytchat.ui import gui_actualizar_ytdlp

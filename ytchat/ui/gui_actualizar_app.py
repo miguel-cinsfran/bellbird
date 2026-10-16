@@ -210,6 +210,182 @@ def _avisar_version(version: str) -> None:
 # La abre el menú Ayuda. Con una abierta, el menú le da el foco en vez de
 # abrir otra, igual que `_on_actualizar_ytdlp`.
 
+class _FlujoActualizacion:
+    """El recorrido de la ventana, de la consulta al instalador.
+
+    Guarda lo que antes vivía en `nonlocal`: el paquete elegido y el
+    último texto de progreso. Cada paso es un método corto.
+    """
+
+    def __init__(self, frame, ventana):
+        self.frame = frame
+        self.ventana = ventana
+        self.paquete_elegido = None
+        self.ultimo_texto = None
+
+    def arrancar(self, paquete):
+        """Muestra el paquete dado o consulta en un hilo si no hay."""
+        if paquete is not None:
+            self._mostrar_respuesta(paquete)
+            return
+        self.ventana.estado("Buscando la última versión.")
+        diagnostico.crear_hilo(
+            self._run_consulta, "BuscarActualizacion").start()
+
+    def _run_consulta(self):
+        try:
+            paquete = actualizacion.consultar_ultima_version()
+        except Exception as exc:
+            logger.warning("consulta de versión: %s", exc)
+            paquete = None
+        self.ventana.en_hilo_principal(self._mostrar_respuesta, paquete)
+
+    def _mostrar_respuesta(self, paquete):
+        if paquete is None:
+            self._mostrar_sin_respuesta()
+            return
+        if not actualizacion.hay_version_nueva(APP_VERSION, paquete.version):
+            self.ventana.progreso(100)
+            self.ventana.estado(f"Esta es la última versión, la {APP_VERSION}.")
+            return
+        self.paquete_elegido = paquete
+        texto = (f"Hay una versión nueva, la {paquete.version}. "
+                 f"La instalada es la {APP_VERSION}.")
+        if not getattr(sys, "frozen", False):
+            self.ventana.estado(texto + " Desde el código fuente no se instala: "
+                                "se actualiza con git.")
+            self._ofrecer_pagina(paquete)
+        elif not actualizacion.carpeta_admite_escritura(
+                paths.carpeta_instalacion()):
+            self.ventana.estado(texto + " La carpeta del programa no admite "
+                                "cambios. Se puede descargar a mano desde la página.")
+            self._ofrecer_pagina(paquete)
+        else:
+            self.ventana.estado(texto)
+            if paquete.notas:
+                self.ventana.notas(paquete.notas)
+            self.ventana.ofrecer_accion("&Descargar e instalar", self._descargar)
+
+    def _mostrar_sin_respuesta(self):
+        self.ventana.progreso(0)
+        self.ventana.estado("No se pudo consultar si hay una versión nueva. "
+                            "Revise la conexión a Internet.")
+
+    def _ofrecer_pagina(self, paquete):
+        if paquete.notas:
+            self.ventana.notas(paquete.notas)
+        self.ventana.ofrecer_accion("&Abrir la página", self._abrir_pagina)
+
+    def _abrir_pagina(self):
+        try:
+            webbrowser.open(actualizacion.URL_PAGINA_RELEASES)
+        except Exception as exc:
+            logger.warning("página de releases: %s", exc)
+
+    def _descargar(self):
+        self.ventana.quitar_accion()
+        self.ventana.estado(
+            f"Descargando la versión {self.paquete_elegido.version}.")
+        diagnostico.crear_hilo(
+            self._run_descarga, "DescargarActualizacion").start()
+
+    def _run_descarga(self):
+        try:
+            resultado = actualizacion.descargar_paquete(
+                self.paquete_elegido.url_zip, self.paquete_elegido.url_firma,
+                paths.paquete_descargado(),
+                aviso_progreso=self._aviso_progreso,
+                cancelar=self.ventana.cancelado.is_set)
+        except Exception as exc:
+            logger.warning("descarga del paquete: %s", exc)
+            resultado = actualizacion.ResultadoDescarga(
+                False, f"no se pudo descargar el paquete: {exc}")
+        self.ventana.en_hilo_principal(self._terminar_descarga, resultado)
+
+    def _aviso_progreso(self, porcentaje):
+        self.ventana.en_hilo_principal(self._actualizar_progreso, porcentaje)
+
+    def _actualizar_progreso(self, porcentaje):
+        self.ventana.progreso(porcentaje)
+        if ytdlp_bin.debe_actualizar_texto_progreso(
+                self.ultimo_texto, porcentaje):
+            self.ultimo_texto = porcentaje
+            self.ventana.txt_estado.SetValue(
+                f"Descargando la versión {self.paquete_elegido.version}: "
+                f"{porcentaje} por ciento")
+
+    def _terminar_descarga(self, resultado):
+        if not resultado.correcta:
+            self._mostrar_descarga_fallida(resultado)
+            return
+        self.ventana.estado("Comprobando el paquete.")
+        diagnostico.crear_hilo(
+            self._run_extraer, "ComprobarPaquete").start()
+
+    def _mostrar_descarga_fallida(self, resultado):
+        motivo = resultado.motivo or "motivo desconocido"
+        self.ventana.progreso(0)
+        if "cancelada" in motivo.lower():
+            self.ventana.estado("Descarga cancelada.")
+        elif "firma" in motivo.lower():
+            self.ventana.estado("La descarga no se completó: "
+                                "la firma SHA-256 no coincide.")
+        else:
+            self.ventana.estado(f"La descarga no se completó: {motivo}.")
+
+    def _run_extraer(self):
+        try:
+            raiz = actualizacion.extraer_paquete(
+                paths.paquete_descargado(), paths.paquete_extraido())
+        except actualizacion.PaqueteInvalido as exc:
+            self.ventana.en_hilo_principal(
+                self._mostrar_paquete_invalido, str(exc))
+            return
+        except Exception as exc:
+            logger.warning("extracción del paquete: %s", exc)
+            self.ventana.en_hilo_principal(
+                self._mostrar_paquete_invalido, str(exc))
+            return
+        try:
+            Path(paths.paquete_descargado()).unlink(missing_ok=True)
+        except OSError:
+            pass
+        try:
+            ejecutable = actualizacion.validar_paquete(
+                raiz, self.paquete_elegido.version)
+        except actualizacion.PaqueteInvalido as exc:
+            self.ventana.en_hilo_principal(
+                self._mostrar_paquete_invalido, str(exc))
+            return
+        except Exception as exc:
+            logger.warning("validación del paquete: %s", exc)
+            self.ventana.en_hilo_principal(
+                self._mostrar_paquete_invalido, str(exc))
+            return
+        self.ventana.en_hilo_principal(self._mostrar_listo, raiz, ejecutable)
+
+    def _mostrar_paquete_invalido(self, motivo):
+        self.ventana.estado(f"El paquete no sirve: {motivo}.")
+
+    def _mostrar_listo(self, raiz, ejecutable):
+        self.ventana.estado(f"Listo para instalar. {APP_NAME} se cierra y vuelve "
+                            "a abrirse sola en alrededor de un minuto. Si hay un "
+                            "chat conectado o un directo en curso, se corta.")
+        self.ventana.ofrecer_accion(
+            "&Instalar y reiniciar",
+            lambda: self._instalar(raiz, ejecutable))
+
+    def _instalar(self, raiz, ejecutable):
+        try:
+            actualizacion.lanzar_instalador(
+                raiz, ejecutable, paths.carpeta_instalacion(),
+                paths.ejecutable_actual(), os.getpid(), APP_VERSION)
+        except Exception as exc:
+            self.ventana.estado(f"No se pudo iniciar la instalación: {exc}.")
+            return
+        self.frame.Close()
+
+
 def abrir_ventana_actualizacion(frame, paquete=None, al_arrancar=False) -> None:
     """Abre la ventana de actualización o enfoca la ya abierta.
 
@@ -233,151 +409,4 @@ def abrir_ventana_actualizacion(frame, paquete=None, al_arrancar=False) -> None:
     if al_arrancar:
         ventana.etiqueta_cerrar("&Más tarde")
     ventana.Show()
-    ultimo_texto = None
-    paquete_elegido = None
-
-    def _run_consulta():
-        try:
-            paquete = actualizacion.consultar_ultima_version()
-        except Exception as exc:
-            logger.warning("consulta de versión: %s", exc)
-            paquete = None
-        ventana.en_hilo_principal(_mostrar_respuesta, paquete)
-
-    def _mostrar_respuesta(paquete):
-        nonlocal paquete_elegido
-        if paquete is None:
-            ventana.progreso(0)
-            ventana.estado("No se pudo consultar si hay una versión nueva. "
-                           "Revise la conexión a Internet.")
-            return
-        if not actualizacion.hay_version_nueva(APP_VERSION, paquete.version):
-            ventana.progreso(100)
-            ventana.estado(f"Esta es la última versión, la {APP_VERSION}.")
-            return
-        paquete_elegido = paquete
-        texto = (f"Hay una versión nueva, la {paquete.version}. "
-                 f"La instalada es la {APP_VERSION}.")
-        if not getattr(sys, "frozen", False):
-            ventana.estado(texto + " Desde el código fuente no se instala: "
-                           "se actualiza con git.")
-            if paquete.notas:
-                ventana.notas(paquete.notas)
-            ventana.ofrecer_accion("&Abrir la página", _abrir_pagina)
-        elif not actualizacion.carpeta_admite_escritura(
-                paths.carpeta_instalacion()):
-            ventana.estado(texto + " La carpeta del programa no admite "
-                           "cambios. Se puede descargar a mano desde la página.")
-            if paquete.notas:
-                ventana.notas(paquete.notas)
-            ventana.ofrecer_accion("&Abrir la página", _abrir_pagina)
-        else:
-            ventana.estado(texto)
-            if paquete.notas:
-                ventana.notas(paquete.notas)
-            ventana.ofrecer_accion("&Descargar e instalar", _descargar)
-
-    def _abrir_pagina():
-        try:
-            webbrowser.open(actualizacion.URL_PAGINA_RELEASES)
-        except Exception as exc:
-            logger.warning("página de releases: %s", exc)
-
-    def _descargar():
-        ventana.quitar_accion()
-        ventana.estado(f"Descargando la versión {paquete_elegido.version}.")
-        diagnostico.crear_hilo(_run_descarga, "DescargarActualizacion").start()
-
-    def _run_descarga():
-        try:
-            resultado = actualizacion.descargar_paquete(
-                paquete_elegido.url_zip, paquete_elegido.url_firma,
-                paths.paquete_descargado(),
-                aviso_progreso=_aviso_progreso,
-                cancelar=ventana.cancelado.is_set)
-        except Exception as exc:
-            logger.warning("descarga del paquete: %s", exc)
-            resultado = actualizacion.ResultadoDescarga(
-                False, f"no se pudo descargar el paquete: {exc}")
-        ventana.en_hilo_principal(_terminar_descarga, resultado)
-
-    def _aviso_progreso(porcentaje):
-        ventana.en_hilo_principal(_actualizar_progreso, porcentaje)
-
-    def _actualizar_progreso(porcentaje):
-        nonlocal ultimo_texto
-        ventana.progreso(porcentaje)
-        if ytdlp_bin.debe_actualizar_texto_progreso(ultimo_texto, porcentaje):
-            ultimo_texto = porcentaje
-            ventana.txt_estado.SetValue(
-                f"Descargando la versión {paquete_elegido.version}: "
-                f"{porcentaje} por ciento")
-
-    def _terminar_descarga(resultado):
-        if not resultado.correcta:
-            motivo = resultado.motivo or "motivo desconocido"
-            ventana.progreso(0)
-            if "cancelada" in motivo.lower():
-                ventana.estado("Descarga cancelada.")
-            elif "firma" in motivo.lower():
-                ventana.estado("La descarga no se completó: "
-                               "la firma SHA-256 no coincide.")
-            else:
-                ventana.estado(f"La descarga no se completó: {motivo}.")
-            return
-        ventana.estado("Comprobando el paquete.")
-        diagnostico.crear_hilo(_run_extraer, "ComprobarPaquete").start()
-
-    def _run_extraer():
-        try:
-            raiz = actualizacion.extraer_paquete(
-                paths.paquete_descargado(), paths.paquete_extraido())
-        except actualizacion.PaqueteInvalido as exc:
-            ventana.en_hilo_principal(_mostrar_paquete_invalido, str(exc))
-            return
-        except Exception as exc:
-            logger.warning("extracción del paquete: %s", exc)
-            ventana.en_hilo_principal(_mostrar_paquete_invalido, str(exc))
-            return
-        try:
-            Path(paths.paquete_descargado()).unlink(missing_ok=True)
-        except OSError:
-            pass
-        try:
-            ejecutable = actualizacion.validar_paquete(
-                raiz, paquete_elegido.version)
-        except actualizacion.PaqueteInvalido as exc:
-            ventana.en_hilo_principal(_mostrar_paquete_invalido, str(exc))
-            return
-        except Exception as exc:
-            logger.warning("validación del paquete: %s", exc)
-            ventana.en_hilo_principal(_mostrar_paquete_invalido, str(exc))
-            return
-        ventana.en_hilo_principal(_mostrar_listo, raiz, ejecutable)
-
-    def _mostrar_paquete_invalido(motivo):
-        ventana.estado(f"El paquete no sirve: {motivo}.")
-
-    def _mostrar_listo(raiz, ejecutable):
-        ventana.estado(f"Listo para instalar. {APP_NAME} se cierra y vuelve "
-                       "a abrirse sola en alrededor de un minuto. Si hay un "
-                       "chat conectado o un directo en curso, se corta.")
-        ventana.ofrecer_accion(
-            "&Instalar y reiniciar",
-            lambda: _instalar(raiz, ejecutable))
-
-    def _instalar(raiz, ejecutable):
-        try:
-            actualizacion.lanzar_instalador(
-                raiz, ejecutable, paths.carpeta_instalacion(),
-                paths.ejecutable_actual(), os.getpid(), APP_VERSION)
-        except Exception as exc:
-            ventana.estado(f"No se pudo iniciar la instalación: {exc}.")
-            return
-        frame.Close()
-
-    if paquete is not None:
-        _mostrar_respuesta(paquete)
-        return
-    ventana.estado("Buscando la última versión.")
-    diagnostico.crear_hilo(_run_consulta, "BuscarActualizacion").start()
+    _FlujoActualizacion(frame, ventana).arrancar(paquete)

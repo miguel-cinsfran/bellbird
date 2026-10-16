@@ -275,6 +275,17 @@ class TestVentana(unittest.TestCase):
         self.assertIn("El paquete no sirve: la versión del paquete no "
                       "coincide con la publicada.", ventana.anuncios)
 
+    def test_validar_invalido_muestra_que_no_sirve(self):
+        def validar(*args):
+            raise actualizacion.PaqueteInvalido("falta el ejecutable")
+
+        def descargar(*args, **kwargs):
+            return actualizacion.ResultadoDescarga(True, "paquete descargado")
+        _, ventana = self._abrir_descargable(descargar, validar=validar)
+        self.assertIn("Comprobando el paquete.", ventana.anuncios)
+        self.assertIn("El paquete no sirve: falta el ejecutable.",
+                      ventana.anuncios)
+
     def test_descarga_bien_deja_listo_e_instalar(self):
         def descargar(*args, **kwargs):
             return actualizacion.ResultadoDescarga(True, "paquete descargado")

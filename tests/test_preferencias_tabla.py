@@ -59,11 +59,61 @@ class TestTablaOpcionesSimples(unittest.TestCase):
         self.parche_ruta.__enter__()
         self.addCleanup(self.parche_ruta.__exit__, None, None, None)
 
-    def _dialogo(self):
+    def _dialogo(self, config=None):
         with mock.patch.object(motores, "listar_voces", return_value=["Voz de prueba"]):
-            dialogo = gui_preferencias.PreferenciasDialog(None, {})
+            dialogo = gui_preferencias.PreferenciasDialog(None, config or {})
         self.addCleanup(dialogo.Destroy)
         return dialogo
+
+    def _config_distinto(self):
+        """Un valor por fila que no es su por defecto: lo contrario en las
+        casillas y uno más en los contadores (todos dentro de su rango)."""
+        config = {}
+        for _at, _sec, _clave, en_memoria, tipo, por_defecto in gui_preferencias._OPCIONES_SIMPLES:
+            config[en_memoria] = (not por_defecto) if tipo is bool else por_defecto + 1
+        return config
+
+    def test_tabla_tiene_19_filas_sin_repetir_y_cada_atributo_existe(self):
+        tabla = gui_preferencias._OPCIONES_SIMPLES
+        self.assertEqual(len(tabla), 19)
+        atributos = [fila[0] for fila in tabla]
+        self.assertEqual(len(set(atributos)), 19)
+        dialogo = self._dialogo()
+        for atributo in atributos:
+            with self.subTest(atributo=atributo):
+                self.assertIsNotNone(getattr(dialogo, atributo))
+
+    def test_cada_control_muestra_el_valor_del_config(self):
+        config = self._config_distinto()
+        dialogo = self._dialogo(config)
+        for _at, _sec, _clave, en_memoria, tipo, _por_defecto in gui_preferencias._OPCIONES_SIMPLES:
+            with self.subTest(en_memoria=en_memoria):
+                self.assertIs(type(config[en_memoria]), tipo)
+                self.assertEqual(getattr(dialogo, _at).GetValue(), config[en_memoria])
+
+    def test_config_vacio_muestra_el_por_defecto(self):
+        dialogo = self._dialogo()
+        for atributo, _sec, _clave, _en_memoria, tipo, por_defecto in gui_preferencias._OPCIONES_SIMPLES:
+            with self.subTest(atributo=atributo):
+                valor = getattr(dialogo, atributo).GetValue()
+                self.assertIs(type(valor), tipo)
+                self.assertEqual(valor, por_defecto)
+
+    def test_valor_ilegible_usa_el_por_defecto(self):
+        config = {en_memoria: "abc"
+                  for _at, _sec, _clave, en_memoria, tipo, _pf
+                  in gui_preferencias._OPCIONES_SIMPLES if tipo is int}
+        dialogo = self._dialogo(config)
+        for atributo, _sec, _clave, _en_memoria, tipo, por_defecto in gui_preferencias._OPCIONES_SIMPLES:
+            if tipo is not int:
+                continue
+            with self.subTest(atributo=atributo):
+                self.assertEqual(getattr(dialogo, atributo).GetValue(), por_defecto)
+
+    def test_multivoz_en_true_habilita_voz_eventos(self):
+        dialogo = self._dialogo({"multivoz": True})
+        self.assertTrue(dialogo.chk_multivoz.GetValue())
+        self.assertTrue(dialogo.cho_voz_eventos.IsEnabled())
 
     def test_guardar_escribe_texto_y_memoria_con_tipo_exacto(self):
         dialogo = self._dialogo()
@@ -156,6 +206,34 @@ class TestMuestraTema(unittest.TestCase):
         with mock.patch.object(gui_preferencias._snd, "reproducir_archivo") as sonar:
             dialogo.cho_tema.GetEventHandler().ProcessEvent(evento)
         sonar.assert_called_once_with(esperada)
+
+
+class TestPorDefectoContraFabrica(unittest.TestCase):
+    """Sin ventanas: no crea wx.App ni diálogo. Compara el `por_defecto` de cada
+    fila con el valor de fábrica de `config_predeterminada`, convertido al tipo
+    de la fila, para que no se vuelvan a separar."""
+
+    @staticmethod
+    def _convertir(tipo, texto):
+        # «false» es False: no usar bool() sobre el texto, que daría True.
+        if tipo is bool:
+            return str(texto).strip().lower() in ("true", "yes", "1", "on")
+        return tipo(texto)
+
+    def test_por_defecto_coincide_con_el_de_fabrica(self):
+        marca = object()
+        bool_en_falso = False
+        for atributo, seccion, clave, _en_memoria, tipo, por_defecto \
+                in gui_preferencias._OPCIONES_SIMPLES:
+            with self.subTest(atributo=atributo, seccion=seccion, clave=clave):
+                texto = pred.obtener(seccion, clave, marca)
+                self.assertIsNot(texto, marca,
+                                 f"sin valor de fábrica para {seccion}/{clave}")
+                self.assertEqual(por_defecto, self._convertir(tipo, texto))
+            if tipo is bool and por_defecto is False:
+                bool_en_falso = True
+        # Cubre al menos una casilla cuyo valor de fábrica es «false».
+        self.assertTrue(bool_en_falso)
 
 
 if __name__ == "__main__":

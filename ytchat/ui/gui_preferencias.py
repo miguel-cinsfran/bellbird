@@ -81,29 +81,34 @@ def _miles(numero) -> str:
 
 
 
-# Opciones que se guardan con el mismo molde (leer el control, escribir el
-# texto en el ini y copiar el valor a la config en memoria). Lo que no sigue
-# ese molde va a mano en `_on_guardar`.
+# Opciones que se guardan y se cargan con el mismo molde (leer el control,
+# escribir el texto en el ini y copiar el valor a la config en memoria; y al
+# revés, volcar la config en el control). Lo que no sigue ese molde va a mano
+# en `_on_guardar`. El último campo es el valor de fábrica de
+# `config_predeterminada`, ya convertido al tipo de la fila: es el que se
+# escribe en el control cuando la config no trae la clave o la trae ilegible.
+# `tests/test_preferencias_tabla.py` lo compara con el de fábrica para que no
+# se separen.
 _OPCIONES_SIMPLES = (
-    ("chk_programados", "programados", "activo", "programados_activo", bool),
-    ("sp_fuente", "ui", "tamanio_fuente_chat", "tamanio_fuente_chat", int),
-    ("chk_total_sc", "ui", "mostrar_total_superchats", "mostrar_total_superchats", bool),
-    ("chk_autoplay", "ui", "autoplay_reproductor", "autoplay_reproductor", bool),
-    ("chk_metadatos", "ui", "mostrar_metadatos", "mostrar_metadatos", bool),
-    ("chk_botones_rep", "ui", "mostrar_botones_reproductor", "mostrar_botones_reproductor", bool),
-    ("sp_cache_video", "ui", "cache_video_mb", "cache_video_mb", int),
-    ("chk_multivoz", "voz", "multivoz", "multivoz", bool),
-    ("chk_emojis", "texto", "limpiar_emojis", "limpiar_emojis", bool),
-    ("chk_urls", "texto", "eliminar_urls", "eliminar_urls", bool),
-    ("chk_entradas", "tiktok", "anunciar_entradas", "tiktok_anunciar_entradas", bool),
-    ("sp_long", "texto", "max_longitud_mensaje", "max_longitud_mensaje", int),
-    ("sp_cola_maxima", "cola", "tamanio_maximo", "tamanio_maximo", int),
-    ("sp_umbral_nombre", "cola", "umbral_solo_nombre", "umbral_solo_nombre", int),
-    ("chk_reconectar", "reconexion", "reconectar", "reconectar", bool),
-    ("sp_espera_reconexion", "reconexion", "espera_entre_intentos", "espera_entre_intentos", int),
-    ("sp_max_intentos", "reconexion", "max_intentos", "max_intentos", int),
-    ("chk_registro_detallado", "diagnostico", "registro_detallado", "registro_detallado", bool),
-    ("sp_puerto_overlay", "overlay", "puerto", "overlay_puerto", int),
+    ("chk_programados", "programados", "activo", "programados_activo", bool, False),
+    ("sp_fuente", "ui", "tamanio_fuente_chat", "tamanio_fuente_chat", int, 12),
+    ("chk_total_sc", "ui", "mostrar_total_superchats", "mostrar_total_superchats", bool, True),
+    ("chk_autoplay", "ui", "autoplay_reproductor", "autoplay_reproductor", bool, True),
+    ("chk_metadatos", "ui", "mostrar_metadatos", "mostrar_metadatos", bool, True),
+    ("chk_botones_rep", "ui", "mostrar_botones_reproductor", "mostrar_botones_reproductor", bool, True),
+    ("sp_cache_video", "ui", "cache_video_mb", "cache_video_mb", int, 1024),
+    ("chk_multivoz", "voz", "multivoz", "multivoz", bool, False),
+    ("chk_emojis", "texto", "limpiar_emojis", "limpiar_emojis", bool, True),
+    ("chk_urls", "texto", "eliminar_urls", "eliminar_urls", bool, True),
+    ("chk_entradas", "tiktok", "anunciar_entradas", "tiktok_anunciar_entradas", bool, False),
+    ("sp_long", "texto", "max_longitud_mensaje", "max_longitud_mensaje", int, 200),
+    ("sp_cola_maxima", "cola", "tamanio_maximo", "tamanio_maximo", int, 15),
+    ("sp_umbral_nombre", "cola", "umbral_solo_nombre", "umbral_solo_nombre", int, 0),
+    ("chk_reconectar", "reconexion", "reconectar", "reconectar", bool, True),
+    ("sp_espera_reconexion", "reconexion", "espera_entre_intentos", "espera_entre_intentos", int, 15),
+    ("sp_max_intentos", "reconexion", "max_intentos", "max_intentos", int, 20),
+    ("chk_registro_detallado", "diagnostico", "registro_detallado", "registro_detallado", bool, False),
+    ("sp_puerto_overlay", "overlay", "puerto", "overlay_puerto", int, 8730),
 )
 
 
@@ -213,7 +218,24 @@ class PreferenciasDialog(wx.Dialog):
 
         panel.SetSizer(vs)
         btn_guardar.Bind(wx.EVT_BUTTON, self._on_guardar)
+        self._cargar_opciones_simples()
         self.lista_categorias.SetFocus()
+
+    def _cargar_opciones_simples(self):
+        """Vuelca la config en los 19 controles de la tabla. El valor por
+        defecto de cada fila es el de fábrica, y se usa tanto si la config no
+        trae la clave como si el valor no se puede convertir al tipo."""
+        for atributo, _seccion, _clave, en_memoria, tipo, por_defecto in _OPCIONES_SIMPLES:
+            control = getattr(self, atributo)
+            try:
+                valor = tipo(self._config.get(en_memoria, por_defecto))
+            except (TypeError, ValueError):
+                valor = por_defecto
+            control.SetValue(valor)
+        # El estado de los controles que depende del valor de una opción simple
+        # se decidió en `_build_ui` con el valor viejo del control; se recalcula
+        # aquí, ya con el valor cargado.
+        self.cho_voz_eventos.Enable(bool(self._voces) and self.chk_multivoz.GetValue())
 
     def _make_panel(self, parent, name):
         # Página desplazable (solo vertical): la de Atajos mide más de 1200 px
@@ -253,7 +275,6 @@ class PreferenciasDialog(wx.Dialog):
         vs.Add(self._fila_label(p, "Tamaño de &fuente del chat (8 a 24):"),
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.sp_fuente = ContadorAccesible(p, min=8, max=24,
-                                     initial=int(self._config.get("tamanio_fuente_chat", 12)),
                                      name="Tamaño de fuente del chat")
         _tc(self.sp_fuente)
         vs.Add(self.sp_fuente, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
@@ -270,13 +291,11 @@ class PreferenciasDialog(wx.Dialog):
         self.chk_total_sc = wx.CheckBox(p, label="Mostrar el total de &Super Chats en la barra de estado",
                                         name="MostrarTotalSuperChats")
         self.chk_total_sc.SetForegroundColour(_T.text)
-        self.chk_total_sc.SetValue(bool(self._config.get("mostrar_total_superchats", True)))
         vs.Add(self.chk_total_sc, 0, wx.ALL, 10)
 
         self.chk_metadatos = wx.CheckBox(p, label="Mostrar la pestaña de &información del vídeo (canal, vistas, descripción)",
                                          name="MostrarMetadatos")
         self.chk_metadatos.SetForegroundColour(_T.text)
-        self.chk_metadatos.SetValue(bool(self._config.get("mostrar_metadatos", True)))
         vs.Add(self.chk_metadatos, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         p.SetSizer(vs)
@@ -309,7 +328,6 @@ class PreferenciasDialog(wx.Dialog):
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_cola_maxima = ContadorAccesible(
             p, min=1, max=500,
-            initial=int(self._config.get("tamanio_maximo", 15)),
             name="Tamaño máximo de la cola")
         vs.Add(self.sp_cola_maxima, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
@@ -317,7 +335,6 @@ class PreferenciasDialog(wx.Dialog):
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_umbral_nombre = ContadorAccesible(
             p, min=0, max=500,
-            initial=int(self._config.get("umbral_solo_nombre", 0)),
             name="Leer solo el nombre a partir de")
         vs.Add(self.sp_umbral_nombre, 0, wx.LEFT | wx.RIGHT, 10)
         vs.Add(wx.StaticText(p, label="Con 0, esta opción queda apagada."),
@@ -333,14 +350,12 @@ class PreferenciasDialog(wx.Dialog):
         self.chk_reconectar = wx.CheckBox(
             p, label="&Reconectar automáticamente si se corta",
             name="Reconectar automáticamente si se corta")
-        self.chk_reconectar.SetValue(bool(self._config.get("reconectar", True)))
         vs.Add(self.chk_reconectar, 0, wx.ALL, 10)
 
         vs.Add(self._fila_label(p, "&Espera entre intentos, en segundos"),
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_espera_reconexion = ContadorAccesible(
             p, min=1, max=300,
-            initial=int(self._config.get("espera_entre_intentos", 10)),
             name="Espera entre intentos, en segundos")
         vs.Add(self.sp_espera_reconexion, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
@@ -348,7 +363,6 @@ class PreferenciasDialog(wx.Dialog):
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_max_intentos = ContadorAccesible(
             p, min=0, max=100,
-            initial=int(self._config.get("max_intentos", 5)),
             name="Número máximo de intentos")
         vs.Add(self.sp_max_intentos, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
@@ -363,7 +377,6 @@ class PreferenciasDialog(wx.Dialog):
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.sp_puerto_overlay = ContadorAccesible(
             p, min=1024, max=65535,
-            initial=int(self._config.get("overlay_puerto", 8730)),
             name="Puerto del panel de chat")
         vs.Add(self.sp_puerto_overlay, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
@@ -398,8 +411,6 @@ class PreferenciasDialog(wx.Dialog):
         self.chk_registro_detallado = wx.CheckBox(
             p, label="Guardar un registro &detallado para diagnosticar fallos",
             name="Guardar un registro detallado para diagnosticar fallos")
-        self.chk_registro_detallado.SetValue(
-            bool(self._config.get("registro_detallado", False)))
         vs.Add(self.chk_registro_detallado, 0, wx.ALL, 10)
         p.SetSizer(vs)
         return p
@@ -459,20 +470,17 @@ class PreferenciasDialog(wx.Dialog):
         self.chk_autoplay = wx.CheckBox(p, label="&Reproducir el audio automáticamente al conectar",
                                         name="AutoplayReproductor")
         self.chk_autoplay.SetForegroundColour(_T.text)
-        self.chk_autoplay.SetValue(bool(self._config.get("autoplay_reproductor", True)))
         vs.Add(self.chk_autoplay, 0, wx.ALL, 10)
 
         self.chk_botones_rep = wx.CheckBox(p, label="Mostrar los &botones del reproductor (también con su interruptor y el menú Reproductor)",
                                            name="MostrarBotonesReproductor")
         self.chk_botones_rep.SetForegroundColour(_T.text)
-        self.chk_botones_rep.SetValue(bool(self._config.get("mostrar_botones_reproductor", True)))
         vs.Add(self.chk_botones_rep, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         etiqueta_cache = wx.StaticText(
             p, label="&Tamaño máximo de la caché de vídeo, en megabytes:")
         self.sp_cache_video = wx.SpinCtrl(
             p, min=0, max=20000,
-            initial=int(self._config.get("cache_video_mb", 1024)),
             name="Tamaño máximo de la caché de vídeo en megabytes")
         vs.Add(etiqueta_cache, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         vs.Add(self.sp_cache_video, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
@@ -633,7 +641,6 @@ class PreferenciasDialog(wx.Dialog):
             label="Usar una voz &distinta para los eventos (Super Chats, regalos, "
                   "miembros y entradas)")
         self.chk_multivoz.SetForegroundColour(_T.text)
-        self.chk_multivoz.SetValue(bool(self._config.get("multivoz", False)))
         vs.Add(self.chk_multivoz, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
 
         vs.Add(self._fila_label(p, "Voz para los &eventos:"), 0, wx.LEFT | wx.RIGHT, 10)
@@ -875,8 +882,6 @@ class PreferenciasDialog(wx.Dialog):
         self.chk_urls   = wx.CheckBox(p, label="Quitar &URLs al leer", name="EliminarURLs")
         for c in (self.chk_emojis, self.chk_urls):
             c.SetForegroundColour(_T.text)
-        self.chk_emojis.SetValue(bool(self._config.get("limpiar_emojis", True)))
-        self.chk_urls.SetValue(bool(self._config.get("eliminar_urls", True)))
         vs.Add(self.chk_emojis, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         vs.Add(self.chk_urls, 0, wx.ALL, 10)
 
@@ -885,13 +890,11 @@ class PreferenciasDialog(wx.Dialog):
             label="Leer quién &entra al directo (solo TikTok; en directos grandes "
                   "puede ser muchísimo)")
         self.chk_entradas.SetForegroundColour(_T.text)
-        self.chk_entradas.SetValue(bool(self._config.get("tiktok_anunciar_entradas", False)))
         vs.Add(self.chk_entradas, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         vs.Add(self._fila_label(p, "&Longitud máxima del mensaje (caracteres):"),
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_long = ContadorAccesible(p, min=20, max=1000,
-                                   initial=int(self._config.get("max_longitud_mensaje", 200)),
                                    name="Longitud máxima del mensaje")
         _tc(self.sp_long)
         vs.Add(self.sp_long, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
@@ -1159,7 +1162,6 @@ class PreferenciasDialog(wx.Dialog):
 
         self.chk_programados = wx.CheckBox(
             p, label="&Activar los mensajes automáticos", name="ActivarProgramados")
-        self.chk_programados.SetValue(bool(self._config.get("programados_activo", False)))
         vs.Add(self.chk_programados, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         self.lista_programados = wx.ListBox(p, choices=[
@@ -1393,7 +1395,7 @@ class PreferenciasDialog(wx.Dialog):
         # que aquí solo se guardan; no hace falta revalidar por escritura.
 
         # Opciones simples: las de la tabla van por el bucle, el resto a mano.
-        for atributo, seccion, clave, en_memoria, tipo in _OPCIONES_SIMPLES:
+        for atributo, seccion, clave, en_memoria, tipo, _por_defecto in _OPCIONES_SIMPLES:
             control = getattr(self, atributo)
             if tipo is bool:
                 valor = control.GetValue()

@@ -1,5 +1,6 @@
 """Pruebas del lanzador de OBS y del cableado del diálogo, sin ventanas."""
 
+import ctypes
 import os
 import tempfile
 import threading
@@ -92,6 +93,52 @@ class AbrirObsTest(unittest.TestCase):
         with self.assertRaises(obs_cliente.ObsError) as contexto:
             abrir_obs("C:\\OBS\\bin\\64bit\\obs64.exe", popen=popen_falso)
         self.assertEqual(str(contexto.exception), "No se pudo abrir OBS.")
+
+
+@unittest.skipUnless(os.name == "nt", "SetDllDirectoryW es solo de Windows")
+class AbrirObsSinCarpetaDllTest(unittest.TestCase):
+    """OBS no debe heredar la carpeta de DLL de la app al abrirlo."""
+
+    def setUp(self):
+        from ctypes import wintypes
+        self._nucleo = ctypes.WinDLL("kernel32", use_last_error=True)
+        self._nucleo.GetDllDirectoryW.argtypes = [wintypes.DWORD,
+                                                  wintypes.LPWSTR]
+        self._nucleo.GetDllDirectoryW.restype = wintypes.DWORD
+        self._nucleo.SetDllDirectoryW.argtypes = [wintypes.LPCWSTR]
+        self._nucleo.SetDllDirectoryW.restype = wintypes.BOOL
+        self._anterior = self._leer()
+        self.addCleanup(self._restaurar)
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+
+    def _leer(self):
+        bufer = ctypes.create_unicode_buffer(32768)
+        largo = self._nucleo.GetDllDirectoryW(32768, bufer)
+        return bufer.value if largo > 0 else ""
+
+    def _restaurar(self):
+        self._nucleo.SetDllDirectoryW(self._anterior or None)
+
+    def test_popen_corre_sin_la_carpeta_heredada(self):
+        self._nucleo.SetDllDirectoryW(self._tmp.name)
+        visto = {}
+
+        def popen_falso(args, **kwargs):
+            visto["dll"] = self._leer()
+            return mock.Mock()
+
+        abrir_obs(os.path.join("C:\\OBS", "bin", "64bit", "obs64.exe"),
+                  popen=popen_falso)
+        self.assertEqual("", visto["dll"],
+                         "OBS heredaría la carpeta de DLL de la app")
+
+    def test_la_carpeta_vuelve_despues_de_abrir(self):
+        self._nucleo.SetDllDirectoryW(self._tmp.name)
+        abrir_obs(os.path.join("C:\\OBS", "bin", "64bit", "obs64.exe"),
+                  popen=lambda args, **kwargs: mock.Mock())
+        self.assertEqual(self._tmp.name, self._leer(),
+                         "la carpeta no se restauró tras abrir OBS")
 
 
 class CierreIncorrectoPrevioTest(unittest.TestCase):

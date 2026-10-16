@@ -70,6 +70,7 @@ call uv run pyinstaller main.py ^
   --collect-all TikTokLive ^
   --collect-all yt_dlp ^
   --exclude-module imageio_ffmpeg ^
+  --exclude-module numpy ^
   --hidden-import vlc ^
   --add-data "!YTDOC!;googleapiclient/discovery_cache/documents"
 if errorlevel 1 ( echo ERROR en PyInstaller. & pause & exit /b 1 )
@@ -93,6 +94,14 @@ robocopy "dist\YTChatTTS" "%OUT%" /E /NFL /NDL /NJH /NJS /NP >nul
 robocopy "sounds" "%OUT%\sounds" /E /NFL /NDL /NJH /NJS /NP >nul
 robocopy "docs"   "%OUT%\docs"   /E /NFL /NDL /NJH /NJS /NP >nul
 robocopy "web"    "%OUT%\web"    /E /NFL /NDL /NJH /NJS /NP >nul
+
+echo == Recortando el discovery cache de Google ==
+REM El hook de PyInstaller trae los 604 documentos de discovery_cache, unos
+REM 109 MB, y la app solo usa youtube.v3.json. Se borra todo lo demas.
+set "GDOCS=%OUT%\_internal\googleapiclient\discovery_cache\documents"
+if exist "%GDOCS%" (
+  for %%f in ("%GDOCS%\*") do if /i not "%%~nxf"=="youtube.v3.json" del /q "%%f"
+)
 if defined VLCDIR (
   echo == Empaquetando libVLC junto al exe: plugins de audio y video ==
   robocopy "%VLCDIR%" "%OUT%\vlc" libvlc.dll libvlccore.dll /NFL /NDL /NJH /NJS /NP >nul
@@ -180,6 +189,11 @@ if errorlevel 1 (
   echo    AVISO: yt_dlp no viaja en el paquete; al conectar saldra lento porque falta el modulo.
 )
 if exist "%OUT%\config.ini" ( echo ERROR: config.ini quedo en el paquete y pisaria el del usuario. & pause & exit /b 1 )
+if not exist "%OUT%\_internal\googleapiclient\discovery_cache\documents\youtube.v3.json" ( echo ERROR: falta youtube.v3.json en el discovery cache; la app no podria hablar con la API. & pause & exit /b 1 )
+set "OTROS_DOCS="
+for %%f in ("%OUT%\_internal\googleapiclient\discovery_cache\documents\*") do if /i not "%%~nxf"=="youtube.v3.json" set "OTROS_DOCS=1"
+if defined OTROS_DOCS echo    AVISO: quedaron documentos de API de Google ademas de youtube.v3.json en el paquete.
+if exist "%OUT%\_internal\numpy" echo    AVISO: numpy sigue en el paquete y deberia estar excluido.
 
 echo == Escribiendo el manifiesto del paquete ==
 REM Lo lee el instalador para saber que version trae el zip y cual es su exe.

@@ -306,6 +306,35 @@ class BaseInstalador(unittest.TestCase):
             paths.resultado_actualizacion_en(self.instalacion).read_text(
                 encoding="utf-8"))
         self.assertEqual(resultado["resultado"], "fallo")
+        self.assertIn("como OBS", resultado["motivo"])
+        self.assertIn("Ciérralo y vuelve a intentarlo", resultado["motivo"])
+
+    def test_archivo_en_uso_nombra_obs_en_el_motivo(self):
+        import os
+        real_replace = os.replace
+
+        def _falla(origen, destino):
+            if Path(origen).name == "programa.txt":
+                raise OSError("archivo en uso")
+            return real_replace(origen, destino)
+
+        import unittest.mock as mock
+        with mock.patch.object(os, "replace", side_effect=_falla):
+            ok = instalador.instalar(
+                self.fuente_paquete, self.instalacion, 1234, EXE_VIEJO, DESDE,
+                esperar_pid=lambda pid, tope: True,
+                lanzar=self._lanzar, matar=self._matar,
+                orden_para=self._orden_para())
+        self.assertFalse(ok)
+        resultado = json.loads(
+            paths.resultado_actualizacion_en(self.instalacion).read_text(
+                encoding="utf-8"))
+        self.assertEqual(resultado["resultado"], "fallo")
+        self.assertEqual(
+            resultado["motivo"],
+            "no se pudo mover un archivo de la versión anterior, quizá sigue "
+            "abierto en otro programa, como OBS. Ciérralo y vuelve a "
+            "intentarlo")
 
     def test_pid_no_termina_no_toca_nada(self):
         foto_antes = _sin_estado(_foto(self.instalacion))

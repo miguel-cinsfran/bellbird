@@ -4,6 +4,7 @@ import os
 import subprocess
 import time
 
+from ytchat.core import subprocesos
 from ytchat.obs import obs_activacion
 from ytchat.obs import obs_cliente
 
@@ -82,10 +83,13 @@ def abrir_obs(ruta, popen=subprocess.Popen):
     info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
     info.wShowWindow = 7
     try:
-        # La ventana minimizada igual se activa sola al terminar de cargar.
-        popen([ruta, "--disable-shutdown-check", "--minimize-to-tray"], cwd=carpeta,
-              startupinfo=info,
-              creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+        # OBS no trae VCRUNTIME ni MSVCP en su carpeta: sin esto las busca
+        # en la _internal heredada del cargador y deja archivos en uso.
+        with subprocesos.sin_carpeta_dll_heredada():
+            # La ventana minimizada igual se activa sola al terminar de cargar.
+            popen([ruta, "--disable-shutdown-check", "--minimize-to-tray"],
+                  cwd=carpeta, startupinfo=info,
+                  creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
     except OSError as error:
         raise obs_cliente.ObsError("No se pudo abrir OBS.") from error
 

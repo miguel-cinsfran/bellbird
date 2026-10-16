@@ -1,12 +1,20 @@
+import ctypes
+import os
 import subprocess
 import sys
+import tempfile
 import time
 import threading
 import unittest
+from unittest import mock
 from unittest.mock import patch
 
 from ytchat.core import subprocesos
-from ytchat.core.subprocesos import Estado, ejecutar
+from ytchat.core.subprocesos import (
+    Estado,
+    ejecutar,
+    sin_carpeta_dll_heredada,
+)
 
 
 class PruebasSubprocesos(unittest.TestCase):
@@ -141,6 +149,106 @@ class PruebasSubprocesos(unittest.TestCase):
                     proceso.wait(timeout=2)
                 except (OSError, subprocess.TimeoutExpired):
                     pass
+
+
+@unittest.skipUnless(os.name == "nt", "SetDllDirectoryW es solo de Windows")
+class PruebasCarpetaDllHeredada(unittest.TestCase):
+    """El hijo no debe heredar la carpeta de DLL que fijó el cargador."""
+
+    GUION = (
+        "import ctypes\n"
+        "from ctypes import wintypes\n"
+        "nucleo = ctypes.WinDLL('kernel32')\n"
+        "nucleo.GetDllDirectoryW.argtypes = [wintypes.DWORD, wintypes.LPWSTR]\n"
+        "nucleo.GetDllDirectoryW.restype = wintypes.DWORD\n"
+        "bufer = ctypes.create_unicode_buffer(32768)\n"
+        "nucleo.GetDllDirectoryW(32768, bufer)\n"
+        "print(bufer.value)\n"
+    )
+
+    def setUp(self):
+        from ctypes import wintypes
+        self._nucleo = ctypes.WinDLL("kernel32", use_last_error=True)
+        self._nucleo.GetDllDirectoryW.argtypes = [wintypes.DWORD,
+                                                  wintypes.LPWSTR]
+        self._nucleo.GetDllDirectoryW.restype = wintypes.DWORD
+        self._nucleo.SetDllDirectoryW.argtypes = [wintypes.LPCWSTR]
+        self._nucleo.SetDllDirectoryW.restype = wintypes.BOOL
+        self._anterior = self._leer()
+        self.addCleanup(self._restaurar)
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        self.carpeta = self._tmp.name
+
+    def _leer(self):
+        bufer = ctypes.create_unicode_buffer(32768)
+        largo = self._nucleo.GetDllDirectoryW(32768, bufer)
+        return bufer.value if largo > 0 else ""
+
+    def _restaurar(self):
+        self._nucleo.SetDllDirectoryW(self._anterior or None)
+
+    def test_el_hijo_no_hereda_la_carpeta_y_al_salir_vuelve(self):
+        self._nucleo.SetDllDirectoryW(self.carpeta)
+        self.assertEqual(self.carpeta, self._leer())
+        guion = os.path.join(self.carpeta, "lee.py")
+        with open(guion, "w", encoding="utf-8") as archivo:
+            archivo.write(self.GUION)
+        with sin_carpeta_dll_heredada():
+            salida = subprocess.run([sys.executable, guion],
+                                    capture_output=True, text=True,
+                                    encoding="utf-8")
+        self.assertEqual("", salida.stdout.strip(),
+                         "el hijo heredó la carpeta de DLL")
+        self.assertEqual(self.carpeta, self._leer(),
+                         "no se restauró la carpeta al salir")
+
+    def test_restaura_aunque_el_bloque_lance(self):
+        self._nucleo.SetDllDirectoryW(self.carpeta)
+        with self.assertRaises(RuntimeError):
+            with sin_carpeta_dll_heredada():
+                self.assertEqual("", self._leer())
+                raise RuntimeError("falla a propósito")
+        self.assertEqual(self.carpeta, self._leer())
+
+    def test_carpeta_vacia_no_toca_el_estado(self):
+        nucleo = mock.Mock()
+        nucleo.GetDllDirectoryW.side_effect = lambda tam, bufer: 0
+        with mock.patch.object(ctypes, "WinDLL", return_value=nucleo):
+            with sin_carpeta_dll_heredada():
+                pass
+        nucleo.SetDllDirectoryW.assert_not_called()
+
+    def test_bloque_que_lanza_con_fallo_al_quitar_propaga(self):
+        nucleo = mock.Mock()
+
+        def leer(tam, bufer):
+            bufer.value = self.carpeta
+            return len(self.carpeta)
+
+        nucleo.GetDllDirectoryW.side_effect = leer
+        nucleo.SetDllDirectoryW.return_value = 0
+        with mock.patch.object(ctypes, "WinDLL", return_value=nucleo):
+            with self.assertRaises(OSError) as contexto:
+                with sin_carpeta_dll_heredada():
+                    raise OSError("x")
+        self.assertEqual("x", str(contexto.exception))
+
+    def test_bloque_que_lanza_con_quita_exitosa_propaga_y_restaura(self):
+        nucleo = mock.Mock()
+
+        def leer(tam, bufer):
+            bufer.value = self.carpeta
+            return len(self.carpeta)
+
+        nucleo.GetDllDirectoryW.side_effect = leer
+        nucleo.SetDllDirectoryW.return_value = 1
+        with mock.patch.object(ctypes, "WinDLL", return_value=nucleo):
+            with self.assertRaises(OSError) as contexto:
+                with sin_carpeta_dll_heredada():
+                    raise OSError("x")
+        self.assertEqual("x", str(contexto.exception))
+        nucleo.SetDllDirectoryW.assert_called_with(self.carpeta)
 
 
 if __name__ == "__main__":

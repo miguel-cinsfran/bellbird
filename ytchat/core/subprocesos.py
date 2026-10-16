@@ -1,5 +1,6 @@
 """Ciclo de vida de subprocesos con cancelación y tope."""
 
+import contextlib
 import logging
 import os
 import subprocess
@@ -87,6 +88,60 @@ def terminar_arbol(proceso):
 
 def _terminar(proceso):
     terminar_arbol(proceso)
+
+
+@contextlib.contextmanager
+def sin_carpeta_dll_heredada():
+    """El código de adentro del bloque lanza sus hijos sin la carpeta de DLL que heredó del cargador.
+
+    El cargador de PyInstaller llama a SetDllDirectoryW con la carpeta
+    _internal de la app. Un proceso hijo la hereda y busca ahí sus DLL
+    antes que en System32, lo que deja archivos de la app en uso. Dentro
+    de este contexto el hijo no ve esa carpeta; al salir se restaura tal
+    como estaba, aunque el bloque lance. Fuera de Windows, si ctypes
+    falla o si no hay carpeta fijada, no hace nada y nunca lanza.
+    """
+    nucleo = None
+    anterior = ""
+    if os.name == "nt":
+        try:
+            import ctypes
+            from ctypes import wintypes
+            nucleo = ctypes.WinDLL("kernel32", use_last_error=True)
+            nucleo.GetDllDirectoryW.argtypes = [wintypes.DWORD,
+                                                wintypes.LPWSTR]
+            nucleo.GetDllDirectoryW.restype = wintypes.DWORD
+            nucleo.SetDllDirectoryW.argtypes = [wintypes.LPCWSTR]
+            nucleo.SetDllDirectoryW.restype = wintypes.BOOL
+            bufer = ctypes.create_unicode_buffer(32768)
+            if nucleo.GetDllDirectoryW(32768, bufer) > 0:
+                anterior = bufer.value
+        except Exception as exc:
+            logger.debug("carpeta de DLL heredada, lectura: %s", exc)
+            nucleo = None
+            anterior = ""
+    if nucleo is None or not anterior:
+        yield
+        return
+    quitada = False
+    try:
+        if nucleo.SetDllDirectoryW(None):
+            quitada = True
+        else:
+            logger.debug("no se pudo quitar la carpeta de DLL heredada")
+    except Exception as exc:
+        logger.debug("carpeta de DLL heredada, quitarla: %s", exc)
+        quitada = False
+    if not quitada:
+        yield
+        return
+    try:
+        yield
+    finally:
+        try:
+            nucleo.SetDllDirectoryW(anterior)
+        except Exception as exc:
+            logger.debug("carpeta de DLL heredada, restaurarla: %s", exc)
 
 
 _JOB_APP = None

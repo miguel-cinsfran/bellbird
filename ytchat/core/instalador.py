@@ -392,7 +392,8 @@ def instalar(paquete: str | os.PathLike, instalacion: str | os.PathLike,
             except OSError:
                 pass
         motivo = ("no se pudo mover un archivo de la versión anterior, "
-                  "quizá sigue abierto en otro programa")
+                  "quizá sigue abierto en otro programa, como OBS. "
+                  "Ciérralo y vuelve a intentarlo")
         _fallo(motivo)
         try:
             _arrancar(ejecutable_viejo)

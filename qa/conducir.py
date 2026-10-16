@@ -33,6 +33,7 @@ Uso:
 from __future__ import annotations
 
 import argparse
+import glob
 import json
 import os
 import subprocess
@@ -1488,6 +1489,63 @@ def obs_abierto() -> bool:
         return False
 
 
+def limpiar_sentinel_obs() -> int:
+    """Borra los restos de cierres forzados para que OBS no pida modo seguro.
+
+    Copiada de `qa/directo_real.py` y no importada de ahí: los dos scripts se
+    corren sueltos y no se conocen entre sí.
+    """
+    base = os.environ.get("APPDATA", "")
+    if not base:
+        return 0
+    borrados = 0
+    for resto in glob.glob(os.path.join(
+            base, "obs-studio", ".sentinel", "run_*")):
+        try:
+            os.remove(resto)
+            borrados += 1
+        except OSError:
+            pass
+    return borrados
+
+
+def debe_cerrar_obs_al_final(estaba_al_empezar: bool,
+                             abierto_ahora: bool) -> bool:
+    """El banco cierra el OBS que abrió él, no el que ya estaba ni nada si no hay."""
+    return not estaba_al_empezar and abierto_ahora
+
+
+def cerrar_obs_del_banco(res: Resultado) -> None:
+    """Cierra el OBS que quedó abierto y limpia la marca de modo seguro.
+
+    `taskkill` sin `/F` primero: si OBS puede cerrarse solo, lo hace limpio y
+    deja el estado de una corrida normal. Forzarlo hace que la próxima vez
+    arranque en modo seguro, y eso se desactiva borrando el `run_*` que deja
+    en `.sentinel`.
+    """
+    try:
+        subprocess.run(["taskkill", "/IM", "obs64.exe"],
+                       capture_output=True, timeout=30)
+    except Exception:
+        pass
+    time.sleep(5)
+    forzado = False
+    if obs_abierto():
+        forzado = True
+        try:
+            subprocess.run(["taskkill", "/F", "/IM", "obs64.exe"],
+                           capture_output=True, timeout=30)
+        except Exception:
+            pass
+        time.sleep(2)
+    if forzado:
+        marcas = limpiar_sentinel_obs()
+        res.nota("OBS cerrado al terminar el banco "
+                 f"(forzado, {marcas} marcas de modo seguro borradas)")
+    else:
+        res.nota("OBS cerrado al terminar el banco")
+
+
 def escenario_transmision(app: Aplicacion, args, res: Resultado):
     """El diálogo que coloca el panel de chat dentro de una escena de OBS.
 
@@ -1666,7 +1724,8 @@ def escenario_transmitir_destino(app: Aplicacion, args, res: Resultado):
 
     # 1. Abrir, auditar y cancelar: no se abre nada más.
     try:
-        app.pedir("pulsar", nombre="Transmitir en directo", tiempo=8.0)
+        app.pedir("pulsar", nombre="Transmitir en directo", tiempo=3.0,
+                  responder_ya=True)
     except Exception:
         pass  # el diálogo es modal y se come la respuesta, como en `conectar`
     if app.esperar_ventana("Transmitir a", segundos=15) is None:
@@ -1708,7 +1767,8 @@ def escenario_transmitir_destino(app: Aplicacion, args, res: Resultado):
     estaba_obs = obs_abierto()
     try:
         try:
-            app.pedir("pulsar", nombre="Transmitir en directo", tiempo=8.0)
+            app.pedir("pulsar", nombre="Transmitir en directo", tiempo=3.0,
+                      responder_ya=True)
         except Exception:
             pass  # modal otra vez: la respuesta llega cuando se cierre
         if app.esperar_ventana("Transmitir a", segundos=15) is None:
@@ -2963,7 +3023,7 @@ def escenario_conectar(app: Aplicacion, args, res: Resultado):
     # el foco, pero si el cuadro no expone texto no hay nada que leer.
     app.llamar("set_url", "")
     try:
-        app.pedir("pulsar", nombre="Conectar", tiempo=6.0)
+        app.pedir("pulsar", nombre="Conectar", tiempo=3.0, responder_ya=True)
     except Exception:
         pass                      # el cuadro es modal y se come la respuesta
     dlg = dialogo_nativo("Falta URL", segundos=8)
@@ -2983,7 +3043,7 @@ def escenario_conectar(app: Aplicacion, args, res: Resultado):
     app.llamar("set_url", "esto no es una direccion")
     n = len(app.anuncios)
     try:
-        app.pedir("pulsar", nombre="Conectar", tiempo=6.0)
+        app.pedir("pulsar", nombre="Conectar", tiempo=3.0, responder_ya=True)
     except Exception:
         pass
     dlg = dialogo_nativo("URL", segundos=6) or dialogo_nativo("no vál", segundos=2)
@@ -3794,6 +3854,7 @@ def main() -> int:
             res.fallo(f"arranque_frio: el escenario reventó, {exc!r}")
 
     print("Arrancando la aplicación con la sonda puesta. No va a hablar.")
+    obs_al_empezar = obs_abierto()
     app.arrancar()
     try:
         if not app.esperar_lista(segundos=60):
@@ -3815,6 +3876,15 @@ def main() -> int:
                 res.fallo(f"{nombre}: el escenario reventó, {exc!r}")
     finally:
         app.cerrar()
+        # Si el banco abrió OBS y no estaba al empezar, se lo cierra: no se le
+        # puede dejar al dueño una aplicación abierta que no tenía. El cierre
+        # que hace `transmitir_destino` cubre su escenario; este cubre la
+        # corrida entera, por si otro escenario lo dejó abierto.
+        try:
+            if debe_cerrar_obs_al_final(obs_al_empezar, obs_abierto()):
+                cerrar_obs_del_banco(res)
+        except Exception:
+            pass
 
     print()
     print("=" * 60)

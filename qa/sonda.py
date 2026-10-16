@@ -595,10 +595,17 @@ class Sonda:
                 ctrl = _buscar_control(objetivo, orden.get("nombre", ""))
                 if ctrl is None:
                     raise RuntimeError(f"no encontré {orden.get('nombre')!r}")
+                # Como en `menu_click`: si el botón abre un diálogo modal, el
+                # control no vuelve hasta que se cierre, y quien pide con
+                # `responder_ya` se quedaría esperando una respuesta que ya no
+                # puede llegar.
+                if orden.get("responder_ya"):
+                    self.responder(id_orden, True)
                 evento = wx.CommandEvent(wx.EVT_BUTTON.typeId, ctrl.GetId())
                 evento.SetEventObject(ctrl)
                 ctrl.GetEventHandler().ProcessEvent(evento)
-                self.responder(id_orden, True)
+                if not orden.get("responder_ya"):
+                    self.responder(id_orden, True)
 
             elif op == "cerrar_ventana":
                 objetivo = self._ventana_por_titulo(orden.get("ventana"), frame)

@@ -38,6 +38,13 @@ RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # de accesibilidad.
 _INTERACTIVOS = {"Button", "Edit", "ComboBox", "List", "CheckBox", "RadioButton"}
 
+# Qué cubre en realidad la fase 3, para que un «OK» no se lea como «todos los
+# controles tienen nombre»: solo recorre la pantalla sin conectar. El resto de
+# las superficies las audita el banco de QA.
+ALCANCE_FASE3 = (
+    "Solo la pantalla sin conectar: URL, Conectar, menús y barra de estado. "
+    "La lista del chat, las pestañas, el cuadro de escritura y el reproductor "
+    "los audita el banco de QA (qa/conducir.py).")
 
 
 def _modulos_de_la_raiz() -> tuple[list[str], list[str]]:
@@ -398,6 +405,7 @@ def fase3_accesibilidad() -> bool:
                   f"interactivo(s) SIN nombre: {', '.join(sin_nombre)}")
             return False
         print("  [ok] Todos los controles interactivos tienen nombre accesible.")
+        print("  Alcance: " + ALCANCE_FASE3)
         return True
     except Exception as exc:
         print(f"  [FALLO] {exc.__class__.__name__}: {exc}")
@@ -441,8 +449,10 @@ def main():
     print(f"  Fase 2 (GUI imports):   {'OK' if r2 else 'FALLO'}")
     if no_gui:
         print("  Fase 3 (accesibilidad): omitida (--no-gui)")
+    elif r3:
+        print("  Fase 3 (accesibilidad): OK, solo sin conectar")
     else:
-        print(f"  Fase 3 (accesibilidad): {'OK' if r3 else 'FALLO / avisos'}")
+        print("  Fase 3 (accesibilidad): FALLO / avisos")
     print()
     sys.exit(0 if (r1 and r2 and r3) else 1)
 

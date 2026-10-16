@@ -2,8 +2,9 @@
 
 Reúne en un solo sitio lo que antes solo se editaba a mano en config.ini y
 sounds.ini: interfaz (fuente, tema de sonido), lectura, filtros de palabras y
-usuarios, y un editor de atajos. Persiste con `config.guardar_opcion` (que
-conserva comentarios y orden del INI) y actualiza el dict de config en memoria.
+usuarios, y un editor de atajos. Persiste con `config.guardar_opciones`, que
+escribe todo de una vez al pulsar Guardar (conservando comentarios y orden del
+INI), y actualiza el dict de config en memoria.
 La configuración de API/OAuth sigue en su propio diálogo (Herramientas).
 """
 

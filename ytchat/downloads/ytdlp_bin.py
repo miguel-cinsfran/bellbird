@@ -145,6 +145,122 @@ def info_video(video_id: str) -> dict | None:
         return None
 
 
+def _argumentos_audio(ruta: str, destino: Path, video_id: str) -> list:
+    return [ruta, "-f", "ba", "-o", str(destino), "--no-playlist",
+            "--no-warnings", "--newline", "--progress-template", PLANTILLA,
+            f"https://www.youtube.com/watch?v={video_id}"]
+
+
+def _lanzar_audio(argumentos: list):
+    proceso = subprocess.Popen(
+        argumentos,
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+    )
+    try:
+        from ytchat.core.subprocesos import vincular_a_la_app
+        vincular_a_la_app(proceso)
+    except Exception:
+        pass
+    return proceso
+
+
+def _volcar_salida(proceso, cola) -> None:
+    try:
+        flujo = proceso.stdout
+        if flujo is None:
+            cola.put(None)
+            return
+        for linea in flujo:
+            cola.put(linea)
+        cola.put(None)
+    except Exception:
+        try:
+            cola.put(None)
+        except Exception:
+            pass
+
+
+def _bombear_progreso(proceso, aviso_progreso, inicio, tope_segundos) -> bool:
+    """Vacía la salida de yt-dlp hasta el fin del flujo.
+
+    Verdadero si se agotó el flujo; falso si se superó el tope y el
+    proceso ya quedó terminado.
+    """
+    import queue
+    import threading
+    cola: queue.Queue = queue.Queue()
+    hilo = threading.Thread(target=_volcar_salida, args=(proceso, cola),
+                            daemon=True)
+    hilo.start()
+    while True:
+        transcurrido = time.monotonic() - inicio
+        if transcurrido > tope_segundos:
+            try:
+                from ytchat.core.subprocesos import terminar_arbol
+                terminar_arbol(proceso)
+            except Exception:
+                pass
+            try:
+                proceso.wait(timeout=5)
+            except Exception:
+                pass
+            return False
+        restante = tope_segundos - transcurrido
+        espera = restante if restante < 0.2 else 0.2
+        if espera <= 0:
+            espera = 0.05
+        try:
+            linea = cola.get(timeout=espera)
+        except queue.Empty:
+            if proceso.poll() is not None:
+                # El proceso terminó pero el lector aún no entregó el centinela;
+                # se espera un poco más sin volver a bloquear indefinidamente.
+                # Si el hilo ya no vive y la cola está vacía, se sale.
+                if not hilo.is_alive() and cola.empty():
+                    break
+            continue
+        if linea is None:
+            break
+        datos = analizar_linea_progreso(linea)
+        if datos is not None and aviso_progreso is not None:
+            aviso_progreso(int(datos["pct"]))
+    return True
+
+
+def _esperar_cierre(proceso, inicio, tope_segundos) -> bool:
+    """Espera al proceso tras el fin del flujo. Falso si hay que cortarlo
+    por tope."""
+    # Salida normal por fin de flujo: esperar al proceso sin colgarse
+    # más allá del tope.
+    while True:
+        if proceso.poll() is not None:
+            break
+        if time.monotonic() - inicio > tope_segundos:
+            try:
+                from ytchat.core.subprocesos import terminar_arbol
+                terminar_arbol(proceso)
+            except Exception:
+                pass
+            try:
+                proceso.wait(timeout=5)
+            except Exception:
+                pass
+            return False
+        time.sleep(0.05)
+    return True
+
+
+def _codigo_salida(proceso):
+    try:
+        codigo = proceso.wait(timeout=5)
+    except Exception:
+        codigo = getattr(proceso, "returncode", None)
+    if codigo is None:
+        codigo = getattr(proceso, "returncode", 0) or 0
+    return codigo
+
+
 def descargar_audio(video_id: str, destino: Path, aviso_progreso=None,
                     tope_segundos: int = 600) -> bool:
     """Descarga la mejor pista de audio a la caché interna."""
@@ -154,96 +270,14 @@ def descargar_audio(video_id: str, destino: Path, aviso_progreso=None,
         return False
     destino = Path(destino)
     try:
-        proceso = subprocess.Popen(
-            [ruta, "-f", "ba", "-o", str(destino), "--no-playlist",
-             "--no-warnings", "--newline", "--progress-template", PLANTILLA,
-             f"https://www.youtube.com/watch?v={video_id}"],
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
-            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-        )
-        try:
-            from ytchat.core.subprocesos import vincular_a_la_app
-            vincular_a_la_app(proceso)
-        except Exception:
-            pass
+        proceso = _lanzar_audio(_argumentos_audio(ruta, destino, video_id))
         inicio = time.monotonic()
-        import queue
-        import threading
-        cola: queue.Queue = queue.Queue()
-
-        def _lector():
-            try:
-                flujo = proceso.stdout
-                if flujo is None:
-                    cola.put(None)
-                    return
-                for linea in flujo:
-                    cola.put(linea)
-                cola.put(None)
-            except Exception:
-                try:
-                    cola.put(None)
-                except Exception:
-                    pass
-
-        hilo = threading.Thread(target=_lector, daemon=True)
-        hilo.start()
-        while True:
-            transcurrido = time.monotonic() - inicio
-            if transcurrido > tope_segundos:
-                try:
-                    from ytchat.core.subprocesos import terminar_arbol
-                    terminar_arbol(proceso)
-                except Exception:
-                    pass
-                try:
-                    proceso.wait(timeout=5)
-                except Exception:
-                    pass
-                return False
-            restante = tope_segundos - transcurrido
-            espera = restante if restante < 0.2 else 0.2
-            if espera <= 0:
-                espera = 0.05
-            try:
-                linea = cola.get(timeout=espera)
-            except queue.Empty:
-                if proceso.poll() is not None:
-                    # El proceso terminó pero el lector aún no entregó el centinela;
-                    # se espera un poco más sin volver a bloquear indefinidamente.
-                    # Si el hilo ya no vive y la cola está vacía, se sale.
-                    if not hilo.is_alive() and cola.empty():
-                        break
-                continue
-            if linea is None:
-                break
-            datos = analizar_linea_progreso(linea)
-            if datos is not None and aviso_progreso is not None:
-                aviso_progreso(int(datos["pct"]))
-        # Salida normal por fin de flujo: esperar al proceso sin colgarse
-        # más allá del tope.
-        while True:
-            if proceso.poll() is not None:
-                break
-            if time.monotonic() - inicio > tope_segundos:
-                try:
-                    from ytchat.core.subprocesos import terminar_arbol
-                    terminar_arbol(proceso)
-                except Exception:
-                    pass
-                try:
-                    proceso.wait(timeout=5)
-                except Exception:
-                    pass
-                return False
-            time.sleep(0.05)
-        try:
-            codigo = proceso.wait(timeout=5)
-        except Exception:
-            codigo = getattr(proceso, "returncode", None)
-        if codigo is None:
-            codigo = getattr(proceso, "returncode", 0) or 0
-        if codigo != 0:
+        if not _bombear_progreso(proceso, aviso_progreso, inicio,
+                                 tope_segundos):
+            return False
+        if not _esperar_cierre(proceso, inicio, tope_segundos):
+            return False
+        if _codigo_salida(proceso) != 0:
             logger.debug("descargar audio: yt-dlp terminó con error")
             return False
         return destino.is_file() and destino.stat().st_size >= TAMANIO_MINIMO

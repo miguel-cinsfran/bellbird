@@ -132,104 +132,145 @@ def _duracion(segundos: int) -> str:
     return f"{minutos} min"
 
 
+def _render_estado(s: SnapshotSesion, largo: bool) -> str:
+    if not s.conectado:
+        return "Desconectado"
+    return _TIPO_TXT.get(s.tipo, "Conectado")
+
+
+def _render_titulo(s: SnapshotSesion, largo: bool) -> str:
+    t = (s.titulo or "").strip()
+    if not t:
+        return ""
+    return f"Título: {t}" if largo else t
+
+
+def _render_canal(s: SnapshotSesion, largo: bool) -> str:
+    c = (s.canal or "").strip()
+    return (f"Canal: {c}" if c else "")
+
+
+def _render_espectadores(s: SnapshotSesion, largo: bool) -> str:
+    if s.espectadores is None:
+        return ""
+    n = _fmt_num(s.espectadores)
+    # En un directo es el nº de espectadores AHORA; en un vídeo, las vistas
+    # totales (números distintos, no confundir).
+    en_directo = s.tipo in ("live_youtube", "live_tiktok")
+    palabra = "espectadores" if en_directo else "vistas"
+    return f"{palabra.capitalize()}: {n}" if largo else f"{n} {palabra}"
+
+
+def _render_tiempo_directo(s: SnapshotSesion, largo: bool) -> str:
+    if s.segundos_directo is None or s.segundos_directo < 0:
+        return ""
+    texto = _duracion(s.segundos_directo)
+    return (f"Tiempo del directo: {texto}" if largo
+            else f"Lleva {texto}")
+
+
+def _render_desfase_directo(s: SnapshotSesion, largo: bool) -> str:
+    texto = (s.desfase_directo or "").strip()
+    if not texto:
+        return ""
+    base = f"Reproductor: {texto}" if largo else texto
+    atajo = (s.atajo_directo or "").strip()
+    if atajo:
+        vuelta = f"Pulsa {atajo} para volver al directo"
+    else:
+        vuelta = "Para volver: menú Reproductor, Ir al directo"
+    # En largo la línea es una frase completa y lleva su punto; en corto
+    # lo pone el punto final de la frase armada.
+    if largo:
+        return f"{base}. {vuelta}."
+    return f"{base}. {vuelta}"
+
+
+def _render_mensajes_leidos(s: SnapshotSesion, largo: bool) -> str:
+    n = _fmt_num(s.mensajes_leidos)
+    return f"Mensajes leídos: {n}" if largo else f"{n} leídos"
+
+
+def _render_aportes(s: SnapshotSesion, largo: bool) -> str:
+    if s.aportes <= 0:
+        return ""
+    # «Super Chats» en YouTube, «regalos» en TikTok.
+    palabra = "regalos" if s.tipo == "live_tiktok" else "Super Chats"
+    base = f"{s.aportes} {palabra}"
+    if s.total_aportes:
+        base += f" ({s.total_aportes})"
+    return f"Aportes: {base}" if largo else base
+
+
+def _render_en_cola(s: SnapshotSesion, largo: bool) -> str:
+    n = _fmt_num(s.en_cola)
+    return f"En cola: {n}" if largo else f"{n} en cola"
+
+
+def _render_voz(s: SnapshotSesion, largo: bool) -> str:
+    return (f"Voz: velocidad {s.voz_velocidad}, volumen {s.voz_volumen}%")
+
+
+def _render_lectura_silenciada(s: SnapshotSesion, largo: bool) -> str:
+    return "Lectura silenciada" if s.lectura_silenciada else ""
+
+
+def _render_overlay(s: SnapshotSesion, largo: bool) -> str:
+    if s.overlay_puerto is None:
+        return ""
+    if s.overlay_clientes:
+        return f"Panel de chat activo en el puerto {s.overlay_puerto}, mostrándose"
+    return (f"Panel de chat activo en el puerto {s.overlay_puerto}, pero nadie "
+            "lo está mostrando")
+
+
+def _render_programados(s: SnapshotSesion, largo: bool) -> str:
+    return s.programados_proximo or ""
+
+
+def _render_descartados(s: SnapshotSesion, largo: bool) -> str:
+    return s.descartados or ""
+
+
+def _render_obs_transmision(s: SnapshotSesion, largo: bool) -> str:
+    return s.obs_transmision or ""
+
+
+def _render_obs_grabacion(s: SnapshotSesion, largo: bool) -> str:
+    return s.obs_grabacion or ""
+
+
+def _render_obs_escena(s: SnapshotSesion, largo: bool) -> str:
+    return s.obs_escena or ""
+
+
+_RENDERERS = {
+    "estado": _render_estado,
+    "titulo": _render_titulo,
+    "canal": _render_canal,
+    "espectadores": _render_espectadores,
+    "tiempo_directo": _render_tiempo_directo,
+    "desfase_directo": _render_desfase_directo,
+    "mensajes_leidos": _render_mensajes_leidos,
+    "aportes": _render_aportes,
+    "en_cola": _render_en_cola,
+    "voz": _render_voz,
+    "lectura_silenciada": _render_lectura_silenciada,
+    "overlay": _render_overlay,
+    "programados": _render_programados,
+    "descartados": _render_descartados,
+    "obs_transmision": _render_obs_transmision,
+    "obs_grabacion": _render_obs_grabacion,
+    "obs_escena": _render_obs_escena,
+}
+
+
 def _render(nombre: str, s: SnapshotSesion, largo: bool) -> str:
     """Un componente a texto, o "" si no hay dato que mostrar."""
-    if nombre == "estado":
-        if not s.conectado:
-            return "Desconectado"
-        return _TIPO_TXT.get(s.tipo, "Conectado")
-
-    if nombre == "titulo":
-        t = (s.titulo or "").strip()
-        if not t:
-            return ""
-        return f"Título: {t}" if largo else t
-
-    if nombre == "canal":
-        c = (s.canal or "").strip()
-        return (f"Canal: {c}" if c else "")
-
-    if nombre == "espectadores":
-        if s.espectadores is None:
-            return ""
-        n = _fmt_num(s.espectadores)
-        # En un directo es el nº de espectadores AHORA; en un vídeo, las vistas
-        # totales (números distintos, no confundir).
-        en_directo = s.tipo in ("live_youtube", "live_tiktok")
-        palabra = "espectadores" if en_directo else "vistas"
-        return f"{palabra.capitalize()}: {n}" if largo else f"{n} {palabra}"
-
-    if nombre == "tiempo_directo":
-        if s.segundos_directo is None or s.segundos_directo < 0:
-            return ""
-        texto = _duracion(s.segundos_directo)
-        return (f"Tiempo del directo: {texto}" if largo
-                else f"Lleva {texto}")
-
-    if nombre == "desfase_directo":
-        texto = (s.desfase_directo or "").strip()
-        if not texto:
-            return ""
-        base = f"Reproductor: {texto}" if largo else texto
-        atajo = (s.atajo_directo or "").strip()
-        if atajo:
-            vuelta = f"Pulsa {atajo} para volver al directo"
-        else:
-            vuelta = "Para volver: menú Reproductor, Ir al directo"
-        # En largo la línea es una frase completa y lleva su punto; en corto
-        # lo pone el punto final de la frase armada.
-        if largo:
-            return f"{base}. {vuelta}."
-        return f"{base}. {vuelta}"
-
-    if nombre == "mensajes_leidos":
-        n = _fmt_num(s.mensajes_leidos)
-        return f"Mensajes leídos: {n}" if largo else f"{n} leídos"
-
-    if nombre == "aportes":
-        if s.aportes <= 0:
-            return ""
-        # «Super Chats» en YouTube, «regalos» en TikTok.
-        palabra = "regalos" if s.tipo == "live_tiktok" else "Super Chats"
-        base = f"{s.aportes} {palabra}"
-        if s.total_aportes:
-            base += f" ({s.total_aportes})"
-        return f"Aportes: {base}" if largo else base
-
-    if nombre == "en_cola":
-        n = _fmt_num(s.en_cola)
-        return f"En cola: {n}" if largo else f"{n} en cola"
-
-    if nombre == "voz":
-        return (f"Voz: velocidad {s.voz_velocidad}, volumen {s.voz_volumen}%")
-
-    if nombre == "lectura_silenciada":
-        return "Lectura silenciada" if s.lectura_silenciada else ""
-
-    if nombre == "overlay":
-        if s.overlay_puerto is None:
-            return ""
-        if s.overlay_clientes:
-            return f"Panel de chat activo en el puerto {s.overlay_puerto}, mostrándose"
-        return (f"Panel de chat activo en el puerto {s.overlay_puerto}, pero nadie "
-                "lo está mostrando")
-
-    if nombre == "programados":
-        return s.programados_proximo or ""
-
-    if nombre == "descartados":
-        return s.descartados or ""
-
-    if nombre == "obs_transmision":
-        return s.obs_transmision or ""
-
-    if nombre == "obs_grabacion":
-        return s.obs_grabacion or ""
-
-    if nombre == "obs_escena":
-        return s.obs_escena or ""
-
-    return ""
+    dibujar = _RENDERERS.get(nombre)
+    if dibujar is None:
+        return ""
+    return dibujar(s, largo)
 
 
 def formatear_estado(snap: SnapshotSesion, toggles, modo: str = "corto") -> str:

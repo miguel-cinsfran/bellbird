@@ -4,7 +4,7 @@ import unittest
 
 from ytchat.capture import descartes
 from ytchat.capture.estado_sesion import (SnapshotSesion, formatear_estado, COMPONENTES,
-                           ACTIVOS_DEFECTO, _duracion)
+                           ACTIVOS_DEFECTO, _duracion, _render)
 
 
 class TestDuracion(unittest.TestCase):
@@ -262,6 +262,74 @@ class TestDesfaseConVuelta(unittest.TestCase):
     def test_sin_desfase_no_agrega_nada(self):
         s = SnapshotSesion(desfase_directo="", atajo_directo="Ctrl+Fin")
         self.assertEqual(formatear_estado(s, {"desfase_directo"}), "")
+
+
+class TestRamasSinCubrir(unittest.TestCase):
+    """Caracterización de las ramas que la cobertura del 16/10/2026 mostró
+    sin ejecutar en _render: se fijan contra el código de hoy."""
+
+    def test_conectado_sin_tipo_dice_conectado(self):
+        s = SnapshotSesion(conectado=True, tipo="")
+        self.assertEqual(formatear_estado(s, {"estado"}), "Conectado.")
+
+    def test_vistas_en_video_no_en_directo(self):
+        s = SnapshotSesion(conectado=True, tipo="vod", espectadores=1000)
+        self.assertEqual(formatear_estado(s, {"espectadores"}),
+                         "1.000 vistas.")
+        self.assertEqual(formatear_estado(s, {"espectadores"}, "largo"),
+                         "Vistas: 1.000")
+
+    def test_espectadores_no_numericos_pasan_como_texto(self):
+        s = SnapshotSesion(conectado=True, tipo="live_youtube",
+                           espectadores="muchos")
+        self.assertEqual(formatear_estado(s, {"espectadores"}),
+                         "muchos espectadores.")
+
+    def test_en_cola_corto_y_largo(self):
+        s = SnapshotSesion(en_cola=3)
+        self.assertEqual(formatear_estado(s, {"en_cola"}), "3 en cola.")
+        self.assertEqual(formatear_estado(s, {"en_cola"}, "largo"),
+                         "En cola: 3")
+
+    def test_voz_muestra_velocidad_y_volumen(self):
+        s = SnapshotSesion(voz_velocidad=0, voz_volumen=0)
+        self.assertEqual(formatear_estado(s, {"voz"}),
+                         "Voz: velocidad 0, volumen 0%.")
+
+    def test_mensajes_leidos_largo(self):
+        s = SnapshotSesion(mensajes_leidos=10)
+        self.assertEqual(formatear_estado(s, {"mensajes_leidos"}, "largo"),
+                         "Mensajes leídos: 10")
+
+    def test_aportes_youtube_sin_total_corto(self):
+        s = SnapshotSesion(conectado=True, tipo="live_youtube", aportes=3)
+        self.assertEqual(formatear_estado(s, {"aportes"}), "3 Super Chats.")
+
+    def test_aportes_largo_con_total(self):
+        s = SnapshotSesion(conectado=True, tipo="live_youtube", aportes=3,
+                           total_aportes="US$12,50")
+        self.assertEqual(formatear_estado(s, {"aportes"}, "largo"),
+                         "Aportes: 3 Super Chats (US$12,50)")
+
+    def test_desfase_largo_sin_atajo_da_menu(self):
+        s = SnapshotSesion(desfase_directo="10 segundos por detrás del directo",
+                           atajo_directo="")
+        self.assertEqual(
+            formatear_estado(s, {"desfase_directo"}, "largo"),
+            "Reproductor: 10 segundos por detrás del directo. "
+            "Para volver: menú Reproductor, Ir al directo.")
+
+    def test_obs_grabacion_y_escena(self):
+        s = SnapshotSesion(obs_grabacion="Grabando desde hace 2 min",
+                           obs_escena="Juego")
+        self.assertEqual(formatear_estado(s, {"obs_grabacion"}),
+                         "Grabando desde hace 2 min.")
+        self.assertEqual(formatear_estado(s, {"obs_escena"}), "Juego.")
+        self.assertEqual(formatear_estado(SnapshotSesion(),
+                                         {"obs_grabacion", "obs_escena"}), "")
+
+    def test_nombre_desconocido_da_vacio(self):
+        self.assertEqual(_render("inventado", SnapshotSesion(), False), "")
 
 
 if __name__ == "__main__":

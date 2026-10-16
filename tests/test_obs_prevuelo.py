@@ -140,6 +140,33 @@ def png_plano(ancho, alto, valores, con_alfa=True, filtro=0):
     return armar_png(ancho, alto, lambda x, y: valores, con_alfa, filtro)
 
 
+def _trozo(nombre: bytes, cuerpo: bytes) -> bytes:
+    return (struct.pack(">I", len(cuerpo)) + nombre + cuerpo
+            + struct.pack(">I", binascii.crc32(nombre + cuerpo) & 0xffffffff))
+
+
+def _png_con_idat(ancho, alto, tipo_color, carga_idat: bytes) -> bytes:
+    """PNG con la carga IDAT dada, para forzar ramas del decodificador."""
+    return (b"\x89PNG\r\n\x1a\n"
+            + _trozo(b"IHDR", struct.pack(">IIBBBBB", ancho, alto, 8,
+                                         tipo_color, 0, 0, 0))
+            + _trozo(b"IDAT", carga_idat)
+            + _trozo(b"IEND", b""))
+
+
+class DobleQueFalla(DoblePrevuelo):
+    """Doble que rompe un pedido concreto, para las ramas de error."""
+
+    def __init__(self, falla_en, **extras):
+        super().__init__(**extras)
+        self.falla_en = falla_en
+
+    def pedir(self, tipo, datos=None, parada=None):
+        if tipo == self.falla_en:
+            raise RuntimeError("falla " + tipo)
+        return super().pedir(tipo, datos, parada)
+
+
 class RevisarTest(unittest.TestCase):
     def test_mide_lo_real_sin_problemas(self):
         templado = armar_png(4, 4,
@@ -398,6 +425,135 @@ class ImagenVaciaPngTest(unittest.TestCase):
         self.assertFalse(EntradaAudio("Mic/Aux", False).escritorio)
         self.assertTrue(EntradaAudio("Audio del escritorio", False,
                                      True).escritorio)
+
+    def test_trozo_truncado_da_none(self):
+        png = armar_png(2, 2, lambda x, y: (0, 0, 0, 0))
+        self.assertIsNone(imagen_vacia_png(png[:30]))
+
+    def test_ihdr_con_largo_invalido_da_none(self):
+        png = bytearray(armar_png(2, 2, lambda x, y: (0, 0, 0, 0)))
+        png[8:12] = b"\x00\x00\x00\x05"
+        self.assertIsNone(imagen_vacia_png(bytes(png)))
+
+    def test_ancho_cero_da_none(self):
+        png = bytearray(armar_png(2, 2, lambda x, y: (0, 0, 0, 0)))
+        png[16:20] = b"\x00\x00\x00\x00"
+        self.assertIsNone(imagen_vacia_png(bytes(png)))
+
+    def test_dimension_enorme_da_none(self):
+        png = bytearray(armar_png(2, 2, lambda x, y: (0, 0, 0, 0)))
+        png[16:20] = struct.pack(">I", 5000)
+        png[20:24] = struct.pack(">I", 5000)
+        self.assertIsNone(imagen_vacia_png(bytes(png)))
+
+    def test_idat_con_largo_incorrecto_da_none(self):
+        png = _png_con_idat(2, 2, 6, zlib.compress(b"corto"))
+        self.assertIsNone(imagen_vacia_png(png))
+
+    def test_filtro_desconocido_da_none(self):
+        png = _png_con_idat(1, 1, 6, zlib.compress(bytes([7, 0, 0, 0, 0])))
+        self.assertIsNone(imagen_vacia_png(png))
+
+    def test_idat_corrupto_da_none(self):
+        png = _png_con_idat(2, 2, 6, b"esto-no-es-zlib")
+        self.assertIsNone(imagen_vacia_png(png))
+
+    def test_trozo_auxiliar_se_ignora(self):
+        base = armar_png(2, 2, lambda x, y: (0, 0, 0, 0))
+        con_texto = base[:33] + _trozo(b"tEXt", b"a\x00b") + base[33:]
+        self.assertIs(imagen_vacia_png(con_texto), True)
+
+    def test_paeth_elige_diagonal(self):
+        self.assertEqual(obs_prevuelo._paeth(10, 200, 105), 105)
+
+    def test_paeth_elige_arriba(self):
+        self.assertEqual(obs_prevuelo._paeth(100, 0, 90), 0)
+
+
+class RamasRevisarTest(unittest.TestCase):
+    """Caracterización de las ramas de revisar que la cobertura del
+    16/10/2026 mostró sin ejecutar, fijadas contra el código de hoy."""
+
+    def test_imagen_sin_prefijo_data_funciona(self):
+        png = png_plano(2, 2, (0, 0, 0, 0))
+        doble = DoblePrevuelo(
+            imagen=base64.b64encode(png).decode("ascii"))
+        self.assertIs(revisar(doble, "TikTok").imagen_vacia, True)
+
+    def test_imagen_base64_rota_da_none(self):
+        doble = DoblePrevuelo(imagen="!!no-es-base64!!")
+        revision = revisar(doble, "TikTok")
+        self.assertIsNone(revision.imagen_vacia)
+        self.assertNotIn("vacía", " ".join(revision.problemas))
+
+    def test_formato_cuadrado(self):
+        revision = Revision("YouTube", "YouTube", "Juego", 1280, 1280,
+                            "Escena", (), (), False, ())
+        self.assertIn("formato cuadrado 1280 por 1280",
+                      frase_revision(revision))
+
+    def test_frase_sin_dimensiones(self):
+        revision = Revision("TikTok", "TikTok", "Colección", None, None,
+                            "Escena", (), (), None, ())
+        frase = frase_revision(revision)
+        self.assertIn("Perfil TikTok.", frase)
+        self.assertNotIn("formato", frase)
+
+    def test_frase_escritorio_con_nombre_propio(self):
+        revision = Revision("TikTok", "TikTok", "Colección", 720, 1280,
+                            "Escena", (),
+                            (EntradaAudio("Altavoces", True, True),),
+                            False, ())
+        self.assertIn("Audio del escritorio Altavoces silenciado.",
+                      frase_revision(revision))
+
+    def test_entrada_sin_clase_da_tipo_vacio(self):
+        doble = DoblePrevuelo(
+            elementos=[{"sourceName": "F", "sceneItemEnabled": True}],
+            entradas=[{"inputName": "F"}],
+            ajustes={}, silencios={},
+            imagen=imagen_dato(png_plano(1, 1, (200, 0, 0, 255))))
+        (fuente,) = revisar(doble, "TikTok").fuentes
+        self.assertEqual(fuente.tipo, "")
+
+    def test_ajustes_ventana_que_fallan_dan_detalle_vacio(self):
+        doble = DobleQueFalla(
+            "GetInputSettings",
+            elementos=[{"sourceName": "F", "sceneItemEnabled": True}],
+            entradas=[{"inputName": "F", "inputKind": "window_capture"}],
+            ajustes={}, silencios={},
+            imagen=imagen_dato(png_plano(1, 1, (200, 0, 0, 255))))
+        (fuente,) = revisar(doble, "TikTok").fuentes
+        self.assertEqual(fuente.detalle, "")
+
+    def test_ajustes_navegador_que_fallan_dan_detalle_vacio(self):
+        doble = DobleQueFalla(
+            "GetInputSettings",
+            elementos=[{"sourceName": "F", "sceneItemEnabled": True}],
+            entradas=[{"inputName": "F", "inputKind": "browser_source"}],
+            ajustes={}, silencios={},
+            imagen=imagen_dato(png_plano(1, 1, (200, 0, 0, 255))))
+        (fuente,) = revisar(doble, "TikTok").fuentes
+        self.assertEqual(fuente.detalle, "")
+
+    def test_silencio_que_falla_se_omite(self):
+        doble = DobleQueFalla(
+            "GetInputMute",
+            imagen=imagen_dato(png_plano(2, 2, (200, 0, 0, 255))))
+        revision = revisar(doble, "TikTok")
+        self.assertEqual(revision.audio, ())
+        self.assertNotIn("silenciado", " ".join(revision.problemas))
+
+    def test_lista_escenas_que_falla_usa_el_tipo(self):
+        doble = DobleQueFalla(
+            "GetSceneList",
+            elementos=[{"sourceName": "Juego", "sceneItemEnabled": True}],
+            entradas=[{"inputName": "Juego", "inputKind": "window_capture"}],
+            ajustes={"Juego": {"window": "Juego:clase:juego.exe"}},
+            silencios={},
+            imagen=imagen_dato(png_plano(1, 1, (200, 0, 0, 255))))
+        (fuente,) = revisar(doble, "TikTok").fuentes
+        self.assertEqual(fuente.tipo, "captura de ventana")
 
 
 if __name__ == "__main__":

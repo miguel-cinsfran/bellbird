@@ -84,6 +84,123 @@ def _paeth(izquierda, arriba, diagonal) -> int:
     return diagonal
 
 
+def _trozos_png(datos: bytes):
+    """Firma y trozos de un PNG, o None si no es un PNG sano.
+
+    Devuelve (ancho, alto, profundidad, color, compresión, filtro,
+    entrelazado, idat). Los trozos auxiliares se ignoran.
+    """
+    if bytes(datos[:8]) != b"\x89PNG\r\n\x1a\n":
+        return None
+    ancho = alto = None
+    profundidad = color = compresion = filtro = entrelazado = None
+    idat = b""
+    posicion = 8
+    while posicion + 8 <= len(datos):
+        (largo, tipo) = struct.unpack(">I4s", datos[posicion:posicion + 8])
+        inicio = posicion + 8
+        fin = inicio + largo
+        if fin + 4 > len(datos):
+            return None
+        cuerpo = datos[inicio:fin]
+        if tipo == b"IHDR":
+            if largo != 13:
+                return None
+            (ancho, alto, profundidad, color, compresion, filtro,
+             entrelazado) = struct.unpack(">IIBBBBB", cuerpo)
+        elif tipo == b"IDAT":
+            idat += cuerpo
+        elif tipo == b"IEND":
+            break
+        posicion = fin + 4
+    if ancho is None or not idat:
+        return None
+    return (ancho, alto, profundidad, color, compresion, filtro,
+            entrelazado, idat)
+
+
+def _formato_soportado(profundidad, color, compresion, filtro,
+                       entrelazado) -> bool:
+    return (profundidad == 8 and color in (2, 6) and compresion == 0
+            and filtro == 0 and entrelazado == 0)
+
+
+def _tamanio_razonable(ancho, alto) -> bool:
+    return ancho > 0 and alto > 0 and ancho * alto <= 4096 * 4096
+
+
+def _revertir_filtro(codigo, linea, anterior, por_pixel) -> bool:
+    """Deshace el filtro PNG de una línea. Falso si el filtro no existe."""
+    paso = len(linea)
+    if codigo == 1:
+        for i in range(por_pixel, paso):
+            linea[i] = (linea[i] + linea[i - por_pixel]) & 255
+    elif codigo == 2:
+        for i in range(paso):
+            linea[i] = (linea[i] + anterior[i]) & 255
+    elif codigo == 3:
+        for i in range(paso):
+            izquierda = linea[i - por_pixel] if i >= por_pixel else 0
+            linea[i] = (linea[i] + ((izquierda + anterior[i]) >> 1)) & 255
+    elif codigo == 4:
+        for i in range(paso):
+            izquierda = linea[i - por_pixel] if i >= por_pixel else 0
+            arriba = anterior[i]
+            diagonal = anterior[i - por_pixel] if i >= por_pixel else 0
+            linea[i] = (linea[i] + _paeth(izquierda, arriba, diagonal)) & 255
+    elif codigo != 0:
+        return False
+    return True
+
+
+def _linea_rgba_con_imagen(linea) -> bool:
+    for i in range(0, len(linea), 4):
+        if linea[i + 3] == 0:
+            continue
+        if (linea[i] >= _UMBRAL_NEGRO
+                or linea[i + 1] >= _UMBRAL_NEGRO
+                or linea[i + 2] >= _UMBRAL_NEGRO):
+            return True
+    return False
+
+
+def _linea_rgb_con_imagen(linea) -> bool:
+    for i in range(0, len(linea), 3):
+        if (linea[i] >= _UMBRAL_NEGRO
+                or linea[i + 1] >= _UMBRAL_NEGRO
+                or linea[i + 2] >= _UMBRAL_NEGRO):
+            return True
+    return False
+
+
+def _linea_con_imagen(linea, color) -> bool:
+    if color == 6:
+        return _linea_rgba_con_imagen(linea)
+    return _linea_rgb_con_imagen(linea)
+
+
+def _pixeles_vacios(crudo: bytes, ancho, alto, color):
+    """¿Todos los píxeles son negro o transparencia? None si el largo no
+    coincide con las dimensiones de la cabecera."""
+    por_pixel = 3 if color == 2 else 4
+    paso = ancho * por_pixel
+    if len(crudo) != alto * (1 + paso):
+        return None
+    anterior = bytearray(paso)
+    desplazamiento = 0
+    for _ in range(alto):
+        codigo = crudo[desplazamiento]
+        desplazamiento += 1
+        linea = bytearray(crudo[desplazamiento:desplazamiento + paso])
+        desplazamiento += paso
+        if not _revertir_filtro(codigo, linea, anterior, por_pixel):
+            return None
+        if _linea_con_imagen(linea, color):
+            return False
+        anterior = linea
+    return True
+
+
 def imagen_vacia_png(datos: bytes) -> bool | None:
     """¿El PNG trae solo negro o transparencia? None si no se puede saber.
 
@@ -92,82 +209,17 @@ def imagen_vacia_png(datos: bytes) -> bool | None:
     un PNG roto devuelve None en vez de adivinar.
     """
     try:
-        if bytes(datos[:8]) != b"\x89PNG\r\n\x1a\n":
+        trozos = _trozos_png(datos)
+        if trozos is None:
             return None
-        ancho = alto = None
-        profundidad = color = compresion = filtro = entrelazado = None
-        idat = b""
-        posicion = 8
-        while posicion + 8 <= len(datos):
-            (largo, tipo) = struct.unpack(">I4s", datos[posicion:posicion + 8])
-            inicio = posicion + 8
-            fin = inicio + largo
-            if fin + 4 > len(datos):
-                return None
-            cuerpo = datos[inicio:fin]
-            if tipo == b"IHDR":
-                if largo != 13:
-                    return None
-                (ancho, alto, profundidad, color, compresion, filtro,
-                 entrelazado) = struct.unpack(">IIBBBBB", cuerpo)
-            elif tipo == b"IDAT":
-                idat += cuerpo
-            elif tipo == b"IEND":
-                break
-            posicion = fin + 4
-        if ancho is None or not idat:
+        (ancho, alto, profundidad, color, compresion, filtro, entrelazado,
+         idat) = trozos
+        if not _formato_soportado(profundidad, color, compresion, filtro,
+                                  entrelazado):
             return None
-        if (profundidad != 8 or color not in (2, 6) or compresion != 0
-                or filtro != 0 or entrelazado != 0):
+        if not _tamanio_razonable(ancho, alto):
             return None
-        if ancho <= 0 or alto <= 0 or ancho * alto > 4096 * 4096:
-            return None
-        crudo = zlib.decompress(idat)
-        por_pixel = 3 if color == 2 else 4
-        paso = ancho * por_pixel
-        if len(crudo) != alto * (1 + paso):
-            return None
-        anterior = bytearray(paso)
-        desplazamiento = 0
-        for _ in range(alto):
-            codigo = crudo[desplazamiento]
-            desplazamiento += 1
-            linea = bytearray(crudo[desplazamiento:desplazamiento + paso])
-            desplazamiento += paso
-            if codigo == 1:
-                for i in range(por_pixel, paso):
-                    linea[i] = (linea[i] + linea[i - por_pixel]) & 255
-            elif codigo == 2:
-                for i in range(paso):
-                    linea[i] = (linea[i] + anterior[i]) & 255
-            elif codigo == 3:
-                for i in range(paso):
-                    izquierda = linea[i - por_pixel] if i >= por_pixel else 0
-                    linea[i] = (linea[i] + ((izquierda + anterior[i]) >> 1)) & 255
-            elif codigo == 4:
-                for i in range(paso):
-                    izquierda = linea[i - por_pixel] if i >= por_pixel else 0
-                    arriba = anterior[i]
-                    diagonal = anterior[i - por_pixel] if i >= por_pixel else 0
-                    linea[i] = (linea[i] + _paeth(izquierda, arriba, diagonal)) & 255
-            elif codigo != 0:
-                return None
-            if color == 6:
-                for i in range(0, paso, 4):
-                    if linea[i + 3] == 0:
-                        continue
-                    if (linea[i] >= _UMBRAL_NEGRO
-                            or linea[i + 1] >= _UMBRAL_NEGRO
-                            or linea[i + 2] >= _UMBRAL_NEGRO):
-                        return False
-            else:
-                for i in range(0, paso, 3):
-                    if (linea[i] >= _UMBRAL_NEGRO
-                            or linea[i + 1] >= _UMBRAL_NEGRO
-                            or linea[i + 2] >= _UMBRAL_NEGRO):
-                        return False
-            anterior = linea
-        return True
+        return _pixeles_vacios(zlib.decompress(idat), ancho, alto, color)
     except Exception:
         return None
 
@@ -205,8 +257,9 @@ def _formato(ancho, alto) -> str:
     return "cuadrado"
 
 
-def revisar(cliente, destino, parada=None) -> Revision:
-    """Lee OBS y devuelve qué hay al aire y qué impide transmitir."""
+def _base_obs(cliente, destino, parada):
+    """Lo fijo de OBS: perfil, colección, lienzo, escena, elementos,
+    entradas y escenas conocidas."""
     perfil = _datos(cliente, "GetProfileList", parada=parada).get(
         "currentProfileName", "") or ""
     coleccion = _datos(cliente, "GetSceneCollectionList",
@@ -225,7 +278,33 @@ def revisar(cliente, destino, parada=None) -> Revision:
                                             parada=parada).get("scenes", ()) or ()}
     except Exception:
         escenas = set()
+    return perfil, coleccion, lienzo, escena, elementos, entradas, por_nombre, escenas
 
+
+def _detalle_fuente(cliente, nombre, clase, parada) -> str:
+    if clase in ("window_capture", "game_capture"):
+        try:
+            ajustes = _datos(cliente, "GetInputSettings",
+                             {"inputName": nombre}, parada).get(
+                "inputSettings", {}) or {}
+        except Exception:
+            ajustes = {}
+        return _detalle_ventana(ajustes)
+    if clase == "browser_source":
+        try:
+            ajustes = _datos(cliente, "GetInputSettings",
+                             {"inputName": nombre}, parada).get(
+                "inputSettings", {}) or {}
+        except Exception:
+            ajustes = {}
+        url = str(ajustes.get("url", "") or "").strip()
+        if url.endswith("/chat"):
+            return "panel de chat de YTChat"
+        return ""
+    return ""
+
+
+def _fuentes_obs(cliente, elementos, por_nombre, escenas, parada) -> list:
     fuentes = []
     for elemento in elementos:
         nombre = elemento.get("sourceName", "") or ""
@@ -237,27 +316,15 @@ def revisar(cliente, destino, parada=None) -> Revision:
             tipo = _TIPOS.get(clase, clase)
         else:
             tipo = ""
-        detalle = ""
-        if clase in ("window_capture", "game_capture"):
-            try:
-                ajustes = _datos(cliente, "GetInputSettings",
-                                {"inputName": nombre}, parada).get(
-                    "inputSettings", {}) or {}
-            except Exception:
-                ajustes = {}
-            detalle = _detalle_ventana(ajustes)
-        elif clase == "browser_source":
-            try:
-                ajustes = _datos(cliente, "GetInputSettings",
-                                {"inputName": nombre}, parada).get(
-                    "inputSettings", {}) or {}
-            except Exception:
-                ajustes = {}
-            url = str(ajustes.get("url", "") or "").strip()
-            if url.endswith("/chat"):
-                detalle = "panel de chat de YTChat"
-        fuentes.append(Fuente(nombre, tipo, detalle, visible))
+        fuentes.append(Fuente(nombre, tipo,
+                              _detalle_fuente(cliente, nombre, clase, parada)
+                              if clase in ("window_capture", "game_capture",
+                                           "browser_source") else "",
+                              visible))
+    return fuentes
 
+
+def _audio_obs(cliente, entradas, parada) -> list:
     audio = []
     for entrada in entradas:
         clase = entrada.get("inputKind", "")
@@ -274,9 +341,10 @@ def revisar(cliente, destino, parada=None) -> Revision:
                                   clase == _ESCRITORIO))
     # Micrófonos primero para un orden estable venga como venga de OBS.
     audio.sort(key=lambda entrada: entrada.escritorio)
+    return audio
 
-    imagen = _leer_imagen_vacia(cliente, escena, parada)
 
+def _problemas_revision(perfil, destino, audio, fuentes, imagen) -> list:
     problemas = []
     if perfil != destino:
         problemas.append(f"OBS está en el perfil {perfil}, no en {destino}. "
@@ -297,6 +365,17 @@ def revisar(cliente, destino, parada=None) -> Revision:
         problemas.append("La imagen está vacía: la escena se ve en negro. "
                          "Revisar que la ventana capturada esté abierta y "
                          "no minimizada.")
+    return problemas
+
+
+def revisar(cliente, destino, parada=None) -> Revision:
+    """Lee OBS y devuelve qué hay al aire y qué impide transmitir."""
+    (perfil, coleccion, lienzo, escena, elementos, entradas, por_nombre,
+     escenas) = _base_obs(cliente, destino, parada)
+    fuentes = _fuentes_obs(cliente, elementos, por_nombre, escenas, parada)
+    audio = _audio_obs(cliente, entradas, parada)
+    imagen = _leer_imagen_vacia(cliente, escena, parada)
+    problemas = _problemas_revision(perfil, destino, audio, fuentes, imagen)
     return Revision(destino, perfil, coleccion, lienzo.get("baseWidth"),
                     lienzo.get("baseHeight"), escena, tuple(fuentes),
                     tuple(audio), imagen, tuple(problemas))

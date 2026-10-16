@@ -143,6 +143,11 @@ def _describir(ventana, profundidad=0):
     if isinstance(ventana, wx.TextCtrl):
         try:    datos["valor"] = ventana.GetValue()
         except Exception: pass
+    # El valor del deslizador es lo que NVDA lee al moverlo con flechas, y
+    # sin esto el banco no puede comprobar que la flecha movió algo.
+    if isinstance(ventana, wx.Slider):
+        try:    datos["valor"] = int(ventana.GetValue())
+        except Exception: pass
     # El contenido de las listas es lo que de verdad lee el usuario, así que
     # sin esto no se puede comprobar que un mensaje llegó al chat.
     if isinstance(ventana, wx.ListBox):
@@ -622,6 +627,17 @@ class Sonda:
                     "directo": (bool(directo_fn()) if callable(directo_fn)
                                 else False),
                 })
+
+            elif op == "directo_sin_imagen":
+                # Abre la pregunta de directo huérfano con un id inventado.
+                # Se responde ANTES de agendar: el diálogo es modal y la
+                # respuesta se puede perder, igual que en `menu_click`.
+                if frame is None:
+                    raise RuntimeError("todavía no hay ventana principal")
+                from ytchat.ui import gui_directo_huerfano
+                self.responder(id_orden, True)
+                wx.CallAfter(gui_directo_huerfano._preguntar, frame,
+                             [("qa-sin-id", "Prueba del banco")])
 
             elif op == "salir":
                 self.responder(id_orden, True)

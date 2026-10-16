@@ -1002,21 +1002,79 @@ def bateria_reproductor(app: Aplicacion, res: Resultado, donde: str) -> None:
         juzgar_accion(res, donde, quien, medida)
 
     # ── los dos deslizadores, con las flechas ───────────────────────────────
-    for nombre_ctrl, teclas, quien in (
-            ("Posición de reproducción", ("right", "left"), "la posición"),
-            ("Volumen del reproductor", ("up", "down"), "el volumen")):
-        try:
-            app.pedir("foco", nombre=nombre_ctrl)
-        except OrdenRechazada as exc:
-            res.fallo(f"{donde}: no se llega a {quien}, {exc}")
-            continue
-        for tecla in teclas:
+    # La posición anuncia; el volumen NO, a propósito desde el 15/10: NVDA
+    # ya lee el valor del deslizador y se oía dos veces.
+    try:
+        app.pedir("foco", nombre="Posición de reproducción")
+    except OrdenRechazada as exc:
+        res.fallo(f"{donde}: no se llega a la posición, {exc}")
+    else:
+        for tecla in ("right", "left"):
             try:
                 medida = medir_accion(app, lambda t=tecla: app.teclas(t))
             except VentanaNoActiva as exc:
-                res.no_probado(f"{donde}: no se pudo probar {quien}, {exc}")
+                res.no_probado(f"{donde}: no se pudo probar la posición, {exc}")
                 break
-            juzgar_accion(res, donde, f"{quien} con la flecha {tecla}", medida)
+            juzgar_accion(res, donde, f"la posición con la flecha {tecla}",
+                          medida)
+    try:
+        app.pedir("foco", nombre="Volumen del reproductor")
+    except OrdenRechazada as exc:
+        res.fallo(f"{donde}: no se llega al volumen, {exc}")
+    else:
+        for tecla in ("up", "down"):
+            previo = _valor_deslizador(app, "Volumen del reproductor")
+            try:
+                medida = medir_accion(app, lambda t=tecla: app.teclas(t))
+            except VentanaNoActiva as exc:
+                res.no_probado(f"{donde}: no se pudo probar el volumen, {exc}")
+                break
+            _juzgar_volumen_silencioso(app, res, donde, tecla, medida, previo)
+
+
+def _valor_deslizador(app: Aplicacion, nombre: str):
+    """El valor de un deslizador, leído con la sonda. None si no se pudo."""
+    objetivo = (nombre or "").strip().lower()
+    try:
+        controles = app.arbol()
+    except Exception:
+        return None
+    for c in controles:
+        if c.get("clase") != "Slider":
+            continue
+        junto = ((c.get("nombre") or "") + " " + (c.get("etiqueta") or ""))
+        if objetivo in junto.strip().lower():
+            return c.get("valor")
+    return None
+
+
+def _juzgar_volumen_silencioso(app: Aplicacion, res: Resultado, donde: str,
+                               tecla: str, medida, previo) -> None:
+    """El volumen con flechas no anuncia y tiene que mover el deslizador."""
+    bloqueo, _latencia, dichos = medida
+    if dichos:
+        res.fallo(f"{donde}: el volumen con la flecha {tecla} anuncia "
+                  f"«{dichos[0][:58]}», y no debería: NVDA ya lee el valor "
+                  "del deslizador")
+    else:
+        res.nota(f"{donde}: el volumen con la flecha {tecla} no anuncia, "
+                 "a propósito")
+    if bloqueo > BLOQUEO_INACEPTABLE:
+        res.fallo(f"{donde}: el volumen con la flecha {tecla} deja la ventana "
+                  f"{bloqueo:.1f} s sin responder")
+    elif bloqueo > BLOQUEO_SOSPECHOSO:
+        res.nota(f"{donde}: ojo, el volumen con la flecha {tecla} tarda "
+                 f"{bloqueo:.1f} s en devolver la ventana")
+    posterior = _valor_deslizador(app, "Volumen del reproductor")
+    if previo is None or posterior is None:
+        res.nota(f"{donde}: la sonda no leyó el valor del deslizador, así que "
+                 f"el cambio con la flecha {tecla} queda sin comprobar")
+    elif posterior == previo:
+        res.fallo(f"{donde}: el volumen con la flecha {tecla} no movió el "
+                  f"deslizador (sigue en {previo})")
+    else:
+        res.nota(f"{donde}: el volumen con la flecha {tecla} mueve el "
+                 f"deslizador de {previo} a {posterior}")
 
 
 def escenario_reproductor(app: Aplicacion, args, res: Resultado):
@@ -2877,7 +2935,8 @@ def escenario_programados(app: Aplicacion, args, res: Resultado):
             res.nota("la introducción explica intervalo, longitud y enlaces")
 
         # Los controles que tienen que estar, por su name= de wx.
-        esperados = ("ActivarProgramados", "ListaProgramados", "TextoProgramado",
+        esperados = ("ActivarProgramados", "Mensajes automáticos guardados",
+                      "TextoProgramado",
                      "MinutosMin", "MinutosMax", "MensajeActivo",
                      "AgregarProgramado", "GuardarProgramado", "QuitarProgramado")
         nombres = {(c.get("nombre") or "") for c in controles}
@@ -2937,6 +2996,144 @@ def escenario_conectar(app: Aplicacion, args, res: Resultado):
         res.fallo("conectar: una URL invalida no produjo ni aviso ni anuncio")
 
     app.llamar("set_url", "")
+
+
+def escenario_directo_sin_imagen(app: Aplicacion, args, res: Resultado):
+    """La pregunta de directo al aire sin imagen, que es un cuadro nativo.
+
+    El diálogo es un `wx.MessageDialog`, invisible para la sonda: se lo
+    busca desde fuera con `dialogo_nativo` y se pulsa «Dejarlo al aire»
+    por UI Automation, la respuesta segura. Nunca se pulsa
+    «Finalizar directo». Escape no sirve acá: el cuadro no tiene Cancelar
+    y Windows no lo cierra.
+    """
+    app.pedir("frente")
+    n = len(app.anuncios)
+    try:
+        app.pedir("directo_sin_imagen", tiempo=6.0)
+    except Exception:
+        pass                      # el cuadro es modal y se come la respuesta
+    dlg = dialogo_nativo("Directo sin imagen", segundos=8)
+    if dlg is None:
+        res.fallo("directo sin imagen: no apareció la pregunta "
+                  "«Directo sin imagen»")
+        return
+    textos = _textos_de(dlg)
+    res.nota("directo sin imagen abre «Directo sin imagen» con %d textos"
+             % len(textos))
+    for x in textos[:2]:
+        res.nota("  dice: " + x[:70])
+    if not textos:
+        res.fallo("directo sin imagen: la pregunta no expone ningún texto, "
+                  "así que un lector de pantalla no tiene qué leer")
+        if not _pulsar_dejarlo_al_aire(dlg):
+            res.fallo("directo sin imagen: no apareció el botón "
+                      "«Dejarlo al aire» para cerrar la pregunta")
+            _cerrar_nativo(dlg)
+        return
+    if not any("prueba del banco" in (x or "").lower() for x in textos):
+        res.fallo("directo sin imagen: la pregunta no nombra el directo "
+                  "de prueba")
+    botones = []
+    try:
+        for d in dlg.descendants():
+            try:
+                if d.element_info.control_type == "Button":
+                    nombre = (d.element_info.name or "").strip()
+                    if nombre:
+                        botones.append(nombre)
+            except Exception:
+                continue
+    except Exception:
+        pass
+    juntos = " ".join(textos + botones).lower()
+    res.nota("directo sin imagen ofrece «Finalizar directo»: %s, "
+             "«Dejarlo al aire»: %s"
+             % ("sí" if "finalizar directo" in juntos else "no",
+                "sí" if "dejarlo al aire" in juntos else "no"))
+    if not _pulsar_dejarlo_al_aire(dlg):
+        res.fallo("directo sin imagen: no apareció el botón «Dejarlo al aire»")
+        _cerrar_nativo(dlg)
+        if dialogo_nativo("Directo sin imagen", segundos=1.0) is not None:
+            res.fallo("directo sin imagen: la pregunta sigue abierta y no se "
+                      "pudo cerrar")
+        return
+    limite = time.time() + 5.0
+    cerrado = False
+    while time.time() < limite:
+        if dialogo_nativo("Directo sin imagen", segundos=1.0) is None:
+            cerrado = True
+            break
+    if not cerrado:
+        res.fallo("directo sin imagen: «Dejarlo al aire» no cerró la pregunta")
+        _pulsar_dejarlo_al_aire_por_coordenadas(dlg)
+        if dialogo_nativo("Directo sin imagen", segundos=1.0) is not None:
+            res.fallo("directo sin imagen: la pregunta sigue abierta y no hay "
+                      "forma de cerrarla sin arrastrar a los demás escenarios")
+            return
+    if app.esperar_dicho("El directo sigue al aire", segundos=5.0, desde=n):
+        res.nota("directo sin imagen con «Dejarlo al aire» anuncia que sigue "
+                 "al aire")
+    else:
+        res.fallo("directo sin imagen: al dejarlo al aire no se anunció "
+                  "«El directo sigue al aire»")
+
+
+def _boton_dejarlo_al_aire(dlg):
+    """El botón «Dejarlo al aire» entre los descendientes. None si no está.
+
+    Se compara sin la marca de mnemónico. NUNCA devuelve el otro botón.
+    """
+    try:
+        for d in dlg.descendants():
+            try:
+                if d.element_info.control_type != "Button":
+                    continue
+                nombre = (d.element_info.name or "").replace(
+                    "&", "").strip()
+            except Exception:
+                continue
+            if nombre.lower() == "dejarlo al aire":
+                return d
+    except Exception:
+        pass
+    return None
+
+
+def _pulsar_dejarlo_al_aire(dlg) -> bool:
+    """Pulsa «Dejarlo al aire» por UI Automation. NUNCA el otro."""
+    boton = _boton_dejarlo_al_aire(dlg)
+    if boton is None:
+        return False
+    try:
+        if hasattr(boton, "invoke"):
+            boton.invoke()
+        else:
+            boton.click_input()
+    except Exception:
+        try:
+            boton.click_input()
+        except Exception:
+            return False
+    return True
+
+
+def _pulsar_dejarlo_al_aire_por_coordenadas(dlg) -> bool:
+    """Último recurso: el mismo botón, con clic por coordenadas.
+
+    Si ni eso sale, quien llama lo dice y no arrastra el modal abierto a
+    los demás escenarios.
+    """
+    boton = _boton_dejarlo_al_aire(dlg)
+    if boton is None:
+        return False
+    try:
+        boton.click_input()
+        return True
+    except Exception:
+        pass
+    _cerrar_nativo(dlg)
+    return False
 
 
 def _textos_de(dlg) -> list:
@@ -3397,6 +3594,7 @@ SUPERFICIES = {
     "gui_actualizar_app.py": "actualizaciones",
     "gui_comentarios.py": "comentarios",
     "gui_descargas.py": "descargas",
+    "gui_directo_huerfano.py": "directo_sin_imagen",
     "gui_directo_youtube.py": "transmitir_destino",
     "gui_elegir_destino.py": "transmitir_destino",
     "gui_historial.py": "historial",
@@ -3456,6 +3654,7 @@ ESCENARIOS = {
     "transmitir_destino": escenario_transmitir_destino,
     "comentarios": escenario_comentarios,
     "conectar": escenario_conectar,
+    "directo_sin_imagen": escenario_directo_sin_imagen,
     "menu_chat": escenario_menu_chat,
     "captura_atajo": escenario_captura_atajo,
     "redactar": escenario_redactar,
@@ -3542,7 +3741,7 @@ def main() -> int:
                    # conectar, y en cuanto `chat` simula una sesion ese estado
                    # no vuelve. Corrido despues, pasaba por el motivo
                    # equivocado. Mismo motivo que `reproductor`.
-                    "conectar", "captura_atajo", "redactar",
+                     "conectar", "directo_sin_imagen", "captura_atajo", "redactar",
                     # `transmitir_destino` va acá y no es capricho: necesita
                     # el botón «Transmitir en directo», que solo se ve
                     # desconectado, y `redactar` es el último que deja ese

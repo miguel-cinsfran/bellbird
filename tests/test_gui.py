@@ -2995,7 +2995,8 @@ class TestCierreVentana(unittest.TestCase):
 
         class DobleSupervisor:
             def __init__(self, destino, usuario, al_anunciar=None,
-                         al_conectar_chat=None, al_terminar=None):
+                         al_conectar_chat=None, al_terminar=None,
+                         ruta_fin_pendiente=None):
                 creados.append((destino, usuario, al_anunciar,
                                 al_conectar_chat))
                 self.iniciado = False
@@ -3025,7 +3026,8 @@ class TestCierreVentana(unittest.TestCase):
 
         class DobleSupervisor:
             def __init__(self, destino, usuario, al_anunciar=None,
-                         al_conectar_chat=None, al_terminar=None):
+                         al_conectar_chat=None, al_terminar=None,
+                         ruta_fin_pendiente=None):
                 creados.append((al_anunciar, al_conectar_chat))
 
             def iniciar(self):
@@ -3053,7 +3055,8 @@ class TestCierreVentana(unittest.TestCase):
 
         class DobleSupervisor:
             def __init__(self, destino, usuario, al_anunciar=None,
-                         al_conectar_chat=None, al_terminar=None):
+                         al_conectar_chat=None, al_terminar=None,
+                         ruta_fin_pendiente=None):
                 creados.append((al_anunciar, al_conectar_chat))
 
             def iniciar(self):
@@ -3079,7 +3082,8 @@ class TestCierreVentana(unittest.TestCase):
 
         class DobleSupervisor:
             def __init__(self, destino, usuario, al_anunciar=None,
-                         al_conectar_chat=None, al_terminar=None):
+                         al_conectar_chat=None, al_terminar=None,
+                         ruta_fin_pendiente=None):
                 creados.append((al_anunciar, al_conectar_chat))
 
             def iniciar(self):
@@ -3104,7 +3108,8 @@ class TestCierreVentana(unittest.TestCase):
 
         class DobleSupervisor:
             def __init__(self, destino, usuario, al_anunciar=None,
-                         al_conectar_chat=None, al_terminar=None):
+                         al_conectar_chat=None, al_terminar=None,
+                         ruta_fin_pendiente=None):
                 creados.append((al_anunciar, al_conectar_chat))
 
             def iniciar(self):
@@ -3661,13 +3666,14 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
             def __init__(self, destino, usuario, al_anunciar=None,
                          al_conectar_chat=None, al_terminar=None,
                          preparar_emision=None, esperar_emision=None,
-                         finalizar_emision=None):
+                         finalizar_emision=None, ruta_fin_pendiente=None):
                 creados.append({
                     "destino": destino, "usuario": usuario,
                     "al_conectar_chat": al_conectar_chat,
                     "preparar_emision": preparar_emision,
                     "esperar_emision": esperar_emision,
-                    "finalizar_emision": finalizar_emision})
+                    "finalizar_emision": finalizar_emision,
+                    "ruta_fin_pendiente": ruta_fin_pendiente})
                 self.iniciado = False
 
             def iniciar(self):

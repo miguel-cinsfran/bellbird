@@ -216,6 +216,66 @@ class TestRevisionListaSinVentana(unittest.TestCase):
         marco._supervisar_transmision.assert_not_called()
 
 
+class TestActualizarDeteniendoSinVentana(unittest.TestCase):
+    # Sin ventana: el botón es un doble, así se mira lo que dice sin crearlo.
+
+    def _boton(self):
+        from ytchat.ui import boton_directo
+        boton = boton_directo.BotonDirecto.__new__(boton_directo.BotonDirecto)
+        boton._conectar = mock.Mock()
+        boton._transmitiendo = False
+        boton._deteniendo = False
+        boton.boton = mock.Mock()
+        boton.boton.GetParent.return_value = mock.Mock()
+        boton.boton.HasFocus.return_value = False
+        return boton
+
+    def test_actualizar_con_deteniendo_cambia_etiqueta_y_guarda_el_estado(self):
+        boton = self._boton()
+        boton.actualizar(False, False, False, True, deteniendo=True)
+        self.assertTrue(boton._deteniendo)
+        boton.boton.SetLabel.assert_called_once_with("Deteniendo el directo")
+        boton.boton.SetName.assert_called_once_with(
+            "Deteniendo el directo, esperando a OBS")
+        boton.boton.Hide.assert_not_called()
+
+    def test_actualizar_sin_deteniendo_vuelve_a_finalizar(self):
+        boton = self._boton()
+        boton._deteniendo = True
+        boton.actualizar(False, False, False, True)
+        self.assertFalse(boton._deteniendo)
+        boton.boton.SetLabel.assert_called_once_with("&Finalizar directo")
+
+
+class TestAlPulsarDeteniendoSinVentana(unittest.TestCase):
+    # Sin ventana: se comprueba que pulsar mientras se detiene solo avisa.
+
+    def _boton(self):
+        from ytchat.ui import boton_directo
+        boton = boton_directo.BotonDirecto.__new__(boton_directo.BotonDirecto)
+        boton._transmitiendo = True
+        boton._deteniendo = True
+        marco = mock.Mock()
+        marco._alive = True
+        boton._marco = marco
+        boton.boton = mock.Mock()
+        return boton, marco
+
+    def test_pulsar_deteniendo_anuncia_y_no_dialoga_ni_detiene(self):
+        from ytchat.ui import boton_directo
+        boton, marco = self._boton()
+        with mock.patch.object(boton_directo.wx, "MessageDialog") as dialogo, \
+                mock.patch.object(boton_directo, "anunciar") as anunciar, \
+                mock.patch.object(boton_directo.diagnostico,
+                                  "crear_hilo") as hilos:
+            boton._al_pulsar(mock.Mock())
+        dialogo.assert_not_called()
+        hilos.assert_not_called()
+        marco._supervisar_transmision.assert_not_called()
+        anunciar.assert_called_once_with(
+            "Deteniendo la transmisión. Esperando a que OBS confirme.")
+
+
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestBotonDirectoVentana(unittest.TestCase):
     # Con ventana: las corre el advisor. No correr aquí.

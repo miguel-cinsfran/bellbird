@@ -51,8 +51,16 @@ def boton_visible(conectado, conectando, propio, transmitiendo) -> bool:
     return (not conectado and not conectando) or bool(propio)
 
 
-def etiqueta(transmitiendo):
-    """Etiqueta con atajo y nombre accesible según se transmita o no."""
+def etiqueta(transmitiendo, deteniendo=False):
+    """Etiqueta con atajo y nombre accesible según el estado del directo.
+
+    Mientras OBS confirma la parada el botón sigue visible y habilitado:
+    solo cambia lo que dice, para que el nombre accesible avise que se
+    espera a OBS.
+    """
+    if deteniendo:
+        return ("Deteniendo el directo",
+                "Deteniendo el directo, esperando a OBS")
     if transmitiendo:
         return ("&Finalizar directo", "Finalizar directo")
     return ("Transm&itir en directo", "Transmitir en directo")

@@ -1114,7 +1114,7 @@ class TestTransmisionDialog(unittest.TestCase):
 
     def test_transmitir_con_supervisor_activo_detiene_sin_repetir_anuncio(self):
         supervisar, _ = self._dialogo_con_supervisor()
-        supervisar.return_value = True
+        supervisar.side_effect = lambda accion: accion == "activo"
         self.dialogo._actualizar_boton(
             self.dialogo.btn_transmitir,
             gui_transmision._ETIQUETA_DETENER_TRANSMISION, "Detener la transmisión")
@@ -1124,6 +1124,18 @@ class TestTransmisionDialog(unittest.TestCase):
         self.assertEqual(self.dialogo.btn_transmitir.GetLabel(),
                          gui_transmision._ETIQUETA_TRANSMITIR)
         self.assertNotIn("Transmisión detenida", self.anuncios)
+
+    def test_transmitir_con_supervisor_deteniendo_avisa_y_no_toca_la_etiqueta(self):
+        supervisar, _ = self._dialogo_con_supervisor()
+        supervisar.side_effect = lambda accion: accion == "deteniendo"
+        self.anuncios.clear()
+        self._pulsar_transmitir()
+        supervisar.assert_called_once_with("deteniendo")
+        self.assertEqual(
+            self.anuncios,
+            ["Deteniendo la transmisión. Esperando a que OBS confirme."])
+        self.assertEqual(self.dialogo.btn_transmitir.GetLabel(),
+                         gui_transmision._ETIQUETA_TRANSMITIR)
 
     def test_transmitir_sin_supervisor_sigue_el_camino_viejo(self):
         self.dialogo.cho_destino.SetStringSelection("YouTube")

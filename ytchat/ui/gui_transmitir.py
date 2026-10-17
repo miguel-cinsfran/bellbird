@@ -140,8 +140,12 @@ def actualizar_boton_directo(frame) -> None:
         transmitiendo = False
     transmitiendo = (transmitiendo
                      or bool(getattr(frame, "_obs_transmitiendo", False)))
+    try:
+        deteniendo = bool(frame._supervisar_transmision("deteniendo"))
+    except Exception:
+        deteniendo = False
     boton.actualizar(frame._conectado, frame._conectando, propio,
-                     transmitiendo)
+                     transmitiendo, deteniendo)
 
 
 def al_terminar_supervisor(frame) -> None:
@@ -155,14 +159,28 @@ def al_terminar_supervisor(frame) -> None:
     _gui.wx.CallAfter(_termino)
 
 
+def _deteniendo(supervisor) -> bool:
+    # `is True` porque un doble sin el estado (un Mock) devolvería un objeto
+    # verdadero al preguntarle, y no está deteniendo nada.
+    return getattr(supervisor, "deteniendo", False) is True
+
+
 def supervisar_transmision(frame, accion, destino="", usuario="",
                            revision=None):
     from ytchat.ui import gui as _gui
     if accion == "activo":
         supervisor = getattr(frame, "_supervisor", None)
-        return bool(supervisor is not None and supervisor.activo)
+        return bool(supervisor is not None
+                    and (supervisor.activo or _deteniendo(supervisor)))
+    if accion == "deteniendo":
+        supervisor = getattr(frame, "_supervisor", None)
+        return bool(supervisor is not None and _deteniendo(supervisor))
     if accion == "iniciar":
         supervisor = getattr(frame, "_supervisor", None)
+        if supervisor is not None and _deteniendo(supervisor):
+            _gui.anunciar(
+                "Deteniendo la transmisión. Esperando a que OBS confirme.")
+            return
         if supervisor is not None and supervisor.activo:
             _gui.anunciar("Ya hay una transmisión en curso.")
             return

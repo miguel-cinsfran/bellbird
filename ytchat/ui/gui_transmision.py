@@ -603,6 +603,14 @@ class TransmisionDialog(wx.Dialog):
             self._en_hilo(self._gestor.alternar_transmision, self._transmision_alternada)
             return
         try:
+            deteniendo = bool(self._supervisar("deteniendo"))
+        except Exception:
+            deteniendo = False
+        if deteniendo:
+            anunciar("Deteniendo la transmisión. "
+                     "Esperando a que OBS confirme.")
+            return
+        try:
             con_supervisor = bool(self._supervisar("activo"))
         except Exception:
             con_supervisor = False

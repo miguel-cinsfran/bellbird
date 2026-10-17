@@ -73,6 +73,18 @@ class EtiquetaTest(unittest.TestCase):
         self.assertEqual(etiqueta(True),
                          ("&Finalizar directo", "Finalizar directo"))
 
+    def test_deteniendo_avisa_que_se_espera_a_obs(self):
+        self.assertEqual(
+            etiqueta(True, deteniendo=True),
+            ("Deteniendo el directo",
+             "Deteniendo el directo, esperando a OBS"))
+
+    def test_deteniendo_manda_aunque_no_transmita(self):
+        self.assertEqual(
+            etiqueta(False, deteniendo=True),
+            ("Deteniendo el directo",
+             "Deteniendo el directo, esperando a OBS"))
+
 
 class GestorFalso:
     def __init__(self, transmitiendo=False, perfil="TikTok", fallo=None,

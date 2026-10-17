@@ -105,6 +105,7 @@ class SupervisorTransmision:
         self._parada = threading.Event()
         self._corte = threading.Event()
         self._hilo = None
+        self._deteniendo = False
         self._ultimo_estado = None
         self._ultima_frase = ""
         self._destino_confirmado = None
@@ -112,6 +113,13 @@ class SupervisorTransmision:
     @property
     def activo(self) -> bool:
         return self._hilo is not None and self._hilo.is_alive()
+
+    @property
+    def deteniendo(self) -> bool:
+        # Verdadero desde que detener() empieza con la transmisión activa
+        # hasta que _detener_obs deja de esperar a OBS. El fin en YouTube no
+        # la mantiene: la salida de OBS ya no emite.
+        return self._deteniendo
 
     def frase_estado(self) -> str:
         """Fase actual para F2, sin repetir lo ya anunciado.
@@ -154,14 +162,28 @@ class SupervisorTransmision:
 
     def detener(self) -> None:
         estaba_activo = self.activo
+        if estaba_activo:
+            # Antes de la parada: la vigilancia sale enseguida y `activo`
+            # pasa a False, pero OBS todavía emite hasta `_detener_obs`.
+            self._deteniendo = True
         self._parada.set()
         self._corte.set()
         if estaba_activo:
-            self._detener_obs()
+            try:
+                self._detener_obs()
+            finally:
+                self._deteniendo = False
             self._finalizar_youtube_si_toca()
         hilo = self._hilo
         if hilo is not None:
             hilo.join(2.0)
+        # Repite el aviso que ya dio la vigilancia al salir: ahora sí se
+        # puede refrescar el botón con la parada confirmada.
+        if self._al_terminar is not None:
+            try:
+                self._al_terminar()
+            except Exception:
+                pass
 
     def _detener_obs(self) -> None:
         """Pide parar a OBS y espera a que confirme, sin congelar la ventana.

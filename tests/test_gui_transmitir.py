@@ -165,10 +165,19 @@ class TestActualizarBotonDirecto(unittest.TestCase):
 
     def test_pasa_estado_al_boton(self):
         frame = self._frame()
-        frame._supervisar_transmision.return_value = True
+        frame._supervisar_transmision.side_effect = (
+            lambda accion: accion == "activo")
         gui_transmitir.actualizar_boton_directo(frame)
         frame._boton_directo.actualizar.assert_called_once_with(
-            False, False, True, True)
+            False, False, True, True, False)
+
+    def test_pasa_deteniendo_al_boton(self):
+        frame = self._frame()
+        frame._supervisar_transmision.side_effect = (
+            lambda accion: accion in ("activo", "deteniendo"))
+        gui_transmitir.actualizar_boton_directo(frame)
+        frame._boton_directo.actualizar.assert_called_once_with(
+            False, False, True, True, True)
 
     def test_error_del_supervisor_usa_el_flag(self):
         frame = self._frame(_conectado=True, _conexion_propia=False,
@@ -176,7 +185,7 @@ class TestActualizarBotonDirecto(unittest.TestCase):
         frame._supervisar_transmision.side_effect = RuntimeError("roto")
         gui_transmitir.actualizar_boton_directo(frame)
         frame._boton_directo.actualizar.assert_called_once_with(
-            True, False, False, True)
+            True, False, False, True, False)
 
 
 class TestAlTerminarSupervisor(unittest.TestCase):
@@ -216,6 +225,23 @@ class TestSupervisarTransmision(unittest.TestCase):
         self.assertFalse(
             gui_transmitir.supervisar_transmision(frame, "activo"))
 
+    def test_activo_da_true_con_supervisor_deteniendo(self):
+        frame = SimpleNamespace(
+            _supervisor=SimpleNamespace(activo=False, deteniendo=True))
+        self.assertTrue(
+            gui_transmitir.supervisar_transmision(frame, "activo"))
+
+    def test_deteniendo_devuelve_el_estado(self):
+        frame = SimpleNamespace(
+            _supervisor=SimpleNamespace(activo=True, deteniendo=True))
+        self.assertTrue(
+            gui_transmitir.supervisar_transmision(frame, "deteniendo"))
+        frame._supervisor.deteniendo = False
+        self.assertFalse(
+            gui_transmitir.supervisar_transmision(frame, "deteniendo"))
+        self.assertFalse(gui_transmitir.supervisar_transmision(
+            SimpleNamespace(_supervisor=None), "deteniendo"))
+
     def test_iniciar_con_supervisor_activo_anuncia(self):
         supervisor = SimpleNamespace(activo=True)
         frame = SimpleNamespace(_supervisor=supervisor)
@@ -224,6 +250,16 @@ class TestSupervisarTransmision(unittest.TestCase):
                 frame, "iniciar", "TikTok", "alguien")
         anunciar.assert_called_once_with(
             "Ya hay una transmisión en curso.")
+        self.assertIs(frame._supervisor, supervisor)
+
+    def test_iniciar_con_supervisor_deteniendo_anuncia_y_no_crea(self):
+        supervisor = SimpleNamespace(activo=False, deteniendo=True)
+        frame = SimpleNamespace(_supervisor=supervisor)
+        with mock.patch.object(gui, "anunciar") as anunciar:
+            gui_transmitir.supervisar_transmision(
+                frame, "iniciar", "TikTok", "alguien")
+        anunciar.assert_called_once_with(
+            "Deteniendo la transmisión. Esperando a que OBS confirme.")
         self.assertIs(frame._supervisor, supervisor)
 
     def test_iniciar_youtube_sin_sesion_anuncia(self):

@@ -495,6 +495,76 @@ class DetenerRapidoTest(BaseSupervisor):
         self.assertLess(tardado, 2.0)
 
 
+class DeteniendoTest(BaseSupervisor):
+    """El estado `deteniendo` cubre la espera a que OBS confirme."""
+
+    def test_verdadero_mientras_obs_no_confirma_y_falso_al_volver(self):
+        lecturas = []
+        terminados = []
+        gestores = []
+
+        def crear_gestor():
+            # El segundo gestor es el de detener(): cada vez que le
+            # contestan el estado, queda anotado si ya se estaba deteniendo.
+            if gestores:
+                estados = [muestra(True, duracion=10),
+                           muestra(True, duracion=10),
+                           muestra(False, duracion=10)]
+            else:
+                estados = [muestra(True, duracion=10)] * 500
+            gestor = GestorFalso(estados)
+            if gestores:
+                original = gestor.estado_transmision
+
+                def estado(parada=None):
+                    lecturas.append(supervisor.deteniendo)
+                    return original(parada)
+
+                gestor.estado_transmision = estado
+            gestores.append(gestor)
+            return gestor
+
+        supervisor = SupervisorTransmision(
+            "YouTube", "",
+            al_anunciar=lambda frase, sonido: None,
+            al_conectar_chat=lambda url: None,
+            crear_gestor=crear_gestor,
+            esperar_salida=lambda cliente, parada=None: "enviando",
+            esperar_en_vivo=lambda u, parada=None, limite=None: (
+                ResultadoEspera(False, False)),
+            dormir=time.sleep, reloj=time.monotonic,
+            intervalo_salud=0.05,
+            asegurar=lambda probar, al_anunciar=None, parada=None: False,
+            al_terminar=lambda: terminados.append(supervisor.deteniendo))
+        supervisor.iniciar()
+        self.assertTrue(esperar_condicion(
+            lambda: gestores and "estado" in gestores[0].llamadas))
+        supervisor.detener()
+        self.assertFalse(supervisor.deteniendo)
+        self.assertTrue(lecturas)
+        self.assertTrue(all(lecturas))
+        # El último aviso es el de detener(), después de bajar el estado.
+        self.assertEqual(terminados[-1], False)
+
+    def test_no_es_verdadero_si_no_estaba_activo(self):
+        terminados = []
+        supervisor = SupervisorTransmision(
+            "YouTube", "",
+            al_anunciar=lambda frase, sonido: None,
+            al_conectar_chat=lambda url: None,
+            crear_gestor=lambda: GestorFalso([muestra(False)]),
+            esperar_salida=lambda cliente, parada=None: "enviando",
+            esperar_en_vivo=lambda u, parada=None, limite=None: (
+                ResultadoEspera(False, False)),
+            dormir=time.sleep, reloj=time.monotonic,
+            intervalo_salud=1000.0,
+            asegurar=lambda probar, al_anunciar=None, parada=None: False,
+            al_terminar=lambda: terminados.append(supervisor.deteniendo))
+        supervisor.detener()
+        self.assertFalse(supervisor.deteniendo)
+        self.assertEqual(terminados, [False])
+
+
 class AbandonarTest(BaseSupervisor):
     def test_abandonar_no_detiene_obs_ni_anuncia(self):
         anuncios = []
@@ -626,7 +696,7 @@ class AlTerminarTest(BaseSupervisor):
         self.iniciar_y_esperar_fin(supervisor)
         self.assertEqual(terminados, [True])
 
-    def test_al_detener_avisa_una_vez(self):
+    def test_al_detener_avisa_al_salir_y_al_terminar(self):
         gestores = []
         terminados = []
 
@@ -658,7 +728,8 @@ class AlTerminarTest(BaseSupervisor):
             lambda: gestores and "estado" in gestores[0].llamadas))
         supervisor.detener()
         self.assertFalse(supervisor.activo)
-        self.assertEqual(terminados, [True])
+        # Una al salir la vigilancia y otra al confirmar OBS el fin de detener.
+        self.assertEqual(terminados, [True, True])
 
     def test_si_avisa_mal_se_traga_la_excepcion(self):
         armado = self.armar(estados=[muestra(False)])

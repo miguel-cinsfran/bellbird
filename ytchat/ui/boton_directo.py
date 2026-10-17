@@ -28,19 +28,24 @@ class BotonDirecto:
         self._marco = marco
         self._conectar = btn_conectar
         self._transmitiendo = False
+        self._deteniendo = False
         self.boton = wx.Button(panel, label=etiqueta, name=nombre)
         _pintar(self.boton, _T.primary, _T.primary_t)
         self.boton.SetFont(self.boton.GetFont().Bold())
         self.boton.Bind(wx.EVT_BUTTON, self._al_pulsar)
 
-    def actualizar(self, conectado, conectando, propio, transmitiendo):
+    def actualizar(self, conectado, conectando, propio, transmitiendo,
+                   deteniendo=False):
         """Aplica visibilidad, etiqueta y nombre; repinta la fila.
 
         Oculto sale del orden de Tab; si tenía el foco, este vuelve a
-        Conectar para no quedar en un control invisible.
+        Conectar para no quedar en un control invisible. Mientras se
+        detiene sigue visible y habilitado, solo cambia lo que dice.
         """
         self._transmitiendo = bool(transmitiendo)
-        etiqueta, nombre = transmision_directa.etiqueta(transmitiendo)
+        self._deteniendo = bool(deteniendo)
+        etiqueta, nombre = transmision_directa.etiqueta(transmitiendo,
+                                                         deteniendo)
         self.boton.SetLabel(etiqueta)
         self.boton.SetName(nombre)
         if transmision_directa.boton_visible(conectado, conectando, propio,
@@ -53,6 +58,10 @@ class BotonDirecto:
         self.boton.GetParent().Layout()
 
     def _al_pulsar(self, event):
+        if self._deteniendo:
+            anunciar("Deteniendo la transmisión. "
+                     "Esperando a que OBS confirme.")
+            return
         if self._transmitiendo:
             self._finalizar()
         else:

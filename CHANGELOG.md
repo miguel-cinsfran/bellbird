@@ -3,6 +3,18 @@
 Qué cambia en cada versión, en lenguaje llano. El detalle técnico está en el
 historial de git.
 
+## 2.3.3, octubre de 2026
+
+Un arreglo que completa lo de Detener de la 2.3.2.
+
+- **El botón del directo espera a OBS.** Mientras Detener espera a que OBS
+  confirme, el botón dice *Deteniendo el directo* en vez de volver a
+  ofrecer *Transmitir en directo*. Si lo pulsas en ese rato, avisa que se
+  está esperando a OBS y no intenta otra transmisión, que OBS rechazaba
+  con «No se puede cambiar de destino mientras se transmite». Lo mismo en
+  la ventana Transmisión. Cuando OBS confirma, el botón vuelve solo a
+  *Transmitir en directo*.
+
 ## 2.3.2, octubre de 2026
 
 Arreglos para transmitir con la red inestable y una opción para que el

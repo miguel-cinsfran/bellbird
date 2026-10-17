@@ -220,6 +220,46 @@
 <h1 id="novedades-de-ytchat-tts">Novedades de YTChat TTS</h1>
 <p>Qué cambia en cada versión, en lenguaje llano. El detalle técnico
 está en el historial de git.</p>
+<h2 id="232-octubre-de-2026">2.3.2, octubre de 2026</h2>
+<p>Arreglos para transmitir con la red inestable y una opción para que
+el reproductor gaste menos.</p>
+<h3 id="transmisión">Transmisión</h3>
+<ul>
+<li><strong>Detener espera a que OBS confirme.</strong> Antes decía
+«Transmisión detenida» al instante, aunque OBS tardara casi un minuto en
+parar con la red trabada. Ahora lo dice cuando OBS de verdad paró. Si
+tarda más de tres segundos, avisa que está esperando. Si a los noventa
+segundos OBS sigue transmitiendo, lo dice para que lo detengas en
+OBS.</li>
+<li><strong>El directo de YouTube se termina aunque se corte la
+red.</strong> Si YouTube no confirma el fin, la aplicación lo vuelve a
+intentar sola cada quince segundos durante diez minutos, y avisa con un
+sonido nuevo cuando lo logra. Si no lo logra, lo intenta otra vez la
+próxima vez que abras YTChat, sin preguntarte.</li>
+<li><strong>Aviso cuando OBS se reconecta, y cuando vuelve.</strong> El
+aviso de reconexión existía pero no podía sonar nunca. Ahora suena al
+cortarse la conexión con el servicio y, con otro sonido nuevo, cuando la
+conexión vuelve.</li>
+<li><strong>Aviso cuando el equipo no da abasto.</strong> Si se pierden
+cuadros porque la computadora no llega a codificar o a dibujar la
+escena, lo dice con el porcentaje y te sugiere cerrar programas. Es
+distinto del aviso de red lenta.</li>
+<li>Cada tipo de aviso se repite como mucho una vez por minuto.</li>
+</ul>
+<h3 id="reproductor">Reproductor</h3>
+<ul>
+<li><strong>Reproducir solo el audio.</strong> Casilla nueva en
+Preferencias, página Reproductor. Con ella, el reproductor no decodifica
+la imagen de nada de lo que reproduce, directos o vídeos de YouTube y
+TikTok, y la tarjeta de video queda libre para OBS. Viene
+desmarcada.</li>
+</ul>
+<h3 id="para-encontrar-problemas">Para encontrar problemas</h3>
+<ul>
+<li>El registro guarda cada cosa que la aplicación anuncia, y qué
+decidió la revisión de directos que quedaron al aire al abrir. Los
+mensajes del chat no se guardan.</li>
+</ul>
 <h2 id="231-octubre-de-2026">2.3.1, octubre de 2026</h2>
 <p>Arreglos del actualizador y una página General nueva en
 Preferencias.</p>
@@ -517,7 +557,7 @@ de escribir en el chat desde la propia aplicación y una ventana para
 componer la escena de OBS sin ver la pantalla. El reproductor hace caso
 mucho mejor, las descargas se ordenan y avisan cuando terminan, y los
 datos de la aplicación pasan a una carpeta propia.</p>
-<h3 id="reproductor">Reproductor</h3>
+<h3 id="reproductor-1">Reproductor</h3>
 <ul>
 <li><strong>El reproductor obedece al instante.</strong> Después de
 adelantar o retroceder, el pausar y el reproducir se perdían durante

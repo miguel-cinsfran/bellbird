@@ -3,6 +3,46 @@
 Qué cambia en cada versión, en lenguaje llano. El detalle técnico está en el
 historial de git.
 
+## 2.3.2, octubre de 2026
+
+Arreglos para transmitir con la red inestable y una opción para que el
+reproductor gaste menos.
+
+### Transmisión
+
+- **Detener espera a que OBS confirme.** Antes decía «Transmisión
+  detenida» al instante, aunque OBS tardara casi un minuto en parar con la
+  red trabada. Ahora lo dice cuando OBS de verdad paró. Si tarda más de
+  tres segundos, avisa que está esperando. Si a los noventa segundos OBS
+  sigue transmitiendo, lo dice para que lo detengas en OBS.
+- **El directo de YouTube se termina aunque se corte la red.** Si YouTube
+  no confirma el fin, la aplicación lo vuelve a intentar sola cada quince
+  segundos durante diez minutos, y avisa con un sonido nuevo cuando lo
+  logra. Si no lo logra, lo intenta otra vez la próxima vez que abras
+  YTChat, sin preguntarte.
+- **Aviso cuando OBS se reconecta, y cuando vuelve.** El aviso de
+  reconexión existía pero no podía sonar nunca. Ahora suena al cortarse la
+  conexión con el servicio y, con otro sonido nuevo, cuando la conexión
+  vuelve.
+- **Aviso cuando el equipo no da abasto.** Si se pierden cuadros porque
+  la computadora no llega a codificar o a dibujar la escena, lo dice con
+  el porcentaje y te sugiere cerrar programas. Es distinto del aviso de
+  red lenta.
+- Cada tipo de aviso se repite como mucho una vez por minuto.
+
+### Reproductor
+
+- **Reproducir solo el audio.** Casilla nueva en Preferencias, página
+  Reproductor. Con ella, el reproductor no decodifica la imagen de nada de
+  lo que reproduce, directos o vídeos de YouTube y TikTok, y la tarjeta de
+  video queda libre para OBS. Viene desmarcada.
+
+### Para encontrar problemas
+
+- El registro guarda cada cosa que la aplicación anuncia, y qué decidió
+  la revisión de directos que quedaron al aire al abrir. Los mensajes del
+  chat no se guardan.
+
 ## 2.3.1, octubre de 2026
 
 Arreglos del actualizador y una página General nueva en Preferencias.

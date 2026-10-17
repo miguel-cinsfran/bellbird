@@ -15,12 +15,13 @@ from ytchat.core import config
 RAIZ = Path(__file__).resolve().parent.parent
 TEMAS_DIR = RAIZ / "sounds" / "themes"
 
-# Los once avisos con sonido propio (encargo 174, más directo_finalizado).
+# Los doce avisos con sonido propio (encargo 174, más directo_finalizado y
+# la vuelta de la conexión).
 EVENTOS_NUEVOS = [
     "descarga_iniciada", "descarga_completada", "descarga_fallida",
     "descarga_cancelada", "al_aire", "transmision_detenida",
-    "transmision_problema", "aviso", "actualizacion_disponible",
-    "actualizacion_lista", "directo_finalizado",
+    "transmision_problema", "transmision_recuperada", "aviso",
+    "actualizacion_disponible", "actualizacion_lista", "directo_finalizado",
 ]
 
 

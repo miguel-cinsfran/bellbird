@@ -28,6 +28,17 @@ logger = diagnostico.obtener_logger(__name__)
 # La misma frase no se repite antes de este plazo durante la vigilancia.
 PLAZO_REPETICION = 60.0
 
+# Sonido por tipo de aviso de la vigilancia. Los problemas de red, codificación
+# y dibujo comparten el de transmisión con problema; la vuelta de la conexión
+# tiene el suyo, distinto, para no sonar a alarma cuando ya se resolvió.
+SONIDOS_AVISO = {
+    "reconexion": "transmision_problema",
+    "red": "transmision_problema",
+    "codificacion": "transmision_problema",
+    "dibujo": "transmision_problema",
+    "vuelta": "transmision_recuperada",
+}
+
 # Al detener: cuánto se espera a que OBS apague la salida, cada cuánto se
 # consulta, y desde cuándo se avisa de que la espera sigue.
 LIMITE_ESPERA_OBS = 90.0
@@ -493,6 +504,7 @@ class SupervisorTransmision:
             return
         if not anterior.get("outputActive"):
             return
+        estadisticas_anterior = self._estadisticas(gestor)
         ultimos_avisos = {}
         while not self._parada.is_set():
             self._esperar(self._intervalo_salud)
@@ -515,13 +527,16 @@ class SupervisorTransmision:
                     f"Duró {duracion_legible(segundos)}.", "transmision_detenida")
                 self._finalizar_youtube_si_toca()
                 return
-            frase = obs_salida.problema_en_directo(anterior, actual)
-            if frase:
-                ahora = self._reloj()
-                ultimo = ultimos_avisos.get(frase)
-                if ultimo is None or ahora - ultimo >= PLAZO_REPETICION:
-                    self._anunciar(frase, "transmision_problema")
-                    ultimos_avisos[frase] = ahora
+            estadisticas = self._estadisticas(gestor)
+            for tipo, frase in obs_salida.problemas_en_directo(
+                    anterior, actual, estadisticas_anterior, estadisticas):
+                if tipo != "vuelta":
+                    ahora = self._reloj()
+                    ultimo = ultimos_avisos.get(tipo)
+                    if ultimo is not None and ahora - ultimo < PLAZO_REPETICION:
+                        continue
+                    ultimos_avisos[tipo] = ahora
+                self._anunciar(frase, SONIDOS_AVISO[tipo])
             nombre = self._panel_tapado(gestor)
             if nombre:
                 frase_panel = (
@@ -533,3 +548,18 @@ class SupervisorTransmision:
                     self._anunciar(frase_panel, "aviso")
                     ultimos_avisos[frase_panel] = ahora
             anterior = actual
+            if estadisticas is not None:
+                estadisticas_anterior = estadisticas
+
+    def _estadisticas(self, gestor):
+        # Los dobles que no traen estadísticas quedan sin avisos de equipo en
+        # esa vuelta; un fallo real de OBS tampoco corta la vigilancia.
+        try:
+            return gestor.estadisticas(self._parada)
+        except Exception as error:
+            try:
+                logger.debug("no se pudieron leer las estadísticas de OBS: %s",
+                             error)
+            except Exception:
+                pass
+            return None

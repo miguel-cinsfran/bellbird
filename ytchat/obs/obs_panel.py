@@ -116,6 +116,7 @@ class GestorPanelObs:
         datos = self._pedir("GetStreamStatus", parada=parada)
         estado = {clave: datos.get(clave, 0) for clave in (
             "outputActive", "outputDuration", "outputSkippedFrames", "outputTotalFrames")}
+        estado["outputReconnecting"] = bool(datos.get("outputReconnecting", False))
         # obs-websocket da outputDuration en milisegundos; el resto de la app
         # (obs_estado.frase_transmision, F2) lo trata en segundos. Sin esta
         # conversión un minuto de directo se anunciaba como «16 h 40 min».
@@ -124,6 +125,18 @@ class GestorPanelObs:
         except (TypeError, ValueError):
             estado["outputDuration"] = 0
         return estado
+
+    def estadisticas(self, parada=None) -> dict:
+        """Cuadros perdidos al codificar y atrasados al dibujar, según GetStats.
+
+        Son contadores distintos de los de GetStreamStatus: los de acá miden
+        el atraso al codificar (outputSkippedFrames) y al dibujar la escena
+        (renderSkippedFrames), no la pérdida por red.
+        """
+        datos = self._pedir("GetStats", parada=parada)
+        return {clave: datos.get(clave, 0) for clave in (
+            "renderSkippedFrames", "renderTotalFrames",
+            "outputSkippedFrames", "outputTotalFrames")}
 
     def estado_grabacion(self, parada=None) -> dict:
         datos = self._pedir("GetRecordStatus", parada=parada)

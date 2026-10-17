@@ -349,6 +349,15 @@ def gen_directo_finalizado():
     return _normalizar(_concat(n1, n2), 0.72)
 
 
+def gen_transmision_recuperada():
+    # Vuelta de la conexión: subida corta G4→C5, cálida y breve. Es un alivio,
+    # no una alarma, y no comparte registro con transmision_problema (A3),
+    # al_aire (C5-C6), conectado (C5-G5) ni directo_finalizado (E5-C6).
+    n1 = _perc(_seno(G4, 0.09, 0.34), 0.004, 0.07)
+    n2 = _perc(_seno(C5, 0.16, 0.36), 0.004, 0.13)
+    return _normalizar(_concat(n1, n2), 0.7)
+
+
 def gen_aviso():
     # Campanita neutra de dos notas E6→B5: avisa sin calificar.
     n1 = _perc(_seno(E6, 0.12, 0.30), 0.002, 0.10)
@@ -517,6 +526,13 @@ def s_directo_finalizado():
                 _madera(C6, 0.20, 0.36, 0.16))
 
 
+def s_transmision_recuperada():
+    # Vuelta de la conexión: subida corta G4→C5 en madera cálida, distinta del
+    # descenso de transmision_detenida y de transmision_problema.
+    return _seq(_madera(G4, 0.09, 0.34, 0.07),
+                _madera(C5, 0.16, 0.36, 0.13))
+
+
 def s_aviso():
     return _seq(_madera(E6, 0.10, 0.32, 0.08),
                 _madera(B5, 0.20, 0.34, 0.15))
@@ -654,6 +670,7 @@ TEMAS = {
         "al_aire.wav":                 gen_al_aire,
         "transmision_detenida.wav":    gen_transmision_detenida,
         "transmision_problema.wav":    gen_transmision_problema,
+        "transmision_recuperada.wav":  gen_transmision_recuperada,
         "directo_finalizado.wav":      gen_directo_finalizado,
         "aviso.wav":                   gen_aviso,
         "actualizacion_disponible.wav": gen_actualizacion_disponible,
@@ -704,6 +721,7 @@ TEMAS = {
         "al_aire.wav":                 s_al_aire,
         "transmision_detenida.wav":    s_transmision_detenida,
         "transmision_problema.wav":    s_transmision_problema,
+        "transmision_recuperada.wav":  s_transmision_recuperada,
         "directo_finalizado.wav":      s_directo_finalizado,
         "aviso.wav":                   s_aviso,
         "actualizacion_disponible.wav": s_actualizacion_disponible,

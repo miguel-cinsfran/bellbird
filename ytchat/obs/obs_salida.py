@@ -67,25 +67,88 @@ def frase_salida(veredicto, destino) -> str:
     return "OBS todavía no confirma que la señal salga."
 
 
-def problema_en_directo(anterior, actual) -> str | None:
-    """¿Pasó algo malo entre dos muestras de `GetStreamStatus`?
+# Umbral compartido por los tres avisos de cuadros: al menos tantos cuadros y
+# más de esta proporción con problema.
+UMBRAL_CUADROS = 30
+UMBRAL_PROPORCION = 0.05
 
-    `outputCongestion` no se usa: no siempre existe.
+
+def _porcentaje(diferencia_total, diferencia_perdidos):
+    """Porcentaje entero de cuadros con problema, o None si no corresponde.
+
+    Una diferencia negativa (contador reiniciado) o con pocos cuadros no
+    avisa. Los dos `outputSkippedFrames` de OBS se llaman igual y son cosas
+    distintas: el de GetStreamStatus es pérdida por red y el de GetStats,
+    atraso al codificar. Cada uno se compara contra su propia muestra.
+    """
+    if diferencia_total < UMBRAL_CUADROS or diferencia_perdidos <= 0:
+        return None
+    proporcion = diferencia_perdidos / diferencia_total
+    if proporcion <= UMBRAL_PROPORCION:
+        return None
+    return int(round(100 * proporcion))
+
+
+def _diferencia(actual, anterior, clave) -> int:
+    try:
+        return int(actual.get(clave, 0)) - int(anterior.get(clave, 0))
+    except (TypeError, ValueError):
+        return 0
+
+
+_FRASE_RECONEXION = "Se cortó la conexión con el servicio, OBS está reconectando."
+_FRASE_VUELTA = "La conexión con el servicio volvió."
+
+
+def _frase_red(porcentaje) -> str:
+    return (f"Se están perdiendo cuadros: {porcentaje} por ciento. "
+            "La red va lenta.")
+
+
+def _frase_codificacion(porcentaje) -> str:
+    return ("El equipo está sobrecargado: se pierde el "
+            f"{porcentaje} por ciento de los cuadros al codificar. "
+            "Cierra los programas que no uses.")
+
+
+def _frase_dibujo(porcentaje) -> str:
+    return ("El equipo está sobrecargado: se atrasa el "
+            f"{porcentaje} por ciento de los cuadros al dibujar la escena. "
+            "Cierra los programas que no uses.")
+
+
+def problemas_en_directo(anterior, actual, estadisticas_anterior=None,
+                         estadisticas=None) -> list:
+    """Avisos a dar entre dos muestras, cada uno con su tipo y su frase.
+
+    El tipo lo usa el supervisor para no repetir por texto. `red` sale de
+    GetStreamStatus; `codificacion` y `dibujo`, de GetStats, y se saltan si
+    falta alguna de las dos muestras de estadísticas. `reconexion` y `vuelta`
+    salen del estado de reconexión de OBS.
     """
     anterior = anterior or {}
     actual = actual or {}
+    avisos = []
     if bool(actual.get("outputReconnecting")):
-        return "Se cortó la conexión con el servicio, OBS está reconectando."
-    try:
-        diferencia_total = int(actual.get("outputTotalFrames", 0)) - int(
-            anterior.get("outputTotalFrames", 0))
-        diferencia_perdidos = int(actual.get("outputSkippedFrames", 0)) - int(
-            anterior.get("outputSkippedFrames", 0))
-    except (TypeError, ValueError):
-        return None
-    if (diferencia_total >= 30 and diferencia_perdidos > 0
-            and diferencia_perdidos / diferencia_total > 0.05):
-        porcentaje = int(round(100 * diferencia_perdidos / diferencia_total))
-        return (f"Se están perdiendo cuadros: {porcentaje} por ciento. "
-                "La red va lenta.")
-    return None
+        avisos.append(("reconexion", _FRASE_RECONEXION))
+    elif bool(anterior.get("outputReconnecting")) and bool(
+            actual.get("outputActive")):
+        avisos.append(("vuelta", _FRASE_VUELTA))
+    else:
+        porcentaje = _porcentaje(
+            _diferencia(actual, anterior, "outputTotalFrames"),
+            _diferencia(actual, anterior, "outputSkippedFrames"))
+        if porcentaje is not None:
+            avisos.append(("red", _frase_red(porcentaje)))
+    if estadisticas is not None and estadisticas_anterior is not None:
+        porcentaje = _porcentaje(
+            _diferencia(estadisticas, estadisticas_anterior, "outputTotalFrames"),
+            _diferencia(estadisticas, estadisticas_anterior, "outputSkippedFrames"))
+        if porcentaje is not None:
+            avisos.append(("codificacion", _frase_codificacion(porcentaje)))
+        porcentaje = _porcentaje(
+            _diferencia(estadisticas, estadisticas_anterior, "renderTotalFrames"),
+            _diferencia(estadisticas, estadisticas_anterior, "renderSkippedFrames"))
+        if porcentaje is not None:
+            avisos.append(("dibujo", _frase_dibujo(porcentaje)))
+    return avisos

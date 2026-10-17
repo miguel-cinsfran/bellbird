@@ -14,6 +14,7 @@ from unittest import mock
 
 from ytchat.capture.tiktok_vivo import ResultadoEspera
 from ytchat.obs import obs_cliente
+from ytchat.obs import obs_panel
 from ytchat.obs import obs_supervisor
 from ytchat.obs.obs_supervisor import SupervisorTransmision, duracion_legible
 from ytchat.youtube import emision
@@ -41,7 +42,7 @@ def muestra(activa=True, duracion=0, perdidos=0, totales=0,
 class GestorFalso:
     """Doble de GestorPanelObs con estados enlatados para la vigilancia."""
 
-    def __init__(self, estados=None, fallo=None):
+    def __init__(self, estados=None, fallo=None, estadisticas=None):
         self.estados = list(estados or [muestra(False)])
         self.fallo = fallo
         self.llamadas = []
@@ -49,6 +50,8 @@ class GestorFalso:
         self.cerrado = 0
         self._cliente = self
         self.indice = 0
+        self.estadisticas_muestras = list(estadisticas or [{}])
+        self.indice_estadisticas = 0
 
     def conectar(self, parada=None):
         self.llamadas.append("conectar")
@@ -72,6 +75,15 @@ class GestorFalso:
         self.indice += 1
         return dict(self.estados[indice])
 
+    def estadisticas(self, parada=None):
+        self.llamadas.append("estadisticas")
+        if self.fallo == "estadisticas":
+            raise RuntimeError("boom en estadisticas")
+        indice = min(self.indice_estadisticas,
+                     len(self.estadisticas_muestras) - 1)
+        self.indice_estadisticas += 1
+        return dict(self.estadisticas_muestras[indice])
+
     def pedir(self, tipo, datos=None, parada=None):
         return {"responseData": {}}
 
@@ -91,7 +103,8 @@ def esperar_condicion(condicion, plazo=2.0):
 class BaseSupervisor(unittest.TestCase):
     def armar(self, destino="TikTok", usuario="amigo",
               estados=None, fallo=None, veredicto="enviando",
-              en_vivo=True, sin_directos=False, intervalo=1000.0):
+              en_vivo=True, sin_directos=False, intervalo=1000.0,
+              estadisticas=None):
         reloj = RelojFalso()
         anuncios = []
         chats = []
@@ -100,7 +113,7 @@ class BaseSupervisor(unittest.TestCase):
         llamadas_vivo = []
 
         def crear_gestor():
-            gestor = GestorFalso(estados, fallo)
+            gestor = GestorFalso(estados, fallo, estadisticas)
             gestores.append(gestor)
             return gestor
 
@@ -244,6 +257,123 @@ class ProblemaRepetidoTest(BaseSupervisor):
         self.assertEqual(len(apariciones), 2)
         self.assertTrue(all(s == "transmision_problema" for _, s in apariciones))
         self.assertTrue(reloj.ahora >= 60.0)
+
+
+class ReconexionVueltaTest(BaseSupervisor):
+    def test_reconexion_y_vuelta_con_sus_sonidos(self):
+        estados = [muestra(True, duracion=10),
+                   muestra(True, duracion=11, reconectando=True),
+                   muestra(True, duracion=12),
+                   muestra(False, duracion=13)]
+        armado = self.armar(destino="YouTube", estados=estados, intervalo=5.0)
+        supervisor, anuncios, _, _, _, _, _ = armado
+        self.iniciar_y_esperar_fin(supervisor, plazo=3.0)
+        self.assertIn(
+            ("Se cortó la conexión con el servicio, OBS está reconectando.",
+             "transmision_problema"), anuncios)
+        self.assertIn(("La conexión con el servicio volvió.",
+                       "transmision_recuperada"), anuncios)
+
+
+class ClienteStreamFalso:
+    """Cliente de OBS enlatado para ejercitar el GestorPanelObs real."""
+
+    def __init__(self, estados):
+        self._estados = list(estados)
+        self._indice = 0
+        self.conectado = False
+
+    def conectar(self, parada=None):
+        self.conectado = True
+
+    def cerrar(self):
+        self.conectado = False
+
+    def pedir(self, tipo, datos=None, parada=None):
+        if tipo == "GetStreamStatus":
+            indice = min(self._indice, len(self._estados) - 1)
+            self._indice += 1
+            return {"responseData": dict(self._estados[indice])}
+        return {"responseData": {}}
+
+
+class ReconexionPorEstadoRealTest(unittest.TestCase):
+    def test_la_vigilancia_lee_la_reconexion_de_estado_transmision(self):
+        # El estado sale del GestorPanelObs de verdad: si estado_transmision
+        # deja de exponer outputReconnecting, este cableado deja de avisar.
+        estados = [muestra(True, duracion=10),
+                   muestra(True, duracion=11, reconectando=True),
+                   muestra(False, duracion=30)]
+        cliente = ClienteStreamFalso(estados)
+        reloj = RelojFalso()
+        anuncios = []
+        supervisor = SupervisorTransmision(
+            "YouTube", "",
+            al_anunciar=lambda frase, sonido: anuncios.append(
+                (frase, sonido)),
+            al_conectar_chat=lambda url: None,
+            crear_gestor=lambda: obs_panel.GestorPanelObs(cliente),
+            esperar_salida=lambda c, parada=None: "enviando",
+            esperar_en_vivo=lambda u, parada=None, limite=None: (
+                ResultadoEspera(False, False)),
+            dormir=reloj.dormir, reloj=reloj.reloj,
+            intervalo_salud=5.0,
+            asegurar=lambda probar, al_anunciar=None, parada=None: False)
+        supervisor.iniciar()
+        self.assertTrue(esperar_condicion(lambda: not supervisor.activo, 3.0))
+        self.assertIn(
+            ("Se cortó la conexión con el servicio, OBS está reconectando.",
+             "transmision_problema"), anuncios)
+
+
+class AvisosDeEquipoTest(BaseSupervisor):
+    def _estadisticas_con_sobrecarga(self, pasos=9):
+        # Al codificar: cada paso suma 100 cuadros totales y una porción cada
+        # vez mayor de perdidos, así el porcentaje cambia en cada vuelta.
+        muestras = [{"outputSkippedFrames": 0, "outputTotalFrames": 1000,
+                     "renderSkippedFrames": 0, "renderTotalFrames": 1000}]
+        perdidos = 0
+        for paso in range(1, pasos + 1):
+            perdidos += 35 + 5 * paso
+            muestras.append({"outputSkippedFrames": perdidos,
+                             "outputTotalFrames": 1000 + 100 * paso,
+                             "renderSkippedFrames": 0,
+                             "renderTotalFrames": 1000})
+        return muestras
+
+    def test_codificacion_se_anuncia_una_vez_por_minuto(self):
+        estados = [muestra(True, duracion=10)] * 9 + [muestra(False, duracion=30)]
+        armado = self.armar(destino="YouTube", estados=estados, intervalo=5.0,
+                            estadisticas=self._estadisticas_con_sobrecarga())
+        supervisor, anuncios, _, _, _, _, reloj = armado
+        self.iniciar_y_esperar_fin(supervisor, plazo=3.0)
+        frases = [f for f, _ in anuncios if "al codificar" in f]
+        self.assertEqual(len(frases), 1)
+        self.assertIn("40 por ciento", frases[0])
+        self.assertLess(reloj.ahora, 60.0)
+
+    def test_contador_que_vuelve_a_cero_no_avisa(self):
+        estados = [muestra(True, duracion=10)] * 4 + [muestra(False, duracion=30)]
+        estadisticas = [
+            {"outputSkippedFrames": 500, "outputTotalFrames": 2000,
+             "renderSkippedFrames": 500, "renderTotalFrames": 2000},
+        ] + [{"outputSkippedFrames": 0, "outputTotalFrames": 0,
+              "renderSkippedFrames": 0, "renderTotalFrames": 0}] * 6
+        armado = self.armar(destino="YouTube", estados=estados, intervalo=5.0,
+                            estadisticas=estadisticas)
+        supervisor, anuncios, _, _, _, _, _ = armado
+        self.iniciar_y_esperar_fin(supervisor, plazo=3.0)
+        self.assertFalse(any("al codificar" in f or "al dibujar" in f
+                             for f, _ in anuncios))
+
+    def test_estadisticas_que_fallan_no_cortan_la_vigilancia(self):
+        estados = [muestra(True, duracion=10), muestra(False, duracion=30)]
+        armado = self.armar(destino="YouTube", estados=estados, intervalo=5.0,
+                            fallo="estadisticas")
+        supervisor, anuncios, _, _, _, _, _ = armado
+        self.iniciar_y_esperar_fin(supervisor, plazo=3.0)
+        self.assertIn(("La transmisión terminó. Duró 30 segundos.",
+                       "transmision_detenida"), anuncios)
 
 
 class FinTransmisionTest(BaseSupervisor):

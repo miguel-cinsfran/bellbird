@@ -20,7 +20,8 @@ def elemento(identificador, nombre, indice, x=32, y=882, ancho=460, alto=620,
 
 class DobleObs:
     def __init__(self, elementos=None, entradas=(), escena="Escena", escenas=None,
-                  silencios=None, grupos=None, perfiles=(), perfil_actual=""):
+                  silencios=None, grupos=None, perfiles=(), perfil_actual="",
+                  estadisticas=None, reconectando=False):
         self.elementos = list(elementos or ())
         self.entradas = list(entradas)
         self.grupos = dict(grupos or {})
@@ -35,6 +36,8 @@ class DobleObs:
         self.transmitiendo = False
         self.grabando = False
         self.grabacion_en_pausa = False
+        self.reconectando = reconectando
+        self.estadisticas = dict(estadisticas or {})
 
     def conectar(self, parada=None):
         self.conectado = True
@@ -69,7 +72,10 @@ class DobleObs:
             return {"responseData": {"outputActive": self.transmitiendo,
                                       "outputDuration": 61000,
                                       "outputSkippedFrames": 2,
-                                      "outputTotalFrames": 100}}
+                                      "outputTotalFrames": 100,
+                                      "outputReconnecting": self.reconectando}}
+        if tipo == "GetStats":
+            return {"responseData": dict(self.estadisticas)}
         if tipo == "GetRecordStatus":
             return {"responseData": {"outputActive": self.grabando,
                                       "outputPaused": self.grabacion_en_pausa,
@@ -297,10 +303,28 @@ class GestorPanelObsTest(unittest.TestCase):
         gestor = self.gestor(doble)
         self.assertEqual(gestor.estado_transmision(), {
             "outputActive": False, "outputDuration": 61,
-            "outputSkippedFrames": 2, "outputTotalFrames": 100})
+            "outputSkippedFrames": 2, "outputTotalFrames": 100,
+            "outputReconnecting": False})
         self.assertEqual(gestor.estado_grabacion(), {
             "outputActive": False, "outputPaused": False,
             "outputTimecode": "00:01:02.000"})
+
+    def test_estado_transmision_devuelve_la_reconexion(self):
+        doble = DobleObs(reconectando=True)
+        self.assertTrue(self.gestor(doble).estado_transmision()["outputReconnecting"])
+
+    def test_estadisticas_lee_los_cuadros_de_getstats(self):
+        doble = DobleObs(estadisticas={
+            "renderSkippedFrames": 8, "renderTotalFrames": 120,
+            "outputSkippedFrames": 40, "outputTotalFrames": 200})
+        self.assertEqual(self.gestor(doble).estadisticas(), {
+            "renderSkippedFrames": 8, "renderTotalFrames": 120,
+            "outputSkippedFrames": 40, "outputTotalFrames": 200})
+
+    def test_estadisticas_con_campos_ausentes_dan_cero(self):
+        self.assertEqual(self.gestor(DobleObs()).estadisticas(), {
+            "renderSkippedFrames": 0, "renderTotalFrames": 0,
+            "outputSkippedFrames": 0, "outputTotalFrames": 0})
 
     def test_poner_escena_al_aire_confirma_la_escena_leida(self):
         doble = DobleObs(escena="Principal", escenas=("Principal", "Juego"))

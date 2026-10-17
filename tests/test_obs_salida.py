@@ -5,7 +5,7 @@ import unittest
 
 from ytchat.obs import obs_salida
 from ytchat.obs.obs_salida import (
-    esperar_salida, evaluar_inicio, frase_salida, problema_en_directo)
+    esperar_salida, evaluar_inicio, frase_salida, problemas_en_directo)
 
 
 def muestra(activa=True, bytes_=0, reconectando=False, perdidos=0,
@@ -120,49 +120,129 @@ class FraseSalidaTest(unittest.TestCase):
                          "OBS todavía no confirma que la señal salga.")
 
 
-class ProblemaEnDirectoTest(unittest.TestCase):
+class ProblemasEnDirectoTest(unittest.TestCase):
     def test_reconectando(self):
         self.assertEqual(
-            problema_en_directo(muestra(True, 10), muestra(True, 10, True)),
-            "Se cortó la conexión con el servicio, OBS está reconectando.")
+            problemas_en_directo(muestra(True, 10), muestra(True, 10, True)),
+            [("reconexion",
+              "Se cortó la conexión con el servicio, OBS está reconectando.")])
+
+    def test_vuelta_cuando_deja_de_reconectar(self):
+        self.assertEqual(
+            problemas_en_directo(muestra(True, 10, reconectando=True),
+                                 muestra(True, 10, reconectando=False)),
+            [("vuelta", "La conexión con el servicio volvió.")])
+
+    def test_vuelta_no_avisa_si_la_transmision_no_esta_activa(self):
+        self.assertEqual(
+            problemas_en_directo(muestra(True, 10, reconectando=True),
+                                 muestra(False, 10)), [])
 
     def test_cuadros_perdidos_mas_del_cinco_por_ciento(self):
         anterior = muestra(True, 10, perdidos=0, totales=1000)
         actual = muestra(True, 20, perdidos=60, totales=1100)
-        self.assertEqual(problema_en_directo(anterior, actual),
-                         "Se están perdiendo cuadros: 60 por ciento. "
-                         "La red va lenta.")
+        self.assertEqual(problemas_en_directo(anterior, actual),
+                         [("red", "Se están perdiendo cuadros: 60 por ciento. "
+                                  "La red va lenta.")])
 
     def test_pocos_cuadros_no_avisa(self):
         anterior = muestra(True, 10, perdidos=0, totales=1000)
         actual = muestra(True, 20, perdidos=1, totales=1010)
-        self.assertIsNone(problema_en_directo(anterior, actual))
+        self.assertEqual(problemas_en_directo(anterior, actual), [])
 
     def test_menos_de_treinta_cuadros_no_avisa(self):
         anterior = muestra(True, 10, perdidos=0, totales=1000)
         actual = muestra(True, 20, perdidos=10, totales=1010)
-        self.assertIsNone(problema_en_directo(anterior, actual))
+        self.assertEqual(problemas_en_directo(anterior, actual), [])
 
     def test_seis_por_ciento_con_cien_cuadros_avisa(self):
         anterior = muestra(True, 10, perdidos=0, totales=1000)
         actual = muestra(True, 20, perdidos=6, totales=1100)
-        self.assertEqual(problema_en_directo(anterior, actual),
-                         "Se están perdiendo cuadros: 6 por ciento. "
-                         "La red va lenta.")
+        self.assertEqual(problemas_en_directo(anterior, actual),
+                         [("red", "Se están perdiendo cuadros: 6 por ciento. "
+                                  "La red va lenta.")])
 
     def test_cuatro_por_ciento_no_avisa(self):
         anterior = muestra(True, 10, perdidos=0, totales=1000)
         actual = muestra(True, 20, perdidos=4, totales=1100)
-        self.assertIsNone(problema_en_directo(anterior, actual))
+        self.assertEqual(problemas_en_directo(anterior, actual), [])
 
     def test_cincuenta_por_ciento_con_veinte_cuadros_no_avisa(self):
         anterior = muestra(True, 10, perdidos=0, totales=1000)
         actual = muestra(True, 20, perdidos=10, totales=1020)
-        self.assertIsNone(problema_en_directo(anterior, actual))
+        self.assertEqual(problemas_en_directo(anterior, actual), [])
 
-    def test_sin_novedad_da_none(self):
-        self.assertIsNone(problema_en_directo(muestra(True, 10),
-                                              muestra(True, 20)))
+    def test_contador_reiniciado_no_avisa(self):
+        anterior = muestra(True, 10, perdidos=100, totales=2000)
+        actual = muestra(True, 20, perdidos=0, totales=0)
+        self.assertEqual(problemas_en_directo(anterior, actual), [])
+
+    def test_sin_novedad_da_lista_vacia(self):
+        self.assertEqual(problemas_en_directo(muestra(True, 10),
+                                              muestra(True, 20)), [])
+
+    def test_codificacion_sobre_las_estadisticas(self):
+        avisos = problemas_en_directo(
+            muestra(True, 10), muestra(True, 20),
+            estadisticas_anterior={"outputSkippedFrames": 0,
+                                   "outputTotalFrames": 1000,
+                                   "renderSkippedFrames": 0,
+                                   "renderTotalFrames": 1000},
+            estadisticas={"outputSkippedFrames": 400,
+                          "outputTotalFrames": 2000,
+                          "renderSkippedFrames": 0,
+                          "renderTotalFrames": 1000})
+        self.assertEqual(avisos, [("codificacion",
+            "El equipo está sobrecargado: se pierde el 40 por ciento de los "
+            "cuadros al codificar. Cierra los programas que no uses.")])
+
+    def test_dibujo_sobre_las_estadisticas(self):
+        avisos = problemas_en_directo(
+            muestra(True, 10), muestra(True, 20),
+            estadisticas_anterior={"outputSkippedFrames": 0,
+                                   "outputTotalFrames": 1000,
+                                   "renderSkippedFrames": 0,
+                                   "renderTotalFrames": 1000},
+            estadisticas={"outputSkippedFrames": 0,
+                          "outputTotalFrames": 1000,
+                          "renderSkippedFrames": 80,
+                          "renderTotalFrames": 1200})
+        self.assertEqual(avisos, [("dibujo",
+            "El equipo está sobrecargado: se atrasa el 40 por ciento de los "
+            "cuadros al dibujar la escena. Cierra los programas que no uses.")])
+
+    def test_estadisticas_que_faltan_no_avisan_de_equipo(self):
+        self.assertEqual(problemas_en_directo(
+            muestra(True, 10), muestra(True, 20), None, None), [])
+        self.assertEqual(problemas_en_directo(
+            muestra(True, 10), muestra(True, 20),
+            {"outputSkippedFrames": 0, "outputTotalFrames": 1000,
+             "renderSkippedFrames": 0, "renderTotalFrames": 1000}, None), [])
+
+    def test_contador_de_estadisticas_reiniciado_no_avisa(self):
+        avisos = problemas_en_directo(
+            muestra(True, 10), muestra(True, 20),
+            estadisticas_anterior={"outputSkippedFrames": 500,
+                                   "outputTotalFrames": 2000,
+                                   "renderSkippedFrames": 0,
+                                   "renderTotalFrames": 1000},
+            estadisticas={"outputSkippedFrames": 0, "outputTotalFrames": 0,
+                          "renderSkippedFrames": 0, "renderTotalFrames": 0})
+        self.assertEqual(avisos, [])
+
+    def test_varios_problemas_en_la_misma_muestra(self):
+        avisos = problemas_en_directo(
+            muestra(True, 10, perdidos=0, totales=1000),
+            muestra(True, 20, perdidos=60, totales=1100),
+            estadisticas_anterior={"outputSkippedFrames": 0,
+                                   "outputTotalFrames": 1000,
+                                   "renderSkippedFrames": 0,
+                                   "renderTotalFrames": 1000},
+            estadisticas={"outputSkippedFrames": 400,
+                          "outputTotalFrames": 2000,
+                          "renderSkippedFrames": 0,
+                          "renderTotalFrames": 1000})
+        self.assertEqual([tipo for tipo, _ in avisos], ["red", "codificacion"])
 
 
 if __name__ == "__main__":

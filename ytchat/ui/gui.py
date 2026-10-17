@@ -115,6 +115,7 @@ def _lector_init():
 
 def anunciar(texto: str, urgente: bool = True) -> None:
     if _lector is None:
+        logger.info("ANUNCIO sin lector %s", texto)
         return
     if not wx.IsMainThread():
         # Prism habla por COM (JAWS) y no es seguro desde otros hilos; el
@@ -124,6 +125,7 @@ def anunciar(texto: str, urgente: bool = True) -> None:
         try:    wx.CallAfter(anunciar, texto, urgente)
         except Exception: pass
         return
+    logger.info("ANUNCIO %s", texto)
     try:
         # Casi todos responden a una tecla y deben llegar antes del próximo foco.
         _lector.speak(texto, interrupt=urgente)

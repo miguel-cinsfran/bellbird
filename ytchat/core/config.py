@@ -330,6 +330,8 @@ _EVENTOS_SONIDO = [
     "descarga_cancelada",
     # Avisos del supervisor de transmisión y descartes del chat:
     "al_aire", "transmision_detenida", "transmision_problema", "aviso",
+    # Confirmación de cierre, distinta del descenso de transmision_detenida:
+    "directo_finalizado",
     # Ventanas que se abren solas al arrancar o al terminar bien:
     "actualizacion_disponible", "actualizacion_lista",
 ]

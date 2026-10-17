@@ -20,6 +20,7 @@ RUTAS_DE_DATOS = [
     ("historial_descargas", "historial_descargas.json"),
     ("alias", "alias.json"),
     ("mensajes_programados", "mensajes_programados.json"),
+    ("fin_pendiente", "fin_pendiente.json"),
     ("sounds_ini", "sounds.ini"),
     ("log_principal", "ytchat.log"),
     ("log_detallado", "ytchat-debug.log"),
@@ -154,8 +155,21 @@ class TestAudioTemporal(unittest.TestCase):
             self.assertTrue(segunda.is_dir())
 
 
-class TestDatosAMigrar(unittest.TestCase):
+class TestFinPendiente(unittest.TestCase):
 
+    def test_cuelga_de_carpeta_datos(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            datos = Path(tmp) / "datos"
+            with mock.patch.object(paths, "carpeta_datos", return_value=datos):
+                self.assertEqual(paths.fin_pendiente(),
+                                 datos / "fin_pendiente.json")
+
+    def test_no_entra_en_datos_a_migrar(self):
+        # No es un dato de la migración vieja de la raíz a data/.
+        self.assertNotIn(paths.fin_pendiente(), paths.datos_a_migrar())
+
+
+class TestDatosAMigrar(unittest.TestCase):
     def test_descargas_cuelga_de_instalacion(self):
         with tempfile.TemporaryDirectory() as tmp:
             datos, instalacion = Path(tmp) / "datos", Path(tmp) / "app"
@@ -312,7 +326,8 @@ class TestGuardaRutas(unittest.TestCase):
     NOMBRES_DATOS = (
         "config.ini", "credenciales.json", "historial_lives.json",
         "historial_descargas.json", "alias.json", "mensajes_programados.json",
-        "sounds.ini", "ytchat.log", "ytchat-debug.log", "ytchat-fallos.log",
+        "fin_pendiente.json", "sounds.ini", "ytchat.log", "ytchat-debug.log",
+        "ytchat-fallos.log",
     )
 
     # (archivo, fragmento permitido, motivo). Sin comodines.

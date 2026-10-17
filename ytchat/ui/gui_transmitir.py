@@ -234,6 +234,7 @@ def supervisar_transmision(frame, accion, destino="", usuario="",
                        "esperar_emision": esperar,
                        "finalizar_emision": finalizar}
         from ytchat.obs.obs_supervisor import SupervisorTransmision
+        from ytchat.core import paths
 
         def al_anunciar(frase, sonido):
             def _decir():
@@ -276,7 +277,8 @@ def supervisar_transmision(frame, accion, destino="", usuario="",
         frame._supervisor = SupervisorTransmision(
             destino, usuario, al_anunciar=al_anunciar,
             al_conectar_chat=al_conectar_chat,
-            al_terminar=frame._al_terminar_supervisor, **ganchos)
+            al_terminar=frame._al_terminar_supervisor,
+            ruta_fin_pendiente=paths.fin_pendiente(), **ganchos)
         frame._supervisor.iniciar()
         frame._actualizar_boton_directo()
         return

@@ -45,8 +45,8 @@ solo con el volumen emparejado.
 - `transporte_en_curso.wav`: https://freesound.org/s/187992/ (CC0)
 - `voz_cambiada.wav`: Kenney (kenney.nl), switch_003.ogg (CC0)
 
-Los diez sonidos de aviso del tema default (`descarga_iniciada`,
+Los once sonidos de aviso del tema default (`descarga_iniciada`,
 `descarga_completada`, `descarga_fallida`, `descarga_cancelada`, `al_aire`,
-`transmision_detenida`, `transmision_problema`, `aviso`,
+`transmision_detenida`, `transmision_problema`, `directo_finalizado`, `aviso`,
 `actualizacion_disponible` y `actualizacion_lista`) tampoco salen de un
 paquete: son sintéticos y los genera `scripts/sound_gen.py`.

@@ -14,17 +14,25 @@ import time
 
 from ytchat.capture import tiktok_vivo
 from ytchat.core import diagnostico
+from ytchat.obs import obs_activacion
 from ytchat.obs import obs_cliente
 from ytchat.obs import obs_estado
 from ytchat.obs import obs_lanzador
 from ytchat.obs import obs_salida
 from ytchat.obs.obs_panel import GestorPanelObs
 from ytchat.youtube import emision
+from ytchat.youtube import fin_pendiente
 
 logger = diagnostico.obtener_logger(__name__)
 
 # La misma frase no se repite antes de este plazo durante la vigilancia.
 PLAZO_REPETICION = 60.0
+
+# Al detener: cuánto se espera a que OBS apague la salida, cada cuánto se
+# consulta, y desde cuándo se avisa de que la espera sigue.
+LIMITE_ESPERA_OBS = 90.0
+INTERVALO_ESPERA_OBS = 1.0
+AVISO_ESPERA_OBS = 3.0
 
 
 def duracion_legible(segundos) -> str:
@@ -61,7 +69,7 @@ class SupervisorTransmision:
                  intervalo_salud=5.0, limite_tiktok=120.0,
                  asegurar=None, al_terminar=None,
                  preparar_emision=None, esperar_emision=None,
-                 finalizar_emision=None):
+                 finalizar_emision=None, ruta_fin_pendiente=None):
         self._destino = destino
         self._usuario = usuario_tiktok or ""
         self._al_anunciar = al_anunciar or (lambda frase, sonido: None)
@@ -79,6 +87,7 @@ class SupervisorTransmision:
         self._preparar_emision = preparar_emision
         self._esperar_emision = esperar_emision
         self._finalizar_emision = finalizar_emision
+        self._ruta_fin_pendiente = ruta_fin_pendiente
         self._id_video = None
         self._cerrojo_fin = threading.Lock()
         self._fin_youtube = False
@@ -137,35 +146,98 @@ class SupervisorTransmision:
         self._parada.set()
         self._corte.set()
         if estaba_activo:
-            try:
-                gestor = self._crear_gestor()
-                try:
-                    gestor.conectar()
-                    try:
-                        activa = bool(gestor.estado_transmision().get(
-                            "outputActive"))
-                    except Exception:
-                        activa = True
-                    if activa:
-                        try:
-                            gestor.detener_transmision()
-                        except Exception:
-                            pass
-                finally:
-                    try:
-                        gestor.cerrar()
-                    except Exception:
-                        pass
-            except Exception:
-                pass
-            try:
-                self._al_anunciar("Transmisión detenida.", "transmision_detenida")
-            except Exception:
-                pass
+            self._detener_obs()
             self._finalizar_youtube_si_toca()
         hilo = self._hilo
         if hilo is not None:
             hilo.join(2.0)
+
+    def _detener_obs(self) -> None:
+        """Pide parar a OBS y espera a que confirme, sin congelar la ventana.
+
+        Corre en el hilo DetenerSupervisor, así que puede dormir con
+        `self._dormir` directamente: `self._esperar` volvería enseguida
+        porque la parada ya está puesta.
+        """
+        gestor = None
+        try:
+            gestor = self._crear_gestor()
+            gestor.conectar()
+        except Exception as error:
+            self._cerrar_gestor(gestor)
+            self._anunciar_obs_sin_respuesta(error)
+            return
+        try:
+            try:
+                activa = bool(
+                    gestor.estado_transmision().get("outputActive"))
+            except Exception:
+                # Sin respuesta al preguntar el estado, se asume activa:
+                # mejor mandar StopStream de más que dejar la salida
+                # corriendo. `_esperar_a_obs` dirá lo que toque si OBS
+                # sigue sin responder.
+                activa = True
+            if not activa:
+                self._anunciar("Transmisión detenida.",
+                               "transmision_detenida")
+                return
+            try:
+                gestor.detener_transmision()
+            except Exception:
+                pass
+            self._esperar_a_obs(gestor)
+        finally:
+            self._cerrar_gestor(gestor)
+
+    def _esperar_a_obs(self, gestor) -> None:
+        """Consulta a OBS hasta que la salida se apague, con un límite."""
+        inicio = self._reloj()
+        avisado = False
+        while True:
+            try:
+                activa = bool(
+                    gestor.estado_transmision().get("outputActive"))
+            except Exception as error:
+                self._anunciar_obs_sin_respuesta(error)
+                return
+            if not activa:
+                self._anunciar("Transmisión detenida.",
+                               "transmision_detenida")
+                return
+            transcurrido = self._reloj() - inicio
+            if not avisado and transcurrido >= AVISO_ESPERA_OBS:
+                self._anunciar(
+                    "Deteniendo la transmisión. "
+                    "Esperando a que OBS confirme.", None)
+                avisado = True
+            if transcurrido >= LIMITE_ESPERA_OBS:
+                self._anunciar(
+                    "OBS sigue transmitiendo. "
+                    "Detén la transmisión en OBS.", "transmision_problema")
+                return
+            self._dormir(INTERVALO_ESPERA_OBS)
+
+    def _anunciar_obs_sin_respuesta(self, error=None) -> None:
+        # Sin poder hablar con OBS, la señal depende de si OBS sigue abierto:
+        # si no corre, la transmisión ya no sale y está detenida.
+        try:
+            corre = obs_activacion.obs_esta_en_ejecucion()
+        except Exception:
+            corre = False
+        if corre:
+            self._anunciar(
+                "No se pudo conectar con OBS para detener la transmisión.",
+                "transmision_problema")
+        else:
+            self._anunciar("Transmisión detenida.", "transmision_detenida")
+
+    def _cerrar_gestor(self, gestor) -> None:
+        if gestor is None:
+            return
+        try:
+            gestor.cerrar()
+        except Exception:
+            pass
 
     def abandonar(self) -> None:
         # Deja de vigilar sin detener OBS y sin anunciar: cerrar YTChat no
@@ -330,8 +402,10 @@ class SupervisorTransmision:
 
     def _finalizar_youtube_si_toca(self) -> None:
         # Cierra el directo en YouTube una sola vez por emisión, solo con
-        # id de vídeo (los directos de TikTok no tienen). Corre en el hilo
-        # que ya llamó: detener() o la vigilancia, sin hilos nuevos.
+        # id de vídeo (los directos de TikTok no tienen). El id se anota
+        # antes de pedirlo: si la red falla, el pedido sobrevive al cierre
+        # en el archivo de fines pendientes. Con la ruta en None no se toca
+        # el disco y no se lanza reintento.
         gancho = self._finalizar_emision
         id_video = self._id_video
         if gancho is None or not id_video:
@@ -340,18 +414,72 @@ class SupervisorTransmision:
             if self._fin_youtube:
                 return
             self._fin_youtube = True
+        self._anotar_fin_pendiente(id_video)
         try:
             gancho(id_video)
         except Exception as error:
             try:
                 self._anunciar(
                     "YouTube no confirmó el fin del directo. "
-                    "Finalízalo en YouTube Studio.", "transmision_problema")
+                    "Se reintentará durante 10 minutos.",
+                    "transmision_problema")
             except Exception:
                 pass
             try:
                 logger.warning("no se pudo finalizar la emisión %s: %s",
                                id_video, error)
+            except Exception:
+                pass
+            self._lanzar_reintento_fin(id_video)
+        else:
+            self._quitar_fin_pendiente(id_video)
+
+    def _anotar_fin_pendiente(self, id_video) -> None:
+        if self._ruta_fin_pendiente is None:
+            return
+        try:
+            fin_pendiente.anotar(self._ruta_fin_pendiente, id_video)
+        except Exception as error:
+            logger.debug("no se pudo anotar el fin pendiente: %s", error)
+
+    def _quitar_fin_pendiente(self, id_video) -> None:
+        if self._ruta_fin_pendiente is None:
+            return
+        try:
+            fin_pendiente.quitar(self._ruta_fin_pendiente, id_video)
+        except Exception as error:
+            logger.debug("no se pudo quitar el fin pendiente: %s", error)
+
+    def _lanzar_reintento_fin(self, id_video) -> None:
+        # Sin archivo no hay nada que sobreviva a un cierre de la app, así
+        # que no se abre un reintento a ciegas: la ruta la pone quien usa
+        # el supervisor en producción.
+        if self._ruta_fin_pendiente is None:
+            return
+        try:
+            diagnostico.crear_hilo(
+                lambda: self._reintentar_fin(id_video),
+                "ReintentarFinDirecto").start()
+        except Exception as error:
+            logger.warning("no se pudo lanzar el reintento del fin: %s", error)
+
+    def _reintentar_fin(self, id_video) -> None:
+        def intento():
+            self._finalizar_emision(id_video)
+
+        if fin_pendiente.reintentar(intento, self._dormir, self._reloj):
+            self._quitar_fin_pendiente(id_video)
+            try:
+                self._anunciar("Directo finalizado en YouTube.",
+                               "directo_finalizado")
+            except Exception:
+                pass
+        else:
+            try:
+                self._anunciar(
+                    "YouTube sigue sin confirmar el fin del directo. "
+                    "Se intentará de nuevo al abrir YTChat.",
+                    "transmision_problema")
             except Exception:
                 pass
 

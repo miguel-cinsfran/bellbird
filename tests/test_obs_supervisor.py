@@ -5,15 +5,19 @@ esperas son falsas y el reloj y el dormir son falsos. Lo único real es el
 hilo, que se espera por sondeo con un plazo corto.
 """
 
+import tempfile
 import threading
 import time
 import unittest
+from pathlib import Path
+from unittest import mock
 
 from ytchat.capture.tiktok_vivo import ResultadoEspera
 from ytchat.obs import obs_cliente
 from ytchat.obs import obs_supervisor
 from ytchat.obs.obs_supervisor import SupervisorTransmision, duracion_legible
 from ytchat.youtube import emision
+from ytchat.youtube import fin_pendiente
 
 
 class RelojFalso:
@@ -272,7 +276,15 @@ class DetenerTest(BaseSupervisor):
         vivo = threading.Event()
 
         def crear_gestor():
-            gestor = GestorFalso([muestra(True, duracion=10)] * 500)
+            # El primero es el de la vigilancia y sigue activo; el segundo
+            # es el de detener() y confirma la parada al segundo sondeo.
+            if gestores:
+                estados = [muestra(True, duracion=10),
+                           muestra(True, duracion=10),
+                           muestra(False, duracion=10)]
+            else:
+                estados = [muestra(True, duracion=10)] * 500
+            gestor = GestorFalso(estados)
             gestores.append(gestor)
             return gestor
 
@@ -322,7 +334,13 @@ class DetenerRapidoTest(BaseSupervisor):
         gestores = []
 
         def crear_gestor():
-            gestor = GestorFalso([muestra(True, duracion=10)] * 500)
+            # El de la vigilancia no para; el de detener() confirma enseguida.
+            if gestores:
+                estados = [muestra(True, duracion=10),
+                           muestra(False, duracion=10)]
+            else:
+                estados = [muestra(True, duracion=10)] * 500
+            gestor = GestorFalso(estados)
             gestores.append(gestor)
             return gestor
 
@@ -483,7 +501,13 @@ class AlTerminarTest(BaseSupervisor):
         terminados = []
 
         def crear_gestor():
-            gestor = GestorFalso([muestra(True, duracion=10)] * 500)
+            # El de la vigilancia no para; el de detener() confirma enseguida.
+            if gestores:
+                estados = [muestra(True, duracion=10),
+                           muestra(False, duracion=10)]
+            else:
+                estados = [muestra(True, duracion=10)] * 500
+            gestor = GestorFalso(estados)
             gestores.append(gestor)
             return gestor
 
@@ -722,13 +746,18 @@ class YouTubeEmisionTest(BaseSupervisor):
 
 class FinalizarYoutubeTest(BaseSupervisor):
     def armar_youtube(self, estados, intervalo=0.01, espera=True,
-                      finalizar=None):
+                      finalizar=None, estados_detener=None):
         anuncios = []
         gestores = []
         llamadas_finalizar = []
 
         def crear_gestor():
-            gestor = GestorFalso(estados)
+            # El primer gestor es el de la vigilancia; los siguientes, los
+            # que crea detener() para hablar con OBS.
+            if estados_detener is not None and gestores:
+                gestor = GestorFalso(estados_detener)
+            else:
+                gestor = GestorFalso(estados)
             gestores.append(gestor)
             return gestor
 
@@ -792,7 +821,10 @@ class FinalizarYoutubeTest(BaseSupervisor):
 
     def test_detener_cierra_una_vez_y_vigilar_no_repite(self):
         estados = [muestra(True, duracion=10)] * 500
-        armado = self.armar_youtube(estados)
+        armado = self.armar_youtube(
+            estados,
+            estados_detener=[muestra(True, duracion=10),
+                             muestra(False, duracion=10)])
         supervisor, anuncios, gestores, llamadas = armado
         supervisor.iniciar()
         try:
@@ -830,7 +862,13 @@ class FinalizarYoutubeTest(BaseSupervisor):
         llamadas = []
 
         def crear_gestor():
-            gestor = GestorFalso([muestra(True, duracion=10)] * 500)
+            # El de la vigilancia no para; el de detener() confirma enseguida.
+            if gestores:
+                estados = [muestra(True, duracion=10),
+                           muestra(False, duracion=10)]
+            else:
+                estados = [muestra(True, duracion=10)] * 500
+            gestor = GestorFalso(estados)
             gestores.append(gestor)
             return gestor
 
@@ -861,7 +899,9 @@ class FinalizarYoutubeTest(BaseSupervisor):
     def test_si_youtube_falla_avisa_con_sonido_de_error(self):
         estados = [muestra(True, duracion=10)] * 500
         armado = self.armar_youtube(
-            estados, finalizar=RuntimeError("cuota agotada"))
+            estados, finalizar=RuntimeError("cuota agotada"),
+            estados_detener=[muestra(True, duracion=10),
+                             muestra(False, duracion=10)])
         supervisor, anuncios, gestores, llamadas = armado
         supervisor.iniciar()
         try:
@@ -874,7 +914,7 @@ class FinalizarYoutubeTest(BaseSupervisor):
                 supervisor.abandonar()
         self.assertIn(
             ("YouTube no confirmó el fin del directo. "
-             "Finalízalo en YouTube Studio.", "transmision_problema"),
+             "Se reintentará durante 10 minutos.", "transmision_problema"),
             anuncios)
 
 
@@ -971,6 +1011,210 @@ class PanelAdelanteTest(BaseSupervisor):
                       anuncios)
         self.assertFalse(any(frase.startswith("El panel de chat")
                              for frase, _ in anuncios))
+
+
+class EsperaObsTest(unittest.TestCase):
+    """La espera a que OBS confirme la parada, con reloj falso."""
+
+    def _supervisor(self, estados_detener, finalizar=None, ruta=None,
+                    reloj=None):
+        reloj = reloj or RelojFalso()
+        anuncios = []
+        gestores = []
+
+        def crear_gestor():
+            gestor = GestorFalso(estados_detener)
+            gestores.append(gestor)
+            return gestor
+
+        supervisor = SupervisorTransmision(
+            "YouTube", "",
+            al_anunciar=lambda frase, sonido: anuncios.append(
+                (frase, sonido)),
+            al_conectar_chat=lambda url: None,
+            crear_gestor=crear_gestor,
+            esperar_salida=lambda cliente, parada=None: "enviando",
+            esperar_en_vivo=lambda u, parada=None, limite=None: (
+                ResultadoEspera(False, False)),
+            dormir=reloj.dormir, reloj=reloj.reloj,
+            intervalo_salud=1000.0,
+            asegurar=lambda probar, al_anunciar=None, parada=None: False,
+            finalizar_emision=finalizar,
+            ruta_fin_pendiente=ruta)
+        supervisor._id_video = "vid123"
+        return supervisor, anuncios, gestores, reloj
+
+    def test_anuncia_detenida_solo_cuando_obs_apaga(self):
+        estados = [muestra(True)] * 6 + [muestra(False)]
+        supervisor, anuncios, gestores, _ = self._supervisor(estados)
+        supervisor._detener_obs()
+        self.assertEqual(anuncios, [
+            ("Deteniendo la transmisión. Esperando a que OBS confirme.",
+             None),
+            ("Transmisión detenida.", "transmision_detenida"),
+        ])
+        self.assertEqual(gestores[0].llamadas.count("detener"), 1)
+        self.assertEqual(gestores[0].cerrado, 1)
+
+    def test_avisa_una_sola_vez_al_esperar(self):
+        estados = [muestra(True)] * 6 + [muestra(False)]
+        supervisor, anuncios, _gestores, _ = self._supervisor(estados)
+        supervisor._detener_obs()
+        avisos = [f for f, _ in anuncios
+                  if f == "Deteniendo la transmisión. "
+                           "Esperando a que OBS confirme."]
+        self.assertEqual(len(avisos), 1)
+
+    def test_a_los_noventa_segundos_no_insiste(self):
+        estados = [muestra(True)] * 200
+        supervisor, anuncios, _gestores, _ = self._supervisor(estados)
+        supervisor._detener_obs()
+        self.assertEqual(anuncios[-1], (
+            "OBS sigue transmitiendo. Detén la transmisión en OBS.",
+            "transmision_problema"))
+        self.assertFalse(any(f == "Transmisión detenida." for f, _ in anuncios))
+        avisos = [f for f, _ in anuncios
+                  if f == "Deteniendo la transmisión. "
+                           "Esperando a que OBS confirme."]
+        self.assertEqual(len(avisos), 1)
+
+    def test_obs_ya_apagado_avisa_detenida(self):
+        supervisor, anuncios, gestores, _ = self._supervisor(
+            [muestra(False)])
+        supervisor._detener_obs()
+        self.assertEqual(anuncios, [("Transmisión detenida.",
+                                     "transmision_detenida")])
+        self.assertNotIn("detener", gestores[0].llamadas)
+
+    def test_conectar_falla_con_obs_abierto(self):
+        supervisor, anuncios, _gestores, _ = self._supervisor(
+            [muestra(True)])
+        with mock.patch.object(
+                obs_supervisor.obs_activacion,
+                "obs_esta_en_ejecucion", return_value=True):
+            supervisor._crear_gestor = lambda: GestorFalso(
+                fallo="conectar")
+            supervisor._detener_obs()
+        self.assertEqual(anuncios, [(
+            "No se pudo conectar con OBS para detener la transmisión.",
+            "transmision_problema")])
+
+    def test_conectar_falla_con_obs_cerrado(self):
+        supervisor, anuncios, _gestores, _ = self._supervisor(
+            [muestra(True)])
+        with mock.patch.object(
+                obs_supervisor.obs_activacion,
+                "obs_esta_en_ejecucion", return_value=False):
+            supervisor._crear_gestor = lambda: GestorFalso(
+                fallo="conectar")
+            supervisor._detener_obs()
+        self.assertEqual(anuncios, [("Transmisión detenida.",
+                                     "transmision_detenida")])
+
+    def test_estado_que_falla_asume_activa_y_manda_stop(self):
+        supervisor, anuncios, _gestores, _ = self._supervisor(
+            [muestra(True)])
+
+        class GestorQueFallaAlPreguntar(GestorFalso):
+            def estado_transmision(self, parada=None):
+                self.llamadas.append("estado")
+                intento = self.llamadas.count("estado")
+                if intento == 1:
+                    raise RuntimeError("boom en estado")
+                return muestra(intento <= 3)
+
+        gestor = GestorQueFallaAlPreguntar()
+        supervisor._crear_gestor = lambda: gestor
+        supervisor._detener_obs()
+        self.assertIn("detener", gestor.llamadas)
+        self.assertIn(("Transmisión detenida.", "transmision_detenida"),
+                      anuncios)
+
+
+class FinPendienteTest(unittest.TestCase):
+    """El fin de directo sin confirmar se anota y se reintenta solo."""
+
+    def _supervisor(self, ruta, finalizar):
+        anuncios = []
+        reloj = RelojFalso()
+        supervisor = SupervisorTransmision(
+            "YouTube", "",
+            al_anunciar=lambda frase, sonido: anuncios.append(
+                (frase, sonido)),
+            al_conectar_chat=lambda url: None,
+            crear_gestor=lambda: GestorFalso([muestra(False)]),
+            esperar_salida=lambda cliente, parada=None: "enviando",
+            esperar_en_vivo=lambda u, parada=None, limite=None: (
+                ResultadoEspera(False, False)),
+            dormir=reloj.dormir, reloj=reloj.reloj,
+            intervalo_salud=1000.0,
+            asegurar=lambda probar, al_anunciar=None, parada=None: False,
+            finalizar_emision=finalizar,
+            ruta_fin_pendiente=ruta)
+        supervisor._id_video = "vid123"
+        return supervisor, anuncios
+
+    def test_anota_reintenta_y_limpia_al_lograr(self):
+        llamadas = []
+
+        def finalizar(id_video):
+            llamadas.append(id_video)
+            if len(llamadas) <= 2:
+                raise RuntimeError("sin red")
+
+        with tempfile.TemporaryDirectory() as carpeta:
+            ruta = Path(carpeta) / "fin_pendiente.json"
+            supervisor, anuncios = self._supervisor(ruta, finalizar)
+            supervisor._finalizar_youtube_si_toca()
+            self.assertTrue(esperar_condicion(
+                lambda: any(f == "Directo finalizado en YouTube."
+                            for f, _ in anuncios)))
+            self.assertEqual(llamadas[0], "vid123")
+            self.assertTrue(len(llamadas) >= 3)
+            self.assertEqual(fin_pendiente.leer(ruta), [])
+        self.assertIn((
+            "YouTube no confirmó el fin del directo. "
+            "Se reintentará durante 10 minutos.", "transmision_problema"),
+            anuncios)
+        self.assertIn(("Directo finalizado en YouTube.",
+                       "directo_finalizado"), anuncios)
+
+    def test_si_el_reintento_se_rinde_queda_el_pendiente(self):
+        def finalizar(id_video):
+            raise RuntimeError("sin red")
+
+        with tempfile.TemporaryDirectory() as carpeta:
+            ruta = Path(carpeta) / "fin_pendiente.json"
+            supervisor, anuncios = self._supervisor(ruta, finalizar)
+            supervisor._finalizar_youtube_si_toca()
+            self.assertTrue(esperar_condicion(
+                lambda: any(f == "YouTube sigue sin confirmar el fin del "
+                                   "directo. Se intentará de nuevo al abrir "
+                                   "YTChat." for f, _ in anuncios)))
+            self.assertEqual([e["id"] for e in fin_pendiente.leer(ruta)],
+                             ["vid123"])
+        self.assertIn((
+            "YouTube sigue sin confirmar el fin del directo. "
+            "Se intentará de nuevo al abrir YTChat.", "transmision_problema"),
+            anuncios)
+
+    def test_sin_ruta_no_toca_el_disco_ni_reintenta(self):
+        llamadas = []
+
+        def finalizar(id_video):
+            llamadas.append(id_video)
+            raise RuntimeError("sin red")
+
+        supervisor, anuncios = self._supervisor(None, finalizar)
+        supervisor._finalizar_youtube_si_toca()
+        time.sleep(0.05)
+        self.assertEqual(llamadas, ["vid123"])
+        self.assertIn((
+            "YouTube no confirmó el fin del directo. "
+            "Se reintentará durante 10 minutos.", "transmision_problema"),
+            anuncios)
+        self.assertFalse(any(f == "Directo finalizado en YouTube."
+                             for f, _ in anuncios))
 
 
 if __name__ == "__main__":

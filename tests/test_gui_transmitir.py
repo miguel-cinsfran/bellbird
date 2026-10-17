@@ -260,6 +260,42 @@ class TestSupervisarTransmision(unittest.TestCase):
         self.assertEqual(kwargs["al_terminar"],
                          frame._al_terminar_supervisor)
 
+    def test_iniciar_youtube_pasa_la_ruta_de_fin_pendiente(self):
+        frame = SimpleNamespace(
+            _supervisor=None, _config={}, _alive=True,
+            _actualizar_boton_directo=mock.Mock(),
+            _al_terminar_supervisor=mock.Mock(),
+            _guardar_datos_directo_youtube=mock.Mock(return_value={
+                "titulo": "T", "descripcion": "", "privacidad": "unlisted"}))
+        supervisor = mock.Mock()
+        credenciales = SimpleNamespace(
+            cargar=lambda: {"token": "t"},
+            hay_sesion=lambda datos: True,
+            efectivas=lambda datos: {"efectivas": True},
+            guardar_campo=mock.Mock())
+        pedido = {"titulo": "T", "descripcion": "", "privacidad": "unlisted"}
+        sentinela = object()
+        with mock.patch.object(gui, "credenciales", credenciales), \
+                mock.patch.object(gui, "youtube_api") as youtube_api, \
+                mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo",
+                           return_value=pedido), \
+                mock.patch("ytchat.youtube.emision.cuerpo_emision",
+                           return_value={"cuerpo": True}), \
+                mock.patch("ytchat.youtube.emision.ganchos_youtube",
+                           return_value=("p", "e", "f")), \
+                mock.patch("ytchat.core.paths.fin_pendiente",
+                           return_value=sentinela), \
+                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+                           return_value=supervisor) as fabrica:
+            gui_transmitir.supervisar_transmision(
+                frame, "iniciar", "YouTube", "")
+        youtube_api.ClienteYouTube.assert_called_once()
+        self.assertIs(frame._supervisor, supervisor)
+        supervisor.iniciar.assert_called_once_with()
+        args, kwargs = fabrica.call_args
+        self.assertEqual(args[0], "YouTube")
+        self.assertIs(kwargs["ruta_fin_pendiente"], sentinela)
+
     def test_detener_sin_supervisor_no_hace_nada(self):
         frame = SimpleNamespace(_supervisor=None,
                                 _actualizar_boton_directo=mock.Mock())

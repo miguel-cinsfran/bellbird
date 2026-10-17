@@ -341,6 +341,14 @@ def gen_transmision_problema():
     return _concat(pulso, _silencio(0.08), pulso, _silencio(0.02))
 
 
+def gen_directo_finalizado():
+    # Confirmación de cierre corta y resuelta: subida E5→C6 que asienta.
+    # Distinta del descenso de transmision_detenida y del arpegio de al_aire.
+    n1 = _perc(_seno(E5, 0.10, 0.34), 0.004, 0.09)
+    n2 = _perc(_seno(C6, 0.20, 0.34), 0.004, 0.16)
+    return _normalizar(_concat(n1, n2), 0.72)
+
+
 def gen_aviso():
     # Campanita neutra de dos notas E6→B5: avisa sin calificar.
     n1 = _perc(_seno(E6, 0.12, 0.30), 0.002, 0.10)
@@ -504,6 +512,11 @@ def s_transmision_problema():
     return _concat(pulso, _silencio(0.08), pulso, _silencio(0.02))
 
 
+def s_directo_finalizado():
+    return _seq(_madera(E5, 0.11, 0.34, 0.09),
+                _madera(C6, 0.20, 0.36, 0.16))
+
+
 def s_aviso():
     return _seq(_madera(E6, 0.10, 0.32, 0.08),
                 _madera(B5, 0.20, 0.34, 0.15))
@@ -641,6 +654,7 @@ TEMAS = {
         "al_aire.wav":                 gen_al_aire,
         "transmision_detenida.wav":    gen_transmision_detenida,
         "transmision_problema.wav":    gen_transmision_problema,
+        "directo_finalizado.wav":      gen_directo_finalizado,
         "aviso.wav":                   gen_aviso,
         "actualizacion_disponible.wav": gen_actualizacion_disponible,
         "actualizacion_lista.wav":      gen_actualizacion_lista,
@@ -690,6 +704,7 @@ TEMAS = {
         "al_aire.wav":                 s_al_aire,
         "transmision_detenida.wav":    s_transmision_detenida,
         "transmision_problema.wav":    s_transmision_problema,
+        "directo_finalizado.wav":      s_directo_finalizado,
         "aviso.wav":                   s_aviso,
         "actualizacion_disponible.wav": s_actualizacion_disponible,
         "actualizacion_lista.wav":      s_actualizacion_lista,

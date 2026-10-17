@@ -1489,6 +1489,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("ui", "tamanio_fuente_chat"),
             ("ui", "mostrar_total_superchats"),
             ("ui", "autoplay_reproductor"),
+            ("ui", "reproductor_solo_audio"),
             ("ui", "mostrar_metadatos"),
             ("ui", "mostrar_botones_reproductor"),
             ("ui", "cache_video_mb"),
@@ -1724,6 +1725,21 @@ class TestAplicarPreferenciasMotor(unittest.TestCase):
                 mock.patch.object(gui, "anunciar"):
             frame._aplicar_preferencias_en_caliente()
         frame._worker.cambiar_motor.assert_not_called()
+
+    def test_solo_audio_activo_se_aplica_al_panel(self):
+        frame = self._frame({"motor": "sapi", "atajos_raw": {},
+                             "reproductor_solo_audio": True})
+        frame._worker.motor_activo.return_value = "sapi"
+        with mock.patch.object(gui, "anunciar"):
+            frame._aplicar_preferencias_en_caliente()
+        frame._rep_panel.set_solo_audio.assert_called_once_with(True)
+
+    def test_solo_audio_ausente_se_aplica_en_falso(self):
+        frame = self._frame({"motor": "sapi", "atajos_raw": {}})
+        frame._worker.motor_activo.return_value = "sapi"
+        with mock.patch.object(gui, "anunciar"):
+            frame._aplicar_preferencias_en_caliente()
+        frame._rep_panel.set_solo_audio.assert_called_once_with(False)
 
     def test_aplica_los_ajustes_de_elevenlabs_al_worker(self):
         frame = self._frame({"motor": "elevenlabs", "atajos_raw": {},

@@ -96,6 +96,7 @@ _OPCIONES_SIMPLES = (
     ("sp_fuente", "ui", "tamanio_fuente_chat", "tamanio_fuente_chat", int, 12),
     ("chk_total_sc", "ui", "mostrar_total_superchats", "mostrar_total_superchats", bool, True),
     ("chk_autoplay", "ui", "autoplay_reproductor", "autoplay_reproductor", bool, True),
+    ("chk_solo_audio", "ui", "reproductor_solo_audio", "reproductor_solo_audio", bool, False),
     ("chk_metadatos", "ui", "mostrar_metadatos", "mostrar_metadatos", bool, True),
     ("chk_botones_rep", "ui", "mostrar_botones_reproductor", "mostrar_botones_reproductor", bool, True),
     ("sp_cache_video", "ui", "cache_video_mb", "cache_video_mb", int, 1024),
@@ -604,6 +605,12 @@ class PreferenciasDialog(wx.Dialog):
                                         name="AutoplayReproductor")
         self.chk_autoplay.SetForegroundColour(_T.text)
         vs.Add(self.chk_autoplay, 0, wx.ALL, 10)
+
+        self.chk_solo_audio = wx.CheckBox(
+            p, label="Reproducir &solo el audio, sin decodificar la imagen",
+            name="SoloAudioReproductor")
+        self.chk_solo_audio.SetForegroundColour(_T.text)
+        vs.Add(self.chk_solo_audio, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         self.chk_botones_rep = wx.CheckBox(p, label="Mostrar los &botones del reproductor (también con su interruptor y el menú Reproductor)",
                                            name="MostrarBotonesReproductor")

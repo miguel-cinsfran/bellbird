@@ -438,6 +438,84 @@ class TestAvisoReproductor(unittest.TestCase):
         self.assertEqual(reproductor.aviso_reproductor(True, True), "")
 
 
+class TestSoloAudio(unittest.TestCase):
+    """Cableado de «Reproducir solo el audio»: el medio nuevo se arma con
+    «:no-video» salvo que el audio venga como esclavo."""
+
+    def _panel(self):
+        panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
+        panel._inst = mock.Mock()
+        panel._player = mock.Mock()
+        panel._vol = 75
+        panel._muted = False
+        panel._timer = mock.Mock()
+        panel._estado_inicio = mock.Mock()
+        panel._fijar_estado = mock.Mock()
+        panel._mostrar_pausa = mock.Mock()
+        panel._solo_audio = False
+        return panel
+
+    def _medio(self, panel):
+        medio = mock.Mock()
+        panel._inst.media_new.return_value = medio
+        return medio
+
+    def _opciones(self, medio):
+        return [c.args[0] for c in medio.add_option.call_args_list]
+
+    def test_flujo_agrega_no_video_con_la_preferencia_puesta(self):
+        panel = self._panel()
+        panel._url_flujo = "https://flujo.example/stream.flv"
+        panel._asegurar_player = mock.Mock(return_value=True)
+        panel._cancelar_busqueda = mock.Mock()
+        panel._cancelar_transporte = mock.Mock()
+        medio = self._medio(panel)
+        panel.set_solo_audio(True)
+        panel._reproducir_flujo(reproducir=False)
+        self.assertIn(":no-video", self._opciones(medio))
+
+    def test_flujo_no_agrega_no_video_sin_la_preferencia(self):
+        panel = self._panel()
+        panel._url_flujo = "https://flujo.example/stream.flv"
+        panel._asegurar_player = mock.Mock(return_value=True)
+        panel._cancelar_busqueda = mock.Mock()
+        panel._cancelar_transporte = mock.Mock()
+        medio = self._medio(panel)
+        panel.set_solo_audio(False)
+        panel._reproducir_flujo(reproducir=False)
+        self.assertNotIn(":no-video", self._opciones(medio))
+
+    def test_calidad_sin_esclavo_agrega_no_video(self):
+        panel = self._panel()
+        panel._tiene_esclavo = False
+        panel._audio_local = None
+        medio = self._medio(panel)
+        panel.set_solo_audio(True)
+        panel._continuar_reproducir_calidad("https://video", "", True, False)
+        self.assertIn(":no-video", self._opciones(medio))
+
+    def test_calidad_con_esclavo_conserva_la_imagen(self):
+        # Con el audio como input-slave, «:no-video» deja el medio mudo.
+        panel = self._panel()
+        panel._tiene_esclavo = False
+        medio = self._medio(panel)
+        panel.set_solo_audio(True)
+        panel._continuar_reproducir_calidad(
+            "https://video", "https://audio", True, False)
+        self.assertNotIn(":no-video", self._opciones(medio))
+
+    def test_constructor_lee_la_preferencia_del_config(self):
+        with mock.patch.object(reproductor.wx.Panel, "__init__", return_value=None), \
+                mock.patch.object(reproductor.ReproductorPanel, "SetBackgroundColour"), \
+                mock.patch.object(reproductor.ReproductorPanel, "SetForegroundColour"), \
+                mock.patch.object(reproductor, "disponible", return_value=True), \
+                mock.patch.object(reproductor.ReproductorPanel, "_build_ui"), \
+                mock.patch.object(reproductor.ReproductorPanel, "_precalentar"):
+            panel = reproductor.ReproductorPanel(
+                None, {"reproductor_solo_audio": True})
+        self.assertTrue(panel._solo_audio)
+
+
 class TestOpcionesMedio(unittest.TestCase):
 
     def test_grabado_tiene_mas_colchon_de_red_que_directo(self):
@@ -452,6 +530,20 @@ class TestOpcionesMedio(unittest.TestCase):
         for es_directo in (False, True):
             opciones = reproductor.opciones_medio(es_directo)
             self.assertEqual(len(opciones), 2)
+            self.assertTrue(any(opcion.startswith(":network-caching=")
+                                for opcion in opciones))
+            self.assertTrue(any(opcion.startswith(":live-caching=")
+                                for opcion in opciones))
+
+    def test_sin_solo_audio_no_agrega_no_video(self):
+        for es_directo in (False, True):
+            self.assertNotIn(":no-video", reproductor.opciones_medio(es_directo))
+
+    def test_solo_audio_agrega_no_video_a_grabado_y_directo(self):
+        for es_directo in (False, True):
+            opciones = reproductor.opciones_medio(es_directo, solo_audio=True)
+            self.assertEqual(opciones[-1], ":no-video")
+            # Las de búfer siguen: sin ellas el directo pierde su colchón.
             self.assertTrue(any(opcion.startswith(":network-caching=")
                                 for opcion in opciones))
             self.assertTrue(any(opcion.startswith(":live-caching=")

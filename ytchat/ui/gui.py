@@ -1218,6 +1218,8 @@ class YTChatFrame(wx.Frame):
         try:
             self._rep_panel.set_botones_visibles(
                 bool(self._config.get("mostrar_botones_reproductor", True)))
+            self._rep_panel.set_solo_audio(
+                bool(self._config.get("reproductor_solo_audio", False)))
         except Exception:
             pass
         self._actualizar_vigilante_obs()

@@ -156,12 +156,17 @@ def aviso_reproductor(hay_reproductor: bool, hay_medio: bool) -> str:
 _VLC_ARGS = ("--quiet",)
 
 
-def opciones_medio(es_directo: bool) -> tuple[str, ...]:
-    """Opciones de búfer para un medio grabado o en directo."""
+def opciones_medio(es_directo: bool, solo_audio: bool = False) -> tuple[str, ...]:
+    """Opciones de búfer para un medio grabado o en directo. Con `solo_audio`
+    agrega «:no-video»: no se decodifica la imagen, que es lo que saturaba la
+    gráfica en equipos que solo escuchan."""
     # El grabado admite más colchón para resistir fluctuaciones de red; el
     # directo conserva menor demora respecto de la emisión.
     red = 1500 if es_directo else 3000
-    return (f":network-caching={red}", ":live-caching=1500")
+    opciones = [f":network-caching={red}", ":live-caching=1500"]
+    if solo_audio:
+        opciones.append(":no-video")
+    return tuple(opciones)
 
 
 def aviso_de_corte(pct, pct_anterior) -> str:
@@ -582,6 +587,10 @@ class ReproductorPanel(wx.Panel):
         # El fallback coincide con config_predeterminada (true): un config sin
         # la clave no debe esconder los botones.
         self._botones_visibles = bool(config.get("mostrar_botones_reproductor", True))
+        # Reproductor sin imagen: quien solo escucha no paga la decodificación
+        # de vídeo (casilla «Reproducir solo el audio» de Preferencias). Vale
+        # desde la próxima vez que se arma el medio.
+        self._solo_audio = bool(config.get("reproductor_solo_audio", False))
         self.on_botones_toggle = None
         self._calidad_sel = None
         self._alturas = []
@@ -1190,6 +1199,11 @@ class ReproductorPanel(wx.Panel):
         anunciar("Botones del reproductor visibles" if self._botones_visibles
                  else "Botones del reproductor ocultos")
 
+    def set_solo_audio(self, solo_audio: bool) -> None:
+        """Fija si el próximo medio se arma sin vídeo. No corta ni recarga lo
+        que ya está sonando: vale desde la próxima vez que se arma el medio."""
+        self._solo_audio = bool(solo_audio)
+
     def set_video(self, video_id: str, autoplay: bool = True) -> None:
         self._video_id = video_id or ""
         self._url_flujo = ""
@@ -1675,7 +1689,10 @@ class ReproductorPanel(wx.Panel):
     def _continuar_reproducir_calidad(self, url, slave, es_directo, reproducir):
         try:
             media = self._inst.media_new(url)
-            for opt in opciones_medio(es_directo):
+            # Sin imagen salvo que el audio venga como esclavo: en ese caso
+            # «:no-video» en el medio principal dejaría la reproducción muda.
+            solo_audio = getattr(self, "_solo_audio", False) and not slave
+            for opt in opciones_medio(es_directo, solo_audio):
                 media.add_option(opt)
             if slave:
                 if not es_directo:
@@ -1726,7 +1743,7 @@ class ReproductorPanel(wx.Panel):
         self._intencion_reproducir = reproducir
         try:
             media = self._inst.media_new(self._url_flujo)
-            for opt in opciones_medio(True):
+            for opt in opciones_medio(True, getattr(self, "_solo_audio", False)):
                 media.add_option(opt)
             self._player.set_media(media)
             self._marca_reproduccion = time.monotonic()

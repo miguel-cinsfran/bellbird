@@ -95,6 +95,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("tamanio_fuente_chat", "12"),
         ("mostrar_total_superchats", "true"),
         ("autoplay_reproductor", "true"),
+        ("reproductor_solo_audio", "false"),
         ("filtro_activo", "todos"),
         ("silenciar_sonidos", "false"),
         ("mostrar_botones_reproductor", "true"),

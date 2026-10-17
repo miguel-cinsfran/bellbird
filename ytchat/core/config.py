@@ -727,6 +727,7 @@ def cargar_configuracion() -> dict:
         "tamanio_fuente_chat": _pi(p, "ui", "tamanio_fuente_chat", lo=8, hi=24),
         "mostrar_total_superchats": _pb(p, "ui", "mostrar_total_superchats"),
         "autoplay_reproductor": _pb(p, "ui", "autoplay_reproductor"),
+        "reproductor_solo_audio": _pb(p, "ui", "reproductor_solo_audio"),
         "mostrar_botones_reproductor": _pb(p, "ui", "mostrar_botones_reproductor"),
         "cache_video_mb": _pi(p, "ui", "cache_video_mb", lo=0, hi=20000),
         "mostrar_metadatos": _pb(p, "ui", "mostrar_metadatos"),

@@ -3,6 +3,40 @@
 Qué cambia en cada versión, en lenguaje llano. El detalle técnico está en el
 historial de git.
 
+## 2.3.1, octubre de 2026
+
+Arreglos del actualizador y una página General nueva en Preferencias.
+
+### Actualizaciones
+
+- **La segunda actualización ya no falla.** Antes de descomprimir una
+  versión nueva, la aplicación borra lo que dejó la actualización anterior,
+  y en ese paso fallaba siempre. El arreglo viaja dentro de esta versión:
+  para pasar de la 2.3.0 a la 2.3.1 todavía hay que borrar a mano la
+  carpeta `data\actualizacion\nueva` antes de actualizar. Las siguientes
+  ya no lo necesitan.
+- **La ventana de actualización se ve entera.** Quedaba chica, y las
+  novedades y el botón *Más tarde* no se veían. Ahora crece con su
+  contenido, pone los botones en una fila y se puede agrandar.
+
+### Preferencias
+
+- **Página General, la primera de la lista.** Reúne *Buscar actualizaciones
+  al iniciar* y el registro detallado, que estaban en Conexión y en
+  Diagnóstico, y suma:
+  - Preguntar antes de salir si hay un chat conectado o una transmisión en
+    curso.
+  - Recordar la última dirección: al abrir, el campo trae el último directo
+    al que te conectaste.
+  - Reproducir el sonido de inicio.
+  - Abrir la carpeta de datos.
+  - Exportar e importar las preferencias, para pasarlas a otra computadora
+    o guardar una copia. Las claves de tus cuentas no se exportan.
+  - Restablecer todas las preferencias a los valores de fábrica.
+- Antes de importar o restablecer se guarda una copia de las preferencias
+  actuales en la carpeta de datos.
+- La página Diagnóstico desaparece.
+
 ## 2.3.0, octubre de 2026
 
 Más voces para leer el chat y más opciones al crear un directo de YouTube.

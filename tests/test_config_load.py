@@ -303,6 +303,16 @@ class TestCargarConfiguracion(unittest.TestCase):
         self.assertEqual(cfg["ultima_direccion"],
                          "https://ejemplo.com/directo")
 
+    def test_clave_sobrante_guardar_historial_se_ignora_sin_error(self):
+        # Un config.ini de usuario que todavía trae la opción muerta se
+        # sigue leyendo sin error y la clave sobrante se ignora.
+        cfg = self._cargar_en(
+            "[sesion]\nguardar_historial = csv\n"
+            "ultima_direccion = https://ejemplo.com/directo\n")
+        self.assertNotIn("guardar_historial", cfg)
+        self.assertEqual(cfg["ultima_direccion"],
+                         "https://ejemplo.com/directo")
+
     def test_overlay_tiene_defaults_y_se_persiste_en_el_ejemplo(self):
         cfg = self._cargar_en(config._CONFIG_FALLBACK)
         self.assertFalse(cfg["overlay_activo"])

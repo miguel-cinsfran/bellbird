@@ -1457,6 +1457,13 @@ def escenario_preferencias_categorias(app: Aplicacion, args, res: Resultado):
     if len(paginas) < 13:
         res.fallo(f"preferencias_categorias: hay {len(paginas)} categorías, "
                   f"se esperaban 13")
+    if any(n.strip().lower() in ("diagnóstico", "diagnostico")
+           for n in paginas):
+        res.fallo("preferencias_categorias: existe la categoría "
+                  "«Diagnóstico», que ya no debería existir")
+    if paginas and paginas[0].strip().lower() != "general":
+        res.fallo(f"preferencias_categorias: la primera categoría es "
+                  f"«{paginas[0]}» y debería ser «General»")
     try:
         for i, nombre in enumerate(paginas):
             app.pedir("pestanas", ventana="Preferencias", indice=i)
@@ -1473,6 +1480,149 @@ def escenario_preferencias_categorias(app: Aplicacion, args, res: Resultado):
                           f"alcanzable")
     finally:
         app.pedir("cerrar_ventana", ventana="Preferencias")
+
+
+def _sonido_inicio_guardado_en_disco() -> str:
+    """El valor de `[ui] sonido_inicio` en el `config.ini` real, en minúsculas."""
+    import configparser
+    try:
+        from ytchat.core import paths
+        parser = configparser.ConfigParser(interpolation=None)
+        parser.read(paths.config_ini(), encoding="utf-8")
+        return parser.get("ui", "sonido_inicio", fallback="").strip().lower()
+    except Exception:
+        return ""
+
+
+def escenario_preferencias_persisten(app: Aplicacion, args, res: Resultado):
+    """Una preferencia cambiada y guardada se conserva al reabrir Preferencias.
+
+    Invierte la casilla «Reproducir el sonido de inicio» (General, clave
+    `[ui] sonido_inicio`), guarda, comprueba el `config.ini` y reabre para
+    comprobar que la casilla muestra el valor invertido. Restaura el valor
+    original en un `finally`, como `escenario_transmitir_destino`.
+    """
+    NOMBRE_CASILLA = "Reproducir el sonido de inicio"
+    previo_txt = _sonido_inicio_guardado_en_disco()
+    previo = previo_txt in ("true", "yes", "1", "on")
+    invertido = not previo
+    esperado_txt = "true" if invertido else "false"
+    try:
+        app.pedir("frente")
+        try:
+            app.abrir_por_menu("Preferencias")
+        except Exception as exc:
+            res.fallo(f"preferencias_persisten: no se pudo abrir, {exc}")
+            return
+        if app.esperar_ventana("Preferencias", segundos=15) is None:
+            res.fallo("preferencias_persisten: Preferencias no abrió")
+            return
+        try:
+            paginas = app.pedir("pestanas", ventana="Preferencias").get(
+                "datos", {}).get("paginas", [])
+        except Exception as exc:
+            res.fallo(f"preferencias_persisten: no se pudieron listar las "
+                      f"pestañas, {exc}")
+            app.pedir("cerrar_ventana", ventana="Preferencias")
+            return
+        try:
+            indice = next(i for i, n in enumerate(paginas)
+                          if n.strip().lower() == "general")
+        except StopIteration:
+            res.fallo(f"preferencias_persisten: no existe la categoría "
+                      f"«General»; hay {paginas}")
+            app.pedir("cerrar_ventana", ventana="Preferencias")
+            return
+        app.pedir("pestanas", ventana="Preferencias", indice=indice)
+        time.sleep(0.8)
+        # La casilla se invierte con foco y espacio, como en `overlay`: la
+        # orden `pulsar` manda un evento de botón que no alterna casillas.
+        try:
+            app.pedir("foco", ventana="Preferencias", nombre=NOMBRE_CASILLA)
+        except Exception as exc:
+            res.fallo(f"preferencias_persisten: no se llega a la casilla "
+                      f"«{NOMBRE_CASILLA}», {exc}")
+            app.pedir("cerrar_ventana", ventana="Preferencias")
+            return
+        try:
+            app.teclas("space")
+        except VentanaNoActiva as exc:
+            res.no_probado(f"preferencias_persisten: no se pudo invertir la "
+                           f"casilla, {exc}")
+            app.pedir("cerrar_ventana", ventana="Preferencias")
+            return
+        time.sleep(0.5)
+        # Guardar se pulsa por su `name=`, como los botones de `captura_atajo`.
+        app.pedir("pulsar", nombre="GuardarPreferencias")
+        if app.esperar_ventana("Preferencias", segundos=4) is not None:
+            res.fallo("preferencias_persisten: «Guardar» no cerró Preferencias")
+            app.pedir("cerrar_ventana", ventana="Preferencias")
+            return
+        en_disco = _sonido_inicio_guardado_en_disco()
+        if en_disco != esperado_txt:
+            res.fallo(f"preferencias_persisten: el config.ini dice "
+                      f"«{en_disco or 'vacío'}» y debería decir "
+                      f"«{esperado_txt}»")
+        else:
+            res.nota(f"preferencias_persisten: el config.ini quedó en "
+                     f"«{esperado_txt}»")
+        # Reabrir y comprobar que la casilla muestra el valor invertido.
+        try:
+            app.abrir_por_menu("Preferencias")
+        except Exception as exc:
+            res.fallo(f"preferencias_persisten: no se pudo reabrir, {exc}")
+            return
+        if app.esperar_ventana("Preferencias", segundos=15) is None:
+            res.fallo("preferencias_persisten: al reabrir no abrió")
+            return
+        try:
+            paginas = app.pedir("pestanas", ventana="Preferencias").get(
+                "datos", {}).get("paginas", [])
+            indice = next(i for i, n in enumerate(paginas)
+                          if n.strip().lower() == "general")
+            app.pedir("pestanas", ventana="Preferencias", indice=indice)
+        except StopIteration:
+            res.fallo(f"preferencias_persisten: al reabrir no existe la "
+                      f"categoría «General»; hay {paginas}")
+            app.pedir("cerrar_ventana", ventana="Preferencias")
+            return
+        except Exception as exc:
+            res.fallo(f"preferencias_persisten: al reabrir no se pudo ir a "
+                      f"«General», {exc}")
+            app.pedir("cerrar_ventana", ventana="Preferencias")
+            return
+        time.sleep(0.8)
+        controles = app.arbol("Preferencias")
+        casilla = next((c for c in controles
+                        if c.get("clase") == "CheckBox"
+                        and (c.get("nombre") or "") == NOMBRE_CASILLA), None)
+        if casilla is None:
+            res.fallo(f"preferencias_persisten: al reabrir no existe la "
+                      f"casilla «{NOMBRE_CASILLA}»")
+        elif "marcado" not in casilla:
+            res.fallo("preferencias_persisten: la sonda no informa si la "
+                      "casilla está marcada")
+        elif bool(casilla.get("marcado")) != invertido:
+            res.fallo(f"preferencias_persisten: al reabrir la casilla muestra "
+                      f"«{'marcada' if casilla.get('marcado') else 'sin marcar'}» "
+                      f"y debería mostrar "
+                      f"«{'marcada' if invertido else 'sin marcar'}»")
+        else:
+            res.nota(f"preferencias_persisten: al reabrir la casilla muestra "
+                     f"«{'marcada' if invertido else 'sin marcar'}»")
+        app.pedir("cerrar_ventana", ventana="Preferencias")
+    finally:
+        try:
+            from ytchat.core import paths
+            from ytchat.core.config import guardar_opcion
+            guardar_opcion(paths.config_ini(), "ui", "sonido_inicio",
+                           "true" if previo else "false")
+        except Exception as exc:
+            res.nota("preferencias_persisten: no se pudo restaurar el valor "
+                     f"original ({exc})")
+        else:
+            res.nota("preferencias_persisten: el valor original vuelve a "
+                     f"«{'true' if previo else 'false'}»")
 
 
 def escenario_historial(app: Aplicacion, args, res: Resultado):
@@ -3715,6 +3865,7 @@ ESCENARIOS = {
     "descargas": escenario_descargas,
     "preferencias": escenario_preferencias,
     "preferencias_categorias": escenario_preferencias_categorias,
+    "preferencias_persisten": escenario_preferencias_persisten,
     "historial": escenario_historial,
     "transmision": escenario_transmision,
     "ayuda": escenario_ayuda,
@@ -3804,7 +3955,7 @@ def main() -> int:
         # botón de reproducir pasa la comprobación por el motivo equivocado.
         pedidos = ["arranque_frio", "reproductor",
                     "menus", "principal", "descargas", "preferencias",
-                    "preferencias_categorias",
+                    "preferencias_categorias", "preferencias_persisten",
                     "programados", "historial", "transmision", "ayuda", "dialogos_ayuda",
                    # `redactar` va antes que `chat` y no es capricho: la
                    # mitad de lo que comprueba es como se comporta SIN

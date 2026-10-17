@@ -143,6 +143,11 @@ def _describir(ventana, profundidad=0):
     if isinstance(ventana, wx.TextCtrl):
         try:    datos["valor"] = ventana.GetValue()
         except Exception: pass
+    # Si la casilla no dice si está marcada, el banco no puede comprobar que
+    # una preferencia guardada se muestra al reabrir Preferencias.
+    if isinstance(ventana, wx.CheckBox):
+        try:    datos["marcado"] = bool(ventana.GetValue())
+        except Exception: pass
     # El valor del deslizador es lo que NVDA lee al moverlo con flechas, y
     # sin esto el banco no puede comprobar que la flecha movió algo.
     if isinstance(ventana, wx.Slider):

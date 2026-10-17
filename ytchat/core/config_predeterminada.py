@@ -105,7 +105,6 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("sonido_inicio", "true"),
     ]),
     ("sesion", [
-        ("guardar_historial", "no"),
         ("silenciar_lectura", "false"),
         ("ultima_direccion", ""),
     ]),
@@ -248,7 +247,7 @@ def generar_texto() -> str:
                 "# dirección conectada; sonido_inicio suena al arrancar.\n"
             )
         elif sec == "sesion":
-            partes.append("# Historial en disco: no, csv o txt. Silenciar lectura al arrancar.\n")
+            partes.append("# Silenciar lectura al arrancar.\n")
             partes.append(
                 "# ultima_direccion es la última dirección conectada, para\n"
                 "# ofrecerla al arrancar si recordar_direccion está activado.\n"

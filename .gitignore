@@ -41,7 +41,7 @@ credenciales.json
 cliente_app.json
 alias.json
 
-# Historial de sesión (opción guardar_historial en config.ini)
+# Historial de sesión de versiones viejas (la opción que lo escribía ya no existe)
 historial.csv
 historial.txt
 # Historial de directos vistos (ventana Historial)

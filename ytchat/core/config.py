@@ -26,7 +26,7 @@ LIBRERIAS_SILENCIADAS = (
 # ── Identidad ─────────────────────────────────────────────────────────────────
 
 APP_NAME    = "YTChat TTS"
-APP_VERSION = "2.3.0"
+APP_VERSION = "2.3.1"
 
 # ── Tipos de mensaje ──────────────────────────────────────────────────────────
 
@@ -627,8 +627,6 @@ def cargar_configuracion() -> dict:
     if estrategia not in ("todas", "limite"): estrategia = "limite"
     formato = _gs(p, "lectura", "formato_prefijo").lower()
     if formato not in ("nombre_mensaje", "mensaje_nombre", "solo_mensaje", "solo_nombre"): formato = "nombre_mensaje"
-    guardar = _gs(p, "sesion", "guardar_historial").lower()
-    if guardar not in ("no", "csv", "txt"): guardar = "no"
 
     atajos_raw = {}
     if p.has_section("atajos"):
@@ -736,7 +734,6 @@ def cargar_configuracion() -> dict:
         "ultima_direccion": _gs(p, "sesion", "ultima_direccion"),
         "filtro_activo": filtro_activo,
         "silenciar_sonidos": _pb(p, "ui", "silenciar_sonidos"),
-        "guardar_historial": guardar,
         "silenciar_lectura": _pb(p, "sesion", "silenciar_lectura"),
         "tiktok_anunciar_entradas": _pb(p, "tiktok", "anunciar_entradas"),
         "tiktok_usuario": _gs(p, "tiktok", "usuario"),

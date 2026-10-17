@@ -612,11 +612,37 @@ class Sonda:
                 if not orden.get("responder_ya"):
                     self.responder(id_orden, True)
 
+            elif op == "casilla":
+                # Invierte o fija una casilla sin teclas del sistema. Como en
+                # `menu_click`: un evento construido acá no toca el estado
+                # solo, así que se cambia el valor a mano antes de despachar
+                # su `wx.EVT_CHECKBOX`, igual que el ítem marcable.
+                objetivo = self._ventana_por_titulo(orden.get("ventana"), frame)
+                ctrl = _buscar_control(objetivo, orden.get("nombre", ""))
+                if ctrl is None:
+                    raise RuntimeError(f"no encontré {orden.get('nombre')!r}")
+                if not isinstance(ctrl, wx.CheckBox):
+                    raise RuntimeError(
+                        f"{orden.get('nombre')!r} no es una casilla")
+                if "valor" in orden and orden["valor"] is not None:
+                    nuevo = bool(orden["valor"])
+                else:
+                    nuevo = not bool(ctrl.GetValue())
+                ctrl.SetValue(nuevo)
+                evento = wx.CommandEvent(wx.EVT_CHECKBOX.typeId, ctrl.GetId())
+                evento.SetEventObject(ctrl)
+                evento.SetInt(1 if nuevo else 0)
+                ctrl.GetEventHandler().ProcessEvent(evento)
+                self.responder(id_orden, True, {"valor": nuevo})
+
             elif op == "cerrar_ventana":
                 objetivo = self._ventana_por_titulo(orden.get("ventana"), frame)
                 if objetivo is None:
                     raise RuntimeError("no está esa ventana")
-                objetivo.Close(True)
+                # Por defecto se fuerza, como antes. Con `forzar=False` se
+                # cierra sin forzar, que sí se puede vetar y pregunta.
+                forzar = orden.get("forzar", True)
+                objetivo.Close(bool(forzar))
                 self.responder(id_orden, True)
 
             elif op == "reproductor":

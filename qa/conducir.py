@@ -156,6 +156,13 @@ class Aplicacion:
             self.pedir("salir", tiempo=5.0)
         except Exception:
             pass
+        # Si un escenario dejó la pregunta «Salir» abierta, el hilo de
+        # interfaz está dentro del modal y la orden de arriba no vuelve: se
+        # contesta desde fuera y se sigue como hoy si no hay nada.
+        try:
+            contestar_salir_si_aparece(segundos=2.0)
+        except Exception:
+            pass
         if self.proceso is not None:
             try:
                 self.proceso.terminate()
@@ -1535,20 +1542,14 @@ def escenario_preferencias_persisten(app: Aplicacion, args, res: Resultado):
             return
         app.pedir("pestanas", ventana="Preferencias", indice=indice)
         time.sleep(0.8)
-        # La casilla se invierte con foco y espacio, como en `overlay`: la
-        # orden `pulsar` manda un evento de botón que no alterna casillas.
+        # La casilla se invierte con la orden `casilla`, sin teclas del
+        # sistema: `pulsar` manda un evento de botón que no alterna
+        # casillas, y `teclas` exige que Windows deje la app al frente.
         try:
-            app.pedir("foco", ventana="Preferencias", nombre=NOMBRE_CASILLA)
+            app.pedir("casilla", ventana="Preferencias", nombre=NOMBRE_CASILLA)
         except Exception as exc:
-            res.fallo(f"preferencias_persisten: no se llega a la casilla "
-                      f"«{NOMBRE_CASILLA}», {exc}")
-            app.pedir("cerrar_ventana", ventana="Preferencias")
-            return
-        try:
-            app.teclas("space")
-        except VentanaNoActiva as exc:
-            res.no_probado(f"preferencias_persisten: no se pudo invertir la "
-                           f"casilla, {exc}")
+            res.fallo(f"preferencias_persisten: no se pudo invertir la "
+                      f"casilla «{NOMBRE_CASILLA}», {exc}")
             app.pedir("cerrar_ventana", ventana="Preferencias")
             return
         time.sleep(0.5)
@@ -3377,6 +3378,78 @@ def _cerrar_nativo(dlg) -> None:
     time.sleep(0.8)
 
 
+def _boton_nativo(dlg, nombre):
+    """Un botón de un cuadro nativo por su nombre. None si no está.
+
+    Compara sin marca de mnemónico y sin mayúsculas, como
+    `_boton_dejarlo_al_aire`, pero con el nombre por parámetro: la pregunta
+    «Salir» pide «Sí» y No es el botón por defecto, así que Enter no sirve.
+    """
+    objetivo = (nombre or "").replace("&", "").strip().lower()
+    try:
+        for d in dlg.descendants():
+            try:
+                if d.element_info.control_type != "Button":
+                    continue
+                texto = (d.element_info.name or "").replace(
+                    "&", "").strip()
+            except Exception:
+                continue
+            if texto.lower() == objetivo:
+                return d
+    except Exception:
+        pass
+    return None
+
+
+def pulsar_boton_nativo(dlg, nombre: str) -> bool:
+    """Pulsa un botón de un cuadro nativo por UI Automation. False si no está."""
+    boton = _boton_nativo(dlg, nombre)
+    if boton is None:
+        return False
+    try:
+        if hasattr(boton, "invoke"):
+            boton.invoke()
+        else:
+            boton.click_input()
+    except Exception:
+        try:
+            boton.click_input()
+        except Exception:
+            return False
+    return True
+
+
+def mensaje_salir_es_de_chat(textos: list) -> bool:
+    """¿Estos textos son la pregunta de salir con un chat conectado?
+
+    Pura para poder probarla sin ventanas: la pregunta dice
+    «¿Salir de la aplicación?» primero y nombra el chat conectado.
+    """
+    juntos = " ".join(t or "" for t in textos).lower()
+    return "salir de la aplicación" in juntos and "chat conectado" in juntos
+
+
+def contestar_salir_si_aparece(segundos: float = 8.0) -> bool:
+    """Contesta Sí a la pregunta «Salir» si está abierta. False si no aparece.
+
+    Mira desde fuera con `dialogo_nativo`, como `escenario_directo_sin_imagen`:
+    un `wx.MessageDialog` no sale en `wx.GetTopLevelWindows()` y la sonda no lo
+    ve. Nunca pulsa Enter: el botón por defecto es No y cerraría sin salir.
+    """
+    dlg = dialogo_nativo("Salir", segundos=segundos)
+    if dlg is None:
+        return False
+    if not pulsar_boton_nativo(dlg, "Sí"):
+        return False
+    limite = time.time() + 4.0
+    while time.time() < limite:
+        if dialogo_nativo("Salir", segundos=1.0) is None:
+            break
+        time.sleep(0.3)
+    return True
+
+
 def escenario_menu_chat(app: Aplicacion, args, res: Resultado):
     """El menu contextual de la lista del chat, donde vive casi toda la accion.
 
@@ -3761,9 +3834,30 @@ def escenario_cierre(app: Aplicacion, args, res: Resultado):
 
     arranque = time.time()
     try:
-        app.pedir("cerrar_ventana", tiempo=6.0)
+        # Sin forzar, como un Alt+F4: el cierre se puede vetar y la
+        # aplicación pregunta «Salir».
+        app.pedir("cerrar_ventana", tiempo=6.0, forzar=False)
     except Exception:
-        pass
+        pass  # el cuadro modal se come la respuesta, como en directo_sin_imagen
+    dlg = dialogo_nativo("Salir", segundos=8)
+    if dlg is None:
+        res.fallo("cierre: con una sesión abierta no apareció la pregunta "
+                  "«Salir» en 8 s")
+    else:
+        textos = _textos_de(dlg)
+        if not mensaje_salir_es_de_chat(textos):
+            res.fallo("cierre: la pregunta «Salir» no trae el mensaje del chat "
+                      "conectado: %s" % " / ".join(textos[:2]))
+        elif not pulsar_boton_nativo(dlg, "Sí"):
+            res.fallo("cierre: la pregunta «Salir» no ofrece ningún botón «Sí»")
+        else:
+            res.nota("cierre: apareció la pregunta «Salir» con el mensaje del "
+                     "chat conectado y se contestó Sí")
+            limite = time.time() + 4.0
+            while time.time() < limite:
+                if dialogo_nativo("Salir", segundos=1.0) is None:
+                    break
+                time.sleep(0.3)
     limite = time.time() + 20
     murio = False
     while time.time() < limite:

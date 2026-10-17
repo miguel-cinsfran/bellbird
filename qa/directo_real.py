@@ -43,6 +43,8 @@ RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ))
 sys.path.insert(0, str(RAIZ / "qa"))
 
+from conducir import contestar_salir_si_aparece
+
 PREFIJO_TITULO = "Prueba de YTChat"
 PRIVACIDAD_ESPERADA = "unlisted"
 PREFIJO_LISTA = "Prueba de YTChat lista"
@@ -1501,6 +1503,11 @@ def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
                         if principal is not None:
                             try:
                                 principal.close()
+                                # Con sesión abierta la app pregunta «Salir»:
+                                # se contesta Sí si aparece y se sigue como
+                                # hoy si no aparece. El `kill` de abajo queda
+                                # de red de seguridad.
+                                contestar_salir_si_aparece(segundos=8.0)
                                 time.sleep(8)
                             except Exception:
                                 pass

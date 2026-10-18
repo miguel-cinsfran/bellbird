@@ -578,6 +578,46 @@ class TestEtiquetasSegundoPlano(unittest.TestCase):
                         "Tema")
                 env.anunciar.assert_not_called()
 
+    def test_con_cache_en_disco_no_lee_ni_arranca_hilo(self):
+        from ytchat.music.etiquetas import CacheEtiquetas
+
+        hilos = []
+
+        def crear_hilo(target, nombre, *, args=(), daemon=True):
+            hilos.append(nombre)
+            return _HiloInmediato(target, args)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            self._carpeta_con(tmp)
+            with _entorno() as env, \
+                    mock.patch.object(gui_musica.diagnostico, "crear_hilo",
+                                      crear_hilo), \
+                    mock.patch.object(gui_musica.motor_vlc, "disponible",
+                                      return_value=True), \
+                    mock.patch.object(
+                        gui_musica, "leer_etiquetas_vlc",
+                        side_effect=AssertionError("no debe leer")):
+                previa = CacheEtiquetas(env.cache)
+                for nombre in ("a.mp3", "b.mp3"):
+                    ruta = Path(tmp) / nombre
+                    info = os.stat(ruta)
+                    previa.poner(str(ruta.resolve()), info.st_mtime_ns,
+                                 info.st_size,
+                                 {"titulo": "Tema", "artista": "Ana"})
+                previa.guardar()
+                control = ControlMusica(_frame(musica_carpeta=tmp))
+                recibidas = []
+                control.biblioteca(recibidas.append)
+                biblioteca = recibidas[0]
+                por_nombre = {Path(t.origen).name: t
+                              for t in biblioteca.temas()}
+                self.assertEqual(por_nombre["a.mp3"].titulo, "Tema")
+                self.assertEqual(por_nombre["a.mp3"].artista, "Ana")
+                self.assertEqual(por_nombre["b.mp3"].titulo, "Tema")
+                self.assertEqual(por_nombre["b.mp3"].artista, "Ana")
+        self.assertIn("musica-indice", hilos)
+        self.assertNotIn("musica-etiquetas", hilos)
+
     def test_titulo_vacio_conserva_el_nombre_del_archivo(self):
         with tempfile.TemporaryDirectory() as tmp:
             self._carpeta_con(tmp, ("a.mp3",))

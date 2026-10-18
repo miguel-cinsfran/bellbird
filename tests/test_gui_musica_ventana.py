@@ -392,12 +392,11 @@ class TestActualizarNombres(unittest.TestCase):
         self.ventana.lb_temas.SetSelection(1)
         mapa = {"C:/Musica/jazz.mp3": Tema(
             "C:/Musica/jazz.mp3", "Jazz Nuevo", artista="Ana")}
+        # Sin parchear SetSelection: SetString la usa por dentro para
+        # restaurar la selección y el parche la dejaría en -1.
         with mock.patch.object(
                 self.ventana.lb_temas, "Set",
-                side_effect=AssertionError("usa Set")), \
-             mock.patch.object(
-                self.ventana.lb_temas, "SetSelection",
-                side_effect=AssertionError("usa SetSelection")):
+                side_effect=AssertionError("usa Set")):
             self.ventana.actualizar_nombres(mapa)
         self.assertEqual(self.ventana.lb_temas.GetStrings(),
                          ["Rock", "Jazz Nuevo"])

@@ -16,6 +16,7 @@ Versión 2.1.0 · Windows 10 y 11 · [novedades de cada versión](CHANGELOG.md).
   - [Sonidos](#sonidos)
 - [Comentarios de vídeos](#comentarios-de-vídeos)
 - [Reproductor](#reproductor)
+- [Música](#música)
 - [Transmitir en directo desde la aplicación](#transmitir-en-directo-desde-la-aplicación)
 - [Panel de chat para transmitir](#panel-de-chat-para-transmitir)
 - [Componer la escena desde la aplicación](#componer-la-escena-desde-la-aplicación)
@@ -39,7 +40,8 @@ conecta y lee el chat en voz alta con una voz de Windows o de ElevenLabs. Alrede
 función principal ofrece un reproductor de vídeo integrado, lectura de
 comentarios, moderación del chat, un panel para mostrar el chat a los
 espectadores durante una transmisión, envío automático de mensajes al chat,
-descarga de vídeo y audio, e historial de directos vistos.
+descarga de vídeo y audio, historial de directos vistos, y música para
+poner mientras se transmite.
 
 También admite directos de TikTok, en modo de solo lectura.
 
@@ -226,6 +228,29 @@ reproduce igual.
 La primera vez que se abre la aplicación, el reproductor tarda unos segundos en
 quedar disponible. Durante esa preparación se anuncia «Preparando el
 reproductor», y al terminar, «Reproductor listo».
+
+## Música
+
+Para poner música mientras se transmite, sin abrir otro programa. Se elige
+una carpeta en *Preferencias*, página *Música*, y se maneja con el menú
+*Música* o con sus atajos, todos con **Ctrl+Alt**: `Ctrl+Alt+Espacio`
+reproduce o pausa, `Ctrl+Alt+Flecha derecha` y `Ctrl+Alt+Flecha izquierda`
+pasan de tema, `Ctrl+Alt+Flecha arriba` y `Ctrl+Alt+Flecha abajo` cambian el
+volumen de la música, y `Ctrl+Alt+T` dice qué suena.
+
+La ventana *Música* (`Ctrl+Alt+M`) busca en la carpeta mientras se escribe,
+reproduce el tema elegido o todo el resultado, muestra la cola y agrega
+enlaces de YouTube, de un vídeo o de una lista entera. La ventana *Listas de
+música* (`Ctrl+Alt+L`) crea, ordena y reproduce listas propias, que se
+guardan como archivos `.m3u8`.
+
+En la página *Música* de Preferencias también están el orden aleatorio,
+repetir la lista, el volumen, la salida de audio, qué se avisa al pasar de
+tema y retomar la última cola al abrir. Con la casilla *Usar los atajos de
+música en cualquier programa*, los atajos andan aunque la ventana activa
+sea OBS o un juego. Viene apagada porque, mientras está activa, esas teclas
+no llegan a los demás programas: NVDA, por ejemplo, usa `Ctrl+Alt+flechas`
+en las tablas.
 
 ## Transmitir en directo desde la aplicación
 
@@ -607,7 +632,8 @@ necesitan.
 
 El modificador indica el área a la que pertenece cada acción: **Ctrl** para el
 reproductor, **Alt** para la conexión y el chat, **Ctrl+Mayúsculas** para abrir
-ventanas y paneles, y las **teclas de función** para la voz y la lectura. Esa
+ventanas y paneles, **Ctrl+Alt** para la música, y las **teclas de función**
+para la voz y la lectura. Esa
 correspondencia se respeta también al personalizarlos.
 
 Conexión y chat:

@@ -3,6 +3,51 @@
 Qué cambia en cada versión, en lenguaje llano. El detalle técnico está en el
 historial de git.
 
+## 2.4.0, octubre de 2026
+
+Música mientras transmites, sin abrir otro programa.
+
+### Música
+
+- **Un menú Música con sus atajos.** Ctrl+Alt+Espacio reproduce o pausa,
+  Ctrl+Alt+Flecha derecha y Ctrl+Alt+Flecha izquierda pasan al tema
+  siguiente o al anterior, Ctrl+Alt+Flecha arriba y Ctrl+Alt+Flecha abajo
+  suben y bajan el volumen de la música, y Ctrl+Alt+T dice qué suena. La
+  primera vez puede tardar unos segundos en prepararse, y lo anuncia.
+- **Elige tu carpeta en Preferencias, página Música.** Ahí también están
+  el orden aleatorio, repetir la lista al terminar, el volumen de la
+  música (aparte del de la voz y del reproductor), por qué salida de
+  audio suena, y qué se avisa al pasar de tema: un sonido propio, el
+  título, o el título con el artista.
+- **La ventana Música, con Ctrl+Alt+M.** Busca en tu carpeta mientras
+  escribes, aunque no pongas las tildes. Reproduce el tema elegido o todo
+  el resultado, agrégalo a la cola, mira la cola y salta a cualquier tema
+  con Intro. Mientras está abierta, los atajos de música siguen andando.
+- **Listas propias, con Ctrl+Alt+L.** Crea, renombra y borra listas,
+  agrega temas desde la ventana Música, quítalos con Supr y cámbialos de
+  lugar con Alt+Flecha arriba y Alt+Flecha abajo. También puedes guardar
+  la cola que suena como lista. Se guardan como archivos .m3u8, que abren
+  otros reproductores.
+- **Enlaces y listas de YouTube.** En la ventana Música, «Agregar
+  enlace» acepta un vídeo o una lista entera de YouTube y suma su audio a
+  la cola. El aleatorio también vale para esas listas.
+- **F2 dice qué suena**, si lo dejas activado en la página «Estado (F2)».
+- **Retoma donde quedó.** Al abrir YTChat y pulsar Reproducir, sigue la
+  última cola desde el tema en que estaba. No arranca sola.
+- **Atajos en cualquier programa**, opcional. Con la casilla de la página
+  Música, los atajos de música andan aunque estés en OBS o en un juego.
+  Viene apagada porque mientras está activa esas teclas no llegan a los
+  demás programas, por ejemplo a NVDA, que usa Ctrl+Alt+flechas en las
+  tablas.
+
+### Atajos
+
+- **Ctrl+Alt con letras y números.** En Preferencias, página Atajos, los
+  de música aceptan Ctrl+Alt con una letra o un número. Al capturarlo, la
+  aplicación revisa tu teclado: si AltGr con esa tecla escribe algo, como
+  la arroba en el teclado latinoamericano, te lo dice y te pide otra, para
+  no romper la escritura en el chat.
+
 ## 2.3.4, octubre de 2026
 
 Arreglos que salieron de un directo de prueba.

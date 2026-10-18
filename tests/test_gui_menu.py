@@ -151,6 +151,7 @@ class TestEquivalenciaMenu(unittest.TestCase):
             ("&Reproductor", "Mostrar botones en &pantalla", ANY, "check"),
             ("&Transmisión", "&Panel de transmisión…", ANY, "normal"),
             ("&Transmisión", "Silenciar el &micrófono de OBS", ANY, "normal"),
+            ("&Transmisión", "&Avisar cuando OBS no da abasto", ANY, "check"),
             ("&Herramientas", "Gestor de &descargas…", ANY, "normal"),
             ("&Herramientas", "&Actualizar yt-dlp", ANY, "normal"),
             ("&Herramientas", "---", None, "sep"),

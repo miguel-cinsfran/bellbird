@@ -1512,6 +1512,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("ui", "sonido_inicio"),
             ("diagnostico", "registro_detallado"),
             ("overlay", "puerto"), ("obs", "microfono"),
+            ("transmision", "avisar_sobrecarga"),
         ]
         esperadas.extend(("estado", componente)
                           for componente in gui_preferencias.estado_sesion.COMPONENTES)
@@ -3012,7 +3013,8 @@ class TestCierreVentana(unittest.TestCase):
         class DobleSupervisor:
             def __init__(self, destino, usuario, al_anunciar=None,
                          al_conectar_chat=None, al_terminar=None,
-                         ruta_fin_pendiente=None):
+                         ruta_fin_pendiente=None,
+                         avisar_sobrecarga=None):
                 creados.append((destino, usuario, al_anunciar,
                                 al_conectar_chat))
                 self.iniciado = False
@@ -3043,7 +3045,8 @@ class TestCierreVentana(unittest.TestCase):
         class DobleSupervisor:
             def __init__(self, destino, usuario, al_anunciar=None,
                          al_conectar_chat=None, al_terminar=None,
-                         ruta_fin_pendiente=None):
+                         ruta_fin_pendiente=None,
+                         avisar_sobrecarga=None):
                 creados.append((al_anunciar, al_conectar_chat))
 
             def iniciar(self):
@@ -3072,7 +3075,8 @@ class TestCierreVentana(unittest.TestCase):
         class DobleSupervisor:
             def __init__(self, destino, usuario, al_anunciar=None,
                          al_conectar_chat=None, al_terminar=None,
-                         ruta_fin_pendiente=None):
+                         ruta_fin_pendiente=None,
+                         avisar_sobrecarga=None):
                 creados.append((al_anunciar, al_conectar_chat))
 
             def iniciar(self):
@@ -3099,7 +3103,8 @@ class TestCierreVentana(unittest.TestCase):
         class DobleSupervisor:
             def __init__(self, destino, usuario, al_anunciar=None,
                          al_conectar_chat=None, al_terminar=None,
-                         ruta_fin_pendiente=None):
+                         ruta_fin_pendiente=None,
+                         avisar_sobrecarga=None):
                 creados.append((al_anunciar, al_conectar_chat))
 
             def iniciar(self):
@@ -3125,7 +3130,8 @@ class TestCierreVentana(unittest.TestCase):
         class DobleSupervisor:
             def __init__(self, destino, usuario, al_anunciar=None,
                          al_conectar_chat=None, al_terminar=None,
-                         ruta_fin_pendiente=None):
+                         ruta_fin_pendiente=None,
+                         avisar_sobrecarga=None):
                 creados.append((al_anunciar, al_conectar_chat))
 
             def iniciar(self):
@@ -3682,7 +3688,8 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
             def __init__(self, destino, usuario, al_anunciar=None,
                          al_conectar_chat=None, al_terminar=None,
                          preparar_emision=None, esperar_emision=None,
-                         finalizar_emision=None, ruta_fin_pendiente=None):
+                         finalizar_emision=None, ruta_fin_pendiente=None,
+                         avisar_sobrecarga=None):
                 creados.append({
                     "destino": destino, "usuario": usuario,
                     "al_conectar_chat": al_conectar_chat,

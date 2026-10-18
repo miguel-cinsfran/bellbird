@@ -14,6 +14,7 @@ except Exception:
     _HAY_WX = False
 
 from ytchat.ui import gui_actualizacion as actualizacion
+from tests.ventanas_prueba import destruir
 
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
@@ -24,15 +25,8 @@ class TestDialogoActualizacion(unittest.TestCase):
 
     def _dialogo(self, titulo="Actualizar algo"):
         dialogo = actualizacion.DialogoActualizacion(None, titulo)
-        self.addCleanup(self._destruir, dialogo)
+        self.addCleanup(destruir, dialogo)
         return dialogo
-
-    @staticmethod
-    def _destruir(dialogo):
-        try:
-            dialogo.Destroy()
-        except Exception:
-            pass
 
     def test_nombres_accesibles_y_cerrar(self):
         dialogo = self._dialogo()
@@ -126,15 +120,8 @@ class TestReajuste(unittest.TestCase):
 
     def _dialogo(self, titulo="Actualizar algo"):
         dialogo = actualizacion.DialogoActualizacion(None, titulo)
-        self.addCleanup(self._destruir, dialogo)
+        self.addCleanup(destruir, dialogo)
         return dialogo
-
-    @staticmethod
-    def _destruir(dialogo):
-        try:
-            dialogo.Destroy()
-        except Exception:
-            pass
 
     def _visibles_con_alto_y_dentro(self, dialogo):
         area = dialogo.GetClientSize()

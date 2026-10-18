@@ -12,6 +12,7 @@ from ytchat.ui import gui_preferencias
 from ytchat.voice import motores
 from ytchat.core import config_predeterminada as pred
 from tests.rutas_temporales import redirigir_rutas
+from tests.ventanas_prueba import destruir
 from pathlib import Path
 
 
@@ -76,7 +77,7 @@ class TestTablaOpcionesSimples(unittest.TestCase):
     def _dialogo(self, config=None):
         with mock.patch.object(motores, "listar_voces", return_value=["Voz de prueba"]):
             dialogo = gui_preferencias.PreferenciasDialog(None, config or {})
-        self.addCleanup(dialogo.Destroy)
+        self.addCleanup(destruir, dialogo)
         return dialogo
 
     def _config_distinto(self):
@@ -184,7 +185,7 @@ class TestMuestraTema(unittest.TestCase):
     def _dialogo(self):
         with mock.patch.object(motores, "listar_voces", return_value=["Voz de prueba"]):
             dialogo = gui_preferencias.PreferenciasDialog(None, {})
-        self.addCleanup(dialogo.Destroy)
+        self.addCleanup(destruir, dialogo)
         return dialogo
 
     def test_cambiar_tema_suena_muestra_sin_guardar(self):

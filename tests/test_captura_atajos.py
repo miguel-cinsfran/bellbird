@@ -6,6 +6,8 @@ esté instalado, como el resto de lo que toca GUI.
 
 import unittest
 
+from tests.ventanas_prueba import destruir
+
 try:
     import wx  # noqa: F401
     _HAY_WX = True
@@ -85,7 +87,7 @@ class TestCapturaAtajos(unittest.TestCase):
             self.assertEqual(caja.GetLabel(), "Grupo de prueba")
             self.assertIs(sizer.GetStaticBox(), caja)
         finally:
-            frame.Destroy()
+            destruir(frame)
 
     def test_los_atajos_cuelgan_de_su_caja_de_grupo(self):
         import wx
@@ -113,7 +115,7 @@ class TestCapturaAtajos(unittest.TestCase):
                 self.assertIsInstance(caja, wx.StaticBox)
                 self.assertIn(caja.GetLabel(), titulos)
         finally:
-            dialogo.Destroy()
+            destruir(dialogo)
 
 
 if __name__ == "__main__":

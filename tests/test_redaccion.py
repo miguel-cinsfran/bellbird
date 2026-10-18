@@ -5,6 +5,7 @@ from ytchat.capture import deteccion
 from ytchat.ui import gui
 from ytchat.ui import gui_redactar
 from ytchat.capture import redaccion
+from tests.ventanas_prueba import destruir
 
 
 class TestRedaccion(unittest.TestCase):
@@ -71,8 +72,8 @@ class TestRedaccion(unittest.TestCase):
     def test_motivo_chat_llega_al_panel_en_directo_sin_sesion(self):
         app = gui.wx.App(False)
         ventana = gui.wx.Frame(None)
-        self.addCleanup(ventana.Destroy)
-        self.addCleanup(app.Destroy)
+        self.addCleanup(destruir, ventana)
+        self.addCleanup(destruir, app)
         panel = gui_redactar.PanelRedactar(ventana, "Mensaje", 200, lambda texto: None)
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
         frame._conectado, frame._es_tiktok = True, False

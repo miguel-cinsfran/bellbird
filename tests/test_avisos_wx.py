@@ -13,6 +13,7 @@ from unittest import mock
 from ytchat.ui import gui
 from ytchat.player import motor_vlc
 from ytchat.player import reproductor
+from tests.ventanas_prueba import destruir
 
 
 class _CazadorWx(gui.wx.Log):
@@ -55,27 +56,27 @@ class TestAvisosStaticBox(unittest.TestCase):
         with mock.patch.object(gui.diagnostico, "crear_hilo"):
             frame = gui.YTChatFrame(
                 None, configuracion, queue.Queue(), stats, worker, threading.Event())
-        self.addCleanup(frame.Destroy)
+        self.addCleanup(destruir, frame)
 
         self._comprobar_sin_aviso_staticbox()
 
     def test_aviso_sin_vlc_no_avisa_por_staticbox(self):
         frame = gui.wx.Frame(None)
-        self.addCleanup(frame.Destroy)
+        self.addCleanup(destruir, frame)
 
         with mock.patch.object(motor_vlc, "disponible", return_value=False):
             panel = reproductor.ReproductorPanel(frame, {})
-        self.addCleanup(panel.Destroy)
+        self.addCleanup(destruir, panel)
 
         self._comprobar_sin_aviso_staticbox()
 
     def test_video_es_hijo_del_staticbox_y_tiene_nombre_accesible(self):
         frame = gui.wx.Frame(None)
-        self.addCleanup(frame.Destroy)
+        self.addCleanup(destruir, frame)
 
         with mock.patch.object(reproductor, "disponible", return_value=True):
             panel = reproductor.ReproductorPanel(frame, {})
-        self.addCleanup(panel.Destroy)
+        self.addCleanup(destruir, panel)
 
         self._comprobar_sin_aviso_staticbox()
         self.assertIsInstance(panel._video.GetParent(), gui.wx.StaticBox)

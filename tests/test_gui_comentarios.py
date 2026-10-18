@@ -8,6 +8,7 @@ import wx
 
 from ytchat.ui import gui_comentarios
 from ytchat.youtube import youtube_api
+from tests.ventanas_prueba import destruir
 
 
 class DialogoFalso:
@@ -33,7 +34,7 @@ class TestComentariosPanel(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.frame.Destroy()
+        destruir(cls.frame)
 
     def setUp(self):
         DialogoFalso.instancias = []
@@ -49,7 +50,7 @@ class TestComentariosPanel(unittest.TestCase):
         self.addCleanup(lambda: [parche.stop() for parche in reversed(self.parches)])
         self.panel = gui_comentarios.ComentariosPanel(
             self.frame, queue.Queue(), {"tamanio_fuente_chat": 12})
-        self.addCleanup(self.panel.Destroy)
+        self.addCleanup(destruir, self.panel)
 
     def test_comentar_llega_al_envio(self):
         self.panel.set_video("video", autocargar=False)
@@ -168,12 +169,12 @@ class TestOrillaComentarios(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.frame.Destroy()
+        destruir(cls.frame)
 
     def setUp(self):
         self.panel = gui_comentarios.ComentariosPanel(
             self.frame, queue.Queue(), {"tamanio_fuente_chat": 12})
-        self.addCleanup(self.panel.Destroy)
+        self.addCleanup(destruir, self.panel)
         self.panel.lb.Append("Ana: hola")
         self.panel.lb.Append("Luis: chau")
         self.parche_sonido = mock.patch.object(

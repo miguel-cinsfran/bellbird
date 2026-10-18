@@ -7,6 +7,7 @@ from unittest import mock
 
 from ytchat.downloads import descargas
 from ytchat.ui import gui_descargas
+from tests.ventanas_prueba import destruir
 
 try:
     import wx
@@ -101,7 +102,7 @@ class TestGruposGestorDescargas(unittest.TestCase):
                 indice = 0 if esperados[nombre] == "Cola" else 1
                 self.assertIs(control.GetParent(), dialogo.pestanas.GetPage(indice))
         finally:
-            dialogo.Destroy()
+            destruir(dialogo)
 
     def test_columnas_de_la_cola_ponen_el_progreso_primero(self):
         dialogo = gui_descargas.GestorDescargasDialog(None)
@@ -111,7 +112,7 @@ class TestGruposGestorDescargas(unittest.TestCase):
                  for indice in range(dialogo.lista.GetColumnCount())],
                 ["Progreso", "Estado", "Nombre"])
         finally:
-            dialogo.Destroy()
+            destruir(dialogo)
 
     def test_actualizar_progreso_guarda_cada_dato_en_su_columna(self):
         dialogo = gui_descargas.GestorDescargasDialog(None)
@@ -122,7 +123,7 @@ class TestGruposGestorDescargas(unittest.TestCase):
             self.assertEqual(dialogo.lista.GetItemText(0, 0), "42 %")
             self.assertEqual(dialogo.lista.GetItemText(0, 2), "archivo.mp4")
         finally:
-            dialogo.Destroy()
+            destruir(dialogo)
 
     def test_progreso_rezagado_despues_de_cerrar_no_lanza(self):
         dialogo = gui_descargas.GestorDescargasDialog(None)
@@ -137,7 +138,7 @@ class TestGruposGestorDescargas(unittest.TestCase):
         dialogo = gui_descargas.GestorDescargasDialog(None)
         dialogo.lista.InsertItem(0, "archivo.mp4")
         dialogo._items_fila["item"] = 0
-        dialogo.Destroy()
+        destruir(dialogo)
         wx.Yield()
         dialogo._actualizar_progreso("item", 50, "archivo.mp4")
         dialogo._actualizar_estado("item", "completado", "")
@@ -163,7 +164,7 @@ class TestGruposGestorDescargas(unittest.TestCase):
             dialogo._gestor.encolar("https://youtu.be/video", lambda *_: None,
                                     lambda *_: None)
             self.assertTrue(inicio.wait(1))
-            dialogo.Destroy()
+            destruir(dialogo)
             terminar.set()
             self.assertTrue(completada.wait(1))
             wx.Yield()
@@ -203,7 +204,7 @@ class TestGruposGestorDescargas(unittest.TestCase):
                 gui_descargas._fin_descarga_en_gui("completado", "", item.nombre, item)
                 self.assertEqual(dialogo.lista_historial.GetItemCount(), 1)
             finally:
-                dialogo.Destroy()
+                destruir(dialogo)
 
     def test_filas_repobladas_reciben_el_progreso_por_el_temporizador(self):
         # Al reabrir, las filas no tienen callbacks (eran cierres del diálogo
@@ -229,7 +230,7 @@ class TestGruposGestorDescargas(unittest.TestCase):
             dialogo._refrescar_desde_gestor()
             self.assertEqual(dialogo.lista.GetItemText(0, 1), "error: sin espacio")
         finally:
-            dialogo.Destroy()
+            destruir(dialogo)
 
     def test_cerrar_para_el_temporizador_y_suelta_el_dialogo_activo(self):
         dialogo = gui_descargas.GestorDescargasDialog(None)
@@ -239,7 +240,7 @@ class TestGruposGestorDescargas(unittest.TestCase):
             self.assertFalse(dialogo._temporizador.IsRunning())
             self.assertIsNone(gui_descargas._dialogo_activo)
         finally:
-            dialogo.Destroy()
+            destruir(dialogo)
 
     def test_vaciar_historial_deja_la_lista_sin_filas(self):
         with mock.patch.object(gui_descargas.historial_descargas, "cargar",
@@ -258,7 +259,7 @@ class TestGruposGestorDescargas(unittest.TestCase):
                 guardar.assert_called_once_with(dialogo._ruta_historial, [])
                 anunciar.assert_called_once_with("Se borró 1 entrada del historial")
             finally:
-                dialogo.Destroy()
+                destruir(dialogo)
 
 
 class TestSonidosDeDescarga(unittest.TestCase):

@@ -764,8 +764,10 @@ class PreferenciasDialog(wx.Dialog):
         self._musica_salidas_ids = identificadores
         self.cho_musica_salida.Set(etiquetas)
         self.cho_musica_salida.SetSelection(seleccion)
-        cantidad = len(etiquetas) - 1
-        if cantidad:
+        cantidad = len({ident for ident, _nombre in (salidas or []) if ident})
+        if cantidad == 1:
+            anunciar("Se encontró 1 salida de audio")
+        elif cantidad:
             anunciar(f"Se encontraron {cantidad} salidas de audio")
         else:
             anunciar("No se encontraron salidas de audio")

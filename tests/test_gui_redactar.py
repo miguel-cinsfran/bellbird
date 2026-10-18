@@ -4,6 +4,7 @@ from unittest import mock
 import wx
 
 from ytchat.ui import gui_redactar
+from tests.ventanas_prueba import destruir
 
 
 class EventoTeclado:
@@ -30,7 +31,7 @@ class TestPanelRedactar(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.frame.Destroy()
+        destruir(cls.frame)
 
     def panel(self, texto="mensaje", motivo=""):
         enviado = []
@@ -107,7 +108,7 @@ class TestDialogoRedactar(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.frame.Destroy()
+        destruir(cls.frame)
 
     def dialogo(self, texto="mensaje", motivo=""):
         llamadas = []
@@ -122,21 +123,21 @@ class TestDialogoRedactar(unittest.TestCase):
         with mock.patch.object(dialogo, "EndModal"):
             dialogo.panel._on_enviar(None)
         self.assertEqual(dialogo._llamadas, ["mensaje"])
-        dialogo.Destroy()
+        destruir(dialogo)
 
     def test_publicar_guarda_el_texto_enviado(self):
         dialogo = self.dialogo("  mensaje  ")
         with mock.patch.object(dialogo, "EndModal"):
             dialogo.panel._on_enviar(None)
         self.assertEqual(dialogo.texto_enviado, "mensaje")
-        dialogo.Destroy()
+        destruir(dialogo)
 
     def test_motivo_no_llama_al_enviar(self):
         dialogo = self.dialogo(motivo="Inicia sesión")
         with mock.patch.object(gui_redactar, "_anunciar"):
             dialogo.panel._on_enviar(None)
         self.assertEqual(dialogo._llamadas, [])
-        dialogo.Destroy()
+        destruir(dialogo)
 
 
 if __name__ == "__main__":

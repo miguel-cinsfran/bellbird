@@ -8,6 +8,7 @@ from ytchat.ui import gui_transmision
 from ytchat.obs import obs_cliente
 from ytchat.obs import obs_disposicion
 from ytchat.obs import obs_lanzador
+from tests.ventanas_prueba import destruir
 
 try:
     import wx
@@ -182,11 +183,11 @@ class TestTransmisionDialog(unittest.TestCase):
         self.anuncios.clear()
 
     def tearDown(self):
-        self.dialogo.Destroy()
+        destruir(self.dialogo)
         for parche in reversed(self.parches): parche.stop()
 
     def test_fallo_al_abrir_desactiva_controles_y_muestra_error(self):
-        self.dialogo.Destroy()
+        destruir(self.dialogo)
         gestor = GestorFalso(fallo=True)
         self.dialogo = gui_transmision.TransmisionDialog(
             None, gestor, asegurar=_asegurar_sin_obs)
@@ -206,7 +207,7 @@ class TestTransmisionDialog(unittest.TestCase):
                       self.dialogo.txt_estado.GetValue())
 
     def test_casilla_del_panel_alterna_el_servidor(self):
-        self.dialogo.Destroy()
+        destruir(self.dialogo)
         alternar = mock.Mock(side_effect=(True, False))
         self.dialogo = gui_transmision.TransmisionDialog(
             None, self.gestor, alternar_panel=alternar,
@@ -220,7 +221,7 @@ class TestTransmisionDialog(unittest.TestCase):
         self.assertEqual(alternar.call_args_list, [mock.call(True), mock.call(False)])
 
     def test_casilla_del_panel_se_desmarca_si_no_se_pudo_encender(self):
-        self.dialogo.Destroy()
+        destruir(self.dialogo)
         self.dialogo = gui_transmision.TransmisionDialog(
             None, self.gestor, alternar_panel=mock.Mock(return_value=False),
             asegurar=_asegurar_sin_obs)
@@ -235,7 +236,7 @@ class TestTransmisionDialog(unittest.TestCase):
         self.assertFalse(self.dialogo.chk_panel_chat.IsEnabled())
 
     def test_activar_fallo_mantiene_habilitada_la_casilla_con_callback(self):
-        self.dialogo.Destroy()
+        destruir(self.dialogo)
         self.dialogo = gui_transmision.TransmisionDialog(
             None, self.gestor, alternar_panel=mock.Mock(),
             asegurar=_asegurar_sin_obs)
@@ -246,7 +247,7 @@ class TestTransmisionDialog(unittest.TestCase):
         self.assertFalse(self.dialogo.btn_actualizar.IsEnabled())
 
     def test_activar_exito_habilita_la_casilla_con_callback(self):
-        self.dialogo.Destroy()
+        destruir(self.dialogo)
         self.dialogo = gui_transmision.TransmisionDialog(
             None, self.gestor, alternar_panel=mock.Mock(),
             asegurar=_asegurar_sin_obs)
@@ -300,7 +301,7 @@ class TestTransmisionDialog(unittest.TestCase):
              mock.patch.object(gui_transmision.overlay_servidor, "encender", encender):
             dialogo = gui_transmision.TransmisionDialog(
                 None, gestor, asegurar=_asegurar_sin_obs)
-        self.addCleanup(dialogo.Destroy)
+        self.addCleanup(destruir, dialogo)
         self.assertIn("Falta preparar el panel. El panel de chat está apagado.", self.anuncios)
         self.assertIn("Al aire: Principal", self.anuncios)
         encender.assert_not_called()
@@ -813,7 +814,7 @@ class TestTransmisionDialog(unittest.TestCase):
         self.assertEqual(self.dialogo.btn_destino.GetLabel(), "Preparar desti&no")
 
     def test_destino_inicial_muestra_el_perfil_actual_si_es_un_destino(self):
-        self.dialogo.Destroy()
+        destruir(self.dialogo)
         self.gestor.perfil = "YouTube"
         self.dialogo = gui_transmision.TransmisionDialog(
             None, self.gestor, asegurar=_asegurar_sin_obs)
@@ -822,7 +823,7 @@ class TestTransmisionDialog(unittest.TestCase):
                          "YouTube")
 
     def test_destino_inicial_sin_seleccion_si_el_perfil_no_es_un_destino(self):
-        self.dialogo.Destroy()
+        destruir(self.dialogo)
         self.gestor.perfil = "N5000-Grabacion"
         self.dialogo = gui_transmision.TransmisionDialog(
             None, self.gestor, asegurar=_asegurar_sin_obs)
@@ -875,7 +876,7 @@ class TestTransmisionDialog(unittest.TestCase):
     def _dialogo_con_supervisor(self, usuario=""):
         supervisar = mock.Mock(return_value=False)
         guardar = mock.Mock()
-        self.dialogo.Destroy()
+        destruir(self.dialogo)
         self.dialogo = gui_transmision.TransmisionDialog(
             None, self.gestor, supervisar=supervisar,
             guardar_usuario=guardar, usuario_tiktok=usuario,
@@ -1035,11 +1036,11 @@ class TestTransmisionDialog(unittest.TestCase):
         return False
 
     def test_campo_usuario_arranca_con_el_guardado(self):
-        self.dialogo.Destroy()
+        destruir(self.dialogo)
         dialogo = gui_transmision.TransmisionDialog(
             None, self.gestor, usuario_tiktok="amigo",
             asegurar=_asegurar_sin_obs)
-        self.addCleanup(dialogo.Destroy)
+        self.addCleanup(destruir, dialogo)
         self.assertEqual(dialogo.txt_usuario_tiktok.GetValue(), "amigo")
 
     def test_transmitir_tiktok_sin_usuario_avisa_y_enfoca(self):

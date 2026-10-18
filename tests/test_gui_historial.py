@@ -6,6 +6,7 @@ from unittest import mock
 
 from ytchat.ui import gui_historial
 from ytchat.core import historial
+from tests.ventanas_prueba import destruir
 
 
 def entrada(plataforma, clave, url):
@@ -33,7 +34,7 @@ class PruebasHistorialDialog(unittest.TestCase):
         self.ruta.write_text(json.dumps(entradas), encoding="utf-8")
         dialogo = gui_historial.HistorialDialog(None, self.ruta,
                                                 on_conectar or mock.Mock())
-        self.addCleanup(dialogo.Destroy)
+        self.addCleanup(destruir, dialogo)
         return dialogo
 
     def test_poblar_separa_las_entradas_por_plataforma(self):
@@ -133,7 +134,7 @@ class PruebasHistorialDialog(unittest.TestCase):
         datos = entrada("youtube", "elegida", url)
         self.ruta.write_text(json.dumps([datos]), encoding="utf-8")
         dialogo = gui_historial.HistorialDialog(None, self.ruta, on_conectar)
-        self.addCleanup(dialogo.Destroy)
+        self.addCleanup(destruir, dialogo)
 
         with mock.patch.object(dialogo, "EndModal"):
             dialogo._conectar()
@@ -190,7 +191,7 @@ class PruebasOrillaHistorial(unittest.TestCase):
         segunda = entrada("youtube", "segunda", "https://youtube.com/watch?v=segunda")
         self.ruta.write_text(json.dumps([primera, segunda]), encoding="utf-8")
         dialogo = gui_historial.HistorialDialog(None, self.ruta, mock.Mock())
-        self.addCleanup(dialogo.Destroy)
+        self.addCleanup(destruir, dialogo)
         return dialogo
 
     def _tecla_sobre(self, codigo, lista):

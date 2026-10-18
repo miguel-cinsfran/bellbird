@@ -17,6 +17,7 @@ except Exception:
     _HAY_WX = False
 
 from ytchat.ui import gui
+from tests.ventanas_prueba import destruir
 
 
 class TestGuardarDestino(unittest.TestCase):
@@ -297,7 +298,7 @@ class TestBotonDirectoVentana(unittest.TestCase):
         with mock.patch.object(gui.diagnostico, "crear_hilo"):
             frame = gui.YTChatFrame(None, configuracion, queue.Queue(),
                                     stats, worker, threading.Event())
-        self.addCleanup(frame.Destroy)
+        self.addCleanup(destruir, frame)
         frame.ShowWithoutActivating()
         gui.wx.Yield()
         return frame

@@ -15,6 +15,7 @@ except Exception:
     _HAY_WX = False
 
 from ytchat.ui import gui_elegir_destino as elegir
+from tests.ventanas_prueba import destruir
 
 
 class TestDestinoInicial(unittest.TestCase):
@@ -65,7 +66,7 @@ class TestDialogoElegirDestinoVentana(unittest.TestCase):
 
     def _dialogo(self, **kwargs):
         dialogo = elegir.DialogoElegirDestino(None, **kwargs)
-        self.addCleanup(dialogo.Destroy)
+        self.addCleanup(destruir, dialogo)
         return dialogo
 
     def test_nombres_accesibles_y_destinos(self):

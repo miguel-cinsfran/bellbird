@@ -15,6 +15,7 @@ except Exception:
     _HAY_WX = False
 
 from ytchat.ui import gui_directo_youtube as directo
+from tests.ventanas_prueba import destruir
 from ytchat.youtube.emision import (
     ETIQUETAS_PRIVACIDAD,
     PRIVACIDADES,
@@ -95,7 +96,7 @@ class TestDialogoDirectoVentana(unittest.TestCase):
 
     def _dialogo(self, **kwargs):
         dialogo = directo.DialogoDirectoYoutube(None, **kwargs)
-        self.addCleanup(dialogo.Destroy)
+        self.addCleanup(destruir, dialogo)
         return dialogo
 
     def test_titulo_vacio_usa_el_por_defecto_seleccionado(self):

@@ -23,6 +23,7 @@ RUTAS_DE_DATOS = [
     ("fin_pendiente", "fin_pendiente.json"),
     ("sounds_ini", "sounds.ini"),
     ("listas_musica", "listas"),
+    ("estado_musica", "musica_estado.json"),
     ("log_principal", "ytchat.log"),
     ("log_detallado", "ytchat-debug.log"),
     ("log_fallos", "ytchat-fallos.log"),

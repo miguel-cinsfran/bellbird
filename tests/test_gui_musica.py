@@ -14,7 +14,9 @@ from types import SimpleNamespace
 from unittest import mock
 
 from ytchat.music import listas
-from ytchat.music.modelo import AVANZO, FIN_LISTA, TEMA_FALLIDO, Resultado, Tema
+from ytchat.music import memoria
+from ytchat.music.modelo import (AVANZO, FIN_LISTA, TEMA_FALLIDO, EstadoMusica,
+                                 Resultado, Tema)
 from ytchat.ui import gui_musica
 from ytchat.ui.gui_musica import ControlMusica, nuevo_volumen, toca_pausar
 
@@ -93,7 +95,11 @@ def _frame(**config):
 
 @contextlib.contextmanager
 def _entorno(fabrica=None):
-    """Dobla el motor, los hilos, CallAfter, el lector y los sonidos."""
+    """Dobla el motor, los hilos, CallAfter, el lector y los sonidos.
+
+    También manda la memoria de música a un temporal: ninguna prueba escribe
+    en la carpeta de datos real.
+    """
     snd = _SndFalso()
     creados = []
 
@@ -103,14 +109,19 @@ def _entorno(fabrica=None):
         return adaptador
 
     fabrica = fabrica or fabrica_por_defecto
-    with mock.patch.object(gui_musica, "AdaptadorVlc", side_effect=fabrica), \
-            mock.patch.object(gui_musica.diagnostico, "crear_hilo",
-                              _crear_hilo_inmediato), \
-            mock.patch.object(gui_musica.wx, "CallAfter",
-                              side_effect=lambda fn, *a: fn(*a)), \
-            mock.patch.object(gui_musica, "anunciar") as anunciar, \
-            mock.patch.object(gui_musica, "_snd", snd):
-        yield SimpleNamespace(anunciar=anunciar, snd=snd, creados=creados)
+    with tempfile.TemporaryDirectory() as tmp:
+        ruta_memoria = Path(tmp) / "musica_estado.json"
+        with mock.patch.object(gui_musica, "AdaptadorVlc", side_effect=fabrica), \
+                mock.patch.object(gui_musica.diagnostico, "crear_hilo",
+                                  _crear_hilo_inmediato), \
+                mock.patch.object(gui_musica.wx, "CallAfter",
+                                  side_effect=lambda fn, *a: fn(*a)), \
+                mock.patch.object(gui_musica, "anunciar") as anunciar, \
+                mock.patch.object(gui_musica.paths, "estado_musica",
+                                  return_value=ruta_memoria), \
+                mock.patch.object(gui_musica, "_snd", snd):
+            yield SimpleNamespace(anunciar=anunciar, snd=snd, creados=creados,
+                                  memoria=ruta_memoria)
 
 
 class TestFuncionesPuras(unittest.TestCase):
@@ -635,6 +646,149 @@ class TestVentanaYAtajos(unittest.TestCase):
         with _entorno():
             control = ControlMusica(_frame())
             control.ejecutar_atajo("no_existe")   # no debe lanzar
+
+
+def _estado_memoria(temas, posicion):
+    return EstadoMusica(tuple(temas), posicion, False, False, 100, False)
+
+
+class TestTextoEstado(unittest.TestCase):
+
+    def test_sin_motor_da_vacio(self):
+        with _entorno():
+            control = ControlMusica(_frame())
+        self.assertEqual(control.texto_estado(), "")
+
+    def test_refleja_el_tema_la_pausa_y_el_final(self):
+        temas = [Tema("C:/m/a.mp3", "A"), Tema("C:/m/b.mp3", "B")]
+        with _entorno():
+            control = ControlMusica(_frame())
+            control.reproducir_temas(temas, en_orden=True)
+            self.assertEqual(control.texto_estado(), "Música: A, tema 1 de 2")
+            control.siguiente()
+            self.assertEqual(control.texto_estado(), "Música: B, tema 2 de 2")
+            control.reproducir_o_pausar()
+            self.assertEqual(control.texto_estado(),
+                             "Música en pausa: B, tema 2 de 2")
+            control.detener()
+        self.assertEqual(control.texto_estado(), "")
+
+    def test_incluye_el_artista_si_esta_marcado(self):
+        temas = [Tema("C:/m/a.mp3", "A", artista="Ana")]
+        with _entorno():
+            control = ControlMusica(_frame(musica_incluir_artista=True))
+            control.reproducir_temas(temas)
+        self.assertEqual(control.texto_estado(), "Música: A, de Ana, tema 1 de 1")
+
+
+class TestGuardarMemoria(unittest.TestCase):
+
+    def _temas_reales(self, tmp, nombres=("a.mp3", "b.mp3")):
+        temas = []
+        for n in nombres:
+            ruta = Path(tmp) / n
+            ruta.write_bytes(b"")
+            temas.append(Tema(str(ruta.resolve()), n))
+        return temas
+
+    def test_guarda_tras_reproducir_y_tras_siguiente(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            temas = self._temas_reales(tmp)
+            with _entorno() as env:
+                control = ControlMusica(_frame())
+                control.reproducir_temas(temas, en_orden=True)
+                vivos, posicion = memoria.leer(env.memoria)
+                self.assertEqual([t.origen for t in vivos],
+                                 [t.origen for t in temas])
+                self.assertEqual(posicion, 0)
+                control.siguiente()
+                vivos, posicion = memoria.leer(env.memoria)
+                self.assertEqual(posicion, 1)
+
+    def test_guarda_tras_aviso_automatico(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            temas = self._temas_reales(tmp)
+            with _entorno() as env:
+                control = ControlMusica(_frame())
+                control.reproducir_temas(temas, en_orden=True)
+                env.memoria.unlink()
+                control._aviso_automatico(_aviso(posicion=1, cola=temas))
+                self.assertTrue(env.memoria.exists())
+
+    def test_detener_borra_la_memoria(self):
+        with _entorno() as env:
+            control = ControlMusica(_frame())
+            control.reproducir_temas([Tema("C:/m/a.mp3", "A")])
+            self.assertTrue(env.memoria.exists())
+            control.detener()
+            self.assertFalse(env.memoria.exists())
+
+    def test_con_retomar_apagado_no_guarda_y_borra(self):
+        with _entorno() as env:
+            env.memoria.write_text("{}", encoding="utf-8")
+            ControlMusica(_frame(musica_retomar=False)).reproducir_temas(
+                [Tema("C:/m/a.mp3", "A")])
+            self.assertFalse(env.memoria.exists())
+
+
+class TestRetomar(unittest.TestCase):
+
+    def _carpeta_con(self, tmp, nombre):
+        carpeta = Path(tmp) / "carpeta"
+        carpeta.mkdir(exist_ok=True)
+        (carpeta / nombre).write_bytes(b"")
+        return carpeta
+
+    def test_retoma_una_sola_vez_y_despues_la_carpeta(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            a = Path(tmp) / "a.mp3"
+            b = Path(tmp) / "b.mp3"
+            a.write_bytes(b"")
+            b.write_bytes(b"")
+            carpeta = self._carpeta_con(tmp, "z.mp3")
+            temas = [Tema(str(a.resolve()), "A"), Tema(str(b.resolve()), "B")]
+            with _entorno() as env:
+                memoria.guardar(env.memoria, _estado_memoria(temas, 1))
+                control = ControlMusica(_frame(musica_carpeta=str(carpeta)))
+                control.reproducir_o_pausar()
+                cargas = [l for l in env.creados[0].llamadas if l[0] == "cargar"]
+                textos = [c.args[0] for c in env.anunciar.call_args_list]
+                self.assertEqual([c[1] for c in cargas],
+                                 [str(a.resolve()), str(b.resolve())])
+                self.assertIn("Retomando: B", textos)
+                control.detener()
+                env.anunciar.reset_mock()
+                control.reproducir_o_pausar()
+                cargas = [l for l in env.creados[0].llamadas if l[0] == "cargar"]
+                textos = [c.args[0] for c in env.anunciar.call_args_list]
+                self.assertEqual(cargas[-1][1],
+                                 str((carpeta / "z.mp3").resolve()))
+                self.assertNotIn("Retomando: B", textos)
+
+    def test_sin_memoria_reproduce_la_carpeta(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "a.mp3").write_bytes(b"")
+            with _entorno() as env:
+                ControlMusica(_frame(musica_carpeta=tmp)).reproducir_o_pausar()
+                textos = [c.args[0] for c in env.anunciar.call_args_list]
+        self.assertEqual(textos, ["Preparando la música", "a"])
+        self.assertNotIn("Retomando", " ".join(textos))
+
+    def test_con_retomar_apagado_no_retoma(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            a = Path(tmp) / "a.mp3"
+            a.write_bytes(b"")
+            carpeta = self._carpeta_con(tmp, "z.mp3")
+            with _entorno() as env:
+                memoria.guardar(env.memoria,
+                                _estado_memoria([Tema(str(a.resolve()), "A")], 0))
+                control = ControlMusica(_frame(musica_carpeta=str(carpeta),
+                                               musica_retomar=False))
+                control.reproducir_o_pausar()
+                cargas = [l for l in env.creados[0].llamadas if l[0] == "cargar"]
+                textos = [c.args[0] for c in env.anunciar.call_args_list]
+        self.assertEqual(cargas[0][1], str((carpeta / "z.mp3").resolve()))
+        self.assertNotIn("Retomando: A", textos)
 
 
 class _Evento:

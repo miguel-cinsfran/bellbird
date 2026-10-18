@@ -92,6 +92,12 @@ def listas_musica() -> Path:
     return carpeta_datos() / "listas"
 
 
+def estado_musica() -> Path:
+    # Lo que suena y por dónde iba, para retomar al abrir. Se borra solo
+    # cuando la preferencia de retomar está apagada o la cola termina.
+    return carpeta_datos() / "musica_estado.json"
+
+
 def sounds_ini() -> Path:
     # Va con los datos porque la app lo escribe al cambiar el tema.
     return carpeta_datos() / "sounds.ini"

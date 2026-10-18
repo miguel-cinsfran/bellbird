@@ -257,6 +257,41 @@ class TestOtrosAvisos(unittest.TestCase):
         self.assertIsNone(aviso.sonido)
 
 
+class TestEstadoParaF2(unittest.TestCase):
+
+    def test_sin_estado_da_vacio(self):
+        self.assertEqual(anuncios.texto_estado_musica(None, False), "")
+
+    def test_sin_tema_da_vacio(self):
+        self.assertEqual(
+            anuncios.texto_estado_musica(_estado(), False), "")
+
+    def test_terminada_da_vacio(self):
+        self.assertEqual(
+            anuncios.texto_estado_musica(
+                _estado([_tema(1)], 0, terminado=True), False), "")
+
+    def test_sonando(self):
+        estado = _estado([_tema(1), _tema(2)], 0)
+        self.assertEqual(anuncios.texto_estado_musica(estado, False),
+                         "Música: Tema 1, tema 1 de 2")
+
+    def test_en_pausa(self):
+        estado = _estado([_tema(1), _tema(2)], 1, pausado=True)
+        self.assertEqual(anuncios.texto_estado_musica(estado, False),
+                         "Música en pausa: Tema 2, tema 2 de 2")
+
+    def test_con_artista(self):
+        estado = _estado([_tema(1, artista="Ana")], 0)
+        self.assertEqual(anuncios.texto_estado_musica(estado, True),
+                         "Música: Tema 1, de Ana, tema 1 de 1")
+
+    def test_retomando(self):
+        aviso = anuncios.aviso_retomando("Tema 3")
+        self.assertEqual(aviso.texto, "Retomando: Tema 3")
+        self.assertIsNone(aviso.sonido)
+
+
 class TestAvisosDeListas(unittest.TestCase):
 
     def test_saltadas_singular_y_plural(self):

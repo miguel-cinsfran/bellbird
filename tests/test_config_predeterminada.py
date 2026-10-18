@@ -168,6 +168,9 @@ class TestEstadoDefecto(unittest.TestCase):
         comp = set(estado_sesion.COMPONENTES)
         self.assertEqual(sec_keys, comp, f"estado debe cubrir exactamente COMPONENTES. Faltan {comp - sec_keys}, sobran {sec_keys - comp}")
 
+    def test_musica_activa_de_fabrica(self):
+        self.assertEqual(pred.obtener("estado", "musica"), "true")
+
 
 class TestConstruirBat(unittest.TestCase):
     def test_construir_sin_config_de_fabrica_y_con_guarda_antes_del_zip(self):

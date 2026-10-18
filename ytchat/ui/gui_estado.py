@@ -77,6 +77,7 @@ def snapshot_sesion(frame):
             if frame._config.get("programados_activo", False) else ""),
         descartados=_gui.descartes.frase_estado(
             _seguro(lambda: frame._stats.descartados, 0)),
+        musica=_seguro(lambda: frame._musica.texto_estado(), ""),
         obs_transmision=(_gui.obs_estado.frase_transmision(
             transmision["outputActive"], transmision["outputDuration"],
             transmision["outputSkippedFrames"], transmision["outputTotalFrames"])

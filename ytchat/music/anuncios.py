@@ -41,6 +41,9 @@ TEXTO_ERROR_MOTOR = "No se pudo usar el motor de música"
 TEXTO_VOLUMEN = "Volumen de la música: {valor}"
 TEXTO_QUE_SUENA = "Sonando: {nombre}. Tema {posicion} de {total}"
 TEXTO_EN_PAUSA = "En pausa: {nombre}. Tema {posicion} de {total}"
+TEXTO_ESTADO_MUSICA = "Música: {nombre}, tema {posicion} de {total}"
+TEXTO_ESTADO_MUSICA_PAUSA = "Música en pausa: {nombre}, tema {posicion} de {total}"
+TEXTO_RETOMANDO = "Retomando: {nombre}"
 TEXTO_ALEATORIO_ON = "Orden aleatorio activado"
 TEXTO_ALEATORIO_OFF = "Orden aleatorio desactivado"
 TEXTO_SIN_CARPETA = "No hay carpeta de música. Elige una en Preferencias, página Música"
@@ -161,6 +164,26 @@ def aviso_que_suena(estado, incluir_artista: bool) -> Aviso:
     total = len(estado.cola)
     plantilla = TEXTO_EN_PAUSA if estado.pausado else TEXTO_QUE_SUENA
     return Aviso(plantilla.format(nombre=nombre, posicion=posicion, total=total))
+
+
+def texto_estado_musica(estado, incluir_artista: bool) -> str:
+    """Qué suena, para el componente «Música que suena» de F2.
+
+    Vacío sin motor, sin tema o con la lista terminada: en esos casos el
+    componente se omite. Función pura.
+    """
+    if estado is None or estado.actual is None or estado.terminado:
+        return ""
+    nombre = nombre_tema(estado.actual, incluir_artista)
+    plantilla = (TEXTO_ESTADO_MUSICA_PAUSA if estado.pausado
+                 else TEXTO_ESTADO_MUSICA)
+    return plantilla.format(nombre=nombre, posicion=estado.posicion + 1,
+                            total=len(estado.cola))
+
+
+def aviso_retomando(nombre: str) -> Aviso:
+    """Al retomar la música donde quedó, en el primer Reproducir de la sesión."""
+    return Aviso(TEXTO_RETOMANDO.format(nombre=nombre))
 
 
 def aviso_aleatorio(activo: bool) -> Aviso:

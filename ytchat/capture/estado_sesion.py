@@ -56,6 +56,7 @@ class SnapshotSesion:
     transmision_supervisada: str = ""
     atajo_directo: str = ""   # texto legible del atajo de Ir al directo
                               # (p. ej. «Ctrl+Fin»); "" si está desactivado
+    musica: str = ""          # qué suena ahora, ya formateado; "" si no hay
 
 
 # Orden canónico de los componentes: estado → contenido → actividad → ajustes.
@@ -77,6 +78,7 @@ COMPONENTES: tuple[str, ...] = (
     "obs_transmision",
     "obs_grabacion",
     "obs_escena",
+    "musica",
 )
 
 # Activos por defecto: derivan de la sección [estado] de la fuente canónica.
@@ -108,6 +110,7 @@ ETIQUETAS = {
     "obs_transmision":    "Estado de la transmisión de OBS",
     "obs_grabacion":      "Estado de la grabación de OBS",
     "obs_escena":         "Escena al aire en OBS",
+    "musica":             "Música que suena",
 }
 
 
@@ -244,6 +247,10 @@ def _render_obs_escena(s: SnapshotSesion, largo: bool) -> str:
     return s.obs_escena or ""
 
 
+def _render_musica(s: SnapshotSesion, largo: bool) -> str:
+    return s.musica or ""
+
+
 _RENDERERS = {
     "estado": _render_estado,
     "titulo": _render_titulo,
@@ -262,6 +269,7 @@ _RENDERERS = {
     "obs_transmision": _render_obs_transmision,
     "obs_grabacion": _render_obs_grabacion,
     "obs_escena": _render_obs_escena,
+    "musica": _render_musica,
 }
 
 

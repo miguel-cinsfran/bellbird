@@ -4,7 +4,7 @@ import unittest
 
 from ytchat.capture import descartes
 from ytchat.capture.estado_sesion import (SnapshotSesion, formatear_estado, COMPONENTES,
-                           ACTIVOS_DEFECTO, _duracion, _render)
+                           ACTIVOS_DEFECTO, ETIQUETAS, _duracion, _render)
 
 
 class TestDuracion(unittest.TestCase):
@@ -262,6 +262,27 @@ class TestDesfaseConVuelta(unittest.TestCase):
     def test_sin_desfase_no_agrega_nada(self):
         s = SnapshotSesion(desfase_directo="", atajo_directo="Ctrl+Fin")
         self.assertEqual(formatear_estado(s, {"desfase_directo"}), "")
+
+
+class TestMusica(unittest.TestCase):
+
+    def test_componente_al_final_con_etiqueta(self):
+        self.assertEqual(COMPONENTES[-1], "musica")
+        self.assertEqual(ETIQUETAS["musica"], "Música que suena")
+
+    def test_se_dibuja_con_dato(self):
+        s = SnapshotSesion(musica="Música: Tema 2, tema 2 de 5")
+        self.assertEqual(formatear_estado(s, {"musica"}),
+                         "Música: Tema 2, tema 2 de 5.")
+        self.assertEqual(formatear_estado(s, {"musica"}, "largo"),
+                         "Música: Tema 2, tema 2 de 5")
+
+    def test_vacio_no_aparece(self):
+        self.assertEqual(formatear_estado(SnapshotSesion(musica=""), {"musica"}), "")
+        self.assertEqual(formatear_estado(SnapshotSesion(), {"musica"}), "")
+
+    def test_activo_de_fabrica(self):
+        self.assertIn("musica", ACTIVOS_DEFECTO)
 
 
 class TestRamasSinCubrir(unittest.TestCase):

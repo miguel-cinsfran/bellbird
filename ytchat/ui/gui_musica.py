@@ -15,10 +15,11 @@ from ytchat.core import diagnostico
 from ytchat.core import paths
 from ytchat.music import anuncios
 from ytchat.music import listas
+from ytchat.music import memoria
 from ytchat.music.adaptador_vlc import AdaptadorVlc, MotorNoDisponible
 from ytchat.music.biblioteca import Biblioteca, ErrorBiblioteca
 from ytchat.music.coordinador import Coordinador
-from ytchat.music.modelo import EstadoMusica, Resultado, SIN_TEMA
+from ytchat.music.modelo import AVANZO, FIN_LISTA, EstadoMusica, Resultado, SIN_TEMA
 from ytchat.ui.gui import anunciar
 from ytchat.voice import sound_player as _snd
 
@@ -90,6 +91,7 @@ class ControlMusica:
         self._cerrado = False
         self._biblioteca = None
         self._ventana = None
+        self._retomo_intentado = False
 
     # ── Acciones del menú y los atajos ───────────────────────────────────────
 
@@ -97,6 +99,8 @@ class ControlMusica:
         if self._coordinador is not None and toca_pausar(
                 self._coordinador.estado()):
             self._ejecutar("pausa", self._coordinador.alternar_pausa)
+            return
+        if self._primera_vez():
             return
         if not self._carpeta():
             self._avisar(anuncios.aviso_sin_carpeta())
@@ -183,6 +187,15 @@ class ControlMusica:
     def incluir_artista(self) -> bool:
         """Si se muestra el artista junto al título."""
         return self._incluir_artista()
+
+    def texto_estado(self) -> str:
+        """Qué suena, para el componente «Música que suena» de F2.
+
+        Vacío sin motor, sin tema o con la lista terminada. Función pura
+        envuelta: lo llama la GUI al armar el estado.
+        """
+        return anuncios.texto_estado_musica(
+            self.estado(), self._incluir_artista())
 
     def abrir_ventana(self) -> None:
         """Abre la ventana modal para elegir qué suena."""
@@ -384,6 +397,7 @@ class ControlMusica:
         resultado = self._coordinador.reproducir_lista(biblioteca.temas())
         self._avisar(anuncios.aviso_accion(
             "reproducir", resultado, self._incluir_artista()))
+        self._guardar_memoria()
 
     def _iniciar_lista(self, temas, en_orden) -> None:
         if self._coordinador is None:
@@ -391,6 +405,7 @@ class ControlMusica:
         resultado = self._coordinador.reproducir_lista(temas, en_orden=en_orden)
         self._avisar(anuncios.aviso_accion(
             "reproducir", resultado, self._incluir_artista()))
+        self._guardar_memoria()
 
     def _iniciar_lista_desde(self, temas, indice) -> None:
         if self._coordinador is None:
@@ -400,6 +415,7 @@ class ControlMusica:
             resultado = self._coordinador.reproducir_desde(indice)
         self._avisar(anuncios.aviso_accion(
             "reproducir", resultado, self._incluir_artista()))
+        self._guardar_memoria()
 
     def _agregar_a_la_cola(self, temas) -> None:
         if self._coordinador is None:
@@ -417,6 +433,60 @@ class ControlMusica:
         resultado = self._coordinador.reproducir_desde(indice)
         self._avisar(anuncios.aviso_accion(
             "reproducir", resultado, self._incluir_artista()))
+        self._guardar_memoria()
+
+    # ── Memoria: retomar y recordar ──────────────────────────────────────────
+
+    def _primera_vez(self) -> bool:
+        """En el primer Reproducir de la sesión, retoma si hay memoria.
+
+        Dice si se ocupó de arrancar la música desde la memoria guardada, para
+        no seguir con la carpeta. La memoria se intenta una sola vez por
+        sesión: después de eso, reproducir vuelve a la carpeta como siempre.
+        """
+        if self._retomo_intentado:
+            return False
+        self._retomo_intentado = True
+        if not self._retomar_activo():
+            return False
+        guardada = memoria.leer(self._ruta_memoria())
+        if guardada is None:
+            return False
+        temas, posicion = guardada
+        self._asegurar_motor(lambda: self._retomar(temas, posicion))
+        return True
+
+    def _retomar(self, temas, posicion) -> None:
+        if self._coordinador is None:
+            return
+        resultado = self._coordinador.reproducir_lista(temas, en_orden=True)
+        if resultado.ok and posicion:
+            resultado = self._coordinador.reproducir_desde(posicion)
+        actual = self._coordinador.estado().actual
+        if resultado.ok and actual is not None:
+            self._avisar(anuncios.aviso_retomando(
+                anuncios.nombre_tema(actual, self._incluir_artista())))
+            self._guardar_memoria()
+            return
+        self._avisar(anuncios.aviso_accion(
+            "reproducir", resultado, self._incluir_artista()))
+
+    def _guardar_memoria(self) -> None:
+        """Recuerda la cola y el tema tras un cambio, o limpia la memoria.
+
+        Con `musica_retomar` apagada no se guarda nada y se borra el archivo
+        si existe. Nunca lanza: lo llama el hilo de la interfaz.
+        """
+        if not self._retomar_activo():
+            memoria.guardar(self._ruta_memoria(), None)
+            return
+        memoria.guardar(self._ruta_memoria(), self.estado())
+
+    def _retomar_activo(self) -> bool:
+        return bool(self._config.get("musica_retomar", True))
+
+    def _ruta_memoria(self):
+        return paths.estado_musica()
 
     # ── Avisos ───────────────────────────────────────────────────────────────
 
@@ -433,6 +503,8 @@ class ControlMusica:
             bool(self._config.get("musica_decir_titulo", True)),
             bool(self._config.get("musica_incluir_artista", False)))
         self._avisar(aviso)
+        if resultado.codigo in (AVANZO, FIN_LISTA):
+            self._guardar_memoria()
         self._refrescar_ventana_abierta()
 
     def _refrescar_ventana_abierta(self) -> None:
@@ -465,6 +537,7 @@ class ControlMusica:
             return
         operacion = getattr(self._coordinador, accion)
         self._ejecutar(accion, operacion)
+        self._guardar_memoria()
 
     def _ejecutar(self, accion, operacion) -> None:
         resultado = operacion()

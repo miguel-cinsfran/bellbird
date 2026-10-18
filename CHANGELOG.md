@@ -23,6 +23,10 @@ Música mientras transmites, sin abrir otro programa.
   escribes, aunque no pongas las tildes. Reproduce el tema elegido o todo
   el resultado, agrégalo a la cola, mira la cola y salta a cualquier tema
   con Intro. Mientras está abierta, los atajos de música siguen andando.
+- **Título y artista de cada archivo.** Los temas aparecen primero con el
+  nombre del archivo y, unos segundos después, con el título y el artista
+  que trae el propio archivo, sin que se mueva el tema en que estás. La
+  segunda vez que abres la carpeta ya salen así desde el principio.
 - **Listas propias, con Ctrl+Alt+L.** Crea, renombra y borra listas,
   agrega temas desde la ventana Música, quítalos con Supr y cámbialos de
   lugar con Alt+Flecha arriba y Alt+Flecha abajo. También puedes guardar

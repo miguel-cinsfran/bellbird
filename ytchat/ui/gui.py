@@ -686,6 +686,10 @@ class YTChatFrame(wx.Frame):
         panel.SetSizer(vs)
         self._panel_principal = panel
 
+        # Control de la música: nace sin tocar VLC ni el disco.
+        from ytchat.ui import gui_musica
+        self._musica = gui_musica.ControlMusica(self)
+
         # Regiones que recorre F6 / Shift+F6.
         self._region_idx = REG_CONTENIDO
         self._regiones = [
@@ -1675,6 +1679,9 @@ class YTChatFrame(wx.Frame):
         overlay_servidor.apagar()
         try:
             self._rep_panel.detener_todo()
+        except Exception: pass
+        try:
+            self._musica.cerrar()
         except Exception: pass
         try:
             # Interrumpir lo que se esté leyendo (purga) antes de parar, para que

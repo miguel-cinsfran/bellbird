@@ -134,7 +134,7 @@ class TestAreasAtajo(unittest.TestCase):
                     self.assertTrue(
                         atajo_valido_para_area("accion", normalizado))
             for area in _AREA_POR_GRUPO:
-                if area is None:
+                if area is None or area == "ctrl+alt":
                     continue
                 with self.subTest(tecla=tecla, area=area):
                     with mock.patch.dict(config.ATAJOS_AREA, {"accion": area}):
@@ -282,6 +282,24 @@ class TestParsearAtajos(unittest.TestCase):
                 accion_grupo for _, acciones in ATAJOS_GRUPOS for accion_grupo in acciones
             })
 
+    def test_grupo_de_musica_justo_antes_del_de_fijos(self):
+        titulos = [titulo for titulo, _acciones in ATAJOS_GRUPOS]
+        self.assertEqual(titulos[-2], "Música (Ctrl+Alt)")
+        self.assertEqual(titulos[-1], "Ventana y navegación (fijos)")
+        self.assertEqual(_AREA_POR_GRUPO[4], "ctrl+alt")
+        self.assertIsNone(_AREA_POR_GRUPO[5])
+
+    def test_las_seis_acciones_de_musica_solo_aceptan_ctrl_alt(self):
+        acciones = ("musica_play", "musica_siguiente", "musica_anterior",
+                    "musica_vol_mas", "musica_vol_menos", "musica_que_suena")
+        for accion in acciones:
+            with self.subTest(accion=accion):
+                self.assertEqual(ATAJOS_AREA[accion], "ctrl+alt")
+                self.assertTrue(atajo_valido_para_area(
+                    accion, ATAJOS_DEFAULTS[accion]))
+                for otra in ("ctrl+p", "alt+p", "f5", "ctrl+shift+p"):
+                    self.assertFalse(atajo_valido_para_area(accion, otra))
+
     def test_menus_usan_el_sistema_para_los_nuevos_atajos(self):
         fuente = inspect.getsource(gui_menu.construir_menu)
         self.assertIn('._accel("ir_lista")', fuente)
@@ -295,6 +313,12 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertIn('._accel("describir_escena")', fuente)
         self.assertIn('._accel("obs_micro")', fuente)
         self.assertIn('._accel("avisos_sobrecarga")', fuente)
+        self.assertIn('._accel("musica_play")', fuente)
+        self.assertIn('._accel("musica_siguiente")', fuente)
+        self.assertIn('._accel("musica_anterior")', fuente)
+        self.assertIn('._accel("musica_vol_mas")', fuente)
+        self.assertIn('._accel("musica_vol_menos")', fuente)
+        self.assertIn('._accel("musica_que_suena")', fuente)
         self.assertNotIn("\\tAlt+L", fuente)
         self.assertNotIn("\\tCtrl+F", fuente)
 

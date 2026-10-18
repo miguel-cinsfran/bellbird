@@ -139,11 +139,7 @@ _TECLA_WX_A_TEXTO = {
     wx.WXK_RETURN: "enter", wx.WXK_NUMPAD_ENTER: "enter", wx.WXK_SPACE: "space",
     wx.WXK_END: "end",
 }
-_AREA_AYUDA = {
-    "ctrl": "Debe ser Ctrl y una tecla (por ejemplo Ctrl+P).",
-    "alt":  "Debe ser Alt y una tecla (por ejemplo Alt+C).",
-    "f":    "Debe ser una tecla de función, de F1 a F12, sola o con Ctrl (por ejemplo F2 o Ctrl+F2).",
-}
+_AREA_AYUDA = atajos_captura._AREA_AYUDA
 
 
 def _tecla_texto(keycode: int) -> str | None:
@@ -1880,6 +1876,13 @@ _ETIQUETAS_ATAJO = {
     "describir_escena":  "Describir la escena de OBS",
     "region_siguiente":  "Región siguiente",
     "region_anterior":   "Región anterior",
+    # Música (Ctrl+Alt)
+    "musica_play":       "Reproducir o pausar la música",
+    "musica_siguiente":  "Siguiente tema",
+    "musica_anterior":   "Tema anterior",
+    "musica_vol_mas":    "Subir el volumen de la música",
+    "musica_vol_menos":  "Bajar el volumen de la música",
+    "musica_que_suena":  "Qué suena",
 }
 _mostrar_atajo = atajos_captura.mostrar_atajo
 

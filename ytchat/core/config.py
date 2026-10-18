@@ -160,13 +160,16 @@ ATAJOS_GRUPOS = [
       "volumen_menos", "volumen_mas", "silenciar_lectura",
       "silenciar_sonidos", "anunciar_estado", "anunciar_autor",
       "describir_escena"]),
+    ("Música (Ctrl+Alt)",
+     ["musica_play", "musica_siguiente", "musica_anterior",
+      "musica_vol_mas", "musica_vol_menos", "musica_que_suena"]),
     ("Ventana y navegación (fijos)",
      ["salir", "region_siguiente", "region_anterior"]),
 ]
 
 # Modificador obligatorio por acción: reproductor → Ctrl, app → Alt, voz → F.
 # El grupo de atajos fijos no impone modificador.
-_AREA_POR_GRUPO = ("ctrl", "alt", "ctrl+shift", "f", None)
+_AREA_POR_GRUPO = ("ctrl", "alt", "ctrl+shift", "f", "ctrl+alt", None)
 ATAJOS_AREA = {ac: _AREA_POR_GRUPO[i]
                for i, (_titulo, acs) in enumerate(ATAJOS_GRUPOS) for ac in acs}
 

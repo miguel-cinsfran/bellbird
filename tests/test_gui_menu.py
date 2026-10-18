@@ -15,7 +15,7 @@ from unittest import mock
 from ytchat.ui import gui
 
 
-def _construir_lista():
+def _construir_lista(accel=None):
     """Llama a `_build_menubar` con dobles y devuelve la lista ordenada."""
     barra = []
 
@@ -57,6 +57,8 @@ def _construir_lista():
 
     frame = mock.Mock()
     frame._accel.return_value = ""
+    if accel is not None:
+        frame._accel.side_effect = accel
     frame._config = {"mostrar_botones_reproductor": True}
     with mock.patch.object(gui.wx, "Menu", side_effect=crear_menu), \
             mock.patch.object(gui.wx, "MenuBar", side_effect=crear_barra):
@@ -81,7 +83,7 @@ class TestEquivalenciaMenu(unittest.TestCase):
         titulos, _ = _construir_lista()
         self.assertEqual(
             ["&Archivo", "&Ver", "&Chat", "Vo&z", "&Reproductor",
-             "&Transmisión", "&Herramientas", "A&yuda"], titulos)
+             "&Transmisión", "&Música", "&Herramientas", "A&yuda"], titulos)
 
     def test_contenido_completo_en_orden(self):
         _, lista = _construir_lista()
@@ -152,6 +154,15 @@ class TestEquivalenciaMenu(unittest.TestCase):
             ("&Transmisión", "&Panel de transmisión…", ANY, "normal"),
             ("&Transmisión", "Silenciar el &micrófono de OBS", ANY, "normal"),
             ("&Transmisión", "&Avisar cuando OBS no da abasto", ANY, "check"),
+            ("&Música", "Reproducir o &pausar", ANY, "normal"),
+            ("&Música", "&Siguiente tema", ANY, "normal"),
+            ("&Música", "Tema &anterior", ANY, "normal"),
+            ("&Música", "Subir el &volumen", ANY, "normal"),
+            ("&Música", "&Bajar el volumen", ANY, "normal"),
+            ("&Música", "&Qué suena", ANY, "normal"),
+            ("&Música", "---", None, "sep"),
+            ("&Música", "&Detener la música", ANY, "normal"),
+            ("&Música", "Orden a&leatorio", ANY, "check"),
             ("&Herramientas", "Gestor de &descargas…", ANY, "normal"),
             ("&Herramientas", "&Actualizar yt-dlp", ANY, "normal"),
             ("&Herramientas", "---", None, "sep"),
@@ -161,6 +172,34 @@ class TestEquivalenciaMenu(unittest.TestCase):
             ("A&yuda", "&Buscar actualizaciones…", ANY, "normal"),
             ("A&yuda", "&Acerca de", gui.wx.ID_ABOUT, "normal"),
         ], lista)
+
+
+class TestMenuMusica(unittest.TestCase):
+    """El menú Música con sus nueve elementos y sus atajos a la vista."""
+
+    def _entradas(self):
+        from ytchat.core import config as cfg
+
+        def accel(accion):
+            valor = cfg.ATAJOS_DEFAULTS.get(accion, "")
+            return ("\t" + gui._fmt_accel(valor)) if valor else ""
+
+        _, lista = _construir_lista(accel)
+        return [fila for fila in lista if fila[0] == "&Música"]
+
+    def test_nueve_elementos_en_orden_con_atajos(self):
+        ANY = gui.wx.ID_ANY
+        self.assertEqual([
+            ("&Música", "Reproducir o &pausar\tCtrl+Alt+Space", ANY, "normal"),
+            ("&Música", "&Siguiente tema\tCtrl+Alt+Right", ANY, "normal"),
+            ("&Música", "Tema &anterior\tCtrl+Alt+Left", ANY, "normal"),
+            ("&Música", "Subir el &volumen\tCtrl+Alt+Up", ANY, "normal"),
+            ("&Música", "&Bajar el volumen\tCtrl+Alt+Down", ANY, "normal"),
+            ("&Música", "&Qué suena\tCtrl+Alt+T", ANY, "normal"),
+            ("&Música", "---", None, "sep"),
+            ("&Música", "&Detener la música", ANY, "normal"),
+            ("&Música", "Orden a&leatorio", ANY, "check"),
+        ], self._entradas())
 
 
 if __name__ == "__main__":

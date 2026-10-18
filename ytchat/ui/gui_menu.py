@@ -178,6 +178,43 @@ def construir_menu(frame):
     frame._bind_menu(frame.mi_avisos_sobrecarga,
                      frame._alternar_aviso_sobrecarga)
 
+    # Música
+    m = wx.Menu()
+    frame.mi_musica_play = m.Append(
+        wx.ID_ANY, "Reproducir o &pausar" + frame._accel("musica_play"))
+    frame.mi_musica_siguiente = m.Append(
+        wx.ID_ANY, "&Siguiente tema" + frame._accel("musica_siguiente"))
+    frame.mi_musica_anterior = m.Append(
+        wx.ID_ANY, "Tema &anterior" + frame._accel("musica_anterior"))
+    frame.mi_musica_vol_mas = m.Append(
+        wx.ID_ANY, "Subir el &volumen" + frame._accel("musica_vol_mas"))
+    frame.mi_musica_vol_menos = m.Append(
+        wx.ID_ANY, "&Bajar el volumen" + frame._accel("musica_vol_menos"))
+    frame.mi_musica_que_suena = m.Append(
+        wx.ID_ANY, "&Qué suena" + frame._accel("musica_que_suena"))
+    m.AppendSeparator()
+    mi_musica_detener = m.Append(wx.ID_ANY, "&Detener la música")
+    frame.mi_musica_aleatorio = m.AppendCheckItem(wx.ID_ANY, "Orden a&leatorio")
+    frame.mi_musica_aleatorio.Check(
+        bool(frame._config.get("musica_aleatorio", False)))
+    mb.Append(m, "&Música")
+    frame._bind_menu(frame.mi_musica_play,
+                     lambda: frame._musica.reproducir_o_pausar())
+    frame._bind_menu(frame.mi_musica_siguiente,
+                     lambda: frame._musica.siguiente())
+    frame._bind_menu(frame.mi_musica_anterior,
+                     lambda: frame._musica.anterior())
+    frame._bind_menu(frame.mi_musica_vol_mas,
+                     lambda: frame._musica.subir_volumen())
+    frame._bind_menu(frame.mi_musica_vol_menos,
+                     lambda: frame._musica.bajar_volumen())
+    frame._bind_menu(frame.mi_musica_que_suena,
+                     lambda: frame._musica.que_suena())
+    frame._bind_menu(mi_musica_detener,
+                     lambda: frame._musica.detener())
+    frame._bind_menu(frame.mi_musica_aleatorio,
+                     lambda: frame._musica.alternar_aleatorio())
+
     # Herramientas
     m = wx.Menu()
     # Gestor de descargas: SIEMPRE habilitado (funciona sin conexión de

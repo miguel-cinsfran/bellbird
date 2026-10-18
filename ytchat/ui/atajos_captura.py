@@ -11,6 +11,7 @@ _NOMBRE_TECLA_MOSTRAR = {
 _AREA_AYUDA = {
     "ctrl": "Debe ser Ctrl y una tecla (por ejemplo Ctrl+P).",
     "alt": "Debe ser Alt y una tecla (por ejemplo Alt+C).",
+    "ctrl+alt": "Debe ser Ctrl+Alt y una flecha o Espacio (por ejemplo Ctrl+Alt+Flecha derecha).",
     "f": "Debe ser una tecla de función, de F1 a F12, sola o con Ctrl (por ejemplo F2 o Ctrl+F2).",
 }
 _ETIQUETAS = {

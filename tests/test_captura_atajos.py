@@ -39,6 +39,14 @@ class TestCapturaAtajos(unittest.TestCase):
         import wx
         self.assertEqual(self.gp._combo_a_texto(wx.MOD_CONTROL, wx.WXK_LEFT), "ctrl+left")
 
+    def test_combo_ctrl_alt_flecha_llega_a_la_gramatica(self):
+        import wx
+        from ytchat.core import config as cfg
+        combo = self.gp._combo_a_texto(
+            wx.MOD_CONTROL | wx.MOD_ALT, wx.WXK_LEFT)
+        self.assertEqual(combo, "ctrl+alt+left")
+        self.assertEqual(cfg._normalizar_atajo(combo), "ctrl+alt+left")
+
     def test_combo_ctrl_fkey(self):
         import wx
         self.assertEqual(self.gp._combo_a_texto(wx.MOD_CONTROL, wx.WXK_F2), "ctrl+f2")

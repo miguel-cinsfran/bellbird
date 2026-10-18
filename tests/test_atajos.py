@@ -8,6 +8,7 @@ from ytchat.core.config import (
     _normalizar_atajo, parsear_atajos, detectar_conflictos_atajos,
     ATAJOS_DEFAULTS, ATAJOS_AREA, atajo_valido_para_area,
     ATAJOS_FIJOS, ATAJOS_FIJOS_DEFAULTS, ATAJOS_GRUPOS, todos_los_atajos_default,
+    _AREA_POR_GRUPO,
 )
 from ytchat.ui import gui_preferencias
 from ytchat.ui import gui
@@ -68,6 +69,25 @@ class TestNormalizarAtajo(unittest.TestCase):
     def test_ctrl_shift_tecla_con_nombre(self):
         self.assertEqual(_normalizar_atajo("ctrl+shift+left"), "ctrl+shift+left")
 
+    def test_ctrl_alt_teclas_permitidas(self):
+        for tecla in ("left", "right", "up", "down", "space"):
+            with self.subTest(tecla=tecla):
+                self.assertEqual(
+                    _normalizar_atajo(f"ctrl+alt+{tecla}"),
+                    f"ctrl+alt+{tecla}")
+
+    def test_ctrl_alt_orden_invertido_mayusculas_y_espacios(self):
+        self.assertEqual(_normalizar_atajo("alt+ctrl+left"), "ctrl+alt+left")
+        self.assertEqual(
+            _normalizar_atajo(" Ctrl + Alt + Right "), "ctrl+alt+right")
+
+    def test_ctrl_alt_rechaza_letras_digitos_y_otras_teclas(self):
+        for valor in ("ctrl+alt+x", "ctrl+alt+2", "ctrl+alt+f5",
+                      "ctrl+alt+enter", "ctrl+alt+end", "ctrl+alt+.",
+                      "ctrl+alt+shift+left"):
+            with self.subTest(valor=valor):
+                self.assertIsNone(_normalizar_atajo(valor))
+
 
 class TestAreasAtajo(unittest.TestCase):
 
@@ -86,6 +106,30 @@ class TestAreasAtajo(unittest.TestCase):
                 with self.subTest(accion=accion):
                     self.assertFalse(atajo_valido_para_area(
                         accion, modificador_equivocado[area]))
+
+    def test_ctrl_alt_pertenece_a_su_area(self):
+        with mock.patch.dict(config.ATAJOS_AREA, {"accion": "ctrl+alt"}):
+            self.assertTrue(atajo_valido_para_area("accion", "ctrl+alt+left"))
+
+    def test_ctrl_alt_no_pertenece_al_area_ctrl(self):
+        with mock.patch.dict(config.ATAJOS_AREA, {"accion": "ctrl"}):
+            self.assertFalse(atajo_valido_para_area("accion", "ctrl+alt+left"))
+
+    def test_ctrl_alt_solo_vale_en_su_area(self):
+        for tecla in ("left", "right", "up", "down", "space"):
+            normalizado = f"ctrl+alt+{tecla}"
+            with self.subTest(tecla=tecla, area="ctrl+alt"):
+                with mock.patch.dict(config.ATAJOS_AREA,
+                                     {"accion": "ctrl+alt"}):
+                    self.assertTrue(
+                        atajo_valido_para_area("accion", normalizado))
+            for area in _AREA_POR_GRUPO:
+                if area is None:
+                    continue
+                with self.subTest(tecla=tecla, area=area):
+                    with mock.patch.dict(config.ATAJOS_AREA, {"accion": area}):
+                        self.assertFalse(
+                            atajo_valido_para_area("accion", normalizado))
 
 
 class TestParsearAtajos(unittest.TestCase):

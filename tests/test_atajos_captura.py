@@ -4,6 +4,7 @@ import unittest
 from unittest import mock
 
 from ytchat.ui import atajos_captura
+from ytchat.core import config
 
 try:
     import wx  # noqa: F401
@@ -56,6 +57,29 @@ class TestAtajosCaptura(unittest.TestCase):
         resultado = atajos_captura.resolver("rep_play", None, self.valores)
         self.assertEqual(resultado, (
             "desactivado", "", "Reproducir o pausa sin atajo. Desactivado."))
+
+    def test_accion_de_area_ctrl_alt_captura_una_flecha(self):
+        with mock.patch.dict(config.ATAJOS_AREA, {"musica_siguiente": "ctrl+alt"}):
+            resultado = atajos_captura.resolver(
+                "musica_siguiente", "ctrl+alt+right", {})
+        self.assertEqual(resultado, (
+            "capturado", "ctrl+alt+right",
+            "Capturado: Ctrl+Alt+Right. Se aplica al pulsar Guardar."))
+
+    def test_accion_de_area_ctrl_alt_rechaza_una_letra(self):
+        with mock.patch.dict(config.ATAJOS_AREA, {"musica_siguiente": "ctrl+alt"}):
+            resultado = atajos_captura.resolver(
+                "musica_siguiente", "ctrl+alt+q", {})
+        self.assertEqual(resultado, (
+            "rechazado", None, "Esa combinación no es válida."))
+
+    def test_accion_de_area_ctrl_rechaza_ctrl_alt(self):
+        resultado = atajos_captura.resolver(
+            "rep_play", "ctrl+alt+left", self.valores)
+        self.assertEqual(resultado[0], "rechazado")
+        self.assertIsNone(resultado[1])
+        self.assertIn(
+            "Debe ser Ctrl y una tecla (por ejemplo Ctrl+P).", resultado[2])
 
     def test_mostrar_atajo_sigue_en_ingles_de_menu(self):
         # El formato de menú no se usa para leer; para eso está atajo_legible.

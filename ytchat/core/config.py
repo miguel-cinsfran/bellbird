@@ -119,6 +119,8 @@ def configurar_logging(nivel_consola: int = logging.INFO) -> None:
 #   Ctrl  → Reproductor (vídeo/audio), como las apps de medios.
 #   Alt   → Conexión y chat (acciones sobre el directo).
 #   F     → Voz/lectura TTS (ajustes en caliente) y navegación.
+#   Ctrl+Alt → grupo de música: solo flechas y Espacio, porque en el teclado
+#   español AltGr llega como Ctrl+Alt y una letra rompería el chat.
 # Se muestran como aceleradores en la barra de menú (NVDA los lee). No chocan
 # con los mnemónicos de menú (Alt+inicial) porque usamos otras letras.
 #
@@ -173,6 +175,9 @@ _SIMBOLOS_PERMITIDOS = {",", ".", ";", "'", "[", "]", "/", "-"}
 _TECLAS_NOMBRE = {"enter", "left", "right", "up", "down", "space", "end"}
 # Ctrl+Shift debe probarse antes que Ctrl para no quedarse con «shift+tecla».
 _RE_ATAJO = re.compile(r"^(ctrl\+shift|ctrl|alt)\+(.+)$", re.IGNORECASE)
+# Ctrl+Alt es su propia área y solo admite flechas o Espacio (ver arriba).
+_RE_CTRL_ALT = re.compile(
+    r"^(ctrl\+alt|alt\+ctrl)\+(left|right|up|down|space)$", re.IGNORECASE)
 _RE_FKEY  = re.compile(r"^f(1[0-2]|[1-9])$", re.IGNORECASE)
 _RE_CTRL_FKEY = re.compile(r"^ctrl\+f(1[0-2]|[1-9])$", re.IGNORECASE)
 
@@ -192,11 +197,11 @@ def todos_los_atajos_default() -> dict[str, str]:
 
 
 def _normalizar_atajo(valor: str | None) -> str | None:
-    """Normaliza a 'ctrl+x' / 'alt+enter' / 'ctrl+left' / 'f5' / 'ctrl+f2'.
-    None si no vale.
+    """Normaliza a 'ctrl+x' / 'alt+enter' / 'ctrl+left' / 'ctrl+alt+left'
+    / 'f5' / 'ctrl+f2'. None si no vale.
 
-    Ctrl+Shift, Ctrl o Alt + tecla, una tecla F sin modificador, o Ctrl
-    más una tecla F (como Ctrl+F2).
+    Ctrl+Shift, Ctrl o Alt + tecla, Ctrl+Alt con flechas o Espacio, una
+    tecla F sin modificador, o Ctrl más una tecla F (como Ctrl+F2).
     """
     if valor is None:
         return None
@@ -205,6 +210,9 @@ def _normalizar_atajo(valor: str | None) -> str | None:
         return None
     if _RE_FKEY.match(valor):
         return valor
+    m = _RE_CTRL_ALT.match(valor)
+    if m:
+        return f"ctrl+alt+{m.group(2)}"
     m = _RE_ATAJO.match(valor)
     if not m:
         return None
@@ -220,8 +228,8 @@ def atajo_valido_para_area(accion: str, normalizado: str | None) -> bool:
     """¿El atajo respeta el modificador del área de la acción?
 
     Reproductor → Ctrl, app → Alt, voz → tecla F sola o con Ctrl
-    (como Ctrl+F2). Vacío (desactivado) o acción sin área definida se
-    aceptan sin restricción.
+    (como Ctrl+F2), música → Ctrl+Alt con flechas o Espacio. Vacío
+    (desactivado) o acción sin área definida se aceptan sin restricción.
     """
     area = ATAJOS_AREA.get(accion)
     if not normalizado or area is None:
@@ -229,8 +237,9 @@ def atajo_valido_para_area(accion: str, normalizado: str | None) -> bool:
     if area == "f":
         return bool(_RE_FKEY.match(normalizado)
                     or _RE_CTRL_FKEY.match(normalizado))
-    # Ctrl+Shift pertenece a su área propia, no a la general de Ctrl.
-    if area == "ctrl" and normalizado.startswith("ctrl+shift+"):
+    # Ctrl+Shift y Ctrl+Alt tienen área propia, no la general de Ctrl.
+    if area == "ctrl" and (normalizado.startswith("ctrl+shift+")
+                           or normalizado.startswith("ctrl+alt+")):
         return False
     return normalizado.startswith(area + "+")
 

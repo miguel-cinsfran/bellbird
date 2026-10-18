@@ -378,10 +378,12 @@ class TestMusicaFabrica(unittest.TestCase):
             "carpeta": "", "aleatorio": "false", "repetir": "false",
             "retomar": "true", "sonido_tema": "true", "decir_titulo": "true",
             "incluir_artista": "false", "volumen": "50", "salida": "",
+            "salida_nombre": "",
         })
 
     def test_seccion_musica_respeta_el_orden_de_claves(self):
         self.assertEqual(list(pred.seccion("musica").keys()), [
             "carpeta", "aleatorio", "repetir", "retomar", "sonido_tema",
             "decir_titulo", "incluir_artista", "volumen", "salida",
+            "salida_nombre",
         ])

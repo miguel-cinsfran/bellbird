@@ -780,7 +780,7 @@ class TestCargarConfiguracion(unittest.TestCase):
 
 
 class TestMusicaCargador(unittest.TestCase):
-    """El cargador expone la sección [musica] con sus nueve claves."""
+    """El cargador expone la sección [musica] con sus diez claves."""
 
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
@@ -792,7 +792,7 @@ class TestMusicaCargador(unittest.TestCase):
         with redirigir_rutas(tmp):
             return config.cargar_configuracion()
 
-    def test_nueve_valores_de_fabrica_con_ini_vacio(self):
+    def test_diez_valores_de_fabrica_con_ini_vacio(self):
         cfg = self._cargar_en("")
         self.assertEqual(cfg["musica_carpeta"], "")
         self.assertFalse(cfg["musica_aleatorio"])
@@ -803,6 +803,7 @@ class TestMusicaCargador(unittest.TestCase):
         self.assertFalse(cfg["musica_incluir_artista"])
         self.assertEqual(cfg["musica_volumen"], 50)
         self.assertEqual(cfg["musica_salida"], "")
+        self.assertEqual(cfg["musica_salida_nombre"], "")
 
     def test_lee_valores_puestos_a_mano(self):
         cfg = self._cargar_en(
@@ -815,7 +816,8 @@ class TestMusicaCargador(unittest.TestCase):
             "decir_titulo = false\n"
             "incluir_artista = true\n"
             "volumen = 80\n"
-            "salida = altavoces\n")
+            "salida = altavoces\n"
+            "salida_nombre = Altavoces del sistema\n")
         self.assertEqual(cfg["musica_carpeta"], "C:/Mi Música/Grandes Éxitos")
         self.assertTrue(cfg["musica_aleatorio"])
         self.assertTrue(cfg["musica_repetir"])
@@ -825,6 +827,7 @@ class TestMusicaCargador(unittest.TestCase):
         self.assertTrue(cfg["musica_incluir_artista"])
         self.assertEqual(cfg["musica_volumen"], 80)
         self.assertEqual(cfg["musica_salida"], "altavoces")
+        self.assertEqual(cfg["musica_salida_nombre"], "Altavoces del sistema")
 
     def test_cada_clave_booleana_lee_su_propia_clave(self):
         # Con las seis invertidas a la vez, una lectura cruzada pasa
@@ -853,6 +856,13 @@ class TestMusicaCargador(unittest.TestCase):
             "[musica]\ncarpeta = "
             f"{config.codificar_texto_ini(carpeta)}\n")
         self.assertEqual(cfg["musica_carpeta"], carpeta)
+
+    def test_salida_nombre_con_caracteres_especiales_ida_y_vuelta(self):
+        nombre = "Altavoces 100% #1; principal"
+        cfg = self._cargar_en(
+            "[musica]\nsalida_nombre = "
+            f"{config.codificar_texto_ini(nombre)}\n")
+        self.assertEqual(cfg["musica_salida_nombre"], nombre)
 
     def test_volumen_mayor_a_cien_se_topea(self):
         cfg = self._cargar_en("[musica]\nvolumen = 150\n")

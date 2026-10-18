@@ -1,6 +1,6 @@
 """Pruebas de la tabla de opciones simples de Preferencias.
 
-La lista de 25 va literal en este módulo, no se lee de la tabla nueva:
+La lista de 32 va literal en este módulo, no se lee de la tabla nueva:
 así protege la tabla en vez de repetirla.
 """
 
@@ -42,6 +42,13 @@ OPCIONES_ESPERADAS = [
     ("chk_registro_detallado", "diagnostico", "registro_detallado", "registro_detallado", bool),
     ("sp_puerto_overlay", "overlay", "puerto", "overlay_puerto", int),
     ("chk_avisar_sobrecarga", "transmision", "avisar_sobrecarga", "avisar_sobrecarga", bool),
+    ("chk_musica_aleatorio", "musica", "aleatorio", "musica_aleatorio", bool),
+    ("chk_musica_repetir", "musica", "repetir", "musica_repetir", bool),
+    ("chk_musica_retomar", "musica", "retomar", "musica_retomar", bool),
+    ("chk_musica_sonido_tema", "musica", "sonido_tema", "musica_sonido_tema", bool),
+    ("chk_musica_decir_titulo", "musica", "decir_titulo", "musica_decir_titulo", bool),
+    ("chk_musica_incluir_artista", "musica", "incluir_artista", "musica_incluir_artista", bool),
+    ("sp_musica_volumen", "musica", "volumen", "musica_volumen", int),
 ]
 
 VALORES_SPIN = {
@@ -53,6 +60,7 @@ VALORES_SPIN = {
     "sp_espera_reconexion": 12,
     "sp_max_intentos": 3,
     "sp_puerto_overlay": 9000,
+    "sp_musica_volumen": 80,
 }
 
 
@@ -79,11 +87,11 @@ class TestTablaOpcionesSimples(unittest.TestCase):
             config[en_memoria] = (not por_defecto) if tipo is bool else por_defecto + 1
         return config
 
-    def test_tabla_tiene_25_filas_sin_repetir_y_cada_atributo_existe(self):
+    def test_tabla_tiene_32_filas_sin_repetir_y_cada_atributo_existe(self):
         tabla = gui_preferencias._OPCIONES_SIMPLES
-        self.assertEqual(len(tabla), 25)
+        self.assertEqual(len(tabla), 32)
         atributos = [fila[0] for fila in tabla]
-        self.assertEqual(len(set(atributos)), 25)
+        self.assertEqual(len(set(atributos)), 32)
         dialogo = self._dialogo()
         for atributo in atributos:
             with self.subTest(atributo=atributo):

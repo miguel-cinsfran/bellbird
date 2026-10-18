@@ -32,6 +32,8 @@ from ytchat.youtube import credenciales
 from ytchat.youtube import youtube_api
 from ytchat.core.config import APP_NAME
 from ytchat.ui.gui import ContadorAccesible, anunciar, caja_de_grupo, nombre_accesible
+from ytchat.ui.gui_descargas import nombrar_selector_carpeta
+from ytchat.ui import opciones_musica
 from ytchat.obs.obs_panel import GestorPanelObs
 
 logger = diagnostico.obtener_logger(__name__)
@@ -117,6 +119,13 @@ _OPCIONES_SIMPLES = (
     ("chk_registro_detallado", "diagnostico", "registro_detallado", "registro_detallado", bool, False),
     ("sp_puerto_overlay", "overlay", "puerto", "overlay_puerto", int, 8730),
     ("chk_avisar_sobrecarga", "transmision", "avisar_sobrecarga", "avisar_sobrecarga", bool, True),
+    ("chk_musica_aleatorio", "musica", "aleatorio", "musica_aleatorio", bool, False),
+    ("chk_musica_repetir", "musica", "repetir", "musica_repetir", bool, False),
+    ("chk_musica_retomar", "musica", "retomar", "musica_retomar", bool, True),
+    ("chk_musica_sonido_tema", "musica", "sonido_tema", "musica_sonido_tema", bool, True),
+    ("chk_musica_decir_titulo", "musica", "decir_titulo", "musica_decir_titulo", bool, True),
+    ("chk_musica_incluir_artista", "musica", "incluir_artista", "musica_incluir_artista", bool, False),
+    ("sp_musica_volumen", "musica", "volumen", "musica_volumen", int, 50),
 )
 
 
@@ -202,6 +211,7 @@ class PreferenciasDialog(wx.Dialog):
         self.nb.AddPage(self._pag_cola(self.nb), "Cola de lectura")
         self.nb.AddPage(self._pag_interfaz(self.nb), "Interfaz y sonidos")
         self.nb.AddPage(self._pag_reproductor(self.nb), "Reproductor")
+        self.nb.AddPage(self._pag_musica(self.nb), "Música")
         self.nb.AddPage(self._pag_conexion(self.nb), "Conexión")
         self.nb.AddPage(self._pag_filtros(self.nb), "Filtros")
         self.nb.AddPage(self._pag_estado(self.nb), "Estado (F2)")
@@ -230,7 +240,7 @@ class PreferenciasDialog(wx.Dialog):
         self.lista_categorias.SetFocus()
 
     def _cargar_opciones_simples(self):
-        """Vuelca la config en los 20 controles de la tabla. El valor por
+        """Vuelca la config en los 27 controles de la tabla. El valor por
         defecto de cada fila es el de fábrica, y se usa tanto si la config no
         trae la clave como si el valor no se puede convertir al tipo."""
         for atributo, _seccion, _clave, en_memoria, tipo, por_defecto in _OPCIONES_SIMPLES:
@@ -244,6 +254,8 @@ class PreferenciasDialog(wx.Dialog):
         # se decidió en `_build_ui` con el valor viejo del control; se recalcula
         # aquí, ya con el valor cargado.
         self.cho_voz_eventos.Enable(bool(self._voces) and self.chk_multivoz.GetValue())
+        self.chk_musica_incluir_artista.Enable(
+            self.chk_musica_decir_titulo.GetValue())
 
     def _make_panel(self, parent, name):
         # Página desplazable (solo vertical): la de Atajos mide más de 1200 px
@@ -634,6 +646,129 @@ class PreferenciasDialog(wx.Dialog):
 
         p.SetSizer(vs)
         return p
+
+    def _pag_musica(self, parent):
+        p = self._make_panel(parent, "PagMusica")
+        vs = wx.BoxSizer(wx.VERTICAL)
+
+        vs.Add(self._fila_label(p, "Carpeta de &música:"),
+               0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
+        carpeta = str(self._config.get("musica_carpeta", "") or "")
+        self.dir_musica_carpeta = wx.DirPickerCtrl(
+            p, path=carpeta, name="Carpeta de música",
+            message="Elige la carpeta de música")
+        nombrar_selector_carpeta(self.dir_musica_carpeta)
+        # La función nombra el campo para las descargas; acá el campo es la
+        # carpeta de música.
+        if hasattr(self.dir_musica_carpeta, "GetTextCtrl"):
+            nombre_accesible(self.dir_musica_carpeta.GetTextCtrl(),
+                             "Carpeta de música")
+        vs.Add(self.dir_musica_carpeta, 0,
+               wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        self.chk_musica_aleatorio = wx.CheckBox(
+            p, label="Reproducir en orden &aleatorio",
+            name="MusicaAleatorio")
+        self.chk_musica_aleatorio.SetForegroundColour(_T.text)
+        vs.Add(self.chk_musica_aleatorio, 0, wx.ALL, 10)
+
+        self.chk_musica_repetir = wx.CheckBox(
+            p, label="&Repetir la lista al terminar",
+            name="MusicaRepetir")
+        self.chk_musica_repetir.SetForegroundColour(_T.text)
+        vs.Add(self.chk_musica_repetir, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        self.chk_musica_retomar = wx.CheckBox(
+            p, label="Recordar la ú&ltima lista al abrir",
+            name="MusicaRetomar")
+        self.chk_musica_retomar.SetForegroundColour(_T.text)
+        vs.Add(self.chk_musica_retomar, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        self.chk_musica_sonido_tema = wx.CheckBox(
+            p, label="&Sonido al pasar de tema",
+            name="MusicaSonidoTema")
+        self.chk_musica_sonido_tema.SetForegroundColour(_T.text)
+        vs.Add(self.chk_musica_sonido_tema, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        self.chk_musica_decir_titulo = wx.CheckBox(
+            p, label="&Decir el título al pasar de tema",
+            name="MusicaDecirTitulo")
+        self.chk_musica_decir_titulo.SetForegroundColour(_T.text)
+        vs.Add(self.chk_musica_decir_titulo, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        self.chk_musica_incluir_artista = wx.CheckBox(
+            p, label="Incluir el ar&tista en el título",
+            name="MusicaIncluirArtista")
+        self.chk_musica_incluir_artista.SetForegroundColour(_T.text)
+        self.chk_musica_incluir_artista.Enable(
+            self.chk_musica_decir_titulo.GetValue())
+        self.chk_musica_decir_titulo.Bind(
+            wx.EVT_CHECKBOX,
+            lambda e: self.chk_musica_incluir_artista.Enable(e.IsChecked()))
+        vs.Add(self.chk_musica_incluir_artista, 0,
+               wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        vs.Add(self._fila_label(p, "&Volumen de la música"),
+               0, wx.LEFT | wx.RIGHT, 10)
+        self.sp_musica_volumen = ContadorAccesible(
+            p, min=0, max=100,
+            name="Volumen de la música")
+        vs.Add(self.sp_musica_volumen, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        # Al abrir no se consulta VLC: la lista se arma solo con la salida
+        # guardada (o la predeterminada) y se completa con el botón.
+        vs.Add(self._fila_label(p, "Salida de a&udio de la música"),
+               0, wx.LEFT | wx.RIGHT, 10)
+        etiquetas, identificadores, seleccion = opciones_musica.opciones_salida(
+            str(self._config.get("musica_salida", "") or ""),
+            str(self._config.get("musica_salida_nombre", "") or ""), [])
+        self._musica_salidas_ids = identificadores
+        self.cho_musica_salida = wx.Choice(
+            p, choices=etiquetas, name="Salida de audio de la música")
+        self.cho_musica_salida.SetSelection(seleccion)
+        vs.Add(self.cho_musica_salida, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        self.btn_buscar_salidas = wx.Button(
+            p, label="&Buscar las salidas de audio",
+            name="Buscar las salidas de audio")
+        vs.Add(self.btn_buscar_salidas, 0, wx.ALL, 10)
+        self.btn_buscar_salidas.Bind(wx.EVT_BUTTON, self._buscar_salidas)
+
+        p.SetSizer(vs)
+        return p
+
+    def _buscar_salidas(self, event):
+        # Consultar libVLC puede tardar, por eso nunca corre en la interfaz.
+        def consultar():
+            try:
+                from ytchat.music import adaptador_vlc
+                salidas = adaptador_vlc.salidas_audio()
+            except Exception:
+                salidas = []
+            wx.CallAfter(self._salidas_encontradas, salidas)
+
+        diagnostico.crear_hilo(consultar, "SalidasAudioPrefs").start()
+
+    def _salidas_encontradas(self, salidas):
+        if not self:   # el diálogo pudo cerrarse mientras libVLC respondía
+            return
+        elegida = self.cho_musica_salida.GetSelection()
+        if 0 <= elegida < len(self._musica_salidas_ids):
+            elegida_id = self._musica_salidas_ids[elegida]
+        else:
+            elegida_id = ""
+        elegida_nombre = ("" if not elegida_id
+                          else self.cho_musica_salida.GetStringSelection())
+        etiquetas, identificadores, seleccion = opciones_musica.opciones_salida(
+            elegida_id, elegida_nombre, salidas or [])
+        self._musica_salidas_ids = identificadores
+        self.cho_musica_salida.Set(etiquetas)
+        self.cho_musica_salida.SetSelection(seleccion)
+        cantidad = len(etiquetas) - 1
+        if cantidad:
+            anunciar(f"Se encontraron {cantidad} salidas de audio")
+        else:
+            anunciar("No se encontraron salidas de audio")
 
     def _pag_voz(self, parent):
         p = self._make_panel(parent, "PagVoz")
@@ -1626,6 +1761,24 @@ class PreferenciasDialog(wx.Dialog):
                          else self.cho_microfono_obs.GetStringSelection())
         self._set("obs", "microfono", microfono_obs)
         c["obs_microfono"] = microfono_obs
+
+        # Música: la carpeta se guarda codificada igual que la lee el
+        # cargador; la salida guarda su id y su nombre para no perderla.
+        carpeta_musica = self.dir_musica_carpeta.GetPath()
+        self._set("musica", "carpeta", cfg.codificar_texto_ini(carpeta_musica))
+        c["musica_carpeta"] = carpeta_musica
+        elegida_musica = self.cho_musica_salida.GetSelection()
+        if 0 <= elegida_musica < len(self._musica_salidas_ids):
+            salida_musica = self._musica_salidas_ids[elegida_musica]
+        else:
+            salida_musica = ""
+        nombre_salida = ("" if not salida_musica
+                         else self.cho_musica_salida.GetStringSelection())
+        self._set("musica", "salida", salida_musica)
+        c["musica_salida"] = salida_musica
+        self._set("musica", "salida_nombre",
+                  cfg.codificar_texto_ini(nombre_salida))
+        c["musica_salida_nombre"] = nombre_salida
 
         # Estado (F2): una clave por componente + el set en memoria.
         activos = set()

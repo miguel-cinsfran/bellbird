@@ -794,6 +794,8 @@ def cargar_configuracion() -> dict:
         "musica_incluir_artista": _pb(p, "musica", "incluir_artista"),
         "musica_volumen": _pi(p, "musica", "volumen", lo=0, hi=100),
         "musica_salida": _gs(p, "musica", "salida"),
+        "musica_salida_nombre": decodificar_texto_ini(
+            _gs(p, "musica", "salida_nombre")),
         "estado_toggles": estado_toggles,
         "atajos_raw": atajos_raw,
         "ruta_config": ruta,

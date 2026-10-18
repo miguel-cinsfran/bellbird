@@ -180,6 +180,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("incluir_artista", "false"),
         ("volumen", "50"),
         ("salida", ""),
+        ("salida_nombre", ""),
     ]),
 ]
 

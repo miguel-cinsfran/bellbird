@@ -85,7 +85,9 @@ def _termino(pid: int) -> bool:
             finally:
                 kernel32.CloseHandle(handle)
         except Exception:
-            pass
+            # En Windows os.kill no comprueba nada: la señal 0 es
+            # CTRL_C_EVENT. Sin ctypes no se sabe si terminó.
+            return False
     try:
         os.kill(pid, 0)
     except ProcessLookupError:

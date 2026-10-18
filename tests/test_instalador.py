@@ -749,6 +749,23 @@ class TestCaracterizacionFallos(BaseInstalador):
         self.assertFalse(pendiente.exists())
 
 
+class TestTerminoWindows(unittest.TestCase):
+    """En Windows, sin ctypes no se toca os.kill: la señal 0 manda
+    CTRL_C_EVENT a la consola en vez de comprobar nada."""
+
+    def test_sin_ctypes_devuelve_falso_sin_llamar_a_os_kill(self):
+        import ctypes
+        import unittest.mock as mock
+        with mock.patch.object(instalador.os, "name", "nt"), \
+                mock.patch.object(ctypes, "WinDLL",
+                                  side_effect=OSError("sin kernel")), \
+                mock.patch.object(instalador.os, "kill",
+                                  side_effect=AssertionError(
+                                      "no debe llamarse")) as matar:
+            self.assertFalse(instalador._termino(1234))
+        matar.assert_not_called()
+
+
 class TestPrincipalInstalador(unittest.TestCase):
 
     def test_argumentos_cortos_devuelve_uno(self):

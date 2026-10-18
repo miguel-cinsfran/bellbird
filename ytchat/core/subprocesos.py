@@ -253,6 +253,8 @@ def vincular_a_la_app(proceso):
         pid = getattr(proceso, "pid", None)
         if not isinstance(pid, int):
             return
+        if not isinstance(proceso, subprocess.Popen):
+            return
         nucleo.OpenProcess.argtypes = [
             wintypes.DWORD, wintypes.BOOL, wintypes.DWORD,
         ]

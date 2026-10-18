@@ -112,6 +112,17 @@ class PruebasSubprocesos(unittest.TestCase):
         for p in capturados:
             self.assertIsNotNone(p.poll())
 
+    def test_vincular_ignora_lo_que_no_es_un_popen_real(self):
+        falso = mock.Mock(pid=4242)
+        nucleo = mock.Mock()
+        with patch.object(subprocesos.os, "name", "nt"), \
+                patch.object(subprocesos, "_job_app",
+                             return_value=object()), \
+                patch.object(ctypes, "WinDLL", return_value=nucleo):
+            subprocesos.vincular_a_la_app(falso)
+        nucleo.OpenProcess.assert_not_called()
+        nucleo.AssignProcessToJobObject.assert_not_called()
+
     def test_os_error_al_arrancar_devuelve_fallo(self):
         with patch.object(subprocesos.subprocess, "Popen", side_effect=OSError("no existe")):
             estado = ejecutar(["no_existe_binario_xyz"], tope_segundos=2)

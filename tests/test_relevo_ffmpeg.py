@@ -243,6 +243,7 @@ class PruebasStderr(unittest.TestCase):
             b"HTTP error 403 Forbidden\nInvalid data found when processing input\n")
         with mock.patch("ytchat.downloads.ffmpeg_bin.ruta_ffmpeg", return_value="ffmpeg.exe"), \
                 mock.patch("subprocess.Popen", return_value=proceso), \
+                mock.patch("ytchat.core.subprocesos.vincular_a_la_app"), \
                 mock.patch.object(relevo_ffmpeg, "puerto_libre", return_value=9999), \
                 self._sincrono(), \
                 self.assertLogs(relevo_ffmpeg.logger, level="WARNING") as registro:

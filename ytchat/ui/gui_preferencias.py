@@ -519,7 +519,7 @@ class PreferenciasDialog(wx.Dialog):
         vs = wx.BoxSizer(wx.VERTICAL)
 
         self.chk_avisar_sobrecarga = wx.CheckBox(
-            p, label="&Avisar cuando OBS no da abasto",
+            p, label="A&visar cuando OBS no da abasto",
             name="AvisarSobrecargaObs")
         self.chk_avisar_sobrecarga.SetForegroundColour(_T.text)
         vs.Add(self.chk_avisar_sobrecarga, 0, wx.ALL, 10)

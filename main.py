@@ -465,6 +465,21 @@ def _es_error_permanente(exc):
     return any(p in str(exc).lower() for p in _ERRORES_PERMANENTES)
 
 
+def _directo_terminado(video_id) -> bool:
+    """¿El directo ya terminó? True solo cuando yt-dlp lo ve como vídeo grabado.
+
+    Un directo terminado deja a pytchat abriendo una conexión que a los
+    segundos cae con «Chat data stream is empty». Reintentar eso no tiene fin,
+    así que antes de contar el intento se consulta esto. Con «live»,
+    «upcoming», «desconocido» o un fallo de la consulta devuelve False y la
+    reconexión sigue como siempre."""
+    try:
+        _titulo, tipo, _metadatos = obtener_info_video(video_id)
+    except Exception:
+        return False
+    return tipo == deteccion.VOD
+
+
 def captura_con_reconexion(video_id, cola, config, parada, stats, on_message=None,
                            on_estado=None, sesion_activa=None):
     """on_estado(tipo, texto) informa al GUI de cambios de estado.
@@ -474,10 +489,14 @@ def captura_con_reconexion(video_id, cola, config, parada, stats, on_message=Non
     conecto = [False]
 
     def _estado(tipo, texto):
-        # Se intercepta «conectado» para contar solo los fallos SEGUIDOS: un
-        # directo largo con microcortes sueltos no debe agotar max_intentos.
-        if tipo == "conectado":
+        # «leido» es interno: marca que la conexión leyó al menos una vuelta de
+        # chat.get() sin error, y no se reenvía a la interfaz. Solo entonces la
+        # conexión cuenta como buena y se reinician los intentos: con el
+        # «conectado» de pytchat, un directo terminado reiniciaba el contador en
+        # cada vuelta y el límite de intentos nunca se cumplía.
+        if tipo == "leido":
             conecto[0] = True
+            return
         if on_estado:
             on_estado(tipo, texto)
 
@@ -497,6 +516,10 @@ def captura_con_reconexion(video_id, cola, config, parada, stats, on_message=Non
             if on_estado: on_estado("error_permanente", msg)
             _snd.reproducir("error")
             parada.set(); break
+        if _directo_terminado(video_id):
+            if on_estado: on_estado("error_permanente", "El directo terminó. Chat desconectado.")
+            _snd.reproducir("fin_directo")
+            parada.set(); break
         intentos += 1
         mi = config["max_intentos"]
         if mi > 0 and intentos >= mi:
@@ -506,7 +529,8 @@ def captura_con_reconexion(video_id, cola, config, parada, stats, on_message=Non
         sfx = f" de {mi}" if mi else ""
         espera = config["espera_entre_intentos"]
         motivo = str(err) if err is not None else "la conexión se cerró sin error"
-        logger.warning("Reconexión del chat, intento %s: %s", intentos, motivo)
+        logger.warning("Reconexión del chat video=%s, intento %s: %s",
+                       video_id, intentos, motivo)
         if on_estado: on_estado("reintentando", f"Reintentando en {espera} segundos (intento {intentos}{sfx})...")
         stats.inc("reconexiones")
         _snd.reproducir("conectando")
@@ -580,9 +604,10 @@ def _captura_en_loop(video_id, cola, config, parada, stats, on_message, on_estad
 
     if on_estado: on_estado("conectado", "Conectado. Esperando mensajes...")
     _snd.reproducir("conectado")
-    logger.info("Conectado al directo.")
+    logger.info("Conectado al directo video=%s.", video_id)
 
     inicio = datetime.now(timezone.utc)
+    leido = False
     err_con, MAX_ERR = 0, 5
     ultimo_error = None
 
@@ -613,6 +638,12 @@ def _captura_en_loop(video_id, cola, config, parada, stats, on_message, on_estad
                                       sesion_activa=sesion_activa, rol=rol)
 
                 err_con = 0
+                if not leido:
+                    # Una vuelta de get() sin excepción: la conexión está viva
+                    # de verdad. Se avisa una sola vez y como tipo interno, que
+                    # captura_con_reconexion consume sin mostrarlo al usuario.
+                    leido = True
+                    if on_estado: on_estado("leido", "Chat en lectura.")
             except Exception as exc:
                 if parada.is_set(): break
                 err_con += 1

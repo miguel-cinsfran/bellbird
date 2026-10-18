@@ -423,5 +423,73 @@ class TestAlternarAvisoSobrecarga(unittest.TestCase):
         anunciar.assert_called_once_with("Avisos de sobrecarga desactivados")
 
 
+class TestAlConectarChatEnlaceDirecto(unittest.TestCase):
+    """Al conectar el chat de un directo propio, el enlace queda copiable
+    aunque YouTube no tenga chat (para niños o privado)."""
+
+    URL = "https://www.youtube.com/watch?v=abcdefghijk"
+
+    def _conector(self, frame):
+        supervisor = mock.Mock()
+        credenciales = SimpleNamespace(
+            cargar=lambda: {"token": "t"},
+            hay_sesion=lambda datos: True,
+            efectivas=lambda datos: {"efectivas": True},
+            guardar_campo=mock.Mock())
+        pedido = {"titulo": "T", "descripcion": "", "privacidad": "private"}
+        with mock.patch.object(gui, "credenciales", credenciales), \
+                mock.patch.object(gui, "youtube_api"), \
+                mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo",
+                           return_value=pedido), \
+                mock.patch("ytchat.youtube.emision.cuerpo_emision",
+                           return_value={"cuerpo": True}), \
+                mock.patch("ytchat.youtube.emision.ganchos_youtube",
+                           return_value=("p", "e", "f")), \
+                mock.patch("ytchat.core.paths.fin_pendiente",
+                           return_value=None), \
+                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+                           return_value=supervisor) as fabrica:
+            gui_transmitir.supervisar_transmision(
+                frame, "iniciar", "YouTube", "")
+        return fabrica.call_args.kwargs["al_conectar_chat"]
+
+    def _frame(self, guardados):
+        return SimpleNamespace(
+            _supervisor=None, _config={}, _alive=True,
+            _conectado=False, _conectando=False, _enlace_directo="",
+            txt_url=mock.Mock(), _on_conectar=mock.Mock(),
+            _actualizar_boton_directo=mock.Mock(),
+            _al_terminar_supervisor=mock.Mock(),
+            _guardar_datos_directo_youtube=mock.Mock(
+                return_value=guardados))
+
+    def _conectar(self, guardados):
+        frame = self._frame(guardados)
+        conector = self._conector(frame)
+        with mock.patch.object(gui, "anunciar") as anunciar, \
+                mock.patch.object(gui.wx, "CallAfter",
+                                  side_effect=_llamada_inmediata):
+            conector(self.URL)
+        return frame, anunciar
+
+    def test_privado_guarda_el_enlace_antes_de_avisar(self):
+        frame, anunciar = self._conectar(
+            {"titulo": "T", "descripcion": "", "privacidad": "private",
+             "ninos": False})
+        self.assertEqual(frame._enlace_directo, self.URL)
+        anunciar.assert_called_once_with(
+            "El directo es privado y YouTube no deja leer su chat. "
+            "Para leerlo, transmite como público o no listado.")
+
+    def test_ninos_guarda_el_enlace_antes_de_avisar(self):
+        frame, anunciar = self._conectar(
+            {"titulo": "T", "descripcion": "", "privacidad": "public",
+             "ninos": True})
+        self.assertEqual(frame._enlace_directo, self.URL)
+        anunciar.assert_called_once_with(
+            "El directo está marcado como hecho para niños y YouTube no "
+            "tiene chat.")
+
+
 if __name__ == "__main__":
     unittest.main()

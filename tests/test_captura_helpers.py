@@ -1,7 +1,9 @@
 """Tests de helpers de captura de main: errores, cola y filtros."""
 
 import queue
+import sys
 import threading
+import types
 import unittest
 from unittest import mock
 
@@ -64,6 +66,8 @@ class TestReconexionRegistro(unittest.TestCase):
             return err
 
         with mock.patch.object(main, "_captura", side_effect=captura), \
+                mock.patch.object(main, "_directo_terminado",
+                                  return_value=False), \
                 mock.patch.object(main._snd, "reproducir"), \
                 self.assertLogs(main.logger, level="WARNING") as registro:
             main.captura_con_reconexion(
@@ -85,6 +89,188 @@ class TestReconexionRegistro(unittest.TestCase):
             any("Reconexión del chat" in linea
                 and "la conexión se cerró sin error" in linea
                 for linea in salida))
+
+    def test_el_aviso_de_reconexion_nombra_el_video(self):
+        _estados, salida = self._correr(
+            [RuntimeError("boom"), RuntimeError("boom")],
+            threading.Event())
+        self.assertTrue(
+            any("Reconexión del chat video=v," in linea for linea in salida))
+
+
+class TestDirectoTerminado(unittest.TestCase):
+
+    def _tipo(self, tipo, **kwargs):
+        with mock.patch.object(main, "obtener_info_video",
+                               return_value=("", tipo, {})):
+            return main._directo_terminado("v")
+
+    def test_vod_es_terminado(self):
+        self.assertTrue(self._tipo(main.deteccion.VOD))
+
+    def test_live_upcoming_y_desconocido_no_lo_son(self):
+        for tipo in (main.deteccion.LIVE, main.deteccion.UPCOMING,
+                     main.deteccion.DESCONOCIDO):
+            with self.subTest(tipo=tipo):
+                self.assertFalse(self._tipo(tipo))
+
+    def test_fallo_de_la_consulta_no_lo_da_por_terminado(self):
+        with mock.patch.object(main, "obtener_info_video",
+                               side_effect=RuntimeError("sin red")):
+            self.assertFalse(main._directo_terminado("v"))
+
+    def test_directo_terminado_real(self):
+        # Sin dobles en la frontera: yt-dlp de verdad. o8itjwRYFvs es un
+        # directo no listado que ya terminó, medido el 17/10/2026.
+        _titulo, tipo, metadatos = main.obtener_info_video("o8itjwRYFvs")
+        if tipo == main.deteccion.DESCONOCIDO and metadatos.get("fallo"):
+            self.skipTest("sin red: " + metadatos["fallo"])
+        if tipo == main.deteccion.DESCONOCIDO:
+            self.skipTest("la consulta real no dio un tipo")
+        self.assertTrue(main._directo_terminado("o8itjwRYFvs"))
+
+
+class TestReconexionDirectoTerminado(unittest.TestCase):
+
+    def _config(self, max_intentos=0):
+        return {"reconectar": True, "max_intentos": max_intentos,
+                "espera_entre_intentos": 0}
+
+    def _correr(self, captura, terminado, parada, max_intentos=0):
+        estados = []
+        with mock.patch.object(main, "_captura", side_effect=captura), \
+                mock.patch.object(main, "_directo_terminado",
+                                  return_value=terminado), \
+                mock.patch.object(main._snd, "reproducir") as sonido, \
+                mock.patch.object(main.logger, "warning"):
+            main.captura_con_reconexion(
+                "vid123", queue.Queue(), self._config(max_intentos), parada,
+                Stats(),
+                on_estado=lambda tipo, texto: estados.append((tipo, texto)))
+        return estados, sonido
+
+    def test_directo_terminado_avisa_corta_y_suena_una_vez(self):
+        llamadas = [0]
+
+        def captura(video_id, cola, cfg, parada, stats, on_message,
+                    on_estado, sesion_activa):
+            llamadas[0] += 1
+            on_estado("conectado", "ok")
+            return RuntimeError("Chat data stream is empty.")
+
+        parada = threading.Event()
+        estados, sonido = self._correr(captura, True, parada)
+        self.assertEqual(llamadas[0], 1)
+        self.assertIn(
+            ("error_permanente", "El directo terminó. Chat desconectado."),
+            estados)
+        self.assertFalse(any(tipo == "reintentando" for tipo, _ in estados))
+        sonido.assert_called_once_with("fin_directo")
+        self.assertTrue(parada.is_set())
+
+    def test_cortes_sin_lectura_agotan_los_intentos(self):
+        llamadas = [0]
+
+        def captura(video_id, cola, cfg, parada, stats, on_message,
+                    on_estado, sesion_activa):
+            llamadas[0] += 1
+            # «conectado» ya no cuenta como lectura: sin «leido», el contador
+            # no se reinicia y el límite se cumple.
+            on_estado("conectado", "ok")
+            if llamadas[0] >= 6:      # tope para no colgarse si el arreglo cae
+                parada.set()
+            return RuntimeError("corte")
+
+        parada = threading.Event()
+        estados, _sonido = self._correr(captura, False, parada, max_intentos=3)
+        self.assertEqual(llamadas[0], 3)
+        self.assertIn(("error", "Se agotaron los 3 intentos de reconexión."),
+                      estados)
+
+    def test_cortes_con_lectura_reinician_los_intentos(self):
+        llamadas = [0]
+
+        def captura(video_id, cola, cfg, parada, stats, on_message,
+                    on_estado, sesion_activa):
+            llamadas[0] += 1
+            on_estado("leido", "ok")
+            if llamadas[0] >= 5:
+                parada.set()
+            return RuntimeError("microcorte")
+
+        parada = threading.Event()
+        estados, _sonido = self._correr(captura, False, parada, max_intentos=3)
+        self.assertEqual(llamadas[0], 5)
+        self.assertFalse(any(tipo in ("error", "error_permanente")
+                             for tipo, _ in estados))
+
+    def test_leido_nunca_llega_a_on_estado(self):
+        def captura(video_id, cola, cfg, parada, stats, on_message,
+                    on_estado, sesion_activa):
+            on_estado("leido", "interno")
+            on_estado("conectado", "ok")
+            parada.set()
+            return None
+
+        parada = threading.Event()
+        estados, _sonido = self._correr(captura, False, parada)
+        tipos = [tipo for tipo, _ in estados]
+        self.assertNotIn("leido", tipos)
+        self.assertIn("conectado", tipos)
+
+
+class _ChatFalso:
+    def __init__(self, items=None, error=None):
+        self._items = list(items or [])
+        self._error = error
+        self._vivo = True
+
+    def is_alive(self):
+        return self._vivo
+
+    def get(self):
+        self._vivo = False
+        if self._error is not None:
+            raise self._error
+        chat = self
+
+        class _Lote:
+            def sync_items(self):
+                return chat._items
+        return _Lote()
+
+    def raise_for_status(self):
+        return None
+
+
+class TestCapturaEnLoopLee(unittest.TestCase):
+
+    def _correr(self, chat):
+        estados = []
+        pytchat_falso = types.SimpleNamespace(create=lambda **k: chat)
+        with mock.patch.dict(sys.modules, {"pytchat": pytchat_falso}), \
+                mock.patch.object(main, "_cliente_pytchat",
+                                  return_value=mock.Mock(close=lambda: None)), \
+                mock.patch.object(main._snd, "reproducir"), \
+                self.assertLogs(main.logger, level="INFO") as registro:
+            main._captura_en_loop(
+                "dQw4w9WgXcQ", queue.Queue(), {}, threading.Event(), Stats(),
+                on_message=None,
+                on_estado=lambda tipo, texto: estados.append(tipo),
+                sesion_activa=None)
+        return estados, registro.output
+
+    def test_emite_leido_una_vez_tras_una_vuelta_sin_error(self):
+        estados, salida = self._correr(_ChatFalso())
+        self.assertEqual(estados.count("leido"), 1)
+        self.assertIn("conectado", estados)
+        self.assertTrue(any("Conectado al directo video=dQw4w9WgXcQ." in linea
+                            for linea in salida))
+
+    def test_no_emite_leido_si_la_primera_vuelta_lanza(self):
+        estados, _salida = self._correr(
+            _ChatFalso(error=RuntimeError("Chat data stream is empty.")))
+        self.assertNotIn("leido", estados)
 
 
 class TestEncolar(unittest.TestCase):

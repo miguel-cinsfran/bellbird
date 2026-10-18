@@ -289,12 +289,14 @@ def supervisar_transmision(frame, accion, destino="", usuario="",
                 if destino == "YouTube":
                     from ytchat.youtube import emision as _emision
                     if guardados.get("ninos"):
+                        frame._enlace_directo = url
                         _gui.anunciar(
                             "El directo está marcado como hecho para "
                             "niños y YouTube no tiene chat.")
                         return
                     if not _emision.chat_legible(
                             guardados["privacidad"]):
+                        frame._enlace_directo = url
                         _gui.anunciar(
                             "El directo es privado y YouTube no deja "
                             "leer su chat. Para leerlo, transmite como "

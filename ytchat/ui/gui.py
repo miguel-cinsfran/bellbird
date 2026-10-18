@@ -565,6 +565,10 @@ class YTChatFrame(wx.Frame):
         from ytchat.ui import gui_transmitir
         return gui_transmitir.guardar_destino_transmision(self, destino)
 
+    def _alternar_aviso_sobrecarga(self):
+        from ytchat.ui import gui_transmitir
+        gui_transmitir.alternar_aviso_sobrecarga(self)
+
     def _guardar_datos_directo_youtube(self, titulo, descripcion, privacidad,
                                         latencia=None, ninos=False, dvr=True,
                                         categoria="", etiquetas=None,
@@ -1197,6 +1201,11 @@ class YTChatFrame(wx.Frame):
             logger.debug("aplicar ajustes de voz desde preferencias: %s", exc)
         self._marcar_filtro()
         self._sincronizar_checks()
+        try:
+            self.mi_avisos_sobrecarga.Check(
+                bool(self._config.get("avisar_sobrecarga", True)))
+        except Exception:
+            pass
         # Reconstruir la lista por si cambió "quitar emojis" o el filtro.
         self._rebuild_listbox()
         # Restaurar estado de los items de conexión y del envío al chat tras

@@ -355,6 +355,73 @@ class TestSupervisarTransmision(unittest.TestCase):
         hilo.start.assert_called_once_with()
         frame._actualizar_boton_directo.assert_called_once_with()
 
+    def _frame_inicia(self, config):
+        return SimpleNamespace(
+            _supervisor=None, _config=config, _alive=True,
+            _actualizar_boton_directo=mock.Mock(),
+            _al_terminar_supervisor=mock.Mock())
+
+    def test_iniciar_pasa_el_aviso_de_sobrecarga_de_la_config(self):
+        supervisor = mock.Mock()
+        frame = self._frame_inicia({"avisar_sobrecarga": False})
+        with mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+                        return_value=supervisor) as fabrica:
+            gui_transmitir.supervisar_transmision(
+                frame, "iniciar", "TikTok", "alguien")
+        consulta = fabrica.call_args.kwargs["avisar_sobrecarga"]
+        self.assertFalse(consulta())
+
+    def test_el_aviso_de_sobrecarga_lee_la_config_en_cada_llamada(self):
+        supervisor = mock.Mock()
+        frame = self._frame_inicia({})
+        with mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+                        return_value=supervisor) as fabrica:
+            gui_transmitir.supervisar_transmision(
+                frame, "iniciar", "TikTok", "alguien")
+        consulta = fabrica.call_args.kwargs["avisar_sobrecarga"]
+        self.assertTrue(consulta())
+        frame._config["avisar_sobrecarga"] = False
+        self.assertFalse(consulta())
+
+
+class TestAlternarAvisoSobrecarga(unittest.TestCase):
+
+    def test_desactivar_guarda_marca_y_anuncia(self):
+        item = mock.Mock()
+        frame = SimpleNamespace(_config={"avisar_sobrecarga": True},
+                                mi_avisos_sobrecarga=item)
+        with mock.patch.object(gui, "guardar_opcion") as guardar, \
+                mock.patch.object(gui, "anunciar") as anunciar:
+            gui_transmitir.alternar_aviso_sobrecarga(frame)
+        self.assertFalse(frame._config["avisar_sobrecarga"])
+        item.Check.assert_called_once_with(False)
+        guardar.assert_called_once_with(
+            gui.RUTA_CONFIG, "transmision", "avisar_sobrecarga", "false")
+        anunciar.assert_called_once_with("Avisos de sobrecarga desactivados")
+
+    def test_activar_guarda_marca_y_anuncia(self):
+        item = mock.Mock()
+        frame = SimpleNamespace(_config={"avisar_sobrecarga": False},
+                                mi_avisos_sobrecarga=item)
+        with mock.patch.object(gui, "guardar_opcion") as guardar, \
+                mock.patch.object(gui, "anunciar") as anunciar:
+            gui_transmitir.alternar_aviso_sobrecarga(frame)
+        self.assertTrue(frame._config["avisar_sobrecarga"])
+        item.Check.assert_called_once_with(True)
+        guardar.assert_called_once_with(
+            gui.RUTA_CONFIG, "transmision", "avisar_sobrecarga", "true")
+        anunciar.assert_called_once_with("Avisos de sobrecarga activados")
+
+    def test_sin_item_no_falla_y_usa_el_por_defecto(self):
+        frame = SimpleNamespace(_config={})
+        with mock.patch.object(gui, "guardar_opcion") as guardar, \
+                mock.patch.object(gui, "anunciar") as anunciar:
+            gui_transmitir.alternar_aviso_sobrecarga(frame)
+        self.assertFalse(frame._config["avisar_sobrecarga"])
+        guardar.assert_called_once_with(
+            gui.RUTA_CONFIG, "transmision", "avisar_sobrecarga", "false")
+        anunciar.assert_called_once_with("Avisos de sobrecarga desactivados")
+
 
 if __name__ == "__main__":
     unittest.main()

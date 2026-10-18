@@ -321,6 +321,25 @@ class TestReconexionYSonidos(unittest.TestCase):
         self.assertEqual(pred.obtener("reconexion", "max_intentos"), "20")
         self.assertEqual(pred.obtener("reconexion", "espera_entre_intentos"), "15")
 
+    def test_fabrica_trae_aviso_de_sobrecarga_encendido_y_con_atajo(self):
+        self.assertEqual(
+            pred.obtener("transmision", "avisar_sobrecarga"), "true")
+        self.assertEqual(
+            pred.obtener("atajos", "avisos_sobrecarga"), "ctrl+shift+a")
+
+    def test_lectura_de_avisar_sobrecarga_es_bool(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            with redirigir_rutas(Path(tmp)):
+                self.assertIs(config.cargar_configuracion()["avisar_sobrecarga"],
+                              True)
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "config.ini").write_text(
+                "[transmision]\navisar_sobrecarga = false\n", encoding="utf-8")
+            with redirigir_rutas(Path(tmp)):
+                self.assertIs(config.cargar_configuracion()["avisar_sobrecarga"],
+                              False)
+
     def test_generador_se_invoca_como_modulo(self):
         texto = pred.generar_texto()
         self.assertNotIn("python config_predeterminada.py", texto)

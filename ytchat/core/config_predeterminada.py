@@ -75,6 +75,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("abrir_transmision", "ctrl+shift+t"),
         ("copiar_enlace", "ctrl+shift+e"),
         ("obs_micro", "ctrl+shift+m"),
+        ("avisos_sobrecarga", "ctrl+shift+a"),
         ("conectar", "alt+c"),
         ("desconectar", "alt+d"),
         ("enviar_chat", "alt+enter"),
@@ -128,6 +129,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
     ]),
     ("transmision", [
         ("destino", ""),
+        ("avisar_sobrecarga", "true"),
         ("youtube_titulo", ""),
         ("youtube_descripcion", ""),
         ("youtube_privacidad", "unlisted"),

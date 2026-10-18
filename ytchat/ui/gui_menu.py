@@ -165,11 +165,18 @@ def construir_menu(frame):
         wx.ID_ANY, "&Panel de transmisión…" + frame._accel("abrir_transmision"))
     frame.mi_obs_micro = m.Append(
         wx.ID_ANY, "Silenciar el &micrófono de OBS" + frame._accel("obs_micro"))
+    frame.mi_avisos_sobrecarga = m.AppendCheckItem(
+        wx.ID_ANY,
+        "&Avisar cuando OBS no da abasto" + frame._accel("avisos_sobrecarga"))
+    frame.mi_avisos_sobrecarga.Check(
+        bool(frame._config.get("avisar_sobrecarga", True)))
     mb.Append(m, "&Transmisión")
     frame.Bind(wx.EVT_MENU,
               lambda e: wx.CallAfter(frame._on_transmision, None),
               frame.mi_transmision)
     frame.Bind(wx.EVT_MENU, frame._on_obs_micro, frame.mi_obs_micro)
+    frame._bind_menu(frame.mi_avisos_sobrecarga,
+                     frame._alternar_aviso_sobrecarga)
 
     # Herramientas
     m = wx.Menu()

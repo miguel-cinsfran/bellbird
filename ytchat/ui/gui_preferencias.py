@@ -116,6 +116,7 @@ _OPCIONES_SIMPLES = (
     ("chk_sonido_inicio", "ui", "sonido_inicio", "sonido_inicio", bool, True),
     ("chk_registro_detallado", "diagnostico", "registro_detallado", "registro_detallado", bool, False),
     ("sp_puerto_overlay", "overlay", "puerto", "overlay_puerto", int, 8730),
+    ("chk_avisar_sobrecarga", "transmision", "avisar_sobrecarga", "avisar_sobrecarga", bool, True),
 )
 
 
@@ -516,6 +517,12 @@ class PreferenciasDialog(wx.Dialog):
     def _pag_transmision(self, parent):
         p = self._make_panel(parent, "PagTransmision")
         vs = wx.BoxSizer(wx.VERTICAL)
+
+        self.chk_avisar_sobrecarga = wx.CheckBox(
+            p, label="&Avisar cuando OBS no da abasto",
+            name="AvisarSobrecargaObs")
+        self.chk_avisar_sobrecarga.SetForegroundColour(_T.text)
+        vs.Add(self.chk_avisar_sobrecarga, 0, wx.ALL, 10)
 
         vs.Add(self._fila_label(p, "&Puerto del panel de chat"),
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
@@ -1697,6 +1704,7 @@ _ETIQUETAS_ATAJO = {
     "abrir_transmision":  "Abrir Transmisión",
     "copiar_enlace":      "Copiar enlace del directo",
     "obs_micro":          "Silenciar el micrófono de OBS",
+    "avisos_sobrecarga":  "Activar o desactivar los avisos de sobrecarga",
     # Conexión y chat
     "conectar":          "Conectar",
     "desconectar":       "Desconectar",

@@ -181,7 +181,7 @@ class ProblemasEnDirectoTest(unittest.TestCase):
         self.assertEqual(problemas_en_directo(muestra(True, 10),
                                               muestra(True, 20)), [])
 
-    def test_codificacion_sobre_las_estadisticas(self):
+    def test_sobrecarga_usa_el_mayor_de_codificacion_y_dibujo(self):
         avisos = problemas_en_directo(
             muestra(True, 10), muestra(True, 20),
             estadisticas_anterior={"outputSkippedFrames": 0,
@@ -190,26 +190,60 @@ class ProblemasEnDirectoTest(unittest.TestCase):
                                    "renderTotalFrames": 1000},
             estadisticas={"outputSkippedFrames": 400,
                           "outputTotalFrames": 2000,
-                          "renderSkippedFrames": 0,
-                          "renderTotalFrames": 1000})
-        self.assertEqual(avisos, [("codificacion",
-            "El equipo está sobrecargado: se pierde el 40 por ciento de los "
-            "cuadros al codificar. Cierra los programas que no uses.")])
+                          "renderSkippedFrames": 10,
+                          "renderTotalFrames": 1100})
+        self.assertEqual(avisos, [("sobrecarga",
+            "OBS no da abasto: se pierde el 40 por ciento de los cuadros.")])
 
-    def test_dibujo_sobre_las_estadisticas(self):
+    def test_sobrecarga_toma_el_dibujo_cuando_supera_al_codificado(self):
         avisos = problemas_en_directo(
             muestra(True, 10), muestra(True, 20),
             estadisticas_anterior={"outputSkippedFrames": 0,
                                    "outputTotalFrames": 1000,
                                    "renderSkippedFrames": 0,
                                    "renderTotalFrames": 1000},
-            estadisticas={"outputSkippedFrames": 0,
-                          "outputTotalFrames": 1000,
-                          "renderSkippedFrames": 80,
-                          "renderTotalFrames": 1200})
-        self.assertEqual(avisos, [("dibujo",
-            "El equipo está sobrecargado: se atrasa el 40 por ciento de los "
-            "cuadros al dibujar la escena. Cierra los programas que no uses.")])
+            estadisticas={"outputSkippedFrames": 30,
+                          "outputTotalFrames": 2000,
+                          "renderSkippedFrames": 20,
+                          "renderTotalFrames": 1100})
+        self.assertEqual(avisos, [("sobrecarga",
+            "OBS no da abasto: se pierde el 20 por ciento de los cuadros.")])
+
+    def test_sobrecarga_bajo_umbral_en_los_dos_no_avisa(self):
+        avisos = problemas_en_directo(
+            muestra(True, 10), muestra(True, 20),
+            estadisticas_anterior={"outputSkippedFrames": 0,
+                                   "outputTotalFrames": 1000,
+                                   "renderSkippedFrames": 0,
+                                   "renderTotalFrames": 1000},
+            estadisticas={"outputSkippedFrames": 40,
+                          "outputTotalFrames": 2000,
+                          "renderSkippedFrames": 40,
+                          "renderTotalFrames": 2000})
+        self.assertEqual(avisos, [])
+
+    def test_sobrecarga_nunca_devuelve_mas_de_un_aviso(self):
+        for output_total, output_perdidos, render_total, render_perdidos in (
+                (1000, 400, 100, 10),
+                (1000, 30, 100, 20),
+                (1000, 500, 100, 500),
+                (0, 0, 0, 0),
+                (1000, 0, 100, 50)):
+            with self.subTest(estadisticas=(output_total, output_perdidos,
+                                            render_total, render_perdidos)):
+                avisos = problemas_en_directo(
+                    muestra(True, 10), muestra(True, 20),
+                    estadisticas_anterior={"outputSkippedFrames": 0,
+                                           "outputTotalFrames": 1000,
+                                           "renderSkippedFrames": 0,
+                                           "renderTotalFrames": 1000},
+                    estadisticas={
+                        "outputSkippedFrames": output_perdidos,
+                        "outputTotalFrames": 1000 + output_total,
+                        "renderSkippedFrames": render_perdidos,
+                        "renderTotalFrames": 1000 + render_total})
+                self.assertLessEqual(
+                    [tipo for tipo, _ in avisos].count("sobrecarga"), 1)
 
     def test_estadisticas_que_faltan_no_avisan_de_equipo(self):
         self.assertEqual(problemas_en_directo(
@@ -242,7 +276,7 @@ class ProblemasEnDirectoTest(unittest.TestCase):
                           "outputTotalFrames": 2000,
                           "renderSkippedFrames": 0,
                           "renderTotalFrames": 1000})
-        self.assertEqual([tipo for tipo, _ in avisos], ["red", "codificacion"])
+        self.assertEqual([tipo for tipo, _ in avisos], ["red", "sobrecarga"])
 
 
 if __name__ == "__main__":

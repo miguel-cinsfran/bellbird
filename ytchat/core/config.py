@@ -150,7 +150,8 @@ ATAJOS_GRUPOS = [
      ["conectar", "desconectar", "enviar_chat", "ir_lista"]),
     ("Ventanas y paneles (Ctrl+Shift)",
      ["abrir_preferencias", "abrir_historial", "marcar_incidencia",
-       "abrir_transmision", "copiar_enlace", "obs_micro"]),
+       "abrir_transmision", "copiar_enlace", "obs_micro",
+       "avisos_sobrecarga"]),
     ("Voz y lectura (teclas F)",
      ["pausa", "detener_tts", "velocidad_menos", "velocidad_mas",
       "volumen_menos", "volumen_mas", "silenciar_lectura",
@@ -743,6 +744,7 @@ def cargar_configuracion() -> dict:
         "tiktok_anunciar_entradas": _pb(p, "tiktok", "anunciar_entradas"),
         "tiktok_usuario": _gs(p, "tiktok", "usuario"),
         "transmision_destino": destino,
+        "avisar_sobrecarga": _pb(p, "transmision", "avisar_sobrecarga"),
         "transmision_youtube_titulo": decodificar_texto_ini(
             _gs(p, "transmision", "youtube_titulo")),
         "transmision_youtube_descripcion": decodificar_texto_ini(

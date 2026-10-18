@@ -28,14 +28,17 @@ logger = diagnostico.obtener_logger(__name__)
 # La misma frase no se repite antes de este plazo durante la vigilancia.
 PLAZO_REPETICION = 60.0
 
-# Sonido por tipo de aviso de la vigilancia. Los problemas de red, codificación
-# y dibujo comparten el de transmisión con problema; la vuelta de la conexión
+# El aviso de sobrecarga es más molesto y no aporta nada repetirlo seguido:
+# no se repite antes de este plazo, y solo si el usuario lo tiene activado.
+PLAZO_SOBRECARGA = 300.0
+
+# Sonido por tipo de aviso de la vigilancia. Los problemas de red y de
+# sobrecarga comparten el de transmisión con problema; la vuelta de la conexión
 # tiene el suyo, distinto, para no sonar a alarma cuando ya se resolvió.
 SONIDOS_AVISO = {
     "reconexion": "transmision_problema",
     "red": "transmision_problema",
-    "codificacion": "transmision_problema",
-    "dibujo": "transmision_problema",
+    "sobrecarga": "transmision_problema",
     "vuelta": "transmision_recuperada",
 }
 
@@ -80,7 +83,8 @@ class SupervisorTransmision:
                  intervalo_salud=5.0, limite_tiktok=120.0,
                  asegurar=None, al_terminar=None,
                  preparar_emision=None, esperar_emision=None,
-                 finalizar_emision=None, ruta_fin_pendiente=None):
+                 finalizar_emision=None, ruta_fin_pendiente=None,
+                 avisar_sobrecarga=None):
         self._destino = destino
         self._usuario = usuario_tiktok or ""
         self._al_anunciar = al_anunciar or (lambda frase, sonido: None)
@@ -99,6 +103,10 @@ class SupervisorTransmision:
         self._esperar_emision = esperar_emision
         self._finalizar_emision = finalizar_emision
         self._ruta_fin_pendiente = ruta_fin_pendiente
+        # Invocable sin argumentos que decide, en cada vuelta, si el aviso de
+        # sobrecarga se anuncia. El supervisor no lee la configuración solo:
+        # quien lo crea se la pasa.
+        self._avisar_sobrecarga = avisar_sobrecarga or (lambda: True)
         self._id_video = None
         self._cerrojo_fin = threading.Lock()
         self._fin_youtube = False
@@ -552,10 +560,14 @@ class SupervisorTransmision:
             estadisticas = self._estadisticas(gestor)
             for tipo, frase in obs_salida.problemas_en_directo(
                     anterior, actual, estadisticas_anterior, estadisticas):
+                if tipo == "sobrecarga" and not self._avisar_sobrecarga():
+                    continue
                 if tipo != "vuelta":
                     ahora = self._reloj()
                     ultimo = ultimos_avisos.get(tipo)
-                    if ultimo is not None and ahora - ultimo < PLAZO_REPETICION:
+                    plazo = (PLAZO_SOBRECARGA if tipo == "sobrecarga"
+                             else PLAZO_REPETICION)
+                    if ultimo is not None and ahora - ultimo < plazo:
                         continue
                     ultimos_avisos[tipo] = ahora
                 self._anunciar(frase, SONIDOS_AVISO[tipo])

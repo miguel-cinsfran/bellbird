@@ -33,6 +33,7 @@ _ETIQUETAS = {
     "silenciar_sonidos": "Silenciar sonidos", "anunciar_estado": "Anunciar estado",
     "anunciar_autor": "Anunciar autor del último mensaje",
     "describir_escena": "Describir la escena de OBS",
+    "avisos_sobrecarga": "Activar o desactivar los avisos de sobrecarga",
     "region_siguiente": "Región siguiente", "region_anterior": "Región anterior",
 }
 

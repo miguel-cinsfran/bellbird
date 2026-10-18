@@ -67,7 +67,7 @@ def frase_salida(veredicto, destino) -> str:
     return "OBS todavía no confirma que la señal salga."
 
 
-# Umbral compartido por los tres avisos de cuadros: al menos tantos cuadros y
+# Umbral compartido por los avisos de cuadros: al menos tantos cuadros y
 # más de esta proporción con problema.
 UMBRAL_CUADROS = 30
 UMBRAL_PROPORCION = 0.05
@@ -105,16 +105,9 @@ def _frase_red(porcentaje) -> str:
             "La red va lenta.")
 
 
-def _frase_codificacion(porcentaje) -> str:
-    return ("El equipo está sobrecargado: se pierde el "
-            f"{porcentaje} por ciento de los cuadros al codificar. "
-            "Cierra los programas que no uses.")
-
-
-def _frase_dibujo(porcentaje) -> str:
-    return ("El equipo está sobrecargado: se atrasa el "
-            f"{porcentaje} por ciento de los cuadros al dibujar la escena. "
-            "Cierra los programas que no uses.")
+def _frase_sobrecarga(porcentaje) -> str:
+    return (f"OBS no da abasto: se pierde el {porcentaje} por ciento "
+            "de los cuadros.")
 
 
 def problemas_en_directo(anterior, actual, estadisticas_anterior=None,
@@ -122,9 +115,10 @@ def problemas_en_directo(anterior, actual, estadisticas_anterior=None,
     """Avisos a dar entre dos muestras, cada uno con su tipo y su frase.
 
     El tipo lo usa el supervisor para no repetir por texto. `red` sale de
-    GetStreamStatus; `codificacion` y `dibujo`, de GetStats, y se saltan si
-    falta alguna de las dos muestras de estadísticas. `reconexion` y `vuelta`
-    salen del estado de reconexión de OBS.
+    GetStreamStatus; `sobrecarga`, de GetStats, y se salta si falta alguna de
+    las dos muestras de estadísticas: es UN aviso con el mayor de los dos
+    porcentajes que se calculan, codificación y dibujo. `reconexion` y
+    `vuelta` salen del estado de reconexión de OBS.
     """
     anterior = anterior or {}
     actual = actual or {}
@@ -141,14 +135,17 @@ def problemas_en_directo(anterior, actual, estadisticas_anterior=None,
         if porcentaje is not None:
             avisos.append(("red", _frase_red(porcentaje)))
     if estadisticas is not None and estadisticas_anterior is not None:
+        porcentajes = []
         porcentaje = _porcentaje(
             _diferencia(estadisticas, estadisticas_anterior, "outputTotalFrames"),
             _diferencia(estadisticas, estadisticas_anterior, "outputSkippedFrames"))
         if porcentaje is not None:
-            avisos.append(("codificacion", _frase_codificacion(porcentaje)))
+            porcentajes.append(porcentaje)
         porcentaje = _porcentaje(
             _diferencia(estadisticas, estadisticas_anterior, "renderTotalFrames"),
             _diferencia(estadisticas, estadisticas_anterior, "renderSkippedFrames"))
         if porcentaje is not None:
-            avisos.append(("dibujo", _frase_dibujo(porcentaje)))
+            porcentajes.append(porcentaje)
+        if porcentajes:
+            avisos.append(("sobrecarga", _frase_sobrecarga(max(porcentajes))))
     return avisos

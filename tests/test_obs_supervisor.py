@@ -341,16 +341,16 @@ class AvisosDeEquipoTest(BaseSupervisor):
                              "renderTotalFrames": 1000})
         return muestras
 
-    def test_codificacion_se_anuncia_una_vez_por_minuto(self):
+    def test_sobrecarga_se_anuncia_una_vez_en_la_vigilancia(self):
         estados = [muestra(True, duracion=10)] * 9 + [muestra(False, duracion=30)]
         armado = self.armar(destino="YouTube", estados=estados, intervalo=5.0,
                             estadisticas=self._estadisticas_con_sobrecarga())
         supervisor, anuncios, _, _, _, _, reloj = armado
         self.iniciar_y_esperar_fin(supervisor, plazo=3.0)
-        frases = [f for f, _ in anuncios if "al codificar" in f]
+        frases = [f for f, _ in anuncios if f.startswith("OBS no da abasto")]
         self.assertEqual(len(frases), 1)
         self.assertIn("40 por ciento", frases[0])
-        self.assertLess(reloj.ahora, 60.0)
+        self.assertLess(reloj.ahora, 300.0)
 
     def test_contador_que_vuelve_a_cero_no_avisa(self):
         estados = [muestra(True, duracion=10)] * 4 + [muestra(False, duracion=30)]
@@ -363,7 +363,7 @@ class AvisosDeEquipoTest(BaseSupervisor):
                             estadisticas=estadisticas)
         supervisor, anuncios, _, _, _, _, _ = armado
         self.iniciar_y_esperar_fin(supervisor, plazo=3.0)
-        self.assertFalse(any("al codificar" in f or "al dibujar" in f
+        self.assertFalse(any(f.startswith("OBS no da abasto")
                              for f, _ in anuncios))
 
     def test_estadisticas_que_fallan_no_cortan_la_vigilancia(self):
@@ -374,6 +374,68 @@ class AvisosDeEquipoTest(BaseSupervisor):
         self.iniciar_y_esperar_fin(supervisor, plazo=3.0)
         self.assertIn(("La transmisión terminó. Duró 30 segundos.",
                        "transmision_detenida"), anuncios)
+
+    BASE_EST = {"outputSkippedFrames": 0, "outputTotalFrames": 1000,
+                "renderSkippedFrames": 0, "renderTotalFrames": 1000}
+
+    def _estadisticas_de_dos_sobrecargas(self):
+        return [
+            dict(self.BASE_EST),
+            {"outputSkippedFrames": 400, "outputTotalFrames": 2000,
+             "renderSkippedFrames": 0, "renderTotalFrames": 1000},
+            {"outputSkippedFrames": 800, "outputTotalFrames": 3000,
+             "renderSkippedFrames": 0, "renderTotalFrames": 1000},
+        ]
+
+    def _armar_dos_sobrecargas(self, intervalo):
+        estados = ([muestra(True, duracion=10)] * 3
+                   + [muestra(False, duracion=30)])
+        return self.armar(destino="YouTube", estados=estados,
+                          intervalo=intervalo,
+                          estadisticas=self._estadisticas_de_dos_sobrecargas())
+
+    def test_sobrecarga_no_se_repite_antes_de_cinco_minutos(self):
+        supervisor, anuncios, _, _, _, _, _ = self._armar_dos_sobrecargas(60.0)
+        self.iniciar_y_esperar_fin(supervisor, plazo=3.0)
+        frases = [f for f, _ in anuncios if f.startswith("OBS no da abasto")]
+        self.assertEqual(len(frases), 1)
+
+    def test_sobrecarga_se_repite_a_los_trescientos_un_segundos(self):
+        supervisor, anuncios, _, _, _, _, _ = self._armar_dos_sobrecargas(301.0)
+        self.iniciar_y_esperar_fin(supervisor, plazo=3.0)
+        frases = [f for f, _ in anuncios if f.startswith("OBS no da abasto")]
+        self.assertEqual(len(frases), 2)
+
+    def _armar_sobrecarga_y_red(self):
+        estados = [muestra(True, duracion=10, perdidos=0, totales=1000)]
+        for i in range(1, 4):
+            estados.append(muestra(True, duracion=10 + i,
+                                   perdidos=60 * i, totales=1000 + 100 * i))
+        estados.append(muestra(False, duracion=30))
+        return self.armar(destino="YouTube", estados=estados, intervalo=5.0,
+                          estadisticas=self._estadisticas_de_dos_sobrecargas())
+
+    def test_avisar_sobrecarga_falso_no_anuncia_sobrecarga_pero_si_red(self):
+        supervisor, anuncios, _, _, _, _, _ = self._armar_sobrecarga_y_red()
+        supervisor._avisar_sobrecarga = lambda: False
+        self.iniciar_y_esperar_fin(supervisor, plazo=3.0)
+        self.assertFalse(any(f.startswith("OBS no da abasto")
+                             for f, _ in anuncios))
+        self.assertTrue(any("Se están perdiendo cuadros" in f
+                            for f, _ in anuncios))
+
+    def test_pasar_de_falso_a_verdadero_anuncia_sin_esperar_el_plazo(self):
+        supervisor, anuncios, _, _, _, _, _ = self._armar_dos_sobrecargas(60.0)
+        llamadas = []
+
+        def avisar():
+            llamadas.append(True)
+            return len(llamadas) >= 2
+
+        supervisor._avisar_sobrecarga = avisar
+        self.iniciar_y_esperar_fin(supervisor, plazo=3.0)
+        frases = [f for f, _ in anuncios if f.startswith("OBS no da abasto")]
+        self.assertEqual(len(frases), 1)
 
 
 class FinTransmisionTest(BaseSupervisor):

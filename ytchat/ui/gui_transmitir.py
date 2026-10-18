@@ -57,6 +57,25 @@ def guardar_destino_transmision(frame, destino):
     return destino
 
 
+def alternar_aviso_sobrecarga(frame) -> None:
+    """Invierte la preferencia, sincroniza el menú y la guarda.
+
+    El supervisor la consulta en cada vuelta, así que el cambio vale en pleno
+    directo desde la vuelta siguiente. Sin sonido, como los otros
+    interruptores del menú.
+    """
+    from ytchat.ui import gui as _gui
+    nuevo = not bool(frame._config.get("avisar_sobrecarga", True))
+    frame._config["avisar_sobrecarga"] = nuevo
+    item = getattr(frame, "mi_avisos_sobrecarga", None)
+    if item is not None:
+        item.Check(nuevo)
+    _gui.guardar_opcion(_gui.RUTA_CONFIG, "transmision", "avisar_sobrecarga",
+                        "true" if nuevo else "false")
+    _gui.anunciar("Avisos de sobrecarga activados" if nuevo
+                  else "Avisos de sobrecarga desactivados")
+
+
 def guardar_datos_directo_youtube(frame, titulo, descripcion, privacidad,
                                   latencia=None, ninos=False, dvr=True,
                                   categoria="", etiquetas=None,
@@ -296,7 +315,10 @@ def supervisar_transmision(frame, accion, destino="", usuario="",
             destino, usuario, al_anunciar=al_anunciar,
             al_conectar_chat=al_conectar_chat,
             al_terminar=frame._al_terminar_supervisor,
-            ruta_fin_pendiente=paths.fin_pendiente(), **ganchos)
+            ruta_fin_pendiente=paths.fin_pendiente(),
+            avisar_sobrecarga=lambda: bool(
+                frame._config.get("avisar_sobrecarga", True)),
+            **ganchos)
         frame._supervisor.iniciar()
         frame._actualizar_boton_directo()
         return

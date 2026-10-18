@@ -217,7 +217,8 @@ class TestParsearAtajos(unittest.TestCase):
                 ("copiar_enlace", "ctrl+shift+e", "ctrl+shift"),
                 ("anunciar_autor", "f3", "f"),
                 ("describir_escena", "ctrl+f2", "f"),
-                ("obs_micro", "ctrl+shift+m", "ctrl+shift")):
+                ("obs_micro", "ctrl+shift+m", "ctrl+shift"),
+                ("avisos_sobrecarga", "ctrl+shift+a", "ctrl+shift")):
             self.assertEqual(ATAJOS_DEFAULTS[accion], valor)
             self.assertTrue(atajo_valido_para_area(accion, valor),
                             f"{accion} no tiene un atajo válido para su área")
@@ -239,6 +240,7 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertIn('._accel("anunciar_autor")', fuente)
         self.assertIn('._accel("describir_escena")', fuente)
         self.assertIn('._accel("obs_micro")', fuente)
+        self.assertIn('._accel("avisos_sobrecarga")', fuente)
         self.assertNotIn("\\tAlt+L", fuente)
         self.assertNotIn("\\tCtrl+F", fuente)
 

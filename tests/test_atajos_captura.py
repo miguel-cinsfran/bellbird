@@ -54,6 +54,20 @@ class TestAtajosCaptura(unittest.TestCase):
         self.assertEqual(resultado, (
             "rechazado", None, "Ya lo usa: Retroceder 1 minuto. Elige otra."))
 
+    def test_todas_las_acciones_tienen_etiqueta(self):
+        for accion in config.todos_los_atajos_default():
+            with self.subTest(accion=accion):
+                self.assertIn(accion, atajos_captura.ETIQUETAS)
+
+    def test_choque_con_obs_micro_usa_nombre_legible(self):
+        valores = {"abrir_preferencias": "ctrl+shift+m",
+                   "obs_micro": "ctrl+shift+m"}
+        resultado = atajos_captura.resolver(
+            "abrir_preferencias", "ctrl+shift+m", valores)
+        self.assertEqual(resultado, (
+            "rechazado", None,
+            "Ya lo usa: Silenciar el micrófono de OBS. Elige otra."))
+
     def test_desactivado(self):
         resultado = atajos_captura.resolver("rep_play", None, self.valores)
         self.assertEqual(resultado, (

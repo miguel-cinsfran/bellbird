@@ -175,6 +175,10 @@ class TestParsearAtajos(unittest.TestCase):
     def test_todas_las_acciones_tienen_etiqueta(self):
         self.assertTrue(set(todos_los_atajos_default()) <= set(_ETIQUETAS_ATAJO))
 
+    def test_etiquetas_de_preferencias_son_las_de_captura(self):
+        self.assertIs(gui_preferencias._ETIQUETAS_ATAJO,
+                      atajos_captura.ETIQUETAS)
+
     def test_etiquetas_de_defaults_no_exponen_guiones_bajos(self):
         for accion in todos_los_atajos_default():
             self.assertNotIn("_", etiqueta_de_accion(accion))

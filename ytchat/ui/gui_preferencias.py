@@ -1845,55 +1845,7 @@ class PreferenciasDialog(wx.Dialog):
         return self._cambios
 
 
-_ETIQUETAS_ATAJO = {
-    # Reproductor
-    "rep_play":          "Reproducir o pausa",
-    "rep_retro":         "Retroceder 1 minuto",
-    "rep_avanz":         "Avanzar 1 minuto",
-    "rep_directo":       "Ir al directo",
-    "rep_detener":       "Detener vídeo",
-    "rep_mute":          "Silenciar o activar audio",
-    "rep_vol_menos":     "Bajar volumen del reproductor",
-    "rep_vol_mas":       "Subir volumen del reproductor",
-    "descargas_abrir":   "Abrir el gestor de descargas",
-    "pantalla_completa": "Pantalla completa",
-    "abrir_preferencias": "Abrir Preferencias",
-    "abrir_historial":    "Abrir el historial de directos",
-    "marcar_incidencia":  "Marcar incidencia",
-    "abrir_transmision":  "Abrir Transmisión",
-    "copiar_enlace":      "Copiar enlace del directo",
-    "obs_micro":          "Silenciar el micrófono de OBS",
-    "avisos_sobrecarga":  "Activar o desactivar los avisos de sobrecarga",
-    # Conexión y chat
-    "conectar":          "Conectar",
-    "desconectar":       "Desconectar",
-    "enviar_chat":       "Enviar mensaje al chat",
-    "ir_lista":          "Ir a la lista del panel actual",
-    "salir":             "Salir de la aplicación",
-    # Voz / lectura
-    "pausa":             "Pausar o reanudar lectura",
-    "detener_tts":       "Detener voz actual",
-    "velocidad_menos":   "Bajar velocidad (fija)",
-    "velocidad_mas":     "Subir velocidad (fija)",
-    "volumen_menos":     "Bajar volumen del TTS (fijo)",
-    "volumen_mas":       "Subir volumen del TTS (fijo)",
-    "silenciar_lectura": "Silenciar lectura TTS",
-    "silenciar_sonidos": "Silenciar sonidos",
-    "anunciar_estado":   "Anunciar estado",
-    "anunciar_autor":    "Anunciar autor del último mensaje",
-    "describir_escena":  "Describir la escena de OBS",
-    "region_siguiente":  "Región siguiente",
-    "region_anterior":   "Región anterior",
-    # Música (Ctrl+Alt)
-    "musica_play":       "Reproducir o pausar la música",
-    "musica_siguiente":  "Siguiente tema",
-    "musica_anterior":   "Tema anterior",
-    "musica_vol_mas":    "Subir el volumen de la música",
-    "musica_vol_menos":  "Bajar el volumen de la música",
-    "musica_que_suena":  "Qué suena",
-    "musica_ventana":    "Abrir la ventana de música",
-    "musica_listas":     "Abrir las listas de música",
-}
+_ETIQUETAS_ATAJO = atajos_captura.ETIQUETAS
 _mostrar_atajo = atajos_captura.mostrar_atajo
 
 

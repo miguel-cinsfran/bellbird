@@ -15,7 +15,8 @@ _AREA_AYUDA = {
     "ctrl+alt": "Debe ser Ctrl+Alt y una flecha, Espacio, una letra o un número (por ejemplo Ctrl+Alt+T).",
     "f": "Debe ser una tecla de función, de F1 a F12, sola o con Ctrl (por ejemplo F2 o Ctrl+F2).",
 }
-_ETIQUETAS = {
+ETIQUETAS = {
+    # Reproductor
     "rep_play": "Reproducir o pausa", "rep_retro": "Retroceder 1 minuto",
     "rep_avanz": "Avanzar 1 minuto", "rep_directo": "Ir al directo",
     "rep_detener": "Detener vídeo",
@@ -23,9 +24,19 @@ _ETIQUETAS = {
     "rep_vol_menos": "Bajar volumen del reproductor",
     "rep_vol_mas": "Subir volumen del reproductor",
     "descargas_abrir": "Abrir el gestor de descargas",
-    "pantalla_completa": "Pantalla completa", "conectar": "Conectar",
+    "pantalla_completa": "Pantalla completa",
+    "abrir_preferencias": "Abrir Preferencias",
+    "abrir_historial": "Abrir el historial de directos",
+    "marcar_incidencia": "Marcar incidencia",
+    "abrir_transmision": "Abrir Transmisión",
+    "copiar_enlace": "Copiar enlace del directo",
+    "obs_micro": "Silenciar el micrófono de OBS",
+    "avisos_sobrecarga": "Activar o desactivar los avisos de sobrecarga",
+    # Conexión y chat
+    "conectar": "Conectar",
     "desconectar": "Desconectar", "enviar_chat": "Enviar mensaje al chat",
     "ir_lista": "Ir a la lista del panel actual", "salir": "Salir de la aplicación",
+    # Voz / lectura
     "pausa": "Pausar o reanudar lectura", "detener_tts": "Detener voz actual",
     "velocidad_menos": "Bajar velocidad (fija)",
     "velocidad_mas": "Subir velocidad (fija)",
@@ -35,8 +46,8 @@ _ETIQUETAS = {
     "silenciar_sonidos": "Silenciar sonidos", "anunciar_estado": "Anunciar estado",
     "anunciar_autor": "Anunciar autor del último mensaje",
     "describir_escena": "Describir la escena de OBS",
-    "avisos_sobrecarga": "Activar o desactivar los avisos de sobrecarga",
     "region_siguiente": "Región siguiente", "region_anterior": "Región anterior",
+    # Música (Ctrl+Alt)
     "musica_play": "Reproducir o pausar la música",
     "musica_siguiente": "Siguiente tema",
     "musica_anterior": "Tema anterior",
@@ -109,14 +120,14 @@ def resolver(accion: str, combo: str | None,
              valores: dict[str, str],
              altgr=None) -> tuple[str, str | None, str]:
     """Decide qué hacer con una combinación y construye su anuncio."""
-    etiqueta = _ETIQUETAS.get(accion, accion.replace("_", " ").capitalize())
+    etiqueta = ETIQUETAS.get(accion, accion.replace("_", " ").capitalize())
     if combo is None:
         return "desactivado", "", f"{etiqueta} sin atajo. Desactivado."
 
     # Hay fijas que la gramática editable no admite; por eso este choque va antes.
     for otra, valor in valores.items():
         if otra != accion and valor and valor == combo:
-            otra_etiqueta = _ETIQUETAS.get(
+            otra_etiqueta = ETIQUETAS.get(
                 otra, otra.replace("_", " ").capitalize())
             return "rechazado", None, f"Ya lo usa: {otra_etiqueta}. Elige otra."
 
@@ -140,7 +151,7 @@ def resolver(accion: str, combo: str | None,
 
     for otra, valor in valores.items():
         if otra != accion and valor and valor == normalizado:
-            otra_etiqueta = _ETIQUETAS.get(
+            otra_etiqueta = ETIQUETAS.get(
                 otra, otra.replace("_", " ").capitalize())
             return "rechazado", None, f"Ya lo usa: {otra_etiqueta}. Elige otra."
     return "capturado", normalizado, (

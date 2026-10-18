@@ -36,7 +36,7 @@ class VentanaMusica(wx.Dialog):
         self._crear_controles()
         self.Bind(wx.EVT_CHAR_HOOK, self._tecla_atajo)
         self.Centre()
-        self._refrescar_cola()
+        self.refrescar_cola()
         self._cargar_biblioteca()
 
     def _crear_controles(self):
@@ -196,27 +196,27 @@ class VentanaMusica(wx.Dialog):
         if indice < 0:
             return
         self._control.reproducir_temas_desde(self._temas_filtrados, indice)
-        self._refrescar_cola()
+        self.refrescar_cola()
 
     def _reproducir_todo(self):
         if not self._temas_filtrados:
             return
         self._control.reproducir_temas(self._temas_filtrados)
-        self._refrescar_cola()
+        self.refrescar_cola()
 
     def _agregar(self):
         tema, _indice = self._tema_elegido()
         if tema is None:
             return
         self._control.agregar_temas([tema])
-        self._refrescar_cola()
+        self.refrescar_cola()
 
     def _reproducir_de_cola(self):
         indice = self.lb_cola.GetSelection()
         if indice == wx.NOT_FOUND:
             return
         self._control.reproducir_desde(indice)
-        self._refrescar_cola()
+        self.refrescar_cola()
 
     def _cambiar_carpeta(self):
         with wx.DirDialog(
@@ -260,7 +260,7 @@ class VentanaMusica(wx.Dialog):
             event.Skip()
             return
         self._control.ejecutar_atajo(accion)
-        self._refrescar_cola()
+        self.refrescar_cola()
 
     # ── Interno ─────────────────────────────────────────────────────────────
 

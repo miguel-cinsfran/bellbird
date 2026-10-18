@@ -19,7 +19,7 @@ from ytchat.player import motor_vlc
 _HABIL_RED = os.environ.get("YTCHAT_PRUEBAS_RED") == "1"
 
 VIDEO = "jNQXAC9IVRw"
-LISTA = "PLbpi6ZahtOH71mwANlZAlPX9cZafnzIqt"
+LISTA = "PLbpi6ZahtOH71mwANLzAlPX9cZafnzIqt"
 
 
 class TestReconocerDirecciones(unittest.TestCase):

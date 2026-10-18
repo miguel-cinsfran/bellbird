@@ -1676,7 +1676,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("musica", "aleatorio"), ("musica", "repetir"),
             ("musica", "retomar"), ("musica", "sonido_tema"),
             ("musica", "decir_titulo"), ("musica", "incluir_artista"),
-            ("musica", "volumen"), ("musica", "carpeta"),
+            ("musica", "volumen"), ("musica", "atajos_globales"), ("musica", "carpeta"),
             ("musica", "salida"), ("musica", "salida_nombre"),
         ]
         esperadas.extend(("estado", componente)

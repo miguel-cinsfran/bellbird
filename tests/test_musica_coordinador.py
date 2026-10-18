@@ -361,6 +361,103 @@ class TestAvanceAutomatico(unittest.TestCase):
         self.assertEqual(c.estado().posicion, 1)
 
 
+class TestRepetir(unittest.TestCase):
+
+    def test_propiedad_repetir(self):
+        c = Coordinador(AdaptadorFalso())
+        self.assertFalse(c.repetir)
+        self.assertEqual(c.fijar_repetir(True).codigo, OK)
+        self.assertTrue(c.repetir)
+        self.assertEqual(c.fijar_repetir(False).codigo, OK)
+        self.assertFalse(c.repetir)
+
+    def test_repetir_vuelve_al_primero_tras_el_ultimo(self):
+        ad = AdaptadorFalso()
+        avisos = []
+        c = Coordinador(ad, al_cambiar=avisos.append)
+        c.fijar_repetir(True)
+        c.reproducir_lista([tema("a"), tema("b")])
+        c.tema_terminado(ad.ultima_ficha(), False)
+        avisos.clear()
+        c.tema_terminado(ad.ultima_ficha(), False)
+        self.assertEqual([a.codigo for a in avisos], [AVANZO])
+        self.assertEqual(c.estado().posicion, 0)
+        self.assertFalse(c.estado().terminado)
+
+    def test_repetir_un_solo_tema_se_vuelve_a_sonar(self):
+        ad = AdaptadorFalso()
+        avisos = []
+        c = Coordinador(ad, al_cambiar=avisos.append)
+        c.fijar_repetir(True)
+        c.reproducir_lista([tema("a")])
+        c.tema_terminado(ad.ultima_ficha(), False)
+        self.assertEqual([a.codigo for a in avisos], [AVANZO])
+        self.assertEqual(c.estado().posicion, 0)
+        self.assertFalse(c.estado().terminado)
+
+    def test_repetir_inactivo_se_comporta_como_hoy(self):
+        ad = AdaptadorFalso()
+        avisos = []
+        c = Coordinador(ad, al_cambiar=avisos.append)
+        c.reproducir_lista([tema("a")])
+        c.tema_terminado(ad.ultima_ficha(), False)
+        self.assertEqual([a.codigo for a in avisos], [FIN_LISTA])
+        self.assertTrue(c.estado().terminado)
+
+    def test_repetir_todos_fallan_termina_en_fin_lista_sin_bucle(self):
+        ad = AdaptadorFalso()
+        avisos = []
+        c = Coordinador(ad, al_cambiar=avisos.append)
+        c.fijar_repetir(True)
+        c.reproducir_lista([tema("a"), tema("b")])
+        ad.fallar.update({"C:/musica/a.mp3", "C:/musica/b.mp3"})
+        hilo = threading.Thread(
+            target=c.tema_terminado, args=(ad.ultima_ficha(), False), daemon=True)
+        hilo.start()
+        hilo.join(timeout=5)
+        self.assertFalse(
+            hilo.is_alive(), "hay bucle: el avance con repetir no terminó")
+        self.assertTrue(c.estado().terminado)
+        self.assertEqual(avisos[-1].codigo, FIN_LISTA)
+
+    def test_siguiente_en_el_ultimo_con_repetir_vuelve_al_primero(self):
+        ad = AdaptadorFalso()
+        c = Coordinador(ad)
+        c.fijar_repetir(True)
+        c.reproducir_lista([tema("a"), tema("b")])
+        self.assertEqual(c.siguiente().estado.posicion, 1)
+        r = c.siguiente()
+        self.assertTrue(r.ok)
+        self.assertEqual(r.codigo, OK)
+        self.assertEqual(r.estado.posicion, 0)
+
+    def test_anterior_no_envuelve_aunque_repetir_este_activo(self):
+        c = Coordinador(AdaptadorFalso())
+        c.fijar_repetir(True)
+        c.reproducir_lista([tema("a"), tema("b")])
+        r = c.anterior()
+        self.assertFalse(r.ok)
+        self.assertEqual(r.codigo, INICIO_LISTA)
+
+    def test_aleatorio_mas_repetir_conserva_el_orden_al_volver_a_empezar(self):
+        usos = []
+        ad = AdaptadorFalso()
+        c = Coordinador(
+            ad,
+            mezclar=lambda lista: usos.append(list(lista)) or lista.reverse(),
+        )
+        c.fijar_aleatorio(True)
+        c.fijar_repetir(True)
+        c.reproducir_lista([tema("a"), tema("b"), tema("c")])
+        orden = [t.origen for t in c.estado().cola]
+        c.tema_terminado(ad.ultima_ficha(), False)
+        c.tema_terminado(ad.ultima_ficha(), False)
+        c.tema_terminado(ad.ultima_ficha(), False)
+        self.assertEqual(c.estado().posicion, 0)
+        self.assertEqual([t.origen for t in c.estado().cola], orden)
+        self.assertEqual(len(usos), 1)
+
+
 class TestPropiedad(unittest.TestCase):
 
     def test_secuencia_aleatoria_mantiene_invariantes(self):
@@ -369,7 +466,7 @@ class TestPropiedad(unittest.TestCase):
         c = Coordinador(ad, mezclar=lambda lista: rng.shuffle(lista))
         temas = [tema(f"t{i}") for i in range(5)]
         for _ in range(200):
-            accion = rng.randrange(9)
+            accion = rng.randrange(10)
             if accion == 0:
                 c.reproducir_lista(rng.sample(temas, rng.randrange(6)))
             elif accion == 1:
@@ -386,6 +483,8 @@ class TestPropiedad(unittest.TestCase):
                 c.fijar_volumen(rng.randrange(-5, 106))
             elif accion == 7:
                 c.fijar_aleatorio(rng.choice([True, False]))
+            elif accion == 8:
+                c.fijar_repetir(rng.choice([True, False]))
             else:
                 ficha = ad.ultima_ficha() if rng.random() < 0.5 else rng.randrange(-2, 4)
                 c.tema_terminado(ficha, rng.choice([True, False]))

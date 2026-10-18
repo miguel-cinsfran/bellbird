@@ -13,6 +13,7 @@ from ytchat.music.adaptador_vlc import (
     AdaptadorVlc,
     MotorNoDisponible,
     leer_etiquetas_vlc,
+    salidas_audio,
 )
 from ytchat.music.coordinador import Coordinador
 from ytchat.music.modelo import AVANZO, FIN_LISTA, TEMA_FALLIDO, Tema
@@ -92,6 +93,7 @@ class FakeReproductor:
         self.numero = numero
         self.volumen = None
         self.salida = None
+        self.dispositivo = None
         self.liberado = False
         self.pausa = None
         self.media = None
@@ -108,6 +110,17 @@ class FakeReproductor:
         self._revisar()
         self.salida = nombre
         return 0
+
+    def audio_output_device_set(self, module, device):
+        self._revisar()
+        self.dispositivo = (module, device)
+        self.instancia.eventos.append(("dispositivo", self.numero))
+
+    def audio_output_device_enum(self):
+        self._revisar()
+        if self.instancia.enum_error:
+            raise RuntimeError("fallo al enumerar")
+        return self.instancia.enum_salida
 
     def set_media(self, media):
         self._revisar()
@@ -142,6 +155,8 @@ class FakeInstancia:
         self.reproductores = []
         self.play_resultado = 0
         self.media_etiquetas = None
+        self.enum_error = False
+        self.enum_salida = None
 
     def media_player_new(self):
         reproductor = FakeReproductor(self, len(self.reproductores))
@@ -352,6 +367,46 @@ class TestAdaptadorDobles(_BaseDobles):
         self.assertIsNone(adaptador._actual)
         self.assertTrue(esperar(lambda: reproductor.liberado))
 
+    def test_dispositivo_se_aplica_antes_de_play_en_cada_reproductor(self):
+        adaptador = self.crear(dispositivo="salida-x")
+        self.existentes.update({"C:/musica/a.mp3", "C:/musica/b.mp3"})
+        adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
+        adaptador.cargar(Tema("C:/musica/b.mp3", "b"), 2)
+        for numero, reproductor in enumerate(self.instancia.reproductores):
+            self.assertEqual(reproductor.dispositivo, (None, "salida-x"))
+            eventos = self.instancia.eventos
+            self.assertLess(eventos.index(("dispositivo", numero)),
+                            eventos.index(("play", numero)))
+
+    def test_sin_dispositivo_no_se_llama(self):
+        adaptador = self.crear()
+        self.existentes.add("C:/musica/a.mp3")
+        adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
+        reproductor = self.instancia.reproductores[0]
+        self.assertIsNone(reproductor.dispositivo)
+        self.assertNotIn(("dispositivo", 0), self.instancia.eventos)
+
+    def test_dispositivo_vacio_usa_el_predeterminado(self):
+        adaptador = self.crear(dispositivo="")
+        self.existentes.add("C:/musica/a.mp3")
+        adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
+        self.assertIsNone(self.instancia.reproductores[0].dispositivo)
+
+    def test_fijar_dispositivo_no_toca_el_reproductor_actual(self):
+        adaptador = self.crear(dispositivo="salida-x")
+        self.existentes.update({"C:/musica/a.mp3", "C:/musica/b.mp3"})
+        adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
+        actual = self.instancia.reproductores[0]
+        adaptador.fijar_dispositivo("salida-y")
+        self.assertEqual(actual.dispositivo, (None, "salida-x"))
+        adaptador.cargar(Tema("C:/musica/b.mp3", "b"), 2)
+        self.assertEqual(self.instancia.reproductores[1].dispositivo,
+                         (None, "salida-y"))
+
+    def test_salidas_audio_con_doble_que_lanza_devuelve_vacio(self):
+        self.instancia.enum_error = True
+        self.assertEqual(salidas_audio(), [])
+
     def test_leer_etiquetas_sin_motor(self):
         with mock.patch.object(motor_vlc, "instancia", return_value=None):
             self.assertEqual(leer_etiquetas_vlc("C:/musica/a.mp3"), {})
@@ -450,6 +505,17 @@ class TestAdaptadorVlcReal(unittest.TestCase):
         self.assertLess(time.monotonic() - inicio, 5.0)
         self.assertIsInstance(datos, dict)
         self.assertFalse(datos.get("titulo"))
+
+    def test_salidas_audio_real_no_lanza_y_es_rapida(self):
+        inicio = time.monotonic()
+        salidas = salidas_audio()
+        self.assertLess(time.monotonic() - inicio, 10.0)
+        self.assertIsInstance(salidas, list)
+        for par in salidas:
+            self.assertIsInstance(par, tuple)
+            self.assertEqual(len(par), 2)
+            self.assertIsInstance(par[0], str)
+            self.assertIsInstance(par[1], str)
 
 
 if __name__ == "__main__":

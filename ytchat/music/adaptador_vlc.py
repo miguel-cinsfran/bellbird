@@ -33,13 +33,14 @@ class AdaptadorVlc:
     propio aviso lo cuelga, así que el trabajo lo hace un hilo aparte.
     """
 
-    def __init__(self, salida_audio=None, volumen=100):
+    def __init__(self, salida_audio=None, volumen=100, dispositivo=None):
         instancia = motor_vlc.instancia()
         if instancia is None:
             raise MotorNoDisponible("No hay motor de música libVLC disponible")
         self._instancia = instancia
         self._vlc = motor_vlc.modulo()
         self._salida_audio = salida_audio
+        self._dispositivo = dispositivo or None
         self._volumen = volumen
         self._aviso = None
         self._actual = None
@@ -53,6 +54,11 @@ class AdaptadorVlc:
         """Guarda a quién avisar el fin de un tema. Sin aviso, se descartan."""
         self._aviso = funcion
 
+    def fijar_dispositivo(self, identificador):
+        """Elige el dispositivo de salida para el próximo tema, sin cortar el
+        que suena. None o "" usan el predeterminado del sistema."""
+        self._dispositivo = identificador or None
+
     def cargar(self, tema, ficha):
         """Empieza a sonar el tema con un reproductor nuevo y cierra el anterior."""
         if tema.es_enlace:
@@ -64,6 +70,8 @@ class AdaptadorVlc:
             raise RuntimeError("VLC no pudo crear un reproductor")
         if self._salida_audio is not None:
             reproductor.audio_output_set(self._salida_audio)
+        if self._dispositivo:
+            reproductor.audio_output_device_set(None, self._dispositivo)
         try:
             media = self._instancia.media_new(tema.origen)
             reproductor.set_media(media)
@@ -181,6 +189,54 @@ class AdaptadorVlc:
             pass
         # Mientras libVLC pueda llamar, el gestor conserva vivos sus callbacks.
         self._callbacks.pop(reproductor, None)
+
+
+def salidas_audio() -> list[tuple[str, str]]:
+    """Dispositivos de salida de libVLC como pares (identificador, descripción).
+
+    Usa un reproductor temporal de la instancia compartida y libera la lista y
+    el reproductor. Nunca lanza: sin motor o ante un error devuelve lista
+    vacía. Es bloqueante, la interfaz la llama desde un hilo aparte.
+    """
+    instancia = motor_vlc.instancia()
+    vlc = motor_vlc.modulo()
+    if instancia is None or vlc is None:
+        return []
+    reproductor = None
+    lista = None
+    try:
+        reproductor = instancia.media_player_new()
+        if reproductor is None:
+            return []
+        lista = reproductor.audio_output_device_enum()
+        salidas = []
+        nodo = lista
+        while nodo:
+            datos = nodo.contents
+            salidas.append((_texto(datos.device), _texto(datos.description)))
+            nodo = datos.next
+        return salidas
+    except Exception as exc:
+        logger.debug("No se pudieron listar las salidas de audio: %s", exc)
+        return []
+    finally:
+        if lista is not None:
+            try:
+                vlc.libvlc_audio_output_device_list_release(lista)
+            except Exception:
+                pass
+        if reproductor is not None:
+            try:
+                reproductor.release()
+            except Exception:
+                pass
+
+
+def _texto(valor) -> str:
+    """Campo de texto de libVLC, que puede llegar en bytes o None."""
+    if isinstance(valor, bytes):
+        return valor.decode("utf-8", "replace")
+    return valor or ""
 
 
 def leer_etiquetas_vlc(ruta, plazo_ms=1500) -> dict:

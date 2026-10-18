@@ -70,6 +70,7 @@ class Coordinador:
         self._terminado = False
         self._volumen = volumen
         self._aleatorio = False
+        self._repetir = False
         self._ficha = 0
 
     def reproducir_lista(self, temas) -> Resultado:
@@ -153,6 +154,16 @@ class Coordinador:
             self._aleatorio = bool(activo)
             return Resultado(True, OK, self._estado())
 
+    def fijar_repetir(self, activo: bool) -> Resultado:
+        with self._lock:
+            self._repetir = bool(activo)
+            return Resultado(True, OK, self._estado())
+
+    @property
+    def repetir(self) -> bool:
+        """Repite la lista al terminar la cola. Solo lectura."""
+        return self._repetir
+
     def estado(self) -> EstadoMusica:
         with self._lock:
             return self._estado()
@@ -196,9 +207,12 @@ class Coordinador:
                 return Resultado(False, SIN_TEMA, self._estado())
             destino = self._posicion + paso
             if destino >= len(self._cola):
-                self._detener_motor()
-                self._terminado = True
-                return Resultado(False, FIN_LISTA, self._estado())
+                if not self._repetir:
+                    self._detener_motor()
+                    self._terminado = True
+                    return Resultado(False, FIN_LISTA, self._estado())
+                # Con repetir activo, pasar del último vuelve al primero.
+                destino = 0
             if destino < 0:
                 return Resultado(False, INICIO_LISTA, self._estado())
             try:
@@ -215,10 +229,22 @@ class Coordinador:
             return Resultado(True, OK, self._estado())
 
     def _avanzar_tras_fin(self) -> list[Resultado]:
-        """Avanza tras el fin de un tema. Cada tema se prueba una sola vez."""
+        """Avanza tras el fin de un tema. Con `repetir` activo, al acabarse la
+        cola vuelve a la posición 0 en vez de terminar, sin remezclar aunque el
+        aleatorio esté activo. Cada tema se prueba una sola vez por avance: si
+        todos fallan, termina en fin_lista y nunca en un bucle."""
         avisos = []
+        total = len(self._cola)
+        intentados = set()
         destino = self._posicion + 1
-        while destino < len(self._cola):
+        while True:
+            if destino >= total:
+                if not self._repetir:
+                    break
+                destino = 0
+            if destino in intentados:
+                break
+            intentados.add(destino)
             try:
                 self._cargar(self._cola[destino])
             except Exception:
@@ -233,7 +259,7 @@ class Coordinador:
             avisos.append(Resultado(True, AVANZO, self._estado()))
             return avisos
         self._detener_motor()
-        self._posicion = len(self._cola) - 1
+        self._posicion = total - 1
         self._pausado = False
         self._terminado = True
         avisos.append(Resultado(True, FIN_LISTA, self._estado()))

@@ -779,5 +779,89 @@ class TestCargarConfiguracion(unittest.TestCase):
         self.assertEqual(sonidos["eventos"]["copiar"], muestra)
 
 
+class TestMusicaCargador(unittest.TestCase):
+    """El cargador expone la sección [musica] con sus nueve claves."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+
+    def _cargar_en(self, contenido: str) -> dict:
+        tmp = Path(self._tmp.name)
+        (tmp / "config.ini").write_text(contenido, encoding="utf-8")
+        with redirigir_rutas(tmp):
+            return config.cargar_configuracion()
+
+    def test_nueve_valores_de_fabrica_con_ini_vacio(self):
+        cfg = self._cargar_en("")
+        self.assertEqual(cfg["musica_carpeta"], "")
+        self.assertFalse(cfg["musica_aleatorio"])
+        self.assertFalse(cfg["musica_repetir"])
+        self.assertTrue(cfg["musica_retomar"])
+        self.assertTrue(cfg["musica_sonido_tema"])
+        self.assertTrue(cfg["musica_decir_titulo"])
+        self.assertFalse(cfg["musica_incluir_artista"])
+        self.assertEqual(cfg["musica_volumen"], 50)
+        self.assertEqual(cfg["musica_salida"], "")
+
+    def test_lee_valores_puestos_a_mano(self):
+        cfg = self._cargar_en(
+            "[musica]\n"
+            "carpeta = C:/Mi Música/Grandes Éxitos\n"
+            "aleatorio = true\n"
+            "repetir = true\n"
+            "retomar = false\n"
+            "sonido_tema = false\n"
+            "decir_titulo = false\n"
+            "incluir_artista = true\n"
+            "volumen = 80\n"
+            "salida = altavoces\n")
+        self.assertEqual(cfg["musica_carpeta"], "C:/Mi Música/Grandes Éxitos")
+        self.assertTrue(cfg["musica_aleatorio"])
+        self.assertTrue(cfg["musica_repetir"])
+        self.assertFalse(cfg["musica_retomar"])
+        self.assertFalse(cfg["musica_sonido_tema"])
+        self.assertFalse(cfg["musica_decir_titulo"])
+        self.assertTrue(cfg["musica_incluir_artista"])
+        self.assertEqual(cfg["musica_volumen"], 80)
+        self.assertEqual(cfg["musica_salida"], "altavoces")
+
+    def test_cada_clave_booleana_lee_su_propia_clave(self):
+        # Con las seis invertidas a la vez, una lectura cruzada pasa
+        # inadvertida. De a una sola, la clave vecina ya no la tapa.
+        casos = [
+            ("aleatorio", "musica_aleatorio", False),
+            ("repetir", "musica_repetir", False),
+            ("retomar", "musica_retomar", True),
+            ("sonido_tema", "musica_sonido_tema", True),
+            ("decir_titulo", "musica_decir_titulo", True),
+            ("incluir_artista", "musica_incluir_artista", False),
+        ]
+        for clave_ini, clave_memoria, valor_fabrica in casos:
+            with self.subTest(clave=clave_ini):
+                contrario = "false" if valor_fabrica else "true"
+                cfg = self._cargar_en(f"[musica]\n{clave_ini} = {contrario}\n")
+                self.assertEqual(cfg[clave_memoria], not valor_fabrica)
+                for _, otra_memoria, otro_fabrica in casos:
+                    if otra_memoria == clave_memoria:
+                        continue
+                    self.assertEqual(cfg[otra_memoria], otro_fabrica)
+
+    def test_carpeta_con_espacios_y_tildes_ida_y_vuelta(self):
+        carpeta = "C:\\Música\\Rock and Roll\\Ñandú"
+        cfg = self._cargar_en(
+            "[musica]\ncarpeta = "
+            f"{config.codificar_texto_ini(carpeta)}\n")
+        self.assertEqual(cfg["musica_carpeta"], carpeta)
+
+    def test_volumen_mayor_a_cien_se_topea(self):
+        cfg = self._cargar_en("[musica]\nvolumen = 150\n")
+        self.assertEqual(cfg["musica_volumen"], 100)
+
+    def test_volumen_negativo_cae_a_cero(self):
+        cfg = self._cargar_en("[musica]\nvolumen = -10\n")
+        self.assertEqual(cfg["musica_volumen"], 0)
+
+
 if __name__ == "__main__":
     unittest.main()

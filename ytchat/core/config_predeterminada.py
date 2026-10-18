@@ -170,6 +170,17 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
     ("actualizaciones", [
         ("buscar_al_iniciar", "true"),
     ]),
+    ("musica", [
+        ("carpeta", ""),
+        ("aleatorio", "false"),
+        ("repetir", "false"),
+        ("retomar", "true"),
+        ("sonido_tema", "true"),
+        ("decir_titulo", "true"),
+        ("incluir_artista", "false"),
+        ("volumen", "50"),
+        ("salida", ""),
+    ]),
 ]
 
 # Mapa para consultas rápidas por sección y clave (con orden preservado)
@@ -283,6 +294,12 @@ def generar_texto() -> str:
             )
         elif sec == "actualizaciones":
             partes.append("# Buscar actualizaciones de la app al iniciar.\n")
+        elif sec == "musica":
+            partes.append(
+                "# Música local: carpeta de la biblioteca, orden y opciones de\n"
+                "# reproducción. La salida es el identificador de un dispositivo\n"
+                "# de audio de libVLC; vacía usa el predeterminado del sistema.\n"
+            )
         for clave, valor in pares:
             if valor == "":
                 partes.append(f"{clave} =\n")

@@ -370,3 +370,18 @@ class TestReconexionYSonidos(unittest.TestCase):
             with redirigir_rutas(tmp):
                 sonidos = config.cargar_sonidos()
         self.assertFalse(sonidos["activar"])
+
+
+class TestMusicaFabrica(unittest.TestCase):
+    def test_seccion_musica_valores_de_fabrica(self):
+        self.assertEqual(pred.seccion("musica"), {
+            "carpeta": "", "aleatorio": "false", "repetir": "false",
+            "retomar": "true", "sonido_tema": "true", "decir_titulo": "true",
+            "incluir_artista": "false", "volumen": "50", "salida": "",
+        })
+
+    def test_seccion_musica_respeta_el_orden_de_claves(self):
+        self.assertEqual(list(pred.seccion("musica").keys()), [
+            "carpeta", "aleatorio", "repetir", "retomar", "sonido_tema",
+            "decir_titulo", "incluir_artista", "volumen", "salida",
+        ])

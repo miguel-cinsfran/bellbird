@@ -218,6 +218,37 @@ class TestUrlAudio(unittest.TestCase):
                 enlaces.url_audio("https://youtu.be/abc123")
 
 
+_MARCAS_LISTA_FALTANTE = (
+    "does not exist", "not exist", "not found", "no longer",
+    "not available", "unavailable", "private", "deleted", "removed",
+    "empty playlist", "no videos", "404",
+)
+
+
+def _lista_ya_no_existe(url):
+    """¿yt-dlp confirma que la lista ya no está en YouTube?
+
+    Falso si la lee bien o si la consulta falla por otra causa (sin red):
+    en esos casos la prueba debe fallar con el error original.
+    """
+    import yt_dlp
+    opciones = {
+        "quiet": True, "no_warnings": True, "skip_download": True,
+        "extract_flat": "in_playlist", "socket_timeout": 20,
+    }
+    try:
+        with yt_dlp.YoutubeDL(opciones) as ydl:
+            datos = ydl.extract_info(url, download=False)
+    except Exception as consulta:
+        return any(marca in str(consulta).lower()
+                   for marca in _MARCAS_LISTA_FALTANTE)
+    if not isinstance(datos, dict):
+        return True
+    # Se mira `entries` directo, sin pasar por `temas_de_info`, para no
+    # esconder un defecto suyo detrás de un salto de la prueba.
+    return not datos.get("entries")
+
+
 @unittest.skipUnless(_HABIL_RED,
                      "pruebas de red desactivadas (YTCHAT_PRUEBAS_RED=1)")
 class TestEnlacesRed(unittest.TestCase):
@@ -231,8 +262,14 @@ class TestEnlacesRed(unittest.TestCase):
         self.assertTrue(temas[0].titulo)
 
     def test_expandir_una_lista(self):
-        temas = enlaces.expandir(
-            f"https://www.youtube.com/playlist?list={LISTA}")
+        url = f"https://www.youtube.com/playlist?list={LISTA}"
+        try:
+            temas = enlaces.expandir(url)
+        except ErrorEnlace:
+            if _lista_ya_no_existe(url):
+                self.skipTest(
+                    f"La lista {LISTA} ya no existe en YouTube: cambiarla")
+            raise
         self.assertGreaterEqual(len(temas), 1)
         for tema in temas:
             self.assertTrue(tema.origen.startswith(

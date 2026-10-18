@@ -1,17 +1,23 @@
 """Pruebas de los atajos globales de música, puras y con dobles.
 
-Nada crea ventanas ni registra un atajo de verdad: la ventana es un doble
-que anota las llamadas y falla a pedido. `wx.CallAfter` se reemplaza por
-una llamada directa.
+Todo usa una ventana falsa que anota las llamadas y falla a pedido, salvo
+`TestRegistroReal`: esa clase sí registra de verdad en Windows, con una
+ventana real de wx que no se muestra. `wx.CallAfter` se reemplaza por una
+llamada directa, salvo en la clase real, que procesa los eventos pendientes.
 """
 
+import ctypes
+import sys
+import time
 import unittest
 from unittest import mock
 
 import wx
 
+from tests.ventanas_prueba import destruir
 from ytchat.music import anuncios
 from ytchat.ui import atajos_globales
+from ytchat.ui.atajos_captura import atajo_legible
 from ytchat.ui.atajos_globales import AtajosGlobales, combinacion_windows
 
 
@@ -180,6 +186,102 @@ class TestAtajosGlobales(unittest.TestCase):
         acciones, _llamadas = self._acciones()
         globales = AtajosGlobales(ventana, acciones)
         self.assertEqual(globales.activar({}), [])
+        self.assertFalse(globales.activos)
+
+
+@unittest.skipUnless(sys.platform == "win32",
+                     "el registro real solo existe en Windows")
+class TestRegistroReal(unittest.TestCase):
+    """Registra de verdad con Windows, con una ventana real sin mostrar.
+
+    No se corre en el escritorio del dueño: abre wx. La corre el advisor
+    en la otra PC.
+    """
+
+    # Letras poco usadas para la combinación de prueba, en orden de intento.
+    _LETRAS_RESERVA = ("J", "K", "Q", "Z")
+
+    @classmethod
+    def setUpClass(cls):
+        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+
+    def setUp(self):
+        self.texto = self._combinacion_libre()
+
+    def _combinacion_libre(self):
+        """La primera `ctrl+alt+letra` de reserva que Windows tenga libre."""
+        sonda = wx.Frame(None)
+        self.addCleanup(destruir, sonda)
+        ident = atajos_globales.BASE_IDS + len(atajos_globales.ACCIONES)
+        for letra in self._LETRAS_RESERVA:
+            texto = f"ctrl+alt+{letra.lower()}"
+            mods, vk = combinacion_windows(texto)
+            try:
+                libre = sonda.RegisterHotKey(ident, mods, vk)
+            except Exception:
+                continue
+            if not libre:
+                continue
+            sonda.UnregisterHotKey(ident)
+            return texto
+        self.skipTest(
+            "las combinaciones de reserva están tomadas por otro programa "
+            "(Ctrl+Alt+J, K, Q, Z)")
+
+    def _ident_que_suena(self):
+        return (atajos_globales.BASE_IDS
+                + atajos_globales.ACCIONES.index("musica_que_suena"))
+
+    def test_registra_y_suelta_de_verdad(self):
+        frame = wx.Frame(None)
+        self.addCleanup(destruir, frame)
+        otro = wx.Frame(None)
+        self.addCleanup(destruir, otro)
+        llamadas = []
+        globales = AtajosGlobales(
+            frame, {"musica_que_suena": lambda: llamadas.append("suena")})
+        self.addCleanup(globales.desactivar)
+        self.assertEqual(globales.activar({"musica_que_suena": self.texto}),
+                         [])
+        self.assertTrue(globales.activos)
+        mods, vk = combinacion_windows(self.texto)
+        ident = self._ident_que_suena()
+        self.assertFalse(otro.RegisterHotKey(ident, mods, vk))
+        globales.desactivar()
+        self.assertTrue(otro.RegisterHotKey(ident, mods, vk))
+        otro.UnregisterHotKey(ident)
+
+    def test_el_mensaje_de_windows_llega_a_la_accion(self):
+        frame = wx.Frame(None)
+        self.addCleanup(destruir, frame)
+        llamadas = []
+        globales = AtajosGlobales(
+            frame, {"musica_que_suena": lambda: llamadas.append("suena")})
+        self.addCleanup(globales.desactivar)
+        self.assertEqual(globales.activar({"musica_que_suena": self.texto}),
+                         [])
+        ctypes.windll.user32.PostMessageW(
+            frame.GetHandle(), 0x0312, self._ident_que_suena(), 0)
+        fin = time.monotonic() + 2.0
+        while not llamadas and time.monotonic() < fin:
+            wx.GetApp().Yield(True)
+            time.sleep(0.01)
+        self.assertEqual(llamadas, ["suena"])
+
+    def test_combinacion_tomada_vuelve_en_fallidos(self):
+        frame = wx.Frame(None)
+        self.addCleanup(destruir, frame)
+        otro = wx.Frame(None)
+        self.addCleanup(destruir, otro)
+        mods, vk = combinacion_windows(self.texto)
+        ident = self._ident_que_suena()
+        self.assertTrue(otro.RegisterHotKey(ident, mods, vk))
+        self.addCleanup(otro.UnregisterHotKey, ident)
+        globales = AtajosGlobales(
+            frame, {"musica_que_suena": lambda: None})
+        self.addCleanup(globales.desactivar)
+        self.assertEqual(globales.activar({"musica_que_suena": self.texto}),
+                         [atajo_legible(self.texto)])
         self.assertFalse(globales.activos)
 
 

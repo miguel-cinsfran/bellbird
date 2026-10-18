@@ -1,0 +1,456 @@
+"""Pruebas del adaptador de música sobre libVLC (`adaptador_vlc.py`)."""
+
+import os
+import tempfile
+import threading
+import time
+import unittest
+import wave
+from pathlib import Path
+from unittest import mock
+
+from ytchat.music.adaptador_vlc import (
+    AdaptadorVlc,
+    MotorNoDisponible,
+    leer_etiquetas_vlc,
+)
+from ytchat.music.coordinador import Coordinador
+from ytchat.music.modelo import AVANZO, FIN_LISTA, TEMA_FALLIDO, Tema
+from ytchat.player import motor_vlc
+
+
+def esperar(condicion, plazo=5.0):
+    """Espera activa y acotada, para no colgar la suite si algo no llega."""
+    fin = time.monotonic() + plazo
+    while time.monotonic() < fin:
+        if condicion():
+            return True
+        time.sleep(0.01)
+    return condicion()
+
+
+class FakeEvento:
+    pass
+
+
+class FakeGestor:
+    """Gestor de eventos falso que avisa si lo llaman durante el despacho."""
+
+    def __init__(self):
+        self.manejadores = {}
+        self.despachando = False
+
+    def event_attach(self, tipo, callback):
+        self.manejadores[tipo] = callback
+
+    def disparar(self, tipo):
+        callback = self.manejadores.get(tipo)
+        if callback is None:
+            return
+        self.despachando = True
+        try:
+            callback(FakeEvento())
+        finally:
+            self.despachando = False
+
+
+class FakeMedia:
+    def __init__(self, origen):
+        self.origen = origen
+
+
+class FakeMediaEtiquetas:
+    """Media falsa para leer etiquetas: puede disparar el aviso de parseo o no."""
+
+    def __init__(self, metas=None, dispara=True):
+        self.gestor = FakeGestor()
+        self.metas = metas or {}
+        self.dispara = dispara
+        self.liberada = False
+
+    def event_manager(self):
+        return self.gestor
+
+    def parse_with_options(self, bandera, plazo):
+        if self.dispara:
+            self.gestor.disparar(FakeVlc.EventType.MediaParsedChanged)
+        return 0
+
+    def get_meta(self, clave):
+        return self.metas.get(clave)
+
+    def release(self):
+        self.liberada = True
+
+
+class FakeReproductor:
+    """Reproductor falso que revienta si libVLC se usa dentro de un callback."""
+
+    def __init__(self, instancia, numero):
+        self.instancia = instancia
+        self.gestor = FakeGestor()
+        self.numero = numero
+        self.volumen = None
+        self.salida = None
+        self.liberado = False
+        self.pausa = None
+        self.media = None
+        self._play = instancia.play_resultado
+
+    def _revisar(self):
+        if self.gestor.despachando:
+            raise AssertionError("libVLC llamado dentro de un callback")
+
+    def event_manager(self):
+        return self.gestor
+
+    def audio_output_set(self, nombre):
+        self._revisar()
+        self.salida = nombre
+        return 0
+
+    def set_media(self, media):
+        self._revisar()
+        self.media = media
+
+    def audio_set_volume(self, valor):
+        self._revisar()
+        self.volumen = valor
+
+    def play(self):
+        self._revisar()
+        self.instancia.eventos.append(("play", self.numero))
+        return self._play
+
+    def set_pause(self, valor):
+        self._revisar()
+        self.pausa = valor
+
+    def stop(self):
+        self._revisar()
+        self.instancia.eventos.append(("stop", self.numero))
+
+    def release(self):
+        self._revisar()
+        self.liberado = True
+        self.instancia.eventos.append(("release", self.numero))
+
+
+class FakeInstancia:
+    def __init__(self):
+        self.eventos = []
+        self.reproductores = []
+        self.play_resultado = 0
+        self.media_etiquetas = None
+
+    def media_player_new(self):
+        reproductor = FakeReproductor(self, len(self.reproductores))
+        self.reproductores.append(reproductor)
+        return reproductor
+
+    def media_new(self, origen):
+        if self.media_etiquetas is not None:
+            return self.media_etiquetas
+        return FakeMedia(origen)
+
+
+class FakeVlc:
+    class EventType:
+        MediaPlayerEndReached = "fin"
+        MediaPlayerEncounteredError = "error"
+        MediaPlayerPlaying = "playing"
+        MediaParsedChanged = "parsed"
+
+    class MediaParseFlag:
+        local = 0
+
+    class Meta:
+        Title = 0
+        Artist = 1
+        Album = 2
+
+
+class _BaseDobles(unittest.TestCase):
+
+    def setUp(self):
+        self.instancia = FakeInstancia()
+        self.vlc = FakeVlc()
+        self.existentes = set()
+        self._p_inst = mock.patch.object(
+            motor_vlc, "instancia", return_value=self.instancia)
+        self._p_mod = mock.patch.object(motor_vlc, "modulo", return_value=self.vlc)
+        self._p_isfile = mock.patch.object(
+            os.path, "isfile", side_effect=lambda ruta: ruta in self.existentes)
+        self._p_inst.start()
+        self._p_mod.start()
+        self._p_isfile.start()
+
+    def tearDown(self):
+        self._p_isfile.stop()
+        self._p_mod.stop()
+        self._p_inst.stop()
+
+    def crear(self, **kwargs):
+        adaptador = AdaptadorVlc(**kwargs)
+        self.addCleanup(adaptador.cerrar)
+        return adaptador
+
+
+class TestAdaptadorDobles(_BaseDobles):
+
+    def test_motor_no_disponible(self):
+        with mock.patch.object(motor_vlc, "instancia", return_value=None):
+            with self.assertRaises(MotorNoDisponible):
+                AdaptadorVlc()
+
+    def test_enlace_y_ausente_no_tocan_el_actual(self):
+        adaptador = self.crear()
+        self.existentes.add("C:/musica/a.mp3")
+        adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
+        with self.assertRaises(NotImplementedError):
+            adaptador.cargar(Tema("https://x/y.mp3", "e"), 2)
+        with self.assertRaises(FileNotFoundError):
+            adaptador.cargar(Tema("C:/musica/no-existe.mp3", "n"), 3)
+        self.assertEqual(len(self.instancia.reproductores), 1)
+        self.assertIs(adaptador._actual, self.instancia.reproductores[0])
+
+    def test_un_reproductor_por_tema(self):
+        adaptador = self.crear()
+        self.existentes.update({"C:/musica/a.mp3", "C:/musica/b.mp3"})
+        adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
+        adaptador.cargar(Tema("C:/musica/b.mp3", "b"), 2)
+        self.assertEqual(len(self.instancia.reproductores), 2)
+
+    def test_el_anterior_se_cierra_despues_del_play(self):
+        adaptador = self.crear()
+        self.existentes.update({"C:/musica/a.mp3", "C:/musica/b.mp3"})
+        adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
+        adaptador.cargar(Tema("C:/musica/b.mp3", "b"), 2)
+        self.assertTrue(esperar(lambda: self.instancia.reproductores[0].liberado))
+        eventos = self.instancia.eventos
+        self.assertLess(eventos.index(("play", 1)), eventos.index(("stop", 0)))
+
+    def test_play_menos_uno_deja_el_anterior(self):
+        adaptador = self.crear()
+        self.existentes.update({"C:/musica/a.mp3", "C:/musica/b.mp3"})
+        adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
+        anterior = adaptador._actual
+        self.instancia.play_resultado = -1
+        with self.assertRaises(RuntimeError):
+            adaptador.cargar(Tema("C:/musica/b.mp3", "b"), 2)
+        self.assertIs(adaptador._actual, anterior)
+        self.assertTrue(esperar(lambda: self.instancia.reproductores[1].liberado))
+
+    def test_el_callback_no_toca_el_reproductor(self):
+        adaptador = self.crear()
+        self.existentes.add("C:/musica/a.mp3")
+        adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
+        reproductor = self.instancia.reproductores[0]
+        reproductor.gestor.disparar(FakeVlc.EventType.MediaPlayerEndReached)
+
+    def test_el_aviso_corre_en_su_hilo_y_fuera_del_callback(self):
+        adaptador = self.crear()
+        self.existentes.add("C:/musica/a.mp3")
+        vistos = []
+        recibido = threading.Event()
+
+        def aviso(ficha, fallo):
+            vistos.append((ficha, fallo, threading.current_thread().name,
+                           reproductor.gestor.despachando))
+            recibido.set()
+
+        adaptador.asignar_aviso(aviso)
+        adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 7)
+        reproductor = self.instancia.reproductores[0]
+        reproductor.gestor.disparar(FakeVlc.EventType.MediaPlayerEndReached)
+        self.assertTrue(recibido.wait(5), "el aviso no llegó")
+        ficha, fallo, nombre, dentro = vistos[0]
+        self.assertEqual(ficha, 7)
+        self.assertFalse(fallo)
+        self.assertEqual(nombre, "musica-vlc")
+        self.assertFalse(dentro)
+
+    def test_fin_de_ficha_vieja_se_entrega(self):
+        adaptador = self.crear()
+        self.existentes.update({"C:/musica/a.mp3", "C:/musica/b.mp3"})
+        fichas = []
+        recibido = threading.Event()
+
+        def aviso(ficha, fallo):
+            fichas.append(ficha)
+            recibido.set()
+
+        adaptador.asignar_aviso(aviso)
+        adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
+        adaptador.cargar(Tema("C:/musica/b.mp3", "b"), 2)
+        self.instancia.reproductores[0].gestor.disparar(
+            FakeVlc.EventType.MediaPlayerEndReached)
+        self.assertTrue(recibido.wait(5), "el aviso no llegó")
+        self.assertEqual(fichas, [1])
+
+    def test_volumen_reaplicado_solo_al_actual(self):
+        adaptador = self.crear()
+        self.existentes.update({"C:/musica/a.mp3", "C:/musica/b.mp3"})
+        adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
+        adaptador.cargar(Tema("C:/musica/b.mp3", "b"), 2)
+        viejo, actual = self.instancia.reproductores
+        adaptador.volumen(70)
+        self.assertEqual(actual.volumen, 70)
+        viejo.volumen = None
+        actual.volumen = None
+        viejo.gestor.disparar(FakeVlc.EventType.MediaPlayerPlaying)
+        actual.gestor.disparar(FakeVlc.EventType.MediaPlayerPlaying)
+        self.assertTrue(esperar(lambda: actual.volumen == 70))
+        self.assertIsNone(viejo.volumen)
+
+    def test_aviso_que_lanza_no_mata_el_hilo(self):
+        adaptador = self.crear()
+        self.existentes.add("C:/musica/a.mp3")
+        llamadas = []
+        dos = threading.Event()
+
+        def aviso(ficha, fallo):
+            llamadas.append(ficha)
+            if len(llamadas) >= 2:
+                dos.set()
+            raise RuntimeError("boom")
+
+        adaptador.asignar_aviso(aviso)
+        adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
+        reproductor = self.instancia.reproductores[0]
+        with self.assertLogs("ytchat.adaptador_vlc", level="ERROR"):
+            reproductor.gestor.disparar(FakeVlc.EventType.MediaPlayerEndReached)
+            reproductor.gestor.disparar(FakeVlc.EventType.MediaPlayerEndReached)
+            self.assertTrue(dos.wait(5), "el hilo no siguió tras la excepción")
+        self.assertEqual(len(llamadas), 2)
+
+    def test_cerrar_dos_veces(self):
+        adaptador = self.crear()
+        self.existentes.add("C:/musica/a.mp3")
+        adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
+        adaptador.cerrar()
+        adaptador.cerrar()
+
+    def test_operaciones_sin_reproductor(self):
+        adaptador = self.crear()
+        adaptador.pausar()
+        adaptador.reanudar()
+        adaptador.detener()
+        adaptador.volumen(30)
+        self.assertEqual(self.instancia.reproductores, [])
+
+    def test_pausar_reanudar_y_detener(self):
+        adaptador = self.crear()
+        self.existentes.add("C:/musica/a.mp3")
+        adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
+        reproductor = self.instancia.reproductores[0]
+        adaptador.pausar()
+        self.assertEqual(reproductor.pausa, 1)
+        adaptador.reanudar()
+        self.assertEqual(reproductor.pausa, 0)
+        adaptador.detener()
+        self.assertIsNone(adaptador._actual)
+        self.assertTrue(esperar(lambda: reproductor.liberado))
+
+    def test_leer_etiquetas_sin_motor(self):
+        with mock.patch.object(motor_vlc, "instancia", return_value=None):
+            self.assertEqual(leer_etiquetas_vlc("C:/musica/a.mp3"), {})
+
+    def test_leer_etiquetas_usa_las_etiquetas(self):
+        self.instancia.media_etiquetas = FakeMediaEtiquetas(
+            metas={0: "Canción", 1: "Artista", 2: "Álbum"})
+        datos = leer_etiquetas_vlc("C:/musica/a.mp3")
+        self.assertEqual(
+            datos, {"titulo": "Canción", "artista": "Artista", "album": "Álbum"})
+
+    def test_leer_etiquetas_descarta_el_nombre_del_archivo(self):
+        self.instancia.media_etiquetas = FakeMediaEtiquetas(metas={0: "a"})
+        self.assertEqual(leer_etiquetas_vlc("C:/musica/a.mp3")["titulo"], "")
+
+    def test_leer_etiquetas_se_vence_el_plazo(self):
+        self.instancia.media_etiquetas = FakeMediaEtiquetas(dispara=False)
+        inicio = time.monotonic()
+        self.assertEqual(leer_etiquetas_vlc("C:/musica/a.mp3", plazo_ms=50), {})
+        self.assertLess(time.monotonic() - inicio, 5.0)
+        self.assertTrue(self.instancia.media_etiquetas.liberada)
+
+
+def _wav_silencio(ruta, duracion=0.4, tasa=8000):
+    fotogramas = int(duracion * tasa)
+    with wave.open(str(ruta), "wb") as archivo:
+        archivo.setnchannels(1)
+        archivo.setsampwidth(2)
+        archivo.setframerate(tasa)
+        archivo.writeframes(b"\x00\x00" * fotogramas)
+
+
+@unittest.skipUnless(motor_vlc.disponible(), "libVLC no está disponible")
+class TestAdaptadorVlcReal(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.temporal = tempfile.TemporaryDirectory()
+        cls.wav1 = Path(cls.temporal.name) / "uno.wav"
+        cls.wav2 = Path(cls.temporal.name) / "dos.wav"
+        _wav_silencio(cls.wav1)
+        _wav_silencio(cls.wav2)
+        if motor_vlc.instancia() is None:
+            cls.temporal.cleanup()
+            raise unittest.SkipTest("no se pudo crear la instancia de VLC")
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.temporal.cleanup()
+
+    def _adaptador(self):
+        adaptador = AdaptadorVlc(salida_audio="adummy")
+        self.addCleanup(adaptador.cerrar)
+        return adaptador
+
+    def test_avanza_solo_hasta_fin_lista(self):
+        adaptador = self._adaptador()
+        terminado = threading.Event()
+        avisos = []
+
+        def al_cambiar(resultado):
+            avisos.append(resultado.codigo)
+            if resultado.codigo == FIN_LISTA:
+                terminado.set()
+
+        coordinador = Coordinador(adaptador, al_cambiar=al_cambiar)
+        adaptador.asignar_aviso(coordinador.tema_terminado)
+        inicio = time.monotonic()
+        coordinador.reproducir_lista(
+            [Tema(str(self.wav1), "uno"), Tema(str(self.wav2), "dos")])
+        self.assertTrue(terminado.wait(20), "no llegó a fin_lista")
+        print(f"\n[test real (a)] fin_lista en {time.monotonic() - inicio:.1f} s")
+        self.assertEqual(avisos, [AVANZO, FIN_LISTA])
+
+    def test_archivo_basura_termina_sin_colgarse(self):
+        basura = Path(self.temporal.name) / "roto.mp3"
+        basura.write_bytes(b"\x00\x01\x02not-a-mp3")
+        adaptador = self._adaptador()
+        terminado = threading.Event()
+        avisos = []
+
+        def al_cambiar(resultado):
+            avisos.append(resultado.codigo)
+            if resultado.codigo == FIN_LISTA:
+                terminado.set()
+
+        coordinador = Coordinador(adaptador, al_cambiar=al_cambiar)
+        adaptador.asignar_aviso(coordinador.tema_terminado)
+        coordinador.reproducir_lista([Tema(str(basura), "roto")])
+        self.assertTrue(terminado.wait(20), "no llegó a terminar")
+        self.assertEqual(avisos, [TEMA_FALLIDO, FIN_LISTA])
+
+    def test_leer_etiquetas_de_wav_sin_tags(self):
+        inicio = time.monotonic()
+        datos = leer_etiquetas_vlc(str(self.wav1))
+        self.assertLess(time.monotonic() - inicio, 5.0)
+        self.assertIsInstance(datos, dict)
+        self.assertFalse(datos.get("titulo"))
+
+
+if __name__ == "__main__":
+    unittest.main()

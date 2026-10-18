@@ -1,0 +1,242 @@
+"""Adaptador de música sobre la instancia compartida de libVLC.
+
+Cumple el contrato ``Adaptador`` del coordinador usando el libVLC que YTChat
+ya trae, más la lectura de etiquetas para la biblioteca. Sin ``wx`` y sin red.
+"""
+
+from __future__ import annotations
+
+import os
+import queue
+import threading
+
+from ytchat.core import diagnostico
+from ytchat.player import motor_vlc
+
+
+logger = diagnostico.obtener_logger(__name__)
+
+_FIN = "fin"
+_ERROR = "error"
+_SONANDO = "sonando"
+_CERRAR = "cerrar"
+
+
+class MotorNoDisponible(RuntimeError):
+    """No hay instancia de libVLC para reproducir música."""
+
+
+class AdaptadorVlc:
+    """Motor de música sobre libVLC, con un reproductor por tema.
+
+    Los callbacks de VLC solo encolan un aviso: llamar a libVLC dentro de su
+    propio aviso lo cuelga, así que el trabajo lo hace un hilo aparte.
+    """
+
+    def __init__(self, salida_audio=None, volumen=100):
+        instancia = motor_vlc.instancia()
+        if instancia is None:
+            raise MotorNoDisponible("No hay motor de música libVLC disponible")
+        self._instancia = instancia
+        self._vlc = motor_vlc.modulo()
+        self._salida_audio = salida_audio
+        self._volumen = volumen
+        self._aviso = None
+        self._actual = None
+        self._callbacks = {}
+        self._cola = queue.Queue()
+        self._cerrado = False
+        self._hilo = diagnostico.crear_hilo(self._consumir, "musica-vlc")
+        self._hilo.start()
+
+    def asignar_aviso(self, funcion):
+        """Guarda a quién avisar el fin de un tema. Sin aviso, se descartan."""
+        self._aviso = funcion
+
+    def cargar(self, tema, ficha):
+        """Empieza a sonar el tema con un reproductor nuevo y cierra el anterior."""
+        if tema.es_enlace:
+            raise NotImplementedError("Los enlaces de música llegan en otro encargo")
+        if not os.path.isfile(tema.origen):
+            raise FileNotFoundError(tema.origen)
+        reproductor = self._instancia.media_player_new()
+        if reproductor is None:
+            raise RuntimeError("VLC no pudo crear un reproductor")
+        if self._salida_audio is not None:
+            reproductor.audio_output_set(self._salida_audio)
+        try:
+            media = self._instancia.media_new(tema.origen)
+            reproductor.set_media(media)
+        except Exception as exc:
+            self._cola.put((_CERRAR, None, reproductor))
+            raise RuntimeError("VLC no pudo preparar el tema") from exc
+        reproductor.audio_set_volume(self._volumen)
+        self._enganchar(reproductor, ficha)
+        if reproductor.play() == -1:
+            # El nuevo no arranca: se cierra y el anterior sigue sonando igual.
+            self._cola.put((_CERRAR, None, reproductor))
+            raise RuntimeError("VLC no pudo iniciar el tema")
+        anterior = self._actual
+        self._actual = reproductor
+        if anterior is not None:
+            # Un reproductor por tema: el fin tardío del viejo sale por su
+            # propio gestor con su ficha vieja, y el coordinador lo ignora.
+            self._cola.put((_CERRAR, None, anterior))
+
+    def pausar(self):
+        if self._actual is not None:
+            self._actual.set_pause(1)
+
+    def reanudar(self):
+        if self._actual is not None:
+            self._actual.set_pause(0)
+
+    def detener(self):
+        anterior = self._actual
+        self._actual = None
+        if anterior is not None:
+            self._cola.put((_CERRAR, None, anterior))
+
+    def volumen(self, valor):
+        self._volumen = valor
+        if self._actual is not None:
+            self._actual.audio_set_volume(valor)
+
+    def cerrar(self, plazo=2.0):
+        """Cierra el reproductor actual y termina el hilo. Repetirlo no falla."""
+        if self._cerrado:
+            return
+        self._cerrado = True
+        anterior = self._actual
+        self._actual = None
+        if anterior is not None:
+            self._cola.put((_CERRAR, None, anterior))
+        self._cola.put(None)
+        if self._hilo is not None:
+            self._hilo.join(timeout=plazo)
+
+    def _enganchar(self, reproductor, ficha):
+        vlc = self._vlc
+        if vlc is None or not hasattr(vlc, "EventType"):
+            self._callbacks[reproductor] = ()
+            return
+        cola = self._cola
+
+        def al_fin(_evento):
+            cola.put((_FIN, ficha, reproductor))
+
+        def al_error(_evento):
+            cola.put((_ERROR, ficha, reproductor))
+
+        def al_sonar(_evento):
+            cola.put((_SONANDO, ficha, reproductor))
+
+        callbacks = (
+            (vlc.EventType.MediaPlayerEndReached, al_fin),
+            (vlc.EventType.MediaPlayerEncounteredError, al_error),
+            (vlc.EventType.MediaPlayerPlaying, al_sonar),
+        )
+        try:
+            gestor = reproductor.event_manager()
+            for tipo, callback in callbacks:
+                gestor.event_attach(tipo, callback)
+        except Exception as exc:
+            logger.debug("No se pudieron enganchar los eventos de música: %s", exc)
+        self._callbacks[reproductor] = callbacks
+
+    def _consumir(self):
+        while True:
+            elemento = self._cola.get()
+            if elemento is None:
+                return
+            tipo, ficha, reproductor = elemento
+            if tipo == _CERRAR:
+                self._cerrar_reproductor(reproductor)
+            elif tipo == _SONANDO:
+                if reproductor is self._actual:
+                    try:
+                        reproductor.audio_set_volume(self._volumen)
+                    except Exception:
+                        pass
+            else:
+                self._avisar_fin(ficha, tipo == _ERROR)
+
+    def _avisar_fin(self, ficha, fallo):
+        aviso = self._aviso
+        if aviso is None:
+            return
+        try:
+            aviso(ficha, fallo)
+        except Exception:
+            logger.exception("Falló el aviso de fin de tema")
+
+    def _cerrar_reproductor(self, reproductor):
+        try:
+            reproductor.stop()
+        except Exception:
+            pass
+        try:
+            reproductor.release()
+        except Exception:
+            pass
+        # Mientras libVLC pueda llamar, el gestor conserva vivos sus callbacks.
+        self._callbacks.pop(reproductor, None)
+
+
+def leer_etiquetas_vlc(ruta, plazo_ms=1500) -> dict:
+    """Lee título, artista y álbum de un archivo con libVLC.
+
+    Nunca lanza: devuelve ``{}`` sin motor, si falla o al vencer el plazo. Se
+    llama desde el hilo que indexa, nunca desde un callback de VLC.
+    """
+    instancia = motor_vlc.instancia()
+    vlc = motor_vlc.modulo()
+    if instancia is None or vlc is None:
+        return {}
+    try:
+        media = instancia.media_new(ruta)
+    except Exception:
+        return {}
+    if media is None:
+        return {}
+    try:
+        listo = threading.Event()
+
+        def al_parsear(_evento):
+            listo.set()
+
+        try:
+            gestor = media.event_manager()
+            gestor.event_attach(vlc.EventType.MediaParsedChanged, al_parsear)
+        except Exception:
+            pass
+        if media.parse_with_options(vlc.MediaParseFlag.local, plazo_ms) == -1:
+            return {}
+        if not listo.wait(plazo_ms / 1000):
+            return {}
+        titulo = media.get_meta(vlc.Meta.Title)
+        artista = media.get_meta(vlc.Meta.Artist)
+        album = media.get_meta(vlc.Meta.Album)
+    except Exception:
+        return {}
+    finally:
+        try:
+            media.release()
+        except Exception:
+            pass
+    return {
+        "titulo": _titulo_real(titulo, ruta),
+        "artista": artista or "",
+        "album": album or "",
+    }
+
+
+def _titulo_real(titulo, ruta):
+    """Descarta el título cuando libVLC repite el nombre del archivo."""
+    if not titulo:
+        return ""
+    nombre = os.path.basename(ruta)
+    raiz = os.path.splitext(nombre)[0]
+    if titulo.casefold() in (nombre.casefold(), raiz.casefold()):
+        return ""
+    return titulo

@@ -3,6 +3,33 @@
 Qué cambia en cada versión, en lenguaje llano. El detalle técnico está en el
 historial de git.
 
+## 2.3.4, octubre de 2026
+
+Arreglos que salieron de un directo de prueba.
+
+### Transmisión
+
+- **Un solo aviso cuando OBS no da abasto, y se puede apagar.** Antes
+  sonaban dos frases largas cada minuto mientras se jugaba. Ahora es una
+  sola, «OBS no da abasto: se pierde el 16 por ciento de los cuadros», y
+  no se repite antes de cinco minutos. Ctrl+Shift+A lo apaga y lo vuelve
+  a encender, y queda guardado. También está en el menú Transmisión y en
+  la página Transmisión de Preferencias. Los avisos de red y de
+  reconexión siguen siempre.
+- **Copiar el enlace de un directo privado.** Ctrl+Shift+E ahora copia el
+  enlace del directo privado o para niños que crea la aplicación. Antes
+  decía que no había ningún directo conectado.
+
+### Chat
+
+- **El chat deja de reintentar un directo que ya terminó.** Si el chat
+  quedaba conectado a un directo que había terminado, repetía sin fin
+  «Desconectado» y «Reintentando en 15 segundos (intento 1 de 20)». Ahora
+  la aplicación comprueba si el directo sigue en vivo. Si terminó, lo
+  dice una vez, «El directo terminó. Chat desconectado», con el sonido de
+  fin del directo, y deja de intentar. Si sigue en vivo, reintenta como
+  antes, y el límite de veinte intentos ahora se cumple.
+
 ## 2.3.3, octubre de 2026
 
 Un arreglo que completa lo de Detener de la 2.3.2.

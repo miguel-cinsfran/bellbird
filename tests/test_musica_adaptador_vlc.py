@@ -15,6 +15,8 @@ from ytchat.music.adaptador_vlc import (
     leer_etiquetas_vlc,
     salidas_audio,
 )
+from ytchat.music import adaptador_vlc, enlaces
+from ytchat.music.enlaces import ErrorEnlace
 from ytchat.music.coordinador import Coordinador
 from ytchat.music.modelo import AVANZO, FIN_LISTA, TEMA_FALLIDO, Tema
 from ytchat.player import motor_vlc
@@ -58,6 +60,10 @@ class FakeGestor:
 class FakeMedia:
     def __init__(self, origen):
         self.origen = origen
+        self.opciones = []
+
+    def add_option(self, opcion):
+        self.opciones.append(opcion)
 
 
 class FakeMediaEtiquetas:
@@ -218,12 +224,10 @@ class TestAdaptadorDobles(_BaseDobles):
             with self.assertRaises(MotorNoDisponible):
                 AdaptadorVlc()
 
-    def test_enlace_y_ausente_no_tocan_el_actual(self):
+    def test_archivo_ausente_corta_de_una(self):
         adaptador = self.crear()
         self.existentes.add("C:/musica/a.mp3")
         adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
-        with self.assertRaises(NotImplementedError):
-            adaptador.cargar(Tema("https://x/y.mp3", "e"), 2)
         with self.assertRaises(FileNotFoundError):
             adaptador.cargar(Tema("C:/musica/no-existe.mp3", "n"), 3)
         self.assertEqual(len(self.instancia.reproductores), 1)
@@ -428,6 +432,96 @@ class TestAdaptadorDobles(_BaseDobles):
         self.assertEqual(leer_etiquetas_vlc("C:/musica/a.mp3", plazo_ms=50), {})
         self.assertLess(time.monotonic() - inicio, 5.0)
         self.assertTrue(self.instancia.media_etiquetas.liberada)
+
+
+class TestAdaptadorEnlaces(_BaseDobles):
+    """Enlaces de YouTube: no bloquean y resuelven el audio en un hilo."""
+
+    def _adaptador_con_opciones(self, **kwargs):
+        self._p_opciones = mock.patch.object(
+            adaptador_vlc, "_opciones_enlace", return_value=(":opcion-red",))
+        self._p_opciones.start()
+        self.addCleanup(self._p_opciones.stop)
+        return self.crear(**kwargs)
+
+    def test_el_enlace_no_bloquea_y_suena_la_direccion_resuelta(self):
+        adaptador = self._adaptador_con_opciones()
+        soltar = threading.Event()
+
+        def url_audio(_origen):
+            soltar.wait(5)
+            return "http://audio/stream"
+
+        with mock.patch.object(adaptador_vlc.enlaces, "url_audio",
+                               side_effect=url_audio):
+            adaptador.cargar(Tema("https://youtu.be/abc123", "x"), 1)
+            self.assertIsNone(adaptador._actual)
+            self.assertEqual(self.instancia.reproductores, [])
+            soltar.set()
+            self.assertTrue(
+                esperar(lambda: len(self.instancia.reproductores) == 1))
+        reproductor = self.instancia.reproductores[0]
+        self.assertEqual(reproductor.media.origen, "http://audio/stream")
+        self.assertEqual(reproductor.media.opciones, [":opcion-red"])
+        self.assertIs(adaptador._actual, reproductor)
+        self.assertIn(("play", 0), self.instancia.eventos)
+
+    def test_la_ficha_vieja_se_descarta(self):
+        adaptador = self._adaptador_con_opciones()
+        self.existentes.add("C:/musica/a.mp3")
+        soltar = threading.Event()
+        resuelto = threading.Event()
+
+        def url_audio(_origen):
+            soltar.wait(5)
+            resuelto.set()
+            return "http://audio/vieja"
+
+        with mock.patch.object(adaptador_vlc.enlaces, "url_audio",
+                               side_effect=url_audio):
+            adaptador.cargar(Tema("https://youtu.be/abc123", "vieja"), 1)
+            adaptador.cargar(Tema("C:/musica/a.mp3", "nueva"), 2)
+            soltar.set()
+            self.assertTrue(resuelto.wait(5), "no se resolvió el enlace")
+            time.sleep(0.1)
+        self.assertEqual(len(self.instancia.reproductores), 1)
+        self.assertEqual(adaptador._actual.media.origen, "C:/musica/a.mp3")
+
+    def test_fallo_de_url_audio_avisa_fallo_desde_el_hilo(self):
+        adaptador = self._adaptador_con_opciones()
+        vistos = []
+        recibido = threading.Event()
+
+        def aviso(ficha, fallo):
+            vistos.append((ficha, fallo, threading.current_thread().name))
+            recibido.set()
+
+        adaptador.asignar_aviso(aviso)
+        with mock.patch.object(adaptador_vlc.enlaces, "url_audio",
+                               side_effect=ErrorEnlace("No se pudo leer el enlace")):
+            adaptador.cargar(Tema("https://youtu.be/abc123", "x"), 9)
+            self.assertTrue(recibido.wait(5), "el aviso no llegó")
+        self.assertEqual(vistos, [(9, True, "musica-enlace")])
+        self.assertIsNone(adaptador._actual)
+
+    def test_play_menos_uno_avisa_fallo(self):
+        adaptador = self._adaptador_con_opciones()
+        self.instancia.play_resultado = -1
+        vistos = []
+        recibido = threading.Event()
+
+        def aviso(ficha, fallo):
+            vistos.append((ficha, fallo))
+            recibido.set()
+
+        adaptador.asignar_aviso(aviso)
+        with mock.patch.object(adaptador_vlc.enlaces, "url_audio",
+                               return_value="http://audio/stream"):
+            adaptador.cargar(Tema("https://youtu.be/abc123", "x"), 5)
+            self.assertTrue(recibido.wait(5), "el aviso no llegó")
+        self.assertEqual(vistos, [(5, True)])
+        self.assertIsNone(adaptador._actual)
+        self.assertTrue(esperar(lambda: self.instancia.reproductores[0].liberado))
 
 
 def _wav_silencio(ruta, duracion=0.4, tasa=8000):

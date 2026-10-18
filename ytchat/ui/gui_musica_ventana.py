@@ -10,7 +10,7 @@ from __future__ import annotations
 import wx
 
 from ytchat.core import diagnostico
-from ytchat.music import anuncios, listas
+from ytchat.music import anuncios, enlaces, listas
 from ytchat.music import vista
 from ytchat.ui.gui import _T, _pintar, anunciar, nombre_accesible
 from ytchat.voice import sound_player as _snd
@@ -22,6 +22,8 @@ TEXTO_CARGANDO = "Cargando la carpeta…"
 TEXTO_SIN_CARPETA = "No hay carpeta de música"
 TITULO_AGREGAR = "Agregar a una lista"
 TITULO_NUEVA_LISTA = "Nueva lista"
+TITULO_AGREGAR_ENLACE = "Agregar enlace"
+TEXTO_DIRECCION_ENLACE = "Dirección de un vídeo o una lista de YouTube:"
 
 
 class VentanaMusica(wx.Dialog):
@@ -78,8 +80,10 @@ class VentanaMusica(wx.Dialog):
         self.btn_agregar = self._boton(panel, "&Agregar a la cola", "Agregar a la cola")
         self.btn_agregar_lista = self._boton(
             panel, "Agregar a una li&sta…", "Agregar a una lista")
+        self.btn_agregar_enlace = self._boton(
+            panel, "Agregar &enlace…", "Agregar enlace")
         for boton in (self.btn_reproducir, self.btn_todo, self.btn_agregar,
-                      self.btn_agregar_lista):
+                      self.btn_agregar_lista, self.btn_agregar_enlace):
             botones.Add(boton, 0, wx.RIGHT, 6)
         vs.Add(botones, 0, wx.ALL, 6)
 
@@ -112,6 +116,7 @@ class VentanaMusica(wx.Dialog):
         self.btn_todo.Bind(wx.EVT_BUTTON, lambda e: self._reproducir_todo())
         self.btn_agregar.Bind(wx.EVT_BUTTON, lambda e: self._agregar())
         self.btn_agregar_lista.Bind(wx.EVT_BUTTON, lambda e: self._agregar_a_lista())
+        self.btn_agregar_enlace.Bind(wx.EVT_BUTTON, lambda e: self._agregar_enlace())
         self.btn_carpeta.Bind(wx.EVT_BUTTON, lambda e: self._cambiar_carpeta())
         self.btn_cerrar.Bind(wx.EVT_BUTTON, lambda e: self.EndModal(wx.ID_CANCEL))
         self.txt_buscar.SetFocus()
@@ -190,6 +195,7 @@ class VentanaMusica(wx.Dialog):
         self.btn_todo.Enable(activo)
         self.btn_agregar.Enable(activo)
         self.btn_agregar_lista.Enable(activo)
+        self.btn_agregar_enlace.Enable(activo)
         self.btn_carpeta.Enable(carpeta)
 
     # ── Acciones ────────────────────────────────────────────────────────────
@@ -250,6 +256,19 @@ class VentanaMusica(wx.Dialog):
             self._avisar(anuncios.aviso_error_listas(str(exc)))
             return
         self._avisar(anuncios.aviso_agregado_a_lista(nombre))
+
+    def _agregar_enlace(self):
+        """Pide una dirección de YouTube y la manda a expandir al control."""
+        with wx.TextEntryDialog(
+                self, TEXTO_DIRECCION_ENLACE, TITULO_AGREGAR_ENLACE) as dialogo:
+            if dialogo.ShowModal() != wx.ID_OK:
+                return
+            url = dialogo.GetValue().strip()
+        if not enlaces.es_enlace_youtube(url):
+            self._avisar(anuncios.aviso_enlace_no_youtube())
+            return
+        self._avisar(anuncios.aviso_leyendo_enlace())
+        self._control.agregar_enlace(url)
 
     def _elegir_lista(self, nombres):
         with wx.SingleChoiceDialog(

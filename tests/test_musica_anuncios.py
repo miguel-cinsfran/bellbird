@@ -256,6 +256,21 @@ class TestOtrosAvisos(unittest.TestCase):
         self.assertEqual(aviso.texto, "1 tema agregado a la cola")
         self.assertIsNone(aviso.sonido)
 
+    def test_leyendo_enlace_sin_sonido(self):
+        aviso = anuncios.aviso_leyendo_enlace()
+        self.assertEqual(aviso.texto, "Leyendo el enlace")
+        self.assertIsNone(aviso.sonido)
+
+    def test_enlace_no_youtube_lleva_sonido_de_error(self):
+        aviso = anuncios.aviso_enlace_no_youtube()
+        self.assertEqual(aviso.texto, "Esa dirección no es de YouTube")
+        self.assertEqual(aviso.sonido, "error")
+
+    def test_error_de_enlace_lleva_el_mensaje_y_sonido(self):
+        aviso = anuncios.aviso_error_enlace("El enlace no tiene vídeos")
+        self.assertEqual(aviso.texto, "El enlace no tiene vídeos")
+        self.assertEqual(aviso.sonido, "error")
+
 
 class TestEstadoParaF2(unittest.TestCase):
 

@@ -1,7 +1,9 @@
 """Adaptador de música sobre la instancia compartida de libVLC.
 
 Cumple el contrato ``Adaptador`` del coordinador usando el libVLC que YTChat
-ya trae, más la lectura de etiquetas para la biblioteca. Sin ``wx`` y sin red.
+ya trae, más la lectura de etiquetas para la biblioteca. Sin ``wx``. Los
+enlaces de YouTube no se resuelven acá: un hilo daemon pide la dirección del
+audio y arranca el reproductor cuando llega, sin bloquear al coordinador.
 """
 
 from __future__ import annotations
@@ -11,6 +13,7 @@ import queue
 import threading
 
 from ytchat.core import diagnostico
+from ytchat.music import enlaces
 from ytchat.player import motor_vlc
 
 
@@ -44,6 +47,7 @@ class AdaptadorVlc:
         self._volumen = volumen
         self._aviso = None
         self._actual = None
+        self._pedida = None
         self._callbacks = {}
         self._cola = queue.Queue()
         self._cerrado = False
@@ -60,9 +64,18 @@ class AdaptadorVlc:
         self._dispositivo = identificador or None
 
     def cargar(self, tema, ficha):
-        """Empieza a sonar el tema con un reproductor nuevo y cierra el anterior."""
+        """Empieza a sonar el tema con un reproductor nuevo y cierra el anterior.
+
+        Un enlace de YouTube no bloquea: anota la ficha pedida y resuelve el
+        audio en un hilo daemon. Si al volver ya se pidió otro tema, lo
+        descarta; si la resolución falla, avisa el fallo desde ese hilo.
+        """
+        self._pedida = ficha
         if tema.es_enlace:
-            raise NotImplementedError("Los enlaces de música llegan en otro encargo")
+            diagnostico.crear_hilo(
+                self._resolver_enlace, "musica-enlace",
+                args=(tema, ficha)).start()
+            return
         if not os.path.isfile(tema.origen):
             raise FileNotFoundError(tema.origen)
         reproductor = self._instancia.media_player_new()
@@ -89,6 +102,52 @@ class AdaptadorVlc:
         if anterior is not None:
             # Un reproductor por tema: el fin tardío del viejo sale por su
             # propio gestor con su ficha vieja, y el coordinador lo ignora.
+            self._cola.put((_CERRAR, None, anterior))
+
+    def _resolver_enlace(self, tema, ficha):
+        """Resuelve el audio del enlace y arranca el reproductor. Corre en su
+        propio hilo: nunca usa libVLC desde un callback."""
+        try:
+            url = enlaces.url_audio(tema.origen)
+        except Exception:
+            logger.debug("No se pudo resolver el audio del enlace: %s", tema.origen)
+            if ficha == self._pedida:
+                self._avisar_fin(ficha, True)
+            return
+        # La ficha guardada es la pedida: si el usuario ya pidió otro tema, el
+        # resultado que llegó tarde se descarta y no toca al que suena.
+        if self._cerrado or ficha != self._pedida:
+            return
+        self._abrir_enlace(url, ficha)
+
+    def _abrir_enlace(self, url, ficha):
+        reproductor = self._instancia.media_player_new()
+        if reproductor is None:
+            self._avisar_fin(ficha, True)
+            return
+        if self._salida_audio is not None:
+            reproductor.audio_output_set(self._salida_audio)
+        if self._dispositivo:
+            reproductor.audio_output_device_set(None, self._dispositivo)
+        try:
+            media = self._instancia.media_new(url)
+            for opcion in _opciones_enlace():
+                media.add_option(opcion)
+            reproductor.set_media(media)
+        except Exception as exc:
+            logger.debug("No se pudo preparar el enlace: %s", exc)
+            self._cola.put((_CERRAR, None, reproductor))
+            self._avisar_fin(ficha, True)
+            return
+        reproductor.audio_set_volume(self._volumen)
+        self._enganchar(reproductor, ficha)
+        if reproductor.play() == -1:
+            self._cola.put((_CERRAR, None, reproductor))
+            self._avisar_fin(ficha, True)
+            return
+        anterior = self._actual
+        self._actual = reproductor
+        if anterior is not None:
             self._cola.put((_CERRAR, None, anterior))
 
     def pausar(self):
@@ -189,6 +248,20 @@ class AdaptadorVlc:
             pass
         # Mientras libVLC pueda llamar, el gestor conserva vivos sus callbacks.
         self._callbacks.pop(reproductor, None)
+
+
+def _opciones_enlace() -> tuple[str, ...]:
+    """Opciones de red del reproductor de vídeo para flujos de YouTube.
+
+    Salen de ``reproductor.opciones_medio``, que es pública, importada al
+    momento para no arrastrar la interfaz al cargar este módulo. Si no se
+    puede importar, ninguna: el medio igual suena.
+    """
+    try:
+        from ytchat.player.reproductor import opciones_medio
+    except Exception:
+        return ()
+    return opciones_medio(False, solo_audio=True)
 
 
 def salidas_audio() -> list[tuple[str, str]]:

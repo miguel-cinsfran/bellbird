@@ -7,6 +7,7 @@ import re
 import unicodedata
 from pathlib import Path
 
+from ytchat.music import enlaces
 from ytchat.music.modelo import Tema
 
 
@@ -109,6 +110,8 @@ class Biblioteca:
 
     def _tema_de_linea(self, archivo: Path, entrada: str, titulo: str) -> Tema | None:
         if _URL_CON_ESQUEMA.match(entrada):
+            if enlaces.es_enlace_youtube(entrada):
+                return Tema(entrada, titulo or entrada)
             return None
         ruta = Path(entrada)
         if not ruta.is_absolute():

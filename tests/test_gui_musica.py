@@ -648,6 +648,69 @@ class TestVentanaYAtajos(unittest.TestCase):
             control.ejecutar_atajo("no_existe")   # no debe lanzar
 
 
+class TestEnlace(unittest.TestCase):
+    """`agregar_enlace`: expande en un hilo y suma los temas a la cola."""
+
+    def test_expande_y_suma_los_temas_a_la_cola(self):
+        temas = (Tema("https://www.youtube.com/watch?v=uno", "Uno"),
+                 Tema("https://www.youtube.com/watch?v=dos", "Dos"))
+        with _entorno() as env, \
+                mock.patch.object(gui_musica.enlaces, "expandir",
+                                  return_value=temas):
+            control = ControlMusica(_frame())
+            control.agregar_enlace("https://www.youtube.com/playlist?list=PL1")
+        self.assertEqual([t.origen for t in control.estado().cola],
+                         [t.origen for t in temas])
+        self.assertEqual(env.anunciar.call_args_list[-1].args[0],
+                         "2 temas agregados a la cola")
+
+    def test_error_del_enlace_avisa_con_sonido(self):
+        from ytchat.music.enlaces import ErrorEnlace
+        with _entorno() as env, \
+                mock.patch.object(gui_musica.enlaces, "expandir",
+                                  side_effect=ErrorEnlace("El enlace no tiene vídeos")):
+            control = ControlMusica(_frame())
+            control.agregar_enlace("https://youtu.be/x")
+        self.assertEqual(env.anunciar.call_args_list[-1].args[0],
+                         "El enlace no tiene vídeos")
+        self.assertEqual(env.snd.sonidos, ["error"])
+
+    def test_error_inesperado_avisa_lo_mismo(self):
+        with _entorno() as env, \
+                mock.patch.object(gui_musica.enlaces, "expandir",
+                                  side_effect=RuntimeError("boom")), \
+                mock.patch.object(gui_musica.logger, "exception"):
+            control = ControlMusica(_frame())
+            control.agregar_enlace("https://youtu.be/x")
+        self.assertEqual(env.anunciar.call_args_list[-1].args[0],
+                         "No se pudo leer el enlace")
+        self.assertEqual(env.snd.sonidos, ["error"])
+
+
+class TestSnapshotMusica(unittest.TestCase):
+    """El estado de la música entra en la instantánea de F2."""
+
+    def _frame(self):
+        from tests.test_desfase_accesible import _frame_con_panel
+        return _frame_con_panel("En el directo", 0)
+
+    def test_la_musica_llega_a_la_instantanea(self):
+        from ytchat.ui import gui
+        frame = self._frame()
+        frame._musica = mock.Mock()
+        frame._musica.texto_estado.return_value = "Música: A, tema 1 de 2"
+        snap = gui.YTChatFrame._snapshot_sesion(frame)
+        self.assertEqual(snap.musica, "Música: A, tema 1 de 2")
+
+    def test_sin_motor_o_con_fallo_da_vacio(self):
+        from ytchat.ui import gui
+        frame = self._frame()
+        frame._musica = mock.Mock()
+        frame._musica.texto_estado.side_effect = RuntimeError("boom")
+        snap = gui.YTChatFrame._snapshot_sesion(frame)
+        self.assertEqual(snap.musica, "")
+
+
 def _estado_memoria(temas, posicion):
     return EstadoMusica(tuple(temas), posicion, False, False, 100, False)
 

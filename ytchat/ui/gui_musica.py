@@ -14,6 +14,7 @@ from ytchat.core import config as cfg
 from ytchat.core import diagnostico
 from ytchat.core import paths
 from ytchat.music import anuncios
+from ytchat.music import enlaces
 from ytchat.music import listas
 from ytchat.music import memoria
 from ytchat.music.adaptador_vlc import AdaptadorVlc, MotorNoDisponible
@@ -150,6 +151,36 @@ class ControlMusica:
     def reproducir_desde(self, indice) -> None:
         """Empieza por el tema de la cola actual que ocupa ese índice."""
         self._asegurar_motor(lambda: self._reproducir_de_la_cola(indice))
+
+    def agregar_enlace(self, url) -> None:
+        """Expande un enlace de YouTube y suma sus temas a la cola, en un hilo.
+
+        La expansión bloquea y toca la red, así que corre aparte y vuelve por
+        `wx.CallAfter`: con los temas llama a `agregar_temas`, y ante un
+        `ErrorEnlace` anuncia su mensaje con el sonido de error.
+        """
+        diagnostico.crear_hilo(
+            self._expandir_enlace, "musica-enlace", args=(url,)).start()
+
+    def _expandir_enlace(self, url) -> None:
+        try:
+            temas = enlaces.expandir(url)
+        except enlaces.ErrorEnlace as exc:
+            wx.CallAfter(self._aviso_error_enlace, str(exc))
+            return
+        except Exception:
+            logger.exception("No se pudo expandir el enlace de música")
+            wx.CallAfter(self._aviso_error_enlace, "No se pudo leer el enlace")
+            return
+        wx.CallAfter(self._agregar_temas_del_enlace, temas)
+
+    def _agregar_temas_del_enlace(self, temas) -> None:
+        self.agregar_temas(temas)
+        self._refrescar_ventana_abierta()
+
+    def _aviso_error_enlace(self, mensaje) -> None:
+        self._avisar(anuncios.aviso_error_enlace(mensaje))
+        self._refrescar_ventana_abierta()
 
     # ── Biblioteca compartida y ventana ──────────────────────────────────────
 

@@ -158,6 +158,24 @@ class TestBiblioteca(unittest.TestCase):
         self.assertEqual(saltadas, 3)
         self.assertEqual([Path(t.origen).name for t in temas], ["Cancion.mp3"])
 
+    def test_m3u8_con_enlace_de_youtube_entra_y_las_demas_web_se_saltan(self):
+        lista = self.raiz / "enlaces.m3u8"
+        lista.write_text(
+            "#EXTM3U\n"
+            "#EXTINF:-1,Una canción\n"
+            "https://www.youtube.com/watch?v=abc123\n"
+            "https://ejemplo.test/cancion.mp3\n"
+            "https://youtu.be/def456\n",
+            encoding="utf-8",
+        )
+        temas, saltadas = Biblioteca(self.raiz).cargar_m3u8(lista)
+        self.assertEqual(saltadas, 1)
+        self.assertEqual([t.origen for t in temas],
+                         ["https://www.youtube.com/watch?v=abc123",
+                          "https://youtu.be/def456"])
+        self.assertEqual(temas[0].titulo, "Una canción")
+        self.assertEqual(temas[1].titulo, "https://youtu.be/def456")
+
     def test_m3u8_archivo_inexistente(self):
         with self.assertRaises(ErrorBiblioteca):
             Biblioteca(self.raiz).cargar_m3u8(self.raiz / "nada.m3u8")

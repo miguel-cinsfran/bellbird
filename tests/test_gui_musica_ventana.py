@@ -71,6 +71,9 @@ class ControlFalso:
     def agregar_temas(self, temas):
         self.llamadas.append(("agregar_temas", tuple(temas)))
 
+    def agregar_enlace(self, url):
+        self.llamadas.append(("agregar_enlace", url))
+
     def reproducir_desde(self, indice):
         self.llamadas.append(("reproducir_desde", indice))
 
@@ -143,8 +146,8 @@ class TestVentanaMusica(unittest.TestCase):
         self.assertEqual([c.GetName() for c in interactivos], [
             "Buscar en la música", "Temas de la carpeta",
             "Reproducir este", "Reproducir todo", "Agregar a la cola",
-            "Agregar a una lista", "Cola de reproducción", "Cambiar carpeta",
-            "Cerrar"])
+            "Agregar a una lista", "Agregar enlace", "Cola de reproducción",
+            "Cambiar carpeta", "Cerrar"])
 
     def test_titulo_nombre_y_rotulos_con_mnemonicos_sin_repetir(self):
         self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock")))
@@ -251,6 +254,49 @@ class TestVentanaMusica(unittest.TestCase):
         self.assertIn(
             ("agregar_temas", (control._biblio.temas()[1],)),
             control.llamadas)
+
+    def _cuadro_enlace(self, valor, resultado=wx.ID_OK):
+        cuadro = mock.MagicMock()
+        cuadro.__enter__.return_value = cuadro
+        cuadro.ShowModal.return_value = resultado
+        cuadro.GetValue.return_value = valor
+        return cuadro
+
+    def test_agregar_enlace_valido_avisa_e_instruye_al_control(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
+        self._abrir(control)
+        cuadro = self._cuadro_enlace("https://youtu.be/abc123")
+        with mock.patch.object(gui_musica_ventana.wx, "TextEntryDialog",
+                               return_value=cuadro), \
+                mock.patch.object(gui_musica_ventana, "_snd"):
+            self.ventana._agregar_enlace()
+        self.assertIn(("agregar_enlace", "https://youtu.be/abc123"),
+                      control.llamadas)
+        self.assertEqual(self.anuncios[-1], "Leyendo el enlace")
+
+    def test_agregar_enlace_que_no_es_youtube_avisa_y_no_llama(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
+        self._abrir(control)
+        cuadro = self._cuadro_enlace("https://vimeo.com/12345")
+        with mock.patch.object(gui_musica_ventana.wx, "TextEntryDialog",
+                               return_value=cuadro), \
+                mock.patch.object(gui_musica_ventana, "_snd"):
+            self.ventana._agregar_enlace()
+        self.assertEqual(self.anuncios[-1], "Esa dirección no es de YouTube")
+        self.assertNotIn("agregar_enlace",
+                         [llamada[0] for llamada in control.llamadas])
+
+    def test_agregar_enlace_cancelado_no_hace_nada(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
+        self._abrir(control)
+        cuadro = self._cuadro_enlace("https://youtu.be/abc123", wx.ID_CANCEL)
+        with mock.patch.object(gui_musica_ventana.wx, "TextEntryDialog",
+                               return_value=cuadro), \
+                mock.patch.object(gui_musica_ventana, "_snd"):
+            self.ventana._agregar_enlace()
+        self.assertNotIn("agregar_enlace",
+                         [llamada[0] for llamada in control.llamadas])
+        self.assertNotIn("Leyendo el enlace", self.anuncios)
 
     def test_enter_en_la_cola_reproduce_desde_esa_fila(self):
         control = ControlFalso(biblioteca=_biblioteca_de("Rock"))

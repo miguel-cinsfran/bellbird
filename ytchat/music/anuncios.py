@@ -62,6 +62,8 @@ TEXTO_LISTA_GUARDADA = "Lista guardada: {nombre}"
 TEXTO_TEMA_MOVIDO = "Tema movido a la posición {posicion} de {total}"
 TEXTO_TEMA_QUITADO = "Tema quitado de la lista"
 TEXTO_COLA_SIN_TEMAS = "No hay temas en la cola"
+TEXTO_LEYENDO_ENLACE = "Leyendo el enlace"
+TEXTO_ENLACE_NO_YOUTUBE = "Esa dirección no es de YouTube"
 
 
 @dataclass(frozen=True)
@@ -268,4 +270,19 @@ def aviso_sin_cola() -> Aviso:
 
 def aviso_error_listas(mensaje: str) -> Aviso:
     """Fallo al trabajar con las listas: el mensaje y el sonido de error."""
+    return Aviso(mensaje, SONIDO_ERROR)
+
+
+def aviso_leyendo_enlace() -> Aviso:
+    """Aviso al empezar a resolver un enlace, sin sonido: lo pidió el usuario."""
+    return Aviso(TEXTO_LEYENDO_ENLACE)
+
+
+def aviso_enlace_no_youtube() -> Aviso:
+    """La dirección pedida no es de YouTube, con el sonido de error."""
+    return Aviso(TEXTO_ENLACE_NO_YOUTUBE, SONIDO_ERROR)
+
+
+def aviso_error_enlace(mensaje: str) -> Aviso:
+    """No se pudo leer el enlace: el mensaje y el sonido de error."""
     return Aviso(mensaje, SONIDO_ERROR)

@@ -145,9 +145,11 @@ class PruebasReconexion(unittest.TestCase):
         return {"reconectar": True, "max_intentos": max_intentos,
                 "espera_entre_intentos": 0}
 
-    def _correr(self, captura, config):
+    def _correr(self, captura, config, terminado=False):
         estados = []
         with patch.object(main, "_captura", side_effect=captura), \
+                patch.object(main, "_directo_terminado",
+                             return_value=terminado), \
                 patch.object(main._snd, "reproducir"):
             main.captura_con_reconexion(
                 "v", queue.Queue(), config, threading.Event(), main.Stats(),
@@ -159,9 +161,10 @@ class PruebasReconexion(unittest.TestCase):
 
         def captura(video_id, cola, cfg, parada, stats, on_message, on_estado,
                     sesion_activa):
-            # Cada intento conecta y luego sufre un microcorte.
+            # Cada intento conecta, lee una vuelta y luego sufre un microcorte.
             caidas[0] += 1
             on_estado("conectado", "ok")
+            on_estado("leido", "ok")
             if caidas[0] >= 6:
                 parada.set()
             return RuntimeError("microcorte")
@@ -180,6 +183,24 @@ class PruebasReconexion(unittest.TestCase):
 
         estados = self._correr(captura, self._config(max_intentos=3))
         self.assertTrue(any("agotaron los 3" in texto for _, texto in estados))
+
+    def test_conectado_sin_leido_no_reinicia_los_intentos(self):
+        caidas = [0]
+
+        def captura(video_id, cola, cfg, parada, stats, on_message, on_estado,
+                    sesion_activa):
+            # «conectado» ya no cuenta como lectura: sin «leido», el contador
+            # no se reinicia y el límite de intentos se cumple.
+            caidas[0] += 1
+            on_estado("conectado", "ok")
+            if caidas[0] >= 6:      # tope para no colgarse si el arreglo cae
+                parada.set()
+            return RuntimeError("corte")
+
+        estados = self._correr(captura, self._config(max_intentos=3))
+        self.assertEqual(caidas[0], 3)
+        self.assertIn(("error", "Se agotaron los 3 intentos de reconexión."),
+                      estados)
 
     def test_captura_cierra_el_loop_de_asyncio_de_cada_intento(self):
         loops = []

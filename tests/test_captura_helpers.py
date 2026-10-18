@@ -156,6 +156,8 @@ class TestReconexionDirectoTerminado(unittest.TestCase):
                     on_estado, sesion_activa):
             llamadas[0] += 1
             on_estado("conectado", "ok")
+            if llamadas[0] >= 3:      # tope para no colgarse si el arreglo cae
+                parada.set()
             return RuntimeError("Chat data stream is empty.")
 
         parada = threading.Event()

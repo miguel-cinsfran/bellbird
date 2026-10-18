@@ -549,8 +549,8 @@ class TestAdaptadorVlcReal(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        # Un objeto retenido en un atributo de clase se libera al cerrar
-        # Python y puede caer el proceso: se suelta a mano cada nombre.
+        # La guarda de `tests/test_referencias_de_clase.py` exige soltar
+        # todo lo que guarda `setUpClass`: se suelta a mano cada nombre.
         cls.temporal.cleanup()
         del cls.wav1
         del cls.wav2

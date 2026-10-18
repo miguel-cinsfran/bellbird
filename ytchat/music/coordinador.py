@@ -73,17 +73,44 @@ class Coordinador:
         self._repetir = False
         self._ficha = 0
 
-    def reproducir_lista(self, temas) -> Resultado:
+    def reproducir_lista(self, temas, en_orden: bool = False) -> Resultado:
         with self._lock:
             cola = tuple(temas)
             if not cola:
                 return Resultado(False, COLA_VACIA, self._estado())
-            if self._aleatorio:
+            if self._aleatorio and not en_orden:
                 cola = self._mezclado(cola)
             return self._iniciar_cola(cola)
 
     def reproducir_tema(self, tema: Tema) -> Resultado:
         return self.reproducir_lista((tema,))
+
+    def reproducir_desde(self, indice) -> Resultado:
+        """Pone a sonar el tema de la cola actual que ocupa `indice`.
+
+        Sin cola devuelve "cola_vacia"; con el índice fuera de rango,
+        "sin_tema". Si el motor no puede cargar ese tema, es "error_motor"
+        con el tema y la cola queda terminada, igual que al moverla.
+        """
+        with self._lock:
+            if not self._cola:
+                return Resultado(False, COLA_VACIA, self._estado())
+            if (isinstance(indice, bool) or not isinstance(indice, int)
+                    or not 0 <= indice < len(self._cola)):
+                return Resultado(False, SIN_TEMA, self._estado())
+            try:
+                self._cargar(self._cola[indice])
+            except Exception:
+                self._detener_motor()
+                self._posicion = indice
+                self._pausado = False
+                self._terminado = True
+                return Resultado(False, ERROR_MOTOR, self._estado(),
+                                 tema=self._cola[indice])
+            self._posicion = indice
+            self._pausado = False
+            self._terminado = False
+            return Resultado(True, OK, self._estado())
 
     def agregar(self, temas) -> Resultado:
         with self._lock:

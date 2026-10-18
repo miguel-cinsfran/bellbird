@@ -180,6 +180,9 @@ def construir_menu(frame):
 
     # Música
     m = wx.Menu()
+    frame.mi_musica_ventana = m.Append(
+        wx.ID_ANY, "&Elegir música…" + frame._accel("musica_ventana"))
+    m.AppendSeparator()
     frame.mi_musica_play = m.Append(
         wx.ID_ANY, "Reproducir o &pausar" + frame._accel("musica_play"))
     frame.mi_musica_siguiente = m.Append(
@@ -198,6 +201,8 @@ def construir_menu(frame):
     frame.mi_musica_aleatorio.Check(
         bool(frame._config.get("musica_aleatorio", False)))
     mb.Append(m, "&Música")
+    frame._bind_menu(frame.mi_musica_ventana,
+                     lambda: frame._musica.abrir_ventana())
     frame._bind_menu(frame.mi_musica_play,
                      lambda: frame._musica.reproducir_o_pausar())
     frame._bind_menu(frame.mi_musica_siguiente,

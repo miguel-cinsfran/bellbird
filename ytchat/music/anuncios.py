@@ -47,6 +47,8 @@ TEXTO_SIN_CARPETA = "No hay carpeta de música. Elige una en Preferencias, pági
 TEXTO_MOTOR = "La música no está disponible: no se pudo cargar VLC"
 TEXTO_PREPARANDO = "Preparando la música"
 TEXTO_PREPARANDO_OCUPADO = "La música se está preparando"
+TEXTO_AGREGADOS = "{cantidad} temas agregados a la cola"
+TEXTO_AGREGADO = "1 tema agregado a la cola"
 
 
 @dataclass(frozen=True)
@@ -175,3 +177,10 @@ def aviso_preparando() -> Aviso:
 def aviso_preparando_ocupado() -> Aviso:
     """Una acción llegó mientras el motor todavía se está preparando."""
     return Aviso(TEXTO_PREPARANDO_OCUPADO)
+
+
+def aviso_agregados(cantidad: int) -> Aviso:
+    """Confirmación de cuántos temas se sumaron a la cola."""
+    if cantidad == 1:
+        return Aviso(TEXTO_AGREGADO)
+    return Aviso(TEXTO_AGREGADOS.format(cantidad=cantidad))

@@ -162,7 +162,8 @@ ATAJOS_GRUPOS = [
       "describir_escena"]),
     ("Música (Ctrl+Alt)",
      ["musica_play", "musica_siguiente", "musica_anterior",
-      "musica_vol_mas", "musica_vol_menos", "musica_que_suena"]),
+      "musica_vol_mas", "musica_vol_menos", "musica_que_suena",
+      "musica_ventana"]),
     ("Ventana y navegación (fijos)",
      ["salir", "region_siguiente", "region_anterior"]),
 ]

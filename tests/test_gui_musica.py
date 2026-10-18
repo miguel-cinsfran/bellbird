@@ -13,7 +13,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-from ytchat.music.modelo import AVANZO, FIN_LISTA, TEMA_FALLIDO, Resultado
+from ytchat.music.modelo import AVANZO, FIN_LISTA, TEMA_FALLIDO, Resultado, Tema
 from ytchat.ui import gui_musica
 from ytchat.ui.gui_musica import ControlMusica, nuevo_volumen, toca_pausar
 
@@ -433,6 +433,207 @@ class TestAplicarPreferencias(unittest.TestCase):
         control._adaptador.fijar_dispositivo.assert_not_called()
         frame.mi_musica_aleatorio.Check.assert_not_called()
         env.anunciar.assert_not_called()
+
+    def test_no_lanza_aunque_el_coordinador_lance(self):
+        with _entorno() as env, \
+                mock.patch.object(gui_musica.logger, "exception"):
+            control = ControlMusica(_frame())
+            control._coordinador = mock.Mock()
+            control._coordinador.fijar_volumen.side_effect = RuntimeError("boom")
+            control._adaptador = mock.Mock()
+            control.aplicar_preferencias()   # no debe propagar la excepción
+        env.anunciar.assert_not_called()
+
+
+class TestBibliotecaCompartida(unittest.TestCase):
+
+    def _control_con_hilos(self, frame):
+        hilos = []
+
+        def crear_hilo(target, nombre, *, args=(), daemon=True):
+            hilos.append(nombre)
+            return _HiloInmediato(target, args)
+
+        return hilos, crear_hilo
+
+    def test_entrega_la_biblioteca_y_no_reindexa(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "a.mp3").write_bytes(b"")
+            hilos, crear_hilo = self._control_con_hilos(None)
+            recibidas = []
+            with _entorno(), \
+                    mock.patch.object(gui_musica.diagnostico, "crear_hilo",
+                                      crear_hilo):
+                control = ControlMusica(_frame(musica_carpeta=tmp))
+                control.biblioteca(recibidas.append)
+                control.biblioteca(recibidas.append)
+        self.assertEqual(len(recibidas), 2)
+        self.assertIs(recibidas[0], recibidas[1])
+        self.assertEqual(len(recibidas[0].temas()), 1)
+        self.assertEqual(hilos.count("musica-indice"), 1)
+
+    def test_sin_carpeta_entrega_none_sin_indexar(self):
+        hilos, crear_hilo = self._control_con_hilos(None)
+        recibidas = []
+        with _entorno(), \
+                mock.patch.object(gui_musica.diagnostico, "crear_hilo",
+                                  crear_hilo):
+            control = ControlMusica(_frame(musica_carpeta=""))
+            control.biblioteca(recibidas.append)
+        self.assertEqual(recibidas, [None])
+        self.assertEqual(hilos, [])
+
+    def test_carpeta_inexistente_entrega_none_sin_anunciar(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            faltante = str(Path(tmp) / "no_existe")
+            with _entorno() as env:
+                control = ControlMusica(_frame(musica_carpeta=faltante))
+                recibidas = []
+                control.biblioteca(recibidas.append)
+        self.assertEqual(recibidas, [None])
+        env.anunciar.assert_not_called()
+
+
+class TestCambiarCarpeta(unittest.TestCase):
+
+    def test_guarda_codificada_e_invalida_el_indice(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "a.mp3").write_bytes(b"")
+            ruta = "C:\\Musica\\Rock;100%"
+            with _entorno(), \
+                    mock.patch.object(ControlMusica, "_guardar") as guardar:
+                control = ControlMusica(_frame(musica_carpeta=tmp))
+                control.biblioteca(lambda _b: None)
+                control.cambiar_carpeta(ruta)
+        self.assertEqual(control._config["musica_carpeta"], ruta)
+        self.assertIsNone(control._biblioteca)
+        guardar.assert_called_once_with(
+            "carpeta", gui_musica.cfg.codificar_texto_ini(ruta))
+        codificado = guardar.call_args.args[1]
+        self.assertEqual(gui_musica.cfg.decodificar_texto_ini(codificado), ruta)
+
+
+class TestAccionesDeLista(unittest.TestCase):
+
+    def test_reproducir_temas_suena_el_primero(self):
+        temas = [Tema("C:/m/a.mp3", "A"), Tema("C:/m/b.mp3", "B")]
+        with _entorno() as env:
+            control = ControlMusica(_frame())
+            control.reproducir_temas(temas)
+        cargas = [l for l in env.creados[0].llamadas if l[0] == "cargar"]
+        self.assertEqual(cargas[0][1], "C:/m/a.mp3")
+        self.assertEqual([c.args[0] for c in env.anunciar.call_args_list],
+                         ["Preparando la música", "A"])
+
+    def test_reproducir_temas_en_orden_no_mezcla(self):
+        temas = [Tema(f"C:/m/{n}.mp3", n) for n in ("a", "b", "c", "d")]
+        with _entorno():
+            control = ControlMusica(_frame(musica_aleatorio=True))
+            control.reproducir_temas(temas, en_orden=True)
+        self.assertEqual([t.origen for t in control.estado().cola],
+                         [t.origen for t in temas])
+
+    def test_reproducir_temas_desde_empieza_por_el_elegido(self):
+        temas = [Tema("C:/m/a.mp3", "A"), Tema("C:/m/b.mp3", "B"),
+                 Tema("C:/m/c.mp3", "C")]
+        with _entorno() as env:
+            control = ControlMusica(_frame())
+            control.reproducir_temas_desde(temas, 2)
+        self.assertEqual(control.estado().posicion, 2)
+        cargas = [l for l in env.creados[0].llamadas if l[0] == "cargar"]
+        self.assertEqual([c[1] for c in cargas], ["C:/m/a.mp3", "C:/m/c.mp3"])
+        self.assertEqual(env.anunciar.call_args_list[-1].args[0], "C")
+
+    def test_agregar_temas_anuncia_en_plural(self):
+        temas = [Tema("C:/m/a.mp3", "A"), Tema("C:/m/b.mp3", "B")]
+        with _entorno() as env:
+            control = ControlMusica(_frame())
+            control.agregar_temas(temas)
+        self.assertEqual([c.args[0] for c in env.anunciar.call_args_list],
+                         ["Preparando la música", "2 temas agregados a la cola"])
+        self.assertEqual([t.origen for t in control.estado().cola],
+                         ["C:/m/a.mp3", "C:/m/b.mp3"])
+
+    def test_agregar_temas_anuncia_en_singular(self):
+        with _entorno() as env:
+            control = ControlMusica(_frame())
+            control.agregar_temas([Tema("C:/m/a.mp3", "A")])
+        self.assertEqual(env.anunciar.call_args_list[-1].args[0],
+                         "1 tema agregado a la cola")
+
+    def test_agregar_temas_vacio_avisa_cola_vacia(self):
+        with _entorno() as env:
+            control = ControlMusica(_frame())
+            control.agregar_temas([])
+        self.assertEqual(env.anunciar.call_args_list[-1].args[0],
+                         "No hay temas para reproducir")
+
+    def test_reproducir_desde_salta_en_la_cola(self):
+        temas = [Tema("C:/m/a.mp3", "A"), Tema("C:/m/b.mp3", "B"),
+                 Tema("C:/m/c.mp3", "C")]
+        with _entorno() as env:
+            control = ControlMusica(_frame())
+            control.reproducir_temas(temas)
+            env.anunciar.reset_mock()
+            control.reproducir_desde(2)
+        self.assertEqual(control.estado().posicion, 2)
+        env.anunciar.assert_called_once_with("C")
+
+    def test_reproducir_desde_sin_cola_avisa(self):
+        with _entorno() as env:
+            ControlMusica(_frame()).reproducir_desde(0)
+        self.assertEqual(env.anunciar.call_args_list[-1].args[0],
+                         "No hay temas para reproducir")
+
+
+class TestVentanaYAtajos(unittest.TestCase):
+
+    def test_registrar_y_olvidar_la_ventana(self):
+        with _entorno():
+            control = ControlMusica(_frame())
+            ventana = mock.Mock()
+            control.registrar_ventana(ventana)
+            control._aviso_automatico(_aviso(posicion=0))
+            ventana.refrescar_cola.assert_called_once_with()
+            control.olvidar_ventana()
+            control._aviso_automatico(_aviso(posicion=0))
+            self.assertEqual(ventana.refrescar_cola.call_count, 1)
+
+    def test_sin_ventana_no_refresca_nada(self):
+        with _entorno():
+            control = ControlMusica(_frame())
+            control._aviso_automatico(_aviso(posicion=0))
+
+    def test_una_ventana_que_falla_no_rompe_el_aviso(self):
+        with _entorno() as env:
+            control = ControlMusica(_frame())
+            ventana = mock.Mock()
+            ventana.refrescar_cola.side_effect = RuntimeError("cerrada")
+            control.registrar_ventana(ventana)
+            control._aviso_automatico(_aviso(posicion=0))
+        env.anunciar.assert_called_once_with("Tema 2")
+
+    def test_combos_atajo_traduce_los_guardados(self):
+        from ytchat.player import reproductor
+        with _entorno():
+            control = ControlMusica(_frame())
+            combos = control.combos_atajo()
+        self.assertEqual(combos[reproductor._combo_wx("ctrl+alt+space")],
+                         "musica_play")
+        self.assertEqual(combos[reproductor._combo_wx("ctrl+alt+right")],
+                         "musica_siguiente")
+
+    def test_ejecutar_atajo_llama_a_la_accion(self):
+        with _entorno():
+            control = ControlMusica(_frame())
+            control.que_suena = mock.Mock()
+            control.ejecutar_atajo("musica_que_suena")
+        control.que_suena.assert_called_once_with()
+
+    def test_ejecutar_atajo_desconocido_no_hace_nada(self):
+        with _entorno():
+            control = ControlMusica(_frame())
+            control.ejecutar_atajo("no_existe")   # no debe lanzar
 
 
 if __name__ == "__main__":

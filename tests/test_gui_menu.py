@@ -154,6 +154,8 @@ class TestEquivalenciaMenu(unittest.TestCase):
             ("&Transmisión", "&Panel de transmisión…", ANY, "normal"),
             ("&Transmisión", "Silenciar el &micrófono de OBS", ANY, "normal"),
             ("&Transmisión", "&Avisar cuando OBS no da abasto", ANY, "check"),
+            ("&Música", "&Elegir música…", ANY, "normal"),
+            ("&Música", "---", None, "sep"),
             ("&Música", "Reproducir o &pausar", ANY, "normal"),
             ("&Música", "&Siguiente tema", ANY, "normal"),
             ("&Música", "Tema &anterior", ANY, "normal"),
@@ -175,7 +177,7 @@ class TestEquivalenciaMenu(unittest.TestCase):
 
 
 class TestMenuMusica(unittest.TestCase):
-    """El menú Música con sus nueve elementos y sus atajos a la vista."""
+    """El menú Música con sus elementos y sus atajos a la vista."""
 
     def _entradas(self):
         from ytchat.core import config as cfg
@@ -187,9 +189,11 @@ class TestMenuMusica(unittest.TestCase):
         _, lista = _construir_lista(accel)
         return [fila for fila in lista if fila[0] == "&Música"]
 
-    def test_nueve_elementos_en_orden_con_atajos(self):
+    def test_once_elementos_en_orden_con_atajos(self):
         ANY = gui.wx.ID_ANY
         self.assertEqual([
+            ("&Música", "&Elegir música…\tCtrl+Alt+M", ANY, "normal"),
+            ("&Música", "---", None, "sep"),
             ("&Música", "Reproducir o &pausar\tCtrl+Alt+Space", ANY, "normal"),
             ("&Música", "&Siguiente tema\tCtrl+Alt+Right", ANY, "normal"),
             ("&Música", "Tema &anterior\tCtrl+Alt+Left", ANY, "normal"),

@@ -97,6 +97,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("musica_vol_mas", "ctrl+alt+up"),
         ("musica_vol_menos", "ctrl+alt+down"),
         ("musica_que_suena", "ctrl+alt+t"),
+        ("musica_ventana", "ctrl+alt+m"),
     ]),
     ("ui", [
         ("tamanio_fuente_chat", "12"),

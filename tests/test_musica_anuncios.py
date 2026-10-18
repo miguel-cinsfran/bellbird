@@ -246,6 +246,16 @@ class TestOtrosAvisos(unittest.TestCase):
         self.assertEqual(aviso.texto, "La música se está preparando")
         self.assertIsNone(aviso.sonido)
 
+    def test_agregados_plural(self):
+        aviso = anuncios.aviso_agregados(3)
+        self.assertEqual(aviso.texto, "3 temas agregados a la cola")
+        self.assertIsNone(aviso.sonido)
+
+    def test_agregados_singular(self):
+        aviso = anuncios.aviso_agregados(1)
+        self.assertEqual(aviso.texto, "1 tema agregado a la cola")
+        self.assertIsNone(aviso.sonido)
+
 
 class TestPropiedad(unittest.TestCase):
 

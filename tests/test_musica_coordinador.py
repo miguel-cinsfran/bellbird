@@ -207,6 +207,73 @@ class TestOperaciones(unittest.TestCase):
         self.assertTrue(r.estado.terminado)
 
 
+class TestReproducirDesde(unittest.TestCase):
+
+    def test_salta_al_tema_de_la_cola(self):
+        ad = AdaptadorFalso()
+        c = Coordinador(ad)
+        c.reproducir_lista([tema("a"), tema("b"), tema("c")])
+        r = c.reproducir_desde(2)
+        self.assertTrue(r.ok)
+        self.assertEqual(r.codigo, OK)
+        self.assertEqual(r.estado.posicion, 2)
+        self.assertEqual(ad.cargas()[-1][1], "C:/musica/c.mp3")
+
+    def test_sin_cola(self):
+        ad = AdaptadorFalso()
+        r = Coordinador(ad).reproducir_desde(0)
+        self.assertFalse(r.ok)
+        self.assertEqual(r.codigo, COLA_VACIA)
+        self.assertEqual(ad.llamadas, [])
+
+    def test_indice_fuera_de_rango(self):
+        ad = AdaptadorFalso()
+        c = Coordinador(ad)
+        c.reproducir_lista([tema("a")])
+        for indice in (-1, 1, 5):
+            con = c.reproducir_desde(indice)
+            self.assertFalse(con.ok, indice)
+            self.assertEqual(con.codigo, SIN_TEMA, indice)
+        self.assertEqual(len(ad.cargas()), 1)
+
+    def test_indice_que_no_es_entero(self):
+        c = Coordinador(AdaptadorFalso())
+        c.reproducir_lista([tema("a")])
+        for indice in (None, "0", 0.0, True):
+            con = c.reproducir_desde(indice)
+            self.assertEqual(con.codigo, SIN_TEMA, indice)
+
+    def test_queda_sonando_aunque_estuviera_en_pausa(self):
+        ad = AdaptadorFalso()
+        c = Coordinador(ad)
+        c.reproducir_lista([tema("a"), tema("b")])
+        c.alternar_pausa()
+        r = c.reproducir_desde(1)
+        self.assertTrue(r.ok)
+        self.assertFalse(r.estado.pausado)
+
+    def test_error_motor_deja_la_cola_terminada(self):
+        ad = AdaptadorFalso()
+        c = Coordinador(ad)
+        c.reproducir_lista([tema("a"), tema("b")])
+        ad.fallar.add("C:/musica/b.mp3")
+        r = c.reproducir_desde(1)
+        self.assertFalse(r.ok)
+        self.assertEqual(r.codigo, ERROR_MOTOR)
+        self.assertEqual(r.tema.origen, "C:/musica/b.mp3")
+        self.assertEqual(r.estado.posicion, 1)
+        self.assertTrue(r.estado.terminado)
+        self.assertEqual(ad.llamadas[-1][0], "detener")
+
+    def test_el_mismo_tema_se_puede_saltar_a_si_mismo(self):
+        ad = AdaptadorFalso()
+        c = Coordinador(ad)
+        c.reproducir_lista([tema("a")])
+        r = c.reproducir_desde(0)
+        self.assertTrue(r.ok)
+        self.assertEqual(len(ad.cargas()), 2)
+
+
 class TestAleatorio(unittest.TestCase):
 
     def test_mezclar_no_se_usa_con_aleatorio_apagado(self):
@@ -230,6 +297,22 @@ class TestAleatorio(unittest.TestCase):
         c.fijar_aleatorio(True)
         despues = [t.origen for t in c.estado().cola]
         self.assertEqual(antes, despues)
+
+    def test_en_orden_no_mezcla_con_aleatorio_activo(self):
+        usos = []
+        c = Coordinador(AdaptadorFalso(),
+                        mezclar=lambda lista: usos.append(list(lista)) or lista.reverse())
+        c.fijar_aleatorio(True)
+        r = c.reproducir_lista([tema("a"), tema("b"), tema("c")], en_orden=True)
+        self.assertEqual([t.origen for t in r.estado.cola],
+                         ["C:/musica/a.mp3", "C:/musica/b.mp3", "C:/musica/c.mp3"])
+        self.assertEqual(usos, [])
+
+    def test_en_orden_sigue_mezclando_si_no_lo_piden(self):
+        c = Coordinador(AdaptadorFalso(), mezclar=lambda lista: lista.reverse())
+        c.fijar_aleatorio(True)
+        r = c.reproducir_lista([tema("a"), tema("b"), tema("c")])
+        self.assertEqual(r.estado.cola[0].origen, "C:/musica/c.mp3")
 
 
 class TestAvanceAutomatico(unittest.TestCase):
@@ -466,9 +549,10 @@ class TestPropiedad(unittest.TestCase):
         c = Coordinador(ad, mezclar=lambda lista: rng.shuffle(lista))
         temas = [tema(f"t{i}") for i in range(5)]
         for _ in range(200):
-            accion = rng.randrange(10)
+            accion = rng.randrange(11)
             if accion == 0:
-                c.reproducir_lista(rng.sample(temas, rng.randrange(6)))
+                c.reproducir_lista(rng.sample(temas, rng.randrange(6)),
+                                   en_orden=rng.random() < 0.5)
             elif accion == 1:
                 c.agregar(rng.sample(temas, rng.randrange(6)))
             elif accion == 2:
@@ -485,6 +569,8 @@ class TestPropiedad(unittest.TestCase):
                 c.fijar_aleatorio(rng.choice([True, False]))
             elif accion == 8:
                 c.fijar_repetir(rng.choice([True, False]))
+            elif accion == 9:
+                c.reproducir_desde(rng.randrange(-2, 7))
             else:
                 ficha = ad.ultima_ficha() if rng.random() < 0.5 else rng.randrange(-2, 4)
                 c.tema_terminado(ficha, rng.choice([True, False]))

@@ -192,5 +192,89 @@ class TestBiblioteca(unittest.TestCase):
                 Biblioteca(self.raiz).cargar_m3u8(lista)
 
 
+class TestBibliotecaConCache(unittest.TestCase):
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.raiz = Path(self.tmp.name)
+        (self.raiz / "a.mp3").write_bytes(b"aaa")
+        (self.raiz / "b.mp3").write_bytes(b"bbb")
+        from ytchat.music.etiquetas import CacheEtiquetas
+        self.ruta_cache = self.raiz / "cache" / "etiquetas.json"
+        self.cache = CacheEtiquetas(self.ruta_cache)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def _poner_en_cache(self, nombre, datos):
+        ruta = (self.raiz / nombre).resolve()
+        info = ruta.stat()
+        self.cache.poner(str(ruta), info.st_mtime_ns, info.st_size, datos)
+
+    def test_indexar_usa_las_etiquetas_de_la_cache(self):
+        self._poner_en_cache("a.mp3", {"titulo": "Tema A", "artista": "Ana"})
+        bib = Biblioteca(self.raiz, cache=self.cache)
+        self.assertEqual(bib.indexar(), 2)
+        por_nombre = {Path(t.origen).name: t for t in bib.temas()}
+        self.assertEqual(
+            (por_nombre["a.mp3"].titulo, por_nombre["a.mp3"].artista),
+            ("Tema A", "Ana"))
+        self.assertEqual(por_nombre["b.mp3"].titulo, "b")
+
+    def test_pendientes_devuelve_solo_lo_que_falta(self):
+        self._poner_en_cache("a.mp3", {"titulo": "Tema A"})
+        bib = Biblioteca(self.raiz, cache=self.cache)
+        bib.indexar()
+        pendientes = bib.pendientes()
+        self.assertEqual([Path(t.origen).name for t in pendientes], ["b.mp3"])
+
+    def test_pendientes_vacio_cuando_todo_esta_en_cache(self):
+        self._poner_en_cache("a.mp3", {"titulo": "Tema A"})
+        self._poner_en_cache("b.mp3", {})
+        bib = Biblioteca(self.raiz, cache=self.cache)
+        bib.indexar()
+        self.assertEqual(bib.pendientes(), ())
+
+    def test_sin_cache_pendientes_son_todos(self):
+        bib = Biblioteca(self.raiz)
+        bib.indexar()
+        self.assertEqual(len(bib.pendientes()), 2)
+
+    def test_si_el_archivo_cambio_vuelve_a_ser_pendiente(self):
+        self._poner_en_cache("a.mp3", {"titulo": "Tema A"})
+        (self.raiz / "a.mp3").write_bytes(b"aaa-modificado-distinto")
+        bib = Biblioteca(self.raiz, cache=self.cache)
+        bib.indexar()
+        por_nombre = {Path(t.origen).name: t for t in bib.temas()}
+        self.assertEqual(por_nombre["a.mp3"].titulo, "a")
+        self.assertEqual(
+            [Path(t.origen).name for t in bib.pendientes()], ["a.mp3", "b.mp3"])
+
+    def test_actualizar_conserva_orden_y_cantidad(self):
+        bib = Biblioteca(self.raiz)
+        bib.indexar()
+        antes = [t.origen for t in bib.temas()]
+        nuevos = [Tema(t.origen, "Nuevo " + Path(t.origen).stem)
+                  for t in bib.temas()]
+        self.assertEqual(bib.actualizar(nuevos), 2)
+        despues = bib.temas()
+        self.assertEqual([t.origen for t in despues], antes)
+        self.assertEqual(len(despues), 2)
+        self.assertEqual([t.titulo for t in despues], ["Nuevo a", "Nuevo b"])
+
+    def test_actualizar_ignora_lo_que_no_esta_en_el_indice(self):
+        bib = Biblioteca(self.raiz)
+        bib.indexar()
+        fantasma = Tema("C:/musica/fantasma.mp3", "Fantasma")
+        self.assertEqual(bib.actualizar([fantasma]), 0)
+        self.assertEqual(len(bib.temas()), 2)
+
+    def test_actualizar_vacio_no_hace_nada(self):
+        bib = Biblioteca(self.raiz)
+        bib.indexar()
+        self.assertEqual(bib.actualizar([]), 0)
+        self.assertEqual(len(bib.temas()), 2)
+
+
 if __name__ == "__main__":
     unittest.main()

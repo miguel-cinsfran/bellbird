@@ -7,6 +7,7 @@ nada: el motor de VLC queda reemplazado por un doble.
 """
 
 import contextlib
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -111,17 +112,20 @@ def _entorno(fabrica=None):
     fabrica = fabrica or fabrica_por_defecto
     with tempfile.TemporaryDirectory() as tmp:
         ruta_memoria = Path(tmp) / "musica_estado.json"
+        ruta_cache = Path(tmp) / "etiquetas_musica.json"
         with mock.patch.object(gui_musica, "AdaptadorVlc", side_effect=fabrica), \
                 mock.patch.object(gui_musica.diagnostico, "crear_hilo",
-                                  _crear_hilo_inmediato), \
+                                   _crear_hilo_inmediato), \
                 mock.patch.object(gui_musica.wx, "CallAfter",
-                                  side_effect=lambda fn, *a: fn(*a)), \
+                                   side_effect=lambda fn, *a: fn(*a)), \
                 mock.patch.object(gui_musica, "anunciar") as anunciar, \
                 mock.patch.object(gui_musica.paths, "estado_musica",
-                                  return_value=ruta_memoria), \
+                                   return_value=ruta_memoria), \
+                mock.patch.object(gui_musica.paths, "cache_etiquetas_musica",
+                                   return_value=ruta_cache), \
                 mock.patch.object(gui_musica, "_snd", snd):
             yield SimpleNamespace(anunciar=anunciar, snd=snd, creados=creados,
-                                  memoria=ruta_memoria)
+                                   memoria=ruta_memoria, cache=ruta_cache)
 
 
 class TestFuncionesPuras(unittest.TestCase):
@@ -523,6 +527,132 @@ class TestCambiarCarpeta(unittest.TestCase):
             "carpeta", gui_musica.cfg.codificar_texto_ini(ruta))
         codificado = guardar.call_args.args[1]
         self.assertEqual(gui_musica.cfg.decodificar_texto_ini(codificado), ruta)
+
+
+class TestEtiquetasSegundoPlano(unittest.TestCase):
+    """El hilo «musica-etiquetas»: lee lo pendiente, guarda y aplica el lote."""
+
+    def _carpeta_con(self, tmp, nombres=("a.mp3", "b.mp3")):
+        for nombre in nombres:
+            (Path(tmp) / nombre).write_bytes(b"audio-" + nombre.encode())
+        return tmp
+
+    def test_lee_guarda_y_aplica_al_coordinador_y_la_ventana(self):
+        from ytchat.music.etiquetas import CacheEtiquetas
+
+        with tempfile.TemporaryDirectory() as tmp:
+            self._carpeta_con(tmp)
+            with _entorno() as env, \
+                    mock.patch.object(gui_musica.motor_vlc, "disponible",
+                                      return_value=True), \
+                    mock.patch.object(
+                        gui_musica, "leer_etiquetas_vlc",
+                        return_value={"titulo": "Tema", "artista": "Ana",
+                                      "album": "Disco"}):
+                control = ControlMusica(_frame(musica_carpeta=tmp))
+                control._coordinador = mock.Mock()
+                ventana = mock.Mock()
+                control.registrar_ventana(ventana)
+                recibidas = []
+                control.biblioteca(recibidas.append)
+                biblioteca = recibidas[0]
+                por_nombre = {Path(t.origen).name: t
+                              for t in biblioteca.temas()}
+                self.assertEqual(por_nombre["a.mp3"].titulo, "Tema")
+                self.assertEqual(por_nombre["a.mp3"].artista, "Ana")
+                control._coordinador.actualizar_temas.assert_called_once()
+                ventana.actualizar_nombres.assert_called_once()
+                mapa = control._coordinador.actualizar_temas.call_args.args[0]
+                self.assertEqual(
+                    set(mapa), {t.origen for t in biblioteca.temas()})
+                self.assertIs(
+                    ventana.actualizar_nombres.call_args.args[0], mapa)
+                self.assertTrue(env.cache.is_file())
+                releida = CacheEtiquetas(env.cache)
+                for tema in biblioteca.temas():
+                    info = os.stat(tema.origen)
+                    self.assertEqual(
+                        releida.buscar(
+                            tema.origen, info.st_mtime_ns,
+                            info.st_size)["titulo"],
+                        "Tema")
+                env.anunciar.assert_not_called()
+
+    def test_titulo_vacio_conserva_el_nombre_del_archivo(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._carpeta_con(tmp, ("a.mp3",))
+            with _entorno(), \
+                    mock.patch.object(gui_musica.motor_vlc, "disponible",
+                                      return_value=True), \
+                    mock.patch.object(
+                        gui_musica, "leer_etiquetas_vlc",
+                        return_value={"titulo": "", "artista": "Ana"}):
+                control = ControlMusica(_frame(musica_carpeta=tmp))
+                recibidas = []
+                control.biblioteca(recibidas.append)
+        tema = recibidas[0].temas()[0]
+        self.assertEqual(tema.titulo, "a")
+        self.assertEqual(tema.artista, "Ana")
+
+    def test_cada_50_archivos_guarda_y_aplica(self):
+        nombres = tuple(f"t{i:03d}.mp3" for i in range(55))
+        with tempfile.TemporaryDirectory() as tmp:
+            self._carpeta_con(tmp, nombres)
+            with _entorno(), \
+                    mock.patch.object(gui_musica.motor_vlc, "disponible",
+                                      return_value=True), \
+                    mock.patch.object(gui_musica, "leer_etiquetas_vlc",
+                                      return_value={"titulo": "T"}):
+                control = ControlMusica(_frame(musica_carpeta=tmp))
+                control._coordinador = mock.Mock()
+                control.biblioteca(lambda _b: None)
+        self.assertEqual(control._coordinador.actualizar_temas.call_count, 2)
+        titulos = {t.titulo for t in control._biblioteca.temas()}
+        self.assertEqual(titulos, {"T"})
+
+    def test_si_la_generacion_cambia_a_mitad_no_aplica_nada(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._carpeta_con(tmp, ("a.mp3",))
+            with _entorno(), \
+                    mock.patch.object(gui_musica.motor_vlc, "disponible",
+                                      return_value=True):
+                control = ControlMusica(_frame(musica_carpeta=tmp))
+                control._coordinador = mock.Mock()
+                ventana = mock.Mock()
+                control.registrar_ventana(ventana)
+
+                def leer_y_cambiar(_origen):
+                    control._generacion_etiquetas += 1
+                    return {"titulo": "Tema"}
+
+                with mock.patch.object(gui_musica, "leer_etiquetas_vlc",
+                                       side_effect=leer_y_cambiar):
+                    recibidas = []
+                    control.biblioteca(recibidas.append)
+        self.assertEqual(recibidas[0].temas()[0].titulo, "a")
+        control._coordinador.actualizar_temas.assert_not_called()
+        ventana.actualizar_nombres.assert_not_called()
+
+    def test_sin_motor_no_arranca_el_hilo(self):
+        hilos = []
+
+        def crear_hilo(target, nombre, *, args=(), daemon=True):
+            hilos.append(nombre)
+            return _HiloInmediato(target, args)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            self._carpeta_con(tmp)
+            with _entorno(), \
+                    mock.patch.object(gui_musica.diagnostico, "crear_hilo",
+                                      crear_hilo), \
+                    mock.patch.object(gui_musica.motor_vlc, "disponible",
+                                      return_value=False):
+                control = ControlMusica(_frame(musica_carpeta=tmp))
+                recibidas = []
+                control.biblioteca(recibidas.append)
+        self.assertIn("musica-indice", hilos)
+        self.assertNotIn("musica-etiquetas", hilos)
+        self.assertEqual(recibidas[0].temas()[0].titulo, "a")
 
 
 class TestAccionesDeLista(unittest.TestCase):

@@ -134,6 +134,23 @@ class Coordinador:
             self._terminado = False
             return Resultado(True, OK, self._estado())
 
+    def actualizar_temas(self, mapa) -> int:
+        """Reemplaza en la cola los temas cuyo `origen` está en `mapa`.
+
+        Solo cambia el nombre: ni la posición, ni la pausa, ni la ficha, ni
+        el aleatorio, ni el orden. No llama al adaptador ni a `al_cambiar`.
+        Es lo que usa el hilo de etiquetas para poner al día lo que suena.
+        Devuelve cuántos reemplazó.
+        """
+        with self._lock:
+            if not mapa or not self._cola:
+                return 0
+            nueva = tuple(mapa.get(tema.origen, tema) for tema in self._cola)
+            puestos = sum(1 for viejo, nuevo in zip(self._cola, nueva)
+                          if nuevo is not viejo)
+            self._cola = nueva
+        return puestos
+
     def alternar_pausa(self) -> Resultado:
         with self._lock:
             if self._posicion is None or self._terminado:

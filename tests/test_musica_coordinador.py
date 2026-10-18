@@ -541,6 +541,52 @@ class TestRepetir(unittest.TestCase):
         self.assertEqual(len(usos), 1)
 
 
+class TestActualizarTemas(unittest.TestCase):
+
+    def test_cambia_el_nombre_en_la_cola(self):
+        ad = AdaptadorFalso()
+        c = Coordinador(ad)
+        c.reproducir_lista([tema("a"), tema("b")])
+        nuevos = [Tema("C:/musica/a.mp3", "Tema A", artista="Ana")]
+        self.assertEqual(c.actualizar_temas({t.origen: t for t in nuevos}), 1)
+        cola = c.estado().cola
+        self.assertEqual(cola[0].titulo, "Tema A")
+        self.assertEqual(cola[0].artista, "Ana")
+        self.assertEqual(cola[1].titulo, "Tema b")
+
+    def test_no_toca_posicion_ficha_ni_adaptador_ni_avisa(self):
+        ad = AdaptadorFalso()
+        avisos = []
+        c = Coordinador(ad, al_cambiar=avisos.append)
+        c.reproducir_lista([tema("a"), tema("b")])
+        c.siguiente()
+        c.alternar_pausa()
+        llamadas_antes = list(ad.llamadas)
+        ficha_antes = ad.ultima_ficha()
+        c.fijar_aleatorio(True)
+        cola_antes = [t.origen for t in c.estado().cola]
+        nuevos = [Tema("C:/musica/b.mp3", "Tema B", artista="Beto")]
+        self.assertEqual(c.actualizar_temas({t.origen: t for t in nuevos}), 1)
+        estado = c.estado()
+        self.assertEqual(estado.posicion, 1)
+        self.assertTrue(estado.pausado)
+        self.assertTrue(estado.aleatorio)
+        self.assertEqual([t.origen for t in estado.cola], cola_antes)
+        self.assertEqual(ad.llamadas, llamadas_antes)
+        self.assertEqual(ad.ultima_ficha(), ficha_antes)
+        self.assertEqual(avisos, [])
+
+    def test_sin_cola_o_sin_coincidencias_devuelve_cero(self):
+        c = Coordinador(AdaptadorFalso())
+        self.assertEqual(
+            c.actualizar_temas({"C:/musica/a.mp3": tema("a")}), 0)
+        c.reproducir_lista([tema("a")])
+        self.assertEqual(
+            c.actualizar_temas({"C:/musica/fantasma.mp3": tema("x")}), 0)
+        self.assertEqual(c.actualizar_temas({}), 0)
+        self.assertEqual(c.estado().cola[0].titulo, "Tema a")
+
+
 class TestPropiedad(unittest.TestCase):
 
     def test_secuencia_aleatoria_mantiene_invariantes(self):

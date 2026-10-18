@@ -365,6 +365,86 @@ class TestVentanaMusica(unittest.TestCase):
 
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestActualizarNombres(unittest.TestCase):
+    """`actualizar_nombres`: cambia el texto sin mover selección ni foco."""
+
+    def setUp(self):
+        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.anuncios = []
+        self._parche = mock.patch.object(
+            gui_musica_ventana, "anunciar",
+            lambda texto, urgente=True: self.anuncios.append(texto))
+        self._parche.start()
+        self.ventana = None
+
+    def tearDown(self):
+        if self.ventana is not None:
+            destruir(self.ventana)
+        self._parche.stop()
+
+    def _abrir(self, control):
+        self.ventana = gui_musica_ventana.VentanaMusica(None, control)
+        return self.ventana
+
+    def test_cambia_el_texto_sin_mover_la_seleccion(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock", "Jazz"))
+        self._abrir(control)
+        self.ventana.lb_temas.SetSelection(1)
+        mapa = {"C:/Musica/jazz.mp3": Tema(
+            "C:/Musica/jazz.mp3", "Jazz Nuevo", artista="Ana")}
+        with mock.patch.object(
+                self.ventana.lb_temas, "Set",
+                side_effect=AssertionError("usa Set")), \
+             mock.patch.object(
+                self.ventana.lb_temas, "SetSelection",
+                side_effect=AssertionError("usa SetSelection")):
+            self.ventana.actualizar_nombres(mapa)
+        self.assertEqual(self.ventana.lb_temas.GetStrings(),
+                         ["Rock", "Jazz Nuevo"])
+        self.assertEqual(self.ventana.lb_temas.GetSelection(), 1)
+        self.assertEqual(self.ventana._temas_filtrados[1].titulo, "Jazz Nuevo")
+        self.assertEqual(self.ventana.lbl_resumen.GetLabel(),
+                         "2 temas en la carpeta")
+
+    def test_actualiza_la_cola_fila_por_fila(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock", "Jazz"))
+        self._abrir(control)
+        control.estado_actual = EstadoMusica(
+            (Tema("C:/Musica/rock.mp3", "Rock"),
+             Tema("C:/Musica/jazz.mp3", "Jazz")),
+            0, False, False, 50, False)
+        self.ventana.refrescar_cola()
+        self.assertEqual(self.ventana.lb_cola.GetStrings(),
+                         ["Sonando: 1. Rock", "2. Jazz"])
+        self.ventana.lb_cola.SetSelection(1)
+        control.estado_actual = EstadoMusica(
+            (Tema("C:/Musica/rock.mp3", "Rock"),
+             Tema("C:/Musica/jazz.mp3", "Jazz Nuevo")),
+            0, False, False, 50, False)
+        self.ventana.actualizar_nombres(
+            {"C:/Musica/jazz.mp3": Tema("C:/Musica/jazz.mp3", "Jazz Nuevo")})
+        self.assertEqual(self.ventana.lb_cola.GetStrings(),
+                         ["Sonando: 1. Rock", "2. Jazz Nuevo"])
+        self.assertEqual(self.ventana.lb_cola.GetSelection(), 1)
+
+    def test_si_la_cola_cambio_de_cantidad_refresca_entera(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
+        self._abrir(control)
+        control.estado_actual = EstadoMusica(
+            (Tema("C:/Musica/rock.mp3", "Rock"),),
+            0, False, False, 50, False)
+        self.ventana.refrescar_cola()
+        control.estado_actual = EstadoMusica(
+            (Tema("C:/Musica/rock.mp3", "Rock Nuevo"),
+             Tema("C:/Musica/jazz.mp3", "Jazz")),
+            0, False, False, 50, False)
+        self.ventana.actualizar_nombres(
+            {"C:/Musica/rock.mp3": Tema("C:/Musica/rock.mp3", "Rock Nuevo")})
+        self.assertEqual(self.ventana.lb_cola.GetStrings(),
+                         ["Sonando: 1. Rock Nuevo", "2. Jazz"])
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestAbrirVentana(unittest.TestCase):
 
     def setUp(self):

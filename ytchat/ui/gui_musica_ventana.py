@@ -323,6 +323,57 @@ class VentanaMusica(wx.Dialog):
             filas = vista.filas_cola(estado, self._con_artista())
         self.lb_cola.Set(filas)
 
+    def actualizar_nombres(self, mapa) -> None:
+        """Pone al día las filas con etiquetas recién leídas, sin mover nada.
+
+        Reemplaza en lo filtrado los temas con origen en el mapa y cambia
+        SOLO el texto de las filas afectadas, con `SetString`: la selección
+        y el foco quedan donde estaban. El resumen y el filtro no se
+        recalculan. Para la cola, lo mismo fila por fila; si su cantidad
+        cambió a mitad, se refresca entera como siempre.
+        """
+        if not self:
+            return
+        if not mapa:
+            return
+        con_artista = self._con_artista()
+        filtrados = tuple(
+            mapa.get(tema.origen, tema) for tema in self._temas_filtrados)
+        self._temas_filtrados = filtrados
+        filas = vista.filas_temas(filtrados, con_artista)
+        try:
+            cantidad = self.lb_temas.GetCount()
+        except Exception:
+            logger.debug("No se pudo actualizar la lista de temas")
+            return
+        for indice, tema in enumerate(filtrados):
+            if tema.origen in mapa and indice < cantidad:
+                try:
+                    self.lb_temas.SetString(indice, filas[indice])
+                except Exception:
+                    logger.debug("No se pudo actualizar la fila de un tema")
+        try:
+            estado = self._control.estado()
+        except Exception:
+            return
+        if estado is None:
+            return
+        filas_cola = vista.filas_cola(estado, con_artista)
+        try:
+            cantidad_cola = self.lb_cola.GetCount()
+        except Exception:
+            logger.debug("No se pudo actualizar la cola")
+            return
+        if cantidad_cola != len(filas_cola):
+            self.refrescar_cola()
+            return
+        for indice, tema in enumerate(estado.cola):
+            if tema.origen in mapa:
+                try:
+                    self.lb_cola.SetString(indice, filas_cola[indice])
+                except Exception:
+                    logger.debug("No se pudo actualizar la fila de la cola")
+
     # ── Teclas ──────────────────────────────────────────────────────────────
 
     def _tecla_temas(self, event):

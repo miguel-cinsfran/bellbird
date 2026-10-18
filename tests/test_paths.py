@@ -24,6 +24,7 @@ RUTAS_DE_DATOS = [
     ("sounds_ini", "sounds.ini"),
     ("listas_musica", "listas"),
     ("estado_musica", "musica_estado.json"),
+    ("cache_etiquetas_musica", "etiquetas_musica.json"),
     ("log_principal", "ytchat.log"),
     ("log_detallado", "ytchat-debug.log"),
     ("log_fallos", "ytchat-fallos.log"),
@@ -330,7 +331,7 @@ class TestGuardaRutas(unittest.TestCase):
         "config.ini", "credenciales.json", "historial_lives.json",
         "historial_descargas.json", "alias.json", "mensajes_programados.json",
         "fin_pendiente.json", "sounds.ini", "ytchat.log", "ytchat-debug.log",
-        "ytchat-fallos.log",
+        "ytchat-fallos.log", "etiquetas_musica.json",
     )
 
     # (archivo, fragmento permitido, motivo). Sin comodines.

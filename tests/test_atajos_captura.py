@@ -4,6 +4,7 @@ import unittest
 from unittest import mock
 
 from ytchat.ui import atajos_captura
+from ytchat.ui import teclado_altgr
 from ytchat.core import config
 
 try:
@@ -66,12 +67,61 @@ class TestAtajosCaptura(unittest.TestCase):
             "capturado", "ctrl+alt+right",
             "Capturado: Ctrl+Alt+Right. Se aplica al pulsar Guardar."))
 
-    def test_accion_de_area_ctrl_alt_rechaza_una_letra(self):
+    def test_accion_de_area_ctrl_alt_rechaza_letra_que_escribe_altgr(self):
+        altgr = mock.Mock(return_value="@")
         with mock.patch.dict(config.ATAJOS_AREA, {"musica_siguiente": "ctrl+alt"}):
             resultado = atajos_captura.resolver(
-                "musica_siguiente", "ctrl+alt+q", {})
+                "musica_siguiente", "ctrl+alt+q", {}, altgr)
         self.assertEqual(resultado, (
-            "rechazado", None, "Esa combinación no es válida."))
+            "rechazado", None,
+            "Con este teclado, AltGr+Q escribe @. Elige otra."))
+
+    def test_ctrl_alt_letra_se_captura_si_altgr_no_escribe(self):
+        altgr = mock.Mock(return_value="")
+        with mock.patch.dict(config.ATAJOS_AREA, {"musica_siguiente": "ctrl+alt"}):
+            resultado = atajos_captura.resolver(
+                "musica_siguiente", "ctrl+alt+t", {}, altgr)
+        altgr.assert_called_once_with("t")
+        self.assertEqual(resultado, (
+            "capturado", "ctrl+alt+t",
+            "Capturado: Ctrl+Alt+T. Se aplica al pulsar Guardar."))
+
+    def test_ctrl_alt_flecha_no_consulta_altgr(self):
+        altgr = mock.Mock(side_effect=AssertionError("no debe llamarse"))
+        with mock.patch.dict(config.ATAJOS_AREA, {"musica_siguiente": "ctrl+alt"}):
+            resultado = atajos_captura.resolver(
+                "musica_siguiente", "ctrl+alt+right", {}, altgr)
+        altgr.assert_not_called()
+        self.assertEqual(resultado[0], "capturado")
+
+    def test_area_ctrl_no_consulta_altgr(self):
+        altgr = mock.Mock(side_effect=AssertionError("no debe llamarse"))
+        resultado = atajos_captura.resolver(
+            "rep_play", "ctrl+q", self.valores, altgr)
+        altgr.assert_not_called()
+        self.assertEqual(resultado[0], "capturado")
+
+    def test_por_defecto_rechaza_letra_que_escribe_altgr(self):
+        with mock.patch.object(
+                teclado_altgr, "caracter_altgr", return_value="@"):
+            with mock.patch.dict(
+                    config.ATAJOS_AREA, {"musica_siguiente": "ctrl+alt"}):
+                resultado = atajos_captura.resolver(
+                    "musica_siguiente", "ctrl+alt+q", {})
+        self.assertEqual(resultado, (
+            "rechazado", None,
+            "Con este teclado, AltGr+Q escribe @. Elige otra."))
+
+    def test_por_defecto_captura_si_altgr_no_escribe(self):
+        with mock.patch.object(
+                teclado_altgr, "caracter_altgr", return_value=""):
+            with mock.patch.dict(
+                    config.ATAJOS_AREA, {"musica_siguiente": "ctrl+alt"}):
+                resultado = atajos_captura.resolver(
+                    "musica_siguiente", "ctrl+alt+t", {})
+        self.assertEqual(resultado, (
+            "capturado", "ctrl+alt+t",
+            "Capturado: Ctrl+Alt+T. Se aplica al pulsar Guardar."))
 
     def test_accion_de_area_ctrl_rechaza_ctrl_alt(self):
         resultado = atajos_captura.resolver(

@@ -1,6 +1,7 @@
 """Decisiones y textos de la captura de atajos."""
 
 from ytchat.core import config as cfg
+from ytchat.ui import teclado_altgr
 
 
 _NOMBRE_TECLA_MOSTRAR = {
@@ -11,7 +12,7 @@ _NOMBRE_TECLA_MOSTRAR = {
 _AREA_AYUDA = {
     "ctrl": "Debe ser Ctrl y una tecla (por ejemplo Ctrl+P).",
     "alt": "Debe ser Alt y una tecla (por ejemplo Alt+C).",
-    "ctrl+alt": "Debe ser Ctrl+Alt y una flecha o Espacio (por ejemplo Ctrl+Alt+Flecha derecha).",
+    "ctrl+alt": "Debe ser Ctrl+Alt y una flecha, Espacio, una letra o un número (por ejemplo Ctrl+Alt+T).",
     "f": "Debe ser una tecla de función, de F1 a F12, sola o con Ctrl (por ejemplo F2 o Ctrl+F2).",
 }
 _ETIQUETAS = {
@@ -97,7 +98,8 @@ def texto_de_espera(etiqueta: str, ayuda_area: str) -> str:
 
 
 def resolver(accion: str, combo: str | None,
-             valores: dict[str, str]) -> tuple[str, str | None, str]:
+             valores: dict[str, str],
+             altgr=None) -> tuple[str, str | None, str]:
     """Decide qué hacer con una combinación y construye su anuncio."""
     etiqueta = _ETIQUETAS.get(accion, accion.replace("_", " ").capitalize())
     if combo is None:
@@ -116,6 +118,17 @@ def resolver(accion: str, combo: str | None,
     if not cfg.atajo_valido_para_area(accion, normalizado):
         ayuda = _AREA_AYUDA.get(cfg.ATAJOS_AREA.get(accion), "")
         return "rechazado", None, f"No vale aquí. {ayuda}"
+
+    if normalizado.startswith("ctrl+alt+"):
+        tecla = normalizado.split("+")[-1]
+        if len(tecla) == 1 and tecla.isascii() and tecla.isalnum():
+            if altgr is None:
+                altgr = teclado_altgr.caracter_altgr
+            escrito = altgr(tecla)
+            if escrito:
+                return "rechazado", None, (
+                    f"Con este teclado, AltGr+{tecla.upper()} escribe "
+                    f"{escrito}. Elige otra.")
 
     for otra, valor in valores.items():
         if otra != accion and valor and valor == normalizado:

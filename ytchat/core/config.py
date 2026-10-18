@@ -119,8 +119,9 @@ def configurar_logging(nivel_consola: int = logging.INFO) -> None:
 #   Ctrl  → Reproductor (vídeo/audio), como las apps de medios.
 #   Alt   → Conexión y chat (acciones sobre el directo).
 #   F     → Voz/lectura TTS (ajustes en caliente) y navegación.
-#   Ctrl+Alt → grupo de música: solo flechas y Espacio, porque en el teclado
-#   español AltGr llega como Ctrl+Alt y una letra rompería el chat.
+#   Ctrl+Alt → grupo de música: flechas, Espacio, una letra o un dígito. En
+#   Windows AltGr llega como Ctrl+Alt, así que al capturar se descartan las
+#   teclas que AltGr escribe en el teclado en uso.
 # Se muestran como aceleradores en la barra de menú (NVDA los lee). No chocan
 # con los mnemónicos de menú (Alt+inicial) porque usamos otras letras.
 #
@@ -175,9 +176,12 @@ _SIMBOLOS_PERMITIDOS = {",", ".", ";", "'", "[", "]", "/", "-"}
 _TECLAS_NOMBRE = {"enter", "left", "right", "up", "down", "space", "end"}
 # Ctrl+Shift debe probarse antes que Ctrl para no quedarse con «shift+tecla».
 _RE_ATAJO = re.compile(r"^(ctrl\+shift|ctrl|alt)\+(.+)$", re.IGNORECASE)
-# Ctrl+Alt es su propia área y solo admite flechas o Espacio (ver arriba).
+# Ctrl+Alt es su propia área: flechas, Espacio, una letra o un dígito. Las
+# letras y dígitos que AltGr escribe se descartan al capturar, según el
+# teclado en uso (ver teclado_altgr).
 _RE_CTRL_ALT = re.compile(
-    r"^(ctrl\+alt|alt\+ctrl)\+(left|right|up|down|space)$", re.IGNORECASE)
+    r"^(ctrl\+alt|alt\+ctrl)\+(left|right|up|down|space|[a-z]|[0-9])$",
+    re.IGNORECASE)
 _RE_FKEY  = re.compile(r"^f(1[0-2]|[1-9])$", re.IGNORECASE)
 _RE_CTRL_FKEY = re.compile(r"^ctrl\+f(1[0-2]|[1-9])$", re.IGNORECASE)
 
@@ -200,8 +204,10 @@ def _normalizar_atajo(valor: str | None) -> str | None:
     """Normaliza a 'ctrl+x' / 'alt+enter' / 'ctrl+left' / 'ctrl+alt+left'
     / 'f5' / 'ctrl+f2'. None si no vale.
 
-    Ctrl+Shift, Ctrl o Alt + tecla, Ctrl+Alt con flechas o Espacio, una
-    tecla F sin modificador, o Ctrl más una tecla F (como Ctrl+F2).
+    Ctrl+Shift, Ctrl o Alt + tecla, Ctrl+Alt con flechas, Espacio, una
+    letra o un dígito, una tecla F sin modificador, o Ctrl más una tecla F
+    (como Ctrl+F2). La exclusión de las letras y dígitos que AltGr escribe
+    se decide al capturar el atajo, no aquí.
     """
     if valor is None:
         return None
@@ -228,8 +234,9 @@ def atajo_valido_para_area(accion: str, normalizado: str | None) -> bool:
     """¿El atajo respeta el modificador del área de la acción?
 
     Reproductor → Ctrl, app → Alt, voz → tecla F sola o con Ctrl
-    (como Ctrl+F2), música → Ctrl+Alt con flechas o Espacio. Vacío
-    (desactivado) o acción sin área definida se aceptan sin restricción.
+    (como Ctrl+F2), música → Ctrl+Alt con flechas, Espacio, una letra o un
+    dígito. Vacío (desactivado) o acción sin área definida se aceptan sin
+    restricción.
     """
     area = ATAJOS_AREA.get(accion)
     if not normalizado or area is None:

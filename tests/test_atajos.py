@@ -57,10 +57,10 @@ class TestNormalizarAtajo(unittest.TestCase):
         self.assertEqual(_normalizar_atajo("ctrl+up"), "ctrl+up")
 
     def test_modificador_no_soportado(self):
-        # Shift solo y combinaciones distintas de Ctrl+Shift no se admiten.
+        # Shift solo y Alt+Shift no se admiten.
         self.assertIsNone(_normalizar_atajo("shift+u"))
         self.assertIsNone(_normalizar_atajo("alt+shift+x"))
-        self.assertIsNone(_normalizar_atajo("ctrl+alt+x"))
+        self.assertEqual(_normalizar_atajo("ctrl+alt+x"), "ctrl+alt+x")
         self.assertEqual(_normalizar_atajo("ctrl+shift+x"), "ctrl+shift+x")
 
     def test_tecla_nombre_desconocida(self):
@@ -81,10 +81,20 @@ class TestNormalizarAtajo(unittest.TestCase):
         self.assertEqual(
             _normalizar_atajo(" Ctrl + Alt + Right "), "ctrl+alt+right")
 
-    def test_ctrl_alt_rechaza_letras_digitos_y_otras_teclas(self):
-        for valor in ("ctrl+alt+x", "ctrl+alt+2", "ctrl+alt+f5",
-                      "ctrl+alt+enter", "ctrl+alt+end", "ctrl+alt+.",
-                      "ctrl+alt+shift+left"):
+    def test_ctrl_alt_acepta_letras_y_digitos(self):
+        for tecla in "abcdefghijklmnopqrstuvwxyz0123456789":
+            with self.subTest(tecla=tecla):
+                self.assertEqual(
+                    _normalizar_atajo(f"ctrl+alt+{tecla}"),
+                    f"ctrl+alt+{tecla}")
+
+    def test_ctrl_alt_normaliza_mayusculas_y_orden(self):
+        self.assertEqual(_normalizar_atajo("Ctrl+Alt+T"), "ctrl+alt+t")
+        self.assertEqual(_normalizar_atajo("ALT+CTRL+2"), "ctrl+alt+2")
+
+    def test_ctrl_alt_rechaza_teclas_f_enter_end_simbolos_y_shift(self):
+        for valor in ("ctrl+alt+f5", "ctrl+alt+enter", "ctrl+alt+end",
+                      "ctrl+alt+.", "ctrl+alt+shift+left"):
             with self.subTest(valor=valor):
                 self.assertIsNone(_normalizar_atajo(valor))
 

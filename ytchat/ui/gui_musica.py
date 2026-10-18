@@ -112,6 +112,29 @@ class ControlMusica:
             self._coordinador.fijar_aleatorio(nuevo)
         self._avisar(anuncios.aviso_aleatorio(nuevo))
 
+    def aplicar_preferencias(self) -> None:
+        """Aplica en caliente las preferencias de música, si el motor nació.
+
+        Volumen, salida (para el próximo tema), aleatorio y repetir. Sin motor
+        no hace nada. Nunca lanza: lo llama el frame al guardar Preferencias.
+        """
+        if self._coordinador is None:
+            return
+        try:
+            self._coordinador.fijar_volumen(self._volumen_config())
+            if self._adaptador is not None:
+                self._adaptador.fijar_dispositivo(
+                    self._config.get("musica_salida") or None)
+            aleatorio = bool(self._config.get("musica_aleatorio", False))
+            self._coordinador.fijar_aleatorio(aleatorio)
+            self._coordinador.fijar_repetir(
+                bool(self._config.get("musica_repetir", False)))
+            item = getattr(self._frame, "mi_musica_aleatorio", None)
+            if item is not None:
+                item.Check(aleatorio)
+        except Exception:
+            logger.exception("No se pudieron aplicar las preferencias de música")
+
     def cerrar(self) -> None:
         """Cierra el motor si llegó a nacer. Nunca lanza."""
         self._cerrado = True
@@ -130,8 +153,10 @@ class ControlMusica:
         if self._preparando:
             # Una segunda acción durante la preparación se descarta: lo más
             # simple es crear el motor una sola vez y no encolar nada.
+            self._avisar(anuncios.aviso_preparando_ocupado())
             return
         self._preparando = True
+        self._avisar(anuncios.aviso_preparando())
         diagnostico.crear_hilo(
             self._preparar_motor, "musica-motor", args=(continuar,)).start()
 

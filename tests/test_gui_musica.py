@@ -64,6 +64,17 @@ class _HiloInmediato:
         self._target(*self._args)
 
 
+class _HiloDiferido:
+    """Hilo que no corre: deja al control en «preparando» para la prueba."""
+
+    def __init__(self, target, args):
+        self._target = target
+        self._args = args
+
+    def start(self):
+        pass
+
+
 def _crear_hilo_inmediato(target, nombre, *, args=(), daemon=True):
     return _HiloInmediato(target, args)
 
@@ -162,14 +173,17 @@ class TestReproducir(unittest.TestCase):
                 cargas = [l for l in env.creados[0].llamadas if l[0] == "cargar"]
         self.assertEqual(len(cargas), 1)
         self.assertEqual(cargas[0][1], str((Path(tmp) / "a.mp3").resolve()))
-        env.anunciar.assert_called_once_with("a")
+        self.assertEqual([c.args[0] for c in env.anunciar.call_args_list],
+                         ["Preparando la música", "a"])
 
     def test_carpeta_inexistente_avisa_con_error(self):
         with tempfile.TemporaryDirectory() as tmp:
             faltante = str(Path(tmp) / "no_existe")
             with _entorno() as env:
                 ControlMusica(_frame(musica_carpeta=faltante)).reproducir_o_pausar()
-        env.anunciar.assert_called_once_with(gui_musica.TEXTO_CARPETA_INEXISTENTE)
+        self.assertEqual([c.args[0] for c in env.anunciar.call_args_list],
+                         ["Preparando la música",
+                          gui_musica.TEXTO_CARPETA_INEXISTENTE])
         self.assertEqual(env.snd.sonidos, ["error"])
 
     def test_segunda_accion_reproduce_en_vez_de_alternar(self):
@@ -330,8 +344,9 @@ class TestMotor(unittest.TestCase):
             (Path(tmp) / "a.mp3").write_bytes(b"")
             with _entorno(fabrica=fabrica) as env:
                 ControlMusica(_frame(musica_carpeta=tmp)).reproducir_o_pausar()
-        env.anunciar.assert_called_once_with(
-            "La música no está disponible: no se pudo cargar VLC")
+        self.assertEqual([c.args[0] for c in env.anunciar.call_args_list],
+                         ["Preparando la música",
+                          "La música no está disponible: no se pudo cargar VLC"])
         self.assertEqual(env.snd.sonidos, ["error"])
 
     def test_cerrar_sin_motor_no_lanza(self):
@@ -346,6 +361,78 @@ class TestMotor(unittest.TestCase):
                 control.reproducir_o_pausar()
                 control.cerrar()
         self.assertIn(("cerrar",), env.creados[0].llamadas)
+
+
+class TestPreparandoLaMusica(unittest.TestCase):
+
+    def test_primera_accion_anuncia_que_prepara(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "a.mp3").write_bytes(b"")
+            with _entorno() as env:
+                ControlMusica(_frame(musica_carpeta=tmp)).reproducir_o_pausar()
+        self.assertEqual(env.anunciar.call_args_list[0].args[0],
+                         "Preparando la música")
+
+    def test_segunda_accion_mientras_prepara_avisa_y_no_repite_hilo(self):
+        creados = []
+
+        def fabrica_hilo(target, nombre, *, args=(), daemon=True):
+            hilo = _HiloDiferido(target, args)
+            creados.append(hilo)
+            return hilo
+
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "a.mp3").write_bytes(b"")
+            with _entorno() as env, \
+                    mock.patch.object(gui_musica.diagnostico, "crear_hilo",
+                                      fabrica_hilo):
+                control = ControlMusica(_frame(musica_carpeta=tmp))
+                control.reproducir_o_pausar()
+                control.reproducir_o_pausar()
+        self.assertEqual([c.args[0] for c in env.anunciar.call_args_list],
+                         ["Preparando la música",
+                          "La música se está preparando"])
+        self.assertEqual(len(creados), 1)
+
+
+class TestAplicarPreferencias(unittest.TestCase):
+
+    def test_con_motor_aplica_las_cuatro_y_sincroniza_la_casilla(self):
+        item = mock.Mock()
+        frame = _frame(musica_volumen=30, musica_salida="disp-1",
+                       musica_aleatorio=True, musica_repetir=True)
+        frame.mi_musica_aleatorio = item
+        with _entorno() as env:
+            control = ControlMusica(frame)
+            control._coordinador = mock.Mock()
+            control._adaptador = mock.Mock()
+            control.aplicar_preferencias()
+        control._coordinador.fijar_volumen.assert_called_once_with(30)
+        control._adaptador.fijar_dispositivo.assert_called_once_with("disp-1")
+        control._coordinador.fijar_aleatorio.assert_called_once_with(True)
+        control._coordinador.fijar_repetir.assert_called_once_with(True)
+        item.Check.assert_called_once_with(True)
+        env.anunciar.assert_not_called()
+
+    def test_salida_vacia_va_como_none(self):
+        frame = _frame(musica_salida="")
+        with _entorno():
+            control = ControlMusica(frame)
+            control._coordinador = mock.Mock()
+            control._adaptador = mock.Mock()
+            control.aplicar_preferencias()
+        control._adaptador.fijar_dispositivo.assert_called_once_with(None)
+
+    def test_sin_motor_no_hace_nada_ni_lanza(self):
+        frame = _frame(musica_aleatorio=True)
+        frame.mi_musica_aleatorio = mock.Mock()
+        with _entorno() as env:
+            control = ControlMusica(frame)
+            control._adaptador = mock.Mock()
+            control.aplicar_preferencias()
+        control._adaptador.fijar_dispositivo.assert_not_called()
+        frame.mi_musica_aleatorio.Check.assert_not_called()
+        env.anunciar.assert_not_called()
 
 
 if __name__ == "__main__":

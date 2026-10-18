@@ -45,6 +45,8 @@ TEXTO_ALEATORIO_ON = "Orden aleatorio activado"
 TEXTO_ALEATORIO_OFF = "Orden aleatorio desactivado"
 TEXTO_SIN_CARPETA = "No hay carpeta de música. Elige una en Preferencias, página Música"
 TEXTO_MOTOR = "La música no está disponible: no se pudo cargar VLC"
+TEXTO_PREPARANDO = "Preparando la música"
+TEXTO_PREPARANDO_OCUPADO = "La música se está preparando"
 
 
 @dataclass(frozen=True)
@@ -162,3 +164,14 @@ def aviso_sin_carpeta() -> Aviso:
 def aviso_motor_no_disponible() -> Aviso:
     """libVLC no se pudo cargar, así que la música no está disponible."""
     return Aviso(TEXTO_MOTOR, SONIDO_ERROR)
+
+
+def aviso_preparando() -> Aviso:
+    """Aviso al lanzar la preparación del motor; sin sonido, lo pidió el
+    usuario y está atento."""
+    return Aviso(TEXTO_PREPARANDO)
+
+
+def aviso_preparando_ocupado() -> Aviso:
+    """Una acción llegó mientras el motor todavía se está preparando."""
+    return Aviso(TEXTO_PREPARANDO_OCUPADO)

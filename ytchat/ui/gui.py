@@ -1237,6 +1237,7 @@ class YTChatFrame(wx.Frame):
                 bool(self._config.get("reproductor_solo_audio", False)))
         except Exception:
             pass
+        self._musica.aplicar_preferencias()
         self._actualizar_vigilante_obs()
         anunciar("Preferencias aplicadas")
 

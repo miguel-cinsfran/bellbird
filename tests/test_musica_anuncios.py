@@ -236,6 +236,16 @@ class TestOtrosAvisos(unittest.TestCase):
             "La música no está disponible: no se pudo cargar VLC")
         self.assertEqual(aviso.sonido, "error")
 
+    def test_preparando_sin_sonido(self):
+        aviso = anuncios.aviso_preparando()
+        self.assertEqual(aviso.texto, "Preparando la música")
+        self.assertIsNone(aviso.sonido)
+
+    def test_preparando_ocupado_sin_sonido(self):
+        aviso = anuncios.aviso_preparando_ocupado()
+        self.assertEqual(aviso.texto, "La música se está preparando")
+        self.assertIsNone(aviso.sonido)
+
 
 class TestPropiedad(unittest.TestCase):
 

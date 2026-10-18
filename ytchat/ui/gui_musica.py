@@ -12,7 +12,9 @@ import wx
 
 from ytchat.core import config as cfg
 from ytchat.core import diagnostico
+from ytchat.core import paths
 from ytchat.music import anuncios
+from ytchat.music import listas
 from ytchat.music.adaptador_vlc import AdaptadorVlc, MotorNoDisponible
 from ytchat.music.biblioteca import Biblioteca, ErrorBiblioteca
 from ytchat.music.coordinador import Coordinador
@@ -60,6 +62,20 @@ def toca_pausar(estado) -> bool:
 def _resultado_sin_tema() -> Resultado:
     return Resultado(False, SIN_TEMA,
                      EstadoMusica((), None, False, False, VOLUMEN_MAX, False))
+
+
+def manejar_atajo_de_tecla(control, combos, event) -> bool:
+    """Corre el atajo de música de la tecla, si la hay. Dice si lo hizo.
+
+    Común a la ventana de música y a la de listas: la combinación sale de
+    `ControlMusica.combos_atajo` y la acción se despacha por `ejecutar_atajo`.
+    Quien la llame decide qué hacer con la tecla que no era un atajo.
+    """
+    accion = combos.get((event.GetModifiers(), event.GetKeyCode()))
+    if accion is None:
+        return False
+    control.ejecutar_atajo(accion)
+    return True
 
 
 class ControlMusica:
@@ -172,6 +188,36 @@ class ControlMusica:
         """Abre la ventana modal para elegir qué suena."""
         from ytchat.ui import gui_musica_ventana
         gui_musica_ventana.abrir_ventana(self)
+
+    def abrir_listas(self) -> None:
+        """Abre la ventana modal de listas de música propias."""
+        from ytchat.ui import gui_musica_listas
+        gui_musica_listas.abrir_ventana(self)
+
+    def carpeta_listas(self):
+        """La carpeta donde viven las listas de música propias."""
+        return paths.listas_musica()
+
+    def cola_actual(self):
+        """Los temas que están en la cola, o vacío si el motor no nació."""
+        if self._coordinador is None:
+            return ()
+        return self._coordinador.estado().cola
+
+    def reproducir_lista_guardada(self, nombre) -> None:
+        """Reproduce una lista guardada, avisando si se saltaron entradas.
+
+        La preferencia de orden aleatorio decide si se mezcla, igual que al
+        reproducir la carpeta.
+        """
+        try:
+            temas, saltadas = listas.cargar(self.carpeta_listas(), nombre)
+        except listas.ErrorListas as exc:
+            self._avisar(anuncios.aviso_error_listas(str(exc)))
+            return
+        if saltadas:
+            self._avisar(anuncios.aviso_saltadas(saltadas))
+        self.reproducir_temas(temas)
 
     def registrar_ventana(self, ventana) -> None:
         """La ventana quedó abierta: hay que refrescarle la cola."""

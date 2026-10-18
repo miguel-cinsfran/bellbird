@@ -13,6 +13,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
+from ytchat.music import listas
 from ytchat.music.modelo import AVANZO, FIN_LISTA, TEMA_FALLIDO, Resultado, Tema
 from ytchat.ui import gui_musica
 from ytchat.ui.gui_musica import ControlMusica, nuevo_volumen, toca_pausar
@@ -634,6 +635,110 @@ class TestVentanaYAtajos(unittest.TestCase):
         with _entorno():
             control = ControlMusica(_frame())
             control.ejecutar_atajo("no_existe")   # no debe lanzar
+
+
+class _Evento:
+    """Doble mínimo de un evento de teclado de wx."""
+
+    def __init__(self, keycode=0, mods=0):
+        self._keycode = keycode
+        self._mods = mods
+        self.skipped = False
+
+    def GetKeyCode(self):
+        return self._keycode
+
+    def GetModifiers(self):
+        return self._mods
+
+    def Skip(self):
+        self.skipped = True
+
+
+class TestListasGuardadas(unittest.TestCase):
+
+    def test_abrir_listas_llama_a_la_ventana(self):
+        from ytchat.ui import gui_musica_listas
+        with _entorno(), mock.patch.object(
+                gui_musica_listas, "abrir_ventana") as abrir:
+            control = ControlMusica(_frame())
+            control.abrir_listas()
+        abrir.assert_called_once_with(control)
+
+    def test_reproducir_lista_guardada_carga_y_reproduce(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            carpeta = Path(tmp) / "listas"
+            sonoro = Path(tmp) / "a.mp3"
+            sonoro.write_bytes(b"")
+            listas.guardar(carpeta, "Mía", (Tema(str(sonoro.resolve()), "A"),))
+            with _entorno() as env, \
+                    mock.patch.object(gui_musica.paths, "listas_musica",
+                                      return_value=carpeta):
+                control = ControlMusica(_frame())
+                control.reproducir_lista_guardada("Mía")
+        cargas = [l for l in env.creados[0].llamadas if l[0] == "cargar"]
+        self.assertEqual(cargas[0][1], str(sonoro.resolve()))
+        self.assertEqual([c.args[0] for c in env.anunciar.call_args_list],
+                         ["Preparando la música", "A"])
+
+    def test_reproducir_lista_guardada_avisa_las_saltadas(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            carpeta = Path(tmp) / "listas"
+            sonoro = Path(tmp) / "a.mp3"
+            sonoro.write_bytes(b"")
+            listas.crear(carpeta, "Mezcla")
+            (carpeta / "Mezcla.m3u8").write_text(
+                "#EXTM3U\n#EXTINF:-1,A\n"
+                f"{sonoro.resolve()}\nno-existe.mp3\n", encoding="utf-8")
+            with _entorno() as env, \
+                    mock.patch.object(gui_musica.paths, "listas_musica",
+                                      return_value=carpeta):
+                ControlMusica(_frame()).reproducir_lista_guardada("Mezcla")
+        self.assertEqual(env.anunciar.call_args_list[0].args[0],
+                         "Se saltó 1 entrada que no se pudo leer")
+
+    def test_reproducir_lista_inexistente_avisa_con_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            carpeta = Path(tmp) / "listas"
+            with _entorno() as env, \
+                    mock.patch.object(gui_musica.paths, "listas_musica",
+                                      return_value=carpeta):
+                ControlMusica(_frame()).reproducir_lista_guardada("No está")
+        self.assertEqual(env.snd.sonidos, ["error"])
+        self.assertIn("No existe la lista",
+                      env.anunciar.call_args_list[0].args[0])
+
+    def test_cola_actual_sin_motor_vacia(self):
+        with _entorno():
+            self.assertEqual(ControlMusica(_frame()).cola_actual(), ())
+
+    def test_cola_actual_devuelve_los_temas(self):
+        temas = [Tema("C:/m/a.mp3", "A"), Tema("C:/m/b.mp3", "B")]
+        with _entorno():
+            control = ControlMusica(_frame())
+            control.reproducir_temas(temas)
+        self.assertEqual([t.origen for t in control.cola_actual()],
+                         ["C:/m/a.mp3", "C:/m/b.mp3"])
+
+
+class TestAtajoDeTeclaComun(unittest.TestCase):
+
+    def test_manejar_atajo_despacha_la_accion(self):
+        control = mock.Mock()
+        combos = {(gui_musica.wx.MOD_CONTROL | gui_musica.wx.MOD_ALT,
+                   ord("T")): "musica_que_suena"}
+        evento = _Evento(ord("T"),
+                         gui_musica.wx.MOD_CONTROL | gui_musica.wx.MOD_ALT)
+        self.assertTrue(
+            gui_musica.manejar_atajo_de_tecla(control, combos, evento))
+        control.ejecutar_atajo.assert_called_once_with("musica_que_suena")
+
+    def test_manejar_atajo_ignora_lo_que_no_es_atajo(self):
+        control = mock.Mock()
+        evento = _Evento(gui_musica.wx.WXK_TAB)
+        self.assertFalse(
+            gui_musica.manejar_atajo_de_tecla(control, {}, evento))
+        control.ejecutar_atajo.assert_not_called()
 
 
 if __name__ == "__main__":

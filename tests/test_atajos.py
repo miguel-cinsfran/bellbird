@@ -272,7 +272,8 @@ class TestParsearAtajos(unittest.TestCase):
                 ("anunciar_autor", "f3", "f"),
                 ("describir_escena", "ctrl+f2", "f"),
                 ("obs_micro", "ctrl+shift+m", "ctrl+shift"),
-                ("avisos_sobrecarga", "ctrl+shift+a", "ctrl+shift")):
+                ("avisos_sobrecarga", "ctrl+shift+a", "ctrl+shift"),
+                ("musica_listas", "ctrl+alt+l", "ctrl+alt")):
             self.assertEqual(ATAJOS_DEFAULTS[accion], valor)
             self.assertTrue(atajo_valido_para_area(accion, valor),
                             f"{accion} no tiene un atajo válido para su área")
@@ -319,6 +320,7 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertIn('._accel("musica_vol_mas")', fuente)
         self.assertIn('._accel("musica_vol_menos")', fuente)
         self.assertIn('._accel("musica_que_suena")', fuente)
+        self.assertIn('._accel("musica_listas")', fuente)
         self.assertNotIn("\\tAlt+L", fuente)
         self.assertNotIn("\\tCtrl+F", fuente)
 

@@ -143,7 +143,8 @@ class TestVentanaMusica(unittest.TestCase):
         self.assertEqual([c.GetName() for c in interactivos], [
             "Buscar en la música", "Temas de la carpeta",
             "Reproducir este", "Reproducir todo", "Agregar a la cola",
-            "Cola de reproducción", "Cambiar carpeta", "Cerrar"])
+            "Agregar a una lista", "Cola de reproducción", "Cambiar carpeta",
+            "Cerrar"])
 
     def test_titulo_nombre_y_rotulos_con_mnemonicos_sin_repetir(self):
         self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock")))
@@ -274,7 +275,8 @@ class TestVentanaMusica(unittest.TestCase):
         control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
         self._abrir(control)
         control._biblio = _biblioteca_de("Nuevo")
-        cuadro = mock.Mock()
+        cuadro = mock.MagicMock()
+        cuadro.__enter__.return_value = cuadro
         cuadro.ShowModal.return_value = wx.ID_OK
         cuadro.GetPath.return_value = r"C:\Otra"
         with mock.patch.object(gui_musica_ventana.wx, "DirDialog",
@@ -286,7 +288,8 @@ class TestVentanaMusica(unittest.TestCase):
     def test_cambiar_carpeta_cancelado_no_hace_nada(self):
         control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
         self._abrir(control)
-        cuadro = mock.Mock()
+        cuadro = mock.MagicMock()
+        cuadro.__enter__.return_value = cuadro
         cuadro.ShowModal.return_value = wx.ID_CANCEL
         with mock.patch.object(gui_musica_ventana.wx, "DirDialog",
                                return_value=cuadro):

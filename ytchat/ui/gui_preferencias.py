@@ -1884,6 +1884,7 @@ _ETIQUETAS_ATAJO = {
     "musica_vol_menos":  "Bajar el volumen de la música",
     "musica_que_suena":  "Qué suena",
     "musica_ventana":    "Abrir la ventana de música",
+    "musica_listas":     "Abrir las listas de música",
 }
 _mostrar_atajo = atajos_captura.mostrar_atajo
 

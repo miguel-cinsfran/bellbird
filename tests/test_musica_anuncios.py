@@ -257,6 +257,48 @@ class TestOtrosAvisos(unittest.TestCase):
         self.assertIsNone(aviso.sonido)
 
 
+class TestAvisosDeListas(unittest.TestCase):
+
+    def test_saltadas_singular_y_plural(self):
+        self.assertEqual(anuncios.aviso_saltadas(1).texto,
+                         "Se saltó 1 entrada que no se pudo leer")
+        self.assertEqual(anuncios.aviso_saltadas(3).texto,
+                         "Se saltaron 3 entradas que no se pudieron leer")
+        self.assertIsNone(anuncios.aviso_saltadas(2).sonido)
+
+    def test_agregado_a_lista(self):
+        aviso = anuncios.aviso_agregado_a_lista("Favoritas")
+        self.assertEqual(aviso.texto, "Agregado a la lista Favoritas")
+        self.assertIsNone(aviso.sonido)
+
+    def test_creada_renombrada_borrada_guardada(self):
+        self.assertEqual(anuncios.aviso_lista_creada("Rock").texto,
+                         "Lista creada: Rock")
+        self.assertEqual(anuncios.aviso_lista_renombrada("Rock").texto,
+                         "Lista renombrada: Rock")
+        self.assertEqual(anuncios.aviso_lista_borrada("Rock").texto,
+                         "Lista borrada: Rock")
+        self.assertEqual(anuncios.aviso_lista_guardada("Rock").texto,
+                         "Lista guardada: Rock")
+
+    def test_tema_movido_y_quitado(self):
+        self.assertEqual(anuncios.aviso_tema_movido(2, 5).texto,
+                         "Tema movido a la posición 2 de 5")
+        self.assertEqual(anuncios.aviso_tema_quitado().texto,
+                         "Tema quitado de la lista")
+        self.assertIsNone(anuncios.aviso_tema_movido(1, 2).sonido)
+
+    def test_sin_cola(self):
+        aviso = anuncios.aviso_sin_cola()
+        self.assertEqual(aviso.texto, "No hay temas en la cola")
+        self.assertIsNone(aviso.sonido)
+
+    def test_error_listas_lleva_sonido_de_error(self):
+        aviso = anuncios.aviso_error_listas("Ya hay una lista con ese nombre")
+        self.assertEqual(aviso.texto, "Ya hay una lista con ese nombre")
+        self.assertEqual(aviso.sonido, "error")
+
+
 class TestPropiedad(unittest.TestCase):
 
     CODIGOS = [

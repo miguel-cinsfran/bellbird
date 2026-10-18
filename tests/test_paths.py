@@ -22,6 +22,7 @@ RUTAS_DE_DATOS = [
     ("mensajes_programados", "mensajes_programados.json"),
     ("fin_pendiente", "fin_pendiente.json"),
     ("sounds_ini", "sounds.ini"),
+    ("listas_musica", "listas"),
     ("log_principal", "ytchat.log"),
     ("log_detallado", "ytchat-debug.log"),
     ("log_fallos", "ytchat-fallos.log"),
@@ -167,6 +168,7 @@ class TestFinPendiente(unittest.TestCase):
     def test_no_entra_en_datos_a_migrar(self):
         # No es un dato de la migración vieja de la raíz a data/.
         self.assertNotIn(paths.fin_pendiente(), paths.datos_a_migrar())
+        self.assertNotIn(paths.listas_musica(), paths.datos_a_migrar())
 
 
 class TestDatosAMigrar(unittest.TestCase):

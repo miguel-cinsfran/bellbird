@@ -84,6 +84,14 @@ def fin_pendiente() -> Path:
     return carpeta_datos() / "fin_pendiente.json"
 
 
+def listas_musica() -> Path:
+    # Listas de reproducción propias del usuario (.m3u8), creadas desde la
+    # ventana de listas de música. No entra en datos_a_migrar(): esa lista
+    # solo mueve datos del formato viejo de la raíz a data/, y esta carpeta
+    # nace ya dentro de data/.
+    return carpeta_datos() / "listas"
+
+
 def sounds_ini() -> Path:
     # Va con los datos porque la app lo escribe al cambiar el tema.
     return carpeta_datos() / "sounds.ini"

@@ -49,6 +49,16 @@ TEXTO_PREPARANDO = "Preparando la música"
 TEXTO_PREPARANDO_OCUPADO = "La música se está preparando"
 TEXTO_AGREGADOS = "{cantidad} temas agregados a la cola"
 TEXTO_AGREGADO = "1 tema agregado a la cola"
+TEXTO_SALTADAS = "Se saltaron {cantidad} entradas que no se pudieron leer"
+TEXTO_SALTADA = "Se saltó 1 entrada que no se pudo leer"
+TEXTO_AGREGADO_A_LISTA = "Agregado a la lista {nombre}"
+TEXTO_LISTA_CREADA = "Lista creada: {nombre}"
+TEXTO_LISTA_RENOMBRADA = "Lista renombrada: {nombre}"
+TEXTO_LISTA_BORRADA = "Lista borrada: {nombre}"
+TEXTO_LISTA_GUARDADA = "Lista guardada: {nombre}"
+TEXTO_TEMA_MOVIDO = "Tema movido a la posición {posicion} de {total}"
+TEXTO_TEMA_QUITADO = "Tema quitado de la lista"
+TEXTO_COLA_SIN_TEMAS = "No hay temas en la cola"
 
 
 @dataclass(frozen=True)
@@ -184,3 +194,55 @@ def aviso_agregados(cantidad: int) -> Aviso:
     if cantidad == 1:
         return Aviso(TEXTO_AGREGADO)
     return Aviso(TEXTO_AGREGADOS.format(cantidad=cantidad))
+
+
+def aviso_saltadas(cantidad: int) -> Aviso:
+    """Cuántas entradas de una lista guardada no se pudieron leer."""
+    if cantidad == 1:
+        return Aviso(TEXTO_SALTADA)
+    return Aviso(TEXTO_SALTADAS.format(cantidad=cantidad))
+
+
+def aviso_agregado_a_lista(nombre: str) -> Aviso:
+    """Confirmación de que el tema elegido se sumó a una lista."""
+    return Aviso(TEXTO_AGREGADO_A_LISTA.format(nombre=nombre))
+
+
+def aviso_lista_creada(nombre: str) -> Aviso:
+    """Confirmación de una lista vacía nueva."""
+    return Aviso(TEXTO_LISTA_CREADA.format(nombre=nombre))
+
+
+def aviso_lista_renombrada(nombre: str) -> Aviso:
+    """Confirmación del nombre nuevo de una lista."""
+    return Aviso(TEXTO_LISTA_RENOMBRADA.format(nombre=nombre))
+
+
+def aviso_lista_borrada(nombre: str) -> Aviso:
+    """Confirmación de que una lista se eliminó."""
+    return Aviso(TEXTO_LISTA_BORRADA.format(nombre=nombre))
+
+
+def aviso_lista_guardada(nombre: str) -> Aviso:
+    """Confirmación de que la cola se guardó como lista."""
+    return Aviso(TEXTO_LISTA_GUARDADA.format(nombre=nombre))
+
+
+def aviso_tema_movido(posicion: int, total: int) -> Aviso:
+    """Confirmación de una reordenación, con la posición nueva y el total."""
+    return Aviso(TEXTO_TEMA_MOVIDO.format(posicion=posicion, total=total))
+
+
+def aviso_tema_quitado() -> Aviso:
+    """Confirmación de que un tema salió de la lista."""
+    return Aviso(TEXTO_TEMA_QUITADO)
+
+
+def aviso_sin_cola() -> Aviso:
+    """No hay cola que guardar como lista."""
+    return Aviso(TEXTO_COLA_SIN_TEMAS)
+
+
+def aviso_error_listas(mensaje: str) -> Aviso:
+    """Fallo al trabajar con las listas: el mensaje y el sonido de error."""
+    return Aviso(mensaje, SONIDO_ERROR)

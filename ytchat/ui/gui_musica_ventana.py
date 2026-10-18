@@ -10,14 +10,18 @@ from __future__ import annotations
 import wx
 
 from ytchat.core import diagnostico
+from ytchat.music import anuncios, listas
 from ytchat.music import vista
 from ytchat.ui.gui import _T, _pintar, anunciar, nombre_accesible
+from ytchat.voice import sound_player as _snd
 
 logger = diagnostico.obtener_logger(__name__)
 
 TITULO = "Música"
 TEXTO_CARGANDO = "Cargando la carpeta…"
 TEXTO_SIN_CARPETA = "No hay carpeta de música"
+TITULO_AGREGAR = "Agregar a una lista"
+TITULO_NUEVA_LISTA = "Nueva lista"
 
 
 class VentanaMusica(wx.Dialog):
@@ -72,7 +76,10 @@ class VentanaMusica(wx.Dialog):
         self.btn_reproducir = self._boton(panel, "&Reproducir este", "Reproducir este")
         self.btn_todo = self._boton(panel, "Reproducir to&do", "Reproducir todo")
         self.btn_agregar = self._boton(panel, "&Agregar a la cola", "Agregar a la cola")
-        for boton in (self.btn_reproducir, self.btn_todo, self.btn_agregar):
+        self.btn_agregar_lista = self._boton(
+            panel, "Agregar a una li&sta…", "Agregar a una lista")
+        for boton in (self.btn_reproducir, self.btn_todo, self.btn_agregar,
+                      self.btn_agregar_lista):
             botones.Add(boton, 0, wx.RIGHT, 6)
         vs.Add(botones, 0, wx.ALL, 6)
 
@@ -104,6 +111,7 @@ class VentanaMusica(wx.Dialog):
         self.btn_reproducir.Bind(wx.EVT_BUTTON, lambda e: self._reproducir_este())
         self.btn_todo.Bind(wx.EVT_BUTTON, lambda e: self._reproducir_todo())
         self.btn_agregar.Bind(wx.EVT_BUTTON, lambda e: self._agregar())
+        self.btn_agregar_lista.Bind(wx.EVT_BUTTON, lambda e: self._agregar_a_lista())
         self.btn_carpeta.Bind(wx.EVT_BUTTON, lambda e: self._cambiar_carpeta())
         self.btn_cerrar.Bind(wx.EVT_BUTTON, lambda e: self.EndModal(wx.ID_CANCEL))
         self.txt_buscar.SetFocus()
@@ -181,6 +189,7 @@ class VentanaMusica(wx.Dialog):
         self.btn_reproducir.Enable(activo)
         self.btn_todo.Enable(activo)
         self.btn_agregar.Enable(activo)
+        self.btn_agregar_lista.Enable(activo)
         self.btn_carpeta.Enable(carpeta)
 
     # ── Acciones ────────────────────────────────────────────────────────────
@@ -210,6 +219,62 @@ class VentanaMusica(wx.Dialog):
             return
         self._control.agregar_temas([tema])
         self.refrescar_cola()
+
+    def _agregar_a_lista(self):
+        """Suma el tema elegido a una lista propia, nueva si no hay ninguna."""
+        tema, _indice = self._tema_elegido()
+        if tema is None:
+            return
+        try:
+            carpeta = self._control.carpeta_listas()
+            nombres = listas.nombres(carpeta)
+        except Exception as exc:
+            self._avisar(anuncios.aviso_error_listas(str(exc)))
+            return
+        if nombres:
+            nombre = self._elegir_lista(nombres)
+            if nombre is None:
+                return
+        else:
+            nombre = self._pedir_nombre_nueva()
+            if nombre is None:
+                return
+            try:
+                nombre = listas.crear(carpeta, nombre)
+            except listas.ErrorListas as exc:
+                self._avisar(anuncios.aviso_error_listas(str(exc)))
+                return
+        try:
+            listas.agregar(carpeta, nombre, (tema,))
+        except listas.ErrorListas as exc:
+            self._avisar(anuncios.aviso_error_listas(str(exc)))
+            return
+        self._avisar(anuncios.aviso_agregado_a_lista(nombre))
+
+    def _elegir_lista(self, nombres):
+        with wx.SingleChoiceDialog(
+                self, "Lista:", TITULO_AGREGAR, list(nombres)) as dialogo:
+            if dialogo.ShowModal() != wx.ID_OK:
+                return None
+            return dialogo.GetStringSelection()
+
+    def _pedir_nombre_nueva(self):
+        with wx.TextEntryDialog(
+                self, "Nombre de la lista:", TITULO_NUEVA_LISTA) as dialogo:
+            if dialogo.ShowModal() != wx.ID_OK:
+                return None
+            return dialogo.GetValue()
+
+    def _avisar(self, aviso):
+        if aviso is None:
+            return
+        if aviso.sonido:
+            try:
+                _snd.reproducir(aviso.sonido)
+            except Exception:
+                logger.debug("No se pudo reproducir el sonido %s", aviso.sonido)
+        if aviso.texto:
+            anunciar(aviso.texto)
 
     def _reproducir_de_cola(self):
         indice = self.lb_cola.GetSelection()

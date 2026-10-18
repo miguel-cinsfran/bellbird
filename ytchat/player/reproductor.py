@@ -42,91 +42,13 @@ from ytchat.player.traza_transporte import (
 )
 from ytchat.downloads import ytdlp_bin
 from ytchat.player import esclavo_audio
+from ytchat.player import motor_vlc
 from ytchat.player import reproductor_ciclo
 from ytchat.player import relevo_ffmpeg
 from ytchat.ui.gui import anunciar, nombre_accesible, _T, _tc
 from ytchat.core import anuncio_ajuste
 
 logger = diagnostico.obtener_logger(__name__)
-
-_vlc = None          # binding python-vlc; se importa perezosamente
-_VLC_PREPARADO = False
-
-
-def _registrar_tiempo_precalentamiento(tramo: str, inicio: float, fin: float) -> None:
-    diagnostico.logger.info(
-        "VLC_PRECALENTAMIENTO tramo=%s ms=%.0f", tramo, (fin - inicio) * 1000)
-
-
-def _carpeta_vlc_empaquetada() -> str | None:
-    if getattr(sys, "frozen", False):
-        carpeta = paths.carpeta_vlc_empaquetada()
-        if os.path.exists(carpeta / "libvlc.dll"):
-            return str(carpeta)
-    return None
-
-
-def _preparar_vlc() -> None:
-    """Deja listo el entorno para cargar libVLC. En la app empaquetada apunta a
-    la copia de VLC junto al .exe y PRECARGA libvlccore para que el cargador de
-    PyInstaller no falle al resolver la dependencia."""
-    global _VLC_PREPARADO
-    inicio = time.monotonic()
-    if _VLC_PREPARADO:
-        return
-    _VLC_PREPARADO = True
-    base = _carpeta_vlc_empaquetada()
-    if not base:
-        _registrar_tiempo_precalentamiento("preparar_dll", inicio, time.monotonic())
-        return
-    lib = os.path.join(base, "libvlc.dll")
-    plugins = os.path.join(base, "plugins")
-    os.environ["PYTHON_VLC_LIB_PATH"] = lib
-    os.environ["PYTHON_VLC_MODULE_PATH"] = plugins
-    # VLC_PLUGIN_PATH es lo que lee libVLC para localizar sus plugins; sin esto
-    # la instancia sale None en la app empaquetada.
-    os.environ["VLC_PLUGIN_PATH"] = plugins
-    os.environ["PATH"] = base + os.pathsep + os.environ.get("PATH", "")
-    try:
-        os.add_dll_directory(base)
-    except Exception:
-        pass
-    # Precargar el core: así libvlc.dll encuentra su dependencia bajo PyInstaller.
-    try:
-        import ctypes
-        ctypes.CDLL(os.path.join(base, "libvlccore.dll"))
-    except Exception as exc:
-        logger.debug("preload libvlccore: %s", exc)
-    _registrar_tiempo_precalentamiento("preparar_dll", inicio, time.monotonic())
-
-
-def _cargar_vlc() -> bool:
-    """Importa python-vlc de forma perezosa. True si quedó disponible."""
-    global _vlc
-    if _vlc is not None:
-        return True
-    _preparar_vlc()
-    inicio = time.monotonic()
-    try:
-        import vlc
-        _vlc = vlc
-        _registrar_tiempo_precalentamiento("importar_modulo", inicio, time.monotonic())
-        return True
-    except Exception as exc:
-        _registrar_tiempo_precalentamiento("importar_modulo", inicio, time.monotonic())
-        logger.warning("No se pudo cargar libVLC: %s", exc)
-        return False
-
-
-def vlc_disponible() -> bool:
-    """¿Hay VLC? Sin importarlo (cargar la DLL es lento) para no frenar arranque."""
-    if getattr(sys, "frozen", False):
-        return _carpeta_vlc_empaquetada() is not None
-    try:
-        return importlib.util.find_spec("vlc") is not None
-    except Exception:
-        return False
-
 
 def ytdlp_disponible() -> bool:
     if getattr(sys, "frozen", False):
@@ -138,7 +60,7 @@ def ytdlp_disponible() -> bool:
 
 
 def disponible() -> bool:
-    return vlc_disponible() and ytdlp_disponible()
+    return motor_vlc.disponible() and ytdlp_disponible()
 
 
 def aviso_reproductor(hay_reproductor: bool, hay_medio: bool) -> str:
@@ -148,12 +70,6 @@ def aviso_reproductor(hay_reproductor: bool, hay_medio: bool) -> str:
     if not hay_medio:
         return "No hay ningún vídeo cargado"
     return ""
-
-
-# Argumentos de la instancia: solo los imprescindibles. Cualquier opción que
-# libVLC no reconozca hace que libvlc_new devuelva NULL (instancia None), así
-# que el ajuste de buffer va como opción POR MEDIO (más tolerante), no aquí.
-_VLC_ARGS = ("--quiet",)
 
 
 def opciones_medio(es_directo: bool, solo_audio: bool = False) -> tuple[str, ...]:
@@ -595,7 +511,6 @@ class ReproductorPanel(wx.Panel):
         self._calidad_sel = None
         self._alturas = []
         self._inst = None
-        self._inst_lock = threading.Lock()  # crear la instancia VLC sin carreras
         self._player = None
         self._gestor_eventos_vlc = None
         self._info = None
@@ -657,27 +572,15 @@ class ReproductorPanel(wx.Panel):
     # ── Instancia perezosa de VLC ─────────────────────────────────────────────
 
     def _asegurar_instancia(self) -> bool:
-        """Crea (o reutiliza) la instancia de libVLC. Es la parte LENTA: importar
-        libvlc.dll y escanear todos los plugins. Depende mucho de la máquina y
-        la caché de plugins: en tres arranques en frío midió 56, 92 y 128 s.
-        Va con lock para poder precalentarla en segundo plano sin chocar con el hilo de la
-        GUI si el usuario conecta justo en ese momento."""
+        """Reutiliza la instancia compartida de libVLC (ver motor_vlc). La
+        primera vez es la parte LENTA: importar libvlc.dll y escanear todos los
+        plugins. Depende mucho de la máquina y la caché de plugins: en tres
+        arranques en frío midió 56, 92 y 128 s."""
         if self._inst is not None:
             return True
-        if not self._listo or not _cargar_vlc():
+        if not self._listo:
             return False
-        with self._inst_lock:
-            if self._inst is None:
-                inicio = time.monotonic()
-                try:
-                    self._inst = _vlc.Instance(*_VLC_ARGS)
-                except Exception as exc:
-                    _registrar_tiempo_precalentamiento(
-                        "crear_instancia", inicio, time.monotonic())
-                    logger.warning("No se pudo crear la instancia de VLC: %s", exc)
-                    return False
-                _registrar_tiempo_precalentamiento(
-                    "crear_instancia", inicio, time.monotonic())
+        self._inst = motor_vlc.instancia()
         return self._inst is not None
 
     def _precalentar(self) -> None:
@@ -783,7 +686,8 @@ class ReproductorPanel(wx.Panel):
 
             return callback
 
-        if _vlc is None or not hasattr(_vlc, "EventType"):
+        binding = motor_vlc.modulo()
+        if binding is None or not hasattr(binding, "EventType"):
             self._callbacks_vlc = ()
             try:
                 self._gestor_eventos_vlc = self._player.event_manager() if self._player is not None else None
@@ -791,14 +695,14 @@ class ReproductorPanel(wx.Panel):
                 self._gestor_eventos_vlc = None
             return
         callbacks = []
-        callbacks.append((_vlc.EventType.MediaPlayerPlaying, al_transporte("playing", "reproduciendo")))
-        callbacks.append((_vlc.EventType.MediaPlayerPaused, al_transporte("paused", "pausado")))
+        callbacks.append((binding.EventType.MediaPlayerPlaying, al_transporte("playing", "reproduciendo")))
+        callbacks.append((binding.EventType.MediaPlayerPaused, al_transporte("paused", "pausado")))
         if detallado:
             callbacks.extend([
-                (_vlc.EventType.MediaPlayerStopped, al_estado_traza("detenido")),
-                (_vlc.EventType.MediaPlayerEndReached, al_estado_traza("fin")),
-                (_vlc.EventType.MediaPlayerEncounteredError, al_estado_traza("error")),
-                (_vlc.EventType.MediaPlayerBuffering, al_buffer),
+                (binding.EventType.MediaPlayerStopped, al_estado_traza("detenido")),
+                (binding.EventType.MediaPlayerEndReached, al_estado_traza("fin")),
+                (binding.EventType.MediaPlayerEncounteredError, al_estado_traza("error")),
+                (binding.EventType.MediaPlayerBuffering, al_buffer),
             ])
         self._callbacks_vlc = tuple(callbacks)
         try:
@@ -966,7 +870,7 @@ class ReproductorPanel(wx.Panel):
     def _build_aviso(self):
         box = wx.StaticBoxSizer(wx.HORIZONTAL, self, "Reproductor")
         caja = box.GetStaticBox()
-        if not vlc_disponible():
+        if not motor_vlc.disponible():
             txt = ("Reproductor no disponible: falta VLC. Instala VLC "
                    "(videolan.org) y la librería python-vlc.")
         else:

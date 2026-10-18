@@ -11,6 +11,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 from ytchat.ui import gui
+from ytchat.player import motor_vlc
 from ytchat.player import reproductor
 
 
@@ -62,7 +63,7 @@ class TestAvisosStaticBox(unittest.TestCase):
         frame = gui.wx.Frame(None)
         self.addCleanup(frame.Destroy)
 
-        with mock.patch.object(reproductor, "vlc_disponible", return_value=False):
+        with mock.patch.object(motor_vlc, "disponible", return_value=False):
             panel = reproductor.ReproductorPanel(frame, {})
         self.addCleanup(panel.Destroy)
 

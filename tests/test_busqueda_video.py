@@ -5,6 +5,7 @@ import time
 from unittest import mock
 from types import SimpleNamespace
 
+from ytchat.player import motor_vlc
 from ytchat.player.busqueda_video import (
     CADUCIDAD_DESTINO_MS, EstadoBusqueda, MARGEN_VENTANA_SEGMENTOS,
     PROGRESO_MINIMO_MS, TOLERANCIA_ATRAS_MS, TOLERANCIA_DESTINO_MS,
@@ -402,12 +403,9 @@ class TestCableadoBusqueda(unittest.TestCase):
         panel._usando_cache_local = False
         panel._url_flujo = ""
 
-        estado_vlc = SimpleNamespace(State=SimpleNamespace(
-            Playing="playing", Ended="ended"))
-        with mock.patch.object(reproductor, "_vlc", estado_vlc):
-            with mock.patch.object(reproductor.wx.Window, "FindFocus",
-                                   return_value=None):
-                panel._on_timer(None)
+        with mock.patch.object(reproductor.wx.Window, "FindFocus",
+                               return_value=None):
+            panel._on_timer(None)
 
         self.assertEqual(panel._estado_busqueda.destino, 30_000)
         panel._fijar_tiempo.assert_called_once_with(
@@ -433,15 +431,12 @@ class TestCableadoBusqueda(unittest.TestCase):
         bus.candidato = 29_000
         panel._estado_busqueda = bus
 
-        estado_vlc = SimpleNamespace(State=SimpleNamespace(
-            Playing="playing", Ended="ended"))
-        with mock.patch.object(reproductor, "_vlc", estado_vlc):
-            with mock.patch.object(reproductor.wx.Window, "FindFocus",
-                                   return_value=None):
-                with mock.patch.object(reproductor, "anunciar") as anunciar:
-                    panel._player.get_time.return_value = 29_300
-                    panel._player.get_state.return_value = SimpleNamespace(name="playing")
-                    panel._on_timer(None)
+        with mock.patch.object(reproductor.wx.Window, "FindFocus",
+                               return_value=None):
+            with mock.patch.object(reproductor, "anunciar") as anunciar:
+                panel._player.get_time.return_value = 29_300
+                panel._player.get_state.return_value = SimpleNamespace(name="playing")
+                panel._on_timer(None)
 
         self.assertIsNone(panel._estado_busqueda.destino)
         self.assertEqual(panel._estado_busqueda.confirmada, 29_300)
@@ -822,7 +817,7 @@ class TestTransporteContratos(unittest.TestCase):
         gestor_falso = mock.Mock()
         panel._player.event_manager = mock.Mock(return_value=gestor_falso)
         vlc_falso = types.SimpleNamespace(EventType=tipos)
-        with mock.patch.object(reproductor, "_vlc", vlc_falso), \
+        with mock.patch.object(motor_vlc, "modulo", return_value=vlc_falso), \
              mock.patch.object(reproductor, "_registro_detallado_activo", return_value=False):
             panel._enganchar_eventos_vlc()
         cb_pausado = None
@@ -858,7 +853,7 @@ class TestTransporteContratos(unittest.TestCase):
         gestor2 = mock.Mock()
         panel2._player.event_manager = mock.Mock(return_value=gestor2)
         vlc_falso2 = types.SimpleNamespace(EventType=tipos2)
-        with mock.patch.object(reproductor, "_vlc", vlc_falso2), \
+        with mock.patch.object(motor_vlc, "modulo", return_value=vlc_falso2), \
              mock.patch.object(reproductor, "_registro_detallado_activo", return_value=False):
             panel2._enganchar_eventos_vlc()
         cb_viejo = None

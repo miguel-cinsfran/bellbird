@@ -45,10 +45,10 @@ def _yt_dlp():
 
 
 def _vlc():
-    from ytchat.player import reproductor
-    if not reproductor._cargar_vlc():
+    from ytchat.player import motor_vlc
+    if not motor_vlc.cargar():
         raise RuntimeError("no se pudo cargar libVLC")
-    instancia = reproductor._vlc.Instance(*reproductor._VLC_ARGS)
+    instancia = motor_vlc.instancia()
     if instancia is None:
         raise RuntimeError("la instancia de VLC salió vacía")
 

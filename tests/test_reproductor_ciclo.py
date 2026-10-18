@@ -111,7 +111,6 @@ def _panel_base(player=None, inst=None):
     panel._calidad_sel = None
     panel._alturas = []
     panel._inst = inst
-    panel._inst_lock = threading.Lock()
     panel._player = player
     panel._gestor_eventos_vlc = object()
     panel._info = None

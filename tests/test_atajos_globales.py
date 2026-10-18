@@ -8,7 +8,6 @@ llamada directa, salvo en la clase real, que procesa los eventos pendientes.
 
 import ctypes
 import sys
-import time
 import unittest
 from unittest import mock
 
@@ -255,17 +254,23 @@ class TestRegistroReal(unittest.TestCase):
         frame = wx.Frame(None)
         self.addCleanup(destruir, frame)
         llamadas = []
-        globales = AtajosGlobales(
-            frame, {"musica_que_suena": lambda: llamadas.append("suena")})
+        app = wx.GetApp()
+
+        def accion():
+            llamadas.append("suena")
+            wx.CallAfter(app.ExitMainLoop)
+
+        globales = AtajosGlobales(frame, {"musica_que_suena": accion})
         self.addCleanup(globales.desactivar)
         self.assertEqual(globales.activar({"musica_que_suena": self.texto}),
                          [])
+        # Yield no entrega WM_HOTKEY: se procesa con el bucle principal.
+        guardia = wx.CallLater(2000, app.ExitMainLoop)
         ctypes.windll.user32.PostMessageW(
             frame.GetHandle(), 0x0312, self._ident_que_suena(), 0)
-        fin = time.monotonic() + 2.0
-        while not llamadas and time.monotonic() < fin:
-            wx.GetApp().Yield(True)
-            time.sleep(0.01)
+        app.MainLoop()
+        if guardia.IsRunning():
+            guardia.Stop()
         self.assertEqual(llamadas, ["suena"])
 
     def test_combinacion_tomada_vuelve_en_fallidos(self):

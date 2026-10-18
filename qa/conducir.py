@@ -1738,6 +1738,40 @@ def escenario_transmision(app: Aplicacion, args, res: Resultado):
         esperados_en_tab=esperados_tab)
 
 
+def escenario_musica(app: Aplicacion, args, res: Resultado):
+    """Las dos ventanas de música, sin hacer sonar nada.
+
+    Sin carpeta los botones de reproducir y agregar nacen deshabilitados a
+    propósito, y wx saca lo deshabilitado del orden de Tab: exigirlos ahí
+    mide la pantalla de espera, no el diálogo. Por eso van en `esperados`
+    y no en `esperados_en_tab`, igual que en `escenario_transmision`.
+    No se pulsa Reproducir ni ningún atajo de reproducción, y si la
+    configuración trae una carpeta de música real no se toca: las ventanas
+    solo se abren, se auditan y se cierran.
+    """
+    res.nota("Música: no se reproduce nada, las ventanas solo se auditan")
+    auditar_dialogo(
+        app, res, "Elegir música…", "Música",
+        vueltas_tab=14,
+        esperados=("Buscar en la música", "Temas de la carpeta",
+                   "Reproducir este", "Reproducir todo",
+                   "Agregar a la cola", "Agregar a una lista",
+                   "Agregar enlace", "Cola de reproducción",
+                   "Cambiar carpeta", "Cerrar"),
+        esperados_en_tab=("Buscar en la música", "Temas de la carpeta",
+                          "Cola de reproducción", "Cambiar carpeta",
+                          "Cerrar"))
+    auditar_dialogo(
+        app, res, "Listas de música…", "Listas de música",
+        vueltas_tab=12,
+        esperados=("Listas guardadas", "Reproducir la lista", "Nueva lista",
+                   "Renombrar", "Borrar", "Temas de la lista",
+                   "Guardar la cola como lista", "Cerrar"),
+        esperados_en_tab=("Listas guardadas", "Nueva lista",
+                          "Temas de la lista", "Guardar la cola como lista",
+                          "Cerrar"))
+
+
 def _estado_actualizacion_asentado(app: Aplicacion, titulo: str,
                                   segundos: float = 30.0) -> str:
     """Espera a que la ventana deje de decir que está buscando.
@@ -3911,6 +3945,9 @@ SUPERFICIES = {
     "gui_estado.py": "principal",
     "gui_historial.py": "historial",
     "gui_menu.py": "menus",
+    "gui_musica.py": "musica",
+    "gui_musica_listas.py": "musica",
+    "gui_musica_ventana.py": "musica",
     "gui_transmision.py": "transmision",
     "gui_transmitir.py": "transmitir_destino",
     "gui_preferencias.py": "preferencias",
@@ -3962,6 +3999,7 @@ ESCENARIOS = {
     "preferencias_persisten": escenario_preferencias_persisten,
     "historial": escenario_historial,
     "transmision": escenario_transmision,
+    "musica": escenario_musica,
     "ayuda": escenario_ayuda,
     "dialogos_ayuda": escenario_dialogos_ayuda,
     "chat": escenario_chat,
@@ -4050,7 +4088,11 @@ def main() -> int:
         pedidos = ["arranque_frio", "reproductor",
                     "menus", "principal", "descargas", "preferencias",
                     "preferencias_categorias", "preferencias_persisten",
-                    "programados", "historial", "transmision", "ayuda", "dialogos_ayuda",
+                    "programados", "historial", "transmision",
+                    # `musica` va con `historial` y `transmision`: audita
+                    # diálogos sin necesitar sesión, así que corre antes de
+                    # que `chat` simule una.
+                    "musica", "ayuda", "dialogos_ayuda",
                    # `redactar` va antes que `chat` y no es capricho: la
                    # mitad de lo que comprueba es como se comporta SIN
                    # conectar, y en cuanto `chat` simula una sesion ese estado

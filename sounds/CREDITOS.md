@@ -51,3 +51,7 @@ Los doce sonidos de aviso del tema default (`descarga_iniciada`,
 `directo_finalizado`, `aviso`, `actualizacion_disponible` y
 `actualizacion_lista`) tampoco salen de un paquete: son sintéticos y los
 genera `scripts/sound_gen.py`.
+
+Los tres sonidos de música (`musica_tema`, `musica_fin` y `musica_fallo`),
+también en los dos temas, son sintéticos y salen del mismo generador.
+

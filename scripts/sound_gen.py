@@ -379,6 +379,35 @@ def gen_actualizacion_lista():
     return _normalizar(_perc(acorde, 0.005, 0.34), 0.75)
 
 
+# ── Música: cambio, fin y fallo (encargo 209) ────────────────────────────────
+# Suenan con música de fondo, así que son cortos y de amplitud baja para no
+# tapar ni la música ni el chat. Comparten registro de seno cálido.
+
+def gen_musica_tema():
+    # Salto de novena A4→B4 seguido de una tercera que asienta: marca el
+    # cambio sin competir con el tema que empieza. Distinto del tic de
+    # mensaje_nuevo (G5) y del tope de orilla.
+    n1 = _perc(_seno(A4, 0.09, 0.26), 0.004, 0.08)
+    n2 = _perc(_seno(B4, 0.15, 0.26), 0.004, 0.13)
+    return _normalizar(_concat(n1, n2), 0.58)
+
+
+def gen_musica_fin():
+    # Descenso B4→G4 que resuelve abajo: gesto de cierre, distinto del
+    # E5→C5 de desconectado y del fin_directo.
+    n1 = _perc(_seno(B4, 0.11, 0.28), 0.005, 0.10)
+    n2 = _perc(_seno(G4, 0.20, 0.28), 0.005, 0.16)
+    return _normalizar(_concat(n1, n2), 0.6)
+
+
+def gen_musica_fallo():
+    # Tercera menor descendente D5→B4, mate y sin alarma: un tema se saltó,
+    # no es una acción pedida como el error.
+    n1 = _perc(_seno(D5, 0.09, 0.24), 0.004, 0.08)
+    n2 = _perc(_seno(B4, 0.17, 0.24), 0.004, 0.14)
+    return _normalizar(_concat(n1, n2), 0.56)
+
+
 # ── Tema "suave": senos cálidos con decaimiento tipo marimba/madera ───────────
 # Más redondo, bajo y mate que el tema por defecto: nada de aristas brillantes
 # ni regusto a videojuego. Mismo lenguaje de gestos (ascendente = abrir, etc.).
@@ -547,6 +576,24 @@ def s_actualizacion_lista():
                                   _seno(G5, 0.45, 0.22)), 0.006, 0.34), 0.75)
 
 
+# ── Música en el tema suave (encargo 209) ────────────────────────────────────
+# Los mismos gestos en madera cálida, cortos y bajos por sonar con música.
+
+def s_musica_tema():
+    return _seq(_madera(A4, 0.10, 0.30, 0.08),
+                _madera(B4, 0.16, 0.32, 0.14))
+
+
+def s_musica_fin():
+    return _seq(_madera(B4, 0.11, 0.30, 0.09),
+                _madera(G4, 0.20, 0.30, 0.16))
+
+
+def s_musica_fallo():
+    return _seq(_madera(D5, 0.10, 0.28, 0.08),
+                _madera(B4, 0.17, 0.28, 0.14))
+
+
 # ── Reemplazos del tema suave (encargo 174) ──────────────────────────────────
 # Generadores propios para los que eran copia de otro dentro del tema.
 # Cada uno conserva el gesto del evento con notas o duraciones distintas.
@@ -675,6 +722,10 @@ TEMAS = {
         "aviso.wav":                   gen_aviso,
         "actualizacion_disponible.wav": gen_actualizacion_disponible,
         "actualizacion_lista.wav":      gen_actualizacion_lista,
+        # Música (encargo 209).
+        "musica_tema.wav":             gen_musica_tema,
+        "musica_fin.wav":              gen_musica_fin,
+        "musica_fallo.wav":            gen_musica_fallo,
     },
     "suave": {
         "app_inicio.wav":    s_app_inicio,
@@ -726,6 +777,10 @@ TEMAS = {
         "aviso.wav":                   s_aviso,
         "actualizacion_disponible.wav": s_actualizacion_disponible,
         "actualizacion_lista.wav":      s_actualizacion_lista,
+        # Música (encargo 209).
+        "musica_tema.wav":             s_musica_tema,
+        "musica_fin.wav":              s_musica_fin,
+        "musica_fallo.wav":            s_musica_fallo,
     },
 }
 

@@ -353,6 +353,8 @@ _EVENTOS_SONIDO = [
     "directo_finalizado",
     # Ventanas que se abren solas al arrancar o al terminar bien:
     "actualizacion_disponible", "actualizacion_lista",
+    # Música: cambio de tema solo, fin de la lista y tema que se saltó solo:
+    "musica_tema", "musica_fin", "musica_fallo",
 ]
 
 # Carpeta base de temas y tema por defecto.

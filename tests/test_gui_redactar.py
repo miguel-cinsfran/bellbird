@@ -31,7 +31,11 @@ class TestPanelRedactar(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        # Un objeto de wx en un atributo de clase se libera al cerrar
+        # Python, con wx ya bajado, y el proceso se cae.
         destruir(cls.frame)
+        del cls.frame
+        del cls.app
 
     def panel(self, texto="mensaje", motivo=""):
         enviado = []
@@ -109,6 +113,8 @@ class TestDialogoRedactar(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         destruir(cls.frame)
+        del cls.frame
+        del cls.app
 
     def dialogo(self, texto="mensaje", motivo=""):
         llamadas = []

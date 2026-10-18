@@ -549,7 +549,12 @@ class TestAdaptadorVlcReal(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        # Un objeto retenido en un atributo de clase se libera al cerrar
+        # Python y puede caer el proceso: se suelta a mano cada nombre.
         cls.temporal.cleanup()
+        del cls.wav1
+        del cls.wav2
+        del cls.temporal
 
     def _adaptador(self):
         adaptador = AdaptadorVlc(salida_audio="adummy")

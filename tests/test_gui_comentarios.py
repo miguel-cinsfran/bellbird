@@ -34,7 +34,11 @@ class TestComentariosPanel(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        # Un objeto de wx en un atributo de clase se libera al cerrar
+        # Python, con wx ya bajado, y el proceso se cae.
         destruir(cls.frame)
+        del cls.frame
+        del cls.app
 
     def setUp(self):
         DialogoFalso.instancias = []
@@ -170,6 +174,8 @@ class TestOrillaComentarios(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         destruir(cls.frame)
+        del cls.frame
+        del cls.app
 
     def setUp(self):
         self.panel = gui_comentarios.ComentariosPanel(

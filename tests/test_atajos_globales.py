@@ -202,7 +202,13 @@ class TestRegistroReal(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        # Un objeto de wx en un atributo de clase se libera al cerrar
+        # Python, con wx ya bajado, y el proceso se cae.
         cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+
+    @classmethod
+    def tearDownClass(cls):
+        del cls.app
 
     def setUp(self):
         self.texto = self._combinacion_libre()

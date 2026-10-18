@@ -126,6 +126,7 @@ _OPCIONES_SIMPLES = (
     ("chk_musica_decir_titulo", "musica", "decir_titulo", "musica_decir_titulo", bool, True),
     ("chk_musica_incluir_artista", "musica", "incluir_artista", "musica_incluir_artista", bool, False),
     ("sp_musica_volumen", "musica", "volumen", "musica_volumen", int, 50),
+    ("chk_musica_atajos_globales", "musica", "atajos_globales", "musica_atajos_globales", bool, False),
 )
 
 
@@ -236,7 +237,7 @@ class PreferenciasDialog(wx.Dialog):
         self.lista_categorias.SetFocus()
 
     def _cargar_opciones_simples(self):
-        """Vuelca la config en los 27 controles de la tabla. El valor por
+        """Vuelca la config en los 33 controles de la tabla. El valor por
         defecto de cada fila es el de fábrica, y se usa tanto si la config no
         trae la clave como si el valor no se puede convertir al tipo."""
         for atributo, _seccion, _clave, en_memoria, tipo, por_defecto in _OPCIONES_SIMPLES:
@@ -729,6 +730,13 @@ class PreferenciasDialog(wx.Dialog):
             name="Buscar las salidas de audio")
         vs.Add(self.btn_buscar_salidas, 0, wx.ALL, 10)
         self.btn_buscar_salidas.Bind(wx.EVT_BUTTON, self._buscar_salidas)
+
+        self.chk_musica_atajos_globales = wx.CheckBox(
+            p, label="Usar los atajos de música en cualquier &programa",
+            name="MusicaAtajosGlobales")
+        self.chk_musica_atajos_globales.SetForegroundColour(_T.text)
+        vs.Add(self.chk_musica_atajos_globales, 0,
+               wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         p.SetSizer(vs)
         return p

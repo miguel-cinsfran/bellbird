@@ -802,6 +802,7 @@ def cargar_configuracion() -> dict:
         "musica_salida": _gs(p, "musica", "salida"),
         "musica_salida_nombre": decodificar_texto_ini(
             _gs(p, "musica", "salida_nombre")),
+        "musica_atajos_globales": _pb(p, "musica", "atajos_globales"),
         "estado_toggles": estado_toggles,
         "atajos_raw": atajos_raw,
         "ruta_config": ruta,

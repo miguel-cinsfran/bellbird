@@ -938,6 +938,121 @@ class TestListasGuardadas(unittest.TestCase):
                          ["C:/m/a.mp3", "C:/m/b.mp3"])
 
 
+class _MarcoGlobales:
+    """Marco falso con ventana: registra atajos globales sin wx de verdad."""
+
+    def __init__(self, **config):
+        self._config = _frame(**config)._config
+        self.registrados = {}
+        self.soltados = []
+        self.fallan_vk = set()
+
+    def RegisterHotKey(self, ident, mods, vk):
+        if vk in self.fallan_vk:
+            return False
+        self.registrados[ident] = (mods, vk)
+        return True
+
+    def UnregisterHotKey(self, ident):
+        self.soltados.append(ident)
+        self.registrados.pop(ident, None)
+        return True
+
+    def Bind(self, evento, manejador, id=-1):
+        pass
+
+    def Unbind(self, evento, id=-1):
+        pass
+
+
+class TestAtajosGlobalesControl(unittest.TestCase):
+
+    def test_apagado_de_fabrica_no_activa(self):
+        with _entorno():
+            control = ControlMusica(_MarcoGlobales())
+        self.assertFalse(control._globales.activos)
+
+    def test_activa_al_crearse_con_la_preferencia_y_calla(self):
+        with _entorno() as env:
+            control = ControlMusica(
+                _MarcoGlobales(musica_atajos_globales=True))
+        self.assertTrue(control._globales.activos)
+        self.assertEqual(len(control._globales._registrados), 8)
+        env.anunciar.assert_not_called()
+        self.assertEqual(env.snd.sonidos, [])
+
+    def test_fallo_al_arrancar_se_anuncia_con_error(self):
+        marco = _MarcoGlobales(musica_atajos_globales=True)
+        marco.fallan_vk = {0x27}
+        with _entorno() as env:
+            ControlMusica(marco)
+        env.anunciar.assert_called_once_with(
+            "No se pudieron usar en cualquier programa: "
+            "Ctrl+Alt+Flecha derecha. Las usa otro programa")
+        self.assertEqual(env.snd.sonidos, ["error"])
+
+    def test_aplicar_en_caliente_activa_y_desactiva_con_anuncio(self):
+        marco = _MarcoGlobales()
+        with _entorno() as env:
+            control = ControlMusica(marco)
+            marco._config["musica_atajos_globales"] = True
+            control.aplicar_preferencias()
+            self.assertTrue(control._globales.activos)
+            marco._config["musica_atajos_globales"] = False
+            control.aplicar_preferencias()
+            self.assertFalse(control._globales.activos)
+        self.assertEqual(
+            [c.args[0] for c in env.anunciar.call_args_list],
+            ["Atajos de música activos en cualquier programa",
+             "Atajos de música solo en YTChat"])
+        self.assertEqual(env.snd.sonidos, [])
+
+    def test_aplicar_dos_veces_no_repite_el_anuncio(self):
+        marco = _MarcoGlobales()
+        with _entorno() as env:
+            control = ControlMusica(marco)
+            marco._config["musica_atajos_globales"] = True
+            control.aplicar_preferencias()
+            control.aplicar_preferencias()
+        self.assertTrue(control._globales.activos)
+        env.anunciar.assert_called_once_with(
+            "Atajos de música activos en cualquier programa")
+
+    def test_reactiva_si_cambiaron_los_atajos(self):
+        marco = _MarcoGlobales(musica_atajos_globales=True)
+        with _entorno() as env:
+            control = ControlMusica(marco)
+            env.anunciar.reset_mock()
+            marco._config["atajos_raw"] = {"musica_que_suena": "ctrl+alt+y"}
+            control.aplicar_preferencias()
+        self.assertIn((gui_musica.wx.MOD_CONTROL | gui_musica.wx.MOD_ALT,
+                       ord("Y")),
+                      marco.registrados.values())
+        env.anunciar.assert_called_once_with(
+            "Atajos de música activos en cualquier programa")
+
+    def test_fallo_al_aplicar_se_anuncia_con_error(self):
+        marco = _MarcoGlobales(musica_atajos_globales=True)
+        marco.fallan_vk = {ord("T")}
+        with _entorno() as env:
+            control = ControlMusica(marco)
+        env.anunciar.assert_called_once_with(
+            "No se pudieron usar en cualquier programa: "
+            "Ctrl+Alt+T. Las usa otro programa")
+        self.assertEqual(env.snd.sonidos, ["error"])
+        self.assertTrue(control._globales.activos)
+
+    def test_desactiva_al_cerrar(self):
+        marco = _MarcoGlobales(musica_atajos_globales=True)
+        with _entorno():
+            control = ControlMusica(marco)
+            self.assertTrue(control._globales.activos)
+            control.cerrar()
+        self.assertFalse(control._globales.activos)
+        self.assertEqual(marco.registrados, {})
+        self.assertEqual(len(marco.soltados), 8)
+
+
 class TestAtajoDeTeclaComun(unittest.TestCase):
 
     def test_manejar_atajo_despacha_la_accion(self):

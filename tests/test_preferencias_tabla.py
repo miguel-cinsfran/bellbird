@@ -1,6 +1,6 @@
 """Pruebas de la tabla de opciones simples de Preferencias.
 
-La lista de 32 va literal en este módulo, no se lee de la tabla nueva:
+La lista de 33 va literal en este módulo, no se lee de la tabla nueva:
 así protege la tabla en vez de repetirla.
 """
 
@@ -50,6 +50,7 @@ OPCIONES_ESPERADAS = [
     ("chk_musica_decir_titulo", "musica", "decir_titulo", "musica_decir_titulo", bool),
     ("chk_musica_incluir_artista", "musica", "incluir_artista", "musica_incluir_artista", bool),
     ("sp_musica_volumen", "musica", "volumen", "musica_volumen", int),
+    ("chk_musica_atajos_globales", "musica", "atajos_globales", "musica_atajos_globales", bool),
 ]
 
 VALORES_SPIN = {
@@ -88,11 +89,11 @@ class TestTablaOpcionesSimples(unittest.TestCase):
             config[en_memoria] = (not por_defecto) if tipo is bool else por_defecto + 1
         return config
 
-    def test_tabla_tiene_32_filas_sin_repetir_y_cada_atributo_existe(self):
+    def test_tabla_tiene_33_filas_sin_repetir_y_cada_atributo_existe(self):
         tabla = gui_preferencias._OPCIONES_SIMPLES
-        self.assertEqual(len(tabla), 32)
+        self.assertEqual(len(tabla), 33)
         atributos = [fila[0] for fila in tabla]
-        self.assertEqual(len(set(atributos)), 32)
+        self.assertEqual(len(set(atributos)), 33)
         dialogo = self._dialogo()
         for atributo in atributos:
             with self.subTest(atributo=atributo):

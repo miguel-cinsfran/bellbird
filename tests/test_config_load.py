@@ -780,7 +780,7 @@ class TestCargarConfiguracion(unittest.TestCase):
 
 
 class TestMusicaCargador(unittest.TestCase):
-    """El cargador expone la sección [musica] con sus diez claves."""
+    """El cargador expone la sección [musica] con sus once claves."""
 
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
@@ -804,6 +804,7 @@ class TestMusicaCargador(unittest.TestCase):
         self.assertEqual(cfg["musica_volumen"], 50)
         self.assertEqual(cfg["musica_salida"], "")
         self.assertEqual(cfg["musica_salida_nombre"], "")
+        self.assertFalse(cfg["musica_atajos_globales"])
 
     def test_lee_valores_puestos_a_mano(self):
         cfg = self._cargar_en(
@@ -817,7 +818,8 @@ class TestMusicaCargador(unittest.TestCase):
             "incluir_artista = true\n"
             "volumen = 80\n"
             "salida = altavoces\n"
-            "salida_nombre = Altavoces del sistema\n")
+            "salida_nombre = Altavoces del sistema\n"
+            "atajos_globales = true\n")
         self.assertEqual(cfg["musica_carpeta"], "C:/Mi Música/Grandes Éxitos")
         self.assertTrue(cfg["musica_aleatorio"])
         self.assertTrue(cfg["musica_repetir"])
@@ -828,6 +830,7 @@ class TestMusicaCargador(unittest.TestCase):
         self.assertEqual(cfg["musica_volumen"], 80)
         self.assertEqual(cfg["musica_salida"], "altavoces")
         self.assertEqual(cfg["musica_salida_nombre"], "Altavoces del sistema")
+        self.assertTrue(cfg["musica_atajos_globales"])
 
     def test_cada_clave_booleana_lee_su_propia_clave(self):
         # Con las seis invertidas a la vez, una lectura cruzada pasa
@@ -839,6 +842,7 @@ class TestMusicaCargador(unittest.TestCase):
             ("sonido_tema", "musica_sonido_tema", True),
             ("decir_titulo", "musica_decir_titulo", True),
             ("incluir_artista", "musica_incluir_artista", False),
+            ("atajos_globales", "musica_atajos_globales", False),
         ]
         for clave_ini, clave_memoria, valor_fabrica in casos:
             with self.subTest(clave=clave_ini):

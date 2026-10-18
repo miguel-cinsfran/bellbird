@@ -21,6 +21,7 @@ from ytchat.music.adaptador_vlc import AdaptadorVlc, MotorNoDisponible
 from ytchat.music.biblioteca import Biblioteca, ErrorBiblioteca
 from ytchat.music.coordinador import Coordinador
 from ytchat.music.modelo import AVANZO, FIN_LISTA, EstadoMusica, Resultado, SIN_TEMA
+from ytchat.ui import atajos_globales
 from ytchat.ui.gui import anunciar
 from ytchat.voice import sound_player as _snd
 
@@ -93,6 +94,24 @@ class ControlMusica:
         self._biblioteca = None
         self._ventana = None
         self._retomo_intentado = False
+        self._globales = atajos_globales.AtajosGlobales(frame, {
+            "musica_play": self.reproducir_o_pausar,
+            "musica_siguiente": self.siguiente,
+            "musica_anterior": self.anterior,
+            "musica_vol_mas": self.subir_volumen,
+            "musica_vol_menos": self.bajar_volumen,
+            "musica_que_suena": self.que_suena,
+            "musica_ventana": self.abrir_ventana,
+            "musica_listas": self.abrir_listas,
+        })
+        self._globales_atajos = None
+        if bool(self._config.get("musica_atajos_globales", False)):
+            # Después de que la ventana exista: el registro es del sistema
+            # y pide el bucle de eventos.
+            try:
+                wx.CallAfter(self._activar_globales_arranque)
+            except Exception:
+                logger.debug("No se pudieron activar los atajos globales")
 
     # ── Acciones del menú y los atajos ───────────────────────────────────────
 
@@ -319,9 +338,12 @@ class ControlMusica:
     def aplicar_preferencias(self) -> None:
         """Aplica en caliente las preferencias de música, si el motor nació.
 
-        Volumen, salida (para el próximo tema), aleatorio y repetir. Sin motor
-        no hace nada. Nunca lanza: lo llama el frame al guardar Preferencias.
+        Volumen, salida (para el próximo tema), aleatorio y repetir. Los
+        atajos globales no necesitan motor y van antes, así que valen aunque
+        todavía no haya sonado nada. Nunca lanza: lo llama el frame al
+        guardar Preferencias.
         """
+        self._aplicar_globales_desde_preferencias()
         if self._coordinador is None:
             return
         try:
@@ -339,9 +361,57 @@ class ControlMusica:
         except Exception:
             logger.exception("No se pudieron aplicar las preferencias de música")
 
+    # ── Atajos globales (valen en cualquier programa) ────────────────────────
+
+    def _atajos_globales_textos(self) -> dict:
+        """Los atajos efectivos de música, acción → texto guardado."""
+        atajos = cfg.parsear_atajos(self._config.get("atajos_raw", {}))
+        return {accion: atajos[accion].texto for accion in atajos_globales.ACCIONES
+                if accion in atajos}
+
+    def _activar_globales_arranque(self) -> None:
+        """Activa los globales al arrancar: calla salvo que algo falle."""
+        try:
+            textos = self._atajos_globales_textos()
+            fallidos = self._globales.activar(textos)
+        except Exception:
+            logger.exception("No se pudieron activar los atajos globales")
+            return
+        self._globales_atajos = textos
+        if fallidos:
+            self._avisar(anuncios.aviso_atajos_globales_fallo(fallidos))
+
+    def _aplicar_globales_desde_preferencias(self) -> None:
+        """Activa o desactiva los globales según la preferencia.
+
+        Reactiva si cambiaron los atajos. Al activar desde Preferencias se
+        anuncia (y el fallo, con error); al desactivar, también. Nunca lanza.
+        """
+        try:
+            if bool(self._config.get("musica_atajos_globales", False)):
+                textos = self._atajos_globales_textos()
+                if self._globales.activos and textos == self._globales_atajos:
+                    return
+                fallidos = self._globales.activar(textos)
+                self._globales_atajos = dict(textos)
+                if fallidos:
+                    self._avisar(anuncios.aviso_atajos_globales_fallo(fallidos))
+                else:
+                    self._avisar(anuncios.aviso_atajos_globales_activos())
+            elif self._globales.activos:
+                self._globales.desactivar()
+                self._globales_atajos = None
+                self._avisar(anuncios.aviso_atajos_globales_solo())
+        except Exception:
+            logger.exception("No se pudieron aplicar los atajos globales")
+
     def cerrar(self) -> None:
-        """Cierra el motor si llegó a nacer. Nunca lanza."""
+        """Cierra el motor si llegó a nacer y suelta los atajos. Nunca lanza."""
         self._cerrado = True
+        try:
+            self._globales.desactivar()
+        except Exception:
+            logger.debug("No se pudieron soltar los atajos globales")
         if self._adaptador is not None:
             try:
                 self._adaptador.cerrar()

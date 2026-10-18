@@ -64,6 +64,11 @@ TEXTO_TEMA_QUITADO = "Tema quitado de la lista"
 TEXTO_COLA_SIN_TEMAS = "No hay temas en la cola"
 TEXTO_LEYENDO_ENLACE = "Leyendo el enlace"
 TEXTO_ENLACE_NO_YOUTUBE = "Esa dirección no es de YouTube"
+TEXTO_ATAJOS_GLOBALES_FALLO = (
+    "No se pudieron usar en cualquier programa: {lista}. "
+    "Las usa otro programa")
+TEXTO_ATAJOS_GLOBALES_ACTIVOS = "Atajos de música activos en cualquier programa"
+TEXTO_ATAJOS_GLOBALES_SOLO = "Atajos de música solo en YTChat"
 
 
 @dataclass(frozen=True)
@@ -286,3 +291,19 @@ def aviso_enlace_no_youtube() -> Aviso:
 def aviso_error_enlace(mensaje: str) -> Aviso:
     """No se pudo leer el enlace: el mensaje y el sonido de error."""
     return Aviso(mensaje, SONIDO_ERROR)
+
+
+def aviso_atajos_globales_fallo(fallidos) -> Aviso:
+    """Combinaciones que otro programa ya tiene, con el sonido de error."""
+    return Aviso(TEXTO_ATAJOS_GLOBALES_FALLO.format(lista=", ".join(fallidos)),
+                 SONIDO_ERROR)
+
+
+def aviso_atajos_globales_activos() -> Aviso:
+    """Confirmación de que los atajos valen en cualquier programa."""
+    return Aviso(TEXTO_ATAJOS_GLOBALES_ACTIVOS)
+
+
+def aviso_atajos_globales_solo() -> Aviso:
+    """Confirmación de que los atajos volvieron a valer solo en YTChat."""
+    return Aviso(TEXTO_ATAJOS_GLOBALES_SOLO)

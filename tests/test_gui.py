@@ -1416,7 +1416,8 @@ class TestCategoriasDePreferencias(unittest.TestCase):
         esperados = ["Carpeta de música", "MusicaAleatorio", "MusicaRepetir",
                      "MusicaRetomar", "MusicaSonidoTema", "MusicaDecirTitulo",
                      "MusicaIncluirArtista", "Volumen de la música",
-                     "Salida de audio de la música", "Buscar las salidas de audio"]
+                     "Salida de audio de la música", "Buscar las salidas de audio",
+                     "MusicaAtajosGlobales"]
         orden = [h.GetName() for h in pagina.GetChildren()
                  if h.GetName() in esperados]
         self.assertEqual(orden, esperados)
@@ -1439,6 +1440,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             "&Volumen de la música",
             "Salida de a&udio de la música",
             "&Buscar las salidas de audio",
+            "Usar los atajos de música en cualquier &programa",
         ])
 
     def test_los_mnemonicos_de_musica_no_se_repiten_ni_chocan_con_guardar(self):
@@ -1452,7 +1454,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             etiqueta = control.GetLabel()
             if "&" in etiqueta:
                 letras.append(etiqueta.split("&", 1)[1][:1].lower())
-        self.assertEqual(len(letras), 10)
+        self.assertEqual(len(letras), 11)
         self.assertEqual(len(letras), len(set(letras)), letras)
         self.assertNotIn("g", letras)
         self.assertNotIn("c", letras)

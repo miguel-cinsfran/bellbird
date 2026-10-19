@@ -94,11 +94,27 @@ class TestNormalizarAtajo(unittest.TestCase):
         self.assertEqual(_normalizar_atajo("Ctrl+Alt+T"), "ctrl+alt+t")
         self.assertEqual(_normalizar_atajo("ALT+CTRL+2"), "ctrl+alt+2")
 
-    def test_ctrl_alt_rechaza_teclas_f_enter_end_simbolos_y_shift(self):
+    def test_ctrl_alt_rechaza_teclas_f_enter_end_simbolos_y_shift_con_letra(self):
         for valor in ("ctrl+alt+f5", "ctrl+alt+enter", "ctrl+alt+end",
-                      "ctrl+alt+.", "ctrl+alt+shift+left"):
+                      "ctrl+alt+.", "ctrl+alt+shift+a"):
             with self.subTest(valor=valor):
                 self.assertIsNone(_normalizar_atajo(valor))
+
+    def test_ctrl_alt_shift_solo_acepta_las_flechas_horizontales(self):
+        self.assertEqual(_normalizar_atajo("ctrl+alt+shift+left"),
+                         "ctrl+alt+shift+left")
+        self.assertEqual(_normalizar_atajo("ctrl+alt+shift+right"),
+                         "ctrl+alt+shift+right")
+        self.assertIsNone(_normalizar_atajo("ctrl+alt+shift+up"))
+        self.assertIsNone(_normalizar_atajo("ctrl+alt+shift+down"))
+
+    def test_ctrl_alt_shift_normaliza_los_otros_ordenes(self):
+        for valor in ("shift+ctrl+alt+left", "ctrl+shift+alt+left",
+                      "alt+ctrl+shift+left", "alt+shift+ctrl+left",
+                      "shift+alt+ctrl+left"):
+            with self.subTest(valor=valor):
+                self.assertEqual(_normalizar_atajo(valor),
+                                 "ctrl+alt+shift+left")
 
 
 class TestAreasAtajo(unittest.TestCase):
@@ -301,7 +317,13 @@ class TestParsearAtajos(unittest.TestCase):
                 ("describir_escena", "ctrl+f2", "f"),
                 ("obs_micro", "alt+shift+m", "alt+shift"),
                 ("avisos_sobrecarga", "alt+shift+a", "alt+shift"),
-                ("musica_ventana", "ctrl+shift+m", "ctrl+shift")):
+                ("musica_ventana", "ctrl+shift+m", "ctrl+shift"),
+                ("musica_silenciar", "ctrl+alt+m", "ctrl+alt"),
+                ("musica_aleatorio", "ctrl+alt+a", "ctrl+alt"),
+                ("musica_repetir", "ctrl+alt+r", "ctrl+alt"),
+                ("musica_detener", "ctrl+alt+d", "ctrl+alt"),
+                ("musica_adelantar", "ctrl+alt+shift+right", "ctrl+alt"),
+                ("musica_retroceder", "ctrl+alt+shift+left", "ctrl+alt")):
             self.assertEqual(ATAJOS_DEFAULTS[accion], valor)
             self.assertTrue(atajo_valido_para_area(accion, valor),
                             f"{accion} no tiene un atajo válido para su área")
@@ -318,9 +340,9 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertEqual(_AREA_POR_GRUPO[5], "ctrl+alt")
         self.assertIsNone(_AREA_POR_GRUPO[6])
 
-    def test_las_seis_acciones_de_musica_solo_aceptan_ctrl_alt(self):
-        acciones = ("musica_play", "musica_siguiente", "musica_anterior",
-                    "musica_vol_mas", "musica_vol_menos", "musica_que_suena")
+    def test_las_acciones_de_musica_solo_aceptan_ctrl_alt(self):
+        acciones = dict(ATAJOS_GRUPOS)["Música (Ctrl+Alt)"]
+        self.assertEqual(len(acciones), 12)
         for accion in acciones:
             with self.subTest(accion=accion):
                 self.assertEqual(ATAJOS_AREA[accion], "ctrl+alt")
@@ -328,9 +350,12 @@ class TestParsearAtajos(unittest.TestCase):
                     accion, ATAJOS_DEFAULTS[accion]))
                 for otra in ("ctrl+p", "alt+p", "f5", "ctrl+shift+p"):
                     self.assertFalse(atajo_valido_para_area(accion, otra))
+        self.assertEqual(detectar_conflictos_atajos({}), [])
+        self.assertTrue(all(accion in parsear_atajos({}) for accion in acciones))
 
     def test_menus_usan_el_sistema_para_los_nuevos_atajos(self):
         fuente = inspect.getsource(gui_menu.construir_menu)
+        fuente += inspect.getsource(gui_menu._construir_menu_musica)
         self.assertIn('._accel("ir_lista")', fuente)
         self.assertIn('._accel("pantalla_completa")', fuente)
         self.assertIn('._accel("abrir_historial")', fuente)
@@ -349,6 +374,12 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertIn('._accel("musica_vol_menos")', fuente)
         self.assertIn('._accel("musica_que_suena")', fuente)
         self.assertIn('._accel("musica_ventana")', fuente)
+        self.assertIn('._accel("musica_silenciar")', fuente)
+        self.assertIn('._accel("musica_aleatorio")', fuente)
+        self.assertIn('._accel("musica_repetir")', fuente)
+        self.assertIn('._accel("musica_detener")', fuente)
+        self.assertIn('._accel("musica_adelantar")', fuente)
+        self.assertIn('._accel("musica_retroceder")', fuente)
         self.assertNotIn("musica_listas", fuente)
         self.assertNotIn("\\tAlt+L", fuente)
         self.assertNotIn("\\tCtrl+F", fuente)

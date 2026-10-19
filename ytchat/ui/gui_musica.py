@@ -26,6 +26,7 @@ from ytchat.ui.musica_enlaces import EnlacesMusica
 from ytchat.ui.musica_indice import IndiceMusica, TEXTO_CARPETA_INEXISTENTE
 from ytchat.ui.musica_listas_propias import ListasPropiasMusica
 from ytchat.ui.musica_memoria import MemoriaMusica
+from ytchat.ui.musica_teclas import TeclasMusica
 from ytchat.voice import sound_player as _snd
 
 
@@ -40,7 +41,8 @@ VOLUMEN_INICIAL = 50
 _ACCIONES_ATAJO = (
     "musica_play", "musica_siguiente", "musica_anterior",
     "musica_vol_mas", "musica_vol_menos", "musica_que_suena",
-)
+    "musica_silenciar", "musica_aleatorio", "musica_repetir",
+    "musica_detener", "musica_adelantar", "musica_retroceder")
 
 def nuevo_volumen(actual, paso, minimo=VOLUMEN_MIN, maximo=VOLUMEN_MAX) -> int:
     """Volumen nuevo tras sumar un paso, recortado a sus límites. Función pura."""
@@ -80,7 +82,7 @@ def manejar_atajo_de_tecla(control, combos, event) -> bool:
 
 
 class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica,
-                    ListasPropiasMusica, MemoriaMusica):
+                    ListasPropiasMusica, MemoriaMusica, TeclasMusica):
     """Acciones de música del menú y los atajos, con el motor en un hilo."""
 
     def __init__(self, frame):
@@ -98,14 +100,7 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica,
         self._generacion_etiquetas = 0
         self._guardado_memoria = GuardadoDiferido(wx.CallLater)
         self._guardado_volumen = GuardadoDiferido(wx.CallLater)
-        self._globales = atajos_globales.AtajosGlobales(frame, {
-            "musica_play": self.reproducir_o_pausar,
-            "musica_siguiente": self.siguiente,
-            "musica_anterior": self.anterior,
-            "musica_vol_mas": self.subir_volumen,
-            "musica_vol_menos": self.bajar_volumen,
-            "musica_que_suena": self.que_suena,
-        })
+        self._globales = atajos_globales.AtajosGlobales(frame, self.acciones_musica())
         self._globales_atajos = None
         if bool(self._config.get("musica_atajos_globales", False)):
             # Después de que la ventana exista: el registro es del sistema
@@ -239,15 +234,7 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica,
 
     def ejecutar_atajo(self, accion) -> None:
         """Corre la acción de música de un atajo, como si viniera del menú."""
-        acciones = {
-            "musica_play": self.reproducir_o_pausar,
-            "musica_siguiente": self.siguiente,
-            "musica_anterior": self.anterior,
-            "musica_vol_mas": self.subir_volumen,
-            "musica_vol_menos": self.bajar_volumen,
-            "musica_que_suena": self.que_suena,
-        }
-        funcion = acciones.get(accion)
+        funcion = self.acciones_musica().get(accion)
         if funcion is not None:
             funcion()
 
@@ -275,6 +262,7 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica,
             return
         try:
             self._coordinador.fijar_volumen(self._volumen_config())
+            self._sincronizar_silencio()
             if self._adaptador is not None:
                 self._adaptador.fijar_dispositivo(
                     self._config.get("musica_salida") or None)
@@ -468,6 +456,7 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica,
         self._guardado_volumen.pedir(self._escribir_volumen)
         if self._coordinador is not None:
             self._coordinador.fijar_volumen(nuevo)
+        self._sincronizar_silencio()
         texto = anuncio_ajuste.COMPARTIDO.frase(
             "volumen_musica",
             anuncios.TEXTO_VOLUMEN.format(valor=nuevo),

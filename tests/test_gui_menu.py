@@ -162,9 +162,13 @@ class TestEquivalenciaMenu(unittest.TestCase):
             ("&Música", "Subir el &volumen", ANY, "normal"),
             ("&Música", "&Bajar el volumen", ANY, "normal"),
             ("&Música", "&Qué suena", ANY, "normal"),
+            ("&Música", "Adelantar 10 segu&ndos", ANY, "normal"),
+            ("&Música", "Re&troceder 10 segundos", ANY, "normal"),
             ("&Música", "---", None, "sep"),
+            ("&Música", "Silenciar la &música", ANY, "check"),
             ("&Música", "&Detener la música", ANY, "normal"),
             ("&Música", "&Orden aleatorio", ANY, "check"),
+            ("&Música", "Cambiar la &repetición", ANY, "normal"),
             ("&Herramientas", "Gestor de &descargas…", ANY, "normal"),
             ("&Herramientas", "&Actualizar yt-dlp", ANY, "normal"),
             ("&Herramientas", "---", None, "sep"),
@@ -189,7 +193,7 @@ class TestMenuMusica(unittest.TestCase):
         _, lista = _construir_lista(accel)
         return [fila for fila in lista if fila[0] == "&Música"]
 
-    def test_once_elementos_en_orden_con_atajos(self):
+    def test_trece_elementos_en_orden_con_atajos(self):
         ANY = gui.wx.ID_ANY
         self.assertEqual([
             ("&Música", "&Elegir música…\tCtrl+Shift+M", ANY, "normal"),
@@ -200,9 +204,15 @@ class TestMenuMusica(unittest.TestCase):
             ("&Música", "Subir el &volumen\tCtrl+Alt+Up", ANY, "normal"),
             ("&Música", "&Bajar el volumen\tCtrl+Alt+Down", ANY, "normal"),
             ("&Música", "&Qué suena\tCtrl+Alt+T", ANY, "normal"),
+            ("&Música", "Adelantar 10 segu&ndos\tCtrl+Alt+Shift+Right",
+             ANY, "normal"),
+            ("&Música", "Re&troceder 10 segundos\tCtrl+Alt+Shift+Left",
+             ANY, "normal"),
             ("&Música", "---", None, "sep"),
-            ("&Música", "&Detener la música", ANY, "normal"),
-            ("&Música", "&Orden aleatorio", ANY, "check"),
+            ("&Música", "Silenciar la &música\tCtrl+Alt+M", ANY, "check"),
+            ("&Música", "&Detener la música\tCtrl+Alt+D", ANY, "normal"),
+            ("&Música", "&Orden aleatorio\tCtrl+Alt+A", ANY, "check"),
+            ("&Música", "Cambiar la &repetición\tCtrl+Alt+R", ANY, "normal"),
         ], self._entradas())
 
 

@@ -61,7 +61,9 @@ ATAJOS_GRUPOS = [
       "describir_escena"]),
     ("Música (Ctrl+Alt)",
      ["musica_play", "musica_siguiente", "musica_anterior",
-      "musica_vol_mas", "musica_vol_menos", "musica_que_suena"]),
+      "musica_vol_mas", "musica_vol_menos", "musica_que_suena",
+      "musica_silenciar", "musica_aleatorio", "musica_repetir",
+      "musica_detener", "musica_adelantar", "musica_retroceder"]),
     ("Ventana y navegación (fijos)",
      ["salir", "region_siguiente", "region_anterior"]),
 ]
@@ -105,6 +107,11 @@ _RE_ATAJO = re.compile(r"^(ctrl\+shift|ctrl|alt)\+(.+)$", re.IGNORECASE)
 _RE_CTRL_ALT = re.compile(
     r"^(ctrl\+alt|alt\+ctrl)\+(left|right|up|down|space|[a-z]|[0-9])$",
     re.IGNORECASE)
+# Con Mayús solo valen las dos flechas horizontales, en cualquier orden.
+_RE_CTRL_ALT_SHIFT = re.compile(
+    r"^(ctrl\+alt\+shift|ctrl\+shift\+alt|alt\+ctrl\+shift"
+    r"|alt\+shift\+ctrl|shift\+ctrl\+alt|shift\+alt\+ctrl)\+(left|right)$",
+    re.IGNORECASE)
 _RE_FKEY  = re.compile(r"^f(1[0-2]|[1-9])$", re.IGNORECASE)
 _RE_CTRL_FKEY = re.compile(r"^ctrl\+f(1[0-2]|[1-9])$", re.IGNORECASE)
 
@@ -135,9 +142,9 @@ def _normalizar_atajo(valor: str | None) -> str | None:
     / 'alt+shift+c' / 'f5' / 'ctrl+f2'. None si no vale.
 
     Ctrl+Shift, Ctrl, Alt o Alt+Shift + tecla, Ctrl+Alt con flechas,
-    Espacio, una letra o un dígito, una tecla F sin modificador, o Ctrl más
-    una tecla F (como Ctrl+F2). Las letras y dígitos que AltGr escribe se
-    descartan al capturar el atajo, no aquí.
+    Espacio, una letra, un dígito o Mayús con left/right, una tecla F sin
+    modificador, o Ctrl más una tecla F (como Ctrl+F2). Las letras y dígitos
+    que AltGr escribe se descartan al capturar el atajo, no aquí.
     """
     if valor is None:
         return None
@@ -146,9 +153,11 @@ def _normalizar_atajo(valor: str | None) -> str | None:
         return None
     if _RE_FKEY.match(valor):
         return valor
-    m = _RE_CTRL_ALT.match(valor)
-    if m:
-        return f"ctrl+alt+{m.group(2)}"
+    for patron, prefijo in ((_RE_CTRL_ALT_SHIFT, "ctrl+alt+shift+"),
+                            (_RE_CTRL_ALT, "ctrl+alt+")):
+        m = patron.match(valor)
+        if m:
+            return prefijo + m.group(2)
     m = _RE_ALT_SHIFT.match(valor)
     if m:
         return f"alt+shift+{m.group(2)}" if _tecla_editable(m.group(2)) else None

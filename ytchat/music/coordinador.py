@@ -22,12 +22,12 @@ from ytchat.music.modelo import (
     Resultado,
     Tema,
 )
+from ytchat.music.transporte import TransporteMusica
 
 
 logger = obtener_logger(__name__)
 
 UMBRAL_REINICIO_MS = 3000
-
 _SIN_DESDE = object()
 
 
@@ -65,7 +65,7 @@ class Adaptador(Protocol):
     def ir_a(self, ms: int) -> None: ...
 
 
-class Coordinador:
+class Coordinador(TransporteMusica):
     """Maneja orden, aleatorio, avance, pausa y volumen contra un adaptador.
 
     ``_cola`` es la lista visible, en el orden en que el usuario la armó, y
@@ -493,7 +493,7 @@ class Coordinador:
                 self._adaptador.volumen(valor)
             except Exception:
                 return Resultado(False, ERROR_MOTOR, self._estado())
-            self._volumen = valor
+            self._volumen, self._silenciado = valor, False
             return Resultado(True, OK, self._estado())
 
     def fijar_aleatorio(self, activo: bool) -> Resultado:

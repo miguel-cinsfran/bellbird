@@ -241,22 +241,34 @@ def _construir_menu_musica(frame, mb):
         wx.ID_ANY, "&Bajar el volumen" + frame._accel("musica_vol_menos"))
     frame.mi_musica_que_suena = m.Append(
         wx.ID_ANY, "&Qué suena" + frame._accel("musica_que_suena"))
+    frame.mi_musica_adelantar = m.Append(
+        wx.ID_ANY, "Adelantar 10 segu&ndos" + frame._accel("musica_adelantar"))
+    frame.mi_musica_retroceder = m.Append(
+        wx.ID_ANY, "Re&troceder 10 segundos" + frame._accel("musica_retroceder"))
     m.AppendSeparator()
-    mi_musica_detener = m.Append(wx.ID_ANY, "&Detener la música")
-    frame.mi_musica_aleatorio = m.AppendCheckItem(wx.ID_ANY, "&Orden aleatorio")
+    frame.mi_musica_silenciar = m.AppendCheckItem(
+        wx.ID_ANY, "Silenciar la &música" + frame._accel("musica_silenciar"))
+    mi_detener = m.Append(
+        wx.ID_ANY, "&Detener la música" + frame._accel("musica_detener"))
+    frame.mi_musica_aleatorio = m.AppendCheckItem(
+        wx.ID_ANY, "&Orden aleatorio" + frame._accel("musica_aleatorio"))
     frame.mi_musica_aleatorio.Check(
         bool(frame._config.get("musica_aleatorio", False)))
+    mi_repetir = m.Append(
+        wx.ID_ANY, "Cambiar la &repetición" + frame._accel("musica_repetir"))
     mb.Append(m, "&Música")
-    enganches = (
-        (frame.mi_musica_ventana, "abrir_ventana"),
-        (frame.mi_musica_play, "reproducir_o_pausar"),
-        (frame.mi_musica_siguiente, "siguiente"),
-        (frame.mi_musica_anterior, "anterior"),
-        (frame.mi_musica_vol_mas, "subir_volumen"),
-        (frame.mi_musica_vol_menos, "bajar_volumen"),
-        (frame.mi_musica_que_suena, "que_suena"),
-        (mi_musica_detener, "detener"),
-        (frame.mi_musica_aleatorio, "alternar_aleatorio"),
-    )
-    for entrada, nombre in enganches:
-        frame._bind_menu(entrada, lambda n=nombre: getattr(frame._musica, n)())
+    for item, accion in (
+            (frame.mi_musica_ventana, "abrir_ventana"),
+            (frame.mi_musica_play, "reproducir_o_pausar"),
+            (frame.mi_musica_siguiente, "siguiente"),
+            (frame.mi_musica_anterior, "anterior"),
+            (frame.mi_musica_vol_mas, "subir_volumen"),
+            (frame.mi_musica_vol_menos, "bajar_volumen"),
+            (frame.mi_musica_que_suena, "que_suena"),
+            (frame.mi_musica_adelantar, "adelantar"),
+            (frame.mi_musica_retroceder, "retroceder"),
+            (frame.mi_musica_silenciar, "alternar_silencio"),
+            (mi_detener, "detener"),
+            (frame.mi_musica_aleatorio, "alternar_aleatorio"),
+            (mi_repetir, "ciclar_repetir")):
+        frame._bind_menu(item, lambda a=accion: getattr(frame._musica, a)())

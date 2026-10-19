@@ -56,6 +56,12 @@ ETIQUETAS = {
     "musica_vol_mas": "Subir el volumen de la música",
     "musica_vol_menos": "Bajar el volumen de la música",
     "musica_que_suena": "Qué suena",
+    "musica_silenciar": "Silenciar o devolver el sonido de la música",
+    "musica_aleatorio": "Orden aleatorio de la música",
+    "musica_repetir": "Cambiar la repetición de la música",
+    "musica_detener": "Detener la música",
+    "musica_adelantar": "Adelantar la música 10 segundos",
+    "musica_retroceder": "Retroceder la música 10 segundos",
     "musica_ventana": "Abrir la ventana de música",
 }
 

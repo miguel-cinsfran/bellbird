@@ -21,6 +21,12 @@ ACCIONES = (
     "musica_vol_mas",
     "musica_vol_menos",
     "musica_que_suena",
+    "musica_silenciar",
+    "musica_aleatorio",
+    "musica_repetir",
+    "musica_detener",
+    "musica_adelantar",
+    "musica_retroceder",
 )
 
 # Base de los ids propios para `RegisterHotKey`, lejos de otros usos.
@@ -46,6 +52,12 @@ def combinacion_windows(texto: str | None) -> tuple[int, int] | None:
     mayúscula). Cualquier otra cosa da None.
     """
     partes = (texto or "").strip().lower().replace(" ", "").split("+")
+    if len(partes) == 4:
+        if (set(partes[:3]) != {"ctrl", "alt", "shift"}
+                or partes[3] not in ("left", "right")):
+            return None
+        return (wx.MOD_CONTROL | wx.MOD_ALT | wx.MOD_SHIFT,
+                _TECLAS_VK[partes[3]])
     if len(partes) != 3:
         return None
     primero, segundo, tecla = partes

@@ -74,6 +74,15 @@ class TestCombinacionWindows(unittest.TestCase):
         self.assertEqual(combinacion_windows("  ctrl+alt+t  "), (MODS, ord("T")))
         self.assertEqual(combinacion_windows("alt+ctrl+left"), (MODS, 0x25))
 
+    def test_ctrl_alt_shift_solo_con_las_flechas_horizontales(self):
+        mods = wx.MOD_CONTROL | wx.MOD_ALT | wx.MOD_SHIFT
+        self.assertEqual(combinacion_windows("ctrl+alt+shift+left"), (mods, 0x25))
+        self.assertEqual(combinacion_windows("ctrl+alt+shift+right"), (mods, 0x27))
+        for texto in ("ctrl+alt+shift+up", "ctrl+alt+shift+down",
+                      "ctrl+alt+shift+a", "ctrl+shift+left"):
+            with self.subTest(texto=texto):
+                self.assertIsNone(combinacion_windows(texto))
+
     def test_lo_que_no_es_ctrl_alt_da_none(self):
         for texto in ("ctrl+p", "alt+c", "f5", "ctrl+f2", "ctrl+shift+p",
                       "alt+enter", "ctrl+alt+f5", "ctrl+alt+enter",

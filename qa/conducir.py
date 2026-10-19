@@ -2354,16 +2354,16 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         elif not propia.esperar_dicho(tercero, segundos=10, desde=n):
             res.fallo("musica_real: «Reproducir este» no anunció "
                       f"«{tercero}»")
-        esperada = ([f"Sonando: 1. {filas[2]}"]
-                    + [f"{i}. {t}" for i, t in enumerate(filas[3:],
-                                                          start=2)])
         cola = _filas("Música", "Cola de reproducción") or []
         if not cola:
             res.fallo("musica_real: la cola está vacía tras "
                       "«Reproducir este»")
-        elif cola != esperada:
-            res.fallo("musica_real: la cola no pasó a ser la "
-                      "carpeta empezando en el tercero")
+        elif [_titulo_fila(f) for f in cola] != list(filas):
+            res.fallo("musica_real: la cola no trae los mismos temas "
+                      "de la carpeta en el mismo orden")
+        elif not cola[2].startswith("Sonando: "):
+            res.fallo("musica_real: la tercera fila no es la que suena "
+                      "tras «Reproducir este»")
         elif not sin_salida:
             limite = time.monotonic() + 10
             suena = False
@@ -2520,21 +2520,30 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
                 if not ultimo:
                     res.fallo("musica_real: la última fila de la cola está "
                               "vacía y no se puede comprobar el vídeo")
-                elif not propia.esperar_dicho(ultimo, segundos=30, desde=n):
-                    res.fallo("musica_real: la última fila de la cola "
-                              f"(«{ultimo}») no es lo que suena")
-                elif sin_salida:
-                    res.nota("musica_real: el vídeo se agrega a la cola")
                 else:
-                    limite = time.monotonic() + 30
+                    visto = False
                     suena = False
+                    limite = time.monotonic() + 10
                     while time.monotonic() < limite:
-                        valor = _pico()
-                        if valor is not None and valor > 0.005:
-                            suena = True
+                        actual = (_filas("Música",
+                                        "Cola de reproducción") or [])
+                        if (len(actual) == len(cola_antes) + 1 and actual
+                                and actual[-1].startswith("Sonando: ")
+                                and _titulo_fila(actual[-1]) == ultimo):
+                            visto = True
+                        if not sin_salida:
+                            valor = _pico()
+                            if valor is not None and valor > 0.005:
+                                suena = True
+                        if visto and (sin_salida or suena):
                             break
                         time.sleep(0.2)
-                    if not suena:
+                    if not visto:
+                        res.fallo("musica_real: la última fila de la cola "
+                                  f"(«{ultimo}») no es lo que suena en 10 s")
+                    elif sin_salida:
+                        res.nota("musica_real: el vídeo se agrega a la cola")
+                    elif not suena:
                         res.fallo("musica_real: el vídeo de YouTube no se oye")
                     else:
                         res.nota("musica_real: el vídeo de YouTube se oye")

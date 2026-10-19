@@ -7,7 +7,94 @@ sin abrir nada.
 
 from __future__ import annotations
 
+import unicodedata
+
+from ytchat.music import anuncios
 from ytchat.music.anuncios import nombre_tema
+
+ETIQUETA_CARPETA = "Temas de la carpeta"
+
+
+def _plegar(texto) -> str:
+    """Minúsculas y sin tildes, para comparar búsquedas."""
+    descompuesto = unicodedata.normalize("NFKD", str(texto or ""))
+    sin_tildes = "".join(
+        caracter for caracter in descompuesto
+        if not unicodedata.combining(caracter))
+    return sin_tildes.casefold()
+
+
+def filtrar_lista(temas, texto) -> tuple:
+    """Los temas de una lista que coinciden con el texto, sin tocar el disco.
+
+    Mira título, artista y álbum, con la misma tolerancia a mayúsculas y
+    tildes que la búsqueda de la carpeta.
+    """
+    aguja = _plegar(texto).strip()
+    if not aguja:
+        return tuple(temas)
+    return tuple(
+        tema for tema in temas
+        if any(aguja in _plegar(campo)
+               for campo in (tema.titulo, tema.artista, tema.album)))
+
+
+def filtrar_biblioteca(biblioteca, texto) -> tuple:
+    """El filtro de la carpeta, delegado en `Biblioteca.buscar`."""
+    if not _plegar(texto).strip():
+        return tuple(biblioteca.temas())
+    return tuple(biblioteca.buscar(texto))
+
+
+def filtrar_fuente(temas, texto, biblioteca=None) -> tuple:
+    """El filtro que corresponde a la fuente elegida en «Mostrar»."""
+    if biblioteca is not None:
+        return filtrar_biblioteca(biblioteca, texto)
+    return filtrar_lista(temas, texto)
+
+
+def etiquetas_mostrar(nombres) -> list[str]:
+    """Las entradas de «Mostrar»: la carpeta y una por lista propia."""
+    return [ETIQUETA_CARPETA] + [f"Lista: {nombre}" for nombre in nombres]
+
+
+def texto_coincidencias(cantidad: int) -> str:
+    """Cuántos temas coinciden, para anunciar después de teclear."""
+    cantidad = max(0, int(cantidad))
+    if cantidad == 0:
+        return anuncios.TEXTO_NINGUN_TEMA_COINCIDE
+    if cantidad == 1:
+        return anuncios.TEXTO_UN_TEMA_COINCIDE
+    return anuncios.TEXTO_TEMAS_COINCIDEN.format(cantidad=cantidad)
+
+
+def indice_seleccion_tras_refrescar(indice, total) -> int:
+    """El índice que hay que seleccionar después de recargar una lista.
+
+    Conserva el mismo índice recortado al total. Sin selección o sin filas
+    devuelve -1, que es el valor de «ninguna» en wx.
+    """
+    total = max(0, int(total))
+    if total == 0 or indice is None or int(indice) < 0:
+        return -1
+    return min(int(indice), total - 1)
+
+
+def ayuda_biblioteca(es_lista_propia: bool) -> str:
+    """La ayuda de teclas de la Biblioteca."""
+    if es_lista_propia:
+        return anuncios.TEXTO_AYUDA_BIBLIOTECA_LISTA
+    return anuncios.TEXTO_AYUDA_BIBLIOTECA
+
+
+def ayuda_cola() -> str:
+    """La ayuda de teclas de la Cola."""
+    return anuncios.TEXTO_AYUDA_COLA
+
+
+def ayuda_buscar() -> str:
+    """La ayuda de teclas del buscador."""
+    return anuncios.TEXTO_AYUDA_BUSCAR
 
 
 def filas_temas(temas, incluir_artista: bool) -> list[str]:

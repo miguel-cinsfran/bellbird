@@ -444,5 +444,44 @@ class TestPropiedad(unittest.TestCase):
                 self.assertIn(f"{evento}.wav", sound_gen.TEMAS["suave"])
 
 
+class TestTextosVentanaMusica(unittest.TestCase):
+
+    def test_busqueda(self):
+        self.assertEqual(anuncios.TEXTO_BUSQUEDA_BORRADA, "Búsqueda borrada")
+
+    def test_coincidencias(self):
+        self.assertEqual(anuncios.TEXTO_UN_TEMA_COINCIDE, "1 tema coincide")
+        self.assertEqual(anuncios.TEXTO_TEMAS_COINCIDEN,
+                         "{cantidad} temas coinciden")
+        self.assertEqual(anuncios.TEXTO_NINGUN_TEMA_COINCIDE,
+                         "Ningún tema coincide")
+
+    def test_ayudas(self):
+        self.assertEqual(
+            anuncios.TEXTO_AYUDA_BIBLIOTECA,
+            "Intro reproduce ahora, Mayús más Intro a continuación, "
+            "Control más Intro al final, tecla de aplicaciones para más "
+            "opciones")
+        self.assertEqual(
+            anuncios.TEXTO_AYUDA_BIBLIOTECA_LISTA,
+            anuncios.TEXTO_AYUDA_BIBLIOTECA
+            + ", Suprimir quita de la lista")
+        self.assertEqual(
+            anuncios.TEXTO_AYUDA_COLA,
+            "Intro reproduce, Suprimir quita, Alt más flechas mueve, "
+            "tecla de aplicaciones para más opciones")
+        self.assertEqual(
+            anuncios.TEXTO_AYUDA_BUSCAR,
+            "Escribe para filtrar, flecha abajo va a los temas, "
+            "Escape borra la búsqueda")
+
+    def test_confirmar_borrar(self):
+        self.assertEqual(anuncios.TEXTO_CONFIRMAR_BORRAR_LISTA,
+                         "¿Borrar la lista {nombre}?")
+        self.assertEqual(
+            anuncios.TEXTO_CONFIRMAR_BORRAR_LISTA.format(nombre="Rock"),
+            "¿Borrar la lista Rock?")
+
+
 if __name__ == "__main__":
     unittest.main()

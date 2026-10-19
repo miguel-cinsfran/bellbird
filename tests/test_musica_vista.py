@@ -1,6 +1,7 @@
 """Pruebas de los textos de la ventana de música (vista.py), sin wx."""
 
 import unittest
+from unittest import mock
 
 from ytchat.music import vista
 from ytchat.music.modelo import EstadoMusica, Tema
@@ -91,6 +92,124 @@ class TestTextoResumen(unittest.TestCase):
     def test_buscando_sin_resultados(self):
         self.assertEqual(vista.texto_resumen(120, 0, True),
                          "0 de 120 temas")
+
+
+class TestEtiquetasMostrar(unittest.TestCase):
+
+    def test_primero_la_carpeta_y_despues_las_listas(self):
+        self.assertEqual(vista.etiquetas_mostrar(["Rock", "Jazz"]),
+                         ["Temas de la carpeta", "Lista: Rock",
+                          "Lista: Jazz"])
+
+    def test_sin_listas_solo_la_carpeta(self):
+        self.assertEqual(vista.etiquetas_mostrar([]),
+                         ["Temas de la carpeta"])
+
+
+class TestFiltroDeListas(unittest.TestCase):
+
+    def test_sin_texto_devuelve_todos(self):
+        temas = (_tema(1), _tema(2))
+        self.assertEqual(vista.filtrar_lista(temas, ""), temas)
+
+    def test_busca_en_titulo_artista_y_album(self):
+        temas = (
+            _tema(1),
+            _tema(2, artista="Ana"),
+            _tema(3, album="Verano"),
+        )
+        self.assertEqual([t.titulo for t in vista.filtrar_lista(temas, "ana")],
+                         ["Tema 2"])
+        self.assertEqual([t.titulo for t in vista.filtrar_lista(temas, "vera")],
+                         ["Tema 3"])
+
+    def test_ignora_mayusculas_y_tildes(self):
+        temas = (_tema(1, artista="José"),)
+        self.assertEqual(vista.filtrar_lista(temas, "JOSE"), temas)
+
+    def test_sin_coincidencias(self):
+        self.assertEqual(vista.filtrar_lista((_tema(1),), "zzz"), ())
+
+    def test_filtro_de_la_carpeta_delega_en_biblioteca(self):
+        biblio = mock.Mock()
+        biblio.temas.return_value = (_tema(1), _tema(2))
+        biblio.buscar.return_value = (_tema(2),)
+        self.assertEqual(vista.filtrar_biblioteca(biblio, ""),
+                         (_tema(1), _tema(2)))
+        biblio.buscar.assert_not_called()
+        self.assertEqual(vista.filtrar_biblioteca(biblio, "dos"),
+                         (_tema(2),))
+        biblio.buscar.assert_called_once_with("dos")
+
+    def test_filtrar_fuente_elige_segun_la_biblioteca(self):
+        biblio = mock.Mock()
+        biblio.temas.return_value = (_tema(1),)
+        biblio.buscar.return_value = ()
+        self.assertEqual(vista.filtrar_fuente((_tema(2),), "", biblio),
+                         (_tema(1),))
+        self.assertEqual(vista.filtrar_fuente((_tema(2),), "", None),
+                         (_tema(2),))
+
+
+class TestTextoCoincidencias(unittest.TestCase):
+
+    def test_ninguno(self):
+        self.assertEqual(vista.texto_coincidencias(0), "Ningún tema coincide")
+
+    def test_uno(self):
+        self.assertEqual(vista.texto_coincidencias(1), "1 tema coincide")
+
+    def test_varios(self):
+        self.assertEqual(vista.texto_coincidencias(8), "8 temas coinciden")
+
+    def test_negativo_cuenta_como_ninguno(self):
+        self.assertEqual(vista.texto_coincidencias(-1),
+                         "Ningún tema coincide")
+
+
+class TestIndiceTrasRefrescar(unittest.TestCase):
+
+    def test_conserva_el_mismo_indice(self):
+        self.assertEqual(vista.indice_seleccion_tras_refrescar(2, 5), 2)
+
+    def test_recorta_al_total(self):
+        self.assertEqual(vista.indice_seleccion_tras_refrescar(8, 5), 4)
+
+    def test_sin_seleccion(self):
+        self.assertEqual(vista.indice_seleccion_tras_refrescar(None, 5), -1)
+
+    def test_seleccion_negativa(self):
+        self.assertEqual(vista.indice_seleccion_tras_refrescar(-1, 5), -1)
+
+    def test_sin_filas(self):
+        self.assertEqual(vista.indice_seleccion_tras_refrescar(0, 0), -1)
+
+
+class TestAyudas(unittest.TestCase):
+
+    def test_biblioteca_de_la_carpeta(self):
+        self.assertEqual(
+            vista.ayuda_biblioteca(False),
+            "Intro reproduce ahora, Mayús más Intro a continuación, "
+            "Control más Intro al final, tecla de aplicaciones para más "
+            "opciones")
+
+    def test_biblioteca_de_una_lista_suma_suprimir(self):
+        self.assertEqual(
+            vista.ayuda_biblioteca(True),
+            vista.ayuda_biblioteca(False) + ", Suprimir quita de la lista")
+
+    def test_cola(self):
+        self.assertEqual(
+            vista.ayuda_cola(),
+            "Intro reproduce, Suprimir quita, Alt más flechas mueve, "
+            "tecla de aplicaciones para más opciones")
+
+    def test_buscar(self):
+        self.assertEqual(
+            vista.ayuda_buscar(),
+            "Escribe para filtrar, flecha abajo va a los temas, "
+            "Escape borra la búsqueda")
 
 
 if __name__ == "__main__":

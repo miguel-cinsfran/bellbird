@@ -24,7 +24,7 @@ from ytchat.ui import musica_enlaces
 from ytchat.ui import musica_indice
 from ytchat.ui import musica_listas_propias
 from ytchat.ui import musica_memoria
-from ytchat.ui import gui_musica_ventana
+from ytchat.ui import musica_ventana
 from ytchat.ui.gui_musica import ControlMusica, nuevo_volumen, toca_pausar
 
 
@@ -1597,12 +1597,11 @@ class _Evento:
 class TestListasGuardadas(unittest.TestCase):
 
     def test_abrir_listas_llama_a_la_ventana(self):
-        from ytchat.ui import gui_musica_listas
         with _entorno(), mock.patch.object(
-                gui_musica_listas, "abrir_ventana") as abrir:
+                musica_ventana, "abrir_ventana") as abrir:
             control = ControlMusica(_frame())
             control.abrir_listas()
-        abrir.assert_called_once_with(control)
+        abrir.assert_called_once_with(control, abrir_listas=True)
 
     def test_reproducir_lista_guardada_carga_y_reproduce(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -1665,7 +1664,7 @@ class TestVentanaUnica(unittest.TestCase):
 
     def test_abrir_ventana_con_una_abierta_no_crea_otra(self):
         with _entorno() as env, mock.patch.object(
-                gui_musica_ventana, "abrir_ventana") as abrir:
+                musica_ventana, "abrir_ventana") as abrir:
             control = ControlMusica(_frame())
             ventana = mock.Mock()
             control.registrar_ventana(ventana)
@@ -1676,12 +1675,11 @@ class TestVentanaUnica(unittest.TestCase):
         env.anunciar.assert_called_once_with(anuncios.TEXTO_VENTANA_ABIERTA)
 
     def test_abrir_listas_con_una_abierta_no_crea_otra(self):
-        from ytchat.ui import gui_musica_listas
         with _entorno() as env, mock.patch.object(
-                gui_musica_listas, "abrir_ventana") as abrir:
+                musica_ventana, "abrir_ventana") as abrir:
             control = ControlMusica(_frame())
             ventana = mock.Mock()
-            control.registrar_ventana(ventana, "listas")
+            control.registrar_ventana(ventana)
             control.abrir_listas()
         abrir.assert_not_called()
         ventana.Raise.assert_called_once_with()
@@ -1690,30 +1688,28 @@ class TestVentanaUnica(unittest.TestCase):
 
     def test_sin_ventana_abierta_abre_la_de_musica(self):
         with _entorno(), mock.patch.object(
-                gui_musica_ventana, "abrir_ventana") as abrir:
+                musica_ventana, "abrir_ventana") as abrir:
             control = ControlMusica(_frame())
             control.abrir_ventana()
         abrir.assert_called_once_with(control)
 
-    def test_olvidar_listas_no_borra_la_de_musica(self):
+    def test_registrar_y_olvidar_la_unica_ventana(self):
         with _entorno():
             control = ControlMusica(_frame())
-            musica = mock.Mock()
-            control.registrar_ventana(musica, "musica")
-            control.registrar_ventana(mock.Mock(), "listas")
-            control.olvidar_ventana("listas")
-            self.assertIs(control._ventanas.get("musica"), musica)
-            self.assertNotIn("listas", control._ventanas)
-
-    def test_olvidar_musica_no_borra_la_de_listas(self):
-        with _entorno():
-            control = ControlMusica(_frame())
-            listas = mock.Mock()
-            control.registrar_ventana(mock.Mock(), "musica")
-            control.registrar_ventana(listas, "listas")
+            ventana = mock.Mock()
+            control.registrar_ventana(ventana)
+            self.assertIs(control._ventanas.get("musica"), ventana)
             control.olvidar_ventana()
-            self.assertIs(control._ventanas.get("listas"), listas)
             self.assertNotIn("musica", control._ventanas)
+
+    def test_una_ventana_nueva_reemplaza_la_registrada(self):
+        with _entorno():
+            control = ControlMusica(_frame())
+            vieja = mock.Mock()
+            nueva = mock.Mock()
+            control.registrar_ventana(vieja)
+            control.registrar_ventana(nueva)
+            self.assertIs(control._ventanas.get("musica"), nueva)
 
 
 class _MarcoGlobales:

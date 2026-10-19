@@ -84,6 +84,22 @@ TEXTO_ATAJOS_GLOBALES_FALLO = (
 TEXTO_ATAJOS_GLOBALES_ACTIVOS = "Atajos de música activos en cualquier programa"
 TEXTO_ATAJOS_GLOBALES_SOLO = "Atajos de música solo en YTChat"
 TEXTO_VENTANA_ABIERTA = "La ventana de música ya está abierta"
+TEXTO_BUSQUEDA_BORRADA = "Búsqueda borrada"
+TEXTO_UN_TEMA_COINCIDE = "1 tema coincide"
+TEXTO_TEMAS_COINCIDEN = "{cantidad} temas coinciden"
+TEXTO_NINGUN_TEMA_COINCIDE = "Ningún tema coincide"
+TEXTO_AYUDA_BIBLIOTECA = (
+    "Intro reproduce ahora, Mayús más Intro a continuación, "
+    "Control más Intro al final, tecla de aplicaciones para más opciones")
+TEXTO_AYUDA_BIBLIOTECA_LISTA = (
+    TEXTO_AYUDA_BIBLIOTECA + ", Suprimir quita de la lista")
+TEXTO_AYUDA_COLA = (
+    "Intro reproduce, Suprimir quita, Alt más flechas mueve, "
+    "tecla de aplicaciones para más opciones")
+TEXTO_AYUDA_BUSCAR = (
+    "Escribe para filtrar, flecha abajo va a los temas, "
+    "Escape borra la búsqueda")
+TEXTO_CONFIRMAR_BORRAR_LISTA = "¿Borrar la lista {nombre}?"
 
 
 @dataclass(frozen=True)

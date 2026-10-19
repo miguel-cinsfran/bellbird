@@ -79,11 +79,27 @@ def _modulos_de_la_raiz() -> tuple[list[str], list[str]]:
 # módulos es que mira para otro lado, y tiene que decirlo.
 _MINIMO_MODULOS = 50
 
+# Piso de controles de la pantalla principal desconectada, que en la última
+# corrida buena dio 31. Menos de 20 es que se recorrió otra ventana, como el
+# aviso de instancia única (6 controles).
+_MINIMO_CONTROLES = 20
+
 
 _MODULOS_PUROS, _MODULOS_GUI = _modulos_de_la_raiz()
 
 _PREFIJO_TITULO = "YTChat TTS"
 _PROCESOS_APLICACION = {"python.exe", "pythonw.exe", "ytchattts.exe"}
+
+# El nombre se duplica a propósito: importar main.py arrastra wx y medio
+# paquete. Una prueba vigila que coincida con el de main.py.
+_MUTEX_INSTANCIA = "YTChatTTS_SingleInstance_Mutex"
+_SYNCHRONIZE = 0x00100000
+_ERROR_ACCESS_DENIED = 5
+
+_MENSAJE_INSTANCIA_ABIERTA = (
+    "Ya hay una YTChat abierta en esta sesión, quizá en otro escritorio. "
+    "Ciérrala y vuelve a correr el smoke: la fase 3 no audita ni cierra una "
+    "aplicación que no abrió ella.")
 
 # Plazo de espera de la ventana en la fase 3: la aplicación puede tardar en
 # arrancar (imports de wx, libVLC), y un plazo corto daba falsos negativos.
@@ -97,6 +113,31 @@ def ventana_es_de_la_aplicacion(titulo: str, nombre_proceso: str) -> bool:
     """Indica si título y proceso identifican la ventana de la aplicación."""
     return (titulo.startswith(_PREFIJO_TITULO)
             and nombre_proceso.lower() in _PROCESOS_APLICACION)
+
+
+def hay_otra_instancia_abierta(nombre: str = _MUTEX_INSTANCIA) -> bool:
+    """Indica si el mutex de instancia única ya está tomado en la sesión.
+
+    El mutex vale para toda la sesión, así que también detecta una YTChat
+    abierta en otro escritorio, donde el recorrido de ventanas no llega.
+    """
+    if sys.platform != "win32":
+        return False
+    try:
+        import ctypes
+
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel32.OpenMutexW.restype = ctypes.c_void_p
+        kernel32.OpenMutexW.argtypes = [ctypes.c_uint32, ctypes.c_int,
+                                        ctypes.c_wchar_p]
+        handle = kernel32.OpenMutexW(_SYNCHRONIZE, False, nombre)
+        if handle:
+            kernel32.CloseHandle.argtypes = [ctypes.c_void_p]
+            kernel32.CloseHandle(ctypes.c_void_p(handle))
+            return True
+        return ctypes.get_last_error() == _ERROR_ACCESS_DENIED
+    except Exception:
+        return False
 
 
 def es_descendiente(pid: int, raiz: int, padres: dict[int, int]) -> bool:
@@ -220,6 +261,15 @@ def interactivos_sin_nombre(controles) -> list[str]:
     """Tipos de control interactivo que no tienen nombre accesible."""
     return [tipo for tipo, nombre in controles
             if tipo in _INTERACTIVOS and not nombre]
+
+
+def mensaje_fallo_controles(total: int,
+                            piso: int = _MINIMO_CONTROLES) -> str | None:
+    """Devuelve el fallo si no se alcanzó el piso de controles."""
+    if total >= piso:
+        return None
+    return (f"se recorrieron solo {total} controles (piso: {piso}): "
+            "la ventana recorrida probablemente no es la pantalla principal")
 
 
 def _nombre_proceso(pid: int) -> str:
@@ -365,6 +415,10 @@ def fase3_accesibilidad() -> bool:
               f"no audita ni cierra una aplicación que no abrió ella.")
         return False
 
+    if hay_otra_instancia_abierta():
+        print(f"  [FALLO] {_MENSAJE_INSTANCIA_ABIERTA}")
+        return False
+
     print(f"  Lanzando: {cmd}")
     ventanas_ajenas.clear()
     app = Application(backend="uia").start(cmd, work_dir=RAIZ,
@@ -397,9 +451,13 @@ def fase3_accesibilidad() -> bool:
         for tipo, nombre in controles:
             etiqueta = nombre if nombre else "(SIN NOMBRE)"
             print(f"    {tipo:12s}  {etiqueta}")
-        sin_nombre = interactivos_sin_nombre(controles)
 
         print(f"\n  Total de controles: {len(controles)}")
+        fallo_controles = mensaje_fallo_controles(len(controles))
+        if fallo_controles:
+            print(f"  [FALLO] {fallo_controles}")
+            return False
+        sin_nombre = interactivos_sin_nombre(controles)
         if sin_nombre:
             print(f"  [AVISO ACCESIBILIDAD] {len(sin_nombre)} control(es) "
                   f"interactivo(s) SIN nombre: {', '.join(sin_nombre)}")

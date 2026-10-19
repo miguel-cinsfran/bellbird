@@ -1,12 +1,15 @@
 """Pruebas de identificación segura de la ventana del smoke."""
 
 import os
+import sys
 import unittest
 from types import SimpleNamespace
 
-from scripts.smoke_test import (_recorrer, arbol_sigue_vivo,
-                                es_descendiente, interactivos_sin_nombre,
-                                mapa_padres_procesos, mensaje_fallo_ventana,
+from scripts.smoke_test import (RAIZ, _MINIMO_CONTROLES, _MUTEX_INSTANCIA,
+                                _recorrer, arbol_sigue_vivo,
+                                es_descendiente, hay_otra_instancia_abierta,
+                                interactivos_sin_nombre, mapa_padres_procesos,
+                                mensaje_fallo_controles, mensaje_fallo_ventana,
                                 ventana_es_de_la_aplicacion)
 
 
@@ -24,6 +27,38 @@ class VentanaEsDeLaAplicacionTest(unittest.TestCase):
 
     def test_compara_el_proceso_sin_mayusculas(self):
         self.assertTrue(ventana_es_de_la_aplicacion("YTChat TTS", "PYTHONW.EXE"))
+
+
+class MutexInstanciaTest(unittest.TestCase):
+
+    @unittest.skipUnless(sys.platform == "win32",
+                         "OpenMutexW solo existe en Windows")
+    def test_detecta_un_mutex_real_y_deja_de_verlo_al_cerrarlo(self):
+        import ctypes
+        import uuid
+
+        nombre = f"YTChatTTS_Prueba_{os.getpid()}_{uuid.uuid4().hex}"
+        self.assertFalse(hay_otra_instancia_abierta(nombre))
+
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel32.CreateMutexW.restype = ctypes.c_void_p
+        kernel32.CreateMutexW.argtypes = [ctypes.c_void_p, ctypes.c_int,
+                                          ctypes.c_wchar_p]
+        kernel32.CloseHandle.argtypes = [ctypes.c_void_p]
+        handle = kernel32.CreateMutexW(None, False, nombre)
+        self.assertTrue(handle)
+        try:
+            self.assertTrue(hay_otra_instancia_abierta(nombre))
+        finally:
+            kernel32.CloseHandle(ctypes.c_void_p(handle))
+
+        self.assertFalse(hay_otra_instancia_abierta(nombre))
+
+    def test_el_nombre_coincide_con_el_de_main(self):
+        with open(os.path.join(RAIZ, "main.py"), encoding="utf-8") as archivo:
+            fuente = archivo.read()
+
+        self.assertIn(_MUTEX_INSTANCIA, fuente)
 
 
 class InteractivosSinNombreTest(unittest.TestCase):
@@ -47,6 +82,25 @@ class InteractivosSinNombreTest(unittest.TestCase):
 
     def test_acepta_lista_vacia(self):
         self.assertEqual(interactivos_sin_nombre([]), [])
+
+
+class MinimoControlesTest(unittest.TestCase):
+
+    def test_el_piso_es_veinte(self):
+        self.assertEqual(_MINIMO_CONTROLES, 20)
+
+    def test_diecinueve_controles_no_alcanzan(self):
+        self.assertIsNotNone(mensaje_fallo_controles(19))
+
+    def test_veinte_controles_alcanzan(self):
+        self.assertIsNone(mensaje_fallo_controles(20))
+
+    def test_el_caso_del_defecto_falla(self):
+        mensaje = mensaje_fallo_controles(6)
+
+        self.assertIsNotNone(mensaje)
+        self.assertIn("6", mensaje)
+        self.assertIn(str(_MINIMO_CONTROLES), mensaje)
 
 
 class ElementoFalso:

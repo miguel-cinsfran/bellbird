@@ -176,6 +176,10 @@ class ControlMusica:
         """Suma la lista al final de la cola sin cortar lo que suena."""
         self._asegurar_motor(lambda: self._agregar_a_la_cola(tuple(temas)))
 
+    def reproducir_a_continuacion(self, tema) -> None:
+        """Mete el tema justo detrás del que suena, sin cortar nada."""
+        self._asegurar_motor(lambda: self._poner_a_continuacion(tema))
+
     def reproducir_desde(self, indice) -> None:
         """Empieza por el tema de la cola actual que ocupa ese índice."""
         self._asegurar_motor(lambda: self._reproducir_de_la_cola(indice))
@@ -615,6 +619,17 @@ class ControlMusica:
         resultado = self._coordinador.agregar(temas)
         if resultado.ok:
             self._avisar(anuncios.aviso_agregados(len(temas)))
+            return
+        self._avisar(anuncios.aviso_accion(
+            "agregar", resultado, self._incluir_artista()))
+
+    def _poner_a_continuacion(self, tema) -> None:
+        if self._coordinador is None:
+            return
+        resultado = self._coordinador.a_continuacion((tema,))
+        if resultado.ok:
+            self._avisar(anuncios.aviso_a_continuacion(
+                tema, self._incluir_artista()))
             return
         self._avisar(anuncios.aviso_accion(
             "agregar", resultado, self._incluir_artista()))

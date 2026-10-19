@@ -52,6 +52,7 @@ TEXTO_PREPARANDO = "Preparando la música"
 TEXTO_PREPARANDO_OCUPADO = "La música se está preparando"
 TEXTO_AGREGADOS = "{cantidad} temas agregados a la cola"
 TEXTO_AGREGADO = "1 tema agregado a la cola"
+TEXTO_A_CONTINUACION = "A continuación: {nombre}"
 TEXTO_SALTADAS = "Se saltaron {cantidad} entradas que no se pudieron leer"
 TEXTO_SALTADA = "Se saltó 1 entrada que no se pudo leer"
 TEXTO_AGREGADO_A_LISTA = "Agregado a la lista {nombre}"
@@ -224,6 +225,12 @@ def aviso_agregados(cantidad: int) -> Aviso:
     if cantidad == 1:
         return Aviso(TEXTO_AGREGADO)
     return Aviso(TEXTO_AGREGADOS.format(cantidad=cantidad))
+
+
+def aviso_a_continuacion(tema, incluir_artista: bool) -> Aviso:
+    """Confirmación del tema que sonará al terminar el actual, sin sonido."""
+    return Aviso(TEXTO_A_CONTINUACION.format(
+        nombre=nombre_tema(tema, incluir_artista)))
 
 
 def aviso_saltadas(cantidad: int) -> Aviso:

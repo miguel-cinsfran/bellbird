@@ -256,6 +256,16 @@ class TestOtrosAvisos(unittest.TestCase):
         self.assertEqual(aviso.texto, "1 tema agregado a la cola")
         self.assertIsNone(aviso.sonido)
 
+    def test_a_continuacion_con_artista(self):
+        aviso = anuncios.aviso_a_continuacion(_tema(1, artista="Ana"), True)
+        self.assertEqual(aviso.texto, "A continuación: Tema 1, de Ana")
+        self.assertIsNone(aviso.sonido)
+
+    def test_a_continuacion_sin_artista(self):
+        aviso = anuncios.aviso_a_continuacion(_tema(1, artista="Ana"), False)
+        self.assertEqual(aviso.texto, "A continuación: Tema 1")
+        self.assertIsNone(aviso.sonido)
+
     def test_leyendo_enlace_sin_sonido(self):
         aviso = anuncios.aviso_leyendo_enlace()
         self.assertEqual(aviso.texto, "Leyendo el enlace")

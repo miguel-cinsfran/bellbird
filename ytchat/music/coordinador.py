@@ -68,6 +68,7 @@ class Coordinador:
         self._posicion: int | None = None
         self._pausado = False
         self._terminado = False
+        self._a_continuacion = 0
         self._volumen = volumen
         self._aleatorio = False
         self._repetir = False
@@ -102,11 +103,13 @@ class Coordinador:
                 self._cargar(self._cola[indice])
             except Exception:
                 self._detener_motor()
+                self._actualizar_contador(indice)
                 self._posicion = indice
                 self._pausado = False
                 self._terminado = True
                 return Resultado(False, ERROR_MOTOR, self._estado(),
                                  tema=self._cola[indice])
+            self._actualizar_contador(indice)
             self._posicion = indice
             self._pausado = False
             self._terminado = False
@@ -114,25 +117,67 @@ class Coordinador:
 
     def agregar(self, temas) -> Resultado:
         with self._lock:
+            return self._agregar(tuple(temas))
+
+    def a_continuacion(self, temas) -> Resultado:
+        """Mete los temas justo detrás del que suena, sin cortar nada.
+
+        Sin temas es cola_vacia. Sin nada activo (cola vacía, detenida o
+        terminada) se comporta como `agregar`: suma al final y empieza por
+        el primero nuevo, con su mismo manejo de error_motor. Con un tema
+        activo (sonando o en pausa) inserta detrás de la posición actual,
+        en orden de llegada, sin llamar al adaptador ni tocar ficha,
+        pausa, posición o aleatorio. Devuelve ok con el estado nuevo.
+        """
+        with self._lock:
             nuevos = tuple(temas)
             if not nuevos:
                 return Resultado(False, COLA_VACIA, self._estado())
-            inicio = len(self._cola)
-            self._cola = self._cola + nuevos
-            if self._posicion is not None and not self._terminado:
-                return Resultado(True, OK, self._estado())
-            try:
-                self._cargar(nuevos[0])
-            except Exception:
-                self._detener_motor()
-                self._posicion = inicio
-                self._pausado = False
-                self._terminado = True
-                return Resultado(False, ERROR_MOTOR, self._estado(), tema=nuevos[0])
+            if self._posicion is None or self._terminado:
+                return self._agregar(nuevos)
+            insercion = self._posicion + 1 + self._a_continuacion
+            self._cola = (self._cola[:insercion] + nuevos
+                          + self._cola[insercion:])
+            self._a_continuacion += len(nuevos)
+            return Resultado(True, OK, self._estado())
+
+    def _agregar(self, nuevos: tuple[Tema, ...]) -> Resultado:
+        if not nuevos:
+            return Resultado(False, COLA_VACIA, self._estado())
+        inicio = len(self._cola)
+        self._cola = self._cola + nuevos
+        if self._posicion is not None and not self._terminado:
+            return Resultado(True, OK, self._estado())
+        try:
+            self._cargar(nuevos[0])
+        except Exception:
+            self._detener_motor()
+            self._actualizar_contador(inicio)
             self._posicion = inicio
             self._pausado = False
-            self._terminado = False
-            return Resultado(True, OK, self._estado())
+            self._terminado = True
+            return Resultado(False, ERROR_MOTOR, self._estado(), tema=nuevos[0])
+        self._actualizar_contador(inicio)
+        self._posicion = inicio
+        self._pausado = False
+        self._terminado = False
+        return Resultado(True, OK, self._estado())
+
+    def _actualizar_contador(self, nueva: int | None) -> None:
+        """Pone al día `_a_continuacion` ante un cambio de posición.
+
+        Si la posición nueva es la anterior más uno y quedan pendientes,
+        se consumió uno; en cualquier otro caso (saltar, retroceder, cola
+        nueva, detener, repetir que vuelve a 0, fin de lista) vuelve a
+        cero. Se llama desde cada camino que cambia `_posicion`, antes de
+        asignarla, con la posición que va a quedar.
+        """
+        anterior = self._posicion
+        if (anterior is not None and nueva is not None
+                and nueva == anterior + 1 and self._a_continuacion > 0):
+            self._a_continuacion -= 1
+        else:
+            self._a_continuacion = 0
 
     def actualizar_temas(self, mapa) -> int:
         """Reemplaza en la cola los temas cuyo `origen` está en `mapa`.
@@ -177,6 +222,7 @@ class Coordinador:
                 self._adaptador.detener()
             except Exception:
                 return Resultado(False, ERROR_MOTOR, self._estado())
+            self._actualizar_contador(None)
             self._posicion = None
             self._pausado = False
             self._terminado = False
@@ -236,10 +282,12 @@ class Coordinador:
             self._cargar(cola[0])
         except Exception:
             self._detener_motor()
+            self._actualizar_contador(0)
             self._posicion = 0
             self._pausado = False
             self._terminado = True
             return Resultado(False, ERROR_MOTOR, self._estado(), tema=cola[0])
+        self._actualizar_contador(0)
         self._posicion = 0
         self._pausado = False
         self._terminado = False
@@ -253,6 +301,7 @@ class Coordinador:
             if destino >= len(self._cola):
                 if not self._repetir:
                     self._detener_motor()
+                    self._actualizar_contador(self._posicion)
                     self._terminado = True
                     return Resultado(False, FIN_LISTA, self._estado())
                 # Con repetir activo, pasar del último vuelve al primero.
@@ -263,9 +312,11 @@ class Coordinador:
                 self._cargar(self._cola[destino])
             except Exception:
                 self._detener_motor()
+                self._actualizar_contador(destino)
                 self._posicion = destino
                 self._terminado = True
                 return Resultado(False, ERROR_MOTOR, self._estado(), tema=self._cola[destino])
+            self._actualizar_contador(destino)
             self._posicion = destino
             # Al cambiar de tema con el teclado se espera oírlo: queda sonando.
             self._pausado = False
@@ -292,17 +343,20 @@ class Coordinador:
             try:
                 self._cargar(self._cola[destino])
             except Exception:
+                self._actualizar_contador(destino)
                 self._posicion = destino
                 avisos.append(Resultado(False, TEMA_FALLIDO, self._estado(),
                                         tema=self._cola[destino]))
                 destino += 1
                 continue
+            self._actualizar_contador(destino)
             self._posicion = destino
             self._pausado = False
             self._terminado = False
             avisos.append(Resultado(True, AVANZO, self._estado()))
             return avisos
         self._detener_motor()
+        self._actualizar_contador(total - 1)
         self._posicion = total - 1
         self._pausado = False
         self._terminado = True

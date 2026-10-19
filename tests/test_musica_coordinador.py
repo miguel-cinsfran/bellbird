@@ -274,6 +274,180 @@ class TestReproducirDesde(unittest.TestCase):
         self.assertEqual(len(ad.cargas()), 2)
 
 
+class TestAContinuacion(unittest.TestCase):
+
+    def test_inserta_detras_del_actual_sin_cortar(self):
+        ad = AdaptadorFalso()
+        c = Coordinador(ad)
+        c.reproducir_lista([tema("x"), tema("y"), tema("z")])
+        r = c.a_continuacion([tema("a")])
+        self.assertTrue(r.ok)
+        self.assertEqual(r.codigo, OK)
+        self.assertEqual([t.origen for t in r.estado.cola],
+                         ["C:/musica/x.mp3", "C:/musica/a.mp3",
+                          "C:/musica/y.mp3", "C:/musica/z.mp3"])
+        self.assertEqual(r.estado.posicion, 0)
+        self.assertFalse(r.estado.pausado)
+        self.assertEqual(len(ad.cargas()), 1)
+
+    def test_pedidos_seguidos_quedan_en_orden_de_llegada(self):
+        ad = AdaptadorFalso()
+        c = Coordinador(ad)
+        c.reproducir_lista([tema("x"), tema("y"), tema("z")])
+        c.a_continuacion([tema("a")])
+        r = c.a_continuacion([tema("b")])
+        self.assertEqual([t.origen for t in r.estado.cola],
+                         ["C:/musica/x.mp3", "C:/musica/a.mp3",
+                          "C:/musica/b.mp3", "C:/musica/y.mp3",
+                          "C:/musica/z.mp3"])
+        self.assertEqual(len(ad.cargas()), 1)
+
+    def test_al_terminar_suenan_en_orden_los_pendientes(self):
+        ad = AdaptadorFalso()
+        c = Coordinador(ad)
+        c.reproducir_lista([tema("x"), tema("y"), tema("z")])
+        c.a_continuacion([tema("a")])
+        c.a_continuacion([tema("b")])
+        c.tema_terminado(ad.ultima_ficha(), False)
+        c.tema_terminado(ad.ultima_ficha(), False)
+        c.tema_terminado(ad.ultima_ficha(), False)
+        self.assertEqual([l[1] for l in ad.cargas()],
+                         ["C:/musica/x.mp3", "C:/musica/a.mp3",
+                          "C:/musica/b.mp3", "C:/musica/y.mp3"])
+
+    def test_avanzar_consume_un_pendiente(self):
+        ad = AdaptadorFalso()
+        c = Coordinador(ad)
+        c.reproducir_lista([tema("x"), tema("y"), tema("z")])
+        c.a_continuacion([tema("a")])
+        c.a_continuacion([tema("b")])
+        c.tema_terminado(ad.ultima_ficha(), False)
+        self.assertEqual(c.estado().posicion, 1)
+        r = c.a_continuacion([tema("c")])
+        self.assertEqual([t.origen for t in r.estado.cola],
+                         ["C:/musica/x.mp3", "C:/musica/a.mp3",
+                          "C:/musica/b.mp3", "C:/musica/c.mp3",
+                          "C:/musica/y.mp3", "C:/musica/z.mp3"])
+
+    def test_saltar_resetea_y_el_nuevo_va_detras_del_actual(self):
+        ad = AdaptadorFalso()
+        c = Coordinador(ad)
+        c.reproducir_lista([tema("x"), tema("y"), tema("z")])
+        c.a_continuacion([tema("a")])
+        c.reproducir_desde(2)
+        r = c.a_continuacion([tema("b")])
+        self.assertEqual([t.origen for t in r.estado.cola],
+                         ["C:/musica/x.mp3", "C:/musica/a.mp3",
+                          "C:/musica/y.mp3", "C:/musica/b.mp3",
+                          "C:/musica/z.mp3"])
+
+    def test_en_pausa_inserta_y_sigue_en_pausa(self):
+        ad = AdaptadorFalso()
+        c = Coordinador(ad)
+        c.reproducir_lista([tema("x"), tema("y")])
+        c.alternar_pausa()
+        r = c.a_continuacion([tema("a")])
+        self.assertTrue(r.ok)
+        self.assertTrue(r.estado.pausado)
+        self.assertEqual(r.estado.posicion, 0)
+        self.assertEqual([t.origen for t in r.estado.cola],
+                         ["C:/musica/x.mp3", "C:/musica/a.mp3",
+                          "C:/musica/y.mp3"])
+        self.assertEqual(len(ad.cargas()), 1)
+
+    def test_sin_nada_activo_arranca_como_agregar(self):
+        ad = AdaptadorFalso()
+        c = Coordinador(ad)
+        r = c.a_continuacion([tema("n")])
+        self.assertTrue(r.ok)
+        self.assertEqual(r.estado.posicion, 0)
+        self.assertEqual([t.origen for t in r.estado.cola],
+                         ["C:/musica/n.mp3"])
+        self.assertEqual(ad.cargas()[-1][1], "C:/musica/n.mp3")
+
+    def test_cola_terminada_arranca_por_el_nuevo(self):
+        ad = AdaptadorFalso()
+        c = Coordinador(ad)
+        c.reproducir_lista([tema("x")])
+        c.siguiente()
+        self.assertTrue(c.estado().terminado)
+        r = c.a_continuacion([tema("n")])
+        self.assertTrue(r.ok)
+        self.assertEqual([t.origen for t in r.estado.cola],
+                         ["C:/musica/x.mp3", "C:/musica/n.mp3"])
+        self.assertEqual(r.estado.posicion, 1)
+        self.assertFalse(r.estado.terminado)
+        self.assertEqual(ad.cargas()[-1][1], "C:/musica/n.mp3")
+
+    def test_sin_nada_activo_con_fallo_da_error_motor(self):
+        ad = AdaptadorFalso()
+        ad.fallar.add("C:/musica/n.mp3")
+        c = Coordinador(ad)
+        r = c.a_continuacion([tema("n")])
+        self.assertFalse(r.ok)
+        self.assertEqual(r.codigo, ERROR_MOTOR)
+        self.assertEqual(r.tema.origen, "C:/musica/n.mp3")
+        self.assertTrue(r.estado.terminado)
+
+    def test_con_aleatorio_no_remezcla_y_va_detras(self):
+        ad = AdaptadorFalso()
+        c = Coordinador(ad)
+        c.reproducir_lista([tema("x"), tema("y"), tema("z")])
+        c.fijar_aleatorio(True)
+        antes = [t.origen for t in c.estado().cola]
+        r = c.a_continuacion([tema("a")])
+        self.assertEqual([t.origen for t in r.estado.cola],
+                         [antes[0], "C:/musica/a.mp3"] + antes[1:])
+        self.assertEqual(len(ad.cargas()), 1)
+
+    def test_vacio_da_cola_vacia(self):
+        ad = AdaptadorFalso()
+        c = Coordinador(ad)
+        c.reproducir_lista([tema("x")])
+        r = c.a_continuacion([])
+        self.assertFalse(r.ok)
+        self.assertEqual(r.codigo, COLA_VACIA)
+        self.assertEqual(len(ad.cargas()), 1)
+
+    def test_propiedad_el_pedido_queda_tras_los_pendientes(self):
+        rng = random.Random(231)
+        ad = AdaptadorFalso()
+        c = Coordinador(ad)
+        base = [tema(f"p{i}") for i in range(5)]
+        contador = 0
+        for _ in range(200):
+            accion = rng.randrange(7)
+            if accion == 0:
+                pedido = tema(f"nuevo{contador}")
+                contador += 1
+                antes = c.estado()
+                activo = (antes.posicion is not None
+                          and not antes.terminado)
+                c.a_continuacion([pedido])
+                if activo:
+                    estado = c.estado()
+                    self.assertEqual(
+                        estado.cola[estado.posicion + c._a_continuacion].origen,
+                        pedido.origen)
+            elif accion == 1:
+                c.siguiente()
+            elif accion == 2:
+                c.anterior()
+            elif accion == 3:
+                cola = c.estado().cola
+                if cola:
+                    c.reproducir_desde(rng.randrange(-1, len(cola) + 1))
+                else:
+                    c.reproducir_desde(0)
+            elif accion == 4:
+                ficha = ad.ultima_ficha() if ad.cargas() else 0
+                c.tema_terminado(ficha, rng.choice([True, False]))
+            elif accion == 5:
+                c.detener()
+            else:
+                c.agregar(rng.sample(base, rng.randrange(4)))
+
+
 class TestAleatorio(unittest.TestCase):
 
     def test_mezclar_no_se_usa_con_aleatorio_apagado(self):

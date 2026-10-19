@@ -767,6 +767,18 @@ class TestAccionesDeLista(unittest.TestCase):
         self.assertEqual(env.anunciar.call_args_list[-1].args[0],
                          "No hay temas para reproducir")
 
+    def test_reproducir_a_continuacion_anuncia_y_mete_detras(self):
+        temas = [Tema("C:/m/a.mp3", "A"), Tema("C:/m/c.mp3", "C")]
+        with _entorno() as env:
+            control = ControlMusica(_frame())
+            control.reproducir_temas(temas)
+            env.anunciar.reset_mock()
+            control.reproducir_a_continuacion(Tema("C:/m/b.mp3", "B"))
+        env.anunciar.assert_called_once_with("A continuación: B")
+        self.assertEqual(env.snd.sonidos, [])
+        self.assertEqual([t.origen for t in control.estado().cola],
+                         ["C:/m/a.mp3", "C:/m/b.mp3", "C:/m/c.mp3"])
+
 
 class TestVentanaYAtajos(unittest.TestCase):
 

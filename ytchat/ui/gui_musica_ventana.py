@@ -78,12 +78,15 @@ class VentanaMusica(wx.Dialog):
         self.btn_reproducir = self._boton(panel, "&Reproducir este", "Reproducir este")
         self.btn_todo = self._boton(panel, "Reproducir to&do", "Reproducir todo")
         self.btn_agregar = self._boton(panel, "&Agregar a la cola", "Agregar a la cola")
+        self.btn_a_continuacion = self._boton(
+            panel, "Reproducir a co&ntinuación", "Reproducir a continuación")
         self.btn_agregar_lista = self._boton(
             panel, "Agregar a una li&sta…", "Agregar a una lista")
         self.btn_agregar_enlace = self._boton(
             panel, "Agregar &enlace…", "Agregar enlace")
         for boton in (self.btn_reproducir, self.btn_todo, self.btn_agregar,
-                      self.btn_agregar_lista, self.btn_agregar_enlace):
+                      self.btn_a_continuacion, self.btn_agregar_lista,
+                      self.btn_agregar_enlace):
             botones.Add(boton, 0, wx.RIGHT, 6)
         vs.Add(botones, 0, wx.ALL, 6)
 
@@ -115,6 +118,8 @@ class VentanaMusica(wx.Dialog):
         self.btn_reproducir.Bind(wx.EVT_BUTTON, lambda e: self._reproducir_este())
         self.btn_todo.Bind(wx.EVT_BUTTON, lambda e: self._reproducir_todo())
         self.btn_agregar.Bind(wx.EVT_BUTTON, lambda e: self._agregar())
+        self.btn_a_continuacion.Bind(
+            wx.EVT_BUTTON, lambda e: self._a_continuacion())
         self.btn_agregar_lista.Bind(wx.EVT_BUTTON, lambda e: self._agregar_a_lista())
         self.btn_agregar_enlace.Bind(wx.EVT_BUTTON, lambda e: self._agregar_enlace())
         self.btn_carpeta.Bind(wx.EVT_BUTTON, lambda e: self._cambiar_carpeta())
@@ -194,6 +199,7 @@ class VentanaMusica(wx.Dialog):
         self.btn_reproducir.Enable(activo)
         self.btn_todo.Enable(activo)
         self.btn_agregar.Enable(activo)
+        self.btn_a_continuacion.Enable(activo)
         self.btn_agregar_lista.Enable(activo)
         self.btn_agregar_enlace.Enable(activo)
         self.btn_carpeta.Enable(carpeta)
@@ -224,6 +230,13 @@ class VentanaMusica(wx.Dialog):
         if tema is None:
             return
         self._control.agregar_temas([tema])
+        self.refrescar_cola()
+
+    def _a_continuacion(self):
+        tema, _indice = self._tema_elegido()
+        if tema is None:
+            return
+        self._control.reproducir_a_continuacion(tema)
         self.refrescar_cola()
 
     def _agregar_a_lista(self):

@@ -71,6 +71,9 @@ class ControlFalso:
     def agregar_temas(self, temas):
         self.llamadas.append(("agregar_temas", tuple(temas)))
 
+    def reproducir_a_continuacion(self, tema):
+        self.llamadas.append(("reproducir_a_continuacion", tema))
+
     def agregar_enlace(self, url):
         self.llamadas.append(("agregar_enlace", url))
 
@@ -146,7 +149,8 @@ class TestVentanaMusica(unittest.TestCase):
         self.assertEqual([c.GetName() for c in interactivos], [
             "Buscar en la música", "Temas de la carpeta",
             "Reproducir este", "Reproducir todo", "Agregar a la cola",
-            "Agregar a una lista", "Agregar enlace", "Cola de reproducción",
+            "Reproducir a continuación", "Agregar a una lista",
+            "Agregar enlace", "Cola de reproducción",
             "Cambiar carpeta", "Cerrar"])
 
     def test_titulo_nombre_y_rotulos_con_mnemonicos_sin_repetir(self):
@@ -254,6 +258,37 @@ class TestVentanaMusica(unittest.TestCase):
         self.assertIn(
             ("agregar_temas", (control._biblio.temas()[1],)),
             control.llamadas)
+
+    def test_a_continuacion_esta_entre_agregar_y_lista(self):
+        self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock")))
+        panel = self._panel()
+        nombres = [c.GetName() for c in panel.GetChildren()
+                   if isinstance(c, wx.Button)]
+        self.assertEqual(self.ventana.btn_a_continuacion.GetName(),
+                         "Reproducir a continuación")
+        self.assertEqual(self.ventana.btn_a_continuacion.GetLabel(),
+                         "Reproducir a co&ntinuación")
+        self.assertEqual(
+            nombres[nombres.index("Agregar a la cola") + 1:
+                    nombres.index("Agregar a la cola") + 3],
+            ["Reproducir a continuación", "Agregar a una lista"])
+
+    def test_a_continuacion_llama_al_control_con_el_elegido(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock", "Jazz"))
+        self._abrir(control)
+        self.ventana.lb_temas.SetSelection(1)
+        self.ventana._a_continuacion()
+        self.assertIn(
+            ("reproducir_a_continuacion", control._biblio.temas()[1]),
+            control.llamadas)
+
+    def test_a_continuacion_sin_seleccion_no_llama(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
+        self._abrir(control)
+        self.ventana.lb_temas.SetSelection(wx.NOT_FOUND)
+        self.ventana._a_continuacion()
+        self.assertNotIn("reproducir_a_continuacion",
+                         [llamada[0] for llamada in control.llamadas])
 
     def _cuadro_enlace(self, valor, resultado=wx.ID_OK):
         cuadro = mock.MagicMock()

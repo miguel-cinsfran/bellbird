@@ -48,6 +48,11 @@ sys.path.insert(0, str(RAIZ / "qa"))
 
 from sonda import VAR_DESTINO, VAR_ORDENES, VAR_RESULTADOS  # noqa: E402
 
+try:
+    import medidor_sonido  # noqa: E402
+except Exception:
+    medidor_sonido = None
+
 TIEMPO_ORDEN = 20.0
 
 # La consola de Windows va en cp1252 y el chat lleva emojis. Sin esto, imprimir
@@ -1769,11 +1774,867 @@ def escenario_musica(app: Aplicacion, args, res: Resultado):
                    "Guardar la cola como lista", "Cerrar"),
         esperados_en_tab=("Listas guardadas", "Nueva lista",
                           "Temas de la lista", "Guardar la cola como lista",
-                          "Cerrar"))
+                         "Cerrar"))
+
+
+def escenario_musica_real(app: Aplicacion, args, res: Resultado):
+    """Música real de punta a punta, con archivos y sonido de verdad.
+
+    Prepara una carpeta temporal con 5 temas de la música del usuario más
+    un tono corto generado, respalda la configuración y las listas, fija
+    volumen 10 y corre cada comando de música comprobando con el medidor
+    de sonido de Windows que de verdad empieza, se pausa, sigue y se
+    detiene. Al terminar deja los datos del usuario exactamente como
+    estaban. No usa `teclas`: filtra por el buscador, que deja el tema
+    aislado seleccionado, y elige lo demás por posición por defecto.
+    Corre ANTES de lanzar la aplicación compartida (como `arranque_frio`),
+    porque la configuración se escribe antes de arrancar.
+    """
+
+    import array
+    import configparser
+    import math
+    import random
+    import shutil
+    import tempfile
+    import unicodedata
+    import wave
+    from ytchat.core import paths
+    from ytchat.core.config import (
+        codificar_texto_ini, decodificar_texto_ini, guardar_opciones)
+    from ytchat.music import anuncios as anuncios_musica
+    from ytchat.music import listas as listas_musica
+    from ytchat.music.biblioteca import EXTENSIONES
+
+    class _Corte(Exception):
+        """La escena no puede seguir (el fallo ya quedó anotado)."""
+
+    _NOMBRE_LISTA = "QA música real"
+    _TOPE_RECORRIDO = 6 * 60
+    _URL_VIDEO = "https://www.youtube.com/watch?v=jNQXAC9IVw"
+    _URL_LISTA = ("https://www.youtube.com/playlist"
+                  "?list=PLbpi6ZahtOH71mwANLzAlPX9cZafnzIqt")
+
+    def _corta(texto):
+        res.fallo(texto)
+        raise _Corte()
+
+    def _plegar(texto):
+        descompuesto = unicodedata.normalize("NFKD", texto)
+        return "".join(c for c in descompuesto
+                       if not unicodedata.combining(c)).casefold()
+
+    if medidor_sonido is None or not medidor_sonido.DISPONIBLE:
+        res.no_probado("musica_real: sin medidor de sonido en esta PC")
+        return
+
+    # ── Origen: carpeta pedida, la de la configuración o la del usuario ──
+
+    pedida = (getattr(args, "carpeta_musica", None) or "").strip()
+    if pedida:
+        origen = Path(pedida).expanduser()
+    else:
+        origen = None
+        try:
+            lector = configparser.ConfigParser(interpolation=None)
+            lector.read(paths.config_ini(), encoding="utf-8")
+            cruda = lector.get("musica", "carpeta", fallback="").strip()
+            if cruda:
+                origen = Path(decodificar_texto_ini(cruda))
+        except Exception:
+            origen = None
+        if origen is None:
+            origen = Path.home() / "Music"
+    if not origen.is_dir():
+        res.no_probado(f"musica_real: no hay carpeta de música en «{origen}»")
+        return
+    candidatos = sorted(
+        (p for p in origen.rglob("*")
+         if p.is_file() and p.suffix.lower() in EXTENSIONES),
+        key=lambda p: str(p).lower())
+    if len(candidatos) < 5:
+        res.no_probado(f"musica_real: la carpeta «{origen}» tiene "
+                       f"{len(candidatos)} temas y hacen falta 5")
+        return
+    elegidos = random.Random(18102026).sample(candidatos, 5)
+    nombres_archivo = ([f"{i + 1:02d} {f.name}" for i, f in enumerate(elegidos)]
+                       + ["06 corto QA.wav"])
+    plegados = [_plegar(n) for n in nombres_archivo]
+
+    # ── Rutas que se tocan (solo lectura acá, se escriben en el `try`) ──
+
+    ruta_config = paths.config_ini()
+    ruta_listas = paths.listas_musica()
+    ruta_estado = paths.estado_musica()
+    ruta_etiquetas = paths.cache_etiquetas_musica()
+
+    tmp_musica = None
+    tmp_respaldo = None
+    respaldo_config = None
+    respaldo_estado = None
+    respaldo_etiquetas = None
+    listas_habia = False
+    propia = None
+
+    def _agujas_unicas(indice, tope=6):
+        objetivo = plegados[indice]
+        otros = [n for j, n in enumerate(plegados) if j != indice]
+        vistas = []
+        for longitud in range(len(objetivo), 2, -1):
+            for inicio in range(len(objetivo) - longitud + 1):
+                aguja = objetivo[inicio:inicio + longitud]
+                if aguja not in vistas and all(aguja not in otro
+                                               for otro in otros):
+                    vistas.append(aguja)
+                    if len(vistas) >= tope:
+                        return vistas
+        return vistas
+
+    def _aguja_grupo(incluidos, excluidos):
+        def _pedazos(texto):
+            actual = []
+            for caracter in texto:
+                actual.append(caracter if caracter.isalnum() else " ")
+            return {t for t in "".join(actual).split() if len(t) >= 2}
+        comunes = set.intersection(
+            *[_pedazos(plegados[i]) for i in incluidos])
+        for aguja in sorted(comunes, key=len, reverse=True):
+            if all(aguja not in plegados[i] for i in excluidos):
+                return aguja
+        return None
+
+    try:
+        # ── Carpeta temporal con los 6 temas ──
+
+        tmp_musica = Path(tempfile.mkdtemp(prefix="qa-musica-"))
+        tmp_respaldo = Path(tempfile.mkdtemp(prefix="qa-musica-respaldo-"))
+        for i, fuente in enumerate(elegidos):
+            shutil.copy2(fuente, tmp_musica / nombres_archivo[i])
+        with wave.open(str(tmp_musica / "06 corto QA.wav"), "w") as oleada:
+            oleada.setnchannels(1)
+            oleada.setsampwidth(2)
+            oleada.setframerate(44100)
+            muestras = array.array(
+                "h", (int(16383 * math.sin(2 * math.pi * 440 * i / 44100))
+                      for i in range(44100 * 3)))
+            oleada.writeframes(muestras.tobytes())
+
+        # ── Respaldo en otra carpeta temporal ──
+
+        if ruta_config.is_file():
+            respaldo_config = ruta_config.read_bytes()
+            (tmp_respaldo / "config.ini").write_bytes(respaldo_config)
+        if ruta_listas.is_dir():
+            listas_habia = True
+            shutil.copytree(ruta_listas, tmp_respaldo / "listas")
+        if ruta_estado.is_file():
+            respaldo_estado = ruta_estado.read_bytes()
+            (tmp_respaldo / "musica_estado.json").write_bytes(respaldo_estado)
+        if ruta_etiquetas.is_file():
+            respaldo_etiquetas = ruta_etiquetas.read_bytes()
+            (tmp_respaldo / "etiquetas_musica.json").write_bytes(
+                respaldo_etiquetas)
+
+        # ── Solo las claves de música necesarias ──
+
+        cambios = [
+            ("musica", "carpeta", codificar_texto_ini(str(tmp_musica))),
+            ("musica", "volumen", "10"),
+            ("musica", "aleatorio", "false"),
+            ("musica", "repetir", "false"),
+            ("musica", "retomar", "false"),
+            ("musica", "decir_titulo", "true"),
+            ("musica", "sonido_tema", "true"),
+            ("musica", "atajos_globales", "false"),
+        ]
+        if ruta_config.is_file():
+            if not guardar_opciones(ruta_config, cambios):
+                _corta("musica_real: no se pudo fijar la configuración "
+                       "de música")
+        else:
+            nuevo = configparser.ConfigParser(interpolation=None)
+            nuevo["musica"] = {clave: valor for _, clave, valor in cambios}
+            with open(ruta_config, "w", encoding="utf-8") as f:
+                nuevo.write(f)
+
+        # ── Aplicación propia, con la sonda adentro ──
+
+        propia = Aplicacion(app.anuncios_ruta.parent / "musica_real")
+        propia.arrancar()
+        if not propia.esperar_lista(segundos=60):
+            _corta("musica_real: la aplicación no contestó al ping en 60 s")
+        if not propia.dijo("grabador instalado"):
+            _corta("musica_real: la sonda no dejó constancia; "
+                   "podría estar hablando")
+        try:
+            pid_sonda = propia.pedir("pid").get("datos", {}).get("pid")
+        except Exception as exc:
+            _corta(f"musica_real: no se pudo leer el pid de la sonda: {exc}")
+        if not isinstance(pid_sonda, int) or pid_sonda <= 0:
+            _corta("musica_real: la sonda devolvió un pid inválido")
+        pids = {propia.proceso.pid, pid_sonda}
+
+        sin_salida = False
+
+        # ── Atajos del recorrido ──
+
+        def _arbol(ventana):
+            return propia.arbol(ventana)
+
+        def _filas(ventana, nombre):
+            for control in _arbol(ventana):
+                if (control.get("clase") == "ListBox"
+                        and (control.get("nombre") or "") == nombre):
+                    return list(control.get("items", []))
+            return None
+
+        def _filas_hasta(ventana, nombre, cantidad, segundos):
+            limite = time.monotonic() + segundos
+            while time.monotonic() < limite:
+                filas = _filas(ventana, nombre)
+                if filas is not None and len(filas) == cantidad:
+                    return filas
+                time.sleep(0.2)
+            return _filas(ventana, nombre)
+
+        def _filas_estables(ventana, nombre, segundos=8.0):
+            # Las etiquetas se leen en un hilo y cambian los títulos: se
+            # espera a que se asienten antes de tomarlos como esperados.
+            anteriores = _filas(ventana, nombre) or []
+            limite = time.monotonic() + segundos
+            while time.monotonic() < limite:
+                time.sleep(1.2)
+                actuales = _filas(ventana, nombre) or []
+                if actuales and actuales == anteriores:
+                    return actuales
+                anteriores = actuales
+            return anteriores
+
+        def _titulo_fila(fila):
+            texto = fila
+            for prefijo in ("Sonando: ", "En pausa: "):
+                if texto.startswith(prefijo):
+                    texto = texto[len(prefijo):]
+                    break
+            punto = texto.find(". ")
+            if punto > 0 and texto[:punto].isdigit():
+                texto = texto[punto + 2:]
+            return texto
+
+        def _filtrar(ventana, texto):
+            propia.pedir("foco", ventana=ventana,
+                         nombre="Buscar en la música")
+            propia.pedir("texto", valor=texto)
+
+        def _pico():
+            try:
+                return medidor_sonido.pico(pids)
+            except Exception:
+                return None
+
+        def _menu(etiqueta):
+            try:
+                propia.abrir_por_menu(etiqueta)
+            except Exception as exc:
+                _corta(f"musica_real: el menú no tiene «{etiqueta}»: {exc}")
+
+        def _aislar(indice, esperado):
+            for aguja in _agujas_unicas(indice):
+                _filtrar("Música", aguja)
+                filas = _filas_hasta("Música", "Temas de la carpeta", 1, 5.0)
+                if filas is not None and len(filas) == 1:
+                    if filas[0] != esperado:
+                        _corta(f"musica_real: el buscador aisló "
+                               f"«{filas[0]}» en vez de «{esperado}»")
+                    return filas[0]
+            _corta(f"musica_real: no se pudo aislar «{esperado}» "
+                   "con el buscador")
+
+        def _boton_aceptar(ventana):
+            for control in _arbol(ventana):
+                if control.get("clase") not in ("Button", "BitmapButton"):
+                    continue
+                texto = ((control.get("nombre") or "") + " "
+                         + (control.get("etiqueta") or "")).lower()
+                if ("aceptar" in texto or texto.strip() == "ok"
+                        or " ok " in f" {texto} "):
+                    return (control.get("nombre")
+                            or control.get("etiqueta"))
+            return None
+
+        def _escribir_cuadro(ventana, valor):
+            campo = next((c for c in _arbol(ventana)
+                          if c.get("clase") == "TextCtrl"), None)
+            if campo is None:
+                _corta(f"musica_real: «{ventana}» no tiene cuadro de texto")
+            nombre = campo.get("nombre") or campo.get("etiqueta")
+            if nombre:
+                try:
+                    propia.pedir("foco", ventana=ventana, nombre=nombre)
+                except Exception as exc:
+                    _corta(f"musica_real: no se llega al cuadro de "
+                           f"«{ventana}»: {exc}")
+            propia.pedir("texto", valor=valor)
+            for control in _arbol(ventana):
+                if control.get("clase") == "TextCtrl":
+                    if (control.get("valor") or "") == valor:
+                        return
+                    _corta(f"musica_real: el cuadro de «{ventana}» no tomó "
+                           f"«{valor}»")
+
+        def _pulsar_aceptar(ventana):
+            nombre = _boton_aceptar(ventana)
+            if nombre is None:
+                _corta(f"musica_real: «{ventana}» no ofrece ningún botón "
+                       "para aceptar")
+            propia.pedir("pulsar", nombre=nombre, ventana=ventana)
+            if propia.esperar_ventana(ventana, segundos=3) is not None:
+                _corta(f"musica_real: «{ventana}» no cerró al aceptar")
+
+        inicio = time.monotonic()
+        tope = inicio + _TOPE_RECORRIDO
+
+        def _aire():
+            if time.monotonic() > tope:
+                _corta("musica_real: se pasó de 6 minutos, "
+                       "se corta el recorrido")
+            return True
+
+        # ── a. La ventana Música muestra los 6 temas ──
+
+        _menu("elegir música")
+        if propia.esperar_ventana("Música", segundos=15) is None:
+            _corta("musica_real: «Elegir música» no abrió la ventana")
+        res.nota("musica_real: abre «Música» desde el menú")
+        filas = _filas_hasta("Música", "Temas de la carpeta", 6, 30.0)
+        if filas is None or len(filas) != 6:
+            _corta(f"musica_real: la lista de temas tiene "
+                   f"{len(filas) if filas is not None else 'nada'} "
+                   "elementos en vez de 6")
+
+        # ── b. Reproducir todo: anuncia el título y se oye ──
+
+        _aire()
+        filas = _filas_estables("Música", "Temas de la carpeta")
+        titulo_primero = _titulo_fila(filas[0]) if filas else ""
+        n = len(propia.anuncios)
+        propia.pedir("pulsar", nombre="Reproducir todo")
+        anunciado = (bool(titulo_primero)
+                     and propia.esperar_dicho(titulo_primero, segundos=10,
+                                              desde=n))
+        suena = False
+        todo_none = True
+        limite = time.monotonic() + 10
+        while time.monotonic() < limite:
+            valor = _pico()
+            if valor is not None:
+                todo_none = False
+                if valor > 0.005:
+                    suena = True
+                    break
+            time.sleep(0.1)
+        if todo_none:
+            sin_salida = True
+            res.no_probado("musica_real: sin salida de audio en esta PC; "
+                           "se siguen comprobando solo los anuncios y la cola")
+        if not anunciado:
+            res.fallo("musica_real: no se anunció el título del primer "
+                      f"tema («{titulo_primero}»)")
+        elif not sin_salida and not suena:
+            res.fallo("musica_real: el primer tema no se oye "
+                      "(pico bajo 10 s)")
+        else:
+            res.nota(f"musica_real: suena el primer tema "
+                     f"(«{titulo_primero}»)")
+
+        # ── c. Pausa y reanudación ──
+
+        _aire()
+        n = len(propia.anuncios)
+        _menu("reproducir o pausar")
+        if not propia.esperar_dicho(anuncios_musica.TEXTO_PAUSA, segundos=8,
+                                      desde=n):
+            res.fallo("musica_real: pausar no anunció "
+                      f"«{anuncios_musica.TEXTO_PAUSA}»")
+        else:
+            res.nota("musica_real: la pausa se anuncia")
+        if not sin_salida:
+            limite = time.monotonic() + 3
+            callado = False
+            while time.monotonic() < limite:
+                valor = _pico()
+                if valor is not None and valor < 0.001:
+                    callado = True
+                    break
+                time.sleep(0.1)
+            if not callado:
+                res.fallo("musica_real: pausada y el pico no cayó "
+                          "bajo 0,001 en 3 s")
+        n = len(propia.anuncios)
+        _menu("reproducir o pausar")
+        if not propia.esperar_dicho(anuncios_musica.TEXTO_REANUDADA,
+                                     segundos=8, desde=n):
+            res.fallo("musica_real: reanudar no anunció "
+                      f"«{anuncios_musica.TEXTO_REANUDADA}»")
+        if not sin_salida:
+            limite = time.monotonic() + 5
+            suena = False
+            while time.monotonic() < limite:
+                valor = _pico()
+                if valor is not None and valor > 0.005:
+                    suena = True
+                    break
+                time.sleep(0.1)
+            if not suena:
+                res.fallo("musica_real: reanudada y no volvió el sonido")
+
+        # ── d. Siguiente y anterior, según la cola ──
+
+        _aire()
+        cola = _filas("Música", "Cola de reproducción") or []
+        primero = _titulo_fila(cola[0]) if cola else ""
+        segundo = _titulo_fila(cola[1]) if len(cola) > 1 else ""
+        n = len(propia.anuncios)
+        _menu("siguiente tema")
+        if segundo and propia.esperar_dicho(segundo, segundos=8, desde=n):
+            res.nota(f"musica_real: siguiente anuncia «{segundo}»")
+        else:
+            res.fallo("musica_real: «Siguiente tema» no anunció "
+                      f"«{segundo}»")
+        n = len(propia.anuncios)
+        _menu("tema anterior")
+        if primero and propia.esperar_dicho(primero, segundos=8, desde=n):
+            res.nota(f"musica_real: anterior anuncia «{primero}»")
+        else:
+            res.fallo("musica_real: «Tema anterior» no anunció "
+                      f"«{primero}»")
+
+        # ── e. Volumen: sube a 20 y vuelve a 10 ──
+
+        _aire()
+        n = len(propia.anuncios)
+        _menu("subir el volumen")
+        esperado = anuncios_musica.aviso_volumen(20).texto
+        if not propia.esperar_dicho(esperado, segundos=8, desde=n):
+            res.fallo(f"musica_real: subir no anunció «{esperado}»")
+        n = len(propia.anuncios)
+        _menu("bajar el volumen")
+        esperado = anuncios_musica.aviso_volumen(10).texto
+        if not propia.esperar_dicho(esperado, segundos=8, desde=n):
+            res.fallo(f"musica_real: bajar no anunció «{esperado}»")
+        else:
+            res.nota("musica_real: el volumen sube a 20 y vuelve a 10")
+
+        # ── f. Qué suena contiene el título actual ──
+
+        _aire()
+        cola = _filas("Música", "Cola de reproducción") or []
+        actual = next((f for f in cola if f.startswith("Sonando: ")), "")
+        titulo_actual = _titulo_fila(actual)
+        esperado = anuncios_musica.TEXTO_QUE_SUENA.format(
+            nombre=titulo_actual, posicion=cola.index(actual) + 1,
+            total=len(cola)) if actual else ""
+        n = len(propia.anuncios)
+        _menu("qué suena")
+        if esperado and propia.esperar_dicho(esperado, segundos=8, desde=n):
+            res.nota(f"musica_real: qué suena dice «{esperado}»")
+        else:
+            res.fallo("musica_real: «Qué suena» no contiene el título "
+                      f"actual («{titulo_actual}»)")
+
+        # ── g. Orden aleatorio dos veces ──
+
+        _aire()
+        n = len(propia.anuncios)
+        _menu("orden aleatorio")
+        if not propia.esperar_dicho(anuncios_musica.TEXTO_ALEATORIO_ON,
+                                     segundos=8, desde=n):
+            res.fallo("musica_real: no se anunció "
+                      f"«{anuncios_musica.TEXTO_ALEATORIO_ON}»")
+        n = len(propia.anuncios)
+        _menu("orden aleatorio")
+        if not propia.esperar_dicho(anuncios_musica.TEXTO_ALEATORIO_OFF,
+                                     segundos=8, desde=n):
+            res.fallo("musica_real: no se anunció "
+                      f"«{anuncios_musica.TEXTO_ALEATORIO_OFF}»")
+        else:
+            res.nota("musica_real: el orden aleatorio se anuncia "
+                     "activado y desactivado")
+
+        # ── h. El corto a continuación, suena y avanza solo ──
+
+        _aire()
+        _aislar(5, "06 corto QA")
+        cola_antes = _filas("Música", "Cola de reproducción") or []
+        n = len(propia.anuncios)
+        propia.pedir("pulsar", nombre="Reproducir a continuación")
+        esperado = anuncios_musica.TEXTO_A_CONTINUACION.format(
+            nombre="06 corto QA")
+        if not propia.esperar_dicho(esperado, segundos=8, desde=n):
+            res.fallo(f"musica_real: no se anunció «{esperado}»")
+        cola = _filas("Música", "Cola de reproducción") or []
+        if (len(cola) != len(cola_antes) + 1
+                or _titulo_fila(cola[1]) != "06 corto QA"):
+            res.fallo("musica_real: «06 corto QA» no quedó justo detrás "
+                      "del actual en la cola")
+        else:
+            res.nota("musica_real: el corto queda justo detrás del actual")
+        que_seguia = _titulo_fila(cola[2]) if len(cola) > 2 else ""
+        n = len(propia.anuncios)
+        _menu("siguiente tema")
+        if not propia.esperar_dicho("06 corto QA", segundos=10, desde=n):
+            res.fallo("musica_real: «Siguiente tema» no anunció el corto")
+        elif que_seguia and propia.esperar_dicho(que_seguia, segundos=15,
+                                                    desde=n):
+            res.nota(f"musica_real: el corto sonó y avanzó solo "
+                     f"a «{que_seguia}»")
+        else:
+            res.fallo("musica_real: el corto no avanzó solo al tema que "
+                      f"seguía («{que_seguia}»)")
+        _filtrar("Música", "")
+        if _filas_hasta("Música", "Temas de la carpeta", 6, 10.0) is None:
+            _corta("musica_real: al limpiar el buscador no vuelven los 6")
+
+        # ── i. El quinto a la cola ──
+
+        _aire()
+        filas = _filas_estables("Música", "Temas de la carpeta") or []
+        if len(filas) != 6:
+            _corta("musica_real: la lista de temas no tiene 6 elementos")
+        quinto = _titulo_fila(filas[4])
+        _aislar(4, quinto)
+        cola_antes = _filas("Música", "Cola de reproducción") or []
+        propia.pedir("pulsar", nombre="Agregar a la cola")
+        cola = _filas("Música", "Cola de reproducción") or []
+        if (len(cola) != len(cola_antes) + 1
+                or (quinto and _titulo_fila(cola[-1]) != quinto)):
+            res.fallo("musica_real: la cola no creció en uno con el "
+                      f"quinto («{quinto}»)")
+        else:
+            res.nota("musica_real: el quinto se agrega al final de la cola")
+        _filtrar("Música", "")
+        _filas_hasta("Música", "Temas de la carpeta", 6, 10.0)
+
+        # ── j. Reproducir este con el tercero ──
+
+        _aire()
+        filas = _filas_estables("Música", "Temas de la carpeta") or []
+        aguja = (_aguja_grupo([2, 3, 4, 5], [0, 1])
+                 if len(filas) == 6 else None)
+        if aguja is None:
+            res.no_probado("musica_real: no se pudo aislar la carpeta "
+                           "desde el tercero con el buscador")
+        else:
+            _filtrar("Música", aguja)
+            filtradas = _filas_hasta("Música", "Temas de la carpeta", 4, 5.0)
+            if filtradas != filas[2:]:
+                res.no_probado("musica_real: no se pudo aislar la carpeta "
+                               "desde el tercero con el buscador")
+                _filtrar("Música", "")
+                _filas_hasta("Música", "Temas de la carpeta", 6, 10.0)
+            else:
+                n = len(propia.anuncios)
+                propia.pedir("pulsar", nombre="Reproducir este")
+                tercero = _titulo_fila(filas[2])
+                if not propia.esperar_dicho(tercero, segundos=10, desde=n):
+                    res.fallo("musica_real: «Reproducir este» no anunció "
+                              f"«{tercero}»")
+                esperada = ([f"Sonando: 1. {filas[2]}"]
+                            + [f"{i}. {t}" for i, t in enumerate(filas[3:],
+                                                                  start=2)])
+                cola = _filas("Música", "Cola de reproducción") or []
+                if cola != esperada:
+                    res.fallo("musica_real: la cola no pasó a ser la "
+                              "carpeta empezando en el tercero")
+                elif not sin_salida:
+                    limite = time.monotonic() + 10
+                    suena = False
+                    while time.monotonic() < limite:
+                        valor = _pico()
+                        if valor is not None and valor > 0.005:
+                            suena = True
+                            break
+                        time.sleep(0.1)
+                    if not suena:
+                        res.fallo("musica_real: el tercero no se oye")
+                _filtrar("Música", "")
+                _filas_hasta("Música", "Temas de la carpeta", 6, 10.0)
+
+        # ── k. Guardar la cola como lista y reproducirla ──
+
+        _aire()
+        cola = _filas("Música", "Cola de reproducción") or []
+        cantidad_cola = len(cola)
+        propia.pedir("cerrar_ventana", ventana="Música")
+        _menu("listas de música")
+        if propia.esperar_ventana("Listas de música", segundos=15) is None:
+            _corta("musica_real: «Listas de música» no abrió la ventana")
+        try:
+            propia.pedir("pulsar", nombre="Guardar la cola como lista",
+                         responder_ya=True)
+        except Exception:
+            pass  # el cuadro es modal y se come la respuesta
+        if propia.esperar_ventana("Nueva lista", segundos=10) is None:
+            _corta("musica_real: no abrió «Nueva lista»")
+        _escribir_cuadro("Nueva lista", _NOMBRE_LISTA)
+        _pulsar_aceptar("Nueva lista")
+        esperado = anuncios_musica.TEXTO_LISTA_GUARDADA.format(
+            nombre=_NOMBRE_LISTA)
+        if not propia.esperar_dicho(esperado, segundos=10):
+            res.fallo(f"musica_real: no se anunció «{esperado}»")
+        ruta_lista = ruta_listas / (_NOMBRE_LISTA + ".m3u8")
+        if not ruta_lista.is_file():
+            res.fallo("musica_real: no existe el .m3u8 en la carpeta "
+                      "de listas")
+        else:
+            try:
+                guardados, _saltadas = listas_musica.cargar(
+                    ruta_listas, _NOMBRE_LISTA)
+            except Exception as exc:
+                res.fallo(f"musica_real: no se pudo leer la lista "
+                          f"guardada: {exc}")
+            else:
+                if len(guardados) != cantidad_cola:
+                    res.fallo("musica_real: la lista guardada tiene "
+                              f"{len(guardados)} entradas y la cola "
+                              f"{cantidad_cola}")
+                else:
+                    res.nota("musica_real: la cola se guarda como lista "
+                             f"con {cantidad_cola} entradas")
+        propia.pedir("cerrar_ventana", ventana="Listas de música")
+        n = len(propia.anuncios)
+        _menu("detener la música")
+        if not propia.esperar_dicho(anuncios_musica.TEXTO_DETENIDA,
+                                     segundos=8, desde=n):
+            res.fallo("musica_real: detener no anunció "
+                      f"«{anuncios_musica.TEXTO_DETENIDA}»")
+        if not sin_salida:
+            limite = time.monotonic() + 3
+            callado = False
+            while time.monotonic() < limite:
+                valor = _pico()
+                if valor is not None and valor < 0.001:
+                    callado = True
+                    break
+                time.sleep(0.1)
+            if not callado:
+                res.fallo("musica_real: detenida y el pico no cayó "
+                          "bajo 0,001 en 3 s")
+        _menu("listas de música")
+        if propia.esperar_ventana("Listas de música", segundos=15) is None:
+            _corta("musica_real: al reabrir no abrió «Listas de música»")
+        guardadas = _filas("Listas de música", "Listas guardadas") or []
+        if guardadas != [_NOMBRE_LISTA]:
+            _corta(f"musica_real: las listas son {guardadas} en vez de "
+                   f"«{_NOMBRE_LISTA}» sola")
+        n = len(propia.anuncios)
+        propia.pedir("pulsar", nombre="Reproducir la lista")
+        if not sin_salida:
+            limite = time.monotonic() + 10
+            suena = False
+            while time.monotonic() < limite:
+                valor = _pico()
+                if valor is not None and valor > 0.005:
+                    suena = True
+                    break
+                time.sleep(0.1)
+            if not suena:
+                res.fallo("musica_real: la lista no se oye")
+        propia.pedir("cerrar_ventana", ventana="Listas de música")
+        _menu("elegir música")
+        if propia.esperar_ventana("Música", segundos=15) is None:
+            _corta("musica_real: no reabrió «Música»")
+        cola = _filas("Música", "Cola de reproducción") or []
+        if len(cola) != cantidad_cola:
+            res.fallo("musica_real: la cola tiene "
+                      f"{len(cola)} entradas en vez de {cantidad_cola}")
+        else:
+            res.nota("musica_real: la lista suena con sus "
+                     f"{cantidad_cola} entradas")
+
+        # ── l. Agregar el enlace del vídeo ──
+
+        _aire()
+        cola_antes = _filas("Música", "Cola de reproducción") or []
+        try:
+            propia.pedir("pulsar", nombre="Agregar enlace",
+                         responder_ya=True)
+        except Exception:
+            pass  # el cuadro es modal y se come la respuesta
+        if propia.esperar_ventana("Agregar enlace", segundos=10) is None:
+            _corta("musica_real: no abrió «Agregar enlace»")
+        _escribir_cuadro("Agregar enlace", _URL_VIDEO)
+        _pulsar_aceptar("Agregar enlace")
+        n = len(propia.anuncios)
+        if not propia.esperar_dicho(
+                anuncios_musica.TEXTO_LEYENDO_ENLACE, segundos=10, desde=n):
+            res.fallo("musica_real: no se anunció "
+                      f"«{anuncios_musica.TEXTO_LEYENDO_ENLACE}»")
+        if not propia.esperar_dicho(anuncios_musica.TEXTO_AGREGADO,
+                                     segundos=60, desde=n):
+            dichos = " ".join(a.get("texto", "")
+                              for a in propia.anuncios[n:])[-200:]
+            res.fallo("musica_real: el vídeo no se agregó a la cola en "
+                      f"60 s; dijo «{dichos}»")
+        else:
+            cola = _filas("Música", "Cola de reproducción") or []
+            if len(cola) != len(cola_antes) + 1:
+                res.fallo("musica_real: la cola no creció con el enlace")
+            else:
+                res.nota("musica_real: el vídeo se agrega a la cola")
+        res.nota("musica_real: la reproducción desde la cola no se puede "
+                 "elegir sin teclas: del enlace solo se comprueban "
+                 "el anuncio y la cola")
+
+        # ── m. Agregar el enlace de la lista ──
+
+        _aire()
+        try:
+            propia.pedir("pulsar", nombre="Agregar enlace",
+                         responder_ya=True)
+        except Exception:
+            pass  # el cuadro es modal y se come la respuesta
+        if propia.esperar_ventana("Agregar enlace", segundos=10) is None:
+            _corta("musica_real: no abrió «Agregar enlace» por segunda vez")
+        _escribir_cuadro("Agregar enlace", _URL_LISTA)
+        _pulsar_aceptar("Agregar enlace")
+        n = len(propia.anuncios)
+        limite = time.monotonic() + 90
+        agregados = 0
+        lista_muerta = False
+        while time.monotonic() < limite:
+            for dicho in propia.anuncios[n:]:
+                texto = dicho.get("texto", "")
+                if "temas agregados a la cola" in texto.lower():
+                    palabras = texto.split()
+                    for i, palabra in enumerate(palabras):
+                        if (palabra.isdigit() and i + 1 < len(palabras)
+                                and palabras[i + 1].startswith("tema")):
+                            agregados = max(agregados, int(palabra))
+                if ("no se pudo leer el enlace" in texto.lower()
+                        or "el enlace no tiene" in texto.lower()):
+                    lista_muerta = True
+            if agregados >= 2 or lista_muerta:
+                break
+            time.sleep(0.5)
+        if lista_muerta:
+            res.no_probado("musica_real: la lista de prueba ya no existe "
+                           "en YouTube: cambiarla")
+        elif agregados < 2:
+            res.fallo("musica_real: la lista no sumó 2 o más temas en 90 s")
+        else:
+            res.nota(f"musica_real: la lista sumó {agregados} temas")
+
+        # ── n. Detener la música ──
+
+        _aire()
+        try:
+            propia.pedir("cerrar_ventana", ventana="Música")
+        except Exception:
+            pass
+        n = len(propia.anuncios)
+        _menu("detener la música")
+        if not propia.esperar_dicho(anuncios_musica.TEXTO_DETENIDA,
+                                     segundos=8, desde=n):
+            res.fallo("musica_real: al final detener no anunció "
+                      f"«{anuncios_musica.TEXTO_DETENIDA}»")
+        if not sin_salida:
+            limite = time.monotonic() + 3
+            callado = False
+            while time.monotonic() < limite:
+                valor = _pico()
+                if valor is not None and valor < 0.001:
+                    callado = True
+                    break
+                time.sleep(0.1)
+            if not callado:
+                res.fallo("musica_real: al final el pico no cayó "
+                          "bajo 0,001 en 3 s")
+        else:
+            res.nota("musica_real: recorrido completo sin salida de audio")
+    except _Corte:
+        pass
+    except Exception as exc:
+        res.fallo(f"musica_real: el recorrido reventó: {exc!r}")
+    finally:
+        if propia is not None:
+            try:
+                try:
+                    propia.pedir("salir", tiempo=5.0, tolerar=True)
+                except Exception:
+                    pass
+                try:
+                    contestar_salir_si_aparece(segundos=2.0)
+                except Exception:
+                    pass
+                limite = time.monotonic() + 15.0
+                while (propia.proceso is not None
+                       and propia.proceso.poll() is None
+                       and time.monotonic() < limite):
+                    time.sleep(0.5)
+                if (propia.proceso is not None
+                        and propia.proceso.poll() is None):
+                    try:
+                        propia.proceso.kill()
+                    except Exception:
+                        pass
+                    res.nota("musica_real: la aplicación no cerró en 15 s "
+                             "y se la mató")
+            finally:
+                try:
+                    propia._salida.close()
+                except Exception:
+                    pass
+        # La aplicación guarda al salir: se restaura DESPUÉS de cerrarla.
+        try:
+            if respaldo_config is None:
+                try:
+                    ruta_config.unlink()
+                except FileNotFoundError:
+                    pass
+                if ruta_config.exists():
+                    res.fallo("musica_real: config.ini no existía y no se "
+                              "pudo borrar el creado")
+            else:
+                ruta_config.write_bytes(respaldo_config)
+                if ruta_config.read_bytes() != respaldo_config:
+                    res.fallo("musica_real: config.ini no quedó idéntico "
+                              "al respaldo")
+        except Exception as exc:
+            res.fallo(f"musica_real: no se pudo restaurar config.ini: {exc}")
+        try:
+            shutil.rmtree(ruta_listas, ignore_errors=True)
+            if listas_habia:
+                shutil.copytree(tmp_respaldo / "listas", ruta_listas)
+        except Exception as exc:
+            res.fallo("musica_real: no se pudo restaurar la carpeta "
+                      f"de listas: {exc}")
+        for nombre, ruta, respaldo in (
+                ("musica_estado.json", ruta_estado, respaldo_estado),
+                ("etiquetas_musica.json", ruta_etiquetas,
+                 respaldo_etiquetas)):
+            try:
+                if respaldo is None:
+                    try:
+                        ruta.unlink()
+                    except FileNotFoundError:
+                        pass
+                    if ruta.exists():
+                        res.fallo(f"musica_real: {nombre} no existía y no "
+                                  "se pudo borrar el creado")
+                else:
+                    ruta.write_bytes(respaldo)
+            except Exception as exc:
+                res.fallo(f"musica_real: no se pudo restaurar {nombre}: "
+                          f"{exc}")
+        if tmp_musica is not None:
+            shutil.rmtree(tmp_musica, ignore_errors=True)
+        if tmp_respaldo is not None:
+            shutil.rmtree(tmp_respaldo, ignore_errors=True)
 
 
 def _estado_actualizacion_asentado(app: Aplicacion, titulo: str,
-                                  segundos: float = 30.0) -> str:
+                                   segundos: float = 30.0) -> str:
     """Espera a que la ventana deje de decir que está buscando.
 
     Devuelve el texto del cuadro de estado, o cadena vacía si no se pudo
@@ -3988,6 +4849,8 @@ FUERA_DE_TODOS = frozenset({
     "reproductor_en_marcha",  # pide un vídeo y un directo reales
     "dos_conexiones",    # conecta dos veces a un directo vivo
     "enviar_live",       # escribe de verdad en un chat: pide directo y sesion
+    "musica_real",       # suena de verdad, usa la red y cambia la
+                         # configuración mientras corre
 })
 
 ESCENARIOS = {
@@ -4000,6 +4863,7 @@ ESCENARIOS = {
     "historial": escenario_historial,
     "transmision": escenario_transmision,
     "musica": escenario_musica,
+    "musica_real": escenario_musica_real,
     "ayuda": escenario_ayuda,
     "dialogos_ayuda": escenario_dialogos_ayuda,
     "chat": escenario_chat,
@@ -4074,6 +4938,8 @@ def main() -> int:
                    help="permite abrir el navegador de verdad")
     p.add_argument("--carpeta", default=None,
                    help="dónde dejar las grabaciones")
+    p.add_argument("--carpeta-musica", dest="carpeta_musica", default=None,
+                   help="carpeta con música para el escenario musica_real")
     p.add_argument("--tope-minutos", dest="tope_minutos", type=float,
                    default=20.0,
                    help="corta la corrida entera si se cuelga (0 lo desactiva)")
@@ -4149,6 +5015,17 @@ def main() -> int:
             escenario_arranque_frio(app, args, res)
         except Exception as exc:
             res.fallo(f"arranque_frio: el escenario reventó, {exc!r}")
+
+    # `musica_real` también monta su propia aplicación con datos preparados,
+    # igual que `arranque_frio`: la configuración se escribe ANTES de lanzar.
+    if "musica_real" in pedidos:
+        pedidos = [n for n in pedidos if n != "musica_real"]
+        print()
+        print("--- escenario: musica_real ---")
+        try:
+            escenario_musica_real(app, args, res)
+        except Exception as exc:
+            res.fallo(f"musica_real: el escenario reventó, {exc!r}")
 
     print("Arrancando la aplicación con la sonda puesta. No va a hablar.")
     obs_al_empezar = obs_abierto()

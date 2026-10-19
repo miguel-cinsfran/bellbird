@@ -683,6 +683,13 @@ class Sonda:
                     try:    v.Destroy()
                     except Exception: pass
 
+            elif op == "pid":
+                # El pid del proceso de la aplicación, para el medidor de
+                # sonido de `musica_real`. En Windows el `python.exe` del
+                # `.venv` es un lanzador que crea otro proceso, así que el
+                # pid del `Popen` no es el que suena.
+                self.responder(id_orden, True, {"pid": os.getpid()})
+
             else:
                 raise RuntimeError(f"orden desconocida: {op!r}")
         except Exception as exc:

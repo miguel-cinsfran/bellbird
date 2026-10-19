@@ -400,6 +400,78 @@ class TestVentanaMusica(unittest.TestCase):
 
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestBotonesLlamanALoEsperado(unittest.TestCase):
+    """Cada botón de acción dispara su llamada y ningún otro.
+
+    Las pruebas de arriba llaman a los métodos directamente: un botón
+    conectado al método equivocado pasaría igual. Acá va por el cableado
+    de verdad, con un `wx.CommandEvent` de `wx.EVT_BUTTON` por el
+    `GetEventHandler` del botón.
+    """
+
+    def setUp(self):
+        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.anuncios = []
+        self._parche = mock.patch.object(
+            gui_musica_ventana, "anunciar",
+            lambda texto, urgente=True: self.anuncios.append(texto))
+        self._parche.start()
+        self.ventana = None
+
+    def tearDown(self):
+        if self.ventana is not None:
+            destruir(self.ventana)
+        self._parche.stop()
+
+    def _abrir(self, control):
+        self.ventana = gui_musica_ventana.VentanaMusica(None, control)
+        return self.ventana
+
+    def _pulsar(self, boton):
+        boton.GetEventHandler().ProcessEvent(
+            wx.CommandEvent(wx.EVT_BUTTON.typeId, boton.GetId()))
+
+    def test_botones_de_accion(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock", "Jazz"))
+        self._abrir(control)
+        temas = control._biblio.temas()
+        self.ventana.lb_temas.SetSelection(1)
+        with mock.patch.object(self.ventana, "_agregar_a_lista") as a_lista, \
+                mock.patch.object(self.ventana, "_agregar_enlace") as enlace, \
+                mock.patch.object(self.ventana,
+                                  "_cambiar_carpeta") as carpeta:
+            casos = [
+                ("directo", self.ventana.btn_reproducir,
+                 ("reproducir_temas_desde", tuple(temas), 1)),
+                ("directo", self.ventana.btn_todo,
+                 ("reproducir_temas", tuple(temas), False)),
+                ("directo", self.ventana.btn_agregar,
+                 ("agregar_temas", (temas[1],))),
+                ("directo", self.ventana.btn_a_continuacion,
+                 ("reproducir_a_continuacion", temas[1])),
+                ("cuadro", self.ventana.btn_agregar_lista, None),
+                ("cuadro", self.ventana.btn_agregar_enlace, None),
+                ("cuadro", self.ventana.btn_carpeta, None),
+            ]
+            for modo, boton, esperado in casos:
+                with self.subTest(boton=boton.GetName()):
+                    control.llamadas.clear()
+                    self.ventana.lb_temas.SetSelection(1)
+                    self._pulsar(boton)
+                    if modo == "directo":
+                        self.assertIn(esperado, control.llamadas)
+                    self.assertEqual(
+                        sum(1 for llamada in control.llamadas
+                            if llamada and llamada[0] in (
+                                "reproducir_temas_desde", "reproducir_temas",
+                                "agregar_temas", "reproducir_a_continuacion")),
+                        1 if modo == "directo" else 0)
+        a_lista.assert_called_once_with()
+        enlace.assert_called_once_with()
+        carpeta.assert_called_once_with()
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestActualizarNombres(unittest.TestCase):
     """`actualizar_nombres`: cambia el texto sin mover selección ni foco."""
 

@@ -69,6 +69,25 @@ configuración y OBS como estaban.
 No entra en la corrida completa ni en ningún hook: gasta minutos, toca la
 red y necesita OBS y una cuenta con clave de emisión reutilizable.
 
+## Música real
+
+`musica_real` pone música de verdad al 10 % de volumen y recorre cada
+comando: reproducir, pausar, siguiente, anterior, volumen, qué suena,
+orden aleatorio, a continuación, cola, listas guardadas y los dos enlaces
+de YouTube. Comprueba con el medidor de sonido de Windows
+(`qa/medidor_sonido.py`) que el sonido de verdad empieza, se pausa, sigue
+y se detiene. No entra en la corrida completa: suena, usa la red y cambia
+la configuración mientras corre.
+
+    python qa/conducir.py --escenario musica_real
+    python qa/conducir.py --escenario musica_real --carpeta-musica C:\Musica
+
+Toma 5 temas de `--carpeta-musica`, de la carpeta de la configuración o de
+la Música del usuario (en ese orden), los copia a una carpeta temporal y
+les suma un tono corto generado. Respaldan `config.ini`, la carpeta de
+listas, `musica_estado.json` y `etiquetas_musica.json`, y al terminar los
+deja byte a byte como estaban. Corre en la PC donde no hay nadie.
+
 ## Cómo funciona
 
 Son dos piezas.

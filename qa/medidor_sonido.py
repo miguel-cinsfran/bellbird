@@ -70,7 +70,7 @@ if _HAY_COM:
         ]
 
     class _IAudioSessionControl2(_IAudioSessionControl):
-        _iid_ = GUID("{BFB7FF88-7239-4FC9-8FA2-07C950BE9C6A}")
+        _iid_ = GUID("{BFB7FF88-7239-4FC9-8FA2-07C950BE9C6D}")
         _methods_ = [
             COMMETHOD([], HRESULT, "GetSessionIdentifier",
                       (["out"], POINTER(c_wchar_p), "identificador")),
@@ -164,36 +164,61 @@ if _HAY_COM:
         ]
 
 
-def _sesiones() -> list:
-    """Pares `(pid, pico)` de cada sesión del dispositivo de salida."""
+def _consultar() -> tuple[list, int]:
+    """Pares `(pid, pico)` y cantidad de sesiones enumeradas.
+
+    Función interna: al volver se liberan sus referencias COM, antes de
+    que quien la llama ejecute `CoUninitialize`. Una sesión que no se
+    pudo leer no se descarta en silencio: se registra con
+    `logger.debug` y su error, y no aporta par.
+    """
+    enumerador = comtypes.client.CreateObject(
+        _CLSID_ENUMERADOR, clsctx=CLSCTX_ALL,
+        interface=_IMMDeviceEnumerator)
+    # Salida (`eRender`) para multimedia: lo que suena por defecto.
+    dispositivo = enumerador.GetDefaultAudioEndpoint(0, 1)
+    gestor = dispositivo.Activate(
+        _IAudioSessionManager2._iid_, CLSCTX_ALL, None)
+    lista = gestor.GetSessionEnumerator()
+    cantidad = lista.GetCount()
+    pares = []
+    for indice in range(cantidad):
+        try:
+            control = lista.GetSession(indice)
+            pid = control.QueryInterface(
+                _IAudioSessionControl2).GetProcessId()
+        except Exception as exc:
+            logger.debug("medidor: sesión %d sin leer: %r", indice, exc)
+            continue
+        try:
+            valor = control.QueryInterface(
+                _IAudioMeterInformation).GetPeakValue()
+        except Exception as exc:
+            logger.debug("medidor: pico de la sesión %d sin leer: %r",
+                         indice, exc)
+            continue
+        pares.append((int(pid), float(valor)))
+    return pares, cantidad
+
+
+def _leer_sesiones() -> tuple[list, int]:
+    """Pares `(pid, pico)` y cantidad de sesiones enumeradas.
+
+    Si enumera una o más sesiones, devuelve un par por cada una: una
+    prueba real falla si alguna se pierde. Lanza ante un error de COM;
+    `pico` lo convierte en `None`.
+    """
     comtypes.CoInitialize()
     try:
-        enumerador = comtypes.client.CreateObject(
-            _CLSID_ENUMERADOR, clsctx=CLSCTX_ALL,
-            interface=_IMMDeviceEnumerator)
-        # Salida (`eRender`) para multimedia: lo que suena por defecto.
-        dispositivo = enumerador.GetDefaultAudioEndpoint(0, 1)
-        gestor = dispositivo.Activate(
-            _IAudioSessionManager2._iid_, CLSCTX_ALL, None)
-        lista = gestor.GetSessionEnumerator()
-        cantidad = lista.GetCount()
-        pares = []
-        for indice in range(cantidad):
-            try:
-                control = lista.GetSession(indice)
-                pid = control.QueryInterface(
-                    _IAudioSessionControl2).GetProcessId()
-            except Exception:
-                continue
-            try:
-                valor = control.QueryInterface(
-                    _IAudioMeterInformation).GetPeakValue()
-            except Exception:
-                continue
-            pares.append((int(pid), float(valor)))
-        return pares
+        return _consultar()
     finally:
         comtypes.CoUninitialize()
+
+
+def _sesiones() -> list:
+    """Pares `(pid, pico)` de cada sesión del dispositivo de salida."""
+    pares, _cantidad = _leer_sesiones()
+    return pares
 
 
 def pico(pids) -> float | None:

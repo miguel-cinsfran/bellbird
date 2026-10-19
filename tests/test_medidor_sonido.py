@@ -1,8 +1,8 @@
 """Pruebas del medidor de sonido de Windows (`qa/medidor_sonido.py`).
 
-Sin ventanas ni sonido: solo se lee el medidor. La primera y la segunda
-prueba van DE VERDAD contra COM, sin dobles. La tercera parcha `pico`
-porque lo que mide es el máximo entre lecturas, no el COM. La cuarta
+Sin ventanas ni sonido: solo se lee el medidor. La primera, la segunda y
+la tercera van DE VERDAD contra COM, sin dobles. La cuarta parcha `pico`
+porque lo que mide es el máximo entre lecturas, no el COM. La quinta
 parcha `_sesiones` porque lo que mide es el filtro por pid, que con
 cero sesiones reales no se podría romper a propósito.
 """
@@ -32,6 +32,13 @@ class TestPico(unittest.TestCase):
         valor = medidor_sonido.pico([os.getpid()])
         self.assertTrue(valor is None or 0.0 <= valor <= 1.0,
                         f"pico imposible: {valor!r}")
+
+    def test_lee_una_sesion_por_cada_enumerada(self):
+        pares, cantidad = medidor_sonido._leer_sesiones()
+        if cantidad == 0:
+            self.skipTest("sin sesiones de audio enumeradas en esta PC")
+        self.assertEqual(len(pares), cantidad,
+                         f"se perdieron {cantidad - len(pares)} sesiones")
 
     def test_filtra_por_pid_aunque_haya_sesiones_de_otros(self):
         pares = [(111111, 0.5), (222222, 0.25)]

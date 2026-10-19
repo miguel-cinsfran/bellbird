@@ -2452,9 +2452,27 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
             res.nota("musica_real: la lista suena con sus "
                      f"{cantidad_cola} entradas")
 
-        # ── l. Agregar el enlace del vídeo ──
+        # ── l. Agregar el enlace del vídeo: se oye ──
 
         _aire()
+        n = len(propia.anuncios)
+        _menu("detener la música")
+        if not propia.esperar_dicho(anuncios_musica.TEXTO_DETENIDA,
+                                     segundos=8, desde=n):
+            res.fallo("musica_real: detener no anunció "
+                      f"«{anuncios_musica.TEXTO_DETENIDA}»")
+        if not sin_salida:
+            limite = time.monotonic() + 3
+            callado = False
+            while time.monotonic() < limite:
+                valor = _pico()
+                if valor is not None and valor < 0.001:
+                    callado = True
+                    break
+                time.sleep(0.1)
+            if not callado:
+                res.fallo("musica_real: detenida y el pico no cayó "
+                          "bajo 0,001 en 3 s")
         cola_antes = _filas("Música", "Cola de reproducción") or []
         try:
             propia.pedir("pulsar", nombre="Agregar enlace",
@@ -2480,11 +2498,21 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
             cola = _filas("Música", "Cola de reproducción") or []
             if len(cola) != len(cola_antes) + 1:
                 res.fallo("musica_real: la cola no creció con el enlace")
-            else:
+            elif sin_salida:
                 res.nota("musica_real: el vídeo se agrega a la cola")
-        res.nota("musica_real: la reproducción desde la cola no se puede "
-                 "elegir sin teclas: del enlace solo se comprueban "
-                 "el anuncio y la cola")
+            else:
+                limite = time.monotonic() + 30
+                suena = False
+                while time.monotonic() < limite:
+                    valor = _pico()
+                    if valor is not None and valor > 0.005:
+                        suena = True
+                        break
+                    time.sleep(0.2)
+                if not suena:
+                    res.fallo("musica_real: el vídeo de YouTube no se oye")
+                else:
+                    res.nota("musica_real: el vídeo de YouTube se oye")
 
         # ── m. Agregar el enlace de la lista ──
 

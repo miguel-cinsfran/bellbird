@@ -1413,7 +1413,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
                   for i in range(dialogo.nb.GetPageCount())]
         self.assertEqual(textos.index("Música"), textos.index("Reproductor") + 1)
         pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagMusica")
-        esperados = ["Carpeta de música", "MusicaAleatorio", "MusicaRepetir",
+        esperados = ["Carpeta de música", "MusicaAleatorio", "Repetir la música",
                      "MusicaRetomar", "MusicaSonidoTema", "MusicaDecirTitulo",
                      "MusicaIncluirArtista", "Volumen de la música",
                      "Salida de audio de la música", "Buscar las salidas de audio",
@@ -1432,7 +1432,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
         self.assertEqual(etiquetas, [
             "Carpeta de &música:",
             "Reproducir en orden &aleatorio",
-            "&Repetir la lista al terminar",
+            "&Repetir:",
             "Recordar la ú&ltima lista al abrir",
             "&Sonido al pasar de tema",
             "&Decir el título al pasar de tema",
@@ -2073,7 +2073,7 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         self.assertEqual(opciones.get("musica", "carpeta"),
                          config.codificar_texto_ini("C:\\Música\\Rock and Roll"))
         self.assertEqual(opciones.get("musica", "aleatorio"), "true")
-        self.assertEqual(opciones.get("musica", "repetir"), "false")
+        self.assertEqual(opciones.get("musica", "repetir"), "no")
         self.assertEqual(opciones.get("musica", "retomar"), "false")
         self.assertEqual(opciones.get("musica", "sonido_tema"), "true")
         self.assertEqual(opciones.get("musica", "decir_titulo"), "true")

@@ -2220,7 +2220,26 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
                               f"«{segundo}»")
                 n = len(propia.anuncios)
                 _menu("tema anterior")
-                if propia.esperar_dicho(primero, segundos=8, desde=n):
+                reiniciado = False
+                limite = time.time() + 8
+                while time.time() < limite:
+                    if propia.dijo(anuncios_musica.TEXTO_REINICIADO,
+                                   desde=n):
+                        reiniciado = True
+                        break
+                    if propia.dijo(primero, desde=n):
+                        break
+                    time.sleep(0.1)
+                if reiniciado:
+                    res.nota("musica_real: anterior reinició el tema")
+                    n = len(propia.anuncios)
+                    _menu("tema anterior")
+                    if propia.esperar_dicho(primero, segundos=8, desde=n):
+                        res.nota(f"musica_real: anterior anuncia «{primero}»")
+                    else:
+                        res.fallo("musica_real: «Tema anterior» no anunció "
+                                  f"«{primero}»")
+                elif propia.dijo(primero, desde=n):
                     res.nota(f"musica_real: anterior anuncia «{primero}»")
                 else:
                     res.fallo("musica_real: «Tema anterior» no anunció "
@@ -2231,12 +2250,12 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         _aire()
         n = len(propia.anuncios)
         _menu("subir el volumen")
-        esperado = anuncios_musica.aviso_volumen(20).texto
+        esperado = anuncios_musica.TEXTO_VOLUMEN.format(valor=20)
         if not propia.esperar_dicho(esperado, segundos=8, desde=n):
             res.fallo(f"musica_real: subir no anunció «{esperado}»")
         n = len(propia.anuncios)
         _menu("bajar el volumen")
-        esperado = anuncios_musica.aviso_volumen(10).texto
+        esperado = str(10)
         if not propia.esperar_dicho(esperado, segundos=8, desde=n):
             res.fallo(f"musica_real: bajar no anunció «{esperado}»")
         else:

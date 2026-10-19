@@ -28,7 +28,13 @@ class CoordinadorFalso:
         self.silenciado = silenciado
         self.saltos = []
         self.silencios = []
+        self.volumenes = []
         self.salto = salto
+
+    def fijar_volumen(self, valor):
+        self.volumenes.append(valor)
+        self.silenciado = False
+        return Resultado(True, OK, None)
 
     def fijar_silencio(self, activo):
         self.silencios.append(activo)
@@ -61,6 +67,9 @@ class Host(TeclasMusica):
 
     def _incluir_artista(self):
         return False
+
+    def _volumen_config(self):
+        return 40
 
     def reproducir_o_pausar(self):
         pass
@@ -138,8 +147,26 @@ class TestSilencioTeclas(unittest.TestCase):
         self.assertIsNone(host._frame.mi_musica_silenciar.estado)
 
 
-class TestSaltoTeclas(unittest.TestCase):
+class TestReaplicarVolumen(unittest.TestCase):
 
+    def test_con_silencio_aplica_volumen_y_lo_conserva(self):
+        coordinador = CoordinadorFalso(silenciado=True)
+        host = Host(coordinador)
+        host._reaplicar_volumen()
+        self.assertTrue(coordinador.silenciado)
+        self.assertEqual(coordinador.volumenes, [40])
+        self.assertTrue(host._frame.mi_musica_silenciar.estado)
+
+    def test_sin_silencio_aplica_volumen_y_lo_deja_apagado(self):
+        coordinador = CoordinadorFalso(silenciado=False)
+        host = Host(coordinador)
+        host._reaplicar_volumen()
+        self.assertFalse(coordinador.silenciado)
+        self.assertEqual(coordinador.volumenes, [40])
+        self.assertFalse(host._frame.mi_musica_silenciar.estado)
+
+
+class TestSaltoTeclas(unittest.TestCase):
     def _host(self, salto):
         coordinador = CoordinadorFalso(salto=salto)
         return Host(coordinador), coordinador

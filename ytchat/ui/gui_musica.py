@@ -261,8 +261,7 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica,
         if self._coordinador is None:
             return
         try:
-            self._coordinador.fijar_volumen(self._volumen_config())
-            self._sincronizar_silencio()
+            self._reaplicar_volumen()
             if self._adaptador is not None:
                 self._adaptador.fijar_dispositivo(
                     self._config.get("musica_salida") or None)

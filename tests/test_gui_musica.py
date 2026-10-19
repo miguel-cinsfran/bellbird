@@ -513,6 +513,20 @@ class TestAplicarPreferencias(unittest.TestCase):
         item.Check.assert_called_once_with(True)
         env.anunciar.assert_not_called()
 
+    def test_con_silencio_aplica_volumen_y_despues_vuelve_a_silenciar(self):
+        frame = _frame(musica_volumen=30)
+        with _entorno():
+            control = ControlMusica(frame)
+            coordinador = mock.Mock()
+            coordinador.silenciado = True
+            control._coordinador = coordinador
+            control._adaptador = mock.Mock()
+            control.aplicar_preferencias()
+        self.assertEqual(coordinador.mock_calls[:2], [
+            mock.call.fijar_volumen(30),
+            mock.call.fijar_silencio(True),
+        ])
+
     def test_salida_vacia_va_como_none(self):
         frame = _frame(musica_salida="")
         with _entorno():

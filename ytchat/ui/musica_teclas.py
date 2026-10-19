@@ -49,6 +49,16 @@ class TeclasMusica:
         """Salta diez segundos hacia atrás."""
         self._saltar(-10_000)
 
+    def _reaplicar_volumen(self) -> None:
+        """Aplica el volumen configurado y conserva el silencio."""
+        if self._coordinador is None:
+            return
+        silenciado = bool(self._coordinador.silenciado)
+        self._coordinador.fijar_volumen(self._volumen_config())
+        if silenciado:
+            self._coordinador.fijar_silencio(True)
+        self._sincronizar_silencio(silenciado)
+
     def _saltar(self, delta_ms) -> None:
         if self._coordinador is None:
             self._accion_coordinador("detener")

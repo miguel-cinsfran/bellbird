@@ -12,7 +12,7 @@ import asyncio
 import time
 import urllib.request
 import urllib.error
-from datetime import datetime, timezone
+from datetime import datetime
 from urllib.parse import urlparse, parse_qs
 
 # pytchat usa APIs de asyncio deprecadas.
@@ -33,6 +33,7 @@ from ytchat.voice.tts_worker import TTSWorker, sanitizar, construir_tts
 from ytchat.voice import sound_player as _snd
 from ytchat.capture import deteccion
 from ytchat.capture import tiktok_captura
+from ytchat.capture.reconexion import FiltroNuevos, espera_reconexion
 from ytchat.core import diagnostico
 from ytchat.core import avisos_red
 from ytchat.downloads import ytdlp_bin
@@ -487,6 +488,8 @@ def captura_con_reconexion(video_id, cola, config, parada, stats, on_message=Non
     hilo viejo que despierta tarde no debe encolar TTS de la sesión anterior."""
     intentos = 0
     conecto = [False]
+    llego_conectado = [False]
+    filtro = FiltroNuevos()
 
     def _estado(tipo, texto):
         # «leido» es interno: marca que la conexión leyó al menos una vuelta de
@@ -497,13 +500,19 @@ def captura_con_reconexion(video_id, cola, config, parada, stats, on_message=Non
         if tipo == "leido":
             conecto[0] = True
             return
+        if tipo == "conectado":
+            if llego_conectado[0]:
+                tipo, texto = "reconectado", "Chat reconectado."
+            llego_conectado[0] = True
+        elif tipo == "conectando" and llego_conectado[0]:
+            return
         if on_estado:
             on_estado(tipo, texto)
 
     while not parada.is_set():
         conecto[0] = False
         err = _captura(video_id, cola, config, parada, stats, on_message, _estado,
-                       sesion_activa)
+                       sesion_activa, filtro)
         if conecto[0]:
             intentos = 0
         if parada.is_set():
@@ -526,12 +535,14 @@ def captura_con_reconexion(video_id, cola, config, parada, stats, on_message=Non
             if on_estado: on_estado("error", f"Se agotaron los {mi} intentos de reconexión.")
             _snd.reproducir("error")
             parada.set(); break
+        espera = espera_reconexion(intentos, config["espera_entre_intentos"])
         sfx = f" de {mi}" if mi else ""
-        espera = config["espera_entre_intentos"]
         motivo = str(err) if err is not None else "la conexión se cerró sin error"
         logger.warning("Reconexión del chat video=%s, intento %s: %s",
                        video_id, intentos, motivo)
-        if on_estado: on_estado("reintentando", f"Reintentando en {espera} segundos (intento {intentos}{sfx})...")
+        if on_estado: on_estado("reintentando",
+            f"Se perdió la conexión con el chat. Reintentando en {espera} "
+            f"{'segundo' if espera == 1 else 'segundos'} (intento {intentos}{sfx}).")
         stats.inc("reconexiones")
         _snd.reproducir("conectando")
         parada.wait(timeout=espera)
@@ -563,7 +574,7 @@ def _cliente_pytchat():
 
 
 def _captura(video_id, cola, config, parada, stats, on_message=None, on_estado=None,
-             sesion_activa=None):
+             sesion_activa=None, filtro=None):
     # pytchat necesita un loop de asyncio en el hilo. Uno por intento y se
     # cierra al salir: si no, cada reconexión dejaba un loop (y su selector)
     # abiertos para siempre.
@@ -571,7 +582,7 @@ def _captura(video_id, cola, config, parada, stats, on_message=None, on_estado=N
     asyncio.set_event_loop(loop)
     try:
         return _captura_en_loop(video_id, cola, config, parada, stats, on_message,
-                                on_estado, sesion_activa)
+                                on_estado, sesion_activa, filtro)
     finally:
         try:    loop.close()
         except Exception: pass
@@ -579,7 +590,7 @@ def _captura(video_id, cola, config, parada, stats, on_message=None, on_estado=N
 
 
 def _captura_en_loop(video_id, cola, config, parada, stats, on_message, on_estado,
-                     sesion_activa):
+                     sesion_activa, filtro=None):
     try:
         import pytchat
     except ImportError:
@@ -606,7 +617,8 @@ def _captura_en_loop(video_id, cola, config, parada, stats, on_message, on_estad
     _snd.reproducir("conectado")
     logger.info("Conectado al directo video=%s.", video_id)
 
-    inicio = datetime.now(timezone.utc)
+    if filtro is None: filtro = FiltroNuevos()
+    filtro.arrancar()
     leido = False
     err_con, MAX_ERR = 0, 5
     ultimo_error = None
@@ -616,7 +628,7 @@ def _captura_en_loop(video_id, cola, config, parada, stats, on_message, on_estad
             try:
                 for c in chat.get().sync_items():
                     if parada.is_set(): break
-                    if not _nuevo(c, inicio):
+                    if not filtro.es_nuevo(c):
                         stats.inc("filtrados_nuevo"); continue
 
                     autor_obj = getattr(c, "author", None)
@@ -650,7 +662,7 @@ def _captura_en_loop(video_id, cola, config, parada, stats, on_message, on_estad
                 ultimo_error = exc
                 logger.warning("Error ciclo chat (%d/%d): %s", err_con, MAX_ERR, exc)
                 if err_con >= MAX_ERR:
-                    if on_estado: on_estado("error", "Demasiados errores consecutivos.")
+                    if on_estado: on_estado("error_conexion", "Demasiados errores consecutivos.")
                     break
             if not parada.is_set():
                 time.sleep(0.1)
@@ -667,22 +679,7 @@ def _captura_en_loop(video_id, cola, config, parada, stats, on_message, on_estad
             try:    chat.raise_for_status()
             except Exception as exc:
                 ultimo_error = exc
-            # El sonido de desconexión lo emite la GUI (set_conectado(False)),
-            # para que suene también al desconectar a mano y sin duplicarse.
-            if on_estado: on_estado("desconectado", "El directo ha terminado o se perdió la conexión.")
     return ultimo_error
-
-
-def _nuevo(c, inicio):
-    try:
-        ts = c.timestamp
-        if isinstance(ts, (int, float)):
-            return datetime.fromtimestamp(ts / 1_000, tz=timezone.utc) >= inicio
-        if isinstance(ts, datetime):
-            if ts.tzinfo is None: ts = ts.astimezone(timezone.utc)
-            return ts >= inicio
-    except Exception: pass
-    return True
 
 
 def _str(v, d):

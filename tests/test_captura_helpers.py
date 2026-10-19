@@ -59,7 +59,7 @@ class TestReconexionRegistro(unittest.TestCase):
         fallos = list(errores)
 
         def captura(video_id, cola, cfg, ps, stats, on_message,
-                    on_estado, sesion_activa):
+                    on_estado, sesion_activa, filtro=None):
             err = fallos.pop(0) if fallos else None
             if not fallos:
                 parada.set()
@@ -153,7 +153,7 @@ class TestReconexionDirectoTerminado(unittest.TestCase):
         llamadas = [0]
 
         def captura(video_id, cola, cfg, parada, stats, on_message,
-                    on_estado, sesion_activa):
+                    on_estado, sesion_activa, filtro=None):
             llamadas[0] += 1
             on_estado("conectado", "ok")
             if llamadas[0] >= 3:      # tope para no colgarse si el arreglo cae
@@ -174,7 +174,7 @@ class TestReconexionDirectoTerminado(unittest.TestCase):
         llamadas = [0]
 
         def captura(video_id, cola, cfg, parada, stats, on_message,
-                    on_estado, sesion_activa):
+                    on_estado, sesion_activa, filtro=None):
             llamadas[0] += 1
             # «conectado» ya no cuenta como lectura: sin «leido», el contador
             # no se reinicia y el límite se cumple.
@@ -193,7 +193,7 @@ class TestReconexionDirectoTerminado(unittest.TestCase):
         llamadas = [0]
 
         def captura(video_id, cola, cfg, parada, stats, on_message,
-                    on_estado, sesion_activa):
+                    on_estado, sesion_activa, filtro=None):
             llamadas[0] += 1
             on_estado("leido", "ok")
             if llamadas[0] >= 5:
@@ -208,7 +208,7 @@ class TestReconexionDirectoTerminado(unittest.TestCase):
 
     def test_leido_nunca_llega_a_on_estado(self):
         def captura(video_id, cola, cfg, parada, stats, on_message,
-                    on_estado, sesion_activa):
+                    on_estado, sesion_activa, filtro=None):
             on_estado("leido", "interno")
             on_estado("conectado", "ok")
             parada.set()
@@ -222,18 +222,21 @@ class TestReconexionDirectoTerminado(unittest.TestCase):
 
 
 class _ChatFalso:
-    def __init__(self, items=None, error=None):
+    def __init__(self, items=None, error=None, fallos=1):
         self._items = list(items or [])
         self._error = error
+        self._fallos = fallos if error is not None else 0
         self._vivo = True
 
     def is_alive(self):
         return self._vivo
 
     def get(self):
-        self._vivo = False
-        if self._error is not None:
+        if self._error is not None and self._fallos > 0:
+            self._fallos -= 1
+            self._vivo = self._fallos > 0
             raise self._error
+        self._vivo = False
         chat = self
 
         class _Lote:
@@ -273,6 +276,18 @@ class TestCapturaEnLoopLee(unittest.TestCase):
         estados, _salida = self._correr(
             _ChatFalso(error=RuntimeError("Chat data stream is empty.")))
         self.assertNotIn("leido", estados)
+
+    def test_cierre_sin_error_no_emite_desconectado_ni_error(self):
+        estados, _salida = self._correr(_ChatFalso())
+        self.assertNotIn("desconectado", estados)
+        self.assertNotIn("error", estados)
+
+    def test_cinco_errores_emiten_error_conexion_sin_desconectado_ni_error(self):
+        estados, _salida = self._correr(
+            _ChatFalso(error=RuntimeError("corte"), fallos=5))
+        self.assertIn("error_conexion", estados)
+        self.assertNotIn("desconectado", estados)
+        self.assertNotIn("error", estados)
 
 
 class TestEncolar(unittest.TestCase):

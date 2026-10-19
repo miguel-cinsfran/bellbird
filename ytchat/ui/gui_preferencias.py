@@ -534,11 +534,11 @@ class PreferenciasDialog(wx.Dialog):
             name="Reconectar automáticamente si se corta")
         vs.Add(self.chk_reconectar, 0, wx.ALL, 10)
 
-        vs.Add(self._fila_label(p, "&Espera entre intentos, en segundos"),
+        vs.Add(self._fila_label(p, "&Espera máxima entre intentos, en segundos"),
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_espera_reconexion = ContadorAccesible(
             p, min=1, max=300,
-            name="Espera entre intentos, en segundos")
+            name="Espera máxima entre intentos, en segundos")
         vs.Add(self.sp_espera_reconexion, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         vs.Add(self._fila_label(p, "Número máximo de &intentos"),

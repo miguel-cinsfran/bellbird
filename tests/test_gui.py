@@ -1366,7 +1366,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
                 ("Tamaño máximo de la cola", "PagCola"),
                 ("Leer solo el nombre a partir de", "PagCola"),
                 ("Reconectar automáticamente si se corta", "PagConexion"),
-                ("Espera entre intentos, en segundos", "PagConexion"),
+                ("Espera máxima entre intentos, en segundos", "PagConexion"),
                 ("Número máximo de intentos", "PagConexion"),
                 ("Puerto del panel de chat", "PagTransmision"),
                 ("Micrófono de OBS", "PagTransmision")):

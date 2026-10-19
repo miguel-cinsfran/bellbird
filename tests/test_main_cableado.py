@@ -4,6 +4,7 @@ import threading
 import unittest
 import sys
 import types
+from datetime import datetime, timedelta, timezone
 from unittest.mock import Mock, patch
 
 import main
@@ -160,7 +161,7 @@ class PruebasReconexion(unittest.TestCase):
         caidas = [0]
 
         def captura(video_id, cola, cfg, parada, stats, on_message, on_estado,
-                    sesion_activa):
+                    sesion_activa, filtro=None):
             # Cada intento conecta, lee una vuelta y luego sufre un microcorte.
             caidas[0] += 1
             on_estado("conectado", "ok")
@@ -178,7 +179,7 @@ class PruebasReconexion(unittest.TestCase):
 
     def test_los_fallos_seguidos_si_agotan_los_intentos(self):
         def captura(video_id, cola, cfg, parada, stats, on_message, on_estado,
-                    sesion_activa):
+                    sesion_activa, filtro=None):
             return RuntimeError("no conecta")
 
         estados = self._correr(captura, self._config(max_intentos=3))
@@ -188,7 +189,7 @@ class PruebasReconexion(unittest.TestCase):
         caidas = [0]
 
         def captura(video_id, cola, cfg, parada, stats, on_message, on_estado,
-                    sesion_activa):
+                    sesion_activa, filtro=None):
             # «conectado» ya no cuenta como lectura: sin «leido», el contador
             # no se reinicia y el límite de intentos se cumple.
             caidas[0] += 1
@@ -215,6 +216,185 @@ class PruebasReconexion(unittest.TestCase):
         self.assertEqual(len(loops), 2)
         self.assertIsNot(loops[0], loops[1])
         self.assertTrue(all(loop.is_closed() for loop in loops))
+
+
+class _Parada:
+    """Parada de prueba: registra las esperas y nunca duerme."""
+
+    def __init__(self):
+        self.puesta = False
+        self.esperas = []
+
+    def is_set(self):
+        return self.puesta
+
+    def set(self):
+        self.puesta = True
+
+    def wait(self, timeout=None):
+        self.esperas.append(timeout)
+
+
+class PruebasReconexionSinCerrarSesion(unittest.TestCase):
+
+    def _config(self):
+        return {"reconectar": True, "max_intentos": 0,
+                "espera_entre_intentos": 15}
+
+    def _correr(self, captura):
+        estados = []
+        parada = _Parada()
+        with patch.object(main, "_captura", side_effect=captura), \
+                patch.object(main, "_directo_terminado", return_value=False), \
+                patch.object(main._snd, "reproducir"):
+            main.captura_con_reconexion(
+                "v", queue.Queue(), self._config(), parada, main.Stats(),
+                on_estado=lambda tipo, texto: estados.append((tipo, texto)))
+        return estados, parada
+
+    def test_un_corte_con_reintento_no_cierra_la_sesion(self):
+        llamadas = []
+
+        def captura(video_id, cola, cfg, parada, stats, on_message, on_estado,
+                    sesion_activa, filtro=None):
+            llamadas.append(1)
+            on_estado("conectando", "Conectando al directo...")
+            if len(llamadas) == 1:
+                on_estado("conectado", "Conectado. Esperando mensajes...")
+                on_estado("leido", "Chat en lectura.")
+                on_estado("error_conexion", "Se perdió la conexión.")
+                return RuntimeError("corte")
+            on_estado("conectado", "Conectado. Esperando mensajes...")
+            on_estado("leido", "Chat en lectura.")
+            parada.set()
+            return None
+
+        estados, parada = self._correr(captura)
+        tipos = [tipo for tipo, _ in estados]
+        self.assertNotIn("desconectado", tipos)
+        self.assertNotIn("error", tipos)
+        self.assertEqual(tipos.count("conectando"), 1)
+        self.assertEqual(
+            [texto for tipo, texto in estados if tipo == "reintentando"],
+            ["Se perdió la conexión con el chat. Reintentando en 1 segundo "
+             "(intento 1)."])
+        indice = tipos.index("reintentando")
+        self.assertEqual(tipos[indice + 1:indice + 2], ["reconectado"])
+        self.assertEqual(dict(estados)["reconectado"], "Chat reconectado.")
+        self.assertEqual(parada.esperas, [1])
+
+    def test_el_primer_conectado_de_la_sesion_llega_tal_cual(self):
+        llamadas = []
+
+        def captura(video_id, cola, cfg, parada, stats, on_message, on_estado,
+                    sesion_activa, filtro=None):
+            llamadas.append(1)
+            on_estado("conectando", "Conectando al directo...")
+            if len(llamadas) == 1:
+                on_estado("error_conexion", "Se perdió la conexión.")
+                return RuntimeError("corte")
+            on_estado("conectado", "Conectado. Esperando mensajes...")
+            on_estado("leido", "Chat en lectura.")
+            parada.set()
+            return None
+
+        estados, _ = self._correr(captura)
+        tipos = [tipo for tipo, _ in estados]
+        self.assertEqual(tipos.count("conectando"), 2)
+        self.assertIn("conectado", tipos)
+        self.assertNotIn("reconectado", tipos)
+
+    def test_las_esperas_de_tres_cortes_son_uno_dos_y_cinco(self):
+        llamadas = []
+
+        def captura(video_id, cola, cfg, parada, stats, on_message, on_estado,
+                    sesion_activa, filtro=None):
+            llamadas.append(1)
+            if len(llamadas) <= 3:
+                on_estado("error_conexion", "corte")
+                return RuntimeError("corte")
+            on_estado("leido", "Chat en lectura.")
+            parada.set()
+            return None
+
+        estados, parada = self._correr(captura)
+        self.assertEqual(parada.esperas, [1, 2, 5])
+        textos = [texto for tipo, texto in estados if tipo == "reintentando"]
+        self.assertIn("en 1 segundo (intento 1)", textos[0])
+        self.assertIn("en 2 segundos (intento 2)", textos[1])
+
+
+class _Lote:
+    def __init__(self, items):
+        self.items = items
+
+    def sync_items(self):
+        return self.items
+
+
+class _ChatFalso:
+    def __init__(self, items):
+        self.items = items
+        self.vivo = True
+
+    def is_alive(self):
+        return self.vivo
+
+    def get(self):
+        self.vivo = False
+        return _Lote(self.items)
+
+    def raise_for_status(self):
+        return None
+
+
+class PruebasFiltroReconexion(unittest.TestCase):
+
+    def test_dos_intentos_comparten_el_filtro_de_la_sesion(self):
+        futuro = int(
+            (datetime.now(timezone.utc) + timedelta(hours=1)).timestamp() * 1_000)
+        creados = []
+        corte = []
+
+        def item(ident, mensaje, ts):
+            return types.SimpleNamespace(
+                id=ident, timestamp=ts, message=mensaje,
+                author=types.SimpleNamespace(name="Ana", channelId="canal"),
+                type="textMessage", amountString="")
+
+        def crear(**_kwargs):
+            if not creados:
+                creados.append(1)
+                return _ChatFalso([item("uno", "X", futuro)])
+            base = corte[0] if corte else datetime.now(timezone.utc)
+            entre = int((base + timedelta(seconds=1)).timestamp() * 1_000)
+            return _ChatFalso([item("uno", "X", futuro),
+                               item("dos", "Y", entre)])
+
+        procesados = []
+        parada = _Parada()
+
+        def procesar(autor, mensaje, tipo, monto, canal_id, cola, config, stats,
+                     on_message=None, sesion_activa=None, rol=""):
+            if mensaje == "X" and not corte:
+                corte.append(datetime.now(timezone.utc))
+            procesados.append(mensaje)
+            if mensaje == "Y":
+                parada.set()
+
+        config = {"reconectar": True, "max_intentos": 0,
+                  "espera_entre_intentos": 15}
+        with patch.dict(sys.modules,
+                        {"pytchat": types.SimpleNamespace(create=crear)}), \
+                patch.object(main, "_cliente_pytchat",
+                             return_value=Mock(close=lambda: None)), \
+                patch.object(main, "procesar_entrante", side_effect=procesar), \
+                patch.object(main, "_directo_terminado", return_value=False), \
+                patch.object(main._snd, "reproducir"):
+            main.captura_con_reconexion("v", queue.Queue(), config, parada,
+                                        main.Stats())
+
+        self.assertEqual(procesados, ["X", "Y"])
 
 
 class PruebasInfoVideoCancelable(unittest.TestCase):

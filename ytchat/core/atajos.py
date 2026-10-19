@@ -281,12 +281,6 @@ def migrar_atajos_config(p, ruta, atajos_raw: dict) -> list[str]:
     Devuelve las acciones migradas. El registro se deja al logger.
     """
     from ytchat.core import config as _config
-    # La versión se lee del archivo: la migración genérica puede haberlo
-    # reescrito después de que el parser de la carga lo leyera.
-    try:
-        p.read(ruta, encoding="utf-8")
-    except Exception as exc:
-        logger.debug("No se pudo releer config.ini para migrar atajos: %s", exc)
     try:
         version = p.getint("sesion", "version_atajos")
     except Exception:

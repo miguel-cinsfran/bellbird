@@ -74,14 +74,25 @@ class Coordinador:
         self._repetir = False
         self._ficha = 0
 
-    def reproducir_lista(self, temas, en_orden: bool = False) -> Resultado:
+    def reproducir_lista(self, temas, en_orden: bool = False,
+                         desde: int = 0) -> Resultado:
+        """Pone la lista como cola y empieza a sonar por `desde`.
+
+        Con aleatorio activo y sin `en_orden`, `desde` se ignora porque la
+        lista se mezcla. Un índice fuera de rango deja la cola como estaba y
+        devuelve "sin_tema", igual que `reproducir_desde`.
+        """
         with self._lock:
             cola = tuple(temas)
             if not cola:
                 return Resultado(False, COLA_VACIA, self._estado())
             if self._aleatorio and not en_orden:
                 cola = self._mezclado(cola)
-            return self._iniciar_cola(cola)
+                desde = 0
+            elif (isinstance(desde, bool) or not isinstance(desde, int)
+                    or not 0 <= desde < len(cola)):
+                return Resultado(False, SIN_TEMA, self._estado())
+            return self._iniciar_cola(cola, desde)
 
     def reproducir_tema(self, tema: Tema) -> Resultado:
         return self.reproducir_lista((tema,))
@@ -276,19 +287,22 @@ class Coordinador:
         for aviso in avisos:
             self._avisar(aviso)
 
-    def _iniciar_cola(self, cola: tuple[Tema, ...]) -> Resultado:
+    def _iniciar_cola(self, cola: tuple[Tema, ...],
+                      posicion: int = 0) -> Resultado:
         self._cola = cola
+        self._a_continuacion = 0
         try:
-            self._cargar(cola[0])
+            self._cargar(cola[posicion])
         except Exception:
             self._detener_motor()
-            self._actualizar_contador(0)
-            self._posicion = 0
+            self._actualizar_contador(posicion)
+            self._posicion = posicion
             self._pausado = False
             self._terminado = True
-            return Resultado(False, ERROR_MOTOR, self._estado(), tema=cola[0])
-        self._actualizar_contador(0)
-        self._posicion = 0
+            return Resultado(False, ERROR_MOTOR, self._estado(),
+                             tema=cola[posicion])
+        self._actualizar_contador(posicion)
+        self._posicion = posicion
         self._pausado = False
         self._terminado = False
         return Resultado(True, OK, self._estado())

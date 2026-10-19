@@ -274,6 +274,89 @@ class TestReproducirDesde(unittest.TestCase):
         self.assertEqual(len(ad.cargas()), 2)
 
 
+class TestReproducirListaDesde(unittest.TestCase):
+
+    def test_empieza_por_el_indice_con_una_sola_carga(self):
+        ad = AdaptadorFalso()
+        c = Coordinador(ad)
+        r = c.reproducir_lista(
+            [tema("a"), tema("b"), tema("c"), tema("d")],
+            en_orden=True, desde=3)
+        self.assertTrue(r.ok)
+        self.assertEqual(r.codigo, OK)
+        self.assertEqual(r.estado.posicion, 3)
+        self.assertEqual([l[1] for l in ad.cargas()], ["C:/musica/d.mp3"])
+
+    def test_sin_aleatorio_tambien_respeta_el_indice(self):
+        ad = AdaptadorFalso()
+        c = Coordinador(ad)
+        r = c.reproducir_lista([tema("a"), tema("b"), tema("c")], desde=1)
+        self.assertTrue(r.ok)
+        self.assertEqual(r.estado.posicion, 1)
+        self.assertEqual([l[1] for l in ad.cargas()], ["C:/musica/b.mp3"])
+
+    def test_con_aleatorio_y_sin_orden_ignora_el_indice(self):
+        ad = AdaptadorFalso()
+        c = Coordinador(ad, mezclar=lambda lista: lista.reverse())
+        c.fijar_aleatorio(True)
+        r = c.reproducir_lista([tema("a"), tema("b"), tema("c")], desde=2)
+        self.assertTrue(r.ok)
+        self.assertEqual(r.estado.posicion, 0)
+        self.assertEqual([t.origen for t in r.estado.cola],
+                         ["C:/musica/c.mp3", "C:/musica/b.mp3",
+                          "C:/musica/a.mp3"])
+        self.assertEqual([l[1] for l in ad.cargas()], ["C:/musica/c.mp3"])
+
+    def test_con_aleatorio_y_en_orden_respeta_el_indice(self):
+        ad = AdaptadorFalso()
+        c = Coordinador(ad, mezclar=lambda lista: lista.reverse())
+        c.fijar_aleatorio(True)
+        r = c.reproducir_lista(
+            [tema("a"), tema("b"), tema("c")], en_orden=True, desde=2)
+        self.assertTrue(r.ok)
+        self.assertEqual(r.estado.posicion, 2)
+        self.assertEqual([t.origen for t in r.estado.cola],
+                         ["C:/musica/a.mp3", "C:/musica/b.mp3",
+                          "C:/musica/c.mp3"])
+        self.assertEqual([l[1] for l in ad.cargas()], ["C:/musica/c.mp3"])
+
+    def test_indice_fuera_de_rango_no_toca_la_cola_ni_carga(self):
+        ad = AdaptadorFalso()
+        c = Coordinador(ad)
+        c.reproducir_lista([tema("a"), tema("b")])
+        ad.llamadas.clear()
+        for indice in (-1, 2, 5, None, "1", 1.0, True):
+            with self.subTest(indice=indice):
+                r = c.reproducir_lista(
+                    [tema("x"), tema("y")], en_orden=True, desde=indice)
+                self.assertFalse(r.ok)
+                self.assertEqual(r.codigo, SIN_TEMA)
+        self.assertEqual(ad.llamadas, [])
+        self.assertEqual([t.origen for t in c.estado().cola],
+                         ["C:/musica/a.mp3", "C:/musica/b.mp3"])
+
+    def test_error_motor_en_el_indice_elegido(self):
+        ad = AdaptadorFalso()
+        ad.fallar.add("C:/musica/b.mp3")
+        c = Coordinador(ad)
+        r = c.reproducir_lista(
+            [tema("a"), tema("b"), tema("c")], en_orden=True, desde=1)
+        self.assertFalse(r.ok)
+        self.assertEqual(r.codigo, ERROR_MOTOR)
+        self.assertEqual(r.tema.origen, "C:/musica/b.mp3")
+        self.assertEqual(r.estado.posicion, 1)
+        self.assertTrue(r.estado.terminado)
+        self.assertEqual([l[1] for l in ad.cargas()], ["C:/musica/b.mp3"])
+        self.assertEqual(ad.llamadas[-1][0], "detener")
+
+    def test_lista_vacia_sigue_dando_cola_vacia(self):
+        ad = AdaptadorFalso()
+        r = Coordinador(ad).reproducir_lista([], desde=3)
+        self.assertFalse(r.ok)
+        self.assertEqual(r.codigo, COLA_VACIA)
+        self.assertEqual(ad.llamadas, [])
+
+
 class TestAContinuacion(unittest.TestCase):
 
     def test_inserta_detras_del_actual_sin_cortar(self):

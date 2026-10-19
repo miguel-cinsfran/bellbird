@@ -83,6 +83,37 @@ def _crear_hilo_inmediato(target, nombre, *, args=(), daemon=True):
     return _HiloInmediato(target, args)
 
 
+class _TemporizadorFalso:
+    """Temporizador de `wx.CallLater` que solo corre cuando se le pide."""
+
+    def __init__(self, ms, funcion):
+        self.ms = ms
+        self.funcion = funcion
+        self.vivo = True
+
+    def Stop(self):
+        self.vivo = False
+
+
+class _ProgramadorFalso:
+    """Doble de `wx.CallLater`: acumula lo programado y lo dispara a mano."""
+
+    def __init__(self):
+        self.temporizadores = []
+
+    def __call__(self, ms, funcion):
+        temporizador = _TemporizadorFalso(ms, funcion)
+        self.temporizadores.append(temporizador)
+        return temporizador
+
+    def disparar(self):
+        vivos = [t for t in self.temporizadores if t.vivo]
+        self.temporizadores = []
+        for temporizador in vivos:
+            temporizador.vivo = False
+            temporizador.funcion()
+
+
 def _frame(**config):
     base = {
         "musica_carpeta": "", "musica_aleatorio": False, "musica_repetir": False,
@@ -103,6 +134,7 @@ def _entorno(fabrica=None):
     """
     snd = _SndFalso()
     creados = []
+    programador = _ProgramadorFalso()
 
     def fabrica_por_defecto(**kwargs):
         adaptador = _AdaptadorFalso(**kwargs)
@@ -118,6 +150,9 @@ def _entorno(fabrica=None):
                                    _crear_hilo_inmediato), \
                 mock.patch.object(gui_musica.wx, "CallAfter",
                                    side_effect=lambda fn, *a: fn(*a)), \
+                mock.patch.object(gui_musica.wx, "CallLater", programador), \
+                mock.patch.object(gui_musica.anuncio_ajuste, "COMPARTIDO",
+                                   gui_musica.anuncio_ajuste.AnuncioAjuste()), \
                 mock.patch.object(gui_musica, "anunciar") as anunciar, \
                 mock.patch.object(gui_musica.paths, "estado_musica",
                                    return_value=ruta_memoria), \
@@ -125,7 +160,8 @@ def _entorno(fabrica=None):
                                    return_value=ruta_cache), \
                 mock.patch.object(gui_musica, "_snd", snd):
             yield SimpleNamespace(anunciar=anunciar, snd=snd, creados=creados,
-                                   memoria=ruta_memoria, cache=ruta_cache)
+                                   memoria=ruta_memoria, cache=ruta_cache,
+                                   programador=programador)
 
 
 class TestFuncionesPuras(unittest.TestCase):
@@ -247,6 +283,7 @@ class TestVolumen(unittest.TestCase):
                 mock.patch.object(ControlMusica, "_guardar") as guardar:
             frame = _frame(musica_volumen=100)
             ControlMusica(frame).subir_volumen()
+            env.programador.disparar()
         self.assertEqual(frame._config["musica_volumen"], 100)
         guardar.assert_called_once_with("volumen", "100")
         env.anunciar.assert_called_once_with("Volumen de la música: 100")
@@ -256,15 +293,41 @@ class TestVolumen(unittest.TestCase):
                 mock.patch.object(ControlMusica, "_guardar") as guardar:
             frame = _frame(musica_volumen=0)
             ControlMusica(frame).bajar_volumen()
+            env.programador.disparar()
         self.assertEqual(frame._config["musica_volumen"], 0)
         guardar.assert_called_once_with("volumen", "0")
         env.anunciar.assert_called_once_with("Volumen de la música: 0")
 
     def test_paso_intermedio(self):
-        with _entorno(), mock.patch.object(ControlMusica, "_guardar"):
+        with _entorno() as env, mock.patch.object(ControlMusica, "_guardar"):
             frame = _frame(musica_volumen=40)
             ControlMusica(frame).subir_volumen()
+            env.programador.disparar()
         self.assertEqual(frame._config["musica_volumen"], 50)
+
+    def test_tres_cambios_anuncian_completo_y_dos_numeros_y_guardan_el_ultimo(self):
+        with _entorno() as env, \
+                mock.patch.object(ControlMusica, "_guardar") as guardar:
+            frame = _frame(musica_volumen=40)
+            control = ControlMusica(frame)
+            control.subir_volumen()
+            control.bajar_volumen()
+            control.subir_volumen()
+            self.assertEqual(
+                [c.args[0] for c in env.anunciar.call_args_list],
+                ["Volumen de la música: 50", "40", "50"])
+            guardar.assert_not_called()
+            env.programador.disparar()
+        guardar.assert_called_once_with("volumen", "50")
+
+    def test_cerrar_con_volumen_pendiente_lo_escribe(self):
+        with _entorno(), \
+                mock.patch.object(ControlMusica, "_guardar") as guardar:
+            control = ControlMusica(_frame(musica_volumen=40))
+            control.subir_volumen()
+            guardar.assert_not_called()
+            control.cerrar()
+        guardar.assert_called_once_with("volumen", "50")
 
 
 class TestAleatorio(unittest.TestCase):
@@ -723,7 +786,7 @@ class TestAccionesDeLista(unittest.TestCase):
             control.reproducir_temas_desde(temas, 2)
         self.assertEqual(control.estado().posicion, 2)
         cargas = [l for l in env.creados[0].llamadas if l[0] == "cargar"]
-        self.assertEqual([c[1] for c in cargas], ["C:/m/a.mp3", "C:/m/c.mp3"])
+        self.assertEqual([c[1] for c in cargas], ["C:/m/c.mp3"])
         self.assertEqual(env.anunciar.call_args_list[-1].args[0], "C")
 
     def test_agregar_temas_anuncia_en_plural(self):
@@ -749,6 +812,17 @@ class TestAccionesDeLista(unittest.TestCase):
             control.agregar_temas([])
         self.assertEqual(env.anunciar.call_args_list[-1].args[0],
                          "No hay temas para reproducir")
+
+    def test_iniciar_lista_desde_carga_solo_el_elegido(self):
+        temas = [Tema("C:/m/a.mp3", "A"), Tema("C:/m/b.mp3", "B"),
+                 Tema("C:/m/c.mp3", "C"), Tema("C:/m/d.mp3", "D")]
+        with _entorno() as env:
+            control = ControlMusica(_frame())
+            control.reproducir_temas(temas, en_orden=True)
+            env.creados[0].llamadas.clear()
+            control._iniciar_lista_desde(temas, 3)
+        cargas = [l for l in env.creados[0].llamadas if l[0] == "cargar"]
+        self.assertEqual([c[1] for c in cargas], ["C:/m/d.mp3"])
 
     def test_reproducir_desde_salta_en_la_cola(self):
         temas = [Tema("C:/m/a.mp3", "A"), Tema("C:/m/b.mp3", "B"),
@@ -875,6 +949,17 @@ class TestRefrescaVentanaAbierta(unittest.TestCase):
                 self.assertGreaterEqual(
                     ventana.llamadas, 1, f"{accion.__name__} no refrescó")
 
+    def test_siguiente_con_ventana_abierta_refresca_una_sola_vez(self):
+        temas = [Tema("C:/m/a.mp3", "A"), Tema("C:/m/b.mp3", "B")]
+        with _entorno():
+            control = ControlMusica(_frame())
+            ventana = _VentanaFalsa(control)
+            control.registrar_ventana(ventana)
+            control.reproducir_temas(temas, en_orden=True)
+            ventana.llamadas = 0
+            control.siguiente()
+        self.assertEqual(ventana.llamadas, 1)
+
     def test_sin_ventana_abierta_no_pasa_nada(self):
         temas = [Tema("C:/m/a.mp3", "A"), Tema("C:/m/b.mp3", "B")]
         with _entorno():
@@ -999,11 +1084,13 @@ class TestGuardarMemoria(unittest.TestCase):
             with _entorno() as env:
                 control = ControlMusica(_frame())
                 control.reproducir_temas(temas, en_orden=True)
+                env.programador.disparar()
                 vivos, posicion = memoria.leer(env.memoria)
                 self.assertEqual([t.origen for t in vivos],
                                  [t.origen for t in temas])
                 self.assertEqual(posicion, 0)
                 control.siguiente()
+                env.programador.disparar()
                 vivos, posicion = memoria.leer(env.memoria)
                 self.assertEqual(posicion, 1)
 
@@ -1013,16 +1100,20 @@ class TestGuardarMemoria(unittest.TestCase):
             with _entorno() as env:
                 control = ControlMusica(_frame())
                 control.reproducir_temas(temas, en_orden=True)
+                env.programador.disparar()
                 env.memoria.unlink()
                 control._aviso_automatico(_aviso(posicion=1, cola=temas))
+                env.programador.disparar()
                 self.assertTrue(env.memoria.exists())
 
     def test_detener_borra_la_memoria(self):
         with _entorno() as env:
             control = ControlMusica(_frame())
             control.reproducir_temas([Tema("C:/m/a.mp3", "A")])
+            env.programador.disparar()
             self.assertTrue(env.memoria.exists())
             control.detener()
+            env.programador.disparar()
             self.assertFalse(env.memoria.exists())
 
     def test_con_retomar_apagado_no_guarda_y_borra(self):
@@ -1030,7 +1121,18 @@ class TestGuardarMemoria(unittest.TestCase):
             env.memoria.write_text("{}", encoding="utf-8")
             ControlMusica(_frame(musica_retomar=False)).reproducir_temas(
                 [Tema("C:/m/a.mp3", "A")])
+            env.programador.disparar()
             self.assertFalse(env.memoria.exists())
+
+    def test_cerrar_con_memoria_pendiente_la_escribe(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            temas = self._temas_reales(tmp)
+            with _entorno() as env:
+                control = ControlMusica(_frame())
+                control.reproducir_temas(temas, en_orden=True)
+                self.assertFalse(env.memoria.exists())
+                control.cerrar()
+                self.assertTrue(env.memoria.exists())
 
 
 class TestRetomar(unittest.TestCase):
@@ -1055,10 +1157,10 @@ class TestRetomar(unittest.TestCase):
                 control.reproducir_o_pausar()
                 cargas = [l for l in env.creados[0].llamadas if l[0] == "cargar"]
                 textos = [c.args[0] for c in env.anunciar.call_args_list]
-                self.assertEqual([c[1] for c in cargas],
-                                 [str(a.resolve()), str(b.resolve())])
+                self.assertEqual([c[1] for c in cargas], [str(b.resolve())])
                 self.assertIn("Retomando: B", textos)
                 control.detener()
+                env.programador.disparar()
                 env.anunciar.reset_mock()
                 control.reproducir_o_pausar()
                 cargas = [l for l in env.creados[0].llamadas if l[0] == "cargar"]

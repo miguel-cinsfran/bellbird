@@ -13,6 +13,7 @@ from pathlib import Path
 
 import wx
 
+from ytchat.core import anuncio_ajuste
 from ytchat.core import config as cfg
 from ytchat.core import diagnostico
 from ytchat.core import paths
@@ -25,6 +26,7 @@ from ytchat.music.adaptador_vlc import (
 from ytchat.music.biblioteca import Biblioteca, ErrorBiblioteca
 from ytchat.music.coordinador import Coordinador
 from ytchat.music.etiquetas import CacheEtiquetas
+from ytchat.music.guardado_diferido import GuardadoDiferido
 from ytchat.music.modelo import (
     AVANZO, FIN_LISTA, EstadoMusica, Resultado, SIN_TEMA, Tema)
 from ytchat.player import motor_vlc
@@ -103,6 +105,8 @@ class ControlMusica:
         self._retomo_intentado = False
         self._cache_etiquetas = None
         self._generacion_etiquetas = 0
+        self._guardado_memoria = GuardadoDiferido(wx.CallLater)
+        self._guardado_volumen = GuardadoDiferido(wx.CallLater)
         self._globales = atajos_globales.AtajosGlobales(frame, {
             "musica_play": self.reproducir_o_pausar,
             "musica_siguiente": self.siguiente,
@@ -208,7 +212,6 @@ class ControlMusica:
 
     def _agregar_temas_del_enlace(self, temas) -> None:
         self.agregar_temas(temas)
-        self._refrescar_ventana_abierta()
 
     def _aviso_error_enlace(self, mensaje) -> None:
         self._avisar(anuncios.aviso_error_enlace(mensaje))
@@ -423,6 +426,11 @@ class ControlMusica:
         """Cierra el motor si llegó a nacer y suelta los atajos. Nunca lanza."""
         self._cerrado = True
         try:
+            self._guardado_memoria.vaciar()
+            self._guardado_volumen.vaciar()
+        except Exception:
+            logger.exception("No se pudo guardar lo pendiente de la música")
+        try:
             self._globales.desactivar()
         except Exception:
             logger.debug("No se pudieron soltar los atajos globales")
@@ -608,9 +616,8 @@ class ControlMusica:
     def _iniciar_lista_desde(self, temas, indice) -> None:
         if self._coordinador is None:
             return
-        resultado = self._coordinador.reproducir_lista(temas, en_orden=True)
-        if resultado.ok:
-            resultado = self._coordinador.reproducir_desde(indice)
+        resultado = self._coordinador.reproducir_lista(
+            temas, en_orden=True, desde=indice)
         self._avisar(anuncios.aviso_accion(
             "reproducir", resultado, self._incluir_artista()))
         self._guardar_memoria()
@@ -668,9 +675,8 @@ class ControlMusica:
     def _retomar(self, temas, posicion) -> None:
         if self._coordinador is None:
             return
-        resultado = self._coordinador.reproducir_lista(temas, en_orden=True)
-        if resultado.ok and posicion:
-            resultado = self._coordinador.reproducir_desde(posicion)
+        resultado = self._coordinador.reproducir_lista(
+            temas, en_orden=True, desde=posicion)
         actual = self._coordinador.estado().actual
         if resultado.ok and actual is not None:
             self._avisar(anuncios.aviso_retomando(
@@ -684,8 +690,12 @@ class ControlMusica:
         """Recuerda la cola y el tema tras un cambio, o limpia la memoria.
 
         Con `musica_retomar` apagada no se guarda nada y se borra el archivo
-        si existe. Nunca lanza: lo llama el hilo de la interfaz.
+        si existe. Se escribe un segundo después del último cambio, salvo al
+        cerrar, que se vacía en el acto. Nunca lanza.
         """
+        self._guardado_memoria.pedir(self._escribir_memoria)
+
+    def _escribir_memoria(self) -> None:
         if not self._retomar_activo():
             memoria.guardar(self._ruta_memoria(), None)
             return
@@ -748,7 +758,6 @@ class ControlMusica:
         operacion = getattr(self._coordinador, accion)
         self._ejecutar(accion, operacion)
         self._guardar_memoria()
-        self._refrescar_ventana_abierta()
 
     def _ejecutar(self, accion, operacion) -> None:
         resultado = operacion()
@@ -760,10 +769,18 @@ class ControlMusica:
         actual = self._config.get("musica_volumen", VOLUMEN_INICIAL)
         nuevo = nuevo_volumen(actual, paso)
         self._config["musica_volumen"] = nuevo
-        self._guardar("volumen", str(nuevo))
+        self._guardado_volumen.pedir(self._escribir_volumen)
         if self._coordinador is not None:
             self._coordinador.fijar_volumen(nuevo)
-        self._avisar(anuncios.aviso_volumen(nuevo))
+        texto = anuncio_ajuste.COMPARTIDO.frase(
+            "volumen_musica",
+            anuncios.TEXTO_VOLUMEN.format(valor=nuevo),
+            str(nuevo))
+        self._avisar(anuncios.Aviso(texto))
+
+    def _escribir_volumen(self) -> None:
+        self._guardar(
+            "volumen", str(self._config.get("musica_volumen", VOLUMEN_INICIAL)))
 
     def _guardar(self, clave, valor) -> None:
         try:

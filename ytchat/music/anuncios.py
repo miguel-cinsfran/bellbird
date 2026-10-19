@@ -157,11 +157,6 @@ def aviso_accion(accion: str, resultado, incluir_artista: bool) -> Aviso:
     return Aviso("")
 
 
-def aviso_volumen(valor: int) -> Aviso:
-    """Confirmación del volumen nuevo pedido por el usuario."""
-    return Aviso(TEXTO_VOLUMEN.format(valor=valor))
-
-
 def aviso_que_suena(estado, incluir_artista: bool) -> Aviso:
     """Qué está sonando, para el atajo que consulta el estado."""
     actual = estado.actual

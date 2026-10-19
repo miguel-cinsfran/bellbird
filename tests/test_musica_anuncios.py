@@ -185,11 +185,6 @@ class TestAvisoAccion(unittest.TestCase):
 
 class TestOtrosAvisos(unittest.TestCase):
 
-    def test_volumen(self):
-        aviso = anuncios.aviso_volumen(42)
-        self.assertEqual(aviso.texto, "Volumen de la música: 42")
-        self.assertIsNone(aviso.sonido)
-
     def test_que_suena_sin_tema(self):
         aviso = anuncios.aviso_que_suena(_estado(), False)
         self.assertEqual(aviso.texto, "No hay música sonando")

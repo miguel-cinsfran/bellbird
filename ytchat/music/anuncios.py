@@ -54,7 +54,18 @@ TEXTO_PREPARANDO = "Preparando la música"
 TEXTO_PREPARANDO_OCUPADO = "La música se está preparando"
 TEXTO_AGREGADOS = "{cantidad} temas agregados a la cola"
 TEXTO_AGREGADO = "1 tema agregado a la cola"
+TEXTO_AGREGADO_POSICION = "Agregado a la cola, posición {posicion}"
 TEXTO_A_CONTINUACION = "A continuación: {nombre}"
+TEXTO_A_CONTINUACION_POSICION = "A continuación: {nombre}, posición {posicion}"
+TEXTO_A_CONTINUACION_VARIOS = (
+    "{cantidad} temas a continuación, desde la posición {posicion}")
+TEXTO_QUITADO_COLA = "Quitado de la cola: {nombre}"
+TEXTO_COLA_VACIADA = "Cola vaciada"
+TEXTO_COLA_VACIADA_SIGUE = "Cola vaciada, sigue sonando {nombre}"
+TEXTO_COLA_MEZCLADA = "Cola mezclada"
+TEXTO_REPETIR_NO = "Repetir: no"
+TEXTO_REPETIR_TODO = "Repetir: toda la cola"
+TEXTO_REPETIR_TEMA = "Repetir: este tema"
 TEXTO_SALTADAS = "Se saltaron {cantidad} entradas que no se pudieron leer"
 TEXTO_SALTADA = "Se saltó 1 entrada que no se pudo leer"
 TEXTO_AGREGADO_A_LISTA = "Agregado a la lista {nombre}"
@@ -231,6 +242,51 @@ def aviso_a_continuacion(tema, incluir_artista: bool) -> Aviso:
     """Confirmación del tema que sonará al terminar el actual, sin sonido."""
     return Aviso(TEXTO_A_CONTINUACION.format(
         nombre=nombre_tema(tema, incluir_artista)))
+
+
+def aviso_a_continuacion_posicion(tema, posicion: int,
+                                  incluir_artista: bool) -> Aviso:
+    """Un tema puesto a continuación, con su posición en la lista visible."""
+    return Aviso(TEXTO_A_CONTINUACION_POSICION.format(
+        nombre=nombre_tema(tema, incluir_artista), posicion=posicion))
+
+
+def aviso_a_continuacion_varios(cantidad: int, posicion: int) -> Aviso:
+    """Varios temas puestos a continuación, desde la primera posición nueva."""
+    return Aviso(TEXTO_A_CONTINUACION_VARIOS.format(
+        cantidad=cantidad, posicion=posicion))
+
+
+def aviso_agregado_posicion(posicion: int) -> Aviso:
+    """Un solo tema agregado al final, con su posición nueva."""
+    return Aviso(TEXTO_AGREGADO_POSICION.format(posicion=posicion))
+
+
+def aviso_quitado_de_cola(nombre: str) -> Aviso:
+    """Confirmación del tema que salió de la cola de reproducción."""
+    return Aviso(TEXTO_QUITADO_COLA.format(nombre=nombre))
+
+
+def aviso_cola_vaciada(nombre: str | None = None) -> Aviso:
+    """La cola quedó vacía, o quedó solo el tema que sigue sonando."""
+    if nombre:
+        return Aviso(TEXTO_COLA_VACIADA_SIGUE.format(nombre=nombre))
+    return Aviso(TEXTO_COLA_VACIADA)
+
+
+def aviso_cola_mezclada() -> Aviso:
+    """Confirmación de que la cola visible se reordenó al azar."""
+    return Aviso(TEXTO_COLA_MEZCLADA)
+
+
+def aviso_repetir(modo: str) -> Aviso:
+    """Confirmación del modo de repetición elegido."""
+    textos = {
+        "no": TEXTO_REPETIR_NO,
+        "todo": TEXTO_REPETIR_TODO,
+        "tema": TEXTO_REPETIR_TEMA,
+    }
+    return Aviso(textos.get(modo, TEXTO_REPETIR_NO))
 
 
 def aviso_saltadas(cantidad: int) -> Aviso:

@@ -55,6 +55,34 @@ def _tc(w, bg=None, fg=None):
     pass
 
 
+class EleccionTexto(wx.Choice):
+    """Lista desplegable que guarda un valor de texto en vez del índice.
+
+    La tabla de opciones simples habla con `SetValue` y `GetValue`, igual que
+    una casilla o un contador. Acá se traduce entre el valor guardado y la
+    etiqueta que se lee.
+    """
+
+    def __init__(self, parent, opciones, normalizar=None, **kwargs):
+        self._valores = tuple(valor for valor, _etiqueta in opciones)
+        self._normalizar = normalizar or (lambda valor: str(valor))
+        super().__init__(parent, choices=[etiqueta for _valor, etiqueta
+                                          in opciones], **kwargs)
+
+    def SetValue(self, valor) -> None:
+        try:
+            indice = self._valores.index(self._normalizar(valor))
+        except ValueError:
+            indice = 0
+        self.SetSelection(indice)
+
+    def GetValue(self) -> str:
+        indice = self.GetSelection()
+        if 0 <= indice < len(self._valores):
+            return self._valores[indice]
+        return self._valores[0]
+
+
 URL_GUIA = "https://github.com/miguel-cinsfran/ytchat-tts/blob/main/docs/CONFIGURACION_API.md"
 
 # Ancho al que se parten las notas de cada página. Con 560 desbordaban el área
@@ -120,7 +148,7 @@ _OPCIONES_SIMPLES = (
     ("sp_puerto_overlay", "overlay", "puerto", "overlay_puerto", int, 8730),
     ("chk_avisar_sobrecarga", "transmision", "avisar_sobrecarga", "avisar_sobrecarga", bool, True),
     ("chk_musica_aleatorio", "musica", "aleatorio", "musica_aleatorio", bool, False),
-    ("chk_musica_repetir", "musica", "repetir", "musica_repetir", bool, False),
+    ("chk_musica_repetir", "musica", "repetir", "musica_repetir", str, "no"),
     ("chk_musica_retomar", "musica", "retomar", "musica_retomar", bool, True),
     ("chk_musica_sonido_tema", "musica", "sonido_tema", "musica_sonido_tema", bool, True),
     ("chk_musica_decir_titulo", "musica", "decir_titulo", "musica_decir_titulo", bool, True),
@@ -669,10 +697,12 @@ class PreferenciasDialog(wx.Dialog):
         self.chk_musica_aleatorio.SetForegroundColour(_T.text)
         vs.Add(self.chk_musica_aleatorio, 0, wx.ALL, 10)
 
-        self.chk_musica_repetir = wx.CheckBox(
-            p, label="&Repetir la lista al terminar",
-            name="MusicaRepetir")
-        self.chk_musica_repetir.SetForegroundColour(_T.text)
+        vs.Add(self._fila_label(p, "&Repetir:"), 0, wx.LEFT | wx.RIGHT, 10)
+        self.chk_musica_repetir = EleccionTexto(
+            p, (("no", "No"), ("todo", "Toda la cola"),
+                ("tema", "Este tema")),
+            normalizar=cfg.normalizar_repetir, name="Repetir la música")
+        _tc(self.chk_musica_repetir)
         vs.Add(self.chk_musica_repetir, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         self.chk_musica_retomar = wx.CheckBox(
@@ -1688,6 +1718,10 @@ class PreferenciasDialog(wx.Dialog):
             if tipo is bool:
                 valor = control.GetValue()
                 self._set(seccion, clave, "true" if valor else "false")
+                c[en_memoria] = valor
+            elif tipo is str:
+                valor = control.GetValue()
+                self._set(seccion, clave, valor)
                 c[en_memoria] = valor
             else:
                 valor = int(control.GetValue())

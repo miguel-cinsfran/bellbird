@@ -44,7 +44,7 @@ OPCIONES_ESPERADAS = [
     ("sp_puerto_overlay", "overlay", "puerto", "overlay_puerto", int),
     ("chk_avisar_sobrecarga", "transmision", "avisar_sobrecarga", "avisar_sobrecarga", bool),
     ("chk_musica_aleatorio", "musica", "aleatorio", "musica_aleatorio", bool),
-    ("chk_musica_repetir", "musica", "repetir", "musica_repetir", bool),
+    ("chk_musica_repetir", "musica", "repetir", "musica_repetir", str),
     ("chk_musica_retomar", "musica", "retomar", "musica_retomar", bool),
     ("chk_musica_sonido_tema", "musica", "sonido_tema", "musica_sonido_tema", bool),
     ("chk_musica_decir_titulo", "musica", "decir_titulo", "musica_decir_titulo", bool),
@@ -86,7 +86,12 @@ class TestTablaOpcionesSimples(unittest.TestCase):
         casillas y uno más en los contadores (todos dentro de su rango)."""
         config = {}
         for _at, _sec, _clave, en_memoria, tipo, por_defecto in gui_preferencias._OPCIONES_SIMPLES:
-            config[en_memoria] = (not por_defecto) if tipo is bool else por_defecto + 1
+            if tipo is bool:
+                config[en_memoria] = not por_defecto
+            elif tipo is str:
+                config[en_memoria] = "tema"
+            else:
+                config[en_memoria] = por_defecto + 1
         return config
 
     def test_tabla_tiene_33_filas_sin_repetir_y_cada_atributo_existe(self):
@@ -140,6 +145,10 @@ class TestTablaOpcionesSimples(unittest.TestCase):
                 control.SetValue(not control.GetValue())
                 valor = control.GetValue()
                 esperados[(seccion, clave)] = ("true" if valor else "false", en_memoria, valor)
+            elif tipo is str:
+                control.SetValue("tema")
+                valor = "tema"
+                esperados[(seccion, clave)] = (valor, en_memoria, valor)
             else:
                 control.SetValue(VALORES_SPIN[atributo])
                 valor = VALORES_SPIN[atributo]
@@ -161,6 +170,17 @@ class TestTablaOpcionesSimples(unittest.TestCase):
                 self.assertEqual(escritos.get((seccion, clave)), texto)
                 self.assertIs(type(dialogo._config[en_memoria]), type(valor))
                 self.assertEqual(dialogo._config[en_memoria], valor)
+
+    def test_repetir_es_lista_desplegable_con_tres_opciones(self):
+        dialogo = self._dialogo({"musica_repetir": "tema"})
+        control = dialogo.chk_musica_repetir
+        self.assertIsInstance(control, gui.wx.Choice)
+        self.assertEqual(
+            [control.GetString(i) for i in range(control.GetCount())],
+            ["No", "Toda la cola", "Este tema"])
+        self.assertEqual(control.GetValue(), "tema")
+        control.SetValue("todo")
+        self.assertEqual(control.GetStringSelection(), "Toda la cola")
 
     def test_cada_atributo_existe_y_cada_clave_esta_en_fabrica(self):
         dialogo = self._dialogo()
@@ -234,6 +254,8 @@ class TestPorDefectoContraFabrica(unittest.TestCase):
         # «false» es False: no usar bool() sobre el texto, que daría True.
         if tipo is bool:
             return str(texto).strip().lower() in ("true", "yes", "1", "on")
+        if tipo is str:
+            return gui_preferencias.cfg.normalizar_repetir(texto)
         return tipo(texto)
 
     def test_por_defecto_coincide_con_el_de_fabrica(self):

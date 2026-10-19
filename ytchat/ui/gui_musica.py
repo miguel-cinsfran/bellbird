@@ -189,17 +189,85 @@ class ControlMusica:
         """Empieza por el tema de la cola actual que ocupa ese índice."""
         self._asegurar_motor(lambda: self._reproducir_de_la_cola(indice))
 
-    def agregar_enlace(self, url) -> None:
-        """Expande un enlace de YouTube y suma sus temas a la cola, en un hilo.
+    # ── Operaciones de la cola de la ventana nueva ───────────────────────────
+
+    def reproducir_ahora(self, temas) -> None:
+        """Mete la lista detrás del tema actual y empieza por el primero."""
+        self._asegurar_motor(
+            lambda: self._reproducir_ahora(tuple(temas)))
+
+    def poner_a_continuacion(self, temas) -> None:
+        """Mete la lista justo detrás de lo que suena, sin cortar nada."""
+        self._asegurar_motor(
+            lambda: self._poner_varios_a_continuacion(tuple(temas)))
+
+    def agregar_al_final(self, temas) -> None:
+        """Suma la lista al final de la cola sin cortar lo que suena."""
+        self._asegurar_motor(
+            lambda: self._agregar_al_final(tuple(temas)))
+
+    def reproducir_desde_aqui(self, temas, indice) -> None:
+        """Reemplaza la cola con la lista y empieza por el tema elegido."""
+        self._asegurar_motor(
+            lambda: self._iniciar_lista_desde(tuple(temas), indice))
+
+    def quitar_de_cola(self, indice) -> None:
+        """Quita un tema de la cola y avisa cuál salió."""
+        self._asegurar_motor(lambda: self._quitar_de_la_cola(indice))
+
+    def mover_en_cola(self, indice, paso) -> None:
+        """Mueve un tema un paso en la cola y avisa la posición nueva."""
+        self._asegurar_motor(
+            lambda: self._mover_en_la_cola(indice, paso))
+
+    def vaciar_cola(self) -> None:
+        """Deja solo lo que suena, o vacía la cola si no hay nada activo."""
+        self._asegurar_motor(self._vaciar_la_cola)
+
+    def mezclar_cola(self) -> None:
+        """Reordena al azar la cola visible dejando el actual primero."""
+        self._asegurar_motor(self._mezclar_la_cola)
+
+    def fijar_repetir(self, modo) -> None:
+        """Guarda y anuncia el modo de repetición, y lo aplica si hay motor."""
+        modo = cfg.normalizar_repetir(modo)
+        self._config["musica_repetir"] = modo
+        self._guardar("repetir", modo)
+        if self._coordinador is not None:
+            self._coordinador.fijar_repetir(modo)
+        self._avisar(anuncios.aviso_repetir(modo))
+        self._refrescar_ventana_abierta()
+
+    def ciclar_repetir(self) -> None:
+        """Pasa de "no" a "todo" a "tema" y vuelve a "no"."""
+        siguiente = {"no": "todo", "todo": "tema", "tema": "no"}
+        actual = cfg.normalizar_repetir(
+            self._config.get("musica_repetir", "no"))
+        self.fijar_repetir(siguiente[actual])
+
+    # ── Enlaces de YouTube ───────────────────────────────────────────────────
+
+    def abrir_enlace(self, url, modo="final") -> None:
+        """Expande un enlace y aplica el modo pedido con todos sus temas.
 
         La expansión bloquea y toca la red, así que corre aparte y vuelve por
-        `wx.CallAfter`: con los temas llama a `agregar_temas`, y ante un
-        `ErrorEnlace` anuncia su mensaje con el sonido de error.
+        `wx.CallAfter`: con los temas aplica "ahora", "continuacion" o
+        "final", y ante un `ErrorEnlace` anuncia su mensaje con el sonido de
+        error.
         """
+        if not enlaces.es_enlace_youtube(url):
+            self._avisar(anuncios.aviso_enlace_no_youtube())
+            return
+        self._avisar(anuncios.aviso_leyendo_enlace())
         diagnostico.crear_hilo(
-            self._expandir_enlace, "musica-enlace", args=(url,)).start()
+            self._expandir_enlace, "musica-enlace",
+            args=(url, modo)).start()
 
-    def _expandir_enlace(self, url) -> None:
+    def agregar_enlace(self, url) -> None:
+        """Expande un enlace de YouTube y suma sus temas al final de la cola."""
+        self.abrir_enlace(url, "final")
+
+    def _expandir_enlace(self, url, modo) -> None:
         try:
             temas = enlaces.expandir(url)
         except enlaces.ErrorEnlace as exc:
@@ -209,10 +277,15 @@ class ControlMusica:
             logger.exception("No se pudo expandir el enlace de música")
             wx.CallAfter(self._aviso_error_enlace, enlaces.TEXTO_NO_SE_PUDO_LEER)
             return
-        wx.CallAfter(self._agregar_temas_del_enlace, temas)
+        wx.CallAfter(self._aplicar_enlace, temas, modo)
 
-    def _agregar_temas_del_enlace(self, temas) -> None:
-        self.agregar_temas(temas)
+    def _aplicar_enlace(self, temas, modo) -> None:
+        if modo == "ahora":
+            self.reproducir_ahora(temas)
+        elif modo == "continuacion":
+            self.poner_a_continuacion(temas)
+        else:
+            self.agregar_al_final(temas)
 
     def _aviso_error_enlace(self, mensaje) -> None:
         self._avisar(anuncios.aviso_error_enlace(mensaje))
@@ -312,6 +385,77 @@ class ControlMusica:
             self._avisar(anuncios.aviso_saltadas(saltadas))
         self.reproducir_temas(temas)
 
+    # ── Listas propias ───────────────────────────────────────────────────────
+
+    def guardar_cola_como_lista(self, nombre) -> None:
+        """Guarda la cola actual como una lista propia."""
+        temas = self.cola_actual()
+        if not temas:
+            self._avisar(anuncios.aviso_sin_cola())
+            return
+        try:
+            limpio = listas.guardar(self.carpeta_listas(), nombre, temas)
+        except listas.ErrorListas as exc:
+            self._avisar(anuncios.aviso_error_listas(str(exc)))
+            return
+        self._avisar(anuncios.aviso_lista_guardada(limpio))
+
+    def agregar_a_lista(self, nombre, temas) -> None:
+        """Suma temas al final de una lista que ya existe."""
+        try:
+            listas.agregar(self.carpeta_listas(), nombre, tuple(temas))
+        except listas.ErrorListas as exc:
+            self._avisar(anuncios.aviso_error_listas(str(exc)))
+            return
+        self._avisar(anuncios.aviso_agregado_a_lista(nombre))
+
+    def quitar_de_lista(self, nombre, indice) -> None:
+        """Quita un tema de una lista propia."""
+        try:
+            listas.quitar(self.carpeta_listas(), nombre, indice)
+        except listas.ErrorListas as exc:
+            self._avisar(anuncios.aviso_error_listas(str(exc)))
+            return
+        self._avisar(anuncios.aviso_tema_quitado())
+
+    def crear_lista(self, nombre) -> None:
+        """Crea una lista propia vacía."""
+        try:
+            limpio = listas.crear(self.carpeta_listas(), nombre)
+        except listas.ErrorListas as exc:
+            self._avisar(anuncios.aviso_error_listas(str(exc)))
+            return
+        self._avisar(anuncios.aviso_lista_creada(limpio))
+
+    def renombrar_lista(self, viejo, nuevo) -> None:
+        """Cambia el nombre de una lista propia."""
+        try:
+            limpio = listas.renombrar(self.carpeta_listas(), viejo, nuevo)
+        except listas.ErrorListas as exc:
+            self._avisar(anuncios.aviso_error_listas(str(exc)))
+            return
+        self._avisar(anuncios.aviso_lista_renombrada(limpio))
+
+    def borrar_lista(self, nombre) -> None:
+        """Borra una lista propia."""
+        try:
+            listas.borrar(self.carpeta_listas(), nombre)
+        except listas.ErrorListas as exc:
+            self._avisar(anuncios.aviso_error_listas(str(exc)))
+            return
+        self._avisar(anuncios.aviso_lista_borrada(nombre))
+
+    def temas_de_lista(self, nombre):
+        """Los temas de una lista propia, avisando si se saltaron entradas."""
+        try:
+            temas, saltadas = listas.cargar(self.carpeta_listas(), nombre)
+        except listas.ErrorListas as exc:
+            self._avisar(anuncios.aviso_error_listas(str(exc)))
+            return ()
+        if saltadas:
+            self._avisar(anuncios.aviso_saltadas(saltadas))
+        return temas
+
     def registrar_ventana(self, ventana, tipo="musica") -> None:
         """La ventana quedó abierta: hay que refrescarle la cola.
 
@@ -408,7 +552,7 @@ class ControlMusica:
             aleatorio = bool(self._config.get("musica_aleatorio", False))
             self._coordinador.fijar_aleatorio(aleatorio)
             self._coordinador.fijar_repetir(
-                bool(self._config.get("musica_repetir", False)))
+                cfg.normalizar_repetir(self._config.get("musica_repetir", "no")))
             item = getattr(self._frame, "mi_musica_aleatorio", None)
             if item is not None:
                 item.Check(aleatorio)
@@ -506,7 +650,7 @@ class ControlMusica:
             coordinador.fijar_aleatorio(
                 bool(self._config.get("musica_aleatorio", False)))
             coordinador.fijar_repetir(
-                bool(self._config.get("musica_repetir", False)))
+                cfg.normalizar_repetir(self._config.get("musica_repetir", "no")))
             adaptador.volumen(self._volumen_config())
         except MotorNoDisponible:
             wx.CallAfter(self._motor_no_disponible)
@@ -686,6 +830,130 @@ class ControlMusica:
         resultado = self._coordinador.reproducir_desde(indice)
         self._avisar(anuncios.aviso_accion(
             "reproducir", resultado, self._incluir_artista()))
+        self._guardar_memoria()
+
+    def _reproducir_ahora(self, temas) -> None:
+        if self._coordinador is None:
+            return
+        resultado = self._coordinador.reproducir_ahora(temas)
+        self._avisar(anuncios.aviso_accion(
+            "reproducir", resultado, self._incluir_artista()))
+        self._guardar_memoria()
+
+    def _poner_varios_a_continuacion(self, temas) -> None:
+        if self._coordinador is None:
+            return
+        antes = self._coordinador.estado()
+        resultado = self._coordinador.a_continuacion(temas)
+        if resultado.ok:
+            if antes.posicion is None or antes.terminado:
+                self._avisar(anuncios.aviso_accion(
+                    "reproducir", resultado, self._incluir_artista()))
+            else:
+                posicion = self._indice_insertado(antes, resultado) + 1
+                if len(temas) == 1:
+                    self._avisar(anuncios.aviso_a_continuacion_posicion(
+                        temas[0], posicion, self._incluir_artista()))
+                else:
+                    self._avisar(anuncios.aviso_a_continuacion_varios(
+                        len(temas), posicion))
+        else:
+            self._avisar(anuncios.aviso_accion(
+                "agregar", resultado, self._incluir_artista()))
+        self._guardar_memoria()
+
+    @staticmethod
+    def _indice_insertado(antes, resultado) -> int:
+        """Índice del primer tema nuevo, comparando por identidad."""
+        i = j = 0
+        despues = resultado.estado.cola
+        while i < len(despues) and j < len(antes.cola):
+            if despues[i] is antes.cola[j]:
+                i += 1
+                j += 1
+            else:
+                return i
+        return i
+
+    def _agregar_al_final(self, temas) -> None:
+        if self._coordinador is None:
+            return
+        antes = self._coordinador.estado()
+        resultado = self._coordinador.agregar(temas)
+        if resultado.ok:
+            activo = antes.posicion is not None and not antes.terminado
+            if not activo:
+                self._avisar(anuncios.aviso_accion(
+                    "reproducir", resultado, self._incluir_artista()))
+            elif len(temas) == 1:
+                self._avisar(anuncios.aviso_agregado_posicion(
+                    len(antes.cola) + 1))
+            else:
+                self._avisar(anuncios.aviso_agregados(len(temas)))
+        else:
+            self._avisar(anuncios.aviso_accion(
+                "agregar", resultado, self._incluir_artista()))
+
+    def _quitar_de_la_cola(self, indice) -> None:
+        if self._coordinador is None:
+            return
+        antes = self._coordinador.estado()
+        quitado = None
+        if (not isinstance(indice, bool) and isinstance(indice, int)
+                and 0 <= indice < len(antes.cola)):
+            quitado = antes.cola[indice]
+        resultado = self._coordinador.quitar(indice)
+        if resultado.ok and quitado is not None:
+            nombre = anuncios.nombre_tema(quitado, self._incluir_artista())
+            texto = anuncios.TEXTO_QUITADO_COLA.format(nombre=nombre)
+            nuevo = resultado.estado.actual
+            if (indice == antes.posicion and nuevo is not None
+                    and not resultado.estado.terminado):
+                texto += ". " + anuncios.nombre_tema(
+                    nuevo, self._incluir_artista())
+            self._avisar(anuncios.Aviso(texto))
+        elif resultado.codigo == FIN_LISTA:
+            self._avisar(anuncios.Aviso(anuncios.TEXTO_FIN_LISTA))
+        else:
+            self._avisar(anuncios.aviso_accion(
+                "quitar", resultado, self._incluir_artista()))
+            return
+        self._guardar_memoria()
+
+    def _mover_en_la_cola(self, indice, paso) -> None:
+        if self._coordinador is None:
+            return
+        antes = self._coordinador.estado()
+        valido = (not isinstance(indice, bool) and isinstance(indice, int)
+                  and 0 <= indice < len(antes.cola))
+        resultado = self._coordinador.mover(indice, paso)
+        if not valido:
+            self._avisar(anuncios.aviso_accion(
+                "mover", resultado, self._incluir_artista()))
+            return
+        total = len(resultado.estado.cola)
+        posicion = indice + 1
+        if resultado.ok:
+            posicion = indice + paso + 1
+            self._guardar_memoria()
+        self._avisar(anuncios.aviso_tema_movido(posicion, total))
+
+    def _vaciar_la_cola(self) -> None:
+        if self._coordinador is None:
+            return
+        resultado = self._coordinador.vaciar()
+        actual = resultado.estado.actual
+        nombre = None
+        if actual is not None and not resultado.estado.terminado:
+            nombre = anuncios.nombre_tema(actual, self._incluir_artista())
+        self._avisar(anuncios.aviso_cola_vaciada(nombre))
+        self._guardar_memoria()
+
+    def _mezclar_la_cola(self) -> None:
+        if self._coordinador is None:
+            return
+        self._coordinador.mezclar_cola()
+        self._avisar(anuncios.aviso_cola_mezclada())
         self._guardar_memoria()
 
     # ── Memoria: retomar y recordar ──────────────────────────────────────────

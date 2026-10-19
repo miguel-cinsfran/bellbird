@@ -796,7 +796,7 @@ class TestMusicaCargador(unittest.TestCase):
         cfg = self._cargar_en("")
         self.assertEqual(cfg["musica_carpeta"], "")
         self.assertFalse(cfg["musica_aleatorio"])
-        self.assertFalse(cfg["musica_repetir"])
+        self.assertEqual(cfg["musica_repetir"], "no")
         self.assertTrue(cfg["musica_retomar"])
         self.assertTrue(cfg["musica_sonido_tema"])
         self.assertTrue(cfg["musica_decir_titulo"])
@@ -822,7 +822,7 @@ class TestMusicaCargador(unittest.TestCase):
             "atajos_globales = true\n")
         self.assertEqual(cfg["musica_carpeta"], "C:/Mi Música/Grandes Éxitos")
         self.assertTrue(cfg["musica_aleatorio"])
-        self.assertTrue(cfg["musica_repetir"])
+        self.assertEqual(cfg["musica_repetir"], "todo")
         self.assertFalse(cfg["musica_retomar"])
         self.assertFalse(cfg["musica_sonido_tema"])
         self.assertFalse(cfg["musica_decir_titulo"])
@@ -837,7 +837,6 @@ class TestMusicaCargador(unittest.TestCase):
         # inadvertida. De a una sola, la clave vecina ya no la tapa.
         casos = [
             ("aleatorio", "musica_aleatorio", False),
-            ("repetir", "musica_repetir", False),
             ("retomar", "musica_retomar", True),
             ("sonido_tema", "musica_sonido_tema", True),
             ("decir_titulo", "musica_decir_titulo", True),
@@ -853,6 +852,21 @@ class TestMusicaCargador(unittest.TestCase):
                     if otra_memoria == clave_memoria:
                         continue
                     self.assertEqual(cfg[otra_memoria], otro_fabrica)
+
+    def test_repetir_se_lee_como_texto_y_se_normaliza(self):
+        casos = [
+            ("true", "todo"),
+            ("tema", "tema"),
+            ("todo", "todo"),
+            ("no", "no"),
+            ("false", "no"),
+            ("", "no"),
+            ("otra cosa", "no"),
+        ]
+        for texto, esperado in casos:
+            with self.subTest(texto=texto):
+                cfg = self._cargar_en(f"[musica]\nrepetir = {texto}\n")
+                self.assertEqual(cfg["musica_repetir"], esperado)
 
     def test_carpeta_con_espacios_y_tildes_ida_y_vuelta(self):
         carpeta = "C:\\Música\\Rock and Roll\\Ñandú"

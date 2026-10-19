@@ -319,6 +319,51 @@ class TestEstadoParaF2(unittest.TestCase):
         self.assertIsNone(aviso.sonido)
 
 
+class TestAvisosDeCola(unittest.TestCase):
+
+    def test_a_continuacion_con_posicion_y_artista(self):
+        aviso = anuncios.aviso_a_continuacion_posicion(_tema(1, artista="Ana"),
+                                                       2, True)
+        self.assertEqual(aviso.texto, "A continuación: Tema 1, de Ana, posición 2")
+        self.assertIsNone(aviso.sonido)
+
+    def test_varios_a_continuacion(self):
+        aviso = anuncios.aviso_a_continuacion_varios(3, 5)
+        self.assertEqual(aviso.texto,
+                         "3 temas a continuación, desde la posición 5")
+        self.assertIsNone(aviso.sonido)
+
+    def test_agregado_con_posicion(self):
+        aviso = anuncios.aviso_agregado_posicion(4)
+        self.assertEqual(aviso.texto, "Agregado a la cola, posición 4")
+        self.assertIsNone(aviso.sonido)
+
+    def test_quitado_de_la_cola(self):
+        aviso = anuncios.aviso_quitado_de_cola("Tema 2")
+        self.assertEqual(aviso.texto, "Quitado de la cola: Tema 2")
+        self.assertIsNone(aviso.sonido)
+
+    def test_cola_vaciada_con_y_sin_tema_actual(self):
+        self.assertEqual(anuncios.aviso_cola_vaciada().texto, "Cola vaciada")
+        self.assertEqual(anuncios.aviso_cola_vaciada("Tema 1").texto,
+                         "Cola vaciada, sigue sonando Tema 1")
+        self.assertIsNone(anuncios.aviso_cola_vaciada("Tema 1").sonido)
+
+    def test_cola_mezclada(self):
+        aviso = anuncios.aviso_cola_mezclada()
+        self.assertEqual(aviso.texto, "Cola mezclada")
+        self.assertIsNone(aviso.sonido)
+
+    def test_repetir_con_los_tres_modos(self):
+        self.assertEqual(anuncios.aviso_repetir("no").texto, "Repetir: no")
+        self.assertEqual(anuncios.aviso_repetir("todo").texto,
+                         "Repetir: toda la cola")
+        self.assertEqual(anuncios.aviso_repetir("tema").texto,
+                         "Repetir: este tema")
+        self.assertEqual(anuncios.aviso_repetir("otro").texto, "Repetir: no")
+        self.assertIsNone(anuncios.aviso_repetir("todo").sonido)
+
+
 class TestAvisosDeListas(unittest.TestCase):
 
     def test_saltadas_singular_y_plural(self):

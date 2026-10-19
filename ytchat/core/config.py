@@ -401,6 +401,22 @@ def _pf(p, sec, k, lo=0.0, hi=1.0):
 def _pb(p, sec, k):
     try:    return p.getboolean(sec, k)
     except Exception: return _fallback(sec, k).strip().lower() in ("true", "yes", "1", "on")
+def normalizar_repetir(valor) -> str:
+    """Modo de repetición como texto: "no", "todo" o "tema".
+
+    Acepta los booleanos viejos de la preferencia además de los tres textos.
+    "false", vacío y cualquier valor desconocido valen "no".
+    """
+    if valor is True:
+        return "todo"
+    if valor is False:
+        return "no"
+    texto = str(valor or "").strip().lower()
+    if texto == "true":
+        return "todo"
+    if texto in ("no", "todo", "tema"):
+        return texto
+    return "no"
 def _lista(v: str) -> list:
     return [x.strip().lower() for x in v.split(",") if x.strip()]
 
@@ -793,7 +809,7 @@ def cargar_configuracion() -> dict:
         # texto libre y se decodifica, igual que las rutas de [transmision].
         "musica_carpeta": decodificar_texto_ini(_gs(p, "musica", "carpeta")),
         "musica_aleatorio": _pb(p, "musica", "aleatorio"),
-        "musica_repetir": _pb(p, "musica", "repetir"),
+        "musica_repetir": normalizar_repetir(_gs(p, "musica", "repetir")),
         "musica_retomar": _pb(p, "musica", "retomar"),
         "musica_sonido_tema": _pb(p, "musica", "sonido_tema"),
         "musica_decir_titulo": _pb(p, "musica", "decir_titulo"),

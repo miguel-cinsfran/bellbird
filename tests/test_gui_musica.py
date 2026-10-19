@@ -504,7 +504,7 @@ class TestAplicarPreferencias(unittest.TestCase):
         control._coordinador.fijar_volumen.assert_called_once_with(30)
         control._adaptador.fijar_dispositivo.assert_called_once_with("disp-1")
         control._coordinador.fijar_aleatorio.assert_called_once_with(True)
-        control._coordinador.fijar_repetir.assert_called_once_with(True)
+        control._coordinador.fijar_repetir.assert_called_once_with("todo")
         item.Check.assert_called_once_with(True)
         env.anunciar.assert_not_called()
 
@@ -1000,8 +1000,7 @@ class TestEnlace(unittest.TestCase):
             control.agregar_enlace("https://www.youtube.com/playlist?list=PL1")
         self.assertEqual([t.origen for t in control.estado().cola],
                          [t.origen for t in temas])
-        self.assertEqual(env.anunciar.call_args_list[-1].args[0],
-                         "2 temas agregados a la cola")
+        self.assertEqual(env.anunciar.call_args_list[-1].args[0], "Uno")
 
     def test_error_del_enlace_avisa_con_sonido(self):
         from ytchat.music.enlaces import ErrorEnlace
@@ -1023,6 +1022,355 @@ class TestEnlace(unittest.TestCase):
             control.agregar_enlace("https://youtu.be/x")
         self.assertEqual(env.anunciar.call_args_list[-1].args[0],
                          "No se pudo leer el enlace")
+        self.assertEqual(env.snd.sonidos, ["error"])
+
+
+class TestOperacionesDeCola(unittest.TestCase):
+    """Las operaciones nuevas de la cola llaman al coordinador y avisan."""
+
+    @staticmethod
+    def _temas(*titulos):
+        return [Tema(f"C:/m/{titulo.lower()}.mp3", titulo) for titulo in titulos]
+
+    def _con_cola(self, *titulos, **config):
+        control = ControlMusica(_frame(**config))
+        control.reproducir_temas(self._temas(*titulos), en_orden=True)
+        return control
+
+    def test_reproducir_ahora_mete_detras_y_suena_el_primero(self):
+        with _entorno() as env:
+            control = self._con_cola("A", "C")
+            env.anunciar.reset_mock()
+            control.reproducir_ahora(self._temas("B"))
+            self.assertEqual([t.titulo for t in control.estado().cola],
+                             ["A", "B", "C"])
+            self.assertEqual([c.args[0] for c in env.anunciar.call_args_list],
+                             ["B"])
+        self.assertEqual(env.snd.sonidos, [])
+
+    def test_poner_a_continuacion_uno_anuncia_posicion(self):
+        with _entorno() as env:
+            control = self._con_cola("A", "D")
+            env.anunciar.reset_mock()
+            control.poner_a_continuacion(self._temas("B"))
+        env.anunciar.assert_called_once_with("A continuación: B, posición 2")
+        self.assertEqual([t.titulo for t in control.estado().cola],
+                         ["A", "B", "D"])
+        self.assertEqual(env.snd.sonidos, [])
+
+    def test_poner_a_continuacion_varios_desde_la_primera_posicion(self):
+        with _entorno() as env:
+            control = self._con_cola("A", "D")
+            env.anunciar.reset_mock()
+            control.poner_a_continuacion(self._temas("B"))
+            control.poner_a_continuacion(self._temas("C", "E"))
+            textos = [c.args[0] for c in env.anunciar.call_args_list]
+        self.assertEqual(textos, [
+            "A continuación: B, posición 2",
+            "2 temas a continuación, desde la posición 3"])
+        self.assertEqual([t.titulo for t in control.estado().cola],
+                         ["A", "B", "C", "E", "D"])
+
+    def test_poner_a_continuacion_sin_nada_activo_empieza_a_sonar(self):
+        with _entorno() as env:
+            control = ControlMusica(_frame())
+            control.poner_a_continuacion(self._temas("A"))
+        self.assertEqual(env.anunciar.call_args_list[-1].args[0], "A")
+        self.assertEqual([t.titulo for t in control.estado().cola], ["A"])
+
+    def test_agregar_al_final_uno_anuncia_posicion(self):
+        with _entorno() as env:
+            control = self._con_cola("A", "B")
+            env.anunciar.reset_mock()
+            control.agregar_al_final(self._temas("C"))
+        env.anunciar.assert_called_once_with("Agregado a la cola, posición 3")
+        self.assertEqual([t.titulo for t in control.estado().cola],
+                         ["A", "B", "C"])
+
+    def test_agregar_al_final_varios_usa_el_texto_de_siempre(self):
+        with _entorno() as env:
+            control = self._con_cola("A")
+            env.anunciar.reset_mock()
+            control.agregar_al_final(self._temas("B", "C"))
+        env.anunciar.assert_called_once_with("2 temas agregados a la cola")
+        self.assertEqual([t.titulo for t in control.estado().cola],
+                         ["A", "B", "C"])
+
+    def test_agregar_al_final_sin_nada_activo_empieza_a_sonar(self):
+        with _entorno() as env:
+            control = ControlMusica(_frame())
+            control.agregar_al_final(self._temas("A"))
+        self.assertEqual(env.anunciar.call_args_list[-1].args[0], "A")
+        self.assertEqual([t.titulo for t in control.estado().cola], ["A"])
+
+    def test_reproducir_desde_aqui_reemplaza_la_cola(self):
+        with _entorno() as env:
+            control = self._con_cola("A", "B", "C")
+            env.anunciar.reset_mock()
+            control.reproducir_desde_aqui(self._temas("B", "C"), 1)
+        self.assertEqual(env.anunciar.call_args_list[-1].args[0], "C")
+        self.assertEqual([t.titulo for t in control.estado().cola], ["B", "C"])
+        self.assertEqual(control.estado().posicion, 1)
+
+    def test_quitar_uno_que_no_suena(self):
+        with _entorno() as env:
+            control = self._con_cola("A", "B", "C")
+            env.anunciar.reset_mock()
+            control.quitar_de_cola(2)
+        env.anunciar.assert_called_once_with("Quitado de la cola: C")
+        self.assertEqual([t.titulo for t in control.estado().cola], ["A", "B"])
+
+    def test_quitar_el_que_suena_anuncia_tambien_el_nuevo(self):
+        with _entorno() as env:
+            control = self._con_cola("A", "B", "C")
+            env.anunciar.reset_mock()
+            control.quitar_de_cola(0)
+        env.anunciar.assert_called_once_with("Quitado de la cola: A. B")
+        self.assertEqual(control.estado().actual.titulo, "B")
+
+    def test_quitar_el_unico_suena_fin_de_lista_sin_sonido(self):
+        with _entorno() as env:
+            control = self._con_cola("A")
+            env.anunciar.reset_mock()
+            control.quitar_de_cola(0)
+        env.anunciar.assert_called_once_with("Fin de la lista de música")
+        self.assertEqual(env.snd.sonidos, [])
+        self.assertEqual(control.estado().cola, ())
+
+    def test_mover_en_cola_anuncia_la_posicion_nueva(self):
+        with _entorno() as env:
+            control = self._con_cola("A", "B", "C")
+            env.anunciar.reset_mock()
+            control.mover_en_cola(0, 1)
+        env.anunciar.assert_called_once_with(
+            "Tema movido a la posición 2 de 3")
+        self.assertEqual([t.titulo for t in control.estado().cola],
+                         ["B", "A", "C"])
+
+    def test_mover_en_el_borde_anuncia_la_misma_posicion(self):
+        with _entorno() as env:
+            control = self._con_cola("A", "B", "C")
+            env.anunciar.reset_mock()
+            control.mover_en_cola(0, -1)
+        env.anunciar.assert_called_once_with(
+            "Tema movido a la posición 1 de 3")
+        self.assertEqual([t.titulo for t in control.estado().cola],
+                         ["A", "B", "C"])
+
+    def test_vaciar_deja_el_actual_y_lo_dice(self):
+        with _entorno() as env:
+            control = self._con_cola("A", "B")
+            env.anunciar.reset_mock()
+            control.vaciar_cola()
+        env.anunciar.assert_called_once_with("Cola vaciada, sigue sonando A")
+        self.assertEqual([t.titulo for t in control.estado().cola], ["A"])
+
+    def test_vaciar_sin_nada_activo(self):
+        with _entorno() as env:
+            control = self._con_cola("A", "B")
+            control.detener()
+            env.anunciar.reset_mock()
+            control.vaciar_cola()
+        env.anunciar.assert_called_once_with("Cola vaciada")
+        self.assertEqual(control.estado().cola, ())
+
+    def test_mezclar_anuncia(self):
+        with _entorno() as env:
+            control = self._con_cola("A", "B", "C")
+            env.anunciar.reset_mock()
+            control.mezclar_cola()
+        env.anunciar.assert_called_once_with("Cola mezclada")
+        self.assertEqual(len(control.estado().cola), 3)
+
+
+class TestRepetir(unittest.TestCase):
+
+    def test_ciclar_recorre_los_tres_modos_guarda_y_anuncia(self):
+        frame = _frame(musica_repetir="no")
+        with _entorno() as env, \
+                mock.patch.object(ControlMusica, "_guardar") as guardar:
+            control = ControlMusica(frame)
+            control.ciclar_repetir()
+            self.assertEqual(frame._config["musica_repetir"], "todo")
+            control.ciclar_repetir()
+            self.assertEqual(frame._config["musica_repetir"], "tema")
+            control.ciclar_repetir()
+            self.assertEqual(frame._config["musica_repetir"], "no")
+        self.assertEqual(
+            [c.args[0] for c in env.anunciar.call_args_list],
+            ["Repetir: toda la cola", "Repetir: este tema", "Repetir: no"])
+        self.assertEqual(
+            [c.args for c in guardar.call_args_list],
+            [("repetir", "todo"), ("repetir", "tema"), ("repetir", "no")])
+
+    def test_fijar_aplica_al_coordinador_si_hay_motor(self):
+        frame = _frame(musica_repetir="no")
+        with _entorno() as env, \
+                mock.patch.object(ControlMusica, "_guardar") as guardar:
+            control = ControlMusica(frame)
+            control._coordinador = mock.Mock()
+            control.fijar_repetir("tema")
+        control._coordinador.fijar_repetir.assert_called_once_with("tema")
+        guardar.assert_called_once_with("repetir", "tema")
+        env.anunciar.assert_called_once_with("Repetir: este tema")
+
+
+class TestAbrirEnlace(unittest.TestCase):
+    """`abrir_enlace`: valida, expande en un hilo y aplica el modo pedido."""
+
+    TEMAS = (Tema("https://www.youtube.com/watch?v=uno", "Uno"),
+             Tema("https://www.youtube.com/watch?v=dos", "Dos"))
+
+    def _con_cola(self, *titulos):
+        control = ControlMusica(_frame())
+        control.reproducir_temas(
+            [Tema(f"C:/m/{t.lower()}.mp3", t) for t in titulos], en_orden=True)
+        return control
+
+    def _abrir(self, modo):
+        with _entorno() as env, \
+                mock.patch.object(gui_musica.enlaces, "expandir",
+                                  return_value=self.TEMAS):
+            control = self._con_cola("X")
+            env.anunciar.reset_mock()
+            control.abrir_enlace(
+                "https://www.youtube.com/playlist?list=PL1", modo)
+            textos = [c.args[0] for c in env.anunciar.call_args_list]
+            titulos = [t.titulo for t in control.estado().cola]
+        return textos, titulos, env
+
+    def test_modo_final_suma_al_final(self):
+        textos, titulos, _env = self._abrir("final")
+        self.assertEqual(textos, ["Leyendo el enlace",
+                                  "2 temas agregados a la cola"])
+        self.assertEqual(titulos, ["X", "Uno", "Dos"])
+
+    def test_modo_continuacion_mete_detras(self):
+        textos, titulos, _env = self._abrir("continuacion")
+        self.assertEqual(textos, [
+            "Leyendo el enlace",
+            "2 temas a continuación, desde la posición 2"])
+        self.assertEqual(titulos, ["X", "Uno", "Dos"])
+
+    def test_modo_ahora_empieza_por_el_primero(self):
+        textos, titulos, _env = self._abrir("ahora")
+        self.assertEqual(textos, ["Leyendo el enlace", "Uno"])
+        self.assertEqual(titulos, ["X", "Uno", "Dos"])
+
+    def test_enlace_que_no_es_de_youtube_no_expande(self):
+        with _entorno() as env, \
+                mock.patch.object(gui_musica.enlaces, "expandir") as expandir:
+            ControlMusica(_frame()).abrir_enlace(
+                "https://ejemplo.test/video", "final")
+        expandir.assert_not_called()
+        env.anunciar.assert_called_once_with(
+            "Esa dirección no es de YouTube")
+        self.assertEqual(env.snd.sonidos, ["error"])
+
+    def test_agregar_enlace_sigue_siendo_el_modo_final(self):
+        with _entorno() as env, \
+                mock.patch.object(gui_musica.enlaces, "expandir",
+                                  return_value=self.TEMAS):
+            control = self._con_cola("X")
+            env.anunciar.reset_mock()
+            control.agregar_enlace("https://youtu.be/uno")
+        self.assertEqual(env.anunciar.call_args_list[-1].args[0],
+                         "2 temas agregados a la cola")
+        self.assertEqual([t.titulo for t in control.estado().cola],
+                         ["X", "Uno", "Dos"])
+
+
+class TestListasPropias(unittest.TestCase):
+    """Las operaciones nuevas de listas sobre `listas.py` y sus avisos."""
+
+    @staticmethod
+    def _temas_reales(tmp, *nombres):
+        temas = []
+        for nombre in nombres:
+            ruta = Path(tmp) / f"{nombre.lower()}.mp3"
+            ruta.write_bytes(b"")
+            temas.append(Tema(str(ruta.resolve()), nombre))
+        return temas
+
+    def _carpeta(self, tmp):
+        return Path(tmp) / "listas"
+
+    def test_guardar_cola_como_lista(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            temas = self._temas_reales(tmp, "A", "B")
+            carpeta = self._carpeta(tmp)
+            with _entorno() as env, \
+                    mock.patch.object(gui_musica.paths, "listas_musica",
+                                      return_value=carpeta):
+                control = ControlMusica(_frame())
+                control.reproducir_temas(temas, en_orden=True)
+                env.anunciar.reset_mock()
+                control.guardar_cola_como_lista("Rock")
+                cargados, saltadas = listas.cargar(carpeta, "Rock")
+        env.anunciar.assert_called_once_with("Lista guardada: Rock")
+        self.assertEqual([t.titulo for t in cargados], ["A", "B"])
+        self.assertEqual(saltadas, 0)
+
+    def test_guardar_cola_vacia_avisa(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with _entorno() as env, \
+                    mock.patch.object(gui_musica.paths, "listas_musica",
+                                      return_value=self._carpeta(tmp)):
+                ControlMusica(_frame()).guardar_cola_como_lista("Rock")
+        env.anunciar.assert_called_once_with("No hay temas en la cola")
+
+    def test_agregar_y_quitar_de_lista(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            temas = self._temas_reales(tmp, "A", "B")
+            carpeta = self._carpeta(tmp)
+            listas.guardar(carpeta, "Rock", (temas[0],))
+            with _entorno() as env, \
+                    mock.patch.object(gui_musica.paths, "listas_musica",
+                                      return_value=carpeta):
+                control = ControlMusica(_frame())
+                control.agregar_a_lista("Rock", [temas[1]])
+                textos = [c.args[0] for c in env.anunciar.call_args_list]
+                env.anunciar.reset_mock()
+                control.quitar_de_lista("Rock", 0)
+                quitado = env.anunciar.call_args.args[0]
+                restantes, _saltadas = listas.cargar(carpeta, "Rock")
+        self.assertEqual(textos, ["Agregado a la lista Rock"])
+        self.assertEqual(quitado, "Tema quitado de la lista")
+        self.assertEqual([t.titulo for t in restantes], ["B"])
+
+    def test_crear_renombrar_borrar_y_leer(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            temas = self._temas_reales(tmp, "A")
+            carpeta = self._carpeta(tmp)
+            with _entorno() as env, \
+                    mock.patch.object(gui_musica.paths, "listas_musica",
+                                      return_value=carpeta):
+                control = ControlMusica(_frame())
+                control.crear_lista("Rock")
+                creada = env.anunciar.call_args.args[0]
+                control.agregar_a_lista("Rock", temas)
+                env.anunciar.reset_mock()
+                control.renombrar_lista("Rock", "Otra")
+                renombrada = env.anunciar.call_args.args[0]
+                control.borrar_lista("Otra")
+                borrada = env.anunciar.call_args.args[0]
+                control.crear_lista("Final")
+                control.agregar_a_lista("Final", temas)
+                env.anunciar.reset_mock()
+                devueltos = control.temas_de_lista("Final")
+        self.assertEqual(creada, "Lista creada: Rock")
+        self.assertEqual(renombrada, "Lista renombrada: Otra")
+        self.assertEqual(borrada, "Lista borrada: Otra")
+        self.assertEqual([t.titulo for t in devueltos], ["A"])
+        env.anunciar.assert_not_called()
+
+    def test_error_de_listas_avisa_con_sonido(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with _entorno() as env, \
+                    mock.patch.object(gui_musica.paths, "listas_musica",
+                                      return_value=self._carpeta(tmp)):
+                ControlMusica(_frame()).crear_lista("")
+        env.anunciar.assert_called_once_with("Escribe un nombre para la lista")
         self.assertEqual(env.snd.sonidos, ["error"])
 
 

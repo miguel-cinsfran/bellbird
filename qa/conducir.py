@@ -2388,11 +2388,17 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         filas = _filas_estables("Música", "Biblioteca") or []
         if len(filas) != 6:
             _corta("musica_real: la lista de temas no tiene 6 elementos")
+        tercero = _titulo_fila(filas[2])
+        cola_antes = _filas("Música", "Cola de reproducción") or []
+        # `reproducir_ahora` inserta el tema detrás del que suena, así que el
+        # contrato está en esa fila y no en que la cola copie la carpeta:
+        # comparar contra la carpeta medía el botón viejo «Reproducir este».
+        indice_sonando = next((i for i, f in enumerate(cola_antes)
+                               if f.startswith("Sonando: ")), None)
         n = len(propia.anuncios)
         _elegir("Música", "Biblioteca", 2)
         propia.pedir("tecla_en", ventana="Música", nombre="Biblioteca",
                      tecla="enter")
-        tercero = _titulo_fila(filas[2])
         if not tercero:
             res.fallo("musica_real: la tercera fila no tiene título y no "
                       "se puede probar «Reproducir ahora»")
@@ -2403,29 +2409,36 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         if not cola:
             res.fallo("musica_real: la cola está vacía tras "
                       "«Reproducir ahora»")
-        elif [_titulo_fila(f) for f in cola] != list(filas):
-            res.fallo("musica_real: la cola no trae los mismos temas "
-                      "de la carpeta en el mismo orden")
-        elif not cola[2].startswith("Sonando: "):
-            res.fallo("musica_real: la tercera fila no es la que suena "
-                      "tras «Reproducir ahora»")
-        elif not sin_salida:
-            limite = time.monotonic() + 10
-            suena = False
-            while time.monotonic() < limite:
-                valor = _pico()
-                if valor is not None and valor > 0.005:
-                    suena = True
-                    break
-                time.sleep(0.1)
-            if not suena:
-                res.fallo("musica_real: el tercero no se oye")
+        elif len(cola) != len(cola_antes) + 1:
+            res.fallo("musica_real: «Reproducir ahora» no agregó un tema a "
+                      "la cola")
+        elif indice_sonando is None:
+            res.fallo("musica_real: antes de «Reproducir ahora» la cola no "
+                      "marcaba ningún tema sonando")
+        else:
+            siguiente = cola[indice_sonando + 1: indice_sonando + 2]
+            if (not siguiente or not siguiente[0].startswith("Sonando: ")
+                    or _titulo_fila(siguiente[0]) != tercero):
+                res.fallo("musica_real: «Reproducir ahora» no dejó el tercero "
+                          "sonando justo detrás del que sonaba")
+            elif not sin_salida:
+                limite = time.monotonic() + 10
+                suena = False
+                while time.monotonic() < limite:
+                    valor = _pico()
+                    if valor is not None and valor > 0.005:
+                        suena = True
+                        break
+                    time.sleep(0.1)
+                if not suena:
+                    res.fallo("musica_real: el tercero no se oye")
 
         # ── k. Guardar la cola como lista y reproducirla ──
 
         _aire()
         cola = _filas("Música", "Cola de reproducción") or []
         cantidad_cola = len(cola)
+        _elegir("Música", "Cola de reproducción", 0)
         try:
             _menu_contextual("Música", "Cola de reproducción",
                              "Guardar la cola como lista", responder_ya=True)

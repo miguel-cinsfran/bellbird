@@ -683,31 +683,41 @@ class Sonda:
                 if ctrl is None:
                     raise RuntimeError(f"no encontré {orden.get('nombre')!r}")
                 estado = {"llamado": False, "falta": None,
-                          "respondido": False}
+                          "respondido": False, "error": None}
 
                 def _elegir_en_menu(menu, *args, **kwargs):
-                    estado["llamado"] = True
-                    buscada = _limpiar_etiqueta(orden.get("entrada"))
-                    elegido = None
-                    etiquetas = []
-                    for item in menu.GetMenuItems():
-                        if item.IsSeparator():
-                            continue
-                        etiqueta = item.GetItemLabelText()
-                        etiquetas.append(etiqueta)
-                        if _limpiar_etiqueta(etiqueta) == buscada:
-                            elegido = item
-                            break
-                    if elegido is None:
-                        estado["falta"] = etiquetas
-                        return
-                    if orden.get("responder_ya") and not estado["respondido"]:
-                        self.responder(id_orden, True)
-                        estado["respondido"] = True
-                    evento = wx.CommandEvent(
-                        wx.EVT_MENU.typeId, elegido.GetId())
-                    evento.SetEventObject(menu)
-                    menu.GetEventHandler().ProcessEvent(evento)
+                    # El error no puede escapar al manejador de wx, que lo
+                    # imprime y sigue: la orden respondería `ok: true` con la
+                    # entrada muerta. Se guarda y se levanta después, fuera de
+                    # `ProcessEvent`, para que la orden falle de verdad.
+                    try:
+                        estado["llamado"] = True
+                        buscada = _limpiar_etiqueta(orden.get("entrada"))
+                        elegido = None
+                        etiquetas = []
+                        for item in menu.GetMenuItems():
+                            if item.IsSeparator():
+                                continue
+                            etiqueta = item.GetItemLabelText()
+                            etiquetas.append(etiqueta)
+                            if _limpiar_etiqueta(etiqueta) == buscada:
+                                elegido = item
+                                break
+                        if elegido is None:
+                            estado["falta"] = etiquetas
+                            return
+                        if (orden.get("responder_ya")
+                                and not estado["respondido"]):
+                            self.responder(id_orden, True)
+                            estado["respondido"] = True
+                        evento = wx.CommandEvent(
+                            wx.EVT_MENU.typeId, elegido.GetId())
+                        evento.SetEventObject(menu)
+                        # `wx.Menu` es un `wx.EvtHandler`: despacha su
+                        # `EVT_MENU` igual que el frame.
+                        menu.ProcessEvent(evento)
+                    except Exception as exc:
+                        estado["error"] = repr(exc)
 
                 ctrl.PopupMenu = _elegir_en_menu
                 try:
@@ -720,6 +730,11 @@ class Sonda:
                         del ctrl.PopupMenu
                     except AttributeError:
                         pass
+                if estado["error"] is not None:
+                    raise RuntimeError(
+                        f"el menú de {orden.get('nombre')!r} falló al "
+                        f"ejecutar «{orden.get('entrada')}»: "
+                        f"{estado['error']}")
                 if estado["falta"] is not None:
                     raise RuntimeError(
                         f"el menú de {orden.get('nombre')!r} no tiene "

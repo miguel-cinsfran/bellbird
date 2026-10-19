@@ -15,6 +15,7 @@ from ytchat.ui import gui
 from ytchat.ui import gui_menu
 from ytchat.ui import atajos_captura
 from ytchat.core import config
+from ytchat.core import atajos
 from ytchat.ui.gui_preferencias import _ETIQUETAS_ATAJO, etiqueta_de_accion
 
 
@@ -160,7 +161,7 @@ class TestParsearAtajos(unittest.TestCase):
                 mock.patch.object(gui_preferencias.wx, "Button", crear_boton), \
                 mock.patch.object(gui_preferencias, "etiqueta_de_accion",
                                   return_value="Acción desconocida") as etiqueta:
-            with mock.patch.object(gui_preferencias.cfg, "ATAJOS_DEFAULTS",
+            with mock.patch.object(atajos, "ATAJOS_DEFAULTS",
                                    {"accion_nueva": "ctrl+a"}), \
                     mock.patch.object(gui_preferencias.cfg, "ATAJOS_GRUPOS",
                                       [("Grupo", ["accion_nueva"])]), \

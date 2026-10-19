@@ -2073,10 +2073,11 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
                 _filtrar("Música", aguja)
                 filas = _filas_hasta("Música", "Biblioteca", 1, 5.0)
                 if filas is not None and len(filas) == 1:
-                    if filas[0] != esperado:
+                    titulo = _titulo_fila(filas[0])
+                    if titulo != esperado:
                         _corta(f"musica_real: el buscador aisló "
                                f"«{filas[0]}» en vez de «{esperado}»")
-                    return filas[0]
+                    return titulo
             _corta(f"musica_real: no se pudo aislar «{esperado}» "
                    "con el buscador")
 

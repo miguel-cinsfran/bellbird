@@ -168,7 +168,16 @@ class TestExpandir(unittest.TestCase):
                                   return_value=datos):
             with self.assertRaises(ErrorEnlace) as caso:
                 enlaces.expandir("https://youtu.be/abc123")
-        self.assertIn("El enlace no tiene vídeos", str(caso.exception))
+        self.assertIn(enlaces.TEXTO_SIN_VIDEOS, str(caso.exception))
+
+
+class TestTextosEnlace(unittest.TestCase):
+
+    def test_constantes_con_el_texto_que_oye_el_usuario(self):
+        self.assertEqual(
+            enlaces.TEXTO_NO_SE_PUDO_LEER, "No se pudo leer el enlace")
+        self.assertEqual(
+            enlaces.TEXTO_SIN_VIDEOS, "El enlace no tiene vídeos")
 
 
 class TestUrlAudio(unittest.TestCase):

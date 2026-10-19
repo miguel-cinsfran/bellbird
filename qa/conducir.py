@@ -1795,6 +1795,7 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
     import configparser
     import math
     import random
+    import re
     import shutil
     import tempfile
     import unicodedata
@@ -1803,6 +1804,7 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
     from ytchat.core.config import (
         codificar_texto_ini, decodificar_texto_ini, guardar_opciones)
     from ytchat.music import anuncios as anuncios_musica
+    from ytchat.music import enlaces as enlaces_musica
     from ytchat.music import listas as listas_musica
     from ytchat.music.biblioteca import EXTENSIONES
 
@@ -2530,17 +2532,17 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         limite = time.monotonic() + 90
         agregados = 0
         lista_muerta = False
+        patron_agregados = re.compile(
+            re.escape(anuncios_musica.TEXTO_AGREGADOS).replace(
+                re.escape("{cantidad}"), r"(\d+)"))
         while time.monotonic() < limite:
             for dicho in propia.anuncios[n:]:
                 texto = dicho.get("texto", "")
-                if "temas agregados a la cola" in texto.lower():
-                    palabras = texto.split()
-                    for i, palabra in enumerate(palabras):
-                        if (palabra.isdigit() and i + 1 < len(palabras)
-                                and palabras[i + 1].startswith("tema")):
-                            agregados = max(agregados, int(palabra))
-                if ("no se pudo leer el enlace" in texto.lower()
-                        or "el enlace no tiene" in texto.lower()):
+                coincidencia = patron_agregados.search(texto)
+                if coincidencia:
+                    agregados = max(agregados, int(coincidencia.group(1)))
+                if (enlaces_musica.TEXTO_NO_SE_PUDO_LEER.lower() in texto.lower()
+                        or enlaces_musica.TEXTO_SIN_VIDEOS.lower() in texto.lower()):
                     lista_muerta = True
             if agregados >= 2 or lista_muerta:
                 break

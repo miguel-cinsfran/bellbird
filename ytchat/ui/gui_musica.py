@@ -202,7 +202,7 @@ class ControlMusica:
             return
         except Exception:
             logger.exception("No se pudo expandir el enlace de música")
-            wx.CallAfter(self._aviso_error_enlace, "No se pudo leer el enlace")
+            wx.CallAfter(self._aviso_error_enlace, enlaces.TEXTO_NO_SE_PUDO_LEER)
             return
         wx.CallAfter(self._agregar_temas_del_enlace, temas)
 

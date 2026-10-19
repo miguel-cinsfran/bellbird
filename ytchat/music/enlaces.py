@@ -33,6 +33,10 @@ class ErrorEnlace(ValueError):
     """No se pudo leer el enlace o no tiene vídeos."""
 
 
+TEXTO_NO_SE_PUDO_LEER = "No se pudo leer el enlace"
+TEXTO_SIN_VIDEOS = "El enlace no tiene vídeos"
+
+
 def _sin_esquema(texto: str) -> str:
     limpio = re.sub(r"^[A-Za-z][A-Za-z0-9+.-]*://", "", texto.strip())
     if limpio[:4].lower() == "www.":
@@ -119,13 +123,13 @@ def _extraer_plano_con_programa(ruta: str, url: str) -> dict:
             check=False,
         )
     except (OSError, subprocess.SubprocessError) as exc:
-        raise ErrorEnlace("No se pudo leer el enlace") from exc
+        raise ErrorEnlace(TEXTO_NO_SE_PUDO_LEER) from exc
     if resultado.returncode:
-        raise ErrorEnlace("No se pudo leer el enlace")
+        raise ErrorEnlace(TEXTO_NO_SE_PUDO_LEER)
     try:
         return json.loads(resultado.stdout)
     except (TypeError, ValueError) as exc:
-        raise ErrorEnlace("No se pudo leer el enlace") from exc
+        raise ErrorEnlace(TEXTO_NO_SE_PUDO_LEER) from exc
 
 
 def _extraer_plano_con_modulo(url: str) -> dict:
@@ -138,7 +142,7 @@ def _extraer_plano_con_modulo(url: str) -> dict:
         with yt_dlp.YoutubeDL(opciones) as ydl:
             return ydl.extract_info(url, download=False)
     except Exception as exc:
-        raise ErrorEnlace("No se pudo leer el enlace") from exc
+        raise ErrorEnlace(TEXTO_NO_SE_PUDO_LEER) from exc
 
 
 def _info_plano(url: str) -> dict:
@@ -153,7 +157,7 @@ def expandir(url: str) -> tuple[Tema, ...]:
     una lista, en orden, con su título. Bloqueante (usar en hilo)."""
     temas = temas_de_info(_info_plano(url))
     if not temas:
-        raise ErrorEnlace("El enlace no tiene vídeos")
+        raise ErrorEnlace(TEXTO_SIN_VIDEOS)
     return temas
 
 
@@ -168,14 +172,14 @@ def _extraer_video_con_modulo(video_id: str) -> dict:
         with yt_dlp.YoutubeDL(opciones) as ydl:
             return ydl.extract_info(url, download=False)
     except Exception as exc:
-        raise ErrorEnlace("No se pudo leer el enlace") from exc
+        raise ErrorEnlace(TEXTO_NO_SE_PUDO_LEER) from exc
 
 
 def _info_video(video_id: str) -> dict:
     if ytdlp_bin.ruta_ytdlp() is not None:
         info = ytdlp_bin.info_video(video_id)
         if info is None:
-            raise ErrorEnlace("No se pudo leer el enlace")
+            raise ErrorEnlace(TEXTO_NO_SE_PUDO_LEER)
         return info
     return _extraer_video_con_modulo(video_id)
 
@@ -185,8 +189,8 @@ def url_audio(origen: str) -> str:
     guarda. Bloqueante (usar en hilo). Lanza `ErrorEnlace` si no hay audio."""
     video_id = id_de_url(origen)
     if not video_id:
-        raise ErrorEnlace("No se pudo leer el enlace")
+        raise ErrorEnlace(TEXTO_NO_SE_PUDO_LEER)
     url = formatos.mejor_audio(_info_video(video_id))
     if not url:
-        raise ErrorEnlace("No se pudo leer el enlace")
+        raise ErrorEnlace(TEXTO_NO_SE_PUDO_LEER)
     return url

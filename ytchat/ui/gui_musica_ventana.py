@@ -75,7 +75,7 @@ class VentanaMusica(wx.Dialog):
         _pintar(self.lbl_resumen, fg=_T.dim)
         vs.Add(self.lbl_resumen, 0, wx.ALL, 6)
 
-        botones = wx.WrapSizer(wx.HORIZONTAL)
+        botones = wx.WrapSizer(wx.HORIZONTAL, flags=0)
         self.btn_reproducir = self._boton(panel, "&Reproducir este", "Reproducir este")
         self.btn_todo = self._boton(panel, "Reproducir to&do", "Reproducir todo")
         self.btn_agregar = self._boton(panel, "&Agregar a la cola", "Agregar a la cola")

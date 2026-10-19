@@ -56,7 +56,7 @@ class VentanaListas(wx.Dialog):
         self.lb_listas.SetMinSize((-1, 130))
         vs.Add(self.lb_listas, 1, wx.EXPAND | wx.ALL, 6)
 
-        botones = wx.WrapSizer(wx.HORIZONTAL)
+        botones = wx.WrapSizer(wx.HORIZONTAL, flags=0)
         self.btn_reproducir = self._boton(
             panel, "&Reproducir la lista", "Reproducir la lista")
         self.btn_nueva = self._boton(panel, "&Nueva lista…", "Nueva lista")

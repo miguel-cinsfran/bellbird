@@ -169,11 +169,12 @@ class TestVentanaListas(unittest.TestCase):
     def test_cada_boton_conserva_su_ancho_natural(self):
         self._abrir()
         panel = self._panel()
+        panel.SetSize(self.ventana.GetClientSize())
         panel.Layout()
         for boton in panel.GetChildren():
             if isinstance(boton, wx.Button):
                 with self.subTest(boton=boton.GetName()):
-                    self.assertGreaterEqual(
+                    self.assertEqual(
                         boton.GetSize().width, boton.GetBestSize().width)
 
     def test_enfocar_primer_control_va_a_las_listas(self):

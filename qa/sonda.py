@@ -612,6 +612,57 @@ class Sonda:
                 if not orden.get("responder_ya"):
                     self.responder(id_orden, True)
 
+            elif op == "elegir":
+                # Elige la fila `indice` de una lista, como con las flechas:
+                # la selecciona y dispara su `wx.EVT_LISTBOX`.
+                objetivo = self._ventana_por_titulo(orden.get("ventana"), frame)
+                ctrl = _buscar_control(objetivo, orden.get("nombre", ""))
+                if ctrl is None:
+                    raise RuntimeError(f"no encontré {orden.get('nombre')!r}")
+                if not isinstance(ctrl, wx.ListBox):
+                    raise RuntimeError(
+                        f"{orden.get('nombre')!r} no es una lista")
+                try:
+                    indice = int(orden.get("indice"))
+                except (TypeError, ValueError):
+                    raise RuntimeError(
+                        f"índice inválido: {orden.get('indice')!r}")
+                if not 0 <= indice < ctrl.GetCount():
+                    raise RuntimeError(
+                        f"índice {indice} fuera de la lista "
+                        f"{orden.get('nombre')!r}")
+                ctrl.SetSelection(indice)
+                evento = wx.CommandEvent(wx.EVT_LISTBOX.typeId, ctrl.GetId())
+                evento.SetEventObject(ctrl)
+                evento.SetInt(indice)
+                ctrl.GetEventHandler().ProcessEvent(evento)
+                self.responder(id_orden, True, {"indice": indice})
+
+            elif op == "activar":
+                # Activa la fila seleccionada de una lista, como Intro: en la
+                # ventana Música dispara lo mismo que el doble clic.
+                objetivo = self._ventana_por_titulo(orden.get("ventana"), frame)
+                ctrl = _buscar_control(objetivo, orden.get("nombre", ""))
+                if ctrl is None:
+                    raise RuntimeError(f"no encontré {orden.get('nombre')!r}")
+                if not isinstance(ctrl, wx.ListBox):
+                    raise RuntimeError(
+                        f"{orden.get('nombre')!r} no es una lista")
+                # Como en `pulsar`: si abre un diálogo modal, el control no
+                # vuelve hasta que se cierre.
+                if orden.get("responder_ya"):
+                    self.responder(id_orden, True)
+                evento = wx.CommandEvent(wx.EVT_LISTBOX_DCLICK.typeId,
+                                         ctrl.GetId())
+                evento.SetEventObject(ctrl)
+                try:
+                    evento.SetInt(int(ctrl.GetSelection()))
+                except Exception:
+                    pass
+                ctrl.GetEventHandler().ProcessEvent(evento)
+                if not orden.get("responder_ya"):
+                    self.responder(id_orden, True)
+
             elif op == "casilla":
                 # Invierte o fija una casilla sin teclas del sistema. Como en
                 # `menu_click`: un evento construido acá no toca el estado

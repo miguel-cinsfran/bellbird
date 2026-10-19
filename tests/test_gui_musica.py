@@ -830,6 +830,63 @@ class TestVentanaYAtajos(unittest.TestCase):
             control.ejecutar_atajo("no_existe")   # no debe lanzar
 
 
+class _VentanaFalsa:
+    """Ventana de música falsa: cuenta cuántas veces se refresca la cola.
+
+    Guarda cuántos temas tenía la cola en cada llamada, para comprobar
+    que el refresco llega DESPUÉS de que el coordinador ya la cambió.
+    """
+
+    def __init__(self, control):
+        self._control = control
+        self.llamadas = 0
+        self.tamanos = []
+
+    def refrescar_cola(self):
+        self.llamadas += 1
+        estado = self._control.estado()
+        self.tamanos.append(len(estado.cola) if estado is not None else 0)
+
+
+class TestRefrescaVentanaAbierta(unittest.TestCase):
+    """Cada acción deja la cola de la ventana abierta al día."""
+
+    def test_primera_accion_sin_motor_refresca_con_la_cola_llena(self):
+        temas = [Tema("C:/m/a.mp3", "A"), Tema("C:/m/b.mp3", "B")]
+        with _entorno():
+            control = ControlMusica(_frame())
+            ventana = _VentanaFalsa(control)
+            control.registrar_ventana(ventana)
+            control.reproducir_temas(temas)
+        self.assertGreaterEqual(ventana.llamadas, 1)
+        self.assertGreater(ventana.tamanos[-1], 0)
+
+    def test_siguiente_anterior_pausa_y_detener_refrescan(self):
+        temas = [Tema("C:/m/a.mp3", "A"), Tema("C:/m/b.mp3", "B")]
+        with _entorno():
+            control = ControlMusica(_frame())
+            ventana = _VentanaFalsa(control)
+            control.registrar_ventana(ventana)
+            control.reproducir_temas(temas, en_orden=True)
+            for accion in (control.siguiente, control.anterior,
+                           control.reproducir_o_pausar, control.detener):
+                ventana.llamadas = 0
+                accion()
+                self.assertGreaterEqual(
+                    ventana.llamadas, 1, f"{accion.__name__} no refrescó")
+
+    def test_sin_ventana_abierta_no_pasa_nada(self):
+        temas = [Tema("C:/m/a.mp3", "A"), Tema("C:/m/b.mp3", "B")]
+        with _entorno():
+            control = ControlMusica(_frame())
+            control.reproducir_temas(temas, en_orden=True)
+            control.siguiente()
+            control.anterior()
+            control.reproducir_o_pausar()
+            control.detener()   # no debe lanzar
+        self.assertIsNone(control.estado().posicion)
+
+
 class TestEnlace(unittest.TestCase):
     """`agregar_enlace`: expande en un hilo y suma los temas a la cola."""
 

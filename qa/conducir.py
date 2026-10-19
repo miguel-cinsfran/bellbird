@@ -1807,15 +1807,17 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
     from ytchat.music import enlaces as enlaces_musica
     from ytchat.music import listas as listas_musica
     from ytchat.music.biblioteca import EXTENSIONES
+    from tests.test_musica_enlaces import LISTA as _LISTA_PRUEBA
+    from tests.test_musica_enlaces import VIDEO as _VIDEO_PRUEBA
 
     class _Corte(Exception):
         """La escena no puede seguir (el fallo ya quedó anotado)."""
 
     _NOMBRE_LISTA = "QA música real"
     _TOPE_RECORRIDO = 6 * 60
-    _URL_VIDEO = "https://www.youtube.com/watch?v=jNQXAC9IVw"
+    _URL_VIDEO = f"https://www.youtube.com/watch?v={_VIDEO_PRUEBA}"
     _URL_LISTA = ("https://www.youtube.com/playlist"
-                  "?list=PLbpi6ZahtOH71mwANLzAlPX9cZafnzIqt")
+                  f"?list={_LISTA_PRUEBA}")
 
     def _corta(texto):
         res.fallo(texto)
@@ -2013,6 +2015,11 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
             return anteriores
 
         def _titulo_fila(fila):
+            # Quita el prefijo que pone `ytchat.music.vista.filas_cola`:
+            # el estado («Sonando: » o «En pausa: »), el número y el punto.
+            # `vista` no exporta esos prefijos como constantes, así que la
+            # comparación es por contención: el título anunciado está
+            # contenido en la fila, vía `esperar_dicho`.
             texto = fila
             for prefijo in ("Sonando: ", "En pausa: "):
                 if texto.startswith(prefijo):
@@ -2194,22 +2201,30 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
 
         _aire()
         cola = _filas("Música", "Cola de reproducción") or []
-        primero = _titulo_fila(cola[0]) if cola else ""
-        segundo = _titulo_fila(cola[1]) if len(cola) > 1 else ""
-        n = len(propia.anuncios)
-        _menu("siguiente tema")
-        if segundo and propia.esperar_dicho(segundo, segundos=8, desde=n):
-            res.nota(f"musica_real: siguiente anuncia «{segundo}»")
+        if len(cola) < 2:
+            res.fallo("musica_real: la cola no trae dos temas y no se puede "
+                      "probar siguiente ni anterior")
         else:
-            res.fallo("musica_real: «Siguiente tema» no anunció "
-                      f"«{segundo}»")
-        n = len(propia.anuncios)
-        _menu("tema anterior")
-        if primero and propia.esperar_dicho(primero, segundos=8, desde=n):
-            res.nota(f"musica_real: anterior anuncia «{primero}»")
-        else:
-            res.fallo("musica_real: «Tema anterior» no anunció "
-                      f"«{primero}»")
+            primero = _titulo_fila(cola[0])
+            segundo = _titulo_fila(cola[1])
+            if not primero or not segundo:
+                res.fallo("musica_real: la cola trae filas sin título y no "
+                          "se puede probar siguiente ni anterior")
+            else:
+                n = len(propia.anuncios)
+                _menu("siguiente tema")
+                if propia.esperar_dicho(segundo, segundos=8, desde=n):
+                    res.nota(f"musica_real: siguiente anuncia «{segundo}»")
+                else:
+                    res.fallo("musica_real: «Siguiente tema» no anunció "
+                              f"«{segundo}»")
+                n = len(propia.anuncios)
+                _menu("tema anterior")
+                if propia.esperar_dicho(primero, segundos=8, desde=n):
+                    res.nota(f"musica_real: anterior anuncia «{primero}»")
+                else:
+                    res.fallo("musica_real: «Tema anterior» no anunció "
+                              f"«{primero}»")
 
         # ── e. Volumen: sube a 20 y vuelve a 10 ──
 
@@ -2232,17 +2247,21 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         _aire()
         cola = _filas("Música", "Cola de reproducción") or []
         actual = next((f for f in cola if f.startswith("Sonando: ")), "")
-        titulo_actual = _titulo_fila(actual)
-        esperado = anuncios_musica.TEXTO_QUE_SUENA.format(
-            nombre=titulo_actual, posicion=cola.index(actual) + 1,
-            total=len(cola)) if actual else ""
-        n = len(propia.anuncios)
-        _menu("qué suena")
-        if esperado and propia.esperar_dicho(esperado, segundos=8, desde=n):
-            res.nota(f"musica_real: qué suena dice «{esperado}»")
+        titulo_actual = _titulo_fila(actual) if actual else ""
+        if not actual or not titulo_actual:
+            res.fallo("musica_real: la cola no marca ningún tema actual y "
+                      "no se puede probar qué suena")
         else:
-            res.fallo("musica_real: «Qué suena» no contiene el título "
-                      f"actual («{titulo_actual}»)")
+            esperado = anuncios_musica.TEXTO_QUE_SUENA.format(
+                nombre=titulo_actual, posicion=cola.index(actual) + 1,
+                total=len(cola))
+            n = len(propia.anuncios)
+            _menu("qué suena")
+            if propia.esperar_dicho(esperado, segundos=8, desde=n):
+                res.nota(f"musica_real: qué suena dice «{esperado}»")
+            else:
+                res.fallo("musica_real: «Qué suena» no contiene el título "
+                          f"actual («{titulo_actual}»)")
 
         # ── g. Orden aleatorio dos veces ──
 
@@ -2321,46 +2340,41 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
 
         _aire()
         filas = _filas_estables("Música", "Temas de la carpeta") or []
-        aguja = (_aguja_grupo([2, 3, 4, 5], [0, 1])
-                 if len(filas) == 6 else None)
-        if aguja is None:
-            res.no_probado("musica_real: no se pudo aislar la carpeta "
-                           "desde el tercero con el buscador")
-        else:
-            _filtrar("Música", aguja)
-            filtradas = _filas_hasta("Música", "Temas de la carpeta", 4, 5.0)
-            if filtradas != filas[2:]:
-                res.no_probado("musica_real: no se pudo aislar la carpeta "
-                               "desde el tercero con el buscador")
-                _filtrar("Música", "")
-                _filas_hasta("Música", "Temas de la carpeta", 6, 10.0)
-            else:
-                n = len(propia.anuncios)
-                propia.pedir("pulsar", nombre="Reproducir este")
-                tercero = _titulo_fila(filas[2])
-                if not propia.esperar_dicho(tercero, segundos=10, desde=n):
-                    res.fallo("musica_real: «Reproducir este» no anunció "
-                              f"«{tercero}»")
-                esperada = ([f"Sonando: 1. {filas[2]}"]
-                            + [f"{i}. {t}" for i, t in enumerate(filas[3:],
-                                                                  start=2)])
-                cola = _filas("Música", "Cola de reproducción") or []
-                if cola != esperada:
-                    res.fallo("musica_real: la cola no pasó a ser la "
-                              "carpeta empezando en el tercero")
-                elif not sin_salida:
-                    limite = time.monotonic() + 10
-                    suena = False
-                    while time.monotonic() < limite:
-                        valor = _pico()
-                        if valor is not None and valor > 0.005:
-                            suena = True
-                            break
-                        time.sleep(0.1)
-                    if not suena:
-                        res.fallo("musica_real: el tercero no se oye")
-                _filtrar("Música", "")
-                _filas_hasta("Música", "Temas de la carpeta", 6, 10.0)
+        if len(filas) != 6:
+            _corta("musica_real: la lista de temas no tiene 6 elementos")
+        n = len(propia.anuncios)
+        propia.pedir("elegir", ventana="Música",
+                     nombre="Temas de la carpeta", indice=2)
+        propia.pedir("activar", ventana="Música",
+                     nombre="Temas de la carpeta")
+        tercero = _titulo_fila(filas[2])
+        if not tercero:
+            res.fallo("musica_real: la tercera fila no tiene título y no "
+                      "se puede probar «Reproducir este»")
+        elif not propia.esperar_dicho(tercero, segundos=10, desde=n):
+            res.fallo("musica_real: «Reproducir este» no anunció "
+                      f"«{tercero}»")
+        esperada = ([f"Sonando: 1. {filas[2]}"]
+                    + [f"{i}. {t}" for i, t in enumerate(filas[3:],
+                                                          start=2)])
+        cola = _filas("Música", "Cola de reproducción") or []
+        if not cola:
+            res.fallo("musica_real: la cola está vacía tras "
+                      "«Reproducir este»")
+        elif cola != esperada:
+            res.fallo("musica_real: la cola no pasó a ser la "
+                      "carpeta empezando en el tercero")
+        elif not sin_salida:
+            limite = time.monotonic() + 10
+            suena = False
+            while time.monotonic() < limite:
+                valor = _pico()
+                if valor is not None and valor > 0.005:
+                    suena = True
+                    break
+                time.sleep(0.1)
+            if not suena:
+                res.fallo("musica_real: el tercero no se oye")
 
         # ── k. Guardar la cola como lista y reproducirla ──
 
@@ -2379,10 +2393,11 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         if propia.esperar_ventana("Nueva lista", segundos=10) is None:
             _corta("musica_real: no abrió «Nueva lista»")
         _escribir_cuadro("Nueva lista", _NOMBRE_LISTA)
+        n = len(propia.anuncios)
         _pulsar_aceptar("Nueva lista")
         esperado = anuncios_musica.TEXTO_LISTA_GUARDADA.format(
             nombre=_NOMBRE_LISTA)
-        if not propia.esperar_dicho(esperado, segundos=10):
+        if not propia.esperar_dicho(esperado, segundos=10, desde=n):
             res.fallo(f"musica_real: no se anunció «{esperado}»")
         ruta_lista = ruta_listas / (_NOMBRE_LISTA + ".m3u8")
         if not ruta_lista.is_file():
@@ -2484,8 +2499,8 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         if propia.esperar_ventana("Agregar enlace", segundos=10) is None:
             _corta("musica_real: no abrió «Agregar enlace»")
         _escribir_cuadro("Agregar enlace", _URL_VIDEO)
-        _pulsar_aceptar("Agregar enlace")
         n = len(propia.anuncios)
+        _pulsar_aceptar("Agregar enlace")
         if not propia.esperar_dicho(
                 anuncios_musica.TEXTO_LEYENDO_ENLACE, segundos=10, desde=n):
             res.fallo("musica_real: no se anunció "
@@ -2500,21 +2515,29 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
             cola = _filas("Música", "Cola de reproducción") or []
             if len(cola) != len(cola_antes) + 1:
                 res.fallo("musica_real: la cola no creció con el enlace")
-            elif sin_salida:
-                res.nota("musica_real: el vídeo se agrega a la cola")
             else:
-                limite = time.monotonic() + 30
-                suena = False
-                while time.monotonic() < limite:
-                    valor = _pico()
-                    if valor is not None and valor > 0.005:
-                        suena = True
-                        break
-                    time.sleep(0.2)
-                if not suena:
-                    res.fallo("musica_real: el vídeo de YouTube no se oye")
+                ultimo = _titulo_fila(cola[-1])
+                if not ultimo:
+                    res.fallo("musica_real: la última fila de la cola está "
+                              "vacía y no se puede comprobar el vídeo")
+                elif not propia.esperar_dicho(ultimo, segundos=30, desde=n):
+                    res.fallo("musica_real: la última fila de la cola "
+                              f"(«{ultimo}») no es lo que suena")
+                elif sin_salida:
+                    res.nota("musica_real: el vídeo se agrega a la cola")
                 else:
-                    res.nota("musica_real: el vídeo de YouTube se oye")
+                    limite = time.monotonic() + 30
+                    suena = False
+                    while time.monotonic() < limite:
+                        valor = _pico()
+                        if valor is not None and valor > 0.005:
+                            suena = True
+                            break
+                        time.sleep(0.2)
+                    if not suena:
+                        res.fallo("musica_real: el vídeo de YouTube no se oye")
+                    else:
+                        res.nota("musica_real: el vídeo de YouTube se oye")
 
         # ── m. Agregar el enlace de la lista ──
 
@@ -2527,8 +2550,8 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         if propia.esperar_ventana("Agregar enlace", segundos=10) is None:
             _corta("musica_real: no abrió «Agregar enlace» por segunda vez")
         _escribir_cuadro("Agregar enlace", _URL_LISTA)
-        _pulsar_aceptar("Agregar enlace")
         n = len(propia.anuncios)
+        _pulsar_aceptar("Agregar enlace")
         limite = time.monotonic() + 90
         agregados = 0
         lista_muerta = False

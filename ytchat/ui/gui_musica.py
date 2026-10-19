@@ -437,6 +437,7 @@ class ControlMusica:
     def _asegurar_motor(self, continuar) -> None:
         if self._coordinador is not None:
             continuar()
+            self._refrescar_ventana_abierta()
             return
         if self._preparando:
             # Una segunda acción durante la preparación se descarta: lo más
@@ -478,6 +479,7 @@ class ControlMusica:
         if self._cerrado:
             return
         continuar()
+        self._refrescar_ventana_abierta()
 
     def _motor_no_disponible(self) -> None:
         self._preparando = False
@@ -741,15 +743,18 @@ class ControlMusica:
         if self._coordinador is None:
             self._avisar(anuncios.aviso_accion(
                 accion, _resultado_sin_tema(), self._incluir_artista()))
+            self._refrescar_ventana_abierta()
             return
         operacion = getattr(self._coordinador, accion)
         self._ejecutar(accion, operacion)
         self._guardar_memoria()
+        self._refrescar_ventana_abierta()
 
     def _ejecutar(self, accion, operacion) -> None:
         resultado = operacion()
         self._avisar(anuncios.aviso_accion(
             accion, resultado, self._incluir_artista()))
+        self._refrescar_ventana_abierta()
 
     def _cambiar_volumen(self, paso) -> None:
         actual = self._config.get("musica_volumen", VOLUMEN_INICIAL)

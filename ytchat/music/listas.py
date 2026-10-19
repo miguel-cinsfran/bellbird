@@ -13,7 +13,7 @@ from pathlib import Path
 
 from ytchat.core.archivos import escribir_texto_atomico
 from ytchat.music.biblioteca import Biblioteca, ErrorBiblioteca
-from ytchat.music.modelo import Tema
+from ytchat.music.modelo import Tema, normalizar_duracion
 
 
 EXTENSION = ".m3u8"
@@ -164,10 +164,18 @@ def mover(carpeta, nombre, indice, paso) -> int:
 def _texto_de(temas) -> str:
     lineas = ["#EXTM3U"]
     for tema in temas:
-        lineas.append(f"#EXTINF:-1,{_titulo(tema)}")
+        lineas.append(f"#EXTINF:{_segundos(tema)},{_titulo(tema)}")
         lineas.append(tema.origen if tema.es_enlace
                       else str(Path(tema.origen).resolve()))
     return "\n".join(lineas) + "\n"
+
+
+def _segundos(tema) -> int:
+    """Los segundos para el `#EXTINF`, -1 si no se sabe la duración."""
+    duracion = normalizar_duracion(tema.duracion_ms)
+    if duracion == 0:
+        return -1
+    return duracion // 1000
 
 
 def _titulo(tema) -> str:

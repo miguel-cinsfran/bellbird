@@ -249,8 +249,7 @@ class VentanaMusica(AccionesVentanaMusica, wx.Dialog):
         self._temas_filtrados = vista.filtrar_fuente(
             self._temas_fuente, texto, biblioteca)
         anterior = self.lb_temas.GetSelection()
-        self.lb_temas.Set(vista.filas_temas(
-            self._temas_filtrados, self._con_artista()))
+        self.lb_temas.Set(vista.filas_temas(self._temas_filtrados))
         if self._temas_filtrados:
             indice = vista.indice_seleccion_tras_refrescar(
                 anterior, len(self._temas_filtrados))

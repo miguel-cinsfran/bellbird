@@ -197,7 +197,7 @@ class AccionesVentanaMusica:
         anterior = (self.lb_cola.GetSelection()
                     if seleccion is None else seleccion)
         estado = self._control.estado()
-        filas = (vista.filas_cola(estado, self._con_artista())
+        filas = (vista.filas_cola(estado)
                  if estado is not None else [])
         self.lb_cola.Set(filas)
         indice = vista.indice_seleccion_tras_refrescar(anterior, len(filas))
@@ -211,12 +211,11 @@ class AccionesVentanaMusica:
     def actualizar_nombres(self, mapa):
         if not self or not mapa:
             return
-        con_artista = self._con_artista()
         self._temas_fuente = tuple(
             mapa.get(tema.origen, tema) for tema in self._temas_fuente)
         self._temas_filtrados = tuple(
             mapa.get(tema.origen, tema) for tema in self._temas_filtrados)
-        filas = vista.filas_temas(self._temas_filtrados, con_artista)
+        filas = vista.filas_temas(self._temas_filtrados)
         for indice, tema in enumerate(self._temas_filtrados):
             if tema.origen in mapa:
                 try:
@@ -226,7 +225,7 @@ class AccionesVentanaMusica:
         estado = self._control.estado()
         if estado is None:
             return
-        filas_cola = vista.filas_cola(estado, con_artista)
+        filas_cola = vista.filas_cola(estado)
         if self.lb_cola.GetCount() != len(filas_cola):
             self.refrescar_cola()
             return
@@ -291,12 +290,6 @@ class AccionesVentanaMusica:
         self._generacion += 1
         self._fuente = None
         self._cargar_carpeta()
-
-    def _con_artista(self):
-        try:
-            return bool(self._control.incluir_artista())
-        except Exception:
-            return False
 
     def _cerrar(self):
         self._cancelar_temporizador()

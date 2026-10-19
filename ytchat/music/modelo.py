@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 OK = "ok"
@@ -25,11 +25,19 @@ class Tema:
     titulo: str
     artista: str = ""
     album: str = ""
+    duracion_ms: int = field(default=0, compare=False)
 
     @property
     def es_enlace(self) -> bool:
         """True si el origen es una dirección web http o https."""
         return self.origen.lower().startswith(("http://", "https://"))
+
+
+def normalizar_duracion(valor) -> int:
+    """Milisegundos de duración a entero no negativo; cualquier otra cosa, 0."""
+    if isinstance(valor, bool) or not isinstance(valor, int) or valor < 0:
+        return 0
+    return valor
 
 
 @dataclass(frozen=True)

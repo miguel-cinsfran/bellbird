@@ -28,10 +28,12 @@ class TestBuscarYPoner(unittest.TestCase):
             cache = CacheEtiquetas(Path(tmp) / "etiquetas_musica.json")
             origen, mtime_ns, tamano = _archivo(tmp)
             cache.poner(origen, mtime_ns, tamano,
-                        {"titulo": "Tema", "artista": "Ana", "album": "Disco"})
+                        {"titulo": "Tema", "artista": "Ana", "album": "Disco",
+                         "duracion_ms": 222000})
             self.assertEqual(
                 cache.buscar(origen, mtime_ns, tamano),
-                {"titulo": "Tema", "artista": "Ana", "album": "Disco"})
+                {"titulo": "Tema", "artista": "Ana", "album": "Disco",
+                 "duracion_ms": 222000})
 
     def test_mtime_distinto_da_none(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -54,7 +56,7 @@ class TestBuscarYPoner(unittest.TestCase):
             cache.poner(origen, mtime_ns, tamano, {})
             self.assertEqual(
                 cache.buscar(origen, mtime_ns, tamano),
-                {"titulo": "", "artista": "", "album": ""})
+                {"titulo": "", "artista": "", "album": "", "duracion_ms": 0})
 
 
 class TestGuardarYLeer(unittest.TestCase):
@@ -65,13 +67,15 @@ class TestGuardarYLeer(unittest.TestCase):
             origen, mtime_ns, tamano = _archivo(tmp)
             cache = CacheEtiquetas(ruta_cache)
             cache.poner(origen, mtime_ns, tamano,
-                        {"titulo": "Tema", "artista": "Ana", "album": "Disco"})
+                        {"titulo": "Tema", "artista": "Ana", "album": "Disco",
+                         "duracion_ms": 222000})
             self.assertTrue(cache.guardar())
             self.assertTrue(ruta_cache.is_file())
             releida = CacheEtiquetas(ruta_cache)
             self.assertEqual(
                 releida.buscar(origen, mtime_ns, tamano),
-                {"titulo": "Tema", "artista": "Ana", "album": "Disco"})
+                {"titulo": "Tema", "artista": "Ana", "album": "Disco",
+                 "duracion_ms": 222000})
 
     def test_guardar_descarta_lo_que_ya_no_existe(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -126,10 +130,11 @@ class TestGuardarYLeer(unittest.TestCase):
             ruta_cache = Path(tmp) / "etiquetas_musica.json"
             origen, mtime_ns, tamano = _archivo(tmp)
             ruta_cache.write_text(json.dumps({
-                "version": 1,
+                "version": 2,
                 "etiquetas": {
                     origen: {"mtime_ns": mtime_ns, "tamano": tamano,
-                             "titulo": "Sana", "artista": "", "album": ""},
+                             "titulo": "Sana", "artista": "", "album": "",
+                             "duracion_ms": 5000},
                     "": {"mtime_ns": 1, "tamano": 2},
                     "C:/musica/rota.mp3": {"titulo": "Rota"},
                 },
@@ -137,8 +142,43 @@ class TestGuardarYLeer(unittest.TestCase):
             cache = CacheEtiquetas(ruta_cache)
             self.assertEqual(
                 cache.buscar(origen, mtime_ns, tamano),
-                {"titulo": "Sana", "artista": "", "album": ""})
+                {"titulo": "Sana", "artista": "", "album": "",
+                 "duracion_ms": 5000})
             self.assertIsNone(cache.buscar("C:/musica/rota.mp3", 1, 2))
+
+    def test_archivo_de_version_uno_se_descarta(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            ruta_cache = Path(tmp) / "etiquetas_musica.json"
+            origen, mtime_ns, tamano = _archivo(tmp)
+            ruta_cache.write_text(json.dumps({
+                "version": 1,
+                "etiquetas": {
+                    origen: {"mtime_ns": mtime_ns, "tamano": tamano,
+                             "titulo": "Vieja", "artista": "", "album": ""},
+                },
+            }), encoding="utf-8")
+            self.assertIsNone(CacheEtiquetas(ruta_cache).buscar(
+                origen, mtime_ns, tamano))
+
+    def test_normaliza_duraciones_basura_a_cero(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cache = CacheEtiquetas(Path(tmp) / "etiquetas_musica.json")
+            origen, mtime_ns, tamano = _archivo(tmp)
+            for valor in (-1, True, False, "3000", None, 1.5):
+                with self.subTest(valor=valor):
+                    cache.poner(origen, mtime_ns, tamano,
+                                {"titulo": "T", "duracion_ms": valor})
+                    datos = cache.buscar(origen, mtime_ns, tamano)
+                    self.assertEqual(datos["duracion_ms"], 0)
+
+    def test_normaliza_una_duracion_de_verdad_sin_tocarla(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cache = CacheEtiquetas(Path(tmp) / "etiquetas_musica.json")
+            origen, mtime_ns, tamano = _archivo(tmp)
+            cache.poner(origen, mtime_ns, tamano,
+                        {"titulo": "T", "duracion_ms": 93000})
+            self.assertEqual(
+                cache.buscar(origen, mtime_ns, tamano)["duracion_ms"], 93000)
 
 
 class TestHilos(unittest.TestCase):

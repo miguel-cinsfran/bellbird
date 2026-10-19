@@ -69,10 +69,11 @@ class FakeMedia:
 class FakeMediaEtiquetas:
     """Media falsa para leer etiquetas: puede disparar el aviso de parseo o no."""
 
-    def __init__(self, metas=None, dispara=True):
+    def __init__(self, metas=None, dispara=True, duracion=0):
         self.gestor = FakeGestor()
         self.metas = metas or {}
         self.dispara = dispara
+        self.duracion = duracion
         self.liberada = False
 
     def event_manager(self):
@@ -85,6 +86,9 @@ class FakeMediaEtiquetas:
 
     def get_meta(self, clave):
         return self.metas.get(clave)
+
+    def get_duration(self):
+        return self.duracion
 
     def release(self):
         self.liberada = True
@@ -459,10 +463,19 @@ class TestAdaptadorDobles(_BaseDobles):
 
     def test_leer_etiquetas_usa_las_etiquetas(self):
         self.instancia.media_etiquetas = FakeMediaEtiquetas(
-            metas={0: "Canción", 1: "Artista", 2: "Álbum"})
+            metas={0: "Canción", 1: "Artista", 2: "Álbum"}, duracion=222000)
         datos = leer_etiquetas_vlc("C:/musica/a.mp3")
         self.assertEqual(
-            datos, {"titulo": "Canción", "artista": "Artista", "album": "Álbum"})
+            datos, {"titulo": "Canción", "artista": "Artista",
+                    "album": "Álbum", "duracion_ms": 222000})
+
+    def test_leer_etiquetas_duracion_desconocida_es_cero(self):
+        for valor in (0, -1):
+            with self.subTest(valor=valor):
+                self.instancia.media_etiquetas = FakeMediaEtiquetas(
+                    duracion=valor)
+                self.assertEqual(
+                    leer_etiquetas_vlc("C:/musica/a.mp3")["duracion_ms"], 0)
 
     def test_leer_etiquetas_descarta_el_nombre_del_archivo(self):
         self.instancia.media_etiquetas = FakeMediaEtiquetas(metas={0: "a"})
@@ -799,6 +812,13 @@ class TestAdaptadorVlcReal(unittest.TestCase):
         self.assertLess(time.monotonic() - inicio, 5.0)
         self.assertIsInstance(datos, dict)
         self.assertFalse(datos.get("titulo"))
+
+    def test_leer_etiquetas_de_wav_devuelve_la_duracion(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            ruta = Path(tmp) / "dos-segundos.wav"
+            _wav_silencio(ruta, duracion=2.0)
+            datos = leer_etiquetas_vlc(str(ruta))
+            self.assertAlmostEqual(datos.get("duracion_ms"), 2000, delta=200)
 
     def test_tiempo_ms_e_ir_a_con_libvlc(self):
         adaptador = self._adaptador()

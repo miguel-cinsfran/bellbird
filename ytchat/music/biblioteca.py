@@ -9,7 +9,7 @@ import unicodedata
 from pathlib import Path
 
 from ytchat.music import enlaces
-from ytchat.music.modelo import Tema
+from ytchat.music.modelo import Tema, normalizar_duracion
 
 
 EXTENSIONES = {
@@ -28,6 +28,20 @@ def _plegar(texto: str) -> str:
     descompuesto = unicodedata.normalize("NFKD", texto)
     sin_tildes = "".join(c for c in descompuesto if not unicodedata.combining(c))
     return sin_tildes.casefold()
+
+
+def _leer_extinf(entrada: str) -> tuple[int, str]:
+    """Los milisegundos y el título de una línea #EXTINF.
+
+    Segundos no positivos (el -1 de «no se sabe») dan duración 0.
+    """
+    segundos, separador, titulo = entrada[len("#EXTINF:"):].partition(",")
+    try:
+        milisegundos = int(segundos.strip()) * 1000
+    except ValueError:
+        milisegundos = 0
+    return (milisegundos if milisegundos > 0 else 0,
+            titulo.strip() if separador else "")
 
 
 class Biblioteca:
@@ -136,29 +150,31 @@ class Biblioteca:
             raise ErrorBiblioteca(f"No se puede leer la lista: {exc}") from exc
         temas = []
         saltadas = 0
-        titulo_pendiente = ""
+        pendiente = (0, "")
         for linea in lineas:
             entrada = linea.strip()
             if not entrada:
                 continue
             if entrada.startswith("#EXTINF:"):
-                titulo_pendiente = entrada.split(",", 1)[1].strip() if "," in entrada else ""
+                pendiente = _leer_extinf(entrada)
                 continue
             if entrada.startswith("#"):
                 continue
-            tema = self._tema_de_linea(archivo, entrada, titulo_pendiente)
+            tema = self._tema_de_linea(archivo, entrada, pendiente)
             if tema is None:
                 saltadas += 1
-                titulo_pendiente = ""
+                pendiente = (0, "")
                 continue
             temas.append(tema)
-            titulo_pendiente = ""
+            pendiente = (0, "")
         return tuple(temas), saltadas
 
-    def _tema_de_linea(self, archivo: Path, entrada: str, titulo: str) -> Tema | None:
+    def _tema_de_linea(self, archivo: Path, entrada: str,
+                       pendiente: tuple) -> Tema | None:
+        duracion_ms, titulo = pendiente
         if _URL_CON_ESQUEMA.match(entrada):
             if enlaces.es_enlace_youtube(entrada):
-                return Tema(entrada, titulo or entrada)
+                return Tema(entrada, titulo or entrada, duracion_ms=duracion_ms)
             return None
         ruta = Path(entrada)
         if not ruta.is_absolute():
@@ -169,18 +185,20 @@ class Biblioteca:
             tema = self._tema(ruta)
         except OSError:
             return None
-        if titulo:
-            tema = Tema(tema.origen, titulo, tema.artista, tema.album)
-        return tema
+        duracion = duracion_ms or tema.duracion_ms
+        return Tema(tema.origen, titulo or tema.titulo, tema.artista,
+                    tema.album, duracion)
 
     def _tema(self, ruta: Path) -> Tema:
         titulo = artista = album = ""
+        duracion_ms = 0
         if self._cache is not None:
             datos = self._etiquetas_de_cache(ruta)
             if isinstance(datos, dict):
                 titulo = str(datos.get("titulo") or "")
                 artista = str(datos.get("artista") or "")
                 album = str(datos.get("album") or "")
+                duracion_ms = normalizar_duracion(datos.get("duracion_ms"))
         if not titulo and self._leer_etiquetas is not None:
             # Sin mutagen, las etiquetas las va a leer libVLC en otro encargo.
             # Si el invocable falla, el tema no se pierde: cae al nombre del archivo.
@@ -192,9 +210,10 @@ class Biblioteca:
                 titulo = str(datos.get("titulo") or "")
                 artista = str(datos.get("artista") or "")
                 album = str(datos.get("album") or "")
+                duracion_ms = normalizar_duracion(datos.get("duracion_ms"))
         if not titulo:
             titulo = ruta.stem
-        return Tema(str(ruta.resolve()), titulo, artista, album)
+        return Tema(str(ruta.resolve()), titulo, artista, album, duracion_ms)
 
     def _etiquetas_de_cache(self, ruta: Path) -> dict | None:
         """Las etiquetas de la caché para ese archivo, o None si no valen.

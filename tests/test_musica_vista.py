@@ -15,52 +15,121 @@ def _estado(cola=(), posicion=None, pausado=False, terminado=False):
     return EstadoMusica(tuple(cola), posicion, pausado, terminado, 100, False)
 
 
+def _segundos_de_texto(cadena):
+    partes = [int(p) for p in cadena.split(":")]
+    while len(partes) < 3:
+        partes.insert(0, 0)
+    return partes[0] * 3600 + partes[1] * 60 + partes[2]
+
+
+class TestTextoDuracion(unittest.TestCase):
+
+    def test_cero_y_negativo_dan_vacio(self):
+        self.assertEqual(vista.texto_duracion(0), "")
+        self.assertEqual(vista.texto_duracion(-1), "")
+        self.assertEqual(vista.texto_duracion(-50000), "")
+
+    def test_segundos_bajo_un_minuto(self):
+        self.assertEqual(vista.texto_duracion(7000), "0:07")
+
+    def test_un_minuto_justo(self):
+        self.assertEqual(vista.texto_duracion(59000), "0:59")
+
+    def test_minutos_y_segundos(self):
+        self.assertEqual(vista.texto_duracion(222000), "3:42")
+
+    def test_bajo_una_hora_al_limite(self):
+        self.assertEqual(vista.texto_duracion(3599000), "59:59")
+
+    def test_una_hora_justa(self):
+        self.assertEqual(vista.texto_duracion(3600000), "1:00:00")
+
+    def test_horas_minutos_y_segundos(self):
+        self.assertEqual(vista.texto_duracion(3723000), "1:02:03")
+
+    def test_propiedad_vuelve_a_segundos(self):
+        for ms in range(1000, 10 * 3600 * 1000, 719):
+            with self.subTest(ms=ms):
+                texto = vista.texto_duracion(ms)
+                self.assertTrue(texto)
+                self.assertEqual(_segundos_de_texto(texto), ms // 1000)
+
+
+class TestFilaTema(unittest.TestCase):
+
+    def test_solo_titulo(self):
+        self.assertEqual(vista.fila_tema(_tema(1)), "Tema 1")
+
+    def test_titulo_y_artista(self):
+        self.assertEqual(vista.fila_tema(_tema(1, artista="Ana")),
+                         "Tema 1, Ana")
+
+    def test_titulo_y_duracion(self):
+        self.assertEqual(vista.fila_tema(_tema(1, duracion_ms=222000)),
+                         "Tema 1, 3:42")
+
+    def test_titulo_artista_y_duracion(self):
+        self.assertEqual(
+            vista.fila_tema(_tema(1, artista="Ana", duracion_ms=222000)),
+            "Tema 1, Ana, 3:42")
+
+    def test_sin_duracion_ni_artista(self):
+        self.assertEqual(vista.fila_tema(_tema(1, duracion_ms=0)), "Tema 1")
+
+
 class TestFilasTemas(unittest.TestCase):
 
     def test_una_fila_por_tema_en_orden(self):
-        filas = vista.filas_temas([_tema(1), _tema(2)], False)
+        filas = vista.filas_temas([_tema(1), _tema(2)])
         self.assertEqual(filas, ["Tema 1", "Tema 2"])
 
     def test_lista_vacia(self):
-        self.assertEqual(vista.filas_temas([], False), [])
+        self.assertEqual(vista.filas_temas([]), [])
 
-    def test_incluye_el_artista_si_lo_pide(self):
-        filas = vista.filas_temas([_tema(1, artista="Ana")], True)
-        self.assertEqual(filas, ["Tema 1, de Ana"])
+    def test_incluye_el_artista_siempre(self):
+        filas = vista.filas_temas([_tema(1, artista="Ana")])
+        self.assertEqual(filas, ["Tema 1, Ana"])
 
-    def test_sin_artista_aunque_lo_tenga(self):
-        filas = vista.filas_temas([_tema(1, artista="Ana")], False)
-        self.assertEqual(filas, ["Tema 1"])
+
+class TestTemaIgualdad(unittest.TestCase):
+
+    def test_misma_duracion_da_igual(self):
+        self.assertEqual(
+            _tema(1, duracion_ms=1000), _tema(1, duracion_ms=1000))
+
+    def test_duracion_distinta_sigue_siendo_el_mismo_tema(self):
+        self.assertEqual(_tema(1, duracion_ms=0), _tema(1, duracion_ms=5000))
 
 
 class TestFilasCola(unittest.TestCase):
 
     def test_numera_desde_uno(self):
         estado = _estado([_tema(1), _tema(2)], posicion=None)
-        self.assertEqual(vista.filas_cola(estado, False),
+        self.assertEqual(vista.filas_cola(estado),
                          ["1. Tema 1", "2. Tema 2"])
 
     def test_la_actual_lleva_sonando(self):
         estado = _estado([_tema(1), _tema(2)], posicion=1)
-        self.assertEqual(vista.filas_cola(estado, False),
+        self.assertEqual(vista.filas_cola(estado),
                          ["1. Tema 1", "Sonando: 2. Tema 2"])
 
     def test_la_actual_en_pausa(self):
         estado = _estado([_tema(1), _tema(2)], posicion=0, pausado=True)
-        self.assertEqual(vista.filas_cola(estado, False),
+        self.assertEqual(vista.filas_cola(estado),
                          ["En pausa: 1. Tema 1", "2. Tema 2"])
 
     def test_terminada_no_marca_ninguna(self):
         estado = _estado([_tema(1)], posicion=0, terminado=True)
-        self.assertEqual(vista.filas_cola(estado, False), ["1. Tema 1"])
+        self.assertEqual(vista.filas_cola(estado), ["1. Tema 1"])
 
     def test_cola_vacia(self):
-        self.assertEqual(vista.filas_cola(_estado(), False), [])
+        self.assertEqual(vista.filas_cola(_estado()), [])
 
-    def test_incluye_el_artista_si_lo_pide(self):
-        estado = _estado([_tema(1, artista="Ana")], posicion=0)
-        self.assertEqual(vista.filas_cola(estado, True),
-                         ["Sonando: 1. Tema 1, de Ana"])
+    def test_conserva_el_prefijo_con_artista_y_duracion(self):
+        estado = _estado(
+            [_tema(1, artista="Ana", duracion_ms=222000)], posicion=0)
+        self.assertEqual(vista.filas_cola(estado),
+                         ["Sonando: 1. Tema 1, Ana, 3:42"])
 
 
 class TestTextoResumen(unittest.TestCase):

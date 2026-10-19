@@ -97,12 +97,35 @@ def ayuda_buscar() -> str:
     return anuncios.TEXTO_AYUDA_BUSCAR
 
 
-def filas_temas(temas, incluir_artista: bool) -> list[str]:
+def texto_duracion(ms) -> str:
+    """La duración como m:ss, o h:mm:ss desde una hora. Vacía si no se sabe."""
+    segundos = ms // 1000 if isinstance(ms, int) and not isinstance(ms, bool) else 0
+    if segundos <= 0:
+        return ""
+    horas, resto = divmod(segundos, 3600)
+    minutos, segundos = divmod(resto, 60)
+    if horas:
+        return f"{horas}:{minutos:02d}:{segundos:02d}"
+    return f"{minutos}:{segundos:02d}"
+
+
+def fila_tema(tema) -> str:
+    """El título y, separados por coma, el artista y la duración que haya."""
+    partes = [nombre_tema(tema, False)]
+    if tema.artista:
+        partes.append(tema.artista)
+    duracion = texto_duracion(tema.duracion_ms)
+    if duracion:
+        partes.append(duracion)
+    return ", ".join(partes)
+
+
+def filas_temas(temas) -> list[str]:
     """Una fila por tema, en el orden de la lista."""
-    return [nombre_tema(tema, incluir_artista) for tema in temas]
+    return [fila_tema(tema) for tema in temas]
 
 
-def filas_cola(estado, incluir_artista: bool) -> list[str]:
+def filas_cola(estado) -> list[str]:
     """Una fila por tema de la cola, numerada desde 1.
 
     La del tema actual empieza por «Sonando: » (o «En pausa: » si está en
@@ -111,7 +134,7 @@ def filas_cola(estado, incluir_artista: bool) -> list[str]:
     actual = None if estado.terminado else estado.posicion
     filas = []
     for indice, tema in enumerate(estado.cola):
-        texto = f"{indice + 1}. {nombre_tema(tema, incluir_artista)}"
+        texto = f"{indice + 1}. {fila_tema(tema)}"
         if actual == indice:
             prefijo = "En pausa: " if estado.pausado else "Sonando: "
             texto = prefijo + texto

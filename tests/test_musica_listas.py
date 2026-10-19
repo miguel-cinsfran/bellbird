@@ -171,6 +171,31 @@ class TestGuardarCargar(unittest.TestCase):
         temas, _ = listas.cargar(self.carpeta, "Cola")
         self.assertEqual([t.titulo for t in temas], ["A", "B"])
 
+    def test_ida_y_vuelta_de_la_duracion(self):
+        temas = (Tema(self.a, "A", duracion_ms=222000),
+                 Tema(self.b, "B", duracion_ms=7000))
+        listas.guardar(self.carpeta, "Duraciones", temas)
+        cargados, saltadas = listas.cargar(self.carpeta, "Duraciones")
+        self.assertEqual(saltadas, 0)
+        self.assertEqual([t.duracion_ms for t in cargados], [222000, 7000])
+
+    def test_sin_duracion_escribe_menos_uno_y_se_lee_sin_duracion(self):
+        listas.guardar(self.carpeta, "Sin duración",
+                       (Tema(self.a, "A"), Tema(self.b, "B")))
+        texto = (self.carpeta / "Sin duración.m3u8").read_text(encoding="utf-8")
+        self.assertIn("#EXTINF:-1,A", texto)
+        cargados, _ = listas.cargar(self.carpeta, "Sin duración")
+        self.assertEqual([t.duracion_ms for t in cargados], [0, 0])
+
+    def test_lista_vieja_con_menos_uno_se_lee_sin_duracion(self):
+        self.carpeta.mkdir()
+        (self.carpeta / "Vieja.m3u8").write_text(
+            f"#EXTM3U\n#EXTINF:-1,Vieja\n{self.a}\n", encoding="utf-8")
+        cargados, saltadas = listas.cargar(self.carpeta, "Vieja")
+        self.assertEqual(saltadas, 0)
+        self.assertEqual(cargados[0].titulo, "Vieja")
+        self.assertEqual(cargados[0].duracion_ms, 0)
+
 
 class TestQuitarMover(unittest.TestCase):
 

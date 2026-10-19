@@ -13,7 +13,7 @@ import queue
 import threading
 
 from ytchat.core import diagnostico
-from ytchat.music import enlaces
+from ytchat.music import enlaces, modelo
 from ytchat.player import motor_vlc
 
 
@@ -410,13 +410,12 @@ def _texto(valor) -> str:
 
 
 def leer_etiquetas_vlc(ruta, plazo_ms=1500) -> dict:
-    """Lee título, artista y álbum de un archivo con libVLC.
+    """Lee título, artista, álbum y duración de un archivo con libVLC.
 
     Nunca lanza: devuelve ``{}`` sin motor, si falla o al vencer el plazo. Se
     llama desde el hilo que indexa, nunca desde un callback de VLC.
     """
-    instancia = motor_vlc.instancia()
-    vlc = motor_vlc.modulo()
+    instancia, vlc = motor_vlc.instancia(), motor_vlc.modulo()
     if instancia is None or vlc is None:
         return {}
     try:
@@ -430,7 +429,6 @@ def leer_etiquetas_vlc(ruta, plazo_ms=1500) -> dict:
 
         def al_parsear(_evento):
             listo.set()
-
         try:
             gestor = media.event_manager()
             gestor.event_attach(vlc.EventType.MediaParsedChanged, al_parsear)
@@ -443,6 +441,7 @@ def leer_etiquetas_vlc(ruta, plazo_ms=1500) -> dict:
         titulo = media.get_meta(vlc.Meta.Title)
         artista = media.get_meta(vlc.Meta.Artist)
         album = media.get_meta(vlc.Meta.Album)
+        duracion = modelo.normalizar_duracion(media.get_duration())
     except Exception:
         return {}
     finally:
@@ -454,6 +453,7 @@ def leer_etiquetas_vlc(ruta, plazo_ms=1500) -> dict:
         "titulo": _titulo_real(titulo, ruta),
         "artista": artista or "",
         "album": album or "",
+        "duracion_ms": duracion,
     }
 
 

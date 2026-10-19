@@ -94,6 +94,14 @@ class TestBiblioteca(unittest.TestCase):
         tema = bib.temas()[0]
         self.assertEqual((tema.titulo, tema.artista, tema.album), ("Tema X", "Artista Y", "Album Z"))
 
+    def test_leer_etiquetas_trae_la_duracion(self):
+        def etiquetas(ruta):
+            return {"titulo": "Tema X", "duracion_ms": 222000}
+
+        bib = Biblioteca(self.raiz, leer_etiquetas=etiquetas)
+        bib.indexar()
+        self.assertEqual(bib.temas()[0].duracion_ms, 222000)
+
     def test_buscar_sin_tildes_ni_mayusculas(self):
         def etiquetas(ruta):
             if Path(ruta).name == "Cancion.mp3":
@@ -144,6 +152,8 @@ class TestBiblioteca(unittest.TestCase):
         self.assertEqual(temas[0].titulo, "Primera")
         self.assertEqual(temas[1].titulo, "Otra")
         self.assertEqual(temas[2].titulo, "Segunda")
+        self.assertEqual(temas[0].duracion_ms, 123000)
+        self.assertEqual(temas[2].duracion_ms, 0)
 
     def test_m3u8_salta_web_inexistente_y_otra_extension(self):
         lista = self.raiz / "mezcla.m3u8"
@@ -220,6 +230,14 @@ class TestBibliotecaConCache(unittest.TestCase):
             (por_nombre["a.mp3"].titulo, por_nombre["a.mp3"].artista),
             ("Tema A", "Ana"))
         self.assertEqual(por_nombre["b.mp3"].titulo, "b")
+
+    def test_indexar_usa_la_duracion_de_la_cache(self):
+        self._poner_en_cache("a.mp3", {"titulo": "Tema A", "duracion_ms": 93000})
+        bib = Biblioteca(self.raiz, cache=self.cache)
+        bib.indexar()
+        por_nombre = {Path(t.origen).name: t for t in bib.temas()}
+        self.assertEqual(por_nombre["a.mp3"].duracion_ms, 93000)
+        self.assertEqual(por_nombre["b.mp3"].duracion_ms, 0)
 
     def test_pendientes_devuelve_solo_lo_que_falta(self):
         self._poner_en_cache("a.mp3", {"titulo": "Tema A"})

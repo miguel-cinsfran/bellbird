@@ -1857,6 +1857,11 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
     nombres_archivo = ([f"{i + 1:02d} {f.name}" for i, f in enumerate(elegidos)]
                        + ["06 corto QA.wav"])
     plegados = [_plegar(n) for n in nombres_archivo]
+    if any(", " in Path(nombre).stem for nombre in nombres_archivo):
+        res.no_probado(
+            "musica_real: un tema elegido tiene una coma en el nombre y no "
+            "se puede separar el título del artista y la duración")
+        return
 
     # ── Rutas que se tocan (solo lectura acá, se escriben en el `try`) ──
 
@@ -2026,9 +2031,8 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         def _titulo_fila(fila):
             # Quita el prefijo que pone `ytchat.music.vista.filas_cola`:
             # el estado («Sonando: » o «En pausa: »), el número y el punto.
-            # `vista` no exporta esos prefijos como constantes, así que la
-            # comparación es por contención: el título anunciado está
-            # contenido en la fila, vía `esperar_dicho`.
+            # La fila sigue con el título, el artista y la duración separados
+            # por «, », así que el título es lo que queda antes de la primera.
             texto = fila
             for prefijo in ("Sonando: ", "En pausa: "):
                 if texto.startswith(prefijo):
@@ -2037,7 +2041,7 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
             punto = texto.find(". ")
             if punto > 0 and texto[:punto].isdigit():
                 texto = texto[punto + 2:]
-            return texto
+            return texto.split(", ", 1)[0]
 
         def _filtrar(ventana, texto):
             propia.pedir("foco", ventana=ventana,

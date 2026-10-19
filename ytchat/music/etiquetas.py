@@ -15,10 +15,11 @@ from pathlib import Path
 
 from ytchat.core import archivos
 from ytchat.core import diagnostico
+from ytchat.music.modelo import normalizar_duracion
 
 logger = diagnostico.obtener_logger(__name__)
 
-VERSION = 1
+VERSION = 2
 
 
 class CacheEtiquetas:
@@ -52,6 +53,7 @@ class CacheEtiquetas:
                 "titulo": entrada.get("titulo", ""),
                 "artista": entrada.get("artista", ""),
                 "album": entrada.get("album", ""),
+                "duracion_ms": normalizar_duracion(entrada.get("duracion_ms")),
             }
 
     def poner(self, origen, mtime_ns, tamano, datos) -> None:
@@ -68,6 +70,7 @@ class CacheEtiquetas:
             "titulo": str(datos.get("titulo") or ""),
             "artista": str(datos.get("artista") or ""),
             "album": str(datos.get("album") or ""),
+            "duracion_ms": normalizar_duracion(datos.get("duracion_ms")),
         }
         with self._lock:
             self._datos[origen] = entrada
@@ -145,4 +148,5 @@ class CacheEtiquetas:
             "titulo": entrada.get("titulo") if isinstance(entrada.get("titulo"), str) else "",
             "artista": entrada.get("artista") if isinstance(entrada.get("artista"), str) else "",
             "album": entrada.get("album") if isinstance(entrada.get("album"), str) else "",
+            "duracion_ms": normalizar_duracion(entrada.get("duracion_ms")),
         }

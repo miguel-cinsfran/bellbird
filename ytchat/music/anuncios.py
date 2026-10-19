@@ -18,6 +18,7 @@ from ytchat.music.modelo import (
     FIN_LISTA,
     INICIO_LISTA,
     OK,
+    REINICIADO,
     SIN_TEMA,
     TEMA_FALLIDO,
 )
@@ -33,6 +34,7 @@ TEXTO_SIN_TEMA = "No hay música sonando"
 TEXTO_COLA_VACIA = "No hay temas para reproducir"
 TEXTO_ULTIMO = "Último tema de la lista"
 TEXTO_PRIMERO = "Primer tema de la lista"
+TEXTO_REINICIADO = "Desde el comienzo"
 TEXTO_PAUSA = "Música en pausa"
 TEXTO_REANUDADA = "Música reanudada"
 TEXTO_DETENIDA = "Música detenida"
@@ -148,6 +150,8 @@ def aviso_accion(accion: str, resultado, incluir_artista: bool) -> Aviso:
         return Aviso(TEXTO_ULTIMO)
     if codigo == INICIO_LISTA and accion == "anterior":
         return Aviso(TEXTO_PRIMERO)
+    if codigo == REINICIADO and accion == "anterior":
+        return Aviso(TEXTO_REINICIADO)
     if codigo == OK:
         if accion in ("siguiente", "anterior", "reproducir"):
             return Aviso(_nombre(resultado, incluir_artista))

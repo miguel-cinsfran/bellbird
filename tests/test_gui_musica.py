@@ -17,8 +17,8 @@ from unittest import mock
 from ytchat.music import anuncios
 from ytchat.music import listas
 from ytchat.music import memoria
-from ytchat.music.modelo import (AVANZO, FIN_LISTA, TEMA_FALLIDO, EstadoMusica,
-                                 Resultado, Tema)
+from ytchat.music.modelo import (AVANZO, FIN_LISTA, REINICIADO, TEMA_FALLIDO,
+                                 EstadoMusica, Resultado, Tema)
 from ytchat.ui import gui_musica
 from ytchat.ui import gui_musica_ventana
 from ytchat.ui.gui_musica import ControlMusica, nuevo_volumen, toca_pausar
@@ -276,6 +276,19 @@ class TestAccionesSinMotor(unittest.TestCase):
         with _entorno() as env:
             ControlMusica(_frame()).que_suena()
         env.anunciar.assert_called_once_with("No hay música sonando")
+
+
+class TestAnteriorReiniciado(unittest.TestCase):
+
+    def test_anterior_reiniciado_anuncia_desde_el_comienzo(self):
+        resultado = Resultado(True, REINICIADO, _estado(actual=True))
+        with _entorno() as env:
+            control = ControlMusica(_frame())
+            control._coordinador = mock.Mock()
+            control._coordinador.anterior.return_value = resultado
+            control.anterior()
+        env.anunciar.assert_called_once_with("Desde el comienzo")
+        self.assertEqual(env.snd.sonidos, [])
 
 
 class TestVolumen(unittest.TestCase):

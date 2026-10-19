@@ -103,6 +103,7 @@ class FakeReproductor:
         self.liberado = False
         self.pausa = None
         self.media = None
+        self.tiempo = 0
         self._play = instancia.play_resultado
 
     def _revisar(self):
@@ -144,6 +145,16 @@ class FakeReproductor:
     def set_pause(self, valor):
         self._revisar()
         self.pausa = valor
+
+    def get_time(self):
+        self._revisar()
+        self.instancia.eventos.append(("tiempo", self.numero))
+        return self.tiempo
+
+    def set_time(self, ms):
+        self._revisar()
+        self.tiempo = ms
+        self.instancia.eventos.append(("ir_a", self.numero, ms))
 
     def stop(self):
         self._revisar()
@@ -370,6 +381,37 @@ class TestAdaptadorDobles(_BaseDobles):
         adaptador.detener()
         self.assertIsNone(adaptador._actual)
         self.assertTrue(esperar(lambda: reproductor.liberado))
+
+    def test_tiempo_ms_sin_tema_devuelve_none(self):
+        adaptador = self.crear()
+        self.assertIsNone(adaptador.tiempo_ms())
+
+    def test_tiempo_ms_lee_el_reproductor_actual(self):
+        adaptador = self.crear()
+        self.existentes.add("C:/musica/a.mp3")
+        adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
+        self.instancia.reproductores[0].tiempo = 2500
+        self.assertEqual(adaptador.tiempo_ms(), 2500)
+
+    def test_tiempo_ms_descarta_lo_que_vlc_no_sabe(self):
+        adaptador = self.crear()
+        self.existentes.add("C:/musica/a.mp3")
+        adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
+        self.instancia.reproductores[0].tiempo = -1
+        self.assertIsNone(adaptador.tiempo_ms())
+
+    def test_ir_a_sin_tema_no_hace_nada(self):
+        adaptador = self.crear()
+        adaptador.ir_a(1000)
+        self.assertEqual(self.instancia.eventos, [])
+
+    def test_ir_a_salta_en_el_reproductor_actual(self):
+        adaptador = self.crear()
+        self.existentes.add("C:/musica/a.mp3")
+        adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
+        adaptador.ir_a(1200)
+        self.assertEqual(self.instancia.reproductores[0].tiempo, 1200)
+        self.assertIn(("ir_a", 0, 1200), self.instancia.eventos)
 
     def test_dispositivo_se_aplica_antes_de_play_en_cada_reproductor(self):
         adaptador = self.crear(dispositivo="salida-x")
@@ -757,6 +799,18 @@ class TestAdaptadorVlcReal(unittest.TestCase):
         self.assertLess(time.monotonic() - inicio, 5.0)
         self.assertIsInstance(datos, dict)
         self.assertFalse(datos.get("titulo"))
+
+    def test_tiempo_ms_e_ir_a_con_libvlc(self):
+        adaptador = self._adaptador()
+        adaptador.cargar(Tema(str(self.wav1), "uno"), 1)
+        self.assertTrue(
+            esperar(lambda: adaptador.tiempo_ms() is not None, plazo=10.0),
+            "libVLC no informó la posición")
+        tiempo = adaptador.tiempo_ms()
+        self.assertIsInstance(tiempo, int)
+        self.assertGreaterEqual(tiempo, 0)
+        adaptador.ir_a(100)
+        self.assertIsInstance(adaptador.tiempo_ms(), int)
 
     def test_salidas_audio_real_no_lanza_y_es_rapida(self):
         inicio = time.monotonic()

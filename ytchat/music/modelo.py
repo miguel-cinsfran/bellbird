@@ -14,6 +14,7 @@ VOLUMEN_INVALIDO = "volumen_invalido"
 ERROR_MOTOR = "error_motor"
 TEMA_FALLIDO = "tema_fallido"
 AVANZO = "avanzo"
+REINICIADO = "reiniciado"
 
 
 @dataclass(frozen=True)
@@ -41,6 +42,7 @@ class EstadoMusica:
     terminado: bool
     volumen: int
     aleatorio: bool
+    repetir: str = "no"
 
     @property
     def actual(self) -> Tema | None:

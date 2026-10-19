@@ -237,6 +237,29 @@ class AdaptadorVlc:
             if self._actual is not None:
                 self._actual.audio_set_volume(valor)
 
+    def tiempo_ms(self):
+        """Posición del tema actual en milisegundos, o None si no se sabe."""
+        with self._lock:
+            if self._actual is None:
+                return None
+            try:
+                valor = self._actual.get_time()
+            except Exception:
+                return None
+            if valor is None or valor < 0:
+                return None
+            return int(valor)
+
+    def ir_a(self, ms):
+        """Salta a una posición del tema actual. Sin tema no hace nada."""
+        with self._lock:
+            if self._actual is None:
+                return
+            try:
+                self._actual.set_time(int(ms))
+            except Exception:
+                logger.debug("No se pudo saltar a %s ms en el tema actual", ms)
+
     def cerrar(self, plazo=2.0):
         """Cierra el reproductor actual y termina el hilo. Repetirlo no falla."""
         with self._lock:

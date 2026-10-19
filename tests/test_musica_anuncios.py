@@ -12,6 +12,7 @@ from ytchat.music.modelo import (
     FIN_LISTA,
     INICIO_LISTA,
     OK,
+    REINICIADO,
     SIN_TEMA,
     TEMA_FALLIDO,
     VOLUMEN_INVALIDO,
@@ -130,6 +131,12 @@ class TestAvisoAccion(unittest.TestCase):
     def test_anterior_inicio_de_lista(self):
         aviso = anuncios.aviso_accion("anterior", _resultado(INICIO_LISTA), False)
         self.assertEqual(aviso.texto, "Primer tema de la lista")
+
+    def test_anterior_reiniciado_dice_desde_el_comienzo(self):
+        r = _resultado(REINICIADO, cola=[_tema(1)], posicion=0)
+        aviso = anuncios.aviso_accion("anterior", r, False)
+        self.assertEqual(aviso.texto, "Desde el comienzo")
+        self.assertIsNone(aviso.sonido)
 
     def test_pausa_ok_en_pausa(self):
         r = _resultado(OK, cola=[_tema(1)], posicion=0, pausado=True)

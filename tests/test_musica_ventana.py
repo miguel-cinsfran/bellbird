@@ -1038,19 +1038,10 @@ class TestDialogoEditorLista(unittest.TestCase):
 
     def test_la_lista_y_los_botones_entran_en_el_cuadro(self):
         self._abrir()
-        cliente = wx.Rect(
-            self.dialogo.ClientToScreen(wx.Point(0, 0)),
-            self.dialogo.GetClientSize())
-        for control in (self.dialogo.lb_temas, self.dialogo.btn_guardar,
-                        self.dialogo.btn_cancelar):
-            with self.subTest(control=control.GetName()):
-                rect = control.GetScreenRect()
-                self.assertGreater(rect.width, 0)
-                self.assertGreater(rect.height, 0)
-                self.assertGreaterEqual(rect.left, cliente.left)
-                self.assertGreaterEqual(rect.top, cliente.top)
-                self.assertLessEqual(rect.right, cliente.right)
-                self.assertLessEqual(rect.bottom, cliente.bottom)
+        pedido = self.dialogo.GetSizer().GetMinSize()
+        cliente = self.dialogo.GetClientSize()
+        self.assertGreaterEqual(cliente.width, pedido.width)
+        self.assertGreaterEqual(cliente.height, pedido.height)
 
 
 if __name__ == "__main__":

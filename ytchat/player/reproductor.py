@@ -1680,7 +1680,22 @@ class ReproductorPanel(wx.Panel):
         self.btn_play.SetBitmap(self._ic_pause if reproduciendo else self._ic_play)
         self.btn_play.SetLabel("Pausa" if reproduciendo else "Reproducir")
 
+    def _hay_medio(self) -> bool:
+        """Hay un vídeo o un directo cargado en el panel."""
+        return bool(getattr(self, "_video_id", "") or getattr(self, "_url_flujo", ""))
+
+    def _avisar_sin_medio(self) -> bool:
+        """Anuncia la falta de medio y devuelve True si no hay nada cargado."""
+        if self._hay_medio():
+            return False
+        aviso = aviso_reproductor(self._listo, False)
+        if aviso:
+            anunciar(aviso)
+        return True
+
     def _toggle_play(self):
+        if self._avisar_sin_medio():
+            return
         if not self._asegurar_player():
             aviso = aviso_reproductor(
                 self._listo, bool(self._video_id or self._url_flujo))
@@ -1779,6 +1794,8 @@ class ReproductorPanel(wx.Panel):
                     anunciar(aviso)
 
     def _detener(self, silencioso: bool = False, en_segundo_plano: bool = False):
+        if not silencioso and self._avisar_sin_medio():
+            return
         # Invalida cualquier carga en vuelo (yt-dlp) y desbloquea futuras cargas:
         # sin esto, una carga que termina tras detener/desconectar rearrancaba la
         # reproducción al volver por wx.CallAfter.
@@ -1883,11 +1900,9 @@ class ReproductorPanel(wx.Panel):
             anunciar("No se puede buscar en este momento")
 
     def _toggle_mute(self):
+        if self._avisar_sin_medio():
+            return
         if self._player is None:
-            aviso = aviso_reproductor(
-                self._listo, bool(self._video_id or self._url_flujo))
-            if aviso:
-                anunciar(aviso)
             return
         self._muted = not self._muted
         self._player.audio_set_mute(self._muted)
@@ -1905,6 +1920,8 @@ class ReproductorPanel(wx.Panel):
         return self._vol
 
     def ajustar_volumen(self, delta: int):
+        if self._avisar_sin_medio():
+            return
         nuevo = self._aplicar_volumen(delta)
         anunciar(anuncio_ajuste.COMPARTIDO.frase(
             "volumen_reproductor",
@@ -1914,6 +1931,8 @@ class ReproductorPanel(wx.Panel):
     # ── Pantalla completa ──────────────────────────────────────────────────────
 
     def alternar_pantalla_completa(self):
+        if getattr(self, "_fs", None) is None and self._avisar_sin_medio():
+            return
         if not self._asegurar_player():
             aviso = aviso_reproductor(
                 self._listo, bool(self._video_id or self._url_flujo))
@@ -2129,6 +2148,8 @@ class ReproductorPanel(wx.Panel):
                               inicio_ms=int(destino))
 
     def _on_sld_pos(self, event):
+        if self._avisar_sin_medio():
+            return
         if self._player is None:
             return
         if not self._busqueda_permitida_actual():
@@ -2163,6 +2184,8 @@ class ReproductorPanel(wx.Panel):
             event.Skip()
 
     def _buscar_porcentaje(self, pct):
+        if self._avisar_sin_medio():
+            return
         if self._player is None:
             return
         if not self._busqueda_permitida_actual():
@@ -2194,6 +2217,8 @@ class ReproductorPanel(wx.Panel):
             event.Skip()
 
     def _vol_flecha(self, delta):
+        if self._avisar_sin_medio():
+            return
         self._aplicar_volumen(delta)
         anuncio_ajuste.COMPARTIDO.registrar("volumen_reproductor")
 
@@ -2565,9 +2590,10 @@ class ReproductorPanel(wx.Panel):
         anunciar("Ya estás en el directo")
 
     def _buscar_rel(self, delta_ms: int):
+        if self._avisar_sin_medio():
+            return
         if self._player is None:
-            aviso = aviso_reproductor(
-                self._listo, bool(self._video_id or self._url_flujo))
+            aviso = aviso_reproductor(self._listo, True)
             if aviso:
                 anunciar(aviso)
             return

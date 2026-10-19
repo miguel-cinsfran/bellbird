@@ -851,6 +851,17 @@ class TestAvisoAlReproducir(unittest.TestCase):
             self._panel_sin_medio()._buscar_rel(10_000)
         anunciar.assert_called_once_with("No hay ningún vídeo cargado")
 
+    def test_buscar_con_medio_sin_reproductor_no_toca_el_relevo(self):
+        panel = self._panel_sin_medio()
+        panel._video_id = "video-cargado"
+        panel._relevo_fuentes = ("https://flujo.example/stream", None)
+        panel._es_directo_actual = lambda: True
+        panel._saltar_en_relevo = mock.Mock()
+        with mock.patch.object(reproductor, "anunciar") as anunciar:
+            panel._buscar_rel(10_000)
+        panel._saltar_en_relevo.assert_not_called()
+        anunciar.assert_not_called()
+
     def test_pantalla_completa_sin_reproductor_anuncia(self):
         panel = self._panel_sin_medio()
         panel._listo = False
@@ -887,6 +898,65 @@ class TestAvisoAlReproducir(unittest.TestCase):
         with mock.patch.object(reproductor, "anunciar") as anunciar:
             panel._toggle_play()
         anunciar.assert_not_called()
+
+    def _panel_con_player_vacio(self):
+        panel = self._panel_sin_medio()
+        panel._player = mock.Mock()
+        panel._vol = 50
+        panel._muted = False
+        panel._fs = None
+        panel.sld_pos = mock.Mock()
+        panel.sld_vol = mock.Mock()
+        panel._asegurar_player = mock.Mock(return_value=True)
+        return panel
+
+    def _comprobar_guarda_sin_medio(self, accion):
+        panel = self._panel_con_player_vacio()
+        with mock.patch.object(reproductor, "anunciar") as anunciar:
+            accion(panel)
+        anunciar.assert_called_once_with("No hay ningún vídeo cargado")
+        for nombre in ("audio_set_mute", "audio_set_volume", "set_time",
+                       "set_position", "play", "pause"):
+            getattr(panel._player, nombre).assert_not_called()
+        self.assertEqual(panel._vol, 50)
+        panel.sld_vol.SetValue.assert_not_called()
+        panel.sld_pos.SetValue.assert_not_called()
+        panel._asegurar_player.assert_not_called()
+
+    def test_acciones_sobre_el_medio_sin_video_anuncian_y_no_tocan_nada(self):
+        acciones = {
+            "reproducir o pausar": lambda p: p._toggle_play(),
+            "detener": lambda p: p._detener(),
+            "silenciar": lambda p: p._toggle_mute(),
+            "subir volumen": lambda p: p.ajustar_volumen(+20),
+            "bajar volumen": lambda p: p.ajustar_volumen(-20),
+            "flecha de volumen": lambda p: p._vol_flecha(+1),
+            "retroceder": lambda p: p._buscar_rel(-60_000),
+            "avanzar": lambda p: p._buscar_rel(+60_000),
+            "saltar a porcentaje": lambda p: p._buscar_porcentaje(50),
+            "mover deslizador de posición": lambda p: p._on_sld_pos(None),
+            "pantalla completa": lambda p: p.alternar_pantalla_completa(),
+        }
+        for nombre, accion in acciones.items():
+            with self.subTest(accion=nombre):
+                self._comprobar_guarda_sin_medio(accion)
+
+    def test_reproducir_sin_medio_no_crea_el_reproductor(self):
+        panel = self._panel_con_player_vacio()
+        player = panel._player
+        with mock.patch.object(reproductor, "anunciar") as anunciar:
+            panel._toggle_play()
+        panel._asegurar_player.assert_not_called()
+        self.assertIs(panel._player, player)
+        anunciar.assert_called_once_with("No hay ningún vídeo cargado")
+
+    def test_accion_sin_panel_anuncia_indisponible(self):
+        from ytchat.ui import gui
+        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame._rep_panel = None
+        with mock.patch.object(gui, "anunciar") as anunciar:
+            frame._rep_accion("_toggle_play")
+        anunciar.assert_called_once_with("El reproductor no está disponible")
 
 
 class TestRelevoRobustez(unittest.TestCase):

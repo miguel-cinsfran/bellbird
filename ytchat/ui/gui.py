@@ -950,6 +950,9 @@ class YTChatFrame(wx.Frame):
             anunciar(self.nb.GetPageText(idx))
 
     def _rep_accion(self, metodo: str, *args):
+        if getattr(self, "_rep_panel", None) is None:
+            anunciar("El reproductor no está disponible")
+            return
         try:
             getattr(self._rep_panel, metodo)(*args)
         except Exception as exc:

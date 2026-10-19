@@ -1744,37 +1744,28 @@ def escenario_transmision(app: Aplicacion, args, res: Resultado):
 
 
 def escenario_musica(app: Aplicacion, args, res: Resultado):
-    """Las dos ventanas de música, sin hacer sonar nada.
+    """La ventana de música, abierta por sus dos entradas del menú.
 
-    Sin carpeta los botones de reproducir y agregar nacen deshabilitados a
-    propósito, y wx saca lo deshabilitado del orden de Tab: exigirlos ahí
-    mide la pantalla de espera, no el diálogo. Por eso van en `esperados`
-    y no en `esperados_en_tab`, igual que en `escenario_transmision`.
-    No se pulsa Reproducir ni ningún atajo de reproducción, y si la
-    configuración trae una carpeta de música real no se toca: las ventanas
-    solo se abren, se auditan y se cierran.
+    Sin carpeta ningún control queda deshabilitado: «Cambiar carpeta» solo
+    se apaga mientras carga y `_al_biblioteca` lo vuelve a habilitar, así
+    que los ocho entran en el orden de Tab. No se pulsa Reproducir ni
+    ningún atajo de reproducción, y si la configuración trae una carpeta de
+    música real no se toca: la ventana solo se abre, se audita y se cierra.
     """
-    res.nota("Música: no se reproduce nada, las ventanas solo se auditan")
+    res.nota("Música: no se reproduce nada, la ventana solo se audita")
+    esperados = ("Buscar en la música", "Qué mostrar", "Biblioteca",
+                 "Cola de reproducción", "Abrir enlace", "Nueva lista",
+                 "Cambiar carpeta", "Cerrar")
     auditar_dialogo(
         app, res, "Elegir música…", "Música",
         vueltas_tab=14,
-        esperados=("Buscar en la música", "Temas de la carpeta",
-                   "Reproducir este", "Reproducir todo",
-                   "Agregar a la cola", "Agregar a una lista",
-                   "Agregar enlace", "Cola de reproducción",
-                   "Cambiar carpeta", "Cerrar"),
-        esperados_en_tab=("Buscar en la música", "Temas de la carpeta",
-                          "Cola de reproducción", "Cambiar carpeta",
-                          "Cerrar"))
+        esperados=esperados,
+        esperados_en_tab=esperados)
     auditar_dialogo(
-        app, res, "Listas de música…", "Listas de música",
-        vueltas_tab=12,
-        esperados=("Listas guardadas", "Reproducir la lista", "Nueva lista",
-                   "Renombrar", "Borrar", "Temas de la lista",
-                   "Guardar la cola como lista", "Cerrar"),
-        esperados_en_tab=("Listas guardadas", "Nueva lista",
-                          "Temas de la lista", "Guardar la cola como lista",
-                         "Cerrar"))
+        app, res, "Listas de música…", "Música",
+        vueltas_tab=14,
+        esperados=esperados,
+        esperados_en_tab=esperados)
 
 
 def escenario_musica_real(app: Aplicacion, args, res: Resultado):
@@ -1785,8 +1776,10 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
     volumen 10 y corre cada comando de música comprobando con el medidor
     de sonido de Windows que de verdad empieza, se pausa, sigue y se
     detiene. Al terminar deja los datos del usuario exactamente como
-    estaban. No usa `teclas`: filtra por el buscador, que deja el tema
-    aislado seleccionado, y elige lo demás por posición por defecto.
+    estaban. Usa `tecla_en` y `menu_contextual` para disparar las acciones
+    de la ventana nueva por su cableado real, filtra por el buscador, que
+    deja el tema aislado seleccionado, y elige lo demás por posición por
+    defecto.
     Corre ANTES de lanzar la aplicación compartida (como `arranque_frio`),
     porque la configuración se escribe antes de arrancar.
     """
@@ -2001,6 +1994,22 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
                 time.sleep(0.2)
             return _filas(ventana, nombre)
 
+        def _items_choice(ventana, nombre):
+            for control in _arbol(ventana):
+                if (control.get("clase") == "Choice"
+                        and (control.get("nombre") or "") == nombre):
+                    return list(control.get("items", []))
+            return None
+
+        def _items_hasta(ventana, nombre, esperados, segundos):
+            limite = time.monotonic() + segundos
+            while time.monotonic() < limite:
+                items = _items_choice(ventana, nombre)
+                if items == esperados:
+                    return items
+                time.sleep(0.2)
+            return _items_choice(ventana, nombre)
+
         def _filas_estables(ventana, nombre, segundos=8.0):
             # Las etiquetas se leen en un hilo y cambian los títulos: se
             # espera a que se asienten antes de tomarlos como esperados.
@@ -2047,10 +2056,18 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
             except Exception as exc:
                 _corta(f"musica_real: el menú no tiene «{etiqueta}»: {exc}")
 
+        def _elegir(ventana, nombre, indice):
+            propia.pedir("elegir", ventana=ventana, nombre=nombre,
+                         indice=indice)
+
+        def _menu_contextual(ventana, nombre, entrada, responder_ya=False):
+            propia.pedir("menu_contextual", ventana=ventana, nombre=nombre,
+                         entrada=entrada, responder_ya=responder_ya)
+
         def _aislar(indice, esperado):
             for aguja in _agujas_unicas(indice):
                 _filtrar("Música", aguja)
-                filas = _filas_hasta("Música", "Temas de la carpeta", 1, 5.0)
+                filas = _filas_hasta("Música", "Biblioteca", 1, 5.0)
                 if filas is not None and len(filas) == 1:
                     if filas[0] != esperado:
                         _corta(f"musica_real: el buscador aisló "
@@ -2100,6 +2117,12 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
             if propia.esperar_ventana(ventana, segundos=3) is not None:
                 _corta(f"musica_real: «{ventana}» no cerró al aceptar")
 
+        def _pulsar_y_cerrar(ventana, boton):
+            propia.pedir("pulsar", nombre=boton, ventana=ventana)
+            if propia.esperar_ventana(ventana, segundos=3) is not None:
+                _corta(f"musica_real: «{ventana}» no cerró al pulsar "
+                       f"«{boton}»")
+
         inicio = time.monotonic()
         tope = inicio + _TOPE_RECORRIDO
 
@@ -2115,7 +2138,7 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         if propia.esperar_ventana("Música", segundos=15) is None:
             _corta("musica_real: «Elegir música» no abrió la ventana")
         res.nota("musica_real: abre «Música» desde el menú")
-        filas = _filas_hasta("Música", "Temas de la carpeta", 6, 30.0)
+        filas = _filas_hasta("Música", "Biblioteca", 6, 30.0)
         if filas is None or len(filas) != 6:
             _corta(f"musica_real: la lista de temas tiene "
                    f"{len(filas) if filas is not None else 'nada'} "
@@ -2124,10 +2147,12 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         # ── b. Reproducir todo: anuncia el título y se oye ──
 
         _aire()
-        filas = _filas_estables("Música", "Temas de la carpeta")
+        filas = _filas_estables("Música", "Biblioteca")
         titulo_primero = _titulo_fila(filas[0]) if filas else ""
         n = len(propia.anuncios)
-        propia.pedir("pulsar", nombre="Reproducir todo")
+        _elegir("Música", "Biblioteca", 0)
+        _menu_contextual("Música", "Biblioteca",
+                         "Reproducir todo desde aquí")
         anunciado = (bool(titulo_primero)
                      and propia.esperar_dicho(titulo_primero, segundos=10,
                                               desde=n))
@@ -2307,7 +2332,8 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         _aislar(5, "06 corto QA")
         cola_antes = _filas("Música", "Cola de reproducción") or []
         n = len(propia.anuncios)
-        propia.pedir("pulsar", nombre="Reproducir a continuación")
+        propia.pedir("tecla_en", ventana="Música", nombre="Biblioteca",
+                     tecla="enter", modificadores=["shift"])
         esperado = anuncios_musica.TEXTO_A_CONTINUACION.format(
             nombre="06 corto QA")
         if not propia.esperar_dicho(esperado, segundos=8, desde=n):
@@ -2332,19 +2358,20 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
             res.fallo("musica_real: el corto no avanzó solo al tema que "
                       f"seguía («{que_seguia}»)")
         _filtrar("Música", "")
-        if _filas_hasta("Música", "Temas de la carpeta", 6, 10.0) is None:
+        if _filas_hasta("Música", "Biblioteca", 6, 10.0) is None:
             _corta("musica_real: al limpiar el buscador no vuelven los 6")
 
         # ── i. El quinto a la cola ──
 
         _aire()
-        filas = _filas_estables("Música", "Temas de la carpeta") or []
+        filas = _filas_estables("Música", "Biblioteca") or []
         if len(filas) != 6:
             _corta("musica_real: la lista de temas no tiene 6 elementos")
         quinto = _titulo_fila(filas[4])
         _aislar(4, quinto)
         cola_antes = _filas("Música", "Cola de reproducción") or []
-        propia.pedir("pulsar", nombre="Agregar a la cola")
+        propia.pedir("tecla_en", ventana="Música", nombre="Biblioteca",
+                     tecla="enter", modificadores=["ctrl"])
         cola = _filas("Música", "Cola de reproducción") or []
         if (len(cola) != len(cola_antes) + 1
                 or (quinto and _titulo_fila(cola[-1]) != quinto)):
@@ -2353,36 +2380,35 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         else:
             res.nota("musica_real: el quinto se agrega al final de la cola")
         _filtrar("Música", "")
-        _filas_hasta("Música", "Temas de la carpeta", 6, 10.0)
+        _filas_hasta("Música", "Biblioteca", 6, 10.0)
 
-        # ── j. Reproducir este con el tercero ──
+        # ── j. Reproducir ahora el tercero ──
 
         _aire()
-        filas = _filas_estables("Música", "Temas de la carpeta") or []
+        filas = _filas_estables("Música", "Biblioteca") or []
         if len(filas) != 6:
             _corta("musica_real: la lista de temas no tiene 6 elementos")
         n = len(propia.anuncios)
-        propia.pedir("elegir", ventana="Música",
-                     nombre="Temas de la carpeta", indice=2)
-        propia.pedir("activar", ventana="Música",
-                     nombre="Temas de la carpeta")
+        _elegir("Música", "Biblioteca", 2)
+        propia.pedir("tecla_en", ventana="Música", nombre="Biblioteca",
+                     tecla="enter")
         tercero = _titulo_fila(filas[2])
         if not tercero:
             res.fallo("musica_real: la tercera fila no tiene título y no "
-                      "se puede probar «Reproducir este»")
+                      "se puede probar «Reproducir ahora»")
         elif not propia.esperar_dicho(tercero, segundos=10, desde=n):
-            res.fallo("musica_real: «Reproducir este» no anunció "
+            res.fallo("musica_real: «Reproducir ahora» no anunció "
                       f"«{tercero}»")
         cola = _filas("Música", "Cola de reproducción") or []
         if not cola:
             res.fallo("musica_real: la cola está vacía tras "
-                      "«Reproducir este»")
+                      "«Reproducir ahora»")
         elif [_titulo_fila(f) for f in cola] != list(filas):
             res.fallo("musica_real: la cola no trae los mismos temas "
                       "de la carpeta en el mismo orden")
         elif not cola[2].startswith("Sonando: "):
             res.fallo("musica_real: la tercera fila no es la que suena "
-                      "tras «Reproducir este»")
+                      "tras «Reproducir ahora»")
         elif not sin_salida:
             limite = time.monotonic() + 10
             suena = False
@@ -2400,13 +2426,9 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         _aire()
         cola = _filas("Música", "Cola de reproducción") or []
         cantidad_cola = len(cola)
-        propia.pedir("cerrar_ventana", ventana="Música")
-        _menu("listas de música")
-        if propia.esperar_ventana("Listas de música", segundos=15) is None:
-            _corta("musica_real: «Listas de música» no abrió la ventana")
         try:
-            propia.pedir("pulsar", nombre="Guardar la cola como lista",
-                         responder_ya=True)
+            _menu_contextual("Música", "Cola de reproducción",
+                             "Guardar la cola como lista", responder_ya=True)
         except Exception:
             pass  # el cuadro es modal y se come la respuesta
         if propia.esperar_ventana("Nueva lista", segundos=10) is None:
@@ -2437,7 +2459,6 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
                 else:
                     res.nota("musica_real: la cola se guarda como lista "
                              f"con {cantidad_cola} entradas")
-        propia.pedir("cerrar_ventana", ventana="Listas de música")
         n = len(propia.anuncios)
         _menu("detener la música")
         if not propia.esperar_dicho(anuncios_musica.TEXTO_DETENIDA,
@@ -2456,15 +2477,19 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
             if not callado:
                 res.fallo("musica_real: detenida y el pico no cayó "
                           "bajo 0,001 en 3 s")
-        _menu("listas de música")
-        if propia.esperar_ventana("Listas de música", segundos=15) is None:
-            _corta("musica_real: al reabrir no abrió «Listas de música»")
-        guardadas = _filas("Listas de música", "Listas guardadas") or []
-        if guardadas != [_NOMBRE_LISTA]:
-            _corta(f"musica_real: las listas son {guardadas} en vez de "
-                   f"«{_NOMBRE_LISTA}» sola")
-        n = len(propia.anuncios)
-        propia.pedir("pulsar", nombre="Reproducir la lista")
+        esperadas = ["Temas de la carpeta", f"Lista: {_NOMBRE_LISTA}"]
+        elegidas = _items_hasta("Música", "Qué mostrar", esperadas, 10.0)
+        if elegidas != esperadas:
+            _corta(f"musica_real: «Qué mostrar» ofrece {elegidas} en vez "
+                   f"de {esperadas}")
+        _elegir("Música", "Qué mostrar", 1)
+        filas = _filas_hasta("Música", "Biblioteca", cantidad_cola, 10.0)
+        if filas is None or len(filas) != cantidad_cola:
+            _corta("musica_real: la lista no trajo "
+                   f"{cantidad_cola} temas a la Biblioteca")
+        _elegir("Música", "Biblioteca", 0)
+        _menu_contextual("Música", "Biblioteca",
+                         "Reproducir todo desde aquí")
         if not sin_salida:
             limite = time.monotonic() + 10
             suena = False
@@ -2476,17 +2501,17 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
                 time.sleep(0.1)
             if not suena:
                 res.fallo("musica_real: la lista no se oye")
-        propia.pedir("cerrar_ventana", ventana="Listas de música")
-        _menu("elegir música")
-        if propia.esperar_ventana("Música", segundos=15) is None:
-            _corta("musica_real: no reabrió «Música»")
-        cola = _filas("Música", "Cola de reproducción") or []
+        cola = _filas_hasta("Música", "Cola de reproducción",
+                            cantidad_cola, 10.0) or []
         if len(cola) != cantidad_cola:
             res.fallo("musica_real: la cola tiene "
                       f"{len(cola)} entradas en vez de {cantidad_cola}")
         else:
             res.nota("musica_real: la lista suena con sus "
                      f"{cantidad_cola} entradas")
+        _elegir("Música", "Qué mostrar", 0)
+        if _filas_hasta("Música", "Biblioteca", 6, 10.0) is None:
+            _corta("musica_real: al volver a la carpeta no aparecen 6 temas")
 
         # ── l. Agregar el enlace del vídeo: se oye ──
 
@@ -2511,15 +2536,14 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
                           "bajo 0,001 en 3 s")
         cola_antes = _filas("Música", "Cola de reproducción") or []
         try:
-            propia.pedir("pulsar", nombre="Agregar enlace",
-                         responder_ya=True)
+            propia.pedir("pulsar", nombre="Abrir enlace", responder_ya=True)
         except Exception:
             pass  # el cuadro es modal y se come la respuesta
-        if propia.esperar_ventana("Agregar enlace", segundos=10) is None:
-            _corta("musica_real: no abrió «Agregar enlace»")
-        _escribir_cuadro("Agregar enlace", _URL_VIDEO)
+        if propia.esperar_ventana("Abrir enlace", segundos=10) is None:
+            _corta("musica_real: no abrió «Abrir enlace»")
+        _escribir_cuadro("Abrir enlace", _URL_VIDEO)
         n = len(propia.anuncios)
-        _pulsar_aceptar("Agregar enlace")
+        _pulsar_y_cerrar("Abrir enlace", "Agregar a la cola")
         if not propia.esperar_dicho(
                 anuncios_musica.TEXTO_LEYENDO_ENLACE, segundos=10, desde=n):
             res.fallo("musica_real: no se anunció "
@@ -2571,15 +2595,14 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
 
         _aire()
         try:
-            propia.pedir("pulsar", nombre="Agregar enlace",
-                         responder_ya=True)
+            propia.pedir("pulsar", nombre="Abrir enlace", responder_ya=True)
         except Exception:
             pass  # el cuadro es modal y se come la respuesta
-        if propia.esperar_ventana("Agregar enlace", segundos=10) is None:
-            _corta("musica_real: no abrió «Agregar enlace» por segunda vez")
-        _escribir_cuadro("Agregar enlace", _URL_LISTA)
+        if propia.esperar_ventana("Abrir enlace", segundos=10) is None:
+            _corta("musica_real: no abrió «Abrir enlace» por segunda vez")
+        _escribir_cuadro("Abrir enlace", _URL_LISTA)
         n = len(propia.anuncios)
-        _pulsar_aceptar("Agregar enlace")
+        _pulsar_y_cerrar("Abrir enlace", "Agregar a la cola")
         limite = time.monotonic() + 90
         agregados = 0
         lista_muerta = False
@@ -4888,8 +4911,10 @@ SUPERFICIES = {
     "gui_historial.py": "historial",
     "gui_menu.py": "menus",
     "gui_musica.py": "musica",
-    "gui_musica_listas.py": "musica",
-    "gui_musica_ventana.py": "musica",
+    "musica_dialogo_enlace.py": "musica",
+    "musica_menus.py": "musica",
+    "musica_ventana.py": "musica",
+    "musica_ventana_acciones.py": "musica",
     "gui_transmision.py": "transmision",
     "gui_transmitir.py": "transmitir_destino",
     "gui_preferencias.py": "preferencias",
@@ -4900,6 +4925,40 @@ SUPERFICIES = {
 
 EXTRAS_DE_INTERFAZ = ("reproductor.py", "iconos.py")
 
+# Un modulo de la musica dibuja interfaz si crea o hereda de un control de wx.
+# Los que solo calculan, tocan la red o piden `wx.CallAfter` no se exigen en
+# el barrido: no tienen pantalla que auditar.
+CLASES_DE_WX_QUE_DIBUJAN = frozenset({
+    "Dialog", "Frame", "Panel", "Menu", "MenuBar", "StaticText", "TextCtrl",
+    "Button", "BitmapButton", "Choice", "ComboBox", "ListBox", "ListCtrl",
+    "CheckBox", "RadioButton", "RadioBox", "Slider", "SpinCtrl", "Notebook",
+    "TextEntryDialog", "SingleChoiceDialog", "MessageDialog", "DirDialog",
+    "FileDialog", "FilePickerCtrl", "DirPickerCtrl",
+})
+
+
+def dibuja_interfaz(ruta: Path) -> bool:
+    """Si el modulo crea o hereda de un control de wx, mirando su codigo."""
+    import ast
+    try:
+        arbol = ast.parse(ruta.read_text(encoding="utf-8"))
+    except (OSError, SyntaxError, UnicodeDecodeError):
+        return False
+    for nodo in ast.walk(arbol):
+        if isinstance(nodo, ast.ClassDef):
+            bases = nodo.bases
+        elif isinstance(nodo, ast.Call):
+            bases = [nodo.func]
+        else:
+            continue
+        for base in bases:
+            if (isinstance(base, ast.Attribute)
+                    and isinstance(base.value, ast.Name)
+                    and base.value.id == "wx"
+                    and base.attr in CLASES_DE_WX_QUE_DIBUJAN):
+                return True
+    return False
+
 
 def superficies_sin_escenario() -> list[str]:
     """Modulos de interfaz que existen en el disco y no tiene quien los mire."""
@@ -4908,6 +4967,8 @@ def superficies_sin_escenario() -> list[str]:
     modulos = {p.name for p in ui.glob("gui*.py")}
     modulos.update(n for n in EXTRAS_DE_INTERFAZ
                    if (ui / n).exists() or (reproductor / n).exists())
+    modulos.update(p.name for p in ui.glob("musica_*.py")
+                   if dibuja_interfaz(p))
     if not modulos:
         raise RuntimeError(
             "no se encontró ningún módulo de interfaz en ytchat/ui/ ni en "

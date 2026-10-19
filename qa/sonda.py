@@ -111,6 +111,14 @@ def _codigo_tecla(nombre: str) -> int:
     raise ValueError(f"tecla desconocida: {nombre!r}")
 
 
+def _limpiar_etiqueta(texto) -> str:
+    """El texto de una entrada sin mnemónico ni puntos suspensivos."""
+    limpio = str(texto or "").replace("&", "")
+    for puntos in ("...", "…"):
+        limpio = limpio.replace(puntos, "")
+    return limpio.strip().casefold()
+
+
 # ── Inspección de la interfaz, desde dentro ──────────────────────────────────
 
 def _describir(ventana, profundidad=0):
@@ -154,8 +162,9 @@ def _describir(ventana, profundidad=0):
         try:    datos["valor"] = int(ventana.GetValue())
         except Exception: pass
     # El contenido de las listas es lo que de verdad lee el usuario, así que
-    # sin esto no se puede comprobar que un mensaje llegó al chat.
-    if isinstance(ventana, wx.ListBox):
+    # sin esto no se puede comprobar que un mensaje llegó al chat. Los
+    # desplegables también: «Qué mostrar» elige la fuente de la Biblioteca.
+    if isinstance(ventana, (wx.ListBox, wx.Choice)):
         try:
             datos["items"] = list(ventana.GetStrings())
             datos["seleccion"] = int(ventana.GetSelection())
@@ -613,15 +622,20 @@ class Sonda:
                     self.responder(id_orden, True)
 
             elif op == "elegir":
-                # Elige la fila `indice` de una lista, como con las flechas:
-                # la selecciona y dispara su `wx.EVT_LISTBOX`.
+                # Elige la fila `indice` de una lista o un desplegable, como
+                # con las flechas: la selecciona y dispara su evento.
                 objetivo = self._ventana_por_titulo(orden.get("ventana"), frame)
                 ctrl = _buscar_control(objetivo, orden.get("nombre", ""))
                 if ctrl is None:
                     raise RuntimeError(f"no encontré {orden.get('nombre')!r}")
-                if not isinstance(ctrl, wx.ListBox):
+                if isinstance(ctrl, wx.ListBox):
+                    tipo = wx.EVT_LISTBOX.typeId
+                elif isinstance(ctrl, wx.Choice):
+                    tipo = wx.EVT_CHOICE.typeId
+                else:
                     raise RuntimeError(
-                        f"{orden.get('nombre')!r} no es una lista")
+                        f"{orden.get('nombre')!r} no es una lista ni un "
+                        "desplegable")
                 try:
                     indice = int(orden.get("indice"))
                 except (TypeError, ValueError):
@@ -632,11 +646,91 @@ class Sonda:
                         f"índice {indice} fuera de la lista "
                         f"{orden.get('nombre')!r}")
                 ctrl.SetSelection(indice)
-                evento = wx.CommandEvent(wx.EVT_LISTBOX.typeId, ctrl.GetId())
+                evento = wx.CommandEvent(tipo, ctrl.GetId())
                 evento.SetEventObject(ctrl)
                 evento.SetInt(indice)
                 ctrl.GetEventHandler().ProcessEvent(evento)
                 self.responder(id_orden, True, {"indice": indice})
+
+            elif op == "tecla_en":
+                # Manda la tecla al control nombrado, no al foco del
+                # escritorio: el evento pasa por el `EVT_KEY_DOWN` que la
+                # ventana enganchó sobre ese control.
+                objetivo = self._ventana_por_titulo(orden.get("ventana"), frame)
+                ctrl = _buscar_control(objetivo, orden.get("nombre", ""))
+                if ctrl is None:
+                    raise RuntimeError(f"no encontré {orden.get('nombre')!r}")
+                if orden.get("responder_ya"):
+                    self.responder(id_orden, True)
+                codigo = _codigo_tecla(orden.get("tecla", ""))
+                mods = _modificadores(orden.get("modificadores"))
+                evento = wx.KeyEvent(wx.wxEVT_KEY_DOWN)
+                evento.SetKeyCode(codigo)
+                evento.SetControlDown(bool(mods & wx.MOD_CONTROL))
+                evento.SetShiftDown(bool(mods & wx.MOD_SHIFT))
+                evento.SetAltDown(bool(mods & wx.MOD_ALT))
+                evento.SetEventObject(ctrl)
+                ctrl.GetEventHandler().ProcessEvent(evento)
+                if not orden.get("responder_ya"):
+                    self.responder(id_orden, True)
+
+            elif op == "menu_contextual":
+                # Despliega el menú contextual real del control, pero
+                # sustituye solo el dibujado para elegir una entrada. Así el
+                # evento, el armado del menú y su despacho son los de la app.
+                objetivo = self._ventana_por_titulo(orden.get("ventana"), frame)
+                ctrl = _buscar_control(objetivo, orden.get("nombre", ""))
+                if ctrl is None:
+                    raise RuntimeError(f"no encontré {orden.get('nombre')!r}")
+                estado = {"llamado": False, "falta": None,
+                          "respondido": False}
+
+                def _elegir_en_menu(menu, *args, **kwargs):
+                    estado["llamado"] = True
+                    buscada = _limpiar_etiqueta(orden.get("entrada"))
+                    elegido = None
+                    etiquetas = []
+                    for item in menu.GetMenuItems():
+                        if item.IsSeparator():
+                            continue
+                        etiqueta = item.GetItemLabelText()
+                        etiquetas.append(etiqueta)
+                        if _limpiar_etiqueta(etiqueta) == buscada:
+                            elegido = item
+                            break
+                    if elegido is None:
+                        estado["falta"] = etiquetas
+                        return
+                    if orden.get("responder_ya") and not estado["respondido"]:
+                        self.responder(id_orden, True)
+                        estado["respondido"] = True
+                    evento = wx.CommandEvent(
+                        wx.EVT_MENU.typeId, elegido.GetId())
+                    evento.SetEventObject(menu)
+                    menu.GetEventHandler().ProcessEvent(evento)
+
+                ctrl.PopupMenu = _elegir_en_menu
+                try:
+                    evento = wx.ContextMenuEvent(
+                        wx.EVT_CONTEXT_MENU.typeId, ctrl.GetId())
+                    evento.SetEventObject(ctrl)
+                    ctrl.GetEventHandler().ProcessEvent(evento)
+                finally:
+                    try:
+                        del ctrl.PopupMenu
+                    except AttributeError:
+                        pass
+                if estado["falta"] is not None:
+                    raise RuntimeError(
+                        f"el menú de {orden.get('nombre')!r} no tiene "
+                        f"«{orden.get('entrada')}»; ofrece: "
+                        + ", ".join(repr(e) for e in estado["falta"]))
+                if not estado["llamado"]:
+                    raise RuntimeError(
+                        "el menú contextual de "
+                        f"{orden.get('nombre')!r} no se desplegó")
+                if not estado["respondido"]:
+                    self.responder(id_orden, True)
 
             elif op == "activar":
                 # Activa la fila seleccionada de una lista, como Intro: en la

@@ -66,5 +66,25 @@ class TestVueltasTabTransmision(unittest.TestCase):
         self.assertGreaterEqual(conducir.VUELTAS_TAB_TRANSMISION, 28 + 10)
 
 
+class TestSuperficiesQa(unittest.TestCase):
+
+    def test_no_queda_modulo_de_interfaz_sin_escenario(self):
+        self.assertEqual(conducir.superficies_sin_escenario(), [])
+
+    def test_cada_clave_de_superficies_existe_en_el_disco(self):
+        raiz = Path(__file__).resolve().parent.parent
+        faltan = [
+            nombre for nombre in conducir.SUPERFICIES
+            if not (raiz / "ytchat" / "ui" / nombre).is_file()
+            and not (raiz / "ytchat" / "player" / nombre).is_file()
+        ]
+        self.assertEqual(faltan, [])
+
+    def test_declara_los_modulos_de_interfaz_de_la_musica(self):
+        for nombre in ("musica_ventana.py", "musica_ventana_acciones.py",
+                       "musica_menus.py", "musica_dialogo_enlace.py"):
+            self.assertEqual(conducir.SUPERFICIES.get(nombre), "musica")
+
+
 if __name__ == "__main__":
     unittest.main()

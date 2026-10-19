@@ -336,6 +336,7 @@ class TestCableadoBusqueda(unittest.TestCase):
         panel._estado_busqueda = reproductor.EstadoBusqueda(confirmada=10_000)
         panel._tiene_esclavo = False
         panel._usando_cache_local = False
+        panel._video_id = "video-cargado"
         panel._url_flujo = ""
         panel._fijar_tiempo = mock.Mock()
         panel.sld_pos = mock.Mock()
@@ -357,6 +358,7 @@ class TestCableadoBusqueda(unittest.TestCase):
         panel._estado_busqueda = reproductor.EstadoBusqueda(confirmada=31_038)
         panel._tiene_esclavo = False
         panel._usando_cache_local = False
+        panel._video_id = "video-cargado"
         panel._url_flujo = ""
         panel._fijar_tiempo = mock.Mock()
 
@@ -373,6 +375,7 @@ class TestCableadoBusqueda(unittest.TestCase):
         panel._estado_busqueda = reproductor.EstadoBusqueda(confirmada=5_000)
         panel._tiene_esclavo = False
         panel._usando_cache_local = False
+        panel._video_id = "video-cargado"
         panel._url_flujo = ""
         panel._fijar_tiempo = mock.Mock()
 
@@ -453,6 +456,7 @@ class TestCableadoBusqueda(unittest.TestCase):
         panel._estado_busqueda = reproductor.EstadoBusqueda(confirmada=3_615_868)
         panel._tiene_esclavo = False
         panel._usando_cache_local = False
+        panel._video_id = "video-cargado"
         panel._url_flujo = ""
         panel._fijar_tiempo = mock.Mock()
         panel.sld_pos = mock.Mock()
@@ -476,6 +480,7 @@ class TestCableadoBusqueda(unittest.TestCase):
         panel._estado_busqueda.solicitar(20_000, time.monotonic())
         panel._tiene_esclavo = False
         panel._usando_cache_local = False
+        panel._video_id = "video-cargado"
         panel._url_flujo = ""
         panel._fijar_tiempo = mock.Mock()
         panel.sld_pos = mock.Mock()
@@ -494,6 +499,7 @@ class TestCableadoBusqueda(unittest.TestCase):
         panel._estado_busqueda.solicitar(20_000, time.monotonic())
         panel._tiene_esclavo = False
         panel._usando_cache_local = False
+        panel._video_id = "video-cargado"
         panel._url_flujo = ""
         panel._fijar_tiempo = mock.Mock()
         panel.sld_pos = mock.Mock()

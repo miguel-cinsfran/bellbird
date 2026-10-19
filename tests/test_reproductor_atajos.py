@@ -56,6 +56,7 @@ class TestCableadoAnuncioAjuste(unittest.TestCase):
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._vol = 40
         panel._player = None
+        panel._video_id = "video-cargado"
         panel.sld_vol = mock.Mock()
         with mock.patch.object(anuncio_ajuste, "COMPARTIDO", AnuncioAjuste()), \
                 mock.patch.object(reproductor, "anunciar") as anunciar:

@@ -19,6 +19,7 @@ from ytchat.music import listas
 from ytchat.music import memoria
 from ytchat.music.modelo import (AVANZO, FIN_LISTA, REINICIADO, TEMA_FALLIDO,
                                  EstadoMusica, Resultado, Tema)
+from ytchat.ui import atajos_globales
 from ytchat.ui import gui_musica
 from ytchat.ui import musica_enlaces
 from ytchat.ui import musica_indice
@@ -1732,7 +1733,8 @@ class TestAtajosGlobalesControl(unittest.TestCase):
             control = ControlMusica(
                 _MarcoGlobales(musica_atajos_globales=True))
         self.assertTrue(control._globales.activos)
-        self.assertEqual(len(control._globales._registrados), 8)
+        self.assertEqual(len(control._globales._registrados),
+                         len(atajos_globales.ACCIONES))
         env.anunciar.assert_not_called()
         self.assertEqual(env.snd.sonidos, [])
 
@@ -1805,7 +1807,7 @@ class TestAtajosGlobalesControl(unittest.TestCase):
             control.cerrar()
         self.assertFalse(control._globales.activos)
         self.assertEqual(marco.registrados, {})
-        self.assertEqual(len(marco.soltados), 8)
+        self.assertEqual(len(marco.soltados), len(atajos_globales.ACCIONES))
 
 
 class TestAtajoDeTeclaComun(unittest.TestCase):

@@ -783,17 +783,14 @@ class TestVentanaMusica(unittest.TestCase):
             temas_listas={"Mía": (Tema("C:/Musica/rock.mp3", "Rock"),)})
         self._abrir(control, abrir_listas=True)
         self.ventana.lb_temas.SetSelection(0)
-        with mock.patch.object(self.ventana, "_editar_lista") as editar, \
-                mock.patch.object(self.ventana, "_quitar_lista") as quitar, \
+        with mock.patch.object(self.ventana, "_quitar_lista") as quitar, \
                 mock.patch.object(self.ventana, "_renombrar_lista") as renombrar, \
                 mock.patch.object(self.ventana, "_borrar_lista") as borrar:
-            for accion in (musica_menus.ACCION_EDITAR_LISTA,
-                           musica_menus.ACCION_QUITAR_DE_LISTA,
+            for accion in (musica_menus.ACCION_QUITAR_DE_LISTA,
                            musica_menus.ACCION_RENOMBRAR_LISTA,
                            musica_menus.ACCION_BORRAR_LISTA):
                 self.ventana._accion_biblioteca(accion)
         tema = self.ventana._temas_filtrados[0]
-        editar.assert_called_once_with()
         quitar.assert_called_once_with(tema)
         renombrar.assert_called_once_with()
         borrar.assert_called_once_with()

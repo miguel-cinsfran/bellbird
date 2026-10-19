@@ -75,6 +75,7 @@ def entradas_colecciones(es_lista: bool) -> list:
     entradas.append(("&Nueva lista…", ACCION_NUEVA_LISTA))
     return entradas
 
+
 def entradas_cola() -> list:
     """Las entradas del menú de la Cola."""
     return [

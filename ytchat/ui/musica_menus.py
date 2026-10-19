@@ -17,6 +17,9 @@ ACCION_AGREGAR_A_LISTA = "agregar_a_lista"
 ACCION_QUITAR_DE_LISTA = "quitar_de_lista"
 ACCION_RENOMBRAR_LISTA = "renombrar_lista"
 ACCION_BORRAR_LISTA = "borrar_lista"
+ACCION_REPRODUCIR_COLECCION = "reproducir_coleccion"
+ACCION_AGREGAR_COLECCION = "agregar_coleccion"
+ACCION_NUEVA_LISTA = "nueva_lista"
 
 ACCION_REPRODUCIR = "reproducir"
 ACCION_QUITAR = "quitar"
@@ -40,9 +43,24 @@ def entradas_biblioteca(es_lista_propia: bool) -> list[tuple[str, str]]:
     if es_lista_propia:
         entradas += [
             ("&Quitar de esta lista", ACCION_QUITAR_DE_LISTA),
-            ("&Renombrar esta lista…", ACCION_RENOMBRAR_LISTA),
-            ("&Borrar esta lista…", ACCION_BORRAR_LISTA),
         ]
+    return entradas
+
+
+def entradas_colecciones(es_lista: bool) -> list[tuple[str, str]]:
+    """Las entradas del menú de «Colecciones», según lo elegido."""
+    entradas = [
+        ("&Reproducir", ACCION_REPRODUCIR_COLECCION),
+        ("A&gregar a la cola", ACCION_AGREGAR_COLECCION),
+    ]
+    if es_lista:
+        entradas += [
+            ("Re&nombrar la lista…", ACCION_RENOMBRAR_LISTA),
+            ("&Borrar la lista…", ACCION_BORRAR_LISTA),
+        ]
+    entradas += [
+        ("&Nueva lista…", ACCION_NUEVA_LISTA),
+    ]
     return entradas
 
 

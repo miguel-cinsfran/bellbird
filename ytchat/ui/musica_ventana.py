@@ -1,8 +1,10 @@
-"""Ventana única de música: Biblioteca, Cola y acciones con foco.
+"""Ventana única de música: Colecciones, Cola y acciones con foco.
 
-La Biblioteca se elige con «Mostrar» (la carpeta o una lista propia) y la
-Cola es lo único que suena. Cada tecla actúa sobre la lista que tiene el
-foco y cada operación la hace `ControlMusica`, que es quien anuncia.
+Las Colecciones eligen lo que muestra la lista de temas: «Biblioteca» es
+la carpeta y debajo va una fila por lista propia. La Cola se muestra y se
+oculta con un botón y es lo único que suena. Cada tecla actúa sobre la
+lista que tiene el foco y cada operación la hace `ControlMusica`, que es
+quien anuncia.
 """
 
 from __future__ import annotations
@@ -13,18 +15,19 @@ from ytchat.core import diagnostico
 from ytchat.music import anuncios, vista
 from ytchat.ui import gui_musica, musica_menus
 from ytchat.ui.gui import _T, _pintar, anunciar, nombre_accesible
+from ytchat.ui.musica_colecciones import (
+    TEXTO_CARGANDO, TEXTO_SIN_CARPETA, ColeccionesVentanaMusica)
 from ytchat.ui.musica_ventana_acciones import AccionesVentanaMusica
 
 logger = diagnostico.obtener_logger(__name__)
 TITULO = "Música"
-TEXTO_CARGANDO = "Cargando la carpeta…"
-TEXTO_SIN_CARPETA = "No hay carpeta de música"
 
 
-class VentanaMusica(AccionesVentanaMusica, wx.Dialog):
+class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
+                    wx.Dialog):
 
     def __init__(self, parent, control, abrir_listas=False):
-        super().__init__(parent, title=TITULO, size=(640, 700),
+        super().__init__(parent, title=TITULO, size=(820, 620),
                          name="VentanaMusica")
         self._control = control
         self._abrir_listas = bool(abrir_listas)
@@ -49,27 +52,14 @@ class VentanaMusica(AccionesVentanaMusica, wx.Dialog):
         self._panel = panel = wx.Panel(self, name="PanelMusica")
         panel.SetBackgroundColour(_T.bg)
         panel.SetForegroundColour(_T.text)
-        vs = wx.BoxSizer(wx.VERTICAL)
-        fila = wx.BoxSizer(wx.HORIZONTAL)
-        fila.Add(wx.StaticText(panel, label="&Buscar:"), 0,
-                 wx.ALIGN_CENTER_VERTICAL | wx.ALL, 6)
+        self.lb_colecciones = self._lista(panel, "Colecciones", 190)
+        self.lb_colecciones.SetMinSize((220, 190))
+        _pintar(self.lb_colecciones, _T.surface, _T.text)
         self.txt_buscar = self._campo(panel, "Buscar en la música")
-        fila.Add(self.txt_buscar, 1, wx.EXPAND | wx.ALL, 6)
-        vs.Add(fila, 0, wx.EXPAND)
-        fila = wx.BoxSizer(wx.HORIZONTAL)
-        fila.Add(wx.StaticText(panel, label="&Mostrar:"), 0,
-                 wx.ALIGN_CENTER_VERTICAL | wx.ALL, 6)
-        self.cho_mostrar = wx.Choice(panel, name="Qué mostrar")
-        _pintar(self.cho_mostrar, _T.field, _T.text)
-        fila.Add(self.cho_mostrar, 1, wx.EXPAND | wx.ALL, 6)
-        vs.Add(fila, 0, wx.EXPAND)
-        vs.Add(wx.StaticText(panel, label="&Temas:"), 0, wx.ALL, 6)
-        self.lb_temas = self._lista(panel, "Biblioteca", 190)
-        vs.Add(self.lb_temas, 1, wx.EXPAND | wx.ALL, 6)
-        vs.Add(wx.StaticText(panel, label="C&ola:"), 0, wx.ALL, 6)
-        self.lb_cola = self._lista(panel, "Cola de reproducción", 150)
-        vs.Add(self.lb_cola, 1, wx.EXPAND | wx.ALL, 6)
-        botones = wx.WrapSizer(wx.HORIZONTAL, flags=0)
+        self.lb_temas = self._lista(panel, "Temas", 190)
+        self.btn_cola = self._boton(
+            panel, "Mostrar la c&ola", "Mostrar la cola")
+        self.lb_cola = self._lista(panel, "Cola de reproducción", 160)
         self.btn_enlace = self._boton(panel, "Abrir &enlace…", "Abrir enlace")
         self.btn_nueva = self._boton(panel, "&Nueva lista…", "Nueva lista")
         self.btn_carpeta = self._boton(
@@ -77,13 +67,40 @@ class VentanaMusica(AccionesVentanaMusica, wx.Dialog):
         self.btn_cerrar = wx.Button(panel, wx.ID_CANCEL, "&Cerrar",
                                     name="Cerrar")
         _pintar(self.btn_cerrar, _T.btn, _T.btn_t)
-        for boton in (self.btn_enlace, self.btn_nueva, self.btn_carpeta,
-                      self.btn_cerrar):
-            botones.Add(boton, 0, wx.RIGHT, 6)
-        vs.Add(botones, 0, wx.ALL, 6)
-        panel.SetSizer(vs)
+        self._disponer(panel)
         self._conectar()
-        self._reload_mostrar()
+        self._reload_colecciones()
+        self._aplicar_cola_guardada()
+
+    def _disponer(self, panel):
+        arriba = wx.BoxSizer(wx.HORIZONTAL)
+        izquierda = wx.BoxSizer(wx.VERTICAL)
+        izquierda.Add(wx.StaticText(panel, label="Co&lecciones:"),
+                      0, wx.BOTTOM, 8)
+        izquierda.Add(self.lb_colecciones, 1, wx.EXPAND)
+        derecha = wx.BoxSizer(wx.VERTICAL)
+        fila_buscar = wx.BoxSizer(wx.HORIZONTAL)
+        fila_buscar.Add(wx.StaticText(panel, label="&Buscar:"), 0,
+                        wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 8)
+        fila_buscar.Add(self.txt_buscar, 1, wx.EXPAND)
+        derecha.Add(fila_buscar, 0, wx.EXPAND | wx.BOTTOM, 8)
+        derecha.Add(wx.StaticText(panel, label="&Temas:"), 0, wx.BOTTOM, 8)
+        derecha.Add(self.lb_temas, 1, wx.EXPAND)
+        arriba.Add(izquierda, 0, wx.EXPAND | wx.RIGHT, 8)
+        arriba.Add(derecha, 1, wx.EXPAND)
+        vs = wx.BoxSizer(wx.VERTICAL)
+        vs.Add(arriba, 1, wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, 12)
+        vs.Add(self.btn_cola, 0, wx.TOP | wx.LEFT | wx.RIGHT, 8)
+        vs.Add(self.lb_cola, 1, wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, 8)
+        vs.Add(wx.StaticLine(panel), 0,
+               wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, 8)
+        pie = wx.BoxSizer(wx.HORIZONTAL)
+        for boton in (self.btn_enlace, self.btn_nueva, self.btn_carpeta):
+            pie.Add(boton, 0, wx.RIGHT, 8)
+        pie.AddStretchSpacer(1)
+        pie.Add(self.btn_cerrar, 0)
+        vs.Add(pie, 0, wx.EXPAND | wx.ALL, 12)
+        panel.SetSizer(vs)
 
     @staticmethod
     def _campo(panel, nombre):
@@ -110,14 +127,16 @@ class VentanaMusica(AccionesVentanaMusica, wx.Dialog):
     def _conectar(self):
         self.txt_buscar.Bind(wx.EVT_TEXT, self._al_filtrar)
         self.txt_buscar.Bind(wx.EVT_KEY_DOWN, self._tecla_buscar)
-        self.cho_mostrar.Bind(wx.EVT_CHOICE, self._cambiar_mostrar)
+        self.lb_colecciones.Bind(wx.EVT_LISTBOX, self._cambiar_coleccion)
+        self.lb_colecciones.Bind(wx.EVT_KEY_DOWN, self._tecla_colecciones)
+        self.lb_colecciones.Bind(
+            wx.EVT_CONTEXT_MENU, lambda e: self._menu_colecciones())
         self.lb_temas.Bind(wx.EVT_KEY_DOWN, self._tecla_temas)
         self.lb_temas.Bind(wx.EVT_CONTEXT_MENU, lambda e: self._menu_temas())
         self.lb_cola.Bind(wx.EVT_KEY_DOWN, self._tecla_cola)
         self.lb_cola.Bind(wx.EVT_CONTEXT_MENU, lambda e: self._menu_cola())
-        self.Bind(wx.EVT_LISTBOX_DCLICK, lambda e: self._accion_biblioteca(
-            musica_menus.ACCION_AHORA) if e.GetEventObject() is self.lb_temas
-            else self._accion_cola(musica_menus.ACCION_REPRODUCIR))
+        self.Bind(wx.EVT_LISTBOX_DCLICK, self._doble_clic_lista)
+        self.btn_cola.Bind(wx.EVT_BUTTON, lambda e: self._alternar_cola())
         self.btn_enlace.Bind(wx.EVT_BUTTON, lambda e: self._abrir_enlace())
         self.btn_nueva.Bind(wx.EVT_BUTTON, lambda e: self._nueva_lista())
         self.btn_carpeta.Bind(
@@ -137,108 +156,54 @@ class VentanaMusica(AccionesVentanaMusica, wx.Dialog):
         except Exception as exc:
             logger.debug("mínimo de la ventana de música: %s", exc)
 
-    def enfocar_primer_control(self):
-        if self._abrir_listas:
-            self.cho_mostrar.SetFocus()
+    def _doble_clic_lista(self, evento):
+        foco = evento.GetEventObject()
+        if foco is self.lb_colecciones:
+            self._reproducir_coleccion()
+        elif foco is self.lb_temas:
+            self._accion_biblioteca(musica_menus.ACCION_AHORA)
         else:
-            self.txt_buscar.SetFocus()
+            self._accion_cola(musica_menus.ACCION_REPRODUCIR)
 
-    def _inicio(self):
-        estado = self._control.estado()
-        posicion = None
-        if estado is not None and not estado.terminado:
-            posicion = estado.posicion
-        self.refrescar_cola(seleccion=posicion)
-        if self._abrir_listas and self._nombres_listas:
-            self.cho_mostrar.SetSelection(1)
-            self._fuente = self._nombres_listas[0]
-            self._cargar_lista()
+    def _cola_guardada_visible(self):
+        lee = getattr(self._control, "cola_visible", None)
+        return bool(lee()) if callable(lee) else False
+
+    def _aplicar_cola_guardada(self):
+        visible = self._cola_guardada_visible()
+        self._rotular_boton_cola(visible)
+        if visible:
+            self.lb_cola.Show()
         else:
-            self.cho_mostrar.SetSelection(0)
-            self._fuente = None
-            self._cargar_carpeta()
-        self.enfocar_primer_control()
+            self.lb_cola.Hide()
 
-    def _reload_mostrar(self, preferir=None):
-        nombres = self._leer_nombres()
-        self._nombres_listas = nombres
-        self.cho_mostrar.Set(vista.etiquetas_mostrar(nombres))
-        indice = 0
-        if preferir:
-            buscado = str(preferir).casefold()
-            for posicion, nombre in enumerate(nombres, start=1):
-                if nombre.casefold() == buscado:
-                    indice = posicion
-                    break
-        self.cho_mostrar.SetSelection(indice)
-
-    def _fuente_elegida(self):
-        indice = self.cho_mostrar.GetSelection()
-        if indice <= 0 or indice > len(self._nombres_listas):
-            return None
-        return self._nombres_listas[indice - 1]
-
-    def _cambiar_mostrar(self, evento):
-        self._cargar_fuente()
-        evento.Skip()
-
-    def _cargar_fuente(self):
-        self._generacion += 1
-        self.txt_buscar.ChangeValue("")
-        self._cancelar_temporizador()
-        self._fuente = self._fuente_elegida()
-        if self._fuente is None:
-            self._cargar_carpeta()
+    def _rotular_boton_cola(self, visible):
+        if visible:
+            self.btn_cola.SetLabel("Ocultar la c&ola")
+            nombre_accesible(self.btn_cola, "Ocultar la cola")
         else:
-            self._biblioteca = None
-            self._cargar_lista()
+            self.btn_cola.SetLabel("Mostrar la c&ola")
+            nombre_accesible(self.btn_cola, "Mostrar la cola")
 
-    def _cargar_carpeta(self):
-        self._biblioteca = None
-        self._primera_carga = True
-        self.txt_buscar.ChangeValue("")
-        self._cambiar_estado(TEXTO_CARGANDO)
-        generacion = self._generacion
-        self._control.biblioteca(
-            lambda biblioteca: self._al_biblioteca(biblioteca, generacion))
-
-    def _cargar_lista(self, seleccion=None):
-        nombre = self._fuente
-        generacion = self._generacion
-        if seleccion is None:
-            seleccion = self.lb_temas.GetSelection()
-        self._cambiar_estado(TEXTO_CARGANDO)
-        temas = tuple(self._control.temas_de_lista(nombre) or ())
-        if generacion != self._generacion or self._fuente != nombre:
-            return
-        self._temas_fuente = temas
-        self._cargando = False
-        self._aplicar_filtro()
-        self._estado_listo()
-        indice = vista.indice_seleccion_tras_refrescar(
-            seleccion, len(self._temas_filtrados))
-        if indice >= 0:
-            self.lb_temas.SetSelection(indice)
-
-    def _al_biblioteca(self, biblioteca, generacion):
-        if not self or generacion != self._generacion \
-                or self._fuente is not None:
-            return
-        if biblioteca is None:
-            self._temas_fuente = ()
-            self._temas_filtrados = ()
-            self._cambiar_estado(TEXTO_SIN_CARPETA)
-            self.btn_carpeta.Enable(True)
-            return
-        self._biblioteca = biblioteca
-        self._temas_fuente = tuple(biblioteca.temas())
-        self._cargando = False
-        self._aplicar_filtro()
-        self._estado_listo()
-        if self._primera_carga:
-            self._primera_carga = False
-            anunciar(vista.texto_resumen(
-                len(self._temas_fuente), len(self._temas_filtrados), False))
+    def _alternar_cola(self):
+        visible = not self.lb_cola.IsShown()
+        self._rotular_boton_cola(visible)
+        if visible:
+            self.lb_cola.Show()
+        else:
+            self.lb_cola.Hide()
+        self._panel.Layout()
+        try:
+            self._control.recordar_cola_visible(visible)
+        except Exception as exc:
+            logger.debug("No se pudo recordar la Cola visible: %s", exc)
+        if visible:
+            self.lb_cola.SetFocus()
+            anunciar(vista.texto_cola_visible(
+                len(self._control.cola_actual() or ())))
+        else:
+            self.btn_cola.SetFocus()
+            anunciar(vista.TEXTO_COLA_OCULTA)
 
     def _aplicar_filtro(self):
         if self._cargando or (self._fuente is None
@@ -361,6 +326,8 @@ class VentanaMusica(AccionesVentanaMusica, wx.Dialog):
     def _tecla_atajo(self, evento):
         if evento.GetKeyCode() in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
             foco = wx.Window.FindFocus()
+            if foco is self.lb_colecciones:
+                return self._tecla_colecciones(evento)
             if foco is self.lb_temas:
                 return self._tecla_temas(evento)
             if foco is self.lb_cola:
@@ -378,6 +345,8 @@ class VentanaMusica(AccionesVentanaMusica, wx.Dialog):
 
     def _ayuda_de_foco(self):
         foco = wx.Window.FindFocus()
+        if foco is self.lb_colecciones:
+            return vista.ayuda_colecciones()
         if foco is self.txt_buscar:
             return vista.ayuda_buscar()
         if foco is self.lb_temas:

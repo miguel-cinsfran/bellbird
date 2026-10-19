@@ -113,7 +113,7 @@ class AccionesVentanaMusica:
             self._control.crear_lista(nombre)
             return
         self._control.crear_lista(limpio)
-        self._reload_mostrar(preferir=self._fuente)
+        self._reload_colecciones(preferir=self._fuente)
         self._control.agregar_a_lista(limpio, [tema])
 
     def _quitar_lista(self, tema):
@@ -132,29 +132,6 @@ class AccionesVentanaMusica:
             if candidato == tema:
                 return indice
         return None
-
-    def _renombrar_lista(self):
-        viejo = self._fuente
-        if viejo is None:
-            return
-        nombre = _pedir_nombre(self, TITULO_RENOMBRAR, viejo)
-        if nombre is None:
-            return
-        limpio = _validar_nombre(nombre)
-        if limpio is None:
-            self._control.renombrar_lista(viejo, nombre)
-            return
-        self._control.renombrar_lista(viejo, limpio)
-        self._reload_mostrar(preferir=limpio)
-        self._fuente = self._fuente_elegida()
-
-    def _borrar_lista(self):
-        nombre = self._fuente
-        if nombre is None or not _confirmar_borrar(self, nombre):
-            return
-        self._control.borrar_lista(nombre)
-        self._reload_mostrar()
-        self._cargar_fuente()
 
     def _accion_cola(self, accion):
         indice = self._indice_cola()
@@ -257,7 +234,7 @@ class AccionesVentanaMusica:
             self._control.crear_lista(nombre)
             return
         self._control.crear_lista(limpio)
-        self._reload_mostrar(preferir=self._fuente)
+        self._reload_colecciones(preferir=self._fuente)
 
     def _guardar_cola(self):
         if not (self._control.cola_actual() or ()):
@@ -271,7 +248,7 @@ class AccionesVentanaMusica:
             self._control.guardar_cola_como_lista(nombre)
             return
         self._control.guardar_cola_como_lista(limpio)
-        self._reload_mostrar(preferir=self._fuente)
+        self._reload_colecciones(preferir=self._fuente)
 
     def _abrir_enlace(self):
         datos = musica_dialogo_enlace.pedir_enlace(self)
@@ -286,10 +263,8 @@ class AccionesVentanaMusica:
                 return
             ruta = dialogo.GetPath()
         self._control.cambiar_carpeta(ruta)
-        self._reload_mostrar()
-        self._generacion += 1
-        self._fuente = None
-        self._cargar_carpeta()
+        self._reload_colecciones()
+        self._cargar_fuente()
 
     def _cerrar(self):
         self._cancelar_temporizador()

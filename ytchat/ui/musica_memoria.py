@@ -10,6 +10,15 @@ from ytchat.music import memoria
 class MemoriaMusica:
     """Memoria de la música: retomar al arrancar y recordar la cola."""
 
+    def cola_visible(self) -> bool:
+        """Si la Cola de la ventana de música quedó visible."""
+        return bool(self._config.get("musica_mostrar_cola", False))
+
+    def recordar_cola_visible(self, visible) -> None:
+        """Recuerda si la Cola quedó visible u oculta."""
+        self._guardar("mostrar_cola", "true" if visible else "false")
+        self._config["musica_mostrar_cola"] = bool(visible)
+
     def _primera_vez(self) -> bool:
         """En el primer Reproducir de la sesión, retoma si hay memoria.
 

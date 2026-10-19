@@ -163,16 +163,33 @@ class TestTextoResumen(unittest.TestCase):
                          "0 de 120 temas")
 
 
-class TestEtiquetasMostrar(unittest.TestCase):
+class TestFilasColecciones(unittest.TestCase):
 
-    def test_primero_la_carpeta_y_despues_las_listas(self):
-        self.assertEqual(vista.etiquetas_mostrar(["Rock", "Jazz"]),
-                         ["Temas de la carpeta", "Lista: Rock",
-                          "Lista: Jazz"])
+    def test_primero_biblioteca_y_despues_las_listas(self):
+        self.assertEqual(vista.filas_colecciones(["Rock", "Jazz"]),
+                         ["Biblioteca", "Rock", "Jazz"])
 
-    def test_sin_listas_solo_la_carpeta(self):
-        self.assertEqual(vista.etiquetas_mostrar([]),
-                         ["Temas de la carpeta"])
+    def test_sin_listas_solo_biblioteca(self):
+        self.assertEqual(vista.filas_colecciones([]), ["Biblioteca"])
+
+    def test_las_listas_van_sin_prefijo(self):
+        self.assertNotIn("Lista: Rock",
+                         vista.filas_colecciones(["Rock"]))
+
+
+class TestTextoColaVisible(unittest.TestCase):
+
+    def test_vacia(self):
+        self.assertEqual(vista.texto_cola_visible(0), "Cola visible, vacía")
+
+    def test_un_tema(self):
+        self.assertEqual(vista.texto_cola_visible(1), "Cola visible, 1 tema")
+
+    def test_varios(self):
+        self.assertEqual(vista.texto_cola_visible(5), "Cola visible, 5 temas")
+
+    def test_negativo_cuenta_como_vacia(self):
+        self.assertEqual(vista.texto_cola_visible(-1), "Cola visible, vacía")
 
 
 class TestFiltroDeListas(unittest.TestCase):
@@ -267,6 +284,12 @@ class TestAyudas(unittest.TestCase):
         self.assertEqual(
             vista.ayuda_biblioteca(True),
             vista.ayuda_biblioteca(False) + ", Suprimir quita de la lista")
+
+    def test_colecciones(self):
+        self.assertEqual(
+            vista.ayuda_colecciones(),
+            "Intro reproduce la colección entera, Suprimir borra la lista, "
+            "tecla de aplicaciones para más opciones")
 
     def test_cola(self):
         self.assertEqual(

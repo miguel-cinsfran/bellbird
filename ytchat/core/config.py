@@ -805,8 +805,7 @@ def cargar_configuracion() -> dict:
         "overlay_activo": _pb(p, "overlay", "activo"),
         "overlay_puerto": _pi(p, "overlay", "puerto", lo=1),
         "obs_microfono": _gs(p, "obs", "microfono"),
-        # [musica]: biblioteca local y reproducción. La carpeta se guarda como
-        # texto libre y se decodifica, igual que las rutas de [transmision].
+        # [musica]: biblioteca local y reproducción. La carpeta va como texto libre, igual que en [transmision].
         "musica_carpeta": decodificar_texto_ini(_gs(p, "musica", "carpeta")),
         "musica_aleatorio": _pb(p, "musica", "aleatorio"),
         "musica_repetir": normalizar_repetir(_gs(p, "musica", "repetir")),
@@ -819,6 +818,7 @@ def cargar_configuracion() -> dict:
         "musica_salida_nombre": decodificar_texto_ini(
             _gs(p, "musica", "salida_nombre")),
         "musica_atajos_globales": _pb(p, "musica", "atajos_globales"),
+        "musica_mostrar_cola": _pb(p, "musica", "mostrar_cola"),
         "estado_toggles": estado_toggles,
         "atajos_raw": atajos_raw,
         "ruta_config": ruta,

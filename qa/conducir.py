@@ -1753,8 +1753,8 @@ def escenario_musica(app: Aplicacion, args, res: Resultado):
     música real no se toca: la ventana solo se abre, se audita y se cierra.
     """
     res.nota("Música: no se reproduce nada, la ventana solo se audita")
-    esperados = ("Buscar en la música", "Qué mostrar", "Biblioteca",
-                 "Cola de reproducción", "Abrir enlace", "Nueva lista",
+    esperados = ("Colecciones", "Buscar en la música", "Temas",
+                 "Mostrar la cola", "Abrir enlace", "Nueva lista",
                  "Cambiar carpeta", "Cerrar")
     auditar_dialogo(
         app, res, "Elegir música…", "Música",
@@ -1947,6 +1947,7 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
             ("musica", "retomar", "false"),
             ("musica", "decir_titulo", "true"),
             ("musica", "sonido_tema", "true"),
+            ("musica", "mostrar_cola", "false"),
             ("musica", "atajos_globales", "false"),
         ]
         if ruta_config.is_file():
@@ -1998,22 +1999,6 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
                     return filas
                 time.sleep(0.2)
             return _filas(ventana, nombre)
-
-        def _items_choice(ventana, nombre):
-            for control in _arbol(ventana):
-                if (control.get("clase") == "Choice"
-                        and (control.get("nombre") or "") == nombre):
-                    return list(control.get("items", []))
-            return None
-
-        def _items_hasta(ventana, nombre, esperados, segundos):
-            limite = time.monotonic() + segundos
-            while time.monotonic() < limite:
-                items = _items_choice(ventana, nombre)
-                if items == esperados:
-                    return items
-                time.sleep(0.2)
-            return _items_choice(ventana, nombre)
 
         def _filas_estables(ventana, nombre, segundos=8.0):
             # Las etiquetas se leen en un hilo y cambian los títulos: se
@@ -2071,7 +2056,7 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         def _aislar(indice, esperado):
             for aguja in _agujas_unicas(indice):
                 _filtrar("Música", aguja)
-                filas = _filas_hasta("Música", "Biblioteca", 1, 5.0)
+                filas = _filas_hasta("Música", "Temas", 1, 5.0)
                 if filas is not None and len(filas) == 1:
                     titulo = _titulo_fila(filas[0])
                     if titulo != esperado:
@@ -2143,20 +2128,25 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         if propia.esperar_ventana("Música", segundos=15) is None:
             _corta("musica_real: «Elegir música» no abrió la ventana")
         res.nota("musica_real: abre «Música» desde el menú")
-        filas = _filas_hasta("Música", "Biblioteca", 6, 30.0)
+        filas = _filas_hasta("Música", "Temas", 6, 30.0)
         if filas is None or len(filas) != 6:
             _corta(f"musica_real: la lista de temas tiene "
                    f"{len(filas) if filas is not None else 'nada'} "
                    "elementos en vez de 6")
+        # La Cola arranca oculta de fábrica: se la muestra una sola vez con
+        # su botón, que así también se prueba, antes de leerla o usarla.
+        propia.pedir("pulsar", nombre="Mostrar la cola", ventana="Música")
+        if _filas_hasta("Música", "Cola de reproducción", 0, 1.0) is None:
+            _corta("musica_real: la Cola no responde tras mostrarla")
 
         # ── b. Reproducir todo: anuncia el título y se oye ──
 
         _aire()
-        filas = _filas_estables("Música", "Biblioteca")
+        filas = _filas_estables("Música", "Temas")
         titulo_primero = _titulo_fila(filas[0]) if filas else ""
         n = len(propia.anuncios)
-        _elegir("Música", "Biblioteca", 0)
-        _menu_contextual("Música", "Biblioteca",
+        _elegir("Música", "Temas", 0)
+        _menu_contextual("Música", "Temas",
                          "Reproducir todo desde aquí")
         anunciado = (bool(titulo_primero)
                      and propia.esperar_dicho(titulo_primero, segundos=10,
@@ -2337,7 +2327,7 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         _aislar(5, "06 corto QA")
         cola_antes = _filas("Música", "Cola de reproducción") or []
         n = len(propia.anuncios)
-        propia.pedir("tecla_en", ventana="Música", nombre="Biblioteca",
+        propia.pedir("tecla_en", ventana="Música", nombre="Temas",
                      tecla="enter", modificadores=["shift"])
         esperado = anuncios_musica.TEXTO_A_CONTINUACION.format(
             nombre="06 corto QA")
@@ -2363,19 +2353,19 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
             res.fallo("musica_real: el corto no avanzó solo al tema que "
                       f"seguía («{que_seguia}»)")
         _filtrar("Música", "")
-        if _filas_hasta("Música", "Biblioteca", 6, 10.0) is None:
+        if _filas_hasta("Música", "Temas", 6, 10.0) is None:
             _corta("musica_real: al limpiar el buscador no vuelven los 6")
 
         # ── i. El quinto a la cola ──
 
         _aire()
-        filas = _filas_estables("Música", "Biblioteca") or []
+        filas = _filas_estables("Música", "Temas") or []
         if len(filas) != 6:
             _corta("musica_real: la lista de temas no tiene 6 elementos")
         quinto = _titulo_fila(filas[4])
         _aislar(4, quinto)
         cola_antes = _filas("Música", "Cola de reproducción") or []
-        propia.pedir("tecla_en", ventana="Música", nombre="Biblioteca",
+        propia.pedir("tecla_en", ventana="Música", nombre="Temas",
                      tecla="enter", modificadores=["ctrl"])
         cola = _filas("Música", "Cola de reproducción") or []
         if (len(cola) != len(cola_antes) + 1
@@ -2385,12 +2375,12 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         else:
             res.nota("musica_real: el quinto se agrega al final de la cola")
         _filtrar("Música", "")
-        _filas_hasta("Música", "Biblioteca", 6, 10.0)
+        _filas_hasta("Música", "Temas", 6, 10.0)
 
         # ── j. Reproducir ahora el tercero ──
 
         _aire()
-        filas = _filas_estables("Música", "Biblioteca") or []
+        filas = _filas_estables("Música", "Temas") or []
         if len(filas) != 6:
             _corta("musica_real: la lista de temas no tiene 6 elementos")
         tercero = _titulo_fila(filas[2])
@@ -2402,11 +2392,11 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
                                if f.startswith("Sonando: ")), None)
         n = len(propia.anuncios)
         # El Intro de verdad, no un EVT_KEY_DOWN armado a mano: el 19/10/2026
-        # la Biblioteca y la Cola quedaban mudas con el teclado de Windows
-        # porque el diálogo se comía la tecla antes del control.
+        # la lista de temas y la Cola quedaban mudas con el teclado de
+        # Windows porque el diálogo se comía la tecla antes del control.
         try:
-            propia.pedir("foco", ventana="Música", nombre="Biblioteca")
-            _elegir("Música", "Biblioteca", 2)
+            propia.pedir("foco", ventana="Música", nombre="Temas")
+            _elegir("Música", "Temas", 2)
             propia.teclas("enter")
         except VentanaNoActiva as exc:
             res.no_probado("musica_real: «Reproducir ahora» no se pudo probar "
@@ -2503,40 +2493,47 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
             if not callado:
                 res.fallo("musica_real: detenida y el pico no cayó "
                           "bajo 0,001 en 3 s")
-        esperadas = ["Temas de la carpeta", f"Lista: {_NOMBRE_LISTA}"]
-        elegidas = _items_hasta("Música", "Qué mostrar", esperadas, 10.0)
+        esperadas = ["Biblioteca", _NOMBRE_LISTA]
+        elegidas = _filas_hasta("Música", "Colecciones", 2, 10.0)
         if elegidas != esperadas:
-            _corta(f"musica_real: «Qué mostrar» ofrece {elegidas} en vez "
+            _corta(f"musica_real: «Colecciones» ofrece {elegidas} en vez "
                    f"de {esperadas}")
-        _elegir("Música", "Qué mostrar", 1)
-        filas = _filas_hasta("Música", "Biblioteca", cantidad_cola, 10.0)
+        _elegir("Música", "Colecciones", 1)
+        filas = _filas_hasta("Música", "Temas", cantidad_cola, 10.0)
         if filas is None or len(filas) != cantidad_cola:
             _corta("musica_real: la lista no trajo "
-                   f"{cantidad_cola} temas a la Biblioteca")
-        _elegir("Música", "Biblioteca", 0)
-        _menu_contextual("Música", "Biblioteca",
-                         "Reproducir todo desde aquí")
-        if not sin_salida:
-            limite = time.monotonic() + 10
-            suena = False
-            while time.monotonic() < limite:
-                valor = _pico()
-                if valor is not None and valor > 0.005:
-                    suena = True
-                    break
-                time.sleep(0.1)
-            if not suena:
-                res.fallo("musica_real: la lista no se oye")
-        cola = _filas_hasta("Música", "Cola de reproducción",
-                            cantidad_cola, 10.0) or []
-        if len(cola) != cantidad_cola:
-            res.fallo("musica_real: la cola tiene "
-                      f"{len(cola)} entradas en vez de {cantidad_cola}")
+                   f"{cantidad_cola} temas a «Temas»")
+        # El Intro de verdad, como en el paso j, en lugar del menú
+        # contextual: reproduce la lista elegida en «Colecciones».
+        try:
+            propia.pedir("foco", ventana="Música", nombre="Colecciones")
+            _elegir("Música", "Colecciones", 1)
+            propia.teclas("enter")
+        except VentanaNoActiva as exc:
+            res.no_probado("musica_real: la lista no se pudo reproducir "
+                           f"con el teclado real: {exc}")
         else:
-            res.nota("musica_real: la lista suena con sus "
-                     f"{cantidad_cola} entradas")
-        _elegir("Música", "Qué mostrar", 0)
-        if _filas_hasta("Música", "Biblioteca", 6, 10.0) is None:
+            if not sin_salida:
+                limite = time.monotonic() + 10
+                suena = False
+                while time.monotonic() < limite:
+                    valor = _pico()
+                    if valor is not None and valor > 0.005:
+                        suena = True
+                        break
+                    time.sleep(0.1)
+                if not suena:
+                    res.fallo("musica_real: la lista no se oye")
+            cola = _filas_hasta("Música", "Cola de reproducción",
+                                cantidad_cola, 10.0) or []
+            if len(cola) != cantidad_cola:
+                res.fallo("musica_real: la cola tiene "
+                          f"{len(cola)} entradas en vez de {cantidad_cola}")
+            else:
+                res.nota("musica_real: la lista suena con sus "
+                         f"{cantidad_cola} entradas")
+        _elegir("Música", "Colecciones", 0)
+        if _filas_hasta("Música", "Temas", 6, 10.0) is None:
             _corta("musica_real: al volver a la carpeta no aparecen 6 temas")
 
         # ── l. Agregar el enlace del vídeo: se oye ──
@@ -4938,6 +4935,7 @@ SUPERFICIES = {
     "gui_menu.py": "menus",
     "gui_musica.py": "musica",
     "musica_dialogo_enlace.py": "musica",
+    "musica_colecciones.py": "musica",
     "musica_menus.py": "musica",
     "musica_ventana.py": "musica",
     "musica_ventana_acciones.py": "musica",

@@ -191,6 +191,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("salida", ""),
         ("salida_nombre", ""),
         ("atajos_globales", "false"),
+        ("mostrar_cola", "false"),
     ]),
 ]
 

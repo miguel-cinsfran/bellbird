@@ -45,7 +45,7 @@ class Evento:
 class ControlFalso:
 
     def __init__(self, biblioteca=None, carpeta_listas=None,
-                 temas_listas=None, estado=None):
+                 temas_listas=None, estado=None, cola_visible=False):
         self._biblio = biblioteca
         self._carpeta_listas = carpeta_listas
         self._temas_listas = dict(temas_listas or {})
@@ -54,6 +54,7 @@ class ControlFalso:
         self.llamadas = []
         self.artista = False
         self.combos = {}
+        self._cola_visible = bool(cola_visible)
 
     def biblioteca(self, al_lista):
         self.llamadas.append(("biblioteca",))
@@ -89,6 +90,16 @@ class ControlFalso:
 
     def reproducir_desde_aqui(self, temas, indice):
         self.llamadas.append(("reproducir_desde_aqui", tuple(temas), indice))
+
+    def reproducir_lista_guardada(self, nombre):
+        self.llamadas.append(("reproducir_lista_guardada", nombre))
+
+    def cola_visible(self):
+        return self._cola_visible
+
+    def recordar_cola_visible(self, visible):
+        self.llamadas.append(("recordar_cola_visible", bool(visible)))
+        self._cola_visible = bool(visible)
 
     def reproducir_desde(self, indice):
         self.llamadas.append(("reproducir_desde", indice))
@@ -189,14 +200,27 @@ class TestVentanaMusica(unittest.TestCase):
 
     def test_controles_y_nombres_en_orden_de_tab(self):
         self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock")))
+        self.assertFalse(self.ventana.lb_cola.IsShown())
         interactivos = [
             control for control in self._panel().GetChildren()
             if isinstance(control, (wx.TextCtrl, wx.Choice, wx.ListBox,
                                     wx.Button))]
         self.assertEqual([control.GetName() for control in interactivos], [
-            "Buscar en la música", "Qué mostrar", "Biblioteca",
-            "Cola de reproducción", "Abrir enlace", "Nueva lista",
-            "Cambiar carpeta", "Cerrar"])
+            "Colecciones", "Buscar en la música", "Temas",
+            "Mostrar la cola", "Cola de reproducción", "Abrir enlace",
+            "Nueva lista", "Cambiar carpeta", "Cerrar"])
+
+    def test_controles_y_nombres_con_la_cola_visible(self):
+        self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock"),
+                                 cola_visible=True))
+        self.assertTrue(self.ventana.lb_cola.IsShown())
+        interactivos = [
+            control for control in self._panel().GetChildren()
+            if isinstance(control, (wx.TextCtrl, wx.ListBox, wx.Button))]
+        self.assertEqual([control.GetName() for control in interactivos], [
+            "Colecciones", "Buscar en la música", "Temas",
+            "Ocultar la cola", "Cola de reproducción", "Abrir enlace",
+            "Nueva lista", "Cambiar carpeta", "Cerrar"])
 
     def test_mnemonicos_unicos_en_la_ventana(self):
         self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock")))
@@ -212,8 +236,10 @@ class TestVentanaMusica(unittest.TestCase):
         etiquetas = [
             control.GetLabel() for control in self._panel().GetChildren()
             if isinstance(control, wx.StaticText)]
-        for esperado in ("&Buscar:", "&Mostrar:", "&Temas:", "C&ola:"):
+        for esperado in ("Co&lecciones:", "&Buscar:", "&Temas:"):
             self.assertIn(esperado, etiquetas)
+        for ausente in ("&Mostrar:", "C&ola:"):
+            self.assertNotIn(ausente, etiquetas)
 
     # ── Teclas de la Biblioteca ────────────────────────────────────────────
 
@@ -282,6 +308,161 @@ class TestVentanaMusica(unittest.TestCase):
             self.ventana._tecla_temas(Evento(wx.WXK_F10, wx.MOD_SHIFT))
         menu.assert_called_once_with()
 
+    # ── Colecciones ────────────────────────────────────────────────────────
+
+    def test_colecciones_trae_biblioteca_y_listas(self):
+        temas = (Tema("C:/Musica/rock.mp3", "Rock"),)
+        self._crear_lista("Mía", temas)
+        control = ControlFalso(carpeta_listas=self.carpeta_listas,
+                               temas_listas={"Mía": temas})
+        self._abrir(control)
+        self.assertEqual(self.ventana.lb_colecciones.GetStrings(),
+                         ["Biblioteca", "Mía"])
+        self.assertEqual(self.ventana.lb_colecciones.GetSelection(), 0)
+
+    def test_elegir_una_lista_carga_sus_temas(self):
+        temas = (Tema("C:/Musica/rock.mp3", "Rock"),
+                 Tema("C:/Musica/jazz.mp3", "Jazz"))
+        self._crear_lista("Mía", temas)
+        control = ControlFalso(
+            carpeta_listas=self.carpeta_listas,
+            temas_listas={"Mía": temas})
+        self._abrir(control)
+        self.ventana.lb_colecciones.SetSelection(1)
+        self.ventana._cambiar_coleccion(Evento())
+        self.assertEqual(self.ventana.lb_temas.GetStrings(),
+                         ["Rock", "Jazz"])
+
+    def test_elegir_biblioteca_vuelve_a_la_carpeta(self):
+        temas = (Tema("C:/Musica/rock.mp3", "Rock"),)
+        self._crear_lista("Mía", temas)
+        control = ControlFalso(
+            biblioteca=_biblioteca_de("Rock", "Jazz"),
+            carpeta_listas=self.carpeta_listas,
+            temas_listas={"Mía": temas})
+        self._abrir(control)
+        self.ventana.lb_colecciones.SetSelection(1)
+        self.ventana._cambiar_coleccion(Evento())
+        self.ventana.lb_colecciones.SetSelection(0)
+        self.ventana._cambiar_coleccion(Evento())
+        self.assertEqual(self.ventana.lb_temas.GetStrings(),
+                         ["Rock", "Jazz"])
+
+    def test_intro_en_biblioteca_reproduce_todo_aunque_filtre(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock", "Jazz"))
+        self._abrir(control)
+        self.ventana.txt_buscar.SetValue("jazz")
+        self.ventana.lb_colecciones.SetSelection(0)
+        self.ventana._tecla_colecciones(Evento(wx.WXK_RETURN))
+        self.assertIn(
+            ("reproducir_desde_aqui", tuple(control._biblio.temas()), 0),
+            control.llamadas)
+
+    def test_intro_en_biblioteca_cargando_no_llama_a_nada(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
+        self._abrir(control)
+        self.ventana._cargando = True
+        self.ventana._tecla_colecciones(Evento(wx.WXK_RETURN))
+        self.assertNotIn("reproducir_desde_aqui", control.nombres())
+
+    def test_intro_en_una_lista_reproduce_la_lista_guardada(self):
+        temas = (Tema("C:/Musica/rock.mp3", "Rock"),)
+        self._crear_lista("Mía", temas)
+        control = ControlFalso(
+            carpeta_listas=self.carpeta_listas,
+            temas_listas={"Mía": temas})
+        self._abrir(control, abrir_listas=True)
+        self.ventana._tecla_colecciones(Evento(wx.WXK_RETURN))
+        self.assertIn(("reproducir_lista_guardada", "Mía"),
+                      control.llamadas)
+
+    def test_suprimir_en_biblioteca_no_llama_a_nada(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
+        self._abrir(control)
+        self.ventana._tecla_colecciones(Evento(wx.WXK_DELETE))
+        self.assertNotIn("borrar_lista", control.nombres())
+
+    def test_suprimir_en_una_lista_confirmada_la_borra(self):
+        temas = (Tema("C:/Musica/rock.mp3", "Rock"),)
+        self._crear_lista("Mía", temas)
+        control = ControlFalso(
+            carpeta_listas=self.carpeta_listas,
+            temas_listas={"Mía": temas})
+        self._abrir(control, abrir_listas=True)
+        with mock.patch.object(musica_ventana_acciones, "_confirmar_borrar",
+                               return_value=True):
+            self.ventana._tecla_colecciones(Evento(wx.WXK_DELETE))
+        self.assertIn(("borrar_lista", "Mía"), control.llamadas)
+        self.assertEqual(self.ventana.lb_colecciones.GetSelection(), 0)
+
+    def test_suprimir_en_una_lista_cancelada_no_borra(self):
+        temas = (Tema("C:/Musica/rock.mp3", "Rock"),)
+        self._crear_lista("Mía", temas)
+        control = ControlFalso(
+            carpeta_listas=self.carpeta_listas,
+            temas_listas={"Mía": temas})
+        self._abrir(control, abrir_listas=True)
+        with mock.patch.object(musica_ventana_acciones, "_confirmar_borrar",
+                               return_value=False):
+            self.ventana._tecla_colecciones(Evento(wx.WXK_DELETE))
+        self.assertNotIn("borrar_lista", control.nombres())
+
+    def test_tecla_de_aplicaciones_abre_el_menu_de_colecciones(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
+        self._abrir(control)
+        with mock.patch.object(self.ventana, "_menu_colecciones") as menu:
+            self.ventana._tecla_colecciones(Evento(wx.WXK_WINDOWS_MENU))
+        menu.assert_called_once_with()
+
+    def test_mayus_f10_abre_el_menu_de_colecciones(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
+        self._abrir(control)
+        with mock.patch.object(self.ventana, "_menu_colecciones") as menu:
+            self.ventana._tecla_colecciones(Evento(wx.WXK_F10, wx.MOD_SHIFT))
+        menu.assert_called_once_with()
+
+    def test_las_acciones_de_colecciones_se_despiden(self):
+        temas = (Tema("C:/Musica/rock.mp3", "Rock"),)
+        self._crear_lista("Mía", temas)
+        control = ControlFalso(
+            carpeta_listas=self.carpeta_listas,
+            temas_listas={"Mía": temas})
+        self._abrir(control, abrir_listas=True)
+        with mock.patch.object(
+                self.ventana, "_reproducir_coleccion") as reproducir, \
+                mock.patch.object(
+                    self.ventana,
+                    "_agregar_coleccion_a_cola") as agregar, \
+                mock.patch.object(
+                    self.ventana, "_renombrar_lista") as renombrar, \
+                mock.patch.object(
+                    self.ventana, "_borrar_lista") as borrar, \
+                mock.patch.object(
+                    self.ventana, "_nueva_lista") as nueva:
+            for accion in (musica_menus.ACCION_REPRODUCIR_COLECCION,
+                           musica_menus.ACCION_AGREGAR_COLECCION,
+                           musica_menus.ACCION_RENOMBRAR_LISTA,
+                           musica_menus.ACCION_BORRAR_LISTA,
+                           musica_menus.ACCION_NUEVA_LISTA):
+                self.ventana._accion_coleccion(accion)
+        reproducir.assert_called_once_with()
+        agregar.assert_called_once_with()
+        renombrar.assert_called_once_with()
+        borrar.assert_called_once_with()
+        nueva.assert_called_once_with()
+
+    def test_agregar_coleccion_suma_toda_la_lista_al_final(self):
+        temas = (Tema("C:/Musica/rock.mp3", "Rock"),
+                 Tema("C:/Musica/jazz.mp3", "Jazz"))
+        self._crear_lista("Mía", temas)
+        control = ControlFalso(
+            carpeta_listas=self.carpeta_listas,
+            temas_listas={"Mía": temas})
+        self._abrir(control, abrir_listas=True)
+        self.ventana._accion_coleccion(
+            musica_menus.ACCION_AGREGAR_COLECCION)
+        self.assertIn(("agregar_al_final", temas), control.llamadas)
+
     # ── Teclas de la Cola ──────────────────────────────────────────────────
 
     def test_intro_en_la_cola_reproduce_desde_esa_fila(self):
@@ -340,6 +521,66 @@ class TestVentanaMusica(unittest.TestCase):
         self.ventana._tecla_cola(Evento(wx.WXK_RETURN))
         self.assertNotIn("reproducir_ahora", control.nombres())
 
+    # ── Cola plegable ──────────────────────────────────────────────────────
+
+    def test_la_cola_arranca_oculta_de_fabrica(self):
+        self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock")))
+        self.assertFalse(self.ventana.lb_cola.IsShown())
+        self.assertEqual(self.ventana.btn_cola.GetLabel(),
+                         "Mostrar la c&ola")
+        self.assertEqual(self.ventana.btn_cola.GetName(),
+                         "Mostrar la cola")
+
+    def test_lo_guardado_visible_se_respeta_al_abrir(self):
+        self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock"),
+                                 cola_visible=True))
+        self.assertTrue(self.ventana.lb_cola.IsShown())
+        self.assertEqual(self.ventana.btn_cola.GetLabel(),
+                         "Ocultar la c&ola")
+        self.assertEqual(self.ventana.btn_cola.GetName(),
+                         "Ocultar la cola")
+
+    def test_el_boton_muestra_la_cola_con_foco_y_anuncio(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
+        control.cola = tuple(
+            Tema(f"C:/Musica/t{i}.mp3", f"T{i}") for i in range(5))
+        self._abrir(control)
+        with mock.patch.object(self.ventana.lb_cola, "SetFocus") as foco:
+            self.ventana._alternar_cola()
+        self.assertTrue(self.ventana.lb_cola.IsShown())
+        foco.assert_called_once_with()
+        self.assertEqual(self.ventana.btn_cola.GetLabel(),
+                         "Ocultar la c&ola")
+        self.assertIn("Cola visible, 5 temas", self.anuncios)
+        self.assertIn(("recordar_cola_visible", True), control.llamadas)
+
+    def test_el_boton_muestra_un_tema_en_singular(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
+        control.cola = (Tema("C:/Musica/t.mp3", "T"),)
+        self._abrir(control)
+        with mock.patch.object(self.ventana.lb_cola, "SetFocus"):
+            self.ventana._alternar_cola()
+        self.assertIn("Cola visible, 1 tema", self.anuncios)
+
+    def test_el_boton_muestra_la_cola_vacia(self):
+        self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock")))
+        with mock.patch.object(self.ventana.lb_cola, "SetFocus"):
+            self.ventana._alternar_cola()
+        self.assertIn("Cola visible, vacía", self.anuncios)
+
+    def test_el_boton_oculta_la_cola_con_foco_y_anuncio(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock"),
+                               cola_visible=True)
+        self._abrir(control)
+        with mock.patch.object(self.ventana.btn_cola, "SetFocus") as foco:
+            self.ventana._alternar_cola()
+        self.assertFalse(self.ventana.lb_cola.IsShown())
+        foco.assert_called_once_with()
+        self.assertEqual(self.ventana.btn_cola.GetLabel(),
+                         "Mostrar la c&ola")
+        self.assertIn("Cola oculta", self.anuncios)
+        self.assertIn(("recordar_cola_visible", False), control.llamadas)
+
     # ── Intro por el gancho de la ventana ──────────────────────────────────
 
     def _char_hook(self, keycode=wx.WXK_RETURN, mods=0):
@@ -392,6 +633,18 @@ class TestVentanaMusica(unittest.TestCase):
         self._char_hook()
         self.assertIn(("reproducir_desde", 1), control.llamadas)
 
+    def test_intro_por_la_ventana_en_colecciones_reproduce_la_lista(self):
+        temas = (Tema("C:/Musica/rock.mp3", "Rock"),)
+        self._crear_lista("Mía", temas)
+        control = ControlFalso(
+            carpeta_listas=self.carpeta_listas,
+            temas_listas={"Mía": temas})
+        self._abrir(control, abrir_listas=True)
+        self.ventana.lb_colecciones.SetFocus()
+        self._char_hook()
+        self.assertIn(("reproducir_lista_guardada", "Mía"),
+                      control.llamadas)
+
     def test_intro_por_la_ventana_en_el_buscador_no_acciona(self):
         control = ControlFalso(biblioteca=_biblioteca_de("Rock", "Jazz"))
         self._abrir(control)
@@ -400,6 +653,17 @@ class TestVentanaMusica(unittest.TestCase):
         self._char_hook()
         self.assertNotIn("reproducir_ahora", control.nombres())
         self.assertNotIn("agregar_al_final", control.nombres())
+
+    def test_doble_clic_en_colecciones_reproduce_la_lista(self):
+        temas = (Tema("C:/Musica/rock.mp3", "Rock"),)
+        self._crear_lista("Mía", temas)
+        control = ControlFalso(
+            carpeta_listas=self.carpeta_listas,
+            temas_listas={"Mía": temas})
+        self._abrir(control, abrir_listas=True)
+        self._doble_clic(self.ventana.lb_colecciones)
+        self.assertIn(("reproducir_lista_guardada", "Mía"),
+                      control.llamadas)
 
     def test_doble_clic_en_la_biblioteca_reproduce_ahora(self):
         control = ControlFalso(biblioteca=_biblioteca_de("Rock", "Jazz"))
@@ -459,9 +723,20 @@ class TestVentanaMusica(unittest.TestCase):
              "Agregar a una &lista…"])
         self.assertEqual(
             [etiqueta for etiqueta, _accion
-             in musica_menus.entradas_biblioteca(True)][-3:],
-            ["&Quitar de esta lista", "&Renombrar esta lista…",
-             "&Borrar esta lista…"])
+             in musica_menus.entradas_biblioteca(True)][-1:],
+            ["&Quitar de esta lista"])
+
+    def test_entradas_exactas_de_colecciones(self):
+        self.assertEqual(
+            [etiqueta for etiqueta, _accion
+             in musica_menus.entradas_colecciones(False)],
+            ["&Reproducir", "A&gregar a la cola", "&Nueva lista…"])
+        self.assertEqual(
+            [etiqueta for etiqueta, _accion
+             in musica_menus.entradas_colecciones(True)],
+            ["&Reproducir", "A&gregar a la cola",
+             "Re&nombrar la lista…", "&Borrar la lista…",
+             "&Nueva lista…"])
 
     def test_entradas_exactas_de_la_cola(self):
         self.assertEqual(
@@ -568,7 +843,7 @@ class TestVentanaMusica(unittest.TestCase):
 
     # ── Apertura con abrir_listas ──────────────────────────────────────────
 
-    def test_abrir_listas_deja_mostrar_en_la_primera_lista(self):
+    def test_abrir_listas_deja_colecciones_en_la_primera_lista(self):
         temas = (Tema("C:/Musica/rock.mp3", "Rock"),)
         self._crear_lista("Alfa", temas)
         self._crear_lista("Beta", ())
@@ -576,17 +851,19 @@ class TestVentanaMusica(unittest.TestCase):
             carpeta_listas=self.carpeta_listas,
             temas_listas={"Alfa": temas, "Beta": ()})
         self._abrir(control, abrir_listas=True)
-        self.assertEqual(self.ventana.cho_mostrar.GetSelection(), 1)
+        self.assertEqual(self.ventana.lb_colecciones.GetSelection(), 1)
         self.assertEqual(self.ventana.lb_temas.GetStrings(), ["Rock"])
-        with mock.patch.object(self.ventana.cho_mostrar, "SetFocus") as foco:
+        with mock.patch.object(self.ventana.lb_colecciones,
+                               "SetFocus") as foco:
             self.ventana.enfocar_primer_control()
         foco.assert_called_once_with()
 
-    def test_abrir_listas_sin_listas_deja_el_foco_en_mostrar(self):
+    def test_abrir_listas_sin_listas_deja_el_foco_en_el_buscador(self):
         control = ControlFalso(carpeta_listas=self.carpeta_listas)
         self._abrir(control, abrir_listas=True)
-        self.assertEqual(self.ventana.cho_mostrar.GetSelection(), 0)
-        with mock.patch.object(self.ventana.cho_mostrar, "SetFocus") as foco:
+        self.assertEqual(self.ventana.lb_colecciones.GetSelection(), 0)
+        with mock.patch.object(self.ventana.txt_buscar,
+                               "SetFocus") as foco:
             self.ventana.enfocar_primer_control()
         foco.assert_called_once_with()
 

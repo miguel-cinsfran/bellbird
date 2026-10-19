@@ -12,7 +12,12 @@ import unicodedata
 from ytchat.music import anuncios
 from ytchat.music.anuncios import nombre_tema
 
-ETIQUETA_CARPETA = "Temas de la carpeta"
+ETIQUETA_BIBLIOTECA = "Biblioteca"
+
+TEXTO_AYUDA_COLECCIONES = (
+    "Intro reproduce la colección entera, Suprimir borra la lista, "
+    "tecla de aplicaciones para más opciones")
+TEXTO_COLA_OCULTA = "Cola oculta"
 
 
 def _plegar(texto) -> str:
@@ -47,15 +52,25 @@ def filtrar_biblioteca(biblioteca, texto) -> tuple:
 
 
 def filtrar_fuente(temas, texto, biblioteca=None) -> tuple:
-    """El filtro que corresponde a la fuente elegida en «Mostrar»."""
+    """El filtro que corresponde a la colección elegida."""
     if biblioteca is not None:
         return filtrar_biblioteca(biblioteca, texto)
     return filtrar_lista(temas, texto)
 
 
-def etiquetas_mostrar(nombres) -> list[str]:
-    """Las entradas de «Mostrar»: la carpeta y una por lista propia."""
-    return [ETIQUETA_CARPETA] + [f"Lista: {nombre}" for nombre in nombres]
+def filas_colecciones(nombres) -> list[str]:
+    """Las filas de «Colecciones»: la Biblioteca y una por lista propia."""
+    return [ETIQUETA_BIBLIOTECA] + [str(nombre) for nombre in nombres]
+
+
+def texto_cola_visible(cantidad: int) -> str:
+    """Cuántos temas hay al mostrar la Cola."""
+    cantidad = max(0, int(cantidad))
+    if cantidad == 0:
+        return "Cola visible, vacía"
+    if cantidad == 1:
+        return "Cola visible, 1 tema"
+    return f"Cola visible, {cantidad} temas"
 
 
 def texto_coincidencias(cantidad: int) -> str:
@@ -85,6 +100,11 @@ def ayuda_biblioteca(es_lista_propia: bool) -> str:
     if es_lista_propia:
         return anuncios.TEXTO_AYUDA_BIBLIOTECA_LISTA
     return anuncios.TEXTO_AYUDA_BIBLIOTECA
+
+
+def ayuda_colecciones() -> str:
+    """La ayuda de teclas de la lista de colecciones."""
+    return TEXTO_AYUDA_COLECCIONES
 
 
 def ayuda_cola() -> str:

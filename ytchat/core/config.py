@@ -16,7 +16,7 @@ from ytchat.core.atajos import (
     _AREA_POR_GRUPO, ATAJOS_AREA, _SIMBOLOS_PERMITIDOS, _TECLAS_NOMBRE,
     _RE_ATAJO, _RE_CTRL_ALT, _RE_FKEY, _RE_CTRL_FKEY, Atajo,
     todos_los_atajos_default, _normalizar_atajo, atajo_valido_para_area,
-    parsear_atajos, detectar_conflictos_atajos,
+    parsear_atajos, detectar_conflictos_atajos, migrar_atajos_config,
 )  # noqa: F401  (reexport para quien importa desde config)
 
 
@@ -484,7 +484,7 @@ def cargar_configuracion() -> dict:
     atajos_raw = {}
     if p.has_section("atajos"):
         atajos_raw = {k.strip().lower(): (v or "").strip() for k, v in p.items("atajos")}
-
+    migrar_atajos_config(p, ruta, atajos_raw)
     # Migración genérica: agregar toda sección o clave ausente desde la fuente
     # canónica, preservando valores existentes incluso vacíos y claves desconocidas.
     _atajos_faltantes = []

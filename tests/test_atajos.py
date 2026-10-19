@@ -58,9 +58,10 @@ class TestNormalizarAtajo(unittest.TestCase):
         self.assertEqual(_normalizar_atajo("ctrl+up"), "ctrl+up")
 
     def test_modificador_no_soportado(self):
-        # Shift solo y Alt+Shift no se admiten.
+        # Shift solo no se admite; Alt+Shift sí, con el orden normalizado.
         self.assertIsNone(_normalizar_atajo("shift+u"))
-        self.assertIsNone(_normalizar_atajo("alt+shift+x"))
+        self.assertEqual(_normalizar_atajo("alt+shift+x"), "alt+shift+x")
+        self.assertEqual(_normalizar_atajo("shift+alt+x"), "alt+shift+x")
         self.assertEqual(_normalizar_atajo("ctrl+alt+x"), "ctrl+alt+x")
         self.assertEqual(_normalizar_atajo("ctrl+shift+x"), "ctrl+shift+x")
 
@@ -173,6 +174,28 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertEqual(llamada.kwargs["label"],
                          "Acción desconocida: Ctrl+A")
 
+    def test_clave_desconocida_se_ignora(self):
+        atajos = parsear_atajos({"musica_listas": "ctrl+alt+l"})
+        self.assertNotIn("musica_listas", atajos)
+        self.assertEqual(set(atajos), set(todos_los_atajos_default()))
+
+    def test_pagina_ignora_clave_desconocida(self):
+        dialogo = gui_preferencias.PreferenciasDialog.__new__(
+            gui_preferencias.PreferenciasDialog)
+        dialogo._config = {"atajos_raw": {"musica_listas": "ctrl+alt+l"}}
+        panel = mock.Mock()
+        sizer = mock.Mock()
+        crear_boton = mock.Mock(return_value=mock.Mock())
+        with mock.patch.object(dialogo, "_make_panel", return_value=panel), \
+                mock.patch.object(gui_preferencias.wx, "BoxSizer", return_value=sizer), \
+                mock.patch.object(gui_preferencias, "caja_de_grupo",
+                                  return_value=(sizer, panel)), \
+                mock.patch.object(gui_preferencias.wx, "StaticText", return_value=mock.Mock()), \
+                mock.patch.object(gui_preferencias.wx, "Button", crear_boton):
+            dialogo._pag_atajos(object())
+        nombres = [c.kwargs["name"] for c in crear_boton.call_args_list]
+        self.assertNotIn("Atajo_musica_listas", nombres)
+
     def test_todas_las_acciones_tienen_etiqueta(self):
         self.assertTrue(set(todos_los_atajos_default()) <= set(_ETIQUETAS_ATAJO))
 
@@ -260,25 +283,25 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertEqual(atajos["pausa"].texto, "alt+j")
 
     def test_ctrl_y_alt_misma_letra_no_chocan(self):
-        # 'ctrl+d' (rep_detener) y 'alt+d' (desconectar) conviven.
+        # 'ctrl+d' (rep_detener) y 'alt+shift+d' (desconectar) conviven.
         atajos = parsear_atajos({})
         self.assertEqual(atajos["rep_detener"].texto, "ctrl+d")
-        self.assertEqual(atajos["desconectar"].texto, "alt+d")
+        self.assertEqual(atajos["desconectar"].texto, "alt+shift+d")
 
     def test_nuevos_atajos_editables_tienen_area_y_grupo(self):
         for accion, valor, area in (
                 ("pantalla_completa", "ctrl+f", "ctrl"),
-                ("ir_lista", "alt+l", "alt"),
+                ("ir_lista", "alt+shift+l", "alt+shift"),
                 ("abrir_preferencias", "ctrl+shift+p", "ctrl+shift"),
                 ("abrir_historial", "ctrl+shift+h", "ctrl+shift"),
-                ("marcar_incidencia", "ctrl+shift+i", "ctrl+shift"),
+                ("marcar_incidencia", "alt+shift+i", "alt+shift"),
                 ("abrir_transmision", "ctrl+shift+t", "ctrl+shift"),
-                ("copiar_enlace", "ctrl+shift+e", "ctrl+shift"),
+                ("copiar_enlace", "alt+shift+e", "alt+shift"),
                 ("anunciar_autor", "f3", "f"),
                 ("describir_escena", "ctrl+f2", "f"),
-                ("obs_micro", "ctrl+shift+m", "ctrl+shift"),
-                ("avisos_sobrecarga", "ctrl+shift+a", "ctrl+shift"),
-                ("musica_listas", "ctrl+alt+l", "ctrl+alt")):
+                ("obs_micro", "alt+shift+m", "alt+shift"),
+                ("avisos_sobrecarga", "alt+shift+a", "alt+shift"),
+                ("musica_ventana", "ctrl+shift+m", "ctrl+shift")):
             self.assertEqual(ATAJOS_DEFAULTS[accion], valor)
             self.assertTrue(atajo_valido_para_area(accion, valor),
                             f"{accion} no tiene un atajo válido para su área")
@@ -292,8 +315,8 @@ class TestParsearAtajos(unittest.TestCase):
         titulos = [titulo for titulo, _acciones in ATAJOS_GRUPOS]
         self.assertEqual(titulos[-2], "Música (Ctrl+Alt)")
         self.assertEqual(titulos[-1], "Ventana y navegación (fijos)")
-        self.assertEqual(_AREA_POR_GRUPO[4], "ctrl+alt")
-        self.assertIsNone(_AREA_POR_GRUPO[5])
+        self.assertEqual(_AREA_POR_GRUPO[5], "ctrl+alt")
+        self.assertIsNone(_AREA_POR_GRUPO[6])
 
     def test_las_seis_acciones_de_musica_solo_aceptan_ctrl_alt(self):
         acciones = ("musica_play", "musica_siguiente", "musica_anterior",
@@ -325,7 +348,8 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertIn('._accel("musica_vol_mas")', fuente)
         self.assertIn('._accel("musica_vol_menos")', fuente)
         self.assertIn('._accel("musica_que_suena")', fuente)
-        self.assertIn('._accel("musica_listas")', fuente)
+        self.assertIn('._accel("musica_ventana")', fuente)
+        self.assertNotIn("musica_listas", fuente)
         self.assertNotIn("\\tAlt+L", fuente)
         self.assertNotIn("\\tCtrl+F", fuente)
 
@@ -366,7 +390,7 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertEqual(anuncios, [texto,
                                     atajos_captura.texto_de_espera(
                                         "Ir a la lista del panel actual",
-                                        "Debe ser Alt y una tecla (por ejemplo Alt+C).")])
+                                        "Debe ser Alt+Mayús y una tecla (por ejemplo Alt+Mayús+C).")])
 
     def test_arranque_anuncia_la_accion_que_pierde(self):
         anuncios = []

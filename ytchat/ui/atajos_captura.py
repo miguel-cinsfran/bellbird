@@ -12,6 +12,8 @@ _NOMBRE_TECLA_MOSTRAR = {
 _AREA_AYUDA = {
     "ctrl": "Debe ser Ctrl y una tecla (por ejemplo Ctrl+P).",
     "alt": "Debe ser Alt y una tecla (por ejemplo Alt+C).",
+    "ctrl+shift": "Debe ser Ctrl+Mayús y una tecla (por ejemplo Ctrl+Mayús+P).",
+    "alt+shift": "Debe ser Alt+Mayús y una tecla (por ejemplo Alt+Mayús+C).",
     "ctrl+alt": "Debe ser Ctrl+Alt y una flecha, Espacio, una letra o un número (por ejemplo Ctrl+Alt+T).",
     "f": "Debe ser una tecla de función, de F1 a F12, sola o con Ctrl (por ejemplo F2 o Ctrl+F2).",
 }
@@ -55,7 +57,6 @@ ETIQUETAS = {
     "musica_vol_menos": "Bajar el volumen de la música",
     "musica_que_suena": "Qué suena",
     "musica_ventana": "Abrir la ventana de música",
-    "musica_listas": "Abrir las listas de música",
 }
 
 

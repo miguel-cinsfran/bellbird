@@ -53,16 +53,16 @@ class TestCapturaAtajos(unittest.TestCase):
         import wx
         self.assertEqual(self.gp._combo_a_texto(wx.MOD_CONTROL, wx.WXK_F2), "ctrl+f2")
 
-    def test_combo_shift_se_normaliza_y_rechaza_otros_modificadores(self):
+    def test_combo_shift_se_normaliza_y_abre_alt_shift(self):
         import wx
-        # Ctrl+Shift se captura tal cual y otros modificadores siguen siendo inválidos.
+        # Ctrl+Shift se captura tal cual y Alt+Shift ya es un área propia.
         from ytchat.core import config as cfg
         combo = self.gp._combo_a_texto(wx.MOD_CONTROL | wx.MOD_SHIFT, ord("P"))
         self.assertEqual(combo, "ctrl+shift+p")
         self.assertEqual(cfg._normalizar_atajo(combo), "ctrl+shift+p")
-        combo_invalido = self.gp._combo_a_texto(
+        combo_alt_shift = self.gp._combo_a_texto(
             wx.MOD_ALT | wx.MOD_SHIFT, ord("X"))
-        self.assertIsNone(cfg._normalizar_atajo(combo_invalido))
+        self.assertEqual(cfg._normalizar_atajo(combo_alt_shift), "alt+shift+x")
 
     def test_tecla_no_admitida(self):
         import wx

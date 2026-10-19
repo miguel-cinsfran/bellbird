@@ -149,6 +149,15 @@ class TestAtajosCaptura(unittest.TestCase):
         # El formato de menú no se usa para leer; para eso está atajo_legible.
         self.assertEqual(atajos_captura.mostrar_atajo("ctrl+end"), "Ctrl+End")
 
+    def test_ayuda_para_cada_area(self):
+        for area in config._AREA_POR_GRUPO:
+            if area is None:
+                continue
+            with self.subTest(area=area):
+                self.assertTrue(atajos_captura._AREA_AYUDA.get(area))
+        self.assertIn("Mayús", atajos_captura._AREA_AYUDA["ctrl+shift"])
+        self.assertIn("Mayús", atajos_captura._AREA_AYUDA["alt+shift"])
+
     def test_textos_de_etiqueta_y_espera(self):
         self.assertEqual(
             atajos_captura.mostrar_atajo("alt+enter"), "Alt+Enter")

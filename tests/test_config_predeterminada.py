@@ -328,7 +328,7 @@ class TestReconexionYSonidos(unittest.TestCase):
         self.assertEqual(
             pred.obtener("transmision", "avisar_sobrecarga"), "true")
         self.assertEqual(
-            pred.obtener("atajos", "avisos_sobrecarga"), "ctrl+shift+a")
+            pred.obtener("atajos", "avisos_sobrecarga"), "alt+shift+a")
 
     def test_lectura_de_avisar_sobrecarga_es_bool(self):
         import tempfile

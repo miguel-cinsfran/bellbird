@@ -105,8 +105,6 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica,
             "musica_vol_mas": self.subir_volumen,
             "musica_vol_menos": self.bajar_volumen,
             "musica_que_suena": self.que_suena,
-            "musica_ventana": self.abrir_ventana,
-            "musica_listas": self.abrir_listas,
         })
         self._globales_atajos = None
         if bool(self._config.get("musica_atajos_globales", False)):
@@ -184,17 +182,6 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica,
             return
         from ytchat.ui import musica_ventana
         musica_ventana.abrir_ventana(self)
-
-    def abrir_listas(self) -> None:
-        """Abre la misma ventana de música con el foco en las listas.
-
-        Con una ventana de música abierta no abre otra: trae al frente la
-        que ya está.
-        """
-        if self._traer_al_frente_si_hay():
-            return
-        from ytchat.ui import musica_ventana
-        musica_ventana.abrir_ventana(self, abrir_listas=True)
 
     def cola_actual(self):
         """Los temas que están en la cola, o vacío si el motor no nació."""

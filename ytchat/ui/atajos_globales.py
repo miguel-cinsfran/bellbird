@@ -13,6 +13,7 @@ import wx
 from ytchat.ui.atajos_captura import atajo_legible
 
 # Acciones de música con atajo global, en orden fijo: el índice da el id.
+# Abrir la ventana de música no es global: Ctrl+Mayús+M solo vale dentro.
 ACCIONES = (
     "musica_play",
     "musica_siguiente",
@@ -20,8 +21,6 @@ ACCIONES = (
     "musica_vol_mas",
     "musica_vol_menos",
     "musica_que_suena",
-    "musica_ventana",
-    "musica_listas",
 )
 
 # Base de los ids propios para `RegisterHotKey`, lejos de otros usos.

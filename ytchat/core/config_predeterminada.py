@@ -67,19 +67,19 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("rep_mute", "ctrl+m"),
         ("rep_vol_menos", "ctrl+down"),
         ("rep_vol_mas", "ctrl+up"),
-        ("descargas_abrir", "ctrl+s"),
+        ("descargas_abrir", "ctrl+shift+d"),
         ("pantalla_completa", "ctrl+f"),
         ("abrir_preferencias", "ctrl+shift+p"),
         ("abrir_historial", "ctrl+shift+h"),
-        ("marcar_incidencia", "ctrl+shift+i"),
+        ("marcar_incidencia", "alt+shift+i"),
         ("abrir_transmision", "ctrl+shift+t"),
-        ("copiar_enlace", "ctrl+shift+e"),
-        ("obs_micro", "ctrl+shift+m"),
-        ("avisos_sobrecarga", "ctrl+shift+a"),
-        ("conectar", "alt+c"),
-        ("desconectar", "alt+d"),
+        ("copiar_enlace", "alt+shift+e"),
+        ("obs_micro", "alt+shift+m"),
+        ("avisos_sobrecarga", "alt+shift+a"),
+        ("conectar", "alt+shift+c"),
+        ("desconectar", "alt+shift+d"),
         ("enviar_chat", "alt+enter"),
-        ("ir_lista", "alt+l"),
+        ("ir_lista", "alt+shift+l"),
         ("pausa", "f5"),
         ("detener_tts", "f8"),
         ("velocidad_menos", "f9"),
@@ -97,8 +97,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("musica_vol_mas", "ctrl+alt+up"),
         ("musica_vol_menos", "ctrl+alt+down"),
         ("musica_que_suena", "ctrl+alt+t"),
-        ("musica_ventana", "ctrl+alt+m"),
-        ("musica_listas", "ctrl+alt+l"),
+        ("musica_ventana", "ctrl+shift+m"),
     ]),
     ("ui", [
         ("tamanio_fuente_chat", "12"),
@@ -117,6 +116,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
     ("sesion", [
         ("silenciar_lectura", "false"),
         ("ultima_direccion", ""),
+        ("version_atajos", "2"),
     ]),
     ("tiktok", [
         ("anunciar_entradas", "false"),
@@ -262,8 +262,8 @@ def generar_texto() -> str:
             partes.append("# Limpieza del texto antes de leer y longitud máxima en caracteres.\n")
         elif sec == "atajos":
             partes.append(
-                "# Atajos por área: Ctrl para reproductor, Alt para conexión/chat, F para voz.\n"
-                "# F9-F12 se guardan aquí pero no se editan. Alt+F4 y F6 no se guardan.\n"
+                "# Atajos por familia: Ctrl reproductor, Alt chat, Ctrl+Shift ventanas y Alt+Shift directo.\n"
+                "# F voz y Ctrl+Alt música. F9-F12 se guardan pero no se editan. Alt+F4 y F6 no se guardan.\n"
             )
         elif sec == "ui":
             partes.append("# Interfaz: fuente del chat y opciones visibles.\n")

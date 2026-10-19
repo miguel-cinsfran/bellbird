@@ -1596,13 +1596,6 @@ class _Evento:
 
 class TestListasGuardadas(unittest.TestCase):
 
-    def test_abrir_listas_llama_a_la_ventana(self):
-        with _entorno(), mock.patch.object(
-                musica_ventana, "abrir_ventana") as abrir:
-            control = ControlMusica(_frame())
-            control.abrir_listas()
-        abrir.assert_called_once_with(control, abrir_listas=True)
-
     def test_reproducir_lista_guardada_carga_y_reproduce(self):
         with tempfile.TemporaryDirectory() as tmp:
             carpeta = Path(tmp) / "listas"
@@ -1669,18 +1662,6 @@ class TestVentanaUnica(unittest.TestCase):
             ventana = mock.Mock()
             control.registrar_ventana(ventana)
             control.abrir_ventana()
-        abrir.assert_not_called()
-        ventana.Raise.assert_called_once_with()
-        ventana.enfocar_primer_control.assert_called_once_with()
-        env.anunciar.assert_called_once_with(anuncios.TEXTO_VENTANA_ABIERTA)
-
-    def test_abrir_listas_con_una_abierta_no_crea_otra(self):
-        with _entorno() as env, mock.patch.object(
-                musica_ventana, "abrir_ventana") as abrir:
-            control = ControlMusica(_frame())
-            ventana = mock.Mock()
-            control.registrar_ventana(ventana)
-            control.abrir_listas()
         abrir.assert_not_called()
         ventana.Raise.assert_called_once_with()
         ventana.enfocar_primer_control.assert_called_once_with()

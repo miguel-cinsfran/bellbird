@@ -89,6 +89,10 @@ class TestCombinacionWindows(unittest.TestCase):
 
 class TestAtajosGlobales(unittest.TestCase):
 
+    def test_la_ventana_de_musica_no_es_global(self):
+        self.assertNotIn("musica_ventana", atajos_globales.ACCIONES)
+        self.assertNotIn("musica_listas", atajos_globales.ACCIONES)
+
     def _acciones(self):
         llamadas = []
         acciones = {accion: (lambda a=accion: llamadas.append(a))
@@ -103,8 +107,6 @@ class TestAtajosGlobales(unittest.TestCase):
             "musica_vol_mas": "ctrl+alt+up",
             "musica_vol_menos": "ctrl+alt+down",
             "musica_que_suena": "ctrl+alt+t",
-            "musica_ventana": "ctrl+alt+m",
-            "musica_listas": "ctrl+alt+l",
         }
         base.update(cambios)
         return base
@@ -114,10 +116,10 @@ class TestAtajosGlobales(unittest.TestCase):
         acciones, _llamadas = self._acciones()
         globales = AtajosGlobales(ventana, acciones)
         self.assertEqual(globales.activar(self._atajos()), [])
-        self.assertEqual(len(ventana.registrados), 8)
+        self.assertEqual(len(ventana.registrados), 6)
         ids = [llamada[1] for llamada in ventana.llamadas
                if llamada[0] == "registrar"]
-        self.assertEqual(len(set(ids)), 8)
+        self.assertEqual(len(set(ids)), 6)
         self.assertTrue(all(0xB000 <= i < 0xB000 + 100 for i in ids))
         self.assertTrue(globales.activos)
 
@@ -129,16 +131,16 @@ class TestAtajosGlobales(unittest.TestCase):
         fallidos = globales.activar(self._atajos())
         self.assertEqual(fallidos,
                          ["Ctrl+Alt+Flecha derecha", "Ctrl+Alt+T"])
-        self.assertEqual(len(ventana.registrados), 6)
+        self.assertEqual(len(ventana.registrados), 4)
         self.assertTrue(globales.activos)
 
     def test_lo_no_traducible_no_se_registra_ni_falla(self):
         ventana = _VentanaFalsa()
         acciones, _llamadas = self._acciones()
         globales = AtajosGlobales(ventana, acciones)
-        atajos = self._atajos(musica_play="ctrl+p", musica_listas="")
+        atajos = self._atajos(musica_play="ctrl+p", musica_que_suena="")
         self.assertEqual(globales.activar(atajos), [])
-        self.assertEqual(len(ventana.registrados), 6)
+        self.assertEqual(len(ventana.registrados), 4)
 
     def test_desactivar_suelta_todos_y_dos_veces_no_falla(self):
         ventana = _VentanaFalsa()
@@ -150,7 +152,7 @@ class TestAtajosGlobales(unittest.TestCase):
         self.assertFalse(globales.activos)
         sueltas = [llamada for llamada in ventana.llamadas
                    if llamada[0] == "soltar"]
-        self.assertEqual(len(sueltas), 8)
+        self.assertEqual(len(sueltas), 6)
         globales.desactivar()  # no falla ni registra nada más
         self.assertEqual([llamada for llamada in ventana.llamadas
                           if llamada[0] == "soltar"], sueltas)
@@ -161,13 +163,13 @@ class TestAtajosGlobales(unittest.TestCase):
         globales = AtajosGlobales(ventana, acciones)
         globales.activar(self._atajos())
         globales.activar(self._atajos())
-        self.assertEqual(len(ventana.registrados), 8)
+        self.assertEqual(len(ventana.registrados), 6)
         registros = [llamada for llamada in ventana.llamadas
                      if llamada[0] == "registrar"]
-        self.assertEqual(len(registros), 16)
+        self.assertEqual(len(registros), 12)
         sueltas = [llamada for llamada in ventana.llamadas
                    if llamada[0] == "soltar"]
-        self.assertEqual(len(sueltas), 8)
+        self.assertEqual(len(sueltas), 6)
 
     def test_el_evento_llama_la_accion_con_callafter(self):
         ventana = _VentanaFalsa()

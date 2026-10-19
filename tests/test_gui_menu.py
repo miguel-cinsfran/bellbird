@@ -155,7 +155,6 @@ class TestEquivalenciaMenu(unittest.TestCase):
             ("&Transmisión", "Silenciar el &micrófono de OBS", ANY, "normal"),
             ("&Transmisión", "&Avisar cuando OBS no da abasto", ANY, "check"),
             ("&Música", "&Elegir música…", ANY, "normal"),
-            ("&Música", "&Listas de música…", ANY, "normal"),
             ("&Música", "---", None, "sep"),
             ("&Música", "Reproducir o &pausar", ANY, "normal"),
             ("&Música", "&Siguiente tema", ANY, "normal"),
@@ -190,11 +189,10 @@ class TestMenuMusica(unittest.TestCase):
         _, lista = _construir_lista(accel)
         return [fila for fila in lista if fila[0] == "&Música"]
 
-    def test_doce_elementos_en_orden_con_atajos(self):
+    def test_once_elementos_en_orden_con_atajos(self):
         ANY = gui.wx.ID_ANY
         self.assertEqual([
-            ("&Música", "&Elegir música…\tCtrl+Alt+M", ANY, "normal"),
-            ("&Música", "&Listas de música…\tCtrl+Alt+L", ANY, "normal"),
+            ("&Música", "&Elegir música…\tCtrl+Shift+M", ANY, "normal"),
             ("&Música", "---", None, "sep"),
             ("&Música", "Reproducir o &pausar\tCtrl+Alt+Space", ANY, "normal"),
             ("&Música", "&Siguiente tema\tCtrl+Alt+Right", ANY, "normal"),

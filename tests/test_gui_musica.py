@@ -1759,7 +1759,8 @@ class TestAtajosGlobalesControl(unittest.TestCase):
             ControlMusica(marco)
         env.anunciar.assert_called_once_with(
             "No se pudieron usar en cualquier programa: "
-            "Ctrl+Alt+Flecha derecha. Las usa otro programa")
+            "Ctrl+Alt+Flecha derecha, Ctrl+Alt+Mayús+Flecha derecha. "
+            "Las usa otro programa")
         self.assertEqual(env.snd.sonidos, ["error"])
 
     def test_aplicar_en_caliente_activa_y_desactiva_con_anuncio(self):

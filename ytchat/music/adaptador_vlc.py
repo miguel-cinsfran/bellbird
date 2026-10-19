@@ -48,6 +48,11 @@ class AdaptadorVlc:
         self._aviso = None
         self._actual = None
         self._pedida = None
+        self._pendiente = None
+        self._pausa_pendiente = False
+        self._iniciado = False
+        self._ficha_actual = None
+        self._lock = threading.RLock()
         self._callbacks = {}
         self._cola = queue.Queue()
         self._cerrado = False
@@ -66,43 +71,56 @@ class AdaptadorVlc:
     def cargar(self, tema, ficha):
         """Empieza a sonar el tema con un reproductor nuevo y cierra el anterior.
 
-        Un enlace de YouTube no bloquea: anota la ficha pedida y resuelve el
-        audio en un hilo daemon. Si al volver ya se pidió otro tema, lo
-        descarta; si la resolución falla, avisa el fallo desde ese hilo.
+        Un enlace de YouTube no bloquea: anota la ficha pedida, cierra en el
+        acto lo que estuviera sonando y resuelve el audio en un hilo daemon.
+        Si al volver ya se pidió otro tema, lo descarta; si la resolución
+        falla, avisa el fallo desde ese hilo.
         """
-        self._pedida = ficha
-        if tema.es_enlace:
-            diagnostico.crear_hilo(
-                self._resolver_enlace, "musica-enlace",
-                args=(tema, ficha)).start()
-            return
-        if not os.path.isfile(tema.origen):
-            raise FileNotFoundError(tema.origen)
-        reproductor = self._instancia.media_player_new()
-        if reproductor is None:
-            raise RuntimeError("VLC no pudo crear un reproductor")
-        if self._salida_audio is not None:
-            reproductor.audio_output_set(self._salida_audio)
-        if self._dispositivo:
-            reproductor.audio_output_device_set(None, self._dispositivo)
-        try:
-            media = self._instancia.media_new(tema.origen)
-            reproductor.set_media(media)
-        except Exception as exc:
-            self._cola.put((_CERRAR, None, reproductor))
-            raise RuntimeError("VLC no pudo preparar el tema") from exc
-        reproductor.audio_set_volume(self._volumen)
-        self._enganchar(reproductor, ficha)
-        if reproductor.play() == -1:
-            # El nuevo no arranca: se cierra y el anterior sigue sonando igual.
-            self._cola.put((_CERRAR, None, reproductor))
-            raise RuntimeError("VLC no pudo iniciar el tema")
-        anterior = self._actual
-        self._actual = reproductor
-        if anterior is not None:
-            # Un reproductor por tema: el fin tardío del viejo sale por su
-            # propio gestor con su ficha vieja, y el coordinador lo ignora.
-            self._cola.put((_CERRAR, None, anterior))
+        with self._lock:
+            self._pedida = ficha
+            self._pausa_pendiente = False
+            if tema.es_enlace:
+                self._pendiente = ficha
+                anterior = self._actual
+                self._actual = None
+                self._iniciado = False
+                self._ficha_actual = None
+                if anterior is not None:
+                    self._cola.put((_CERRAR, None, anterior))
+                diagnostico.crear_hilo(
+                    self._resolver_enlace, "musica-enlace",
+                    args=(tema, ficha)).start()
+                return
+            self._pendiente = None
+            if not os.path.isfile(tema.origen):
+                raise FileNotFoundError(tema.origen)
+            reproductor = self._instancia.media_player_new()
+            if reproductor is None:
+                raise RuntimeError("VLC no pudo crear un reproductor")
+            if self._salida_audio is not None:
+                reproductor.audio_output_set(self._salida_audio)
+            if self._dispositivo:
+                reproductor.audio_output_device_set(None, self._dispositivo)
+            try:
+                media = self._instancia.media_new(tema.origen)
+                reproductor.set_media(media)
+            except Exception as exc:
+                self._cola.put((_CERRAR, None, reproductor))
+                raise RuntimeError("VLC no pudo preparar el tema") from exc
+            reproductor.audio_set_volume(self._volumen)
+            self._enganchar(reproductor, ficha)
+            if reproductor.play() == -1:
+                # El nuevo no arranca: se cierra y el anterior sigue sonando igual.
+                self._cola.put((_CERRAR, None, reproductor))
+                raise RuntimeError("VLC no pudo iniciar el tema")
+            anterior = self._actual
+            self._actual = reproductor
+            self._iniciado = True
+            self._ficha_actual = ficha
+            if anterior is not None:
+                # Un reproductor por tema: el fin tardío del viejo sale por su
+                # propio gestor con su ficha vieja, y el coordinador lo ignora.
+                self._cola.put((_CERRAR, None, anterior))
 
     def _resolver_enlace(self, tema, ficha):
         """Resuelve el audio del enlace y arranca el reproductor. Corre en su
@@ -111,19 +129,27 @@ class AdaptadorVlc:
             url = enlaces.url_audio(tema.origen)
         except Exception:
             logger.debug("No se pudo resolver el audio del enlace: %s", tema.origen)
-            if ficha == self._pedida:
-                self._avisar_fin(ficha, True)
+            with self._lock:
+                if self._pendiente == ficha:
+                    self._pendiente = None
+                if ficha == self._pedida:
+                    # El aviso sale por el hilo consumidor: acá se puede tener
+                    # el candado del coordinador y llamarlo acá lo colgaría.
+                    self._cola.put((_ERROR, ficha, None))
             return
-        # La ficha guardada es la pedida: si el usuario ya pidió otro tema, el
-        # resultado que llegó tarde se descarta y no toca al que suena.
-        if self._cerrado or ficha != self._pedida:
-            return
-        self._abrir_enlace(url, ficha)
+        with self._lock:
+            if self._pendiente == ficha:
+                self._pendiente = None
+            # La ficha guardada es la pedida: si el usuario ya pidió otro tema,
+            # el resultado que llegó tarde se descarta y no toca al que suena.
+            if self._cerrado or ficha != self._pedida:
+                return
+            self._abrir_enlace(url, ficha)
 
     def _abrir_enlace(self, url, ficha):
         reproductor = self._instancia.media_player_new()
         if reproductor is None:
-            self._avisar_fin(ficha, True)
+            self._cola.put((_ERROR, ficha, None))
             return
         if self._salida_audio is not None:
             reproductor.audio_output_set(self._salida_audio)
@@ -137,48 +163,96 @@ class AdaptadorVlc:
         except Exception as exc:
             logger.debug("No se pudo preparar el enlace: %s", exc)
             self._cola.put((_CERRAR, None, reproductor))
-            self._avisar_fin(ficha, True)
+            self._cola.put((_ERROR, ficha, None))
             return
         reproductor.audio_set_volume(self._volumen)
         self._enganchar(reproductor, ficha)
-        if reproductor.play() == -1:
+        preparado_en_pausa = self._pausa_pendiente
+        self._pausa_pendiente = False
+        if not preparado_en_pausa and reproductor.play() == -1:
             self._cola.put((_CERRAR, None, reproductor))
-            self._avisar_fin(ficha, True)
+            self._cola.put((_ERROR, ficha, None))
             return
         anterior = self._actual
         self._actual = reproductor
+        self._iniciado = not preparado_en_pausa
+        self._ficha_actual = ficha
         if anterior is not None:
             self._cola.put((_CERRAR, None, anterior))
 
     def pausar(self):
-        if self._actual is not None:
-            self._actual.set_pause(1)
+        with self._lock:
+            if self._actual is not None:
+                if self._iniciado:
+                    self._actual.set_pause(1)
+                return
+            if self._pendiente is not None:
+                self._pausa_pendiente = True
 
     def reanudar(self):
-        if self._actual is not None:
-            self._actual.set_pause(0)
+        with self._lock:
+            self._pausa_pendiente = False
+            if self._actual is None:
+                return
+            if self._iniciado:
+                self._actual.set_pause(0)
+                return
+            self._iniciar_actual()
+
+    def _iniciar_actual(self):
+        """Arranca el reproductor preparado que esperaba una pausa pendiente."""
+        reproductor = self._actual
+        if reproductor is None:
+            return
+        if reproductor.play() == -1:
+            ficha = self._ficha_actual
+            self._actual = None
+            self._iniciado = False
+            self._ficha_actual = None
+            self._cola.put((_CERRAR, None, reproductor))
+            if ficha is not None and ficha == self._pedida:
+                # Nunca directo: `reanudar` puede venir con el candado del
+                # coordinador tomado y el aviso lo vuelve a pedir.
+                self._cola.put((_ERROR, ficha, None))
+            return
+        self._iniciado = True
 
     def detener(self):
-        anterior = self._actual
-        self._actual = None
-        if anterior is not None:
-            self._cola.put((_CERRAR, None, anterior))
+        with self._lock:
+            # Invalidar la ficha pendiente evita que un enlace que termina de
+            # resolverse después de detener arranque a sonar igual.
+            self._pedida = None
+            self._pendiente = None
+            self._pausa_pendiente = False
+            self._iniciado = False
+            self._ficha_actual = None
+            anterior = self._actual
+            self._actual = None
+            if anterior is not None:
+                self._cola.put((_CERRAR, None, anterior))
 
     def volumen(self, valor):
-        self._volumen = valor
-        if self._actual is not None:
-            self._actual.audio_set_volume(valor)
+        with self._lock:
+            self._volumen = valor
+            if self._actual is not None:
+                self._actual.audio_set_volume(valor)
 
     def cerrar(self, plazo=2.0):
         """Cierra el reproductor actual y termina el hilo. Repetirlo no falla."""
-        if self._cerrado:
-            return
-        self._cerrado = True
-        anterior = self._actual
-        self._actual = None
-        if anterior is not None:
-            self._cola.put((_CERRAR, None, anterior))
-        self._cola.put(None)
+        with self._lock:
+            if self._cerrado:
+                return
+            self._cerrado = True
+            self._pedida = None
+            self._pendiente = None
+            self._pausa_pendiente = False
+            self._iniciado = False
+            self._ficha_actual = None
+            anterior = self._actual
+            self._actual = None
+            if anterior is not None:
+                self._cola.put((_CERRAR, None, anterior))
+            self._cola.put(None)
         if self._hilo is not None:
             self._hilo.join(timeout=plazo)
 

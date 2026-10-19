@@ -239,7 +239,8 @@ pasan de tema, `Ctrl+Alt+Flecha arriba` y `Ctrl+Alt+Flecha abajo` cambian el
 volumen de la música, y `Ctrl+Alt+T` dice qué suena.
 
 La ventana *Música* (`Ctrl+Alt+M`) busca en la carpeta mientras se escribe,
-reproduce el tema elegido o todo el resultado, muestra la cola y agrega
+reproduce el tema elegido o todo el resultado, lo pone a sonar a
+continuación del actual sin cortarlo, muestra la cola y agrega
 enlaces de YouTube, de un vídeo o de una lista entera. La ventana *Listas de
 música* (`Ctrl+Alt+L`) crea, ordena y reproduce listas propias, que se
 guardan como archivos `.m3u8`.

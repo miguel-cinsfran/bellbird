@@ -22,7 +22,9 @@ Música mientras transmites, sin abrir otro programa.
 - **La ventana Música, con Ctrl+Alt+M.** Busca en tu carpeta mientras
   escribes, aunque no pongas las tildes. Reproduce el tema elegido o todo
   el resultado, agrégalo a la cola, mira la cola y salta a cualquier tema
-  con Intro. Mientras está abierta, los atajos de música siguen andando.
+  con Intro. Con «Reproducir a continuación», el tema elegido suena al
+  terminar el actual, sin cortar nada, y después la cola sigue donde
+  iba. Mientras está abierta, los atajos de música siguen andando.
 - **Título y artista de cada archivo.** Los temas aparecen primero con el
   nombre del archivo y, unos segundos después, con el título y el artista
   que trae el propio archivo, sin que se mueva el tema en que estás. La

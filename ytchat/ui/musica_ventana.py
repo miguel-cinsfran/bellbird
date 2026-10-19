@@ -90,10 +90,10 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
         arriba.Add(derecha, 1, wx.EXPAND)
         vs = wx.BoxSizer(wx.VERTICAL)
         vs.Add(arriba, 1, wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, 12)
-        vs.Add(self.btn_cola, 0, wx.TOP | wx.LEFT | wx.RIGHT, 8)
-        vs.Add(self.lb_cola, 1, wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, 8)
+        vs.Add(self.btn_cola, 0, wx.TOP | wx.LEFT | wx.RIGHT, 12)
+        vs.Add(self.lb_cola, 1, wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, 12)
         vs.Add(wx.StaticLine(panel), 0,
-               wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, 8)
+               wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, 12)
         pie = wx.BoxSizer(wx.HORIZONTAL)
         for boton in (self.btn_enlace, self.btn_nueva, self.btn_carpeta):
             pie.Add(boton, 0, wx.RIGHT, 8)

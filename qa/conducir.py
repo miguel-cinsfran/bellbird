@@ -2475,6 +2475,35 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
                 else:
                     res.nota("musica_real: la cola se guarda como lista "
                              f"con {cantidad_cola} entradas")
+        # Agregar un tema de la biblioteca a la lista recién guardada, con
+        # el submenú del menú de «Temas».
+        _elegir("Música", "Colecciones", 0)
+        if _filas_hasta("Música", "Temas", 6, 10.0) is None:
+            _corta("musica_real: la biblioteca no mostró 6 temas para "
+                   "agregar a la lista")
+        _elegir("Música", "Temas", 0)
+        n = len(propia.anuncios)
+        _menu_contextual("Música", "Temas",
+                         f"Agregar a una lista > {_NOMBRE_LISTA}")
+        esperado = anuncios_musica.TEXTO_AGREGADO_A_LISTA.format(
+            nombre=_NOMBRE_LISTA)
+        if not propia.esperar_dicho(esperado, segundos=10, desde=n):
+            res.fallo(f"musica_real: no se anunció «{esperado}»")
+        cantidad_lista = cantidad_cola + 1
+        try:
+            agregados, _saltadas = listas_musica.cargar(
+                ruta_listas, _NOMBRE_LISTA)
+        except Exception as exc:
+            res.fallo(f"musica_real: no se pudo leer la lista tras "
+                      f"agregar: {exc}")
+        else:
+            if len(agregados) != cantidad_lista:
+                res.fallo("musica_real: la lista quedó con "
+                          f"{len(agregados)} entradas tras agregar y se "
+                          f"esperaban {cantidad_lista}")
+            else:
+                res.nota("musica_real: se agregó un tema de la carpeta a "
+                         "la lista")
         n = len(propia.anuncios)
         _menu("detener la música")
         if not propia.esperar_dicho(anuncios_musica.TEXTO_DETENIDA,
@@ -2499,10 +2528,10 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
             _corta(f"musica_real: «Colecciones» ofrece {elegidas} en vez "
                    f"de {esperadas}")
         _elegir("Música", "Colecciones", 1)
-        filas = _filas_hasta("Música", "Temas", cantidad_cola, 10.0)
-        if filas is None or len(filas) != cantidad_cola:
+        filas = _filas_hasta("Música", "Temas", cantidad_lista, 10.0)
+        if filas is None or len(filas) != cantidad_lista:
             _corta("musica_real: la lista no trajo "
-                   f"{cantidad_cola} temas a «Temas»")
+                   f"{cantidad_lista} temas a «Temas»")
         # El Intro de verdad, como en el paso j, en lugar del menú
         # contextual: reproduce la lista elegida en «Colecciones».
         try:
@@ -2525,13 +2554,13 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
                 if not suena:
                     res.fallo("musica_real: la lista no se oye")
             cola = _filas_hasta("Música", "Cola de reproducción",
-                                cantidad_cola, 10.0) or []
-            if len(cola) != cantidad_cola:
+                                cantidad_lista, 10.0) or []
+            if len(cola) != cantidad_lista:
                 res.fallo("musica_real: la cola tiene "
-                          f"{len(cola)} entradas en vez de {cantidad_cola}")
+                          f"{len(cola)} entradas en vez de {cantidad_lista}")
             else:
                 res.nota("musica_real: la lista suena con sus "
-                         f"{cantidad_cola} entradas")
+                         f"{cantidad_lista} entradas")
         _elegir("Música", "Colecciones", 0)
         if _filas_hasta("Música", "Temas", 6, 10.0) is None:
             _corta("musica_real: al volver a la carpeta no aparecen 6 temas")
@@ -4936,6 +4965,7 @@ SUPERFICIES = {
     "gui_musica.py": "musica",
     "musica_dialogo_enlace.py": "musica",
     "musica_colecciones.py": "musica",
+    "musica_editor_lista.py": "musica",
     "musica_menus.py": "musica",
     "musica_ventana.py": "musica",
     "musica_ventana_acciones.py": "musica",

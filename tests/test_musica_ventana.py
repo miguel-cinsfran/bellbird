@@ -13,7 +13,8 @@ from unittest import mock
 from ytchat.music import anuncios, listas
 from ytchat.music.biblioteca import Biblioteca
 from ytchat.music.modelo import EstadoMusica, Tema
-from ytchat.ui import (musica_dialogo_enlace, musica_menus, musica_ventana,
+from ytchat.ui import (musica_dialogo_enlace, musica_editor_lista,
+                       musica_menus, musica_ventana,
                        musica_ventana_acciones)
 from tests.ventanas_prueba import destruir
 
@@ -124,6 +125,9 @@ class ControlFalso:
 
     def agregar_a_lista(self, nombre, temas):
         self.llamadas.append(("agregar_a_lista", nombre, tuple(temas)))
+
+    def guardar_lista(self, nombre, temas, viejo=None):
+        self.llamadas.append(("guardar_lista", nombre, tuple(temas), viejo))
 
     def quitar_de_lista(self, nombre, indice):
         self.llamadas.append(("quitar_de_lista", nombre, indice))
@@ -434,6 +438,8 @@ class TestVentanaMusica(unittest.TestCase):
                     self.ventana,
                     "_agregar_coleccion_a_cola") as agregar, \
                 mock.patch.object(
+                    self.ventana, "_editar_lista") as editar, \
+                mock.patch.object(
                     self.ventana, "_renombrar_lista") as renombrar, \
                 mock.patch.object(
                     self.ventana, "_borrar_lista") as borrar, \
@@ -441,12 +447,14 @@ class TestVentanaMusica(unittest.TestCase):
                     self.ventana, "_nueva_lista") as nueva:
             for accion in (musica_menus.ACCION_REPRODUCIR_COLECCION,
                            musica_menus.ACCION_AGREGAR_COLECCION,
+                           musica_menus.ACCION_EDITAR_LISTA,
                            musica_menus.ACCION_RENOMBRAR_LISTA,
                            musica_menus.ACCION_BORRAR_LISTA,
                            musica_menus.ACCION_NUEVA_LISTA):
                 self.ventana._accion_coleccion(accion)
         reproducir.assert_called_once_with()
         agregar.assert_called_once_with()
+        editar.assert_called_once_with()
         renombrar.assert_called_once_with()
         borrar.assert_called_once_with()
         nueva.assert_called_once_with()
@@ -715,12 +723,16 @@ class TestVentanaMusica(unittest.TestCase):
     # ── Menús ──────────────────────────────────────────────────────────────
 
     def test_entradas_exactas_de_la_biblioteca(self):
+        entradas = musica_menus.entradas_biblioteca(False, ("Mía", "Otra"))
         self.assertEqual(
-            [etiqueta for etiqueta, _accion
-             in musica_menus.entradas_biblioteca(False)],
+            [etiqueta for etiqueta, _accion in entradas],
             ["Reproducir &ahora", "Reproducir a &continuación",
              "A&gregar a la cola", "Reproducir &todo desde aquí",
-             "Agregar a una &lista…"])
+             "Agregar a una &lista"])
+        submenu = entradas[-1][1]
+        self.assertEqual(
+            [etiqueta for etiqueta, _accion in submenu],
+            ["Mía", "Otra", "&Nueva lista…"])
         self.assertEqual(
             [etiqueta for etiqueta, _accion
              in musica_menus.entradas_biblioteca(True)][-1:],
@@ -734,7 +746,7 @@ class TestVentanaMusica(unittest.TestCase):
         self.assertEqual(
             [etiqueta for etiqueta, _accion
              in musica_menus.entradas_colecciones(True)],
-            ["&Reproducir", "A&gregar a la cola",
+            ["&Reproducir", "A&gregar a la cola", "&Editar la lista…",
              "Re&nombrar la lista…", "&Borrar la lista…",
              "&Nueva lista…"])
 
@@ -754,9 +766,12 @@ class TestVentanaMusica(unittest.TestCase):
         self.ventana._accion_biblioteca(musica_menus.ACCION_CONTINUACION)
         self.ventana._accion_biblioteca(musica_menus.ACCION_AGREGAR)
         self.ventana._accion_biblioteca(musica_menus.ACCION_TODO_DESDE_AQUI)
+        self.ventana._accion_biblioteca(
+            (musica_menus.ACCION_AGREGAR_A_LISTA, "Mía"))
         self.assertIn(("reproducir_ahora", (tema,)), control.llamadas)
         self.assertIn(("poner_a_continuacion", (tema,)), control.llamadas)
         self.assertIn(("agregar_al_final", (tema,)), control.llamadas)
+        self.assertIn(("agregar_a_lista", "Mía", (tema,)), control.llamadas)
         self.assertIn(
             ("reproducir_desde_aqui", tuple(control._biblio.temas()), 1),
             control.llamadas)
@@ -768,17 +783,17 @@ class TestVentanaMusica(unittest.TestCase):
             temas_listas={"Mía": (Tema("C:/Musica/rock.mp3", "Rock"),)})
         self._abrir(control, abrir_listas=True)
         self.ventana.lb_temas.SetSelection(0)
-        with mock.patch.object(self.ventana, "_agregar_a_lista") as agregar, \
+        with mock.patch.object(self.ventana, "_editar_lista") as editar, \
                 mock.patch.object(self.ventana, "_quitar_lista") as quitar, \
                 mock.patch.object(self.ventana, "_renombrar_lista") as renombrar, \
                 mock.patch.object(self.ventana, "_borrar_lista") as borrar:
-            for accion in (musica_menus.ACCION_AGREGAR_A_LISTA,
+            for accion in (musica_menus.ACCION_EDITAR_LISTA,
                            musica_menus.ACCION_QUITAR_DE_LISTA,
                            musica_menus.ACCION_RENOMBRAR_LISTA,
                            musica_menus.ACCION_BORRAR_LISTA):
                 self.ventana._accion_biblioteca(accion)
         tema = self.ventana._temas_filtrados[0]
-        agregar.assert_called_once_with(tema)
+        editar.assert_called_once_with()
         quitar.assert_called_once_with(tema)
         renombrar.assert_called_once_with()
         borrar.assert_called_once_with()
@@ -816,6 +831,33 @@ class TestVentanaMusica(unittest.TestCase):
                 return_value="Copia"):
             self.ventana._accion_cola(musica_menus.ACCION_GUARDAR_COLA)
         self.assertIn(("guardar_cola_como_lista", "Copia"), control.llamadas)
+
+    def test_nueva_lista_abre_el_editor_y_guarda(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock", "Jazz"))
+        self._abrir(control)
+        temas = (control._biblio.temas()[0],)
+        with mock.patch.object(
+                musica_editor_lista, "pedir_lista",
+                return_value=("Mía", temas)) as pedir:
+            self.ventana._nueva_lista()
+        self.assertEqual(pedir.call_args[0][1], "")
+        self.assertIn(("guardar_lista", "Mía", temas, None), control.llamadas)
+
+    def test_editar_la_lista_pide_y_guarda_renombrando(self):
+        temas = (Tema("C:/Musica/rock.mp3", "Rock"),)
+        self._crear_lista("Mía", temas)
+        control = ControlFalso(
+            carpeta_listas=self.carpeta_listas,
+            temas_listas={"Mía": temas})
+        self._abrir(control, abrir_listas=True)
+        nuevo = (Tema("C:/Musica/jazz.mp3", "Jazz"),)
+        with mock.patch.object(
+                musica_editor_lista, "pedir_lista",
+                return_value=("Otra", nuevo)) as pedir:
+            self.ventana._editar_lista()
+        self.assertEqual(pedir.call_args[0][1], "Mía")
+        self.assertIn(("guardar_lista", "Otra", nuevo, "Mía"),
+                      control.llamadas)
 
     # ── Cola: refresco y «Ir al que suena» ─────────────────────────────────
 

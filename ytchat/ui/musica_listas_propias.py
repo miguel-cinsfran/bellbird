@@ -44,6 +44,20 @@ class ListasPropiasMusica:
             return
         self._avisar(anuncios.aviso_lista_guardada(limpio))
 
+    def guardar_lista(self, nombre, temas, viejo=None) -> None:
+        """Crea o edita una lista con los temas marcados en el editor."""
+        carpeta = self.carpeta_listas()
+        try:
+            if viejo is None:
+                limpio = listas.crear(carpeta, nombre)
+            else:
+                limpio = listas.renombrar(carpeta, viejo, nombre)
+            limpio = listas.guardar(carpeta, limpio, tuple(temas))
+        except listas.ErrorListas as exc:
+            self._avisar(anuncios.aviso_error_listas(str(exc)))
+            return
+        self._avisar(anuncios.aviso_lista_guardada(limpio))
+
     def agregar_a_lista(self, nombre, temas) -> None:
         """Suma temas al final de una lista que ya existe."""
         try:

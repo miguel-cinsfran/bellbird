@@ -12,7 +12,7 @@ import wx
 
 from ytchat.core import diagnostico
 from ytchat.music import vista
-from ytchat.ui import musica_menus
+from ytchat.ui import musica_editor_lista, musica_menus
 from ytchat.ui import musica_ventana_acciones as _acciones
 from ytchat.ui.gui import anunciar
 
@@ -168,12 +168,38 @@ class ColeccionesVentanaMusica:
             self._reproducir_coleccion()
         elif accion == musica_menus.ACCION_AGREGAR_COLECCION:
             self._agregar_coleccion_a_cola()
+        elif accion == musica_menus.ACCION_EDITAR_LISTA:
+            self._editar_lista()
         elif accion == musica_menus.ACCION_RENOMBRAR_LISTA:
             self._renombrar_lista()
         elif accion == musica_menus.ACCION_BORRAR_LISTA:
             self._borrar_lista()
         elif accion == musica_menus.ACCION_NUEVA_LISTA:
             self._nueva_lista()
+
+    def _nueva_lista(self, tema_marcado=None):
+        self._editar_lista_guardada(None, tema_marcado)
+
+    def _editar_lista(self):
+        nombre = self._coleccion_elegida()
+        if nombre is not None:
+            self._editar_lista_guardada(nombre)
+
+    def _editar_lista_guardada(self, viejo, tema_marcado=None):
+        if viejo is None:
+            temas_lista = (tema_marcado,) if tema_marcado is not None else ()
+        else:
+            temas_lista = tuple(self._control.temas_de_lista(viejo) or ())
+        temas_carpeta = tuple(self._biblioteca.temas()) \
+            if self._biblioteca is not None else ()
+        datos = musica_editor_lista.pedir_lista(
+            self, viejo or "", temas_carpeta, temas_lista)
+        if datos is None:
+            return
+        nombre, temas = datos
+        self._control.guardar_lista(nombre, list(temas), viejo)
+        self._reload_colecciones(preferir=nombre)
+        self._cargar_fuente()
 
     def _menu_colecciones(self):
         musica_menus.mostrar_menu(

@@ -17,10 +17,8 @@ logger = diagnostico.obtener_logger(__name__)
 
 TITULO = "Música"
 TITULO_NUEVA = "Nueva lista"
-TITULO_AGREGAR = "Agregar a una lista"
 TITULO_RENOMBRAR = "Renombrar lista"
 TEXTO_NOMBRE = "Nombre de la lista:"
-TEXTO_ELEGIR = "Lista:"
 
 
 def _validar_nombre(nombre):
@@ -36,14 +34,6 @@ def _pedir_nombre(parent, titulo, valor=""):
         if dialogo.ShowModal() != wx.ID_OK:
             return None
         return dialogo.GetValue()
-
-
-def _elegir_lista(parent, nombres):
-    with wx.SingleChoiceDialog(
-            parent, TEXTO_ELEGIR, TITULO_AGREGAR, list(nombres)) as dialogo:
-        if dialogo.ShowModal() != wx.ID_OK:
-            return None
-        return dialogo.GetStringSelection()
 
 
 def _confirmar_borrar(parent, nombre):
@@ -69,8 +59,16 @@ class AccionesVentanaMusica:
         tema, indice = self._con_tema()
         if tema is None:
             return
+        if isinstance(accion, tuple):
+            self._control.agregar_a_lista(accion[1], [tema])
+            return
+        funcion = self._acciones_biblioteca(tema, indice).get(accion)
+        if funcion is not None:
+            funcion()
+
+    def _acciones_biblioteca(self, tema, indice):
         control = self._control
-        acciones = {
+        return {
             musica_menus.ACCION_AHORA:
                 lambda: control.reproducir_ahora([tema]),
             musica_menus.ACCION_CONTINUACION:
@@ -80,16 +78,13 @@ class AccionesVentanaMusica:
             musica_menus.ACCION_TODO_DESDE_AQUI:
                 lambda: control.reproducir_desde_aqui(
                     self._temas_filtrados, indice),
-            musica_menus.ACCION_AGREGAR_A_LISTA:
-                lambda: self._agregar_a_lista(tema),
+            musica_menus.ACCION_NUEVA_LISTA_CON_TEMA:
+                lambda: self._nueva_lista(tema),
             musica_menus.ACCION_QUITAR_DE_LISTA:
                 lambda: self._quitar_lista(tema),
             musica_menus.ACCION_RENOMBRAR_LISTA: self._renombrar_lista,
             musica_menus.ACCION_BORRAR_LISTA: self._borrar_lista,
         }
-        funcion = acciones.get(accion)
-        if funcion is not None:
-            funcion()
 
     def _leer_nombres(self):
         try:
@@ -97,24 +92,6 @@ class AccionesVentanaMusica:
         except Exception as exc:
             logger.debug("No se pudieron leer las listas de música: %s", exc)
             return []
-
-    def _agregar_a_lista(self, tema):
-        nombres = self._leer_nombres()
-        if nombres:
-            nombre = _elegir_lista(self, nombres)
-            if nombre is not None:
-                self._control.agregar_a_lista(nombre, [tema])
-            return
-        nombre = _pedir_nombre(self, TITULO_AGREGAR)
-        if nombre is None:
-            return
-        limpio = _validar_nombre(nombre)
-        if limpio is None:
-            self._control.crear_lista(nombre)
-            return
-        self._control.crear_lista(limpio)
-        self._reload_colecciones(preferir=self._fuente)
-        self._control.agregar_a_lista(limpio, [tema])
 
     def _quitar_lista(self, tema):
         if self._fuente is None:
@@ -217,24 +194,14 @@ class AccionesVentanaMusica:
         if self._con_tema()[0] is not None:
             musica_menus.mostrar_menu(
                 self.lb_temas,
-                musica_menus.entradas_biblioteca(self._fuente is not None),
+                musica_menus.entradas_biblioteca(
+                    self._fuente is not None, self._leer_nombres()),
                 self._accion_biblioteca)
 
     def _menu_cola(self):
         if self._indice_cola() is not None:
             musica_menus.mostrar_menu(
                 self.lb_cola, musica_menus.entradas_cola(), self._accion_cola)
-
-    def _nueva_lista(self):
-        nombre = _pedir_nombre(self, TITULO_NUEVA)
-        if nombre is None:
-            return
-        limpio = _validar_nombre(nombre)
-        if limpio is None:
-            self._control.crear_lista(nombre)
-            return
-        self._control.crear_lista(limpio)
-        self._reload_colecciones(preferir=self._fuente)
 
     def _guardar_cola(self):
         if not (self._control.cola_actual() or ()):

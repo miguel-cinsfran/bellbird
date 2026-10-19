@@ -163,7 +163,7 @@ def _describir(ventana, profundidad=0):
         except Exception: pass
     # El contenido de las listas es lo que de verdad lee el usuario, así que
     # sin esto no se puede comprobar que un mensaje llegó al chat. Los
-    # desplegables también: «Qué mostrar» elige la fuente de la Biblioteca.
+    # desplegables también: «Colecciones» elige la fuente de la Biblioteca.
     if isinstance(ventana, (wx.ListBox, wx.Choice)):
         try:
             datos["items"] = list(ventana.GetStrings())
@@ -692,30 +692,39 @@ class Sonda:
                     # `ProcessEvent`, para que la orden falle de verdad.
                     try:
                         estado["llamado"] = True
-                        buscada = _limpiar_etiqueta(orden.get("entrada"))
+                        partes = [parte.strip() for parte in
+                                  str(orden.get("entrada") or "").split(">")]
+                        actual = menu
                         elegido = None
                         etiquetas = []
-                        for item in menu.GetMenuItems():
-                            if item.IsSeparator():
-                                continue
-                            etiqueta = item.GetItemLabelText()
-                            etiquetas.append(etiqueta)
-                            if _limpiar_etiqueta(etiqueta) == buscada:
-                                elegido = item
-                                break
-                        if elegido is None:
-                            estado["falta"] = etiquetas
-                            return
+                        for parte in partes:
+                            buscada = _limpiar_etiqueta(parte)
+                            elegido = None
+                            etiquetas = []
+                            for item in actual.GetMenuItems():
+                                if item.IsSeparator():
+                                    continue
+                                etiqueta = item.GetItemLabelText()
+                                etiquetas.append(etiqueta)
+                                if _limpiar_etiqueta(etiqueta) == buscada:
+                                    elegido = item
+                                    break
+                            if elegido is None:
+                                estado["falta"] = etiquetas
+                                return
+                            submenu = elegido.GetSubMenu()
+                            if submenu is not None:
+                                actual = submenu
                         if (orden.get("responder_ya")
                                 and not estado["respondido"]):
                             self.responder(id_orden, True)
                             estado["respondido"] = True
                         evento = wx.CommandEvent(
                             wx.EVT_MENU.typeId, elegido.GetId())
-                        evento.SetEventObject(menu)
+                        evento.SetEventObject(actual)
                         # `wx.Menu` es un `wx.EvtHandler`: despacha su
                         # `EVT_MENU` igual que el frame.
-                        menu.ProcessEvent(evento)
+                        actual.ProcessEvent(evento)
                     except Exception as exc:
                         estado["error"] = repr(exc)
 

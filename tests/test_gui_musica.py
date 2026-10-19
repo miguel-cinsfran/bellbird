@@ -20,6 +20,10 @@ from ytchat.music import memoria
 from ytchat.music.modelo import (AVANZO, FIN_LISTA, REINICIADO, TEMA_FALLIDO,
                                  EstadoMusica, Resultado, Tema)
 from ytchat.ui import gui_musica
+from ytchat.ui import musica_enlaces
+from ytchat.ui import musica_indice
+from ytchat.ui import musica_listas_propias
+from ytchat.ui import musica_memoria
 from ytchat.ui import gui_musica_ventana
 from ytchat.ui.gui_musica import ControlMusica, nuevo_volumen, toca_pausar
 
@@ -156,9 +160,9 @@ def _entorno(fabrica=None):
                 mock.patch.object(gui_musica.anuncio_ajuste, "COMPARTIDO",
                                    gui_musica.anuncio_ajuste.AnuncioAjuste()), \
                 mock.patch.object(gui_musica, "anunciar") as anunciar, \
-                mock.patch.object(gui_musica.paths, "estado_musica",
+                mock.patch.object(musica_memoria.paths, "estado_musica",
                                    return_value=ruta_memoria), \
-                mock.patch.object(gui_musica.paths, "cache_etiquetas_musica",
+                mock.patch.object(musica_indice.paths, "cache_etiquetas_musica",
                                    return_value=ruta_cache), \
                 mock.patch.object(gui_musica, "_snd", snd):
             yield SimpleNamespace(anunciar=anunciar, snd=snd, creados=creados,
@@ -621,10 +625,10 @@ class TestEtiquetasSegundoPlano(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             self._carpeta_con(tmp)
             with _entorno() as env, \
-                    mock.patch.object(gui_musica.motor_vlc, "disponible",
+                    mock.patch.object(musica_indice.motor_vlc, "disponible",
                                       return_value=True), \
                     mock.patch.object(
-                        gui_musica, "leer_etiquetas_vlc",
+                        musica_indice, "leer_etiquetas_vlc",
                         return_value={"titulo": "Tema", "artista": "Ana",
                                       "album": "Disco"}):
                 control = ControlMusica(_frame(musica_carpeta=tmp))
@@ -670,10 +674,10 @@ class TestEtiquetasSegundoPlano(unittest.TestCase):
             with _entorno() as env, \
                     mock.patch.object(gui_musica.diagnostico, "crear_hilo",
                                       crear_hilo), \
-                    mock.patch.object(gui_musica.motor_vlc, "disponible",
+                    mock.patch.object(musica_indice.motor_vlc, "disponible",
                                       return_value=True), \
                     mock.patch.object(
-                        gui_musica, "leer_etiquetas_vlc",
+                        musica_indice, "leer_etiquetas_vlc",
                         side_effect=AssertionError("no debe leer")):
                 previa = CacheEtiquetas(env.cache)
                 for nombre in ("a.mp3", "b.mp3"):
@@ -700,10 +704,10 @@ class TestEtiquetasSegundoPlano(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             self._carpeta_con(tmp, ("a.mp3",))
             with _entorno(), \
-                    mock.patch.object(gui_musica.motor_vlc, "disponible",
+                    mock.patch.object(musica_indice.motor_vlc, "disponible",
                                       return_value=True), \
                     mock.patch.object(
-                        gui_musica, "leer_etiquetas_vlc",
+                        musica_indice, "leer_etiquetas_vlc",
                         return_value={"titulo": "", "artista": "Ana"}):
                 control = ControlMusica(_frame(musica_carpeta=tmp))
                 recibidas = []
@@ -717,9 +721,9 @@ class TestEtiquetasSegundoPlano(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             self._carpeta_con(tmp, nombres)
             with _entorno(), \
-                    mock.patch.object(gui_musica.motor_vlc, "disponible",
+                    mock.patch.object(musica_indice.motor_vlc, "disponible",
                                       return_value=True), \
-                    mock.patch.object(gui_musica, "leer_etiquetas_vlc",
+                    mock.patch.object(musica_indice, "leer_etiquetas_vlc",
                                       return_value={"titulo": "T"}):
                 control = ControlMusica(_frame(musica_carpeta=tmp))
                 control._coordinador = mock.Mock()
@@ -732,7 +736,7 @@ class TestEtiquetasSegundoPlano(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             self._carpeta_con(tmp, ("a.mp3",))
             with _entorno(), \
-                    mock.patch.object(gui_musica.motor_vlc, "disponible",
+                    mock.patch.object(musica_indice.motor_vlc, "disponible",
                                       return_value=True):
                 control = ControlMusica(_frame(musica_carpeta=tmp))
                 control._coordinador = mock.Mock()
@@ -743,7 +747,7 @@ class TestEtiquetasSegundoPlano(unittest.TestCase):
                     control._generacion_etiquetas += 1
                     return {"titulo": "Tema"}
 
-                with mock.patch.object(gui_musica, "leer_etiquetas_vlc",
+                with mock.patch.object(musica_indice, "leer_etiquetas_vlc",
                                        side_effect=leer_y_cambiar):
                     recibidas = []
                     control.biblioteca(recibidas.append)
@@ -763,7 +767,7 @@ class TestEtiquetasSegundoPlano(unittest.TestCase):
             with _entorno(), \
                     mock.patch.object(gui_musica.diagnostico, "crear_hilo",
                                       crear_hilo), \
-                    mock.patch.object(gui_musica.motor_vlc, "disponible",
+                    mock.patch.object(musica_indice.motor_vlc, "disponible",
                                       return_value=False):
                 control = ControlMusica(_frame(musica_carpeta=tmp))
                 recibidas = []
@@ -994,7 +998,7 @@ class TestEnlace(unittest.TestCase):
         temas = (Tema("https://www.youtube.com/watch?v=uno", "Uno"),
                  Tema("https://www.youtube.com/watch?v=dos", "Dos"))
         with _entorno() as env, \
-                mock.patch.object(gui_musica.enlaces, "expandir",
+                mock.patch.object(musica_enlaces.enlaces, "expandir",
                                   return_value=temas):
             control = ControlMusica(_frame())
             control.agregar_enlace("https://www.youtube.com/playlist?list=PL1")
@@ -1005,7 +1009,7 @@ class TestEnlace(unittest.TestCase):
     def test_error_del_enlace_avisa_con_sonido(self):
         from ytchat.music.enlaces import ErrorEnlace
         with _entorno() as env, \
-                mock.patch.object(gui_musica.enlaces, "expandir",
+                mock.patch.object(musica_enlaces.enlaces, "expandir",
                                   side_effect=ErrorEnlace("El enlace no tiene vídeos")):
             control = ControlMusica(_frame())
             control.agregar_enlace("https://youtu.be/x")
@@ -1015,9 +1019,9 @@ class TestEnlace(unittest.TestCase):
 
     def test_error_inesperado_avisa_lo_mismo(self):
         with _entorno() as env, \
-                mock.patch.object(gui_musica.enlaces, "expandir",
+                mock.patch.object(musica_enlaces.enlaces, "expandir",
                                   side_effect=RuntimeError("boom")), \
-                mock.patch.object(gui_musica.logger, "exception"):
+                mock.patch.object(musica_enlaces.logger, "exception"):
             control = ControlMusica(_frame())
             control.agregar_enlace("https://youtu.be/x")
         self.assertEqual(env.anunciar.call_args_list[-1].args[0],
@@ -1229,7 +1233,7 @@ class TestAbrirEnlace(unittest.TestCase):
 
     def _abrir(self, modo):
         with _entorno() as env, \
-                mock.patch.object(gui_musica.enlaces, "expandir",
+                mock.patch.object(musica_enlaces.enlaces, "expandir",
                                   return_value=self.TEMAS):
             control = self._con_cola("X")
             env.anunciar.reset_mock()
@@ -1259,7 +1263,7 @@ class TestAbrirEnlace(unittest.TestCase):
 
     def test_enlace_que_no_es_de_youtube_no_expande(self):
         with _entorno() as env, \
-                mock.patch.object(gui_musica.enlaces, "expandir") as expandir:
+                mock.patch.object(musica_enlaces.enlaces, "expandir") as expandir:
             ControlMusica(_frame()).abrir_enlace(
                 "https://ejemplo.test/video", "final")
         expandir.assert_not_called()
@@ -1269,7 +1273,7 @@ class TestAbrirEnlace(unittest.TestCase):
 
     def test_agregar_enlace_sigue_siendo_el_modo_final(self):
         with _entorno() as env, \
-                mock.patch.object(gui_musica.enlaces, "expandir",
+                mock.patch.object(musica_enlaces.enlaces, "expandir",
                                   return_value=self.TEMAS):
             control = self._con_cola("X")
             env.anunciar.reset_mock()
@@ -1300,7 +1304,7 @@ class TestListasPropias(unittest.TestCase):
             temas = self._temas_reales(tmp, "A", "B")
             carpeta = self._carpeta(tmp)
             with _entorno() as env, \
-                    mock.patch.object(gui_musica.paths, "listas_musica",
+                    mock.patch.object(musica_listas_propias.paths, "listas_musica",
                                       return_value=carpeta):
                 control = ControlMusica(_frame())
                 control.reproducir_temas(temas, en_orden=True)
@@ -1314,7 +1318,7 @@ class TestListasPropias(unittest.TestCase):
     def test_guardar_cola_vacia_avisa(self):
         with tempfile.TemporaryDirectory() as tmp:
             with _entorno() as env, \
-                    mock.patch.object(gui_musica.paths, "listas_musica",
+                    mock.patch.object(musica_listas_propias.paths, "listas_musica",
                                       return_value=self._carpeta(tmp)):
                 ControlMusica(_frame()).guardar_cola_como_lista("Rock")
         env.anunciar.assert_called_once_with("No hay temas en la cola")
@@ -1325,7 +1329,7 @@ class TestListasPropias(unittest.TestCase):
             carpeta = self._carpeta(tmp)
             listas.guardar(carpeta, "Rock", (temas[0],))
             with _entorno() as env, \
-                    mock.patch.object(gui_musica.paths, "listas_musica",
+                    mock.patch.object(musica_listas_propias.paths, "listas_musica",
                                       return_value=carpeta):
                 control = ControlMusica(_frame())
                 control.agregar_a_lista("Rock", [temas[1]])
@@ -1343,7 +1347,7 @@ class TestListasPropias(unittest.TestCase):
             temas = self._temas_reales(tmp, "A")
             carpeta = self._carpeta(tmp)
             with _entorno() as env, \
-                    mock.patch.object(gui_musica.paths, "listas_musica",
+                    mock.patch.object(musica_listas_propias.paths, "listas_musica",
                                       return_value=carpeta):
                 control = ControlMusica(_frame())
                 control.crear_lista("Rock")
@@ -1367,7 +1371,7 @@ class TestListasPropias(unittest.TestCase):
     def test_error_de_listas_avisa_con_sonido(self):
         with tempfile.TemporaryDirectory() as tmp:
             with _entorno() as env, \
-                    mock.patch.object(gui_musica.paths, "listas_musica",
+                    mock.patch.object(musica_listas_propias.paths, "listas_musica",
                                       return_value=self._carpeta(tmp)):
                 ControlMusica(_frame()).crear_lista("")
         env.anunciar.assert_called_once_with("Escribe un nombre para la lista")
@@ -1593,7 +1597,7 @@ class TestListasGuardadas(unittest.TestCase):
             sonoro.write_bytes(b"")
             listas.guardar(carpeta, "Mía", (Tema(str(sonoro.resolve()), "A"),))
             with _entorno() as env, \
-                    mock.patch.object(gui_musica.paths, "listas_musica",
+                    mock.patch.object(musica_listas_propias.paths, "listas_musica",
                                       return_value=carpeta):
                 control = ControlMusica(_frame())
                 control.reproducir_lista_guardada("Mía")
@@ -1612,7 +1616,7 @@ class TestListasGuardadas(unittest.TestCase):
                 "#EXTM3U\n#EXTINF:-1,A\n"
                 f"{sonoro.resolve()}\nno-existe.mp3\n", encoding="utf-8")
             with _entorno() as env, \
-                    mock.patch.object(gui_musica.paths, "listas_musica",
+                    mock.patch.object(musica_listas_propias.paths, "listas_musica",
                                       return_value=carpeta):
                 ControlMusica(_frame()).reproducir_lista_guardada("Mezcla")
         self.assertEqual(env.anunciar.call_args_list[0].args[0],
@@ -1622,7 +1626,7 @@ class TestListasGuardadas(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             carpeta = Path(tmp) / "listas"
             with _entorno() as env, \
-                    mock.patch.object(gui_musica.paths, "listas_musica",
+                    mock.patch.object(musica_listas_propias.paths, "listas_musica",
                                       return_value=carpeta):
                 ControlMusica(_frame()).reproducir_lista_guardada("No está")
         self.assertEqual(env.snd.sonidos, ["error"])

@@ -8,30 +8,24 @@ de arriba, con pruebas sin ventana.
 
 from __future__ import annotations
 
-import os
-from pathlib import Path
-
 import wx
 
 from ytchat.core import anuncio_ajuste
 from ytchat.core import config as cfg
 from ytchat.core import diagnostico
-from ytchat.core import paths
 from ytchat.music import anuncios
-from ytchat.music import enlaces
-from ytchat.music import listas
-from ytchat.music import memoria
-from ytchat.music.adaptador_vlc import (
-    AdaptadorVlc, MotorNoDisponible, leer_etiquetas_vlc)
-from ytchat.music.biblioteca import Biblioteca, ErrorBiblioteca
+from ytchat.music.adaptador_vlc import AdaptadorVlc, MotorNoDisponible
 from ytchat.music.coordinador import Coordinador
-from ytchat.music.etiquetas import CacheEtiquetas
 from ytchat.music.guardado_diferido import GuardadoDiferido
 from ytchat.music.modelo import (
-    AVANZO, FIN_LISTA, EstadoMusica, Resultado, SIN_TEMA, Tema)
-from ytchat.player import motor_vlc
+    AVANZO, FIN_LISTA, EstadoMusica, Resultado, SIN_TEMA)
 from ytchat.ui import atajos_globales
 from ytchat.ui.gui import anunciar
+from ytchat.ui.musica_cola import ColaMusica
+from ytchat.ui.musica_enlaces import EnlacesMusica
+from ytchat.ui.musica_indice import IndiceMusica, TEXTO_CARPETA_INEXISTENTE
+from ytchat.ui.musica_listas_propias import ListasPropiasMusica
+from ytchat.ui.musica_memoria import MemoriaMusica
 from ytchat.voice import sound_player as _snd
 
 
@@ -47,11 +41,6 @@ _ACCIONES_ATAJO = (
     "musica_play", "musica_siguiente", "musica_anterior",
     "musica_vol_mas", "musica_vol_menos", "musica_que_suena",
 )
-
-TEXTO_CARPETA_INEXISTENTE = (
-    "No se encontró la carpeta de música. Elige otra en Preferencias, "
-    "página Música")
-
 
 def nuevo_volumen(actual, paso, minimo=VOLUMEN_MIN, maximo=VOLUMEN_MAX) -> int:
     """Volumen nuevo tras sumar un paso, recortado a sus límites. Función pura."""
@@ -90,7 +79,8 @@ def manejar_atajo_de_tecla(control, combos, event) -> bool:
     return True
 
 
-class ControlMusica:
+class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica,
+                    ListasPropiasMusica, MemoriaMusica):
     """Acciones de música del menú y los atajos, con el motor en un hilo."""
 
     def __init__(self, frame):
@@ -163,161 +153,7 @@ class ControlMusica:
         self._avisar(anuncios.aviso_que_suena(
             self._coordinador.estado(), self._incluir_artista()))
 
-    # ── Reproducir listas y cola desde la ventana ────────────────────────────
-
-    def reproducir_temas(self, temas, en_orden: bool = False) -> None:
-        """Pone la lista como cola y empieza por el primer tema."""
-        self._asegurar_motor(lambda: self._iniciar_lista(tuple(temas), en_orden))
-
-    def reproducir_temas_desde(self, temas, indice) -> None:
-        """Pone la lista como cola, en orden, y empieza por el elegido.
-
-        Así, al terminar el elegido, sigue con los siguientes del resultado.
-        """
-        self._asegurar_motor(
-            lambda: self._iniciar_lista_desde(tuple(temas), indice))
-
-    def agregar_temas(self, temas) -> None:
-        """Suma la lista al final de la cola sin cortar lo que suena."""
-        self._asegurar_motor(lambda: self._agregar_a_la_cola(tuple(temas)))
-
-    def reproducir_a_continuacion(self, tema) -> None:
-        """Mete el tema justo detrás del que suena, sin cortar nada."""
-        self._asegurar_motor(lambda: self._poner_a_continuacion(tema))
-
-    def reproducir_desde(self, indice) -> None:
-        """Empieza por el tema de la cola actual que ocupa ese índice."""
-        self._asegurar_motor(lambda: self._reproducir_de_la_cola(indice))
-
-    # ── Operaciones de la cola de la ventana nueva ───────────────────────────
-
-    def reproducir_ahora(self, temas) -> None:
-        """Mete la lista detrás del tema actual y empieza por el primero."""
-        self._asegurar_motor(
-            lambda: self._reproducir_ahora(tuple(temas)))
-
-    def poner_a_continuacion(self, temas) -> None:
-        """Mete la lista justo detrás de lo que suena, sin cortar nada."""
-        self._asegurar_motor(
-            lambda: self._poner_varios_a_continuacion(tuple(temas)))
-
-    def agregar_al_final(self, temas) -> None:
-        """Suma la lista al final de la cola sin cortar lo que suena."""
-        self._asegurar_motor(
-            lambda: self._agregar_al_final(tuple(temas)))
-
-    def reproducir_desde_aqui(self, temas, indice) -> None:
-        """Reemplaza la cola con la lista y empieza por el tema elegido."""
-        self._asegurar_motor(
-            lambda: self._iniciar_lista_desde(tuple(temas), indice))
-
-    def quitar_de_cola(self, indice) -> None:
-        """Quita un tema de la cola y avisa cuál salió."""
-        self._asegurar_motor(lambda: self._quitar_de_la_cola(indice))
-
-    def mover_en_cola(self, indice, paso) -> None:
-        """Mueve un tema un paso en la cola y avisa la posición nueva."""
-        self._asegurar_motor(
-            lambda: self._mover_en_la_cola(indice, paso))
-
-    def vaciar_cola(self) -> None:
-        """Deja solo lo que suena, o vacía la cola si no hay nada activo."""
-        self._asegurar_motor(self._vaciar_la_cola)
-
-    def mezclar_cola(self) -> None:
-        """Reordena al azar la cola visible dejando el actual primero."""
-        self._asegurar_motor(self._mezclar_la_cola)
-
-    def fijar_repetir(self, modo) -> None:
-        """Guarda y anuncia el modo de repetición, y lo aplica si hay motor."""
-        modo = cfg.normalizar_repetir(modo)
-        self._config["musica_repetir"] = modo
-        self._guardar("repetir", modo)
-        if self._coordinador is not None:
-            self._coordinador.fijar_repetir(modo)
-        self._avisar(anuncios.aviso_repetir(modo))
-        self._refrescar_ventana_abierta()
-
-    def ciclar_repetir(self) -> None:
-        """Pasa de "no" a "todo" a "tema" y vuelve a "no"."""
-        siguiente = {"no": "todo", "todo": "tema", "tema": "no"}
-        actual = cfg.normalizar_repetir(
-            self._config.get("musica_repetir", "no"))
-        self.fijar_repetir(siguiente[actual])
-
-    # ── Enlaces de YouTube ───────────────────────────────────────────────────
-
-    def abrir_enlace(self, url, modo="final") -> None:
-        """Expande un enlace y aplica el modo pedido con todos sus temas.
-
-        La expansión bloquea y toca la red, así que corre aparte y vuelve por
-        `wx.CallAfter`: con los temas aplica "ahora", "continuacion" o
-        "final", y ante un `ErrorEnlace` anuncia su mensaje con el sonido de
-        error.
-        """
-        if not enlaces.es_enlace_youtube(url):
-            self._avisar(anuncios.aviso_enlace_no_youtube())
-            return
-        self._avisar(anuncios.aviso_leyendo_enlace())
-        diagnostico.crear_hilo(
-            self._expandir_enlace, "musica-enlace",
-            args=(url, modo)).start()
-
-    def agregar_enlace(self, url) -> None:
-        """Expande un enlace de YouTube y suma sus temas al final de la cola."""
-        self.abrir_enlace(url, "final")
-
-    def _expandir_enlace(self, url, modo) -> None:
-        try:
-            temas = enlaces.expandir(url)
-        except enlaces.ErrorEnlace as exc:
-            wx.CallAfter(self._aviso_error_enlace, str(exc))
-            return
-        except Exception:
-            logger.exception("No se pudo expandir el enlace de música")
-            wx.CallAfter(self._aviso_error_enlace, enlaces.TEXTO_NO_SE_PUDO_LEER)
-            return
-        wx.CallAfter(self._aplicar_enlace, temas, modo)
-
-    def _aplicar_enlace(self, temas, modo) -> None:
-        if modo == "ahora":
-            self.reproducir_ahora(temas)
-        elif modo == "continuacion":
-            self.poner_a_continuacion(temas)
-        else:
-            self.agregar_al_final(temas)
-
-    def _aviso_error_enlace(self, mensaje) -> None:
-        self._avisar(anuncios.aviso_error_enlace(mensaje))
-        self._refrescar_ventana_abierta()
-
     # ── Biblioteca compartida y ventana ──────────────────────────────────────
-
-    def biblioteca(self, al_lista) -> None:
-        """Entrega la biblioteca indexada a `al_lista`.
-
-        Sin índice todavía, o con la carpeta cambiada, indexa en un hilo y
-        llama `al_lista(biblioteca)` con wx.CallAfter. Si ya estaba indexada,
-        llama a `al_lista` enseguida. Si el índice no se pudo armar, entrega
-        None.
-        """
-        if self._biblioteca is not None:
-            al_lista(self._biblioteca)
-            return
-        carpeta = self._carpeta()
-        if not carpeta:
-            al_lista(None)
-            return
-        diagnostico.crear_hilo(
-            self._indexar, "musica-indice", args=(carpeta, al_lista)).start()
-
-    def cambiar_carpeta(self, ruta) -> None:
-        """Guarda la carpeta nueva e invalida el índice compartido."""
-        ruta = (ruta or "").strip()
-        self._config["musica_carpeta"] = ruta
-        self._biblioteca = None
-        self._generacion_etiquetas += 1
-        self._guardar("carpeta", cfg.codificar_texto_ini(ruta))
 
     def estado(self):
         """El estado del coordinador, o None si el motor todavía no nació."""
@@ -360,101 +196,11 @@ class ControlMusica:
         from ytchat.ui import gui_musica_listas
         gui_musica_listas.abrir_ventana(self)
 
-    def carpeta_listas(self):
-        """La carpeta donde viven las listas de música propias."""
-        return paths.listas_musica()
-
     def cola_actual(self):
         """Los temas que están en la cola, o vacío si el motor no nació."""
         if self._coordinador is None:
             return ()
         return self._coordinador.estado().cola
-
-    def reproducir_lista_guardada(self, nombre) -> None:
-        """Reproduce una lista guardada, avisando si se saltaron entradas.
-
-        La preferencia de orden aleatorio decide si se mezcla, igual que al
-        reproducir la carpeta.
-        """
-        try:
-            temas, saltadas = listas.cargar(self.carpeta_listas(), nombre)
-        except listas.ErrorListas as exc:
-            self._avisar(anuncios.aviso_error_listas(str(exc)))
-            return
-        if saltadas:
-            self._avisar(anuncios.aviso_saltadas(saltadas))
-        self.reproducir_temas(temas)
-
-    # ── Listas propias ───────────────────────────────────────────────────────
-
-    def guardar_cola_como_lista(self, nombre) -> None:
-        """Guarda la cola actual como una lista propia."""
-        temas = self.cola_actual()
-        if not temas:
-            self._avisar(anuncios.aviso_sin_cola())
-            return
-        try:
-            limpio = listas.guardar(self.carpeta_listas(), nombre, temas)
-        except listas.ErrorListas as exc:
-            self._avisar(anuncios.aviso_error_listas(str(exc)))
-            return
-        self._avisar(anuncios.aviso_lista_guardada(limpio))
-
-    def agregar_a_lista(self, nombre, temas) -> None:
-        """Suma temas al final de una lista que ya existe."""
-        try:
-            listas.agregar(self.carpeta_listas(), nombre, tuple(temas))
-        except listas.ErrorListas as exc:
-            self._avisar(anuncios.aviso_error_listas(str(exc)))
-            return
-        self._avisar(anuncios.aviso_agregado_a_lista(nombre))
-
-    def quitar_de_lista(self, nombre, indice) -> None:
-        """Quita un tema de una lista propia."""
-        try:
-            listas.quitar(self.carpeta_listas(), nombre, indice)
-        except listas.ErrorListas as exc:
-            self._avisar(anuncios.aviso_error_listas(str(exc)))
-            return
-        self._avisar(anuncios.aviso_tema_quitado())
-
-    def crear_lista(self, nombre) -> None:
-        """Crea una lista propia vacía."""
-        try:
-            limpio = listas.crear(self.carpeta_listas(), nombre)
-        except listas.ErrorListas as exc:
-            self._avisar(anuncios.aviso_error_listas(str(exc)))
-            return
-        self._avisar(anuncios.aviso_lista_creada(limpio))
-
-    def renombrar_lista(self, viejo, nuevo) -> None:
-        """Cambia el nombre de una lista propia."""
-        try:
-            limpio = listas.renombrar(self.carpeta_listas(), viejo, nuevo)
-        except listas.ErrorListas as exc:
-            self._avisar(anuncios.aviso_error_listas(str(exc)))
-            return
-        self._avisar(anuncios.aviso_lista_renombrada(limpio))
-
-    def borrar_lista(self, nombre) -> None:
-        """Borra una lista propia."""
-        try:
-            listas.borrar(self.carpeta_listas(), nombre)
-        except listas.ErrorListas as exc:
-            self._avisar(anuncios.aviso_error_listas(str(exc)))
-            return
-        self._avisar(anuncios.aviso_lista_borrada(nombre))
-
-    def temas_de_lista(self, nombre):
-        """Los temas de una lista propia, avisando si se saltaron entradas."""
-        try:
-            temas, saltadas = listas.cargar(self.carpeta_listas(), nombre)
-        except listas.ErrorListas as exc:
-            self._avisar(anuncios.aviso_error_listas(str(exc)))
-            return ()
-        if saltadas:
-            self._avisar(anuncios.aviso_saltadas(saltadas))
-        return temas
 
     def registrar_ventana(self, ventana, tipo="musica") -> None:
         """La ventana quedó abierta: hay que refrescarle la cola.
@@ -673,344 +419,6 @@ class ControlMusica:
     def _motor_no_disponible(self) -> None:
         self._preparando = False
         self._avisar(anuncios.aviso_motor_no_disponible())
-
-    # ── Reproducir una carpeta ───────────────────────────────────────────────
-
-    def _reproducir_carpeta(self) -> None:
-        self.biblioteca(self._reproducir_indexado)
-
-    def _indexar(self, carpeta, al_lista) -> None:
-        try:
-            if self._cache_etiquetas is None:
-                self._cache_etiquetas = CacheEtiquetas(
-                    paths.cache_etiquetas_musica())
-            biblioteca = Biblioteca(carpeta, cache=self._cache_etiquetas)
-            biblioteca.indexar()
-        except ErrorBiblioteca:
-            wx.CallAfter(al_lista, None)
-            return
-        except Exception:
-            logger.exception("No se pudo indexar la carpeta de música")
-            wx.CallAfter(al_lista, None)
-            return
-        self._biblioteca = biblioteca
-        self._generacion_etiquetas += 1
-        generacion = self._generacion_etiquetas
-        wx.CallAfter(al_lista, biblioteca)
-        self._arrancar_etiquetas(biblioteca, generacion)
-
-    def _arrancar_etiquetas(self, biblioteca, generacion) -> None:
-        """Lee en segundo plano las etiquetas que faltan, sin bloquear.
-
-        El hilo usa la caché: lo ya leído sale desde el principio y solo se
-        lee con libVLC lo pendiente. Sin motor no arranca, porque todo daría
-        vacío y quedaría cacheado como «sin etiquetas».
-        """
-        try:
-            pendientes = biblioteca.pendientes()
-        except Exception:
-            logger.debug("No se pudieron calcular las etiquetas pendientes")
-            return
-        if not pendientes:
-            return
-        if not motor_vlc.disponible():
-            return
-        diagnostico.crear_hilo(
-            self._leer_etiquetas_fondo, "musica-etiquetas",
-            args=(biblioteca, tuple(pendientes), generacion)).start()
-
-    def _leer_etiquetas_fondo(self, biblioteca, pendientes, generacion) -> None:
-        """Lee las etiquetas pendientes y aplica cada lote en la interfaz.
-
-        Corre en el hilo «musica-etiquetas», nunca en el de wx ni en un
-        callback de VLC. Trabajo silencioso: nada se anuncia y nada suena.
-        Si la carpeta cambió a mitad, termina sin hacer nada más.
-        """
-        lote: dict[str, Tema] = {}
-        for indice, tema in enumerate(tuple(pendientes), 1):
-            if generacion != self._generacion_etiquetas or self._cerrado:
-                return
-            origen = tema.origen
-            try:
-                info = os.stat(origen)
-            except OSError:
-                continue
-            datos = leer_etiquetas_vlc(origen)
-            if not isinstance(datos, dict):
-                datos = {}
-            self._cache_etiquetas.poner(
-                origen, info.st_mtime_ns, info.st_size, datos)
-            titulo = str(datos.get("titulo") or "") or Path(origen).stem
-            lote[origen] = Tema(
-                origen, titulo,
-                str(datos.get("artista") or ""),
-                str(datos.get("album") or ""))
-            if indice % 50 == 0:
-                self._cache_etiquetas.guardar()
-                wx.CallAfter(self._aplicar_lote_etiquetas, dict(lote), generacion)
-                lote.clear()
-        self._cache_etiquetas.guardar()
-        if lote:
-            wx.CallAfter(self._aplicar_lote_etiquetas, dict(lote), generacion)
-
-    def _aplicar_lote_etiquetas(self, mapa, generacion) -> None:
-        """Pone al día biblioteca, cola y ventana con un lote de etiquetas.
-
-        Corre en el hilo de la interfaz vía `wx.CallAfter`. Silencioso: no
-        anuncia ni suena. Si la carpeta cambió a mitad, no aplica nada.
-        """
-        if generacion != self._generacion_etiquetas or self._cerrado:
-            return
-        biblioteca = self._biblioteca
-        if biblioteca is None or not mapa:
-            return
-        biblioteca.actualizar(tuple(mapa.values()))
-        if self._coordinador is not None:
-            self._coordinador.actualizar_temas(mapa)
-        ventana = self._ventanas.get("musica")
-        if ventana is not None:
-            try:
-                ventana.actualizar_nombres(mapa)
-            except Exception:
-                logger.debug("No se pudo actualizar la ventana de música")
-
-    def _reproducir_indexado(self, biblioteca) -> None:
-        if biblioteca is None:
-            self._avisar(anuncios.Aviso(
-                TEXTO_CARPETA_INEXISTENTE, anuncios.SONIDO_ERROR))
-            return
-        if self._coordinador is None:
-            return
-        resultado = self._coordinador.reproducir_lista(biblioteca.temas())
-        self._avisar(anuncios.aviso_accion(
-            "reproducir", resultado, self._incluir_artista()))
-        self._guardar_memoria()
-
-    def _iniciar_lista(self, temas, en_orden) -> None:
-        if self._coordinador is None:
-            return
-        resultado = self._coordinador.reproducir_lista(temas, en_orden=en_orden)
-        self._avisar(anuncios.aviso_accion(
-            "reproducir", resultado, self._incluir_artista()))
-        self._guardar_memoria()
-
-    def _iniciar_lista_desde(self, temas, indice) -> None:
-        if self._coordinador is None:
-            return
-        resultado = self._coordinador.reproducir_lista(
-            temas, en_orden=True, desde=indice)
-        self._avisar(anuncios.aviso_accion(
-            "reproducir", resultado, self._incluir_artista()))
-        self._guardar_memoria()
-
-    def _agregar_a_la_cola(self, temas) -> None:
-        if self._coordinador is None:
-            return
-        resultado = self._coordinador.agregar(temas)
-        if resultado.ok:
-            self._avisar(anuncios.aviso_agregados(len(temas)))
-            return
-        self._avisar(anuncios.aviso_accion(
-            "agregar", resultado, self._incluir_artista()))
-
-    def _poner_a_continuacion(self, tema) -> None:
-        if self._coordinador is None:
-            return
-        resultado = self._coordinador.a_continuacion((tema,))
-        if resultado.ok:
-            self._avisar(anuncios.aviso_a_continuacion(
-                tema, self._incluir_artista()))
-            return
-        self._avisar(anuncios.aviso_accion(
-            "agregar", resultado, self._incluir_artista()))
-
-    def _reproducir_de_la_cola(self, indice) -> None:
-        if self._coordinador is None:
-            return
-        resultado = self._coordinador.reproducir_desde(indice)
-        self._avisar(anuncios.aviso_accion(
-            "reproducir", resultado, self._incluir_artista()))
-        self._guardar_memoria()
-
-    def _reproducir_ahora(self, temas) -> None:
-        if self._coordinador is None:
-            return
-        resultado = self._coordinador.reproducir_ahora(temas)
-        self._avisar(anuncios.aviso_accion(
-            "reproducir", resultado, self._incluir_artista()))
-        self._guardar_memoria()
-
-    def _poner_varios_a_continuacion(self, temas) -> None:
-        if self._coordinador is None:
-            return
-        antes = self._coordinador.estado()
-        resultado = self._coordinador.a_continuacion(temas)
-        if resultado.ok:
-            if antes.posicion is None or antes.terminado:
-                self._avisar(anuncios.aviso_accion(
-                    "reproducir", resultado, self._incluir_artista()))
-            else:
-                posicion = self._indice_insertado(antes, resultado) + 1
-                if len(temas) == 1:
-                    self._avisar(anuncios.aviso_a_continuacion_posicion(
-                        temas[0], posicion, self._incluir_artista()))
-                else:
-                    self._avisar(anuncios.aviso_a_continuacion_varios(
-                        len(temas), posicion))
-        else:
-            self._avisar(anuncios.aviso_accion(
-                "agregar", resultado, self._incluir_artista()))
-        self._guardar_memoria()
-
-    @staticmethod
-    def _indice_insertado(antes, resultado) -> int:
-        """Índice del primer tema nuevo, comparando por identidad."""
-        i = j = 0
-        despues = resultado.estado.cola
-        while i < len(despues) and j < len(antes.cola):
-            if despues[i] is antes.cola[j]:
-                i += 1
-                j += 1
-            else:
-                return i
-        return i
-
-    def _agregar_al_final(self, temas) -> None:
-        if self._coordinador is None:
-            return
-        antes = self._coordinador.estado()
-        resultado = self._coordinador.agregar(temas)
-        if resultado.ok:
-            activo = antes.posicion is not None and not antes.terminado
-            if not activo:
-                self._avisar(anuncios.aviso_accion(
-                    "reproducir", resultado, self._incluir_artista()))
-            elif len(temas) == 1:
-                self._avisar(anuncios.aviso_agregado_posicion(
-                    len(antes.cola) + 1))
-            else:
-                self._avisar(anuncios.aviso_agregados(len(temas)))
-        else:
-            self._avisar(anuncios.aviso_accion(
-                "agregar", resultado, self._incluir_artista()))
-
-    def _quitar_de_la_cola(self, indice) -> None:
-        if self._coordinador is None:
-            return
-        antes = self._coordinador.estado()
-        quitado = None
-        if (not isinstance(indice, bool) and isinstance(indice, int)
-                and 0 <= indice < len(antes.cola)):
-            quitado = antes.cola[indice]
-        resultado = self._coordinador.quitar(indice)
-        if resultado.ok and quitado is not None:
-            nombre = anuncios.nombre_tema(quitado, self._incluir_artista())
-            texto = anuncios.TEXTO_QUITADO_COLA.format(nombre=nombre)
-            nuevo = resultado.estado.actual
-            if (indice == antes.posicion and nuevo is not None
-                    and not resultado.estado.terminado):
-                texto += ". " + anuncios.nombre_tema(
-                    nuevo, self._incluir_artista())
-            self._avisar(anuncios.Aviso(texto))
-        elif resultado.codigo == FIN_LISTA:
-            self._avisar(anuncios.Aviso(anuncios.TEXTO_FIN_LISTA))
-        else:
-            self._avisar(anuncios.aviso_accion(
-                "quitar", resultado, self._incluir_artista()))
-            return
-        self._guardar_memoria()
-
-    def _mover_en_la_cola(self, indice, paso) -> None:
-        if self._coordinador is None:
-            return
-        antes = self._coordinador.estado()
-        valido = (not isinstance(indice, bool) and isinstance(indice, int)
-                  and 0 <= indice < len(antes.cola))
-        resultado = self._coordinador.mover(indice, paso)
-        if not valido:
-            self._avisar(anuncios.aviso_accion(
-                "mover", resultado, self._incluir_artista()))
-            return
-        total = len(resultado.estado.cola)
-        posicion = indice + 1
-        if resultado.ok:
-            posicion = indice + paso + 1
-            self._guardar_memoria()
-        self._avisar(anuncios.aviso_tema_movido(posicion, total))
-
-    def _vaciar_la_cola(self) -> None:
-        if self._coordinador is None:
-            return
-        resultado = self._coordinador.vaciar()
-        actual = resultado.estado.actual
-        nombre = None
-        if actual is not None and not resultado.estado.terminado:
-            nombre = anuncios.nombre_tema(actual, self._incluir_artista())
-        self._avisar(anuncios.aviso_cola_vaciada(nombre))
-        self._guardar_memoria()
-
-    def _mezclar_la_cola(self) -> None:
-        if self._coordinador is None:
-            return
-        self._coordinador.mezclar_cola()
-        self._avisar(anuncios.aviso_cola_mezclada())
-        self._guardar_memoria()
-
-    # ── Memoria: retomar y recordar ──────────────────────────────────────────
-
-    def _primera_vez(self) -> bool:
-        """En el primer Reproducir de la sesión, retoma si hay memoria.
-
-        Dice si se ocupó de arrancar la música desde la memoria guardada, para
-        no seguir con la carpeta. La memoria se intenta una sola vez por
-        sesión: después de eso, reproducir vuelve a la carpeta como siempre.
-        """
-        if self._retomo_intentado:
-            return False
-        self._retomo_intentado = True
-        if not self._retomar_activo():
-            return False
-        guardada = memoria.leer(self._ruta_memoria())
-        if guardada is None:
-            return False
-        temas, posicion = guardada
-        self._asegurar_motor(lambda: self._retomar(temas, posicion))
-        return True
-
-    def _retomar(self, temas, posicion) -> None:
-        if self._coordinador is None:
-            return
-        resultado = self._coordinador.reproducir_lista(
-            temas, en_orden=True, desde=posicion)
-        actual = self._coordinador.estado().actual
-        if resultado.ok and actual is not None:
-            self._avisar(anuncios.aviso_retomando(
-                anuncios.nombre_tema(actual, self._incluir_artista())))
-            self._guardar_memoria()
-            return
-        self._avisar(anuncios.aviso_accion(
-            "reproducir", resultado, self._incluir_artista()))
-
-    def _guardar_memoria(self) -> None:
-        """Recuerda la cola y el tema tras un cambio, o limpia la memoria.
-
-        Con `musica_retomar` apagada no se guarda nada y se borra el archivo
-        si existe. Se escribe un segundo después del último cambio, salvo al
-        cerrar, que se vacía en el acto. Nunca lanza.
-        """
-        self._guardado_memoria.pedir(self._escribir_memoria)
-
-    def _escribir_memoria(self) -> None:
-        if not self._retomar_activo():
-            memoria.guardar(self._ruta_memoria(), None)
-            return
-        memoria.guardar(self._ruta_memoria(), self.estado())
-
-    def _retomar_activo(self) -> bool:
-        return bool(self._config.get("musica_retomar", True))
-
-    def _ruta_memoria(self):
-        return paths.estado_musica()
 
     # ── Avisos ───────────────────────────────────────────────────────────────
 

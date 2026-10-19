@@ -87,6 +87,7 @@ class DialogoEditorLista(wx.Dialog):
             self.txt_nombre.SetValue(nombre)
         self._cargar_filas()
         self.Bind(wx.EVT_CHAR_HOOK, self._tecla)
+        self.Fit()
         self.Centre()
         (self.lb_temas if nombre else self.txt_nombre).SetFocus()
 
@@ -95,13 +96,13 @@ class DialogoEditorLista(wx.Dialog):
         panel.SetBackgroundColour(_T.bg)
         panel.SetForegroundColour(_T.text)
         vs = wx.BoxSizer(wx.VERTICAL)
+        vs.Add(wx.StaticText(panel, label="&Nombre:"), 0, wx.ALL, 12)
         self.txt_nombre = self._campo(
             panel, "Nombre de la lista", MAX_NOMBRE)
-        vs.Add(wx.StaticText(panel, label="&Nombre:"), 0, wx.ALL, 12)
         vs.Add(self.txt_nombre, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM,
                12)
-        self.txt_buscar = self._campo(panel, "Buscar temas")
         vs.Add(wx.StaticText(panel, label="&Buscar:"), 0, wx.ALL, 12)
+        self.txt_buscar = self._campo(panel, "Buscar temas")
         vs.Add(self.txt_buscar, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM,
                12)
         vs.Add(wx.StaticText(panel, label="&Temas:"), 0, wx.ALL, 12)
@@ -112,9 +113,13 @@ class DialogoEditorLista(wx.Dialog):
         nombre_accesible(self.lb_temas, "Temas de la lista")
         self.lb_temas.InsertColumn(0, "Tema", width=420)
         self.lb_temas.EnableCheckBoxes(True)
+        self.lb_temas.SetMinSize((460, 300))
         vs.Add(self.lb_temas, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, 12)
         vs.Add(self._crear_botones(panel), 0, wx.ALL, 12)
         panel.SetSizer(vs)
+        contenedor = wx.BoxSizer(wx.VERTICAL)
+        contenedor.Add(panel, 1, wx.EXPAND)
+        self.SetSizer(contenedor)
         self.txt_buscar.Bind(wx.EVT_TEXT, lambda _evento: self._aplicar_filtro())
 
     def _campo(self, panel, nombre, largo=None):

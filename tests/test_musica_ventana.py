@@ -1002,5 +1002,56 @@ class TestDialogoEnlace(unittest.TestCase):
             self.assertIsNone(musica_dialogo_enlace.pedir_enlace(None))
 
 
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestDialogoEditorLista(unittest.TestCase):
+
+    def setUp(self):
+        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.dialogo = None
+
+    def tearDown(self):
+        if self.dialogo is not None:
+            destruir(self.dialogo)
+
+    def _abrir(self):
+        self.dialogo = musica_editor_lista.DialogoEditorLista(None)
+        return self.dialogo
+
+    def _panel(self):
+        for hijo in self.dialogo.GetChildren():
+            if isinstance(hijo, wx.Panel):
+                return hijo
+        return None
+
+    def test_cada_etiqueta_va_justo_antes_de_su_control(self):
+        self._abrir()
+        hijos = self._panel().GetChildren()
+        for etiqueta, control in (
+                ("&Nombre:", self.dialogo.txt_nombre),
+                ("&Buscar:", self.dialogo.txt_buscar),
+                ("&Temas:", self.dialogo.lb_temas)):
+            with self.subTest(etiqueta=etiqueta):
+                posicion = hijos.index(control)
+                self.assertGreater(posicion, 0)
+                self.assertIsInstance(hijos[posicion - 1], wx.StaticText)
+                self.assertEqual(hijos[posicion - 1].GetLabel(), etiqueta)
+
+    def test_la_lista_y_los_botones_entran_en_el_cuadro(self):
+        self._abrir()
+        cliente = wx.Rect(
+            self.dialogo.ClientToScreen(wx.Point(0, 0)),
+            self.dialogo.GetClientSize())
+        for control in (self.dialogo.lb_temas, self.dialogo.btn_guardar,
+                        self.dialogo.btn_cancelar):
+            with self.subTest(control=control.GetName()):
+                rect = control.GetScreenRect()
+                self.assertGreater(rect.width, 0)
+                self.assertGreater(rect.height, 0)
+                self.assertGreaterEqual(rect.left, cliente.left)
+                self.assertGreaterEqual(rect.top, cliente.top)
+                self.assertLessEqual(rect.right, cliente.right)
+                self.assertLessEqual(rect.bottom, cliente.bottom)
+
+
 if __name__ == "__main__":
     unittest.main()

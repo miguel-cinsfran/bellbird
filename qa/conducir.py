@@ -2524,8 +2524,8 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
                 anuncios_musica.TEXTO_LEYENDO_ENLACE, segundos=10, desde=n):
             res.fallo("musica_real: no se anunció "
                       f"«{anuncios_musica.TEXTO_LEYENDO_ENLACE}»")
-        if not propia.esperar_dicho(anuncios_musica.TEXTO_AGREGADO,
-                                     segundos=60, desde=n):
+        prefijo_agregado = anuncios_musica.TEXTO_AGREGADO_POSICION.split(",")[0]
+        if not propia.esperar_dicho(prefijo_agregado, segundos=60, desde=n):
             dichos = " ".join(a.get("texto", "")
                               for a in propia.anuncios[n:])[-200:]
             res.fallo("musica_real: el vídeo no se agregó a la cola en "

@@ -325,9 +325,10 @@ class TestVentanaMusica(unittest.TestCase):
         cuadro.GetValue.return_value = valor
         return cuadro
 
-    def test_agregar_enlace_valido_avisa_e_instruye_al_control(self):
+    def test_agregar_enlace_valido_llama_al_control_sin_anunciar(self):
         control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
         self._abrir(control)
+        antes = len(self.anuncios)
         cuadro = self._cuadro_enlace("https://youtu.be/abc123")
         with mock.patch.object(gui_musica_ventana.wx, "TextEntryDialog",
                                return_value=cuadro), \
@@ -335,17 +336,29 @@ class TestVentanaMusica(unittest.TestCase):
             self.ventana._agregar_enlace()
         self.assertIn(("agregar_enlace", "https://youtu.be/abc123"),
                       control.llamadas)
-        self.assertEqual(self.anuncios[-1], "Leyendo el enlace")
+        self.assertEqual(self.anuncios[antes:], [])
 
-    def test_agregar_enlace_que_no_es_youtube_avisa_y_no_llama(self):
+    def test_agregar_enlace_que_no_es_youtube_lo_delega_al_control(self):
         control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
         self._abrir(control)
+        antes = len(self.anuncios)
         cuadro = self._cuadro_enlace("https://vimeo.com/12345")
         with mock.patch.object(gui_musica_ventana.wx, "TextEntryDialog",
                                return_value=cuadro), \
                 mock.patch.object(gui_musica_ventana, "_snd"):
             self.ventana._agregar_enlace()
-        self.assertEqual(self.anuncios[-1], "Esa dirección no es de YouTube")
+        self.assertIn(("agregar_enlace", "https://vimeo.com/12345"),
+                      control.llamadas)
+        self.assertEqual(self.anuncios[antes:], [])
+
+    def test_agregar_enlace_vacio_no_hace_nada(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
+        self._abrir(control)
+        cuadro = self._cuadro_enlace("   ")
+        with mock.patch.object(gui_musica_ventana.wx, "TextEntryDialog",
+                               return_value=cuadro), \
+                mock.patch.object(gui_musica_ventana, "_snd"):
+            self.ventana._agregar_enlace()
         self.assertNotIn("agregar_enlace",
                          [llamada[0] for llamada in control.llamadas])
 

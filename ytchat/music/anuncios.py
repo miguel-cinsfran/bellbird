@@ -53,8 +53,8 @@ TEXTO_MOTOR = "La música no está disponible: no se pudo cargar VLC"
 TEXTO_PREPARANDO = "Preparando la música"
 TEXTO_PREPARANDO_OCUPADO = "La música se está preparando"
 TEXTO_AGREGADOS = "{cantidad} temas agregados a la cola"
-TEXTO_AGREGADO = "1 tema agregado a la cola"
 TEXTO_AGREGADO_POSICION = "Agregado a la cola, posición {posicion}"
+TEXTO_AGREGADO_SUENA = ". Sonando: {nombre}"
 TEXTO_A_CONTINUACION = "A continuación: {nombre}"
 TEXTO_A_CONTINUACION_POSICION = "A continuación: {nombre}, posición {posicion}"
 TEXTO_A_CONTINUACION_VARIOS = (
@@ -231,11 +231,17 @@ def aviso_preparando_ocupado() -> Aviso:
     return Aviso(TEXTO_PREPARANDO_OCUPADO)
 
 
-def aviso_agregados(cantidad: int) -> Aviso:
+def _con_lo_que_suena(texto: str, sonando: str | None) -> str:
+    """Suma lo que empezó a sonar a la confirmación de lo agregado."""
+    if not sonando:
+        return texto
+    return texto + TEXTO_AGREGADO_SUENA.format(nombre=sonando)
+
+
+def aviso_agregados(cantidad: int, sonando: str | None = None) -> Aviso:
     """Confirmación de cuántos temas se sumaron a la cola."""
-    if cantidad == 1:
-        return Aviso(TEXTO_AGREGADO)
-    return Aviso(TEXTO_AGREGADOS.format(cantidad=cantidad))
+    return Aviso(_con_lo_que_suena(
+        TEXTO_AGREGADOS.format(cantidad=cantidad), sonando))
 
 
 def aviso_a_continuacion(tema, incluir_artista: bool) -> Aviso:
@@ -257,9 +263,11 @@ def aviso_a_continuacion_varios(cantidad: int, posicion: int) -> Aviso:
         cantidad=cantidad, posicion=posicion))
 
 
-def aviso_agregado_posicion(posicion: int) -> Aviso:
+def aviso_agregado_posicion(posicion: int,
+                            sonando: str | None = None) -> Aviso:
     """Un solo tema agregado al final, con su posición nueva."""
-    return Aviso(TEXTO_AGREGADO_POSICION.format(posicion=posicion))
+    return Aviso(_con_lo_que_suena(
+        TEXTO_AGREGADO_POSICION.format(posicion=posicion), sonando))
 
 
 def aviso_quitado_de_cola(nombre: str) -> Aviso:

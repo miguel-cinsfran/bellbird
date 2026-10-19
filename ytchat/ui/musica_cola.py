@@ -110,9 +110,10 @@ class ColaMusica:
     def _agregar_a_la_cola(self, temas) -> None:
         if self._coordinador is None:
             return
+        antes = self._coordinador.estado()
         resultado = self._coordinador.agregar(temas)
         if resultado.ok:
-            self._avisar(anuncios.aviso_agregados(len(temas)))
+            self._avisar_agregado(temas, antes, resultado)
             return
         self._avisar(anuncios.aviso_accion(
             "agregar", resultado, self._incluir_artista()))
@@ -120,10 +121,14 @@ class ColaMusica:
     def _poner_a_continuacion(self, tema) -> None:
         if self._coordinador is None:
             return
+        antes = self._coordinador.estado()
         resultado = self._coordinador.a_continuacion((tema,))
         if resultado.ok:
-            self._avisar(anuncios.aviso_a_continuacion(
-                tema, self._incluir_artista()))
+            if antes.posicion is not None and not antes.terminado:
+                self._avisar(anuncios.aviso_a_continuacion(
+                    tema, self._incluir_artista()))
+            else:
+                self._avisar_agregado((tema,), antes, resultado)
             return
         self._avisar(anuncios.aviso_accion(
             "agregar", resultado, self._incluir_artista()))
@@ -151,8 +156,7 @@ class ColaMusica:
         resultado = self._coordinador.a_continuacion(temas)
         if resultado.ok:
             if antes.posicion is None or antes.terminado:
-                self._avisar(anuncios.aviso_accion(
-                    "reproducir", resultado, self._incluir_artista()))
+                self._avisar_agregado(temas, antes, resultado)
             else:
                 posicion = self._indice_insertado(antes, resultado) + 1
                 if len(temas) == 1:
@@ -179,21 +183,28 @@ class ColaMusica:
                 return i
         return i
 
+    def _avisar_agregado(self, temas, antes, resultado) -> None:
+        """Avisa lo sumado; si con eso arranca la música, dice qué suena."""
+        activo = antes.posicion is not None and not antes.terminado
+        sonando = None
+        if not activo:
+            actual = resultado.estado.actual
+            if actual is not None:
+                sonando = anuncios.nombre_tema(
+                    actual, self._incluir_artista())
+        if len(temas) == 1:
+            self._avisar(anuncios.aviso_agregado_posicion(
+                len(antes.cola) + 1, sonando))
+        else:
+            self._avisar(anuncios.aviso_agregados(len(temas), sonando))
+
     def _agregar_al_final(self, temas) -> None:
         if self._coordinador is None:
             return
         antes = self._coordinador.estado()
         resultado = self._coordinador.agregar(temas)
         if resultado.ok:
-            activo = antes.posicion is not None and not antes.terminado
-            if not activo:
-                self._avisar(anuncios.aviso_accion(
-                    "reproducir", resultado, self._incluir_artista()))
-            elif len(temas) == 1:
-                self._avisar(anuncios.aviso_agregado_posicion(
-                    len(antes.cola) + 1))
-            else:
-                self._avisar(anuncios.aviso_agregados(len(temas)))
+            self._avisar_agregado(temas, antes, resultado)
         else:
             self._avisar(anuncios.aviso_accion(
                 "agregar", resultado, self._incluir_artista()))

@@ -253,9 +253,10 @@ class TestOtrosAvisos(unittest.TestCase):
         self.assertEqual(aviso.texto, "3 temas agregados a la cola")
         self.assertIsNone(aviso.sonido)
 
-    def test_agregados_singular(self):
-        aviso = anuncios.aviso_agregados(1)
-        self.assertEqual(aviso.texto, "1 tema agregado a la cola")
+    def test_agregados_plural_con_lo_que_suena(self):
+        aviso = anuncios.aviso_agregados(2, "Tema 1")
+        self.assertEqual(aviso.texto,
+                         "2 temas agregados a la cola. Sonando: Tema 1")
         self.assertIsNone(aviso.sonido)
 
     def test_a_continuacion_con_artista(self):
@@ -336,6 +337,12 @@ class TestAvisosDeCola(unittest.TestCase):
     def test_agregado_con_posicion(self):
         aviso = anuncios.aviso_agregado_posicion(4)
         self.assertEqual(aviso.texto, "Agregado a la cola, posición 4")
+        self.assertIsNone(aviso.sonido)
+
+    def test_agregado_con_posicion_y_lo_que_suena(self):
+        aviso = anuncios.aviso_agregado_posicion(1, "Tema 1")
+        self.assertEqual(aviso.texto,
+                         "Agregado a la cola, posición 1. Sonando: Tema 1")
         self.assertIsNone(aviso.sonido)
 
     def test_quitado_de_la_cola(self):

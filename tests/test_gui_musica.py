@@ -814,7 +814,8 @@ class TestAccionesDeLista(unittest.TestCase):
             control = ControlMusica(_frame())
             control.agregar_temas(temas)
         self.assertEqual([c.args[0] for c in env.anunciar.call_args_list],
-                         ["Preparando la música", "2 temas agregados a la cola"])
+                         ["Preparando la música",
+                          "2 temas agregados a la cola. Sonando: A"])
         self.assertEqual([t.origen for t in control.estado().cola],
                          ["C:/m/a.mp3", "C:/m/b.mp3"])
 
@@ -823,7 +824,17 @@ class TestAccionesDeLista(unittest.TestCase):
             control = ControlMusica(_frame())
             control.agregar_temas([Tema("C:/m/a.mp3", "A")])
         self.assertEqual(env.anunciar.call_args_list[-1].args[0],
-                         "1 tema agregado a la cola")
+                         "Agregado a la cola, posición 1. Sonando: A")
+
+    def test_agregar_temas_con_musica_sonando_no_dice_lo_que_suena(self):
+        temas = [Tema("C:/m/a.mp3", "A"), Tema("C:/m/b.mp3", "B")]
+        with _entorno() as env:
+            control = ControlMusica(_frame())
+            control.reproducir_temas(temas, en_orden=True)
+            env.anunciar.reset_mock()
+            control.agregar_temas([Tema("C:/m/c.mp3", "C")])
+        env.anunciar.assert_called_once_with(
+            "Agregado a la cola, posición 3")
 
     def test_agregar_temas_vacio_avisa_cola_vacia(self):
         with _entorno() as env:
@@ -1004,7 +1015,8 @@ class TestEnlace(unittest.TestCase):
             control.agregar_enlace("https://www.youtube.com/playlist?list=PL1")
         self.assertEqual([t.origen for t in control.estado().cola],
                          [t.origen for t in temas])
-        self.assertEqual(env.anunciar.call_args_list[-1].args[0], "Uno")
+        self.assertEqual(env.anunciar.call_args_list[-1].args[0],
+                         "2 temas agregados a la cola. Sonando: Uno")
 
     def test_error_del_enlace_avisa_con_sonido(self):
         from ytchat.music.enlaces import ErrorEnlace
@@ -1079,7 +1091,8 @@ class TestOperacionesDeCola(unittest.TestCase):
         with _entorno() as env:
             control = ControlMusica(_frame())
             control.poner_a_continuacion(self._temas("A"))
-        self.assertEqual(env.anunciar.call_args_list[-1].args[0], "A")
+        self.assertEqual(env.anunciar.call_args_list[-1].args[0],
+                         "Agregado a la cola, posición 1. Sonando: A")
         self.assertEqual([t.titulo for t in control.estado().cola], ["A"])
 
     def test_agregar_al_final_uno_anuncia_posicion(self):
@@ -1104,7 +1117,8 @@ class TestOperacionesDeCola(unittest.TestCase):
         with _entorno() as env:
             control = ControlMusica(_frame())
             control.agregar_al_final(self._temas("A"))
-        self.assertEqual(env.anunciar.call_args_list[-1].args[0], "A")
+        self.assertEqual(env.anunciar.call_args_list[-1].args[0],
+                         "Agregado a la cola, posición 1. Sonando: A")
         self.assertEqual([t.titulo for t in control.estado().cola], ["A"])
 
     def test_reproducir_desde_aqui_reemplaza_la_cola(self):

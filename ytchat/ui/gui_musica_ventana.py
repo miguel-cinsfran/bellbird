@@ -10,7 +10,7 @@ from __future__ import annotations
 import wx
 
 from ytchat.core import diagnostico
-from ytchat.music import anuncios, enlaces, listas
+from ytchat.music import anuncios, listas
 from ytchat.music import vista
 from ytchat.ui.gui import _T, _pintar, anunciar, nombre_accesible
 from ytchat.voice import sound_player as _snd
@@ -303,10 +303,8 @@ class VentanaMusica(wx.Dialog):
             if dialogo.ShowModal() != wx.ID_OK:
                 return
             url = dialogo.GetValue().strip()
-        if not enlaces.es_enlace_youtube(url):
-            self._avisar(anuncios.aviso_enlace_no_youtube())
+        if not url:
             return
-        self._avisar(anuncios.aviso_leyendo_enlace())
         self._control.agregar_enlace(url)
 
     def _elegir_lista(self, nombres):

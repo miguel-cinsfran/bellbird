@@ -101,7 +101,8 @@ class ControlMusica:
         self._preparando = False
         self._cerrado = False
         self._biblioteca = None
-        self._ventana = None
+        # Ventanas de música abiertas, por tipo («musica» / «listas»).
+        self._ventanas = {}
         self._retomo_intentado = False
         self._cache_etiquetas = None
         self._generacion_etiquetas = 0
@@ -265,12 +266,24 @@ class ControlMusica:
             self.estado(), self._incluir_artista())
 
     def abrir_ventana(self) -> None:
-        """Abre la ventana modal para elegir qué suena."""
+        """Abre la ventana modal para elegir qué suena.
+
+        Con una ventana de música abierta, la de música o la de listas, no
+        abre otra: trae al frente la que ya está.
+        """
+        if self._traer_al_frente_si_hay():
+            return
         from ytchat.ui import gui_musica_ventana
         gui_musica_ventana.abrir_ventana(self)
 
     def abrir_listas(self) -> None:
-        """Abre la ventana modal de listas de música propias."""
+        """Abre la ventana modal de listas de música propias.
+
+        Con una ventana de música abierta, la de música o la de listas, no
+        abre otra: trae al frente la que ya está.
+        """
+        if self._traer_al_frente_si_hay():
+            return
         from ytchat.ui import gui_musica_listas
         gui_musica_listas.abrir_ventana(self)
 
@@ -299,13 +312,37 @@ class ControlMusica:
             self._avisar(anuncios.aviso_saltadas(saltadas))
         self.reproducir_temas(temas)
 
-    def registrar_ventana(self, ventana) -> None:
-        """La ventana quedó abierta: hay que refrescarle la cola."""
-        self._ventana = ventana
+    def registrar_ventana(self, ventana, tipo="musica") -> None:
+        """La ventana quedó abierta: hay que refrescarle la cola.
 
-    def olvidar_ventana(self) -> None:
-        """La ventana se cerró."""
-        self._ventana = None
+        El `tipo` separa la de música de la de listas, para que el cierre
+        de una no borre el registro de la otra.
+        """
+        self._ventanas[tipo] = ventana
+
+    def olvidar_ventana(self, tipo="musica") -> None:
+        """La ventana se cerró. Solo suelta la de ese tipo."""
+        self._ventanas.pop(tipo, None)
+
+    def _traer_al_frente_si_hay(self) -> bool:
+        """Sube la ventana de música abierta, si la hay, y lo anuncia.
+
+        Dice si ya había una abierta, de música o de listas, para no crear
+        otra encima. El foco vuelve a su primer control.
+        """
+        if not self._ventanas:
+            return False
+        ventana = next(iter(self._ventanas.values()))
+        try:
+            ventana.Raise()
+        except Exception:
+            logger.debug("No se pudo traer al frente la ventana de música")
+        try:
+            ventana.enfocar_primer_control()
+        except Exception:
+            logger.debug("No se pudo enfocar el primer control de la ventana")
+        self._avisar(anuncios.Aviso(anuncios.TEXTO_VENTANA_ABIERTA))
+        return True
 
     # ── Atajos dentro de la ventana modal ────────────────────────────────────
 
@@ -586,7 +623,7 @@ class ControlMusica:
         biblioteca.actualizar(tuple(mapa.values()))
         if self._coordinador is not None:
             self._coordinador.actualizar_temas(mapa)
-        ventana = self._ventana
+        ventana = self._ventanas.get("musica")
         if ventana is not None:
             try:
                 ventana.actualizar_nombres(mapa)
@@ -727,8 +764,8 @@ class ControlMusica:
         self._refrescar_ventana_abierta()
 
     def _refrescar_ventana_abierta(self) -> None:
-        """Pone al día la cola de la ventana si está abierta."""
-        ventana = self._ventana
+        """Pone al día la cola de la ventana de música si está abierta."""
+        ventana = self._ventanas.get("musica")
         if ventana is None:
             return
         try:

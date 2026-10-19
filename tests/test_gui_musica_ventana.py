@@ -199,6 +199,33 @@ class TestVentanaMusica(unittest.TestCase):
         self.assertTrue(self.ventana.btn_todo.IsEnabled())
         self.assertEqual(self.ventana.lb_temas.GetStrings(), ["Rock"])
 
+    def test_agregar_enlace_habilitado_mientras_carga(self):
+        self._abrir(ControlDiferido())
+        self.assertTrue(self.ventana.btn_agregar_enlace.IsEnabled())
+        self.assertFalse(self.ventana.btn_reproducir.IsEnabled())
+
+    def test_agregar_enlace_habilitado_sin_carpeta(self):
+        self._abrir(ControlFalso(biblioteca=None))
+        self.assertTrue(self.ventana.btn_agregar_enlace.IsEnabled())
+        self.assertFalse(self.ventana.btn_agregar.IsEnabled())
+        self.assertTrue(self.ventana.btn_carpeta.IsEnabled())
+
+    def test_cada_boton_conserva_su_ancho_natural(self):
+        self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock")))
+        panel = self._panel()
+        panel.Layout()
+        for boton in panel.GetChildren():
+            if isinstance(boton, wx.Button):
+                with self.subTest(boton=boton.GetName()):
+                    self.assertGreaterEqual(
+                        boton.GetSize().width, boton.GetBestSize().width)
+
+    def test_enfocar_primer_control_va_al_buscador(self):
+        self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock")))
+        with mock.patch.object(self.ventana.txt_buscar, "SetFocus") as foco:
+            self.ventana.enfocar_primer_control()
+        foco.assert_called_once_with()
+
     # ── Filtro ──────────────────────────────────────────────────────────────
 
     def test_filtrar_actualiza_la_lista_y_el_resumen(self):

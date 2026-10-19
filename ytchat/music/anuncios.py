@@ -70,6 +70,7 @@ TEXTO_ATAJOS_GLOBALES_FALLO = (
     "Las usa otro programa")
 TEXTO_ATAJOS_GLOBALES_ACTIVOS = "Atajos de música activos en cualquier programa"
 TEXTO_ATAJOS_GLOBALES_SOLO = "Atajos de música solo en YTChat"
+TEXTO_VENTANA_ABIERTA = "La ventana de música ya está abierta"
 
 
 @dataclass(frozen=True)

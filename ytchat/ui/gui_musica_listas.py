@@ -42,6 +42,7 @@ class VentanaListas(wx.Dialog):
 
     def _crear_controles(self):
         panel = wx.Panel(self, name="PanelListas")
+        self._panel = panel
         panel.SetBackgroundColour(_T.bg)
         panel.SetForegroundColour(_T.text)
         vs = wx.BoxSizer(wx.VERTICAL)
@@ -55,7 +56,7 @@ class VentanaListas(wx.Dialog):
         self.lb_listas.SetMinSize((-1, 130))
         vs.Add(self.lb_listas, 1, wx.EXPAND | wx.ALL, 6)
 
-        botones = wx.BoxSizer(wx.HORIZONTAL)
+        botones = wx.WrapSizer(wx.HORIZONTAL)
         self.btn_reproducir = self._boton(
             panel, "&Reproducir la lista", "Reproducir la lista")
         self.btn_nueva = self._boton(panel, "&Nueva lista…", "Nueva lista")
@@ -98,12 +99,36 @@ class VentanaListas(wx.Dialog):
         self.btn_guardar.Bind(wx.EVT_BUTTON, lambda e: self._guardar_cola())
         self.btn_cerrar.Bind(wx.EVT_BUTTON, lambda e: self.EndModal(wx.ID_CANCEL))
         self.lb_listas.SetFocus()
+        self._ajustar_minimo()
 
     @staticmethod
     def _boton(panel, etiqueta, nombre):
         boton = wx.Button(panel, wx.ID_ANY, etiqueta, name=nombre)
         _pintar(boton, _T.btn, _T.btn_t)
         return boton
+
+    def _ajustar_minimo(self):
+        """La ventana no baja nunca del tamaño que piden sus controles.
+
+        La fila de botones es un `WrapSizer`: si no entra a lo ancho, baja
+        de renglón en vez de aplastarse. Del sizer sale el mínimo y no se
+        achican los 620 x 620 de fábrica.
+        """
+        try:
+            self._panel.Layout()
+            minimo = self._panel.GetSizer().GetMinSize()
+            actual = self.GetSize()
+            ancho = max(actual.width, minimo.width)
+            alto = max(actual.height, minimo.height)
+            self.SetMinSize((ancho, alto))
+            if actual.width < ancho or actual.height < alto:
+                self.SetSize((ancho, alto))
+        except Exception as exc:
+            logger.debug("mínimo de la ventana de listas: %s", exc)
+
+    def enfocar_primer_control(self):
+        """Deja el foco en el primer control, para cuando la traen al frente."""
+        self.lb_listas.SetFocus()
 
     # ── Listas guardadas y sus temas ────────────────────────────────────────
 
@@ -320,7 +345,9 @@ def abrir_ventana(control) -> None:
     """Abre la ventana modal y la destruye al cerrarse."""
     parent = getattr(control, "_frame", None)
     ventana = VentanaListas(parent, control)
+    control.registrar_ventana(ventana, "listas")
     try:
         ventana.ShowModal()
     finally:
+        control.olvidar_ventana("listas")
         ventana.Destroy()

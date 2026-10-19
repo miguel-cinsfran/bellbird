@@ -47,6 +47,7 @@ class VentanaMusica(wx.Dialog):
 
     def _crear_controles(self):
         panel = wx.Panel(self, name="PanelMusica")
+        self._panel = panel
         panel.SetBackgroundColour(_T.bg)
         panel.SetForegroundColour(_T.text)
         vs = wx.BoxSizer(wx.VERTICAL)
@@ -74,7 +75,7 @@ class VentanaMusica(wx.Dialog):
         _pintar(self.lbl_resumen, fg=_T.dim)
         vs.Add(self.lbl_resumen, 0, wx.ALL, 6)
 
-        botones = wx.BoxSizer(wx.HORIZONTAL)
+        botones = wx.WrapSizer(wx.HORIZONTAL)
         self.btn_reproducir = self._boton(panel, "&Reproducir este", "Reproducir este")
         self.btn_todo = self._boton(panel, "Reproducir to&do", "Reproducir todo")
         self.btn_agregar = self._boton(panel, "&Agregar a la cola", "Agregar a la cola")
@@ -125,12 +126,36 @@ class VentanaMusica(wx.Dialog):
         self.btn_carpeta.Bind(wx.EVT_BUTTON, lambda e: self._cambiar_carpeta())
         self.btn_cerrar.Bind(wx.EVT_BUTTON, lambda e: self.EndModal(wx.ID_CANCEL))
         self.txt_buscar.SetFocus()
+        self._ajustar_minimo()
 
     @staticmethod
     def _boton(panel, etiqueta, nombre):
         boton = wx.Button(panel, wx.ID_ANY, etiqueta, name=nombre)
         _pintar(boton, _T.btn, _T.btn_t)
         return boton
+
+    def _ajustar_minimo(self):
+        """La ventana no baja nunca del tamaño que piden sus controles.
+
+        La fila de botones es un `WrapSizer`: si no entra a lo ancho, baja
+        de renglón en vez de aplastarse. Del sizer sale el mínimo y no se
+        achican los 560 x 660 de fábrica.
+        """
+        try:
+            self._panel.Layout()
+            minimo = self._panel.GetSizer().GetMinSize()
+            actual = self.GetSize()
+            ancho = max(actual.width, minimo.width)
+            alto = max(actual.height, minimo.height)
+            self.SetMinSize((ancho, alto))
+            if actual.width < ancho or actual.height < alto:
+                self.SetSize((ancho, alto))
+        except Exception as exc:
+            logger.debug("mínimo de la ventana de música: %s", exc)
+
+    def enfocar_primer_control(self):
+        """Deja el foco en el primer control, para cuando la traen al frente."""
+        self.txt_buscar.SetFocus()
 
     # ── Carga de la biblioteca ──────────────────────────────────────────────
 
@@ -201,7 +226,8 @@ class VentanaMusica(wx.Dialog):
         self.btn_agregar.Enable(activo)
         self.btn_a_continuacion.Enable(activo)
         self.btn_agregar_lista.Enable(activo)
-        self.btn_agregar_enlace.Enable(activo)
+        # Un enlace no necesita carpeta: se resuelve por la red.
+        self.btn_agregar_enlace.Enable(True)
         self.btn_carpeta.Enable(carpeta)
 
     # ── Acciones ────────────────────────────────────────────────────────────

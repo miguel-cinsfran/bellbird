@@ -14,11 +14,13 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
+from ytchat.music import anuncios
 from ytchat.music import listas
 from ytchat.music import memoria
 from ytchat.music.modelo import (AVANZO, FIN_LISTA, TEMA_FALLIDO, EstadoMusica,
                                  Resultado, Tema)
 from ytchat.ui import gui_musica
+from ytchat.ui import gui_musica_ventana
 from ytchat.ui.gui_musica import ControlMusica, nuevo_volumen, toca_pausar
 
 
@@ -1277,6 +1279,62 @@ class TestListasGuardadas(unittest.TestCase):
             control.reproducir_temas(temas)
         self.assertEqual([t.origen for t in control.cola_actual()],
                          ["C:/m/a.mp3", "C:/m/b.mp3"])
+
+
+class TestVentanaUnica(unittest.TestCase):
+    """Con una ventana de música abierta, abrir otra la trae al frente."""
+
+    def test_abrir_ventana_con_una_abierta_no_crea_otra(self):
+        with _entorno() as env, mock.patch.object(
+                gui_musica_ventana, "abrir_ventana") as abrir:
+            control = ControlMusica(_frame())
+            ventana = mock.Mock()
+            control.registrar_ventana(ventana)
+            control.abrir_ventana()
+        abrir.assert_not_called()
+        ventana.Raise.assert_called_once_with()
+        ventana.enfocar_primer_control.assert_called_once_with()
+        env.anunciar.assert_called_once_with(anuncios.TEXTO_VENTANA_ABIERTA)
+
+    def test_abrir_listas_con_una_abierta_no_crea_otra(self):
+        from ytchat.ui import gui_musica_listas
+        with _entorno() as env, mock.patch.object(
+                gui_musica_listas, "abrir_ventana") as abrir:
+            control = ControlMusica(_frame())
+            ventana = mock.Mock()
+            control.registrar_ventana(ventana, "listas")
+            control.abrir_listas()
+        abrir.assert_not_called()
+        ventana.Raise.assert_called_once_with()
+        ventana.enfocar_primer_control.assert_called_once_with()
+        env.anunciar.assert_called_once_with(anuncios.TEXTO_VENTANA_ABIERTA)
+
+    def test_sin_ventana_abierta_abre_la_de_musica(self):
+        with _entorno(), mock.patch.object(
+                gui_musica_ventana, "abrir_ventana") as abrir:
+            control = ControlMusica(_frame())
+            control.abrir_ventana()
+        abrir.assert_called_once_with(control)
+
+    def test_olvidar_listas_no_borra_la_de_musica(self):
+        with _entorno():
+            control = ControlMusica(_frame())
+            musica = mock.Mock()
+            control.registrar_ventana(musica, "musica")
+            control.registrar_ventana(mock.Mock(), "listas")
+            control.olvidar_ventana("listas")
+            self.assertIs(control._ventanas.get("musica"), musica)
+            self.assertNotIn("listas", control._ventanas)
+
+    def test_olvidar_musica_no_borra_la_de_listas(self):
+        with _entorno():
+            control = ControlMusica(_frame())
+            listas = mock.Mock()
+            control.registrar_ventana(mock.Mock(), "musica")
+            control.registrar_ventana(listas, "listas")
+            control.olvidar_ventana()
+            self.assertIs(control._ventanas.get("listas"), listas)
+            self.assertNotIn("musica", control._ventanas)
 
 
 class _MarcoGlobales:

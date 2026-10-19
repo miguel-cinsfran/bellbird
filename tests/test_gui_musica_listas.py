@@ -49,9 +49,16 @@ class ControlFalso:
         self.artista = False
         self.combos = {}
         self.llamadas = []
+        self.ventanas = []
 
     def carpeta_listas(self):
         return self.carpeta
+
+    def registrar_ventana(self, ventana, tipo="musica"):
+        self.ventanas.append(("registrar", tipo, ventana))
+
+    def olvidar_ventana(self, tipo="musica"):
+        self.ventanas.append(("olvidar", tipo))
 
     def incluir_artista(self):
         return self.artista
@@ -158,6 +165,22 @@ class TestVentanaListas(unittest.TestCase):
         self.assertEqual(self.ventana.lb_listas.GetStrings(),
                          [gui_musica_listas.TEXTO_SIN_LISTAS])
         self.assertFalse(self.ventana.btn_reproducir.IsEnabled())
+
+    def test_cada_boton_conserva_su_ancho_natural(self):
+        self._abrir()
+        panel = self._panel()
+        panel.Layout()
+        for boton in panel.GetChildren():
+            if isinstance(boton, wx.Button):
+                with self.subTest(boton=boton.GetName()):
+                    self.assertGreaterEqual(
+                        boton.GetSize().width, boton.GetBestSize().width)
+
+    def test_enfocar_primer_control_va_a_las_listas(self):
+        self._abrir()
+        with mock.patch.object(self.ventana.lb_listas, "SetFocus") as foco:
+            self.ventana.enfocar_primer_control()
+        foco.assert_called_once_with()
 
     def test_con_listas_habilita_los_botones_y_carga_los_temas(self):
         self._sembrar("Rock", ["A", "B"])
@@ -293,6 +316,10 @@ class TestAbrirListas(unittest.TestCase):
         clase.assert_called_once_with(None, control)
         ventana.ShowModal.assert_called_once_with()
         ventana.Destroy.assert_called_once_with()
+        self.assertEqual([v[0] for v in control.ventanas],
+                         ["registrar", "olvidar"])
+        self.assertIs(control.ventanas[0][2], ventana)
+        self.assertEqual([v[1] for v in control.ventanas], ["listas", "listas"])
 
 
 if __name__ == "__main__":

@@ -230,6 +230,7 @@ class VentanaMusica(AccionesVentanaMusica, wx.Dialog):
             return
         self._biblioteca = biblioteca
         self._temas_fuente = tuple(biblioteca.temas())
+        self._cargando = False
         self._aplicar_filtro()
         self._estado_listo()
         if self._primera_carga:

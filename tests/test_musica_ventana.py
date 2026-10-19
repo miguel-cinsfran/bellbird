@@ -311,7 +311,7 @@ class TestVentanaMusica(unittest.TestCase):
         self.ventana._tecla_cola(Evento(wx.WXK_UP, wx.MOD_ALT))
         self.ventana._tecla_cola(Evento(wx.WXK_DOWN, wx.MOD_ALT))
         self.assertIn(("mover_en_cola", 1, -1), control.llamadas)
-        self.assertIn(("mover_en_cola", 1, 1), control.llamadas)
+        self.assertIn(("mover_en_cola", 0, 1), control.llamadas)
 
     def test_tecla_de_aplicaciones_abre_el_menu_de_la_cola(self):
         control = ControlFalso(biblioteca=_biblioteca_de("Rock"))

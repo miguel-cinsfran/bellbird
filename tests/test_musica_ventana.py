@@ -340,6 +340,84 @@ class TestVentanaMusica(unittest.TestCase):
         self.ventana._tecla_cola(Evento(wx.WXK_RETURN))
         self.assertNotIn("reproducir_ahora", control.nombres())
 
+    # ── Intro por el gancho de la ventana ──────────────────────────────────
+
+    def _char_hook(self, keycode=wx.WXK_RETURN, mods=0):
+        evento = wx.KeyEvent(wx.wxEVT_CHAR_HOOK)
+        evento.SetKeyCode(keycode)
+        evento.SetControlDown(bool(mods & wx.MOD_CONTROL))
+        evento.SetShiftDown(bool(mods & wx.MOD_SHIFT))
+        evento.SetAltDown(bool(mods & wx.MOD_ALT))
+        self.ventana.GetEventHandler().ProcessEvent(evento)
+
+    def _doble_clic(self, lista):
+        evento = wx.CommandEvent(wx.EVT_LISTBOX_DCLICK.typeId, lista.GetId())
+        evento.SetEventObject(lista)
+        lista.GetEventHandler().ProcessEvent(evento)
+
+    def test_intro_por_la_ventana_reproduce_ahora_el_elegido(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock", "Jazz"))
+        self._abrir(control)
+        self.ventana.lb_temas.SetFocus()
+        self.ventana.lb_temas.SetSelection(1)
+        self._char_hook()
+        tema = control._biblio.temas()[1]
+        self.assertIn(("reproducir_ahora", (tema,)), control.llamadas)
+
+    def test_mayus_intro_por_la_ventana_pone_a_continuacion(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock", "Jazz"))
+        self._abrir(control)
+        self.ventana.lb_temas.SetFocus()
+        self.ventana.lb_temas.SetSelection(1)
+        self._char_hook(mods=wx.MOD_SHIFT)
+        tema = control._biblio.temas()[1]
+        self.assertIn(("poner_a_continuacion", (tema,)), control.llamadas)
+
+    def test_control_intro_por_la_ventana_agrega_al_final(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock", "Jazz"))
+        self._abrir(control)
+        self.ventana.lb_temas.SetFocus()
+        self.ventana.lb_temas.SetSelection(1)
+        self._char_hook(mods=wx.MOD_CONTROL)
+        tema = control._biblio.temas()[1]
+        self.assertIn(("agregar_al_final", (tema,)), control.llamadas)
+
+    def test_intro_por_la_ventana_en_la_cola_reproduce_desde(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
+        self._abrir(control)
+        control.estado_actual = _estado("Rock", "Jazz")
+        self.ventana.refrescar_cola()
+        self.ventana.lb_cola.SetFocus()
+        self.ventana.lb_cola.SetSelection(1)
+        self._char_hook()
+        self.assertIn(("reproducir_desde", 1), control.llamadas)
+
+    def test_intro_por_la_ventana_en_el_buscador_no_acciona(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock", "Jazz"))
+        self._abrir(control)
+        self.ventana.txt_buscar.SetFocus()
+        self.ventana.lb_temas.SetSelection(1)
+        self._char_hook()
+        self.assertNotIn("reproducir_ahora", control.nombres())
+        self.assertNotIn("agregar_al_final", control.nombres())
+
+    def test_doble_clic_en_la_biblioteca_reproduce_ahora(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock", "Jazz"))
+        self._abrir(control)
+        self.ventana.lb_temas.SetSelection(1)
+        self._doble_clic(self.ventana.lb_temas)
+        tema = control._biblio.temas()[1]
+        self.assertIn(("reproducir_ahora", (tema,)), control.llamadas)
+
+    def test_doble_clic_en_la_cola_reproduce_desde(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
+        self._abrir(control)
+        control.estado_actual = _estado("Rock", "Jazz")
+        self.ventana.refrescar_cola()
+        self.ventana.lb_cola.SetSelection(1)
+        self._doble_clic(self.ventana.lb_cola)
+        self.assertIn(("reproducir_desde", 1), control.llamadas)
+
     # ── Buscador ───────────────────────────────────────────────────────────
 
     def test_escape_con_texto_borra_y_anuncia(self):

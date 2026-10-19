@@ -112,10 +112,12 @@ class VentanaMusica(AccionesVentanaMusica, wx.Dialog):
         self.txt_buscar.Bind(wx.EVT_KEY_DOWN, self._tecla_buscar)
         self.cho_mostrar.Bind(wx.EVT_CHOICE, self._cambiar_mostrar)
         self.lb_temas.Bind(wx.EVT_KEY_DOWN, self._tecla_temas)
-        self.lb_temas.Bind(
-            wx.EVT_CONTEXT_MENU, lambda e: self._menu_temas())
+        self.lb_temas.Bind(wx.EVT_CONTEXT_MENU, lambda e: self._menu_temas())
         self.lb_cola.Bind(wx.EVT_KEY_DOWN, self._tecla_cola)
         self.lb_cola.Bind(wx.EVT_CONTEXT_MENU, lambda e: self._menu_cola())
+        self.Bind(wx.EVT_LISTBOX_DCLICK, lambda e: self._accion_biblioteca(
+            musica_menus.ACCION_AHORA) if e.GetEventObject() is self.lb_temas
+            else self._accion_cola(musica_menus.ACCION_REPRODUCIR))
         self.btn_enlace.Bind(wx.EVT_BUTTON, lambda e: self._abrir_enlace())
         self.btn_nueva.Bind(wx.EVT_BUTTON, lambda e: self._nueva_lista())
         self.btn_carpeta.Bind(
@@ -358,6 +360,12 @@ class VentanaMusica(AccionesVentanaMusica, wx.Dialog):
         evento.Skip()
 
     def _tecla_atajo(self, evento):
+        if evento.GetKeyCode() in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
+            foco = wx.Window.FindFocus()
+            if foco is self.lb_temas:
+                return self._tecla_temas(evento)
+            if foco is self.lb_cola:
+                return self._tecla_cola(evento)
         if evento.GetKeyCode() == wx.WXK_F1:
             ayuda = self._ayuda_de_foco()
             if ayuda:

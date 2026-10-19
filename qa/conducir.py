@@ -2396,42 +2396,50 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         indice_sonando = next((i for i, f in enumerate(cola_antes)
                                if f.startswith("Sonando: ")), None)
         n = len(propia.anuncios)
-        _elegir("Música", "Biblioteca", 2)
-        propia.pedir("tecla_en", ventana="Música", nombre="Biblioteca",
-                     tecla="enter")
-        if not tercero:
-            res.fallo("musica_real: la tercera fila no tiene título y no "
-                      "se puede probar «Reproducir ahora»")
-        elif not propia.esperar_dicho(tercero, segundos=10, desde=n):
-            res.fallo("musica_real: «Reproducir ahora» no anunció "
-                      f"«{tercero}»")
-        cola = _filas("Música", "Cola de reproducción") or []
-        if not cola:
-            res.fallo("musica_real: la cola está vacía tras "
-                      "«Reproducir ahora»")
-        elif len(cola) != len(cola_antes) + 1:
-            res.fallo("musica_real: «Reproducir ahora» no agregó un tema a "
-                      "la cola")
-        elif indice_sonando is None:
-            res.fallo("musica_real: antes de «Reproducir ahora» la cola no "
-                      "marcaba ningún tema sonando")
+        # El Intro de verdad, no un EVT_KEY_DOWN armado a mano: el 19/10/2026
+        # la Biblioteca y la Cola quedaban mudas con el teclado de Windows
+        # porque el diálogo se comía la tecla antes del control.
+        try:
+            propia.pedir("foco", ventana="Música", nombre="Biblioteca")
+            _elegir("Música", "Biblioteca", 2)
+            propia.teclas("enter")
+        except VentanaNoActiva as exc:
+            res.no_probado("musica_real: «Reproducir ahora» no se pudo probar "
+                           f"con el teclado real: {exc}")
         else:
-            siguiente = cola[indice_sonando + 1: indice_sonando + 2]
-            if (not siguiente or not siguiente[0].startswith("Sonando: ")
-                    or _titulo_fila(siguiente[0]) != tercero):
-                res.fallo("musica_real: «Reproducir ahora» no dejó el tercero "
-                          "sonando justo detrás del que sonaba")
-            elif not sin_salida:
-                limite = time.monotonic() + 10
-                suena = False
-                while time.monotonic() < limite:
-                    valor = _pico()
-                    if valor is not None and valor > 0.005:
-                        suena = True
-                        break
-                    time.sleep(0.1)
-                if not suena:
-                    res.fallo("musica_real: el tercero no se oye")
+            if not tercero:
+                res.fallo("musica_real: la tercera fila no tiene título y no "
+                          "se puede probar «Reproducir ahora»")
+            elif not propia.esperar_dicho(tercero, segundos=10, desde=n):
+                res.fallo("musica_real: «Reproducir ahora» no anunció "
+                          f"«{tercero}»")
+            cola = _filas("Música", "Cola de reproducción") or []
+            if not cola:
+                res.fallo("musica_real: la cola está vacía tras "
+                          "«Reproducir ahora»")
+            elif len(cola) != len(cola_antes) + 1:
+                res.fallo("musica_real: «Reproducir ahora» no agregó un tema "
+                          "a la cola")
+            elif indice_sonando is None:
+                res.fallo("musica_real: antes de «Reproducir ahora» la cola "
+                          "no marcaba ningún tema sonando")
+            else:
+                siguiente = cola[indice_sonando + 1: indice_sonando + 2]
+                if (not siguiente or not siguiente[0].startswith("Sonando: ")
+                        or _titulo_fila(siguiente[0]) != tercero):
+                    res.fallo("musica_real: «Reproducir ahora» no dejó el "
+                              "tercero sonando justo detrás del que sonaba")
+                elif not sin_salida:
+                    limite = time.monotonic() + 10
+                    suena = False
+                    while time.monotonic() < limite:
+                        valor = _pico()
+                        if valor is not None and valor > 0.005:
+                            suena = True
+                            break
+                        time.sleep(0.1)
+                    if not suena:
+                        res.fallo("musica_real: el tercero no se oye")
 
         # ── k. Guardar la cola como lista y reproducirla ──
 

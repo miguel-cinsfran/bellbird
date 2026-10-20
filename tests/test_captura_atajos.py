@@ -70,8 +70,9 @@ class TestCapturaAtajos(unittest.TestCase):
 
     def test_mostrar_atajo(self):
         self.assertEqual(self.gp._mostrar_atajo("ctrl+p"), "Ctrl+P")
-        self.assertEqual(self.gp._mostrar_atajo("alt+enter"), "Alt+Enter")
-        self.assertEqual(self.gp._mostrar_atajo("ctrl+left"), "Ctrl+Left")
+        self.assertEqual(self.gp._mostrar_atajo("alt+enter"), "Alt+Intro")
+        self.assertEqual(
+            self.gp._mostrar_atajo("ctrl+left"), "Ctrl+Flecha izquierda")
         self.assertEqual(self.gp._mostrar_atajo("f5"), "F5")
         self.assertEqual(self.gp._mostrar_atajo(""), "(sin asignar)")
 

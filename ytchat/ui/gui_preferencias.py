@@ -1282,13 +1282,8 @@ class PreferenciasDialog(wx.Dialog):
         p = self._make_panel(parent, "PagAtajos")
         vs = wx.BoxSizer(wx.VERTICAL)
 
-        nota = wx.StaticText(p, label=(
-            "Cada área tiene su modificador: Ctrl para el reproductor, Alt para "
-            "conexión y chat, y teclas F para la voz. Pulsa un botón y luego la "
-            "combinación que quieras: se comprueba sola que sea válida y que no "
-            "choque con otra. F9 a F12, Alt+F4, F6 y Shift+F6 son fijas. "
-            "Las fijas se muestran para que no se puedan pisar."),
-            name="NotaAtajos")
+        nota = wx.StaticText(
+            p, label=atajos_captura.NOTA_PAGINA, name="NotaAtajos")
         nota.SetForegroundColour(_T.dim)
         nota.Wrap(ANCHO_NOTA)
         vs.Add(nota, 0, wx.ALL, 10)

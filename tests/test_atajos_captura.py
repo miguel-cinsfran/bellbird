@@ -79,7 +79,7 @@ class TestAtajosCaptura(unittest.TestCase):
                 "musica_siguiente", "ctrl+alt+right", {})
         self.assertEqual(resultado, (
             "capturado", "ctrl+alt+right",
-            "Capturado: Ctrl+Alt+Right. Se aplica al pulsar Guardar."))
+            "Capturado: Ctrl+Alt+Flecha derecha. Se aplica al pulsar Guardar."))
 
     def test_accion_de_area_ctrl_alt_rechaza_letra_que_escribe_altgr(self):
         altgr = mock.Mock(return_value="@")
@@ -145,9 +145,53 @@ class TestAtajosCaptura(unittest.TestCase):
         self.assertIn(
             "Debe ser Ctrl y una tecla (por ejemplo Ctrl+P).", resultado[2])
 
-    def test_mostrar_atajo_sigue_en_ingles_de_menu(self):
-        # El formato de menú no se usa para leer; para eso está atajo_legible.
-        self.assertEqual(atajos_captura.mostrar_atajo("ctrl+end"), "Ctrl+End")
+    def test_mostrar_atajo_habla_en_espanol(self):
+        # mostrar_atajo es atajo_legible; para leer en voz alta no hay inglés.
+        casos = {
+            "ctrl+left": "Ctrl+Flecha izquierda",
+            "ctrl+shift+p": "Ctrl+Mayús+P",
+            "alt+enter": "Alt+Intro",
+            "ctrl+alt+space": "Ctrl+Alt+Espacio",
+            "ctrl+end": "Ctrl+Fin",
+            "shift+f6": "Mayús+F6",
+        }
+        for guardado, esperado in casos.items():
+            with self.subTest(guardado=guardado):
+                self.assertEqual(atajos_captura.mostrar_atajo(guardado), esperado)
+                self.assertEqual(
+                    atajos_captura.mostrar_atajo(guardado),
+                    atajos_captura.atajo_legible(guardado))
+
+    def test_mostrar_atajo_vacio_dice_sin_asignar(self):
+        self.assertEqual(atajos_captura.mostrar_atajo(""), "(sin asignar)")
+
+    def test_mostrar_atajo_de_fabrica_sin_ingles(self):
+        ingles = ("Shift", "Enter", "Left", "Right",
+                  "Up", "Down", "Space", "End")
+        for accion, valor in config.todos_los_atajos_default().items():
+            with self.subTest(accion=accion):
+                mostrado = atajos_captura.mostrar_atajo(valor)
+                for palabra in ingles:
+                    self.assertNotIn(palabra, mostrado)
+                self.assertEqual(
+                    mostrado, atajos_captura.atajo_legible(valor))
+
+    def test_combinacion_fuera_de_gramatica_se_rechaza_sin_culpar(self):
+        resultado = atajos_captura.resolver("rep_play", "win+q", self.valores)
+        self.assertEqual(resultado, (
+            "rechazado", None, "Esa combinación no se puede usar. Elige otra."))
+
+    def test_ayuda_ctrl_alt_nombra_a_mayus(self):
+        self.assertEqual(
+            atajos_captura._AREA_AYUDA["ctrl+alt"],
+            "Debe ser Ctrl+Alt y una flecha, Espacio, una letra o un número, "
+            "o Ctrl+Alt+Mayús y Flecha izquierda o derecha "
+            "(por ejemplo Ctrl+Alt+T).")
+
+    def test_titulos_de_grupo_dicen_mayus(self):
+        grupos = dict(config.ATAJOS_GRUPOS)
+        self.assertIn("Ventanas (Ctrl+Mayús)", grupos)
+        self.assertIn("Directo y OBS (Alt+Mayús)", grupos)
 
     def test_ayuda_para_cada_area(self):
         for area in config._AREA_POR_GRUPO:
@@ -160,7 +204,7 @@ class TestAtajosCaptura(unittest.TestCase):
 
     def test_textos_de_etiqueta_y_espera(self):
         self.assertEqual(
-            atajos_captura.mostrar_atajo("alt+enter"), "Alt+Enter")
+            atajos_captura.mostrar_atajo("alt+enter"), "Alt+Intro")
         self.assertEqual(
             atajos_captura.etiqueta_boton("Conectar", "alt+c"),
             "Conectar: Alt+C")
@@ -172,7 +216,25 @@ class TestAtajosCaptura(unittest.TestCase):
                 "Conectar", "Debe ser Alt y una tecla (por ejemplo Alt+C)."),
             "Pulsa la combinación para Conectar. "
             "Debe ser Alt y una tecla (por ejemplo Alt+C). "
-            "Enter la deja sin atajo. Escape cancela.")
+            "Intro la deja sin atajo. Escape cancela.")
+
+    def test_etiqueta_boton_nombra_la_tecla_en_espanol(self):
+        self.assertEqual(
+            atajos_captura.etiqueta_boton("Retroceder 1 minuto", "ctrl+left"),
+            "Retroceder 1 minuto: Ctrl+Flecha izquierda")
+        self.assertEqual(
+            atajos_captura.etiqueta_boton(
+                "Abrir Preferencias", "ctrl+shift+p"),
+            "Abrir Preferencias: Ctrl+Mayús+P")
+
+    def test_nota_pagina_nombra_las_familias_en_espanol(self):
+        nota = atajos_captura.NOTA_PAGINA
+        self.assertNotIn("Shift", nota)
+        self.assertNotIn("Enter", nota)
+        for familia in ("Ctrl+Mayús", "Alt+Mayús", "Ctrl+Alt", "teclas F",
+                        "Ctrl para el reproductor", "Alt para el chat"):
+            with self.subTest(familia=familia):
+                self.assertIn(familia, nota)
 
     @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
     def test_la_pagina_entrega_la_combinacion_al_resolvedor(self):

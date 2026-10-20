@@ -4,17 +4,12 @@ from ytchat.core import config as cfg
 from ytchat.ui import teclado_altgr
 
 
-_NOMBRE_TECLA_MOSTRAR = {
-    "ctrl": "Ctrl", "alt": "Alt", "shift": "Shift", "enter": "Enter",
-    "left": "Left", "right": "Right", "up": "Up", "down": "Down",
-    "space": "Space", "end": "End",
-}
 _AREA_AYUDA = {
     "ctrl": "Debe ser Ctrl y una tecla (por ejemplo Ctrl+P).",
     "alt": "Debe ser Alt y una tecla (por ejemplo Alt+C).",
     "ctrl+shift": "Debe ser Ctrl+Mayús y una tecla (por ejemplo Ctrl+Mayús+P).",
     "alt+shift": "Debe ser Alt+Mayús y una tecla (por ejemplo Alt+Mayús+C).",
-    "ctrl+alt": "Debe ser Ctrl+Alt y una flecha, Espacio, una letra o un número (por ejemplo Ctrl+Alt+T).",
+    "ctrl+alt": "Debe ser Ctrl+Alt y una flecha, Espacio, una letra o un número, o Ctrl+Alt+Mayús y Flecha izquierda o derecha (por ejemplo Ctrl+Alt+T).",
     "f": "Debe ser una tecla de función, de F1 a F12, sola o con Ctrl (por ejemplo F2 o Ctrl+F2).",
 }
 ETIQUETAS = {
@@ -66,13 +61,21 @@ ETIQUETAS = {
 }
 
 
+NOTA_PAGINA = (
+    "Cada familia de atajos tiene su modificador: Ctrl para el "
+    "reproductor, Alt para el chat, Ctrl+Mayús para abrir ventanas, "
+    "Alt+Mayús para el directo y OBS, Ctrl+Alt para la música y las "
+    "teclas F para la voz. Pulsa un botón y luego la combinación que "
+    "quieras: se comprueba sola que sirva para esa familia y que no "
+    "choque con otra. F6, Mayús+F6, F9 a F12 y Alt+F4 son fijas y se "
+    "muestran para que no se puedan pisar.")
+
+
 def mostrar_atajo(valor: str) -> str:
-    """Devuelve el texto legible de un atajo."""
+    """Devuelve el texto legible de un atajo, en español."""
     if not valor:
         return "(sin asignar)"
-    partes = [_NOMBRE_TECLA_MOSTRAR.get(parte, parte.upper())
-              for parte in valor.split("+")]
-    return "+".join(partes)
+    return atajo_legible(valor)
 
 
 # Tecla guardada → nombre en español para leer en voz alta. Cubre las teclas
@@ -120,7 +123,7 @@ def etiqueta_boton(etiqueta: str, valor: str) -> str:
 def texto_de_espera(etiqueta: str, ayuda_area: str) -> str:
     """Devuelve el anuncio para entrar en modo captura."""
     return (f"Pulsa la combinación para {etiqueta}. {ayuda_area} "
-            "Enter la deja sin atajo. Escape cancela.")
+            "Intro la deja sin atajo. Escape cancela.")
 
 
 def resolver(accion: str, combo: str | None,
@@ -140,7 +143,7 @@ def resolver(accion: str, combo: str | None,
 
     normalizado = cfg._normalizar_atajo(combo)
     if normalizado is None:
-        return "rechazado", None, "Esa combinación no es válida."
+        return "rechazado", None, "Esa combinación no se puede usar. Elige otra."
     if not cfg.atajo_valido_para_area(accion, normalizado):
         ayuda = _AREA_AYUDA.get(cfg.ATAJOS_AREA.get(accion), "")
         return "rechazado", None, f"No vale aquí. {ayuda}"

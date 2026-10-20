@@ -42,14 +42,14 @@ class TestRepDirectoConfig(unittest.TestCase):
         self.assertEqual(
             cfg.detectar_conflictos_atajos(dict(cfg.todos_los_atajos_default())), [])
 
-    def test_textos_y_acelerador_muestran_end(self):
+    def test_textos_muestran_fin_y_acelerador_sigue_en_ingles(self):
         from ytchat.ui import atajos_captura
         from ytchat.ui.gui import _fmt_accel
-        self.assertEqual(atajos_captura.mostrar_atajo("ctrl+end"), "Ctrl+End")
+        self.assertEqual(atajos_captura.mostrar_atajo("ctrl+end"), "Ctrl+Fin")
         self.assertEqual(_fmt_accel("ctrl+end"), "Ctrl+End")
         self.assertEqual(
             atajos_captura.etiqueta_boton("Ir al directo", "ctrl+end"),
-            "Ir al directo: Ctrl+End")
+            "Ir al directo: Ctrl+Fin")
 
 
 class TestIrAlDirecto(unittest.TestCase):

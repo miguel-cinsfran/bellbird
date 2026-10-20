@@ -923,12 +923,16 @@ ATAJOS_REPRODUCTOR = (
 )
 
 
-def bateria_reproductor(app: Aplicacion, res: Resultado, donde: str) -> None:
+def bateria_reproductor(app: Aplicacion, res: Resultado, donde: str,
+                        hay_medio: bool = False) -> None:
     """Maltrata el reproductor entero y mide cada golpe.
 
     Se usa dos veces: sin nada cargado, que es como arranca la aplicación, y
     contra un directo de verdad desde `escenario_directo_youtube`. Las dos
     situaciones tienen que hablar; la segunda además tiene que ser rápida.
+    `hay_medio` lo dice quien llama, que es quien cargó el medio: sin vídeo
+    el volumen con flechas tiene que avisar y no moverse, con vídeo se mueve
+    en silencio.
     """
     # ── los seis botones ────────────────────────────────────────────────────
     for etiqueta, quien in BOTONES_REPRODUCTOR:
@@ -1022,7 +1026,9 @@ def bateria_reproductor(app: Aplicacion, res: Resultado, donde: str) -> None:
 
     # ── los dos deslizadores, con las flechas ───────────────────────────────
     # La posición anuncia; el volumen NO, a propósito desde el 15/10: NVDA
-    # ya lee el valor del deslizador y se oía dos veces.
+    # ya lee el valor del deslizador y se oía dos veces. La excepción, a
+    # propósito desde el 19/10/2026: sin vídeo cargado `ajustar_volumen`
+    # avisa «No hay ningún vídeo cargado» y no cambia nada.
     try:
         app.pedir("foco", nombre="Posición de reproducción")
     except OrdenRechazada as exc:
@@ -1048,7 +1054,8 @@ def bateria_reproductor(app: Aplicacion, res: Resultado, donde: str) -> None:
             except VentanaNoActiva as exc:
                 res.no_probado(f"{donde}: no se pudo probar el volumen, {exc}")
                 break
-            _juzgar_volumen_silencioso(app, res, donde, tecla, medida, previo)
+            _juzgar_volumen_silencioso(app, res, donde, tecla, medida, previo,
+                                     hay_medio)
 
 
 def _valor_deslizador(app: Aplicacion, nombre: str):
@@ -1068,16 +1075,32 @@ def _valor_deslizador(app: Aplicacion, nombre: str):
 
 
 def _juzgar_volumen_silencioso(app: Aplicacion, res: Resultado, donde: str,
-                               tecla: str, medida, previo) -> None:
-    """El volumen con flechas no anuncia y tiene que mover el deslizador."""
+                               tecla: str, medida, previo,
+                               hay_medio: bool = False) -> None:
+    """El volumen con flechas no anuncia y tiene que mover el deslizador.
+
+    Sin vídeo cargado es al revés, a propósito desde el 19/10/2026:
+    `ajustar_volumen` avisa «No hay ningún vídeo cargado» y no cambia nada.
+    """
     bloqueo, _latencia, dichos = medida
-    if dichos:
-        res.fallo(f"{donde}: el volumen con la flecha {tecla} anuncia "
-                  f"«{dichos[0][:58]}», y no debería: NVDA ya lee el valor "
-                  "del deslizador")
+    if hay_medio:
+        if dichos:
+            res.fallo(f"{donde}: el volumen con la flecha {tecla} anuncia "
+                      f"«{dichos[0][:58]}», y no debería: NVDA ya lee el valor "
+                      "del deslizador")
+        else:
+            res.nota(f"{donde}: el volumen con la flecha {tecla} no anuncia, "
+                     "a propósito")
+    elif any("No hay ningún vídeo cargado" in d for d in dichos):
+        res.nota(f"{donde}: sin vídeo, el volumen con la flecha {tecla} "
+                 "avisa «No hay ningún vídeo cargado»")
+    elif dichos:
+        res.fallo(f"{donde}: sin vídeo, el volumen con la flecha {tecla} "
+                  f"anuncia «{dichos[0][:58]}» en vez de avisar "
+                  "«No hay ningún vídeo cargado»")
     else:
-        res.nota(f"{donde}: el volumen con la flecha {tecla} no anuncia, "
-                 "a propósito")
+        res.fallo(f"{donde}: sin vídeo, el volumen con la flecha {tecla} "
+                  "no avisa «No hay ningún vídeo cargado»")
     if bloqueo > BLOQUEO_INACEPTABLE:
         res.fallo(f"{donde}: el volumen con la flecha {tecla} deja la ventana "
                   f"{bloqueo:.1f} s sin responder")
@@ -1088,12 +1111,20 @@ def _juzgar_volumen_silencioso(app: Aplicacion, res: Resultado, donde: str,
     if previo is None or posterior is None:
         res.nota(f"{donde}: la sonda no leyó el valor del deslizador, así que "
                  f"el cambio con la flecha {tecla} queda sin comprobar")
-    elif posterior == previo:
-        res.fallo(f"{donde}: el volumen con la flecha {tecla} no movió el "
-                  f"deslizador (sigue en {previo})")
+    elif hay_medio:
+        if posterior == previo:
+            res.fallo(f"{donde}: el volumen con la flecha {tecla} no movió el "
+                      f"deslizador (sigue en {previo})")
+        else:
+            res.nota(f"{donde}: el volumen con la flecha {tecla} mueve el "
+                     f"deslizador de {previo} a {posterior}")
+    elif posterior != previo:
+        res.fallo(f"{donde}: sin vídeo, el volumen con la flecha {tecla} "
+                  f"movió el deslizador de {previo} a {posterior}, "
+                  "y no debería")
     else:
-        res.nota(f"{donde}: el volumen con la flecha {tecla} mueve el "
-                 f"deslizador de {previo} a {posterior}")
+        res.nota(f"{donde}: sin vídeo, el volumen con la flecha {tecla} "
+                 f"deja el deslizador en {previo}, a propósito")
 
 
 def escenario_reproductor(app: Aplicacion, args, res: Resultado):
@@ -1187,20 +1218,48 @@ def escenario_principal(app: Aplicacion, args, res: Resultado):
         res.fallo("F2 no anunció nada en 8 segundos")
 
 
+def _atajo_descargas() -> tuple[tuple, str]:
+    """El atajo de fábrica para abrir el gestor de descargas.
+
+    Se lee de `config_predeterminada`, la misma fuente de los valores de
+    fábrica que usa la aplicación, y se nombra con `atajo_legible`, que ya
+    usa el banco para los atajos de música. Así no va escrito a mano: con
+    el mapa por familias pasó de Ctrl+S a Ctrl+Mayús+D. Devuelve el paso
+    para `teclas` y el nombre legible para el informe.
+    """
+    texto = "ctrl+shift+d"
+    try:
+        from ytchat.core import config_predeterminada
+        texto = (config_predeterminada.obtener(
+            "atajos", "descargas_abrir", texto) or texto)
+    except Exception:
+        pass
+    try:
+        from ytchat.ui.atajos_captura import atajo_legible
+        legible = atajo_legible(texto) or texto
+    except Exception:
+        legible = texto
+    partes = (texto or "").strip().lower().replace(" ", "").split("+")
+    tecla = partes[-1] if partes and partes[-1] else "d"
+    mods = [p for p in partes[:-1] if p] or ["ctrl"]
+    return (tecla, mods), legible
+
+
 def escenario_descargas(app: Aplicacion, args, res: Resultado):
     """El gestor de descargas, que entró al repositorio sin que nadie lo abra."""
+    paso_atajo, nombre_atajo = _atajo_descargas()
     app.pedir("frente")
     # El foco tiene que estar DENTRO de un control, no en el frame, o el
     # acelerador no llega. Sin esto el escenario pasaba o fallaba segun que
     # otro escenario se hubiera corrido antes, que es la peor clase de prueba.
     try:    app.pedir("foco", nombre="URL")
     except Exception: pass
-    app.teclas(("s", ["ctrl"]))
+    app.teclas(paso_atajo)
     dlg = app.esperar_ventana("Gestor de descargas", segundos=12)
     if dlg is None:
-        res.fallo("Ctrl+S no abrió el gestor de descargas")
+        res.fallo(f"{nombre_atajo} no abrió el gestor de descargas")
         return
-    res.nota(f"Ctrl+S abre «{dlg['titulo']}», clase {dlg['clase']}")
+    res.nota(f"{nombre_atajo} abre «{dlg['titulo']}», clase {dlg['clase']}")
 
     controles = app.arbol("Gestor de descargas")
     revisar_nombres(controles, res, "descargas")
@@ -3756,7 +3815,7 @@ def escenario_directo_youtube(app: Aplicacion, args, res: Resultado):
                         for c in app.arbol()).lower()
     if "retroceder 1 min" not in visibles:
         app.pedir("pulsar", nombre="AlternarBotonesReproductor")
-    bateria_reproductor(app, res, "youtube en vivo")
+    bateria_reproductor(app, res, "youtube en vivo", hay_medio=True)
 
     app.llamar("set_conectado", False)
 

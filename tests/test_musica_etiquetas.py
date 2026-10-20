@@ -215,14 +215,32 @@ class TestLeerConReintento(unittest.TestCase):
             resultado, {"titulo": "Tema", "duracion_ms": 95540})
         self.assertEqual(llamadas, [1500])
 
-    def test_falla_las_dos_da_diccionario_vacio(self):
+    def test_sin_duracion_devuelve_la_segunda(self):
         llamadas = []
 
         def leer(ruta, plazo_ms=1500):
             llamadas.append(plazo_ms)
+            if len(llamadas) == 1:
+                return {"titulo": "Vieja", "artista": "Ana"}
+            return {"titulo": "Nueva", "artista": "Ana"}
+
+        self.assertEqual(
+            leer_con_reintento(leer, "C:/musica/a.mp3"),
+            {"titulo": "Nueva", "artista": "Ana"})
+        self.assertEqual(llamadas, [1500, 5000])
+
+    def test_segunda_vacia_devuelve_la_primera(self):
+        llamadas = []
+
+        def leer(ruta, plazo_ms=1500):
+            llamadas.append(plazo_ms)
+            if len(llamadas) == 1:
+                return {"titulo": "Vieja", "artista": "Ana"}
             return {}
 
-        self.assertEqual(leer_con_reintento(leer, "C:/musica/a.mp3"), {})
+        self.assertEqual(
+            leer_con_reintento(leer, "C:/musica/a.mp3"),
+            {"titulo": "Vieja", "artista": "Ana"})
         self.assertEqual(llamadas, [1500, 5000])
 
 

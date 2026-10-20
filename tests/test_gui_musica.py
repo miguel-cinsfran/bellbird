@@ -676,7 +676,7 @@ class TestEtiquetasSegundoPlano(unittest.TestCase):
                     mock.patch.object(
                         musica_indice, "leer_etiquetas_vlc",
                         return_value={"titulo": "Tema", "artista": "Ana",
-                                      "album": "Disco"}):
+                                      "album": "Disco", "duracion_ms": 1000}):
                 control = ControlMusica(_frame(musica_carpeta=tmp))
                 control._coordinador = mock.Mock()
                 ventana = mock.Mock()
@@ -731,7 +731,8 @@ class TestEtiquetasSegundoPlano(unittest.TestCase):
                     info = os.stat(ruta)
                     previa.poner(str(ruta.resolve()), info.st_mtime_ns,
                                  info.st_size,
-                                 {"titulo": "Tema", "artista": "Ana"})
+                                 {"titulo": "Tema", "artista": "Ana",
+                                  "duracion_ms": 1000})
                 previa.guardar()
                 control = ControlMusica(_frame(musica_carpeta=tmp))
                 recibidas = []
@@ -789,7 +790,7 @@ class TestEtiquetasSegundoPlano(unittest.TestCase):
                 ventana = mock.Mock()
                 control.registrar_ventana(ventana)
 
-                def leer_y_cambiar(_origen):
+                def leer_y_cambiar(_origen, **_kw):
                     control._generacion_etiquetas += 1
                     return {"titulo": "Tema"}
 

@@ -167,8 +167,11 @@ def leer_con_reintento(leer, ruta) -> dict:
     """Lee las etiquetas con un reintento ante un fallo.
 
     Llama a `leer(ruta)`; si lo que vuelve no trae duración mayor que
-    cero, llama otra vez con `leer(ruta, plazo_ms=5000)`. Devuelve el
-    último resultado, `{}` si ninguno sirvió.
+    cero, llama otra vez con `leer(ruta, plazo_ms=5000)`. Si alguna trae
+    duración, devuelve esa. Si ninguna trae duración, devuelve lo leído
+    para mostrarlo: la segunda si no está vacía y, si no, la primera
+    (o `{}` si las dos están vacías). Lo leído sin duración no se guarda
+    en la caché y se vuelve a leer en la próxima apertura.
     """
     primero = leer(ruta)
     if _trae_duracion(primero):
@@ -176,4 +179,8 @@ def leer_con_reintento(leer, ruta) -> dict:
     segundo = leer(ruta, plazo_ms=5000)
     if _trae_duracion(segundo):
         return segundo
+    if isinstance(segundo, dict) and segundo:
+        return segundo
+    if isinstance(primero, dict):
+        return primero
     return {}

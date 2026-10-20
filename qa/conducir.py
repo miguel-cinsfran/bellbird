@@ -48,6 +48,8 @@ sys.path.insert(0, str(RAIZ / "qa"))
 
 from sonda import VAR_DESTINO, VAR_ORDENES, VAR_RESULTADOS  # noqa: E402
 
+import capturas  # noqa: E402
+
 try:
     import medidor_sonido  # noqa: E402
 except Exception:
@@ -2140,6 +2142,12 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         propia.pedir("pulsar", nombre="Mostrar la cola", ventana="Música")
         if _filas_hasta("Música", "Cola de reproducción", 0, 1.0) is None:
             _corta("musica_real: la Cola no responde tras mostrarla")
+        # Con `--capturas`: la misma ventana, ahora con la cola visible. La
+        # apertura con la cola oculta ya la capturó `esperar_ventana`.
+        captor_musica = getattr(args, "captor", None)
+        if captor_musica is not None:
+            captor_musica.capturar(propia, "musica_real", "Música",
+                                   extra="cola visible")
 
         # ── b. Reproducir todo: anuncia el título y se oye ──
 
@@ -5162,7 +5170,15 @@ def _armar_tope_global(minutos: float, app) -> None:
     temporizador.start()
 
 
-def main() -> int:
+# Los escenarios que dejan un chat conectado (simulado o real): al
+# terminar cada uno se captura la ventana principal ya conectada.
+ESCENARIOS_QUE_CONECTAN = frozenset({
+    "chat", "tiktok", "directo_youtube", "directo_tiktok", "dos_conexiones",
+    "reproductor_en_marcha", "enviar_live",
+})
+
+
+def _argumentos(argv=None):
     p = argparse.ArgumentParser()
     p.add_argument("--escenario", action="append", default=None,
                    choices=sorted(ESCENARIOS) + ["todos"])
@@ -5182,7 +5198,95 @@ def main() -> int:
     p.add_argument("--tope-minutos", dest="tope_minutos", type=float,
                    default=20.0,
                    help="corta la corrida entera si se cuelga (0 lo desactiva)")
-    args = p.parse_args()
+    p.add_argument("--capturas", nargs="?", const="__auto__", default=None,
+                   metavar="CARPETA",
+                   help="guarda un PNG de cada ventana que el banco abre, "
+                   "más un índice; sin valor usa "
+                   "qa/salida/capturas/<fecha-hora>")
+    _argumentos.p = p
+    return p.parse_args(argv)
+
+
+# Quién captura y para qué escenario, mientras corre con `--capturas`.
+# El bucle de `main` lo mantiene al día; sin la opción queda en `None` y
+# no se pide ni una orden nueva a la sonda.
+_CAPTURA_EN_CURSO = {"captor": None, "escenario": ""}
+
+
+class Captor:
+    """Pide PNG a la sonda y lleva el índice. Nunca hace fallar nada."""
+
+    def __init__(self, carpeta):
+        self.carpeta = Path(carpeta)
+        self.carpeta.mkdir(parents=True, exist_ok=True)
+        self.registro = capturas.RegistroCapturas(self.carpeta)
+
+    def capturar(self, app, escenario, ventana, extra="") -> bool:
+        try:
+            return self._capturar(app, escenario, ventana, extra)
+        except Exception:
+            return False
+
+    def _capturar(self, app, escenario, ventana, extra="") -> bool:
+        reserva = self.registro.reservar(escenario, ventana, extra)
+        if reserva is None:
+            return False
+        n, base = reserva
+        try:
+            r = app.pedir("capturar", ventana=ventana,
+                          carpeta=str(self.carpeta), base=base, paginas=True,
+                          tiempo=30.0)
+        except Exception as exc:
+            self.registro.anotar_fallo(n, escenario, ventana,
+                                       f"la sonda no contestó: {exc}")
+            return False
+        if not r.get("ok"):
+            self.registro.anotar_fallo(n, escenario, ventana,
+                                       str(r.get("error", "sin motivo")))
+            return False
+        for f in r.get("datos", {}).get("archivos", []):
+            titulo = f.get("titulo") or ventana
+            if f.get("fallo") or not f.get("archivo"):
+                self.registro.anotar_fallo(n, escenario, titulo,
+                                           f.get("fallo") or "sin archivo")
+            else:
+                self.registro.anotar_ok(
+                    n, f["archivo"], escenario, titulo,
+                    f.get("pestana") or "",
+                    (f.get("ancho", 0), f.get("alto", 0)), f.get("minimo"))
+        return True
+
+    def escribir_indice(self) -> Path:
+        return self.registro.escribir()
+
+
+def _instalar_capturas(captor):
+    """Engancha `esperar_ventana`: cada ventana nueva se captura una vez.
+
+    Es el punto común por el que pasa todo el banco (los diálogos que
+    audita `auditar_dialogo` también), así que ningún escenario se toca.
+    Devuelve la función original para restaurarla al terminar.
+    """
+    original = Aplicacion.esperar_ventana
+
+    def _esperar_y_capturar(self, titulo, segundos=15.0):
+        ventana = original(self, titulo, segundos)
+        if ventana is not None and _CAPTURA_EN_CURSO["captor"] is not None:
+            try:
+                _CAPTURA_EN_CURSO["captor"].capturar(
+                    self, _CAPTURA_EN_CURSO["escenario"],
+                    ventana.get("titulo") or titulo)
+            except Exception:
+                pass
+        return ventana
+
+    Aplicacion.esperar_ventana = _esperar_y_capturar
+    return original
+
+
+def main() -> int:
+    args = _argumentos()
+    p = _argumentos.p
 
     pedidos = args.escenario or ["todos"]
     if "todos" in pedidos:
@@ -5241,6 +5345,19 @@ def main() -> int:
     carpeta.mkdir(parents=True, exist_ok=True)
     app = Aplicacion(carpeta)
     res = Resultado()
+    # Sin `--capturas` esto queda en `None` y el banco pide exactamente las
+    # mismas órdenes que hoy: ninguna llamada nueva a la sonda.
+    captor = None
+    if args.capturas is not None:
+        if args.capturas == "__auto__":
+            carpeta_cap = (RAIZ / "qa" / "salida" / "capturas"
+                           / capturas.carpeta_por_defecto())
+        else:
+            carpeta_cap = Path(args.capturas)
+        captor = Captor(carpeta_cap)
+        args.captor = captor
+        _CAPTURA_EN_CURSO["captor"] = captor
+        _esperar_original = _instalar_capturas(captor)
     if args.tope_minutos > 0:
         _armar_tope_global(args.tope_minutos, app)
 
@@ -5277,17 +5394,26 @@ def main() -> int:
         # Prueba de que la sonda está puesta, no de que yo lo crea.
         if not app.dijo("grabador instalado"):
             print("AVISO: la sonda no dejó constancia. Podría estar hablando.")
+        if captor is not None:
+            _CAPTURA_EN_CURSO["escenario"] = "arranque"
+            captor.capturar(app, "arranque", "principal")
 
         for nombre in pedidos:
             global _ESCENARIO_EN_CURSO
             _ESCENARIO_EN_CURSO = nombre
+            _CAPTURA_EN_CURSO["escenario"] = nombre
             print()
             print(f"--- escenario: {nombre} ---")
             try:
                 ESCENARIOS[nombre](app, args, res)
             except Exception as exc:
                 res.fallo(f"{nombre}: el escenario reventó, {exc!r}")
+            if captor is not None and nombre in ESCENARIOS_QUE_CONECTAN:
+                captor.capturar(app, nombre, "principal")
     finally:
+        if captor is not None:
+            Aplicacion.esperar_ventana = _esperar_original
+            _CAPTURA_EN_CURSO["captor"] = None
         app.cerrar()
         # Si el banco abrió OBS y no estaba al empezar, se lo cierra: no se le
         # puede dejar al dueño una aplicación abierta que no tenía. El cierre
@@ -5298,6 +5424,14 @@ def main() -> int:
                 cerrar_obs_del_banco(res)
         except Exception:
             pass
+
+    if captor is not None:
+        try:
+            ruta_indice = captor.escribir_indice()
+            print(f"  Capturas en {captor.carpeta} ({len(captor.registro.lineas)} "
+                  f"renglones), índice en {ruta_indice.name}")
+        except Exception as exc:
+            print(f"  AVISO: no se pudo escribir el índice de capturas: {exc}")
 
     print()
     print("=" * 60)

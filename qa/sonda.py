@@ -30,6 +30,7 @@ import json
 import os
 import threading
 import time
+from pathlib import Path
 
 VAR_DESTINO = "YTCHAT_QA_ANUNCIOS"
 VAR_ORDENES = "YTCHAT_QA_ORDENES"
@@ -305,6 +306,129 @@ def _iterar(ventana):
         hijos = []
     for h in hijos:
         yield from _iterar(h)
+
+
+# La bandera 2 de `PrintWindow`: dibuja fuera de pantalla, con la ventana
+# tapada y con la cortina de pantalla de NVDA, que ennegrece cualquier
+# captura de la pantalla física. `ImageGrab` o `mss` no sirven acá.
+PW_RENDERFULLCONTENT = 2
+
+
+def _todos_los_libros(ventana):
+    """Cada cuaderno de pestañas que cuelgue de esta ventana.
+
+    Se reconoce igual que `_buscar_notebook`: por lo que sabe hacer y no
+    por su clase, porque `wx.Notebook`, `wx.Listbook` y `wx.Choicebook` no
+    comparten antepasado útil.
+    """
+    libros = []
+
+    def _recorrer(v):
+        if all(hasattr(v, m) for m in
+               ("GetPageCount", "GetPageText", "SetSelection",
+                "GetSelection")):
+            if not any(b is v for b in libros):
+                libros.append(v)
+        try:
+            hijos = list(v.GetChildren())
+        except Exception:
+            hijos = []
+        for h in hijos:
+            _recorrer(h)
+
+    _recorrer(ventana)
+    return libros
+
+
+def _dibujar_ventana_a_rgb(ventana):
+    """Dibuja la ventana con `PrintWindow` y devuelve `(ancho, alto, rgb)`.
+
+    Los bytes salen BGRA de 32 bits de arriba hacia abajo y se pasan a RGB
+    con `capturas.bgra_a_rgb`, que es lo que espera `wx.Image`. Libera
+    siempre el bitmap y los DC, en un `finally`.
+    """
+    import ctypes
+    from ctypes import wintypes
+    user32 = ctypes.windll.user32
+    gdi32 = ctypes.windll.gdi32
+    hwnd = ventana.GetHandle()
+    rect = wintypes.RECT()
+    if not user32.GetWindowRect(hwnd, ctypes.byref(rect)):
+        raise RuntimeError("no se pudo leer el rectángulo de la ventana")
+    ancho = rect.right - rect.left
+    alto = rect.bottom - rect.top
+    if ancho <= 0 or alto <= 0:
+        raise RuntimeError(f"tamaño inválido: {ancho}x{alto}")
+
+    class _Cabecera(ctypes.Structure):
+        _fields_ = [("biSize", wintypes.DWORD),
+                    ("biWidth", wintypes.LONG),
+                    ("biHeight", wintypes.LONG),
+                    ("biPlanes", wintypes.WORD),
+                    ("biBitCount", wintypes.WORD),
+                    ("biCompression", wintypes.DWORD),
+                    ("biSizeImage", wintypes.DWORD),
+                    ("biXPelsPerMeter", wintypes.LONG),
+                    ("biYPelsPerMeter", wintypes.LONG),
+                    ("biClrUsed", wintypes.DWORD),
+                    ("biClrImportant", wintypes.DWORD)]
+
+    class _Info(ctypes.Structure):
+        _fields_ = [("bmiHeader", _Cabecera),
+                    ("bmiColors", wintypes.DWORD * 3)]
+
+    hdc_pantalla = user32.GetDC(None)
+    if not hdc_pantalla:
+        raise RuntimeError("no se pudo pedir el DC de pantalla")
+    try:
+        hdc_mem = gdi32.CreateCompatibleDC(hdc_pantalla)
+        if not hdc_mem:
+            raise RuntimeError("no se pudo crear el DC compatible")
+        try:
+            hbmp = gdi32.CreateCompatibleBitmap(hdc_pantalla, ancho, alto)
+            if not hbmp:
+                raise RuntimeError("no se pudo crear el bitmap")
+            try:
+                anterior = gdi32.SelectObject(hdc_mem, hbmp)
+                try:
+                    if not user32.PrintWindow(hwnd, hdc_mem,
+                                             PW_RENDERFULLCONTENT):
+                        raise RuntimeError("PrintWindow devolvió falso")
+                    info = _Info()
+                    info.bmiHeader.biSize = ctypes.sizeof(_Cabecera)
+                    info.bmiHeader.biWidth = ancho
+                    # Alto negativo: de arriba hacia abajo.
+                    info.bmiHeader.biHeight = -alto
+                    info.bmiHeader.biPlanes = 1
+                    info.bmiHeader.biBitCount = 32
+                    info.bmiHeader.biCompression = 0
+                    bufer = ctypes.create_string_buffer(ancho * alto * 4)
+                    if not gdi32.GetDIBits(hdc_mem, hbmp, 0, alto, bufer,
+                                           ctypes.byref(info), 0):
+                        raise RuntimeError("GetDIBits devolvió cero")
+                    import capturas
+                    rgb = capturas.bgra_a_rgb(bufer.raw)
+                finally:
+                    gdi32.SelectObject(hdc_mem, anterior)
+            finally:
+                gdi32.DeleteObject(hbmp)
+        finally:
+            gdi32.DeleteDC(hdc_mem)
+    finally:
+        user32.ReleaseDC(None, hdc_pantalla)
+    return ancho, alto, rgb
+
+
+def _guardar_png(ventana, ruta) -> tuple:
+    """Guarda la ventana en `ruta` como PNG y devuelve su tamaño."""
+    import wx
+    ancho, alto, rgb = _dibujar_ventana_a_rgb(ventana)
+    imagen = wx.Image(ancho, alto, bytes(rgb))
+    if not imagen.IsOk():
+        raise RuntimeError("la imagen quedó vacía")
+    if not imagen.SaveFile(str(ruta), wx.BITMAP_TYPE_PNG):
+        raise RuntimeError(f"no se pudo guardar {ruta}")
+    return ancho, alto
 
 
 # ── Servidor de órdenes ──────────────────────────────────────────────────────
@@ -858,6 +982,96 @@ class Sonda:
                 # `.venv` es un lanzador que crea otro proceso, así que el
                 # pid del `Popen` no es el que suena.
                 self.responder(id_orden, True, {"pid": os.getpid()})
+
+            elif op == "capturar":
+                # Guarda un PNG de una ventana con `PrintWindow`, sin mover
+                # el foco ni mandar teclas. `ventana` es el título exacto o
+                # "principal"; `base` la pone quien pide (ya trae el número,
+                # el escenario y el título) y a cada página se le suma
+                # `_pPP_pestana`. Cada página que falla queda anotada en su
+                # entrada en vez de reventar la orden entera.
+                import capturas
+                pedida = str(orden.get("ventana") or "")
+                carpeta = Path(orden.get("carpeta") or ".")
+                base = str(orden.get("base") or "captura").strip()
+                base = base or "captura"
+                con_paginas = bool(orden.get("paginas"))
+                if not pedida.strip() or pedida.strip().lower() == "principal":
+                    objetivo = frame
+                else:
+                    objetivo = None
+                    for v in wx.GetTopLevelWindows():
+                        try:
+                            if (v.GetTitle() or "") == pedida:
+                                objetivo = v
+                                break
+                        except Exception:
+                            continue
+                if objetivo is None:
+                    raise RuntimeError(f"no hay ventana {pedida!r}")
+                carpeta.mkdir(parents=True, exist_ok=True)
+                try:
+                    titulo_real = objetivo.GetTitle() or pedida
+                except Exception:
+                    titulo_real = pedida
+                try:
+                    minimo = objetivo.GetMinSize()
+                    minimo = [int(minimo.GetWidth()),
+                              int(minimo.GetHeight())]
+                except Exception:
+                    minimo = None
+                archivos = []
+
+                def _una(ruta, pestana):
+                    try:
+                        ancho, alto = _guardar_png(objetivo, ruta)
+                        archivos.append({
+                            "archivo": Path(ruta).name,
+                            "titulo": titulo_real, "pestana": pestana,
+                            "ancho": ancho, "alto": alto, "minimo": minimo,
+                        })
+                    except Exception as exc:
+                        archivos.append({
+                            "archivo": None,
+                            "titulo": titulo_real, "pestana": pestana,
+                            "ancho": 0, "alto": 0, "minimo": minimo,
+                            "fallo": str(exc),
+                        })
+
+                libros = (_todos_los_libros(objetivo) if con_paginas
+                          else [])
+                if not libros:
+                    _una(carpeta / f"{base}.png", "")
+                else:
+                    for libro in libros:
+                        try:
+                            anterior = libro.GetSelection()
+                        except Exception:
+                            anterior = 0
+                        try:
+                            for i in range(libro.GetPageCount()):
+                                try:
+                                    pest = libro.GetPageText(i)
+                                except Exception:
+                                    pest = f"página {i + 1}"
+                                libro.SetSelection(i)
+                                try:
+                                    objetivo.Update()
+                                except Exception:
+                                    pass
+                                try:
+                                    wx.SafeYield()
+                                except Exception:
+                                    pass
+                                _una(carpeta / (capturas.nombre_pagina(
+                                    base, i + 1, pest) + ".png"), pest)
+                        finally:
+                            try:
+                                libro.SetSelection(anterior)
+                                objetivo.Update()
+                            except Exception:
+                                pass
+                self.responder(id_orden, True, {"archivos": archivos})
 
             else:
                 raise RuntimeError(f"orden desconocida: {op!r}")

@@ -25,6 +25,45 @@ viendo.
 Una corrida con comprobaciones sin probar no dice «Sin fallos» y sale con
 código 2; con fallos sale con código 1.
 
+## Capturas
+
+Con `--capturas` el banco corre igual que siempre y además guarda un PNG
+de cada ventana que abre, y de cada página de cada cuaderno de pestañas:
+
+    python qa/conducir.py --capturas
+    python qa/conducir.py --capturas C:\capturas\mias --escenario musica
+
+Sin la opción no cambia nada: no se pide ni una orden nueva a la sonda.
+
+Las capturas quedan en `qa/salida/capturas/<AAAA-MM-DD_HH-MM>/`, o en la
+carpeta que se dé con `--capturas CARPETA`. Cada archivo se llama
+`NN_escenario_titulo[_pPP_pestana].png`, en minúsculas, sin tildes ni
+espacios, en orden de captura. `indice.md` en la misma carpeta trae una
+línea por archivo con el número, el escenario, el título, la pestaña, el
+tamaño en píxeles y el tamaño mínimo de la ventana. Si una captura falla,
+queda anotada en el índice como fallida con su motivo y el banco sigue:
+una captura nunca hace fallar un escenario.
+
+Qué sale en la corrida completa: la ventana principal desconectada al
+arrancar; cada diálogo que `esperar_ventana` encuentra, una vez por
+título y escenario (Gestor de descargas, Preferencias, Historial de
+directos, Música, Transmisión, Transmitir a, Directo de YouTube y los que
+abran ayuda, comentarios, conectar y redactar); la ventana principal ya
+conectada al terminar los escenarios que conectan un chat (simulado o
+real); y la ventana Música con la cola oculta y, si el escenario la
+muestra, también con la cola visible.
+
+Cómo se dibuja: `PrintWindow` con `PW_RENDERFULLCONTENT` sobre la ventana
+de nivel superior, con ctypes y GDI, y los bytes BGRA pasan a RGB antes de
+guardar el PNG. Así sale aun con la ventana tapada y con la cortina de
+pantalla de NVDA, que ennegrece cualquier captura de la pantalla física.
+No se mueve el foco ni se mandan teclas.
+
+Lo que no sale: los menús contextuales y los cuadros nativos de Windows
+(como la pregunta de «Directo sin imagen»). `PrintWindow` dibuja ventanas
+wx de nivel superior, y eso no es una: no se fuerza y queda anotado en el
+índice como no capturado, con su motivo.
+
 ## Directo real de prueba
 
 `directo_real.py` hace un directo de YouTube «No listado» de alrededor de

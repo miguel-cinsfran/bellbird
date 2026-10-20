@@ -24,6 +24,8 @@ from tests.ventanas_prueba import destruir
 
 _SOLO_WINDOWS = _HAY_WX and sys.platform == "win32"
 
+_TITULO_GENERICO = "Ventana genérica sin fugas YTChat TTS"
+
 
 def _objetos_usuario():
     """Objetos USER del proceso actual (`GetGuiResources`, bandera 1)."""
@@ -48,6 +50,13 @@ class TestVentanasSinFugas(unittest.TestCase):
     def _dialogo(self):
         return gui_preferencias.PreferenciasDialog(None, {})
 
+    def _dialogo_generico(self):
+        dialogo = wx.Dialog(None, title=_TITULO_GENERICO)
+        panel = wx.Panel(dialogo)
+        wx.Button(panel, label="Aceptar")
+        wx.StaticText(panel, label="Texto de prueba")
+        return dialogo
+
     def test_sesenta_dialogos_no_acumulan_objetos_de_ventana(self):
         with mock.patch.object(motores, "listar_voces",
                                return_value=["Voz de prueba"]):
@@ -65,6 +74,17 @@ class TestVentanasSinFugas(unittest.TestCase):
                 destruir(self._dialogo())
         vivos = [ventana for ventana in wx.GetTopLevelWindows()
                  if isinstance(ventana, gui_preferencias.PreferenciasDialog)]
+        self.assertEqual(vivos, [])
+
+    def test_ventana_generica_no_deja_fugas_ni_queda_viva(self):
+        destruir(self._dialogo_generico())
+        base = _objetos_usuario()
+        for _ in range(59):
+            destruir(self._dialogo_generico())
+        final = _objetos_usuario()
+        self.assertLessEqual(final, base + 300)
+        vivos = [ventana for ventana in wx.GetTopLevelWindows()
+                 if ventana.GetTitle() == _TITULO_GENERICO]
         self.assertEqual(vivos, [])
 
 

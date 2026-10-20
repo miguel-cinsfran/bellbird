@@ -1361,7 +1361,7 @@ class PreferenciasDialog(wx.Dialog):
                 continue
             self._valores_atajo[accion] = valor
             self._restaurar_etiqueta_atajo(accion, etiqueta_de_accion(accion))
-        anunciar("Atajos restablecidos a los valores de fábrica. Se aplican al pulsar Guardar")
+        anunciar("Atajos restablecidos a los valores de fábrica. Se aplican al pulsar Guardar.")
 
     def _atajo_perdio_foco(self, event):
         self._salir_captura_atajo()

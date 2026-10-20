@@ -59,6 +59,12 @@ class TestAtajosCaptura(unittest.TestCase):
             with self.subTest(accion=accion):
                 self.assertIn(accion, atajos_captura.ETIQUETAS)
 
+    def test_etiquetas_sin_sufijo_de_fija(self):
+        for accion, etiqueta in atajos_captura.ETIQUETAS.items():
+            with self.subTest(accion=accion):
+                self.assertNotIn("(fija)", etiqueta)
+                self.assertNotIn("(fijo)", etiqueta)
+
     def test_choque_con_obs_micro_usa_nombre_legible(self):
         valores = {"abrir_preferencias": "ctrl+shift+m",
                    "obs_micro": "ctrl+shift+m"}
@@ -352,7 +358,7 @@ class TestAtajosCaptura(unittest.TestCase):
         dialogo._botones_atajo["rep_play"].SetLabel.assert_called_once_with(
             "Reproducir o pausa: Ctrl+P")
         anunciar.assert_called_once_with(
-            "Atajos restablecidos a los valores de fábrica. Se aplican al pulsar Guardar")
+            "Atajos restablecidos a los valores de fábrica. Se aplican al pulsar Guardar.")
 
     @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
     def test_cancelar_restaurar_la_etiqueta_y_anunciar_sin_cambios(self):

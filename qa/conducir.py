@@ -5011,6 +5011,7 @@ SUPERFICIES = {
     "musica_menus.py": "musica",
     "musica_ventana.py": "musica",
     "musica_ventana_acciones.py": "musica",
+    "musica_ventana_igualando.py": "musica",
     "gui_transmision.py": "transmision",
     "gui_transmitir.py": "transmitir_destino",
     "gui_preferencias.py": "preferencias",

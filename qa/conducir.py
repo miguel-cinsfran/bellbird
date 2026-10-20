@@ -1799,6 +1799,7 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
     from ytchat.music import anuncios as anuncios_musica
     from ytchat.music import enlaces as enlaces_musica
     from ytchat.music import listas as listas_musica
+    from ytchat.music import vista as vista_musica
     from ytchat.music.biblioteca import EXTENSIONES
     from tests.test_musica_enlaces import LISTA as _LISTA_PRUEBA
     from tests.test_musica_enlaces import VIDEO as _VIDEO_PRUEBA
@@ -2553,8 +2554,18 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
             if not callado:
                 res.fallo("musica_real: detenida y el pico no cayó "
                           "bajo 0,001 en 3 s")
-        esperadas = ["Biblioteca", _NOMBRE_LISTA]
-        elegidas = _filas_hasta("Música", "Colecciones", 2, 10.0)
+        esperadas = vista_musica.filas_colecciones(
+            [_NOMBRE_LISTA], cantidad_biblioteca=len(nombres_archivo),
+            cantidades={_NOMBRE_LISTA: cantidad_lista})
+        # `_filas_hasta` solo espera la cantidad (2) y vuelve enseguida con
+        # «Biblioteca» sin contar: se espera la igualdad, con el mismo plazo.
+        limite_colecciones = time.monotonic() + 10.0
+        elegidas = None
+        while time.monotonic() < limite_colecciones:
+            elegidas = _filas("Música", "Colecciones")
+            if elegidas == esperadas:
+                break
+            time.sleep(0.2)
         if elegidas != esperadas:
             _corta(f"musica_real: «Colecciones» ofrece {elegidas} en vez "
                    f"de {esperadas}")

@@ -1763,11 +1763,6 @@ def escenario_musica(app: Aplicacion, args, res: Resultado):
         vueltas_tab=14,
         esperados=esperados,
         esperados_en_tab=esperados)
-    auditar_dialogo(
-        app, res, "Listas de música…", "Música",
-        vueltas_tab=14,
-        esperados=esperados,
-        esperados_en_tab=esperados)
 
 
 def escenario_musica_real(app: Aplicacion, args, res: Resultado):

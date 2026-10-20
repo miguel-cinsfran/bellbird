@@ -12,6 +12,7 @@ from unittest import mock
 
 from ytchat.core import archivos
 from ytchat.core import config
+from ytchat.core import paths
 from tests.rutas_temporales import redirigir_rutas
 
 
@@ -793,7 +794,8 @@ class TestMusicaCargador(unittest.TestCase):
             return config.cargar_configuracion()
 
     def test_diez_valores_de_fabrica_con_ini_vacio(self):
-        cfg = self._cargar_en("")
+        with mock.patch.object(paths, "carpeta_musica_windows", return_value=""):
+            cfg = self._cargar_en("")
         self.assertEqual(cfg["musica_carpeta"], "")
         self.assertFalse(cfg["musica_aleatorio"])
         self.assertEqual(cfg["musica_repetir"], "no")
@@ -874,6 +876,18 @@ class TestMusicaCargador(unittest.TestCase):
             "[musica]\ncarpeta = "
             f"{config.codificar_texto_ini(carpeta)}\n")
         self.assertEqual(cfg["musica_carpeta"], carpeta)
+
+    def test_sin_carpeta_cae_en_la_de_windows(self):
+        with mock.patch.object(paths, "carpeta_musica_windows",
+                               return_value="C:\\Usuarios\\Prueba\\Música"):
+            cfg = self._cargar_en("[voz]\nvoz = 0\n")
+        self.assertEqual(cfg["musica_carpeta"], "C:\\Usuarios\\Prueba\\Música")
+
+    def test_carpeta_del_ini_manda_aunque_no_exista(self):
+        with mock.patch.object(paths, "carpeta_musica_windows",
+                               return_value="C:\\Usuarios\\Prueba\\Música"):
+            cfg = self._cargar_en("[musica]\ncarpeta = Z:\\Inexistente\\Música\n")
+        self.assertEqual(cfg["musica_carpeta"], "Z:\\Inexistente\\Música")
 
     def test_salida_nombre_con_caracteres_especiales_ida_y_vuelta(self):
         nombre = "Altavoces 100% #1; principal"

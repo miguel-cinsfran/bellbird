@@ -1,5 +1,6 @@
 """Pruebas del módulo paths, único origen de las rutas de la aplicación."""
 
+import os
 import sys
 import tempfile
 import unittest
@@ -51,7 +52,7 @@ RUTAS_DE_INSTALACION = [
 TODAS_LAS_FUNCIONES = (
     [nombre for nombre, _ in RUTAS_DE_DATOS if nombre not in CREAN_CARPETA]
     + [nombre for nombre, _ in RUTAS_DE_INSTALACION]
-    + ["pagina_overlay", "datos_a_migrar"]
+    + ["pagina_overlay", "datos_a_migrar", "carpeta_musica_windows"]
     + ["carpeta_actualizacion", "paquete_descargado", "paquete_extraido",
        "respaldo_actualizacion", "actualizacion_pendiente",
        "arranque_confirmado", "resultado_actualizacion",
@@ -253,6 +254,31 @@ class TestActualizacion(unittest.TestCase):
 
     def test_nombre_del_manifiesto_de_sonidos(self):
         self.assertEqual(paths.NOMBRE_MANIFIESTO_SONIDOS, "sonidos.json")
+
+
+class TestCarpetaMusicaWindows(unittest.TestCase):
+    """La carpeta Música conocida de Windows, leída con SHGetKnownFolderPath."""
+
+    @unittest.skipUnless(os.name == "nt", "la carpeta conocida solo existe en Windows")
+    def test_llamada_real_devuelve_ruta_absoluta_no_vacia(self):
+        ruta = paths.carpeta_musica_windows()
+        self.assertTrue(ruta)
+        self.assertTrue(os.path.isabs(ruta))
+
+    @unittest.skipUnless(os.name == "nt", "reemplaza SHGetKnownFolderPath de Windows")
+    def test_fallo_nativo_devuelve_vacio_y_deja_registro(self):
+        import ctypes
+        with mock.patch.object(ctypes.windll.shell32, "SHGetKnownFolderPath",
+                               side_effect=OSError("falla de prueba")):
+            with self.assertLogs(paths.logger, level="DEBUG") as registros:
+                self.assertEqual(paths.carpeta_musica_windows(), "")
+        self.assertTrue(any("sica" in linea for linea in registros.output))
+
+    def test_fuera_de_windows_devuelve_vacio_y_deja_registro(self):
+        with mock.patch.object(os, "name", "posix"):
+            with self.assertLogs(paths.logger, level="DEBUG") as registros:
+                self.assertEqual(paths.carpeta_musica_windows(), "")
+        self.assertTrue(registros.output)
 
 
 class TestAyudante(unittest.TestCase):

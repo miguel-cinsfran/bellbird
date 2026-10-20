@@ -616,7 +616,7 @@ def cargar_configuracion() -> dict:
         "overlay_puerto": _pi(p, "overlay", "puerto", lo=1),
         "obs_microfono": _gs(p, "obs", "microfono"),
         # [musica]: biblioteca local y reproducción. La carpeta va como texto libre, igual que en [transmision].
-        "musica_carpeta": decodificar_texto_ini(_gs(p, "musica", "carpeta")),
+        "musica_carpeta": decodificar_texto_ini(_gs(p, "musica", "carpeta")) or paths.carpeta_musica_windows(),
         "musica_aleatorio": _pb(p, "musica", "aleatorio"),
         "musica_repetir": normalizar_repetir(_gs(p, "musica", "repetir")),
         "musica_retomar": _pb(p, "musica", "retomar"),

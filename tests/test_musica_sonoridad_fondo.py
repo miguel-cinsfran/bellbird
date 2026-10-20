@@ -100,6 +100,33 @@ class TestGananciaDe(unittest.TestCase):
             faltante = Tema(str(Path(tmp, "falta.mp3").resolve()), "Falta")
             self.assertEqual(anfitrion._ganancia_de(faltante), 0.0)
 
+    def test_ganancia_lee_el_disco_sin_haber_arrancado(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tema = _tema_local(tmp)
+            ruta_cache = Path(tmp) / "sonoridad.json"
+            previa = CacheSonoridad(ruta_cache)
+            info = os.stat(tema.origen)
+            previa.poner(tema.origen, info.st_mtime_ns, info.st_size, 4.5)
+            previa.guardar()
+            anfitrion = _Anfitrion()
+            self.assertIsNone(anfitrion._cache_sonoridad)
+            with mock.patch.object(musica_sonoridad.paths,
+                                    "cache_sonoridad_musica",
+                                    return_value=ruta_cache):
+                self.assertEqual(anfitrion._ganancia_de(tema), 4.5)
+
+    def test_cache_lista_devuelve_el_mismo_objeto(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            ruta_cache = Path(tmp) / "s.json"
+            anfitrion = _Anfitrion()
+            with mock.patch.object(musica_sonoridad.paths,
+                                    "cache_sonoridad_musica",
+                                    return_value=ruta_cache):
+                primera = anfitrion._cache_sonoridad_lista()
+                segunda = anfitrion._cache_sonoridad_lista()
+            self.assertIs(primera, segunda)
+            self.assertIs(anfitrion._cache_sonoridad, primera)
+
 
 class TestArrancarSonoridad(unittest.TestCase):
 

@@ -8,6 +8,7 @@ Trabajo silencioso: nada se anuncia y nada suena.
 from __future__ import annotations
 
 import os
+import threading
 
 from ytchat.core import diagnostico
 from ytchat.core import paths
@@ -17,6 +18,8 @@ from ytchat.music import sonoridad
 
 logger = diagnostico.obtener_logger(__name__)
 
+_candado_sonoridad = threading.Lock()
+
 
 class SonoridadMusica:
     """Ganancia por tema y medición de fondo de la música local."""
@@ -25,17 +28,51 @@ class SonoridadMusica:
     _progreso_sonoridad = None
     _midiendo_sonoridad = False
 
+    def _cache_sonoridad_lista(self):
+        """La caché de sonoridad, creada perezosa la primera vez.
+
+        La crea con `paths.cache_sonoridad_musica()` y la guarda en
+        `self._cache_sonoridad`. Protegida por un candado de módulo porque
+        la piden el hilo del motor y el del índice. Nunca lanza: si no la
+        puede crear, deja una línea en el registro y devuelve None.
+        """
+        try:
+            cache = self._cache_sonoridad
+            if cache is not None:
+                return cache
+            with _candado_sonoridad:
+                cache = self._cache_sonoridad
+                if cache is not None:
+                    return cache
+                nueva = sonoridad.CacheSonoridad(
+                    paths.cache_sonoridad_musica())
+                self._cache_sonoridad = nueva
+                return nueva
+        except Exception:
+            logger.exception("No se pudo crear la caché de sonoridad")
+            return None
+
     def _ganancia_de(self, tema) -> float:
         """La ganancia en dB de ese tema, o 0.0 si no hay que corregir.
 
-        0.0 para los enlaces, sin caché todavía o si el archivo no se pudo
-        leer o no está medido. Nunca lanza: lo llama el envoltorio al
-        cargar cada tema.
+        0.0 para los enlaces, con la opción apagada, si el archivo no se
+        pudo leer o no está medido. Con la opción encendida la caché nace
+        perezosa del disco, así la primera canción de la sesión ya iguala.
+        Nunca lanza: lo llama el envoltorio al cargar cada tema.
         """
         try:
             if tema.es_enlace:
                 return 0.0
+            try:
+                normalizar = bool(self._config.get(
+                    "musica_normalizar", True))
+            except Exception:
+                normalizar = True
+            if not normalizar:
+                return 0.0
             cache = self._cache_sonoridad
+            if cache is None:
+                cache = self._cache_sonoridad_lista()
             if cache is None:
                 return 0.0
             info = os.stat(tema.origen)
@@ -75,8 +112,8 @@ class SonoridadMusica:
             if ffmpeg_bin.ruta_ffmpeg() is None:
                 return
             if self._cache_sonoridad is None:
-                self._cache_sonoridad = sonoridad.CacheSonoridad(
-                    paths.cache_sonoridad_musica())
+                if self._cache_sonoridad_lista() is None:
+                    return
             pendientes = self._pendientes_sonoridad(biblioteca)
             if not pendientes:
                 return

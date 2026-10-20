@@ -62,8 +62,8 @@ Música mientras transmites, sin abrir otro programa.
 - **Atajos en cualquier programa**, opcional. Con la casilla de la página
   Música, los atajos de música andan aunque estés en OBS o en un juego.
   Viene apagada porque mientras está activa esas teclas no llegan a los
-  demás programas, por ejemplo a NVDA, que usa Ctrl+Alt+flechas en las
-  tablas.
+  demás programas. Donde NVDA cree que hay una tabla, como el escritorio,
+  se queda con Ctrl+Alt+flechas: ahí pulsa NVDA+F2 antes del atajo.
 
 ### Atajos
 

@@ -173,9 +173,14 @@ propio cuántas va a medir, y el avance se puede consultar en la ventana
 
 La casilla *Usar los atajos de música en cualquier programa* hace que
 funcionen aunque estés en OBS o en un juego. Viene apagada porque,
-mientras está activa, esas teclas no les llegan a los demás programas:
-NVDA usa `Ctrl+Alt+flechas` en las tablas. Si otro programa ya tiene
-alguna, la aplicación te dice cuál.
+mientras está activa, esas teclas no les llegan a los demás programas.
+Si otro programa ya tiene alguna, la aplicación te dice cuál.
+
+NVDA usa `Ctrl+Alt+flechas` para moverse por las tablas. Donde cree que
+hay una tabla, como el escritorio o el Explorador de archivos, se queda
+con esas teclas y la música no las recibe. Ahí pulsa `NVDA+F2` y
+después el atajo: NVDA deja pasar la tecla siguiente. En una ventana
+sin tablas, como el Bloc de notas, funcionan sin eso.
 
 ## Transmitir en directo
 

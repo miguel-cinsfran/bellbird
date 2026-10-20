@@ -1,17 +1,20 @@
 """Tramo de atajos globales de música para la escena `musica_real`.
 
 Con la aplicación ya sonando, activa la casilla de atajos globales desde
-Preferencias como lo haría el usuario, manda Ctrl+Alt+Espacio de verdad
-por el teclado del sistema con una ventana ajena al frente y comprueba
-que la música se pausa y se reanuda, que la tecla no le llega a la
-ventana ajena y que la aplicación no le roba el foco. Después desactiva
-la casilla y comprueba que el mismo atajo ya no hace nada, escribiendo
-«qa» en la ventana ajena para demostrar que el teclado sí le llega (que
-el silencio no es por teclas perdidas).
+Preferencias como lo haría el usuario, manda Ctrl+Alt+T de verdad por el
+teclado del sistema con una ventana ajena al frente y comprueba que dice
+qué suena, que la tecla no le llega a la ventana ajena y que la
+aplicación no le roba el foco. Después desactiva la casilla y comprueba
+que el mismo atajo ya no hace nada, escribiendo «qa» en la ventana ajena
+para demostrar que el teclado sí le llega (que el silencio no es por
+teclas perdidas).
 
-Todo fallo queda anotado en `res` con el prefijo «musica_real: » y nunca
-lanza. Lo puro (`se_dijo_desde`, `leer_registro`) vive acá con pruebas
-en `tests/test_qa_musica_globales.py`. Importar este módulo no abre
+Si al activar otro programa ya tiene algunas combinaciones, se anota la
+lista y la prueba sigue, salvo que entre ellas esté la de «Qué suena»:
+entonces queda no probado. Todo fallo queda anotado en `res` con el
+prefijo «musica_real: » y nunca lanza. Lo puro (`se_dijo_desde`,
+`leer_registro`, `tomados_de_fallo`) vive acá con pruebas en
+`tests/test_qa_musica_globales.py`. Importar este módulo no abre
 ventanas ni manda teclas: eso solo pasa dentro de
 `probar_atajos_globales`, que corre el banco en la otra PC.
 """
@@ -24,12 +27,17 @@ import time
 from pathlib import Path
 
 from ytchat.music import anuncios as anuncios_musica
+from ytchat.ui.atajos_captura import atajo_legible
 
 # La sonda (`qa/sonda.py`) busca por nombre accesible y si no por
 # etiqueta: este es el `name=` de la casilla en `gui_preferencias.py`.
 NOMBRE_CASILLA = "MusicaAtajosGlobales"
 PAGINA = "Música"
-TECLA_PAUSA = "^%{SPACE}"
+TECLA_QUE_SUENA = "^%t"
+ATAJO_QUE_SUENA = "ctrl+alt+t"
+NOMBRE_QUE_SUENA = atajo_legible(ATAJO_QUE_SUENA)
+PREFIJO_QUE_SUENA = anuncios_musica.TEXTO_QUE_SUENA.split("{nombre}")[0]
+PREFIJO_FALLO = anuncios_musica.TEXTO_ATAJOS_GLOBALES_FALLO.split("{lista}")[0]
 TEXTO_QA = "qa"
 TITULO_VENTANA_AJENA = "Ventana ajena de QA"
 ESPERA_VENTANA_AJENA = 15.0
@@ -76,6 +84,55 @@ def leer_registro(ruta) -> str:
     except OSError:
         return ""
     return texto or ""
+
+
+def tomados_de_fallo(anuncio) -> list[str]:
+    """Combinaciones del anuncio de fallo de atajos globales.
+
+    Recibe el texto anunciado (o el dict de la sonda con «texto») con la
+    forma de `TEXTO_ATAJOS_GLOBALES_FALLO` y devuelve cada combinación
+    como lista. Sin ese anuncio, lista vacía.
+    """
+    if isinstance(anuncio, dict):
+        texto = anuncio.get("texto", "")
+    else:
+        texto = anuncio
+    texto = texto or ""
+    comienzo, separador, final = (
+        anuncios_musica.TEXTO_ATAJOS_GLOBALES_FALLO.partition("{lista}"))
+    if not separador or comienzo not in texto:
+        return []
+    resto = texto.split(comienzo, 1)[1]
+    if final:
+        resto = resto.split(final, 1)[0]
+    return [parte.strip() for parte in resto.split(",") if parte.strip()]
+
+
+def _texto_dicho_desde(anuncios, fragmento, desde=0):
+    """Texto del primer anuncio desde el índice con el fragmento.
+
+    None si ninguno lo contiene. Acepta dicts con «texto» o cadenas,
+    como `se_dijo_desde`.
+    """
+    try:
+        inicio = max(0, int(desde))
+    except (TypeError, ValueError):
+        inicio = 0
+    pedido = (fragmento or "").lower()
+    if not pedido:
+        return None
+    try:
+        trozo = list(anuncios or ())[inicio:]
+    except TypeError:
+        return None
+    for dicho in trozo:
+        if isinstance(dicho, dict):
+            texto = dicho.get("texto", "")
+        else:
+            texto = dicho
+        if pedido in (texto or "").lower():
+            return texto or ""
+    return None
 
 
 def _fijar_atajos(propia, res, valor: bool, anotar: bool = True) -> bool:
@@ -148,13 +205,15 @@ def _fijar_atajos(propia, res, valor: bool, anotar: bool = True) -> bool:
                 pass
             return fallo(f"musica_real: «Guardar» no cerró Preferencias al "
                          f"{verbo} los atajos globales")
-        if propia.esperar_dicho(esperado, segundos=10, desde=desde):
-            if anotar:
-                res.nota(f"musica_real: al {verbo} los atajos globales se "
-                         f"anuncia «{esperado}»")
-            return True
-        return fallo(f"musica_real: no se anunció «{esperado}» al {verbo} "
-                     f"los atajos globales")
+        if not valor:
+            if propia.esperar_dicho(esperado, segundos=10, desde=desde):
+                if anotar:
+                    res.nota(f"musica_real: al {verbo} los atajos globales "
+                             f"se anuncia «{esperado}»")
+                return True
+            return fallo(f"musica_real: no se anunció «{esperado}» al "
+                         f"{verbo} los atajos globales")
+        return _resolver_activacion(propia, res, desde, esperado, anotar)
     except Exception as exc:
         try:
             propia.pedir("cerrar_ventana", ventana="Preferencias")
@@ -162,6 +221,55 @@ def _fijar_atajos(propia, res, valor: bool, anotar: bool = True) -> bool:
             pass
         return fallo(f"musica_real: no se pudo {verbo} los atajos globales "
                      f"desde Preferencias, {exc}")
+
+
+def _resolver_activacion(propia, res, desde, esperado,
+                         anotar: bool = True) -> bool:
+    """Resuelve la activación con o sin combinaciones tomadas.
+
+    Espera hasta 10 s el anuncio de activos o el de fallo. Con fallo
+    anota la lista como nota y deja seguir, salvo que la combinación
+    de «Qué suena» esté tomada: entonces queda no probado, apaga la
+    casilla y no se sigue. Devuelve si la prueba puede seguir.
+    """
+    limite = time.monotonic() + 10
+    texto_fallo = None
+    while True:
+        try:
+            anuncios = propia.anuncios
+        except Exception:
+            anuncios = []
+        if se_dijo_desde(anuncios, esperado, desde):
+            if anotar:
+                res.nota("musica_real: al activar los atajos globales se "
+                         f"anuncia «{esperado}»")
+            return True
+        texto_fallo = _texto_dicho_desde(anuncios, PREFIJO_FALLO, desde)
+        if texto_fallo is not None or time.monotonic() >= limite:
+            break
+        time.sleep(0.2)
+    if texto_fallo is None:
+        if anotar:
+            res.fallo(f"musica_real: no se anunció «{esperado}» al activar "
+                      f"los atajos globales")
+        return False
+    lista = tomados_de_fallo(texto_fallo)
+    if NOMBRE_QUE_SUENA in lista:
+        if anotar:
+            res.no_probado(f"musica_real: {NOMBRE_QUE_SUENA} la usa otro "
+                           f"programa ({', '.join(lista)}) y no se probaron "
+                           f"los atajos globales")
+        _fijar_atajos(propia, res, False, anotar=False)
+        return False
+    if not lista:
+        if anotar:
+            res.fallo("musica_real: el anuncio de fallo no trae "
+                      "combinaciones y no se probaron los atajos globales")
+        return False
+    if anotar:
+        res.nota(f"musica_real: al activar los atajos globales otro "
+                 f"programa ya usaba {', '.join(lista)} y la prueba sigue")
+    return True
 
 
 def _pid_al_frente():
@@ -315,31 +423,18 @@ def _lanzar_ventana_ajena(registro, cerrar_con):
 
 
 def _probar_activos(propia, res, pid: int, registro) -> None:
-    """Con los atajos activos: pausa, reanuda, foco y registro."""
+    """Con los atajos activos: dice qué suena, foco y registro."""
     desde = len(propia.anuncios)
-    if not _enviar(TECLA_PAUSA):
-        res.fallo("musica_real: no se pudo mandar Ctrl+Alt+Espacio con "
-                  "los atajos activos")
+    if not _enviar(TECLA_QUE_SUENA):
+        res.fallo(f"musica_real: no se pudo mandar {NOMBRE_QUE_SUENA} con "
+                  f"los atajos activos")
         return
-    if propia.esperar_dicho(anuncios_musica.TEXTO_PAUSA, segundos=5,
-                            desde=desde):
-        res.nota("musica_real: Ctrl+Alt+Espacio pausa la música con otra "
-                 "ventana al frente")
+    if propia.esperar_dicho(PREFIJO_QUE_SUENA, segundos=5, desde=desde):
+        res.nota(f"musica_real: {NOMBRE_QUE_SUENA} dice qué suena con otra "
+                 f"ventana al frente")
     else:
-        res.fallo(f"musica_real: Ctrl+Alt+Espacio no pausó la música "
-                  f"(«{anuncios_musica.TEXTO_PAUSA}» no se dijo en 5 s)")
-    desde = len(propia.anuncios)
-    if not _enviar(TECLA_PAUSA):
-        res.fallo("musica_real: no se pudo mandar Ctrl+Alt+Espacio por "
-                  "segunda vez con los atajos activos")
-        return
-    if propia.esperar_dicho(anuncios_musica.TEXTO_REANUDADA, segundos=5,
-                            desde=desde):
-        res.nota("musica_real: Ctrl+Alt+Espacio reanuda la música con otra "
-                 "ventana al frente")
-    else:
-        res.fallo(f"musica_real: Ctrl+Alt+Espacio no reanudó la música "
-                  f"(«{anuncios_musica.TEXTO_REANUDADA}» no se dijo en 5 s)")
+        res.fallo(f"musica_real: {NOMBRE_QUE_SUENA} no dijo qué suena "
+                  f"(«{PREFIJO_QUE_SUENA}» no se dijo en 5 s)")
     try:
         al_frente = _pid_al_frente()
     except Exception:
@@ -352,11 +447,11 @@ def _probar_activos(propia, res, pid: int, registro) -> None:
                  "ventana ajena")
     escrito = leer_registro(registro)
     if escrito != "":
-        res.fallo(f"musica_real: Ctrl+Alt+Espacio le llegó a la ventana "
+        res.fallo(f"musica_real: {NOMBRE_QUE_SUENA} le llegó a la ventana "
                   f"ajena (su registro dice «{escrito}»)")
     else:
-        res.nota("musica_real: Ctrl+Alt+Espacio no le llega a la ventana "
-                 "ajena")
+        res.nota(f"musica_real: {NOMBRE_QUE_SUENA} no le llega a la ventana "
+                 f"ajena")
 
 
 def _probar_apagados(propia, res, hwnd, pid, registro) -> None:
@@ -372,16 +467,13 @@ def _probar_apagados(propia, res, hwnd, pid, registro) -> None:
                        "no hace nada")
         return
     desde = len(propia.anuncios)
-    if not _enviar(TECLA_PAUSA):
-        res.no_probado("musica_real: no se pudo mandar Ctrl+Alt+Espacio "
-                       "con los atajos apagados y no se pudo comprobar que "
-                       "no hace nada")
+    if not _enviar(TECLA_QUE_SUENA):
+        res.no_probado(f"musica_real: no se pudo mandar {NOMBRE_QUE_SUENA} "
+                       f"con los atajos apagados y no se pudo comprobar que "
+                       f"no hace nada")
         return
     time.sleep(4)
-    pausa = se_dijo_desde(propia.anuncios, anuncios_musica.TEXTO_PAUSA,
-                           desde)
-    reanudada = se_dijo_desde(propia.anuncios,
-                               anuncios_musica.TEXTO_REANUDADA, desde)
+    dicho = se_dijo_desde(propia.anuncios, PREFIJO_QUE_SUENA, desde)
     if not _enviar(TEXTO_QA):
         res.no_probado("musica_real: no se pudo escribir en la ventana "
                        "ajena y el «no hizo nada» no se pudo comprobar")
@@ -398,18 +490,18 @@ def _probar_apagados(propia, res, hwnd, pid, registro) -> None:
                        "«no hizo nada» no se pudo comprobar (teclas "
                        "perdidas)")
         return
-    if pausa or reanudada:
-        res.fallo("musica_real: Ctrl+Alt+Espacio pausó la música con los "
-                  "atajos apagados")
+    if dicho:
+        res.fallo(f"musica_real: {NOMBRE_QUE_SUENA} dijo qué suena con los "
+                  f"atajos apagados")
     else:
-        res.nota("musica_real: con los atajos apagados Ctrl+Alt+Espacio no "
-                 "hace nada y el teclado sí le llega a la ventana ajena")
+        res.nota(f"musica_real: con los atajos apagados {NOMBRE_QUE_SUENA} "
+                 f"no hace nada y el teclado sí le llega a la ventana ajena")
 
 
 def probar_atajos_globales(propia, res, carpeta_tmp) -> None:
     """Tramo de atajos globales de `musica_real`, con la música sonando.
 
-    Activa la casilla desde Preferencias, comprueba pausa y reanudación
+    Activa la casilla desde Preferencias, comprueba que dice qué suena
     con una ventana ajena al frente, desactiva la casilla y comprueba que
     el atajo ya no hace nada. Cierra la ventana ajena en un `finally` e
     intenta dejar la casilla apagada si algo falló en el camino. La

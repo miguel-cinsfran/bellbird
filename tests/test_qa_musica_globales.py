@@ -1,8 +1,8 @@
 """Pruebas del tramo de atajos globales, sin ventanas ni teclas.
 
-Solo cubren lo puro (`se_dijo_desde`, `leer_registro`) y que los dos
-módulos importan sin abrir nada. La escena real la corre el banco en la
-otra PC.
+Solo cubren lo puro (`se_dijo_desde`, `leer_registro`,
+`tomados_de_fallo`) y que los dos módulos importan sin abrir nada. La
+escena real la corre el banco en la otra PC.
 """
 
 import importlib.util
@@ -90,6 +90,42 @@ class TestLeerRegistro(unittest.TestCase):
             f.write("qa")
         self.addCleanup(os.remove, ruta)
         self.assertEqual(musica_globales.leer_registro(ruta), "qa")
+
+
+class TestTomadosDeFallo(unittest.TestCase):
+
+    def _anuncio(self, lista):
+        from ytchat.music import anuncios as anuncios_musica
+        return anuncios_musica.TEXTO_ATAJOS_GLOBALES_FALLO.format(
+            lista=lista)
+
+    def test_extrae_varias(self):
+        anuncio = self._anuncio("Ctrl+Alt+Espacio, Ctrl+Alt+Flecha derecha")
+        self.assertEqual(musica_globales.tomados_de_fallo(anuncio),
+                         ["Ctrl+Alt+Espacio", "Ctrl+Alt+Flecha derecha"])
+
+    def test_extrae_una_sola(self):
+        self.assertEqual(musica_globales.tomados_de_fallo(
+            self._anuncio("Ctrl+Alt+Espacio")), ["Ctrl+Alt+Espacio"])
+
+    def test_reconoce_la_de_que_suena(self):
+        from ytchat.ui.atajos_captura import atajo_legible
+        nombre = atajo_legible("ctrl+alt+t")
+        tomados = musica_globales.tomados_de_fallo(
+            self._anuncio(f"Ctrl+Alt+Espacio, {nombre}"))
+        self.assertIn(nombre, tomados)
+
+    def test_sin_anuncio_de_fallo_da_vacia(self):
+        self.assertEqual(musica_globales.tomados_de_fallo(
+            "Atajos de música activos en cualquier programa"), [])
+
+    def test_vacio_da_vacia(self):
+        self.assertEqual(musica_globales.tomados_de_fallo(""), [])
+        self.assertEqual(musica_globales.tomados_de_fallo(None), [])
+
+    def test_acepta_dict_de_la_sonda(self):
+        self.assertEqual(musica_globales.tomados_de_fallo(
+            {"texto": self._anuncio("Ctrl+Alt+T")}), ["Ctrl+Alt+T"])
 
 
 class TestVentanaAjenaPorTitulo(unittest.TestCase):
@@ -197,6 +233,17 @@ class TestImportanSinAbrirNada(unittest.TestCase):
         self.assertTrue(callable(musica_globales.probar_atajos_globales))
         self.assertTrue(callable(musica_globales.se_dijo_desde))
         self.assertTrue(callable(musica_globales.leer_registro))
+        self.assertTrue(callable(musica_globales.tomados_de_fallo))
+
+    def test_la_tecla_y_el_prefijo_salen_de_las_constantes(self):
+        from ytchat.music import anuncios as anuncios_musica
+        from ytchat.ui.atajos_captura import atajo_legible
+        self.assertEqual(musica_globales.TECLA_QUE_SUENA, "^%t")
+        self.assertEqual(musica_globales.NOMBRE_QUE_SUENA,
+                         atajo_legible("ctrl+alt+t"))
+        self.assertEqual(musica_globales.PREFIJO_QUE_SUENA,
+                         anuncios_musica.TEXTO_QUE_SUENA.split("{nombre}")[0])
+        self.assertTrue(musica_globales.PREFIJO_QUE_SUENA)
 
     def test_ventana_ajena_expone_su_titulo(self):
         self.assertEqual(ventana_ajena.TITULO, "Ventana ajena de QA")

@@ -28,7 +28,9 @@ class CacheEtiquetas:
     La clave es el `origen` del tema (la ruta resuelta, como la da
     `Biblioteca._tema`). Cada entrada guarda `mtime_ns` y `tamano`: si el
     archivo cambió, la entrada no vale y hay que releerlo. Un archivo leído
-    y sin etiquetas también se guarda, para no releerlo cada vez.
+    y sin etiquetas también se guarda, para no releerlo cada vez, siempre
+    que traiga duración mayor que cero: una entrada con duración 0 es una
+    lectura fallida y no vale.
     """
 
     def __init__(self, ruta):
@@ -41,7 +43,8 @@ class CacheEtiquetas:
         """Las etiquetas de ese archivo, o None si no hay entrada válida.
 
         Solo vale si `mtime_ns` y `tamano` coinciden con lo guardado: si el
-        archivo cambió, None aunque la ruta sea la misma.
+        archivo cambió, None aunque la ruta sea la misma. Una entrada con
+        duración 0 es una lectura fallida y da None, para releerla.
         """
         with self._lock:
             entrada = self._datos.get(origen)
@@ -49,11 +52,14 @@ class CacheEtiquetas:
                 return None
             if entrada.get("mtime_ns") != mtime_ns or entrada.get("tamano") != tamano:
                 return None
+            duracion = normalizar_duracion(entrada.get("duracion_ms"))
+            if duracion <= 0:
+                return None
             return {
                 "titulo": entrada.get("titulo", ""),
                 "artista": entrada.get("artista", ""),
                 "album": entrada.get("album", ""),
-                "duracion_ms": normalizar_duracion(entrada.get("duracion_ms")),
+                "duracion_ms": duracion,
             }
 
     def poner(self, origen, mtime_ns, tamano, datos) -> None:
@@ -150,3 +156,24 @@ class CacheEtiquetas:
             "album": entrada.get("album") if isinstance(entrada.get("album"), str) else "",
             "duracion_ms": normalizar_duracion(entrada.get("duracion_ms")),
         }
+
+
+def _trae_duracion(datos) -> bool:
+    """Verdadero si `datos` trae duración mayor que cero."""
+    return isinstance(datos, dict) and normalizar_duracion(datos.get("duracion_ms")) > 0
+
+
+def leer_con_reintento(leer, ruta) -> dict:
+    """Lee las etiquetas con un reintento ante un fallo.
+
+    Llama a `leer(ruta)`; si lo que vuelve no trae duración mayor que
+    cero, llama otra vez con `leer(ruta, plazo_ms=5000)`. Devuelve el
+    último resultado, `{}` si ninguno sirvió.
+    """
+    primero = leer(ruta)
+    if _trae_duracion(primero):
+        return primero
+    segundo = leer(ruta, plazo_ms=5000)
+    if _trae_duracion(segundo):
+        return segundo
+    return {}

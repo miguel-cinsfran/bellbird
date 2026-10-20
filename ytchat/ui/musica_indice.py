@@ -13,7 +13,7 @@ from ytchat.core import paths
 from ytchat.music import anuncios
 from ytchat.music.adaptador_vlc import leer_etiquetas_vlc
 from ytchat.music.biblioteca import Biblioteca, ErrorBiblioteca
-from ytchat.music.etiquetas import CacheEtiquetas
+from ytchat.music.etiquetas import CacheEtiquetas, leer_con_reintento
 from ytchat.music.modelo import Tema, normalizar_duracion
 from ytchat.player import motor_vlc
 
@@ -113,10 +113,10 @@ class IndiceMusica:
                 info = os.stat(origen)
             except OSError:
                 continue
-            datos = leer_etiquetas_vlc(origen)
+            datos = leer_con_reintento(leer_etiquetas_vlc, origen)
             datos = datos if isinstance(datos, dict) else {}
-            self._cache_etiquetas.poner(
-                origen, info.st_mtime_ns, info.st_size, datos)
+            if normalizar_duracion(datos.get("duracion_ms")) > 0:
+                self._cache_etiquetas.poner(origen, info.st_mtime_ns, info.st_size, datos)
             titulo = str(datos.get("titulo") or "") or Path(origen).stem
             lote[origen] = Tema(
                 origen, titulo,

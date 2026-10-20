@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from ytchat.music.etiquetas import CacheEtiquetas
+from ytchat.music.etiquetas import CacheEtiquetas, leer_con_reintento
 
 
 def _archivo(tmp, nombre="tema.mp3", contenido=b"audio"):
@@ -49,14 +49,21 @@ class TestBuscarYPoner(unittest.TestCase):
             cache.poner(origen, mtime_ns, tamano, {"titulo": "Tema"})
             self.assertIsNone(cache.buscar(origen, mtime_ns, tamano + 1))
 
-    def test_datos_vacios_tambien_se_guardan(self):
+    def test_duracion_cero_da_none(self):
         with tempfile.TemporaryDirectory() as tmp:
             cache = CacheEtiquetas(Path(tmp) / "etiquetas_musica.json")
             origen, mtime_ns, tamano = _archivo(tmp)
             cache.poner(origen, mtime_ns, tamano, {})
+            self.assertIsNone(cache.buscar(origen, mtime_ns, tamano))
+
+    def test_sin_etiquetas_pero_con_duracion_da_la_entrada(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cache = CacheEtiquetas(Path(tmp) / "etiquetas_musica.json")
+            origen, mtime_ns, tamano = _archivo(tmp)
+            cache.poner(origen, mtime_ns, tamano, {"duracion_ms": 95540})
             self.assertEqual(
                 cache.buscar(origen, mtime_ns, tamano),
-                {"titulo": "", "artista": "", "album": "", "duracion_ms": 0})
+                {"titulo": "", "artista": "", "album": "", "duracion_ms": 95540})
 
 
 class TestGuardarYLeer(unittest.TestCase):
@@ -83,8 +90,8 @@ class TestGuardarYLeer(unittest.TestCase):
             origen, mtime_ns, tamano = _archivo(tmp, "vive.mp3")
             fantasma = str((Path(tmp) / "borrado.mp3").resolve())
             cache = CacheEtiquetas(ruta_cache)
-            cache.poner(origen, mtime_ns, tamano, {"titulo": "Vive"})
-            cache.poner(fantasma, 1, 2, {"titulo": "Fantasma"})
+            cache.poner(origen, mtime_ns, tamano, {"titulo": "Vive", "duracion_ms": 93000})
+            cache.poner(fantasma, 1, 2, {"titulo": "Fantasma", "duracion_ms": 93000})
             self.assertTrue(cache.guardar())
             releida = CacheEtiquetas(ruta_cache)
             self.assertIsNotNone(releida.buscar(origen, mtime_ns, tamano))
@@ -168,8 +175,7 @@ class TestGuardarYLeer(unittest.TestCase):
                 with self.subTest(valor=valor):
                     cache.poner(origen, mtime_ns, tamano,
                                 {"titulo": "T", "duracion_ms": valor})
-                    datos = cache.buscar(origen, mtime_ns, tamano)
-                    self.assertEqual(datos["duracion_ms"], 0)
+                    self.assertIsNone(cache.buscar(origen, mtime_ns, tamano))
 
     def test_normaliza_una_duracion_de_verdad_sin_tocarla(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -179,6 +185,45 @@ class TestGuardarYLeer(unittest.TestCase):
                         {"titulo": "T", "duracion_ms": 93000})
             self.assertEqual(
                 cache.buscar(origen, mtime_ns, tamano)["duracion_ms"], 93000)
+
+
+class TestLeerConReintento(unittest.TestCase):
+
+    def test_falla_la_primera_y_acierta_la_segunda_con_mas_plazo(self):
+        llamadas = []
+
+        def leer(ruta, plazo_ms=1500):
+            llamadas.append(plazo_ms)
+            if len(llamadas) == 1:
+                return {}
+            return {"titulo": "Tema", "duracion_ms": 95540}
+
+        resultado = leer_con_reintento(leer, "C:/musica/a.mp3")
+        self.assertEqual(
+            resultado, {"titulo": "Tema", "duracion_ms": 95540})
+        self.assertEqual(llamadas, [1500, 5000])
+
+    def test_acierta_a_la_primera_con_una_sola_llamada(self):
+        llamadas = []
+
+        def leer(ruta, plazo_ms=1500):
+            llamadas.append(plazo_ms)
+            return {"titulo": "Tema", "duracion_ms": 95540}
+
+        resultado = leer_con_reintento(leer, "C:/musica/a.mp3")
+        self.assertEqual(
+            resultado, {"titulo": "Tema", "duracion_ms": 95540})
+        self.assertEqual(llamadas, [1500])
+
+    def test_falla_las_dos_da_diccionario_vacio(self):
+        llamadas = []
+
+        def leer(ruta, plazo_ms=1500):
+            llamadas.append(plazo_ms)
+            return {}
+
+        self.assertEqual(leer_con_reintento(leer, "C:/musica/a.mp3"), {})
+        self.assertEqual(llamadas, [1500, 5000])
 
 
 class TestHilos(unittest.TestCase):

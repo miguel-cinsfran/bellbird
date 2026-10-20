@@ -222,7 +222,8 @@ class TestBibliotecaConCache(unittest.TestCase):
         self.cache.poner(str(ruta), info.st_mtime_ns, info.st_size, datos)
 
     def test_indexar_usa_las_etiquetas_de_la_cache(self):
-        self._poner_en_cache("a.mp3", {"titulo": "Tema A", "artista": "Ana"})
+        self._poner_en_cache(
+            "a.mp3", {"titulo": "Tema A", "artista": "Ana", "duracion_ms": 93000})
         bib = Biblioteca(self.raiz, cache=self.cache)
         self.assertEqual(bib.indexar(), 2)
         por_nombre = {Path(t.origen).name: t for t in bib.temas()}
@@ -240,18 +241,29 @@ class TestBibliotecaConCache(unittest.TestCase):
         self.assertEqual(por_nombre["b.mp3"].duracion_ms, 0)
 
     def test_pendientes_devuelve_solo_lo_que_falta(self):
-        self._poner_en_cache("a.mp3", {"titulo": "Tema A"})
+        self._poner_en_cache(
+            "a.mp3", {"titulo": "Tema A", "duracion_ms": 93000})
         bib = Biblioteca(self.raiz, cache=self.cache)
         bib.indexar()
         pendientes = bib.pendientes()
         self.assertEqual([Path(t.origen).name for t in pendientes], ["b.mp3"])
 
     def test_pendientes_vacio_cuando_todo_esta_en_cache(self):
-        self._poner_en_cache("a.mp3", {"titulo": "Tema A"})
-        self._poner_en_cache("b.mp3", {})
+        self._poner_en_cache(
+            "a.mp3", {"titulo": "Tema A", "duracion_ms": 93000})
+        self._poner_en_cache("b.mp3", {"duracion_ms": 95000})
         bib = Biblioteca(self.raiz, cache=self.cache)
         bib.indexar()
         self.assertEqual(bib.pendientes(), ())
+
+    def test_pendientes_incluye_entrada_con_duracion_cero(self):
+        self._poner_en_cache(
+            "a.mp3", {"titulo": "Tema A", "duracion_ms": 93000})
+        self._poner_en_cache("b.mp3", {})
+        bib = Biblioteca(self.raiz, cache=self.cache)
+        bib.indexar()
+        pendientes = bib.pendientes()
+        self.assertEqual([Path(t.origen).name for t in pendientes], ["b.mp3"])
 
     def test_sin_cache_pendientes_son_todos(self):
         bib = Biblioteca(self.raiz)
@@ -259,7 +271,8 @@ class TestBibliotecaConCache(unittest.TestCase):
         self.assertEqual(len(bib.pendientes()), 2)
 
     def test_si_el_archivo_cambio_vuelve_a_ser_pendiente(self):
-        self._poner_en_cache("a.mp3", {"titulo": "Tema A"})
+        self._poner_en_cache(
+            "a.mp3", {"titulo": "Tema A", "duracion_ms": 93000})
         (self.raiz / "a.mp3").write_bytes(b"aaa-modificado-distinto")
         bib = Biblioteca(self.raiz, cache=self.cache)
         bib.indexar()

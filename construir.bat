@@ -50,7 +50,7 @@ REM Ruta absoluta: PyInstaller resuelve --icon relativo a --specpath (build).
 set "ICONO="
 if exist "app.ico" set "ICONO=--icon "%~dp0app.ico""
 
-echo == Generando documentacion HTML (Leeme) ==
+echo == Generando documentacion HTML (Manual) ==
 REM No fatal: si pandoc no esta, se usan los HTML ya versionados en docs/.
 call uv run python scripts\generar_docs.py || echo    AVISO: no se pudo regenerar; se usara la copia versionada en docs/.
 
@@ -169,10 +169,10 @@ REM Documentacion de cara al usuario en HTML (se abre con doble clic; el amigo
 REM no tiene por que saber abrir un Markdown). Se genera con scripts\generar_docs.py y
 REM viaja tambien dentro de docs/. La dejamos ademas en la raiz, a la vista. El
 REM historial de versiones (CHANGELOG) va como docs/CHANGELOG.html, enlazado
-REM desde el propio Leeme ("que hay de nuevo").
-copy /y "docs\README.html" "%OUT%\Leeme.html" >nul
+REM desde el propio Manual ("que hay de nuevo").
+copy /y "docs\MANUAL.html" "%OUT%\Manual.html" >nul
 REM Solo en la raiz: sus enlaces (docs/...) se calculan desde ahi y dentro de docs/ quedaban rotos.
-del /q "%OUT%\docs\README.html" >nul 2>&1
+del /q "%OUT%\docs\MANUAL.html" >nul 2>&1
 
 REM Cliente de Google de la app: si esta en la raiz, viaja junto al exe
 REM para que quien no tenga credenciales propias igual pueda iniciar sesion.

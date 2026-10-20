@@ -46,7 +46,7 @@ class ConvertirTest(unittest.TestCase):
             header.write_text("<style></style>", encoding="utf-8")
 
             def simular_pandoc(*_args, **_kwargs):
-                salida.write_text('<a href="README.md">Léeme</a>', encoding="utf-8")
+                salida.write_text('<a href="MANUAL.md">Manual</a>', encoding="utf-8")
 
             with patch.object(generar_docs.subprocess, "run",
                               side_effect=simular_pandoc) as ejecutar:
@@ -55,7 +55,7 @@ class ConvertirTest(unittest.TestCase):
 
             self.assertTrue(convertido)
             ejecutar.assert_called_once()
-            self.assertIn('href="README.html"',
+            self.assertIn('href="MANUAL.html"',
                           salida.read_text(encoding="utf-8"))
 
     def test_devuelve_falso_si_pandoc_falla(self):

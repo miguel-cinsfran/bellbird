@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Genera las versiones HTML de la documentación con pandoc (README, novedades
+"""Genera las versiones HTML de la documentación con pandoc (manual, novedades
 y guía de la API).
 
 Los .md son cómodos para editar y se leen bien en GitHub, pero el amigo que usa
@@ -34,7 +34,7 @@ DOCS = RAIZ / "docs"
 # (origen .md, destino .html en docs/, título de la página). El título es lo que
 # lee el lector de pantalla al abrir y lo que sale en la pestaña del navegador.
 DOCUMENTOS = [
-    (RAIZ / "README.md",              "README.html",            "YTChat TTS — Léeme"),
+    (RAIZ / "MANUAL.md",              "MANUAL.html",            "YTChat TTS, manual de uso"),
     (RAIZ / "CHANGELOG.md",           "CHANGELOG.html",         "YTChat TTS — Novedades"),
     (DOCS / "CONFIGURACION_API.md",   "CONFIGURACION_API.html", "YTChat TTS — Configurar la API de YouTube"),
 ]
@@ -88,10 +88,10 @@ hr { border: none; border-top: 1px solid var(--borde); margin: 2rem 0; }
 
 # Los .md se enlazan entre sí por su nombre .md (para que funcionen en GitHub).
 # En el HTML esos enlaces deben apuntar al HTML equivalente. Los enlaces se
-# calculan desde la RAÍZ del paquete, que es donde el usuario abre «Léeme.html»
-# (README); la guía de la API queda en la subcarpeta docs/.
+# calculan desde la RAÍZ del paquete, que es donde el usuario abre «Manual.html»
+# (MANUAL); la guía de la API queda en la subcarpeta docs/.
 _REESCRITURA_ENLACES = {
-    'href="README.md"':                'href="README.html"',
+    'href="MANUAL.md"':                'href="MANUAL.html"',
     'href="CHANGELOG.md"':             'href="docs/CHANGELOG.html"',
     'href="docs/CONFIGURACION_API.md"': 'href="docs/CONFIGURACION_API.html"',
 }

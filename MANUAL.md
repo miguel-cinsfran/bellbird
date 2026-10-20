@@ -1,0 +1,449 @@
+# YTChat TTS, manual de uso
+
+Lee en voz alta el chat de los directos de YouTube y TikTok, para personas
+ciegas o con baja visión que transmiten. Todo se maneja con el teclado y se
+prueba con NVDA.
+
+Versión 2.4.0 · Windows 10 y 11 · [novedades de cada versión](CHANGELOG.md)
+
+## Índice
+
+- [Qué hace](#qué-hace)
+- [Instalación](#instalación)
+- [Primeros pasos](#primeros-pasos)
+- [El chat](#el-chat)
+- [Reproductor](#reproductor)
+- [Música](#música)
+- [Transmitir en directo](#transmitir-en-directo)
+- [Panel de chat para transmitir](#panel-de-chat-para-transmitir)
+- [Mensajes automáticos](#mensajes-automáticos)
+- [Descargas e historial](#descargas-e-historial)
+- [Estado por voz](#estado-por-voz)
+- [Sesión de Google](#sesión-de-google)
+- [Atajos de teclado](#atajos-de-teclado)
+- [Accesibilidad](#accesibilidad)
+- [Actualizar](#actualizar)
+- [Configuración](#configuración)
+- [Problemas frecuentes](#problemas-frecuentes)
+
+## Qué hace
+
+- Lee el chat de un directo de YouTube o de TikTok con las voces de Windows
+  o de ElevenLabs, con un sonido distinto para cada tipo de mensaje.
+- Lee y publica comentarios en vídeos de YouTube.
+- Reproduce el vídeo del directo dentro de la aplicación.
+- Pone música de tu carpeta, de tus listas o de YouTube mientras
+  transmites.
+- Empieza y termina tu directo con OBS Studio, y describe por voz cómo se
+  ve la escena.
+- Muestra el chat a tus espectadores en un panel para OBS.
+- Modera, escribe en el chat y manda mensajes automáticos, con tu sesión
+  de Google.
+- Descarga vídeo y audio.
+
+En TikTok solo lee: TikTok no tiene una forma oficial de comentar ni de
+moderar.
+
+## Instalación
+
+Descomprime el ZIP en cualquier carpeta y abre `YTChatTTS.exe`. No hace
+falta instalar nada ni tener permisos de administrador: el ZIP trae todo
+lo necesario.
+
+Hace falta Windows 10 u 11, internet y al menos una voz de Windows (en
+*Configuración, Hora e idioma, Voz*). ElevenLabs es opcional y pide una
+cuenta propia.
+
+## Primeros pasos
+
+Al abrir, el foco está en el campo de la dirección. Pega el enlace del
+directo o del vídeo y pulsa Intro.
+
+La ventana tiene tres regiones: conexión, contenido y reproductor. `F6` y
+`Mayús+F6` pasan de una a otra, y `Ctrl+Tab` cambia entre las pestañas de
+chat, comentarios e información. Cada cambio se anuncia. La tecla
+Aplicaciones abre el menú contextual de la lista del chat o de los
+comentarios.
+
+## El chat
+
+Cada mensaje se lee con la voz elegida y suena distinto según quién
+escribe (dueño del canal, moderador, cuenta verificada, miembro) y según
+lo que es (Super Chat, membresía, regalo de TikTok).
+
+En la lista, las flechas van de mensaje en mensaje y escribir unas letras
+salta al primer autor que empieza así. El menú contextual copia el
+mensaje, silencia al autor durante la sesión, le pone un alias y, con
+sesión de Google, lo expulsa o lo veta.
+
+**Formato de lectura**, en *Preferencias, Lectura*:
+
+| Formato | Ejemplo |
+|---|---|
+| Nombre y mensaje | «Lucía: hola a todos» |
+| Mensaje y después el nombre | «hola a todos, de Lucía» |
+| Solo el mensaje | «hola a todos» |
+| Solo el nombre | «Lucía» |
+
+En *Preferencias, Filtros* van las palabras y los usuarios que no se leen.
+
+**Voces.** En *Preferencias, Voces* eliges el motor (SAPI 5, OneCore o
+ElevenLabs), la voz, la velocidad, el volumen y el tono, y *Probar voz*
+deja oírla antes de guardar. Puedes usar una segunda voz para los Super
+Chats, los regalos, las membresías y las entradas. Con ElevenLabs puedes
+poner un tope de caracteres por sesión o usarlo solo con los mensajes
+importantes. Si falla la red o se acaba el saldo, lee la voz de Windows y
+lo avisa una vez. La clave se guarda en `credenciales.json`.
+
+**Alias.** Para los nombres que son una tira de letras y números: menú
+contextual sobre un mensaje, *Poner alias*, y escribe cómo quieres oírlo.
+Vale también para los mensajes que ya estaban. Moderar sigue actuando
+sobre la cuenta real. Para quitarlo, deja el campo vacío.
+
+**Escribir en el chat.** Debajo de la lista está el cuadro de escritura,
+o `Alt+Intro` desde cualquier parte. `Intro` envía y `Mayús+Intro` hace un
+salto de línea. Si falta algo para poder escribir (sesión de Google, un
+directo de YouTube con chat), el botón *Enviar* sigue al alcance del
+tabulador y su nombre dice qué falta. El límite es de 200 caracteres.
+
+**Sonidos.** Hay uno para cada cosa: mensajes, Super Chats, miembros,
+regalos de TikTok por tamaño, seguidores, entradas, la conexión, errores,
+y la orilla al llegar al principio o al final de una lista. `F7` los
+silencia todos. Para callar uno solo, deja vacía su línea en
+`data/sounds.ini`. En *Preferencias, Interfaz* eliges el tema de sonido:
+`default`, con sonidos grabados, o `suave`, más cortos y tenues. Para
+hacer uno propio, copia `sounds/themes/default` con otro nombre y cambia
+los `.wav`. `sounds/CREDITOS.md` dice de dónde sale cada sonido.
+
+**Comentarios de vídeos.** Con un vídeo ya publicado, la pestaña de
+comentarios los muestra y los lee. Con sesión de Google puedes comentar y
+responder.
+
+## Reproductor
+
+El vídeo del directo se ve dentro de la aplicación, con libVLC. La calidad
+se elige en el menú *Reproductor*, y los botones en pantalla se ocultan
+desde ese menú o desde *Preferencias, Reproductor*.
+
+En un directo, los saltos de un minuto se acumulan y dicen dónde quedas:
+«40 segundos por detrás del directo». Con las pistas separadas de YouTube
+se puede retroceder hasta una hora. `Ctrl+Fin` vuelve al directo. En un
+vídeo, las flechas del deslizador de posición mueven diez segundos.
+
+El audio de cada vídeo de YouTube se guarda en `data/cache-audio`, para
+que pausar y saltar respondan al instante. Se conservan los tres
+últimos.
+
+## Música
+
+Para poner música mientras transmites, sin abrir otro programa. Usa la
+carpeta Música de Windows, o la que elijas en *Preferencias, Música*. Se
+maneja desde el menú *Música* o con los atajos de `Ctrl+Alt` (ver la
+[tabla](#música-1)).
+
+La ventana *Música* (`Ctrl+Mayús+M`):
+
+- **Colecciones**: *Biblioteca* es tu carpeta, y debajo están tus listas,
+  cada una con cuántas canciones tiene («Biblioteca: 195»).
+- **Buscar**: filtra mientras escribes, aunque no pongas las tildes.
+- **Canciones**: Intro reproduce. El menú contextual reproduce ahora, a
+  continuación de la actual sin cortarla, desde ahí hasta el final, la
+  agrega a la cola o a una lista, o crea una lista nueva.
+- **Mostrar la cola**: lo que va a sonar, en orden.
+- **Abrir enlace…**: un vídeo o una lista entera de YouTube, que se suma a
+  la cola.
+
+Las listas se guardan como archivos `.m3u8`, que abren otros
+reproductores. Al reabrir la aplicación, Reproducir sigue la última cola
+desde donde estaba.
+
+En *Preferencias, Música* también eliges el orden aleatorio, la
+repetición (nada, toda la cola o la canción actual), el volumen de la
+música, la salida de audio y qué se dice al pasar de canción: nada, el
+título, el título y el artista, o solo el artista. Si eliges nada, pasar
+de canción con el atajo igual dice el título. Otra casilla decide si se
+anuncian la pausa, la reanudación y el volver al comienzo.
+
+La casilla *Igualar el volumen de las canciones*, activada de fábrica,
+hace que todas suenen parecido, como en Spotify. La aplicación mide cada
+archivo una sola vez con ffmpeg, de fondo y sin cortar nada, y corrige el
+volumen al empezar cada canción. La primera vez avisa con un sonido
+propio cuántas va a medir, y el avance se puede consultar en la ventana
+*Música* o con F2. Los enlaces de YouTube suenan con su volumen.
+
+La casilla *Usar los atajos de música en cualquier programa* hace que
+funcionen aunque estés en OBS o en un juego. Viene apagada porque,
+mientras está activa, esas teclas no les llegan a los demás programas:
+NVDA usa `Ctrl+Alt+flechas` en las tablas. Si otro programa ya tiene
+alguna, la aplicación te dice cuál.
+
+## Transmitir en directo
+
+Con OBS Studio, el directo se empieza y se termina desde la aplicación: a
+YouTube con tu cuenta de Google, y a TikTok por Restream.
+
+**Una sola vez:**
+
+- Activa el servidor websocket de OBS desde *Preferencias, Transmisión*.
+  Si OBS está cerrado, la aplicación lo abre en el área de notificación
+  sin quitarle el foco al lector de pantalla.
+- Para TikTok, un perfil de OBS llamado `TikTok` con Restream.
+- Para YouTube, la sesión de Google iniciada y los directos activados en
+  tu canal. El perfil `YouTube` de OBS lo crea la aplicación.
+- En la ventana *Transmisión* (`Ctrl+Mayús+T`), sección *Escena*, elige
+  qué ventana se captura, por ejemplo un juego.
+
+**Cada vez:** pulsa **Transmitir en directo**, junto a *Conectar*.
+
+1. Elige el destino. El de la vez anterior ya está elegido, así que basta
+   con Intro.
+2. La aplicación prepara OBS y revisa la escena: destino, formato,
+   fuentes, audio, y si hay algo mal, como una escena vacía, una imagen en
+   negro o el micrófono silenciado. Si encuentra problemas, el botón
+   elegido de entrada es *Cancelar*.
+3. Para YouTube, en la misma ventana pones el título, la descripción, la
+   privacidad y, si quieres, la latencia, la categoría, las etiquetas, la
+   miniatura y la lista de reproducción. Todo se recuerda. *No listado*
+   sirve para probar.
+4. Cuando el directo sale al aire, la aplicación conecta el chat sola y lo
+   anuncia: «Tu directo de YouTube ya está al aire».
+5. Durante el directo avisa si la conexión falla. Si se corta internet,
+   YouTube espera a que vuelva sin terminar el directo.
+
+El botón pasa a **Finalizar directo**, que pide confirmación con *seguir
+transmitiendo* elegido de entrada. Cerrar la aplicación no corta el
+directo: al volver, lo reconoce. `Alt+Mayús+E` copia el enlace del
+directo.
+
+**Cómo se ve la escena.** La ventana *Transmisión* describe cada fuente de
+adelante hacia atrás: dónde está, qué tamaño tiene y si algo la tapa. Lo
+mismo se oye con `Ctrl+F2`. Desde ahí puedes mover una fuente a una de
+nueve posiciones (por ejemplo, inferior derecha), cambiarle el tamaño,
+ocultarla, fijarla, ponerla adelante, moverla con flechas en el ajuste
+fino, guardar una captura de la escena para que la vea alguien, grabar, y
+deshacer todo lo hecho desde que abriste la ventana. Cada cambio dice
+dónde quedó la fuente, cuánto se recorta si sale del borde y cuánto la
+tapa otra.
+
+Todo se puede seguir haciendo a mano en OBS, y la aplicación no molesta
+al complemento de OBS para NVDA.
+
+## Panel de chat para transmitir
+
+Muestra el chat en grande, con fondo transparente, para tus espectadores.
+Se agrega en OBS (o Streamlabs, o Prism Live Studio) como fuente de
+navegador con esta dirección:
+
+    http://127.0.0.1:8730/chat
+
+Se activa en la ventana *Transmisión*. Cada mensaje sale en una tarjeta
+con la inicial y un color por persona, y las donaciones en dorado con el
+importe. Solo se usa con YouTube: TikTok ya muestra los comentarios sobre
+el vídeo.
+
+Lo que no cabe en el lienzo de OBS no se emite, y una fuente medio afuera
+se recorta sin aviso. Por eso la ventana *Transmisión* dice cuánto se
+recorta. Si otra fuente tapa el panel, la aplicación lo pone adelante al
+salir al aire y te dice cuál lo tapaba. `F2` dice si el panel está activo
+y si OBS lo está mostrando. El servidor solo escucha en tu PC.
+
+## Mensajes automáticos
+
+Mandan mensajes al chat cada cierto tiempo, por ejemplo tus redes cada
+diez minutos. Se configuran en *Preferencias, Mensajes automáticos*: cada
+uno con su texto, su intervalo (fijo o variable dentro de un rango, desde
+cinco minutos) y una casilla para dejarlo preparado sin enviarlo.
+
+Solo funcionan en tu propio directo de YouTube y con sesión de Google. El
+primero sale después del intervalo, no al conectar. Enviar no se anuncia,
+porque el mensaje ya se lee en el chat. `F2` dice cuánto falta para el
+próximo. YouTube suele bloquear los enlaces: mejor el nombre de usuario
+que la dirección. Si YouTube devuelve un error, se detienen y se avisa una
+vez, sin reintentar.
+
+## Descargas e historial
+
+**Gestor de descargas** (`Ctrl+Mayús+D`): vídeos, audio o listas enteras,
+en MP4, WebM, MP3 o M4A, con el audio a 192, 256 o 320 kbps. Baja dos a
+la vez y pone las demás en cola. Guarda el historial de lo descargado. La
+carpeta Descargas está junto al programa. yt-dlp se actualiza desde
+*Herramientas, Actualizar yt-dlp*.
+
+**Historial de directos** (`Ctrl+Mayús+H`): lo que viste, con una pestaña
+para YouTube y otra para TikTok. Los directos terminados salen marcados.
+
+## Estado por voz
+
+`F2` resume la situación: conexión, título, canal, espectadores, cuánto
+lleva al aire, mensajes leídos, donaciones, el panel de chat y los
+mensajes automáticos. Qué entra en el resumen se elige en *Preferencias,
+Estado (F2)*, incluidos los datos de OBS y la canción que suena. Mientras
+transmites desde la aplicación, `F2` empieza por cómo va el directo.
+
+`F3` dice quién mandó el último mensaje leído, y `Ctrl+F2` describe la
+escena de OBS.
+
+## Sesión de Google
+
+Hace falta para moderar, escribir en el chat, comentar vídeos y crear el
+directo de YouTube. En *Preferencias, API y sesión*, pulsa *Iniciar
+sesión* y autoriza en el navegador. No hace falta crear nada en Google
+Cloud. Mientras Google no termine de verificar la aplicación, muestra un
+aviso de aplicación no verificada: abre la opción avanzada y elige
+continuar.
+
+La cuota diaria de YouTube se comparte entre quienes usan la aplicación.
+Para tener la tuya, sigue [docs/CONFIGURACION_API.md](docs/CONFIGURACION_API.md),
+escrita para leerse con lector de pantalla. Sin sesión, todo lo demás
+funciona igual.
+
+## Atajos de teclado
+
+Cada familia de teclas es un área, y se respeta también al
+personalizarlos. Todos figuran además en la barra de menú, junto a su
+acción.
+
+### Reproductor (Ctrl)
+
+| Atajo | Acción |
+|---|---|
+| `Ctrl+P` | Reproducir o pausar |
+| `Ctrl+Flecha izquierda` / `derecha` | Retroceder o avanzar un minuto |
+| `Ctrl+Flecha arriba` / `abajo` | Volumen del reproductor |
+| `Ctrl+Fin` | Ir al directo |
+| `Ctrl+D` | Detener |
+| `Ctrl+M` | Silenciar el audio |
+| `Ctrl+F` | Pantalla completa |
+
+### Chat (Alt)
+
+| Atajo | Acción |
+|---|---|
+| `Alt+Intro` | Ir al cuadro de escritura |
+
+### Ventanas (Ctrl+Mayús)
+
+| Atajo | Acción |
+|---|---|
+| `Ctrl+Mayús+P` | Preferencias |
+| `Ctrl+Mayús+H` | Historial de directos |
+| `Ctrl+Mayús+T` | Transmisión |
+| `Ctrl+Mayús+D` | Gestor de descargas |
+| `Ctrl+Mayús+M` | Música |
+
+### Directo y OBS (Alt+Mayús)
+
+| Atajo | Acción |
+|---|---|
+| `Alt+Mayús+C` | Conectar |
+| `Alt+Mayús+D` | Desconectar |
+| `Alt+Mayús+L` | Ir a la lista de mensajes |
+| `Alt+Mayús+E` | Copiar el enlace del directo |
+| `Alt+Mayús+I` | Marcar una incidencia en el registro |
+| `Alt+Mayús+M` | Silenciar o activar el micrófono de OBS |
+| `Alt+Mayús+A` | Activar o desactivar los avisos de sobrecarga |
+
+### Voz y lectura (teclas F)
+
+| Atajo | Acción |
+|---|---|
+| `F5` | Pausar o reanudar la lectura |
+| `F8` | Cortar la frase en curso |
+| `F9` / `F10` | Velocidad de la voz |
+| `F11` / `F12` | Volumen de la voz |
+| `F4` | Silenciar la lectura |
+| `F7` | Silenciar los sonidos |
+| `F2` | Estado |
+| `F3` | Autor del último mensaje leído |
+| `Ctrl+F2` | Describir la escena de OBS |
+
+Al repetir un ajuste de velocidad o de volumen, la primera vez se dice el
+nombre y el valor («Volumen de la voz: 40%») y después solo el valor.
+
+### Música (Ctrl+Alt)
+
+| Atajo | Acción |
+|---|---|
+| `Ctrl+Alt+Espacio` | Reproducir o pausar |
+| `Ctrl+Alt+Flecha derecha` / `izquierda` | Canción siguiente o anterior |
+| `Ctrl+Alt+Flecha arriba` / `abajo` | Volumen de la música |
+| `Ctrl+Alt+Mayús+Flecha derecha` / `izquierda` | Adelantar o retroceder 10 segundos |
+| `Ctrl+Alt+T` | Qué suena |
+| `Ctrl+Alt+M` | Silenciar la música |
+| `Ctrl+Alt+D` | Detener la música |
+| `Ctrl+Alt+A` | Orden aleatorio |
+| `Ctrl+Alt+R` | Cambiar la repetición |
+
+### Fijos
+
+| Atajo | Acción |
+|---|---|
+| `F6` / `Mayús+F6` | Cambiar de región |
+| `Ctrl+Tab` | Cambiar de pestaña |
+| `Alt+F4` | Salir |
+
+### Cambiar un atajo
+
+En *Preferencias, Atajos*, cada acción tiene un botón cuyo nombre incluye
+su atajo. Actívalo y pulsa la combinación nueva. `Intro` solo deja la
+acción sin atajo y `Escape` cancela. Si la combinación no sirve para esa
+área o ya está usada, se dice por qué y el botón sigue esperando. Al
+capturar un `Ctrl+Alt` con letra, la aplicación revisa si en tu teclado
+`AltGr` con esa tecla escribe algo, como la arroba, y en ese caso te pide
+otra. *Restablecer* vuelve todo a fábrica. Nada se guarda hasta pulsar
+*Guardar*.
+
+## Accesibilidad
+
+Es el criterio principal del proyecto.
+
+- Cada control tiene nombre accesible y se alcanza con Tab o con flechas.
+- La barra de menú es la nativa de Windows.
+- Lo que la aplicación avisa por su cuenta va por voz, por braille y con
+  un sonido propio.
+- Se prueba con NVDA en Windows 10 y 11.
+
+El panel de chat para transmitir es la única parte que no recibe foco,
+porque es para los espectadores. El chat accesible es la lista de la
+ventana principal.
+
+## Actualizar
+
+*Ayuda, Buscar actualizaciones* dice si hay una versión nueva, muestra sus
+novedades y la instala: la descarga se comprueba con su firma, la
+aplicación se cierra y vuelve a abrirse sola en alrededor de un minuto. Se
+conservan la carpeta `data`, las descargas y tus sonidos. Si la versión
+nueva no abre, vuelve sola a la anterior. Al arrancar, una versión nueva
+se anuncia una sola vez.
+
+## Configuración
+
+Casi todo está en *Herramientas, Preferencias*. Se guarda al pulsar
+*Guardar* y *Cancelar* lo descarta. Los ajustes viven en `data/config.ini`
+y `data/sounds.ini`, que se pueden editar con el Bloc de notas y se
+regeneran si se borran.
+
+## Problemas frecuentes
+
+**No hay voces.** Agrega una en *Configuración, Hora e idioma, Voz*, o
+prueba el motor OneCore en *Preferencias, Voces*. Las voces neurales de
+Windows 11 no salen en SAPI 5: *TTSVoicePatcher* las expone.
+
+**«Windows protegió tu PC».** Es SmartScreen, porque el ejecutable no
+está firmado. Elige *Más información, Ejecutar de todos modos*.
+
+**El antivirus avisa.** Es un falso positivo común con los programas
+que se distribuyen así, sin instalador. Agrega la carpeta a las exclusiones.
+
+**El panel de chat no se ve.** `F2` dice si el panel está activo y si OBS
+lo muestra. Si nadie lo muestra, revisa la fuente de navegador en OBS.
+
+**Algo falla.** Los errores quedan en `data/ytchat.log`, y si la
+aplicación se cierra sola, también en `data/ytchat-fallos.log`. Para un
+informe más completo, enciende en *Preferencias, Diagnóstico* la casilla
+*Guardar un registro detallado para diagnosticar fallos*, reinicia,
+reproduce el problema y manda los dos archivos.
+
+## Licencia
+
+MIT. Ver [LICENSE](LICENSE).

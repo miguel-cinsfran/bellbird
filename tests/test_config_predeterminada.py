@@ -171,6 +171,9 @@ class TestEstadoDefecto(unittest.TestCase):
     def test_musica_activa_de_fabrica(self):
         self.assertEqual(pred.obtener("estado", "musica"), "true")
 
+    def test_igualando_activa_de_fabrica(self):
+        self.assertEqual(pred.obtener("estado", "igualando"), "true")
+
 
 class TestConstruirBat(unittest.TestCase):
     def test_construir_sin_config_de_fabrica_y_con_guarda_antes_del_zip(self):

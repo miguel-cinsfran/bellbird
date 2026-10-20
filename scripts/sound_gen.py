@@ -408,6 +408,16 @@ def gen_musica_fallo():
     return _normalizar(_concat(n1, n2), 0.56)
 
 
+def gen_musica_igualando():
+    # Tres notas cortas ascendentes E4→G4→A4, suaves y bajas: avisa que
+    # empieza a medir muchas canciones. Tres notas porque los otros tres
+    # de música son de dos (tema, fin y fallo).
+    n1 = _perc(_seno(E4, 0.08, 0.24), 0.004, 0.07)
+    n2 = _perc(_seno(G4, 0.08, 0.24), 0.004, 0.07)
+    n3 = _perc(_seno(A4, 0.14, 0.24), 0.004, 0.12)
+    return _normalizar(_concat(n1, n2, n3), 0.55)
+
+
 # ── Tema "suave": senos cálidos con decaimiento tipo marimba/madera ───────────
 # Más redondo, bajo y mate que el tema por defecto: nada de aristas brillantes
 # ni regusto a videojuego. Mismo lenguaje de gestos (ascendente = abrir, etc.).
@@ -594,6 +604,13 @@ def s_musica_fallo():
                 _madera(B4, 0.17, 0.28, 0.14))
 
 
+def s_musica_igualando():
+    # Las mismas tres notas ascendentes en madera cálida.
+    return _seq(_madera(E4, 0.08, 0.28, 0.06),
+                _madera(G4, 0.08, 0.28, 0.06),
+                _madera(A4, 0.14, 0.28, 0.11))
+
+
 # ── Reemplazos del tema suave (encargo 174) ──────────────────────────────────
 # Generadores propios para los que eran copia de otro dentro del tema.
 # Cada uno conserva el gesto del evento con notas o duraciones distintas.
@@ -726,6 +743,7 @@ TEMAS = {
         "musica_tema.wav":             gen_musica_tema,
         "musica_fin.wav":              gen_musica_fin,
         "musica_fallo.wav":            gen_musica_fallo,
+        "musica_igualando.wav":        gen_musica_igualando,
     },
     "suave": {
         "app_inicio.wav":    s_app_inicio,
@@ -781,6 +799,7 @@ TEMAS = {
         "musica_tema.wav":             s_musica_tema,
         "musica_fin.wav":              s_musica_fin,
         "musica_fallo.wav":            s_musica_fallo,
+        "musica_igualando.wav":        s_musica_igualando,
     },
 }
 

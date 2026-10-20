@@ -18,13 +18,14 @@ from ytchat.ui.gui import _T, _pintar, anunciar, nombre_accesible
 from ytchat.ui.musica_colecciones import (
     TEXTO_CARGANDO, TEXTO_SIN_CARPETA, ColeccionesVentanaMusica)
 from ytchat.ui.musica_ventana_acciones import AccionesVentanaMusica
+from ytchat.ui.musica_ventana_igualando import IgualandoVentanaMusica
 
 logger = diagnostico.obtener_logger(__name__)
 TITULO = "Música"
 
 
 class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
-                    wx.Dialog):
+                     IgualandoVentanaMusica, wx.Dialog):
 
     def __init__(self, parent, control, abrir_listas=False):
         super().__init__(parent, title=TITULO, size=(820, 620),
@@ -60,6 +61,7 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
         self.btn_cola = self._boton(
             panel, "Mostrar la c&ola", "Mostrar la cola")
         self.lb_cola = self._lista(panel, "Cola de reproducción", 160)
+        self._crear_igualando(panel)
         self.btn_enlace = self._boton(panel, "Abrir &enlace…", "Abrir enlace")
         self.btn_nueva = self._boton(panel, "&Nueva lista…", "Nueva lista")
         self.btn_carpeta = self._boton(
@@ -92,14 +94,11 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
         vs.Add(arriba, 1, wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, 12)
         vs.Add(self.btn_cola, 0, wx.TOP | wx.LEFT | wx.RIGHT, 12)
         vs.Add(self.lb_cola, 1, wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, 12)
+        vs.Add(self._fila_igualando(panel), 0,
+               wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, 12)
         vs.Add(wx.StaticLine(panel), 0,
                wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, 12)
-        pie = wx.BoxSizer(wx.HORIZONTAL)
-        for boton in (self.btn_enlace, self.btn_nueva, self.btn_carpeta):
-            pie.Add(boton, 0, wx.RIGHT, 8)
-        pie.AddStretchSpacer(1)
-        pie.Add(self.btn_cerrar, 0)
-        vs.Add(pie, 0, wx.EXPAND | wx.ALL, 12)
+        vs.Add(self._fila_pie(panel), 0, wx.EXPAND | wx.ALL, 12)
         panel.SetSizer(vs)
 
     @staticmethod
@@ -364,5 +363,6 @@ def abrir_ventana(control, abrir_listas=False):
         ventana.ShowModal()
     finally:
         ventana._cancelar_temporizador()
+        ventana._parar_igualando()
         control.olvidar_ventana()
         ventana.Destroy()

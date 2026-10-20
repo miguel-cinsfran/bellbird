@@ -267,7 +267,7 @@ class TestDesfaseConVuelta(unittest.TestCase):
 class TestMusica(unittest.TestCase):
 
     def test_componente_al_final_con_etiqueta(self):
-        self.assertEqual(COMPONENTES[-1], "musica")
+        self.assertEqual(COMPONENTES[-2], "musica")
         self.assertEqual(ETIQUETAS["musica"], "Música que suena")
 
     def test_se_dibuja_con_dato(self):
@@ -283,6 +283,29 @@ class TestMusica(unittest.TestCase):
 
     def test_activo_de_fabrica(self):
         self.assertIn("musica", ACTIVOS_DEFECTO)
+
+
+class TestIgualando(unittest.TestCase):
+
+    def test_componente_al_final_con_etiqueta(self):
+        self.assertEqual(COMPONENTES[-1], "igualando")
+        self.assertEqual(ETIQUETAS["igualando"],
+                         "Igualación del volumen de la música")
+
+    def test_activo_lo_incluye_apagado_no(self):
+        s = SnapshotSesion(igualando="Igualando el volumen: 3 de 10")
+        self.assertIn("Igualando el volumen: 3 de 10",
+                      formatear_estado(s, {"igualando"}))
+        self.assertNotIn("Igualando",
+                         formatear_estado(s, {"musica"}))
+
+    def test_vacio_no_aparece(self):
+        self.assertEqual(
+            formatear_estado(SnapshotSesion(igualando=""), {"igualando"}), "")
+        self.assertEqual(formatear_estado(SnapshotSesion(), {"igualando"}), "")
+
+    def test_activo_de_fabrica(self):
+        self.assertIn("igualando", ACTIVOS_DEFECTO)
 
 
 class TestRamasSinCubrir(unittest.TestCase):

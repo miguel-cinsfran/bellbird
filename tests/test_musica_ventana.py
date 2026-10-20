@@ -56,6 +56,7 @@ class ControlFalso:
         self.artista = False
         self.combos = {}
         self._cola_visible = bool(cola_visible)
+        self._progreso_sonoridad = None
 
     def biblioteca(self, al_lista):
         self.llamadas.append(("biblioteca",))
@@ -211,7 +212,8 @@ class TestVentanaMusica(unittest.TestCase):
                                     wx.Button))]
         self.assertEqual([control.GetName() for control in interactivos], [
             "Colecciones", "Buscar en la música", "Temas",
-            "Mostrar la cola", "Cola de reproducción", "Abrir enlace",
+            "Mostrar la cola", "Cola de reproducción",
+            "Igualación del volumen", "Abrir enlace",
             "Nueva lista", "Cambiar carpeta", "Cerrar"])
 
     def test_controles_y_nombres_con_la_cola_visible(self):
@@ -223,7 +225,8 @@ class TestVentanaMusica(unittest.TestCase):
             if isinstance(control, (wx.TextCtrl, wx.ListBox, wx.Button))]
         self.assertEqual([control.GetName() for control in interactivos], [
             "Colecciones", "Buscar en la música", "Temas",
-            "Ocultar la cola", "Cola de reproducción", "Abrir enlace",
+            "Ocultar la cola", "Cola de reproducción",
+            "Igualación del volumen", "Abrir enlace",
             "Nueva lista", "Cambiar carpeta", "Cerrar"])
 
     def test_mnemonicos_unicos_en_la_ventana(self):
@@ -958,6 +961,44 @@ class TestVentanaMusica(unittest.TestCase):
                 musica_dialogo_enlace, "pedir_enlace", return_value=None):
             self.ventana._abrir_enlace()
         self.assertNotIn("abrir_enlace", control.nombres())
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestVentanaIgualando(unittest.TestCase):
+    """Campo y barra del progreso de la igualación, sin correr nada."""
+
+    def setUp(self):
+        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
+        self.ventana = musica_ventana.VentanaMusica(None, self.control)
+
+    def tearDown(self):
+        self.ventana._cancelar_temporizador()
+        self.ventana._parar_igualando()
+        destruir(self.ventana)
+
+    def test_el_campo_nace_oculto(self):
+        self.assertFalse(self.ventana.txt_igualando.IsShown())
+        self.assertFalse(self.ventana.gauge_igualando.IsShown())
+
+    def test_con_progreso_el_tic_muestra_el_campo_con_el_texto(self):
+        self.control._progreso_sonoridad = (3, 10)
+        self.ventana._tic_igualando()
+        self.assertTrue(self.ventana.txt_igualando.IsShown())
+        self.assertTrue(self.ventana.gauge_igualando.IsShown())
+        self.assertEqual(self.ventana.txt_igualando.GetValue(),
+                         "Igualando el volumen: 3 de 10")
+        self.assertEqual(self.ventana.gauge_igualando.GetValue(), 30)
+
+    def test_sin_progreso_oculta_y_devuelve_el_foco_a_temas(self):
+        self.control._progreso_sonoridad = (3, 10)
+        self.ventana._tic_igualando()
+        self.ventana.txt_igualando.SetFocus()
+        self.control._progreso_sonoridad = None
+        self.ventana._tic_igualando()
+        self.assertFalse(self.ventana.txt_igualando.IsShown())
+        self.assertFalse(self.ventana.gauge_igualando.IsShown())
+        self.assertIs(wx.Window.FindFocus(), self.ventana.lb_temas)
 
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")

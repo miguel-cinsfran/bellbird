@@ -13,9 +13,11 @@ from unittest import mock
 from ytchat.downloads.ffmpeg_bin import ruta_ffmpeg
 from ytchat.music.sonoridad import (
     CacheSonoridad,
+    avisa_al_empezar,
     ganancia_db,
     leer_medicion,
     medir,
+    texto_progreso,
     volumen_efectivo,
 )
 
@@ -126,6 +128,22 @@ class TestVolumenEfectivo(unittest.TestCase):
 
     def test_no_baja_de_cero(self):
         self.assertEqual(volumen_efectivo(1, -15.0), 0)
+
+
+class TestAvisoYProgreso(unittest.TestCase):
+
+    def test_con_19_no_avisa(self):
+        self.assertFalse(avisa_al_empezar(19))
+
+    def test_con_20_avisa(self):
+        self.assertTrue(avisa_al_empezar(20))
+
+    def test_sin_progreso_el_texto_es_vacio(self):
+        self.assertEqual(texto_progreso(None), "")
+
+    def test_con_progreso_devuelve_hechas_y_total(self):
+        self.assertEqual(texto_progreso((40, 195)),
+                         "Igualando el volumen: 40 de 195")
 
 
 def _archivo(tmp, nombre="tema.mp3", contenido=b"audio"):

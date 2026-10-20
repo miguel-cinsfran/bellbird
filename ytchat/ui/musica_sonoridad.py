@@ -2,7 +2,8 @@
 
 Mezcla de `ControlMusica`: da la ganancia de cada tema desde la caché de
 sonoridad y mide en segundo plano lo que falta, de a una canción por vez.
-Trabajo silencioso: nada se anuncia y nada suena.
+Trabajo silencioso salvo al empezar con 20 canciones o más por medir:
+ahí avisa una vez, con sonido propio.
 """
 
 from __future__ import annotations
@@ -10,9 +11,12 @@ from __future__ import annotations
 import os
 import threading
 
+import wx
+
 from ytchat.core import diagnostico
 from ytchat.core import paths
 from ytchat.downloads import ffmpeg_bin
+from ytchat.music import anuncios
 from ytchat.music import sonoridad
 
 
@@ -126,8 +130,20 @@ class SonoridadMusica:
             except Exception:
                 self._midiendo_sonoridad = False
                 raise
+            if sonoridad.avisa_al_empezar(len(pendientes)):
+                wx.CallAfter(self._avisar, anuncios.Aviso(
+                    sonoridad.TEXTO_IGUALANDO.format(total=len(pendientes)),
+                    "musica_igualando"))
         except Exception:
             logger.exception("No se pudo arrancar la medición de sonoridad")
+
+    def texto_igualando(self) -> str:
+        """El progreso de la igualación, para el componente de F2.
+
+        Vacío si no se está midiendo. Función pura envuelta: la llama
+        la GUI al armar el estado.
+        """
+        return sonoridad.texto_progreso(self._progreso_sonoridad)
 
     def _pendientes_sonoridad(self, biblioteca) -> tuple:
         """Las canciones locales sin ganancia válida en la caché, en orden."""

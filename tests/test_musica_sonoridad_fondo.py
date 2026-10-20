@@ -52,6 +52,10 @@ class _Anfitrion(SonoridadMusica):
         self._generacion_etiquetas = generacion
         self._biblioteca = biblioteca
         self._adaptador = mock.Mock()
+        self.avisos = []
+
+    def _avisar(self, aviso):
+        self.avisos.append(aviso)
 
 
 def _tema_local(tmp, nombre="a.mp3", contenido=b"audio"):
@@ -431,6 +435,97 @@ class TestArrancarSonoridad(unittest.TestCase):
                                        side_effect=_medir):
                 anfitrion._medir_sonoridad_fondo(tuple(temas), 3)
             self.assertEqual(vistos[-1], (2, 3))
+
+
+def _muchos_temas(tmp, cantidad):
+    return [_tema_local(tmp, f"c{i:02d}.mp3",
+                        contenido=f"audio-{i}".encode("utf-8"))
+            for i in range(cantidad)]
+
+
+class TestAvisoAlEmpezar(unittest.TestCase):
+    """El aviso solo sale al arrancar con 20 o más pendientes."""
+
+    def _arrancar(self, tmp, cantidad):
+        temas = _muchos_temas(tmp, cantidad)
+        anfitrion = _Anfitrion(biblioteca=_BibliotecaFalsa(temas))
+        with mock.patch.object(musica_sonoridad.diagnostico,
+                                "crear_hilo",
+                                _crear_hilo_inmediato), \
+                mock.patch.object(musica_sonoridad.ffmpeg_bin,
+                                   "ruta_ffmpeg",
+                                   return_value="C:/ffmpeg.exe"), \
+                mock.patch.object(musica_sonoridad.paths,
+                                   "cache_sonoridad_musica",
+                                   return_value=Path(tmp) / "s.json"), \
+                mock.patch.object(musica_sonoridad.sonoridad, "medir",
+                                   return_value=1.0), \
+                mock.patch.object(musica_sonoridad.wx, "CallAfter",
+                                   side_effect=lambda f, *a: f(*a)):
+            anfitrion._arrancar_sonoridad(anfitrion._biblioteca, 3)
+        return anfitrion
+
+    def test_con_20_avisa_una_vez_con_su_sonido(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            anfitrion = self._arrancar(tmp, 20)
+        self.assertEqual(
+            anfitrion.avisos,
+            [musica_sonoridad.anuncios.Aviso(
+                "Igualando el volumen de 20 canciones",
+                "musica_igualando")])
+
+    def test_con_19_no_avisa(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            anfitrion = self._arrancar(tmp, 19)
+        self.assertEqual(anfitrion.avisos, [])
+
+    def test_con_el_hilo_en_marcha_no_avisa(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            temas = _muchos_temas(tmp, 20)
+            anfitrion = _Anfitrion(biblioteca=_BibliotecaFalsa(temas))
+            anfitrion._midiendo_sonoridad = True
+            with mock.patch.object(musica_sonoridad.diagnostico,
+                                    "crear_hilo") as crear, \
+                    mock.patch.object(musica_sonoridad.wx, "CallAfter") \
+                        as despues:
+                anfitrion._arrancar_sonoridad(anfitrion._biblioteca, 3)
+            crear.assert_not_called()
+            despues.assert_not_called()
+        self.assertEqual(anfitrion.avisos, [])
+
+    def test_el_progreso_arranca_en_cero(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            temas = _muchos_temas(tmp, 3)
+            vistos = []
+            anfitrion = _Anfitrion(
+                biblioteca=_BibliotecaFalsa(temas),
+                cache=CacheSonoridad(Path(tmp) / "s.json"))
+
+            def _medir(_ruta, _origen):
+                vistos.append(anfitrion._progreso_sonoridad)
+                return 1.0
+
+            with mock.patch.object(musica_sonoridad.ffmpeg_bin,
+                                    "ruta_ffmpeg",
+                                    return_value="C:/ffmpeg.exe"), \
+                    mock.patch.object(musica_sonoridad.sonoridad, "medir",
+                                       side_effect=_medir):
+                anfitrion._medir_sonoridad_fondo(tuple(temas), 3)
+        self.assertEqual(vistos[0], (0, 3))
+
+
+class TestTextoIgualando(unittest.TestCase):
+
+    def test_con_progreso_devuelve_el_texto(self):
+        anfitrion = _Anfitrion()
+        anfitrion._progreso_sonoridad = (3, 10)
+        self.assertEqual(anfitrion.texto_igualando(),
+                         "Igualando el volumen: 3 de 10")
+
+    def test_sin_medicion_da_vacio(self):
+        anfitrion = _Anfitrion()
+        anfitrion._progreso_sonoridad = None
+        self.assertEqual(anfitrion.texto_igualando(), "")
 
 
 def _generar_wav(ruta, segundos=1):

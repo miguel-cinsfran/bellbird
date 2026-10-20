@@ -175,6 +175,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("obs_grabacion", "false"),
         ("obs_escena", "false"),
         ("musica", "true"),
+        ("igualando", "true"),
     ]),
     ("descargas", [
         ("formato", "mp4"),

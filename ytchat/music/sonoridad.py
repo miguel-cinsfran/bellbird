@@ -31,6 +31,11 @@ TECHO_PICO_DBTP = -1.0
 GANANCIA_MINIMA_DB = -15.0
 GANANCIA_MAXIMA_DB = 10.0
 
+# Con menos canciones no se avisa: son las pocas nuevas de cada tanto.
+MINIMO_AVISO = 20
+TEXTO_IGUALANDO = "Igualando el volumen de {total} canciones"
+TEXTO_PROGRESO = "Igualando el volumen: {hechas} de {total}"
+
 VERSION = 1
 
 
@@ -83,6 +88,32 @@ def ganancia_db(input_i, input_tp):
     ganancia = min(cruda, tope_pico)
     ganancia = max(GANANCIA_MINIMA_DB, min(GANANCIA_MAXIMA_DB, ganancia))
     return round(ganancia, 1)
+
+
+def avisa_al_empezar(total) -> bool:
+    """Si arrancar con esas pendientes merece aviso: 20 o más.
+
+    Con menos son las pocas canciones nuevas de cada tanto y se mide en
+    silencio. Función pura.
+    """
+    try:
+        return int(total) >= MINIMO_AVISO
+    except (TypeError, ValueError):
+        return False
+
+
+def texto_progreso(progreso) -> str:
+    """«Igualando el volumen: hechas de total», o vacío sin medición.
+
+    Vacío si `progreso` es None. Función pura.
+    """
+    if progreso is None:
+        return ""
+    try:
+        hechas, total = progreso
+    except (TypeError, ValueError):
+        return ""
+    return TEXTO_PROGRESO.format(hechas=hechas, total=total)
 
 
 def volumen_efectivo(volumen, ganancia):

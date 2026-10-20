@@ -57,6 +57,7 @@ class SnapshotSesion:
     atajo_directo: str = ""   # texto legible del atajo de Ir al directo
                               # (p. ej. «Ctrl+Fin»); "" si está desactivado
     musica: str = ""          # qué suena ahora, ya formateado; "" si no hay
+    igualando: str = ""       # progreso de la igualación, ya formateado; "" si no hay
 
 
 # Orden canónico de los componentes: estado → contenido → actividad → ajustes.
@@ -79,6 +80,7 @@ COMPONENTES: tuple[str, ...] = (
     "obs_grabacion",
     "obs_escena",
     "musica",
+    "igualando",
 )
 
 # Activos por defecto: derivan de la sección [estado] de la fuente canónica.
@@ -111,6 +113,7 @@ ETIQUETAS = {
     "obs_grabacion":      "Estado de la grabación de OBS",
     "obs_escena":         "Escena al aire en OBS",
     "musica":             "Música que suena",
+    "igualando":          "Igualación del volumen de la música",
 }
 
 
@@ -251,6 +254,10 @@ def _render_musica(s: SnapshotSesion, largo: bool) -> str:
     return s.musica or ""
 
 
+def _render_igualando(s: SnapshotSesion, largo: bool) -> str:
+    return s.igualando or ""
+
+
 _RENDERERS = {
     "estado": _render_estado,
     "titulo": _render_titulo,
@@ -270,6 +277,7 @@ _RENDERERS = {
     "obs_grabacion": _render_obs_grabacion,
     "obs_escena": _render_obs_escena,
     "musica": _render_musica,
+    "igualando": _render_igualando,
 }
 
 

@@ -79,13 +79,19 @@ class IgualandoVentanaMusica:
         if progreso is None:
             if not self.txt_igualando.IsShown():
                 return
+            try:
+                foco_en_campo = (
+                    wx.Window.FindFocus() is self.txt_igualando)
+            except Exception:
+                foco_en_campo = False
+            if foco_en_campo:
+                try:
+                    self.lb_temas.SetFocus()
+                except Exception as exc:
+                    logger.debug(
+                        "No se pudo devolver el foco a Temas: %s", exc)
             self.txt_igualando.Hide()
             self.gauge_igualando.Hide()
-            try:
-                if wx.Window.FindFocus() is self.txt_igualando:
-                    self.lb_temas.SetFocus()
-            except Exception as exc:
-                logger.debug("No se pudo devolver el foco a Temas: %s", exc)
             self._panel.Layout()
             return
         texto = sonoridad.texto_progreso(progreso)

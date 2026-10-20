@@ -678,6 +678,24 @@ class TestVentanaReal(unittest.TestCase):
         self.assertFalse(bool(anterior))
         self.assertEqual(frame.mi_pausa.GetItemLabelText(), "Reanudar lectura")
 
+    def test_campo_mensaje_con_el_color_de_los_campos(self):
+        if gui.ALTO_CONTRASTE:
+            self.skipTest("con alto contraste no se pinta nada")
+        frame = self._ventana()
+        self.assertEqual(frame._panel_redactar.texto.GetBackgroundColour(),
+                         gui._T.field)
+        self.assertEqual(frame._panel_redactar.texto.GetForegroundColour(),
+                         gui._T.text)
+
+    def test_boton_enviar_con_el_color_de_los_botones(self):
+        if gui.ALTO_CONTRASTE:
+            self.skipTest("con alto contraste no se pinta nada")
+        frame = self._ventana()
+        self.assertEqual(frame._panel_redactar.boton.GetBackgroundColour(),
+                         gui._T.btn)
+        self.assertEqual(frame._panel_redactar.boton.GetForegroundColour(),
+                         gui._T.btn_t)
+
 
 class TestFocoAlActivar(unittest.TestCase):
     """Al activarse la ventana no se roba el foco si ya está en un control
@@ -1352,6 +1370,20 @@ class TestCategoriasDePreferencias(unittest.TestCase):
     def test_abre_con_el_foco_en_la_lista_de_categorias(self):
         dialogo = self._dialogo()
         self.assertIs(gui.wx.Window.FindFocus(), dialogo.lista_categorias)
+
+    def test_lista_de_categorias_muestra_el_nombre_mas_largo_entero(self):
+        dialogo = self._dialogo()
+        textos = [dialogo.nb.GetPageText(i)
+                  for i in range(dialogo.nb.GetPageCount())]
+        ancho_texto = max(dialogo.lista_categorias.GetTextExtent(t)[0]
+                          for t in textos)
+        self.assertGreaterEqual(
+            dialogo.lista_categorias.GetMinSize().width, ancho_texto)
+        try:
+            ancho_columna = dialogo.lista_categorias.GetColumnWidth(0)
+        except Exception:
+            ancho_columna = ancho_texto
+        self.assertGreaterEqual(ancho_columna, ancho_texto)
 
     def test_controles_nuevos_tienen_su_nombre_accesible(self):
         dialogo = self._dialogo()

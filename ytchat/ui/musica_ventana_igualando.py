@@ -30,7 +30,7 @@ class IgualandoVentanaMusica:
         """
         self.txt_igualando = wx.TextCtrl(
             panel, value="",
-            style=wx.TE_MULTILINE | wx.TE_READONLY,
+            style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_NO_VSCROLL,
             name="Igualación del volumen")
         self.txt_igualando.SetMinSize(
             (-1, self.txt_igualando.GetCharHeight() + 12))

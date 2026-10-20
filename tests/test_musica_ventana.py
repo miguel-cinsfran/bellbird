@@ -16,6 +16,7 @@ from ytchat.music.modelo import EstadoMusica, Tema
 from ytchat.ui import (musica_dialogo_enlace, musica_editor_lista,
                        musica_menus, musica_ventana,
                        musica_ventana_acciones)
+from ytchat.ui.gui import ALTO_CONTRASTE, _T
 from tests.ventanas_prueba import destruir
 
 try:
@@ -247,6 +248,20 @@ class TestVentanaMusica(unittest.TestCase):
             self.assertIn(esperado, etiquetas)
         for ausente in ("&Mostrar:", "C&ola:"):
             self.assertNotIn(ausente, etiquetas)
+
+    def test_colecciones_con_el_color_de_los_campos(self):
+        if ALTO_CONTRASTE:
+            self.skipTest("con alto contraste no se pinta nada")
+        self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock")))
+        self.assertEqual(self.ventana.lb_colecciones.GetBackgroundColour(),
+                         _T.field)
+        self.assertEqual(self.ventana.lb_colecciones.GetForegroundColour(),
+                         _T.text)
+
+    def test_igualando_sin_flechas_de_desplazamiento(self):
+        self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock")))
+        self.assertTrue(self.ventana.txt_igualando.GetWindowStyle()
+                        & wx.TE_NO_VSCROLL)
 
     # ── Teclas de la Biblioteca ────────────────────────────────────────────
 

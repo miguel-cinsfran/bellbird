@@ -83,123 +83,20 @@ class DialogoDirectoYoutube(wx.Dialog):
         self._cargar_listas = cargar_listas
 
         vs = wx.BoxSizer(wx.VERTICAL)
-        rotulo_titulo = wx.StaticText(self, label="Título:")
-        vs.Add(rotulo_titulo, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
-        self.txt_titulo = wx.TextCtrl(
-            self, value=titulo, name="Título del directo")
-        self.txt_titulo.SetMaxLength(100)
-        self.txt_titulo.SelectAll()
-        nombre_accesible(self.txt_titulo, "Título del directo")
-        vs.Add(self.txt_titulo, 0, wx.EXPAND | wx.ALL, 10)
+        zona = wx.ScrolledWindow(
+            self, style=wx.TAB_TRAVERSAL | wx.VSCROLL)
+        zona.SetScrollRate(0, 20)
+        self.zona_desplazamiento = zona
+        contenido = wx.BoxSizer(wx.VERTICAL)
+        self._contenido_datos(zona, contenido, titulo, descripcion,
+                              privacidad, latencia)
+        self._contenido_opciones(zona, contenido, ninos, dvr, categoria,
+                                 etiquetas)
+        self._contenido_cierre(zona, contenido, lista, lista_titulo,
+                               revision)
 
-        rotulo_descripcion = wx.StaticText(
-            self, label="Descripción, opcional:")
-        vs.Add(rotulo_descripcion, 0, wx.LEFT | wx.RIGHT, 10)
-        self.txt_descripcion = wx.TextCtrl(
-            self, value=descripcion or "", style=wx.TE_MULTILINE,
-            name="Descripción del directo")
-        self.txt_descripcion.SetMinSize(
-            (-1, 3 * self.txt_descripcion.GetCharHeight() + 12))
-        nombre_accesible(self.txt_descripcion, "Descripción del directo")
-        vs.Add(self.txt_descripcion, 1, wx.EXPAND | wx.ALL, 10)
-
-        rotulo_privacidad = wx.StaticText(self, label="Privacidad:")
-        vs.Add(rotulo_privacidad, 0, wx.LEFT | wx.RIGHT, 10)
-        self.cho_privacidad = wx.Choice(
-            self, choices=[ETIQUETAS_PRIVACIDAD[p] for p in PRIVACIDADES],
-            name="Privacidad")
-        self.cho_privacidad.SetSelection(PRIVACIDADES.index(privacidad))
-        nombre_accesible(self.cho_privacidad, "Privacidad")
-        vs.Add(self.cho_privacidad, 0, wx.EXPAND | wx.ALL, 10)
-
-        rotulo_latencia = wx.StaticText(self, label="&Latencia:")
-        vs.Add(rotulo_latencia, 0, wx.LEFT | wx.RIGHT, 10)
-        self.cho_latencia = wx.Choice(
-            self, choices=[ETIQUETAS_LATENCIA[l] for l in LATENCIAS],
-            name="Latencia")
-        self.cho_latencia.SetSelection(LATENCIAS.index(latencia))
-        nombre_accesible(self.cho_latencia, "Latencia")
-        vs.Add(self.cho_latencia, 0, wx.EXPAND | wx.ALL, 10)
-
-        self.chk_ninos = wx.CheckBox(
-            self, label="Hecho para &niños (YouTube apaga el chat)",
-            name="Hecho para niños")
-        self.chk_ninos.SetValue(bool(ninos))
-        nombre_accesible(self.chk_ninos, "Hecho para niños")
-        vs.Add(self.chk_ninos, 0, wx.LEFT | wx.RIGHT, 10)
-
-        self.chk_dvr = wx.CheckBox(
-            self, label="Permitir re&bobinar el directo",
-            name="Permitir rebobinar")
-        self.chk_dvr.SetValue(bool(dvr))
-        nombre_accesible(self.chk_dvr, "Permitir rebobinar")
-        vs.Add(self.chk_dvr, 0, wx.LEFT | wx.RIGHT, 10)
-
-        rotulo_categoria = wx.StaticText(self, label="Cate&goría:")
-        vs.Add(rotulo_categoria, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
-        self.cho_categoria = wx.Choice(
-            self, choices=[texto for _id, texto in CATEGORIAS],
-            name="Categoría")
-        ids = [identificador for identificador, _texto in CATEGORIAS]
-        self.cho_categoria.SetSelection(
-            ids.index(categoria) if categoria in ids else 0)
-        nombre_accesible(self.cho_categoria, "Categoría")
-        vs.Add(self.cho_categoria, 0, wx.EXPAND | wx.ALL, 10)
-
-        rotulo_etiquetas = wx.StaticText(
-            self, label="&Etiquetas, separadas por comas:")
-        vs.Add(rotulo_etiquetas, 0, wx.LEFT | wx.RIGHT, 10)
-        self.txt_etiquetas = wx.TextCtrl(
-            self, value=etiquetas or "", name="Etiquetas")
-        nombre_accesible(self.txt_etiquetas, "Etiquetas")
-        vs.Add(self.txt_etiquetas, 0, wx.EXPAND | wx.ALL, 10)
-
-        rotulo_miniatura = wx.StaticText(self, label="Miniatura:")
-        vs.Add(rotulo_miniatura, 0, wx.LEFT | wx.RIGHT, 10)
-        self.txt_miniatura = wx.TextCtrl(
-            self, value=self._texto_miniatura(),
-            style=wx.TE_MULTILINE | wx.TE_READONLY, name="Miniatura")
-        self.txt_miniatura.SetMinSize(
-            (-1, self.txt_miniatura.GetCharHeight() + 12))
-        nombre_accesible(self.txt_miniatura, "Miniatura")
-        vs.Add(self.txt_miniatura, 0, wx.EXPAND | wx.ALL, 10)
-
-        fila_miniatura = wx.BoxSizer(wx.HORIZONTAL)
-        self.btn_elegir_miniatura = wx.Button(
-            self, label="Elegir &miniatura...", name="Elegir miniatura")
-        self.btn_quitar_miniatura = wx.Button(
-            self, label="&Quitar miniatura", name="Quitar miniatura")
-        fila_miniatura.Add(self.btn_elegir_miniatura, 0, wx.RIGHT, 6)
-        fila_miniatura.Add(self.btn_quitar_miniatura, 0)
-        vs.Add(fila_miniatura, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-
-        self._opciones_lista, seleccion_lista = opciones_lista(
-            None, lista, lista_titulo)
-        rotulo_lista = wx.StaticText(self, label="Lista de re&producción:")
-        vs.Add(rotulo_lista, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
-        self.cho_lista = wx.Choice(
-            self, choices=[texto for _id, texto in self._opciones_lista],
-            name="Lista de reproducción")
-        self.cho_lista.SetSelection(seleccion_lista)
-        nombre_accesible(self.cho_lista, "Lista de reproducción")
-        vs.Add(self.cho_lista, 0, wx.EXPAND | wx.ALL, 10)
-        self.btn_cargar_listas = wx.Button(
-            self, label="Ca&rgar listas", name="Cargar listas")
-        vs.Add(self.btn_cargar_listas, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-
-        from ytchat.obs import obs_prevuelo
-        texto_revision = (obs_prevuelo.frase_revision(revision)
-                          if revision is not None else "")
-        rotulo_revision = wx.StaticText(self, label="Revisión de OBS:")
-        vs.Add(rotulo_revision, 0, wx.LEFT | wx.RIGHT, 10)
-        self.txt_revision = wx.TextCtrl(
-            self, value=texto_revision,
-            style=wx.TE_MULTILINE | wx.TE_READONLY,
-            name="Revisión de OBS")
-        self.txt_revision.SetMinSize(
-            (-1, 3 * self.txt_revision.GetCharHeight() + 12))
-        nombre_accesible(self.txt_revision, "Revisión de OBS")
-        vs.Add(self.txt_revision, 0, wx.EXPAND | wx.ALL, 10)
+        zona.SetSizer(contenido)
+        vs.Add(zona, 1, wx.EXPAND)
 
         fila = wx.BoxSizer(wx.HORIZONTAL)
         self.btn_crear = wx.Button(self, wx.ID_OK, "&Transmitir")
@@ -209,7 +106,19 @@ class DialogoDirectoYoutube(wx.Dialog):
         vs.Add(fila, 0, wx.ALIGN_RIGHT | wx.ALL, 10)
 
         self.txt_titulo.SetMinSize((420, -1))
-        self.SetSizerAndFit(vs)
+        self.SetSizer(vs)
+        self.Fit()
+        try:
+            indice = wx.Display.GetFromWindow(self)
+            if indice == wx.NOT_FOUND:
+                indice = 0
+            alto_area = wx.Display(indice).GetClientArea().height
+        except Exception:
+            alto_area = 700
+        alto_maximo = min(700, alto_area)
+        if self.GetSize().height > alto_maximo:
+            self.SetSize((self.GetSize().width, alto_maximo))
+            self.Layout()
         self.btn_crear.Bind(wx.EVT_BUTTON, self._al_crear)
         self.btn_elegir_miniatura.Bind(wx.EVT_BUTTON,
                                        self._al_elegir_miniatura)
@@ -226,6 +135,131 @@ class DialogoDirectoYoutube(wx.Dialog):
         else:
             self.btn_crear.SetDefault()
             self.txt_titulo.SetFocus()
+
+    def _contenido_datos(self, zona, contenido, titulo, descripcion,
+                           privacidad, latencia):
+        rotulo_titulo = wx.StaticText(zona, label="Título:")
+        contenido.Add(rotulo_titulo, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
+        self.txt_titulo = wx.TextCtrl(
+            zona, value=titulo, name="Título del directo")
+        self.txt_titulo.SetMaxLength(100)
+        self.txt_titulo.SelectAll()
+        nombre_accesible(self.txt_titulo, "Título del directo")
+        contenido.Add(self.txt_titulo, 0, wx.EXPAND | wx.ALL, 10)
+
+        rotulo_descripcion = wx.StaticText(
+            zona, label="Descripción, opcional:")
+        contenido.Add(rotulo_descripcion, 0, wx.LEFT | wx.RIGHT, 10)
+        self.txt_descripcion = wx.TextCtrl(
+            zona, value=descripcion or "", style=wx.TE_MULTILINE,
+            name="Descripción del directo")
+        self.txt_descripcion.SetMinSize(
+            (-1, 3 * self.txt_descripcion.GetCharHeight() + 12))
+        nombre_accesible(self.txt_descripcion, "Descripción del directo")
+        contenido.Add(self.txt_descripcion, 1, wx.EXPAND | wx.ALL, 10)
+
+        rotulo_privacidad = wx.StaticText(zona, label="Privacidad:")
+        contenido.Add(rotulo_privacidad, 0, wx.LEFT | wx.RIGHT, 10)
+        self.cho_privacidad = wx.Choice(
+            zona, choices=[ETIQUETAS_PRIVACIDAD[p] for p in PRIVACIDADES],
+            name="Privacidad")
+        self.cho_privacidad.SetSelection(PRIVACIDADES.index(privacidad))
+        nombre_accesible(self.cho_privacidad, "Privacidad")
+        contenido.Add(self.cho_privacidad, 0, wx.EXPAND | wx.ALL, 10)
+
+        rotulo_latencia = wx.StaticText(zona, label="&Latencia:")
+        contenido.Add(rotulo_latencia, 0, wx.LEFT | wx.RIGHT, 10)
+        self.cho_latencia = wx.Choice(
+            zona, choices=[ETIQUETAS_LATENCIA[l] for l in LATENCIAS],
+            name="Latencia")
+        self.cho_latencia.SetSelection(LATENCIAS.index(latencia))
+        nombre_accesible(self.cho_latencia, "Latencia")
+        contenido.Add(self.cho_latencia, 0, wx.EXPAND | wx.ALL, 10)
+
+    def _contenido_opciones(self, zona, contenido, ninos, dvr, categoria,
+                            etiquetas):
+        self.chk_ninos = wx.CheckBox(
+            zona, label="Hecho para &niños (YouTube apaga el chat)",
+            name="Hecho para niños")
+        self.chk_ninos.SetValue(bool(ninos))
+        nombre_accesible(self.chk_ninos, "Hecho para niños")
+        contenido.Add(self.chk_ninos, 0, wx.LEFT | wx.RIGHT, 10)
+
+        self.chk_dvr = wx.CheckBox(
+            zona, label="Permitir re&bobinar el directo",
+            name="Permitir rebobinar")
+        self.chk_dvr.SetValue(bool(dvr))
+        nombre_accesible(self.chk_dvr, "Permitir rebobinar")
+        contenido.Add(self.chk_dvr, 0, wx.LEFT | wx.RIGHT, 10)
+
+        rotulo_categoria = wx.StaticText(zona, label="Cate&goría:")
+        contenido.Add(rotulo_categoria, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
+        self.cho_categoria = wx.Choice(
+            zona, choices=[texto for _id, texto in CATEGORIAS],
+            name="Categoría")
+        ids = [identificador for identificador, _texto in CATEGORIAS]
+        self.cho_categoria.SetSelection(
+            ids.index(categoria) if categoria in ids else 0)
+        nombre_accesible(self.cho_categoria, "Categoría")
+        contenido.Add(self.cho_categoria, 0, wx.EXPAND | wx.ALL, 10)
+
+        rotulo_etiquetas = wx.StaticText(
+            zona, label="&Etiquetas, separadas por comas:")
+        contenido.Add(rotulo_etiquetas, 0, wx.LEFT | wx.RIGHT, 10)
+        self.txt_etiquetas = wx.TextCtrl(
+            zona, value=etiquetas or "", name="Etiquetas")
+        nombre_accesible(self.txt_etiquetas, "Etiquetas")
+        contenido.Add(self.txt_etiquetas, 0, wx.EXPAND | wx.ALL, 10)
+
+    def _contenido_cierre(self, zona, contenido, lista, lista_titulo,
+                          revision):
+        rotulo_miniatura = wx.StaticText(zona, label="Miniatura:")
+        contenido.Add(rotulo_miniatura, 0, wx.LEFT | wx.RIGHT, 10)
+        self.txt_miniatura = wx.TextCtrl(
+            zona, value=self._texto_miniatura(),
+            style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_NO_VSCROLL,
+            name="Miniatura")
+        self.txt_miniatura.SetMinSize(
+            (-1, self.txt_miniatura.GetCharHeight() + 12))
+        nombre_accesible(self.txt_miniatura, "Miniatura")
+        contenido.Add(self.txt_miniatura, 0, wx.EXPAND | wx.ALL, 10)
+
+        fila_miniatura = wx.BoxSizer(wx.HORIZONTAL)
+        self.btn_elegir_miniatura = wx.Button(
+            zona, label="Elegir &miniatura...", name="Elegir miniatura")
+        self.btn_quitar_miniatura = wx.Button(
+            zona, label="&Quitar miniatura", name="Quitar miniatura")
+        fila_miniatura.Add(self.btn_elegir_miniatura, 0, wx.RIGHT, 6)
+        fila_miniatura.Add(self.btn_quitar_miniatura, 0)
+        contenido.Add(fila_miniatura, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        self._opciones_lista, seleccion_lista = opciones_lista(
+            None, lista, lista_titulo)
+        rotulo_lista = wx.StaticText(zona, label="Lista de re&producción:")
+        contenido.Add(rotulo_lista, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
+        self.cho_lista = wx.Choice(
+            zona, choices=[texto for _id, texto in self._opciones_lista],
+            name="Lista de reproducción")
+        self.cho_lista.SetSelection(seleccion_lista)
+        nombre_accesible(self.cho_lista, "Lista de reproducción")
+        contenido.Add(self.cho_lista, 0, wx.EXPAND | wx.ALL, 10)
+        self.btn_cargar_listas = wx.Button(
+            zona, label="Ca&rgar listas", name="Cargar listas")
+        contenido.Add(self.btn_cargar_listas, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        from ytchat.obs import obs_prevuelo
+        texto_revision = (obs_prevuelo.frase_revision(revision)
+                          if revision is not None else "")
+        rotulo_revision = wx.StaticText(zona, label="Revisión de OBS:")
+        contenido.Add(rotulo_revision, 0, wx.LEFT | wx.RIGHT, 10)
+        self.txt_revision = wx.TextCtrl(
+            zona, value=texto_revision,
+            style=wx.TE_MULTILINE | wx.TE_READONLY,
+            name="Revisión de OBS")
+        self.txt_revision.SetMinSize(
+            (-1, 3 * self.txt_revision.GetCharHeight() + 12))
+        nombre_accesible(self.txt_revision, "Revisión de OBS")
+        contenido.Add(self.txt_revision, 0, wx.EXPAND | wx.ALL, 10)
 
     @property
     def datos(self):

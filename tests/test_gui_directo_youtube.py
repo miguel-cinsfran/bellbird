@@ -24,6 +24,17 @@ from ytchat.youtube.emision import (
 )
 
 
+def _controles_en_orden(dialogo):
+    """Hijos en orden de Tab, bajando dentro de la zona con desplazamiento."""
+    orden = []
+    for hijo in dialogo.GetChildren():
+        if isinstance(hijo, wx.ScrolledWindow):
+            orden.extend(hijo.GetChildren())
+        else:
+            orden.append(hijo)
+    return orden
+
+
 class TestResultadoDirecto(unittest.TestCase):
     # Lógica pura del diálogo, sin ventanas.
 
@@ -120,7 +131,7 @@ class TestDialogoDirectoVentana(unittest.TestCase):
         self.assertEqual(dialogo.txt_descripcion.GetName(),
                          "Descripción del directo")
         self.assertEqual(dialogo.cho_privacidad.GetName(), "Privacidad")
-        textos = [h.GetLabel() for h in dialogo.GetChildren()
+        textos = [h.GetLabel() for h in _controles_en_orden(dialogo)
                   if isinstance(h, wx.StaticText)]
         self.assertIn("Título:", textos)
         self.assertIn("Descripción, opcional:", textos)
@@ -128,7 +139,7 @@ class TestDialogoDirectoVentana(unittest.TestCase):
 
     def test_orden_de_tab_y_privacidad(self):
         dialogo = self._dialogo(titulo="Hola", privacidad="private")
-        orden = [h.GetName() for h in dialogo.GetChildren()
+        orden = [h.GetName() for h in _controles_en_orden(dialogo)
                  if h.GetName() in ("Título del directo",
                                     "Descripción del directo", "Privacidad")]
         self.assertEqual(orden, ["Título del directo",
@@ -168,7 +179,7 @@ class TestDialogoDirectoVentana(unittest.TestCase):
         estilo = dialogo.txt_revision.GetWindowStyle()
         self.assertTrue(estilo & wx.TE_MULTILINE)
         self.assertTrue(estilo & wx.TE_READONLY)
-        orden = [h.GetName() for h in dialogo.GetChildren()
+        orden = [h.GetName() for h in _controles_en_orden(dialogo)
                  if h.GetName() in ("Título del directo",
                                     "Descripción del directo", "Privacidad",
                                     "Revisión de OBS")]
@@ -230,7 +241,7 @@ class TestDialogoDirectoVentana(unittest.TestCase):
 
     def test_rotulos_con_mnemonicas(self):
         dialogo = self._dialogo(titulo="Hola")
-        textos = [h.GetLabel() for h in dialogo.GetChildren()
+        textos = [h.GetLabel() for h in _controles_en_orden(dialogo)
                   if isinstance(h, wx.StaticText)]
         self.assertIn("&Latencia:", textos)
         self.assertIn("Cate&goría:", textos)
@@ -255,7 +266,7 @@ class TestDialogoDirectoVentana(unittest.TestCase):
                    "Miniatura", "Elegir miniatura", "Quitar miniatura",
                    "Lista de reproducción", "Cargar listas",
                    "Revisión de OBS")
-        orden = [h.GetName() for h in dialogo.GetChildren()
+        orden = [h.GetName() for h in _controles_en_orden(dialogo)
                  if h.GetName() in nombres]
         self.assertEqual(orden, list(nombres))
 
@@ -404,6 +415,52 @@ class TestDialogoDirectoVentana(unittest.TestCase):
         self.assertEqual(dialogo._datos["lista"], "PL9")
         self.assertEqual(dialogo._datos["lista_titulo"], "Mi lista")
         fin.assert_called_once_with(wx.ID_OK)
+
+    def test_zona_con_desplazamiento_con_los_botones_fuera(self):
+        dialogo = self._dialogo(titulo="Hola")
+        zona = dialogo.zona_desplazamiento
+        self.assertIsInstance(zona, wx.ScrolledWindow)
+        self.assertTrue(zona.GetWindowStyle() & wx.VSCROLL)
+        self.assertTrue(zona.GetWindowStyle() & wx.TAB_TRAVERSAL)
+        self.assertIs(dialogo.txt_titulo.GetParent(), zona)
+        self.assertIs(dialogo.txt_descripcion.GetParent(), zona)
+        self.assertIs(dialogo.txt_revision.GetParent(), zona)
+        self.assertIs(dialogo.btn_crear.GetParent(), dialogo)
+        self.assertIs(dialogo.btn_cancelar.GetParent(), dialogo)
+        self.assertNotIn(dialogo.btn_crear, zona.GetChildren())
+        hijos = list(dialogo.GetChildren())
+        self.assertLess(hijos.index(zona),
+                        hijos.index(dialogo.btn_crear))
+
+    def test_no_pasa_de_700_px_de_alto(self):
+        dialogo = self._dialogo(titulo="Hola")
+        self.assertLessEqual(dialogo.GetSize().height, 700)
+
+    def test_orden_de_tab_completo_con_el_pie_al_final(self):
+        dialogo = self._dialogo(titulo="Hola")
+        nombres = ("Título del directo", "Descripción del directo",
+                   "Privacidad", "Latencia", "Hecho para niños",
+                   "Permitir rebobinar", "Categoría", "Etiquetas",
+                   "Miniatura", "Elegir miniatura", "Quitar miniatura",
+                   "Lista de reproducción", "Cargar listas",
+                   "Revisión de OBS")
+        orden = [h.GetName() for h in _controles_en_orden(dialogo)
+                 if h.GetName() in nombres]
+        self.assertEqual(orden, list(nombres))
+        hijos = list(dialogo.GetChildren())
+        self.assertLess(hijos.index(dialogo.zona_desplazamiento),
+                        hijos.index(dialogo.btn_cancelar))
+
+    def test_descripcion_conserva_tres_lineas_de_alto(self):
+        dialogo = self._dialogo(titulo="Hola")
+        self.assertEqual(
+            dialogo.txt_descripcion.GetMinSize().height,
+            3 * dialogo.txt_descripcion.GetCharHeight() + 12)
+
+    def test_miniatura_sin_flechas_de_desplazamiento(self):
+        dialogo = self._dialogo(titulo="Hola")
+        self.assertTrue(dialogo.txt_miniatura.GetWindowStyle()
+                        & wx.TE_NO_VSCROLL)
 
     def test_pedir_datos_devuelve_dict_y_none(self):
         dialogo = self._dialogo(titulo="Hola")

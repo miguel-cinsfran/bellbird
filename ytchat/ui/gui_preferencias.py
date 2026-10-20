@@ -235,6 +235,7 @@ class PreferenciasDialog(PaginaMusica, wx.Dialog):
         self.nb.AddPage(self._pag_api(self.nb), "API y sesión")
         self.nb.AddPage(self._pag_programados(self.nb), "Mensajes automáticos")
         self.nb.AddPage(self._pag_transmision(self.nb), "Transmisión")
+        self._ajustar_ancho_categorias()
         # Mínimo explícito: si no, el libro pide el «mejor tamaño» de la página
         # más alta (Atajos, más de 1200 px) y el sizer lo desbordaría en vez
         # de dejar que la página se desplace.
@@ -561,8 +562,7 @@ class PreferenciasDialog(PaginaMusica, wx.Dialog):
                0, wx.LEFT | wx.RIGHT, 10)
         guardado = str(self._config.get("obs_microfono", ""))
         opciones = ["Elegir automáticamente"] + ([guardado] if guardado else [])
-        self.cho_microfono_obs = wx.Choice(
-            p, choices=opciones, name="Micrófono de OBS")
+        self.cho_microfono_obs = wx.Choice(p, choices=opciones, name="Micrófono de OBS")
         self.cho_microfono_obs.SetSelection(1 if guardado else 0)
         vs.Add(self.cho_microfono_obs, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 

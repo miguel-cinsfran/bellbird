@@ -55,7 +55,7 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
         panel.SetForegroundColour(_T.text)
         self.lb_colecciones = self._lista(panel, "Colecciones", 190)
         self.lb_colecciones.SetMinSize((220, 190))
-        _pintar(self.lb_colecciones, _T.surface, _T.text)
+        _pintar(self.lb_colecciones, _T.field, _T.text)
         self.txt_buscar = self._campo(panel, "Buscar en la música")
         self.lb_temas = self._lista(panel, "Canciones", 190)
         self.btn_cola = self._boton(

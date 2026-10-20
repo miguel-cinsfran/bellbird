@@ -14,6 +14,8 @@ from ytchat.ui import opciones_musica
 from ytchat.ui.gui import ContadorAccesible, anunciar, nombre_accesible
 from ytchat.ui.gui_descargas import nombrar_selector_carpeta
 
+logger = diagnostico.obtener_logger(__name__)
+
 
 # Filas de música de `_OPCIONES_SIMPLES` en `gui_preferencias`: misma tabla, mismo orden.
 OPCIONES_MUSICA = (
@@ -180,3 +182,21 @@ class PaginaMusica:
             anunciar(f"Se encontraron {cantidad} salidas de audio")
         else:
             anunciar("No se encontraron salidas de audio")
+
+    def _ajustar_ancho_categorias(self):
+        """La lista de categorías muestra el nombre más largo entero, medido
+        con el texto real. Solo ancho, sin color."""
+        try:
+            textos = [self.nb.GetPageText(i)
+                      for i in range(self.nb.GetPageCount())]
+            if not textos:
+                return
+            medidos = [self.lista_categorias.GetTextExtent(t)[0]
+                       for t in textos]
+            extra = wx.SystemSettings.GetMetric(wx.SYS_VSCROLL_X) + 28
+            ancho = max(medidos) + extra
+            self.lista_categorias.SetColumnWidth(0, ancho)
+            alto = self.lista_categorias.GetMinSize().height
+            self.lista_categorias.SetMinSize((ancho, alto))
+        except Exception as exc:
+            logger.debug("ancho de las categorías: %s", exc)

@@ -23,16 +23,22 @@ class PanelRedactar(wx.Panel):
         self.etiqueta = wx.StaticText(self, label=etiqueta, name="EtiquetaRedaccion")
         vs.Add(self.etiqueta, 0, wx.BOTTOM, 4)
         fila = wx.BoxSizer(wx.HORIZONTAL)
-        self.texto = wx.TextCtrl(
-            self, style=wx.TE_MULTILINE, name="Mensaje para el chat")
+        self.texto = wx.TextCtrl(self, style=wx.TE_MULTILINE, name="Mensaje para el chat")
         self.texto.SetMinSize((-1, 3 * self.texto.GetCharHeight() + 12))
         fila.Add(self.texto, 1, wx.EXPAND | wx.RIGHT, 6)
         self.boton = wx.Button(self, label="&Enviar", name="Enviar mensaje al chat")
         fila.Add(self.boton, 0, wx.ALIGN_BOTTOM)
+        self._aplicar_paleta()
         vs.Add(fila, 1, wx.EXPAND)
         self.SetSizer(vs)
         self.boton.Bind(wx.EVT_BUTTON, self._on_enviar)
         self.texto.Bind(wx.EVT_CHAR_HOOK, self._on_char_hook)
+
+    def _aplicar_paleta(self):
+        # Paleta de la app; con alto contraste _pintar no toca nada.
+        from ytchat.ui.gui import _T, _pintar
+        _pintar(self.texto, _T.field, _T.text)
+        _pintar(self.boton, _T.btn, _T.btn_t)
 
     def establecer_motivo(self, motivo: str) -> None:
         self._motivo = motivo or ""

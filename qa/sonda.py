@@ -422,9 +422,9 @@ def _dibujar_ventana_a_rgb(ventana):
 def _dejar_pintar(ventana) -> None:
     """Deja que la ventana se pinte antes de capturarla.
 
-    `Refresh` marca para repintar y `Update` pinta lo pendiente; las rondas
-    de `SafeYield` dejan que lleguen los pintados de los hijos. Acotado a
-    300 ms y sin `sleep`: corre en el hilo de interfaz.
+    Cede el bucle durante 400 ms: rondas de `SafeYield()` y `Update()`
+    con `time.sleep(0.01)` entre ellas. Sin la espera real la captura
+    sale en negro porque el pintado no alcanza a llegar.
     """
     import wx
     try:
@@ -436,9 +436,7 @@ def _dejar_pintar(ventana) -> None:
     except Exception:
         pass
     inicio = time.monotonic()
-    for _ in range(20):
-        if time.monotonic() - inicio >= 0.3:
-            break
+    while time.monotonic() - inicio < 0.4:
         try:
             wx.SafeYield()
         except Exception:
@@ -447,6 +445,7 @@ def _dejar_pintar(ventana) -> None:
             ventana.Update()
         except Exception:
             pass
+        time.sleep(0.01)
 
 
 def _guardar_png(ventana, ruta) -> tuple:
@@ -1063,10 +1062,21 @@ class Sonda:
                         }
                         try:
                             imagen = wx.Image(str(ruta))
-                            if capturas.es_todo_negro(imagen.GetData()):
-                                entrada["fallo"] = "la captura salió en negro"
+                            negra = capturas.es_todo_negro(imagen.GetData())
                         except Exception:
-                            pass
+                            negra = False
+                        if negra:
+                            _dejar_pintar(objetivo)
+                            ancho, alto = _guardar_png(objetivo, ruta)
+                            entrada["ancho"] = ancho
+                            entrada["alto"] = alto
+                            try:
+                                imagen = wx.Image(str(ruta))
+                                if capturas.es_todo_negro(imagen.GetData()):
+                                    entrada["fallo"] = ("la captura salió "
+                                                        "en negro")
+                            except Exception:
+                                pass
                         archivos.append(entrada)
                     except Exception as exc:
                         archivos.append({

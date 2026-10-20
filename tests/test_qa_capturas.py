@@ -185,7 +185,7 @@ class TestArgumentosCapturas(unittest.TestCase):
 class TestCapturaWx(unittest.TestCase):
     """Captura de verdad sobre un `wx.Frame`. La corre el advisor."""
 
-    # Va en otro proceso porque importar conducir.py (COM del medidor) deja en negro el PrintWindow de este.
+    # Va en otro proceso para no depender de lo que la suite cargó antes.
     _GUIA_HIJO = "\n".join([
         "import json",
         "import sys",

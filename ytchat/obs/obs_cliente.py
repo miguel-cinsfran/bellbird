@@ -3,6 +3,7 @@
 import base64
 import hashlib
 import json
+import logging
 import os
 import threading
 import time
@@ -11,6 +12,9 @@ from dataclasses import dataclass
 
 from websockets.exceptions import ConnectionClosed
 from websockets.sync.client import connect
+
+
+logger = logging.getLogger(f"ytchat.{__name__}")
 
 
 RUTA_CONFIG_OBS = os.path.join(
@@ -64,6 +68,12 @@ def mensaje_de_fallo_obs(motivo):
     """Traduce un motivo técnico a un mensaje breve para el usuario."""
     if isinstance(motivo, ObsError):
         return str(motivo)
+    if isinstance(motivo, BaseException):
+        logger.warning("Fallo de OBS: %s: %s", type(motivo).__name__,
+                       str(motivo), exc_info=motivo)
+    else:
+        logger.warning("Fallo de OBS: %s: %s", type(motivo).__name__,
+                       str(motivo))
     texto = str(motivo or "").lower()
     if any(clave in texto for clave in
            ("refused", "no connection", "10061", "unreachable", "timed out")):

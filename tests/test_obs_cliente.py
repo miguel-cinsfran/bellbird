@@ -312,3 +312,28 @@ class CancelacionYTiempoTest(unittest.TestCase):
                 cliente.pedir("GetVersion")
         finally:
             cliente._TIEMPO_LIMITE = original
+
+
+class RegistroDeFalloTest(unittest.TestCase):
+    def test_excepcion_cruda_deja_warning_con_tipo_y_traza(self):
+        with self.assertLogs(obs_cliente.logger, level="WARNING") as registro:
+            texto = obs_cliente.mensaje_de_fallo_obs(RuntimeError("algo raro"))
+        self.assertEqual(texto, "OBS no pudo completar la operación. Inténtalo de nuevo.")
+        self.assertIn("RuntimeError", registro.output[0])
+        self.assertIn("algo raro", registro.output[0])
+        self.assertIsNotNone(registro.records[0].exc_info)
+
+    def test_texto_crudo_deja_warning_sin_traza(self):
+        with self.assertLogs(obs_cliente.logger, level="WARNING") as registro:
+            texto = obs_cliente.mensaje_de_fallo_obs("timed out")
+        self.assertEqual(texto, "No se pudo conectar con OBS. Comprueba que OBS esté "
+                                "abierto y que su servidor websocket esté activado.")
+        self.assertIn("timed out", registro.output[0])
+        self.assertIsNone(registro.records[0].exc_info)
+
+    def test_error_de_obs_no_registra_nada(self):
+        texto_esperado = "OBS no pudo completar la operación. Inténtalo de nuevo."
+        with self.assertNoLogs(obs_cliente.logger, level="WARNING"):
+            texto = obs_cliente.mensaje_de_fallo_obs(
+                obs_cliente.ObsError(texto_esperado))
+        self.assertEqual(texto, texto_esperado)

@@ -116,6 +116,15 @@ class TestColores(unittest.TestCase):
         with self.assertRaises(ValueError):
             capturas.bgra_a_rgb(bytes([1, 2, 3]))
 
+    def test_todo_negro_con_pixeles_en_cero(self):
+        self.assertTrue(capturas.es_todo_negro(bytes([0, 0, 0, 0, 0, 0])))
+
+    def test_no_todo_negro_con_un_byte_encendido(self):
+        self.assertFalse(capturas.es_todo_negro(bytes([0, 0, 1, 0, 0, 0])))
+
+    def test_vacio_no_es_todo_negro(self):
+        self.assertFalse(capturas.es_todo_negro(b""))
+
 
 class TestArgumentosCapturas(unittest.TestCase):
 
@@ -186,7 +195,7 @@ class TestCapturaWx(unittest.TestCase):
         panel = _wx.Panel(marco)
         panel.SetBackgroundColour(_wx.Colour(11, 22, 33))
         marco.ShowWithoutActivating()
-        app.Yield()
+        cls.sonda._dejar_pintar(marco)
         cls.marco = marco
 
     @classmethod

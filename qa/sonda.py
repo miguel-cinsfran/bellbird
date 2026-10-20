@@ -419,6 +419,36 @@ def _dibujar_ventana_a_rgb(ventana):
     return ancho, alto, rgb
 
 
+def _dejar_pintar(ventana) -> None:
+    """Deja que la ventana se pinte antes de capturarla.
+
+    `Refresh` marca para repintar y `Update` pinta lo pendiente; las rondas
+    de `SafeYield` dejan que lleguen los pintados de los hijos. Acotado a
+    300 ms y sin `sleep`: corre en el hilo de interfaz.
+    """
+    import wx
+    try:
+        ventana.Refresh()
+    except Exception:
+        pass
+    try:
+        ventana.Update()
+    except Exception:
+        pass
+    inicio = time.monotonic()
+    for _ in range(20):
+        if time.monotonic() - inicio >= 0.3:
+            break
+        try:
+            wx.SafeYield()
+        except Exception:
+            break
+        try:
+            ventana.Update()
+        except Exception:
+            pass
+
+
 def _guardar_png(ventana, ruta) -> tuple:
     """Guarda la ventana en `ruta` como PNG y devuelve su tamaño."""
     import wx
@@ -1024,12 +1054,20 @@ class Sonda:
 
                 def _una(ruta, pestana):
                     try:
+                        _dejar_pintar(objetivo)
                         ancho, alto = _guardar_png(objetivo, ruta)
-                        archivos.append({
+                        entrada = {
                             "archivo": Path(ruta).name,
                             "titulo": titulo_real, "pestana": pestana,
                             "ancho": ancho, "alto": alto, "minimo": minimo,
-                        })
+                        }
+                        try:
+                            imagen = wx.Image(str(ruta))
+                            if capturas.es_todo_negro(imagen.GetData()):
+                                entrada["fallo"] = "la captura salió en negro"
+                        except Exception:
+                            pass
+                        archivos.append(entrada)
                     except Exception as exc:
                         archivos.append({
                             "archivo": None,
@@ -1055,14 +1093,6 @@ class Sonda:
                                 except Exception:
                                     pest = f"página {i + 1}"
                                 libro.SetSelection(i)
-                                try:
-                                    objetivo.Update()
-                                except Exception:
-                                    pass
-                                try:
-                                    wx.SafeYield()
-                                except Exception:
-                                    pass
                                 _una(carpeta / (capturas.nombre_pagina(
                                     base, i + 1, pest) + ".png"), pest)
                         finally:

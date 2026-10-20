@@ -86,6 +86,18 @@ def linea_fallo(n: int, escenario: str, titulo: str, motivo: str) -> str:
             f"FALLIDA: {motivo or 'sin motivo'}")
 
 
+def es_todo_negro(rgb: bytes) -> bool:
+    """True si hay píxeles y todos están en cero.
+
+    La sonda guarda igual el archivo para poder mirarlo; esto solo decide
+    si la entrada lleva `fallo`.
+    """
+    crudos = bytes(rgb or b"")
+    if not crudos:
+        return False
+    return crudos.count(b"\x00") == len(crudos)
+
+
 NO_CAPTURABLE = (
     "Los menús contextuales y los cuadros nativos de Windows no se capturan: "
     "`PrintWindow` dibuja ventanas wx de nivel superior, y eso no es una. "

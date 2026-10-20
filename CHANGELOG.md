@@ -83,6 +83,17 @@ Música mientras transmites, sin abrir otro programa.
   la arroba en el teclado latinoamericano, te lo dice y te pide otra, para
   no romper la escritura en el chat.
 
+### Chat
+
+- **Un corte de conexión ya no cierra el directo.** Antes, si se cortaba
+  la conexión con el chat, al volver sola la aplicación leía los
+  mensajes pero no dejaba escribir ni moderar. Ahora avisa «Se perdió la
+  conexión con el chat», reintenta a los 1, 2, 5 y 10 segundos, y después
+  según la «Espera máxima entre intentos» de Preferencias. Al volver dice
+  «Chat reconectado.» y todo sigue como antes del corte.
+- **Los mensajes no se repiten tras un corte.** Lo que ya se había leído
+  no se vuelve a leer al reconectar.
+
 ### Pantallas
 
 - **La ventana del directo de YouTube cabe en pantallas bajas.** En una

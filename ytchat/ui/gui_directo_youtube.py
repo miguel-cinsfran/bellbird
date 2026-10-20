@@ -106,19 +106,7 @@ class DialogoDirectoYoutube(wx.Dialog):
         vs.Add(fila, 0, wx.ALIGN_RIGHT | wx.ALL, 10)
 
         self.txt_titulo.SetMinSize((420, -1))
-        self.SetSizer(vs)
-        self.Fit()
-        try:
-            indice = wx.Display.GetFromWindow(self)
-            if indice == wx.NOT_FOUND:
-                indice = 0
-            alto_area = wx.Display(indice).GetClientArea().height
-        except Exception:
-            alto_area = 700
-        alto_maximo = min(700, alto_area)
-        if self.GetSize().height > alto_maximo:
-            self.SetSize((self.GetSize().width, alto_maximo))
-            self.Layout()
+        self._ajustar_tamano(vs, zona, fila)
         self.btn_crear.Bind(wx.EVT_BUTTON, self._al_crear)
         self.btn_elegir_miniatura.Bind(wx.EVT_BUTTON,
                                        self._al_elegir_miniatura)
@@ -135,6 +123,28 @@ class DialogoDirectoYoutube(wx.Dialog):
         else:
             self.btn_crear.SetDefault()
             self.txt_titulo.SetFocus()
+
+    def _ajustar_tamano(self, vs, zona, fila):
+        self.SetSizer(vs)
+        self.Fit()
+        ancho = self.GetSize().width
+        delta = self.GetSize().height - self.GetClientSize().height
+        alto_contenido = zona.GetSizer().GetMinSize().height
+        alto_pie = fila.GetMinSize().height + 20
+        try:
+            indice = wx.Display.GetFromWindow(self)
+            if indice == wx.NOT_FOUND:
+                indice = 0
+            alto_area = wx.Display(indice).GetClientArea().height
+        except Exception:
+            alto_area = 700
+        alto_maximo = min(700, alto_area)
+        piso = min(300, alto_maximo)
+        zona.FitInside()
+        self.SetSize((ancho, max(min(alto_contenido + alto_pie + delta,
+                                     alto_maximo), piso)))
+        self.SetMinSize((ancho, piso))
+        self.Layout()
 
     def _contenido_datos(self, zona, contenido, titulo, descripcion,
                            privacidad, latencia):

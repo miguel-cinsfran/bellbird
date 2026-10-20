@@ -432,9 +432,25 @@ class TestDialogoDirectoVentana(unittest.TestCase):
         self.assertLess(hijos.index(zona),
                         hijos.index(dialogo.btn_crear))
 
-    def test_no_pasa_de_700_px_de_alto(self):
+    def test_alto_entre_300_y_700_con_pantalla_real(self):
         dialogo = self._dialogo(titulo="Hola")
-        self.assertLessEqual(dialogo.GetSize().height, 700)
+        alto = dialogo.GetSize().height
+        self.assertGreater(alto, 300)
+        self.assertLessEqual(alto, 700)
+
+    def test_alto_no_pasa_del_area_de_trabajo(self):
+        area = wx.Rect(0, 0, 800, 500)
+        with mock.patch.object(wx.Display, "GetClientArea",
+                               return_value=area):
+            dialogo = self._dialogo(titulo="Hola")
+        self.assertLessEqual(dialogo.GetSize().height, 500)
+
+    def test_zona_virtual_alcanza_para_todo_el_contenido(self):
+        dialogo = self._dialogo(titulo="Hola")
+        zona = dialogo.zona_desplazamiento
+        ultimo = dialogo.txt_revision
+        abajo = ultimo.GetPosition().y + ultimo.GetSize().height
+        self.assertGreaterEqual(zona.GetVirtualSize().height, abajo)
 
     def test_orden_de_tab_completo_con_el_pie_al_final(self):
         dialogo = self._dialogo(titulo="Hola")

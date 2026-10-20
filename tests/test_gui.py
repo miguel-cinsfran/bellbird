@@ -1439,6 +1439,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             "&Decir al pasar de tema:",
             "A&nunciar la pausa, la reanudación y la vuelta al comienzo",
             "&Volumen de la música",
+            "&Igualar el volumen de las canciones",
             "Salida de a&udio de la música",
             "&Buscar las salidas de audio",
             "Usar los atajos de música en cualquier &programa",
@@ -1455,7 +1456,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             etiqueta = control.GetLabel()
             if "&" in etiqueta:
                 letras.append(etiqueta.split("&", 1)[1][:1].lower())
-        self.assertEqual(len(letras), 11)
+        self.assertEqual(len(letras), 12)
         self.assertEqual(len(letras), len(set(letras)), letras)
         self.assertNotIn("g", letras)
         self.assertNotIn("c", letras)

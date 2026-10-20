@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="es" xml:lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="generator" content="pandoc 3.10" />
+  <meta name="generator" content="pandoc 3.10.1" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <title>YTChat TTS — Léeme</title>
   <style>
@@ -41,7 +41,6 @@
       body {
         background-color: transparent;
         color: black;
-        font-size: 12pt;
       }
       p, h2, h3 {
         orphans: 3;
@@ -457,22 +456,33 @@ maneja con el menú <em>Música</em> o con sus atajos, todos con
 pausa, <code>Ctrl+Alt+Flecha derecha</code> y
 <code>Ctrl+Alt+Flecha izquierda</code> pasan de tema,
 <code>Ctrl+Alt+Flecha arriba</code> y <code>Ctrl+Alt+Flecha abajo</code>
-cambian el volumen de la música, y <code>Ctrl+Alt+T</code> dice qué
-suena.</p>
-<p>La ventana <em>Música</em> (<code>Ctrl+Alt+M</code>) busca en la
-carpeta mientras se escribe, reproduce el tema elegido o todo el
+cambian el volumen de la música, <code>Ctrl+Alt+T</code> dice qué suena,
+<code>Ctrl+Alt+M</code> silencia, <code>Ctrl+Alt+D</code> detiene,
+<code>Ctrl+Alt+A</code> cambia el orden aleatorio,
+<code>Ctrl+Alt+R</code> cambia la repetición, y
+<code>Ctrl+Alt+Mayúsculas+Flecha derecha</code> y
+<code>Ctrl+Alt+Mayúsculas+Flecha izquierda</code> adelantan y retroceden
+10 segundos. Sin carpeta elegida, se usa la carpeta Música de
+Windows.</p>
+<p>La ventana <em>Música</em> (<code>Ctrl+Mayúsculas+M</code>) busca en
+la carpeta mientras se escribe, reproduce el tema elegido o todo el
 resultado, lo pone a sonar a continuación del actual sin cortarlo,
-muestra la cola y agrega enlaces de YouTube, de un vídeo o de una lista
-entera. La ventana <em>Listas de música</em> (<code>Ctrl+Alt+L</code>)
-crea, ordena y reproduce listas propias, que se guardan como archivos
-<code>.m3u8</code>.</p>
+muestra la cola y agrega con <em>Abrir enlace…</em> un vídeo o una lista
+entera de YouTube. En su lista <em>Colecciones</em>, <em>Biblioteca</em>
+es la carpeta y debajo están las listas propias, que se crean con
+<em>Agregar a una lista</em> del menú de un tema y se guardan como
+archivos <code>.m3u8</code>.</p>
 <p>En la página <em>Música</em> de Preferencias también están el orden
-aleatorio, repetir la lista, el volumen, la salida de audio, qué se
-avisa al pasar de tema y retomar la última cola al abrir. Con la casilla
-<em>Usar los atajos de música en cualquier programa</em>, los atajos
-andan aunque la ventana activa sea OBS o un juego. Viene apagada porque,
-mientras está activa, esas teclas no llegan a los demás programas: NVDA,
-por ejemplo, usa <code>Ctrl+Alt+flechas</code> en las tablas.</p>
+aleatorio, repetir toda la cola o el tema actual, el volumen, la salida
+de audio, retomar la última lista al abrir y qué se dice al pasar de
+tema: nada, el título, el título y el artista, o solo el artista. Con
+<em>Nada</em>, al pasar de tema con el atajo igual se dice el título.
+Otra casilla decide si se anuncian «Música en pausa» y «Música
+reanudada». Con la casilla <em>Usar los atajos de música en cualquier
+programa</em>, los atajos andan aunque la ventana activa sea OBS o un
+juego. Viene apagada porque, mientras está activa, esas teclas no llegan
+a los demás programas: NVDA, por ejemplo, usa
+<code>Ctrl+Alt+flechas</code> en las tablas.</p>
 <h2 id="transmitir-en-directo-desde-la-aplicación">Transmitir en directo
 desde la aplicación</h2>
 <p>Con OBS Studio, el directo se empieza y se termina desde la
@@ -569,7 +579,7 @@ transmite, por ejemplo porque se cerró OBS después de la aplicación,
 pregunta si finalizarlo. La opción seleccionada de inicio es dejarlo al
 aire.</p>
 <p><em>Archivo, Copiar enlace del directo</em>, o
-<code>Ctrl+Mayúsculas+E</code>, copia la dirección del directo conectado
+<code>Alt+Mayúsculas+E</code>, copia la dirección del directo conectado
 para pasársela a alguien.</p>
 <p>Todo sigue pudiendo hacerse a mano desde OBS. La aplicación usa el
 mismo servidor websocket que el complemento de OBS para NVDA, y no
@@ -722,7 +732,7 @@ la cuenta. Reanudarlos es una decisión del usuario, desde la misma
 casilla de Preferencias.</p>
 <h2 id="gestor-de-descargas">Gestor de descargas</h2>
 <p>Descarga vídeos, audio o listas de reproducción completas. Se abre
-con <code>Ctrl+S</code> o desde <em>Herramientas, Gestor de
+con <code>Ctrl+Mayúsculas+D</code> o desde <em>Herramientas, Gestor de
 descargas</em>, y funciona sin necesidad de estar conectado a ningún
 directo.</p>
 <p>Admite vídeo en MP4 o WebM y audio en MP3 o M4A, con calidad de audio
@@ -856,17 +866,16 @@ leer el chat, el reproductor, las descargas, el panel de transmisión y
 el historial no las necesitan.</p>
 <h2 id="atajos-de-teclado">Atajos de teclado</h2>
 <p>El modificador indica el área a la que pertenece cada acción:
-<strong>Ctrl</strong> para el reproductor, <strong>Alt</strong> para la
-conexión y el chat, <strong>Ctrl+Mayúsculas</strong> para abrir ventanas
-y paneles, <strong>Ctrl+Alt</strong> para la música, y las
-<strong>teclas de función</strong> para la voz y la lectura. Esa
-correspondencia se respeta también al personalizarlos.</p>
-<p>Conexión y chat:</p>
+<strong>Ctrl</strong> para el reproductor, <strong>Alt</strong> para el
+chat, <strong>Ctrl+Mayúsculas</strong> para abrir ventanas,
+<strong>Alt+Mayúsculas</strong> para el directo y OBS,
+<strong>Ctrl+Alt</strong> para la música, y las <strong>teclas de
+función</strong> para la voz y la lectura. Esa correspondencia se
+respeta también al personalizarlos.</p>
+<p>Chat:</p>
 <ul>
-<li><code>Alt+C</code> conectar, <code>Alt+D</code> desconectar.</li>
 <li><code>Alt+Intro</code> llevar el foco al cuadro de escritura del
 chat.</li>
-<li><code>Alt+L</code> ir a la lista de mensajes.</li>
 </ul>
 <p>Voz y lectura:</p>
 <ul>
@@ -898,19 +907,28 @@ configurado.</li>
 <li><code>Ctrl+D</code> detener, <code>Ctrl+M</code> silenciar el
 audio.</li>
 <li><code>Ctrl+F</code> pantalla completa.</li>
-<li><code>Ctrl+S</code> abrir el gestor de descargas.</li>
 </ul>
-<p>Ventanas y paneles:</p>
+<p>Ventanas:</p>
 <ul>
 <li><code>Ctrl+Mayúsculas+P</code> abrir Preferencias.</li>
 <li><code>Ctrl+Mayúsculas+H</code> abrir el historial de directos.</li>
-<li><code>Ctrl+Mayúsculas+I</code> marcar una incidencia en el
-registro.</li>
 <li><code>Ctrl+Mayúsculas+T</code> abrir la ventana Transmisión.</li>
-<li><code>Ctrl+Mayúsculas+E</code> copiar el enlace del directo
+<li><code>Ctrl+Mayúsculas+D</code> abrir el gestor de descargas.</li>
+<li><code>Ctrl+Mayúsculas+M</code> abrir la ventana Música.</li>
+</ul>
+<p>Directo y OBS:</p>
+<ul>
+<li><code>Alt+Mayúsculas+C</code> conectar,
+<code>Alt+Mayúsculas+D</code> desconectar.</li>
+<li><code>Alt+Mayúsculas+L</code> ir a la lista de mensajes.</li>
+<li><code>Alt+Mayúsculas+E</code> copiar el enlace del directo
 conectado.</li>
-<li><code>Ctrl+Mayúsculas+M</code> silenciar o activar el micrófono de
+<li><code>Alt+Mayúsculas+I</code> marcar una incidencia en el
+registro.</li>
+<li><code>Alt+Mayúsculas+M</code> silenciar o activar el micrófono de
 OBS.</li>
+<li><code>Alt+Mayúsculas+A</code> activar o desactivar los avisos de
+sobrecarga.</li>
 </ul>
 <p>Navegación, no personalizables:</p>
 <ul>

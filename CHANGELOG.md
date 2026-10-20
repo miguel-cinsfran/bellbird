@@ -12,14 +12,24 @@ Música mientras transmites, sin abrir otro programa.
 - **Un menú Música con sus atajos.** Ctrl+Alt+Espacio reproduce o pausa,
   Ctrl+Alt+Flecha derecha y Ctrl+Alt+Flecha izquierda pasan al tema
   siguiente o al anterior, Ctrl+Alt+Flecha arriba y Ctrl+Alt+Flecha abajo
-  suben y bajan el volumen de la música, y Ctrl+Alt+T dice qué suena. La
-  primera vez puede tardar unos segundos en prepararse, y lo anuncia.
-- **Elige tu carpeta en Preferencias, página Música.** Ahí también están
-  el orden aleatorio, repetir la lista al terminar, el volumen de la
-  música (aparte del de la voz y del reproductor), por qué salida de
-  audio suena, y qué se avisa al pasar de tema: un sonido propio, el
-  título, o el título con el artista.
-- **La ventana Música, con Ctrl+Alt+M.** Busca en tu carpeta mientras
+  suben y bajan el volumen de la música, y Ctrl+Alt+T dice qué suena.
+  Ctrl+Alt+M silencia la música, Ctrl+Alt+D la detiene, Ctrl+Alt+A
+  cambia el orden aleatorio, Ctrl+Alt+R cambia la repetición, y
+  Ctrl+Alt+Mayús+Flecha derecha y Ctrl+Alt+Mayús+Flecha izquierda
+  adelantan y retroceden 10 segundos. La primera vez puede tardar unos
+  segundos en prepararse, y lo anuncia.
+- **Tu carpeta Música de Windows, o la que elijas.** Si no eliges otra en
+  Preferencias, página Música, se usa la carpeta Música de Windows, aunque
+  la hayas movido a otro disco. En esa página también están el orden
+  aleatorio, repetir toda la cola o el tema actual, el volumen de la
+  música (aparte del de la voz y del reproductor) y por qué salida de
+  audio suena.
+- **Qué se dice al pasar de tema.** Elige entre nada, el título, el
+  título y el artista, o solo el artista. Con «Nada» solo suena el sonido
+  de cambio de tema, si lo dejas activado, pero cuando pasas de tema con
+  el atajo se dice el título, porque lo pediste. Otra casilla decide si
+  se anuncian «Música en pausa» y «Música reanudada».
+- **La ventana Música, con Ctrl+Mayús+M.** Busca en tu carpeta mientras
   escribes, aunque no pongas las tildes. Reproduce el tema elegido o todo
   el resultado, agrégalo a la cola, mira la cola y salta a cualquier tema
   con Intro. Con «Reproducir a continuación», el tema elegido suena al
@@ -29,14 +39,16 @@ Música mientras transmites, sin abrir otro programa.
   nombre del archivo y, unos segundos después, con el título y el artista
   que trae el propio archivo, sin que se mueva el tema en que estás. La
   segunda vez que abres la carpeta ya salen así desde el principio.
-- **Listas propias, con Ctrl+Alt+L.** Crea, renombra y borra listas,
-  agrega temas desde la ventana Música, quítalos con Supr y cámbialos de
+- **Listas propias, en la misma ventana.** En la lista Colecciones,
+  «Biblioteca» es tu carpeta y debajo están tus listas. Crea una con
+  «Agregar a una lista» y «Nueva lista…» del menú de un tema, renómbralas
+  y bórralas, quita temas con Supr y cámbialos de
   lugar con Alt+Flecha arriba y Alt+Flecha abajo. También puedes guardar
   la cola que suena como lista. Se guardan como archivos .m3u8, que abren
   otros reproductores.
-- **Enlaces y listas de YouTube.** En la ventana Música, «Agregar
-  enlace» acepta un vídeo o una lista entera de YouTube y suma su audio a
-  la cola. El aleatorio también vale para esas listas.
+- **Enlaces y listas de YouTube.** En la ventana Música, «Abrir
+  enlace…» acepta un vídeo o una lista entera de YouTube y suma su audio
+  a la cola. El aleatorio también vale para esas listas.
 - **F2 dice qué suena**, si lo dejas activado en la página «Estado (F2)».
 - **Retoma donde quedó.** Al abrir YTChat y pulsar Reproducir, sigue la
   última cola desde el tema en que estaba. No arranca sola.
@@ -48,6 +60,16 @@ Música mientras transmites, sin abrir otro programa.
 
 ### Atajos
 
+- **Cada familia de teclas, un área.** Ctrl es el reproductor, Alt el
+  chat, Ctrl+Mayús abre ventanas, Alt+Mayús es el directo y OBS, las
+  teclas F son la voz y Ctrl+Alt la música. Por eso cambian algunos de
+  fábrica: conectar y desconectar pasan a Alt+Mayús+C y Alt+Mayús+D, ir a
+  la lista de mensajes a Alt+Mayús+L, el micrófono de OBS a Alt+Mayús+M,
+  marcar una incidencia a Alt+Mayús+I, copiar el enlace a Alt+Mayús+E y
+  el gestor de descargas a Ctrl+Mayús+D. Si habías cambiado alguno, se
+  respeta el tuyo.
+- **Las teclas con su nombre en español** en la página Atajos de
+  Preferencias y al capturar una combinación.
 - **Ctrl+Alt con letras y números.** En Preferencias, página Atajos, los
   de música aceptan Ctrl+Alt con una letra o un número. Al capturarlo, la
   aplicación revisa tu teclado: si AltGr con esa tecla escribe algo, como

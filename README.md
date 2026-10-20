@@ -236,18 +236,26 @@ una carpeta en *Preferencias*, página *Música*, y se maneja con el menú
 *Música* o con sus atajos, todos con **Ctrl+Alt**: `Ctrl+Alt+Espacio`
 reproduce o pausa, `Ctrl+Alt+Flecha derecha` y `Ctrl+Alt+Flecha izquierda`
 pasan de tema, `Ctrl+Alt+Flecha arriba` y `Ctrl+Alt+Flecha abajo` cambian el
-volumen de la música, y `Ctrl+Alt+T` dice qué suena.
+volumen de la música, `Ctrl+Alt+T` dice qué suena, `Ctrl+Alt+M` silencia,
+`Ctrl+Alt+D` detiene, `Ctrl+Alt+A` cambia el orden aleatorio, `Ctrl+Alt+R`
+cambia la repetición, y `Ctrl+Alt+Mayúsculas+Flecha derecha` y
+`Ctrl+Alt+Mayúsculas+Flecha izquierda` adelantan y retroceden 10 segundos.
+Sin carpeta elegida, se usa la carpeta Música de Windows.
 
-La ventana *Música* (`Ctrl+Alt+M`) busca en la carpeta mientras se escribe,
-reproduce el tema elegido o todo el resultado, lo pone a sonar a
-continuación del actual sin cortarlo, muestra la cola y agrega
-enlaces de YouTube, de un vídeo o de una lista entera. La ventana *Listas de
-música* (`Ctrl+Alt+L`) crea, ordena y reproduce listas propias, que se
-guardan como archivos `.m3u8`.
+La ventana *Música* (`Ctrl+Mayúsculas+M`) busca en la carpeta mientras se
+escribe, reproduce el tema elegido o todo el resultado, lo pone a sonar a
+continuación del actual sin cortarlo, muestra la cola y agrega con *Abrir
+enlace…* un vídeo o una lista entera de YouTube. En su lista *Colecciones*,
+*Biblioteca* es la carpeta y debajo están las listas propias, que se crean
+con *Agregar a una lista* del menú de un tema y se guardan como archivos
+`.m3u8`.
 
 En la página *Música* de Preferencias también están el orden aleatorio,
-repetir la lista, el volumen, la salida de audio, qué se avisa al pasar de
-tema y retomar la última cola al abrir. Con la casilla *Usar los atajos de
+repetir toda la cola o el tema actual, el volumen, la salida de audio,
+retomar la última lista al abrir y qué se dice al pasar de tema: nada, el
+título, el título y el artista, o solo el artista. Con *Nada*, al pasar de
+tema con el atajo igual se dice el título. Otra casilla decide si se
+anuncian «Música en pausa» y «Música reanudada». Con la casilla *Usar los atajos de
 música en cualquier programa*, los atajos andan aunque la ventana activa
 sea OBS o un juego. Viene apagada porque, mientras está activa, esas teclas
 no llegan a los demás programas: NVDA, por ejemplo, usa `Ctrl+Alt+flechas`
@@ -336,7 +344,7 @@ tuyo al aire mientras OBS no transmite, por ejemplo porque se cerró OBS
 después de la aplicación, pregunta si finalizarlo. La opción seleccionada de
 inicio es dejarlo al aire.
 
-*Archivo, Copiar enlace del directo*, o `Ctrl+Mayúsculas+E`, copia la
+*Archivo, Copiar enlace del directo*, o `Alt+Mayúsculas+E`, copia la
 dirección del directo conectado para pasársela a alguien.
 
 Todo sigue pudiendo hacerse a mano desde OBS. La aplicación usa el mismo
@@ -490,7 +498,7 @@ Reanudarlos es una decisión del usuario, desde la misma casilla de Preferencias
 
 ## Gestor de descargas
 
-Descarga vídeos, audio o listas de reproducción completas. Se abre con `Ctrl+S`
+Descarga vídeos, audio o listas de reproducción completas. Se abre con `Ctrl+Mayúsculas+D`
 o desde *Herramientas, Gestor de descargas*, y funciona sin necesidad de estar
 conectado a ningún directo.
 
@@ -632,16 +640,15 @@ necesitan.
 ## Atajos de teclado
 
 El modificador indica el área a la que pertenece cada acción: **Ctrl** para el
-reproductor, **Alt** para la conexión y el chat, **Ctrl+Mayúsculas** para abrir
-ventanas y paneles, **Ctrl+Alt** para la música, y las **teclas de función**
+reproductor, **Alt** para el chat, **Ctrl+Mayúsculas** para abrir
+ventanas, **Alt+Mayúsculas** para el directo y OBS, **Ctrl+Alt** para la
+música, y las **teclas de función**
 para la voz y la lectura. Esa
 correspondencia se respeta también al personalizarlos.
 
-Conexión y chat:
+Chat:
 
-- `Alt+C` conectar, `Alt+D` desconectar.
 - `Alt+Intro` llevar el foco al cuadro de escritura del chat.
-- `Alt+L` ir a la lista de mensajes.
 
 Voz y lectura:
 
@@ -668,16 +675,23 @@ Reproductor:
   recuerda con el atajo que tengas configurado.
 - `Ctrl+D` detener, `Ctrl+M` silenciar el audio.
 - `Ctrl+F` pantalla completa.
-- `Ctrl+S` abrir el gestor de descargas.
 
-Ventanas y paneles:
+Ventanas:
 
 - `Ctrl+Mayúsculas+P` abrir Preferencias.
 - `Ctrl+Mayúsculas+H` abrir el historial de directos.
-- `Ctrl+Mayúsculas+I` marcar una incidencia en el registro.
 - `Ctrl+Mayúsculas+T` abrir la ventana Transmisión.
-- `Ctrl+Mayúsculas+E` copiar el enlace del directo conectado.
-- `Ctrl+Mayúsculas+M` silenciar o activar el micrófono de OBS.
+- `Ctrl+Mayúsculas+D` abrir el gestor de descargas.
+- `Ctrl+Mayúsculas+M` abrir la ventana Música.
+
+Directo y OBS:
+
+- `Alt+Mayúsculas+C` conectar, `Alt+Mayúsculas+D` desconectar.
+- `Alt+Mayúsculas+L` ir a la lista de mensajes.
+- `Alt+Mayúsculas+E` copiar el enlace del directo conectado.
+- `Alt+Mayúsculas+I` marcar una incidencia en el registro.
+- `Alt+Mayúsculas+M` silenciar o activar el micrófono de OBS.
+- `Alt+Mayúsculas+A` activar o desactivar los avisos de sobrecarga.
 
 Navegación, no personalizables:
 

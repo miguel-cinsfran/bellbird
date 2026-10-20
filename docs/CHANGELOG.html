@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="es" xml:lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="generator" content="pandoc 3.10" />
+  <meta name="generator" content="pandoc 3.10.1" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <title>YTChat TTS — Novedades</title>
   <style>
@@ -41,7 +41,6 @@
       body {
         background-color: transparent;
         color: black;
-        font-size: 12pt;
       }
       p, h2, h3 {
         orphans: 3;
@@ -228,14 +227,23 @@ está en el historial de git.</p>
 reproduce o pausa, Ctrl+Alt+Flecha derecha y Ctrl+Alt+Flecha izquierda
 pasan al tema siguiente o al anterior, Ctrl+Alt+Flecha arriba y
 Ctrl+Alt+Flecha abajo suben y bajan el volumen de la música, y
-Ctrl+Alt+T dice qué suena. La primera vez puede tardar unos segundos en
-prepararse, y lo anuncia.</li>
-<li><strong>Elige tu carpeta en Preferencias, página Música.</strong>
-Ahí también están el orden aleatorio, repetir la lista al terminar, el
-volumen de la música (aparte del de la voz y del reproductor), por qué
-salida de audio suena, y qué se avisa al pasar de tema: un sonido
-propio, el título, o el título con el artista.</li>
-<li><strong>La ventana Música, con Ctrl+Alt+M.</strong> Busca en tu
+Ctrl+Alt+T dice qué suena. Ctrl+Alt+M silencia la música, Ctrl+Alt+D la
+detiene, Ctrl+Alt+A cambia el orden aleatorio, Ctrl+Alt+R cambia la
+repetición, y Ctrl+Alt+Mayús+Flecha derecha y Ctrl+Alt+Mayús+Flecha
+izquierda adelantan y retroceden 10 segundos. La primera vez puede
+tardar unos segundos en prepararse, y lo anuncia.</li>
+<li><strong>Tu carpeta Música de Windows, o la que elijas.</strong> Si
+no eliges otra en Preferencias, página Música, se usa la carpeta Música
+de Windows, aunque la hayas movido a otro disco. En esa página también
+están el orden aleatorio, repetir toda la cola o el tema actual, el
+volumen de la música (aparte del de la voz y del reproductor) y por qué
+salida de audio suena.</li>
+<li><strong>Qué se dice al pasar de tema.</strong> Elige entre nada, el
+título, el título y el artista, o solo el artista. Con «Nada» solo suena
+el sonido de cambio de tema, si lo dejas activado, pero cuando pasas de
+tema con el atajo se dice el título, porque lo pediste. Otra casilla
+decide si se anuncian «Música en pausa» y «Música reanudada».</li>
+<li><strong>La ventana Música, con Ctrl+Mayús+M.</strong> Busca en tu
 carpeta mientras escribes, aunque no pongas las tildes. Reproduce el
 tema elegido o todo el resultado, agrégalo a la cola, mira la cola y
 salta a cualquier tema con Intro. Con «Reproducir a continuación», el
@@ -247,13 +255,15 @@ aparecen primero con el nombre del archivo y, unos segundos después, con
 el título y el artista que trae el propio archivo, sin que se mueva el
 tema en que estás. La segunda vez que abres la carpeta ya salen así
 desde el principio.</li>
-<li><strong>Listas propias, con Ctrl+Alt+L.</strong> Crea, renombra y
-borra listas, agrega temas desde la ventana Música, quítalos con Supr y
-cámbialos de lugar con Alt+Flecha arriba y Alt+Flecha abajo. También
-puedes guardar la cola que suena como lista. Se guardan como archivos
-.m3u8, que abren otros reproductores.</li>
+<li><strong>Listas propias, en la misma ventana.</strong> En la lista
+Colecciones, «Biblioteca» es tu carpeta y debajo están tus listas. Crea
+una con «Agregar a una lista» y «Nueva lista…» del menú de un tema,
+renómbralas y bórralas, quita temas con Supr y cámbialos de lugar con
+Alt+Flecha arriba y Alt+Flecha abajo. También puedes guardar la cola que
+suena como lista. Se guardan como archivos .m3u8, que abren otros
+reproductores.</li>
 <li><strong>Enlaces y listas de YouTube.</strong> En la ventana Música,
-«Agregar enlace» acepta un vídeo o una lista entera de YouTube y suma su
+«Abrir enlace…» acepta un vídeo o una lista entera de YouTube y suma su
 audio a la cola. El aleatorio también vale para esas listas.</li>
 <li><strong>F2 dice qué suena</strong>, si lo dejas activado en la
 página «Estado (F2)».</li>
@@ -268,6 +278,16 @@ Ctrl+Alt+flechas en las tablas.</li>
 </ul>
 <h3 id="atajos">Atajos</h3>
 <ul>
+<li><strong>Cada familia de teclas, un área.</strong> Ctrl es el
+reproductor, Alt el chat, Ctrl+Mayús abre ventanas, Alt+Mayús es el
+directo y OBS, las teclas F son la voz y Ctrl+Alt la música. Por eso
+cambian algunos de fábrica: conectar y desconectar pasan a Alt+Mayús+C y
+Alt+Mayús+D, ir a la lista de mensajes a Alt+Mayús+L, el micrófono de
+OBS a Alt+Mayús+M, marcar una incidencia a Alt+Mayús+I, copiar el enlace
+a Alt+Mayús+E y el gestor de descargas a Ctrl+Mayús+D. Si habías
+cambiado alguno, se respeta el tuyo.</li>
+<li><strong>Las teclas con su nombre en español</strong> en la página
+Atajos de Preferencias y al capturar una combinación.</li>
 <li><strong>Ctrl+Alt con letras y números.</strong> En Preferencias,
 página Atajos, los de música aceptan Ctrl+Alt con una letra o un número.
 Al capturarlo, la aplicación revisa tu teclado: si AltGr con esa tecla

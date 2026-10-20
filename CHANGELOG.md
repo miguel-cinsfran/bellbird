@@ -154,7 +154,7 @@ reproductor gaste menos.
 
 - **Detener espera a que OBS confirme.** Antes decía «Transmisión
   detenida» al instante, aunque OBS tardara casi un minuto en parar con la
-  red trabada. Ahora lo dice cuando OBS de verdad paró. Si tarda más de
+  red caída. Ahora lo dice cuando OBS de verdad paró. Si tarda más de
   tres segundos, avisa que está esperando. Si a los noventa segundos OBS
   sigue transmitiendo, lo dice para que lo detengas en OBS.
 - **El directo de YouTube se termina aunque se corte la red.** Si YouTube
@@ -256,7 +256,7 @@ Más voces para leer el chat y más opciones al crear un directo de YouTube.
 
 ### Actualizaciones y avisos
 
-- **Si hay una versión nueva, se abre su ventana al arrancar.** Muestra las
+- **Si hay una versión nueva, se abre su ventana al iniciar la aplicación.** Muestra las
   novedades y tiene dos botones: *Descargar e instalar* y *Más tarde*. Con
   *Más tarde* se cierra y la próxima vez que abras la aplicación vuelve a
   preguntar. Antes solo lo decía en voz una vez, y si estabas leyendo otra
@@ -274,7 +274,7 @@ Más voces para leer el chat y más opciones al crear un directo de YouTube.
   el mismo sonido y había que esperar a oír el texto para saber qué pasó.
 - **El tema «suave» ya no repite sonidos.** Diez eventos que sonaban igual
   que otro tienen ahora su sonido propio.
-- **Al arrancar ya no dice «Preparando el reproductor» ni «Reproductor
+- **Al iniciar ya no dice «Preparando el reproductor» ni «Reproductor
   listo».** El reproductor se prepara igual, en silencio.
 
 ### Sonidos
@@ -303,7 +303,7 @@ Más voces para leer el chat y más opciones al crear un directo de YouTube.
 
 Arreglos para actualizar sin trabas y un paquete más liviano.
 
-- **OBS ya no traba las actualizaciones.** El OBS que abría la aplicación
+- **OBS ya no bloquea las actualizaciones.** El OBS que abría la aplicación
   usaba archivos de la carpeta de YTChat, y mientras siguiera abierto la
   actualización no podía reemplazarlos. Ahora OBS usa los suyos.
 - **Si una actualización no puede completarse porque un archivo está en
@@ -384,10 +384,10 @@ según quién escribe y qué pasa en el directo.
   una ventana dice si hay una versión nueva, muestra sus novedades en un
   cuadro que se puede recorrer, y la descarga e instala con un botón. La aplicación se cierra y vuelve a
   abrirse en alrededor de un minuto. Si la versión nueva no llega a abrirse,
-  se vuelve sola a la anterior y lo dice al arrancar. La configuración, la
+  se vuelve sola a la anterior y lo dice al iniciar. La configuración, la
   sesión, el historial, las descargas y los sonidos que hayas cambiado se
   conservan.
-- **Aviso al arrancar.** Si hay una versión nueva, se anuncia una sola vez.
+- **Aviso al iniciar.** Si hay una versión nueva, se anuncia una sola vez.
 - **Actualizar yt-dlp tiene ventana propia,** con el estado, una barra de
   progreso y cada paso anunciado: buscando, descargando y el resultado.
 
@@ -436,7 +436,7 @@ según quién escribe y qué pasa en el directo.
   otro, como la velocidad, vuelve a decir el nombre. En el deslizador de
   volumen del reproductor el número ya no se oye dos veces.
 - **Los sonidos ya no frenan la ventana,** y el reproductor tarda menos en
-  arrancar la primera vez.
+  iniciarse la primera vez.
 - **La configuración admite `%`, `#` y `;`** en los textos, por ejemplo en un
   título de directo, sin que se pierdan al guardar.
 
@@ -452,7 +452,7 @@ pasan a una carpeta propia.
 
 - **El reproductor obedece al instante.** Después de adelantar o retroceder,
   el pausar y el reproducir se perdían durante diez o veinte segundos: se
-  anunciaba «pausar» tres veces seguidas y el vídeo seguía andando. En los
+  anunciaba «pausar» tres veces seguidas y el vídeo seguía reproduciéndose. En los
   vídeos de YouTube el audio viaja por separado del vídeo, y al reproductor le
   llegaban los dos por la red: el audio frenaba todo lo demás. Ahora el audio
   se guarda antes en el disco, en la carpeta `cache-audio` dentro de la
@@ -462,7 +462,7 @@ pasan a una carpeta propia.
   de un directo llegaban por separado y el reproductor perdía la sincronía
   entre ambos cada 60 o 90 segundos, quedándose parado entre 25 y 50 segundos.
   Ahora se juntan antes de reproducirse, con ffmpeg, un programa que viene
-  incluido en la aplicación. Si ffmpeg tarda en arrancar, el reproductor
+  incluido en la aplicación. Si ffmpeg tarda en iniciarse, el reproductor
   espera a que esté listo en vez de fallar en silencio. Si el directo se
   corta, lo dice y vuelve a conectar solo, hasta dos veces.
 - **Retroceder y adelantar funcionan en los directos.** Los botones de un
@@ -521,7 +521,7 @@ pasan a una carpeta propia.
   está en pausa se atienden cambios de voz, velocidad y volumen.
 - **El primer mensaje tras reconectar ya no se corta.** Una orden de callar
   pendiente se aplicaba al mensaje siguiente.
-- **La voz configurada que ya no existe no impide arrancar.** Se usa la
+- **La voz configurada que ya no existe no impide iniciar la aplicación.** Se usa la
   primera disponible y se anota en el registro.
 - **Los avisos ya no se cortan a la mitad, tampoco en los menús.** Antes el
   texto de un aviso se perdía si se pulsaba otra tecla enseguida. Ahora se oye
@@ -678,7 +678,7 @@ pasan a una carpeta propia.
 - **Como mucho dos descargas a la vez.** Antes, encolar diez descargas las
   lanzaba todas a la vez. Ahora corren dos, las demás esperan en «en cola», en
   el orden en que se pidieron, y se pueden cancelar mientras esperan.
-- **Cancelar ya no deja programas colgados.** Al cancelar una descarga, o al
+- **Cancelar ya no deja programas abiertos.** Al cancelar una descarga, o al
   cerrar la aplicación, los programas que estaban bajando el archivo, incluido
   ffmpeg, se cierran con ella.
 - **El nombre de cada descarga es el del archivo final.** Antes se anunciaba
@@ -759,7 +759,7 @@ pasan a una carpeta propia.
 - **El archivo de fallos ya no asusta.** Recoge sucesos internos de Windows, y
   muchos son inofensivos. Ahora cada arranque escribe una línea que lo explica
   y dice cuál es la señal de que la sesión terminó bien.
-- **Ya no se abre una ventana negra al arrancar.** Aparecía un instante y le
+- **Ya no se abre una ventana negra al iniciar.** Aparecía un instante y le
   robaba el foco al lector de pantalla. Ahora la consulta se hace por detrás.
 
 ## 2.0.1, agosto de 2026
@@ -778,12 +778,12 @@ había molesten menos y avisen mejor.
 - **Los atajos del reproductor funcionan siempre.** Estaban apagados hasta
   conectarte a algo, así que las siete combinaciones de Control parecían rotas.
 - **Avisa al pulsar reproducir.** Antes había un silencio largo mientras
-  cargaba, que parecía que se había colgado. Ahora dice «Cargando vídeo».
+  cargaba, que parecía que se había bloqueado. Ahora dice «Cargando vídeo».
 - **Avisos claros cuando falla la red.** Antes, si YouTube no contestaba o el
   vídeo era privado, no se oía nada. Ahora lo dice con palabras: que la red no
   responde, que el vídeo no está disponible, o que hay que esperar unos minutos
   porque se hicieron demasiadas consultas.
-- **Los atajos de Preferencias van agrupados.** Los veinte botones colgaban
+- **Los atajos de Preferencias van agrupados.** Los veinte botones estaban
   sueltos; ahora el lector anuncia a qué grupo pertenece cada uno, «Reproductor»
   o «Conexión y chat».
 - **yt-dlp se puede actualizar desde la aplicación.** Menú Herramientas →
@@ -825,7 +825,7 @@ había molesten menos y avisen mejor.
   canal, espectadores, mensajes leídos, aportes…) y en Preferencias → Estado
   se elige exactamente qué cuenta.
 - **Chat más fluido con el lector de pantalla**: navegar la lista con las
-  flechas mientras llegan mensajes ya no se traba.
+  flechas mientras llegan mensajes ya no se bloquea.
 - **Menús coherentes**: las acciones que necesitan conexión se deshabilitan
   cuando no la hay, y desconectar es instantáneo (antes podía congelar la
   ventana unos segundos).

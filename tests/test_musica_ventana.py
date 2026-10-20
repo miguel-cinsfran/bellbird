@@ -321,8 +321,26 @@ class TestVentanaMusica(unittest.TestCase):
                                temas_listas={"Mía": temas})
         self._abrir(control)
         self.assertEqual(self.ventana.lb_colecciones.GetStrings(),
-                         ["Biblioteca", "Mía"])
+                         ["Biblioteca", "Mía: 1"])
         self.assertEqual(self.ventana.lb_colecciones.GetSelection(), 0)
+
+    def test_agregar_a_una_lista_conserva_la_cantidad_de_la_biblioteca(self):
+        temas = (Tema("C:/Musica/rock.mp3", "Rock"),)
+        self._crear_lista("Mía", temas)
+        control = ControlFalso(
+            biblioteca=_biblioteca_de("Rock", "Jazz"),
+            carpeta_listas=self.carpeta_listas,
+            temas_listas={"Mía": temas})
+        self._abrir(control)
+        self.assertEqual(
+            self.ventana.lb_colecciones.GetString(0), "Biblioteca: 2")
+        self.ventana.lb_colecciones.SetSelection(1)
+        self.ventana._cambiar_coleccion(Evento())
+        self.ventana.lb_temas.SetSelection(0)
+        self.ventana._accion_biblioteca(
+            (musica_menus.ACCION_AGREGAR_A_LISTA, "Mía"))
+        self.assertEqual(
+            self.ventana.lb_colecciones.GetString(0), "Biblioteca: 2")
 
     def test_elegir_una_lista_carga_sus_temas(self):
         temas = (Tema("C:/Musica/rock.mp3", "Rock"),

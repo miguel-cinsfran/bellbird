@@ -133,6 +133,18 @@ def cargar(carpeta, nombre) -> tuple[tuple[Tema, ...], int]:
         raise ErrorListas(str(exc)) from exc
 
 
+def cantidad(carpeta, nombre) -> int | None:
+    """Cuántas canciones tiene una lista, o None si no se puede leer.
+
+    Lee el `.m3u8` de verdad con `cargar`, sin anunciar nada.
+    """
+    try:
+        temas, _saltadas = cargar(carpeta, nombre)
+    except ErrorListas:
+        return None
+    return len(temas)
+
+
 def agregar(carpeta, nombre, temas) -> None:
     """Suma temas al final de una lista que ya existe."""
     actuales, _saltadas = cargar(carpeta, nombre)

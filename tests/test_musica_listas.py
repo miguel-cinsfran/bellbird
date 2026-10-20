@@ -274,5 +274,35 @@ class TestQuitarMover(unittest.TestCase):
                          [(t.origen, t.titulo) for t in modelo])
 
 
+class TestCantidad(unittest.TestCase):
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.raiz = Path(self.tmp.name)
+        self.carpeta = self.raiz / "listas"
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def _temas(self, cantidad):
+        temas = []
+        for i in range(cantidad):
+            ruta = self.raiz / f"c{i}.mp3"
+            ruta.write_bytes(b"x")
+            temas.append(Tema(str(ruta.resolve()), f"Canción {i}"))
+        return tuple(temas)
+
+    def test_lista_con_tres_da_tres(self):
+        listas.guardar(self.carpeta, "Tres", self._temas(3))
+        self.assertEqual(listas.cantidad(self.carpeta, "Tres"), 3)
+
+    def test_lista_vacia_da_cero(self):
+        listas.crear(self.carpeta, "Vacía")
+        self.assertEqual(listas.cantidad(self.carpeta, "Vacía"), 0)
+
+    def test_inexistente_da_none(self):
+        self.assertIsNone(listas.cantidad(self.carpeta, "No está"))
+
+
 if __name__ == "__main__":
     unittest.main()

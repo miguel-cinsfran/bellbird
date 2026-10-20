@@ -58,9 +58,25 @@ def filtrar_fuente(temas, texto, biblioteca=None) -> tuple:
     return filtrar_lista(temas, texto)
 
 
-def filas_colecciones(nombres) -> list[str]:
-    """Las filas de «Colecciones»: la Biblioteca y una por lista propia."""
-    return [ETIQUETA_BIBLIOTECA] + [str(nombre) for nombre in nombres]
+def filas_colecciones(nombres, cantidad_biblioteca=None,
+                      cantidades=None) -> list[str]:
+    """Las filas de «Colecciones», con la cantidad cuando se conoce.
+
+    Cada fila es el nombre y dos puntos con la cantidad. Sin cantidad
+    va solo el nombre: la carpeta todavía cargando o una lista ilegible.
+    """
+    cantidades = cantidades or {}
+    filas = [_fila_coleccion(ETIQUETA_BIBLIOTECA, cantidad_biblioteca)]
+    filas.extend(_fila_coleccion(str(nombre), cantidades.get(str(nombre)))
+                 for nombre in nombres)
+    return filas
+
+
+def _fila_coleccion(nombre, cantidad) -> str:
+    """Una fila de «Colecciones»: el nombre y la cantidad si se sabe."""
+    if cantidad is None:
+        return nombre
+    return f"{nombre}: {cantidad}"
 
 
 def texto_cola_visible(cantidad: int) -> str:

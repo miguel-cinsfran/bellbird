@@ -61,6 +61,7 @@ class AccionesVentanaMusica:
             return
         if isinstance(accion, tuple):
             self._control.agregar_a_lista(accion[1], [tema])
+            self._refrescar_cantidades_colecciones()
             return
         funcion = self._acciones_biblioteca(tema, indice).get(accion)
         if funcion is not None:
@@ -100,6 +101,7 @@ class AccionesVentanaMusica:
         if origen is not None:
             self._control.quitar_de_lista(self._fuente, origen)
             self._cargar_lista()
+            self._refrescar_cantidades_colecciones()
 
     def _indice_en_fuente(self, tema):
         for indice, candidato in enumerate(self._temas_fuente):

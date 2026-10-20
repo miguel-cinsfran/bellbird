@@ -176,6 +176,33 @@ class TestFilasColecciones(unittest.TestCase):
         self.assertNotIn("Lista: Rock",
                          vista.filas_colecciones(["Rock"]))
 
+    def test_con_cantidades_muestra_nombre_y_numero(self):
+        self.assertEqual(
+            vista.filas_colecciones(["Rock", "Jazz"], 195,
+                                    {"Rock": 12, "Jazz": 0}),
+            ["Biblioteca: 195", "Rock: 12", "Jazz: 0"])
+
+    def test_sin_cantidad_de_biblioteca_va_solo_el_nombre(self):
+        self.assertEqual(
+            vista.filas_colecciones(["Rock"], None, {"Rock": 3}),
+            ["Biblioteca", "Rock: 3"])
+
+    def test_lista_sin_cantidad_conocida_va_sola(self):
+        self.assertEqual(
+            vista.filas_colecciones(["Rock", "Jazz"], 5, {"Rock": 2}),
+            ["Biblioteca: 5", "Rock: 2", "Jazz"])
+
+    def test_cantidad_none_en_el_dict_va_sola(self):
+        self.assertEqual(
+            vista.filas_colecciones(["Rock"], 5, {"Rock": None}),
+            ["Biblioteca: 5", "Rock"])
+
+    def test_con_cantidades_conserva_el_orden(self):
+        self.assertEqual(
+            vista.filas_colecciones(["Beta", "Alfa"], 2,
+                                    {"Beta": 1, "Alfa": 1}),
+            ["Biblioteca: 2", "Beta: 1", "Alfa: 1"])
+
 
 class TestTextoColaVisible(unittest.TestCase):
 

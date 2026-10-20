@@ -11,7 +11,7 @@ from __future__ import annotations
 import wx
 
 from ytchat.core import diagnostico
-from ytchat.music import vista
+from ytchat.music import listas, vista
 from ytchat.ui import musica_editor_lista, musica_menus
 from ytchat.ui import musica_ventana_acciones as _acciones
 from ytchat.ui.gui import anunciar
@@ -50,7 +50,7 @@ class ColeccionesVentanaMusica:
     def _reload_colecciones(self, preferir=None):
         nombres = self._leer_nombres()
         self._nombres_listas = nombres
-        self.lb_colecciones.Set(vista.filas_colecciones(nombres))
+        self.lb_colecciones.Set(self._refrescar_cantidades_colecciones())
         indice = 0
         if preferir:
             buscado = str(preferir).casefold()
@@ -60,6 +60,25 @@ class ColeccionesVentanaMusica:
                     break
         self.lb_colecciones.SetSelection(indice)
         self._fuente = self._coleccion_elegida()
+
+    def _refrescar_cantidades_colecciones(self):
+        nombres = self._nombres_listas or []
+        cantidad = getattr(self, "_cantidad_biblioteca", None)
+        try:
+            carpeta = self._control.carpeta_listas()
+        except Exception as exc:
+            logger.debug("No se pudieron leer las listas de música: %s", exc)
+            carpeta = None
+        if carpeta is None:
+            cantidades = {}
+        else:
+            cantidades = {n: listas.cantidad(carpeta, n) for n in nombres}
+        filas = vista.filas_colecciones(nombres, cantidad, cantidades)
+        actuales = self.lb_colecciones.GetStrings()
+        for indice, texto in enumerate(filas):
+            if indice < len(actuales) and texto != actuales[indice]:
+                self.lb_colecciones.SetString(indice, texto)
+        return filas
 
     def _coleccion_elegida(self):
         indice = self.lb_colecciones.GetSelection()
@@ -110,16 +129,15 @@ class ColeccionesVentanaMusica:
             self.lb_temas.SetSelection(indice)
 
     def _al_biblioteca(self, biblioteca, generacion):
-        if not self or generacion != self._generacion \
-                or self._fuente is not None:
+        if not self or generacion != self._generacion or self._fuente is not None:
             return
         if biblioteca is None:
-            self._temas_fuente = ()
-            self._temas_filtrados = ()
+            self._cantidad_biblioteca = None
+            self._temas_fuente = self._temas_filtrados = ()
             self._cambiar_estado(TEXTO_SIN_CARPETA)
-            self.btn_carpeta.Enable(True)
             return
         self._biblioteca = biblioteca
+        self._cantidad_biblioteca = len(biblioteca.temas())
         self._temas_fuente = tuple(biblioteca.temas())
         self._cargando = False
         self._aplicar_filtro()
@@ -128,6 +146,7 @@ class ColeccionesVentanaMusica:
             self._primera_carga = False
             anunciar(vista.texto_resumen(
                 len(self._temas_fuente), len(self._temas_filtrados), False))
+        self._refrescar_cantidades_colecciones()
 
     def _tecla_colecciones(self, evento):
         codigo = evento.GetKeyCode()

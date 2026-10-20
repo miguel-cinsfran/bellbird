@@ -108,6 +108,12 @@ def cache_etiquetas_musica() -> Path:
     return carpeta_datos() / "etiquetas_musica.json"
 
 
+def cache_sonoridad_musica() -> Path:
+    # Ganancias de la música local ya medidas con ffmpeg, para no medirlas
+    # en cada arranque. Nace ya dentro de data/.
+    return carpeta_datos() / "sonoridad_musica.json"
+
+
 def sounds_ini() -> Path:
     # Va con los datos porque la app lo escribe al cambiar el tema.
     return carpeta_datos() / "sounds.ini"

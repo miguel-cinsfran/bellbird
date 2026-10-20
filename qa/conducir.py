@@ -2619,19 +2619,26 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         esperadas = vista_musica.filas_colecciones(
             [_NOMBRE_LISTA], cantidad_biblioteca=len(nombres_archivo),
             cantidades={_NOMBRE_LISTA: cantidad_lista})
+        import musica_colecciones
+        fila_biblioteca = esperadas[0]
+        fila_qa = esperadas[1]
         # `_filas_hasta` solo espera la cantidad (2) y vuelve enseguida con
-        # «Biblioteca» sin contar: se espera la igualdad, con el mismo plazo.
+        # «Biblioteca» sin contar: se espera la posición real de la lista
+        # de QA, con el mismo plazo.
         limite_colecciones = time.monotonic() + 10.0
         elegidas = None
+        indice_qa = None
         while time.monotonic() < limite_colecciones:
             elegidas = _filas("Música", "Colecciones")
-            if elegidas == esperadas:
+            indice_qa = musica_colecciones.indice_coleccion_qa(
+                elegidas, fila_biblioteca, fila_qa)
+            if indice_qa is not None:
                 break
             time.sleep(0.2)
-        if elegidas != esperadas:
+        if indice_qa is None:
             _corta(f"musica_real: «Colecciones» ofrece {elegidas} en vez "
                    f"de {esperadas}")
-        _elegir("Música", "Colecciones", 1)
+        _elegir("Música", "Colecciones", indice_qa)
         filas = _filas_hasta("Música", "Canciones", cantidad_lista, 10.0)
         if filas is None or len(filas) != cantidad_lista:
             _corta("musica_real: la lista no trajo "
@@ -2640,7 +2647,7 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         # contextual: reproduce la lista elegida en «Colecciones».
         try:
             propia.pedir("foco", ventana="Música", nombre="Colecciones")
-            _elegir("Música", "Colecciones", 1)
+            _elegir("Música", "Colecciones", indice_qa)
             propia.teclas("enter")
         except VentanaNoActiva as exc:
             res.no_probado("musica_real: la lista no se pudo reproducir "

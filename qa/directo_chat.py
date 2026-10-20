@@ -22,9 +22,9 @@ TOPE_CORTE = 30
 # Archivos por los que el banco habla con la tarea del corte.
 RUTA_PEDIDO = r"C:\Users\Public\bellbird_corte_red.pedido"
 RUTA_HECHO = r"C:\Users\Public\bellbird_corte_red.hecho"
-# Nombres accesibles del compositor, iguales a los de la app.
-NOMBRE_CUADRO = "Mensaje para el chat"
-NOMBRE_BOTON = "Enviar mensaje al chat"
+# Nombres que da UI Automation, salen de las etiquetas y no del name= de wx.
+NOMBRE_CUADRO = "Mensaje:"
+NOMBRE_BOTON = "Enviar"
 # Anuncios de la app, copiados del código.
 ANUNCIO_ENVIADO = "Mensaje enviado al chat"
 AVISO_PERDIDA = "Se perdió la conexión con el chat"

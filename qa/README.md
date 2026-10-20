@@ -61,8 +61,8 @@ las ventanas y hay algo más. El PNG queda en la carpeta temporal y su ruta
 sale en el detalle del paso. Al finalizar espera hasta 30 s que YouTube dé
 el directo por terminado («complete») y recién ahí borra el vídeo.
 
-Después escribe un mensaje desde la propia app (cuadro «Mensaje para el
-chat» y botón «Enviar mensaje al chat», por UI Automation sin teclas) y
+Después escribe un mensaje desde la propia app (cuadro «Mensaje:»
+y botón «Enviar», por UI Automation sin teclas) y
 lo busca por la API. Con `--corte SEGUNDOS` (tope 30) además le corta la
 red a la app esos segundos y comprueba que avisa la pérdida, se
 reconecta, sigue leyendo y escribiendo, y no repite los comentarios de

@@ -11,6 +11,7 @@ from unittest import mock
 from ytchat.ui import gui
 from ytchat.ui import gui_comentarios
 from ytchat.ui import gui_preferencias
+from ytchat.ui import preferencias_musica
 from ytchat.voice import motores
 from ytchat.core import config
 from ytchat.core import paths
@@ -1482,13 +1483,13 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             consulta["nombre"] = nombre
             return hilo
 
-        with mock.patch.object(gui_preferencias.diagnostico, "crear_hilo",
+        with mock.patch.object(preferencias_musica.diagnostico, "crear_hilo",
                                side_effect=crear_hilo), \
                 mock.patch("ytchat.music.adaptador_vlc.salidas_audio",
                            return_value=[("altavoces", "Altavoces")]), \
-                mock.patch.object(gui_preferencias.wx, "CallAfter",
+                mock.patch.object(preferencias_musica.wx, "CallAfter",
                                   side_effect=lambda funcion, *args: funcion(*args)), \
-                mock.patch.object(gui_preferencias, "anunciar"):
+                mock.patch.object(preferencias_musica, "anunciar"):
             dialogo._buscar_salidas(None)
             consulta["target"]()
 
@@ -1499,7 +1500,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
 
     def test_salidas_encontradas_anuncia_cuantas_hallo(self):
         dialogo = self._dialogo()
-        with mock.patch.object(gui_preferencias, "anunciar") as anunciar:
+        with mock.patch.object(preferencias_musica, "anunciar") as anunciar:
             dialogo._salidas_encontradas(
                 [("altavoces", "Altavoces"), ("auriculares", "Auriculares")])
         anunciar.assert_called_once_with("Se encontraron 2 salidas de audio")
@@ -1507,7 +1508,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
 
     def test_sin_salidas_anuncia_que_no_hallo_ninguna(self):
         dialogo = self._dialogo()
-        with mock.patch.object(gui_preferencias, "anunciar") as anunciar:
+        with mock.patch.object(preferencias_musica, "anunciar") as anunciar:
             dialogo._salidas_encontradas([])
         anunciar.assert_called_once_with("No se encontraron salidas de audio")
         self.assertEqual(dialogo.cho_musica_salida.GetStrings(),
@@ -1515,7 +1516,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
 
     def test_una_sola_salida_se_anuncia_en_singular(self):
         dialogo = self._dialogo()
-        with mock.patch.object(gui_preferencias, "anunciar") as anunciar:
+        with mock.patch.object(preferencias_musica, "anunciar") as anunciar:
             dialogo._salidas_encontradas([("altavoces", "Altavoces")])
         anunciar.assert_called_once_with("Se encontró 1 salida de audio")
 
@@ -1526,7 +1527,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
                        "musica_salida_nombre": "Salida vieja"})
         self.addCleanup(destruir, dialogo)
 
-        with mock.patch.object(gui_preferencias, "anunciar") as anunciar:
+        with mock.patch.object(preferencias_musica, "anunciar") as anunciar:
             dialogo._salidas_encontradas([("altavoces", "Altavoces")])
         anunciar.assert_called_once_with("Se encontró 1 salida de audio")
 
@@ -1537,7 +1538,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
                        "musica_salida_nombre": "Salida vieja"})
         self.addCleanup(destruir, dialogo)
 
-        with mock.patch.object(gui_preferencias, "anunciar"):
+        with mock.patch.object(preferencias_musica, "anunciar"):
             dialogo._salidas_encontradas([("altavoces", "Altavoces")])
         self.assertEqual(dialogo.cho_musica_salida.GetStrings(),
                          ["Salida predeterminada", "Altavoces", "Salida vieja"])
@@ -1548,7 +1549,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
         dialogo = self._dialogo()
         with mock.patch.object(gui_preferencias.PreferenciasDialog, "__bool__",
                                lambda self: False, create=True), \
-                mock.patch.object(gui_preferencias, "anunciar") as anunciar:
+                mock.patch.object(preferencias_musica, "anunciar") as anunciar:
             dialogo._salidas_encontradas([("altavoces", "Altavoces")])
         anunciar.assert_not_called()
 

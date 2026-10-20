@@ -416,5 +416,43 @@ class PruebaAtajos(unittest.TestCase):
             "Atajos de fábrica que no figuran en MANUAL.md: " + ", ".join(faltan))
 
 
+# ── Regla 5: solo lectura con Tab ─────────────────────────────────────────
+
+
+def _solo_lectura_sin_tab():
+    """Llamadas a `wx.TextCtrl(...)` en `ytchat/` y `main.py` cuyo `style=`
+    nombra `TE_READONLY` sin `TE_MULTILINE`: wx en Windows deja esos campos
+    de una línea fuera del orden de Tab. Devuelve "archivo:línea"."""
+    problemas = []
+    archivos = sorted((RAIZ / "ytchat").rglob("*.py")) + [RAIZ / "main.py"]
+    for ruta in archivos:
+        arbol = ast.parse(ruta.read_text(encoding="utf-8"))
+        relativo = str(ruta.relative_to(RAIZ))
+        for nodo in ast.walk(arbol):
+            if not isinstance(nodo, ast.Call):
+                continue
+            if _ruta_punteada(nodo.func).rsplit(".", 1)[-1] != "TextCtrl":
+                continue
+            for palabra in nodo.keywords:
+                if palabra.arg != "style":
+                    continue
+                usados = {n.attr for n in ast.walk(palabra.value)
+                          if isinstance(n, ast.Attribute)}
+                if ("TE_READONLY" in usados
+                        and "TE_MULTILINE" not in usados):
+                    problemas.append(f"{relativo}:{nodo.lineno}")
+    return sorted(problemas)
+
+
+class PruebaSoloLecturaConTab(unittest.TestCase):
+    def test_ningun_solo_lectura_fuera_del_tab(self):
+        problemas = _solo_lectura_sin_tab()
+        self.assertEqual(
+            problemas, [],
+            "TextCtrl de solo lectura de una línea (fuera del Tab en "
+            "Windows, usar wx.TE_MULTILINE | wx.TE_READONLY): "
+            + ", ".join(problemas))
+
+
 if __name__ == "__main__":
     unittest.main()

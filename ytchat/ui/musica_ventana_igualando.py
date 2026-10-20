@@ -29,8 +29,11 @@ class IgualandoVentanaMusica:
         el orden de Tab el campo queda entre la cola y «Abrir enlace».
         """
         self.txt_igualando = wx.TextCtrl(
-            panel, value="", style=wx.TE_READONLY,
+            panel, value="",
+            style=wx.TE_MULTILINE | wx.TE_READONLY,
             name="Igualación del volumen")
+        self.txt_igualando.SetMinSize(
+            (-1, self.txt_igualando.GetCharHeight() + 12))
         _pintar(self.txt_igualando, _T.field, _T.text)
         nombre_accesible(self.txt_igualando, "Igualación del volumen")
         self.txt_igualando.Hide()

@@ -157,8 +157,10 @@ class DialogoDirectoYoutube(wx.Dialog):
         rotulo_miniatura = wx.StaticText(self, label="Miniatura:")
         vs.Add(rotulo_miniatura, 0, wx.LEFT | wx.RIGHT, 10)
         self.txt_miniatura = wx.TextCtrl(
-            self, value=self._texto_miniatura(), style=wx.TE_READONLY,
-            name="Miniatura")
+            self, value=self._texto_miniatura(),
+            style=wx.TE_MULTILINE | wx.TE_READONLY, name="Miniatura")
+        self.txt_miniatura.SetMinSize(
+            (-1, self.txt_miniatura.GetCharHeight() + 12))
         nombre_accesible(self.txt_miniatura, "Miniatura")
         vs.Add(self.txt_miniatura, 0, wx.EXPAND | wx.ALL, 10)
 
@@ -216,11 +218,9 @@ class DialogoDirectoYoutube(wx.Dialog):
         if self._cargar_listas is None:
             self.btn_cargar_listas.Disable()
         else:
-            self.btn_cargar_listas.Bind(wx.EVT_BUTTON,
-                                        self._al_cargar_listas)
+            self.btn_cargar_listas.Bind(wx.EVT_BUTTON, self._al_cargar_listas)
         self.Bind(wx.EVT_CHAR_HOOK, self._al_tecla)
-        if revision is not None and bool(
-                getattr(revision, "problemas", ())):
+        if revision is not None and bool(getattr(revision, "problemas", ())):
             self.btn_cancelar.SetDefault()
             self.btn_cancelar.SetFocus()
         else:

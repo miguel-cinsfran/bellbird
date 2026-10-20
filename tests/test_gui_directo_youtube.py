@@ -288,6 +288,14 @@ class TestDialogoDirectoVentana(unittest.TestCase):
         otro = self._dialogo(titulo="Hola")
         self.assertEqual(otro.txt_miniatura.GetValue(), "Ninguna")
 
+    def test_miniatura_entra_en_el_tab(self):
+        dialogo = self._dialogo(titulo="Hola")
+        self.assertTrue(
+            dialogo.txt_miniatura.AcceptsFocusFromKeyboard())
+        dialogo.txt_etiquetas.SetFocus()
+        dialogo.txt_etiquetas.Navigate()
+        self.assertIs(wx.Window.FindFocus(), dialogo.txt_miniatura)
+
     def test_elegir_miniatura_valida(self):
         dialogo = self._dialogo(titulo="Hola")
         with mock.patch.object(directo.wx, "FileDialog") as fd, \

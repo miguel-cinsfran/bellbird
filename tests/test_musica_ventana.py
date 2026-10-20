@@ -1000,6 +1000,15 @@ class TestVentanaIgualando(unittest.TestCase):
         self.assertFalse(self.ventana.gauge_igualando.IsShown())
         self.assertIs(wx.Window.FindFocus(), self.ventana.lb_temas)
 
+    def test_el_campo_entra_en_el_tab_con_la_igualacion_en_curso(self):
+        self.control._progreso_sonoridad = (3, 10)
+        self.ventana._tic_igualando()
+        self.assertTrue(
+            self.ventana.txt_igualando.AcceptsFocusFromKeyboard())
+        self.ventana.btn_cola.SetFocus()
+        self.ventana.btn_cola.Navigate()
+        self.assertIs(wx.Window.FindFocus(), self.ventana.txt_igualando)
+
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestDialogoEnlace(unittest.TestCase):

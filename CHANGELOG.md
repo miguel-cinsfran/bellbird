@@ -10,8 +10,8 @@ Música mientras transmites, sin abrir otro programa.
 ### Música
 
 - **Un menú Música con sus atajos.** Ctrl+Alt+Espacio reproduce o pausa,
-  Ctrl+Alt+Flecha derecha y Ctrl+Alt+Flecha izquierda pasan al tema
-  siguiente o al anterior, Ctrl+Alt+Flecha arriba y Ctrl+Alt+Flecha abajo
+  Ctrl+Alt+Flecha derecha y Ctrl+Alt+Flecha izquierda pasan a la
+  canción siguiente o a la anterior, Ctrl+Alt+Flecha arriba y Ctrl+Alt+Flecha abajo
   suben y bajan el volumen de la música, y Ctrl+Alt+T dice qué suena.
   Ctrl+Alt+M silencia la música, Ctrl+Alt+D la detiene, Ctrl+Alt+A
   cambia el orden aleatorio, Ctrl+Alt+R cambia la repetición, y
@@ -21,37 +21,44 @@ Música mientras transmites, sin abrir otro programa.
 - **Tu carpeta Música de Windows, o la que elijas.** Si no eliges otra en
   Preferencias, página Música, se usa la carpeta Música de Windows, aunque
   la hayas movido a otro disco. En esa página también están el orden
-  aleatorio, repetir toda la cola o el tema actual, el volumen de la
+  aleatorio, repetir toda la cola o la canción actual, el volumen de la
   música (aparte del de la voz y del reproductor) y por qué salida de
   audio suena.
-- **Qué se dice al pasar de tema.** Elige entre nada, el título, el
+- **Qué se dice al pasar de canción.** Elige entre nada, el título, el
   título y el artista, o solo el artista. Con «Nada» solo suena el sonido
-  de cambio de tema, si lo dejas activado, pero cuando pasas de tema con
+  de cambio de canción, si lo dejas activado, pero cuando pasas de canción con
   el atajo se dice el título, porque lo pediste. Otra casilla decide si
-  se anuncian «Música en pausa» y «Música reanudada».
+  se anuncian «Música en pausa», «Música reanudada» y «Desde el comienzo».
 - **La ventana Música, con Ctrl+Mayús+M.** Busca en tu carpeta mientras
-  escribes, aunque no pongas las tildes. Reproduce el tema elegido o todo
-  el resultado, agrégalo a la cola, mira la cola y salta a cualquier tema
-  con Intro. Con «Reproducir a continuación», el tema elegido suena al
+  escribes, aunque no pongas las tildes. Reproduce la canción elegida o todo
+  el resultado, agrégalo a la cola, mira la cola y salta a cualquier canción
+  con Intro. Con «Reproducir a continuación», la canción elegida suena al
   terminar el actual, sin cortar nada, y después la cola sigue donde
   iba. Mientras está abierta, los atajos de música siguen andando.
-- **Título y artista de cada archivo.** Los temas aparecen primero con el
+- **Título y artista de cada archivo.** Las canciones aparecen primero con el
   nombre del archivo y, unos segundos después, con el título y el artista
-  que trae el propio archivo, sin que se mueva el tema en que estás. La
+  que trae el propio archivo, sin que se mueva la canción en que estás. La
   segunda vez que abres la carpeta ya salen así desde el principio.
 - **Listas propias, en la misma ventana.** En la lista Colecciones,
-  «Biblioteca» es tu carpeta y debajo están tus listas. Crea una con
-  «Agregar a una lista» y «Nueva lista…» del menú de un tema, renómbralas
-  y bórralas, quita temas con Supr y cámbialos de
+  «Biblioteca» es tu carpeta y debajo están tus listas, cada una con
+  cuántas canciones tiene. Crea una con
+  «Agregar a una lista» y «Nueva lista…» del menú de una canción, renómbralas
+  y bórralas, quita canciones con Supr y cámbialos de
   lugar con Alt+Flecha arriba y Alt+Flecha abajo. También puedes guardar
   la cola que suena como lista. Se guardan como archivos .m3u8, que abren
   otros reproductores.
 - **Enlaces y listas de YouTube.** En la ventana Música, «Abrir
   enlace…» acepta un vídeo o una lista entera de YouTube y suma su audio
   a la cola. El aleatorio también vale para esas listas.
+- **Igualar el volumen de las canciones.** Todas suenan parecido, como
+  en Spotify: cada archivo se mide una sola vez, de fondo, y el volumen
+  se corrige al empezar cada canción. La primera vez se oye un sonido
+  propio y se dice cuántas canciones se van a medir. El avance aparece
+  en la ventana Música y en F2, y se apaga con una casilla de la página
+  Música.
 - **F2 dice qué suena**, si lo dejas activado en la página «Estado (F2)».
 - **Retoma donde quedó.** Al abrir YTChat y pulsar Reproducir, sigue la
-  última cola desde el tema en que estaba. No arranca sola.
+  última cola desde la canción en que estaba. No arranca sola.
 - **Atajos en cualquier programa**, opcional. Con la casilla de la página
   Música, los atajos de música andan aunque estés en OBS o en un juego.
   Viene apagada porque mientras está activa esas teclas no llegan a los

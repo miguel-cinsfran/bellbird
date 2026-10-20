@@ -172,8 +172,9 @@ def _entorno(fabrica=None):
                            return_value=None), \
                 mock.patch.object(gui_musica, "_snd", snd):
             yield SimpleNamespace(anunciar=anunciar, snd=snd, creados=creados,
-                                   memoria=ruta_memoria, cache=ruta_cache,
-                                   programador=programador)
+                                    memoria=ruta_memoria, cache=ruta_cache,
+                                    sonoridad=ruta_sonoridad,
+                                    programador=programador)
 
 
 class TestFuncionesPuras(unittest.TestCase):
@@ -1887,6 +1888,65 @@ class TestAtajoDeTeclaComun(unittest.TestCase):
         self.assertFalse(
             gui_musica.manejar_atajo_de_tecla(control, {}, evento))
         control.ejecutar_atajo.assert_not_called()
+
+
+class TestSonoridadCableada(unittest.TestCase):
+    """El cableado de la normalización: indexar mide y el motor envuelve."""
+
+    def test_indexar_mide_la_sonoridad_y_la_guarda(self):
+        from ytchat.music.sonoridad import CacheSonoridad
+
+        with tempfile.TemporaryDirectory() as tmp:
+            for nombre in ("a.mp3", "b.mp3"):
+                (Path(tmp) / nombre).write_bytes(b"audio-" + nombre.encode())
+            with _entorno() as env, \
+                    mock.patch("ytchat.downloads.ffmpeg_bin.ruta_ffmpeg",
+                               return_value="ffmpeg"), \
+                    mock.patch("ytchat.music.sonoridad.medir",
+                               return_value=3.0):
+                control = ControlMusica(_frame(musica_carpeta=tmp))
+                recibidas = []
+                control.biblioteca(recibidas.append)
+                self.assertEqual(len(recibidas[0].temas()), 2)
+                releida = CacheSonoridad(env.sonoridad)
+                for tema in recibidas[0].temas():
+                    info = os.stat(tema.origen)
+                    self.assertEqual(
+                        releida.buscar(tema.origen, info.st_mtime_ns,
+                                       info.st_size),
+                        3.0)
+
+    def test_motor_envuelve_con_la_ganancia_guardada(self):
+        from ytchat.music import sonoridad
+        from ytchat.music.sonoridad import CacheSonoridad
+
+        for normalizar, esperado in (
+                (True, sonoridad.volumen_efectivo(50, 6.0)), (False, 50)):
+            with tempfile.TemporaryDirectory() as tmp:
+                ruta = Path(tmp) / "a.mp3"
+                ruta.write_bytes(b"audio-a")
+                with _entorno() as env:
+                    previa = CacheSonoridad(env.sonoridad)
+                    info = os.stat(str(ruta.resolve()))
+                    previa.poner(str(ruta.resolve()), info.st_mtime_ns,
+                                 info.st_size, 6.0)
+                    previa.guardar()
+                    with mock.patch(
+                            "ytchat.downloads.ffmpeg_bin.ruta_ffmpeg",
+                            return_value="ffmpeg"):
+                        control = ControlMusica(_frame(
+                            musica_carpeta=tmp, musica_normalizar=normalizar,
+                            musica_volumen=50))
+                        control.reproducir_o_pausar()
+                    llamadas = env.creados[0].llamadas
+            cargas = [l for l in llamadas if l[0] == "cargar"]
+            self.assertEqual([c[1] for c in cargas], [str(ruta.resolve())])
+            primer_cargar = next(
+                i for i, l in enumerate(llamadas) if l[0] == "cargar")
+            previos = [l[1] for l in llamadas[:primer_cargar]
+                       if l[0] == "volumen"]
+            self.assertEqual(previos[-1], esperado)
+        self.assertEqual(sonoridad.volumen_efectivo(50, 6.0), 100)
 
 
 if __name__ == "__main__":

@@ -50,7 +50,6 @@ VK_MENU = 0x12
 TECLA_ARRIBA = 0x0002
 WM_CLOSE = 0x0010
 ESPERA_PASO = 5.0
-PREFIJO_VOLUMEN = anuncios_musica.TEXTO_VOLUMEN.split("{valor}")[0]
 
 
 def traducir_atajo_a_teclas(texto) -> str | None:
@@ -118,8 +117,8 @@ PASOS = (
     _paso("musica_play", anuncios_musica.TEXTO_REANUDADA),
     _paso("musica_siguiente", None),
     _paso("musica_anterior", None),
-    _paso("musica_vol_mas", PREFIJO_VOLUMEN),
-    _paso("musica_vol_menos", PREFIJO_VOLUMEN),
+    _paso("musica_vol_mas", None),
+    _paso("musica_vol_menos", None),
     _paso("musica_adelantar", None),
     _paso("musica_retroceder", None),
     _paso("musica_silenciar", anuncios_teclas.TEXTO_SILENCIADA),

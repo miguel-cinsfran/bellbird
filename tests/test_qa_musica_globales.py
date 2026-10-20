@@ -314,7 +314,6 @@ class TestTablaDePasos(unittest.TestCase):
         from ytchat.music import anuncios_teclas
         permitidos = {
             anuncios_musica.TEXTO_QUE_SUENA.split("{nombre}")[0],
-            anuncios_musica.TEXTO_VOLUMEN.split("{valor}")[0],
             anuncios_musica.TEXTO_PAUSA,
             anuncios_musica.TEXTO_REANUDADA,
             anuncios_musica.TEXTO_DETENIDA,
@@ -336,6 +335,13 @@ class TestTablaDePasos(unittest.TestCase):
         self.assertTrue(vistos)
         self.assertTrue(any(paso.esperado is None
                             for paso in musica_globales.PASOS))
+
+    def test_volumen_acepta_cualquier_anuncio_nuevo(self):
+        pasos = [paso for paso in musica_globales.PASOS
+                 if paso.accion in ("musica_vol_mas", "musica_vol_menos")]
+        self.assertEqual(len(pasos), 2)
+        for paso in pasos:
+            self.assertIsNone(paso.esperado)
 
     def test_interruptores_quedan_como_estaban(self):
         from collections import Counter

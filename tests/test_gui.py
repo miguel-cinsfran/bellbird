@@ -1662,7 +1662,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("transmision", "avisar_sobrecarga"),
             ("musica", "aleatorio"), ("musica", "repetir"),
             ("musica", "retomar"), ("musica", "sonido_tema"),
-            ("musica", "decir"), ("musica", "decir_pausa"),
+            ("musica", "decir"), ("musica", "decir_pausa"), ("musica", "normalizar"),
             ("musica", "volumen"), ("musica", "atajos_globales"), ("musica", "carpeta"),
             ("musica", "salida"), ("musica", "salida_nombre"),
         ]
@@ -2052,6 +2052,7 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         dialogo.cho_musica_decir.SetValue("artista")
         dialogo.chk_musica_decir_pausa.SetValue(False)
         dialogo.sp_musica_volumen.SetValue(80)
+        dialogo.chk_musica_normalizar.SetValue(False)
         dialogo._musica_salidas_ids = ["", "altavoces"]
         dialogo.cho_musica_salida.Set(["Salida predeterminada", "Altavoces"])
         dialogo.cho_musica_salida.SetSelection(1)
@@ -2067,6 +2068,7 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         self.assertEqual(opciones.get("musica", "sonido_tema"), "true")
         self.assertEqual(opciones.get("musica", "decir"), "artista")
         self.assertEqual(opciones.get("musica", "decir_pausa"), "false")
+        self.assertEqual(opciones.get("musica", "normalizar"), "false")
         self.assertEqual(opciones.get("musica", "volumen"), "80")
         self.assertEqual(opciones.get("musica", "salida"), "altavoces")
         self.assertEqual(opciones.get("musica", "salida_nombre"), "Altavoces")
@@ -2078,6 +2080,7 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         self.assertEqual(dialogo._config["musica_decir"], "artista")
         self.assertIs(dialogo._config["musica_aleatorio"], True)
         self.assertIs(dialogo._config["musica_decir_pausa"], False)
+        self.assertIs(dialogo._config["musica_normalizar"], False)
 
     def test_musica_con_salida_predeterminada_guarda_vacio(self):
         dialogo = self._dialogo({"musica_salida": "vieja",

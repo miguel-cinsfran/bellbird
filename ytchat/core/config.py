@@ -593,10 +593,8 @@ def cargar_configuracion() -> dict:
         "tiktok_usuario": _gs(p, "tiktok", "usuario"),
         "transmision_destino": destino,
         "avisar_sobrecarga": _pb(p, "transmision", "avisar_sobrecarga"),
-        "transmision_youtube_titulo": decodificar_texto_ini(
-            _gs(p, "transmision", "youtube_titulo")),
-        "transmision_youtube_descripcion": decodificar_texto_ini(
-            _gs(p, "transmision", "youtube_descripcion")),
+        "transmision_youtube_titulo": decodificar_texto_ini(_gs(p, "transmision", "youtube_titulo")),
+        "transmision_youtube_descripcion": decodificar_texto_ini(_gs(p, "transmision", "youtube_descripcion")),
         "transmision_youtube_privacidad": privacidad,
         "transmision_youtube_latencia": latencia,
         "transmision_youtube_ninos": _pb(p, "transmision", "youtube_ninos"),
@@ -624,6 +622,7 @@ def cargar_configuracion() -> dict:
         "musica_decir": musica_decir.desde_ini(_gs(p, "musica", "decir"), _pb(p, "musica", "decir_titulo"),
             _pb(p, "musica", "incluir_artista")),
         "musica_decir_pausa": _pb(p, "musica", "decir_pausa"),
+        "musica_normalizar": _pb(p, "musica", "normalizar"),
         "musica_volumen": _pi(p, "musica", "volumen", lo=0, hi=100),
         "musica_salida": _gs(p, "musica", "salida"),
         "musica_salida_nombre": decodificar_texto_ini(_gs(p, "musica", "salida_nombre")),

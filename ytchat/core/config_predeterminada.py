@@ -195,6 +195,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("decir_titulo", "true"),
         ("incluir_artista", "false"),
         ("decir_pausa", "true"),
+        ("normalizar", "true"),
         ("volumen", "50"),
         ("salida", ""),
         ("salida_nombre", ""),

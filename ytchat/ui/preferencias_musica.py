@@ -24,12 +24,13 @@ OPCIONES_MUSICA = (
     ("cho_musica_decir", "musica", "decir", "musica_decir", str, "titulo"),
     ("chk_musica_decir_pausa", "musica", "decir_pausa", "musica_decir_pausa", bool, True),
     ("sp_musica_volumen", "musica", "volumen", "musica_volumen", int, 50),
+    ("chk_musica_normalizar", "musica", "normalizar", "musica_normalizar", bool, True),
     ("chk_musica_atajos_globales", "musica", "atajos_globales", "musica_atajos_globales", bool, False),
 )
 
 
 class PaginaMusica:
-    """Página Música: carpeta, orden, repetición, aviso, volumen y salida."""
+    """Página Música: carpeta, orden, repetición, aviso, volumen, igualación y salida."""
 
     def _pag_musica(self, parent):
         p = self._make_panel(parent, "PagMusica")
@@ -103,12 +104,19 @@ class PaginaMusica:
         vs.Add(self.chk_musica_decir_pausa, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _musica_audio(self, p, vs):
+        from ytchat.ui.gui_preferencias import _T
         vs.Add(self._fila_label(p, "&Volumen de la música"),
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_musica_volumen = ContadorAccesible(
             p, min=0, max=100,
             name="Volumen de la música")
         vs.Add(self.sp_musica_volumen, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        self.chk_musica_normalizar = wx.CheckBox(
+            p, label="&Igualar el volumen de las canciones",
+            name="Igualar el volumen de las canciones")
+        self.chk_musica_normalizar.SetForegroundColour(_T.text)
+        vs.Add(self.chk_musica_normalizar, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         # Al abrir no se consulta VLC: la lista se arma solo con la salida
         # guardada (o la predeterminada) y se completa con el botón.

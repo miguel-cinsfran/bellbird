@@ -76,6 +76,7 @@ class IndiceMusica:
         generacion = self._generacion_etiquetas
         wx.CallAfter(al_lista, biblioteca)
         self._arrancar_etiquetas(biblioteca, generacion)
+        self._arrancar_sonoridad(biblioteca, generacion)
 
     def _arrancar_etiquetas(self, biblioteca, generacion) -> None:
         """Lee en segundo plano las etiquetas que faltan, sin bloquear.

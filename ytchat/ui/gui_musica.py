@@ -19,6 +19,7 @@ from ytchat.music.coordinador import Coordinador
 from ytchat.music.guardado_diferido import GuardadoDiferido
 from ytchat.music.modelo import (
     AVANZO, FIN_LISTA, EstadoMusica, Resultado, SIN_TEMA)
+from ytchat.music.normalizado import Normalizado
 from ytchat.ui import atajos_globales
 from ytchat.ui.gui import anunciar
 from ytchat.ui.musica_cola import ColaMusica
@@ -26,6 +27,7 @@ from ytchat.ui.musica_enlaces import EnlacesMusica
 from ytchat.ui.musica_indice import IndiceMusica, TEXTO_CARPETA_INEXISTENTE
 from ytchat.ui.musica_listas_propias import ListasPropiasMusica
 from ytchat.ui.musica_memoria import MemoriaMusica
+from ytchat.ui.musica_sonoridad import SonoridadMusica
 from ytchat.ui.musica_teclas import TeclasMusica
 from ytchat.voice import sound_player as _snd
 
@@ -58,13 +60,12 @@ def toca_pausar(estado) -> bool:
 
     Sí si el coordinador ya tiene un tema cargado y no terminó. Función pura.
     """
-    return bool(estado is not None and estado.actual is not None
-                and not estado.terminado)
+    return bool(estado is not None and estado.actual is not None and not estado.terminado)
 
 
 def _resultado_sin_tema() -> Resultado:
-    return Resultado(False, SIN_TEMA,
-                     EstadoMusica((), None, False, False, VOLUMEN_MAX, False))
+    return Resultado(False, SIN_TEMA, EstadoMusica(
+        (), None, False, False, VOLUMEN_MAX, False))
 
 
 def manejar_atajo_de_tecla(control, combos, event) -> bool:
@@ -81,7 +82,7 @@ def manejar_atajo_de_tecla(control, combos, event) -> bool:
     return True
 
 
-class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica,
+class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica, SonoridadMusica,
                     ListasPropiasMusica, MemoriaMusica, TeclasMusica):
     """Acciones de música del menú y los atajos, con el motor en un hilo."""
 
@@ -113,8 +114,7 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica,
     # ── Acciones del menú y los atajos ───────────────────────────────────────
 
     def reproducir_o_pausar(self) -> None:
-        if self._coordinador is not None and toca_pausar(
-                self._coordinador.estado()):
+        if self._coordinador is not None and toca_pausar(self._coordinador.estado()):
             self._ejecutar("pausa", self._coordinador.alternar_pausa)
             return
         if self._primera_vez():
@@ -260,13 +260,13 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica,
             return
         try:
             self._reaplicar_volumen()
+            self._aplicar_sonoridad()
             if self._adaptador is not None:
-                self._adaptador.fijar_dispositivo(
-                    self._config.get("musica_salida") or None)
+                self._adaptador.fijar_dispositivo(self._config.get("musica_salida") or None)
             aleatorio = bool(self._config.get("musica_aleatorio", False))
             self._coordinador.fijar_aleatorio(aleatorio)
-            self._coordinador.fijar_repetir(
-                cfg.normalizar_repetir(self._config.get("musica_repetir", "no")))
+            self._coordinador.fijar_repetir(cfg.normalizar_repetir(
+                self._config.get("musica_repetir", "no")))
             item = getattr(self._frame, "mi_musica_aleatorio", None)
             if item is not None:
                 item.Check(aleatorio)
@@ -354,17 +354,18 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica,
 
     def _preparar_motor(self, continuar) -> None:
         try:
-            adaptador = AdaptadorVlc(
+            adaptador = Normalizado(AdaptadorVlc(
                 dispositivo=self._config.get("musica_salida") or None,
-                volumen=self._volumen_config())
+                volumen=self._volumen_config()),
+                self._ganancia_de, volumen=self._volumen_config())
+            adaptador.fijar_activo(bool(self._config.get("musica_normalizar", True)))
             coordinador = Coordinador(
                 adaptador, al_cambiar=self._al_cambiar,
                 volumen=self._volumen_config())
             adaptador.asignar_aviso(coordinador.tema_terminado)
-            coordinador.fijar_aleatorio(
-                bool(self._config.get("musica_aleatorio", False)))
-            coordinador.fijar_repetir(
-                cfg.normalizar_repetir(self._config.get("musica_repetir", "no")))
+            coordinador.fijar_aleatorio(bool(self._config.get("musica_aleatorio", False)))
+            coordinador.fijar_repetir(cfg.normalizar_repetir(
+                self._config.get("musica_repetir", "no")))
             adaptador.volumen(self._volumen_config())
         except MotorNoDisponible:
             wx.CallAfter(self._motor_no_disponible)
@@ -440,10 +441,9 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica,
 
     def _ejecutar(self, accion, operacion) -> None:
         resultado = operacion()
-        self._avisar(anuncios.aviso_accion(
-            accion, resultado, self._incluir_artista(),
-            bool(self._config.get("musica_decir_pausa", True)),
-            self._config.get("musica_decir", "titulo")))
+        self._avisar(anuncios.aviso_accion(accion, resultado, self._incluir_artista(),
+                                           bool(self._config.get("musica_decir_pausa", True)),
+                                           self._config.get("musica_decir", "titulo")))
         self._refrescar_ventana_abierta()
 
     def _cambiar_volumen(self, paso) -> None:
@@ -455,9 +455,7 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica,
             self._coordinador.fijar_volumen(nuevo)
         self._sincronizar_silencio()
         texto = anuncio_ajuste.COMPARTIDO.frase(
-            "volumen_musica",
-            anuncios.TEXTO_VOLUMEN.format(valor=nuevo),
-            str(nuevo))
+            "volumen_musica", anuncios.TEXTO_VOLUMEN.format(valor=nuevo), str(nuevo))
         self._avisar(anuncios.Aviso(texto))
 
     def _escribir_volumen(self) -> None:
@@ -478,5 +476,4 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica,
         return musica_decir.incluye_artista(self._config.get("musica_decir", "titulo"))
 
     def _volumen_config(self) -> int:
-        return nuevo_volumen(
-            self._config.get("musica_volumen", VOLUMEN_INICIAL), 0)
+        return nuevo_volumen(self._config.get("musica_volumen", VOLUMEN_INICIAL), 0)

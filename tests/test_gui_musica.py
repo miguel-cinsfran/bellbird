@@ -152,6 +152,7 @@ def _entorno(fabrica=None):
     with tempfile.TemporaryDirectory() as tmp:
         ruta_memoria = Path(tmp) / "musica_estado.json"
         ruta_cache = Path(tmp) / "etiquetas_musica.json"
+        ruta_sonoridad = Path(tmp) / "sonoridad_musica.json"
         with mock.patch.object(gui_musica, "AdaptadorVlc", side_effect=fabrica), \
                 mock.patch.object(gui_musica.diagnostico, "crear_hilo",
                                    _crear_hilo_inmediato), \
@@ -165,6 +166,10 @@ def _entorno(fabrica=None):
                                    return_value=ruta_memoria), \
                 mock.patch.object(musica_indice.paths, "cache_etiquetas_musica",
                                    return_value=ruta_cache), \
+                mock.patch.object(musica_indice.paths, "cache_sonoridad_musica",
+                                   return_value=ruta_sonoridad), \
+                mock.patch("ytchat.downloads.ffmpeg_bin.ruta_ffmpeg",
+                           return_value=None), \
                 mock.patch.object(gui_musica, "_snd", snd):
             yield SimpleNamespace(anunciar=anunciar, snd=snd, creados=creados,
                                    memoria=ruta_memoria, cache=ruta_cache,

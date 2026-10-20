@@ -1,8 +1,9 @@
 """Pruebas del tramo de atajos globales, sin ventanas ni teclas.
 
 Solo cubren lo puro (`se_dijo_desde`, `leer_registro`,
-`tomados_de_fallo`) y que los dos módulos importan sin abrir nada. La
-escena real la corre el banco en la otra PC.
+`tomados_de_fallo`, `traducir_atajo_a_teclas`, `PASOS`,
+`_resolver_activacion`) y que los dos módulos importan sin abrir nada.
+La escena real la corre el banco en la otra PC.
 """
 
 import importlib.util
@@ -256,6 +257,157 @@ class TestImportanSinAbrirNada(unittest.TestCase):
                          "Música reanudada")
         self.assertIn("cualquier programa",
                       anuncios_musica.TEXTO_ATAJOS_GLOBALES_ACTIVOS)
+
+
+class TestTraducirAtajoATeclas(unittest.TestCase):
+
+    def test_letra(self):
+        self.assertEqual(
+            musica_globales.traducir_atajo_a_teclas("ctrl+alt+t"), "^%t")
+
+    def test_espacio(self):
+        self.assertEqual(
+            musica_globales.traducir_atajo_a_teclas("ctrl+alt+space"),
+            "^%{SPACE}")
+
+    def test_flecha(self):
+        self.assertEqual(
+            musica_globales.traducir_atajo_a_teclas("ctrl+alt+right"),
+            "^%{RIGHT}")
+
+    def test_mayus(self):
+        self.assertEqual(
+            musica_globales.traducir_atajo_a_teclas("ctrl+alt+shift+left"),
+            "^%+{LEFT}")
+
+    def test_acepta_otro_orden_y_mayusculas(self):
+        self.assertEqual(
+            musica_globales.traducir_atajo_a_teclas("Alt+Ctrl+A"), "^%a")
+
+    def test_formato_que_no_corresponde_da_none(self):
+        for texto in ("", None, "ctrl+t", "ctrl+alt+f5", "ctrl+shift+t",
+                      "ctrl+alt+shift+up", "ctrl+alt+left+right"):
+            self.assertIsNone(
+                musica_globales.traducir_atajo_a_teclas(texto))
+
+
+class TestTablaDePasos(unittest.TestCase):
+
+    def test_toda_accion_aparece(self):
+        from ytchat.ui.atajos_globales import ACCIONES
+        en_tabla = {paso.accion for paso in musica_globales.PASOS}
+        faltan = [accion for accion in ACCIONES if accion not in en_tabla]
+        self.assertEqual(faltan, [])
+
+    def test_teclas_son_la_traduccion_de_fabrica(self):
+        from ytchat.core import config_predeterminada
+        for paso in musica_globales.PASOS:
+            fabrica = config_predeterminada.obtener(
+                "atajos", paso.accion, "")
+            self.assertEqual(
+                paso.teclas,
+                musica_globales.traducir_atajo_a_teclas(fabrica))
+            self.assertTrue(paso.teclas)
+
+    def test_esperados_salen_de_las_constantes(self):
+        from ytchat.music import anuncios as anuncios_musica
+        from ytchat.music import anuncios_teclas
+        permitidos = {
+            anuncios_musica.TEXTO_QUE_SUENA.split("{nombre}")[0],
+            anuncios_musica.TEXTO_VOLUMEN.split("{valor}")[0],
+            anuncios_musica.TEXTO_PAUSA,
+            anuncios_musica.TEXTO_REANUDADA,
+            anuncios_musica.TEXTO_DETENIDA,
+            anuncios_musica.TEXTO_ALEATORIO_ON,
+            anuncios_musica.TEXTO_ALEATORIO_OFF,
+            anuncios_musica.TEXTO_REPETIR_TODO,
+            anuncios_musica.TEXTO_REPETIR_TEMA,
+            anuncios_musica.TEXTO_REPETIR_NO,
+            anuncios_teclas.TEXTO_SILENCIADA,
+            anuncios_teclas.TEXTO_RESTAURADA,
+        }
+        vistos = 0
+        for paso in musica_globales.PASOS:
+            if paso.esperado is None:
+                continue
+            vistos += 1
+            self.assertTrue(paso.esperado)
+            self.assertIn(paso.esperado, permitidos)
+        self.assertTrue(vistos)
+        self.assertTrue(any(paso.esperado is None
+                            for paso in musica_globales.PASOS))
+
+    def test_interruptores_quedan_como_estaban(self):
+        from collections import Counter
+        veces = Counter(paso.accion for paso in musica_globales.PASOS)
+        self.assertEqual(veces["musica_silenciar"] % 2, 0)
+        self.assertEqual(veces["musica_aleatorio"] % 2, 0)
+        self.assertEqual(veces["musica_repetir"] % 3, 0)
+        self.assertGreater(veces["musica_repetir"], 0)
+
+    def test_repetir_sigue_el_ciclo_de_la_app(self):
+        from ytchat.music import anuncios as anuncios_musica
+        ciclo = [paso.esperado for paso in musica_globales.PASOS
+                 if paso.accion == "musica_repetir"]
+        self.assertEqual(ciclo, [anuncios_musica.TEXTO_REPETIR_TODO,
+                                 anuncios_musica.TEXTO_REPETIR_TEMA,
+                                 anuncios_musica.TEXTO_REPETIR_NO])
+
+    def test_empieza_diciendo_y_termina_sonando(self):
+        pasos = musica_globales.PASOS
+        self.assertEqual(pasos[0].accion, "musica_que_suena")
+        self.assertEqual(pasos[-1].accion, "musica_play")
+        self.assertIsNone(pasos[-1].esperado)
+
+
+class TestResolverActivacionConTomadas(unittest.TestCase):
+
+    def _res(self):
+        class Res:
+            def __init__(self):
+                self.fallos = []
+                self.notas = []
+                self.no_probados = []
+            def fallo(self, texto):
+                self.fallos.append(texto)
+            def nota(self, texto):
+                self.notas.append(texto)
+            def no_probado(self, texto):
+                self.no_probados.append(texto)
+        return Res()
+
+    def _propia_con_fallo(self, lista):
+        from ytchat.music import anuncios as anuncios_musica
+        anuncio = anuncios_musica.TEXTO_ATAJOS_GLOBALES_FALLO.format(
+            lista=lista)
+        class Propia:
+            anuncios = [{"texto": anuncio}]
+        return Propia()
+
+    def test_tomada_de_musica_es_fallo_y_sigue(self):
+        from ytchat.music import anuncios as anuncios_musica
+        from ytchat.ui.atajos_captura import atajo_legible
+        nombre = atajo_legible("ctrl+alt+right")
+        res = self._res()
+        sigue = musica_globales._resolver_activacion(
+            self._propia_con_fallo(nombre), res, 0,
+            anuncios_musica.TEXTO_ATAJOS_GLOBALES_ACTIVOS)
+        self.assertTrue(sigue)
+        self.assertEqual(len(res.fallos), 1)
+        self.assertIn(nombre, res.fallos[0])
+        self.assertEqual(res.no_probados, [])
+
+    def test_tomada_de_que_suena_tambien_es_fallo_y_sigue(self):
+        from ytchat.music import anuncios as anuncios_musica
+        nombre = musica_globales.NOMBRE_QUE_SUENA
+        res = self._res()
+        sigue = musica_globales._resolver_activacion(
+            self._propia_con_fallo(nombre), res, 0,
+            anuncios_musica.TEXTO_ATAJOS_GLOBALES_ACTIVOS)
+        self.assertTrue(sigue)
+        self.assertEqual(len(res.fallos), 1)
+        self.assertIn(nombre, res.fallos[0])
+        self.assertEqual(res.no_probados, [])
 
 
 if __name__ == "__main__":

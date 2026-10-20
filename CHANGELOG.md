@@ -33,7 +33,7 @@ Música mientras transmites, sin abrir otro programa.
   escribes, aunque no pongas las tildes. Reproduce la canción elegida o todo
   el resultado, agrégalo a la cola, mira la cola y salta a cualquier canción
   con Intro. Con «Reproducir a continuación», la canción elegida suena al
-  terminar el actual, sin cortar nada, y después la cola sigue donde
+  terminar la actual, sin cortar nada, y después la cola sigue donde
   iba. Mientras está abierta, los atajos de música siguen andando.
 - **Título y artista de cada archivo.** Las canciones aparecen primero con el
   nombre del archivo y, unos segundos después, con el título y el artista
@@ -43,7 +43,7 @@ Música mientras transmites, sin abrir otro programa.
   «Biblioteca» es tu carpeta y debajo están tus listas, cada una con
   cuántas canciones tiene. Crea una con
   «Agregar a una lista» y «Nueva lista…» del menú de una canción, renómbralas
-  y bórralas, quita canciones con Supr y cámbialos de
+  y bórralas, quita canciones con Supr y cámbialas de
   lugar con Alt+Flecha arriba y Alt+Flecha abajo. También puedes guardar
   la cola que suena como lista. Se guardan como archivos .m3u8, que abren
   otros reproductores.
@@ -82,6 +82,18 @@ Música mientras transmites, sin abrir otro programa.
   aplicación revisa tu teclado: si AltGr con esa tecla escribe algo, como
   la arroba en el teclado latinoamericano, te lo dice y te pide otra, para
   no romper la escritura en el chat.
+
+### Pantallas
+
+- **La ventana del directo de YouTube cabe en pantallas bajas.** En una
+  pantalla de 768 píxeles de alto se cortaban los botones Transmitir y
+  Cancelar. Ahora los campos se desplazan y esos botones quedan siempre
+  a la vista.
+- **Los campos de solo lectura se alcanzan con Tab.** El avance de la
+  igualación del volumen en la ventana Música y la miniatura en la
+  ventana del directo de YouTube se saltaban al recorrer con Tab.
+- **Nombres enteros en Preferencias.** La lista de páginas ya no corta
+  «Cola de lectura», «Interfaz y sonidos» ni «Mensajes automáticos».
 
 ## 2.3.4, octubre de 2026
 

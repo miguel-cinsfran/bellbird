@@ -2291,16 +2291,41 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
             res.fallo("musica_real: la cola no marca ningún tema actual y "
                       "no se puede probar qué suena")
         else:
-            esperado = anuncios_musica.TEXTO_QUE_SUENA.format(
-                nombre=titulo_actual, posicion=cola.index(actual) + 1,
-                total=len(cola))
+            antes, despues = anuncios_musica.TEXTO_QUE_SUENA.split("{nombre}")
+            posicion = cola.index(actual) + 1
+            fragmento_titulo = antes + titulo_actual
+            fragmento_tema = despues.format(posicion=posicion,
+                                            total=len(cola))
             n = len(propia.anuncios)
             _menu("qué suena")
-            if propia.esperar_dicho(esperado, segundos=8, desde=n):
-                res.nota(f"musica_real: qué suena dice «{esperado}»")
+            if not propia.esperar_dicho(fragmento_titulo, segundos=8,
+                                        desde=n):
+                res.fallo("musica_real: «Qué suena» no dijo "
+                          f"«{fragmento_titulo}»")
             else:
-                res.fallo("musica_real: «Qué suena» no contiene el título "
-                          f"actual («{titulo_actual}»)")
+                limite = time.monotonic() + 8
+                oido = ""
+                while time.monotonic() < limite:
+                    for dicho in propia.anuncios[n:]:
+                        texto = dicho.get("texto", "")
+                        if (fragmento_titulo.lower() in texto.lower()
+                                and fragmento_tema.lower() in texto.lower()):
+                            oido = texto
+                            break
+                    if oido:
+                        break
+                    time.sleep(0.1)
+                if oido:
+                    res.nota(f"musica_real: qué suena dice «{oido}»")
+                elif not any(fragmento_tema.lower()
+                             in d.get("texto", "").lower()
+                             for d in propia.anuncios[n:]):
+                    res.fallo("musica_real: «Qué suena» no dijo "
+                              f"«{fragmento_tema}»")
+                else:
+                    res.fallo("musica_real: «Qué suena» dijo "
+                              f"«{fragmento_titulo}» y «{fragmento_tema}» "
+                              "pero nunca en el mismo anuncio")
 
         # ── g. Orden aleatorio dos veces ──
 

@@ -246,9 +246,9 @@ con la inicial y un color por persona, y las donaciones en dorado con el
 importe. Solo se usa con YouTube: TikTok ya muestra los comentarios sobre
 el vídeo.
 
-Lo que no cabe en el lienzo de OBS no se emite, y una fuente medio afuera
-se recorta sin aviso. Por eso la ventana *Transmisión* dice cuánto se
-recorta. Si otra fuente tapa el panel, la aplicación lo pone adelante al
+Lo que no cabe en el lienzo de OBS no se emite, y una fuente que queda
+en parte fuera se recorta sin aviso. Por eso la ventana *Transmisión* dice cuánto se
+recorta. Si otra fuente tapa el panel, la aplicación lo pone delante al
 salir al aire y te dice cuál lo tapaba. `F2` dice si el panel está activo
 y si OBS lo está mostrando. El servidor solo escucha en tu PC.
 
@@ -418,7 +418,7 @@ ventana principal.
 novedades y la instala: la descarga se comprueba con su firma, la
 aplicación se cierra y vuelve a abrirse sola en alrededor de un minuto. Se
 conservan la carpeta `data`, las descargas y tus sonidos. Si la versión
-nueva no abre, vuelve sola a la anterior. Al arrancar, una versión nueva
+nueva no abre, vuelve sola a la anterior. Al iniciarse, una versión nueva
 se anuncia una sola vez.
 
 ## Configuración

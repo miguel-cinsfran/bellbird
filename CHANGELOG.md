@@ -34,7 +34,7 @@ Música mientras transmites, sin abrir otro programa.
   el resultado, agrégalo a la cola, mira la cola y salta a cualquier canción
   con Intro. Con «Reproducir a continuación», la canción elegida suena al
   terminar la actual, sin cortar nada, y después la cola sigue donde
-  iba. Mientras está abierta, los atajos de música siguen andando.
+  iba. Mientras está abierta, los atajos de música siguen funcionando.
 - **Título y artista de cada archivo.** Las canciones aparecen primero con el
   nombre del archivo y, unos segundos después, con el título y el artista
   que trae el propio archivo, sin que se mueva la canción en que estás. La
@@ -58,9 +58,9 @@ Música mientras transmites, sin abrir otro programa.
   Música.
 - **F2 dice qué suena**, si lo dejas activado en la página «Estado (F2)».
 - **Retoma donde quedó.** Al abrir YTChat y pulsar Reproducir, sigue la
-  última cola desde la canción en que estaba. No arranca sola.
+  última cola desde la canción en que estaba. No empieza a sonar sola.
 - **Atajos en cualquier programa**, opcional. Con la casilla de la página
-  Música, los atajos de música andan aunque estés en OBS o en un juego.
+  Música, los atajos de música funcionan aunque estés en OBS o en un juego.
   Viene apagada porque mientras está activa esas teclas no llegan a los
   demás programas. Donde NVDA cree que hay una tabla, como el escritorio,
   se queda con Ctrl+Alt+flechas: ahí pulsa NVDA+F2 antes del atajo.
@@ -81,7 +81,7 @@ Música mientras transmites, sin abrir otro programa.
   de música aceptan Ctrl+Alt con una letra o un número. Al capturarlo, la
   aplicación revisa tu teclado: si AltGr con esa tecla escribe algo, como
   la arroba en el teclado latinoamericano, te lo dice y te pide otra, para
-  no romper la escritura en el chat.
+  que puedas seguir escribiendo ese carácter en el chat.
 
 ### Chat
 

@@ -102,16 +102,16 @@ class DialogoEditorLista(wx.Dialog):
         vs.Add(self.txt_nombre, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM,
                12)
         vs.Add(wx.StaticText(panel, label="&Buscar:"), 0, wx.ALL, 12)
-        self.txt_buscar = self._campo(panel, "Buscar temas")
+        self.txt_buscar = self._campo(panel, "Buscar canciones")
         vs.Add(self.txt_buscar, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM,
                12)
-        vs.Add(wx.StaticText(panel, label="&Temas:"), 0, wx.ALL, 12)
+        vs.Add(wx.StaticText(panel, label="C&anciones:"), 0, wx.ALL, 12)
         self.lb_temas = wx.ListCtrl(
             panel, style=wx.LC_REPORT | wx.LC_SINGLE_SEL,
-            name="Temas de la lista")
+            name="Canciones de la lista")
         _pintar(self.lb_temas, _T.field, _T.text)
-        nombre_accesible(self.lb_temas, "Temas de la lista")
-        self.lb_temas.InsertColumn(0, "Tema", width=420)
+        nombre_accesible(self.lb_temas, "Canciones de la lista")
+        self.lb_temas.InsertColumn(0, "Canción", width=420)
         self.lb_temas.EnableCheckBoxes(True)
         self.lb_temas.SetMinSize((460, 300))
         vs.Add(self.lb_temas, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, 12)

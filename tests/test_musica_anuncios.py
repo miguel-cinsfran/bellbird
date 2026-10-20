@@ -136,11 +136,11 @@ class TestAvisoAccion(unittest.TestCase):
 
     def test_siguiente_fin_de_lista(self):
         aviso = anuncios.aviso_accion("siguiente", _resultado(FIN_LISTA), False)
-        self.assertEqual(aviso.texto, "Último tema de la lista")
+        self.assertEqual(aviso.texto, "Última canción de la lista")
 
     def test_anterior_inicio_de_lista(self):
         aviso = anuncios.aviso_accion("anterior", _resultado(INICIO_LISTA), False)
-        self.assertEqual(aviso.texto, "Primer tema de la lista")
+        self.assertEqual(aviso.texto, "Primera canción de la lista")
 
     def test_anterior_reiniciado_dice_desde_el_comienzo(self):
         r = _resultado(REINICIADO, cola=[_tema(1)], posicion=0)
@@ -182,7 +182,7 @@ class TestAvisoAccion(unittest.TestCase):
 
     def test_cualquier_accion_con_cola_vacia(self):
         aviso = anuncios.aviso_accion("reproducir", _resultado(COLA_VACIA), False)
-        self.assertEqual(aviso.texto, "No hay temas para reproducir")
+        self.assertEqual(aviso.texto, "No hay canciones para reproducir")
 
     def test_error_motor_con_tema_lleva_sonido_de_error(self):
         r = _resultado(ERROR_MOTOR, tema=_tema(4), ok=False)
@@ -267,17 +267,17 @@ class TestOtrosAvisos(unittest.TestCase):
     def test_que_suena_sonando(self):
         estado = _estado([_tema(1), _tema(2)], 0)
         aviso = anuncios.aviso_que_suena(estado, False)
-        self.assertEqual(aviso.texto, "Sonando: Tema 1. Tema 1 de 2")
+        self.assertEqual(aviso.texto, "Sonando: Tema 1. Canción 1 de 2")
 
     def test_que_suena_en_pausa(self):
         estado = _estado([_tema(1), _tema(2)], 1, pausado=True)
         aviso = anuncios.aviso_que_suena(estado, False)
-        self.assertEqual(aviso.texto, "En pausa: Tema 2. Tema 2 de 2")
+        self.assertEqual(aviso.texto, "En pausa: Tema 2. Canción 2 de 2")
 
     def test_que_suena_con_artista(self):
         estado = _estado([_tema(1, artista="Ana")], 0)
         aviso = anuncios.aviso_que_suena(estado, True)
-        self.assertEqual(aviso.texto, "Sonando: Tema 1, de Ana. Tema 1 de 1")
+        self.assertEqual(aviso.texto, "Sonando: Tema 1, de Ana. Canción 1 de 1")
 
     def test_aleatorio_activado(self):
         self.assertEqual(anuncios.aviso_aleatorio(True).texto,
@@ -313,13 +313,13 @@ class TestOtrosAvisos(unittest.TestCase):
 
     def test_agregados_plural(self):
         aviso = anuncios.aviso_agregados(3)
-        self.assertEqual(aviso.texto, "3 temas agregados a la cola")
+        self.assertEqual(aviso.texto, "3 canciones agregadas a la cola")
         self.assertIsNone(aviso.sonido)
 
     def test_agregados_plural_con_lo_que_suena(self):
         aviso = anuncios.aviso_agregados(2, "Tema 1")
         self.assertEqual(aviso.texto,
-                         "2 temas agregados a la cola. Sonando: Tema 1")
+                          "2 canciones agregadas a la cola. Sonando: Tema 1")
         self.assertIsNone(aviso.sonido)
 
     def test_a_continuacion_con_artista(self):
@@ -365,17 +365,17 @@ class TestEstadoParaF2(unittest.TestCase):
     def test_sonando(self):
         estado = _estado([_tema(1), _tema(2)], 0)
         self.assertEqual(anuncios.texto_estado_musica(estado, False),
-                         "Música: Tema 1, tema 1 de 2")
+                          "Música: Tema 1, canción 1 de 2")
 
     def test_en_pausa(self):
         estado = _estado([_tema(1), _tema(2)], 1, pausado=True)
         self.assertEqual(anuncios.texto_estado_musica(estado, False),
-                         "Música en pausa: Tema 2, tema 2 de 2")
+                          "Música en pausa: Tema 2, canción 2 de 2")
 
     def test_con_artista(self):
         estado = _estado([_tema(1, artista="Ana")], 0)
         self.assertEqual(anuncios.texto_estado_musica(estado, True),
-                         "Música: Tema 1, de Ana, tema 1 de 1")
+                          "Música: Tema 1, de Ana, canción 1 de 1")
 
     def test_retomando(self):
         aviso = anuncios.aviso_retomando("Tema 3")
@@ -394,7 +394,7 @@ class TestAvisosDeCola(unittest.TestCase):
     def test_varios_a_continuacion(self):
         aviso = anuncios.aviso_a_continuacion_varios(3, 5)
         self.assertEqual(aviso.texto,
-                         "3 temas a continuación, desde la posición 5")
+                          "3 canciones a continuación, desde la posición 5")
         self.assertIsNone(aviso.sonido)
 
     def test_agregado_con_posicion(self):
@@ -429,7 +429,7 @@ class TestAvisosDeCola(unittest.TestCase):
         self.assertEqual(anuncios.aviso_repetir("todo").texto,
                          "Repetir: toda la cola")
         self.assertEqual(anuncios.aviso_repetir("tema").texto,
-                         "Repetir: este tema")
+                          "Repetir: esta canción")
         self.assertEqual(anuncios.aviso_repetir("otro").texto, "Repetir: no")
         self.assertIsNone(anuncios.aviso_repetir("todo").sonido)
 
@@ -460,14 +460,14 @@ class TestAvisosDeListas(unittest.TestCase):
 
     def test_tema_movido_y_quitado(self):
         self.assertEqual(anuncios.aviso_tema_movido(2, 5).texto,
-                         "Tema movido a la posición 2 de 5")
+                          "Canción movida a la posición 2 de 5")
         self.assertEqual(anuncios.aviso_tema_quitado().texto,
-                         "Tema quitado de la lista")
+                         "Canción quitada de la lista")
         self.assertIsNone(anuncios.aviso_tema_movido(1, 2).sonido)
 
     def test_sin_cola(self):
         aviso = anuncios.aviso_sin_cola()
-        self.assertEqual(aviso.texto, "No hay temas en la cola")
+        self.assertEqual(aviso.texto, "No hay canciones en la cola")
         self.assertIsNone(aviso.sonido)
 
     def test_error_listas_lleva_sonido_de_error(self):
@@ -522,11 +522,11 @@ class TestTextosVentanaMusica(unittest.TestCase):
         self.assertEqual(anuncios.TEXTO_BUSQUEDA_BORRADA, "Búsqueda borrada")
 
     def test_coincidencias(self):
-        self.assertEqual(anuncios.TEXTO_UN_TEMA_COINCIDE, "1 tema coincide")
+        self.assertEqual(anuncios.TEXTO_UN_TEMA_COINCIDE, "1 canción coincide")
         self.assertEqual(anuncios.TEXTO_TEMAS_COINCIDEN,
-                         "{cantidad} temas coinciden")
+                         "{cantidad} canciones coinciden")
         self.assertEqual(anuncios.TEXTO_NINGUN_TEMA_COINCIDE,
-                         "Ningún tema coincide")
+                         "Ninguna canción coincide")
 
     def test_ayudas(self):
         self.assertEqual(
@@ -544,7 +544,7 @@ class TestTextosVentanaMusica(unittest.TestCase):
             "tecla de aplicaciones para más opciones")
         self.assertEqual(
             anuncios.TEXTO_AYUDA_BUSCAR,
-            "Escribe para filtrar, flecha abajo va a los temas, "
+            "Escribe para filtrar, flecha abajo va a las canciones, "
             "Escape borra la búsqueda")
 
     def test_confirmar_borrar(self):

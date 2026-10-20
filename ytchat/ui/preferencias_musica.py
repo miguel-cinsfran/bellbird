@@ -71,7 +71,7 @@ class PaginaMusica:
         vs.Add(self._fila_label(p, "&Repetir:"), 0, wx.LEFT | wx.RIGHT, 10)
         self.chk_musica_repetir = EleccionTexto(
             p, (("no", "No"), ("todo", "Toda la cola"),
-                ("tema", "Este tema")),
+                 ("tema", "Esta canción")),
             normalizar=cfg.normalizar_repetir, name="Repetir la música")
         _tc(self.chk_musica_repetir)
         vs.Add(self.chk_musica_repetir, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
@@ -85,16 +85,16 @@ class PaginaMusica:
     def _musica_anuncios(self, p, vs):
         from ytchat.ui.gui_preferencias import _T, _tc, EleccionTexto
         self.chk_musica_sonido_tema = wx.CheckBox(
-            p, label="&Sonido al pasar de tema",
+            p, label="&Sonido al pasar de canción",
             name="MusicaSonidoTema")
         self.chk_musica_sonido_tema.SetForegroundColour(_T.text)
         vs.Add(self.chk_musica_sonido_tema, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        vs.Add(self._fila_label(p, "&Decir al pasar de tema:"), 0, wx.LEFT | wx.RIGHT, 10)
+        vs.Add(self._fila_label(p, "&Decir al pasar de canción:"), 0, wx.LEFT | wx.RIGHT, 10)
         self.cho_musica_decir = EleccionTexto(
             p, (("nada", "Nada"), ("titulo", "El título"),
                 ("titulo_artista", "El título y el artista"), ("artista", "Solo el artista")),
-            normalizar=musica_decir.normalizar, name="Qué decir al pasar de tema")
+            normalizar=musica_decir.normalizar, name="Qué decir al pasar de canción")
         _tc(self.cho_musica_decir)
         vs.Add(self.cho_musica_decir, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.chk_musica_decir_pausa = wx.CheckBox(

@@ -85,8 +85,8 @@ def texto_cola_visible(cantidad: int) -> str:
     if cantidad == 0:
         return "Cola visible, vacía"
     if cantidad == 1:
-        return "Cola visible, 1 tema"
-    return f"Cola visible, {cantidad} temas"
+        return "Cola visible, 1 canción"
+    return f"Cola visible, {cantidad} canciones"
 
 
 def texto_coincidencias(cantidad: int) -> str:
@@ -194,4 +194,4 @@ def texto_resumen(cantidad_total: int, cantidad_filtrada: int,
 
 
 def _sustantivo(cantidad: int) -> str:
-    return "tema" if cantidad == 1 else "temas"
+    return "canción" if cantidad == 1 else "canciones"

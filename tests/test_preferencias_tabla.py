@@ -180,7 +180,7 @@ class TestTablaOpcionesSimples(unittest.TestCase):
         self.assertIsInstance(control, gui.wx.Choice)
         self.assertEqual(
             [control.GetString(i) for i in range(control.GetCount())],
-            ["No", "Toda la cola", "Este tema"])
+            ["No", "Toda la cola", "Esta canción"])
         self.assertEqual(control.GetValue(), "tema")
         control.SetValue("todo")
         self.assertEqual(control.GetStringSelection(), "Toda la cola")

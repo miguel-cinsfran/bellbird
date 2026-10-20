@@ -26,7 +26,7 @@ TEXTO_NOMBRE_VACIO = "Escribe un nombre para la lista"
 TEXTO_NOMBRE_INVALIDO = f"El nombre no puede tener {CARACTERES_PROHIBIDOS}"
 TEXTO_DUPLICADO = "Ya hay una lista con ese nombre"
 TEXTO_NO_EXISTE = "No existe la lista: {nombre}"
-TEXTO_POSICION = "No hay un tema en la posición {posicion}"
+TEXTO_POSICION = "No hay una canción en la posición {posicion}"
 
 
 class ErrorListas(ValueError):

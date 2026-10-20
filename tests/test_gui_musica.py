@@ -295,7 +295,7 @@ class TestAccionesSinMotor(unittest.TestCase):
             control.reproducir_temas(temas)
             env.anunciar.reset_mock()
             control.que_suena()
-        env.anunciar.assert_called_once_with("Sonando: A, de Ana. Tema 1 de 1")
+        env.anunciar.assert_called_once_with("Sonando: A, de Ana. Canción 1 de 1")
 
     def test_siguiente_manual_con_nada_dice_el_titulo(self):
         temas = [Tema("C:/m/a.mp3", "A", artista="Ana"),
@@ -868,7 +868,7 @@ class TestAccionesDeLista(unittest.TestCase):
             control.agregar_temas(temas)
         self.assertEqual([c.args[0] for c in env.anunciar.call_args_list],
                          ["Preparando la música",
-                          "2 temas agregados a la cola. Sonando: A"])
+                          "2 canciones agregadas a la cola. Sonando: A"])
         self.assertEqual([t.origen for t in control.estado().cola],
                          ["C:/m/a.mp3", "C:/m/b.mp3"])
 
@@ -894,7 +894,7 @@ class TestAccionesDeLista(unittest.TestCase):
             control = ControlMusica(_frame())
             control.agregar_temas([])
         self.assertEqual(env.anunciar.call_args_list[-1].args[0],
-                         "No hay temas para reproducir")
+                         "No hay canciones para reproducir")
 
     def test_iniciar_lista_desde_carga_solo_el_elegido(self):
         temas = [Tema("C:/m/a.mp3", "A"), Tema("C:/m/b.mp3", "B"),
@@ -922,7 +922,7 @@ class TestAccionesDeLista(unittest.TestCase):
         with _entorno() as env:
             ControlMusica(_frame()).reproducir_desde(0)
         self.assertEqual(env.anunciar.call_args_list[-1].args[0],
-                         "No hay temas para reproducir")
+                         "No hay canciones para reproducir")
 
     def test_reproducir_a_continuacion_anuncia_y_mete_detras(self):
         temas = [Tema("C:/m/a.mp3", "A"), Tema("C:/m/c.mp3", "C")]
@@ -1069,7 +1069,7 @@ class TestEnlace(unittest.TestCase):
         self.assertEqual([t.origen for t in control.estado().cola],
                          [t.origen for t in temas])
         self.assertEqual(env.anunciar.call_args_list[-1].args[0],
-                         "2 temas agregados a la cola. Sonando: Uno")
+                         "2 canciones agregadas a la cola. Sonando: Uno")
 
     def test_error_del_enlace_avisa_con_sonido(self):
         from ytchat.music.enlaces import ErrorEnlace
@@ -1136,7 +1136,7 @@ class TestOperacionesDeCola(unittest.TestCase):
             textos = [c.args[0] for c in env.anunciar.call_args_list]
         self.assertEqual(textos, [
             "A continuación: B, posición 2",
-            "2 temas a continuación, desde la posición 3"])
+            "2 canciones a continuación, desde la posición 3"])
         self.assertEqual([t.titulo for t in control.estado().cola],
                          ["A", "B", "C", "E", "D"])
 
@@ -1162,7 +1162,7 @@ class TestOperacionesDeCola(unittest.TestCase):
             control = self._con_cola("A")
             env.anunciar.reset_mock()
             control.agregar_al_final(self._temas("B", "C"))
-        env.anunciar.assert_called_once_with("2 temas agregados a la cola")
+        env.anunciar.assert_called_once_with("2 canciones agregadas a la cola")
         self.assertEqual([t.titulo for t in control.estado().cola],
                          ["A", "B", "C"])
 
@@ -1214,7 +1214,7 @@ class TestOperacionesDeCola(unittest.TestCase):
             env.anunciar.reset_mock()
             control.mover_en_cola(0, 1)
         env.anunciar.assert_called_once_with(
-            "Tema movido a la posición 2 de 3")
+            "Canción movida a la posición 2 de 3")
         self.assertEqual([t.titulo for t in control.estado().cola],
                          ["B", "A", "C"])
 
@@ -1224,7 +1224,7 @@ class TestOperacionesDeCola(unittest.TestCase):
             env.anunciar.reset_mock()
             control.mover_en_cola(0, -1)
         env.anunciar.assert_called_once_with(
-            "Tema movido a la posición 1 de 3")
+            "Canción movida a la posición 1 de 3")
         self.assertEqual([t.titulo for t in control.estado().cola],
                          ["A", "B", "C"])
 
@@ -1269,7 +1269,7 @@ class TestRepetir(unittest.TestCase):
             self.assertEqual(frame._config["musica_repetir"], "no")
         self.assertEqual(
             [c.args[0] for c in env.anunciar.call_args_list],
-            ["Repetir: toda la cola", "Repetir: este tema", "Repetir: no"])
+            ["Repetir: toda la cola", "Repetir: esta canción", "Repetir: no"])
         self.assertEqual(
             [c.args for c in guardar.call_args_list],
             [("repetir", "todo"), ("repetir", "tema"), ("repetir", "no")])
@@ -1283,7 +1283,7 @@ class TestRepetir(unittest.TestCase):
             control.fijar_repetir("tema")
         control._coordinador.fijar_repetir.assert_called_once_with("tema")
         guardar.assert_called_once_with("repetir", "tema")
-        env.anunciar.assert_called_once_with("Repetir: este tema")
+        env.anunciar.assert_called_once_with("Repetir: esta canción")
 
 
 class TestAbrirEnlace(unittest.TestCase):
@@ -1313,14 +1313,14 @@ class TestAbrirEnlace(unittest.TestCase):
     def test_modo_final_suma_al_final(self):
         textos, titulos, _env = self._abrir("final")
         self.assertEqual(textos, ["Leyendo el enlace",
-                                  "2 temas agregados a la cola"])
+                                  "2 canciones agregadas a la cola"])
         self.assertEqual(titulos, ["X", "Uno", "Dos"])
 
     def test_modo_continuacion_mete_detras(self):
         textos, titulos, _env = self._abrir("continuacion")
         self.assertEqual(textos, [
             "Leyendo el enlace",
-            "2 temas a continuación, desde la posición 2"])
+            "2 canciones a continuación, desde la posición 2"])
         self.assertEqual(titulos, ["X", "Uno", "Dos"])
 
     def test_modo_ahora_empieza_por_el_primero(self):
@@ -1346,7 +1346,7 @@ class TestAbrirEnlace(unittest.TestCase):
             env.anunciar.reset_mock()
             control.agregar_enlace("https://youtu.be/uno")
         self.assertEqual(env.anunciar.call_args_list[-1].args[0],
-                         "2 temas agregados a la cola")
+                         "2 canciones agregadas a la cola")
         self.assertEqual([t.titulo for t in control.estado().cola],
                          ["X", "Uno", "Dos"])
 
@@ -1388,7 +1388,7 @@ class TestListasPropias(unittest.TestCase):
                     mock.patch.object(musica_listas_propias.paths, "listas_musica",
                                       return_value=self._carpeta(tmp)):
                 ControlMusica(_frame()).guardar_cola_como_lista("Rock")
-        env.anunciar.assert_called_once_with("No hay temas en la cola")
+        env.anunciar.assert_called_once_with("No hay canciones en la cola")
 
     def test_agregar_y_quitar_de_lista(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -1406,7 +1406,7 @@ class TestListasPropias(unittest.TestCase):
                 quitado = env.anunciar.call_args.args[0]
                 restantes, _saltadas = listas.cargar(carpeta, "Rock")
         self.assertEqual(textos, ["Agregado a la lista Rock"])
-        self.assertEqual(quitado, "Tema quitado de la lista")
+        self.assertEqual(quitado, "Canción quitada de la lista")
         self.assertEqual([t.titulo for t in restantes], ["B"])
 
     def test_crear_renombrar_borrar_y_leer(self):
@@ -1456,9 +1456,9 @@ class TestSnapshotMusica(unittest.TestCase):
         from ytchat.ui import gui
         frame = self._frame()
         frame._musica = mock.Mock()
-        frame._musica.texto_estado.return_value = "Música: A, tema 1 de 2"
+        frame._musica.texto_estado.return_value = "Música: A, canción 1 de 2"
         snap = gui.YTChatFrame._snapshot_sesion(frame)
-        self.assertEqual(snap.musica, "Música: A, tema 1 de 2")
+        self.assertEqual(snap.musica, "Música: A, canción 1 de 2")
 
     def test_sin_motor_o_con_fallo_da_vacio(self):
         from ytchat.ui import gui
@@ -1485,12 +1485,12 @@ class TestTextoEstado(unittest.TestCase):
         with _entorno():
             control = ControlMusica(_frame())
             control.reproducir_temas(temas, en_orden=True)
-            self.assertEqual(control.texto_estado(), "Música: A, tema 1 de 2")
+            self.assertEqual(control.texto_estado(), "Música: A, canción 1 de 2")
             control.siguiente()
-            self.assertEqual(control.texto_estado(), "Música: B, tema 2 de 2")
+            self.assertEqual(control.texto_estado(), "Música: B, canción 2 de 2")
             control.reproducir_o_pausar()
             self.assertEqual(control.texto_estado(),
-                             "Música en pausa: B, tema 2 de 2")
+                             "Música en pausa: B, canción 2 de 2")
             control.detener()
         self.assertEqual(control.texto_estado(), "")
 
@@ -1499,14 +1499,14 @@ class TestTextoEstado(unittest.TestCase):
         with _entorno():
             control = ControlMusica(_frame(musica_decir="titulo_artista"))
             control.reproducir_temas(temas)
-        self.assertEqual(control.texto_estado(), "Música: A, de Ana, tema 1 de 1")
+        self.assertEqual(control.texto_estado(), "Música: A, de Ana, canción 1 de 1")
 
     def test_texto_estado_con_nada_dice_todo(self):
         temas = [Tema("C:/m/a.mp3", "A", artista="Ana")]
         with _entorno():
             control = ControlMusica(_frame(musica_decir="nada"))
             control.reproducir_temas(temas)
-        self.assertEqual(control.texto_estado(), "Música: A, de Ana, tema 1 de 1")
+        self.assertEqual(control.texto_estado(), "Música: A, de Ana, canción 1 de 1")
 
 
 class TestGuardarMemoria(unittest.TestCase):

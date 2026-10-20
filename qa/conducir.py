@@ -1753,7 +1753,7 @@ def escenario_musica(app: Aplicacion, args, res: Resultado):
     música real no se toca: la ventana solo se abre, se audita y se cierra.
     """
     res.nota("Música: no se reproduce nada, la ventana solo se audita")
-    esperados = ("Colecciones", "Buscar en la música", "Temas",
+    esperados = ("Colecciones", "Buscar en la música", "Canciones",
                  "Mostrar la cola", "Abrir enlace", "Nueva lista",
                  "Cambiar carpeta", "Cerrar")
     auditar_dialogo(
@@ -2058,7 +2058,7 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         def _aislar(indice, esperado):
             for aguja in _agujas_unicas(indice):
                 _filtrar("Música", aguja)
-                filas = _filas_hasta("Música", "Temas", 1, 5.0)
+                filas = _filas_hasta("Música", "Canciones", 1, 5.0)
                 if filas is not None and len(filas) == 1:
                     titulo = _titulo_fila(filas[0])
                     if titulo != esperado:
@@ -2130,7 +2130,7 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         if propia.esperar_ventana("Música", segundos=15) is None:
             _corta("musica_real: «Elegir música» no abrió la ventana")
         res.nota("musica_real: abre «Música» desde el menú")
-        filas = _filas_hasta("Música", "Temas", 6, 30.0)
+        filas = _filas_hasta("Música", "Canciones", 6, 30.0)
         if filas is None or len(filas) != 6:
             _corta(f"musica_real: la lista de temas tiene "
                    f"{len(filas) if filas is not None else 'nada'} "
@@ -2144,11 +2144,11 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         # ── b. Reproducir todo: anuncia el título y se oye ──
 
         _aire()
-        filas = _filas_estables("Música", "Temas")
+        filas = _filas_estables("Música", "Canciones")
         titulo_primero = _titulo_fila(filas[0]) if filas else ""
         n = len(propia.anuncios)
-        _elegir("Música", "Temas", 0)
-        _menu_contextual("Música", "Temas",
+        _elegir("Música", "Canciones", 0)
+        _menu_contextual("Música", "Canciones",
                          "Reproducir todo desde aquí")
         anunciado = (bool(titulo_primero)
                      and propia.esperar_dicho(titulo_primero, segundos=10,
@@ -2234,14 +2234,14 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
                           "se puede probar siguiente ni anterior")
             else:
                 n = len(propia.anuncios)
-                _menu("siguiente tema")
+                _menu("siguiente canción")
                 if propia.esperar_dicho(segundo, segundos=8, desde=n):
                     res.nota(f"musica_real: siguiente anuncia «{segundo}»")
                 else:
-                    res.fallo("musica_real: «Siguiente tema» no anunció "
+                    res.fallo("musica_real: «Siguiente canción» no anunció "
                               f"«{segundo}»")
                 n = len(propia.anuncios)
-                _menu("tema anterior")
+                _menu("canción anterior")
                 reiniciado = False
                 limite = time.time() + 8
                 while time.time() < limite:
@@ -2255,16 +2255,16 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
                 if reiniciado:
                     res.nota("musica_real: anterior reinició el tema")
                     n = len(propia.anuncios)
-                    _menu("tema anterior")
+                    _menu("canción anterior")
                     if propia.esperar_dicho(primero, segundos=8, desde=n):
                         res.nota(f"musica_real: anterior anuncia «{primero}»")
                     else:
-                        res.fallo("musica_real: «Tema anterior» no anunció "
+                        res.fallo("musica_real: «Canción anterior» no anunció "
                                   f"«{primero}»")
                 elif propia.dijo(primero, desde=n):
                     res.nota(f"musica_real: anterior anuncia «{primero}»")
                 else:
-                    res.fallo("musica_real: «Tema anterior» no anunció "
+                    res.fallo("musica_real: «Canción anterior» no anunció "
                               f"«{primero}»")
 
         # ── e. Volumen: sube a 20 y vuelve a 10 ──
@@ -2359,7 +2359,7 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         _aislar(5, "06 corto QA")
         cola_antes = _filas("Música", "Cola de reproducción") or []
         n = len(propia.anuncios)
-        propia.pedir("tecla_en", ventana="Música", nombre="Temas",
+        propia.pedir("tecla_en", ventana="Música", nombre="Canciones",
                      tecla="enter", modificadores=["shift"])
         esperado = anuncios_musica.TEXTO_A_CONTINUACION.format(
             nombre="06 corto QA")
@@ -2374,9 +2374,9 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
             res.nota("musica_real: el corto queda justo detrás del actual")
         que_seguia = _titulo_fila(cola[2]) if len(cola) > 2 else ""
         n = len(propia.anuncios)
-        _menu("siguiente tema")
+        _menu("siguiente canción")
         if not propia.esperar_dicho("06 corto QA", segundos=10, desde=n):
-            res.fallo("musica_real: «Siguiente tema» no anunció el corto")
+            res.fallo("musica_real: «Siguiente canción» no anunció el corto")
         elif que_seguia and propia.esperar_dicho(que_seguia, segundos=15,
                                                     desde=n):
             res.nota(f"musica_real: el corto sonó y avanzó solo "
@@ -2385,19 +2385,19 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
             res.fallo("musica_real: el corto no avanzó solo al tema que "
                       f"seguía («{que_seguia}»)")
         _filtrar("Música", "")
-        if _filas_hasta("Música", "Temas", 6, 10.0) is None:
+        if _filas_hasta("Música", "Canciones", 6, 10.0) is None:
             _corta("musica_real: al limpiar el buscador no vuelven los 6")
 
         # ── i. El quinto a la cola ──
 
         _aire()
-        filas = _filas_estables("Música", "Temas") or []
+        filas = _filas_estables("Música", "Canciones") or []
         if len(filas) != 6:
             _corta("musica_real: la lista de temas no tiene 6 elementos")
         quinto = _titulo_fila(filas[4])
         _aislar(4, quinto)
         cola_antes = _filas("Música", "Cola de reproducción") or []
-        propia.pedir("tecla_en", ventana="Música", nombre="Temas",
+        propia.pedir("tecla_en", ventana="Música", nombre="Canciones",
                      tecla="enter", modificadores=["ctrl"])
         cola = _filas("Música", "Cola de reproducción") or []
         if (len(cola) != len(cola_antes) + 1
@@ -2407,12 +2407,12 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         else:
             res.nota("musica_real: el quinto se agrega al final de la cola")
         _filtrar("Música", "")
-        _filas_hasta("Música", "Temas", 6, 10.0)
+        _filas_hasta("Música", "Canciones", 6, 10.0)
 
         # ── j. Reproducir ahora el tercero ──
 
         _aire()
-        filas = _filas_estables("Música", "Temas") or []
+        filas = _filas_estables("Música", "Canciones") or []
         if len(filas) != 6:
             _corta("musica_real: la lista de temas no tiene 6 elementos")
         tercero = _titulo_fila(filas[2])
@@ -2427,8 +2427,8 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         # la lista de temas y la Cola quedaban mudas con el teclado de
         # Windows porque el diálogo se comía la tecla antes del control.
         try:
-            propia.pedir("foco", ventana="Música", nombre="Temas")
-            _elegir("Música", "Temas", 2)
+            propia.pedir("foco", ventana="Música", nombre="Canciones")
+            _elegir("Música", "Canciones", 2)
             propia.teclas("enter")
         except VentanaNoActiva as exc:
             res.no_probado("musica_real: «Reproducir ahora» no se pudo probar "
@@ -2508,14 +2508,14 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
                     res.nota("musica_real: la cola se guarda como lista "
                              f"con {cantidad_cola} entradas")
         # Agregar un tema de la biblioteca a la lista recién guardada, con
-        # el submenú del menú de «Temas».
+        # el submenú del menú de «Canciones».
         _elegir("Música", "Colecciones", 0)
-        if _filas_hasta("Música", "Temas", 6, 10.0) is None:
+        if _filas_hasta("Música", "Canciones", 6, 10.0) is None:
             _corta("musica_real: la biblioteca no mostró 6 temas para "
                    "agregar a la lista")
-        _elegir("Música", "Temas", 0)
+        _elegir("Música", "Canciones", 0)
         n = len(propia.anuncios)
-        _menu_contextual("Música", "Temas",
+        _menu_contextual("Música", "Canciones",
                          f"Agregar a una lista > {_NOMBRE_LISTA}")
         esperado = anuncios_musica.TEXTO_AGREGADO_A_LISTA.format(
             nombre=_NOMBRE_LISTA)
@@ -2570,10 +2570,10 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
             _corta(f"musica_real: «Colecciones» ofrece {elegidas} en vez "
                    f"de {esperadas}")
         _elegir("Música", "Colecciones", 1)
-        filas = _filas_hasta("Música", "Temas", cantidad_lista, 10.0)
+        filas = _filas_hasta("Música", "Canciones", cantidad_lista, 10.0)
         if filas is None or len(filas) != cantidad_lista:
             _corta("musica_real: la lista no trajo "
-                   f"{cantidad_lista} temas a «Temas»")
+                   f"{cantidad_lista} temas a «Canciones»")
         # El Intro de verdad, como en el paso j, en lugar del menú
         # contextual: reproduce la lista elegida en «Colecciones».
         try:
@@ -2604,7 +2604,7 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
                 res.nota("musica_real: la lista suena con sus "
                          f"{cantidad_lista} entradas")
         _elegir("Música", "Colecciones", 0)
-        if _filas_hasta("Música", "Temas", 6, 10.0) is None:
+        if _filas_hasta("Música", "Canciones", 6, 10.0) is None:
             _corta("musica_real: al volver a la carpeta no aparecen 6 temas")
 
         # ── l. Agregar el enlace del vídeo: se oye ──

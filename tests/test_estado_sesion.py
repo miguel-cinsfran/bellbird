@@ -271,11 +271,11 @@ class TestMusica(unittest.TestCase):
         self.assertEqual(ETIQUETAS["musica"], "Música que suena")
 
     def test_se_dibuja_con_dato(self):
-        s = SnapshotSesion(musica="Música: Tema 2, tema 2 de 5")
+        s = SnapshotSesion(musica="Música: Tema 2, canción 2 de 5")
         self.assertEqual(formatear_estado(s, {"musica"}),
-                         "Música: Tema 2, tema 2 de 5.")
+                         "Música: Tema 2, canción 2 de 5.")
         self.assertEqual(formatear_estado(s, {"musica"}, "largo"),
-                         "Música: Tema 2, tema 2 de 5")
+                         "Música: Tema 2, canción 2 de 5")
 
     def test_vacio_no_aparece(self):
         self.assertEqual(formatear_estado(SnapshotSesion(musica=""), {"musica"}), "")

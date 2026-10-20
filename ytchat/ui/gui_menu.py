@@ -232,9 +232,9 @@ def _construir_menu_musica(frame, mb):
     frame.mi_musica_play = m.Append(
         wx.ID_ANY, "Reproducir o &pausar" + frame._accel("musica_play"))
     frame.mi_musica_siguiente = m.Append(
-        wx.ID_ANY, "&Siguiente tema" + frame._accel("musica_siguiente"))
+        wx.ID_ANY, "&Siguiente canción" + frame._accel("musica_siguiente"))
     frame.mi_musica_anterior = m.Append(
-        wx.ID_ANY, "Tema &anterior" + frame._accel("musica_anterior"))
+        wx.ID_ANY, "Canción &anterior" + frame._accel("musica_anterior"))
     frame.mi_musica_vol_mas = m.Append(
         wx.ID_ANY, "Subir el &volumen" + frame._accel("musica_vol_mas"))
     frame.mi_musica_vol_menos = m.Append(

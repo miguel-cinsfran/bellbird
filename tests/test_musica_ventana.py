@@ -211,7 +211,7 @@ class TestVentanaMusica(unittest.TestCase):
             if isinstance(control, (wx.TextCtrl, wx.Choice, wx.ListBox,
                                     wx.Button))]
         self.assertEqual([control.GetName() for control in interactivos], [
-            "Colecciones", "Buscar en la música", "Temas",
+            "Colecciones", "Buscar en la música", "Canciones",
             "Mostrar la cola", "Cola de reproducción",
             "Igualación del volumen", "Abrir enlace",
             "Nueva lista", "Cambiar carpeta", "Cerrar"])
@@ -224,7 +224,7 @@ class TestVentanaMusica(unittest.TestCase):
             control for control in self._panel().GetChildren()
             if isinstance(control, (wx.TextCtrl, wx.ListBox, wx.Button))]
         self.assertEqual([control.GetName() for control in interactivos], [
-            "Colecciones", "Buscar en la música", "Temas",
+            "Colecciones", "Buscar en la música", "Canciones",
             "Ocultar la cola", "Cola de reproducción",
             "Igualación del volumen", "Abrir enlace",
             "Nueva lista", "Cambiar carpeta", "Cerrar"])
@@ -243,7 +243,7 @@ class TestVentanaMusica(unittest.TestCase):
         etiquetas = [
             control.GetLabel() for control in self._panel().GetChildren()
             if isinstance(control, wx.StaticText)]
-        for esperado in ("Co&lecciones:", "&Buscar:", "&Temas:"):
+        for esperado in ("Co&lecciones:", "&Buscar:", "C&anciones:"):
             self.assertIn(esperado, etiquetas)
         for ausente in ("&Mostrar:", "C&ola:"):
             self.assertNotIn(ausente, etiquetas)
@@ -584,7 +584,7 @@ class TestVentanaMusica(unittest.TestCase):
         foco.assert_called_once_with()
         self.assertEqual(self.ventana.btn_cola.GetLabel(),
                          "Ocultar la c&ola")
-        self.assertIn("Cola visible, 5 temas", self.anuncios)
+        self.assertIn("Cola visible, 5 canciones", self.anuncios)
         self.assertIn(("recordar_cola_visible", True), control.llamadas)
 
     def test_el_boton_muestra_un_tema_en_singular(self):
@@ -593,7 +593,7 @@ class TestVentanaMusica(unittest.TestCase):
         self._abrir(control)
         with mock.patch.object(self.ventana.lb_cola, "SetFocus"):
             self.ventana._alternar_cola()
-        self.assertIn("Cola visible, 1 tema", self.anuncios)
+        self.assertIn("Cola visible, 1 canción", self.anuncios)
 
     def test_el_boton_muestra_la_cola_vacia(self):
         self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock")))
@@ -743,7 +743,7 @@ class TestVentanaMusica(unittest.TestCase):
         self.ventana.txt_buscar.SetValue("jaz")
         self.ventana._al_filtrar(Evento())
         self.ventana._avisar_coincidencias()
-        self.assertIn("1 tema coincide", self.anuncios)
+        self.assertIn("1 canción coincide", self.anuncios)
 
     # ── Menús ──────────────────────────────────────────────────────────────
 
@@ -1092,7 +1092,7 @@ class TestDialogoEditorLista(unittest.TestCase):
         for etiqueta, control in (
                 ("&Nombre:", self.dialogo.txt_nombre),
                 ("&Buscar:", self.dialogo.txt_buscar),
-                ("&Temas:", self.dialogo.lb_temas)):
+                ("C&anciones:", self.dialogo.lb_temas)):
             with self.subTest(etiqueta=etiqueta):
                 posicion = hijos.index(control)
                 self.assertGreater(posicion, 0)

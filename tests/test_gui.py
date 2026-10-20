@@ -1415,7 +1415,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
         self.assertEqual(textos.index("Música"), textos.index("Reproductor") + 1)
         pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagMusica")
         esperados = ["Carpeta de música", "MusicaAleatorio", "Repetir la música",
-                     "MusicaRetomar", "MusicaSonidoTema", "Qué decir al pasar de tema",
+                     "MusicaRetomar", "MusicaSonidoTema", "Qué decir al pasar de canción",
                      "MusicaDecirPausa", "Volumen de la música",
                      "Salida de audio de la música", "Buscar las salidas de audio",
                      "MusicaAtajosGlobales"]
@@ -1435,8 +1435,8 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             "Reproducir en orden &aleatorio",
             "&Repetir:",
             "Recordar la ú&ltima lista al abrir",
-            "&Sonido al pasar de tema",
-            "&Decir al pasar de tema:",
+            "&Sonido al pasar de canción",
+            "&Decir al pasar de canción:",
             "A&nunciar la pausa, la reanudación y la vuelta al comienzo",
             "&Volumen de la música",
             "&Igualar el volumen de las canciones",

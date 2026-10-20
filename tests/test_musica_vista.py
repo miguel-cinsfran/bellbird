@@ -136,31 +136,31 @@ class TestTextoResumen(unittest.TestCase):
 
     def test_sin_busqueda(self):
         self.assertEqual(vista.texto_resumen(120, 120, False),
-                         "120 temas en la carpeta")
+                         "120 canciones en la carpeta")
 
     def test_sin_busqueda_singular(self):
         self.assertEqual(vista.texto_resumen(1, 1, False),
-                         "1 tema en la carpeta")
+                         "1 canción en la carpeta")
 
     def test_sin_busqueda_cero(self):
         self.assertEqual(vista.texto_resumen(0, 0, False),
-                         "0 temas en la carpeta")
+                         "0 canciones en la carpeta")
 
     def test_buscando(self):
         self.assertEqual(vista.texto_resumen(120, 8, True),
-                         "8 de 120 temas")
+                         "8 de 120 canciones")
 
     def test_buscando_singular_total(self):
         self.assertEqual(vista.texto_resumen(1, 1, True),
-                         "1 de 1 tema")
+                         "1 de 1 canción")
 
     def test_buscando_un_resultado_de_muchos(self):
         self.assertEqual(vista.texto_resumen(120, 1, True),
-                         "1 de 120 temas")
+                         "1 de 120 canciones")
 
     def test_buscando_sin_resultados(self):
         self.assertEqual(vista.texto_resumen(120, 0, True),
-                         "0 de 120 temas")
+                         "0 de 120 canciones")
 
 
 class TestFilasColecciones(unittest.TestCase):
@@ -210,10 +210,10 @@ class TestTextoColaVisible(unittest.TestCase):
         self.assertEqual(vista.texto_cola_visible(0), "Cola visible, vacía")
 
     def test_un_tema(self):
-        self.assertEqual(vista.texto_cola_visible(1), "Cola visible, 1 tema")
+        self.assertEqual(vista.texto_cola_visible(1), "Cola visible, 1 canción")
 
     def test_varios(self):
-        self.assertEqual(vista.texto_cola_visible(5), "Cola visible, 5 temas")
+        self.assertEqual(vista.texto_cola_visible(5), "Cola visible, 5 canciones")
 
     def test_negativo_cuenta_como_vacia(self):
         self.assertEqual(vista.texto_cola_visible(-1), "Cola visible, vacía")
@@ -267,17 +267,17 @@ class TestFiltroDeListas(unittest.TestCase):
 class TestTextoCoincidencias(unittest.TestCase):
 
     def test_ninguno(self):
-        self.assertEqual(vista.texto_coincidencias(0), "Ningún tema coincide")
+        self.assertEqual(vista.texto_coincidencias(0), "Ninguna canción coincide")
 
     def test_uno(self):
-        self.assertEqual(vista.texto_coincidencias(1), "1 tema coincide")
+        self.assertEqual(vista.texto_coincidencias(1), "1 canción coincide")
 
     def test_varios(self):
-        self.assertEqual(vista.texto_coincidencias(8), "8 temas coinciden")
+        self.assertEqual(vista.texto_coincidencias(8), "8 canciones coinciden")
 
     def test_negativo_cuenta_como_ninguno(self):
         self.assertEqual(vista.texto_coincidencias(-1),
-                         "Ningún tema coincide")
+                         "Ninguna canción coincide")
 
 
 class TestIndiceTrasRefrescar(unittest.TestCase):
@@ -327,7 +327,7 @@ class TestAyudas(unittest.TestCase):
     def test_buscar(self):
         self.assertEqual(
             vista.ayuda_buscar(),
-            "Escribe para filtrar, flecha abajo va a los temas, "
+            "Escribe para filtrar, flecha abajo va a las canciones, "
             "Escape borra la búsqueda")
 
 

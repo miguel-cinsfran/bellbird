@@ -57,7 +57,7 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
         self.lb_colecciones.SetMinSize((220, 190))
         _pintar(self.lb_colecciones, _T.surface, _T.text)
         self.txt_buscar = self._campo(panel, "Buscar en la música")
-        self.lb_temas = self._lista(panel, "Temas", 190)
+        self.lb_temas = self._lista(panel, "Canciones", 190)
         self.btn_cola = self._boton(
             panel, "Mostrar la c&ola", "Mostrar la cola")
         self.lb_cola = self._lista(panel, "Cola de reproducción", 160)
@@ -86,7 +86,7 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
                         wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 8)
         fila_buscar.Add(self.txt_buscar, 1, wx.EXPAND)
         derecha.Add(fila_buscar, 0, wx.EXPAND | wx.BOTTOM, 8)
-        derecha.Add(wx.StaticText(panel, label="&Temas:"), 0, wx.BOTTOM, 8)
+        derecha.Add(wx.StaticText(panel, label="C&anciones:"), 0, wx.BOTTOM, 8)
         derecha.Add(self.lb_temas, 1, wx.EXPAND)
         arriba.Add(izquierda, 0, wx.EXPAND | wx.RIGHT, 8)
         arriba.Add(derecha, 1, wx.EXPAND)

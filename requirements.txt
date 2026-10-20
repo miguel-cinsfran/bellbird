@@ -8,8 +8,8 @@
 # Captura del chat en vivo de YouTube (InnerTube API)
 pytchat>=0.5.5
 
-# Interfaz gráfica accesible
-wxPython>=4.2.2
+# Interfaz gráfica accesible: fijado en 4.3.1 porque 4.3.2 deja de crear diálogos tras muchos en la suite (20/10/2026).
+wxPython==4.3.1
 
 # Puente con NVDA, JAWS y otros lectores de pantalla.
 # Va acotado porque es versión 0.x y su API puede cambiar.

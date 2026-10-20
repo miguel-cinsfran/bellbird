@@ -372,6 +372,10 @@ def _ayuda() -> argparse.ArgumentParser:
     parser.add_argument("--timeout-fin", type=int, default=90,
                         help="segundos esperando «Transmisión detenida» "
                              "(por defecto 90)")
+    parser.add_argument("--corte", type=int, default=0,
+                        help="segundos de corte de red tras escribir desde "
+                             "la app, con la tarea BellbirdCorteRed ya "
+                             "lanzada (0 sin corte, tope 30)")
     return parser
 
 
@@ -1333,6 +1337,60 @@ def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
                    f"«{faltante}» no apareció en 30 s "
                    f"({_detalle_lista_chat(leidos)})")
             return (salida, 1)
+        from directo_chat import (comprobar_sin_repetidos,
+                                  escribir_desde_app, esperar_reconexion,
+                                  leer_despues, limitar_corte, paso_corte)
+
+        def _respuesta_chat():
+            return cliente._escritura().liveChatMessages().list(
+                liveChatId=id_chat, part="snippet",
+                maxResults=200).execute()
+
+        texto_app = "Prueba desde la app " + time.strftime("%H:%M:%S")
+        marca_envio = len(_leer_anuncios(ruta_anuncios))
+        bien, detalle = escribir_desde_app(
+            principal, texto_app, ruta_anuncios, marca_envio, _leer_anuncios,
+            _esperar_anuncio, _control, _respuesta_chat)
+        _guardar_token_si_renovo(cliente, creds)
+        anotar("escribir desde la app", bien, detalle)
+        if not bien:
+            return (salida, 1)
+        corte = limitar_corte(args.corte)
+        if corte:
+            bien, detalle, marca_corte = paso_corte(
+                corte, ruta_anuncios, _leer_anuncios)
+            anotar("corte de red", bien, detalle)
+            if not bien:
+                return (salida, 1)
+            bien, detalle = esperar_reconexion(
+                ruta_anuncios, marca_corte, corte, _leer_anuncios)
+            anotar("reconexión del chat", bien, detalle)
+            if not bien:
+                return (salida, 1)
+            texto_despues = ("Comentario después del corte "
+                             + time.strftime("%H:%M:%S"))
+            bien, detalle = leer_despues(
+                cliente, id_chat, ruta_chat, texto_despues,
+                _comentario_faltante, _detalle_lista_chat)
+            _guardar_token_si_renovo(cliente, creds)
+            anotar("leer después del corte", bien, detalle)
+            if not bien:
+                return (salida, 1)
+            texto_app2 = ("Prueba desde la app tras el corte "
+                          + time.strftime("%H:%M:%S"))
+            marca_envio2 = len(_leer_anuncios(ruta_anuncios))
+            bien, detalle = escribir_desde_app(
+                principal, texto_app2, ruta_anuncios, marca_envio2,
+                _leer_anuncios, _esperar_anuncio, _control, _respuesta_chat)
+            _guardar_token_si_renovo(cliente, creds)
+            anotar("escribir después del corte", bien, detalle)
+            if not bien:
+                return (salida, 1)
+            bien, detalle = comprobar_sin_repetidos(
+                ruta_chat, COMENTARIOS_PRUEBA)
+            anotar("sin repetidos", bien, detalle)
+            if not bien:
+                return (salida, 1)
         time.sleep(max(0, args.duracion))
         anotar("directo al aire", True, f"{args.duracion} s")
 

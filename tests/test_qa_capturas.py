@@ -7,11 +7,16 @@ advisor en la otra PC; acá NO se corre.
 """
 
 import importlib.util
+import json
+import os
+import subprocess
+import sys
 import unittest
 from pathlib import Path
 from unittest import mock
 
 _QA = Path(__file__).resolve().parent.parent / "qa"
+_RAIZ = _QA.parent
 
 
 def _cargar(nombre, archivo):
@@ -180,6 +185,25 @@ class TestArgumentosCapturas(unittest.TestCase):
 class TestCapturaWx(unittest.TestCase):
     """Captura de verdad sobre un `wx.Frame`. La corre el advisor."""
 
+    # Va en otro proceso porque importar conducir.py (COM del medidor) deja en negro el PrintWindow de este.
+    _GUIA_HIJO = "\n".join([
+        "import json",
+        "import sys",
+        "import wx",
+        "import sonda",
+        "destino = sys.argv[1]",
+        "app = wx.App()",
+        "marco = wx.Frame(None, title='Prueba de captura', size=(160, 120))",
+        "panel = wx.Panel(marco)",
+        "panel.SetBackgroundColour(wx.Colour(11, 22, 33))",
+        "marco.ShowWithoutActivating()",
+        "sonda._dejar_pintar(marco)",
+        "ancho, alto = sonda._guardar_png(marco, destino)",
+        "tam = marco.GetSize()",
+        "print(json.dumps({'marco': [tam.GetWidth(), tam.GetHeight()],"
+        " 'devuelto': [ancho, alto]}))",
+    ])
+
     @classmethod
     def setUpClass(cls):
         try:
@@ -187,42 +211,49 @@ class TestCapturaWx(unittest.TestCase):
         except ImportError:
             raise unittest.SkipTest("sin wx en esta PC")
         cls.wx = _wx
-        cls.sonda = _cargar("sonda_qa", "sonda.py")
-        app = _wx.App()
-        cls.app = app
-        marco = _wx.Frame(None, title="Prueba de captura",
-                          size=(160, 120))
-        panel = _wx.Panel(marco)
-        panel.SetBackgroundColour(_wx.Colour(11, 22, 33))
-        marco.ShowWithoutActivating()
-        cls.sonda._dejar_pintar(marco)
-        cls.marco = marco
+        cls.app = _wx.App()
 
-    @classmethod
-    def tearDownClass(cls):
+    def _capturar_en_hijo(self, destino):
+        entorno = dict(os.environ)
+        anterior = entorno.get("PYTHONPATH", "")
+        entorno["PYTHONPATH"] = (str(_QA) + os.pathsep + anterior
+                                 if anterior else str(_QA))
         try:
-            cls.marco.Destroy()
-        except Exception:
-            pass
+            proc = subprocess.run(
+                [sys.executable, "-c", self._GUIA_HIJO, str(destino)],
+                cwd=str(_RAIZ), env=entorno, capture_output=True,
+                text=True, timeout=60)
+        except subprocess.TimeoutExpired as exc:
+            self.fail(f"el hijo no terminó en 60 s: {exc}")
+        if proc.returncode != 0:
+            self.fail(f"el hijo falló: {proc.stderr.strip()}")
+        lineas = [l for l in proc.stdout.splitlines() if l.strip()]
+        try:
+            datos = json.loads(lineas[-1])
+            marco = datos["marco"]
+            devuelto = datos["devuelto"]
+        except (IndexError, ValueError, KeyError, TypeError) as exc:
+            self.fail(f"salida inválida del hijo {exc!r}: "
+                      f"{proc.stdout.strip()} {proc.stderr.strip()}")
+        return marco[0], marco[1], devuelto[0], devuelto[1]
 
     def test_el_png_existe_y_mide_lo_mismo(self):
         import tempfile
         with tempfile.TemporaryDirectory() as base:
             destino = Path(base) / "prueba.png"
-            ancho, alto = self.sonda._guardar_png(self.marco, destino)
+            marco_ancho, marco_alto, ancho, alto = self._capturar_en_hijo(
+                destino)
             self.assertTrue(destino.is_file())
             imagen = self.wx.Image(str(destino))
             self.assertEqual((imagen.GetWidth(), imagen.GetHeight()),
                              (ancho, alto))
-            esperado = self.marco.GetSize()
-            self.assertEqual((ancho, alto),
-                             (esperado.GetWidth(), esperado.GetHeight()))
+            self.assertEqual((ancho, alto), (marco_ancho, marco_alto))
 
     def test_el_centro_tiene_el_color_del_panel(self):
         import tempfile
         with tempfile.TemporaryDirectory() as base:
             destino = Path(base) / "prueba.png"
-            ancho, alto = self.sonda._guardar_png(self.marco, destino)
+            _, _, ancho, alto = self._capturar_en_hijo(destino)
             imagen = self.wx.Image(str(destino))
             rojo = imagen.GetRed(ancho // 2, alto // 2)
             verde = imagen.GetGreen(ancho // 2, alto // 2)

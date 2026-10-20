@@ -87,7 +87,7 @@ comando: reproducir, pausar, siguiente, anterior, volumen, qué suena,
 orden aleatorio, a continuación, cola, listas guardadas y los dos enlaces
 de YouTube. Comprueba con el medidor de sonido de Windows
 (`qa/medidor_sonido.py`) que el sonido de verdad empieza, se pausa, sigue
-y se detiene. No entra en la corrida completa: suena, usa la red y cambia
+y se detiene. Con la música sonando prueba los atajos globales: activa la casilla desde Preferencias, manda Ctrl+Alt+Espacio de verdad con una ventana ajena al frente y comprueba que pausa y reanuda sin robarle el foco ni escribirle, y que con la casilla apagada el atajo no hace nada. No entra en la corrida completa: suena, usa la red y cambia
 la configuración mientras corre.
 
     python qa/conducir.py --escenario musica_real

@@ -1946,6 +1946,7 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
             ("musica", "repetir", "false"),
             ("musica", "retomar", "false"),
             ("musica", "decir", "titulo"),
+            ("musica", "decir_pausa", "true"),
             ("musica", "sonido_tema", "true"),
             ("musica", "mostrar_cola", "false"),
             ("musica", "atajos_globales", "false"),
@@ -2326,6 +2327,11 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
                     res.fallo("musica_real: «Qué suena» dijo "
                               f"«{fragmento_titulo}» y «{fragmento_tema}» "
                               "pero nunca en el mismo anuncio")
+
+        # ── f2. Atajos globales con otra ventana al frente ──
+
+        import musica_globales
+        musica_globales.probar_atajos_globales(propia, res, tmp_respaldo)
 
         # ── g. Orden aleatorio dos veces ──
 

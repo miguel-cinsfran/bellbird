@@ -148,6 +148,18 @@ class TestAvisoAccion(unittest.TestCase):
         self.assertEqual(aviso.texto, "Desde el comienzo")
         self.assertIsNone(aviso.sonido)
 
+    def test_reinicio_con_decir_pausa_en_falso_calla(self):
+        r = _resultado(REINICIADO, cola=[_tema(1)], posicion=0)
+        aviso = anuncios.aviso_accion("anterior", r, False, False)
+        self.assertEqual(aviso.texto, "")
+        self.assertIsNone(aviso.sonido)
+
+    def test_reinicio_con_decir_pausa_en_verdadero_avisa(self):
+        r = _resultado(REINICIADO, cola=[_tema(1)], posicion=0)
+        aviso = anuncios.aviso_accion("anterior", r, False, True)
+        self.assertEqual(aviso.texto, anuncios.TEXTO_REINICIADO)
+        self.assertIsNone(aviso.sonido)
+
     def test_pausa_ok_en_pausa(self):
         r = _resultado(OK, cola=[_tema(1)], posicion=0, pausado=True)
         self.assertEqual(anuncios.aviso_accion("pausa", r, False).texto,

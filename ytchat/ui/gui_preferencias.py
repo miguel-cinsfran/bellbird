@@ -723,7 +723,7 @@ class PreferenciasDialog(wx.Dialog):
         _tc(self.cho_musica_decir)
         vs.Add(self.cho_musica_decir, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.chk_musica_decir_pausa = wx.CheckBox(
-            p, label="A&nunciar la pausa y la reanudación",
+            p, label="A&nunciar la pausa, la reanudación y la vuelta al comienzo",
             name="MusicaDecirPausa")
         self.chk_musica_decir_pausa.SetForegroundColour(_T.text)
         vs.Add(self.chk_musica_decir_pausa, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)

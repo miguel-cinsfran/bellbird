@@ -1436,7 +1436,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             "Recordar la ú&ltima lista al abrir",
             "&Sonido al pasar de tema",
             "&Decir al pasar de tema:",
-            "A&nunciar la pausa y la reanudación",
+            "A&nunciar la pausa, la reanudación y la vuelta al comienzo",
             "&Volumen de la música",
             "Salida de a&udio de la música",
             "&Buscar las salidas de audio",

@@ -174,7 +174,7 @@ def aviso_accion(accion: str, resultado, incluir_artista: bool,
     if codigo == INICIO_LISTA and accion == "anterior":
         return Aviso(TEXTO_PRIMERO)
     if codigo == REINICIADO and accion == "anterior":
-        return Aviso(TEXTO_REINICIADO)
+        return Aviso(TEXTO_REINICIADO if decir_pausa else "")
     if codigo == OK:
         if accion in ("siguiente", "anterior", "reproducir"):
             return Aviso(_nombre(resultado, incluir_artista, modo))

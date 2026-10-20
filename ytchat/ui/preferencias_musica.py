@@ -1,8 +1,7 @@
 """Página Música del diálogo de Preferencias.
 
-Mezcla sin estado propio: los controles y la tabla de opciones siguen en
-`gui_preferencias`, que hereda de acá. Se separó porque ese módulo no
-puede crecer y la página necesitaba una casilla más.
+Mezcla sin estado propio: `gui_preferencias` hereda de acá. Se separó
+porque ese módulo no puede crecer y la página necesitaba una casilla más.
 """
 
 from __future__ import annotations
@@ -14,6 +13,19 @@ from ytchat.core import config as cfg
 from ytchat.ui import opciones_musica
 from ytchat.ui.gui import ContadorAccesible, anunciar, nombre_accesible
 from ytchat.ui.gui_descargas import nombrar_selector_carpeta
+
+
+# Filas de música de `_OPCIONES_SIMPLES` en `gui_preferencias`: misma tabla, mismo orden.
+OPCIONES_MUSICA = (
+    ("chk_musica_aleatorio", "musica", "aleatorio", "musica_aleatorio", bool, False),
+    ("chk_musica_repetir", "musica", "repetir", "musica_repetir", str, "no"),
+    ("chk_musica_retomar", "musica", "retomar", "musica_retomar", bool, True),
+    ("chk_musica_sonido_tema", "musica", "sonido_tema", "musica_sonido_tema", bool, True),
+    ("cho_musica_decir", "musica", "decir", "musica_decir", str, "titulo"),
+    ("chk_musica_decir_pausa", "musica", "decir_pausa", "musica_decir_pausa", bool, True),
+    ("sp_musica_volumen", "musica", "volumen", "musica_volumen", int, 50),
+    ("chk_musica_atajos_globales", "musica", "atajos_globales", "musica_atajos_globales", bool, False),
+)
 
 
 class PaginaMusica:

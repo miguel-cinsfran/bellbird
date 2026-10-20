@@ -32,7 +32,7 @@ from ytchat.youtube import credenciales
 from ytchat.youtube import youtube_api
 from ytchat.core.config import APP_NAME
 from ytchat.ui.gui import ContadorAccesible, anunciar, caja_de_grupo, nombre_accesible
-from ytchat.ui.preferencias_musica import PaginaMusica
+from ytchat.ui.preferencias_musica import OPCIONES_MUSICA, PaginaMusica
 from ytchat.obs.obs_panel import GestorPanelObs
 
 logger = diagnostico.obtener_logger(__name__)
@@ -146,15 +146,7 @@ _OPCIONES_SIMPLES = (
     ("chk_registro_detallado", "diagnostico", "registro_detallado", "registro_detallado", bool, False),
     ("sp_puerto_overlay", "overlay", "puerto", "overlay_puerto", int, 8730),
     ("chk_avisar_sobrecarga", "transmision", "avisar_sobrecarga", "avisar_sobrecarga", bool, True),
-    ("chk_musica_aleatorio", "musica", "aleatorio", "musica_aleatorio", bool, False),
-    ("chk_musica_repetir", "musica", "repetir", "musica_repetir", str, "no"),
-    ("chk_musica_retomar", "musica", "retomar", "musica_retomar", bool, True),
-    ("chk_musica_sonido_tema", "musica", "sonido_tema", "musica_sonido_tema", bool, True),
-    ("cho_musica_decir", "musica", "decir", "musica_decir", str, "titulo"),
-    ("chk_musica_decir_pausa", "musica", "decir_pausa", "musica_decir_pausa", bool, True),
-    ("sp_musica_volumen", "musica", "volumen", "musica_volumen", int, 50),
-    ("chk_musica_atajos_globales", "musica", "atajos_globales", "musica_atajos_globales", bool, False),
-)
+) + OPCIONES_MUSICA
 
 
 # ── Captura de atajos (pulsar en vez de escribir) ─────────────────────────────

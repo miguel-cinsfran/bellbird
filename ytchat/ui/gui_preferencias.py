@@ -18,7 +18,7 @@ import webbrowser
 
 import wx
 
-from ytchat.core import diagnostico
+from ytchat.core import diagnostico, musica_decir
 from ytchat.core import config as cfg
 from ytchat.core import paths
 from ytchat.core import preferencias_archivo
@@ -151,8 +151,8 @@ _OPCIONES_SIMPLES = (
     ("chk_musica_repetir", "musica", "repetir", "musica_repetir", str, "no"),
     ("chk_musica_retomar", "musica", "retomar", "musica_retomar", bool, True),
     ("chk_musica_sonido_tema", "musica", "sonido_tema", "musica_sonido_tema", bool, True),
-    ("chk_musica_decir_titulo", "musica", "decir_titulo", "musica_decir_titulo", bool, True),
-    ("chk_musica_incluir_artista", "musica", "incluir_artista", "musica_incluir_artista", bool, False),
+    ("cho_musica_decir", "musica", "decir", "musica_decir", str, "titulo"),
+    ("chk_musica_decir_pausa", "musica", "decir_pausa", "musica_decir_pausa", bool, True),
     ("sp_musica_volumen", "musica", "volumen", "musica_volumen", int, 50),
     ("chk_musica_atajos_globales", "musica", "atajos_globales", "musica_atajos_globales", bool, False),
 )
@@ -279,8 +279,6 @@ class PreferenciasDialog(wx.Dialog):
         # se decidió en `_build_ui` con el valor viejo del control; se recalcula
         # aquí, ya con el valor cargado.
         self.cho_voz_eventos.Enable(bool(self._voces) and self.chk_multivoz.GetValue())
-        self.chk_musica_incluir_artista.Enable(
-            self.chk_musica_decir_titulo.GetValue())
 
     def _make_panel(self, parent, name):
         # Página desplazable (solo vertical): la de Atajos mide más de 1200 px
@@ -717,23 +715,18 @@ class PreferenciasDialog(wx.Dialog):
         self.chk_musica_sonido_tema.SetForegroundColour(_T.text)
         vs.Add(self.chk_musica_sonido_tema, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        self.chk_musica_decir_titulo = wx.CheckBox(
-            p, label="&Decir el título al pasar de tema",
-            name="MusicaDecirTitulo")
-        self.chk_musica_decir_titulo.SetForegroundColour(_T.text)
-        vs.Add(self.chk_musica_decir_titulo, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-
-        self.chk_musica_incluir_artista = wx.CheckBox(
-            p, label="Incluir el ar&tista en el título",
-            name="MusicaIncluirArtista")
-        self.chk_musica_incluir_artista.SetForegroundColour(_T.text)
-        self.chk_musica_incluir_artista.Enable(
-            self.chk_musica_decir_titulo.GetValue())
-        self.chk_musica_decir_titulo.Bind(
-            wx.EVT_CHECKBOX,
-            lambda e: self.chk_musica_incluir_artista.Enable(e.IsChecked()))
-        vs.Add(self.chk_musica_incluir_artista, 0,
-               wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+        vs.Add(self._fila_label(p, "&Decir al pasar de tema:"), 0, wx.LEFT | wx.RIGHT, 10)
+        self.cho_musica_decir = EleccionTexto(
+            p, (("nada", "Nada"), ("titulo", "El título"),
+                ("titulo_artista", "El título y el artista"), ("artista", "Solo el artista")),
+            normalizar=musica_decir.normalizar, name="Qué decir al pasar de tema")
+        _tc(self.cho_musica_decir)
+        vs.Add(self.cho_musica_decir, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+        self.chk_musica_decir_pausa = wx.CheckBox(
+            p, label="A&nunciar la pausa y la reanudación",
+            name="MusicaDecirPausa")
+        self.chk_musica_decir_pausa.SetForegroundColour(_T.text)
+        vs.Add(self.chk_musica_decir_pausa, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         vs.Add(self._fila_label(p, "&Volumen de la música"),
                0, wx.LEFT | wx.RIGHT, 10)

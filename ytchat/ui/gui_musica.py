@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import wx
 
-from ytchat.core import anuncio_ajuste
+from ytchat.core import anuncio_ajuste, musica_decir
 from ytchat.core import config as cfg
 from ytchat.core import diagnostico
 from ytchat.music import anuncios
@@ -143,8 +143,7 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica,
         if self._coordinador is None:
             self._avisar(anuncios.Aviso(anuncios.TEXTO_SIN_TEMA))
             return
-        self._avisar(anuncios.aviso_que_suena(
-            self._coordinador.estado(), self._incluir_artista()))
+        self._avisar(anuncios.aviso_que_suena(self._coordinador.estado(), True))
 
     # ── Biblioteca compartida y ventana ──────────────────────────────────────
 
@@ -164,8 +163,7 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica,
         Vacío sin motor, sin tema o con la lista terminada. Función pura
         envuelta: lo llama la GUI al armar el estado.
         """
-        return anuncios.texto_estado_musica(
-            self.estado(), self._incluir_artista())
+        return anuncios.texto_estado_musica(self.estado(), True)
 
     def abrir_ventana(self) -> None:
         """Abre la ventana modal para elegir qué suena.
@@ -397,13 +395,11 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica,
         wx.CallAfter(self._aviso_automatico, resultado)
 
     def _aviso_automatico(self, resultado) -> None:
-        # Las tres preferencias se leen acá y no al preparar el motor: así un
+        # Las dos preferencias se leen acá y no al preparar el motor: así un
         # cambio en Preferencias vale sin reiniciar.
         aviso = anuncios.aviso_automatico(
-            resultado,
-            bool(self._config.get("musica_sonido_tema", True)),
-            bool(self._config.get("musica_decir_titulo", True)),
-            bool(self._config.get("musica_incluir_artista", False)))
+            resultado, bool(self._config.get("musica_sonido_tema", True)),
+            self._config.get("musica_decir", "titulo"))
         self._avisar(aviso)
         if resultado.codigo in (AVANZO, FIN_LISTA):
             self._guardar_memoria()
@@ -445,7 +441,9 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica,
     def _ejecutar(self, accion, operacion) -> None:
         resultado = operacion()
         self._avisar(anuncios.aviso_accion(
-            accion, resultado, self._incluir_artista()))
+            accion, resultado, self._incluir_artista(),
+            bool(self._config.get("musica_decir_pausa", True)),
+            self._config.get("musica_decir", "titulo")))
         self._refrescar_ventana_abierta()
 
     def _cambiar_volumen(self, paso) -> None:
@@ -477,7 +475,7 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica,
         return (self._config.get("musica_carpeta") or "").strip()
 
     def _incluir_artista(self) -> bool:
-        return bool(self._config.get("musica_incluir_artista", False))
+        return musica_decir.incluye_artista(self._config.get("musica_decir", "titulo"))
 
     def _volumen_config(self) -> int:
         return nuevo_volumen(

@@ -8,9 +8,9 @@ sin VLC, para poder probarlo solo.
 
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass
 
+from ytchat.core import musica_decir
 from ytchat.music.modelo import (
     AVANZO,
     COLA_VACIA,
@@ -123,28 +123,26 @@ def nombre_tema(tema, incluir_artista: bool) -> str:
 
 
 def _titulo_de_origen(tema) -> str:
-    if tema.es_enlace:
-        return tema.origen
-    return os.path.splitext(os.path.basename(tema.origen))[0]
+    return musica_decir.titulo_respaldo(tema.origen, tema.es_enlace)
 
 
-def _nombre(resultado, incluir_artista: bool) -> str:
+def _nombre(resultado, incluir_artista: bool, modo: str | None = None) -> str:
     tema = resultado.tema if resultado.tema is not None else resultado.estado.actual
     if tema is None:
         return ""
-    return nombre_tema(tema, incluir_artista)
+    return (musica_decir.texto_tema(tema, musica_decir.modo_manual(modo))
+            if modo is not None else nombre_tema(tema, incluir_artista))
 
 
-def aviso_automatico(resultado, sonido_tema: bool, decir_titulo: bool,
-                     incluir_artista: bool) -> Aviso | None:
+def aviso_automatico(resultado, sonido_tema: bool, modo: str) -> Aviso | None:
     """Lo que llega solo por `al_cambiar` del coordinador.
 
-    «avanzo» respeta las casillas; «fin_lista» y «tema_fallido» suenan
+    «avanzo» respeta el modo; «fin_lista» y «tema_fallido» suenan
     siempre. Cualquier otro código no genera aviso.
     """
     if resultado.codigo == AVANZO:
         actual = resultado.estado.actual
-        texto = nombre_tema(actual, incluir_artista) if (decir_titulo and actual) else ""
+        texto = musica_decir.texto_tema(actual, modo) if actual is not None else ""
         sonido = SONIDO_TEMA if sonido_tema else None
         if not texto and sonido is None:
             return None
@@ -157,22 +155,20 @@ def aviso_automatico(resultado, sonido_tema: bool, decir_titulo: bool,
     return None
 
 
-def aviso_accion(accion: str, resultado, incluir_artista: bool) -> Aviso:
+def aviso_accion(accion: str, resultado, incluir_artista: bool,
+                 decir_pausa: bool = True, modo: str | None = None) -> Aviso:
     """Lo que pidió el usuario con un atajo o el menú.
 
     Sin sonido salvo el error, porque el usuario lo pidió y está atento.
     """
     codigo = resultado.codigo
-    if codigo == SIN_TEMA:
-        return Aviso(TEXTO_SIN_TEMA)
-    if codigo == COLA_VACIA:
-        return Aviso(TEXTO_COLA_VACIA)
+    if codigo in (SIN_TEMA, COLA_VACIA):
+        return Aviso(TEXTO_SIN_TEMA if codigo == SIN_TEMA else TEXTO_COLA_VACIA)
     if codigo == ERROR_MOTOR:
-        if resultado.tema is not None:
-            texto = TEXTO_ERROR_MOTOR_TEMA.format(
-                nombre=nombre_tema(resultado.tema, incluir_artista))
-            return Aviso(texto, SONIDO_ERROR)
-        return Aviso(TEXTO_ERROR_MOTOR, SONIDO_ERROR)
+        tema = resultado.tema
+        nombre = nombre_tema(tema, incluir_artista) if tema is not None else ""
+        texto = TEXTO_ERROR_MOTOR_TEMA.format(nombre=nombre) if nombre else TEXTO_ERROR_MOTOR
+        return Aviso(texto, SONIDO_ERROR)
     if codigo == FIN_LISTA and accion == "siguiente":
         return Aviso(TEXTO_ULTIMO)
     if codigo == INICIO_LISTA and accion == "anterior":
@@ -181,9 +177,10 @@ def aviso_accion(accion: str, resultado, incluir_artista: bool) -> Aviso:
         return Aviso(TEXTO_REINICIADO)
     if codigo == OK:
         if accion in ("siguiente", "anterior", "reproducir"):
-            return Aviso(_nombre(resultado, incluir_artista))
+            return Aviso(_nombre(resultado, incluir_artista, modo))
         if accion == "pausa":
-            return Aviso(TEXTO_PAUSA if resultado.estado.pausado else TEXTO_REANUDADA)
+            texto = TEXTO_PAUSA if resultado.estado.pausado else TEXTO_REANUDADA
+            return Aviso(texto if decir_pausa else "")
         if accion == "detener":
             return Aviso(TEXTO_DETENIDA)
     return Aviso("")

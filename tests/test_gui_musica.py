@@ -124,8 +124,8 @@ class _ProgramadorFalso:
 def _frame(**config):
     base = {
         "musica_carpeta": "", "musica_aleatorio": False, "musica_repetir": False,
-        "musica_sonido_tema": True, "musica_decir_titulo": True,
-        "musica_incluir_artista": False, "musica_volumen": 50,
+        "musica_sonido_tema": True, "musica_decir": "titulo",
+        "musica_decir_pausa": True, "musica_volumen": 50,
         "musica_salida": "",
     }
     base.update(config)
@@ -282,6 +282,38 @@ class TestAccionesSinMotor(unittest.TestCase):
             ControlMusica(_frame()).que_suena()
         env.anunciar.assert_called_once_with("No hay música sonando")
 
+    def test_que_suena_con_nada_dice_todo(self):
+        temas = [Tema("C:/m/a.mp3", "A", artista="Ana")]
+        with _entorno() as env:
+            control = ControlMusica(_frame(musica_decir="nada"))
+            control.reproducir_temas(temas)
+            env.anunciar.reset_mock()
+            control.que_suena()
+        env.anunciar.assert_called_once_with("Sonando: A, de Ana. Tema 1 de 1")
+
+    def test_siguiente_manual_con_nada_dice_el_titulo(self):
+        temas = [Tema("C:/m/a.mp3", "A", artista="Ana"),
+                 Tema("C:/m/b.mp3", "B", artista="Beto")]
+        with _entorno() as env:
+            control = ControlMusica(_frame(musica_decir="nada"))
+            control.reproducir_temas(temas)
+            env.anunciar.reset_mock()
+            env.snd.sonidos.clear()
+            control.siguiente()
+        env.anunciar.assert_called_once_with("B")
+        self.assertEqual(env.snd.sonidos, [])
+
+    def test_pausa_con_decir_pausa_en_falso_calla(self):
+        temas = [Tema("C:/m/a.mp3", "A")]
+        with _entorno() as env:
+            control = ControlMusica(_frame(musica_decir_pausa=False))
+            control.reproducir_temas(temas)
+            env.anunciar.reset_mock()
+            env.snd.sonidos.clear()
+            control.reproducir_o_pausar()
+        env.anunciar.assert_not_called()
+        self.assertEqual(env.snd.sonidos, [])
+
 
 class TestAnteriorReiniciado(unittest.TestCase):
 
@@ -387,27 +419,26 @@ class TestAvisoAutomatico(unittest.TestCase):
         anunciar.assert_not_called()
         snd.reproducir.assert_not_called()
 
-    def test_aviso_automatico_respeta_las_tres_casillas(self):
+    def test_aviso_automatico_respeta_modo_y_sonido(self):
         with _entorno() as env:
             control = ControlMusica(_frame(
-                musica_sonido_tema=True, musica_decir_titulo=True,
-                musica_incluir_artista=True))
+                musica_sonido_tema=True, musica_decir="titulo_artista"))
             control._aviso_automatico(_aviso(posicion=0))
         env.anunciar.assert_called_once_with("Tema 2, de Ana")
         self.assertEqual(env.snd.sonidos, ["musica_tema"])
 
-    def test_aviso_automatico_solo_sonido(self):
+    def test_aviso_automatico_con_nada_solo_sonido(self):
         with _entorno() as env:
             control = ControlMusica(_frame(
-                musica_sonido_tema=True, musica_decir_titulo=False))
+                musica_sonido_tema=True, musica_decir="nada"))
             control._aviso_automatico(_aviso(posicion=0))
         env.anunciar.assert_not_called()
         self.assertEqual(env.snd.sonidos, ["musica_tema"])
 
-    def test_aviso_automatico_con_las_dos_casillas_apagadas_no_hace_nada(self):
+    def test_aviso_automatico_con_nada_y_sin_sonido_no_hace_nada(self):
         with _entorno() as env:
             control = ControlMusica(_frame(
-                musica_sonido_tema=False, musica_decir_titulo=False))
+                musica_sonido_tema=False, musica_decir="nada"))
             control._aviso_automatico(_aviso(posicion=0))
         env.anunciar.assert_not_called()
         self.assertEqual(env.snd.sonidos, [])
@@ -415,7 +446,7 @@ class TestAvisoAutomatico(unittest.TestCase):
     def test_aviso_automatico_fin_de_lista_suena_siempre(self):
         with _entorno() as env:
             control = ControlMusica(_frame(
-                musica_sonido_tema=False, musica_decir_titulo=False))
+                musica_sonido_tema=False, musica_decir="nada"))
             control._aviso_automatico(Resultado(
                 True, FIN_LISTA, _estado(actual=False)))
         env.anunciar.assert_called_once_with("Fin de la lista de música")
@@ -1456,10 +1487,17 @@ class TestTextoEstado(unittest.TestCase):
             control.detener()
         self.assertEqual(control.texto_estado(), "")
 
-    def test_incluye_el_artista_si_esta_marcado(self):
+    def test_incluye_el_artista_si_esta_incluido_en_el_modo(self):
         temas = [Tema("C:/m/a.mp3", "A", artista="Ana")]
         with _entorno():
-            control = ControlMusica(_frame(musica_incluir_artista=True))
+            control = ControlMusica(_frame(musica_decir="titulo_artista"))
+            control.reproducir_temas(temas)
+        self.assertEqual(control.texto_estado(), "Música: A, de Ana, tema 1 de 1")
+
+    def test_texto_estado_con_nada_dice_todo(self):
+        temas = [Tema("C:/m/a.mp3", "A", artista="Ana")]
+        with _entorno():
+            control = ControlMusica(_frame(musica_decir="nada"))
             control.reproducir_temas(temas)
         self.assertEqual(control.texto_estado(), "Música: A, de Ana, tema 1 de 1")
 

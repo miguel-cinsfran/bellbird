@@ -11,6 +11,7 @@ from ytchat.ui import gui
 from ytchat.ui import gui_preferencias
 from ytchat.voice import motores
 from ytchat.core import config_predeterminada as pred
+from ytchat.core import musica_decir
 from tests.rutas_temporales import redirigir_rutas
 from tests.ventanas_prueba import destruir
 from pathlib import Path
@@ -47,8 +48,8 @@ OPCIONES_ESPERADAS = [
     ("chk_musica_repetir", "musica", "repetir", "musica_repetir", str),
     ("chk_musica_retomar", "musica", "retomar", "musica_retomar", bool),
     ("chk_musica_sonido_tema", "musica", "sonido_tema", "musica_sonido_tema", bool),
-    ("chk_musica_decir_titulo", "musica", "decir_titulo", "musica_decir_titulo", bool),
-    ("chk_musica_incluir_artista", "musica", "incluir_artista", "musica_incluir_artista", bool),
+    ("cho_musica_decir", "musica", "decir", "musica_decir", str),
+    ("chk_musica_decir_pausa", "musica", "decir_pausa", "musica_decir_pausa", bool),
     ("sp_musica_volumen", "musica", "volumen", "musica_volumen", int),
     ("chk_musica_atajos_globales", "musica", "atajos_globales", "musica_atajos_globales", bool),
 ]
@@ -83,13 +84,14 @@ class TestTablaOpcionesSimples(unittest.TestCase):
 
     def _config_distinto(self):
         """Un valor por fila que no es su por defecto: lo contrario en las
-        casillas y uno más en los contadores (todos dentro de su rango)."""
+        casillas y uno más en los contadores (todos dentro de su rango). En
+        las listas, un valor válido distinto del de fábrica."""
         config = {}
         for _at, _sec, _clave, en_memoria, tipo, por_defecto in gui_preferencias._OPCIONES_SIMPLES:
             if tipo is bool:
                 config[en_memoria] = not por_defecto
             elif tipo is str:
-                config[en_memoria] = "tema"
+                config[en_memoria] = {"musica_decir": "artista"}.get(en_memoria, "tema")
             else:
                 config[en_memoria] = por_defecto + 1
         return config
@@ -146,8 +148,8 @@ class TestTablaOpcionesSimples(unittest.TestCase):
                 valor = control.GetValue()
                 esperados[(seccion, clave)] = ("true" if valor else "false", en_memoria, valor)
             elif tipo is str:
-                control.SetValue("tema")
-                valor = "tema"
+                control.SetValue({"musica_decir": "artista"}.get(en_memoria, "tema"))
+                valor = control.GetValue()
                 esperados[(seccion, clave)] = (valor, en_memoria, valor)
             else:
                 control.SetValue(VALORES_SPIN[atributo])
@@ -250,11 +252,13 @@ class TestPorDefectoContraFabrica(unittest.TestCase):
     de la fila, para que no se vuelvan a separar."""
 
     @staticmethod
-    def _convertir(tipo, texto):
+    def _convertir(tipo, texto, clave=""):
         # «false» es False: no usar bool() sobre el texto, que daría True.
         if tipo is bool:
             return str(texto).strip().lower() in ("true", "yes", "1", "on")
         if tipo is str:
+            if clave == "decir":
+                return musica_decir.normalizar(texto)
             return gui_preferencias.cfg.normalizar_repetir(texto)
         return tipo(texto)
 
@@ -267,7 +271,7 @@ class TestPorDefectoContraFabrica(unittest.TestCase):
                 texto = pred.obtener(seccion, clave, marca)
                 self.assertIsNot(texto, marca,
                                  f"sin valor de fábrica para {seccion}/{clave}")
-                self.assertEqual(por_defecto, self._convertir(tipo, texto))
+                self.assertEqual(por_defecto, self._convertir(tipo, texto, clave))
             if tipo is bool and por_defecto is False:
                 bool_en_falso = True
         # Cubre al menos una casilla cuyo valor de fábrica es «false».

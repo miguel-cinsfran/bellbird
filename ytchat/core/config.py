@@ -9,7 +9,7 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 from ytchat.core import config_predeterminada
-from ytchat.core import diagnostico
+from ytchat.core import diagnostico, musica_decir
 from ytchat.core import paths
 from ytchat.core.atajos import (
     ATAJOS_DEFAULTS, ATAJOS_FIJOS_DEFAULTS, ATAJOS_FIJOS, ATAJOS_GRUPOS,
@@ -621,12 +621,12 @@ def cargar_configuracion() -> dict:
         "musica_repetir": normalizar_repetir(_gs(p, "musica", "repetir")),
         "musica_retomar": _pb(p, "musica", "retomar"),
         "musica_sonido_tema": _pb(p, "musica", "sonido_tema"),
-        "musica_decir_titulo": _pb(p, "musica", "decir_titulo"),
-        "musica_incluir_artista": _pb(p, "musica", "incluir_artista"),
+        "musica_decir": musica_decir.desde_ini(_gs(p, "musica", "decir"), _pb(p, "musica", "decir_titulo"),
+            _pb(p, "musica", "incluir_artista")),
+        "musica_decir_pausa": _pb(p, "musica", "decir_pausa"),
         "musica_volumen": _pi(p, "musica", "volumen", lo=0, hi=100),
         "musica_salida": _gs(p, "musica", "salida"),
-        "musica_salida_nombre": decodificar_texto_ini(
-            _gs(p, "musica", "salida_nombre")),
+        "musica_salida_nombre": decodificar_texto_ini(_gs(p, "musica", "salida_nombre")),
         "musica_atajos_globales": _pb(p, "musica", "atajos_globales"),
         "musica_mostrar_cola": _pb(p, "musica", "mostrar_cola"),
         "estado_toggles": estado_toggles,

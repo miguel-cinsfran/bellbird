@@ -1414,8 +1414,8 @@ class TestCategoriasDePreferencias(unittest.TestCase):
         self.assertEqual(textos.index("Música"), textos.index("Reproductor") + 1)
         pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagMusica")
         esperados = ["Carpeta de música", "MusicaAleatorio", "Repetir la música",
-                     "MusicaRetomar", "MusicaSonidoTema", "MusicaDecirTitulo",
-                     "MusicaIncluirArtista", "Volumen de la música",
+                     "MusicaRetomar", "MusicaSonidoTema", "Qué decir al pasar de tema",
+                     "MusicaDecirPausa", "Volumen de la música",
                      "Salida de audio de la música", "Buscar las salidas de audio",
                      "MusicaAtajosGlobales"]
         orden = [h.GetName() for h in pagina.GetChildren()
@@ -1435,8 +1435,8 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             "&Repetir:",
             "Recordar la ú&ltima lista al abrir",
             "&Sonido al pasar de tema",
-            "&Decir el título al pasar de tema",
-            "Incluir el ar&tista en el título",
+            "&Decir al pasar de tema:",
+            "A&nunciar la pausa y la reanudación",
             "&Volumen de la música",
             "Salida de a&udio de la música",
             "&Buscar las salidas de audio",
@@ -1458,20 +1458,6 @@ class TestCategoriasDePreferencias(unittest.TestCase):
         self.assertEqual(len(letras), len(set(letras)), letras)
         self.assertNotIn("g", letras)
         self.assertNotIn("c", letras)
-
-    def test_artista_solo_se_habilita_con_decir_titulo(self):
-        with mock.patch.object(motores, "listar_voces", return_value=["Voz de prueba"]):
-            dialogo = gui_preferencias.PreferenciasDialog(
-                None, {"musica_decir_titulo": True,
-                       "musica_incluir_artista": True})
-        self.addCleanup(destruir, dialogo)
-        self.assertTrue(dialogo.chk_musica_incluir_artista.IsEnabled())
-        dialogo.chk_musica_decir_titulo.SetValue(False)
-        evento = gui.wx.CommandEvent(gui.wx.wxEVT_CHECKBOX,
-                                     dialogo.chk_musica_decir_titulo.GetId())
-        evento.SetEventObject(dialogo.chk_musica_decir_titulo)
-        dialogo.chk_musica_decir_titulo.GetEventHandler().ProcessEvent(evento)
-        self.assertFalse(dialogo.chk_musica_incluir_artista.IsEnabled())
 
     def test_salida_guardada_se_conserva_sin_consultar_vlc(self):
         with mock.patch.object(motores, "listar_voces", return_value=["Voz de prueba"]):
@@ -1675,7 +1661,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("transmision", "avisar_sobrecarga"),
             ("musica", "aleatorio"), ("musica", "repetir"),
             ("musica", "retomar"), ("musica", "sonido_tema"),
-            ("musica", "decir_titulo"), ("musica", "incluir_artista"),
+            ("musica", "decir"), ("musica", "decir_pausa"),
             ("musica", "volumen"), ("musica", "atajos_globales"), ("musica", "carpeta"),
             ("musica", "salida"), ("musica", "salida_nombre"),
         ]
@@ -2062,6 +2048,8 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         dialogo.dir_musica_carpeta.SetPath("C:\\Música\\Rock and Roll")
         dialogo.chk_musica_aleatorio.SetValue(True)
         dialogo.chk_musica_retomar.SetValue(False)
+        dialogo.cho_musica_decir.SetValue("artista")
+        dialogo.chk_musica_decir_pausa.SetValue(False)
         dialogo.sp_musica_volumen.SetValue(80)
         dialogo._musica_salidas_ids = ["", "altavoces"]
         dialogo.cho_musica_salida.Set(["Salida predeterminada", "Altavoces"])
@@ -2076,8 +2064,8 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         self.assertEqual(opciones.get("musica", "repetir"), "no")
         self.assertEqual(opciones.get("musica", "retomar"), "false")
         self.assertEqual(opciones.get("musica", "sonido_tema"), "true")
-        self.assertEqual(opciones.get("musica", "decir_titulo"), "true")
-        self.assertEqual(opciones.get("musica", "incluir_artista"), "false")
+        self.assertEqual(opciones.get("musica", "decir"), "artista")
+        self.assertEqual(opciones.get("musica", "decir_pausa"), "false")
         self.assertEqual(opciones.get("musica", "volumen"), "80")
         self.assertEqual(opciones.get("musica", "salida"), "altavoces")
         self.assertEqual(opciones.get("musica", "salida_nombre"), "Altavoces")
@@ -2086,7 +2074,9 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         self.assertEqual(dialogo._config["musica_salida"], "altavoces")
         self.assertEqual(dialogo._config["musica_salida_nombre"], "Altavoces")
         self.assertEqual(dialogo._config["musica_volumen"], 80)
+        self.assertEqual(dialogo._config["musica_decir"], "artista")
         self.assertIs(dialogo._config["musica_aleatorio"], True)
+        self.assertIs(dialogo._config["musica_decir_pausa"], False)
 
     def test_musica_con_salida_predeterminada_guarda_vacio(self):
         dialogo = self._dialogo({"musica_salida": "vieja",

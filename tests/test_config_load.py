@@ -781,7 +781,7 @@ class TestCargarConfiguracion(unittest.TestCase):
 
 
 class TestMusicaCargador(unittest.TestCase):
-    """El cargador expone la sección [musica] con sus once claves."""
+    """El cargador expone la sección [musica] con sus doce claves."""
 
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
@@ -793,7 +793,7 @@ class TestMusicaCargador(unittest.TestCase):
         with redirigir_rutas(tmp):
             return config.cargar_configuracion()
 
-    def test_diez_valores_de_fabrica_con_ini_vacio(self):
+    def test_doce_valores_de_fabrica_con_ini_vacio(self):
         with mock.patch.object(paths, "carpeta_musica_windows", return_value=""):
             cfg = self._cargar_en("")
         self.assertEqual(cfg["musica_carpeta"], "")
@@ -801,12 +801,13 @@ class TestMusicaCargador(unittest.TestCase):
         self.assertEqual(cfg["musica_repetir"], "no")
         self.assertTrue(cfg["musica_retomar"])
         self.assertTrue(cfg["musica_sonido_tema"])
-        self.assertTrue(cfg["musica_decir_titulo"])
-        self.assertFalse(cfg["musica_incluir_artista"])
+        self.assertEqual(cfg["musica_decir"], "titulo")
+        self.assertTrue(cfg["musica_decir_pausa"])
         self.assertEqual(cfg["musica_volumen"], 50)
         self.assertEqual(cfg["musica_salida"], "")
         self.assertEqual(cfg["musica_salida_nombre"], "")
         self.assertFalse(cfg["musica_atajos_globales"])
+        self.assertFalse(cfg["musica_mostrar_cola"])
 
     def test_lee_valores_puestos_a_mano(self):
         cfg = self._cargar_en(
@@ -816,8 +817,10 @@ class TestMusicaCargador(unittest.TestCase):
             "repetir = true\n"
             "retomar = false\n"
             "sonido_tema = false\n"
+            "decir = artista\n"
             "decir_titulo = false\n"
-            "incluir_artista = true\n"
+            "incluir_artista = false\n"
+            "decir_pausa = false\n"
             "volumen = 80\n"
             "salida = altavoces\n"
             "salida_nombre = Altavoces del sistema\n"
@@ -827,8 +830,8 @@ class TestMusicaCargador(unittest.TestCase):
         self.assertEqual(cfg["musica_repetir"], "todo")
         self.assertFalse(cfg["musica_retomar"])
         self.assertFalse(cfg["musica_sonido_tema"])
-        self.assertFalse(cfg["musica_decir_titulo"])
-        self.assertTrue(cfg["musica_incluir_artista"])
+        self.assertEqual(cfg["musica_decir"], "artista")
+        self.assertFalse(cfg["musica_decir_pausa"])
         self.assertEqual(cfg["musica_volumen"], 80)
         self.assertEqual(cfg["musica_salida"], "altavoces")
         self.assertEqual(cfg["musica_salida_nombre"], "Altavoces del sistema")
@@ -841,8 +844,7 @@ class TestMusicaCargador(unittest.TestCase):
             ("aleatorio", "musica_aleatorio", False),
             ("retomar", "musica_retomar", True),
             ("sonido_tema", "musica_sonido_tema", True),
-            ("decir_titulo", "musica_decir_titulo", True),
-            ("incluir_artista", "musica_incluir_artista", False),
+            ("decir_pausa", "musica_decir_pausa", True),
             ("atajos_globales", "musica_atajos_globales", False),
         ]
         for clave_ini, clave_memoria, valor_fabrica in casos:
@@ -903,6 +905,23 @@ class TestMusicaCargador(unittest.TestCase):
     def test_volumen_negativo_cae_a_cero(self):
         cfg = self._cargar_en("[musica]\nvolumen = -10\n")
         self.assertEqual(cfg["musica_volumen"], 0)
+
+    def test_decir_viejo_apagado_da_nada(self):
+        cfg = self._cargar_en("[musica]\ndecir_titulo = false\n")
+        self.assertEqual(cfg["musica_decir"], "nada")
+
+    def test_decir_viejo_con_artista_da_los_dos(self):
+        cfg = self._cargar_en("[musica]\ndecir_titulo = true\nincluir_artista = true\n")
+        self.assertEqual(cfg["musica_decir"], "titulo_artista")
+
+    def test_decir_ausente_da_titulo(self):
+        cfg = self._cargar_en("[voz]\nvoz = 0\n")
+        self.assertEqual(cfg["musica_decir"], "titulo")
+
+    def test_decir_presente_manda_sobre_las_viejas(self):
+        cfg = self._cargar_en(
+            "[musica]\ndecir = artista\ndecir_titulo = false\nincluir_artista = false\n")
+        self.assertEqual(cfg["musica_decir"], "artista")
 
 
 if __name__ == "__main__":

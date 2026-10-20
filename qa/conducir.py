@@ -1945,7 +1945,7 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
             ("musica", "aleatorio", "false"),
             ("musica", "repetir", "false"),
             ("musica", "retomar", "false"),
-            ("musica", "decir_titulo", "true"),
+            ("musica", "decir", "titulo"),
             ("musica", "sonido_tema", "true"),
             ("musica", "mostrar_cola", "false"),
             ("musica", "atajos_globales", "false"),

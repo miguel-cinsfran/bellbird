@@ -200,18 +200,20 @@ class TestCapturaWx(unittest.TestCase):
         "sonda._dejar_pintar(marco)",
         "ancho, alto = sonda._guardar_png(marco, destino)",
         "tam = marco.GetSize()",
+        "leida = wx.Image(destino)",
+        "leido_ancho, leido_alto = leida.GetWidth(), leida.GetHeight()",
+        "centro = [leida.GetRed(leido_ancho // 2, leido_alto // 2),"
+        " leida.GetGreen(leido_ancho // 2, leido_alto // 2),"
+        " leida.GetBlue(leido_ancho // 2, leido_alto // 2)]",
         "print(json.dumps({'marco': [tam.GetWidth(), tam.GetHeight()],"
-        " 'devuelto': [ancho, alto]}))",
+        " 'devuelto': [ancho, alto],"
+        " 'leido': [leido_ancho, leido_alto], 'centro': centro}))",
     ])
 
     @classmethod
     def setUpClass(cls):
-        try:
-            import wx as _wx
-        except ImportError:
+        if importlib.util.find_spec("wx") is None:
             raise unittest.SkipTest("sin wx en esta PC")
-        cls.wx = _wx
-        cls.app = _wx.App()
 
     def _capturar_en_hijo(self, destino):
         entorno = dict(os.environ)
@@ -232,33 +234,30 @@ class TestCapturaWx(unittest.TestCase):
             datos = json.loads(lineas[-1])
             marco = datos["marco"]
             devuelto = datos["devuelto"]
+            leido = datos["leido"]
+            centro = datos["centro"]
         except (IndexError, ValueError, KeyError, TypeError) as exc:
             self.fail(f"salida inválida del hijo {exc!r}: "
                       f"{proc.stdout.strip()} {proc.stderr.strip()}")
-        return marco[0], marco[1], devuelto[0], devuelto[1]
+        return (marco[0], marco[1], devuelto[0], devuelto[1],
+                leido[0], leido[1], tuple(centro))
 
     def test_el_png_existe_y_mide_lo_mismo(self):
         import tempfile
         with tempfile.TemporaryDirectory() as base:
             destino = Path(base) / "prueba.png"
-            marco_ancho, marco_alto, ancho, alto = self._capturar_en_hijo(
-                destino)
+            (marco_ancho, marco_alto, ancho, alto,
+             leido_ancho, leido_alto, _) = self._capturar_en_hijo(destino)
             self.assertTrue(destino.is_file())
-            imagen = self.wx.Image(str(destino))
-            self.assertEqual((imagen.GetWidth(), imagen.GetHeight()),
-                             (ancho, alto))
+            self.assertEqual((leido_ancho, leido_alto), (ancho, alto))
             self.assertEqual((ancho, alto), (marco_ancho, marco_alto))
 
     def test_el_centro_tiene_el_color_del_panel(self):
         import tempfile
         with tempfile.TemporaryDirectory() as base:
             destino = Path(base) / "prueba.png"
-            _, _, ancho, alto = self._capturar_en_hijo(destino)
-            imagen = self.wx.Image(str(destino))
-            rojo = imagen.GetRed(ancho // 2, alto // 2)
-            verde = imagen.GetGreen(ancho // 2, alto // 2)
-            azul = imagen.GetBlue(ancho // 2, alto // 2)
-            self.assertEqual((rojo, verde, azul), (11, 22, 33))
+            _, _, _, _, _, _, centro = self._capturar_en_hijo(destino)
+            self.assertEqual(centro, (11, 22, 33))
 
 
 if __name__ == "__main__":

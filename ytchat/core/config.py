@@ -292,7 +292,7 @@ def _aplicar_opcion(lineas: list[str], seccion: str, clave: str, valor: str) -> 
             lineas[insert_pos - 1] += "\n"
         lineas.insert(insert_pos, nueva)
     elif insert_pos is None:
-        lineas.append(f"\n[{seccion}]\n{nueva}")
+        lineas.extend(["\n", f"[{seccion}]\n", nueva])
     return lineas
 
 

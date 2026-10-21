@@ -177,6 +177,14 @@ class TestCargarConfiguracion(unittest.TestCase):
         self.assertEqual(ruta.read_text(encoding="utf-8"),
                          "[a]\nx = 1\n\n[b]\ny = 2\n")
 
+    def test_guardar_opciones_seccion_nueva_con_dos_claves_una_sola_cabecera(self):
+        ruta = Path(self._tmp.name) / "config.ini"
+        ruta.write_text("[a]\nx = 1\n", encoding="utf-8")
+        self.assertTrue(config.guardar_opciones(
+            ruta, [("b", "y", "2"), ("b", "z", "3")]))
+        self.assertEqual(ruta.read_text(encoding="utf-8"),
+                         "[a]\nx = 1\n\n[b]\ny = 2\nz = 3\n")
+
     def test_guardar_opciones_lista_vacia_no_escribe(self):
         ruta = Path(self._tmp.name) / "config.ini"
         ruta.write_text("[a]\nx = 1\n", encoding="utf-8")

@@ -29,6 +29,12 @@ def _muestra_opencode_go():
                      "base": "https://opencode.ai/inference/go/anthropic/v1",
                      "gratis": False, "contributor": False,
                      "piensa": True, "tope_salida": 128000},
+                    {"id": "mini-rapido",
+                     "nombre": "Mini Rápido",
+                     "protocolo": protocolos.CHAT,
+                     "base": "https://opencode.ai/inference/go/openai/v1",
+                     "gratis": False, "contributor": False,
+                     "piensa": False, "tope_salida": 500},
                 ],
             },
         },
@@ -159,6 +165,14 @@ class TestPreparar(unittest.TestCase):
         self.assertTrue(preparada.pedido.url.startswith(
             "https://opencode.ai/inference/go/openai/v1"))
         self.assertEqual(preparada.pedido.cuerpo["max_tokens"], 4900)
+
+    def test_modelo_en_catalogo_usa_su_piensa_y_su_tope(self):
+        charla = _charla_con_captura()
+        ajustes = AjustesIA(proveedor="opencode-go",
+                            modelo="mini-rapido")
+        preparada = consulta.preparar(charla, "hola", ajustes,
+                                      _muestra_opencode_go(), "clave", "")
+        self.assertEqual(preparada.pedido.cuerpo["max_tokens"], 500)
 
     def test_texto_enviado_es_el_ultimo_de_preparar(self):
         charla = _charla_con_captura()

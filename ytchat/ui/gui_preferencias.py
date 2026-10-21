@@ -32,6 +32,7 @@ from ytchat.youtube import youtube_api
 from ytchat.core.config import APP_NAME
 from ytchat.ui.gui import ContadorAccesible, anunciar, caja_de_grupo, nombre_accesible
 from ytchat.ui.preferencias_musica import OPCIONES_MUSICA, PaginaMusica
+from ytchat.ui.preferencias_ia import PaginaIA
 from ytchat.ui.preferencias_programados import PaginaProgramados
 from ytchat.obs.obs_panel import GestorPanelObs
 
@@ -187,7 +188,7 @@ def _combo_a_texto(mods: int, keycode: int) -> str | None:
     return "+".join(partes + [tecla]) if partes else tecla
 
 
-class PreferenciasDialog(PaginaMusica, PaginaProgramados, wx.Dialog):
+class PreferenciasDialog(PaginaMusica, PaginaProgramados, PaginaIA, wx.Dialog):
 
     def __init__(self, parent, config: dict):
         # Redimensionable: quien ve poco puede agrandarlo; las páginas se
@@ -235,6 +236,7 @@ class PreferenciasDialog(PaginaMusica, PaginaProgramados, wx.Dialog):
         self.nb.AddPage(self._pag_api(self.nb), "API y sesión")
         self.nb.AddPage(self._pag_programados(self.nb), "Mensajes automáticos")
         self.nb.AddPage(self._pag_transmision(self.nb), "Transmisión")
+        self.nb.AddPage(self._pag_ia(self.nb), "Inteligencia artificial")
         self._ajustar_ancho_categorias()
         # Mínimo explícito: si no, el libro pide el «mejor tamaño» de la página
         # más alta (Atajos, más de 1200 px) y el sizer lo desbordaría en vez
@@ -1553,6 +1555,7 @@ class PreferenciasDialog(PaginaMusica, PaginaProgramados, wx.Dialog):
             self._set("atajos", accion, valor)
             raw[accion] = valor
 
+        self._guardar_ia()
         if not cfg.guardar_opciones(self._ruta, self._pendientes):
             self._fallo_guardado = True
 

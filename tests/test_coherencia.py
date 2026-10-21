@@ -226,14 +226,7 @@ INTERNAS = {
     ("descargas", "carpeta"): "gestor de descargas (config.py:436, desde gui_descargas.py:353)",
     ("descargas", "enumerar"): "gestor de descargas (config.py:436, desde gui_descargas.py:353)",
     ("descargas", "formato"): "gestor de descargas (config.py:436, desde gui_descargas.py:353)",
-    ("ia", "direccion"): "su control llega con la página Inteligencia artificial de Preferencias (MD/roadmap.md, sección 8)",
-    ("ia", "largo"): "su control llega con la página Inteligencia artificial de Preferencias (MD/roadmap.md, sección 8)",
-    ("ia", "modelo"): "su control llega con la página Inteligencia artificial de Preferencias (MD/roadmap.md, sección 8)",
-    ("ia", "pregunta"): "su control llega con la página Inteligencia artificial de Preferencias (MD/roadmap.md, sección 8)",
     ("ia", "privacidad_aceptada"): "la escribe el aviso de privacidad de la IA, no lleva control",
-    ("ia", "proveedor"): "su control llega con la página Inteligencia artificial de Preferencias (MD/roadmap.md, sección 8)",
-    ("ia", "solo_gratis"): "su control llega con la página Inteligencia artificial de Preferencias (MD/roadmap.md, sección 8)",
-    ("ia", "tiempo_espera"): "su control llega con la página Inteligencia artificial de Preferencias (MD/roadmap.md, sección 8)",
     ("ia", "decir_analizando"): "la cambia su casilla en la ventana Preguntar a la IA",
     ("musica", "mostrar_cola"): "la recuerda la ventana Música (musica_memoria.py:19, guarda en gui_musica.py:465)",
     ("overlay", "activo"): "la enciende la ventana Transmisión (gui_transmitir.py:32 y 37)",
@@ -325,13 +318,14 @@ def _filas_de_tabla(nodo, tablas):
 
 
 def _pares_con_control():
-    """Pares con control en Preferencias: tablas `_OPCIONES_SIMPLES` y
-    `OPCIONES_MUSICA`, más llamadas literales `self._set(...)` y
-    `guardar_opcion(...)` de esos dos archivos."""
+    """Pares con control en Preferencias: tablas `_OPCIONES_SIMPLES`,
+    `OPCIONES_MUSICA` y `OPCIONES_IA`, más llamadas literales `self._set(...)`
+    y `guardar_opcion(...)` de esos archivos."""
     con_control = set()
     tablas = {}
     arboles = {rel: _arbol(rel) for rel in (
-        "ytchat/ui/gui_preferencias.py", "ytchat/ui/preferencias_musica.py")}
+        "ytchat/ui/gui_preferencias.py", "ytchat/ui/preferencias_musica.py",
+        "ytchat/ui/preferencias_ia.py")}
     for arbol in arboles.values():
         for nodo in ast.walk(arbol):
             if not isinstance(nodo, (ast.Assign, ast.AnnAssign)):
@@ -339,7 +333,7 @@ def _pares_con_control():
             destinos = nodo.targets if isinstance(nodo, ast.Assign) else [nodo.target]
             for destino in destinos:
                 if isinstance(destino, ast.Name) and destino.id in (
-                        "_OPCIONES_SIMPLES", "OPCIONES_MUSICA"):
+                        "_OPCIONES_SIMPLES", "OPCIONES_MUSICA", "OPCIONES_IA"):
                     tablas[destino.id] = nodo.value
     for tabla in tablas.values():
         con_control.update(_filas_de_tabla(tabla, tablas))
@@ -379,7 +373,8 @@ class PruebaConfiguracion(unittest.TestCase):
         self.assertEqual(
             faltan, [],
             "Pares de fábrica sin control en Preferencias "
-            "(ytchat/ui/gui_preferencias.py, ytchat/ui/preferencias_musica.py): "
+            "(ytchat/ui/gui_preferencias.py, ytchat/ui/preferencias_musica.py, "
+            "ytchat/ui/preferencias_ia.py): "
             f"{faltan}")
 
     def test_excepciones_existen_en_fabrica(self):

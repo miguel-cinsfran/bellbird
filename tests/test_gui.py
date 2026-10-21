@@ -11,9 +11,16 @@ from unittest import mock
 from ytchat.ui import gui
 from ytchat.ui import gui_comentarios
 from ytchat.ui import gui_preferencias
+from ytchat.ui import preferencias_ia
 from ytchat.ui import preferencias_musica
 from ytchat.ui import preferencias_programados
 from ytchat.voice import motores
+from ytchat.ai import ajustes_ia
+from ytchat.ai import catalogo
+from ytchat.ai import conversacion
+from ytchat.ai import opciones_ia
+from ytchat.ai import protocolos
+from ytchat.ai import proveedores
 from ytchat.core import config
 from ytchat.core import paths
 from ytchat.player import reproductor
@@ -1429,14 +1436,14 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             pendientes.extend(control.GetChildren())
         return None
 
-    def test_tiene_catorce_categorias_en_el_orden_acordado(self):
+    def test_tiene_quince_categorias_en_el_orden_acordado(self):
         dialogo = self._dialogo()
         self.assertEqual(
             [dialogo.nb.GetPageText(i) for i in range(dialogo.nb.GetPageCount())],
             ["General", "Voces", "Lectura", "Cola de lectura", "Interfaz y sonidos",
              "Reproductor", "Música", "Conexión", "Filtros",
              "Estado (F2)", "Atajos", "API y sesión", "Mensajes automáticos",
-             "Transmisión"])
+             "Transmisión", "Inteligencia artificial"])
 
     def test_pagina_general_primera_con_las_cinco_casillas_en_orden(self):
         dialogo = self._dialogo()
@@ -1749,9 +1756,15 @@ class TestCategoriasDePreferencias(unittest.TestCase):
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
 
-        guardar.assert_called_once()
+        self.assertEqual(guardar.call_count, 2)
+        por_primera = {
+            cambios[0][0]: cambios
+            for cambios in (llamada.args[1]
+                            for llamada in guardar.call_args_list)}
+        self.assertIn("programados", por_primera)
+        self.assertIn("ia", por_primera)
         claves = [(seccion, clave)
-                  for seccion, clave, _valor in guardar.call_args.args[1]]
+                  for seccion, clave, _valor in por_primera["programados"]]
         esperadas = [
             ("programados", "activo"),
             ("ui", "tamanio_fuente_chat"),
@@ -1798,6 +1811,232 @@ class TestCategoriasDePreferencias(unittest.TestCase):
                           if accion not in gui_preferencias.cfg.ATAJOS_FIJOS)
         self.assertEqual(sorted(claves), sorted(esperadas))
         self.assertEqual(len(claves), len(set(claves)))
+        claves_ia = [(seccion, clave)
+                     for seccion, clave, _valor in por_primera["ia"]]
+        self.assertEqual(claves_ia, [
+            ("ia", "proveedor"), ("ia", "modelo"), ("ia", "direccion"),
+            ("ia", "pregunta"), ("ia", "largo"), ("ia", "tiempo_espera"),
+            ("ia", "solo_gratis"), ("ia", "privacidad_aceptada"),
+            ("ia", "decir_analizando")])
+
+
+def _catalogo_de_prueba():
+    """Catálogo ya reducido, como lo deja `catalogo.cargar` en disco."""
+    base = "https://generativelanguage.googleapis.com/v1beta"
+    return {
+        "version": catalogo.VERSION,
+        "fecha": "2026-10-21",
+        "proveedores": {
+            "google": {
+                "nombre": "Google",
+                "modelos": [
+                    {"id": "gemini-gratis", "nombre": "Gemini Gratis",
+                     "protocolo": protocolos.GEMINI, "base": base,
+                     "gratis": True},
+                    {"id": "gemini-caro", "nombre": "Gemini Caro",
+                     "protocolo": protocolos.GEMINI, "base": base},
+                ],
+            },
+        },
+    }
+
+
+class TestPaginaInteligenciaArtificial(unittest.TestCase):
+    """La página «Inteligencia artificial», con dobles de credenciales y red."""
+
+    def setUp(self):
+        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.parche_ruta = redirigir_rutas(Path(self.tmp.name))
+        self.parche_ruta.__enter__()
+        self.addCleanup(self.parche_ruta.__exit__, None, None, None)
+        # Nunca el Administrador de credenciales real.
+        self.parche_claves = mock.patch.object(
+            preferencias_ia.claves, "leer", return_value="")
+        self.parche_claves.start()
+        self.addCleanup(self.parche_claves.stop)
+
+    def _dialogo(self):
+        with mock.patch.object(motores, "listar_voces",
+                               return_value=["Voz de prueba"]), \
+                mock.patch.object(preferencias_ia.catalogo, "cargar",
+                                  return_value=_catalogo_de_prueba()):
+            dialogo = gui_preferencias.PreferenciasDialog(None, {})
+        self.addCleanup(destruir, dialogo)
+        return dialogo
+
+    def _pagina(self, dialogo):
+        return next(p for p in dialogo._paginas() if p.GetName() == "PagIA")
+
+    @staticmethod
+    def _indice_proveedor(ident):
+        return [p.id for p in proveedores.PROVEEDORES].index(ident)
+
+    @staticmethod
+    def _evento_boton(boton):
+        return gui.wx.CommandEvent(gui.wx.EVT_BUTTON.typeId, boton.GetId())
+
+    def _ruta(self):
+        return paths.config_ini()
+
+    def test_pagina_ia_tiene_los_controles_en_el_orden_de_tab(self):
+        dialogo = self._dialogo()
+        pagina = self._pagina(dialogo)
+        esperados = [
+            "ProveedorIA", "DireccionIA", "ClaveIA", "GuardarClaveIA",
+            "BorrarClaveIA", "ProbarClaveIA", "ModeloIA", "SoloGratuitosIA",
+            "ActualizarModelosIA", "OtroModeloIA", "AvisoModeloIA",
+            "PreguntaIA", "RestaurarPreguntaIA", "LargoIA", "TiempoIA",
+        ]
+        orden = [h.GetName() for h in pagina.GetChildren()
+                 if h.GetName() in esperados]
+        self.assertEqual(orden, esperados)
+
+    def test_los_mnemonicos_de_ia_no_se_repiten_ni_chocan_con_guardar(self):
+        dialogo = self._dialogo()
+        pagina = self._pagina(dialogo)
+        letras = []
+        for control in pagina.GetChildren():
+            if not isinstance(control, (gui.wx.StaticText, gui.wx.Button,
+                                        gui.wx.CheckBox)):
+                continue
+            etiqueta = control.GetLabel()
+            if "&" in etiqueta:
+                letras.append(etiqueta.split("&", 1)[1][:1].lower())
+        self.assertEqual(len(letras), 14)
+        self.assertEqual(len(letras), len(set(letras)), letras)
+        self.assertNotIn("g", letras)
+        self.assertNotIn("c", letras)
+
+    def test_solo_el_proveedor_otro_muestra_la_direccion(self):
+        dialogo = self._dialogo()
+        for indice, proveedor in enumerate(proveedores.PROVEEDORES):
+            with self.subTest(proveedor=proveedor.id):
+                dialogo.cho_ia_proveedor.SetSelection(indice)
+                dialogo._on_ia_proveedor(None)
+                self.assertEqual(dialogo.txt_ia_direccion.IsShown(),
+                                 proveedor.pide_direccion)
+                self.assertEqual(dialogo._ia_lbl_direccion.IsShown(),
+                                 proveedor.pide_direccion)
+        self.assertEqual(
+            [p.id for p in proveedores.PROVEEDORES if p.pide_direccion],
+            ["otro"])
+
+    def test_restaurar_pone_la_pregunta_de_fabrica(self):
+        dialogo = self._dialogo()
+        dialogo.txt_ia_pregunta.SetValue("Otra pregunta")
+        with mock.patch.object(preferencias_ia, "anunciar") as anunciar:
+            dialogo.btn_ia_restaurar.GetEventHandler().ProcessEvent(
+                self._evento_boton(dialogo.btn_ia_restaurar))
+        self.assertEqual(dialogo.txt_ia_pregunta.GetValue(),
+                         conversacion.PREGUNTA_INICIAL)
+        anunciar.assert_called_once_with(opciones_ia.TEXTO_PREGUNTA_RESTAURADA)
+
+    def _cambio_para(self, clave, dialogo):
+        casos = {
+            "proveedor": (
+                lambda: dialogo.cho_ia_proveedor.SetSelection(
+                    self._indice_proveedor("openai")), "openai"),
+            "direccion": (
+                lambda: dialogo.txt_ia_direccion.SetValue(
+                    "https://ejemplo.test/v1"), "https://ejemplo.test/v1"),
+            "modelo": (
+                lambda: dialogo.cho_ia_modelo.SetSelection(1), "gemini-caro"),
+            "pregunta": (
+                lambda: dialogo.txt_ia_pregunta.SetValue("Pregunta de prueba"),
+                "Pregunta de prueba"),
+            "largo": (
+                lambda: dialogo.cho_ia_largo.SetValue("larga"), "larga"),
+            "tiempo_espera": (
+                lambda: dialogo.sp_ia_tiempo.SetValue(120), 120),
+            "solo_gratis": (
+                lambda: dialogo.chk_ia_gratis.SetValue(True), True),
+        }
+        return casos[clave]
+
+    def test_la_tabla_opciones_ia_llega_al_archivo(self):
+        self.assertEqual(
+            [(seccion, clave) for _atributo, seccion, clave
+             in preferencias_ia.OPCIONES_IA],
+            [("ia", clave) for clave in (
+                "proveedor", "direccion", "modelo", "pregunta",
+                "largo", "tiempo_espera", "solo_gratis")])
+        for atributo, _seccion, clave in preferencias_ia.OPCIONES_IA:
+            with self.subTest(clave=clave):
+                ruta = self._ruta()
+                ruta.parent.mkdir(parents=True, exist_ok=True)
+                ruta.write_text("[ia]\nproveedor = gemini\n",
+                                encoding="utf-8")
+                dialogo = self._dialogo()
+                self.assertTrue(hasattr(dialogo, atributo))
+                cambiar, esperado = self._cambio_para(clave, dialogo)
+                cambiar()
+                with mock.patch.object(dialogo, "EndModal"), \
+                        mock.patch.object(gui_preferencias._snd,
+                                          "reproducir"), \
+                        mock.patch.object(gui_preferencias, "anunciar"):
+                    dialogo._on_guardar(None)
+                self.assertEqual(getattr(ajustes_ia.leer(self._ruta()), clave),
+                                 esperado)
+
+    def test_guardar_conserva_privacidad_y_decir_analizando(self):
+        ruta = self._ruta()
+        ruta.parent.mkdir(parents=True, exist_ok=True)
+        ruta.write_text("[ia]\nprivacidad_aceptada = true\n"
+                        "decir_analizando = false\n", encoding="utf-8")
+        dialogo = self._dialogo()
+        dialogo.txt_ia_pregunta.SetValue("Otra pregunta")
+        with mock.patch.object(dialogo, "EndModal"), \
+                mock.patch.object(gui_preferencias._snd, "reproducir"), \
+                mock.patch.object(gui_preferencias, "anunciar"):
+            dialogo._on_guardar(None)
+        leidos = ajustes_ia.leer(self._ruta())
+        self.assertTrue(leidos.privacidad_aceptada)
+        self.assertFalse(leidos.decir_analizando)
+
+    def test_guardar_clave_usa_el_proveedor_elegido(self):
+        with mock.patch.object(preferencias_ia.claves, "guardar") as guardar, \
+                mock.patch.object(preferencias_ia, "anunciar") as anunciar:
+            dialogo = self._dialogo()
+            dialogo.cho_ia_proveedor.SetSelection(
+                self._indice_proveedor("openai"))
+            dialogo.txt_ia_clave.SetValue("clave-secreta")
+            dialogo.btn_ia_guardar_clave.GetEventHandler().ProcessEvent(
+                self._evento_boton(dialogo.btn_ia_guardar_clave))
+        guardar.assert_called_once_with("openai", "clave-secreta")
+        anunciar.assert_called_once_with(opciones_ia.TEXTO_CLAVE_GUARDADA)
+
+    def test_probar_dispara_el_boton_y_suena_la_respuesta(self):
+        hilo = mock.Mock()
+        consulta = {}
+
+        def crear_hilo(target, nombre):
+            consulta["target"] = target
+            consulta["nombre"] = nombre
+            return hilo
+
+        with mock.patch.object(preferencias_ia.diagnostico, "crear_hilo",
+                               side_effect=crear_hilo), \
+                mock.patch.object(preferencias_ia.envio_ia, "enviar",
+                                  return_value=mock.Mock()) as enviar, \
+                mock.patch.object(preferencias_ia.wx, "CallAfter",
+                                  side_effect=lambda f, *a: f(*a)), \
+                mock.patch.object(preferencias_ia._snd,
+                                  "reproducir") as sonar, \
+                mock.patch.object(preferencias_ia, "anunciar") as anunciar:
+            dialogo = self._dialogo()
+            dialogo.cho_ia_modelo.SetSelection(0)
+            dialogo.txt_ia_clave.SetValue("clave-escrita")
+            dialogo.btn_ia_probar_clave.GetEventHandler().ProcessEvent(
+                self._evento_boton(dialogo.btn_ia_probar_clave))
+            consulta["target"]()
+        enviar.assert_called_once()
+        self.assertEqual(consulta["nombre"], "ProbarClaveIA")
+        hilo.start.assert_called_once_with()
+        sonar.assert_any_call("ia_respuesta")
+        anunciar.assert_any_call(opciones_ia.TEXTO_PROBANDO)
+        self.assertTrue(dialogo.btn_ia_probar_clave.IsEnabled())
 
 
 class TestPreferenciasElevenLabs(unittest.TestCase):

@@ -304,14 +304,20 @@ class VentanaIA(wx.Dialog):
             anunciar(ventana_ia.TEXTO_SIN_RESPUESTA)
             return
         try:
-            if wx.TheClipboard.Open():
-                try:
-                    wx.TheClipboard.SetData(wx.TextDataObject(texto))
-                    wx.TheClipboard.Flush()
-                finally:
-                    wx.TheClipboard.Close()
+            if not wx.TheClipboard.Open():
+                reproducir("ia_error")
+                anunciar(ventana_ia.TEXTO_NO_COPIADA)
+                return
+            try:
+                wx.TheClipboard.SetData(wx.TextDataObject(texto))
+                wx.TheClipboard.Flush()
+            finally:
+                wx.TheClipboard.Close()
         except Exception as fallo:
             logger.warning("VentanaIA: no se pudo copiar: %s", fallo)
+            reproducir("ia_error")
+            anunciar(ventana_ia.TEXTO_NO_COPIADA)
+            return
         reproducir("copiar")
         anunciar(ventana_ia.TEXTO_COPIADA)
 

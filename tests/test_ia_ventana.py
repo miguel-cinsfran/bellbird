@@ -124,9 +124,33 @@ class TestVentanaIAVentana(unittest.TestCase):
         dialogo._charla.agregar_captura(b"j", "Fuente", "10:00")
         dialogo._rehacer_lista()
         dialogo.lst_conversacion.SetSelection(0)
-        dialogo._mostrar_mensaje()
+        esperado = dialogo.lst_conversacion.GetString(0)
+        visto = {}
+
+        def _falso_mostrar(uno_mismo):
+            visto["texto"] = uno_mismo.txt.GetValue()
+            return wx.ID_OK
+
+        with mock.patch.object(ventana.DialogoMensaje, "ShowModal",
+                               _falso_mostrar):
+            dialogo._mostrar_mensaje()
+        self.assertEqual(visto.get("texto"), esperado)
         # El detalle se mostró y se destruyó sin romper la ventana.
         self.assertEqual(dialogo.lst_conversacion.GetCount(), 1)
+
+    def test_dialogo_mensaje_accesible_y_escape_cierra(self):
+        dialogo = self._ventana()
+        detalle = ventana.DialogoMensaje(dialogo, "texto largo")
+        self.addCleanup(destruir, detalle)
+        self.assertEqual(detalle.txt.GetName(), "Mensaje completo")
+        estilo = detalle.txt.GetWindowStyleFlag()
+        self.assertTrue(estilo & wx.TE_MULTILINE)
+        self.assertTrue(estilo & wx.TE_READONLY)
+        evento = mock.Mock()
+        evento.GetKeyCode.return_value = wx.WXK_ESCAPE
+        with mock.patch.object(detalle, "EndModal") as fin:
+            detalle._al_tecla(evento)
+        fin.assert_called_once_with(wx.ID_CANCEL)
 
     def test_enviar_sin_captura_anuncia_y_no_envia(self):
         dialogo = self._ventana()
@@ -294,6 +318,22 @@ class TestVentanaIAVentana(unittest.TestCase):
         self.assertEqual(falso.texto, "respuesta final")
         sonar.assert_called_once_with("copiar")
         anunciar.assert_called_once_with("Respuesta copiada.")
+
+    def test_copiar_si_no_abre_avisa_fallo(self):
+        dialogo = self._ventana()
+        dialogo._charla.agregar_captura(b"j", "Fuente", "10:00")
+        dialogo._charla.confirmar("hola", "respuesta final")
+
+        class _Cerrado:
+            def Open(self):
+                return False
+
+        with mock.patch.object(ventana.wx, "TheClipboard", _Cerrado()), \
+                mock.patch.object(ventana, "anunciar") as anunciar, \
+                mock.patch.object(ventana, "reproducir") as sonar:
+            dialogo._al_copiar(None)
+        sonar.assert_called_once_with("ia_error")
+        anunciar.assert_called_once_with(ventana_ia.TEXTO_NO_COPIADA)
 
     def test_copiar_sin_respuesta_avisa_sin_sonido(self):
         dialogo = self._ventana()

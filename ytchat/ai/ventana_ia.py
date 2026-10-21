@@ -7,6 +7,7 @@ FILA_GUIA = "Sin mensajes. Agrega una captura y escribe tu pregunta."
 TEXTO_ANALIZANDO = "Analizando…"
 TEXTO_CANCELADA = "Consulta cancelada."
 TEXTO_COPIADA = "Respuesta copiada."
+TEXTO_NO_COPIADA = "No se pudo copiar la respuesta."
 TEXTO_SIN_RESPUESTA = "Todavía no hay ninguna respuesta."
 TEXTO_NUEVA = "Conversación nueva."
 

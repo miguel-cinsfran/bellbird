@@ -22,6 +22,9 @@ class TestTextosVentanaIA(unittest.TestCase):
         self.assertEqual(ventana_ia.TEXTO_CANCELADA, "Consulta cancelada.")
         self.assertEqual(ventana_ia.TEXTO_COPIADA, "Respuesta copiada.")
         self.assertEqual(
+            ventana_ia.TEXTO_NO_COPIADA,
+            "No se pudo copiar la respuesta.")
+        self.assertEqual(
             ventana_ia.TEXTO_SIN_RESPUESTA,
             "Todavía no hay ninguna respuesta.")
         self.assertEqual(ventana_ia.TEXTO_NUEVA, "Conversación nueva.")

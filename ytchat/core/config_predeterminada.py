@@ -203,6 +203,16 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("atajos_globales", "false"),
         ("mostrar_cola", "false"),
     ]),
+    ("ia", [
+        ("proveedor", "gemini"),
+        ("modelo", ""),
+        ("direccion", ""),
+        ("pregunta", ""),
+        ("largo", "media"),
+        ("tiempo_espera", "60"),
+        ("solo_gratis", "false"),
+        ("privacidad_aceptada", "false"),
+    ]),
 ]
 
 # Comentarios útiles por sección (breves y prácticos)
@@ -259,6 +269,12 @@ _COMENTARIOS: dict[str, str] = {
         "# Música local: carpeta de la biblioteca, orden y opciones de\n"
         "# reproducción. La salida es el identificador de un dispositivo\n"
         "# de audio de libVLC; vacía usa el predeterminado del sistema.\n"
+    ),
+    "ia": (
+        "# Preguntar a la IA sobre la imagen. La clave de cada proveedor no\n"
+        "# va acá: se guarda en el Administrador de credenciales de Windows.\n"
+        "# Pregunta vacía usa la de fábrica. Dirección solo para «Otro\n"
+        "# compatible con OpenAI». Tiempo de espera en segundos.\n"
     ),
 }
 

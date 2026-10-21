@@ -53,6 +53,7 @@ def construir_menu(frame):
     mi_estado = m.Append(wx.ID_ANY, "Anunciar &estado" + frame._accel("anunciar_estado"))
     mi_autor = m.Append(wx.ID_ANY, "Anunciar a&utor del último mensaje" + frame._accel("anunciar_autor"))
     mi_escena = m.Append(wx.ID_ANY, "Describir la escena de &OBS" + frame._accel("describir_escena"))
+    mi_ia = m.Append(wx.ID_ANY, "Preguntar a la &IA sobre la imagen…" + frame._accel("preguntar_ia"))
     mb.Append(m, "&Ver")
     frame.Bind(wx.EVT_MENU, lambda e: frame._navegar_region(+1), mi_sig)
     frame.Bind(wx.EVT_MENU, lambda e: frame._navegar_region(-1), mi_ant)
@@ -64,6 +65,7 @@ def construir_menu(frame):
     frame._bind_menu(mi_estado, frame._anunciar_estado)
     frame._bind_menu(mi_autor, frame._anunciar_autor)
     frame._bind_menu(mi_escena, frame._describir_escena)
+    frame._bind_menu(mi_ia, _abrir_ia, frame)
     # De «Ver», solo tiene sentido con conexión la navegación por paneles;
     # «Ir a conexión (URL)» y «Anunciar estado» quedan siempre disponibles.
     frame._mi_ver_conexion = [mi_sig, mi_ant, mi_lista, mi_chat, mi_com, mi_rep]
@@ -189,8 +191,7 @@ def construir_menu(frame):
         wx.ID_ANY, "Gestor de &descargas…" + frame._accel("descargas_abrir"))
     frame.mi_actualizar_ytdlp = m.Append(wx.ID_ANY, "&Actualizar yt-dlp")
     m.AppendSeparator()
-    mi_pref = m.Append(
-        wx.ID_ANY, "&Preferencias…" + frame._accel("abrir_preferencias"))
+    mi_pref = m.Append(wx.ID_ANY, "&Preferencias…" + frame._accel("abrir_preferencias"))
     mb.Append(m, "&Herramientas")
     frame.Bind(wx.EVT_MENU, lambda e: wx.CallAfter(frame._abrir_descargas), frame.mi_descargas)
     frame.Bind(wx.EVT_MENU, lambda e: wx.CallAfter(frame._on_actualizar_ytdlp, None),
@@ -200,8 +201,7 @@ def construir_menu(frame):
     # Ayuda
     m = wx.Menu()
     mi_guia = m.Append(wx.ID_ANY, "&Guía de configuración de la API…")
-    mi_incidente = m.Append(
-        wx.ID_ANY, "&Marcar incidencia" + frame._accel("marcar_incidencia"))
+    mi_incidente = m.Append(wx.ID_ANY, "&Marcar incidencia" + frame._accel("marcar_incidencia"))
     mi_actualizar_app = m.Append(wx.ID_ANY, "&Buscar actualizaciones…")
     mi_about = m.Append(wx.ID_ABOUT, "&Acerca de")
     mb.Append(m, "A&yuda")
@@ -222,6 +222,11 @@ def construir_menu(frame):
         try:    anterior.Destroy()
         except Exception: pass
     frame._sincronizar_pausa()
+
+
+def _abrir_ia(frame):
+    from ytchat.ui import ia_ventana
+    ia_ventana.abrir_ventana(frame)
 
 
 def _construir_menu_musica(frame, mb):

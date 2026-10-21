@@ -58,6 +58,7 @@ ETIQUETAS = {
     "musica_adelantar": "Adelantar la música 10 segundos",
     "musica_retroceder": "Retroceder la música 10 segundos",
     "musica_ventana": "Abrir la ventana de música",
+    "preguntar_ia": "Preguntar a la IA sobre la imagen",
 }
 
 

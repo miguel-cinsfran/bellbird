@@ -108,6 +108,7 @@ class TestEquivalenciaMenu(unittest.TestCase):
             ("&Ver", "Anunciar &estado", ANY, "normal"),
             ("&Ver", "Anunciar a&utor del último mensaje", ANY, "normal"),
             ("&Ver", "Describir la escena de &OBS", ANY, "normal"),
+            ("&Ver", "Preguntar a la &IA sobre la imagen…", ANY, "normal"),
             ("&Chat", "&Enviar mensaje al chat del directo (solo YouTube)…",
              ANY, "normal"),
             ("&Chat", "---", None, "sep"),

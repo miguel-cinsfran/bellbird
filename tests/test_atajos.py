@@ -318,6 +318,7 @@ class TestParsearAtajos(unittest.TestCase):
                 ("obs_micro", "alt+shift+m", "alt+shift"),
                 ("avisos_sobrecarga", "alt+shift+a", "alt+shift"),
                 ("musica_ventana", "ctrl+shift+m", "ctrl+shift"),
+                ("preguntar_ia", "ctrl+shift+i", "ctrl+shift"),
                 ("musica_silenciar", "ctrl+alt+m", "ctrl+alt"),
                 ("musica_aleatorio", "ctrl+alt+a", "ctrl+alt"),
                 ("musica_repetir", "ctrl+alt+r", "ctrl+alt"),
@@ -374,6 +375,7 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertIn('._accel("musica_vol_menos")', fuente)
         self.assertIn('._accel("musica_que_suena")', fuente)
         self.assertIn('._accel("musica_ventana")', fuente)
+        self.assertIn('._accel("preguntar_ia")', fuente)
         self.assertIn('._accel("musica_silenciar")', fuente)
         self.assertIn('._accel("musica_aleatorio")', fuente)
         self.assertIn('._accel("musica_repetir")', fuente)

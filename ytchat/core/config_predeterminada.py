@@ -104,6 +104,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("musica_adelantar", "ctrl+alt+shift+right"),
         ("musica_retroceder", "ctrl+alt+shift+left"),
         ("musica_ventana", "ctrl+shift+m"),
+        ("preguntar_ia", "ctrl+shift+i"),
     ]),
     ("ui", [
         ("tamanio_fuente_chat", "12"),

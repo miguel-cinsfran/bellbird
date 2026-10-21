@@ -105,6 +105,24 @@ class TestCargaReal(unittest.TestCase):
             self.assertEqual(p.get("atajos", "conectar").strip(), "alt+c")
             self.assertEqual(p.getint("sesion", "version_atajos"), 2)
 
+    def test_version_uno_con_ctrl_shift_i_migra_y_no_choca(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            carpeta = Path(tmp)
+            (carpeta / "config.ini").write_text(
+                "[atajos]\nmarcar_incidencia = ctrl+shift+i\n"
+                "[sesion]\nversion_atajos = 1\n",
+                encoding="utf-8")
+            with redirigir_rutas(carpeta):
+                config.cargar_configuracion()
+            p = config._mk_parser()
+            p.read(carpeta / "config.ini", encoding="utf-8")
+            self.assertEqual(
+                p.get("atajos", "marcar_incidencia").strip(), "alt+shift+i")
+            self.assertEqual(
+                p.get("atajos", "preguntar_ia").strip(), "ctrl+shift+i")
+            crudo = {clave: valor for clave, valor in p.items("atajos")}
+            self.assertEqual(config.detectar_conflictos_atajos(crudo), [])
+
 
 class TestGramatica(unittest.TestCase):
 

@@ -335,6 +335,7 @@ acción.
 | `Ctrl+Mayús+T` | Transmisión |
 | `Ctrl+Mayús+D` | Gestor de descargas |
 | `Ctrl+Mayús+M` | Música |
+| `Ctrl+Mayús+I` | Preguntar a la IA sobre la imagen |
 
 ### Directo y OBS (Alt+Mayús)
 

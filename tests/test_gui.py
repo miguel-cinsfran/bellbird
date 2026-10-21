@@ -12,6 +12,7 @@ from ytchat.ui import gui
 from ytchat.ui import gui_comentarios
 from ytchat.ui import gui_preferencias
 from ytchat.ui import preferencias_musica
+from ytchat.ui import preferencias_programados
 from ytchat.voice import motores
 from ytchat.core import config
 from ytchat.core import paths
@@ -1268,9 +1269,9 @@ class TestProgramadosEnPreferencias(unittest.TestCase):
                     json.dumps(mensajes_a_guardar, ensure_ascii=False), encoding="utf-8")
 
             with mock.patch.object(
-                    gui_preferencias.programados, "guardar",
+                    preferencias_programados.programados, "guardar",
                     side_effect=guardar_doble), \
-                    mock.patch.object(gui_preferencias, "anunciar"):
+                    mock.patch.object(preferencias_programados, "anunciar"):
                 dialogo._quitar_programado(None)
 
             guardados = json.loads(ruta.read_text(encoding="utf-8"))
@@ -1287,8 +1288,8 @@ class TestProgramadosEnPreferencias(unittest.TestCase):
         dialogo = self._dialogo(mensajes, 2)
         dialogo._datos_programado = mock.Mock(return_value={"texto": "Editado"})
         dialogo._validar_programado = mock.Mock(return_value=True)
-        with mock.patch.object(gui_preferencias.programados, "guardar"), \
-                mock.patch.object(gui_preferencias, "anunciar"):
+        with mock.patch.object(preferencias_programados.programados, "guardar"), \
+                mock.patch.object(preferencias_programados, "anunciar"):
             dialogo._guardar_programado(None)
 
         self.assertEqual(mensajes[0]["texto"], "Primero")
@@ -1302,15 +1303,15 @@ class TestProgramadosEnPreferencias(unittest.TestCase):
         dialogo = self._dialogo(mensajes, 1)
         dialogo._datos_programado = mock.Mock(return_value={"texto": "Corregido"})
         dialogo._validar_programado = mock.Mock(return_value=True)
-        with mock.patch.object(gui_preferencias.programados, "guardar"), \
-                mock.patch.object(gui_preferencias, "anunciar"):
+        with mock.patch.object(preferencias_programados.programados, "guardar"), \
+                mock.patch.object(preferencias_programados, "anunciar"):
             dialogo._guardar_programado(None)
 
         self.assertEqual(mensajes[1]["proximo"], 200.0)
 
     def test_quitar_sin_seleccion_anuncia_y_no_revienta(self):
         dialogo = self._dialogo([], -1)
-        with mock.patch.object(gui_preferencias, "anunciar") as anunciar:
+        with mock.patch.object(preferencias_programados, "anunciar") as anunciar:
             dialogo._quitar_programado(None)
 
         anunciar.assert_called_once_with("Elige primero un mensaje de la lista")

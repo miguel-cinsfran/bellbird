@@ -5111,6 +5111,7 @@ SUPERFICIES = {
     "iconos.py": "reproductor",
     "boton_directo.py": "principal",
     "preferencias_musica.py": "preferencias",
+    "preferencias_programados.py": "preferencias",
 }
 
 # Módulos que dibujan interfaz sin escena a propósito: cada uno lleva su

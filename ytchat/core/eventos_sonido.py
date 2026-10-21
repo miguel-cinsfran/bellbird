@@ -28,6 +28,8 @@ EVENTOS = [
     "actualizacion_disponible", "actualizacion_lista",
     # Música: cambio, fin, fallo e igualación al medir muchas canciones:
     "musica_tema", "musica_fin", "musica_fallo", "musica_igualando",
-    # Preguntar a la IA: consulta que sale, respuesta que llega y fallo:
+    # Preguntar a la IA: consulta que sale, espera que suena, respuesta que
+    # llega, fallo, captura agregada, consulta cancelada y captura negra:
     "ia_enviada", "ia_respuesta", "ia_error",
+    "ia_analizando", "ia_captura", "ia_cancelada", "ia_imagen_negra",
 ]

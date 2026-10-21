@@ -441,6 +441,44 @@ def gen_ia_error():
     return _normalizar(_concat(n1, n2), 0.72)
 
 
+# ── Preguntar a la IA: espera, captura, cancelación y captura negra ──────────
+# El de espera se repite cada 2 segundos: figura melódica baja y suave que
+# no tapa al lector. El resto sigue el lenguaje de gestos del archivo.
+
+def gen_ia_analizando():
+    # Cuatro notas que suben y bajan sin resolver (E4→G4→A4→G4): suena a
+    # "pensando", no a aviso. Normalizada bajo porque se repite.
+    n1 = _perc(_seno(E4, 0.22, 0.24), 0.006, 0.20)
+    n2 = _perc(_seno(G4, 0.22, 0.24), 0.006, 0.20)
+    n3 = _perc(_seno(A4, 0.22, 0.24), 0.006, 0.20)
+    n4 = _perc(_seno(G4, 0.30, 0.24), 0.006, 0.26)
+    return _normalizar(_concat(n1, n2, n3, n4), 0.4)
+
+
+def gen_ia_captura():
+    # Clic de obturador: dos toques brevísimos y secos, menos de 0,2 segundos.
+    c1 = _perc(_seno(E6, 0.05, 0.35), 0.001, 0.035)
+    c2 = _perc(_seno(B5, 0.11, 0.35), 0.001, 0.08)
+    return _normalizar(_concat(c1, c2), 0.7)
+
+
+def gen_ia_cancelada():
+    # Dos notas descendentes cortas y más agudas que ia_error: se canceló
+    # a pedido, no falló nada.
+    n1 = _perc(_seno(B5, 0.06, 0.30), 0.003, 0.05)
+    n2 = _perc(_seno(G5, 0.10, 0.30), 0.003, 0.08)
+    return _normalizar(_concat(n1, n2), 0.68)
+
+
+def gen_ia_imagen_negra():
+    # Nota grave sostenida con pulso: hay que cambiar algo en OBS. Distinta
+    # del doble descenso de ia_error y del par agudo de ia_cancelada.
+    base = _seno(F3, 0.45, 0.32)
+    pulsada = [m * (0.65 + 0.35 * math.sin(2 * math.pi * 7 * i / SR))
+               for i, m in enumerate(base)]
+    return _normalizar(_perc(pulsada, 0.005, 0.38), 0.72)
+
+
 # ── Tema "suave": senos cálidos con decaimiento tipo marimba/madera ───────────
 # Más redondo, bajo y mate que el tema por defecto: nada de aristas brillantes
 # ni regusto a videojuego. Mismo lenguaje de gestos (ascendente = abrir, etc.).
@@ -654,6 +692,37 @@ def s_ia_error():
                 _madera(A3, 0.18, 0.32, 0.14))
 
 
+# ── Preguntar a la IA en el tema suave: espera, captura y demás ──────────────
+# Los mismos gestos en madera cálida; la espera va baja porque se repite.
+
+def s_ia_analizando():
+    # La misma figura que sube y baja sin resolver, en madera y baja.
+    return _normalizar(_concat(_madera(E4, 0.22, 0.26, 0.18),
+                               _madera(G4, 0.22, 0.26, 0.18),
+                               _madera(A4, 0.22, 0.26, 0.18),
+                               _madera(G4, 0.30, 0.26, 0.24)), 0.4)
+
+
+def s_ia_captura():
+    # El mismo clic de obturador en madera, brevísimo y seco.
+    return _normalizar(_concat(_madera(E6, 0.05, 0.34, 0.035),
+                               _madera(B5, 0.11, 0.34, 0.08)), 0.65)
+
+
+def s_ia_cancelada():
+    # El mismo par descendente agudo en madera, más breve que el error.
+    return _normalizar(_concat(_madera(B5, 0.06, 0.32, 0.05),
+                               _madera(G5, 0.10, 0.32, 0.08)), 0.62)
+
+
+def s_ia_imagen_negra():
+    # La misma nota grave sostenida con pulso, en madera cálida.
+    base = _suma(_seno(F3, 0.45, 0.32), _seno(F3 * 2, 0.45, 0.06))
+    pulsada = [m * (0.65 + 0.35 * math.sin(2 * math.pi * 7 * i / SR))
+               for i, m in enumerate(base)]
+    return _normalizar(_perc(pulsada, 0.006, 0.38), 0.7)
+
+
 # ── Reemplazos del tema suave (encargo 174) ──────────────────────────────────
 # Generadores propios para los que eran copia de otro dentro del tema.
 # Cada uno conserva el gesto del evento con notas o duraciones distintas.
@@ -791,6 +860,10 @@ TEMAS = {
         "ia_enviada.wav":              gen_ia_enviada,
         "ia_respuesta.wav":            gen_ia_respuesta,
         "ia_error.wav":                gen_ia_error,
+        "ia_analizando.wav":           gen_ia_analizando,
+        "ia_captura.wav":              gen_ia_captura,
+        "ia_cancelada.wav":            gen_ia_cancelada,
+        "ia_imagen_negra.wav":         gen_ia_imagen_negra,
     },
     "suave": {
         "app_inicio.wav":    s_app_inicio,
@@ -851,6 +924,10 @@ TEMAS = {
         "ia_enviada.wav":              s_ia_enviada,
         "ia_respuesta.wav":            s_ia_respuesta,
         "ia_error.wav":                s_ia_error,
+        "ia_analizando.wav":           s_ia_analizando,
+        "ia_captura.wav":              s_ia_captura,
+        "ia_cancelada.wav":            s_ia_cancelada,
+        "ia_imagen_negra.wav":         s_ia_imagen_negra,
     },
 }
 

@@ -16,7 +16,7 @@ RAIZ = Path(__file__).resolve().parent.parent
 TEMAS_DIR = RAIZ / "sounds" / "themes"
 
 # Los doce avisos con sonido propio (encargo 174, más directo_finalizado y
-# la vuelta de la conexión), los cuatro de música y los tres de la IA.
+# la vuelta de la conexión), los cuatro de música y los siete de la IA.
 EVENTOS_NUEVOS = [
     "descarga_iniciada", "descarga_completada", "descarga_fallida",
     "descarga_cancelada", "al_aire", "transmision_detenida",
@@ -24,7 +24,14 @@ EVENTOS_NUEVOS = [
     "actualizacion_disponible", "actualizacion_lista", "directo_finalizado",
     "musica_tema", "musica_fin", "musica_fallo", "musica_igualando",
     "ia_enviada", "ia_respuesta", "ia_error",
+    "ia_analizando", "ia_captura", "ia_cancelada", "ia_imagen_negra",
 ]
+
+# Tope de duración por evento: la espera de la IA lleva una figura melódica
+# de hasta 1,2 segundos porque se repite cada 2 segundos sin tapar al lector.
+DURACION_MAXIMA = {
+    "ia_analizando": 1.2,
+}
 
 
 def _md5(ruta: Path) -> str:
@@ -68,7 +75,9 @@ class PruebasSonidosDistintos(unittest.TestCase):
                 with self.subTest(tema=tema, evento=evento):
                     self.assertTrue(ruta.exists(), f"falta {ruta.name}")
                     self.assertGreaterEqual(_duracion(ruta), 0.15, ruta.name)
-                    self.assertLessEqual(_duracion(ruta), 0.7, ruta.name)
+                    self.assertLessEqual(
+                        _duracion(ruta),
+                        DURACION_MAXIMA.get(evento, 0.7), ruta.name)
 
 
 if __name__ == "__main__":

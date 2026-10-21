@@ -244,7 +244,7 @@ class DialogoAgregarCaptura(wx.Dialog):
             return
         if captura.negra is True:
             anunciar(texto_negra(opcion.etiqueta))
-            reproducir("ia_error")
+            reproducir("ia_imagen_negra")
             self.btn_capturar.Enable()
             self.cho_fuente.SetFocus()
             return

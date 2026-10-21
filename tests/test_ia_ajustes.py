@@ -19,9 +19,10 @@ class TestFabrica(unittest.TestCase):
         fabrica = AjustesIA()
         self.assertEqual(
             (fabrica.proveedor, fabrica.modelo, fabrica.direccion,
-             fabrica.pregunta, fabrica.largo, fabrica.tiempo_espera,
-             fabrica.solo_gratis, fabrica.privacidad_aceptada),
-            ("gemini", "", "", "", "media", 60, False, False))
+              fabrica.pregunta, fabrica.largo, fabrica.tiempo_espera,
+              fabrica.solo_gratis, fabrica.privacidad_aceptada,
+              fabrica.decir_analizando),
+            ("gemini", "", "", "", "media", 60, False, False, True))
 
 
 class TestLeer(unittest.TestCase):
@@ -59,6 +60,7 @@ class TestLeer(unittest.TestCase):
             self.assertEqual(leidos.largo, "media")
             self.assertEqual(leidos.tiempo_espera, 60)
             self.assertFalse(leidos.solo_gratis)
+            self.assertTrue(leidos.decir_analizando)
 
     def test_raros_se_normalizan(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -67,6 +69,7 @@ class TestLeer(unittest.TestCase):
                             "tiempo_espera = muchísimo\n"
                             "solo_gratis = sí\n"
                             "privacidad_aceptada = no\n"
+                            "decir_analizando = tal vez\n"
                             "modelo =   hola  \n"
                             "direccion =   https://mio.example.com/v1/  \n")
             leidos = ajustes_ia.leer(ruta)
@@ -75,6 +78,7 @@ class TestLeer(unittest.TestCase):
             self.assertEqual(leidos.tiempo_espera, 60)
             self.assertFalse(leidos.solo_gratis)
             self.assertFalse(leidos.privacidad_aceptada)
+            self.assertTrue(leidos.decir_analizando)
             self.assertEqual(leidos.modelo, "hola")
             self.assertEqual(leidos.direccion,
                              "https://mio.example.com/v1/")
@@ -91,10 +95,12 @@ class TestLeer(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             ruta = Path(tmp) / "config.ini"
             _escribir(ruta, "[ia]\nsolo_gratis = yes\n"
-                            "privacidad_aceptada = 1\n")
+                            "privacidad_aceptada = 1\n"
+                            "decir_analizando = off\n")
             leidos = ajustes_ia.leer(ruta)
             self.assertTrue(leidos.solo_gratis)
             self.assertTrue(leidos.privacidad_aceptada)
+            self.assertFalse(leidos.decir_analizando)
 
 
 class TestGuardar(unittest.TestCase):
@@ -129,6 +135,36 @@ class TestGuardar(unittest.TestCase):
             leidos = ajustes_ia.leer(ruta)
             self.assertEqual(leidos.proveedor, "openai")
             self.assertEqual(leidos.modelo, "gpt-x")
+
+    def test_decir_analizando_vuelve_igual(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            ruta = Path(tmp) / "config.ini"
+            _escribir(ruta, "[ia]\nproveedor = gemini\n")
+            ajustes = AjustesIA(decir_analizando=False)
+            self.assertTrue(ajustes_ia.guardar(ruta, ajustes))
+            self.assertFalse(ajustes_ia.leer(ruta).decir_analizando)
+
+
+class TestGuardarDecirAnalizando(unittest.TestCase):
+
+    def test_escribe_solo_esa_clave_y_conserva_el_resto(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            ruta = Path(tmp) / "config.ini"
+            _escribir(ruta, "[ia]\nproveedor = gemini\n"
+                            "decir_analizando = true\n\n[otra]\n"
+                            "clave = valor\n")
+            self.assertTrue(
+                ajustes_ia.guardar_decir_analizando(ruta, False))
+            texto = Path(ruta).read_text(encoding="utf-8")
+            self.assertIn("proveedor = gemini", texto)
+            self.assertIn("decir_analizando = false", texto)
+            self.assertIn("clave = valor", texto)
+            leidos = ajustes_ia.leer(ruta)
+            self.assertFalse(leidos.decir_analizando)
+            self.assertEqual(leidos.proveedor, "gemini")
+            self.assertTrue(
+                ajustes_ia.guardar_decir_analizando(ruta, True))
+            self.assertTrue(ajustes_ia.leer(ruta).decir_analizando)
 
 
 class TestPreguntaEfectiva(unittest.TestCase):

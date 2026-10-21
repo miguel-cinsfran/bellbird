@@ -125,7 +125,7 @@ class TestDialogoAgregarCapturaVentana(unittest.TestCase):
             dialogo._al_capturar(mock.Mock())
         fin.assert_not_called()
         anunciar.assert_called_once_with(agregar.texto_negra(opcion.etiqueta))
-        sonar.assert_called_once_with("ia_error")
+        sonar.assert_called_once_with("ia_imagen_negra")
         self.assertIsNone(dialogo.resultado)
         self.assertTrue(dialogo.btn_capturar.IsEnabled())
         self.assertIs(dialogo.FindFocus(), dialogo.cho_fuente)

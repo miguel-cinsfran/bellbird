@@ -212,6 +212,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("tiempo_espera", "60"),
         ("solo_gratis", "false"),
         ("privacidad_aceptada", "false"),
+        ("decir_analizando", "true"),
     ]),
 ]
 

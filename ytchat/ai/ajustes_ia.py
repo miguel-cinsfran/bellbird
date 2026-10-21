@@ -37,6 +37,7 @@ class AjustesIA:
     tiempo_espera: int = 60
     solo_gratis: bool = False
     privacidad_aceptada: bool = False
+    decir_analizando: bool = True
 
 
 def _ids_proveedores() -> set:
@@ -97,11 +98,16 @@ def leer(ruta) -> AjustesIA:
             parser.get(SECCION, "tiempo_espera", fallback="60")),
         solo_gratis=config._pb(parser, SECCION, "solo_gratis"),
         privacidad_aceptada=config._pb(parser, SECCION, "privacidad_aceptada"),
+        decir_analizando=config._pb(parser, SECCION, "decir_analizando"),
     )
 
 
+def _bool_a_texto(valor: bool) -> str:
+    return "true" if valor else "false"
+
+
 def guardar(ruta, ajustes: AjustesIA):
-    """Guarda los ocho valores de una vez, conservando el resto."""
+    """Guarda los nueve valores de una vez, conservando el resto."""
     cambios = [
         (SECCION, "proveedor", ajustes.proveedor),
         (SECCION, "modelo", ajustes.modelo),
@@ -110,13 +116,20 @@ def guardar(ruta, ajustes: AjustesIA):
          config.codificar_texto_ini(ajustes.pregunta)),
         (SECCION, "largo", ajustes.largo),
         (SECCION, "tiempo_espera", str(ajustes.tiempo_espera)),
-        (SECCION, "solo_gratis",
-         "true" if ajustes.solo_gratis else "false"),
-        (SECCION, "privacidad_aceptada",
-         "true" if ajustes.privacidad_aceptada else "false"),
+        (SECCION, "solo_gratis", _bool_a_texto(ajustes.solo_gratis)),
+        (SECCION, "privacidad_aceptada", _bool_a_texto(ajustes.privacidad_aceptada)),
+        (SECCION, "decir_analizando",
+         _bool_a_texto(ajustes.decir_analizando)),
     ]
     return config.guardar_opciones(Path(ruta) if ruta is not None else None,
                                    cambios)
+
+
+def guardar_decir_analizando(ruta, valor: bool):
+    """Guarda solo la voz del «Analizando…», conservando el resto."""
+    return config.guardar_opcion(Path(ruta) if ruta is not None else None,
+                                 SECCION, "decir_analizando",
+                                 _bool_a_texto(valor))
 
 
 def pregunta_efectiva(ajustes: AjustesIA) -> str:

@@ -28,6 +28,7 @@ logger = diagnostico.obtener_logger(__name__)
 
 TITULO = "Preguntar a la IA"
 INTERVALO_AVISO_MS = 5000
+INTERVALO_MELODIA_MS = 2000
 
 
 class DialogoMensaje(wx.Dialog):
@@ -82,6 +83,7 @@ class VentanaIA(wx.Dialog):
             self, name="Mensaje", style=wx.TE_PROCESS_ENTER)
         nombre_accesible(self.txt_mensaje, "Mensaje")
         vs.Add(self.txt_mensaje, 0, wx.EXPAND | wx.ALL, 10)
+        self._crear_casilla_analizando(vs)
         fila = wx.BoxSizer(wx.HORIZONTAL)
         self.btn_enviar = wx.Button(self, wx.ID_ANY, "&Enviar",
                                     name="Enviar")
@@ -99,8 +101,7 @@ class VentanaIA(wx.Dialog):
         vs.Add(fila, 0, wx.ALIGN_RIGHT | wx.ALL, 10)
         self.SetSizerAndFit(vs)
         self._temporizador = wx.Timer(self)
-        self.lst_conversacion.Bind(
-            wx.EVT_LISTBOX_DCLICK, self._al_doble_clic)
+        self.lst_conversacion.Bind(wx.EVT_LISTBOX_DCLICK, self._al_doble_clic)
         self.lst_conversacion.Bind(wx.EVT_KEY_DOWN, self._al_tecla_lista)
         self.txt_mensaje.Bind(wx.EVT_TEXT_ENTER, self._al_enviar)
         self.btn_enviar.Bind(wx.EVT_BUTTON, self._al_enviar)
@@ -111,6 +112,27 @@ class VentanaIA(wx.Dialog):
         self.Bind(wx.EVT_TIMER, self._al_temporizador, self._temporizador)
         self.Bind(wx.EVT_CHAR_HOOK, self._al_tecla)
         self.Bind(wx.EVT_CLOSE, self._al_cerrar)
+
+    def _crear_casilla_analizando(self, vs) -> None:
+        self.chk_analizando = wx.CheckBox(
+            self, label="&Decir Analizando mientras espera",
+            name="Decir Analizando mientras espera")
+        try:
+            marcado = ajustes_ia.leer(paths.config_ini()).decir_analizando
+        except Exception as fallo:
+            logger.warning("VentanaIA: sin ajustes: %s", fallo)
+            marcado = True
+        self.chk_analizando.SetValue(marcado)
+        self.chk_analizando.Bind(
+            wx.EVT_CHECKBOX, self._al_casilla_analizando)
+        vs.Add(self.chk_analizando, 0, wx.LEFT | wx.RIGHT, 10)
+        self._temporizador_melodia = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self._al_temporizador_melodia,
+                  self._temporizador_melodia)
+
+    def _al_casilla_analizando(self, _event) -> None:
+        ajustes_ia.guardar_decir_analizando(
+            paths.config_ini(), self.chk_analizando.GetValue())
 
     def _rehacer_lista(self) -> None:
         visibles = ventana_ia.filas_visibles(self._charla.filas)
@@ -166,6 +188,7 @@ class VentanaIA(wx.Dialog):
         self.btn_enviar.Disable()
         self.btn_captura.Disable()
         self._temporizador.Start(INTERVALO_AVISO_MS)
+        self._temporizador_melodia.Start(INTERVALO_MELODIA_MS)
         numero = self._n_consulta
         diagnostico.crear_hilo(
             self._consultar_en_hilo, "VentanaIAConsultar",
@@ -184,7 +207,7 @@ class VentanaIA(wx.Dialog):
     def _consulta_lista(self, numero, preparada, clave, respuesta) -> None:
         if self._cerrada or numero != self._n_consulta:
             return
-        self._temporizador.Stop()
+        self._frenar_avisos()
         self._en_curso = False
         self.btn_enviar.Enable()
         self.btn_captura.Enable()
@@ -204,7 +227,7 @@ class VentanaIA(wx.Dialog):
     def _consulta_fallida(self, numero, error) -> None:
         if self._cerrada or numero != self._n_consulta:
             return
-        self._temporizador.Stop()
+        self._frenar_avisos()
         self._en_curso = False
         self.btn_enviar.Enable()
         self.btn_captura.Enable()
@@ -220,16 +243,28 @@ class VentanaIA(wx.Dialog):
         anunciar(consulta.texto_de_error(error))
 
     def _al_temporizador(self, _event) -> None:
-        anunciar(ventana_ia.TEXTO_ANALIZANDO, urgente=False)
+        if self.chk_analizando.GetValue():
+            anunciar(ventana_ia.TEXTO_ANALIZANDO, urgente=False)
 
-    def _cancelar(self) -> None:
-        self._n_consulta += 1
-        self._en_curso = False
+    def _al_temporizador_melodia(self, _event) -> None:
+        reproducir("ia_analizando")
+
+    def _frenar_avisos(self) -> None:
         try:
             self._temporizador.Stop()
         except Exception as fallo:
             logger.warning("VentanaIA: no se pudo frenar el aviso: %s",
                            fallo)
+        try:
+            self._temporizador_melodia.Stop()
+        except Exception as fallo:
+            logger.warning("VentanaIA: no se pudo frenar la melodía: %s",
+                           fallo)
+
+    def _cancelar(self) -> None:
+        self._n_consulta += 1
+        self._en_curso = False
+        self._frenar_avisos()
         try:
             self.btn_enviar.Enable()
             self.btn_captura.Enable()
@@ -251,6 +286,7 @@ class VentanaIA(wx.Dialog):
         if event.GetKeyCode() == wx.WXK_ESCAPE:
             if self._en_curso:
                 self._cancelar()
+                reproducir("ia_cancelada")
                 anunciar(ventana_ia.TEXTO_CANCELADA)
                 return
             self._cerrar()
@@ -267,6 +303,7 @@ class VentanaIA(wx.Dialog):
         self._charla.agregar_captura(
             captura.jpeg, fuente, ventana_ia.hora_de(datetime.now()))
         self._rehacer_lista()
+        reproducir("ia_captura")
         anunciar(ventana_ia.texto_captura_agregada(fuente))
         self.txt_mensaje.SetFocus()
         diagnostico.crear_hilo(
@@ -339,7 +376,7 @@ def abrir_ventana(padre):
     finally:
         ventana._cancelar()
         try:
-            ventana._temporizador.Stop()
+            ventana._frenar_avisos()
         except Exception as fallo:
             logger.warning("VentanaIA: no se pudo frenar el aviso: %s",
                            fallo)

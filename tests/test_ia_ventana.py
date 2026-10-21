@@ -18,6 +18,7 @@ from ytchat.ai import consulta
 from ytchat.ai import conversacion
 from ytchat.ai import protocolos
 from ytchat.ai import ventana_ia
+from ytchat.ai.ajustes_ia import AjustesIA
 from ytchat.ui import ia_ventana as ventana
 from tests.ventanas_prueba import destruir
 
@@ -32,7 +33,8 @@ def _hilo_directo(target, nombre, **kwargs):
 
 def _ajustes_falsos():
     return SimpleNamespace(proveedor="gemini", modelo="m", direccion="",
-                           pregunta="", largo="media", tiempo_espera=60)
+                           pregunta="", largo="media", tiempo_espera=60,
+                           decir_analizando=True)
 
 
 class PortapapelesDoble:
@@ -80,6 +82,8 @@ class TestVentanaIAVentana(unittest.TestCase):
         self.assertEqual(dialogo.GetName(), "VentanaIA")
         self.assertEqual(dialogo.lst_conversacion.GetName(), "Conversación")
         self.assertEqual(dialogo.txt_mensaje.GetName(), "Mensaje")
+        self.assertEqual(dialogo.chk_analizando.GetName(),
+                         "Decir Analizando mientras espera")
         self.assertEqual(dialogo.btn_enviar.GetName(), "Enviar")
         self.assertEqual(dialogo.btn_captura.GetName(), "Agregar captura")
         self.assertEqual(dialogo.btn_copiar.GetName(), "Copiar respuesta")
@@ -90,9 +94,11 @@ class TestVentanaIAVentana(unittest.TestCase):
         dialogo = self._ventana()
         navegables = [hijo.GetName() for hijo in dialogo.GetChildren()
                       if isinstance(hijo, (wx.ListBox, wx.TextCtrl,
-                                          wx.Button))]
-        self.assertEqual(navegables, ["Conversación", "Mensaje", "Enviar",
-                                      "Agregar captura", "Copiar respuesta",
+                                          wx.CheckBox, wx.Button))]
+        self.assertEqual(navegables, ["Conversación", "Mensaje",
+                                      "Decir Analizando mientras espera",
+                                      "Enviar", "Agregar captura",
+                                      "Copiar respuesta",
                                       "Nueva conversación", "Cerrar"])
         self.assertIs(dialogo.FindFocus(), dialogo.txt_mensaje)
 
@@ -100,6 +106,7 @@ class TestVentanaIAVentana(unittest.TestCase):
         dialogo = self._ventana()
         rotulos = [dialogo.rotulo_conv.GetLabel(),
                    dialogo.rotulo_msg.GetLabel(),
+                   dialogo.chk_analizando.GetLabel(),
                    dialogo.btn_enviar.GetLabel(),
                    dialogo.btn_captura.GetLabel(),
                    dialogo.btn_copiar.GetLabel(),
@@ -111,7 +118,7 @@ class TestVentanaIAVentana(unittest.TestCase):
             self.assertNotEqual(posicion, -1, f"Sin tecla en {rotulo!r}.")
             self.assertLess(posicion + 1, len(rotulo))
             letras.add(rotulo[posicion + 1].lower())
-        self.assertEqual(letras, {"v", "m", "e", "c", "o", "n", "r"})
+        self.assertEqual(letras, {"v", "m", "d", "e", "c", "o", "n", "r"})
 
     def test_fila_guia_con_lista_vacia(self):
         dialogo = self._ventana()
@@ -194,13 +201,18 @@ class TestVentanaIAVentana(unittest.TestCase):
         with mock.patch.object(ventana, "pedir_captura",
                                side_effect=_pedir), \
                 mock.patch.object(ventana, "GestorPanelObs",
-                                   return_value=_Gestor()), \
-                mock.patch.object(ventana, "anunciar") as anunciar:
-            dialogo._al_captura(None)
+                                   return_value=_Gestor()):
+            orden = mock.Mock()
+            with mock.patch.object(ventana, "anunciar", orden.anunciar), \
+                    mock.patch.object(ventana, "reproducir", orden.sonar):
+                dialogo._al_captura(None)
         self.assertEqual(dialogo.lst_conversacion.GetCount(), 1)
         self.assertTrue(dialogo.lst_conversacion.GetString(0).startswith(
             "Captura: Cámara, "))
-        anunciar.assert_called_once_with("Captura agregada: Cámara.")
+        self.assertEqual(
+            orden.mock_calls,
+            [mock.call.sonar("ia_captura"),
+             mock.call.anunciar("Captura agregada: Cámara.")])
         self.assertEqual(dialogo._descripcion, "Escena con una cámara.")
         self.assertIs(dialogo.FindFocus(), dialogo.txt_mensaje)
 
@@ -254,7 +266,8 @@ class TestVentanaIAVentana(unittest.TestCase):
         anunciar.assert_called_once_with(
             "Se agotó la cuota del proveedor. Espera un rato "
             "o elige otro modelo.")
-        sonar.assert_called_once_with("ia_error")
+        self.assertEqual(sonar.mock_calls, [mock.call("ia_enviada"),
+                                            mock.call("ia_error")])
         self.assertEqual(dialogo.lst_conversacion.GetCount(), 1)
         self.assertEqual(dialogo.txt_mensaje.GetValue(), "¿qué se ve?")
 
@@ -287,7 +300,7 @@ class TestVentanaIAVentana(unittest.TestCase):
                 mock.patch.object(ventana.diagnostico, "crear_hilo",
                                    side_effect=_hilo_guardado), \
                 mock.patch.object(ventana, "anunciar") as anunciar, \
-                mock.patch.object(ventana, "reproducir"), \
+                mock.patch.object(ventana, "reproducir") as sonar, \
                 mock.patch.object(dialogo, "EndModal") as fin:
             dialogo._al_enviar(None)
             self.assertEqual(len(guardadas), 1)
@@ -296,15 +309,19 @@ class TestVentanaIAVentana(unittest.TestCase):
             destino, args = guardadas[0]
             destino(*args)
         anunciar.assert_called_once_with(ventana_ia.TEXTO_CANCELADA)
+        self.assertEqual(sonar.mock_calls, [mock.call("ia_enviada"),
+                                            mock.call("ia_cancelada")])
         self.assertEqual(dialogo.lst_conversacion.GetCount(), 1)
 
-    def test_escape_sin_consulta_cierra(self):
+    def test_escape_sin_consulta_cierra_sin_sonar(self):
         dialogo = self._ventana()
         evento = mock.Mock()
         evento.GetKeyCode.return_value = wx.WXK_ESCAPE
-        with mock.patch.object(dialogo, "EndModal") as fin:
+        with mock.patch.object(dialogo, "EndModal") as fin, \
+                mock.patch.object(ventana, "reproducir") as sonar:
             dialogo._al_tecla(evento)
         fin.assert_called_once_with(wx.ID_CLOSE)
+        sonar.assert_not_called()
 
     def test_copiar_respuesta_pone_texto_y_avisa(self):
         dialogo = self._ventana()
@@ -349,14 +366,94 @@ class TestVentanaIAVentana(unittest.TestCase):
         dialogo._charla.agregar_captura(b"j", "Fuente", "10:00")
         dialogo._descripcion = "algo"
         dialogo._rehacer_lista()
-        with mock.patch.object(ventana, "anunciar") as anunciar:
+        with mock.patch.object(ventana, "anunciar") as anunciar, \
+                mock.patch.object(ventana, "reproducir") as sonar:
             dialogo._al_nueva(None)
         self.assertEqual(dialogo.lst_conversacion.GetCount(), 1)
         self.assertEqual(dialogo.lst_conversacion.GetString(0),
                          ventana_ia.FILA_GUIA)
         self.assertEqual(dialogo._descripcion, "")
         anunciar.assert_called_once_with("Conversación nueva.")
+        sonar.assert_not_called()
         self.assertIs(dialogo.FindFocus(), dialogo.txt_mensaje)
+
+    def test_casilla_analizando_arranca_con_el_ajuste(self):
+        apagados = SimpleNamespace(proveedor="gemini", modelo="m",
+                                   direccion="", pregunta="",
+                                   largo="media", tiempo_espera=60,
+                                   decir_analizando=False)
+        with mock.patch.object(ventana.ajustes_ia, "leer",
+                               return_value=apagados):
+            apagada = self._ventana()
+            self.assertFalse(apagada.chk_analizando.GetValue())
+        with mock.patch.object(ventana.ajustes_ia, "leer",
+                               return_value=AjustesIA()):
+            encendida = self._ventana()
+            self.assertTrue(encendida.chk_analizando.GetValue())
+
+    def test_cambiar_casilla_guarda_sin_anunciar(self):
+        dialogo = self._ventana()
+        dialogo.chk_analizando.SetValue(False)
+        with mock.patch.object(ventana.ajustes_ia,
+                               "guardar_decir_analizando") as guardar, \
+                mock.patch.object(ventana, "anunciar") as anunciar:
+            dialogo._al_casilla_analizando(mock.Mock())
+        guardar.assert_called_once_with(ventana.paths.config_ini(), False)
+        anunciar.assert_not_called()
+
+    def test_melodia_suena_ia_analizando(self):
+        dialogo = self._ventana()
+        with mock.patch.object(ventana, "reproducir") as sonar:
+            dialogo._al_temporizador_melodia(mock.Mock())
+        sonar.assert_called_once_with("ia_analizando")
+
+    def test_aviso_de_cinco_segundos_respeta_la_casilla(self):
+        dialogo = self._ventana()
+        dialogo.chk_analizando.SetValue(False)
+        with mock.patch.object(ventana, "anunciar") as anunciar:
+            dialogo._al_temporizador(mock.Mock())
+        anunciar.assert_not_called()
+        dialogo.chk_analizando.SetValue(True)
+        with mock.patch.object(ventana, "anunciar") as anunciar:
+            dialogo._al_temporizador(mock.Mock())
+        anunciar.assert_called_once_with(ventana_ia.TEXTO_ANALIZANDO,
+                                         urgente=False)
+
+    def test_enviar_arranca_los_dos_avisos_y_al_llegar_paran(self):
+        dialogo = self._ventana()
+        dialogo._charla.agregar_captura(b"j", "Fuente", "10:00")
+        dialogo.txt_mensaje.ChangeValue("¿qué se ve?")
+        preparada = consulta.Preparada(object(), "¿qué se ve?", 60)
+        respuesta = protocolos.Respuesta("Se ve bien.", False)
+        guardadas = []
+
+        def _hilo_guardado(target, nombre, **kwargs):
+            guardadas.append((target, kwargs.get("args", ())))
+            hilo = mock.Mock()
+            hilo.start.return_value = None
+            return hilo
+
+        with mock.patch.object(ventana.ajustes_ia, "leer",
+                               return_value=_ajustes_falsos()), \
+                mock.patch.object(ventana.catalogo, "cargar",
+                                   return_value={}), \
+                mock.patch.object(ventana.claves, "leer",
+                                   return_value="clave"), \
+                mock.patch.object(ventana.consulta, "preparar",
+                                   return_value=preparada), \
+                mock.patch.object(ventana.envio_ia, "enviar",
+                                   return_value=respuesta), \
+                mock.patch.object(ventana.diagnostico, "crear_hilo",
+                                   side_effect=_hilo_guardado), \
+                mock.patch.object(ventana, "anunciar"), \
+                mock.patch.object(ventana, "reproducir"):
+            dialogo._al_enviar(None)
+            self.assertTrue(dialogo._temporizador.IsRunning())
+            self.assertTrue(dialogo._temporizador_melodia.IsRunning())
+            destino, args = guardadas[0]
+            destino(*args)
+        self.assertFalse(dialogo._temporizador.IsRunning())
+        self.assertFalse(dialogo._temporizador_melodia.IsRunning())
 
 
 if __name__ == "__main__":

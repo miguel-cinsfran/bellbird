@@ -10,6 +10,7 @@ from pathlib import Path
 
 from ytchat.core import config_predeterminada
 from ytchat.core import diagnostico, musica_decir
+from ytchat.core.eventos_sonido import EVENTOS as _EVENTOS_SONIDO
 from ytchat.core import paths
 from ytchat.core.atajos import (
     ATAJOS_DEFAULTS, ATAJOS_FIJOS_DEFAULTS, ATAJOS_FIJOS, ATAJOS_GRUPOS,
@@ -140,38 +141,6 @@ tema = default
 # escribiendo su ruta aquí; tiene prioridad sobre el tema. Por ejemplo:
 #   superchat = sounds/mis_efectos/caja.wav
 """
-
-_EVENTOS_SONIDO = [
-    "app_inicio", "conectando", "conectado", "desconectado",
-    "mensaje_nuevo", "mensaje_propietario", "mensaje_moderador",
-    "mensaje_verificado", "mensaje_miembro",
-    "superchat", "nuevo_miembro", "error",
-    "pausa", "reanudar", "copiar", "voz_cambiada",
-    # v0.6 online y acciones que antes reutilizaban otros sonidos:
-    "enviado", "comentario", "moderacion", "cola_vaciada",
-    "transporte_en_curso",
-    # Eventos de TikTok y tramos de regalo por tamaño en diamantes:
-    "seguir", "compartir", "cofre", "me_gusta",
-    "regalo_chico", "regalo_mediano", "regalo_grande", "entrada",
-    # Orilla de las listas y fin del directo de TikTok (suena distinto a
-    # «desconectado», que sigue para YouTube y el resto de los cortes):
-    "orilla", "fin_directo",
-    # Avisos del gestor de descargas, cada fin con su resultado:
-    "descarga_iniciada", "descarga_completada", "descarga_fallida",
-    "descarga_cancelada",
-    # Avisos del supervisor de transmisión y descartes del chat:
-    "al_aire", "transmision_detenida", "transmision_problema", "aviso",
-    # Vuelta de la conexión con el servicio: alivio, distinto de la alarma:
-    "transmision_recuperada",
-    # Confirmación de cierre, distinta del descenso de transmision_detenida:
-    "directo_finalizado",
-    # Ventanas que se abren solas al arrancar o al terminar bien:
-    "actualizacion_disponible", "actualizacion_lista",
-    # Música: cambio, fin, fallo e igualación al medir muchas canciones:
-    "musica_tema", "musica_fin", "musica_fallo", "musica_igualando",
-    # Preguntar a la IA: consulta que sale, respuesta que llega y fallo:
-    "ia_enviada", "ia_respuesta", "ia_error",
-]
 
 # Carpeta base de temas y tema por defecto.
 _TEMAS_DIR   = "themes"

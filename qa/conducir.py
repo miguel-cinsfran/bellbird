@@ -5109,13 +5109,19 @@ SUPERFICIES = {
     "gui_redactar.py": "redactar",
     "reproductor.py": "reproductor",
     "iconos.py": "reproductor",
+    "boton_directo.py": "principal",
+    "preferencias_musica.py": "preferencias",
 }
+
+# Módulos que dibujan interfaz sin escena a propósito: cada uno lleva su
+# motivo como valor y no cuenta como huérfano en `superficies_sin_escenario()`.
+SIN_ESCENARIO: dict[str, str] = {}
 
 EXTRAS_DE_INTERFAZ = ("reproductor.py", "iconos.py")
 
-# Un modulo de la musica dibuja interfaz si crea o hereda de un control de wx.
-# Los que solo calculan, tocan la red o piden `wx.CallAfter` no se exigen en
-# el barrido: no tienen pantalla que auditar.
+# Un modulo de `ytchat/ui/` o de `ytchat/player/` dibuja interfaz si crea o
+# hereda de un control de wx. Los que solo calculan, tocan la red o piden
+# `wx.CallAfter` no se exigen en el barrido: no tienen pantalla que auditar.
 CLASES_DE_WX_QUE_DIBUJAN = frozenset({
     "Dialog", "Frame", "Panel", "Menu", "MenuBar", "StaticText", "TextCtrl",
     "Button", "BitmapButton", "Choice", "ComboBox", "ListBox", "ListCtrl",
@@ -5152,13 +5158,13 @@ def superficies_sin_escenario() -> list[str]:
     """Modulos de interfaz que existen en el disco y no tiene quien los mire."""
     ui = RAIZ / "ytchat" / "ui"
     reproductor = RAIZ / "ytchat" / "player"
-    modulos = {p.name for p in ui.glob("gui*.py")}
+    modulos = {p.name
+               for carpeta in (ui, reproductor)
+               for p in carpeta.glob("*.py")
+               if dibuja_interfaz(p)}
+    modulos.update(p.name for p in ui.glob("gui*.py"))
     modulos.update(n for n in EXTRAS_DE_INTERFAZ
                    if (ui / n).exists() or (reproductor / n).exists())
-    modulos.update(p.name for p in ui.glob("musica_*.py")
-                   if dibuja_interfaz(p))
-    modulos.update(p.name for p in ui.glob("ia_*.py")
-                   if dibuja_interfaz(p))
     if not modulos:
         raise RuntimeError(
             "no se encontró ningún módulo de interfaz en ytchat/ui/ ni en "
@@ -5166,6 +5172,8 @@ def superficies_sin_escenario() -> list[str]:
             "quedaría en verde sin recorrer nada")
     huerfanos = []
     for nombre in sorted(modulos):
+        if nombre in SIN_ESCENARIO:
+            continue
         escenario = SUPERFICIES.get(nombre)
         if escenario is None or escenario not in ESCENARIOS:
             huerfanos.append(nombre)

@@ -80,6 +80,20 @@ class TestSuperficiesQa(unittest.TestCase):
         ]
         self.assertEqual(faltan, [])
 
+    def test_cada_clave_de_sin_escenario_existe_en_el_disco(self):
+        raiz = Path(__file__).resolve().parent.parent
+        faltan = [
+            nombre for nombre in conducir.SIN_ESCENARIO
+            if not (raiz / "ytchat" / "ui" / nombre).is_file()
+            and not (raiz / "ytchat" / "player" / nombre).is_file()
+        ]
+        self.assertEqual(faltan, [])
+
+    def test_ningun_modulo_esta_en_superficies_y_en_sin_escenario(self):
+        repetidos = sorted(set(conducir.SUPERFICIES)
+                           & set(conducir.SIN_ESCENARIO))
+        self.assertEqual(repetidos, [])
+
     def test_declara_los_modulos_de_interfaz_de_la_musica(self):
         for nombre in ("musica_ventana.py", "musica_ventana_acciones.py",
                        "musica_menus.py", "musica_dialogo_enlace.py"):

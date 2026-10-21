@@ -85,6 +85,17 @@ class TestSuperficiesQa(unittest.TestCase):
                        "musica_menus.py", "musica_dialogo_enlace.py"):
             self.assertEqual(conducir.SUPERFICIES.get(nombre), "musica")
 
+    def test_declara_los_modulos_de_interfaz_de_la_ia(self):
+        for nombre in ("ia_ventana.py", "ia_agregar_captura.py"):
+            self.assertEqual(conducir.SUPERFICIES.get(nombre), "ia")
+
+
+class TestTodosCubreLosEscenarios(unittest.TestCase):
+
+    def test_toda_escena_esta_en_todos_o_fuera_de_todos(self):
+        self.assertEqual(set(conducir.ESCENARIOS),
+                         set(conducir.EN_TODOS) | set(conducir.FUERA_DE_TODOS))
+
 
 if __name__ == "__main__":
     unittest.main()

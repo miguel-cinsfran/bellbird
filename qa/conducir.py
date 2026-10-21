@@ -1824,6 +1824,26 @@ def escenario_musica(app: Aplicacion, args, res: Resultado):
         esperados_en_tab=esperados)
 
 
+def escenario_ia(app: Aplicacion, args, res: Resultado):
+    """La ventana Preguntar a la IA, abierta desde el menú Ver.
+
+    Solo se abre, se audita y se cierra: no se envía nada, no se pulsa
+    Agregar captura ni se toca la casilla. Agregar captura no se abre
+    en el banco: necesita OBS.
+    """
+    res.nota("IA: no se envía nada, la ventana solo se audita. "
+             "Agregar captura no se abre en el banco: necesita OBS")
+    esperados = ("Conversación", "Mensaje",
+                 "Decir Analizando mientras espera",
+                 "Enviar", "Agregar captura", "Copiar respuesta",
+                 "Nueva conversación", "Cerrar")
+    auditar_dialogo(
+        app, res, "Preguntar a la IA sobre la imagen…", "Preguntar a la IA",
+        vueltas_tab=14,
+        esperados=esperados,
+        esperados_en_tab=esperados)
+
+
 def escenario_musica_real(app: Aplicacion, args, res: Resultado):
     """Música real de punta a punta, con archivos y sonido de verdad.
 
@@ -5081,6 +5101,8 @@ SUPERFICIES = {
     "musica_ventana.py": "musica",
     "musica_ventana_acciones.py": "musica",
     "musica_ventana_igualando.py": "musica",
+    "ia_ventana.py": "ia",
+    "ia_agregar_captura.py": "ia",
     "gui_transmision.py": "transmision",
     "gui_transmitir.py": "transmitir_destino",
     "gui_preferencias.py": "preferencias",
@@ -5135,6 +5157,8 @@ def superficies_sin_escenario() -> list[str]:
                    if (ui / n).exists() or (reproductor / n).exists())
     modulos.update(p.name for p in ui.glob("musica_*.py")
                    if dibuja_interfaz(p))
+    modulos.update(p.name for p in ui.glob("ia_*.py")
+                   if dibuja_interfaz(p))
     if not modulos:
         raise RuntimeError(
             "no se encontró ningún módulo de interfaz en ytchat/ui/ ni en "
@@ -5172,6 +5196,7 @@ ESCENARIOS = {
     "transmision": escenario_transmision,
     "musica": escenario_musica,
     "musica_real": escenario_musica_real,
+    "ia": escenario_ia,
     "ayuda": escenario_ayuda,
     "dialogos_ayuda": escenario_dialogos_ayuda,
     "chat": escenario_chat,
@@ -5345,37 +5370,41 @@ def _instalar_capturas(captor):
     return original
 
 
+# La corrida completa va a mano porque el ORDEN importa. `reproductor` va
+# primero y no es capricho: comprueba qué dice la aplicación con NADA
+# cargado, y en cuanto `chat` o `tiktok` simulan una sesión ese estado ya no
+# vuelve sin reiniciar. Corrido después, el botón de reproducir pasa la
+# comprobación por el motivo equivocado.
+EN_TODOS = ["arranque_frio", "reproductor",
+            "menus", "principal", "descargas", "preferencias",
+            "preferencias_categorias", "preferencias_persisten",
+            "programados", "historial", "transmision",
+            # `musica` va con `historial` y `transmision`: audita
+            # diálogos sin necesitar sesión, así que corre antes de
+            # que `chat` simule una.
+            "musica", "ia", "ayuda", "dialogos_ayuda",
+            # `redactar` va antes que `chat` y no es capricho: la
+            # mitad de lo que comprueba es como se comporta SIN
+            # conectar, y en cuanto `chat` simula una sesion ese estado
+            # no vuelve. Corrido despues, pasaba por el motivo
+            # equivocado. Mismo motivo que `reproductor`.
+            "conectar", "directo_sin_imagen", "captura_atajo", "redactar",
+            # `transmitir_destino` va acá y no es capricho: necesita
+            # el botón «Transmitir en directo», que solo se ve
+            # desconectado, y `redactar` es el último que deja ese
+            # estado antes de que `chat` simule una sesión.
+            "actualizaciones", "transmitir_destino",
+            "overlay", "chat", "menu_chat",
+            "comentarios", "tiktok", "avisos_wx", "diagnostico", "cierre"]
+
+
 def main() -> int:
     args = _argumentos()
     p = _argumentos.p
 
     pedidos = args.escenario or ["todos"]
     if "todos" in pedidos:
-        # `reproductor` va primero y no es capricho: comprueba qué dice la
-        # aplicación con NADA cargado, y en cuanto `chat` o `tiktok` simulan una
-        # sesión ese estado ya no vuelve sin reiniciar. Corrido después, el
-        # botón de reproducir pasa la comprobación por el motivo equivocado.
-        pedidos = ["arranque_frio", "reproductor",
-                    "menus", "principal", "descargas", "preferencias",
-                    "preferencias_categorias", "preferencias_persisten",
-                    "programados", "historial", "transmision",
-                    # `musica` va con `historial` y `transmision`: audita
-                    # diálogos sin necesitar sesión, así que corre antes de
-                    # que `chat` simule una.
-                    "musica", "ayuda", "dialogos_ayuda",
-                   # `redactar` va antes que `chat` y no es capricho: la
-                   # mitad de lo que comprueba es como se comporta SIN
-                   # conectar, y en cuanto `chat` simula una sesion ese estado
-                   # no vuelve. Corrido despues, pasaba por el motivo
-                   # equivocado. Mismo motivo que `reproductor`.
-                     "conectar", "directo_sin_imagen", "captura_atajo", "redactar",
-                    # `transmitir_destino` va acá y no es capricho: necesita
-                    # el botón «Transmitir en directo», que solo se ve
-                    # desconectado, y `redactar` es el último que deja ese
-                    # estado antes de que `chat` simule una sesión.
-                    "actualizaciones", "transmitir_destino",
-                    "overlay", "chat", "menu_chat",
-                   "comentarios", "tiktok", "avisos_wx", "diagnostico", "cierre"]
+        pedidos = list(EN_TODOS)
         # Un escenario registrado que no este ni aca ni entre los excluidos no
         # se corre NUNCA con `todos`, y no lo dice nadie. Paso el 25/08/2026:
         # se agregaron `overlay` y `programados` al registro y quedaron fuera de

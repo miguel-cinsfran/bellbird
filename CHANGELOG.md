@@ -3,6 +3,15 @@
 Qué cambia en cada versión, en lenguaje llano. El detalle técnico está en el
 historial de git.
 
+## 2.4.1, octubre de 2026
+
+- **La actualización automática ya no se detiene al cerrar la versión
+  anterior.** El instalador esperaba un minuto y mostraba «la aplicación
+  no se cerró a tiempo» aunque YTChat TTS ya se había cerrado. Pasaba
+  cuando otro programa, como el lector de pantalla o el antivirus,
+  seguía vigilando el proceso. Ahora detecta el cierre en el momento.
+  Desde la 2.3.4 o la 2.4.0 se actualiza de la forma habitual.
+
 ## 2.4.0, octubre de 2026
 
 Música mientras transmites, sin abrir otro programa.

@@ -30,7 +30,7 @@ LIBRERIAS_SILENCIADAS = (
 # ── Identidad ─────────────────────────────────────────────────────────────────
 
 APP_NAME    = "YTChat TTS"
-APP_VERSION = "2.4.0"
+APP_VERSION = "2.4.1"
 
 # ── Tipos de mensaje ──────────────────────────────────────────────────────────
 

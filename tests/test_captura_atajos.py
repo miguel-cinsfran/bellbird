@@ -23,50 +23,52 @@ class TestCapturaAtajos(unittest.TestCase):
         import wx
         self.app = wx.App() if not wx.App.Get() else wx.App.Get()
         from ytchat.ui import gui_preferencias as gp
+        from ytchat.ui import atajos_captura
         self.gp = gp
+        self.atajos = atajos_captura
 
     def test_combo_ctrl_letra(self):
         import wx
-        self.assertEqual(self.gp._combo_a_texto(wx.MOD_CONTROL, ord("P")), "ctrl+p")
+        self.assertEqual(self.atajos.combo_a_texto(wx.MOD_CONTROL, ord("P")), "ctrl+p")
 
     def test_combo_alt_enter(self):
         import wx
-        self.assertEqual(self.gp._combo_a_texto(wx.MOD_ALT, wx.WXK_RETURN), "alt+enter")
+        self.assertEqual(self.atajos.combo_a_texto(wx.MOD_ALT, wx.WXK_RETURN), "alt+enter")
 
     def test_combo_fkey_sin_modificador(self):
         import wx
-        self.assertEqual(self.gp._combo_a_texto(wx.MOD_NONE, wx.WXK_F5), "f5")
+        self.assertEqual(self.atajos.combo_a_texto(wx.MOD_NONE, wx.WXK_F5), "f5")
 
     def test_combo_ctrl_flecha(self):
         import wx
-        self.assertEqual(self.gp._combo_a_texto(wx.MOD_CONTROL, wx.WXK_LEFT), "ctrl+left")
+        self.assertEqual(self.atajos.combo_a_texto(wx.MOD_CONTROL, wx.WXK_LEFT), "ctrl+left")
 
     def test_combo_ctrl_alt_flecha_llega_a_la_gramatica(self):
         import wx
         from ytchat.core import config as cfg
-        combo = self.gp._combo_a_texto(
+        combo = self.atajos.combo_a_texto(
             wx.MOD_CONTROL | wx.MOD_ALT, wx.WXK_LEFT)
         self.assertEqual(combo, "ctrl+alt+left")
         self.assertEqual(cfg._normalizar_atajo(combo), "ctrl+alt+left")
 
     def test_combo_ctrl_fkey(self):
         import wx
-        self.assertEqual(self.gp._combo_a_texto(wx.MOD_CONTROL, wx.WXK_F2), "ctrl+f2")
+        self.assertEqual(self.atajos.combo_a_texto(wx.MOD_CONTROL, wx.WXK_F2), "ctrl+f2")
 
     def test_combo_shift_se_normaliza_y_abre_alt_shift(self):
         import wx
         # Ctrl+Shift se captura tal cual y Alt+Shift ya es un área propia.
         from ytchat.core import config as cfg
-        combo = self.gp._combo_a_texto(wx.MOD_CONTROL | wx.MOD_SHIFT, ord("P"))
+        combo = self.atajos.combo_a_texto(wx.MOD_CONTROL | wx.MOD_SHIFT, ord("P"))
         self.assertEqual(combo, "ctrl+shift+p")
         self.assertEqual(cfg._normalizar_atajo(combo), "ctrl+shift+p")
-        combo_alt_shift = self.gp._combo_a_texto(
+        combo_alt_shift = self.atajos.combo_a_texto(
             wx.MOD_ALT | wx.MOD_SHIFT, ord("X"))
         self.assertEqual(cfg._normalizar_atajo(combo_alt_shift), "alt+shift+x")
 
     def test_tecla_no_admitida(self):
         import wx
-        self.assertIsNone(self.gp._combo_a_texto(wx.MOD_NONE, wx.WXK_CAPITAL))
+        self.assertIsNone(self.atajos.combo_a_texto(wx.MOD_NONE, wx.WXK_CAPITAL))
 
     def test_mostrar_atajo(self):
         self.assertEqual(self.gp._mostrar_atajo("ctrl+p"), "Ctrl+P")

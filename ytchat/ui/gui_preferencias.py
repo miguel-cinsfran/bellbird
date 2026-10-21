@@ -150,42 +150,7 @@ _OPCIONES_SIMPLES = (
 ) + OPCIONES_MUSICA
 
 
-# ── Captura de atajos (pulsar en vez de escribir) ─────────────────────────────
-# Idea tomada del proyecto bellbird del dueño: en vez de teclear el atajo (con
-# riesgo de escribirlo mal), se pulsa un botón, se captura la combinación real y
-# se valida al vuelo (área correcta y sin conflicto). Así no hay atajos inválidos.
-
-_TECLA_WX_A_TEXTO = {
-    wx.WXK_LEFT: "left", wx.WXK_RIGHT: "right", wx.WXK_UP: "up", wx.WXK_DOWN: "down",
-    wx.WXK_RETURN: "enter", wx.WXK_NUMPAD_ENTER: "enter", wx.WXK_SPACE: "space",
-    wx.WXK_END: "end",
-}
 _AREA_AYUDA = atajos_captura._AREA_AYUDA
-
-
-def _tecla_texto(keycode: int) -> str | None:
-    """Nombre de tecla en nuestro formato («left», «f5», «p»…) desde un keycode
-    de wx. None si no es una tecla admitida como atajo."""
-    if keycode in _TECLA_WX_A_TEXTO:
-        return _TECLA_WX_A_TEXTO[keycode]
-    if wx.WXK_F1 <= keycode <= wx.WXK_F12:
-        return f"f{keycode - wx.WXK_F1 + 1}"
-    if 33 <= keycode < 127:   # letras, dígitos y símbolos ASCII
-        return chr(keycode).lower()
-    return None
-
-
-def _combo_a_texto(mods: int, keycode: int) -> str | None:
-    """(modificadores, keycode) de wx → texto tipo «ctrl+p», «alt+enter», «f5».
-    None si la tecla no sirve como atajo. Deja que config valide el resto."""
-    tecla = _tecla_texto(keycode)
-    if not tecla:
-        return None
-    partes = []
-    if mods & wx.MOD_CONTROL: partes.append("ctrl")
-    if mods & wx.MOD_ALT:     partes.append("alt")
-    if mods & wx.MOD_SHIFT:   partes.append("shift")
-    return "+".join(partes + [tecla]) if partes else tecla
 
 
 class PreferenciasDialog(PaginaMusica, PaginaProgramados, PaginaIA, wx.Dialog):
@@ -1244,7 +1209,7 @@ class PreferenciasDialog(PaginaMusica, PaginaProgramados, PaginaIA, wx.Dialog):
             estado, valor, texto = atajos_captura.resolver(
                 accion, None, self._valores_atajo)
         else:
-            combo = _combo_a_texto(mods, k)
+            combo = atajos_captura.combo_a_texto(mods, k)
             estado, valor, texto = atajos_captura.resolver(
                 accion, combo, self._valores_atajo)
         anunciar(texto)

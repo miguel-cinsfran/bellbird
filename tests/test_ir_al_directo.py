@@ -137,10 +137,10 @@ class TestRepDirectoWx(unittest.TestCase):
 
     def test_captura_convierte_fin_con_ctrl_en_ctrl_end(self):
         import wx
-        from ytchat.ui import gui_preferencias as gp
+        from ytchat.ui import atajos_captura
         self.assertEqual(
-            gp._combo_a_texto(wx.MOD_CONTROL, wx.WXK_END), "ctrl+end")
-        self.assertEqual(gp._tecla_texto(wx.WXK_END), "end")
+            atajos_captura.combo_a_texto(wx.MOD_CONTROL, wx.WXK_END), "ctrl+end")
+        self.assertEqual(atajos_captura.tecla_texto(wx.WXK_END), "end")
 
     def test_menu_usa_acelerador_y_enlace(self):
         from ytchat.ui import gui_menu

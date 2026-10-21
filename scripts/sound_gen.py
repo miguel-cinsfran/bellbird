@@ -418,6 +418,29 @@ def gen_musica_igualando():
     return _normalizar(_concat(n1, n2, n3), 0.55)
 
 
+# ── Preguntar a la IA: consulta, respuesta y fallo ────────────────────────────
+# Cortos y sobrios: la respuesta suena justo antes de que lea el lector.
+
+def gen_ia_enviada():
+    # Glide ascendente continuo E4→A4, grave: la pregunta sale.
+    barrido = _glide(E4, A4, 0.20, 0.30)
+    return _normalizar(_perc(barrido, 0.004, 0.16), 0.7)
+
+
+def gen_ia_respuesta():
+    # Dos notas cálidas A4→D5, la segunda más aguda: llegó la respuesta.
+    n1 = _perc(_seno(A4, 0.08, 0.26), 0.004, 0.07)
+    n2 = _perc(_seno(D5, 0.14, 0.26), 0.004, 0.12)
+    return _normalizar(_concat(n1, n2), 0.58)
+
+
+def gen_ia_error():
+    # Dos notas graves descendentes C4→A3: la consulta falló.
+    n1 = _perc(_seno(C4, 0.11, 0.30), 0.005, 0.10)
+    n2 = _perc(_seno(A3, 0.18, 0.30), 0.005, 0.15)
+    return _normalizar(_concat(n1, n2), 0.72)
+
+
 # ── Tema "suave": senos cálidos con decaimiento tipo marimba/madera ───────────
 # Más redondo, bajo y mate que el tema por defecto: nada de aristas brillantes
 # ni regusto a videojuego. Mismo lenguaje de gestos (ascendente = abrir, etc.).
@@ -611,6 +634,26 @@ def s_musica_igualando():
                 _madera(A4, 0.14, 0.28, 0.11))
 
 
+# ── Preguntar a la IA en el tema suave ────────────────────────────────────────
+# Los mismos gestos en madera cálida, bajos y breves por el lector.
+
+def s_ia_enviada():
+    # El mismo glide ascendente continuo, grave y mate.
+    return _normalizar(_perc(_glide(E4, A4, 0.20, 0.28), 0.005, 0.16), 0.6)
+
+
+def s_ia_respuesta():
+    # Las mismas dos notas cálidas, la segunda más aguda, sin tapar al lector.
+    return _normalizar(_concat(_madera(A4, 0.08, 0.28, 0.06),
+                               _madera(D5, 0.14, 0.28, 0.11)), 0.58)
+
+
+def s_ia_error():
+    # Las mismas dos notas graves descendentes en madera.
+    return _seq(_madera(C4, 0.11, 0.32, 0.09),
+                _madera(A3, 0.18, 0.32, 0.14))
+
+
 # ── Reemplazos del tema suave (encargo 174) ──────────────────────────────────
 # Generadores propios para los que eran copia de otro dentro del tema.
 # Cada uno conserva el gesto del evento con notas o duraciones distintas.
@@ -744,6 +787,10 @@ TEMAS = {
         "musica_fin.wav":              gen_musica_fin,
         "musica_fallo.wav":            gen_musica_fallo,
         "musica_igualando.wav":        gen_musica_igualando,
+        # Preguntar a la IA.
+        "ia_enviada.wav":              gen_ia_enviada,
+        "ia_respuesta.wav":            gen_ia_respuesta,
+        "ia_error.wav":                gen_ia_error,
     },
     "suave": {
         "app_inicio.wav":    s_app_inicio,
@@ -800,6 +847,10 @@ TEMAS = {
         "musica_fin.wav":              s_musica_fin,
         "musica_fallo.wav":            s_musica_fallo,
         "musica_igualando.wav":        s_musica_igualando,
+        # Preguntar a la IA.
+        "ia_enviada.wav":              s_ia_enviada,
+        "ia_respuesta.wav":            s_ia_respuesta,
+        "ia_error.wav":                s_ia_error,
     },
 }
 

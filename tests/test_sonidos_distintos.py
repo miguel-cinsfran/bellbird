@@ -16,13 +16,14 @@ RAIZ = Path(__file__).resolve().parent.parent
 TEMAS_DIR = RAIZ / "sounds" / "themes"
 
 # Los doce avisos con sonido propio (encargo 174, más directo_finalizado y
-# la vuelta de la conexión) y los cuatro de música.
+# la vuelta de la conexión), los cuatro de música y los tres de la IA.
 EVENTOS_NUEVOS = [
     "descarga_iniciada", "descarga_completada", "descarga_fallida",
     "descarga_cancelada", "al_aire", "transmision_detenida",
     "transmision_problema", "transmision_recuperada", "aviso",
     "actualizacion_disponible", "actualizacion_lista", "directo_finalizado",
     "musica_tema", "musica_fin", "musica_fallo", "musica_igualando",
+    "ia_enviada", "ia_respuesta", "ia_error",
 ]
 
 

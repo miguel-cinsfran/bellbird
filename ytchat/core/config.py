@@ -169,6 +169,8 @@ _EVENTOS_SONIDO = [
     "actualizacion_disponible", "actualizacion_lista",
     # Música: cambio, fin, fallo e igualación al medir muchas canciones:
     "musica_tema", "musica_fin", "musica_fallo", "musica_igualando",
+    # Preguntar a la IA: consulta que sale, respuesta que llega y fallo:
+    "ia_enviada", "ia_respuesta", "ia_error",
 ]
 
 # Carpeta base de temas y tema por defecto.

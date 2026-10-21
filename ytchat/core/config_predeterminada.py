@@ -205,6 +205,64 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
     ]),
 ]
 
+# Comentarios útiles por sección (breves y prácticos)
+_COMENTARIOS: dict[str, str] = {
+    "voz": (
+        "# Motor de voz: sapi, onecore o elevenlabs. Voz vacía es la\n"
+        "# primera del sistema; se guarda por nombre. Multivoz usa otra\n"
+        "# voz para eventos (Super Chats, regalos). Se cambia en\n"
+        "# Preferencias > Lectura. Con ElevenLabs, voz_respaldo es la voz\n"
+        "# de Windows que suena si falla o se pasa el tope de caracteres\n"
+        "# (elevenlabs_tope, 0 sin tope), y elevenlabs_solo_importantes\n"
+        "# reserva la nube para Super Chats, stickers, miembros, cofres,\n"
+        "# el dueño del canal y los moderadores.\n"
+    ),
+    "cola": "# Cola de lectura: con límite descarta los más viejos si se llena.\n",
+    "reconexion": "# Reconexión automática si se corta el chat.\n",
+    "lectura": "# Qué parte del mensaje se lee: nombre y mensaje, solo uno, etc.\n",
+    "filtros": "# Listas en minúsculas, separadas por comas. Vacías no filtran.\n",
+    "texto": "# Limpieza del texto antes de leer y longitud máxima en caracteres.\n",
+    "atajos": (
+        "# Atajos por familia: Ctrl reproductor, Alt chat, Ctrl+Shift ventanas y Alt+Shift directo.\n"
+        "# F voz y Ctrl+Alt música. F9-F12 se guardan pero no se editan. Alt+F4 y F6 no se guardan.\n"
+    ),
+    "ui": (
+        "# Interfaz: fuente del chat y opciones visibles.\n"
+        "# confirmar_salida pregunta antes de salir con chat o\n"
+        "# transmisión en curso; recordar_direccion guarda la última\n"
+        "# dirección conectada; sonido_inicio suena al arrancar.\n"
+    ),
+    "sesion": (
+        "# Silenciar lectura al arrancar.\n"
+        "# ultima_direccion es la última dirección conectada, para\n"
+        "# ofrecerla al arrancar si recordar_direccion está activado.\n"
+    ),
+    "tiktok": "# Solo TikTok: anunciar quién entra al directo puede ser muchísimo.\n",
+    "diagnostico": "# Registro detallado para diagnosticar fallos (requiere reiniciar).\n",
+    "overlay": "# Panel de chat para transmitir por navegador (overlay web).\n",
+    "obs": "# Integración con OBS: nombre de la fuente de micrófono.\n",
+    "transmision": (
+        "# Transmisión: destino del directo y datos del directo de\n"
+        "# YouTube (se piden al transmitir y se recuerdan). La\n"
+        "# descripción guarda los saltos de línea como \\n.\n"
+    ),
+    "estado": (
+        "# Componentes que anuncia F2. true se dice, false se omite.\n"
+        "# Se elige en Preferencias > Estado. El orden en que se dice es fijo.\n"
+    ),
+    "descargas": (
+        "# Gestor de descargas con yt-dlp. Formato: mp4 | webm | mp3 | m4a.\n"
+        "# Bitrate solo para audio. Carpeta portable junto al ejecutable.\n"
+    ),
+    "actualizaciones": "# Buscar actualizaciones de la app al iniciar.\n",
+    "musica": (
+        "# Música local: carpeta de la biblioteca, orden y opciones de\n"
+        "# reproducción. La salida es el identificador de un dispositivo\n"
+        "# de audio de libVLC; vacía usa el predeterminado del sistema.\n"
+    ),
+}
+
+
 # Mapa para consultas rápidas por sección y clave (con orden preservado)
 _CANONICA: OrderedDict[str, OrderedDict[str, str]] = OrderedDict(
     (sec, OrderedDict(pares)) for sec, pares in _ORDEN
@@ -248,80 +306,9 @@ def generar_texto() -> str:
     )
     for sec, pares in _ORDEN:
         partes.append(f"\n[{sec}]\n")
-        # Comentarios útiles por sección (breves y prácticos)
-        if sec == "voz":
-            partes.append(
-                "# Motor de voz: sapi, onecore o elevenlabs. Voz vacía es la\n"
-                "# primera del sistema; se guarda por nombre. Multivoz usa otra\n"
-                "# voz para eventos (Super Chats, regalos). Se cambia en\n"
-                "# Preferencias > Lectura. Con ElevenLabs, voz_respaldo es la voz\n"
-                "# de Windows que suena si falla o se pasa el tope de caracteres\n"
-                "# (elevenlabs_tope, 0 sin tope), y elevenlabs_solo_importantes\n"
-                "# reserva la nube para Super Chats, stickers, miembros, cofres,\n"
-                "# el dueño del canal y los moderadores.\n"
-            )
-        elif sec == "cola":
-            partes.append("# Cola de lectura: con límite descarta los más viejos si se llena.\n")
-        elif sec == "reconexion":
-            partes.append("# Reconexión automática si se corta el chat.\n")
-        elif sec == "lectura":
-            partes.append("# Qué parte del mensaje se lee: nombre y mensaje, solo uno, etc.\n")
-        elif sec == "filtros":
-            partes.append("# Listas en minúsculas, separadas por comas. Vacías no filtran.\n")
-        elif sec == "texto":
-            partes.append("# Limpieza del texto antes de leer y longitud máxima en caracteres.\n")
-        elif sec == "atajos":
-            partes.append(
-                "# Atajos por familia: Ctrl reproductor, Alt chat, Ctrl+Shift ventanas y Alt+Shift directo.\n"
-                "# F voz y Ctrl+Alt música. F9-F12 se guardan pero no se editan. Alt+F4 y F6 no se guardan.\n"
-            )
-        elif sec == "ui":
-            partes.append("# Interfaz: fuente del chat y opciones visibles.\n")
-            partes.append(
-                "# confirmar_salida pregunta antes de salir con chat o\n"
-                "# transmisión en curso; recordar_direccion guarda la última\n"
-                "# dirección conectada; sonido_inicio suena al arrancar.\n"
-            )
-        elif sec == "sesion":
-            partes.append("# Silenciar lectura al arrancar.\n")
-            partes.append(
-                "# ultima_direccion es la última dirección conectada, para\n"
-                "# ofrecerla al arrancar si recordar_direccion está activado.\n"
-            )
-        elif sec == "tiktok":
-            partes.append(
-                "# Solo TikTok: anunciar quién entra al directo puede ser muchísimo.\n"
-            )
-        elif sec == "diagnostico":
-            partes.append("# Registro detallado para diagnosticar fallos (requiere reiniciar).\n")
-        elif sec == "overlay":
-            partes.append("# Panel de chat para transmitir por navegador (overlay web).\n")
-        elif sec == "obs":
-            partes.append("# Integración con OBS: nombre de la fuente de micrófono.\n")
-        elif sec == "transmision":
-            partes.append(
-                "# Transmisión: destino del directo y datos del directo de\n"
-                "# YouTube (se piden al transmitir y se recuerdan). La\n"
-                "# descripción guarda los saltos de línea como \\n.\n"
-            )
-        elif sec == "estado":
-            partes.append(
-                "# Componentes que anuncia F2. true se dice, false se omite.\n"
-                "# Se elige en Preferencias > Estado. El orden en que se dice es fijo.\n"
-            )
-        elif sec == "descargas":
-            partes.append(
-                "# Gestor de descargas con yt-dlp. Formato: mp4 | webm | mp3 | m4a.\n"
-                "# Bitrate solo para audio. Carpeta portable junto al ejecutable.\n"
-            )
-        elif sec == "actualizaciones":
-            partes.append("# Buscar actualizaciones de la app al iniciar.\n")
-        elif sec == "musica":
-            partes.append(
-                "# Música local: carpeta de la biblioteca, orden y opciones de\n"
-                "# reproducción. La salida es el identificador de un dispositivo\n"
-                "# de audio de libVLC; vacía usa el predeterminado del sistema.\n"
-            )
+        comentario = _COMENTARIOS.get(sec, "")
+        if comentario:
+            partes.append(comentario)
         for clave, valor in pares:
             if valor == "":
                 partes.append(f"{clave} =\n")

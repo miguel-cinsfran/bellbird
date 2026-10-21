@@ -162,12 +162,17 @@ class TestTablaOpcionesSimples(unittest.TestCase):
                 mock.patch.object(gui_preferencias, "anunciar") as anunciar, \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
-        # Un solo guardado con todos los cambios, y ningún anuncio dentro de
-        # _on_guardar: los avisos los dice la ventana principal al cerrar.
-        guardar.assert_called_once()
+        self.assertEqual(guardar.call_count, 2)
+        por_primera = {cambios[0][0] for cambios in
+                       (llamada.args[1]
+                        for llamada in guardar.call_args_list)}
+        self.assertEqual(por_primera, {"ia", "programados"})
         anunciar.assert_not_called()
         escritos = {(seccion, clave): valor
-                    for seccion, clave, valor in guardar.call_args.args[1]}
+                    for seccion, clave, valor in
+                    next(llamada.args[1]
+                         for llamada in guardar.call_args_list
+                         if llamada.args[1][0][0] == "programados")}
         for (seccion, clave), (texto, en_memoria, valor) in esperados.items():
             with self.subTest(seccion=seccion, clave=clave):
                 self.assertEqual(escritos.get((seccion, clave)), texto)

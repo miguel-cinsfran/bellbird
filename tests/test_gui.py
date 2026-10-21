@@ -1852,8 +1852,9 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         self.parche_ruta.__enter__()
         self.addCleanup(self.parche_ruta.__exit__, None, None, None)
         # Nunca el Administrador de credenciales real.
+        self.clave_guardada = ""
         self.parche_claves = mock.patch.object(
-            preferencias_ia.claves, "leer", return_value="")
+            preferencias_ia.claves, "leer", return_value=self.clave_guardada)
         self.parche_claves.start()
         self.addCleanup(self.parche_claves.stop)
 
@@ -1884,14 +1885,28 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         dialogo = self._dialogo()
         pagina = self._pagina(dialogo)
         esperados = [
-            "ProveedorIA", "DireccionIA", "ClaveIA", "GuardarClaveIA",
+            "ProveedorIA", "DireccionIA", dialogo.txt_ia_clave, "GuardarClaveIA",
             "BorrarClaveIA", "ProbarClaveIA", "ModeloIA", "SoloGratuitosIA",
             "ActualizarModelosIA", "OtroModeloIA", "AvisoModeloIA",
             "PreguntaIA", "RestaurarPreguntaIA", "LargoIA", "TiempoIA",
         ]
-        orden = [h.GetName() for h in pagina.GetChildren()
-                 if h.GetName() in esperados]
+        nombres = {esperado for esperado in esperados
+                   if isinstance(esperado, str)}
+        orden = []
+        for hijo in pagina.GetChildren():
+            if hijo is dialogo.txt_ia_clave:
+                orden.append(hijo)
+            elif hijo.GetName() in nombres:
+                orden.append(hijo.GetName())
         self.assertEqual(orden, esperados)
+        seleccion = dialogo.cho_ia_proveedor.GetSelection()
+        if not 0 <= seleccion < len(proveedores.PROVEEDORES):
+            seleccion = 0
+        proveedor = proveedores.PROVEEDORES[seleccion]
+        self.assertEqual(
+            dialogo.txt_ia_clave.GetName(),
+            opciones_ia.nombre_de_clave(proveedor,
+                                        bool(self.clave_guardada)))
 
     def test_los_mnemonicos_de_ia_no_se_repiten_ni_chocan_con_guardar(self):
         dialogo = self._dialogo()
@@ -2478,7 +2493,11 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
                 mock.patch.object(gui_preferencias, "anunciar") as anunciar, \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
-        guardar.assert_called_once()
+        self.assertEqual(guardar.call_count, 2)
+        por_primera = {cambios[0][0] for cambios in
+                       (llamada.args[1]
+                        for llamada in guardar.call_args_list)}
+        self.assertEqual(por_primera, {"ia", "programados"})
         self.assertEqual(dialogo.avisos, ["Preferencias guardadas."])
         anunciar.assert_not_called()
         sonar.assert_any_call("copiar")

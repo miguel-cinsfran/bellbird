@@ -79,7 +79,7 @@ class TestAvisosStaticBox(unittest.TestCase):
         self.addCleanup(destruir, panel)
 
         self._comprobar_sin_aviso_staticbox()
-        self.assertIsInstance(panel._video.GetParent(), gui.wx.StaticBox)
+        self.assertEqual(panel._video.GetParent().GetClassName(), 'wxStaticBox')
         self.assertEqual(
             panel._video.GetName(), "Vídeo. Doble clic para pantalla completa.")
 

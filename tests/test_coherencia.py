@@ -226,6 +226,14 @@ INTERNAS = {
     ("descargas", "carpeta"): "gestor de descargas (config.py:436, desde gui_descargas.py:353)",
     ("descargas", "enumerar"): "gestor de descargas (config.py:436, desde gui_descargas.py:353)",
     ("descargas", "formato"): "gestor de descargas (config.py:436, desde gui_descargas.py:353)",
+    ("ia", "direccion"): "su control llega con la página Inteligencia artificial de Preferencias (MD/roadmap.md, sección 8)",
+    ("ia", "largo"): "su control llega con la página Inteligencia artificial de Preferencias (MD/roadmap.md, sección 8)",
+    ("ia", "modelo"): "su control llega con la página Inteligencia artificial de Preferencias (MD/roadmap.md, sección 8)",
+    ("ia", "pregunta"): "su control llega con la página Inteligencia artificial de Preferencias (MD/roadmap.md, sección 8)",
+    ("ia", "privacidad_aceptada"): "la escribe el aviso de privacidad de la IA, no lleva control",
+    ("ia", "proveedor"): "su control llega con la página Inteligencia artificial de Preferencias (MD/roadmap.md, sección 8)",
+    ("ia", "solo_gratis"): "su control llega con la página Inteligencia artificial de Preferencias (MD/roadmap.md, sección 8)",
+    ("ia", "tiempo_espera"): "su control llega con la página Inteligencia artificial de Preferencias (MD/roadmap.md, sección 8)",
     ("musica", "mostrar_cola"): "la recuerda la ventana Música (musica_memoria.py:19, guarda en gui_musica.py:465)",
     ("overlay", "activo"): "la enciende la ventana Transmisión (gui_transmitir.py:32 y 37)",
     ("sesion", "silenciar_lectura"): "la cambia F4 en la ventana principal (gui.py:1340)",
@@ -251,6 +259,14 @@ INTERNAS = {
 
 # Pares que se leen fuera de `config.py`: dónde se lee cada uno.
 LEIDAS_FUERA = {
+    ("ia", "direccion"): "la lee ajustes_ia.leer (ajustes_ia.py:93)",
+    ("ia", "largo"): "la lee ajustes_ia.leer (ajustes_ia.py:95)",
+    ("ia", "modelo"): "la lee ajustes_ia.leer (ajustes_ia.py:92)",
+    ("ia", "pregunta"): "la lee ajustes_ia.leer (ajustes_ia.py:88)",
+    ("ia", "privacidad_aceptada"): "la lee ajustes_ia.leer (ajustes_ia.py:99)",
+    ("ia", "proveedor"): "la lee ajustes_ia.leer (ajustes_ia.py:91)",
+    ("ia", "solo_gratis"): "la lee ajustes_ia.leer (ajustes_ia.py:98)",
+    ("ia", "tiempo_espera"): "la lee ajustes_ia.leer (ajustes_ia.py:97)",
     ("sesion", "version_atajos"): "la lee y la escribe la migración de atajos (atajos.py:294 y 303)",
 }
 

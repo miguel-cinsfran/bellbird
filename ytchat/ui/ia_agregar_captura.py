@@ -78,6 +78,7 @@ class DialogoAgregarCaptura(wx.Dialog):
         self._temporizador = wx.Timer(self)
         self.cho_fuente.Bind(wx.EVT_CHOICE, self._al_elegir)
         self.btn_capturar.Bind(wx.EVT_BUTTON, self._al_capturar)
+        self.btn_cancelar.Bind(wx.EVT_BUTTON, self._al_cancelar)
         self.Bind(wx.EVT_TIMER, self._al_temporizador, self._temporizador)
         self.Bind(wx.EVT_CHAR_HOOK, self._al_tecla)
         self.Bind(wx.EVT_CLOSE, self._al_cerrar)
@@ -108,6 +109,9 @@ class DialogoAgregarCaptura(wx.Dialog):
             self._terminar(wx.ID_CANCEL)
             return
         event.Skip()
+
+    def _al_cancelar(self, _event) -> None:
+        self._terminar(wx.ID_CANCEL)
 
     def _opcion_elegida(self):
         indice = self.cho_fuente.GetSelection()

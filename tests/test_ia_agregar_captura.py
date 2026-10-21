@@ -166,7 +166,7 @@ class TestDialogoAgregarCapturaVentana(unittest.TestCase):
                     side_effect=obs_captura_ia.CapturaFallida("sin luz")):
             dialogo._al_temporizador(mock.Mock())
         anunciar.assert_not_called()
-        self.assertEqual(dialogo.bmp_vista.GetBitmap(), wx.NullBitmap)
+        self.assertFalse(dialogo.bmp_vista.GetBitmap().IsOk())
 
     def test_escape_cierra_con_cancel(self):
         dialogo = self._dialogo()
@@ -175,6 +175,19 @@ class TestDialogoAgregarCapturaVentana(unittest.TestCase):
         with mock.patch.object(dialogo, "EndModal") as fin:
             dialogo._al_tecla(evento)
         fin.assert_called_once_with(wx.ID_CANCEL)
+
+    def test_cancelar_cierra_y_no_toca_despues(self):
+        dialogo = self._dialogo()
+        antes = dialogo.cho_fuente.GetStringSelection()
+        with mock.patch.object(dialogo, "EndModal") as fin:
+            dialogo.btn_cancelar.GetEventHandler().ProcessEvent(
+                wx.CommandEvent(wx.EVT_BUTTON.typeId,
+                                dialogo.btn_cancelar.GetId()))
+        fin.assert_called_once_with(wx.ID_CANCEL)
+        self.assertTrue(dialogo._cerrado)
+        dialogo._opciones_listas([obs_captura_ia.OpcionCaptura(
+            "Otra", "Otra", 640, 360)])
+        self.assertEqual(dialogo.cho_fuente.GetStringSelection(), antes)
 
 
 if __name__ == "__main__":

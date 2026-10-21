@@ -10,6 +10,7 @@ import time
 import unittest
 from pathlib import Path
 
+from ytchat.core import espera_proceso
 from ytchat.core import instalador
 from ytchat.core import paths
 
@@ -758,13 +759,13 @@ class TestTerminoWindows(unittest.TestCase):
     def test_sin_ctypes_devuelve_falso_sin_llamar_a_os_kill(self):
         import ctypes
         import unittest.mock as mock
-        with mock.patch.object(instalador.os, "name", "nt"), \
+        with mock.patch.object(espera_proceso.os, "name", "nt"), \
                 mock.patch.object(ctypes, "WinDLL",
                                   side_effect=OSError("sin kernel")), \
-                mock.patch.object(instalador.os, "kill",
+                mock.patch.object(espera_proceso.os, "kill",
                                   side_effect=AssertionError(
                                       "no debe llamarse")) as matar:
-            self.assertFalse(instalador._termino(1234))
+            self.assertFalse(espera_proceso.termino(1234))
         matar.assert_not_called()
 
     @unittest.skipUnless(os.name == "nt", "solo Windows")
@@ -773,7 +774,7 @@ class TestTerminoWindows(unittest.TestCase):
             [sys.executable, "-c", "import time; time.sleep(5)"],
             creationflags=subprocess.CREATE_NO_WINDOW)
         try:
-            self.assertFalse(instalador._termino(proceso.pid))
+            self.assertFalse(espera_proceso.termino(proceso.pid))
         finally:
             try:
                 proceso.terminate()
@@ -794,7 +795,7 @@ class TestTerminoWindows(unittest.TestCase):
             creationflags=subprocess.CREATE_NO_WINDOW)
         proceso.wait(timeout=10)
         try:
-            self.assertTrue(instalador._termino(proceso.pid))
+            self.assertTrue(espera_proceso.termino(proceso.pid))
         finally:
             try:
                 proceso.wait(timeout=10)
@@ -809,10 +810,10 @@ class TestTerminoWindows(unittest.TestCase):
             nucleo.OpenProcess.return_value = sin_handle
             nucleo.WaitForSingleObject.side_effect = AssertionError(
                 "sin handle no se espera")
-            with mock.patch.object(instalador.os, "name", "nt"), \
+            with mock.patch.object(espera_proceso.os, "name", "nt"), \
                     mock.patch.object(ctypes, "WinDLL",
                                       return_value=nucleo):
-                self.assertTrue(instalador._termino(1234))
+                self.assertTrue(espera_proceso.termino(1234))
             nucleo.WaitForSingleObject.assert_not_called()
 
     @unittest.skipUnless(os.name == "nt", "solo Windows")
@@ -823,7 +824,7 @@ class TestTerminoWindows(unittest.TestCase):
         proceso.wait(timeout=10)
         try:
             inicio = time.monotonic()
-            self.assertTrue(instalador.esperar_pid(proceso.pid, 5))
+            self.assertTrue(espera_proceso.esperar_pid(proceso.pid, 5))
             self.assertLess(time.monotonic() - inicio, 1)
         finally:
             try:

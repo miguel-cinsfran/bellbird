@@ -1,0 +1,3986 @@
+{
+ "version": 1,
+ "fecha": "2026-10-21",
+ "proveedores": {
+  "google": {
+   "nombre": "Google",
+   "modelos": [
+    {
+     "id": "deep-research-max-preview-04-2026",
+     "nombre": "Deep Research Max Preview (Apr-21-2026)",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "deep-research-preview-04-2026",
+     "nombre": "Deep Research Preview (Apr-21-2026)",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "gemini-2.5-computer-use-preview-10-2025",
+     "nombre": "Gemini 2.5 Computer Use Preview 10-2025",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 64000
+    },
+    {
+     "id": "gemini-2.5-flash",
+     "nombre": "Gemini 2.5 Flash",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "gemini-2.5-flash-lite",
+     "nombre": "Gemini 2.5 Flash-Lite",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "gemini-2.5-pro",
+     "nombre": "Gemini 2.5 Pro",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "gemini-3-flash-preview",
+     "nombre": "Gemini 3 Flash Preview",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "gemini-3.1-flash-lite",
+     "nombre": "Gemini 3.1 Flash Lite",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "gemini-3.1-flash-live-preview",
+     "nombre": "Gemini 3.1 Flash Live Preview",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "gemini-3.1-pro-preview",
+     "nombre": "Gemini 3.1 Pro Preview",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "gemini-3.1-pro-preview-customtools",
+     "nombre": "Gemini 3.1 Pro Preview Custom Tools",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "gemini-3.5-flash",
+     "nombre": "Gemini 3.5 Flash",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "gemini-3.5-flash-lite",
+     "nombre": "Gemini 3.5 Flash Lite",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "gemini-3.6-flash",
+     "nombre": "Gemini 3.6 Flash",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "gemini-3.7-flash",
+     "nombre": "Gemini 3.7 Flash",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "gemini-3.8-flash",
+     "nombre": "Gemini 3.8 Flash",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "gemini-4-argon",
+     "nombre": "Gemini 4 Argon",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 32768
+    },
+    {
+     "id": "gemini-embedding-2",
+     "nombre": "Gemini Embedding 2",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 1
+    },
+    {
+     "id": "gemini-flash-latest",
+     "nombre": "Gemini Flash Latest",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "gemini-flash-lite-latest",
+     "nombre": "Gemini Flash-Lite Latest",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "gemini-omni-flash-preview",
+     "nombre": "Gemini Omni Flash Preview",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "gemini-pro-latest",
+     "nombre": "Gemini Pro Latest",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "gemma-4-26b-a4b-it",
+     "nombre": "Gemma 4 26B A4B IT",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 32768
+    },
+    {
+     "id": "gemma-4-31b-it",
+     "nombre": "Gemma 4 31B IT",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 32768
+    },
+    {
+     "id": "lyria-3-clip-preview",
+     "nombre": "Lyria 3 Clip Preview",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": true,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 65536
+    },
+    {
+     "id": "lyria-3-pro-preview",
+     "nombre": "Lyria 3 Pro Preview",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": true,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 65536
+    },
+    {
+     "id": "gemini-2.5-flash-image",
+     "nombre": "Nano Banana",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 32768
+    },
+    {
+     "id": "gemini-3.1-flash-image-preview",
+     "nombre": "Nano Banana 2",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "gemini-3.1-flash-image",
+     "nombre": "Nano Banana 2",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 32768
+    },
+    {
+     "id": "gemini-3.1-flash-lite-image",
+     "nombre": "Nano Banana 2 Lite",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 4096
+    },
+    {
+     "id": "gemini-3-pro-image",
+     "nombre": "Nano Banana Pro",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 32768
+    },
+    {
+     "id": "gemini-3-pro-image-preview",
+     "nombre": "Nano Banana Pro",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 32768
+    },
+    {
+     "id": "veo-3.1-generate-preview",
+     "nombre": "Veo 3.1",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 8192
+    },
+    {
+     "id": "veo-3.1-fast-generate-preview",
+     "nombre": "Veo 3.1 fast",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 8192
+    },
+    {
+     "id": "veo-3.1-lite-generate-preview",
+     "nombre": "Veo 3.1 lite",
+     "protocolo": "gemini",
+     "base": "https://generativelanguage.googleapis.com/v1beta",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 8192
+    }
+   ]
+  },
+  "openai": {
+   "nombre": "OpenAI",
+   "modelos": [
+    {
+     "id": "chatgpt-image-latest",
+     "nombre": "chatgpt-image-latest",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 0
+    },
+    {
+     "id": "gpt-daybreak-blue-latest",
+     "nombre": "Daybreak Blue",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-daybreak-red-latest",
+     "nombre": "Daybreak Red",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-4.1",
+     "nombre": "GPT-4.1",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 32768
+    },
+    {
+     "id": "gpt-4.1-mini",
+     "nombre": "GPT-4.1 mini",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 32768
+    },
+    {
+     "id": "gpt-4o",
+     "nombre": "GPT-4o",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 16384
+    },
+    {
+     "id": "gpt-4o-2024-08-06",
+     "nombre": "GPT-4o (2024-08-06)",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 16384
+    },
+    {
+     "id": "gpt-4o-2024-11-20",
+     "nombre": "GPT-4o (2024-11-20)",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 16384
+    },
+    {
+     "id": "gpt-4o-mini",
+     "nombre": "GPT-4o mini",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 16384
+    },
+    {
+     "id": "gpt-5",
+     "nombre": "GPT-5",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-5-mini",
+     "nombre": "GPT-5 Mini",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-5-nano",
+     "nombre": "GPT-5 Nano",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-5-pro",
+     "nombre": "GPT-5 Pro",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 272000
+    },
+    {
+     "id": "gpt-5.1",
+     "nombre": "GPT-5.1",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-5.2",
+     "nombre": "GPT-5.2",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-5.2-pro",
+     "nombre": "GPT-5.2 Pro",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-5.3-codex",
+     "nombre": "GPT-5.3 Codex",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-5.3-codex-spark",
+     "nombre": "GPT-5.3 Codex Spark",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 32000
+    },
+    {
+     "id": "gpt-5.4",
+     "nombre": "GPT-5.4",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-5.4-mini",
+     "nombre": "GPT-5.4 mini",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-5.4-nano",
+     "nombre": "GPT-5.4 nano",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-5.4-pro",
+     "nombre": "GPT-5.4 Pro",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-5.5",
+     "nombre": "GPT-5.5",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-5.5-pro",
+     "nombre": "GPT-5.5 Pro",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-5.6",
+     "nombre": "GPT-5.6",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-5.6-luna",
+     "nombre": "GPT-5.6 Luna",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-5.6-sol",
+     "nombre": "GPT-5.6 Sol",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-5.6-terra",
+     "nombre": "GPT-5.6 Terra",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-6-astra",
+     "nombre": "GPT-6 Astra",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-6-luna",
+     "nombre": "GPT-6 Luna",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-6-sol",
+     "nombre": "GPT-6 Sol",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-6.1-sol",
+     "nombre": "GPT-6.1 Sol",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-image-1-mini",
+     "nombre": "gpt-image-1-mini",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 0
+    },
+    {
+     "id": "gpt-image-1.5",
+     "nombre": "gpt-image-1.5",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 0
+    },
+    {
+     "id": "gpt-image-2",
+     "nombre": "gpt-image-2",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 0
+    },
+    {
+     "id": "gpt-realtime-2.1",
+     "nombre": "GPT-Realtime-2.1",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 32000
+    },
+    {
+     "id": "o3",
+     "nombre": "o3",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 100000
+    },
+    {
+     "id": "o3-pro",
+     "nombre": "o3-pro",
+     "protocolo": "responses",
+     "base": "https://api.openai.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 100000
+    }
+   ]
+  },
+  "anthropic": {
+   "nombre": "Anthropic",
+   "modelos": [
+    {
+     "id": "claude-fable-5",
+     "nombre": "Claude Fable 5",
+     "protocolo": "anthropic",
+     "base": "https://api.anthropic.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "claude-fable-5-1",
+     "nombre": "Claude Fable 5.1",
+     "protocolo": "anthropic",
+     "base": "https://api.anthropic.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "claude-haiku-4-5-20251001",
+     "nombre": "Claude Haiku 4.5",
+     "protocolo": "anthropic",
+     "base": "https://api.anthropic.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 64000
+    },
+    {
+     "id": "claude-haiku-4-5",
+     "nombre": "Claude Haiku 4.5 (latest)",
+     "protocolo": "anthropic",
+     "base": "https://api.anthropic.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 64000
+    },
+    {
+     "id": "claude-haiku-5-5",
+     "nombre": "Claude Haiku 5.5",
+     "protocolo": "anthropic",
+     "base": "https://api.anthropic.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "claude-opus-4-5-20251101",
+     "nombre": "Claude Opus 4.5",
+     "protocolo": "anthropic",
+     "base": "https://api.anthropic.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 64000
+    },
+    {
+     "id": "claude-opus-4-5",
+     "nombre": "Claude Opus 4.5 (latest)",
+     "protocolo": "anthropic",
+     "base": "https://api.anthropic.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 64000
+    },
+    {
+     "id": "claude-opus-4-6",
+     "nombre": "Claude Opus 4.6",
+     "protocolo": "anthropic",
+     "base": "https://api.anthropic.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "claude-opus-4-7",
+     "nombre": "Claude Opus 4.7",
+     "protocolo": "anthropic",
+     "base": "https://api.anthropic.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "claude-opus-4-8",
+     "nombre": "Claude Opus 4.8",
+     "protocolo": "anthropic",
+     "base": "https://api.anthropic.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "claude-opus-5",
+     "nombre": "Claude Opus 5",
+     "protocolo": "anthropic",
+     "base": "https://api.anthropic.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "claude-opus-5-5",
+     "nombre": "Claude Opus 5.5",
+     "protocolo": "anthropic",
+     "base": "https://api.anthropic.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "claude-sonnet-4-5-20250929",
+     "nombre": "Claude Sonnet 4.5",
+     "protocolo": "anthropic",
+     "base": "https://api.anthropic.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 64000
+    },
+    {
+     "id": "claude-sonnet-4-5",
+     "nombre": "Claude Sonnet 4.5 (latest)",
+     "protocolo": "anthropic",
+     "base": "https://api.anthropic.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 64000
+    },
+    {
+     "id": "claude-sonnet-4-6",
+     "nombre": "Claude Sonnet 4.6",
+     "protocolo": "anthropic",
+     "base": "https://api.anthropic.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "claude-sonnet-5",
+     "nombre": "Claude Sonnet 5",
+     "protocolo": "anthropic",
+     "base": "https://api.anthropic.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "claude-sonnet-5-5",
+     "nombre": "Claude Sonnet 5.5",
+     "protocolo": "anthropic",
+     "base": "https://api.anthropic.com/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    }
+   ]
+  },
+  "openrouter": {
+   "nombre": "OpenRouter",
+   "modelos": [
+    {
+     "id": "openrouter/auto",
+     "nombre": "Auto Router",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 2000000
+    },
+    {
+     "id": "anthropic/claude-fable-5",
+     "nombre": "Claude Fable 5",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "anthropic/claude-fable-5.1",
+     "nombre": "Claude Fable 5.1",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "~anthropic/claude-fable-latest",
+     "nombre": "Claude Fable Latest",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "anthropic/claude-haiku-4.5",
+     "nombre": "Claude Haiku 4.5 (latest)",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 64000
+    },
+    {
+     "id": "anthropic/claude-haiku-5.5",
+     "nombre": "Claude Haiku 5.5",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "~anthropic/claude-haiku-latest",
+     "nombre": "Claude Haiku Latest",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "anthropic/claude-opus-4.1",
+     "nombre": "Claude Opus 4.1 (latest)",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 32000
+    },
+    {
+     "id": "anthropic/claude-opus-4.5",
+     "nombre": "Claude Opus 4.5 (latest)",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 64000
+    },
+    {
+     "id": "anthropic/claude-opus-4.6",
+     "nombre": "Claude Opus 4.6",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "anthropic/claude-opus-4.7",
+     "nombre": "Claude Opus 4.7",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "anthropic/claude-opus-4.8",
+     "nombre": "Claude Opus 4.8",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "anthropic/claude-opus-5",
+     "nombre": "Claude Opus 5",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "anthropic/claude-opus-5.5",
+     "nombre": "Claude Opus 5.5",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "~anthropic/claude-opus-latest",
+     "nombre": "Claude Opus Latest",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "anthropic/claude-sonnet-4.5",
+     "nombre": "Claude Sonnet 4.5 (latest)",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 64000
+    },
+    {
+     "id": "anthropic/claude-sonnet-4.6",
+     "nombre": "Claude Sonnet 4.6",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "anthropic/claude-sonnet-5",
+     "nombre": "Claude Sonnet 5",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "anthropic/claude-sonnet-5.5",
+     "nombre": "Claude Sonnet 5.5",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "~anthropic/claude-sonnet-latest",
+     "nombre": "Claude Sonnet Latest",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "cohere/command-a-plus",
+     "nombre": "Command A+",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 64000
+    },
+    {
+     "id": "~deepseek/deepseek-flash-latest",
+     "nombre": "DeepSeek Flash Latest",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 943718
+    },
+    {
+     "id": "deepseek/deepseek-v4-flash-vision-exp",
+     "nombre": "DeepSeek V4 Flash Vision Exp",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 262144
+    },
+    {
+     "id": "deepseek/deepseek-v4.1-flash",
+     "nombre": "DeepSeek V4.1 Flash",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 943718
+    },
+    {
+     "id": "deepseek/deepseek-v4.1-flash-1017",
+     "nombre": "DeepSeek V4.1 Flash 1017",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 393216
+    },
+    {
+     "id": "fireworks/ember-1",
+     "nombre": "Ember-1",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 943718
+    },
+    {
+     "id": "scaledown/extract",
+     "nombre": "Extract",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 900000
+    },
+    {
+     "id": "openrouter/free",
+     "nombre": "Free Models Router",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": true,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 8000
+    },
+    {
+     "id": "sakana/fugu-max",
+     "nombre": "Fugu Max",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "sakana/fugu-ultra",
+     "nombre": "Fugu Ultra",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "sakana/fugu-ultra-v2",
+     "nombre": "Fugu Ultra v2",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "google/gemini-2.5-pro-preview",
+     "nombre": "Gemini 2.5 Pro Preview 06-05",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "google/gemini-3-flash-preview",
+     "nombre": "Gemini 3 Flash Preview",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "google/gemini-3.1-flash-lite",
+     "nombre": "Gemini 3.1 Flash Lite",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "google/gemini-3.1-flash-lite-preview",
+     "nombre": "Gemini 3.1 Flash Lite Preview",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "google/gemini-3.1-pro-preview",
+     "nombre": "Gemini 3.1 Pro Preview",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "google/gemini-3.1-pro-preview-customtools",
+     "nombre": "Gemini 3.1 Pro Preview Custom Tools",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "google/gemini-3.5-flash",
+     "nombre": "Gemini 3.5 Flash",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "google/gemini-3.5-flash-lite",
+     "nombre": "Gemini 3.5 Flash Lite",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "google/gemini-3.6-flash",
+     "nombre": "Gemini 3.6 Flash",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "google/gemini-3.7-flash",
+     "nombre": "Gemini 3.7 Flash",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "google/gemini-3.8-flash",
+     "nombre": "Gemini 3.8 Flash",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "google/gemini-4-argon",
+     "nombre": "Gemini 4 Argon",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 943718
+    },
+    {
+     "id": "~google/gemini-flash-latest",
+     "nombre": "Gemini Flash Latest",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "~google/gemini-pro-latest",
+     "nombre": "Gemini Pro Latest",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 943718
+    },
+    {
+     "id": "google/gemma-3-12b-it",
+     "nombre": "Gemma 3 12B IT",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 16384
+    },
+    {
+     "id": "google/gemma-3-27b-it",
+     "nombre": "Gemma 3 27B IT",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 117964
+    },
+    {
+     "id": "google/gemma-3-4b-it",
+     "nombre": "Gemma 3 4B IT",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 117964
+    },
+    {
+     "id": "google/gemma-4-26b-a4b-it:free",
+     "nombre": "Gemma 4 26B A4B  (free)",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": true,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 32768
+    },
+    {
+     "id": "google/gemma-4-26b-a4b-it",
+     "nombre": "Gemma 4 26B A4B IT",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 235929
+    },
+    {
+     "id": "google/gemma-4-31b-it:free",
+     "nombre": "Gemma 4 31B (free)",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": true,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 32768
+    },
+    {
+     "id": "google/gemma-4-31b-it",
+     "nombre": "Gemma 4 31B IT",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 16384
+    },
+    {
+     "id": "elorian/glimpse",
+     "nombre": "Glimpse",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 256000
+    },
+    {
+     "id": "z-ai/glm-5.3-flashx",
+     "nombre": "GLM 5.3 FlashX",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "~z-ai/glm-flash-latest",
+     "nombre": "GLM Flash Latest",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 943718
+    },
+    {
+     "id": "z-ai/glm-4.5v",
+     "nombre": "GLM-4.5V",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 16384
+    },
+    {
+     "id": "z-ai/glm-4.6v",
+     "nombre": "GLM-4.6V",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 32768
+    },
+    {
+     "id": "z-ai/glm-5.3-flash",
+     "nombre": "GLM-5.3-Flash",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 943717
+    },
+    {
+     "id": "z-ai/glm-5v-turbo",
+     "nombre": "GLM-5V-Turbo",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "~openai/gpt-astra-latest",
+     "nombre": "GPT Astra Latest",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-chat-latest",
+     "nombre": "GPT Chat Latest",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 128000
+    },
+    {
+     "id": "~openai/gpt-luna-latest",
+     "nombre": "GPT Luna Latest",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "~openai/gpt-mini-latest",
+     "nombre": "GPT Mini Latest",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "~openai/gpt-sol-latest",
+     "nombre": "GPT Sol Latest",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "~openai/gpt-terra-latest",
+     "nombre": "GPT Terra Latest",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-4-turbo",
+     "nombre": "GPT-4 Turbo",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 4096
+    },
+    {
+     "id": "openai/gpt-4.1",
+     "nombre": "GPT-4.1",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 32768
+    },
+    {
+     "id": "openai/gpt-4.1-mini",
+     "nombre": "GPT-4.1 mini",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 32768
+    },
+    {
+     "id": "openai/gpt-4.1-nano",
+     "nombre": "GPT-4.1 nano",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 32768
+    },
+    {
+     "id": "openai/gpt-4o",
+     "nombre": "GPT-4o",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 16384
+    },
+    {
+     "id": "openai/gpt-4o-2024-05-13",
+     "nombre": "GPT-4o (2024-05-13)",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 4096
+    },
+    {
+     "id": "openai/gpt-4o-2024-08-06",
+     "nombre": "GPT-4o (2024-08-06)",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 16384
+    },
+    {
+     "id": "openai/gpt-4o-2024-11-20",
+     "nombre": "GPT-4o (2024-11-20)",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 16384
+    },
+    {
+     "id": "openai/gpt-4o-mini",
+     "nombre": "GPT-4o mini",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 16384
+    },
+    {
+     "id": "openai/gpt-4o-mini-2024-07-18",
+     "nombre": "GPT-4o-mini (2024-07-18)",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 16384
+    },
+    {
+     "id": "openai/gpt-5",
+     "nombre": "GPT-5",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-5-image",
+     "nombre": "GPT-5 Image",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-5-image-mini",
+     "nombre": "GPT-5 Image Mini",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-5-mini",
+     "nombre": "GPT-5 Mini",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-5-nano",
+     "nombre": "GPT-5 Nano",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-5-pro",
+     "nombre": "GPT-5 Pro",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-5.1",
+     "nombre": "GPT-5.1",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-5.1-codex",
+     "nombre": "GPT-5.1 Codex",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-5.1-codex-max",
+     "nombre": "GPT-5.1 Codex Max",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-5.1-codex-mini",
+     "nombre": "GPT-5.1 Codex mini",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-5.2",
+     "nombre": "GPT-5.2",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-5.2-chat",
+     "nombre": "GPT-5.2 Chat",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 32000
+    },
+    {
+     "id": "openai/gpt-5.2-codex",
+     "nombre": "GPT-5.2 Codex",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-5.2-pro",
+     "nombre": "GPT-5.2 Pro",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-5.3-codex",
+     "nombre": "GPT-5.3 Codex",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-5.4",
+     "nombre": "GPT-5.4",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-5.4-image-2",
+     "nombre": "GPT-5.4 Image 2",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-5.4-mini",
+     "nombre": "GPT-5.4 mini",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-5.4-nano",
+     "nombre": "GPT-5.4 nano",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-5.4-pro",
+     "nombre": "GPT-5.4 Pro",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-5.5",
+     "nombre": "GPT-5.5",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-5.5-pro",
+     "nombre": "GPT-5.5 Pro",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-5.6-luna",
+     "nombre": "GPT-5.6 Luna",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-5.6-luna-pro",
+     "nombre": "GPT-5.6 Luna Pro",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-5.6-sol",
+     "nombre": "GPT-5.6 Sol",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-5.6-sol-pro",
+     "nombre": "GPT-5.6 Sol Pro",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-5.6-terra",
+     "nombre": "GPT-5.6 Terra",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-5.6-terra-pro",
+     "nombre": "GPT-5.6 Terra Pro",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-6-astra",
+     "nombre": "GPT-6 Astra",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-6-astra-pro",
+     "nombre": "GPT-6 Astra Pro",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-6-luna",
+     "nombre": "GPT-6 Luna",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-6-luna-pro",
+     "nombre": "GPT-6 Luna Pro",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-6-sol",
+     "nombre": "GPT-6 Sol",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-6-sol-pro",
+     "nombre": "GPT-6 Sol Pro",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-6.1-sol",
+     "nombre": "GPT-6.1 Sol",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "openai/gpt-6.1-sol-pro",
+     "nombre": "GPT-6.1 Sol Pro",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "x-ai/grok-4.20",
+     "nombre": "Grok 4.20",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 1800000
+    },
+    {
+     "id": "x-ai/grok-4.20-multi-agent",
+     "nombre": "Grok 4.20 Multi-Agent",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 1800000
+    },
+    {
+     "id": "x-ai/grok-4.3",
+     "nombre": "Grok 4.3",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 900000
+    },
+    {
+     "id": "x-ai/grok-4.5",
+     "nombre": "Grok 4.5",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 450000
+    },
+    {
+     "id": "x-ai/grok-4.6",
+     "nombre": "Grok 4.6",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 450000
+    },
+    {
+     "id": "x-ai/grok-4.7",
+     "nombre": "Grok 4.7",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 450000
+    },
+    {
+     "id": "x-ai/grok-build-0.1",
+     "nombre": "Grok Build 0.1",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 230400
+    },
+    {
+     "id": "~x-ai/grok-latest",
+     "nombre": "Grok Latest",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 450000
+    },
+    {
+     "id": "thinkingmachines/inkling",
+     "nombre": "Inkling",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 471859
+    },
+    {
+     "id": "thinkingmachines/inkling:free",
+     "nombre": "Inkling (free)",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": true,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 262144
+    },
+    {
+     "id": "thinkingmachines/inkling-small",
+     "nombre": "Inkling Small",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 262144
+    },
+    {
+     "id": "thinkingmachines/inkling-small:free",
+     "nombre": "Inkling Small (free)",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": true,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 262144
+    },
+    {
+     "id": "moonshotai/kimi-k2.5",
+     "nombre": "Kimi K2.5",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 235929
+    },
+    {
+     "id": "moonshotai/kimi-k2.6",
+     "nombre": "Kimi K2.6",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 235929
+    },
+    {
+     "id": "moonshotai/kimi-k2.7-code",
+     "nombre": "Kimi K2.7 Code",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 235929
+    },
+    {
+     "id": "moonshotai/kimi-k3",
+     "nombre": "Kimi K3",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 943718
+    },
+    {
+     "id": "~moonshotai/kimi-latest",
+     "nombre": "Kimi Latest",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 943718
+    },
+    {
+     "id": "inclusionai/ling-3.0-flash-vl",
+     "nombre": "Ling 3.0 Flash VL",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 32768
+    },
+    {
+     "id": "meta-llama/llama-4-maverick",
+     "nombre": "Llama 4 Maverick",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 16384
+    },
+    {
+     "id": "meta-llama/llama-4-scout",
+     "nombre": "Llama 4 Scout",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 16384
+    },
+    {
+     "id": "meta-llama/llama-guard-4-12b",
+     "nombre": "Llama Guard 4 12B",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 16384
+    },
+    {
+     "id": "google/lyria-3-clip-preview",
+     "nombre": "Lyria 3 Clip Preview",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": true,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 65536
+    },
+    {
+     "id": "google/lyria-3-pro-preview",
+     "nombre": "Lyria 3 Pro Preview",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": true,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 65536
+    },
+    {
+     "id": "xiaomi/mimo-v2.6-flash",
+     "nombre": "MiMo-V2.6-Flash",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "xiaomi/mimo-v2.6-pro",
+     "nombre": "MiMo-V2.6-Pro",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "xiaomi/mimo-v2.6-pro-ultraspeed",
+     "nombre": "MiMo-V2.6-Pro-UltraSpeed",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "minimax/minimax-m3.1-flash:free",
+     "nombre": "MiniMax M3.1 Flash (free)",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": true,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 524288
+    },
+    {
+     "id": "minimax/minimax-01",
+     "nombre": "MiniMax-01",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 40000
+    },
+    {
+     "id": "minimax/minimax-m3",
+     "nombre": "MiniMax-M3",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 512000
+    },
+    {
+     "id": "mistralai/ministral-14b-2512",
+     "nombre": "Ministral 3 14B 2512",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 209715
+    },
+    {
+     "id": "mistralai/ministral-3b-2512",
+     "nombre": "Ministral 3 3B 2512",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 104857
+    },
+    {
+     "id": "mistralai/ministral-8b-2512",
+     "nombre": "Ministral 3 8B 2512",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 209715
+    },
+    {
+     "id": "mistralai/mistral-large-2512",
+     "nombre": "Mistral Large 3",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 209715
+    },
+    {
+     "id": "mistralai/mistral-large-4-0",
+     "nombre": "Mistral Large 4",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 262144
+    },
+    {
+     "id": "mistralai/mistral-medium-3",
+     "nombre": "Mistral Medium 3",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 104857
+    },
+    {
+     "id": "mistralai/mistral-medium-3.1",
+     "nombre": "Mistral Medium 3.1",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 104857
+    },
+    {
+     "id": "mistralai/mistral-medium-3-5",
+     "nombre": "Mistral Medium 3.5",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 209715
+    },
+    {
+     "id": "mistralai/mistral-small-3.1-24b-instruct",
+     "nombre": "Mistral Small 3.1 24B",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 102400
+    },
+    {
+     "id": "mistralai/mistral-small-3.2-24b-instruct",
+     "nombre": "Mistral Small 3.2 24B",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 16384
+    },
+    {
+     "id": "mistralai/mistral-small-2603",
+     "nombre": "Mistral Small 4",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 209715
+    },
+    {
+     "id": "moondream/moondream3-preview",
+     "nombre": "Moondream 3 Preview",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 4096
+    },
+    {
+     "id": "moondream/moondream3.1-9b-a2b",
+     "nombre": "Moondream 3.1",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 4096
+    },
+    {
+     "id": "meta/muse-glimmer-30b",
+     "nombre": "Muse Glimmer 30B",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 16384
+    },
+    {
+     "id": "meta/muse-spark-1.1",
+     "nombre": "Muse Spark 1.1",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 943718
+    },
+    {
+     "id": "meta/muse-spark-1.2",
+     "nombre": "Muse Spark 1.2",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 943718
+    },
+    {
+     "id": "meta/muse-spark-1.2-contributor",
+     "nombre": "Muse Spark 1.2 Contributor",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": true,
+     "piensa": true,
+     "tope_salida": 943718
+    },
+    {
+     "id": "meta/muse-spark-1.3",
+     "nombre": "Muse Spark 1.3",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 943718
+    },
+    {
+     "id": "meta/muse-spark-1.3-contributor",
+     "nombre": "Muse Spark 1.3 Contributor",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": true,
+     "piensa": true,
+     "tope_salida": 943718
+    },
+    {
+     "id": "meta/muse-spark-open",
+     "nombre": "Muse Spark Open",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 943718
+    },
+    {
+     "id": "meta/muse-wonder",
+     "nombre": "Muse Wonder",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 943718
+    },
+    {
+     "id": "google/gemini-2.5-flash-image",
+     "nombre": "Nano Banana",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 8192
+    },
+    {
+     "id": "google/gemini-3.1-flash-image",
+     "nombre": "Nano Banana 2",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 32768
+    },
+    {
+     "id": "google/gemini-3.1-flash-lite-image",
+     "nombre": "Nano Banana 2 Lite",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 58982
+    },
+    {
+     "id": "google/gemini-3.1-flash-image-preview",
+     "nombre": "Nano Banana 2 Preview",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 58982
+    },
+    {
+     "id": "google/gemini-nano-banana-2.1",
+     "nombre": "Nano Banana 2.1",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 58982
+    },
+    {
+     "id": "google/gemini-3-pro-image",
+     "nombre": "Nano Banana Pro",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 32768
+    },
+    {
+     "id": "google/gemini-3-pro-image-preview",
+     "nombre": "Nano Banana Pro Preview",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 32768
+    },
+    {
+     "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+     "nombre": "Nemotron 3 Nano Omni (free)",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": true,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "nvidia/nemotron-3.5-content-safety",
+     "nombre": "Nemotron 3.5 Content Safety",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 117964
+    },
+    {
+     "id": "nvidia/nemotron-3.5-content-safety:free",
+     "nombre": "Nemotron 3.5 Content Safety (free)",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": true,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 8192
+    },
+    {
+     "id": "nvidia/nemotron-3.5-super-vl",
+     "nombre": "Nemotron 3.5 Super VL",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 235929
+    },
+    {
+     "id": "nvidia/nemotron-3.5-super-vl:free",
+     "nombre": "Nemotron 3.5 Super VL (free)",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": true,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "nex-agi/nex-n2.5-mini",
+     "nombre": "Nex-N2.5-Mini",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 235929
+    },
+    {
+     "id": "nex-agi/nex-n2.5-pro",
+     "nombre": "Nex-N2.5-Pro",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 235929
+    },
+    {
+     "id": "amazon/nova-2-lite-v1",
+     "nombre": "Nova 2 Lite",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65535
+    },
+    {
+     "id": "amazon/nova-lite-v1",
+     "nombre": "Nova Lite 1.0",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 5120
+    },
+    {
+     "id": "amazon/nova-pro-v1",
+     "nombre": "Nova Pro 1.0",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 5120
+    },
+    {
+     "id": "openai/o1",
+     "nombre": "o1",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 100000
+    },
+    {
+     "id": "openai/o1-pro",
+     "nombre": "o1-pro",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 100000
+    },
+    {
+     "id": "openai/o3",
+     "nombre": "o3",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 100000
+    },
+    {
+     "id": "openai/o3-pro",
+     "nombre": "o3-pro",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 100000
+    },
+    {
+     "id": "openai/o4-mini-high",
+     "nombre": "o4 Mini High",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 100000
+    },
+    {
+     "id": "openai/o4-mini",
+     "nombre": "o4-mini",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 100000
+    },
+    {
+     "id": "unbiased/pareto-26.10",
+     "nombre": "Pareto 26.10",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 131072
+    },
+    {
+     "id": "unbiased/pareto-26.9",
+     "nombre": "Pareto 26.9",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 131072
+    },
+    {
+     "id": "~unbiased/pareto-latest",
+     "nombre": "Pareto Latest",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 131072
+    },
+    {
+     "id": "perceptron/perceptron-mk1",
+     "nombre": "Perceptron Mk1",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 8192
+    },
+    {
+     "id": "perceptron/perceptron-mk1.5",
+     "nombre": "Perceptron Mk1.5",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 8192
+    },
+    {
+     "id": "qwen/qwen3.8-max-prime",
+     "nombre": "Qwen 3.8 Max Prime",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "qwen/qwen2.5-vl-72b-instruct",
+     "nombre": "Qwen2.5-VL 72B Instruct",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 115200
+    },
+    {
+     "id": "qwen/qwen3-vl-235b-a22b-instruct",
+     "nombre": "Qwen3 VL 235B A22B Instruct",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 32768
+    },
+    {
+     "id": "qwen/qwen3-vl-30b-a3b-instruct",
+     "nombre": "Qwen3 VL 30B A3B Instruct",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 16384
+    },
+    {
+     "id": "qwen/qwen3-vl-30b-a3b-thinking",
+     "nombre": "Qwen3 VL 30B A3B Thinking",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 235929
+    },
+    {
+     "id": "qwen/qwen3-vl-8b-instruct",
+     "nombre": "Qwen3 VL 8B Instruct",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 235929
+    },
+    {
+     "id": "qwen/qwen3.5-122b-a10b",
+     "nombre": "Qwen3.5 122B-A10B",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "qwen/qwen3.5-27b",
+     "nombre": "Qwen3.5 27B",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "qwen/qwen3.5-35b-a3b",
+     "nombre": "Qwen3.5 35B-A3B",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 81920
+    },
+    {
+     "id": "qwen/qwen3.5-397b-a17b",
+     "nombre": "Qwen3.5 397B-A17B",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "qwen/qwen3.5-plus-02-15",
+     "nombre": "Qwen3.5 Plus 2026-02-15",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "qwen/qwen3.5-plus-20260420",
+     "nombre": "Qwen3.5 Plus 2026-04-20",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "qwen/qwen3.5-flash-02-23",
+     "nombre": "Qwen3.5-Flash",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "qwen/qwen3.6-27b",
+     "nombre": "Qwen3.6 27B",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "qwen/qwen3.6-35b-a3b",
+     "nombre": "Qwen3.6 35B-A3B",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 235929
+    },
+    {
+     "id": "qwen/qwen3.6-flash",
+     "nombre": "Qwen3.6 Flash",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "qwen/qwen3.6-plus",
+     "nombre": "Qwen3.6 Plus",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "qwen/qwen3.7-flash",
+     "nombre": "Qwen3.7 Flash",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "qwen/qwen3.7-plus",
+     "nombre": "Qwen3.7 Plus",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "qwen/qwen3.8-27b",
+     "nombre": "Qwen3.8 27B",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "qwen/qwen3.8-flash",
+     "nombre": "Qwen3.8 Flash",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "qwen/qwen3.8-max-0902",
+     "nombre": "Qwen3.8 Max 0902",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "qwen/qwen3.8-omni-flash",
+     "nombre": "Qwen3.8 Omni Flash",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "rekaai/reka-edge",
+     "nombre": "Reka Edge",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 14745
+    },
+    {
+     "id": "sakana/sakana-namazu",
+     "nombre": "Sakana Namazu",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "bytedance-seed/seed-2.0-lite",
+     "nombre": "Seed 2.0 Lite",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "bytedance-seed/seed-2.0-mini",
+     "nombre": "Seed 2.0 Mini",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "bytedance-seed/seed-2-1-turbo",
+     "nombre": "Seed 2.1 Turbo",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 235929
+    },
+    {
+     "id": "perplexity/sonar",
+     "nombre": "Sonar",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 114364
+    },
+    {
+     "id": "perplexity/sonar-pro",
+     "nombre": "Sonar Pro",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 8000
+    },
+    {
+     "id": "perplexity/sonar-pro-search",
+     "nombre": "Sonar Pro Search",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 8000
+    },
+    {
+     "id": "perplexity/sonar-reasoning-pro",
+     "nombre": "Sonar Reasoning Pro",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 115200
+    },
+    {
+     "id": "stepfun/step-3.7-flash",
+     "nombre": "Step 3.7 Flash",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 230400
+    },
+    {
+     "id": "stepfun/step-5-preview",
+     "nombre": "Step 5 Preview",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 64000
+    },
+    {
+     "id": "scaledown/summarize",
+     "nombre": "Summarize",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 4000
+    },
+    {
+     "id": "prism-ml/ternary-bonsai-2-27b",
+     "nombre": "Ternary Bonsai 2 27B",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 32768
+    },
+    {
+     "id": "bytedance/ui-tars-1.5-7b",
+     "nombre": "UI-TARS 7B ",
+     "protocolo": "chat",
+     "base": "https://openrouter.ai/api/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": false,
+     "tope_salida": 2048
+    }
+   ]
+  },
+  "opencode-go": {
+   "nombre": "OpenCode Go",
+   "modelos": [
+    {
+     "id": "claude-haiku-5-5",
+     "nombre": "Claude Haiku 5.5",
+     "protocolo": "anthropic",
+     "base": "https://opencode.ai/inference/go/anthropic/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "deepseek-v4.1-flash",
+     "nombre": "DeepSeek V4.1 Flash",
+     "protocolo": "chat",
+     "base": "https://opencode.ai/inference/go/openai/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 384000
+    },
+    {
+     "id": "gemini-4-argon-contributor",
+     "nombre": "Gemini 4 Argon Contributor",
+     "protocolo": "gemini",
+     "base": "https://opencode.ai/inference/go/google/v1beta",
+     "gratis": false,
+     "contributor": true,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "glm-5.3-flash",
+     "nombre": "GLM-5.3-Flash",
+     "protocolo": "chat",
+     "base": "https://opencode.ai/inference/go/openai/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "gpt-5.6-luna",
+     "nombre": "GPT-5.6 Luna",
+     "protocolo": "responses",
+     "base": "https://opencode.ai/inference/go/openai/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-6-luna",
+     "nombre": "GPT-6 Luna",
+     "protocolo": "responses",
+     "base": "https://opencode.ai/inference/go/openai/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "grok-4.7",
+     "nombre": "Grok 4.7",
+     "protocolo": "responses",
+     "base": "https://opencode.ai/inference/go/openai/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 500000
+    },
+    {
+     "id": "kimi-k2.7-code",
+     "nombre": "Kimi K2.7 Code",
+     "protocolo": "chat",
+     "base": "https://opencode.ai/inference/go/openai/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 262144
+    },
+    {
+     "id": "kimi-k3",
+     "nombre": "Kimi K3",
+     "protocolo": "chat",
+     "base": "https://opencode.ai/inference/go/openai/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "longcat-2.5-preview-free",
+     "nombre": "LongCat 2.5 Preview Free",
+     "protocolo": "chat",
+     "base": "https://opencode.ai/inference/go/openai/v1",
+     "gratis": true,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "mimo-v2.5",
+     "nombre": "MiMo V2.5",
+     "protocolo": "chat",
+     "base": "https://opencode.ai/inference/go/openai/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "mimo-v2.6-flash",
+     "nombre": "MiMo-V2.6-Flash",
+     "protocolo": "chat",
+     "base": "https://opencode.ai/inference/go/openai/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "mimo-v2.6-pro",
+     "nombre": "MiMo-V2.6-Pro",
+     "protocolo": "chat",
+     "base": "https://opencode.ai/inference/go/openai/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "minimax-m3.1-flash-free",
+     "nombre": "MiniMax M3.1 Flash Free",
+     "protocolo": "chat",
+     "base": "https://opencode.ai/inference/go/openai/v1",
+     "gratis": true,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 512000
+    },
+    {
+     "id": "minimax-m3",
+     "nombre": "MiniMax-M3",
+     "protocolo": "anthropic",
+     "base": "https://opencode.ai/inference/go/anthropic/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "muse-spark-1.2-contributor",
+     "nombre": "Muse Spark 1.2 Contributor",
+     "protocolo": "responses",
+     "base": "https://opencode.ai/inference/go/openai/v1",
+     "gratis": false,
+     "contributor": true,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "muse-spark-1.3-contributor",
+     "nombre": "Muse Spark 1.3 Contributor",
+     "protocolo": "responses",
+     "base": "https://opencode.ai/inference/go/openai/v1",
+     "gratis": false,
+     "contributor": true,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "qwen3.7-plus",
+     "nombre": "Qwen3.7 Plus",
+     "protocolo": "anthropic",
+     "base": "https://opencode.ai/inference/go/anthropic/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "qwen3.8-flash",
+     "nombre": "Qwen3.8 Flash",
+     "protocolo": "anthropic",
+     "base": "https://opencode.ai/inference/go/anthropic/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "qwen3.8-max",
+     "nombre": "Qwen3.8 Max",
+     "protocolo": "anthropic",
+     "base": "https://opencode.ai/inference/go/anthropic/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "step-5-preview",
+     "nombre": "Step 5 Preview",
+     "protocolo": "chat",
+     "base": "https://opencode.ai/inference/go/openai/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    }
+   ]
+  },
+  "commandcode": {
+   "nombre": "CommandCode",
+   "modelos": [
+    {
+     "id": "claude-fable-5",
+     "nombre": "Claude Fable 5",
+     "protocolo": "anthropic",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "claude-fable-5-1",
+     "nombre": "Claude Fable 5.1",
+     "protocolo": "anthropic",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "claude-haiku-4-5-20251001",
+     "nombre": "Claude Haiku 4.5",
+     "protocolo": "anthropic",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 64000
+    },
+    {
+     "id": "claude-haiku-5-5",
+     "nombre": "Claude Haiku 5.5",
+     "protocolo": "anthropic",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "claude-opus-4-7",
+     "nombre": "Claude Opus 4.7",
+     "protocolo": "anthropic",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "claude-opus-4-8",
+     "nombre": "Claude Opus 4.8",
+     "protocolo": "anthropic",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "claude-opus-5",
+     "nombre": "Claude Opus 5",
+     "protocolo": "anthropic",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "claude-opus-5-5",
+     "nombre": "Claude Opus 5.5",
+     "protocolo": "anthropic",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "claude-sonnet-4-6",
+     "nombre": "Claude Sonnet 4.6",
+     "protocolo": "anthropic",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 64000
+    },
+    {
+     "id": "claude-sonnet-5",
+     "nombre": "Claude Sonnet 5",
+     "protocolo": "anthropic",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "claude-sonnet-5-5",
+     "nombre": "Claude Sonnet 5.5",
+     "protocolo": "anthropic",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "deepseek/deepseek-v4-flash-vision-exp",
+     "nombre": "DeepSeek V4 Flash Vision Exp",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 384000
+    },
+    {
+     "id": "deepseek/deepseek-v4.1-flash",
+     "nombre": "DeepSeek V4.1 Flash",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 384000
+    },
+    {
+     "id": "deepseek/deepseek-v4.1-flash-fast",
+     "nombre": "DeepSeek V4.1 Flash Fast",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 384000
+    },
+    {
+     "id": "sakana/fugu-ultra",
+     "nombre": "Fugu Ultra",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "google/gemini-3.1-flash-lite",
+     "nombre": "Gemini 3.1 Flash Lite",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "google/gemini-3.5-flash",
+     "nombre": "Gemini 3.5 Flash",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "google/gemini-3.5-flash-lite",
+     "nombre": "Gemini 3.5 Flash Lite",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "google/gemini-3.6-flash",
+     "nombre": "Gemini 3.6 Flash",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "google/gemini-3.7-flash",
+     "nombre": "Gemini 3.7 Flash",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "google/gemini-3.8-flash",
+     "nombre": "Gemini 3.8 Flash",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "google/gemini-4-argon",
+     "nombre": "Gemini 4 Argon",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 65536
+    },
+    {
+     "id": "z-ai/glm-5.3-flash",
+     "nombre": "GLM-5.3-Flash",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "z-ai/glm-5.3-flashx",
+     "nombre": "GLM-5.3-FlashX",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "gpt-5.3-codex",
+     "nombre": "GPT-5.3 Codex",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-5.4",
+     "nombre": "GPT-5.4",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-5.4-mini",
+     "nombre": "GPT-5.4 mini",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-5.5",
+     "nombre": "GPT-5.5",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-5.6-luna",
+     "nombre": "GPT-5.6 Luna",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-5.6-sol",
+     "nombre": "GPT-5.6 Sol",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-5.6-terra",
+     "nombre": "GPT-5.6 Terra",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-6-astra",
+     "nombre": "GPT-6 Astra",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-6-luna",
+     "nombre": "GPT-6 Luna",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-6-sol",
+     "nombre": "GPT-6 Sol",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "gpt-6.1-sol",
+     "nombre": "GPT-6.1 Sol",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 128000
+    },
+    {
+     "id": "xai/grok-4.5",
+     "nombre": "Grok 4.5",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 500000
+    },
+    {
+     "id": "xai/grok-4.6",
+     "nombre": "Grok 4.6",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 500000
+    },
+    {
+     "id": "xai/grok-4.7",
+     "nombre": "Grok 4.7",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 500000
+    },
+    {
+     "id": "thinkingmachines/inkling",
+     "nombre": "Inkling",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 256000
+    },
+    {
+     "id": "thinkingmachines/inkling-small",
+     "nombre": "Inkling Small",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 1000000
+    },
+    {
+     "id": "moonshotai/Kimi-K2.7-Code",
+     "nombre": "Kimi K2.7 Code",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 256000
+    },
+    {
+     "id": "moonshotai/Kimi-K2.7-Code-Highspeed",
+     "nombre": "Kimi K2.7 Code Highspeed",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 262000
+    },
+    {
+     "id": "moonshotai/Kimi-K3",
+     "nombre": "Kimi K3",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "MiniMaxAI/MiniMax-M3",
+     "nombre": "MiniMax-M3",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 512000
+    },
+    {
+     "id": "mistral/mistral-large-4",
+     "nombre": "Mistral Large 4",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 262144
+    },
+    {
+     "id": "meta/muse-spark-1.1",
+     "nombre": "Muse Spark 1.1",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "meta/muse-spark-1.2",
+     "nombre": "Muse Spark 1.2",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "meta/muse-spark-1.2-contributor",
+     "nombre": "Muse Spark 1.2 (Contributor)",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": true,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "meta/muse-spark-1.3",
+     "nombre": "Muse Spark 1.3",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "meta/muse-spark-1.3-contributor",
+     "nombre": "Muse Spark 1.3 (Contributor)",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": true,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "meta/muse-wonder-1.0",
+     "nombre": "Muse Wonder",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "Qwen/Qwen3.8-27B",
+     "nombre": "Qwen3.8 27B",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 32768
+    },
+    {
+     "id": "Qwen/Qwen3.8-Flash",
+     "nombre": "Qwen3.8 Flash",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "Qwen/Qwen3.8-Max",
+     "nombre": "Qwen3.8 Max",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "Qwen/Qwen3.8-Max-0902",
+     "nombre": "Qwen3.8 Max 0902",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "Qwen/Qwen3.8-Omni-Flash",
+     "nombre": "Qwen3.8 Omni Flash",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 131072
+    },
+    {
+     "id": "stepfun/Step-3.7-Flash",
+     "nombre": "Step 3.7 Flash",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 256000
+    },
+    {
+     "id": "stepfun/Step-5-Preview",
+     "nombre": "Step 5 Preview",
+     "protocolo": "chat",
+     "base": "https://api.commandcode.ai/provider/v1",
+     "gratis": false,
+     "contributor": false,
+     "piensa": true,
+     "tope_salida": 1000000
+    }
+   ]
+  }
+ }
+}

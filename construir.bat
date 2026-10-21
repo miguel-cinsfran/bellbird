@@ -100,6 +100,8 @@ robocopy "dist\YTChatTTS" "%OUT%" /E /NFL /NDL /NJH /NJS /NP >nul
 robocopy "sounds" "%OUT%\sounds" /E /NFL /NDL /NJH /NJS /NP >nul
 robocopy "docs"   "%OUT%\docs"   /E /NFL /NDL /NJH /NJS /NP >nul
 robocopy "web"    "%OUT%\web"    /E /NFL /NDL /NJH /NJS /NP >nul
+if not exist "catalogo_ia.json" ( echo ERROR: falta catalogo_ia.json en la raiz; hay que correr uv run python scripts/actualizar_catalogo_ia.py para generarlo. & pause & exit /b 1 )
+copy /y "catalogo_ia.json" "%OUT%\" >nul
 
 echo == Recortando el discovery cache de Google ==
 REM El hook de PyInstaller trae los 604 documentos de discovery_cache, unos

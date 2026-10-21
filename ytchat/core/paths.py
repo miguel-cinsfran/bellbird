@@ -88,6 +88,12 @@ def fin_pendiente() -> Path:
     return carpeta_datos() / "fin_pendiente.json"
 
 
+def catalogo_ia() -> Path:
+    # Copia del catálogo de modelos que la app renueva sola: no entra en
+    # datos_a_migrar(), se vuelve a bajar.
+    return carpeta_datos() / "catalogo_ia.json"
+
+
 def listas_musica() -> Path:
     # Listas de reproducción propias del usuario (.m3u8), creadas desde la
     # ventana de listas de música. No entra en datos_a_migrar(): esa lista
@@ -260,6 +266,11 @@ def cliente_app() -> Path:
     # El cliente de Google de la app viaja junto al ejecutable: no es un
     # dato del usuario y por eso cuelga de la instalación, no de los datos.
     return carpeta_instalacion() / NOMBRE_CLIENTE_APP
+
+
+def catalogo_ia_empaquetado() -> Path:
+    # Copia del catálogo que viaja en el paquete, junto al ejecutable.
+    return carpeta_instalacion() / "catalogo_ia.json"
 
 
 # ── Actualización (motor, sin interfaz) ────────────────────────────────────

@@ -22,6 +22,7 @@ RUTAS_DE_DATOS = [
     ("alias", "alias.json"),
     ("mensajes_programados", "mensajes_programados.json"),
     ("fin_pendiente", "fin_pendiente.json"),
+    ("catalogo_ia", "catalogo_ia.json"),
     ("sounds_ini", "sounds.ini"),
     ("listas_musica", "listas"),
     ("estado_musica", "musica_estado.json"),
@@ -41,6 +42,7 @@ CREAN_CARPETA = {"audio_temporal"}
 
 RUTAS_DE_INSTALACION = [
     ("descargas_por_defecto", "Descargas"),
+    ("catalogo_ia_empaquetado", "catalogo_ia.json"),
     ("carpeta_sonidos", "sounds"),
     ("config_predeterminada_ini", "config.predeterminado.ini"),
     ("cliente_app", "cliente_app.json"),

@@ -1316,6 +1316,93 @@ class TestProgramadosEnPreferencias(unittest.TestCase):
 
         anunciar.assert_called_once_with("Elige primero un mensaje de la lista")
 
+    def _dialogo_real(self):
+        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        with mock.patch.object(motores, "listar_voces",
+                               return_value=["Voz de prueba"]):
+            dialogo = gui_preferencias.PreferenciasDialog(None, {})
+        self.addCleanup(destruir, dialogo)
+        return dialogo
+
+    def _evento_boton(self, boton):
+        return gui.wx.CommandEvent(gui.wx.EVT_BUTTON.typeId, boton.GetId())
+
+    def test_boton_agregar_dispara_y_agrega_la_fila(self):
+        with tempfile.TemporaryDirectory() as temporal:
+            with redirigir_rutas(temporal), \
+                    mock.patch.object(preferencias_programados, "anunciar"):
+                dialogo = self._dialogo_real()
+                antes = dialogo.lista_programados.GetCount()
+                dialogo.txt_programado.SetValue("Aviso del directo")
+                dialogo.sp_min_programado.SetValue(10)
+                dialogo.sp_max_programado.SetValue(15)
+                dialogo.chk_mensaje_activo.SetValue(True)
+                dialogo.btn_programado_agregar.GetEventHandler().ProcessEvent(
+                    self._evento_boton(dialogo.btn_programado_agregar))
+                self.assertEqual(dialogo.lista_programados.GetCount(), antes + 1)
+                self.assertIn("Aviso del directo",
+                              dialogo.lista_programados.GetString(antes))
+                guardados = json.loads(
+                    Path(dialogo._ruta_programados).read_text(encoding="utf-8"))
+                self.assertTrue(any(m.get("texto") == "Aviso del directo"
+                                    for m in guardados))
+
+    def test_boton_guardar_dispara_y_guarda_el_texto(self):
+        with tempfile.TemporaryDirectory() as temporal:
+            with redirigir_rutas(temporal), \
+                    mock.patch.object(preferencias_programados, "anunciar"):
+                programados.guardar(
+                    paths.mensajes_programados(),
+                    [{"texto": "Texto viejo", "minutos_min": 10,
+                      "minutos_max": 10, "activo": True, "proximo": 0.0}])
+                dialogo = self._dialogo_real()
+                self.assertEqual(dialogo.lista_programados.GetCount(), 1)
+                dialogo.lista_programados.SetSelection(0)
+                dialogo.txt_programado.SetValue("Texto nuevo")
+                dialogo.btn_programado_guardar.GetEventHandler().ProcessEvent(
+                    self._evento_boton(dialogo.btn_programado_guardar))
+                self.assertIn("Texto nuevo",
+                              dialogo.lista_programados.GetString(0))
+                guardados = json.loads(
+                    Path(dialogo._ruta_programados).read_text(encoding="utf-8"))
+                self.assertEqual(guardados[0]["texto"], "Texto nuevo")
+
+    def test_boton_quitar_dispara_y_quita_la_fila(self):
+        with tempfile.TemporaryDirectory() as temporal:
+            with redirigir_rutas(temporal), \
+                    mock.patch.object(preferencias_programados, "anunciar"):
+                programados.guardar(
+                    paths.mensajes_programados(),
+                    [{"texto": "Para quitar", "minutos_min": 10,
+                      "minutos_max": 10, "activo": True, "proximo": 0.0}])
+                dialogo = self._dialogo_real()
+                self.assertEqual(dialogo.lista_programados.GetCount(), 1)
+                dialogo.lista_programados.SetSelection(0)
+                dialogo.btn_programado_quitar.GetEventHandler().ProcessEvent(
+                    self._evento_boton(dialogo.btn_programado_quitar))
+                self.assertEqual(dialogo.lista_programados.GetCount(), 0)
+                guardados = json.loads(
+                    Path(dialogo._ruta_programados).read_text(encoding="utf-8"))
+                self.assertEqual(guardados, [])
+
+    def test_lista_carga_los_campos_al_elegir(self):
+        with tempfile.TemporaryDirectory() as temporal:
+            with redirigir_rutas(temporal), \
+                    mock.patch.object(preferencias_programados, "anunciar"):
+                programados.guardar(
+                    paths.mensajes_programados(),
+                    [{"texto": "Hola hola", "minutos_min": 10,
+                      "minutos_max": 20, "activo": False, "proximo": 0.0}])
+                dialogo = self._dialogo_real()
+                dialogo.lista_programados.SetSelection(0)
+                dialogo.lista_programados.GetEventHandler().ProcessEvent(
+                    gui.wx.CommandEvent(gui.wx.EVT_LISTBOX.typeId,
+                                        dialogo.lista_programados.GetId()))
+                self.assertEqual(dialogo.txt_programado.GetValue(), "Hola hola")
+                self.assertEqual(dialogo.sp_min_programado.GetValue(), 10)
+                self.assertEqual(dialogo.sp_max_programado.GetValue(), 20)
+                self.assertFalse(dialogo.chk_mensaje_activo.GetValue())
+
 
 class TestCategoriasDePreferencias(unittest.TestCase):
 

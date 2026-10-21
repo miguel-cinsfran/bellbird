@@ -70,18 +70,35 @@ def esperar_pid(pid: int, tope: float) -> bool:
         time.sleep(0.2)
 
 
+_SYNCHRONIZE = 0x00100000
+_PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+_ACCESO_TERMINO = _SYNCHRONIZE | _PROCESS_QUERY_LIMITED_INFORMATION
+_WAIT_OBJECT_0 = 0
+_WAIT_TIMEOUT = 0x102
+
+
 def _termino(pid: int) -> bool:
     if os.name == "nt":
         try:
             import ctypes
+            from ctypes import wintypes
             kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+            kernel32.OpenProcess.argtypes = (
+                wintypes.DWORD, wintypes.BOOL, wintypes.DWORD)
             kernel32.OpenProcess.restype = ctypes.c_void_p
-            handle = kernel32.OpenProcess(0x1000, False, pid)
+            kernel32.WaitForSingleObject.argtypes = (
+                ctypes.c_void_p, wintypes.DWORD)
+            kernel32.WaitForSingleObject.restype = wintypes.DWORD
+            kernel32.CloseHandle.argtypes = (ctypes.c_void_p,)
+            kernel32.CloseHandle.restype = wintypes.BOOL
+            handle = kernel32.OpenProcess(_ACCESO_TERMINO, False, pid)
             if not handle:
                 return True
             try:
-                kernel32.WaitForSingleObject.restype = ctypes.c_ulong
-                return kernel32.WaitForSingleObject(handle, 0) == 0
+                # Solo objeto señalado es terminado. El resto, incluido
+                # _WAIT_TIMEOUT, es vivo.
+                return kernel32.WaitForSingleObject(
+                    handle, 0) == _WAIT_OBJECT_0
             finally:
                 kernel32.CloseHandle(handle)
         except Exception:

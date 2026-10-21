@@ -2,9 +2,11 @@
 
 import hashlib
 import json
+import os
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -764,6 +766,70 @@ class TestTerminoWindows(unittest.TestCase):
                                       "no debe llamarse")) as matar:
             self.assertFalse(instalador._termino(1234))
         matar.assert_not_called()
+
+    @unittest.skipUnless(os.name == "nt", "solo Windows")
+    def test_vivo_da_falso(self):
+        proceso = subprocess.Popen(
+            [sys.executable, "-c", "import time; time.sleep(5)"],
+            creationflags=subprocess.CREATE_NO_WINDOW)
+        try:
+            self.assertFalse(instalador._termino(proceso.pid))
+        finally:
+            try:
+                proceso.terminate()
+            except Exception:
+                pass
+            try:
+                proceso.wait(timeout=10)
+            except Exception:
+                try:
+                    proceso.kill()
+                except Exception:
+                    pass
+
+    @unittest.skipUnless(os.name == "nt", "solo Windows")
+    def test_terminado_con_handle_abierto_da_verdadero(self):
+        proceso = subprocess.Popen(
+            [sys.executable, "-c", "pass"],
+            creationflags=subprocess.CREATE_NO_WINDOW)
+        proceso.wait(timeout=10)
+        try:
+            self.assertTrue(instalador._termino(proceso.pid))
+        finally:
+            try:
+                proceso.wait(timeout=10)
+            except Exception:
+                pass
+
+    def test_proceso_inexistente_da_verdadero(self):
+        import ctypes
+        import unittest.mock as mock
+        for sin_handle in (0, None):
+            nucleo = mock.Mock()
+            nucleo.OpenProcess.return_value = sin_handle
+            nucleo.WaitForSingleObject.side_effect = AssertionError(
+                "sin handle no se espera")
+            with mock.patch.object(instalador.os, "name", "nt"), \
+                    mock.patch.object(ctypes, "WinDLL",
+                                      return_value=nucleo):
+                self.assertTrue(instalador._termino(1234))
+            nucleo.WaitForSingleObject.assert_not_called()
+
+    @unittest.skipUnless(os.name == "nt", "solo Windows")
+    def test_esperar_pid_terminado_responde_enseguida(self):
+        proceso = subprocess.Popen(
+            [sys.executable, "-c", "pass"],
+            creationflags=subprocess.CREATE_NO_WINDOW)
+        proceso.wait(timeout=10)
+        try:
+            inicio = time.monotonic()
+            self.assertTrue(instalador.esperar_pid(proceso.pid, 5))
+            self.assertLess(time.monotonic() - inicio, 1)
+        finally:
+            try:
+                proceso.wait(timeout=10)
+            except Exception:
+                pass
 
 
 class TestPrincipalInstalador(unittest.TestCase):

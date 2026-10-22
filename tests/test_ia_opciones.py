@@ -121,6 +121,69 @@ class TestFilasModelos(unittest.TestCase):
                 _muestra(), proveedores.por_id("otro"), True), [])
 
 
+class TestFilasModelosConMarcas(unittest.TestCase):
+
+    def test_sin_marcas_igual_que_siempre(self):
+        from ytchat.ai import opciones_ia
+        proveedor = proveedores.por_id("gemini")
+        esperadas = [("gemini-falso", "Gemini Falso"),
+                     ("gemini-caro", "Gemini Caro")]
+        self.assertEqual(
+            opciones_ia.filas_modelos(_muestra(), proveedor, False, {}),
+            esperadas)
+        self.assertEqual(
+            opciones_ia.filas_modelos(_muestra(), proveedor, True),
+            esperadas)
+
+    def test_marca_gratis_suma_y_filtra(self):
+        from ytchat.ai import opciones_ia
+        from ytchat.ai import sondeo_gratis
+        proveedor = proveedores.por_id("gemini")
+        marcas = {"gemini-falso": sondeo_gratis.MARCA_GRATIS}
+        self.assertEqual(
+            opciones_ia.filas_modelos(_muestra(), proveedor, False, marcas),
+            [("gemini-falso", "Gemini Falso, gratis"),
+             ("gemini-caro", "Gemini Caro")])
+        self.assertEqual(
+            opciones_ia.filas_modelos(_muestra(), proveedor, True, marcas),
+            [("gemini-falso", "Gemini Falso, gratis")])
+
+    def test_marca_con_tu_clave_suma_sin_filtrar(self):
+        from ytchat.ai import opciones_ia
+        from ytchat.ai import sondeo_gratis
+        proveedor = proveedores.por_id("gemini")
+        marcas = {"gemini-caro": sondeo_gratis.MARCA_CON_TU_CLAVE}
+        filas = opciones_ia.filas_modelos(_muestra(), proveedor, False, marcas)
+        self.assertEqual(filas, [
+            ("gemini-falso", "Gemini Falso"),
+            ("gemini-caro", "Gemini Caro, funciona con tu clave")])
+
+
+class TestResumenSondeo(unittest.TestCase):
+
+    def _piezas(self):
+        from ytchat.ai import sondeo_gratis
+        return sondeo_gratis
+
+    def test_clave_gratuita_lo_dice(self):
+        from ytchat.ai import opciones_ia
+        s = self._piezas()
+        resultados = {"a": s.RESPONDE, "b": s.DE_PAGO, "c": s.SIN_SABER}
+        self.assertEqual(
+            opciones_ia.resumen_sondeo(resultados, 3, "Google Gemini"),
+            "Lista de modelos actualizada: 3 modelos de Google Gemini, "
+            "1 gratis con tu clave.")
+
+    def test_clave_no_gratuita_lo_dice(self):
+        from ytchat.ai import opciones_ia
+        s = self._piezas()
+        resultados = {"a": s.RESPONDE, "b": s.SIN_SABER}
+        self.assertEqual(
+            opciones_ia.resumen_sondeo(resultados, 2, "Google Gemini"),
+            "Lista de modelos actualizada: 2 modelos de Google Gemini, "
+            "1 funcionan con tu clave.")
+
+
 class TestModeloElegido(unittest.TestCase):
 
     def test_otro_gana_sobre_la_lista(self):

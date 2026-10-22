@@ -22,6 +22,7 @@ from ytchat.ai import conversacion
 from ytchat.ai import opciones_ia
 from ytchat.ai import protocolos
 from ytchat.ai import proveedores
+from ytchat.ai import sondeo_gratis
 from ytchat.core import config
 from ytchat.core import paths
 from ytchat.player import reproductor
@@ -2365,6 +2366,165 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
             dialogo._ia_actualizacion_lista(muestra)
         anunciar.assert_called_once_with(
             opciones_ia.TEXTO_LISTA_ACTUALIZADA_SIN_PROVEEDOR)
+
+    @staticmethod
+    def _hilo_que_corre(target, nombre):
+        hilo = mock.Mock()
+        hilo.nombre = nombre
+        hilo.start.side_effect = target
+        return hilo
+
+    @staticmethod
+    def _catalogo_de_sondeo():
+        base = "https://generativelanguage.googleapis.com/v1beta"
+        return {
+            "version": catalogo.VERSION,
+            "fecha": "2026-10-21",
+            "proveedores": {
+                "google": {
+                    "nombre": "Google",
+                    "modelos": [
+                        {"id": "gemini-responde",
+                         "nombre": "Gemini Responde",
+                         "protocolo": protocolos.GEMINI, "base": base},
+                        {"id": "gemini-caro", "nombre": "Gemini Caro",
+                         "protocolo": protocolos.GEMINI, "base": base},
+                        {"id": "gemini-saturado",
+                         "nombre": "Gemini Saturado",
+                         "protocolo": protocolos.GEMINI, "base": base},
+                    ],
+                },
+                "openrouter": {
+                    "nombre": "OpenRouter",
+                    "modelos": [{
+                        "id": "writely-falso-contributor",
+                        "nombre": "Writely Falso",
+                        "protocolo": protocolos.CHAT,
+                        "base": "https://openrouter.ai/api/v1",
+                        "contributor": True,
+                    }],
+                },
+            },
+        }
+
+    def _pulsar_actualizar(self, dialogo, muestra, enviar=None):
+        """Corre «Actualizar la lista» con el hilo y la red doblados."""
+        if enviar is None:
+            enviar = mock.Mock()
+        with mock.patch.object(preferencias_ia.catalogo, "descargar",
+                               return_value=muestra), \
+                mock.patch.object(preferencias_ia.diagnostico, "crear_hilo",
+                                  side_effect=self._hilo_que_corre), \
+                mock.patch.object(preferencias_ia.envio_ia, "enviar",
+                                  side_effect=enviar) as llamada, \
+                mock.patch.object(preferencias_ia.wx, "CallAfter",
+                                  side_effect=lambda f, *a: f(*a)), \
+                mock.patch.object(preferencias_ia._snd,
+                                  "reproducir") as sonar, \
+                mock.patch.object(preferencias_ia, "anunciar") as anunciar:
+            boton = dialogo.btn_ia_actualizar
+            boton.GetEventHandler().ProcessEvent(self._evento_boton(boton))
+        return llamada, sonar, anunciar
+
+    def test_actualizar_con_gemini_y_clave_sondea_y_anuncia_gratis(self):
+        self.clave_guardada = self.CLAVE_GEMINI
+        muestra = self._catalogo_de_sondeo()
+        enviados = []
+
+        def enviar(pedido, clave, tiempo_espera):
+            enviados.append((pedido.url, tiempo_espera))
+            if "gemini-caro" in pedido.url:
+                raise protocolos.ErrorIA(
+                    protocolos.CUOTA, "cuota", sin_nivel_gratuito=True)
+            if "gemini-saturado" in pedido.url:
+                raise protocolos.ErrorIA(protocolos.SERVIDOR, "503")
+            return protocolos.Respuesta("OK")
+
+        dialogo = self._dialogo(muestra)
+        llamada, sonar, anunciar = self._pulsar_actualizar(
+            dialogo, muestra, enviar)
+        self.assertEqual(llamada.call_count, 3)
+        self.assertTrue(all(espera == 20 for _url, espera in enviados))
+        sonar.assert_any_call("ia_respuesta")
+        anunciar.assert_any_call(opciones_ia.TEXTO_ACTUALIZANDO)
+        anunciar.assert_any_call(
+            opciones_ia.TEXTO_LISTA_CON_GRATIS.format(
+                n=3, proveedor="Google Gemini", g=1))
+        self.assertEqual(
+            sondeo_gratis.leer(paths.gratis_ia(), "gemini"),
+            {"gemini-responde": sondeo_gratis.MARCA_GRATIS})
+        self.assertTrue(dialogo.chk_ia_gratis.IsShown())
+
+    def test_actualizar_sin_clave_no_sondea(self):
+        muestra = self._catalogo_de_sondeo()
+        dialogo = self._dialogo(muestra)
+        llamada, _sonar, anunciar = self._pulsar_actualizar(dialogo, muestra)
+        llamada.assert_not_called()
+        anunciar.assert_any_call(
+            opciones_ia.TEXTO_LISTA_ACTUALIZADA.format(
+                n=3, proveedor="Google Gemini"))
+
+    def test_actualizar_con_openrouter_no_sondea(self):
+        self.claves_por_proveedor["openrouter"] = "sk-or-v1-" + "a" * 29
+        muestra = self._catalogo_de_sondeo()
+        dialogo = self._dialogo(muestra)
+        dialogo.cho_ia_proveedor.SetSelection(
+            self._indice_proveedor("openrouter"))
+        dialogo._on_ia_proveedor(None)
+        llamada, _sonar, anunciar = self._pulsar_actualizar(dialogo, muestra)
+        llamada.assert_not_called()
+        anunciar.assert_any_call(
+            opciones_ia.TEXTO_LISTA_ACTUALIZADA.format(
+                n=1, proveedor="OpenRouter"))
+
+    def test_solo_gratuitos_se_muestra_con_marcas_de_gemini(self):
+        sondeo_gratis.guardar(
+            paths.gratis_ia(), "gemini",
+            {"gemini-responde": sondeo_gratis.MARCA_GRATIS}, "2026-10-21")
+        dialogo = self._dialogo(self._catalogo_de_sondeo())
+        self.assertTrue(dialogo.chk_ia_gratis.IsShown())
+        self.assertIn("Gemini Responde, gratis",
+                      dialogo.cho_ia_modelo.GetStrings())
+
+    def test_guardar_la_clave_olvida_las_marcas(self):
+        sondeo_gratis.guardar(
+            paths.gratis_ia(), "gemini",
+            {"gemini-responde": sondeo_gratis.MARCA_GRATIS}, "2026-10-21")
+        dialogo = self._dialogo(self._catalogo_de_sondeo())
+        self.assertTrue(dialogo.chk_ia_gratis.IsShown())
+
+        def guardar(proveedor, clave):
+            self.clave_guardada = clave
+
+        with mock.patch.object(preferencias_ia_clave.claves, "guardar",
+                               side_effect=guardar), \
+                mock.patch.object(preferencias_ia_clave, "anunciar"):
+            dialogo.ia_clave.txt_clave.SetValue(self.CLAVE_GEMINI)
+            boton = dialogo.ia_clave.btn_guardar
+            boton.GetEventHandler().ProcessEvent(self._evento_boton(boton))
+        self.assertEqual(sondeo_gratis.leer(paths.gratis_ia(), "gemini"), {})
+        self.assertFalse(dialogo.chk_ia_gratis.IsShown())
+
+    def test_borrar_la_clave_olvida_las_marcas(self):
+        sondeo_gratis.guardar(
+            paths.gratis_ia(), "gemini",
+            {"gemini-responde": sondeo_gratis.MARCA_GRATIS}, "2026-10-21")
+        self.clave_guardada = self.CLAVE_GEMINI
+        dialogo = self._dialogo(self._catalogo_de_sondeo())
+        self.assertTrue(dialogo.chk_ia_gratis.IsShown())
+
+        def borrar(proveedor):
+            self.clave_guardada = ""
+
+        with mock.patch.object(preferencias_ia_clave.wx, "MessageBox",
+                               return_value=gui.wx.YES), \
+                mock.patch.object(preferencias_ia_clave.claves, "borrar",
+                                  side_effect=borrar), \
+                mock.patch.object(preferencias_ia_clave, "anunciar"):
+            boton = dialogo.ia_clave.btn_borrar
+            boton.GetEventHandler().ProcessEvent(self._evento_boton(boton))
+        self.assertEqual(sondeo_gratis.leer(paths.gratis_ia(), "gemini"), {})
+        self.assertFalse(dialogo.chk_ia_gratis.IsShown())
 
 
 class TestPreferenciasElevenLabs(unittest.TestCase):

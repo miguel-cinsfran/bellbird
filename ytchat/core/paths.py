@@ -94,6 +94,12 @@ def catalogo_ia() -> Path:
     return carpeta_datos() / "catalogo_ia.json"
 
 
+def gratis_ia() -> Path:
+    # Marcas de qué modelos responde la clave gratuita de un proveedor: se
+    # rehacen al actualizar la lista, así que no entra en datos_a_migrar().
+    return carpeta_datos() / "gratis_ia.json"
+
+
 def listas_musica() -> Path:
     # Listas de reproducción propias del usuario (.m3u8), creadas desde la
     # ventana de listas de música. No entra en datos_a_migrar(): esa lista

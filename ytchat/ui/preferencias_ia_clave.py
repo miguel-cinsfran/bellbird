@@ -21,8 +21,9 @@ logger = diagnostico.obtener_logger(__name__)
 class SeccionClaveIA:
     """Clave del proveedor elegido: guardada, nueva o por escribir."""
 
-    def __init__(self, proveedor_actual):
+    def __init__(self, proveedor_actual, al_cambiar_clave):
         self._proveedor_actual = proveedor_actual
+        self._al_cambiar_clave = al_cambiar_clave
         self._panel = None
         self._escribiendo = False
 
@@ -140,6 +141,7 @@ class SeccionClaveIA:
         self._mostrar()
         self.txt_estado.SetFocus()
         anunciar(opciones_ia.TEXTO_CLAVE_GUARDADA)
+        self._al_cambiar_clave()
 
     def _on_borrar(self, event):
         proveedor = self._proveedor_actual()
@@ -163,3 +165,4 @@ class SeccionClaveIA:
         self._mostrar()
         self.txt_clave.SetFocus()
         anunciar(opciones_ia.TEXTO_CLAVE_BORRADA)
+        self._al_cambiar_clave()

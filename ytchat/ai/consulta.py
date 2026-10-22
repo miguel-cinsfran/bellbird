@@ -19,6 +19,9 @@ from ytchat.ai.catalogo import modelos as modelos_de_catalogo
 FRASE_CORTADA = ("La respuesta quedó cortada por el largo elegido "
                  "en Preferencias.")
 
+TEXTO_SIN_NIVEL_GRATUITO = ("Este modelo no está en el nivel gratuito "
+                            "de tu clave. Elige otro modelo.")
+
 _MSG_PROVEEDOR = ("Elige un proveedor en Preferencias, "
                   "Inteligencia artificial.")
 _MSG_MODELO = ("Elige un modelo en Preferencias, Inteligencia artificial.")
@@ -121,6 +124,8 @@ def texto_de_error(error) -> str:
     if isinstance(error, FaltaConfiguracion):
         return str(error)
     if isinstance(error, protocolos.ErrorIA):
+        if error.sin_nivel_gratuito:
+            return TEXTO_SIN_NIVEL_GRATUITO
         texto = _ERRORES.get(error.tipo)
         if texto is not None:
             return texto

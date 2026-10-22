@@ -271,6 +271,23 @@ class TestTextoDeError(unittest.TestCase):
                 self.assertNotIn("detalle-secreto-xyz",
                                  consulta.texto_de_error(error))
 
+    def test_cuota_sin_nivel_gratuito_tiene_su_frase(self):
+        error = protocolos.ErrorIA(
+            protocolos.CUOTA, "detalle", sin_nivel_gratuito=True)
+        self.assertEqual(
+            consulta.TEXTO_SIN_NIVEL_GRATUITO,
+            "Este modelo no está en el nivel gratuito de tu clave. "
+            "Elige otro modelo.")
+        self.assertEqual(consulta.texto_de_error(error),
+                         consulta.TEXTO_SIN_NIVEL_GRATUITO)
+
+    def test_cuota_acotada_sigue_con_el_texto_de_cuota(self):
+        error = protocolos.ErrorIA(protocolos.CUOTA, "detalle")
+        self.assertEqual(
+            consulta.texto_de_error(error),
+            "Se agotó la cuota del proveedor. Espera un rato o elige "
+            "otro modelo.")
+
     def test_sin_captura_sin_texto_y_falta(self):
         self.assertEqual(consulta.texto_de_error(
             conversacion.SinCaptura("x")), "Agrega una captura antes de "

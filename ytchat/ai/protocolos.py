@@ -6,6 +6,7 @@ pedido HTTP de cada uno y lee su respuesta o la convierte en ErrorIA.
 
 import base64
 import json
+import re
 from dataclasses import dataclass
 
 CHAT = "chat"
@@ -25,6 +26,11 @@ SIN_RED = "sin_red"
 TIEMPO_AGOTADO = "tiempo_agotado"
 
 _TOPE_DETALLE = 300
+
+# La cuota de un modelo de Gemini sin nivel gratuito llega en el texto del
+# 429 con el cero, que es lo único que distingue «sin nivel gratuito» de
+# «cuota agotada por hoy». Se mira antes de recortar el detalle.
+_RE_SIN_NIVEL_GRATUITO = re.compile(r"free_tier[^\n]*limit:\s*0\b")
 
 
 @dataclass(frozen=True)
@@ -49,10 +55,11 @@ class Respuesta:
 
 
 class ErrorIA(Exception):
-    def __init__(self, tipo, detalle=""):
+    def __init__(self, tipo, detalle="", sin_nivel_gratuito=False):
         super().__init__(f"{tipo}: {detalle}")
         self.tipo = tipo
         self.detalle = detalle
+        self.sin_nivel_gratuito = sin_nivel_gratuito
 
 
 def _base64_imagen(datos):
@@ -184,6 +191,12 @@ def _recortar(texto):
     return texto[:_TOPE_DETALLE]
 
 
+def _sin_nivel_gratuito(estado, mensaje):
+    if estado != 429 or not isinstance(mensaje, str):
+        return False
+    return bool(_RE_SIN_NIVEL_GRATUITO.search(mensaje))
+
+
 def _mensaje_de_error(datos):
     if not isinstance(datos, dict):
         return ""
@@ -219,6 +232,13 @@ def _tipo_por_estado(estado, mensaje, crudo):
     if 400 <= estado < 500:
         return RECHAZO
     return RESPUESTA_VACIA
+
+
+def _error_de_estado(estado, crudo, datos):
+    mensaje = _mensaje_de_error(datos) if datos is not None else ""
+    detalle = _recortar(mensaje) if mensaje else _recortar(crudo)
+    return ErrorIA(_tipo_por_estado(estado, mensaje, crudo), detalle,
+                   _sin_nivel_gratuito(estado, mensaje or crudo))
 
 
 def _texto_chat(datos):
@@ -320,9 +340,7 @@ def leer_respuesta(protocolo, estado, cuerpo):
     except ValueError:
         datos = None
     if estado != 200:
-        mensaje = _mensaje_de_error(datos) if datos is not None else ""
-        detalle = _recortar(mensaje) if mensaje else _recortar(crudo)
-        raise ErrorIA(_tipo_por_estado(estado, mensaje, crudo), detalle)
+        raise _error_de_estado(estado, crudo, datos)
     if not isinstance(datos, dict):
         raise ErrorIA(RESPUESTA_VACIA, _recortar(crudo))
     if protocolo == GEMINI:

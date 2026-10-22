@@ -259,6 +259,16 @@ class TestMuestras200(unittest.TestCase):
                 self.assertFalse(respuesta.cortada)
 
 
+def _cuerpo_de_cuota(limite):
+    mensaje = (
+        "Quota exceeded for metric: generativelanguage.googleapis.com/"
+        "generate_content_free_tier_requests, limit: {}, model: "
+        "gemini-3.1-pro\n{}".format(limite, "detalle real " * 40))
+    return json.dumps({"error": {"code": 429,
+                                 "status": "RESOURCE_EXHAUSTED",
+                                 "message": mensaje}})
+
+
 def _errores_medidos(mensaje):
     chat = json.dumps({"error": {"type": "server_error",
                                  "message": mensaje}})
@@ -348,6 +358,21 @@ class TestTiposDeError(unittest.TestCase):
         with self.assertRaises(protocolos.ErrorIA) as salida:
             protocolos.leer_respuesta(protocolos.CHAT, 400, cuerpo)
         self.assertLessEqual(len(salida.exception.detalle), 300)
+
+    def test_429_con_limite_cero_marca_sin_nivel_gratuito(self):
+        cuerpo = _cuerpo_de_cuota(0)
+        mensaje = json.loads(cuerpo)["error"]["message"]
+        self.assertGreater(len(mensaje), 300)
+        with self.assertRaises(protocolos.ErrorIA) as salida:
+            protocolos.leer_respuesta(protocolos.GEMINI, 429, cuerpo)
+        self.assertTrue(salida.exception.sin_nivel_gratuito)
+        self.assertLessEqual(len(salida.exception.detalle), 300)
+
+    def test_429_con_limite_mayor_no_marca_sin_nivel_gratuito(self):
+        with self.assertRaises(protocolos.ErrorIA) as salida:
+            protocolos.leer_respuesta(
+                protocolos.GEMINI, 429, _cuerpo_de_cuota(20))
+        self.assertFalse(salida.exception.sin_nivel_gratuito)
 
     def test_200_sin_forma_es_vacia(self):
         for protocolo, cuerpo in ((protocolos.CHAT, "{}"),

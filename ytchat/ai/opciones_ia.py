@@ -14,6 +14,7 @@ from ytchat.ai import consulta
 from ytchat.ai import conversacion
 from ytchat.ai import protocolos
 from ytchat.ai import proveedores
+from ytchat.ai import sondeo_gratis
 
 TEXTO_PEDIDO_PRUEBA = "Responde solo con la palabra OK."
 TEXTO_SISTEMA_PRUEBA = "Responde con una sola palabra."
@@ -42,6 +43,10 @@ TEXTO_LISTA_ACTUALIZADA = ("Lista de modelos actualizada: {n} modelos "
 TEXTO_LISTA_ACTUALIZADA_SIN_PROVEEDOR = "Lista de modelos actualizada."
 TEXTO_LISTA_FALLO = ("No se pudo actualizar la lista de modelos. "
                      "Revisa la conexión y vuelve a intentarlo.")
+TEXTO_LISTA_CON_GRATIS = ("Lista de modelos actualizada: {n} modelos "
+                          "de {proveedor}, {g} gratis con tu clave.")
+TEXTO_LISTA_CON_TU_CLAVE = ("Lista de modelos actualizada: {n} modelos "
+                            "de {proveedor}, {r} funcionan con tu clave.")
 TEXTO_INSTRUCCION_RESTAURADA = "Instrucción restaurada."
 TEXTO_CONTRIBUTOR = "Este modelo entrena con lo que se le envía."
 TEXTO_MARCA_CONTRIBUTOR = ", entrena con lo enviado"
@@ -86,13 +91,14 @@ def problema_de_clave(proveedor, clave):
     return ""
 
 
-def filas_modelos(muestra, proveedor, solo_gratis):
+def filas_modelos(muestra, proveedor, solo_gratis, marcas=None):
     """Lista de (id, etiqueta) del proveedor, o vacía sin catálogo.
 
     La etiqueta es el nombre del modelo, más «, gratis» si lo es y el
     proveedor cobra por uso, más la marca de contributor. Con un proveedor
-    que da gratis por clave, «, gratis» no se escribe y `solo_gratis` se
-    ignora.
+    que da gratis por clave, la marca sale de `marcas`: «, gratis» si la
+    clave resultó gratuita y «, funciona con tu clave» si no, y `solo_gratis`
+    deja solo los gratuitos marcados. Sin marcas, igual que antes.
     """
     if proveedor is None or proveedor.id_catalogo is None:
         return []
@@ -100,13 +106,36 @@ def filas_modelos(muestra, proveedor, solo_gratis):
     filas = []
     for modelo in catalogo.modelos(
             muestra, proveedor.id_catalogo, filtrar):
+        if proveedor.gratis_por_clave and solo_gratis and marcas \
+                and marcas.get(modelo.id) != sondeo_gratis.MARCA_GRATIS:
+            continue
         etiqueta = modelo.nombre
         if modelo.gratis and not proveedor.gratis_por_clave:
             etiqueta += ", gratis"
+        if proveedor.gratis_por_clave and marcas:
+            marca = marcas.get(modelo.id)
+            if marca == sondeo_gratis.MARCA_GRATIS:
+                etiqueta += ", gratis"
+            elif marca == sondeo_gratis.MARCA_CON_TU_CLAVE:
+                etiqueta += ", funciona con tu clave"
         if modelo.contributor:
             etiqueta += TEXTO_MARCA_CONTRIBUTOR
         filas.append((modelo.id, etiqueta))
     return filas
+
+
+def resumen_sondeo(resultados, n, proveedor):
+    """La frase del anuncio del sondeo, según la clave sea gratuita o no."""
+    marcas = sondeo_gratis.marcas(resultados)
+    gratis = sum(1 for valor in marcas.values()
+                 if valor == sondeo_gratis.MARCA_GRATIS)
+    if gratis:
+        return TEXTO_LISTA_CON_GRATIS.format(
+            n=n, proveedor=proveedor, g=gratis)
+    con_clave = sum(1 for valor in marcas.values()
+                    if valor == sondeo_gratis.MARCA_CON_TU_CLAVE)
+    return TEXTO_LISTA_CON_TU_CLAVE.format(
+        n=n, proveedor=proveedor, r=con_clave)
 
 
 def modelo_elegido(id_de_lista, otro):

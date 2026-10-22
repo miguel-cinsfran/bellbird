@@ -15,11 +15,14 @@ import wx
 
 from ytchat.ai import ajustes_ia
 from ytchat.ai import catalogo
+from ytchat.ai import claves
 from ytchat.ai import consulta
 from ytchat.ai import conversacion
 from ytchat.ai import envio_ia
 from ytchat.ai import opciones_ia
+from ytchat.ai import protocolos
 from ytchat.ai import proveedores
+from ytchat.ai import sondeo_gratis
 from ytchat.core import diagnostico
 from ytchat.core import paths
 from ytchat.ui.gui import ContadorAccesible, anunciar
@@ -86,9 +89,15 @@ class PaginaIA:
             p, value=self._ia_ajustes.direccion, name="DireccionIA")
         vs.Add(self.txt_ia_direccion, 0,
                wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+        self._ia_leer_marcas()
+
+    def _ia_leer_marcas(self):
+        self._ia_marcas = sondeo_gratis.leer(
+            paths.gratis_ia(), self._ia_proveedor_actual().id)
 
     def _ia_clave(self, p, vs):
-        self.ia_clave = SeccionClaveIA(self._ia_proveedor_actual)
+        self.ia_clave = SeccionClaveIA(
+            self._ia_proveedor_actual, self._ia_clave_cambiada)
         self.ia_clave.construir(p, vs)
         self.btn_ia_probar_clave = wx.Button(
             p, label="P&robar la clave", name="ProbarClaveIA")
@@ -174,7 +183,7 @@ class PaginaIA:
     def _ia_filas(self):
         return opciones_ia.filas_modelos(
             self._ia_muestra, self._ia_proveedor_actual(),
-            self.chk_ia_gratis.GetValue())
+            self.chk_ia_gratis.GetValue(), self._ia_marcas)
 
     def _ia_mostrar_filas(self, filas, elegir):
         self._ia_modelos_ids = [ident for ident, _et in filas]
@@ -218,17 +227,30 @@ class PaginaIA:
         proveedor = self._ia_proveedor_actual()
         self._ia_lbl_direccion.Show(proveedor.pide_direccion)
         self.txt_ia_direccion.Show(proveedor.pide_direccion)
-        self.chk_ia_gratis.Show(not proveedor.gratis_por_clave)
+        self.chk_ia_gratis.Show(
+            not proveedor.gratis_por_clave or bool(self._ia_marcas))
         panel = getattr(self, "_pag_ia_panel", None)
         if panel is not None:
             panel.Layout()
 
     def _on_ia_proveedor(self, event):
         # Sin anunciar: el lector ya lee el valor del combinado.
+        self._ia_leer_marcas()
         self._ia_mostrar_condicionales()
         self._ia_refrescar_modelos()
         self._ia_actualizar_aviso()
         self.ia_clave.actualizar()
+
+    def _ia_clave_cambiada(self):
+        proveedor = self._ia_proveedor_actual()
+        try:
+            sondeo_gratis.olvidar(paths.gratis_ia(), proveedor.id)
+        except OSError as exc:
+            logger.warning("IA: no se pudo olvidar el sondeo: %s", exc)
+        self._ia_leer_marcas()
+        self._ia_mostrar_condicionales()
+        self._ia_refrescar_modelos()
+        self._ia_actualizar_aviso()
 
     def _on_ia_modelo(self, event):
         self.txt_ia_otro.ChangeValue("")
@@ -264,6 +286,8 @@ class PaginaIA:
             pedido = opciones_ia.pedido_de_prueba(ajustes, muestra, clave)
             respuesta = envio_ia.enviar(pedido, clave, ajustes.tiempo_espera)
         except Exception as exc:
+            logger.warning("IA: falló la prueba con %s: %s",
+                           ajustes.modelo, exc)
             wx.CallAfter(self._ia_prueba_lista, False,
                          consulta.texto_de_error(exc))
             return
@@ -281,10 +305,12 @@ class PaginaIA:
     def _on_ia_actualizar(self, event):
         self.btn_ia_actualizar.Disable()
         anunciar(opciones_ia.TEXTO_ACTUALIZANDO)
+        proveedor = self._ia_proveedor_actual()
         diagnostico.crear_hilo(
-            self._ia_actualizar_en_hilo, "ActualizarModelosIA").start()
+            lambda: self._ia_actualizar_en_hilo(proveedor),
+            "ActualizarModelosIA").start()
 
-    def _ia_actualizar_en_hilo(self):
+    def _ia_actualizar_en_hilo(self, proveedor):
         # La red nunca corre en el hilo de la interfaz.
         try:
             muestra = catalogo.descargar(
@@ -293,9 +319,29 @@ class PaginaIA:
             logger.warning("IA: no se pudo actualizar el catálogo: %s", exc)
             wx.CallAfter(self._ia_actualizacion_lista, None)
             return
-        wx.CallAfter(self._ia_actualizacion_lista, muestra)
+        resultados = self._ia_sondear(proveedor, muestra)
+        wx.CallAfter(self._ia_actualizacion_lista, muestra, resultados,
+                     proveedor)
 
-    def _ia_actualizacion_lista(self, muestra):
+    def _ia_sondear(self, proveedor, muestra):
+        if not proveedor.gratis_por_clave:
+            return None
+        try:
+            clave = claves.leer(proveedor.id) or ""
+        except Exception as exc:
+            logger.warning("IA: sin clave guardada para sondear: %s", exc)
+            return None
+        if not clave:
+            return None
+        resultados = sondeo_gratis.sondear(
+            proveedor, muestra, clave, envio_ia.enviar, 20)
+        sondeo_gratis.guardar(
+            paths.gratis_ia(), proveedor.id,
+            sondeo_gratis.marcas(resultados), datetime.now().isoformat())
+        return resultados
+
+    def _ia_actualizacion_lista(self, muestra, resultados=None,
+                                proveedor=None):
         if not self:   # el diálogo pudo cerrarse mientras se descargaba
             return
         self.btn_ia_actualizar.Enable()
@@ -304,15 +350,30 @@ class PaginaIA:
             anunciar(opciones_ia.TEXTO_LISTA_FALLO)
             return
         self._ia_muestra = muestra
+        self._ia_leer_marcas()
+        self._ia_mostrar_condicionales()
         self._ia_refrescar_modelos()
         self._ia_actualizar_aviso()
+        actual = proveedor or self._ia_proveedor_actual()
+        if resultados is not None:
+            self._ia_anunciar_sondeo(actual, muestra, resultados)
+            return
         _snd.reproducir("ia_respuesta")
-        proveedor = self._ia_proveedor_actual()
-        if proveedor.id_catalogo is None:
+        if actual.id_catalogo is None:
             anunciar(opciones_ia.TEXTO_LISTA_ACTUALIZADA_SIN_PROVEEDOR)
         else:
             anunciar(opciones_ia.TEXTO_LISTA_ACTUALIZADA.format(
-                n=len(self._ia_filas()), proveedor=proveedor.nombre))
+                n=len(self._ia_filas()), proveedor=actual.nombre))
+
+    def _ia_anunciar_sondeo(self, proveedor, muestra, resultados):
+        if sondeo_gratis.CLAVE_MALA in resultados.values():
+            _snd.reproducir("ia_error")
+            anunciar(consulta.texto_de_error(
+                protocolos.ErrorIA(protocolos.CLAVE_RECHAZADA)))
+            return
+        n = len(catalogo.modelos(muestra, proveedor.id_catalogo))
+        _snd.reproducir("ia_respuesta")
+        anunciar(opciones_ia.resumen_sondeo(resultados, n, proveedor.nombre))
 
     def _ia_ajustes_de_controles(self):
         actuales = ajustes_ia.leer(self._ruta)

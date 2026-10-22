@@ -287,13 +287,14 @@ _LECTORAS_PARSER = {"get", "getboolean", "getint", "has_option"}
 
 
 def _pares_leidos_en_config():
-    """Pares (sección, clave) leídos en `config.py` y `config_descargas.py`:
-    llamadas `_gs`, `_pb`, `_pi`, `_pf` (literales en 2.º y 3.º lugar) y
-    parecidas del parser (`get`, `getboolean`, ...) con literales en
-    1.º y 2.º lugar."""
+    """Pares (sección, clave) leídos en `config.py`, `config_descargas.py` y
+    `config_musica.py`: llamadas `_gs`, `_pb`, `_pi`, `_pf` (literales en
+    2.º y 3.º lugar) y parecidas del parser (`get`, `getboolean`, ...) con
+    literales en 1.º y 2.º lugar."""
     leidos = set()
     arboles = (_arbol("ytchat/core/config.py"),
-               _arbol("ytchat/core/config_descargas.py"))
+                _arbol("ytchat/core/config_descargas.py"),
+                _arbol("ytchat/core/config_musica.py"))
     for arbol in arboles:
         for nodo in ast.walk(arbol):
             if not isinstance(nodo, ast.Call):
@@ -334,13 +335,13 @@ def _filas_de_tabla(nodo, tablas):
 
 def _pares_con_control():
     """Pares con control en Preferencias: tablas `_OPCIONES_SIMPLES`,
-    `OPCIONES_MUSICA` y `OPCIONES_IA`, más llamadas literales `self._set(...)`
-    y `guardar_opcion(...)` de esos archivos."""
+    `OPCIONES_MUSICA`, `OPCIONES_LECTURA` y `OPCIONES_IA`, más llamadas
+    literales `self._set(...)` y `guardar_opcion(...)` de esos archivos."""
     con_control = set()
     tablas = {}
     arboles = {rel: _arbol(rel) for rel in (
         "ytchat/ui/gui_preferencias.py", "ytchat/ui/preferencias_musica.py",
-        "ytchat/ui/preferencias_ia.py")}
+        "ytchat/ui/preferencias_lectura.py", "ytchat/ui/preferencias_ia.py")}
     for arbol in arboles.values():
         for nodo in ast.walk(arbol):
             if not isinstance(nodo, (ast.Assign, ast.AnnAssign)):
@@ -348,7 +349,8 @@ def _pares_con_control():
             destinos = nodo.targets if isinstance(nodo, ast.Assign) else [nodo.target]
             for destino in destinos:
                 if isinstance(destino, ast.Name) and destino.id in (
-                        "_OPCIONES_SIMPLES", "OPCIONES_MUSICA", "OPCIONES_IA"):
+                        "_OPCIONES_SIMPLES", "OPCIONES_MUSICA",
+                        "OPCIONES_LECTURA", "OPCIONES_IA"):
                     tablas[destino.id] = nodo.value
     for tabla in tablas.values():
         con_control.update(_filas_de_tabla(tabla, tablas))
@@ -389,7 +391,7 @@ class PruebaConfiguracion(unittest.TestCase):
             faltan, [],
             "Pares de fábrica sin control en Preferencias "
             "(ytchat/ui/gui_preferencias.py, ytchat/ui/preferencias_musica.py, "
-            "ytchat/ui/preferencias_ia.py): "
+            "ytchat/ui/preferencias_lectura.py, ytchat/ui/preferencias_ia.py): "
             f"{faltan}")
 
     def test_excepciones_existen_en_fabrica(self):

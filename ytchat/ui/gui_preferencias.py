@@ -32,6 +32,7 @@ from ytchat.youtube import youtube_api
 from ytchat.core.config import APP_NAME
 from ytchat.ui.gui import ContadorAccesible, _T, _tc, anunciar, caja_de_grupo, nombre_accesible
 from ytchat.ui.preferencias_musica import OPCIONES_MUSICA, PaginaMusica
+from ytchat.ui.preferencias_lectura import OPCIONES_LECTURA, PaginaLectura
 from ytchat.ui.preferencias_ia import PaginaIA
 from ytchat.ui.preferencias_programados import PaginaProgramados
 from ytchat.ui.preferencias_sonidos import PaginaSonidos
@@ -75,14 +76,6 @@ URL_GUIA = "https://github.com/miguel-cinsfran/ytchat-tts/blob/main/docs/CONFIGU
 ANCHO_NOTA = 450
 TAMANO_DIALOGO = (720, 600)
 
-_FORMATOS = [
-    ("Nombre y mensaje", "nombre_mensaje"),
-    ("Mensaje y después el nombre", "mensaje_nombre"),
-    ("Solo el mensaje",  "solo_mensaje"),
-    ("Solo el nombre",   "solo_nombre"),
-]
-
-
 # Mensaje de los combinados de voz cuando todavía no se comprobó la clave de
 # ElevenLabs, distinto del de un motor sin voces instaladas.
 _SIN_CLAVE_ELEVEN = "(comprueba la clave)"
@@ -116,10 +109,7 @@ _OPCIONES_SIMPLES = (
     ("chk_botones_rep", "ui", "mostrar_botones_reproductor", "mostrar_botones_reproductor", bool, True),
     ("sp_cache_video", "ui", "cache_video_mb", "cache_video_mb", int, 1024),
     ("chk_multivoz", "voz", "multivoz", "multivoz", bool, False),
-    ("chk_emojis", "texto", "limpiar_emojis", "limpiar_emojis", bool, True),
-    ("chk_urls", "texto", "eliminar_urls", "eliminar_urls", bool, True),
-    ("chk_entradas", "tiktok", "anunciar_entradas", "tiktok_anunciar_entradas", bool, False),
-    ("sp_long", "texto", "max_longitud_mensaje", "max_longitud_mensaje", int, 200),
+) + OPCIONES_LECTURA + (
     ("sp_cola_maxima", "cola", "tamanio_maximo", "tamanio_maximo", int, 15),
     ("sp_umbral_nombre", "cola", "umbral_solo_nombre", "umbral_solo_nombre", int, 0),
     ("chk_reconectar", "reconexion", "reconectar", "reconectar", bool, True),
@@ -988,46 +978,17 @@ class PreferenciasDialog(PaginaMusica, PaginaProgramados, PaginaIA, wx.Dialog):
         event.Skip()
 
     def _pag_lectura(self, parent):
-        p = self._make_panel(parent, "PagLectura")
-        vs = wx.BoxSizer(wx.VERTICAL)
-
-        vs.Add(self._fila_label(p, "Qué leer de cada mensaje:"), 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
-        self.rb_formato = wx.RadioBox(
-            p, choices=[f[0] for f in _FORMATOS], majorDimension=1,
-            style=wx.RA_SPECIFY_COLS, name="Formato de lectura")
-        self.rb_formato.SetForegroundColour(_T.text)
-        self.rb_formato.SetBackgroundColour(_T.bg)
-        fa = self._config.get("formato_prefijo", "nombre_mensaje")
-        for i, (_, v) in enumerate(_FORMATOS):
-            if v == fa:
-                self.rb_formato.SetSelection(i)
-                break
-        vs.Add(self.rb_formato, 0, wx.ALL, 10)
-
-        self.chk_emojis = wx.CheckBox(p, label="&Quitar emojis (no mostrarlos en la lista ni leerlos)",
-                                      name="LimpiarEmojis")
-        self.chk_urls   = wx.CheckBox(p, label="Quitar &URLs al leer", name="EliminarURLs")
-        for c in (self.chk_emojis, self.chk_urls):
-            c.SetForegroundColour(_T.text)
-        vs.Add(self.chk_emojis, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
-        vs.Add(self.chk_urls, 0, wx.ALL, 10)
-
-        self.chk_entradas = wx.CheckBox(
-            p, name="AnunciarEntradas",
-            label="Leer quién &entra al directo (solo TikTok; en directos grandes "
-                  "puede ser muchísimo)")
-        self.chk_entradas.SetForegroundColour(_T.text)
-        vs.Add(self.chk_entradas, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-
-        vs.Add(self._fila_label(p, "&Longitud máxima del mensaje (caracteres):"),
-               0, wx.LEFT | wx.RIGHT, 10)
-        self.sp_long = ContadorAccesible(p, min=20, max=1000,
-                                   name="Longitud máxima del mensaje")
-        _tc(self.sp_long)
-        vs.Add(self.sp_long, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-
-        p.SetSizer(vs)
-        return p
+        # La página vive en PaginaLectura (composición); el diálogo conserva
+        # los atributos públicos de los controles para las pruebas y la tabla.
+        self.pagina_lectura = PaginaLectura(
+            self._config, self._fila_label, self._make_panel)
+        panel = self.pagina_lectura.construir(parent)
+        self.rb_formato = self.pagina_lectura.rb_formato
+        self.chk_emojis = self.pagina_lectura.chk_emojis
+        self.chk_urls = self.pagina_lectura.chk_urls
+        self.chk_entradas = self.pagina_lectura.chk_entradas
+        self.sp_long = self.pagina_lectura.sp_long
+        return panel
 
     def _pag_estado(self, parent):
         """Una casilla por componente del anuncio de estado (tecla F2). Sin
@@ -1449,7 +1410,10 @@ class PreferenciasDialog(PaginaMusica, PaginaProgramados, PaginaIA, wx.Dialog):
         self._set("voz", "tono", str(tono))
         c["tono"] = tono
 
-        formato = _FORMATOS[self.rb_formato.GetSelection()][1]
+        # Lectura: la página calcula el valor en cambios(); se aplica con el
+        # _set de hoy, igual que los demás controles manuales de abajo.
+        cambios_lectura = self.pagina_lectura.cambios()
+        formato = cambios_lectura[0][2]  # (sección, clave, valor) del formato
         self._set("lectura", "formato_prefijo", formato)
         c["formato_prefijo"] = formato
 

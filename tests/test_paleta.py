@@ -111,6 +111,20 @@ class TestFondoElegirDestino(unittest.TestCase):
 
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestFondoDirectoYoutube(unittest.TestCase):
+    # Con ventana: las corre el advisor. No correr aquí.
+
+    def setUp(self):
+        self.app = wx.App.Get() or wx.App(False)
+
+    def test_fondo_es_el_de_la_principal(self):
+        from ytchat.ui import gui_directo_youtube as directo
+        dialogo = directo.DialogoDirectoYoutube(None)
+        self.addCleanup(destruir, dialogo)
+        self.assertEqual(dialogo.GetBackgroundColour(), _T.bg)
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestFondoAgregarCaptura(unittest.TestCase):
     # Con ventana: las corre el advisor. No correr aquí.
 

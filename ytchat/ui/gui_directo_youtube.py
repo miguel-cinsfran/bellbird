@@ -13,6 +13,7 @@ from datetime import datetime
 import wx
 
 from ytchat.core import diagnostico
+from ytchat.ui import paleta
 from ytchat.ui.gui import anunciar, nombre_accesible
 from ytchat.youtube import youtube_api
 from ytchat.youtube.emision import (
@@ -116,6 +117,7 @@ class DialogoDirectoYoutube(wx.Dialog):
                                      alto_maximo), piso)))
         self.SetMinSize((ancho, piso))
         self.Layout()
+        paleta.pintar_ventana(self)
 
     def _contenido_datos(self, zona, contenido, titulo, descripcion,
                            privacidad, latencia):

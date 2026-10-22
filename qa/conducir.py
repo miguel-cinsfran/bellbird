@@ -5112,6 +5112,7 @@ SUPERFICIES = {
     "boton_directo.py": "principal",
     "preferencias_musica.py": "preferencias",
     "preferencias_ia.py": "preferencias",
+    "preferencias_ia_clave.py": "preferencias",
     "preferencias_programados.py": "preferencias",
 }
 

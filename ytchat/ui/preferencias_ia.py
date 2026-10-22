@@ -15,7 +15,6 @@ import wx
 
 from ytchat.ai import ajustes_ia
 from ytchat.ai import catalogo
-from ytchat.ai import claves
 from ytchat.ai import consulta
 from ytchat.ai import conversacion
 from ytchat.ai import envio_ia
@@ -24,6 +23,7 @@ from ytchat.ai import proveedores
 from ytchat.core import diagnostico
 from ytchat.core import paths
 from ytchat.ui.gui import ContadorAccesible, anunciar
+from ytchat.ui.preferencias_ia_clave import SeccionClaveIA
 from ytchat.voice import sound_player as _snd
 
 logger = diagnostico.obtener_logger(__name__)
@@ -88,30 +88,14 @@ class PaginaIA:
                wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _ia_clave(self, p, vs):
-        vs.Add(self._fila_label(p, "Cla&ve"), 0, wx.LEFT | wx.RIGHT, 10)
-        self.txt_ia_clave = wx.TextCtrl(
-            p, style=wx.TE_PASSWORD, name="ClaveIA")
-        vs.Add(self.txt_ia_clave, 0,
-               wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-        self.btn_ia_guardar_clave = wx.Button(
-            p, label="G&uardar clave", name="GuardarClaveIA")
-        vs.Add(self.btn_ia_guardar_clave, 0,
-               wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-        self.btn_ia_guardar_clave.Bind(
-            wx.EVT_BUTTON, self._on_ia_guardar_clave)
-        self.btn_ia_borrar_clave = wx.Button(
-            p, label="&Borrar la clave guardada", name="BorrarClaveIA")
-        vs.Add(self.btn_ia_borrar_clave, 0,
-               wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-        self.btn_ia_borrar_clave.Bind(
-            wx.EVT_BUTTON, self._on_ia_borrar_clave)
+        self.ia_clave = SeccionClaveIA(self._ia_proveedor_actual)
+        self.ia_clave.construir(p, vs)
         self.btn_ia_probar_clave = wx.Button(
             p, label="P&robar la clave", name="ProbarClaveIA")
         vs.Add(self.btn_ia_probar_clave, 0,
                wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.btn_ia_probar_clave.Bind(
             wx.EVT_BUTTON, self._on_ia_probar_clave)
-        self._ia_actualizar_borrado()
 
     def _ia_modelo(self, p, vs):
         vs.Add(self._fila_label(p, "&Modelo"), 0, wx.LEFT | wx.RIGHT, 10)
@@ -144,7 +128,7 @@ class PaginaIA:
         self._ia_actualizar_aviso()
 
     def _ia_pregunta(self, p, vs):
-        vs.Add(self._fila_label(p, "Pregunta &inicial"),
+        vs.Add(self._fila_label(p, "&Instrucción para las capturas"),
                0, wx.LEFT | wx.RIGHT, 10)
         self.txt_ia_pregunta = wx.TextCtrl(
             p, value=self._ia_ajustes.pregunta, style=wx.TE_MULTILINE,
@@ -152,7 +136,7 @@ class PaginaIA:
         vs.Add(self.txt_ia_pregunta, 0,
                wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.btn_ia_restaurar = wx.Button(
-            p, label="R&estaurar la pregunta", name="RestaurarPreguntaIA")
+            p, label="R&estaurar la instrucción", name="RestaurarPreguntaIA")
         vs.Add(self.btn_ia_restaurar, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.btn_ia_restaurar.Bind(wx.EVT_BUTTON, self._on_ia_restaurar)
 
@@ -239,24 +223,12 @@ class PaginaIA:
         if panel is not None:
             panel.Layout()
 
-    def _ia_actualizar_borrado(self):
-        proveedor = self._ia_proveedor_actual()
-        try:
-            guardada = bool(claves.leer(proveedor.id))
-        except Exception as exc:
-            logger.warning("IA: sin clave guardada: %s", exc)
-            guardada = False
-        self.btn_ia_borrar_clave.Show(guardada)
-        panel = getattr(self, "_pag_ia_panel", None)
-        if panel is not None:
-            panel.Layout()
-
     def _on_ia_proveedor(self, event):
         # Sin anunciar: el lector ya lee el valor del combinado.
         self._ia_mostrar_condicionales()
         self._ia_refrescar_modelos()
         self._ia_actualizar_aviso()
-        self._ia_actualizar_borrado()
+        self.ia_clave.actualizar()
 
     def _on_ia_modelo(self, event):
         self.txt_ia_otro.ChangeValue("")
@@ -272,49 +244,10 @@ class PaginaIA:
 
     def _on_ia_restaurar(self, event):
         self.txt_ia_pregunta.SetValue(conversacion.PREGUNTA_INICIAL)
-        anunciar(opciones_ia.TEXTO_PREGUNTA_RESTAURADA)
-
-    def _on_ia_guardar_clave(self, event):
-        clave = self.txt_ia_clave.GetValue().strip()
-        if not clave:
-            anunciar(opciones_ia.TEXTO_FALTA_CLAVE)
-            return
-        proveedor = self._ia_proveedor_actual()
-        try:
-            claves.guardar(proveedor.id, clave)
-        except Exception as exc:
-            logger.warning("IA: no se pudo guardar la clave: %s", exc)
-            _snd.reproducir("ia_error")
-            anunciar(opciones_ia.TEXTO_CLAVE_NO_GUARDADA)
-            return
-        self.txt_ia_clave.SetValue("")
-        self._ia_actualizar_borrado()
-        anunciar(opciones_ia.TEXTO_CLAVE_GUARDADA)
-
-    def _on_ia_borrar_clave(self, event):
-        try:
-            claves.borrar(self._ia_proveedor_actual().id)
-        except Exception as exc:
-            logger.warning("IA: no se pudo borrar la clave: %s", exc)
-            _snd.reproducir("ia_error")
-            anunciar(opciones_ia.TEXTO_CLAVE_NO_BORRADA)
-            return
-        self.txt_ia_clave.SetFocus()
-        self._ia_actualizar_borrado()
-        anunciar(opciones_ia.TEXTO_CLAVE_BORRADA)
-
-    def _ia_clave_para_probar(self):
-        escrita = self.txt_ia_clave.GetValue().strip()
-        if escrita:
-            return escrita
-        try:
-            return claves.leer(self._ia_proveedor_actual().id)
-        except Exception as exc:
-            logger.warning("IA: sin clave guardada: %s", exc)
-            return None
+        anunciar(opciones_ia.TEXTO_INSTRUCCION_RESTAURADA)
 
     def _on_ia_probar_clave(self, event):
-        clave = self._ia_clave_para_probar()
+        clave = self.ia_clave.clave_para_probar()
         if not clave or not str(clave).strip():
             anunciar(opciones_ia.TEXTO_FALTA_CLAVE)
             return

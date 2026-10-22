@@ -12,6 +12,7 @@ from ytchat.ui import gui
 from ytchat.ui import gui_comentarios
 from ytchat.ui import gui_preferencias
 from ytchat.ui import preferencias_ia
+from ytchat.ui import preferencias_ia_clave
 from ytchat.ui import preferencias_musica
 from ytchat.ui import preferencias_programados
 from ytchat.voice import motores
@@ -1855,7 +1856,7 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         self.clave_guardada = ""
         self.claves_por_proveedor = {}
         self.parche_claves = mock.patch.object(
-            preferencias_ia.claves, "leer",
+            preferencias_ia_clave.claves, "leer",
             side_effect=lambda ident: self.claves_por_proveedor.get(
                 ident, self.clave_guardada))
         self.parche_claves.start()
@@ -1893,14 +1894,13 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         for hijo in pagina.GetChildren():
             if not hijo.IsShown() or isinstance(hijo, gui.wx.StaticText):
                 continue
-            orden.append(hijo if hijo is dialogo.txt_ia_clave
-                         else hijo.GetName())
+            orden.append(hijo.GetName())
         return orden
 
     def test_orden_de_tab_sin_clave_guardada(self):
         dialogo = self._dialogo()
         self.assertEqual(self._orden_de_tab(dialogo), [
-            "ProveedorIA", dialogo.txt_ia_clave, "GuardarClaveIA",
+            "ProveedorIA", "ClaveIA", "GuardarClaveIA",
             "ProbarClaveIA", "ModeloIA", "ActualizarModelosIA",
             "OtroModeloIA", "PreguntaIA", "RestaurarPreguntaIA",
             "LargoIA", "TiempoIA",
@@ -1910,11 +1910,42 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         self.clave_guardada = "clave"
         dialogo = self._dialogo()
         self.assertEqual(self._orden_de_tab(dialogo), [
-            "ProveedorIA", dialogo.txt_ia_clave, "GuardarClaveIA",
+            "ProveedorIA", "EstadoClaveIA", "NuevaClaveIA",
             "BorrarClaveIA", "ProbarClaveIA", "ModeloIA",
             "ActualizarModelosIA", "OtroModeloIA", "PreguntaIA",
             "RestaurarPreguntaIA", "LargoIA", "TiempoIA",
         ])
+
+    def test_orden_de_tab_escribiendo_una_clave_nueva(self):
+        self.clave_guardada = "clave guardada"
+        dialogo = self._dialogo()
+        boton = dialogo.ia_clave.btn_nueva
+        boton.GetEventHandler().ProcessEvent(self._evento_boton(boton))
+        self.assertEqual(self._orden_de_tab(dialogo), [
+            "ProveedorIA", "ClaveIA", "GuardarClaveIA",
+            "BorrarClaveIA", "ProbarClaveIA", "ModeloIA",
+            "ActualizarModelosIA", "OtroModeloIA", "PreguntaIA",
+            "RestaurarPreguntaIA", "LargoIA", "TiempoIA",
+        ])
+
+    def test_con_clave_guardada_no_hay_campo_de_escritura_visible(self):
+        self.clave_guardada = "clave guardada"
+        dialogo = self._dialogo()
+        seccion = dialogo.ia_clave
+        self.assertTrue(seccion.txt_estado.IsShown())
+        self.assertFalse(seccion.txt_clave.IsShown())
+        self.assertFalse(seccion.btn_guardar.IsShown())
+        self.assertTrue(seccion.btn_nueva.IsShown())
+        self.assertTrue(seccion.btn_borrar.IsShown())
+
+    def test_el_estado_de_la_clave_nunca_muestra_la_entera(self):
+        clave = "clave-de-cuarenta-caracteres-para-probar-1234"
+        self.clave_guardada = clave
+        dialogo = self._dialogo()
+        estado = dialogo.ia_clave.txt_estado.GetValue()
+        self.assertEqual(estado, opciones_ia.estado_de_clave(clave))
+        self.assertNotIn(clave, estado)
+        self.assertTrue(estado.endswith(clave[-4:]))
 
     def test_solo_gratuitos_se_oculta_con_gemini_y_vuelve_con_openrouter(self):
         dialogo = self._dialogo()
@@ -1930,16 +1961,31 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
 
     def test_borrar_solo_se_ve_con_clave_guardada_del_proveedor(self):
         dialogo = self._dialogo()
-        self.assertFalse(dialogo.btn_ia_borrar_clave.IsShown())
+        self.assertFalse(dialogo.ia_clave.btn_borrar.IsShown())
         self.claves_por_proveedor["openai"] = "clave"
         dialogo.cho_ia_proveedor.SetSelection(
             self._indice_proveedor("openai"))
         dialogo._on_ia_proveedor(None)
-        self.assertTrue(dialogo.btn_ia_borrar_clave.IsShown())
+        self.assertTrue(dialogo.ia_clave.btn_borrar.IsShown())
         dialogo.cho_ia_proveedor.SetSelection(
             self._indice_proveedor("gemini"))
         dialogo._on_ia_proveedor(None)
-        self.assertFalse(dialogo.btn_ia_borrar_clave.IsShown())
+        self.assertFalse(dialogo.ia_clave.btn_borrar.IsShown())
+
+    def test_cambiar_de_proveedor_vuelve_al_estado_del_nuevo(self):
+        self.claves_por_proveedor["openai"] = "clave guardada"
+        dialogo = self._dialogo()
+        self.assertTrue(dialogo.ia_clave.txt_clave.IsShown())
+        dialogo.cho_ia_proveedor.SetSelection(
+            self._indice_proveedor("openai"))
+        dialogo._on_ia_proveedor(None)
+        self.assertTrue(dialogo.ia_clave.txt_estado.IsShown())
+        self.assertFalse(dialogo.ia_clave.txt_clave.IsShown())
+        dialogo.cho_ia_proveedor.SetSelection(
+            self._indice_proveedor("gemini"))
+        dialogo._on_ia_proveedor(None)
+        self.assertTrue(dialogo.ia_clave.txt_clave.IsShown())
+        self.assertFalse(dialogo.ia_clave.txt_estado.IsShown())
 
     def test_los_mnemonicos_de_ia_no_se_repiten_ni_chocan_con_guardar(self):
         dialogo = self._dialogo()
@@ -1952,7 +1998,7 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
             etiqueta = control.GetLabel()
             if "&" in etiqueta:
                 letras.append(etiqueta.split("&", 1)[1][:1].lower())
-        self.assertEqual(len(letras), 14)
+        self.assertEqual(len(letras), 15)
         self.assertEqual(len(letras), len(set(letras)), letras)
         self.assertNotIn("g", letras)
         self.assertNotIn("c", letras)
@@ -1971,7 +2017,7 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
             [p.id for p in proveedores.PROVEEDORES if p.pide_direccion],
             ["otro"])
 
-    def test_restaurar_pone_la_pregunta_de_fabrica(self):
+    def test_restaurar_pone_la_instruccion_de_fabrica(self):
         dialogo = self._dialogo()
         dialogo.txt_ia_pregunta.SetValue("Otra pregunta")
         with mock.patch.object(preferencias_ia, "anunciar") as anunciar:
@@ -1979,7 +2025,8 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
                 self._evento_boton(dialogo.btn_ia_restaurar))
         self.assertEqual(dialogo.txt_ia_pregunta.GetValue(),
                          conversacion.PREGUNTA_INICIAL)
-        anunciar.assert_called_once_with(opciones_ia.TEXTO_PREGUNTA_RESTAURADA)
+        anunciar.assert_called_once_with(
+            opciones_ia.TEXTO_INSTRUCCION_RESTAURADA)
 
     def _cambio_para(self, clave, dialogo):
         casos = {
@@ -2044,47 +2091,84 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         self.assertFalse(leidos.decir_analizando)
 
     def test_guardar_clave_usa_el_proveedor_elegido(self):
-        with mock.patch.object(preferencias_ia.claves, "guardar") as guardar, \
-                mock.patch.object(preferencias_ia, "anunciar") as anunciar:
+        with mock.patch.object(
+                preferencias_ia_clave.claves, "guardar") as guardar, \
+                mock.patch.object(
+                    preferencias_ia_clave, "anunciar") as anunciar:
             dialogo = self._dialogo()
             dialogo.cho_ia_proveedor.SetSelection(
                 self._indice_proveedor("openai"))
-            dialogo.txt_ia_clave.SetValue("clave-secreta")
-            dialogo.btn_ia_guardar_clave.GetEventHandler().ProcessEvent(
-                self._evento_boton(dialogo.btn_ia_guardar_clave))
+            dialogo.ia_clave.txt_clave.SetValue("clave-secreta")
+            boton = dialogo.ia_clave.btn_guardar
+            boton.GetEventHandler().ProcessEvent(self._evento_boton(boton))
         guardar.assert_called_once_with("openai", "clave-secreta")
         anunciar.assert_called_once_with(opciones_ia.TEXTO_CLAVE_GUARDADA)
 
     def test_guardar_clave_muestra_el_boton_de_borrar(self):
         self.clave_guardada = ""
         dialogo = self._dialogo()
-        self.assertFalse(dialogo.btn_ia_borrar_clave.IsShown())
+        self.assertFalse(dialogo.ia_clave.btn_borrar.IsShown())
 
         def guardar(proveedor, clave):
             self.clave_guardada = clave
 
-        with mock.patch.object(preferencias_ia.claves, "guardar",
+        with mock.patch.object(preferencias_ia_clave.claves, "guardar",
                                side_effect=guardar), \
-                mock.patch.object(preferencias_ia, "anunciar"):
-            dialogo.txt_ia_clave.SetValue("nueva")
-            dialogo.btn_ia_guardar_clave.GetEventHandler().ProcessEvent(
-                self._evento_boton(dialogo.btn_ia_guardar_clave))
-        self.assertTrue(dialogo.btn_ia_borrar_clave.IsShown())
+                mock.patch.object(preferencias_ia_clave, "anunciar"):
+            dialogo.ia_clave.txt_clave.SetValue("nueva")
+            boton = dialogo.ia_clave.btn_guardar
+            boton.GetEventHandler().ProcessEvent(self._evento_boton(boton))
+        self.assertTrue(dialogo.ia_clave.btn_borrar.IsShown())
+
+    def test_guardar_deja_el_foco_en_el_campo_de_solo_lectura(self):
+        self.clave_guardada = ""
+
+        def guardar(proveedor, clave):
+            self.clave_guardada = clave
+
+        dialogo = self._dialogo()
+        with mock.patch.object(preferencias_ia_clave.claves, "guardar",
+                               side_effect=guardar), \
+                mock.patch.object(preferencias_ia_clave, "anunciar"), \
+                mock.patch.object(dialogo.ia_clave.txt_estado,
+                                  "SetFocus") as foco:
+            dialogo.ia_clave.txt_clave.SetValue("nueva")
+            boton = dialogo.ia_clave.btn_guardar
+            boton.GetEventHandler().ProcessEvent(self._evento_boton(boton))
+        foco.assert_called_once_with()
+        self.assertTrue(dialogo.ia_clave.txt_estado.IsShown())
+        self.assertFalse(dialogo.ia_clave.txt_clave.IsShown())
+
+    def test_escribir_una_clave_nueva_deja_el_foco_en_el_campo(self):
+        self.clave_guardada = "clave"
+        dialogo = self._dialogo()
+        with mock.patch.object(dialogo.ia_clave.txt_clave,
+                               "SetFocus") as foco:
+            boton = dialogo.ia_clave.btn_nueva
+            boton.GetEventHandler().ProcessEvent(self._evento_boton(boton))
+        foco.assert_called_once_with()
+        self.assertTrue(dialogo.ia_clave.txt_clave.IsShown())
+        self.assertFalse(dialogo.ia_clave.txt_estado.IsShown())
+        self.assertTrue(dialogo.ia_clave.btn_guardar.IsShown())
+        self.assertFalse(dialogo.ia_clave.btn_nueva.IsShown())
+        self.assertTrue(dialogo.ia_clave.btn_borrar.IsShown())
 
     def test_borrar_la_clave_deja_el_foco_en_el_campo(self):
         self.clave_guardada = "clave"
         dialogo = self._dialogo()
-        self.assertTrue(dialogo.btn_ia_borrar_clave.IsShown())
-        with mock.patch.object(preferencias_ia.claves, "borrar") as borrar, \
-                mock.patch.object(preferencias_ia, "anunciar") as anunciar, \
-                mock.patch.object(dialogo.txt_ia_clave,
+        self.assertTrue(dialogo.ia_clave.btn_borrar.IsShown())
+        with mock.patch.object(
+                preferencias_ia_clave.claves, "borrar") as borrar, \
+                mock.patch.object(
+                    preferencias_ia_clave, "anunciar") as anunciar, \
+                mock.patch.object(dialogo.ia_clave.txt_clave,
                                   "SetFocus") as foco:
             self.clave_guardada = ""
-            dialogo.btn_ia_borrar_clave.GetEventHandler().ProcessEvent(
-                self._evento_boton(dialogo.btn_ia_borrar_clave))
+            boton = dialogo.ia_clave.btn_borrar
+            boton.GetEventHandler().ProcessEvent(self._evento_boton(boton))
         borrar.assert_called_once_with("gemini")
         foco.assert_called_once_with()
-        self.assertFalse(dialogo.btn_ia_borrar_clave.IsShown())
+        self.assertFalse(dialogo.ia_clave.btn_borrar.IsShown())
         anunciar.assert_called_once_with(opciones_ia.TEXTO_CLAVE_BORRADA)
 
     @staticmethod
@@ -2134,7 +2218,7 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
                 mock.patch.object(preferencias_ia, "anunciar") as anunciar:
             dialogo = self._dialogo()
             dialogo.cho_ia_modelo.SetSelection(0)
-            dialogo.txt_ia_clave.SetValue("clave-escrita")
+            dialogo.ia_clave.txt_clave.SetValue("clave-escrita")
             dialogo.btn_ia_probar_clave.GetEventHandler().ProcessEvent(
                 self._evento_boton(dialogo.btn_ia_probar_clave))
             consulta["target"]()
@@ -2144,6 +2228,31 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         sonar.assert_any_call("ia_respuesta")
         anunciar.assert_any_call(opciones_ia.TEXTO_PROBANDO)
         self.assertTrue(dialogo.btn_ia_probar_clave.IsEnabled())
+
+    def test_probar_usa_la_guardada_si_no_se_escribio_nada(self):
+        hilo = mock.Mock()
+        consulta = {}
+
+        def crear_hilo(target, nombre):
+            consulta["target"] = target
+            return hilo
+
+        self.clave_guardada = "clave-guardada"
+        with mock.patch.object(preferencias_ia.diagnostico, "crear_hilo",
+                               side_effect=crear_hilo), \
+                mock.patch.object(preferencias_ia.envio_ia, "enviar",
+                                  return_value=mock.Mock()) as enviar, \
+                mock.patch.object(preferencias_ia.wx, "CallAfter",
+                                  side_effect=lambda f, *a: f(*a)), \
+                mock.patch.object(preferencias_ia._snd, "reproducir"), \
+                mock.patch.object(preferencias_ia, "anunciar"):
+            dialogo = self._dialogo()
+            dialogo.cho_ia_modelo.SetSelection(0)
+            dialogo.btn_ia_probar_clave.GetEventHandler().ProcessEvent(
+                self._evento_boton(dialogo.btn_ia_probar_clave))
+            consulta["target"]()
+        enviar.assert_called_once()
+        self.assertEqual(enviar.call_args.args[1], "clave-guardada")
 
 
 class TestPreferenciasElevenLabs(unittest.TestCase):

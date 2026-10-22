@@ -196,6 +196,40 @@ class TestAvisoDeModelo(unittest.TestCase):
         self.assertEqual(opciones_ia.aviso_de_modelo(None), "")
 
 
+class TestEstadoDeClave(unittest.TestCase):
+
+    def test_sin_clave_no_dice_nada(self):
+        from ytchat.ai import opciones_ia
+        self.assertEqual(opciones_ia.estado_de_clave(""), "")
+        self.assertEqual(opciones_ia.estado_de_clave(None), "")
+
+    def test_clave_corta_solo_dice_guardada(self):
+        from ytchat.ai import opciones_ia
+        for clave in ("abcd", "abcdefg"):
+            with self.subTest(clave=clave):
+                self.assertEqual(opciones_ia.estado_de_clave(clave),
+                                 "Guardada")
+
+    def test_clave_de_ocho_o_mas_muestra_los_ultimos_cuatro(self):
+        from ytchat.ai import opciones_ia
+        self.assertEqual(opciones_ia.estado_de_clave("abcdefgh"),
+                         "Guardada, termina en efgh")
+        clave = "clave-de-prueba-de-treinta-y-nueve-1234"
+        self.assertEqual(len(clave), 39)
+        self.assertEqual(opciones_ia.estado_de_clave(clave),
+                         "Guardada, termina en 1234")
+
+    def test_nunca_muestra_mas_de_cuatro_caracteres_de_la_clave(self):
+        from ytchat.ai import opciones_ia
+        claves = ("abcd", "abcdefg", "abcdefgh", "A" * 39)
+        for clave in claves:
+            with self.subTest(clave=clave):
+                texto = opciones_ia.estado_de_clave(clave)
+                for largo in range(5, len(clave) + 1):
+                    for inicio in range(len(clave) - largo + 1):
+                        self.assertNotIn(clave[inicio:inicio + largo], texto)
+
+
 class TestPedidoDePrueba(unittest.TestCase):
 
     def _pedido(self, proveedor, modelo, clave="clave"):

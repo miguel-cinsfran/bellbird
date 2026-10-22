@@ -30,11 +30,24 @@ TEXTO_ACTUALIZANDO = "Actualizando la lista de modelos…"
 TEXTO_LISTA_ACTUALIZADA = "Lista de modelos actualizada: {n} modelos."
 TEXTO_LISTA_FALLO = ("No se pudo actualizar la lista de modelos. "
                      "Revisa la conexión y vuelve a intentarlo.")
-TEXTO_PREGUNTA_RESTAURADA = "Pregunta inicial restaurada."
+TEXTO_INSTRUCCION_RESTAURADA = "Instrucción restaurada."
 TEXTO_CONTRIBUTOR = "Este modelo entrena con lo que se le envía."
 TEXTO_MARCA_CONTRIBUTOR = ", entrena con lo enviado"
 TEXTO_SIN_MODELOS = ("Sin modelos en la lista. "
                      "Escribe el modelo en Otro modelo.")
+
+
+def estado_de_clave(clave):
+    """Lo que se muestra de la clave guardada, sin revelarla entera.
+
+    Con ocho caracteres o más se agregan los últimos cuatro, que alcanzan
+    para reconocerla sin exponer casi nada. Una clave corta no se muestra.
+    """
+    if not clave:
+        return ""
+    if len(clave) >= 8:
+        return f"Guardada, termina en {clave[-4:]}"
+    return "Guardada"
 
 
 def filas_modelos(muestra, proveedor, solo_gratis):

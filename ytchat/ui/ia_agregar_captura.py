@@ -16,6 +16,7 @@ from ytchat.core import diagnostico
 from ytchat.obs import obs_activacion
 from ytchat.obs import obs_captura_ia
 from ytchat.obs import obs_cliente
+from ytchat.ui import paleta
 from ytchat.ui.gui import anunciar, nombre_accesible
 from ytchat.voice.sound_player import reproducir
 
@@ -121,6 +122,8 @@ class DialogoAgregarCaptura(wx.Dialog):
         return None
 
     def _cargar_opciones(self) -> None:
+        paleta.pintar_ventana(self)
+
         def _trabajo():
             try:
                 with self._cerrojo:

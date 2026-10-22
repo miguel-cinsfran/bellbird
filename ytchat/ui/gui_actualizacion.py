@@ -12,6 +12,7 @@ import threading
 import wx
 
 from ytchat.core.actualizacion import notas_legibles
+from ytchat.ui import paleta
 from ytchat.ui.gui import anunciar, nombre_accesible
 
 
@@ -81,6 +82,7 @@ class DialogoActualizacion(wx.Dialog):
         return self._cancelado
 
     def Show(self, show=True):
+        paleta.pintar_ventana(self)
         resultado = super().Show(show)
         if show:
             try:

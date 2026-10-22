@@ -22,6 +22,7 @@ from ytchat.core import diagnostico
 from ytchat.core import paths
 from ytchat.obs.obs_panel import GestorPanelObs
 from ytchat.ui import ia_privacidad
+from ytchat.ui import paleta
 from ytchat.ui.gui import anunciar, nombre_accesible
 from ytchat.ui.ia_agregar_captura import pedir_captura
 from ytchat.voice.sound_player import reproducir
@@ -48,6 +49,7 @@ class DialogoMensaje(wx.Dialog):
         self.btn.Bind(wx.EVT_BUTTON, self._al_cerrar)
         self.Bind(wx.EVT_CHAR_HOOK, self._al_tecla)
         self.txt.SetFocus()
+        paleta.pintar_ventana(self)
 
     def _al_cerrar(self, _event) -> None:
         self.EndModal(wx.ID_OK)
@@ -74,6 +76,7 @@ class VentanaIA(wx.Dialog):
                   self._temporizador_melodia)
         self._rehacer_lista()
         self.txt_mensaje.SetFocus()
+        paleta.pintar_ventana(self)
 
     def _crear_controles(self) -> None:
         vs = wx.BoxSizer(wx.VERTICAL)

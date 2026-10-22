@@ -30,29 +30,13 @@ from ytchat.voice import sound_player as _snd
 from ytchat.youtube import credenciales
 from ytchat.youtube import youtube_api
 from ytchat.core.config import APP_NAME
-from ytchat.ui.gui import ContadorAccesible, anunciar, caja_de_grupo, nombre_accesible
+from ytchat.ui.gui import ContadorAccesible, _T, _tc, anunciar, caja_de_grupo, nombre_accesible
 from ytchat.ui.preferencias_musica import OPCIONES_MUSICA, PaginaMusica
 from ytchat.ui.preferencias_ia import PaginaIA
 from ytchat.ui.preferencias_programados import PaginaProgramados
 from ytchat.obs.obs_panel import GestorPanelObs
 
 logger = diagnostico.obtener_logger(__name__)
-
-
-# El diálogo de Preferencias usa apariencia NATIVA (sin el tema oscuro de la
-# ventana principal). Motivo de accesibilidad: en Windows, poner un color
-# personalizado a una casilla o radio la convierte en un control «owner-drawn»
-# que NVDA anuncia como botón y sin su estado (marcada/no marcada). Sombreamos
-# aquí el tema y el helper de color para que TODAS las llamadas existentes
-# dejen los controles con los colores por defecto del sistema.
-
-class _T:
-    bg = surface = field = border = text = dim = accent = gold = green = red = \
-        btn = btn_t = wx.NullColour
-
-
-def _tc(w, bg=None, fg=None):
-    pass
 
 
 class EleccionTexto(wx.Choice):

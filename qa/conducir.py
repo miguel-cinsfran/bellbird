@@ -5116,6 +5116,7 @@ SUPERFICIES = {
     "preferencias_ia_clave.py": "preferencias",
     "preferencias_ia_lista.py": "preferencias",
     "preferencias_programados.py": "preferencias",
+    "paleta.py": "actualizaciones",
 }
 
 # Módulos que dibujan interfaz sin escena a propósito: cada uno lleva su

@@ -10,6 +10,7 @@ from __future__ import annotations
 import wx
 
 from ytchat.obs.obs_destinos import DESTINOS
+from ytchat.ui import paleta
 from ytchat.ui.gui import anunciar, nombre_accesible
 
 
@@ -86,6 +87,7 @@ class DialogoElegirDestino(wx.Dialog):
         self.rotulo_usuario.Show(visible)
         self.txt_usuario.Show(visible)
         self.Layout()
+        paleta.pintar_ventana(self)
 
     def _al_destino(self, _event):
         self._mostrar_usuario()

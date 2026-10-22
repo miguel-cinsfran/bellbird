@@ -21,11 +21,13 @@ class Proveedor:
     protocolo_por_defecto: str
     base_por_defecto: str | None
     pide_direccion: bool
+    gratis_por_clave: bool = False
 
 
 PROVEEDORES = (
     Proveedor("gemini", "Google Gemini", "google", protocolos.GEMINI,
-              "https://generativelanguage.googleapis.com/v1beta", False),
+              "https://generativelanguage.googleapis.com/v1beta", False,
+              gratis_por_clave=True),
     Proveedor("openai", "OpenAI", "openai", protocolos.RESPONSES,
               "https://api.openai.com/v1", False),
     Proveedor("anthropic", "Anthropic", "anthropic", protocolos.ANTHROPIC,

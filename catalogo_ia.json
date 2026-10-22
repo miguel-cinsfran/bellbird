@@ -6,26 +6,6 @@
    "nombre": "Google",
    "modelos": [
     {
-     "id": "deep-research-max-preview-04-2026",
-     "nombre": "Deep Research Max Preview (Apr-21-2026)",
-     "protocolo": "gemini",
-     "base": "https://generativelanguage.googleapis.com/v1beta",
-     "gratis": false,
-     "contributor": false,
-     "piensa": true,
-     "tope_salida": 65536
-    },
-    {
-     "id": "deep-research-preview-04-2026",
-     "nombre": "Deep Research Preview (Apr-21-2026)",
-     "protocolo": "gemini",
-     "base": "https://generativelanguage.googleapis.com/v1beta",
-     "gratis": false,
-     "contributor": false,
-     "piensa": true,
-     "tope_salida": 65536
-    },
-    {
      "id": "gemini-2.5-computer-use-preview-10-2025",
      "nombre": "Gemini 2.5 Computer Use Preview 10-2025",
      "protocolo": "gemini",
@@ -78,16 +58,6 @@
     {
      "id": "gemini-3.1-flash-lite",
      "nombre": "Gemini 3.1 Flash Lite",
-     "protocolo": "gemini",
-     "base": "https://generativelanguage.googleapis.com/v1beta",
-     "gratis": false,
-     "contributor": false,
-     "piensa": true,
-     "tope_salida": 65536
-    },
-    {
-     "id": "gemini-3.1-flash-live-preview",
-     "nombre": "Gemini 3.1 Flash Live Preview",
      "protocolo": "gemini",
      "base": "https://generativelanguage.googleapis.com/v1beta",
      "gratis": false,
@@ -176,16 +146,6 @@
      "tope_salida": 32768
     },
     {
-     "id": "gemini-embedding-2",
-     "nombre": "Gemini Embedding 2",
-     "protocolo": "gemini",
-     "base": "https://generativelanguage.googleapis.com/v1beta",
-     "gratis": false,
-     "contributor": false,
-     "piensa": false,
-     "tope_salida": 1
-    },
-    {
      "id": "gemini-flash-latest",
      "nombre": "Gemini Flash Latest",
      "protocolo": "gemini",
@@ -198,16 +158,6 @@
     {
      "id": "gemini-flash-lite-latest",
      "nombre": "Gemini Flash-Lite Latest",
-     "protocolo": "gemini",
-     "base": "https://generativelanguage.googleapis.com/v1beta",
-     "gratis": false,
-     "contributor": false,
-     "piensa": true,
-     "tope_salida": 65536
-    },
-    {
-     "id": "gemini-omni-flash-preview",
-     "nombre": "Gemini Omni Flash Preview",
      "protocolo": "gemini",
      "base": "https://generativelanguage.googleapis.com/v1beta",
      "gratis": false,
@@ -244,132 +194,12 @@
      "contributor": false,
      "piensa": true,
      "tope_salida": 32768
-    },
-    {
-     "id": "lyria-3-clip-preview",
-     "nombre": "Lyria 3 Clip Preview",
-     "protocolo": "gemini",
-     "base": "https://generativelanguage.googleapis.com/v1beta",
-     "gratis": true,
-     "contributor": false,
-     "piensa": false,
-     "tope_salida": 65536
-    },
-    {
-     "id": "lyria-3-pro-preview",
-     "nombre": "Lyria 3 Pro Preview",
-     "protocolo": "gemini",
-     "base": "https://generativelanguage.googleapis.com/v1beta",
-     "gratis": true,
-     "contributor": false,
-     "piensa": false,
-     "tope_salida": 65536
-    },
-    {
-     "id": "gemini-2.5-flash-image",
-     "nombre": "Nano Banana",
-     "protocolo": "gemini",
-     "base": "https://generativelanguage.googleapis.com/v1beta",
-     "gratis": false,
-     "contributor": false,
-     "piensa": true,
-     "tope_salida": 32768
-    },
-    {
-     "id": "gemini-3.1-flash-image-preview",
-     "nombre": "Nano Banana 2",
-     "protocolo": "gemini",
-     "base": "https://generativelanguage.googleapis.com/v1beta",
-     "gratis": false,
-     "contributor": false,
-     "piensa": true,
-     "tope_salida": 65536
-    },
-    {
-     "id": "gemini-3.1-flash-image",
-     "nombre": "Nano Banana 2",
-     "protocolo": "gemini",
-     "base": "https://generativelanguage.googleapis.com/v1beta",
-     "gratis": false,
-     "contributor": false,
-     "piensa": true,
-     "tope_salida": 32768
-    },
-    {
-     "id": "gemini-3.1-flash-lite-image",
-     "nombre": "Nano Banana 2 Lite",
-     "protocolo": "gemini",
-     "base": "https://generativelanguage.googleapis.com/v1beta",
-     "gratis": false,
-     "contributor": false,
-     "piensa": true,
-     "tope_salida": 4096
-    },
-    {
-     "id": "gemini-3-pro-image",
-     "nombre": "Nano Banana Pro",
-     "protocolo": "gemini",
-     "base": "https://generativelanguage.googleapis.com/v1beta",
-     "gratis": false,
-     "contributor": false,
-     "piensa": true,
-     "tope_salida": 32768
-    },
-    {
-     "id": "gemini-3-pro-image-preview",
-     "nombre": "Nano Banana Pro",
-     "protocolo": "gemini",
-     "base": "https://generativelanguage.googleapis.com/v1beta",
-     "gratis": false,
-     "contributor": false,
-     "piensa": true,
-     "tope_salida": 32768
-    },
-    {
-     "id": "veo-3.1-generate-preview",
-     "nombre": "Veo 3.1",
-     "protocolo": "gemini",
-     "base": "https://generativelanguage.googleapis.com/v1beta",
-     "gratis": false,
-     "contributor": false,
-     "piensa": false,
-     "tope_salida": 8192
-    },
-    {
-     "id": "veo-3.1-fast-generate-preview",
-     "nombre": "Veo 3.1 fast",
-     "protocolo": "gemini",
-     "base": "https://generativelanguage.googleapis.com/v1beta",
-     "gratis": false,
-     "contributor": false,
-     "piensa": false,
-     "tope_salida": 8192
-    },
-    {
-     "id": "veo-3.1-lite-generate-preview",
-     "nombre": "Veo 3.1 lite",
-     "protocolo": "gemini",
-     "base": "https://generativelanguage.googleapis.com/v1beta",
-     "gratis": false,
-     "contributor": false,
-     "piensa": false,
-     "tope_salida": 8192
     }
    ]
   },
   "openai": {
    "nombre": "OpenAI",
    "modelos": [
-    {
-     "id": "chatgpt-image-latest",
-     "nombre": "chatgpt-image-latest",
-     "protocolo": "responses",
-     "base": "https://api.openai.com/v1",
-     "gratis": false,
-     "contributor": false,
-     "piensa": false,
-     "tope_salida": 0
-    },
     {
      "id": "gpt-daybreak-blue-latest",
      "nombre": "Daybreak Blue",
@@ -681,46 +511,6 @@
      "tope_salida": 128000
     },
     {
-     "id": "gpt-image-1-mini",
-     "nombre": "gpt-image-1-mini",
-     "protocolo": "responses",
-     "base": "https://api.openai.com/v1",
-     "gratis": false,
-     "contributor": false,
-     "piensa": false,
-     "tope_salida": 0
-    },
-    {
-     "id": "gpt-image-1.5",
-     "nombre": "gpt-image-1.5",
-     "protocolo": "responses",
-     "base": "https://api.openai.com/v1",
-     "gratis": false,
-     "contributor": false,
-     "piensa": false,
-     "tope_salida": 0
-    },
-    {
-     "id": "gpt-image-2",
-     "nombre": "gpt-image-2",
-     "protocolo": "responses",
-     "base": "https://api.openai.com/v1",
-     "gratis": false,
-     "contributor": false,
-     "piensa": false,
-     "tope_salida": 0
-    },
-    {
-     "id": "gpt-realtime-2.1",
-     "nombre": "GPT-Realtime-2.1",
-     "protocolo": "responses",
-     "base": "https://api.openai.com/v1",
-     "gratis": false,
-     "contributor": false,
-     "piensa": true,
-     "tope_salida": 32000
-    },
-    {
      "id": "o3",
      "nombre": "o3",
      "protocolo": "responses",
@@ -920,16 +710,6 @@
   "openrouter": {
    "nombre": "OpenRouter",
    "modelos": [
-    {
-     "id": "openrouter/auto",
-     "nombre": "Auto Router",
-     "protocolo": "chat",
-     "base": "https://openrouter.ai/api/v1",
-     "gratis": false,
-     "contributor": false,
-     "piensa": true,
-     "tope_salida": 2000000
-    },
     {
      "id": "anthropic/claude-fable-5",
      "nombre": "Claude Fable 5",
@@ -1498,7 +1278,7 @@
      "gratis": false,
      "contributor": false,
      "piensa": true,
-     "tope_salida": 943717
+     "tope_salida": 943718
     },
     {
      "id": "z-ai/glm-5v-turbo",
@@ -1681,26 +1461,6 @@
      "tope_salida": 128000
     },
     {
-     "id": "openai/gpt-5-image",
-     "nombre": "GPT-5 Image",
-     "protocolo": "chat",
-     "base": "https://openrouter.ai/api/v1",
-     "gratis": false,
-     "contributor": false,
-     "piensa": true,
-     "tope_salida": 128000
-    },
-    {
-     "id": "openai/gpt-5-image-mini",
-     "nombre": "GPT-5 Image Mini",
-     "protocolo": "chat",
-     "base": "https://openrouter.ai/api/v1",
-     "gratis": false,
-     "contributor": false,
-     "piensa": true,
-     "tope_salida": 128000
-    },
-    {
      "id": "openai/gpt-5-mini",
      "nombre": "GPT-5 Mini",
      "protocolo": "chat",
@@ -1823,16 +1583,6 @@
     {
      "id": "openai/gpt-5.4",
      "nombre": "GPT-5.4",
-     "protocolo": "chat",
-     "base": "https://openrouter.ai/api/v1",
-     "gratis": false,
-     "contributor": false,
-     "piensa": true,
-     "tope_salida": 128000
-    },
-    {
-     "id": "openai/gpt-5.4-image-2",
-     "nombre": "GPT-5.4 Image 2",
      "protocolo": "chat",
      "base": "https://openrouter.ai/api/v1",
      "gratis": false,
@@ -2241,26 +1991,6 @@
      "tope_salida": 16384
     },
     {
-     "id": "google/lyria-3-clip-preview",
-     "nombre": "Lyria 3 Clip Preview",
-     "protocolo": "chat",
-     "base": "https://openrouter.ai/api/v1",
-     "gratis": true,
-     "contributor": false,
-     "piensa": false,
-     "tope_salida": 65536
-    },
-    {
-     "id": "google/lyria-3-pro-preview",
-     "nombre": "Lyria 3 Pro Preview",
-     "protocolo": "chat",
-     "base": "https://openrouter.ai/api/v1",
-     "gratis": true,
-     "contributor": false,
-     "piensa": false,
-     "tope_salida": 65536
-    },
-    {
      "id": "xiaomi/mimo-v2.6-flash",
      "nombre": "MiMo-V2.6-Flash",
      "protocolo": "chat",
@@ -2529,76 +2259,6 @@
      "contributor": false,
      "piensa": true,
      "tope_salida": 943718
-    },
-    {
-     "id": "google/gemini-2.5-flash-image",
-     "nombre": "Nano Banana",
-     "protocolo": "chat",
-     "base": "https://openrouter.ai/api/v1",
-     "gratis": false,
-     "contributor": false,
-     "piensa": false,
-     "tope_salida": 8192
-    },
-    {
-     "id": "google/gemini-3.1-flash-image",
-     "nombre": "Nano Banana 2",
-     "protocolo": "chat",
-     "base": "https://openrouter.ai/api/v1",
-     "gratis": false,
-     "contributor": false,
-     "piensa": true,
-     "tope_salida": 32768
-    },
-    {
-     "id": "google/gemini-3.1-flash-lite-image",
-     "nombre": "Nano Banana 2 Lite",
-     "protocolo": "chat",
-     "base": "https://openrouter.ai/api/v1",
-     "gratis": false,
-     "contributor": false,
-     "piensa": true,
-     "tope_salida": 58982
-    },
-    {
-     "id": "google/gemini-3.1-flash-image-preview",
-     "nombre": "Nano Banana 2 Preview",
-     "protocolo": "chat",
-     "base": "https://openrouter.ai/api/v1",
-     "gratis": false,
-     "contributor": false,
-     "piensa": true,
-     "tope_salida": 58982
-    },
-    {
-     "id": "google/gemini-nano-banana-2.1",
-     "nombre": "Nano Banana 2.1",
-     "protocolo": "chat",
-     "base": "https://openrouter.ai/api/v1",
-     "gratis": false,
-     "contributor": false,
-     "piensa": true,
-     "tope_salida": 58982
-    },
-    {
-     "id": "google/gemini-3-pro-image",
-     "nombre": "Nano Banana Pro",
-     "protocolo": "chat",
-     "base": "https://openrouter.ai/api/v1",
-     "gratis": false,
-     "contributor": false,
-     "piensa": true,
-     "tope_salida": 32768
-    },
-    {
-     "id": "google/gemini-3-pro-image-preview",
-     "nombre": "Nano Banana Pro Preview",
-     "protocolo": "chat",
-     "base": "https://openrouter.ai/api/v1",
-     "gratis": false,
-     "contributor": false,
-     "piensa": true,
-     "tope_salida": 32768
     },
     {
      "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",

@@ -65,6 +65,15 @@ def _muestra():
                             protocolos.CHAT,
                             "https://openrouter.ai/api/v1",
                             contributor=True),
+                    _modelo("regalado-falso", "Regalado Falso",
+                            protocolos.CHAT,
+                            "https://openrouter.ai/api/v1",
+                            gratis=True),
+                    _modelo("regalado-falso-contributor",
+                            "Regalado Falso Contributor",
+                            protocolos.CHAT,
+                            "https://openrouter.ai/api/v1",
+                            gratis=True, contributor=True),
                 ],
             },
         },
@@ -73,18 +82,34 @@ def _muestra():
 
 class TestFilasModelos(unittest.TestCase):
 
-    def test_filas_con_etiqueta_y_gratis(self):
+    def test_gemini_no_marca_gratis_ni_filtra(self):
         from ytchat.ai import opciones_ia
-        filas = opciones_ia.filas_modelos(
-            _muestra(), proveedores.por_id("gemini"), False)
-        self.assertEqual(filas, [("gemini-falso", "Gemini Falso, gratis"),
-                                 ("gemini-caro", "Gemini Caro")])
+        proveedor = proveedores.por_id("gemini")
+        esperadas = [("gemini-falso", "Gemini Falso"),
+                     ("gemini-caro", "Gemini Caro")]
+        self.assertEqual(
+            opciones_ia.filas_modelos(_muestra(), proveedor, False),
+            esperadas)
+        self.assertEqual(
+            opciones_ia.filas_modelos(_muestra(), proveedor, True),
+            esperadas)
 
-    def test_solo_gratis_filtra(self):
+    def test_openrouter_conserva_gratis_y_su_filtro(self):
         from ytchat.ai import opciones_ia
-        filas = opciones_ia.filas_modelos(
-            _muestra(), proveedores.por_id("gemini"), True)
-        self.assertEqual(filas, [("gemini-falso", "Gemini Falso, gratis")])
+        proveedor = proveedores.por_id("openrouter")
+        filas = dict(opciones_ia.filas_modelos(_muestra(), proveedor, False))
+        self.assertEqual(
+            filas["writely-falso-contributor"],
+            "Writely Falso, entrena con lo enviado")
+        self.assertEqual(filas["regalado-falso"], "Regalado Falso, gratis")
+        self.assertEqual(
+            filas["regalado-falso-contributor"],
+            "Regalado Falso Contributor, gratis, entrena con lo enviado")
+        solo_gratis = dict(opciones_ia.filas_modelos(
+            _muestra(), proveedor, True))
+        self.assertEqual(
+            set(solo_gratis),
+            {"regalado-falso", "regalado-falso-contributor"})
 
     def test_proveedor_sin_catalogo_da_lista_vacia(self):
         from ytchat.ai import opciones_ia
@@ -140,20 +165,23 @@ class TestSepararModeloGuardado(unittest.TestCase):
     def test_guardado_fuera_de_filas_va_a_otro(self):
         from ytchat.ai import opciones_ia
         filas = opciones_ia.filas_modelos(
-            _muestra(), proveedores.por_id("gemini"), True)
+            _muestra(), proveedores.por_id("openrouter"), True)
         self.assertEqual(
-            opciones_ia.separar_modelo_guardado("gemini-caro", filas),
-            ("", "gemini-caro"))
+            opciones_ia.separar_modelo_guardado(
+                "writely-falso-contributor", filas),
+            ("", "writely-falso-contributor"))
 
 
 class TestAvisoDeModelo(unittest.TestCase):
 
-    def test_con_contributor_avisa(self):
+    def test_con_contributor_avisa_corto(self):
         from ytchat.ai import opciones_ia
         modelos = catalogo.modelos(_muestra(), "openrouter")
         modelo = next(m for m in modelos if m.contributor)
         self.assertEqual(opciones_ia.aviso_de_modelo(modelo),
-                         opciones_ia.TEXTO_CONTRIBUTOR)
+                         "Este modelo entrena con lo que se le envía.")
+        self.assertEqual(opciones_ia.TEXTO_CONTRIBUTOR,
+                         "Este modelo entrena con lo que se le envía.")
 
     def test_sin_contributor_no_avisa(self):
         from ytchat.ai import opciones_ia
@@ -166,19 +194,6 @@ class TestAvisoDeModelo(unittest.TestCase):
     def test_sin_modelo_no_avisa(self):
         from ytchat.ai import opciones_ia
         self.assertEqual(opciones_ia.aviso_de_modelo(None), "")
-
-
-class TestNombreDeClave(unittest.TestCase):
-
-    def test_guardada_y_sin_guardar(self):
-        from ytchat.ai import opciones_ia
-        proveedor = proveedores.por_id("gemini")
-        self.assertEqual(
-            opciones_ia.nombre_de_clave(proveedor, True),
-            "Clave de Google Gemini, guardada")
-        self.assertEqual(
-            opciones_ia.nombre_de_clave(proveedor, False),
-            "Clave de Google Gemini, sin guardar")
 
 
 class TestPedidoDePrueba(unittest.TestCase):

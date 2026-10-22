@@ -23,7 +23,7 @@ from ytchat.ai import opciones_ia
 from ytchat.ai import proveedores
 from ytchat.core import diagnostico
 from ytchat.core import paths
-from ytchat.ui.gui import ContadorAccesible, anunciar, nombre_accesible
+from ytchat.ui.gui import ContadorAccesible, anunciar
 from ytchat.voice import sound_player as _snd
 
 logger = diagnostico.obtener_logger(__name__)
@@ -56,6 +56,7 @@ class PaginaIA:
         self._ia_modelo(p, vs)
         self._ia_pregunta(p, vs)
         self._ia_largo(p, vs)
+        self._ia_mostrar_condicionales()
         p.SetSizer(vs)
         return p
 
@@ -85,7 +86,6 @@ class PaginaIA:
             p, value=self._ia_ajustes.direccion, name="DireccionIA")
         vs.Add(self.txt_ia_direccion, 0,
                wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-        self._ia_mostrar_direccion()
 
     def _ia_clave(self, p, vs):
         vs.Add(self._fila_label(p, "Cla&ve"), 0, wx.LEFT | wx.RIGHT, 10)
@@ -93,7 +93,6 @@ class PaginaIA:
             p, style=wx.TE_PASSWORD, name="ClaveIA")
         vs.Add(self.txt_ia_clave, 0,
                wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-        self._ia_actualizar_nombre_clave()
         self.btn_ia_guardar_clave = wx.Button(
             p, label="G&uardar clave", name="GuardarClaveIA")
         vs.Add(self.btn_ia_guardar_clave, 0,
@@ -101,7 +100,7 @@ class PaginaIA:
         self.btn_ia_guardar_clave.Bind(
             wx.EVT_BUTTON, self._on_ia_guardar_clave)
         self.btn_ia_borrar_clave = wx.Button(
-            p, label="&Borrar clave", name="BorrarClaveIA")
+            p, label="&Borrar la clave guardada", name="BorrarClaveIA")
         vs.Add(self.btn_ia_borrar_clave, 0,
                wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.btn_ia_borrar_clave.Bind(
@@ -112,6 +111,7 @@ class PaginaIA:
                wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.btn_ia_probar_clave.Bind(
             wx.EVT_BUTTON, self._on_ia_probar_clave)
+        self._ia_actualizar_borrado()
 
     def _ia_modelo(self, p, vs):
         vs.Add(self._fila_label(p, "&Modelo"), 0, wx.LEFT | wx.RIGHT, 10)
@@ -141,7 +141,7 @@ class PaginaIA:
             self._ia_ajustes.modelo, filas)
         self.txt_ia_otro.ChangeValue(texto_otro)
         self._ia_mostrar_filas(filas, id_lista)
-        self._ia_actualizar_aviso(False)
+        self._ia_actualizar_aviso()
 
     def _ia_pregunta(self, p, vs):
         vs.Add(self._fila_label(p, "Pregunta &inicial"),
@@ -226,49 +226,49 @@ class PaginaIA:
                 return modelo
         return None
 
-    def _ia_actualizar_aviso(self, avisar):
+    def _ia_actualizar_aviso(self):
         texto = opciones_ia.aviso_de_modelo(self._ia_modelo_actual())
         self.lbl_ia_aviso.SetLabel(texto)
-        if texto and avisar:
-            anunciar(texto)
 
-    def _ia_mostrar_direccion(self):
-        pide = self._ia_proveedor_actual().pide_direccion
-        self._ia_lbl_direccion.Show(pide)
-        self.txt_ia_direccion.Show(pide)
+    def _ia_mostrar_condicionales(self):
+        proveedor = self._ia_proveedor_actual()
+        self._ia_lbl_direccion.Show(proveedor.pide_direccion)
+        self.txt_ia_direccion.Show(proveedor.pide_direccion)
+        self.chk_ia_gratis.Show(not proveedor.gratis_por_clave)
         panel = getattr(self, "_pag_ia_panel", None)
         if panel is not None:
             panel.Layout()
 
-    def _ia_actualizar_nombre_clave(self):
+    def _ia_actualizar_borrado(self):
         proveedor = self._ia_proveedor_actual()
         try:
             guardada = bool(claves.leer(proveedor.id))
         except Exception as exc:
             logger.warning("IA: sin clave guardada: %s", exc)
             guardada = False
-        nombre_accesible(
-            self.txt_ia_clave,
-            opciones_ia.nombre_de_clave(proveedor, guardada))
+        self.btn_ia_borrar_clave.Show(guardada)
+        panel = getattr(self, "_pag_ia_panel", None)
+        if panel is not None:
+            panel.Layout()
 
     def _on_ia_proveedor(self, event):
         # Sin anunciar: el lector ya lee el valor del combinado.
-        self._ia_mostrar_direccion()
+        self._ia_mostrar_condicionales()
         self._ia_refrescar_modelos()
-        self._ia_actualizar_aviso(False)
-        self._ia_actualizar_nombre_clave()
+        self._ia_actualizar_aviso()
+        self._ia_actualizar_borrado()
 
     def _on_ia_modelo(self, event):
         self.txt_ia_otro.ChangeValue("")
-        self._ia_actualizar_aviso(True)
+        self._ia_actualizar_aviso()
 
     def _on_ia_otro(self, event):
-        self._ia_actualizar_aviso(False)
+        self._ia_actualizar_aviso()
 
     def _on_ia_gratis(self, event):
         # Sin anunciar: el lector ya lee la casilla.
         self._ia_refrescar_modelos()
-        self._ia_actualizar_aviso(False)
+        self._ia_actualizar_aviso()
 
     def _on_ia_restaurar(self, event):
         self.txt_ia_pregunta.SetValue(conversacion.PREGUNTA_INICIAL)
@@ -288,19 +288,19 @@ class PaginaIA:
             anunciar(opciones_ia.TEXTO_CLAVE_NO_GUARDADA)
             return
         self.txt_ia_clave.SetValue("")
-        self._ia_actualizar_nombre_clave()
+        self._ia_actualizar_borrado()
         anunciar(opciones_ia.TEXTO_CLAVE_GUARDADA)
 
     def _on_ia_borrar_clave(self, event):
-        proveedor = self._ia_proveedor_actual()
         try:
-            claves.borrar(proveedor.id)
+            claves.borrar(self._ia_proveedor_actual().id)
         except Exception as exc:
             logger.warning("IA: no se pudo borrar la clave: %s", exc)
             _snd.reproducir("ia_error")
             anunciar(opciones_ia.TEXTO_CLAVE_NO_BORRADA)
             return
-        self._ia_actualizar_nombre_clave()
+        self.txt_ia_clave.SetFocus()
+        self._ia_actualizar_borrado()
         anunciar(opciones_ia.TEXTO_CLAVE_BORRADA)
 
     def _ia_clave_para_probar(self):
@@ -373,7 +373,7 @@ class PaginaIA:
             return
         self._ia_muestra = muestra
         self._ia_refrescar_modelos()
-        self._ia_actualizar_aviso(False)
+        self._ia_actualizar_aviso()
         total = 0
         for proveedor in proveedores.PROVEEDORES:
             if proveedor.id_catalogo is not None:

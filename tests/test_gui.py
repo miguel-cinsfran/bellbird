@@ -1853,16 +1853,20 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         self.addCleanup(self.parche_ruta.__exit__, None, None, None)
         # Nunca el Administrador de credenciales real.
         self.clave_guardada = ""
+        self.claves_por_proveedor = {}
         self.parche_claves = mock.patch.object(
-            preferencias_ia.claves, "leer", return_value=self.clave_guardada)
+            preferencias_ia.claves, "leer",
+            side_effect=lambda ident: self.claves_por_proveedor.get(
+                ident, self.clave_guardada))
         self.parche_claves.start()
         self.addCleanup(self.parche_claves.stop)
 
-    def _dialogo(self):
+    def _dialogo(self, muestra=None):
         with mock.patch.object(motores, "listar_voces",
                                return_value=["Voz de prueba"]), \
-                mock.patch.object(preferencias_ia.catalogo, "cargar",
-                                  return_value=_catalogo_de_prueba()):
+                mock.patch.object(
+                    preferencias_ia.catalogo, "cargar",
+                    return_value=muestra or _catalogo_de_prueba()):
             dialogo = gui_preferencias.PreferenciasDialog(None, {})
         self.addCleanup(destruir, dialogo)
         return dialogo
@@ -1881,32 +1885,61 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
     def _ruta(self):
         return paths.config_ini()
 
-    def test_pagina_ia_tiene_los_controles_en_el_orden_de_tab(self):
-        dialogo = self._dialogo()
-        pagina = self._pagina(dialogo)
-        esperados = [
-            "ProveedorIA", "DireccionIA", dialogo.txt_ia_clave, "GuardarClaveIA",
-            "BorrarClaveIA", "ProbarClaveIA", "ModeloIA", "SoloGratuitosIA",
-            "ActualizarModelosIA", "OtroModeloIA", "AvisoModeloIA",
-            "PreguntaIA", "RestaurarPreguntaIA", "LargoIA", "TiempoIA",
-        ]
-        nombres = {esperado for esperado in esperados
-                   if isinstance(esperado, str)}
+    @staticmethod
+    def _orden_de_tab(dialogo):
+        pagina = next(p for p in dialogo._paginas()
+                      if p.GetName() == "PagIA")
         orden = []
         for hijo in pagina.GetChildren():
-            if hijo is dialogo.txt_ia_clave:
-                orden.append(hijo)
-            elif hijo.GetName() in nombres:
-                orden.append(hijo.GetName())
-        self.assertEqual(orden, esperados)
-        seleccion = dialogo.cho_ia_proveedor.GetSelection()
-        if not 0 <= seleccion < len(proveedores.PROVEEDORES):
-            seleccion = 0
-        proveedor = proveedores.PROVEEDORES[seleccion]
-        self.assertEqual(
-            dialogo.txt_ia_clave.GetName(),
-            opciones_ia.nombre_de_clave(proveedor,
-                                        bool(self.clave_guardada)))
+            if not hijo.IsShown() or isinstance(hijo, gui.wx.StaticText):
+                continue
+            orden.append(hijo if hijo is dialogo.txt_ia_clave
+                         else hijo.GetName())
+        return orden
+
+    def test_orden_de_tab_sin_clave_guardada(self):
+        dialogo = self._dialogo()
+        self.assertEqual(self._orden_de_tab(dialogo), [
+            "ProveedorIA", dialogo.txt_ia_clave, "GuardarClaveIA",
+            "ProbarClaveIA", "ModeloIA", "ActualizarModelosIA",
+            "OtroModeloIA", "PreguntaIA", "RestaurarPreguntaIA",
+            "LargoIA", "TiempoIA",
+        ])
+
+    def test_orden_de_tab_con_clave_guardada(self):
+        self.clave_guardada = "clave"
+        dialogo = self._dialogo()
+        self.assertEqual(self._orden_de_tab(dialogo), [
+            "ProveedorIA", dialogo.txt_ia_clave, "GuardarClaveIA",
+            "BorrarClaveIA", "ProbarClaveIA", "ModeloIA",
+            "ActualizarModelosIA", "OtroModeloIA", "PreguntaIA",
+            "RestaurarPreguntaIA", "LargoIA", "TiempoIA",
+        ])
+
+    def test_solo_gratuitos_se_oculta_con_gemini_y_vuelve_con_openrouter(self):
+        dialogo = self._dialogo()
+        self.assertFalse(dialogo.chk_ia_gratis.IsShown())
+        dialogo.cho_ia_proveedor.SetSelection(
+            self._indice_proveedor("openrouter"))
+        dialogo._on_ia_proveedor(None)
+        self.assertTrue(dialogo.chk_ia_gratis.IsShown())
+        dialogo.cho_ia_proveedor.SetSelection(
+            self._indice_proveedor("gemini"))
+        dialogo._on_ia_proveedor(None)
+        self.assertFalse(dialogo.chk_ia_gratis.IsShown())
+
+    def test_borrar_solo_se_ve_con_clave_guardada_del_proveedor(self):
+        dialogo = self._dialogo()
+        self.assertFalse(dialogo.btn_ia_borrar_clave.IsShown())
+        self.claves_por_proveedor["openai"] = "clave"
+        dialogo.cho_ia_proveedor.SetSelection(
+            self._indice_proveedor("openai"))
+        dialogo._on_ia_proveedor(None)
+        self.assertTrue(dialogo.btn_ia_borrar_clave.IsShown())
+        dialogo.cho_ia_proveedor.SetSelection(
+            self._indice_proveedor("gemini"))
+        dialogo._on_ia_proveedor(None)
+        self.assertFalse(dialogo.btn_ia_borrar_clave.IsShown())
 
     def test_los_mnemonicos_de_ia_no_se_repiten_ni_chocan_con_guardar(self):
         dialogo = self._dialogo()
@@ -2021,6 +2054,65 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
                 self._evento_boton(dialogo.btn_ia_guardar_clave))
         guardar.assert_called_once_with("openai", "clave-secreta")
         anunciar.assert_called_once_with(opciones_ia.TEXTO_CLAVE_GUARDADA)
+
+    def test_guardar_clave_muestra_el_boton_de_borrar(self):
+        self.clave_guardada = ""
+        dialogo = self._dialogo()
+        self.assertFalse(dialogo.btn_ia_borrar_clave.IsShown())
+
+        def guardar(proveedor, clave):
+            self.clave_guardada = clave
+
+        with mock.patch.object(preferencias_ia.claves, "guardar",
+                               side_effect=guardar), \
+                mock.patch.object(preferencias_ia, "anunciar"):
+            dialogo.txt_ia_clave.SetValue("nueva")
+            dialogo.btn_ia_guardar_clave.GetEventHandler().ProcessEvent(
+                self._evento_boton(dialogo.btn_ia_guardar_clave))
+        self.assertTrue(dialogo.btn_ia_borrar_clave.IsShown())
+
+    def test_borrar_la_clave_deja_el_foco_en_el_campo(self):
+        self.clave_guardada = "clave"
+        dialogo = self._dialogo()
+        self.assertTrue(dialogo.btn_ia_borrar_clave.IsShown())
+        with mock.patch.object(preferencias_ia.claves, "borrar") as borrar, \
+                mock.patch.object(preferencias_ia, "anunciar") as anunciar, \
+                mock.patch.object(dialogo.txt_ia_clave,
+                                  "SetFocus") as foco:
+            self.clave_guardada = ""
+            dialogo.btn_ia_borrar_clave.GetEventHandler().ProcessEvent(
+                self._evento_boton(dialogo.btn_ia_borrar_clave))
+        borrar.assert_called_once_with("gemini")
+        foco.assert_called_once_with()
+        self.assertFalse(dialogo.btn_ia_borrar_clave.IsShown())
+        anunciar.assert_called_once_with(opciones_ia.TEXTO_CLAVE_BORRADA)
+
+    @staticmethod
+    def _catalogo_con_openrouter():
+        muestra = _catalogo_de_prueba()
+        muestra["proveedores"]["openrouter"] = {
+            "nombre": "OpenRouter",
+            "modelos": [{
+                "id": "writely-falso-contributor",
+                "nombre": "Writely Falso",
+                "protocolo": protocolos.CHAT,
+                "base": "https://openrouter.ai/api/v1",
+                "gratis": True, "contributor": True,
+            }],
+        }
+        return muestra
+
+    def test_elegir_un_contributor_no_anuncia(self):
+        dialogo = self._dialogo(self._catalogo_con_openrouter())
+        dialogo.cho_ia_proveedor.SetSelection(
+            self._indice_proveedor("openrouter"))
+        dialogo._on_ia_proveedor(None)
+        dialogo.cho_ia_modelo.SetSelection(0)
+        with mock.patch.object(preferencias_ia, "anunciar") as anunciar:
+            dialogo._on_ia_modelo(None)
+        anunciar.assert_not_called()
+        self.assertEqual(dialogo.lbl_ia_aviso.GetLabel(),
+                         opciones_ia.TEXTO_CONTRIBUTOR)
 
     def test_probar_dispara_el_boton_y_suena_la_respuesta(self):
         hilo = mock.Mock()

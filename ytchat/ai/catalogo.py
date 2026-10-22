@@ -1,9 +1,9 @@
 """Catálogo de modelos de IA con visión, reducido desde models.dev.
 
 La página de Preferencias ofrece por proveedor solo los modelos que aceptan
-imágenes y no están deprecados. El catálogo público entero pesa varios MB,
-así que `reducir` lo deja en lo que la app usa y `descargar` guarda esa
-copia pequeña. La app la renueva sola cada tanto (`vencido`).
+imágenes, devuelven texto y no están deprecados. El catálogo público entero
+pesa varios MB, así que `reducir` lo deja en lo que la app usa y `descargar`
+guarda esa copia pequeña. La app la renueva sola cada tanto (`vencido`).
 """
 
 from __future__ import annotations
@@ -114,16 +114,21 @@ def _tope_de(modelo):
     return None
 
 
+def _modalidades_validas(modalidades):
+    if not isinstance(modalidades, dict):
+        return False
+    entradas = modalidades.get("input")
+    salidas = modalidades.get("output")
+    return isinstance(entradas, (list, tuple)) and "image" in entradas \
+        and isinstance(salidas, (list, tuple)) and list(salidas) == ["text"]
+
+
 def _reducir_modelo(ident, datos, npm_proveedor, api_proveedor, proveedor):
     if not isinstance(datos, dict):
         return None
     if datos.get("status") == "deprecated":
         return None
-    modalidades = datos.get("modalities")
-    if not isinstance(modalidades, dict):
-        return None
-    entradas = modalidades.get("input")
-    if not isinstance(entradas, (list, tuple)) or "image" not in entradas:
+    if not _modalidades_validas(datos.get("modalities")):
         return None
     protocolo = _protocolo_de(datos, npm_proveedor)
     if protocolo is None:
@@ -133,7 +138,8 @@ def _reducir_modelo(ident, datos, npm_proveedor, api_proveedor, proveedor):
         return None
     medio = datos.get("id")
     ident_final = medio if isinstance(medio, str) and medio else ident
-    if not isinstance(ident_final, str) or not ident_final:
+    if not isinstance(ident_final, str) or not ident_final \
+            or "embedding" in ident_final.lower():
         return None
     nombre = datos.get("name")
     if not isinstance(nombre, str) or not nombre:

@@ -24,9 +24,11 @@ FECHA = "2026-10-21"
 
 
 def _modelo(ident, nombre, entradas=("text", "image"), npm=None, api=None,
-            costo=(0, 0), piensa=True, tope=1024, estado=None):
+            costo=(0, 0), piensa=True, tope=1024, estado=None,
+            salidas=("text",)):
     datos = {"id": ident, "name": nombre, "reasoning": piensa,
-             "modalities": {"input": list(entradas), "output": ["text"]},
+             "modalities": {"input": list(entradas),
+                            "output": list(salidas)},
              "provider": {}}
     if npm is not None:
         datos["provider"]["npm"] = npm
@@ -189,6 +191,38 @@ class TestReducir(unittest.TestCase):
                     crudo = original[(proveedor, modelo["id"])]
                     self.assertNotEqual(crudo.get("status"), "deprecated")
                     self.assertIn("image", crudo["modalities"]["input"])
+
+
+class TestReducirSalidas(unittest.TestCase):
+    """Solo quedan los modelos que devuelven texto y nada más."""
+
+    def _reducido(self):
+        muestra = {
+            "google": {
+                "id": "google", "name": "Google",
+                "npm": "@ai-sdk/google",
+                "models": {
+                    "solo-texto": _modelo(
+                        "solo-texto", "Solo Texto", salidas=("text",)),
+                    "con-audio": _modelo(
+                        "con-audio", "Con Audio",
+                        salidas=("text", "audio")),
+                    "con-imagen": _modelo(
+                        "con-imagen", "Con Imagen",
+                        salidas=("text", "image")),
+                    "con-video": _modelo(
+                        "con-video", "Con Vídeo", salidas=("video",)),
+                    "gemini-embedding-2": _modelo(
+                        "gemini-embedding-2", "Gemini Embedding 2",
+                        salidas=("text",)),
+                },
+            },
+        }
+        return catalogo.reducir(muestra, FECHA)
+
+    def test_solo_texto_es_el_unico_que_queda(self):
+        entradas = self._reducido()["proveedores"]["google"]["modelos"]
+        self.assertEqual([m["id"] for m in entradas], ["solo-texto"])
 
 
 class TestCargar(unittest.TestCase):

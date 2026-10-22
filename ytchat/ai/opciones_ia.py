@@ -31,9 +31,8 @@ TEXTO_LISTA_ACTUALIZADA = "Lista de modelos actualizada: {n} modelos."
 TEXTO_LISTA_FALLO = ("No se pudo actualizar la lista de modelos. "
                      "Revisa la conexión y vuelve a intentarlo.")
 TEXTO_PREGUNTA_RESTAURADA = "Pregunta inicial restaurada."
-TEXTO_CONTRIBUTOR = ("Este modelo usa lo que se le envía para "
-                     "entrenarse. No envíes capturas con datos "
-                     "privados.")
+TEXTO_CONTRIBUTOR = "Este modelo entrena con lo que se le envía."
+TEXTO_MARCA_CONTRIBUTOR = ", entrena con lo enviado"
 TEXTO_SIN_MODELOS = ("Sin modelos en la lista. "
                      "Escribe el modelo en Otro modelo.")
 
@@ -41,16 +40,22 @@ TEXTO_SIN_MODELOS = ("Sin modelos en la lista. "
 def filas_modelos(muestra, proveedor, solo_gratis):
     """Lista de (id, etiqueta) del proveedor, o vacía sin catálogo.
 
-    La etiqueta es el nombre del modelo, más «, gratis» si lo es.
+    La etiqueta es el nombre del modelo, más «, gratis» si lo es y el
+    proveedor cobra por uso, más la marca de contributor. Con un proveedor
+    que da gratis por clave, «, gratis» no se escribe y `solo_gratis` se
+    ignora.
     """
     if proveedor is None or proveedor.id_catalogo is None:
         return []
+    filtrar = solo_gratis and not proveedor.gratis_por_clave
     filas = []
     for modelo in catalogo.modelos(
-            muestra, proveedor.id_catalogo, solo_gratis):
+            muestra, proveedor.id_catalogo, filtrar):
         etiqueta = modelo.nombre
-        if modelo.gratis:
+        if modelo.gratis and not proveedor.gratis_por_clave:
             etiqueta += ", gratis"
+        if modelo.contributor:
+            etiqueta += TEXTO_MARCA_CONTRIBUTOR
         filas.append((modelo.id, etiqueta))
     return filas
 
@@ -80,13 +85,6 @@ def aviso_de_modelo(modelo):
     if modelo is not None and modelo.contributor:
         return TEXTO_CONTRIBUTOR
     return ""
-
-
-def nombre_de_clave(proveedor, guardada):
-    """Estado de la clave para el nombre accesible de su campo."""
-    if guardada:
-        return "Clave de {}, guardada".format(proveedor.nombre)
-    return "Clave de {}, sin guardar".format(proveedor.nombre)
 
 
 def pedido_de_prueba(ajustes, muestra, clave):

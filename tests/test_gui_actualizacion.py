@@ -37,6 +37,14 @@ class TestDialogoActualizacion(unittest.TestCase):
         self.assertEqual(dialogo.btn_cerrar.GetLabel(), "&Cerrar")
         self.assertEqual(dialogo.btn_cerrar.GetId(), wx.ID_CANCEL)
 
+    def test_estado_en_una_linea_con_ancho_minimo(self):
+        dialogo = self._dialogo()
+        self.assertGreaterEqual(dialogo.GetSize().width, 380)
+        self.assertGreaterEqual(
+            dialogo.txt_estado.GetMinSize().width, 380)
+        estilo = dialogo.txt_estado.GetWindowStyleFlag()
+        self.assertTrue(estilo & wx.TE_NO_VSCROLL)
+
     def test_orden_de_tab(self):
         dialogo = self._dialogo()
         self.assertEqual(

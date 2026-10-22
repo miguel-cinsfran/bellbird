@@ -44,6 +44,9 @@ class SeccionClaveIA:
                   wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self._crear_botones(panel, sizer)
         self.actualizar()
+        from ytchat.ui.gui_preferencias import _tc
+        _tc(self.txt_estado)
+        _tc(self.txt_clave)
 
     def _crear_botones(self, panel, sizer):
         self.btn_guardar = wx.Button(

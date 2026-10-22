@@ -27,10 +27,10 @@ class DialogoActualizacion(wx.Dialog):
 
         vs = wx.BoxSizer(wx.VERTICAL)
         self.txt_estado = wx.TextCtrl(
-            self, value="", style=wx.TE_MULTILINE | wx.TE_READONLY,
+            self, value="", style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_NO_VSCROLL,
             name="Estado")
         self.txt_estado.SetMinSize(
-            (-1, 3 * self.txt_estado.GetCharHeight() + 12))
+            (380, 3 * self.txt_estado.GetCharHeight() + 12))
         nombre_accesible(self.txt_estado, "Estado")
         vs.Add(self.txt_estado, 0, wx.EXPAND | wx.ALL, 10)
 

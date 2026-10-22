@@ -96,7 +96,14 @@ class PaginaSonidos:
         self._lista.InsertColumn(0, "Sonido", width=420)
         self._lista.EnableCheckBoxes(True)
         self._lista.SetMinSize((460, 300))
+        self._lista.Bind(wx.EVT_SIZE, self._on_tamanio_lista)
         vs.Add(self._lista, 1, wx.EXPAND | wx.ALL, 10)
+
+    def _on_tamanio_lista(self, event):
+        # La única columna ocupa todo el cliente: sin franja vacía a la
+        # derecha cuando la ventana se agranda.
+        self._lista.SetColumnWidth(0, self._lista.GetClientSize().width)
+        event.Skip()
 
     def _cargar_filas(self):
         texto = _leer_texto(paths.sounds_ini())

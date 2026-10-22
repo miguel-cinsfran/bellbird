@@ -60,8 +60,22 @@ class PaginaIA:
         self._ia_pregunta(p, vs)
         self._ia_largo(p, vs)
         self._ia_mostrar_condicionales()
+        self._ia_pintar_campos()
         p.SetSizer(vs)
         return p
+
+    def _ia_pintar_campos(self):
+        # Los campos llevan el fondo de la paleta como en las demás
+        # páginas. Definido en gui_preferencias: se importa acá para
+        # evitar un import circular.
+        from ytchat.ui.gui_preferencias import _tc
+        _tc(self.cho_ia_proveedor)
+        _tc(self.txt_ia_direccion)
+        _tc(self.cho_ia_modelo)
+        _tc(self.txt_ia_otro)
+        _tc(self.txt_ia_pregunta)
+        _tc(self.cho_ia_largo)
+        _tc(self.sp_ia_tiempo)
 
     def _ia_leer_estado(self):
         self._ia_ajustes = ajustes_ia.leer(self._ruta)
@@ -141,6 +155,7 @@ class PaginaIA:
         self.txt_ia_pregunta = wx.TextCtrl(
             p, value=self._ia_ajustes.pregunta, style=wx.TE_MULTILINE,
             name="PreguntaIA")
+        self.txt_ia_pregunta.SetMinSize((-1, 90))
         vs.Add(self.txt_ia_pregunta, 0,
                wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.btn_ia_restaurar = wx.Button(
@@ -227,6 +242,12 @@ class PaginaIA:
     def _ia_actualizar_aviso(self):
         texto = opciones_ia.aviso_de_modelo(self._ia_modelo_actual())
         self.lbl_ia_aviso.SetLabel(texto)
+        # Vacío no ocupa lugar: el aviso no está en el Tab y ocultarlo no
+        # cambia lo que recorre el lector.
+        self.lbl_ia_aviso.Show(bool(texto))
+        panel = getattr(self, "_pag_ia_panel", None)
+        if panel is not None:
+            panel.Layout()
 
     def _ia_mostrar_condicionales(self):
         proveedor = self._ia_proveedor_actual()

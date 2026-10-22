@@ -2289,6 +2289,36 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         self.assertEqual(dialogo.lbl_ia_aviso.GetLabel(),
                          opciones_ia.TEXTO_CONTRIBUTOR)
 
+    def test_campos_ia_con_fondo_de_campo(self):
+        dialogo = self._dialogo()
+        campos = [dialogo.cho_ia_proveedor, dialogo.txt_ia_direccion,
+                  dialogo.ia_clave.txt_estado, dialogo.ia_clave.txt_clave,
+                  dialogo.cho_ia_modelo, dialogo.txt_ia_otro,
+                  dialogo.txt_ia_pregunta, dialogo.cho_ia_largo,
+                  dialogo.sp_ia_tiempo]
+        for campo in campos:
+            with self.subTest(control=campo.GetName()):
+                self.assertEqual(campo.GetBackgroundColour(),
+                                 gui._T.field)
+
+    def test_aviso_oculto_sin_aviso_y_visible_con_contributor(self):
+        dialogo = self._dialogo(self._catalogo_con_openrouter())
+        self.assertEqual(dialogo.lbl_ia_aviso.GetLabel(), "")
+        self.assertFalse(dialogo.lbl_ia_aviso.IsShown())
+        dialogo.cho_ia_proveedor.SetSelection(
+            self._indice_proveedor("openrouter"))
+        dialogo._on_ia_proveedor(None)
+        dialogo.cho_ia_modelo.SetSelection(0)
+        dialogo._on_ia_modelo(None)
+        self.assertEqual(dialogo.lbl_ia_aviso.GetLabel(),
+                         opciones_ia.TEXTO_CONTRIBUTOR)
+        self.assertTrue(dialogo.lbl_ia_aviso.IsShown())
+
+    def test_instruccion_mide_cuatro_renglones(self):
+        dialogo = self._dialogo()
+        self.assertGreaterEqual(
+            dialogo.txt_ia_pregunta.GetMinSize().height, 90)
+
     def test_probar_dispara_el_boton_y_suena_la_respuesta(self):
         hilo = mock.Mock()
         consulta = {}

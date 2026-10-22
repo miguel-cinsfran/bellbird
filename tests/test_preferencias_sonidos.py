@@ -87,6 +87,13 @@ class TestPaginaSonidos(unittest.TestCase):
             ruta = str(oir.call_args.args[0])
             self.assertTrue(ruta.endswith(f"{EVENTOS[0]}.wav"))
 
+    def test_columna_sigue_el_ancho_de_la_lista(self):
+        lista = self.pagina._lista
+        lista.SetSize((500, 300))
+        lista.SendSizeEvent()
+        self.assertEqual(lista.GetColumnWidth(0),
+                         lista.GetClientSize().width)
+
     def test_mnemonicos_no_chocan_con_guardar(self):
         letras = []
         for control in self.panel.GetChildren():

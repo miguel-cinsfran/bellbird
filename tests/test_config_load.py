@@ -12,6 +12,7 @@ from unittest import mock
 
 from ytchat.core import archivos
 from ytchat.core import config
+from ytchat.core import config_musica
 from ytchat.core import paths
 from tests.rutas_temporales import redirigir_rutas
 
@@ -870,8 +871,8 @@ class TestMusicaCargador(unittest.TestCase):
                     self.assertEqual(cfg[otra_memoria], otro_fabrica)
 
     def test_opciones_musica_devuelve_lo_mismo_que_cargar_configuracion(self):
-        # Las claves musica_* viven en _opciones_musica y entran con **:
-        # mismos valores y mismo orden que en el diccionario cargado.
+        # Las claves musica_* viven en config_musica.opciones_musica y entran
+        # con **: mismos valores y mismo orden que en el diccionario cargado.
         with tempfile.TemporaryDirectory() as tmp:
             ruta = Path(tmp) / "config.ini"
             ruta.write_text("[musica]\npreguntar_igualar = false\nvolumen = 80\n",
@@ -879,7 +880,8 @@ class TestMusicaCargador(unittest.TestCase):
             with redirigir_rutas(Path(tmp)):
                 p = config._mk_parser()
                 p.read(paths.config_ini(), encoding="utf-8")
-                opciones = config._opciones_musica(p)
+                opciones = config_musica.opciones_musica(p)
+                self.assertEqual(config._opciones_musica(p), opciones)
                 cfg = config.cargar_configuracion()
         musica = {clave: valor for clave, valor in cfg.items()
                   if clave.startswith("musica_")}

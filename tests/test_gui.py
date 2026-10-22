@@ -1803,6 +1803,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("musica", "aleatorio"), ("musica", "repetir"),
             ("musica", "retomar"), ("musica", "sonido_tema"),
             ("musica", "decir"), ("musica", "decir_pausa"), ("musica", "normalizar"),
+            ("musica", "preguntar_igualar"),
             ("musica", "volumen"), ("musica", "atajos_globales"), ("musica", "carpeta"),
             ("musica", "salida"), ("musica", "salida_nombre"),
         ]

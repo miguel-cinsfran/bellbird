@@ -287,25 +287,29 @@ _LECTORAS_PARSER = {"get", "getboolean", "getint", "has_option"}
 
 
 def _pares_leidos_en_config():
-    """Pares (sección, clave) leídos en `config.py`: llamadas `_gs`, `_pb`,
-    `_pi`, `_pf` (literales en 2.º y 3.º lugar) y parecidas del parser
-    (`get`, `getboolean`, ...) con literales en 1.º y 2.º lugar."""
+    """Pares (sección, clave) leídos en `config.py` y `config_descargas.py`:
+    llamadas `_gs`, `_pb`, `_pi`, `_pf` (literales en 2.º y 3.º lugar) y
+    parecidas del parser (`get`, `getboolean`, ...) con literales en
+    1.º y 2.º lugar."""
     leidos = set()
-    for nodo in ast.walk(_arbol("ytchat/core/config.py")):
-        if not isinstance(nodo, ast.Call):
-            continue
-        funcion = nodo.func
-        if (isinstance(funcion, ast.Name)
-                and funcion.id in _LECTORAS_CONFIG):
-            invocados = nodo.args[1:3]
-        elif (isinstance(funcion, ast.Attribute)
-                and funcion.attr in _LECTORAS_PARSER):
-            invocados = nodo.args[0:2]
-        else:
-            continue
-        if (len(invocados) >= 2 and _es_texto(invocados[0])
-                and _es_texto(invocados[1])):
-            leidos.add((invocados[0].value, invocados[1].value))
+    arboles = (_arbol("ytchat/core/config.py"),
+               _arbol("ytchat/core/config_descargas.py"))
+    for arbol in arboles:
+        for nodo in ast.walk(arbol):
+            if not isinstance(nodo, ast.Call):
+                continue
+            funcion = nodo.func
+            if (isinstance(funcion, ast.Name)
+                    and funcion.id in _LECTORAS_CONFIG):
+                invocados = nodo.args[1:3]
+            elif (isinstance(funcion, ast.Attribute)
+                    and funcion.attr in _LECTORAS_PARSER):
+                invocados = nodo.args[0:2]
+            else:
+                continue
+            if (len(invocados) >= 2 and _es_texto(invocados[0])
+                    and _es_texto(invocados[1])):
+                leidos.add((invocados[0].value, invocados[1].value))
     return leidos
 
 

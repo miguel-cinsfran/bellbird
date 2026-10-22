@@ -381,10 +381,11 @@ class TestReconexionYSonidos(unittest.TestCase):
 class TestMusicaFabrica(unittest.TestCase):
     def test_seccion_musica_valores_de_fabrica(self):
         self.assertEqual(pred.seccion("musica"), {
-            "carpeta": "", "aleatorio": "false", "repetir": "false",
+            "carpeta": "Música", "aleatorio": "false", "repetir": "false",
             "retomar": "true", "sonido_tema": "true", "decir": "",
             "decir_titulo": "true", "incluir_artista": "false",
-            "decir_pausa": "true", "normalizar": "true", "volumen": "50", "salida": "",
+            "decir_pausa": "true", "normalizar": "true",
+            "preguntar_igualar": "true", "volumen": "50", "salida": "",
             "salida_nombre": "", "atajos_globales": "false",
             "mostrar_cola": "false",
         })
@@ -393,6 +394,7 @@ class TestMusicaFabrica(unittest.TestCase):
         self.assertEqual(list(pred.seccion("musica").keys()), [
             "carpeta", "aleatorio", "repetir", "retomar", "sonido_tema",
             "decir", "decir_titulo", "incluir_artista", "decir_pausa",
-            "normalizar", "volumen", "salida", "salida_nombre", "atajos_globales",
+            "normalizar", "preguntar_igualar", "volumen", "salida",
+            "salida_nombre", "atajos_globales",
             "mostrar_cola",
         ])

@@ -1893,7 +1893,8 @@ class TestAtajoDeTeclaComun(unittest.TestCase):
 class TestSonoridadCableada(unittest.TestCase):
     """El cableado de la normalización: indexar mide y el motor envuelve."""
 
-    def test_indexar_mide_la_sonoridad_y_la_guarda(self):
+    def test_indexar_no_mide_y_con_iniciar_igualacion_si_guarda(self):
+        from ytchat.music import sonoridad
         from ytchat.music.sonoridad import CacheSonoridad
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -1908,6 +1909,14 @@ class TestSonoridadCableada(unittest.TestCase):
                 recibidas = []
                 control.biblioteca(recibidas.append)
                 self.assertEqual(len(recibidas[0].temas()), 2)
+                vacia = CacheSonoridad(env.sonoridad)
+                for tema in recibidas[0].temas():
+                    info = os.stat(tema.origen)
+                    self.assertIsNone(
+                        vacia.buscar(tema.origen, info.st_mtime_ns,
+                                     info.st_size))
+                resultado = control.iniciar_igualacion(recibidas[0])
+                self.assertEqual(resultado.codigo, sonoridad.INICIO)
                 releida = CacheSonoridad(env.sonoridad)
                 for tema in recibidas[0].temas():
                     info = os.stat(tema.origen)

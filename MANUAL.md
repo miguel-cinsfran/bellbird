@@ -19,6 +19,7 @@ Versión 2.4.0 · Windows 10 y 11 · [novedades de cada versión](CHANGELOG.md)
 - [Mensajes automáticos](#mensajes-automáticos)
 - [Descargas e historial](#descargas-e-historial)
 - [Estado por voz](#estado-por-voz)
+- [Preguntar a la IA](#preguntar-a-la-ia)
 - [Sesión de Google](#sesión-de-google)
 - [Atajos de teclado](#atajos-de-teclado)
 - [Accesibilidad](#accesibilidad)
@@ -287,6 +288,52 @@ transmites desde la aplicación, `F2` empieza por cómo va el directo.
 
 `F3` dice quién mandó el último mensaje leído, y `Ctrl+F2` describe la
 escena de OBS.
+
+## Preguntar a la IA
+
+Una IA mira una captura de OBS y te dice qué se ve: si la cámara está
+encendida, si una fuente salió en negro, qué texto hay en pantalla. Hace
+falta OBS abierto y la clave de un proveedor.
+
+**Configurar.** En *Preferencias, Inteligencia artificial* eliges el
+proveedor (Google Gemini, OpenAI, Anthropic, OpenRouter, OpenCode Go,
+Command Code u otro compatible con OpenAI), guardas su clave y eliges el
+modelo. La clave queda en el Administrador de credenciales de Windows, no
+en `config.ini`, y la página nunca la muestra: solo dice que está
+guardada y sus cuatro últimos caracteres. *Probar la clave* manda un
+pedido corto y dice si funciona.
+
+*Actualizar la lista de modelos* trae los modelos que aceptan imágenes.
+Con OpenRouter y OpenCode Go, *Solo gratuitos* deja los que no cobran.
+Con Gemini lo gratis depende de la clave, así que la lista prueba cada
+modelo con la tuya y marca los que funcionan. Tarda unos 30 segundos y
+suena un aviso mientras tanto.
+
+En la misma página se cambia la instrucción que acompaña a cada captura,
+el largo de la respuesta, el tiempo de espera y si se dice «Analizando…»
+mientras espera.
+
+**La ventana.** `Ctrl+Mayús+I` la abre. *Agregar captura* deja elegir la
+escena al aire o una fuente suelta. En *Mensaje* escribes la pregunta y `Enter`
+la envía. Justo después de agregar una captura puedes dejarlo vacío, y se
+usa la instrucción. La respuesta
+se lee al llegar y queda en *Conversación*, donde `Enter` abre cada
+mensaje entero. Puedes seguir preguntando sobre la misma captura o agregar
+otra. `Escape` cancela la consulta en curso, y si no hay ninguna, cierra.
+
+**Consulta rápida.** `Ctrl+Mayús+F2` captura la escena al aire, la envía
+con la instrucción y lee la respuesta sin abrir nada. El siguiente
+`Ctrl+Mayús+I` abre la ventana con esa conversación, para seguir
+preguntando.
+
+**Privacidad.** La captura y lo que escribas salen de tu PC hacia el
+proveedor. El primer envío lo avisa y pide confirmación una sola vez.
+Algunos modelos usan lo que reciben para entrenar, y la lista lo
+dice al lado del nombre.
+
+Si la captura sale negra, no se envía. Suele pasar con la cortina de
+pantalla de NVDA o en una PC sin monitor conectado. En OBS, cambia el
+método de captura de esa fuente a Windows 10.
 
 ## Sesión de Google
 

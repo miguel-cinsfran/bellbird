@@ -1834,7 +1834,6 @@ def escenario_ia(app: Aplicacion, args, res: Resultado):
     res.nota("IA: no se envía nada, la ventana solo se audita. "
              "Agregar captura no se abre en el banco: necesita OBS")
     esperados = ("Conversación", "Mensaje",
-                 "Decir Analizando mientras espera",
                  "Enviar", "Agregar captura", "Copiar respuesta",
                  "Nueva conversación", "Cerrar")
     auditar_dialogo(

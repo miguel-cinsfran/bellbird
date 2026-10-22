@@ -227,7 +227,6 @@ INTERNAS = {
     ("descargas", "enumerar"): "gestor de descargas (config.py:436, desde gui_descargas.py:353)",
     ("descargas", "formato"): "gestor de descargas (config.py:436, desde gui_descargas.py:353)",
     ("ia", "privacidad_aceptada"): "la escribe el aviso de privacidad de la IA, no lleva control",
-    ("ia", "decir_analizando"): "la cambia su casilla en la ventana Preguntar a la IA",
     ("musica", "mostrar_cola"): "la recuerda la ventana Música (musica_memoria.py:19, guarda en gui_musica.py:465)",
     ("overlay", "activo"): "la enciende la ventana Transmisión (gui_transmitir.py:32 y 37)",
     ("sesion", "silenciar_lectura"): "la cambia F4 en la ventana principal (gui.py:1340)",

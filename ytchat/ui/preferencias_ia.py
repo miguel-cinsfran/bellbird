@@ -2,9 +2,8 @@
 
 Mezcla sin estado propio: `gui_preferencias` hereda de acá. La clave del
 proveedor elegido vive en el Administrador de credenciales y nunca en
-config.ini; los otros siete valores van a la sección [ia] por
-`ajustes_ia.guardar`, que conserva `privacidad_aceptada` y
-`decir_analizando`.
+config.ini; los otros ocho valores van a la sección [ia] por
+`ajustes_ia.guardar`, que solo conserva `privacidad_aceptada`.
 """
 
 from __future__ import annotations
@@ -29,9 +28,9 @@ from ytchat.voice import sound_player as _snd
 logger = diagnostico.obtener_logger(__name__)
 
 
-# (atributo del control, sección, clave): los siete pares de [ia] que
+# (atributo del control, sección, clave): los ocho pares de [ia] que
 # edita esta página. `tests/test_coherencia.py` los cuenta como pares
-# con control; `privacidad_aceptada` y `decir_analizando` quedan fuera.
+# con control; `privacidad_aceptada` queda fuera.
 OPCIONES_IA = (
     ("cho_ia_proveedor", "ia", "proveedor"),
     ("txt_ia_direccion", "ia", "direccion"),
@@ -40,6 +39,7 @@ OPCIONES_IA = (
     ("cho_ia_largo", "ia", "largo"),
     ("sp_ia_tiempo", "ia", "tiempo_espera"),
     ("chk_ia_gratis", "ia", "solo_gratis"),
+    ("chk_ia_analizando", "ia", "decir_analizando"),
 )
 
 
@@ -166,6 +166,12 @@ class PaginaIA:
             name="TiempoIA")
         self.sp_ia_tiempo.SetValue(self._ia_ajustes.tiempo_espera)
         vs.Add(self.sp_ia_tiempo, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+        self.chk_ia_analizando = wx.CheckBox(
+            p, label="Decir Anali&zando mientras espera",
+            name="DecirAnalizandoIA")
+        self.chk_ia_analizando.SetValue(
+            bool(self._ia_ajustes.decir_analizando))
+        vs.Add(self.chk_ia_analizando, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _ia_proveedor_actual(self):
         i = self.cho_ia_proveedor.GetSelection()
@@ -328,5 +334,7 @@ class PaginaIA:
         actuales.pregunta = self.txt_ia_pregunta.GetValue()
         actuales.largo = self.cho_ia_largo.GetValue()
         actuales.solo_gratis = bool(self.chk_ia_gratis.GetValue())
+        actuales.decir_analizando = bool(
+            self.chk_ia_analizando.GetValue())
         if not ajustes_ia.guardar(self._ruta, actuales):
             self._fallo_guardado = True

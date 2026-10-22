@@ -67,7 +67,11 @@ class VentanaIA(wx.Dialog):
         self._n_consulta = 0
         self._en_curso = False
         self._cerrada = False
+        self._decir_analizando = True
         self._crear_controles()
+        self._temporizador_melodia = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self._al_temporizador_melodia,
+                  self._temporizador_melodia)
         self._rehacer_lista()
         self.txt_mensaje.SetFocus()
 
@@ -85,7 +89,6 @@ class VentanaIA(wx.Dialog):
             self, name="Mensaje", style=wx.TE_PROCESS_ENTER)
         nombre_accesible(self.txt_mensaje, "Mensaje")
         vs.Add(self.txt_mensaje, 0, wx.EXPAND | wx.ALL, 10)
-        self._crear_casilla_analizando(vs)
         fila = wx.BoxSizer(wx.HORIZONTAL)
         self.btn_enviar = wx.Button(self, wx.ID_ANY, "&Enviar",
                                     name="Enviar")
@@ -114,27 +117,6 @@ class VentanaIA(wx.Dialog):
         self.Bind(wx.EVT_TIMER, self._al_temporizador, self._temporizador)
         self.Bind(wx.EVT_CHAR_HOOK, self._al_tecla)
         self.Bind(wx.EVT_CLOSE, self._al_cerrar)
-
-    def _crear_casilla_analizando(self, vs) -> None:
-        self.chk_analizando = wx.CheckBox(
-            self, label="&Decir Analizando mientras espera",
-            name="Decir Analizando mientras espera")
-        try:
-            marcado = ajustes_ia.leer(paths.config_ini()).decir_analizando
-        except Exception as fallo:
-            logger.warning("VentanaIA: sin ajustes: %s", fallo)
-            marcado = True
-        self.chk_analizando.SetValue(marcado)
-        self.chk_analizando.Bind(
-            wx.EVT_CHECKBOX, self._al_casilla_analizando)
-        vs.Add(self.chk_analizando, 0, wx.LEFT | wx.RIGHT, 10)
-        self._temporizador_melodia = wx.Timer(self)
-        self.Bind(wx.EVT_TIMER, self._al_temporizador_melodia,
-                  self._temporizador_melodia)
-
-    def _al_casilla_analizando(self, _event) -> None:
-        ajustes_ia.guardar_decir_analizando(
-            paths.config_ini(), self.chk_analizando.GetValue())
 
     def _rehacer_lista(self) -> None:
         visibles = ventana_ia.filas_visibles(self._charla.filas)
@@ -168,6 +150,7 @@ class VentanaIA(wx.Dialog):
             return
         texto = self.txt_mensaje.GetValue()
         ajustes = ajustes_ia.leer(paths.config_ini())
+        self._decir_analizando = ajustes.decir_analizando
         muestra = catalogo.cargar(
             paths.catalogo_ia(), paths.catalogo_ia_empaquetado())
         try:
@@ -251,7 +234,7 @@ class VentanaIA(wx.Dialog):
         anunciar(consulta.texto_de_error(error))
 
     def _al_temporizador(self, _event) -> None:
-        if self.chk_analizando.GetValue():
+        if self._decir_analizando:
             anunciar(ventana_ia.TEXTO_ANALIZANDO, urgente=False)
 
     def _al_temporizador_melodia(self, _event) -> None:

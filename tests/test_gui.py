@@ -1907,7 +1907,7 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
             "ProveedorIA", "ClaveIA", "GuardarClaveIA",
             "ProbarClaveIA", "ModeloIA", "ActualizarModelosIA",
             "OtroModeloIA", "PreguntaIA", "RestaurarPreguntaIA",
-            "LargoIA", "TiempoIA",
+            "LargoIA", "TiempoIA", "DecirAnalizandoIA",
         ])
 
     def test_orden_de_tab_con_clave_guardada(self):
@@ -1917,7 +1917,7 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
             "ProveedorIA", "EstadoClaveIA", "NuevaClaveIA",
             "BorrarClaveIA", "ProbarClaveIA", "ModeloIA",
             "ActualizarModelosIA", "OtroModeloIA", "PreguntaIA",
-            "RestaurarPreguntaIA", "LargoIA", "TiempoIA",
+            "RestaurarPreguntaIA", "LargoIA", "TiempoIA", "DecirAnalizandoIA",
         ])
 
     def test_orden_de_tab_escribiendo_una_clave_nueva(self):
@@ -1929,7 +1929,7 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
             "ProveedorIA", "ClaveIA", "GuardarClaveIA",
             "BorrarClaveIA", "ProbarClaveIA", "ModeloIA",
             "ActualizarModelosIA", "OtroModeloIA", "PreguntaIA",
-            "RestaurarPreguntaIA", "LargoIA", "TiempoIA",
+            "RestaurarPreguntaIA", "LargoIA", "TiempoIA", "DecirAnalizandoIA",
         ])
 
     def test_con_clave_guardada_no_hay_campo_de_escritura_visible(self):
@@ -2002,7 +2002,7 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
             etiqueta = control.GetLabel()
             if "&" in etiqueta:
                 letras.append(etiqueta.split("&", 1)[1][:1].lower())
-        self.assertEqual(len(letras), 15)
+        self.assertEqual(len(letras), 16)
         self.assertEqual(len(letras), len(set(letras)), letras)
         self.assertNotIn("g", letras)
         self.assertNotIn("c", letras)
@@ -2051,6 +2051,8 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
                 lambda: dialogo.sp_ia_tiempo.SetValue(120), 120),
             "solo_gratis": (
                 lambda: dialogo.chk_ia_gratis.SetValue(True), True),
+            "decir_analizando": (
+                lambda: dialogo.chk_ia_analizando.SetValue(False), False),
         }
         return casos[clave]
 
@@ -2060,7 +2062,8 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
              in preferencias_ia.OPCIONES_IA],
             [("ia", clave) for clave in (
                 "proveedor", "direccion", "modelo", "pregunta",
-                "largo", "tiempo_espera", "solo_gratis")])
+                "largo", "tiempo_espera", "solo_gratis",
+                "decir_analizando")])
         for atributo, _seccion, clave in preferencias_ia.OPCIONES_IA:
             with self.subTest(clave=clave):
                 ruta = self._ruta()
@@ -2079,20 +2082,33 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
                 self.assertEqual(getattr(ajustes_ia.leer(self._ruta()), clave),
                                  esperado)
 
-    def test_guardar_conserva_privacidad_y_decir_analizando(self):
+    def test_casilla_analizando_en_la_pagina(self):
+        ruta = self._ruta()
+        ruta.parent.mkdir(parents=True, exist_ok=True)
+        ruta.write_text("[ia]\ndecir_analizando = false\n",
+                        encoding="utf-8")
+        dialogo = self._dialogo()
+        self.assertEqual(dialogo.chk_ia_analizando.GetName(),
+                         "DecirAnalizandoIA")
+        self.assertEqual(dialogo.chk_ia_analizando.GetLabel(),
+                         "Decir Anali&zando mientras espera")
+        self.assertFalse(dialogo.chk_ia_analizando.GetValue())
+
+    def test_guardar_conserva_privacidad_y_escribe_decir_analizando(self):
         ruta = self._ruta()
         ruta.parent.mkdir(parents=True, exist_ok=True)
         ruta.write_text("[ia]\nprivacidad_aceptada = true\n"
                         "decir_analizando = false\n", encoding="utf-8")
         dialogo = self._dialogo()
         dialogo.txt_ia_pregunta.SetValue("Otra pregunta")
+        dialogo.chk_ia_analizando.SetValue(True)
         with mock.patch.object(dialogo, "EndModal"), \
                 mock.patch.object(gui_preferencias._snd, "reproducir"), \
                 mock.patch.object(gui_preferencias, "anunciar"):
             dialogo._on_guardar(None)
         leidos = ajustes_ia.leer(self._ruta())
         self.assertTrue(leidos.privacidad_aceptada)
-        self.assertFalse(leidos.decir_analizando)
+        self.assertTrue(leidos.decir_analizando)
 
     def test_guardar_clave_usa_el_proveedor_elegido(self):
         clave = "sk-" + "a" * 36

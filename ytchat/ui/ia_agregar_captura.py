@@ -31,9 +31,10 @@ ALTO_VISTA = 180
 
 def texto_negra(etiqueta) -> str:
     """Aviso cuando la captura sale negra, en palabras para el usuario."""
-    return (f"La captura de {etiqueta} salió negra y no se agregó. "
-            "Si usas la cortina de pantalla de NVDA, cambia en OBS "
-            "el método de captura de esa fuente a Windows 10.")
+    return (f"La captura de {etiqueta} salió negra y no se agregó. Suele "
+            "pasar si la PC no tiene monitor conectado o si la cortina de "
+            "pantalla de NVDA está activa. Prueba en OBS el método de "
+            "captura Windows 10 para esa fuente.")
 
 
 class DialogoAgregarCaptura(wx.Dialog):

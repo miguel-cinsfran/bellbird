@@ -25,8 +25,13 @@ class TestTextosAgregarCaptura(unittest.TestCase):
         self.assertEqual(
             texto_negra("Escena al aire: Escena"),
             "La captura de Escena al aire: Escena salió negra y no se "
-            "agregó. Si usas la cortina de pantalla de NVDA, cambia en OBS "
-            "el método de captura de esa fuente a Windows 10.")
+            "agregó. Suele pasar si la PC no tiene monitor conectado o si "
+            "la cortina de pantalla de NVDA está activa. Prueba en OBS el "
+            "método de captura Windows 10 para esa fuente.")
+
+    def test_negra_nombra_la_pc_sin_monitor(self):
+        texto = texto_negra("Cámara")
+        self.assertIn("la PC no tiene monitor conectado", texto)
 
     def test_negra_con_etiqueta_simple(self):
         texto = texto_negra("Cámara")

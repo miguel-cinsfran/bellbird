@@ -802,9 +802,9 @@ class TestMusicaCargador(unittest.TestCase):
             return config.cargar_configuracion()
 
     def test_trece_valores_de_fabrica_con_ini_vacio(self):
-        with mock.patch.object(paths, "carpeta_musica_windows", return_value=""):
-            cfg = self._cargar_en("")
-        self.assertEqual(cfg["musica_carpeta"], "")
+        cfg = self._cargar_en("")
+        self.assertEqual(cfg["musica_carpeta"],
+                         str(Path(self._tmp.name) / "Música"))
         self.assertFalse(cfg["musica_aleatorio"])
         self.assertEqual(cfg["musica_repetir"], "no")
         self.assertTrue(cfg["musica_retomar"])
@@ -908,11 +908,16 @@ class TestMusicaCargador(unittest.TestCase):
             f"{config.codificar_texto_ini(carpeta)}\n")
         self.assertEqual(cfg["musica_carpeta"], carpeta)
 
-    def test_sin_carpeta_cae_en_la_de_windows(self):
+    def test_clave_vacia_cae_en_la_de_windows(self):
         with mock.patch.object(paths, "carpeta_musica_windows",
                                return_value="C:\\Usuarios\\Prueba\\Música"):
-            cfg = self._cargar_en("[voz]\nvoz = 0\n")
+            cfg = self._cargar_en("[musica]\ncarpeta = \n")
         self.assertEqual(cfg["musica_carpeta"], "C:\\Usuarios\\Prueba\\Música")
+
+    def test_carpeta_relativa_cuelga_de_la_instalacion(self):
+        cfg = self._cargar_en("[musica]\ncarpeta = Mis temas\n")
+        self.assertEqual(cfg["musica_carpeta"],
+                         str(Path(self._tmp.name) / "Mis temas"))
 
     def test_carpeta_del_ini_manda_aunque_no_exista(self):
         with mock.patch.object(paths, "carpeta_musica_windows",

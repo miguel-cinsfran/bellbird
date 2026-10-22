@@ -345,7 +345,7 @@ def guardar_opcion(ruta: Path | None, seccion: str, clave: str, valor: str) -> b
 def _opciones_musica(p) -> dict:
     """La sección [musica] como claves en memoria, en el mismo orden."""
     return {
-        "musica_carpeta": decodificar_texto_ini(_gs(p, "musica", "carpeta")) or paths.carpeta_musica_windows(),
+        "musica_carpeta": paths.resolver_carpeta_musica(decodificar_texto_ini(_gs(p, "musica", "carpeta"))),
         "musica_aleatorio": _pb(p, "musica", "aleatorio"),
         "musica_repetir": normalizar_repetir(_gs(p, "musica", "repetir")),
         "musica_retomar": _pb(p, "musica", "retomar"),

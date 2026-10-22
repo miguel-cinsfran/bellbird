@@ -139,7 +139,7 @@ que pausar y saltar respondan al instante. Se conservan los tres
 ## Música
 
 Para poner música mientras transmites, sin abrir otro programa. Usa la
-carpeta Música de Windows, o la que elijas en *Preferencias, Música*. Se
+carpeta Música junto al programa, o la que elijas en *Preferencias, Música*. Se
 maneja desde el menú *Música* o con los atajos de `Ctrl+Alt` (ver la
 [tabla](#música-1)).
 

@@ -168,6 +168,11 @@ def descargas_por_defecto() -> Path:
     return carpeta_instalacion() / "Descargas"
 
 
+def musica_por_defecto() -> Path:
+    # Como «Descargas»: queda a la vista, junto al programa.
+    return carpeta_instalacion() / "Música"
+
+
 class _GUID(ctypes.Structure):
     """GUID de ctypes para pedir carpetas conocidas a Windows."""
     _fields_ = [("Data1", ctypes.c_uint32),
@@ -214,6 +219,20 @@ def carpeta_musica_windows() -> str:
     except Exception as exc:
         logger.warning("no se pudo leer la carpeta Música de Windows: %s", exc)
         return ""
+
+
+def resolver_carpeta_musica(texto) -> str:
+    """La carpeta de música configurada como ruta absoluta.
+
+    Vacía da la Música de Windows (lo que tienen quienes ya usan la app);
+    relativa cuelga de la instalación; absoluta queda igual.
+    """
+    valor = (texto or "").strip()
+    if not valor:
+        return carpeta_musica_windows()
+    if Path(valor).anchor:
+        return valor
+    return str(carpeta_instalacion() / valor)
 
 
 def datos_a_migrar() -> list[Path]:

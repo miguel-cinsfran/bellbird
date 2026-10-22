@@ -187,6 +187,45 @@ class TestIndexarNoMide(unittest.TestCase):
             self.assertFalse(anfitrion._midiendo_sonoridad)
 
 
+class TestIndexarCreaLaDeFabrica(unittest.TestCase):
+    """La carpeta de fábrica se crea al indexar; una elegida, no."""
+
+    def _entorno(self, tmp):
+        return (mock.patch.object(musica_indice.wx, "CallAfter",
+                                   side_effect=lambda f, *a: f(*a)),
+                mock.patch.object(musica_indice.motor_vlc, "disponible",
+                                   return_value=False),
+                mock.patch.object(musica_indice.paths, "cache_etiquetas_musica",
+                                   return_value=Path(tmp) / "e.json"))
+
+    def test_crea_la_de_fabrica_si_no_existe(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            destino = Path(tmp) / "app"
+            with mock.patch.object(musica_indice.paths, "carpeta_instalacion",
+                                    return_value=destino):
+                fabrica = musica_indice.paths.musica_por_defecto()
+                self.assertFalse(fabrica.exists())
+                anfitrion = _Anfitrion()
+                entregadas = []
+                llamar, motor, etiquetas = self._entorno(tmp)
+                with llamar, motor, etiquetas:
+                    anfitrion._indexar(str(fabrica), entregadas.append)
+                self.assertTrue(fabrica.is_dir())
+                self.assertEqual(len(entregadas), 1)
+                self.assertEqual(entregadas[0].temas(), ())
+
+    def test_no_crea_una_elegida_que_no_existe(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            faltante = Path(tmp) / "Elegida"
+            anfitrion = _Anfitrion()
+            entregadas = []
+            llamar, motor, etiquetas = self._entorno(tmp)
+            with llamar, motor, etiquetas:
+                anfitrion._indexar(str(faltante), entregadas.append)
+            self.assertFalse(faltante.exists())
+            self.assertEqual(entregadas, [None])
+
+
 class TestIniciarIgualacion(unittest.TestCase):
 
     def _anfitrion_con(self, tmp, medidos=(), config=None):

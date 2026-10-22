@@ -43,6 +43,7 @@ CREAN_CARPETA = {"audio_temporal"}
 
 RUTAS_DE_INSTALACION = [
     ("descargas_por_defecto", "Descargas"),
+    ("musica_por_defecto", "Música"),
     ("catalogo_ia_empaquetado", "catalogo_ia.json"),
     ("carpeta_sonidos", "sounds"),
     ("config_predeterminada_ini", "config.predeterminado.ini"),
@@ -283,6 +284,38 @@ class TestCarpetaMusicaWindows(unittest.TestCase):
             with self.assertLogs(paths.logger, level="DEBUG") as registros:
                 self.assertEqual(paths.carpeta_musica_windows(), "")
         self.assertTrue(registros.output)
+
+
+class TestCarpetaMusicaPorDefecto(unittest.TestCase):
+    """La carpeta de fábrica y cómo se resuelve la configurada."""
+
+    def test_por_defecto_es_musica_junto_al_programa(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            instalacion = Path(tmp) / "app"
+            with mock.patch.object(paths, "carpeta_instalacion",
+                                   return_value=instalacion):
+                self.assertEqual(paths.musica_por_defecto(),
+                                 instalacion / "Música")
+
+    def test_vacia_da_la_de_windows(self):
+        with mock.patch.object(paths, "carpeta_musica_windows",
+                               return_value="C:\\Musica"):
+            self.assertEqual(paths.resolver_carpeta_musica(""),
+                             "C:\\Musica")
+            self.assertEqual(paths.resolver_carpeta_musica("   "),
+                             "C:\\Musica")
+
+    def test_relativa_cuelga_de_la_instalacion(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            instalacion = Path(tmp) / "app"
+            with mock.patch.object(paths, "carpeta_instalacion",
+                                   return_value=instalacion):
+                self.assertEqual(paths.resolver_carpeta_musica("Mis temas"),
+                                 str(instalacion / "Mis temas"))
+
+    def test_absoluta_queda_igual(self):
+        self.assertEqual(paths.resolver_carpeta_musica("C:\\Musica"),
+                         "C:\\Musica")
 
 
 class TestAyudante(unittest.TestCase):

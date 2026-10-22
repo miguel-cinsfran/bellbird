@@ -189,7 +189,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("buscar_al_iniciar", "true"),
     ]),
     ("musica", [
-        ("carpeta", ""),
+        ("carpeta", "Música"),
         ("aleatorio", "false"),
         ("repetir", "false"),
         ("retomar", "true"),

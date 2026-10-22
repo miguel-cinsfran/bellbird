@@ -66,6 +66,11 @@ class IndiceMusica:
 
     def _indexar(self, carpeta, al_lista) -> None:
         try:
+            ruta = Path(carpeta)
+            if ruta == paths.musica_por_defecto() and not ruta.exists():
+                # La de fábrica se crea al usarla, vacía. Una elegida que
+                # no existe avisa y no se crea.
+                ruta.mkdir(parents=True, exist_ok=True)
             if self._cache_etiquetas is None:
                 self._cache_etiquetas = CacheEtiquetas(
                     paths.cache_etiquetas_musica())

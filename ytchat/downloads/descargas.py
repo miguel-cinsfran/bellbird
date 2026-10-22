@@ -33,6 +33,7 @@ from ytchat.core import paths
 from ytchat.downloads import ffmpeg_bin
 from ytchat.downloads import ytdlp_bin
 from ytchat.downloads.argumentos_ytdlp import argumentos_descarga, construir_outtmpl, formato_a_ydl
+from ytchat.downloads.motivo_error import motivo_de_error
 from ytchat.downloads.progreso_ytdlp import analizar_linea_progreso
 
 logger = diagnostico.obtener_logger(__name__)
@@ -263,10 +264,13 @@ def descargar(url: str, opciones: dict,
             _vigilar_cancelacion, "Vigilante-cancelacion",
             args=(proceso, cancel_event),
         ).start()
+        ultimo_error = ""
         for linea in iter(proceso.stdout.readline, ""):
             if cancel_event.is_set():
                 cancelar(proceso)
                 return
+            if linea.startswith("ERROR:"):
+                ultimo_error = linea.strip()
             if linea.startswith(PREFIJO_RUTA_FINAL + " "):
                 # Ruta definitiva: se anuncia y persiste el nombre real, no
                 # el del fragmento temporal.
@@ -297,7 +301,13 @@ def descargar(url: str, opciones: dict,
         elif proceso.returncode == 0:
             estado_cb("completado", "")
         else:
-            estado_cb("error", f"yt-dlp terminó con código {proceso.returncode}")
+            codigo = proceso.returncode
+            motivo = (motivo_de_error(ultimo_error)
+                      or f"yt-dlp terminó con código {codigo}")
+            if ultimo_error:
+                logger.warning("yt-dlp terminó con código %s: %s",
+                               codigo, ultimo_error)
+            estado_cb("error", motivo)
     except OSError as exc:
         logger.warning("descargar falló: %s", exc)
         estado_cb("error", str(exc) or exc.__class__.__name__)

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import sys
 import tempfile
 import threading
 import time
@@ -360,6 +361,37 @@ class TestDescargar(unittest.TestCase):
             descargar("url", {"formato": "mp4"}, lambda *a: None,
                       lambda *a: estados.append(a), threading.Event())
         self.assertEqual(estados[-1][0], "error")
+
+    def test_error_de_edad_dice_el_motivo_y_lo_registra(self):
+        guion = (
+            "import sys\n"
+            "sys.stdout.write(\n"
+            "    'ERROR: [youtube] O2yixU7XjGU: Sign in to confirm your age. '\n"
+            "    'Use --cookies-from-browser.\\n')\n"
+            "sys.stdout.flush()\n"
+            "sys.exit(1)\n"
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            falso = Path(tmp) / "falso_ytdlp.py"
+            falso.write_text(guion, encoding="utf-8")
+            estados = []
+            with mock.patch.object(descargas.ytdlp_bin, "ruta_ytdlp",
+                                    return_value=sys.executable), \
+                    mock.patch.object(descargas, "tiene_ffmpeg",
+                                       return_value=True), \
+                    mock.patch.object(descargas, "argumentos_descarga",
+                                       return_value=[str(falso)]), \
+                    self.assertLogs(descargas.logger,
+                                     level="WARNING") as registro:
+                descargar("url", {"formato": "mp4", "carpeta": tmp},
+                          lambda *a: None, lambda *a: estados.append(a),
+                          threading.Event())
+        self.assertEqual(
+            estados[-1],
+            ("error", "El vídeo tiene restricción de edad y YouTube pide "
+             "iniciar sesión."))
+        self.assertTrue(any("O2yixU7XjGU" in linea and "código 1" in linea
+                            for linea in registro.output))
 
     def test_sin_programa_es_error(self):
         estados = []

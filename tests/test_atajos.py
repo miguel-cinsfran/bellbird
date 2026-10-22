@@ -374,6 +374,7 @@ class TestParsearAtajos(unittest.TestCase):
 
     def test_menus_usan_el_sistema_para_los_nuevos_atajos(self):
         fuente = inspect.getsource(gui_menu.construir_menu)
+        fuente += inspect.getsource(gui_menu._construir_menu_ver)
         fuente += inspect.getsource(gui_menu._construir_menu_musica)
         self.assertIn('._accel("ir_lista")', fuente)
         self.assertIn('._accel("pantalla_completa")', fuente)

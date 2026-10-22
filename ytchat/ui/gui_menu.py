@@ -38,37 +38,7 @@ def construir_menu(frame):
     frame.Bind(wx.EVT_MENU, lambda e: frame.Close(), mi_salir)
 
     # Ver
-    m = wx.Menu()
-    mi_sig = m.Append(wx.ID_ANY, "Región &siguiente\tF6")
-    mi_ant = m.Append(wx.ID_ANY, "Región &anterior\tShift+F6")
-    m.AppendSeparator()
-    mi_conx = m.Append(wx.ID_ANY, "Ir a co&nexión (URL)")
-    mi_lista = m.Append(wx.ID_ANY, "Ir a la &lista del panel actual" + frame._accel("ir_lista"))
-    mi_chat = m.Append(wx.ID_ANY, "Ir a &Chat en vivo")
-    mi_com  = m.Append(wx.ID_ANY, "Ir a Co&mentarios")
-    mi_rep  = m.Append(wx.ID_ANY, "Ir al &Reproductor")
-    m.AppendSeparator()
-    mi_estado = m.Append(wx.ID_ANY, "Anunciar &estado" + frame._accel("anunciar_estado"))
-    mi_autor = m.Append(wx.ID_ANY, "Anunciar a&utor del último mensaje" + frame._accel("anunciar_autor"))
-    mi_escena = m.Append(wx.ID_ANY, "Describir la escena de &OBS" + frame._accel("describir_escena"))
-    mi_ia = m.Append(wx.ID_ANY, "Preguntar a la &IA sobre la imagen…" + frame._accel("preguntar_ia"))
-    mi_rapida = m.Append(wx.ID_ANY, "Consul&ta rápida a la IA" + frame._accel("consulta_rapida_ia"))
-    mb.Append(m, "&Ver")
-    frame.Bind(wx.EVT_MENU, lambda e: frame._navegar_region(+1), mi_sig)
-    frame.Bind(wx.EVT_MENU, lambda e: frame._navegar_region(-1), mi_ant)
-    frame.Bind(wx.EVT_MENU, lambda e: frame._ir_region(REG_CONEXION), mi_conx)
-    frame.Bind(wx.EVT_MENU, lambda e: frame._ir_lista(), mi_lista)
-    frame.Bind(wx.EVT_MENU, lambda e: frame._ir_pestana(PAG_CHAT), mi_chat)
-    frame.Bind(wx.EVT_MENU, lambda e: frame._ir_pestana(PAG_COMENTARIOS), mi_com)
-    frame.Bind(wx.EVT_MENU, lambda e: frame._ir_region(REG_REPRODUCTOR), mi_rep)
-    frame._bind_menu(mi_estado, frame._anunciar_estado)
-    frame._bind_menu(mi_autor, frame._anunciar_autor)
-    frame._bind_menu(mi_escena, frame._describir_escena)
-    frame._bind_menu(mi_ia, _abrir_ia, frame)
-    frame._bind_menu(mi_rapida, _consulta_rapida, frame)
-    # De «Ver», solo tiene sentido con conexión la navegación por paneles;
-    # «Ir a conexión (URL)» y «Anunciar estado» quedan siempre disponibles.
-    frame._mi_ver_conexion = [mi_sig, mi_ant, mi_lista, mi_chat, mi_com, mi_rep]
+    _construir_menu_ver(frame, mb)
 
     # Chat
     m = wx.Menu()
@@ -232,6 +202,40 @@ def _abrir_ia(frame):
 def _consulta_rapida(frame):
     from ytchat.ui import ia_consulta_rapida
     ia_consulta_rapida.consultar(frame)
+
+
+def _construir_menu_ver(frame, mb):
+    m = wx.Menu()
+    mi_sig = m.Append(wx.ID_ANY, "Región &siguiente\tF6")
+    mi_ant = m.Append(wx.ID_ANY, "Región &anterior\tShift+F6")
+    m.AppendSeparator()
+    mi_conx = m.Append(wx.ID_ANY, "Ir a co&nexión (URL)")
+    mi_lista = m.Append(wx.ID_ANY, "Ir a la &lista del panel actual" + frame._accel("ir_lista"))
+    mi_chat = m.Append(wx.ID_ANY, "Ir a &Chat en vivo")
+    mi_com  = m.Append(wx.ID_ANY, "Ir a Co&mentarios")
+    mi_rep  = m.Append(wx.ID_ANY, "Ir al &Reproductor")
+    m.AppendSeparator()
+    mi_estado = m.Append(wx.ID_ANY, "Anunciar &estado" + frame._accel("anunciar_estado"))
+    mi_autor = m.Append(wx.ID_ANY, "Anunciar a&utor del último mensaje" + frame._accel("anunciar_autor"))
+    mi_escena = m.Append(wx.ID_ANY, "Describir la escena de &OBS" + frame._accel("describir_escena"))
+    mi_ia = m.Append(wx.ID_ANY, "Preguntar a la &IA sobre la imagen…" + frame._accel("preguntar_ia"))
+    mi_rapida = m.Append(wx.ID_ANY, "Consul&ta rápida a la IA" + frame._accel("consulta_rapida_ia"))
+    mb.Append(m, "&Ver")
+    frame.Bind(wx.EVT_MENU, lambda e: frame._navegar_region(+1), mi_sig)
+    frame.Bind(wx.EVT_MENU, lambda e: frame._navegar_region(-1), mi_ant)
+    frame.Bind(wx.EVT_MENU, lambda e: frame._ir_region(REG_CONEXION), mi_conx)
+    frame.Bind(wx.EVT_MENU, lambda e: frame._ir_lista(), mi_lista)
+    frame.Bind(wx.EVT_MENU, lambda e: frame._ir_pestana(PAG_CHAT), mi_chat)
+    frame.Bind(wx.EVT_MENU, lambda e: frame._ir_pestana(PAG_COMENTARIOS), mi_com)
+    frame.Bind(wx.EVT_MENU, lambda e: frame._ir_region(REG_REPRODUCTOR), mi_rep)
+    frame._bind_menu(mi_estado, frame._anunciar_estado)
+    frame._bind_menu(mi_autor, frame._anunciar_autor)
+    frame._bind_menu(mi_escena, frame._describir_escena)
+    frame._bind_menu(mi_ia, _abrir_ia, frame)
+    frame._bind_menu(mi_rapida, _consulta_rapida, frame)
+    # De «Ver», solo tiene sentido con conexión la navegación por paneles;
+    # «Ir a conexión (URL)» y «Anunciar estado» quedan siempre disponibles.
+    frame._mi_ver_conexion = [mi_sig, mi_ant, mi_lista, mi_chat, mi_com, mi_rep]
 
 
 def _construir_menu_musica(frame, mb):

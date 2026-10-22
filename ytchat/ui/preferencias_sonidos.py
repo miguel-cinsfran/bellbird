@@ -76,15 +76,7 @@ class PaginaSonidos:
         vs = wx.BoxSizer(wx.VERTICAL)
         vs.Add(wx.StaticText(self._panel, label="&Sonidos:"),
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
-        self._lista = wx.ListCtrl(
-            self._panel, style=wx.LC_REPORT | wx.LC_SINGLE_SEL,
-            name="Sonidos")
-        _pintar(self._lista, _T.field, _T.text)
-        nombre_accesible(self._lista, "Sonidos")
-        self._lista.InsertColumn(0, "Sonido", width=420)
-        self._lista.EnableCheckBoxes(True)
-        self._lista.SetMinSize((460, 300))
-        vs.Add(self._lista, 1, wx.EXPAND | wx.ALL, 10)
+        self._crear_lista(vs)
         self._btn_oir = wx.Button(
             self._panel, label="&Oír el sonido elegido", name="OirSonido")
         self._btn_oir.SetBackgroundColour(_T.btn)
@@ -94,6 +86,17 @@ class PaginaSonidos:
         self._panel.SetSizer(vs)
         self._cargar_filas()
         return self._panel
+
+    def _crear_lista(self, vs):
+        self._lista = wx.ListCtrl(
+            self._panel, style=wx.LC_REPORT | wx.LC_SINGLE_SEL,
+            name="Sonidos")
+        _pintar(self._lista, _T.field, _T.text)
+        nombre_accesible(self._lista, "Sonidos")
+        self._lista.InsertColumn(0, "Sonido", width=420)
+        self._lista.EnableCheckBoxes(True)
+        self._lista.SetMinSize((460, 300))
+        vs.Add(self._lista, 1, wx.EXPAND | wx.ALL, 10)
 
     def _cargar_filas(self):
         texto = _leer_texto(paths.sounds_ini())

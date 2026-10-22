@@ -42,6 +42,10 @@ class SeccionClaveIA:
             panel, style=wx.TE_PASSWORD, name="ClaveIA")
         sizer.Add(self.txt_clave, 0,
                   wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+        self._crear_botones(panel, sizer)
+        self.actualizar()
+
+    def _crear_botones(self, panel, sizer):
         self.btn_guardar = wx.Button(
             panel, label="G&uardar clave", name="GuardarClaveIA")
         sizer.Add(self.btn_guardar, 0,
@@ -57,7 +61,6 @@ class SeccionClaveIA:
         sizer.Add(self.btn_borrar, 0,
                   wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.btn_borrar.Bind(wx.EVT_BUTTON, self._on_borrar)
-        self.actualizar()
 
     def actualizar(self):
         """Vuelve al estado que corresponde al proveedor elegido."""

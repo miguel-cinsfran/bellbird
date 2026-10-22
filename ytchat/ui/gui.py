@@ -1211,8 +1211,8 @@ class YTChatFrame(wx.Frame):
         try:
             self.mi_avisos_sobrecarga.Check(
                 bool(self._config.get("avisar_sobrecarga", True)))
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("aplicar aviso de sobrecarga desde preferencias: %s", exc, exc_info=True)
         # Reconstruir la lista por si cambió "quitar emojis" o el filtro.
         self._rebuild_listbox()
         # Restaurar estado de los items de conexión y del envío al chat tras
@@ -1224,13 +1224,13 @@ class YTChatFrame(wx.Frame):
             pt = int(self._config.get("tamanio_fuente_chat", 12))
             self.lb_chat.SetFont(wx.Font(pt, wx.FONTFAMILY_DEFAULT,
                                          wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("aplicar fuente del chat desde preferencias: %s", exc, exc_info=True)
         # Panel de información del vídeo: mostrar u ocultar la pestaña.
         try:
             self.set_metadatos_visible(bool(self._config.get("mostrar_metadatos", True)))
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("aplicar visibilidad de metadatos desde preferencias: %s", exc, exc_info=True)
         # Botones del reproductor: aplicar la preferencia al panel (que a su vez
         # sincroniza la casilla del menú vía on_botones_toggle).
         try:
@@ -1238,12 +1238,12 @@ class YTChatFrame(wx.Frame):
                 bool(self._config.get("mostrar_botones_reproductor", True)))
             self._rep_panel.set_solo_audio(
                 bool(self._config.get("reproductor_solo_audio", False)))
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("aplicar botones del reproductor desde preferencias: %s", exc, exc_info=True)
         try:
             self._musica.aplicar_preferencias()
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("aplicar música desde preferencias: %s", exc, exc_info=True)
         self._actualizar_vigilante_obs()
         anunciar("Preferencias aplicadas")
 

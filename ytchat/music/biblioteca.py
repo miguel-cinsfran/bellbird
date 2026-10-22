@@ -14,6 +14,7 @@ from ytchat.music.modelo import Tema, normalizar_duracion
 
 EXTENSIONES = {
     ".mp3", ".m4a", ".aac", ".flac", ".ogg", ".opus", ".wav", ".wma",
+    ".aiff", ".aif", ".mka", ".webm",
 }
 
 _URL_CON_ESQUEMA = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*://")

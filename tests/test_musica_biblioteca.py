@@ -55,6 +55,18 @@ class TestBiblioteca(unittest.TestCase):
         bib.indexar()
         self.assertNotIn("notas.txt", [Path(t.origen).name for t in bib.temas()])
 
+    def test_reconoce_aiff_aif_mka_y_webm_tambien_en_mayusculas(self):
+        for nombre in ("Tema.aiff", "Tema.aif", "Tema.mka", "clip.webm",
+                       "OTRO.WEBM", "notas2.txt"):
+            (self.raiz / nombre).write_bytes(b"x")
+        bib = Biblioteca(self.raiz)
+        self.assertEqual(bib.indexar(), 9)
+        nombres = [Path(t.origen).name for t in bib.temas()]
+        for nombre in ("Tema.aiff", "Tema.aif", "Tema.mka", "clip.webm",
+                       "OTRO.WEBM"):
+            self.assertIn(nombre, nombres)
+        self.assertNotIn("notas2.txt", nombres)
+
     def test_volver_a_indexar_reemplaza_el_indice(self):
         bib = Biblioteca(self.raiz)
         self.assertEqual(bib.indexar(), 4)

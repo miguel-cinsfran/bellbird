@@ -167,6 +167,25 @@ class TestGuardarDecirAnalizando(unittest.TestCase):
             self.assertTrue(ajustes_ia.leer(ruta).decir_analizando)
 
 
+class TestGuardarPrivacidadAceptada(unittest.TestCase):
+
+    def test_escribe_solo_esa_clave_y_conserva_el_resto(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            ruta = Path(tmp) / "config.ini"
+            _escribir(ruta, "[ia]\nproveedor = openai\n"
+                            "privacidad_aceptada = false\n\n[otra]\n"
+                            "clave = valor\n")
+            self.assertTrue(
+                ajustes_ia.guardar_privacidad_aceptada(ruta, True))
+            texto = Path(ruta).read_text(encoding="utf-8")
+            self.assertIn("proveedor = openai", texto)
+            self.assertIn("privacidad_aceptada = true", texto)
+            self.assertIn("clave = valor", texto)
+            leidos = ajustes_ia.leer(ruta)
+            self.assertTrue(leidos.privacidad_aceptada)
+            self.assertEqual(leidos.proveedor, "openai")
+
+
 class TestPreguntaEfectiva(unittest.TestCase):
 
     def test_vacia_usa_la_de_fabrica(self):

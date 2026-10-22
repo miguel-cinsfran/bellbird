@@ -132,6 +132,13 @@ def guardar_decir_analizando(ruta, valor: bool):
                                  _bool_a_texto(valor))
 
 
+def guardar_privacidad_aceptada(ruta, valor: bool):
+    """Guarda solo la aceptación del aviso de privacidad, conservando el resto."""
+    return config.guardar_opcion(Path(ruta) if ruta is not None else None,
+                                 SECCION, "privacidad_aceptada",
+                                 _bool_a_texto(valor))
+
+
 def pregunta_efectiva(ajustes: AjustesIA) -> str:
     """La pregunta sin bordes, o la de fábrica si queda vacía."""
     limpia = (ajustes.pregunta or "").strip()

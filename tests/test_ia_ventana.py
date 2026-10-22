@@ -31,10 +31,11 @@ def _hilo_directo(target, nombre, **kwargs):
     return hilo
 
 
-def _ajustes_falsos():
+def _ajustes_falsos(privacidad_aceptada=True):
     return SimpleNamespace(proveedor="gemini", modelo="m", direccion="",
                            pregunta="", largo="media", tiempo_espera=60,
-                           decir_analizando=True)
+                           decir_analizando=True,
+                           privacidad_aceptada=privacidad_aceptada)
 
 
 class PortapapelesDoble:
@@ -180,6 +181,88 @@ class TestVentanaIAVentana(unittest.TestCase):
         sonar.assert_called_once_with("ia_error")
         envio.assert_not_called()
         self.assertIs(dialogo.FindFocus(), dialogo.txt_mensaje)
+
+    def test_sin_aceptar_privacidad_no_envia_ni_suena(self):
+        dialogo = self._ventana()
+        dialogo._charla.agregar_captura(b"j", "Fuente", "10:00")
+        dialogo.txt_mensaje.ChangeValue("¿qué se ve?")
+        preparada = consulta.Preparada(object(), "¿qué se ve?", 60)
+        with mock.patch.object(ventana.ajustes_ia, "leer",
+                               return_value=_ajustes_falsos(
+                                   privacidad_aceptada=False)), \
+                mock.patch.object(ventana.catalogo, "cargar",
+                                   return_value={}), \
+                mock.patch.object(ventana.claves, "leer",
+                                   return_value="clave"), \
+                mock.patch.object(ventana.consulta, "preparar",
+                                   return_value=preparada), \
+                mock.patch.object(ventana.wx, "MessageBox",
+                                   return_value=wx.NO), \
+                mock.patch.object(ventana.ia_privacidad.ajustes_ia,
+                                   "guardar_privacidad_aceptada") as guardar, \
+                mock.patch.object(ventana.diagnostico,
+                                   "crear_hilo") as hilo, \
+                mock.patch.object(ventana, "anunciar") as anunciar, \
+                mock.patch.object(ventana, "reproducir") as sonar:
+            dialogo._al_enviar(None)
+        hilo.assert_not_called()
+        guardar.assert_not_called()
+        sonar.assert_not_called()
+        anunciar.assert_not_called()
+        self.assertFalse(dialogo._en_curso)
+        self.assertIs(dialogo.FindFocus(), dialogo.txt_mensaje)
+
+    def test_aceptar_privacidad_guarda_y_envia(self):
+        dialogo = self._ventana()
+        dialogo._charla.agregar_captura(b"j", "Fuente", "10:00")
+        dialogo.txt_mensaje.ChangeValue("¿qué se ve?")
+        preparada = consulta.Preparada(object(), "¿qué se ve?", 60)
+        respuesta = protocolos.Respuesta("Se ve bien.", False)
+        with mock.patch.object(ventana.ajustes_ia, "leer",
+                               return_value=_ajustes_falsos(
+                                   privacidad_aceptada=False)), \
+                mock.patch.object(ventana.catalogo, "cargar",
+                                   return_value={}), \
+                mock.patch.object(ventana.claves, "leer",
+                                   return_value="clave"), \
+                mock.patch.object(ventana.consulta, "preparar",
+                                   return_value=preparada), \
+                mock.patch.object(ventana.envio_ia, "enviar",
+                                   return_value=respuesta), \
+                mock.patch.object(ventana.wx, "MessageBox",
+                                   return_value=wx.YES), \
+                mock.patch.object(ventana.ia_privacidad.ajustes_ia,
+                                   "guardar_privacidad_aceptada",
+                                   return_value=True) as guardar, \
+                mock.patch.object(ventana, "anunciar"), \
+                mock.patch.object(ventana, "reproducir") as sonar:
+            dialogo._al_enviar(None)
+        guardar.assert_called_once_with(ventana.paths.config_ini(), True)
+        sonar.assert_any_call("ia_enviada")
+        self.assertEqual(dialogo.lst_conversacion.GetCount(), 3)
+
+    def test_privacidad_ya_aceptada_no_muestra_aviso(self):
+        dialogo = self._ventana()
+        dialogo._charla.agregar_captura(b"j", "Fuente", "10:00")
+        dialogo.txt_mensaje.ChangeValue("¿qué se ve?")
+        preparada = consulta.Preparada(object(), "¿qué se ve?", 60)
+        respuesta = protocolos.Respuesta("Se ve bien.", False)
+        with mock.patch.object(ventana.ajustes_ia, "leer",
+                               return_value=_ajustes_falsos()), \
+                mock.patch.object(ventana.catalogo, "cargar",
+                                   return_value={}), \
+                mock.patch.object(ventana.claves, "leer",
+                                   return_value="clave"), \
+                mock.patch.object(ventana.consulta, "preparar",
+                                   return_value=preparada), \
+                mock.patch.object(ventana.envio_ia, "enviar",
+                                   return_value=respuesta), \
+                mock.patch.object(ventana.wx, "MessageBox") as caja, \
+                mock.patch.object(ventana, "anunciar"), \
+                mock.patch.object(ventana, "reproducir"):
+            dialogo._al_enviar(None)
+        caja.assert_not_called()
+        self.assertEqual(dialogo.lst_conversacion.GetCount(), 3)
 
     def test_captura_agregada_aparece_y_se_anuncia(self):
         dialogo = self._ventana()

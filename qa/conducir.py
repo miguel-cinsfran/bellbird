@@ -5103,6 +5103,7 @@ SUPERFICIES = {
     "musica_ventana_igualando.py": "musica",
     "ia_ventana.py": "ia",
     "ia_agregar_captura.py": "ia",
+    "ia_privacidad.py": "ia",
     "gui_transmision.py": "transmision",
     "gui_transmitir.py": "transmitir_destino",
     "gui_preferencias.py": "preferencias",

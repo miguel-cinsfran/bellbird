@@ -16,10 +16,12 @@ from ytchat.ai import claves
 from ytchat.ai import consulta
 from ytchat.ai import conversacion
 from ytchat.ai import envio_ia
+from ytchat.ai import proveedores
 from ytchat.ai import ventana_ia
 from ytchat.core import diagnostico
 from ytchat.core import paths
 from ytchat.obs.obs_panel import GestorPanelObs
+from ytchat.ui import ia_privacidad
 from ytchat.ui.gui import anunciar, nombre_accesible
 from ytchat.ui.ia_agregar_captura import pedir_captura
 from ytchat.voice.sound_player import reproducir
@@ -181,6 +183,12 @@ class VentanaIA(wx.Dialog):
                 consulta.FaltaConfiguracion) as fallo:
             anunciar(consulta.texto_de_error(fallo))
             reproducir("ia_error")
+            self.txt_mensaje.SetFocus()
+            return
+        proveedor = proveedores.por_id(ajustes.proveedor)
+        if proveedor is None:
+            proveedor = proveedores.PROVEEDORES[0]
+        if not ia_privacidad.confirmar(self, ajustes, proveedor.nombre):
             self.txt_mensaje.SetFocus()
             return
         reproducir("ia_enviada")

@@ -11,15 +11,23 @@ from __future__ import annotations
 import wx
 
 from ytchat.core import diagnostico
-from ytchat.music import listas, vista
+from ytchat.music import anuncios, listas, vista
 from ytchat.ui import musica_editor_lista, musica_menus
 from ytchat.ui import musica_ventana_acciones as _acciones
-from ytchat.ui.gui import anunciar
 
 logger = diagnostico.obtener_logger(__name__)
 
 TEXTO_CARGANDO = "Cargando la carpeta…"
 TEXTO_SIN_CARPETA = "No hay carpeta de música"
+
+
+def _anunciar_ventana(texto) -> None:
+    """Anuncia por la ventana, no por este módulo.
+
+    El import es perezoso porque musica_ventana importa este módulo.
+    """
+    from ytchat.ui import musica_ventana
+    musica_ventana.anunciar(texto)
 
 
 class ColeccionesVentanaMusica:
@@ -148,7 +156,7 @@ class ColeccionesVentanaMusica:
         """Resume la carpeta al abrirla y pregunta por igualar el volumen."""
         if self._primera_carga:
             self._primera_carga = False
-            anunciar(vista.texto_resumen(
+            _anunciar_ventana(vista.texto_resumen(
                 len(self._temas_fuente), len(self._temas_filtrados), False))
         self._refrescar_cantidades_colecciones()
         self.preguntar_igualacion(biblioteca)
@@ -196,7 +204,7 @@ class ColeccionesVentanaMusica:
         if getattr(self, "_examinando", False):
             return
         if not self._control._carpeta():
-            anunciar(anuncios.TEXTO_SIN_CARPETA)
+            _anunciar_ventana(anuncios.TEXTO_SIN_CARPETA)
             return
         self._examinando = True
         self._control.reexaminar_carpeta(self._al_examinar)
@@ -207,13 +215,13 @@ class ColeccionesVentanaMusica:
             return
         self._examinando = False
         if biblioteca is None:
-            anunciar(anuncios.TEXTO_SIN_CARPETA)
+            _anunciar_ventana(anuncios.TEXTO_SIN_CARPETA)
             return
         if biblioteca is not self._biblioteca:
             return
         if self._fuente is None:
             self.refrescar_por_vigia()
-        anunciar(vista.texto_carpeta_examinada(nuevas, quitadas))
+        _anunciar_ventana(vista.texto_carpeta_examinada(nuevas, quitadas))
 
     def _tecla_colecciones(self, evento):
         codigo = evento.GetKeyCode()

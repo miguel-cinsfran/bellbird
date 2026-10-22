@@ -24,10 +24,22 @@ TEXTO_CLAVE_NO_GUARDADA = ("No se pudo guardar la clave en el "
 TEXTO_CLAVE_NO_BORRADA = ("No se pudo borrar la clave del "
                           "Administrador de credenciales.")
 TEXTO_FALTA_CLAVE = "Escribe la clave antes de guardarla o probarla."
+TEXTO_CLAVE_CORTA = ("La clave es demasiado corta. Copia la "
+                     "clave entera desde la página del proveedor.")
+TEXTO_CLAVE_CARACTERES = ("La clave tiene espacios o caracteres "
+                          "que una clave no lleva. Cópiala de nuevo.")
+TEXTO_CLAVE_PREFIJO = ("Las claves de {proveedor} empiezan con "
+                       "{prefijo}. Revisa que sea la clave de "
+                       "este proveedor.")
+TEXTO_CONFIRMAR_BORRADO = ("Borra la clave guardada de {proveedor} del "
+                           "Administrador de credenciales. ¿Deseas "
+                           "continuar?")
 TEXTO_PROBANDO = "Probando la clave…"
 TEXTO_PRUEBA_BIEN = "La clave funciona con {modelo}."
 TEXTO_ACTUALIZANDO = "Actualizando la lista de modelos…"
-TEXTO_LISTA_ACTUALIZADA = "Lista de modelos actualizada: {n} modelos."
+TEXTO_LISTA_ACTUALIZADA = ("Lista de modelos actualizada: {n} modelos "
+                           "de {proveedor}.")
+TEXTO_LISTA_ACTUALIZADA_SIN_PROVEEDOR = "Lista de modelos actualizada."
 TEXTO_LISTA_FALLO = ("No se pudo actualizar la lista de modelos. "
                      "Revisa la conexión y vuelve a intentarlo.")
 TEXTO_INSTRUCCION_RESTAURADA = "Instrucción restaurada."
@@ -48,6 +60,30 @@ def estado_de_clave(clave):
     if len(clave) >= 8:
         return f"Guardada, termina en {clave[-4:]}"
     return "Guardada"
+
+
+_CARACTERES_DE_CLAVE = frozenset(
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.")
+
+
+def problema_de_clave(proveedor, clave):
+    """El problema de la clave, o "" si tiene forma de clave.
+
+    Los bordes no cuentan. Se mira primero el largo y después los
+    caracteres, para que el mensaje diga qué corregir.
+    """
+    limpia = (clave or "").strip()
+    if not limpia:
+        return TEXTO_FALTA_CLAVE
+    if len(limpia) < 20:
+        return TEXTO_CLAVE_CORTA
+    if any(caracter not in _CARACTERES_DE_CLAVE for caracter in limpia):
+        return TEXTO_CLAVE_CARACTERES
+    prefijo = proveedor.prefijo_clave
+    if prefijo and not limpia.startswith(prefijo):
+        return TEXTO_CLAVE_PREFIJO.format(
+            proveedor=proveedor.nombre, prefijo=prefijo)
+    return ""
 
 
 def filas_modelos(muestra, proveedor, solo_gratis):

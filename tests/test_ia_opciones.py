@@ -282,5 +282,63 @@ class TestPedidoDePrueba(unittest.TestCase):
         self.assertEqual(str(salida.exception), str(esperada.exception))
 
 
+class TestProblemaDeClave(unittest.TestCase):
+
+    CLAVE_GEMINI = "AIza" + "a" * 35
+    CLAVE_OPENROUTER = "sk-or-v1-" + "a" * 29
+    CLAVE_OTRO = "clave-larga-de-veinte-y-mas"
+
+    @staticmethod
+    def _casos():
+        from ytchat.ai import opciones_ia
+        return (
+            ("gemini", "", opciones_ia.TEXTO_FALTA_CLAVE),
+            ("gemini", "     ", opciones_ia.TEXTO_FALTA_CLAVE),
+            ("gemini", "asdf", opciones_ia.TEXTO_CLAVE_CORTA),
+            ("gemini", "a" * 19, opciones_ia.TEXTO_CLAVE_CORTA),
+            ("gemini", "a" * 20, opciones_ia.TEXTO_CLAVE_PREFIJO.format(
+                proveedor="Google Gemini", prefijo="AIza")),
+            ("gemini", "AIza" + "a" * 16, ""),
+            ("gemini", "AIza" + "a" * 8 + " " + "a" * 7,
+             opciones_ia.TEXTO_CLAVE_CARACTERES),
+            ("gemini", "AIza" + "a" * 15 + "ñ",
+             opciones_ia.TEXTO_CLAVE_CARACTERES),
+            ("gemini", "AIza" + "a" * 15 + "/",
+             opciones_ia.TEXTO_CLAVE_CARACTERES),
+            ("openrouter", "a" * 30, opciones_ia.TEXTO_CLAVE_PREFIJO.format(
+                proveedor="OpenRouter", prefijo="sk-or-")),
+            ("openrouter", TestProblemaDeClave.CLAVE_OPENROUTER, ""),
+            ("otro", TestProblemaDeClave.CLAVE_OTRO, ""),
+            ("gemini", "  " + TestProblemaDeClave.CLAVE_GEMINI + "  ", ""),
+            ("gemini", "  " + "a" * 19 + "  ",
+             opciones_ia.TEXTO_CLAVE_CORTA),
+        )
+
+    def _problema(self, proveedor, clave):
+        from ytchat.ai import opciones_ia
+        return opciones_ia.problema_de_clave(
+            proveedores.por_id(proveedor), clave)
+
+    def test_los_casos_dan_el_problema_esperado(self):
+        for proveedor, clave, esperado in self._casos():
+            with self.subTest(proveedor=proveedor, clave=clave):
+                self.assertEqual(self._problema(proveedor, clave), esperado)
+
+    def test_toda_clave_aceptada_tiene_forma(self):
+        from ytchat.ai import opciones_ia
+        permitidos = set(
+            "abcdefghijklmnopqrstuvwxyz"
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            "0123456789-_.")
+        for proveedor, clave, _esperado in self._casos():
+            with self.subTest(proveedor=proveedor, clave=clave):
+                if opciones_ia.problema_de_clave(
+                        proveedores.por_id(proveedor), clave):
+                    continue
+                limpia = clave.strip()
+                self.assertGreaterEqual(len(limpia), 20)
+                self.assertLessEqual(set(limpia), permitidos)
+
+
 if __name__ == "__main__":
     unittest.main()

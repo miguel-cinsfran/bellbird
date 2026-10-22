@@ -22,18 +22,19 @@ class Proveedor:
     base_por_defecto: str | None
     pide_direccion: bool
     gratis_por_clave: bool = False
+    prefijo_clave: str | None = None
 
 
 PROVEEDORES = (
     Proveedor("gemini", "Google Gemini", "google", protocolos.GEMINI,
               "https://generativelanguage.googleapis.com/v1beta", False,
-              gratis_por_clave=True),
+              gratis_por_clave=True, prefijo_clave="AIza"),
     Proveedor("openai", "OpenAI", "openai", protocolos.RESPONSES,
-              "https://api.openai.com/v1", False),
+              "https://api.openai.com/v1", False, prefijo_clave="sk-"),
     Proveedor("anthropic", "Anthropic", "anthropic", protocolos.ANTHROPIC,
-              "https://api.anthropic.com/v1", False),
+              "https://api.anthropic.com/v1", False, prefijo_clave="sk-ant-"),
     Proveedor("openrouter", "OpenRouter", "openrouter", protocolos.CHAT,
-              "https://openrouter.ai/api/v1", False),
+              "https://openrouter.ai/api/v1", False, prefijo_clave="sk-or-"),
     Proveedor("opencode-go", "OpenCode Go", "opencode-go", protocolos.CHAT,
               "https://opencode.ai/inference/go/openai/v1", False),
     Proveedor("commandcode", "Command Code", "commandcode", protocolos.CHAT,

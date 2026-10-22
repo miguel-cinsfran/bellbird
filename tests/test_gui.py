@@ -1845,6 +1845,8 @@ def _catalogo_de_prueba():
 class TestPaginaInteligenciaArtificial(unittest.TestCase):
     """La página «Inteligencia artificial», con dobles de credenciales y red."""
 
+    CLAVE_GEMINI = "AIza" + "a" * 35
+
     def setUp(self):
         self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
         self.tmp = tempfile.TemporaryDirectory()
@@ -2091,6 +2093,7 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         self.assertFalse(leidos.decir_analizando)
 
     def test_guardar_clave_usa_el_proveedor_elegido(self):
+        clave = "sk-" + "a" * 36
         with mock.patch.object(
                 preferencias_ia_clave.claves, "guardar") as guardar, \
                 mock.patch.object(
@@ -2098,10 +2101,10 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
             dialogo = self._dialogo()
             dialogo.cho_ia_proveedor.SetSelection(
                 self._indice_proveedor("openai"))
-            dialogo.ia_clave.txt_clave.SetValue("clave-secreta")
+            dialogo.ia_clave.txt_clave.SetValue(clave)
             boton = dialogo.ia_clave.btn_guardar
             boton.GetEventHandler().ProcessEvent(self._evento_boton(boton))
-        guardar.assert_called_once_with("openai", "clave-secreta")
+        guardar.assert_called_once_with("openai", clave)
         anunciar.assert_called_once_with(opciones_ia.TEXTO_CLAVE_GUARDADA)
 
     def test_guardar_clave_muestra_el_boton_de_borrar(self):
@@ -2115,7 +2118,7 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         with mock.patch.object(preferencias_ia_clave.claves, "guardar",
                                side_effect=guardar), \
                 mock.patch.object(preferencias_ia_clave, "anunciar"):
-            dialogo.ia_clave.txt_clave.SetValue("nueva")
+            dialogo.ia_clave.txt_clave.SetValue(self.CLAVE_GEMINI)
             boton = dialogo.ia_clave.btn_guardar
             boton.GetEventHandler().ProcessEvent(self._evento_boton(boton))
         self.assertTrue(dialogo.ia_clave.btn_borrar.IsShown())
@@ -2132,12 +2135,41 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
                 mock.patch.object(preferencias_ia_clave, "anunciar"), \
                 mock.patch.object(dialogo.ia_clave.txt_estado,
                                   "SetFocus") as foco:
-            dialogo.ia_clave.txt_clave.SetValue("nueva")
+            dialogo.ia_clave.txt_clave.SetValue(self.CLAVE_GEMINI)
             boton = dialogo.ia_clave.btn_guardar
             boton.GetEventHandler().ProcessEvent(self._evento_boton(boton))
         foco.assert_called_once_with()
         self.assertTrue(dialogo.ia_clave.txt_estado.IsShown())
         self.assertFalse(dialogo.ia_clave.txt_clave.IsShown())
+
+    def test_guardar_una_clave_sin_forma_no_guarda_y_avisa(self):
+        dialogo = self._dialogo()
+        dialogo.ia_clave.txt_clave.SetValue("asdf")
+        boton = dialogo.ia_clave.btn_guardar
+        with mock.patch.object(
+                preferencias_ia_clave.claves, "guardar") as guardar, \
+                mock.patch.object(
+                    preferencias_ia_clave._snd, "reproducir") as sonar, \
+                mock.patch.object(
+                    preferencias_ia_clave, "anunciar") as anunciar, \
+                mock.patch.object(
+                    dialogo.ia_clave.txt_clave, "SetFocus") as foco:
+            boton.GetEventHandler().ProcessEvent(self._evento_boton(boton))
+        guardar.assert_not_called()
+        sonar.assert_called_once_with("ia_error")
+        anunciar.assert_called_once_with(opciones_ia.TEXTO_CLAVE_CORTA)
+        foco.assert_called_once_with()
+        self.assertEqual(dialogo.ia_clave.txt_clave.GetValue(), "asdf")
+
+    def test_guardar_quita_los_espacios_de_los_bordes(self):
+        dialogo = self._dialogo()
+        dialogo.ia_clave.txt_clave.SetValue("  " + self.CLAVE_GEMINI + "  ")
+        boton = dialogo.ia_clave.btn_guardar
+        with mock.patch.object(
+                preferencias_ia_clave.claves, "guardar") as guardar, \
+                mock.patch.object(preferencias_ia_clave, "anunciar"):
+            boton.GetEventHandler().ProcessEvent(self._evento_boton(boton))
+        guardar.assert_called_once_with("gemini", self.CLAVE_GEMINI)
 
     def test_escribir_una_clave_nueva_deja_el_foco_en_el_campo(self):
         self.clave_guardada = "clave"
@@ -2158,7 +2190,10 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         dialogo = self._dialogo()
         self.assertTrue(dialogo.ia_clave.btn_borrar.IsShown())
         with mock.patch.object(
-                preferencias_ia_clave.claves, "borrar") as borrar, \
+                preferencias_ia_clave.wx, "MessageBox",
+                return_value=gui.wx.YES), \
+                mock.patch.object(
+                    preferencias_ia_clave.claves, "borrar") as borrar, \
                 mock.patch.object(
                     preferencias_ia_clave, "anunciar") as anunciar, \
                 mock.patch.object(dialogo.ia_clave.txt_clave,
@@ -2170,6 +2205,43 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         foco.assert_called_once_with()
         self.assertFalse(dialogo.ia_clave.btn_borrar.IsShown())
         anunciar.assert_called_once_with(opciones_ia.TEXTO_CLAVE_BORRADA)
+
+    def test_borrar_cancelado_no_borra_ni_anuncia(self):
+        self.clave_guardada = self.CLAVE_GEMINI
+        dialogo = self._dialogo()
+        with mock.patch.object(
+                preferencias_ia_clave.wx, "MessageBox",
+                return_value=gui.wx.NO) as mensaje, \
+                mock.patch.object(
+                    preferencias_ia_clave.claves, "borrar") as borrar, \
+                mock.patch.object(
+                    preferencias_ia_clave, "anunciar") as anunciar, \
+                mock.patch.object(
+                    dialogo.ia_clave.btn_borrar, "SetFocus") as foco:
+            boton = dialogo.ia_clave.btn_borrar
+            boton.GetEventHandler().ProcessEvent(self._evento_boton(boton))
+        mensaje.assert_called_once()
+        argumentos = mensaje.call_args.args
+        self.assertEqual(argumentos[1], "Borrar la clave")
+        self.assertEqual(
+            argumentos[2],
+            gui.wx.YES_NO | gui.wx.NO_DEFAULT | gui.wx.ICON_WARNING)
+        borrar.assert_not_called()
+        anunciar.assert_not_called()
+        foco.assert_called_once_with()
+
+    def test_borrar_confirmado_borra(self):
+        self.clave_guardada = self.CLAVE_GEMINI
+        dialogo = self._dialogo()
+        with mock.patch.object(
+                preferencias_ia_clave.wx, "MessageBox",
+                return_value=gui.wx.YES), \
+                mock.patch.object(
+                    preferencias_ia_clave.claves, "borrar") as borrar, \
+                mock.patch.object(preferencias_ia_clave, "anunciar"):
+            boton = dialogo.ia_clave.btn_borrar
+            boton.GetEventHandler().ProcessEvent(self._evento_boton(boton))
+        borrar.assert_called_once_with("gemini")
 
     @staticmethod
     def _catalogo_con_openrouter():
@@ -2218,7 +2290,7 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
                 mock.patch.object(preferencias_ia, "anunciar") as anunciar:
             dialogo = self._dialogo()
             dialogo.cho_ia_modelo.SetSelection(0)
-            dialogo.ia_clave.txt_clave.SetValue("clave-escrita")
+            dialogo.ia_clave.txt_clave.SetValue(self.CLAVE_GEMINI)
             dialogo.btn_ia_probar_clave.GetEventHandler().ProcessEvent(
                 self._evento_boton(dialogo.btn_ia_probar_clave))
             consulta["target"]()
@@ -2253,6 +2325,46 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
             consulta["target"]()
         enviar.assert_called_once()
         self.assertEqual(enviar.call_args.args[1], "clave-guardada")
+
+    def test_probar_una_clave_sin_forma_no_sale_a_la_red(self):
+        dialogo = self._dialogo()
+        dialogo.ia_clave.txt_clave.SetValue("asdf")
+        boton = dialogo.btn_ia_probar_clave
+        with mock.patch.object(
+                preferencias_ia.envio_ia, "enviar") as enviar, \
+                mock.patch.object(
+                    preferencias_ia_clave._snd, "reproducir") as sonar, \
+                mock.patch.object(
+                    preferencias_ia_clave, "anunciar") as anunciar:
+            boton.GetEventHandler().ProcessEvent(self._evento_boton(boton))
+        enviar.assert_not_called()
+        sonar.assert_called_once_with("ia_error")
+        anunciar.assert_called_once_with(opciones_ia.TEXTO_CLAVE_CORTA)
+
+    def test_actualizar_la_lista_anuncia_los_modelos_del_proveedor(self):
+        muestra = self._catalogo_con_openrouter()
+        dialogo = self._dialogo(muestra)
+        dialogo.cho_ia_proveedor.SetSelection(
+            self._indice_proveedor("gemini"))
+        dialogo._on_ia_proveedor(None)
+        with mock.patch.object(preferencias_ia._snd, "reproducir"), \
+                mock.patch.object(preferencias_ia, "anunciar") as anunciar:
+            dialogo._ia_actualizacion_lista(muestra)
+        anunciar.assert_called_once_with(
+            opciones_ia.TEXTO_LISTA_ACTUALIZADA.format(
+                n=2, proveedor="Google Gemini"))
+
+    def test_actualizar_la_lista_sin_catalogo_no_cuenta_modelos(self):
+        muestra = self._catalogo_con_openrouter()
+        dialogo = self._dialogo(muestra)
+        dialogo.cho_ia_proveedor.SetSelection(
+            self._indice_proveedor("otro"))
+        dialogo._on_ia_proveedor(None)
+        with mock.patch.object(preferencias_ia._snd, "reproducir"), \
+                mock.patch.object(preferencias_ia, "anunciar") as anunciar:
+            dialogo._ia_actualizacion_lista(muestra)
+        anunciar.assert_called_once_with(
+            opciones_ia.TEXTO_LISTA_ACTUALIZADA_SIN_PROVEEDOR)
 
 
 class TestPreferenciasElevenLabs(unittest.TestCase):

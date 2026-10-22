@@ -248,8 +248,7 @@ class PaginaIA:
 
     def _on_ia_probar_clave(self, event):
         clave = self.ia_clave.clave_para_probar()
-        if not clave or not str(clave).strip():
-            anunciar(opciones_ia.TEXTO_FALTA_CLAVE)
+        if not self.ia_clave.revisar_para_probar(clave):
             return
         self.btn_ia_probar_clave.Disable()
         anunciar(opciones_ia.TEXTO_PROBANDO)
@@ -307,13 +306,13 @@ class PaginaIA:
         self._ia_muestra = muestra
         self._ia_refrescar_modelos()
         self._ia_actualizar_aviso()
-        total = 0
-        for proveedor in proveedores.PROVEEDORES:
-            if proveedor.id_catalogo is not None:
-                total += len(catalogo.modelos(
-                    muestra, proveedor.id_catalogo))
         _snd.reproducir("ia_respuesta")
-        anunciar(opciones_ia.TEXTO_LISTA_ACTUALIZADA.format(n=total))
+        proveedor = self._ia_proveedor_actual()
+        if proveedor.id_catalogo is None:
+            anunciar(opciones_ia.TEXTO_LISTA_ACTUALIZADA_SIN_PROVEEDOR)
+        else:
+            anunciar(opciones_ia.TEXTO_LISTA_ACTUALIZADA.format(
+                n=len(self._ia_filas()), proveedor=proveedor.nombre))
 
     def _ia_ajustes_de_controles(self):
         actuales = ajustes_ia.leer(self._ruta)

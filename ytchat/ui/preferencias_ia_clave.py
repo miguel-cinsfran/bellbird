@@ -66,11 +66,32 @@ class SeccionClaveIA:
 
     def clave_para_probar(self):
         """La escrita si se está escribiendo, si no la guardada, si no ""."""
+        return self.clave_escrita() or self._guardada()
+
+    def clave_escrita(self):
+        """La escrita sin bordes si se está escribiendo, si no ""."""
         if self.txt_clave.IsShown():
-            escrita = self.txt_clave.GetValue().strip()
-            if escrita:
-                return escrita
-        return self._guardada()
+            return self.txt_clave.GetValue().strip()
+        return ""
+
+    def revisar_para_probar(self, clave):
+        """Valida la escrita y anuncia el problema, si lo hay.
+
+        La guardada ya está guardada: no se valida. Devuelve True cuando
+        se puede probar.
+        """
+        escrita = self.clave_escrita()
+        if escrita:
+            problema = opciones_ia.problema_de_clave(
+                self._proveedor_actual(), escrita)
+            if problema:
+                _snd.reproducir("ia_error")
+                anunciar(problema)
+                return False
+        if not clave:
+            anunciar(opciones_ia.TEXTO_FALTA_CLAVE)
+            return False
+        return True
 
     def _guardada(self):
         try:
@@ -99,8 +120,12 @@ class SeccionClaveIA:
 
     def _on_guardar(self, event):
         clave = self.txt_clave.GetValue().strip()
-        if not clave:
-            anunciar(opciones_ia.TEXTO_FALTA_CLAVE)
+        problema = opciones_ia.problema_de_clave(
+            self._proveedor_actual(), clave)
+        if problema:
+            _snd.reproducir("ia_error")
+            anunciar(problema)
+            self.txt_clave.SetFocus()
             return
         proveedor = self._proveedor_actual()
         try:
@@ -117,8 +142,17 @@ class SeccionClaveIA:
         anunciar(opciones_ia.TEXTO_CLAVE_GUARDADA)
 
     def _on_borrar(self, event):
+        proveedor = self._proveedor_actual()
+        mensaje = opciones_ia.TEXTO_CONFIRMAR_BORRADO.format(
+            proveedor=proveedor.nombre)
+        respuesta = wx.MessageBox(
+            mensaje, "Borrar la clave",
+            wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING, self._panel)
+        if respuesta != wx.YES:
+            self.btn_borrar.SetFocus()
+            return
         try:
-            claves.borrar(self._proveedor_actual().id)
+            claves.borrar(proveedor.id)
         except Exception as exc:
             logger.warning("IA: no se pudo borrar la clave: %s", exc)
             _snd.reproducir("ia_error")

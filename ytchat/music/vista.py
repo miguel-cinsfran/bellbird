@@ -195,3 +195,31 @@ def texto_resumen(cantidad_total: int, cantidad_filtrada: int,
 
 def _sustantivo(cantidad: int) -> str:
     return "canción" if cantidad == 1 else "canciones"
+
+
+TEXTO_CARPETA_EXAMINADA_SIN_CAMBIOS = "Carpeta examinada: sin cambios."
+
+
+def texto_carpeta_examinada(nuevas: int, quitadas: int) -> str:
+    """El anuncio tras examinar la carpeta a mano.
+
+    Sin cambios dice que no hubo; si no, cuántas canciones nuevas y
+    quitadas, en singular con 1 y omitiendo la parte que sea cero.
+    """
+    partes = _partes_examen(nuevas, quitadas)
+    if not partes:
+        return TEXTO_CARPETA_EXAMINADA_SIN_CAMBIOS
+    return f"Carpeta examinada: {' y '.join(partes)}."
+
+
+def _partes_examen(nuevas, quitadas) -> list:
+    """Las partes del anuncio del examen, sin la parte que sea cero."""
+    nuevas = max(0, int(nuevas))
+    quitadas = max(0, int(quitadas))
+    partes = []
+    if nuevas:
+        partes.append(f"{nuevas} canción nueva"
+                      if nuevas == 1 else f"{nuevas} canciones nuevas")
+    if quitadas:
+        partes.append("1 quitada" if quitadas == 1 else f"{quitadas} quitadas")
+    return partes

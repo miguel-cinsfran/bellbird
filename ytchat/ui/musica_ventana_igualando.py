@@ -70,7 +70,7 @@ class IgualandoVentanaMusica:
         """La fila de botones al pie, para el sizer."""
         pie = wx.BoxSizer(wx.HORIZONTAL)
         for boton in (self.btn_enlace, self.btn_nueva, self.btn_carpeta,
-                      self.btn_igualar):
+                      self.btn_igualar, self.btn_examinar):
             pie.Add(boton, 0, wx.RIGHT, 8)
         pie.AddStretchSpacer(1)
         pie.Add(self.btn_cerrar, 0)

@@ -319,7 +319,7 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica, SonoridadMusica,
 
     def cerrar(self) -> None:
         """Cierra el motor si llegó a nacer y suelta los atajos. Nunca lanza."""
-        self._cerrado = True
+        self.parar_vigia()
         try:
             self._guardado_memoria.vaciar()
             self._guardado_volumen.vaciar()

@@ -319,5 +319,136 @@ class TestBibliotecaConCache(unittest.TestCase):
         self.assertEqual(len(bib.temas()), 2)
 
 
+class TestAplicarCambios(unittest.TestCase):
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.raiz = Path(self.tmp.name)
+        (self.raiz / "Rock").mkdir()
+        (self.raiz / "Rock" / "Cancion.mp3").write_bytes(b"x")
+        (self.raiz / "Rock" / "Otra.wav").write_bytes(b"x")
+        (self.raiz / "notas.txt").write_text("no es audio", encoding="utf-8")
+        (self.raiz / "sub").mkdir()
+        (self.raiz / "sub" / "zeta.flac").write_bytes(b"x")
+        self.bib = Biblioteca(self.raiz)
+        self.bib.indexar()
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_agrega_un_archivo_nuevo(self):
+        nuevo = self.raiz / "Nuevo.m4a"
+        nuevo.write_bytes(b"x")
+        self.assertEqual(
+            self.bib.aplicar_cambios([str(nuevo)], []), (1, 0))
+        self.assertIn(str(nuevo.resolve()),
+                      [t.origen for t in self.bib.temas()])
+
+    def test_reemplaza_sin_contar_como_nuevo(self):
+        viejo = self.bib.temas()[0]
+        self.assertEqual(
+            self.bib.aplicar_cambios([viejo.origen], []), (0, 0))
+        self.assertEqual(len(self.bib.temas()), 3)
+
+    def test_quita_un_archivo(self):
+        saliente = str((self.raiz / "Rock" / "Otra.wav").resolve())
+        self.assertEqual(
+            self.bib.aplicar_cambios([], [saliente]), (0, 1))
+        self.assertNotIn(saliente, [t.origen for t in self.bib.temas()])
+
+    def test_quita_una_carpeta_con_todo_lo_de_abajo(self):
+        self.assertEqual(
+            self.bib.aplicar_cambios([], [str(self.raiz / "Rock")]), (0, 2))
+        self.assertEqual([Path(t.origen).name for t in self.bib.temas()],
+                         ["zeta.flac"])
+
+    def test_ignora_la_extension_ajena_y_lo_que_no_existe(self):
+        otro = self.raiz / "otro.txt"
+        otro.write_bytes(b"x")
+        fantasma = str((self.raiz / "fantasma.mp3").resolve())
+        self.assertEqual(
+            self.bib.aplicar_cambios([str(otro), fantasma], [fantasma]),
+            (0, 0))
+        self.assertEqual(len(self.bib.temas()), 3)
+
+    def test_no_distingue_mayusculas(self):
+        saliente = str(self.raiz / "ROCK" / "OTRA.WAV")
+        self.assertEqual(
+            self.bib.aplicar_cambios([], [saliente]), (0, 1))
+        self.assertEqual(len(self.bib.temas()), 2)
+        presente = self.bib.temas()[0].origen
+        self.assertEqual(
+            self.bib.aplicar_cambios([presente.upper()], []), (0, 0))
+        self.assertEqual(len(self.bib.temas()), 2)
+
+    def test_orden_final_igual_al_de_indexar(self):
+        (self.raiz / "aaa.mp3").write_bytes(b"x")
+        (self.raiz / "sub" / "nueva.ogg").write_bytes(b"x")
+        (self.raiz / "Rock" / "Cancion.mp3").unlink()
+        saliente = str((self.raiz / "Rock" / "Cancion.mp3").resolve())
+        self.bib.aplicar_cambios(
+            [str(self.raiz / "aaa.mp3"), str(self.raiz / "sub" / "nueva.ogg")],
+            [saliente])
+        fresca = Biblioteca(self.raiz)
+        fresca.indexar()
+        self.assertEqual([t.origen for t in self.bib.temas()],
+                         [t.origen for t in fresca.temas()])
+
+
+class TestReexaminar(unittest.TestCase):
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.raiz = Path(self.tmp.name)
+        (self.raiz / "Rock").mkdir()
+        (self.raiz / "Rock" / "Cancion.mp3").write_bytes(b"x")
+        (self.raiz / "Rock" / "Otra.wav").write_bytes(b"x")
+        (self.raiz / "sub").mkdir()
+        (self.raiz / "sub" / "zeta.flac").write_bytes(b"x")
+        self.bib = Biblioteca(self.raiz)
+        self.bib.indexar()
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_sin_cambios_da_cero_y_cero(self):
+        self.assertEqual(self.bib.reexaminar(), (0, 0))
+        self.assertEqual(len(self.bib.temas()), 3)
+
+    def test_nuevas_y_quitadas_contra_el_indice_anterior(self):
+        (self.raiz / "Nuevo.m4a").write_bytes(b"x")
+        (self.raiz / "Rock" / "Otra.wav").unlink()
+        self.assertEqual(self.bib.reexaminar(), (1, 1))
+        nombres = [Path(t.origen).name for t in self.bib.temas()]
+        self.assertIn("Nuevo.m4a", nombres)
+        self.assertNotIn("Otra.wav", nombres)
+
+    def test_carpeta_inexistente_lanza(self):
+        with self.assertRaises(ErrorBiblioteca):
+            Biblioteca(self.raiz / "no-existe").reexaminar()
+
+    def test_propiedad_aplicar_lo_de_reexaminar_iguala_a_indexar(self):
+        viejos = tuple(self.bib.temas())
+        (self.raiz / "aaa.mp3").write_bytes(b"x")
+        (self.raiz / "sub" / "nueva.ogg").write_bytes(b"x")
+        (self.raiz / "Rock" / "Cancion.mp3").unlink()
+        nuevas, quitadas = self.bib.reexaminar()
+        self.assertEqual((nuevas, quitadas), (2, 1))
+        fresca = Biblioteca(self.raiz)
+        fresca.indexar()
+        self.assertEqual([t.origen for t in self.bib.temas()],
+                         [t.origen for t in fresca.temas()])
+        viejos_origenes = {t.origen for t in viejos}
+        nuevos_origenes = {t.origen for t in fresca.temas()}
+        otro = Biblioteca(self.raiz)
+        otro._temas = viejos
+        self.assertEqual(
+            otro.aplicar_cambios(list(nuevos_origenes - viejos_origenes),
+                                  list(viejos_origenes - nuevos_origenes)),
+            (2, 1))
+        self.assertEqual([t.origen for t in otro.temas()],
+                         [t.origen for t in fresca.temas()])
+
+
 if __name__ == "__main__":
     unittest.main()

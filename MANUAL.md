@@ -154,6 +154,11 @@ La ventana *Música* (`Ctrl+Mayús+M`):
 - **Mostrar la cola**: lo que va a sonar, en orden.
 - **Abrir enlace…**: un vídeo o una lista entera de YouTube, que se suma a
   la cola.
+- **Examinar la carpeta**: la recorre de nuevo y dice cuántas canciones
+  nuevas y quitadas encontró.
+
+Las canciones nuevas aparecen solas en la lista, sin volver a elegir la
+carpeta: la aplicación la vigila y la pone al día en silencio.
 
 Las listas se guardan como archivos `.m3u8`, que abren otros
 reproductores. Al reabrir la aplicación, Reproducir sigue la última cola

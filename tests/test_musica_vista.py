@@ -331,5 +331,36 @@ class TestAyudas(unittest.TestCase):
             "Escape borra la búsqueda")
 
 
+class TestTextoCarpetaExaminada(unittest.TestCase):
+
+    def test_sin_cambios(self):
+        self.assertEqual(vista.texto_carpeta_examinada(0, 0),
+                         "Carpeta examinada: sin cambios.")
+
+    def test_una_cancion_nueva_en_singular(self):
+        self.assertEqual(vista.texto_carpeta_examinada(1, 0),
+                         "Carpeta examinada: 1 canción nueva.")
+
+    def test_varias_nuevas_en_plural(self):
+        self.assertEqual(vista.texto_carpeta_examinada(3, 0),
+                         "Carpeta examinada: 3 canciones nuevas.")
+
+    def test_una_quitada_en_singular(self):
+        self.assertEqual(vista.texto_carpeta_examinada(0, 1),
+                         "Carpeta examinada: 1 quitada.")
+
+    def test_varias_quitadas_en_plural(self):
+        self.assertEqual(vista.texto_carpeta_examinada(0, 2),
+                         "Carpeta examinada: 2 quitadas.")
+
+    def test_nuevas_y_quitadas(self):
+        self.assertEqual(vista.texto_carpeta_examinada(2, 3),
+                         "Carpeta examinada: 2 canciones nuevas y 3 quitadas.")
+
+    def test_singulares_en_las_dos_partes(self):
+        self.assertEqual(vista.texto_carpeta_examinada(1, 1),
+                         "Carpeta examinada: 1 canción nueva y 1 quitada.")
+
+
 if __name__ == "__main__":
     unittest.main()

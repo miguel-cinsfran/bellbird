@@ -72,6 +72,7 @@ class ControlFalso:
         self.total_calculado = total_calculado
         self.responder_pedidos = responder_pedidos
         self.preguntar = True
+        self.datos_examen = None
 
     def biblioteca(self, al_lista):
         self.llamadas.append(("biblioteca",))
@@ -165,6 +166,14 @@ class ControlFalso:
 
     def biblioteca_actual(self):
         return self._biblio
+
+    def reexaminar_carpeta(self, al_volver):
+        self.llamadas.append(("reexaminar_carpeta",))
+        if self.datos_examen is None:
+            al_volver(None, 0, 0)
+        else:
+            nuevas, quitadas = self.datos_examen
+            al_volver(self._biblio, nuevas, quitadas)
 
     def iniciar_igualacion(self, biblioteca):
         self.llamadas.append(("iniciar_igualacion", biblioteca))
@@ -262,7 +271,7 @@ class TestVentanaMusica(unittest.TestCase):
             "Mostrar la cola", "Cola de reproducción",
             "Igualación del volumen", "Abrir enlace",
             "Nueva lista", "Cambiar carpeta", "Igualar el volumen",
-            "Cerrar"])
+            "Examinar la carpeta", "Cerrar"])
 
     def test_controles_y_nombres_con_la_cola_visible(self):
         self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock"),
@@ -276,7 +285,7 @@ class TestVentanaMusica(unittest.TestCase):
             "Ocultar la cola", "Cola de reproducción",
             "Igualación del volumen", "Abrir enlace",
             "Nueva lista", "Cambiar carpeta", "Igualar el volumen",
-            "Cerrar"])
+            "Examinar la carpeta", "Cerrar"])
 
     def test_mnemonicos_unicos_en_la_ventana(self):
         self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock")))
@@ -1435,6 +1444,153 @@ class TestDialogoEditorLista(unittest.TestCase):
         cliente = self.dialogo.GetClientSize()
         self.assertGreaterEqual(cliente.width, pedido.width)
         self.assertGreaterEqual(cliente.height, pedido.height)
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestVentanaVigiaYExaminar(unittest.TestCase):
+    """El aviso del vigía y el botón Examinar la carpeta."""
+
+    def setUp(self):
+        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.tmp = tempfile.TemporaryDirectory()
+        self.carpeta_listas = str(Path(self.tmp.name) / "listas")
+        self.anuncios = []
+        self._parche = mock.patch.object(
+            musica_ventana, "anunciar",
+            lambda texto, urgente=True: self.anuncios.append(texto))
+        self._parche.start()
+        self.ventana = None
+
+    def tearDown(self):
+        if self.ventana is not None:
+            self.ventana._cancelar_temporizador()
+            destruir(self.ventana)
+        self._parche.stop()
+        self.tmp.cleanup()
+
+    def _abrir(self, control, abrir_listas=False):
+        self.ventana = musica_ventana.VentanaMusica(
+            None, control, abrir_listas=abrir_listas)
+        return self.ventana
+
+    def _crear_lista(self, nombre, temas=()):
+        listas.guardar(self.carpeta_listas, nombre, temas)
+
+    def test_el_boton_examinar_tiene_rotulo_nombre_y_tab(self):
+        self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock")))
+        self.assertEqual(self.ventana.btn_examinar.GetLabel(),
+                         "E&xaminar la carpeta")
+        self.assertEqual(self.ventana.btn_examinar.GetName(),
+                         "Examinar la carpeta")
+        self.ventana.btn_examinar.SetFocus()
+        self.ventana.btn_examinar.Navigate()
+        self.assertIs(wx.Window.FindFocus(), self.ventana.btn_cerrar)
+
+    def test_el_vigia_pone_al_dia_sin_perder_filtro_ni_seleccion(self):
+        control = ControlFalso(
+            biblioteca=_biblioteca_de("Rock", "Jazz", "Blues"))
+        self._abrir(control)
+        self.ventana.txt_buscar.SetValue("blu")
+        self.ventana.lb_temas.SetSelection(0)
+        biblio = control._biblio
+        biblio._temas = tuple(
+            t for t in biblio._temas if t.titulo != "Jazz")
+        self.ventana.refrescar_por_vigia()
+        self.assertEqual(self.ventana.txt_buscar.GetValue(), "blu")
+        self.assertEqual(self.ventana.lb_temas.GetStrings(), ["Blues"])
+        self.assertEqual(self.ventana.lb_colecciones.GetString(0),
+                         "Biblioteca: 2")
+
+    def test_el_vigia_conserva_el_tema_elegido_si_sigue_estando(self):
+        control = ControlFalso(
+            biblioteca=_biblioteca_de("Rock", "Jazz", "Blues"))
+        self._abrir(control)
+        self.ventana.lb_temas.SetSelection(1)
+        biblio = control._biblio
+        biblio._temas = biblio._temas + (
+            Tema("C:/Musica/tango.mp3", "Tango"),)
+        self.ventana.refrescar_por_vigia()
+        self.assertEqual(self.ventana.lb_temas.GetStrings(),
+                         ["Rock", "Jazz", "Blues", "Tango"])
+        self.assertEqual(self.ventana.lb_temas.GetSelection(), 1)
+
+    def test_el_vigia_acerca_al_indice_si_el_tema_ya_no_esta(self):
+        control = ControlFalso(
+            biblioteca=_biblioteca_de("Rock", "Jazz", "Blues"))
+        self._abrir(control)
+        self.ventana.lb_temas.SetSelection(1)
+        biblio = control._biblio
+        biblio._temas = tuple(
+            t for t in biblio._temas if t.titulo != "Jazz")
+        self.ventana.refrescar_por_vigia()
+        self.assertEqual(self.ventana.lb_temas.GetStrings(),
+                         ["Rock", "Blues"])
+        self.assertEqual(self.ventana.lb_temas.GetSelection(), 1)
+
+    def test_el_vigia_con_una_lista_propia_no_toca_nada(self):
+        temas = (Tema("C:/Musica/rock.mp3", "Rock"),)
+        self._crear_lista("Mía", temas)
+        control = ControlFalso(
+            biblioteca=_biblioteca_de("Otra"),
+            carpeta_listas=self.carpeta_listas,
+            temas_listas={"Mía": temas})
+        self._abrir(control, abrir_listas=True)
+        biblio = control._biblio
+        biblio._temas = biblio._temas + (
+            Tema("C:/Musica/nueva.mp3", "Nueva"),)
+        self.ventana.refrescar_por_vigia()
+        self.assertEqual(self.ventana.lb_temas.GetStrings(), ["Rock"])
+
+    def test_el_vigia_no_mueve_el_foco_de_canciones(self):
+        self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock")))
+        self.ventana.lb_temas.SetFocus()
+        self.ventana.refrescar_por_vigia()
+        self.assertIs(wx.Window.FindFocus(), self.ventana.lb_temas)
+
+    def test_examinar_sin_carpeta_usa_el_aviso_de_hoy(self):
+        control = ControlFalso(biblioteca=None)
+        self._abrir(control)
+        with mock.patch.object(control, "_carpeta", return_value=""):
+            self.ventana.examinar_carpeta()
+        self.assertEqual(self.anuncios, [anuncios.TEXTO_SIN_CARPETA])
+        self.assertNotIn("reexaminar_carpeta", control.nombres())
+
+    def test_examinar_anuncia_y_refresca_la_lista(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock", "Jazz"))
+        control.datos_examen = (1, 2)
+        self._abrir(control)
+        biblio = control._biblio
+        biblio._temas = (biblio._temas[0],)
+        self.ventana.examinar_carpeta()
+        self.assertIn(("reexaminar_carpeta",), control.llamadas)
+        self.assertFalse(self.ventana._examinando)
+        self.assertEqual(
+            self.anuncios,
+            ["Carpeta examinada: 1 canción nueva y 2 quitadas."])
+        self.assertEqual(self.ventana.lb_temas.GetStrings(), ["Rock"])
+
+    def test_examinar_sin_cambios_lo_dice(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
+        control.datos_examen = (0, 0)
+        self._abrir(control)
+        self.ventana.examinar_carpeta()
+        self.assertEqual(self.anuncios,
+                         ["Carpeta examinada: sin cambios."])
+
+    def test_mientras_examina_otra_pulsacion_no_lanza_otro_hilo(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
+        control.datos_examen = (0, 0)
+        self._abrir(control)
+        self.ventana._examinando = True
+        self.ventana.examinar_carpeta()
+        self.assertNotIn("reexaminar_carpeta", control.nombres())
+
+    def test_con_la_ventana_destruida_refrescar_no_lanza(self):
+        self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock")))
+        ventana = self.ventana
+        destruir(ventana)
+        self.ventana = None
+        ventana.refrescar_por_vigia()  # no debe lanzar
 
 
 if __name__ == "__main__":

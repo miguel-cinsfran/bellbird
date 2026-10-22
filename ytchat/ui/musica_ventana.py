@@ -38,6 +38,7 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
         self._temas_fuente = ()
         self._temas_filtrados = ()
         self._generacion = 0
+        self._examinando = False
         self._cargando = False
         self._primera_carga = True
         self._temporizador = None
@@ -62,15 +63,7 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
             panel, "Mostrar la c&ola", "Mostrar la cola")
         self.lb_cola = self._lista(panel, "Cola de reproducción", 160)
         self._crear_igualando(panel)
-        self.btn_enlace = self._boton(panel, "Abrir &enlace…", "Abrir enlace")
-        self.btn_nueva = self._boton(panel, "&Nueva lista…", "Nueva lista")
-        self.btn_carpeta = self._boton(
-            panel, "Cambiar car&peta…", "Cambiar carpeta")
-        self.btn_igualar = self._boton(
-            panel, "&Igualar el volumen", "Igualar el volumen")
-        self.btn_cerrar = wx.Button(panel, wx.ID_CANCEL, "&Cerrar",
-                                    name="Cerrar")
-        _pintar(self.btn_cerrar, _T.btn, _T.btn_t)
+        self._crear_pie(panel)
         self._disponer(panel)
         self._conectar()
         self._reload_colecciones()
@@ -125,6 +118,20 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
         _pintar(boton, _T.btn, _T.btn_t)
         return boton
 
+    def _crear_pie(self, panel):
+        """Los botones al pie, en orden de Tab."""
+        self.btn_enlace = self._boton(panel, "Abrir &enlace…", "Abrir enlace")
+        self.btn_nueva = self._boton(panel, "&Nueva lista…", "Nueva lista")
+        self.btn_carpeta = self._boton(
+            panel, "Cambiar car&peta…", "Cambiar carpeta")
+        self.btn_igualar = self._boton(
+            panel, "&Igualar el volumen", "Igualar el volumen")
+        self.btn_examinar = self._boton(
+            panel, "E&xaminar la carpeta", "Examinar la carpeta")
+        self.btn_cerrar = wx.Button(panel, wx.ID_CANCEL, "&Cerrar",
+                                    name="Cerrar")
+        _pintar(self.btn_cerrar, _T.btn, _T.btn_t)
+
     def _conectar(self):
         self.txt_buscar.Bind(wx.EVT_TEXT, self._al_filtrar)
         self.txt_buscar.Bind(wx.EVT_KEY_DOWN, self._tecla_buscar)
@@ -144,6 +151,8 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
             wx.EVT_BUTTON, lambda e: self._cambiar_carpeta())
         self.btn_igualar.Bind(
             wx.EVT_BUTTON, lambda e: self.alternar_igualacion())
+        self.btn_examinar.Bind(
+            wx.EVT_BUTTON, lambda e: self.examinar_carpeta())
         self.btn_cerrar.Bind(wx.EVT_BUTTON, lambda e: self._cerrar())
 
     def _ajustar_minimo(self):

@@ -57,6 +57,13 @@ class Biblioteca:
 
     def indexar(self) -> int:
         """Recorre la carpeta una vez, guarda los temas y devuelve cuántos son."""
+        encontrados = self._recorrer()
+        with self._lock:
+            self._temas = tuple(encontrados)
+        return len(self._temas)
+
+    def _recorrer(self) -> list:
+        """Los temas de la carpeta, ordenados, sin guardarlos en el índice."""
         base = Path(self._carpeta)
         if not base.is_dir():
             raise ErrorBiblioteca(f"La carpeta no existe o no es una carpeta: {base}")
@@ -72,9 +79,79 @@ class Biblioteca:
                 except OSError:
                     continue
         encontrados.sort(key=lambda tema: tema.origen.lower())
+        return encontrados
+
+    def aplicar_cambios(self, agregadas, quitadas) -> tuple[int, int]:
+        """Pone al día el índice con rutas de archivo, sin recorrer la carpeta.
+
+        Quita todo tema cuyo `origen` sea una quitada o esté debajo de una
+        carpeta quitada; agrega (o reemplaza si ya estaba) cada agregada que
+        exista, sea archivo y tenga extensión de `EXTENSIONES`, armada con
+        `_tema`. Deja el índice ordenado como `indexar`. Con el lock, como
+        `actualizar`. Compara sin distinguir mayúsculas. Devuelve cuántos
+        temas agregó (los nuevos, no los reemplazos) y cuántos quitó.
+        """
         with self._lock:
-            self._temas = tuple(encontrados)
-        return len(self._temas)
+            kept, quitados = self._quitar_rutas(tuple(self._temas), quitadas)
+            nuevos = self._sumar_rutas(kept, agregadas)
+            kept.sort(key=lambda tema: tema.origen.lower())
+            self._temas = tuple(kept)
+            return nuevos, quitados
+
+    def _quitar_rutas(self, temas, quitadas) -> tuple[list, int]:
+        """Saca los temas bajo una quitada. Sin el lock: lo llama quien lo tiene."""
+        claves = {os.path.normcase(os.path.realpath(str(q)))
+                  for q in quitadas}
+
+        def _quitada(origen: str) -> bool:
+            return any(origen == q or origen.startswith(q + os.sep)
+                       for q in claves)
+
+        kept = [t for t in temas
+                if not _quitada(os.path.normcase(t.origen))]
+        return kept, len(temas) - len(kept)
+
+    def _sumar_rutas(self, kept, agregadas) -> int:
+        """Agrega o reemplaza temas en la lista. Sin el lock: lo llama quien lo tiene."""
+        posiciones = {os.path.normcase(t.origen): i
+                      for i, t in enumerate(kept)}
+        nuevos = 0
+        for ruta in agregadas:
+            camino = Path(ruta)
+            if camino.suffix.lower() not in EXTENSIONES:
+                continue
+            try:
+                if not camino.is_file():
+                    continue
+                tema = self._tema(camino)
+            except OSError:
+                continue
+            clave = os.path.normcase(tema.origen)
+            if clave in posiciones:
+                kept[posiciones[clave]] = tema
+            else:
+                posiciones[clave] = len(kept)
+                kept.append(tema)
+                nuevos += 1
+        return nuevos
+
+    def reexaminar(self) -> tuple[int, int]:
+        """Vuelve a recorrer la carpeta y deja el índice al día.
+
+        Como `indexar`, y devuelve (nuevas, quitadas) comparando con el
+        índice anterior, sin distinguir mayúsculas. Sin la carpeta, lanza
+        `ErrorBiblioteca` como `indexar`.
+        """
+        nuevos = self._recorrer()
+        claves_nuevas = {os.path.normcase(t.origen) for t in nuevos}
+        with self._lock:
+            claves_viejas = {os.path.normcase(t.origen) for t in self._temas}
+            nuevas = [t for t in nuevos
+                      if os.path.normcase(t.origen) not in claves_viejas]
+            quitadas = sum(1 for clave in claves_viejas
+                           if clave not in claves_nuevas)
+            self._temas = tuple(nuevos)
+        return len(nuevas), quitadas
 
     def temas(self) -> tuple[Tema, ...]:
         """El índice actual, vacío si todavía no se indexó."""

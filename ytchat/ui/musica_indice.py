@@ -15,6 +15,7 @@ from ytchat.music.adaptador_vlc import leer_etiquetas_vlc
 from ytchat.music.biblioteca import Biblioteca, ErrorBiblioteca
 from ytchat.music.etiquetas import CacheEtiquetas, leer_con_reintento
 from ytchat.music.modelo import Tema, normalizar_duracion
+from ytchat.music.vigia_carpeta import VigiaCarpeta
 from ytchat.player import motor_vlc
 
 
@@ -58,8 +59,88 @@ class IndiceMusica:
         ruta = (ruta or "").strip()
         self._config["musica_carpeta"] = ruta
         self._biblioteca = None
+        self._parar_vigia()
         self._generacion_etiquetas += 1
         self._guardar("carpeta", cfg.codificar_texto_ini(ruta))
+
+    def _arrancar_vigia(self, carpeta, biblioteca) -> None:
+        """Vigila la carpeta recién indexada, parando el vigía anterior.
+
+        La biblioteca queda ligada en el aviso: si la carpeta cambió a
+        mitad, el aviso no toca nada. Nunca hay dos vigías vivos.
+        """
+        self._parar_vigia()
+        vigia = VigiaCarpeta(
+            carpeta, lambda ag, qu: self._al_cambiar_vigia(
+                biblioteca, ag, qu))
+        vigia.arrancar()
+        self._vigia_musica = vigia
+
+    def _parar_vigia(self) -> None:
+        """Para el vigía de la carpeta, si lo hay. Nunca lanza."""
+        vigia = getattr(self, "_vigia_musica", None)
+        if vigia is None:
+            return
+        self._vigia_musica = None
+        try:
+            vigia.parar()
+        except Exception:
+            logger.debug("No se pudo parar el vigía de música")
+
+    def parar_vigia(self) -> None:
+        """Para el vigía al cerrar la app. Lo llama `cerrar`. Nunca lanza."""
+        self._cerrado = True
+        self._parar_vigia()
+
+    def _al_cambiar_vigia(self, biblioteca, agregadas, quitadas) -> None:
+        """Aplica lo que vio el vigía, en su hilo, y avisa a la ventana.
+
+        Silencioso: nada se anuncia ni suena. Si la carpeta cambió a
+        mitad, no toca nada. No mide el volumen de lo nuevo.
+        """
+        if self._cerrado or self._biblioteca is not biblioteca:
+            return
+        try:
+            nuevos, _quitados = biblioteca.aplicar_cambios(
+                agregadas, quitadas)
+        except Exception:
+            logger.exception("No se pudieron aplicar los cambios del vigía")
+            return
+        if nuevos:
+            self._arrancar_etiquetas(biblioteca, self._generacion_etiquetas)
+        ventana = self._ventanas.get("musica")
+        if ventana is not None:
+            try:
+                wx.CallAfter(ventana.refrescar_por_vigia)
+            except Exception:
+                logger.debug("No se pudo avisar a la ventana de música")
+
+    def reexaminar_carpeta(self, al_volver) -> None:
+        """Reexamina la carpeta en un hilo y avisa con `wx.CallAfter`.
+
+        Llama a `al_volver(biblioteca, nuevas, quitadas)`; con biblioteca
+        None no hay carpeta que examinar.
+        """
+        biblioteca = self._biblioteca
+        if biblioteca is None:
+            wx.CallAfter(al_volver, None, 0, 0)
+            return
+        diagnostico.crear_hilo(
+            self._reexaminar_fondo, "musica-reexaminar",
+            args=(biblioteca, al_volver)).start()
+
+    def _reexaminar_fondo(self, biblioteca, al_volver) -> None:
+        """Recorre la carpeta y devuelve el resultado a la interfaz."""
+        try:
+            nuevas, quitadas = biblioteca.reexaminar()
+        except ErrorBiblioteca:
+            wx.CallAfter(al_volver, None, 0, 0)
+            return
+        except Exception:
+            logger.exception("No se pudo reexaminar la carpeta de música")
+            wx.CallAfter(al_volver, biblioteca, 0, 0)
+            return
+        wx.CallAfter(al_volver, biblioteca, nuevas, quitadas)
 
     def _reproducir_carpeta(self) -> None:
         self.biblioteca(self._reproducir_indexado)
@@ -88,6 +169,7 @@ class IndiceMusica:
         generacion = self._generacion_etiquetas
         wx.CallAfter(al_lista, biblioteca)
         self._arrancar_etiquetas(biblioteca, generacion)
+        self._arrancar_vigia(carpeta, biblioteca)
 
     def _arrancar_etiquetas(self, biblioteca, generacion) -> None:
         """Lee en segundo plano las etiquetas que faltan, sin bloquear.

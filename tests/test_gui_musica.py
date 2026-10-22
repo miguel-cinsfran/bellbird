@@ -663,6 +663,94 @@ class TestCambiarCarpeta(unittest.TestCase):
         self.assertEqual(gui_musica.cfg.decodificar_texto_ini(codificado), ruta)
 
 
+class TestVigiaMusica(unittest.TestCase):
+    """El vigía arranca al indexar y se para al cambiar de carpeta o cerrar."""
+
+    def _vigias_falsos(self, creados):
+        def fabrica(carpeta, al_cambiar, espera_s=2.0):
+            vigia = mock.Mock()
+            vigia.carpeta = carpeta
+            vigia.al_cambiar = al_cambiar
+            creados.append(vigia)
+            return vigia
+
+        return mock.patch.object(musica_indice, "VigiaCarpeta",
+                                 side_effect=fabrica)
+
+    def test_indexar_arranca_un_vigia_para_esa_carpeta(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "a.mp3").write_bytes(b"")
+            creados = []
+            with _entorno(), self._vigias_falsos(creados):
+                control = ControlMusica(_frame(musica_carpeta=tmp))
+                recibidas = []
+                control.biblioteca(recibidas.append)
+        self.assertEqual(len(creados), 1)
+        self.assertEqual(creados[0].carpeta, tmp)
+        creados[0].arrancar.assert_called_once_with()
+        self.assertIs(control._vigia_musica, creados[0])
+        self.assertEqual(len(recibidas[0].temas()), 1)
+
+    def test_cambiar_carpeta_para_el_vigia_viejo(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "a.mp3").write_bytes(b"")
+            creados = []
+            with _entorno(), self._vigias_falsos(creados), \
+                    mock.patch.object(ControlMusica, "_guardar"):
+                control = ControlMusica(_frame(musica_carpeta=tmp))
+                control.biblioteca(lambda _b: None)
+                viejo = creados[0]
+                control.cambiar_carpeta(str(Path(tmp) / "otra"))
+        viejo.parar.assert_called_once_with()
+        self.assertIsNone(control._vigia_musica)
+
+    def test_cerrar_para_el_vigia(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "a.mp3").write_bytes(b"")
+            creados = []
+            with _entorno(), self._vigias_falsos(creados):
+                control = ControlMusica(_frame(musica_carpeta=tmp))
+                control.biblioteca(lambda _b: None)
+                control.cerrar()
+        creados[0].parar.assert_called_once_with()
+
+    def test_el_aviso_del_vigia_cambia_la_biblioteca_y_avisa_a_la_ventana(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "a.mp3").write_bytes(b"")
+            creados = []
+            ventana = mock.Mock()
+            with _entorno(), self._vigias_falsos(creados), \
+                    mock.patch.object(musica_indice.motor_vlc,
+                                       "disponible", return_value=False):
+                control = ControlMusica(_frame(musica_carpeta=tmp))
+                recibidas = []
+                control.biblioteca(recibidas.append)
+                control.registrar_ventana(ventana)
+                nuevo = Path(tmp) / "nuevo.mp3"
+                nuevo.write_bytes(b"")
+                creados[0].al_cambiar({str(nuevo)}, set())
+        nombres = [Path(t.origen).name for t in recibidas[0].temas()]
+        self.assertEqual(nombres, ["a.mp3", "nuevo.mp3"])
+        ventana.refrescar_por_vigia.assert_called_once_with()
+
+    def test_el_aviso_no_toca_nada_si_la_carpeta_cambio(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "a.mp3").write_bytes(b"")
+            creados = []
+            with _entorno(), self._vigias_falsos(creados), \
+                    mock.patch.object(ControlMusica, "_guardar"):
+                control = ControlMusica(_frame(musica_carpeta=tmp))
+                recibidas = []
+                control.biblioteca(recibidas.append)
+                avisar = creados[0].al_cambiar
+                vieja = recibidas[0]
+                control.cambiar_carpeta(str(Path(tmp) / "otra"))
+                nuevo = Path(tmp) / "nuevo.mp3"
+                nuevo.write_bytes(b"")
+                avisar({str(nuevo)}, set())
+        self.assertEqual(len(vieja.temas()), 1)
+
+
 class TestEtiquetasSegundoPlano(unittest.TestCase):
     """El hilo «musica-etiquetas»: lee lo pendiente, guarda y aplica el lote."""
 

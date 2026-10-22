@@ -153,6 +153,68 @@ class ColeccionesVentanaMusica:
         self._refrescar_cantidades_colecciones()
         self.preguntar_igualacion(biblioteca)
 
+    def refrescar_por_vigia(self):
+        """Pone al día la lista con lo que vio el vigía, si muestra la carpeta.
+
+        Vuelve a tomar los temas de la biblioteca y reaplica el filtro de
+        Buscar, conservando el tema elegido si sigue estando (si no, el
+        índice más cercano). Actualiza la cantidad de «Colecciones». No
+        mueve el foco. Con una lista propia, no hace nada.
+        """
+        if not self:
+            return
+        if self._fuente is not None or self._biblioteca is None:
+            return
+        elegido = self._origen_elegido()
+        self._temas_fuente = tuple(self._biblioteca.temas())
+        self._cantidad_biblioteca = len(self._temas_fuente)
+        self._aplicar_filtro()
+        self._seleccionar_origen(elegido)
+        self._refrescar_cantidades_colecciones()
+
+    def _seleccionar_origen(self, elegido):
+        """Deja elegido el tema con ese origen, si sigue estando."""
+        if elegido is None:
+            return
+        for indice, candidato in enumerate(self._temas_filtrados):
+            if candidato.origen == elegido:
+                self.lb_temas.SetSelection(indice)
+                return
+
+    def _origen_elegido(self):
+        """El origen del tema elegido, o None sin selección."""
+        seleccion = self.lb_temas.GetSelection()
+        if 0 <= seleccion < len(self._temas_filtrados):
+            return self._temas_filtrados[seleccion].origen
+        return None
+
+    def examinar_carpeta(self) -> None:
+        """Vuelve a examinar la carpeta en un hilo y anuncia el resultado.
+
+        Mientras examina, otra pulsación no lanza otro hilo.
+        """
+        if getattr(self, "_examinando", False):
+            return
+        if not self._control._carpeta():
+            anunciar(anuncios.TEXTO_SIN_CARPETA)
+            return
+        self._examinando = True
+        self._control.reexaminar_carpeta(self._al_examinar)
+
+    def _al_examinar(self, biblioteca, nuevas, quitadas) -> None:
+        """Refresca la lista y anuncia lo que encontró el examen."""
+        if not self:
+            return
+        self._examinando = False
+        if biblioteca is None:
+            anunciar(anuncios.TEXTO_SIN_CARPETA)
+            return
+        if biblioteca is not self._biblioteca:
+            return
+        if self._fuente is None:
+            self.refrescar_por_vigia()
+        anunciar(vista.texto_carpeta_examinada(nuevas, quitadas))
+
     def _tecla_colecciones(self, evento):
         codigo = evento.GetKeyCode()
         modificadores = evento.GetModifiers()

@@ -15,6 +15,10 @@ wxPython==4.3.1
 # Va acotado porque es versión 0.x y su API puede cambiar.
 prismatoid>=0.18.3,<0.19
 
+# Vigía de la carpeta de música: avisa cuando cambia sin recorrerla.
+# En Windows usa ReadDirectoryChangesW por ctypes.
+watchdog==6.0.0
+
 # ── Funciones online (OPCIONAL): YouTube Data API v3 ──────────────────────────
 # Necesarias solo para leer comentarios de vídeos, moderar el chat en vivo,
 # enviar mensajes al directo y publicar/responder comentarios. Si no se

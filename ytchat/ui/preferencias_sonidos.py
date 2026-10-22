@@ -66,8 +66,11 @@ class PaginaSonidos:
         self._btn_oir = None
         self._inicial = set()
 
-    def construir(self, libro) -> wx.Panel:
-        self._panel = wx.Panel(libro, name="PagSonidos")
+    def construir(self, libro) -> wx.ScrolledWindow:
+        self._panel = wx.ScrolledWindow(
+            libro, name="PagSonidos",
+            style=wx.TAB_TRAVERSAL | wx.VSCROLL)
+        self._panel.SetScrollRate(0, 20)
         self._panel.SetBackgroundColour(_T.bg)
         self._panel.SetForegroundColour(_T.text)
         vs = wx.BoxSizer(wx.VERTICAL)

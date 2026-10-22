@@ -25,6 +25,7 @@ from ytchat.ai import protocolos
 from ytchat.ai import proveedores
 from ytchat.ai import sondeo_gratis
 from ytchat.core import config
+from ytchat.core import eventos_sonido
 from ytchat.core import paths
 from ytchat.player import reproductor
 from ytchat.core import apagado
@@ -2918,6 +2919,19 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
                     encoding="utf-8")
                 self.assertEqual(config.cargar_configuracion()["registro_detallado"],
                                  esperado)
+
+    def test_guardar_calla_la_fila_destildada_en_sounds_ini(self):
+        (self.ruta / "sounds.ini").write_text(
+            "[sonidos]\nvolumen = 0.7\ntema = default\n", encoding="utf-8")
+        dialogo = self._dialogo()
+        dialogo.pagina_sonidos._lista.CheckItem(0, False)
+        with mock.patch.object(gui_preferencias._snd, "reproducir"), \
+                mock.patch.object(gui_preferencias._snd, "cargar"), \
+                mock.patch.object(gui_preferencias, "anunciar"), \
+                mock.patch.object(dialogo, "EndModal"):
+            dialogo._on_guardar(None)
+        texto = (self.ruta / "sounds.ini").read_text(encoding="utf-8")
+        self.assertIn(f"{eventos_sonido.EVENTOS[0]} =", texto)
 
     def test_guardar_escribe_las_nueve_claves_nuevas(self):
         dialogo = self._dialogo()

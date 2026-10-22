@@ -161,6 +161,17 @@ def etiqueta_boton(etiqueta: str, valor: str) -> str:
     return f"{etiqueta}: {mostrar_atajo(valor)}"
 
 
+def etiqueta_de_accion(accion: str) -> str:
+    """Nombre legible de una acción, o la clave en frase si falta."""
+    try:
+        etiqueta = ETIQUETAS.get(accion)
+        if etiqueta is not None:
+            return etiqueta
+        return str(accion).replace("_", " ").capitalize()
+    except Exception:
+        return ""
+
+
 def texto_de_espera(etiqueta: str, ayuda_area: str) -> str:
     """Devuelve el anuncio para entrar en modo captura."""
     return (f"Pulsa la combinación para {etiqueta}. {ayuda_area} "

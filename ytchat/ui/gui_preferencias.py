@@ -1541,16 +1541,7 @@ class PreferenciasDialog(PaginaMusica, PaginaProgramados, PaginaIA, wx.Dialog):
 
 _ETIQUETAS_ATAJO = atajos_captura.ETIQUETAS
 _mostrar_atajo = atajos_captura.mostrar_atajo
-
-
-def etiqueta_de_accion(accion: str) -> str:
-    try:
-        etiqueta = _ETIQUETAS_ATAJO.get(accion)
-        if etiqueta is not None:
-            return etiqueta
-        return str(accion).replace("_", " ").capitalize()
-    except Exception:
-        return ""
+etiqueta_de_accion = atajos_captura.etiqueta_de_accion
 
 
 def _lista(v: str) -> list:

@@ -144,7 +144,9 @@ class TestFondoAgregarCaptura(unittest.TestCase):
 
     def test_fondo_es_el_de_la_principal(self):
         from ytchat.ui import ia_agregar_captura as agregar
-        dialogo = agregar.DialogoAgregarCaptura(None, mock.Mock())
+        with mock.patch.object(agregar.obs_captura_ia, "opciones",
+                               return_value=[]):
+            dialogo = agregar.DialogoAgregarCaptura(None, mock.Mock())
         self.addCleanup(destruir, dialogo)
         self.assertEqual(dialogo.GetBackgroundColour(), _T.bg)
 

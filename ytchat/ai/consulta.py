@@ -45,8 +45,10 @@ _ERRORES = {
                                  "Vuelve a intentarlo."),
     protocolos.SERVIDOR: ("El proveedor tuvo un fallo. Vuelve a intentarlo "
                           "en un rato."),
-    protocolos.RECHAZO: ("El proveedor rechazó la consulta. Revisa el modelo "
-                         "elegido en Preferencias."),
+    protocolos.RECHAZO: ("El proveedor rechazó la consulta. Puede que el "
+                         "modelo ya no esté disponible: en Preferencias, "
+                         "Inteligencia artificial, pulsa Actualizar la lista "
+                         "de modelos o elige otro."),
     protocolos.SIN_RED: ("No hay conexión con el proveedor. Comprueba "
                          "la conexión a internet."),
     protocolos.TIEMPO_AGOTADO: ("El proveedor tardó demasiado en responder. "

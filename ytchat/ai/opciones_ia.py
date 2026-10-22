@@ -38,6 +38,7 @@ TEXTO_CONFIRMAR_BORRADO = ("Borra la clave guardada de {proveedor} del "
 TEXTO_PROBANDO = "Probando la clave…"
 TEXTO_PRUEBA_BIEN = "La clave funciona con {modelo}."
 TEXTO_ACTUALIZANDO = "Actualizando la lista de modelos…"
+TEXTO_SONDEANDO = "Comprobando {n} modelos con tu clave."
 TEXTO_LISTA_ACTUALIZADA = ("Lista de modelos actualizada: {n} modelos "
                            "de {proveedor}.")
 TEXTO_LISTA_ACTUALIZADA_SIN_PROVEEDOR = "Lista de modelos actualizada."

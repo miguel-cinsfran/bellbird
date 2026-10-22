@@ -2349,9 +2349,9 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         dialogo.cho_ia_proveedor.SetSelection(
             self._indice_proveedor("gemini"))
         dialogo._on_ia_proveedor(None)
-        with mock.patch.object(preferencias_ia._snd, "reproducir"), \
-                mock.patch.object(preferencias_ia_lista,
-                                  "anunciar") as anunciar:
+        with mock.patch.object(preferencias_ia_lista._snd, "reproducir"), \
+                mock.patch.object(
+                    preferencias_ia_lista, "anunciar") as anunciar:
             dialogo.ia_lista.recibir(muestra)
         anunciar.assert_called_once_with(
             opciones_ia.TEXTO_LISTA_ACTUALIZADA.format(
@@ -2363,9 +2363,9 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         dialogo.cho_ia_proveedor.SetSelection(
             self._indice_proveedor("otro"))
         dialogo._on_ia_proveedor(None)
-        with mock.patch.object(preferencias_ia._snd, "reproducir"), \
-                mock.patch.object(preferencias_ia_lista,
-                                  "anunciar") as anunciar:
+        with mock.patch.object(preferencias_ia_lista._snd, "reproducir"), \
+                mock.patch.object(
+                    preferencias_ia_lista, "anunciar") as anunciar:
             dialogo.ia_lista.recibir(muestra)
         anunciar.assert_called_once_with(
             opciones_ia.TEXTO_LISTA_ACTUALIZADA_SIN_PROVEEDOR)
@@ -2410,22 +2410,46 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
             },
         }
 
-    def _pulsar_actualizar(self, dialogo, muestra, enviar=None):
+    @staticmethod
+    def _catalogo_con_gemini(cantidad):
+        base = "https://generativelanguage.googleapis.com/v1beta"
+        modelos = [{"id": f"gemini-{indice}",
+                    "nombre": f"Gemini {indice}",
+                    "protocolo": protocolos.GEMINI, "base": base}
+                   for indice in range(1, cantidad + 1)]
+        return {
+            "version": catalogo.VERSION,
+            "fecha": "2026-10-21",
+            "proveedores": {
+                "google": {"nombre": "Google", "modelos": modelos},
+            },
+        }
+
+    def _pulsar_actualizar(self, dialogo, muestra, enviar=None,
+                           descargar=None):
         """Corre «Actualizar la lista» con el hilo y la red doblados."""
         if enviar is None:
             enviar = mock.Mock()
-        with mock.patch.object(preferencias_ia.catalogo, "descargar",
-                               return_value=muestra), \
-                mock.patch.object(preferencias_ia.diagnostico, "crear_hilo",
-                                  side_effect=self._hilo_que_corre), \
-                mock.patch.object(preferencias_ia.envio_ia, "enviar",
-                                  side_effect=enviar) as llamada, \
-                mock.patch.object(preferencias_ia.wx, "CallAfter",
-                                  side_effect=lambda f, *a: f(*a)), \
-                mock.patch.object(preferencias_ia._snd,
-                                  "reproducir") as sonar, \
-                mock.patch.object(preferencias_ia_lista,
-                                  "anunciar") as anunciar:
+        if descargar is None:
+            def descargar(*_argumentos):
+                return muestra
+        with mock.patch.object(
+                preferencias_ia_lista.catalogo, "descargar",
+                side_effect=descargar), \
+                mock.patch.object(
+                    preferencias_ia_lista.diagnostico, "crear_hilo",
+                    side_effect=self._hilo_que_corre), \
+                mock.patch.object(
+                    preferencias_ia_lista.envio_ia, "enviar",
+                    side_effect=enviar) as llamada, \
+                mock.patch.object(
+                    preferencias_ia_lista.wx, "CallAfter",
+                    side_effect=lambda f, *a: f(*a)), \
+                mock.patch.object(
+                    preferencias_ia_lista._snd,
+                    "reproducir") as sonar, \
+                mock.patch.object(
+                    preferencias_ia_lista, "anunciar") as anunciar:
             boton = dialogo.btn_ia_actualizar
             boton.GetEventHandler().ProcessEvent(self._evento_boton(boton))
         return llamada, sonar, anunciar
@@ -2458,6 +2482,61 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
             sondeo_gratis.leer(paths.gratis_ia(), "gemini"),
             {"gemini-responde": sondeo_gratis.MARCA_GRATIS})
         self.assertTrue(dialogo.chk_ia_gratis.IsShown())
+
+    def test_actualizar_anuncia_cuando_empieza_el_sondeo(self):
+        self.clave_guardada = self.CLAVE_GEMINI
+        muestra = self._catalogo_con_gemini(19)
+        dialogo = self._dialogo(muestra)
+
+        def enviar(pedido, clave, tiempo_espera):
+            return protocolos.Respuesta("OK")
+
+        _llamada, _sonar, anunciar = self._pulsar_actualizar(
+            dialogo, muestra, enviar)
+        anunciar.assert_any_call(
+            opciones_ia.TEXTO_SONDEANDO.format(n=19))
+        anunciar.assert_any_call(opciones_ia.TEXTO_ACTUALIZANDO)
+        self.assertEqual(
+            len(sondeo_gratis.leer(paths.gratis_ia(), "gemini")), 19)
+
+    def test_actualizar_avisa_mientras_trabaja_y_frena_al_terminar(self):
+        self.clave_guardada = self.CLAVE_GEMINI
+        muestra = self._catalogo_de_sondeo()
+        dialogo = self._dialogo(muestra)
+        corriendo = []
+        intervalos = []
+
+        def descargar(*_argumentos):
+            corriendo.append(dialogo.ia_lista._temporizador.IsRunning())
+            intervalos.append(dialogo.ia_lista._temporizador.GetInterval())
+            return muestra
+
+        def enviar(pedido, clave, tiempo_espera):
+            corriendo.append(dialogo.ia_lista._temporizador.IsRunning())
+            return protocolos.Respuesta("OK")
+
+        self._pulsar_actualizar(dialogo, muestra, enviar, descargar)
+        self.assertTrue(corriendo)
+        self.assertTrue(all(corriendo))
+        self.assertTrue(all(intervalo == 2000 for intervalo in intervalos))
+        self.assertFalse(dialogo.ia_lista._temporizador.IsRunning())
+
+    def test_actualizar_si_falla_frena_el_temporizador(self):
+        muestra = self._catalogo_de_sondeo()
+        dialogo = self._dialogo(muestra)
+        corriendo = []
+
+        def descargar(*_argumentos):
+            corriendo.append(dialogo.ia_lista._temporizador.IsRunning())
+            raise OSError("sin red")
+
+        llamada, _sonar, anunciar = self._pulsar_actualizar(
+            dialogo, muestra, descargar=descargar)
+        self.assertTrue(corriendo)
+        self.assertTrue(all(corriendo))
+        self.assertFalse(dialogo.ia_lista._temporizador.IsRunning())
+        llamada.assert_not_called()
+        anunciar.assert_any_call(opciones_ia.TEXTO_LISTA_FALLO)
 
     def test_actualizar_sin_clave_no_sondea(self):
         muestra = self._catalogo_de_sondeo()

@@ -5084,6 +5084,7 @@ SUPERFICIES = {
     "gui_actualizacion.py": "actualizaciones",
     "gui_actualizar_app.py": "actualizaciones",
     "gui_actualizar_ytdlp.py": "actualizaciones",
+    "gui_aplicar_preferencias.py": "preferencias",
     "gui_comentarios.py": "comentarios",
     "gui_descargas.py": "descargas",
     "gui_directo_huerfano.py": "directo_sin_imagen",
@@ -5117,6 +5118,7 @@ SUPERFICIES = {
     "preferencias_ia.py": "preferencias",
     "preferencias_ia_clave.py": "preferencias",
     "preferencias_ia_lista.py": "preferencias",
+    "preferencias_lectura.py": "preferencias",
     "preferencias_programados.py": "preferencias",
     "paleta.py": "actualizaciones",
 }

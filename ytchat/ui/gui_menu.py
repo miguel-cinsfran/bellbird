@@ -227,7 +227,7 @@ def _construir_menu_ver(frame, mb):
         accion = f"chat_reciente_{n}"
         item = sub_rec.Append(wx.ID_ANY, ETIQUETAS[accion] + frame._accel(accion))
         frame._bind_menu(item, frame._leer_reciente, n)
-    m.AppendSubMenu(sub_rec, "Mensajes re&cientes del chat")
+    m.AppendSubMenu(sub_rec, "Mensajes recientes &del chat")
     mi_escena = m.Append(wx.ID_ANY, "Describir la escena de &OBS" + frame._accel("describir_escena"))
     mi_ia = m.Append(wx.ID_ANY, "Preguntar a la &IA sobre la imagen…" + frame._accel("preguntar_ia"))
     mi_rapida = m.Append(wx.ID_ANY, "Consul&ta rápida a la IA" + frame._accel("consulta_rapida_ia"))

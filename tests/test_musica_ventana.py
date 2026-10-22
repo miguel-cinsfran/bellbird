@@ -1550,6 +1550,7 @@ class TestVentanaVigiaYExaminar(unittest.TestCase):
     def test_examinar_sin_carpeta_usa_el_aviso_de_hoy(self):
         control = ControlFalso(biblioteca=None)
         self._abrir(control)
+        del self.anuncios[:]
         with mock.patch.object(control, "_carpeta", return_value=""):
             self.ventana.examinar_carpeta()
         self.assertEqual(self.anuncios, [anuncios.TEXTO_SIN_CARPETA])
@@ -1559,6 +1560,7 @@ class TestVentanaVigiaYExaminar(unittest.TestCase):
         control = ControlFalso(biblioteca=_biblioteca_de("Rock", "Jazz"))
         control.datos_examen = (1, 2)
         self._abrir(control)
+        del self.anuncios[:]
         biblio = control._biblio
         biblio._temas = (biblio._temas[0],)
         self.ventana.examinar_carpeta()
@@ -1573,6 +1575,7 @@ class TestVentanaVigiaYExaminar(unittest.TestCase):
         control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
         control.datos_examen = (0, 0)
         self._abrir(control)
+        del self.anuncios[:]
         self.ventana.examinar_carpeta()
         self.assertEqual(self.anuncios,
                          ["Carpeta examinada: sin cambios."])

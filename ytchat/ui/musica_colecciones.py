@@ -142,11 +142,16 @@ class ColeccionesVentanaMusica:
         self._cargando = False
         self._aplicar_filtro()
         self._estado_listo()
+        self._resumir_y_preguntar(biblioteca)
+
+    def _resumir_y_preguntar(self, biblioteca):
+        """Resume la carpeta al abrirla y pregunta por igualar el volumen."""
         if self._primera_carga:
             self._primera_carga = False
             anunciar(vista.texto_resumen(
                 len(self._temas_fuente), len(self._temas_filtrados), False))
         self._refrescar_cantidades_colecciones()
+        self.preguntar_igualacion(biblioteca)
 
     def _tecla_colecciones(self, evento):
         codigo = evento.GetKeyCode()

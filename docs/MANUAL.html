@@ -393,12 +393,20 @@ título, el título y el artista, o solo el artista. Si eliges nada, pasar
 de canción con el atajo igual dice el título. Otra casilla decide si se
 anuncian la pausa, la reanudación y el volver al comienzo.</p>
 <p>La casilla <em>Igualar el volumen de las canciones</em>, activada de
-fábrica, hace que todas suenen parecido, como en Spotify. La aplicación
-mide cada archivo una sola vez con ffmpeg, de fondo y sin cortar nada, y
-corrige el volumen al empezar cada canción. La primera vez avisa con un
-sonido propio cuántas va a medir, y el avance se puede consultar en la
-ventana <em>Música</em> o con F2. Los enlaces de YouTube suenan con su
-volumen.</p>
+fábrica, hace que todas suenen parecido, como en Spotify. Cada archivo
+se mide una sola vez con ffmpeg, y su volumen se corrige al empezar cada
+canción. Los archivos no se modifican: solo se guarda el resultado en
+una caché. La aplicación nunca mide por su cuenta: ni al leer la
+carpeta, ni al guardar las preferencias, ni al reproducir con un
+atajo.</p>
+<p>Al abrir la ventana <em>Música</em>, si quedan canciones sin medir,
+la aplicación pregunta cuántas son y cuánto ocupan, con <em>Sí</em> y
+<em>No</em>. La casilla <em>No volver a preguntar</em> deja guardado que
+no pregunte más, y la pregunta se activa o se desactiva en
+<em>Preferencias, Música</em>. La ventana trae el botón <em>Igualar el
+volumen</em>, que empieza la medición; mientras mide, el botón cambia a
+<em>Detener la igualación</em>. El avance se ve en la ventana o con F2.
+Los enlaces de YouTube suenan con su volumen.</p>
 <p>La casilla <em>Usar los atajos de música en cualquier programa</em>
 hace que funcionen aunque estés en OBS o en un juego. Viene apagada
 porque, mientras está activa, esas teclas no les llegan a los demás

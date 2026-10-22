@@ -27,6 +27,7 @@ OPCIONES_MUSICA = (
     ("chk_musica_decir_pausa", "musica", "decir_pausa", "musica_decir_pausa", bool, True),
     ("sp_musica_volumen", "musica", "volumen", "musica_volumen", int, 50),
     ("chk_musica_normalizar", "musica", "normalizar", "musica_normalizar", bool, True),
+    ("chk_musica_preguntar_igualar", "musica", "preguntar_igualar", "musica_preguntar_igualar", bool, True),
     ("chk_musica_atajos_globales", "musica", "atajos_globales", "musica_atajos_globales", bool, False),
 )
 
@@ -114,11 +115,7 @@ class PaginaMusica:
             name="Volumen de la música")
         vs.Add(self.sp_musica_volumen, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        self.chk_musica_normalizar = wx.CheckBox(
-            p, label="&Igualar el volumen de las canciones",
-            name="Igualar el volumen de las canciones")
-        self.chk_musica_normalizar.SetForegroundColour(_T.text)
-        vs.Add(self.chk_musica_normalizar, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+        self._casilla_igualar(p, vs)
 
         # Al abrir no se consulta VLC: la lista se arma solo con la salida
         # guardada (o la predeterminada) y se completa con el botón.
@@ -138,6 +135,21 @@ class PaginaMusica:
             name="Buscar las salidas de audio")
         vs.Add(self.btn_buscar_salidas, 0, wx.ALL, 10)
         self.btn_buscar_salidas.Bind(wx.EVT_BUTTON, self._buscar_salidas)
+
+    def _casilla_igualar(self, p, vs):
+        from ytchat.ui.gui_preferencias import _T
+        self.chk_musica_normalizar = wx.CheckBox(
+            p, label="&Igualar el volumen de las canciones",
+            name="Igualar el volumen de las canciones")
+        self.chk_musica_normalizar.SetForegroundColour(_T.text)
+        vs.Add(self.chk_musica_normalizar, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        self.chk_musica_preguntar_igualar = wx.CheckBox(
+            p, label="Pr&eguntar al abrir Música si igualar el volumen",
+            name="Preguntar al abrir Música si igualar el volumen")
+        self.chk_musica_preguntar_igualar.SetForegroundColour(_T.text)
+        vs.Add(self.chk_musica_preguntar_igualar, 0,
+               wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _musica_atajos(self, p, vs):
         from ytchat.ui.gui_preferencias import _T

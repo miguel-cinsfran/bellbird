@@ -66,6 +66,8 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
         self.btn_nueva = self._boton(panel, "&Nueva lista…", "Nueva lista")
         self.btn_carpeta = self._boton(
             panel, "Cambiar car&peta…", "Cambiar carpeta")
+        self.btn_igualar = self._boton(
+            panel, "&Igualar el volumen", "Igualar el volumen")
         self.btn_cerrar = wx.Button(panel, wx.ID_CANCEL, "&Cerrar",
                                     name="Cerrar")
         _pintar(self.btn_cerrar, _T.btn, _T.btn_t)
@@ -140,6 +142,8 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
         self.btn_nueva.Bind(wx.EVT_BUTTON, lambda e: self._nueva_lista())
         self.btn_carpeta.Bind(
             wx.EVT_BUTTON, lambda e: self._cambiar_carpeta())
+        self.btn_igualar.Bind(
+            wx.EVT_BUTTON, lambda e: self.alternar_igualacion())
         self.btn_cerrar.Bind(wx.EVT_BUTTON, lambda e: self._cerrar())
 
     def _ajustar_minimo(self):

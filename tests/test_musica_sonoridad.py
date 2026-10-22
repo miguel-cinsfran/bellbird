@@ -13,7 +13,6 @@ from unittest import mock
 from ytchat.downloads.ffmpeg_bin import ruta_ffmpeg
 from ytchat.music.sonoridad import (
     CacheSonoridad,
-    avisa_al_empezar,
     ganancia_db,
     leer_medicion,
     medir,
@@ -131,12 +130,6 @@ class TestVolumenEfectivo(unittest.TestCase):
 
 
 class TestAvisoYProgreso(unittest.TestCase):
-
-    def test_con_19_no_avisa(self):
-        self.assertFalse(avisa_al_empezar(19))
-
-    def test_con_20_avisa(self):
-        self.assertTrue(avisa_al_empezar(20))
 
     def test_sin_progreso_el_texto_es_vacio(self):
         self.assertEqual(texto_progreso(None), "")

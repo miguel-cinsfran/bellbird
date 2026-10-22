@@ -199,6 +199,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("incluir_artista", "false"),
         ("decir_pausa", "true"),
         ("normalizar", "true"),
+        ("preguntar_igualar", "true"),
         ("volumen", "50"),
         ("salida", ""),
         ("salida_nombre", ""),

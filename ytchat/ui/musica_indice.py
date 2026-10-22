@@ -46,6 +46,13 @@ class IndiceMusica:
         diagnostico.crear_hilo(
             self._indexar, "musica-indice", args=(carpeta, al_lista)).start()
 
+    def biblioteca_actual(self):
+        """La biblioteca ya indexada de la carpeta, o None si no la hay.
+
+        No indexa nada: solo devuelve lo que ya está en memoria.
+        """
+        return self._biblioteca
+
     def cambiar_carpeta(self, ruta) -> None:
         """Guarda la carpeta nueva e invalida el índice compartido."""
         ruta = (ruta or "").strip()
@@ -76,7 +83,6 @@ class IndiceMusica:
         generacion = self._generacion_etiquetas
         wx.CallAfter(al_lista, biblioteca)
         self._arrancar_etiquetas(biblioteca, generacion)
-        self._arrancar_sonoridad(biblioteca, generacion)
 
     def _arrancar_etiquetas(self, biblioteca, generacion) -> None:
         """Lee en segundo plano las etiquetas que faltan, sin bloquear.

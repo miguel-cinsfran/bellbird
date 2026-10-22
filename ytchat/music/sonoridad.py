@@ -16,6 +16,7 @@ import os
 import re
 import subprocess
 import threading
+from dataclasses import dataclass
 from pathlib import Path
 
 from ytchat.core import archivos
@@ -31,12 +32,36 @@ TECHO_PICO_DBTP = -1.0
 GANANCIA_MINIMA_DB = -15.0
 GANANCIA_MAXIMA_DB = 10.0
 
-# Con menos canciones no se avisa: son las pocas nuevas de cada tanto.
-MINIMO_AVISO = 20
+# Lo que puede pasar al pedir la igualación del volumen.
+INICIO = "inicio"
+YA_MIDIENDO = "ya_midiendo"
+OPCION_APAGADA = "opcion_apagada"
+SIN_FFMPEG = "sin_ffmpeg"
+NADA_PENDIENTE = "nada_pendiente"
+
+SONIDO_IGUALANDO = "musica_igualando"
+
 TEXTO_IGUALANDO = "Igualando el volumen de {total} canciones"
+TEXTO_IGUALACION_DESACTIVADA = (
+    "La igualación del volumen está desactivada. Actívala en Preferencias, "
+    "página Música.")
+TEXTO_SIN_FFMPEG = "No se puede igualar el volumen: falta ffmpeg."
+TEXTO_NADA_PENDIENTE = "Todas las canciones tienen el volumen igualado."
+TEXTO_IGUALACION_DETENIDA = "Igualación del volumen detenida."
 TEXTO_PROGRESO = "Igualando el volumen: {hechas} de {total}"
 
 VERSION = 1
+
+
+@dataclass(frozen=True)
+class ResultadoIgualacion:
+    """Lo que pasó al pedir la igualación del volumen.
+
+    El código dice qué pasó y `total` cuántas canciones quedan por medir.
+    """
+
+    codigo: str
+    total: int = 0
 
 
 _NUMERO = r"[+-]?(?:inf(?:inity)?|nan|\d+(?:\.\d*)?(?:[eE][+-]?\d+)?|\.\d+(?:[eE][+-]?\d+)?)"
@@ -88,18 +113,6 @@ def ganancia_db(input_i, input_tp):
     ganancia = min(cruda, tope_pico)
     ganancia = max(GANANCIA_MINIMA_DB, min(GANANCIA_MAXIMA_DB, ganancia))
     return round(ganancia, 1)
-
-
-def avisa_al_empezar(total) -> bool:
-    """Si arrancar con esas pendientes merece aviso: 20 o más.
-
-    Con menos son las pocas canciones nuevas de cada tanto y se mide en
-    silencio. Función pura.
-    """
-    try:
-        return int(total) >= MINIMO_AVISO
-    except (TypeError, ValueError):
-        return False
 
 
 def texto_progreso(progreso) -> str:

@@ -1548,6 +1548,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
         esperados = ["Carpeta de música", "MusicaAleatorio", "Repetir la música",
                      "MusicaRetomar", "MusicaSonidoTema", "Qué decir al pasar de canción",
                      "MusicaDecirPausa", "Volumen de la música",
+                     "Preguntar al abrir Música si igualar el volumen",
                      "Salida de audio de la música", "Buscar las salidas de audio",
                      "MusicaAtajosGlobales"]
         orden = [h.GetName() for h in pagina.GetChildren()
@@ -1571,6 +1572,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             "A&nunciar la pausa, la reanudación y la vuelta al comienzo",
             "&Volumen de la música",
             "&Igualar el volumen de las canciones",
+            "Pr&eguntar al abrir Música si igualar el volumen",
             "Salida de a&udio de la música",
             "&Buscar las salidas de audio",
             "Usar los atajos de música en cualquier &programa",
@@ -1587,7 +1589,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             etiqueta = control.GetLabel()
             if "&" in etiqueta:
                 letras.append(etiqueta.split("&", 1)[1][:1].lower())
-        self.assertEqual(len(letras), 12)
+        self.assertEqual(len(letras), 13)
         self.assertEqual(len(letras), len(set(letras)), letras)
         self.assertNotIn("g", letras)
         self.assertNotIn("c", letras)

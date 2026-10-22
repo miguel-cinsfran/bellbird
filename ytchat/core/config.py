@@ -354,6 +354,7 @@ def _opciones_musica(p) -> dict:
             _pb(p, "musica", "incluir_artista")),
         "musica_decir_pausa": _pb(p, "musica", "decir_pausa"),
         "musica_normalizar": _pb(p, "musica", "normalizar"),
+        "musica_preguntar_igualar": _pb(p, "musica", "preguntar_igualar"),
         "musica_volumen": _pi(p, "musica", "volumen", lo=0, hi=100),
         "musica_salida": _gs(p, "musica", "salida"),
         "musica_salida_nombre": decodificar_texto_ini(_gs(p, "musica", "salida_nombre")),

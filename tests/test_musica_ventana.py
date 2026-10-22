@@ -11,11 +11,15 @@ from pathlib import Path
 from unittest import mock
 
 from ytchat.music import anuncios, listas
+from ytchat.music import pregunta_igualar
+from ytchat.music import sonoridad
 from ytchat.music.biblioteca import Biblioteca
 from ytchat.music.modelo import EstadoMusica, Tema
+from ytchat.music.sonoridad import ResultadoIgualacion
 from ytchat.ui import (musica_dialogo_enlace, musica_editor_lista,
                        musica_menus, musica_ventana,
-                       musica_ventana_acciones)
+                       musica_ventana_acciones,
+                       musica_ventana_igualando)
 from ytchat.ui.gui import ALTO_CONTRASTE, _T
 from tests.ventanas_prueba import destruir
 
@@ -47,7 +51,10 @@ class Evento:
 class ControlFalso:
 
     def __init__(self, biblioteca=None, carpeta_listas=None,
-                 temas_listas=None, estado=None, cola_visible=False):
+                 temas_listas=None, estado=None, cola_visible=False,
+                 midiendo=False, datos_pregunta=None,
+                 resultado_igualacion=None, pendientes_calculadas=(),
+                 total_calculado=0, responder_pedidos=True):
         self._biblio = biblioteca
         self._carpeta_listas = carpeta_listas
         self._temas_listas = dict(temas_listas or {})
@@ -58,6 +65,13 @@ class ControlFalso:
         self.combos = {}
         self._cola_visible = bool(cola_visible)
         self._progreso_sonoridad = None
+        self._midiendo = bool(midiendo)
+        self.datos_pregunta = datos_pregunta
+        self.resultado_igualacion = resultado_igualacion
+        self.pendientes_calculadas = pendientes_calculadas
+        self.total_calculado = total_calculado
+        self.responder_pedidos = responder_pedidos
+        self.preguntar = True
 
     def biblioteca(self, al_lista):
         self.llamadas.append(("biblioteca",))
@@ -149,6 +163,38 @@ class ControlFalso:
     def _carpeta(self):
         return "C:/Musica"
 
+    def biblioteca_actual(self):
+        return self._biblio
+
+    def iniciar_igualacion(self, biblioteca):
+        self.llamadas.append(("iniciar_igualacion", biblioteca))
+        return self.resultado_igualacion
+
+    def iniciar_medicion(self, pendientes):
+        self.llamadas.append(("iniciar_medicion", tuple(pendientes)))
+        return self.resultado_igualacion
+
+    def pedir_pendientes(self, biblioteca, al_pendientes):
+        self.llamadas.append(("pedir_pendientes", biblioteca))
+        if self.responder_pedidos:
+            al_pendientes(self.pendientes_calculadas, self.total_calculado)
+
+    def confirmar_pregunta(self, pendientes, total):
+        return self.datos_pregunta
+
+    def detener_igualacion(self):
+        self.llamadas.append(("detener_igualacion",))
+
+    def midiendo_igualacion(self):
+        return self._midiendo
+
+    def datos_igualacion(self, biblioteca):
+        return self.datos_pregunta
+
+    def fijar_preguntar_igualar(self, valor):
+        self.llamadas.append(("fijar_preguntar_igualar", valor))
+        self.preguntar = valor
+
     def nombres(self):
         return [llamada[0] for llamada in self.llamadas]
 
@@ -215,7 +261,8 @@ class TestVentanaMusica(unittest.TestCase):
             "Colecciones", "Buscar en la música", "Canciones",
             "Mostrar la cola", "Cola de reproducción",
             "Igualación del volumen", "Abrir enlace",
-            "Nueva lista", "Cambiar carpeta", "Cerrar"])
+            "Nueva lista", "Cambiar carpeta", "Igualar el volumen",
+            "Cerrar"])
 
     def test_controles_y_nombres_con_la_cola_visible(self):
         self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock"),
@@ -228,7 +275,8 @@ class TestVentanaMusica(unittest.TestCase):
             "Colecciones", "Buscar en la música", "Canciones",
             "Ocultar la cola", "Cola de reproducción",
             "Igualación del volumen", "Abrir enlace",
-            "Nueva lista", "Cambiar carpeta", "Cerrar"])
+            "Nueva lista", "Cambiar carpeta", "Igualar el volumen",
+            "Cerrar"])
 
     def test_mnemonicos_unicos_en_la_ventana(self):
         self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock")))
@@ -1023,6 +1071,264 @@ class TestVentanaIgualando(unittest.TestCase):
         self.ventana.btn_cola.SetFocus()
         self.ventana.btn_cola.Navigate()
         self.assertIs(wx.Window.FindFocus(), self.ventana.txt_igualando)
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestVentanaBotonIgualar(unittest.TestCase):
+    """El botón que pide o detiene la igualación, y su rotulado."""
+
+    def setUp(self):
+        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.control = None
+        self.ventana = None
+        self.anuncios = []
+        self.sonidos = []
+        self._parche = mock.patch.object(
+            musica_ventana_igualando, "anunciar",
+            lambda texto, urgente=True: self.anuncios.append(texto))
+        self._parche.start()
+        self._parche_sonido = mock.patch.object(
+            musica_ventana_igualando._snd, "reproducir",
+            lambda evento: self.sonidos.append(evento))
+        self._parche_sonido.start()
+
+    def tearDown(self):
+        self._parche_sonido.stop()
+        self._parche.stop()
+        if self.ventana is not None:
+            self.ventana._cancelar_temporizador()
+            self.ventana._parar_igualando()
+            destruir(self.ventana)
+
+    def _abrir(self, control):
+        self.control = control
+        self.ventana = musica_ventana.VentanaMusica(None, control)
+        return self.ventana
+
+    def test_pulsar_sin_medir_pide_y_anuncia_el_inicio(self):
+        control = ControlFalso(
+            biblioteca=_biblioteca_de("Rock"),
+            pendientes_calculadas=("a.mp3", "b.mp3"), total_calculado=300,
+            resultado_igualacion=ResultadoIgualacion(
+                sonoridad.INICIO, 2))
+        self._abrir(control)
+        self.ventana.alternar_igualacion()
+        biblio = self.ventana._biblioteca
+        self.assertIn(("pedir_pendientes", biblio), control.llamadas)
+        self.assertIn(("iniciar_medicion", ("a.mp3", "b.mp3")),
+                      control.llamadas)
+        self.assertEqual(self.anuncios,
+                         ["Igualando el volumen de 2 canciones"])
+        self.assertEqual(self.sonidos, ["musica_igualando"])
+
+    def test_pulsar_con_opcion_apagada_lo_dice(self):
+        control = ControlFalso(
+            biblioteca=_biblioteca_de("Rock"),
+            pendientes_calculadas=("a.mp3",), total_calculado=100,
+            resultado_igualacion=ResultadoIgualacion(
+                sonoridad.OPCION_APAGADA))
+        self._abrir(control)
+        self.ventana.alternar_igualacion()
+        self.assertEqual(
+            self.anuncios,
+            ["La igualación del volumen está desactivada. Actívala en "
+             "Preferencias, página Música."])
+        self.assertEqual(self.sonidos, [])
+
+    def test_pulsar_sin_ffmpeg_lo_dice(self):
+        control = ControlFalso(
+            biblioteca=_biblioteca_de("Rock"),
+            pendientes_calculadas=("a.mp3",), total_calculado=100,
+            resultado_igualacion=ResultadoIgualacion(
+                sonoridad.SIN_FFMPEG))
+        self._abrir(control)
+        self.ventana.alternar_igualacion()
+        self.assertEqual(
+            self.anuncios, ["No se puede igualar el volumen: falta ffmpeg."])
+        self.assertEqual(self.sonidos, [])
+
+    def test_pulsar_sin_pendientes_lo_dice(self):
+        control = ControlFalso(
+            biblioteca=_biblioteca_de("Rock"),
+            resultado_igualacion=ResultadoIgualacion(
+                sonoridad.NADA_PENDIENTE))
+        self._abrir(control)
+        self.ventana.alternar_igualacion()
+        self.assertEqual(
+            self.anuncios,
+            ["Todas las canciones tienen el volumen igualado."])
+        self.assertEqual(self.sonidos, [])
+
+    def test_pulsar_sin_carpeta_reusa_el_texto_de_sin_carpeta(self):
+        self._abrir(ControlFalso(biblioteca=None))
+        self.ventana.alternar_igualacion()
+        self.assertEqual(self.anuncios, [anuncios.TEXTO_SIN_CARPETA])
+        self.assertNotIn("pedir_pendientes", self.control.nombres())
+        self.assertNotIn("iniciar_medicion", self.control.nombres())
+        self.assertEqual(self.sonidos, [])
+
+    def test_boton_con_carpeta_sin_indexar_pide_indexar_y_calcula(self):
+        control = ControlFalso(
+            biblioteca=_biblioteca_de("Rock"),
+            pendientes_calculadas=("a.mp3", "b.mp3"), total_calculado=200,
+            resultado_igualacion=ResultadoIgualacion(
+                sonoridad.INICIO, 2))
+        self._abrir(control)
+        biblio = self.ventana._biblioteca
+        self.ventana._al_biblioteca_para_igualar(biblio)
+        self.assertIn(("pedir_pendientes", biblio), control.llamadas)
+        self.assertIn(("iniciar_medicion", ("a.mp3", "b.mp3")),
+                      control.llamadas)
+        self.assertEqual(self.anuncios,
+                         ["Igualando el volumen de 2 canciones"])
+
+    def test_pulsar_midiendo_detiene_y_anuncia(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock"),
+                               midiendo=True)
+        self._abrir(control)
+        self.ventana.alternar_igualacion()
+        self.assertIn(("detener_igualacion",), control.llamadas)
+        self.assertEqual(self.anuncios,
+                         ["Igualación del volumen detenida."])
+        self.assertEqual(self.sonidos, [])
+
+    def test_el_tic_rotula_el_boton_al_empezar_y_al_terminar(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
+        self._abrir(control)
+        self.assertEqual(self.ventana.btn_igualar.GetLabel(),
+                         "&Igualar el volumen")
+        control._midiendo = True
+        self.ventana._tic_igualando()
+        self.assertEqual(self.ventana.btn_igualar.GetLabel(),
+                         "Detener la &igualación")
+        control._midiendo = False
+        self.ventana._tic_igualando()
+        self.assertEqual(self.ventana.btn_igualar.GetLabel(),
+                         "&Igualar el volumen")
+
+    def test_el_foco_en_el_boton_se_queda_en_el_boton(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
+        self._abrir(control)
+        self.ventana.btn_igualar.SetFocus()
+        control._midiendo = True
+        self.ventana._tic_igualando()
+        self.assertIs(wx.Window.FindFocus(), self.ventana.btn_igualar)
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestVentanaPreguntaIgualar(unittest.TestCase):
+    """La pregunta que sale al recibir la biblioteca de la carpeta."""
+
+    def setUp(self):
+        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.control = None
+        self.ventana = None
+        self.anuncios = []
+        self.sonidos = []
+        self._parche = mock.patch.object(
+            musica_ventana_igualando, "anunciar",
+            lambda texto, urgente=True: self.anuncios.append(texto))
+        self._parche.start()
+        self._parche_sonido = mock.patch.object(
+            musica_ventana_igualando._snd, "reproducir",
+            lambda evento: self.sonidos.append(evento))
+        self._parche_sonido.start()
+
+    def tearDown(self):
+        self._parche_sonido.stop()
+        self._parche.stop()
+        if self.ventana is not None:
+            self.ventana._cancelar_temporizador()
+            self.ventana._parar_igualando()
+            destruir(self.ventana)
+
+    def _abrir(self, control, responder_pedidos=False):
+        self.control = control
+        control.responder_pedidos = responder_pedidos
+        self.ventana = musica_ventana.VentanaMusica(None, control)
+        return self.ventana
+
+    def _dialogo(self, respuesta, marcada):
+        clase = mock.patch.object(
+            musica_ventana_igualando.wx, "RichMessageDialog").start()
+        self.addCleanup(clase.stop)
+        dialogo = clase.return_value
+        dialogo.ShowModal.return_value = respuesta
+        dialogo.IsCheckBoxChecked.return_value = marcada
+        return clase, dialogo
+
+    def test_si_inicia_y_con_la_casilla_guarda_que_no_se_pregunte_mas(self):
+        pendientes = ("a.mp3", "b.mp3", "c.mp3")
+        total = 300 * 1024 * 1024
+        control = ControlFalso(
+            biblioteca=_biblioteca_de("Rock"),
+            datos_pregunta=(3, total),
+            resultado_igualacion=ResultadoIgualacion(
+                sonoridad.INICIO, 3))
+        self._abrir(control)
+        clase, dialogo = self._dialogo(wx.ID_YES, True)
+        self.ventana._al_pendientes_pregunta(pendientes, total)
+        texto, titulo = clase.call_args.args[1:3]
+        self.assertEqual(texto, pregunta_igualar.texto_pregunta(3, total))
+        self.assertEqual(titulo, pregunta_igualar.TITULO)
+        dialogo.ShowCheckBox.assert_called_once_with(
+            pregunta_igualar.CASILLA)
+        self.assertIn(("iniciar_medicion", pendientes), control.llamadas)
+        self.assertIn(("fijar_preguntar_igualar", False), control.llamadas)
+        self.assertEqual(self.anuncios,
+                         ["Igualando el volumen de 3 canciones"])
+        self.assertEqual(self.sonidos, ["musica_igualando"])
+
+    def test_no_cierra_sin_medir_y_sin_la_casilla_no_guarda_nada(self):
+        pendientes = ("a.mp3", "b.mp3", "c.mp3")
+        total = 300 * 1024 * 1024
+        control = ControlFalso(
+            biblioteca=_biblioteca_de("Rock"),
+            datos_pregunta=(3, total),
+            resultado_igualacion=ResultadoIgualacion(
+                sonoridad.INICIO, 3))
+        self._abrir(control)
+        self._dialogo(wx.ID_NO, False)
+        self.ventana._al_pendientes_pregunta(pendientes, total)
+        self.assertNotIn("iniciar_medicion", control.nombres())
+        self.assertNotIn("fijar_preguntar_igualar", control.nombres())
+        self.assertEqual(self.anuncios, [])
+
+    def test_no_con_la_casilla_tambien_guarda_que_no_se_pregunte_mas(self):
+        pendientes = ("a.mp3", "b.mp3", "c.mp3")
+        total = 300 * 1024 * 1024
+        control = ControlFalso(
+            biblioteca=_biblioteca_de("Rock"),
+            datos_pregunta=(3, total),
+            resultado_igualacion=ResultadoIgualacion(
+                sonoridad.INICIO, 3))
+        self._abrir(control)
+        self._dialogo(wx.ID_NO, True)
+        self.ventana._al_pendientes_pregunta(pendientes, total)
+        self.assertNotIn("iniciar_medicion", control.nombres())
+        self.assertIn(("fijar_preguntar_igualar", False), control.llamadas)
+
+    def test_sin_lo_que_preguntar_no_abre_el_dialogo(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
+        self._abrir(control)
+        with mock.patch.object(
+                musica_ventana_igualando.wx,
+                "RichMessageDialog") as clase:
+            self.ventana._al_pendientes_pregunta((), 0)
+        clase.assert_not_called()
+        self.assertEqual(self.anuncios, [])
+
+    def test_preguntar_pide_las_pendientes_una_sola_vez_por_apertura(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
+        self._abrir(control)
+        self.ventana._preguntado_igualar = False
+        control.llamadas.clear()
+        biblio = self.ventana._biblioteca
+        self.ventana.preguntar_igualacion(biblio)
+        self.ventana.preguntar_igualacion(biblio)
+        pedidos = [llamada for llamada in control.llamadas
+                   if llamada[0] == "pedir_pendientes"]
+        self.assertEqual(pedidos, [("pedir_pendientes", biblio)])
 
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")

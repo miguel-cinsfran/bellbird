@@ -789,7 +789,7 @@ class TestCargarConfiguracion(unittest.TestCase):
 
 
 class TestMusicaCargador(unittest.TestCase):
-    """El cargador expone la sección [musica] con sus doce claves."""
+    """El cargador expone la sección [musica] con sus trece claves."""
 
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
@@ -801,7 +801,7 @@ class TestMusicaCargador(unittest.TestCase):
         with redirigir_rutas(tmp):
             return config.cargar_configuracion()
 
-    def test_doce_valores_de_fabrica_con_ini_vacio(self):
+    def test_trece_valores_de_fabrica_con_ini_vacio(self):
         with mock.patch.object(paths, "carpeta_musica_windows", return_value=""):
             cfg = self._cargar_en("")
         self.assertEqual(cfg["musica_carpeta"], "")
@@ -811,6 +811,7 @@ class TestMusicaCargador(unittest.TestCase):
         self.assertTrue(cfg["musica_sonido_tema"])
         self.assertEqual(cfg["musica_decir"], "titulo")
         self.assertTrue(cfg["musica_decir_pausa"])
+        self.assertTrue(cfg["musica_preguntar_igualar"])
         self.assertEqual(cfg["musica_volumen"], 50)
         self.assertEqual(cfg["musica_salida"], "")
         self.assertEqual(cfg["musica_salida_nombre"], "")
@@ -829,6 +830,7 @@ class TestMusicaCargador(unittest.TestCase):
             "decir_titulo = false\n"
             "incluir_artista = false\n"
             "decir_pausa = false\n"
+            "preguntar_igualar = false\n"
             "volumen = 80\n"
             "salida = altavoces\n"
             "salida_nombre = Altavoces del sistema\n"
@@ -840,6 +842,7 @@ class TestMusicaCargador(unittest.TestCase):
         self.assertFalse(cfg["musica_sonido_tema"])
         self.assertEqual(cfg["musica_decir"], "artista")
         self.assertFalse(cfg["musica_decir_pausa"])
+        self.assertFalse(cfg["musica_preguntar_igualar"])
         self.assertEqual(cfg["musica_volumen"], 80)
         self.assertEqual(cfg["musica_salida"], "altavoces")
         self.assertEqual(cfg["musica_salida_nombre"], "Altavoces del sistema")
@@ -853,6 +856,7 @@ class TestMusicaCargador(unittest.TestCase):
             ("retomar", "musica_retomar", True),
             ("sonido_tema", "musica_sonido_tema", True),
             ("decir_pausa", "musica_decir_pausa", True),
+            ("preguntar_igualar", "musica_preguntar_igualar", True),
             ("atajos_globales", "musica_atajos_globales", False),
         ]
         for clave_ini, clave_memoria, valor_fabrica in casos:
@@ -864,6 +868,23 @@ class TestMusicaCargador(unittest.TestCase):
                     if otra_memoria == clave_memoria:
                         continue
                     self.assertEqual(cfg[otra_memoria], otro_fabrica)
+
+    def test_opciones_musica_devuelve_lo_mismo_que_cargar_configuracion(self):
+        # Las claves musica_* viven en _opciones_musica y entran con **:
+        # mismos valores y mismo orden que en el diccionario cargado.
+        with tempfile.TemporaryDirectory() as tmp:
+            ruta = Path(tmp) / "config.ini"
+            ruta.write_text("[musica]\npreguntar_igualar = false\nvolumen = 80\n",
+                            encoding="utf-8")
+            with redirigir_rutas(Path(tmp)):
+                p = config._mk_parser()
+                p.read(paths.config_ini(), encoding="utf-8")
+                opciones = config._opciones_musica(p)
+                cfg = config.cargar_configuracion()
+        musica = {clave: valor for clave, valor in cfg.items()
+                  if clave.startswith("musica_")}
+        self.assertEqual(musica, opciones)
+        self.assertEqual(list(musica), list(opciones))
 
     def test_repetir_se_lee_como_texto_y_se_normaliza(self):
         casos = [

@@ -13,6 +13,7 @@ from pathlib import Path
 
 from ytchat.core import config as cfg
 from ytchat.core import config_predeterminada as fabrica
+from ytchat.core import eventos_sonido
 from ytchat.ui import atajos_captura
 
 RAIZ = Path(__file__).resolve().parent.parent
@@ -210,8 +211,19 @@ class PruebaSonidos(unittest.TestCase):
         nombres, _ = _nombres_y_dinamicos()
         faltan = sorted(nombres - set(cfg._EVENTOS_SONIDO))
         self.assertEqual(faltan, [],
-                         "Sonidos usados fuera de config._EVENTOS_SONIDO "
-                         f"(ytchat/core/config.py): {faltan}")
+                          "Sonidos usados fuera de config._EVENTOS_SONIDO "
+                          f"(ytchat/core/config.py): {faltan}")
+
+
+class PruebaNombresSonido(unittest.TestCase):
+    def test_nombres_cubren_exactamente_los_eventos(self):
+        self.assertEqual(set(eventos_sonido.NOMBRES),
+                         set(eventos_sonido.EVENTOS))
+
+    def test_nombres_no_se_repiten(self):
+        nombres = list(eventos_sonido.NOMBRES.values())
+        repetidos = sorted({n for n in nombres if nombres.count(n) > 1})
+        self.assertEqual(repetidos, [])
 
 
 # ── Regla 3: configuración ──────────────────────────────────────────────────

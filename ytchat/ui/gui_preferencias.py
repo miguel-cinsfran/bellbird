@@ -34,6 +34,7 @@ from ytchat.ui.gui import ContadorAccesible, _T, _tc, anunciar, caja_de_grupo, n
 from ytchat.ui.preferencias_musica import OPCIONES_MUSICA, PaginaMusica
 from ytchat.ui.preferencias_ia import PaginaIA
 from ytchat.ui.preferencias_programados import PaginaProgramados
+from ytchat.ui.preferencias_sonidos import PaginaSonidos
 from ytchat.obs.obs_panel import GestorPanelObs
 
 logger = diagnostico.obtener_logger(__name__)
@@ -176,6 +177,8 @@ class PreferenciasDialog(PaginaMusica, PaginaProgramados, PaginaIA, wx.Dialog):
         self.nb.AddPage(self._pag_lectura(self.nb), "Lectura")
         self.nb.AddPage(self._pag_cola(self.nb), "Cola de lectura")
         self.nb.AddPage(self._pag_interfaz(self.nb), "Interfaz y sonidos")
+        self.pagina_sonidos = PaginaSonidos()
+        self.nb.AddPage(self.pagina_sonidos.construir(self.nb), "Sonidos")
         self.nb.AddPage(self._pag_reproductor(self.nb), "Reproductor")
         self.nb.AddPage(self._pag_musica(self.nb), "Música")
         self.nb.AddPage(self._pag_conexion(self.nb), "Conexión")
@@ -1505,6 +1508,8 @@ class PreferenciasDialog(PaginaMusica, PaginaProgramados, PaginaIA, wx.Dialog):
             raw[accion] = valor
 
         self._guardar_ia()
+        if not self.pagina_sonidos.guardar():
+            self._fallo_guardado = True
         if not cfg.guardar_opciones(self._ruta, self._pendientes):
             self._fallo_guardado = True
 

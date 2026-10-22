@@ -1439,12 +1439,12 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             pendientes.extend(control.GetChildren())
         return None
 
-    def test_tiene_quince_categorias_en_el_orden_acordado(self):
+    def test_tiene_dieciseis_categorias_en_el_orden_acordado(self):
         dialogo = self._dialogo()
         self.assertEqual(
             [dialogo.nb.GetPageText(i) for i in range(dialogo.nb.GetPageCount())],
             ["General", "Voces", "Lectura", "Cola de lectura", "Interfaz y sonidos",
-             "Reproductor", "Música", "Conexión", "Filtros",
+             "Sonidos", "Reproductor", "Música", "Conexión", "Filtros",
              "Estado (F2)", "Atajos", "API y sesión", "Mensajes automáticos",
              "Transmisión", "Inteligencia artificial"])
 

@@ -5112,6 +5112,7 @@ SUPERFICIES = {
     "iconos.py": "reproductor",
     "boton_directo.py": "principal",
     "preferencias_musica.py": "preferencias",
+    "preferencias_sonidos.py": "preferencias",
     "preferencias_ia.py": "preferencias",
     "preferencias_ia_clave.py": "preferencias",
     "preferencias_ia_lista.py": "preferencias",

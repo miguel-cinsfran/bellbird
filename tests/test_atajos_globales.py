@@ -17,7 +17,9 @@ from tests.ventanas_prueba import destruir
 from ytchat.music import anuncios
 from ytchat.ui import atajos_globales
 from ytchat.ui.atajos_captura import atajo_legible
-from ytchat.ui.atajos_globales import AtajosGlobales, combinacion_windows
+from ytchat.ui.atajos_globales import (
+    AtajosGlobales, combinacion_ctrl_mayus, combinacion_windows,
+)
 
 
 class _VentanaFalsa:
@@ -94,6 +96,22 @@ class TestCombinacionWindows(unittest.TestCase):
     def test_los_modificadores_son_wx_mod(self):
         mods, _vk = combinacion_windows("ctrl+alt+t")
         self.assertEqual(mods, wx.MOD_CONTROL | wx.MOD_ALT)
+
+
+class TestCombinacionCtrlMayus(unittest.TestCase):
+
+    def test_digitos_dan_su_ord(self):
+        mods = wx.MOD_CONTROL | wx.MOD_SHIFT
+        self.assertEqual(combinacion_ctrl_mayus("ctrl+shift+1"), (mods, ord("1")))
+        self.assertEqual(combinacion_ctrl_mayus("ctrl+shift+9"), (mods, ord("9")))
+        self.assertEqual(combinacion_ctrl_mayus("ctrl+shift+0"), (mods, ord("0")))
+
+    def test_lo_que_no_es_ctrl_mayus_digito_da_none(self):
+        for texto in ("ctrl+shift+a", "ctrl+shift+space", "ctrl+shift+left",
+                      "ctrl+alt+1", "ctrl+1", "shift+1", "ctrl+shift+10",
+                      "ctrl+shift+", "ctrl+shift", "", "   ", None, "basura"):
+            with self.subTest(texto=texto):
+                self.assertIsNone(combinacion_ctrl_mayus(texto))
 
 
 class TestAtajosGlobales(unittest.TestCase):

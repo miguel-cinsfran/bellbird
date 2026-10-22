@@ -734,6 +734,11 @@ class YTChatFrame(wx.Frame):
 
         pag.SetSizer(vs)
         self._actualizar_motivo_redaccion()
+        # Mensajes recientes: lee con Ctrl+Mayús y un número, también fuera.
+        # Nace acá, donde ya existe lb_chat.
+        from ytchat.ui import chat_recientes
+        self._recientes = chat_recientes.LecturaRecientes(
+            self, self.lb_chat, self._config)
         return pag
 
     def _build_pagina_info(self, parent) -> wx.Panel:
@@ -1265,6 +1270,9 @@ class YTChatFrame(wx.Frame):
         from ytchat.ui import gui_estado
         gui_estado.anunciar_autor(self)
 
+    def _leer_reciente(self, n: int):
+        self._recientes.leer(n)
+
     def _describir_escena(self):
         from ytchat.ui import gui_estado
         gui_estado.describir_escena(self)
@@ -1594,6 +1602,9 @@ class YTChatFrame(wx.Frame):
         except Exception: pass
         try:
             self._musica.cerrar()
+        except Exception: pass
+        try:
+            self._recientes.cerrar()
         except Exception: pass
         try:
             # Interrumpir lo que se esté leyendo (purga) antes de parar, para que

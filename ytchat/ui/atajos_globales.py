@@ -73,6 +73,24 @@ def combinacion_windows(texto: str | None) -> tuple[int, int] | None:
     return (wx.MOD_CONTROL | wx.MOD_ALT, codigo)
 
 
+def combinacion_ctrl_mayus(texto: str | None) -> tuple[int, int] | None:
+    """Traduce un atajo Ctrl+Mayús+dígito a lo que pide `RegisterHotKey`.
+
+    Devuelve `(wx.MOD_CONTROL | wx.MOD_SHIFT, ord(dígito))`. Cualquier
+    otra cosa da None.
+    """
+    partes = (texto or "").strip().lower().replace(" ", "").split("+")
+    if len(partes) != 3:
+        return None
+    primero, segundo, tecla = partes
+    if not ((primero == "ctrl" and segundo == "shift")
+            or (primero == "shift" and segundo == "ctrl")):
+        return None
+    if len(tecla) == 1 and tecla.isascii() and tecla.isdigit():
+        return (wx.MOD_CONTROL | wx.MOD_SHIFT, ord(tecla))
+    return None
+
+
 class AtajosGlobales:
     """Registra los atajos de música en todo el sistema con una ventana.
 

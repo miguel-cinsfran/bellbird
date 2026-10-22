@@ -13,6 +13,8 @@ import webbrowser
 
 import wx
 
+from ytchat.ui.atajos_captura import ETIQUETAS
+
 
 def construir_menu(frame):
     from ytchat.ui.gui import (
@@ -205,6 +207,9 @@ def _consulta_rapida(frame):
 
 
 def _construir_menu_ver(frame, mb):
+    from ytchat.ui.gui import (
+        PAG_CHAT, PAG_COMENTARIOS, REG_CONEXION, REG_REPRODUCTOR,
+    )
     m = wx.Menu()
     mi_sig = m.Append(wx.ID_ANY, "Región &siguiente\tF6")
     mi_ant = m.Append(wx.ID_ANY, "Región &anterior\tShift+F6")
@@ -217,6 +222,12 @@ def _construir_menu_ver(frame, mb):
     m.AppendSeparator()
     mi_estado = m.Append(wx.ID_ANY, "Anunciar &estado" + frame._accel("anunciar_estado"))
     mi_autor = m.Append(wx.ID_ANY, "Anunciar a&utor del último mensaje" + frame._accel("anunciar_autor"))
+    sub_rec = wx.Menu()
+    for n in range(1, 11):
+        accion = f"chat_reciente_{n}"
+        item = sub_rec.Append(wx.ID_ANY, ETIQUETAS[accion] + frame._accel(accion))
+        frame._bind_menu(item, frame._leer_reciente, n)
+    m.AppendSubMenu(sub_rec, "Mensajes re&cientes del chat")
     mi_escena = m.Append(wx.ID_ANY, "Describir la escena de &OBS" + frame._accel("describir_escena"))
     mi_ia = m.Append(wx.ID_ANY, "Preguntar a la &IA sobre la imagen…" + frame._accel("preguntar_ia"))
     mi_rapida = m.Append(wx.ID_ANY, "Consul&ta rápida a la IA" + frame._accel("consulta_rapida_ia"))

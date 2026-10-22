@@ -7,7 +7,7 @@ menú contextual (copiar, silenciar, banear) caía sobre el mensaje equivocado.
 
 import unittest
 
-from ytchat.ui.lista_chat import ListaChat, MensajeChat
+from ytchat.ui.lista_chat import ListaChat, MensajeChat, texto_reciente
 
 
 def _msg(n, tipo="text", plataforma="youtube", identificador=None, autor=None):
@@ -225,6 +225,33 @@ class TestIdentidadHomonima(unittest.TestCase):
         lc.limpiar()
         self.assertEqual(lc.todos, [])
         self.assertIsNone(lc.dato_en_fila(0))
+
+
+class TestTextoReciente(unittest.TestCase):
+
+    def test_lista_vacia_avisa_que_no_hay_mensajes(self):
+        self.assertEqual(texto_reciente([], 1),
+                         "Todavía no hay mensajes en el chat.")
+
+    def test_con_menos_filas_que_n_dice_cuantos_hay(self):
+        self.assertEqual(texto_reciente(["hola"], 2),
+                         "El chat tiene 1 mensaje.")
+        self.assertEqual(texto_reciente(["hola", "chau"], 3),
+                         "El chat tiene 2 mensajes.")
+
+    def test_n_igual_a_1_da_la_ultima(self):
+        self.assertEqual(texto_reciente(["primero", "último"], 1), "último")
+
+    def test_n_igual_a_10_da_la_decima_desde_el_final(self):
+        filas = [f"mensaje {i}" for i in range(12)]
+        self.assertEqual(texto_reciente(filas, 10), "mensaje 2")
+
+    def test_n_dentro_del_largo_da_la_fila_l_menos_n(self):
+        for largo in (1, 3, 10, 15):
+            filas = [f"mensaje {i}" for i in range(largo)]
+            for n in range(1, min(11, largo + 1)):
+                with self.subTest(largo=largo, n=n):
+                    self.assertEqual(texto_reciente(filas, n), filas[largo - n])
 
 
 if __name__ == "__main__":

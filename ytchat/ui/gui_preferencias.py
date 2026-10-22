@@ -988,6 +988,7 @@ class PreferenciasDialog(PaginaMusica, PaginaProgramados, PaginaIA, wx.Dialog):
         self.chk_urls = self.pagina_lectura.chk_urls
         self.chk_entradas = self.pagina_lectura.chk_entradas
         self.sp_long = self.pagina_lectura.sp_long
+        self.chk_lectura_atajos_globales = self.pagina_lectura.chk_lectura_atajos_globales
         return panel
 
     def _pag_estado(self, parent):

@@ -1785,7 +1785,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("voz", "volumen"), ("voz", "tono"),
             ("voz", "voz_respaldo"), ("voz", "elevenlabs_tope"),
             ("voz", "elevenlabs_solo_importantes"),
-            ("lectura", "formato_prefijo"),
+            ("lectura", "formato_prefijo"), ("lectura", "atajos_globales"),
             ("texto", "limpiar_emojis"), ("texto", "eliminar_urls"),
             ("tiktok", "anunciar_entradas"), ("texto", "max_longitud_mensaje"),
             ("cola", "estrategia"), ("cola", "tamanio_maximo"),

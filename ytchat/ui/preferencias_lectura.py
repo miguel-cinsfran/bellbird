@@ -30,6 +30,7 @@ OPCIONES_LECTURA = (
     ("chk_urls", "texto", "eliminar_urls", "eliminar_urls", bool, True),
     ("chk_entradas", "tiktok", "anunciar_entradas", "tiktok_anunciar_entradas", bool, False),
     ("sp_long", "texto", "max_longitud_mensaje", "max_longitud_mensaje", int, 200),
+    ("chk_lectura_atajos_globales", "lectura", "atajos_globales", "lectura_atajos_globales", bool, False),
 )
 
 
@@ -79,6 +80,13 @@ class PaginaLectura:
                                    name="Longitud máxima del mensaje")
         _tc(self.sp_long)
         vs.Add(self.sp_long, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        self.chk_lectura_atajos_globales = wx.CheckBox(
+            p, label="Leer los mensajes recientes en cualquier &programa",
+            name="LecturaAtajosGlobales")
+        self.chk_lectura_atajos_globales.SetForegroundColour(_T.text)
+        vs.Add(self.chk_lectura_atajos_globales, 0,
+               wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         p.SetSizer(vs)
         return p

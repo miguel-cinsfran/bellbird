@@ -450,6 +450,14 @@ nombre y el valor («Volumen de la voz: 40%») y después solo el valor.
 | `Ctrl+Tab` | Cambiar de pestaña |
 | `Alt+F4` | Salir |
 
+### Mensajes recientes del chat (Ctrl+Mayús y número)
+
+`Ctrl+Mayús+1` lee el último mensaje del chat, `Ctrl+Mayús+2` el anterior
+y así hasta `Ctrl+Mayús+0`, que lee el décimo desde el final. De fábrica
+valen solo con la aplicación al frente; la casilla *Leer los mensajes
+recientes en cualquier programa* de *Preferencias, Lectura* los hace valer
+en cualquier programa, como los atajos de música.
+
 ### Cambiar un atajo
 
 En *Preferencias, Atajos*, cada acción tiene un botón cuyo nombre incluye

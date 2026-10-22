@@ -286,6 +286,11 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertEqual(atajos["region_siguiente"].texto, "f6")
         self.assertNotIn("pausa", atajos)
 
+    def test_fija_reciente_desactiva_la_ventana_que_la_ocupa(self):
+        atajos = parsear_atajos({"musica_ventana": "ctrl+shift+1"})
+        self.assertEqual(atajos["chat_reciente_1"].texto, "ctrl+shift+1")
+        self.assertNotIn("musica_ventana", atajos)
+
     def test_desactivar_con_valor_vacio(self):
         atajos = parsear_atajos({"pausa": ""})
         self.assertNotIn("pausa", atajos)
@@ -354,10 +359,13 @@ class TestParsearAtajos(unittest.TestCase):
 
     def test_grupo_de_musica_justo_antes_del_de_fijos(self):
         titulos = [titulo for titulo, _acciones in ATAJOS_GRUPOS]
-        self.assertEqual(titulos[-2], "Música (Ctrl+Alt)")
-        self.assertEqual(titulos[-1], "Ventana y navegación (fijos)")
+        self.assertEqual(titulos[-3], "Música (Ctrl+Alt)")
+        self.assertEqual(titulos[-2], "Ventana y navegación (fijos)")
+        self.assertEqual(titulos[-1], "Mensajes recientes del chat (fijos)")
         self.assertEqual(_AREA_POR_GRUPO[5], "ctrl+alt")
         self.assertIsNone(_AREA_POR_GRUPO[6])
+        self.assertIsNone(_AREA_POR_GRUPO[7])
+        self.assertEqual(len(titulos), len(_AREA_POR_GRUPO))
 
     def test_las_acciones_de_musica_solo_aceptan_ctrl_alt(self):
         acciones = dict(ATAJOS_GRUPOS)["Música (Ctrl+Alt)"]
@@ -384,6 +392,8 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertIn('._accel("abrir_transmision")', fuente)
         self.assertIn('._accel("copiar_enlace")', fuente)
         self.assertIn('._accel("anunciar_autor")', fuente)
+        # Los diez recientes se arman en un bucle con su etiqueta y su _accel.
+        self.assertIn("ETIQUETAS[accion] + frame._accel(accion)", fuente)
         self.assertIn('._accel("describir_escena")', fuente)
         self.assertIn('._accel("consulta_rapida_ia")', fuente)
         self.assertIn('._accel("obs_micro")', fuente)

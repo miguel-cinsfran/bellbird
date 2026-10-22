@@ -99,6 +99,16 @@ ETIQUETAS = {
     "musica_retroceder": "Retroceder la música 10 segundos",
     "musica_ventana": "Abrir la ventana de música",
     "preguntar_ia": "Preguntar a la IA sobre la imagen",
+    "chat_reciente_1": "Leer el último mensaje del chat",
+    "chat_reciente_2": "Leer el mensaje 2 desde el final del chat",
+    "chat_reciente_3": "Leer el mensaje 3 desde el final del chat",
+    "chat_reciente_4": "Leer el mensaje 4 desde el final del chat",
+    "chat_reciente_5": "Leer el mensaje 5 desde el final del chat",
+    "chat_reciente_6": "Leer el mensaje 6 desde el final del chat",
+    "chat_reciente_7": "Leer el mensaje 7 desde el final del chat",
+    "chat_reciente_8": "Leer el mensaje 8 desde el final del chat",
+    "chat_reciente_9": "Leer el mensaje 9 desde el final del chat",
+    "chat_reciente_10": "Leer el mensaje 10 desde el final del chat",
 }
 
 

@@ -107,6 +107,17 @@ class TestEquivalenciaMenu(unittest.TestCase):
             ("&Ver", "---", None, "sep"),
             ("&Ver", "Anunciar &estado", ANY, "normal"),
             ("&Ver", "Anunciar a&utor del último mensaje", ANY, "normal"),
+            ("&Ver", "Mensajes re&cientes del chat", None, "submenu"),
+            ("Mensajes re&cientes del chat", "Leer el último mensaje del chat", ANY, "normal"),
+            ("Mensajes re&cientes del chat", "Leer el mensaje 2 desde el final del chat", ANY, "normal"),
+            ("Mensajes re&cientes del chat", "Leer el mensaje 3 desde el final del chat", ANY, "normal"),
+            ("Mensajes re&cientes del chat", "Leer el mensaje 4 desde el final del chat", ANY, "normal"),
+            ("Mensajes re&cientes del chat", "Leer el mensaje 5 desde el final del chat", ANY, "normal"),
+            ("Mensajes re&cientes del chat", "Leer el mensaje 6 desde el final del chat", ANY, "normal"),
+            ("Mensajes re&cientes del chat", "Leer el mensaje 7 desde el final del chat", ANY, "normal"),
+            ("Mensajes re&cientes del chat", "Leer el mensaje 8 desde el final del chat", ANY, "normal"),
+            ("Mensajes re&cientes del chat", "Leer el mensaje 9 desde el final del chat", ANY, "normal"),
+            ("Mensajes re&cientes del chat", "Leer el mensaje 10 desde el final del chat", ANY, "normal"),
             ("&Ver", "Describir la escena de &OBS", ANY, "normal"),
             ("&Ver", "Preguntar a la &IA sobre la imagen…", ANY, "normal"),
             ("&Ver", "Consul&ta rápida a la IA", ANY, "normal"),
@@ -216,6 +227,49 @@ class TestMenuMusica(unittest.TestCase):
             ("&Música", "&Orden aleatorio\tCtrl+Alt+A", ANY, "check"),
             ("&Música", "Cambiar la &repetición\tCtrl+Alt+R", ANY, "normal"),
         ], self._entradas())
+
+
+class TestMenuRecientes(unittest.TestCase):
+    """El submenú de mensajes recientes: diez ítems que leen 1 a 10."""
+
+    def _ver(self):
+        from ytchat.ui import gui_menu
+        creados = []
+
+        def crear_menu(*args, **kwargs):
+            menu = mock.MagicMock()
+            menu._entradas = []
+            menu.Append.side_effect = (
+                lambda *args: menu._entradas.append(args) or mock.Mock())
+            creados.append(menu)
+            return menu
+
+        frame = mock.Mock()
+        frame._accel.return_value = ""
+        with mock.patch.object(gui.wx, "Menu", side_effect=crear_menu):
+            gui_menu._construir_menu_ver(frame, mock.Mock())
+        return frame, creados
+
+    def test_items_en_orden_con_sus_etiquetas(self):
+        from ytchat.ui.atajos_captura import ETIQUETAS
+        _frame, creados = self._ver()
+        sub = creados[1]
+        self.assertEqual(
+            [args[1] for args in sub._entradas],
+            [ETIQUETAS[f"chat_reciente_{n}"] for n in range(1, 11)])
+
+    def test_cada_item_llama_a_leer_reciente_con_su_numero(self):
+        frame, _creados = self._ver()
+        llamadas = [llamada.args[2] for llamada in
+                    frame._bind_menu.call_args_list
+                    if len(llamada.args) == 3
+                    and llamada.args[1] is frame._leer_reciente]
+        self.assertEqual(llamadas, list(range(1, 11)))
+
+    def test_leer_reciente_delega_en_recientes(self):
+        frame = mock.Mock()
+        gui.YTChatFrame._leer_reciente(frame, 4)
+        frame._recientes.leer.assert_called_once_with(4)
 
 
 if __name__ == "__main__":

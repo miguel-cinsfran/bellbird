@@ -33,6 +33,16 @@ ATAJOS_FIJOS_DEFAULTS = {
     "salir": "alt+f4",
     "region_siguiente": "f6",
     "region_anterior": "shift+f6",
+    "chat_reciente_1": "ctrl+shift+1",
+    "chat_reciente_2": "ctrl+shift+2",
+    "chat_reciente_3": "ctrl+shift+3",
+    "chat_reciente_4": "ctrl+shift+4",
+    "chat_reciente_5": "ctrl+shift+5",
+    "chat_reciente_6": "ctrl+shift+6",
+    "chat_reciente_7": "ctrl+shift+7",
+    "chat_reciente_8": "ctrl+shift+8",
+    "chat_reciente_9": "ctrl+shift+9",
+    "chat_reciente_10": "ctrl+shift+0",
 }
 
 # Acciones cuya tecla NO debe poder cambiarse en el editor de atajos.
@@ -66,12 +76,17 @@ ATAJOS_GRUPOS = [
       "musica_detener", "musica_adelantar", "musica_retroceder"]),
     ("Ventana y navegación (fijos)",
      ["salir", "region_siguiente", "region_anterior"]),
+    ("Mensajes recientes del chat (fijos)",
+     ["chat_reciente_1", "chat_reciente_2", "chat_reciente_3",
+      "chat_reciente_4", "chat_reciente_5", "chat_reciente_6",
+      "chat_reciente_7", "chat_reciente_8", "chat_reciente_9",
+      "chat_reciente_10"]),
 ]
 
 # Modificador obligatorio por acción: reproductor → Ctrl, chat → Alt,
 # ventanas → Ctrl+Shift, directo → Alt+Shift, voz → F.
 # El grupo de atajos fijos no impone modificador.
-_AREA_POR_GRUPO = ("ctrl", "alt", "ctrl+shift", "alt+shift", "f", "ctrl+alt", None)
+_AREA_POR_GRUPO = ("ctrl", "alt", "ctrl+shift", "alt+shift", "f", "ctrl+alt", None, None)
 ATAJOS_AREA = {ac: _AREA_POR_GRUPO[i]
                for i, (_titulo, acs) in enumerate(ATAJOS_GRUPOS) for ac in acs}
 

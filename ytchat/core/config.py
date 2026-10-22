@@ -458,6 +458,7 @@ def cargar_configuracion() -> dict:
         "espera_entre_intentos": _pi(p, "reconexion", "espera_entre_intentos", lo=1),
         "max_intentos": _pi(p, "reconexion", "max_intentos"),
         "formato_prefijo": formato,
+        "lectura_atajos_globales": _pb(p, "lectura", "atajos_globales"),
         "palabras_silenciadas": _lista(_gs(p, "filtros", "palabras_silenciadas")),
         "usuarios_silenciados": _lista(_gs(p, "filtros", "usuarios_silenciados")),
         "limpiar_emojis": _pb(p, "texto", "limpiar_emojis"),

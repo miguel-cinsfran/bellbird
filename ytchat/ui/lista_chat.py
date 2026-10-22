@@ -78,3 +78,19 @@ class ListaChat:
     def limpiar(self) -> None:
         self.todos.clear()
         self.visibles.clear()
+
+
+def texto_reciente(filas, n: int) -> str:
+    """Texto de la fila `n` desde el final, tal como se ve en la lista.
+
+    `filas` es la secuencia de textos de las filas en orden y `n` va de 1
+    a 10: 1 es la última. Con menos de `n` filas dice cuántas hay.
+    """
+    total = len(filas)
+    if total == 0:
+        return "Todavía no hay mensajes en el chat."
+    if n > total:
+        if total == 1:
+            return "El chat tiene 1 mensaje."
+        return f"El chat tiene {total} mensajes."
+    return filas[total - n]

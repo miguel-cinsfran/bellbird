@@ -23,6 +23,7 @@ def aplicar_en_caliente(frame):
     _aplicar_interfaz_y_vista(frame)
     _aplicar_reproductor(frame)
     _aplicar_musica(frame)
+    _aplicar_recientes(frame)
     frame._actualizar_vigilante_obs()
     from ytchat.ui import gui as _gui
     _gui.anunciar("Preferencias aplicadas")
@@ -144,3 +145,10 @@ def _aplicar_musica(frame):
         frame._musica.aplicar_preferencias()
     except Exception as exc:
         logger.debug("aplicar música desde preferencias: %s", exc, exc_info=True)
+
+
+def _aplicar_recientes(frame):
+    try:
+        frame._recientes.aplicar_preferencias()
+    except Exception as exc:
+        logger.debug("aplicar recientes desde preferencias: %s", exc, exc_info=True)

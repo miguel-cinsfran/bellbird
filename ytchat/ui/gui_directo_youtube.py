@@ -27,41 +27,12 @@ from ytchat.youtube.emision import (
     error_de_miniatura,
     etiquetas_de_texto,
     opciones_lista,
+    resultado_directo,
     titulo_por_defecto,
 )
 
 _FILTRO_IMAGENES = ("Imágenes JPG y PNG (*.jpg;*.jpeg;*.png)|"
                     "*.jpg;*.jpeg;*.png")
-
-
-def resultado_directo(titulo, descripcion, privacidad,
-                      latencia=LATENCIA_INICIAL, ninos=False, dvr=True,
-                      categoria="", etiquetas="", miniatura="", lista="",
-                      lista_titulo="") -> dict:
-    """Valida los valores de la ventana y arma el dict del directo.
-
-    Pura y sin ventanas: la usan el diálogo y las pruebas. El título
-    vacío anuncia «Falta el título del directo.» vía excepción, igual
-    que `cuerpo_emision`. La lista de etiquetas la arma
-    `etiquetas_de_texto` a partir del texto separado por comas.
-    """
-    titulo = (titulo or "").strip()
-    if not titulo:
-        raise EmisionError("Falta el título del directo.")
-    if privacidad not in PRIVACIDADES:
-        privacidad = PRIVACIDAD_INICIAL
-    if latencia not in LATENCIAS:
-        latencia = LATENCIA_INICIAL
-    if categoria not in {identificador for identificador, _texto in CATEGORIAS}:
-        categoria = ""
-    lista = (lista or "").strip()
-    lista_titulo = (lista_titulo or "").strip() if lista else ""
-    return {"titulo": titulo[:100], "descripcion": descripcion or "",
-            "privacidad": privacidad, "latencia": latencia,
-            "ninos": bool(ninos), "dvr": bool(dvr), "categoria": categoria,
-            "etiquetas": etiquetas_de_texto(etiquetas),
-            "miniatura": (miniatura or "").strip(),
-            "lista": lista, "lista_titulo": lista_titulo}
 
 
 class DialogoDirectoYoutube(wx.Dialog):

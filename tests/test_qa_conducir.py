@@ -100,7 +100,8 @@ class TestSuperficiesQa(unittest.TestCase):
             self.assertEqual(conducir.SUPERFICIES.get(nombre), "musica")
 
     def test_declara_los_modulos_de_interfaz_de_la_ia(self):
-        for nombre in ("ia_ventana.py", "ia_agregar_captura.py"):
+        for nombre in ("ia_ventana.py", "ia_agregar_captura.py",
+                       "ia_consulta_rapida.py"):
             self.assertEqual(conducir.SUPERFICIES.get(nombre), "ia")
 
 

@@ -58,7 +58,7 @@ ATAJOS_GRUPOS = [
      ["pausa", "detener_tts", "velocidad_menos", "velocidad_mas",
       "volumen_menos", "volumen_mas", "silenciar_lectura",
       "silenciar_sonidos", "anunciar_estado", "anunciar_autor",
-      "describir_escena"]),
+       "describir_escena", "consulta_rapida_ia"]),
     ("Música (Ctrl+Alt)",
      ["musica_play", "musica_siguiente", "musica_anterior",
       "musica_vol_mas", "musica_vol_menos", "musica_que_suena",
@@ -114,6 +114,9 @@ _RE_CTRL_ALT_SHIFT = re.compile(
     re.IGNORECASE)
 _RE_FKEY  = re.compile(r"^f(1[0-2]|[1-9])$", re.IGNORECASE)
 _RE_CTRL_FKEY = re.compile(r"^ctrl\+f(1[0-2]|[1-9])$", re.IGNORECASE)
+_RE_CTRL_SHIFT_FKEY = re.compile(
+    r"^ctrl\+shift\+f(1[0-2]|[1-9])$", re.IGNORECASE)
+_RE_F_TODAS = (_RE_FKEY, _RE_CTRL_FKEY, _RE_CTRL_SHIFT_FKEY)
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -173,17 +176,16 @@ def _normalizar_atajo(valor: str | None) -> str | None:
 def atajo_valido_para_area(accion: str, normalizado: str | None) -> bool:
     """¿El atajo respeta el modificador del área de la acción?
 
-    Reproductor → Ctrl, chat → Alt, voz → tecla F sola o con Ctrl
-    (como Ctrl+F2), música → Ctrl+Alt con flechas, Espacio, una letra o un
-    dígito. Vacío (desactivado) o acción sin área definida se aceptan sin
-    restricción.
+    Reproductor → Ctrl, chat → Alt, voz → tecla F sola, con Ctrl o con
+    Ctrl+Mayús (como Ctrl+F2 o Ctrl+Mayús+F2), música → Ctrl+Alt con
+    flechas, Espacio, una letra o un dígito. Vacío (desactivado) o acción
+    sin área definida se aceptan sin restricción.
     """
     area = ATAJOS_AREA.get(accion)
     if not normalizado or area is None:
         return True
     if area == "f":
-        return bool(_RE_FKEY.match(normalizado)
-                    or _RE_CTRL_FKEY.match(normalizado))
+        return any(patron.match(normalizado) for patron in _RE_F_TODAS)
     # Ctrl+Shift, Ctrl+Alt y Alt+Shift tienen área propia, no las generales.
     if area == "ctrl" and (normalizado.startswith("ctrl+shift+")
                            or normalizado.startswith("ctrl+alt+")):

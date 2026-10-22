@@ -49,6 +49,16 @@ class TestAtajosCaptura(unittest.TestCase):
         self.assertEqual(resultado[0], "rechazado")
         self.assertIn("F1 a F12", resultado[2])
 
+    def test_consulta_rapida_acepta_ctrl_shift_f2(self):
+        self.assertEqual(
+            atajos_captura.ETIQUETAS.get("consulta_rapida_ia"),
+            "Consulta rápida a la IA sobre la escena")
+        resultado = atajos_captura.resolver(
+            "consulta_rapida_ia", "ctrl+shift+f2", {})
+        self.assertEqual(resultado, (
+            "capturado", "ctrl+shift+f2",
+            "Capturado: Ctrl+Mayús+F2. Se aplica al pulsar Guardar."))
+
     def test_choque_con_otra_accion(self):
         resultado = atajos_captura.resolver("rep_play", "ctrl+k", self.valores)
         self.assertEqual(resultado, (

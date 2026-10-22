@@ -4730,6 +4730,38 @@ class TestCopiarEnlaceDirecto(unittest.TestCase):
         self.assertIn(esperado, etiqueta)
         frame._bind_menu.assert_any_call(elemento, gui_menu._abrir_ia, frame)
 
+    def test_item_de_menu_consulta_rapida_enlazado(self):
+        from ytchat.ui import gui_menu
+        frame = mock.Mock()
+        frame._accel.side_effect = (
+            lambda accion: "\tCtrl+Shift+F2" if accion == "consulta_rapida_ia" else "")
+        elementos = []
+
+        def crear_menu():
+            menu = mock.MagicMock()
+
+            def agregar(*args):
+                elemento = mock.Mock()
+                elementos.append((args[-1], elemento))
+                return elemento
+
+            menu.Append.side_effect = agregar
+            menu.AppendRadioItem.side_effect = lambda *args: mock.Mock()
+            menu.AppendCheckItem.side_effect = lambda *args: mock.Mock()
+            return menu
+
+        with mock.patch.object(gui.wx, "Menu", side_effect=crear_menu), \
+                mock.patch.object(gui.wx, "MenuBar"):
+            gui.YTChatFrame._build_menubar(frame)
+        esperado = frame._accel("consulta_rapida_ia")
+        etiqueta, elemento = next(
+            (etiqueta, elemento) for etiqueta, elemento in elementos
+            if "rápida a la IA" in etiqueta)
+        self.assertIn("Consul&ta rápida a la IA", etiqueta)
+        self.assertIn(esperado, etiqueta)
+        frame._bind_menu.assert_any_call(
+            elemento, gui_menu._consulta_rapida, frame)
+
     def test_letras_de_acceso_unicas_en_cada_menu(self):
         # Dos entradas del mismo menú con la misma letra no ejecutan nada:
         # pulsar la letra salta entre las dos. Se recorre la barra y se

@@ -91,6 +91,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("anunciar_estado", "f2"),
         ("anunciar_autor", "f3"),
         ("describir_escena", "ctrl+f2"),
+        ("consulta_rapida_ia", "ctrl+shift+f2"),
         ("musica_play", "ctrl+alt+space"),
         ("musica_siguiente", "ctrl+alt+right"),
         ("musica_anterior", "ctrl+alt+left"),

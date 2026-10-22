@@ -60,10 +60,10 @@ class DialogoMensaje(wx.Dialog):
 
 
 class VentanaIA(wx.Dialog):
-    def __init__(self, padre):
+    def __init__(self, padre, charla=None, descripcion=""):
         super().__init__(padre, title=TITULO, name="VentanaIA")
-        self._charla = conversacion.Conversacion()
-        self._descripcion = ""
+        self._charla = charla if charla is not None else conversacion.Conversacion()
+        self._descripcion = descripcion or ""
         self._n_consulta = 0
         self._en_curso = False
         self._cerrada = False
@@ -361,7 +361,13 @@ class VentanaIA(wx.Dialog):
 
 
 def abrir_ventana(padre):
-    ventana = VentanaIA(padre)
+    from ytchat.ui import ia_consulta_rapida
+    tomada = ia_consulta_rapida.tomar_conversacion(padre)
+    if tomada is None:
+        ventana = VentanaIA(padre)
+    else:
+        charla, descripcion = tomada
+        ventana = VentanaIA(padre, charla, descripcion)
     try:
         ventana.ShowModal()
     finally:

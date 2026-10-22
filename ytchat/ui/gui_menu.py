@@ -25,11 +25,9 @@ def construir_menu(frame):
     m = wx.Menu()
     frame.mi_conectar = m.Append(wx.ID_ANY, "&Conectar" + frame._accel("conectar"))
     frame.mi_desconectar = m.Append(wx.ID_ANY, "&Desconectar" + frame._accel("desconectar"))
-    frame.mi_copiar_enlace = m.Append(
-        wx.ID_ANY, "Copiar &enlace del directo" + frame._accel("copiar_enlace"))
+    frame.mi_copiar_enlace = m.Append(wx.ID_ANY, "Copiar &enlace del directo" + frame._accel("copiar_enlace"))
     m.AppendSeparator()
-    mi_historial = m.Append(
-        wx.ID_ANY, "&Historial de directos…" + frame._accel("abrir_historial"))
+    mi_historial = m.Append(wx.ID_ANY, "&Historial de directos…" + frame._accel("abrir_historial"))
     m.AppendSeparator()
     mi_salir = m.Append(wx.ID_EXIT, "&Salir\tAlt+F4")
     mb.Append(m, "&Archivo")
@@ -54,6 +52,7 @@ def construir_menu(frame):
     mi_autor = m.Append(wx.ID_ANY, "Anunciar a&utor del último mensaje" + frame._accel("anunciar_autor"))
     mi_escena = m.Append(wx.ID_ANY, "Describir la escena de &OBS" + frame._accel("describir_escena"))
     mi_ia = m.Append(wx.ID_ANY, "Preguntar a la &IA sobre la imagen…" + frame._accel("preguntar_ia"))
+    mi_rapida = m.Append(wx.ID_ANY, "Consul&ta rápida a la IA" + frame._accel("consulta_rapida_ia"))
     mb.Append(m, "&Ver")
     frame.Bind(wx.EVT_MENU, lambda e: frame._navegar_region(+1), mi_sig)
     frame.Bind(wx.EVT_MENU, lambda e: frame._navegar_region(-1), mi_ant)
@@ -66,6 +65,7 @@ def construir_menu(frame):
     frame._bind_menu(mi_autor, frame._anunciar_autor)
     frame._bind_menu(mi_escena, frame._describir_escena)
     frame._bind_menu(mi_ia, _abrir_ia, frame)
+    frame._bind_menu(mi_rapida, _consulta_rapida, frame)
     # De «Ver», solo tiene sentido con conexión la navegación por paneles;
     # «Ir a conexión (URL)» y «Anunciar estado» quedan siempre disponibles.
     frame._mi_ver_conexion = [mi_sig, mi_ant, mi_lista, mi_chat, mi_com, mi_rep]
@@ -227,6 +227,11 @@ def construir_menu(frame):
 def _abrir_ia(frame):
     from ytchat.ui import ia_ventana
     ia_ventana.abrir_ventana(frame)
+
+
+def _consulta_rapida(frame):
+    from ytchat.ui import ia_consulta_rapida
+    ia_consulta_rapida.consultar(frame)
 
 
 def _construir_menu_musica(frame, mb):

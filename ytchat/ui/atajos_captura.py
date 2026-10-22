@@ -49,7 +49,7 @@ _AREA_AYUDA = {
     "ctrl+shift": "Debe ser Ctrl+Mayús y una tecla (por ejemplo Ctrl+Mayús+P).",
     "alt+shift": "Debe ser Alt+Mayús y una tecla (por ejemplo Alt+Mayús+C).",
     "ctrl+alt": "Debe ser Ctrl+Alt y una flecha, Espacio, una letra o un número, o Ctrl+Alt+Mayús y Flecha izquierda o derecha (por ejemplo Ctrl+Alt+T).",
-    "f": "Debe ser una tecla de función, de F1 a F12, sola o con Ctrl (por ejemplo F2 o Ctrl+F2).",
+    "f": "Debe ser una tecla de función, de F1 a F12, sola, con Ctrl o con Ctrl+Mayús (por ejemplo F2 o Ctrl+F2).",
 }
 ETIQUETAS = {
     # Reproductor
@@ -82,6 +82,7 @@ ETIQUETAS = {
     "silenciar_sonidos": "Silenciar sonidos", "anunciar_estado": "Anunciar estado",
     "anunciar_autor": "Anunciar autor del último mensaje",
     "describir_escena": "Describir la escena de OBS",
+    "consulta_rapida_ia": "Consulta rápida a la IA sobre la escena",
     "region_siguiente": "Región siguiente", "region_anterior": "Región anterior",
     # Música (Ctrl+Alt)
     "musica_play": "Reproducir o pausar la música",

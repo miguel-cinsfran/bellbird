@@ -159,6 +159,23 @@ class TestAreasAtajo(unittest.TestCase):
                         self.assertFalse(
                             atajo_valido_para_area("accion", normalizado))
 
+    def test_consulta_rapida_acepta_ctrl_shift_f2(self):
+        self.assertEqual(ATAJOS_AREA.get("consulta_rapida_ia"), "f")
+        self.assertEqual(ATAJOS_DEFAULTS.get("consulta_rapida_ia"),
+                         "ctrl+shift+f2")
+        self.assertTrue(atajo_valido_para_area(
+            "consulta_rapida_ia", "ctrl+shift+f2"))
+
+    def test_consulta_rapida_rechaza_ctrl_shift_letra(self):
+        self.assertFalse(atajo_valido_para_area(
+            "consulta_rapida_ia", "ctrl+shift+a"))
+
+    def test_describir_escena_queda_igual(self):
+        self.assertTrue(atajo_valido_para_area(
+            "describir_escena", "ctrl+f2"))
+        self.assertFalse(atajo_valido_para_area(
+            "describir_escena", "alt+e"))
+
 
 class TestParsearAtajos(unittest.TestCase):
 
@@ -241,7 +258,7 @@ class TestParsearAtajos(unittest.TestCase):
                 self.assertIn(accion, ATAJOS_FIJOS_DEFAULTS)
                 continue
             if area == "f":
-                self.assertRegex(normalizado, r"^(ctrl\+)?f(1[0-2]|[1-9])$")
+                self.assertRegex(normalizado, r"^(ctrl\+(shift\+)?)?f(1[0-2]|[1-9])$")
             else:
                 self.assertTrue(normalizado.startswith(area + "+"))
         self.assertEqual(set(ATAJOS_FIJOS_DEFAULTS) | {
@@ -315,6 +332,7 @@ class TestParsearAtajos(unittest.TestCase):
                 ("copiar_enlace", "alt+shift+e", "alt+shift"),
                 ("anunciar_autor", "f3", "f"),
                 ("describir_escena", "ctrl+f2", "f"),
+                ("consulta_rapida_ia", "ctrl+shift+f2", "f"),
                 ("obs_micro", "alt+shift+m", "alt+shift"),
                 ("avisos_sobrecarga", "alt+shift+a", "alt+shift"),
                 ("musica_ventana", "ctrl+shift+m", "ctrl+shift"),
@@ -366,6 +384,7 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertIn('._accel("copiar_enlace")', fuente)
         self.assertIn('._accel("anunciar_autor")', fuente)
         self.assertIn('._accel("describir_escena")', fuente)
+        self.assertIn('._accel("consulta_rapida_ia")', fuente)
         self.assertIn('._accel("obs_micro")', fuente)
         self.assertIn('._accel("avisos_sobrecarga")', fuente)
         self.assertIn('._accel("musica_play")', fuente)

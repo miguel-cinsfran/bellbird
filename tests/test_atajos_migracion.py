@@ -123,6 +123,21 @@ class TestCargaReal(unittest.TestCase):
             crudo = {clave: valor for clave, valor in p.items("atajos")}
             self.assertEqual(config.detectar_conflictos_atajos(crudo), [])
 
+    def test_ini_sin_consulta_rapida_recibe_la_de_fabrica(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            carpeta = Path(tmp)
+            (carpeta / "config.ini").write_text(
+                "[atajos]\npausa = f5\n"
+                "[sesion]\nversion_atajos = 2\n",
+                encoding="utf-8")
+            with redirigir_rutas(carpeta):
+                config.cargar_configuracion()
+            p = config._mk_parser()
+            p.read(carpeta / "config.ini", encoding="utf-8")
+            self.assertEqual(
+                p.get("atajos", "consulta_rapida_ia").strip(),
+                "ctrl+shift+f2")
+
 
 class TestGramatica(unittest.TestCase):
 

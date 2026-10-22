@@ -77,14 +77,20 @@ class AtajosGlobales:
     """Registra los atajos de música en todo el sistema con una ventana.
 
     `acciones` es un dict `{acción: función}` con lo mismo que llama el
-    menú de música. Nunca lanza: registrar o soltar puede fallar (otro
-    programa tiene la combinación, la ventana se cerró) y se informa con
-    el valor devuelto, no con excepciones.
+    menú de música. `orden` fija qué acciones se registran y en qué orden
+    (el índice da el id desde `base_ids`); `traducir` convierte el texto
+    del atajo en `(modificadores, código virtual)`. Nunca lanza: registrar
+    o soltar puede fallar (otro programa tiene la combinación, la ventana
+    se cerró) y se informa con el valor devuelto, no con excepciones.
     """
 
-    def __init__(self, ventana, acciones: dict) -> None:
+    def __init__(self, ventana, acciones: dict, orden=None,
+                 base_ids=None, traducir=None) -> None:
         self._ventana = ventana
         self._acciones = dict(acciones)
+        self._orden = tuple(orden) if orden is not None else ACCIONES
+        self._base_ids = BASE_IDS if base_ids is None else base_ids
+        self._traducir = combinacion_windows if traducir is None else traducir
         self._registrados: dict[str, tuple[int, object]] = {}
 
     @property
@@ -102,7 +108,7 @@ class AtajosGlobales:
         """
         self.desactivar()
         fallidos: list[str] = []
-        for indice, accion in enumerate(ACCIONES):
+        for indice, accion in enumerate(self._orden):
             funcion = self._acciones.get(accion)
             if funcion is None:
                 continue
@@ -110,11 +116,11 @@ class AtajosGlobales:
             valor = getattr(valor, "texto", valor)
             if not valor:
                 continue
-            combo = combinacion_windows(valor)
+            combo = self._traducir(valor)
             if combo is None:
                 continue
             mods, vk = combo
-            ident = BASE_IDS + indice
+            ident = self._base_ids + indice
             try:
                 registrado = self._ventana.RegisterHotKey(ident, mods, vk)
             except Exception:

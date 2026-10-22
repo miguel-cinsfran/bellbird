@@ -138,6 +138,32 @@ les suma un tono corto generado. Respaldan `config.ini`, la carpeta de
 listas, `musica_estado.json` y `etiquetas_musica.json`, y al terminar los
 deja byte a byte como estaban. Corre en la PC donde no hay nadie.
 
+## Prueba real de la IA
+
+`qa/ia_real.py` pregunta de verdad al proveedor configurado en la PC:
+arma en OBS la escena conocida (las dos ventanas de color de
+`directo_real` sobre el panel de chat), manda Ctrl+Mayús+F2, abre
+«Preguntar a la IA» con Ctrl+Mayús+I y hace dos preguntas de
+seguimiento sobre la misma escena y una tercera después de «Agregar
+captura». Comprueba que cada respuesta llega, no es un error y nombra
+lo que hay. No entra en la corrida completa ni en ningún hook: gasta
+consultas del proveedor y manda teclas de verdad, así que corre en la
+PC donde nadie está, con el escritorio real.
+
+    python qa/ia_real.py
+    python qa/ia_real.py --help
+
+Usa la configuración y la clave que ya tiene esa PC, sin cambiarlas y
+sin mostrar la clave. Sin proveedor, modelo o clave se niega a correr;
+con OpenRouter solo admite modelos gratis (terminados en «:free»). Si
+sale el aviso de privacidad, lo cierra con No y termina: hay que
+aceptarlo una vez a mano. Al terminar o al fallar desarma la escena y
+deja OBS como estaba. La salida queda reescrita en
+`qa/salida/ia-real.txt`: fecha, proveedor y modelo, por paso la
+pregunta, la respuesta completa, los segundos y si pasó, y un resumen
+con la cantidad de pasos y de fallos. Sale con 0 si todo pasó, 1 si
+algo falló y 2 si se negó a correr.
+
 ## Cómo funciona
 
 Son dos piezas.

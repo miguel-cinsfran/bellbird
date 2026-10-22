@@ -13,6 +13,7 @@ from ytchat.ui import gui_comentarios
 from ytchat.ui import gui_preferencias
 from ytchat.ui import preferencias_ia
 from ytchat.ui import preferencias_ia_clave
+from ytchat.ui import preferencias_ia_lista
 from ytchat.ui import preferencias_musica
 from ytchat.ui import preferencias_programados
 from ytchat.voice import motores
@@ -2349,8 +2350,9 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
             self._indice_proveedor("gemini"))
         dialogo._on_ia_proveedor(None)
         with mock.patch.object(preferencias_ia._snd, "reproducir"), \
-                mock.patch.object(preferencias_ia, "anunciar") as anunciar:
-            dialogo._ia_actualizacion_lista(muestra)
+                mock.patch.object(preferencias_ia_lista,
+                                  "anunciar") as anunciar:
+            dialogo.ia_lista.recibir(muestra)
         anunciar.assert_called_once_with(
             opciones_ia.TEXTO_LISTA_ACTUALIZADA.format(
                 n=2, proveedor="Google Gemini"))
@@ -2362,8 +2364,9 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
             self._indice_proveedor("otro"))
         dialogo._on_ia_proveedor(None)
         with mock.patch.object(preferencias_ia._snd, "reproducir"), \
-                mock.patch.object(preferencias_ia, "anunciar") as anunciar:
-            dialogo._ia_actualizacion_lista(muestra)
+                mock.patch.object(preferencias_ia_lista,
+                                  "anunciar") as anunciar:
+            dialogo.ia_lista.recibir(muestra)
         anunciar.assert_called_once_with(
             opciones_ia.TEXTO_LISTA_ACTUALIZADA_SIN_PROVEEDOR)
 
@@ -2421,7 +2424,8 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
                                   side_effect=lambda f, *a: f(*a)), \
                 mock.patch.object(preferencias_ia._snd,
                                   "reproducir") as sonar, \
-                mock.patch.object(preferencias_ia, "anunciar") as anunciar:
+                mock.patch.object(preferencias_ia_lista,
+                                  "anunciar") as anunciar:
             boton = dialogo.btn_ia_actualizar
             boton.GetEventHandler().ProcessEvent(self._evento_boton(boton))
         return llamada, sonar, anunciar

@@ -9,24 +9,21 @@ config.ini; los otros siete valores van a la sección [ia] por
 
 from __future__ import annotations
 
-from datetime import datetime
-
 import wx
 
 from ytchat.ai import ajustes_ia
 from ytchat.ai import catalogo
-from ytchat.ai import claves
 from ytchat.ai import consulta
 from ytchat.ai import conversacion
 from ytchat.ai import envio_ia
 from ytchat.ai import opciones_ia
-from ytchat.ai import protocolos
 from ytchat.ai import proveedores
 from ytchat.ai import sondeo_gratis
 from ytchat.core import diagnostico
 from ytchat.core import paths
 from ytchat.ui.gui import ContadorAccesible, anunciar
 from ytchat.ui.preferencias_ia_clave import SeccionClaveIA
+from ytchat.ui.preferencias_ia_lista import ActualizacionModelosIA
 from ytchat.voice import sound_player as _snd
 
 logger = diagnostico.obtener_logger(__name__)
@@ -57,6 +54,9 @@ class PaginaIA:
         self._ia_proveedor(p, vs)
         self._ia_clave(p, vs)
         self._ia_modelo(p, vs)
+        self.ia_lista = ActualizacionModelosIA(
+            self.btn_ia_actualizar, self._ia_proveedor_actual,
+            self._ia_lista_recibida)
         self._ia_pregunta(p, vs)
         self._ia_largo(p, vs)
         self._ia_mostrar_condicionales()
@@ -120,7 +120,6 @@ class PaginaIA:
             p, label="&Actualizar la lista de modelos",
             name="ActualizarModelosIA")
         vs.Add(self.btn_ia_actualizar, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-        self.btn_ia_actualizar.Bind(wx.EVT_BUTTON, self._on_ia_actualizar)
         vs.Add(self._fila_label(p, "&Otro modelo"),
                0, wx.LEFT | wx.RIGHT, 10)
         self.txt_ia_otro = wx.TextCtrl(p, value="", name="OtroModeloIA")
@@ -302,78 +301,18 @@ class PaginaIA:
         _snd.reproducir("ia_respuesta" if bien else "ia_error")
         anunciar(texto)
 
-    def _on_ia_actualizar(self, event):
-        self.btn_ia_actualizar.Disable()
-        anunciar(opciones_ia.TEXTO_ACTUALIZANDO)
-        proveedor = self._ia_proveedor_actual()
-        diagnostico.crear_hilo(
-            lambda: self._ia_actualizar_en_hilo(proveedor),
-            "ActualizarModelosIA").start()
-
-    def _ia_actualizar_en_hilo(self, proveedor):
-        # La red nunca corre en el hilo de la interfaz.
-        try:
-            muestra = catalogo.descargar(
-                paths.catalogo_ia(), datetime.now().isoformat())
-        except Exception as exc:
-            logger.warning("IA: no se pudo actualizar el catálogo: %s", exc)
-            wx.CallAfter(self._ia_actualizacion_lista, None)
-            return
-        resultados = self._ia_sondear(proveedor, muestra)
-        wx.CallAfter(self._ia_actualizacion_lista, muestra, resultados,
-                     proveedor)
-
-    def _ia_sondear(self, proveedor, muestra):
-        if not proveedor.gratis_por_clave:
-            return None
-        try:
-            clave = claves.leer(proveedor.id) or ""
-        except Exception as exc:
-            logger.warning("IA: sin clave guardada para sondear: %s", exc)
-            return None
-        if not clave:
-            return None
-        resultados = sondeo_gratis.sondear(
-            proveedor, muestra, clave, envio_ia.enviar, 20)
-        sondeo_gratis.guardar(
-            paths.gratis_ia(), proveedor.id,
-            sondeo_gratis.marcas(resultados), datetime.now().isoformat())
-        return resultados
-
-    def _ia_actualizacion_lista(self, muestra, resultados=None,
-                                proveedor=None):
+    def _ia_lista_recibida(self, muestra, marcas, proveedor):
         if not self:   # el diálogo pudo cerrarse mientras se descargaba
-            return
-        self.btn_ia_actualizar.Enable()
-        if muestra is None:
-            _snd.reproducir("ia_error")
-            anunciar(opciones_ia.TEXTO_LISTA_FALLO)
-            return
+            return None
         self._ia_muestra = muestra
-        self._ia_leer_marcas()
+        if self._ia_proveedor_actual().id == proveedor.id:
+            self._ia_marcas = marcas
+        else:
+            self._ia_leer_marcas()
         self._ia_mostrar_condicionales()
         self._ia_refrescar_modelos()
         self._ia_actualizar_aviso()
-        actual = proveedor or self._ia_proveedor_actual()
-        if resultados is not None:
-            self._ia_anunciar_sondeo(actual, muestra, resultados)
-            return
-        _snd.reproducir("ia_respuesta")
-        if actual.id_catalogo is None:
-            anunciar(opciones_ia.TEXTO_LISTA_ACTUALIZADA_SIN_PROVEEDOR)
-        else:
-            anunciar(opciones_ia.TEXTO_LISTA_ACTUALIZADA.format(
-                n=len(self._ia_filas()), proveedor=actual.nombre))
-
-    def _ia_anunciar_sondeo(self, proveedor, muestra, resultados):
-        if sondeo_gratis.CLAVE_MALA in resultados.values():
-            _snd.reproducir("ia_error")
-            anunciar(consulta.texto_de_error(
-                protocolos.ErrorIA(protocolos.CLAVE_RECHAZADA)))
-            return
-        n = len(catalogo.modelos(muestra, proveedor.id_catalogo))
-        _snd.reproducir("ia_respuesta")
-        anunciar(opciones_ia.resumen_sondeo(resultados, n, proveedor.nombre))
+        return len(self._ia_filas())
 
     def _ia_ajustes_de_controles(self):
         actuales = ajustes_ia.leer(self._ruta)

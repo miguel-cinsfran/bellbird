@@ -50,13 +50,13 @@ def salidas_audio() -> list[tuple[str, str]]:
         if lista is not None:
             try:
                 vlc.libvlc_audio_output_device_list_release(lista)
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.debug("No se pudo liberar la lista de salidas de audio: %s", exc)
         if reproductor is not None:
             try:
                 reproductor.release()
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.debug("No se pudo liberar el reproductor temporal: %s", exc)
 
 
 def _texto(valor) -> str:
@@ -89,8 +89,8 @@ def leer_etiquetas_vlc(ruta, plazo_ms=1500) -> dict:
         try:
             gestor = media.event_manager()
             gestor.event_attach(vlc.EventType.MediaParsedChanged, al_parsear)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("No se pudo escuchar el fin del parseo de etiquetas: %s", exc)
         if media.parse_with_options(vlc.MediaParseFlag.local, plazo_ms) == -1:
             return {}
         if not listo.wait(plazo_ms / 1000):
@@ -104,8 +104,8 @@ def leer_etiquetas_vlc(ruta, plazo_ms=1500) -> dict:
     finally:
         try:
             media.release()
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("No se pudo liberar el medio de etiquetas: %s", exc)
     return {
         "titulo": _titulo_real(titulo, ruta),
         "artista": artista or "",

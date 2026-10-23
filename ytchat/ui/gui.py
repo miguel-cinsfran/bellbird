@@ -702,7 +702,7 @@ class YTChatFrame(wx.Frame):
         self.sb = self.CreateStatusBar(7, name="BarraEstado")
         # (Sin fondo: la barra de estado nativa lo ignora.)
         _pintar(self.sb, fg=_T.dim)
-        self.sb.SetStatusWidths([-3, -1, -3, -1, -1, -1, -2])
+        self.sb.SetStatusWidths([-3, -1, -3, -1, -1, -2, -2])
         self._actualizar_sb()
         self._set_conectado_ui(False)   # estado inicial: desconectado
 

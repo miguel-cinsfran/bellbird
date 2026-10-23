@@ -36,6 +36,13 @@ _FILTRO_IMAGENES = ("Imágenes JPG y PNG (*.jpg;*.jpeg;*.png)|"
                     "*.jpg;*.jpeg;*.png")
 
 
+def ancho_con_barra(ancho, alto_necesario, alto_maximo, ancho_barra):
+    """Ancho con margen para la barra vertical si el contenido no cabe."""
+    if alto_necesario > alto_maximo:
+        return ancho + ancho_barra
+    return ancho
+
+
 class DialogoDirectoYoutube(wx.Dialog):
     def __init__(self, padre, titulo="", descripcion="",
                  privacidad=PRIVACIDAD_INICIAL, revision=None,
@@ -112,6 +119,13 @@ class DialogoDirectoYoutube(wx.Dialog):
             alto_area = 700
         alto_maximo = min(700, alto_area)
         piso = min(300, alto_maximo)
+        try:
+            ancho_barra = wx.SystemSettings.GetMetric(wx.SYS_VSCROLL_X)
+        except Exception:
+            ancho_barra = 0
+        ancho = ancho_con_barra(
+            ancho, alto_contenido + alto_pie + delta, alto_maximo,
+            ancho_barra)
         zona.FitInside()
         self.SetSize((ancho, max(min(alto_contenido + alto_pie + delta,
                                      alto_maximo), piso)))

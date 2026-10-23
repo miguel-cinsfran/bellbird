@@ -99,7 +99,7 @@ ETIQUETAS = {
     "estado":             "Estado de conexión y tipo",
     "titulo":             "Título del vídeo o directo",
     "canal":              "Canal o autor",
-    "espectadores":       "Espectadores ahora",
+    "espectadores":       "Espectadores ahora y en total",
     "tiempo_directo":     "Tiempo que lleva el directo",
     "desfase_directo":    "Cuánto por detrás del directo va el reproductor",
     "mensajes_leidos":    "Mensajes leídos",

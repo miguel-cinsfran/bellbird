@@ -351,6 +351,13 @@ class TestEspectadoresConTotal(unittest.TestCase):
                          "Vista: 1")
 
 
+class TestEtiquetaEspectadores(unittest.TestCase):
+
+    def test_casilla_dice_ahora_y_en_total(self):
+        self.assertEqual(ETIQUETAS["espectadores"],
+                         "Espectadores ahora y en total")
+
+
 class TestRamasSinCubrir(unittest.TestCase):
     """Caracterización de las ramas que la cobertura del 16/10/2026 mostró
     sin ejecutar en _render: se fijan contra el código de hoy."""

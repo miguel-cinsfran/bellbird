@@ -116,7 +116,8 @@ class TestDialogoAgregarCapturaVentana(unittest.TestCase):
     def test_negra_no_cierra_anuncia_y_vuelve(self):
         dialogo = self._dialogo()
         opcion = dialogo._opcion_elegida()
-        captura = obs_captura_ia.Captura(b"x", 320, 180, True)
+        captura = obs_captura_ia.Captura(b"x", 320, 180, True, "sin_elegir",
+                                         "Cámara")
         with mock.patch.object(dialogo, "EndModal") as fin, \
                 mock.patch.object(agregar, "anunciar") as anunciar, \
                 mock.patch.object(agregar, "reproducir") as sonar, \
@@ -124,7 +125,8 @@ class TestDialogoAgregarCapturaVentana(unittest.TestCase):
                                   return_value=captura):
             dialogo._al_capturar(mock.Mock())
         fin.assert_not_called()
-        anunciar.assert_called_once_with(agregar.texto_negra(opcion.etiqueta))
+        anunciar.assert_called_once_with(
+            agregar.texto_negra(opcion.etiqueta, "sin_elegir", "Cámara"))
         sonar.assert_called_once_with("ia_imagen_negra")
         self.assertIsNone(dialogo.resultado)
         self.assertTrue(dialogo.btn_capturar.IsEnabled())

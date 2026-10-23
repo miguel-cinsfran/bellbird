@@ -50,7 +50,8 @@ class Doble:
 
     def __init__(self, escena="Juego", base=(1600, 900), elementos=(),
                  entradas=ENTRADAS, jpeg=b"JPEG",
-                 bmp=None, falla_bmp=False, falla_principal=False):
+                 bmp=None, falla_bmp=False, falla_principal=False,
+                 ajustes=None, falla_ajustes=False):
         self.escena = escena
         self.base = base
         self.elementos = list(elementos)
@@ -61,6 +62,8 @@ class Doble:
         self.bmp_dato = dato_imagen(bmp, "bmp")
         self.falla_bmp = falla_bmp
         self.falla_principal = falla_principal
+        self.ajustes = dict(ajustes or {})
+        self.falla_ajustes = falla_ajustes
         self.llamadas = []
 
     def pedir(self, tipo, datos=None, parada=None):
@@ -74,6 +77,12 @@ class Doble:
             return {"responseData": {"sceneItems": list(self.elementos)}}
         if tipo == "GetInputList":
             return {"responseData": {"inputs": list(self.entradas)}}
+        if tipo == "GetInputSettings":
+            if self.falla_ajustes:
+                raise obs_cliente.ObsError("sin ajustes")
+            nombre = (datos or {}).get("inputName", "")
+            return {"responseData": {
+                "inputSettings": dict(self.ajustes.get(nombre, {}))}}
         if tipo == "GetSourceScreenshot":
             if (datos or {}).get("imageFormat") == "jpg":
                 if self.falla_principal:
@@ -87,6 +96,9 @@ class Doble:
     def capturas(self):
         return [datos for (tipo, datos) in self.llamadas
                 if tipo == "GetSourceScreenshot"]
+
+    def tipos(self):
+        return [tipo for (tipo, _datos) in self.llamadas]
 
 
 class TestOpciones(unittest.TestCase):
@@ -224,6 +236,163 @@ class TestCapturar(unittest.TestCase):
             doble, OpcionCaptura("X", "Equis", 0, 0))
         self.assertEqual(doble.capturas()[0]["imageWidth"], 1280)
         self.assertEqual(captura.ancho, 1280)
+
+
+class TestSinElegir(unittest.TestCase):
+    def test_monitor_sin_pantalla(self):
+        self.assertTrue(obs_captura_ia.sin_elegir("monitor_capture", {}))
+        self.assertTrue(
+            obs_captura_ia.sin_elegir("monitor_capture", {"method": 2}))
+        self.assertTrue(obs_captura_ia.sin_elegir(
+            "monitor_capture", {"monitor_id": ""}))
+        self.assertTrue(obs_captura_ia.sin_elegir(
+            "monitor_capture", {"monitor_id": "DUMMY"}))
+
+    def test_monitor_con_pantalla(self):
+        self.assertFalse(obs_captura_ia.sin_elegir(
+            "monitor_capture", {"monitor_id": "1"}))
+        self.assertFalse(obs_captura_ia.sin_elegir(
+            "monitor_capture", {"monitor_id": 0, "method": 2}))
+
+    def test_ventana(self):
+        self.assertTrue(obs_captura_ia.sin_elegir("window_capture", {}))
+        self.assertTrue(
+            obs_captura_ia.sin_elegir("window_capture", {"window": ""}))
+        self.assertFalse(obs_captura_ia.sin_elegir(
+            "window_capture", {"window": "notepad.exe"}))
+
+    def test_juego(self):
+        self.assertTrue(obs_captura_ia.sin_elegir(
+            "game_capture", {"capture_mode": "window"}))
+        self.assertTrue(obs_captura_ia.sin_elegir(
+            "game_capture", {"capture_mode": "window", "window": ""}))
+        self.assertFalse(obs_captura_ia.sin_elegir(
+            "game_capture",
+            {"capture_mode": "window", "window": "juego.exe"}))
+        self.assertFalse(obs_captura_ia.sin_elegir(
+            "game_capture", {"capture_mode": "any_fullscreen"}))
+        self.assertFalse(obs_captura_ia.sin_elegir("game_capture", {}))
+
+    def test_camara(self):
+        self.assertTrue(obs_captura_ia.sin_elegir("dshow_input", {}))
+        self.assertTrue(obs_captura_ia.sin_elegir(
+            "dshow_input", {"video_device_id": ""}))
+        self.assertFalse(obs_captura_ia.sin_elegir(
+            "dshow_input", {"video_device_id": "camara 1"}))
+
+    def test_clase_ajena(self):
+        self.assertFalse(obs_captura_ia.sin_elegir("browser_source", {}))
+        self.assertFalse(obs_captura_ia.sin_elegir("v4l2_input", {}))
+
+
+class TestMotivoNegra(unittest.TestCase):
+    def test_solo_navegador_da_sin_fuente(self):
+        self.assertEqual(
+            obs_captura_ia.motivo_negra([("Chat", "browser_source")], {}),
+            ("sin_fuente", ""))
+
+    def test_sin_elementos_da_sin_fuente(self):
+        self.assertEqual(obs_captura_ia.motivo_negra([], {}),
+                         ("sin_fuente", ""))
+
+    def test_captura_elegida_mas_navegador_da_vacio(self):
+        pares = [("Pantalla", "monitor_capture"), ("Chat", "browser_source")]
+        self.assertEqual(
+            obs_captura_ia.motivo_negra(
+                pares, {"Pantalla": {"monitor_id": "1"}}),
+            ("", ""))
+
+    def test_primera_sin_elegir_la_nombra(self):
+        pares = [("Pantalla", "monitor_capture"), ("Chat", "browser_source")]
+        self.assertEqual(
+            obs_captura_ia.motivo_negra(pares, {"Pantalla": {"method": 2}}),
+            ("sin_elegir", "Pantalla"))
+
+    def test_dos_capturas_nombra_la_segunda_sin_elegir(self):
+        pares = [("Pantalla", "monitor_capture"),
+                 ("Ventana", "window_capture")]
+        ajustes = {"Pantalla": {"monitor_id": "0"}, "Ventana": {}}
+        self.assertEqual(
+            obs_captura_ia.motivo_negra(pares, ajustes),
+            ("sin_elegir", "Ventana"))
+
+
+class TestCapturarMotivo(unittest.TestCase):
+    def _opcion_escena(self, escena):
+        return OpcionCaptura(escena, f"Escena al aire: {escena}", 1600, 900)
+
+    def test_negra_solo_navegador_da_sin_fuente(self):
+        doble = Doble(
+            escena="Escena",
+            elementos=(elemento("Chat YTChat", 1),),
+            entradas=({"inputName": "Chat YTChat",
+                       "inputKind": "browser_source"},))
+        captura = obs_captura_ia.capturar(
+            doble, self._opcion_escena("Escena"))
+        self.assertTrue(captura.negra)
+        self.assertEqual(
+            (captura.motivo, captura.fuente_motivo), ("sin_fuente", ""))
+        self.assertEqual(captura.jpeg, b"JPEG")
+
+    def test_negra_monitor_sin_pantalla_da_sin_elegir(self):
+        doble = Doble(
+            escena="Escena",
+            elementos=(elemento("Pantalla", 1),),
+            entradas=({"inputName": "Pantalla",
+                       "inputKind": "monitor_capture"},),
+            ajustes={"Pantalla": {"method": 2}})
+        captura = obs_captura_ia.capturar(
+            doble, self._opcion_escena("Escena"))
+        self.assertTrue(captura.negra)
+        self.assertEqual(
+            (captura.motivo, captura.fuente_motivo),
+            ("sin_elegir", "Pantalla"))
+
+    def test_negra_de_fuente_usa_solo_ese_elemento(self):
+        doble = Doble(
+            escena="Escena",
+            elementos=(elemento("Pantalla", 2), elemento("Chat", 1)),
+            entradas=({"inputName": "Pantalla",
+                       "inputKind": "monitor_capture"},
+                      {"inputName": "Chat",
+                       "inputKind": "browser_source"}),
+            ajustes={"Pantalla": {"method": 2}})
+        captura = obs_captura_ia.capturar(
+            doble, OpcionCaptura("Pantalla", "Pantalla", 640, 360))
+        self.assertTrue(captura.negra)
+        self.assertEqual(
+            (captura.motivo, captura.fuente_motivo),
+            ("sin_elegir", "Pantalla"))
+
+    def test_con_luz_no_pide_escena_ni_ajustes(self):
+        blancos = [(x, 0) for x in range(40)]
+        doble = Doble(
+            escena="Escena",
+            elementos=(elemento("Pantalla", 1),),
+            entradas=({"inputName": "Pantalla",
+                       "inputKind": "monitor_capture"},),
+            bmp=armar_bmp(50, 40, blancos))
+        captura = obs_captura_ia.capturar(
+            doble, self._opcion_escena("Escena"))
+        self.assertFalse(captura.negra)
+        self.assertEqual(
+            (captura.motivo, captura.fuente_motivo), ("", ""))
+        self.assertNotIn("GetSceneItemList", doble.tipos())
+        self.assertNotIn("GetInputSettings", doble.tipos())
+
+    def test_ajustes_fallan_deja_motivo_vacio(self):
+        doble = Doble(
+            escena="Escena",
+            elementos=(elemento("Pantalla", 1),),
+            entradas=({"inputName": "Pantalla",
+                       "inputKind": "monitor_capture"},),
+            falla_ajustes=True)
+        captura = obs_captura_ia.capturar(
+            doble, self._opcion_escena("Escena"))
+        self.assertTrue(captura.negra)
+        self.assertEqual(
+            (captura.motivo, captura.fuente_motivo), ("", ""))
+        self.assertEqual(captura.jpeg, b"JPEG")
 
 
 class TestVistaPrevia(unittest.TestCase):

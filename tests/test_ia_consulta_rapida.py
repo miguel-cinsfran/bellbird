@@ -88,7 +88,8 @@ class TestConsultaRapida(unittest.TestCase):
     def _aplicar_dobles(self):
         self.opcion = SimpleNamespace(
             fuente="Escena", etiqueta="Escena al aire: Juego")
-        self.captura = SimpleNamespace(jpeg=b"jpg-falso", negra=False)
+        self.captura = SimpleNamespace(jpeg=b"jpg-falso", negra=False,
+                                       motivo="", fuente_motivo="")
         self.m_cliente = mock.Mock()
         self.m_gestor = mock.Mock()
         self.m_gestor.descripcion_escena.return_value = (
@@ -178,13 +179,15 @@ class TestConsultaRapida(unittest.TestCase):
 
     def test_captura_negra_no_envia(self):
         self.captura.negra = True
+        self.captura.motivo = "sin_fuente"
         with mock.patch.object(rapida.envio_ia, "enviar") as envio, \
                 mock.patch.object(rapida.ia_privacidad,
                                    "confirmar") as confirmar:
             rapida.consultar(self.marco)
         self.m_anunciar.assert_called_once_with(
-            rapida.ia_agregar_captura.texto_negra("Escena al aire: Juego"))
-        self.m_sonar.assert_called_once_with("ia_error")
+            rapida.ia_agregar_captura.texto_negra(
+                "Escena al aire: Juego", "sin_fuente", ""))
+        self.m_sonar.assert_called_once_with("ia_imagen_negra")
         envio.assert_not_called()
         confirmar.assert_not_called()
         self.assertFalse(self._instancia()._en_curso)

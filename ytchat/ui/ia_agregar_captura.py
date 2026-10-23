@@ -30,8 +30,17 @@ ANCHO_VISTA = 320
 ALTO_VISTA = 180
 
 
-def texto_negra(etiqueta) -> str:
+def texto_negra(etiqueta, motivo="", fuente="") -> str:
     """Aviso cuando la captura sale negra, en palabras para el usuario."""
+    if motivo == "sin_fuente":
+        return (f"La captura de {etiqueta} salió negra y no se agregó. "
+                "La escena no tiene ninguna captura de pantalla, de "
+                "ventana, de juego ni de cámara. Agrega una en OBS y "
+                "vuelve a intentarlo.")
+    if motivo == "sin_elegir":
+        return (f"La captura de {etiqueta} salió negra y no se agregó. "
+                f"La fuente {fuente} no tiene elegido qué capturar. "
+                "Elígelo en las propiedades de la fuente en OBS.")
     return (f"La captura de {etiqueta} salió negra y no se agregó. Suele "
             "pasar si la PC no tiene monitor conectado o si la cortina de "
             "pantalla de NVDA está activa. Prueba en OBS el método de "
@@ -247,7 +256,8 @@ class DialogoAgregarCaptura(wx.Dialog):
         if self._cerrado:
             return
         if captura.negra is True:
-            anunciar(texto_negra(opcion.etiqueta))
+            anunciar(texto_negra(opcion.etiqueta, captura.motivo,
+                                 captura.fuente_motivo))
             reproducir("ia_imagen_negra")
             self.btn_capturar.Enable()
             self.cho_fuente.SetFocus()

@@ -138,14 +138,18 @@ class ConsultaRapida:
         anunciar(mensaje)
         reproducir("ia_error")
 
+    def _avisar_negra(self, opcion, captura) -> None:
+        self._en_curso = False
+        anunciar(ia_agregar_captura.texto_negra(
+            opcion.etiqueta, captura.motivo, captura.fuente_motivo))
+        reproducir("ia_imagen_negra")
+
     def _vuelta_captura(self, opcion, captura, descripcion) -> None:
         marco = self._frame
         if not marco:
             return
         if captura.negra is True:
-            self._en_curso = False
-            anunciar(ia_agregar_captura.texto_negra(opcion.etiqueta))
-            reproducir("ia_error")
+            self._avisar_negra(opcion, captura)
             return
         charla = conversacion.Conversacion()
         charla.agregar_captura(captura.jpeg, opcion.fuente,

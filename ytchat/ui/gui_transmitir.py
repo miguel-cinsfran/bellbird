@@ -31,6 +31,10 @@ def cambiar_overlay(frame, encender):
         frame._config["overlay_activo"] = True
         _gui.guardar_opcion(_gui.RUTA_CONFIG, "overlay", "activo", "true")
         _gui.anunciar(f"Panel de chat activo en el puerto {puerto}")
+        from ytchat.obs import obs_panel_recarga
+        _gui.diagnostico.crear_hilo(
+            obs_panel_recarga.recargar_fuente_panel,
+            "RecargarPanelObs").start()
         return True
     _gui.overlay_servidor.apagar()
     frame._config["overlay_activo"] = False

@@ -16,7 +16,38 @@ def _llamada_inmediata(funcion, *args, **kwargs):
     return funcion(*args, **kwargs)
 
 
+class HiloInmediato:
+    """Doble de `diagnostico.crear_hilo` que ejecuta el objetivo al arrancar."""
+
+    def __init__(self, target, nombre, **kwargs):
+        self.target = target
+        self.nombre = nombre
+        self.daemon = kwargs.get("daemon", True)
+        self.iniciado = False
+
+    def start(self):
+        self.iniciado = True
+        self.target()
+
+
 class TestCambiarOverlay(unittest.TestCase):
+
+    def setUp(self):
+        self._hilos = []
+
+        def crear_hilo(target, nombre, **kwargs):
+            hilo = HiloInmediato(target, nombre, **kwargs)
+            self._hilos.append(hilo)
+            return hilo
+
+        patcher_hilo = mock.patch.object(
+            gui.diagnostico, "crear_hilo", side_effect=crear_hilo)
+        patcher_hilo.start()
+        self.addCleanup(patcher_hilo.stop)
+        patcher_recarga = mock.patch(
+            "ytchat.obs.obs_panel_recarga.recargar_fuente_panel")
+        self._recarga = patcher_recarga.start()
+        self.addCleanup(patcher_recarga.stop)
 
     def _frame(self):
         return SimpleNamespace(_config={"overlay_puerto": 8730})
@@ -34,6 +65,11 @@ class TestCambiarOverlay(unittest.TestCase):
             gui.RUTA_CONFIG, "overlay", "activo", "true")
         anunciar.assert_called_once_with(
             "Panel de chat activo en el puerto 8730")
+        self._recarga.assert_called_once_with()
+        self.assertEqual(len(self._hilos), 1)
+        self.assertEqual(self._hilos[0].nombre, "RecargarPanelObs")
+        self.assertTrue(self._hilos[0].daemon)
+        self.assertTrue(self._hilos[0].iniciado)
 
     def test_encender_con_puerto_ocupado_apaga_y_no_guarda(self):
         frame = self._frame()
@@ -48,6 +84,8 @@ class TestCambiarOverlay(unittest.TestCase):
         guardar.assert_not_called()
         anunciar.assert_called_once_with(
             "No se pudo activar el panel, el puerto 8730 está ocupado")
+        self._recarga.assert_not_called()
+        self.assertEqual(self._hilos, [])
 
     def test_apagar_guarda_y_anuncia(self):
         frame = SimpleNamespace(_config={"overlay_activo": True})
@@ -61,6 +99,8 @@ class TestCambiarOverlay(unittest.TestCase):
         guardar.assert_called_once_with(
             gui.RUTA_CONFIG, "overlay", "activo", "false")
         anunciar.assert_called_once_with("Panel de chat apagado")
+        self._recarga.assert_not_called()
+        self.assertEqual(self._hilos, [])
 
 
 class TestGuardarUsuarioTiktok(unittest.TestCase):

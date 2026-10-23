@@ -2,12 +2,8 @@
 
 from __future__ import annotations
 
-from ytchat.obs import obs_disposicion
-from ytchat.obs import obs_captura
-from ytchat.obs import obs_cliente
-from ytchat.obs import obs_destinos
-from ytchat.obs import obs_entradas_audio
-from ytchat.obs import obs_escena
+from ytchat.obs import (obs_disposicion, obs_captura, obs_cliente,
+                        obs_destinos, obs_entradas_audio, obs_escena)
 
 
 NOMBRE_FUENTE = "Chat YTChat"
@@ -99,6 +95,10 @@ class GestorPanelObs:
 
     def alternar_silencio(self, fuente, parada=None) -> bool:
         return obs_entradas_audio.alternar_silencio(self._cliente, fuente, parada)
+
+    def dispositivo(self, fuente, predeterminado, parada=None) -> tuple:
+        return obs_entradas_audio.dispositivo(
+            self._cliente, fuente, predeterminado, parada)
 
     def estado_transmision(self, parada=None) -> dict:
         datos = self._pedir("GetStreamStatus", parada=parada)

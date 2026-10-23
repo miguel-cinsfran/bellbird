@@ -6,6 +6,7 @@ disco, sin ventanas y sin reproducir nada.
 """
 
 import hashlib
+import struct
 import unittest
 import wave
 from pathlib import Path
@@ -43,6 +44,24 @@ def _duracion(ruta: Path) -> float:
         return wav.getnframes() / float(wav.getframerate() or 44100)
 
 
+def _canal_izquierdo(ruta: Path) -> tuple[list[int], int]:
+    with wave.open(str(ruta), "rb") as wav:
+        canales = wav.getnchannels()
+        ancho = wav.getsampwidth()
+        frecuencia = wav.getframerate()
+        crudo = wav.readframes(wav.getnframes())
+    if ancho != 2:
+        raise AssertionError(f"{ruta.name}: se esperaba 16 bits")
+    enteros = struct.unpack(f"<{len(crudo) // 2}h", crudo)
+    return list(enteros[0::canales]), frecuencia
+
+
+def _rms(muestras: list[int]) -> float:
+    if not muestras:
+        return 0.0
+    return (sum(m * m for m in muestras) / len(muestras)) ** 0.5
+
+
 class PruebasSonidosDistintos(unittest.TestCase):
     def test_cada_evento_tiene_su_wav_en_cada_tema(self):
         temas = sorted(d.name for d in TEMAS_DIR.iterdir() if d.is_dir())
@@ -78,6 +97,22 @@ class PruebasSonidosDistintos(unittest.TestCase):
                     self.assertLessEqual(
                         _duracion(ruta),
                         DURACION_MAXIMA.get(evento, 0.7), ruta.name)
+
+    def test_musica_tema_suena_suave_y_calido(self):
+        for tema in ("default", "suave"):
+            ruta = TEMAS_DIR / tema / "musica_tema.wav"
+            with self.subTest(tema=tema):
+                muestras, frecuencia = _canal_izquierdo(ruta)
+                pico = max(abs(m) for m in muestras) / 32768.0
+                self.assertLessEqual(pico, 0.40, ruta.name)
+                self.assertLessEqual(_duracion(ruta), 0.6, ruta.name)
+                fin_ataque = int(frecuencia * 0.010)
+                desde = int(frecuencia * 0.020)
+                hasta = int(frecuencia * 0.040)
+                self.assertLess(
+                    _rms(muestras[:fin_ataque]),
+                    _rms(muestras[desde:hasta]) / 2,
+                    f"{ruta.name}: el ataque no es lento")
 
 
 if __name__ == "__main__":

@@ -384,12 +384,9 @@ def gen_actualizacion_lista():
 # tapar ni la música ni el chat. Comparten registro de seno cálido.
 
 def gen_musica_tema():
-    # Salto de novena A4→B4 seguido de una tercera que asienta: marca el
-    # cambio sin competir con el tema que empieza. Distinto del tic de
-    # mensaje_nuevo (G5) y del tope de orilla.
-    n1 = _perc(_seno(A4, 0.09, 0.26), 0.004, 0.08)
-    n2 = _perc(_seno(B4, 0.15, 0.26), 0.004, 0.13)
-    return _normalizar(_concat(n1, n2), 0.58)
+    # Suena sobre la música y el fundido: por eso grave, lento y bajo.
+    acorde = _suma(_seno(A3, 0.45, 0.30), _seno(E4, 0.45, 0.24))
+    return _normalizar(_perc(acorde, 0.025, 0.22), 0.35)
 
 
 def gen_musica_fin():
@@ -651,8 +648,12 @@ def s_actualizacion_lista():
 # Los mismos gestos en madera cálida, cortos y bajos por sonar con música.
 
 def s_musica_tema():
-    return _seq(_madera(A4, 0.10, 0.30, 0.08),
-                _madera(B4, 0.16, 0.32, 0.14))
+    # Suena sobre la música y el fundido: por eso grave, lento y bajo.
+    base = _suma(_madera(A3, 0.45, 0.30, 0.22),
+                 _madera(E4, 0.45, 0.24, 0.22))
+    na = int(SR * 0.025)
+    con_ataque = [m * (i / na) if i < na else m for i, m in enumerate(base)]
+    return _normalizar(con_ataque, 0.32)
 
 
 def s_musica_fin():

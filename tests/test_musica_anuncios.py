@@ -377,9 +377,14 @@ class TestEstadoParaF2(unittest.TestCase):
         self.assertEqual(anuncios.texto_estado_musica(estado, True),
                           "Música: Tema 1, de Ana, canción 1 de 1")
 
-    def test_retomando(self):
-        aviso = anuncios.aviso_retomando("Tema 3")
-        self.assertEqual(aviso.texto, "Retomando: Tema 3")
+    def test_retomando_una_cancion(self):
+        aviso = anuncios.aviso_retomando("Tema 3", 1)
+        self.assertEqual(aviso.texto, "Retomando 1 canción: Tema 3")
+        self.assertIsNone(aviso.sonido)
+
+    def test_retomando_varias_canciones(self):
+        aviso = anuncios.aviso_retomando("Tema 3", 6)
+        self.assertEqual(aviso.texto, "Retomando 6 canciones: Tema 3")
         self.assertIsNone(aviso.sonido)
 
 

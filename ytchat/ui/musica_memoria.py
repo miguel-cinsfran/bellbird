@@ -46,7 +46,8 @@ class MemoriaMusica:
         actual = self._coordinador.estado().actual
         if resultado.ok and actual is not None:
             self._avisar(anuncios.aviso_retomando(
-                anuncios.nombre_tema(actual, self._incluir_artista())))
+                anuncios.nombre_tema(actual, self._incluir_artista()),
+                len(temas)))
             self._guardar_memoria()
             return
         self._avisar(anuncios.aviso_accion(

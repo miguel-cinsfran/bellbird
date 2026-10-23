@@ -46,7 +46,7 @@ TEXTO_QUE_SUENA = "Sonando: {nombre}. Canción {posicion} de {total}"
 TEXTO_EN_PAUSA = "En pausa: {nombre}. Canción {posicion} de {total}"
 TEXTO_ESTADO_MUSICA = "Música: {nombre}, canción {posicion} de {total}"
 TEXTO_ESTADO_MUSICA_PAUSA = "Música en pausa: {nombre}, canción {posicion} de {total}"
-TEXTO_RETOMANDO = "Retomando: {nombre}"
+TEXTO_RETOMANDO = "Retomando {cantidad}: {nombre}"
 TEXTO_ALEATORIO_ON = "Orden aleatorio activado"
 TEXTO_ALEATORIO_OFF = "Orden aleatorio desactivado"
 TEXTO_SIN_CARPETA = "No hay carpeta de música. Elige una en Preferencias, página Música"
@@ -214,9 +214,10 @@ def texto_estado_musica(estado, incluir_artista: bool) -> str:
                             total=len(estado.cola))
 
 
-def aviso_retomando(nombre: str) -> Aviso:
+def aviso_retomando(nombre: str, total: int) -> Aviso:
     """Al retomar la música donde quedó, en el primer Reproducir de la sesión."""
-    return Aviso(TEXTO_RETOMANDO.format(nombre=nombre))
+    cantidad = "1 canción" if total == 1 else f"{total} canciones"
+    return Aviso(TEXTO_RETOMANDO.format(cantidad=cantidad, nombre=nombre))
 
 
 def aviso_aleatorio(activo: bool) -> Aviso:

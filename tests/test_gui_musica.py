@@ -1690,7 +1690,7 @@ class TestRetomar(unittest.TestCase):
                 cargas = [l for l in env.creados[0].llamadas if l[0] == "cargar"]
                 textos = [c.args[0] for c in env.anunciar.call_args_list]
                 self.assertEqual([c[1] for c in cargas], [str(b.resolve())])
-                self.assertIn("Retomando: B", textos)
+                self.assertIn("Retomando 2 canciones: B", textos)
                 control.detener()
                 env.programador.disparar()
                 env.anunciar.reset_mock()
@@ -1699,7 +1699,7 @@ class TestRetomar(unittest.TestCase):
                 textos = [c.args[0] for c in env.anunciar.call_args_list]
                 self.assertEqual(cargas[-1][1],
                                  str((carpeta / "z.mp3").resolve()))
-                self.assertNotIn("Retomando: B", textos)
+                self.assertNotIn("Retomando 2 canciones: B", textos)
 
     def test_sin_memoria_reproduce_la_carpeta(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -1724,7 +1724,7 @@ class TestRetomar(unittest.TestCase):
                 cargas = [l for l in env.creados[0].llamadas if l[0] == "cargar"]
                 textos = [c.args[0] for c in env.anunciar.call_args_list]
         self.assertEqual(cargas[0][1], str((carpeta / "z.mp3").resolve()))
-        self.assertNotIn("Retomando: A", textos)
+        self.assertNotIn("Retomando 1 canción: A", textos)
 
 
 class _Evento:

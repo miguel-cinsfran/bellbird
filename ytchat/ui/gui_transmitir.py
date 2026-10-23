@@ -303,7 +303,7 @@ def supervisar_transmision(frame, accion, destino="", usuario="",
                             "público o no listado.")
                         return
                 if frame._conectado or frame._conectando:
-                    _gui.anunciar("El chat ya estaba conectado, no lo cambié.")
+                    _gui.anunciar("El chat ya estaba conectado y no se cambió.")
                     return
                 try:
                     frame.txt_url.SetValue(url)

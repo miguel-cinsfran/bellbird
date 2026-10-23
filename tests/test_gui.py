@@ -4339,7 +4339,7 @@ class TestCierreVentana(unittest.TestCase):
         frame._on_conectar.assert_not_called()
         frame.txt_url.SetValue.assert_not_called()
         anunciar.assert_called_once_with(
-            "El chat ya estaba conectado, no lo cambié.")
+            "El chat ya estaba conectado y no se cambió.")
 
     def test_supervisor_anunciar_reproduce_sonido_y_anuncia(self):
         frame = self._frame()

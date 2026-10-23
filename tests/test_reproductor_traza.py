@@ -862,5 +862,45 @@ class TestInicioReproduccionCableado(unittest.TestCase):
             self.assertEqual(panel._estado_busqueda.destino, 50_000)
 
 
+class TestTrazaTeclaPantallaCompleta(unittest.TestCase):
+    """Cada tecla que recibe la pantalla completa queda en el registro,
+    esté gestionada o no. Sin ventana: la ventana se crea sin __init__."""
+
+    def _pantalla(self):
+        from ytchat.player import reproductor
+        ventana = reproductor._PantallaCompleta.__new__(reproductor._PantallaCompleta)
+        ventana._panel = mock.Mock()
+        ventana._atajos = {}
+        return ventana
+
+    def test_tecla_no_gestionada_queda_en_el_registro(self):
+        import wx
+        from ytchat.player import reproductor
+        ventana = self._pantalla()
+        evento = mock.Mock()
+        evento.GetKeyCode.return_value = ord("X")
+        evento.GetModifiers.return_value = wx.MOD_NONE
+        with self.assertLogs("ytchat.reproductor", "DEBUG") as capturas:
+            ventana._on_key(evento)
+        salida = "\n".join(capturas.output)
+        self.assertIn("TECLA origen=pantalla_completa", salida)
+        self.assertIn("codigo=%d" % ord("X"), salida)
+        evento.Skip.assert_called_once_with()
+
+    def test_tecla_gestionada_tambien_queda_en_el_registro(self):
+        import wx
+        from ytchat.player import reproductor
+        ventana = self._pantalla()
+        evento = mock.Mock()
+        evento.GetKeyCode.return_value = wx.WXK_SPACE
+        evento.GetModifiers.return_value = wx.MOD_NONE
+        with self.assertLogs("ytchat.reproductor", "DEBUG") as capturas:
+            ventana._on_key(evento)
+        salida = "\n".join(capturas.output)
+        self.assertIn("TECLA origen=pantalla_completa", salida)
+        self.assertIn("codigo=%d" % wx.WXK_SPACE, salida)
+        ventana._panel._toggle_play.assert_called_once_with()
+
+
 if __name__ == "__main__":
     unittest.main()

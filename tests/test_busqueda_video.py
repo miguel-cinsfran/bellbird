@@ -1600,6 +1600,143 @@ class TestEstadoBusquedaDirectoBorde(unittest.TestCase):
         self.assertEqual(bus.confirmada, 845_000)
 
 
+class TestAccionSinPausa(unittest.TestCase):
+    """Un directo de TikTok no se puede pausar: con sin_pausa los "pausar"
+    pasan a "sin_pausa" y todo lo demás queda igual."""
+
+    def test_playing_con_sin_pausa_no_pausa(self):
+        self.assertEqual(
+            accion_play_pausa("playing", True, True, sin_pausa=True), "sin_pausa")
+
+    def test_paused_con_sin_pausa_reanuda(self):
+        self.assertEqual(
+            accion_play_pausa("paused", True, False, sin_pausa=True), "reanudar")
+
+    def test_transitorio_con_sin_pausa_sigue_la_intencion(self):
+        for estado in ("opening", "buffering", "otro"):
+            with self.subTest(estado=estado):
+                self.assertEqual(
+                    accion_play_pausa(estado, True, True, sin_pausa=True), "sin_pausa")
+                self.assertEqual(
+                    accion_play_pausa(estado, True, False, sin_pausa=True), "reanudar")
+
+    def test_sin_sin_pausa_todo_igual_que_hoy(self):
+        self.assertEqual(
+            accion_play_pausa("playing", True, True, sin_pausa=False), "pausar")
+        self.assertEqual(
+            accion_play_pausa("paused", True, False, sin_pausa=False), "reanudar")
+        self.assertEqual(
+            accion_play_pausa("opening", True, True, sin_pausa=False), "pausar")
+
+    def test_sin_pausa_no_cambia_cargar_ni_en_curso(self):
+        self.assertEqual(
+            accion_play_pausa("playing", False, True, sin_pausa=True), "cargar")
+        self.assertEqual(
+            accion_play_pausa("ended", True, False, sin_pausa=True), "cargar")
+        self.assertEqual(
+            accion_play_pausa("playing", True, False, True, sin_pausa=True), "en_curso")
+        self.assertEqual(
+            accion_play_pausa("paused", True, True, True, sin_pausa=True), "en_curso")
+
+    def test_propiedad_solo_cambia_los_pausar(self):
+        estados = ("playing", "paused", "opening", "buffering", "ended",
+                   "stopped", "error", "nothingspecial", "otro")
+        for estado in estados:
+            for hay_medio in (False, True):
+                for intencion in (False, True):
+                    for pendiente in (False, True):
+                        with self.subTest(estado=estado, hay_medio=hay_medio,
+                                          intencion=intencion, pendiente=pendiente):
+                            antes = accion_play_pausa(
+                                estado, hay_medio, intencion, pendiente, sin_pausa=False)
+                            despues = accion_play_pausa(
+                                estado, hay_medio, intencion, pendiente, sin_pausa=True)
+                            if antes == "pausar":
+                                self.assertEqual(despues, "sin_pausa")
+                            else:
+                                self.assertEqual(despues, antes)
+
+
+class TestAvisoSinPausa(unittest.TestCase):
+
+    def test_con_atajo_nombra_el_atajo(self):
+        from ytchat.player.busqueda_video import aviso_sin_pausa
+        self.assertEqual(
+            aviso_sin_pausa("Ctrl+M"),
+            "Un directo de TikTok no se puede pausar. Para silenciarlo, pulsa Ctrl+M.")
+
+    def test_sin_atajo_usa_silenciar_audio(self):
+        from ytchat.player.busqueda_video import aviso_sin_pausa
+        self.assertEqual(
+            aviso_sin_pausa(""),
+            "Un directo de TikTok no se puede pausar. Para silenciarlo, usa Silenciar audio.")
+
+
+class TestCableadoSinPausa(unittest.TestCase):
+    """Pedir pausa en un directo de TikTok avisa y no pausa; sin flujo
+    la pausa sigue igual que hoy. Sin ventana, como el resto del cableado."""
+
+    def _panel(self, flujo=True, atajo_mute="ctrl+u"):
+        from ytchat.player import reproductor
+        panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
+        panel._player = mock.Mock()
+        panel._player.get_state.return_value = SimpleNamespace(name="playing")
+        panel._player.can_pause.return_value = 1
+        panel._player.is_seekable.return_value = 1
+        panel._listo = True
+        panel._video_id = "" if flujo else "video-cargado"
+        panel._url_flujo = "https://example.com/flujo" if flujo else ""
+        panel._intencion_reproducir = True
+        panel._transporte_pendiente = False
+        panel._orden_transporte = None
+        panel._config = {"atajos_raw": {"rep_mute": atajo_mute}}
+        panel._asegurar_player = mock.Mock(return_value=True)
+        panel._mostrar_pausa = mock.Mock()
+        panel._timer = mock.Mock()
+        panel.cargar = mock.Mock()
+        panel._reproducir_flujo = mock.Mock()
+        return panel
+
+    def test_flujo_en_playing_anuncia_aviso_con_atajo_del_usuario(self):
+        from ytchat.player import reproductor
+        panel = self._panel(flujo=True, atajo_mute="ctrl+u")
+        with mock.patch.object(reproductor, "anunciar") as anunciar, \
+                mock.patch("ytchat.voice.sound_player.reproducir") as sonido:
+            panel._toggle_play()
+        anunciar.assert_called_once_with(
+            "Un directo de TikTok no se puede pausar. Para silenciarlo, pulsa Ctrl+U.")
+        panel._player.set_pause.assert_not_called()
+        panel._reproducir_flujo.assert_not_called()
+        panel.cargar.assert_not_called()
+        sonido.assert_not_called()
+        panel._timer.Start.assert_not_called()
+        panel._mostrar_pausa.assert_not_called()
+        self.assertFalse(panel._transporte_pendiente)
+        self.assertIsNone(panel._orden_transporte)
+
+    def test_flujo_sin_atajo_de_silenciar_usa_silenciar_audio(self):
+        from ytchat.player import reproductor
+        panel = self._panel(flujo=True, atajo_mute="")
+        with mock.patch.object(reproductor, "anunciar") as anunciar, \
+                mock.patch("ytchat.voice.sound_player.reproducir") as sonido:
+            panel._toggle_play()
+        anunciar.assert_called_once_with(
+            "Un directo de TikTok no se puede pausar. Para silenciarlo, usa Silenciar audio.")
+        panel._player.set_pause.assert_not_called()
+        sonido.assert_not_called()
+        self.assertFalse(panel._transporte_pendiente)
+
+    def test_sin_flujo_pausa_como_hoy(self):
+        from ytchat.player import reproductor
+        panel = self._panel(flujo=False)
+        with mock.patch.object(reproductor, "anunciar") as anunciar, \
+                mock.patch("ytchat.voice.sound_player.reproducir"):
+            panel._toggle_play()
+        panel._player.set_pause.assert_called_once_with(1)
+        anunciar.assert_called_once_with("Pausando")
+        self.assertTrue(panel._transporte_pendiente)
+
+
 class TestEstadoInicioReproduccion(unittest.TestCase):
 
     def test_playing_inmovil_no_anuncia(self):

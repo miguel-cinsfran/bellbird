@@ -163,7 +163,7 @@ def transporte_confirmado(estado, intencion_reproducir) -> bool:
 
 
 def accion_play_pausa(estado, hay_medio, intencion_reproducir,
-                       orden_pendiente=False) -> str:
+                       orden_pendiente=False, sin_pausa=False) -> str:
     if not hay_medio:
         return "cargar"
     if estado in {"ended", "stopped", "error", "nothingspecial"}:
@@ -171,10 +171,19 @@ def accion_play_pausa(estado, hay_medio, intencion_reproducir,
     if orden_pendiente and not transporte_confirmado(estado, intencion_reproducir):
         return "en_curso"
     if estado == "playing":
-        return "pausar"
+        return "sin_pausa" if sin_pausa else "pausar"
     if estado == "paused":
         return "reanudar"
-    return "pausar" if intencion_reproducir else "reanudar"
+    if intencion_reproducir:
+        return "sin_pausa" if sin_pausa else "pausar"
+    return "reanudar"
+
+
+def aviso_sin_pausa(atajo) -> str:
+    """Texto al pedir pausa en un directo de TikTok, con el atajo de Silenciar."""
+    if atajo:
+        return f"Un directo de TikTok no se puede pausar. Para silenciarlo, pulsa {atajo}."
+    return "Un directo de TikTok no se puede pausar. Para silenciarlo, usa Silenciar audio."
 
 
 class EstadoBusqueda:

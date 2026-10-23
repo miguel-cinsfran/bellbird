@@ -25,7 +25,7 @@ from ytchat.core import config as _cfg
 from ytchat.player.busqueda_video import (
     EstadoBusqueda, EstadoInicioReproduccion, OrdenTransporte,
     TOPE_BUSQUEDA_MS, VENTANA_HLS_SUPUESTA, accion_play_pausa,
-    busqueda_permitida, desfase_tras_salto, destino_acumulado,
+    aviso_sin_pausa, busqueda_permitida, desfase_tras_salto, destino_acumulado,
     evaluar_transporte, frase_desfase_directo, posicion_efectiva,
 )
 from ytchat.ui import iconos
@@ -359,18 +359,14 @@ class _PantallaCompleta(wx.Frame):
     """Ventana sin bordes a pantalla completa para el vídeo.
 
     Antes solo atendía Escape/F11 y era una trampa de teclado: los atajos
-    Ctrl+… son aceleradores del menú de la ventana PRINCIPAL y aquí no llegan,
-    así que no había ni pausa ni volumen. Ahora la ventana atiende:
-      - los atajos del reproductor configurados en Preferencias (Ctrl+…), y
-      - las teclas convencionales de los reproductores de vídeo (VLC/YouTube):
-        espacio pausa, flechas buscan y ajustan volumen, M silencia,
-        F alterna pantalla completa y 0-9 salta al porcentaje.
+    Ctrl+… son aceleradores del menú principal y aquí no llegan. Atiende los
+    atajos del reproductor de Preferencias y las teclas de VLC/YouTube
+    (espacio, flechas, M, F y 0-9).
     """
 
     def __init__(self, panel):
-        # Título = el de la ventana principal (el del vídeo, p. ej. «… — YTChat
-        # TTS»), no un genérico «Reproductor»: es lo que anuncia el lector y lo
-        # que sale en Alt+Tab al entrar a pantalla completa.
+        # Título = el de la ventana principal, no un genérico: es lo que
+        # anuncia el lector y lo que sale en Alt+Tab al entrar.
         try:
             principal = wx.GetApp().GetTopWindow()
             titulo = (principal.GetTitle() if principal else "") or _cfg.APP_NAME
@@ -391,14 +387,14 @@ class _PantallaCompleta(wx.Frame):
         self.video.Bind(wx.EVT_LEFT_DCLICK,
                         lambda e: self._panel.alternar_pantalla_completa())
         self.ShowFullScreen(True)
-        # Foco a la superficie de vídeo: así EVT_CHAR_HOOK recibe el teclado y
-        # el lector de pantalla queda sobre un control con nombre accesible.
+        # Foco al vídeo: recibe el teclado y da nombre accesible al lector.
         self.video.SetFocus()
 
     def _on_key(self, event):
         p = self._panel
         k = event.GetKeyCode()
         mods = event.GetModifiers()
+        logger.debug("TECLA origen=pantalla_completa codigo=%s mods=%s", k, mods)
         if k in (wx.WXK_ESCAPE, wx.WXK_F11):
             p.alternar_pantalla_completa()
             return
@@ -998,10 +994,9 @@ class ReproductorPanel(wx.Panel):
     # ── Atajos para la ventana de pantalla completa ───────────────────────────
 
     def _mapa_atajos_fs(self) -> dict:
-        """(modificadores, keycode) → acción, para los atajos del reproductor
-        configurados por el usuario. La ventana de pantalla completa lo usa
-        para que Ctrl+P, Ctrl+flechas, etc. sigan funcionando allí (donde los
-        aceleradores del menú de la ventana principal no llegan)."""
+        """(modificadores, keycode) → acción con los atajos del reproductor.
+        La pantalla completa lo usa porque allí no llegan los aceleradores
+        del menú de la ventana principal."""
         acciones = {
             "rep_play":      self._toggle_play,
             "rep_retro":     lambda: self._buscar_rel(-60_000),
@@ -1728,7 +1723,7 @@ class ReproductorPanel(wx.Panel):
         accion = accion_play_pausa(
             estado, bool(self._video_id or self._url_flujo),
             self._intencion_reproducir,
-            False)
+            False, sin_pausa=bool(self._url_flujo))
         try:
             puede_pausar = bool(self._player.can_pause())
         except Exception:
@@ -1743,6 +1738,12 @@ class ReproductorPanel(wx.Panel):
         if accion == "en_curso":
             from ytchat.voice import sound_player as _snd
             _snd.reproducir("transporte_en_curso")
+        elif accion == "sin_pausa":
+            from ytchat.ui.atajos_captura import atajo_legible
+            atajos = _cfg.parsear_atajos(self._config.get("atajos_raw", {}))
+            atajo_mute = atajos.get("rep_mute")
+            texto_mute = atajo_legible(atajo_mute.texto) if atajo_mute else ""
+            anunciar(aviso_sin_pausa(texto_mute))
         elif accion == "pausar":
             self._player.set_pause(1)
             self._orden_transporte = OrdenTransporte(intencion_reproducir=False, instante=time.monotonic())
@@ -1753,9 +1754,8 @@ class ReproductorPanel(wx.Panel):
                 pass
             anunciar("Pausando")
         elif accion == "reanudar":
-            # En un directo de TikTok (flujo en vivo, sin línea de tiempo)
-            # «reanudar» dejaría el vídeo retrasado; recargamos para volver al
-            # momento actual del directo.
+            # En un directo de TikTok (sin línea de tiempo) recargamos para
+            # volver al momento actual en vez de quedar retrasados.
             if self._url_flujo:
                 self._reproducir_flujo()
             elif getattr(self, "_relevo_vod_destino_en_pausa", None) is not None \

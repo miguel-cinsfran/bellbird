@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="es" xml:lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="generator" content="pandoc 3.10" />
+  <meta name="generator" content="pandoc 3.10.1" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <title>YTChat TTS, manual de uso</title>
   <style>
@@ -41,7 +41,6 @@
       body {
         background-color: transparent;
         color: black;
-        font-size: 12pt;
       }
       p, h2, h3 {
         orphans: 3;
@@ -412,6 +411,13 @@ no pregunte más, y la pregunta se activa o se desactiva en
 volumen</em>, que empieza la medición; mientras mide, el botón cambia a
 <em>Detener la igualación</em>. El avance se ve en la ventana o con F2.
 Los enlaces de YouTube suenan con su volumen.</p>
+<p>Al pasar de una canción a la siguiente, el final de una se funde con
+el principio de la otra, sin el silencio que muchos archivos traen al
+principio y al final. El largo del fundido se elige en <em>Preferencias,
+Música</em>, en <em>Fundido entre canciones, en segundos</em>: de 0 a
+12, con 6 de fábrica, y 0 lo desactiva. Pasar de canción con el atajo
+hace un fundido corto, de medio segundo. El sonido de cambio de canción
+viene apagado de fábrica y se activa en la misma página.</p>
 <p>La casilla <em>Usar los atajos de música en cualquier programa</em>
 hace que funcionen aunque estés en OBS o en un juego. Viene apagada
 porque, mientras está activa, esas teclas no les llegan a los demás
@@ -439,7 +445,8 @@ en tu canal. El perfil <code>YouTube</code> de OBS lo crea la
 aplicación.</li>
 <li>En la ventana <em>Transmisión</em> (<code>Ctrl+Mayús+T</code>),
 sección <em>Escena</em>, elige qué ventana se captura, por ejemplo un
-juego.</li>
+juego. En el directo se ve esa ventana, pero su captura no lleva sonido:
+el sonido sale del audio del escritorio y del micrófono de OBS.</li>
 </ul>
 <p><strong>Cada vez:</strong> pulsa <strong>Transmitir en
 directo</strong>, junto a <em>Conectar</em>.</p>
@@ -463,6 +470,12 @@ YouTube espera a que vuelva sin terminar el directo.</li>
 confirmación con <em>seguir transmitiendo</em> elegido de entrada.
 Cerrar la aplicación no corta el directo: al volver, lo reconoce.
 <code>Alt+Mayús+E</code> copia el enlace del directo.</p>
+<p><code>Alt+Mayús+M</code> silencia o activa el micrófono de OBS. Al
+activarlo dice qué dispositivo usa, por ejemplo «Micrófono activado:
+predeterminado de Windows, WO Mic Device». Si OBS usa el predeterminado,
+el micrófono es el que Windows tenga elegido en ese momento, y puede no
+ser el que esperas. Para que no cambie, elige el dispositivo en las
+propiedades de la fuente de micrófono en OBS.</p>
 <p><strong>Cómo se ve la escena.</strong> La ventana
 <em>Transmisión</em> describe cada fuente de adelante hacia atrás: dónde
 está, qué tamaño tiene y si algo la tapa. Lo mismo se oye con
@@ -839,6 +852,13 @@ recientes del chat (Ctrl+Mayús y número)</h3>
 valen solo con la aplicación al frente; la casilla <em>Leer los mensajes
 recientes en cualquier programa</em> de <em>Preferencias, Lectura</em>
 los hace valer en cualquier programa, como los atajos de música.</p>
+<p>En la misma página, <em>Leer los mensajes recientes con</em> elige
+quién los lee: el lector de pantalla, como viene de fábrica, o la voz de
+la aplicación. Con la voz, el mensaje pedido suena en cuanto termina lo
+que se está leyendo, y después siguen los mensajes que esperaban, en su
+orden.</p>
+<p>Si otro programa ya usa alguna de estas combinaciones, o las de
+música, suena un tono de ocupado y la aplicación dice cuáles.</p>
 <h3 id="cambiar-un-atajo">Cambiar un atajo</h3>
 <p>En <em>Preferencias, Atajos</em>, cada acción tiene un botón cuyo
 nombre incluye su atajo. Actívalo y pulsa la combinación nueva.

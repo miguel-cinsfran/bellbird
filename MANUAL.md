@@ -186,6 +186,14 @@ trae el botón *Igualar el volumen*, que empieza la medición; mientras
 mide, el botón cambia a *Detener la igualación*. El avance se ve en la
 ventana o con F2. Los enlaces de YouTube suenan con su volumen.
 
+Al pasar de una canción a la siguiente, el final de una se funde con el
+principio de la otra, sin el silencio que muchos archivos traen al
+principio y al final. El largo del fundido se elige en *Preferencias,
+Música*, en *Fundido entre canciones, en segundos*: de 0 a 12, con 6 de
+fábrica, y 0 lo desactiva. Pasar de canción con el atajo hace un fundido
+corto, de medio segundo. El sonido de cambio de canción viene apagado de
+fábrica y se activa en la misma página.
+
 La casilla *Usar los atajos de música en cualquier programa* hace que
 funcionen aunque estés en OBS o en un juego. Viene apagada porque,
 mientras está activa, esas teclas no les llegan a los demás programas.
@@ -211,7 +219,9 @@ YouTube con tu cuenta de Google, y a TikTok por Restream.
 - Para YouTube, la sesión de Google iniciada y los directos activados en
   tu canal. El perfil `YouTube` de OBS lo crea la aplicación.
 - En la ventana *Transmisión* (`Ctrl+Mayús+T`), sección *Escena*, elige
-  qué ventana se captura, por ejemplo un juego.
+  qué ventana se captura, por ejemplo un juego. En el directo se ve esa
+  ventana, pero su captura no lleva sonido: el sonido sale del audio del
+  escritorio y del micrófono de OBS.
 
 **Cada vez:** pulsa **Transmitir en directo**, junto a *Conectar*.
 
@@ -234,6 +244,13 @@ El botón pasa a **Finalizar directo**, que pide confirmación con *seguir
 transmitiendo* elegido de entrada. Cerrar la aplicación no corta el
 directo: al volver, lo reconoce. `Alt+Mayús+E` copia el enlace del
 directo.
+
+`Alt+Mayús+M` silencia o activa el micrófono de OBS. Al activarlo dice
+qué dispositivo usa, por ejemplo «Micrófono activado: predeterminado de
+Windows, WO Mic Device». Si OBS usa el predeterminado, el micrófono es el
+que Windows tenga elegido en ese momento, y puede no ser el que esperas.
+Para que no cambie, elige el dispositivo en las propiedades de la fuente
+de micrófono en OBS.
 
 **Cómo se ve la escena.** La ventana *Transmisión* describe cada fuente de
 adelante hacia atrás: dónde está, qué tamaño tiene y si algo la tapa. Lo
@@ -457,6 +474,15 @@ y así hasta `Ctrl+Mayús+0`, que lee el décimo desde el final. De fábrica
 valen solo con la aplicación al frente; la casilla *Leer los mensajes
 recientes en cualquier programa* de *Preferencias, Lectura* los hace valer
 en cualquier programa, como los atajos de música.
+
+En la misma página, *Leer los mensajes recientes con* elige quién los
+lee: el lector de pantalla, como viene de fábrica, o la voz de la
+aplicación. Con la voz, el mensaje pedido suena en cuanto termina lo que
+se está leyendo, y después siguen los mensajes que esperaban, en su
+orden.
+
+Si otro programa ya usa alguna de estas combinaciones, o las de música,
+suena un tono de ocupado y la aplicación dice cuáles.
 
 ### Cambiar un atajo
 

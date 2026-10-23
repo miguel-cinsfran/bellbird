@@ -219,6 +219,93 @@
 <h1 id="novedades-de-ytchat-tts">Novedades de YTChat TTS</h1>
 <p>Qué cambia en cada versión, en lenguaje llano. El detalle técnico
 está en el historial de git.</p>
+<h2 id="250-octubre-de-2026">2.5.0, octubre de 2026</h2>
+<p>Preguntar a una IA qué se ve en la transmisión, y transiciones entre
+canciones.</p>
+<h3 id="preguntar-a-la-ia">Preguntar a la IA</h3>
+<ul>
+<li><strong>Una ventana para preguntar qué se ve, con
+Ctrl+Mayús+I.</strong> Agrega una captura de la escena al aire o de una
+fuente de OBS y pregunta lo que quieras: si la cámara está encendida, si
+algo salió en negro, qué texto hay en pantalla. La respuesta se lee al
+llegar y queda en la conversación para seguir preguntando.</li>
+<li><strong>Consulta rápida con Ctrl+Mayús+F2.</strong> Captura la
+escena al aire, la envía y lee la respuesta sin abrir ninguna ventana.
+La pregunta de fábrica pide primero los problemas de la escena y después
+la describe.</li>
+<li><strong>Página Inteligencia artificial en Preferencias.</strong>
+Eliges el proveedor (Google Gemini, OpenAI, Anthropic, OpenRouter,
+OpenCode Go, Command Code u otro compatible con OpenAI), guardas la
+clave y eliges el modelo. La clave queda en el Administrador de
+credenciales de Windows. La lista de modelos trae solo los que aceptan
+imágenes, y con OpenRouter y OpenCode Go puede mostrar solo los
+gratuitos.</li>
+<li><strong>Avisos propios.</strong> Suena una melodía mientras espera,
+y hay sonidos para la consulta enviada, la respuesta, el fallo y la
+cancelación. Si la captura sale negra, no se envía, y se dice por qué:
+la escena no tiene captura o una fuente no tiene elegido qué
+capturar.</li>
+<li><strong>El primer envío pide confirmación</strong>, porque la
+captura y lo que escribas salen de tu PC hacia el proveedor.</li>
+</ul>
+<h3 id="música">Música</h3>
+<ul>
+<li><strong>Fundido entre canciones.</strong> El final de una canción se
+mezcla con el principio de la siguiente, y se salta el silencio que
+muchos archivos traen al principio y al final. Dura 6 segundos de
+fábrica; se cambia en Preferencias, página Música, de 0 a 12, y 0 lo
+desactiva. Pasar de canción con el atajo hace un fundido corto, de medio
+segundo.</li>
+<li><strong>La igualación del volumen corrige en su justa
+medida.</strong> Antes exageraba la diferencia entre canciones. Además
+ya no mide por su cuenta: al abrir la ventana Música pregunta si medir
+las canciones pendientes, y la ventana tiene un botón para empezar y
+detener.</li>
+<li><strong>El sonido de cambio de canción viene apagado de
+fábrica</strong> y, si lo activas, es más suave y más grave.</li>
+<li><strong>La carpeta se vigila.</strong> Las canciones nuevas aparecen
+solas en la lista. La ventana Música tiene el botón Examinar la carpeta,
+y la carpeta de fábrica es Música, junto al programa.</li>
+<li><strong>Más formatos:</strong> aiff, aif, mka y webm.</li>
+</ul>
+<h3 id="chat-y-lectura">Chat y lectura</h3>
+<ul>
+<li><strong>Los diez mensajes más recientes, con Ctrl+Mayús y un
+número.</strong> 1 lee el último y 0 el décimo desde el final. Una
+casilla de Preferencias, página Lectura, los hace valer en cualquier
+programa.</li>
+<li><strong>Con el lector de pantalla o con la voz de la
+aplicación.</strong> En la misma página eliges quién los lee. Con la
+voz, el mensaje pedido suena antes que los que esperan, y después esos
+siguen en su orden.</li>
+<li><strong>Al abrir la aplicación, el campo de dirección está
+vacío.</strong> Ya no se recuerda la última dirección entre una vez y
+otra. Para volver a un directo está el Historial.</li>
+</ul>
+<h3 id="transmisión">Transmisión</h3>
+<ul>
+<li><strong>El micrófono dice qué dispositivo usa.</strong> Al activarlo
+con Alt+Mayús+M, por ejemplo: «Micrófono activado: predeterminado de
+Windows, WO Mic Device». Si OBS usa el predeterminado, lo dice, porque
+ese micrófono cambia cuando Windows elige otro.</li>
+<li><strong>La ventana Transmisión explica qué se ve en el
+directo</strong>: la ventana elegida en Ventana que se captura. Esa
+captura no lleva sonido, que sale del audio del escritorio y del
+micrófono de OBS.</li>
+</ul>
+<h3 id="sonidos-y-ventanas">Sonidos y ventanas</h3>
+<ul>
+<li><strong>Página Sonidos en Preferencias</strong>, para callar cada
+sonido por separado.</li>
+<li><strong>Tono de ocupado</strong> cuando otro programa ya usa uno de
+los atajos que valen en cualquier programa. Antes sonaba el de
+error.</li>
+<li><strong>Las ventanas que quedaban grises</strong> (Preferencias, las
+de actualización, Transmitir a y las de la IA) usan los colores de la
+ventana principal. Con el contraste alto de Windows no cambia nada.</li>
+<li><strong>Los errores de las descargas</strong> dicen el motivo en
+llano.</li>
+</ul>
 <h2 id="241-octubre-de-2026">2.4.1, octubre de 2026</h2>
 <ul>
 <li><strong>La actualización automática ya no se detiene al cerrar la
@@ -231,7 +318,7 @@ habitual.</li>
 </ul>
 <h2 id="240-octubre-de-2026">2.4.0, octubre de 2026</h2>
 <p>Música mientras transmites, sin abrir otro programa.</p>
-<h3 id="música">Música</h3>
+<h3 id="música-1">Música</h3>
 <ul>
 <li><strong>Un menú Música con sus atajos.</strong> Ctrl+Alt+Espacio
 reproduce o pausa, Ctrl+Alt+Flecha derecha y Ctrl+Alt+Flecha izquierda
@@ -341,7 +428,7 @@ automáticos».</li>
 </ul>
 <h2 id="234-octubre-de-2026">2.3.4, octubre de 2026</h2>
 <p>Arreglos que salieron de un directo de prueba.</p>
-<h3 id="transmisión">Transmisión</h3>
+<h3 id="transmisión-1">Transmisión</h3>
 <ul>
 <li><strong>Un solo aviso cuando OBS no da abasto, y se puede
 apagar.</strong> Antes sonaban dos frases largas cada minuto mientras se
@@ -380,7 +467,7 @@ confirma, el botón vuelve solo a <em>Transmitir en directo</em>.</li>
 <h2 id="232-octubre-de-2026">2.3.2, octubre de 2026</h2>
 <p>Arreglos para transmitir con la red inestable y una opción para que
 el reproductor gaste menos.</p>
-<h3 id="transmisión-1">Transmisión</h3>
+<h3 id="transmisión-2">Transmisión</h3>
 <ul>
 <li><strong>Detener espera a que OBS confirme.</strong> Antes decía
 «Transmisión detenida» al instante, aunque OBS tardara casi un minuto en

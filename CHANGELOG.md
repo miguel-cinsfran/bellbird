@@ -3,6 +3,85 @@
 Qué cambia en cada versión, en lenguaje llano. El detalle técnico está en el
 historial de git.
 
+## 2.5.0, octubre de 2026
+
+Preguntar a una IA qué se ve en la transmisión, y transiciones entre
+canciones.
+
+### Preguntar a la IA
+
+- **Una ventana para preguntar qué se ve, con Ctrl+Mayús+I.** Agrega una
+  captura de la escena al aire o de una fuente de OBS y pregunta lo que
+  quieras: si la cámara está encendida, si algo salió en negro, qué texto
+  hay en pantalla. La respuesta se lee al llegar y queda en la
+  conversación para seguir preguntando.
+- **Consulta rápida con Ctrl+Mayús+F2.** Captura la escena al aire, la
+  envía y lee la respuesta sin abrir ninguna ventana. La pregunta de
+  fábrica pide primero los problemas de la escena y después la describe.
+- **Página Inteligencia artificial en Preferencias.** Eliges el
+  proveedor (Google Gemini, OpenAI, Anthropic, OpenRouter, OpenCode Go,
+  Command Code u otro compatible con OpenAI), guardas la clave y eliges
+  el modelo. La clave queda en el Administrador de credenciales de
+  Windows. La lista de modelos trae solo los que aceptan imágenes, y con
+  OpenRouter y OpenCode Go puede mostrar solo los gratuitos.
+- **Avisos propios.** Suena una melodía mientras espera, y hay sonidos
+  para la consulta enviada, la respuesta, el fallo y la cancelación. Si
+  la captura sale negra, no se envía, y se dice por qué: la escena no
+  tiene captura o una fuente no tiene elegido qué capturar.
+- **El primer envío pide confirmación**, porque la captura y lo que
+  escribas salen de tu PC hacia el proveedor.
+
+### Música
+
+- **Fundido entre canciones.** El final de una canción se mezcla con el
+  principio de la siguiente, y se salta el silencio que muchos archivos
+  traen al principio y al final. Dura 6 segundos de fábrica; se cambia en
+  Preferencias, página Música, de 0 a 12, y 0 lo desactiva. Pasar de
+  canción con el atajo hace un fundido corto, de medio segundo.
+- **La igualación del volumen corrige en su justa medida.** Antes
+  exageraba la diferencia entre canciones. Además ya no mide por su
+  cuenta: al abrir la ventana Música pregunta si medir las canciones
+  pendientes, y la ventana tiene un botón para empezar y detener.
+- **El sonido de cambio de canción viene apagado de fábrica** y, si lo
+  activas, es más suave y más grave.
+- **La carpeta se vigila.** Las canciones nuevas aparecen solas en la
+  lista. La ventana Música tiene el botón Examinar la carpeta, y la
+  carpeta de fábrica es Música, junto al programa.
+- **Más formatos:** aiff, aif, mka y webm.
+
+### Chat y lectura
+
+- **Los diez mensajes más recientes, con Ctrl+Mayús y un número.** 1 lee
+  el último y 0 el décimo desde el final. Una casilla de Preferencias,
+  página Lectura, los hace valer en cualquier programa.
+- **Con el lector de pantalla o con la voz de la aplicación.** En la
+  misma página eliges quién los lee. Con la voz, el mensaje pedido suena
+  antes que los que esperan, y después esos siguen en su orden.
+- **Al abrir la aplicación, el campo de dirección está vacío.** Ya no se
+  recuerda la última dirección entre una vez y otra. Para volver a un
+  directo está el Historial.
+
+### Transmisión
+
+- **El micrófono dice qué dispositivo usa.** Al activarlo con
+  Alt+Mayús+M, por ejemplo: «Micrófono activado: predeterminado de
+  Windows, WO Mic Device». Si OBS usa el predeterminado, lo dice, porque
+  ese micrófono cambia cuando Windows elige otro.
+- **La ventana Transmisión explica qué se ve en el directo**: la ventana
+  elegida en Ventana que se captura. Esa captura no lleva sonido, que
+  sale del audio del escritorio y del micrófono de OBS.
+
+### Sonidos y ventanas
+
+- **Página Sonidos en Preferencias**, para callar cada sonido por
+  separado.
+- **Tono de ocupado** cuando otro programa ya usa uno de los atajos que
+  valen en cualquier programa. Antes sonaba el de error.
+- **Las ventanas que quedaban grises** (Preferencias, las de
+  actualización, Transmitir a y las de la IA) usan los colores de la
+  ventana principal. Con el contraste alto de Windows no cambia nada.
+- **Los errores de las descargas** dicen el motivo en llano.
+
 ## 2.4.1, octubre de 2026
 
 - **La actualización automática ya no se detiene al cerrar la versión

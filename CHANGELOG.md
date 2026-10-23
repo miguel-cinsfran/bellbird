@@ -94,6 +94,10 @@ canciones.
   Antes decía como espectadores a todos los que habían entrado desde el
   principio, y el número solo subía. Ahora dice, por ejemplo, «12
   espectadores ahora, 108 en total».
+- **Un directo de TikTok no se pausa en el reproductor.** TikTok no
+  guarda lo emitido, así que al reanudar había que volver a abrirlo y se
+  trababa. Ahora la pausa avisa que no se puede y dice el atajo de
+  Silenciar, que calla el directo sin cortarlo.
 
 ### Sonidos y ventanas
 

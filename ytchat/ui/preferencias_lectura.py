@@ -81,15 +81,18 @@ class PaginaLectura:
         _tc(self.sp_long)
         vs.Add(self.sp_long, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
+        self._construir_recientes(p, vs)
+
+        p.SetSizer(vs)
+        return p
+
+    def _construir_recientes(self, p, vs):
         self.chk_lectura_atajos_globales = wx.CheckBox(
             p, label="Leer los mensajes recientes en cualquier &programa",
             name="LecturaAtajosGlobales")
         self.chk_lectura_atajos_globales.SetForegroundColour(_T.text)
         vs.Add(self.chk_lectura_atajos_globales, 0,
                wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-
-        p.SetSizer(vs)
-        return p
 
     def cambios(self):
         """Lo que esta página guarda fuera de la tabla: (sección, clave, valor)."""

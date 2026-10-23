@@ -95,9 +95,10 @@ class ClienteObs:
     _TIEMPO_LIMITE = 10.0
     _TIEMPO_LECTURA = 0.5
 
-    def __init__(self, ajustes=None, conectar_fn=None):
+    def __init__(self, ajustes=None, conectar_fn=None, suscripciones=0):
         self.ajustes = ajustes or AjustesObs()
         self._conectar_fn = conectar_fn or connect
+        self.suscripciones = suscripciones
         self._transporte = None
         # websockets.sync no admite dos recv a la vez: el ajuste fino y el
         # resto del diálogo piden desde hilos distintos.
@@ -119,10 +120,11 @@ class ClienteObs:
             saludo = self._recibir(transporte, parada, limite)
             if saludo.get("op") != 0:
                 raise ObsError(mensaje_de_fallo_obs("saludo inválido"))
-            # Solo se piden respuestas; sin esto OBS empuja eventos que se
-            # acumulan en la cola del socket entre sondeos.
+            # De fábrica solo se piden respuestas; sin esto OBS empuja eventos
+            # que se acumulan en la cola del socket entre sondeos. Quien pide
+            # suscripciones recibe los eventos por escuchar().
             identificacion = {"op": 1, "d": {"rpcVersion": saludo["d"]["rpcVersion"],
-                                             "eventSubscriptions": 0}}
+                                             "eventSubscriptions": self.suscripciones}}
             autenticacion = saludo.get("d", {}).get("authentication")
             if autenticacion:
                 identificacion["d"]["authentication"] = respuesta_auth(
@@ -182,6 +184,55 @@ class ClienteObs:
                 raise ObsError(MENSAJE_CONEXION_PERDIDA) from error
             except Exception as error:
                 raise ObsError(mensaje_de_fallo_obs(error)) from error
+
+    @classmethod
+    def _mensaje_seguido(cls, transporte, restante):
+        """Un mensaje ya decodificado del socket, o None si aún no llegó."""
+        try:
+            mensaje = transporte.recv(
+                timeout=min(cls._TIEMPO_LECTURA, restante))
+        except TimeoutError:
+            return None
+        if isinstance(mensaje, bytes):
+            mensaje = mensaje.decode("utf-8")
+        return json.loads(mensaje)
+
+    def escuchar(self, tipo_evento, segundos, parada=None) -> list:
+        """Junta los eventData de los eventos del tipo pedido durante
+        `segundos` y devuelve la lista con cada uno en su orden de llegada.
+
+        Vencer el tiempo o llegar la parada es el final normal de la
+        escucha, no un fallo: se devuelve lo juntado hasta ahí y no se
+        registra nada. Sin conexión lanza ObsError, igual que `pedir`.
+        """
+        with self._cerrojo:
+            transporte = self._transporte
+            if transporte is None:
+                raise ObsError(mensaje_de_fallo_obs("not connected"))
+            limite = time.monotonic() + segundos
+            eventos = []
+            while True:
+                if parada is not None and parada.is_set():
+                    break
+                restante = limite - time.monotonic()
+                if restante <= 0:
+                    break
+                try:
+                    mensaje = self._mensaje_seguido(transporte, restante)
+                except ConnectionClosed as error:
+                    self.cerrar()
+                    raise ObsError(MENSAJE_CONEXION_PERDIDA) from error
+                except Exception as error:
+                    raise ObsError(mensaje_de_fallo_obs(error)) from error
+                if mensaje is None:
+                    continue
+                contenido = mensaje.get("d", {})
+                if mensaje.get("op") != 5:
+                    continue
+                if contenido.get("eventType") != tipo_evento:
+                    continue
+                eventos.append(contenido.get("eventData", {}))
+            return eventos
 
     def cerrar(self):
         if self._transporte is not None:

@@ -1,6 +1,15 @@
+import random
 import unittest
 
+from ytchat.obs import obs_audio
 from ytchat.obs.obs_audio import elegir_microfono, frase_microfono, nombre_corto
+
+TEXTO_SIN_SENAL = ("El micrófono no recibe sonido. Revisa cuál está elegido "
+                   "en Windows o en OBS.")
+
+
+def _evento(canales, fuente="Mic/Aux"):
+    return {"inputs": [{"inputName": fuente, "inputLevelsMul": canales}]}
 
 
 class ElegirMicrofonoTest(unittest.TestCase):
@@ -85,6 +94,97 @@ class NombreCortoTest(unittest.TestCase):
                        "Audio del escritorio"):
             with self.subTest(nombre=nombre):
                 self.assertTrue(nombre_corto(nombre))
+
+
+class EsMicrofonoTest(unittest.TestCase):
+    def test_decide_por_el_nombre_sin_tildes(self):
+        self.assertTrue(obs_audio.es_microfono("Mícrofonos (USB)"))
+
+    def test_decide_por_el_nombre_con_tildes(self):
+        self.assertTrue(obs_audio.es_microfono("Micrófono (WO Mic Device)"))
+
+    def test_una_fuente_sin_nombre_no_es_microfono(self):
+        for nombre in ("", "Audio del escritorio", "Auxiliar"):
+            with self.subTest(nombre=nombre):
+                self.assertFalse(obs_audio.es_microfono(nombre))
+
+
+class TieneSenalTest(unittest.TestCase):
+    def test_las_constantes_son_las_del_diseno(self):
+        self.assertEqual(obs_audio.UMBRAL_SENAL, 0.0001)
+        self.assertEqual(obs_audio.TEXTO_SIN_SENAL, TEXTO_SIN_SENAL)
+
+    def test_solo_ceros_es_falso(self):
+        eventos = [_evento([[0.0, 0.0, 0.0]]),
+                   _evento([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]])]
+        self.assertIs(obs_audio.tiene_senal(eventos, "Mic/Aux"), False)
+
+    def test_el_ruido_de_oficina_cuenta_como_senal(self):
+        # Medido en OBS 32.2.2 el 23/10: apagado el micrófono, todo en cero;
+        # prendido y sin hablar, pico 0,049 (menos 26 dBFS) y promedio 0,004.
+        eventos = [_evento([[0.004, 0.03, 0.049]])]
+        self.assertIs(obs_audio.tiene_senal(eventos, "Mic/Aux"), True)
+
+    def test_decide_por_el_pico_de_entrada_y_no_por_el_volumen(self):
+        # El índice 2 va antes del fader de OBS: un volumen casi cero no
+        # puede tapar una señal que sí llegó.
+        eventos = [_evento([[0.00006, 0.009, 0.049]])]
+        self.assertIs(obs_audio.tiene_senal(eventos, "Mic/Aux"), True)
+
+    def test_sin_muestras_de_la_fuente_devuelve_ninguna(self):
+        self.assertIsNone(obs_audio.tiene_senal([], "Mic/Aux"))
+        self.assertIsNone(
+            obs_audio.tiene_senal([_evento([[0.2, 0.3, 0.4]])], "Otro"))
+        self.assertIsNone(
+            obs_audio.tiene_senal([{"inputs": []}], "Mic/Aux"))
+
+    def test_busca_entre_varias_fuentes_y_canal_ingles(self):
+        eventos = [
+            {"inputs": [
+                {"inputName": "Otro", "inputLevelsMul": [[0.9, 0.9, 0.9]]},
+                {"inputName": "Mic/Aux", "inputLevelsMul": [[0.0, 0.0, 0.0]]},
+            ]},
+            _evento([[0.0, 0.0, 0.0011]]),
+        ]
+        self.assertIs(obs_audio.tiene_senal(eventos, "Mic/Aux"), True)
+
+    def test_un_canal_corto_usa_su_ultimo_nivel(self):
+        self.assertIs(obs_audio.tiene_senal(
+            [_evento([[0.0, 0.05]])], "Mic/Aux"), True)
+        self.assertIs(obs_audio.tiene_senal(
+            [_evento([[0.0]])], "Mic/Aux"), False)
+        self.assertIs(obs_audio.tiene_senal(
+            [_evento([[0.02]])], "Mic/Aux"), True)
+
+    def test_el_umbral_se_para_estricto(self):
+        self.assertIs(obs_audio.tiene_senal(
+            [_evento([[0.0001, 0.0001, 0.0001]])], "Mic/Aux"), False)
+
+    def test_subir_un_nivel_nunca_baja_verdadero_a_falso(self):
+        aleatorio = random.Random(13)
+        probados = 0
+        for _ in range(60):
+            canales = []
+            for _ in range(aleatorio.randint(1, 2)):
+                canales.append([round(aleatorio.random(), 6)
+                                for _ in range(3)])
+            eventos = [_evento(canales)]
+            antes = obs_audio.tiene_senal(eventos, "Mic/Aux")
+            if antes is not True:
+                continue
+            probados += 1
+            mas = aleatorio.random() * 0.1
+            elevados = []
+            for evento in eventos:
+                entradas = []
+                for entrada in evento["inputs"]:
+                    subidos = [[min(1.0, v + mas) for v in canal]
+                               for canal in entrada["inputLevelsMul"]]
+                    entradas.append(dict(entrada, inputLevelsMul=subidos))
+                elevados.append({"inputs": entradas})
+            self.assertIs(obs_audio.tiene_senal(elevados, "Mic/Aux"), True,
+                          f"sus niveles {canales} subidos {mas}")
+        self.assertGreater(probados, 0)
 
 
 if __name__ == "__main__":

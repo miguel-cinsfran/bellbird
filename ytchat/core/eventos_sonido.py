@@ -34,6 +34,8 @@ EVENTOS = [
     "ia_analizando", "ia_captura", "ia_cancelada", "ia_imagen_negra",
     # Atajos globales que otro programa ya ocupa: tono de ocupado.
     "atajos_ocupados",
+    # El micrófono quedó activado y en tres segundos no entró nada.
+    "microfono_sin_senal",
 ]
 
 # Nombre llano de cada evento para la página Sonidos de Preferencias.
@@ -95,4 +97,5 @@ NOMBRES = {
     "ia_cancelada": "Consulta a la IA cancelada",
     "ia_imagen_negra": "Captura negra detectada",
     "atajos_ocupados": "Atajos globales ocupados",
+    "microfono_sin_senal": "Micrófono sin señal",
 }

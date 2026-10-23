@@ -314,6 +314,70 @@ class CancelacionYTiempoTest(unittest.TestCase):
             cliente._TIEMPO_LIMITE = original
 
 
+class EscuchaTest(unittest.TestCase):
+    def cliente(self, transporte, suscripciones=0):
+        return obs_cliente.ClienteObs(
+            obs_cliente.AjustesObs(True, 4455, ""), lambda uri: transporte,
+            suscripciones=suscripciones)
+
+    def evento(self, tipo="InputVolumeMeters", datos=None):
+        return json.dumps({"op": 5, "d": {"eventType": tipo,
+                                           "eventData": datos or {}}})
+
+    def test_identificacion_lleva_la_suscripcion_pedida(self):
+        transporte = TransporteDoble([
+            json.dumps({"op": 0, "d": {"rpcVersion": 1}}),
+            json.dumps({"op": 2, "d": {}}),
+        ])
+        cliente = self.cliente(transporte, suscripciones=65536)
+        cliente.conectar()
+        self.assertEqual(transporte.enviados[0]["d"]["eventSubscriptions"],
+                         65536)
+
+    def test_devuelve_solo_los_eventos_del_tipo_pedido(self):
+        datos = {"inputs": [{"inputName": "Mic/Aux"}]}
+        transporte = TransporteDoble([
+            self.evento(datos=datos),
+            json.dumps({"op": 7, "d": {"requestId": "otro",
+                                        "requestStatus": {"result": True}}}),
+            self.evento(tipo="SceneChanged", datos={"lo": "otro"}),
+            self.evento(datos={"inputs": []}),
+        ])
+        cliente = self.cliente(transporte)
+        cliente._transporte = transporte
+        resultado = cliente.escuchar("InputVolumeMeters", 0.10)
+        self.assertEqual(resultado, [datos, {"inputs": []}])
+
+    def test_sin_conexion_lanza_obs_error_como_pedir(self):
+        with self.assertRaisesRegex(obs_cliente.ObsError, "no pudo completar"):
+            self.cliente(TransporteDoble([])).escuchar("InputVolumeMeters", 0.1)
+
+    def test_sin_nada_que_recibir_termina_al_agotar_el_tiempo(self):
+        transporte = TransporteDoble([])
+        cliente = self.cliente(transporte)
+        cliente._transporte = transporte
+        comienzo = time.monotonic()
+        self.assertEqual(cliente.escuchar("InputVolumeMeters", 0.05), [])
+        self.assertLess(time.monotonic() - comienzo, 2.0)
+
+    def test_el_fin_del_tiempo_no_registra_ningun_fallo(self):
+        transporte = TransporteSinRespuesta([])
+        cliente = self.cliente(transporte)
+        cliente._transporte = transporte
+        with self.assertNoLogs(obs_cliente.logger, level="WARNING"):
+            self.assertEqual(cliente.escuchar("InputVolumeMeters", 0.02), [])
+
+    def test_la_parada_termina_la_escucha_sin_lanzar_nada(self):
+        transporte = TransporteDoble([])
+        cliente = self.cliente(transporte)
+        cliente._transporte = transporte
+        parada = threading.Event()
+        parada.set()
+        comienzo = time.monotonic()
+        self.assertEqual(cliente.escuchar("InputVolumeMeters", 1.0, parada), [])
+        self.assertLess(time.monotonic() - comienzo, 2.0)
+
+
 class RegistroDeFalloTest(unittest.TestCase):
     def test_excepcion_cruda_deja_warning_con_tipo_y_traza(self):
         with self.assertLogs(obs_cliente.logger, level="WARNING") as registro:

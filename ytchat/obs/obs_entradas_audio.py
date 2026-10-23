@@ -1,7 +1,8 @@
 """Consultar y alternar las entradas de audio de OBS.
 
-Recibe un cliente con `pedir(tipo, datos=None, parada=None)` como
-`obs_captura` y no crea conexiones.
+Las funciones reciben un cliente con `pedir(tipo, datos=None,
+parada=None)` como `obs_captura` y no crean conexiones. La excepción es
+`senal_microfono`, que abre su propia conexión corta con el websocket.
 """
 
 from __future__ import annotations
@@ -9,10 +10,14 @@ from __future__ import annotations
 from ytchat.core import diagnostico
 from ytchat.obs import dispositivo_windows
 from ytchat.obs import obs_audio
+from ytchat.obs import obs_cliente
 
 logger = diagnostico.obtener_logger(__name__)
 
 TIPO_MICROFONO = "wasapi_input_capture"
+
+# 1 << 16 habilita solo InputVolumeMeters en las suscripciones del websocket.
+SUSCRIPCION_METROS = 1 << 16
 
 
 def _datos(cliente, tipo, datos=None, parada=None):
@@ -45,8 +50,12 @@ def alternar_silencio(cliente, fuente, parada=None) -> bool:
     return bool(datos.get("inputMuted", False))
 
 
-def alternar_microfono(gestor, preferido) -> str:
-    """Elige el micrófono, alterna su silencio y arma el anuncio."""
+def alternar_microfono(gestor, preferido) -> tuple:
+    """Elige el micrófono, alterna su silencio y arma el anuncio.
+
+    Devuelve `(texto, fuente, silenciado)` para que quien use el resultado
+    pueda, además del anuncio, saber qué fuente quedó y en qué estado.
+    """
     fuente = obs_audio.elegir_microfono(gestor.fuentes_audio(), preferido)
     estado = gestor.alternar_silencio(fuente) if fuente else False
     nombre, predeterminado = "", False
@@ -59,28 +68,74 @@ def alternar_microfono(gestor, preferido) -> str:
             # de OBS: se anuncia el micrófono activado, como antes.
             logger.debug("No se pudo saber el dispositivo del micrófono: %s", exc)
             nombre, predeterminado = "", False
-    return obs_audio.frase_microfono(fuente, estado, nombre, predeterminado)
+    texto = obs_audio.frase_microfono(fuente, estado, nombre, predeterminado)
+    return texto, fuente, estado
 
 
-def microfono_por_atajo(preferido, avisar) -> None:
-    """Alterna el micrófono desde el atajo y entrega el anuncio."""
+def _medir_eventos(fabrica, segundos) -> list | None:
+    """Crea el cliente, conecta y escucha los medidores del websocket.
+    Devuelve None si la medición no se pudo hacer; siempre cierra."""
+    cliente = None
+    try:
+        cliente = fabrica()
+        cliente.conectar()
+        return cliente.escuchar("InputVolumeMeters", segundos)
+    except Exception as exc:
+        logger.debug("No se pudo medir la señal del micrófono: %s", exc)
+        return None
+    finally:
+        if cliente is not None:
+            try:
+                cliente.cerrar()
+            except Exception as exc:
+                logger.debug("No se pudo cerrar la medición de OBS: %s", exc)
+
+
+def senal_microfono(fuente, segundos=3.0, crear_cliente=None) -> bool | None:
+    """Escucha el medidor de la fuente en OBS durante unos segundos y
+    dice si entró señal. None si la medición no se puede hacer."""
+    fabrica = crear_cliente or (
+        lambda: obs_cliente.ClienteObs(
+            obs_cliente.leer_ajustes(), suscripciones=SUSCRIPCION_METROS))
+    eventos = _medir_eventos(fabrica, segundos)
+    if eventos is None:
+        return None
+    try:
+        return obs_audio.tiene_senal(eventos, fuente)
+    except Exception as exc:
+        logger.debug("No se pudo leer la medición del micrófono: %s", exc)
+        return None
+
+
+def _texto_del_atajo(preferido) -> tuple:
+    """Crea y conecta el gestor del panel, alterna y rinde
+    `(texto, fuente, silenciado)`; si OBS no responde, rinde su aviso."""
     from ytchat.obs.obs_panel import GestorPanelObs
 
     gestor = None
     try:
         gestor = GestorPanelObs()
         gestor.conectar()
-        texto = alternar_microfono(gestor, preferido)
+        return alternar_microfono(gestor, preferido)
     except Exception:
-        texto = ("OBS no responde. En OBS, menú Herramientas, Configuración "
-                 "del servidor WebSocket, activa el servidor.")
+        return ("OBS no responde. En OBS, menú Herramientas, Configuración "
+                "del servidor WebSocket, activa el servidor.", "", True)
     finally:
         if gestor is not None:
             try:
                 gestor.cerrar()
             except Exception as exc:
                 logger.debug("No se pudo cerrar la conexión con OBS: %s", exc)
+
+
+def microfono_por_atajo(preferido, avisar) -> None:
+    """Alterna el micrófono desde el atajo, anuncia y si quedó activado
+    mide la señal unos segundos para avisar si no entra nada."""
+    texto, fuente, silenciado = _texto_del_atajo(preferido)
     avisar(texto, "")
+    if fuente and not silenciado and obs_audio.es_microfono(fuente):
+        if senal_microfono(fuente) is False:
+            avisar(obs_audio.TEXTO_SIN_SENAL, "microfono_sin_senal")
 
 
 def dispositivo(cliente, fuente, predeterminado, parada=None) -> tuple:

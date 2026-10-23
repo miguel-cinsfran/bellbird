@@ -484,6 +484,13 @@ def gen_atajos_ocupados():
     return _normalizar(_concat(toque, _silencio(0.06), toque), 0.5)
 
 
+def gen_microfono_sin_senal():
+    # Dos notas que bajan, G4 y D4: la línea se cae.
+    arriba = _perc(_seno(G4, 0.12, 0.45), 0.005, 0.35)
+    abajo = _perc(_seno(D4, 0.12, 0.45), 0.005, 0.35)
+    return _normalizar(_concat(arriba, _silencio(0.03), abajo), 0.5)
+
+
 # ── Tema "suave": senos cálidos con decaimiento tipo marimba/madera ───────────
 # Más redondo, bajo y mate que el tema por defecto: nada de aristas brillantes
 # ni regusto a videojuego. Mismo lenguaje de gestos (ascendente = abrir, etc.).
@@ -740,6 +747,13 @@ def s_atajos_ocupados():
     return _normalizar(_concat(toque, _silencio(0.06), toque), 0.45)
 
 
+def s_microfono_sin_senal():
+    # Las mismas dos notas que bajan, en madera.
+    arriba = _madera(G4, 0.12, 0.45, 0.35)
+    abajo = _madera(D4, 0.12, 0.45, 0.35)
+    return _normalizar(_concat(arriba, _silencio(0.03), abajo), 0.45)
+
+
 # ── Reemplazos del tema suave (encargo 174) ──────────────────────────────────
 # Generadores propios para los que eran copia de otro dentro del tema.
 # Cada uno conserva el gesto del evento con notas o duraciones distintas.
@@ -883,6 +897,8 @@ TEMAS = {
         "ia_imagen_negra.wav":         gen_ia_imagen_negra,
         # Atajos globales ocupados.
         "atajos_ocupados.wav":         gen_atajos_ocupados,
+        # Micrófono activado sin señal que entre.
+        "microfono_sin_senal.wav":     gen_microfono_sin_senal,
     },
     "suave": {
         "app_inicio.wav":    s_app_inicio,
@@ -949,6 +965,8 @@ TEMAS = {
         "ia_imagen_negra.wav":         s_ia_imagen_negra,
         # Atajos globales ocupados.
         "atajos_ocupados.wav":         s_atajos_ocupados,
+        # Micrófono activado sin señal que entre.
+        "microfono_sin_senal.wav":     s_microfono_sin_senal,
     },
 }
 

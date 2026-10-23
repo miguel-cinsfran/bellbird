@@ -1,8 +1,12 @@
 import unittest
 from unittest import mock
 
+from ytchat.obs import obs_audio
 from ytchat.obs import obs_entradas_audio
 from ytchat.obs import dispositivo_windows
+
+TEXTO_SIN_SENAL = ("El micrófono no recibe sonido. Revisa cuál está elegido "
+                   "en Windows o en OBS.")
 
 
 class DobleCliente:
@@ -99,13 +103,13 @@ class AlternarMicrofonoTest(unittest.TestCase):
         gestor = DobleGestor(fuentes=("Mic/Aux", "Audio USB"), silencio=True)
         self.assertEqual(
             obs_entradas_audio.alternar_microfono(gestor, "Audio USB"),
-            "Audio USB silenciado")
+            ("Audio USB silenciado", "Audio USB", True))
         self.assertEqual(gestor.alternadas, ["Audio USB"])
 
     def test_sin_fuentes_anuncia_la_ausencia_y_no_alterna(self):
         gestor = DobleGestor()
         self.assertEqual(obs_entradas_audio.alternar_microfono(gestor, ""),
-                         "OBS no tiene ninguna fuente de audio")
+                         ("OBS no tiene ninguna fuente de audio", "", False))
         self.assertEqual(gestor.alternadas, [])
 
     def test_activado_nombra_el_dispositivo_y_consulta_el_predeterminado(self):
@@ -113,7 +117,7 @@ class AlternarMicrofonoTest(unittest.TestCase):
                              dispositivo=("Micrófono (WO Mic Device)", False))
         self.assertEqual(
             obs_entradas_audio.alternar_microfono(gestor, "Mic/Aux"),
-            "Micrófono activado: WO Mic Device")
+            ("Micrófono activado: WO Mic Device", "Mic/Aux", False))
         self.assertEqual(gestor.consultas[0][0], "Mic/Aux")
         self.assertIs(gestor.consultas[0][1],
                       dispositivo_windows.microfono_predeterminado)
@@ -121,51 +125,151 @@ class AlternarMicrofonoTest(unittest.TestCase):
     def test_silenciado_no_consulta_el_dispositivo(self):
         gestor = DobleGestor(fuentes=("Mic/Aux",), silencio=True,
                              dispositivo=("Micrófono (WO Mic Device)", False))
-        self.assertEqual(obs_entradas_audio.alternar_microfono(gestor, "Mic/Aux"),
-                         "Micrófono silenciado")
+        self.assertEqual(
+            obs_entradas_audio.alternar_microfono(gestor, "Mic/Aux"),
+            ("Micrófono silenciado", "Mic/Aux", True))
         self.assertEqual(gestor.consultas, [])
 
     def test_si_la_consulta_del_dispositivo_lanza_anuncia_como_hoy(self):
         gestor = DobleGestor(fuentes=("Mic/Aux",), silencio=False,
                              dispositivo=RuntimeError("sin COM"))
         self.assertEqual(obs_entradas_audio.alternar_microfono(gestor, "Mic/Aux"),
-                         "Micrófono activado")
+                         ("Micrófono activado", "Mic/Aux", False))
+
+
+class ClienteSenal:
+    """Cliente doble para la medición de la señal del micrófono."""
+    def __init__(self, eventos=None, fallo_conectar=None, fallo_escuchar=None):
+        self.eventos = list(eventos or [])
+        self.fallo_conectar = fallo_conectar
+        self.fallo_escuchar = fallo_escuchar
+        self.conectado = False
+        self.escuchado = None
+        self.cerrado = False
+
+    def conectar(self, parada=None):
+        if self.fallo_conectar:
+            raise self.fallo_conectar
+        self.conectado = True
+
+    def escuchar(self, tipo, segundos, parada=None):
+        self.escuchado = (tipo, segundos)
+        if self.fallo_escuchar:
+            raise self.fallo_escuchar
+        return self.eventos
+
+    def cerrar(self):
+        self.cerrado = True
+
+
+class SenalMicrofonoTest(unittest.TestCase):
+    def _medir(self, cliente, fuente="Mic/Aux", segundos=None):
+        args = (segundos,) if segundos is not None else ()
+        return obs_entradas_audio.senal_microfono(
+            fuente, *args, crear_cliente=lambda: cliente)
+
+    def test_escucha_el_medidor_y_encuentra_senal(self):
+        cliente = ClienteSenal(eventos=[{"inputs": [
+            {"inputName": "Mic/Aux", "inputLevelsMul": [[0.0, 0.02, 0.049]]}]}])
+        self.assertIs(self._medir(cliente), True)
+        self.assertTrue(cliente.conectado)
+        self.assertEqual(cliente.escuchado, ("InputVolumeMeters", 3.0))
+        self.assertTrue(cliente.cerrado)
+
+    def test_cero_niveles_es_sin_senal(self):
+        cliente = ClienteSenal(eventos=[{"inputs": [
+            {"inputName": "Mic/Aux", "inputLevelsMul": [[0.0, 0.0, 0.0]]}]}])
+        self.assertIs(self._medir(cliente), False)
+        self.assertTrue(cliente.cerrado)
+
+    def test_otros_eventos_tambien_devuelven_ninguna(self):
+        cliente = ClienteSenal(eventos=[{"inputs": [
+            {"inputName": "Otro", "inputLevelsMul": [[0.9, 0.9, 0.9]]}]}])
+        self.assertIsNone(self._medir(cliente))
+        self.assertTrue(cliente.cerrado)
+
+    def test_un_fallo_al_conectar_es_que_no_se_pudo_medir(self):
+        cliente = ClienteSenal(fallo_conectar=RuntimeError("sin OBS"))
+        self.assertIsNone(self._medir(cliente))
+        self.assertTrue(cliente.cerrado)
+
+    def test_un_fallo_al_escuchar_es_que_no_se_pudo_medir(self):
+        cliente = ClienteSenal(fallo_escuchar=RuntimeError("colgado"))
+        self.assertIsNone(self._medir(cliente))
+        self.assertTrue(cliente.cerrado)
+
+    def test_respeta_los_segundos_pedidos(self):
+        cliente = ClienteSenal()
+        self._medir(cliente, segundos=5.0)
+        self.assertEqual(cliente.escuchado, ("InputVolumeMeters", 5.0))
 
 
 class MicrofonoPorAtajoTest(unittest.TestCase):
-    def _ejecutar(self, gestor, preferido="Mic/Aux"):
+    def _ejecutar(self, gestor, preferido="Mic/Aux", senal=None):
         avisos = []
         with mock.patch("ytchat.obs.obs_panel.GestorPanelObs",
-                        return_value=gestor) as clase:
+                        return_value=gestor) as clase, \
+                mock.patch.object(obs_entradas_audio, "senal_microfono",
+                                  return_value=senal) as medicion:
             obs_entradas_audio.microfono_por_atajo(
                 preferido, lambda *args: avisos.append(args))
-        return clase, avisos
+        return clase, avisos, medicion
 
-    def test_crea_conecta_alterna_cierra_y_avisa(self):
+    def test_activado_sin_senal_avisa_dos_veces_en_orden_y_con_sonido(self):
         gestor = DobleGestor(
             fuentes=("Mic/Aux",), silencio=False,
             dispositivo=("Micrófono (USB)", False))
-        clase, avisos = self._ejecutar(gestor)
-        clase.assert_called_once_with()
-        self.assertTrue(gestor.conectado)
-        self.assertEqual(gestor.alternadas, ["Mic/Aux"])
+        clase, avisos, medicion = self._ejecutar(gestor, senal=False)
+        self.assertEqual(avisos, [
+            ("Micrófono activado: USB", ""),
+            (TEXTO_SIN_SENAL, "microfono_sin_senal")])
+        medicion.assert_called_once_with("Mic/Aux")
         self.assertTrue(gestor.cerrado)
-        self.assertEqual(avisos, [("Micrófono activado: USB", "")])
 
-    def test_obs_caido_avisa_el_texto_de_siempre_y_cierra(self):
+    def test_activado_con_senal_avisa_una_sola_vez(self):
+        gestor = DobleGestor(
+            fuentes=("Mic/Aux",), silencio=False,
+            dispositivo=("Micrófono (USB)", False))
+        _, avisos, medicion = self._ejecutar(gestor, senal=True)
+        self.assertEqual(avisos, [("Micrófono activado: USB", "")])
+        self.assertTrue(medicion.called)
+
+    def test_silenciado_no_mide(self):
+        gestor = DobleGestor(fuentes=("Mic/Aux",), silencio=True)
+        _, avisos, medicion = self._ejecutar(gestor, senal=None)
+        self.assertEqual(avisos, [("Micrófono silenciado", "")])
+        medicion.assert_not_called()
+
+    def test_con_la_medicion_inalcanzable_no_avisa_nada_mas(self):
+        gestor = DobleGestor(
+            fuentes=("Mic/Aux",), silencio=False,
+            dispositivo=("Micrófono (USB)", False))
+        _, avisos, medicion = self._ejecutar(gestor, senal=None)
+        self.assertEqual(avisos, [("Micrófono activado: USB", "")])
+        self.assertTrue(medicion.called)
+
+    def test_fuente_sin_microfono_no_mide(self):
+        gestor = DobleGestor(fuentes=("Audio del escritorio",), silencio=False)
+        _, avisos, medicion = self._ejecutar(gestor)
+        self.assertEqual(avisos, [("Audio del escritorio activado", "")])
+        medicion.assert_not_called()
+
+    def test_obs_caido_avisa_el_texto_de_siempre_y_no_mide(self):
         gestor = DobleGestor()
         gestor.conectar = mock.Mock(side_effect=RuntimeError("sin OBS"))
-        _, avisos = self._ejecutar(gestor)
+        _, avisos, medicion = self._ejecutar(gestor)
         self.assertTrue(gestor.cerrado)
         self.assertEqual(avisos, [(
             "OBS no responde. En OBS, menú Herramientas, Configuración "
             "del servidor WebSocket, activa el servidor.", "")])
+        medicion.assert_not_called()
 
     def test_un_fallo_al_cerrar_no_se_escapa(self):
         gestor = DobleGestor(fuentes=("Mic/Aux",), silencio=True)
         gestor.cerrar = mock.Mock(side_effect=RuntimeError("socket cerrado"))
-        _, avisos = self._ejecutar(gestor)
+        _, avisos, medicion = self._ejecutar(gestor)
         self.assertEqual(avisos, [("Micrófono silenciado", "")])
+        medicion.assert_not_called()
 
 
 class DispositivoTest(unittest.TestCase):

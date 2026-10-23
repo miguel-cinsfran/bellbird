@@ -27,6 +27,7 @@ EVENTOS_NUEVOS = [
     "ia_enviada", "ia_respuesta", "ia_error",
     "ia_analizando", "ia_captura", "ia_cancelada", "ia_imagen_negra",
     "atajos_ocupados",
+    "microfono_sin_senal",
 ]
 
 # Tope de duración por evento: la espera de la IA lleva una figura melódica

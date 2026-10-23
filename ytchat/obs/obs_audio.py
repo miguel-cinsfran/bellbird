@@ -11,6 +11,11 @@ def _contiene_microfono(nombre: str) -> bool:
     return "mic" in sin_tildes
 
 
+def es_microfono(fuente: str) -> bool:
+    """¿La fuente es de micrófono? Decide el nombre, como el anuncio."""
+    return _contiene_microfono(fuente)
+
+
 def elegir_microfono(fuentes, preferido: str) -> str:
     """Devuelve la fuente de audio que se usará como micrófono."""
     fuentes = tuple(fuentes)
@@ -65,3 +70,35 @@ def frase_microfono(fuente: str, silenciado: bool, dispositivo: str = "",
         return "OBS no tiene ninguna fuente de audio"
     estado = "silenciado" if silenciado else "activado"
     return _frase(fuente, estado, dispositivo, predeterminado)
+
+
+# -80 dBFS: debajo queda indistinguible del silencio. Medido en OBS 32.2.2
+# el 23/10: un micrófono prendido sin hablar sobresale con pico de 0,049.
+UMBRAL_SENAL = 0.0001
+
+TEXTO_SIN_SENAL = ("El micrófono no recibe sonido. Revisa cuál está elegido "
+                   "en Windows o en OBS.")
+
+
+def _nivel_de_canal(canal) -> float:
+    # El canal trae [magnitud, pico, pico de entrada]; el índice 2 es
+    # anterior al volumen de OBS y no lo tapa. Sin los tres, el que haya.
+    return canal[2] if len(canal) > 2 else canal[-1]
+
+
+def _niveles_de(eventos, fuente: str):
+    for evento in eventos:
+        for entrada in evento.get("inputs") or ():
+            if entrada.get("inputName") != fuente:
+                continue
+            for canal in entrada.get("inputLevelsMul") or ():
+                yield _nivel_de_canal(canal)
+
+
+def tiene_senal(eventos, fuente: str) -> bool | None:
+    """¿Entró algo por la fuente en los eventos medidos? None si ninguna
+    muestra de esa fuente llegó; con muestras, si superó el umbral."""
+    niveles = list(_niveles_de(eventos, fuente))
+    if not niveles:
+        return None
+    return max(niveles) > UMBRAL_SENAL

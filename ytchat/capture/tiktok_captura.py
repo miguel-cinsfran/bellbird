@@ -315,22 +315,14 @@ def _sesion(usuario, parada, on_evento, on_estado, on_info, on_espectadores,
                                        DisconnectEvent, LiveEndEvent,
                                        RoomUserSeqEvent, JoinEvent)
         from TikTokLive import events as modulo_eventos
+        from ytchat.capture import tiktok_manejadores
         client = TikTokLiveClient(unique_id=usuario)
         _envolver_marcador_historico(client)
     except Exception as exc:
         logger.debug("preparación TikTok: %s", exc)
         return exc
-    clase_suscripcion = _clase_suscripcion(modulo_eventos)
-    # Seguir, compartir, cofre y me gusta existen en la TikTokLive instalada;
-    # si en otra versión falta alguna clase, ese manejador no se registra.
-    clase_seguir = getattr(modulo_eventos, "FollowEvent", None)
-    clase_compartir = getattr(modulo_eventos, "ShareEvent", None)
-    clase_cofre = getattr(modulo_eventos, "EnvelopeEvent", None)
-    clase_me_gusta = getattr(modulo_eventos, "LikeEvent", None)
     error: list = [None]
     hora_conexion: list = [None]
-    ultimo_me_gusta: list = [None]
-    _autor = autor_de_evento
 
     @client.on(ConnectEvent)
     async def _on_connect(evento):
@@ -343,109 +335,14 @@ def _sesion(usuario, parada, on_evento, on_estado, on_info, on_espectadores,
         if on_estado:
             on_estado("conectado", "Conectado al directo de TikTok.")
 
-    @client.on(CommentEvent)
-    async def _on_comment(evento):
-        if es_historico(evento) or es_previo_a_conexion(
-                _creado_ms(evento), hora_conexion[0]):
-            return
-        autor, canal_id = _autor(evento)
-        on_evento(autor, (evento.comment or "").strip(), TIPO_TEXTO, "", canal_id)
+    def descartar(evento) -> bool:
+        return es_historico(evento) or es_previo_a_conexion(
+            _creado_ms(evento), hora_conexion[0])
 
-    @client.on(GiftEvent)
-    async def _on_gift(evento):
-        if es_historico(evento) or es_previo_a_conexion(
-                _creado_ms(evento), hora_conexion[0]):
-            return
-        # Los regalos «en racha» disparan un evento por repetición: solo se
-        # anuncia el final de la racha, con el total, para no inundar el TTS.
-        if getattr(evento, "streaking", False):
-            return
-        autor, canal_id = _autor(evento)
-        gift = getattr(evento, "gift", None)
-        nombre = (getattr(gift, "name", "") or "regalo").strip()
-        diamantes = int(getattr(gift, "diamond_count", 0) or 0)
-        repes = max(1, int(getattr(evento, "repeat_count", 1) or 1))
-        total = diamantes * repes
-        detalle = f"{nombre} x{repes}" if repes > 1 else nombre
-        monto = f"{total} diamantes" if total else ""
-        on_evento(autor, detalle, TIPO_SUPERCHAT, monto, canal_id)
-
-    if clase_suscripcion is not None:
-        @client.on(clase_suscripcion)
-        async def _on_subscribe(evento):
-            if es_historico(evento) or es_previo_a_conexion(
-                    _creado_ms(evento), hora_conexion[0]):
-                return
-            autor, canal_id = _autor(evento)
-            on_evento(autor, "", TIPO_MIEMBRO, "", canal_id)
-
-    if clase_seguir is not None:
-        @client.on(clase_seguir)
-        async def _on_follow(evento):
-            if es_historico(evento) or es_previo_a_conexion(
-                    _creado_ms(evento), hora_conexion[0]):
-                return
-            autor, canal_id = _autor(evento)
-            on_evento(autor, "", TIPO_SEGUIR, "", canal_id)
-
-    if clase_compartir is not None:
-        @client.on(clase_compartir)
-        async def _on_share(evento):
-            if es_historico(evento) or es_previo_a_conexion(
-                    _creado_ms(evento), hora_conexion[0]):
-                return
-            autor, canal_id = _autor(evento)
-            on_evento(autor, "", TIPO_COMPARTIR, "", canal_id)
-
-    if clase_cofre is not None:
-        @client.on(clase_cofre)
-        async def _on_envelope(evento):
-            if es_historico(evento) or es_previo_a_conexion(
-                    _creado_ms(evento), hora_conexion[0]):
-                return
-            autor, canal_id = _autor(evento)
-            on_evento(autor, "", TIPO_COFRE, "", canal_id)
-
-    if clase_me_gusta is not None:
-        # Los me gusta llegan de a montones: como mucho UNO cada 3 s por
-        # sesión, para no saturar el sonido (ver debe_pasar_me_gusta).
-        @client.on(clase_me_gusta)
-        async def _on_like(evento):
-            if es_historico(evento) or es_previo_a_conexion(
-                    _creado_ms(evento), hora_conexion[0]):
-                return
-            ahora = time.monotonic()
-            if not debe_pasar_me_gusta(ultimo_me_gusta[0], ahora):
-                return
-            ultimo_me_gusta[0] = ahora
-            autor, canal_id = _autor(evento)
-            on_evento(autor, "", TIPO_ME_GUSTA, "", canal_id)
-
-    if anunciar_entradas:
-        # Quién entra al directo. Solo si el usuario lo pidió: en directos
-        # grandes son constantes y saturarían el TTS.
-        @client.on(JoinEvent)
-        async def _on_join(evento):
-            if es_historico(evento) or es_previo_a_conexion(
-                    _creado_ms(evento), hora_conexion[0]):
-                return
-            autor, canal_id = _autor(evento)
-            on_evento(autor, "", TIPO_ENTRADA, "", canal_id)
-
-    @client.on(RoomUserSeqEvent)
-    async def _on_user_seq(evento):
-        # Conteo de espectadores EN VIVO (se actualiza cada pocos segundos).
-        if not on_espectadores:
-            return
-        try:
-            ahora = int(getattr(evento, "total", None))
-        except (TypeError, ValueError):
-            return
-        try:
-            total = int(getattr(evento, "total_user", None))
-        except (TypeError, ValueError):
-            total = None
-        on_espectadores(ahora, total)
+    tiktok_manejadores.registrar_manejadores(
+        client, modulo_eventos, on_evento=on_evento,
+        on_espectadores=on_espectadores, anunciar_entradas=anunciar_entradas,
+        descartar=descartar)
 
     @client.on(LiveEndEvent)
     async def _on_live_end(evento):

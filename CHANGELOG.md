@@ -98,6 +98,12 @@ canciones.
   guarda lo emitido, así que al reanudar había que volver a abrirlo y se
   trababa. Ahora la pausa avisa que no se puede y dice el atajo de
   Silenciar, que calla el directo sin cortarlo.
+- **Más eventos de TikTok.** Se leen los comentarios hechos solo con
+  stickers («Ana: sticker») y las preguntas («Ana: Pregunta: ...»).
+  Cuando TikTok pausa el directo o lo retoma, suena un sonido propio
+  para cada caso y se dice. Casilla nueva en Preferencias, Leer quién
+  da me gusta: marcada, además del sonido se lee «Ana dio 15 me gusta».
+  Viene desmarcada porque en directos grandes los me gusta no paran.
 
 ### Sonidos y ventanas
 

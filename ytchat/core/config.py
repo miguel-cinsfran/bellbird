@@ -20,6 +20,7 @@ from ytchat.core.atajos import (
     parsear_atajos, detectar_conflictos_atajos, migrar_atajos_config,
 )  # noqa: F401  (reexport para quien importa desde config)
 from ytchat.core.config_descargas import guardar_opciones_descarga, obtener_opciones_descarga
+from ytchat.core.config_lectura import opciones_lectura
 from ytchat.core.config_musica import opciones_musica
 
 
@@ -346,6 +347,8 @@ def guardar_opcion(ruta: Path | None, seccion: str, clave: str, valor: str) -> b
 # La sección [musica] vive en `config_musica`: mismo nombre corto para lo
 # que la usaba por acá.
 _opciones_musica = opciones_musica
+# La sección [lectura] vive en `config_lectura`: mismo nombre corto.
+_opciones_lectura = opciones_lectura
 
 
 def cargar_configuracion() -> dict:
@@ -366,8 +369,6 @@ def cargar_configuracion() -> dict:
 
     estrategia = _gs(p, "cola", "estrategia").lower()
     if estrategia not in ("todas", "limite"): estrategia = "limite"
-    formato = _gs(p, "lectura", "formato_prefijo").lower()
-    if formato not in ("nombre_mensaje", "mensaje_nombre", "solo_mensaje", "solo_nombre"): formato = "nombre_mensaje"
 
     atajos_raw = {}
     if p.has_section("atajos"):
@@ -457,8 +458,7 @@ def cargar_configuracion() -> dict:
         "reconectar": _pb(p, "reconexion", "reconectar"),
         "espera_entre_intentos": _pi(p, "reconexion", "espera_entre_intentos", lo=1),
         "max_intentos": _pi(p, "reconexion", "max_intentos"),
-        "formato_prefijo": formato,
-        "lectura_atajos_globales": _pb(p, "lectura", "atajos_globales"),
+        **_opciones_lectura(p),
         "palabras_silenciadas": _lista(_gs(p, "filtros", "palabras_silenciadas")),
         "usuarios_silenciados": _lista(_gs(p, "filtros", "usuarios_silenciados")),
         "limpiar_emojis": _pb(p, "texto", "limpiar_emojis"),

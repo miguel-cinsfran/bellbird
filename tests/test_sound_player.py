@@ -134,6 +134,43 @@ class PruebasSoundPlayer(unittest.TestCase):
 
         fallback.assert_called_once_with(ruta)
 
+    def test_reproducir_evento_conocido_anota_su_nombre(self):
+        with tempfile.TemporaryDirectory(dir=Path.cwd()) as directorio:
+            ruta = Path(directorio) / "mensaje.wav"
+            ruta.touch()
+            sound_player.cargar({"eventos": {"mensaje": ruta}})
+            with mock.patch.object(sound_player, "_reproducir_fallback"), \
+                    self.assertLogs(sound_player.logger, level="DEBUG") as registro:
+                sound_player.reproducir("mensaje")
+
+        self.assertEqual(registro.output, ["DEBUG:ytchat.sound_player:SONIDO evento=mensaje"])
+
+    def test_reproducir_silenciado_anota_que_se_omitio(self):
+        sound_player.silenciar_todo(True)
+        with self.assertLogs(sound_player.logger, level="DEBUG") as registro:
+            sound_player.reproducir("mensaje")
+
+        self.assertEqual(
+            registro.output,
+            ["DEBUG:ytchat.sound_player:SONIDO evento=mensaje omitido=silenciado"])
+
+    def test_reproducir_desactivado_anota_que_se_omitio(self):
+        with mock.patch.object(sound_player, "_activo", False), \
+                self.assertLogs(sound_player.logger, level="DEBUG") as registro:
+            sound_player.reproducir("mensaje")
+
+        self.assertEqual(
+            registro.output,
+            ["DEBUG:ytchat.sound_player:SONIDO evento=mensaje omitido=inactivo"])
+
+    def test_reproducir_evento_sin_archivo_anota_que_se_omitio(self):
+        with self.assertLogs(sound_player.logger, level="DEBUG") as registro:
+            sound_player.reproducir("inexistente")
+
+        self.assertEqual(
+            registro.output,
+            ["DEBUG:ytchat.sound_player:SONIDO evento=inexistente omitido=sin_archivo"])
+
     def test_cerrar_sin_haber_cargado_no_lanza(self):
         sound_player.cerrar()
 

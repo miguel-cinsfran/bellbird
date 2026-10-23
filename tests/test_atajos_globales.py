@@ -209,6 +209,21 @@ class TestAtajosGlobales(unittest.TestCase):
             ventana.manejadores[ident](mock.Mock())
         self.assertEqual(len(llamadas), 1)
 
+    def test_el_evento_anota_el_origen_global_y_la_accion(self):
+        ventana = _VentanaFalsa()
+        acciones, _llamadas = self._acciones()
+        globales = AtajosGlobales(ventana, acciones)
+        globales.activar(self._atajos())
+        ident = next(iter(ventana.manejadores))
+        with mock.patch.object(atajos_globales.wx, "CallAfter"), \
+                self.assertLogs(atajos_globales.logger, level="DEBUG") as registro:
+            ventana.manejadores[ident](mock.Mock())
+
+        self.assertEqual(
+            registro.output,
+            ["DEBUG:ytchat.atajos_globales:ATAJO origen=global accion=musica_play"])
+
+
     def test_sin_atajos_no_registra_nada(self):
         ventana = _VentanaFalsa()
         acciones, _llamadas = self._acciones()

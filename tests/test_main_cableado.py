@@ -396,6 +396,41 @@ class PruebasFiltroReconexion(unittest.TestCase):
 
         self.assertEqual(procesados, ["X", "Y"])
 
+    def test_la_captura_anota_tipo_y_monto_sin_autor_ni_mensaje(self):
+        futuro = int(
+            (datetime.now(timezone.utc) + timedelta(hours=1)).timestamp() * 1_000)
+        item = types.SimpleNamespace(
+            id="uno", timestamp=futuro, message="mensaje privado de Ana",
+            author=types.SimpleNamespace(name="Ana", channelId="canal"),
+            type="superChat", amountString="$5")
+        parada = _Parada()
+
+        def procesar(autor, mensaje, tipo, monto, canal_id, cola, config, stats,
+                     on_message=None, sesion_activa=None, rol=""):
+            parada.set()
+
+        config = {"reconectar": True, "max_intentos": 0,
+                  "espera_entre_intentos": 15}
+        with patch.dict(sys.modules,
+                        {"pytchat": types.SimpleNamespace(
+                            create=lambda **_kwargs: _ChatFalso([item]))}), \
+                patch.object(main, "_cliente_pytchat",
+                             return_value=Mock(close=lambda: None)), \
+                patch.object(main, "procesar_entrante", side_effect=procesar), \
+                patch.object(main, "_directo_terminado", return_value=False), \
+                patch.object(main._snd, "reproducir"), \
+                self.assertLogs(main.logger, level="DEBUG") as registro:
+            main.captura_con_reconexion("v", queue.Queue(), config, parada,
+                                        main.Stats())
+
+        eventos = [linea for linea in registro.output if "YOUTUBE_EVENTO" in linea]
+        self.assertEqual(
+            eventos,
+            ["DEBUG:ytchat.main:YOUTUBE_EVENTO tipo=superchat monto=$5"])
+        self.assertNotIn("Ana", "".join(registro.output))
+        self.assertNotIn("mensaje privado", "".join(registro.output))
+
+
 
 class PruebasInfoVideoCancelable(unittest.TestCase):
     def test_no_encadena_mas_pasos_si_la_sesion_ya_no_vale(self):

@@ -1072,10 +1072,31 @@ class TestVentanaYAtajos(unittest.TestCase):
             control.ejecutar_atajo("musica_que_suena")
         control.que_suena.assert_called_once_with()
 
+    def test_ejecutar_atajo_anota_el_origen_musica_y_la_accion(self):
+        with _entorno():
+            control = ControlMusica(_frame())
+            control.que_suena = mock.Mock()
+            with self.assertLogs(gui_musica.logger, level="DEBUG") as registro:
+                control.ejecutar_atajo("musica_que_suena")
+        self.assertEqual(
+            registro.output,
+            ["DEBUG:ytchat.gui_musica:ATAJO origen=musica accion=musica_que_suena"])
+
     def test_ejecutar_atajo_desconocido_no_hace_nada(self):
         with _entorno():
             control = ControlMusica(_frame())
             control.ejecutar_atajo("no_existe")   # no debe lanzar
+
+    def test_ejecutar_atajo_desconocido_anota_que_no_existe(self):
+        with _entorno():
+            control = ControlMusica(_frame())
+            with self.assertLogs(gui_musica.logger, level="DEBUG") as registro:
+                control.ejecutar_atajo("no_existe")
+        self.assertEqual(
+            registro.output,
+            ["DEBUG:ytchat.gui_musica:ATAJO origen=musica accion=no_existe "
+             "desconocida=si"])
+
 
 
 class _VentanaFalsa:

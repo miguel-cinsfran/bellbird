@@ -22,6 +22,7 @@ FORMATO_DETALLADO = (
 )
 FECHA_DETALLADA = "%Y-%m-%d %H:%M:%S"
 INTERVALO_CENSO_HILOS_S = 30
+INTERVALO_CENSO_REPETIDO_S = 10 * 60
 UMBRAL_BLOQUEO_INTERFAZ_MS = 500
 RAIZ_LOGGER = "ytchat"
 _ARCHIVO_FALLOS = None
@@ -73,8 +74,9 @@ def censo_hilos() -> tuple[str, ...]:
     ))
 
 
-def componer_censo_hilos() -> str:
-    nombres = censo_hilos()
+def componer_censo_hilos(nombres: tuple[str, ...] | None = None) -> str:
+    if nombres is None:
+        nombres = censo_hilos()
     return f"HILOS vivos={len(nombres)} nombres={', '.join(nombres)}"
 
 
@@ -158,11 +160,22 @@ def crear_hilo(target, nombre: str, *, args=(), daemon=True) -> threading.Thread
     return threading.Thread(target=ejecutar, daemon=daemon, name=nombre)
 
 
+_ultimo_censo_nombres: tuple[str, ...] | None = None
+_ultimo_censo_momento = 0.0
+
+
 def debe_censar_hilos(marca_anterior: float, marca_actual: float | None = None):
+    global _ultimo_censo_nombres, _ultimo_censo_momento
     actual = time.monotonic() if marca_actual is None else marca_actual
     if actual - marca_anterior < INTERVALO_CENSO_HILOS_S:
         return None
-    return actual, componer_censo_hilos()
+    nombres = censo_hilos()
+    if (nombres == _ultimo_censo_nombres
+            and actual - _ultimo_censo_momento < INTERVALO_CENSO_REPETIDO_S):
+        return None
+    _ultimo_censo_nombres = nombres
+    _ultimo_censo_momento = actual
+    return actual, componer_censo_hilos(nombres)
 
 
 def marcar_incidencia() -> str:

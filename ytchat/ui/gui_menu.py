@@ -13,7 +13,10 @@ import webbrowser
 
 import wx
 
+from ytchat.core import diagnostico
 from ytchat.ui.atajos_captura import ETIQUETAS
+
+logger = diagnostico.obtener_logger(__name__)
 
 
 def construir_menu(frame):
@@ -38,7 +41,6 @@ def construir_menu(frame):
     frame._bind_menu(frame.mi_copiar_enlace, frame._copiar_enlace_directo)
     frame.Bind(wx.EVT_MENU, lambda e: wx.CallAfter(frame._on_historial), mi_historial)
     frame.Bind(wx.EVT_MENU, lambda e: frame.Close(), mi_salir)
-
     # Ver
     _construir_menu_ver(frame, mb)
 
@@ -194,6 +196,46 @@ def construir_menu(frame):
         try:    anterior.Destroy()
         except Exception: pass
     frame._sincronizar_pausa()
+    _registrar_menus(frame)
+
+
+def _registrar_menus(frame) -> None:
+    """Anota cada comando del menú principal sin impedir que corra.
+
+    Se enlaza después que los manejadores propios: wx llama primero al
+    último enlazado, así este registra y con `Skip` sigue el del ítem.
+    """
+    def al_elegir(evento) -> None:
+        ident = evento.GetId()
+        logger.debug("MENU id=%s etiqueta=%s", ident,
+                     _etiqueta_menu(frame, ident))
+        evento.Skip()
+
+    frame.Bind(wx.EVT_MENU, al_elegir)
+
+
+def _etiqueta_menu(frame, ident: int) -> str:
+    """El texto del ítem con ese id en la barra, sin `&` ni atajo."""
+    try:
+        barra = frame.GetMenuBar()
+        for indice in range(barra.GetMenuCount()):
+            etiqueta = _buscar_en_menu(barra.GetMenu(indice), ident)
+            if etiqueta is not None:
+                return etiqueta
+    except Exception:
+        return "?"
+    return "?"
+
+
+def _buscar_en_menu(menu, ident: int):
+    for item in menu.GetMenuItems():
+        if item.GetId() == ident:
+            return item.GetItemLabelText().replace("&", "").split("\t")[0]
+        if item.IsSubMenu():
+            etiqueta = _buscar_en_menu(item.GetSubMenu(), ident)
+            if etiqueta is not None:
+                return etiqueta
+    return None
 
 
 def _abrir_ia(frame):

@@ -9,9 +9,13 @@ atribuidos a su título. La lista se fijó contra el código anterior a mover
 después sin tocarla.
 """
 
+import sys
 import unittest
 from unittest import mock
 
+import wx
+
+from tests.ventanas_prueba import destruir
 from ytchat.ui import gui
 
 
@@ -270,6 +274,53 @@ class TestMenuRecientes(unittest.TestCase):
         frame = mock.Mock()
         gui.YTChatFrame._leer_reciente(frame, 4)
         frame._recientes.leer.assert_called_once_with(4)
+
+
+class TestRegistroDeComandos(unittest.TestCase):
+    """El manejador genérico anota el comando y deja correr el del ítem."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+
+    @classmethod
+    def tearDownClass(cls):
+        del cls.app
+
+    def test_anota_la_etiqueta_y_no_impide_que_corra_el_manejador_propio(self):
+        from ytchat.ui import gui_menu
+
+        frame = wx.Frame(None)
+        self.addCleanup(destruir, frame)
+        barra = wx.MenuBar()
+        menu = wx.Menu()
+        item = menu.Append(wx.ID_ANY, "&Conectar\tCtrl+K")
+        barra.Append(menu, "&Archivo")
+        frame.SetMenuBar(barra)
+        propias = []
+        frame.Bind(wx.EVT_MENU, lambda _evento: propias.append("propio"), item)
+        gui_menu._registrar_menus(frame)
+        evento = wx.CommandEvent(wx.EVT_MENU.typeId, item.GetId())
+        with self.assertLogs(gui_menu.logger, level="DEBUG") as registro:
+            frame.GetEventHandler().ProcessEvent(evento)
+
+        self.assertEqual(propias, ["propio"])
+        self.assertEqual(len(registro.output), 1)
+        self.assertIn("MENU id=", registro.output[0])
+        self.assertIn("etiqueta=Conectar", registro.output[0])
+
+    def test_un_id_que_no_esta_en_la_barra_dice_interrogante(self):
+        from ytchat.ui import gui_menu
+
+        frame = wx.Frame(None)
+        self.addCleanup(destruir, frame)
+        frame.SetMenuBar(wx.MenuBar())
+        gui_menu._registrar_menus(frame)
+        evento = wx.CommandEvent(wx.EVT_MENU.typeId, 12345)
+        with self.assertLogs(gui_menu.logger, level="DEBUG") as registro:
+            frame.GetEventHandler().ProcessEvent(evento)
+
+        self.assertIn("etiqueta=?", registro.output[0])
 
 
 if __name__ == "__main__":

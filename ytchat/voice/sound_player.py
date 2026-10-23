@@ -147,10 +147,14 @@ def reproducir(evento: str) -> None:
     el archivo existe antes de reproducirlo.
     """
     if _silenciado_usuario or not _activo:
+        logger.debug("SONIDO evento=%s omitido=%s", evento,
+                     "silenciado" if _silenciado_usuario else "inactivo")
         return
     ruta = _eventos.get(evento)
     if not ruta:
+        logger.debug("SONIDO evento=%s omitido=sin_archivo", evento)
         return
+    logger.debug("SONIDO evento=%s", evento)
     _encolar(ruta)
 
 

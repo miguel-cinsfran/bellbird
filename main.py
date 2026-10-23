@@ -643,7 +643,7 @@ def _captura_en_loop(video_id, cola, config, parada, stats, on_message, on_estad
                     monto = ""
                     if tipo in (TIPO_SUPERCHAT, TIPO_STICKER):
                         monto = _str(getattr(c, "amountString", None), "")
-
+                    logger.debug("YOUTUBE_EVENTO tipo=%s monto=%s", tipo, monto)
                     procesar_entrante(autor, mensaje, tipo, monto, canal_id,
                                       cola, config, stats,
                                       on_message=on_message,

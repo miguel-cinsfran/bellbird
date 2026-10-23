@@ -39,7 +39,6 @@ VOLUMEN_MIN = 0
 VOLUMEN_MAX = 100
 VOLUMEN_INICIAL = 50
 
-
 def nuevo_volumen(actual, paso, minimo=VOLUMEN_MIN, maximo=VOLUMEN_MAX) -> int:
     """Volumen nuevo tras sumar un paso, recortado a sus límites. Función pura."""
     try:
@@ -60,7 +59,6 @@ def toca_pausar(estado) -> bool:
 def _resultado_sin_tema() -> Resultado:
     return Resultado(False, SIN_TEMA, EstadoMusica(
         (), None, False, False, VOLUMEN_MAX, False))
-
 
 class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica, SonoridadMusica,
                     ListasPropiasMusica, MemoriaMusica, TeclasMusica):
@@ -213,6 +211,8 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica, SonoridadMusica,
     def ejecutar_atajo(self, accion) -> None:
         """Corre la acción de música de un atajo, como si viniera del menú."""
         funcion = self.acciones_musica().get(accion)
+        logger.debug("ATAJO origen=musica accion=%s%s", accion,
+                     "" if funcion is not None else " desconocida=si")
         if funcion is not None:
             funcion()
 

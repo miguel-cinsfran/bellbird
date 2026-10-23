@@ -10,7 +10,10 @@ from __future__ import annotations
 
 import wx
 
+from ytchat.core import diagnostico
 from ytchat.ui.atajos_captura import atajo_legible
+
+logger = diagnostico.obtener_logger(__name__)
 
 # Acciones de música con atajo global, en orden fijo: el índice da el id.
 # Abrir la ventana de música no es global: Ctrl+Mayús+M solo vale dentro.
@@ -146,13 +149,14 @@ class AtajosGlobales:
             if not registrado:
                 fallidos.append(atajo_legible(valor))
                 continue
-            manejador = self._enlazar(ident, funcion)
+            manejador = self._enlazar(ident, accion, funcion)
             self._registrados[accion] = (ident, manejador)
         return fallidos
 
-    def _enlazar(self, ident: int, funcion) -> object:
+    def _enlazar(self, ident: int, accion: str, funcion) -> object:
         """Enlaza `EVT_HOTKEY` a la acción, que corre con `CallAfter`."""
         def al_pulsar(_evento, _funcion=funcion) -> None:
+            logger.debug("ATAJO origen=global accion=%s", accion)
             wx.CallAfter(_funcion)
 
         self._ventana.Bind(wx.EVT_HOTKEY, al_pulsar, id=ident)

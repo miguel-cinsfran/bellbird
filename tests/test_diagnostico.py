@@ -510,3 +510,52 @@ class DiagnosticoTest(unittest.TestCase):
             contenido = Path(ruta).read_text(encoding="utf-8", errors="replace")
             self.assertIn("Windows fatal exception: code 0x80010108", contenido)
             self.assertNotIn("Thread 0x", contenido)
+
+
+class PruebasCensoHilosSinRepetir(unittest.TestCase):
+    """El censo solo sale cuando cambia la lista o pasan diez minutos."""
+
+    def setUp(self):
+        parches = (
+            patch.object(diagnostico, "_ultimo_censo_nombres", None, create=True),
+            patch.object(diagnostico, "_ultimo_censo_momento", 0.0, create=True),
+            patch.object(diagnostico, "_ultimo_chequeo", 0.0, create=True),
+        )
+        for parche in parches:
+            parche.start()
+            self.addCleanup(parche.stop)
+
+    def test_la_misma_lista_a_los_30_segundos_no_sale(self):
+        with patch.object(diagnostico, "censo_hilos",
+                          return_value=("MainThread", "Sonidos")):
+            primero = diagnostico.debe_censar_hilos(-30.0, 0.0)
+            segundo = diagnostico.debe_censar_hilos(0.0, 30.0)
+
+        self.assertIsNotNone(primero)
+        self.assertIsNone(segundo)
+
+    def test_un_hilo_nuevo_sale_aunque_no_pasen_diez_minutos(self):
+        nombres = [("MainThread", "Sonidos"),
+                   ("MainThread", "Sonidos"),
+                   ("MainThread", "Sonidos", "Nuevo")]
+        with patch.object(diagnostico, "censo_hilos", side_effect=nombres):
+            primero = diagnostico.debe_censar_hilos(-30.0, 0.0)
+            segundo = diagnostico.debe_censar_hilos(0.0, 30.0)
+            tercero = diagnostico.debe_censar_hilos(0.0, 60.0)
+
+        self.assertIsNotNone(primero)
+        self.assertIsNone(segundo)
+        self.assertIsNotNone(tercero)
+        self.assertIn("Nuevo", tercero[1])
+
+    def test_la_misma_lista_a_los_diez_minutos_sale(self):
+        with patch.object(diagnostico, "censo_hilos",
+                          return_value=("MainThread", "Sonidos")):
+            primero = diagnostico.debe_censar_hilos(-30.0, 0.0)
+            segundo = diagnostico.debe_censar_hilos(
+                0.0, diagnostico.INTERVALO_CENSO_REPETIDO_S)
+
+        self.assertIsNotNone(primero)
+        self.assertIsNotNone(segundo)
+        self.assertEqual(primero[1], segundo[1])
+

@@ -9,11 +9,13 @@ porque lo enlazan la construcción, las preferencias y las pruebas.
 
 from __future__ import annotations
 
+import os
 import webbrowser
 
 import wx
 
 from ytchat.core import diagnostico
+from ytchat.core import paths
 from ytchat.ui.atajos_captura import ETIQUETAS
 
 logger = diagnostico.obtener_logger(__name__)
@@ -189,6 +191,7 @@ def _construir_menu_ayuda(frame, mb):
     m = wx.Menu()
     mi_guia = m.Append(wx.ID_ANY, "&Guía de configuración de la API…")
     mi_incidente = m.Append(wx.ID_ANY, "&Marcar incidencia" + frame._accel("marcar_incidencia"))
+    mi_registros = m.Append(wx.ID_ANY, "Abrir la carpeta de &registros")
     mi_actualizar_app = m.Append(wx.ID_ANY, "&Buscar actualizaciones…")
     mi_about = m.Append(wx.ID_ABOUT, "&Acerca de")
     mb.Append(m, "A&yuda")
@@ -198,8 +201,19 @@ def _construir_menu_ayuda(frame, mb):
     frame.Bind(wx.EVT_MENU, lambda e: wx.CallAfter(
         frame._on_marcar_incidencia, None), mi_incidente)
     frame.Bind(wx.EVT_MENU, lambda e: wx.CallAfter(
+        abrir_carpeta_registros, frame), mi_registros)
+    frame.Bind(wx.EVT_MENU, lambda e: wx.CallAfter(
         frame._on_actualizar_app, None), mi_actualizar_app)
     frame.Bind(wx.EVT_MENU, lambda e: wx.CallAfter(frame._on_about, None), mi_about)
+
+
+def abrir_carpeta_registros(frame) -> None:
+    """Abre en el explorador la carpeta con los registros de la aplicación."""
+    try:
+        os.startfile(str(paths.carpeta_datos()))  # noqa: S606
+    except Exception as exc:
+        wx.MessageBox(f"No se pudo abrir la carpeta de registros:\n\n{exc}",
+                      "Carpeta de registros", wx.OK | wx.ICON_ERROR, frame)
 
 
 def _registrar_menus(frame) -> None:

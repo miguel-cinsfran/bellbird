@@ -135,7 +135,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("activo", "false"),
     ]),
     ("diagnostico", [
-        ("registro_detallado", "false"),
+        ("registro_detallado", "true"),
     ]),
     ("overlay", [
         ("activo", "false"),

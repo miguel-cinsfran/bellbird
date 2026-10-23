@@ -2991,7 +2991,7 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         for valor, esperado in (("true", True), ("false", False)):
             with self.subTest(valor=valor):
                 (self.ruta / "config.ini").write_text(
-                    config._CONFIG_FALLBACK.replace("registro_detallado = false",
+                    config._CONFIG_FALLBACK.replace("registro_detallado = true",
                                                     f"registro_detallado = {valor}"),
                     encoding="utf-8")
                 self.assertEqual(config.cargar_configuracion()["registro_detallado"],

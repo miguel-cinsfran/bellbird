@@ -192,6 +192,7 @@ class TestEquivalenciaMenu(unittest.TestCase):
             ("&Herramientas", "&Preferencias…", ANY, "normal"),
             ("A&yuda", "&Guía de configuración de la API…", ANY, "normal"),
             ("A&yuda", "&Marcar incidencia", ANY, "normal"),
+            ("A&yuda", "Abrir la carpeta de &registros", ANY, "normal"),
             ("A&yuda", "&Buscar actualizaciones…", ANY, "normal"),
             ("A&yuda", "&Acerca de", gui.wx.ID_ABOUT, "normal"),
         ], lista)

@@ -97,7 +97,7 @@ def _registro_detallado_activo() -> bool:
         parser = _cfg._mk_parser()
         parser.read(paths.config_ini(), encoding="utf-8")
         return parser.getboolean("diagnostico", "registro_detallado",
-                                 fallback=False)
+                                 fallback=True)
     except Exception:
         return False
 

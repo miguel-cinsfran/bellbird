@@ -47,7 +47,8 @@ class TestCargarConfiguracion(unittest.TestCase):
 
     def test_configurar_logging_bloquea_debug_de_websockets(self):
         with redirigir_rutas(self._tmp.name), \
-             mock.patch.object(config, "RotatingFileHandler"):
+             mock.patch.object(config, "RotatingFileHandler"), \
+             mock.patch.object(config.diagnostico, "crear_manejador_detallado"):
             config.configurar_logging()
         self.assertFalse(
             logging.getLogger("websockets.client").isEnabledFor(logging.DEBUG))
@@ -64,7 +65,8 @@ class TestCargarConfiguracion(unittest.TestCase):
 
     def test_configurar_logging_es_idempotente(self):
         with redirigir_rutas(self._tmp.name), \
-             mock.patch.object(config, "RotatingFileHandler"):
+             mock.patch.object(config, "RotatingFileHandler"), \
+             mock.patch.object(config.diagnostico, "crear_manejador_detallado"):
             config.configurar_logging()
             cuantos = len(self._root.handlers)
             config.configurar_logging()
@@ -242,9 +244,9 @@ class TestCargarConfiguracion(unittest.TestCase):
         self.assertTrue((tmp / "config.ini").exists())
         self.assertEqual(cfg["formato_prefijo"], "nombre_mensaje")
         texto = (tmp / "config.ini").read_text(encoding="utf-8")
-        self.assertIn("registro_detallado = false", texto)
+        self.assertIn("registro_detallado = true", texto)
 
-    def test_registro_detallado_ausente_no_activa_manejador(self):
+    def test_registro_detallado_ausente_activa_manejador(self):
         ruta = Path(self._tmp.name) / "config.ini"
         ruta.write_text("[diagnostico]\n", encoding="utf-8")
         with redirigir_rutas(self._tmp.name), \
@@ -252,7 +254,7 @@ class TestCargarConfiguracion(unittest.TestCase):
              mock.patch.object(config, "RotatingFileHandler"), \
              mock.patch.object(config.diagnostico, "crear_manejador_detallado") as crear:
             config.configurar_logging()
-            crear.assert_not_called()
+            crear.assert_called_once()
 
     def test_registro_detallado_si_falla_lectura_no_activa_manejador(self):
         with redirigir_rutas(self._tmp.name), \
@@ -264,13 +266,14 @@ class TestCargarConfiguracion(unittest.TestCase):
             config.configurar_logging()
             crear.assert_not_called()
 
-    def test_registro_detallado_ausente_se_persiste_apagado(self):
+    def test_registro_detallado_ausente_se_persiste_encendido(self):
         ruta = Path(self._tmp.name) / "config.ini"
         ruta.write_text("[diagnostico]\n", encoding="utf-8")
         with redirigir_rutas(self._tmp.name):
-            config.cargar_configuracion()
+            cfg = config.cargar_configuracion()
         texto = ruta.read_text(encoding="utf-8")
-        self.assertIn("registro_detallado = false", texto)
+        self.assertIn("registro_detallado = true", texto)
+        self.assertTrue(cfg["registro_detallado"])
 
     def test_registro_detallado_true_se_conserva(self):
         ruta = Path(self._tmp.name) / "config.ini"
@@ -279,6 +282,15 @@ class TestCargarConfiguracion(unittest.TestCase):
             config.cargar_configuracion()
         texto = ruta.read_text(encoding="utf-8")
         self.assertIn("registro_detallado = true", texto)
+
+    def test_registro_detallado_false_escrito_se_conserva(self):
+        ruta = Path(self._tmp.name) / "config.ini"
+        ruta.write_text("[diagnostico]\nregistro_detallado = false\n", encoding="utf-8")
+        with redirigir_rutas(self._tmp.name):
+            cfg = config.cargar_configuracion()
+        self.assertFalse(cfg["registro_detallado"])
+        texto = ruta.read_text(encoding="utf-8")
+        self.assertIn("registro_detallado = false", texto)
 
     def test_valores_basicos(self):
         cfg = self._cargar_en(config._CONFIG_FALLBACK)

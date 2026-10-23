@@ -118,7 +118,7 @@ _OPCIONES_SIMPLES = (
     ("chk_buscar_actualizaciones", "actualizaciones", "buscar_al_iniciar", "buscar_actualizaciones_al_iniciar", bool, True),
     ("chk_confirmar_salida", "ui", "confirmar_salida", "confirmar_salida", bool, True),
     ("chk_sonido_inicio", "ui", "sonido_inicio", "sonido_inicio", bool, True),
-    ("chk_registro_detallado", "diagnostico", "registro_detallado", "registro_detallado", bool, False),
+    ("chk_registro_detallado", "diagnostico", "registro_detallado", "registro_detallado", bool, True),
     ("sp_puerto_overlay", "overlay", "puerto", "overlay_puerto", int, 8730),
     ("chk_avisar_sobrecarga", "transmision", "avisar_sobrecarga", "avisar_sobrecarga", bool, True),
 ) + OPCIONES_MUSICA

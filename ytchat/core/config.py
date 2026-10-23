@@ -98,13 +98,13 @@ def configurar_logging(nivel_consola: int = logging.INFO) -> None:
     except Exception as exc:
         logger.warning("No se pudo crear ytchat.log: %s", exc)
 
-    # El registro detallado se activa únicamente si se solicita en Preferencias.
+    # El registro detallado viene encendido de fábrica y se apaga en Preferencias.
     detallado = False
     try:
         p_diag = _mk_parser()
         p_diag.read(paths.config_ini(), encoding="utf-8")
         detallado = p_diag.getboolean("diagnostico", "registro_detallado",
-                                     fallback=False)
+                                     fallback=True)
     except Exception as exc:
         logger.warning(
             "No se pudo leer la configuración de diagnóstico: %s", exc)

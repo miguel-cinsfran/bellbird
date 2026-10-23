@@ -11,10 +11,15 @@ from dataclasses import dataclass
 
 from ytchat.ai import protocolos
 
-PREGUNTA_INICIAL = ("Describe lo que se ve en esta imagen como lo ve "
-                    "el público de la transmisión: qué hay en pantalla, "
-                    "dónde está cada cosa y si algo se ve mal, cortado "
-                    "o en negro.")
+PREGUNTA_INICIAL = ("Revisa esta captura de la transmisión como si fueras "
+                    "el público. Primero di si hay algún problema: algo en "
+                    "negro, cortado, tapado por otra cosa, fuera de cuadro, "
+                    "borroso o con texto que no se lee. Si no hay ninguno, "
+                    "empieza diciendo que todo se ve bien. Después describe "
+                    "en pocas frases qué se ve y dónde está cada cosa, con "
+                    "posiciones simples como arriba a la izquierda o en el "
+                    "centro, y menciona brevemente los colores y los "
+                    "adornos.")
 
 CORTA = "corta"
 MEDIA = "media"
@@ -38,7 +43,9 @@ def prompt_sistema(descripcion_escena):
             "Responde siempre en español, en prosa breve, sin markdown, sin "
             "listas, sin títulos y sin emojis: la respuesta se lee con un "
             "lector de pantalla. Ve directo a lo que se pregunta. Si algo no "
-            "se distingue en la imagen, dilo en vez de suponer.")
+            "se distingue en la imagen, dilo en vez de suponer. Cuando "
+            "recibas la lista de fuentes de OBS, usa sus nombres para decir "
+            "qué es cada cosa que se ve.")
     if not descripcion_escena:
         return base
     return (base + "\n\nLo que OBS informa de la escena al aire:\n"

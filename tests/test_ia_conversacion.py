@@ -13,7 +13,9 @@ BASE_SISTEMA = ("Eres el asistente de un streamer ciego que transmite con OBS. "
                  "Responde siempre en español, en prosa breve, sin markdown, sin "
                  "listas, sin títulos y sin emojis: la respuesta se lee con un "
                  "lector de pantalla. Ve directo a lo que se pregunta. Si algo no "
-                 "se distingue en la imagen, dilo en vez de suponer.")
+                 "se distingue en la imagen, dilo en vez de suponer. Cuando "
+                 "recibas la lista de fuentes de OBS, usa sus nombres para decir "
+                 "qué es cada cosa que se ve.")
 
 
 def _conversacion_con_dos_turnos():
@@ -57,9 +59,20 @@ class TestPreguntaYPrompt(unittest.TestCase):
     def test_pregunta_inicial_exacta(self):
         self.assertEqual(
             conversacion.PREGUNTA_INICIAL,
-            "Describe lo que se ve en esta imagen como lo ve el público "
-            "de la transmisión: qué hay en pantalla, dónde está cada cosa "
-            "y si algo se ve mal, cortado o en negro.")
+            "Revisa esta captura de la transmisión como si fueras el público. "
+            "Primero di si hay algún problema: algo en negro, cortado, tapado "
+            "por otra cosa, fuera de cuadro, borroso o con texto que no se "
+            "lee. Si no hay ninguno, empieza diciendo que todo se ve bien. "
+            "Después describe en pocas frases qué se ve y dónde está cada "
+            "cosa, con posiciones simples como arriba a la izquierda o en el "
+            "centro, y menciona brevemente los colores y los adornos.")
+
+    def test_pregunta_nombra_problema_antes_que_colores(self):
+        pregunta = conversacion.PREGUNTA_INICIAL.lower()
+        self.assertIn("problema", pregunta)
+        self.assertIn("colores", pregunta)
+        self.assertLess(pregunta.index("problema"),
+                        pregunta.index("colores"))
 
     def test_largos(self):
         self.assertEqual(

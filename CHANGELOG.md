@@ -47,6 +47,10 @@ canciones.
 - **La carpeta se vigila.** Las canciones nuevas aparecen solas en la
   lista. La ventana Música tiene el botón Examinar la carpeta, y la
   carpeta de fábrica es Música, junto al programa.
+- **Al retomar se dice cuántas canciones tiene la cola**, por ejemplo
+  «Retomando 6 canciones: evergreen». Con «Recordar la última lista al
+  abrir», reproducir sigue la última cola, que puede ser una búsqueda y no
+  la carpeta entera.
 - **Más formatos:** aiff, aif, mka y webm.
 
 ### Chat y lectura
@@ -67,6 +71,10 @@ canciones.
   Alt+Mayús+M, por ejemplo: «Micrófono activado: predeterminado de
   Windows, WO Mic Device». Si OBS usa el predeterminado, lo dice, porque
   ese micrófono cambia cuando Windows elige otro.
+- **Aviso si el micrófono no recibe sonido.** Después de activarlo, la
+  aplicación escucha tres segundos. Si no entra nada, suena un sonido
+  propio y dice «El micrófono no recibe sonido. Revisa cuál está elegido
+  en Windows o en OBS.».
 - **La ventana Transmisión explica qué se ve en el directo**: la ventana
   elegida en Ventana que se captura. Esa captura no lleva sonido, que
   sale del audio del escritorio y del micrófono de OBS.

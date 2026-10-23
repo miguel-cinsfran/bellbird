@@ -389,7 +389,10 @@ cuántas canciones nuevas y quitadas encontró.</li>
 la carpeta: la aplicación la vigila y la pone al día en silencio.</p>
 <p>Las listas se guardan como archivos <code>.m3u8</code>, que abren
 otros reproductores. Al reabrir la aplicación, Reproducir sigue la
-última cola desde donde estaba.</p>
+última cola desde donde estaba, y dice cuántas canciones tiene: si fue
+una búsqueda, no es la carpeta entera. Para empezar siempre con toda la
+carpeta, desactiva <em>Recordar la última lista al abrir</em> en
+<em>Preferencias, Música</em>.</p>
 <p>En <em>Preferencias, Música</em> también eliges el orden aleatorio,
 la repetición (nada, toda la cola o la canción actual), el volumen de la
 música, la salida de audio y qué se dice al pasar de canción: nada, el
@@ -475,7 +478,10 @@ activarlo dice qué dispositivo usa, por ejemplo «Micrófono activado:
 predeterminado de Windows, WO Mic Device». Si OBS usa el predeterminado,
 el micrófono es el que Windows tenga elegido en ese momento, y puede no
 ser el que esperas. Para que no cambie, elige el dispositivo en las
-propiedades de la fuente de micrófono en OBS.</p>
+propiedades de la fuente de micrófono en OBS. Después de activarlo, la
+aplicación escucha tres segundos. Si no entra ningún sonido, suena un
+aviso propio y dice «El micrófono no recibe sonido. Revisa cuál está
+elegido en Windows o en OBS.».</p>
 <p><strong>Cómo se ve la escena.</strong> La ventana
 <em>Transmisión</em> describe cada fuente de adelante hacia atrás: dónde
 está, qué tamaño tiene y si algo la tapa. Lo mismo se oye con

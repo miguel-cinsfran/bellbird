@@ -78,6 +78,10 @@ canciones.
 - **La ventana Transmisión explica qué se ve en el directo**: la ventana
   elegida en Ventana que se captura. Esa captura no lleva sonido, que
   sale del audio del escritorio y del micrófono de OBS.
+- **El panel de chat vuelve a salir en OBS tras reiniciar la
+  aplicación.** Si OBS se abría antes que la aplicación, el chat no
+  aparecía en el directo hasta recargar la fuente a mano. Ahora la
+  aplicación la recarga sola al encender el panel.
 - **El usuario de TikTok funciona con mayúsculas.** TikTok solo
   reconoce el usuario en minúsculas, y con una mayúscula la aplicación no
   encontraba el directo. Ahora lo pasa a minúsculas sola, también el que

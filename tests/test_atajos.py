@@ -384,6 +384,7 @@ class TestParsearAtajos(unittest.TestCase):
         fuente = inspect.getsource(gui_menu.construir_menu)
         fuente += inspect.getsource(gui_menu._construir_menu_ver)
         fuente += inspect.getsource(gui_menu._construir_menu_musica)
+        fuente += inspect.getsource(gui_menu._construir_menu_ayuda)
         self.assertIn('._accel("ir_lista")', fuente)
         self.assertIn('._accel("pantalla_completa")', fuente)
         self.assertIn('._accel("abrir_historial")', fuente)

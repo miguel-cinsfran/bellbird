@@ -1465,7 +1465,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
              "Estado (F2)", "Atajos", "API y sesión", "Mensajes automáticos",
              "Transmisión", "Inteligencia artificial"])
 
-    def test_pagina_general_primera_con_las_cinco_casillas_en_orden(self):
+    def test_pagina_general_primera_con_las_cuatro_casillas_en_orden(self):
         dialogo = self._dialogo()
         self.assertEqual(dialogo.nb.GetPageText(0), "General")
         pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagGeneral")
@@ -1476,7 +1476,6 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ["Buscar actualizaciones al iniciar",
              "Preguntar antes de salir si hay un chat conectado "
              "o una transmisión en curso",
-             "Recordar la última dirección",
              "Reproducir el sonido de inicio",
              "Guardar un registro detallado para diagnosticar fallos"])
         self.assertFalse(any(p.GetName() == "PagDiagnostico"
@@ -1506,7 +1505,6 @@ class TestCategoriasDePreferencias(unittest.TestCase):
                 ("Buscar actualizaciones al iniciar", "PagGeneral"),
                 ("Preguntar antes de salir si hay un chat conectado "
                  "o una transmisión en curso", "PagGeneral"),
-                ("Recordar la última dirección", "PagGeneral"),
                 ("Reproducir el sonido de inicio", "PagGeneral"),
                 ("Guardar un registro detallado para diagnosticar fallos",
                  "PagGeneral"),
@@ -1839,7 +1837,6 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("reconexion", "max_intentos"),
             ("actualizaciones", "buscar_al_iniciar"),
             ("ui", "confirmar_salida"),
-            ("ui", "recordar_direccion"),
             ("ui", "sonido_inicio"),
             ("diagnostico", "registro_detallado"),
             ("overlay", "puerto"), ("obs", "microfono"),
@@ -3197,7 +3194,7 @@ class TestPreferenciasArchivoBotones(unittest.TestCase):
         hijos = pagina.GetChildren()
         self.assertEqual(
             [type(h).__name__ for h in hijos],
-            ["CheckBox"] * 5 + ["Button"] * 4)
+            ["CheckBox"] * 4 + ["Button"] * 4)
         self.assertEqual(
             [h.GetName() for h in hijos if isinstance(h, gui.wx.Button)],
             ["Abrir la carpeta de datos",
@@ -4577,53 +4574,49 @@ class TestCierreVentana(unittest.TestCase):
                 self.assertFalse(hilo_real.is_alive())
 
 
-class TestUltimaDireccion(unittest.TestCase):
-    """`set_conectado(True)` guarda la dirección solo en la transición de
-    desconectado a conectado y con la opción activada."""
+class TestSinDireccionRecordada(unittest.TestCase):
+    """La app no recuerda direcciones entre aperturas: el campo nace vacío
+    aunque el config traiga una guardada, y conectar no la escribe."""
 
-    def _frame(self, configuracion):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
-        frame._alive = True
-        frame._conectado = False
-        frame._config = dict(configuracion)
-        frame.txt_url = mock.Mock()
-        frame.txt_url.GetValue.return_value = "https://ejemplo.com/directo"
-        frame._mostrar_zona = mock.Mock()
-        frame._anunciar_conectado = mock.Mock()
-        frame._set_conectado_ui = mock.Mock()
-        frame._actualizar_estado_online = mock.Mock()
-        return frame
+    def setUp(self):
+        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
 
-    def test_con_opcion_activada_guarda_la_direccion(self):
-        frame = self._frame({"recordar_direccion": True})
-        with mock.patch.object(gui.wx, "CallAfter"), \
-                mock.patch.object(gui, "guardar_opcion") as guardar:
+    def test_la_ventana_nace_vacia_y_no_guarda_al_conectar(self):
+        from types import SimpleNamespace
+        configuracion = {
+            "atajos_raw": {}, "filtro_activo": "todos",
+            "mostrar_botones_reproductor": False, "mostrar_metadatos": True,
+            "mostrar_total_superchats": True, "overlay_activo": False,
+            "programados_activo": False, "sonido_inicio": False,
+            "ultima_direccion": "https://ejemplo.com/directo",
+        }
+        capturado = {}
+        aplicacion = mock.Mock()
+        aplicacion.MainLoop.side_effect = lambda: capturado.update(
+            frame=gui._gui_frame)
+        worker = mock.Mock()
+        worker.voces.return_value = []
+        worker.get_rate.return_value = 0
+        worker.get_volume.return_value = 100
+        stats = SimpleNamespace(leidos=0, superchats=0, descartados=0)
+
+        with mock.patch.object(gui, "AplicacionYTChat", return_value=aplicacion), \
+                mock.patch.object(gui, "_lector_init"), \
+                mock.patch.object(gui._snd, "reproducir"), \
+                mock.patch.object(gui, "anunciar"), \
+                mock.patch.object(gui.wx, "CallAfter"), \
+                redirigir_rutas("."):
+            gui.iniciar_gui(configuracion, queue.Queue(), stats, worker,
+                            __import__("threading").Event())
+
+        frame = capturado["frame"]
+        self.addCleanup(destruir, frame)
+        self.assertEqual(frame.txt_url.GetValue(), "")
+
+        with mock.patch.object(gui, "guardar_opcion") as guardar:
             frame.set_conectado(True)
-
-        self.assertEqual(frame._config["ultima_direccion"],
-                         "https://ejemplo.com/directo")
-        guardar.assert_called_once_with(
-            gui.RUTA_CONFIG, "sesion", "ultima_direccion",
-            "https://ejemplo.com/directo")
-
-    def test_con_opcion_desactivada_no_guarda(self):
-        frame = self._frame({"recordar_direccion": False})
-        with mock.patch.object(gui.wx, "CallAfter"), \
-                mock.patch.object(gui, "guardar_opcion") as guardar:
-            frame.set_conectado(True)
-
-        self.assertNotIn("ultima_direccion", frame._config)
-        guardar.assert_not_called()
-
-    def test_solo_guarda_en_la_transicion_a_conectado(self):
-        frame = self._frame({"recordar_direccion": True})
-        frame._conectado = True
-        with mock.patch.object(gui.wx, "CallAfter"), \
-                mock.patch.object(gui, "guardar_opcion") as guardar:
-            frame.set_conectado(True)
-
-        self.assertNotIn("ultima_direccion", frame._config)
-        guardar.assert_not_called()
+        for llamada in guardar.call_args_list:
+            self.assertNotEqual(llamada.args[1], "sesion")
 
 
 class TestCopiarEnlaceDirecto(unittest.TestCase):

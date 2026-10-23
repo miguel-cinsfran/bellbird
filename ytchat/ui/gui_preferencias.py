@@ -117,7 +117,6 @@ _OPCIONES_SIMPLES = (
     ("sp_max_intentos", "reconexion", "max_intentos", "max_intentos", int, 20),
     ("chk_buscar_actualizaciones", "actualizaciones", "buscar_al_iniciar", "buscar_actualizaciones_al_iniciar", bool, True),
     ("chk_confirmar_salida", "ui", "confirmar_salida", "confirmar_salida", bool, True),
-    ("chk_recordar_direccion", "ui", "recordar_direccion", "recordar_direccion", bool, True),
     ("chk_sonido_inicio", "ui", "sonido_inicio", "sonido_inicio", bool, True),
     ("chk_registro_detallado", "diagnostico", "registro_detallado", "registro_detallado", bool, False),
     ("sp_puerto_overlay", "overlay", "puerto", "overlay_puerto", int, 8730),
@@ -337,11 +336,6 @@ class PreferenciasDialog(PaginaMusica, PaginaProgramados, PaginaIA, wx.Dialog):
             name="Preguntar antes de salir si hay un chat conectado "
                  "o una transmisión en curso")
         vs.Add(self.chk_confirmar_salida, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-
-        self.chk_recordar_direccion = wx.CheckBox(
-            p, label="&Recordar la última dirección",
-            name="Recordar la última dirección")
-        vs.Add(self.chk_recordar_direccion, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         self.chk_sonido_inicio = wx.CheckBox(
             p, label="Reproducir el sonido de &inicio",

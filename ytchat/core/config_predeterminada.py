@@ -120,12 +120,10 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("cache_video_mb", "1024"),
         ("mostrar_metadatos", "true"),
         ("confirmar_salida", "true"),
-        ("recordar_direccion", "true"),
         ("sonido_inicio", "true"),
     ]),
     ("sesion", [
         ("silenciar_lectura", "false"),
-        ("ultima_direccion", ""),
         ("version_atajos", "2"),
     ]),
     ("tiktok", [
@@ -251,14 +249,9 @@ _COMENTARIOS: dict[str, str] = {
     "ui": (
         "# Interfaz: fuente del chat y opciones visibles.\n"
         "# confirmar_salida pregunta antes de salir con chat o\n"
-        "# transmisión en curso; recordar_direccion guarda la última\n"
-        "# dirección conectada; sonido_inicio suena al arrancar.\n"
+        "# transmisión en curso; sonido_inicio suena al arrancar.\n"
     ),
-    "sesion": (
-        "# Silenciar lectura al arrancar.\n"
-        "# ultima_direccion es la última dirección conectada, para\n"
-        "# ofrecerla al arrancar si recordar_direccion está activado.\n"
-    ),
+    "sesion": "# Silenciar lectura al arrancar.\n",
     "tiktok": "# Solo TikTok: anunciar quién entra al directo puede ser muchísimo.\n",
     "diagnostico": "# Registro detallado para diagnosticar fallos (requiere reiniciar).\n",
     "overlay": "# Panel de chat para transmitir por navegador (overlay web).\n",

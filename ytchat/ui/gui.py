@@ -1787,11 +1787,6 @@ class YTChatFrame(wx.Frame):
         self._conectado = conectado
         if conectado:
             if not estaba:
-                if self._config.get("recordar_direccion", True):
-                    direccion = self.txt_url.GetValue()
-                    self._config["ultima_direccion"] = direccion
-                    guardar_opcion(RUTA_CONFIG, "sesion", "ultima_direccion",
-                                   direccion)
                 self._mostrar_zona(True)
                 self._region_idx = REG_CONTENIDO
                 self._anunciar_conectado()
@@ -2304,12 +2299,6 @@ def iniciar_gui(config, cola, stats, worker, parada,
 
     if url_inicial:
         frame.set_url(url_inicial)
-    elif config.get("recordar_direccion", True) and config.get("ultima_direccion", ""):
-        frame.set_url(config["ultima_direccion"])
-        try:
-            frame.txt_url.SelectAll()
-        except Exception:
-            pass
 
     frame.Show()
     try:

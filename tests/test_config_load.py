@@ -295,33 +295,22 @@ class TestCargarConfiguracion(unittest.TestCase):
         cfg = self._cargar_en("[actualizaciones]\nbuscar_al_iniciar = false\n")
         self.assertFalse(cfg["buscar_actualizaciones_al_iniciar"])
 
-    def test_opciones_generales_por_defecto_activadas_y_direccion_vacia(self):
+    def test_opciones_generales_por_defecto_activadas(self):
         cfg = self._cargar_en(config._CONFIG_FALLBACK)
         self.assertTrue(cfg["confirmar_salida"])
-        self.assertTrue(cfg["recordar_direccion"])
         self.assertTrue(cfg["sonido_inicio"])
-        self.assertEqual(cfg["ultima_direccion"], "")
 
     def test_opciones_generales_cambiadas_se_conservan(self):
         cfg = self._cargar_en(
-            "[ui]\nconfirmar_salida = false\nrecordar_direccion = false\n"
-            "sonido_inicio = false\n"
-            "[sesion]\nultima_direccion = https://ejemplo.com/directo\n")
+            "[ui]\nconfirmar_salida = false\nsonido_inicio = false\n")
         self.assertFalse(cfg["confirmar_salida"])
-        self.assertFalse(cfg["recordar_direccion"])
         self.assertFalse(cfg["sonido_inicio"])
-        self.assertEqual(cfg["ultima_direccion"],
-                         "https://ejemplo.com/directo")
 
     def test_clave_sobrante_guardar_historial_se_ignora_sin_error(self):
         # Un config.ini de usuario que todavía trae la opción muerta se
         # sigue leyendo sin error y la clave sobrante se ignora.
-        cfg = self._cargar_en(
-            "[sesion]\nguardar_historial = csv\n"
-            "ultima_direccion = https://ejemplo.com/directo\n")
+        cfg = self._cargar_en("[sesion]\nguardar_historial = csv\n")
         self.assertNotIn("guardar_historial", cfg)
-        self.assertEqual(cfg["ultima_direccion"],
-                         "https://ejemplo.com/directo")
 
     def test_overlay_tiene_defaults_y_se_persiste_en_el_ejemplo(self):
         cfg = self._cargar_en(config._CONFIG_FALLBACK)

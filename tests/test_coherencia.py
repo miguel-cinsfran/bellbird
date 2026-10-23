@@ -242,7 +242,6 @@ INTERNAS = {
     ("musica", "mostrar_cola"): "la recuerda la ventana Música (musica_memoria.py:19, guarda en gui_musica.py:465)",
     ("overlay", "activo"): "la enciende la ventana Transmisión (gui_transmitir.py:32 y 37)",
     ("sesion", "silenciar_lectura"): "la cambia F4 en la ventana principal (gui.py:1340)",
-    ("sesion", "ultima_direccion"): "se guarda al conectar (gui.py:1874)",
     ("sesion", "version_atajos"): "la escribe la migración de atajos (atajos.py:303)",
     ("tiktok", "usuario"): "lo guarda la ventana Transmisión (gui_transmitir.py:42)",
     ("transmision", "destino"): "lo guarda la ventana Transmisión (gui_transmitir.py:51)",

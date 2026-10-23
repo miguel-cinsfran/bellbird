@@ -86,6 +86,10 @@ canciones.
   reconoce el usuario en minúsculas, y con una mayúscula la aplicación no
   encontraba el directo. Ahora lo pasa a minúsculas sola, también el que
   ya estaba guardado.
+- **El chat de TikTok se conecta aunque el directo tarde en figurar.**
+  Al salir al aire, TikTok a veces dice unos segundos que no hay
+  directo, y la aplicación se rendía. Ahora vuelve a intentarlo hasta
+  que aparece.
 
 ### Sonidos y ventanas
 

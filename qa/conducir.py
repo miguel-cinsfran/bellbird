@@ -3377,6 +3377,8 @@ def escenario_tiktok(app: Aplicacion, args, res: Resultado):
     elif item:
         res.nota("tiktok: «Descargar este vídeo» correctamente apagado")
 
+    app.restaurar_desconectado()
+
 
 def escenario_comentarios(app: Aplicacion, args, res: Resultado):
     """El panel de comentarios, que hasta el 26/08/2026 no entraba en el banco.

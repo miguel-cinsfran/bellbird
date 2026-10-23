@@ -49,7 +49,7 @@ from ytchat.capture import programados
 from ytchat.capture import descartes
 from ytchat.capture import redaccion
 from ytchat.capture import alias
-from ytchat.obs import obs_audio
+from ytchat.obs import obs_entradas_audio
 from ytchat.obs import obs_estado
 from ytchat.obs import obs_vigilante
 from ytchat.obs import obs_activacion
@@ -1116,10 +1116,8 @@ class YTChatFrame(wx.Frame):
             try:
                 gestor = GestorPanelObs()
                 gestor.conectar()
-                fuente = obs_audio.elegir_microfono(
-                    gestor.fuentes_audio(), self._config.get("obs_microfono", ""))
-                silenciada = gestor.alternar_silencio(fuente) if fuente else False
-                texto = obs_audio.frase_microfono(fuente, silenciada)
+                texto = obs_entradas_audio.alternar_microfono(
+                    gestor, self._config.get("obs_microfono", ""))
             except Exception:
                 texto = ("OBS no responde. En OBS, menú Herramientas, Configuración "
                          "del servidor WebSocket, activa el servidor.")

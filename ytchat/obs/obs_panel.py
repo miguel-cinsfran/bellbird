@@ -6,6 +6,7 @@ from ytchat.obs import obs_disposicion
 from ytchat.obs import obs_captura
 from ytchat.obs import obs_cliente
 from ytchat.obs import obs_destinos
+from ytchat.obs import obs_entradas_audio
 from ytchat.obs import obs_escena
 
 
@@ -91,26 +92,13 @@ class GestorPanelObs:
         return self.escena_al_aire(parada)
 
     def fuentes_audio(self, parada=None) -> tuple:
-        entradas = self._pedir("GetInputList", parada=parada).get("inputs", ())
-        fuentes = []
-        for entrada in entradas:
-            nombre = entrada.get("inputName", "")
-            if not nombre:
-                continue
-            try:
-                self.silenciada(nombre, parada)
-            except Exception:
-                continue
-            fuentes.append(nombre)
-        return tuple(fuentes)
+        return obs_entradas_audio.fuentes_audio(self._cliente, parada)
 
     def silenciada(self, fuente, parada=None) -> bool:
-        datos = self._pedir("GetInputMute", {"inputName": fuente}, parada)
-        return bool(datos.get("inputMuted", False))
+        return obs_entradas_audio.silenciada(self._cliente, fuente, parada)
 
     def alternar_silencio(self, fuente, parada=None) -> bool:
-        datos = self._pedir("ToggleInputMute", {"inputName": fuente}, parada)
-        return bool(datos.get("inputMuted", False))
+        return obs_entradas_audio.alternar_silencio(self._cliente, fuente, parada)
 
     def estado_transmision(self, parada=None) -> dict:
         datos = self._pedir("GetStreamStatus", parada=parada)

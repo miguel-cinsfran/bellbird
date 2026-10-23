@@ -3018,7 +3018,7 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         dialogo.chk_reconectar.SetValue(False)
         dialogo.sp_espera_reconexion.SetValue(12)
         dialogo.sp_max_intentos.SetValue(3)
-        dialogo.chk_registro_detallado.SetValue(True)
+        dialogo.chk_registro_detallado.SetValue(False)
         dialogo.sp_puerto_overlay.SetValue(9000)
         dialogo.cho_microfono_obs.Append("Mic/Aux")
         dialogo.cho_microfono_obs.SetSelection(1)
@@ -3032,7 +3032,7 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         self.assertEqual(opciones.get("reconexion", "reconectar"), "false")
         self.assertEqual(opciones.get("reconexion", "espera_entre_intentos"), "12")
         self.assertEqual(opciones.get("reconexion", "max_intentos"), "3")
-        self.assertEqual(opciones.get("diagnostico", "registro_detallado"), "true")
+        self.assertEqual(opciones.get("diagnostico", "registro_detallado"), "false")
         self.assertEqual(opciones.get("overlay", "puerto"), "9000")
         self.assertEqual(opciones.get("obs", "microfono"), "Mic/Aux")
         self.assertEqual(dialogo.avisos, [

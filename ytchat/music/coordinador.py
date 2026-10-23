@@ -683,24 +683,16 @@ class Coordinador(TransporteMusica):
                 continue
             intentados.add(indice)
             ultimo = indice
-            anterior = self._cursor
             try:
                 self._cargar(self._cola[indice])
             except Exception:
-                if (self._a_continuacion > 0
-                        and destino == anterior + 1):
-                    self._a_continuacion -= 1
-                else:
-                    self._a_continuacion = 0
+                self._consumir_continuacion(destino)
                 self._cursor = destino
                 self._posicion = indice
                 avisos.append(Resultado(False, TEMA_FALLIDO, self._estado(),
                                         tema=self._cola[indice]))
                 continue
-            if (self._a_continuacion > 0 and destino == anterior + 1):
-                self._a_continuacion -= 1
-            else:
-                self._a_continuacion = 0
+            self._consumir_continuacion(destino)
             self._cursor = destino
             self._posicion = indice
             self._pausado = False

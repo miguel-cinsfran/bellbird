@@ -13,7 +13,8 @@ import wx
 
 from ytchat.core import diagnostico
 from ytchat.music import anuncios, vista
-from ytchat.ui import gui_musica, musica_menus
+from ytchat.ui import musica_menus
+from ytchat.ui import musica_teclas
 from ytchat.ui.gui import _T, _pintar, anunciar, nombre_accesible
 from ytchat.ui.musica_colecciones import (
     TEXTO_CARGANDO, TEXTO_SIN_CARPETA, ColeccionesVentanaMusica)
@@ -349,7 +350,7 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
             if ayuda:
                 anunciar(ayuda)
                 return
-        if gui_musica.manejar_atajo_de_tecla(
+        if musica_teclas.manejar_atajo_de_tecla(
                 self._control, self._combos, evento):
             self.refrescar_cola()
             return

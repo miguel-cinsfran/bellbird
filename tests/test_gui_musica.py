@@ -25,6 +25,7 @@ from ytchat.ui import musica_enlaces
 from ytchat.ui import musica_indice
 from ytchat.ui import musica_listas_propias
 from ytchat.ui import musica_memoria
+from ytchat.ui import musica_teclas
 from ytchat.ui import musica_ventana
 from ytchat.ui.gui_musica import ControlMusica, nuevo_volumen, toca_pausar
 
@@ -1967,14 +1968,14 @@ class TestAtajoDeTeclaComun(unittest.TestCase):
         evento = _Evento(ord("T"),
                          gui_musica.wx.MOD_CONTROL | gui_musica.wx.MOD_ALT)
         self.assertTrue(
-            gui_musica.manejar_atajo_de_tecla(control, combos, evento))
+            musica_teclas.manejar_atajo_de_tecla(control, combos, evento))
         control.ejecutar_atajo.assert_called_once_with("musica_que_suena")
 
     def test_manejar_atajo_ignora_lo_que_no_es_atajo(self):
         control = mock.Mock()
         evento = _Evento(gui_musica.wx.WXK_TAB)
         self.assertFalse(
-            gui_musica.manejar_atajo_de_tecla(control, {}, evento))
+            musica_teclas.manejar_atajo_de_tecla(control, {}, evento))
         control.ejecutar_atajo.assert_not_called()
 
 

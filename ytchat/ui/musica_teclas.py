@@ -6,6 +6,20 @@ from ytchat.music import anuncios
 from ytchat.music import anuncios_teclas
 
 
+def manejar_atajo_de_tecla(control, combos, event) -> bool:
+    """Corre el atajo de música de la tecla, si la hay. Dice si lo hizo.
+
+    Común a la ventana de música y a la de listas: la combinación sale de
+    `ControlMusica.combos_atajo` y la acción se despacha por `ejecutar_atajo`.
+    Quien la llame decide qué hacer con la tecla que no era un atajo.
+    """
+    accion = combos.get((event.GetModifiers(), event.GetKeyCode()))
+    if accion is None:
+        return False
+    control.ejecutar_atajo(accion)
+    return True
+
+
 class TeclasMusica:
     """Silencio y saltos compartidos por el menú, los atajos y la ventana."""
 

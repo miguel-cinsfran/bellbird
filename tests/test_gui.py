@@ -1619,7 +1619,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
 
         with mock.patch.object(preferencias_musica.diagnostico, "crear_hilo",
                                side_effect=crear_hilo), \
-                mock.patch("ytchat.music.adaptador_vlc.salidas_audio",
+                mock.patch("ytchat.music.consultas_vlc.salidas_audio",
                            return_value=[("altavoces", "Altavoces")]), \
                 mock.patch.object(preferencias_musica.wx, "CallAfter",
                                   side_effect=lambda funcion, *args: funcion(*args)), \

@@ -9,9 +9,8 @@ import wave
 from pathlib import Path
 from unittest import mock
 
-from ytchat.music.adaptador_vlc import (
-    AdaptadorVlc,
-    MotorNoDisponible,
+from ytchat.music.adaptador_vlc import AdaptadorVlc, MotorNoDisponible
+from ytchat.music.consultas_vlc import (
     leer_etiquetas_vlc,
     salidas_audio,
 )

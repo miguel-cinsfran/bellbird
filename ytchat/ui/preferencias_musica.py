@@ -164,8 +164,8 @@ class PaginaMusica:
         # Consultar libVLC puede tardar, por eso nunca corre en la interfaz.
         def consultar():
             try:
-                from ytchat.music import adaptador_vlc
-                salidas = adaptador_vlc.salidas_audio()
+                from ytchat.music import consultas_vlc
+                salidas = consultas_vlc.salidas_audio()
             except Exception:
                 salidas = []
             wx.CallAfter(self._salidas_encontradas, salidas)

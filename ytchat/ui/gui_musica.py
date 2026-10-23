@@ -39,12 +39,6 @@ VOLUMEN_MIN = 0
 VOLUMEN_MAX = 100
 VOLUMEN_INICIAL = 50
 
-# Acciones de música que la ventana reconoce por atajo mientras está abierta.
-_ACCIONES_ATAJO = (
-    "musica_play", "musica_siguiente", "musica_anterior",
-    "musica_vol_mas", "musica_vol_menos", "musica_que_suena",
-    "musica_silenciar", "musica_aleatorio", "musica_repetir",
-    "musica_detener", "musica_adelantar", "musica_retroceder")
 
 def nuevo_volumen(actual, paso, minimo=VOLUMEN_MIN, maximo=VOLUMEN_MAX) -> int:
     """Volumen nuevo tras sumar un paso, recortado a sus límites. Función pura."""
@@ -66,20 +60,6 @@ def toca_pausar(estado) -> bool:
 def _resultado_sin_tema() -> Resultado:
     return Resultado(False, SIN_TEMA, EstadoMusica(
         (), None, False, False, VOLUMEN_MAX, False))
-
-
-def manejar_atajo_de_tecla(control, combos, event) -> bool:
-    """Corre el atajo de música de la tecla, si la hay. Dice si lo hizo.
-
-    Común a la ventana de música y a la de listas: la combinación sale de
-    `ControlMusica.combos_atajo` y la acción se despacha por `ejecutar_atajo`.
-    Quien la llame decide qué hacer con la tecla que no era un atajo.
-    """
-    accion = combos.get((event.GetModifiers(), event.GetKeyCode()))
-    if accion is None:
-        return False
-    control.ejecutar_atajo(accion)
-    return True
 
 
 class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica, SonoridadMusica,
@@ -221,7 +201,7 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica, SonoridadMusica,
         from ytchat.player import reproductor
         atajos = cfg.parsear_atajos(self._config.get("atajos_raw", {}))
         combos = {}
-        for accion in _ACCIONES_ATAJO:
+        for accion in self.acciones_musica():
             atajo = atajos.get(accion)
             if atajo is None:
                 continue

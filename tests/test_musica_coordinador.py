@@ -406,6 +406,30 @@ class TestAContinuacion(unittest.TestCase):
                          ["C:/musica/x.mp3", "C:/musica/a.mp3",
                           "C:/musica/b.mp3", "C:/musica/y.mp3"])
 
+    def test_fallo_de_un_pendiente_conserva_los_demas_pendientes(self):
+        ad = AdaptadorFalso()
+        ad.fallar.add("C:/musica/a.mp3")
+        c = Coordinador(ad)
+        c.reproducir_lista([tema("x"), tema("y"), tema("z")])
+        c.a_continuacion([tema("a")])
+        c.a_continuacion([tema("b")])
+        c.a_continuacion([tema("c")])
+        c.tema_terminado(ad.ultima_ficha(), False)
+        self.assertEqual(c.estado().actual.origen, "C:/musica/b.mp3")
+        r = c.a_continuacion([tema("d")])
+        self.assertEqual([t.origen for t in r.estado.cola],
+                         ["C:/musica/x.mp3", "C:/musica/a.mp3",
+                          "C:/musica/b.mp3", "C:/musica/c.mp3",
+                          "C:/musica/d.mp3", "C:/musica/y.mp3",
+                          "C:/musica/z.mp3"])
+        c.tema_terminado(ad.ultima_ficha(), False)
+        c.tema_terminado(ad.ultima_ficha(), False)
+        c.tema_terminado(ad.ultima_ficha(), False)
+        self.assertEqual([l[1] for l in ad.cargas()],
+                         ["C:/musica/x.mp3", "C:/musica/a.mp3",
+                          "C:/musica/b.mp3", "C:/musica/c.mp3",
+                          "C:/musica/d.mp3", "C:/musica/y.mp3"])
+
     def test_avanzar_consume_un_pendiente(self):
         ad = AdaptadorFalso()
         c = Coordinador(ad)

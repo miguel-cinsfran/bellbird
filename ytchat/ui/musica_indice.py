@@ -11,7 +11,7 @@ from ytchat.core import config as cfg
 from ytchat.core import diagnostico
 from ytchat.core import paths
 from ytchat.music import anuncios
-from ytchat.music.adaptador_vlc import leer_etiquetas_vlc
+from ytchat.music.consultas_vlc import leer_etiquetas_vlc
 from ytchat.music.biblioteca import Biblioteca, ErrorBiblioteca
 from ytchat.music.etiquetas import CacheEtiquetas, leer_con_reintento
 from ytchat.music.modelo import Tema, normalizar_duracion

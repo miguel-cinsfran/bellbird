@@ -55,6 +55,7 @@ from ytchat.obs import obs_vigilante
 from ytchat.obs import obs_activacion
 from ytchat.obs import obs_cliente
 from ytchat.obs.obs_panel import GestorPanelObs
+from ytchat.ui.barra_estado import anchos_barra_estado
 from ytchat.ui.gui_redactar import PanelRedactar
 
 # Mapeo entre índice de FILTROS y clave persistida en config.ini.
@@ -698,11 +699,10 @@ class YTChatFrame(wx.Frame):
             self._rep_panel.anclar_foco,
         ]
 
-        # 7 campos: estado, velocidad, voz, cola, leídos, volumen, total SC.
         self.sb = self.CreateStatusBar(7, name="BarraEstado")
         # (Sin fondo: la barra de estado nativa lo ignora.)
         _pintar(self.sb, fg=_T.dim)
-        self.sb.SetStatusWidths([-3, -1, -3, -1, -1, -2, -2])
+        self.sb.SetStatusWidths(anchos_barra_estado(lambda t: self.sb.GetTextExtent(t)[0]))
         self._actualizar_sb()
         self._set_conectado_ui(False)   # estado inicial: desconectado
 

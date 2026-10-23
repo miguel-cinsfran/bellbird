@@ -49,6 +49,11 @@ class TestUsuarioDeUrl(unittest.TestCase):
     def test_dominio_parecido_no_vale(self):
         self.assertEqual(usuario_de_url("https://notiktok.com/@pepe/live"), "")
 
+    def test_url_con_mayusculas_baja_el_usuario(self):
+        self.assertEqual(
+            usuario_de_url("https://www.tiktok.com/@SzeiryuGaming/live"),
+            "szeiryugaming")
+
 
 class TestMensajesDeError(unittest.TestCase):
 

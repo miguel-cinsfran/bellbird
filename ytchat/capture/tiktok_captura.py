@@ -48,7 +48,7 @@ _URL_RE = re.compile(
 def usuario_de_url(entrada: str) -> str:
     """@usuario si la entrada es una URL de TikTok; cadena vacía si no lo es."""
     m = _URL_RE.search((entrada or "").strip())
-    return m.group(1) if m else ""
+    return m.group(1).lower() if m else ""
 
 
 def _parchear_extended_user() -> None:

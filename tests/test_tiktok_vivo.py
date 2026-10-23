@@ -39,6 +39,20 @@ def _modulo_tiktok_que_falla(error):
     return modulo
 
 
+def _modulo_tiktok_que_registra(recibidos, en_vivo=True):
+    modulo = types.ModuleType("TikTokLive")
+
+    class ClienteFalso:
+        def __init__(self, unique_id=None):
+            recibidos.append(unique_id)
+
+        async def is_live(self):
+            return en_vivo
+
+    modulo.TikTokLiveClient = ClienteFalso
+    return modulo
+
+
 class EsperarEnVivoTest(unittest.TestCase):
     def test_llega_a_true(self):
         reloj = RelojFalso()
@@ -168,6 +182,26 @@ class UsuarioTiktokTest(unittest.TestCase):
             with self.subTest(texto=texto):
                 self.assertEqual(usuario_tiktok(texto), esperado)
 
+    def test_baja_las_mayusculas(self):
+        casos = {"szeiryuGaming": "szeiryugaming",
+                 "@SzeiryuGaming": "szeiryugaming",
+                 "https://www.tiktok.com/@SzeiryuGaming/live":
+                     "szeiryugaming"}
+        for texto, esperado in casos.items():
+            with self.subTest(texto=texto):
+                self.assertEqual(usuario_tiktok(texto), esperado)
+
+    def test_es_idempotente_y_sin_mayusculas(self):
+        handles = ["szeiryuGaming", "SZEIRYUGAMING", "abc.Def_12",
+                   "@MiXeD.User",
+                   "https://www.tiktok.com/@MiXeD.User/live"]
+        for handle in handles:
+            with self.subTest(handle=handle):
+                usuario = usuario_tiktok(handle)
+                self.assertTrue(usuario)
+                self.assertEqual(usuario, usuario.lower())
+                self.assertEqual(usuario_tiktok(usuario), usuario)
+
     def test_url_directo(self):
         self.assertEqual(url_directo("szeiryugaming"),
                          "https://www.tiktok.com/@szeiryugaming/live")
@@ -186,6 +220,13 @@ class EstaEnVivoTest(unittest.TestCase):
         modulo = _modulo_tiktok_que_falla(RuntimeError("red caída"))
         with mock.patch.dict(sys.modules, {"TikTokLive": modulo}):
             self.assertFalse(esta_en_vivo("alguien"))
+
+    def test_consulta_con_el_usuario_en_minusculas(self):
+        recibidos = []
+        modulo = _modulo_tiktok_que_registra(recibidos)
+        with mock.patch.dict(sys.modules, {"TikTokLive": modulo}):
+            self.assertTrue(esta_en_vivo("SzeiryuGaming"))
+        self.assertEqual(recibidos, ["szeiryugaming"])
 
 
 if __name__ == "__main__":

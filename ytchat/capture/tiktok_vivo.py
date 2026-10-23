@@ -55,7 +55,7 @@ def esta_en_vivo(usuario) -> bool:
         return False
 
     async def _consultar():
-        return await TikTokLiveClient(unique_id=usuario).is_live()
+        return await TikTokLiveClient(unique_id=(usuario or "").lower()).is_live()
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
@@ -118,7 +118,7 @@ def usuario_tiktok(texto) -> str:
         return por_url
     candidato = texto[1:] if texto.startswith("@") else texto
     if candidato and _USUARIO_RE.fullmatch(candidato):
-        return candidato
+        return candidato.lower()
     return ""
 
 

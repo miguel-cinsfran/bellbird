@@ -33,18 +33,20 @@ def _modulo(nombres):
 
 
 def _registrar(nombres, anunciar_entradas=True, descartar=None,
-                 on_estado=None):
+                 on_estado=None, sin_estado=False):
     cliente = _ClienteFalso()
     mod = _modulo(nombres)
     recibidos = []
     vistos = []
     estados = []
+    estado = None if sin_estado else (
+        on_estado or (lambda *a: estados.append(a)))
     registrar_manejadores(
         cliente, mod, on_evento=lambda *a: recibidos.append(a),
         on_espectadores=lambda *a: vistos.append(a),
         anunciar_entradas=anunciar_entradas,
         descartar=(descartar or (lambda evento: False)),
-        on_estado=(on_estado or (lambda *a: estados.append(a))))
+        on_estado=estado)
     return cliente, mod, recibidos, vistos, estados
 
 
@@ -230,6 +232,26 @@ class TestPausaDirecto(unittest.TestCase):
                    "RoomUserSeqEvent")
         cliente, mod, _rec, _vis, estados = _registrar(nombres)
         self.assertEqual(estados, [])
+
+
+class TestOrdenDeRegistro(unittest.TestCase):
+    def test_registra_las_clases_en_orden_con_todo_presente(self):
+        cliente, mod, _rec, _vis, _est = _registrar(_TODAS_NUEVAS)
+        self.assertEqual(
+            list(cliente.manejadores),
+            [mod.CommentEvent, mod.GiftEvent, mod.SubscribeEvent,
+             mod.FollowEvent, mod.ShareEvent, mod.EnvelopeEvent,
+             mod.LikeEvent, mod.EmoteChatEvent, mod.QuestionNewEvent,
+             mod.LivePauseEvent, mod.LiveUnpauseEvent, mod.JoinEvent,
+             mod.RoomUserSeqEvent])
+
+    def test_sin_on_estado_no_registra_pausa_ni_reanudacion(self):
+        cliente, mod, _rec, _vis, _est = _registrar(
+            _TODAS_NUEVAS, sin_estado=True)
+        self.assertNotIn(mod.LivePauseEvent, cliente.manejadores)
+        self.assertNotIn(mod.LiveUnpauseEvent, cliente.manejadores)
+        self.assertIn(mod.FollowEvent, cliente.manejadores)
+        self.assertIn(mod.LikeEvent, cliente.manejadores)
 
 
 if __name__ == "__main__":

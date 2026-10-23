@@ -197,6 +197,22 @@ def _al_contar_espectadores(on_espectadores):
     return _on_user_seq
 
 
+# Seguir, compartir, cofre y me gusta existen en la TikTokLive instalada;
+# si en otra versión falta alguna clase, ese manejador no se registra.
+_EVENTOS_OPCIONALES = [
+    ("FollowEvent", _al_seguir, "evento"),
+    ("ShareEvent", _al_compartir, "evento"),
+    ("EnvelopeEvent", _al_cofre, "evento"),
+    # Los me gusta llegan de a montones: como mucho UNO cada 3 s por
+    # sesión, para no saturar el sonido (ver debe_pasar_me_gusta).
+    ("LikeEvent", _al_me_gusta, "megusta"),
+    ("EmoteChatEvent", _al_sticker, "evento"),
+    ("QuestionNewEvent", _al_pregunta, "evento"),
+    ("LivePauseEvent", _al_pausa, "estado"),
+    ("LiveUnpauseEvent", _al_reanudacion, "estado"),
+]
+
+
 def registrar_manejadores(client, modulo_eventos, *, on_evento,
                           on_espectadores, anunciar_entradas, descartar,
                           on_estado=None):
@@ -207,39 +223,22 @@ def registrar_manejadores(client, modulo_eventos, *, on_evento,
     clase_entrada = modulo_eventos.JoinEvent
     clase_conteo = modulo_eventos.RoomUserSeqEvent
     clase_suscripcion = _clase_suscripcion(modulo_eventos)
-    # Seguir, compartir, cofre y me gusta existen en la TikTokLive instalada;
-    # si en otra versión falta alguna clase, ese manejador no se registra.
-    clase_seguir = getattr(modulo_eventos, "FollowEvent", None)
-    clase_compartir = getattr(modulo_eventos, "ShareEvent", None)
-    clase_cofre = getattr(modulo_eventos, "EnvelopeEvent", None)
-    clase_me_gusta = getattr(modulo_eventos, "LikeEvent", None)
-    clase_sticker = getattr(modulo_eventos, "EmoteChatEvent", None)
-    clase_pregunta = getattr(modulo_eventos, "QuestionNewEvent", None)
-    clase_pausa = getattr(modulo_eventos, "LivePauseEvent", None)
-    clase_reanudacion = getattr(modulo_eventos, "LiveUnpauseEvent", None)
     client.on(clase_comentario)(_al_comentar(on_evento, descartar))
     client.on(clase_regalo)(_al_regalo(on_evento, descartar))
     if clase_suscripcion is not None:
         client.on(clase_suscripcion)(_al_suscribir(on_evento, descartar))
-    if clase_seguir is not None:
-        client.on(clase_seguir)(_al_seguir(on_evento, descartar))
-    if clase_compartir is not None:
-        client.on(clase_compartir)(_al_compartir(on_evento, descartar))
-    if clase_cofre is not None:
-        client.on(clase_cofre)(_al_cofre(on_evento, descartar))
-    if clase_me_gusta is not None:
-        # Los me gusta llegan de a montones: como mucho UNO cada 3 s por
-        # sesión, para no saturar el sonido (ver debe_pasar_me_gusta).
-        client.on(clase_me_gusta)(
-            _al_me_gusta(on_evento, descartar, ultimo_me_gusta))
-    if clase_sticker is not None:
-        client.on(clase_sticker)(_al_sticker(on_evento, descartar))
-    if clase_pregunta is not None:
-        client.on(clase_pregunta)(_al_pregunta(on_evento, descartar))
-    if clase_pausa is not None and on_estado is not None:
-        client.on(clase_pausa)(_al_pausa(on_estado, descartar))
-    if clase_reanudacion is not None and on_estado is not None:
-        client.on(clase_reanudacion)(_al_reanudacion(on_estado, descartar))
+    for nombre, fabrica, modo in _EVENTOS_OPCIONALES:
+        clase = getattr(modulo_eventos, nombre, None)
+        if clase is None:
+            continue
+        if modo == "estado":
+            if on_estado is None:
+                continue
+            client.on(clase)(fabrica(on_estado, descartar))
+        elif modo == "megusta":
+            client.on(clase)(fabrica(on_evento, descartar, ultimo_me_gusta))
+        else:
+            client.on(clase)(fabrica(on_evento, descartar))
     if anunciar_entradas:
         # Quién entra al directo. Solo si el usuario lo pidió: en directos
         # grandes son constantes y saturarían el TTS.

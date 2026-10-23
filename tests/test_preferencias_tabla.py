@@ -99,11 +99,11 @@ class TestTablaOpcionesSimples(unittest.TestCase):
                 config[en_memoria] = por_defecto + 1
         return config
 
-    def test_tabla_tiene_36_filas_sin_repetir_y_cada_atributo_existe(self):
+    def test_tabla_tiene_37_filas_sin_repetir_y_cada_atributo_existe(self):
         tabla = gui_preferencias._OPCIONES_SIMPLES
-        self.assertEqual(len(tabla), 36)
+        self.assertEqual(len(tabla), 37)
         atributos = [fila[0] for fila in tabla]
-        self.assertEqual(len(set(atributos)), 36)
+        self.assertEqual(len(set(atributos)), 37)
         dialogo = self._dialogo()
         for atributo in atributos:
             with self.subTest(atributo=atributo):

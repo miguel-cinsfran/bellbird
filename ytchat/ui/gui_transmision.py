@@ -132,10 +132,8 @@ class TransmisionDialog(wx.Dialog):
         zona.SetForegroundColour(_T.text)
         self._zona_desplazable = zona
         contenido = wx.BoxSizer(wx.VERTICAL)
-        nota = wx.StaticText(zona, name="NotaTransmision", label=(
-            "Desde aquí eliges a dónde transmitir, empiezas y terminas el directo y "
-            "preparas lo que se ve. El panel de chat es solo para YouTube: en TikTok "
-            "los comentarios ya aparecen en el directo."))
+        nota = wx.StaticText(zona, name="NotaTransmision",
+                             label=obs_estado.NOTA_TRANSMISION)
         nota.SetForegroundColour(_T.dim)
         nota.Wrap(560)
         contenido.Add(nota, 0, wx.ALL, 10)

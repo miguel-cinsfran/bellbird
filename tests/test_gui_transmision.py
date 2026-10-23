@@ -7,6 +7,7 @@ from unittest import mock
 from ytchat.ui import gui_transmision
 from ytchat.obs import obs_cliente
 from ytchat.obs import obs_disposicion
+from ytchat.obs import obs_estado
 from ytchat.obs import obs_lanzador
 from tests.ventanas_prueba import destruir
 
@@ -1025,6 +1026,22 @@ class TestTransmisionDialog(unittest.TestCase):
         self.assertTrue(zona.GetWindowStyleFlag() & wx.VSCROLL)
         self.assertTrue(self._esta_dentro(self.dialogo.cho_destino, zona))
         self.assertFalse(self._esta_dentro(self.dialogo.btn_cerrar, zona))
+
+    def test_nota_transmision_explica_la_ventana_y_el_sonido(self):
+        # Wrap mete saltos de línea en la etiqueta: se comparan sin ellos.
+        nota = self._control_por_nombre(self.dialogo, "NotaTransmision")
+        self.assertIsInstance(nota, wx.StaticText)
+        self.assertEqual(" ".join(nota.GetLabel().split()),
+                         " ".join(obs_estado.NOTA_TRANSMISION.split()))
+
+    def _control_por_nombre(self, ventana, nombre):
+        for hijo in ventana.GetChildren():
+            if hijo.GetName() == nombre:
+                return hijo
+            encontrado = self._control_por_nombre(hijo, nombre)
+            if encontrado is not None:
+                return encontrado
+        return None
 
     @staticmethod
     def _esta_dentro(control, antecesor):

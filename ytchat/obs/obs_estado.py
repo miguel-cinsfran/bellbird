@@ -2,6 +2,14 @@
 
 from ytchat.capture.estado_sesion import _duracion
 
+NOTA_TRANSMISION = (
+    "Desde aquí eliges a dónde transmitir, empiezas y terminas el directo "
+    "y preparas lo que se ve. En el directo se ve una ventana, la que "
+    "eliges en Ventana que se captura. Esa captura no lleva sonido: el "
+    "sonido sale del audio del escritorio y del micrófono de OBS. El panel "
+    "de chat es solo para YouTube: en TikTok los comentarios ya aparecen "
+    "en el directo.")
+
 
 def frase_transmision(activa, segundos, perdidos, totales) -> str:
     """Describe el estado de la transmisión sin ruido innecesario."""

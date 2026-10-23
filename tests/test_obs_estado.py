@@ -1,6 +1,20 @@
+import re
 import unittest
 
 from ytchat.obs import obs_estado
+
+
+class NotaTransmisionTest(unittest.TestCase):
+    def test_nombra_la_ventana_capturada_el_audio_y_el_microfono(self):
+        nota = obs_estado.NOTA_TRANSMISION
+        self.assertIn("Ventana que se captura", nota)
+        self.assertIn("audio del escritorio", nota)
+        self.assertIn("micrófono", nota)
+
+    def test_ninguna_frase_pasa_de_25_palabras(self):
+        frases = re.split(r"(?<=[.:])\s+", obs_estado.NOTA_TRANSMISION)
+        largas = [frase for frase in frases if len(frase.split()) > 25]
+        self.assertEqual(largas, [])
 
 
 class FrasesObsTest(unittest.TestCase):

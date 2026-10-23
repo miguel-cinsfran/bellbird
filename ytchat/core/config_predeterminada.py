@@ -48,6 +48,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
     ]),
     ("lectura", [
         ("formato_prefijo", "nombre_mensaje"),
+        ("recientes", "lector"),
         ("atajos_globales", "false"),
     ]),
     ("filtros", [
@@ -237,6 +238,8 @@ _COMENTARIOS: dict[str, str] = {
     "reconexion": "# Reconexión automática si se corta el chat.\n",
     "lectura": (
         "# Qué parte del mensaje se lee: nombre y mensaje, solo uno, etc.\n"
+        "# recientes elige quién lee los mensajes recientes: el lector de\n"
+        "# pantalla (lector) o la voz de la app (voz).\n"
         "# Leer los mensajes recientes en cualquier programa con Ctrl+Mayús y un número.\n"
     ),
     "filtros": "# Listas en minúsculas, separadas por comas. Vacías no filtran.\n",

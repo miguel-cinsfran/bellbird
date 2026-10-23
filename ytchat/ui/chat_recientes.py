@@ -47,15 +47,17 @@ class LecturaRecientes:
     """Lee un mensaje reciente por su posición y maneja sus atajos globales.
 
     `ventana` es el frame, `lista` es `lb_chat` y `config` el dict de
-    configuración. Nunca lanza: registrar o soltar puede fallar (otro
-    programa tiene la combinación, la ventana se cerró) y se informa con
-    el anuncio de fallo, no con excepciones.
+    configuración. `cola` es la cola de la voz; con la preferencia en «voz»
+    el mensaje se adelanta ahí en vez de anunciarse. Nunca lanza: registrar
+    o soltar puede fallar (otro programa tiene la combinación, la ventana
+    se cerró) y se informa con el anuncio de fallo, no con excepciones.
     """
 
-    def __init__(self, ventana, lista, config) -> None:
+    def __init__(self, ventana, lista, config, cola=None) -> None:
         self._ventana = ventana
         self._lista = lista
         self._config = config
+        self._cola = cola
         self._acciones = {accion: (lambda n=n: self.leer(n))
                           for n, accion in enumerate(ORDEN, start=1)}
         self._globales = atajos_globales.AtajosGlobales(
@@ -75,7 +77,12 @@ class LecturaRecientes:
         from ytchat.ui import gui as _gui
         filas = [self._lista.GetString(i)
                  for i in range(self._lista.GetCount())]
-        _gui.anunciar(texto_reciente(filas, n))
+        texto = texto_reciente(filas, n)
+        if (self._config.get("lectura_recientes") == "voz"
+                and self._cola is not None):
+            self._cola.adelantar({"texto_tts": texto, "autor": ""})
+        else:
+            _gui.anunciar(texto)
 
     def _textos(self) -> dict:
         """Los atajos efectivos de recientes, acción → texto guardado."""

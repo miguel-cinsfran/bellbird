@@ -37,6 +37,25 @@ class TestOpcionesLectura(unittest.TestCase):
                 self.assertEqual(
                     opciones["lectura_atajos_globales"], esperado)
 
+    def test_recientes_lector_y_voz_se_conservan(self):
+        for valor in ("lector", "voz"):
+            with self.subTest(valor=valor):
+                opciones = self._leer(
+                    f"[lectura]\nrecientes = {valor}\n")
+                self.assertEqual(opciones["lectura_recientes"], valor)
+
+    def test_recientes_en_mayusculas_se_normaliza(self):
+        opciones = self._leer("[lectura]\nrecientes = VOZ\n")
+        self.assertEqual(opciones["lectura_recientes"], "voz")
+
+    def test_recientes_invalido_o_vacio_cae_a_lector(self):
+        for contenido in ("[lectura]\nrecientes = raro\n",
+                          "[lectura]\nrecientes =\n",
+                          "[lectura]\nformato_prefijo = solo_mensaje\n"):
+            with self.subTest(contenido=contenido):
+                opciones = self._leer(contenido)
+                self.assertEqual(opciones["lectura_recientes"], "lector")
+
 
 if __name__ == "__main__":
     unittest.main()

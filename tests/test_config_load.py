@@ -455,6 +455,18 @@ class TestCargarConfiguracion(unittest.TestCase):
         cfg = self._cargar_en("[lectura]\nformato_prefijo = mensaje_nombre\n")
         self.assertEqual(cfg["formato_prefijo"], "mensaje_nombre")
 
+    def test_lectura_recientes_voz_se_conserva(self):
+        cfg = self._cargar_en("[lectura]\nrecientes = voz\n")
+        self.assertEqual(cfg["lectura_recientes"], "voz")
+
+    def test_lectura_recientes_invalido_cae_a_lector(self):
+        cfg = self._cargar_en("[lectura]\nrecientes = raro\n")
+        self.assertEqual(cfg["lectura_recientes"], "lector")
+
+    def test_lectura_recientes_ausente_es_lector(self):
+        cfg = self._cargar_en("[voz]\nvolumen = 1.0\n")
+        self.assertEqual(cfg["lectura_recientes"], "lector")
+
     def test_destino_de_transmision_ausente_queda_vacio(self):
         cfg = self._cargar_en("[voz]\nvoz = 0\n")
         self.assertEqual(cfg["transmision_destino"], "")

@@ -11,6 +11,7 @@ from unittest import mock
 from ytchat.core.atajos import ATAJOS_FIJOS_DEFAULTS
 from ytchat.ui import atajos_globales, chat_recientes, gui
 from ytchat.ui.atajos_globales import AtajosGlobales, combinacion_ctrl_mayus
+from ytchat.voice.cola_tts import ColaTTS
 
 
 class _ListaFalsa:
@@ -45,11 +46,11 @@ class _GlobalesFalsos:
         self._activos = False
 
 
-def _recientes(config, filas=()):
+def _recientes(config, filas=(), cola=None):
     with mock.patch.object(atajos_globales, "AtajosGlobales",
                            _GlobalesFalsos):
         lector = chat_recientes.LecturaRecientes(
-            mock.Mock(), _ListaFalsa(filas), dict(config))
+            mock.Mock(), _ListaFalsa(filas), dict(config), cola)
     return lector
 
 
@@ -72,6 +73,34 @@ class TestLecturaRecientes(unittest.TestCase):
         with mock.patch.object(gui, "anunciar") as anunciar:
             lector.leer(1)
         anunciar.assert_called_once_with("Todavía no hay mensajes en el chat.")
+
+    def test_con_voz_adelanta_en_la_cola_y_no_anuncia(self):
+        cola = ColaTTS()
+        cola.put({"texto_tts": "en espera", "autor": "otro"})
+        lector = _recientes({"lectura_recientes": "voz"},
+                            ["primero", "segundo", "último"], cola)
+        with mock.patch.object(gui, "anunciar") as anunciar:
+            lector.leer(1)
+        anunciar.assert_not_called()
+        self.assertEqual(cola.get(),
+                         {"texto_tts": "último", "autor": ""})
+        self.assertEqual(cola.get()["texto_tts"], "en espera")
+
+    def test_con_lector_anuncia_y_no_toca_la_cola(self):
+        cola = mock.Mock()
+        lector = _recientes({"lectura_recientes": "lector"},
+                            ["primero", "último"], cola)
+        with mock.patch.object(gui, "anunciar") as anunciar:
+            lector.leer(1)
+        anunciar.assert_called_once_with("último")
+        cola.adelantar.assert_not_called()
+
+    def test_con_voz_sin_cola_anuncia(self):
+        lector = _recientes({"lectura_recientes": "voz"},
+                            ["primero", "último"])
+        with mock.patch.object(gui, "anunciar") as anunciar:
+            lector.leer(1)
+        anunciar.assert_called_once_with("último")
 
     def test_aplicar_con_preferencia_encendida_activa_y_anuncia(self):
         lector = _recientes({"lectura_atajos_globales": True})

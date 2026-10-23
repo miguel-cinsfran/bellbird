@@ -18,7 +18,11 @@ def opciones_lectura(p) -> dict:
     if formato not in (
             "nombre_mensaje", "mensaje_nombre", "solo_mensaje", "solo_nombre"):
         formato = "nombre_mensaje"
+    recientes = _gs(p, "lectura", "recientes").lower()
+    if recientes not in ("lector", "voz"):
+        recientes = "lector"
     return {
         "formato_prefijo": formato,
+        "lectura_recientes": recientes,
         "lectura_atajos_globales": _pb(p, "lectura", "atajos_globales"),
     }

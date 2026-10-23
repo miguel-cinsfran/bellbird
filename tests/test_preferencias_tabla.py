@@ -1,6 +1,6 @@
 """Pruebas de la tabla de opciones simples de Preferencias.
 
-La lista de 36 va literal en este módulo, no se lee de la tabla nueva:
+La lista de 38 va literal en este módulo, no se lee de la tabla nueva:
 así protege la tabla en vez de repetirla.
 """
 
@@ -32,6 +32,7 @@ OPCIONES_ESPERADAS = [
     ("chk_urls", "texto", "eliminar_urls", "eliminar_urls", bool),
     ("chk_entradas", "tiktok", "anunciar_entradas", "tiktok_anunciar_entradas", bool),
     ("sp_long", "texto", "max_longitud_mensaje", "max_longitud_mensaje", int),
+    ("cho_lectura_recientes", "lectura", "recientes", "lectura_recientes", str),
     ("chk_lectura_atajos_globales", "lectura", "atajos_globales", "lectura_atajos_globales", bool),
     ("sp_cola_maxima", "cola", "tamanio_maximo", "tamanio_maximo", int),
     ("sp_umbral_nombre", "cola", "umbral_solo_nombre", "umbral_solo_nombre", int),
@@ -94,16 +95,18 @@ class TestTablaOpcionesSimples(unittest.TestCase):
             if tipo is bool:
                 config[en_memoria] = not por_defecto
             elif tipo is str:
-                config[en_memoria] = {"musica_decir": "artista"}.get(en_memoria, "tema")
+                config[en_memoria] = {"musica_decir": "artista",
+                                      "lectura_recientes": "voz"}.get(
+                                          en_memoria, "tema")
             else:
                 config[en_memoria] = por_defecto + 1
         return config
 
-    def test_tabla_tiene_37_filas_sin_repetir_y_cada_atributo_existe(self):
+    def test_tabla_tiene_38_filas_sin_repetir_y_cada_atributo_existe(self):
         tabla = gui_preferencias._OPCIONES_SIMPLES
-        self.assertEqual(len(tabla), 37)
+        self.assertEqual(len(tabla), 38)
         atributos = [fila[0] for fila in tabla]
-        self.assertEqual(len(set(atributos)), 37)
+        self.assertEqual(len(set(atributos)), 38)
         dialogo = self._dialogo()
         for atributo in atributos:
             with self.subTest(atributo=atributo):
@@ -151,7 +154,9 @@ class TestTablaOpcionesSimples(unittest.TestCase):
                 valor = control.GetValue()
                 esperados[(seccion, clave)] = ("true" if valor else "false", en_memoria, valor)
             elif tipo is str:
-                control.SetValue({"musica_decir": "artista"}.get(en_memoria, "tema"))
+                control.SetValue({"musica_decir": "artista",
+                                  "lectura_recientes": "voz"}.get(
+                                      en_memoria, "tema"))
                 valor = control.GetValue()
                 esperados[(seccion, clave)] = (valor, en_memoria, valor)
             else:
@@ -267,6 +272,8 @@ class TestPorDefectoContraFabrica(unittest.TestCase):
         if tipo is str:
             if clave == "decir":
                 return musica_decir.normalizar(texto)
+            if clave == "recientes":
+                return (texto if texto in ("lector", "voz") else "lector")
             return gui_preferencias.cfg.normalizar_repetir(texto)
         return tipo(texto)
 

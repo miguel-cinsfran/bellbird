@@ -30,6 +30,7 @@ OPCIONES_LECTURA = (
     ("chk_urls", "texto", "eliminar_urls", "eliminar_urls", bool, True),
     ("chk_entradas", "tiktok", "anunciar_entradas", "tiktok_anunciar_entradas", bool, False),
     ("sp_long", "texto", "max_longitud_mensaje", "max_longitud_mensaje", int, 200),
+    ("cho_lectura_recientes", "lectura", "recientes", "lectura_recientes", str, "lector"),
     ("chk_lectura_atajos_globales", "lectura", "atajos_globales", "lectura_atajos_globales", bool, False),
 )
 
@@ -87,6 +88,18 @@ class PaginaLectura:
         return p
 
     def _construir_recientes(self, p, vs):
+        from ytchat.ui.gui_preferencias import EleccionTexto
+
+        vs.Add(self._fila_label(p, "Leer los mensajes recientes &con:"),
+               0, wx.LEFT | wx.RIGHT, 10)
+        self.cho_lectura_recientes = EleccionTexto(
+            p, (("lector", "El lector de pantalla"),
+                ("voz", "La voz de la app")),
+            name="Leer los mensajes recientes con")
+        _tc(self.cho_lectura_recientes)
+        vs.Add(self.cho_lectura_recientes, 0,
+               wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
         self.chk_lectura_atajos_globales = wx.CheckBox(
             p, label="Leer los mensajes recientes en cualquier &programa",
             name="LecturaAtajosGlobales")

@@ -17,6 +17,7 @@ from ytchat.ui import preferencias_ia_lista
 from ytchat.ui import preferencias_musica
 from ytchat.ui import preferencias_programados
 from ytchat.voice import motores
+from ytchat.voice.cola_tts import ColaTTS
 from ytchat.ai import ajustes_ia
 from ytchat.ai import catalogo
 from ytchat.ai import conversacion
@@ -616,7 +617,7 @@ class TestVentanaReal(unittest.TestCase):
     def setUp(self):
         self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
 
-    def _ventana(self, **worker_extra):
+    def _ventana(self, cola=None, **worker_extra):
         configuracion = {
             "atajos_raw": {}, "filtro_activo": "todos",
             "mostrar_botones_reproductor": False, "mostrar_metadatos": True,
@@ -627,7 +628,9 @@ class TestVentanaReal(unittest.TestCase):
         stats = SimpleNamespace(leidos=0, superchats=0, descartados=0)
         worker = SimpleNamespace(get_rate=lambda: 0, get_volume=lambda: 100, **worker_extra)
         with mock.patch.object(gui.diagnostico, "crear_hilo"):
-            frame = gui.YTChatFrame(None, configuracion, queue.Queue(), stats, worker,
+            frame = gui.YTChatFrame(None, configuracion,
+                                    cola if cola is not None else queue.Queue(),
+                                    stats, worker,
                                     __import__("threading").Event())
         self.addCleanup(destruir, frame)
         frame.ShowWithoutActivating()
@@ -707,6 +710,19 @@ class TestVentanaReal(unittest.TestCase):
                          gui._T.btn)
         self.assertEqual(frame._panel_redactar.boton.GetForegroundColour(),
                          gui._T.btn_t)
+
+    def test_leer_reciente_con_voz_adelanta_en_la_cola_de_la_ventana(self):
+        cola = ColaTTS()
+        cola.put({"texto_tts": "en espera", "autor": "otro"})
+        frame = self._ventana(cola=cola)
+        frame._config["lectura_recientes"] = "voz"
+        frame.lb_chat.Append("Ana: hola mundo")
+        with mock.patch.object(gui, "anunciar") as anunciar:
+            frame._recientes.leer(1)
+        anunciar.assert_not_called()
+        self.assertEqual(cola.get(),
+                         {"texto_tts": "Ana: hola mundo", "autor": ""})
+        self.assertEqual(cola.get()["texto_tts"], "en espera")
 
 
 class TestFocoAlActivar(unittest.TestCase):
@@ -1506,6 +1522,31 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             self.assertIsNotNone(control)
             self.assertEqual(control.GetParent().GetName(), pagina)
 
+    def test_pagina_lectura_tiene_los_controles_en_el_orden_de_tab(self):
+        dialogo = self._dialogo()
+        pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagLectura")
+        esperados = ["Formato de lectura", "LimpiarEmojis", "EliminarURLs",
+                     "AnunciarEntradas", "Longitud máxima del mensaje",
+                     "Leer los mensajes recientes con",
+                     "LecturaAtajosGlobales"]
+        orden = [h.GetName() for h in pagina.GetChildren()
+                 if h.GetName() in esperados]
+        self.assertEqual(orden, esperados)
+
+    def test_los_mnemonicos_de_lectura_no_se_repiten_y_la_c_es_del_control(self):
+        dialogo = self._dialogo()
+        pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagLectura")
+        letras = []
+        for control in pagina.GetChildren():
+            if not isinstance(control, (gui.wx.StaticText, gui.wx.Button,
+                                        gui.wx.CheckBox, gui.wx.RadioButton)):
+                continue
+            etiqueta = control.GetLabel()
+            if "&" in etiqueta:
+                letras.append(etiqueta.split("&", 1)[1][:1].lower())
+        self.assertEqual(len(letras), len(set(letras)), letras)
+        self.assertEqual(letras.count("c"), 1)
+
     def test_pagina_voces_tiene_los_controles_en_el_orden_de_tab(self):
         dialogo = self._dialogo()
         pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagVoz")
@@ -1787,7 +1828,8 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("voz", "volumen"), ("voz", "tono"),
             ("voz", "voz_respaldo"), ("voz", "elevenlabs_tope"),
             ("voz", "elevenlabs_solo_importantes"),
-            ("lectura", "formato_prefijo"), ("lectura", "atajos_globales"),
+            ("lectura", "formato_prefijo"), ("lectura", "recientes"),
+            ("lectura", "atajos_globales"),
             ("texto", "limpiar_emojis"), ("texto", "eliminar_urls"),
             ("tiktok", "anunciar_entradas"), ("texto", "max_longitud_mensaje"),
             ("cola", "estrategia"), ("cola", "tamanio_maximo"),

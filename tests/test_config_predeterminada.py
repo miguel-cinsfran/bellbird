@@ -322,6 +322,18 @@ class TestGitignore(unittest.TestCase):
             self.assertNotIn("config.predeterminado.ini", txt)
 
 
+class TestLecturaRecientes(unittest.TestCase):
+
+    def test_fabrica_usa_el_lector_de_pantalla(self):
+        self.assertEqual(pred.obtener("lectura", "recientes"), "lector")
+
+    def test_primera_ejecucion_lee_con_el_lector(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with redirigir_rutas(Path(tmp)):
+                cfg = config.cargar_configuracion()
+        self.assertEqual(cfg["lectura_recientes"], "lector")
+
+
 class TestReconexionYSonidos(unittest.TestCase):
     def test_reconexion_fabrica_cinco_minutos(self):
         self.assertEqual(pred.obtener("reconexion", "max_intentos"), "20")

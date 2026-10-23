@@ -30,6 +30,7 @@ from ytchat.core import paths
 from ytchat.core import migracion_datos
 
 from ytchat.voice.tts_worker import TTSWorker, sanitizar, construir_tts
+from ytchat.voice.cola_tts import ColaTTS
 from ytchat.voice import sound_player as _snd
 from ytchat.capture import deteccion
 from ytchat.capture import tiktok_captura
@@ -43,7 +44,6 @@ from ytchat.capture import alias
 from ytchat.core.sonidos_eventos import rol_de_autor, ROL_PROPIETARIO, ROL_MODERADOR
 
 logger = diagnostico.obtener_logger(__name__)
-
 
 # Traducción pytchat → tipos internos.
 _TIPO_MAP = {
@@ -798,7 +798,7 @@ def main():
     if config.get("silenciar_sonidos", False):
         _snd.silenciar_todo(True)
 
-    cola   = queue.Queue()
+    cola   = ColaTTS()
     stats  = Stats()
     worker = TTSWorker(cola=cola, config=config)
     worker.start()

@@ -738,7 +738,7 @@ class YTChatFrame(wx.Frame):
         # Nace acá, donde ya existe lb_chat.
         from ytchat.ui import chat_recientes
         self._recientes = chat_recientes.LecturaRecientes(
-            self, self.lb_chat, self._config)
+            self, self.lb_chat, self._config, self._cola)
         return pag
 
     def _build_pagina_info(self, parent) -> wx.Panel:

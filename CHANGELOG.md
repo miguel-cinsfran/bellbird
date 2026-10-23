@@ -115,6 +115,11 @@ canciones.
   actualización, Transmitir a y las de la IA) usan los colores de la
   ventana principal. Con el contraste alto de Windows no cambia nada.
 - **Los errores de las descargas** dicen el motivo en llano.
+- **Textos que se veían cortados**: el botón Enviar cuando no se puede
+  escribir en el chat, la velocidad y el volumen de la voz en la barra
+  de estado, y los campos del diálogo Directo de YouTube, que quedaban
+  pegados a la barra de desplazamiento. En Preferencias, Estado (F2), la
+  casilla de espectadores dice ahora «Espectadores ahora y en total».
 
 ### Para encontrar problemas
 
@@ -122,6 +127,12 @@ canciones.
   comando del menú se usó y de qué tipo fue cada evento del chat, sin el
   texto de los mensajes ni quién los escribió. La lista de procesos
   internos ya no se repite cada 30 segundos cuando no cambió.
+- **El registro detallado viene encendido** en una instalación nueva.
+  Quien ya lo tenía apagado en Preferencias lo conserva apagado.
+- **Ayuda, Abrir la carpeta de registros** abre la carpeta donde están
+  los registros, para mandarlos cuando algo falla.
+- El archivo de fallos ya no crece sin fin: al pasar de 1 MB se guarda
+  aparte y empieza uno nuevo.
 
 ## 2.4.1, octubre de 2026
 

@@ -107,7 +107,7 @@ class TestLecturaRecientes(unittest.TestCase):
             lector.aplicar_preferencias()
         anunciar.assert_called_once()
         self.assertIn("Ctrl+Mayús+1", anunciar.call_args.args[0])
-        sonar.assert_called_once_with("error")
+        sonar.assert_called_once_with("atajos_ocupados")
 
     def test_cerrar_suelta_y_nunca_lanza(self):
         lector = _recientes({})

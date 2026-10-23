@@ -476,6 +476,14 @@ def gen_ia_imagen_negra():
     return _normalizar(_perc(pulsada, 0.005, 0.38), 0.72)
 
 
+# ── Atajos globales ocupados ──────────────────────────────────────────────────
+
+def gen_atajos_ocupados():
+    # Tono de ocupado, como el del teléfono: dos toques graves iguales.
+    toque = _perc(_triangular(E4, 0.07, 0.40), 0.005, 0.10)
+    return _normalizar(_concat(toque, _silencio(0.06), toque), 0.5)
+
+
 # ── Tema "suave": senos cálidos con decaimiento tipo marimba/madera ───────────
 # Más redondo, bajo y mate que el tema por defecto: nada de aristas brillantes
 # ni regusto a videojuego. Mismo lenguaje de gestos (ascendente = abrir, etc.).
@@ -724,6 +732,14 @@ def s_ia_imagen_negra():
     return _normalizar(_perc(pulsada, 0.006, 0.38), 0.7)
 
 
+# ── Atajos globales ocupados en el tema suave ─────────────────────────────────
+
+def s_atajos_ocupados():
+    # El mismo tono de ocupado en madera: dos toques graves iguales.
+    toque = _madera(E4, 0.07, 0.40)
+    return _normalizar(_concat(toque, _silencio(0.06), toque), 0.45)
+
+
 # ── Reemplazos del tema suave (encargo 174) ──────────────────────────────────
 # Generadores propios para los que eran copia de otro dentro del tema.
 # Cada uno conserva el gesto del evento con notas o duraciones distintas.
@@ -865,6 +881,8 @@ TEMAS = {
         "ia_captura.wav":              gen_ia_captura,
         "ia_cancelada.wav":            gen_ia_cancelada,
         "ia_imagen_negra.wav":         gen_ia_imagen_negra,
+        # Atajos globales ocupados.
+        "atajos_ocupados.wav":         gen_atajos_ocupados,
     },
     "suave": {
         "app_inicio.wav":    s_app_inicio,
@@ -929,6 +947,8 @@ TEMAS = {
         "ia_captura.wav":              s_ia_captura,
         "ia_cancelada.wav":            s_ia_cancelada,
         "ia_imagen_negra.wav":         s_ia_imagen_negra,
+        # Atajos globales ocupados.
+        "atajos_ocupados.wav":         s_atajos_ocupados,
     },
 }
 

@@ -1888,7 +1888,7 @@ class TestAtajosGlobalesControl(unittest.TestCase):
         env.anunciar.assert_not_called()
         self.assertEqual(env.snd.sonidos, [])
 
-    def test_fallo_al_arrancar_se_anuncia_con_error(self):
+    def test_fallo_al_arrancar_se_anuncia_con_su_sonido(self):
         marco = _MarcoGlobales(musica_atajos_globales=True)
         marco.fallan_vk = {0x27}
         with _entorno() as env:
@@ -1897,7 +1897,7 @@ class TestAtajosGlobalesControl(unittest.TestCase):
             "No se pudieron usar en cualquier programa: "
             "Ctrl+Alt+Flecha derecha, Ctrl+Alt+Mayús+Flecha derecha. "
             "Las usa otro programa")
-        self.assertEqual(env.snd.sonidos, ["error"])
+        self.assertEqual(env.snd.sonidos, ["atajos_ocupados"])
 
     def test_aplicar_en_caliente_activa_y_desactiva_con_anuncio(self):
         marco = _MarcoGlobales()
@@ -1939,7 +1939,7 @@ class TestAtajosGlobalesControl(unittest.TestCase):
         env.anunciar.assert_called_once_with(
             "Atajos de música activos en cualquier programa")
 
-    def test_fallo_al_aplicar_se_anuncia_con_error(self):
+    def test_fallo_al_aplicar_se_anuncia_con_su_sonido(self):
         marco = _MarcoGlobales(musica_atajos_globales=True)
         marco.fallan_vk = {ord("T")}
         with _entorno() as env:
@@ -1947,7 +1947,7 @@ class TestAtajosGlobalesControl(unittest.TestCase):
         env.anunciar.assert_called_once_with(
             "No se pudieron usar en cualquier programa: "
             "Ctrl+Alt+T. Las usa otro programa")
-        self.assertEqual(env.snd.sonidos, ["error"])
+        self.assertEqual(env.snd.sonidos, ["atajos_ocupados"])
         self.assertTrue(control._globales.activos)
 
     def test_desactiva_al_cerrar(self):

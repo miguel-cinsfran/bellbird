@@ -11,7 +11,7 @@ import unittest
 import wave
 from pathlib import Path
 
-from ytchat.core import config
+from ytchat.core import config, eventos_sonido
 
 RAIZ = Path(__file__).resolve().parent.parent
 TEMAS_DIR = RAIZ / "sounds" / "themes"
@@ -26,6 +26,7 @@ EVENTOS_NUEVOS = [
     "musica_tema", "musica_fin", "musica_fallo", "musica_igualando",
     "ia_enviada", "ia_respuesta", "ia_error",
     "ia_analizando", "ia_captura", "ia_cancelada", "ia_imagen_negra",
+    "atajos_ocupados",
 ]
 
 # Tope de duración por evento: la espera de la IA lleva una figura melódica
@@ -85,6 +86,12 @@ class PruebasSonidosDistintos(unittest.TestCase):
                     vistos[firma] = ruta.name
             with self.subTest(tema=tema):
                 self.assertEqual(duplicados, [])
+
+    def test_los_eventos_nuevos_estan_en_la_lista_y_con_nombre(self):
+        for evento in EVENTOS_NUEVOS:
+            with self.subTest(evento=evento):
+                self.assertIn(evento, eventos_sonido.EVENTOS)
+                self.assertIn(evento, eventos_sonido.NOMBRES)
 
     def test_los_nuevos_duran_entre_015_y_07_segundos(self):
         temas = sorted(d.name for d in TEMAS_DIR.iterdir() if d.is_dir())

@@ -336,14 +336,14 @@ class TestFrasesGlobales(unittest.TestCase):
             anuncios.TEXTO_ATAJOS_GLOBALES_SOLO,
             "Atajos de música solo en YTChat")
 
-    def test_fallo_lista_las_combinaciones_y_suena_error(self):
+    def test_fallo_lista_las_combinaciones_y_suena_ocupado(self):
         aviso = anuncios.aviso_atajos_globales_fallo(
             ["Ctrl+Alt+T", "Ctrl+Alt+M"])
         self.assertEqual(
             aviso.texto,
             "No se pudieron usar en cualquier programa: "
             "Ctrl+Alt+T, Ctrl+Alt+M. Las usa otro programa")
-        self.assertEqual(aviso.sonido, "error")
+        self.assertEqual(aviso.sonido, "atajos_ocupados")
 
     def test_activos_y_solo_no_llevan_sonido(self):
         self.assertIsNone(anuncios.aviso_atajos_globales_activos().sonido)

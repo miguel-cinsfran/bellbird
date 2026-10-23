@@ -32,6 +32,8 @@ EVENTOS = [
     # llega, fallo, captura agregada, consulta cancelada y captura negra:
     "ia_enviada", "ia_respuesta", "ia_error",
     "ia_analizando", "ia_captura", "ia_cancelada", "ia_imagen_negra",
+    # Atajos globales que otro programa ya ocupa: tono de ocupado.
+    "atajos_ocupados",
 ]
 
 # Nombre llano de cada evento para la página Sonidos de Preferencias.
@@ -92,4 +94,5 @@ NOMBRES = {
     "ia_captura": "Captura agregada",
     "ia_cancelada": "Consulta a la IA cancelada",
     "ia_imagen_negra": "Captura negra detectada",
+    "atajos_ocupados": "Atajos globales ocupados",
 }

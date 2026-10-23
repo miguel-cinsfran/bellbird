@@ -27,6 +27,7 @@ SONIDO_TEMA = "musica_tema"
 SONIDO_FIN = "musica_fin"
 SONIDO_FALLO = "musica_fallo"
 SONIDO_ERROR = "error"
+SONIDO_ATAJOS_OCUPADOS = "atajos_ocupados"
 
 TEXTO_FIN_LISTA = "Fin de la lista de música"
 TEXTO_FALLO = "No se pudo reproducir: {nombre}. Se pasa al siguiente"
@@ -378,9 +379,9 @@ def aviso_error_enlace(mensaje: str) -> Aviso:
 
 
 def aviso_atajos_globales_fallo(fallidos) -> Aviso:
-    """Combinaciones que otro programa ya tiene, con el sonido de error."""
+    """Combinaciones que otro programa ya tiene, con el tono de ocupado."""
     return Aviso(TEXTO_ATAJOS_GLOBALES_FALLO.format(lista=", ".join(fallidos)),
-                 SONIDO_ERROR)
+                 SONIDO_ATAJOS_OCUPADOS)
 
 
 def aviso_atajos_globales_activos() -> Aviso:

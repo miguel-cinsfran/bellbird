@@ -809,7 +809,7 @@ class TestMusicaCargador(unittest.TestCase):
         self.assertFalse(cfg["musica_aleatorio"])
         self.assertEqual(cfg["musica_repetir"], "no")
         self.assertTrue(cfg["musica_retomar"])
-        self.assertTrue(cfg["musica_sonido_tema"])
+        self.assertFalse(cfg["musica_sonido_tema"])
         self.assertEqual(cfg["musica_decir"], "titulo")
         self.assertTrue(cfg["musica_decir_pausa"])
         self.assertTrue(cfg["musica_preguntar_igualar"])
@@ -855,7 +855,7 @@ class TestMusicaCargador(unittest.TestCase):
         casos = [
             ("aleatorio", "musica_aleatorio", False),
             ("retomar", "musica_retomar", True),
-            ("sonido_tema", "musica_sonido_tema", True),
+            ("sonido_tema", "musica_sonido_tema", False),
             ("decir_pausa", "musica_decir_pausa", True),
             ("preguntar_igualar", "musica_preguntar_igualar", True),
             ("atajos_globales", "musica_atajos_globales", False),

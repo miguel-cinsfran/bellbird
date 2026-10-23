@@ -194,7 +194,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("aleatorio", "false"),
         ("repetir", "false"),
         ("retomar", "true"),
-        ("sonido_tema", "true"),
+        ("sonido_tema", "false"),
         ("decir", ""),
         ("decir_titulo", "true"),
         ("incluir_artista", "false"),

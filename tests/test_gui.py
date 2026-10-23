@@ -3059,7 +3059,7 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         self.assertEqual(opciones.get("musica", "aleatorio"), "true")
         self.assertEqual(opciones.get("musica", "repetir"), "no")
         self.assertEqual(opciones.get("musica", "retomar"), "false")
-        self.assertEqual(opciones.get("musica", "sonido_tema"), "true")
+        self.assertEqual(opciones.get("musica", "sonido_tema"), "false")
         self.assertEqual(opciones.get("musica", "decir"), "artista")
         self.assertEqual(opciones.get("musica", "decir_pausa"), "false")
         self.assertEqual(opciones.get("musica", "normalizar"), "false")

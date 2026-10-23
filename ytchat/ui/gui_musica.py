@@ -399,7 +399,7 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica, SonoridadMusica,
         # Las dos preferencias se leen acá y no al preparar el motor: así un
         # cambio en Preferencias vale sin reiniciar.
         aviso = anuncios.aviso_automatico(
-            resultado, bool(self._config.get("musica_sonido_tema", True)),
+            resultado, bool(self._config.get("musica_sonido_tema", False)),
             self._config.get("musica_decir", "titulo"))
         self._avisar(aviso)
         if resultado.codigo in (AVANZO, FIN_LISTA):

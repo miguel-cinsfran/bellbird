@@ -14,7 +14,8 @@ from ytchat.music.consultas_vlc import (
     leer_etiquetas_vlc,
     salidas_audio,
 )
-from ytchat.music import adaptador_vlc, enlaces
+from ytchat.music import adaptador_vlc, cruce, enlaces
+from ytchat.music.bordes import Bordes
 from ytchat.music.enlaces import ErrorEnlace
 from ytchat.music.coordinador import Coordinador
 from ytchat.music.modelo import AVANZO, FIN_LISTA, TEMA_FALLIDO, Tema
@@ -104,12 +105,19 @@ class FakeReproductor:
         self.salida = None
         self.dispositivo = None
         self.liberado = False
+        self.llamadas_tras_release = 0
+        self.consultas_largo = 0
         self.pausa = None
         self.media = None
         self.tiempo = 0
+        self.largo = 0
+        self.sonando = False
         self._play = instancia.play_resultado
 
     def _revisar(self):
+        if self.liberado:
+            self.llamadas_tras_release += 1
+            raise AssertionError("libVLC llamado sobre un reproductor liberado")
         if self.gestor.despachando:
             raise AssertionError("libVLC llamado dentro de un callback")
 
@@ -143,7 +151,18 @@ class FakeReproductor:
     def play(self):
         self._revisar()
         self.instancia.eventos.append(("play", self.numero))
+        if self._play != -1:
+            self.sonando = True
         return self._play
+
+    def is_playing(self):
+        self._revisar()
+        return self.sonando
+
+    def get_length(self):
+        self._revisar()
+        self.consultas_largo += 1
+        return self.largo
 
     def set_pause(self, valor):
         self._revisar()
@@ -161,6 +180,7 @@ class FakeReproductor:
 
     def stop(self):
         self._revisar()
+        self.sonando = False
         self.instancia.eventos.append(("stop", self.numero))
 
     def release(self):
@@ -486,6 +506,105 @@ class TestAdaptadorDobles(_BaseDobles):
         self.assertEqual(leer_etiquetas_vlc("C:/musica/a.mp3", plazo_ms=50), {})
         self.assertLess(time.monotonic() - inicio, 5.0)
         self.assertTrue(self.instancia.media_etiquetas.liberada)
+
+
+class TestAdaptadorCruce(_BaseDobles):
+
+    def test_con_cruzaria_true_el_viejo_se_cierra_al_soltar(self):
+        self.existentes.update({"C:/musica/a.mp3", "C:/musica/b.mp3"})
+        with mock.patch("ytchat.music.bordes.medir_bordes",
+                        return_value=Bordes(0, 0)):
+            adaptador = self.crear(cruce_de=lambda: 1)
+            adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
+            viejo = self.instancia.reproductores[0]
+            viejo.largo = 10000
+            avisos = []
+
+            def aviso(ficha, fallo):
+                avisos.append((ficha, fallo))
+                adaptador.cargar(Tema("C:/musica/b.mp3", "b"), 2)
+
+            adaptador.asignar_aviso(aviso, lambda ficha: True)
+            adaptador._por_terminar(1)
+
+            self.assertTrue(esperar(
+                lambda: len(self.instancia.reproductores) == 2))
+            nuevo = self.instancia.reproductores[1]
+            self.assertEqual(avisos, [(1, False)])
+            self.assertFalse(viejo.liberado)
+            self.assertTrue(adaptador._transiciones.en_fundido(nuevo))
+            self.assertTrue(esperar(lambda: viejo.liberado))
+
+    def test_el_aviso_por_terminar_cruza_con_la_duracion_elegida(self):
+        self.existentes.update({"C:/musica/a.mp3", "C:/musica/b.mp3"})
+        with mock.patch("ytchat.music.bordes.medir_bordes",
+                        return_value=Bordes(0, 0)):
+            adaptador = self.crear(cruce_de=lambda: 6)
+            adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
+            viejo = self.instancia.reproductores[0]
+            viejo.largo = 20000
+            self.assertTrue(esperar(lambda: viejo.consultas_largo > 0))
+            adaptador.asignar_aviso(
+                lambda ficha, fallo: adaptador.cargar(
+                    Tema("C:/musica/b.mp3", "b"), 2),
+                lambda ficha: True)
+
+            adaptador._por_terminar(1)
+
+            self.assertTrue(esperar(
+                lambda: adaptador._transiciones._cruce is not None))
+            self.assertEqual(
+                adaptador._transiciones._cruce["duracion_ms"], 6000)
+
+    def test_un_cargar_a_mano_cruza_en_medio_segundo(self):
+        self.existentes.update({"C:/musica/a.mp3", "C:/musica/b.mp3"})
+        with mock.patch("ytchat.music.bordes.medir_bordes",
+                        return_value=Bordes(0, 0)):
+            adaptador = self.crear(cruce_de=lambda: 6)
+            adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
+            viejo = self.instancia.reproductores[0]
+            viejo.largo = 20000
+
+            adaptador.cargar(Tema("C:/musica/b.mp3", "b"), 2)
+
+            self.assertIsNotNone(adaptador._transiciones._cruce)
+            self.assertEqual(
+                adaptador._transiciones._cruce["duracion_ms"],
+                cruce.CRUCE_MANUAL_MS)
+
+    def test_tras_cerrar_el_reproductor_la_vigilancia_no_lo_toca(self):
+        self.existentes.add("C:/musica/a.mp3")
+        with mock.patch("ytchat.music.bordes.medir_bordes",
+                        return_value=Bordes(0, 0)):
+            adaptador = self.crear(cruce_de=lambda: 6)
+            adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
+            reproductor = self.instancia.reproductores[0]
+            reproductor.largo = 10000
+            self.assertTrue(esperar(lambda: reproductor.consultas_largo > 0))
+
+            adaptador.detener()
+            self.assertTrue(esperar(lambda: reproductor.liberado))
+            time.sleep(0.25)
+
+            self.assertEqual(reproductor.llamadas_tras_release, 0)
+
+    def test_con_cruzaria_false_no_hay_aviso_de_fin_anticipado(self):
+        self.existentes.update({"C:/musica/a.mp3", "C:/musica/b.mp3"})
+        with mock.patch("ytchat.music.bordes.medir_bordes",
+                        return_value=Bordes(0, 0)):
+            adaptador = self.crear(cruce_de=lambda: 1)
+            adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
+            avisos = []
+            adaptador.asignar_aviso(
+                lambda ficha, fallo: avisos.append((ficha, fallo)),
+                lambda ficha: False)
+
+            adaptador._por_terminar(1)
+            time.sleep(0.15)
+
+            self.assertEqual(avisos, [])
+            self.assertEqual(len(self.instancia.reproductores), 1)
+            self.assertFalse(adaptador._cruce_largo)
 
 
 class TestAdaptadorEnlaces(_BaseDobles):

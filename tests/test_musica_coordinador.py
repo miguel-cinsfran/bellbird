@@ -1277,5 +1277,64 @@ class TestPropiedad(unittest.TestCase):
         self.assertNotEqual(primero, ultimo)
 
 
+class TestCruzaria(unittest.TestCase):
+
+    def _sonando(self, temas, **kwargs):
+        ad = AdaptadorFalso()
+        c = Coordinador(ad, **kwargs)
+        c.reproducir_lista(temas)
+        return ad, c, ad.ultima_ficha()
+
+    def test_sin_cursor_no_cruza(self):
+        ad = AdaptadorFalso()
+        c = Coordinador(ad)
+        self.assertFalse(c.cruzaria(1))
+
+    def test_ficha_vieja_no_cruza(self):
+        ad, c, ficha = self._sonando([tema("a"), tema("b")])
+        self.assertFalse(c.cruzaria(ficha - 1))
+
+    def test_en_pausa_no_cruza(self):
+        ad, c, ficha = self._sonando([tema("a"), tema("b")])
+        c.alternar_pausa()
+        self.assertFalse(c.cruzaria(ficha))
+
+    def test_terminado_no_cruza(self):
+        ad, c, ficha = self._sonando([tema("a")])
+        c.tema_terminado(ficha, False)
+        self.assertTrue(c.estado().terminado)
+        self.assertFalse(c.cruzaria(ficha))
+
+    def test_la_siguiente_local_cruza(self):
+        ad, c, ficha = self._sonando([tema("a"), tema("b")])
+        self.assertTrue(c.cruzaria(ficha))
+
+    def test_la_siguiente_enlace_no_cruza(self):
+        enlace = Tema("https://ejemplo/b", "B")
+        ad, c, ficha = self._sonando([tema("a"), enlace])
+        self.assertFalse(c.cruzaria(ficha))
+
+    def test_al_final_del_orden_no_cruza_aunque_repita_todo(self):
+        ad, c, ficha = self._sonando([tema("a")])
+        c.fijar_repetir("todo")
+        self.assertFalse(c.cruzaria(ficha))
+
+    def test_repetir_tema_cruza_solo_si_es_local(self):
+        ad, c, ficha = self._sonando([tema("a")])
+        c.fijar_repetir("tema")
+        self.assertTrue(c.cruzaria(ficha))
+        enlace = Tema("https://ejemplo/a", "A")
+        ad, c, ficha = self._sonando([enlace])
+        c.fijar_repetir("tema")
+        self.assertFalse(c.cruzaria(ficha))
+
+    def test_con_orden_mezclado_cruza_al_siguiente_del_orden(self):
+        ad = AdaptadorFalso()
+        c = Coordinador(ad, mezclar=lambda lista: lista.reverse())
+        c.fijar_aleatorio(True)
+        c.reproducir_lista([tema("a"), tema("b"), tema("c")])
+        self.assertTrue(c.cruzaria(ad.ultima_ficha()))
+
+
 if __name__ == "__main__":
     unittest.main()

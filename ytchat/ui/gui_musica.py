@@ -13,7 +13,7 @@ import wx
 from ytchat.core import anuncio_ajuste, musica_decir
 from ytchat.core import config as cfg
 from ytchat.core import diagnostico
-from ytchat.music import anuncios
+from ytchat.music import anuncios, cruce
 from ytchat.music.adaptador_vlc import AdaptadorVlc, MotorNoDisponible
 from ytchat.music.coordinador import Coordinador
 from ytchat.music.guardado_diferido import GuardadoDiferido
@@ -336,13 +336,13 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica, SonoridadMusica,
         try:
             adaptador = Normalizado(AdaptadorVlc(
                 dispositivo=self._config.get("musica_salida") or None,
-                volumen=self._volumen_config()),
+                volumen=self._volumen_config(), cruce_de=lambda: self._config.get("musica_cruce", cruce.CRUCE_FABRICA_S)),
                 self._ganancia_de, volumen=self._volumen_config())
             adaptador.fijar_activo(bool(self._config.get("musica_normalizar", True)))
             coordinador = Coordinador(
                 adaptador, al_cambiar=self._al_cambiar,
                 volumen=self._volumen_config())
-            adaptador.asignar_aviso(coordinador.tema_terminado)
+            adaptador.asignar_aviso(coordinador.tema_terminado, coordinador.cruzaria)
             coordinador.fijar_aleatorio(bool(self._config.get("musica_aleatorio", False)))
             coordinador.fijar_repetir(cfg.normalizar_repetir(
                 self._config.get("musica_repetir", "no")))

@@ -202,6 +202,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("normalizar", "true"),
         ("preguntar_igualar", "true"),
         ("volumen", "50"),
+        ("cruce", "6"),
         ("salida", ""),
         ("salida_nombre", ""),
         ("atajos_globales", "false"),

@@ -814,6 +814,7 @@ class TestMusicaCargador(unittest.TestCase):
         self.assertTrue(cfg["musica_decir_pausa"])
         self.assertTrue(cfg["musica_preguntar_igualar"])
         self.assertEqual(cfg["musica_volumen"], 50)
+        self.assertEqual(cfg["musica_cruce"], 6)
         self.assertEqual(cfg["musica_salida"], "")
         self.assertEqual(cfg["musica_salida_nombre"], "")
         self.assertFalse(cfg["musica_atajos_globales"])
@@ -833,6 +834,7 @@ class TestMusicaCargador(unittest.TestCase):
             "decir_pausa = false\n"
             "preguntar_igualar = false\n"
             "volumen = 80\n"
+            "cruce = 3\n"
             "salida = altavoces\n"
             "salida_nombre = Altavoces del sistema\n"
             "atajos_globales = true\n")
@@ -845,6 +847,7 @@ class TestMusicaCargador(unittest.TestCase):
         self.assertFalse(cfg["musica_decir_pausa"])
         self.assertFalse(cfg["musica_preguntar_igualar"])
         self.assertEqual(cfg["musica_volumen"], 80)
+        self.assertEqual(cfg["musica_cruce"], 3)
         self.assertEqual(cfg["musica_salida"], "altavoces")
         self.assertEqual(cfg["musica_salida_nombre"], "Altavoces del sistema")
         self.assertTrue(cfg["musica_atajos_globales"])
@@ -941,6 +944,12 @@ class TestMusicaCargador(unittest.TestCase):
     def test_volumen_negativo_cae_a_cero(self):
         cfg = self._cargar_en("[musica]\nvolumen = -10\n")
         self.assertEqual(cfg["musica_volumen"], 0)
+
+    def test_cruce_se_recorta_entre_cero_y_doce(self):
+        cfg = self._cargar_en("[musica]\ncruce = 13\n")
+        self.assertEqual(cfg["musica_cruce"], 12)
+        cfg = self._cargar_en("[musica]\ncruce = -2\n")
+        self.assertEqual(cfg["musica_cruce"], 0)
 
     def test_decir_viejo_apagado_da_nada(self):
         cfg = self._cargar_en("[musica]\ndecir_titulo = false\n")

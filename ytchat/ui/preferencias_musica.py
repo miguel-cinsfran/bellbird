@@ -22,6 +22,7 @@ OPCIONES_MUSICA = (
     ("chk_musica_aleatorio", "musica", "aleatorio", "musica_aleatorio", bool, False),
     ("chk_musica_repetir", "musica", "repetir", "musica_repetir", str, "no"),
     ("chk_musica_retomar", "musica", "retomar", "musica_retomar", bool, True),
+    ("sp_musica_cruce", "musica", "cruce", "musica_cruce", int, 6),
     ("chk_musica_sonido_tema", "musica", "sonido_tema", "musica_sonido_tema", bool, False),
     ("cho_musica_decir", "musica", "decir", "musica_decir", str, "titulo"),
     ("chk_musica_decir_pausa", "musica", "decir_pausa", "musica_decir_pausa", bool, True),
@@ -84,6 +85,13 @@ class PaginaMusica:
             name="MusicaRetomar")
         self.chk_musica_retomar.SetForegroundColour(_T.text)
         vs.Add(self.chk_musica_retomar, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        vs.Add(self._fila_label(p, "&Fundido entre canciones, en segundos:"),
+               0, wx.LEFT | wx.RIGHT, 10)
+        self.sp_musica_cruce = ContadorAccesible(
+            p, min=0, max=12,
+            name="Fundido entre canciones, en segundos")
+        vs.Add(self.sp_musica_cruce, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _musica_anuncios(self, p, vs):
         from ytchat.ui.gui_preferencias import _T, _tc, EleccionTexto

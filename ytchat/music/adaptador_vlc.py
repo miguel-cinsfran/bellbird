@@ -13,7 +13,8 @@ import queue
 import threading
 
 from ytchat.core import diagnostico
-from ytchat.music import enlaces
+from ytchat.music import cruce, enlaces
+from ytchat.music.transicion import Transiciones
 from ytchat.player import motor_vlc
 
 
@@ -23,6 +24,7 @@ _FIN = "fin"
 _ERROR = "error"
 _SONANDO = "sonando"
 _CERRAR = "cerrar"
+_POR_TERMINAR = "por_terminar"
 
 
 class MotorNoDisponible(RuntimeError):
@@ -36,7 +38,8 @@ class AdaptadorVlc:
     propio aviso lo cuelga, así que el trabajo lo hace un hilo aparte.
     """
 
-    def __init__(self, salida_audio=None, volumen=100, dispositivo=None):
+    def __init__(self, salida_audio=None, volumen=100, dispositivo=None,
+                 cruce_de=None):
         instancia = motor_vlc.instancia()
         if instancia is None:
             raise MotorNoDisponible("No hay motor de música libVLC disponible")
@@ -52,6 +55,10 @@ class AdaptadorVlc:
         self._pausa_pendiente = False
         self._iniciado = False
         self._ficha_actual = None
+        self._cruce_de = cruce_de if cruce_de is not None else (lambda: 0)
+        self._transiciones = None
+        self._cruzaria = None
+        self._cruce_largo = False
         self._lock = threading.RLock()
         self._callbacks = {}
         self._cola = queue.Queue()
@@ -59,9 +66,10 @@ class AdaptadorVlc:
         self._hilo = diagnostico.crear_hilo(self._consumir, "musica-vlc")
         self._hilo.start()
 
-    def asignar_aviso(self, funcion):
+    def asignar_aviso(self, funcion, cruzaria=None):
         """Guarda a quién avisar el fin de un tema. Sin aviso, se descartan."""
         self._aviso = funcion
+        self._cruzaria = cruzaria
 
     def fijar_dispositivo(self, identificador):
         """Elige el dispositivo de salida para el próximo tema, sin cortar el
@@ -76,10 +84,13 @@ class AdaptadorVlc:
         Si al volver ya se pidió otro tema, lo descarta; si la resolución
         falla, avisa el fallo desde ese hilo.
         """
+        if tema.es_enlace:
+            self._terminar_transicion()
         with self._lock:
             self._pedida = ficha
             self._pausa_pendiente = False
             if tema.es_enlace:
+                self._cruce_largo = False
                 self._pendiente = ficha
                 anterior = self._actual
                 self._actual = None
@@ -92,35 +103,95 @@ class AdaptadorVlc:
                     args=(tema, ficha)).start()
                 return
             self._pendiente = None
+            largo_cruce = self._cruce_largo
+            self._cruce_largo = False
             if not os.path.isfile(tema.origen):
                 raise FileNotFoundError(tema.origen)
-            reproductor = self._instancia.media_player_new()
-            if reproductor is None:
-                raise RuntimeError("VLC no pudo crear un reproductor")
-            if self._salida_audio is not None:
-                reproductor.audio_output_set(self._salida_audio)
-            if self._dispositivo:
-                reproductor.audio_output_device_set(None, self._dispositivo)
-            try:
-                media = self._instancia.media_new(tema.origen)
-                reproductor.set_media(media)
-            except Exception as exc:
-                self._cola.put((_CERRAR, None, reproductor))
-                raise RuntimeError("VLC no pudo preparar el tema") from exc
-            reproductor.audio_set_volume(self._volumen)
-            self._enganchar(reproductor, ficha)
-            if reproductor.play() == -1:
-                # El nuevo no arranca: se cierra y el anterior sigue sonando igual.
-                self._cola.put((_CERRAR, None, reproductor))
-                raise RuntimeError("VLC no pudo iniciar el tema")
             anterior = self._actual
+            segundos = self._segundos_cruce()
+            fundir = (segundos > 0 and anterior is not None
+                      and self._iniciado and anterior.is_playing())
+            reproductor = self._abrir_local(tema, ficha, fundir)
             self._actual = reproductor
             self._iniciado = True
             self._ficha_actual = ficha
-            if anterior is not None:
+            if fundir:
+                self._cruzar_con(anterior, reproductor, largo_cruce, segundos)
+            elif anterior is not None:
                 # Un reproductor por tema: el fin tardío del viejo sale por su
                 # propio gestor con su ficha vieja, y el coordinador lo ignora.
                 self._cola.put((_CERRAR, None, anterior))
+            self._vigilar(reproductor, ficha, tema.origen)
+
+    def _segundos_cruce(self):
+        try:
+            return float(self._cruce_de() or 0)
+        except Exception:
+            logger.debug("No se pudo leer la duración del fundido")
+            return 0.0
+
+    def _abrir_local(self, tema, ficha, fundir):
+        reproductor = self._instancia.media_player_new()
+        if reproductor is None:
+            raise RuntimeError("VLC no pudo crear un reproductor")
+        if self._salida_audio is not None:
+            reproductor.audio_output_set(self._salida_audio)
+        if self._dispositivo:
+            reproductor.audio_output_device_set(None, self._dispositivo)
+        try:
+            media = self._instancia.media_new(tema.origen)
+            reproductor.set_media(media)
+        except Exception as exc:
+            self._cola.put((_CERRAR, None, reproductor))
+            raise RuntimeError("VLC no pudo preparar el tema") from exc
+        reproductor.audio_set_volume(0 if fundir else self._volumen)
+        self._enganchar(reproductor, ficha)
+        if reproductor.play() == -1:
+            # El nuevo no arranca: se cierra y el anterior sigue sonando igual.
+            self._cola.put((_CERRAR, None, reproductor))
+            raise RuntimeError("VLC no pudo iniciar el tema")
+        return reproductor
+
+    def _transiciones_para(self):
+        if self._transiciones is None:
+            self._transiciones = Transiciones(self._segundos_cruce)
+        return self._transiciones
+
+    def _cruzar_con(self, anterior, reproductor, largo_cruce, segundos):
+        transiciones = self._transiciones_para()
+        duracion = None
+        if largo_cruce:
+            duracion = transiciones.duracion_cruce(
+                anterior, int(segundos * 1000))
+        if not duracion or duracion <= 0:
+            duracion = cruce.CRUCE_MANUAL_MS
+        try:
+            transiciones.cruzar(
+                anterior, self._volumen, reproductor, self._volumen,
+                duracion, self._soltar)
+        except Exception:
+            logger.exception("No se pudo iniciar el fundido entre canciones")
+            self._cola.put((_CERRAR, None, anterior))
+
+    def _vigilar(self, reproductor, ficha, ruta):
+        if self._segundos_cruce() <= 0:
+            return
+        try:
+            self._transiciones_para().vigilar(
+                reproductor, ficha, ruta, self._por_terminar)
+        except Exception:
+            logger.exception("No se pudo vigilar el final de %s", ruta)
+
+    def _por_terminar(self, ficha):
+        self._cola.put((_POR_TERMINAR, ficha, None))
+
+    def _terminar_transicion(self, cerrar=False):
+        transiciones = self._transiciones
+        if transiciones is not None:
+            transiciones.cerrar() if cerrar else transiciones.terminar_ya()
+
+    def _soltar(self, reproductor):
+        self._cola.put((_CERRAR, None, reproductor))
 
     def _resolver_enlace(self, tema, ficha):
         """Resuelve el audio del enlace y arranca el reproductor. Corre en su
@@ -181,6 +252,7 @@ class AdaptadorVlc:
             self._cola.put((_CERRAR, None, anterior))
 
     def pausar(self):
+        self._terminar_transicion()
         with self._lock:
             if self._actual is not None:
                 if self._iniciado:
@@ -190,6 +262,7 @@ class AdaptadorVlc:
                 self._pausa_pendiente = True
 
     def reanudar(self):
+        self._terminar_transicion()
         with self._lock:
             self._pausa_pendiente = False
             if self._actual is None:
@@ -218,6 +291,7 @@ class AdaptadorVlc:
         self._iniciado = True
 
     def detener(self):
+        self._terminar_transicion()
         with self._lock:
             # Invalidar la ficha pendiente evita que un enlace que termina de
             # resolverse después de detener arranque a sonar igual.
@@ -232,6 +306,7 @@ class AdaptadorVlc:
                 self._cola.put((_CERRAR, None, anterior))
 
     def volumen(self, valor):
+        self._terminar_transicion()
         with self._lock:
             self._volumen = valor
             if self._actual is not None:
@@ -252,6 +327,7 @@ class AdaptadorVlc:
 
     def ir_a(self, ms):
         """Salta a una posición del tema actual. Sin tema no hace nada."""
+        self._terminar_transicion()
         with self._lock:
             if self._actual is None:
                 return
@@ -262,6 +338,7 @@ class AdaptadorVlc:
 
     def cerrar(self, plazo=2.0):
         """Cierra el reproductor actual y termina el hilo. Repetirlo no falla."""
+        self._terminar_transicion(True)
         with self._lock:
             if self._cerrado:
                 return
@@ -317,13 +394,40 @@ class AdaptadorVlc:
             if tipo == _CERRAR:
                 self._cerrar_reproductor(reproductor)
             elif tipo == _SONANDO:
-                if reproductor is self._actual:
+                if (reproductor is self._actual
+                        and not self._en_fundido(reproductor)):
                     try:
                         reproductor.audio_set_volume(self._volumen)
                     except Exception:
                         pass
+            elif tipo == _POR_TERMINAR:
+                self._terminar_anticipado(ficha)
             else:
                 self._avisar_fin(ficha, tipo == _ERROR)
+
+    def _en_fundido(self, reproductor):
+        return (self._transiciones is not None
+                and self._transiciones.en_fundido(reproductor))
+
+    def _terminar_anticipado(self, ficha):
+        with self._lock:
+            if ficha != self._ficha_actual:
+                return
+            cruzaria = self._cruzaria
+        if cruzaria is None:
+            return
+        try:
+            cruzado = bool(cruzaria(ficha))
+        except Exception:
+            logger.exception("Falló la consulta de cruce entre canciones")
+            return
+        if not cruzado:
+            return
+        with self._lock:
+            if ficha != self._ficha_actual:
+                return
+            self._cruce_largo = True
+        self._avisar_fin(ficha, False)
 
     def _avisar_fin(self, ficha, fallo):
         aviso = self._aviso
@@ -335,6 +439,8 @@ class AdaptadorVlc:
             logger.exception("Falló el aviso de fin de tema")
 
     def _cerrar_reproductor(self, reproductor):
+        if self._transiciones is not None:
+            self._transiciones.olvidar(reproductor)
         try:
             reproductor.stop()
         except Exception:

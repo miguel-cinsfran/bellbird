@@ -1546,7 +1546,8 @@ class TestCategoriasDePreferencias(unittest.TestCase):
         self.assertEqual(textos.index("Música"), textos.index("Reproductor") + 1)
         pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagMusica")
         esperados = ["Carpeta de música", "MusicaAleatorio", "Repetir la música",
-                     "MusicaRetomar", "MusicaSonidoTema", "Qué decir al pasar de canción",
+                     "MusicaRetomar", "Fundido entre canciones, en segundos",
+                     "MusicaSonidoTema", "Qué decir al pasar de canción",
                      "MusicaDecirPausa", "Volumen de la música",
                      "Preguntar al abrir Música si igualar el volumen",
                      "Salida de audio de la música", "Buscar las salidas de audio",
@@ -1567,6 +1568,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             "Reproducir en orden &aleatorio",
             "&Repetir:",
             "Recordar la ú&ltima lista al abrir",
+            "&Fundido entre canciones, en segundos:",
             "&Sonido al pasar de canción",
             "&Decir al pasar de canción:",
             "A&nunciar la pausa, la reanudación y la vuelta al comienzo",
@@ -1589,7 +1591,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             etiqueta = control.GetLabel()
             if "&" in etiqueta:
                 letras.append(etiqueta.split("&", 1)[1][:1].lower())
-        self.assertEqual(len(letras), 13)
+        self.assertEqual(len(letras), 14)
         self.assertEqual(len(letras), len(set(letras)), letras)
         self.assertNotIn("g", letras)
         self.assertNotIn("c", letras)
@@ -1804,7 +1806,8 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("musica", "retomar"), ("musica", "sonido_tema"),
             ("musica", "decir"), ("musica", "decir_pausa"), ("musica", "normalizar"),
             ("musica", "preguntar_igualar"),
-            ("musica", "volumen"), ("musica", "atajos_globales"), ("musica", "carpeta"),
+            ("musica", "volumen"), ("musica", "cruce"),
+            ("musica", "atajos_globales"), ("musica", "carpeta"),
             ("musica", "salida"), ("musica", "salida_nombre"),
         ]
         esperadas.extend(("estado", componente)

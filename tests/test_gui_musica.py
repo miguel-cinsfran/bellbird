@@ -31,14 +31,16 @@ from ytchat.ui.gui_musica import ControlMusica, nuevo_volumen, toca_pausar
 
 
 class _AdaptadorFalso:
-    def __init__(self, salida_audio=None, volumen=100, dispositivo=None):
+    def __init__(self, salida_audio=None, volumen=100, dispositivo=None,
+                 cruce_de=None):
         self.inicio = {"salida_audio": salida_audio, "volumen": volumen,
-                       "dispositivo": dispositivo}
+                       "dispositivo": dispositivo, "cruce_de": cruce_de}
         self.llamadas = []
         self.aviso = None
 
-    def asignar_aviso(self, funcion):
+    def asignar_aviso(self, funcion, cruzaria=None):
         self.aviso = funcion
+        self.cruzaria = cruzaria
 
     def cargar(self, tema, ficha):
         self.llamadas.append(("cargar", tema.origen, ficha))

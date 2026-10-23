@@ -7,6 +7,7 @@ import threading
 from typing import Protocol
 
 from ytchat.core.diagnostico import obtener_logger
+from ytchat.music import cruce
 from ytchat.music.modelo import (
     AVANZO,
     COLA_VACIA,
@@ -537,6 +538,13 @@ class Coordinador(TransporteMusica):
     def estado(self) -> EstadoMusica:
         with self._lock:
             return self._estado()
+
+    def cruzaria(self, ficha) -> bool:
+        """Verdadero si la actual tiene una siguiente local para cruzar."""
+        with self._lock:
+            if ficha != self._ficha or self._pausado or self._terminado or self._cursor is None or self._posicion is None:
+                return False
+            return cruce.hay_siguiente_local(self._cola, self._orden, self._cursor, self._repetir)
 
     def tema_terminado(self, ficha, fallo: bool) -> None:
         """Aviso del adaptador, llegado desde otro hilo."""

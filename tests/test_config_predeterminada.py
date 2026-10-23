@@ -385,7 +385,8 @@ class TestMusicaFabrica(unittest.TestCase):
             "retomar": "true", "sonido_tema": "false", "decir": "",
             "decir_titulo": "true", "incluir_artista": "false",
             "decir_pausa": "true", "normalizar": "true",
-            "preguntar_igualar": "true", "volumen": "50", "salida": "",
+            "preguntar_igualar": "true", "volumen": "50", "cruce": "6",
+            "salida": "",
             "salida_nombre": "", "atajos_globales": "false",
             "mostrar_cola": "false",
         })
@@ -394,7 +395,7 @@ class TestMusicaFabrica(unittest.TestCase):
         self.assertEqual(list(pred.seccion("musica").keys()), [
             "carpeta", "aleatorio", "repetir", "retomar", "sonido_tema",
             "decir", "decir_titulo", "incluir_artista", "decir_pausa",
-            "normalizar", "preguntar_igualar", "volumen", "salida",
+            "normalizar", "preguntar_igualar", "volumen", "cruce", "salida",
             "salida_nombre", "atajos_globales",
             "mostrar_cola",
         ])

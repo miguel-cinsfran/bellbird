@@ -78,6 +78,10 @@ canciones.
 - **La ventana Transmisión explica qué se ve en el directo**: la ventana
   elegida en Ventana que se captura. Esa captura no lleva sonido, que
   sale del audio del escritorio y del micrófono de OBS.
+- **El usuario de TikTok funciona con mayúsculas.** TikTok solo
+  reconoce el usuario en minúsculas, y con una mayúscula la aplicación no
+  encontraba el directo. Ahora lo pasa a minúsculas sola, también el que
+  ya estaba guardado.
 
 ### Sonidos y ventanas
 

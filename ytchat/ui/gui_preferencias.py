@@ -1322,7 +1322,7 @@ class PreferenciasDialog(PaginaMusica, PaginaProgramados, PaginaIA, wx.Dialog):
         c = self._config
         self._pendientes = []
         self._fallo_guardado = False
-        registro_detallado_inicial = bool(c.get("registro_detallado", False))
+        registro_detallado_inicial = bool(c.get("registro_detallado", True))
         puerto_anterior = int(c.get("overlay_puerto", 8730))
         # Los atajos ya vienen validados desde la captura (área + conflicto), así
         # que aquí solo se guardan; no hace falta revalidar por escritura.

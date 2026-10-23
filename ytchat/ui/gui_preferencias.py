@@ -984,11 +984,8 @@ class PreferenciasDialog(PaginaMusica, PaginaProgramados, PaginaIA, wx.Dialog):
             self._config, self._fila_label, self._make_panel)
         panel = self.pagina_lectura.construir(parent)
         self.rb_formato = self.pagina_lectura.rb_formato
-        self.chk_emojis = self.pagina_lectura.chk_emojis
-        self.chk_urls = self.pagina_lectura.chk_urls
-        self.chk_entradas = self.pagina_lectura.chk_entradas
-        self.sp_long = self.pagina_lectura.sp_long
-        self.chk_lectura_atajos_globales = self.pagina_lectura.chk_lectura_atajos_globales
+        for fila in OPCIONES_LECTURA:
+            setattr(self, fila[0], getattr(self.pagina_lectura, fila[0]))
         return panel
 
     def _pag_estado(self, parent):

@@ -172,7 +172,20 @@ def construir_menu(frame):
               frame.mi_actualizar_ytdlp)
     frame.Bind(wx.EVT_MENU, lambda e: wx.CallAfter(frame._on_preferencias, None), mi_pref)
 
-    # Ayuda
+    _construir_menu_ayuda(frame, mb)
+
+    frame.SetMenuBar(mb)
+    # Al reconstruir (Preferencias), la barra vieja solo se desengancha: hay
+    # que destruirla, y el item de pausa nace como «Pausar» aunque la
+    # lectura siga pausada.
+    if anterior is not None:
+        try:    anterior.Destroy()
+        except Exception: pass
+    frame._sincronizar_pausa()
+    _registrar_menus(frame)
+
+
+def _construir_menu_ayuda(frame, mb):
     m = wx.Menu()
     mi_guia = m.Append(wx.ID_ANY, "&Guía de configuración de la API…")
     mi_incidente = m.Append(wx.ID_ANY, "&Marcar incidencia" + frame._accel("marcar_incidencia"))
@@ -187,16 +200,6 @@ def construir_menu(frame):
     frame.Bind(wx.EVT_MENU, lambda e: wx.CallAfter(
         frame._on_actualizar_app, None), mi_actualizar_app)
     frame.Bind(wx.EVT_MENU, lambda e: wx.CallAfter(frame._on_about, None), mi_about)
-
-    frame.SetMenuBar(mb)
-    # Al reconstruir (Preferencias), la barra vieja solo se desengancha: hay
-    # que destruirla, y el item de pausa nace como «Pausar» aunque la
-    # lectura siga pausada.
-    if anterior is not None:
-        try:    anterior.Destroy()
-        except Exception: pass
-    frame._sincronizar_pausa()
-    _registrar_menus(frame)
 
 
 def _registrar_menus(frame) -> None:

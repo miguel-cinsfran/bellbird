@@ -1,4 +1,5 @@
 import unittest
+from unittest import mock
 
 from ytchat.obs import obs_entradas_audio
 from ytchat.obs import dispositivo_windows
@@ -43,6 +44,14 @@ class DobleGestor:
         self.dispositivo_resultado = dispositivo
         self.alternadas = []
         self.consultas = []
+        self.conectado = False
+        self.cerrado = False
+
+    def conectar(self, parada=None):
+        self.conectado = True
+
+    def cerrar(self):
+        self.cerrado = True
 
     def fuentes_audio(self, parada=None):
         return self.fuentes
@@ -121,6 +130,42 @@ class AlternarMicrofonoTest(unittest.TestCase):
                              dispositivo=RuntimeError("sin COM"))
         self.assertEqual(obs_entradas_audio.alternar_microfono(gestor, "Mic/Aux"),
                          "Micrófono activado")
+
+
+class MicrofonoPorAtajoTest(unittest.TestCase):
+    def _ejecutar(self, gestor, preferido="Mic/Aux"):
+        avisos = []
+        with mock.patch("ytchat.obs.obs_panel.GestorPanelObs",
+                        return_value=gestor) as clase:
+            obs_entradas_audio.microfono_por_atajo(
+                preferido, lambda *args: avisos.append(args))
+        return clase, avisos
+
+    def test_crea_conecta_alterna_cierra_y_avisa(self):
+        gestor = DobleGestor(
+            fuentes=("Mic/Aux",), silencio=False,
+            dispositivo=("Micrófono (USB)", False))
+        clase, avisos = self._ejecutar(gestor)
+        clase.assert_called_once_with()
+        self.assertTrue(gestor.conectado)
+        self.assertEqual(gestor.alternadas, ["Mic/Aux"])
+        self.assertTrue(gestor.cerrado)
+        self.assertEqual(avisos, [("Micrófono activado: USB", "")])
+
+    def test_obs_caido_avisa_el_texto_de_siempre_y_cierra(self):
+        gestor = DobleGestor()
+        gestor.conectar = mock.Mock(side_effect=RuntimeError("sin OBS"))
+        _, avisos = self._ejecutar(gestor)
+        self.assertTrue(gestor.cerrado)
+        self.assertEqual(avisos, [(
+            "OBS no responde. En OBS, menú Herramientas, Configuración "
+            "del servidor WebSocket, activa el servidor.", "")])
+
+    def test_un_fallo_al_cerrar_no_se_escapa(self):
+        gestor = DobleGestor(fuentes=("Mic/Aux",), silencio=True)
+        gestor.cerrar = mock.Mock(side_effect=RuntimeError("socket cerrado"))
+        _, avisos = self._ejecutar(gestor)
+        self.assertEqual(avisos, [("Micrófono silenciado", "")])
 
 
 class DispositivoTest(unittest.TestCase):

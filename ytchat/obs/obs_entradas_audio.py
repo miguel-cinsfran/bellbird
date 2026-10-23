@@ -62,6 +62,27 @@ def alternar_microfono(gestor, preferido) -> str:
     return obs_audio.frase_microfono(fuente, estado, nombre, predeterminado)
 
 
+def microfono_por_atajo(preferido, avisar) -> None:
+    """Alterna el micrófono desde el atajo y entrega el anuncio."""
+    from ytchat.obs.obs_panel import GestorPanelObs
+
+    gestor = None
+    try:
+        gestor = GestorPanelObs()
+        gestor.conectar()
+        texto = alternar_microfono(gestor, preferido)
+    except Exception:
+        texto = ("OBS no responde. En OBS, menú Herramientas, Configuración "
+                 "del servidor WebSocket, activa el servidor.")
+    finally:
+        if gestor is not None:
+            try:
+                gestor.cerrar()
+            except Exception as exc:
+                logger.debug("No se pudo cerrar la conexión con OBS: %s", exc)
+    avisar(texto, "")
+
+
 def dispositivo(cliente, fuente, predeterminado, parada=None) -> tuple:
     """Nombre del dispositivo de la fuente y si es el predeterminado.
 

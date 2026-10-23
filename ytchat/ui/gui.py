@@ -1111,23 +1111,16 @@ class YTChatFrame(wx.Frame):
                           guardar_destino=self._guardar_destino_transmision)
 
     def _on_obs_micro(self, event):
+        def avisar(texto, sonido):
+            def _avisar():
+                if sonido:
+                    _snd.reproducir(sonido)
+                anunciar(texto)
+            wx.CallAfter(_avisar)
+
         def _alternar():
-            gestor = None
-            try:
-                gestor = GestorPanelObs()
-                gestor.conectar()
-                texto = obs_entradas_audio.alternar_microfono(
-                    gestor, self._config.get("obs_microfono", ""))
-            except Exception:
-                texto = ("OBS no responde. En OBS, menú Herramientas, Configuración "
-                         "del servidor WebSocket, activa el servidor.")
-            finally:
-                if gestor is not None:
-                    try:
-                        gestor.cerrar()
-                    except Exception:
-                        pass
-            wx.CallAfter(anunciar, texto)
+            obs_entradas_audio.microfono_por_atajo(
+                self._config.get("obs_microfono", ""), avisar)
 
         diagnostico.crear_hilo(_alternar, "MicrofonoObs").start()
 

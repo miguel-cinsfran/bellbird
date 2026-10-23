@@ -90,6 +90,10 @@ canciones.
   Al salir al aire, TikTok a veces dice unos segundos que no hay
   directo, y la aplicación se rendía. Ahora vuelve a intentarlo hasta
   que aparece.
+- **F2 dice cuántos espectadores hay ahora en TikTok y cuántos pasaron.**
+  Antes decía como espectadores a todos los que habían entrado desde el
+  principio, y el número solo subía. Ahora dice, por ejemplo, «12
+  espectadores ahora, 108 en total».
 
 ### Sonidos y ventanas
 

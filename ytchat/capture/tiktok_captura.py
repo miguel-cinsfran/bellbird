@@ -437,20 +437,21 @@ def _sesion(usuario, parada, on_evento, on_estado, on_info, on_espectadores,
         # Conteo de espectadores EN VIVO (se actualiza cada pocos segundos).
         if not on_espectadores:
             return
-        n = getattr(evento, "total_user", None)
-        if n is None:
-            n = getattr(evento, "m_total", None)
         try:
-            if n is not None:
-                on_espectadores(int(n))
+            ahora = int(getattr(evento, "total", None))
         except (TypeError, ValueError):
-            pass
+            return
+        try:
+            total = int(getattr(evento, "total_user", None))
+        except (TypeError, ValueError):
+            total = None
+        on_espectadores(ahora, total)
 
     @client.on(LiveEndEvent)
     async def _on_live_end(evento):
-        # El directo acabó: desconectamos para que connect() retorne y sea el
-        # bucle (capturar_con_reconexion) quien anuncie el fin UNA sola vez y no
-        # reintente. Si anunciáramos aquí, saldría el aviso por duplicado.
+        # El directo acabó: desconectamos para que connect() retorne y anuncie
+        # el fin el bucle UNA sola vez; si no, saldría por duplicado y
+        # reintentaría.
         try:    await client.disconnect()
         except Exception as exc:
             logger.debug("disconnect en LiveEnd: %s", exc)
@@ -462,10 +463,9 @@ def _sesion(usuario, parada, on_evento, on_estado, on_info, on_espectadores,
     async def _correr():
         vigia = asyncio.create_task(_vigilar_parada(client, parada))
         try:
-            # Sin los eventos iniciales: al entrar se leen en voz alta los
-            # mensajes anteriores a la conexion. Vale tambien para cada
-            # reconexion, que pasa por esta misma llamada. El ConnectEvent
-            # sigue llegando igual, asi que _on_connect no se toca.
+            # Sin los eventos iniciales: al entrar se leen los mensajes
+            # anteriores a la conexion, también en cada reconexion. El
+            # ConnectEvent sigue llegando, así que _on_connect no se toca.
             await client.connect(fetch_room_info=True,
                                  process_connect_events=False)
         finally:
@@ -539,8 +539,8 @@ def capturar_con_reconexion(usuario, config, parada, on_evento,
                             on_espectadores=None, offline_pasajero=False) -> None:
     """Bucle de captura con reintentos, mismo contrato de estados que YouTube.
     Bloquea: llamar desde un hilo aparte. offline_pasajero reintenta el «no
-    está en directo» antes de la primera conexión. on_espectadores(n) recibe
-    el conteo de espectadores en vivo cuando TikTok lo actualiza."""
+    está en directo» antes de la primera conexión. on_espectadores(n, total)
+    recibe los de ahora y los que pasaron."""
     if not disponible():
         if on_estado:
             on_estado("error_permanente",

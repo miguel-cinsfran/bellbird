@@ -460,6 +460,68 @@ class TestFiltroPrevios(unittest.TestCase):
         self.assertEqual(len(recibidos), 1)
 
 
+class TestUserSeq(unittest.TestCase):
+    """La cifra de ahora es `total`; `total_user` es el acumulado que pasó."""
+
+    class _ClienteFalso:
+        room_info = {}
+
+        def __init__(self):
+            self.manejadores = {}
+
+        def on(self, evento):
+            def decorar(func):
+                self.manejadores[evento] = func
+                return func
+            return decorar
+
+        async def connect(self, **kwargs):
+            pass
+
+        async def disconnect(self):
+            pass
+
+    def _evento(self, *eventos):
+        cliente = self._ClienteFalso()
+        mod_eventos = types.ModuleType("TikTokLive.events")
+        for nombre in ("ConnectEvent", "CommentEvent", "GiftEvent",
+                       "DisconnectEvent", "LiveEndEvent", "RoomUserSeqEvent",
+                       "JoinEvent", "SubscribeEvent"):
+            setattr(mod_eventos, nombre, type(nombre, (), {}))
+        mod_tiktok = types.ModuleType("TikTokLive")
+        mod_tiktok.TikTokLiveClient = lambda unique_id: cliente
+        mod_tiktok.events = mod_eventos
+        recibidos = []
+        parada = threading.Event()
+        parada.set()
+        with mock.patch.dict(sys.modules, {"TikTokLive": mod_tiktok,
+                                           "TikTokLive.events": mod_eventos}):
+            error = tiktok_captura._sesion(
+                "pepe", parada, lambda *a: None, lambda *a: None,
+                lambda d: None, lambda *a: recibidos.append(a))
+        self.assertIsNone(error)
+        for evento in eventos:
+            asyncio.run(cliente.manejadores[mod_eventos.RoomUserSeqEvent](evento))
+        return recibidos
+
+    def test_entrega_los_de_ahora_y_el_acumulado(self):
+        evento = types.SimpleNamespace(total=3, total_user=50)
+        self.assertEqual(self._evento(evento), [(3, 50)])
+
+    def test_la_cifra_de_ahora_puede_bajar(self):
+        alto = types.SimpleNamespace(total=50, total_user=108)
+        bajo = types.SimpleNamespace(total=3, total_user=108)
+        self.assertEqual(self._evento(alto, bajo), [(50, 108), (3, 108)])
+
+    def test_sin_total_no_llama(self):
+        evento = types.SimpleNamespace(total=None, total_user=50)
+        self.assertEqual(self._evento(evento), [])
+
+    def test_si_el_total_falla_entrega_none(self):
+        evento = types.SimpleNamespace(total=3, total_user=None)
+        self.assertEqual(self._evento(evento), [(3, None)])
+
+
 class TestFinDirecto(unittest.TestCase):
     def test_fin_del_directo_emite_fin_directo(self):
         estados = []

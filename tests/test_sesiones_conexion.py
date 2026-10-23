@@ -152,6 +152,47 @@ class PruebasCableadoConexiones(unittest.TestCase):
             callbacks["on_evento"]("Ana", "Hola", main.TIPO_TEXTO, "regalo", "")
         self.assertEqual(difundir.call_args.args[0]["plataforma"], "tiktok")
 
+    def test_tiktok_entrega_los_espectadores_con_total(self):
+        callbacks = {}
+
+        def hilo(objetivo, nombre, **kwargs):
+            return HiloEjecuta(objetivo) if nombre == "TikTok" else HiloInerte()
+
+        def captura(*args, **kwargs):
+            callbacks.update(kwargs)
+        self.conexiones._crear_hilo = hilo
+        from ytchat.capture import tiktok_captura
+        with mock.patch.object(tiktok_captura, "capturar_con_reconexion",
+                               side_effect=captura):
+            self.conexiones._conectar_tiktok("pepe")
+            callbacks["on_espectadores"](3, 50)
+        self.assertIn(("set_espectadores", (3, 50), {}), self.vista.llamadas)
+
+    def test_tiktok_anota_el_evento_sin_autor_ni_mensaje(self):
+        import main
+        callbacks = {}
+
+        def hilo(objetivo, nombre, **kwargs):
+            return HiloEjecuta(objetivo) if nombre == "TikTok" else HiloInerte()
+
+        def captura(*args, **kwargs):
+            callbacks.update(kwargs)
+        self.conexiones._crear_hilo = hilo
+        from ytchat.capture import tiktok_captura
+        with mock.patch.object(main, "procesar_entrante"), \
+                mock.patch.object(tiktok_captura, "capturar_con_reconexion",
+                                  side_effect=captura), \
+                self.assertLogs("ytchat.conexion", level="DEBUG") as registro:
+            self.conexiones._conectar_tiktok("pepe")
+            callbacks["on_evento"](
+                "Ana", "Hola", main.TIPO_TEXTO, "regalo", "TIKID")
+        texto = "\n".join(registro.output)
+        self.assertIn("TIKTOK_EVENTO", texto)
+        self.assertIn(main.TIPO_TEXTO, texto)
+        self.assertIn("regalo", texto)
+        self.assertNotIn("Ana", texto)
+        self.assertNotIn("Hola", texto)
+
     def test_youtube_pasa_el_guard_de_sesion_a_obtener_info_video(self):
         import main
         recibido = {}

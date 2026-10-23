@@ -176,6 +176,10 @@ class TestDirectoYTikTok(BaseVista):
         self.assertTrue(self.vista.set_espectadores(42))
         self.marco.set_espectadores.assert_called_once_with(42)
 
+    def test_set_espectadores_con_total(self):
+        self.assertTrue(self.vista.set_espectadores(3, 50))
+        self.marco.set_espectadores.assert_called_once_with(3, 50)
+
     def test_set_espectadores_con_marco_cerrado_no_hace_nada(self):
         self.marco._alive = False
         self.assertFalse(self.vista.set_espectadores(42))

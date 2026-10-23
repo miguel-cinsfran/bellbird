@@ -1874,13 +1874,13 @@ class YTChatFrame(wx.Frame):
         self._chat_propio = bool(propio)
         self._actualizar_estado_online()
 
-    def set_espectadores(self, n: int) -> None:
-        """Actualiza el conteo de espectadores en vivo (TikTok lo refresca cada
-        pocos segundos). Así F2 dice cuántos hay AHORA, no solo al conectar."""
+    def set_espectadores(self, n: int, total: int | None = None) -> None:
+        """Espectadores en vivo; TikTok lo refresca cada pocos segundos."""
         if not self._alive:
             return
-        try:    self._metadatos["vistas"] = int(n)
-        except Exception: pass
+        for clave, valor in (("vistas", n), ("vistas_total", total)):
+            try:    self._metadatos[clave] = int(valor)
+            except Exception: pass
 
     def set_inicio_directo(self, comienzo: str) -> None:
         if not self._alive:

@@ -308,6 +308,49 @@ class TestIgualando(unittest.TestCase):
         self.assertIn("igualando", ACTIVOS_DEFECTO)
 
 
+class TestEspectadoresConTotal(unittest.TestCase):
+
+    def test_tiktok_dice_ahora_y_total_en_corto(self):
+        s = SnapshotSesion(conectado=True, tipo="live_tiktok",
+                           espectadores=12, espectadores_total=108)
+        self.assertEqual(formatear_estado(s, {"espectadores"}),
+                         "12 espectadores ahora, 108 en total.")
+
+    def test_tiktok_dice_ahora_y_total_en_largo(self):
+        s = SnapshotSesion(conectado=True, tipo="live_tiktok",
+                           espectadores=12, espectadores_total=108)
+        self.assertEqual(formatear_estado(s, {"espectadores"}, "largo"),
+                         "Espectadores: 12 ahora, 108 en total")
+
+    def test_tiktok_con_uno_usa_el_singular_en_corto_y_largo(self):
+        s = SnapshotSesion(conectado=True, tipo="live_tiktok",
+                           espectadores=1, espectadores_total=108)
+        self.assertEqual(formatear_estado(s, {"espectadores"}),
+                         "1 espectador ahora, 108 en total.")
+        self.assertEqual(formatear_estado(s, {"espectadores"}, "largo"),
+                         "Espectador: 1 ahora, 108 en total")
+
+    def test_youtube_ignora_el_total(self):
+        s = SnapshotSesion(conectado=True, tipo="live_youtube",
+                           espectadores=12, espectadores_total=108)
+        self.assertEqual(formatear_estado(s, {"espectadores"}),
+                         "12 espectadores.")
+
+    def test_youtube_con_uno_usa_el_singular(self):
+        s = SnapshotSesion(conectado=True, tipo="live_youtube", espectadores=1)
+        self.assertEqual(formatear_estado(s, {"espectadores"}),
+                         "1 espectador.")
+        self.assertEqual(formatear_estado(s, {"espectadores"}, "largo"),
+                         "Espectador: 1")
+
+    def test_vod_con_una_usa_el_singular(self):
+        s = SnapshotSesion(conectado=True, tipo="vod", espectadores=1)
+        self.assertEqual(formatear_estado(s, {"espectadores"}),
+                         "1 vista.")
+        self.assertEqual(formatear_estado(s, {"espectadores"}, "largo"),
+                         "Vista: 1")
+
+
 class TestRamasSinCubrir(unittest.TestCase):
     """Caracterización de las ramas que la cobertura del 16/10/2026 mostró
     sin ejecutar en _render: se fijan contra el código de hoy."""

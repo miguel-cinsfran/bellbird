@@ -37,6 +37,7 @@ class SnapshotSesion:
     titulo: str = ""
     canal: str = ""
     espectadores: int | None = None
+    espectadores_total: int | None = None
     segundos_directo: int | None = None
     desfase_directo: str = ""
     mensajes_leidos: int = 0
@@ -164,6 +165,13 @@ def _render_espectadores(s: SnapshotSesion, largo: bool) -> str:
     # totales (números distintos, no confundir).
     en_directo = s.tipo in ("live_youtube", "live_tiktok")
     palabra = "espectadores" if en_directo else "vistas"
+    if s.espectadores == 1:
+        palabra = "espectador" if en_directo else "vista"
+    if s.tipo == "live_tiktok" and s.espectadores_total is not None:
+        total = _fmt_num(s.espectadores_total)
+        if largo:
+            return f"{palabra.capitalize()}: {n} ahora, {total} en total"
+        return f"{n} {palabra} ahora, {total} en total"
     return f"{palabra.capitalize()}: {n}" if largo else f"{n} {palabra}"
 
 

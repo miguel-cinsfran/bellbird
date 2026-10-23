@@ -186,6 +186,7 @@ class Conexiones:
         def _on_evento(autor, mensaje, tipo, monto, canal_id):
             if not self._registro.vigente(gen):
                 return
+            logger.debug("TIKTOK_EVENTO tipo=%s monto=%s", tipo, monto)
             main.procesar_entrante(
                 autor, mensaje, tipo, monto, canal_id,
                 self._cola, self._config, self._stats, on_message=_on_msg,
@@ -237,10 +238,10 @@ class Conexiones:
                 "tiktok", usuario, f"https://www.tiktok.com/@{usuario}/live",
                 titulo, (meta.get("canal") or ""), True)
 
-        def _on_espectadores(n):
+        def _on_espectadores(n, total=None):
             if not self._registro.vigente(gen):
                 return
-            self._vista.set_espectadores(n)
+            self._vista.set_espectadores(n, total)
 
         def _run():
             tiktok_captura.capturar_con_reconexion(

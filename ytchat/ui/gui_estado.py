@@ -19,6 +19,12 @@ módulo en el momento de la llamada, nunca con un `from` directo.
 from __future__ import annotations
 
 
+def _entero_en(meta, clave):
+    valor = meta.get(clave)
+    try:    return int(valor) if valor is not None else None
+    except (TypeError, ValueError): return None
+
+
 def snapshot_sesion(frame):
     """Reúne el estado actual para F2. Los datos del vídeo salen de los
     metadatos capturados al conectar (título, canal, espectadores)."""
@@ -35,9 +41,8 @@ def snapshot_sesion(frame):
     else:
         tipo = ""
     meta = frame._metadatos or {}
-    espectadores = meta.get("vistas")
-    try:    espectadores = int(espectadores) if espectadores is not None else None
-    except (TypeError, ValueError): espectadores = None
+    espectadores = _entero_en(meta, "vistas")
+    espectadores_total = _entero_en(meta, "vistas_total")
     def _seguro(fn, defecto):
         try:    return fn()
         except Exception: return defecto
@@ -58,6 +63,7 @@ def snapshot_sesion(frame):
         titulo=frame._titulo_stream,
         canal=(meta.get("canal") or "").strip(),
         espectadores=espectadores,
+        espectadores_total=espectadores_total,
         segundos_directo=_seguro(lambda: int(_gui.time.time() - _gui.datetime.fromisoformat(
             meta["comienzo_directo"].replace("Z", "+00:00")).timestamp()), None),
         desfase_directo=_seguro(lambda: frame._rep_panel.frase_posicion_directo() if frame._rep_panel._desfase_relevo_segundos() > 0 else "", ""),

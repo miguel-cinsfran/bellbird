@@ -95,8 +95,10 @@ class VistaGui:
         return self._programar("registrar_historial", False, plataforma,
                                clave, url, titulo, canal, directo)
 
-    def set_espectadores(self, n):
-        return self._programar("set_espectadores", True, n)
+    def set_espectadores(self, n, total=None):
+        if total is None:
+            return self._programar("set_espectadores", True, n)
+        return self._programar("set_espectadores", True, n, total)
 
     def set_inicio_directo(self, comienzo):
         return self._programar("set_inicio_directo", True, comienzo)

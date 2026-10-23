@@ -132,11 +132,12 @@ def texto_progreso(progreso) -> str:
 def volumen_efectivo(volumen, ganancia):
     """El volumen de 0 a 100 con la ganancia aplicada, como entero.
 
+    VLC eleva el volumen al cubo, por eso la ganancia se divide entre 60.
     Con ganancia 0 devuelve el mismo volumen. Pasado de 100, VLC amplifica
     por software y puede distorsionar, por eso el techo es 100.
     """
     try:
-        efectivo = round(float(volumen) * 10.0 ** (float(ganancia) / 20.0))
+        efectivo = round(float(volumen) * 10.0 ** (float(ganancia) / 60.0))
     except (TypeError, ValueError, OverflowError):
         return int(volumen) if isinstance(volumen, int) else 0
     return max(0, min(100, int(efectivo)))

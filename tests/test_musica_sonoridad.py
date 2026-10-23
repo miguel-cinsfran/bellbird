@@ -117,16 +117,29 @@ class TestVolumenEfectivo(unittest.TestCase):
         self.assertEqual(volumen_efectivo(80, 0.0), 80)
 
     def test_ganancia_positiva_sube(self):
-        self.assertEqual(volumen_efectivo(40, 6.0), 80)
+        self.assertEqual(volumen_efectivo(40, 6.0), 50)
 
     def test_ganancia_negativa_baja(self):
-        self.assertEqual(volumen_efectivo(80, -6.0), 40)
+        self.assertEqual(volumen_efectivo(80, -6.0), 64)
 
     def test_no_pasa_de_cien(self):
         self.assertEqual(volumen_efectivo(100, 10.0), 100)
 
     def test_no_baja_de_cero(self):
-        self.assertEqual(volumen_efectivo(1, -15.0), 0)
+        self.assertEqual(volumen_efectivo(0, -15.0), 0)
+
+    def test_volumen_uno_con_la_atenuacion_maxima_queda_en_uno(self):
+        self.assertEqual(volumen_efectivo(1, -15.0), 1)
+
+    def test_la_amplitud_al_cubo_sube_o_baja_la_ganancia_pedida(self):
+        for volumen in range(1, 101):
+            for ganancia in range(-15, 1):
+                with self.subTest(volumen=volumen, ganancia=ganancia):
+                    resultado = volumen_efectivo(volumen, float(ganancia))
+                    if resultado < 15:
+                        continue
+                    amplitud_db = 60.0 * math.log10(resultado / volumen)
+                    self.assertLess(abs(amplitud_db - ganancia), 1.0)
 
 
 class TestAvisoYProgreso(unittest.TestCase):

@@ -48,13 +48,13 @@ class TestNormalizadoCargar(unittest.TestCase):
         adaptador = _AdaptadorFalso()
         envuelto = Normalizado(adaptador, lambda _tema: 6.0, volumen=20)
         envuelto.cargar(_tema(), 1)
-        self.assertEqual(adaptador.llamadas[0], ("volumen", 40))
+        self.assertEqual(adaptador.llamadas[0], ("volumen", 25))
 
     def test_ganancia_negativa_baja(self):
         adaptador = _AdaptadorFalso()
         envuelto = Normalizado(adaptador, lambda _tema: -6.0, volumen=50)
         envuelto.cargar(_tema(), 1)
-        self.assertEqual(adaptador.llamadas[0], ("volumen", 25))
+        self.assertEqual(adaptador.llamadas[0], ("volumen", 40))
 
     def test_ganancia_cero_deja_el_volumen_del_usuario(self):
         adaptador = _AdaptadorFalso()
@@ -73,7 +73,7 @@ class TestNormalizadoCargar(unittest.TestCase):
         adaptador = _AdaptadorFalso()
         envuelto = Normalizado(adaptador, lambda _tema: -6.0, volumen=50)
         envuelto.cargar(_tema(), 1)
-        self.assertEqual(adaptador.llamadas[0], ("volumen", 25))
+        self.assertEqual(adaptador.llamadas[0], ("volumen", 40))
 
     def test_ganancia_que_lanza_da_cero_y_el_tema_igual_se_carga(self):
         def _romper(_tema):
@@ -109,7 +109,7 @@ class TestNormalizadoCargar(unittest.TestCase):
         envuelto.cargar(_tema(), 1)
         adaptador.llamadas.clear()
         envuelto.volumen(80)
-        self.assertEqual(adaptador.llamadas, [("volumen", 40)])
+        self.assertEqual(adaptador.llamadas, [("volumen", 64)])
         adaptador.llamadas.clear()
         envuelto.fijar_activo(False)
         envuelto.cargar(_tema(), 2)

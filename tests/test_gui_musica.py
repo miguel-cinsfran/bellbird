@@ -2044,7 +2044,7 @@ class TestSonoridadCableada(unittest.TestCase):
             previos = [l[1] for l in llamadas[:primer_cargar]
                        if l[0] == "volumen"]
             self.assertEqual(previos[-1], esperado)
-        self.assertEqual(sonoridad.volumen_efectivo(50, 6.0), 100)
+        self.assertEqual(sonoridad.volumen_efectivo(50, 6.0), 63)
 
 
 if __name__ == "__main__":

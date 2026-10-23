@@ -5,7 +5,7 @@ import types
 import unittest
 from unittest import mock
 
-from ytchat.capture.conexion import Conexiones
+from ytchat.capture.conexion import Conexiones, _VistaNula
 from ytchat.capture.sesiones import RegistroSesiones
 
 
@@ -39,6 +39,8 @@ def crear_hilo_inerte(*args, **kwargs):
 
 class VistaFalsa:
     """Vista falsa que registra las llamadas (actúa como marco vivo)."""
+
+    conexion_propia = False
 
     def __init__(self):
         self.llamadas = []
@@ -415,6 +417,37 @@ class PruebasFinDirectoTiktok(unittest.TestCase):
         self.assertEqual(llamadas_fin[0],
                          ("set_conectado", (False, "fin_directo"), {}))
         self.assertEqual(llamadas_desc[1:], llamadas_fin[1:])
+
+
+class PruebasOfflinePasajeroConexion(unittest.TestCase):
+    """El «no está en directo» solo es pasajero si la transmisión conectó."""
+
+    def _offline_pasajero_recibido(self, vista):
+        conexiones = Conexiones(
+            queue.Queue(), {}, mock.Mock(), threading.Event(),
+            crear_hilo=crear_hilo_inerte, registro=RegistroEspia(),
+            vista=vista)
+        recibido = {}
+
+        def hilo(objetivo, nombre, **kwargs):
+            return HiloEjecuta(objetivo) if nombre == "TikTok" else HiloInerte()
+
+        def captura(*args, **kwargs):
+            recibido.update(kwargs)
+        conexiones._crear_hilo = hilo
+        from ytchat.capture import tiktok_captura
+        with mock.patch.object(tiktok_captura, "capturar_con_reconexion",
+                               side_effect=captura):
+            conexiones._conectar_tiktok("pepe")
+        return recibido.get("offline_pasajero")
+
+    def test_vista_con_conexion_propia_pasa_true(self):
+        vista = VistaFalsa()
+        vista.conexion_propia = True
+        self.assertIs(self._offline_pasajero_recibido(vista), True)
+
+    def test_vista_nula_pasa_false(self):
+        self.assertIs(self._offline_pasajero_recibido(_VistaNula()), False)
 
 
 if __name__ == "__main__":

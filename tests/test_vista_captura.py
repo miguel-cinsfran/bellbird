@@ -237,6 +237,20 @@ class TestActiva(BaseVista):
         self.assertFalse(self.vista.activa)
 
 
+class TestConexionPropia(BaseVista):
+    def test_verdadera_si_el_marco_la_marca(self):
+        self.marco._conexion_propia = True
+        self.assertTrue(self.vista.conexion_propia)
+
+    def test_falsa_si_el_marco_no_la_marca(self):
+        self.marco._conexion_propia = False
+        self.assertFalse(self.vista.conexion_propia)
+
+    def test_falsa_sin_marco(self):
+        self.gui_falsa._gui_frame = None
+        self.assertFalse(self.vista.conexion_propia)
+
+
 class TestEstructuraConexion(unittest.TestCase):
     def test_conexion_no_conoce_la_interfaz(self):
         raiz = Path(__file__).resolve().parent.parent

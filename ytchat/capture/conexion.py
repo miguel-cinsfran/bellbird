@@ -18,6 +18,7 @@ class _VistaNula:
     """Vista que no hace nada: sin vista la conexión no toca la interfaz."""
 
     activa = False
+    conexion_propia = False
 
     def __getattr__(self, nombre):
         if nombre.startswith("_"):
@@ -169,6 +170,7 @@ class Conexiones:
         """Rama TikTok: mismo esquema de sesión (ps + gen) que YouTube, con la
         captura de tiktok_captura y el pipeline común procesar_entrante."""
         import main
+        offline_pasajero = self._vista.conexion_propia is True
         sesion = self._registro.abrir()
         ps, gen = sesion.parada, sesion.gen
 
@@ -244,7 +246,8 @@ class Conexiones:
             tiktok_captura.capturar_con_reconexion(
                 usuario, self._config, ps,
                 on_evento=_on_evento, on_estado=_on_estado, on_info=_on_info,
-                on_espectadores=_on_espectadores)
+                on_espectadores=_on_espectadores,
+                offline_pasajero=offline_pasajero)
             # Igual que en YouTube: solo apagar la UI si seguimos siendo la
             # sesión activa (un hilo viejo no debe pisar el directo nuevo).
             if (self._registro.vigente(gen)

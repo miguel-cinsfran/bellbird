@@ -33,6 +33,13 @@ class VistaGui:
         """Si hay marco vivo (lo que hoy se comprobaba con _alive)."""
         return _marco_vivo() is not None
 
+    @property
+    def conexion_propia(self):
+        """Si el marco existe y la transmisión conectó el chat sola."""
+        marco = _marco()
+        return (marco is not None
+                and getattr(marco, "_conexion_propia", False) is True)
+
     def _programar(self, nombre_metodo, solo_si_vivo, *args, **kwargs):
         marco = _marco_vivo() if solo_si_vivo else _marco()
         if not marco:

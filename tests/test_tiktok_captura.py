@@ -103,15 +103,19 @@ class TestMensajesDeError(unittest.TestCase):
 
 class TestReconexion(unittest.TestCase):
 
-    def _correr(self, sesion, max_intentos=3):
+    def _correr(self, sesion, max_intentos=3, offline_pasajero=False):
         estados = []
         with mock.patch.object(tiktok_captura, "disponible", return_value=True), \
                 mock.patch.object(tiktok_captura, "_sesion", side_effect=sesion):
             tiktok_captura.capturar_con_reconexion(
                 "pepe", {"max_intentos": max_intentos, "espera_entre_intentos": 0},
                 threading.Event(), on_evento=lambda *a: None,
-                on_estado=lambda tipo, texto: estados.append((tipo, texto)))
+                on_estado=lambda tipo, texto: estados.append((tipo, texto)),
+                offline_pasajero=offline_pasajero)
         return estados
+
+    def _exc(self, nombre, texto=""):
+        return type(nombre, (Exception,), {})(texto)
 
     def test_los_intentos_se_reinician_tras_cada_reconexion(self):
         caidas = [0]
@@ -134,6 +138,85 @@ class TestReconexion(unittest.TestCase):
 
         estados = self._correr(sesion, max_intentos=3)
         self.assertTrue(any("agotaron los 3" in texto for _, texto in estados))
+
+    def test_offline_pasajero_reintenta_antes_de_la_primera_conexion(self):
+        exc = self._exc("UserOfflineError", "user is offline")
+        llamadas = [0]
+
+        def sesion(usuario, parada, on_evento, on_estado, on_info,
+                   on_espectadores, anunciar_entradas=False):
+            llamadas[0] += 1
+            if llamadas[0] < 3:
+                return exc
+            on_estado("conectado", "Conectado al directo de TikTok.")
+            return None
+
+        estados = self._correr(sesion, offline_pasajero=True)
+        self.assertEqual(
+            [tipo for tipo, _texto in estados],
+            ["conectando", "reintentando", "conectando", "reintentando",
+             "conectando", "conectado", "fin_directo"])
+        self.assertEqual(llamadas[0], 3)
+
+    def test_offline_pasajero_cuenta_los_intentos(self):
+        exc = self._exc("UserOfflineError", "user is offline")
+
+        def sesion(*args, **kwargs):
+            return exc
+
+        estados = self._correr(sesion, max_intentos=2, offline_pasajero=True)
+        self.assertTrue(any("agotaron los 2" in texto for _, texto in estados))
+        self.assertEqual(estados[-1][0], "error")
+
+    def test_offline_pasajero_tras_conectar_es_permanente(self):
+        exc = self._exc("UserOfflineError", "user is offline")
+
+        def sesion(usuario, parada, on_evento, on_estado, on_info,
+                   on_espectadores, anunciar_entradas=False):
+            on_estado("conectado", "Conectado al directo de TikTok.")
+            return exc
+
+        estados = self._correr(sesion, offline_pasajero=True)
+        self.assertEqual(estados[-1][0], "error_permanente")
+        self.assertIn("no está en directo", estados[-1][1])
+
+    def test_offline_pasajero_tras_un_corte_del_directo_es_permanente(self):
+        offline = self._exc("UserOfflineError", "user is offline")
+        llamadas = [0]
+
+        def sesion(usuario, parada, on_evento, on_estado, on_info,
+                   on_espectadores, anunciar_entradas=False):
+            llamadas[0] += 1
+            if llamadas[0] == 1:
+                on_estado("conectado", "Conectado al directo de TikTok.")
+                return RuntimeError("microcorte")
+            return offline
+
+        estados = self._correr(sesion, max_intentos=5, offline_pasajero=True)
+        self.assertEqual(estados[-1][0], "error_permanente")
+        self.assertEqual(llamadas[0], 2)
+
+    def test_por_defecto_el_offline_sigue_siendo_permanente(self):
+        exc = self._exc("UserOfflineError", "user is offline")
+
+        def sesion(*args, **kwargs):
+            return exc
+
+        estados = self._correr(sesion)
+        self.assertEqual(estados[-1],
+                         ("error_permanente",
+                          "Ese usuario de TikTok no está en directo ahora mismo."))
+
+    def test_usuario_inexistente_es_permanente_con_los_dos_valores(self):
+        exc = self._exc("UserNotFoundError", "user not found")
+
+        def sesion(*args, **kwargs):
+            return exc
+
+        for offline_pasajero in (False, True):
+            estados = self._correr(sesion, offline_pasajero=offline_pasajero)
+            self.assertEqual(estados[-1][0], "error_permanente")
+
 
 
 class TestMejorFlujo(unittest.TestCase):

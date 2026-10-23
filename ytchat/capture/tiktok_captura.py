@@ -104,10 +104,9 @@ def disponible() -> bool:
 # ── Sesión de captura ─────────────────────────────────────────────────────────
 
 def _mejor_flujo(stream: dict) -> str:
-    """URL de vídeo reproducible del directo. Se PREFIERE el FLV: el HLS que da
-    TikTok (`hls_pull_url`) suele no responder (timeout) en el reproductor,
-    mientras que el FLV sobre HTTP va directo y trae audio. HD mejor que SD; si
-    no hay FLV, se cae al HLS o al RTMP como último recurso."""
+    """URL de vídeo del directo. Se PREFIERE el FLV: el HLS de TikTok suele dar
+    timeout en el reproductor y el FLV sobre HTTP va directo y trae audio. HD
+    antes que SD; si no hay FLV, se cae al HLS o al RTMP como último recurso."""
     flv = stream.get("flv_pull_url") or {}
     if isinstance(flv, dict):
         for clave in ("FULL_HD1", "ORIGION", "HD1", "SD2", "SD1"):
@@ -215,9 +214,8 @@ def debe_pasar_me_gusta(ultimo, ahora, intervalo=3.0) -> bool:
 
 
 def _marcar_historicos(sobre, eventos):
-    """Anota `_ytchat_historico` en cada evento si el sobre trae `is_history`.
-    Devuelve los eventos tal cual (mismo objeto), para no cambiar el retorno
-    del método envuelto."""
+    """Anota `_ytchat_historico` en cada evento si el sobre trae `is_history`
+    y devuelve los eventos tal cual, sin cambiar el retorno del método."""
     try:
         historico = bool(getattr(sobre, "is_history", False))
     except Exception:
@@ -538,11 +536,11 @@ def _es_error_permanente(exc) -> bool:
 
 def capturar_con_reconexion(usuario, config, parada, on_evento,
                             on_estado=None, on_info=None,
-                            on_espectadores=None) -> None:
-    """Bucle de captura con reintentos, con el mismo contrato de estados que la
-    captura de YouTube (conectando/conectado/reintentando/error…). Bloquea:
-    llamar desde un hilo aparte. on_espectadores(n) (opcional) recibe el conteo
-    de espectadores en vivo cuando TikTok lo actualiza."""
+                            on_espectadores=None, offline_pasajero=False) -> None:
+    """Bucle de captura con reintentos, mismo contrato de estados que YouTube.
+    Bloquea: llamar desde un hilo aparte. offline_pasajero reintenta el «no
+    está en directo» antes de la primera conexión. on_espectadores(n) recibe
+    el conteo de espectadores en vivo cuando TikTok lo actualiza."""
     if not disponible():
         if on_estado:
             on_estado("error_permanente",
@@ -551,13 +549,13 @@ def capturar_con_reconexion(usuario, config, parada, on_evento,
         return
 
     intentos = 0
-    conecto = [False]
+    conecto = [False, False]
 
     def _estado(tipo, texto):
         # Se intercepta «conectado» para contar solo los fallos SEGUIDOS: un
         # directo largo con microcortes sueltos no debe agotar max_intentos.
         if tipo == "conectado":
-            conecto[0] = True
+            conecto[0] = conecto[1] = True
         if on_estado:
             on_estado(tipo, texto)
 
@@ -584,7 +582,9 @@ def capturar_con_reconexion(usuario, config, parada, on_evento,
             intentos = 0
         if parada.is_set():
             break
-        if err is not None and _es_error_permanente(err):
+        if err is not None and _es_error_permanente(err) and not (
+                offline_pasajero and _nombre(err) in _CLASES_OFFLINE
+                and not conecto[1]):
             if on_estado:
                 on_estado("error_permanente", _mensaje_error(err))
             parada.set()

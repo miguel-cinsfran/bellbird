@@ -36,6 +36,8 @@ EVENTOS = [
     "atajos_ocupados",
     # El micrófono quedó activado y en tres segundos no entró nada.
     "microfono_sin_senal",
+    # Pausa del directo de TikTok y su vuelta: cada una con su sonido.
+    "directo_pausado", "directo_reanudado",
 ]
 
 # Nombre llano de cada evento para la página Sonidos de Preferencias.
@@ -98,4 +100,6 @@ NOMBRES = {
     "ia_imagen_negra": "Captura negra detectada",
     "atajos_ocupados": "Atajos globales ocupados",
     "microfono_sin_senal": "Micrófono sin señal",
+    "directo_pausado": "Directo de TikTok en pausa",
+    "directo_reanudado": "Directo de TikTok continúa",
 }

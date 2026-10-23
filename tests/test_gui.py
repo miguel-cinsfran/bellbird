@@ -1524,7 +1524,8 @@ class TestCategoriasDePreferencias(unittest.TestCase):
         dialogo = self._dialogo()
         pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagLectura")
         esperados = ["Formato de lectura", "LimpiarEmojis", "EliminarURLs",
-                     "AnunciarEntradas", "Longitud máxima del mensaje",
+                     "AnunciarEntradas", "LeerMeGusta",
+                     "Longitud máxima del mensaje",
                      "Leer los mensajes recientes con",
                      "LecturaAtajosGlobales"]
         orden = [h.GetName() for h in pagina.GetChildren()
@@ -1829,7 +1830,8 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("lectura", "formato_prefijo"), ("lectura", "recientes"),
             ("lectura", "atajos_globales"),
             ("texto", "limpiar_emojis"), ("texto", "eliminar_urls"),
-            ("tiktok", "anunciar_entradas"), ("texto", "max_longitud_mensaje"),
+            ("tiktok", "anunciar_entradas"), ("tiktok", "leer_me_gusta"),
+            ("texto", "max_longitud_mensaje"),
             ("cola", "estrategia"), ("cola", "tamanio_maximo"),
             ("cola", "umbral_solo_nombre"),
             ("reconexion", "reconectar"),

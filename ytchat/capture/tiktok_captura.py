@@ -342,7 +342,7 @@ def _sesion(usuario, parada, on_evento, on_estado, on_info, on_espectadores,
     tiktok_manejadores.registrar_manejadores(
         client, modulo_eventos, on_evento=on_evento,
         on_espectadores=on_espectadores, anunciar_entradas=anunciar_entradas,
-        descartar=descartar)
+        descartar=descartar, on_estado=on_estado)
 
     @client.on(LiveEndEvent)
     async def _on_live_end(evento):

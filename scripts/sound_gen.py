@@ -491,6 +491,20 @@ def gen_microfono_sin_senal():
     return _normalizar(_concat(arriba, _silencio(0.03), abajo), 0.5)
 
 
+def gen_directo_pausado():
+    # Pausa del directo: dos notas graves que bajan, E4 y C4, con hueco.
+    alta = _perc(_seno(E4, 0.12, 0.45), 0.005, 0.35)
+    baja = _perc(_seno(C4, 0.14, 0.45), 0.005, 0.35)
+    return _normalizar(_concat(alta, _silencio(0.03), baja), 0.5)
+
+
+def gen_directo_reanudado():
+    # Vuelta del directo: espejo ascendente de la pausa, C4 y E4.
+    baja = _perc(_seno(C4, 0.12, 0.45), 0.005, 0.35)
+    alta = _perc(_seno(E4, 0.14, 0.45), 0.005, 0.35)
+    return _normalizar(_concat(baja, _silencio(0.03), alta), 0.5)
+
+
 # ── Tema "suave": senos cálidos con decaimiento tipo marimba/madera ───────────
 # Más redondo, bajo y mate que el tema por defecto: nada de aristas brillantes
 # ni regusto a videojuego. Mismo lenguaje de gestos (ascendente = abrir, etc.).
@@ -754,6 +768,20 @@ def s_microfono_sin_senal():
     return _normalizar(_concat(arriba, _silencio(0.03), abajo), 0.45)
 
 
+def s_directo_pausado():
+    # La misma pausa grave que baja, en madera.
+    alta = _madera(E4, 0.12, 0.45, 0.35)
+    baja = _madera(C4, 0.14, 0.45, 0.35)
+    return _normalizar(_concat(alta, _silencio(0.03), baja), 0.45)
+
+
+def s_directo_reanudado():
+    # El mismo espejo ascendente de la pausa, en madera.
+    baja = _madera(C4, 0.12, 0.45, 0.35)
+    alta = _madera(E4, 0.14, 0.45, 0.35)
+    return _normalizar(_concat(baja, _silencio(0.03), alta), 0.45)
+
+
 # ── Reemplazos del tema suave (encargo 174) ──────────────────────────────────
 # Generadores propios para los que eran copia de otro dentro del tema.
 # Cada uno conserva el gesto del evento con notas o duraciones distintas.
@@ -899,6 +927,9 @@ TEMAS = {
         "atajos_ocupados.wav":         gen_atajos_ocupados,
         # Micrófono activado sin señal que entre.
         "microfono_sin_senal.wav":     gen_microfono_sin_senal,
+        # Pausa del directo de TikTok y su vuelta.
+        "directo_pausado.wav":         gen_directo_pausado,
+        "directo_reanudado.wav":       gen_directo_reanudado,
     },
     "suave": {
         "app_inicio.wav":    s_app_inicio,
@@ -967,6 +998,9 @@ TEMAS = {
         "atajos_ocupados.wav":         s_atajos_ocupados,
         # Micrófono activado sin señal que entre.
         "microfono_sin_senal.wav":     s_microfono_sin_senal,
+        # Pausa del directo de TikTok y su vuelta.
+        "directo_pausado.wav":         s_directo_pausado,
+        "directo_reanudado.wav":       s_directo_reanudado,
     },
 }
 

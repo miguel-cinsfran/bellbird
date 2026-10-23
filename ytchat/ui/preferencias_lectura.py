@@ -29,6 +29,7 @@ OPCIONES_LECTURA = (
     ("chk_emojis", "texto", "limpiar_emojis", "limpiar_emojis", bool, True),
     ("chk_urls", "texto", "eliminar_urls", "eliminar_urls", bool, True),
     ("chk_entradas", "tiktok", "anunciar_entradas", "tiktok_anunciar_entradas", bool, False),
+    ("chk_me_gusta", "tiktok", "leer_me_gusta", "tiktok_leer_me_gusta", bool, False),
     ("sp_long", "texto", "max_longitud_mensaje", "max_longitud_mensaje", int, 200),
     ("cho_lectura_recientes", "lectura", "recientes", "lectura_recientes", str, "lector"),
     ("chk_lectura_atajos_globales", "lectura", "atajos_globales", "lectura_atajos_globales", bool, False),
@@ -68,12 +69,7 @@ class PaginaLectura:
         vs.Add(self.chk_emojis, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         vs.Add(self.chk_urls, 0, wx.ALL, 10)
 
-        self.chk_entradas = wx.CheckBox(
-            p, name="AnunciarEntradas",
-            label="Leer quién &entra al directo (solo TikTok; en directos grandes "
-                  "puede ser muchísimo)")
-        self.chk_entradas.SetForegroundColour(_T.text)
-        vs.Add(self.chk_entradas, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+        self._construir_tiktok(p, vs)
 
         vs.Add(self._fila_label(p, "&Longitud máxima del mensaje (caracteres):"),
                0, wx.LEFT | wx.RIGHT, 10)
@@ -86,6 +82,20 @@ class PaginaLectura:
 
         p.SetSizer(vs)
         return p
+
+    def _construir_tiktok(self, p, vs):
+        self.chk_entradas = wx.CheckBox(
+            p, name="AnunciarEntradas",
+            label="Leer quién &entra al directo (solo TikTok; en directos grandes "
+                  "puede ser muchísimo)")
+        self.chk_entradas.SetForegroundColour(_T.text)
+        vs.Add(self.chk_entradas, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+        self.chk_me_gusta = wx.CheckBox(
+            p, name="LeerMeGusta",
+            label="Leer quién da &me gusta (solo TikTok; en directos grandes "
+                  "puede ser muchísimo)")
+        self.chk_me_gusta.SetForegroundColour(_T.text)
+        vs.Add(self.chk_me_gusta, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _construir_recientes(self, p, vs):
         from ytchat.ui.gui_preferencias import EleccionTexto

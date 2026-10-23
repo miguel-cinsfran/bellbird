@@ -105,9 +105,68 @@ def _al_me_gusta(on_evento, descartar, ultimo_me_gusta):
             return
         ultimo_me_gusta[0] = ahora
         autor, canal_id = autor_de_evento(evento)
-        on_evento(autor, "", TIPO_ME_GUSTA, "", canal_id)
+        conteo = getattr(evento, "count", None)
+        if isinstance(conteo, int) and not isinstance(conteo, bool):
+            monto = str(conteo) if conteo > 0 else ""
+        else:
+            monto = ""
+        on_evento(autor, "", TIPO_ME_GUSTA, monto, canal_id)
 
     return _on_like
+
+
+def _al_sticker(on_evento, descartar):
+    async def _on_emote(evento):
+        if descartar(evento):
+            return
+        try:
+            lista = getattr(evento, "emote_list", None) or []
+            cuantos = len(lista)
+        except TypeError:
+            cuantos = 0
+        texto = "sticker" if cuantos <= 1 else f"{cuantos} stickers"
+        autor, canal_id = autor_de_evento(evento)
+        on_evento(autor, texto, TIPO_TEXTO, "", canal_id)
+
+    return _on_emote
+
+
+def _al_pregunta(on_evento, descartar):
+    async def _on_question(evento):
+        if descartar(evento):
+            return
+        datos = getattr(evento, "data", None)
+        if datos is None:
+            return
+        contenido = (getattr(datos, "content", "") or "").strip()
+        if not contenido:
+            return
+        autor, canal_id = autor_de_evento(datos)
+        on_evento(autor, f"Pregunta: {contenido}", TIPO_TEXTO, "", canal_id)
+
+    return _on_question
+
+
+def _al_pausa(on_estado, descartar):
+    async def _on_pause(evento):
+        if descartar(evento):
+            return
+        if on_estado:
+            on_estado("directo_pausado",
+                      "El directo de TikTok está en pausa.")
+
+    return _on_pause
+
+
+def _al_reanudacion(on_estado, descartar):
+    async def _on_unpause(evento):
+        if descartar(evento):
+            return
+        if on_estado:
+            on_estado("directo_reanudado",
+                      "El directo de TikTok continúa.")
+
+    return _on_unpause
 
 
 def _al_entrar(on_evento, descartar):
@@ -139,7 +198,8 @@ def _al_contar_espectadores(on_espectadores):
 
 
 def registrar_manejadores(client, modulo_eventos, *, on_evento,
-                          on_espectadores, anunciar_entradas, descartar):
+                          on_espectadores, anunciar_entradas, descartar,
+                          on_estado=None):
     """Registra los manejadores de eventos de TikTok en `client`."""
     ultimo_me_gusta = [None]
     clase_comentario = modulo_eventos.CommentEvent
@@ -153,6 +213,10 @@ def registrar_manejadores(client, modulo_eventos, *, on_evento,
     clase_compartir = getattr(modulo_eventos, "ShareEvent", None)
     clase_cofre = getattr(modulo_eventos, "EnvelopeEvent", None)
     clase_me_gusta = getattr(modulo_eventos, "LikeEvent", None)
+    clase_sticker = getattr(modulo_eventos, "EmoteChatEvent", None)
+    clase_pregunta = getattr(modulo_eventos, "QuestionNewEvent", None)
+    clase_pausa = getattr(modulo_eventos, "LivePauseEvent", None)
+    clase_reanudacion = getattr(modulo_eventos, "LiveUnpauseEvent", None)
     client.on(clase_comentario)(_al_comentar(on_evento, descartar))
     client.on(clase_regalo)(_al_regalo(on_evento, descartar))
     if clase_suscripcion is not None:
@@ -168,6 +232,14 @@ def registrar_manejadores(client, modulo_eventos, *, on_evento,
         # sesión, para no saturar el sonido (ver debe_pasar_me_gusta).
         client.on(clase_me_gusta)(
             _al_me_gusta(on_evento, descartar, ultimo_me_gusta))
+    if clase_sticker is not None:
+        client.on(clase_sticker)(_al_sticker(on_evento, descartar))
+    if clase_pregunta is not None:
+        client.on(clase_pregunta)(_al_pregunta(on_evento, descartar))
+    if clase_pausa is not None and on_estado is not None:
+        client.on(clase_pausa)(_al_pausa(on_estado, descartar))
+    if clase_reanudacion is not None and on_estado is not None:
+        client.on(clase_reanudacion)(_al_reanudacion(on_estado, descartar))
     if anunciar_entradas:
         # Quién entra al directo. Solo si el usuario lo pidió: en directos
         # grandes son constantes y saturarían el TTS.

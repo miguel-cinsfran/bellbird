@@ -477,6 +477,7 @@ def cargar_configuracion() -> dict:
         "silenciar_sonidos": _pb(p, "ui", "silenciar_sonidos"),
         "silenciar_lectura": _pb(p, "sesion", "silenciar_lectura"),
         "tiktok_anunciar_entradas": _pb(p, "tiktok", "anunciar_entradas"),
+        "tiktok_leer_me_gusta": _pb(p, "tiktok", "leer_me_gusta"),
         "tiktok_usuario": _gs(p, "tiktok", "usuario"),
         "transmision_destino": destino,
         "avisar_sobrecarga": _pb(p, "transmision", "avisar_sobrecarga"),
@@ -487,8 +488,7 @@ def cargar_configuracion() -> dict:
         "transmision_youtube_ninos": _pb(p, "transmision", "youtube_ninos"),
         "transmision_youtube_dvr": _pb(p, "transmision", "youtube_dvr"),
         "transmision_youtube_categoria": categoria,
-        "transmision_youtube_etiquetas": decodificar_texto_ini(
-            _gs(p, "transmision", "youtube_etiquetas")),
+        "transmision_youtube_etiquetas": decodificar_texto_ini(_gs(p, "transmision", "youtube_etiquetas")),
         "transmision_youtube_miniatura": decodificar_texto_ini(
             _gs(p, "transmision", "youtube_miniatura")),
         "transmision_youtube_lista": _gs(p, "transmision", "youtube_lista"),

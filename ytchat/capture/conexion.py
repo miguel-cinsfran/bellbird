@@ -219,6 +219,8 @@ class Conexiones:
                           else "desconectado")
                 self._vista.set_conectado(False, sonido)
                 self._vista.set_titulo("")
+            elif tipo_estado in ("directo_pausado", "directo_reanudado"):
+                _snd.reproducir(tipo_estado)
             self._vista.anunciar(texto)
 
         def _on_info(meta):

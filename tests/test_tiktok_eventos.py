@@ -381,6 +381,63 @@ class TestTextosEntranteNuevos(unittest.TestCase):
         self.assertTrue(cola.empty())
 
 
+class TestMeGustaConLectura(unittest.TestCase):
+    def test_apagada_no_encola(self):
+        cola = queue.Queue()
+        avisos = []
+        main.procesar_entrante(
+            "Ana", "", TIPO_ME_GUSTA, "15", "canal", cola,
+            _config_minima(tiktok_leer_me_gusta=False), main.Stats(),
+            on_message=lambda *a, **k: avisos.append(a))
+        self.assertEqual(len(avisos), 1)
+        self.assertTrue(cola.empty())
+
+    def test_prendida_encola_con_monto(self):
+        cola = queue.Queue()
+        avisos = []
+        main.procesar_entrante(
+            "Ana", "", TIPO_ME_GUSTA, "15", "canal", cola,
+            _config_minima(tiktok_leer_me_gusta=True), main.Stats(),
+            on_message=lambda *a, **k: avisos.append(a))
+        self.assertEqual(len(avisos), 1)
+        item = cola.get_nowait()
+        self.assertEqual(item["texto_tts"], "Ana dio 15 me gusta")
+        self.assertNotIn("importante", item)
+        self.assertNotIn("voz", item)
+
+    def test_prendida_sin_monto_encola_sin_numero(self):
+        cola = queue.Queue()
+        main.procesar_entrante(
+            "Ana", "", TIPO_ME_GUSTA, "", "canal", cola,
+            _config_minima(tiktok_leer_me_gusta=True), main.Stats(),
+            on_message=lambda *a, **k: None)
+        self.assertEqual(
+            cola.get_nowait()["texto_tts"], "Ana dio me gusta")
+
+
+class TestSesionPasaOnEstado(unittest.TestCase):
+    def test_sesion_pasa_su_on_estado_a_registrar(self):
+        from ytchat.capture import tiktok_manejadores
+        cliente = _ClienteFalso()
+        mod_tiktok, mod_eventos = _modulos_falsos(cliente)
+        parada = threading.Event()
+        parada.set()
+        visto = {}
+        original = tiktok_manejadores.registrar_manejadores
+        def espiar(*args, **kwargs):
+            visto.update(kwargs)
+            return original(*args, **kwargs)
+        with mock.patch.dict(sys.modules, {"TikTokLive": mod_tiktok,
+                                           "TikTokLive.events": mod_eventos}), \
+                mock.patch.object(tiktok_manejadores, "registrar_manejadores",
+                                  side_effect=espiar):
+            marcador = object()
+            tiktok_captura._sesion(
+                "pepe", parada, lambda *a: None, marcador,
+                lambda d: None, None)
+        self.assertIs(visto.get("on_estado"), marcador)
+
+
 class TestGuiMeGustaYRegalo(unittest.TestCase):
     def _frame(self):
         from ytchat.ui import gui

@@ -460,6 +460,53 @@ class PruebasFinDirectoTiktok(unittest.TestCase):
         self.assertEqual(llamadas_desc[1:], llamadas_fin[1:])
 
 
+class PruebasPausaDirectoTiktok(unittest.TestCase):
+    def setUp(self):
+        self.registro = RegistroEspia()
+        self.vista = VistaFalsa()
+        self.conexiones = Conexiones(
+            queue.Queue(), {}, mock.Mock(), threading.Event(),
+            crear_hilo=crear_hilo_inerte, registro=self.registro,
+            vista=self.vista)
+
+    def _callbacks_tiktok(self):
+        callbacks = {}
+        def hilo(objetivo, nombre, **kwargs):
+            return HiloEjecuta(objetivo) if nombre == "TikTok" else HiloInerte()
+        def captura(*args, **kwargs):
+            callbacks.update(kwargs)
+        self.conexiones._crear_hilo = hilo
+        from ytchat.capture import tiktok_captura
+        with mock.patch.object(tiktok_captura, "capturar_con_reconexion",
+                               side_effect=captura):
+            self.conexiones._conectar_tiktok("pepe")
+        return callbacks
+
+    def test_pausa_suena_y_anuncia(self):
+        from ytchat.capture import conexion as modulo_conexion
+        callbacks = self._callbacks_tiktok()
+        self.vista.llamadas.clear()
+        with mock.patch.object(modulo_conexion._snd, "reproducir") as sonar:
+            callbacks["on_estado"](
+                "directo_pausado", "El directo de TikTok está en pausa.")
+        sonar.assert_called_once_with("directo_pausado")
+        self.assertIn(
+            ("anunciar", ("El directo de TikTok está en pausa.",), {}),
+            self.vista.llamadas)
+
+    def test_reanudacion_suena_y_anuncia(self):
+        from ytchat.capture import conexion as modulo_conexion
+        callbacks = self._callbacks_tiktok()
+        self.vista.llamadas.clear()
+        with mock.patch.object(modulo_conexion._snd, "reproducir") as sonar:
+            callbacks["on_estado"](
+                "directo_reanudado", "El directo de TikTok continúa.")
+        sonar.assert_called_once_with("directo_reanudado")
+        self.assertIn(
+            ("anunciar", ("El directo de TikTok continúa.",), {}),
+            self.vista.llamadas)
+
+
 class PruebasOfflinePasajeroConexion(unittest.TestCase):
     """El «no está en directo» solo es pasajero si la transmisión conectó."""
 

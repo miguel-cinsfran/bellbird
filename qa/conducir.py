@@ -4256,17 +4256,19 @@ def escenario_overlay(app: Aplicacion, args, res: Resultado):
     else:
         res.nota(f"{url} responde")
 
-    # F2 tiene que distinguir que nadie lo está mostrando
+    # F2 distingue si alguien muestra el panel: nadie o fuente en OBS
     antes = len(app.anuncios)
     app.abrir_por_menu("Anunciar estado")
     app.esperar_dicho("panel", 8, desde=antes)
     dicho = " ".join(a["texto"].lower() for a in app.anuncios[antes:])
     if "panel de chat activo" not in dicho:
         res.fallo("F2 no menciona el panel estando encendido")
-    elif "nadie lo est" not in dicho:
-        res.fallo("F2 no distingue que nadie está mostrando el panel")
-    else:
+    elif "nadie lo est" in dicho:
         res.nota("F2 dice que nadie lo está mostrando")
+    elif "mostr" in dicho:
+        res.nota("F2 dice que el panel se está mostrando")
+    else:
+        res.fallo("F2 no distingue si alguien está mostrando el panel")
 
     # Apagar
     antes = len(app.anuncios)

@@ -106,6 +106,13 @@ canciones.
   ventana principal. Con el contraste alto de Windows no cambia nada.
 - **Los errores de las descargas** dicen el motivo en llano.
 
+### Para encontrar problemas
+
+- El registro de diagnóstico anota qué sonido sonó, qué atajo o
+  comando del menú se usó y de qué tipo fue cada evento del chat, sin el
+  texto de los mensajes ni quién los escribió. La lista de procesos
+  internos ya no se repite cada 30 segundos cuando no cambió.
+
 ## 2.4.1, octubre de 2026
 
 - **La actualización automática ya no se detiene al cerrar la versión

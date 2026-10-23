@@ -125,7 +125,8 @@ class DiagnosticoTest(unittest.TestCase):
         self.assertEqual(ejecutar.call_args.kwargs["creationflags"], 134217728)
 
     def test_censo_incluye_hilo_actual(self):
-        self.assertIn(threading.current_thread().name, diagnostico.censo_hilos())
+        nombres, _externos = diagnostico.censo_hilos()
+        self.assertIn(threading.current_thread().name, nombres)
         self.assertIn("vivos=", diagnostico.componer_censo_hilos())
 
     def test_vigilante_informa_bloqueo_sobre_umbral(self):
@@ -527,7 +528,7 @@ class PruebasCensoHilosSinRepetir(unittest.TestCase):
 
     def test_la_misma_lista_a_los_30_segundos_no_sale(self):
         with patch.object(diagnostico, "censo_hilos",
-                          return_value=("MainThread", "Sonidos")):
+                          return_value=(("MainThread", "Sonidos"), 0)):
             primero = diagnostico.debe_censar_hilos(-30.0, 0.0)
             segundo = diagnostico.debe_censar_hilos(0.0, 30.0)
 
@@ -535,9 +536,9 @@ class PruebasCensoHilosSinRepetir(unittest.TestCase):
         self.assertIsNone(segundo)
 
     def test_un_hilo_nuevo_sale_aunque_no_pasen_diez_minutos(self):
-        nombres = [("MainThread", "Sonidos"),
-                   ("MainThread", "Sonidos"),
-                   ("MainThread", "Sonidos", "Nuevo")]
+        nombres = [(("MainThread", "Sonidos"), 0),
+                   (("MainThread", "Sonidos"), 0),
+                   (("MainThread", "Nuevo", "Sonidos"), 0)]
         with patch.object(diagnostico, "censo_hilos", side_effect=nombres):
             primero = diagnostico.debe_censar_hilos(-30.0, 0.0)
             segundo = diagnostico.debe_censar_hilos(0.0, 30.0)
@@ -550,7 +551,7 @@ class PruebasCensoHilosSinRepetir(unittest.TestCase):
 
     def test_la_misma_lista_a_los_diez_minutos_sale(self):
         with patch.object(diagnostico, "censo_hilos",
-                          return_value=("MainThread", "Sonidos")):
+                          return_value=(("MainThread", "Sonidos"), 0)):
             primero = diagnostico.debe_censar_hilos(-30.0, 0.0)
             segundo = diagnostico.debe_censar_hilos(
                 0.0, diagnostico.INTERVALO_CENSO_REPETIDO_S)
@@ -558,4 +559,93 @@ class PruebasCensoHilosSinRepetir(unittest.TestCase):
         self.assertIsNotNone(primero)
         self.assertIsNotNone(segundo)
         self.assertEqual(primero[1], segundo[1])
+
+
+class PruebasRotacionFallos(unittest.TestCase):
+    def test_mas_de_un_mibi_rota(self):
+        self.assertTrue(
+            diagnostico.debe_rotar_fallos(diagnostico.TOPE_FALLOS_BYTES + 1))
+
+    def test_justo_un_mibi_no_rota(self):
+        self.assertFalse(
+            diagnostico.debe_rotar_fallos(diagnostico.TOPE_FALLOS_BYTES))
+
+    def test_instalar_capturadores_rota_el_archivo_de_mas_de_un_mibi(self):
+        import faulthandler
+        anterior_sys = sys.excepthook
+        anterior_hilos = threading.excepthook
+        anterior = diagnostico._ARCHIVO_FALLOS
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                ruta = Path(tmp) / "fallos.log"
+                viejo = b"v" * (diagnostico.TOPE_FALLOS_BYTES + 1)
+                ruta.write_bytes(viejo)
+                diagnostico.instalar_capturadores(ruta, version="prueba")
+                try:
+                    rotado = ruta.with_name(ruta.name + ".1")
+                    self.assertTrue(rotado.exists())
+                    self.assertEqual(rotado.read_bytes(), viejo)
+                    nuevo = ruta.read_text(encoding="utf-8")
+                    self.assertTrue(nuevo.startswith("=== INICIO"))
+                finally:
+                    faulthandler.disable()
+                    if diagnostico._ARCHIVO_FALLOS is not None:
+                        diagnostico._ARCHIVO_FALLOS.close()
+                        diagnostico._ARCHIVO_FALLOS = None
+        finally:
+            sys.excepthook = anterior_sys
+            threading.excepthook = anterior_hilos
+            diagnostico._ARCHIVO_FALLOS = anterior
+
+
+class PruebasCensoExternos(unittest.TestCase):
+    def setUp(self):
+        parches = (
+            patch.object(diagnostico, "_ultimo_censo_nombres", None, create=True),
+            patch.object(diagnostico, "_ultimo_censo_momento", 0.0, create=True),
+            patch.object(diagnostico, "_ultimo_chequeo", 0.0, create=True),
+        )
+        for parche in parches:
+            parche.start()
+            self.addCleanup(parche.stop)
+
+    def test_censo_agrupa_los_externos_y_ordena_los_propios(self):
+        hilos = []
+        for nombre in ("Zebra", "Dummy-9", "Alfa", "Dummy-18"):
+            hilo = MagicMock()
+            hilo.name = nombre
+            hilo.is_alive.return_value = True
+            hilos.append(hilo)
+        with patch.object(diagnostico.threading, "enumerate", return_value=hilos):
+            self.assertEqual(
+                diagnostico.censo_hilos(), (("Alfa", "Zebra"), 2))
+
+    def test_componer_muestra_vivos_externos_y_nombres(self):
+        texto = diagnostico.componer_censo_hilos((("MainThread", "Sonidos"), 5))
+        self.assertEqual(
+            texto, "HILOS vivos=7 externos=5 nombres=MainThread, Sonidos")
+
+    def test_componer_sin_externos_no_muestra_externos(self):
+        texto = diagnostico.componer_censo_hilos((("MainThread", "Sonidos"), 0))
+        self.assertEqual(texto, "HILOS vivos=2 nombres=MainThread, Sonidos")
+        self.assertNotIn("externos=", texto)
+
+    def test_cambio_de_numero_externo_no_sale(self):
+        censos = [(("MainThread",), 1), (("MainThread",), 1)]
+        with patch.object(diagnostico, "censo_hilos", side_effect=censos):
+            primero = diagnostico.debe_censar_hilos(-30.0, 0.0)
+            segundo = diagnostico.debe_censar_hilos(0.0, 30.0)
+
+        self.assertIsNotNone(primero)
+        self.assertIsNone(segundo)
+
+    def test_cambio_de_cantidad_de_externos_si_sale(self):
+        censos = [(("MainThread",), 1), (("MainThread",), 2)]
+        with patch.object(diagnostico, "censo_hilos", side_effect=censos):
+            primero = diagnostico.debe_censar_hilos(-30.0, 0.0)
+            segundo = diagnostico.debe_censar_hilos(0.0, 30.0)
+
+        self.assertIsNotNone(primero)
+        self.assertIsNotNone(segundo)
+        self.assertIn("externos=2", segundo[1])
 

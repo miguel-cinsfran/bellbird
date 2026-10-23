@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import os
 import platform
+import re
 import subprocess
 import sys
 import threading
@@ -24,8 +25,15 @@ FECHA_DETALLADA = "%Y-%m-%d %H:%M:%S"
 INTERVALO_CENSO_HILOS_S = 30
 INTERVALO_CENSO_REPETIDO_S = 10 * 60
 UMBRAL_BLOQUEO_INTERFAZ_MS = 500
+TOPE_FALLOS_BYTES = 1024 * 1024
 RAIZ_LOGGER = "ytchat"
+_PATRON_HILO_EXTERNO = re.compile(r"^Dummy-\d+$")
 _ARCHIVO_FALLOS = None
+
+
+def debe_rotar_fallos(tamano_bytes: int) -> bool:
+    """Indica si el archivo de fallos ya pasa el tope y conviene rotarlo."""
+    return tamano_bytes > TOPE_FALLOS_BYTES
 
 
 def obtener_logger(nombre: str) -> logging.Logger:
@@ -67,17 +75,29 @@ def crear_manejador_detallado(ruta: str | Path) -> RotatingFileHandler:
     return manejador
 
 
-def censo_hilos() -> tuple[str, ...]:
-    """Devuelve los nombres de los hilos vivos en un orden estable."""
-    return tuple(sorted(
-        hilo.name for hilo in threading.enumerate() if hilo.is_alive()
-    ))
+def censo_hilos() -> tuple[tuple[str, ...], int]:
+    """Devuelve los nombres propios ordenados y la cantidad de externos."""
+    propios: list[str] = []
+    externos = 0
+    for hilo in threading.enumerate():
+        if not hilo.is_alive():
+            continue
+        if _PATRON_HILO_EXTERNO.match(hilo.name or ""):
+            externos += 1
+        else:
+            propios.append(hilo.name)
+    return tuple(sorted(propios)), externos
 
 
-def componer_censo_hilos(nombres: tuple[str, ...] | None = None) -> str:
-    if nombres is None:
-        nombres = censo_hilos()
-    return f"HILOS vivos={len(nombres)} nombres={', '.join(nombres)}"
+def componer_censo_hilos(censo: tuple[tuple[str, ...], int] | None = None) -> str:
+    if censo is None:
+        censo = censo_hilos()
+    nombres, externos = censo
+    vivos = len(nombres) + externos
+    if externos:
+        return (f"HILOS vivos={vivos} externos={externos} "
+                f"nombres={', '.join(nombres)}")
+    return f"HILOS vivos={vivos} nombres={', '.join(nombres)}"
 
 
 def decidir_bloqueo_interfaz(
@@ -160,7 +180,7 @@ def crear_hilo(target, nombre: str, *, args=(), daemon=True) -> threading.Thread
     return threading.Thread(target=ejecutar, daemon=daemon, name=nombre)
 
 
-_ultimo_censo_nombres: tuple[str, ...] | None = None
+_ultimo_censo_nombres: tuple[tuple[str, ...], int] | None = None
 _ultimo_censo_momento = 0.0
 
 
@@ -169,13 +189,13 @@ def debe_censar_hilos(marca_anterior: float, marca_actual: float | None = None):
     actual = time.monotonic() if marca_actual is None else marca_actual
     if actual - marca_anterior < INTERVALO_CENSO_HILOS_S:
         return None
-    nombres = censo_hilos()
-    if (nombres == _ultimo_censo_nombres
+    censo = censo_hilos()
+    if (censo == _ultimo_censo_nombres
             and actual - _ultimo_censo_momento < INTERVALO_CENSO_REPETIDO_S):
         return None
-    _ultimo_censo_nombres = nombres
+    _ultimo_censo_nombres = censo
     _ultimo_censo_momento = actual
-    return actual, componer_censo_hilos(nombres)
+    return actual, componer_censo_hilos(censo)
 
 
 def marcar_incidencia() -> str:
@@ -255,10 +275,20 @@ def _version_paquete(nombre: str) -> tuple[str | None, str | None]:
         return None, str(exc)
 
 
+def rotar_fallos_si_hace_falta(ruta: str | Path) -> None:
+    """Pasa el archivo de fallos a .1 si ya supera el tope."""
+    try:
+        if debe_rotar_fallos(Path(ruta).stat().st_size):
+            os.replace(ruta, f"{ruta}.1")
+    except FileNotFoundError:
+        pass
+    except Exception as exc:
+        logger.warning("No se pudo rotar el archivo de fallos: %s", exc)
+
+
 def instalar_capturadores(ruta_fallos: str | Path, version: str = "desconocida") -> None:
     """Conserva excepciones no capturadas y fallos nativos en archivos."""
     global _ARCHIVO_FALLOS
-    logger = obtener_logger(__name__)
     anterior_sys = sys.excepthook
     anterior_hilos = threading.excepthook
 
@@ -275,6 +305,7 @@ def instalar_capturadores(ruta_fallos: str | Path, version: str = "desconocida")
     threading.excepthook = _hilo_hook
     try:
         import faulthandler
+        rotar_fallos_si_hace_falta(ruta_fallos)
         _ARCHIVO_FALLOS = open(ruta_fallos, "a", encoding="utf-8")
         _ARCHIVO_FALLOS.write(
             componer_cabecera_fallos(version, datetime.now().astimezone()) + "\n")

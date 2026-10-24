@@ -1463,7 +1463,7 @@ class PreferenciasDialog(PaginaMusica, PaginaProgramados, PaginaIA, wx.Dialog):
             self._set("atajos", accion, valor)
             raw[accion] = valor
 
-        self._guardar_ia()
+        self._pendientes.extend(self._cambios_ia())
         if not self.pagina_sonidos.guardar():
             self._fallo_guardado = True
         if not cfg.guardar_opciones(self._ruta, self._pendientes):

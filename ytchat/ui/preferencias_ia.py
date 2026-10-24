@@ -350,11 +350,11 @@ class PaginaIA:
         actuales.tiempo_espera = int(self.sp_ia_tiempo.GetValue())
         return actuales
 
-    def _guardar_ia(self):
+    def _cambios_ia(self):
         actuales = self._ia_ajustes_de_controles()
         actuales.pregunta = self.txt_ia_pregunta.GetValue()
         actuales.largo = self.cho_ia_largo.GetValue()
         actuales.solo_gratis = bool(self.chk_ia_gratis.GetValue())
         actuales.decir_analizando = bool(
             self.chk_ia_analizando.GetValue())
-        self._pendientes.extend(ajustes_ia.cambios(actuales))
+        return ajustes_ia.cambios(actuales)

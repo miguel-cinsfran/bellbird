@@ -2337,16 +2337,19 @@ class ReproductorPanel(wx.Panel):
         inicio = getattr(self, "_estado_inicio", None)
         return bool(inicio is not None and inicio.requiere)
 
+    def _avisar_fallo(self, texto: str) -> None:
+        self._detener(silencioso=True)
+        from ytchat.voice import sound_player as _snd
+        _snd.reproducir("error")
+        self._fijar_estado(texto + ".")
+        anunciar(texto)
+
     def _recargar_apertura_vod(self) -> None:
         """Primer fallo de apertura recarga con direcciones nuevas; el
         segundo detiene y avisa, igual que el final de _fallo_reproduccion."""
         recargas = int(getattr(self, "_recargas_apertura", 0) or 0)
         if recargas >= 1:
-            self._detener(silencioso=True)
-            from ytchat.voice import sound_player as _snd
-            _snd.reproducir("error")
-            self._fijar_estado("No se pudo reproducir el vídeo.")
-            anunciar("No se pudo reproducir el vídeo")
+            self._avisar_fallo("No se pudo reproducir el vídeo")
             return
         self._recargas_apertura = recargas + 1
         logger.warning("VOD_APERTURA_FALLIDA recarga=%d",
@@ -2462,11 +2465,7 @@ class ReproductorPanel(wx.Panel):
         logger.warning("REPRODUCCION_ERROR topologia=%s relevo_activo=%s",
                        self._topologia_actual(),
                        relevo.activo() if relevo is not None else "no")
-        self._detener(silencioso=True)
-        from ytchat.voice import sound_player as _snd
-        _snd.reproducir("error")
-        self._fijar_estado("No se pudo reproducir el vídeo.")
-        anunciar("No se pudo reproducir el vídeo")
+        self._avisar_fallo("No se pudo reproducir el vídeo")
 
     def _aviso_busqueda_no_permitida(self, origen="relativo") -> None:
         motivo = self._aviso_transitorio()

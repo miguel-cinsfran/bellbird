@@ -2,8 +2,8 @@
 
 Mezcla sin estado propio: `gui_preferencias` hereda de acá. La clave del
 proveedor elegido vive en el Administrador de credenciales y nunca en
-config.ini; los otros ocho valores van a la sección [ia] por
-`ajustes_ia.guardar`, que solo conserva `privacidad_aceptada`.
+config.ini; los valores de la sección [ia] se suman con `ajustes_ia.cambios`
+a la escritura única del diálogo.
 """
 
 from __future__ import annotations
@@ -357,5 +357,4 @@ class PaginaIA:
         actuales.solo_gratis = bool(self.chk_ia_gratis.GetValue())
         actuales.decir_analizando = bool(
             self.chk_ia_analizando.GetValue())
-        if not ajustes_ia.guardar(self._ruta, actuales):
-            self._fallo_guardado = True
+        self._pendientes.extend(ajustes_ia.cambios(actuales))

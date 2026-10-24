@@ -1815,15 +1815,11 @@ class TestCategoriasDePreferencias(unittest.TestCase):
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
 
-        self.assertEqual(guardar.call_count, 2)
-        por_primera = {
-            cambios[0][0]: cambios
-            for cambios in (llamada.args[1]
-                            for llamada in guardar.call_args_list)}
-        self.assertIn("programados", por_primera)
-        self.assertIn("ia", por_primera)
+        self.assertEqual(guardar.call_count, 1)
+        llamada = guardar.call_args.args[1]
         claves = [(seccion, clave)
-                  for seccion, clave, _valor in por_primera["programados"]]
+                  for seccion, clave, _valor in llamada
+                  if seccion != "ia"]
         esperadas = [
             ("programados", "activo"),
             ("ui", "tamanio_fuente_chat"),
@@ -1874,7 +1870,8 @@ class TestCategoriasDePreferencias(unittest.TestCase):
         self.assertEqual(sorted(claves), sorted(esperadas))
         self.assertEqual(len(claves), len(set(claves)))
         claves_ia = [(seccion, clave)
-                     for seccion, clave, _valor in por_primera["ia"]]
+                     for seccion, clave, _valor in llamada
+                     if seccion == "ia"]
         self.assertEqual(claves_ia, [
             ("ia", "proveedor"), ("ia", "modelo"), ("ia", "direccion"),
             ("ia", "pregunta"), ("ia", "largo"), ("ia", "tiempo_espera"),
@@ -3167,11 +3164,10 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
                 mock.patch.object(gui_preferencias, "anunciar") as anunciar, \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
-        self.assertEqual(guardar.call_count, 2)
-        por_primera = {cambios[0][0] for cambios in
-                       (llamada.args[1]
-                        for llamada in guardar.call_args_list)}
-        self.assertEqual(por_primera, {"ia", "programados"})
+        self.assertEqual(guardar.call_count, 1)
+        secciones = {seccion for seccion, _clave, _valor
+                     in guardar.call_args.args[1]}
+        self.assertTrue({"ia", "programados"}.issubset(secciones))
         self.assertEqual(dialogo.avisos, ["Preferencias guardadas."])
         anunciar.assert_not_called()
         sonar.assert_any_call("copiar")

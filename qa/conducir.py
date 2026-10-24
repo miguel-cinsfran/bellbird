@@ -1861,7 +1861,7 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
 
     Prepara una carpeta temporal con 5 temas de la música del usuario más
     un tono corto generado, respalda la configuración y las listas, fija
-    volumen 10 y corre cada comando de música comprobando con el medidor
+    volumen 40 y corre cada comando de música comprobando con el medidor
     de sonido de Windows que de verdad empieza, se pausa, sigue y se
     detiene. Al terminar deja los datos del usuario exactamente como
     estaban. Usa `tecla_en` y `menu_contextual` para disparar las acciones
@@ -2030,7 +2030,7 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
 
         cambios = [
             ("musica", "carpeta", codificar_texto_ini(str(tmp_musica))),
-            ("musica", "volumen", "10"),
+            ("musica", "volumen", "40"),
             ("musica", "aleatorio", "false"),
             ("musica", "repetir", "false"),
             ("musica", "retomar", "false"),
@@ -2362,21 +2362,21 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
                     res.fallo("musica_real: «Canción anterior» no anunció "
                               f"«{primero}»")
 
-        # ── e. Volumen: sube a 20 y vuelve a 10 ──
+        # ── e. Volumen: sube a 50 y vuelve a 40 ──
 
         _aire()
         n = len(propia.anuncios)
         _menu("subir el volumen")
-        esperado = anuncios_musica.TEXTO_VOLUMEN.format(valor=20)
+        esperado = anuncios_musica.TEXTO_VOLUMEN.format(valor=50)
         if not propia.esperar_dicho(esperado, segundos=8, desde=n):
             res.fallo(f"musica_real: subir no anunció «{esperado}»")
         n = len(propia.anuncios)
         _menu("bajar el volumen")
-        esperado = str(10)
+        esperado = str(40)
         if not propia.esperar_dicho(esperado, segundos=8, desde=n):
             res.fallo(f"musica_real: bajar no anunció «{esperado}»")
         else:
-            res.nota("musica_real: el volumen sube a 20 y vuelve a 10")
+            res.nota("musica_real: el volumen sube a 50 y vuelve a 40")
 
         # ── f. Qué suena contiene el título actual ──
 

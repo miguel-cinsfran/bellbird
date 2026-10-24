@@ -547,6 +547,19 @@ def _ventana_por_titulo(Desktop, objetivo):
     return None
 
 
+def es_ventana_de_la_app(nombre: str) -> bool:
+    """Si el titulo es de la ventana principal de YTChat TTS.
+
+    Los dos formatos salen de gui.py: el nombre de la app solo y el nombre con
+    el titulo de la sesion delante. No se busca `ytchat` en cualquier parte:
+    una pestana del repositorio en el navegador entraria y su recorrido tarda
+    decenas de segundos.
+    """
+    minusculas = (nombre or "").lower()
+    app = "ytchat tts"
+    return minusculas.startswith(app) or minusculas.endswith(app)
+
+
 def _candidatas_uia(Desktop):
     """Las ventanas donde puede estar algo nuestro, primero las mas probables.
 
@@ -569,7 +582,7 @@ def _candidatas_uia(Desktop):
         yield w
     for w in raices:
         try:
-            if not (w.element_info.name or "").lower().startswith("ytchat"):
+            if not es_ventana_de_la_app(w.element_info.name):
                 continue
         except Exception:
             continue

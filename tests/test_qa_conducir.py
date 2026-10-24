@@ -112,5 +112,18 @@ class TestTodosCubreLosEscenarios(unittest.TestCase):
                          set(conducir.EN_TODOS) | set(conducir.FUERA_DE_TODOS))
 
 
+class TestEsVentanaDeLaApp(unittest.TestCase):
+
+    def test_acepta_los_dos_formatos_de_titulo(self):
+        self.assertTrue(conducir.es_ventana_de_la_app("YTChat TTS v2.5"))
+        self.assertTrue(conducir.es_ventana_de_la_app(
+            "Prueba de cierre — YTChat TTS"))
+
+    def test_rechaza_lo_que_solo_menciona_ytchat(self):
+        for nombre in ("Bellbird - Google Chrome",
+                       "ytchat-tts en GitHub — Mozilla Firefox", ""):
+            self.assertFalse(conducir.es_ventana_de_la_app(nombre))
+
+
 if __name__ == "__main__":
     unittest.main()

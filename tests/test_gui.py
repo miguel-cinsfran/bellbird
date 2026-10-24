@@ -658,6 +658,17 @@ class TestVentanaReal(unittest.TestCase):
         ancho_panel = frame._panel_principal.GetClientSize().width
         self.assertLessEqual(frame.lbl_tipo.GetBestSize().width, ancho_panel - 20)
 
+    def test_el_inicial_tras_un_directo_cabe_en_varios_anchos(self):
+        frame = self._ventana()
+        for ancho in (700, 860, 1000, 1300):
+            frame.SetSize((ancho, 700)); gui.wx.Yield()
+            frame._fijar_tipo("Directo de TikTok de @rolon_100: leyendo el chat.")
+            gui.wx.Yield()
+            frame._fijar_tipo(gui.MENSAJE_INICIAL)
+            gui.wx.Yield()
+            ancho_panel = frame._panel_principal.GetClientSize().width
+            self.assertLessEqual(frame.lbl_tipo.GetBestSize().width, ancho_panel - 20)
+
     def test_fijar_tipo_conserva_el_texto_original(self):
         frame = self._ventana()
         frame.SetSize((650, 700)); gui.wx.Yield()

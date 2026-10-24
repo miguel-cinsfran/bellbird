@@ -17,6 +17,7 @@ import webbrowser
 from datetime import datetime
 
 import wx
+from wx.lib.wordwrap import wordwrap
 
 from ytchat.core.config import (
     APP_NAME, APP_VERSION,
@@ -815,18 +816,14 @@ class YTChatFrame(wx.Frame):
         event.Skip()
 
     def _ajustar_ancho_tipo(self) -> None:
-        """Reajusta el salto de línea de lbl_tipo al ancho disponible: con
-        Wrap() fijo, ensanchar o angostar la ventana dejaba el texto cortado
-        o con un hueco de sobra en vez de acomodarse."""
+        """Parte lbl_tipo al ancho actual sin StaticText.Wrap, que a veces no parte."""
         if not hasattr(self, "lbl_tipo"):
             return
         try:
             ancho = max(200, self.lbl_tipo.GetParent().GetClientSize().Width - 20)
-            # Wrap() solo parte: mete saltos de línea literales que GetLabel
-            # conserva, así que al ensanchar el texto se quedaba troceado. Se
-            # parte siempre desde el texto original.
-            self.lbl_tipo.SetLabel(self._texto_tipo)
-            self.lbl_tipo.Wrap(ancho)
+            dc = wx.ClientDC(self.lbl_tipo)
+            dc.SetFont(self.lbl_tipo.GetFont())
+            self.lbl_tipo.SetLabel(wordwrap(self._texto_tipo, ancho, dc).rstrip("\n"))
         except Exception:
             pass
 

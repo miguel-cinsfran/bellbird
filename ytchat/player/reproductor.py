@@ -40,6 +40,7 @@ from ytchat.player.traza_transporte import (
 )
 from ytchat.downloads import ytdlp_bin
 from ytchat.player import esclavo_audio
+from ytchat.player import flujo_tiktok
 from ytchat.player import motor_vlc
 from ytchat.player import reproductor_ciclo
 from ytchat.player import relevo_ffmpeg
@@ -968,6 +969,9 @@ class ReproductorPanel(wx.Panel):
         Sin yt-dlp ni calidades: la URL ya viene resuelta por quien conecta."""
         self._video_id = ""
         self._url_flujo = (url or "").strip()
+        if self._url_flujo:
+            logger.info("TIKTOK_FLUJO %s",
+                        flujo_tiktok.resumen_url(self._url_flujo))
         if not self._listo:
             return
         ciclo = getattr(self, "_ciclo", None)
@@ -1477,6 +1481,7 @@ class ReproductorPanel(wx.Panel):
         self._tiene_esclavo = False
         self._usando_cache_local = False
         self._cancelar_transporte()
+        self._aviso_fallo_flujo = False
         self._intencion_reproducir = reproducir
         try:
             media = self._inst.media_new(self._url_flujo)
@@ -2102,6 +2107,22 @@ class ReproductorPanel(wx.Panel):
         if self._player is not None:
             self._player.audio_set_volume(self._vol)
 
+    def _flujo_sono(self) -> bool:
+        inicio = getattr(self, "_estado_inicio", None)
+        return bool(inicio is not None
+                    and (inicio.anunciado or inicio.primera is not None))
+
+    def _terminar_flujo_tiktok(self) -> None:
+        if self._flujo_sono():
+            self._detener(silencioso=True)
+            anunciar("El directo de TikTok terminó")
+            return
+        if getattr(self, "_aviso_fallo_flujo", False):
+            return
+        self._aviso_fallo_flujo = True
+        self._avisar_fallo("No se pudo abrir el directo de TikTok")
+        flujo_tiktok.sondear_en_hilo(self._url_flujo)
+
     def _on_timer(self, event):
         if self._player is None:
             return
@@ -2176,6 +2197,8 @@ class ReproductorPanel(wx.Panel):
                 self._fin_flujo_vod()
             elif self._es_fallo_apertura_vod():
                 self._recargar_apertura_vod()
+            elif getattr(self, "_url_flujo", ""):
+                self._terminar_flujo_tiktok()
             else:
                 self._detener(silencioso=True)
                 anunciar("Fin del vídeo")
@@ -2183,6 +2206,10 @@ class ReproductorPanel(wx.Panel):
             if getattr(self, "_vod_por_relevo", False) \
                     and getattr(self, "_cargando", False):
                 pass
+            elif getattr(self, "_url_flujo", "") \
+                    and getattr(self, "_relevo_ffmpeg", None) is None \
+                    and not self._flujo_sono():
+                self._terminar_flujo_tiktok()
             elif self._es_fallo_apertura_vod() \
                     and not self._relevo_con_reintento():
                 self._recargar_apertura_vod()

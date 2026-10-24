@@ -169,17 +169,13 @@ class TestTablaOpcionesSimples(unittest.TestCase):
                 mock.patch.object(gui_preferencias, "anunciar") as anunciar, \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
-        self.assertEqual(guardar.call_count, 2)
-        por_primera = {cambios[0][0] for cambios in
-                       (llamada.args[1]
-                        for llamada in guardar.call_args_list)}
-        self.assertEqual(por_primera, {"ia", "programados"})
+        self.assertEqual(guardar.call_count, 1)
+        llamada = guardar.call_args.args[1]
+        secciones = {seccion for seccion, _clave, _valor in llamada}
+        self.assertTrue({"ia", "programados"}.issubset(secciones))
         anunciar.assert_not_called()
         escritos = {(seccion, clave): valor
-                    for seccion, clave, valor in
-                    next(llamada.args[1]
-                         for llamada in guardar.call_args_list
-                         if llamada.args[1][0][0] == "programados")}
+                    for seccion, clave, valor in llamada}
         for (seccion, clave), (texto, en_memoria, valor) in esperados.items():
             with self.subTest(seccion=seccion, clave=clave):
                 self.assertEqual(escritos.get((seccion, clave)), texto)

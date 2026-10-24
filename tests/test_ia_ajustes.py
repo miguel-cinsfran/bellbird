@@ -7,10 +7,32 @@ from pathlib import Path
 from ytchat.ai import ajustes_ia
 from ytchat.ai.ajustes_ia import AjustesIA
 from ytchat.ai import conversacion
+from ytchat.core import config
 
 
 def _escribir(ruta, texto):
     Path(ruta).write_text(texto, encoding="utf-8")
+
+
+class TestCambios(unittest.TestCase):
+
+    def test_nueve_claves_con_los_valores_ya_en_texto(self):
+        ajustes = AjustesIA(
+            proveedor="openai", modelo="gpt-x", direccion="https://x/v1",
+            pregunta="100% # rara", largo="larga", tiempo_espera=90,
+            solo_gratis=True, privacidad_aceptada=False,
+            decir_analizando=False)
+        self.assertEqual(ajustes_ia.cambios(ajustes), [
+            ("ia", "proveedor", "openai"),
+            ("ia", "modelo", "gpt-x"),
+            ("ia", "direccion", "https://x/v1"),
+            ("ia", "pregunta", config.codificar_texto_ini("100% # rara")),
+            ("ia", "largo", "larga"),
+            ("ia", "tiempo_espera", "90"),
+            ("ia", "solo_gratis", "true"),
+            ("ia", "privacidad_aceptada", "false"),
+            ("ia", "decir_analizando", "false"),
+        ])
 
 
 class TestFabrica(unittest.TestCase):

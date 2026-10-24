@@ -106,9 +106,9 @@ def _bool_a_texto(valor: bool) -> str:
     return "true" if valor else "false"
 
 
-def guardar(ruta, ajustes: AjustesIA):
-    """Guarda los nueve valores de una vez, conservando el resto."""
-    cambios = [
+def cambios(ajustes: AjustesIA) -> list:
+    """Los nueve valores de la sección [ia] ya convertidos a texto."""
+    return [
         (SECCION, "proveedor", ajustes.proveedor),
         (SECCION, "modelo", ajustes.modelo),
         (SECCION, "direccion", ajustes.direccion),
@@ -121,8 +121,12 @@ def guardar(ruta, ajustes: AjustesIA):
         (SECCION, "decir_analizando",
          _bool_a_texto(ajustes.decir_analizando)),
     ]
+
+
+def guardar(ruta, ajustes: AjustesIA):
+    """Guarda los nueve valores de una vez, conservando el resto."""
     return config.guardar_opciones(Path(ruta) if ruta is not None else None,
-                                   cambios)
+                                   cambios(ajustes))
 
 
 def guardar_decir_analizando(ruta, valor: bool):

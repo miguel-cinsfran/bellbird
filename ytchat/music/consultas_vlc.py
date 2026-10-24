@@ -35,6 +35,7 @@ def salidas_audio() -> list[tuple[str, str]]:
         reproductor = instancia.media_player_new()
         if reproductor is None:
             return []
+        motor_vlc.fijar_salida_audio(reproductor)
         lista = reproductor.audio_output_device_enum()
         salidas = []
         nodo = lista

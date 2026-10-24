@@ -570,7 +570,7 @@ class ReproductorPanel(wx.Panel):
         if not self._asegurar_instancia():
             return False
         try:
-            self._player = self._inst.media_player_new()
+            self._player = motor_vlc.nuevo_reproductor(self._inst)
             self._fijar_salida(self._video.GetHandle())
         except Exception as exc:
             logger.warning("No se pudo crear el reproductor de VLC: %s", exc)

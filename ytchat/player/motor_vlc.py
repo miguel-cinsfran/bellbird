@@ -29,6 +29,48 @@ _lock = threading.Lock()
 # que el ajuste de buffer va como opción POR MEDIO (más tolerante), no aquí.
 ARGS = ("--quiet",)
 
+# Salida por reproductor: DirectSound da a cada uno su propio volumen. Con la
+# salida por defecto (mmdevice) todos mueven la sesión de audio del proceso.
+SALIDA_AUDIO = "directsound"
+
+_aviso_salida = False
+_lock_aviso_salida = threading.Lock()
+
+
+def fijar_salida_audio(reproductor, salida: str = SALIDA_AUDIO) -> bool:
+    """Fija la salida de un reproductor recién creado. True si quedó fijada.
+
+    Si libVLC la rechaza o lanza, el reproductor sigue con la salida por
+    defecto y se anota un warning una sola vez por proceso.
+    """
+    try:
+        resultado = reproductor.audio_output_set(salida)
+    except Exception as exc:
+        _avisar_salida(salida, exc)
+        return False
+    if resultado != 0:
+        _avisar_salida(salida, f"libVLC devolvió {resultado}")
+        return False
+    return True
+
+
+def nuevo_reproductor(instancia):
+    """Crea un reproductor con la salida propia ya fijada, o None si no pudo."""
+    reproductor = instancia.media_player_new()
+    if reproductor is None:
+        return None
+    fijar_salida_audio(reproductor)
+    return reproductor
+
+
+def _avisar_salida(salida: str, motivo) -> None:
+    global _aviso_salida
+    with _lock_aviso_salida:
+        if _aviso_salida:
+            return
+        _aviso_salida = True
+    logger.warning("No se pudo fijar la salida de audio %s: %s", salida, motivo)
+
 
 def _registrar_tiempo_precalentamiento(tramo: str, inicio: float, fin: float) -> None:
     diagnostico.logger.info(

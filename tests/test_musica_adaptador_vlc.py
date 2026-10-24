@@ -127,6 +127,7 @@ class FakeReproductor:
     def audio_output_set(self, nombre):
         self._revisar()
         self.salida = nombre
+        self.instancia.eventos.append(("salida", self.numero, nombre))
         return 0
 
     def audio_output_device_set(self, module, device):
@@ -136,6 +137,7 @@ class FakeReproductor:
 
     def audio_output_device_enum(self):
         self._revisar()
+        self.instancia.eventos.append(("enum", self.numero))
         if self.instancia.enum_error:
             raise RuntimeError("fallo al enumerar")
         return self.instancia.enum_salida
@@ -143,6 +145,7 @@ class FakeReproductor:
     def set_media(self, media):
         self._revisar()
         self.media = media
+        self.instancia.eventos.append(("media", self.numero))
 
     def audio_set_volume(self, valor):
         self._revisar()
@@ -472,6 +475,29 @@ class TestAdaptadorDobles(_BaseDobles):
         self.assertEqual(self.instancia.reproductores[1].dispositivo,
                          (None, "salida-y"))
 
+    def test_por_defecto_fija_directsound_antes_del_medio(self):
+        adaptador = self.crear()
+        self.existentes.add("C:/musica/a.mp3")
+        adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
+        eventos = self.instancia.eventos
+        self.assertEqual(self.instancia.reproductores[0].salida,
+                         motor_vlc.SALIDA_AUDIO)
+        self.assertLess(eventos.index(("salida", 0, motor_vlc.SALIDA_AUDIO)),
+                        eventos.index(("media", 0)))
+
+    def test_una_salida_audio_explicita_gana(self):
+        adaptador = self.crear(salida_audio="waveout")
+        self.existentes.add("C:/musica/a.mp3")
+        adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
+        self.assertEqual(self.instancia.reproductores[0].salida, "waveout")
+
+    def test_salidas_audio_fija_directsound_antes_de_enumerar(self):
+        self.instancia.enum_salida = None
+        salidas_audio()
+        eventos = self.instancia.eventos
+        self.assertLess(eventos.index(("salida", 0, motor_vlc.SALIDA_AUDIO)),
+                        eventos.index(("enum", 0)))
+
     def test_salidas_audio_con_doble_que_lanza_devuelve_vacio(self):
         self.instancia.enum_error = True
         self.assertEqual(salidas_audio(), [])
@@ -616,6 +642,17 @@ class TestAdaptadorEnlaces(_BaseDobles):
         self._p_opciones.start()
         self.addCleanup(self._p_opciones.stop)
         return self.crear(**kwargs)
+
+    def test_la_salida_se_fija_antes_del_medio_en_el_enlace(self):
+        adaptador = self.crear()
+        self._p_opciones = mock.patch.object(
+            adaptador_vlc, "_opciones_enlace", return_value=())
+        self._p_opciones.start()
+        self.addCleanup(self._p_opciones.stop)
+        adaptador._abrir_enlace("http://audio/stream", 1)
+        eventos = self.instancia.eventos
+        self.assertLess(eventos.index(("salida", 0, motor_vlc.SALIDA_AUDIO)),
+                        eventos.index(("media", 0)))
 
     def test_el_enlace_no_bloquea_y_suena_la_direccion_resuelta(self):
         adaptador = self._adaptador_con_opciones()

@@ -96,5 +96,34 @@ class TestCargaReproductor(unittest.TestCase):
         anunciar.assert_called_once_with("Buscando el vídeo, 5 segundos", urgente=False)
 
 
+class TestSalidaDelPanel(unittest.TestCase):
+
+    def _panel(self):
+        panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
+        panel._ciclo = None
+        panel._player = None
+        panel._inst = mock.Mock()
+        panel._inst.media_player_new.return_value = mock.Mock()
+        panel._asegurar_instancia = mock.Mock(return_value=True)
+        panel._video = mock.Mock()
+        panel._video.GetHandle.return_value = 123
+        panel._enganchar_eventos_vlc = mock.Mock()
+        return panel
+
+    def test_fija_la_salida_al_crear_el_reproductor_antes_del_hwnd(self):
+        panel = self._panel()
+        eventos = []
+        creado = mock.Mock()
+        with mock.patch.object(
+                reproductor.motor_vlc, "nuevo_reproductor",
+                side_effect=lambda instancia: (
+                    eventos.append("salida"), creado)[1]) as nuevo:
+            panel._fijar_salida = lambda hwnd: eventos.append("hwnd")
+            self.assertTrue(panel._asegurar_player())
+        nuevo.assert_called_once_with(panel._inst)
+        self.assertIs(panel._player, creado)
+        self.assertEqual(eventos, ["salida", "hwnd"])
+
+
 if __name__ == "__main__":
     unittest.main()

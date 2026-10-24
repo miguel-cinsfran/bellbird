@@ -33,13 +33,62 @@ class _BaseMotorVlc(unittest.TestCase):
     """Aísla el estado de módulo: cada prueba arranca sin binding ni instancia."""
 
     def setUp(self):
-        self._guardado = (motor_vlc._modulo, motor_vlc._inst, motor_vlc._preparado)
+        self._guardado = (motor_vlc._modulo, motor_vlc._inst,
+                          motor_vlc._preparado, motor_vlc._aviso_salida)
         motor_vlc._modulo = None
         motor_vlc._inst = None
         motor_vlc._preparado = False
+        motor_vlc._aviso_salida = False
 
     def tearDown(self):
-        motor_vlc._modulo, motor_vlc._inst, motor_vlc._preparado = self._guardado
+        (motor_vlc._modulo, motor_vlc._inst, motor_vlc._preparado,
+         motor_vlc._aviso_salida) = self._guardado
+
+
+class TestSalidaAudio(_BaseMotorVlc):
+
+    def test_fija_directsound(self):
+        reproductor = mock.Mock()
+        reproductor.audio_output_set.return_value = 0
+        self.assertTrue(motor_vlc.fijar_salida_audio(reproductor))
+        reproductor.audio_output_set.assert_called_once_with("directsound")
+        self.assertEqual(motor_vlc.SALIDA_AUDIO, "directsound")
+
+    def test_otra_salida_explicita_gana(self):
+        reproductor = mock.Mock()
+        reproductor.audio_output_set.return_value = 0
+        self.assertTrue(motor_vlc.fijar_salida_audio(reproductor, "waveout"))
+        reproductor.audio_output_set.assert_called_once_with("waveout")
+
+    def test_resultado_distinto_de_cero_devuelve_false_y_avisa_una_vez(self):
+        reproductor = mock.Mock()
+        reproductor.audio_output_set.return_value = -1
+        with mock.patch.object(motor_vlc.logger, "warning") as avisar:
+            self.assertFalse(motor_vlc.fijar_salida_audio(reproductor))
+            self.assertFalse(motor_vlc.fijar_salida_audio(reproductor))
+        avisar.assert_called_once()
+
+    def test_excepcion_devuelve_false_sin_lanzar_y_avisa_una_vez(self):
+        reproductor = mock.Mock()
+        reproductor.audio_output_set.side_effect = RuntimeError("boom")
+        with mock.patch.object(motor_vlc.logger, "warning") as avisar:
+            self.assertFalse(motor_vlc.fijar_salida_audio(reproductor))
+            self.assertFalse(motor_vlc.fijar_salida_audio(reproductor))
+        avisar.assert_called_once()
+
+    def test_nuevo_reproductor_fija_la_salida(self):
+        instancia = mock.Mock()
+        reproductor = instancia.media_player_new.return_value
+        reproductor.audio_output_set.return_value = 0
+        self.assertIs(motor_vlc.nuevo_reproductor(instancia), reproductor)
+        reproductor.audio_output_set.assert_called_once_with("directsound")
+
+    def test_nuevo_reproductor_sin_media_player_devuelve_none(self):
+        instancia = mock.Mock()
+        instancia.media_player_new.return_value = None
+        with mock.patch.object(motor_vlc, "fijar_salida_audio") as fijar:
+            self.assertIsNone(motor_vlc.nuevo_reproductor(instancia))
+        fijar.assert_not_called()
 
 
 class TestInstancia(_BaseMotorVlc):
@@ -192,11 +241,32 @@ class TestCableado(unittest.TestCase):
 
     def test_autocomprobacion_pide_la_instancia_compartida(self):
         from ytchat.core import autocomprobacion
-        compartida = object()
+        reproductor = mock.Mock()
+        compartida = mock.Mock()
+        compartida.media_player_new.return_value = reproductor
         with mock.patch.object(motor_vlc, "cargar", return_value=True), \
-                mock.patch.object(motor_vlc, "instancia", return_value=compartida) as pedir:
+                mock.patch.object(motor_vlc, "instancia",
+                                  return_value=compartida) as pedir, \
+                mock.patch.object(motor_vlc, "fijar_salida_audio",
+                                  return_value=True) as fijar:
             autocomprobacion._vlc()
         pedir.assert_called_once_with()
+        fijar.assert_called_once_with(reproductor)
+        reproductor.release.assert_called_once()
+
+    def test_autocomprobacion_falla_si_no_se_fija_directsound(self):
+        from ytchat.core import autocomprobacion
+        reproductor = mock.Mock()
+        compartida = mock.Mock()
+        compartida.media_player_new.return_value = reproductor
+        with mock.patch.object(motor_vlc, "cargar", return_value=True), \
+                mock.patch.object(motor_vlc, "instancia", return_value=compartida), \
+                mock.patch.object(motor_vlc, "fijar_salida_audio",
+                                  return_value=False):
+            with self.assertRaises(RuntimeError) as error:
+                autocomprobacion._vlc()
+        self.assertIn("DirectSound", str(error.exception))
+        reproductor.release.assert_called_once()
 
     def test_autocomprobacion_avisa_si_no_carga(self):
         from ytchat.core import autocomprobacion
@@ -229,6 +299,23 @@ class TestReal(_BaseMotorVlc):
         player = instancia.media_player_new()
         self.assertIsNotNone(player)
         player.release()
+
+
+@unittest.skipUnless(motor_vlc.disponible(), "libVLC no está disponible")
+class TestSalidaReal(unittest.TestCase):
+
+    def test_fija_directsound_en_un_reproductor_real(self):
+        if not motor_vlc.cargar():
+            self.skipTest("no se pudo cargar libVLC en esta máquina")
+        instancia = motor_vlc.instancia()
+        self.assertIsNotNone(instancia)
+        reproductor = instancia.media_player_new()
+        self.assertIsNotNone(reproductor)
+        try:
+            self.assertEqual(reproductor.audio_output_set("directsound"), 0)
+            self.assertTrue(motor_vlc.fijar_salida_audio(reproductor))
+        finally:
+            reproductor.release()
 
 
 if __name__ == "__main__":

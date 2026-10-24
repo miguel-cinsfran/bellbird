@@ -38,8 +38,8 @@ class AdaptadorVlc:
     propio aviso lo cuelga, así que el trabajo lo hace un hilo aparte.
     """
 
-    def __init__(self, salida_audio=None, volumen=100, dispositivo=None,
-                 cruce_de=None):
+    def __init__(self, salida_audio=motor_vlc.SALIDA_AUDIO, volumen=100,
+                 dispositivo=None, cruce_de=None):
         instancia = motor_vlc.instancia()
         if instancia is None:
             raise MotorNoDisponible("No hay motor de música libVLC disponible")
@@ -135,7 +135,7 @@ class AdaptadorVlc:
         if reproductor is None:
             raise RuntimeError("VLC no pudo crear un reproductor")
         if self._salida_audio is not None:
-            reproductor.audio_output_set(self._salida_audio)
+            motor_vlc.fijar_salida_audio(reproductor, self._salida_audio)
         if self._dispositivo:
             reproductor.audio_output_device_set(None, self._dispositivo)
         try:
@@ -223,7 +223,7 @@ class AdaptadorVlc:
             self._cola.put((_ERROR, ficha, None))
             return
         if self._salida_audio is not None:
-            reproductor.audio_output_set(self._salida_audio)
+            motor_vlc.fijar_salida_audio(reproductor, self._salida_audio)
         if self._dispositivo:
             reproductor.audio_output_device_set(None, self._dispositivo)
         try:

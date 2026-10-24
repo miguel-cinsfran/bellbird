@@ -7,7 +7,11 @@ sin crear la carpeta de datos. La usa `construir.bat` con `--autocomprobar`.
 
 from __future__ import annotations
 
+import logging
 import sys
+
+
+logger = logging.getLogger(__name__)
 
 
 def _wxpython():
@@ -51,6 +55,17 @@ def _vlc():
     instancia = motor_vlc.instancia()
     if instancia is None:
         raise RuntimeError("la instancia de VLC salió vacía")
+    reproductor = instancia.media_player_new()
+    if reproductor is None:
+        raise RuntimeError("VLC no pudo crear un reproductor")
+    try:
+        if not motor_vlc.fijar_salida_audio(reproductor):
+            raise RuntimeError("no se pudo fijar la salida DirectSound")
+    finally:
+        try:
+            reproductor.release()
+        except Exception as exc:
+            logger.debug("No se pudo liberar el reproductor de VLC: %s", exc)
 
 
 PIEZAS = (

@@ -23,6 +23,8 @@ también lo es.
   volumen de las canciones igualado.
 - Empieza y termina el directo con OBS Studio, y muestra el chat a los
   espectadores en un panel para OBS.
+- Pregunta a un modelo de IA qué se ve en la escena al aire o en una
+  fuente de OBS, y lee la respuesta.
 - Descarga vídeo y audio.
 
 El manual explica cada función y tiene las tablas de atajos.

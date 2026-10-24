@@ -281,6 +281,12 @@ contextual de la lista del chat o de los comentarios.</p>
 <p>Cada mensaje se lee con la voz elegida y suena distinto según quién
 escribe (dueño del canal, moderador, cuenta verificada, miembro) y según
 lo que es (Super Chat, membresía, regalo de TikTok).</p>
+<p>En TikTok también se leen los stickers y las preguntas del directo.
+Quién da me gusta no se lee de fábrica, porque en un directo grande son
+muchísimos: se enciende en <em>Preferencias, Lectura</em>, con la
+casilla <em>Leer quién da me gusta</em>. Si quien transmite pone el
+directo en pausa, se oye «El directo de TikTok está en pausa.», y al
+volver, «El directo de TikTok continúa.», cada uno con su sonido.</p>
 <p>En la lista, las flechas van de mensaje en mensaje y escribir unas
 letras salta al primer autor que empieza así. El menú contextual copia
 el mensaje, silencia al autor durante la sesión, le pone un alias y, con
@@ -359,6 +365,9 @@ quedas: «40 segundos por detrás del directo». Con las pistas separadas
 de YouTube se puede retroceder hasta una hora. <code>Ctrl+Fin</code>
 vuelve al directo. En un vídeo, las flechas del deslizador de posición
 mueven diez segundos.</p>
+<p>Un directo de TikTok no se puede pausar: al pulsar reproducir o
+pausar, la aplicación lo dice y nombra el atajo de Silenciar,
+<code>Ctrl+M</code>, que lo calla sin cortarlo.</p>
 <p>El audio de cada vídeo de YouTube se guarda en
 <code>data/cache-audio</code>, para que pausar y saltar respondan al
 instante. Se conservan los tres últimos.</p>
@@ -915,12 +924,15 @@ a las exclusiones.</p>
 <p><strong>El panel de chat no se ve.</strong> <code>F2</code> dice si
 el panel está activo y si OBS lo muestra. Si nadie lo muestra, revisa la
 fuente de navegador en OBS.</p>
-<p><strong>Algo falla.</strong> Los errores quedan en
-<code>data/ytchat.log</code>, y si la aplicación se cierra sola, también
-en <code>data/ytchat-fallos.log</code>. Para un informe más completo,
-enciende en <em>Preferencias, Diagnóstico</em> la casilla <em>Guardar un
-registro detallado para diagnosticar fallos</em>, reinicia, reproduce el
-problema y manda los dos archivos.</p>
+<p><strong>Algo falla.</strong> <em>Ayuda, Abrir la carpeta de
+registros</em> abre la carpeta <code>data</code>, donde están los
+registros. Los errores quedan en <code>data/ytchat.log</code>, y si la
+aplicación se cierra sola, también en
+<code>data/ytchat-fallos.log</code>. El registro detallado,
+<code>data/ytchat-debug.log</code>, viene encendido; se apaga en
+<em>Preferencias, Diagnóstico</em>, con la casilla <em>Guardar un
+registro detallado para diagnosticar fallos</em>. Para avisar de un
+fallo, reproduce el problema y manda los tres archivos.</p>
 <h2 id="licencia">Licencia</h2>
 <p>MIT. Ver <a href="LICENSE">LICENSE</a>.</p>
 </body>

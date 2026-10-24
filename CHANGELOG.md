@@ -118,7 +118,9 @@ canciones.
 - **Textos que se veían cortados**: el botón Enviar cuando no se puede
   escribir en el chat, la velocidad y el volumen de la voz en la barra
   de estado, y los campos del diálogo Directo de YouTube, que quedaban
-  pegados a la barra de desplazamiento. En Preferencias, Estado (F2), la
+  pegados a la barra de desplazamiento. El texto de ayuda de la ventana
+  principal ya no queda cortado al desconectarse de un directo. En
+  Preferencias, Estado (F2), la
   casilla de espectadores dice ahora «Espectadores ahora y en total».
 
 ### Para encontrar problemas

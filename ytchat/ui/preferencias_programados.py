@@ -10,7 +10,8 @@ import wx
 
 from ytchat.core import paths
 from ytchat.capture import programados
-from ytchat.ui.gui import ContadorAccesible, anunciar, nombre_accesible
+from ytchat.ui.gui import (
+    ContadorAccesible, anunciar, instalar_busqueda_tipo, nombre_accesible)
 
 
 class PaginaProgramados:
@@ -56,6 +57,10 @@ class PaginaProgramados:
             programados.describir_mensaje(m) for m in self._mensajes_programados
         ], name="ListaProgramados")
         nombre_accesible(self.lista_programados, "Mensajes automáticos guardados")
+        instalar_busqueda_tipo(
+            self.lista_programados,
+            lambda: [self.lista_programados.GetString(i)
+                     for i in range(self.lista_programados.GetCount())])
         vs.Add(self.lista_programados, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
 
     def _programados_datos(self, p, vs):

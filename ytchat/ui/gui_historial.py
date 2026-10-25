@@ -15,7 +15,8 @@ import wx
 from ytchat.core import historial
 from ytchat.core import sonidos_eventos
 from ytchat.voice import sound_player as _snd
-from ytchat.ui.gui import anunciar, nombre_accesible, _T, _pintar
+from ytchat.ui.gui import (
+    anunciar, instalar_busqueda_tipo, nombre_accesible, _T, _pintar)
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -80,6 +81,9 @@ class HistorialDialog(wx.Dialog):
                         name=f"Historial de {titulo}")
         _pintar(lb, _T.field, _T.text)
         nombre_accesible(lb, f"Historial de {titulo}")
+        instalar_busqueda_tipo(
+            lb,
+            lambda lb=lb: [lb.GetString(i) for i in range(lb.GetCount())])
         lb.Bind(wx.EVT_LISTBOX_DCLICK, lambda e: self._conectar())
         lb.Bind(wx.EVT_KEY_DOWN, self._on_key)
         pvs.Add(lb, 1, wx.EXPAND | wx.ALL, 8)

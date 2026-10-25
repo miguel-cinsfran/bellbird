@@ -23,7 +23,7 @@ from ytchat.core import paths
 from ytchat.obs.obs_panel import GestorPanelObs
 from ytchat.ui import ia_privacidad
 from ytchat.ui import paleta
-from ytchat.ui.gui import anunciar, nombre_accesible
+from ytchat.ui.gui import anunciar, instalar_busqueda_tipo, nombre_accesible
 from ytchat.ui.ia_agregar_captura import pedir_captura
 from ytchat.voice.sound_player import reproducir
 
@@ -85,6 +85,10 @@ class VentanaIA(wx.Dialog):
         self.lst_conversacion = wx.ListBox(
             self, style=wx.LB_SINGLE, name="Conversación")
         nombre_accesible(self.lst_conversacion, "Conversación")
+        instalar_busqueda_tipo(
+            self.lst_conversacion,
+            lambda: [self.lst_conversacion.GetString(i)
+                     for i in range(self.lst_conversacion.GetCount())])
         vs.Add(self.lst_conversacion, 1, wx.EXPAND | wx.ALL, 10)
 
     def _crear_controles(self) -> None:

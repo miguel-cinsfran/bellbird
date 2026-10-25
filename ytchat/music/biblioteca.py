@@ -31,6 +31,25 @@ def _plegar(texto: str) -> str:
     return sin_tildes.casefold()
 
 
+_PALABRAS = re.compile(r"[^\W_]+")
+
+
+def coincide_por_palabras(texto, campos) -> bool:
+    """Si cada palabra buscada es el comienzo de alguna palabra de los campos.
+
+    Las palabras se separan por todo lo que no sea letra o número, así
+    «ac/dc» busca «ac» y «dc». Sin palabras buscadas coincide todo.
+    """
+    buscadas = _PALABRAS.findall(_plegar(str(texto or "")))
+    if not buscadas:
+        return True
+    palabras = []
+    for campo in campos:
+        palabras.extend(_PALABRAS.findall(_plegar(str(campo or ""))))
+    return all(any(palabra.startswith(buscada) for palabra in palabras)
+               for buscada in buscadas)
+
+
 def _leer_extinf(entrada: str) -> tuple[int, str]:
     """Los milisegundos y el título de una línea #EXTINF.
 
@@ -202,18 +221,17 @@ class Biblioteca:
         """Busca en el índice por nombre, título, artista y álbum, sin tocar el disco."""
         if not texto or not texto.strip():
             return ()
-        aguja = _plegar(texto)
         with self._lock:
             actuales = self._temas
         resultados = []
         for tema in actuales:
             campos = (
-                _plegar(Path(tema.origen).name),
-                _plegar(tema.titulo),
-                _plegar(tema.artista),
-                _plegar(tema.album),
+                Path(tema.origen).stem,
+                tema.titulo,
+                tema.artista,
+                tema.album,
             )
-            if any(aguja in campo for campo in campos):
+            if coincide_por_palabras(texto, campos):
                 resultados.append(tema)
         return tuple(resultados)
 

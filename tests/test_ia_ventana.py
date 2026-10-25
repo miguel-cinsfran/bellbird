@@ -88,6 +88,16 @@ class TestVentanaIAVentana(unittest.TestCase):
         self.assertEqual(dialogo.btn_nueva.GetName(), "Nueva conversación")
         self.assertEqual(dialogo.btn_cerrar.GetName(), "Cerrar")
 
+    def test_instala_busqueda_por_tecleo_en_la_conversacion(self):
+        with mock.patch.object(ventana, "instalar_busqueda_tipo") as instalar:
+            dialogo = self._ventana()
+
+        instalar.assert_called_once()
+        lista, obtener_textos = instalar.call_args.args
+        self.assertIs(lista, dialogo.lst_conversacion)
+        self.assertEqual(obtener_textos(),
+                         list(dialogo.lst_conversacion.GetStrings()))
+
     def test_orden_de_tab(self):
         dialogo = self._ventana()
         navegables = [hijo.GetName() for hijo in dialogo.GetChildren()

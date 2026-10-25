@@ -15,7 +15,8 @@ from ytchat.core import diagnostico
 from ytchat.music import anuncios, vista
 from ytchat.ui import musica_menus
 from ytchat.ui import musica_teclas
-from ytchat.ui.gui import _T, _pintar, anunciar, nombre_accesible
+from ytchat.ui.gui import (
+    _T, _pintar, anunciar, instalar_busqueda_tipo, nombre_accesible)
 from ytchat.ui.musica_colecciones import (
     TEXTO_CARGANDO, TEXTO_SIN_CARPETA, ColeccionesVentanaMusica)
 from ytchat.ui.musica_ventana_acciones import AccionesVentanaMusica
@@ -110,6 +111,9 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
             panel, style=wx.LB_SINGLE | wx.LB_HSCROLL, name=nombre)
         _pintar(lista, _T.field, _T.text)
         nombre_accesible(lista, nombre)
+        instalar_busqueda_tipo(
+            lista,
+            lambda: [lista.GetString(i) for i in range(lista.GetCount())])
         lista.SetMinSize((-1, alto))
         return lista
 

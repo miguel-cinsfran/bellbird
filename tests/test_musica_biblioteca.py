@@ -5,8 +5,54 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from ytchat.music.biblioteca import Biblioteca, ErrorBiblioteca
+from ytchat.music.biblioteca import (
+    Biblioteca, ErrorBiblioteca, coincide_por_palabras)
 from ytchat.music.modelo import Tema
+
+
+class TestCoincidePorPalabras(unittest.TestCase):
+
+    def test_una_letra_es_comienzo_de_palabra(self):
+        self.assertTrue(coincide_por_palabras("a", ("Amor",)))
+        self.assertFalse(coincide_por_palabras("a", ("Casa",)))
+
+    def test_varias_palabras_en_cualquier_orden(self):
+        campos = ("Ojos", "Lou Cornago")
+        self.assertTrue(coincide_por_palabras("lou oj", campos))
+        self.assertTrue(coincide_por_palabras("oj lou", campos))
+
+    def test_una_palabra_que_cae_en_el_medio_no_coincide(self):
+        self.assertFalse(coincide_por_palabras("ojs", ("Ojos", "Lou Cornago")))
+
+    def test_los_signos_separan_palabras(self):
+        self.assertTrue(coincide_por_palabras("ac/dc", ("AC/DC",)))
+
+    def test_ignora_tildes_y_mayusculas(self):
+        self.assertTrue(coincide_por_palabras("JOSE", ("José",)))
+        self.assertTrue(coincide_por_palabras("nandu", ("Álbum Ñandú",)))
+
+    def test_sin_palabras_coincide_todo(self):
+        self.assertTrue(coincide_por_palabras("", ("Casa",)))
+        self.assertTrue(coincide_por_palabras("   ", ("Casa",)))
+        self.assertTrue(coincide_por_palabras("///", ("Casa",)))
+
+    def test_cada_palabra_buscada_tiene_que_coincidir(self):
+        self.assertFalse(
+            coincide_por_palabras("lou zzz", ("Ojos", "Lou Cornago")))
+
+    def test_quitar_letras_del_final_nunca_deja_de_coincidir(self):
+        casos = (
+            ("amor", ("Amor",)),
+            ("lou oj", ("Ojos", "Lou Cornago")),
+            ("ac/dc", ("AC/DC",)),
+        )
+        for texto, campos in casos:
+            with self.subTest(texto=texto):
+                self.assertTrue(coincide_por_palabras(texto, campos))
+                for corte in range(len(texto)):
+                    with self.subTest(texto=texto, corte=corte):
+                        self.assertTrue(
+                            coincide_por_palabras(texto[:corte], campos))
 
 
 class TestModelo(unittest.TestCase):
@@ -212,6 +258,53 @@ class TestBiblioteca(unittest.TestCase):
         with mock.patch("pathlib.Path.read_text", side_effect=OSError("boom")):
             with self.assertRaises(ErrorBiblioteca):
                 Biblioteca(self.raiz).cargar_m3u8(lista)
+
+
+class TestBuscarPorPalabras(unittest.TestCase):
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.raiz = Path(self.tmp.name)
+        for nombre in ("Uno.mp3", "Dos.mp3", "Tres.mp3", "Cuatro.mp3"):
+            (self.raiz / nombre).write_bytes(b"x")
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    @staticmethod
+    def _etiquetas(ruta):
+        return {
+            "Uno.mp3": {"titulo": "Amor"},
+            "Dos.mp3": {"titulo": "Casa"},
+            "Tres.mp3": {"titulo": "Ojos", "artista": "Lou Cornago"},
+            "Cuatro.mp3": {"artista": "AC/DC"},
+        }.get(Path(ruta).name, {})
+
+    def _biblioteca(self):
+        bib = Biblioteca(self.raiz, leer_etiquetas=self._etiquetas)
+        bib.indexar()
+        return bib
+
+    @staticmethod
+    def _nombres(temas):
+        return [Path(tema.origen).name for tema in temas]
+
+    def test_una_letra_encuentra_comienzo_de_palabra_y_no_el_medio(self):
+        nombres = self._nombres(self._biblioteca().buscar("a"))
+        self.assertIn("Uno.mp3", nombres)
+        self.assertNotIn("Dos.mp3", nombres)
+
+    def test_varias_palabras_en_cualquier_orden(self):
+        bib = self._biblioteca()
+        self.assertEqual(self._nombres(bib.buscar("lou oj")), ["Tres.mp3"])
+        self.assertEqual(self._nombres(bib.buscar("oj lou")), ["Tres.mp3"])
+
+    def test_palabra_que_cae_en_el_medio_no_coincide(self):
+        self.assertEqual(self._biblioteca().buscar("ojs"), ())
+
+    def test_los_signos_separan_palabras(self):
+        self.assertEqual(
+            self._nombres(self._biblioteca().buscar("ac/dc")), ["Cuatro.mp3"])
 
 
 class TestBibliotecaConCache(unittest.TestCase):

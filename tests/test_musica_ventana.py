@@ -273,6 +273,23 @@ class TestVentanaMusica(unittest.TestCase):
             "Nueva lista", "Cambiar carpeta", "Igualar el volumen",
             "Examinar la carpeta", "Cerrar"])
 
+    def test_instala_busqueda_por_tecleo_en_las_tres_listas(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
+        with mock.patch.object(
+                musica_ventana, "instalar_busqueda_tipo") as instalar:
+            self._abrir(control)
+
+        llamadas = {llamada.args[0]: llamada.args[1]
+                    for llamada in instalar.call_args_list}
+        self.assertEqual(
+            set(llamadas),
+            {self.ventana.lb_colecciones, self.ventana.lb_temas,
+             self.ventana.lb_cola})
+        for lista, obtener_textos in llamadas.items():
+            with self.subTest(lista=lista.GetName()):
+                self.assertEqual(obtener_textos(),
+                                 list(lista.GetStrings()))
+
     def test_controles_y_nombres_con_la_cola_visible(self):
         self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock"),
                                  cola_visible=True))

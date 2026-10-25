@@ -1354,6 +1354,24 @@ class TestProgramadosEnPreferencias(unittest.TestCase):
 
         anunciar.assert_called_once_with("Elige primero un mensaje de la lista")
 
+    def test_instala_busqueda_por_tecleo_en_la_lista(self):
+        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        with tempfile.TemporaryDirectory() as temporal, \
+                redirigir_rutas(temporal), \
+                mock.patch.object(motores, "listar_voces",
+                                  return_value=["Voz de prueba"]), \
+                mock.patch.object(
+                    preferencias_programados,
+                    "instalar_busqueda_tipo") as instalar:
+            dialogo = gui_preferencias.PreferenciasDialog(None, {})
+        self.addCleanup(destruir, dialogo)
+
+        llamadas = [llamada for llamada in instalar.call_args_list
+                    if llamada.args[0] is dialogo.lista_programados]
+        self.assertEqual(len(llamadas), 1)
+        self.assertEqual(llamadas[0].args[1](),
+                         list(dialogo.lista_programados.GetStrings()))
+
     def _dialogo_real(self):
         self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
         with mock.patch.object(motores, "listar_voces",

@@ -243,6 +243,24 @@ class TestFiltroDeListas(unittest.TestCase):
     def test_sin_coincidencias(self):
         self.assertEqual(vista.filtrar_lista((_tema(1),), "zzz"), ())
 
+    def test_una_letra_encuentra_comienzo_de_palabra_y_no_el_medio(self):
+        temas = (_tema(1, artista="Amor"), _tema(2, artista="Casa"))
+        self.assertEqual(
+            [t.titulo for t in vista.filtrar_lista(temas, "a")], ["Tema 1"])
+
+    def test_varias_palabras_en_cualquier_orden(self):
+        tema = Tema("C:/musica/ojos.mp3", "Ojos", artista="Lou Cornago")
+        self.assertEqual(vista.filtrar_lista((tema,), "lou oj"), (tema,))
+        self.assertEqual(vista.filtrar_lista((tema,), "oj lou"), (tema,))
+
+    def test_palabra_que_cae_en_el_medio_no_coincide(self):
+        tema = Tema("C:/musica/ojos.mp3", "Ojos", artista="Lou Cornago")
+        self.assertEqual(vista.filtrar_lista((tema,), "ojs"), ())
+
+    def test_solo_signos_devuelve_todos(self):
+        temas = (_tema(1), _tema(2))
+        self.assertEqual(vista.filtrar_lista(temas, "///"), temas)
+
     def test_filtro_de_la_carpeta_delega_en_biblioteca(self):
         biblio = mock.Mock()
         biblio.temas.return_value = (_tema(1), _tema(2))

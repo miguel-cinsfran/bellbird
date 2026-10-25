@@ -11,6 +11,7 @@ import unicodedata
 
 from ytchat.music import anuncios
 from ytchat.music.anuncios import nombre_tema
+from ytchat.music.biblioteca import coincide_por_palabras
 
 ETIQUETA_BIBLIOTECA = "Biblioteca"
 
@@ -35,13 +36,10 @@ def filtrar_lista(temas, texto) -> tuple:
     Mira título, artista y álbum, con la misma tolerancia a mayúsculas y
     tildes que la búsqueda de la carpeta.
     """
-    aguja = _plegar(texto).strip()
-    if not aguja:
-        return tuple(temas)
     return tuple(
         tema for tema in temas
-        if any(aguja in _plegar(campo)
-               for campo in (tema.titulo, tema.artista, tema.album)))
+        if coincide_por_palabras(
+            texto, (tema.titulo, tema.artista, tema.album)))
 
 
 def filtrar_biblioteca(biblioteca, texto) -> tuple:

@@ -176,6 +176,22 @@ class PruebasHistorialDialog(unittest.TestCase):
             with self.subTest(control=descripcion):
                 self.assertEqual(nombre, control.GetName())
 
+    def test_instala_busqueda_por_tecleo_en_cada_lista(self):
+        youtube = entrada("youtube", "yt", "https://youtube.com/watch?v=yt")
+        tiktok = entrada("tiktok", "tk", "https://tiktok.com/@tk/live")
+        with mock.patch.object(gui_historial, "instalar_busqueda_tipo") as instalar:
+            dialogo = self._dialogo([youtube, tiktok])
+
+        llamadas = {llamada.args[0]: llamada.args[1]
+                    for llamada in instalar.call_args_list}
+        self.assertEqual(
+            set(llamadas),
+            {dialogo._listas["youtube"], dialogo._listas["tiktok"]})
+        for lista, obtener_textos in llamadas.items():
+            with self.subTest(lista=lista.GetName()):
+                self.assertEqual(obtener_textos(),
+                                 list(lista.GetStrings()))
+
 
 class PruebasOrillaHistorial(unittest.TestCase):
 

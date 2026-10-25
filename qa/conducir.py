@@ -1856,6 +1856,63 @@ def escenario_ia(app: Aplicacion, args, res: Resultado):
         esperados_en_tab=esperados)
 
 
+def agujas_unicas(nombres, indice, tope=6):
+    """Búsquedas cortas que solo encuentran al tema elegido.
+
+    Las candidatas salen de las palabras del nombre sin extensión, de la
+    palabra sola al nombre entero. Se comprueban con la misma regla del
+    buscador de la aplicación: cada palabra buscada empieza una palabra del
+    nombre, título, artista o álbum.
+    """
+    import re
+    from ytchat.music.biblioteca import coincide_por_palabras
+    if tope <= 0:
+        return []
+    nombres_sin_extension = [Path(nombre).stem for nombre in nombres]
+    palabras = re.findall(r"[^\W_]+", nombres_sin_extension[indice])
+    candidatas = []
+    for cantidad in range(1, len(palabras) + 1):
+        for inicio in range(len(palabras) - cantidad + 1):
+            aguja = " ".join(palabras[inicio:inicio + cantidad])
+            if aguja not in candidatas:
+                candidatas.append(aguja)
+    agujas = []
+    for aguja in candidatas:
+        encontrados = [
+            i for i, nombre in enumerate(nombres_sin_extension)
+            if coincide_por_palabras(aguja, [nombre])]
+        if encontrados == [indice]:
+            agujas.append(aguja)
+            if len(agujas) >= tope:
+                break
+    return agujas
+
+
+def aguja_grupo(nombres, incluidos, excluidos):
+    """La palabra común que encuentra a todo el grupo y a ningún excluido.
+
+    Se comprueba con la misma regla del buscador de la aplicación, así una
+    palabra que solo es prefijo de otra no sirve para aislar el grupo.
+    """
+    import re
+    from ytchat.music.biblioteca import coincide_por_palabras
+    nombres_sin_extension = [Path(nombre).stem for nombre in nombres]
+    comunes = set.intersection(*[
+        set(re.findall(r"[^\W_]+", nombres_sin_extension[i]))
+        for i in incluidos])
+    for aguja in sorted(comunes, key=lambda palabra: (-len(palabra), palabra)):
+        if len(aguja) < 2:
+            continue
+        if not all(coincide_por_palabras(aguja, [nombres_sin_extension[i]])
+                   for i in incluidos):
+            continue
+        if any(coincide_por_palabras(aguja, [nombres_sin_extension[i]])
+               for i in excluidos):
+            continue
+        return aguja
+    return None
+
+
 def escenario_musica_real(app: Aplicacion, args, res: Resultado):
     """Música real de punta a punta, con archivos y sonido de verdad.
 
@@ -1879,7 +1936,6 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
     import re
     import shutil
     import tempfile
-    import unicodedata
     import wave
     from ytchat.core import paths
     from ytchat.core.config import (
@@ -1904,11 +1960,6 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
     def _corta(texto):
         res.fallo(texto)
         raise _Corte()
-
-    def _plegar(texto):
-        descompuesto = unicodedata.normalize("NFKD", texto)
-        return "".join(c for c in descompuesto
-                       if not unicodedata.combining(c)).casefold()
 
     if medidor_sonido is None or not medidor_sonido.DISPONIBLE:
         res.no_probado("musica_real: sin medidor de sonido en esta PC")
@@ -1945,7 +1996,6 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
     elegidos = random.Random(18102026).sample(candidatos, 5)
     nombres_archivo = ([f"{i + 1:02d} {f.name}" for i, f in enumerate(elegidos)]
                        + ["06 corto QA.wav"])
-    plegados = [_plegar(n) for n in nombres_archivo]
     if any(", " in Path(nombre).stem for nombre in nombres_archivo):
         res.no_probado(
             "musica_real: un tema elegido tiene una coma en el nombre y no "
@@ -1968,31 +2018,10 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
     propia = None
 
     def _agujas_unicas(indice, tope=6):
-        objetivo = plegados[indice]
-        otros = [n for j, n in enumerate(plegados) if j != indice]
-        vistas = []
-        for longitud in range(len(objetivo), 2, -1):
-            for inicio in range(len(objetivo) - longitud + 1):
-                aguja = objetivo[inicio:inicio + longitud]
-                if aguja not in vistas and all(aguja not in otro
-                                               for otro in otros):
-                    vistas.append(aguja)
-                    if len(vistas) >= tope:
-                        return vistas
-        return vistas
+        return agujas_unicas(nombres_archivo, indice, tope)
 
     def _aguja_grupo(incluidos, excluidos):
-        def _pedazos(texto):
-            actual = []
-            for caracter in texto:
-                actual.append(caracter if caracter.isalnum() else " ")
-            return {t for t in "".join(actual).split() if len(t) >= 2}
-        comunes = set.intersection(
-            *[_pedazos(plegados[i]) for i in incluidos])
-        for aguja in sorted(comunes, key=len, reverse=True):
-            if all(aguja not in plegados[i] for i in excluidos):
-                return aguja
-        return None
+        return aguja_grupo(nombres_archivo, incluidos, excluidos)
 
     try:
         # ── Carpeta temporal con los 6 temas ──

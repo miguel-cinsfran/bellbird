@@ -125,5 +125,49 @@ class TestEsVentanaDeLaApp(unittest.TestCase):
             self.assertFalse(conducir.es_ventana_de_la_app(nombre))
 
 
+class TestAgujasDeBusqueda(unittest.TestCase):
+
+    @staticmethod
+    def _coincide(aguja, nombre):
+        from ytchat.music.biblioteca import coincide_por_palabras
+        return coincide_por_palabras(aguja, [Path(nombre).stem])
+
+    def test_la_aguja_unica_sale_del_nombre_sin_extension(self):
+        nombres = [
+            "01 tema uno.mp3",
+            "02 tema dos.mp3",
+            "03 tema tres.mp3",
+            "04 tema cuatro.mp3",
+            "05 tema cinco.mp3",
+            "06 corto QA.wav",
+        ]
+        agujas = conducir.agujas_unicas(nombres, 5)
+
+        self.assertTrue(agujas)
+        self.assertEqual(agujas[0], "06")
+        for aguja in agujas:
+            self.assertNotIn(".", aguja)
+            self.assertTrue(self._coincide(aguja, nombres[5]))
+            for i, nombre in enumerate(nombres):
+                if i != 5:
+                    self.assertFalse(self._coincide(aguja, nombre))
+
+    def test_no_elige_una_palabra_que_tambien_encuentra_a_otro(self):
+        nombres = ["01 luna.mp3", "02 luna llena.mp3", "03 otro.mp3"]
+        agujas = conducir.agujas_unicas(nombres, 0)
+
+        self.assertEqual(agujas[0], "01")
+
+    def test_la_aguja_de_grupo_usa_la_regla_de_palabras(self):
+        nombres = ["01 sol.flac", "02 sol.flac", "03 otro.wav"]
+
+        self.assertEqual(conducir.aguja_grupo(nombres, [0, 1], [2]), "sol")
+
+    def test_sin_palabra_que_aisle_el_grupo_devuelve_none(self):
+        nombres = ["01 sol.mp3", "02 sol mar.mp3", "03 soleado.mp3"]
+
+        self.assertIsNone(conducir.aguja_grupo(nombres, [0, 1], [2]))
+
+
 if __name__ == "__main__":
     unittest.main()

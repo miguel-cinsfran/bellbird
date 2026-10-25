@@ -286,10 +286,18 @@ class ColeccionesVentanaMusica:
             temas_lista = (tema_marcado,) if tema_marcado is not None else ()
         else:
             temas_lista = tuple(self._control.temas_de_lista(viejo) or ())
-        temas_carpeta = tuple(self._biblioteca.temas()) \
-            if self._biblioteca is not None else ()
+        biblioteca = self._control.biblioteca_actual()
+        if biblioteca is not None:
+            self._abrir_editor_lista(viejo, temas_lista, biblioteca.temas())
+            return
+        self._control.biblioteca(
+            lambda actual: self._abrir_editor_lista(
+                viejo, temas_lista,
+                actual.temas() if actual is not None else ()))
+
+    def _abrir_editor_lista(self, viejo, temas_lista, temas_carpeta):
         datos = musica_editor_lista.pedir_lista(
-            self, viejo or "", temas_carpeta, temas_lista)
+            self, viejo or "", tuple(temas_carpeta or ()), temas_lista)
         if datos is None:
             return
         nombre, temas = datos

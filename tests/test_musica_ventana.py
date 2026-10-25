@@ -1169,6 +1169,41 @@ class TestVentanaMusica(unittest.TestCase):
         self.assertIn(("guardar_lista", "Otra", nuevo, "Mía"),
                       control.llamadas)
 
+    def test_editar_lista_usa_la_biblioteca_actual_del_control(self):
+        temas_lista = (Tema("C:/Musica/rock.mp3", "Rock"),)
+        self._crear_lista("Mía", temas_lista)
+        control = ControlFalso(
+            biblioteca=_biblioteca_de("Rock", "Jazz"),
+            carpeta_listas=self.carpeta_listas,
+            temas_listas={"Mía": temas_lista})
+        self._abrir(control, abrir_listas=True)
+        self.assertIsNone(self.ventana._biblioteca)
+        with mock.patch.object(
+                musica_editor_lista, "pedir_lista",
+                return_value=("Mía", temas_lista)) as pedir:
+            self.ventana._editar_lista()
+        self.assertEqual([t.titulo for t in pedir.call_args[0][2]],
+                         ["Rock", "Jazz"])
+        self.assertNotIn(("biblioteca",), control.llamadas)
+
+    def test_editar_lista_sin_biblioteca_actual_la_pide_al_control(self):
+        temas_lista = (Tema("C:/Musica/rock.mp3", "Rock"),)
+        self._crear_lista("Mía", temas_lista)
+        control = ControlFalso(
+            biblioteca=_biblioteca_de("Rock", "Jazz"),
+            carpeta_listas=self.carpeta_listas,
+            temas_listas={"Mía": temas_lista})
+        self._abrir(control, abrir_listas=True)
+        with mock.patch.object(control, "biblioteca_actual",
+                               return_value=None), \
+                mock.patch.object(
+                    musica_editor_lista, "pedir_lista",
+                    return_value=("Mía", temas_lista)) as pedir:
+            self.ventana._editar_lista()
+        self.assertIn(("biblioteca",), control.llamadas)
+        self.assertEqual([t.titulo for t in pedir.call_args[0][2]],
+                         ["Rock", "Jazz"])
+
     # ── Cola: refresco y «Ir al que suena» ─────────────────────────────────
 
     def test_refrescar_cola_conserva_la_seleccion(self):

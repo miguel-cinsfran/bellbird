@@ -441,12 +441,25 @@ class TestAvisosDeCola(unittest.TestCase):
 
 class TestAvisosDeListas(unittest.TestCase):
 
-    def test_saltadas_singular_y_plural(self):
-        self.assertEqual(anuncios.aviso_saltadas(1).texto,
-                         "Se saltó 1 entrada que no se pudo leer")
-        self.assertEqual(anuncios.aviso_saltadas(3).texto,
-                         "Se saltaron 3 entradas que no se pudieron leer")
-        self.assertIsNone(anuncios.aviso_saltadas(2).sonido)
+    def test_faltantes_nombra_una_o_varias_canciones(self):
+        self.assertEqual(
+            anuncios.aviso_faltantes(("Don Quijote",)).texto,
+            "No se encontró una canción de la lista: Don Quijote")
+        self.assertEqual(
+            anuncios.aviso_faltantes(("A", "B")).texto,
+            "No se encontraron 2 canciones de la lista: A y B")
+        self.assertEqual(
+            anuncios.aviso_faltantes(("A", "B", "C")).texto,
+            "No se encontraron 3 canciones de la lista: A, B y C")
+
+    def test_faltantes_con_mas_de_tres_resume_el_resto(self):
+        self.assertEqual(
+            anuncios.aviso_faltantes(("A", "B", "C", "D")).texto,
+            "No se encontraron 4 canciones de la lista: A, B, C y 1 más")
+        self.assertEqual(
+            anuncios.aviso_faltantes(("A", "B", "C", "D", "E")).texto,
+            "No se encontraron 5 canciones de la lista: A, B, C y 2 más")
+        self.assertIsNone(anuncios.aviso_faltantes(("A", "B")).sonido)
 
     def test_agregado_a_lista(self):
         aviso = anuncios.aviso_agregado_a_lista("Favoritas")

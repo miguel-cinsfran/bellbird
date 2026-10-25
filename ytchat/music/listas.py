@@ -122,8 +122,8 @@ def guardar(carpeta, nombre, temas) -> str:
     return limpio
 
 
-def cargar(carpeta, nombre) -> tuple[tuple[Tema, ...], int]:
-    """Lee una lista y devuelve los temas y cuántas líneas se saltaron."""
+def cargar(carpeta, nombre) -> tuple[tuple[Tema, ...], tuple[str, ...]]:
+    """Lee una lista y devuelve los temas y los nombres que faltan."""
     ruta = _existente(carpeta, nombre)
     if ruta is None:
         raise ErrorListas(TEXTO_NO_EXISTE.format(nombre=nombre))

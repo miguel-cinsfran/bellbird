@@ -21,12 +21,12 @@ class ListasPropiasMusica:
         reproducir la carpeta.
         """
         try:
-            temas, saltadas = listas.cargar(self.carpeta_listas(), nombre)
+            temas, faltantes = listas.cargar(self.carpeta_listas(), nombre)
         except listas.ErrorListas as exc:
             self._avisar(anuncios.aviso_error_listas(str(exc)))
             return
-        if saltadas:
-            self._avisar(anuncios.aviso_saltadas(saltadas))
+        if faltantes:
+            self._avisar(anuncios.aviso_faltantes(faltantes))
         self.reproducir_temas(temas)
 
     # ── Listas propias ───────────────────────────────────────────────────────
@@ -104,12 +104,24 @@ class ListasPropiasMusica:
         self._avisar(anuncios.aviso_lista_borrada(nombre))
 
     def temas_de_lista(self, nombre):
-        """Los temas de una lista propia, avisando si se saltaron entradas."""
+        """Los temas de una lista propia, avisando una vez qué falta."""
         try:
-            temas, saltadas = listas.cargar(self.carpeta_listas(), nombre)
+            temas, faltantes = listas.cargar(self.carpeta_listas(), nombre)
         except listas.ErrorListas as exc:
             self._avisar(anuncios.aviso_error_listas(str(exc)))
             return ()
-        if saltadas:
-            self._avisar(anuncios.aviso_saltadas(saltadas))
+        if self._cambiaron_los_faltantes(nombre, faltantes) and faltantes:
+            self._avisar(anuncios.aviso_faltantes(faltantes))
         return temas
+
+    def _cambiaron_los_faltantes(self, nombre, faltantes) -> bool:
+        """Guarda qué falta en la lista y dice si cambió desde la última vez."""
+        por_lista = getattr(self, "_faltantes_por_lista", None)
+        if por_lista is None:
+            por_lista = {}
+            self._faltantes_por_lista = por_lista
+        clave = str(nombre).casefold()
+        if por_lista.get(clave, ()) == faltantes:
+            return False
+        por_lista[clave] = faltantes
+        return True

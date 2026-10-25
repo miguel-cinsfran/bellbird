@@ -213,8 +213,8 @@ class TestBiblioteca(unittest.TestCase):
         )
         lista = listas / "mi lista.m3u8"
         lista.write_text(contenido, encoding="utf-8-sig")
-        temas, saltadas = Biblioteca(self.raiz).cargar_m3u8(lista)
-        self.assertEqual(saltadas, 0)
+        temas, faltantes = Biblioteca(self.raiz).cargar_m3u8(lista)
+        self.assertEqual(faltantes, ())
         self.assertEqual([Path(t.origen).name for t in temas],
                          ["Cancion.mp3", "Otra.wav", "Alfa.ogg"])
         self.assertEqual(temas[0].titulo, "Primera")
@@ -232,8 +232,26 @@ class TestBiblioteca(unittest.TestCase):
             "Rock/Cancion.mp3\n",
             encoding="utf-8",
         )
-        temas, saltadas = Biblioteca(self.raiz).cargar_m3u8(lista)
-        self.assertEqual(saltadas, 3)
+        temas, faltantes = Biblioteca(self.raiz).cargar_m3u8(lista)
+        self.assertEqual(faltantes, ("cancion", "no-existe", "notas"))
+        self.assertEqual([Path(t.origen).name for t in temas], ["Cancion.mp3"])
+
+    def test_m3u8_devuelve_los_nombres_de_lo_que_falta_en_orden(self):
+        lista = self.raiz / "faltantes.m3u8"
+        lista.write_text(
+            "#EXTM3U\n"
+            "#EXTINF:-1,Don Quijote\n"
+            "no-existe.mp3\n"
+            "#EXTM3U\n"
+            "Rock/Cancion.mp3\n"
+            "otra-que-falta.mp3\n"
+            "#EXTINF:-1,Enlace ajeno\n"
+            "https://ejemplo.test/cancion.mp3\n",
+            encoding="utf-8",
+        )
+        temas, faltantes = Biblioteca(self.raiz).cargar_m3u8(lista)
+        self.assertEqual(faltantes,
+                         ("Don Quijote", "otra-que-falta", "Enlace ajeno"))
         self.assertEqual([Path(t.origen).name for t in temas], ["Cancion.mp3"])
 
     def test_m3u8_con_enlace_de_youtube_entra_y_las_demas_web_se_saltan(self):
@@ -246,8 +264,8 @@ class TestBiblioteca(unittest.TestCase):
             "https://youtu.be/def456\n",
             encoding="utf-8",
         )
-        temas, saltadas = Biblioteca(self.raiz).cargar_m3u8(lista)
-        self.assertEqual(saltadas, 1)
+        temas, faltantes = Biblioteca(self.raiz).cargar_m3u8(lista)
+        self.assertEqual(faltantes, ("cancion",))
         self.assertEqual([t.origen for t in temas],
                          ["https://www.youtube.com/watch?v=abc123",
                           "https://youtu.be/def456"])

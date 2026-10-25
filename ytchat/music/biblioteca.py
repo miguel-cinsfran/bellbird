@@ -58,6 +58,14 @@ def coincide_por_palabras(texto, campos) -> bool:
                for buscada in buscadas)
 
 
+def _nombre_de_faltante(entrada: str, titulo: str) -> str:
+    """El nombre que se anuncia de una entrada que no se pudo cargar."""
+    if titulo:
+        return titulo
+    nombre = Path(entrada).stem
+    return nombre or entrada
+
+
 def _leer_extinf(entrada: str) -> tuple[int, str]:
     """Los milisegundos y el título de una línea #EXTINF.
 
@@ -243,8 +251,8 @@ class Biblioteca:
                 resultados.append(tema)
         return tuple(resultados)
 
-    def cargar_m3u8(self, ruta) -> tuple[tuple[Tema, ...], int]:
-        """Lee una lista .m3u8 y devuelve los temas y cuántas líneas se saltaron."""
+    def cargar_m3u8(self, ruta) -> tuple[tuple[Tema, ...], tuple[str, ...]]:
+        """Lee una lista .m3u8 y devuelve los temas y los nombres que faltan."""
         archivo = Path(ruta)
         if archivo.suffix.lower() != ".m3u8" or not archivo.is_file():
             raise ErrorBiblioteca(f"La ruta no es una lista .m3u8: {archivo}")
@@ -253,7 +261,7 @@ class Biblioteca:
         except (OSError, UnicodeError) as exc:
             raise ErrorBiblioteca(f"No se puede leer la lista: {exc}") from exc
         temas = []
-        saltadas = 0
+        faltantes = []
         pendiente = (0, "")
         for linea in lineas:
             entrada = linea.strip()
@@ -266,12 +274,12 @@ class Biblioteca:
                 continue
             tema = self._tema_de_linea(archivo, entrada, pendiente)
             if tema is None:
-                saltadas += 1
+                faltantes.append(_nombre_de_faltante(entrada, pendiente[1]))
                 pendiente = (0, "")
                 continue
             temas.append(tema)
             pendiente = (0, "")
-        return tuple(temas), saltadas
+        return tuple(temas), tuple(faltantes)
 
     def _tema_de_linea(self, archivo: Path, entrada: str,
                        pendiente: tuple) -> Tema | None:

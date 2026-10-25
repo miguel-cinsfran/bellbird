@@ -138,8 +138,8 @@ class TestGuardarCargar(unittest.TestCase):
     def test_ida_y_vuelta_con_tildes(self):
         temas = (Tema(self.a, "Canción ñandú"), Tema(self.b, "Otra"))
         listas.guardar(self.carpeta, "Mi lista", temas)
-        cargados, saltadas = listas.cargar(self.carpeta, "Mi lista")
-        self.assertEqual(saltadas, 0)
+        cargados, faltantes = listas.cargar(self.carpeta, "Mi lista")
+        self.assertEqual(faltantes, ())
         self.assertEqual([(t.origen, t.titulo) for t in cargados],
                          [(self.a, "Canción ñandú"), (self.b, "Otra")])
 
@@ -151,7 +151,7 @@ class TestGuardarCargar(unittest.TestCase):
         with self.assertRaises(ErrorListas):
             listas.cargar(self.carpeta, "No está")
 
-    def test_cargar_avisa_cuantas_entradas_se_saltaron(self):
+    def test_cargar_devuelve_los_nombres_de_lo_que_falta(self):
         listas.crear(self.carpeta, "Mezcla")
         destino = self.carpeta / "Mezcla.m3u8"
         destino.write_text(
@@ -161,8 +161,8 @@ class TestGuardarCargar(unittest.TestCase):
             "no-existe.mp3\n"
             "https://ejemplo.test/v.mp3\n",
             encoding="utf-8")
-        temas, saltadas = listas.cargar(self.carpeta, "Mezcla")
-        self.assertEqual(saltadas, 2)
+        temas, faltantes = listas.cargar(self.carpeta, "Mezcla")
+        self.assertEqual(faltantes, ("no-existe", "v"))
         self.assertEqual([t.titulo for t in temas], ["Válida"])
 
     def test_agregar_suma_al_final(self):
@@ -175,8 +175,8 @@ class TestGuardarCargar(unittest.TestCase):
         temas = (Tema(self.a, "A", duracion_ms=222000),
                  Tema(self.b, "B", duracion_ms=7000))
         listas.guardar(self.carpeta, "Duraciones", temas)
-        cargados, saltadas = listas.cargar(self.carpeta, "Duraciones")
-        self.assertEqual(saltadas, 0)
+        cargados, faltantes = listas.cargar(self.carpeta, "Duraciones")
+        self.assertEqual(faltantes, ())
         self.assertEqual([t.duracion_ms for t in cargados], [222000, 7000])
 
     def test_sin_duracion_escribe_menos_uno_y_se_lee_sin_duracion(self):
@@ -191,8 +191,8 @@ class TestGuardarCargar(unittest.TestCase):
         self.carpeta.mkdir()
         (self.carpeta / "Vieja.m3u8").write_text(
             f"#EXTM3U\n#EXTINF:-1,Vieja\n{self.a}\n", encoding="utf-8")
-        cargados, saltadas = listas.cargar(self.carpeta, "Vieja")
-        self.assertEqual(saltadas, 0)
+        cargados, faltantes = listas.cargar(self.carpeta, "Vieja")
+        self.assertEqual(faltantes, ())
         self.assertEqual(cargados[0].titulo, "Vieja")
         self.assertEqual(cargados[0].duracion_ms, 0)
 
@@ -268,8 +268,8 @@ class TestQuitarMover(unittest.TestCase):
                 destino = max(0, min(len(modelo) - 1, indice + paso))
                 self.assertEqual(nuevo, destino)
                 modelo.insert(destino, modelo.pop(indice))
-        cargados, saltadas = listas.cargar(self.carpeta, "Propia")
-        self.assertEqual(saltadas, 0)
+        cargados, faltantes = listas.cargar(self.carpeta, "Propia")
+        self.assertEqual(faltantes, ())
         self.assertEqual([(t.origen, t.titulo) for t in cargados],
                          [(t.origen, t.titulo) for t in modelo])
 

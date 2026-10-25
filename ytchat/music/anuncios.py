@@ -67,8 +67,8 @@ TEXTO_COLA_MEZCLADA = "Cola mezclada"
 TEXTO_REPETIR_NO = "Repetir: no"
 TEXTO_REPETIR_TODO = "Repetir: toda la cola"
 TEXTO_REPETIR_TEMA = "Repetir: esta canción"
-TEXTO_SALTADAS = "Se saltaron {cantidad} entradas que no se pudieron leer"
-TEXTO_SALTADA = "Se saltó 1 entrada que no se pudo leer"
+TEXTO_FALTANTE = "No se encontró una canción de la lista: {nombres}"
+TEXTO_FALTANTES = "No se encontraron {cantidad} canciones de la lista: {nombres}"
 TEXTO_AGREGADO_A_LISTA = "Agregado a la lista {nombre}"
 TEXTO_LISTA_CREADA = "Lista creada: {nombre}"
 TEXTO_LISTA_RENOMBRADA = "Lista renombrada: {nombre}"
@@ -314,11 +314,14 @@ def aviso_repetir(modo: str) -> Aviso:
     return Aviso(textos.get(modo, TEXTO_REPETIR_NO))
 
 
-def aviso_saltadas(cantidad: int) -> Aviso:
-    """Cuántas entradas de una lista guardada no se pudieron leer."""
-    if cantidad == 1:
-        return Aviso(TEXTO_SALTADA)
-    return Aviso(TEXTO_SALTADAS.format(cantidad=cantidad))
+def aviso_faltantes(nombres) -> Aviso:
+    """Las canciones de una lista guardada que no se pudieron leer."""
+    lista = tuple(nombres)
+    if len(lista) < 2:
+        return Aviso(TEXTO_FALTANTE.format(nombres=lista[0]) if lista else "")
+    unidos = (", ".join(lista[:3]) + f" y {len(lista) - 3} más"
+              if len(lista) > 3 else ", ".join(lista[:-1]) + " y " + lista[-1])
+    return Aviso(TEXTO_FALTANTES.format(cantidad=len(lista), nombres=unidos))
 
 
 def aviso_agregado_a_lista(nombre: str) -> Aviso:

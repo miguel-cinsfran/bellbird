@@ -1489,10 +1489,10 @@ class TestListasPropias(unittest.TestCase):
                 control.reproducir_temas(temas, en_orden=True)
                 env.anunciar.reset_mock()
                 control.guardar_cola_como_lista("Rock")
-                cargados, saltadas = listas.cargar(carpeta, "Rock")
+                cargados, faltantes = listas.cargar(carpeta, "Rock")
         env.anunciar.assert_called_once_with("Lista guardada: Rock")
         self.assertEqual([t.titulo for t in cargados], ["A", "B"])
-        self.assertEqual(saltadas, 0)
+        self.assertEqual(faltantes, ())
 
     def test_guardar_cola_vacia_avisa(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -1516,7 +1516,7 @@ class TestListasPropias(unittest.TestCase):
                 env.anunciar.reset_mock()
                 control.quitar_de_lista("Rock", 0)
                 quitado = env.anunciar.call_args.args[0]
-                restantes, _saltadas = listas.cargar(carpeta, "Rock")
+                restantes, _faltantes = listas.cargar(carpeta, "Rock")
         self.assertEqual(textos, ["Agregado a la lista Rock"])
         self.assertEqual(quitado, "Canción quitada de la lista")
         self.assertEqual([t.titulo for t in restantes], ["B"])
@@ -1784,7 +1784,7 @@ class TestListasGuardadas(unittest.TestCase):
         self.assertEqual([c.args[0] for c in env.anunciar.call_args_list],
                          ["Preparando la música", "A"])
 
-    def test_reproducir_lista_guardada_avisa_las_saltadas(self):
+    def test_reproducir_lista_guardada_avisa_las_faltantes(self):
         with tempfile.TemporaryDirectory() as tmp:
             carpeta = Path(tmp) / "listas"
             sonoro = Path(tmp) / "a.mp3"
@@ -1798,7 +1798,7 @@ class TestListasGuardadas(unittest.TestCase):
                                       return_value=carpeta):
                 ControlMusica(_frame()).reproducir_lista_guardada("Mezcla")
         self.assertEqual(env.anunciar.call_args_list[0].args[0],
-                         "Se saltó 1 entrada que no se pudo leer")
+                         "No se encontró una canción de la lista: no-existe")
 
     def test_reproducir_lista_inexistente_avisa_con_error(self):
         with tempfile.TemporaryDirectory() as tmp:

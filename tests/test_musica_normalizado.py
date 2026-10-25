@@ -1,8 +1,7 @@
 """Pruebas del envoltorio de igualación de volumen, sin motor ni ventanas.
 
-Un adaptador falso anota el orden de `volumen` y `cargar`: el volumen
-corregido siempre va antes, porque el adaptador real se lo pone a cada
-reproductor nuevo.
+Un adaptador falso anota el volumen corregido que recibe `cargar` y las
+llamadas a `volumen`: el que suena no cambia cuando entra otro tema.
 """
 
 import unittest
@@ -16,8 +15,8 @@ class _AdaptadorFalso:
         self.llamadas = []
         self._volumen = volumen
 
-    def cargar(self, tema, ficha):
-        self.llamadas.append(("cargar", tema.origen, ficha))
+    def cargar(self, tema, ficha, volumen=None):
+        self.llamadas.append(("cargar", tema.origen, ficha, volumen))
 
     def volumen(self, valor):
         self.llamadas.append(("volumen", valor))
@@ -37,43 +36,55 @@ def _tema(origen="C:/musica/a.mp3"):
 
 class TestNormalizadoCargar(unittest.TestCase):
 
-    def test_el_volumen_corregido_va_antes_que_cargar(self):
+    def test_el_volumen_corregido_va_en_cargar_sin_tocar_el_actual(self):
         adaptador = _AdaptadorFalso()
         envuelto = Normalizado(adaptador, lambda _tema: 0.0, volumen=50)
         envuelto.cargar(_tema(), 7)
         self.assertEqual(adaptador.llamadas,
-                         [("volumen", 50), ("cargar", "C:/musica/a.mp3", 7)])
+                         [("cargar", "C:/musica/a.mp3", 7, 50)])
 
-    def test_ganancia_positiva_sube_sin_pasar_de_cien(self):
+    def test_ganancia_positiva_sube(self):
         adaptador = _AdaptadorFalso()
         envuelto = Normalizado(adaptador, lambda _tema: 6.0, volumen=20)
         envuelto.cargar(_tema(), 1)
-        self.assertEqual(adaptador.llamadas[0], ("volumen", 25))
+        self.assertEqual(adaptador.llamadas[0], ("cargar", "C:/musica/a.mp3",
+                                                 1, 25))
+
+    def test_con_volumen_cien_la_ganancia_positiva_supera_cien(self):
+        adaptador = _AdaptadorFalso()
+        envuelto = Normalizado(adaptador, lambda _tema: 6.0, volumen=100)
+        envuelto.cargar(_tema(), 1)
+        self.assertEqual(adaptador.llamadas, [("cargar", "C:/musica/a.mp3",
+                                               1, 126)])
 
     def test_ganancia_negativa_baja(self):
         adaptador = _AdaptadorFalso()
         envuelto = Normalizado(adaptador, lambda _tema: -6.0, volumen=50)
         envuelto.cargar(_tema(), 1)
-        self.assertEqual(adaptador.llamadas[0], ("volumen", 40))
+        self.assertEqual(adaptador.llamadas[0], ("cargar", "C:/musica/a.mp3",
+                                                 1, 40))
 
     def test_ganancia_cero_deja_el_volumen_del_usuario(self):
         adaptador = _AdaptadorFalso()
         envuelto = Normalizado(adaptador, lambda _tema: 0.0, volumen=50)
         envuelto.cargar(_tema(), 1)
-        self.assertEqual(adaptador.llamadas[0], ("volumen", 50))
+        self.assertEqual(adaptador.llamadas[0], ("cargar", "C:/musica/a.mp3",
+                                                 1, 50))
 
     def test_apagado_da_el_volumen_del_usuario(self):
         adaptador = _AdaptadorFalso()
         envuelto = Normalizado(adaptador, lambda _tema: 6.0, volumen=20)
         envuelto.fijar_activo(False)
         envuelto.cargar(_tema(), 1)
-        self.assertEqual(adaptador.llamadas[0], ("volumen", 20))
+        self.assertEqual(adaptador.llamadas[0], ("cargar", "C:/musica/a.mp3",
+                                                 1, 20))
 
     def test_nace_activo(self):
         adaptador = _AdaptadorFalso()
         envuelto = Normalizado(adaptador, lambda _tema: -6.0, volumen=50)
         envuelto.cargar(_tema(), 1)
-        self.assertEqual(adaptador.llamadas[0], ("volumen", 40))
+        self.assertEqual(adaptador.llamadas[0], ("cargar", "C:/musica/a.mp3",
+                                                 1, 40))
 
     def test_ganancia_que_lanza_da_cero_y_el_tema_igual_se_carga(self):
         def _romper(_tema):
@@ -83,7 +94,7 @@ class TestNormalizadoCargar(unittest.TestCase):
         envuelto = Normalizado(adaptador, _romper, volumen=50)
         envuelto.cargar(_tema(), 3)
         self.assertEqual(adaptador.llamadas,
-                         [("volumen", 50), ("cargar", "C:/musica/a.mp3", 3)])
+                         [("cargar", "C:/musica/a.mp3", 3, 50)])
 
     def test_cambiar_activo_no_llama_a_volumen_hasta_el_proximo_cargar(self):
         adaptador = _AdaptadorFalso()
@@ -93,7 +104,8 @@ class TestNormalizadoCargar(unittest.TestCase):
         envuelto.fijar_activo(False)
         self.assertEqual(adaptador.llamadas, [])
         envuelto.cargar(_tema(), 2)
-        self.assertEqual(adaptador.llamadas[0], ("volumen", 50))
+        self.assertEqual(adaptador.llamadas[0], ("cargar", "C:/musica/a.mp3",
+                                                 2, 50))
 
     def test_volumen_cero_da_cero_con_cualquier_ganancia(self):
         adaptador = _AdaptadorFalso()
@@ -113,7 +125,8 @@ class TestNormalizadoCargar(unittest.TestCase):
         adaptador.llamadas.clear()
         envuelto.fijar_activo(False)
         envuelto.cargar(_tema(), 2)
-        self.assertEqual(adaptador.llamadas[0], ("volumen", 80))
+        self.assertEqual(adaptador.llamadas[0], ("cargar", "C:/musica/a.mp3",
+                                                 2, 80))
 
     def test_delega_fijar_dispositivo_y_tiempo_ms(self):
         adaptador = _AdaptadorFalso()

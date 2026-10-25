@@ -102,6 +102,7 @@ class FakeReproductor:
         self.gestor = FakeGestor()
         self.numero = numero
         self.volumen = None
+        self.volumenes = []
         self.salida = None
         self.dispositivo = None
         self.liberado = False
@@ -150,6 +151,7 @@ class FakeReproductor:
     def audio_set_volume(self, valor):
         self._revisar()
         self.volumen = valor
+        self.volumenes.append(valor)
 
     def play(self):
         self._revisar()
@@ -534,7 +536,72 @@ class TestAdaptadorDobles(_BaseDobles):
         self.assertTrue(self.instancia.media_etiquetas.liberada)
 
 
+class _TransicionesFalsa:
+    """Anota los volúmenes con los que se pide el fundido, sin mover nada."""
+
+    def __init__(self):
+        self.cruces = []
+
+    def cruzar(self, sale, volumen_sale, entra, volumen_entra,
+               duracion_ms, al_soltar):
+        self.cruces.append(
+            (sale, volumen_sale, entra, volumen_entra, duracion_ms))
+
+    def duracion_cruce(self, reproductor, cruce_ms):
+        return None
+
+    def en_fundido(self, reproductor):
+        return False
+
+    def vigilar(self, *argumentos):
+        pass
+
+    def olvidar(self, reproductor):
+        pass
+
+    def terminar_ya(self):
+        pass
+
+    def cerrar(self):
+        pass
+
+
 class TestAdaptadorCruce(_BaseDobles):
+
+    def test_el_fundido_usa_el_volumen_de_cada_cancion(self):
+        self.existentes.update({"C:/musica/a.mp3", "C:/musica/b.mp3"})
+        adaptador = self.crear(cruce_de=lambda: 6)
+        adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1, volumen=74)
+        viejo = self.instancia.reproductores[0]
+        self.assertEqual(viejo.volumen, 74)
+        transiciones = _TransicionesFalsa()
+        adaptador._transiciones = transiciones
+
+        adaptador.cargar(Tema("C:/musica/b.mp3", "b"), 2, volumen=100)
+
+        nuevo = self.instancia.reproductores[1]
+        self.assertEqual(len(transiciones.cruces), 1)
+        sale, volumen_sale, entra, volumen_entra, _ = transiciones.cruces[0]
+        self.assertIs(sale, viejo)
+        self.assertIs(entra, nuevo)
+        self.assertEqual(volumen_sale, 74)
+        self.assertEqual(volumen_entra, 100)
+        self.assertNotIn(100, viejo.volumenes)
+        self.assertEqual(viejo.volumen, 74)
+        self.assertEqual(nuevo.volumen, 0)
+        self.assertEqual(adaptador._volumen, 100)
+
+    def test_la_que_entra_termina_el_fundido_en_su_volumen(self):
+        self.existentes.update({"C:/musica/a.mp3", "C:/musica/b.mp3"})
+        with mock.patch("ytchat.music.bordes.medir_bordes",
+                        return_value=Bordes(0, 0)):
+            adaptador = self.crear(cruce_de=lambda: 6)
+            adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1, volumen=74)
+            adaptador.cargar(Tema("C:/musica/b.mp3", "b"), 2, volumen=100)
+            nuevo = self.instancia.reproductores[1]
+
+            self.assertTrue(esperar(lambda: nuevo.volumen == 100, plazo=3.0))
+        self.assertEqual(adaptador._volumen, 100)
 
     def test_con_cruzaria_true_el_viejo_se_cierra_al_soltar(self):
         self.existentes.update({"C:/musica/a.mp3", "C:/musica/b.mp3"})

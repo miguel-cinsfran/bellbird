@@ -42,8 +42,8 @@ class _AdaptadorFalso:
         self.aviso = funcion
         self.cruzaria = cruzaria
 
-    def cargar(self, tema, ficha):
-        self.llamadas.append(("cargar", tema.origen, ficha))
+    def cargar(self, tema, ficha, volumen=None):
+        self.llamadas.append(("cargar", tema.origen, ficha, volumen))
 
     def pausar(self):
         self.llamadas.append(("pausar",))
@@ -2062,11 +2062,7 @@ class TestSonoridadCableada(unittest.TestCase):
                     llamadas = env.creados[0].llamadas
             cargas = [l for l in llamadas if l[0] == "cargar"]
             self.assertEqual([c[1] for c in cargas], [str(ruta.resolve())])
-            primer_cargar = next(
-                i for i, l in enumerate(llamadas) if l[0] == "cargar")
-            previos = [l[1] for l in llamadas[:primer_cargar]
-                       if l[0] == "volumen"]
-            self.assertEqual(previos[-1], esperado)
+            self.assertEqual(cargas[0][3], esperado)
         self.assertEqual(sonoridad.volumen_efectivo(50, 6.0), 63)
 
 

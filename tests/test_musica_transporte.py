@@ -16,8 +16,8 @@ class AdaptadorConVolumen(AdaptadorFalso):
         super().__init__()
         self.volumen_actual = volumen
 
-    def cargar(self, tema, ficha):
-        super().cargar(tema, ficha)
+    def cargar(self, tema, ficha, volumen=None):
+        super().cargar(tema, ficha, volumen)
         self.volumen(self.volumen_actual)
 
     def volumen(self, valor):

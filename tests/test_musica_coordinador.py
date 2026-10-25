@@ -19,8 +19,8 @@ class AdaptadorFalso:
         self.fallar = set()
         self.tiempo = None
 
-    def cargar(self, tema, ficha):
-        self.llamadas.append(("cargar", tema.origen, ficha))
+    def cargar(self, tema, ficha, volumen=None):
+        self.llamadas.append(("cargar", tema.origen, ficha, volumen))
         if tema.origen in self.fallar:
             raise RuntimeError("fallo simulado")
 
@@ -63,7 +63,8 @@ class TestOperaciones(unittest.TestCase):
         self.assertTrue(r.ok)
         self.assertEqual(r.codigo, OK)
         self.assertEqual(r.estado.posicion, 0)
-        self.assertEqual(ad.llamadas[0], ("cargar", "C:/musica/a.mp3", 1))
+        self.assertEqual(ad.llamadas[0],
+                         ("cargar", "C:/musica/a.mp3", 1, None))
 
     def test_reproducir_lista_vacia(self):
         ad = AdaptadorFalso()
@@ -95,7 +96,8 @@ class TestOperaciones(unittest.TestCase):
         r = Coordinador(ad).agregar([tema("a"), tema("b")])
         self.assertTrue(r.ok)
         self.assertEqual(r.estado.posicion, 0)
-        self.assertEqual(ad.llamadas[0], ("cargar", "C:/musica/a.mp3", 1))
+        self.assertEqual(ad.llamadas[0],
+                         ("cargar", "C:/musica/a.mp3", 1, None))
 
     def test_agregar_vacio(self):
         ad = AdaptadorFalso()

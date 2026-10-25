@@ -39,12 +39,12 @@ class Normalizado:
         self._activo = bool(activo)
 
     def cargar(self, tema, ficha) -> None:
-        """Aplica el volumen corregido y después carga el tema.
+        """Calcula el volumen corregido del tema y lo carga con ese volumen.
 
-        El volumen va antes porque el adaptador real le pone a cada
-        reproductor nuevo el último volumen que recibió. Con la igualación
-        apagada, o si `ganancia_de` lanza, la ganancia es 0 y el tema igual
-        se carga.
+        El volumen va en `cargar` porque el adaptador real lo aplica solo al
+        reproductor nuevo: el tema que todavía suena conserva el suyo hasta
+        el fundido. Con la igualación apagada, o si `ganancia_de` lanza, la
+        ganancia es 0 y el tema igual se carga.
         """
         if self._activo:
             try:
@@ -59,9 +59,9 @@ class Normalizado:
             self._ganancia = float(ganancia)
         except (TypeError, ValueError):
             self._ganancia = 0.0
-        self._adaptador.volumen(
-            sonoridad.volumen_efectivo(self._volumen, self._ganancia))
-        self._adaptador.cargar(tema, ficha)
+        self._adaptador.cargar(
+            tema, ficha,
+            volumen=sonoridad.volumen_efectivo(self._volumen, self._ganancia))
 
     def volumen(self, valor) -> None:
         """Guarda el volumen del usuario y aplica el efectivo con la ganancia.

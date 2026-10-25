@@ -31,6 +31,8 @@ OBJETIVO_LUFS = -14.0
 TECHO_PICO_DBTP = -1.0
 GANANCIA_MINIMA_DB = -15.0
 GANANCIA_MAXIMA_DB = 10.0
+# Hasta acá acepta VLC y amplifica por software.
+VOLUMEN_MAXIMO_VLC = 200
 
 # Lo que puede pasar al pedir la igualación del volumen.
 INICIO = "inicio"
@@ -130,17 +132,17 @@ def texto_progreso(progreso) -> str:
 
 
 def volumen_efectivo(volumen, ganancia):
-    """El volumen de 0 a 100 con la ganancia aplicada, como entero.
+    """El volumen con la ganancia aplicada, como entero hasta 200.
 
     VLC eleva el volumen al cubo, por eso la ganancia se divide entre 60.
-    Con ganancia 0 devuelve el mismo volumen. Pasado de 100, VLC amplifica
-    por software y puede distorsionar, por eso el techo es 100.
+    Con ganancia 0 devuelve el mismo volumen. El margen para no distorsionar
+    ya lo garantiza `ganancia_db`, por eso pasado 100 se puede amplificar.
     """
     try:
         efectivo = round(float(volumen) * 10.0 ** (float(ganancia) / 60.0))
     except (TypeError, ValueError, OverflowError):
         return int(volumen) if isinstance(volumen, int) else 0
-    return max(0, min(100, int(efectivo)))
+    return max(0, min(VOLUMEN_MAXIMO_VLC, int(efectivo)))
 
 
 def _argumentos_medicion(ruta_ffmpeg, ruta):

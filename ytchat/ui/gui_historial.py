@@ -52,19 +52,7 @@ class HistorialDialog(wx.Dialog):
         self._listas: dict[str, wx.ListBox] = {}
         self._entradas: dict[str, list] = {}
         for titulo, plat in _PLATAFORMAS:
-            pag = wx.Panel(self.nb, name=f"PagHistorial_{plat}")
-            _pintar(pag, bg=_T.bg)
-            pvs = wx.BoxSizer(wx.VERTICAL)
-            lb = wx.ListBox(pag, style=wx.LB_SINGLE | wx.LB_HSCROLL,
-                            name=f"Historial de {titulo}")
-            _pintar(lb, _T.field, _T.text)
-            nombre_accesible(lb, f"Historial de {titulo}")
-            lb.Bind(wx.EVT_LISTBOX_DCLICK, lambda e: self._conectar())
-            lb.Bind(wx.EVT_KEY_DOWN, self._on_key)
-            pvs.Add(lb, 1, wx.EXPAND | wx.ALL, 8)
-            pag.SetSizer(pvs)
-            self.nb.AddPage(pag, titulo)
-            self._listas[plat] = lb
+            self._listas[plat] = self._crear_pagina(titulo, plat)
         self.nb.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self._on_pestana)
         vs.Add(self.nb, 1, wx.EXPAND | wx.ALL, 10)
 
@@ -82,6 +70,22 @@ class HistorialDialog(wx.Dialog):
         self.btn_quitar.Bind(wx.EVT_BUTTON, lambda e: self._quitar())
 
         self._poblar()
+
+    def _crear_pagina(self, titulo, plat):
+        """La pestaña de una plataforma y su lista, ya enlazada."""
+        pag = wx.Panel(self.nb, name=f"PagHistorial_{plat}")
+        _pintar(pag, bg=_T.bg)
+        pvs = wx.BoxSizer(wx.VERTICAL)
+        lb = wx.ListBox(pag, style=wx.LB_SINGLE | wx.LB_HSCROLL,
+                        name=f"Historial de {titulo}")
+        _pintar(lb, _T.field, _T.text)
+        nombre_accesible(lb, f"Historial de {titulo}")
+        lb.Bind(wx.EVT_LISTBOX_DCLICK, lambda e: self._conectar())
+        lb.Bind(wx.EVT_KEY_DOWN, self._on_key)
+        pvs.Add(lb, 1, wx.EXPAND | wx.ALL, 8)
+        pag.SetSizer(pvs)
+        self.nb.AddPage(pag, titulo)
+        return lb
 
     # ── Datos ──────────────────────────────────────────────────────────────
 

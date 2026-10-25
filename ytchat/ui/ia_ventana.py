@@ -78,14 +78,18 @@ class VentanaIA(wx.Dialog):
         self.txt_mensaje.SetFocus()
         paleta.pintar_ventana(self)
 
-    def _crear_controles(self) -> None:
-        vs = wx.BoxSizer(wx.VERTICAL)
+    def _crear_conversacion(self, vs) -> None:
+        """El rótulo y la lista de la conversación, en el sizer vertical."""
         self.rotulo_conv = wx.StaticText(self, label="Con&versación:")
         vs.Add(self.rotulo_conv, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.lst_conversacion = wx.ListBox(
             self, style=wx.LB_SINGLE, name="Conversación")
         nombre_accesible(self.lst_conversacion, "Conversación")
         vs.Add(self.lst_conversacion, 1, wx.EXPAND | wx.ALL, 10)
+
+    def _crear_controles(self) -> None:
+        vs = wx.BoxSizer(wx.VERTICAL)
+        self._crear_conversacion(vs)
         self.rotulo_msg = wx.StaticText(self, label="&Mensaje:")
         vs.Add(self.rotulo_msg, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.txt_mensaje = wx.TextCtrl(

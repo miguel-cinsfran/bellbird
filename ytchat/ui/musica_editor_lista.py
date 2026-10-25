@@ -17,8 +17,6 @@ MAX_NOMBRE = 60
 TITULO_NUEVA = "Nueva lista"
 TITULO_EDITAR = "Editar lista"
 TEXTO_NOMBRE_LARGO = "El nombre no puede tener más de 60 caracteres"
-TEXTO_MARCADA = "Marcada"
-TEXTO_SIN_MARCAR = "Sin marcar"
 ACCION_CANCELAR = "cancelar"
 ACCION_ALTERNAR = "alternar"
 
@@ -224,7 +222,6 @@ class DialogoEditorLista(wx.Dialog):
             return
         marcada = not self.lb_temas.IsItemChecked(indice)
         self.lb_temas.CheckItem(indice, marcada)
-        anunciar(TEXTO_MARCADA if marcada else TEXTO_SIN_MARCAR)
 
 
 def pedir_lista(parent, nombre="", temas_carpeta=(), temas_lista=()):

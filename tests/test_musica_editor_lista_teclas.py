@@ -52,7 +52,7 @@ class TestEnterEnLaLista(unittest.TestCase):
         wx.Yield()
         return self.dialogo
 
-    def test_enter_marca_y_desmarca_sin_cerrar(self):
+    def test_enter_marca_y_desmarca_sin_cerrar_ni_anunciar(self):
         a = Tema("C:/a.mp3", "A")
         b = Tema("C:/b.mp3", "B")
         dialogo = self._abrir((a, b))
@@ -61,12 +61,12 @@ class TestEnterEnLaLista(unittest.TestCase):
             primero = Evento(wx.WXK_RETURN)
             dialogo._tecla(primero)
             self.assertTrue(dialogo.lb_temas.IsItemChecked(0))
-            anunciar.assert_called_once_with("Marcada")
+            anunciar.assert_not_called()
             self.assertFalse(primero.skipped)
             segundo = Evento(wx.WXK_NUMPAD_ENTER)
             dialogo._tecla(segundo)
             self.assertFalse(dialogo.lb_temas.IsItemChecked(0))
-            self.assertEqual(anunciar.call_args[0][0], "Sin marcar")
+            anunciar.assert_not_called()
             self.assertFalse(segundo.skipped)
             fin.assert_not_called()
 

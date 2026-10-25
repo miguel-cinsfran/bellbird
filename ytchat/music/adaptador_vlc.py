@@ -87,24 +87,12 @@ class AdaptadorVlc:
         if tema.es_enlace:
             self._terminar_transicion()
         with self._lock:
-            self._pedida = ficha
-            self._pausa_pendiente = False
+            self._pedida, self._pausa_pendiente = ficha, False
             if tema.es_enlace:
-                self._cruce_largo = False
-                self._pendiente = ficha
-                anterior = self._actual
-                self._actual = None
-                self._iniciado = False
-                self._ficha_actual = None
-                if anterior is not None:
-                    self._cola.put((_CERRAR, None, anterior))
-                diagnostico.crear_hilo(
-                    self._resolver_enlace, "musica-enlace",
-                    args=(tema, ficha)).start()
+                self._preparar_enlace(tema, ficha)
                 return
             self._pendiente = None
-            largo_cruce = self._cruce_largo
-            self._cruce_largo = False
+            largo_cruce, self._cruce_largo = self._cruce_largo, False
             if not os.path.isfile(tema.origen):
                 raise FileNotFoundError(tema.origen)
             anterior = self._actual
@@ -112,9 +100,8 @@ class AdaptadorVlc:
             fundir = (segundos > 0 and anterior is not None
                       and self._iniciado and anterior.is_playing())
             reproductor = self._abrir_local(tema, ficha, fundir)
-            self._actual = reproductor
-            self._iniciado = True
-            self._ficha_actual = ficha
+            self._actual, self._iniciado, self._ficha_actual = (
+                reproductor, True, ficha)
             if fundir:
                 self._cruzar_con(anterior, reproductor, largo_cruce, segundos)
             elif anterior is not None:
@@ -122,6 +109,19 @@ class AdaptadorVlc:
                 # propio gestor con su ficha vieja, y el coordinador lo ignora.
                 self._cola.put((_CERRAR, None, anterior))
             self._vigilar(reproductor, ficha, tema.origen)
+
+    def _preparar_enlace(self, tema, ficha):
+        """Deja pedido el enlace y lo resuelve en su hilo."""
+        self._cruce_largo, self._pendiente = False, ficha
+        anterior = self._actual
+        self._actual = None
+        self._iniciado = False
+        self._ficha_actual = None
+        if anterior is not None:
+            self._cola.put((_CERRAR, None, anterior))
+        diagnostico.crear_hilo(
+            self._resolver_enlace, "musica-enlace",
+            args=(tema, ficha)).start()
 
     def _segundos_cruce(self):
         try:

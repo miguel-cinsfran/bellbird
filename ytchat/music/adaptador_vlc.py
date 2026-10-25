@@ -77,15 +77,15 @@ class AdaptadorVlc:
         self._dispositivo = identificador or None
 
     def cargar(self, tema, ficha, volumen=None):
-        """Empieza a sonar el tema con un reproductor nuevo y cierra el anterior.
+        """Empieza a sonar el tema con un reproductor nuevo, termina el fundido
+        pendiente y cierra el anterior.
 
         `volumen` es el del reproductor nuevo; sin él, el actual. Un enlace
         de YouTube no bloquea: anota la ficha pedida, cierra en el acto lo
         que estuviera sonando y resuelve el audio en un hilo daemon. Si al
         volver ya se pidió otro tema, lo descarta; si falla, avisa desde ahí.
         """
-        if tema.es_enlace:
-            self._terminar_transicion()
+        self._terminar_transicion()
         with self._lock:
             volumen = self._volumen if volumen is None else volumen
             self._pedida, self._pausa_pendiente = ficha, False

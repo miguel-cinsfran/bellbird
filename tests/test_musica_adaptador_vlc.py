@@ -665,6 +665,37 @@ class TestAdaptadorCruce(_BaseDobles):
                 adaptador._transiciones._cruce["duracion_ms"],
                 cruce.CRUCE_MANUAL_MS)
 
+    def test_cargar_una_cancion_local_termina_el_fundido_anterior(self):
+        self.existentes.update(
+            {"C:/musica/a.mp3", "C:/musica/b.mp3", "C:/musica/c.mp3"})
+        with mock.patch("ytchat.music.bordes.medir_bordes",
+                        return_value=Bordes(0, 0)), \
+                mock.patch.object(cruce, "CRUCE_MANUAL_MS", 60000):
+            adaptador = self.crear(cruce_de=lambda: 6)
+            soltar_original = adaptador._soltar
+
+            def soltar(reproductor):
+                self.instancia.eventos.append(("soltar", reproductor.numero))
+                soltar_original(reproductor)
+
+            adaptador._soltar = soltar
+            adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
+            a = self.instancia.reproductores[0]
+            adaptador.cargar(Tema("C:/musica/b.mp3", "b"), 2)
+            adaptador.cargar(Tema("C:/musica/c.mp3", "c"), 3)
+            c = self.instancia.reproductores[2]
+
+            eventos = self.instancia.eventos
+            self.assertIn(("soltar", a.numero), eventos)
+            self.assertLess(eventos.index(("soltar", a.numero)),
+                            eventos.index(("play", c.numero)))
+            self.assertTrue(esperar(lambda: a.liberado))
+
+            adaptador.detener()
+            self.assertTrue(esperar(lambda: all(
+                reproductor.liberado
+                for reproductor in self.instancia.reproductores)))
+
     def test_tras_cerrar_el_reproductor_la_vigilancia_no_lo_toca(self):
         self.existentes.add("C:/musica/a.mp3")
         with mock.patch("ytchat.music.bordes.medir_bordes",

@@ -400,7 +400,8 @@ class TestMusicaFabrica(unittest.TestCase):
             "preguntar_igualar": "true", "volumen": "50", "cruce": "6",
             "salida": "",
             "salida_nombre": "", "atajos_globales": "false",
-            "mostrar_cola": "false",
+            "mostrar_cola": "false", "mostrar_filtros": "false",
+            "orden": "coleccion", "artista": "",
         })
 
     def test_seccion_musica_respeta_el_orden_de_claves(self):
@@ -409,5 +410,5 @@ class TestMusicaFabrica(unittest.TestCase):
             "decir", "decir_titulo", "incluir_artista", "decir_pausa",
             "normalizar", "preguntar_igualar", "volumen", "cruce", "salida",
             "salida_nombre", "atajos_globales",
-            "mostrar_cola",
+            "mostrar_cola", "mostrar_filtros", "orden", "artista",
         ])

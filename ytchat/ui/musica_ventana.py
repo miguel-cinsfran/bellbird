@@ -13,8 +13,7 @@ import wx
 
 from ytchat.core import diagnostico
 from ytchat.music import anuncios, vista
-from ytchat.ui import musica_menus
-from ytchat.ui import musica_teclas
+from ytchat.ui import musica_filtros, musica_menus, musica_teclas
 from ytchat.ui.gui import (
     _T, _pintar, anunciar, instalar_busqueda_tipo, nombre_accesible)
 from ytchat.ui.musica_colecciones import (
@@ -60,6 +59,11 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
         self.lb_colecciones.SetMinSize((220, 190))
         _pintar(self.lb_colecciones, _T.field, _T.text)
         self.txt_buscar = self._campo(panel, "Buscar en la música")
+        self.filtros = musica_filtros.FiltrosMusica(
+            panel, *self._control.filtros_guardados(),
+            al_cambiar=self._aplicar_filtro,
+            programar_aviso=self._programar_aviso_coincidencias,
+            recordar=self._recordar_filtros, avisar=anunciar)
         self.lb_temas = self._lista(panel, "Canciones", 190)
         self.btn_cola = self._boton(
             panel, "Mostrar la c&ola", "Mostrar la cola")
@@ -83,6 +87,7 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
                         wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 8)
         fila_buscar.Add(self.txt_buscar, 1, wx.EXPAND)
         derecha.Add(fila_buscar, 0, wx.EXPAND | wx.BOTTOM, 8)
+        derecha.Add(self.filtros.sizer, 0, wx.EXPAND | wx.BOTTOM, 8)
         derecha.Add(wx.StaticText(panel, label="C&anciones:"), 0, wx.BOTTOM, 8)
         derecha.Add(self.lb_temas, 1, wx.EXPAND)
         arriba.Add(izquierda, 0, wx.EXPAND | wx.RIGHT, 8)
@@ -91,8 +96,7 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
         vs.Add(arriba, 1, wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, 12)
         vs.Add(self.btn_cola, 0, wx.TOP | wx.LEFT | wx.RIGHT, 12)
         vs.Add(self.lb_cola, 1, wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, 12)
-        vs.Add(self._fila_igualando(panel), 0,
-               wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, 12)
+        vs.Add(self._fila_igualando(panel), 0, wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, 12)
         vs.Add(wx.StaticLine(panel), 0,
                wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, 12)
         vs.Add(self._fila_pie(panel), 0, wx.EXPAND | wx.ALL, 12)
@@ -230,6 +234,7 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
         biblioteca = self._biblioteca if self._fuente is None else None
         self._temas_filtrados = vista.filtrar_fuente(
             self._temas_fuente, texto, biblioteca)
+        self._temas_filtrados = self.filtros.aplicar(self._temas_filtrados)
         anterior = self.lb_temas.GetSelection()
         self.lb_temas.Set(vista.filas_temas(self._temas_filtrados))
         if self._temas_filtrados:
@@ -264,9 +269,16 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
         self._temporizador = wx.CallLater(700, self._avisar_coincidencias)
         evento.Skip()
 
-    def _avisar_coincidencias(self):
-        if self and self.txt_buscar.GetValue().strip():
+    def _avisar_coincidencias(self, siempre=False):
+        if self and (siempre or self.txt_buscar.GetValue().strip()):
             anunciar(vista.texto_coincidencias(len(self._temas_filtrados)))
+
+    def _programar_aviso_coincidencias(self):
+        self._cancelar_temporizador()
+        self._temporizador = wx.CallLater(700, self._avisar_coincidencias, True)
+
+    def _recordar_filtros(self, visibles, artista, orden):
+        self._control.recordar_filtros(visibles, artista, orden)
 
     def _cancelar_temporizador(self):
         if self._temporizador is not None:

@@ -96,6 +96,16 @@ class TestBiblioteca(unittest.TestCase):
         for tema in bib.temas():
             self.assertTrue(Path(tema.origen).is_absolute())
 
+    def test_cada_tema_trae_la_fecha_de_llegada_del_archivo(self):
+        bib = Biblioteca(self.raiz)
+        bib.indexar()
+        for tema in bib.temas():
+            with self.subTest(tema=tema.origen):
+                self.assertGreater(tema.fecha_ns, 0)
+
+    def test_un_tema_suelto_nace_sin_fecha(self):
+        self.assertEqual(Tema("C:/musica/a.mp3", "a").fecha_ns, 0)
+
     def test_ignora_extensiones_que_no_son_audio(self):
         bib = Biblioteca(self.raiz)
         bib.indexar()

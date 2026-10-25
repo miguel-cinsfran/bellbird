@@ -129,6 +129,7 @@ class ColeccionesVentanaMusica:
             return
         self._temas_fuente = temas
         self._cargando = False
+        self.filtros.refrescar_artistas(self._temas_fuente)
         self._aplicar_filtro()
         self._estado_listo()
         indice = vista.indice_seleccion_tras_refrescar(
@@ -148,6 +149,7 @@ class ColeccionesVentanaMusica:
         self._cantidad_biblioteca = len(biblioteca.temas())
         self._temas_fuente = tuple(biblioteca.temas())
         self._cargando = False
+        self.filtros.refrescar_artistas(self._temas_fuente)
         self._aplicar_filtro()
         self._estado_listo()
         self._resumir_y_preguntar(biblioteca)
@@ -169,13 +171,13 @@ class ColeccionesVentanaMusica:
         índice más cercano). Actualiza la cantidad de «Colecciones». No
         mueve el foco. Con una lista propia, no hace nada.
         """
-        if not self:
-            return
-        if self._fuente is not None or self._biblioteca is None:
+        if (not self or self._fuente is not None
+                or self._biblioteca is None):
             return
         elegido = self._origen_elegido()
         self._temas_fuente = tuple(self._biblioteca.temas())
         self._cantidad_biblioteca = len(self._temas_fuente)
+        self.filtros.refrescar_artistas(self._temas_fuente)
         self._aplicar_filtro()
         self._seleccionar_origen(elegido)
         self._refrescar_cantidades_colecciones()

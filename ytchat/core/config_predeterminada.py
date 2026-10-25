@@ -207,6 +207,9 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("salida_nombre", ""),
         ("atajos_globales", "false"),
         ("mostrar_cola", "false"),
+        ("mostrar_filtros", "false"),
+        ("orden", "coleccion"),
+        ("artista", ""),
     ]),
     ("ia", [
         ("proveedor", "gemini"),

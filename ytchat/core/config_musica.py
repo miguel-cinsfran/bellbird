@@ -38,5 +38,16 @@ def opciones_musica(p) -> dict:
         "musica_salida": _gs(p, "musica", "salida"),
         "musica_salida_nombre": decodificar_texto_ini(_gs(p, "musica", "salida_nombre")),
         "musica_atajos_globales": _pb(p, "musica", "atajos_globales"),
+    } | _filtros_musica(p)
+
+
+def _filtros_musica(p) -> dict:
+    """La visibilidad de la Cola y los filtros de la ventana de música."""
+    from ytchat.core.config import _gs, _pb
+
+    return {
         "musica_mostrar_cola": _pb(p, "musica", "mostrar_cola"),
+        "musica_mostrar_filtros": _pb(p, "musica", "mostrar_filtros"),
+        "musica_orden": _gs(p, "musica", "orden"),
+        "musica_artista": _gs(p, "musica", "artista"),
     }

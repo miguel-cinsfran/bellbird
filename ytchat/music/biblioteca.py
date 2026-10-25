@@ -31,6 +31,14 @@ def _plegar(texto: str) -> str:
     return sin_tildes.casefold()
 
 
+def _fecha_de_llegada(ruta: Path) -> int:
+    """Cuándo llegó el archivo a la carpeta; 0 si no se puede leer."""
+    try:
+        return ruta.stat().st_ctime_ns
+    except OSError:
+        return 0
+
+
 _PALABRAS = re.compile(r"[^\W_]+")
 
 
@@ -309,7 +317,8 @@ class Biblioteca:
                 duracion_ms = normalizar_duracion(datos.get("duracion_ms"))
         if not titulo:
             titulo = ruta.stem
-        return Tema(str(ruta.resolve()), titulo, artista, album, duracion_ms)
+        return Tema(str(ruta.resolve()), titulo, artista, album, duracion_ms,
+                    _fecha_de_llegada(ruta))
 
     def _etiquetas_de_cache(self, ruta: Path) -> dict | None:
         """Las etiquetas de la caché para ese archivo, o None si no valen.

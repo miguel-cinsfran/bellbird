@@ -19,6 +19,23 @@ class MemoriaMusica:
         self._guardar("mostrar_cola", "true" if visible else "false")
         self._config["musica_mostrar_cola"] = bool(visible)
 
+    def filtros_guardados(self):
+        """Si los filtros quedaron visibles, el artista y el orden."""
+        return (
+            bool(self._config.get("musica_mostrar_filtros", False)),
+            str(self._config.get("musica_artista", "") or ""),
+            str(self._config.get("musica_orden", "coleccion") or "coleccion"),
+        )
+
+    def recordar_filtros(self, visibles, artista, orden) -> None:
+        """Recuerda la visibilidad de los filtros, el artista y el orden."""
+        self._guardar("mostrar_filtros", "true" if visibles else "false")
+        self._guardar("artista", str(artista or ""))
+        self._guardar("orden", str(orden or "coleccion"))
+        self._config["musica_mostrar_filtros"] = bool(visibles)
+        self._config["musica_artista"] = str(artista or "")
+        self._config["musica_orden"] = str(orden or "coleccion")
+
     def _primera_vez(self) -> bool:
         """En el primer Reproducir de la sesión, retoma si hay memoria.
 

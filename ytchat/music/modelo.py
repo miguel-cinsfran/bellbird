@@ -26,6 +26,7 @@ class Tema:
     artista: str = ""
     album: str = ""
     duracion_ms: int = field(default=0, compare=False)
+    fecha_ns: int = field(default=0, compare=False)
 
     @property
     def es_enlace(self) -> bool:

@@ -10,7 +10,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from ytchat.music import anuncios, listas
+from ytchat.music import anuncios, filtros, listas
 from ytchat.music import pregunta_igualar
 from ytchat.music import sonoridad
 from ytchat.music.biblioteca import Biblioteca
@@ -54,7 +54,8 @@ class ControlFalso:
                  temas_listas=None, estado=None, cola_visible=False,
                  midiendo=False, datos_pregunta=None,
                  resultado_igualacion=None, pendientes_calculadas=(),
-                 total_calculado=0, responder_pedidos=True):
+                 total_calculado=0, responder_pedidos=True,
+                 filtros_guardados=(False, "", "coleccion")):
         self._biblio = biblioteca
         self._carpeta_listas = carpeta_listas
         self._temas_listas = dict(temas_listas or {})
@@ -64,6 +65,7 @@ class ControlFalso:
         self.artista = False
         self.combos = {}
         self._cola_visible = bool(cola_visible)
+        self._filtros_guardados = tuple(filtros_guardados)
         self._progreso_sonoridad = None
         self._midiendo = bool(midiendo)
         self.datos_pregunta = datos_pregunta
@@ -118,6 +120,14 @@ class ControlFalso:
     def recordar_cola_visible(self, visible):
         self.llamadas.append(("recordar_cola_visible", bool(visible)))
         self._cola_visible = bool(visible)
+
+    def filtros_guardados(self):
+        return self._filtros_guardados
+
+    def recordar_filtros(self, visibles, artista, orden):
+        self.llamadas.append(("recordar_filtros", bool(visibles), artista,
+                              orden))
+        self._filtros_guardados = (bool(visibles), artista, orden)
 
     def reproducir_desde(self, indice):
         self.llamadas.append(("reproducir_desde", indice))
@@ -216,6 +226,12 @@ def _biblioteca_de(*titulos, **campos):
     return biblio
 
 
+def _biblioteca_con(temas):
+    biblio = Biblioteca("C:/Musica")
+    biblio._temas = tuple(temas)
+    return biblio
+
+
 def _estado(*titulos, posicion=0):
     return EstadoMusica(
         tuple(Tema(f"C:/Musica/{t.lower()}.mp3", t) for t in titulos),
@@ -267,7 +283,8 @@ class TestVentanaMusica(unittest.TestCase):
             if isinstance(control, (wx.TextCtrl, wx.Choice, wx.ListBox,
                                     wx.Button))]
         self.assertEqual([control.GetName() for control in interactivos], [
-            "Colecciones", "Buscar en la música", "Canciones",
+            "Colecciones", "Buscar en la música", "Mostrar los filtros",
+            "Mostrar", "Ordenar por", "Canciones",
             "Mostrar la cola", "Cola de reproducción",
             "Igualación del volumen", "Abrir enlace",
             "Nueva lista", "Cambiar carpeta", "Igualar el volumen",
@@ -298,8 +315,8 @@ class TestVentanaMusica(unittest.TestCase):
             control for control in self._panel().GetChildren()
             if isinstance(control, (wx.TextCtrl, wx.ListBox, wx.Button))]
         self.assertEqual([control.GetName() for control in interactivos], [
-            "Colecciones", "Buscar en la música", "Canciones",
-            "Ocultar la cola", "Cola de reproducción",
+            "Colecciones", "Buscar en la música", "Mostrar los filtros",
+            "Canciones", "Ocultar la cola", "Cola de reproducción",
             "Igualación del volumen", "Abrir enlace",
             "Nueva lista", "Cambiar carpeta", "Igualar el volumen",
             "Examinar la carpeta", "Cerrar"])
@@ -314,14 +331,16 @@ class TestVentanaMusica(unittest.TestCase):
         self.assertEqual(len(mnemonicos), len(set(mnemonicos)))
 
     def test_rotulos_de_la_ventana(self):
-        self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock")))
+        self._abrir(ControlFalso(
+            biblioteca=_biblioteca_de("Rock"),
+            filtros_guardados=(True, "", "coleccion")))
         etiquetas = [
             control.GetLabel() for control in self._panel().GetChildren()
             if isinstance(control, wx.StaticText)]
-        for esperado in ("Co&lecciones:", "&Buscar:", "C&anciones:"):
+        for esperado in ("Co&lecciones:", "&Buscar:", "C&anciones:",
+                         "&Mostrar:", "Or&denar por:"):
             self.assertIn(esperado, etiquetas)
-        for ausente in ("&Mostrar:", "C&ola:"):
-            self.assertNotIn(ausente, etiquetas)
+        self.assertNotIn("C&ola:", etiquetas)
 
     def test_colecciones_con_el_color_de_los_campos(self):
         if ALTO_CONTRASTE:
@@ -702,6 +721,186 @@ class TestVentanaMusica(unittest.TestCase):
                          "Mostrar la c&ola")
         self.assertIn("Cola oculta", self.anuncios)
         self.assertIn(("recordar_cola_visible", False), control.llamadas)
+
+    # ── Filtros por artista y orden ───────────────────────────────────────
+
+    def _elegir(self, cuadro, indice):
+        cuadro.SetSelection(indice)
+        evento = wx.CommandEvent(wx.EVT_CHOICE.typeId, cuadro.GetId())
+        cuadro.GetEventHandler().ProcessEvent(evento)
+
+    def test_los_filtros_arrancan_ocultos_y_fuera_del_orden_de_tab(self):
+        self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock")))
+        self.assertFalse(self.ventana.filtros.visibles)
+        self.assertEqual(self.ventana.filtros.btn.GetLabel(),
+                         "Mostrar los &filtros")
+        self.assertEqual(self.ventana.filtros.btn.GetName(),
+                         "Mostrar los filtros")
+        self.assertFalse(self.ventana.filtros.cb_mostrar.IsShown())
+        self.assertFalse(self.ventana.filtros.cb_ordenar.IsShown())
+        self.assertFalse(self.ventana.filtros.lb_mostrar.IsShown())
+        self.assertFalse(self.ventana.filtros.lb_ordenar.IsShown())
+
+    def test_lo_guardado_visible_se_respeta_al_abrir_los_filtros(self):
+        self._abrir(ControlFalso(
+            biblioteca=_biblioteca_de("Rock"),
+            filtros_guardados=(True, "", "coleccion")))
+        self.assertTrue(self.ventana.filtros.visibles)
+        self.assertEqual(self.ventana.filtros.btn.GetLabel(),
+                         "Ocultar los &filtros")
+        self.assertEqual(self.ventana.filtros.btn.GetName(),
+                         "Ocultar los filtros")
+        self.assertTrue(self.ventana.filtros.cb_mostrar.IsShown())
+        self.assertTrue(self.ventana.filtros.cb_ordenar.IsShown())
+
+    def test_el_boton_muestra_los_filtros_con_foco_y_anuncio(self):
+        control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
+        self._abrir(control)
+        with mock.patch.object(
+                self.ventana.filtros.cb_mostrar, "SetFocus") as foco:
+            self.ventana.filtros.alternar()
+        self.assertTrue(self.ventana.filtros.cb_mostrar.IsShown())
+        foco.assert_called_once_with()
+        self.assertEqual(self.ventana.filtros.btn.GetLabel(),
+                         "Ocultar los &filtros")
+        self.assertIn("Filtros visibles", self.anuncios)
+        self.assertIn(("recordar_filtros", True, "", "coleccion"),
+                      control.llamadas)
+
+    def test_el_boton_oculta_los_filtros_con_foco_y_anuncio(self):
+        control = ControlFalso(
+            biblioteca=_biblioteca_de("Rock"),
+            filtros_guardados=(True, "", "coleccion"))
+        self._abrir(control)
+        with mock.patch.object(self.ventana.filtros.btn, "SetFocus") as foco:
+            self.ventana.filtros.alternar()
+        self.assertFalse(self.ventana.filtros.cb_mostrar.IsShown())
+        foco.assert_called_once_with()
+        self.assertEqual(self.ventana.filtros.btn.GetLabel(),
+                         "Mostrar los &filtros")
+        self.assertIn("Filtros ocultos", self.anuncios)
+        self.assertIn(("recordar_filtros", False, "", "coleccion"),
+                      control.llamadas)
+
+    def test_elegir_artista_y_orden_se_combina_con_buscar(self):
+        biblioteca = _biblioteca_con((
+            Tema("C:/Musica/zeta.mp3", "Zeta", artista="Ana",
+                 duracion_ms=3000),
+            Tema("C:/Musica/alfa.mp3", "Alfa", artista="Luis",
+                 duracion_ms=1000),
+            Tema("C:/Musica/beta.mp3", "Beta", artista="Ana & Luis",
+                 duracion_ms=2000),
+        ))
+        self._abrir(ControlFalso(
+            biblioteca=biblioteca,
+            filtros_guardados=(True, "", "coleccion")))
+        self.ventana.txt_buscar.SetValue("a")
+        self.ventana._al_filtrar(Evento())
+        self._elegir(
+            self.ventana.filtros.cb_mostrar,
+            self.ventana.filtros.cb_mostrar.GetStrings().index(
+                "Ana, 2 canciones"))
+        self._elegir(
+            self.ventana.filtros.cb_ordenar,
+            [clave for clave, _etiqueta
+             in filtros.CRITERIOS].index(filtros.CRITERIO_TITULO))
+        self.assertEqual(
+            [tema.titulo for tema in self.ventana._temas_filtrados],
+            ["Beta", "Zeta"])
+        self.assertEqual(
+            self.ventana.lb_temas.GetStrings(),
+            ["Beta, Ana & Luis, 0:02", "Zeta, Ana, 0:03"])
+
+    def test_ocultar_los_filtros_devuelve_todas_y_mostrarlos_filtra(self):
+        biblioteca = _biblioteca_con((
+            Tema("C:/Musica/uno.mp3", "Uno", artista="Ana"),
+            Tema("C:/Musica/dos.mp3", "Dos", artista="Luis"),
+            Tema("C:/Musica/tres.mp3", "Tres", artista="Ana"),
+        ))
+        self._abrir(ControlFalso(
+            biblioteca=biblioteca,
+            filtros_guardados=(True, "", "coleccion")))
+        self._elegir(
+            self.ventana.filtros.cb_mostrar,
+            self.ventana.filtros.cb_mostrar.GetStrings().index(
+                "Ana, 2 canciones"))
+        self.assertEqual(self.ventana.lb_temas.GetStrings(),
+                         ["Uno, Ana", "Tres, Ana"])
+        with mock.patch.object(
+                musica_ventana.wx, "CallLater") as aviso:
+            self.ventana.filtros.alternar()
+        aviso.assert_not_called()
+        self.assertFalse(self.ventana.filtros.visibles)
+        self.assertEqual(self.ventana.lb_temas.GetStrings(),
+                         ["Uno, Ana", "Dos, Luis", "Tres, Ana"])
+        self.assertIn("Filtros ocultos", self.anuncios)
+        self.ventana.filtros.alternar()
+        self.assertTrue(self.ventana.filtros.visibles)
+        self.assertEqual(self.ventana.lb_temas.GetStrings(),
+                         ["Uno, Ana", "Tres, Ana"])
+        self.assertIn("Filtros visibles", self.anuncios)
+        self.assertEqual(self.ventana.filtros.artista, "ana")
+
+    def test_al_cambiar_un_cuadro_programa_y_anuncia_la_cantidad(self):
+        self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock", "Jazz")))
+        with mock.patch.object(
+                musica_ventana.wx, "CallLater") as programar:
+            self._elegir(
+                self.ventana.filtros.cb_ordenar,
+                [clave for clave, _etiqueta
+                 in filtros.CRITERIOS].index(filtros.CRITERIO_TITULO))
+        programar.assert_called_once_with(
+            700, self.ventana._avisar_coincidencias, True)
+        self.ventana._avisar_coincidencias(True)
+        self.assertIn("2 canciones coinciden", self.anuncios)
+
+    def test_el_artista_recordado_que_no_esta_muestra_todas(self):
+        self._abrir(ControlFalso(
+            biblioteca=_biblioteca_de("Rock", artista="Ana"),
+            filtros_guardados=(True, "luis", "coleccion")))
+        self.assertEqual(self.ventana.filtros.artista, filtros.TODAS)
+        self.assertEqual(
+            self.ventana.filtros.cb_mostrar.GetStringSelection(),
+            "Todas las canciones")
+        self.assertEqual(
+            [tema.titulo for tema in self.ventana._temas_filtrados],
+            ["Rock"])
+
+    def test_recordar_los_filtros_al_cerrar_y_abrir(self):
+        biblioteca = _biblioteca_con((
+            Tema("C:/Musica/vieja.mp3", "Vieja", artista="Ana",
+                 fecha_ns=1),
+            Tema("C:/Musica/nueva.mp3", "Nueva", artista="Ana",
+                 fecha_ns=2),
+            Tema("C:/Musica/otra.mp3", "Otra", artista="Luis", fecha_ns=3),
+        ))
+        control = ControlFalso(biblioteca=biblioteca)
+        self._abrir(control)
+        self.ventana.filtros.alternar()
+        self._elegir(
+            self.ventana.filtros.cb_mostrar,
+            self.ventana.filtros.cb_mostrar.GetStrings().index(
+                "Ana, 2 canciones"))
+        self._elegir(
+            self.ventana.filtros.cb_ordenar,
+            [clave for clave, _etiqueta
+             in filtros.CRITERIOS].index(filtros.CRITERIO_RECIENTES))
+        guardados = control.filtros_guardados()
+        self.ventana._cancelar_temporizador()
+        destruir(self.ventana)
+        self.ventana = None
+        self._abrir(ControlFalso(
+            biblioteca=biblioteca, filtros_guardados=guardados))
+        self.assertTrue(self.ventana.filtros.visibles)
+        self.assertEqual(
+            self.ventana.filtros.cb_mostrar.GetStringSelection(),
+            "Ana, 2 canciones")
+        self.assertEqual(
+            self.ventana.filtros.cb_ordenar.GetStringSelection(),
+            "Más recientes primero")
+        self.assertEqual(
+            [tema.titulo for tema in self.ventana._temas_filtrados],
+            ["Nueva", "Vieja"])
 
     # ── Intro por el gancho de la ventana ──────────────────────────────────
 

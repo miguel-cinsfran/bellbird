@@ -566,4 +566,5 @@ un fallo, reproduce el problema y manda los tres archivos.
 
 ## Licencia
 
-MIT. Ver [LICENSE](LICENSE).
+GPL-3.0 desde la 2.5.1. Ver [LICENSE](LICENSE). Las versiones hasta la
+2.5.0 se publicaron con licencia MIT.

@@ -8,6 +8,12 @@ historial de git.
 Arreglos de la música y del directo de TikTok, y filtros para la
 biblioteca.
 
+### Licencia
+
+- **La aplicación pasa a la licencia GPL-3.0.** Quien use este código en
+  otro programa tiene que publicar el suyo con la misma licencia. Las
+  versiones hasta la 2.5.0 siguen con la licencia MIT.
+
 ### Música
 
 - **La música y el reproductor ya no comparten el volumen.** Antes,

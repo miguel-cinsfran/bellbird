@@ -3,6 +3,54 @@
 Qué cambia en cada versión, en lenguaje llano. El detalle técnico está en el
 historial de git.
 
+## 2.5.1, octubre de 2026
+
+Arreglos de la música y del directo de TikTok, y filtros para la
+biblioteca.
+
+### Música
+
+- **La música y el reproductor ya no comparten el volumen.** Antes,
+  silenciar el vídeo o el directo con Ctrl+M callaba también la música, y
+  pausar uno podía afectar al otro. Ahora cada uno tiene su volumen.
+- **La igualación sube también las canciones flojas.** Antes solo bajaba
+  las fuertes, y con el volumen de la música en 100 no podía subir
+  ninguna. Sube cada canción hasta donde lo permite su pico, sin
+  distorsionar.
+- **El fundido entre canciones ya no da saltos de volumen.** La canción
+  que termina baja desde su propio volumen. Además, pasar de canción en
+  medio de un fundido ya no deja la anterior sonando.
+- **El buscador filtra por el comienzo de cada palabra.** Al escribir «a»
+  salen las canciones con una palabra que empieza por «a», no todas las
+  que tienen una a en medio. Varias palabras se buscan en cualquier
+  orden: «lou oj» encuentra «Ojos» de Lou Cornago.
+- **Filtros y orden.** El botón «Mostrar los filtros» abre dos cuadros:
+  «Mostrar», para ver todas las canciones o las de un artista, y
+  «Ordenar por», con el orden de la colección, título, artista, más
+  recientes primero o duración. Se combinan con Buscar, dicen cuántas
+  canciones quedan y se recuerdan para la próxima vez. Una canción con
+  varios artistas aparece en cada uno. Con los filtros ocultos se ven
+  todas las canciones.
+- **Listas propias.** En el editor de listas, Enter marca y desmarca la
+  canción, igual que Espacio. «Nueva lista» y «Editar lista» ofrecen las
+  canciones de la carpeta aunque esté elegida una lista en Colecciones.
+  Si a una lista le falta una canción porque su archivo ya no está, el
+  aviso dice cuál, y al recorrer Colecciones no se repite.
+
+### Listas en toda la aplicación
+
+- **Escribir varias letras seguidas salta al elemento que empieza así.**
+  Antes solo funcionaba en el chat y en los comentarios. Ahora también en
+  el historial, la conversación con la IA, los mensajes automáticos y las
+  listas de la música.
+
+### TikTok
+
+- **Si el directo no se puede abrir, se dice.** Antes se oía «Fin del
+  vídeo» aunque el directo nunca hubiera empezado a sonar. Ahora se avisa
+  con sonido de error que no se pudo abrir, y el registro anota el
+  motivo para poder encontrar la causa.
+
 ## 2.5.0, octubre de 2026
 
 Preguntar a una IA qué se ve en la transmisión, y transiciones entre

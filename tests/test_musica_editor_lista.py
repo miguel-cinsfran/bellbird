@@ -15,9 +15,11 @@ from ytchat.ui import musica_menus
 from ytchat.ui.musica_listas_propias import ListasPropiasMusica
 
 try:
+    import wx
     from ytchat.ui import musica_editor_lista
     _HAY_WX = True
 except Exception:
+    wx = None
     musica_editor_lista = None
     _HAY_WX = False
 
@@ -90,6 +92,36 @@ class TestValidarNombre(unittest.TestCase):
     def test_sesenta_exactos_sirven(self):
         self.assertEqual(
             musica_editor_lista.validar_nombre("x" * 60), "x" * 60)
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestAccionTecla(unittest.TestCase):
+
+    def test_enter_en_la_lista_alterna(self):
+        for codigo in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
+            with self.subTest(codigo=codigo):
+                self.assertEqual(
+                    musica_editor_lista.accion_tecla(codigo, True),
+                    musica_editor_lista.ACCION_ALTERNAR)
+
+    def test_enter_fuera_de_la_lista_sigue_su_camino(self):
+        for codigo in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
+            with self.subTest(codigo=codigo):
+                self.assertIsNone(
+                    musica_editor_lista.accion_tecla(codigo, False))
+
+    def test_espacio_en_la_lista_no_alterna(self):
+        self.assertIsNone(
+            musica_editor_lista.accion_tecla(wx.WXK_SPACE, True))
+
+    def test_escape_cancela_aunque_no_este_en_la_lista(self):
+        self.assertEqual(
+            musica_editor_lista.accion_tecla(wx.WXK_ESCAPE, False),
+            musica_editor_lista.ACCION_CANCELAR)
+
+    def test_otra_tecla_sigue_su_camino(self):
+        self.assertIsNone(
+            musica_editor_lista.accion_tecla(wx.WXK_DOWN, True))
 
 
 class TestSubmenu(unittest.TestCase):

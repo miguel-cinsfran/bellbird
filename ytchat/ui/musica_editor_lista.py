@@ -17,6 +17,10 @@ MAX_NOMBRE = 60
 TITULO_NUEVA = "Nueva lista"
 TITULO_EDITAR = "Editar lista"
 TEXTO_NOMBRE_LARGO = "El nombre no puede tener más de 60 caracteres"
+TEXTO_MARCADA = "Marcada"
+TEXTO_SIN_MARCAR = "Sin marcar"
+ACCION_CANCELAR = "cancelar"
+ACCION_ALTERNAR = "alternar"
 
 
 def validar_nombre(nombre):
@@ -66,6 +70,19 @@ def temas_a_guardar(temas_lista=(), temas_carpeta=(), marcados=()):
             salida.append(tema)
             vistos.add(tema.origen)
     return tuple(salida)
+
+
+def accion_tecla(codigo, en_lista):
+    """Qué hacer con la tecla, según su código y si el foco está en la lista.
+
+    Enter solo actúa sobre las casillas de la lista. En el resto de los
+    controles sigue su camino y lo atiende el botón predeterminado.
+    """
+    if codigo == wx.WXK_ESCAPE:
+        return ACCION_CANCELAR
+    if en_lista and codigo in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
+        return ACCION_ALTERNAR
+    return None
 
 
 class DialogoEditorLista(wx.Dialog):
@@ -191,10 +208,23 @@ class DialogoEditorLista(wx.Dialog):
         return self._nombre, self._temas_marcados()
 
     def _tecla(self, evento):
-        if evento.GetKeyCode() == wx.WXK_ESCAPE:
+        accion = accion_tecla(
+            evento.GetKeyCode(), wx.Window.FindFocus() is self.lb_temas)
+        if accion == ACCION_CANCELAR:
             self.EndModal(wx.ID_CANCEL)
             return
+        if accion == ACCION_ALTERNAR:
+            self._alternar_marca()
+            return
         evento.Skip()
+
+    def _alternar_marca(self):
+        indice = self.lb_temas.GetFocusedItem()
+        if indice == -1:
+            return
+        marcada = not self.lb_temas.IsItemChecked(indice)
+        self.lb_temas.CheckItem(indice, marcada)
+        anunciar(TEXTO_MARCADA if marcada else TEXTO_SIN_MARCAR)
 
 
 def pedir_lista(parent, nombre="", temas_carpeta=(), temas_lista=()):

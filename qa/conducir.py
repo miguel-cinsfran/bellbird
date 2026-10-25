@@ -1827,8 +1827,8 @@ def escenario_musica(app: Aplicacion, args, res: Resultado):
     música real no se toca: la ventana solo se abre, se audita y se cierra.
     """
     res.nota("Música: no se reproduce nada, la ventana solo se audita")
-    esperados = ("Colecciones", "Buscar en la música", "Canciones",
-                 "Mostrar la cola", "Abrir enlace", "Nueva lista",
+    esperados = ("Colecciones", "Buscar en la música", "Mostrar los filtros",
+                 "Canciones", "Mostrar la cola", "Abrir enlace", "Nueva lista",
                  "Cambiar carpeta", "Cerrar")
     auditar_dialogo(
         app, res, "Elegir música…", "Música",
@@ -2258,6 +2258,16 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         propia.pedir("pulsar", nombre="Mostrar la cola", ventana="Música")
         if _filas_hasta("Música", "Cola de reproducción", 0, 1.0) is None:
             _corta("musica_real: la Cola no responde tras mostrarla")
+        # Los filtros arrancan ocultos y no filtran. Se muestra el botón para
+        # comprobar que los dos cuadros aparecen, y se vuelven a ocultar para
+        # no cambiar lo que ve el resto del recorrido.
+        propia.pedir("pulsar", nombre="Mostrar los filtros", ventana="Música")
+        for nombre in ("Mostrar", "Ordenar por"):
+            rama = subarbol(_arbol("Música"), nombre)
+            if not rama or not rama[0].get("visible"):
+                res.fallo("musica_real: al mostrar los filtros no aparece "
+                          f"«{nombre}»")
+        propia.pedir("pulsar", nombre="Ocultar los filtros", ventana="Música")
         # Con `--capturas`: la misma ventana, ahora con la cola visible. La
         # apertura con la cola oculta ya la capturó `esperar_ventana`.
         captor_musica = getattr(args, "captor", None)
@@ -5144,6 +5154,7 @@ SUPERFICIES = {
     "musica_dialogo_enlace.py": "musica",
     "musica_colecciones.py": "musica",
     "musica_editor_lista.py": "musica",
+    "musica_filtros.py": "musica",
     "musica_menus.py": "musica",
     "musica_ventana.py": "musica",
     "musica_ventana_acciones.py": "musica",

@@ -96,7 +96,8 @@ class TestSuperficiesQa(unittest.TestCase):
 
     def test_declara_los_modulos_de_interfaz_de_la_musica(self):
         for nombre in ("musica_ventana.py", "musica_ventana_acciones.py",
-                       "musica_menus.py", "musica_dialogo_enlace.py"):
+                       "musica_filtros.py", "musica_menus.py",
+                       "musica_dialogo_enlace.py"):
             self.assertEqual(conducir.SUPERFICIES.get(nombre), "musica")
 
     def test_declara_los_modulos_de_interfaz_de_la_ia(self):

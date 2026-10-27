@@ -34,7 +34,7 @@ def on_enviar_live(frame, event):
 
 
 def enviar_live_redactado(frame, texto):
-    lcid = frame._live_chat_id
+    lcid = frame.sesion.live_chat_id
     frame._accion_api(lambda cli: cli.enviar_mensaje_live(lcid, texto),
                       "Mensaje enviado al chat")
 
@@ -98,9 +98,9 @@ def actualizar_motivo_redaccion(frame):
     from ytchat.ui import gui as _gui
     try:
         motivo = _gui.redaccion.motivo_chat(
-            frame._conectado, frame._es_tiktok, frame._tipo_video == _gui.deteccion.LIVE,
+            frame._conectado, frame.sesion.es_tiktok, frame.sesion.tipo_video == _gui.deteccion.LIVE,
             _gui.youtube_api.google_disponible(), frame._sesion_api_disponible(),
-            bool(frame._live_chat_id), frame._causa_sin_chat)
+            bool(frame.sesion.live_chat_id), frame.sesion.causa_sin_chat)
         frame._panel_redactar.establecer_motivo(motivo)
     except Exception:
         pass
@@ -119,7 +119,7 @@ def iniciar_programados_si_corresponde(frame, ahora: float) -> None:
 def enviar_programado(frame, mensaje: dict, ahora: float) -> None:
     from ytchat.ui import gui as _gui
     frame._programado_en_curso = True
-    lcid = frame._live_chat_id
+    lcid = frame.sesion.live_chat_id
     texto = mensaje.get("texto", "")
 
     def _run():
@@ -163,18 +163,18 @@ def programado_fallo(frame, exc) -> None:
 
 def procesar_programado(frame) -> None:
     from ytchat.ui import gui as _gui
-    propio = bool(frame._chat_propio or frame._conexion_propia)
+    propio = bool(frame.sesion.chat_propio or frame.sesion.conexion_propia)
     activo = bool(frame._config.get("programados_activo", False))
     if not _gui.programados.puede_enviar(
-            activo, frame._conectado, frame._es_tiktok,
-            frame._live_chat_id, propio, True):
+            activo, frame._conectado, frame.sesion.es_tiktok,
+            frame.sesion.live_chat_id, propio, True):
         # Sin las condiciones para mandar, el reloj no corre: al
         # reconectar arranca de nuevo en vez de salir todo de golpe.
         frame._programados_reloj_iniciado = False
         return
     if not _gui.programados.puede_enviar(
-            activo, frame._conectado, frame._es_tiktok,
-            frame._live_chat_id, propio, frame._sesion_api_disponible()):
+            activo, frame._conectado, frame.sesion.es_tiktok,
+            frame.sesion.live_chat_id, propio, frame._sesion_api_disponible()):
         # Sin las condiciones para mandar, el reloj no corre: al
         # reconectar arranca de nuevo en vez de salir todo de golpe.
         frame._programados_reloj_iniciado = False
@@ -196,7 +196,7 @@ def moderar(frame, autor: str, canal_id: str, segundos: int | None) -> None:
                           "Confirmar moderación",
                           _gui.wx.YES_NO | _gui.wx.ICON_QUESTION, frame) != _gui.wx.YES:
         return
-    lcid = frame._live_chat_id
+    lcid = frame.sesion.live_chat_id
     ok = f"{autor} expulsado 5 minutos" if segundos else f"{autor} baneado del directo"
     frame._accion_api(
         lambda cli: cli.banear_usuario(lcid, canal_id, segundos), ok,

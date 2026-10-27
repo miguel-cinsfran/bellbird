@@ -6,13 +6,13 @@ from unittest import mock
 
 from ytchat.ui import gui
 from ytchat.ui import gui_estado
+from ytchat.ui.sesion_conectada import SesionConectada
 
 
 def _marco_falso(metadatos):
     frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
     frame._conectado = True
-    frame._es_tiktok = True
-    frame._tipo_video = "live"
+    frame.sesion = SesionConectada(es_tiktok=True, tipo_video="live")
     frame._titulo_stream = "T"
     frame._metadatos = metadatos
     frame._sc_totales = {}

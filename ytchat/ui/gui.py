@@ -57,6 +57,7 @@ from ytchat.obs import obs_cliente
 from ytchat.obs.obs_panel import GestorPanelObs
 from ytchat.ui.barra_estado import anchos_barra_estado
 from ytchat.ui.gui_redactar import PanelRedactar
+from ytchat.ui.sesion_conectada import SesionConectada
 
 # Mapeo entre índice de FILTROS y clave persistida en config.ini.
 _NOMBRES_FILTRO = ("todos", "texto", "superchat", "miembro")
@@ -202,13 +203,8 @@ class YTChatFrame(wx.Frame):
         self._conectando = False   # entre pulsar Conectar y la respuesta
         self._texto_tipo = MENSAJE_INICIAL   # texto de lbl_tipo sin saltos de Wrap
         self._titulo_stream = ""
-        self._tipo_video = deteccion.DESCONOCIDO
-        self._es_tiktok = False   # para que F2 distinga TikTok de YouTube (ambos LIVE)
-        self._usuario_tiktok_sesion = ""   # usuario del directo conectado
-        self._conexion_propia = False   # la pidió la transmisión
-        self._chat_propio = False   # el directo conectado es del canal propio
+        self.sesion = SesionConectada()
         self._obs_transmitiendo = False   # OBS emite sin supervisor a la vista
-        self._descartes_avisado = False
 
         self._chat = ListaChat(MAX_ITEMS_CHAT)
         self._filtro = None
@@ -218,10 +214,6 @@ class YTChatFrame(wx.Frame):
         self._pendientes_timer = None
 
         self._sc_totales: dict[str, float] = {}
-        self._live_chat_id = ""
-        self._video_id_sesion = ""   # vídeo de YouTube de la conexión vigente
-        self._enlace_directo = ""   # URL del directo conectado, solo si es live
-        self._causa_sin_chat = ""
         self._mensajes_programados = programados.cargar(
             paths.mensajes_programados())
         self._programados_reloj_iniciado = False
@@ -721,9 +713,9 @@ class YTChatFrame(wx.Frame):
             historial.guardar(ruta, lista)
             # Solo un directo deja enlace copiable; un vídeo grabado lo vacía.
             if directo:
-                self._enlace_directo = url
+                self.sesion.enlace_directo = url
             else:
-                self._enlace_directo = ""
+                self.sesion.enlace_directo = ""
         except Exception as exc:
             logger.debug("registrar historial: %s", exc)
 
@@ -1122,7 +1114,7 @@ class YTChatFrame(wx.Frame):
         plataforma_sel = registro_sel.plataforma if registro_sel else ""
         identificador_sel = registro_sel.identificador if registro_sel else ""
         moderable = bool(autor and plataforma_sel == "youtube" and identificador_sel
-                         and self._live_chat_id
+                         and self.sesion.live_chat_id
                          and youtube_api.google_disponible() and credenciales.hay_sesion())
         if moderable:
             menu.AppendSeparator()
@@ -1176,7 +1168,7 @@ class YTChatFrame(wx.Frame):
         anunciar("Mensaje copiado")
 
     def _copiar_enlace_directo(self):
-        enlace = getattr(self, "_enlace_directo", "")
+        enlace = self.sesion.enlace_directo
         if not enlace:
             anunciar("No hay ningún directo conectado.")
             return
@@ -1362,14 +1354,14 @@ class YTChatFrame(wx.Frame):
 
     def _avisar_descartes(self) -> None:
         if descartes.hay_que_avisar(self._stats.descartados,
-                                    self._descartes_avisado):
+                                    self.sesion.descartes_avisado):
             try:
                 _snd.reproducir("aviso")
             except Exception:
                 pass
             anunciar(descartes.frase_aviso(
                 self._config.get("umbral_solo_nombre", 0)))
-            self._descartes_avisado = True
+            self.sesion.descartes_avisado = True
 
     def _on_diagnostico_timer(self, event):
         if not self._alive:
@@ -1530,16 +1522,7 @@ class YTChatFrame(wx.Frame):
         recién abierta la app y nada del directo anterior se solape: chat,
         comentarios, reproductor, cola de lectura, super chats y contadores. NO
         toca las preferencias del usuario (filtro, voz, sonidos, tema)."""
-        self._live_chat_id = ""
-        self._video_id_sesion = ""
-        self._enlace_directo = ""
-        self._causa_sin_chat = ""
-        self._usuario_tiktok_sesion = ""
-        self._conexion_propia = False
-        self._chat_propio = False
-        self._tipo_video = deteccion.DESCONOCIDO
-        self._es_tiktok = False
-        self._descartes_avisado = False
+        self.sesion = SesionConectada()
         # Chat: datos, lista visible y lo que aún estaba en cola sin volcar (es
         # de la sesión que se cierra; no debe colarse en la siguiente).
         self._descartar_pendientes()
@@ -1573,7 +1556,7 @@ class YTChatFrame(wx.Frame):
         self._ajustar_minimo_ventana()
 
     def _anunciar_conectado(self) -> None:
-        t = self._tipo_video
+        t = self.sesion.tipo_video
         if t == deteccion.LIVE:
             msg = "Conectado al directo. Leyendo el chat en vivo."
         elif t == deteccion.UPCOMING:
@@ -1588,14 +1571,11 @@ class YTChatFrame(wx.Frame):
                          video_id: str | None = None, propio: bool = False) -> None:
         if not self._alive:
             return
-        if video_id is not None and video_id != self._video_id_sesion:
-            # Respuesta tardía del hilo LiveChatId de una conexión anterior:
-            # con ese id el compositor y los mensajes programados escribirían
-            # en el chat del directo equivocado.
+        if not self.sesion.acepta_chat_de(video_id):
             return
-        self._live_chat_id = live_chat_id or ""
-        self._causa_sin_chat = causa or ""
-        self._chat_propio = bool(propio)
+        self.sesion.live_chat_id = live_chat_id or ""
+        self.sesion.causa_sin_chat = causa or ""
+        self.sesion.chat_propio = bool(propio)
         self._actualizar_estado_online()
 
     def set_espectadores(self, n: int, total: int | None = None) -> None:
@@ -1614,9 +1594,9 @@ class YTChatFrame(wx.Frame):
     def set_tipo_video(self, tipo: str, video_id: str) -> None:
         if not self._alive:
             return
-        self._tipo_video = tipo
-        self._video_id_sesion = video_id or ""
-        self._es_tiktok = False   # esta ruta es la de YouTube
+        self.sesion.tipo_video = tipo
+        self.sesion.video_id = video_id or ""
+        self.sesion.es_tiktok = False   # esta ruta es la de YouTube
         # Empezar el chat en limpio en cada conexión: el reset al desconectar ya
         # lo hace, pero así garantizamos que nunca quede nada del vídeo anterior.
         self._descartar_pendientes()
@@ -1654,9 +1634,9 @@ class YTChatFrame(wx.Frame):
         reproductor con el flujo de TikTok (FLV, o HLS si no hay FLV). Lo llama main vía wx.CallAfter."""
         if not self._alive:
             return
-        self._tipo_video = deteccion.LIVE
-        self._es_tiktok = True
-        self._usuario_tiktok_sesion = usuario or ""
+        self.sesion.tipo_video = deteccion.LIVE
+        self.sesion.es_tiktok = True
+        self.sesion.usuario_tiktok = usuario or ""
         self._descartar_pendientes()
         self._chat.limpiar()
         self._sc_totales.clear()
@@ -1818,7 +1798,7 @@ class YTChatFrame(wx.Frame):
         #   - sin URL → off (no hay nada que descargar)
         try:
             descargar_este_on = False
-            if con and not self._es_tiktok and getattr(self, "_rep_panel", None):
+            if con and not self.sesion.es_tiktok and getattr(self, "_rep_panel", None):
                 try:
                     if not self._rep_panel.get_es_live():
                         descargar_este_on = bool(self._rep_panel.get_url_para_descarga())

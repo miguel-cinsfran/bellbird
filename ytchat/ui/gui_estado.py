@@ -32,13 +32,13 @@ def snapshot_sesion(frame):
     metadatos capturados al conectar (título, canal, espectadores)."""
     from ytchat.ui import gui as _gui
     # Tipo: hay que distinguir TikTok de YouTube (ambos son LIVE por dentro).
-    if frame._conectado and frame._es_tiktok:
+    if frame._conectado and frame.sesion.es_tiktok:
         tipo = "live_tiktok"
-    elif frame._tipo_video == _gui.deteccion.LIVE:
+    elif frame.sesion.tipo_video == _gui.deteccion.LIVE:
         tipo = "live_youtube"
-    elif frame._tipo_video == _gui.deteccion.VOD:
+    elif frame.sesion.tipo_video == _gui.deteccion.VOD:
         tipo = "vod"
-    elif frame._tipo_video == _gui.deteccion.UPCOMING:
+    elif frame.sesion.tipo_video == _gui.deteccion.UPCOMING:
         tipo = "upcoming"
     else:
         tipo = ""

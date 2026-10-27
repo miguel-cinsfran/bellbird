@@ -153,10 +153,10 @@ def actualizar_boton_directo(frame) -> None:
         return
     from ytchat.obs import transmision_directa
     propio = transmision_directa.es_directo_propio(
-        frame._es_tiktok,
-        getattr(frame, "_usuario_tiktok_sesion", ""),
+        frame.sesion.es_tiktok,
+        frame.sesion.usuario_tiktok,
         frame._config.get("tiktok_usuario", ""),
-        getattr(frame, "_conexion_propia", False))
+        frame.sesion.conexion_propia)
     try:
         transmitiendo = bool(frame._supervisar_transmision("activo"))
     except Exception:
@@ -293,14 +293,14 @@ def supervisar_transmision(frame, accion, destino="", usuario="",
                 if destino == "YouTube":
                     from ytchat.youtube import emision as _emision
                     if guardados.get("ninos"):
-                        frame._enlace_directo = url
+                        frame.sesion.enlace_directo = url
                         _gui.anunciar(
                             "El directo está marcado como hecho para "
                             "niños y YouTube no tiene chat.")
                         return
                     if not _emision.chat_legible(
                             guardados["privacidad"]):
-                        frame._enlace_directo = url
+                        frame.sesion.enlace_directo = url
                         _gui.anunciar(
                             "El directo es privado y YouTube no deja "
                             "leer su chat. Para leerlo, transmite como "
@@ -313,7 +313,7 @@ def supervisar_transmision(frame, accion, destino="", usuario="",
                     frame.txt_url.SetValue(url)
                 except Exception:
                     pass
-                frame._conexion_propia = True
+                frame.sesion.conexion_propia = True
                 frame._on_conectar(None)
             _gui.wx.CallAfter(_conectar)
 

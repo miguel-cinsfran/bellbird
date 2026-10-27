@@ -9,6 +9,7 @@ from unittest import mock
 import wx
 
 import main
+from ytchat.ui.sesion_conectada import SesionConectada
 from ytchat.ui.vista_captura import VistaGui
 
 
@@ -243,11 +244,11 @@ class TestActiva(BaseVista):
 
 class TestConexionPropia(BaseVista):
     def test_verdadera_si_el_marco_la_marca(self):
-        self.marco._conexion_propia = True
+        self.marco.sesion = SesionConectada(conexion_propia=True)
         self.assertTrue(self.vista.conexion_propia)
 
     def test_falsa_si_el_marco_no_la_marca(self):
-        self.marco._conexion_propia = False
+        self.marco.sesion = SesionConectada(conexion_propia=False)
         self.assertFalse(self.vista.conexion_propia)
 
     def test_falsa_sin_marco(self):

@@ -39,6 +39,7 @@ from ytchat.capture import alias
 from ytchat.capture import programados
 from ytchat.downloads import ytdlp_bin
 from ytchat.ui.lista_chat import MensajeChat, ListaChat
+from ytchat.ui.sesion_conectada import SesionConectada
 from tests.rutas_temporales import redirigir_rutas
 from tests.ventanas_prueba import destruir
 
@@ -910,7 +911,7 @@ class TestMenusPorConexion(unittest.TestCase):
         frame._mi_ver_conexion = []
         frame._mi_voz_conexion = []
         frame._mi_filtro_sub = _ControlMenu()
-        frame._es_tiktok = False
+        frame.sesion = SesionConectada(es_tiktok=False)
         frame._rep_panel = None
         frame.mi_descargar_este = _ControlMenu()
         barra = _BarraDeMenu()
@@ -1007,6 +1008,7 @@ class TestAliasDesdeElChat(unittest.TestCase):
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
         frame.lb_chat = mock.Mock()
         frame._rebuild_listbox = mock.Mock()
+        frame.sesion = SesionConectada()
         return frame
 
     def test_aceptar_guarda_persiste_y_redibuja(self):
@@ -1064,7 +1066,7 @@ class TestAliasDesdeElChat(unittest.TestCase):
                                hora="12:00:00", tipo="text", monto="")
         frame._get_selected_data = mock.Mock(return_value=registro)
         frame._autor_esta_silenciado = mock.Mock(return_value=False)
-        frame._live_chat_id = "chat"
+        frame.sesion.live_chat_id = "chat"
         frame._moderar = mock.Mock()
         frame._silenciar_autor = mock.Mock()
         menu = MenuChatFalso()
@@ -1104,7 +1106,7 @@ class TestIdentidadModeracionChat(unittest.TestCase):
         frame._config = {"limpiar_emojis": True, "silenciados_runtime": set(),
                          "silenciados_ocultar": set()}
         frame._sc_totales = {}
-        frame._live_chat_id = "live123"
+        frame.sesion = SesionConectada(live_chat_id="live123")
         frame._conectado = True
         frame._alive = True
         frame._autor_esta_oculto = lambda autor: False
@@ -3415,10 +3417,9 @@ class TestProgramadorGui(unittest.TestCase):
         frame._programados_ultimo_envio = None
         frame._programado_en_curso = False
         frame._conectado = True
-        frame._es_tiktok = False
-        frame._live_chat_id = "chat"
-        frame._chat_propio = True
-        frame._conexion_propia = False
+        frame.sesion = SesionConectada(
+            es_tiktok=False, live_chat_id="chat",
+            chat_propio=True, conexion_propia=False)
         return frame
 
     def test_envio_exitoso_avanza_el_reloj(self):
@@ -3513,7 +3514,7 @@ class TestProgramadorGui(unittest.TestCase):
 
     def test_no_envia_si_falta_live_chat_id(self):
         frame = self._frame()
-        frame._live_chat_id = ""
+        frame.sesion.live_chat_id = ""
         with mock.patch.object(frame, "_sesion_api_disponible", return_value=True), \
                 mock.patch.object(frame, "_enviar_programado") as enviar:
             frame._procesar_programado()
@@ -3536,7 +3537,7 @@ class TestProgramadorGui(unittest.TestCase):
 
     def test_no_envia_en_tiktok(self):
         frame = self._frame()
-        frame._es_tiktok = True
+        frame.sesion.es_tiktok = True
         with mock.patch.object(frame, "_sesion_api_disponible", return_value=True), \
                 mock.patch.object(frame, "_enviar_programado") as enviar:
             frame._procesar_programado()
@@ -3544,8 +3545,8 @@ class TestProgramadorGui(unittest.TestCase):
 
     def test_no_envia_en_directo_ajeno(self):
         frame = self._frame()
-        frame._chat_propio = False
-        frame._conexion_propia = False
+        frame.sesion.chat_propio = False
+        frame.sesion.conexion_propia = False
         with mock.patch.object(frame, "_sesion_api_disponible", return_value=True), \
                 mock.patch.object(frame, "_enviar_programado") as enviar:
             frame._procesar_programado()
@@ -3553,8 +3554,8 @@ class TestProgramadorGui(unittest.TestCase):
 
     def test_envia_si_la_conexion_es_propia(self):
         frame = self._frame()
-        frame._chat_propio = False
-        frame._conexion_propia = True
+        frame.sesion.chat_propio = False
+        frame.sesion.conexion_propia = True
         with mock.patch.object(frame, "_sesion_api_disponible", return_value=True), \
                 mock.patch.object(frame, "_enviar_programado") as enviar:
             frame._procesar_programado()
@@ -3609,7 +3610,7 @@ class TestProgramadorGui(unittest.TestCase):
 
     def test_snapshot_omite_proximo_si_el_interruptor_esta_apagado(self):
         frame = self._frame(programados_activo=False)
-        frame._tipo_video = "live_youtube"
+        frame.sesion.tipo_video = "live_youtube"
         frame._titulo_stream = "Directo"
         frame._metadatos = {}
         frame._sc_totales = {}
@@ -3712,7 +3713,7 @@ class TestDescartesGui(unittest.TestCase):
         frame._alive = True
         frame._config = {"umbral_solo_nombre": 0}
         frame._stats = mock.Mock(descartados=descartados)
-        frame._descartes_avisado = False
+        frame.sesion = SesionConectada(descartes_avisado=False)
         frame._actualizar_sb = mock.Mock()
         frame._procesar_programado = mock.Mock()
         return frame
@@ -3725,13 +3726,14 @@ class TestDescartesGui(unittest.TestCase):
             frame._on_timer(None)
         anunciar.assert_called_once_with(gui.descartes.frase_aviso(0))
         sonido.assert_called_once_with("aviso")
-        self.assertTrue(frame._descartes_avisado)
+        self.assertTrue(frame.sesion.descartes_avisado)
 
     def test_el_snapshot_lleva_los_descartes_al_estado(self):
         frame = self._frame(descartados=7)
+        frame.sesion.es_tiktok = False
+        frame.sesion.tipo_video = gui.deteccion.DESCONOCIDO
         frame.__dict__.update(
-            _conectado=False, _es_tiktok=False,
-            _tipo_video=gui.deteccion.DESCONOCIDO, _titulo_stream="",
+            _conectado=False, _titulo_stream="",
             _metadatos={}, _sc_totales={}, _mensajes_programados=[],
             _obs_vigilante=None, _cola=mock.Mock(), _worker=mock.Mock())
         snapshot = frame._snapshot_sesion()
@@ -3740,10 +3742,10 @@ class TestDescartesGui(unittest.TestCase):
     def test_al_reconectar_puede_avisar_otra_vez(self):
         frame = self._frame()
         frame._conectado = True
-        frame._live_chat_id = ""
-        frame._causa_sin_chat = ""
-        frame._tipo_video = gui.deteccion.DESCONOCIDO
-        frame._es_tiktok = False
+        frame.sesion.live_chat_id = ""
+        frame.sesion.causa_sin_chat = ""
+        frame.sesion.tipo_video = gui.deteccion.DESCONOCIDO
+        frame.sesion.es_tiktok = False
         frame._descartar_pendientes = mock.Mock()
         frame._chat = mock.Mock()
         frame.lb_chat = mock.Mock()
@@ -3767,7 +3769,7 @@ class TestDescartesGui(unittest.TestCase):
                 mock.patch.object(gui._snd, "reproducir"):
             frame._on_timer(None)
             frame.set_conectado(False)
-            self.assertFalse(frame._descartes_avisado)
+            self.assertFalse(frame.sesion.descartes_avisado)
             frame._stats.descartados = 3
             frame.set_conectado(True)
             frame._on_timer(None)
@@ -3783,44 +3785,47 @@ class TestLiveChatIdPorSesion(unittest.TestCase):
 
     def _frame(self, video_actual):
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
-        frame.__dict__.update(_alive=True, _video_id_sesion=video_actual,
-                              _live_chat_id="", _causa_sin_chat="")
+        frame.__dict__.update(_alive=True)
+        frame.sesion = SesionConectada(
+            video_id=video_actual, live_chat_id="", causa_sin_chat="")
         frame._actualizar_estado_online = mock.Mock()
         return frame
 
     def test_acepta_el_id_del_video_vigente(self):
         frame = self._frame("abc")
         frame.set_live_chat_id("chat-abc", "", video_id="abc")
-        self.assertEqual(frame._live_chat_id, "chat-abc")
+        self.assertEqual(frame.sesion.live_chat_id, "chat-abc")
         frame._actualizar_estado_online.assert_called_once()
 
     def test_ignora_el_id_de_un_video_anterior(self):
         frame = self._frame("nuevo")
         frame.set_live_chat_id("chat-viejo", "", video_id="viejo")
-        self.assertEqual(frame._live_chat_id, "")
+        self.assertEqual(frame.sesion.live_chat_id, "")
         frame._actualizar_estado_online.assert_not_called()
 
     def test_sin_video_id_conserva_el_comportamiento_anterior(self):
         frame = self._frame("abc")
         frame.set_live_chat_id("chat", "causa")
-        self.assertEqual((frame._live_chat_id, frame._causa_sin_chat), ("chat", "causa"))
+        self.assertEqual((frame.sesion.live_chat_id, frame.sesion.causa_sin_chat), ("chat", "causa"))
 
     def test_por_defecto_el_directo_es_ajeno(self):
         frame = self._frame("abc")
         frame.set_live_chat_id("chat", "causa")
-        self.assertFalse(frame._chat_propio)
+        self.assertFalse(frame.sesion.chat_propio)
 
     def test_guarda_si_el_directo_es_propio(self):
         frame = self._frame("abc")
         frame.set_live_chat_id("chat", "causa", video_id="abc", propio=True)
-        self.assertEqual(frame._live_chat_id, "chat")
-        self.assertTrue(frame._chat_propio)
+        self.assertEqual(frame.sesion.live_chat_id, "chat")
+        self.assertTrue(frame.sesion.chat_propio)
 
     def test_set_tipo_video_fija_el_video_de_la_sesion(self):
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
-        frame.__dict__.update(_alive=True, _video_id_sesion="", _config={},
-                              _sc_totales={}, _tipo_video=gui.deteccion.DESCONOCIDO,
-                              _es_tiktok=False)
+        frame.__dict__.update(_alive=True, _config={},
+                              _sc_totales={})
+        frame.sesion = SesionConectada(
+            video_id="", tipo_video=gui.deteccion.DESCONOCIDO,
+            es_tiktok=False)
         for nombre in ("_descartar_pendientes", "_chat", "lb_chat", "_com_panel",
                        "_rep_panel", "_fijar_tipo", "_actualizar_estado_online",
                        "_actualizar_titulo"):
@@ -3829,7 +3834,7 @@ class TestLiveChatIdPorSesion(unittest.TestCase):
             frame.set_tipo_video(gui.deteccion.LIVE, "abc")
         except Exception:
             pass  # el resto del método toca controles que aquí no existen
-        self.assertEqual(frame._video_id_sesion, "abc")
+        self.assertEqual(frame.sesion.video_id, "abc")
 
 
 class TestEstadoObsEnF2(unittest.TestCase):
@@ -3837,8 +3842,9 @@ class TestEstadoObsEnF2(unittest.TestCase):
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
         frame._config = {"estado_toggles": toggles, "programados_activo": False}
         frame._obs_vigilante = vigilante
-        frame.__dict__.update(_conectado=False, _es_tiktok=False,
-            _tipo_video=gui.deteccion.DESCONOCIDO, _titulo_stream="", _metadatos={},
+        frame.sesion = SesionConectada(
+            es_tiktok=False, tipo_video=gui.deteccion.DESCONOCIDO)
+        frame.__dict__.update(_conectado=False, _titulo_stream="", _metadatos={},
             _sc_totales={}, _mensajes_programados=[])
         return frame
     def test_f2_dice_los_tres_datos_frescos_de_la_cache(self):
@@ -3872,8 +3878,9 @@ class TestTransmisionSupervisadaEnF2(unittest.TestCase):
         frame._config = {"estado_toggles": set(), "programados_activo": False}
         frame._obs_vigilante = None
         frame._supervisor = supervisor
-        frame.__dict__.update(_conectado=False, _es_tiktok=False,
-            _tipo_video=gui.deteccion.DESCONOCIDO, _titulo_stream="", _metadatos={},
+        frame.sesion = SesionConectada(
+            es_tiktok=False, tipo_video=gui.deteccion.DESCONOCIDO)
+        frame.__dict__.update(_conectado=False, _titulo_stream="", _metadatos={},
             _sc_totales={}, _mensajes_programados=[])
         return frame
 
@@ -4189,6 +4196,7 @@ class TestCierreVentana(unittest.TestCase):
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
         frame._apagando = False
         frame._alive = True
+        frame.sesion = SesionConectada()
         frame._timer = mock.Mock()
         frame._diagnostico_timer = mock.Mock()
         frame._pendientes_timer = None
@@ -4743,7 +4751,7 @@ class TestCopiarEnlaceDirecto(unittest.TestCase):
     def _frame(self):
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
         frame._alive = True
-        frame._enlace_directo = ""
+        frame.sesion = SesionConectada(enlace_directo="")
         frame._clipboard_set = mock.Mock()
         frame._ruta_historial = mock.Mock(return_value="historial.json")
         return frame
@@ -4759,7 +4767,7 @@ class TestCopiarEnlaceDirecto(unittest.TestCase):
         frame = self._frame()
         url = "https://www.youtube.com/watch?v=abcdefghijk"
         self._registrar(frame, "youtube", url, True)
-        self.assertEqual(frame._enlace_directo, url)
+        self.assertEqual(frame.sesion.enlace_directo, url)
         with mock.patch.object(gui._snd, "reproducir") as sonar, \
                 mock.patch.object(gui, "anunciar") as anunciar:
             frame._copiar_enlace_directo()
@@ -4771,7 +4779,7 @@ class TestCopiarEnlaceDirecto(unittest.TestCase):
         frame = self._frame()
         self._registrar(frame, "youtube",
                         "https://www.youtube.com/watch?v=abcdefghijk", False)
-        self.assertEqual(frame._enlace_directo, "")
+        self.assertEqual(frame.sesion.enlace_directo, "")
         with mock.patch.object(gui._snd, "reproducir") as sonar, \
                 mock.patch.object(gui, "anunciar") as anunciar:
             frame._copiar_enlace_directo()
@@ -4783,7 +4791,7 @@ class TestCopiarEnlaceDirecto(unittest.TestCase):
         frame = self._frame()
         url = "https://www.tiktok.com/@usuario/live"
         self._registrar(frame, "tiktok", url, True)
-        self.assertEqual(frame._enlace_directo, url)
+        self.assertEqual(frame.sesion.enlace_directo, url)
         with mock.patch.object(gui._snd, "reproducir"), \
                 mock.patch.object(gui, "anunciar") as anunciar:
             frame._copiar_enlace_directo()
@@ -4792,13 +4800,13 @@ class TestCopiarEnlaceDirecto(unittest.TestCase):
 
     def test_tras_desconectar_no_hay_enlace(self):
         frame = self._frame()
-        frame._enlace_directo = "https://www.youtube.com/watch?v=abcdefghijk"
-        frame._live_chat_id = ""
-        frame._video_id_sesion = ""
-        frame._causa_sin_chat = ""
-        frame._tipo_video = gui.deteccion.DESCONOCIDO
-        frame._es_tiktok = False
-        frame._descartes_avisado = False
+        frame.sesion.enlace_directo = "https://www.youtube.com/watch?v=abcdefghijk"
+        frame.sesion.live_chat_id = ""
+        frame.sesion.video_id = ""
+        frame.sesion.causa_sin_chat = ""
+        frame.sesion.tipo_video = gui.deteccion.DESCONOCIDO
+        frame.sesion.es_tiktok = False
+        frame.sesion.descartes_avisado = False
         frame._descartar_pendientes = mock.Mock()
         frame._chat = mock.Mock()
         frame.lb_chat = mock.Mock()
@@ -4811,11 +4819,37 @@ class TestCopiarEnlaceDirecto(unittest.TestCase):
         frame._stats = mock.Mock()
         frame._actualizar_sb = mock.Mock()
         frame._reiniciar_datos_sesion()
-        self.assertEqual(frame._enlace_directo, "")
+        self.assertEqual(frame.sesion.enlace_directo, "")
         with mock.patch.object(gui, "anunciar") as anunciar:
             frame._copiar_enlace_directo()
         frame._clipboard_set.assert_not_called()
         anunciar.assert_called_once_with("No hay ningún directo conectado.")
+
+    def test_reiniciar_deja_sesion_nueva(self):
+        frame = self._frame()
+        frame.sesion.live_chat_id = "chat"
+        frame.sesion.video_id = "abc"
+        frame.sesion.enlace_directo = "https://www.youtube.com/watch?v=abc"
+        frame.sesion.causa_sin_chat = "causa"
+        frame.sesion.usuario_tiktok = "usuario"
+        frame.sesion.conexion_propia = True
+        frame.sesion.chat_propio = True
+        frame.sesion.tipo_video = gui.deteccion.LIVE
+        frame.sesion.es_tiktok = True
+        frame.sesion.descartes_avisado = True
+        frame._descartar_pendientes = mock.Mock()
+        frame._chat = mock.Mock()
+        frame.lb_chat = mock.Mock()
+        frame._sc_totales = {}
+        frame._metadatos = {}
+        frame.txt_info = mock.Mock()
+        frame._rep_panel = mock.Mock()
+        frame._com_panel = mock.Mock()
+        frame._worker = mock.Mock()
+        frame._stats = mock.Mock()
+        frame._actualizar_sb = mock.Mock()
+        frame._reiniciar_datos_sesion()
+        self.assertEqual(frame.sesion, SesionConectada())
 
     def test_item_de_menu_existe_con_su_atajo(self):
         frame = mock.Mock()
@@ -5087,6 +5121,7 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
     def _frame(self):
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
         frame._alive = True
+        frame.sesion = SesionConectada()
         frame._supervisor = None
         frame._config = {
             "transmision_youtube_titulo": "",

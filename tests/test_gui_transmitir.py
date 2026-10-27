@@ -10,6 +10,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 from ytchat.ui import gui, gui_transmitir
+from ytchat.ui.sesion_conectada import SesionConectada
 
 
 def _llamada_inmediata(funcion, *args, **kwargs):
@@ -189,14 +190,24 @@ class TestActualizarBotonDirecto(unittest.TestCase):
 
     def _frame(self, **extras):
         frame = SimpleNamespace(
-            _es_tiktok=False, _usuario_tiktok_sesion="",
-            _config={"tiktok_usuario": ""}, _conexion_propia=True,
+            sesion=SesionConectada(
+                es_tiktok=False, usuario_tiktok="", conexion_propia=True),
+            _config={"tiktok_usuario": ""},
             _conectado=False, _conectando=False,
             _obs_transmitiendo=False,
             _supervisar_transmision=mock.Mock(return_value=False),
             _boton_directo=mock.Mock())
         for clave, valor in extras.items():
-            setattr(frame, clave, valor)
+            if clave == "_es_tiktok":
+                frame.sesion.es_tiktok = valor
+            elif clave == "_usuario_tiktok_sesion":
+                frame.sesion.usuario_tiktok = valor
+            elif clave == "_conexion_propia":
+                frame.sesion.conexion_propia = valor
+            elif clave == "_enlace_directo":
+                frame.sesion.enlace_directo = valor
+            else:
+                setattr(frame, clave, valor)
         return frame
 
     def test_sin_boton_no_falla(self):
@@ -496,7 +507,8 @@ class TestAlConectarChatEnlaceDirecto(unittest.TestCase):
     def _frame(self, guardados):
         return SimpleNamespace(
             _supervisor=None, _config={}, _alive=True,
-            _conectado=False, _conectando=False, _enlace_directo="",
+            _conectado=False, _conectando=False,
+            sesion=SesionConectada(enlace_directo=""),
             txt_url=mock.Mock(), _on_conectar=mock.Mock(),
             _actualizar_boton_directo=mock.Mock(),
             _al_terminar_supervisor=mock.Mock(),
@@ -516,7 +528,7 @@ class TestAlConectarChatEnlaceDirecto(unittest.TestCase):
         frame, anunciar = self._conectar(
             {"titulo": "T", "descripcion": "", "privacidad": "private",
              "ninos": False})
-        self.assertEqual(frame._enlace_directo, self.URL)
+        self.assertEqual(frame.sesion.enlace_directo, self.URL)
         anunciar.assert_called_once_with(
             "El directo es privado y YouTube no deja leer su chat. "
             "Para leerlo, transmite como público o no listado.")
@@ -525,7 +537,7 @@ class TestAlConectarChatEnlaceDirecto(unittest.TestCase):
         frame, anunciar = self._conectar(
             {"titulo": "T", "descripcion": "", "privacidad": "public",
              "ninos": True})
-        self.assertEqual(frame._enlace_directo, self.URL)
+        self.assertEqual(frame.sesion.enlace_directo, self.URL)
         anunciar.assert_called_once_with(
             "El directo está marcado como hecho para niños y YouTube no "
             "tiene chat.")

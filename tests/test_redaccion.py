@@ -5,6 +5,7 @@ from ytchat.capture import deteccion
 from ytchat.ui import gui
 from ytchat.ui import gui_redactar
 from ytchat.capture import redaccion
+from ytchat.ui.sesion_conectada import SesionConectada
 from tests.ventanas_prueba import destruir
 
 
@@ -76,9 +77,10 @@ class TestRedaccion(unittest.TestCase):
         self.addCleanup(destruir, app)
         panel = gui_redactar.PanelRedactar(ventana, "Mensaje", 200, lambda texto: None)
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
-        frame._conectado, frame._es_tiktok = True, False
-        frame._tipo_video, frame._live_chat_id = deteccion.LIVE, ""
-        frame._causa_sin_chat = ""
+        frame._conectado = True
+        frame.sesion = SesionConectada(
+            es_tiktok=False, tipo_video=deteccion.LIVE,
+            live_chat_id="", causa_sin_chat="")
         frame._panel_redactar = panel
         with mock.patch.object(gui.youtube_api, "google_disponible", return_value=True), \
                 mock.patch.object(gui.credenciales, "hay_sesion", return_value=False):

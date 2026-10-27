@@ -120,10 +120,10 @@ class TestDesfasePorDefecto(unittest.TestCase):
 
 def _frame_con_panel(frase, desfase_seg):
     from ytchat.ui import gui
+    from ytchat.ui.sesion_conectada import SesionConectada
     frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
     frame._conectado = True
-    frame._es_tiktok = False
-    frame._tipo_video = "live"
+    frame.sesion = SesionConectada(es_tiktok=False, tipo_video="live")
     frame._titulo_stream = "T"
     frame._metadatos = {}
     frame._sc_totales = {}

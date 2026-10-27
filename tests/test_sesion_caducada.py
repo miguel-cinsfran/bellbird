@@ -17,6 +17,7 @@ from ytchat.youtube import youtube_api
 from ytchat.ui import gui
 from ytchat.ui import gui_comentarios
 from ytchat.ui import gui_preferencias
+from ytchat.ui.sesion_conectada import SesionConectada
 
 
 FRASE_SESION = ("Tu sesión de YouTube caducó. Vuelve a iniciar sesión en "
@@ -126,7 +127,7 @@ class TestCierreAntesDelAviso(unittest.TestCase):
 
     def test_programado_cierra_antes_de_agendar_el_fallo(self):
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
-        frame._live_chat_id = "chat"
+        frame.sesion = SesionConectada(live_chat_id="chat")
         frame._programado_en_curso = False
         orden = []
         cliente = mock.Mock()

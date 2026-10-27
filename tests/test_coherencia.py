@@ -339,7 +339,8 @@ def _filas_de_tabla(nodo, tablas):
 def _pares_con_control():
     """Pares con control en Preferencias: tablas `_OPCIONES_SIMPLES`,
     `OPCIONES_MUSICA`, `OPCIONES_LECTURA` y `OPCIONES_IA`, más llamadas
-    literales `self._set(...)` y `guardar_opcion(...)` de esos archivos."""
+    literales `self._set(...)`, `fijar(...)` y `guardar_opcion(...)` de esos
+    archivos."""
     con_control = set()
     tablas = {}
     arboles = {rel: _arbol(rel) for rel in (
@@ -359,13 +360,19 @@ def _pares_con_control():
         con_control.update(_filas_de_tabla(tabla, tablas))
     for arbol in arboles.values():
         for nodo in ast.walk(arbol):
-            if not (isinstance(nodo, ast.Call)
-                    and isinstance(nodo.func, ast.Attribute)):
+            if not isinstance(nodo, ast.Call):
                 continue
-            if (nodo.func.attr == "_set" and len(nodo.args) >= 2
+            funcion = nodo.func
+            if (isinstance(funcion, ast.Attribute) and funcion.attr == "_set"
+                    and len(nodo.args) >= 2
                     and _es_texto(nodo.args[0]) and _es_texto(nodo.args[1])):
                 con_control.add((nodo.args[0].value, nodo.args[1].value))
-            if (nodo.func.attr in ("guardar_opcion", "guardar_opciones")
+            if (isinstance(funcion, ast.Name) and funcion.id == "fijar"
+                    and len(nodo.args) >= 2
+                    and _es_texto(nodo.args[0]) and _es_texto(nodo.args[1])):
+                con_control.add((nodo.args[0].value, nodo.args[1].value))
+            if (isinstance(funcion, ast.Attribute)
+                    and funcion.attr in ("guardar_opcion", "guardar_opciones")
                     and len(nodo.args) >= 3
                     and _es_texto(nodo.args[1]) and _es_texto(nodo.args[2])):
                 con_control.add((nodo.args[1].value, nodo.args[2].value))

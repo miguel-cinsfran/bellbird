@@ -62,5 +62,39 @@ class TestSnapshotEspectadores(unittest.TestCase):
         self.assertEqual(snap.espectadores_total, None)
 
 
+class TestTotalAportesTexto(unittest.TestCase):
+
+    def test_una_divisa(self):
+        frame = types.SimpleNamespace(_sc_totales={"€": 15.5})
+        self.assertEqual(gui_estado.total_aportes_texto(frame), "€15.50")
+
+    def test_dos_divisas(self):
+        frame = types.SimpleNamespace(_sc_totales={"€": 15.0, "$": 10.0})
+        self.assertEqual(gui_estado.total_aportes_texto(frame), "€15, $10")
+
+
+class TestFormatoTotalSc(unittest.TestCase):
+
+    def _frame(self, totales):
+        return types.SimpleNamespace(
+            _stats=types.SimpleNamespace(superchats=3),
+            _sc_totales=totales)
+
+    def test_sin_totales(self):
+        self.assertEqual(
+            gui.YTChatFrame._formato_total_sc(self._frame({})), "SC: 3")
+
+    def test_una_divisa(self):
+        self.assertEqual(
+            gui.YTChatFrame._formato_total_sc(self._frame({"€": 15.5})),
+            "SC: 3 (€15.50)")
+
+    def test_dos_divisas(self):
+        self.assertEqual(
+            gui.YTChatFrame._formato_total_sc(
+                self._frame({"€": 15.0, "$": 10.0})),
+            "SC: 3 (€15, $10)")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -21,8 +21,7 @@ from wx.lib.wordwrap import wordwrap
 
 from ytchat.core.config import (
     APP_NAME, APP_VERSION,
-    TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,
-    TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE,
+    TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO,
     TIPO_ME_GUSTA,
     FILTROS,
 )
@@ -35,7 +34,7 @@ from ytchat.capture import deteccion
 from ytchat.capture import metadatos
 from ytchat.capture import estado_sesion
 from ytchat.core import historial
-from ytchat.ui.lista_chat import ListaChat, MensajeChat
+from ytchat.ui.lista_chat import ListaChat, MensajeChat, texto_fila
 from ytchat.ui.busqueda_lista import buscar_prefijo, coincide
 from ytchat.ui import atajos_captura
 from ytchat.voice import escala_voz
@@ -45,6 +44,7 @@ from ytchat.youtube import youtube_api
 from ytchat.core import diagnostico
 from ytchat.downloads import ytdlp_bin
 from ytchat.core import apagado
+from ytchat.capture.montos import texto_importes
 from ytchat.obs import overlay_servidor
 from ytchat.capture import programados
 from ytchat.capture import descartes
@@ -2036,21 +2036,7 @@ class YTChatFrame(wx.Frame):
         if self._config.get("limpiar_emojis", True):
             from ytchat.voice.tts_worker import quitar_emojis
             msg = quitar_emojis(msg)
-        if tipo == TIPO_SUPERCHAT and monto:
-            return f"💲 [{monto}] {autor}: {msg}, {hora}"
-        if tipo == TIPO_STICKER and monto:
-            return f"🎨 [{monto}] {autor}, {hora}"
-        if tipo == TIPO_MIEMBRO:
-            return f"⭐ NUEVO MIEMBRO: {autor}, {hora}"
-        if tipo == TIPO_ENTRADA:
-            return f"👋 {autor} entró, {hora}"
-        if tipo == TIPO_SEGUIR:
-            return f"{autor} sigue el canal, {hora}"
-        if tipo == TIPO_COMPARTIR:
-            return f"{autor} compartió el directo, {hora}"
-        if tipo == TIPO_COFRE:
-            return f"{autor} envió un cofre, {hora}"
-        return f"{autor}: {msg}, {hora}"
+        return texto_fila(autor, msg, hora, tipo, monto)
 
     def _rebuild_listbox(self) -> None:
         # Que lo que acaba de llegar (aún en cola, sin pasar por self._chat) no
@@ -2150,23 +2136,16 @@ class YTChatFrame(wx.Frame):
     # ── Acumulación de Super Chats ───────────────────────────────────────────
 
     def _sumar_superchat(self, monto: str) -> None:
-        from ytchat.capture.montos import parsear_monto
-        r = parsear_monto(monto)
-        if r is None:
-            return
-        divisa, valor = r
-        self._sc_totales[divisa] = self._sc_totales.get(divisa, 0.0) + valor
+        from ytchat.capture.montos import sumar_monto
+        sumar_monto(self._sc_totales, monto)
 
     def _formato_total_sc(self) -> str:
         try:    n = self._stats.superchats
         except Exception: n = 0
-        if not self._sc_totales:
+        importes = texto_importes(self._sc_totales)
+        if not importes:
             return f"SC: {n}"
-        if len(self._sc_totales) == 1:
-            d, t = next(iter(self._sc_totales.items()))
-            return f"SC: {n} ({d}{t:.2f})"
-        partes = [f"{d}{t:.0f}" for d, t in self._sc_totales.items()]
-        return f"SC: {n} ({', '.join(partes)})"
+        return f"SC: {n} ({importes})"
 
 
 # ── Portapapeles ─────────────────────────────────────────────────────────────

@@ -7,7 +7,11 @@ menú contextual (copiar, silenciar, banear) caía sobre el mensaje equivocado.
 
 import unittest
 
-from ytchat.ui.lista_chat import ListaChat, MensajeChat, texto_reciente
+from ytchat.core.config import (
+    TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,
+    TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE,
+)
+from ytchat.ui.lista_chat import ListaChat, MensajeChat, texto_fila, texto_reciente
 
 
 def _msg(n, tipo="text", plataforma="youtube", identificador=None, autor=None):
@@ -252,6 +256,59 @@ class TestTextoReciente(unittest.TestCase):
             for n in range(1, min(11, largo + 1)):
                 with self.subTest(largo=largo, n=n):
                     self.assertEqual(texto_reciente(filas, n), filas[largo - n])
+
+
+class TestTextoFila(unittest.TestCase):
+
+    def test_superchat_con_monto(self):
+        self.assertEqual(
+            texto_fila("Ana", "hola", "12:00:00", TIPO_SUPERCHAT, "$5"),
+            "💲 [$5] Ana: hola, 12:00:00")
+
+    def test_superchat_sin_monto_cae_al_texto_comun(self):
+        self.assertEqual(
+            texto_fila("Ana", "hola", "12:00:00", TIPO_SUPERCHAT, ""),
+            "Ana: hola, 12:00:00")
+
+    def test_sticker_con_monto(self):
+        self.assertEqual(
+            texto_fila("Ana", "hola", "12:00:00", TIPO_STICKER, "$5"),
+            "🎨 [$5] Ana, 12:00:00")
+
+    def test_sticker_sin_monto_cae_al_texto_comun(self):
+        self.assertEqual(
+            texto_fila("Ana", "hola", "12:00:00", TIPO_STICKER, ""),
+            "Ana: hola, 12:00:00")
+
+    def test_miembro(self):
+        self.assertEqual(
+            texto_fila("Ana", "hola", "12:00:00", TIPO_MIEMBRO, ""),
+            "⭐ NUEVO MIEMBRO: Ana, 12:00:00")
+
+    def test_entrada(self):
+        self.assertEqual(
+            texto_fila("Ana", "hola", "12:00:00", TIPO_ENTRADA, ""),
+            "👋 Ana entró, 12:00:00")
+
+    def test_seguir(self):
+        self.assertEqual(
+            texto_fila("Ana", "hola", "12:00:00", TIPO_SEGUIR, ""),
+            "Ana sigue el canal, 12:00:00")
+
+    def test_compartir(self):
+        self.assertEqual(
+            texto_fila("Ana", "hola", "12:00:00", TIPO_COMPARTIR, ""),
+            "Ana compartió el directo, 12:00:00")
+
+    def test_cofre(self):
+        self.assertEqual(
+            texto_fila("Ana", "hola", "12:00:00", TIPO_COFRE, ""),
+            "Ana envió un cofre, 12:00:00")
+
+    def test_texto_comun(self):
+        self.assertEqual(
+            texto_fila("Ana", "hola", "12:00:00", TIPO_TEXTO, ""),
+            "Ana: hola, 12:00:00")
 
 
 if __name__ == "__main__":

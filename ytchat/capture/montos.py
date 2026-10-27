@@ -61,3 +61,22 @@ def parsear_monto(monto: str) -> tuple[str, float] | None:
     divisa_m = _DIVISA_RE.search(monto)
     divisa = divisa_m.group(0).strip() if divisa_m else "?"
     return (divisa or "?", valor)
+
+
+def sumar_monto(totales: dict[str, float], monto: str) -> None:
+    """Acumula el importe en `totales` por divisa. Ignora lo que no entiende."""
+    resultado = parsear_monto(monto)
+    if resultado is None:
+        return
+    divisa, valor = resultado
+    totales[divisa] = totales.get(divisa, 0.0) + valor
+
+
+def texto_importes(totales: dict[str, float]) -> str:
+    """Texto de los importes acumulados, sin el «SC: n»."""
+    if not totales:
+        return ""
+    if len(totales) == 1:
+        d, t = next(iter(totales.items()))
+        return f"{d}{t:.2f}"
+    return ", ".join(f"{d}{t:.0f}" for d, t in totales.items())

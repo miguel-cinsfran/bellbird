@@ -18,6 +18,8 @@ módulo en el momento de la llamada, nunca con un `from` directo.
 
 from __future__ import annotations
 
+from ytchat.capture.montos import texto_importes
+
 
 def _entero_en(meta, clave):
     valor = meta.get(clave)
@@ -99,12 +101,7 @@ def snapshot_sesion(frame):
 
 def total_aportes_texto(frame) -> str:
     """Solo el importe acumulado de Super Chats (sin el «SC: n»), para F2."""
-    if not frame._sc_totales:
-        return ""
-    if len(frame._sc_totales) == 1:
-        d, t = next(iter(frame._sc_totales.items()))
-        return f"{d}{t:.2f}"
-    return ", ".join(f"{d}{t:.0f}" for d, t in frame._sc_totales.items())
+    return texto_importes(frame._sc_totales)
 
 
 def anunciar_estado(frame):

@@ -2,7 +2,7 @@
 
 import unittest
 
-from ytchat.capture.montos import parsear_monto
+from ytchat.capture.montos import parsear_monto, sumar_monto, texto_importes
 
 
 class TestParsearMonto(unittest.TestCase):
@@ -62,6 +62,32 @@ class TestParsearMonto(unittest.TestCase):
     def test_una_o_dos_cifras_tras_el_separador_es_decimal(self):
         self.assertEqual(parsear_monto("1,5 €"), ("€", 1.5))
         self.assertEqual(parsear_monto("$1.50"), ("$", 1.5))
+
+
+class TestSumarMonto(unittest.TestCase):
+
+    def test_acumula_en_el_dict_recibido(self):
+        totales = {}
+        sumar_monto(totales, "$10.00")
+        sumar_monto(totales, "$5.50")
+        self.assertEqual(totales, {"$": 15.5})
+
+    def test_ignora_lo_que_no_entiende(self):
+        totales = {"€": 1.0}
+        sumar_monto(totales, "gracias")
+        self.assertEqual(totales, {"€": 1.0})
+
+
+class TestTextoImportes(unittest.TestCase):
+
+    def test_vacio(self):
+        self.assertEqual(texto_importes({}), "")
+
+    def test_una_divisa_con_dos_decimales(self):
+        self.assertEqual(texto_importes({"€": 15.5}), "€15.50")
+
+    def test_varias_divisas_sin_decimales(self):
+        self.assertEqual(texto_importes({"€": 15.0, "$": 10.0}), "€15, $10")
 
 
 if __name__ == "__main__":

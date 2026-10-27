@@ -15,6 +15,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from ytchat.core.config import (
+    TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,
+    TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE,
+)
+
 
 @dataclass(frozen=True, slots=True)
 class MensajeChat:
@@ -78,6 +83,25 @@ class ListaChat:
     def limpiar(self) -> None:
         self.todos.clear()
         self.visibles.clear()
+
+
+def texto_fila(autor, msg, hora, tipo, monto) -> str:
+    """Texto de una fila del chat según su tipo, con los mismos emojis."""
+    if tipo == TIPO_SUPERCHAT and monto:
+        return f"💲 [{monto}] {autor}: {msg}, {hora}"
+    if tipo == TIPO_STICKER and monto:
+        return f"🎨 [{monto}] {autor}, {hora}"
+    if tipo == TIPO_MIEMBRO:
+        return f"⭐ NUEVO MIEMBRO: {autor}, {hora}"
+    if tipo == TIPO_ENTRADA:
+        return f"👋 {autor} entró, {hora}"
+    if tipo == TIPO_SEGUIR:
+        return f"{autor} sigue el canal, {hora}"
+    if tipo == TIPO_COMPARTIR:
+        return f"{autor} compartió el directo, {hora}"
+    if tipo == TIPO_COFRE:
+        return f"{autor} envió un cofre, {hora}"
+    return f"{autor}: {msg}, {hora}"
 
 
 def texto_reciente(filas, n: int) -> str:

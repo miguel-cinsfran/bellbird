@@ -4,7 +4,7 @@ No es parte de la aplicación y la aplicación no la conoce. Se instala desde
 fuera, antes de arrancar `main.py`, y hace dos cosas.
 
 **Graba lo que la aplicación diría, sin decirlo.** Sustituye el objeto por el
-que `gui.anunciar` habla con el lector de pantalla. El dueño es ciego y corre
+que `accesibilidad.anunciar` habla con el lector de pantalla. El dueño es ciego y corre
 estas pruebas él mismo: una prueba que hable le secuestra el lector mientras
 trabaja.
 
@@ -40,7 +40,7 @@ VAR_RESULTADOS = "YTCHAT_QA_RESULTADOS"
 class GrabadorAnuncios:
     """Ocupa el lugar del lector de pantalla y escribe en vez de hablar.
 
-    Tiene que responder a `speak` y a `braille` porque `gui.anunciar` llama a
+    Tiene que responder a `speak` y a `braille` porque `accesibilidad.anunciar` llama a
     los dos, y cada uno dentro de su propio try. Si alguno faltara, la
     excepción quedaría tapada y la grabación saldría incompleta sin avisar.
     """
@@ -1162,24 +1162,27 @@ def instalar() -> str:
             f"Falta la variable {VAR_DESTINO} con la ruta de la grabación")
 
     from ytchat.ui import gui
+    from ytchat.ui import accesibilidad
     grabador = GrabadorAnuncios(ruta)
 
-    # No alcanza con asignar `gui._lector` acá: `iniciar_gui` llama a
+    # No alcanza con asignar `accesibilidad._lector` acá: `iniciar_gui` llama a
     # `_lector_init()` por dentro, después, y vuelve a poner el objeto real
     # encima. Costó una corrida entera creer que la sonda estaba puesta cuando
     # no lo estaba, y peor: creer que la aplicación no iba a hablar cuando sí.
-    if not hasattr(gui, "_lector_init"):
+    if not hasattr(gui, "_lector_init") or not hasattr(accesibilidad, "_lector") \
+            or not hasattr(accesibilidad, "_lector_init"):
         raise RuntimeError(
-            "gui ya no tiene _lector_init: la sonda quedó vieja y no puede "
+            "gui o accesibilidad ya no tienen _lector_init: la sonda quedó vieja y no puede "
             "garantizar que la aplicación no hable. Revisala antes de seguir.")
 
     def _init_grabando():
-        gui._lector = grabador
+        accesibilidad._lector = grabador
         grabador._apuntar("sonda", "la aplicación pidió inicializar la voz y "
                                    "se le dio el grabador")
 
     gui._lector_init = _init_grabando
-    gui._lector = grabador
+    accesibilidad._lector_init = _init_grabando
+    accesibilidad._lector = grabador
     grabador._apuntar("sonda", "grabador instalado antes de arrancar")
 
     try:

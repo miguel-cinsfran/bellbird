@@ -9,6 +9,8 @@ from pathlib import Path
 from unittest import mock
 
 from ytchat.ui import gui
+from ytchat.ui import accesibilidad
+from ytchat.ui import tema
 from ytchat.ui import gui_comentarios
 from ytchat.ui import gui_preferencias
 from ytchat.ui import preferencias_api
@@ -139,13 +141,13 @@ class TestInicioGui(unittest.TestCase):
         from ytchat.voice import lector as modulo_lector
         contexto = mock.Mock()
         contexto.create.side_effect = prism.PrismError("sin lector")
-        anterior = gui._lector
+        anterior = accesibilidad._lector
         try:
             with mock.patch.object(prism, "Context", return_value=contexto):
-                gui._lector_init()
-            self.assertIsInstance(gui._lector, modulo_lector.Lector)
+                accesibilidad._lector_init()
+            self.assertIsInstance(accesibilidad._lector, modulo_lector.Lector)
         finally:
-            gui._lector = anterior
+            accesibilidad._lector = anterior
 
     def test_asercion_de_wx_se_registra_sin_anunciarse(self):
         aplicacion = mock.Mock()
@@ -471,56 +473,56 @@ class TestRegistroEsAnunciable(unittest.TestCase):
         self.assertFalse(gui.registro_es_anunciable(None))
 
     def test_manejador_consulta_el_nombre_del_registro(self):
-        manejador = gui.WxAnnouncingHandler()
+        manejador = accesibilidad.WxAnnouncingHandler()
         registro = logging.LogRecord(
             "diagnostico.hilos", logging.INFO, __file__, 1, "oculto", (), None)
-        with mock.patch.object(gui, "registro_es_anunciable", return_value=False) as decidir:
-            with mock.patch.object(gui, "anunciar") as anunciar:
+        with mock.patch.object(accesibilidad, "registro_es_anunciable", return_value=False) as decidir:
+            with mock.patch.object(accesibilidad, "anunciar") as anunciar:
                 manejador.emit(registro)
         decidir.assert_called_once_with("diagnostico.hilos")
         anunciar.assert_not_called()
 
     def test_anunciar_interrumpe_por_defecto(self):
         grabador = GrabadorDeVoz()
-        with mock.patch.object(gui, "_lector", grabador):
-            gui.anunciar("hola")
+        with mock.patch.object(accesibilidad, "_lector", grabador):
+            accesibilidad.anunciar("hola")
 
         self.assertEqual(grabador.hablado, ["hola"])
         self.assertEqual(grabador.interrupciones, [True])
 
     def test_anunciar_no_interrumpe_si_no_es_urgente(self):
         grabador = GrabadorDeVoz()
-        with mock.patch.object(gui, "_lector", grabador):
-            gui.anunciar("hola", urgente=False)
+        with mock.patch.object(accesibilidad, "_lector", grabador):
+            accesibilidad.anunciar("hola", urgente=False)
 
         self.assertEqual(grabador.interrupciones, [False])
 
     def test_anunciar_desde_otro_hilo_se_reenvia_al_hilo_principal(self):
         # La voz va por COM: desde un hilo ajeno no se habla, se difiere.
         grabador = GrabadorDeVoz()
-        with mock.patch.object(gui, "_lector", grabador), \
+        with mock.patch.object(accesibilidad, "_lector", grabador), \
                 mock.patch.object(gui.wx, "IsMainThread", return_value=False), \
                 mock.patch.object(gui.wx, "CallAfter") as diferir:
-            gui.anunciar("hola", urgente=False)
+            accesibilidad.anunciar("hola", urgente=False)
 
-        diferir.assert_called_once_with(gui.anunciar, "hola", False)
+        diferir.assert_called_once_with(accesibilidad.anunciar, "hola", False)
         self.assertEqual(grabador.hablado, [])
         self.assertEqual(grabador.brailleado, [])
 
     def test_anunciar_envia_braille_en_los_dos_casos(self):
         grabador = GrabadorDeVoz()
-        with mock.patch.object(gui, "_lector", grabador):
-            gui.anunciar("urgente")
-            gui.anunciar("no urgente", urgente=False)
+        with mock.patch.object(accesibilidad, "_lector", grabador):
+            accesibilidad.anunciar("urgente")
+            accesibilidad.anunciar("no urgente", urgente=False)
 
         self.assertEqual(grabador.brailleado, ["urgente", "no urgente"])
 
     def test_anunciar_registra_el_fallo_de_voz_sin_propagarse(self):
         salida = mock.Mock()
         salida.speak.side_effect = RuntimeError("COM no disponible")
-        with mock.patch.object(gui, "_lector", salida), \
-                mock.patch.object(gui.logger, "warning") as registrar:
-            gui.anunciar("hola")
+        with mock.patch.object(accesibilidad, "_lector", salida), \
+                mock.patch.object(accesibilidad.logger, "warning") as registrar:
+            accesibilidad.anunciar("hola")
 
         registrar.assert_called_once_with(
             "No se pudo anunciar con voz: %s", mock.ANY)
@@ -528,9 +530,9 @@ class TestRegistroEsAnunciable(unittest.TestCase):
 
     def test_anunciar_no_registra_fallo_si_la_voz_responde(self):
         grabador = GrabadorDeVoz()
-        with mock.patch.object(gui, "_lector", grabador), \
-                mock.patch.object(gui.logger, "warning") as registrar:
-            gui.anunciar("hola")
+        with mock.patch.object(accesibilidad, "_lector", grabador), \
+                mock.patch.object(accesibilidad.logger, "warning") as registrar:
+            accesibilidad.anunciar("hola")
 
         registrar.assert_not_called()
 
@@ -551,8 +553,8 @@ class TestRegistroEsAnunciable(unittest.TestCase):
         grabador = GrabadorDeVoz()
         registro = logging.LogRecord(
             "ytchat.diagnostico", logging.INFO, __file__, 1, "oculto", (), None)
-        with mock.patch.object(gui, "_lector", grabador):
-            gui.WxAnnouncingHandler().emit(registro)
+        with mock.patch.object(accesibilidad, "_lector", grabador):
+            accesibilidad.WxAnnouncingHandler().emit(registro)
 
         self.assertEqual(grabador.hablado, [])
         self.assertEqual(grabador.brailleado, [])
@@ -561,8 +563,8 @@ class TestRegistroEsAnunciable(unittest.TestCase):
         grabador = GrabadorDeVoz()
         registro = logging.LogRecord(
             "ytchat.obs_vigilante", logging.INFO, __file__, 1, "OBS volvio a responder", (), None)
-        with mock.patch.object(gui, "_lector", grabador):
-            gui.WxAnnouncingHandler().emit(registro)
+        with mock.patch.object(accesibilidad, "_lector", grabador):
+            accesibilidad.WxAnnouncingHandler().emit(registro)
 
         self.assertEqual(grabador.hablado, ["OBS volvio a responder"])
 
@@ -588,30 +590,30 @@ class TestAltoContraste(unittest.TestCase):
 
     def test_sin_alto_contraste_se_pinta_la_paleta(self):
         control = mock.Mock()
-        with mock.patch.object(gui, "ALTO_CONTRASTE", False):
-            gui._tc(control)
-        control.SetBackgroundColour.assert_called_once_with(gui._T.field)
-        control.SetForegroundColour.assert_called_once_with(gui._T.text)
+        with mock.patch.object(tema, "ALTO_CONTRASTE", False):
+            tema._tc(control)
+        control.SetBackgroundColour.assert_called_once_with(tema._T.field)
+        control.SetForegroundColour.assert_called_once_with(tema._T.text)
 
     def test_con_alto_contraste_no_se_toca_ningun_color(self):
         control = mock.Mock()
-        with mock.patch.object(gui, "ALTO_CONTRASTE", True):
-            gui._tc(control)
-            gui._pintar(control, gui._T.bg, gui._T.text)
-            gui._titulo(control)
+        with mock.patch.object(tema, "ALTO_CONTRASTE", True):
+            tema._tc(control)
+            tema._pintar(control, tema._T.bg, tema._T.text)
+            tema._titulo(control)
         control.SetBackgroundColour.assert_not_called()
         control.SetForegroundColour.assert_not_called()
         control.SetFont.assert_called_once()   # la negrita de sección sí queda
 
     def test_pintar_solo_aplica_lo_que_se_le_pasa(self):
         control = mock.Mock()
-        with mock.patch.object(gui, "ALTO_CONTRASTE", False):
-            gui._pintar(control, fg=gui._T.dim)
+        with mock.patch.object(tema, "ALTO_CONTRASTE", False):
+            tema._pintar(control, fg=tema._T.dim)
         control.SetBackgroundColour.assert_not_called()
-        control.SetForegroundColour.assert_called_once_with(gui._T.dim)
+        control.SetForegroundColour.assert_called_once_with(tema._T.dim)
 
     def test_la_deteccion_nunca_revienta(self):
-        self.assertIn(gui._detectar_alto_contraste(), (True, False))
+        self.assertIn(tema._detectar_alto_contraste(), (True, False))
 
 
 class TestNombreAccesibleRegistra(unittest.TestCase):
@@ -620,8 +622,8 @@ class TestNombreAccesibleRegistra(unittest.TestCase):
         control = mock.Mock()
         control.SetHelpText.side_effect = RuntimeError("sin ayuda")
         control.SetAccessible.side_effect = RuntimeError("sin MSAA")
-        with self.assertLogs(gui.logger, "DEBUG") as registros:
-            gui.nombre_accesible(control, "Nombre")
+        with self.assertLogs(accesibilidad.logger, "DEBUG") as registros:
+            accesibilidad.nombre_accesible(control, "Nombre")
         salida = "\n".join(registros.output)
         self.assertIn("El control no admite texto de ayuda: sin ayuda", salida)
         self.assertIn("Sin MSAA para el nombre accesible: sin MSAA", salida)

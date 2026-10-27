@@ -35,7 +35,6 @@ from ytchat.capture import metadatos
 from ytchat.capture import estado_sesion
 from ytchat.core import historial
 from ytchat.ui.lista_chat import ListaChat, MensajeChat, texto_fila
-from ytchat.ui.busqueda_lista import buscar_prefijo, coincide
 from ytchat.ui import atajos_captura
 from ytchat.voice import escala_voz
 from ytchat.voice import sound_player as _snd
@@ -98,47 +97,13 @@ logger = diagnostico.obtener_logger(__name__)
 _OBS_COMPONENTES = frozenset(("obs_transmision", "obs_grabacion", "obs_escena"))
 
 
-# ── Lector de pantalla (Prism, opcional) ────────────────────────────────────
-# Si Prism no está instalado o no hay un lector de pantalla activo, los
-# `anunciar()` son no-ops silenciosos; la app funciona igual.
-
-_lector = None
-
-
-def _lector_init():
-    global _lector
-    try:
-        from ytchat.voice.lector import Lector
-        _lector = Lector()
-        logger.info("Lector de pantalla: %s", _lector.nombre() or "ninguno")
-    except Exception as exc:
-        logger.warning("La aplicación se quedó sin salida para lector de pantalla: %s", exc)
-
-
-def anunciar(texto: str, urgente: bool = True) -> None:
-    if _lector is None:
-        logger.info("ANUNCIO sin lector %s", texto)
-        return
-    if not wx.IsMainThread():
-        # Prism habla por COM (JAWS) y no es seguro desde otros hilos; el
-        # vigilante de OBS y las descargas anuncian desde los suyos, así que se
-        # reenvía al hilo de la interfaz, que es donde se crea y se usa el
-        # lector porque JAWS crea su COM ahí.
-        try:    wx.CallAfter(anunciar, texto, urgente)
-        except Exception as exc: logger.debug("No se pudo pasar el anuncio al hilo de la interfaz: %s", exc)
-        return
-    logger.info("ANUNCIO %s", texto)
-    try:
-        # Casi todos responden a una tecla y deben llegar antes del próximo foco.
-        _lector.speak(texto, interrupt=urgente)
-    except Exception as exc:
-        logger.warning("No se pudo anunciar con voz: %s", exc)
-    # También a la línea braille, como hace TWBlue (output.speak): quien usa
-    # pantalla braille sin voz recibe igualmente los anuncios de la app.
-    try:
-        _lector.braille(texto)
-    except Exception as exc:
-        logger.debug("No se pudo enviar el anuncio a la línea braille: %s", exc)
+# Reexportados: muchos módulos todavía los piden a gui.
+from ytchat.ui.accesibilidad import (
+    ContadorAccesible, WxAnnouncingHandler, _lector_init, anunciar,
+    nombre_accesible, registro_es_anunciable,
+)
+from ytchat.ui.busqueda_teclado import instalar_busqueda_tipo
+from ytchat.ui.tema import ALTO_CONTRASTE, _T, _pintar, _tc, _titulo
 
 
 def anunciar_conflictos_atajos(raw: dict | None) -> None:
@@ -148,221 +113,10 @@ def anunciar_conflictos_atajos(raw: dict | None) -> None:
             f"{conservada} usa {combinacion}.")
 
 
-# ── Nombre accesible reforzado (MSAA) ─────────────────────────────────────────
-# Patrón tomado de eleven-tts-studio: en Windows, `SetName` por sí solo no
-# siempre lo anuncian NVDA/JAWS de forma fiable (sobre todo en deslizadores y en
-# ventanas genéricas como la superficie de vídeo). Reforzamos con un
-# `wx.Accessible` explícito que expone el nombre por MSAA. Solo se usa en los
-# controles donde el nombre flojea; los estándar (botones, casillas) ya se leen
-# bien con `name=` y no hace falta.
-
-class _NombreAccesible(wx.Accessible):
-    """Expone el nombre del control por MSAA. Solo nombra el control en sí
-    (childId 0); las filas/hijos (p. ej. cada línea de una lista) las deja al
-    proveedor por defecto, o todas se anunciarían con el nombre de la lista."""
-
-    def __init__(self, nombre: str):
-        super().__init__()
-        self._nombre = nombre
-
-    def GetName(self, childId):
-        if childId == 0:
-            return (wx.ACC_OK, self._nombre)
-        return (wx.ACC_NOT_IMPLEMENTED, "")
-
-
-def nombre_accesible(ctrl, nombre: str, msaa: bool = True) -> None:
-    """Refuerza el nombre accesible de un control. Mantiene los tooltips ricos
-    que ya tengamos (solo pone uno si falta) y no altera el rol ni el valor: el
-    `wx.Accessible` solo sobrescribe el nombre y delega el resto.
-
-    `msaa=False` se salta el `wx.Accessible` (deja SetName/tooltip/HelpText
-    igual). Úsalo en listas de CONTENIDO DINÁMICO (chat, comentarios): al
-    instalar un `wx.Accessible` en Python, TODAS las consultas MSAA de NVDA
-    sobre ese control (también las de cada fila al navegar con flechas) pasan
-    por el proxy de wx y el hilo de GUI. Con la lista recibiendo Append/Delete
-    constantes por los mensajes que llegan, esas consultas se quedan esperando
-    y la navegación se traba a trompicones. Las listas estáticas (voces,
-    historial…) no sufren esto y siguen con el refuerzo."""
-    ctrl.SetName(nombre)
-    if not ctrl.GetToolTip():
-        ctrl.SetToolTip(nombre)
-    try:    ctrl.SetHelpText(nombre)   # JAWS lee el help text en algunos controles
-    except Exception as exc: logger.debug("El control no admite texto de ayuda: %s", exc)
-    if not msaa:
-        return
-    try:
-        acc = _NombreAccesible(nombre)
-        ctrl.SetAccessible(acc)
-        ctrl._nombre_accesible = acc   # evita que el GC se lo lleve
-    except Exception as exc:  # fuera de Windows o sin MSAA: el name/tooltip siguen aplicando
-        logger.debug("Sin MSAA para el nombre accesible: %s", exc)
-
-
 def caja_de_grupo(panel, titulo):
     """Crea una caja y devuelve el sizer junto al padre de sus controles."""
     caja = wx.StaticBox(panel, label=titulo)
     return wx.StaticBoxSizer(caja, wx.VERTICAL), caja
-
-
-# ── Búsqueda por prefijo (type-ahead) en listas de texto ────────────────────
-# Estando en el chat o en comentarios, escribir letras seguidas salta al
-# primer mensaje cuyo texto MOSTRADO («autor: mensaje…») empiece por eso, con
-# buffer multiletra («mig» → «Miguel», no una letra a la vez) que se resetea
-# solo tras un rato sin teclear. La lógica de búsqueda vive en
-# `busqueda_lista.py` (pura, sin wx); esto solo engancha el evento y lleva el
-# buffer/temporizador.
-
-_MS_RESET_BUSQUEDA = 900
-
-
-class _EstadoBusqueda:
-    """Buffer de teclas y temporizador de reseteo de una lista. Uno por
-    control (instalar_busqueda_tipo lo crea y lo cierra en un closure)."""
-
-    def __init__(self):
-        self.buffer = ""
-        self.timer = None
-
-
-def instalar_busqueda_tipo(listbox: wx.ListBox, obtener_textos) -> None:
-    """Engancha en `listbox` el type-ahead sobre EVT_CHAR (aparte de
-    EVT_KEY_DOWN, que ya usan estas listas para Enter/Ctrl+C/menú, para no
-    pelearse con esos keycodes). `obtener_textos` es una función sin
-    argumentos que devuelve, en orden de fila, el texto mostrado de cada
-    ítem (normalmente `[listbox.GetString(i) for i in range(GetCount())]`).
-    """
-    estado = _EstadoBusqueda()
-
-    def _resetear_buffer():
-        estado.buffer = ""
-        estado.timer = None
-
-    def _on_char(event):
-        # Combinaciones con Ctrl/Alt son atajos, no texto de búsqueda.
-        if event.ControlDown() or event.AltDown():
-            event.Skip()
-            return
-        code = event.GetUnicodeKey()
-        if code == wx.WXK_NONE:
-            event.Skip()
-            return
-        ch = chr(code)
-        if not ch.isprintable():
-            event.Skip()
-            return
-        if ch == " " and not estado.buffer:
-            # Espacio con el buffer vacío: no es inicio de búsqueda, que se
-            # comporte como en cualquier lista (no lo consumimos).
-            event.Skip()
-            return
-
-        estado.buffer += ch
-        if estado.timer is not None:
-            try:    estado.timer.Stop()
-            except Exception as exc: logger.debug("No se pudo parar el temporizador de búsqueda: %s", exc)
-        estado.timer = wx.CallLater(_MS_RESET_BUSQUEDA, _resetear_buffer)
-
-        textos = obtener_textos()
-        if not textos:
-            return
-        actual = listbox.GetSelection()
-        if (len(estado.buffer) > 1 and actual != wx.NOT_FOUND
-                and 0 <= actual < len(textos)
-                and coincide(textos[actual], estado.buffer)):
-            return   # el seleccionado ya cumple: no mover nada
-        desde = (actual + 1) if actual != wx.NOT_FOUND else 0
-        idx = buscar_prefijo(textos, desde, estado.buffer)
-        if idx is not None:
-            listbox.SetSelection(idx)
-            # NVDA no siempre anuncia una selección puesta por programa.
-            anunciar(textos[idx])
-        else:
-            # Que quien busca sepa que se buscó (en toda la lista, dando la
-            # vuelta) y no hubo nada; se descarta la última letra para poder
-            # seguir completando la búsqueda anterior.
-            anunciar(f"No hay coincidencias con {estado.buffer}")
-            estado.buffer = estado.buffer[:-1]
-
-    listbox.Bind(wx.EVT_CHAR, _on_char)
-
-
-# ── Paleta «crema + salvia» (ver docs/PALETA-COLORES.md) ─────────────────────
-# Fondo crema, salvia como color de marca y muy pocos tonos con papel fijo.
-# `accent` y `red` son colores de TEXTO (secciones, estados, errores), no
-# fondos: son la salvia y el rojo oscurecidos lo justo para dar 4.5:1 sobre
-# el fondo. Contraste comprobado con la fórmula WCAG en cada par texto/fondo
-# real de la app; todos dan 4.5:1 o más. Con el contraste alto de Windows
-# activado (ALTO_CONTRASTE) la paleta no se aplica y manda el tema del sistema.
-
-class _T:
-    bg      = wx.Colour(247, 244, 238)  # #F7F4EE  crema (fondo de marca)
-    surface = wx.Colour(255, 255, 255)  # #FFFFFF  paneles, grupos, pestañas
-    field   = wx.Colour(233, 225, 211)  # #E9E1D3  campos (secundario/beige)
-    text    = wx.Colour(51,  51,  51)   # #333333  texto principal
-    dim     = wx.Colour(107, 107, 107)  # #6B6B6B  texto secundario
-    accent  = wx.Colour(63,  91,  58)   # #3F5B3A  salvia oscurecida (primario, texto)
-    red     = wx.Colour(179, 38,  30)   # #B3261E  error
-    btn     = wx.Colour(233, 225, 211)  # botones secundarios (= field)
-    btn_t   = wx.Colour(51,  51,  51)
-    # Botón primario (Conectar): salvia tal cual del md, texto oscuro encima.
-    primary   = wx.Colour(202, 215, 197)  # #CAD7C5  salvia (marca, sin oscurecer)
-    primary_t = wx.Colour(51,  51,  51)
-
-
-def _detectar_alto_contraste() -> bool:
-    """¿Windows tiene activado un tema de alto contraste? (SPI_GETHIGHCONTRAST)"""
-    try:
-        import ctypes
-
-        class _HighContrast(ctypes.Structure):
-            _fields_ = [("cbSize", ctypes.c_uint), ("dwFlags", ctypes.c_uint),
-                        ("lpszDefaultScheme", ctypes.c_wchar_p)]
-
-        datos = _HighContrast()
-        datos.cbSize = ctypes.sizeof(_HighContrast)
-        if ctypes.windll.user32.SystemParametersInfoW(
-                0x42, datos.cbSize, ctypes.byref(datos), 0):   # SPI_GETHIGHCONTRAST
-            return bool(datos.dwFlags & 1)                      # HCF_HIGHCONTRASTON
-    except Exception as exc:
-        logger.debug("No se pudo consultar el contraste alto de Windows: %s", exc)
-    return False
-
-
-# Con alto contraste la paleta propia pisaría los colores que el usuario eligió
-# precisamente para ver: en ese caso no se pinta nada y mandan los del sistema.
-ALTO_CONTRASTE = _detectar_alto_contraste()
-
-
-def _pintar(w, bg=None, fg=None):
-    """Aplica colores de la paleta a un control, salvo en alto contraste."""
-    if ALTO_CONTRASTE:
-        return
-    if bg is not None:
-        w.SetBackgroundColour(bg)
-    if fg is not None:
-        w.SetForegroundColour(fg)
-
-
-def _tc(w, bg=None, fg=None):
-    _pintar(w, bg or _T.field, fg or _T.text)
-
-
-class ContadorAccesible(wx.SpinCtrl):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.Bind(wx.EVT_SET_FOCUS, self._on_focus)
-
-    def _on_focus(self, event):
-        # Selecciona el valor para reemplazarlo sin borrarlo antes.
-        self.SetSelection(0, len(self.GetTextValue()))
-        event.Skip()
-
-
-def _titulo(w, color=None):
-    """Etiqueta de sección: color de acento y seminegrita, para jerarquía."""
-    _pintar(w, fg=color or _T.accent)
-    w.SetFont(w.GetFont().Bold())
 
 
 _ACCEL_NOMBRES = {
@@ -383,33 +137,6 @@ def _fmt_accel(texto: str) -> str:
     for p in texto.split("+"):
         partes.append(_ACCEL_NOMBRES.get(p, p.upper()))
     return "+".join(partes)
-
-
-class WxAnnouncingHandler(logging.Handler):
-    """Reenvía los mensajes del logger al lector de pantalla."""
-
-    def __init__(self):
-        super().__init__()
-        self.setFormatter(logging.Formatter("%(message)s"))
-
-    def emit(self, record):
-        if not registro_es_anunciable(record.name):
-            return
-        try:    anunciar(self.format(record))
-        except Exception as exc: logger.debug("No se pudo anunciar un registro: %s", exc)
-
-
-# Lista blanca: solo estos loggers llegan al lector. Lo no listado se registra
-# pero no se habla, para que un logger.info nuevo no se convierta en voz por descuido.
-_LOGGERS_ANUNCIABLES = frozenset({
-    "ytchat.obs_vigilante",  # avisa cuando OBS vuelve a responder
-})
-
-
-def registro_es_anunciable(nombre_logger: str | None) -> bool:
-    """Decide si un registro del log debe llegar al lector de pantalla."""
-    # Lista blanca: solo lo explicitamente permitido se habla; lo desconocido se calla.
-    return bool(nombre_logger) and nombre_logger in _LOGGERS_ANUNCIABLES
 
 
 class _LogWx(wx.Log):

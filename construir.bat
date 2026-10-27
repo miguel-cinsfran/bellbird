@@ -17,12 +17,14 @@ where uv >nul 2>nul
 if errorlevel 1 ( echo ERROR: uv no esta instalado. Ver README. & pause & exit /b 1 )
 
 echo == Preparando entorno (uv) ==
-REM Reutiliza el .venv si ya existe; si no, lo crea con Python 3.11 (las
-REM dependencias, sobre todo wxPython, tienen wheels para 3.11).
+REM La version de Python sale de .python-version, que uv lee solo. Reutiliza
+REM el .venv si ya existe; si no, lo crea con esa version.
 if not exist ".venv" (
-  call uv venv --python 3.11
+  call uv venv
   if errorlevel 1 ( echo ERROR creando el entorno. & pause & exit /b 1 )
 )
+".venv\Scripts\python.exe" -c "import sys,pathlib; v=pathlib.Path('.python-version').read_text(encoding='utf-8').strip(); a=str(sys.version_info.major)+'.'+str(sys.version_info.minor); sys.exit(0 if a == v else 1)"
+if errorlevel 1 ( echo ERROR: el .venv usa otra version de Python que .python-version. Ejecuta instalar.bat para rehacerlo. & pause & exit /b 1 )
 call uv pip install -r requirements.txt
 if errorlevel 1 ( echo ERROR instalando dependencias. & pause & exit /b 1 )
 call uv pip install pyinstaller

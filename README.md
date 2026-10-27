@@ -31,7 +31,7 @@ El manual explica cada función y tiene las tablas de atajos.
 
 ## Con qué está hecha
 
-Python 3.11 y wxPython para la interfaz, que usa los controles nativos de
+Python 3.14 y wxPython para la interfaz, que usa los controles nativos de
 Windows para que los lectores de pantalla los lean bien. Además:
 
 - pytchat y TikTokLive para leer los chats.
@@ -47,7 +47,7 @@ Windows para que los lectores de pantalla los lean bien. Además:
 
 Hace falta Windows 10 u 11 y [uv](https://docs.astral.sh/uv/).
 
-    instalar.bat      prepara el entorno con Python 3.11 y las dependencias
+    instalar.bat      prepara el entorno con Python 3.14 y las dependencias
     ejecutar.bat      abre la aplicación
     construir.bat     arma el ZIP que se publica
 

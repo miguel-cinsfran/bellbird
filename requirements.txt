@@ -3,7 +3,7 @@
 # Instalar con:
 #   pip install -r requirements.txt
 #
-# Todo funciona con Python 3.11+ de 64 bits en Windows 10/11.
+# Todo funciona con Python 3.14 de 64 bits en Windows 10/11.
 
 # Captura del chat en vivo de YouTube (InnerTube API)
 pytchat>=0.5.5

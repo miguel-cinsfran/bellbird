@@ -12,7 +12,8 @@ call :ASEGURAR_UV
 if errorlevel 1 ( pause & exit /b 1 )
 
 echo == Creando el entorno (.venv) con uv ==
-call uv venv --python 3.11
+REM Rehace el .venv con la version de .python-version, que uv lee solo.
+call uv venv --clear
 if errorlevel 1 ( echo ERROR creando el entorno. & pause & exit /b 1 )
 
 echo == Instalando dependencias ==

@@ -1,9 +1,9 @@
 """Página Inteligencia artificial del diálogo de Preferencias.
 
-Mezcla sin estado propio: `gui_preferencias` hereda de acá. La clave del
-proveedor elegido vive en el Administrador de credenciales y nunca en
-config.ini; los valores de la sección [ia] se suman con `ajustes_ia.cambios`
-a la escritura única del diálogo.
+Dueña de sus controles y de su estado. El diálogo la construye por
+composición. La clave del proveedor elegido vive en el Administrador de
+credenciales y nunca en config.ini; los valores de la sección [ia] se suman
+con `ajustes_ia.cambios` a la escritura única del diálogo.
 """
 
 from __future__ import annotations
@@ -21,7 +21,7 @@ from ytchat.ai import sondeo_gratis
 from ytchat.core import diagnostico
 from ytchat.core import paths
 from ytchat.ui.gui import ContadorAccesible, _tc, anunciar
-from ytchat.ui.preferencias_comun import EleccionTexto
+from ytchat.ui.preferencias_comun import EleccionTexto, crear_panel, fila_label
 from ytchat.ui.preferencias_ia_clave import SeccionClaveIA
 from ytchat.ui.preferencias_ia_lista import ActualizacionModelosIA
 from ytchat.voice import sound_player as _snd
@@ -47,8 +47,12 @@ OPCIONES_IA = (
 class PaginaIA:
     """Página Inteligencia artificial: proveedor, clave, modelo, pregunta, largo y espera."""
 
-    def _pag_ia(self, parent):
-        p = self._make_panel(parent, "PagIA")
+    def __init__(self, ventana, ruta):
+        self._ventana = ventana
+        self._ruta = ruta
+
+    def construir(self, parent):
+        p = crear_panel(parent, "PagIA")
         self._pag_ia_panel = p
         vs = wx.BoxSizer(wx.VERTICAL)
         self._ia_leer_estado()
@@ -82,7 +86,7 @@ class PaginaIA:
         self._ia_modelos_ids = []
 
     def _ia_proveedor(self, p, vs):
-        vs.Add(self._fila_label(p, "&Proveedor"),
+        vs.Add(fila_label(p, "&Proveedor"),
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.cho_ia_proveedor = wx.Choice(
             p, choices=[pr.nombre for pr in proveedores.PROVEEDORES],
@@ -94,7 +98,7 @@ class PaginaIA:
             proveedores.PROVEEDORES.index(actual))
         vs.Add(self.cho_ia_proveedor, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.cho_ia_proveedor.Bind(wx.EVT_CHOICE, self._on_ia_proveedor)
-        self._ia_lbl_direccion = self._fila_label(
+        self._ia_lbl_direccion = fila_label(
             p, "&Dirección del servicio")
         vs.Add(self._ia_lbl_direccion, 0, wx.LEFT | wx.RIGHT, 10)
         self.txt_ia_direccion = wx.TextCtrl(
@@ -119,7 +123,7 @@ class PaginaIA:
             wx.EVT_BUTTON, self._on_ia_probar_clave)
 
     def _ia_modelo(self, p, vs):
-        vs.Add(self._fila_label(p, "&Modelo"), 0, wx.LEFT | wx.RIGHT, 10)
+        vs.Add(fila_label(p, "&Modelo"), 0, wx.LEFT | wx.RIGHT, 10)
         self.cho_ia_modelo = wx.Choice(p, choices=[], name="ModeloIA")
         vs.Add(self.cho_ia_modelo, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.cho_ia_modelo.Bind(wx.EVT_CHOICE, self._on_ia_modelo)
@@ -132,7 +136,7 @@ class PaginaIA:
             p, label="&Actualizar la lista de modelos",
             name="ActualizarModelosIA")
         vs.Add(self.btn_ia_actualizar, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-        vs.Add(self._fila_label(p, "&Otro modelo"),
+        vs.Add(fila_label(p, "&Otro modelo"),
                0, wx.LEFT | wx.RIGHT, 10)
         self.txt_ia_otro = wx.TextCtrl(p, value="", name="OtroModeloIA")
         vs.Add(self.txt_ia_otro, 0,
@@ -148,7 +152,7 @@ class PaginaIA:
         self._ia_actualizar_aviso()
 
     def _ia_pregunta(self, p, vs):
-        vs.Add(self._fila_label(p, "&Instrucción para las capturas"),
+        vs.Add(fila_label(p, "&Instrucción para las capturas"),
                0, wx.LEFT | wx.RIGHT, 10)
         self.txt_ia_pregunta = wx.TextCtrl(
             p, value=self._ia_ajustes.pregunta, style=wx.TE_MULTILINE,
@@ -162,7 +166,7 @@ class PaginaIA:
         self.btn_ia_restaurar.Bind(wx.EVT_BUTTON, self._on_ia_restaurar)
 
     def _ia_largo(self, p, vs):
-        vs.Add(self._fila_label(p, "&Largo de la respuesta"),
+        vs.Add(fila_label(p, "&Largo de la respuesta"),
                0, wx.LEFT | wx.RIGHT, 10)
         self.cho_ia_largo = EleccionTexto(
             p, (("corta", "Corta"), ("media", "Media"), ("larga", "Larga")),
@@ -170,7 +174,7 @@ class PaginaIA:
             name="LargoIA")
         self.cho_ia_largo.SetValue(self._ia_ajustes.largo)
         vs.Add(self.cho_ia_largo, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-        vs.Add(self._fila_label(p, "Tiempo de e&spera en segundos"),
+        vs.Add(fila_label(p, "Tiempo de e&spera en segundos"),
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_ia_tiempo = ContadorAccesible(
             p, min=ajustes_ia.TIEMPO_MINIMO, max=ajustes_ia.TIEMPO_MAXIMO,
@@ -318,14 +322,14 @@ class PaginaIA:
                          modelo=ajustes.modelo))
 
     def _ia_prueba_lista(self, bien, texto):
-        if not self:   # el diálogo pudo cerrarse mientras se probaba
+        if not self._ventana:   # el diálogo pudo cerrarse mientras se probaba
             return
         self.btn_ia_probar_clave.Enable()
         _snd.reproducir("ia_respuesta" if bien else "ia_error")
         anunciar(texto)
 
     def _ia_lista_recibida(self, muestra, marcas, proveedor):
-        if not self:   # el diálogo pudo cerrarse mientras se descargaba
+        if not self._ventana:   # el diálogo pudo cerrarse mientras se descargaba
             return None
         self._ia_muestra = muestra
         if self._ia_proveedor_actual().id == proveedor.id:

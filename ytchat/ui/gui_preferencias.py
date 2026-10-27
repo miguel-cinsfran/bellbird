@@ -87,7 +87,7 @@ _OPCIONES_SIMPLES = (
 ) + OPCIONES_MUSICA
 
 
-class PreferenciasDialog(PaginaIA, wx.Dialog):
+class PreferenciasDialog(wx.Dialog):
 
     def __init__(self, parent, config: dict):
         # Redimensionable: quien ve poco puede agrandarlo; las páginas se
@@ -148,7 +148,8 @@ class PreferenciasDialog(PaginaIA, wx.Dialog):
         self.nb.AddPage(self.pagina_programados.construir(self.nb), "Mensajes automáticos")
         self.chk_programados = self.pagina_programados.chk_programados
         self.nb.AddPage(self._pag_transmision(self.nb), "Transmisión")
-        self.nb.AddPage(self._pag_ia(self.nb), "Inteligencia artificial")
+        self.pagina_ia = PaginaIA(self, self._ruta)
+        self.nb.AddPage(self.pagina_ia.construir(self.nb), "Inteligencia artificial")
         ajustar_ancho_categorias(self.nb, self.lista_categorias)
         # Mínimo explícito: si no, el libro pide el «mejor tamaño» de la página
         # más alta (Atajos, más de 1200 px) y el sizer lo desbordaría en vez
@@ -1004,7 +1005,7 @@ class PreferenciasDialog(PaginaIA, wx.Dialog):
 
         self.pagina_atajos.guardar(self._set, c)
 
-        self._pendientes.extend(self._cambios_ia())
+        self._pendientes.extend(self.pagina_ia._cambios_ia())
         if not self.pagina_sonidos.guardar():
             self._fallo_guardado = True
         if not cfg.guardar_opciones(self._ruta, self._pendientes):

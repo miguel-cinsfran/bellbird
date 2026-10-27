@@ -11,6 +11,7 @@ from unittest import mock
 from ytchat.ui import gui
 from ytchat.ui import gui_comentarios
 from ytchat.ui import gui_preferencias
+from ytchat.ui import preferencias_general
 from ytchat.ui import preferencias_ia
 from ytchat.ui import preferencias_ia_clave
 from ytchat.ui import preferencias_ia_lista
@@ -3286,7 +3287,7 @@ class TestPreferenciasArchivoBotones(unittest.TestCase):
                                return_value=cuadro) as crear, \
                 mock.patch.object(gui_preferencias.wx,
                                   "MessageBox") as aviso, \
-                mock.patch.object(gui_preferencias.preferencias_archivo,
+                mock.patch.object(preferencias_general.preferencias_archivo,
                                   "importar",
                                   side_effect=OSError("disco lleno")), \
                 mock.patch.object(dialogo, "EndModal") as cerrar:

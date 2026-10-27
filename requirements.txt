@@ -19,6 +19,9 @@ prismatoid>=0.18.3,<0.19
 # En Windows usa ReadDirectoryChangesW por ctypes.
 watchdog==6.0.0
 
+# Solo la usa scripts/traducciones.py para extraer y compilar catálogos gettext.
+Babel==2.18.0
+
 # ── Funciones online (OPCIONAL): YouTube Data API v3 ──────────────────────────
 # Necesarias solo para leer comentarios de vídeos, moderar el chat en vivo,
 # enviar mensajes al directo y publicar/responder comentarios. Si no se

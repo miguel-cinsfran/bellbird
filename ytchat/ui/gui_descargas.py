@@ -17,8 +17,6 @@ Apertura: `abrir(parent, url_inicial=None)` desde `gui._abrir_descargas`.
 """
 from __future__ import annotations
 
-import logging
-import threading
 from datetime import datetime
 
 import wx

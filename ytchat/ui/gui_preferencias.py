@@ -10,9 +10,7 @@ La configuración de API/OAuth sigue en su propio diálogo (Herramientas).
 
 from __future__ import annotations
 
-import logging
 import os
-import threading
 import time
 import webbrowser
 

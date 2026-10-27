@@ -13,6 +13,7 @@ from unittest import mock
 from ytchat.core import archivos
 from ytchat.core import config
 from ytchat.core import config_musica
+from ytchat.core import ini_tipado
 from ytchat.core import paths
 from tests.rutas_temporales import redirigir_rutas
 
@@ -559,7 +560,7 @@ class TestCargarConfiguracion(unittest.TestCase):
         leido = config._mk_parser()
         leido.read(ruta, encoding="utf-8")
         return config.decodificar_texto_ini(
-            config._gs(leido, "transmision", "youtube_titulo"))
+            ini_tipado._gs(leido, "transmision", "youtube_titulo"))
 
     def test_directo_youtube_texto_libre_ida_y_vuelta(self):
         textos = [

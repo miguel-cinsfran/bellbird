@@ -8,6 +8,7 @@ from unittest import mock
 
 from ytchat.core import config
 from ytchat.core import config_predeterminada as pred
+from ytchat.core import ini_tipado
 from ytchat.capture import estado_sesion
 from tests.rutas_temporales import redirigir_rutas
 
@@ -116,13 +117,13 @@ class TestFallbacksSeccion(unittest.TestCase):
         # "activo" existe en varias secciones con mismo valor pero debe distinguirse por sección
         # si preguntamos una sección inexistente, debe dar fallback vacío
         self.assertEqual(pred.obtener("seccion_inexistente", "activo"), "")
-        # a nivel de config._gs con parser vacío
+        # a nivel de ini_tipado._gs con parser vacío
         p = config._mk_parser()
-        self.assertEqual(config._gs(p, "voz", "voz"), "")
-        self.assertEqual(config._gs(p, "ui", "voz"), "")
-        self.assertEqual(config._gs(p, "overlay", "activo"), "false")
-        self.assertEqual(config._gs(p, "programados", "activo"), "false")
-        self.assertEqual(config._gs(p, "inexistente", "activo"), "")
+        self.assertEqual(ini_tipado._gs(p, "voz", "voz"), "")
+        self.assertEqual(ini_tipado._gs(p, "ui", "voz"), "")
+        self.assertEqual(ini_tipado._gs(p, "overlay", "activo"), "false")
+        self.assertEqual(ini_tipado._gs(p, "programados", "activo"), "false")
+        self.assertEqual(ini_tipado._gs(p, "inexistente", "activo"), "")
 
 
 class TestAtajosDefaults(unittest.TestCase):

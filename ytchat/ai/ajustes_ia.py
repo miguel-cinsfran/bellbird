@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from ytchat.core import config
+from ytchat.core import ini_tipado
 from ytchat.ai import conversacion
 from ytchat.ai import proveedores
 
@@ -96,9 +97,9 @@ def leer(ruta) -> AjustesIA:
         largo=_largo_valido(parser.get(SECCION, "largo", fallback="media")),
         tiempo_espera=_tiempo_valido(
             parser.get(SECCION, "tiempo_espera", fallback="60")),
-        solo_gratis=config._pb(parser, SECCION, "solo_gratis"),
-        privacidad_aceptada=config._pb(parser, SECCION, "privacidad_aceptada"),
-        decir_analizando=config._pb(parser, SECCION, "decir_analizando"),
+        solo_gratis=ini_tipado._pb(parser, SECCION, "solo_gratis"),
+        privacidad_aceptada=ini_tipado._pb(parser, SECCION, "privacidad_aceptada"),
+        decir_analizando=ini_tipado._pb(parser, SECCION, "decir_analizando"),
     )
 
 

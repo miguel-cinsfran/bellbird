@@ -15,6 +15,7 @@ import wx
 from ytchat.core import diagnostico
 from ytchat.core import config as cfg
 from ytchat.core import paths
+from ytchat.core.ini_tipado import _lista
 from ytchat.ui import atajos_captura
 from ytchat.capture import estado_sesion
 from ytchat.obs import obs_cliente
@@ -611,10 +612,6 @@ class PreferenciasDialog(wx.Dialog):
 _ETIQUETAS_ATAJO = atajos_captura.ETIQUETAS
 _mostrar_atajo = atajos_captura.mostrar_atajo
 etiqueta_de_accion = atajos_captura.etiqueta_de_accion
-
-
-def _lista(v: str) -> list:
-    return [x.strip().lower() for x in v.split(",") if x.strip()]
 
 
 def abrir_preferencias(parent, config: dict, pagina=None, avisos=None) -> bool:

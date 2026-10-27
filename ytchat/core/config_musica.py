@@ -3,15 +3,15 @@
 Una sola responsabilidad: las opciones de música validadas contra un único
 origen de verdad, sin tener que duplicar la carga de config.ini. `config`
 las reexporta para que la carga y las pruebas sigan iguales. Lo que necesita
-de `config` (`_gs`, `_pb`, `_pi`, `decodificar_texto_ini`,
-`normalizar_repetir`) se importa dentro de la función para no cerrar un
-import circular.
+de `config` (`decodificar_texto_ini`, `normalizar_repetir`) se importa dentro
+de la función para no cerrar un import circular.
 """
 
 from __future__ import annotations
 
 from ytchat.core import diagnostico, musica_decir
 from ytchat.core import paths
+from ytchat.core.ini_tipado import _gs, _pb, _pi
 
 
 logger = diagnostico.obtener_logger(__name__)
@@ -19,9 +19,7 @@ logger = diagnostico.obtener_logger(__name__)
 
 def opciones_musica(p) -> dict:
     """La sección [musica] como claves en memoria, en el mismo orden."""
-    from ytchat.core.config import (
-        _gs, _pb, _pi, decodificar_texto_ini, normalizar_repetir,
-    )
+    from ytchat.core.config import decodificar_texto_ini, normalizar_repetir
 
     return {
         "musica_carpeta": paths.resolver_carpeta_musica(decodificar_texto_ini(_gs(p, "musica", "carpeta"))),
@@ -43,8 +41,6 @@ def opciones_musica(p) -> dict:
 
 def _filtros_musica(p) -> dict:
     """La visibilidad de la Cola y los filtros de la ventana de música."""
-    from ytchat.core.config import _gs, _pb
-
     return {
         "musica_mostrar_cola": _pb(p, "musica", "mostrar_cola"),
         "musica_mostrar_filtros": _pb(p, "musica", "mostrar_filtros"),

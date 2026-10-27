@@ -5170,6 +5170,7 @@ SUPERFICIES = {
     "reproductor.py": "reproductor",
     "iconos.py": "reproductor",
     "boton_directo.py": "principal",
+    "preferencias_comun.py": "preferencias",
     "preferencias_musica.py": "preferencias",
     "preferencias_sonidos.py": "preferencias",
     "preferencias_ia.py": "preferencias",

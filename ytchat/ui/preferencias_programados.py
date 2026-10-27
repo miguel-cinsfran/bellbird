@@ -11,7 +11,8 @@ import wx
 from ytchat.core import paths
 from ytchat.capture import programados
 from ytchat.ui.gui import (
-    ContadorAccesible, anunciar, instalar_busqueda_tipo, nombre_accesible)
+    ContadorAccesible, _T, anunciar, instalar_busqueda_tipo, nombre_accesible)
+from ytchat.ui.preferencias_comun import ANCHO_NOTA
 
 
 class PaginaProgramados:
@@ -36,8 +37,6 @@ class PaginaProgramados:
         return p
 
     def _programados_intro(self, p, vs):
-        # Definidos en gui_preferencias: se importan acá para evitar un import circular.
-        from ytchat.ui.gui_preferencias import ANCHO_NOTA, _T
         intro = wx.StaticText(p, name="IntroProgramados", label=(
             "Envía mensajes al chat de tu directo cada cierto tiempo. Necesita "
             "sesión de Google iniciada y un directo de YouTube conectado. El "
@@ -86,8 +85,6 @@ class PaginaProgramados:
         vs.Add(self.chk_mensaje_activo, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
 
     def _programados_botones(self, p, vs):
-        # Definidos en gui_preferencias: se importan acá para evitar un import circular.
-        from ytchat.ui.gui_preferencias import _T
         fila = wx.BoxSizer(wx.HORIZONTAL)
         self.btn_programado_agregar = wx.Button(p, label="&Agregar", name="AgregarProgramado")
         self.btn_programado_guardar = wx.Button(

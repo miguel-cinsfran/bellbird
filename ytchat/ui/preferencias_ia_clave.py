@@ -12,7 +12,7 @@ import wx
 from ytchat.ai import claves
 from ytchat.ai import opciones_ia
 from ytchat.core import diagnostico
-from ytchat.ui.gui import anunciar
+from ytchat.ui.gui import _T, _tc, anunciar
 from ytchat.voice import sound_player as _snd
 
 logger = diagnostico.obtener_logger(__name__)
@@ -28,7 +28,6 @@ class SeccionClaveIA:
         self._escribiendo = False
 
     def construir(self, panel, sizer):
-        from ytchat.ui.gui_preferencias import _T
         self._panel = panel
         etiqueta = wx.StaticText(panel, label="Cla&ve")
         etiqueta.SetForegroundColour(_T.accent)
@@ -44,7 +43,6 @@ class SeccionClaveIA:
                   wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self._crear_botones(panel, sizer)
         self.actualizar()
-        from ytchat.ui.gui_preferencias import _tc
         _tc(self.txt_estado)
         _tc(self.txt_clave)
 

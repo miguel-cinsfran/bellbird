@@ -20,7 +20,8 @@ from ytchat.ai import proveedores
 from ytchat.ai import sondeo_gratis
 from ytchat.core import diagnostico
 from ytchat.core import paths
-from ytchat.ui.gui import ContadorAccesible, anunciar
+from ytchat.ui.gui import ContadorAccesible, _tc, anunciar
+from ytchat.ui.preferencias_comun import EleccionTexto
 from ytchat.ui.preferencias_ia_clave import SeccionClaveIA
 from ytchat.ui.preferencias_ia_lista import ActualizacionModelosIA
 from ytchat.voice import sound_player as _snd
@@ -65,10 +66,7 @@ class PaginaIA:
         return p
 
     def _ia_pintar_campos(self):
-        # Los campos llevan el fondo de la paleta como en las demás
-        # páginas. Definido en gui_preferencias: se importa acá para
-        # evitar un import circular.
-        from ytchat.ui.gui_preferencias import _tc
+        # Los campos llevan el fondo de la paleta como en las demás páginas.
         _tc(self.cho_ia_proveedor)
         _tc(self.txt_ia_direccion)
         _tc(self.cho_ia_modelo)
@@ -164,8 +162,6 @@ class PaginaIA:
         self.btn_ia_restaurar.Bind(wx.EVT_BUTTON, self._on_ia_restaurar)
 
     def _ia_largo(self, p, vs):
-        # Definido en gui_preferencias: se importa acá para evitar un import circular.
-        from ytchat.ui.gui_preferencias import EleccionTexto
         vs.Add(self._fila_label(p, "&Largo de la respuesta"),
                0, wx.LEFT | wx.RIGHT, 10)
         self.cho_ia_largo = EleccionTexto(

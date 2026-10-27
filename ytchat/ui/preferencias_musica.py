@@ -11,8 +11,9 @@ import wx
 from ytchat.core import diagnostico, musica_decir
 from ytchat.core import config as cfg
 from ytchat.ui import opciones_musica
-from ytchat.ui.gui import ContadorAccesible, anunciar, nombre_accesible
+from ytchat.ui.gui import ContadorAccesible, _T, _tc, anunciar, nombre_accesible
 from ytchat.ui.gui_descargas import nombrar_selector_carpeta
+from ytchat.ui.preferencias_comun import EleccionTexto
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -64,8 +65,6 @@ class PaginaMusica:
                wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _musica_orden(self, p, vs):
-        # Definidos en gui_preferencias: se importan acá para evitar un import circular.
-        from ytchat.ui.gui_preferencias import _T, _tc, EleccionTexto
         self.chk_musica_aleatorio = wx.CheckBox(
             p, label="Reproducir en orden &aleatorio",
             name="MusicaAleatorio")
@@ -94,7 +93,6 @@ class PaginaMusica:
         vs.Add(self.sp_musica_cruce, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _musica_anuncios(self, p, vs):
-        from ytchat.ui.gui_preferencias import _T, _tc, EleccionTexto
         self.chk_musica_sonido_tema = wx.CheckBox(
             p, label="&Sonido al pasar de canción",
             name="MusicaSonidoTema")
@@ -115,7 +113,6 @@ class PaginaMusica:
         vs.Add(self.chk_musica_decir_pausa, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _musica_audio(self, p, vs):
-        from ytchat.ui.gui_preferencias import _T
         vs.Add(self._fila_label(p, "&Volumen de la música"),
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_musica_volumen = ContadorAccesible(
@@ -145,7 +142,6 @@ class PaginaMusica:
         self.btn_buscar_salidas.Bind(wx.EVT_BUTTON, self._buscar_salidas)
 
     def _casilla_igualar(self, p, vs):
-        from ytchat.ui.gui_preferencias import _T
         self.chk_musica_normalizar = wx.CheckBox(
             p, label="&Igualar el volumen de las canciones",
             name="Igualar el volumen de las canciones")
@@ -160,7 +156,6 @@ class PaginaMusica:
                wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _musica_atajos(self, p, vs):
-        from ytchat.ui.gui_preferencias import _T
         self.chk_musica_atajos_globales = wx.CheckBox(
             p, label="Usar los atajos de música en cualquier &programa",
             name="MusicaAtajosGlobales")

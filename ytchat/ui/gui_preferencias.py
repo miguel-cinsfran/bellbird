@@ -31,6 +31,7 @@ from ytchat.youtube import credenciales
 from ytchat.youtube import youtube_api
 from ytchat.core.config import APP_NAME
 from ytchat.ui.gui import ContadorAccesible, _T, _tc, anunciar, caja_de_grupo, nombre_accesible
+from ytchat.ui.preferencias_comun import ANCHO_NOTA, EleccionTexto, crear_panel, fila_label
 from ytchat.ui.preferencias_musica import OPCIONES_MUSICA, PaginaMusica
 from ytchat.ui.preferencias_lectura import OPCIONES_LECTURA, PaginaLectura
 from ytchat.ui.preferencias_ia import PaginaIA
@@ -41,39 +42,8 @@ from ytchat.obs.obs_panel import GestorPanelObs
 logger = diagnostico.obtener_logger(__name__)
 
 
-class EleccionTexto(wx.Choice):
-    """Lista desplegable que guarda un valor de texto en vez del índice.
-
-    La tabla de opciones simples habla con `SetValue` y `GetValue`, igual que
-    una casilla o un contador. Acá se traduce entre el valor guardado y la
-    etiqueta que se lee.
-    """
-
-    def __init__(self, parent, opciones, normalizar=None, **kwargs):
-        self._valores = tuple(valor for valor, _etiqueta in opciones)
-        self._normalizar = normalizar or (lambda valor: str(valor))
-        super().__init__(parent, choices=[etiqueta for _valor, etiqueta
-                                          in opciones], **kwargs)
-
-    def SetValue(self, valor) -> None:
-        try:
-            indice = self._valores.index(self._normalizar(valor))
-        except ValueError:
-            indice = 0
-        self.SetSelection(indice)
-
-    def GetValue(self) -> str:
-        indice = self.GetSelection()
-        if 0 <= indice < len(self._valores):
-            return self._valores[indice]
-        return self._valores[0]
-
-
 URL_GUIA = "https://github.com/miguel-cinsfran/ytchat-tts/blob/main/docs/CONFIGURACION_API.md"
 
-# Ancho al que se parten las notas de cada página. Con 560 desbordaban el área
-# visible (unos 490 px) y no hay desplazamiento horizontal.
-ANCHO_NOTA = 450
 TAMANO_DIALOGO = (720, 600)
 
 # Mensaje de los combinados de voz cuando todavía no se comprobó la clave de
@@ -216,14 +186,7 @@ class PreferenciasDialog(PaginaMusica, PaginaProgramados, PaginaIA, wx.Dialog):
         self.cho_voz_eventos.Enable(bool(self._voces) and self.chk_multivoz.GetValue())
 
     def _make_panel(self, parent, name):
-        # Página desplazable (solo vertical): la de Atajos mide más de 1200 px
-        # y en un wx.Panel fijo dos tercios de sus botones quedaban fuera del
-        # alcance del ratón. El foco (Tab) desplaza solo hasta el control.
-        p = wx.ScrolledWindow(parent, name=name, style=wx.TAB_TRAVERSAL | wx.VSCROLL)
-        p.SetScrollRate(0, 20)
-        p.SetBackgroundColour(_T.bg)
-        p.SetForegroundColour(_T.text)
-        return p
+        return crear_panel(parent, name)
 
     def _paginas(self):
         return [self.nb.GetPage(i) for i in range(self.nb.GetPageCount())]
@@ -1308,9 +1271,7 @@ class PreferenciasDialog(PaginaMusica, PaginaProgramados, PaginaIA, wx.Dialog):
         self._api_refrescar_estado()
 
     def _fila_label(self, p, texto):
-        lbl = wx.StaticText(p, label=texto)
-        lbl.SetForegroundColour(_T.accent)
-        return lbl
+        return fila_label(p, texto)
 
     # ── Guardar ───────────────────────────────────────────────────────────────
 

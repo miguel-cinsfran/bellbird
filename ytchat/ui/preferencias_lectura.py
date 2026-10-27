@@ -13,6 +13,7 @@ from __future__ import annotations
 import wx
 
 from ytchat.ui.gui import ContadorAccesible, _T, _tc
+from ytchat.ui.preferencias_comun import EleccionTexto
 
 
 _FORMATOS = [
@@ -98,8 +99,6 @@ class PaginaLectura:
         vs.Add(self.chk_me_gusta, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _construir_recientes(self, p, vs):
-        from ytchat.ui.gui_preferencias import EleccionTexto
-
         vs.Add(self._fila_label(p, "Leer los mensajes recientes &con:"),
                0, wx.LEFT | wx.RIGHT, 10)
         self.cho_lectura_recientes = EleccionTexto(

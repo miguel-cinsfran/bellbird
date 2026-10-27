@@ -34,10 +34,6 @@ from ytchat.voice import sound_player as _snd
 logger = diagnostico.obtener_logger(__name__)
 
 
-# Paleta neutral para el diálogo (no la de la ventana principal): misma lógica
-# que `gui_preferencias._T` — apariencia nativa para no romper NVDA en Windows.
-
-
 # Etiquetas legibles para el Choice de formato. mp3/m4a abren el bitrate.
 _FORMATOS_OPCIONES = [
     ("Vídeo MP4 (muxed)", "mp4"),

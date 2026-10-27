@@ -226,5 +226,56 @@ class TestAlmacenamiento(unittest.TestCase):
         self.assertEqual(list(self.ruta.parent.glob("*.tmp")), [])
 
 
+class TestProgramadorMensajes(unittest.TestCase):
+    def test_estado_inicial(self):
+        mensajes = [{"texto": "Hola"}]
+        programador = programados.ProgramadorMensajes(mensajes)
+        self.assertIs(programador.mensajes, mensajes)
+        self.assertFalse(programador.reloj_iniciado)
+        self.assertIsNone(programador.ultimo_envio)
+        self.assertFalse(programador.en_curso)
+
+    def test_recargar_cambia_la_lista_y_detiene_el_reloj(self):
+        programador = programados.ProgramadorMensajes([{"texto": "Viejo"}])
+        programador.reloj_iniciado = True
+        nuevos = [{"texto": "Nuevo"}]
+        programador.recargar(nuevos)
+        self.assertIs(programador.mensajes, nuevos)
+        self.assertFalse(programador.reloj_iniciado)
+
+    def test_iniciar_reloj_si_falta_no_reinicia_un_reloj_que_corre(self):
+        llamadas = []
+        programador = programados.ProgramadorMensajes(
+            [{"texto": "Hola", "activo": True, "minutos_min": 10,
+              "minutos_max": 10, "proximo": 900.0}])
+        programador.reloj_iniciado = True
+        programador.iniciar_reloj_si_falta(
+            1000.0, lambda minimo, maximo: llamadas.append((minimo, maximo)))
+        self.assertEqual(llamadas, [])
+        self.assertEqual(programador.mensajes[0]["proximo"], 900.0)
+        self.assertTrue(programador.reloj_iniciado)
+
+    def test_siguiente_da_none_con_un_envio_en_vuelo(self):
+        programador = programados.ProgramadorMensajes(
+            [{"texto": "Hola", "activo": True, "proximo": 80.0}])
+        programador.en_curso = True
+        self.assertIsNone(programador.siguiente(100.0))
+
+    def test_envio_hecho_fija_proximo_y_ultimo_envio_y_libera(self):
+        mensaje = {"texto": "Hola", "minutos_min": 10, "minutos_max": 10}
+        programador = programados.ProgramadorMensajes([mensaje])
+        programador.en_curso = True
+        programador.envio_hecho(mensaje, 1000.0, lambda minimo, maximo: 0)
+        self.assertEqual(mensaje["proximo"], 1600.0)
+        self.assertEqual(programador.ultimo_envio, 1000.0)
+        self.assertFalse(programador.en_curso)
+
+    def test_envio_fallido_libera_el_envio_en_curso(self):
+        programador = programados.ProgramadorMensajes([{"texto": "Hola"}])
+        programador.en_curso = True
+        programador.envio_fallido()
+        self.assertFalse(programador.en_curso)
+
+
 if __name__ == "__main__":
     unittest.main()

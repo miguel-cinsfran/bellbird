@@ -214,11 +214,8 @@ class YTChatFrame(wx.Frame):
         self._pendientes_timer = None
 
         self._sc_totales: dict[str, float] = {}
-        self._mensajes_programados = programados.cargar(
-            paths.mensajes_programados())
-        self._programados_reloj_iniciado = False
-        self._programados_ultimo_envio = None
-        self._programado_en_curso = False
+        self.programador = programados.ProgramadorMensajes(
+            programados.cargar(paths.mensajes_programados()))
 
         # Voz activa: se elige en un submenú de radio.
         self._voz_idx = 0
@@ -797,9 +794,8 @@ class YTChatFrame(wx.Frame):
             acepto = abrir_preferencias(self, self._config, avisos=avisos)
             # La lista ya se guardó en disco al tocar sus botones: se relee
             # haya aceptado o no, y el reloj se arma de nuevo con la lista nueva.
-            self._mensajes_programados = programados.cargar(
-                paths.mensajes_programados())
-            self._programados_reloj_iniciado = False
+            self.programador.recargar(
+                programados.cargar(paths.mensajes_programados()))
             if acepto:
                 # El anuncio se difiere para que NVDA termine de decir el foco
                 # de la ventana principal antes de hablar, y sin interrumpir lo

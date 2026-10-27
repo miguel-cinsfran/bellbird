@@ -3410,12 +3410,10 @@ class TestProgramadorGui(unittest.TestCase):
     def _frame(self, **config):
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
         frame._config = {"programados_activo": True, **config}
-        frame._mensajes_programados = [{"texto": "Hola", "activo": True,
-                                        "minutos_min": 5, "minutos_max": 5,
-                                        "proximo": 0.0}]
-        frame._programados_reloj_iniciado = True
-        frame._programados_ultimo_envio = None
-        frame._programado_en_curso = False
+        frame.programador = programados.ProgramadorMensajes(
+            [{"texto": "Hola", "activo": True,
+              "minutos_min": 5, "minutos_max": 5, "proximo": 0.0}])
+        frame.programador.reloj_iniciado = True
         frame._conectado = True
         frame.sesion = SesionConectada(
             es_tiktok=False, live_chat_id="chat",
@@ -3426,9 +3424,9 @@ class TestProgramadorGui(unittest.TestCase):
         frame = self._frame()
         with mock.patch.object(gui.programados, "calcular_proximo",
                                return_value=900.0) as calcular:
-            frame._programado_enviado(frame._mensajes_programados[0])
-        self.assertEqual(frame._mensajes_programados[0]["proximo"], 900.0)
-        self.assertIsNotNone(frame._programados_ultimo_envio)
+            frame._programado_enviado(frame.programador.mensajes[0])
+        self.assertEqual(frame.programador.mensajes[0]["proximo"], 900.0)
+        self.assertIsNotNone(frame.programador.ultimo_envio)
         calcular.assert_called_once()
 
     def test_envia_con_el_doble_de_la_api_sin_anunciar_exito(self):
@@ -3451,13 +3449,13 @@ class TestProgramadorGui(unittest.TestCase):
                 mock.patch.object(gui.wx, "CallAfter",
                                   side_effect=lambda fn, *args: fn(*args)), \
                 mock.patch.object(gui, "anunciar") as anunciar:
-            frame._enviar_programado(frame._mensajes_programados[0], 1000.0)
+            frame._enviar_programado(frame.programador.mensajes[0], 1000.0)
         cliente.enviar_mensaje_live.assert_called_once_with("chat", "Hola")
         anunciar.assert_not_called()
 
     def test_no_duplica_un_envio_en_curso(self):
         frame = self._frame()
-        frame._programado_en_curso = True
+        frame.programador.en_curso = True
         with mock.patch.object(frame, "_sesion_api_disponible", return_value=True), \
                 mock.patch.object(frame, "_enviar_programado") as enviar:
             frame._procesar_programado()
@@ -3465,7 +3463,7 @@ class TestProgramadorGui(unittest.TestCase):
 
     def test_procesar_arma_la_bandera_antes_de_enviar(self):
         frame = self._frame()
-        frame._mensajes_programados[0]["proximo"] = 0.0
+        frame.programador.mensajes[0]["proximo"] = 0.0
 
         class Hilo:
             def start(self):
@@ -3476,21 +3474,21 @@ class TestProgramadorGui(unittest.TestCase):
                 mock.patch.object(gui.diagnostico, "crear_hilo",
                                   return_value=Hilo()):
             frame._procesar_programado()
-        self.assertTrue(frame._programado_en_curso)
+        self.assertTrue(frame.programador.en_curso)
 
     def test_al_encender_da_cuerda_al_reloj(self):
         frame = self._frame()
-        frame._programados_reloj_iniciado = False
+        frame.programador.reloj_iniciado = False
         with mock.patch.object(gui.programados, "iniciar_reloj") as iniciar:
             frame._iniciar_programados_si_corresponde(1000.0)
         iniciar.assert_called_once()
-        self.assertTrue(frame._programados_reloj_iniciado)
+        self.assertTrue(frame.programador.reloj_iniciado)
 
     def test_procesar_no_vuelve_a_dar_cuerda_al_reloj(self):
         frame = self._frame()
-        frame._programados_reloj_iniciado = False
+        frame.programador.reloj_iniciado = False
         frame._conectado = False
-        mensaje = frame._mensajes_programados[0]
+        mensaje = frame.programador.mensajes[0]
         with mock.patch.object(gui.time, "time", side_effect=(1000.0, 2000.0)):
             frame._procesar_programado()
             proximo = mensaje["proximo"]
@@ -3564,18 +3562,18 @@ class TestProgramadorGui(unittest.TestCase):
     def test_el_reloj_no_arranca_hasta_poder_mandar(self):
         frame = self._frame()
         frame._conectado = False
-        frame._programados_reloj_iniciado = False
-        mensaje = frame._mensajes_programados[0]
+        frame.programador.reloj_iniciado = False
+        mensaje = frame.programador.mensajes[0]
         with mock.patch.object(frame, "_sesion_api_disponible", return_value=True), \
                 mock.patch.object(gui.time, "time", return_value=1000.0):
             frame._procesar_programado()
-        self.assertFalse(frame._programados_reloj_iniciado)
+        self.assertFalse(frame.programador.reloj_iniciado)
         self.assertEqual(mensaje["proximo"], 0.0)
         frame._conectado = True
         with mock.patch.object(frame, "_sesion_api_disponible", return_value=True), \
                 mock.patch.object(gui.time, "time", return_value=1000.0):
             frame._procesar_programado()
-        self.assertTrue(frame._programados_reloj_iniciado)
+        self.assertTrue(frame.programador.reloj_iniciado)
         self.assertGreater(mensaje["proximo"], 0.0)
 
     def test_al_desconectar_el_reloj_vuelve_a_empezar(self):
@@ -3583,7 +3581,7 @@ class TestProgramadorGui(unittest.TestCase):
         frame._conectado = False
         with mock.patch.object(frame, "_sesion_api_disponible", return_value=True):
             frame._procesar_programado()
-        self.assertFalse(frame._programados_reloj_iniciado)
+        self.assertFalse(frame.programador.reloj_iniciado)
 
     def test_no_envia_si_elegir_devuelve_none(self):
         frame = self._frame()
@@ -3603,10 +3601,10 @@ class TestProgramadorGui(unittest.TestCase):
 
     def test_error_baja_la_bandera_de_envio(self):
         frame = self._frame()
-        frame._programado_en_curso = True
+        frame.programador.en_curso = True
         with mock.patch.object(gui, "anunciar"):
             frame._programado_fallo(RuntimeError("rateLimitExceeded"))
-        self.assertFalse(frame._programado_en_curso)
+        self.assertFalse(frame.programador.en_curso)
 
     def test_snapshot_omite_proximo_si_el_interruptor_esta_apagado(self):
         frame = self._frame(programados_activo=False)
@@ -3624,10 +3622,10 @@ class TestPreferenciasRecargaProgramados(unittest.TestCase):
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
         frame._alive = True
         frame._config = {}
-        frame._mensajes_programados = [{"texto": "Viejo", "minutos_min": 10,
-                                        "minutos_max": 10, "activo": True,
-                                        "proximo": 900.0}]
-        frame._programados_reloj_iniciado = True
+        frame.programador = programados.ProgramadorMensajes(
+            [{"texto": "Viejo", "minutos_min": 10,
+              "minutos_max": 10, "activo": True, "proximo": 900.0}])
+        frame.programador.reloj_iniciado = True
         frame._aplicar_preferencias_en_caliente = mock.Mock()
         frame._actualizar_estado_online = mock.Mock()
         return frame
@@ -3648,16 +3646,16 @@ class TestPreferenciasRecargaProgramados(unittest.TestCase):
 
     def test_aceptar_recarga_la_lista_y_rearma_el_reloj(self):
         frame = self._correr(self._frame(), True, [{"texto": "Nuevo"}])
-        self.assertEqual([m["texto"] for m in frame._mensajes_programados],
+        self.assertEqual([m["texto"] for m in frame.programador.mensajes],
                          ["Nuevo"])
-        self.assertFalse(frame._programados_reloj_iniciado)
+        self.assertFalse(frame.programador.reloj_iniciado)
         frame._aplicar_preferencias_en_caliente.assert_called_once()
 
     def test_cancelar_tambien_recarga_la_lista(self):
         frame = self._correr(self._frame(), False, [{"texto": "Nuevo"}])
-        self.assertEqual([m["texto"] for m in frame._mensajes_programados],
+        self.assertEqual([m["texto"] for m in frame.programador.mensajes],
                          ["Nuevo"])
-        self.assertFalse(frame._programados_reloj_iniciado)
+        self.assertFalse(frame.programador.reloj_iniciado)
         frame._aplicar_preferencias_en_caliente.assert_not_called()
 
     def test_guardar_aplica_y_despues_anuncia_sin_urgencia(self):
@@ -3734,7 +3732,8 @@ class TestDescartesGui(unittest.TestCase):
         frame.sesion.tipo_video = gui.deteccion.DESCONOCIDO
         frame.__dict__.update(
             _conectado=False, _titulo_stream="",
-            _metadatos={}, _sc_totales={}, _mensajes_programados=[],
+            _metadatos={}, _sc_totales={},
+            programador=programados.ProgramadorMensajes([]),
             _obs_vigilante=None, _cola=mock.Mock(), _worker=mock.Mock())
         snapshot = frame._snapshot_sesion()
         self.assertEqual(snapshot.descartados, "Mensajes descartados: 7")
@@ -3845,7 +3844,7 @@ class TestEstadoObsEnF2(unittest.TestCase):
         frame.sesion = SesionConectada(
             es_tiktok=False, tipo_video=gui.deteccion.DESCONOCIDO)
         frame.__dict__.update(_conectado=False, _titulo_stream="", _metadatos={},
-            _sc_totales={}, _mensajes_programados=[])
+            _sc_totales={}, programador=programados.ProgramadorMensajes([]))
         return frame
     def test_f2_dice_los_tres_datos_frescos_de_la_cache(self):
         vigilante = mock.Mock(estado=mock.Mock(return_value=gui.obs_vigilante.EstadoObs({"outputActive": True, "outputDuration": 60,
@@ -3881,7 +3880,7 @@ class TestTransmisionSupervisadaEnF2(unittest.TestCase):
         frame.sesion = SesionConectada(
             es_tiktok=False, tipo_video=gui.deteccion.DESCONOCIDO)
         frame.__dict__.update(_conectado=False, _titulo_stream="", _metadatos={},
-            _sc_totales={}, _mensajes_programados=[])
+            _sc_totales={}, programador=programados.ProgramadorMensajes([]))
         return frame
 
     def test_supervisor_activo_llega_al_snapshot(self):

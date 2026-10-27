@@ -81,7 +81,7 @@ def snapshot_sesion(frame):
         overlay_puerto=_gui.overlay_servidor.puerto_actual(),
         overlay_clientes=_gui.overlay_servidor.cuantos_miran(),
         programados_proximo=(
-            _gui.programados.describir_proximo(frame._mensajes_programados, _gui.time.time())
+            _gui.programados.describir_proximo(frame.programador.mensajes, _gui.time.time())
             if frame._config.get("programados_activo", False) else ""),
         descartados=_gui.descartes.frase_estado(
             _seguro(lambda: frame._stats.descartados, 0)),

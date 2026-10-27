@@ -128,7 +128,7 @@ class TestCierreAntesDelAviso(unittest.TestCase):
     def test_programado_cierra_antes_de_agendar_el_fallo(self):
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
         frame.sesion = SesionConectada(live_chat_id="chat")
-        frame._programado_en_curso = False
+        frame.programador = gui.programados.ProgramadorMensajes([])
         orden = []
         cliente = mock.Mock()
         cliente.enviar_mensaje_live.side_effect = RefreshError("invalid_grant")
@@ -322,7 +322,8 @@ class TestProgramadoFallo(unittest.TestCase):
     def _frame(self):
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
         frame._config = {"programados_activo": True}
-        frame._programado_en_curso = True
+        frame.programador = gui.programados.ProgramadorMensajes([])
+        frame.programador.en_curso = True
         return frame
 
     def test_frase_exacta_sin_dialogo(self):
@@ -333,7 +334,7 @@ class TestProgramadoFallo(unittest.TestCase):
         anunciar.assert_called_once_with(FRASE_PROGRAMADO)
         caja.assert_not_called()
         self.assertFalse(frame._config["programados_activo"])
-        self.assertFalse(frame._programado_en_curso)
+        self.assertFalse(frame.programador.en_curso)
 
     def test_error_comun_conserva_la_frase_generica(self):
         frame = self._frame()

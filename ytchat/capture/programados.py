@@ -168,3 +168,45 @@ def cargar(ruta) -> list[dict]:
 def guardar(ruta, mensajes: list[dict]) -> None:
     """Guarda mensajes mediante un temporal para conservar el archivo anterior."""
     archivos.escribir_json_atomico(ruta, mensajes, indent=2)
+
+
+class ProgramadorMensajes:
+    """Estado de los mensajes automáticos de la ventana principal."""
+
+    def __init__(self, mensajes: list[dict]):
+        self.mensajes = mensajes
+        self.reloj_iniciado = False
+        self.ultimo_envio = None
+        self.en_curso = False
+
+    def recargar(self, mensajes):
+        self.mensajes = mensajes
+        self.reloj_iniciado = False
+
+    def detener_reloj(self):
+        self.reloj_iniciado = False
+
+    def iniciar_reloj_si_falta(self, ahora, aleatorio):
+        if self.reloj_iniciado:
+            return
+        iniciar_reloj(self.mensajes, ahora, aleatorio)
+        self.reloj_iniciado = True
+
+    def siguiente(self, ahora) -> dict | None:
+        if self.en_curso:
+            return None
+        return elegir_envio(self.mensajes, ahora, self.ultimo_envio)
+
+    def empezar_envio(self):
+        self.en_curso = True
+
+    def envio_hecho(self, mensaje, ahora, aleatorio):
+        self.en_curso = False
+        mensaje["proximo"] = calcular_proximo(
+            mensaje.get("minutos_min", 10),
+            mensaje.get("minutos_max", mensaje.get("minutos_min", 10)),
+            ahora, aleatorio)
+        self.ultimo_envio = ahora
+
+    def envio_fallido(self):
+        self.en_curso = False

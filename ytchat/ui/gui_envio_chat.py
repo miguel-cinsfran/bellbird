@@ -108,17 +108,16 @@ def actualizar_motivo_redaccion(frame):
 
 def iniciar_programados_si_corresponde(frame, ahora: float) -> None:
     from ytchat.ui import gui as _gui
-    if frame._programados_reloj_iniciado:
+    if frame.programador.reloj_iniciado:
         return
     if not frame._config.get("programados_activo", False):
         return
-    _gui.programados.iniciar_reloj(frame._mensajes_programados, ahora, _gui.random.randint)
-    frame._programados_reloj_iniciado = True
+    frame.programador.iniciar_reloj_si_falta(ahora, _gui.random.randint)
 
 
 def enviar_programado(frame, mensaje: dict, ahora: float) -> None:
     from ytchat.ui import gui as _gui
-    frame._programado_en_curso = True
+    frame.programador.empezar_envio()
     lcid = frame.sesion.live_chat_id
     texto = mensaje.get("texto", "")
 
@@ -140,18 +139,12 @@ def enviar_programado(frame, mensaje: dict, ahora: float) -> None:
 
 def programado_enviado(frame, mensaje: dict) -> None:
     from ytchat.ui import gui as _gui
-    frame._programado_en_curso = False
-    ahora = _gui.time.time()
-    mensaje["proximo"] = _gui.programados.calcular_proximo(
-        mensaje.get("minutos_min", 10),
-        mensaje.get("minutos_max", mensaje.get("minutos_min", 10)),
-        ahora, _gui.random.randint)
-    frame._programados_ultimo_envio = ahora
+    frame.programador.envio_hecho(mensaje, _gui.time.time(), _gui.random.randint)
 
 
 def programado_fallo(frame, exc) -> None:
     from ytchat.ui import gui as _gui
-    frame._programado_en_curso = False
+    frame.programador.envio_fallido()
     if not frame._config.get("programados_activo", False):
         return
     frame._config["programados_activo"] = False
@@ -167,24 +160,16 @@ def procesar_programado(frame) -> None:
     activo = bool(frame._config.get("programados_activo", False))
     if not _gui.programados.puede_enviar(
             activo, frame._conectado, frame.sesion.es_tiktok,
-            frame.sesion.live_chat_id, propio, True):
-        # Sin las condiciones para mandar, el reloj no corre: al
-        # reconectar arranca de nuevo en vez de salir todo de golpe.
-        frame._programados_reloj_iniciado = False
-        return
-    if not _gui.programados.puede_enviar(
+            frame.sesion.live_chat_id, propio, True) or not _gui.programados.puede_enviar(
             activo, frame._conectado, frame.sesion.es_tiktok,
             frame.sesion.live_chat_id, propio, frame._sesion_api_disponible()):
         # Sin las condiciones para mandar, el reloj no corre: al
         # reconectar arranca de nuevo en vez de salir todo de golpe.
-        frame._programados_reloj_iniciado = False
+        frame.programador.detener_reloj()
         return
     ahora = _gui.time.time()
     frame._iniciar_programados_si_corresponde(ahora)
-    if frame._programado_en_curso:
-        return
-    mensaje = _gui.programados.elegir_envio(
-        frame._mensajes_programados, ahora, frame._programados_ultimo_envio)
+    mensaje = frame.programador.siguiente(ahora)
     if mensaje is not None:
         frame._enviar_programado(mensaje, ahora)
 

@@ -127,7 +127,7 @@ def _frame_con_panel(frase, desfase_seg):
     frame._titulo_stream = "T"
     frame._metadatos = {}
     frame._sc_totales = {}
-    frame._mensajes_programados = []
+    frame.programador = gui.programados.ProgramadorMensajes([])
     frame._config = {"silenciar_lectura": False, "programados_activo": False}
     frame._stats = mock.Mock(leidos=0, superchats=0, descartados=0)
     frame._cola = mock.Mock(qsize=mock.Mock(return_value=0))

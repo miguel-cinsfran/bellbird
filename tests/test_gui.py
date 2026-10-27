@@ -2157,7 +2157,7 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
                 ruta.write_text("[ia]\nproveedor = gemini\n",
                                 encoding="utf-8")
                 dialogo = self._dialogo()
-                self.assertTrue(hasattr(dialogo, atributo))
+                self.assertTrue(hasattr(dialogo.pagina_ia, atributo))
                 cambiar, esperado = self._cambio_para(clave, dialogo)
                 cambiar()
                 with mock.patch.object(dialogo, "EndModal"), \

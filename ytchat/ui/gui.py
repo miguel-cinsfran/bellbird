@@ -1288,7 +1288,7 @@ class YTChatFrame(wx.Frame):
         except Exception: pass
         if self._pendientes_timer is not None:
             try:    self._pendientes_timer.Stop()
-            except Exception: pass
+            except Exception as exc: logger.debug("No se pudo parar el temporizador del chat: %s", exc)
             self._pendientes_timer = None
         hilos_previos = diagnostico.hilos_vivos_de_la_aplicacion()
         if apagado.hilos_captura_vivos(hilos_previos):
@@ -1468,7 +1468,7 @@ class YTChatFrame(wx.Frame):
         no falte lo más reciente todavía sin procesar."""
         if self._pendientes_timer is not None:
             try:    self._pendientes_timer.Stop()
-            except Exception: pass
+            except Exception as exc: logger.debug("No se pudo parar el temporizador del chat: %s", exc)
             self._pendientes_timer = None
         self._volcar_pendientes()
 
@@ -1478,7 +1478,7 @@ class YTChatFrame(wx.Frame):
         sesión que se está borrando."""
         if self._pendientes_timer is not None:
             try:    self._pendientes_timer.Stop()
-            except Exception: pass
+            except Exception as exc: logger.debug("No se pudo parar el temporizador del chat: %s", exc)
             self._pendientes_timer = None
         self._pendientes.clear()
 

@@ -133,11 +133,11 @@ class TestAtajosDefaults(unittest.TestCase):
     def test_boton_fabrica_usa_fuente_canonica_y_no_altera_fijos(self):
         try:
             import wx
-            from ytchat.ui import gui_preferencias as gp
+            from ytchat.ui import preferencias_atajos as gp
         except Exception:
             self.skipTest("wx no disponible")
         # Preparar dialogo sin construir UI completa
-        dialogo = gp.PreferenciasDialog.__new__(gp.PreferenciasDialog)
+        dialogo = gp.PaginaAtajos.__new__(gp.PaginaAtajos)
         dialogo._valores_atajo = {"rep_play": "ctrl+q", "salir": "alt+x"}
         # necesitamos botones mock para _restaurar_etiqueta_atajo
         import unittest.mock as mock

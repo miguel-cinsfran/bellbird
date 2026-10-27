@@ -80,10 +80,11 @@ class TestCapturaAtajos(unittest.TestCase):
 
     def test_caja_de_grupo_devuelve_la_caja_como_padre(self):
         import wx
+        from ytchat.ui.gui import caja_de_grupo
         frame = wx.Frame(None)
         try:
             panel = wx.Panel(frame)
-            sizer, caja = self.gp.caja_de_grupo(panel, "Grupo de prueba")
+            sizer, caja = caja_de_grupo(panel, "Grupo de prueba")
             boton = wx.Button(caja, label="Botón")
 
             self.assertIs(boton.GetParent(), caja)

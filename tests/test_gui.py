@@ -1895,7 +1895,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("filtros", "usuarios_silenciados"),
         ])
         esperadas.extend(("atajos", accion)
-                          for accion in dialogo._valores_atajo
+                          for accion in dialogo.pagina_atajos._valores_atajo
                           if accion not in gui_preferencias.cfg.ATAJOS_FIJOS)
         self.assertEqual(sorted(claves), sorted(esperadas))
         self.assertEqual(len(claves), len(set(claves)))

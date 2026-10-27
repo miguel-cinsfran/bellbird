@@ -11,6 +11,7 @@ from ytchat.core.config import (
     _AREA_POR_GRUPO,
 )
 from ytchat.ui import gui_preferencias
+from ytchat.ui import preferencias_atajos
 from ytchat.ui import gui
 from ytchat.ui import gui_menu
 from ytchat.ui import atajos_captura
@@ -180,27 +181,28 @@ class TestAreasAtajo(unittest.TestCase):
 class TestParsearAtajos(unittest.TestCase):
 
     def test_pagina_de_atajos_usa_etiqueta_de_accion(self):
-        dialogo = gui_preferencias.PreferenciasDialog.__new__(
-            gui_preferencias.PreferenciasDialog)
-        dialogo._config = {"atajos_raw": {}}
+        pagina = preferencias_atajos.PaginaAtajos.__new__(
+            preferencias_atajos.PaginaAtajos)
+        pagina._config = {"atajos_raw": {}}
         panel = mock.Mock()
         boton = mock.Mock()
         sizer = mock.Mock()
         crear_boton = mock.Mock(return_value=boton)
-        with mock.patch.object(dialogo, "_make_panel", return_value=panel), \
+        with mock.patch.object(preferencias_atajos, "crear_panel",
+                               return_value=panel), \
                 mock.patch.object(gui_preferencias.wx, "BoxSizer", return_value=sizer), \
-                mock.patch.object(gui_preferencias, "caja_de_grupo",
+                mock.patch.object(preferencias_atajos, "caja_de_grupo",
                                   return_value=(sizer, panel)), \
                 mock.patch.object(gui_preferencias.wx, "StaticText", return_value=mock.Mock()), \
                 mock.patch.object(gui_preferencias.wx, "Button", crear_boton), \
-                mock.patch.object(gui_preferencias, "etiqueta_de_accion",
+                mock.patch.object(preferencias_atajos, "etiqueta_de_accion",
                                   return_value="Acción desconocida") as etiqueta:
             with mock.patch.object(atajos, "ATAJOS_DEFAULTS",
                                    {"accion_nueva": "ctrl+a"}), \
                     mock.patch.object(gui_preferencias.cfg, "ATAJOS_GRUPOS",
                                       [("Grupo", ["accion_nueva"])]), \
                     mock.patch.object(gui_preferencias.cfg, "ATAJOS_FIJOS", set()):
-                dialogo._pag_atajos(object())
+                pagina.construir(object())
         etiqueta.assert_called_once_with("accion_nueva")
         llamada = next(llamada for llamada in crear_boton.call_args_list
                        if llamada.kwargs["name"] == "Atajo_accion_nueva")
@@ -213,19 +215,20 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertEqual(set(atajos), set(todos_los_atajos_default()))
 
     def test_pagina_ignora_clave_desconocida(self):
-        dialogo = gui_preferencias.PreferenciasDialog.__new__(
-            gui_preferencias.PreferenciasDialog)
-        dialogo._config = {"atajos_raw": {"musica_listas": "ctrl+alt+l"}}
+        pagina = preferencias_atajos.PaginaAtajos.__new__(
+            preferencias_atajos.PaginaAtajos)
+        pagina._config = {"atajos_raw": {"musica_listas": "ctrl+alt+l"}}
         panel = mock.Mock()
         sizer = mock.Mock()
         crear_boton = mock.Mock(return_value=mock.Mock())
-        with mock.patch.object(dialogo, "_make_panel", return_value=panel), \
+        with mock.patch.object(preferencias_atajos, "crear_panel",
+                               return_value=panel), \
                 mock.patch.object(gui_preferencias.wx, "BoxSizer", return_value=sizer), \
-                mock.patch.object(gui_preferencias, "caja_de_grupo",
+                mock.patch.object(preferencias_atajos, "caja_de_grupo",
                                   return_value=(sizer, panel)), \
                 mock.patch.object(gui_preferencias.wx, "StaticText", return_value=mock.Mock()), \
                 mock.patch.object(gui_preferencias.wx, "Button", crear_boton):
-            dialogo._pag_atajos(object())
+            pagina.construir(object())
         nombres = [c.kwargs["name"] for c in crear_boton.call_args_list]
         self.assertNotIn("Atajo_musica_listas", nombres)
 
@@ -431,25 +434,27 @@ class TestParsearAtajos(unittest.TestCase):
 
     def test_rechazo_muestra_aviso_y_vuelve_a_capturar(self):
         import wx
-        dialogo = gui_preferencias.PreferenciasDialog.__new__(
-            gui_preferencias.PreferenciasDialog)
+        pagina = preferencias_atajos.PaginaAtajos.__new__(
+            preferencias_atajos.PaginaAtajos)
+        pagina._ventana = mock.Mock()
         boton = mock.Mock()
-        dialogo._capturando_atajo = ("ir_lista", "Ir a la lista del panel actual")
-        dialogo._valores_atajo = {"ir_lista": "alt+l", "salir": "alt+f4"}
-        dialogo._botones_atajo = {"ir_lista": boton}
+        pagina._capturando_atajo = ("ir_lista", "Ir a la lista del panel actual")
+        pagina._valores_atajo = {"ir_lista": "alt+l", "salir": "alt+f4"}
+        pagina._botones_atajo = {"ir_lista": boton}
         evento = mock.Mock()
         evento.GetKeyCode.return_value = wx.WXK_F4
         evento.GetModifiers.return_value = wx.MOD_ALT
         texto = "Ya lo usa: Salir de la aplicación. Elige otra."
         anuncios = []
-        with mock.patch.object(gui_preferencias, "anunciar",
+        with mock.patch.object(preferencias_atajos, "anunciar",
                                side_effect=anuncios.append), \
                 mock.patch.object(gui_preferencias.wx, "MessageBox") as aviso:
-            dialogo._on_tecla_captura(evento)
+            pagina._on_tecla_captura(evento)
         aviso.assert_called_once_with(
-            texto, gui_preferencias.APP_NAME, wx.OK | wx.ICON_ERROR, dialogo)
+            texto, preferencias_atajos.APP_NAME, wx.OK | wx.ICON_ERROR,
+            pagina._ventana)
         boton.SetFocus.assert_called_once_with()
-        self.assertEqual(dialogo._capturando_atajo,
+        self.assertEqual(pagina._capturando_atajo,
                          ("ir_lista", "Ir a la lista del panel actual"))
         self.assertEqual(anuncios, [texto,
                                     atajos_captura.texto_de_espera(

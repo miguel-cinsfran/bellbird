@@ -258,6 +258,10 @@ def carpeta_sonidos() -> Path:
     return carpeta_instalacion() / "sounds"
 
 
+def carpeta_idiomas() -> Path:
+    return carpeta_instalacion() / "idiomas"
+
+
 def pagina_overlay() -> Path:
     return carpeta_instalacion() / "web" / "chat.html"
 

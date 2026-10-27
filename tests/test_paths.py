@@ -46,6 +46,7 @@ RUTAS_DE_INSTALACION = [
     ("musica_por_defecto", "Música"),
     ("catalogo_ia_empaquetado", "catalogo_ia.json"),
     ("carpeta_sonidos", "sounds"),
+    ("carpeta_idiomas", "idiomas"),
     ("config_predeterminada_ini", "config.predeterminado.ini"),
     ("cliente_app", "cliente_app.json"),
     ("ffmpeg_empaquetado", paths.NOMBRE_FFMPEG),

@@ -142,7 +142,7 @@ class TestTablaOpcionesSimples(unittest.TestCase):
     def test_multivoz_en_true_habilita_voz_eventos(self):
         dialogo = self._dialogo({"multivoz": True})
         self.assertTrue(dialogo.chk_multivoz.GetValue())
-        self.assertTrue(dialogo.cho_voz_eventos.IsEnabled())
+        self.assertTrue(dialogo.pagina_voz.cho_voz_eventos.IsEnabled())
 
     def test_guardar_escribe_texto_y_memoria_con_tipo_exacto(self):
         dialogo = self._dialogo()

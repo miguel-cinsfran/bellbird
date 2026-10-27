@@ -345,7 +345,8 @@ def _pares_con_control():
     tablas = {}
     arboles = {rel: _arbol(rel) for rel in (
         "ytchat/ui/gui_preferencias.py", "ytchat/ui/preferencias_musica.py",
-        "ytchat/ui/preferencias_lectura.py", "ytchat/ui/preferencias_ia.py")}
+        "ytchat/ui/preferencias_lectura.py", "ytchat/ui/preferencias_ia.py",
+        "ytchat/ui/preferencias_voz.py")}
     for arbol in arboles.values():
         for nodo in ast.walk(arbol):
             if not isinstance(nodo, (ast.Assign, ast.AnnAssign)):
@@ -401,7 +402,8 @@ class PruebaConfiguracion(unittest.TestCase):
             faltan, [],
             "Pares de fábrica sin control en Preferencias "
             "(ytchat/ui/gui_preferencias.py, ytchat/ui/preferencias_musica.py, "
-            "ytchat/ui/preferencias_lectura.py, ytchat/ui/preferencias_ia.py): "
+            "ytchat/ui/preferencias_lectura.py, ytchat/ui/preferencias_ia.py, "
+            "ytchat/ui/preferencias_voz.py): "
             f"{faltan}")
 
     def test_excepciones_existen_en_fabrica(self):

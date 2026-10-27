@@ -1,7 +1,7 @@
 """Página Mensajes automáticos del diálogo de Preferencias.
 
-Mezcla sin estado propio: `gui_preferencias` hereda de acá. Se separó
-porque ese módulo no puede crecer y la página siguiente (IA) necesita sitio.
+Dueña de su estado: la lista de mensajes y su edición. El diálogo la
+construye por composición y copia solo la casilla de activación.
 """
 
 from __future__ import annotations
@@ -12,18 +12,19 @@ from ytchat.core import paths
 from ytchat.capture import programados
 from ytchat.ui.gui import (
     ContadorAccesible, _T, anunciar, instalar_busqueda_tipo, nombre_accesible)
-from ytchat.ui.preferencias_comun import ANCHO_NOTA
+from ytchat.ui.preferencias_comun import ANCHO_NOTA, crear_panel, fila_label
 
 
 class PaginaProgramados:
     """Página Mensajes automáticos: lista, texto, intervalo y activación."""
 
-    def _iniciar_programados(self):
-        self._ruta_programados = paths.mensajes_programados()
+    def __init__(self, ruta=None):
+        self._ruta_programados = (
+            ruta if ruta is not None else paths.mensajes_programados())
         self._mensajes_programados = programados.cargar(self._ruta_programados)
 
-    def _pag_programados(self, parent):
-        p = self._make_panel(parent, "PagProgramados")
+    def construir(self, parent):
+        p = crear_panel(parent, "PagProgramados")
         vs = wx.BoxSizer(wx.VERTICAL)
         self._programados_intro(p, vs)
         self._programados_lista(p, vs)
@@ -63,16 +64,16 @@ class PaginaProgramados:
         vs.Add(self.lista_programados, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
 
     def _programados_datos(self, p, vs):
-        vs.Add(self._fila_label(p, "&Texto del mensaje"), 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
+        vs.Add(fila_label(p, "&Texto del mensaje"), 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.txt_programado = wx.TextCtrl(p, name="TextoProgramado")
         self.txt_programado.SetMaxLength(200)
         vs.Add(self.txt_programado, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
 
-        vs.Add(self._fila_label(p, "Cada, &mínimo (minutos)"), 0, wx.LEFT | wx.RIGHT, 10)
+        vs.Add(fila_label(p, "Cada, &mínimo (minutos)"), 0, wx.LEFT | wx.RIGHT, 10)
         self.sp_min_programado = ContadorAccesible(
             p, min=5, max=240, initial=10, name="MinutosMin")
         vs.Add(self.sp_min_programado, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
-        vs.Add(self._fila_label(p, "y &máximo (minutos)"), 0, wx.LEFT | wx.RIGHT, 10)
+        vs.Add(fila_label(p, "y &máximo (minutos)"), 0, wx.LEFT | wx.RIGHT, 10)
         self.sp_max_programado = ContadorAccesible(
             p, min=5, max=240, initial=10, name="MinutosMax")
         vs.Add(self.sp_max_programado, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)

@@ -1280,16 +1280,15 @@ class TestMeGustaFueraDelModelo(unittest.TestCase):
 
 class TestProgramadosEnPreferencias(unittest.TestCase):
 
-    def _dialogo(self, mensajes, seleccion):
-        dialogo = gui_preferencias.PreferenciasDialog.__new__(
-            gui_preferencias.PreferenciasDialog)
-        dialogo._mensajes_programados = mensajes
-        dialogo._ruta_programados = Path(tempfile.mktemp(suffix=".json"))
-        dialogo.lista_programados = mock.Mock()
-        dialogo.lista_programados.GetSelection.return_value = seleccion
-        dialogo._refrescar_programados = mock.Mock()
-        self.addCleanup(lambda: dialogo._ruta_programados.unlink(missing_ok=True))
-        return dialogo
+    def _pagina(self, mensajes, seleccion):
+        pagina = preferencias_programados.PaginaProgramados(
+            Path(tempfile.mktemp(suffix=".json")))
+        pagina._mensajes_programados = mensajes
+        pagina.lista_programados = mock.Mock()
+        pagina.lista_programados.GetSelection.return_value = seleccion
+        pagina._refrescar_programados = mock.Mock()
+        self.addCleanup(lambda: pagina._ruta_programados.unlink(missing_ok=True))
+        return pagina
 
     def test_quitar_persiste_que_el_mensaje_desaparecio(self):
         with tempfile.TemporaryDirectory() as temporal:
@@ -1300,8 +1299,8 @@ class TestProgramadosEnPreferencias(unittest.TestCase):
                 {"texto": "Conservar", "minutos_min": 10, "minutos_max": 10,
                  "activo": True, "proximo": 200.0},
             ]
-            dialogo = self._dialogo(mensajes, 0)
-            dialogo._ruta_programados = ruta
+            pagina = self._pagina(mensajes, 0)
+            pagina._ruta_programados = ruta
             def guardar_doble(ruta_a_guardar, mensajes_a_guardar):
                 Path(ruta_a_guardar).write_text(
                     json.dumps(mensajes_a_guardar, ensure_ascii=False), encoding="utf-8")
@@ -1310,7 +1309,7 @@ class TestProgramadosEnPreferencias(unittest.TestCase):
                     preferencias_programados.programados, "guardar",
                     side_effect=guardar_doble), \
                     mock.patch.object(preferencias_programados, "anunciar"):
-                dialogo._quitar_programado(None)
+                pagina._quitar_programado(None)
 
             guardados = json.loads(ruta.read_text(encoding="utf-8"))
             self.assertEqual(guardados, [mensajes[0]])
@@ -1323,12 +1322,12 @@ class TestProgramadosEnPreferencias(unittest.TestCase):
             {"texto": "Segundo", "proximo": 200.0},
             {"texto": "Tercero", "proximo": 300.0},
         ]
-        dialogo = self._dialogo(mensajes, 2)
-        dialogo._datos_programado = mock.Mock(return_value={"texto": "Editado"})
-        dialogo._validar_programado = mock.Mock(return_value=True)
+        pagina = self._pagina(mensajes, 2)
+        pagina._datos_programado = mock.Mock(return_value={"texto": "Editado"})
+        pagina._validar_programado = mock.Mock(return_value=True)
         with mock.patch.object(preferencias_programados.programados, "guardar"), \
                 mock.patch.object(preferencias_programados, "anunciar"):
-            dialogo._guardar_programado(None)
+            pagina._guardar_programado(None)
 
         self.assertEqual(mensajes[0]["texto"], "Primero")
         self.assertEqual(mensajes[2]["texto"], "Editado")
@@ -1338,19 +1337,19 @@ class TestProgramadosEnPreferencias(unittest.TestCase):
             {"texto": "Primero", "proximo": 100.0},
             {"texto": "Segundo", "proximo": 200.0},
         ]
-        dialogo = self._dialogo(mensajes, 1)
-        dialogo._datos_programado = mock.Mock(return_value={"texto": "Corregido"})
-        dialogo._validar_programado = mock.Mock(return_value=True)
+        pagina = self._pagina(mensajes, 1)
+        pagina._datos_programado = mock.Mock(return_value={"texto": "Corregido"})
+        pagina._validar_programado = mock.Mock(return_value=True)
         with mock.patch.object(preferencias_programados.programados, "guardar"), \
                 mock.patch.object(preferencias_programados, "anunciar"):
-            dialogo._guardar_programado(None)
+            pagina._guardar_programado(None)
 
         self.assertEqual(mensajes[1]["proximo"], 200.0)
 
     def test_quitar_sin_seleccion_anuncia_y_no_revienta(self):
-        dialogo = self._dialogo([], -1)
+        pagina = self._pagina([], -1)
         with mock.patch.object(preferencias_programados, "anunciar") as anunciar:
-            dialogo._quitar_programado(None)
+            pagina._quitar_programado(None)
 
         anunciar.assert_called_once_with("Elige primero un mensaje de la lista")
 
@@ -1366,11 +1365,12 @@ class TestProgramadosEnPreferencias(unittest.TestCase):
             dialogo = gui_preferencias.PreferenciasDialog(None, {})
         self.addCleanup(destruir, dialogo)
 
+        pagina = dialogo.pagina_programados
         llamadas = [llamada for llamada in instalar.call_args_list
-                    if llamada.args[0] is dialogo.lista_programados]
+                    if llamada.args[0] is pagina.lista_programados]
         self.assertEqual(len(llamadas), 1)
         self.assertEqual(llamadas[0].args[1](),
-                         list(dialogo.lista_programados.GetStrings()))
+                         list(pagina.lista_programados.GetStrings()))
 
     def _dialogo_real(self):
         self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
@@ -1388,18 +1388,19 @@ class TestProgramadosEnPreferencias(unittest.TestCase):
             with redirigir_rutas(temporal), \
                     mock.patch.object(preferencias_programados, "anunciar"):
                 dialogo = self._dialogo_real()
-                antes = dialogo.lista_programados.GetCount()
-                dialogo.txt_programado.SetValue("Aviso del directo")
-                dialogo.sp_min_programado.SetValue(10)
-                dialogo.sp_max_programado.SetValue(15)
-                dialogo.chk_mensaje_activo.SetValue(True)
-                dialogo.btn_programado_agregar.GetEventHandler().ProcessEvent(
-                    self._evento_boton(dialogo.btn_programado_agregar))
-                self.assertEqual(dialogo.lista_programados.GetCount(), antes + 1)
+                pagina = dialogo.pagina_programados
+                antes = pagina.lista_programados.GetCount()
+                pagina.txt_programado.SetValue("Aviso del directo")
+                pagina.sp_min_programado.SetValue(10)
+                pagina.sp_max_programado.SetValue(15)
+                pagina.chk_mensaje_activo.SetValue(True)
+                pagina.btn_programado_agregar.GetEventHandler().ProcessEvent(
+                    self._evento_boton(pagina.btn_programado_agregar))
+                self.assertEqual(pagina.lista_programados.GetCount(), antes + 1)
                 self.assertIn("Aviso del directo",
-                              dialogo.lista_programados.GetString(antes))
+                              pagina.lista_programados.GetString(antes))
                 guardados = json.loads(
-                    Path(dialogo._ruta_programados).read_text(encoding="utf-8"))
+                    Path(pagina._ruta_programados).read_text(encoding="utf-8"))
                 self.assertTrue(any(m.get("texto") == "Aviso del directo"
                                     for m in guardados))
 
@@ -1412,15 +1413,16 @@ class TestProgramadosEnPreferencias(unittest.TestCase):
                     [{"texto": "Texto viejo", "minutos_min": 10,
                       "minutos_max": 10, "activo": True, "proximo": 0.0}])
                 dialogo = self._dialogo_real()
-                self.assertEqual(dialogo.lista_programados.GetCount(), 1)
-                dialogo.lista_programados.SetSelection(0)
-                dialogo.txt_programado.SetValue("Texto nuevo")
-                dialogo.btn_programado_guardar.GetEventHandler().ProcessEvent(
-                    self._evento_boton(dialogo.btn_programado_guardar))
+                pagina = dialogo.pagina_programados
+                self.assertEqual(pagina.lista_programados.GetCount(), 1)
+                pagina.lista_programados.SetSelection(0)
+                pagina.txt_programado.SetValue("Texto nuevo")
+                pagina.btn_programado_guardar.GetEventHandler().ProcessEvent(
+                    self._evento_boton(pagina.btn_programado_guardar))
                 self.assertIn("Texto nuevo",
-                              dialogo.lista_programados.GetString(0))
+                              pagina.lista_programados.GetString(0))
                 guardados = json.loads(
-                    Path(dialogo._ruta_programados).read_text(encoding="utf-8"))
+                    Path(pagina._ruta_programados).read_text(encoding="utf-8"))
                 self.assertEqual(guardados[0]["texto"], "Texto nuevo")
 
     def test_boton_quitar_dispara_y_quita_la_fila(self):
@@ -1432,13 +1434,14 @@ class TestProgramadosEnPreferencias(unittest.TestCase):
                     [{"texto": "Para quitar", "minutos_min": 10,
                       "minutos_max": 10, "activo": True, "proximo": 0.0}])
                 dialogo = self._dialogo_real()
-                self.assertEqual(dialogo.lista_programados.GetCount(), 1)
-                dialogo.lista_programados.SetSelection(0)
-                dialogo.btn_programado_quitar.GetEventHandler().ProcessEvent(
-                    self._evento_boton(dialogo.btn_programado_quitar))
-                self.assertEqual(dialogo.lista_programados.GetCount(), 0)
+                pagina = dialogo.pagina_programados
+                self.assertEqual(pagina.lista_programados.GetCount(), 1)
+                pagina.lista_programados.SetSelection(0)
+                pagina.btn_programado_quitar.GetEventHandler().ProcessEvent(
+                    self._evento_boton(pagina.btn_programado_quitar))
+                self.assertEqual(pagina.lista_programados.GetCount(), 0)
                 guardados = json.loads(
-                    Path(dialogo._ruta_programados).read_text(encoding="utf-8"))
+                    Path(pagina._ruta_programados).read_text(encoding="utf-8"))
                 self.assertEqual(guardados, [])
 
     def test_lista_carga_los_campos_al_elegir(self):
@@ -1450,14 +1453,15 @@ class TestProgramadosEnPreferencias(unittest.TestCase):
                     [{"texto": "Hola hola", "minutos_min": 10,
                       "minutos_max": 20, "activo": False, "proximo": 0.0}])
                 dialogo = self._dialogo_real()
-                dialogo.lista_programados.SetSelection(0)
-                dialogo.lista_programados.GetEventHandler().ProcessEvent(
+                pagina = dialogo.pagina_programados
+                pagina.lista_programados.SetSelection(0)
+                pagina.lista_programados.GetEventHandler().ProcessEvent(
                     gui.wx.CommandEvent(gui.wx.EVT_LISTBOX.typeId,
-                                        dialogo.lista_programados.GetId()))
-                self.assertEqual(dialogo.txt_programado.GetValue(), "Hola hola")
-                self.assertEqual(dialogo.sp_min_programado.GetValue(), 10)
-                self.assertEqual(dialogo.sp_max_programado.GetValue(), 20)
-                self.assertFalse(dialogo.chk_mensaje_activo.GetValue())
+                                        pagina.lista_programados.GetId()))
+                self.assertEqual(pagina.txt_programado.GetValue(), "Hola hola")
+                self.assertEqual(pagina.sp_min_programado.GetValue(), 10)
+                self.assertEqual(pagina.sp_max_programado.GetValue(), 20)
+                self.assertFalse(pagina.chk_mensaje_activo.GetValue())
 
 
 class TestCategoriasDePreferencias(unittest.TestCase):
@@ -1590,13 +1594,13 @@ class TestCategoriasDePreferencias(unittest.TestCase):
 
     def test_mensaje_nuevo_nace_activo(self):
         dialogo = self._dialogo()
-        self.assertTrue(dialogo.chk_mensaje_activo.GetValue())
+        self.assertTrue(dialogo.pagina_programados.chk_mensaje_activo.GetValue())
 
     def test_lista_de_programados_tiene_nombre_accesible(self):
         dialogo = self._dialogo()
         control = self._buscar(dialogo, "Mensajes automáticos guardados")
         self.assertIsNotNone(control)
-        self.assertIs(control, dialogo.lista_programados)
+        self.assertIs(control, dialogo.pagina_programados.lista_programados)
 
     def test_microfono_guardado_se_conserva_sin_consultar_obs(self):
         with mock.patch.object(motores, "listar_voces", return_value=["Voz de prueba"]):

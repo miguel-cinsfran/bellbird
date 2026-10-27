@@ -58,7 +58,6 @@ def _miles(numero) -> str:
         return str(numero)
 
 
-
 # Opciones que se guardan y se cargan con el mismo molde (leer el control,
 # escribir el texto en el ini y copiar el valor a la config en memoria; y al
 # revés, volcar la config en el control). Lo que no sigue ese molde va a mano
@@ -95,7 +94,7 @@ _OPCIONES_SIMPLES = (
 _AREA_AYUDA = atajos_captura._AREA_AYUDA
 
 
-class PreferenciasDialog(PaginaMusica, PaginaProgramados, PaginaIA, wx.Dialog):
+class PreferenciasDialog(PaginaMusica, PaginaIA, wx.Dialog):
 
     def __init__(self, parent, config: dict):
         # Redimensionable: quien ve poco puede agrandarlo; las páginas se
@@ -106,7 +105,6 @@ class PreferenciasDialog(PaginaMusica, PaginaProgramados, PaginaIA, wx.Dialog):
         self._config = config
         self._ruta = paths.config_ini()
         self._capturando_atajo = None
-        self._iniciar_programados()
         self._cambios = False
         self._fallo_guardado = False
         self._pendientes = []
@@ -143,7 +141,9 @@ class PreferenciasDialog(PaginaMusica, PaginaProgramados, PaginaIA, wx.Dialog):
         self.nb.AddPage(self._pag_estado(self.nb), "Estado (F2)")
         self.nb.AddPage(self._pag_atajos(self.nb), "Atajos")
         self.nb.AddPage(self._pag_api(self.nb), "API y sesión")
-        self.nb.AddPage(self._pag_programados(self.nb), "Mensajes automáticos")
+        self.pagina_programados = PaginaProgramados()
+        self.nb.AddPage(self.pagina_programados.construir(self.nb), "Mensajes automáticos")
+        self.chk_programados = self.pagina_programados.chk_programados
         self.nb.AddPage(self._pag_transmision(self.nb), "Transmisión")
         self.nb.AddPage(self._pag_ia(self.nb), "Inteligencia artificial")
         self._ajustar_ancho_categorias()

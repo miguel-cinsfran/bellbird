@@ -1677,13 +1677,13 @@ class TestCategoriasDePreferencias(unittest.TestCase):
                        "musica_salida_nombre": "Salida vieja"})
         self.addCleanup(destruir, dialogo)
 
-        self.assertEqual(dialogo.cho_musica_salida.GetStrings(),
+        self.assertEqual(dialogo.pagina_musica.cho_musica_salida.GetStrings(),
                          ["Salida predeterminada", "Salida vieja"])
-        self.assertEqual(dialogo.cho_musica_salida.GetSelection(), 1)
+        self.assertEqual(dialogo.pagina_musica.cho_musica_salida.GetSelection(), 1)
 
     def test_buscar_salidas_lanza_hilo_sin_consultar_al_construir(self):
         dialogo = self._dialogo()
-        self.assertEqual(dialogo.cho_musica_salida.GetStrings(),
+        self.assertEqual(dialogo.pagina_musica.cho_musica_salida.GetStrings(),
                          ["Salida predeterminada"])
         hilo = mock.Mock()
         consulta = {}
@@ -1700,34 +1700,34 @@ class TestCategoriasDePreferencias(unittest.TestCase):
                 mock.patch.object(preferencias_musica.wx, "CallAfter",
                                   side_effect=lambda funcion, *args: funcion(*args)), \
                 mock.patch.object(preferencias_musica, "anunciar"):
-            dialogo._buscar_salidas(None)
+            dialogo.pagina_musica._buscar_salidas(None)
             consulta["target"]()
 
         self.assertEqual(consulta["nombre"], "SalidasAudioPrefs")
         hilo.start.assert_called_once_with()
-        self.assertEqual(dialogo.cho_musica_salida.GetStrings(),
+        self.assertEqual(dialogo.pagina_musica.cho_musica_salida.GetStrings(),
                          ["Salida predeterminada", "Altavoces"])
 
     def test_salidas_encontradas_anuncia_cuantas_hallo(self):
         dialogo = self._dialogo()
         with mock.patch.object(preferencias_musica, "anunciar") as anunciar:
-            dialogo._salidas_encontradas(
+            dialogo.pagina_musica._salidas_encontradas(
                 [("altavoces", "Altavoces"), ("auriculares", "Auriculares")])
         anunciar.assert_called_once_with("Se encontraron 2 salidas de audio")
-        self.assertEqual(dialogo.cho_musica_salida.GetSelection(), 0)
+        self.assertEqual(dialogo.pagina_musica.cho_musica_salida.GetSelection(), 0)
 
     def test_sin_salidas_anuncia_que_no_hallo_ninguna(self):
         dialogo = self._dialogo()
         with mock.patch.object(preferencias_musica, "anunciar") as anunciar:
-            dialogo._salidas_encontradas([])
+            dialogo.pagina_musica._salidas_encontradas([])
         anunciar.assert_called_once_with("No se encontraron salidas de audio")
-        self.assertEqual(dialogo.cho_musica_salida.GetStrings(),
+        self.assertEqual(dialogo.pagina_musica.cho_musica_salida.GetStrings(),
                          ["Salida predeterminada"])
 
     def test_una_sola_salida_se_anuncia_en_singular(self):
         dialogo = self._dialogo()
         with mock.patch.object(preferencias_musica, "anunciar") as anunciar:
-            dialogo._salidas_encontradas([("altavoces", "Altavoces")])
+            dialogo.pagina_musica._salidas_encontradas([("altavoces", "Altavoces")])
         anunciar.assert_called_once_with("Se encontró 1 salida de audio")
 
     def test_la_guardada_no_encontrada_no_suma(self):
@@ -1738,7 +1738,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
         self.addCleanup(destruir, dialogo)
 
         with mock.patch.object(preferencias_musica, "anunciar") as anunciar:
-            dialogo._salidas_encontradas([("altavoces", "Altavoces")])
+            dialogo.pagina_musica._salidas_encontradas([("altavoces", "Altavoces")])
         anunciar.assert_called_once_with("Se encontró 1 salida de audio")
 
     def test_la_elegida_se_conserva_al_rehacer_la_lista(self):
@@ -1749,10 +1749,10 @@ class TestCategoriasDePreferencias(unittest.TestCase):
         self.addCleanup(destruir, dialogo)
 
         with mock.patch.object(preferencias_musica, "anunciar"):
-            dialogo._salidas_encontradas([("altavoces", "Altavoces")])
-        self.assertEqual(dialogo.cho_musica_salida.GetStrings(),
+            dialogo.pagina_musica._salidas_encontradas([("altavoces", "Altavoces")])
+        self.assertEqual(dialogo.pagina_musica.cho_musica_salida.GetStrings(),
                          ["Salida predeterminada", "Altavoces", "Salida vieja"])
-        self.assertEqual(dialogo.cho_musica_salida.GetStringSelection(),
+        self.assertEqual(dialogo.pagina_musica.cho_musica_salida.GetStringSelection(),
                          "Salida vieja")
 
     def test_salidas_encontradas_ignora_el_dialogo_destruido(self):
@@ -1760,7 +1760,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
         with mock.patch.object(gui_preferencias.PreferenciasDialog, "__bool__",
                                lambda self: False, create=True), \
                 mock.patch.object(preferencias_musica, "anunciar") as anunciar:
-            dialogo._salidas_encontradas([("altavoces", "Altavoces")])
+            dialogo.pagina_musica._salidas_encontradas([("altavoces", "Altavoces")])
         anunciar.assert_not_called()
 
     def test_buscar_microfonos_lanza_hilo_sin_conectar_al_construir(self):
@@ -3115,16 +3115,17 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
 
     def test_musica_guarda_carpeta_salida_y_memoria(self):
         dialogo = self._dialogo()
-        dialogo.dir_musica_carpeta.SetPath("C:\\Música\\Rock and Roll")
+        dialogo.pagina_musica.dir_musica_carpeta.SetPath("C:\\Música\\Rock and Roll")
         dialogo.chk_musica_aleatorio.SetValue(True)
         dialogo.chk_musica_retomar.SetValue(False)
         dialogo.cho_musica_decir.SetValue("artista")
         dialogo.chk_musica_decir_pausa.SetValue(False)
         dialogo.sp_musica_volumen.SetValue(80)
         dialogo.chk_musica_normalizar.SetValue(False)
-        dialogo._musica_salidas_ids = ["", "altavoces"]
-        dialogo.cho_musica_salida.Set(["Salida predeterminada", "Altavoces"])
-        dialogo.cho_musica_salida.SetSelection(1)
+        dialogo.pagina_musica._musica_salidas_ids = ["", "altavoces"]
+        dialogo.pagina_musica.cho_musica_salida.Set(
+            ["Salida predeterminada", "Altavoces"])
+        dialogo.pagina_musica.cho_musica_salida.SetSelection(1)
 
         self._guardar(dialogo)
 
@@ -3154,7 +3155,7 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
     def test_musica_con_salida_predeterminada_guarda_vacio(self):
         dialogo = self._dialogo({"musica_salida": "vieja",
                                  "musica_salida_nombre": "Salida vieja"})
-        dialogo.cho_musica_salida.SetSelection(0)
+        dialogo.pagina_musica.cho_musica_salida.SetSelection(0)
 
         self._guardar(dialogo)
 

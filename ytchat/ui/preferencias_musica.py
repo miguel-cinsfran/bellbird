@@ -1,7 +1,8 @@
 """Página Música del diálogo de Preferencias.
 
-Mezcla sin estado propio: `gui_preferencias` hereda de acá. Se separó
-porque ese módulo no puede crecer y la página necesitaba una casilla más.
+Dueña de sus controles y de su guardado propio. El diálogo la construye
+por composición y copia solo los controles que lee su tabla de opciones
+simples.
 """
 
 from __future__ import annotations
@@ -13,9 +14,7 @@ from ytchat.core import config as cfg
 from ytchat.ui import opciones_musica
 from ytchat.ui.gui import ContadorAccesible, _T, _tc, anunciar, nombre_accesible
 from ytchat.ui.gui_descargas import nombrar_selector_carpeta
-from ytchat.ui.preferencias_comun import EleccionTexto
-
-logger = diagnostico.obtener_logger(__name__)
+from ytchat.ui.preferencias_comun import EleccionTexto, crear_panel, fila_label
 
 
 # Filas de música de `_OPCIONES_SIMPLES` en `gui_preferencias`: misma tabla, mismo orden.
@@ -37,8 +36,12 @@ OPCIONES_MUSICA = (
 class PaginaMusica:
     """Página Música: carpeta, orden, repetición, aviso, volumen, igualación y salida."""
 
-    def _pag_musica(self, parent):
-        p = self._make_panel(parent, "PagMusica")
+    def __init__(self, ventana, config):
+        self._ventana = ventana
+        self._config = config
+
+    def construir(self, parent):
+        p = crear_panel(parent, "PagMusica")
         vs = wx.BoxSizer(wx.VERTICAL)
         self._musica_carpeta(p, vs)
         self._musica_orden(p, vs)
@@ -49,7 +52,7 @@ class PaginaMusica:
         return p
 
     def _musica_carpeta(self, p, vs):
-        vs.Add(self._fila_label(p, "Carpeta de &música:"),
+        vs.Add(fila_label(p, "Carpeta de &música:"),
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         carpeta = str(self._config.get("musica_carpeta", "") or "")
         self.dir_musica_carpeta = wx.DirPickerCtrl(
@@ -71,7 +74,7 @@ class PaginaMusica:
         self.chk_musica_aleatorio.SetForegroundColour(_T.text)
         vs.Add(self.chk_musica_aleatorio, 0, wx.ALL, 10)
 
-        vs.Add(self._fila_label(p, "&Repetir:"), 0, wx.LEFT | wx.RIGHT, 10)
+        vs.Add(fila_label(p, "&Repetir:"), 0, wx.LEFT | wx.RIGHT, 10)
         self.chk_musica_repetir = EleccionTexto(
             p, (("no", "No"), ("todo", "Toda la cola"),
                  ("tema", "Esta canción")),
@@ -85,7 +88,7 @@ class PaginaMusica:
         self.chk_musica_retomar.SetForegroundColour(_T.text)
         vs.Add(self.chk_musica_retomar, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        vs.Add(self._fila_label(p, "&Fundido entre canciones, en segundos:"),
+        vs.Add(fila_label(p, "&Fundido entre canciones, en segundos:"),
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_musica_cruce = ContadorAccesible(
             p, min=0, max=12,
@@ -99,7 +102,7 @@ class PaginaMusica:
         self.chk_musica_sonido_tema.SetForegroundColour(_T.text)
         vs.Add(self.chk_musica_sonido_tema, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        vs.Add(self._fila_label(p, "&Decir al pasar de canción:"), 0, wx.LEFT | wx.RIGHT, 10)
+        vs.Add(fila_label(p, "&Decir al pasar de canción:"), 0, wx.LEFT | wx.RIGHT, 10)
         self.cho_musica_decir = EleccionTexto(
             p, (("nada", "Nada"), ("titulo", "El título"),
                 ("titulo_artista", "El título y el artista"), ("artista", "Solo el artista")),
@@ -113,7 +116,7 @@ class PaginaMusica:
         vs.Add(self.chk_musica_decir_pausa, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _musica_audio(self, p, vs):
-        vs.Add(self._fila_label(p, "&Volumen de la música"),
+        vs.Add(fila_label(p, "&Volumen de la música"),
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_musica_volumen = ContadorAccesible(
             p, min=0, max=100,
@@ -124,7 +127,7 @@ class PaginaMusica:
 
         # Al abrir no se consulta VLC: la lista se arma solo con la salida
         # guardada (o la predeterminada) y se completa con el botón.
-        vs.Add(self._fila_label(p, "Salida de a&udio de la música"),
+        vs.Add(fila_label(p, "Salida de a&udio de la música"),
                0, wx.LEFT | wx.RIGHT, 10)
         etiquetas, identificadores, seleccion = opciones_musica.opciones_salida(
             str(self._config.get("musica_salida", "") or ""),
@@ -176,7 +179,7 @@ class PaginaMusica:
         diagnostico.crear_hilo(consultar, "SalidasAudioPrefs").start()
 
     def _salidas_encontradas(self, salidas):
-        if not self:   # el diálogo pudo cerrarse mientras libVLC respondía
+        if not self._ventana:   # el diálogo pudo cerrarse mientras libVLC respondía
             return
         elegida = self.cho_musica_salida.GetSelection()
         if 0 <= elegida < len(self._musica_salidas_ids):
@@ -198,20 +201,20 @@ class PaginaMusica:
         else:
             anunciar("No se encontraron salidas de audio")
 
-    def _ajustar_ancho_categorias(self):
-        """La lista de categorías muestra el nombre más largo entero, medido
-        con el texto real. Solo ancho, sin color."""
-        try:
-            textos = [self.nb.GetPageText(i)
-                      for i in range(self.nb.GetPageCount())]
-            if not textos:
-                return
-            medidos = [self.lista_categorias.GetTextExtent(t)[0]
-                       for t in textos]
-            extra = wx.SystemSettings.GetMetric(wx.SYS_VSCROLL_X) + 28
-            ancho = max(medidos) + extra
-            self.lista_categorias.SetColumnWidth(0, ancho)
-            alto = self.lista_categorias.GetMinSize().height
-            self.lista_categorias.SetMinSize((ancho, alto))
-        except Exception as exc:
-            logger.debug("ancho de las categorías: %s", exc)
+    def guardar(self, fijar, en_memoria):
+        # La carpeta se guarda codificada igual que la lee el cargador; la
+        # salida guarda su id y su nombre para no perderla.
+        carpeta_musica = self.dir_musica_carpeta.GetPath()
+        fijar("musica", "carpeta", cfg.codificar_texto_ini(carpeta_musica))
+        en_memoria["musica_carpeta"] = carpeta_musica
+        elegida_musica = self.cho_musica_salida.GetSelection()
+        if 0 <= elegida_musica < len(self._musica_salidas_ids):
+            salida_musica = self._musica_salidas_ids[elegida_musica]
+        else:
+            salida_musica = ""
+        nombre_salida = ("" if not salida_musica
+                         else self.cho_musica_salida.GetStringSelection())
+        fijar("musica", "salida", salida_musica)
+        en_memoria["musica_salida"] = salida_musica
+        fijar("musica", "salida_nombre", cfg.codificar_texto_ini(nombre_salida))
+        en_memoria["musica_salida_nombre"] = nombre_salida

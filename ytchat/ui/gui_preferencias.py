@@ -27,7 +27,8 @@ from ytchat.youtube import credenciales
 from ytchat.youtube import youtube_api
 from ytchat.core.config import APP_NAME
 from ytchat.ui.gui import ContadorAccesible, _T, _tc, anunciar, caja_de_grupo, nombre_accesible
-from ytchat.ui.preferencias_comun import ANCHO_NOTA, EleccionTexto, crear_panel, fila_label
+from ytchat.ui.preferencias_comun import (
+    ANCHO_NOTA, EleccionTexto, ajustar_ancho_categorias, crear_panel, fila_label)
 from ytchat.ui.preferencias_general import PaginaGeneral
 from ytchat.ui.preferencias_musica import OPCIONES_MUSICA, PaginaMusica
 from ytchat.ui.preferencias_lectura import OPCIONES_LECTURA, PaginaLectura
@@ -93,7 +94,7 @@ _OPCIONES_SIMPLES = (
 _AREA_AYUDA = atajos_captura._AREA_AYUDA
 
 
-class PreferenciasDialog(PaginaMusica, PaginaIA, wx.Dialog):
+class PreferenciasDialog(PaginaIA, wx.Dialog):
 
     def __init__(self, parent, config: dict):
         # Redimensionable: quien ve poco puede agrandarlo; las páginas se
@@ -140,7 +141,10 @@ class PreferenciasDialog(PaginaMusica, PaginaIA, wx.Dialog):
         self.pagina_sonidos = PaginaSonidos()
         self.nb.AddPage(self.pagina_sonidos.construir(self.nb), "Sonidos")
         self.nb.AddPage(self._pag_reproductor(self.nb), "Reproductor")
-        self.nb.AddPage(self._pag_musica(self.nb), "Música")
+        self.pagina_musica = PaginaMusica(self, self._config)
+        self.nb.AddPage(self.pagina_musica.construir(self.nb), "Música")
+        for fila in OPCIONES_MUSICA:
+            setattr(self, fila[0], getattr(self.pagina_musica, fila[0]))
         self.nb.AddPage(self._pag_conexion(self.nb), "Conexión")
         self.nb.AddPage(self._pag_filtros(self.nb), "Filtros")
         self.nb.AddPage(self._pag_estado(self.nb), "Estado (F2)")
@@ -151,7 +155,7 @@ class PreferenciasDialog(PaginaMusica, PaginaIA, wx.Dialog):
         self.chk_programados = self.pagina_programados.chk_programados
         self.nb.AddPage(self._pag_transmision(self.nb), "Transmisión")
         self.nb.AddPage(self._pag_ia(self.nb), "Inteligencia artificial")
-        self._ajustar_ancho_categorias()
+        ajustar_ancho_categorias(self.nb, self.lista_categorias)
         # Mínimo explícito: si no, el libro pide el «mejor tamaño» de la página
         # más alta (Atajos, más de 1200 px) y el sizer lo desbordaría en vez
         # de dejar que la página se desplace.
@@ -1252,23 +1256,7 @@ class PreferenciasDialog(PaginaMusica, PaginaIA, wx.Dialog):
         self._set("obs", "microfono", microfono_obs)
         c["obs_microfono"] = microfono_obs
 
-        # Música: la carpeta se guarda codificada igual que la lee el
-        # cargador; la salida guarda su id y su nombre para no perderla.
-        carpeta_musica = self.dir_musica_carpeta.GetPath()
-        self._set("musica", "carpeta", cfg.codificar_texto_ini(carpeta_musica))
-        c["musica_carpeta"] = carpeta_musica
-        elegida_musica = self.cho_musica_salida.GetSelection()
-        if 0 <= elegida_musica < len(self._musica_salidas_ids):
-            salida_musica = self._musica_salidas_ids[elegida_musica]
-        else:
-            salida_musica = ""
-        nombre_salida = ("" if not salida_musica
-                         else self.cho_musica_salida.GetStringSelection())
-        self._set("musica", "salida", salida_musica)
-        c["musica_salida"] = salida_musica
-        self._set("musica", "salida_nombre",
-                  cfg.codificar_texto_ini(nombre_salida))
-        c["musica_salida_nombre"] = nombre_salida
+        self.pagina_musica.guardar(self._set, c)
 
         # Estado (F2): una clave por componente + el set en memoria.
         activos = set()

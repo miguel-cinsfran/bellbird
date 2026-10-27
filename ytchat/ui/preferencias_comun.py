@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import wx
 
+from ytchat.core import diagnostico
 from ytchat.ui.gui import _T
+
+logger = diagnostico.obtener_logger(__name__)
 
 
 class EleccionTexto(wx.Choice):
@@ -55,3 +58,22 @@ def fila_label(p, texto):
     lbl = wx.StaticText(p, label=texto)
     lbl.SetForegroundColour(_T.accent)
     return lbl
+
+
+def _ancho_categorias(libro, lista):
+    textos = [libro.GetPageText(i) for i in range(libro.GetPageCount())]
+    if not textos:
+        return 0
+    medidos = [lista.GetTextExtent(t)[0] for t in textos]
+    return max(medidos) + wx.SystemSettings.GetMetric(wx.SYS_VSCROLL_X) + 28
+
+
+def ajustar_ancho_categorias(libro, lista):
+    """La lista muestra el nombre más largo entero, medido con el texto real."""
+    try:
+        ancho = _ancho_categorias(libro, lista)
+        if ancho:
+            lista.SetColumnWidth(0, ancho)
+            lista.SetMinSize((ancho, lista.GetMinSize().height))
+    except Exception as exc:
+        logger.debug("ancho de las categorías: %s", exc)

@@ -21,8 +21,7 @@ from wx.lib.wordwrap import wordwrap
 
 from ytchat.core.config import (
     APP_NAME, APP_VERSION,
-    TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO,
-    TIPO_ME_GUSTA,
+    TIPO_TEXTO,
     FILTROS,
 )
 from ytchat.core.config import (parsear_atajos, detectar_conflictos_atajos,
@@ -34,7 +33,8 @@ from ytchat.capture import deteccion
 from ytchat.capture import metadatos
 from ytchat.capture import estado_sesion
 from ytchat.core import historial
-from ytchat.ui.lista_chat import ListaChat, MensajeChat, texto_fila
+from ytchat.ui.lista_chat import MensajeChat, texto_fila
+from ytchat.ui.chat_vivo import ControladorChat
 from ytchat.ui import atajos_captura
 from ytchat.voice import escala_voz
 from ytchat.voice import sound_player as _snd
@@ -67,10 +67,6 @@ _IDX_FILTRO     = {"todos": 0, "texto": 1, "superchat": 2, "miembro": 3}
 MAX_ITEMS_CHAT  = 500
 TIMER_STATUS_MS = 1000
 TIMER_DIAGNOSTICO_MS = 100
-# Ráfagas de mensajes del chat: en vez de un Append/Delete por mensaje (mucho
-# repintado en el hilo de GUI mientras NVDA navega la lista), se agrupan y se
-# vuelcan juntos cada tanto. Ver agregar_mensaje_chat / _volcar_pendientes.
-MS_VOLCADO_CHAT = 120
 ANCHO_DEFECTO   = 860
 ALTO_DEFECTO    = 700
 
@@ -205,13 +201,6 @@ class YTChatFrame(wx.Frame):
         self._titulo_stream = ""
         self.sesion = SesionConectada()
         self._obs_transmitiendo = False   # OBS emite sin supervisor a la vista
-
-        self._chat = ListaChat(MAX_ITEMS_CHAT)
-        self._filtro = None
-        # Cola de mensajes entrantes aún no volcados a lb_chat/self._chat, y el
-        # temporizador que programa el volcado agrupado (ver MS_VOLCADO_CHAT).
-        self._pendientes: list[MensajeChat] = []
-        self._pendientes_timer = None
 
         self._sc_totales: dict[str, float] = {}
         self.programador = programados.ProgramadorMensajes(
@@ -443,6 +432,12 @@ class YTChatFrame(wx.Frame):
             "Tecla aplicaciones abre el menú contextual.")
         # msaa=False: ver el porqué en nombre_accesible() (lista dinámica).
         nombre_accesible(self.lb_chat, "Chat en vivo", msaa=False)
+        self.chat_vivo = ControladorChat(
+            self.lb_chat, MAX_ITEMS_CHAT,
+            activo=lambda: self._alive and self._conectado,
+            autor_oculto=self._autor_esta_oculto,
+            formatear=self._format_display,
+            al_superchat=self._sumar_superchat)
         vs.Add(self.lb_chat, 1, wx.EXPAND | wx.ALL, 8)
 
         self._panel_redactar = PanelRedactar(
@@ -920,8 +915,8 @@ class YTChatFrame(wx.Frame):
         return it.GetItemLabelText() if it else "—"
 
     def _aplicar_filtro(self, idx: int):
-        self._filtro = FILTROS[idx][1] if idx < len(FILTROS) else None
-        self._rebuild_listbox()
+        self.chat_vivo.filtro = FILTROS[idx][1] if idx < len(FILTROS) else None
+        self.chat_vivo.reconstruir()
         guardar_opcion(RUTA_CONFIG, "ui", "filtro_activo",
                        _NOMBRES_FILTRO[idx] if idx < len(_NOMBRES_FILTRO) else "todos")
         anunciar(f"Filtro: {FILTROS[idx][0]}. {self.lb_chat.GetCount()} mensajes")
@@ -1150,7 +1145,7 @@ class YTChatFrame(wx.Frame):
         actualizado = alias.poner(mapa, autor, nuevo)
         alias.guardar(paths.alias(), actualizado)
         alias.usar(actualizado)
-        self._rebuild_listbox()
+        self.chat_vivo.reconstruir()
         anunciar(f"Alias guardado, {actualizado[alias.clave(autor)]}"
                  if nuevo.strip() else "Alias quitado")
 
@@ -1214,7 +1209,7 @@ class YTChatFrame(wx.Frame):
         sil_oculto = self._config.setdefault("silenciados_ocultar", set())
         if ocultar:
             sil_oculto.add(al)
-            self._rebuild_listbox()
+            self.chat_vivo.reconstruir()
         else:
             sil_oculto.discard(al)
         anunciar(f"{autor} silenciado")
@@ -1225,7 +1220,7 @@ class YTChatFrame(wx.Frame):
         al = autor.lower().strip()
         self._config.setdefault("silenciados_runtime", set()).discard(al)
         self._config.setdefault("silenciados_ocultar", set()).discard(al)
-        self._rebuild_listbox()
+        self.chat_vivo.reconstruir()
         anunciar(f"{autor} rehabilitado")
 
     def _autor_esta_silenciado(self, autor: str) -> bool:
@@ -1240,7 +1235,7 @@ class YTChatFrame(wx.Frame):
         idx = self.lb_chat.GetSelection()
         if idx == wx.NOT_FOUND:
             return None
-        return self._chat.dato_en_fila(idx)
+        return self.chat_vivo.modelo.dato_en_fila(idx)
 
     def _clipboard_set(self, text: str) -> None:
         copiar_al_portapapeles(text)
@@ -1286,10 +1281,7 @@ class YTChatFrame(wx.Frame):
         except Exception: pass
         try:    self._diagnostico_timer.Stop()
         except Exception: pass
-        if self._pendientes_timer is not None:
-            try:    self._pendientes_timer.Stop()
-            except Exception as exc: logger.debug("No se pudo parar el temporizador del chat: %s", exc)
-            self._pendientes_timer = None
+        self.chat_vivo.descartar()
         hilos_previos = diagnostico.hilos_vivos_de_la_aplicacion()
         if apagado.hilos_captura_vivos(hilos_previos):
             anunciar("Cerrando")
@@ -1384,103 +1376,13 @@ class YTChatFrame(wx.Frame):
         # esto no descarta nada legítimo.
         if not self._conectado:
             return
-        # No tocar self._chat/lb_chat aquí: se encola y se procesa en el
-        # volcado agrupado (ver _volcar_pendientes) para no disparar un
+        # No tocar el modelo ni la lista aquí: se encola y se procesa en el
+        # volcado agrupado (ver volcar) para no disparar un
         # Append/Delete por mensaje mientras NVDA navega la lista.
         registro = MensajeChat(
             plataforma=plataforma, autor=autor, identificador=canal_id,
             texto=mensaje, hora=hora, tipo=tipo, monto=monto, rol=rol)
-        self._pendientes.append(registro)
-        # Si el temporizador ya corre, NO reiniciarlo: con un chat activo
-        # (mensajes cada menos de MS_VOLCADO_CHAT) reiniciar pospondría el
-        # volcado indefinidamente y no aparecería nada hasta una pausa.
-        if self._pendientes_timer is None:
-            self._pendientes_timer = wx.CallLater(MS_VOLCADO_CHAT, self._volcar_pendientes)
-
-    def _procesar_mensaje_chat(self, registro: MensajeChat) -> bool:
-        """Aplica UN mensaje ya desencolado al modelo y a lb_chat. Devuelve si
-        quedó visible (se le hizo Append). Solo lo llama _volcar_pendientes."""
-        if self._autor_esta_oculto(registro.autor):
-            return False
-
-        if registro.tipo == TIPO_ME_GUSTA:
-            # El me gusta solo suena: no toca ni el modelo ni la lista, para
-            # no desalinear fila ↔ mensaje.
-            _snd.reproducir(sonidos_eventos.sonido_de_mensaje(
-                registro.tipo, registro.rol, registro.monto,
-                registro.plataforma))
-            return False
-
-        # El modelo (lista_chat) recorta el historial y dice cuántas filas viejas
-        # borrar al principio, para que fila y mensaje sigan alineados: si no,
-        # pasados 500 mensajes, copiar o banear caerían sobre el mensaje
-        # equivocado.
-        visible = self._filtro is None or registro.tipo == self._filtro
-        borrar = self._chat.agregar(registro, visible)
-        for _sin_uso in range(borrar):
-            self.lb_chat.Delete(0)
-
-        if registro.tipo in (TIPO_SUPERCHAT, TIPO_STICKER):
-            _snd.reproducir(sonidos_eventos.sonido_de_mensaje(
-                registro.tipo, registro.rol, registro.monto,
-                registro.plataforma))
-            self._sumar_superchat(registro.monto)
-        elif registro.tipo == TIPO_MIEMBRO:
-            _snd.reproducir("nuevo_miembro")
-        else:
-            _snd.reproducir(sonidos_eventos.sonido_de_mensaje(registro.tipo,
-                                                             registro.rol))
-
-        if visible:
-            self.lb_chat.Append(self._format_display(
-                registro.autor, registro.texto, registro.hora, registro.tipo, registro.monto))
-        return visible
-
-    def _volcar_pendientes(self) -> None:
-        """Procesa TODOS los mensajes en espera de una vez: modelo y vista se
-        mutan juntos aquí (nunca al encolar), así que fila↔mensaje se mantienen
-        alineados igual que antes. Con más de un pendiente, Freeze/Thaw evita
-        repintar fila a fila."""
-        self._pendientes_timer = None
-        pendientes, self._pendientes = self._pendientes, []
-        if not pendientes or not self._alive or not self._conectado:
-            return
-        freeze = len(pendientes) > 1
-        if freeze:
-            self.lb_chat.Freeze()
-        hubo_visible = False
-        try:
-            for registro in pendientes:
-                if self._procesar_mensaje_chat(registro):
-                    hubo_visible = True
-        finally:
-            if freeze:
-                self.lb_chat.Thaw()
-        # Un solo SetFirstItem al final (no uno por mensaje), y solo si el foco
-        # no está en la lista (si el usuario está navegando, no le movemos la
-        # vista) y algo se añadió de verdad.
-        if hubo_visible and wx.Window.FindFocus() is not self.lb_chat:
-            self.lb_chat.SetFirstItem(self.lb_chat.GetCount() - 1)
-
-    def _flush_pendientes_ahora(self) -> None:
-        """Vuelca ya lo encolado, sin esperar el temporizador. Se usa antes de
-        leer/reconstruir la lista desde self._chat (cambio de filtro) para que
-        no falte lo más reciente todavía sin procesar."""
-        if self._pendientes_timer is not None:
-            try:    self._pendientes_timer.Stop()
-            except Exception as exc: logger.debug("No se pudo parar el temporizador del chat: %s", exc)
-            self._pendientes_timer = None
-        self._volcar_pendientes()
-
-    def _descartar_pendientes(self) -> None:
-        """Tira lo encolado sin procesarlo. Se usa donde hoy se limpia la lista
-        entera (desconectar, cambiar de vídeo): esos mensajes pertenecen a la
-        sesión que se está borrando."""
-        if self._pendientes_timer is not None:
-            try:    self._pendientes_timer.Stop()
-            except Exception as exc: logger.debug("No se pudo parar el temporizador del chat: %s", exc)
-            self._pendientes_timer = None
-        self._pendientes.clear()
+        self.chat_vivo.encolar(registro)
 
     def set_conectado(self, conectado: bool,
                         sonido_desconexion: str = "desconectado") -> None:
@@ -1521,8 +1423,8 @@ class YTChatFrame(wx.Frame):
         self.sesion = SesionConectada()
         # Chat: datos, lista visible y lo que aún estaba en cola sin volcar (es
         # de la sesión que se cierra; no debe colarse en la siguiente).
-        self._descartar_pendientes()
-        self._chat.limpiar()
+        self.chat_vivo.descartar()
+        self.chat_vivo.modelo.limpiar()
         try:    self.lb_chat.Clear()
         except Exception: pass
         # Super Chats acumulados de la sesión.
@@ -1595,8 +1497,8 @@ class YTChatFrame(wx.Frame):
         self.sesion.es_tiktok = False   # esta ruta es la de YouTube
         # Empezar el chat en limpio en cada conexión: el reset al desconectar ya
         # lo hace, pero así garantizamos que nunca quede nada del vídeo anterior.
-        self._descartar_pendientes()
-        self._chat.limpiar()
+        self.chat_vivo.descartar()
+        self.chat_vivo.modelo.limpiar()
         self._sc_totales.clear()
         try:    self.lb_chat.Clear()
         except Exception: pass
@@ -1633,8 +1535,8 @@ class YTChatFrame(wx.Frame):
         self.sesion.tipo_video = deteccion.LIVE
         self.sesion.es_tiktok = True
         self.sesion.usuario_tiktok = usuario or ""
-        self._descartar_pendientes()
-        self._chat.limpiar()
+        self.chat_vivo.descartar()
+        self.chat_vivo.modelo.limpiar()
         self._sc_totales.clear()
         try:    self.lb_chat.Clear()
         except Exception: pass
@@ -1715,10 +1617,10 @@ class YTChatFrame(wx.Frame):
 
     def _marcar_filtro(self):
         idx = _IDX_FILTRO.get(
-            _NOMBRES_FILTRO[0] if self._filtro is None else "", 0)
-        # Buscar el índice cuyo valor coincide con self._filtro.
+            _NOMBRES_FILTRO[0] if self.chat_vivo.filtro is None else "", 0)
+        # Buscar el índice cuyo valor coincide con el filtro del chat.
         for i, (_sin_uso, val) in enumerate(FILTROS):
-            if val == self._filtro:
+            if val == self.chat_vivo.filtro:
                 idx = i
                 break
         if 0 <= idx < len(self.fi_items):
@@ -1740,19 +1642,6 @@ class YTChatFrame(wx.Frame):
             from ytchat.voice.tts_worker import quitar_emojis
             msg = quitar_emojis(msg)
         return texto_fila(autor, msg, hora, tipo, monto)
-
-    def _rebuild_listbox(self) -> None:
-        # Que lo que acaba de llegar (aún en cola, sin pasar por self._chat) no
-        # se pierda del recuento/reconstrucción: se procesa YA con el estado
-        # vigente antes de leer el modelo.
-        self._flush_pendientes_ahora()
-        self.lb_chat.Clear()
-        visibles = self._chat.reconstruir(
-            lambda it: not self._autor_esta_oculto(it.autor)
-            and (self._filtro is None or it.tipo == self._filtro))
-        for registro in visibles:
-            self.lb_chat.Append(self._format_display(
-                registro.autor, registro.texto, registro.hora, registro.tipo, registro.monto))
 
     def _set_conectado_ui(self, conectado: bool) -> None:
         # Botón (toggle), items de menú Conectar/Desconectar y campo URL. El
@@ -1959,7 +1848,7 @@ def iniciar_gui(config, cola, stats, worker, parada,
     fa = config.get("filtro_activo", "todos")
     idx_f = _IDX_FILTRO.get(fa, 0)
     if 0 <= idx_f < len(FILTROS):
-        frame._filtro = FILTROS[idx_f][1]
+        frame.chat_vivo.filtro = FILTROS[idx_f][1]
         frame._marcar_filtro()
 
     # Restaurar silenciado de sonidos si la sesión anterior lo tenía activo.

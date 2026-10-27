@@ -386,26 +386,28 @@ class _HiloEjecuta:
 class TestSonidoGuiPorRol(unittest.TestCase):
     def _frame(self):
         from ytchat.ui import gui
-        from ytchat.ui.lista_chat import ListaChat
+        from ytchat.ui.chat_vivo import ControladorChat
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
-        frame._chat = ListaChat(max_items=500)
-        frame._pendientes = []
-        frame._pendientes_timer = None
-        frame._filtro = None
         frame._config = {"limpiar_emojis": True}
         frame._autor_esta_oculto = lambda autor: False
         frame._sumar_superchat = mock.Mock()
         frame.lb_chat = mock.Mock()
+        frame.chat_vivo = ControladorChat(
+            frame.lb_chat, 500,
+            activo=lambda: True,
+            autor_oculto=frame._autor_esta_oculto,
+            formatear=frame._format_display,
+            al_superchat=frame._sumar_superchat)
         return frame
 
     def _procesar(self, frame, tipo, rol):
-        from ytchat.ui import gui
+        from ytchat.ui import chat_vivo
         from ytchat.ui.lista_chat import MensajeChat
         registro = MensajeChat(plataforma="youtube", autor="Ana",
                                identificador="C", texto="hola", hora="12:00",
                                tipo=tipo, monto="", rol=rol)
-        with mock.patch.object(gui._snd, "reproducir") as reproducir:
-            frame._procesar_mensaje_chat(registro)
+        with mock.patch.object(chat_vivo._snd, "reproducir") as reproducir:
+            frame.chat_vivo._procesar(registro)
         return reproducir.call_args.args[0]
 
     def test_verificado_reproduce_su_evento(self):

@@ -109,7 +109,7 @@ def _aplicar_interfaz_y_vista(frame):
     except Exception as exc:
         logger.debug("aplicar aviso de sobrecarga desde preferencias: %s", exc, exc_info=True)
     # Reconstruir la lista por si cambió "quitar emojis" o el filtro.
-    frame._rebuild_listbox()
+    frame.chat_vivo.reconstruir()
     # Restaurar estado de los items de conexión y del envío al chat tras
     # reconstruir el menú.
     frame._set_conectado_ui(frame._conectado)

@@ -441,22 +441,24 @@ class TestSesionPasaOnEstado(unittest.TestCase):
 class TestGuiMeGustaYRegalo(unittest.TestCase):
     def _frame(self):
         from ytchat.ui import gui
-        from ytchat.ui.lista_chat import ListaChat
+        from ytchat.ui.chat_vivo import ControladorChat
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
-        frame._chat = ListaChat(max_items=500)
-        frame._pendientes = []
-        frame._pendientes_timer = None
-        frame._filtro = None
         frame._config = {"limpiar_emojis": True}
         frame._autor_esta_oculto = lambda autor: False
         frame._sumar_superchat = mock.Mock()
         frame.lb_chat = mock.Mock()
+        frame.chat_vivo = ControladorChat(
+            frame.lb_chat, 500,
+            activo=lambda: True,
+            autor_oculto=frame._autor_esta_oculto,
+            formatear=frame._format_display,
+            al_superchat=frame._sumar_superchat)
         return frame
 
     def _procesar(self, frame, registro):
-        from ytchat.ui import gui
-        with mock.patch.object(gui._snd, "reproducir") as reproducir:
-            visible = frame._procesar_mensaje_chat(registro)
+        from ytchat.ui import chat_vivo
+        with mock.patch.object(chat_vivo._snd, "reproducir") as reproducir:
+            visible = frame.chat_vivo._procesar(registro)
         return visible, reproducir.call_args.args[0]
 
     def _registro(self, **extras):

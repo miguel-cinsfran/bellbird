@@ -1007,7 +1007,8 @@ class TestAliasDesdeElChat(unittest.TestCase):
     def _frame(self):
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
         frame.lb_chat = mock.Mock()
-        frame._rebuild_listbox = mock.Mock()
+        frame.chat_vivo = mock.Mock()
+        frame.chat_vivo.reconstruir = mock.Mock()
         frame.sesion = SesionConectada()
         return frame
 
@@ -1023,7 +1024,7 @@ class TestAliasDesdeElChat(unittest.TestCase):
         self.assertEqual(alias.visible(self.autor), "Carlos")
         guardar.assert_called_once_with(
             paths.alias(), {self.autor.lower(): "Carlos"})
-        frame._rebuild_listbox.assert_called_once_with()
+        frame.chat_vivo.reconstruir.assert_called_once_with()
         frame.lb_chat.SetFocus.assert_called_once_with()
         self.assertTrue(dialogo.destruido)
         anunciar.assert_called_once_with("Alias guardado, Carlos")
@@ -1040,7 +1041,7 @@ class TestAliasDesdeElChat(unittest.TestCase):
 
         self.assertEqual(alias.visible(self.autor), self.autor)
         guardar.assert_called_once_with(paths.alias(), {})
-        frame._rebuild_listbox.assert_called_once_with()
+        frame.chat_vivo.reconstruir.assert_called_once_with()
         anunciar.assert_called_once_with("Alias quitado")
         alias.usar({})
 
@@ -1054,7 +1055,7 @@ class TestAliasDesdeElChat(unittest.TestCase):
             frame._editar_alias_autor(self.autor)
 
         guardar.assert_not_called()
-        frame._rebuild_listbox.assert_not_called()
+        frame.chat_vivo.reconstruir.assert_not_called()
         anunciar.assert_not_called()
         frame.lb_chat.SetFocus.assert_called_once_with()
 
@@ -1098,11 +1099,8 @@ class TestIdentidadModeracionChat(unittest.TestCase):
     """Moderación usa exclusivamente el registro seleccionado, nunca el último homónimo."""
 
     def _frame_con_chat(self):
+        from ytchat.ui.chat_vivo import ControladorChat
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
-        frame._chat = ListaChat(max_items=500)
-        frame._pendientes = []
-        frame._pendientes_timer = None
-        frame._filtro = None
         frame._config = {"limpiar_emojis": True, "silenciados_runtime": set(),
                          "silenciados_ocultar": set()}
         frame._sc_totales = {}
@@ -1122,15 +1120,22 @@ class TestIdentidadModeracionChat(unittest.TestCase):
         frame.lb_chat.Clear = mock.Mock()
         frame.lb_chat.GetSelection = mock.Mock(return_value=0)
         frame.lb_chat.GetCount = mock.Mock(return_value=0)
+        frame.chat_vivo = ControladorChat(
+            frame.lb_chat, 500,
+            activo=lambda: frame._alive and frame._conectado,
+            autor_oculto=frame._autor_esta_oculto,
+            formatear=frame._format_display,
+            al_superchat=mock.Mock())
         return frame
 
     def _encolar_y_volcar(self, frame, plataforma, autor, identificador, texto="hola"):
-        with mock.patch.object(gui.wx, "CallLater", return_value=mock.Mock()):
+        from ytchat.ui import chat_vivo
+        with mock.patch.object(chat_vivo.wx, "CallLater", return_value=mock.Mock()):
             frame.agregar_mensaje_chat(autor, texto, "12:00:00", "text", "", identificador,
                                        plataforma=plataforma)
         # Volcar sin depender del temporizador ni de wx.App.
-        with mock.patch.object(gui.wx.Window, "FindFocus", return_value=None):
-            frame._volcar_pendientes()
+        with mock.patch.object(chat_vivo.wx.Window, "FindFocus", return_value=None):
+            frame.chat_vivo.volcar()
 
     def test_homonimos_banear_recibe_identificador_antiguo(self):
         frame = self._frame_con_chat()
@@ -1208,10 +1213,10 @@ class TestIdentidadModeracionChat(unittest.TestCase):
         self._encolar_y_volcar(frame, "youtube", "Igual", "AAA", "hola")
         frame.lb_chat.GetSelection.return_value = 0
         # Forzar monto y hora conocidas.
-        frame._chat.todos[0] = MensajeChat(plataforma="youtube", autor="Igual",
-                                          identificador="AAA", texto="hola",
-                                          hora="12:34:56", tipo="text", monto="$5")
-        frame._chat.visibles = [0]
+        frame.chat_vivo.modelo.todos[0] = MensajeChat(plataforma="youtube", autor="Igual",
+                                           identificador="AAA", texto="hola",
+                                           hora="12:34:56", tipo="text", monto="$5")
+        frame.chat_vivo.modelo.visibles = [0]
         frame._clipboard_set = mock.Mock()
         with mock.patch.object(gui._snd, "reproducir"), mock.patch.object(gui, "anunciar"):
             frame._copiar_todo()
@@ -1261,9 +1266,8 @@ class TestMeGustaFueraDelModelo(unittest.TestCase):
     """El me gusta suena sin tocar ni el modelo ni la lista."""
 
     def _frame(self):
+        from ytchat.ui.chat_vivo import ControladorChat
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
-        frame._chat = ListaChat(max_items=500)
-        frame._filtro = None
         frame._config = {"limpiar_emojis": True}
         frame._autor_esta_oculto = lambda autor: False
         frame._sumar_superchat = mock.Mock()
@@ -1272,6 +1276,12 @@ class TestMeGustaFueraDelModelo(unittest.TestCase):
         frame.lb_chat.Append.side_effect = lambda texto: filas.append(texto)
         frame.lb_chat.Delete.side_effect = lambda i: filas.pop(i)
         frame._filas = filas
+        frame.chat_vivo = ControladorChat(
+            frame.lb_chat, 500,
+            activo=lambda: True,
+            autor_oculto=frame._autor_esta_oculto,
+            formatear=frame._format_display,
+            al_superchat=frame._sumar_superchat)
         return frame
 
     def _registro(self, tipo, texto):
@@ -1281,17 +1291,18 @@ class TestMeGustaFueraDelModelo(unittest.TestCase):
 
     def test_me_gusta_no_toca_modelo_ni_lista(self):
         from ytchat.core.config import TIPO_TEXTO, TIPO_ME_GUSTA
+        from ytchat.ui import chat_vivo
         frame = self._frame()
         primero = self._registro(TIPO_TEXTO, "primero")
         me_gusta = self._registro(TIPO_ME_GUSTA, "")
         segundo = self._registro(TIPO_TEXTO, "segundo")
-        with mock.patch.object(gui._snd, "reproducir") as reproducir:
-            self.assertTrue(frame._procesar_mensaje_chat(primero))
-            self.assertFalse(frame._procesar_mensaje_chat(me_gusta))
-            self.assertTrue(frame._procesar_mensaje_chat(segundo))
-        self.assertEqual(len(frame._chat.todos), 2)
+        with mock.patch.object(chat_vivo._snd, "reproducir") as reproducir:
+            self.assertTrue(frame.chat_vivo._procesar(primero))
+            self.assertFalse(frame.chat_vivo._procesar(me_gusta))
+            self.assertTrue(frame.chat_vivo._procesar(segundo))
+        self.assertEqual(len(frame.chat_vivo.modelo.todos), 2)
         self.assertEqual(len(frame._filas), 2)
-        self.assertIs(frame._chat.dato_en_fila(1), segundo)
+        self.assertIs(frame.chat_vivo.modelo.dato_en_fila(1), segundo)
         self.assertEqual(frame._filas[1], frame._format_display(
             segundo.autor, segundo.texto, segundo.hora,
             segundo.tipo, segundo.monto))
@@ -2995,10 +3006,12 @@ class TestAplicarPreferenciasMotor(unittest.TestCase):
         frame.lb_chat = mock.Mock()
         frame._rep_panel = mock.Mock()
         for metodo in ("_build_menubar", "poblar_voces", "_aplicar_voz",
-                       "_marcar_filtro", "_sincronizar_checks", "_rebuild_listbox",
+                       "_marcar_filtro", "_sincronizar_checks",
                        "_set_conectado_ui", "_actualizar_estado_online",
                        "set_metadatos_visible", "_actualizar_vigilante_obs"):
             setattr(frame, metodo, mock.Mock())
+        frame.chat_vivo = mock.Mock()
+        frame.chat_vivo.reconstruir = mock.Mock()
         frame._worker = mock.Mock()
         return frame
 
@@ -3745,8 +3758,9 @@ class TestDescartesGui(unittest.TestCase):
         frame.sesion.causa_sin_chat = ""
         frame.sesion.tipo_video = gui.deteccion.DESCONOCIDO
         frame.sesion.es_tiktok = False
-        frame._descartar_pendientes = mock.Mock()
-        frame._chat = mock.Mock()
+        frame.chat_vivo = mock.Mock()
+        frame.chat_vivo.descartar = mock.Mock()
+        frame.chat_vivo.modelo = mock.Mock()
         frame.lb_chat = mock.Mock()
         frame._sc_totales = {}
         frame._metadatos = {}
@@ -3825,10 +3839,13 @@ class TestLiveChatIdPorSesion(unittest.TestCase):
         frame.sesion = SesionConectada(
             video_id="", tipo_video=gui.deteccion.DESCONOCIDO,
             es_tiktok=False)
-        for nombre in ("_descartar_pendientes", "_chat", "lb_chat", "_com_panel",
+        for nombre in ("lb_chat", "_com_panel",
                        "_rep_panel", "_fijar_tipo", "_actualizar_estado_online",
                        "_actualizar_titulo"):
             setattr(frame, nombre, mock.Mock())
+        frame.chat_vivo = mock.Mock()
+        frame.chat_vivo.descartar = mock.Mock()
+        frame.chat_vivo.modelo = mock.Mock()
         try:
             frame.set_tipo_video(gui.deteccion.LIVE, "abc")
         except Exception:
@@ -4198,7 +4215,8 @@ class TestCierreVentana(unittest.TestCase):
         frame.sesion = SesionConectada()
         frame._timer = mock.Mock()
         frame._diagnostico_timer = mock.Mock()
-        frame._pendientes_timer = None
+        frame.chat_vivo = mock.Mock()
+        frame.chat_vivo.descartar = mock.Mock()
         frame.on_desconectar_cb = None
         frame._parada = mock.Mock()
         frame._rep_panel = mock.Mock()
@@ -4806,8 +4824,9 @@ class TestCopiarEnlaceDirecto(unittest.TestCase):
         frame.sesion.tipo_video = gui.deteccion.DESCONOCIDO
         frame.sesion.es_tiktok = False
         frame.sesion.descartes_avisado = False
-        frame._descartar_pendientes = mock.Mock()
-        frame._chat = mock.Mock()
+        frame.chat_vivo = mock.Mock()
+        frame.chat_vivo.descartar = mock.Mock()
+        frame.chat_vivo.modelo = mock.Mock()
         frame.lb_chat = mock.Mock()
         frame._sc_totales = {}
         frame._metadatos = {}
@@ -4836,8 +4855,9 @@ class TestCopiarEnlaceDirecto(unittest.TestCase):
         frame.sesion.tipo_video = gui.deteccion.LIVE
         frame.sesion.es_tiktok = True
         frame.sesion.descartes_avisado = True
-        frame._descartar_pendientes = mock.Mock()
-        frame._chat = mock.Mock()
+        frame.chat_vivo = mock.Mock()
+        frame.chat_vivo.descartar = mock.Mock()
+        frame.chat_vivo.modelo = mock.Mock()
         frame.lb_chat = mock.Mock()
         frame._sc_totales = {}
         frame._metadatos = {}
@@ -5475,9 +5495,9 @@ class TestFinDirectoGui(unittest.TestCase):
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
         frame._alive = True
         frame._conectado = True
-        frame._pendientes_timer = None
-        frame._pendientes = []
-        frame._chat = mock.Mock()
+        frame.chat_vivo = mock.Mock()
+        frame.chat_vivo.descartar = mock.Mock()
+        frame.chat_vivo.modelo = mock.Mock()
         frame.lb_chat = mock.Mock()
         frame._sc_totales = {}
         frame._mostrar_zona = mock.Mock()

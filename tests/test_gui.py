@@ -3251,7 +3251,7 @@ class TestPreferenciasArchivoBotones(unittest.TestCase):
                                   "guardar_opciones") as guardar, \
                 mock.patch.object(dialogo, "EndModal") as cerrar:
             crear.return_value.__enter__.return_value = cuadro
-            dialogo._importar_prefs(None)
+            dialogo.pagina_general._importar_prefs(None)
         guardar.assert_not_called()
         self.assertEqual((self.ruta / "config.ini").read_text(encoding="utf-8"),
                          "[voz]\nmotor = onecore\n")
@@ -3270,7 +3270,7 @@ class TestPreferenciasArchivoBotones(unittest.TestCase):
                                   "MessageBox") as aviso, \
                 mock.patch.object(dialogo, "EndModal") as cerrar:
             crear.return_value.__enter__.return_value = cuadro
-            dialogo._importar_prefs(None)
+            dialogo.pagina_general._importar_prefs(None)
         aviso.assert_called_once()
         self.assertEqual((self.ruta / "config.ini").read_text(encoding="utf-8"),
                          "[voz]\nmotor = sapi\n")
@@ -3291,7 +3291,7 @@ class TestPreferenciasArchivoBotones(unittest.TestCase):
                                   side_effect=OSError("disco lleno")), \
                 mock.patch.object(dialogo, "EndModal") as cerrar:
             crear.return_value.__enter__.return_value = cuadro
-            dialogo._importar_prefs(None)
+            dialogo.pagina_general._importar_prefs(None)
         aviso.assert_called_once()
         texto = aviso.call_args.args[0]
         self.assertIn("No se pudieron importar las preferencias:", texto)
@@ -3306,7 +3306,7 @@ class TestPreferenciasArchivoBotones(unittest.TestCase):
                                return_value=respuesta) as crear, \
                 mock.patch.object(gui_preferencias.wx, "MessageBox") as aviso, \
                 mock.patch.object(dialogo, "EndModal") as cerrar:
-            dialogo._restablecer_prefs(None)
+            dialogo.pagina_general._restablecer_prefs(None)
         crear.assert_called_once()
         respuesta.Destroy.assert_called_once_with()
         aviso.assert_not_called()

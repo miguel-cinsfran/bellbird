@@ -3,8 +3,8 @@
 Vive aparte de la ventana Transmisión: si la persona cierra esa ventana para
 leer el chat, el supervisor sigue. Al iniciar arranca OBS, confirma que la
 señal sale, espera a que TikTok muestre el directo, pide conectar el chat, y
-después vigila el directo hablando solo ante problemas. Nadie lo llama
-todavía: lo usará la ventana en el encargo siguiente.
+después vigila el directo hablando solo ante problemas. Lo crea
+`ytchat/ui/gui_transmitir.py`.
 """
 
 from __future__ import annotations

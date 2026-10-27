@@ -501,7 +501,7 @@ class YTChatFrame(wx.Frame):
         self._programados_ultimo_envio = None
         self._programado_en_curso = False
 
-        # Voz activa (antes era un wx.Choice; ahora es un submenú de radio).
+        # Voz activa: se elige en un submenú de radio.
         self._voz_idx = 0
         self._voz_nombre = "—"
 
@@ -1696,10 +1696,10 @@ class YTChatFrame(wx.Frame):
                 registro.plataforma))
             return False
 
-        # El modelo (lista_chat) recorta el historial y nos dice cuántas filas
-        # viejas borrar por arriba, manteniendo fila ↔ mensaje siempre alineados
-        # (antes se descontaba dos veces y, pasados 500 mensajes, copiar o
-        # banear caían sobre el mensaje equivocado).
+        # El modelo (lista_chat) recorta el historial y dice cuántas filas viejas
+        # borrar al principio, para que fila y mensaje sigan alineados: si no,
+        # pasados 500 mensajes, copiar o banear caerían sobre el mensaje
+        # equivocado.
         visible = self._filtro is None or registro.tipo == self._filtro
         borrar = self._chat.agregar(registro, visible)
         for _sin_uso in range(borrar):

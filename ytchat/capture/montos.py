@@ -2,9 +2,8 @@
 
 El `amountString` que entrega YouTube depende de la locale del espectador
 que envía el Super Chat: "€15.50", "$10.00", "5,00 €", "1.234,56 €", "¥500"...
-Esta lógica vivía dentro de `gui.YTChatFrame._sumar_superchat`, donde no se
-podía probar sin instanciar la ventana wx. Extraída aquí queda como función
-pura, cubierta por tests, y el GUI solo la invoca.
+Es una función pura para poder probarla sin instanciar la ventana wx:
+la interfaz solo la invoca.
 """
 
 from __future__ import annotations

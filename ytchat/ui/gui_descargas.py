@@ -65,7 +65,7 @@ def nombrar_selector_carpeta(selector) -> None:
 
 
 _ESTADOS_FINALES = ("completado", "cancelado", "error")
-# Cada fin de descarga avisa con su sonido propio (encargo 174).
+# Cada fin de descarga avisa con su sonido propio.
 _SONIDO_POR_FIN = {
     "completado": "descarga_completada",
     "error": "descarga_fallida",

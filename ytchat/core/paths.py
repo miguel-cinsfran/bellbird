@@ -26,7 +26,7 @@ logger = logging.getLogger(f"ytchat.{__name__}")
 # la raíz en desarrollo está tres niveles arriba.
 _RAIZ_DESARROLLO = Path(__file__).resolve().parent.parent.parent
 
-# Nombres que antes vivían duplicados en cada módulo que los usaba.
+# Nombres de archivo que usan varios módulos: se definen una sola vez acá.
 NOMBRE_CREDENCIALES = "credenciales.json"
 NOMBRE_CLIENTE_APP = "cliente_app.json"
 NOMBRE_FFMPEG = "ffmpeg.exe" if os.name == "nt" else "ffmpeg"

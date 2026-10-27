@@ -2,7 +2,7 @@
 
 Consulta la última versión publicada en GitHub, baja y verifica el
 paquete, y deja archivos de estado para que el instalador y la app se
-coordinen. La interfaz vive en el encargo siguiente y no está acá.
+coordinen. La interfaz está en `ytchat/ui/gui_actualizar_app.py`.
 
 El estilo de red copia a `ytchat.downloads.ytdlp_bin`: urllib,
 descarga por bloques con aviso de progreso y función de cancelación,

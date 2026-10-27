@@ -20,8 +20,8 @@ class RegistroSesiones:
     def abrir(self) -> Sesion:
         """Abre una sesión nueva y para la anterior.
 
-        El 21/08/2026 hubo dos hilos Chat vivos durante siete minutos y medio.
-        El anterior seguía pidiendo el chat porque nadie puso su evento de parada.
+        Si la anterior no se para, quedan dos hilos Chat pidiendo el mismo
+        chat a la vez.
         """
         if self._vigente is not None:
             self._vigente.parada.set()

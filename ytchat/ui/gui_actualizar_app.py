@@ -225,7 +225,7 @@ def _avisar_version(version: str) -> None:
 class _FlujoActualizacion:
     """El recorrido de la ventana, de la consulta al instalador.
 
-    Guarda lo que antes vivía en `nonlocal`: el paquete elegido y el
+    Guarda el estado del recorrido: el paquete elegido y el
     último texto de progreso. Cada paso es un método corto.
     """
 

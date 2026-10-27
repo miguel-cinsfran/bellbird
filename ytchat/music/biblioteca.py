@@ -312,7 +312,7 @@ class Biblioteca:
                 album = str(datos.get("album") or "")
                 duracion_ms = normalizar_duracion(datos.get("duracion_ms"))
         if not titulo and self._leer_etiquetas is not None:
-            # Sin mutagen, las etiquetas las va a leer libVLC en otro encargo.
+            # Lector opcional: la app lee las etiquetas con libVLC desde musica_indice.
             # Si el invocable falla, el tema no se pierde: cae al nombre del archivo.
             try:
                 datos = self._leer_etiquetas(str(ruta))

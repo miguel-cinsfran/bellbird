@@ -2,8 +2,8 @@
 
 La captura (ytchat.capture.conexion) no conoce wx ni la ventana: le habla
 a VistaGui, que resuelve el marco global en cada llamada y programa con
-wx.CallAfter el método que antes se llamaba directo. Sin marco, o con el
-marco ya cerrado donde hoy se comprobaba, no hace nada.
+wx.CallAfter el método de la ventana. Sin marco, o con el marco ya cerrado, no
+hace nada.
 
 Cada método devuelve si llegó a programar la llamada, para que la captura
 conserve sus guardas (por ejemplo, el sonido de «conectado» en un vídeo

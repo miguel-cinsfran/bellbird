@@ -125,7 +125,7 @@ def anunciar(texto: str, urgente: bool = True) -> None:
         # reenvía al hilo de la interfaz, que es donde se crea y se usa el
         # lector porque JAWS crea su COM ahí.
         try:    wx.CallAfter(anunciar, texto, urgente)
-        except Exception: pass
+        except Exception as exc: logger.debug("No se pudo pasar el anuncio al hilo de la interfaz: %s", exc)
         return
     logger.info("ANUNCIO %s", texto)
     try:
@@ -137,8 +137,8 @@ def anunciar(texto: str, urgente: bool = True) -> None:
     # pantalla braille sin voz recibe igualmente los anuncios de la app.
     try:
         _lector.braille(texto)
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.debug("No se pudo enviar el anuncio a la línea braille: %s", exc)
 
 
 def anunciar_conflictos_atajos(raw: dict | None) -> None:
@@ -188,15 +188,15 @@ def nombre_accesible(ctrl, nombre: str, msaa: bool = True) -> None:
     if not ctrl.GetToolTip():
         ctrl.SetToolTip(nombre)
     try:    ctrl.SetHelpText(nombre)   # JAWS lee el help text en algunos controles
-    except Exception: pass
+    except Exception as exc: logger.debug("El control no admite texto de ayuda: %s", exc)
     if not msaa:
         return
     try:
         acc = _NombreAccesible(nombre)
         ctrl.SetAccessible(acc)
         ctrl._nombre_accesible = acc   # evita que el GC se lo lleve
-    except Exception:
-        pass  # fuera de Windows o sin MSAA: el name/tooltip siguen aplicando
+    except Exception as exc:  # fuera de Windows o sin MSAA: el name/tooltip siguen aplicando
+        logger.debug("Sin MSAA para el nombre accesible: %s", exc)
 
 
 def caja_de_grupo(panel, titulo):
@@ -260,7 +260,7 @@ def instalar_busqueda_tipo(listbox: wx.ListBox, obtener_textos) -> None:
         estado.buffer += ch
         if estado.timer is not None:
             try:    estado.timer.Stop()
-            except Exception: pass
+            except Exception as exc: logger.debug("No se pudo parar el temporizador de búsqueda: %s", exc)
         estado.timer = wx.CallLater(_MS_RESET_BUSQUEDA, _resetear_buffer)
 
         textos = obtener_textos()
@@ -324,8 +324,8 @@ def _detectar_alto_contraste() -> bool:
         if ctypes.windll.user32.SystemParametersInfoW(
                 0x42, datos.cbSize, ctypes.byref(datos), 0):   # SPI_GETHIGHCONTRAST
             return bool(datos.dwFlags & 1)                      # HCF_HIGHCONTRASTON
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.debug("No se pudo consultar el contraste alto de Windows: %s", exc)
     return False
 
 
@@ -396,7 +396,7 @@ class WxAnnouncingHandler(logging.Handler):
         if not registro_es_anunciable(record.name):
             return
         try:    anunciar(self.format(record))
-        except Exception: pass
+        except Exception as exc: logger.debug("No se pudo anunciar un registro: %s", exc)
 
 
 # Lista blanca: solo estos loggers llegan al lector. Lo no listado se registra

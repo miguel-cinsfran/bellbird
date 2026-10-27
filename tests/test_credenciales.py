@@ -227,6 +227,7 @@ def _importar_gui():
         from ytchat.ui import gui  # noqa: F401
         from ytchat.ui import gui_comentarios  # noqa: F401
         from ytchat.ui import gui_preferencias  # noqa: F401
+        from ytchat.ui import preferencias_api  # noqa: F401
         from ytchat.youtube import youtube_api  # noqa: F401
     except Exception:
         return None
@@ -234,8 +235,9 @@ def _importar_gui():
     from ytchat.ui import gui
     from ytchat.ui import gui_comentarios
     from ytchat.ui import gui_preferencias
+    from ytchat.ui import preferencias_api
     from ytchat.youtube import youtube_api
-    return wx, gui, gui_comentarios, gui_preferencias, youtube_api
+    return wx, gui, gui_comentarios, gui_preferencias, preferencias_api, youtube_api
 
 
 class TestCableadoClienteApp(unittest.TestCase):
@@ -254,7 +256,7 @@ class TestCableadoClienteApp(unittest.TestCase):
         if modulos is None:
             self.skipTest("wx no disponible")
         self.wx, self.gui, self.gui_comentarios, self.gui_preferencias, \
-            self.youtube_api = modulos
+            self.preferencias_api, self.youtube_api = modulos
 
     def test_comentarios_construye_con_las_efectivas(self):
         panel = self.gui_comentarios.ComentariosPanel.__new__(
@@ -306,77 +308,78 @@ class TestApiLoginClienteApp(unittest.TestCase):
         if modulos is None:
             self.skipTest("wx no disponible")
         self.wx, self.gui, self.gui_comentarios, self.gui_preferencias, \
-            self.youtube_api = modulos
+            self.preferencias_api, self.youtube_api = modulos
 
     def _dialogo(self, cid="", secret=""):
-        gp = self.gui_preferencias
-        dialogo = gp.PreferenciasDialog.__new__(gp.PreferenciasDialog)
-        dialogo._login_en_curso = False
-        dialogo.txt_cid = mock.Mock()
-        dialogo.txt_cid.GetValue.return_value = cid
-        dialogo.txt_secret = mock.Mock()
-        dialogo.txt_secret.GetValue.return_value = secret
-        dialogo.btn_api_login = mock.Mock()
-        dialogo.btn_api_logout = mock.Mock()
-        dialogo.lbl_estado_api = mock.Mock()
-        dialogo._api_guardar = mock.Mock()
-        return dialogo
+        api = self.preferencias_api
+        pagina = api.PaginaApi.__new__(api.PaginaApi)
+        pagina._ventana = mock.Mock()
+        pagina._login_en_curso = False
+        pagina.txt_cid = mock.Mock()
+        pagina.txt_cid.GetValue.return_value = cid
+        pagina.txt_secret = mock.Mock()
+        pagina.txt_secret.GetValue.return_value = secret
+        pagina.btn_api_login = mock.Mock()
+        pagina.btn_api_logout = mock.Mock()
+        pagina.lbl_estado_api = mock.Mock()
+        pagina._api_guardar = mock.Mock()
+        return pagina
 
     def _escribir_app(self):
         (Path(self._tmp.name) / "cliente_app.json").write_text(json.dumps({
             "oauth_client_id": "ID-APP", "oauth_client_secret": "SEC-APP",
             "api_key": "KEY-APP"}), encoding="utf-8")
 
-    def _correr_login(self, dialogo):
+    def _correr_login(self, pagina):
         """Ejecuta _api_login capturando el hilo, sin navegador ni ventanas."""
-        gp = self.gui_preferencias
+        api = self.preferencias_api
         hilos = []
-        with mock.patch.object(gp.youtube_api, "iniciar_sesion",
+        with mock.patch.object(api.youtube_api, "iniciar_sesion",
                                return_value='{"refresh_token": "x"}') as login, \
-                mock.patch.object(gp.diagnostico, "crear_hilo",
+                mock.patch.object(api.diagnostico, "crear_hilo",
                                   side_effect=lambda t, n: mock.Mock(
                                       start=lambda: hilos.append(t))), \
-                mock.patch.object(gp, "anunciar"), \
-                mock.patch.object(gp.wx, "CallAfter"), \
-                mock.patch.object(gp.wx, "MessageBox") as aviso:
-            dialogo._api_login(None)
+                mock.patch.object(api, "anunciar"), \
+                mock.patch.object(api.wx, "CallAfter"), \
+                mock.patch.object(api.wx, "MessageBox") as aviso:
+            pagina._api_login(None)
             for objetivo in hilos:
                 objetivo()
         return login, aviso
 
     def test_campos_vacios_usan_el_cliente_de_la_app_sin_guardar(self):
         self._escribir_app()
-        dialogo = self._dialogo()
-        login, _aviso = self._correr_login(dialogo)
+        pagina = self._dialogo()
+        login, _aviso = self._correr_login(pagina)
         login.assert_called_once_with("ID-APP", "SEC-APP")
-        dialogo._api_guardar.assert_not_called()
-        self.assertEqual(dialogo.txt_cid.GetValue.call_count, 1)
+        pagina._api_guardar.assert_not_called()
+        self.assertEqual(pagina.txt_cid.GetValue.call_count, 1)
         self.assertTrue(credenciales.hay_sesion())
 
     def test_sin_nadie_avisa_y_no_llama_a_iniciar_sesion(self):
-        dialogo = self._dialogo()
-        login, aviso = self._correr_login(dialogo)
+        pagina = self._dialogo()
+        login, aviso = self._correr_login(pagina)
         login.assert_not_called()
         aviso.assert_called_once()
         self.assertIn("Rellena el ID", aviso.call_args.args[0])
 
     def test_campos_propios_guardan_como_hoy(self):
-        dialogo = self._dialogo(cid="ID-MIO", secret="SEC-MIO")
-        login, _aviso = self._correr_login(dialogo)
-        dialogo._api_guardar.assert_called_once_with(None)
+        pagina = self._dialogo(cid="ID-MIO", secret="SEC-MIO")
+        login, _aviso = self._correr_login(pagina)
+        pagina._api_guardar.assert_called_once_with(None)
         login.assert_called_once_with("ID-MIO", "SEC-MIO")
 
     def test_estado_anuncia_el_cliente_de_la_app(self):
         self._escribir_app()
-        dialogo = self._dialogo()
-        dialogo._api_refrescar_estado()
-        texto = dialogo.lbl_estado_api.SetLabel.call_args.args[0]
+        pagina = self._dialogo()
+        pagina._api_refrescar_estado()
+        texto = pagina.lbl_estado_api.SetLabel.call_args.args[0]
         self.assertIn("Se usa el cliente de Google de la aplicación.", texto)
 
     def test_estado_sin_app_no_agrega_nada(self):
-        dialogo = self._dialogo()
-        dialogo._api_refrescar_estado()
-        texto = dialogo.lbl_estado_api.SetLabel.call_args.args[0]
+        pagina = self._dialogo()
+        pagina._api_refrescar_estado()
+        texto = pagina.lbl_estado_api.SetLabel.call_args.args[0]
         self.assertNotIn("cliente de Google", texto)
 
 

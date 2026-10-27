@@ -11,6 +11,7 @@ from unittest import mock
 from ytchat.ui import gui
 from ytchat.ui import gui_comentarios
 from ytchat.ui import gui_preferencias
+from ytchat.ui import preferencias_api
 from ytchat.ui import preferencias_general
 from ytchat.ui import preferencias_ia
 from ytchat.ui import preferencias_ia_clave
@@ -1821,14 +1822,20 @@ class TestCategoriasDePreferencias(unittest.TestCase):
         with mock.patch.object(gui_preferencias.PreferenciasDialog, "__bool__",
                                lambda self: False, create=True), \
                 mock.patch.object(gui_preferencias, "anunciar") as anunciar, \
+                mock.patch.object(preferencias_api, "anunciar") as anunciar_api, \
                 mock.patch.object(gui_preferencias._snd, "reproducir") as sonar, \
-                mock.patch.object(gui_preferencias.wx, "MessageBox") as aviso:
+                mock.patch.object(preferencias_api._snd, "reproducir") as sonar_api, \
+                mock.patch.object(gui_preferencias.wx, "MessageBox") as aviso, \
+                mock.patch.object(preferencias_api.wx, "MessageBox") as aviso_api:
             dialogo._microfonos_encontrados(("Mic/Aux",))
-            dialogo._api_login_ok()
-            dialogo._api_login_err(RuntimeError("x"))
+            dialogo.pagina_api._api_login_ok()
+            dialogo.pagina_api._api_login_err(RuntimeError("x"))
         anunciar.assert_not_called()
+        anunciar_api.assert_not_called()
         sonar.assert_not_called()
+        sonar_api.assert_not_called()
         aviso.assert_not_called()
+        aviso_api.assert_not_called()
 
     def test_guardar_escribe_las_mismas_claves(self):
         dialogo = self._dialogo()

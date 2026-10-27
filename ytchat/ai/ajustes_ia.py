@@ -97,9 +97,9 @@ def leer(ruta) -> AjustesIA:
         largo=_largo_valido(parser.get(SECCION, "largo", fallback="media")),
         tiempo_espera=_tiempo_valido(
             parser.get(SECCION, "tiempo_espera", fallback="60")),
-        solo_gratis=ini_tipado._pb(parser, SECCION, "solo_gratis"),
-        privacidad_aceptada=ini_tipado._pb(parser, SECCION, "privacidad_aceptada"),
-        decir_analizando=ini_tipado._pb(parser, SECCION, "decir_analizando"),
+        solo_gratis=ini_tipado.leer_booleano(parser, SECCION, "solo_gratis"),
+        privacidad_aceptada=ini_tipado.leer_booleano(parser, SECCION, "privacidad_aceptada"),
+        decir_analizando=ini_tipado.leer_booleano(parser, SECCION, "decir_analizando"),
     )
 
 

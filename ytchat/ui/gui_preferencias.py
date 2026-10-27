@@ -15,7 +15,7 @@ import wx
 from ytchat.core import diagnostico
 from ytchat.core import config as cfg
 from ytchat.core import paths
-from ytchat.core.ini_tipado import _lista
+from ytchat.core.ini_tipado import separar_por_comas
 from ytchat.ui import atajos_captura
 from ytchat.capture import estado_sesion
 from ytchat.obs import obs_cliente
@@ -565,10 +565,10 @@ class PreferenciasDialog(wx.Dialog):
         # Filtros
         palabras = self.txt_palabras.GetValue().strip()
         self._set("filtros", "palabras_silenciadas", palabras)
-        c["palabras_silenciadas"] = _lista(palabras)
+        c["palabras_silenciadas"] = separar_por_comas(palabras)
         usuarios = self.txt_usuarios.GetValue().strip()
         self._set("filtros", "usuarios_silenciados", usuarios)
-        c["usuarios_silenciados"] = _lista(usuarios)
+        c["usuarios_silenciados"] = separar_por_comas(usuarios)
 
         self.pagina_atajos.guardar(self._set, c)
 

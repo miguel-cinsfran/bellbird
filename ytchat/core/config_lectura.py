@@ -7,20 +7,20 @@ las reexporta para que la carga y las pruebas sigan iguales.
 
 from __future__ import annotations
 
-from ytchat.core.ini_tipado import _gs, _pb
+from ytchat.core.ini_tipado import leer_texto, leer_booleano
 
 
 def opciones_lectura(p) -> dict:
     """La sección [lectura] como claves en memoria, en el mismo orden."""
-    formato = _gs(p, "lectura", "formato_prefijo").lower()
+    formato = leer_texto(p, "lectura", "formato_prefijo").lower()
     if formato not in (
             "nombre_mensaje", "mensaje_nombre", "solo_mensaje", "solo_nombre"):
         formato = "nombre_mensaje"
-    recientes = _gs(p, "lectura", "recientes").lower()
+    recientes = leer_texto(p, "lectura", "recientes").lower()
     if recientes not in ("lector", "voz"):
         recientes = "lector"
     return {
         "formato_prefijo": formato,
         "lectura_recientes": recientes,
-        "lectura_atajos_globales": _pb(p, "lectura", "atajos_globales"),
+        "lectura_atajos_globales": leer_booleano(p, "lectura", "atajos_globales"),
     }

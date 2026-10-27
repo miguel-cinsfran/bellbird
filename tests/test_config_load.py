@@ -560,7 +560,7 @@ class TestCargarConfiguracion(unittest.TestCase):
         leido = config._mk_parser()
         leido.read(ruta, encoding="utf-8")
         return config.decodificar_texto_ini(
-            ini_tipado._gs(leido, "transmision", "youtube_titulo"))
+            ini_tipado.leer_texto(leido, "transmision", "youtube_titulo"))
 
     def test_directo_youtube_texto_libre_ida_y_vuelta(self):
         textos = [
@@ -587,7 +587,7 @@ class TestCargarConfiguracion(unittest.TestCase):
             for segundo in caracteres:
                 texto = primero + segundo
                 with self.subTest(texto=repr(texto)):
-                    # Los espacios de los bordes se pierden (`_gs` hace
+                    # Los espacios de los bordes se pierden (`leer_texto` hace
                     # `strip`) y está bien: solo ellos se recortan, porque
                     # el resto de los caracteres viaja escapado.
                     self.assertEqual(self._ida_y_vuelta_ini(texto),

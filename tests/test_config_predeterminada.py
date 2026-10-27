@@ -117,13 +117,13 @@ class TestFallbacksSeccion(unittest.TestCase):
         # "activo" existe en varias secciones con mismo valor pero debe distinguirse por sección
         # si preguntamos una sección inexistente, debe dar fallback vacío
         self.assertEqual(pred.obtener("seccion_inexistente", "activo"), "")
-        # a nivel de ini_tipado._gs con parser vacío
+        # a nivel de ini_tipado.leer_texto con parser vacío
         p = config._mk_parser()
-        self.assertEqual(ini_tipado._gs(p, "voz", "voz"), "")
-        self.assertEqual(ini_tipado._gs(p, "ui", "voz"), "")
-        self.assertEqual(ini_tipado._gs(p, "overlay", "activo"), "false")
-        self.assertEqual(ini_tipado._gs(p, "programados", "activo"), "false")
-        self.assertEqual(ini_tipado._gs(p, "inexistente", "activo"), "")
+        self.assertEqual(ini_tipado.leer_texto(p, "voz", "voz"), "")
+        self.assertEqual(ini_tipado.leer_texto(p, "ui", "voz"), "")
+        self.assertEqual(ini_tipado.leer_texto(p, "overlay", "activo"), "false")
+        self.assertEqual(ini_tipado.leer_texto(p, "programados", "activo"), "false")
+        self.assertEqual(ini_tipado.leer_texto(p, "inexistente", "activo"), "")
 
 
 class TestAtajosDefaults(unittest.TestCase):

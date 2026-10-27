@@ -284,14 +284,14 @@ MIGRACION = {
     ("musica", "incluir_artista"): "solo para migrar configuraciones viejas a [musica] decir (musica_decir.desde_ini, leída en config.py:622)",
 }
 
-_LECTORAS_CONFIG = {"_gs", "_pb", "_pi", "_pf"}
+_LECTORAS_CONFIG = {"leer_texto", "leer_booleano", "leer_entero", "leer_decimal"}
 _LECTORAS_PARSER = {"get", "getboolean", "getint", "has_option"}
 
 
 def _pares_leidos_en_config():
     """Pares (sección, clave) leídos en `config.py`, `config_descargas.py`,
-    `config_musica.py` y `config_lectura.py`: llamadas `_gs`, `_pb`, `_pi`,
-    `_pf` (literales en 2.º y 3.º lugar) y parecidas del parser (`get`,
+    `config_musica.py` y `config_lectura.py`: llamadas `leer_texto`, `leer_booleano`, `leer_entero`,
+    `leer_decimal` (literales en 2.º y 3.º lugar) y parecidas del parser (`get`,
     `getboolean`, ...) con literales en 1.º y 2.º lugar."""
     leidos = set()
     arboles = (_arbol("ytchat/core/config.py"),

@@ -10,7 +10,7 @@ from pathlib import Path
 
 from ytchat.core import config_predeterminada
 from ytchat.core import diagnostico
-from ytchat.core.ini_tipado import _gs, _gi, _gf, _pi, _pf, _pb, _lista
+from ytchat.core.ini_tipado import leer_texto, a_entero, a_decimal, leer_entero, leer_decimal, leer_booleano, separar_por_comas
 from ytchat.core.eventos_sonido import EVENTOS as _EVENTOS_SONIDO
 from ytchat.core import paths
 from ytchat.core.atajos import (
@@ -337,7 +337,7 @@ def cargar_configuracion() -> dict:
         logger.error("Borra config.ini y vuelve a abrir la aplicación para regenerarlo.")
         sys.exit(1)
 
-    estrategia = _gs(p, "cola", "estrategia").lower()
+    estrategia = leer_texto(p, "cola", "estrategia").lower()
     if estrategia not in ("todas", "limite"): estrategia = "limite"
 
     atajos_raw = {}
@@ -370,23 +370,23 @@ def cargar_configuracion() -> dict:
         if activo:
             estado_toggles.add(comp)
 
-    filtro_activo = _gs(p, "ui", "filtro_activo").lower()
+    filtro_activo = leer_texto(p, "ui", "filtro_activo").lower()
     if filtro_activo not in ("todos", "texto", "superchat", "miembro"):
         filtro_activo = "todos"
 
     from ytchat.obs import obs_destinos as _destinos
-    destino = _gs(p, "transmision", "destino")
+    destino = leer_texto(p, "transmision", "destino")
     if destino not in _destinos.DESTINOS:
         destino = ""
 
     from ytchat.youtube import emision as _emision
-    privacidad = _gs(p, "transmision", "youtube_privacidad")
+    privacidad = leer_texto(p, "transmision", "youtube_privacidad")
     if privacidad not in _emision.PRIVACIDADES:
         privacidad = _emision.PRIVACIDAD_INICIAL
-    latencia = _gs(p, "transmision", "youtube_latencia")
+    latencia = leer_texto(p, "transmision", "youtube_latencia")
     if latencia not in _emision.LATENCIAS:
         latencia = _emision.LATENCIA_INICIAL
-    categoria = _gs(p, "transmision", "youtube_categoria")
+    categoria = leer_texto(p, "transmision", "youtube_categoria")
     if categoria not in {identificador for identificador, _t
                          in _emision.CATEGORIAS}:
         categoria = ""
@@ -398,78 +398,78 @@ def cargar_configuracion() -> dict:
     # siguiente no vuelve al valor de fábrica.
     from ytchat.voice import escala_voz as _escala
     from ytchat.voice import motores as _motores
-    motor = _gs(p, "voz", "motor").lower()
+    motor = leer_texto(p, "voz", "motor").lower()
     if motor not in _motores.MOTORES:
         motor = "sapi"
     if p.has_option("voz", "velocidad_voz"):
-        velocidad_voz = max(0, min(100, _gi(
-            _gs(p, "voz", "velocidad_voz"), _escala.VELOCIDAD_NORMAL)))
+        velocidad_voz = max(0, min(100, a_entero(
+            leer_texto(p, "voz", "velocidad_voz"), _escala.VELOCIDAD_NORMAL)))
     elif p.has_option("voz", "velocidad"):
         velocidad_voz = _escala.velocidad_desde_wpm(
-            _gi(_gs(p, "voz", "velocidad"), 175))
+            a_entero(leer_texto(p, "voz", "velocidad"), 175))
         guardar_opcion(ruta, "voz", "velocidad_voz", str(velocidad_voz))
     else:
         velocidad_voz = _escala.VELOCIDAD_NORMAL
 
     return {
         "motor": motor,
-        "voz": _gs(p, "voz", "voz"),
+        "voz": leer_texto(p, "voz", "voz"),
         "velocidad_voz": velocidad_voz,
-        "volumen": _pf(p, "voz", "volumen"),
-        "tono": _pi(p, "voz", "tono", lo=0, hi=100),
-        "multivoz": _pb(p, "voz", "multivoz"),
-        "voz_eventos": _gs(p, "voz", "voz_eventos"),
-        "voz_respaldo": _gs(p, "voz", "voz_respaldo"),
-        "elevenlabs_tope": _pi(p, "voz", "elevenlabs_tope", lo=0),
-        "elevenlabs_solo_importantes": _pb(p, "voz", "elevenlabs_solo_importantes"),
+        "volumen": leer_decimal(p, "voz", "volumen"),
+        "tono": leer_entero(p, "voz", "tono", lo=0, hi=100),
+        "multivoz": leer_booleano(p, "voz", "multivoz"),
+        "voz_eventos": leer_texto(p, "voz", "voz_eventos"),
+        "voz_respaldo": leer_texto(p, "voz", "voz_respaldo"),
+        "elevenlabs_tope": leer_entero(p, "voz", "elevenlabs_tope", lo=0),
+        "elevenlabs_solo_importantes": leer_booleano(p, "voz", "elevenlabs_solo_importantes"),
         "estrategia": estrategia,
-        "tamanio_maximo": _pi(p, "cola", "tamanio_maximo", lo=1),
-        "umbral_solo_nombre": _pi(p, "cola", "umbral_solo_nombre"),
-        "reconectar": _pb(p, "reconexion", "reconectar"),
-        "espera_entre_intentos": _pi(p, "reconexion", "espera_entre_intentos", lo=1),
-        "max_intentos": _pi(p, "reconexion", "max_intentos"),
+        "tamanio_maximo": leer_entero(p, "cola", "tamanio_maximo", lo=1),
+        "umbral_solo_nombre": leer_entero(p, "cola", "umbral_solo_nombre"),
+        "reconectar": leer_booleano(p, "reconexion", "reconectar"),
+        "espera_entre_intentos": leer_entero(p, "reconexion", "espera_entre_intentos", lo=1),
+        "max_intentos": leer_entero(p, "reconexion", "max_intentos"),
         **_opciones_lectura(p),
-        "palabras_silenciadas": _lista(_gs(p, "filtros", "palabras_silenciadas")),
-        "usuarios_silenciados": _lista(_gs(p, "filtros", "usuarios_silenciados")),
-        "limpiar_emojis": _pb(p, "texto", "limpiar_emojis"),
-        "eliminar_urls": _pb(p, "texto", "eliminar_urls"),
-        "max_longitud_mensaje": _pi(p, "texto", "max_longitud_mensaje"),
-        "tamanio_fuente_chat": _pi(p, "ui", "tamanio_fuente_chat", lo=8, hi=24),
-        "mostrar_total_superchats": _pb(p, "ui", "mostrar_total_superchats"),
-        "autoplay_reproductor": _pb(p, "ui", "autoplay_reproductor"),
-        "reproductor_solo_audio": _pb(p, "ui", "reproductor_solo_audio"),
-        "mostrar_botones_reproductor": _pb(p, "ui", "mostrar_botones_reproductor"),
-        "cache_video_mb": _pi(p, "ui", "cache_video_mb", lo=0, hi=20000),
-        "mostrar_metadatos": _pb(p, "ui", "mostrar_metadatos"),
-        "confirmar_salida": _pb(p, "ui", "confirmar_salida"),
-        "sonido_inicio": _pb(p, "ui", "sonido_inicio"),
+        "palabras_silenciadas": separar_por_comas(leer_texto(p, "filtros", "palabras_silenciadas")),
+        "usuarios_silenciados": separar_por_comas(leer_texto(p, "filtros", "usuarios_silenciados")),
+        "limpiar_emojis": leer_booleano(p, "texto", "limpiar_emojis"),
+        "eliminar_urls": leer_booleano(p, "texto", "eliminar_urls"),
+        "max_longitud_mensaje": leer_entero(p, "texto", "max_longitud_mensaje"),
+        "tamanio_fuente_chat": leer_entero(p, "ui", "tamanio_fuente_chat", lo=8, hi=24),
+        "mostrar_total_superchats": leer_booleano(p, "ui", "mostrar_total_superchats"),
+        "autoplay_reproductor": leer_booleano(p, "ui", "autoplay_reproductor"),
+        "reproductor_solo_audio": leer_booleano(p, "ui", "reproductor_solo_audio"),
+        "mostrar_botones_reproductor": leer_booleano(p, "ui", "mostrar_botones_reproductor"),
+        "cache_video_mb": leer_entero(p, "ui", "cache_video_mb", lo=0, hi=20000),
+        "mostrar_metadatos": leer_booleano(p, "ui", "mostrar_metadatos"),
+        "confirmar_salida": leer_booleano(p, "ui", "confirmar_salida"),
+        "sonido_inicio": leer_booleano(p, "ui", "sonido_inicio"),
         "filtro_activo": filtro_activo,
-        "silenciar_sonidos": _pb(p, "ui", "silenciar_sonidos"),
-        "silenciar_lectura": _pb(p, "sesion", "silenciar_lectura"),
-        "tiktok_anunciar_entradas": _pb(p, "tiktok", "anunciar_entradas"),
-        "tiktok_leer_me_gusta": _pb(p, "tiktok", "leer_me_gusta"),
-        "tiktok_usuario": _gs(p, "tiktok", "usuario"),
+        "silenciar_sonidos": leer_booleano(p, "ui", "silenciar_sonidos"),
+        "silenciar_lectura": leer_booleano(p, "sesion", "silenciar_lectura"),
+        "tiktok_anunciar_entradas": leer_booleano(p, "tiktok", "anunciar_entradas"),
+        "tiktok_leer_me_gusta": leer_booleano(p, "tiktok", "leer_me_gusta"),
+        "tiktok_usuario": leer_texto(p, "tiktok", "usuario"),
         "transmision_destino": destino,
-        "avisar_sobrecarga": _pb(p, "transmision", "avisar_sobrecarga"),
-        "transmision_youtube_titulo": decodificar_texto_ini(_gs(p, "transmision", "youtube_titulo")),
-        "transmision_youtube_descripcion": decodificar_texto_ini(_gs(p, "transmision", "youtube_descripcion")),
+        "avisar_sobrecarga": leer_booleano(p, "transmision", "avisar_sobrecarga"),
+        "transmision_youtube_titulo": decodificar_texto_ini(leer_texto(p, "transmision", "youtube_titulo")),
+        "transmision_youtube_descripcion": decodificar_texto_ini(leer_texto(p, "transmision", "youtube_descripcion")),
         "transmision_youtube_privacidad": privacidad,
         "transmision_youtube_latencia": latencia,
-        "transmision_youtube_ninos": _pb(p, "transmision", "youtube_ninos"),
-        "transmision_youtube_dvr": _pb(p, "transmision", "youtube_dvr"),
+        "transmision_youtube_ninos": leer_booleano(p, "transmision", "youtube_ninos"),
+        "transmision_youtube_dvr": leer_booleano(p, "transmision", "youtube_dvr"),
         "transmision_youtube_categoria": categoria,
-        "transmision_youtube_etiquetas": decodificar_texto_ini(_gs(p, "transmision", "youtube_etiquetas")),
+        "transmision_youtube_etiquetas": decodificar_texto_ini(leer_texto(p, "transmision", "youtube_etiquetas")),
         "transmision_youtube_miniatura": decodificar_texto_ini(
-            _gs(p, "transmision", "youtube_miniatura")),
-        "transmision_youtube_lista": _gs(p, "transmision", "youtube_lista"),
+            leer_texto(p, "transmision", "youtube_miniatura")),
+        "transmision_youtube_lista": leer_texto(p, "transmision", "youtube_lista"),
         "transmision_youtube_lista_titulo": decodificar_texto_ini(
-            _gs(p, "transmision", "youtube_lista_titulo")),
-        "programados_activo": _pb(p, "programados", "activo"),
-        "buscar_actualizaciones_al_iniciar": _pb(p, "actualizaciones", "buscar_al_iniciar"),
-        "registro_detallado": _pb(p, "diagnostico", "registro_detallado"),  # configurar_logging se adelanta al diccionario.
-        "overlay_activo": _pb(p, "overlay", "activo"),
-        "overlay_puerto": _pi(p, "overlay", "puerto", lo=1),
-        "obs_microfono": _gs(p, "obs", "microfono"),
+            leer_texto(p, "transmision", "youtube_lista_titulo")),
+        "programados_activo": leer_booleano(p, "programados", "activo"),
+        "buscar_actualizaciones_al_iniciar": leer_booleano(p, "actualizaciones", "buscar_al_iniciar"),
+        "registro_detallado": leer_booleano(p, "diagnostico", "registro_detallado"),  # configurar_logging se adelanta al diccionario.
+        "overlay_activo": leer_booleano(p, "overlay", "activo"),
+        "overlay_puerto": leer_entero(p, "overlay", "puerto", lo=1),
+        "obs_microfono": leer_texto(p, "obs", "microfono"),
         # [musica]: biblioteca local y reproducción. La carpeta va como texto libre, igual que en [transmision].
         **_opciones_musica(p),
         "estado_toggles": estado_toggles,

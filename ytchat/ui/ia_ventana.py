@@ -23,7 +23,8 @@ from ytchat.core import paths
 from ytchat.obs.obs_panel import GestorPanelObs
 from ytchat.ui import ia_privacidad
 from ytchat.ui import paleta
-from ytchat.ui.gui import anunciar, instalar_busqueda_tipo, nombre_accesible
+from ytchat.ui.accesibilidad import anunciar, nombre_accesible
+from ytchat.ui.busqueda_teclado import instalar_busqueda_tipo
 from ytchat.ui.ia_agregar_captura import pedir_captura
 from ytchat.voice.sound_player import reproducir
 

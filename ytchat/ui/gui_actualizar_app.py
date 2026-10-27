@@ -25,7 +25,7 @@ from ytchat.core import paths
 from ytchat.core.config import APP_NAME, APP_VERSION, guardar_opcion
 from ytchat.downloads import ytdlp_bin
 from ytchat.ui import aviso_diferido
-from ytchat.ui.gui import anunciar
+from ytchat.ui.accesibilidad import anunciar
 from ytchat.voice import sound_player as _snd
 
 logger = logging.getLogger(f"ytchat.{__name__}")

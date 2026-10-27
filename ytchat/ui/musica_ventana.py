@@ -14,8 +14,9 @@ import wx
 from ytchat.core import diagnostico
 from ytchat.music import anuncios, vista
 from ytchat.ui import musica_filtros, musica_menus, musica_teclas
-from ytchat.ui.gui import (
-    _T, _pintar, anunciar, instalar_busqueda_tipo, nombre_accesible)
+from ytchat.ui.accesibilidad import anunciar, nombre_accesible
+from ytchat.ui.busqueda_teclado import instalar_busqueda_tipo
+from ytchat.ui.tema import _T, _pintar
 from ytchat.ui.musica_colecciones import (
     TEXTO_CARGANDO, TEXTO_SIN_CARPETA, ColeccionesVentanaMusica)
 from ytchat.ui.musica_ventana_acciones import AccionesVentanaMusica

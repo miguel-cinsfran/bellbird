@@ -12,7 +12,8 @@ import wx
 from ytchat.ai import claves
 from ytchat.ai import opciones_ia
 from ytchat.core import diagnostico
-from ytchat.ui.gui import _T, _tc, anunciar
+from ytchat.ui.accesibilidad import anunciar
+from ytchat.ui.tema import _T, _tc
 from ytchat.voice import sound_player as _snd
 
 logger = diagnostico.obtener_logger(__name__)

@@ -12,7 +12,8 @@ import wx
 from ytchat.core import diagnostico, musica_decir
 from ytchat.core import config as cfg
 from ytchat.ui import opciones_musica
-from ytchat.ui.gui import ContadorAccesible, _T, _tc, anunciar, nombre_accesible
+from ytchat.ui.accesibilidad import ContadorAccesible, anunciar, nombre_accesible
+from ytchat.ui.tema import _T, _tc
 from ytchat.ui.gui_descargas import nombrar_selector_carpeta
 from ytchat.ui.preferencias_comun import EleccionTexto, crear_panel, fila_label
 

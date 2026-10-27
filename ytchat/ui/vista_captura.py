@@ -110,7 +110,7 @@ class VistaGui:
         if _marco_vivo() is None:
             return False
         import wx
-        from ytchat.ui.gui import anunciar
+        from ytchat.ui.accesibilidad import anunciar
         wx.CallAfter(anunciar, texto)
         return True
 

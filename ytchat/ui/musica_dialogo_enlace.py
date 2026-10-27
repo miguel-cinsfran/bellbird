@@ -8,7 +8,8 @@ from __future__ import annotations
 
 import wx
 
-from ytchat.ui.gui import _T, _pintar, nombre_accesible
+from ytchat.ui.accesibilidad import nombre_accesible
+from ytchat.ui.tema import _T, _pintar
 
 TITULO = "Abrir enlace"
 MODO_AHORA = "ahora"

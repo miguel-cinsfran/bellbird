@@ -11,7 +11,8 @@ import webbrowser
 import wx
 
 from ytchat.core import diagnostico
-from ytchat.ui.gui import _T, _tc, anunciar
+from ytchat.ui.accesibilidad import anunciar
+from ytchat.ui.tema import _T, _tc
 from ytchat.ui.preferencias_comun import ANCHO_NOTA, crear_panel
 from ytchat.voice import sound_player as _snd
 from ytchat.youtube import credenciales

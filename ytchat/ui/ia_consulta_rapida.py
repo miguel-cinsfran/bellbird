@@ -30,7 +30,7 @@ from ytchat.obs.obs_panel import GestorPanelObs
 from ytchat.ui import ia_agregar_captura
 from ytchat.ui import ia_privacidad
 from ytchat.ui import ia_ventana
-from ytchat.ui.gui import anunciar
+from ytchat.ui.accesibilidad import anunciar
 from ytchat.voice.sound_player import reproducir
 
 logger = diagnostico.obtener_logger(__name__)

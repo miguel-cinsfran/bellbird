@@ -16,7 +16,8 @@ from ytchat.obs import obs_cliente
 from ytchat.obs import obs_lanzador
 from ytchat.obs import transmision_directa
 from ytchat.obs.obs_panel import GestorPanelObs
-from ytchat.ui.gui import _T, _pintar, anunciar
+from ytchat.ui.accesibilidad import anunciar
+from ytchat.ui.tema import _T, _pintar
 from ytchat.voice import sound_player as _snd
 
 

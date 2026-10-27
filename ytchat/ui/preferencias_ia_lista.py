@@ -21,7 +21,7 @@ from ytchat.ai import protocolos
 from ytchat.ai import sondeo_gratis
 from ytchat.core import diagnostico
 from ytchat.core import paths
-from ytchat.ui.gui import anunciar
+from ytchat.ui.accesibilidad import anunciar
 from ytchat.voice import sound_player as _snd
 
 logger = diagnostico.obtener_logger(__name__)

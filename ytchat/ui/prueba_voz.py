@@ -11,7 +11,7 @@ import time
 import wx
 
 from ytchat.core import diagnostico
-from ytchat.ui.gui import anunciar
+from ytchat.ui.accesibilidad import anunciar
 
 logger = diagnostico.obtener_logger(__name__)
 

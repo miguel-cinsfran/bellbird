@@ -14,7 +14,7 @@ import wx
 
 from ytchat.core import diagnostico
 from ytchat.ui import paleta
-from ytchat.ui.gui import anunciar, nombre_accesible
+from ytchat.ui.accesibilidad import anunciar, nombre_accesible
 from ytchat.youtube import youtube_api
 from ytchat.youtube.emision import (
     CATEGORIAS,

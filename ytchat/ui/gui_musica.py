@@ -21,7 +21,7 @@ from ytchat.music.modelo import (
     AVANZO, FIN_LISTA, EstadoMusica, Resultado, SIN_TEMA)
 from ytchat.music.normalizado import Normalizado
 from ytchat.ui import atajos_globales
-from ytchat.ui.gui import anunciar
+from ytchat.ui.accesibilidad import anunciar
 from ytchat.ui.musica_cola import ColaMusica
 from ytchat.ui.musica_enlaces import EnlacesMusica
 from ytchat.ui.musica_indice import IndiceMusica, TEXTO_CARPETA_INEXISTENTE

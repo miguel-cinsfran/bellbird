@@ -15,8 +15,9 @@ import wx
 from ytchat.core import historial
 from ytchat.core import sonidos_eventos
 from ytchat.voice import sound_player as _snd
-from ytchat.ui.gui import (
-    anunciar, instalar_busqueda_tipo, nombre_accesible, _T, _pintar)
+from ytchat.ui.accesibilidad import anunciar, nombre_accesible
+from ytchat.ui.busqueda_teclado import instalar_busqueda_tipo
+from ytchat.ui.tema import _T, _pintar
 
 logger = diagnostico.obtener_logger(__name__)
 

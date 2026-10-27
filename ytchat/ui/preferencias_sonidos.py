@@ -19,7 +19,8 @@ from ytchat.core import paths
 from ytchat.core import config as cfg
 from ytchat.core.eventos_sonido import EVENTOS, NOMBRES
 from ytchat.core.sonidos_ini import con_silenciados, silenciados
-from ytchat.ui.gui import _T, _pintar, nombre_accesible
+from ytchat.ui.accesibilidad import nombre_accesible
+from ytchat.ui.tema import _T, _pintar
 from ytchat.voice import sound_player as _snd
 
 logger = diagnostico.obtener_logger(__name__)

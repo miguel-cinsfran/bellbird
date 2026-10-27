@@ -283,7 +283,7 @@ def obtener_info_video(video_id: str, sesion_activa=None) -> tuple[str, str, dic
 def _anunciar_fallo_video(metadatos: dict, call_after) -> None:
     fallo = (metadatos or {}).get("fallo")
     if fallo:
-        from ytchat.ui.gui import anunciar
+        from ytchat.ui.accesibilidad import anunciar
         call_after(anunciar, fallo)
 
 

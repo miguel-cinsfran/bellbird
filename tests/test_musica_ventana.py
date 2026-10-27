@@ -20,7 +20,7 @@ from ytchat.ui import (musica_dialogo_enlace, musica_editor_lista,
                        musica_menus, musica_ventana,
                        musica_ventana_acciones,
                        musica_ventana_igualando)
-from ytchat.ui.gui import ALTO_CONTRASTE, _T
+from ytchat.ui.tema import ALTO_CONTRASTE, _T
 from tests.ventanas_prueba import destruir
 
 try:

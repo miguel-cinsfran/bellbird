@@ -8,7 +8,7 @@ from ytchat.capture import redaccion
 
 
 def _anunciar(texto: str) -> None:
-    from ytchat.ui.gui import anunciar
+    from ytchat.ui.accesibilidad import anunciar
     anunciar(texto)
 
 
@@ -36,7 +36,7 @@ class PanelRedactar(wx.Panel):
 
     def _aplicar_paleta(self):
         # Paleta de la app; con alto contraste _pintar no toca nada.
-        from ytchat.ui.gui import _T, _pintar
+        from ytchat.ui.tema import _T, _pintar
         _pintar(self.texto, _T.field, _T.text)
         _pintar(self.boton, _T.btn, _T.btn_t)
 

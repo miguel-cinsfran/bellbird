@@ -20,7 +20,8 @@ from ytchat.ai import proveedores
 from ytchat.ai import sondeo_gratis
 from ytchat.core import diagnostico
 from ytchat.core import paths
-from ytchat.ui.gui import ContadorAccesible, _tc, anunciar
+from ytchat.ui.accesibilidad import ContadorAccesible, anunciar
+from ytchat.ui.tema import _tc
 from ytchat.ui.preferencias_comun import EleccionTexto, crear_panel, fila_label
 from ytchat.ui.preferencias_ia_clave import SeccionClaveIA
 from ytchat.ui.preferencias_ia_lista import ActualizacionModelosIA

@@ -12,7 +12,8 @@ from __future__ import annotations
 
 import wx
 
-from ytchat.ui.gui import ContadorAccesible, _T, _tc
+from ytchat.ui.accesibilidad import ContadorAccesible
+from ytchat.ui.tema import _T, _tc
 from ytchat.ui.preferencias_comun import EleccionTexto
 
 

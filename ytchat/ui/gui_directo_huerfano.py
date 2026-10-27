@@ -18,7 +18,7 @@ from ytchat.core import diagnostico
 from ytchat.core import paths
 from ytchat.obs import obs_activacion
 from ytchat.obs.obs_panel import GestorPanelObs
-from ytchat.ui.gui import anunciar
+from ytchat.ui.accesibilidad import anunciar
 from ytchat.voice import sound_player as _snd
 from ytchat.youtube import credenciales, emision, fin_pendiente, youtube_api
 

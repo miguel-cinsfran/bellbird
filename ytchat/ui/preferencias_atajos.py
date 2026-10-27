@@ -12,7 +12,9 @@ from ytchat.core import config as cfg
 from ytchat.core.config import APP_NAME
 from ytchat.ui import atajos_captura
 from ytchat.ui.atajos_captura import etiqueta_de_accion
-from ytchat.ui.gui import _T, anunciar, caja_de_grupo
+from ytchat.ui.accesibilidad import anunciar
+from ytchat.ui.gui import caja_de_grupo
+from ytchat.ui.tema import _T
 from ytchat.ui.preferencias_comun import ANCHO_NOTA, crear_panel
 
 

@@ -9,6 +9,7 @@ from unittest import mock
 import wx
 
 import main
+from ytchat.ui import accesibilidad
 from ytchat.ui.sesion_conectada import SesionConectada
 from ytchat.ui.vista_captura import VistaGui
 
@@ -17,8 +18,7 @@ class BaseVista(unittest.TestCase):
     def setUp(self):
         self.marco = mock.Mock()
         self.marco._alive = True
-        self.gui_falsa = types.SimpleNamespace(
-            _gui_frame=self.marco, anunciar=mock.Mock())
+        self.gui_falsa = types.SimpleNamespace(_gui_frame=self.marco)
         self.modulo_anterior = sys.modules.get("ytchat.ui.gui")
         sys.modules["ytchat.ui.gui"] = self.gui_falsa
         # `from ytchat.ui import gui` mira primero el atributo del paquete:
@@ -201,14 +201,20 @@ class TestDirectoYTikTok(BaseVista):
 
 
 class TestAnunciarYFallo(BaseVista):
+    def setUp(self):
+        super().setUp()
+        self._parche_anunciar = mock.patch.object(accesibilidad, "anunciar")
+        self.anunciar = self._parche_anunciar.start()
+        self.addCleanup(self._parche_anunciar.stop)
+
     def test_anunciar(self):
         self.assertTrue(self.vista.anunciar("Hola"))
-        self.gui_falsa.anunciar.assert_called_once_with("Hola")
+        self.anunciar.assert_called_once_with("Hola")
 
     def test_anunciar_con_marco_cerrado_no_hace_nada(self):
         self.marco._alive = False
         self.assertFalse(self.vista.anunciar("Hola"))
-        self.gui_falsa.anunciar.assert_not_called()
+        self.anunciar.assert_not_called()
 
     def test_fallo_video_delega_en_main(self):
         meta = {"fallo": "No se pudo conectar"}

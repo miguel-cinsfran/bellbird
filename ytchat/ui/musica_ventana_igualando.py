@@ -20,7 +20,8 @@ from ytchat.core import diagnostico
 from ytchat.music import anuncios
 from ytchat.music import pregunta_igualar
 from ytchat.music import sonoridad
-from ytchat.ui.gui import _T, _pintar, anunciar, nombre_accesible
+from ytchat.ui.accesibilidad import anunciar, nombre_accesible
+from ytchat.ui.tema import _T, _pintar
 from ytchat.voice import sound_player as _snd
 
 logger = diagnostico.obtener_logger(__name__)

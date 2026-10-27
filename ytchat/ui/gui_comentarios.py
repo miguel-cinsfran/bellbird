@@ -21,10 +21,10 @@ from ytchat.youtube import youtube_api
 from ytchat.voice import sound_player as _snd
 from ytchat.capture import redaccion
 from ytchat.ui.gui_redactar import DialogoRedactar
-from ytchat.ui.gui import (
-    anunciar, copiar_al_portapapeles, nombre_accesible, instalar_busqueda_tipo,
-    _T, _tc, _pintar,
-)
+from ytchat.ui.accesibilidad import anunciar, nombre_accesible
+from ytchat.ui.busqueda_teclado import instalar_busqueda_tipo
+from ytchat.ui.gui import copiar_al_portapapeles
+from ytchat.ui.tema import _T, _tc, _pintar
 
 logger = diagnostico.obtener_logger(__name__)
 

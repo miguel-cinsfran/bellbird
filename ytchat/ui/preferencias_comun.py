@@ -5,7 +5,7 @@ from __future__ import annotations
 import wx
 
 from ytchat.core import diagnostico
-from ytchat.ui.gui import _T
+from ytchat.ui.tema import _T
 
 logger = diagnostico.obtener_logger(__name__)
 

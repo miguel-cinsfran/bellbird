@@ -10,7 +10,8 @@ from __future__ import annotations
 import wx
 
 from ytchat.music import anuncios, filtros
-from ytchat.ui.gui import _T, _pintar, anunciar, nombre_accesible
+from ytchat.ui.accesibilidad import anunciar, nombre_accesible
+from ytchat.ui.tema import _T, _pintar
 
 ANCHO_MOSTRAR = 210
 ANCHO_ORDENAR = 190

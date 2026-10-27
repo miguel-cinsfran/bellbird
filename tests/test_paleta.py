@@ -14,7 +14,7 @@ except Exception:
     _HAY_WX = False
 
 from ytchat.ui import paleta
-from ytchat.ui.gui import _T
+from ytchat.ui.tema import _T
 from tests.ventanas_prueba import destruir
 
 

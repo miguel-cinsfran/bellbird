@@ -10,8 +10,9 @@ import wx
 
 from ytchat.core import paths
 from ytchat.capture import programados
-from ytchat.ui.gui import (
-    ContadorAccesible, _T, anunciar, instalar_busqueda_tipo, nombre_accesible)
+from ytchat.ui.accesibilidad import ContadorAccesible, anunciar, nombre_accesible
+from ytchat.ui.busqueda_teclado import instalar_busqueda_tipo
+from ytchat.ui.tema import _T
 from ytchat.ui.preferencias_comun import ANCHO_NOTA, crear_panel, fila_label
 
 

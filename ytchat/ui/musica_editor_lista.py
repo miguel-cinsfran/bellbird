@@ -11,7 +11,8 @@ from __future__ import annotations
 import wx
 
 from ytchat.music import listas, vista
-from ytchat.ui.gui import _T, _pintar, anunciar, nombre_accesible
+from ytchat.ui.accesibilidad import anunciar, nombre_accesible
+from ytchat.ui.tema import _T, _pintar
 
 MAX_NOMBRE = 60
 TITULO_NUEVA = "Nueva lista"

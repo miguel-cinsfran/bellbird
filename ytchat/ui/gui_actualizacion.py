@@ -13,7 +13,7 @@ import wx
 
 from ytchat.core.actualizacion import notas_legibles
 from ytchat.ui import paleta
-from ytchat.ui.gui import anunciar, nombre_accesible
+from ytchat.ui.accesibilidad import anunciar, nombre_accesible
 
 
 class DialogoActualizacion(wx.Dialog):

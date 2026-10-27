@@ -13,7 +13,7 @@ import wx
 
 from ytchat.core import paths
 from ytchat.core import preferencias_archivo
-from ytchat.ui.gui import anunciar
+from ytchat.ui.accesibilidad import anunciar
 from ytchat.ui.preferencias_comun import crear_panel
 
 

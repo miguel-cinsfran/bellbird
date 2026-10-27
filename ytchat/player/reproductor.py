@@ -14,7 +14,6 @@ se instancia de forma perezosa (al primer uso) para no frenar el arranque.
 from __future__ import annotations
 
 import importlib.util
-import logging
 import re
 import sys
 import time
@@ -49,7 +48,8 @@ from ytchat.player.formatos_youtube import (
     _altura_auto_vod, _alturas_disponibles, _es_hls, _preferir_hls,
     _video_para_altura, fuentes_para_directo,
 )
-from ytchat.ui.gui import anunciar, nombre_accesible, _T, _tc
+from ytchat.ui.accesibilidad import anunciar, nombre_accesible
+from ytchat.ui.tema import _T, _tc
 from ytchat.core import anuncio_ajuste
 
 logger = diagnostico.obtener_logger(__name__)

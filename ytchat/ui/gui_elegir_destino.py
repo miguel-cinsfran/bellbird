@@ -11,7 +11,7 @@ import wx
 
 from ytchat.obs.obs_destinos import DESTINOS
 from ytchat.ui import paleta
-from ytchat.ui.gui import anunciar, nombre_accesible
+from ytchat.ui.accesibilidad import anunciar, nombre_accesible
 
 
 def destino_inicial(destino_guardado) -> str:

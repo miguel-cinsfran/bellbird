@@ -44,7 +44,9 @@ class PaginaVoz:
         self._crear_multivoz(p, vs, vacio_voz)
         self._prueba = PruebaVoz()
         # El motor de prueba se cierra al cerrar el diálogo por cualquier camino.
-        self._ventana.Bind(wx.EVT_WINDOW_DESTROY, self._al_destruir)
+        # Se escucha en el panel: el diálogo llega al evento como un wx.Window
+        # genérico y `is` no lo reconoce (medido el 27/10/2026).
+        p.Bind(wx.EVT_WINDOW_DESTROY, self._al_destruir)
         p.SetSizer(vs)
         self._mostrar_controles_eleven(es_eleven)
         if es_eleven and self.txt_clave_eleven.GetValue().strip():
@@ -333,8 +335,8 @@ class PaginaVoz:
 
     def _al_destruir(self, event) -> None:
         # El evento sube desde los hijos, así que solo se atiende cuando el
-        # diálogo mismo se destruye.
-        if event.GetEventObject() is self._ventana:
+        # panel mismo se destruye.
+        if event.GetEventObject() is self._pag_voz_panel:
             self._cerrar_motor_prueba()
         event.Skip()
 

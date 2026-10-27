@@ -2907,6 +2907,13 @@ class TestPreferenciasElevenLabs(unittest.TestCase):
         eleven.assert_not_called()
         prism.assert_not_called()
 
+    def test_destruir_el_dialogo_cierra_la_prueba_de_voz(self):
+        dialogo = self._dialogo({})
+        pagina = dialogo.pagina_voz
+        with mock.patch.object(pagina._prueba, "cerrar") as cerrar:
+            destruir(dialogo)
+        cerrar.assert_called_once_with()
+
     def test_elegir_elevenlabs_muestra_los_controles(self):
         dialogo = self._dialogo({})
         for ctrl in dialogo.pagina_voz._eleven_ctrls:

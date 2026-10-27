@@ -78,7 +78,7 @@ def sondear(proveedor, muestra, clave, enviar, tiempo_espera):
                 en_vuelo[futuro] = modelo.id
             if not en_vuelo:
                 break
-            hechos, _ = wait(en_vuelo, return_when=FIRST_COMPLETED)
+            hechos, _sin_uso = wait(en_vuelo, return_when=FIRST_COMPLETED)
             for futuro in hechos:
                 ident = en_vuelo.pop(futuro)
                 if mala is not None:

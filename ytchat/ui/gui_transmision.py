@@ -460,8 +460,8 @@ class TransmisionDialog(wx.Dialog):
             self.txt_estado.SetValue("La escena no tiene fuentes.")
 
     def _cargar_ventanas(self, opciones, actual):
-        self._valores_ventana = [valor for _, valor in opciones or ()]
-        self.cho_ventana.Set([texto for texto, _ in opciones or ()])
+        self._valores_ventana = [valor for _sin_uso, valor in opciones or ()]
+        self.cho_ventana.Set([texto for texto, _sin_uso in opciones or ()])
         if actual in self._valores_ventana:
             self.cho_ventana.SetSelection(self._valores_ventana.index(actual))
         elif not opciones:

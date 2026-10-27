@@ -54,7 +54,7 @@ def construir_menu(frame):
     m.AppendSeparator()
     sub_f = wx.Menu()
     frame.fi_items = []
-    for i, (nombre, _) in enumerate(FILTROS):
+    for i, (nombre, _sin_uso) in enumerate(FILTROS):
         it = sub_f.AppendRadioItem(wx.ID_ANY, nombre)
         frame.fi_items.append(it)
         frame._bind_menu(it, frame._aplicar_filtro, i)

@@ -56,7 +56,7 @@ class PaginaLectura:
         self.rb_formato.SetForegroundColour(_T.text)
         self.rb_formato.SetBackgroundColour(_T.bg)
         fa = self._config.get("formato_prefijo", "nombre_mensaje")
-        for i, (_, v) in enumerate(_FORMATOS):
+        for i, (_sin_uso, v) in enumerate(_FORMATOS):
             if v == fa:
                 self.rb_formato.SetSelection(i)
                 break

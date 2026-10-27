@@ -47,7 +47,7 @@ def boton_visible(conectado, conectando, propio, transmitiendo) -> bool:
     directo de otro no aparece, y para finalizar se vuelve al inicio
     con Desconectar.
     """
-    _ = transmitiendo
+    _sin_uso = transmitiendo
     return (not conectado and not conectando) or bool(propio)
 
 

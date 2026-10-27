@@ -34,7 +34,7 @@ def _leer_registro_por_defecto(clave):
     try:
         import winreg
         with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, clave) as subclave:
-            valor, _ = winreg.QueryValueEx(subclave, "")
+            valor, _sin_uso = winreg.QueryValueEx(subclave, "")
             return str(valor) if valor else None
     except (OSError, ValueError):
         return None

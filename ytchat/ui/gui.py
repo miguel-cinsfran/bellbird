@@ -1702,7 +1702,7 @@ class YTChatFrame(wx.Frame):
         # banear caían sobre el mensaje equivocado).
         visible = self._filtro is None or registro.tipo == self._filtro
         borrar = self._chat.agregar(registro, visible)
-        for _ in range(borrar):
+        for _sin_uso in range(borrar):
             self.lb_chat.Delete(0)
 
         if registro.tipo in (TIPO_SUPERCHAT, TIPO_STICKER):
@@ -2014,7 +2014,7 @@ class YTChatFrame(wx.Frame):
         idx = _IDX_FILTRO.get(
             _NOMBRES_FILTRO[0] if self._filtro is None else "", 0)
         # Buscar el índice cuyo valor coincide con self._filtro.
-        for i, (_, val) in enumerate(FILTROS):
+        for i, (_sin_uso, val) in enumerate(FILTROS):
             if val == self._filtro:
                 idx = i
                 break

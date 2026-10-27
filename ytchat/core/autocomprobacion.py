@@ -121,4 +121,4 @@ def principal(argumentos):
             return 2
     elif sys.stdout is not None:
         sys.stdout.write(texto)
-    return 0 if all(error is None for _, error in resultados) else 1
+    return 0 if all(error is None for _sin_uso, error in resultados) else 1

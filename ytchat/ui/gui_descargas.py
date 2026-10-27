@@ -185,8 +185,8 @@ class GestorDescargasDialog(wx.Dialog):
         lbl_fmt = wx.StaticText(padre, label="&Formato:", name="EtiquetaFormato")
         lbl_fmt.SetForegroundColour(_T.text)
         fila_fmt.Add(lbl_fmt, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
-        etiquetas = [et for et, _ in _FORMATOS_OPCIONES]
-        valores = [v for _, v in _FORMATOS_OPCIONES]
+        etiquetas = [et for et, _sin_uso in _FORMATOS_OPCIONES]
+        valores = [v for _sin_uso, v in _FORMATOS_OPCIONES]
         self.cho_formato = wx.Choice(padre, choices=etiquetas, name="Formato")
         _tc(self.cho_formato)
         actual = self._opciones.get("formato", "mp4")
@@ -317,7 +317,7 @@ class GestorDescargasDialog(wx.Dialog):
         idx = self.cho_formato.GetSelection()
         if idx < 0 or idx >= len(_FORMATOS_OPCIONES):
             return
-        _, valor = _FORMATOS_OPCIONES[idx]
+        _sin_uso, valor = _FORMATOS_OPCIONES[idx]
         es_audio = _es_formato_audio(valor)
         self.cho_bitrate.Enable(es_audio)
         # Si pasó de audio a vídeo, no escondemos el valor: el usuario lo

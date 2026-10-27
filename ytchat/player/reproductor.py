@@ -1733,7 +1733,7 @@ class ReproductorPanel(wx.Panel):
                             pass
                         # Mientras libVLC pueda llamar callbacks, el gestor conserva
                         # vivo el trampolín de ctypes que usa python-vlc.
-                        _ = gestor
+                        _sin_uso = gestor
                         try:
                             app = wx.GetApp()
                         except Exception:

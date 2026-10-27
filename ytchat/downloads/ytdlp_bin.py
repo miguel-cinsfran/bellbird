@@ -470,7 +470,7 @@ def asegurar_ytdlp(destino: str | os.PathLike | None = None) -> ResultadoDescarg
     ultima = ultima_version_ytdlp()
     if ultima is None:
         return ResultadoDescarga(False, "no se pudo consultar la última versión")
-    _, url_ejecutable, url_firmas = ultima
+    _sin_uso, url_ejecutable, url_firmas = ultima
     try:
         solicitud = Request(url_firmas, headers={"User-Agent": USER_AGENT})
         with urlopen(solicitud, timeout=TIEMPO_ESPERA) as respuesta:

@@ -476,7 +476,7 @@ class ClienteYouTube:
         """
         salida: list[tuple[str, str]] = []
         pagina = ""
-        for _ in range(MAX_PAGINAS_LISTAS):
+        for _sin_uso in range(MAX_PAGINAS_LISTAS):
             params = {"part": "snippet", "mine": True, "maxResults": 50}
             if pagina:
                 params["pageToken"] = pagina

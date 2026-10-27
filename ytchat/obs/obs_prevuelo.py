@@ -188,7 +188,7 @@ def _pixeles_vacios(crudo: bytes, ancho, alto, color):
         return None
     anterior = bytearray(paso)
     desplazamiento = 0
-    for _ in range(alto):
+    for _sin_uso in range(alto):
         codigo = crudo[desplazamiento]
         desplazamiento += 1
         linea = bytearray(crudo[desplazamiento:desplazamiento + paso])

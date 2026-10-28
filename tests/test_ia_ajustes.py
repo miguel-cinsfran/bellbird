@@ -4,6 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from tests.pseudo_prueba import con_pseudo
 from ytchat.ai import ajustes_ia
 from ytchat.ai.ajustes_ia import AjustesIA
 from ytchat.ai import conversacion
@@ -221,6 +222,14 @@ class TestPreguntaEfectiva(unittest.TestCase):
         self.assertEqual(
             ajustes_ia.pregunta_efectiva(AjustesIA(pregunta="  hola  ")),
             "hola")
+
+    def test_fabrica_va_marcada_y_personal_pasa(self):
+        with con_pseudo():
+            fabrica = ajustes_ia.pregunta_efectiva(AjustesIA(pregunta=""))
+            propia = ajustes_ia.pregunta_efectiva(
+                AjustesIA(pregunta="hola"))
+        self.assertTrue(fabrica.startswith("[¡"), fabrica)
+        self.assertEqual(propia, "hola")
 
 
 if __name__ == "__main__":

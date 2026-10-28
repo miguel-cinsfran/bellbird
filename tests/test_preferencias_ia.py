@@ -71,6 +71,13 @@ class TestPseudoIA(unittest.TestCase):
 
         self.assertEqual([], sin_marcar)
 
+    def test_restaurar_marca_la_instruccion(self):
+        with con_pseudo():
+            dialogo = self._dialogo()
+            dialogo.pagina_ia._on_ia_restaurar(mock.Mock())
+            valor = dialogo.pagina_ia.txt_ia_pregunta.GetValue()
+        self.assertTrue(valor.startswith("[¡"), valor)
+
 
 if __name__ == "__main__":
     unittest.main()

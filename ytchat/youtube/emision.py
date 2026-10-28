@@ -11,6 +11,7 @@ import time
 from datetime import datetime
 
 from ytchat.core import diagnostico
+from ytchat.core.idioma import N_, _
 from ytchat.obs import obs_cliente
 from ytchat.obs import obs_destinos
 from ytchat.youtube import youtube_api
@@ -18,30 +19,36 @@ from ytchat.youtube import youtube_api
 logger = diagnostico.obtener_logger(__name__)
 
 PRIVACIDADES = ("public", "unlisted", "private")
-ETIQUETAS_PRIVACIDAD = {"public": "Público", "unlisted": "No listado",
-                        "private": "Privado"}
+# Traductores: privacidad del directo; una sola palabra.
+ETIQUETAS_PRIVACIDAD = {"public": N_("Público"), "unlisted": N_("No listado"),
+                        "private": N_("Privado")}
 PRIVACIDAD_INICIAL = "unlisted"
 
 # Latencia del directo: valores que acepta `contentDetails.latencyPreference`.
 LATENCIAS = ("normal", "low", "ultraLow")
-ETIQUETAS_LATENCIA = {"normal": "Normal", "low": "Baja",
-                      "ultraLow": "Ultrabaja"}
+# Traductores: latencia del directo; una sola palabra.
+ETIQUETAS_LATENCIA = {"normal": N_("Normal"), "low": N_("Baja"),
+                      "ultraLow": N_("Ultrabaja")}
 LATENCIA_INICIAL = "normal"
 
 # Categorías de YouTube ofrecidas en el diálogo: (id de la API, texto).
+# Traductores: categoría de YouTube; una sola palabra.
 CATEGORIAS = (
-    ("", "Sin cambiar"),
-    ("20", "Videojuegos"),
-    ("22", "Personas y blogs"),
-    ("24", "Entretenimiento"),
-    ("10", "Música"),
-    ("27", "Educación"),
-    ("28", "Ciencia y tecnología"),
-    ("17", "Deportes"),
-    ("23", "Comedia"),
-    ("25", "Noticias y política"),
-    ("26", "Consejos y estilo"),
+    ("", N_("Sin cambiar")),
+    ("20", N_("Videojuegos")),
+    ("22", N_("Personas y blogs")),
+    # Traductores: categoría de YouTube; una sola palabra.
+    ("24", N_("Entretenimiento")),
+    ("10", N_("Música")),
+    ("27", N_("Educación")),
+    ("28", N_("Ciencia y tecnología")),
+    # Traductores: categoría de YouTube; una sola palabra.
+    ("17", N_("Deportes")),
+    ("23", N_("Comedia")),
+    ("25", N_("Noticias y política")),
+    ("26", N_("Consejos y estilo")),
 )
+
 
 # Límite de `snippet.tags`: la suma de los caracteres de todas las etiquetas.
 LIMITE_ETIQUETAS = 500
@@ -66,11 +73,12 @@ def cuerpo_emision(titulo, descripcion, privacidad, inicio_iso,
     """
     titulo = (titulo or "").strip()
     if not titulo:
-        raise EmisionError("Falta el título del directo.")
+        raise EmisionError(_("Falta el título del directo."))
     titulo = titulo[:100]
     descripcion = (descripcion or "").strip()[:5000]
     if privacidad not in PRIVACIDADES:
-        raise ValueError(f"Privacidad inválida: {privacidad}.")
+        raise ValueError(_("Privacidad inválida: {privacidad}.").format(
+            privacidad=privacidad))
     if latencia not in LATENCIAS:
         latencia = LATENCIA_INICIAL
     return {"snippet": {"title": titulo, "description": descripcion,
@@ -96,7 +104,7 @@ def resultado_directo(titulo, descripcion, privacidad,
     """
     titulo = (titulo or "").strip()
     if not titulo:
-        raise EmisionError("Falta el título del directo.")
+        raise EmisionError(_("Falta el título del directo."))
     if privacidad not in PRIVACIDADES:
         privacidad = PRIVACIDAD_INICIAL
     if latencia not in LATENCIAS:
@@ -147,21 +155,21 @@ def error_de_miniatura(ruta, tamanio=os.path.getsize) -> str | None:
     """
     ruta = (ruta or "").strip()
     if not ruta:
-        return "No se encontró el archivo de la miniatura."
+        return _("No se encontró el archivo de la miniatura.")
     if os.path.splitext(ruta)[1].lower() not in (".jpg", ".jpeg", ".png"):
-        return "La miniatura tiene que ser JPG o PNG."
+        return _("La miniatura tiene que ser JPG o PNG.")
     try:
         bytes_ = tamanio(ruta)
     except OSError:
-        return "No se encontró el archivo de la miniatura."
+        return _("No se encontró el archivo de la miniatura.")
     if bytes_ > 2 * 1024 * 1024:
-        return "La miniatura pasa de 2 MB."
+        return _("La miniatura pasa de 2 MB.")
     return None
 
 
 def titulo_por_defecto(ahora: datetime) -> str:
     """Título con la fecha del día para el directo."""
-    return f"Directo del {ahora:%d/%m/%Y}"
+    return _("Directo del {fecha}").format(fecha=ahora.strftime("%d/%m/%Y"))
 
 
 def url_video(id_video: str) -> str:
@@ -179,11 +187,12 @@ def opciones_lista(listas, id_recordado, titulo_recordado
     recordado si está o «Ninguna» (índice 0) si no. Sin id recordado el
     índice es siempre 0.
     """
-    opciones: list[tuple[str, str]] = [("", "Ninguna")]
+    # Traductores: primera opción de la lista; ninguna elegida.
+    opciones: list[tuple[str, str]] = [("", _("Ninguna"))]
     id_recordado = (id_recordado or "").strip()
     if listas is None:
         if id_recordado:
-            titulo = (titulo_recordado or "").strip() or "Lista guardada"
+            titulo = (titulo_recordado or "").strip() or _("Lista guardada")
             opciones.append((id_recordado, titulo))
             return opciones, 1
         return opciones, 0
@@ -248,8 +257,9 @@ def _aplicar_extras(cliente_yt, id_video, extras, avisar) -> None:
         except Exception as exc:
             _aviso_extras(
                 avisar,
-                "No se pudieron poner la categoría y las etiquetas: "
-                + youtube_api.mensaje_error_api(exc))
+                _("No se pudieron poner la categoría y las etiquetas: "
+                  "{detalle}").format(
+                      detalle=youtube_api.mensaje_error_api(exc)))
     if miniatura:
         try:
             cliente_yt.poner_miniatura(id_video, miniatura)
@@ -261,8 +271,9 @@ def _aplicar_extras(cliente_yt, id_video, extras, avisar) -> None:
         except Exception as exc:
             _aviso_extras(
                 avisar,
-                "No se pudo agregar el directo a la lista: "
-                + youtube_api.mensaje_error_api(exc))
+                _("No se pudo agregar el directo a la lista: "
+                  "{detalle}").format(
+                      detalle=youtube_api.mensaje_error_api(exc)))
 
 
 def preparar_en_youtube(cliente_yt, cliente_obs, cuerpo, parada=None,
@@ -279,9 +290,9 @@ def preparar_en_youtube(cliente_yt, cliente_obs, cuerpo, parada=None,
         flujo = cliente_yt.flujo_reutilizable()
         if flujo is None:
             raise EmisionError(
-                "La cuenta de YouTube no tiene una clave de emisión "
-                "reutilizable. Se crea en YouTube Studio, en Emitir en "
-                "directo.")
+                _("La cuenta de YouTube no tiene una clave de emisión "
+                  "reutilizable. Se crea en YouTube Studio, en Emitir en "
+                  "directo."))
         id_flujo, servidor, clave = flujo
         id_video = cliente_yt.crear_emision(cuerpo)
         try:

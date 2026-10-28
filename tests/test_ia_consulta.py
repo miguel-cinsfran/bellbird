@@ -5,6 +5,7 @@ import json
 import threading
 import unittest
 
+from tests.pseudo_prueba import con_pseudo
 from ytchat.ai import catalogo
 from ytchat.ai import consulta
 from ytchat.ai import conversacion
@@ -308,6 +309,67 @@ class TestTextoDeError(unittest.TestCase):
         self.assertEqual(consulta.texto_de_error(ValueError("boom")),
                          "No se pudo completar la consulta. "
                          "Vuelve a intentarlo.")
+
+
+class TestPseudoTextos(unittest.TestCase):
+    """Bajo pseudotraducción, cada frase al usuario sale marcada."""
+
+    def test_errores_y_cortada_van_marcados(self):
+        tipos = (protocolos.CLAVE_RECHAZADA, protocolos.CUOTA,
+                 protocolos.MODELO_INEXISTENTE, protocolos.BLOQUEADA,
+                 protocolos.SIN_TEXTO_POR_TOKENS, protocolos.RESPUESTA_VACIA,
+                 protocolos.SERVIDOR, protocolos.RECHAZO,
+                 protocolos.SIN_RED, protocolos.TIEMPO_AGOTADO,
+                 "tipo_nuevo")
+        with con_pseudo():
+            marcados = [consulta.texto_de_error(
+                protocolos.ErrorIA(tipo, "detalle-secreto-xyz"))
+                for tipo in tipos]
+            marcados.append(consulta.texto_de_error(
+                conversacion.SinCaptura("x")))
+            marcados.append(consulta.texto_de_error(
+                conversacion.SinTexto("x")))
+            marcados.append(consulta.texto_de_error(ValueError("boom")))
+            sin_nivel = consulta.texto_de_error(protocolos.ErrorIA(
+                protocolos.CUOTA, "detalle", sin_nivel_gratuito=True))
+        for texto in marcados + [sin_nivel]:
+            with self.subTest(texto=texto):
+                self.assertTrue(texto.startswith("[¡"), texto)
+                self.assertNotIn("detalle-secreto-xyz", texto)
+
+    def test_validacion_marca_los_mensajes(self):
+        charla = _charla_con_captura()
+        with con_pseudo():
+            with self.assertRaises(consulta.FaltaConfiguracion) as primero:
+                consulta.preparar(
+                    charla, "hola",
+                    AjustesIA(proveedor="inventado", modelo="m"), {}, "c",
+                    "")
+            with self.assertRaises(consulta.FaltaConfiguracion) as segundo:
+                consulta.preparar(
+                    charla, "hola", AjustesIA(proveedor="otro", modelo="m",
+                                             direccion="mala"), {}, "c", "")
+            with self.assertRaises(consulta.FaltaConfiguracion) as tercero:
+                consulta.preparar(
+                    charla, "hola", AjustesIA(proveedor="gemini", modelo="m"),
+                    {}, "   ", "")
+        for salida in (primero, segundo, tercero):
+            with self.subTest(mensaje=str(salida.exception)):
+                self.assertTrue(str(salida.exception).startswith("[¡"),
+                                str(salida.exception))
+
+    def test_cortada_marca_la_frase_y_conserva_la_respuesta(self):
+        charla = _charla_con_captura()
+        ajustes, clave = _ajustes()
+        preparada = consulta.preparar(charla, "hola", ajustes,
+                                      _muestra_opencode_go(), clave, "")
+        with con_pseudo():
+            texto = consulta.consultar(
+                charla, preparada, clave,
+                enviar=lambda p, c, t: _respuesta("Parte", cortada=True))
+        self.assertIn("Parte", texto)
+        self.assertIn("[¡", texto)
+        self.assertEqual(charla.mensajes[1].texto, "Parte")
 
 
 class _ServidorChat(http.server.BaseHTTPRequestHandler):

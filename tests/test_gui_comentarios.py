@@ -295,7 +295,7 @@ class TestPseudoAvisos(unittest.TestCase):
         for frase in captados:
             self.assertTrue(frase.startswith("[¡"), frase)
 
-    def test_cuadro_propio_marcado_y_mensaje_ajeno_pendiente(self):
+    def test_cuadro_propio_y_mensaje_marcados(self):
         panel = self._panel()
         captado = {}
 
@@ -309,7 +309,7 @@ class TestPseudoAvisos(unittest.TestCase):
                 mock.patch.object(gui_comentarios, "anunciar"):
             panel._escritura_err(Exception("commentsDisabled"))
         self.assertTrue(captado["titulo"].startswith("[¡"))
-        self.assertFalse(captado["mensaje"].startswith("[¡"))
+        self.assertTrue(captado["mensaje"].startswith("[¡"))
 
 
 class TestColumnasPseudo(unittest.TestCase):

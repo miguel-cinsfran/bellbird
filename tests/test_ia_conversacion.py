@@ -2,6 +2,7 @@
 
 import unittest
 
+from tests.pseudo_prueba import con_pseudo
 from ytchat.ai import conversacion
 from ytchat.ai.conversacion import Conversacion
 from ytchat.ai import protocolos
@@ -228,6 +229,24 @@ class TestFilasYReemplazo(unittest.TestCase):
         charla.confirmar(pedido[-1].texto, "Se ve algo")
         self.assertTrue(charla.hay_captura())
 
+
+class TestPseudoFilas(unittest.TestCase):
+    """Bajo pseudotraducción, las filas marcan sus prefijos propios."""
+
+    def test_filas_marcan_prefijos_y_conservan_datos(self):
+        charla = Conversacion()
+        with con_pseudo():
+            charla.agregar_captura(IMAGEN_UNO, "OBS", "10:00")
+            pedido = charla.preparar("", conversacion.PREGUNTA_INICIAL)
+            charla.confirmar(pedido[-1].texto, "Se ve algo")
+            filas = list(charla.filas)
+        self.assertEqual(len(filas), 3)
+        for fila in filas:
+            with self.subTest(fila=fila):
+                self.assertTrue(fila.startswith("[¡"), fila)
+        for dato in ("OBS", "10:00", "Se ve algo"):
+            with self.subTest(dato=dato):
+                self.assertTrue(any(dato in fila for fila in filas), filas)
 
 class TestInvariantes(unittest.TestCase):
 

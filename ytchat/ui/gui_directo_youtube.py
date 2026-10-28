@@ -157,7 +157,8 @@ class DialogoDirectoYoutube(wx.Dialog):
         rotulo_privacidad = wx.StaticText(zona, label=_("Privacidad:"))
         contenido.Add(rotulo_privacidad, 0, wx.LEFT | wx.RIGHT, 10)
         self.cho_privacidad = wx.Choice(
-            zona, choices=[ETIQUETAS_PRIVACIDAD[p] for p in PRIVACIDADES],
+            zona, choices=[_(ETIQUETAS_PRIVACIDAD[p])
+                           for p in PRIVACIDADES],
             name=_("Privacidad"))
         self.cho_privacidad.SetSelection(PRIVACIDADES.index(privacidad))
         nombre_accesible(self.cho_privacidad, _("Privacidad"))
@@ -166,7 +167,7 @@ class DialogoDirectoYoutube(wx.Dialog):
         rotulo_latencia = wx.StaticText(zona, label=_("&Latencia:"))
         contenido.Add(rotulo_latencia, 0, wx.LEFT | wx.RIGHT, 10)
         self.cho_latencia = wx.Choice(
-            zona, choices=[ETIQUETAS_LATENCIA[l] for l in LATENCIAS],
+            zona, choices=[_(ETIQUETAS_LATENCIA[l]) for l in LATENCIAS],
             name=_("Latencia"))
         self.cho_latencia.SetSelection(LATENCIAS.index(latencia))
         nombre_accesible(self.cho_latencia, _("Latencia"))
@@ -191,7 +192,7 @@ class DialogoDirectoYoutube(wx.Dialog):
         rotulo_categoria = wx.StaticText(zona, label=_("Cate&goría:"))
         contenido.Add(rotulo_categoria, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.cho_categoria = wx.Choice(
-            zona, choices=[texto for _id, texto in CATEGORIAS],
+            zona, choices=[_(texto) for _id, texto in CATEGORIAS],
             name=_("Categoría"))
         ids = [identificador for identificador, _texto in CATEGORIAS]
         self.cho_categoria.SetSelection(

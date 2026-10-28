@@ -16,10 +16,10 @@ Los parsers (`parsear_pagina_comentarios`, `normalizar_comentario`,
 
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass
 
 from ytchat.core import diagnostico
+from ytchat.core.idioma import N_, _
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -62,7 +62,8 @@ class Comentario:
 def normalizar_comentario(snippet: dict, comment_id: str = "",
                           es_respuesta: bool = False, respuestas: int = 0) -> Comentario:
     """Convierte el `snippet` de un comment recurso a un Comentario."""
-    autor = (snippet.get("authorDisplayName") or "Usuario").strip() or "Usuario"
+    # Traductores: autor cuando YouTube no da el nombre; una sola palabra.
+    autor = (snippet.get("authorDisplayName") or _("Usuario")).strip() or _("Usuario")
     texto = snippet.get("textOriginal") or snippet.get("textDisplay") or ""
     try:
         likes = int(snippet.get("likeCount", 0) or 0)
@@ -124,30 +125,30 @@ def sesion_caducada(exc) -> bool:
 def mensaje_error_api(exc) -> str:
     """Traduce errores de la API a algo legible para el usuario."""
     if sesion_caducada(exc):
-        return ("Tu sesión de YouTube caducó. Vuelve a iniciar sesión en "
-                "Preferencias, pestaña API y sesión.")
+        return _("Tu sesión de YouTube caducó. Vuelve a iniciar sesión en "
+                 "Preferencias, pestaña API y sesión.")
     texto = str(exc)
     low = texto.lower()
     if "quotaexceeded" in low or "quota" in low and "exceeded" in low:
-        return ("Se agotó la cuota diaria de la API de YouTube. "
-                "Vuelve a intentarlo mañana o usa otra clave.")
+        return _("Se agotó la cuota diaria de la API de YouTube. "
+                 "Vuelve a intentarlo mañana o usa otra clave.")
     if "commentsdisabled" in low or "disabled comments" in low:
-        return "Los comentarios están desactivados en este vídeo."
+        return _("Los comentarios están desactivados en este vídeo.")
     if "videonotfound" in low or "video not found" in low:
-        return "No se encontró el vídeo. Revisa la URL o el ID."
+        return _("No se encontró el vídeo. Revisa la URL o el ID.")
     if "keyinvalid" in low or "api key not valid" in low or "badrequest" in low and "key" in low:
-        return "La API key no es válida. Revísala en Configuración."
+        return _("La API key no es válida. Revísala en Configuración.")
     if "livestreamingnotenabled" in low:
-        return ("La cuenta de YouTube no tiene los directos activados. "
-                "Se activan en YouTube Studio y pueden tardar hasta 24 horas.")
+        return _("La cuenta de YouTube no tiene los directos activados. "
+                 "Se activan en YouTube Studio y pueden tardar hasta 24 horas.")
     if "insufficientpermissions" in low or "forbidden" in low:
-        return ("No tienes permiso para esta acción. Debes ser el dueño o "
-                "moderador del directo, y haber iniciado sesión.")
+        return _("No tienes permiso para esta acción. Debes ser el dueño o "
+                 "moderador del directo, y haber iniciado sesión.")
     if "livechatnotfound" in low or "live chat not found" in low:
-        return "Este vídeo no tiene un chat en vivo activo."
+        return _("Este vídeo no tiene un chat en vivo activo.")
     if "rate" in low and "limit" in low:
-        return "Demasiadas peticiones seguidas. Espera unos segundos."
-    return f"Error de la API de YouTube: {texto}"
+        return _("Demasiadas peticiones seguidas. Espera unos segundos.")
+    return _("Error de la API de YouTube: {detalle}").format(detalle=texto)
 
 
 def comentarios_desactivados(exc) -> bool:
@@ -158,7 +159,7 @@ def comentarios_desactivados(exc) -> bool:
 
 # Frase para cuando YouTube rechaza la miniatura por falta de verificación
 # telefónica del canal: `thumbnails.set` responde 403 en ese caso.
-FRASE_MINiatura_SIN_VERIFICAR = (
+FRASE_MINiatura_SIN_VERIFICAR = N_(
     "YouTube no aceptó la miniatura: el canal tiene que estar verificado "
     "por teléfono.")
 
@@ -195,8 +196,8 @@ def mensaje_error_miniatura(exc) -> str:
     teléfono; cualquier otro error se traduce con `mensaje_error_api`.
     """
     if es_error_403(exc):
-        return FRASE_MINiatura_SIN_VERIFICAR
-    return "No se pudo poner la miniatura: " + mensaje_error_api(exc)
+        return _(FRASE_MINiatura_SIN_VERIFICAR)
+    return _("No se pudo poner la miniatura: {detalle}").format(detalle=mensaje_error_api(exc))
 
 
 def _mimetype_imagen(ruta: str) -> str:
@@ -232,8 +233,8 @@ def iniciar_sesion(client_id: str, client_secret: str) -> str:
     creds = flow.run_local_server(port=0, open_browser=True,
                                   prompt="consent",
                                   authorization_prompt_message="",
-                                  success_message="Sesión iniciada. Ya puedes "
-                                  "volver a la aplicación.")
+                                   success_message=_("Sesión iniciada. Ya puedes "
+                                                     "volver a la aplicación."))
     return creds.to_json()
 
 
@@ -365,8 +366,7 @@ class ClienteYouTube:
             }},
         ).execute()
 
-    def banear_usuario(self, live_chat_id: str, canal_id: str,
-                       segundos: int | None = None) -> None:
+    def banear_usuario(self, live_chat_id: str, canal_id: str, segundos: int | None = None) -> None:
         """segundos=None -> baneo permanente; >0 -> timeout temporal."""
         snippet = {
             "liveChatId": live_chat_id,
@@ -487,7 +487,7 @@ class ClienteYouTube:
                     continue
                 titulo = ((item.get("snippet") or {}).get("title")
                           or "").strip()
-                salida.append((id_lista, titulo or "Sin título"))
+                salida.append((id_lista, titulo or _("Sin título")))
             pagina = resp.get("nextPageToken", "") or ""
             if not pagina:
                 break

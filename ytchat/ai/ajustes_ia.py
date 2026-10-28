@@ -13,6 +13,7 @@ from pathlib import Path
 
 from ytchat.core import config
 from ytchat.core import ini_tipado
+from ytchat.core.idioma import _
 from ytchat.ai import conversacion
 from ytchat.ai import proveedores
 
@@ -149,4 +150,4 @@ def pregunta_efectiva(ajustes: AjustesIA) -> str:
     limpia = (ajustes.pregunta or "").strip()
     if limpia:
         return limpia
-    return conversacion.PREGUNTA_INICIAL
+    return _(conversacion.PREGUNTA_INICIAL)

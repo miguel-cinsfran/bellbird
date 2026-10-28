@@ -5,6 +5,7 @@ import sys
 import types
 from unittest import mock
 
+from tests.pseudo_prueba import con_pseudo
 from ytchat.youtube.youtube_api import (
     ClienteYouTube, FRASE_MINiatura_SIN_VERIFICAR, normalizar_comentario,
     parsear_pagina_comentarios, comentarios_desactivados, es_error_403,
@@ -262,6 +263,41 @@ class TestErrorDeMiniaturaMensajes(unittest.TestCase):
     def test_otro_error_se_traduce(self):
         self.assertIn("No se pudo poner la miniatura",
                       mensaje_error_miniatura(RuntimeError("videoNotFound")))
+
+
+class TestPseudoMensajes(unittest.TestCase):
+    """Bajo pseudotraducción, cada frase al usuario sale marcada."""
+
+    def test_errores_de_api_van_marcados(self):
+        casos = ("Tu sesión", "quotaExceeded", "commentsDisabled",
+                 "videoNotFound", "keyInvalid", "liveStreamingNotEnabled",
+                 "insufficientPermissions", "liveChatNotFound",
+                 "rate limit alcanzado", "algo raro")
+        with con_pseudo():
+            marcados = [mensaje_error_api(caso) for caso in casos]
+            marcados.append(
+                mensaje_error_miniatura(RuntimeError("forbidden")))
+            marcados.append(
+                mensaje_error_miniatura(RuntimeError("videoNotFound")))
+        for texto in marcados:
+            with self.subTest(texto=texto):
+                self.assertTrue(texto.startswith("[¡"), texto)
+
+    def test_autor_y_titulo_por_defecto_van_marcados(self):
+        with con_pseudo():
+            autor = normalizar_comentario({}).autor
+        self.assertTrue(autor.startswith("[¡"), autor)
+
+    def test_lista_sin_titulo_va_marcada(self):
+        cliente = ClienteYouTube({"token": "{}"})
+        servicio = ServicioListasFalso([{"items": [
+            {"id": "PL1", "snippet": {"title": ""}},
+        ]}])
+        cliente._svc_escritura = servicio
+        with con_pseudo():
+            listas = cliente.listas_del_canal()
+        self.assertEqual(len(listas), 1)
+        self.assertTrue(listas[0][1].startswith("[¡"), listas)
 
 
 class ServicioFlujosFalso:

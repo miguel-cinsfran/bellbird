@@ -5,6 +5,8 @@ import unittest
 from datetime import datetime
 from unittest import mock
 
+from tests.pseudo_prueba import con_pseudo
+from ytchat.core.idioma import _
 from ytchat.obs import obs_cliente
 from ytchat.obs.obs_destinos import Destino
 from ytchat.youtube import emision
@@ -140,6 +142,86 @@ class TestErrorDeMiniatura(unittest.TestCase):
         self.assertIsNone(
             error_de_miniatura("foto.png",
                                tamanio=lambda _r: 2 * 1024 * 1024))
+
+
+class TestPseudoTextos(unittest.TestCase):
+    """Bajo pseudotraducción, cada frase al usuario sale marcada."""
+
+    def test_error_de_miniatura_marca_los_caminos(self):
+        def revienta(_ruta):
+            raise OSError("no está")
+        with con_pseudo():
+            marcada = [
+                error_de_miniatura(""),
+                error_de_miniatura("foto.gif",
+                                   tamanio=lambda _r: 10),
+                error_de_miniatura("foto.jpg", tamanio=revienta),
+                error_de_miniatura("foto.png",
+                                   tamanio=lambda _r: 2 * 1024 * 1024 + 1),
+            ]
+            sin_fallo = error_de_miniatura("foto.png",
+                                           tamanio=lambda _r: 100)
+        for texto in marcada:
+            with self.subTest(texto=texto):
+                self.assertTrue(texto.startswith("[¡"), texto)
+        self.assertIsNone(sin_fallo)
+
+    def test_etiquetas_y_categorias_van_marcadas(self):
+        with con_pseudo():
+            marcados = [_(emision.ETIQUETAS_PRIVACIDAD[p])
+                        for p in emision.PRIVACIDADES]
+            marcados.extend(_(emision.ETIQUETAS_LATENCIA[lat])
+                            for lat in emision.LATENCIAS)
+            marcados.extend(_(texto)
+                            for _identificador, texto in emision.CATEGORIAS)
+        for texto in marcados:
+            with self.subTest(texto=texto):
+                self.assertTrue(texto.startswith("[¡"), texto)
+
+    def test_opciones_lista_marcan_ninguna_y_guardada(self):
+        with con_pseudo():
+            opciones, _indice = emision.opciones_lista(None, "PL9", "")
+            cargadas, _otro = emision.opciones_lista(
+                [("PL1", "Uno")], "", "")
+        textos = dict(opciones)
+        self.assertTrue(textos[""].startswith("[¡"), textos)
+        self.assertTrue(textos["PL9"].startswith("[¡"), textos)
+        titulos = dict(cargadas)
+        self.assertTrue(titulos[""].startswith("[¡"), titulos)
+        # Los títulos que da YouTube son datos: pasan sin marcar.
+        self.assertEqual(titulos["PL1"], "Uno")
+
+    def test_titulo_por_defecto_va_marcado(self):
+        with con_pseudo():
+            titulo = titulo_por_defecto(datetime(2026, 10, 14))
+        self.assertTrue(titulo.startswith("[¡"), titulo)
+        self.assertIn("14/10/2026", titulo)
+
+    def test_preparar_sin_flujo_marca(self):
+        cliente_yt = ClienteYTFalso(flujo=None)
+        with con_pseudo():
+            with self.assertRaises(EmisionError) as contexto:
+                preparar_en_youtube(cliente_yt, "obs", {},
+                                    preparar_destino=lambda *a, **k: None)
+        self.assertTrue(str(contexto.exception).startswith("[¡"),
+                        str(contexto.exception))
+
+    def test_extras_avisan_marcado(self):
+        cliente_yt = ClienteYTFalso(
+            fallos={"categoria": RuntimeError("quotaExceeded"),
+                    "miniatura": ErrorHttp403(),
+                    "lista": RuntimeError("quotaExceeded")})
+        avisos = []
+        extras = {"categoria": "20", "etiquetas": [], "miniatura": "foto.jpg",
+                  "titulo": "T", "descripcion": "D", "lista": "PL123"}
+        with con_pseudo():
+            preparar_en_youtube(
+                cliente_yt, "obs", {}, preparar_destino=lambda *a, **k: None,
+                extras=extras, avisar=avisos.append)
+        self.assertEqual(len(avisos), 3)
+        for aviso in avisos:
+            with self.subTest(aviso=aviso):
+                self.assertTrue(aviso.startswith("[¡"), aviso)
 
 
 class TestTituloYUrl(unittest.TestCase):

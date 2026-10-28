@@ -498,22 +498,14 @@ class TestDialogoDirectoVentana(unittest.TestCase):
                     directo.pedir_datos_directo(None, "Hola", "", "unlisted"))
 
 
-# Textos que arman otros módulos y aparecen en el recorrido: las opciones
-# de privacidad, latencia y categoría de `ytchat/youtube/emision.py`
-# (ETIQUETAS_PRIVACIDAD, ETIQUETAS_LATENCIA y CATEGORIAS) y el «Ninguna»
-# de `opciones_lista`, del mismo módulo. El título de la lista recordada
-# es un dato del usuario y va como propio. La comparación es exacta en
-# los dos sentidos: falla si aparece un texto nuevo sin envolver y si un
-# pendiente ya no está en el recorrido, para vaciar la lista cuando ese
-# módulo pase por gettext.
-PENDIENTES_DIRECTO_YOUTUBE = (
-    "Público", "No listado", "Privado",
-    "Normal", "Baja", "Ultrabaja",
-    "Sin cambiar", "Videojuegos", "Personas y blogs", "Entretenimiento",
-    "Música", "Educación", "Ciencia y tecnología", "Deportes", "Comedia",
-    "Noticias y política", "Consejos y estilo",
-    "Ninguna",
-)
+# Textos que armaban otros módulos y ya pasan por gettext: las opciones de
+# privacidad, latencia y categoría de `ytchat/youtube/emision.py`
+# (ETIQUETAS_PRIVACIDAD, ETIQUETAS_LATENCIA y CATEGORIAS, traducidas donde
+# se muestran) y el Ninguna de `opciones_lista`, del mismo módulo. El
+# título de la lista recordada es un dato del usuario y va como propio.
+# La comparación es exacta en los dos sentidos: falla si aparece un texto
+# nuevo sin envolver y si un pendiente vuelve al recorrido.
+PENDIENTES_DIRECTO_YOUTUBE = ()
 
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")

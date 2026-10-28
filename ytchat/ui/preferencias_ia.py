@@ -294,7 +294,7 @@ class PaginaIA:
         self._ia_actualizar_aviso()
 
     def _on_ia_restaurar(self, event):
-        self.txt_ia_pregunta.SetValue(conversacion.PREGUNTA_INICIAL)
+        self.txt_ia_pregunta.SetValue(_(conversacion.PREGUNTA_INICIAL))
         anunciar(opciones_ia.TEXTO_INSTRUCCION_RESTAURADA)
 
     def _on_ia_probar_clave(self, event):

@@ -16,6 +16,8 @@ import wx
 
 from ytchat.core import diagnostico
 from ytchat.core import paths
+from ytchat.obs import obs_ventana
+from ytchat.ui.accesibilidad import anunciar
 from ytchat.ui.atajos_captura import ETIQUETAS
 
 logger = diagnostico.obtener_logger(__name__)
@@ -171,12 +173,21 @@ def construir_menu(frame):
     _registrar_menus(frame)
 
 
+def _mostrar_obs() -> None:
+    """Trae al frente la ventana principal de OBS, si está abierto."""
+    texto = obs_ventana.mostrar()
+    if texto:
+        anunciar(texto)
+
+
 def _construir_menu_transmision(frame, mb):
     m = wx.Menu()
     frame.mi_transmision = m.Append(
         wx.ID_ANY, "&Panel de transmisión…" + frame._accel("abrir_transmision"))
     frame.mi_obs_micro = m.Append(
         wx.ID_ANY, "Silenciar el &micrófono de OBS" + frame._accel("obs_micro"))
+    frame.mi_mostrar_obs = m.Append(
+        wx.ID_ANY, "Mostrar &OBS" + frame._accel("mostrar_obs"))
     frame.mi_avisos_sobrecarga = m.AppendCheckItem(
         wx.ID_ANY,
         "&Avisar cuando OBS no da abasto" + frame._accel("avisos_sobrecarga"))
@@ -187,6 +198,7 @@ def _construir_menu_transmision(frame, mb):
               lambda e: wx.CallAfter(frame._on_transmision, None),
               frame.mi_transmision)
     frame.Bind(wx.EVT_MENU, frame._on_obs_micro, frame.mi_obs_micro)
+    frame._bind_menu(frame.mi_mostrar_obs, _mostrar_obs)
     frame._bind_menu(frame.mi_avisos_sobrecarga,
                      frame._alternar_aviso_sobrecarga)
 

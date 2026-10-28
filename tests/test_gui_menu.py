@@ -170,6 +170,7 @@ class TestEquivalenciaMenu(unittest.TestCase):
             ("&Reproductor", "Mostrar botones en &pantalla", ANY, "check"),
             ("&Transmisión", "&Panel de transmisión…", ANY, "normal"),
             ("&Transmisión", "Silenciar el &micrófono de OBS", ANY, "normal"),
+            ("&Transmisión", "Mostrar &OBS", ANY, "normal"),
             ("&Transmisión", "&Avisar cuando OBS no da abasto", ANY, "check"),
             ("&Música", "&Elegir música…", ANY, "normal"),
             ("&Música", "---", None, "sep"),
@@ -322,6 +323,49 @@ class TestRegistroDeComandos(unittest.TestCase):
             frame.GetEventHandler().ProcessEvent(evento)
 
         self.assertIn("etiqueta=?", registro.output[0])
+
+
+class TestCableadoMostrarObs(unittest.TestCase):
+    """Elegir Mostrar OBS llama a obs_ventana.mostrar y anuncia su texto."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+
+    @classmethod
+    def tearDownClass(cls):
+        del cls.app
+
+    def _frame_con_menu(self):
+        from ytchat.ui import gui_menu
+
+        frame = wx.Frame(None)
+        self.addCleanup(destruir, frame)
+        frame._accel = lambda _accion: ""
+        frame._bind_menu = gui.YTChatFrame._bind_menu.__get__(frame)
+        frame._config = {"avisar_sobrecarga": True}
+        frame._on_transmision = mock.Mock()
+        frame._on_obs_micro = mock.Mock()
+        frame._alternar_aviso_sobrecarga = mock.Mock()
+        barra = wx.MenuBar()
+        gui_menu._construir_menu_transmision(frame, barra)
+        frame.SetMenuBar(barra)
+        return frame
+
+    def test_elegir_mostrar_obs_anuncia_lo_que_devuelve_mostrar(self):
+        from ytchat.ui import gui_menu
+
+        frame = self._frame_con_menu()
+        with mock.patch.object(gui_menu.obs_ventana, "mostrar",
+                               return_value="OBS no está abierto.") as mostrar, \
+                mock.patch.object(gui_menu, "anunciar") as anunciar, \
+                mock.patch.object(gui_menu.wx, "CallAfter",
+                                  side_effect=lambda fn, *a: fn(*a)):
+            evento = wx.CommandEvent(
+                wx.EVT_MENU.typeId, frame.mi_mostrar_obs.GetId())
+            frame.GetEventHandler().ProcessEvent(evento)
+        mostrar.assert_called_once_with()
+        anunciar.assert_called_once_with("OBS no está abierto.")
 
 
 if __name__ == "__main__":

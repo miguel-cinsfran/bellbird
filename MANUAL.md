@@ -264,6 +264,11 @@ Windows, WO Mic Device». Si OBS usa el predeterminado, el micrófono es el
 que Windows tenga elegido en ese momento, y puede no ser el que esperas.
 Para que no cambie, elige el dispositivo en las propiedades de la fuente
 de micrófono en OBS.
+
+`Ctrl+Mayús+O`, o *Mostrar OBS* en el menú *Transmisión*, trae al frente la
+ventana de OBS, también cuando está en el área de notificación. Si OBS
+espera una respuesta, como la pregunta del modo seguro, el foco va a ese
+cuadro.
 Después de activarlo, la aplicación escucha tres segundos. Si no entra
 ningún sonido, suena un aviso propio y dice «El micrófono no recibe
 sonido. Revisa cuál está elegido en Windows o en OBS.».
@@ -430,6 +435,7 @@ acción.
 | `Ctrl+Mayús+D` | Gestor de descargas |
 | `Ctrl+Mayús+M` | Música |
 | `Ctrl+Mayús+I` | Preguntar a la IA sobre la imagen |
+| `Ctrl+Mayús+O` | Mostrar OBS |
 
 ### Directo y OBS (Alt+Mayús)
 

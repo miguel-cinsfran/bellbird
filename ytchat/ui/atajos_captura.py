@@ -65,6 +65,7 @@ ETIQUETAS = {
     "abrir_historial": "Abrir el historial de directos",
     "marcar_incidencia": "Marcar incidencia",
     "abrir_transmision": "Abrir Transmisión",
+    "mostrar_obs": "Mostrar OBS",
     "copiar_enlace": "Copiar enlace del directo",
     "obs_micro": "Silenciar el micrófono de OBS",
     "avisos_sobrecarga": "Activar o desactivar los avisos de sobrecarga",

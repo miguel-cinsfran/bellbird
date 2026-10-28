@@ -57,7 +57,7 @@ def mensaje_de_actualizacion(estado, version_actual="", version_nueva="",
     if estado == "actualizado":
         return f"yt-dlp se actualizó a la versión {version_nueva or version_actual}."
     if estado == "sin_conexion":
-        return "No pude comprobar la última versión de yt-dlp. Revisa tu conexión."
+        return "No se pudo comprobar la última versión de yt-dlp. Revisa la conexión a internet."
     if estado == "firma_incorrecta":
         return ("La descarga de yt-dlp no pasó una comprobación de seguridad. "
                 "No se instaló nada.")

@@ -108,6 +108,13 @@ class PruebasYtdlpBin(unittest.TestCase):
     def test_mensaje_sin_conexion(self):
         self.assertIn("última versión", ytdlp_bin.mensaje_de_actualizacion("sin_conexion"))
 
+    def test_mensaje_sin_conexion_completo(self):
+        self.assertEqual(
+            "No se pudo comprobar la última versión de yt-dlp. "
+            "Revisa la conexión a internet.",
+            ytdlp_bin.mensaje_de_actualizacion("sin_conexion"),
+        )
+
     def test_mensaje_firma_incorrecta_avisa_que_no_instalo(self):
         self.assertIn("No se instaló nada", ytdlp_bin.mensaje_de_actualizacion("firma_incorrecta"))
 

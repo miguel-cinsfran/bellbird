@@ -1183,7 +1183,7 @@ class FinalizarYoutubeTest(BaseSupervisor):
 
 class PanelAdelanteTest(BaseSupervisor):
     FRASE = ("El panel de chat estaba detrás de "
-             "«Captura de pantalla». Lo puse adelante.")
+             "«Captura de pantalla». Ahora está delante.")
 
     def armar_con_panel(self, respuestas, estados=None, intervalo=5.0):
         reloj = RelojFalso()

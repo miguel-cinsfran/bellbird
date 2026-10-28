@@ -319,7 +319,7 @@ class SupervisorTransmision:
     def _anunciar_panel_tapado(self, nombre) -> None:
         self._anunciar(
             f"El panel de chat estaba detrás de «{nombre}». "
-            "Lo puse adelante.", "aviso")
+            "Ahora está delante.", "aviso")
 
     def _probar_obs(self) -> None:
         gestor = self._crear_gestor()
@@ -575,7 +575,7 @@ class SupervisorTransmision:
             if nombre:
                 frase_panel = (
                     f"El panel de chat estaba detrás de «{nombre}». "
-                    "Lo puse adelante.")
+                    "Ahora está delante.")
                 ahora = self._reloj()
                 ultimo = ultimos_avisos.get(frase_panel)
                 if ultimo is None or ahora - ultimo >= PLAZO_REPETICION:

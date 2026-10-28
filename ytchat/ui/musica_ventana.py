@@ -256,8 +256,8 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
             self.lb_temas.SetSelection(wx.NOT_FOUND)
 
     def _cambiar_estado(self, texto):
-        self._cargando = texto == TEXTO_CARGANDO
-        if texto == TEXTO_CARGANDO:
+        self._cargando = texto == _(TEXTO_CARGANDO)
+        if texto == _(TEXTO_CARGANDO):
             self._temas_filtrados = ()
         self.lb_temas.Set([texto])
         self.btn_carpeta.Enable(not self._cargando)

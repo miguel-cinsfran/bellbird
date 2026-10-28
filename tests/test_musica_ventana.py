@@ -1850,6 +1850,42 @@ class TestVentanaVigiaYExaminar(unittest.TestCase):
 
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestCambiarEstadoTraducido(unittest.TestCase):
+    """`_cambiar_estado` reconoce el texto traducido, no solo el español.
+
+    La comparación decide si la lista está cargando: se hace contra la
+    constante traducida, con su prueba bajo `con_pseudo()`.
+    """
+
+    def setUp(self):
+        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.ventana = None
+
+    def tearDown(self):
+        if self.ventana is not None:
+            self.ventana._cancelar_temporizador()
+            self.ventana._parar_igualando()
+            destruir(self.ventana)
+
+    def test_cargando_con_texto_traducido(self):
+        from ytchat.ui.musica_colecciones import TEXTO_CARGANDO
+        with con_pseudo():
+            self.ventana = musica_ventana.VentanaMusica(
+                None, ControlFalso(biblioteca=None))
+            self.ventana._cambiar_estado(_(TEXTO_CARGANDO))
+        self.assertTrue(self.ventana._cargando)
+        self.assertEqual(self.ventana._temas_filtrados, ())
+
+    def test_sin_carpeta_con_texto_traducido_no_es_cargando(self):
+        from ytchat.ui.musica_colecciones import TEXTO_SIN_CARPETA
+        with con_pseudo():
+            self.ventana = musica_ventana.VentanaMusica(
+                None, ControlFalso(biblioteca=None))
+            self.ventana._cambiar_estado(_(TEXTO_SIN_CARPETA))
+        self.assertFalse(self.ventana._cargando)
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestVentanaPseudo(unittest.TestCase):
     """Ningún texto visible de la ventana sin pasar por gettext."""
 

@@ -19,13 +19,9 @@ from datetime import datetime
 import wx
 from wx.lib.wordwrap import wordwrap
 
-from ytchat.core.config import (
-    APP_NAME, APP_VERSION,
-    TIPO_TEXTO,
-    FILTROS,
-)
-from ytchat.core.config import (parsear_atajos, detectar_conflictos_atajos,
-                    guardar_opcion)
+from ytchat.core.config import APP_NAME, APP_VERSION, TIPO_TEXTO, FILTROS
+from ytchat.core.config import parsear_atajos, detectar_conflictos_atajos, guardar_opcion
+from ytchat.core.idioma import N_, _
 from ytchat.core import paths
 from ytchat.core import anuncio_ajuste
 from ytchat.core import sonidos_eventos
@@ -62,7 +58,9 @@ from ytchat.ui.sesion_conectada import SesionConectada
 # Mapeo entre índice de FILTROS y clave persistida en config.ini.
 _NOMBRES_FILTRO = ("todos", "texto", "superchat", "miembro")
 _IDX_FILTRO     = {"todos": 0, "texto": 1, "superchat": 2, "miembro": 3}
-
+# Controles para AnuncioAjuste.COMPARTIDO, compartidos con el reproductor.
+_CONTROL_VELOCIDAD = "velocidad_voz"
+_CONTROL_VOLUMEN = "volumen_voz"
 
 MAX_ITEMS_CHAT  = 500
 TIMER_STATUS_MS = 1000
@@ -72,10 +70,10 @@ ALTO_DEFECTO    = 700
 
 # Mensaje bajo la barra de URL cuando no hay conexión. Breve pero completo:
 # qué se puede pegar y cómo conectar.
-MENSAJE_INICIAL = ("Sin conectar. Pega un enlace de YouTube (directo o vídeo) o "
-                   "de un directo de TikTok y pulsa Conectar (Alt+C). En YouTube "
-                   "podrás leer el chat y los comentarios; en TikTok, el chat del "
-                   "directo.")
+MENSAJE_INICIAL = N_("Sin conectar. Pega un enlace de YouTube (directo o vídeo) o "
+                     "de un directo de TikTok y pulsa Conectar (Alt+C). En YouTube "
+                     "podrás leer el chat y los comentarios; en TikTok, el chat del "
+                     "directo.")
 RUTA_CONFIG = None  # se asigna en iniciar_gui() con paths.config_ini()
 _URL_RE         = re.compile(r'https?://[^\s<>"\']+', re.IGNORECASE)
 
@@ -88,7 +86,8 @@ PAG_COMENTARIOS = 1
 REG_CONEXION = 0
 REG_CONTENIDO = 1
 REG_REPRODUCTOR = 2
-_NOMBRE_REGION = ("Conexión", "Contenido", "Reproductor")
+# Traductores: regiones que recorre F6 en la ventana principal.
+_NOMBRE_REGION = (N_("Conexión"), N_("Contenido"), N_("Reproductor"))
 
 logger = diagnostico.obtener_logger(__name__)
 _OBS_COMPONENTES = frozenset(("obs_transmision", "obs_grabacion", "obs_escena"))
@@ -106,8 +105,9 @@ from ytchat.ui.tema import ALTO_CONTRASTE, _T, _pintar, _tc, _titulo
 def anunciar_conflictos_atajos(raw: dict | None) -> None:
     for perdedora, conservada, combinacion in detectar_conflictos_atajos(raw):
         anunciar(
-            f"Conflicto de atajos: {perdedora} se quedó sin atajo porque "
-            f"{conservada} usa {combinacion}.")
+            _("Conflicto de atajos: {perdedora} se quedó sin atajo porque "
+              "{conservada} usa {combinacion}.").format(
+                perdedora=perdedora, conservada=conservada, combinacion=combinacion))
 
 
 def caja_de_grupo(panel, titulo):
@@ -164,12 +164,12 @@ def mensaje_confirmar_salida(confirmar_salida: bool, chat_conectado: bool,
         return None
     transmision = bool(supervisor_activo or obs_transmitiendo)
     if chat_conectado and transmision:
-        return ("¿Salir de la aplicación? Hay un chat conectado y una "
-                "transmisión en curso.")
+        return (_("¿Salir de la aplicación? Hay un chat conectado y una "
+                  "transmisión en curso."))
     if chat_conectado:
-        return "¿Salir de la aplicación? Hay un chat conectado."
+        return _("¿Salir de la aplicación? Hay un chat conectado.")
     if transmision:
-        return "¿Salir de la aplicación? Hay una transmisión en curso."
+        return _("¿Salir de la aplicación? Hay una transmisión en curso.")
     return None
 
 
@@ -178,7 +178,8 @@ class YTChatFrame(wx.Frame):
     def __init__(self, parent, config, cola, stats, worker, parada):
         super().__init__(
             parent,
-            title=f"{APP_NAME} v{APP_VERSION}",
+            # Traductores: título de la ventana: nombre de la app y versión.
+            title=_("{app} v{version}").format(app=APP_NAME, version=APP_VERSION),
             size=(ANCHO_DEFECTO, ALTO_DEFECTO),
             name="VentanaPrincipal",
         )
@@ -197,7 +198,7 @@ class YTChatFrame(wx.Frame):
         self._apagando  = False
         self._conectado = False
         self._conectando = False   # entre pulsar Conectar y la respuesta
-        self._texto_tipo = MENSAJE_INICIAL   # texto de lbl_tipo sin saltos de Wrap
+        self._texto_tipo = _(MENSAJE_INICIAL)   # texto de lbl_tipo sin saltos de Wrap
         self._titulo_stream = ""
         self.sesion = SesionConectada()
         self._obs_transmitiendo = False   # OBS emite sin supervisor a la vista
@@ -258,7 +259,7 @@ class YTChatFrame(wx.Frame):
         try:    pausado = bool(self._worker.esta_pausado())
         except Exception: return
         self.mi_pausa.SetItemLabel(
-            ("&Reanudar lectura" if pausado else "&Pausar lectura") + self._accel("pausa"))
+            (_("&Reanudar lectura") if pausado else _("&Pausar lectura")) + self._accel("pausa"))
 
     def _cambiar_overlay(self, encender):
         from ytchat.ui import gui_transmitir
@@ -321,17 +322,18 @@ class YTChatFrame(wx.Frame):
 
         # ── Barra superior: URL + tipo + Conectar ──
         row = wx.BoxSizer(wx.HORIZONTAL)
-        lbl = wx.StaticText(panel, label="&URL/ID:", name="EtiquetaURL")
+        lbl = wx.StaticText(panel, label=_("&URL/ID:"), name="EtiquetaURL")
         _titulo(lbl)
         row.Add(lbl, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
-        self.txt_url = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER, name="URL del directo o vídeo")
+        self.txt_url = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER, name=_("URL del directo o vídeo"))
         _tc(self.txt_url)
         self.txt_url.SetToolTip(
-            "Enlace de YouTube (directo o vídeo) o de un directo de TikTok "
-            "(tiktok.com/@usuario/live). También vale el ID de 11 caracteres de "
-            "YouTube. Pulsa Enter para conectar.")
+            _("Enlace de YouTube (directo o vídeo) o de un directo de TikTok "
+              "(tiktok.com/@usuario/live). También vale el ID de 11 caracteres de "
+              "YouTube. Pulsa Enter para conectar."))
         row.Add(self.txt_url, 1, wx.EXPAND | wx.RIGHT, 8)
-        self.btn_conectar = wx.Button(panel, label="&Conectar", name="Conectar")
+        # Traductores: nombre accesible del botón para conectar.
+        self.btn_conectar = wx.Button(panel, label=_("&Conectar"), name=_("Conectar"))
         _pintar(self.btn_conectar, _T.primary, _T.primary_t)
         self.btn_conectar.SetFont(self.btn_conectar.GetFont().Bold())
         row.Add(self.btn_conectar, 0, wx.ALIGN_CENTER_VERTICAL)
@@ -355,19 +357,22 @@ class YTChatFrame(wx.Frame):
         _pintar(self._zona, bg=_T.bg)
         zvs = wx.BoxSizer(wx.VERTICAL)
 
-        self.nb = wx.Notebook(self._zona, name="Paneles")
+        # Traductores: cuaderno con los paneles.
+        self.nb = wx.Notebook(self._zona, name=_("Paneles"))
         _tc(self.nb, bg=_T.surface)
         self._pag_chat = self._build_pagina_chat(self.nb)
         self._com_panel = ComentariosPanel(self.nb, self._cola, self._config)
-        self.nb.AddPage(self._pag_chat, "Chat en vivo")
-        self.nb.AddPage(self._com_panel, "Comentarios")
+        self.nb.AddPage(self._pag_chat, _("Chat en vivo"))
+        # Traductores: pestaña de comentarios.
+        self.nb.AddPage(self._com_panel, _("Comentarios"))
         # Pestaña de información del vídeo (solo lectura). Se añade SIEMPRE al
         # final, para no alterar los índices de Chat/Comentarios, y se puede
         # ocultar por preferencia. La rellena set_metadatos con lo de yt-dlp.
         self._pag_info = self._build_pagina_info(self.nb)
         self._metadatos = {}
         if bool(self._config.get("mostrar_metadatos", True)):
-            self.nb.AddPage(self._pag_info, "Información")
+            # Traductores: pestaña con los datos del vídeo.
+            self.nb.AddPage(self._pag_info, _("Información"))
         else:
             self._pag_info.Hide()
         # Piso para que la lista del chat, los comentarios y la información no
@@ -417,21 +422,21 @@ class YTChatFrame(wx.Frame):
         _pintar(pag, _T.bg, _T.text)
         vs = wx.BoxSizer(wx.VERTICAL)
 
-        lbl = wx.StaticText(pag, label="Mensajes del chat:", name="EtiquetaChat")
+        lbl = wx.StaticText(pag, label=_("Mensajes del chat:"), name="EtiquetaChat")
         _titulo(lbl)
         vs.Add(lbl, 0, wx.LEFT | wx.RIGHT | wx.TOP, 8)
 
         self.lb_chat = wx.ListBox(
-            pag, style=wx.LB_SINGLE | wx.LB_HSCROLL, name="Chat en vivo")
+            pag, style=wx.LB_SINGLE | wx.LB_HSCROLL, name=_("Chat en vivo"))
         _tc(self.lb_chat)
         pt = int(self._config.get("tamanio_fuente_chat", 12))
         self.lb_chat.SetFont(wx.Font(
             pt, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
         self.lb_chat.SetToolTip(
-            "Mensajes del chat. Enter copia el mensaje. "
-            "Tecla aplicaciones abre el menú contextual.")
+            _("Mensajes del chat. Enter copia el mensaje. "
+              "Tecla aplicaciones abre el menú contextual."))
         # msaa=False: ver el porqué en nombre_accesible() (lista dinámica).
-        nombre_accesible(self.lb_chat, "Chat en vivo", msaa=False)
+        nombre_accesible(self.lb_chat, _("Chat en vivo"), msaa=False)
         self.chat_vivo = ControladorChat(
             self.lb_chat, MAX_ITEMS_CHAT,
             activo=lambda: self._alive and self._conectado,
@@ -441,7 +446,7 @@ class YTChatFrame(wx.Frame):
         vs.Add(self.lb_chat, 1, wx.EXPAND | wx.ALL, 8)
 
         self._panel_redactar = PanelRedactar(
-            pag, "&Mensaje:", redaccion.MAXIMO_CHAT, self._enviar_live_redactado)
+            pag, _("&Mensaje:"), redaccion.MAXIMO_CHAT, self._enviar_live_redactado)
         vs.Add(self._panel_redactar, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
 
         pag.SetSizer(vs)
@@ -458,7 +463,7 @@ class YTChatFrame(wx.Frame):
         _pintar(pag, _T.bg, _T.text)
         vs = wx.BoxSizer(wx.VERTICAL)
 
-        lbl = wx.StaticText(pag, label="Información del vídeo:", name="EtiquetaInfo")
+        lbl = wx.StaticText(pag, label=_("Información del vídeo:"), name="EtiquetaInfo")
         _titulo(lbl)
         vs.Add(lbl, 0, wx.LEFT | wx.RIGHT | wx.TOP, 8)
 
@@ -467,12 +472,12 @@ class YTChatFrame(wx.Frame):
         # lectura con NVDA, que recorre el cuadro como texto normal (flechas,
         # selección, copiar). Es la opción accesible frente a un wx.html.
         self.txt_info = wx.TextCtrl(
-            pag, value="", name="Información del vídeo",
+            pag, value="", name=_("Información del vídeo"),
             style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_AUTO_URL | wx.TE_RICH2)
         _tc(self.txt_info)
         self.txt_info.SetToolTip(
-            "Datos del vídeo: canal, vistas, descripción. Solo lectura. Los "
-            "enlaces se abren con clic o se copian y pegan en el navegador.")
+            _("Datos del vídeo: canal, vistas, descripción. Solo lectura. Los "
+              "enlaces se abren con clic o se copian y pegan en el navegador."))
         vs.Add(self.txt_info, 1, wx.EXPAND | wx.ALL, 8)
 
         pag.SetSizer(vs)
@@ -928,14 +933,14 @@ class YTChatFrame(wx.Frame):
         pct = self._worker.get_rate()
         guardar_opcion(RUTA_CONFIG, "voz", "velocidad_voz", str(pct))
         anunciar(anuncio_ajuste.COMPARTIDO.frase(
-            "velocidad_voz", f"Velocidad de la voz: {pct}", f"{pct}"))
+            _CONTROL_VELOCIDAD, _("Velocidad de la voz: {valor}").format(valor=pct), f"{pct}"))
 
     def _ajustar_volume(self, delta):
         self._worker.cambiar_volumen(delta)
         v = self._worker.get_volume()
         guardar_opcion(RUTA_CONFIG, "voz", "volumen", f"{v / 100:.2f}")
         anunciar(anuncio_ajuste.COMPARTIDO.frase(
-            "volumen_voz", f"Volumen de la voz: {v}%", f"{v}%"))
+            _CONTROL_VOLUMEN, _("Volumen de la voz: {valor}%").format(valor=v), f"{v}%"))
 
     def _toggle_silenciar_sonidos(self):
         nuevo = not _snd.esta_silenciado()
@@ -1079,11 +1084,11 @@ class YTChatFrame(wx.Frame):
         id_rehab    = wx.NewIdRef()
         id_alias    = wx.NewIdRef()
 
-        menu.Append(id_copiar,  "Copiar mensaje")
-        menu.Append(id_copiar2, "Copiar todo (autor: mensaje, hora)")
-        menu.Append(id_releer,  "Releer con TTS")
+        menu.Append(id_copiar,  _("Copiar mensaje"))
+        menu.Append(id_copiar2, _("Copiar todo (autor: mensaje, hora)"))
+        menu.Append(id_releer,  _("Releer con TTS"))
         menu.AppendSeparator()
-        menu.Append(id_link,    "Abrir enlace")
+        menu.Append(id_link,    _("Abrir enlace"))
         menu.AppendSeparator()
 
         registro_sel = self._get_selected_data()
@@ -1091,14 +1096,14 @@ class YTChatFrame(wx.Frame):
         if autor:
             autor_mostrado = alias.visible(autor)
             if self._autor_esta_silenciado(autor):
-                menu.Append(id_rehab, f"Rehabilitar a {autor_mostrado} (dejar de silenciar)")
+                menu.Append(id_rehab, _("Rehabilitar a {autor} (dejar de silenciar)").format(autor=autor_mostrado))
             else:
-                menu.Append(id_sil_tts,  f"Silenciar a {autor_mostrado} (solo TTS)")
-                menu.Append(id_sil_full, f"Silenciar a {autor_mostrado} (ocultar y TTS)")
+                menu.Append(id_sil_tts,  _("Silenciar a {autor} (solo TTS)").format(autor=autor_mostrado))
+                menu.Append(id_sil_full, _("Silenciar a {autor} (ocultar y TTS)").format(autor=autor_mostrado))
             if alias.clave(autor) not in alias.vigente():
-                menu.Append(id_alias, f"Poner &alias a {autor_mostrado}…")
+                menu.Append(id_alias, _("Poner &alias a {autor}…").format(autor=autor_mostrado))
             else:
-                menu.Append(id_alias, f"Cambiar el &alias de {autor_mostrado}…")
+                menu.Append(id_alias, _("Cambiar el &alias de {autor}…").format(autor=autor_mostrado))
 
         id_ban     = wx.NewIdRef()
         id_timeout = wx.NewIdRef()
@@ -1109,8 +1114,8 @@ class YTChatFrame(wx.Frame):
                          and youtube_api.google_disponible() and credenciales.hay_sesion())
         if moderable:
             menu.AppendSeparator()
-            menu.Append(id_timeout, f"Expulsar 5 min a {autor_mostrado} (timeout)")
-            menu.Append(id_ban,     f"Banear a {autor_mostrado} del directo (permanente)")
+            menu.Append(id_timeout, _("Expulsar 5 min a {autor} (timeout)").format(autor=autor_mostrado))
+            menu.Append(id_ban,     _("Banear a {autor} del directo (permanente)").format(autor=autor_mostrado))
             menu.Bind(wx.EVT_MENU, lambda e: self._moderar(autor, identificador_sel, 300), id=id_timeout)
             menu.Bind(wx.EVT_MENU, lambda e: self._moderar(autor, identificador_sel, None), id=id_ban)
 
@@ -1132,8 +1137,8 @@ class YTChatFrame(wx.Frame):
         mapa = alias.vigente()
         actual = mapa.get(alias.clave(autor), "")
         dialogo = wx.TextEntryDialog(
-            self, f"Alias para {autor}. Dejar vacío para quitarlo.",
-            "Alias del usuario", value=actual)
+            self, _("Alias para {autor}. Dejar vacío para quitarlo.").format(autor=autor),
+            _("Alias del usuario"), value=actual)
         try:
             if dialogo.ShowModal() != wx.ID_OK:
                 return
@@ -1256,8 +1261,9 @@ class YTChatFrame(wx.Frame):
             puede_vetar = callable(getattr(event, "CanVeto", None)) \
                 and event.CanVeto()
             if mensaje is not None and puede_vetar:
+                # Traductores: título del cuadro para salir.
                 dialogo = wx.MessageDialog(
-                    self, mensaje, "Salir",
+                    self, mensaje, _("Salir"),
                     wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION | wx.CENTRE)
                 try:
                     respuesta = dialogo.ShowModal()
@@ -1456,13 +1462,14 @@ class YTChatFrame(wx.Frame):
     def _anunciar_conectado(self) -> None:
         t = self.sesion.tipo_video
         if t == deteccion.LIVE:
-            msg = "Conectado al directo. Leyendo el chat en vivo."
+            msg = _("Conectado al directo. Leyendo el chat en vivo.")
         elif t == deteccion.UPCOMING:
-            msg = "Directo programado. Aún no hay chat; puedes ver los comentarios."
+            msg = _("Directo programado. Aún no hay chat; puedes ver los comentarios.")
         elif t == deteccion.VOD:
-            msg = "Vídeo conectado. Comentarios y reproductor disponibles."
+            msg = _("Vídeo conectado. Comentarios y reproductor disponibles.")
         else:
-            msg = "Conectado."
+            # Traductores: aviso genérico al conectar.
+            msg = _("Conectado.")
         anunciar(msg)
 
     def set_live_chat_id(self, live_chat_id: str, causa: str = "",
@@ -1514,16 +1521,16 @@ class YTChatFrame(wx.Frame):
         # ChangeSelection: sin anuncio de pestaña; el de «conectado» que viene
         # después ya dice qué hay disponible.
         if tipo == deteccion.LIVE:
-            self._fijar_tipo("Directo en vivo: leyendo el chat.")
+            self._fijar_tipo(_("Directo en vivo: leyendo el chat."))
             self.nb.ChangeSelection(PAG_CHAT)
         elif tipo == deteccion.UPCOMING:
-            self._fijar_tipo("Directo programado: aún sin chat. Hay comentarios.")
+            self._fijar_tipo(_("Directo programado: aún sin chat. Hay comentarios."))
             self.nb.ChangeSelection(PAG_COMENTARIOS)
         elif tipo == deteccion.VOD:
-            self._fijar_tipo("Vídeo subido: comentarios y reproductor.")
+            self._fijar_tipo(_("Vídeo subido: comentarios y reproductor."))
             self.nb.ChangeSelection(PAG_COMENTARIOS)
         else:
-            self._fijar_tipo("Tipo no determinado: intentando leer el chat.")
+            self._fijar_tipo(_("Tipo no determinado: intentando leer el chat."))
         self._actualizar_boton_directo()
 
     def configurar_tiktok(self, usuario: str, url_flujo: str) -> None:
@@ -1541,12 +1548,12 @@ class YTChatFrame(wx.Frame):
         try:    self.lb_chat.Clear()
         except Exception: pass
         try:    self._com_panel.mostrar_no_disponible(
-                    "Los comentarios no están disponibles en los directos de TikTok.")
+                    _("Los comentarios no están disponibles en los directos de TikTok."))
         except Exception: pass
         autoplay = bool(self._config.get("autoplay_reproductor", True))
         try:    self._rep_panel.set_flujo(url_flujo, autoplay=autoplay)
         except Exception as exc: logger.debug("reproductor tiktok: %s", exc)
-        self._fijar_tipo(f"Directo de TikTok de @{usuario}: leyendo el chat.")
+        self._fijar_tipo(_("Directo de TikTok de @{usuario}: leyendo el chat.").format(usuario=usuario))
         self.nb.ChangeSelection(PAG_CHAT)
         self._actualizar_boton_directo()
 
@@ -1578,7 +1585,8 @@ class YTChatFrame(wx.Frame):
         ocultarla NO se destruye el panel, así reaparece con su contenido."""
         idx = self._idx_pag_info()
         if visible and idx == -1:
-            self.nb.AddPage(self._pag_info, "Información")
+            # Traductores: pestaña con los datos del vídeo.
+            self.nb.AddPage(self._pag_info, _("Información"))
             self._pag_info.Show()
         elif not visible and idx != -1:
             self.nb.RemovePage(idx)
@@ -1591,9 +1599,11 @@ class YTChatFrame(wx.Frame):
         self._titulo_stream = (titulo or "").strip()
         if self._titulo_stream:
             # Formato tipo navegador: «Nombre del vídeo — YTChat TTS».
-            self.SetTitle(f"{self._titulo_stream} — {APP_NAME}")
+            # Traductores: {titulo} es el vídeo y {app} la app.
+            self.SetTitle(_("{titulo} — {app}").format(titulo=self._titulo_stream, app=APP_NAME))
         else:
-            self.SetTitle(f"{APP_NAME} v{APP_VERSION}")
+            # Traductores: título de la ventana: nombre de la app y versión.
+            self.SetTitle(_("{app} v{version}").format(app=APP_NAME, version=APP_VERSION))
 
     def auto_conectar(self) -> None:
         self._on_conectar(None)
@@ -1603,7 +1613,7 @@ class YTChatFrame(wx.Frame):
         for it in list(self.voz_submenu.GetMenuItems()):
             self.voz_submenu.Delete(it)
         if not voces:
-            it = self.voz_submenu.Append(wx.ID_ANY, "(no disponible)")
+            it = self.voz_submenu.Append(wx.ID_ANY, _("(no disponible)"))
             it.Enable(False)
             self._voz_nombre = "—"
             return
@@ -1647,7 +1657,7 @@ class YTChatFrame(wx.Frame):
         # Botón (toggle), items de menú Conectar/Desconectar y campo URL. El
         # resto (ocultar zona, sonido, título) lo gestiona set_conectado.
         self._conectando = False
-        self.btn_conectar.SetLabel("&Desconectar" if conectado else "&Conectar")
+        self.btn_conectar.SetLabel(_("&Desconectar") if conectado else _("&Conectar"))
         self.btn_conectar.Enable()
         self.mi_conectar.Enable(not conectado)
         self.mi_desconectar.Enable(conectado)
@@ -1695,30 +1705,38 @@ class YTChatFrame(wx.Frame):
             logger.debug("enable mi_descargar_este: %s", exc)
 
     def _actualizar_sb(self) -> None:
-        sin_tts = " [sin TTS]" if self._config.get("silenciar_lectura", False) else ""
+        sin_tts = _(" [sin TTS]") if self._config.get("silenciar_lectura", False) else ""
         if self._conectado and self._titulo_stream:
-            estado = f"Conectado: {self._titulo_stream[:35]}{sin_tts}"
+            # Traductores: {titulo} es el vídeo; {sin_tts} avisa si la lectura está silenciada.
+            estado = _("Conectado: {titulo}{sin_tts}").format(titulo=self._titulo_stream[:35], sin_tts=sin_tts)
         elif self._conectado:
-            estado = f"Conectado{sin_tts}"
+            # Traductores: {sin_tts} avisa si la lectura está silenciada.
+            estado = _("Conectado{sin_tts}").format(sin_tts=sin_tts)
         else:
-            estado = f"Desconectado{sin_tts}"
+            # Traductores: {sin_tts} avisa si la lectura está silenciada.
+            estado = _("Desconectado{sin_tts}").format(sin_tts=sin_tts)
         self.sb.SetStatusText(estado, 0)
 
-        try:    self.sb.SetStatusText(f"Voz vel: {self._worker.get_rate()}", 1)
-        except Exception: self.sb.SetStatusText("Voz vel: --", 1)
+        try:    self.sb.SetStatusText(_("Voz vel: {valor}").format(valor=self._worker.get_rate()), 1)
+        except Exception: self.sb.SetStatusText(_("Voz vel: --"), 1)
 
         nombre = self._voz_nombre or "—"
         if len(nombre) > 28:
             nombre = nombre[:25] + "..."
-        self.sb.SetStatusText(f"Voz: {nombre}", 2)
+        # Traductores: {nombre} es la voz activa.
+        self.sb.SetStatusText(_("Voz: {nombre}").format(nombre=nombre), 2)
 
-        try:    self.sb.SetStatusText(f"Cola: {self._cola.qsize()}", 3)
-        except Exception: self.sb.SetStatusText("Cola: —", 3)
-        try:    self.sb.SetStatusText(f"Leídos: {self._stats.leidos}", 4)
-        except Exception: self.sb.SetStatusText("Leídos: —", 4)
+        # Traductores: {n} son los mensajes en cola.
+        try:    self.sb.SetStatusText(_("Cola: {n}").format(n=self._cola.qsize()), 3)
+        # Traductores: la raya indica que no hay dato.
+        except Exception: self.sb.SetStatusText(_("Cola: —"), 3)
+        # Traductores: {n} son los mensajes leídos.
+        try:    self.sb.SetStatusText(_("Leídos: {n}").format(n=self._stats.leidos), 4)
+        # Traductores: la raya indica que no hay dato.
+        except Exception: self.sb.SetStatusText(_("Leídos: —"), 4)
 
-        try:    self.sb.SetStatusText(f"Voz vol: {self._worker.get_volume()}%", 5)
-        except Exception: self.sb.SetStatusText("Voz vol: --", 5)
+        try:    self.sb.SetStatusText(_("Voz vol: {valor}%").format(valor=self._worker.get_volume()), 5)
+        except Exception: self.sb.SetStatusText(_("Voz vol: --"), 5)
 
         if self._config.get("mostrar_total_superchats", True):
             self.sb.SetStatusText(self._formato_total_sc(), 6)
@@ -1735,9 +1753,10 @@ class YTChatFrame(wx.Frame):
         try:    n = self._stats.superchats
         except Exception: n = 0
         importes = texto_importes(self._sc_totales)
+        # Traductores: SC abrevia Super Chats; {n} e {importes} son cantidad e importes.
         if not importes:
-            return f"SC: {n}"
-        return f"SC: {n} ({importes})"
+            return _("SC: {n}").format(n=n)
+        return _("SC: {n} ({importes})").format(n=n, importes=importes)
 
 
 # ── Portapapeles ─────────────────────────────────────────────────────────────

@@ -40,6 +40,7 @@ from ytchat.capture import programados
 from ytchat.downloads import ytdlp_bin
 from ytchat.ui.lista_chat import MensajeChat, ListaChat
 from ytchat.ui.sesion_conectada import SesionConectada
+from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.rutas_temporales import redirigir_rutas
 from tests.ventanas_prueba import destruir
 

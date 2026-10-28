@@ -148,13 +148,10 @@ class TestDialogoRedactar(unittest.TestCase):
         destruir(dialogo)
 
 
-# La etiqueta del panel suelto la arma `ytchat/ui/gui.py` («&Mensaje:»):
-# queda pendiente hasta que ese módulo pase por gettext. La comparación es
-# exacta en los dos sentidos: falla si aparece un texto nuevo sin envolver
-# y si el pendiente ya no está en el recorrido.
-PENDIENTES_REDACTAR = (
-    "&Mensaje:",
-)
+# La etiqueta del panel suelto la armaba `ytchat/ui/gui.py` («&Mensaje:»):
+# ya pasa por gettext, así que no queda pendiente. La comparación es exacta
+# en los dos sentidos: falla si aparece un texto nuevo sin envolver.
+PENDIENTES_REDACTAR = ()
 
 
 class TestPseudoRedactar(unittest.TestCase):
@@ -171,10 +168,10 @@ class TestPseudoRedactar(unittest.TestCase):
         del cls.frame
         del cls.app
 
-    def test_panel_solo_deja_pendiente_la_etiqueta_ajena(self):
+    def test_panel_con_etiqueta_marcada_no_deja_nada(self):
         with con_pseudo():
             panel = gui_redactar.PanelRedactar(
-                self.frame, "&Mensaje:", 200, lambda texto: None)
+                self.frame, _("&Mensaje:"), 200, lambda texto: None)
             sin_marcar = textos_sin_marcar(panel)
         panel.Destroy()
         self.assertEqual(sin_marcar, list(PENDIENTES_REDACTAR))

@@ -4401,7 +4401,8 @@ class TestCierreVentana(unittest.TestCase):
             def __init__(self, destino, usuario, al_anunciar=None,
                          al_conectar_chat=None, al_terminar=None,
                          ruta_fin_pendiente=None,
-                         avisar_sobrecarga=None):
+                         avisar_sobrecarga=None,
+                         crear_gestor=None, esperar_salida=None):
                 creados.append((destino, usuario, al_anunciar,
                                 al_conectar_chat))
                 self.iniciado = False
@@ -4433,7 +4434,8 @@ class TestCierreVentana(unittest.TestCase):
             def __init__(self, destino, usuario, al_anunciar=None,
                          al_conectar_chat=None, al_terminar=None,
                          ruta_fin_pendiente=None,
-                         avisar_sobrecarga=None):
+                         avisar_sobrecarga=None,
+                         crear_gestor=None, esperar_salida=None):
                 creados.append((al_anunciar, al_conectar_chat))
 
             def iniciar(self):
@@ -4463,7 +4465,8 @@ class TestCierreVentana(unittest.TestCase):
             def __init__(self, destino, usuario, al_anunciar=None,
                          al_conectar_chat=None, al_terminar=None,
                          ruta_fin_pendiente=None,
-                         avisar_sobrecarga=None):
+                         avisar_sobrecarga=None,
+                         crear_gestor=None, esperar_salida=None):
                 creados.append((al_anunciar, al_conectar_chat))
 
             def iniciar(self):
@@ -4491,7 +4494,8 @@ class TestCierreVentana(unittest.TestCase):
             def __init__(self, destino, usuario, al_anunciar=None,
                          al_conectar_chat=None, al_terminar=None,
                          ruta_fin_pendiente=None,
-                         avisar_sobrecarga=None):
+                         avisar_sobrecarga=None,
+                         crear_gestor=None, esperar_salida=None):
                 creados.append((al_anunciar, al_conectar_chat))
 
             def iniciar(self):
@@ -4518,7 +4522,8 @@ class TestCierreVentana(unittest.TestCase):
             def __init__(self, destino, usuario, al_anunciar=None,
                          al_conectar_chat=None, al_terminar=None,
                          ruta_fin_pendiente=None,
-                         avisar_sobrecarga=None):
+                         avisar_sobrecarga=None,
+                         crear_gestor=None, esperar_salida=None):
                 creados.append((al_anunciar, al_conectar_chat))
 
             def iniciar(self):
@@ -5164,7 +5169,8 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
                          al_conectar_chat=None, al_terminar=None,
                          preparar_emision=None, esperar_emision=None,
                          finalizar_emision=None, ruta_fin_pendiente=None,
-                         avisar_sobrecarga=None):
+                         avisar_sobrecarga=None,
+                         crear_gestor=None, esperar_salida=None):
                 creados.append({
                     "destino": destino, "usuario": usuario,
                     "al_conectar_chat": al_conectar_chat,

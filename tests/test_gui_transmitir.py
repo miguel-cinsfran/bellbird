@@ -434,6 +434,47 @@ class TestSupervisarTransmision(unittest.TestCase):
         frame._config["avisar_sobrecarga"] = False
         self.assertFalse(consulta())
 
+    def test_iniciar_pasa_los_enganches_de_grabacion_envueltos(self):
+        from ytchat.obs import obs_salida
+        from ytchat.obs.obs_panel import GestorPanelObs
+        supervisor = mock.Mock()
+        frame = self._frame_inicia({})
+        with mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+                        return_value=supervisor) as fabrica:
+            gui_transmitir.supervisar_transmision(
+                frame, "iniciar", "TikTok", "alguien")
+        kwargs = fabrica.call_args.kwargs
+        self.assertTrue(callable(kwargs["esperar_salida"]))
+        self.assertTrue(callable(kwargs["crear_gestor"]))
+        self.assertIsNot(kwargs["esperar_salida"], obs_salida.esperar_salida)
+        self.assertIsNot(kwargs["crear_gestor"], GestorPanelObs)
+
+    def test_la_casilla_de_grabacion_se_lee_en_cada_llamada(self):
+        supervisor = mock.Mock()
+        frame = self._frame_inicia({"grabar_al_transmitir": False})
+        capturado = {}
+
+        class GrabacionFalsa:
+            def __init__(self, activa=None, al_anunciar=None,
+                         crear_gestor=None):
+                capturado["activa"] = activa
+
+            def envolver_crear_gestor(self, original):
+                return original
+
+            def envolver_esperar_salida(self, original):
+                return original
+
+        with mock.patch("ytchat.obs.obs_grabacion.GrabacionAlTransmitir",
+                        GrabacionFalsa), \
+                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+                           return_value=supervisor):
+            gui_transmitir.supervisar_transmision(
+                frame, "iniciar", "TikTok", "alguien")
+        self.assertFalse(capturado["activa"]())
+        frame._config["grabar_al_transmitir"] = True
+        self.assertTrue(capturado["activa"]())
+
 
 class TestAlternarAvisoSobrecarga(unittest.TestCase):
 
@@ -472,6 +513,48 @@ class TestAlternarAvisoSobrecarga(unittest.TestCase):
         guardar.assert_called_once_with(
             gui.RUTA_CONFIG, "transmision", "avisar_sobrecarga", "false")
         anunciar.assert_called_once_with("Avisos de sobrecarga desactivados")
+
+
+class TestAlternarGrabarAlTransmitir(unittest.TestCase):
+
+    def test_desactivar_guarda_marca_y_anuncia(self):
+        item = mock.Mock()
+        frame = SimpleNamespace(_config={"grabar_al_transmitir": True},
+                                mi_grabar_al_transmitir=item)
+        with mock.patch.object(gui, "guardar_opcion") as guardar, \
+                mock.patch.object(gui, "anunciar") as anunciar:
+            gui_transmitir.alternar_grabar_al_transmitir(frame)
+        self.assertFalse(frame._config["grabar_al_transmitir"])
+        item.Check.assert_called_once_with(False)
+        guardar.assert_called_once_with(
+            gui.RUTA_CONFIG, "transmision", "grabar_al_transmitir", "false")
+        anunciar.assert_called_once_with(
+            "Grabación al transmitir desactivada")
+
+    def test_activar_guarda_marca_y_anuncia(self):
+        item = mock.Mock()
+        frame = SimpleNamespace(_config={"grabar_al_transmitir": False},
+                                mi_grabar_al_transmitir=item)
+        with mock.patch.object(gui, "guardar_opcion") as guardar, \
+                mock.patch.object(gui, "anunciar") as anunciar:
+            gui_transmitir.alternar_grabar_al_transmitir(frame)
+        self.assertTrue(frame._config["grabar_al_transmitir"])
+        item.Check.assert_called_once_with(True)
+        guardar.assert_called_once_with(
+            gui.RUTA_CONFIG, "transmision", "grabar_al_transmitir", "true")
+        anunciar.assert_called_once_with(
+            "Grabación al transmitir activada")
+
+    def test_sin_item_no_falla_y_usa_el_por_defecto(self):
+        frame = SimpleNamespace(_config={})
+        with mock.patch.object(gui, "guardar_opcion") as guardar, \
+                mock.patch.object(gui, "anunciar") as anunciar:
+            gui_transmitir.alternar_grabar_al_transmitir(frame)
+        self.assertTrue(frame._config["grabar_al_transmitir"])
+        guardar.assert_called_once_with(
+            gui.RUTA_CONFIG, "transmision", "grabar_al_transmitir", "true")
+        anunciar.assert_called_once_with(
+            "Grabación al transmitir activada")
 
 
 class TestAlConectarChatEnlaceDirecto(unittest.TestCase):

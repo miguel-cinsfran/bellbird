@@ -1,7 +1,9 @@
+import tempfile
 import unittest
+from pathlib import Path
 from unittest import mock
 
-from ytchat.obs import obs_panel
+from ytchat.obs import obs_grabacion, obs_panel
 
 
 def elemento(identificador, nombre, indice, x=32, y=882, ancho=460, alto=620,
@@ -21,7 +23,7 @@ def elemento(identificador, nombre, indice, x=32, y=882, ancho=460, alto=620,
 class DobleObs:
     def __init__(self, elementos=None, entradas=(), escena="Escena", escenas=None,
                   silencios=None, grupos=None, perfiles=(), perfil_actual="",
-                  estadisticas=None, reconectando=False):
+                  estadisticas=None, reconectando=False, parametros=None):
         self.elementos = list(elementos or ())
         self.entradas = list(entradas)
         self.grupos = dict(grupos or {})
@@ -38,6 +40,8 @@ class DobleObs:
         self.grabacion_en_pausa = False
         self.reconectando = reconectando
         self.estadisticas = dict(estadisticas or {})
+        self.parametros = dict(parametros or {})
+        self.parametros_pedidos = []
 
     def conectar(self, parada=None):
         self.conectado = True
@@ -99,6 +103,11 @@ class DobleObs:
         if tipo == "GetProfileList":
             return {"responseData": {"profiles": list(self.perfiles),
                                      "currentProfileName": self.perfil_actual}}
+        if tipo == "GetProfileParameter":
+            clave = (datos.get("parameterCategory"),
+                     datos.get("parameterName"))
+            self.parametros_pedidos.append(clave)
+            return {"responseData": dict(self.parametros.get(clave, {}))}
         if tipo in ("CreateSceneItem", "CreateInput"):
             self.siguiente_id += 1
             nuevo = elemento(self.siguiente_id, obs_panel.NOMBRE_FUENTE, 0)
@@ -556,6 +565,42 @@ class GestorPanelObsTest(unittest.TestCase):
         self.gestor(doble).detener_transmision(parada)
         self.assertEqual(doble.llamadas[-1][0], "StopStream")
         self.assertIs(doble.llamadas[-1][2], parada)
+
+
+class RevisarGrabacionTest(unittest.TestCase):
+    """El prevuelo lee la casilla del disco y solo pregunta si está marcada."""
+
+    def _revisar(self, marcada, parametros):
+        doble = DobleObs(
+            [elemento(1, obs_panel.NOMBRE_FUENTE, 0)],
+            perfil_actual="YouTube", parametros=parametros)
+        with tempfile.TemporaryDirectory() as tmp:
+            ruta = Path(tmp) / "config.ini"
+            ruta.write_text(
+                "[transmision]\ngrabar_al_transmitir = %s\n"
+                % ("true" if marcada else "false"), encoding="utf-8")
+            with mock.patch.object(obs_grabacion.paths, "config_ini",
+                                   return_value=ruta):
+                revision = obs_panel.GestorPanelObs(doble).revisar("YouTube")
+        return revision, doble
+
+    def test_con_la_casilla_marcada_avisa_si_el_perfil_usa_codificador_propio(self):
+        revision, doble = self._revisar(True, {
+            ("Output", "Mode"): {"parameterValue": "Advanced"},
+            ("AdvOut", "RecEncoder"): {"parameterValue": "x264"},
+        })
+        self.assertIn(obs_grabacion.AVISO_CODIFICADOR, revision.avisos)
+        self.assertEqual(doble.parametros_pedidos, [
+            ("Output", "Mode"),
+            ("AdvOut", "RecEncoder")])
+
+    def test_con_la_casilla_desmarcada_no_pregunta_por_el_codificador(self):
+        revision, doble = self._revisar(False, {
+            ("Output", "Mode"): {"parameterValue": "Advanced"},
+            ("AdvOut", "RecEncoder"): {"parameterValue": "x264"},
+        })
+        self.assertEqual(revision.avisos, ())
+        self.assertEqual(doble.parametros_pedidos, [])
 
 
 class FuenteEncimaDelPanelTest(unittest.TestCase):

@@ -148,6 +148,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
     ("transmision", [
         ("destino", ""),
         ("avisar_sobrecarga", "true"),
+        ("grabar_al_transmitir", "false"),
         ("youtube_titulo", ""),
         ("youtube_descripcion", ""),
         ("youtube_privacidad", "unlisted"),

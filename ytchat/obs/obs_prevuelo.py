@@ -11,6 +11,7 @@ import base64
 from dataclasses import dataclass
 
 from ytchat.obs.obs_png import imagen_vacia_png
+from ytchat.obs import obs_grabacion
 
 
 # Tipo legible por inputKind. Lo que no está acá se muestra tal cual.
@@ -64,6 +65,7 @@ class Revision:
     audio: tuple
     imagen_vacia: bool | None
     problemas: tuple
+    avisos: tuple = ()
 
 
 def _datos(cliente, tipo, datos=None, parada=None):
@@ -215,7 +217,7 @@ def _problemas_revision(perfil, destino, audio, fuentes, imagen) -> list:
     return problemas
 
 
-def revisar(cliente, destino, parada=None) -> Revision:
+def revisar(cliente, destino, parada=None, grabar=False) -> Revision:
     """Lee OBS y devuelve qué hay al aire y qué impide transmitir."""
     (perfil, coleccion, lienzo, escena, elementos, entradas, por_nombre,
      escenas) = _base_obs(cliente, destino, parada)
@@ -223,9 +225,13 @@ def revisar(cliente, destino, parada=None) -> Revision:
     audio = _audio_obs(cliente, entradas, parada)
     imagen = _leer_imagen_vacia(cliente, escena, parada)
     problemas = _problemas_revision(perfil, destino, audio, fuentes, imagen)
+    avisos = ()
+    if grabar and obs_grabacion.codificador_propio_en_obs(
+            cliente, parada) is True:
+        avisos = (obs_grabacion.AVISO_CODIFICADOR,)
     return Revision(destino, perfil, coleccion, lienzo.get("baseWidth"),
                     lienzo.get("baseHeight"), escena, tuple(fuentes),
-                    tuple(audio), imagen, tuple(problemas))
+                    tuple(audio), imagen, tuple(problemas), tuple(avisos))
 
 
 def frase_revision(revision) -> str:
@@ -258,4 +264,6 @@ def frase_revision(revision) -> str:
     texto = texto.strip()
     if revision.problemas:
         texto += " Atención: " + " ".join(revision.problemas)
+    if revision.avisos:
+        texto += " " + " ".join(revision.avisos)
     return texto

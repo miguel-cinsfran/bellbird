@@ -249,6 +249,7 @@ INTERNAS = {
     ("tiktok", "usuario"): "lo guarda la ventana Transmisión (gui_transmitir.py:42)",
     ("transmision", "destino"): "lo guarda la ventana Transmisión (gui_transmitir.py:51)",
     ("transmision", "avisar_sobrecarga"): "lo cambia su menú (gui_transmitir.py:60)",
+    ("transmision", "grabar_al_transmitir"): "lo cambia su menú (gui_transmitir.py, alternar_grabar_al_transmitir)",
     ("transmision", "youtube_titulo"): "lo guarda la ventana Transmisión (gui_transmitir.py:79)",
     ("transmision", "youtube_descripcion"): "la guarda la ventana Transmisión (gui_transmitir.py:79)",
     ("transmision", "youtube_privacidad"): "la guarda la ventana Transmisión (gui_transmitir.py:79)",

@@ -181,6 +181,7 @@ def _mostrar_obs() -> None:
 
 
 def _construir_menu_transmision(frame, mb):
+    from ytchat.ui import gui_transmitir
     m = wx.Menu()
     frame.mi_transmision = m.Append(
         wx.ID_ANY, "&Panel de transmisión…" + frame._accel("abrir_transmision"))
@@ -193,6 +194,10 @@ def _construir_menu_transmision(frame, mb):
         "&Avisar cuando OBS no da abasto" + frame._accel("avisos_sobrecarga"))
     frame.mi_avisos_sobrecarga.Check(
         bool(frame._config.get("avisar_sobrecarga", True)))
+    frame.mi_grabar_al_transmitir = m.AppendCheckItem(
+        wx.ID_ANY, "&Grabar también al transmitir")
+    frame.mi_grabar_al_transmitir.Check(
+        bool(frame._config.get("grabar_al_transmitir", False)))
     mb.Append(m, "&Transmisión")
     frame.Bind(wx.EVT_MENU,
               lambda e: wx.CallAfter(frame._on_transmision, None),
@@ -201,6 +206,8 @@ def _construir_menu_transmision(frame, mb):
     frame._bind_menu(frame.mi_mostrar_obs, _mostrar_obs)
     frame._bind_menu(frame.mi_avisos_sobrecarga,
                      frame._alternar_aviso_sobrecarga)
+    frame._bind_menu(frame.mi_grabar_al_transmitir,
+                     gui_transmitir.alternar_grabar_al_transmitir, frame)
 
 
 def _construir_menu_ayuda(frame, mb):

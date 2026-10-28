@@ -341,6 +341,14 @@ def gen_transmision_problema():
     return _concat(pulso, _silencio(0.08), pulso, _silencio(0.02))
 
 
+def gen_grabacion_problema():
+    # Pulso grave y otro más agudo y corto: la grabación no arrancó.
+    grave = _perc(_seno(A3, 0.14, 0.38), 0.004, 0.11)
+    agudo = _perc(_seno(E4, 0.08, 0.34), 0.003, 0.06)
+    return _normalizar(
+        _concat(grave, _silencio(0.04), agudo, _silencio(0.02)), 0.7)
+
+
 def gen_directo_finalizado():
     # Confirmación de cierre corta y resuelta: subida E5→C6 que asienta.
     # Distinta del descenso de transmision_detenida y del arpegio de al_aire.
@@ -647,6 +655,12 @@ def s_transmision_problema():
     return _concat(pulso, _silencio(0.08), pulso, _silencio(0.02))
 
 
+def s_grabacion_problema():
+    grave = _madera(A3, 0.14, 0.38, 0.11)
+    agudo = _madera(E4, 0.08, 0.34, 0.06)
+    return _concat(grave, _silencio(0.04), agudo, _silencio(0.02))
+
+
 def s_directo_finalizado():
     return _seq(_madera(E5, 0.11, 0.34, 0.09),
                 _madera(C6, 0.20, 0.36, 0.16))
@@ -905,6 +919,7 @@ TEMAS = {
         "al_aire.wav":                 gen_al_aire,
         "transmision_detenida.wav":    gen_transmision_detenida,
         "transmision_problema.wav":    gen_transmision_problema,
+        "grabacion_problema.wav":      gen_grabacion_problema,
         "transmision_recuperada.wav":  gen_transmision_recuperada,
         "directo_finalizado.wav":      gen_directo_finalizado,
         "aviso.wav":                   gen_aviso,
@@ -976,6 +991,7 @@ TEMAS = {
         "al_aire.wav":                 s_al_aire,
         "transmision_detenida.wav":    s_transmision_detenida,
         "transmision_problema.wav":    s_transmision_problema,
+        "grabacion_problema.wav":      s_grabacion_problema,
         "transmision_recuperada.wav":  s_transmision_recuperada,
         "directo_finalizado.wav":      s_directo_finalizado,
         "aviso.wav":                   s_aviso,

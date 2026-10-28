@@ -359,6 +359,20 @@ class TestReconexionYSonidos(unittest.TestCase):
                 self.assertIs(config.cargar_configuracion()["avisar_sobrecarga"],
                               False)
 
+    def test_fabrica_trae_grabar_al_transmitir_apagado(self):
+        self.assertEqual(
+            pred.obtener("transmision", "grabar_al_transmitir"), "false")
+
+    def test_lectura_de_grabar_al_transmitir_es_bool(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "config.ini").write_text(
+                "[transmision]\ngrabar_al_transmitir = true\n",
+                encoding="utf-8")
+            with redirigir_rutas(Path(tmp)):
+                self.assertIs(
+                    config.cargar_configuracion()["grabar_al_transmitir"],
+                    True)
+
     def test_generador_se_invoca_como_modulo(self):
         texto = pred.generar_texto()
         self.assertNotIn("python config_predeterminada.py", texto)

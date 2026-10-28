@@ -80,6 +80,25 @@ def alternar_aviso_sobrecarga(frame) -> None:
                   else "Avisos de sobrecarga desactivados")
 
 
+def alternar_grabar_al_transmitir(frame) -> None:
+    """Invierte la preferencia, sincroniza el menú y la guarda.
+
+    La casilla se consulta cuando la transmisión arranca bien, no al
+    detenerse: un cambio vale desde la próxima transmisión que arranque.
+    Sin sonido, como los otros interruptores del menú.
+    """
+    from ytchat.ui import gui as _gui
+    nuevo = not bool(frame._config.get("grabar_al_transmitir", False))
+    frame._config["grabar_al_transmitir"] = nuevo
+    item = getattr(frame, "mi_grabar_al_transmitir", None)
+    if item is not None:
+        item.Check(nuevo)
+    _gui.guardar_opcion(_gui.RUTA_CONFIG, "transmision",
+                        "grabar_al_transmitir", "true" if nuevo else "false")
+    _gui.anunciar("Grabación al transmitir activada" if nuevo
+                  else "Grabación al transmitir desactivada")
+
+
 def guardar_datos_directo_youtube(frame, titulo, descripcion, privacidad,
                                   latencia=None, ninos=False, dvr=True,
                                   categoria="", etiquetas=None,
@@ -186,6 +205,25 @@ def _deteniendo(supervisor) -> bool:
     # `is True` porque un doble sin el estado (un Mock) devolvería un objeto
     # verdadero al preguntarle, y no está deteniendo nada.
     return getattr(supervisor, "deteniendo", False) is True
+
+
+def _parametros_supervisor(frame, al_anunciar):
+    """Arma los enganches del supervisor que leen la configuración del frame."""
+    from ytchat.obs import obs_grabacion, obs_salida
+    from ytchat.obs.obs_panel import GestorPanelObs
+
+    def grabando():
+        return bool(frame._config.get("grabar_al_transmitir", False))
+
+    grabacion = obs_grabacion.GrabacionAlTransmitir(
+        activa=grabando, al_anunciar=al_anunciar, crear_gestor=GestorPanelObs)
+    return {
+        "avisar_sobrecarga": lambda: bool(
+            frame._config.get("avisar_sobrecarga", True)),
+        "crear_gestor": grabacion.envolver_crear_gestor(GestorPanelObs),
+        "esperar_salida": grabacion.envolver_esperar_salida(
+            obs_salida.esperar_salida),
+    }
 
 
 def supervisar_transmision(frame, accion, destino="", usuario="",
@@ -322,8 +360,7 @@ def supervisar_transmision(frame, accion, destino="", usuario="",
             al_conectar_chat=al_conectar_chat,
             al_terminar=frame._al_terminar_supervisor,
             ruta_fin_pendiente=paths.fin_pendiente(),
-            avisar_sobrecarga=lambda: bool(
-                frame._config.get("avisar_sobrecarga", True)),
+            **_parametros_supervisor(frame, al_anunciar),
             **ganchos)
         frame._supervisor.iniciar()
         frame._actualizar_boton_directo()

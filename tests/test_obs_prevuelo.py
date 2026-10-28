@@ -5,6 +5,7 @@ import unittest
 
 from ytchat.obs.obs_prevuelo import (
     EntradaAudio, Fuente, Revision, frase_revision, revisar)
+from ytchat.obs.obs_grabacion import AVISO_CODIFICADOR
 from tests.png_prueba import armar_png, png_plano
 
 
@@ -19,12 +20,16 @@ class DoblePrevuelo:
     def __init__(self, perfil="TikTok", coleccion="TikTok", ancho=720,
                  alto=1280, escena="Escena", elementos=None, entradas=None,
                  ajustes=None, silencios=None, escenas=(), imagen=None,
-                 falla_imagen=False):
+                 falla_imagen=False, modo="Simple", calidad="Stream",
+                 codificador="none"):
         self.perfil = perfil
         self.coleccion = coleccion
         self.ancho = ancho
         self.alto = alto
         self.escena = escena
+        self.modo = modo
+        self.calidad = calidad
+        self.codificador = codificador
         self.elementos = list(elementos if elementos is not None else (
             {"sourceName": "Captura de ventana", "sceneItemEnabled": True},
             {"sourceName": "Chat YTChat", "sceneItemEnabled": True}))
@@ -77,6 +82,16 @@ class DoblePrevuelo:
             if self.falla_imagen:
                 raise RuntimeError("fuente sin imagen")
             return {"responseData": {"imageData": self.imagen}}
+        if tipo == "GetProfileParameter":
+            valores = {
+                ("Output", "Mode"): self.modo,
+                ("SimpleOutput", "RecQuality"): self.calidad,
+                ("AdvOut", "RecEncoder"): self.codificador,
+            }
+            clave = (datos.get("parameterCategory"),
+                     datos.get("parameterName"))
+            return {"responseData": {
+                "parameterValue": valores.get(clave, "")}}
         return {"responseData": {}}
 
 
@@ -389,6 +404,47 @@ class RamasRevisarTest(unittest.TestCase):
             imagen=imagen_dato(png_plano(1, 1, (200, 0, 0, 255))))
         (fuente,) = revisar(doble, "TikTok").fuentes
         self.assertEqual(fuente.tipo, "captura de ventana")
+
+
+class AvisosGrabacionTest(unittest.TestCase):
+    def _imagen(self):
+        return imagen_dato(png_plano(2, 2, (200, 0, 0, 255)))
+
+    def test_codificador_propio_va_a_avisos_y_no_a_problemas(self):
+        doble = DoblePrevuelo(modo="Advanced", codificador="x264",
+                              imagen=self._imagen())
+        revision = revisar(doble, "TikTok", grabar=True)
+        self.assertEqual(revision.avisos, (AVISO_CODIFICADOR,))
+        self.assertEqual(revision.problemas, ())
+
+    def test_la_frase_lleva_el_aviso_al_final(self):
+        doble = DoblePrevuelo(modo="Advanced", codificador="x264",
+                              imagen=self._imagen())
+        frase = frase_revision(revisar(doble, "TikTok", grabar=True))
+        self.assertTrue(frase.endswith(AVISO_CODIFICADOR), frase)
+
+    def test_el_aviso_va_despues_de_atencion(self):
+        doble = DoblePrevuelo(perfil="YouTube", modo="Advanced",
+                              codificador="x264", imagen=self._imagen())
+        frase = frase_revision(revisar(doble, "TikTok", grabar=True))
+        self.assertIn("Atención: OBS está en el perfil YouTube", frase)
+        self.assertTrue(frase.endswith(AVISO_CODIFICADOR), frase)
+
+    def test_codificador_compartido_no_avisa(self):
+        doble = DoblePrevuelo(imagen=self._imagen())
+        revision = revisar(doble, "TikTok", grabar=True)
+        self.assertEqual(revision.avisos, ())
+
+    def test_sin_grabar_no_pregunta_el_codificador(self):
+        doble = DoblePrevuelo(imagen=self._imagen())
+        revisar(doble, "TikTok", grabar=False)
+        self.assertFalse(any(tipo == "GetProfileParameter"
+                             for tipo, _ in doble.llamadas))
+
+    def test_si_obs_falla_no_hay_aviso(self):
+        doble = DobleQueFalla("GetProfileParameter", imagen=self._imagen())
+        revision = revisar(doble, "TikTok", grabar=True)
+        self.assertEqual(revision.avisos, ())
 
 
 if __name__ == "__main__":

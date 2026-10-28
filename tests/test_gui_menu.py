@@ -172,6 +172,7 @@ class TestEquivalenciaMenu(unittest.TestCase):
             ("&Transmisión", "Silenciar el &micrófono de OBS", ANY, "normal"),
             ("&Transmisión", "Mostrar &OBS", ANY, "normal"),
             ("&Transmisión", "&Avisar cuando OBS no da abasto", ANY, "check"),
+            ("&Transmisión", "&Grabar también al transmitir", ANY, "check"),
             ("&Música", "&Elegir música…", ANY, "normal"),
             ("&Música", "---", None, "sep"),
             ("&Música", "Reproducir o &pausar", ANY, "normal"),

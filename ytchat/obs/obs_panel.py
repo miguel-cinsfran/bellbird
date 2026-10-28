@@ -155,8 +155,8 @@ class GestorPanelObs:
             self._cliente, destino, parada)
 
     def revisar(self, destino, parada=None):
-        from ytchat.obs import obs_prevuelo
-        return obs_prevuelo.revisar(self._cliente, destino, parada)
+        from ytchat.obs import obs_grabacion, obs_prevuelo
+        return obs_prevuelo.revisar(self._cliente, destino, parada, grabar=obs_grabacion.grabar_al_transmitir())
 
     def ventanas(self, escena, parada=None):
         return obs_captura.ventanas(self._cliente, escena, parada)

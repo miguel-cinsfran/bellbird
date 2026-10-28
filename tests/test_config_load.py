@@ -403,6 +403,7 @@ class TestCargarConfiguracion(unittest.TestCase):
             "[transmision]\n"
             "destino = Twitch\n"
             "avisar_sobrecarga = false\n"
+            "grabar_al_transmitir = true\n"
             "youtube_titulo = Hola\n"
             "youtube_descripcion = Desc\n"
             "youtube_privacidad = solo-yo\n"
@@ -432,6 +433,7 @@ class TestCargarConfiguracion(unittest.TestCase):
             ("elevenlabs_solo_importantes", True),
             ("transmision_destino", ""),
             ("avisar_sobrecarga", False),
+            ("grabar_al_transmitir", True),
             ("transmision_youtube_titulo", "Hola"),
             ("transmision_youtube_descripcion", "Desc"),
             ("transmision_youtube_privacidad", "unlisted"),

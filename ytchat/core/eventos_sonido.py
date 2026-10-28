@@ -19,7 +19,8 @@ EVENTOS = [
     "descarga_iniciada", "descarga_completada", "descarga_fallida",
     "descarga_cancelada",
     # Avisos del supervisor de transmisión y descartes del chat:
-    "al_aire", "transmision_detenida", "transmision_problema", "aviso",
+    "al_aire", "transmision_detenida", "transmision_problema",
+    "grabacion_problema", "aviso",
     # Vuelta de la conexión con el servicio: alivio, distinto de la alarma:
     "transmision_recuperada",
     # Confirmación de cierre, distinta del descenso de transmision_detenida:
@@ -82,6 +83,7 @@ NOMBRES = {
     "al_aire": "Directo al aire",
     "transmision_detenida": "Transmisión detenida",
     "transmision_problema": "Problema de la transmisión",
+    "grabacion_problema": "Problema de la grabación",
     "aviso": "Aviso general",
     "transmision_recuperada": "Transmisión recuperada",
     "directo_finalizado": "Cierre confirmado del directo",

@@ -20,6 +20,7 @@ from ytchat.ai import proveedores
 from ytchat.ai import sondeo_gratis
 from ytchat.core import diagnostico
 from ytchat.core import paths
+from ytchat.core.idioma import _
 from ytchat.ui.accesibilidad import ContadorAccesible, anunciar
 from ytchat.ui.tema import _tc
 from ytchat.ui.preferencias_comun import EleccionTexto, crear_panel, fila_label
@@ -87,7 +88,7 @@ class PaginaIA:
         self._ia_modelos_ids = []
 
     def _ia_proveedor(self, p, vs):
-        vs.Add(fila_label(p, "&Proveedor"),
+        vs.Add(fila_label(p, _("&Proveedor")),
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.cho_ia_proveedor = wx.Choice(
             p, choices=[pr.nombre for pr in proveedores.PROVEEDORES],
@@ -100,7 +101,7 @@ class PaginaIA:
         vs.Add(self.cho_ia_proveedor, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.cho_ia_proveedor.Bind(wx.EVT_CHOICE, self._on_ia_proveedor)
         self._ia_lbl_direccion = fila_label(
-            p, "&Dirección del servicio")
+            p, _("&Dirección del servicio"))
         vs.Add(self._ia_lbl_direccion, 0, wx.LEFT | wx.RIGHT, 10)
         self.txt_ia_direccion = wx.TextCtrl(
             p, value=self._ia_ajustes.direccion, name="DireccionIA")
@@ -117,27 +118,27 @@ class PaginaIA:
             self._ia_proveedor_actual, self._ia_clave_cambiada)
         self.ia_clave.construir(p, vs)
         self.btn_ia_probar_clave = wx.Button(
-            p, label="P&robar la clave", name="ProbarClaveIA")
+            p, label=_("P&robar la clave"), name="ProbarClaveIA")
         vs.Add(self.btn_ia_probar_clave, 0,
                wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.btn_ia_probar_clave.Bind(
             wx.EVT_BUTTON, self._on_ia_probar_clave)
 
     def _ia_modelo(self, p, vs):
-        vs.Add(fila_label(p, "&Modelo"), 0, wx.LEFT | wx.RIGHT, 10)
+        vs.Add(fila_label(p, _("&Modelo")), 0, wx.LEFT | wx.RIGHT, 10)
         self.cho_ia_modelo = wx.Choice(p, choices=[], name="ModeloIA")
         vs.Add(self.cho_ia_modelo, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.cho_ia_modelo.Bind(wx.EVT_CHOICE, self._on_ia_modelo)
         self.chk_ia_gratis = wx.CheckBox(
-            p, label="Solo gra&tuitos", name="SoloGratuitosIA")
+            p, label=_("Solo gra&tuitos"), name="SoloGratuitosIA")
         self.chk_ia_gratis.SetValue(bool(self._ia_ajustes.solo_gratis))
         vs.Add(self.chk_ia_gratis, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.chk_ia_gratis.Bind(wx.EVT_CHECKBOX, self._on_ia_gratis)
         self.btn_ia_actualizar = wx.Button(
-            p, label="&Actualizar la lista de modelos",
+            p, label=_("&Actualizar la lista de modelos"),
             name="ActualizarModelosIA")
         vs.Add(self.btn_ia_actualizar, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-        vs.Add(fila_label(p, "&Otro modelo"),
+        vs.Add(fila_label(p, _("&Otro modelo")),
                0, wx.LEFT | wx.RIGHT, 10)
         self.txt_ia_otro = wx.TextCtrl(p, value="", name="OtroModeloIA")
         vs.Add(self.txt_ia_otro, 0,
@@ -153,7 +154,7 @@ class PaginaIA:
         self._ia_actualizar_aviso()
 
     def _ia_pregunta(self, p, vs):
-        vs.Add(fila_label(p, "&Instrucción para las capturas"),
+        vs.Add(fila_label(p, _("&Instrucción para las capturas")),
                0, wx.LEFT | wx.RIGHT, 10)
         self.txt_ia_pregunta = wx.TextCtrl(
             p, value=self._ia_ajustes.pregunta, style=wx.TE_MULTILINE,
@@ -162,20 +163,21 @@ class PaginaIA:
         vs.Add(self.txt_ia_pregunta, 0,
                wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.btn_ia_restaurar = wx.Button(
-            p, label="R&estaurar la instrucción", name="RestaurarPreguntaIA")
+            p, label=_("R&estaurar la instrucción"), name="RestaurarPreguntaIA")
         vs.Add(self.btn_ia_restaurar, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.btn_ia_restaurar.Bind(wx.EVT_BUTTON, self._on_ia_restaurar)
 
     def _ia_largo(self, p, vs):
-        vs.Add(fila_label(p, "&Largo de la respuesta"),
+        vs.Add(fila_label(p, _("&Largo de la respuesta")),
                0, wx.LEFT | wx.RIGHT, 10)
+        # Traductores: largo de la respuesta de la IA.
         self.cho_ia_largo = EleccionTexto(
-            p, (("corta", "Corta"), ("media", "Media"), ("larga", "Larga")),
+            p, (("corta", _("Corta")), ("media", _("Media")), ("larga", _("Larga"))),
             normalizar=lambda v: v if v in ajustes_ia.LARGOS else "media",
             name="LargoIA")
         self.cho_ia_largo.SetValue(self._ia_ajustes.largo)
         vs.Add(self.cho_ia_largo, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-        vs.Add(fila_label(p, "Tiempo de e&spera en segundos"),
+        vs.Add(fila_label(p, _("Tiempo de e&spera en segundos")),
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_ia_tiempo = ContadorAccesible(
             p, min=ajustes_ia.TIEMPO_MINIMO, max=ajustes_ia.TIEMPO_MAXIMO,
@@ -183,7 +185,7 @@ class PaginaIA:
         self.sp_ia_tiempo.SetValue(self._ia_ajustes.tiempo_espera)
         vs.Add(self.sp_ia_tiempo, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.chk_ia_analizando = wx.CheckBox(
-            p, label="Decir Anali&zando mientras espera",
+            p, label=_("Decir Anali&zando mientras espera"),
             name="DecirAnalizandoIA")
         self.chk_ia_analizando.SetValue(
             bool(self._ia_ajustes.decir_analizando))

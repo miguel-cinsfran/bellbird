@@ -14,6 +14,7 @@ from ytchat.core import paths
 from ytchat.core.eventos_sonido import EVENTOS
 from ytchat.ui import preferencias_sonidos
 from ytchat.ui.preferencias_sonidos import PaginaSonidos
+from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 
 
 class TestPaginaSonidos(unittest.TestCase):
@@ -103,6 +104,16 @@ class TestPaginaSonidos(unittest.TestCase):
         self.assertEqual(len(letras), len(set(letras)), letras)
         self.assertNotIn("g", letras)
         self.assertNotIn("c", letras)
+
+    def test_no_queda_ningun_texto_visible_sin_envolver(self):
+        with con_pseudo():
+            libro = wx.Notebook(wx.Frame(None), name="LibroPrueba")
+            self.addCleanup(libro.GetParent().Destroy)
+            pagina = PaginaSonidos()
+            panel = pagina.construir(libro)
+            sin_marcar = textos_sin_marcar(panel)
+
+        self.assertEqual([], sin_marcar)
 
 
 if __name__ == "__main__":

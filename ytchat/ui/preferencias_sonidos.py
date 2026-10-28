@@ -18,6 +18,7 @@ from ytchat.core import diagnostico
 from ytchat.core import paths
 from ytchat.core import config as cfg
 from ytchat.core.eventos_sonido import EVENTOS, NOMBRES
+from ytchat.core.idioma import _
 from ytchat.core.sonidos_ini import con_silenciados, silenciados
 from ytchat.ui.accesibilidad import nombre_accesible
 from ytchat.ui.tema import _T, _pintar
@@ -75,11 +76,11 @@ class PaginaSonidos:
         self._panel.SetBackgroundColour(_T.bg)
         self._panel.SetForegroundColour(_T.text)
         vs = wx.BoxSizer(wx.VERTICAL)
-        vs.Add(wx.StaticText(self._panel, label="&Sonidos:"),
+        vs.Add(wx.StaticText(self._panel, label=_("&Sonidos:")),
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self._crear_lista(vs)
         self._btn_oir = wx.Button(
-            self._panel, label="&Oír el sonido elegido", name="OirSonido")
+            self._panel, label=_("&Oír el sonido elegido"), name="OirSonido")
         self._btn_oir.SetBackgroundColour(_T.btn)
         self._btn_oir.SetForegroundColour(_T.btn_t)
         self._btn_oir.Bind(wx.EVT_BUTTON, self._on_oir)
@@ -91,10 +92,12 @@ class PaginaSonidos:
     def _crear_lista(self, vs):
         self._lista = wx.ListCtrl(
             self._panel, style=wx.LC_REPORT | wx.LC_SINGLE_SEL,
-            name="Sonidos")
+            name=_("Sonidos"))
         _pintar(self._lista, _T.field, _T.text)
-        nombre_accesible(self._lista, "Sonidos")
-        self._lista.InsertColumn(0, "Sonido", width=420)
+        # Traductores: nombre accesible de la lista de sonidos.
+        nombre_accesible(self._lista, _("Sonidos"))
+        # Traductores: columna con el nombre de cada sonido.
+        self._lista.InsertColumn(0, _("Sonido"), width=420)
         self._lista.EnableCheckBoxes(True)
         self._lista.SetMinSize((460, 300))
         self._lista.Bind(wx.EVT_SIZE, self._on_tamanio_lista)

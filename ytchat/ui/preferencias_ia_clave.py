@@ -12,6 +12,7 @@ import wx
 from ytchat.ai import claves
 from ytchat.ai import opciones_ia
 from ytchat.core import diagnostico
+from ytchat.core.idioma import _
 from ytchat.ui.accesibilidad import anunciar
 from ytchat.ui.tema import _T, _tc
 from ytchat.voice import sound_player as _snd
@@ -30,7 +31,8 @@ class SeccionClaveIA:
 
     def construir(self, panel, sizer):
         self._panel = panel
-        etiqueta = wx.StaticText(panel, label="Cla&ve")
+        # Traductores: rótulo de la clave de IA del proveedor elegido.
+        etiqueta = wx.StaticText(panel, label=_("Cla&ve"))
         etiqueta.SetForegroundColour(_T.accent)
         sizer.Add(etiqueta, 0, wx.LEFT | wx.RIGHT, 10)
         self.txt_estado = wx.TextCtrl(
@@ -49,17 +51,17 @@ class SeccionClaveIA:
 
     def _crear_botones(self, panel, sizer):
         self.btn_guardar = wx.Button(
-            panel, label="G&uardar clave", name="GuardarClaveIA")
+            panel, label=_("G&uardar clave"), name="GuardarClaveIA")
         sizer.Add(self.btn_guardar, 0,
                   wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.btn_guardar.Bind(wx.EVT_BUTTON, self._on_guardar)
         self.btn_nueva = wx.Button(
-            panel, label="Escribir una clave &nueva", name="NuevaClaveIA")
+            panel, label=_("Escribir una clave &nueva"), name="NuevaClaveIA")
         sizer.Add(self.btn_nueva, 0,
                   wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.btn_nueva.Bind(wx.EVT_BUTTON, self._on_nueva)
         self.btn_borrar = wx.Button(
-            panel, label="&Borrar la clave guardada", name="BorrarClaveIA")
+            panel, label=_("&Borrar la clave guardada"), name="BorrarClaveIA")
         sizer.Add(self.btn_borrar, 0,
                   wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.btn_borrar.Bind(wx.EVT_BUTTON, self._on_borrar)
@@ -153,7 +155,7 @@ class SeccionClaveIA:
         mensaje = opciones_ia.TEXTO_CONFIRMAR_BORRADO.format(
             proveedor=proveedor.nombre)
         respuesta = wx.MessageBox(
-            mensaje, "Borrar la clave",
+            mensaje, _("Borrar la clave"),
             wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING, self._panel)
         if respuesta != wx.YES:
             self.btn_borrar.SetFocus()

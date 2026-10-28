@@ -11,6 +11,7 @@ import wx
 
 from ytchat.core import diagnostico, musica_decir
 from ytchat.core import config as cfg
+from ytchat.core.idioma import _
 from ytchat.ui import opciones_musica
 from ytchat.ui.accesibilidad import ContadorAccesible, anunciar, nombre_accesible
 from ytchat.ui.tema import _T, _tc
@@ -53,115 +54,117 @@ class PaginaMusica:
         return p
 
     def _musica_carpeta(self, p, vs):
-        vs.Add(fila_label(p, "Carpeta de &música:"),
+        vs.Add(fila_label(p, _("Carpeta de &música:")),
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         carpeta = str(self._config.get("musica_carpeta", "") or "")
         self.dir_musica_carpeta = wx.DirPickerCtrl(
-            p, path=carpeta, name="Carpeta de música",
-            message="Elige la carpeta de música")
+            p, path=carpeta, name=_("Carpeta de música"),
+            message=_("Elige la carpeta de música"))
         nombrar_selector_carpeta(self.dir_musica_carpeta)
         # La función nombra el campo para las descargas; acá el campo es la
         # carpeta de música.
         if hasattr(self.dir_musica_carpeta, "GetTextCtrl"):
             nombre_accesible(self.dir_musica_carpeta.GetTextCtrl(),
-                             "Carpeta de música")
+                             _("Carpeta de música"))
         vs.Add(self.dir_musica_carpeta, 0,
                wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _musica_orden(self, p, vs):
         self.chk_musica_aleatorio = wx.CheckBox(
-            p, label="Reproducir en orden &aleatorio",
+            p, label=_("Reproducir en orden &aleatorio"),
             name="MusicaAleatorio")
         self.chk_musica_aleatorio.SetForegroundColour(_T.text)
         vs.Add(self.chk_musica_aleatorio, 0, wx.ALL, 10)
 
-        vs.Add(fila_label(p, "&Repetir:"), 0, wx.LEFT | wx.RIGHT, 10)
+        vs.Add(fila_label(p, _("&Repetir:")), 0, wx.LEFT | wx.RIGHT, 10)
+        # Traductores: opción de no repetir la música.
         self.chk_musica_repetir = EleccionTexto(
-            p, (("no", "No"), ("todo", "Toda la cola"),
-                 ("tema", "Esta canción")),
-            normalizar=cfg.normalizar_repetir, name="Repetir la música")
+            p, (("no", _("No")), ("todo", _("Toda la cola")),
+                 ("tema", _("Esta canción"))),
+            normalizar=cfg.normalizar_repetir, name=_("Repetir la música"))
         _tc(self.chk_musica_repetir)
         vs.Add(self.chk_musica_repetir, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         self.chk_musica_retomar = wx.CheckBox(
-            p, label="Recordar la ú&ltima lista al abrir",
+            p, label=_("Recordar la ú&ltima lista al abrir"),
             name="MusicaRetomar")
         self.chk_musica_retomar.SetForegroundColour(_T.text)
         vs.Add(self.chk_musica_retomar, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        vs.Add(fila_label(p, "&Fundido entre canciones, en segundos:"),
+        vs.Add(fila_label(p, _("&Fundido entre canciones, en segundos:")),
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_musica_cruce = ContadorAccesible(
             p, min=0, max=12,
-            name="Fundido entre canciones, en segundos")
+            name=_("Fundido entre canciones, en segundos"))
         vs.Add(self.sp_musica_cruce, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _musica_anuncios(self, p, vs):
         self.chk_musica_sonido_tema = wx.CheckBox(
-            p, label="&Sonido al pasar de canción",
+            p, label=_("&Sonido al pasar de canción"),
             name="MusicaSonidoTema")
         self.chk_musica_sonido_tema.SetForegroundColour(_T.text)
         vs.Add(self.chk_musica_sonido_tema, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        vs.Add(fila_label(p, "&Decir al pasar de canción:"), 0, wx.LEFT | wx.RIGHT, 10)
+        vs.Add(fila_label(p, _("&Decir al pasar de canción:")), 0, wx.LEFT | wx.RIGHT, 10)
+        # Traductores: no decir nada al pasar de canción.
         self.cho_musica_decir = EleccionTexto(
-            p, (("nada", "Nada"), ("titulo", "El título"),
-                ("titulo_artista", "El título y el artista"), ("artista", "Solo el artista")),
-            normalizar=musica_decir.normalizar, name="Qué decir al pasar de canción")
+            p, (("nada", _("Nada")), ("titulo", _("El título")),
+                ("titulo_artista", _("El título y el artista")), ("artista", _("Solo el artista"))),
+            normalizar=musica_decir.normalizar, name=_("Qué decir al pasar de canción"))
         _tc(self.cho_musica_decir)
         vs.Add(self.cho_musica_decir, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.chk_musica_decir_pausa = wx.CheckBox(
-            p, label="A&nunciar la pausa, la reanudación y la vuelta al comienzo",
+            p, label=_("A&nunciar la pausa, la reanudación y la vuelta al comienzo"),
             name="MusicaDecirPausa")
         self.chk_musica_decir_pausa.SetForegroundColour(_T.text)
         vs.Add(self.chk_musica_decir_pausa, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _musica_audio(self, p, vs):
-        vs.Add(fila_label(p, "&Volumen de la música"),
+        vs.Add(fila_label(p, _("&Volumen de la música")),
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_musica_volumen = ContadorAccesible(
             p, min=0, max=100,
-            name="Volumen de la música")
+            name=_("Volumen de la música"))
         vs.Add(self.sp_musica_volumen, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         self._casilla_igualar(p, vs)
 
         # Al abrir no se consulta VLC: la lista se arma solo con la salida
         # guardada (o la predeterminada) y se completa con el botón.
-        vs.Add(fila_label(p, "Salida de a&udio de la música"),
+        vs.Add(fila_label(p, _("Salida de a&udio de la música")),
                0, wx.LEFT | wx.RIGHT, 10)
         etiquetas, identificadores, seleccion = opciones_musica.opciones_salida(
             str(self._config.get("musica_salida", "") or ""),
             str(self._config.get("musica_salida_nombre", "") or ""), [])
         self._musica_salidas_ids = identificadores
         self.cho_musica_salida = wx.Choice(
-            p, choices=etiquetas, name="Salida de audio de la música")
+            p, choices=etiquetas, name=_("Salida de audio de la música"))
         self.cho_musica_salida.SetSelection(seleccion)
         vs.Add(self.cho_musica_salida, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         self.btn_buscar_salidas = wx.Button(
-            p, label="&Buscar las salidas de audio",
-            name="Buscar las salidas de audio")
+            p, label=_("&Buscar las salidas de audio"),
+            name=_("Buscar las salidas de audio"))
         vs.Add(self.btn_buscar_salidas, 0, wx.ALL, 10)
         self.btn_buscar_salidas.Bind(wx.EVT_BUTTON, self._buscar_salidas)
 
     def _casilla_igualar(self, p, vs):
         self.chk_musica_normalizar = wx.CheckBox(
-            p, label="&Igualar el volumen de las canciones",
-            name="Igualar el volumen de las canciones")
+            p, label=_("&Igualar el volumen de las canciones"),
+            name=_("Igualar el volumen de las canciones"))
         self.chk_musica_normalizar.SetForegroundColour(_T.text)
         vs.Add(self.chk_musica_normalizar, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         self.chk_musica_preguntar_igualar = wx.CheckBox(
-            p, label="Pr&eguntar al abrir Música si igualar el volumen",
-            name="Preguntar al abrir Música si igualar el volumen")
+            p, label=_("Pr&eguntar al abrir Música si igualar el volumen"),
+            name=_("Preguntar al abrir Música si igualar el volumen"))
         self.chk_musica_preguntar_igualar.SetForegroundColour(_T.text)
         vs.Add(self.chk_musica_preguntar_igualar, 0,
                wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _musica_atajos(self, p, vs):
         self.chk_musica_atajos_globales = wx.CheckBox(
-            p, label="Usar los atajos de música en cualquier &programa",
+            p, label=_("Usar los atajos de música en cualquier &programa"),
             name="MusicaAtajosGlobales")
         self.chk_musica_atajos_globales.SetForegroundColour(_T.text)
         vs.Add(self.chk_musica_atajos_globales, 0,
@@ -196,11 +199,12 @@ class PaginaMusica:
         self.cho_musica_salida.SetSelection(seleccion)
         cantidad = len({ident for ident, _nombre in (salidas or []) if ident})
         if cantidad == 1:
-            anunciar("Se encontró 1 salida de audio")
+            anunciar(_("Se encontró 1 salida de audio"))
         elif cantidad:
-            anunciar(f"Se encontraron {cantidad} salidas de audio")
+            anunciar(_("Se encontraron {cantidad} salidas de audio").format(
+                cantidad=cantidad))
         else:
-            anunciar("No se encontraron salidas de audio")
+            anunciar(_("No se encontraron salidas de audio"))
 
     def guardar(self, fijar, en_memoria):
         # La carpeta se guarda codificada igual que la lee el cargador; la

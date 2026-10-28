@@ -11,6 +11,7 @@ import base64
 from dataclasses import dataclass
 
 from ytchat.core import diagnostico
+from ytchat.core.idioma import _
 from ytchat.obs import luz_imagen
 from ytchat.obs import obs_prevuelo
 
@@ -97,8 +98,9 @@ def _entero(valor) -> int:
 
 
 def _texto_fallo(opcion) -> str:
-    return (f"No se pudo capturar {opcion.etiqueta}. Comprueba que esté "
-            "visible en la escena al aire.")
+    return (_("No se pudo capturar {etiqueta}. Comprueba que esté "
+              "visible en la escena al aire.").format(
+                  etiqueta=opcion.etiqueta))
 
 
 def _opcion_elemento(elemento, por_nombre):
@@ -114,7 +116,12 @@ def _opcion_elemento(elemento, por_nombre):
     if clase in _TIPOS_SIN_IMAGEN:
         return None
     tipo = obs_prevuelo._TIPOS.get(clase, "")
-    etiqueta = f"{nombre} ({tipo})" if tipo else nombre
+    if tipo:
+        # Traductores: {nombre} es la fuente y {tipo} su clase, como se lee en la lista.
+        etiqueta = _("{nombre} ({tipo})").format(
+            nombre=nombre, tipo=_(tipo))
+    else:
+        etiqueta = nombre
     return OpcionCaptura(nombre, etiqueta, ancho, alto)
 
 
@@ -123,7 +130,7 @@ def opciones(cliente, parada=None) -> tuple:
     escena = _datos(cliente, "GetCurrentProgramScene",
                     parada=parada).get("currentProgramSceneName", "") or ""
     lienzo = _datos(cliente, "GetVideoSettings", parada=parada)
-    base = OpcionCaptura(escena, f"Escena al aire: {escena}",
+    base = OpcionCaptura(escena, _("Escena al aire: {escena}").format(escena=escena),
                          _entero(lienzo.get("baseWidth")),
                          _entero(lienzo.get("baseHeight")))
     elementos = _datos(cliente, "GetSceneItemList", {"sceneName": escena},

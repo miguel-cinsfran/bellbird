@@ -2,6 +2,7 @@
 
 import unittest
 
+from tests.pseudo_prueba import con_pseudo
 from ytchat.player.progreso import aviso_de_espera
 
 
@@ -30,6 +31,18 @@ class TestAvisoDeEspera(unittest.TestCase):
         self.assertEqual(aviso_de_espera(-2.7, None), "")
         self.assertEqual(aviso_de_espera(2.9, None),
                          "Buscando el vídeo, 2 segundos")
+
+
+class TestPseudoTextos(unittest.TestCase):
+    """Bajo pseudotraducción, cada frase al usuario sale marcada."""
+
+    def test_avisos_salen_marcados(self):
+        with con_pseudo():
+            marcados = [aviso_de_espera(2, None), aviso_de_espera(20, 17)]
+        for texto in marcados:
+            with self.subTest(texto=texto):
+                self.assertTrue(texto.startswith("[¡"), texto)
+                self.assertIn("2", texto)
 
 
 if __name__ == "__main__":

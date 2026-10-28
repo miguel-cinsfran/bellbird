@@ -9,21 +9,26 @@ Cambiar de motor o elegir mal una voz no debe tumbar el hilo de voz.
 from __future__ import annotations
 
 from ytchat.core import diagnostico
+from ytchat.core.idioma import N_, _
 from ytchat.voice import escala_voz
 
 logger = diagnostico.obtener_logger(__name__)
 
 MOTORES = ("sapi", "onecore", "elevenlabs")
 NOMBRES = {
-    "sapi": "Windows SAPI 5",
-    "onecore": "Windows OneCore",
-    "elevenlabs": "ElevenLabs, en la nube",
+    "sapi": N_("Windows SAPI 5"),
+    "onecore": N_("Windows OneCore"),
+    "elevenlabs": N_("ElevenLabs, en la nube"),
 }
 
 # Solo los motores de Prism tienen backend id. ElevenLabs tiene su propio
 # MotorElevenLabs, así que la validación de `MotorPrism` va contra `_IDS` y no
 # contra `MOTORES`: pedir «elevenlabs» desde Prism debe dar MotorNoDisponible.
 _IDS = {"sapi": "SAPI", "onecore": "ONE_CORE"}
+
+_MSG_DESCONOCIDO = N_("Motor de voz desconocido: {motor} (válidos: {validos})")
+_MSG_SIN_PRISM = N_("No se pudo importar Prism para el motor {nombre}: {detalle}")
+_MSG_SIN_MOTOR = N_("No se pudo iniciar el motor {nombre}: {detalle}")
 
 
 class MotorNoDisponible(Exception):
@@ -40,9 +45,8 @@ class MotorPrism:
 
     def __init__(self, motor, fabrica_contexto=None):
         if motor not in _IDS:
-            raise MotorNoDisponible(
-                f"Motor de voz desconocido: {motor!r} "
-                f"(válidos: {', '.join(_IDS)})")
+            raise MotorNoDisponible(_(_MSG_DESCONOCIDO).format(
+                motor=repr(motor), validos=", ".join(_IDS)))
         try:
             from prism import BackendId
             from prism.common import (
@@ -55,15 +59,14 @@ class MotorPrism:
             if fabrica_contexto is None:
                 from prism import Context as fabrica_contexto
         except Exception as exc:
-            raise MotorNoDisponible(
-                f"No se pudo importar Prism para el motor "
-                f"{NOMBRES[motor]}: {exc}") from exc
+            raise MotorNoDisponible(_(_MSG_SIN_PRISM).format(
+                nombre=_(NOMBRES[motor]), detalle=exc)) from exc
         try:
             self._ctx = fabrica_contexto()
             self._backend = self._ctx.create(getattr(BackendId, _IDS[motor]))
         except Exception as exc:
-            raise MotorNoDisponible(
-                f"No se pudo iniciar el motor {NOMBRES[motor]}: {exc}") from exc
+            raise MotorNoDisponible(_(_MSG_SIN_MOTOR).format(
+                nombre=_(NOMBRES[motor]), detalle=exc)) from exc
         self._ya_pausado = PrismAlreadyPausedError
         self._no_pausado = PrismNotPausedError
         self.motor = motor

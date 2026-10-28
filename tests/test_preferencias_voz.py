@@ -18,14 +18,11 @@ from tests.ventanas_prueba import destruir
 
 
 # Textos que arma otro módulo y aparecen en la parte recorrida: no se
-# tocan acá. Los nombres de los motores salen de `ytchat/voice/motores.py`
-# (NOMBRES). La lista de voces se finge vacía, así los combinados muestran
-# el aviso propio, ya envuelto.
-PENDIENTES_OTROS_MODULOS = (
-    "Windows SAPI 5",
-    "Windows OneCore",
-    "ElevenLabs, en la nube",
-)
+# tocan acá. Los nombres de los motores (`ytchat/voice/motores.py`,
+# NOMBRES) ya salen marcados porque la página los traduce. La lista de
+# voces se finge vacía, así los combinados muestran el aviso propio, ya
+# envuelto.
+PENDIENTES_OTROS_MODULOS = ()
 
 
 class TestPseudoVoz(unittest.TestCase):

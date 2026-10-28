@@ -7,7 +7,9 @@ import unittest
 import wave
 from pathlib import Path
 
+from tests.pseudo_prueba import con_pseudo
 from ytchat.core import paths
+from ytchat.core.idioma import _
 from ytchat.voice import elevenlabs
 from ytchat.voice.motor_elevenlabs import MotorElevenLabs
 from ytchat.voice.motores import MotorNoDisponible
@@ -135,6 +137,34 @@ class TestReproduccion(unittest.TestCase):
                 self.assertFalse(motor.hablar("   "))
                 self.assertEqual(cliente.llamadas, [])
                 motor.cerrar()
+
+
+class TestPseudoTextos(unittest.TestCase):
+    """Bajo pseudotraducción, cada frase al usuario sale marcada."""
+
+    def test_errores_salen_marcados(self):
+        from ytchat.voice import motor_elevenlabs
+        with con_pseudo():
+            with self.assertRaises(MotorNoDisponible) as sin_clave:
+                MotorElevenLabs("")
+            with self.assertRaises(MotorNoDisponible) as sin_voces:
+                MotorElevenLabs("k", cliente=_ClienteVacio(_wav_silencio()))
+            marcados = [_(motor_elevenlabs._ERROR_SIN_CLAVE),
+                        _(motor_elevenlabs._ERROR_SIN_VOCES)]
+        for contexto in (sin_clave, sin_voces):
+            with self.subTest(mensaje=str(contexto.exception)):
+                self.assertTrue(str(contexto.exception).startswith("[¡"),
+                                str(contexto.exception))
+        for texto in marcados:
+            with self.subTest(texto=texto):
+                self.assertTrue(texto.startswith("[¡"), texto)
+
+
+class _ClienteVacio(_ClienteFalso):
+    """Sin voces, para el camino de _ERROR_SIN_VOCES."""
+
+    def voces(self):
+        return []
 
 
 if __name__ == "__main__":

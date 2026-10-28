@@ -12,11 +12,12 @@ import ctypes
 from ctypes import wintypes
 
 from ytchat.core import diagnostico
+from ytchat.core.idioma import N_, _
 
 logger = diagnostico.obtener_logger(__name__)
 
-TEXTO_SIN_OBS = "OBS no está abierto."
-TEXTO_SIN_FRENTE = "No se pudo mostrar la ventana de OBS."
+TEXTO_SIN_OBS = N_("OBS no está abierto.")
+TEXTO_SIN_FRENTE = N_("No se pudo mostrar la ventana de OBS.")
 
 _SW_RESTORE = 9
 _PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
@@ -145,12 +146,12 @@ def mostrar(buscar=buscar_ventana, traer=_traer) -> str:
         ventana = buscar()
     except Exception as exc:
         logger.debug("No se pudo buscar la ventana de OBS: %s", exc)
-        return TEXTO_SIN_OBS
+        return _(TEXTO_SIN_OBS)
     if ventana is None:
-        return TEXTO_SIN_OBS
+        return _(TEXTO_SIN_OBS)
     try:
         al_frente = traer(ventana)
     except Exception as exc:
         logger.debug("No se pudo traer al frente la ventana de OBS: %s", exc)
-        return TEXTO_SIN_FRENTE
-    return "" if al_frente else TEXTO_SIN_FRENTE
+        return _(TEXTO_SIN_FRENTE)
+    return "" if al_frente else _(TEXTO_SIN_FRENTE)

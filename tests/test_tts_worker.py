@@ -6,6 +6,8 @@ import time
 import unittest
 from unittest import mock
 
+from tests.pseudo_prueba import con_pseudo
+from ytchat.core.idioma import _
 from ytchat.voice import elevenlabs
 from ytchat.voice import motores
 from ytchat.voice import tts_worker
@@ -584,6 +586,46 @@ class TestConstruirTTS(unittest.TestCase):
 
     def test_autor_vacio_usa_placeholder(self):
         self.assertEqual(construir_tts("", "hola", self._cfg()), "Usuario: hola")
+
+
+class TestPseudoTextos(unittest.TestCase):
+    """Bajo pseudotraducción, cada frase al usuario sale marcada."""
+
+    def _worker(self, **config):
+        el = MotorElevenlabsFalso()
+        el.duracion = 0.02
+        sapi = MotorFalso()
+        sapi.duracion = 0.02
+        base = {"motor": "elevenlabs"}
+        base.update(config)
+        fabrica = FabricaFalsa({"elevenlabs": el, "sapi": sapi})
+        worker = tts_worker.TTSWorker(queue.Queue(), base, fabrica_motor=fabrica)
+        worker._abrir_motor()
+        avisos = []
+        worker.al_avisar = avisos.append
+        return worker, el, avisos
+
+    def test_avisos_de_elevenlabs_salen_marcados(self):
+        worker_fallo, el_fallo, avisos_fallo = self._worker()
+        worker_tope, el_tope, avisos_tope = self._worker(elevenlabs_tope=10)
+        with con_pseudo():
+            el_fallo.falla = elevenlabs.ElevenLabsError(
+                "red", "No se pudo conectar con ElevenLabs.")
+            worker_fallo._hablar("uno", None, False)
+            el_tope.caracteres = 100
+            worker_tope._hablar("hola", None, False)
+            armados = [
+                construir_tts("Juan", "hola", {"limpiar_emojis": True,
+                                               "formato_prefijo": "mensaje_nombre"}),
+                construir_tts("", "hola", {"limpiar_emojis": True,
+                                           "formato_prefijo": "nombre_mensaje"}),
+                _(tts_worker._MSG_TOPE),
+            ]
+        self.assertEqual(len(avisos_fallo), 1)
+        self.assertEqual(len(avisos_tope), 1)
+        for texto in avisos_fallo + avisos_tope + armados:
+            with self.subTest(texto=texto):
+                self.assertTrue(texto.startswith("[¡"), texto)
 
 
 if __name__ == "__main__":

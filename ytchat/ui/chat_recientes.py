@@ -13,6 +13,7 @@ import wx
 
 from ytchat.core import atajos as _atajos_fijos
 from ytchat.core import config, diagnostico
+from ytchat.core.idioma import N_, _
 from ytchat.music import anuncios
 from ytchat.ui import atajos_globales
 from ytchat.ui.atajos_globales import combinacion_ctrl_mayus
@@ -39,8 +40,8 @@ ORDEN = (
 # Base de los ids propios para `RegisterHotKey`, lejos de los de música.
 BASE_IDS = 0xB100
 
-TEXTO_ACTIVOS = "Mensajes recientes del chat en cualquier programa"
-TEXTO_SOLO = f"Mensajes recientes del chat solo en {config.APP_NAME}"
+TEXTO_ACTIVOS = N_("Mensajes recientes del chat en cualquier programa")
+TEXTO_SOLO = N_("Mensajes recientes del chat solo en {app}")
 
 
 class LecturaRecientes:

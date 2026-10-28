@@ -2,6 +2,8 @@
 
 from dataclasses import dataclass
 
+from ytchat.core.idioma import _, ngettext
+
 TOLERANCIA_DESTINO_MS = 1500
 TOLERANCIA_ATRAS_MS = 2000
 CADUCIDAD_DESTINO_MS = 5000
@@ -110,19 +112,20 @@ def desfase_tras_salto(desfase_seg, delta_ms, segmento_ms, ventana_seg) -> int:
 def frase_desfase_directo(segundos) -> str:
     """«En el directo», «1 minuto por detrás del directo»…"""
     s = max(0, int(round(segundos or 0)))
-    if s == 0:
-        return "En el directo"
+    if s == 0: return _("En el directo")
     m, sec = divmod(s, 60)
-    partes = []
+    # Traductores: {n} es la cantidad de minutos por detrás del directo.
+    mins = ngettext("{n} minuto", "{n} minutos", m).format(n=m)
+    # Traductores: {n} es la cantidad de segundos por detrás del directo.
+    segs = ngettext("{n} segundo", "{n} segundos", sec).format(n=sec)
+    if m and sec:
+        return _("{minutos} y {segundos} por detrás del directo").format(minutos=mins, segundos=segs)
     if m:
-        partes.append(f"{m} minuto" + ("s" if m != 1 else ""))
-    if sec:
-        partes.append(f"{sec} segundo" + ("s" if sec != 1 else ""))
-    return " y ".join(partes) + " por detrás del directo"
+        return _("{minutos} por detrás del directo").format(minutos=mins)
+    return _("{segundos} por detrás del directo").format(segundos=segs)
 
 
-def destino_acumulado(destino_pendiente, posicion_actual, delta_ms,
-                      duracion_ms) -> int:
+def destino_acumulado(destino_pendiente, posicion_actual, delta_ms, duracion_ms) -> int:
     base = posicion_actual if destino_pendiente is None else destino_pendiente
     # VLC puede dar una duración menor que la posición real (directos: se
     # vio pos=7737861 con dur=900000). Recortar por esa duración convertía
@@ -134,10 +137,8 @@ def destino_acumulado(destino_pendiente, posicion_actual, delta_ms,
     return destino
 
 
-def destino_alcanzado(destino_pendiente, posicion_actual,
-                      tolerancia_ms) -> bool:
-    return (destino_pendiente is None
-            or abs(posicion_actual - destino_pendiente) <= tolerancia_ms)
+def destino_alcanzado(destino_pendiente, posicion_actual, tolerancia_ms) -> bool:
+    return (destino_pendiente is None or abs(posicion_actual - destino_pendiente) <= tolerancia_ms)
 
 
 def posicion_a_mostrar(destino_pendiente, posicion_actual) -> int:
@@ -182,8 +183,9 @@ def accion_play_pausa(estado, hay_medio, intencion_reproducir,
 def aviso_sin_pausa(atajo) -> str:
     """Texto al pedir pausa en un directo de TikTok, con el atajo de Silenciar."""
     if atajo:
-        return f"Un directo de TikTok no se puede pausar. Para silenciarlo, pulsa {atajo}."
-    return "Un directo de TikTok no se puede pausar. Para silenciarlo, usa Silenciar audio."
+        return _("Un directo de TikTok no se puede pausar. "
+                 "Para silenciarlo, pulsa {atajo}.").format(atajo=atajo)
+    return _("Un directo de TikTok no se puede pausar. Para silenciarlo, usa Silenciar audio.")
 
 
 class EstadoBusqueda:

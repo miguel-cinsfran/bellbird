@@ -7,9 +7,11 @@ from unittest import mock
 from prism import PrismError
 from prism.common import PrismAlreadyPausedError, PrismNotPausedError
 
+from tests.pseudo_prueba import con_pseudo
+from ytchat.core.idioma import _
 from ytchat.voice import escala_voz
 from ytchat.voice.motores import (
-    MotorNoDisponible, MotorPrism, crear_motor, listar_voces,
+    NOMBRES, MotorNoDisponible, MotorPrism, crear_motor, listar_voces,
 )
 
 
@@ -190,6 +192,33 @@ class TestMotorPrismReal(unittest.TestCase):
 
     def test_listar_voces_inexistente(self):
         self.assertEqual(listar_voces("inexistente"), [])
+
+
+class TestPseudoTextos(unittest.TestCase):
+    """Bajo pseudotraducción, cada frase al usuario sale marcada."""
+
+    def test_errores_salen_marcados(self):
+        with con_pseudo():
+            with self.assertRaises(MotorNoDisponible) as desconocido:
+                MotorPrism("inexistente", lambda: _ContextoFalso(_BackendFalso()))
+            with self.assertRaises(MotorNoDisponible) as sin_prism:
+                with mock.patch.dict("sys.modules", {"prism": None}):
+                    MotorPrism("sapi", lambda: _ContextoFalso(_BackendFalso()))
+            with self.assertRaises(MotorNoDisponible) as sin_motor:
+                MotorPrism("sapi", lambda: _ContextoFalso(
+                    _BackendFalso(), PrismError(0, "falla de prueba")))
+        for contexto in (desconocido, sin_prism, sin_motor):
+            with self.subTest(mensaje=str(contexto.exception)):
+                self.assertTrue(str(contexto.exception).startswith("[¡"),
+                                str(contexto.exception))
+
+    def test_nombres_salen_marcados(self):
+        with con_pseudo():
+            marcados = [_(NOMBRES[motor]) for motor in
+                        ("sapi", "onecore", "elevenlabs")]
+        for texto in marcados:
+            with self.subTest(texto=texto):
+                self.assertTrue(texto.startswith("[¡"), texto)
 
 
 class TestCrearMotor(unittest.TestCase):

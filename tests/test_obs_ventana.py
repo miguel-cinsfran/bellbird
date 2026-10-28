@@ -2,6 +2,8 @@
 
 import unittest
 
+from tests.pseudo_prueba import con_pseudo
+from ytchat.core.idioma import _
 from ytchat.obs import obs_ventana
 
 
@@ -33,6 +35,27 @@ class TestMostrar(unittest.TestCase):
         self.assertEqual(
             obs_ventana.mostrar(buscar=buscar),
             obs_ventana.TEXTO_SIN_OBS)
+
+
+class TestPseudoTextos(unittest.TestCase):
+    """Bajo pseudotraducción, cada frase al usuario sale marcada."""
+
+    def test_avisos_salen_marcados(self):
+        def buscar():
+            raise OSError("fallo de ctypes")
+
+        with con_pseudo():
+            marcados = [
+                obs_ventana.mostrar(buscar=lambda: None),
+                obs_ventana.mostrar(buscar=buscar),
+                obs_ventana.mostrar(
+                    buscar=lambda: 5678, traer=lambda h: False),
+                _(obs_ventana.TEXTO_SIN_OBS),
+                _(obs_ventana.TEXTO_SIN_FRENTE),
+            ]
+        for texto in marcados:
+            with self.subTest(texto=texto):
+                self.assertTrue(texto.startswith("[¡"), texto)
 
 
 class TestBuscarVentanaReal(unittest.TestCase):

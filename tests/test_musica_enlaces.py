@@ -11,6 +11,8 @@ import time
 import unittest
 from unittest import mock
 
+from tests.pseudo_prueba import con_pseudo
+from ytchat.core.idioma import _
 from ytchat.music import enlaces
 from ytchat.music.enlaces import ErrorEnlace
 from ytchat.music.modelo import Tema
@@ -178,6 +180,35 @@ class TestTextosEnlace(unittest.TestCase):
             enlaces.TEXTO_NO_SE_PUDO_LEER, "No se pudo leer el enlace")
         self.assertEqual(
             enlaces.TEXTO_SIN_VIDEOS, "El enlace no tiene vídeos")
+
+
+class TestPseudoTextos(unittest.TestCase):
+    """Bajo pseudotraducción, cada frase al usuario sale marcada."""
+
+    def test_errores_salen_marcados(self):
+        salida = mock.Mock(returncode=1, stdout="")
+        with con_pseudo():
+            with mock.patch.object(enlaces.ytdlp_bin, "ruta_ytdlp",
+                                   return_value=r"C:\yt-dlp.exe"), \
+                    mock.patch.object(enlaces.subprocess, "run",
+                                      return_value=salida):
+                with self.assertRaises(ErrorEnlace) as sin_leer:
+                    enlaces.expandir("https://youtu.be/abc123")
+            with mock.patch.object(enlaces.ytdlp_bin, "ruta_ytdlp",
+                                   return_value=None), \
+                    mock.patch.object(enlaces, "_extraer_plano_con_modulo",
+                                      return_value={"entries": []}):
+                with self.assertRaises(ErrorEnlace) as sin_videos:
+                    enlaces.expandir("https://youtu.be/abc123")
+            marcados = [_(enlaces.TEXTO_NO_SE_PUDO_LEER),
+                        _(enlaces.TEXTO_SIN_VIDEOS)]
+        for contexto in (sin_leer, sin_videos):
+            with self.subTest(mensaje=str(contexto.exception)):
+                self.assertTrue(str(contexto.exception).startswith("[¡"),
+                                str(contexto.exception))
+        for texto in marcados:
+            with self.subTest(texto=texto):
+                self.assertTrue(texto.startswith("[¡"), texto)
 
 
 class TestUrlAudio(unittest.TestCase):

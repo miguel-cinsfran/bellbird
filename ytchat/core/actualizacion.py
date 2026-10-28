@@ -28,6 +28,7 @@ from urllib.request import Request, urlopen
 
 from ytchat.core import paths
 from ytchat.core.config import APP_NAME
+from ytchat.core.idioma import _
 
 
 URL_ULTIMA_VERSION = (
@@ -211,8 +212,7 @@ def consultar_ultima_version() -> PaqueteElegido | None:
     None ante cualquier error de red o de JSON.
     """
     try:
-        solicitud = Request(URL_ULTIMA_VERSION,
-                            headers={"User-Agent": USER_AGENT})
+        solicitud = Request(URL_ULTIMA_VERSION, headers={"User-Agent": USER_AGENT})
         with urlopen(solicitud, timeout=TIEMPO_ESPERA) as respuesta:
             datos = json.load(respuesta)
         return elegir_paquete(datos)
@@ -349,7 +349,7 @@ def extraer_paquete(zip: str | os.PathLike, destino: str | os.PathLike) -> Path:
                 _borrar_arbol(destino)
                 destino.mkdir(parents=True, exist_ok=True)
                 raise PaqueteInvalido(
-                    f"el paquete trae una ruta fuera de lugar: {entrada.filename}")
+                    _("el paquete trae una ruta fuera de lugar: {entrada}").format(entrada=entrada.filename))
         for entrada in archivo.infolist():
             ruta = (destino / entrada.filename).resolve()
             if entrada.is_dir():
@@ -373,8 +373,7 @@ def _borrar_arbol(carpeta: Path) -> None:
     carpeta.rmdir()
 
 
-def validar_paquete(carpeta: str | os.PathLike,
-                    version_esperada: str) -> str:
+def validar_paquete(carpeta: str | os.PathLike, version_esperada: str) -> str:
     """Comprueba el manifiesto y el contenido mínimo del paquete.
 
     Devuelve el nombre del ejecutable o lanza `PaqueteInvalido` con un
@@ -383,28 +382,28 @@ def validar_paquete(carpeta: str | os.PathLike,
     carpeta = Path(carpeta)
     manifiesto = carpeta / paths.NOMBRE_MANIFIESTO
     if not manifiesto.is_file():
-        raise PaqueteInvalido("el paquete no trae manifiesto")
+        raise PaqueteInvalido(_("el paquete no trae manifiesto"))
     try:
         datos = json.loads(manifiesto.read_text(encoding="utf-8"))
     except (OSError, ValueError):
-        raise PaqueteInvalido("el manifiesto del paquete no se entiende")
+        raise PaqueteInvalido(_("el manifiesto del paquete no se entiende"))
     if not isinstance(datos, dict):
-        raise PaqueteInvalido("el manifiesto del paquete no se entiende")
+        raise PaqueteInvalido(_("el manifiesto del paquete no se entiende"))
     version = datos.get("version")
     if version_como_tupla(version) != version_como_tupla(version_esperada):
         raise PaqueteInvalido(
-            "la versión del paquete no coincide con la publicada")
+            _("la versión del paquete no coincide con la publicada"))
     ejecutable = datos.get("ejecutable")
     if (not isinstance(ejecutable, str) or not ejecutable.lower().endswith(".exe")
             or "/" in ejecutable or "\\" in ejecutable
             or ejecutable in (".", "..")):
-        raise PaqueteInvalido("el ejecutable del paquete no es válido")
+        raise PaqueteInvalido(_("el ejecutable del paquete no es válido"))
     if not (carpeta / ejecutable).is_file():
-        raise PaqueteInvalido("el paquete no trae el ejecutable")
+        raise PaqueteInvalido(_("el paquete no trae el ejecutable"))
     for prohibido in ("data", "Descargas"):
         if (carpeta / prohibido).exists():
             raise PaqueteInvalido(
-                f"el paquete trae {prohibido}, que es del usuario")
+                _("el paquete trae {nombre}, que es del usuario").format(nombre=prohibido))
     return ejecutable
 
 
@@ -502,11 +501,11 @@ def texto_resultado(resultado: dict | None, version_actual: str) -> str:
     estado = resultado.get("resultado")
     if estado == "ok":
         hacia = resultado.get("hacia") or version_actual
-        return f"{APP_NAME} se actualizó a la versión {hacia}."
+        return _("{app} se actualizó a la versión {hacia}.").format(app=APP_NAME, hacia=hacia)
     if estado == "fallo":
-        motivo = resultado.get("motivo") or "motivo desconocido"
-        return (f"La actualización no se completó: {motivo}. "
-                f"Sigue la versión {version_actual}.")
+        motivo = resultado.get("motivo") or _("motivo desconocido")
+        return (_("La actualización no se completó: {motivo}. Sigue la versión {actual}.").format(
+            motivo=motivo, actual=version_actual))
     return ""
 
 

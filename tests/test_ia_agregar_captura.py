@@ -171,10 +171,11 @@ class TestDialogoAgregarCapturaVentana(unittest.TestCase):
         anunciar.assert_not_called()
         self.assertFalse(dialogo.bmp_vista.GetBitmap().IsOk())
 
-    # Lo arma ytchat/obs/obs_captura_ia.py: la escena al aire y sus fuentes.
+    # Lo arma ytchat/obs/obs_captura_ia.py: el nombre de la fuente tal
+    # cual lo da OBS es dato del usuario y pasa sin marcar. La etiqueta de
+    # la escena al aire ya sale marcada porque ese módulo la traduce.
     PENDIENTES_OTRO_MODULO = (
         "Cámara",
-        "Escena al aire: Escena",
     )
 
     def test_no_queda_ningun_texto_visible_sin_envolver(self):

@@ -10,6 +10,7 @@ from pathlib import Path
 from unittest import mock
 
 import main
+from tests.pseudo_prueba import con_pseudo
 from ytchat.core import actualizacion
 from ytchat.core import instalador
 from ytchat.core import paths

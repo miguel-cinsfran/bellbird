@@ -12,13 +12,14 @@ from __future__ import annotations
 import configparser
 
 from ytchat.core import diagnostico, ini_tipado, paths
+from ytchat.core.idioma import N_, _
 
 logger = diagnostico.obtener_logger(__name__)
 
-AVISO_CODIFICADOR = (
+AVISO_CODIFICADOR = N_(
     "El perfil de OBS graba con un codificador propio: transmitir y grabar "
     "a la vez carga el doble el equipo.")
-FALLO_GRABACION = (
+FALLO_GRABACION = N_(
     "La transmisión empezó, pero no se pudo iniciar la grabación.")
 
 

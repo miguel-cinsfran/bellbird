@@ -5,6 +5,7 @@ from __future__ import annotations
 import wx
 
 from ytchat.core import diagnostico
+from ytchat.core.idioma import _
 from ytchat.music import anuncios
 from ytchat.music import enlaces
 
@@ -43,7 +44,7 @@ class EnlacesMusica:
             return
         except Exception:
             logger.exception("No se pudo expandir el enlace de música")
-            wx.CallAfter(self._aviso_error_enlace, enlaces.TEXTO_NO_SE_PUDO_LEER)
+            wx.CallAfter(self._aviso_error_enlace, _(enlaces.TEXTO_NO_SE_PUDO_LEER))
             return
         wx.CallAfter(self._aplicar_enlace, temas, modo)
 

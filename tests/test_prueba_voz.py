@@ -3,6 +3,7 @@
 import unittest
 from unittest import mock
 
+from tests.pseudo_prueba import con_pseudo
 from ytchat.ui import prueba_voz
 from ytchat.voice import escala_voz
 from ytchat.voice import motor_elevenlabs
@@ -149,6 +150,32 @@ class TestProbarElevenLabs(unittest.TestCase):
         anunciar.assert_called_once_with("falla de prueba")
         self.assertEqual(motor.cerrado, 1)
         self.assertFalse(prueba._probando_eleven)
+
+
+class TestPseudoTextos(unittest.TestCase):
+    """Bajo pseudotraducción, cada frase al usuario sale marcada."""
+
+    def test_prism_habla_y_anuncia_marcado(self):
+        motor = mock.Mock()
+        with con_pseudo():
+            with mock.patch.object(motores, "MotorPrism", return_value=motor):
+                prueba = prueba_voz.PruebaVoz()
+                prueba.probar_prism("sapi", 2, 60, 70, 40)
+        motor.hablar.assert_called_once()
+        self.assertTrue(motor.hablar.call_args.args[0].startswith("[¡"),
+                        motor.hablar.call_args.args[0])
+
+    def test_prism_sin_motor_anuncia_marcado(self):
+        with con_pseudo():
+            with mock.patch.object(
+                    motores, "MotorPrism",
+                    side_effect=motores.MotorNoDisponible("no")), \
+                    mock.patch.object(prueba_voz, "anunciar") as anunciar:
+                prueba = prueba_voz.PruebaVoz()
+                prueba.probar_prism("sapi", 0, 50, 50, 50)
+        anunciar.assert_called_once()
+        self.assertTrue(anunciar.call_args.args[0].startswith("[¡"),
+                        anunciar.call_args.args[0])
 
 
 class TestCerrar(unittest.TestCase):

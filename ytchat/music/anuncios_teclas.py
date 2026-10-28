@@ -2,16 +2,17 @@
 
 from __future__ import annotations
 
+from ytchat.core.idioma import N_, _
 from ytchat.music.anuncios import Aviso
 from ytchat.music.vista import texto_duracion
 
-TEXTO_SILENCIADA = "Música silenciada"
-TEXTO_RESTAURADA = "Sonido de la música restaurado"
+TEXTO_SILENCIADA = N_("Música silenciada")
+TEXTO_RESTAURADA = N_("Sonido de la música restaurado")
 
 
 def aviso_silencio(activo: bool) -> Aviso:
     """Confirmación del atajo que silencia o devuelve el sonido."""
-    return Aviso(TEXTO_SILENCIADA if activo else TEXTO_RESTAURADA)
+    return Aviso(_(TEXTO_SILENCIADA) if activo else _(TEXTO_RESTAURADA))
 
 
 def aviso_posicion(ms) -> Aviso:

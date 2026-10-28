@@ -11,6 +11,7 @@ módulo en el momento de la llamada, nunca con un `from` directo.
 from __future__ import annotations
 
 from ytchat.core import diagnostico
+from ytchat.core.idioma import _
 
 
 logger = diagnostico.obtener_logger(__name__)

@@ -400,7 +400,7 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertIn('._accel("copiar_enlace")', fuente)
         self.assertIn('._accel("anunciar_autor")', fuente)
         # Los diez recientes se arman en un bucle con su etiqueta y su _accel.
-        self.assertIn("ETIQUETAS[accion] + frame._accel(accion)", fuente)
+        self.assertIn("_(ETIQUETAS[accion]) + frame._accel(accion)", fuente)
         self.assertIn('._accel("describir_escena")', fuente)
         self.assertIn('._accel("consulta_rapida_ia")', fuente)
         self.assertIn('._accel("obs_micro")', fuente)

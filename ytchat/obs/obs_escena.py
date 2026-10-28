@@ -8,6 +8,7 @@ wx ni red: la usan el atajo Ctrl+F2 y la ventana Transmisión.
 
 from __future__ import annotations
 
+from ytchat.core.idioma import _, ngettext
 from ytchat.obs import obs_disposicion
 
 
@@ -118,8 +119,8 @@ def _texto_anclaje(rect, lienzo_ancho, lienzo_alto) -> str:
         if not texto:
             return ""
         if texto.startswith("esquina"):
-            return f"cerca de la {texto}"
-        return f"cerca del {texto}"
+            return _("cerca de la {texto}").format(texto=texto)
+        return _("cerca del {texto}").format(texto=texto)
     snap = obs_disposicion.SnapshotPanel(
         conectado=True, izquierda=rect[0], arriba=rect[1],
         ancho=int(round(rect[2])), alto=int(round(rect[3])),
@@ -148,32 +149,34 @@ def _quien_mas_tapa(rect, delanteros) -> tuple:
 
 def _frase_fuente(numero, elemento, rect, delanteros, lienzo_ancho,
                   lienzo_alto, tipos) -> str:
-    nombre = str(elemento.get("sourceName") or "sin nombre")
+    nombre = str(elemento.get("sourceName") or _("sin nombre"))
     tipo = (tipos or {}).get(nombre, "")
     visible = _visible(elemento)
     if rect is None or not lienzo_ancho or not lienzo_alto:
-        posicion, tamano = "posición desconocida", ""
+        posicion, tamano = _("posición desconocida"), ""
     elif rect[2] * rect[3] / (lienzo_ancho * lienzo_alto) * 100 >= _UMBRAL_TODO:
-        posicion, tamano = "ocupa toda la imagen", ""
+        posicion, tamano = _("ocupa toda la imagen"), ""
     else:
-        posicion = _texto_anclaje(rect, lienzo_ancho, lienzo_alto) or "en una posición libre"
-        tamano = f"{int(round(rect[2]))} por {int(round(rect[3]))} píxeles"
+        posicion = _texto_anclaje(rect, lienzo_ancho, lienzo_alto) or _("en una posición libre")
+        # Traductores: {a} es el ancho en píxeles y {h} el alto.
+        tamano = _("{a} por {h} píxeles").format(a=int(round(rect[2])), h=int(round(rect[3])))
     if not visible:
-        estado = "oculta en OBS"
+        estado = _("oculta en OBS")
     else:
         tapa, porcentaje = _quien_mas_tapa(rect, delanteros) if rect is not None else (None, 0.0)
         if tapa is not None and porcentaje >= _UMBRAL_TAPA_ENTERA:
-            estado = (f"visible en OBS, pero no aparece en la imagen: "
-                      f"la tapa entera {tapa}")
+            estado = (_("visible en OBS, pero no aparece en la imagen: "
+                        "la tapa entera {tapa}").format(tapa=tapa))
         elif tapa is not None and porcentaje >= _UMBRAL_AVISO:
-            estado = (f"se ve en parte: {tapa} tapa el "
-                      f"{int(round(porcentaje))} por ciento")
+            estado = _("se ve en parte: {nombre} tapa el {porcentaje} por ciento").format(
+                nombre=tapa, porcentaje=int(round(porcentaje)))
         else:
-            estado = "se ve"
+            estado = _("se ve")
     if rect is not None and lienzo_ancho and lienzo_alto:
         fuera = obs_disposicion.fuera_del_lienzo(rect, lienzo_ancho, lienzo_alto)
         if fuera >= _UMBRAL_AVISO:
-            estado += f" y un {int(round(fuera))} por ciento queda fuera de la imagen"
+            # Traductores: {p} es un porcentaje.
+            estado += _(" y un {p} por ciento queda fuera de la imagen").format(p=int(round(fuera)))
     partes = [f"{numero}: {nombre}"]
     if tipo:
         partes.append(str(tipo))
@@ -195,12 +198,17 @@ def describir_escena(escena, elementos, lienzo_ancho, lienzo_alto, tipos) -> str
                        key=lambda elemento: elemento.get("sceneItemIndex", 0),
                        reverse=True)
     if not ordenados:
-        return f"Escena al aire: {escena}. No tiene fuentes."
-    palabra = "1 fuente" if len(ordenados) == 1 else f"{len(ordenados)} fuentes"
-    lineas = [f"Escena al aire: {escena}. {palabra}, de adelante hacia atrás."]
+        return _("Escena al aire: {escena}. No tiene fuentes.").format(
+            escena=escena)
+    # Traductores: {n} es la cantidad de fuentes de la escena.
+    palabra = ngettext("1 fuente", "{n} fuentes", len(ordenados)).format(
+        n=len(ordenados))
+    lineas = [_("Escena al aire: {escena}. {palabra}, "
+                "de adelante hacia atrás.").format(
+                    escena=escena, palabra=palabra)]
     rects = [_rectangulo_de(elemento) for elemento in ordenados]
     for numero, (elemento, rect) in enumerate(zip(ordenados, rects), 1):
-        delanteros = [(str(otro.get("sourceName") or "sin nombre"), otro_rect)
+        delanteros = [(str(otro.get("sourceName") or _("sin nombre")), otro_rect)
                       for otro, otro_rect in zip(ordenados[:numero - 1], rects[:numero - 1])
                       if _visible(otro) and otro_rect is not None]
         lineas.append(_frase_fuente(numero, elemento, rect, delanteros,

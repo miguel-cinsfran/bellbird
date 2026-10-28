@@ -371,8 +371,9 @@ class TestCableadoMostrarObs(unittest.TestCase):
 
 
 # Textos que arma otro módulo y la barra solo muestra: los nombres de
-# filtro de `ytchat/core/config.py` (FILTROS) y las etiquetas de
-# `ytchat/ui/atajos_captura.py` (ETIQUETAS). La comparación es exacta en
+# filtro de `ytchat/core/config.py` (FILTROS). Las etiquetas de
+# `ytchat/ui/atajos_captura.py` (ETIQUETAS) ya salen marcadas porque el
+# menú las traduce con `etiqueta_de_accion`. La comparación es exacta en
 # los dos sentidos: falla si aparece un texto nuevo sin envolver y si un
 # pendiente ya no está en el recorrido, para vaciar la lista cuando esos
 # módulos pasen por gettext.
@@ -381,16 +382,6 @@ PENDIENTES_OTROS_MODULOS = (
     "Solo texto",
     "Super Chats",
     "Membresías",
-    "Leer el último mensaje del chat",
-    "Leer el mensaje 2 desde el final del chat",
-    "Leer el mensaje 3 desde el final del chat",
-    "Leer el mensaje 4 desde el final del chat",
-    "Leer el mensaje 5 desde el final del chat",
-    "Leer el mensaje 6 desde el final del chat",
-    "Leer el mensaje 7 desde el final del chat",
-    "Leer el mensaje 8 desde el final del chat",
-    "Leer el mensaje 9 desde el final del chat",
-    "Leer el mensaje 10 desde el final del chat",
 )
 
 

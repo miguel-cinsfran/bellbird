@@ -2,6 +2,7 @@
 
 import unittest
 
+from tests.pseudo_prueba import con_pseudo
 from ytchat.obs import obs_escena
 
 
@@ -223,6 +224,26 @@ class ZonaCercanaTest(unittest.TestCase):
             *LIENZO, {"Panel": "navegador"})
         self.assertIn("esquina inferior izquierda", frase)
         self.assertNotIn("cerca", frase)
+
+
+class TestPseudoTextos(unittest.TestCase):
+    """Bajo pseudotraducción, cada frase al usuario sale marcada."""
+
+    def test_escenas_salen_marcadas_y_conservan_los_datos(self):
+        with con_pseudo():
+            vacia = obs_escena.describir_escena("Juego", [], *LIENZO, {})
+            llena = obs_escena.describir_escena(
+                "Principal",
+                [elemento(1, "Panel", 0, 32, 882, 460, 620, 9),
+                 elemento(2, "Captura", 1, 800, 450, 1600, 900, 0)],
+                *LIENZO, {"Panel": "navegador", "Captura": "captura"})
+        for frase in (vacia, llena):
+            with self.subTest(frase=frase):
+                self.assertTrue(frase.startswith("[¡"), frase)
+        self.assertIn("Juego", vacia)
+        self.assertIn("Principal", llena)
+        self.assertIn("Panel", llena)
+        self.assertIn("Captura", llena)
 
 
 if __name__ == "__main__":

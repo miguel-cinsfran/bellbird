@@ -10,6 +10,8 @@ import time
 import unittest
 from pathlib import Path
 
+from tests.pseudo_prueba import con_pseudo
+from ytchat.core.idioma import _
 from ytchat.obs import obs_grabacion
 from ytchat.obs.obs_grabacion import (
     AVISO_CODIFICADOR, FALLO_GRABACION, GrabacionAlTransmitir,
@@ -412,6 +414,37 @@ class CableadoSupervisorTest(unittest.TestCase):
         supervisor.abandonar()
         self.assertTrue(registro["grabando"])
         self.assertEqual(registro["cambios"], 1)
+
+
+class TestPseudoTextos(unittest.TestCase):
+    """Bajo pseudotraducción, cada frase al usuario sale marcada."""
+
+    def test_fallo_al_iniciar_salen_marcados(self):
+        creados = []
+        anuncios = []
+
+        def crear_gestor(cliente=None):
+            gestor = GestorGrabacion({"grabando": False,
+                                      "alternar_devuelve": False})
+            creados.append(gestor)
+            return gestor
+
+        grabacion = GrabacionAlTransmitir(
+            activa=lambda: True,
+            al_anunciar=lambda frase, sonido: anuncios.append((frase, sonido)),
+            crear_gestor=crear_gestor)
+        with con_pseudo():
+            envoltura = grabacion.envolver_esperar_salida(
+                lambda cliente, parada=None: "enviando")
+            envoltura(object())
+            marcados = [_(AVISO_CODIFICADOR), _(FALLO_GRABACION)]
+        self.assertEqual(len(anuncios), 1)
+        for texto, _sonido in anuncios:
+            with self.subTest(texto=texto):
+                self.assertTrue(texto.startswith("[¡"), texto)
+        for texto in marcados:
+            with self.subTest(texto=texto):
+                self.assertTrue(texto.startswith("[¡"), texto)
 
 
 if __name__ == "__main__":

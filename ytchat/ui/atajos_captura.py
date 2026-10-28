@@ -3,6 +3,7 @@
 import wx
 
 from ytchat.core import config as cfg
+from ytchat.core.idioma import N_, _
 from ytchat.ui import teclado_altgr
 
 
@@ -44,76 +45,78 @@ def combo_a_texto(mods: int, keycode: int) -> str | None:
 
 
 _AREA_AYUDA = {
-    "ctrl": "Debe ser Ctrl y una tecla (por ejemplo Ctrl+P).",
-    "alt": "Debe ser Alt y una tecla (por ejemplo Alt+C).",
-    "ctrl+shift": "Debe ser Ctrl+Mayús y una tecla (por ejemplo Ctrl+Mayús+P).",
-    "alt+shift": "Debe ser Alt+Mayús y una tecla (por ejemplo Alt+Mayús+C).",
-    "ctrl+alt": "Debe ser Ctrl+Alt y una flecha, Espacio, una letra o un número, o Ctrl+Alt+Mayús y Flecha izquierda o derecha (por ejemplo Ctrl+Alt+T).",
-    "f": "Debe ser una tecla de función, de F1 a F12, sola, con Ctrl o con Ctrl+Mayús (por ejemplo F2 o Ctrl+F2).",
+    "ctrl": N_("Debe ser Ctrl y una tecla (por ejemplo Ctrl+P)."),
+    "alt": N_("Debe ser Alt y una tecla (por ejemplo Alt+C)."),
+    "ctrl+shift": N_("Debe ser Ctrl+Mayús y una tecla (por ejemplo Ctrl+Mayús+P)."),
+    "alt+shift": N_("Debe ser Alt+Mayús y una tecla (por ejemplo Alt+Mayús+C)."),
+    "ctrl+alt": N_("Debe ser Ctrl+Alt y una flecha, Espacio, una letra o un número, o Ctrl+Alt+Mayús y Flecha izquierda o derecha (por ejemplo Ctrl+Alt+T)."),
+    "f": N_("Debe ser una tecla de función, de F1 a F12, sola, con Ctrl o con Ctrl+Mayús (por ejemplo F2 o Ctrl+F2)."),
 }
 ETIQUETAS = {
     # Reproductor
-    "rep_play": "Reproducir o pausa", "rep_retro": "Retroceder 1 minuto",
-    "rep_avanz": "Avanzar 1 minuto", "rep_directo": "Ir al directo",
-    "rep_detener": "Detener vídeo",
-    "rep_mute": "Silenciar o activar audio",
-    "rep_vol_menos": "Bajar volumen del reproductor",
-    "rep_vol_mas": "Subir volumen del reproductor",
-    "descargas_abrir": "Abrir el gestor de descargas",
-    "pantalla_completa": "Pantalla completa",
-    "abrir_preferencias": "Abrir Preferencias",
-    "abrir_historial": "Abrir el historial de directos",
-    "marcar_incidencia": "Marcar incidencia",
-    "abrir_transmision": "Abrir Transmisión",
-    "mostrar_obs": "Mostrar OBS",
-    "copiar_enlace": "Copiar enlace del directo",
-    "obs_micro": "Silenciar el micrófono de OBS",
-    "avisos_sobrecarga": "Activar o desactivar los avisos de sobrecarga",
+    "rep_play": N_("Reproducir o pausa"), "rep_retro": N_("Retroceder 1 minuto"),
+    "rep_avanz": N_("Avanzar 1 minuto"), "rep_directo": N_("Ir al directo"),
+    "rep_detener": N_("Detener vídeo"),
+    "rep_mute": N_("Silenciar o activar audio"),
+    "rep_vol_menos": N_("Bajar volumen del reproductor"),
+    "rep_vol_mas": N_("Subir volumen del reproductor"),
+    "descargas_abrir": N_("Abrir el gestor de descargas"),
+    "pantalla_completa": N_("Pantalla completa"),
+    "abrir_preferencias": N_("Abrir Preferencias"),
+    "abrir_historial": N_("Abrir el historial de directos"),
+    "marcar_incidencia": N_("Marcar incidencia"),
+    "abrir_transmision": N_("Abrir Transmisión"),
+    "mostrar_obs": N_("Mostrar OBS"),
+    "copiar_enlace": N_("Copiar enlace del directo"),
+    "obs_micro": N_("Silenciar el micrófono de OBS"),
+    "avisos_sobrecarga": N_("Activar o desactivar los avisos de sobrecarga"),
     # Conexión y chat
-    "conectar": "Conectar",
-    "desconectar": "Desconectar", "enviar_chat": "Enviar mensaje al chat",
-    "ir_lista": "Ir a la lista del panel actual", "salir": "Salir de la aplicación",
+    # Traductores: acción del atajo que conecta el chat.
+    "conectar": N_("Conectar"),
+    # Traductores: acción del atajo que desconecta el chat.
+    "desconectar": N_("Desconectar"), "enviar_chat": N_("Enviar mensaje al chat"),
+    "ir_lista": N_("Ir a la lista del panel actual"), "salir": N_("Salir de la aplicación"),
     # Voz / lectura
-    "pausa": "Pausar o reanudar lectura", "detener_tts": "Detener voz actual",
-    "velocidad_menos": "Bajar velocidad",
-    "velocidad_mas": "Subir velocidad",
-    "volumen_menos": "Bajar volumen del TTS",
-    "volumen_mas": "Subir volumen del TTS",
-    "silenciar_lectura": "Silenciar lectura TTS",
-    "silenciar_sonidos": "Silenciar sonidos", "anunciar_estado": "Anunciar estado",
-    "anunciar_autor": "Anunciar autor del último mensaje",
-    "describir_escena": "Describir la escena de OBS",
-    "consulta_rapida_ia": "Consulta rápida a la IA sobre la escena",
-    "region_siguiente": "Región siguiente", "region_anterior": "Región anterior",
+    "pausa": N_("Pausar o reanudar lectura"), "detener_tts": N_("Detener voz actual"),
+    "velocidad_menos": N_("Bajar velocidad"),
+    "velocidad_mas": N_("Subir velocidad"),
+    "volumen_menos": N_("Bajar volumen del TTS"),
+    "volumen_mas": N_("Subir volumen del TTS"),
+    "silenciar_lectura": N_("Silenciar lectura TTS"),
+    "silenciar_sonidos": N_("Silenciar sonidos"), "anunciar_estado": N_("Anunciar estado"),
+    "anunciar_autor": N_("Anunciar autor del último mensaje"),
+    "describir_escena": N_("Describir la escena de OBS"),
+    "consulta_rapida_ia": N_("Consulta rápida a la IA sobre la escena"),
+    "region_siguiente": N_("Región siguiente"), "region_anterior": N_("Región anterior"),
     # Música (Ctrl+Alt)
-    "musica_play": "Reproducir o pausar la música",
-    "musica_siguiente": "Siguiente canción",
-    "musica_anterior": "Canción anterior",
-    "musica_vol_mas": "Subir el volumen de la música",
-    "musica_vol_menos": "Bajar el volumen de la música",
-    "musica_que_suena": "Qué suena",
-    "musica_silenciar": "Silenciar o devolver el sonido de la música",
-    "musica_aleatorio": "Orden aleatorio de la música",
-    "musica_repetir": "Cambiar la repetición de la música",
-    "musica_detener": "Detener la música",
-    "musica_adelantar": "Adelantar la música 10 segundos",
-    "musica_retroceder": "Retroceder la música 10 segundos",
-    "musica_ventana": "Abrir la ventana de música",
-    "preguntar_ia": "Preguntar a la IA sobre la imagen",
-    "chat_reciente_1": "Leer el último mensaje del chat",
-    "chat_reciente_2": "Leer el mensaje 2 desde el final del chat",
-    "chat_reciente_3": "Leer el mensaje 3 desde el final del chat",
-    "chat_reciente_4": "Leer el mensaje 4 desde el final del chat",
-    "chat_reciente_5": "Leer el mensaje 5 desde el final del chat",
-    "chat_reciente_6": "Leer el mensaje 6 desde el final del chat",
-    "chat_reciente_7": "Leer el mensaje 7 desde el final del chat",
-    "chat_reciente_8": "Leer el mensaje 8 desde el final del chat",
-    "chat_reciente_9": "Leer el mensaje 9 desde el final del chat",
-    "chat_reciente_10": "Leer el mensaje 10 desde el final del chat",
+    "musica_play": N_("Reproducir o pausar la música"),
+    "musica_siguiente": N_("Siguiente canción"),
+    "musica_anterior": N_("Canción anterior"),
+    "musica_vol_mas": N_("Subir el volumen de la música"),
+    "musica_vol_menos": N_("Bajar el volumen de la música"),
+    "musica_que_suena": N_("Qué suena"),
+    "musica_silenciar": N_("Silenciar o devolver el sonido de la música"),
+    "musica_aleatorio": N_("Orden aleatorio de la música"),
+    "musica_repetir": N_("Cambiar la repetición de la música"),
+    "musica_detener": N_("Detener la música"),
+    "musica_adelantar": N_("Adelantar la música 10 segundos"),
+    "musica_retroceder": N_("Retroceder la música 10 segundos"),
+    "musica_ventana": N_("Abrir la ventana de música"),
+    "preguntar_ia": N_("Preguntar a la IA sobre la imagen"),
+    "chat_reciente_1": N_("Leer el último mensaje del chat"),
+    "chat_reciente_2": N_("Leer el mensaje 2 desde el final del chat"),
+    "chat_reciente_3": N_("Leer el mensaje 3 desde el final del chat"),
+    "chat_reciente_4": N_("Leer el mensaje 4 desde el final del chat"),
+    "chat_reciente_5": N_("Leer el mensaje 5 desde el final del chat"),
+    "chat_reciente_6": N_("Leer el mensaje 6 desde el final del chat"),
+    "chat_reciente_7": N_("Leer el mensaje 7 desde el final del chat"),
+    "chat_reciente_8": N_("Leer el mensaje 8 desde el final del chat"),
+    "chat_reciente_9": N_("Leer el mensaje 9 desde el final del chat"),
+    "chat_reciente_10": N_("Leer el mensaje 10 desde el final del chat"),
 }
 
 
-NOTA_PAGINA = (
+NOTA_PAGINA = N_(
     "Cada familia de atajos tiene su modificador: Ctrl para el "
     "reproductor, Alt para el chat, Ctrl+Mayús para abrir ventanas, "
     "Alt+Mayús para el directo y OBS, Ctrl+Alt para la música y las "
@@ -126,7 +129,7 @@ NOTA_PAGINA = (
 def mostrar_atajo(valor: str) -> str:
     """Devuelve el texto legible de un atajo, en español."""
     if not valor:
-        return "(sin asignar)"
+        return _("(sin asignar)")
     return atajo_legible(valor)
 
 
@@ -134,16 +137,25 @@ def mostrar_atajo(valor: str) -> str:
 # con nombre que admite la app; lo no listado (letras, dígitos, F1 a F12)
 # sale en mayúscula.
 _NOMBRE_TECLA_LEER = {
-    "home": "Inicio", "end": "Fin",
-    "left": "Flecha izquierda", "right": "Flecha derecha",
-    "up": "Flecha arriba", "down": "Flecha abajo",
-    "pageup": "Re Pág", "pagedown": "Av Pág",
-    "delete": "Supr", "insert": "Ins",
-    "enter": "Intro", "return": "Intro",
-    "space": "Espacio", "backspace": "Retroceso", "back": "Retroceso",
-    "escape": "Escape", "esc": "Escape", "tab": "Tab",
+    # Traductores: nombre de la tecla como se lee en voz alta, el del teclado en español de Windows.
+    "home": N_("Inicio"), "end": N_("Fin"),
+    # Traductores: nombre de la tecla como se lee en voz alta, el del teclado en español de Windows.
+    "left": N_("Flecha izquierda"), "right": N_("Flecha derecha"),
+    # Traductores: nombre de la tecla como se lee en voz alta, el del teclado en español de Windows.
+    "up": N_("Flecha arriba"), "down": N_("Flecha abajo"),
+    # Traductores: nombre de la tecla como se lee en voz alta, el del teclado en español de Windows.
+    "pageup": N_("Re Pág"), "pagedown": N_("Av Pág"),
+    # Traductores: nombre de la tecla como se lee en voz alta, el del teclado en español de Windows.
+    "delete": N_("Supr"), "insert": N_("Ins"),
+    # Traductores: nombre de la tecla como se lee en voz alta, el del teclado en español de Windows.
+    "enter": N_("Intro"), "return": N_("Intro"),
+    # Traductores: nombre de la tecla como se lee en voz alta, el del teclado en español de Windows.
+    "space": N_("Espacio"), "backspace": N_("Retroceso"), "back": N_("Retroceso"),
+    # Traductores: nombre de la tecla como se lee en voz alta, el del teclado en español de Windows.
+    "escape": N_("Escape"), "esc": N_("Escape"), "tab": N_("Tab"),
 }
-_MOD_LEER = {"ctrl": "Ctrl", "alt": "Alt", "shift": "Mayús"}
+# Traductores: nombre de la tecla como se lee en voz alta, el del teclado en español de Windows.
+_MOD_LEER = {"ctrl": N_("Ctrl"), "alt": N_("Alt"), "shift": N_("Mayús")}
 
 
 def atajo_legible(texto_guardado: str | None) -> str:
@@ -159,9 +171,9 @@ def atajo_legible(texto_guardado: str | None) -> str:
         if not parte:
             continue
         if parte in _MOD_LEER:
-            partes.append(_MOD_LEER[parte])
+            partes.append(_(_MOD_LEER[parte]))
         elif parte in _NOMBRE_TECLA_LEER:
-            partes.append(_NOMBRE_TECLA_LEER[parte])
+            partes.append(_(_NOMBRE_TECLA_LEER[parte]))
         else:
             partes.append(parte.upper())
     return "+".join(partes)
@@ -177,7 +189,7 @@ def etiqueta_de_accion(accion: str) -> str:
     try:
         etiqueta = ETIQUETAS.get(accion)
         if etiqueta is not None:
-            return etiqueta
+            return _(etiqueta)
         return str(accion).replace("_", " ").capitalize()
     except Exception:
         return ""
@@ -185,31 +197,31 @@ def etiqueta_de_accion(accion: str) -> str:
 
 def texto_de_espera(etiqueta: str, ayuda_area: str) -> str:
     """Devuelve el anuncio para entrar en modo captura."""
-    return (f"Pulsa la combinación para {etiqueta}. {ayuda_area} "
-            "Intro la deja sin atajo. Escape cancela.")
+    return (_("Pulsa la combinación para {etiqueta}. {ayuda} "
+              "Intro la deja sin atajo. Escape cancela.").format(
+                  etiqueta=etiqueta, ayuda=_(ayuda_area) if ayuda_area else ""))
 
 
 def resolver(accion: str, combo: str | None,
              valores: dict[str, str],
              altgr=None) -> tuple[str, str | None, str]:
     """Decide qué hacer con una combinación y construye su anuncio."""
-    etiqueta = ETIQUETAS.get(accion, accion.replace("_", " ").capitalize())
+    etiqueta = etiqueta_de_accion(accion)
     if combo is None:
-        return "desactivado", "", f"{etiqueta} sin atajo. Desactivado."
+        return "desactivado", "", _("{etiqueta} sin atajo. Desactivado.").format(etiqueta=etiqueta)
 
     # Hay fijas que la gramática editable no admite; por eso este choque va antes.
     for otra, valor in valores.items():
         if otra != accion and valor and valor == combo:
-            otra_etiqueta = ETIQUETAS.get(
-                otra, otra.replace("_", " ").capitalize())
-            return "rechazado", None, f"Ya lo usa: {otra_etiqueta}. Elige otra."
+            otra_etiqueta = etiqueta_de_accion(otra)
+            return "rechazado", None, _("Ya lo usa: {otra}. Elige otra.").format(otra=otra_etiqueta)
 
     normalizado = cfg._normalizar_atajo(combo)
     if normalizado is None:
-        return "rechazado", None, "Esa combinación no se puede usar. Elige otra."
+        return "rechazado", None, _("Esa combinación no se puede usar. Elige otra.")
     if not cfg.atajo_valido_para_area(accion, normalizado):
         ayuda = _AREA_AYUDA.get(cfg.ATAJOS_AREA.get(accion), "")
-        return "rechazado", None, f"No vale aquí. {ayuda}"
+        return "rechazado", None, _("No vale aquí. {ayuda}").format(ayuda=_(ayuda) if ayuda else "")
 
     if normalizado.startswith("ctrl+alt+"):
         tecla = normalizado.split("+")[-1]
@@ -219,13 +231,14 @@ def resolver(accion: str, combo: str | None,
             escrito = altgr(tecla)
             if escrito:
                 return "rechazado", None, (
-                    f"Con este teclado, AltGr+{tecla.upper()} escribe "
-                    f"{escrito}. Elige otra.")
+                    _("Con este teclado, AltGr+{tecla} escribe "
+                      "{letra}. Elige otra.").format(
+                          tecla=tecla.upper(), letra=escrito))
 
     for otra, valor in valores.items():
         if otra != accion and valor and valor == normalizado:
-            otra_etiqueta = ETIQUETAS.get(
-                otra, otra.replace("_", " ").capitalize())
-            return "rechazado", None, f"Ya lo usa: {otra_etiqueta}. Elige otra."
+            otra_etiqueta = etiqueta_de_accion(otra)
+            return "rechazado", None, _("Ya lo usa: {otra}. Elige otra.").format(otra=otra_etiqueta)
     return "capturado", normalizado, (
-        f"Capturado: {mostrar_atajo(normalizado)}. Se aplica al pulsar Guardar.")
+        _("Capturado: {atajo}. Se aplica al pulsar Guardar.").format(
+            atajo=mostrar_atajo(normalizado)))

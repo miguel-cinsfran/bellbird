@@ -19,6 +19,7 @@ import threading
 import time
 
 from ytchat.core import diagnostico
+from ytchat.core.idioma import N_, _
 from ytchat.voice import escala_voz
 from ytchat.voice import elevenlabs
 from ytchat.voice import motores
@@ -37,8 +38,8 @@ _PASO_ESPERA = 0.05
 # cada mensaje sin red esperaría el tiempo agotado del cliente.
 _VENTANA_ERROR_ELEVENLABS = 60.0
 
-_MSG_TOPE = ("Se alcanzó el tope de caracteres de ElevenLabs de esta sesión. "
-             "Se usa la voz de Windows.")
+_MSG_TOPE = N_("Se alcanzó el tope de caracteres de ElevenLabs de esta sesión. "
+                "Se usa la voz de Windows.")
 
 
 def _entero(valor, defecto: int) -> int:
@@ -93,12 +94,14 @@ def sanitizar(texto: str, emojis: bool, urls: bool, maxlen: int) -> str:
 
 
 def construir_tts(autor: str, mensaje: str, config: dict) -> str:
-    autor_limpio = sanitizar(autor, config["limpiar_emojis"], False, 50) or "Usuario"
+    # Traductores: autor cuando el chat no da el nombre; una sola palabra.
+    autor_limpio = sanitizar(autor, config["limpiar_emojis"], False, 50) or _("Usuario")
     fmt = config.get("formato_prefijo", "nombre_mensaje")
     if fmt == "solo_mensaje": return mensaje
     if fmt == "solo_nombre":  return autor_limpio
-    if fmt == "mensaje_nombre": return f"{mensaje}, de {autor_limpio}"
-    return f"{autor_limpio}: {mensaje}"
+    # Traductores: {m} es el mensaje y {a} su autor; se lee en voz alta.
+    if fmt == "mensaje_nombre": return _("{m}, de {a}").format(m=mensaje, a=autor_limpio)
+    return _("{autor}: {mensaje}").format(autor=autor_limpio, mensaje=mensaje)
 
 
 # ── Hilo TTS ─────────────────────────────────────────────────────────────────
@@ -184,8 +187,7 @@ class TTSWorker(threading.Thread):
                     autor = item.get("autor") or ""
                     if autor:
                         self._ultimo_autor = autor
-                    self._hablar(texto, item.get("voz"),
-                                 item.get("importante", False)); _err = 0
+                    self._hablar(texto, item.get("voz"), item.get("importante", False)); _err = 0
                 except Exception as exc:
                     _err += 1
                     if _err <= 5:

@@ -8,7 +8,10 @@ ventana oculta: la corre el advisor en la otra PC.
 import unittest
 from unittest import mock
 
+from tests.pseudo_prueba import con_pseudo
 from ytchat.core.atajos import ATAJOS_FIJOS_DEFAULTS
+from ytchat.core.config import APP_NAME
+from ytchat.core.idioma import _
 from ytchat.ui import atajos_globales, chat_recientes, gui
 from ytchat.ui.atajos_globales import AtajosGlobales, combinacion_ctrl_mayus
 from ytchat.voice.cola_tts import ColaTTS
@@ -116,8 +119,8 @@ class TestLecturaRecientes(unittest.TestCase):
         lector._config["lectura_atajos_globales"] = False
         with mock.patch.object(gui, "anunciar") as anunciar:
             lector.aplicar_preferencias()
-        self.assertEqual(lector._globales.desactivaciones, 1)
-        anunciar.assert_called_once_with(chat_recientes.TEXTO_SOLO)
+        anunciar.assert_called_once_with(
+            _(chat_recientes.TEXTO_SOLO).format(app=APP_NAME))
 
     def test_aplicar_no_repite_si_ya_esta_activo(self):
         lector = _recientes({"lectura_atajos_globales": True})
@@ -160,6 +163,31 @@ class TestLecturaRecientes(unittest.TestCase):
                         and sub.value.id in ("ventana", "lista")
                         and sub.attr.startswith("_")):
                     self.fail(f"lee privado ajeno: {sub.value.id}.{sub.attr}")
+
+
+class TestPseudoTextos(unittest.TestCase):
+    """Bajo pseudotraducción, cada frase al usuario sale marcada."""
+
+    def test_avisos_de_atajos_salen_marcados(self):
+        with con_pseudo():
+            encendido = _recientes({"lectura_atajos_globales": True})
+            with mock.patch.object(gui, "anunciar") as anunciar_on:
+                encendido.aplicar_preferencias()
+            apagado = _recientes({"lectura_atajos_globales": True})
+            apagado._globales._activos = True
+            apagado._config["lectura_atajos_globales"] = False
+            with mock.patch.object(gui, "anunciar") as anunciar_off:
+                apagado.aplicar_preferencias()
+            marcados = [_(chat_recientes.TEXTO_ACTIVOS),
+                        _(chat_recientes.TEXTO_SOLO).format(app=APP_NAME)]
+        for llamar in (anunciar_on, anunciar_off):
+            llamar.assert_called_once()
+            self.assertTrue(llamar.call_args.args[0].startswith("[¡"),
+                            llamar.call_args.args[0])
+        self.assertIn(APP_NAME, anunciar_off.call_args.args[0])
+        for texto in marcados:
+            with self.subTest(texto=texto):
+                self.assertTrue(texto.startswith("[¡"), texto)
 
 
 class TestRegistroRealRecientes(unittest.TestCase):

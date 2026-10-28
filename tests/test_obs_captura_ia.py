@@ -4,6 +4,7 @@ import base64
 import struct
 import unittest
 
+from tests.pseudo_prueba import con_pseudo
 from ytchat.obs import obs_captura_ia
 from ytchat.obs import obs_cliente
 from ytchat.obs.obs_captura_ia import CapturaFallida, OpcionCaptura
@@ -430,6 +431,30 @@ class TestVistaPrevia(unittest.TestCase):
         obs_captura_ia.vista_previa(doble, opcion)
         pedido = doble.capturas()[0]
         self.assertEqual(pedido["sourceName"], "Juego")
+
+
+class TestPseudoTextos(unittest.TestCase):
+    """Bajo pseudotraducción, cada frase al usuario sale marcada."""
+
+    def test_etiquetas_y_fallos_salen_marcados(self):
+        doble = Doble(elementos=(
+            elemento("Juego", 6, ancho=1280, alto=720),
+            elemento("Rara", 2, ancho=320, alto=240)))
+        with con_pseudo():
+            etiquetas = [opcion.etiqueta
+                         for opcion in obs_captura_ia.opciones(doble)]
+            with self.assertRaises(CapturaFallida) as fallo:
+                obs_captura_ia.capturar(
+                    Doble(falla_principal=True),
+                    OpcionCaptura("Juego", "Juego", 1280, 720))
+        self.assertTrue(etiquetas[0].startswith("[¡"), etiquetas)
+        self.assertIn("Juego", etiquetas[0])
+        self.assertTrue(etiquetas[1].startswith("[¡"), etiquetas)
+        self.assertIn("Juego", etiquetas[1])
+        # Sin tipo es dato del usuario: pasa sin marcar.
+        self.assertEqual(etiquetas[2], "Rara")
+        self.assertTrue(str(fallo.exception).startswith("[¡"),
+                        str(fallo.exception))
 
 
 if __name__ == "__main__":

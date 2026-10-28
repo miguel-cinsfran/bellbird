@@ -20,6 +20,7 @@ from pathlib import Path
 
 from ytchat.core import diagnostico
 from ytchat.core import paths
+from ytchat.core.idioma import N_, _
 from ytchat.voice import escala_voz
 from ytchat.voice import elevenlabs
 from ytchat.voice.motores import MotorNoDisponible
@@ -33,8 +34,8 @@ _alias_prefijo = "ytcel"
 _alias_contador = itertools.count(1)
 _archivo_contador = itertools.count(1)
 
-_ERROR_SIN_CLAVE = "Falta la clave de ElevenLabs."
-_ERROR_SIN_VOCES = "ElevenLabs no devolvió ninguna voz."
+_ERROR_SIN_CLAVE = N_("Falta la clave de ElevenLabs.")
+_ERROR_SIN_VOCES = N_("ElevenLabs no devolvió ninguna voz.")
 
 
 def _init_backend() -> None:
@@ -72,7 +73,7 @@ class MotorElevenLabs:
 
     def __init__(self, clave, cliente=None):
         if not clave:
-            raise MotorNoDisponible(_ERROR_SIN_CLAVE)
+            raise MotorNoDisponible(_(_ERROR_SIN_CLAVE))
         self._cliente = (cliente if cliente is not None
                          else elevenlabs.ClienteElevenLabs(clave))
         try:
@@ -80,7 +81,7 @@ class MotorElevenLabs:
         except Exception as exc:
             raise MotorNoDisponible(str(exc)) from exc
         if not self._pares:
-            raise MotorNoDisponible(_ERROR_SIN_VOCES)
+            raise MotorNoDisponible(_(_ERROR_SIN_VOCES))
         self._nombres = [nombre for _id, nombre in self._pares]
         self._idx = 0
         self._velocidad = escala_voz.VELOCIDAD_NORMAL

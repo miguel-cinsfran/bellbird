@@ -62,7 +62,7 @@ class PaginaVoz:
 
         vs.Add(fila_label(p, _("&Motor de voz:")), 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.cho_motor = wx.Choice(
-            p, choices=[motores.NOMBRES[m] for m in motores.MOTORES],
+            p, choices=[_(motores.NOMBRES[m]) for m in motores.MOTORES],
             name=_("Motor de voz"))
         _tc(self.cho_motor)
         self.cho_motor.SetSelection(self._motor_idx)

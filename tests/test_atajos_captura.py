@@ -3,6 +3,8 @@
 import unittest
 from unittest import mock
 
+from tests.pseudo_prueba import con_pseudo
+from ytchat.core.idioma import _
 from ytchat.ui import atajos_captura
 from ytchat.ui import teclado_altgr
 from ytchat.core import config
@@ -422,6 +424,38 @@ class TestAtajoLegible(unittest.TestCase):
     def test_sin_atajo_da_vacio(self):
         self.assertEqual(atajos_captura.atajo_legible(""), "")
         self.assertEqual(atajos_captura.atajo_legible(None), "")
+
+
+class TestPseudoTextos(unittest.TestCase):
+    """Bajo pseudotraducción, cada frase al usuario sale marcada."""
+
+    def test_resolver_marca_todos_los_caminos(self):
+        valores = {"rep_play": "ctrl+p", "rep_retro": "ctrl+k"}
+        with con_pseudo():
+            marcados = [
+                atajos_captura.resolver("rep_play", "ctrl+q", valores)[2],
+                atajos_captura.resolver("rep_play", "ctrl+k", valores)[2],
+                atajos_captura.resolver("rep_play", "win+q", valores)[2],
+                atajos_captura.resolver("rep_play", None, valores)[2],
+                atajos_captura.texto_de_espera("Etiqueta", "Ayuda."),
+                atajos_captura.mostrar_atajo(""),
+                atajos_captura.atajo_legible("ctrl+end"),
+                atajos_captura.etiqueta_de_accion("rep_play"),
+                _(atajos_captura.NOTA_PAGINA),
+            ]
+            for etiqueta in atajos_captura.ETIQUETAS.values():
+                marcados.append(_(etiqueta))
+            for ayuda in atajos_captura._AREA_AYUDA.values():
+                marcados.append(_(ayuda))
+        for texto in marcados:
+            with self.subTest(texto=texto):
+                self.assertTrue(texto.startswith("[¡"), texto)
+
+    def test_rechazo_fuera_de_area_marca_ayuda(self):
+        with con_pseudo():
+            _, _, texto = atajos_captura.resolver(
+                "rep_play", "alt+k", {"rep_play": "ctrl+p"})
+        self.assertTrue(texto.startswith("[¡"), texto)
 
 
 if __name__ == "__main__":

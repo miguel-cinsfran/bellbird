@@ -44,7 +44,7 @@ class PaginaAtajos:
         vs = wx.BoxSizer(wx.VERTICAL)
 
         nota = wx.StaticText(
-            p, label=atajos_captura.NOTA_PAGINA, name="NotaAtajos")
+            p, label=_(atajos_captura.NOTA_PAGINA), name="NotaAtajos")
         nota.SetForegroundColour(_T.dim)
         nota.Wrap(ANCHO_NOTA)
         vs.Add(nota, 0, wx.ALL, 10)

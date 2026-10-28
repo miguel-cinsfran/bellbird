@@ -5,6 +5,8 @@ import time
 from unittest import mock
 from types import SimpleNamespace
 
+from tests.pseudo_prueba import con_pseudo
+
 from ytchat.player import motor_vlc
 from ytchat.player.busqueda_video import (
     CADUCIDAD_DESTINO_MS, EstadoBusqueda, MARGEN_VENTANA_SEGMENTOS,
@@ -1670,6 +1672,26 @@ class TestAvisoSinPausa(unittest.TestCase):
         self.assertEqual(
             aviso_sin_pausa(""),
             "Un directo de TikTok no se puede pausar. Para silenciarlo, usa Silenciar audio.")
+
+
+class TestPseudoTextos(unittest.TestCase):
+    """Bajo pseudotraducción, cada frase al usuario sale marcada."""
+
+    def test_frases_salen_marcadas(self):
+        with con_pseudo():
+            marcados = [
+                frase_desfase_directo(0),
+                frase_desfase_directo(60),
+                frase_desfase_directo(10),
+                frase_desfase_directo(125),
+                frase_desfase_directo(61),
+            ]
+            from ytchat.player.busqueda_video import aviso_sin_pausa
+            marcados.append(aviso_sin_pausa("Ctrl+M"))
+            marcados.append(aviso_sin_pausa(""))
+        for texto in marcados:
+            with self.subTest(texto=texto):
+                self.assertTrue(texto.startswith("[¡"), texto)
 
 
 class TestCableadoSinPausa(unittest.TestCase):

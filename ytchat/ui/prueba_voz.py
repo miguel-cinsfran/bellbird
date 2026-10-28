@@ -11,6 +11,7 @@ import time
 import wx
 
 from ytchat.core import diagnostico
+from ytchat.core.idioma import _
 from ytchat.ui.accesibilidad import anunciar
 
 logger = diagnostico.obtener_logger(__name__)
@@ -38,7 +39,7 @@ class PruebaVoz:
             prueba.fijar_velocidad(velocidad)
             prueba.fijar_volumen(volumen)
             prueba.fijar_tono(tono)
-            prueba.hablar("Así suena esta voz.")
+            prueba.hablar(_("Así suena esta voz."))
         except Exception as exc:
             logger.warning("Prueba de voz: %s", exc)
 
@@ -62,7 +63,7 @@ class PruebaVoz:
             prueba.elegir_voz(0 if idx is None else idx)
             prueba.fijar_velocidad(velocidad)
             prueba.fijar_volumen(volumen)
-            prueba.hablar("Así suena esta voz.")
+            prueba.hablar(_("Así suena esta voz."))
             while prueba.hablando():
                 time.sleep(0.05)
         except Exception as exc:

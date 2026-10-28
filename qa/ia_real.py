@@ -22,6 +22,7 @@ sys.path.insert(0, str(RAIZ))
 sys.path.insert(0, str(RAIZ / "qa"))
 
 import directo_real
+from ytchat.core.config import APP_NAME  # noqa: E402
 from conducir import contestar_salir_si_aparece
 
 TITULO_PRIVACIDAD = "Privacidad"
@@ -250,7 +251,7 @@ def _levantar(ctx) -> str:
         ctx["app"] = subprocess.Popen(
             [sys.executable, os.path.join(tmpdir, "app.py")],
             cwd=str(RAIZ), env=entorno)
-        ctx["principal"] = directo_real._ventana("YTChat TTS", 60)
+        ctx["principal"] = directo_real._ventana(APP_NAME, 60)
         time.sleep(4)
     except Exception as f:
         return "sin app ({})".format(f)

@@ -46,6 +46,8 @@ RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ))
 sys.path.insert(0, str(RAIZ / "qa"))
 
+from ytchat.core.config import APP_NAME  # noqa: E402
+
 from sonda import VAR_DESTINO, VAR_ORDENES, VAR_RESULTADOS  # noqa: E402
 
 import capturas  # noqa: E402
@@ -548,16 +550,16 @@ def _ventana_por_titulo(Desktop, objetivo):
 
 
 def es_ventana_de_la_app(nombre: str) -> bool:
-    """Si el titulo es de la ventana principal de YTChat TTS.
+    """Si el titulo es de la ventana principal de la app (nombre en APP_NAME).
 
-    Los dos formatos salen de gui.py: el nombre de la app solo y el nombre con
-    el titulo de la sesion delante. No se busca `ytchat` en cualquier parte:
-    una pestana del repositorio en el navegador entraria y su recorrido tarda
-    decenas de segundos.
+    Los dos formatos salen de gui.py: el nombre con la version delante y el
+    nombre detras del titulo de la sesion. No alcanza con buscar el nombre al
+    principio: la ventana del Explorador de la carpeta del repositorio se
+    llama igual y entraria.
     """
     minusculas = (nombre or "").lower()
-    app = "ytchat tts"
-    return minusculas.startswith(app) or minusculas.endswith(app)
+    app = APP_NAME.lower()
+    return minusculas.startswith(f"{app} v") or minusculas.endswith(f" — {app}")
 
 
 def _candidatas_uia(Desktop):
@@ -5621,7 +5623,7 @@ def main() -> int:
     # directamente se pierden.
     informe = carpeta / "qa-informe.txt"
     try:
-        lineas = ["Banco de QA de YTChat TTS",
+        lineas = [f"Banco de QA de {APP_NAME}",
                   "escenarios: " + ", ".join(pedidos),
                   "%d comprobaciones, %d fallos, %d sin probar"
                   % (len(res.notas), len(res.fallos), len(res.sin_probar)), ""]

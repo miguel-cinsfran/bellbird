@@ -33,6 +33,10 @@ import sys
 # Raíz del repositorio: la carpeta padre de scripts/.
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+sys.path.insert(0, RAIZ)
+
+from ytchat.core.config import APP_NAME  # noqa: E402
+
 # Tipos de control que deben tener SIEMPRE un nombre accesible (lo que NVDA
 # anuncia al llegar a ellos con Tab). Si alguno aparece sin nombre, es un fallo
 # de accesibilidad.
@@ -87,8 +91,8 @@ _MINIMO_CONTROLES = 20
 
 _MODULOS_PUROS, _MODULOS_GUI = _modulos_de_la_raiz()
 
-_PREFIJO_TITULO = "YTChat TTS"
-_PROCESOS_APLICACION = {"python.exe", "pythonw.exe", "ytchattts.exe"}
+_PREFIJO_TITULO = APP_NAME
+_PROCESOS_APLICACION = {"python.exe", "pythonw.exe", "bellbird.exe"}
 
 # El nombre se duplica a propósito: importar main.py arrastra wx y medio
 # paquete. Una prueba vigila que coincida con el de main.py.

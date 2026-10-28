@@ -43,6 +43,8 @@ RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ))
 sys.path.insert(0, str(RAIZ / "qa"))
 
+from ytchat.core.config import APP_NAME  # noqa: E402
+
 from conducir import contestar_salir_si_aparece
 
 PREFIJO_TITULO = "Prueba de YTChat"
@@ -1151,7 +1153,7 @@ def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
         app = subprocess.Popen([sys.executable, ruta_lanzador],
                                cwd=str(raiz), env=entorno)
         try:
-            principal = _ventana("YTChat TTS", 60)
+            principal = _ventana(APP_NAME, 60)
             time.sleep(4)
             anotar("ventana principal", True, f"pid {app.pid}")
         except RuntimeError as exc:

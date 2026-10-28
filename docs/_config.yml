@@ -1,0 +1,4 @@
+# GitHub Pages publica docs/. El manual se arma para la raíz del paquete
+# de la app y sus enlaces no funcionan acá: se lee el MANUAL.md de GitHub.
+exclude:
+  - MANUAL.html

@@ -439,6 +439,55 @@ class TestDescargarPaquete(unittest.TestCase):
             self.assertFalse(resultado.correcta)
             self.assertIn("https", resultado.motivo.lower())
 
+    def test_firma_distinta_da_su_codigo(self):
+        import tempfile
+        ServidorFirmas.contenido_zip = b"zip de verdad"
+        ServidorFirmas.firma = "00" * 32
+        servidor = self._servidor()
+        with tempfile.TemporaryDirectory() as tmp:
+            resultado = actualizacion.descargar_paquete(
+                *self._urls(servidor), Path(tmp) / "paquete.zip",
+                permitir_http=True)
+            self.assertEqual(resultado.codigo, "firma_distinta")
+
+    def test_cancelacion_da_su_codigo(self):
+        import tempfile
+        ServidorFirmas.contenido_zip = b"zip de verdad"
+        ServidorFirmas.firma = hashlib.sha256(b"zip de verdad").hexdigest()
+        servidor = self._servidor()
+        with tempfile.TemporaryDirectory() as tmp:
+            resultado = actualizacion.descargar_paquete(
+                *self._urls(servidor), Path(tmp) / "paquete.zip",
+                cancelar=lambda: True, permitir_http=True)
+            self.assertEqual(resultado.codigo, "cancelada")
+
+    def test_cancelacion_en_la_firma_da_su_codigo(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            with mock.patch.object(
+                    actualizacion, "_descargar_texto",
+                    side_effect=actualizacion._DescargaCancelada):
+                resultado = actualizacion.descargar_paquete(
+                    "https://ejemplo.com/p.zip",
+                    "https://ejemplo.com/p.zip.sha256",
+                    Path(tmp) / "paquete.zip", permitir_http=True)
+            self.assertEqual(resultado.codigo, "cancelada")
+
+    def test_sin_firma_y_https_no_llevan_codigo(self):
+        import tempfile
+        ServidorFirmas.contenido_zip = b"zip de verdad"
+        ServidorFirmas.firma = "sin firma acá"
+        servidor = self._servidor()
+        with tempfile.TemporaryDirectory() as tmp:
+            sin_firma = actualizacion.descargar_paquete(
+                *self._urls(servidor), Path(tmp) / "paquete.zip",
+                permitir_http=True)
+            self.assertEqual(sin_firma.codigo, "")
+            sin_https = actualizacion.descargar_paquete(
+                "http://ejemplo.com/p.zip", "http://ejemplo.com/p.zip.sha256",
+                Path(tmp) / "paquete.zip")
+            self.assertEqual(sin_https.codigo, "")
+
 
 class TestEstado(unittest.TestCase):
 

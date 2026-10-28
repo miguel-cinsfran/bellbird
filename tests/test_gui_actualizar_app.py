@@ -244,7 +244,7 @@ class TestVentana(unittest.TestCase):
     def test_firma_que_no_coincide(self):
         def descargar(*args, **kwargs):
             return actualizacion.ResultadoDescarga(
-                False, "la firma SHA-256 no coincide")
+                False, "la firma SHA-256 no coincide", "firma_distinta")
         _, ventana = self._abrir_descargable(descargar)
         self.assertIn("La descarga no se completó: "
                       "la firma SHA-256 no coincide.", ventana.anuncios)
@@ -252,7 +252,8 @@ class TestVentana(unittest.TestCase):
 
     def test_cancelada(self):
         def descargar(*args, **kwargs):
-            return actualizacion.ResultadoDescarga(False, "descarga cancelada")
+            return actualizacion.ResultadoDescarga(
+                False, "descarga cancelada", "cancelada")
         _, ventana = self._abrir_descargable(descargar)
         self.assertIn("Descarga cancelada.", ventana.anuncios)
         self.assertEqual(0, ventana.progresos[-1])
@@ -951,8 +952,38 @@ class TestPseudoAvisos(unittest.TestCase):
         self.assertIn("[¡No se pudo iniciar la instalación: sin permiso.!]",
                       ventana.anuncios)
 
+    def test_codigo_firma_distinta_muestra_el_de_firma(self):
+        flujo, ventana = self._flujo()
+        with con_pseudo():
+            flujo._mostrar_descarga_fallida(
+                actualizacion.ResultadoDescarga(
+                    False, "la firma SHA-256 no coincide",
+                    "firma_distinta"))
+        self.assertEqual(
+            ventana.estados,
+            ["[¡La descarga no se completó: "
+             "la firma SHA-256 no coincide.!]"])
+
+    def test_codigo_cancelada_muestra_cancelada(self):
+        flujo, ventana = self._flujo()
+        with con_pseudo():
+            flujo._mostrar_descarga_fallida(
+                actualizacion.ResultadoDescarga(
+                    False, "descarga cancelada", "cancelada"))
+        self.assertEqual(ventana.estados, ["[¡Descarga cancelada.!]"])
+
+    def test_sin_firma_muestra_el_generico_y_no_el_de_firma(self):
+        flujo, ventana = self._flujo()
+        with con_pseudo():
+            flujo._mostrar_descarga_fallida(
+                actualizacion.ResultadoDescarga(
+                    False, "el paquete no trae firma"))
+        self.assertEqual(
+            ventana.estados,
+            ["[¡La descarga no se completó: el paquete no trae firma.!]"])
+
     def test_resultado_de_otro_modulo_pasa_tal_cual(self):
-        # El texto lo arma `ytchat/core/actualizacion.py`: queda pendiente.
+        # El texto lo arma `ytchat/core/actualizacion.py`, ya traducido.
         resultado = {"resultado": "fallo", "motivo": "corte de luz"}
         captados = []
         with mock.patch.object(actualizacion, "tomar_resultado",

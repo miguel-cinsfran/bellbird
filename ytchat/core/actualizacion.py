@@ -60,6 +60,7 @@ class ResultadoDescarga(NamedTuple):
 
     correcta: bool
     motivo: str
+    codigo: str = ""
 
 
 # ── Versiones ─────────────────────────────────────────────────────────────
@@ -286,20 +287,20 @@ def descargar_paquete(url_zip: str, url_firma: str, destino: str | os.PathLike,
     El temporal no queda nunca en disco.
     """
     if not permitir_http and not (_es_https(url_zip) and _es_https(url_firma)):
-        return ResultadoDescarga(False, "la descarga exige URL https")
+        return ResultadoDescarga(False, _("la descarga exige URL https"))
     destino = Path(destino)
     temporal = None
     try:
         try:
             texto_firma = _descargar_texto(url_firma)
         except _DescargaCancelada:
-            return ResultadoDescarga(False, "descarga cancelada")
+            return ResultadoDescarga(False, _("descarga cancelada"), "cancelada")
         except (OSError, HTTPError, URLError, ValueError, UnicodeError) as error:
             return ResultadoDescarga(
-                False, f"no se pudo descargar la firma: {error}")
+                False, _("no se pudo descargar la firma: {detalle}").format(detalle=error))
         firma = leer_firma(texto_firma)
         if not firma:
-            return ResultadoDescarga(False, "el paquete no trae firma")
+            return ResultadoDescarga(False, _("el paquete no trae firma"))
         destino.parent.mkdir(parents=True, exist_ok=True)
         with tempfile.NamedTemporaryFile(
                 prefix=".paquete-", suffix=".tmp", dir=destino.parent,
@@ -311,15 +312,15 @@ def descargar_paquete(url_zip: str, url_firma: str, destino: str | os.PathLike,
             for bloque in iter(lambda: archivo.read(1024 * 1024), b""):
                 resumen.update(bloque)
         if resumen.hexdigest().lower() != firma:
-            return ResultadoDescarga(False, "la firma SHA-256 no coincide")
+            return ResultadoDescarga(False, _("la firma SHA-256 no coincide"), "firma_distinta")
         os.replace(temporal, destino)
         temporal = None
-        return ResultadoDescarga(True, "paquete descargado")
+        return ResultadoDescarga(True, _("paquete descargado"))
     except _DescargaCancelada:
-        return ResultadoDescarga(False, "descarga cancelada")
+        return ResultadoDescarga(False, _("descarga cancelada"), "cancelada")
     except (OSError, HTTPError, URLError, ValueError) as error:
         return ResultadoDescarga(
-            False, f"no se pudo descargar el paquete: {error}")
+            False, _("no se pudo descargar el paquete: {detalle}").format(detalle=error))
     finally:
         if temporal is not None:
             try:

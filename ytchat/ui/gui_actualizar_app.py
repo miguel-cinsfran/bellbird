@@ -337,9 +337,9 @@ class _FlujoActualizacion:
     def _mostrar_descarga_fallida(self, resultado):
         motivo = resultado.motivo or _("motivo desconocido")
         self.ventana.progreso(0)
-        if "cancelada" in motivo.lower():
+        if resultado.codigo == "cancelada":
             self.ventana.estado(_("Descarga cancelada."))
-        elif "firma" in motivo.lower():
+        elif resultado.codigo == "firma_distinta":
             self.ventana.estado(_("La descarga no se completó: "
                                   "la firma SHA-256 no coincide."))
         else:

@@ -1,8 +1,8 @@
-# Política de privacidad de YTChat TTS
+# Política de privacidad de Bellbird
 
 Última actualización: 26 de septiembre de 2026.
 
-YTChat TTS es una aplicación de escritorio para Windows que lee en voz alta el
+Bellbird es una aplicación de escritorio para Windows que lee en voz alta el
 chat de YouTube Live y de TikTok Live. Es software libre y funciona entera en
 el equipo de quien la usa. No tiene servidores propios, no tiene cuentas de
 usuario y no recoge estadísticas de uso.
@@ -48,7 +48,7 @@ cuenta de Google, en el apartado de aplicaciones de terceros con acceso.
 
 ## Uso de los datos de Google
 
-El uso que hace YTChat TTS de la información recibida de las API de Google
+El uso que hace Bellbird de la información recibida de las API de Google
 cumple la Política de Datos de Usuario de los Servicios de API de Google,
 incluidos los requisitos de uso limitado.
 

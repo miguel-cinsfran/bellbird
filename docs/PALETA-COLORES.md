@@ -1,4 +1,4 @@
-# Paleta de colores — YTChat TTS
+# Paleta de colores — Bellbird
 
 Referencia de los colores que usa la aplicación y para qué sirve cada uno. Hay
 tres superficies distintas, cada una con su paleta: la **ventana** (wxPython,

@@ -1,4 +1,4 @@
-# YTChat TTS, manual de uso
+# Bellbird, manual de uso
 
 Lee en voz alta el chat de los directos de YouTube y TikTok, para personas
 ciegas o con baja visión que transmiten. Todo se maneja con el teclado y se
@@ -47,7 +47,7 @@ moderar.
 
 ## Instalación
 
-Descomprime el ZIP en cualquier carpeta y abre `YTChatTTS.exe`. No hace
+Descomprime el ZIP en cualquier carpeta y abre `Bellbird.exe`. No hace
 falta instalar nada ni tener permisos de administrador: el ZIP trae todo
 lo necesario.
 

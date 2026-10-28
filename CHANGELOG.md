@@ -1,7 +1,26 @@
-# Novedades de YTChat TTS
+# Novedades de Bellbird
 
 Qué cambia en cada versión, en lenguaje llano. El detalle técnico está en el
 historial de git.
+
+## 3.0.0, sin publicar
+
+La app pasa a llamarse Bellbird, por el pájaro campana, el ave nacional de
+Paraguay.
+
+### El nombre nuevo
+
+- El programa ahora es `Bellbird.exe`, y el ZIP y su carpeta llevan el
+  nombre Bellbird con el número de versión.
+- Un acceso directo a `YTChatTTS.exe` deja de funcionar después de
+  actualizar. Hay que crear uno nuevo que apunte a `Bellbird.exe`.
+- Las fuentes que la app creó en OBS conservan su nombre, así que las
+  escenas que ya tienes siguen funcionando.
+
+### Arreglos
+
+- Al cerrar Preferencias sin guardar después de probar una voz, la voz de
+  prueba ya no queda abierta.
 
 ## 2.5.1, octubre de 2026
 

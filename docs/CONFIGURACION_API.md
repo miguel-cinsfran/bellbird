@@ -1,6 +1,6 @@
-# Configurar la API de YouTube en YTChat TTS
+# Configurar la API de YouTube en Bellbird
 
-Esta guía explica cómo activar las funciones online de YTChat TTS:
+Esta guía explica cómo activar las funciones online de Bellbird:
 
 - **Leer comentarios** de cualquier vídeo (no solo directos).
 - **Moderar** el chat en vivo (expulsar o banear usuarios).
@@ -68,7 +68,7 @@ recorrer antes de dar por hecho que falta algo.
 
 Dirección directa: <https://console.cloud.google.com/projectcreate>
 
-1. En **Nombre del proyecto**, escribir por ejemplo `YTChat TTS`.
+1. En **Nombre del proyecto**, escribir por ejemplo `Bellbird`.
 2. Debajo del campo, la consola muestra una línea que dice **ID del proyecto**
    seguida del identificador que ha generado. **Conviene anotarlo ahora**: es
    lo que se pega en las direcciones del resto de la guía, y no se puede
@@ -108,7 +108,7 @@ Dirección directa:
 > alcanzarlo. Pulsar el *nombre* de la clave abre su ficha de edición, que
 > permite restringirla y renombrarla pero **no muestra su valor**.
 
-Con esto ya se pueden **leer comentarios**. En YTChat TTS: botón
+Con esto ya se pueden **leer comentarios**. En Bellbird: botón
 **Configuración**, pegar la clave en el campo **API key**, pulsar **Guardar
 claves** y cerrar. Quien solo quiera leer ha terminado aquí.
 
@@ -130,7 +130,7 @@ Dirección directa:
 1. Si el proyecto no tiene nada configurado, la página dice "Aún no se
    configuró Google Auth Platform". Pulsar **Comenzar**.
 2. **Paso 1, Información de la app.** Escribir el **Nombre de la aplicación**,
-   por ejemplo `YTChat TTS`. En **Correo electrónico de asistencia al usuario**
+   por ejemplo `Bellbird`. En **Correo electrónico de asistencia al usuario**
    hay una lista desplegable: elegir la propia dirección. Pulsar **Siguiente**.
 3. **Paso 2, Público.** Elegir **Usuarios externos** y pulsar **Siguiente**.
 4. **Paso 3, Información de contacto.** Escribir la propia dirección de correo
@@ -177,7 +177,7 @@ Dirección directa:
 2. En **Tipo de aplicación**, elegir **App de escritorio**. La lista trae otras
    opciones (Aplicación web, Android, Extensión de Chrome, iOS, TVs); ninguna
    de ellas sirve para esta aplicación.
-3. En **Nombre**, escribir por ejemplo `YTChat TTS escritorio`, y pulsar
+3. En **Nombre**, escribir por ejemplo `Bellbird escritorio`, y pulsar
    **Crear**.
 4. Se abre un cuadro titulado "Se creó el cliente de OAuth" con el **ID de
    cliente** y el **Secreto del cliente**, cada uno con su botón de copiar.
@@ -191,7 +191,7 @@ Dirección directa:
 
 ## Paso 6 — Meter los datos en la aplicación
 
-1. Abrir YTChat TTS y pulsar el botón **Configuración**.
+1. Abrir Bellbird y pulsar el botón **Configuración**.
 2. Pegar la **API key** del paso 3, y el **ID de cliente** y el **Secreto de
    cliente** del paso 5, cada uno en su campo.
 3. Pulsar **Guardar claves**.
@@ -203,7 +203,7 @@ En el navegador, la secuencia es de tres pantallas:
 2. **"Google no verificó esta app"**: pulsar **Continuar**. Este aviso es
    normal y aparece porque la app está en estado "Prueba"; el enlace grande que
    dice "Volver a un sitio seguro" es el que **no** hay que pulsar.
-3. **"YTChat TTS requiere acceso a tu Cuenta de Google"**: pulsar
+3. **"Bellbird requiere acceso a tu Cuenta de Google"**: pulsar
    **Continuar**. El permiso que se concede es solo de YouTube.
 
 Al terminar, el navegador muestra "Sesión iniciada. Ya puedes volver a la

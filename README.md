@@ -1,4 +1,4 @@
-# YTChat TTS
+# Bellbird
 
 Aplicación de escritorio para Windows que lee en voz alta el chat de los
 directos de YouTube y TikTok. Está pensada para personas ciegas o con baja
@@ -6,7 +6,7 @@ visión que transmiten: todo se maneja con el teclado y se prueba con el
 lector de pantalla NVDA.
 
 La escribo yo, que soy ciego, y la usa en sus directos un amigo que
-también lo es.
+también lo es. Hasta la versión 2.5 se llamaba YTChat TTS.
 
 [Descargar la última versión](https://github.com/miguel-cinsfran/bellbird/releases/latest)
 · [Manual de uso](MANUAL.md) · [Novedades](CHANGELOG.md)

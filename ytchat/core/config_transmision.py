@@ -14,12 +14,21 @@ from ytchat.core.ini_tipado import leer_texto, leer_booleano
 
 def opciones_transmision(p) -> dict:
     """La sección [transmision] como claves en memoria, en el mismo orden."""
-    from ytchat.core.config import decodificar_texto_ini
-
     from ytchat.obs import obs_destinos as _destinos
     destino = leer_texto(p, "transmision", "destino")
     if destino not in _destinos.DESTINOS:
         destino = ""
+
+    return {
+        "transmision_destino": destino,
+        "avisar_sobrecarga": leer_booleano(p, "transmision", "avisar_sobrecarga"),
+        **_opciones_youtube(p),
+    }
+
+
+def _opciones_youtube(p) -> dict:
+    """Las claves de YouTube, con sus valores validados."""
+    from ytchat.core.config import decodificar_texto_ini
 
     from ytchat.youtube import emision as _emision
     privacidad = leer_texto(p, "transmision", "youtube_privacidad")
@@ -34,8 +43,6 @@ def opciones_transmision(p) -> dict:
         categoria = ""
 
     return {
-        "transmision_destino": destino,
-        "avisar_sobrecarga": leer_booleano(p, "transmision", "avisar_sobrecarga"),
         "transmision_youtube_titulo": decodificar_texto_ini(leer_texto(p, "transmision", "youtube_titulo")),
         "transmision_youtube_descripcion": decodificar_texto_ini(leer_texto(p, "transmision", "youtube_descripcion")),
         "transmision_youtube_privacidad": privacidad,

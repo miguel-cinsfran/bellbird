@@ -16,6 +16,7 @@ from ytchat.core import diagnostico
 from ytchat.core import config as cfg
 from ytchat.core import paths
 from ytchat.core.ini_tipado import separar_por_comas
+from ytchat.core.idioma import _
 from ytchat.ui import atajos_captura
 from ytchat.capture import estado_sesion
 from ytchat.obs import obs_cliente
@@ -38,7 +39,6 @@ from ytchat.obs.obs_panel import GestorPanelObs
 logger = diagnostico.obtener_logger(__name__)
 
 TAMANO_DIALOGO = (720, 600)
-
 
 # Opciones que se guardan y se cargan con el mismo molde (leer el control,
 # escribir el texto en el ini y copiar el valor a la config en memoria; y al
@@ -78,7 +78,7 @@ class PreferenciasDialog(wx.Dialog):
     def __init__(self, parent, config: dict):
         # Redimensionable: quien ve poco puede agrandarlo; las páginas se
         # desplazan solas si no caben.
-        super().__init__(parent, title="Preferencias", size=TAMANO_DIALOGO,
+        super().__init__(parent, title=_("Preferencias"), size=TAMANO_DIALOGO,
                          style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER,
                          name="DialogoPreferencias")
         self._config = config
@@ -101,43 +101,44 @@ class PreferenciasDialog(wx.Dialog):
         vs = wx.BoxSizer(wx.VERTICAL)
 
         # La lista se anuncia sola al recorrerla, a diferencia de las pestañas.
-        self.nb = wx.Listbook(panel, name="Categorías de preferencias")
+        self.nb = wx.Listbook(panel, name=_("Categorías de preferencias"))
         self.lista_categorias = self.nb.GetListView()
-        nombre_accesible(self.lista_categorias, "Categorías")
+        # Traductores: nombre accesible de la lista de categorías.
+        nombre_accesible(self.lista_categorias, _("Categorías"))
         _tc(self.lista_categorias, bg=_T.surface)
         self.pagina_general = PaginaGeneral(self)
-        self.nb.AddPage(self.pagina_general.construir(self.nb), "General")
+        self.nb.AddPage(self.pagina_general.construir(self.nb), _("General"))
         self.chk_buscar_actualizaciones = (
             self.pagina_general.chk_buscar_actualizaciones)
         self.chk_confirmar_salida = self.pagina_general.chk_confirmar_salida
         self.chk_sonido_inicio = self.pagina_general.chk_sonido_inicio
         self.chk_registro_detallado = self.pagina_general.chk_registro_detallado
         self.pagina_voz = PaginaVoz(self, self._config)
-        self.nb.AddPage(self.pagina_voz.construir(self.nb), "Voces")
+        self.nb.AddPage(self.pagina_voz.construir(self.nb), _("Voces"))
         self.chk_multivoz = self.pagina_voz.chk_multivoz
-        self.nb.AddPage(self._pag_lectura(self.nb), "Lectura")
-        self.nb.AddPage(self._pag_cola(self.nb), "Cola de lectura")
-        self.nb.AddPage(self._pag_interfaz(self.nb), "Interfaz y sonidos")
+        self.nb.AddPage(self._pag_lectura(self.nb), _("Lectura"))
+        self.nb.AddPage(self._pag_cola(self.nb), _("Cola de lectura"))
+        self.nb.AddPage(self._pag_interfaz(self.nb), _("Interfaz y sonidos"))
         self.pagina_sonidos = PaginaSonidos()
-        self.nb.AddPage(self.pagina_sonidos.construir(self.nb), "Sonidos")
-        self.nb.AddPage(self._pag_reproductor(self.nb), "Reproductor")
+        self.nb.AddPage(self.pagina_sonidos.construir(self.nb), _("Sonidos"))
+        self.nb.AddPage(self._pag_reproductor(self.nb), _("Reproductor"))
         self.pagina_musica = PaginaMusica(self, self._config)
-        self.nb.AddPage(self.pagina_musica.construir(self.nb), "Música")
+        self.nb.AddPage(self.pagina_musica.construir(self.nb), _("Música"))
         for fila in OPCIONES_MUSICA:
             setattr(self, fila[0], getattr(self.pagina_musica, fila[0]))
-        self.nb.AddPage(self._pag_conexion(self.nb), "Conexión")
-        self.nb.AddPage(self._pag_filtros(self.nb), "Filtros")
-        self.nb.AddPage(self._pag_estado(self.nb), "Estado (F2)")
+        self.nb.AddPage(self._pag_conexion(self.nb), _("Conexión"))
+        self.nb.AddPage(self._pag_filtros(self.nb), _("Filtros"))
+        self.nb.AddPage(self._pag_estado(self.nb), _("Estado (F2)"))
         self.pagina_atajos = PaginaAtajos(self, self._config)
-        self.nb.AddPage(self.pagina_atajos.construir(self.nb), "Atajos")
+        self.nb.AddPage(self.pagina_atajos.construir(self.nb), _("Atajos"))
         self.pagina_api = PaginaApi(self)
-        self.nb.AddPage(self.pagina_api.construir(self.nb), "API y sesión")
+        self.nb.AddPage(self.pagina_api.construir(self.nb), _("API y sesión"))
         self.pagina_programados = PaginaProgramados()
-        self.nb.AddPage(self.pagina_programados.construir(self.nb), "Mensajes automáticos")
+        self.nb.AddPage(self.pagina_programados.construir(self.nb), _("Mensajes automáticos"))
         self.chk_programados = self.pagina_programados.chk_programados
-        self.nb.AddPage(self._pag_transmision(self.nb), "Transmisión")
+        self.nb.AddPage(self._pag_transmision(self.nb), _("Transmisión"))
         self.pagina_ia = PaginaIA(self, self._ruta)
-        self.nb.AddPage(self.pagina_ia.construir(self.nb), "Inteligencia artificial")
+        self.nb.AddPage(self.pagina_ia.construir(self.nb), _("Inteligencia artificial"))
         ajustar_ancho_categorias(self.nb, self.lista_categorias)
         # Mínimo explícito: si no, el libro pide el «mejor tamaño» de la página
         # más alta (Atajos, más de 1200 px) y el sizer lo desbordaría en vez
@@ -146,8 +147,8 @@ class PreferenciasDialog(wx.Dialog):
         vs.Add(self.nb, 1, wx.EXPAND | wx.ALL, 10)
 
         row = wx.BoxSizer(wx.HORIZONTAL)
-        btn_guardar = wx.Button(panel, wx.ID_OK, "&Guardar", name="GuardarPreferencias")
-        btn_cancelar = wx.Button(panel, wx.ID_CANCEL, "&Cancelar", name="CancelarPreferencias")
+        btn_guardar = wx.Button(panel, wx.ID_OK, _("&Guardar"), name="GuardarPreferencias")
+        btn_cancelar = wx.Button(panel, wx.ID_CANCEL, _("&Cancelar"), name="CancelarPreferencias")
         for b in (btn_guardar, btn_cancelar):
             b.SetBackgroundColour(_T.btn)
             b.SetForegroundColour(_T.btn_t)
@@ -203,29 +204,29 @@ class PreferenciasDialog(wx.Dialog):
         p = self._make_panel(parent, "PagInterfaz")
         vs = wx.BoxSizer(wx.VERTICAL)
 
-        vs.Add(self._fila_label(p, "Tamaño de &fuente del chat (8 a 24):"),
+        vs.Add(self._fila_label(p, _("Tamaño de &fuente del chat (8 a 24):")),
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.sp_fuente = ContadorAccesible(p, min=8, max=24,
-                                     name="Tamaño de fuente del chat")
+                                      name=_("Tamaño de fuente del chat"))
         _tc(self.sp_fuente)
         vs.Add(self.sp_fuente, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        vs.Add(self._fila_label(p, "&Tema de sonido:"), 0, wx.LEFT | wx.RIGHT, 10)
+        vs.Add(self._fila_label(p, _("&Tema de sonido:")), 0, wx.LEFT | wx.RIGHT, 10)
         temas = cfg.listar_temas_sonido()
-        self.cho_tema = wx.Choice(p, choices=temas, name="Tema de sonido")
+        self.cho_tema = wx.Choice(p, choices=temas, name=_("Tema de sonido"))
         _tc(self.cho_tema)
         actual = cfg.tema_sonido_actual()
         self.cho_tema.SetSelection(temas.index(actual) if actual in temas else 0)
         self.cho_tema.Bind(wx.EVT_CHOICE, self._on_muestra_tema)
         vs.Add(self.cho_tema, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        self.chk_total_sc = wx.CheckBox(p, label="Mostrar el total de &Super Chats en la barra de estado",
-                                        name="MostrarTotalSuperChats")
+        self.chk_total_sc = wx.CheckBox(p, label=_("Mostrar el total de &Super Chats en la barra de estado"),
+                                         name="MostrarTotalSuperChats")
         self.chk_total_sc.SetForegroundColour(_T.text)
         vs.Add(self.chk_total_sc, 0, wx.ALL, 10)
 
-        self.chk_metadatos = wx.CheckBox(p, label="Mostrar la pestaña de &información del vídeo (canal, vistas, descripción)",
-                                         name="MostrarMetadatos")
+        self.chk_metadatos = wx.CheckBox(p, label=_("Mostrar la pestaña de &información del vídeo (canal, vistas, descripción)"),
+                                          name="MostrarMetadatos")
         self.chk_metadatos.SetForegroundColour(_T.text)
         vs.Add(self.chk_metadatos, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
@@ -247,28 +248,27 @@ class PreferenciasDialog(wx.Dialog):
         vs = wx.BoxSizer(wx.VERTICAL)
 
         self.rb_estrategia = wx.RadioBox(
-            p, label="&Estrategia de la cola", majorDimension=1,
-            choices=["Leer todos los mensajes",
-                     "Descartar los más viejos si se acumulan"],
-            style=wx.RA_SPECIFY_COLS, name="Estrategia de la cola")
+            p, label=_("&Estrategia de la cola"), majorDimension=1,
+            choices=[_("Leer todos los mensajes"),
+                     _("Descartar los más viejos si se acumulan")],
+            style=wx.RA_SPECIFY_COLS, name=_("Estrategia de la cola"))
         self.rb_estrategia.SetSelection(
             0 if self._config.get("estrategia", "limite") == "todas" else 1)
         vs.Add(self.rb_estrategia, 0, wx.ALL, 10)
 
-        vs.Add(self._fila_label(p, "Tamaño &máximo de la cola"),
+        vs.Add(self._fila_label(p, _("Tamaño &máximo de la cola")),
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_cola_maxima = ContadorAccesible(
             p, min=1, max=500,
-            name="Tamaño máximo de la cola")
+            name=_("Tamaño máximo de la cola"))
         vs.Add(self.sp_cola_maxima, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        vs.Add(self._fila_label(p, "Leer solo el &nombre a partir de"),
+        vs.Add(self._fila_label(p, _("Leer solo el &nombre a partir de")),
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_umbral_nombre = ContadorAccesible(
             p, min=0, max=500,
-            name="Leer solo el nombre a partir de")
-        vs.Add(self.sp_umbral_nombre, 0, wx.LEFT | wx.RIGHT, 10)
-        vs.Add(wx.StaticText(p, label="Con 0, esta opción queda apagada."),
+            name=_("Leer solo el nombre a partir de"))
+        vs.Add(wx.StaticText(p, label=_("Con 0, esta opción queda apagada.")),
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
 
         p.SetSizer(vs)
@@ -279,22 +279,22 @@ class PreferenciasDialog(wx.Dialog):
         vs = wx.BoxSizer(wx.VERTICAL)
 
         self.chk_reconectar = wx.CheckBox(
-            p, label="&Reconectar automáticamente si se corta",
-            name="Reconectar automáticamente si se corta")
+            p, label=_("&Reconectar automáticamente si se corta"),
+            name=_("Reconectar automáticamente si se corta"))
         vs.Add(self.chk_reconectar, 0, wx.ALL, 10)
 
-        vs.Add(self._fila_label(p, "&Espera máxima entre intentos, en segundos"),
+        vs.Add(self._fila_label(p, _("&Espera máxima entre intentos, en segundos")),
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_espera_reconexion = ContadorAccesible(
             p, min=1, max=300,
-            name="Espera máxima entre intentos, en segundos")
+            name=_("Espera máxima entre intentos, en segundos"))
         vs.Add(self.sp_espera_reconexion, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        vs.Add(self._fila_label(p, "Número máximo de &intentos"),
+        vs.Add(self._fila_label(p, _("Número máximo de &intentos")),
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_max_intentos = ContadorAccesible(
             p, min=0, max=100,
-            name="Número máximo de intentos")
+            name=_("Número máximo de intentos"))
         vs.Add(self.sp_max_intentos, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         p.SetSizer(vs)
@@ -305,35 +305,35 @@ class PreferenciasDialog(wx.Dialog):
         vs = wx.BoxSizer(wx.VERTICAL)
 
         self.chk_avisar_sobrecarga = wx.CheckBox(
-            p, label="A&visar cuando OBS no da abasto",
+            p, label=_("A&visar cuando OBS no da abasto"),
             name="AvisarSobrecargaObs")
         self.chk_avisar_sobrecarga.SetForegroundColour(_T.text)
         vs.Add(self.chk_avisar_sobrecarga, 0, wx.ALL, 10)
 
-        vs.Add(self._fila_label(p, "&Puerto del panel de chat"),
+        vs.Add(self._fila_label(p, _("&Puerto del panel de chat")),
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.sp_puerto_overlay = ContadorAccesible(
             p, min=1024, max=65535,
-            name="Puerto del panel de chat")
+            name=_("Puerto del panel de chat"))
         vs.Add(self.sp_puerto_overlay, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        vs.Add(self._fila_label(p, "&Micrófono de OBS"),
+        vs.Add(self._fila_label(p, _("&Micrófono de OBS")),
                0, wx.LEFT | wx.RIGHT, 10)
         guardado = str(self._config.get("obs_microfono", ""))
-        opciones = ["Elegir automáticamente"] + ([guardado] if guardado else [])
-        self.cho_microfono_obs = wx.Choice(p, choices=opciones, name="Micrófono de OBS")
+        opciones = [_("Elegir automáticamente")] + ([guardado] if guardado else [])
+        self.cho_microfono_obs = wx.Choice(p, choices=opciones, name=_("Micrófono de OBS"))
         self.cho_microfono_obs.SetSelection(1 if guardado else 0)
         vs.Add(self.cho_microfono_obs, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         self.btn_buscar_microfonos = wx.Button(
-            p, label="&Buscar los micrófonos en OBS",
-            name="Buscar los micrófonos en OBS")
+            p, label=_("&Buscar los micrófonos en OBS"),
+            name=_("Buscar los micrófonos en OBS"))
         vs.Add(self.btn_buscar_microfonos, 0, wx.ALL, 10)
         self.btn_buscar_microfonos.Bind(wx.EVT_BUTTON, self._buscar_microfonos)
 
         self.btn_activar_websocket_obs = wx.Button(
-            p, label="&Activar el servidor websocket de OBS",
-            name="Activar el servidor websocket de OBS")
+            p, label=_("&Activar el servidor websocket de OBS"),
+            name=_("Activar el servidor websocket de OBS"))
         vs.Add(self.btn_activar_websocket_obs, 0, wx.ALL, 10)
         self.btn_activar_websocket_obs.Bind(
             wx.EVT_BUTTON, self._activar_servidor_websocket_obs)
@@ -364,14 +364,14 @@ class PreferenciasDialog(wx.Dialog):
         if not self:   # el diálogo pudo cerrarse mientras OBS respondía
             return
         elegido = self.cho_microfono_obs.GetStringSelection()
-        opciones = ["Elegir automáticamente"]
+        opciones = [_("Elegir automáticamente")]
         # La fuente guardada se conserva aunque OBS no responda o ya no la vea.
         for fuente in (elegido, *fuentes):
             if fuente and fuente not in opciones:
                 opciones.append(fuente)
         self.cho_microfono_obs.Set(opciones)
         self.cho_microfono_obs.SetStringSelection(elegido or opciones[0])
-        anunciar(f"Se encontraron {len(fuentes)} micrófonos en OBS")
+        anunciar(_("Se encontraron {cantidad} micrófonos en OBS").format(cantidad=len(fuentes)))
 
     def _activar_servidor_websocket_obs(self, event):
         def activar():
@@ -384,7 +384,7 @@ class PreferenciasDialog(wx.Dialog):
                         obs_cliente.RUTA_CONFIG_OBS)
             except Exception as exc:
                 logger.warning("No se pudo activar el servidor websocket de OBS: %s", exc)
-                mensaje = f"No se pudo activar el servidor websocket de OBS: {exc}"
+                mensaje = _("No se pudo activar el servidor websocket de OBS: {exc}").format(exc=exc)
             wx.CallAfter(anunciar, mensaje)
 
         diagnostico.crear_hilo(activar, "ActivarWebsocketObs").start()
@@ -393,27 +393,27 @@ class PreferenciasDialog(wx.Dialog):
         p = self._make_panel(parent, "PagReproductor")
         vs = wx.BoxSizer(wx.VERTICAL)
 
-        self.chk_autoplay = wx.CheckBox(p, label="&Reproducir el audio automáticamente al conectar",
-                                        name="AutoplayReproductor")
+        self.chk_autoplay = wx.CheckBox(p, label=_("&Reproducir el audio automáticamente al conectar"),
+                                         name="AutoplayReproductor")
         self.chk_autoplay.SetForegroundColour(_T.text)
         vs.Add(self.chk_autoplay, 0, wx.ALL, 10)
 
         self.chk_solo_audio = wx.CheckBox(
-            p, label="Reproducir &solo el audio, sin decodificar la imagen",
+            p, label=_("Reproducir &solo el audio, sin decodificar la imagen"),
             name="SoloAudioReproductor")
         self.chk_solo_audio.SetForegroundColour(_T.text)
         vs.Add(self.chk_solo_audio, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        self.chk_botones_rep = wx.CheckBox(p, label="Mostrar los &botones del reproductor (también con su interruptor y el menú Reproductor)",
-                                           name="MostrarBotonesReproductor")
+        self.chk_botones_rep = wx.CheckBox(p, label=_("Mostrar los &botones del reproductor (también con su interruptor y el menú Reproductor)"),
+                                            name="MostrarBotonesReproductor")
         self.chk_botones_rep.SetForegroundColour(_T.text)
         vs.Add(self.chk_botones_rep, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         etiqueta_cache = wx.StaticText(
-            p, label="&Tamaño máximo de la caché de vídeo, en megabytes:")
+            p, label=_("&Tamaño máximo de la caché de vídeo, en megabytes:"))
         self.sp_cache_video = wx.SpinCtrl(
             p, min=0, max=20000,
-            name="Tamaño máximo de la caché de vídeo en megabytes")
+            name=_("Tamaño máximo de la caché de vídeo en megabytes"))
         vs.Add(etiqueta_cache, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         vs.Add(self.sp_cache_video, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
@@ -437,7 +437,7 @@ class PreferenciasDialog(wx.Dialog):
         p = self._make_panel(parent, "PagEstado")
         vs = wx.BoxSizer(wx.VERTICAL)
 
-        nota = wx.StaticText(p, name="NotaEstado", label=(
+        nota = wx.StaticText(p, name="NotaEstado", label=_(
             "Elige qué dice la tecla F2 (estado de sesión). Marca lo que quieras "
             "oír; por defecto, los datos del vídeo y del chat. El orden en que se "
             "dice es fijo."))
@@ -462,23 +462,23 @@ class PreferenciasDialog(wx.Dialog):
         p = self._make_panel(parent, "PagFiltros")
         vs = wx.BoxSizer(wx.VERTICAL)
 
-        vs.Add(self._fila_label(p, "&Palabras silenciadas (separadas por comas):"),
+        vs.Add(self._fila_label(p, _("&Palabras silenciadas (separadas por comas):")),
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.txt_palabras = wx.TextCtrl(
             p, value=", ".join(self._config.get("palabras_silenciadas", [])),
-            name="Palabras silenciadas")
+            name=_("Palabras silenciadas"))
         _tc(self.txt_palabras)
         vs.Add(self.txt_palabras, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        vs.Add(self._fila_label(p, "&Usuarios silenciados (separados por comas):"),
+        vs.Add(self._fila_label(p, _("&Usuarios silenciados (separados por comas):")),
                0, wx.LEFT | wx.RIGHT, 10)
         self.txt_usuarios = wx.TextCtrl(
             p, value=", ".join(self._config.get("usuarios_silenciados", [])),
-            name="Usuarios silenciados")
+            name=_("Usuarios silenciados"))
         _tc(self.txt_usuarios)
         vs.Add(self.txt_usuarios, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        nota = wx.StaticText(p, label=(
+        nota = wx.StaticText(p, label=_(
             "Estos filtros ocultan y no leen los mensajes que contengan esas "
             "palabras o de esos usuarios. Se aplican a partir del próximo mensaje."),
             name="NotaFiltros")
@@ -588,21 +588,21 @@ class PreferenciasDialog(wx.Dialog):
         # el cambio de foco los cortara entre sí.
         self.avisos = []
         if not self._fallo_guardado:
-            self.avisos.append("Preferencias guardadas.")
+            self.avisos.append(_("Preferencias guardadas."))
         else:
-            self.avisos.append("Las preferencias se aplicaron, pero no se pudieron "
-                               "guardar en el disco. Se perderán al cerrar la "
-                               "aplicación.")
+            self.avisos.append(_("Las preferencias se aplicaron, pero no se pudieron "
+                                 "guardar en el disco. Se perderán al cerrar la "
+                                 "aplicación."))
         if motor_no_disponible:
-            self.avisos.append("El motor elegido no está disponible, se conserva el anterior.")
+            self.avisos.append(_("El motor elegido no está disponible, se conserva el anterior."))
         if registro_detallado != registro_detallado_inicial:
-            self.avisos.append("El cambio del registro detallado se aplica al reiniciar "
-                               "la aplicación.")
+            self.avisos.append(_("El cambio del registro detallado se aplica al reiniciar "
+                                 "la aplicación."))
         # El servidor del panel ya escucha en el puerto viejo; no se reinicia
         # solo, así que se avisa dónde se aplica.
         if puerto_overlay != puerto_anterior and c.get("overlay_activo", False):
-            self.avisos.append("El puerto nuevo del panel de chat se aplica al apagarlo y "
-                               "volver a encenderlo desde el panel de transmisión.")
+            self.avisos.append(_("El puerto nuevo del panel de chat se aplica al apagarlo y "
+                                 "volver a encenderlo desde el panel de transmisión."))
         self.EndModal(wx.ID_OK)
 
     def hubo_cambios(self) -> bool:
@@ -647,9 +647,9 @@ def ofrecer_iniciar_sesion(parent, config) -> bool:
     Devuelve lo que devuelva `abrir_preferencias` si el usuario acepta, o
     False si no quiere.
     """
-    if wx.MessageBox("Tu sesión de YouTube caducó. ¿Abrir Preferencias para "
-                     "volver a iniciar sesión?",
-                     "Sesión caducada", wx.YES_NO | wx.ICON_QUESTION,
-                     parent) != wx.YES:
+    if wx.MessageBox(_("Tu sesión de YouTube caducó. ¿Abrir Preferencias para "
+                        "volver a iniciar sesión?"),
+                      _("Sesión caducada"), wx.YES_NO | wx.ICON_QUESTION,
+                      parent) != wx.YES:
         return False
     return abrir_preferencias(parent, config, pagina="API y sesión")

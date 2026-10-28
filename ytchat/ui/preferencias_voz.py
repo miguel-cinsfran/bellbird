@@ -8,14 +8,15 @@ from __future__ import annotations
 
 import wx
 
+from ytchat.core.idioma import N_, _
 from ytchat.youtube import credenciales
 from ytchat.ui import clave_elevenlabs
 from ytchat.ui.gui import ContadorAccesible, _T, _tc, anunciar
 from ytchat.ui.preferencias_comun import crear_panel, fila_label
 from ytchat.ui.prueba_voz import PruebaVoz
 
-_SIN_CLAVE_ELEVEN = "(comprueba la clave)"
-_NO_HAY_VOCES = "(no hay voces disponibles)"
+_SIN_CLAVE_ELEVEN = N_("(comprueba la clave)")
+_NO_HAY_VOCES = N_("(no hay voces disponibles)")
 
 
 class PaginaVoz:
@@ -59,10 +60,10 @@ class PaginaVoz:
     def _crear_motor(self, p, vs):
         from ytchat.voice import motores
 
-        vs.Add(fila_label(p, "&Motor de voz:"), 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
+        vs.Add(fila_label(p, _("&Motor de voz:")), 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.cho_motor = wx.Choice(
             p, choices=[motores.NOMBRES[m] for m in motores.MOTORES],
-            name="Motor de voz")
+            name=_("Motor de voz"))
         _tc(self.cho_motor)
         self.cho_motor.SetSelection(self._motor_idx)
         self.cho_motor.Bind(wx.EVT_CHOICE, self._on_motor_cambiado)
@@ -70,15 +71,15 @@ class PaginaVoz:
 
     def _crear_clave(self, p, vs):
         # Clave de ElevenLabs y su comprobación: solo se ven con ese motor.
-        lbl_clave = fila_label(p, "Cl&ave de ElevenLabs:")
+        lbl_clave = fila_label(p, _("Cl&ave de ElevenLabs:"))
         self.txt_clave_eleven = wx.TextCtrl(
             p, value=credenciales.cargar().get("elevenlabs_clave", "") or "",
-            style=wx.TE_PASSWORD, name="Clave de ElevenLabs")
+            style=wx.TE_PASSWORD, name=_("Clave de ElevenLabs"))
         _tc(self.txt_clave_eleven)
         vs.Add(lbl_clave, 0, wx.LEFT | wx.RIGHT, 10)
         vs.Add(self.txt_clave_eleven, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.btn_comprobar_clave = wx.Button(
-            p, label="Compro&bar clave", name="Comprobar clave")
+            p, label=_("Compro&bar clave"), name=_("Comprobar clave"))
         self.btn_comprobar_clave.SetBackgroundColour(_T.btn)
         self.btn_comprobar_clave.SetForegroundColour(_T.btn_t)
         self.btn_comprobar_clave.Bind(wx.EVT_BUTTON, self._on_comprobar_clave)
@@ -91,7 +92,7 @@ class PaginaVoz:
         # Voz del motor elegido. También está en el menú Voz → Seleccionar voz;
         # aquí queda junto al resto de ajustes de lectura para encontrarla más
         # fácil.
-        vs.Add(fila_label(p, "&Voz de lectura:"), 0, wx.LEFT | wx.RIGHT, 10)
+        vs.Add(fila_label(p, _("&Voz de lectura:")), 0, wx.LEFT | wx.RIGHT, 10)
         if es_eleven:
             # Nunca se va a la red en el hilo de la interfaz: la lista queda
             # vacía hasta que se compruebe la clave.
@@ -101,7 +102,7 @@ class PaginaVoz:
             self._voces = motores.listar_voces(motores.MOTORES[self._motor_idx])
             vacio_voz = _NO_HAY_VOCES
         self.cho_voz = wx.Choice(p, choices=self._voces or [vacio_voz],
-                                 name="Voz de lectura")
+                                  name=_("Voz de lectura"))
         _tc(self.cho_voz)
         self._cargar_voces(self.cho_voz, self._config.get("voz"), vacio=vacio_voz)
         vs.Add(self.cho_voz, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
@@ -111,9 +112,9 @@ class PaginaVoz:
         from ytchat.voice import escala_voz
 
         # Velocidad, volumen y tono como valores absolutos 0..100.
-        vs.Add(fila_label(p, "Ve&locidad (0 a 100):"), 0, wx.LEFT | wx.RIGHT, 10)
+        vs.Add(fila_label(p, _("Ve&locidad (0 a 100):")), 0, wx.LEFT | wx.RIGHT, 10)
         self.sp_velocidad = ContadorAccesible(
-            p, min=0, max=100, name="Velocidad de la voz",
+            p, min=0, max=100, name=_("Velocidad de la voz"),
             initial=escala_voz.ajustar_velocidad(
                 int(self._config.get("velocidad_voz", escala_voz.VELOCIDAD_NORMAL)), 0))
         self.sp_velocidad.SetIncrement(5)
@@ -121,26 +122,25 @@ class PaginaVoz:
         vs.Add(self.sp_velocidad, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         try:
-            vol_pct = max(0, min(100, int(round(
-                float(self._config.get("volumen", 1.0)) * 100))))
+            vol_pct = max(0, min(100, int(round(float(self._config.get("volumen", 1.0)) * 100))))
         except (TypeError, ValueError):
             vol_pct = 100
-        vs.Add(fila_label(p, "Vol&umen (0 a 100):"), 0, wx.LEFT | wx.RIGHT, 10)
+        vs.Add(fila_label(p, _("Vol&umen (0 a 100):")), 0, wx.LEFT | wx.RIGHT, 10)
         self.sp_volumen = ContadorAccesible(
-            p, min=0, max=100, initial=vol_pct, name="Volumen de la voz")
+            p, min=0, max=100, initial=vol_pct, name=_("Volumen de la voz"))
         self.sp_volumen.SetIncrement(5)
         _tc(self.sp_volumen)
         vs.Add(self.sp_volumen, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        vs.Add(fila_label(p, "&Tono (0 a 100):"), 0, wx.LEFT | wx.RIGHT, 10)
+        vs.Add(fila_label(p, _("&Tono (0 a 100):")), 0, wx.LEFT | wx.RIGHT, 10)
         self.sp_tono = ContadorAccesible(
-            p, min=0, max=100, name="Tono de la voz",
+            p, min=0, max=100, name=_("Tono de la voz"),
             initial=max(0, min(100, int(self._config.get("tono", 50)))))
         self.sp_tono.SetIncrement(5)
         _tc(self.sp_tono)
         vs.Add(self.sp_tono, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        self.btn_probar_voz = wx.Button(p, label="&Probar voz", name="Probar voz")
+        self.btn_probar_voz = wx.Button(p, label=_("&Probar voz"), name=_("Probar voz"))
         self.btn_probar_voz.SetBackgroundColour(_T.btn)
         self.btn_probar_voz.SetForegroundColour(_T.btn_t)
         self.btn_probar_voz.Bind(wx.EVT_BUTTON, self._on_probar_voz)
@@ -152,9 +152,9 @@ class PaginaVoz:
 
         # Tope de caracteres por sesión (0 sin tope), «solo lo importante» y
         # la voz de Windows de respaldo. Solo se ven con ElevenLabs.
-        lbl_tope = fila_label(p, "T&ope de caracteres por sesión (0 sin tope):")
+        lbl_tope = fila_label(p, _("T&ope de caracteres por sesión (0 sin tope):"))
         self.sp_tope_eleven = ContadorAccesible(
-            p, min=0, max=1000000, name="Tope de caracteres de ElevenLabs",
+            p, min=0, max=1000000, name=_("Tope de caracteres de ElevenLabs"),
             initial=max(0, int(self._config.get("elevenlabs_tope", 0) or 0)))
         self.sp_tope_eleven.SetIncrement(1000)
         _tc(self.sp_tope_eleven)
@@ -162,19 +162,19 @@ class PaginaVoz:
         vs.Add(self.sp_tope_eleven, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         self.chk_solo_importantes = wx.CheckBox(
-            p, name="Solo lo importante con ElevenLabs",
-            label="U&sar ElevenLabs solo con Super Chats, miembros, cofres, "
-                  "dueño y moderadores")
+            p, name=_("Solo lo importante con ElevenLabs"),
+            label=_("U&sar ElevenLabs solo con Super Chats, miembros, cofres, "
+                    "dueño y moderadores"))
         self.chk_solo_importantes.SetForegroundColour(_T.text)
         self.chk_solo_importantes.SetValue(
             bool(self._config.get("elevenlabs_solo_importantes", False)))
         vs.Add(self.chk_solo_importantes, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        lbl_respaldo = fila_label(p, "Voz de &Windows de respaldo:")
+        lbl_respaldo = fila_label(p, _("Voz de &Windows de respaldo:"))
         self._voces_respaldo = motores.listar_voces("sapi")
         self.cho_voz_respaldo = wx.Choice(
-            p, choices=self._voces_respaldo or [_NO_HAY_VOCES],
-            name="Voz de Windows de respaldo")
+            p, choices=self._voces_respaldo or [_(_NO_HAY_VOCES)],
+            name=_("Voz de Windows de respaldo"))
         _tc(self.cho_voz_respaldo)
         if self._voces_respaldo:
             idx_respaldo = escala_voz.resolver_voz(
@@ -198,14 +198,14 @@ class PaginaVoz:
         # miembros, entradas). Desactivada por defecto.
         self.chk_multivoz = wx.CheckBox(
             p, name="MultiVoz",
-            label="Usar una voz &distinta para los eventos (Super Chats, regalos, "
-                  "miembros y entradas)")
+            label=_("Usar una voz &distinta para los eventos (Super Chats, regalos, "
+                    "miembros y entradas)"))
         self.chk_multivoz.SetForegroundColour(_T.text)
         vs.Add(self.chk_multivoz, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
 
-        vs.Add(fila_label(p, "Voz para los &eventos:"), 0, wx.LEFT | wx.RIGHT, 10)
+        vs.Add(fila_label(p, _("Voz para los &eventos:")), 0, wx.LEFT | wx.RIGHT, 10)
         self.cho_voz_eventos = wx.Choice(
-            p, choices=self._voces or [vacio_voz], name="Voz para los eventos")
+            p, choices=self._voces or [vacio_voz], name=_("Voz para los eventos"))
         _tc(self.cho_voz_eventos)
         self._cargar_voces(self.cho_voz_eventos, self._config.get("voz_eventos"),
                            vacio=vacio_voz)
@@ -239,7 +239,7 @@ class PaginaVoz:
 
     def _on_comprobar_clave(self, event) -> None:
         if not self.txt_clave_eleven.GetValue().strip():
-            anunciar("Escribe la clave de ElevenLabs.")
+            anunciar(_("Escribe la clave de ElevenLabs."))
             return
         self.btn_comprobar_clave.Disable()
         self._comprobar_clave(anunciar_ok=True)
@@ -285,7 +285,7 @@ class PaginaVoz:
             choice.SetSelection(0 if idx is None else idx)
             choice.Enable(True)
         else:
-            choice.SetItems([vacio])
+            choice.SetItems([_(vacio)])
             choice.SetSelection(0)
             choice.Disable()
 
@@ -323,7 +323,7 @@ class PaginaVoz:
 
     def _probar_voz_elevenlabs(self) -> None:
         if not self._voces:
-            anunciar("Primero comprueba la clave.")
+            anunciar(_("Primero comprueba la clave."))
             return
         self._prueba.probar_elevenlabs(
             self.txt_clave_eleven.GetValue().strip(),

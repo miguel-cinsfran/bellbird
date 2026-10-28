@@ -7,6 +7,8 @@ propiedad de que más bytes nunca dan un tamaño menor.
 
 import unittest
 
+from tests.pseudo_prueba import con_pseudo
+from ytchat.core.idioma import _
 from ytchat.music import pregunta_igualar
 
 
@@ -95,6 +97,44 @@ class TestTextoPregunta(unittest.TestCase):
     def test_el_titulo_y_la_casilla_estan_fijos(self):
         self.assertEqual(pregunta_igualar.TITULO, "Igualar el volumen")
         self.assertEqual(pregunta_igualar.CASILLA, "&No volver a preguntar")
+
+
+class TestPseudoPreguntaIgualar(unittest.TestCase):
+    """Pseudotraducción de la pregunta por igualar el volumen.
+
+    Sin ventanas: exige el título, la casilla, los tamaños y la pregunta
+    marcados, con los números presentes.
+    """
+
+    def test_titulo_y_casilla_salen_marcados(self):
+        with con_pseudo():
+            titulo = _(pregunta_igualar.TITULO)
+            casilla = _(pregunta_igualar.CASILLA)
+        self.assertTrue(titulo.startswith("[¡"), titulo)
+        self.assertTrue(casilla.startswith("[¡"), casilla)
+
+    def test_tamanos_salen_marcados_en_sus_tres_formas(self):
+        with con_pseudo():
+            chico = pregunta_igualar.texto_tamano(0)
+            megas = pregunta_igualar.texto_tamano(350 * MB)
+            gigas = pregunta_igualar.texto_tamano(int(32.4 * GB))
+        for texto in (chico, megas, gigas):
+            with self.subTest(texto=texto):
+                self.assertTrue(texto.startswith("[¡"), texto)
+        self.assertIn("350", megas)
+        self.assertIn("32,4", gigas)
+
+    def test_pregunta_marca_en_singular_y_en_plural_con_los_datos(self):
+        with con_pseudo():
+            una = pregunta_igualar.texto_pregunta(1, 5 * MB)
+            varias = pregunta_igualar.texto_pregunta(6635, int(32.4 * GB))
+        for texto in (una, varias):
+            with self.subTest(texto=texto):
+                self.assertTrue(texto.startswith("[¡"), texto)
+        self.assertIn("1", una)
+        self.assertIn("5", una)
+        self.assertIn("6635", varias)
+        self.assertIn("32,4", varias)
 
 
 if __name__ == "__main__":

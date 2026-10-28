@@ -12,6 +12,7 @@ import unicodedata
 from pathlib import Path
 
 from ytchat.core.archivos import escribir_texto_atomico
+from ytchat.core.idioma import N_, _
 from ytchat.music.biblioteca import Biblioteca, ErrorBiblioteca
 from ytchat.music.modelo import Tema, normalizar_duracion
 
@@ -22,11 +23,11 @@ EXTENSION = ".m3u8"
 CARACTERES_PROHIBIDOS = '\\ / : * ? " < > |'
 _CARACTERES_INVALIDOS = frozenset('\\/:*?"<>|')
 
-TEXTO_NOMBRE_VACIO = "Escribe un nombre para la lista"
-TEXTO_NOMBRE_INVALIDO = f"El nombre no puede tener {CARACTERES_PROHIBIDOS}"
-TEXTO_DUPLICADO = "Ya hay una lista con ese nombre"
-TEXTO_NO_EXISTE = "No existe la lista: {nombre}"
-TEXTO_POSICION = "No hay una canción en la posición {posicion}"
+TEXTO_NOMBRE_VACIO = N_("Escribe un nombre para la lista")
+TEXTO_NOMBRE_INVALIDO = N_("El nombre no puede tener {prohibidos}")
+TEXTO_DUPLICADO = N_("Ya hay una lista con ese nombre")
+TEXTO_NO_EXISTE = N_("No existe la lista: {nombre}")
+TEXTO_POSICION = N_("No hay una canción en la posición {posicion}")
 
 
 class ErrorListas(ValueError):
@@ -71,9 +72,10 @@ def validar_nombre(nombre) -> str:
     """Recorta los espacios y comprueba el nombre. Devuelve el limpio."""
     limpio = (nombre or "").strip()
     if not limpio:
-        raise ErrorListas(TEXTO_NOMBRE_VACIO)
+        raise ErrorListas(_(TEXTO_NOMBRE_VACIO))
     if any(caracter in _CARACTERES_INVALIDOS for caracter in limpio):
-        raise ErrorListas(TEXTO_NOMBRE_INVALIDO)
+        raise ErrorListas(_(TEXTO_NOMBRE_INVALIDO).format(
+            prohibidos=CARACTERES_PROHIBIDOS))
     return limpio
 
 
@@ -81,7 +83,7 @@ def crear(carpeta, nombre) -> str:
     """Crea una lista vacía. Devuelve el nombre limpio."""
     limpio = validar_nombre(nombre)
     if _existente(carpeta, limpio) is not None:
-        raise ErrorListas(TEXTO_DUPLICADO)
+        raise ErrorListas(_(TEXTO_DUPLICADO))
     base = Path(carpeta)
     base.mkdir(parents=True, exist_ok=True)
     escribir_texto_atomico(_ruta(base, limpio), "#EXTM3U\n")
@@ -92,12 +94,12 @@ def renombrar(carpeta, viejo, nuevo) -> str:
     """Cambia el nombre de una lista. Devuelve el nombre nuevo."""
     origen = _existente(carpeta, viejo)
     if origen is None:
-        raise ErrorListas(TEXTO_NO_EXISTE.format(nombre=viejo))
+        raise ErrorListas(_(TEXTO_NO_EXISTE).format(nombre=viejo))
     limpio = validar_nombre(nuevo)
     if _plegar(limpio) == _plegar(origen.stem):
         return origen.stem
     if _existente(carpeta, limpio) is not None:
-        raise ErrorListas(TEXTO_DUPLICADO)
+        raise ErrorListas(_(TEXTO_DUPLICADO))
     origen.rename(_ruta(origen.parent, limpio))
     return limpio
 
@@ -106,7 +108,7 @@ def borrar(carpeta, nombre) -> None:
     """Elimina el archivo de una lista."""
     ruta = _existente(carpeta, nombre)
     if ruta is None:
-        raise ErrorListas(TEXTO_NO_EXISTE.format(nombre=nombre))
+        raise ErrorListas(_(TEXTO_NO_EXISTE).format(nombre=nombre))
     ruta.unlink()
 
 
@@ -126,7 +128,7 @@ def cargar(carpeta, nombre) -> tuple[tuple[Tema, ...], tuple[str, ...]]:
     """Lee una lista y devuelve los temas y los nombres que faltan."""
     ruta = _existente(carpeta, nombre)
     if ruta is None:
-        raise ErrorListas(TEXTO_NO_EXISTE.format(nombre=nombre))
+        raise ErrorListas(_(TEXTO_NO_EXISTE).format(nombre=nombre))
     try:
         return Biblioteca(ruta.parent).cargar_m3u8(ruta)
     except ErrorBiblioteca as exc:
@@ -155,7 +157,7 @@ def quitar(carpeta, nombre, indice) -> None:
     """Quita el tema de esa posición y guarda la lista."""
     actuales, _saltadas = cargar(carpeta, nombre)
     if indice < 0 or indice >= len(actuales):
-        raise ErrorListas(TEXTO_POSICION.format(posicion=indice + 1))
+        raise ErrorListas(_(TEXTO_POSICION).format(posicion=indice + 1))
     guardar(carpeta, nombre, actuales[:indice] + actuales[indice + 1:])
 
 
@@ -163,7 +165,7 @@ def mover(carpeta, nombre, indice, paso) -> int:
     """Mueve el tema y devuelve su posición nueva, sin pasarse de los bordes."""
     actuales, _saltadas = cargar(carpeta, nombre)
     if indice < 0 or indice >= len(actuales):
-        raise ErrorListas(TEXTO_POSICION.format(posicion=indice + 1))
+        raise ErrorListas(_(TEXTO_POSICION).format(posicion=indice + 1))
     destino = max(0, min(len(actuales) - 1, indice + paso))
     if destino == indice:
         return indice

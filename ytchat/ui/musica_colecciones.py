@@ -113,7 +113,7 @@ class ColeccionesVentanaMusica:
         self._biblioteca = None
         self._primera_carga = True
         self.txt_buscar.ChangeValue("")
-        self._cambiar_estado(TEXTO_CARGANDO)
+        self._cambiar_estado(_(TEXTO_CARGANDO))
         generacion = self._generacion
         self._control.biblioteca(
             lambda biblioteca: self._al_biblioteca(biblioteca, generacion))
@@ -123,7 +123,7 @@ class ColeccionesVentanaMusica:
         generacion = self._generacion
         if seleccion is None:
             seleccion = self.lb_temas.GetSelection()
-        self._cambiar_estado(TEXTO_CARGANDO)
+        self._cambiar_estado(_(TEXTO_CARGANDO))
         temas = tuple(self._control.temas_de_lista(nombre) or ())
         if generacion != self._generacion or self._fuente != nombre:
             return
@@ -143,7 +143,7 @@ class ColeccionesVentanaMusica:
         if biblioteca is None:
             self._cantidad_biblioteca = None
             self._temas_fuente = self._temas_filtrados = ()
-            self._cambiar_estado(TEXTO_SIN_CARPETA)
+            self._cambiar_estado(_(TEXTO_SIN_CARPETA))
             return
         self._biblioteca = biblioteca
         self._cantidad_biblioteca = len(biblioteca.temas())
@@ -317,7 +317,7 @@ class ColeccionesVentanaMusica:
         if viejo is None:
             return
         nombre = _acciones._pedir_nombre(
-            self, _acciones.TITULO_RENOMBRAR, viejo)
+            self, _(_acciones.TITULO_RENOMBRAR), viejo)
         if nombre is None:
             return
         limpio = _acciones._validar_nombre(nombre)

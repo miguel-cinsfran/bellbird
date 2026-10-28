@@ -24,6 +24,7 @@ from ytchat.ui.musica_ventana_acciones import AccionesVentanaMusica
 from ytchat.ui.musica_ventana_igualando import IgualandoVentanaMusica
 
 logger = diagnostico.obtener_logger(__name__)
+# Traductores: título de la ventana de música; una sola palabra.
 TITULO = N_("Música")
 
 
@@ -57,6 +58,7 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
         self._panel = panel = wx.Panel(self, name="PanelMusica")
         panel.SetBackgroundColour(_T.bg)
         panel.SetForegroundColour(_T.text)
+        # Traductores: nombre accesible de la lista de colecciones; una palabra.
         self.lb_colecciones = self._lista(panel, _("Colecciones"), 190)
         self.lb_colecciones.SetMinSize((220, 190))
         _pintar(self.lb_colecciones, _T.field, _T.text)
@@ -66,6 +68,7 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
             al_cambiar=self._aplicar_filtro,
             programar_aviso=self._programar_aviso_coincidencias,
             recordar=self._recordar_filtros, avisar=anunciar)
+        # Traductores: nombre accesible de la lista de canciones; una palabra.
         self.lb_temas = self._lista(panel, _("Canciones"), 190)
         self.btn_cola = self._boton(
             panel, _("Mostrar la c&ola"), _("Mostrar la cola"))
@@ -131,14 +134,20 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
 
     def _crear_pie(self, panel):
         """Los botones al pie, en orden de Tab."""
+        # Traductores: abre el diálogo del enlace; segunda, su nombre accesible.
         self.btn_enlace = self._boton(panel, _("Abrir &enlace…"), _("Abrir enlace"))
+        # Traductores: crea una lista nueva; segunda, su nombre accesible.
         self.btn_nueva = self._boton(panel, _("&Nueva lista…"), _("Nueva lista"))
+        # Traductores: cambia la carpeta de música; segunda, su nombre accesible.
         self.btn_carpeta = self._boton(
             panel, _("Cambiar car&peta…"), _("Cambiar carpeta"))
+        # Traductores: mide e iguala el volumen; segunda, su nombre accesible.
         self.btn_igualar = self._boton(
             panel, _("&Igualar el volumen"), _("Igualar el volumen"))
+        # Traductores: vuelve a examinar la carpeta; segunda, su nombre accesible.
         self.btn_examinar = self._boton(
             panel, _("E&xaminar la carpeta"), _("Examinar la carpeta"))
+        # Traductores: cierra la ventana; segunda, su nombre accesible.
         self.btn_cerrar = wx.Button(panel, wx.ID_CANCEL, _("&Cerrar"),
                                     name=_("Cerrar"))
         _pintar(self.btn_cerrar, _T.btn, _T.btn_t)

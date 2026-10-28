@@ -8,6 +8,7 @@ import threading
 import unicodedata
 from pathlib import Path
 
+from ytchat.core.idioma import _
 from ytchat.music import enlaces
 from ytchat.music.modelo import Tema, normalizar_duracion
 
@@ -101,7 +102,9 @@ class Biblioteca:
         """Los temas de la carpeta, ordenados, sin guardarlos en el índice."""
         base = Path(self._carpeta)
         if not base.is_dir():
-            raise ErrorBiblioteca(f"La carpeta no existe o no es una carpeta: {base}")
+            raise ErrorBiblioteca(
+                _("La carpeta no existe o no es una carpeta: {ruta}").format(
+                    ruta=base))
         encontrados = []
         for raiz, subcarpetas, archivos in os.walk(base, followlinks=False):
             subcarpetas.sort(key=str.lower)
@@ -253,15 +256,16 @@ class Biblioteca:
 
     def cargar_m3u8(self, ruta) -> tuple[tuple[Tema, ...], tuple[str, ...]]:
         """Lee una lista .m3u8 y devuelve los temas y los nombres que faltan."""
-        archivo = Path(ruta)
-        if archivo.suffix.lower() != ".m3u8" or not archivo.is_file():
-            raise ErrorBiblioteca(f"La ruta no es una lista .m3u8: {archivo}")
+        ruta = Path(ruta)
+        if ruta.suffix.lower() != ".m3u8" or not ruta.is_file():
+            raise ErrorBiblioteca(_("La ruta no es una lista .m3u8: {ruta}").format(ruta=ruta))
         try:
-            lineas = archivo.read_text(encoding="utf-8-sig").splitlines()
+            lineas = ruta.read_text(encoding="utf-8-sig").splitlines()
         except (OSError, UnicodeError) as exc:
-            raise ErrorBiblioteca(f"No se puede leer la lista: {exc}") from exc
-        temas = []
-        faltantes = []
+            # Traductores: {error} es el motivo que da el sistema; se muestra.
+            raise ErrorBiblioteca(
+                _("No se puede leer la lista: {error}").format(error=exc)) from exc
+        temas, faltantes = [], []
         pendiente = (0, "")
         for linea in lineas:
             entrada = linea.strip()
@@ -272,12 +276,11 @@ class Biblioteca:
                 continue
             if entrada.startswith("#"):
                 continue
-            tema = self._tema_de_linea(archivo, entrada, pendiente)
+            tema = self._tema_de_linea(ruta, entrada, pendiente)
             if tema is None:
                 faltantes.append(_nombre_de_faltante(entrada, pendiente[1]))
-                pendiente = (0, "")
-                continue
-            temas.append(tema)
+            else:
+                temas.append(tema)
             pendiente = (0, "")
         return tuple(temas), tuple(faltantes)
 

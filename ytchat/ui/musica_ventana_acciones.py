@@ -10,15 +10,17 @@ from __future__ import annotations
 import wx
 
 from ytchat.core import diagnostico
+from ytchat.core.idioma import N_, _
 from ytchat.music import anuncios, listas, vista
 from ytchat.ui import musica_dialogo_enlace, musica_menus
 
 logger = diagnostico.obtener_logger(__name__)
 
-TITULO = "Música"
-TITULO_NUEVA = "Nueva lista"
-TITULO_RENOMBRAR = "Renombrar lista"
-TEXTO_NOMBRE = "Nombre de la lista:"
+# Traductores: título del diálogo que confirma el borrado; una sola palabra.
+TITULO = N_("Música")
+TITULO_NUEVA = N_("Nueva lista")
+TITULO_RENOMBRAR = N_("Renombrar lista")
+TEXTO_NOMBRE = N_("Nombre de la lista:")
 
 
 def _validar_nombre(nombre):
@@ -30,16 +32,16 @@ def _validar_nombre(nombre):
 
 
 def _pedir_nombre(parent, titulo, valor=""):
-    with wx.TextEntryDialog(parent, TEXTO_NOMBRE, titulo, valor) as dialogo:
+    with wx.TextEntryDialog(parent, _(TEXTO_NOMBRE), titulo, valor) as dialogo:
         if dialogo.ShowModal() != wx.ID_OK:
             return None
         return dialogo.GetValue()
 
 
 def _confirmar_borrar(parent, nombre):
-    pregunta = anuncios.TEXTO_CONFIRMAR_BORRAR_LISTA.format(nombre=nombre)
+    pregunta = _(anuncios.TEXTO_CONFIRMAR_BORRAR_LISTA).format(nombre=nombre)
     dialogo = wx.MessageDialog(
-        parent, pregunta, TITULO, wx.YES_NO | wx.ICON_QUESTION)
+        parent, pregunta, _(TITULO), wx.YES_NO | wx.ICON_QUESTION)
     try:
         boton = dialogo.FindWindow(wx.ID_NO)
         if boton is not None:
@@ -209,7 +211,7 @@ class AccionesVentanaMusica:
         if not (self._control.cola_actual() or ()):
             self._control.guardar_cola_como_lista("")
             return
-        nombre = _pedir_nombre(self, TITULO_NUEVA)
+        nombre = _pedir_nombre(self, _(TITULO_NUEVA))
         if nombre is None:
             return
         limpio = _validar_nombre(nombre)
@@ -226,7 +228,7 @@ class AccionesVentanaMusica:
 
     def _cambiar_carpeta(self):
         with wx.DirDialog(
-                self, "Elige la carpeta de música",
+                self, _("Elige la carpeta de música"),
                 defaultPath=self._control._carpeta()) as dialogo:
             if dialogo.ShowModal() != wx.ID_OK:
                 return

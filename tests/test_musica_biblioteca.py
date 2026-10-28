@@ -5,6 +5,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+from tests.pseudo_prueba import con_pseudo
 from ytchat.music.biblioteca import (
     Biblioteca, ErrorBiblioteca, coincide_por_palabras)
 from ytchat.music.modelo import Tema
@@ -569,6 +570,43 @@ class TestReexaminar(unittest.TestCase):
             (2, 1))
         self.assertEqual([t.origen for t in otro.temas()],
                          [t.origen for t in fresca.temas()])
+
+
+class TestPseudoBiblioteca(unittest.TestCase):
+    """Pseudotraducción de los errores de la biblioteca.
+
+    Sin ventanas: provoca cada error bajo `con_pseudo()` y exige el
+    mensaje marcado, con los datos presentes.
+    """
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.raiz = Path(self.tmp.name)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_errores_salen_marcados_con_los_datos(self):
+        faltante = self.raiz / "sin_carpeta"
+        ajena = self.raiz / "notas.txt"
+        ajena.write_text("no es audio", encoding="utf-8")
+        ilegible = self.raiz / "rota.m3u8"
+        ilegible.write_bytes(b"\xff\xfe\x00_no_utf8")
+        with con_pseudo():
+            with self.assertRaises(ErrorBiblioteca) as sin_carpeta:
+                Biblioteca(faltante).indexar()
+            with self.assertRaises(ErrorBiblioteca) as no_lista:
+                Biblioteca(self.raiz).cargar_m3u8(ajena)
+            with self.assertRaises(ErrorBiblioteca) as no_lee:
+                Biblioteca(self.raiz).cargar_m3u8(ilegible)
+        textos = (str(sin_carpeta.exception), str(no_lista.exception),
+                  str(no_lee.exception))
+        for texto in textos:
+            with self.subTest(texto=texto):
+                self.assertTrue(texto.startswith("[¡"), texto)
+        self.assertIn(str(faltante), textos[0])
+        self.assertIn(str(ajena), textos[1])
+        self.assertIn("0xff", textos[2])
 
 
 if __name__ == "__main__":

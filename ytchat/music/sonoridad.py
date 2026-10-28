@@ -21,6 +21,7 @@ from pathlib import Path
 
 from ytchat.core import archivos
 from ytchat.core import diagnostico
+from ytchat.core.idioma import N_, _
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -43,14 +44,14 @@ NADA_PENDIENTE = "nada_pendiente"
 
 SONIDO_IGUALANDO = "musica_igualando"
 
-TEXTO_IGUALANDO = "Igualando el volumen de {total} canciones"
-TEXTO_IGUALACION_DESACTIVADA = (
+TEXTO_IGUALANDO = N_("Igualando el volumen de {total} canciones")
+TEXTO_IGUALACION_DESACTIVADA = N_(
     "La igualación del volumen está desactivada. Actívala en Preferencias, "
     "página Música.")
-TEXTO_SIN_FFMPEG = "No se puede igualar el volumen: falta ffmpeg."
-TEXTO_NADA_PENDIENTE = "Todas las canciones tienen el volumen igualado."
-TEXTO_IGUALACION_DETENIDA = "Igualación del volumen detenida."
-TEXTO_PROGRESO = "Igualando el volumen: {hechas} de {total}"
+TEXTO_SIN_FFMPEG = N_("No se puede igualar el volumen: falta ffmpeg.")
+TEXTO_NADA_PENDIENTE = N_("Todas las canciones tienen el volumen igualado.")
+TEXTO_IGUALACION_DETENIDA = N_("Igualación del volumen detenida.")
+TEXTO_PROGRESO = N_("Igualando el volumen: {hechas} de {total}")
 
 VERSION = 1
 
@@ -128,7 +129,7 @@ def texto_progreso(progreso) -> str:
         hechas, total = progreso
     except (TypeError, ValueError):
         return ""
-    return TEXTO_PROGRESO.format(hechas=hechas, total=total)
+    return _(TEXTO_PROGRESO).format(hechas=hechas, total=total)
 
 
 def volumen_efectivo(volumen, ganancia):

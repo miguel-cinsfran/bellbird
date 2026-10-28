@@ -10,6 +10,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+from ytchat.core.idioma import _
 from ytchat.music import anuncios, filtros, listas
 from ytchat.music import pregunta_igualar
 from ytchat.music import sonoridad

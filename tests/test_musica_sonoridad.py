@@ -10,7 +10,10 @@ import wave
 from pathlib import Path
 from unittest import mock
 
+from tests.pseudo_prueba import con_pseudo
+from ytchat.core.idioma import _
 from ytchat.downloads.ffmpeg_bin import ruta_ffmpeg
+from ytchat.music import sonoridad
 from ytchat.music.sonoridad import (
     CacheSonoridad,
     ganancia_db,
@@ -155,6 +158,39 @@ class TestAvisoYProgreso(unittest.TestCase):
     def test_con_progreso_devuelve_hechas_y_total(self):
         self.assertEqual(texto_progreso((40, 195)),
                          "Igualando el volumen: 40 de 195")
+
+
+class TestPseudoSonoridad(unittest.TestCase):
+    """Pseudotraducción de los textos de la igualación.
+
+    Sin ventanas: exige las constantes marcadas donde se usan y el
+    progreso marcado con sus números presentes.
+    """
+
+    def test_constantes_salen_marcadas_donde_se_usan(self):
+        nombres = (
+            "TEXTO_IGUALANDO",
+            "TEXTO_IGUALACION_DESACTIVADA",
+            "TEXTO_SIN_FFMPEG",
+            "TEXTO_NADA_PENDIENTE",
+            "TEXTO_IGUALACION_DETENIDA",
+            "TEXTO_PROGRESO",
+        )
+        with con_pseudo():
+            for nombre in nombres:
+                with self.subTest(nombre=nombre):
+                    self.assertTrue(
+                        _(getattr(sonoridad, nombre)).startswith("[¡"),
+                        nombre)
+
+    def test_progreso_marca_con_hechas_y_total(self):
+        with con_pseudo():
+            texto = texto_progreso((40, 195))
+            vacio = texto_progreso(None)
+        self.assertTrue(texto.startswith("[¡"), texto)
+        self.assertIn("40", texto)
+        self.assertIn("195", texto)
+        self.assertEqual(vacio, "")
 
 
 def _archivo(tmp, nombre="tema.mp3", contenido=b"audio"):

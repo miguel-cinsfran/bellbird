@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from ytchat.core import config as cfg
+from ytchat.core.idioma import _
 from ytchat.music import anuncios
 from ytchat.music.modelo import FIN_LISTA
 

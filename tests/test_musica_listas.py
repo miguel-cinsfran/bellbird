@@ -5,6 +5,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from tests.pseudo_prueba import con_pseudo
+from ytchat.core.idioma import _
 from ytchat.music import listas
 from ytchat.music.listas import ErrorListas
 from ytchat.music.modelo import Tema
@@ -302,6 +304,44 @@ class TestCantidad(unittest.TestCase):
 
     def test_inexistente_da_none(self):
         self.assertIsNone(listas.cantidad(self.carpeta, "No está"))
+
+
+class TestPseudoListas(unittest.TestCase):
+    """Pseudotraducción de los errores de las listas propias.
+
+    Sin ventanas: provoca cada error bajo `con_pseudo()` y exige el
+    mensaje marcado, con los datos presentes.
+    """
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.carpeta = Path(self.tmp.name) / "listas"
+        self.carpeta.mkdir()
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_errores_salen_marcados_con_los_datos(self):
+        with con_pseudo():
+            with self.assertRaises(ErrorListas) as vacio:
+                listas.validar_nombre("   ")
+            with self.assertRaises(ErrorListas) as invalido:
+                listas.validar_nombre("a/b")
+            listas.crear(self.carpeta, "Rock")
+            with self.assertRaises(ErrorListas) as duplicado:
+                listas.crear(self.carpeta, "rock")
+            with self.assertRaises(ErrorListas) as no_existe:
+                listas.borrar(self.carpeta, "Pop")
+            with self.assertRaises(ErrorListas) as posicion:
+                listas.quitar(self.carpeta, "Rock", 3)
+        for mensaje in (str(vacio.exception), str(invalido.exception),
+                        str(duplicado.exception), str(no_existe.exception),
+                        str(posicion.exception)):
+            with self.subTest(mensaje=mensaje):
+                self.assertTrue(mensaje.startswith("[¡"), mensaje)
+        self.assertIn(listas.CARACTERES_PROHIBIDOS, str(invalido.exception))
+        self.assertIn("Pop", str(no_existe.exception))
+        self.assertIn("4", str(posicion.exception))
 
 
 if __name__ == "__main__":

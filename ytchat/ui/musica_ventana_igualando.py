@@ -152,9 +152,9 @@ class IgualandoVentanaMusica:
         cantidad, tamano = datos
         dialogo = wx.RichMessageDialog(
             self, pregunta_igualar.texto_pregunta(cantidad, tamano),
-            pregunta_igualar.TITULO,
+            _(pregunta_igualar.TITULO),
             wx.YES_NO | wx.ICON_QUESTION | wx.NO_DEFAULT)
-        dialogo.ShowCheckBox(pregunta_igualar.CASILLA)
+        dialogo.ShowCheckBox(_(pregunta_igualar.CASILLA))
         respuesta = dialogo.ShowModal()
         marcada = dialogo.IsCheckBoxChecked()
         dialogo.Destroy()

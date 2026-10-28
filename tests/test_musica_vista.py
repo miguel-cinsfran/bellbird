@@ -3,6 +3,8 @@
 import unittest
 from unittest import mock
 
+from tests.pseudo_prueba import con_pseudo
+from ytchat.core.idioma import _
 from ytchat.music import vista
 from ytchat.music.modelo import EstadoMusica, Tema
 
@@ -378,6 +380,97 @@ class TestTextoCarpetaExaminada(unittest.TestCase):
     def test_singulares_en_las_dos_partes(self):
         self.assertEqual(vista.texto_carpeta_examinada(1, 1),
                          "Carpeta examinada: 1 canción nueva y 1 quitada.")
+
+
+class TestPseudoVista(unittest.TestCase):
+    """Pseudotraducción de los textos de la ventana de música.
+
+    Sin ventanas: llama a las funciones bajo `con_pseudo()` y exige cada
+    texto propio marcado. Los datos (nombres, cantidades) viajan con
+    ejemplos y se exigen presentes.
+    """
+
+    def test_filas_de_colecciones_marcan_con_nombres_y_numeros(self):
+        with con_pseudo():
+            filas = vista.filas_colecciones(["Rock"], 5, {"Rock": 2})
+        self.assertEqual(len(filas), 2)
+        for fila in filas:
+            with self.subTest(fila=fila):
+                self.assertTrue(fila.startswith("[¡"), fila)
+        self.assertIn("Biblioteca", filas[0])
+        self.assertIn("5", filas[0])
+        self.assertIn("Rock", filas[1])
+        self.assertIn("2", filas[1])
+
+    def test_filas_de_cola_marcan_numero_y_prefijo_con_los_datos(self):
+        estado = _estado(
+            [_tema(1, artista="Ana", duracion_ms=222000)], posicion=0)
+        with con_pseudo():
+            filas = vista.filas_cola(estado)
+        self.assertEqual(len(filas), 1)
+        self.assertTrue(filas[0].startswith("[¡"), filas[0])
+        for dato in ("Sonando", "1", "Tema 1", "Ana", "3:42"):
+            self.assertIn(dato, filas[0])
+
+    def test_cola_visible_marca_vacia_uno_y_varios(self):
+        with con_pseudo():
+            vacia = vista.texto_cola_visible(0)
+            uno = vista.texto_cola_visible(1)
+            varios = vista.texto_cola_visible(5)
+        for texto in (vacia, uno, varios):
+            with self.subTest(texto=texto):
+                self.assertTrue(texto.startswith("[¡"), texto)
+        self.assertIn("1", uno)
+        self.assertIn("5", varios)
+
+    def test_coincidencias_marcan_ninguno_uno_y_varios(self):
+        with con_pseudo():
+            ninguno = vista.texto_coincidencias(0)
+            uno = vista.texto_coincidencias(1)
+            varios = vista.texto_coincidencias(8)
+        for texto in (ninguno, uno, varios):
+            with self.subTest(texto=texto):
+                self.assertTrue(texto.startswith("[¡"), texto)
+        self.assertIn("8", varios)
+
+    def test_ayudas_salen_marcadas(self):
+        with con_pseudo():
+            ayudas = (
+                vista.ayuda_biblioteca(False),
+                vista.ayuda_biblioteca(True),
+                vista.ayuda_colecciones(),
+                vista.ayuda_cola(),
+                vista.ayuda_buscar(),
+            )
+        for ayuda in ayudas:
+            with self.subTest(ayuda=ayuda):
+                self.assertTrue(ayuda.startswith("[¡"), ayuda)
+
+    def test_resumen_marca_con_y_sin_busqueda(self):
+        with con_pseudo():
+            sin_buscar = vista.texto_resumen(120, 120, False)
+            uno = vista.texto_resumen(1, 1, False)
+            buscando = vista.texto_resumen(120, 8, True)
+        for texto in (sin_buscar, uno, buscando):
+            with self.subTest(texto=texto):
+                self.assertTrue(texto.startswith("[¡"), texto)
+        self.assertIn("120", sin_buscar)
+        self.assertIn("8 de 120", buscando)
+
+    def test_examen_de_carpeta_marca_cada_camino(self):
+        with con_pseudo():
+            sin_cambios = vista.texto_carpeta_examinada(0, 0)
+            nueva = vista.texto_carpeta_examinada(1, 0)
+            nuevas = vista.texto_carpeta_examinada(3, 0)
+            quitada = vista.texto_carpeta_examinada(0, 1)
+            ambas = vista.texto_carpeta_examinada(2, 3)
+        for texto in (sin_cambios, nueva, nuevas, quitada, ambas):
+            with self.subTest(texto=texto):
+                self.assertTrue(texto.startswith("[¡"), texto)
+        self.assertIn("1", nueva)
+        self.assertIn("3", nuevas)
+        self.assertIn("2", ambas)
+        self.assertIn("3", ambas)
 
 
 if __name__ == "__main__":

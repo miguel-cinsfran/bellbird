@@ -9,16 +9,26 @@ from __future__ import annotations
 
 import unicodedata
 
+from ytchat.core.idioma import N_, _, ngettext
 from ytchat.music import anuncios
 from ytchat.music.anuncios import nombre_tema
 from ytchat.music.biblioteca import coincide_por_palabras
 
-ETIQUETA_BIBLIOTECA = "Biblioteca"
+# Traductores: primera fila de Colecciones, la carpeta entera; una sola palabra.
+ETIQUETA_BIBLIOTECA = N_("Biblioteca")
 
-TEXTO_AYUDA_COLECCIONES = (
+TEXTO_AYUDA_COLECCIONES = N_(
     "Intro reproduce la colección entera, Suprimir borra la lista, "
     "tecla de aplicaciones para más opciones")
-TEXTO_COLA_OCULTA = "Cola oculta"
+TEXTO_COLA_OCULTA = N_("Cola oculta")
+# Traductores: {total} es cuántas canciones hay en la carpeta; se lee en el resumen.
+_RESUMEN_CARPETA = (
+    N_("{total} canción en la carpeta"),
+    N_("{total} canciones en la carpeta"))
+# Traductores: {filtrada} es cuántas coinciden y {total} cuántas hay; resumen.
+_RESUMEN_BUSQUEDA = (
+    N_("{filtrada} de {total} canción"),
+    N_("{filtrada} de {total} canciones"))
 
 
 def _plegar(texto) -> str:
@@ -64,7 +74,7 @@ def filas_colecciones(nombres, cantidad_biblioteca=None,
     va solo el nombre: la carpeta todavía cargando o una lista ilegible.
     """
     cantidades = cantidades or {}
-    filas = [_fila_coleccion(ETIQUETA_BIBLIOTECA, cantidad_biblioteca)]
+    filas = [_fila_coleccion(_(ETIQUETA_BIBLIOTECA), cantidad_biblioteca)]
     filas.extend(_fila_coleccion(str(nombre), cantidades.get(str(nombre)))
                  for nombre in nombres)
     return filas
@@ -74,27 +84,29 @@ def _fila_coleccion(nombre, cantidad) -> str:
     """Una fila de «Colecciones»: el nombre y la cantidad si se sabe."""
     if cantidad is None:
         return nombre
-    return f"{nombre}: {cantidad}"
+    # Traductores: {nombre} es la colección y {cantidad} cuántas tiene; fila de lista.
+    return _("{nombre}: {cantidad}").format(nombre=nombre, cantidad=cantidad)
 
 
 def texto_cola_visible(cantidad: int) -> str:
     """Cuántos temas hay al mostrar la Cola."""
     cantidad = max(0, int(cantidad))
     if cantidad == 0:
-        return "Cola visible, vacía"
-    if cantidad == 1:
-        return "Cola visible, 1 canción"
-    return f"Cola visible, {cantidad} canciones"
+        return _("Cola visible, vacía")
+    # Traductores: {cantidad} es cuántos temas muestra la Cola; se anuncia.
+    texto = ngettext("Cola visible, {cantidad} canción",
+                     "Cola visible, {cantidad} canciones", cantidad)
+    return texto.format(cantidad=cantidad)
 
 
 def texto_coincidencias(cantidad: int) -> str:
     """Cuántos temas coinciden, para anunciar después de teclear."""
     cantidad = max(0, int(cantidad))
     if cantidad == 0:
-        return anuncios.TEXTO_NINGUN_TEMA_COINCIDE
-    if cantidad == 1:
-        return anuncios.TEXTO_UN_TEMA_COINCIDE
-    return anuncios.TEXTO_TEMAS_COINCIDEN.format(cantidad=cantidad)
+        return _(anuncios.TEXTO_NINGUN_TEMA_COINCIDE)
+    texto = ngettext(anuncios.TEXTO_UN_TEMA_COINCIDE,
+                     anuncios.TEXTO_TEMAS_COINCIDEN, cantidad)
+    return texto.format(cantidad=cantidad)
 
 
 def indice_seleccion_tras_refrescar(indice, total) -> int:
@@ -112,23 +124,23 @@ def indice_seleccion_tras_refrescar(indice, total) -> int:
 def ayuda_biblioteca(es_lista_propia: bool) -> str:
     """La ayuda de teclas de la Biblioteca."""
     if es_lista_propia:
-        return anuncios.TEXTO_AYUDA_BIBLIOTECA_LISTA
-    return anuncios.TEXTO_AYUDA_BIBLIOTECA
+        return _(anuncios.TEXTO_AYUDA_BIBLIOTECA_LISTA)
+    return _(anuncios.TEXTO_AYUDA_BIBLIOTECA)
 
 
 def ayuda_colecciones() -> str:
     """La ayuda de teclas de la lista de colecciones."""
-    return TEXTO_AYUDA_COLECCIONES
+    return _(TEXTO_AYUDA_COLECCIONES)
 
 
 def ayuda_cola() -> str:
     """La ayuda de teclas de la Cola."""
-    return anuncios.TEXTO_AYUDA_COLA
+    return _(anuncios.TEXTO_AYUDA_COLA)
 
 
 def ayuda_buscar() -> str:
     """La ayuda de teclas del buscador."""
-    return anuncios.TEXTO_AYUDA_BUSCAR
+    return _(anuncios.TEXTO_AYUDA_BUSCAR)
 
 
 def texto_duracion(ms) -> str:
@@ -161,17 +173,19 @@ def filas_temas(temas) -> list[str]:
 
 def filas_cola(estado) -> list[str]:
     """Una fila por tema de la cola, numerada desde 1.
-
     La del tema actual empieza por «Sonando: » (o «En pausa: » si está en
     pausa). Sin tema sonando, ninguna lleva prefijo. Cola vacía: lista vacía.
     """
     actual = None if estado.terminado else estado.posicion
     filas = []
     for indice, tema in enumerate(estado.cola):
-        texto = f"{indice + 1}. {fila_tema(tema)}"
+        # Traductores: {numero} es el orden y {fila} el tema; fila numerada.
+        texto = _("{numero}. {fila}").format(
+            numero=indice + 1, fila=fila_tema(tema))
         if actual == indice:
-            prefijo = "En pausa: " if estado.pausado else "Sonando: "
-            texto = prefijo + texto
+            # Traductores: {fila} es la fila del tema que suena; prefijo.
+            texto = (_("En pausa: {fila}") if estado.pausado
+                     else _("Sonando: {fila}")).format(fila=texto)
         filas.append(texto)
     return filas
 
@@ -187,15 +201,13 @@ def texto_resumen(cantidad_total: int, cantidad_filtrada: int,
     total = max(0, int(cantidad_total))
     filtrada = max(0, int(cantidad_filtrada))
     if buscando:
-        return f"{filtrada} de {total} {_sustantivo(total)}"
-    return f"{total} {_sustantivo(total)} en la carpeta"
+        texto = ngettext(*_RESUMEN_BUSQUEDA, total)
+        return texto.format(filtrada=filtrada, total=total)
+    texto = ngettext(*_RESUMEN_CARPETA, total)
+    return texto.format(total=total)
 
 
-def _sustantivo(cantidad: int) -> str:
-    return "canción" if cantidad == 1 else "canciones"
-
-
-TEXTO_CARPETA_EXAMINADA_SIN_CAMBIOS = "Carpeta examinada: sin cambios."
+TEXTO_CARPETA_EXAMINADA_SIN_CAMBIOS = N_("Carpeta examinada: sin cambios.")
 
 
 def texto_carpeta_examinada(nuevas: int, quitadas: int) -> str:
@@ -206,8 +218,9 @@ def texto_carpeta_examinada(nuevas: int, quitadas: int) -> str:
     """
     partes = _partes_examen(nuevas, quitadas)
     if not partes:
-        return TEXTO_CARPETA_EXAMINADA_SIN_CAMBIOS
-    return f"Carpeta examinada: {' y '.join(partes)}."
+        return _(TEXTO_CARPETA_EXAMINADA_SIN_CAMBIOS)
+    # Traductores: {partes} dice cuántas nuevas y quitadas hubo; se anuncia.
+    return _("Carpeta examinada: {partes}.").format(partes=" y ".join(partes))
 
 
 def _partes_examen(nuevas, quitadas) -> list:
@@ -216,8 +229,13 @@ def _partes_examen(nuevas, quitadas) -> list:
     quitadas = max(0, int(quitadas))
     partes = []
     if nuevas:
-        partes.append(f"{nuevas} canción nueva"
-                      if nuevas == 1 else f"{nuevas} canciones nuevas")
+        # Traductores: {nuevas} es cuántas canciones nuevas llegaron; se anuncia.
+        texto = ngettext("{nuevas} canción nueva",
+                         "{nuevas} canciones nuevas", nuevas)
+        partes.append(texto.format(nuevas=nuevas))
     if quitadas:
-        partes.append("1 quitada" if quitadas == 1 else f"{quitadas} quitadas")
+        # Traductores: {quitadas} es cuántas canciones se quitaron; se anuncia.
+        texto = ngettext("{quitadas} quitada",
+                         "{quitadas} quitadas", quitadas)
+        partes.append(texto.format(quitadas=quitadas))
     return partes

@@ -1,10 +1,10 @@
 @echo off
 REM ============================================================================
-REM  YTChat TTS - Construye el ejecutable distribuible con PyInstaller (onedir)
+REM  Bellbird - Construye el ejecutable distribuible con PyInstaller (onedir)
 REM
-REM  Resultado: carpeta "YTChat TTS" en la raiz del proyecto, lista para
+REM  Resultado: carpeta "Bellbird vX.Y.Z" en la raiz del proyecto, lista para
 REM  comprimir (7-Zip / ZIP) y enviar. Quien la reciba solo descomprime y abre
-REM  YTChatTTS.exe; no necesita Python ni nada instalado.
+REM  Bellbird.exe; no necesita Python ni nada instalado.
 REM
 REM  Modo onedir: el .exe queda junto a la carpeta _internal (dependencias) y a
 REM  los archivos editables (sounds.ini, sounds/). Es mas fiable y
@@ -65,7 +65,7 @@ REM --exclude-module imageio_ffmpeg: su hook metia un segundo ffmpeg.exe en
 REM _internal; la app empaquetada usa el que se copia a la raiz mas abajo
 REM (ffmpeg_bin.ruta_ffmpeg lo busca primero), asi que el otro sobraba.
 call uv run pyinstaller main.py ^
-  --name YTChatTTS ^
+  --name Bellbird ^
   --onedir --windowed --noconfirm --clean --noupx ^
   --distpath dist --workpath build --specpath build ^
   %ICONO% ^
@@ -85,20 +85,22 @@ if errorlevel 1 ( echo ERROR en PyInstaller. & pause & exit /b 1 )
 
 echo == Ensamblando la carpeta distribuible ==
 REM Version desde config.py (fuente unica): nombra la carpeta y el zip como
-REM "YTChat TTS vX.Y.Z", asi el archivo que se manda y la carpeta al descomprimir
+REM "Bellbird vX.Y.Z", asi el archivo que se manda y la carpeta al descomprimir
 REM dejan clara la version.
 for /f "delims=" %%v in ('uv run python -c "from ytchat.core import config;print(config.APP_VERSION)"') do set "VER=%%v"
 if not defined VER ( echo ERROR: no se pudo leer la version de config.py. & pause & exit /b 1 )
-set "OUT=YTChat TTS v%VER%"
+set "OUT=Bellbird v%VER%"
 REM Ojo: "^>" escapado; un ">" literal en echo redirige y crea un archivo basura.
 echo    Version %VER%  -^>  "%OUT%"
 REM Limpia builds previos de CUALQUIER version para no acumular carpetas/zips.
+for /d %%d in ("Bellbird v*") do rmdir /s /q "%%d"
+if exist "Bellbird" rmdir /s /q "Bellbird"
 for /d %%d in ("YTChat TTS v*") do rmdir /s /q "%%d"
 if exist "YTChat TTS" rmdir /s /q "YTChat TTS"
 if exist "%OUT%" rmdir /s /q "%OUT%"
 
 REM robocopy devuelve codigos ^>=1 incluso en exito; no encadenamos errorlevel.
-robocopy "dist\YTChatTTS" "%OUT%" /E /NFL /NDL /NJH /NJS /NP >nul
+robocopy "dist\Bellbird" "%OUT%" /E /NFL /NDL /NJH /NJS /NP >nul
 robocopy "sounds" "%OUT%\sounds" /E /NFL /NDL /NJH /NJS /NP >nul
 robocopy "docs"   "%OUT%\docs"   /E /NFL /NDL /NJH /NJS /NP >nul
 robocopy "web"    "%OUT%\web"    /E /NFL /NDL /NJH /NJS /NP >nul
@@ -203,7 +205,7 @@ if not exist "%OUT%\_internal\googleapiclient\discovery_cache\documents\youtube.
 if not exist "%OUT%\_internal\prism\_native\_prism_cffi.pyd" ( echo ERROR: falta _prism_cffi.pyd en prism\_native; sin Prism la app arrancaria sin voz ni lector de pantalla. & pause & exit /b 1 )
 echo == Comprobando que el paquete carga lo critico ==
 del /q "%TEMP%\ytchat-autocomprobacion.txt" 2>nul
-start "" /wait "%OUT%\YTChatTTS.exe" --autocomprobar "%TEMP%\ytchat-autocomprobacion.txt"
+start "" /wait "%OUT%\Bellbird.exe" --autocomprobar "%TEMP%\ytchat-autocomprobacion.txt"
 set "AUTOCOMP=%errorlevel%"
 type "%TEMP%\ytchat-autocomprobacion.txt" 2>nul
 if not "%AUTOCOMP%"=="0" ( echo ERROR: el paquete no carga todo lo critico, ver las lineas FALLA de arriba. & pause & exit /b 1 )
@@ -215,7 +217,7 @@ if exist "%OUT%\_internal\numpy" echo    AVISO: numpy sigue en el paquete y debe
 
 echo == Escribiendo el manifiesto del paquete ==
 REM Lo lee el instalador para saber que version trae el zip y cual es su exe.
-call uv run python -c "import json;json.dump({'version':'%VER%','ejecutable':'YTChatTTS.exe'},open(r'%OUT%\paquete.json','w'))"
+call uv run python -c "import json;json.dump({'version':'%VER%','ejecutable':'Bellbird.exe'},open(r'%OUT%\paquete.json','w'))"
 if not exist "%OUT%\paquete.json" ( echo ERROR: no se pudo escribir paquete.json. & pause & exit /b 1 )
 
 echo == Escribiendo el manifiesto de sonidos ==
@@ -227,8 +229,12 @@ if not exist "%OUT%\sonidos.json" ( echo ERROR: no se pudo escribir sonidos.json
 
 echo == Comprimiendo a "%OUT%.zip" ==
 REM Borra zips de cualquier version anterior (incluido el viejo sin version).
+del /q "Bellbird.zip" 2>nul
+del /q "Bellbird v*.zip" 2>nul
 del /q "YTChat TTS.zip" 2>nul
 del /q "YTChat TTS v*.zip" 2>nul
+del /q "Bellbird.zip.sha256" 2>nul
+del /q "Bellbird v*.zip.sha256" 2>nul
 del /q "YTChat TTS.zip.sha256" 2>nul
 del /q "YTChat TTS v*.zip.sha256" 2>nul
 powershell -NoProfile -Command "Compress-Archive -Path '%OUT%' -DestinationPath '%OUT%.zip' -Force"
@@ -244,9 +250,9 @@ if not exist "%OUT%.zip.sha256" ( echo ERROR: no se pudo firmar el zip. & pause 
 echo.
 echo ============================================================================
 echo  Listo.
-echo    Carpeta: "%OUT%"        (para probar: "%OUT%\YTChatTTS.exe")
+echo    Carpeta: "%OUT%"        (para probar: "%OUT%\Bellbird.exe")
 echo    ZIP    : "%OUT%.zip"    (esto es lo que mandas al amigo)
 echo    FIRMA  : "%OUT%.zip.sha256"    (subelo junto al zip a la release)
-echo  El amigo solo descomprime y abre YTChatTTS.exe; no necesita nada mas.
+echo  El amigo solo descomprime y abre Bellbird.exe; no necesita nada mas.
 echo ============================================================================
 pause

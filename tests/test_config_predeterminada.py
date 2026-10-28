@@ -276,7 +276,7 @@ class TestConstruirBat(unittest.TestCase):
         texto = (base / "construir.bat").read_text(encoding="utf-8")
         # Manifiesto con la versión y el ejecutable, antes de comprimir.
         self.assertIn("paquete.json", texto)
-        self.assertIn("'ejecutable':'YTChatTTS.exe'", texto)
+        self.assertIn("'ejecutable':'Bellbird.exe'", texto)
         indice_manifiesto = texto.find("paquete.json")
         indice_zip = texto.lower().find("compress-archive")
         self.assertGreater(indice_manifiesto, -1)

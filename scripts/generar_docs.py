@@ -34,9 +34,9 @@ DOCS = RAIZ / "docs"
 # (origen .md, destino .html en docs/, título de la página). El título es lo que
 # lee el lector de pantalla al abrir y lo que sale en la pestaña del navegador.
 DOCUMENTOS = [
-    (RAIZ / "MANUAL.md",              "MANUAL.html",            "YTChat TTS, manual de uso"),
-    (RAIZ / "CHANGELOG.md",           "CHANGELOG.html",         "YTChat TTS — Novedades"),
-    (DOCS / "CONFIGURACION_API.md",   "CONFIGURACION_API.html", "YTChat TTS — Configurar la API de YouTube"),
+    (RAIZ / "MANUAL.md",              "MANUAL.html",            "Bellbird, manual de uso"),
+    (RAIZ / "CHANGELOG.md",           "CHANGELOG.html",         "Bellbird — Novedades"),
+    (DOCS / "CONFIGURACION_API.md",   "CONFIGURACION_API.html", "Bellbird — Configurar la API de YouTube"),
 ]
 
 # Estilo embebido: sobrio, legible y responsivo, con modo claro y oscuro según

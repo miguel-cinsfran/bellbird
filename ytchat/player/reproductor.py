@@ -453,6 +453,32 @@ class ReproductorPanel(wx.Panel):
         self._orden_transporte = None
         self._transporte_pendiente = False
 
+    def _quedo_reproduciendo(self) -> None:
+        self._intencion_reproducir = True
+        try:
+            self._mostrar_pausa(True)
+        except Exception:
+            pass
+        try:
+            self._timer.Start(500)
+        except Exception:
+            pass
+
+    def _quedo_en_pausa(self, arrancar_si_busca: bool) -> None:
+        """Tras un fallo, la búsqueda pendiente necesita que el temporizador corra."""
+        self._intencion_reproducir = False
+        try:
+            self._mostrar_pausa(False)
+        except Exception:
+            pass
+        try:
+            if not getattr(self._estado_busqueda, "pendiente", False):
+                self._timer.Stop()
+            elif arrancar_si_busca:
+                self._timer.Start(500)
+        except Exception:
+            pass
+
     def _evaluar_transporte(self, estado_forzado=None) -> None:
         orden = getattr(self, "_orden_transporte", None)
         if orden is None:
@@ -463,73 +489,27 @@ class ReproductorPanel(wx.Panel):
         desenlace = evaluar_transporte(orden, estado_norm, ahora)
         if desenlace == "pendiente":
             return
-        # finaliza la transacción
         intencion_previa = bool(orden.intencion_reproducir)
         edad_ms = int((ahora - float(orden.instante)) * 1000) if orden.instante is not None else 0
         self._cancelar_transporte()
         if desenlace == "confirmada":
             if not intencion_previa:
-                # pausa confirmada
-                self._intencion_reproducir = False
-                try:
-                    self._mostrar_pausa(False)
-                except Exception:
-                    pass
-                try:
-                    if not getattr(self._estado_busqueda, "pendiente", False):
-                        self._timer.Stop()
-                except Exception:
-                    pass
+                self._quedo_en_pausa(False)
                 anunciar("Pausa")
                 logger.debug("TRANSPORTE desenlace=confirmada intencion=pausa estado=%s edad=%d", estado_norm, edad_ms)
             else:
-                # reanudación confirmada
-                self._intencion_reproducir = True
-                try:
-                    self._mostrar_pausa(True)
-                except Exception:
-                    pass
-                try:
-                    self._timer.Start(500)
-                except Exception:
-                    pass
+                self._quedo_reproduciendo()
                 anunciar("Reproduciendo")
                 logger.debug("TRANSPORTE desenlace=confirmada intencion=reproducir estado=%s edad=%d", estado_norm, edad_ms)
         else:
-            # fallida por plazo o estado final
-            # reconciliar con estado real
             estado_real = self._estado_vlc_actual()
             estado_real_norm = (estado_real or "").lower()
             if estado_real_norm == "playing":
-                self._intencion_reproducir = True
-                try:
-                    self._mostrar_pausa(True)
-                except Exception:
-                    pass
-                try:
-                    self._timer.Start(500)
-                except Exception:
-                    pass
+                self._quedo_reproduciendo()
             elif estado_real_norm == "paused":
-                self._intencion_reproducir = False
-                try:
-                    self._mostrar_pausa(False)
-                except Exception:
-                    pass
-                try:
-                    if not getattr(self._estado_busqueda, "pendiente", False):
-                        self._timer.Stop()
-                    else:
-                        self._timer.Start(500)
-                except Exception:
-                    pass
+                self._quedo_en_pausa(True)
             else:
-                # estado transitorio o final: mantener botón según estado real si es determinable
-                if estado_real_norm == "paused":
-                    self._intencion_reproducir = False
-                elif estado_real_norm == "playing":
-                    self._intencion_reproducir = True
-                # si hay búsqueda pendiente, mantener temporizador
+                # estado transitorio o final, se mantiene el temporizador si hay una búsqueda pendiente.
                 try:
                     if getattr(self._estado_busqueda, "pendiente", False):
                         self._timer.Start(500)

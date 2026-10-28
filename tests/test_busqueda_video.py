@@ -1777,5 +1777,106 @@ class TestEstadoInicioReproduccion(unittest.TestCase):
         self.assertFalse(est.observar("playing", 1300))
 
 
+class TestPausaConBusquedaPendiente(unittest.TestCase):
+    """La pausa reconciliada tras un fallo arranca el temporizador si hay búsqueda pendiente."""
+
+    def test_pausa_fallida_reconciliada_en_pausa_con_busqueda_arranca_timer(self):
+        from ytchat.player import reproductor
+        from ytchat.player.busqueda_video import EstadoBusqueda, OrdenTransporte
+        import time as _t
+        panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
+        panel._orden_transporte = OrdenTransporte(intencion_reproducir=False, instante=_t.monotonic() - 9)
+        panel._transporte_pendiente = True
+        panel._estado_busqueda = EstadoBusqueda(confirmada=0)
+        panel._estado_busqueda.solicitar(50000, _t.monotonic())
+        panel._mostrar_pausa = mock.Mock()
+        panel._timer = mock.Mock()
+        panel._estado_vlc_actual = mock.Mock(side_effect=["playing", "paused"])
+        with mock.patch.object(reproductor, "anunciar"):
+            panel._evaluar_transporte()
+        panel._timer.Start.assert_called_once_with(500)
+
+    def test_pausa_confirmada_con_busqueda_no_toca_timer(self):
+        from ytchat.player import reproductor
+        from ytchat.player.busqueda_video import EstadoBusqueda, OrdenTransporte
+        import time as _t
+        panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
+        panel._orden_transporte = OrdenTransporte(intencion_reproducir=False, instante=_t.monotonic())
+        panel._transporte_pendiente = True
+        panel._estado_busqueda = EstadoBusqueda(confirmada=0)
+        panel._estado_busqueda.solicitar(50000, _t.monotonic())
+        panel._mostrar_pausa = mock.Mock()
+        panel._timer = mock.Mock()
+        panel._estado_vlc_actual = mock.Mock(return_value="paused")
+        with mock.patch.object(reproductor, "anunciar"):
+            panel._evaluar_transporte()
+        panel._timer.Start.assert_not_called()
+        panel._timer.Stop.assert_not_called()
+
+
+class TestDesenlacesTransporte(unittest.TestCase):
+    """Cada desenlace de _evaluar_transporte deja intención, botón, temporizador y anuncio exactos."""
+
+    def _panel_transporte(self, reproductor, intencion_previa, instante, estados):
+        from ytchat.player.busqueda_video import EstadoBusqueda, OrdenTransporte
+        panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
+        panel._orden_transporte = OrdenTransporte(intencion_reproducir=intencion_previa, instante=instante)
+        panel._transporte_pendiente = True
+        panel._intencion_reproducir = intencion_previa
+        panel._estado_busqueda = EstadoBusqueda(confirmada=0)
+        panel._mostrar_pausa = mock.Mock()
+        panel._timer = mock.Mock()
+        panel._estado_vlc_actual = mock.Mock(side_effect=list(estados))
+        return panel
+
+    def test_reanudacion_confirmada(self):
+        from ytchat.player import reproductor
+        import time as _t
+        panel = self._panel_transporte(reproductor, True, _t.monotonic(), ["playing"])
+        with mock.patch.object(reproductor, "anunciar") as anunciar:
+            panel._evaluar_transporte()
+        self.assertTrue(panel._intencion_reproducir)
+        panel._mostrar_pausa.assert_called_once_with(True)
+        panel._timer.Start.assert_called_once_with(500)
+        panel._timer.Stop.assert_not_called()
+        anunciar.assert_called_once_with("Reproduciendo")
+
+    def test_pausa_confirmada_sin_busqueda(self):
+        from ytchat.player import reproductor
+        import time as _t
+        panel = self._panel_transporte(reproductor, False, _t.monotonic(), ["paused"])
+        with mock.patch.object(reproductor, "anunciar") as anunciar:
+            panel._evaluar_transporte()
+        self.assertFalse(panel._intencion_reproducir)
+        panel._mostrar_pausa.assert_called_once_with(False)
+        panel._timer.Stop.assert_called_once_with()
+        panel._timer.Start.assert_not_called()
+        anunciar.assert_called_once_with("Pausa")
+
+    def test_fallida_con_vlc_en_playing_reconcilia_reproduciendo(self):
+        from ytchat.player import reproductor
+        import time as _t
+        panel = self._panel_transporte(reproductor, False, _t.monotonic() - 9, ["playing", "playing"])
+        with mock.patch.object(reproductor, "anunciar") as anunciar:
+            panel._evaluar_transporte()
+        self.assertTrue(panel._intencion_reproducir)
+        panel._mostrar_pausa.assert_called_once_with(True)
+        panel._timer.Start.assert_called_once_with(500)
+        panel._timer.Stop.assert_not_called()
+        anunciar.assert_called_once_with("No se pudo pausar")
+
+    def test_fallida_en_transitorio_no_toca_intencion_ni_boton(self):
+        from ytchat.player import reproductor
+        import time as _t
+        panel = self._panel_transporte(reproductor, True, _t.monotonic() - 9, ["buffering", "buffering"])
+        with mock.patch.object(reproductor, "anunciar") as anunciar:
+            panel._evaluar_transporte()
+        self.assertTrue(panel._intencion_reproducir)
+        panel._mostrar_pausa.assert_not_called()
+        panel._timer.Start.assert_not_called()
+        panel._timer.Stop.assert_not_called()
+        anunciar.assert_called_once_with("No se pudo reanudar")
+
+
 if __name__ == "__main__":
     unittest.main()

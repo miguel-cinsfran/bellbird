@@ -16,6 +16,8 @@ por el módulo en el momento de la llamada, nunca con un `from` directo.
 
 from __future__ import annotations
 
+from ytchat.core.idioma import _
+
 
 def cambiar_overlay(frame, encender):
     from ytchat.ui import gui as _gui
@@ -24,13 +26,13 @@ def cambiar_overlay(frame, encender):
         try:
             _gui.overlay_servidor.encender(puerto)
         except _gui.overlay_servidor.OverlayPuertoOcupadoError:
-            _gui.anunciar(f"No se pudo activar el panel, el puerto {puerto} está ocupado")
+            _gui.anunciar(_("No se pudo activar el panel, el puerto {puerto} está ocupado").format(puerto=puerto))
             # El puerto ocupado solo afecta esta sesión, no la preferencia guardada.
             frame._config["overlay_activo"] = False
             return False
         frame._config["overlay_activo"] = True
         _gui.guardar_opcion(_gui.RUTA_CONFIG, "overlay", "activo", "true")
-        _gui.anunciar(f"Panel de chat activo en el puerto {puerto}")
+        _gui.anunciar(_("Panel de chat activo en el puerto {puerto}").format(puerto=puerto))
         from ytchat.obs import obs_panel_recarga
         _gui.diagnostico.crear_hilo(
             obs_panel_recarga.recargar_fuente_panel,
@@ -39,7 +41,7 @@ def cambiar_overlay(frame, encender):
     _gui.overlay_servidor.apagar()
     frame._config["overlay_activo"] = False
     _gui.guardar_opcion(_gui.RUTA_CONFIG, "overlay", "activo", "false")
-    _gui.anunciar("Panel de chat apagado")
+    _gui.anunciar(_("Panel de chat apagado"))
     return False
 
 
@@ -76,8 +78,8 @@ def alternar_aviso_sobrecarga(frame) -> None:
         item.Check(nuevo)
     _gui.guardar_opcion(_gui.RUTA_CONFIG, "transmision", "avisar_sobrecarga",
                         "true" if nuevo else "false")
-    _gui.anunciar("Avisos de sobrecarga activados" if nuevo
-                  else "Avisos de sobrecarga desactivados")
+    _gui.anunciar(_("Avisos de sobrecarga activados") if nuevo
+                  else _("Avisos de sobrecarga desactivados"))
 
 
 def alternar_grabar_al_transmitir(frame) -> None:
@@ -95,8 +97,8 @@ def alternar_grabar_al_transmitir(frame) -> None:
         item.Check(nuevo)
     _gui.guardar_opcion(_gui.RUTA_CONFIG, "transmision",
                         "grabar_al_transmitir", "true" if nuevo else "false")
-    _gui.anunciar("Grabación al transmitir activada" if nuevo
-                  else "Grabación al transmitir desactivada")
+    _gui.anunciar(_("Grabación al transmitir activada") if nuevo
+                  else _("Grabación al transmitir desactivada"))
 
 
 def guardar_datos_directo_youtube(frame, titulo, descripcion, privacidad,
@@ -240,10 +242,10 @@ def supervisar_transmision(frame, accion, destino="", usuario="",
         supervisor = getattr(frame, "_supervisor", None)
         if supervisor is not None and _deteniendo(supervisor):
             _gui.anunciar(
-                "Deteniendo la transmisión. Esperando a que OBS confirme.")
+                _("Deteniendo la transmisión. Esperando a que OBS confirme."))
             return
         if supervisor is not None and supervisor.activo:
-            _gui.anunciar("Ya hay una transmisión en curso.")
+            _gui.anunciar(_("Ya hay una transmisión en curso."))
             return
         ganchos = {}
         if destino == "YouTube":
@@ -252,9 +254,9 @@ def supervisar_transmision(frame, accion, destino="", usuario="",
             from ytchat.youtube import emision
             datos = _gui.credenciales.cargar()
             if not _gui.credenciales.hay_sesion(datos):
-                _gui.anunciar("Para transmitir a YouTube hace falta iniciar "
-                              "sesión con Google, en Preferencias, pestaña API "
-                              "y sesión.")
+                _gui.anunciar(_("Para transmitir a YouTube hace falta iniciar "
+                                "sesión con Google, en Preferencias, pestaña API "
+                                "y sesión."))
                 return
             cliente = _gui.youtube_api.ClienteYouTube(
                 _gui.credenciales.efectivas(datos))
@@ -278,7 +280,7 @@ def supervisar_transmision(frame, accion, destino="", usuario="",
                     cliente, lambda nuevo:
                     _gui.credenciales.guardar_campo("token", nuevo)))
             if pedido is None:
-                _gui.anunciar("No se transmitió.")
+                _gui.anunciar(_("No se transmitió."))
                 return
             guardados = frame._guardar_datos_directo_youtube(
                 pedido["titulo"], pedido["descripcion"],
@@ -333,19 +335,19 @@ def supervisar_transmision(frame, accion, destino="", usuario="",
                     if guardados.get("ninos"):
                         frame.sesion.enlace_directo = url
                         _gui.anunciar(
-                            "El directo está marcado como hecho para "
-                            "niños y YouTube no tiene chat.")
+                            _("El directo está marcado como hecho para "
+                              "niños y YouTube no tiene chat."))
                         return
                     if not _emision.chat_legible(
                             guardados["privacidad"]):
                         frame.sesion.enlace_directo = url
                         _gui.anunciar(
-                            "El directo es privado y YouTube no deja "
-                            "leer su chat. Para leerlo, transmite como "
-                            "público o no listado.")
+                            _("El directo es privado y YouTube no deja "
+                              "leer su chat. Para leerlo, transmite como "
+                              "público o no listado."))
                         return
                 if frame._conectado or frame._conectando:
-                    _gui.anunciar("El chat ya estaba conectado y no se cambió.")
+                    _gui.anunciar(_("El chat ya estaba conectado y no se cambió."))
                     return
                 try:
                     frame.txt_url.SetValue(url)

@@ -11,6 +11,7 @@ from unittest import mock
 
 from ytchat.ui import gui, gui_transmitir
 from ytchat.ui.sesion_conectada import SesionConectada
+from tests.pseudo_prueba import con_pseudo
 
 
 def _llamada_inmediata(funcion, *args, **kwargs):
@@ -624,6 +625,163 @@ class TestAlConectarChatEnlaceDirecto(unittest.TestCase):
         anunciar.assert_called_once_with(
             "El directo está marcado como hecho para niños y YouTube no "
             "tiene chat.")
+
+
+class TestPseudoAnuncios(unittest.TestCase):
+    """Pseudotraducción de los anuncios de `gui_transmitir`.
+
+    Sin ventanas: dispara los caminos que anuncian bajo `con_pseudo()` y
+    exige que cada frase propia salga marcada. Las frases que arma otro
+    módulo (el error de emision y las del supervisor) no entran.
+    """
+
+    def setUp(self):
+        self.captados = []
+        parche = mock.patch.object(gui, "anunciar", self.captados.append)
+        parche.start()
+        self.addCleanup(parche.stop)
+        pseudo = con_pseudo()
+        pseudo.__enter__()
+        self.addCleanup(pseudo.__exit__, None, None, None)
+
+    def _exigir_marcados(self, cantidad):
+        self.assertEqual(len(self.captados), cantidad)
+        for frase in self.captados:
+            self.assertTrue(frase.startswith("[¡"), frase)
+        del self.captados[:]
+
+    def test_cambiar_overlay_marca_los_tres_caminos(self):
+        frame = SimpleNamespace(_config={"overlay_puerto": 8730})
+        with mock.patch.object(gui.overlay_servidor, "encender"), \
+                mock.patch.object(gui, "guardar_opcion"), \
+                mock.patch.object(gui.diagnostico, "crear_hilo",
+                                  side_effect=lambda objetivo, nombre, **kwargs:
+                                  HiloInmediato(objetivo, nombre, **kwargs)), \
+                mock.patch("ytchat.obs.obs_panel_recarga.recargar_fuente_panel"):
+            gui_transmitir.cambiar_overlay(frame, True)
+        self._exigir_marcados(1)
+        error = gui.overlay_servidor.OverlayPuertoOcupadoError("ocupado")
+        with mock.patch.object(gui.overlay_servidor, "encender",
+                               side_effect=error), \
+                mock.patch.object(gui, "guardar_opcion"):
+            gui_transmitir.cambiar_overlay(frame, True)
+        self._exigir_marcados(1)
+        with mock.patch.object(gui.overlay_servidor, "apagar"), \
+                mock.patch.object(gui, "guardar_opcion"):
+            gui_transmitir.cambiar_overlay(
+                SimpleNamespace(_config={}), False)
+        self._exigir_marcados(1)
+
+    def test_alternar_marca_los_cuatro_caminos(self):
+        with mock.patch.object(gui, "guardar_opcion"):
+            gui_transmitir.alternar_aviso_sobrecarga(
+                SimpleNamespace(_config={"avisar_sobrecarga": True},
+                                mi_avisos_sobrecarga=mock.Mock()))
+        self._exigir_marcados(1)
+        with mock.patch.object(gui, "guardar_opcion"):
+            gui_transmitir.alternar_aviso_sobrecarga(
+                SimpleNamespace(_config={"avisar_sobrecarga": False},
+                                mi_avisos_sobrecarga=mock.Mock()))
+        self._exigir_marcados(1)
+        with mock.patch.object(gui, "guardar_opcion"):
+            gui_transmitir.alternar_grabar_al_transmitir(
+                SimpleNamespace(_config={"grabar_al_transmitir": True},
+                                mi_grabar_al_transmitir=mock.Mock()))
+        self._exigir_marcados(1)
+        with mock.patch.object(gui, "guardar_opcion"):
+            gui_transmitir.alternar_grabar_al_transmitir(
+                SimpleNamespace(_config={"grabar_al_transmitir": False},
+                                mi_grabar_al_transmitir=mock.Mock()))
+        self._exigir_marcados(1)
+
+    def test_supervisar_iniciar_marca_los_cuatro_caminos(self):
+        supervisor = SimpleNamespace(activo=False, deteniendo=True)
+        gui_transmitir.supervisar_transmision(
+            SimpleNamespace(_supervisor=supervisor), "iniciar",
+            "TikTok", "alguien")
+        self._exigir_marcados(1)
+        supervisor = SimpleNamespace(activo=True)
+        gui_transmitir.supervisar_transmision(
+            SimpleNamespace(_supervisor=supervisor), "iniciar",
+            "TikTok", "alguien")
+        self._exigir_marcados(1)
+        with mock.patch.object(gui.credenciales, "cargar",
+                               return_value={}), \
+                mock.patch.object(gui.credenciales, "hay_sesion",
+                                   return_value=False):
+            gui_transmitir.supervisar_transmision(
+                SimpleNamespace(_supervisor=None), "iniciar", "YouTube", "")
+        self._exigir_marcados(1)
+        frame = SimpleNamespace(
+            _supervisor=None, _config={}, _alive=True,
+            _actualizar_boton_directo=mock.Mock(),
+            _al_terminar_supervisor=mock.Mock())
+        credenciales = SimpleNamespace(
+            cargar=lambda: {"token": "t"},
+            hay_sesion=lambda datos: True,
+            efectivas=lambda datos: {"efectivas": True},
+            guardar_campo=mock.Mock())
+        with mock.patch.object(gui, "credenciales", credenciales), \
+                mock.patch.object(gui, "youtube_api"), \
+                mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo",
+                           return_value=None):
+            gui_transmitir.supervisar_transmision(
+                frame, "iniciar", "YouTube", "")
+        self._exigir_marcados(1)
+
+    def _conector_y_frame(self, guardados):
+        frame = SimpleNamespace(
+            _supervisor=None, _config={}, _alive=True,
+            _conectado=False, _conectando=False,
+            sesion=SesionConectada(enlace_directo=""),
+            txt_url=mock.Mock(), _on_conectar=mock.Mock(),
+            _actualizar_boton_directo=mock.Mock(),
+            _al_terminar_supervisor=mock.Mock(),
+            _guardar_datos_directo_youtube=mock.Mock(
+                return_value=guardados))
+        supervisor = mock.Mock()
+        credenciales = SimpleNamespace(
+            cargar=lambda: {"token": "t"},
+            hay_sesion=lambda datos: True,
+            efectivas=lambda datos: {"efectivas": True},
+            guardar_campo=mock.Mock())
+        pedido = {"titulo": "T", "descripcion": "",
+                  "privacidad": guardados["privacidad"]}
+        with mock.patch.object(gui, "credenciales", credenciales), \
+                mock.patch.object(gui, "youtube_api"), \
+                mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo",
+                           return_value=pedido), \
+                mock.patch("ytchat.youtube.emision.cuerpo_emision",
+                           return_value={"cuerpo": True}), \
+                mock.patch("ytchat.youtube.emision.ganchos_youtube",
+                           return_value=("p", "e", "f")), \
+                mock.patch("ytchat.core.paths.fin_pendiente",
+                           return_value=None), \
+                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+                           return_value=supervisor) as fabrica:
+            gui_transmitir.supervisar_transmision(
+                frame, "iniciar", "YouTube", "")
+        return frame, fabrica.call_args.kwargs["al_conectar_chat"]
+
+    def test_al_conectar_chat_marca_los_tres_avisos(self):
+        url = "https://www.youtube.com/watch?v=abcdefghijk"
+        for guardados in ({"titulo": "T", "descripcion": "",
+                           "privacidad": "private", "ninos": False},
+                          {"titulo": "T", "descripcion": "",
+                           "privacidad": "public", "ninos": True}):
+            _, conector = self._conector_y_frame(guardados)
+            with mock.patch.object(gui.wx, "CallAfter",
+                                   side_effect=_llamada_inmediata):
+                conector(url)
+            self._exigir_marcados(1)
+        frame, conector = self._conector_y_frame(
+            {"titulo": "T", "descripcion": "", "privacidad": "unlisted",
+             "ninos": False})
+        frame._conectado = True
+        with mock.patch.object(gui.wx, "CallAfter",
+                               side_effect=_llamada_inmediata):
+            conector(url)
+        self._exigir_marcados(1)
 
 
 if __name__ == "__main__":

@@ -10,6 +10,7 @@ import wx
 
 from ytchat.core import config as cfg
 from ytchat.core.config import APP_NAME
+from ytchat.core.idioma import _
 from ytchat.ui import atajos_captura
 from ytchat.ui.atajos_captura import etiqueta_de_accion
 from ytchat.ui.accesibilidad import anunciar
@@ -19,6 +20,15 @@ from ytchat.ui.preferencias_comun import ANCHO_NOTA, crear_panel
 
 
 _AREA_AYUDA = atajos_captura._AREA_AYUDA
+
+
+def _etiqueta_boton_atajo(accion, etiqueta, valor):
+    """Etiqueta de un botón de atajo, con el sufijo de los fijos traducible."""
+    texto = atajos_captura.etiqueta_boton(etiqueta, valor)
+    if accion not in cfg.ATAJOS_FIJOS:
+        return texto
+    # Traductores: etiqueta de un atajo que no se puede cambiar; {accion} es su nombre con su combinación.
+    return _("{accion} (fija)").format(accion=texto)
 
 
 class PaginaAtajos:
@@ -52,7 +62,7 @@ class PaginaAtajos:
         self._crear_grupos(p, vs)
 
         btn_restablecer = wx.Button(
-            p, label="&Restablecer los atajos a los valores de fábrica",
+            p, label=_("&Restablecer los atajos a los valores de fábrica"),
             name="RestablecerAtajos")
         btn_restablecer.SetBackgroundColour(_T.btn)
         btn_restablecer.SetForegroundColour(_T.btn_t)
@@ -70,15 +80,14 @@ class PaginaAtajos:
                 etiqueta = etiqueta_de_accion(accion)
                 fija = accion in cfg.ATAJOS_FIJOS
                 valor = self._valores_atajo.get(accion, "")
-                sufijo = " (fija)" if fija else ""
                 btn = wx.Button(
                     padre, name=f"Atajo_{accion}",
-                    label=atajos_captura.etiqueta_boton(etiqueta, valor) + sufijo)
+                    label=_etiqueta_boton_atajo(accion, etiqueta, valor))
                 btn.SetBackgroundColour(_T.btn); btn.SetForegroundColour(_T.btn_t)
                 if fija:
                     btn.Disable()
                 else:
-                    btn.SetToolTip("Pulsa para capturar una nueva combinación.")
+                    btn.SetToolTip(_("Pulsa para capturar una nueva combinación."))
                     btn.Bind(wx.EVT_BUTTON,
                              lambda e, a=accion, et=etiqueta: self._capturar_atajo(a, et))
                     btn.Bind(wx.EVT_KILL_FOCUS, self._atajo_perdio_foco)
@@ -89,15 +98,15 @@ class PaginaAtajos:
     def _capturar_atajo(self, accion, etiqueta):
         self._capturando_atajo = (accion, etiqueta)
         boton = self._botones_atajo[accion]
-        boton.SetLabel(f"{etiqueta}: pulsa la combinación")
+        # Traductores: aviso de captura de un atajo; {accion} es su nombre.
+        boton.SetLabel(_("{accion}: pulsa la combinación").format(accion=etiqueta))
         anunciar(atajos_captura.texto_de_espera(
             etiqueta, _AREA_AYUDA.get(cfg.ATAJOS_AREA.get(accion), "")))
 
     def _restaurar_etiqueta_atajo(self, accion, etiqueta):
         valor = self._valores_atajo.get(accion, "")
-        sufijo = " (fija)" if accion in cfg.ATAJOS_FIJOS else ""
         self._botones_atajo[accion].SetLabel(
-            atajos_captura.etiqueta_boton(etiqueta, valor) + sufijo)
+            _etiqueta_boton_atajo(accion, etiqueta, valor))
 
     def _salir_captura_atajo(self, anunciar_cambio=False):
         if self._capturando_atajo is None:
@@ -106,7 +115,7 @@ class PaginaAtajos:
         self._capturando_atajo = None
         self._restaurar_etiqueta_atajo(accion, etiqueta)
         if anunciar_cambio:
-            anunciar("Sin cambios")
+            anunciar(_("Sin cambios"))
 
     def _restablecer_atajos(self, event):
         from ytchat.core import config_predeterminada as _pred
@@ -115,7 +124,7 @@ class PaginaAtajos:
                 continue
             self._valores_atajo[accion] = valor
             self._restaurar_etiqueta_atajo(accion, etiqueta_de_accion(accion))
-        anunciar("Atajos restablecidos a los valores de fábrica. Se aplican al pulsar Guardar.")
+        anunciar(_("Atajos restablecidos a los valores de fábrica. Se aplican al pulsar Guardar."))
 
     def _atajo_perdio_foco(self, event):
         self._salir_captura_atajo()

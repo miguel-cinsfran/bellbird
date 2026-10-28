@@ -9,6 +9,7 @@ from __future__ import annotations
 import wx
 
 from ytchat.core import paths
+from ytchat.core.idioma import _
 from ytchat.capture import programados
 from ytchat.ui.accesibilidad import ContadorAccesible, anunciar, nombre_accesible
 from ytchat.ui.busqueda_teclado import instalar_busqueda_tipo
@@ -39,7 +40,7 @@ class PaginaProgramados:
         return p
 
     def _programados_intro(self, p, vs):
-        intro = wx.StaticText(p, name="IntroProgramados", label=(
+        intro = wx.StaticText(p, name="IntroProgramados", label=_(
             "Envía mensajes al chat de tu directo cada cierto tiempo. Necesita "
             "sesión de Google iniciada y un directo de YouTube conectado. El "
             "intervalo mínimo son 5 minutos y cada mensaje admite 200 caracteres. "
@@ -50,14 +51,14 @@ class PaginaProgramados:
         vs.Add(intro, 0, wx.ALL, 10)
 
         self.chk_programados = wx.CheckBox(
-            p, label="&Activar los mensajes automáticos", name="ActivarProgramados")
+            p, label=_("&Activar los mensajes automáticos"), name="ActivarProgramados")
         vs.Add(self.chk_programados, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _programados_lista(self, p, vs):
         self.lista_programados = wx.ListBox(p, choices=[
             programados.describir_mensaje(m) for m in self._mensajes_programados
         ], name="ListaProgramados")
-        nombre_accesible(self.lista_programados, "Mensajes automáticos guardados")
+        nombre_accesible(self.lista_programados, _("Mensajes automáticos guardados"))
         instalar_busqueda_tipo(
             self.lista_programados,
             lambda: [self.lista_programados.GetString(i)
@@ -65,22 +66,22 @@ class PaginaProgramados:
         vs.Add(self.lista_programados, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
 
     def _programados_datos(self, p, vs):
-        vs.Add(fila_label(p, "&Texto del mensaje"), 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
+        vs.Add(fila_label(p, _("&Texto del mensaje")), 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.txt_programado = wx.TextCtrl(p, name="TextoProgramado")
         self.txt_programado.SetMaxLength(200)
         vs.Add(self.txt_programado, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
 
-        vs.Add(fila_label(p, "Cada, &mínimo (minutos)"), 0, wx.LEFT | wx.RIGHT, 10)
+        vs.Add(fila_label(p, _("Cada, &mínimo (minutos)")), 0, wx.LEFT | wx.RIGHT, 10)
         self.sp_min_programado = ContadorAccesible(
             p, min=5, max=240, initial=10, name="MinutosMin")
         vs.Add(self.sp_min_programado, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
-        vs.Add(fila_label(p, "y &máximo (minutos)"), 0, wx.LEFT | wx.RIGHT, 10)
+        vs.Add(fila_label(p, _("y &máximo (minutos)")), 0, wx.LEFT | wx.RIGHT, 10)
         self.sp_max_programado = ContadorAccesible(
             p, min=5, max=240, initial=10, name="MinutosMax")
         vs.Add(self.sp_max_programado, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
 
         self.chk_mensaje_activo = wx.CheckBox(
-            p, label="&Enviar este mensaje", name="MensajeActivo")
+            p, label=_("&Enviar este mensaje"), name="MensajeActivo")
         # Un mensaje nuevo nace activo: si no, quien lo agrega y activa los
         # automáticos no ve salir nada porque quedó «Pausado».
         self.chk_mensaje_activo.SetValue(True)
@@ -88,10 +89,10 @@ class PaginaProgramados:
 
     def _programados_botones(self, p, vs):
         fila = wx.BoxSizer(wx.HORIZONTAL)
-        self.btn_programado_agregar = wx.Button(p, label="&Agregar", name="AgregarProgramado")
+        self.btn_programado_agregar = wx.Button(p, label=_("&Agregar"), name="AgregarProgramado")
         self.btn_programado_guardar = wx.Button(
-            p, label="&Guardar cambios", name="GuardarProgramado")
-        self.btn_programado_quitar = wx.Button(p, label="&Quitar", name="QuitarProgramado")
+            p, label=_("&Guardar cambios"), name="GuardarProgramado")
+        self.btn_programado_quitar = wx.Button(p, label=_("&Quitar"), name="QuitarProgramado")
         for boton in (self.btn_programado_agregar, self.btn_programado_guardar,
                       self.btn_programado_quitar):
             boton.SetBackgroundColour(_T.btn)
@@ -148,12 +149,12 @@ class PaginaProgramados:
         self._mensajes_programados.append(mensaje)
         programados.guardar(self._ruta_programados, self._mensajes_programados)
         self._refrescar_programados(len(self._mensajes_programados) - 1)
-        anunciar("Mensaje agregado")
+        anunciar(_("Mensaje agregado"))
 
     def _guardar_programado(self, event):
         indice = self.lista_programados.GetSelection()
         if indice == wx.NOT_FOUND:
-            anunciar("Elige primero un mensaje de la lista")
+            anunciar(_("Elige primero un mensaje de la lista"))
             return
         mensaje = self._datos_programado()
         if not self._validar_programado(mensaje):
@@ -162,14 +163,14 @@ class PaginaProgramados:
         self._mensajes_programados[indice] = mensaje
         programados.guardar(self._ruta_programados, self._mensajes_programados)
         self._refrescar_programados(indice)
-        anunciar("Mensaje guardado")
+        anunciar(_("Mensaje guardado"))
 
     def _quitar_programado(self, event):
         indice = self.lista_programados.GetSelection()
         if indice == wx.NOT_FOUND:
-            anunciar("Elige primero un mensaje de la lista")
+            anunciar(_("Elige primero un mensaje de la lista"))
             return
         self._mensajes_programados.pop(indice)
         programados.guardar(self._ruta_programados, self._mensajes_programados)
         self._refrescar_programados(min(indice, len(self._mensajes_programados) - 1))
-        anunciar("Mensaje quitado")
+        anunciar(_("Mensaje quitado"))

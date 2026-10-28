@@ -159,7 +159,7 @@ def modelo_elegido(id_de_lista, otro):
     if texto:
         return texto
     ident = (id_de_lista or "").strip()
-    if not ident or ident == TEXTO_SIN_MODELOS:
+    if not ident or ident == _(TEXTO_SIN_MODELOS):
         return ""
     return ident
 

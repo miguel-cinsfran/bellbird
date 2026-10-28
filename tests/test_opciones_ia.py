@@ -68,6 +68,13 @@ class TestFilasMarcadas(unittest.TestCase):
             with self.subTest(texto=texto):
                 self.assertTrue(texto.startswith("[¡"), texto)
 
+    def test_marcador_traducido_cuenta_como_vacio(self):
+        # La lista muestra la forma traducida, así la comparación también.
+        with con_pseudo():
+            self.assertEqual(
+                opciones_ia.modelo_elegido(_(opciones_ia.TEXTO_SIN_MODELOS),
+                                           ""), "")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1533,10 +1533,9 @@ class TestPseudoConfirmarTransmision(unittest.TestCase):
             "TikTok", "TikTok", "TikTok", 720, 1280, "Principal",
             (), (), None, tuple(problemas))
 
-    def test_titulo_y_botones_pasan_por_gettext_y_mensaje_queda_pendiente(self):
+    def test_titulo_mensaje_y_botones_pasan_por_gettext(self):
         # El mensaje lo arma `ytchat/obs/obs_prevuelo.py` (frase_revision),
-        # fuera del alcance: queda pendiente sin marcar. Cuando se envuelva
-        # ese módulo, esta prueba falla y se actualiza.
+        # con los datos de ejemplo de la revisión.
         from ytchat.obs import obs_prevuelo
         revision = self._revision()
         captado = {}
@@ -1552,11 +1551,11 @@ class TestPseudoConfirmarTransmision(unittest.TestCase):
 
         with con_pseudo(), \
                 mock.patch.object(gui_transmision.wx, "MessageDialog", fabrica):
+            esperada = obs_prevuelo.frase_revision(revision)
             gui_transmision.confirmar_transmision(
                 mock.sentinel.padre, revision)
-        self.assertEqual(captado["mensaje"],
-                         obs_prevuelo.frase_revision(revision))
-        self.assertFalse(captado["mensaje"].startswith("[¡"))
+        self.assertEqual(captado["mensaje"], esperada)
+        self.assertTrue(captado["mensaje"].startswith("[¡"))
         self.assertTrue(captado["titulo"].startswith("[¡"))
         creados[0].SetOKCancelLabels.assert_called_once()
         for etiqueta in creados[0].SetOKCancelLabels.call_args.args:

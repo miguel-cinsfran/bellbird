@@ -3,6 +3,9 @@
 import base64
 import unittest
 
+from tests.pseudo_prueba import con_pseudo
+from ytchat.core.idioma import _
+from ytchat.obs import obs_prevuelo
 from ytchat.obs.obs_prevuelo import (
     EntradaAudio, Fuente, Revision, frase_revision, revisar)
 from ytchat.obs.obs_grabacion import AVISO_CODIFICADOR
@@ -445,6 +448,107 @@ class AvisosGrabacionTest(unittest.TestCase):
         doble = DobleQueFalla("GetProfileParameter", imagen=self._imagen())
         revision = revisar(doble, "TikTok", grabar=True)
         self.assertEqual(revision.avisos, ())
+
+
+class TestTablaTiposSinVentana(unittest.TestCase):
+    # Sin ventana: la tabla vive en el módulo, así no se crea ningún control.
+
+    def test_tabla_cubre_los_tipos_conocidos_con_el_texto_de_hoy(self):
+        self.assertEqual(set(obs_prevuelo._TIPOS),
+                         {"window_capture", "game_capture", "monitor_capture",
+                          "dshow_input", "browser_source", "image_source",
+                          "ffmpeg_source", "text_gdiplus_v3", "text_gdiplus"})
+        self.assertEqual(
+            {clase: texto for clase, texto in obs_prevuelo._TIPOS.items()},
+            {"window_capture": "captura de ventana",
+             "game_capture": "captura de juego",
+             "monitor_capture": "captura de pantalla",
+             "dshow_input": "cámara",
+             "browser_source": "navegador",
+             "image_source": "imagen",
+             "ffmpeg_source": "vídeo",
+             "text_gdiplus_v3": "texto",
+             "text_gdiplus": "texto"})
+
+    def test_tabla_se_traduce_donde_se_usa(self):
+        with con_pseudo():
+            for clase in obs_prevuelo._TIPOS:
+                with self.subTest(clase=clase):
+                    self.assertTrue(
+                        _(obs_prevuelo._TIPOS[clase]).startswith("[¡"),
+                        clase)
+            self.assertTrue(_(obs_prevuelo._TIPO_ESCENA).startswith("[¡"))
+
+    def test_formato_sale_marcado(self):
+        with con_pseudo():
+            self.assertTrue(obs_prevuelo._formato(720, 1280).startswith("[¡"))
+            self.assertTrue(obs_prevuelo._formato(1280, 720).startswith("[¡"))
+            self.assertTrue(obs_prevuelo._formato(1280, 1280).startswith("[¡"))
+
+
+class TestPseudoFraseRevision(unittest.TestCase):
+    """Pseudotraducción de `frase_revision` y de los problemas.
+
+    Sin ventana: llama a las funciones bajo `con_pseudo()` y exige los
+    fragmentos propios marcados, con los datos de ejemplo presentes. El
+    aviso del codificador lo arma `obs_grabacion`, fuera del alcance: se
+    exige marcado donde se muestra, en `frase_revision`. El nombre de la
+    fuente de audio que compara la revisión es un dato de OBS y queda
+    como está.
+    """
+
+    def _revision_ejemplo(self, problemas=(), avisos=()):
+        return Revision(
+            "TikTok", "TikTok", "TikTok", 720, 1280, "Escena",
+            (Fuente("Juego", "captura de ventana", "Mi Juego", True),
+             Fuente("Chat", "navegador", "panel de chat de la app", True)),
+            (EntradaAudio("Mic/Aux", False),
+             EntradaAudio("Audio del escritorio", False, True)),
+            False, tuple(problemas), tuple(avisos))
+
+    def _imagen(self):
+        return imagen_dato(png_plano(2, 2, (200, 0, 0, 255)))
+
+    def test_frase_marca_los_fragmentos_propios_con_los_datos(self):
+        with con_pseudo():
+            frase = frase_revision(self._revision_ejemplo())
+        self.assertTrue(frase.startswith("[¡"), frase)
+        for dato in ("TikTok", "Escena", "Mi Juego", "Mic/Aux"):
+            self.assertIn(dato, frase)
+
+    def test_fuentes_y_detalles_propios_de_revisar_salen_marcados(self):
+        doble = DoblePrevuelo(imagen=self._imagen())
+        with con_pseudo():
+            revision = revisar(doble, "TikTok")
+        tipos = {fuente.nombre: fuente.tipo for fuente in revision.fuentes}
+        self.assertTrue(tipos["Captura de ventana"].startswith("[¡"),
+                        tipos["Captura de ventana"])
+        detalles = {fuente.nombre: fuente.detalle
+                    for fuente in revision.fuentes}
+        # El título de la ventana es un dato de OBS y queda sin marcar.
+        self.assertEqual(detalles["Captura de ventana"],
+                         "Champions of The Rift")
+        self.assertTrue(detalles["Chat YTChat"].startswith("[¡"),
+                        detalles["Chat YTChat"])
+
+    def test_cada_problema_sale_marcado(self):
+        doble = DoblePrevuelo(
+            perfil="YouTube", elementos=(),
+            silencios={"Audio del escritorio": True, "Mic/Aux": True},
+            imagen=imagen_dato(png_plano(2, 2, (0, 0, 0, 0))))
+        with con_pseudo():
+            revision = revisar(doble, "TikTok")
+        self.assertEqual(len(revision.problemas), 5)
+        for problema in revision.problemas:
+            self.assertTrue(problema.startswith("[¡"), problema)
+
+    def test_aviso_de_grabacion_se_muestra_marcado(self):
+        doble = DoblePrevuelo(modo="Advanced", codificador="x264",
+                              imagen=self._imagen())
+        with con_pseudo():
+            frase = frase_revision(revisar(doble, "TikTok", grabar=True))
+        self.assertTrue(frase.startswith("[¡"), frase)
+        self.assertIn(AVISO_CODIFICADOR, frase)
 
 
 if __name__ == "__main__":

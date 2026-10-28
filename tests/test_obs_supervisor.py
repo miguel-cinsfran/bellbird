@@ -17,6 +17,8 @@ from ytchat.obs import obs_cliente
 from ytchat.obs import obs_panel
 from ytchat.obs import obs_supervisor
 from ytchat.obs.obs_supervisor import SupervisorTransmision, duracion_legible
+from tests.pseudo_prueba import con_pseudo
+from ytchat.core.idioma import _
 from ytchat.youtube import emision
 from ytchat.youtube import fin_pendiente
 
@@ -1478,6 +1480,292 @@ class FinPendienteTest(unittest.TestCase):
             anuncios)
         self.assertFalse(any(f == "Directo finalizado en YouTube."
                              for f, _ in anuncios))
+
+
+# Textos que arma otro módulo y aparecen en los anuncios: las frases de
+# `ytchat/obs/obs_salida.py` (frase_salida), que el supervisor anuncia tal
+# cual. La comparación es exacta en los dos sentidos: falla si aparece un
+# anuncio propio sin marcar y si un texto ajeno ya no llega, para vaciar la
+# lista cuando ese módulo pase por gettext.
+OTROS_SUPERVISOR = (
+    "OBS está enviando la señal a Restream.",
+    "OBS está enviando la señal a YouTube.",
+)
+
+
+class TestPseudoAnunciosSupervisor(BaseSupervisor):
+    """Pseudotraducción de los anuncios propios del supervisor.
+
+    Sin ventanas: dispara los caminos bajo `con_pseudo()` y exige cada
+    anuncio propio marcado. Los caminos que anuncian frases de otros
+    módulos (`obs_salida`, `obs_cliente`, `emision`, `obs_lanzador`) no
+    entran, salvo los dos veredictos fijos de `frase_salida`, que van
+    como pendientes en OTROS_SUPERVISOR.
+    """
+
+    def _exigir_marcados(self, anuncios, otros=()):
+        sin_marcar = sorted(frase for frase, _ in anuncios
+                            if not frase.startswith("[¡"))
+        self.assertEqual(sin_marcar, sorted(otros))
+        return [frase for frase, _ in anuncios
+                if frase.startswith("[¡")]
+
+    def _supervisor_detener(self, estados_detener):
+        reloj = RelojFalso()
+        anuncios = []
+        gestores = []
+
+        def crear_gestor():
+            gestor = GestorFalso(estados_detener)
+            gestores.append(gestor)
+            return gestor
+
+        supervisor = SupervisorTransmision(
+            "YouTube", "",
+            al_anunciar=lambda frase, sonido: anuncios.append(
+                (frase, sonido)),
+            al_conectar_chat=lambda url: None,
+            crear_gestor=crear_gestor,
+            esperar_salida=lambda cliente, parada=None: "enviando",
+            esperar_en_vivo=lambda u, parada=None, limite=None: (
+                ResultadoEspera(False, False)),
+            dormir=reloj.dormir, reloj=reloj.reloj,
+            intervalo_salud=1000.0,
+            asegurar=lambda probar, al_anunciar=None, parada=None: False)
+        return supervisor, anuncios, gestores
+
+    def _supervisor_fin(self, ruta, finalizar):
+        anuncios = []
+        reloj = RelojFalso()
+        supervisor = SupervisorTransmision(
+            "YouTube", "",
+            al_anunciar=lambda frase, sonido: anuncios.append(
+                (frase, sonido)),
+            al_conectar_chat=lambda url: None,
+            crear_gestor=lambda: GestorFalso([muestra(False)]),
+            esperar_salida=lambda cliente, parada=None: "enviando",
+            esperar_en_vivo=lambda u, parada=None, limite=None: (
+                ResultadoEspera(False, False)),
+            dormir=reloj.dormir, reloj=reloj.reloj,
+            intervalo_salud=1000.0,
+            asegurar=lambda probar, al_anunciar=None, parada=None: False,
+            finalizar_emision=finalizar,
+            ruta_fin_pendiente=ruta)
+        supervisor._id_video = "vid123"
+        return supervisor, anuncios
+
+    def _armar_youtube(self, estados=None, espera=True):
+        reloj = RelojFalso()
+        anuncios = []
+        chats = []
+        gestores = []
+
+        def crear_gestor():
+            gestor = GestorFalso(estados)
+            gestores.append(gestor)
+            return gestor
+
+        supervisor = SupervisorTransmision(
+            "YouTube", "",
+            al_anunciar=lambda frase, sonido: anuncios.append(
+                (frase, sonido)),
+            al_conectar_chat=chats.append,
+            crear_gestor=crear_gestor,
+            esperar_salida=lambda cliente, parada=None: "enviando",
+            esperar_en_vivo=lambda u, parada=None, limite=None: (
+                ResultadoEspera(False, False)),
+            dormir=reloj.dormir, reloj=reloj.reloj,
+            intervalo_salud=1000.0,
+            asegurar=lambda probar, al_anunciar=None, parada=None: False,
+            preparar_emision=lambda cliente, parada: "vid123",
+            esperar_emision=lambda id_video, parada, limite: espera)
+        return supervisor, anuncios, chats
+
+    def test_camino_feliz_tiktok_marca_los_propios(self):
+        armado = self.armar(estados=[muestra(False)])
+        supervisor, anuncios, chats, _, _, _, _ = armado
+        with con_pseudo():
+            self.iniciar_y_esperar_fin(supervisor)
+        marcados = self._exigir_marcados(anuncios, [OTROS_SUPERVISOR[0]])
+        self.assertIn("[¡Comenzando la transmisión.!]", marcados)
+        self.assertIn("[¡Tu directo de TikTok ya está al aire.!]", marcados)
+        self.assertEqual(chats, ["https://www.tiktok.com/@amigo/live"])
+
+    def test_tiktok_sin_usuario_marca_el_aviso(self):
+        armado = self.armar(usuario="", estados=[muestra(False)])
+        supervisor, anuncios, _, _, _, _, _ = armado
+        with con_pseudo():
+            self.iniciar_y_esperar_fin(supervisor)
+        marcados = self._exigir_marcados(anuncios, [OTROS_SUPERVISOR[0]])
+        self.assertIn("[¡No hay usuario de TikTok guardado: conecta el chat "
+                      "a mano.!]", marcados)
+
+    def test_cuenta_sin_directos_marca_con_el_usuario(self):
+        armado = self.armar(en_vivo=False, sin_directos=True,
+                            estados=[muestra(False)])
+        supervisor, anuncios, _, _, _, _, _ = armado
+        with con_pseudo():
+            self.iniciar_y_esperar_fin(supervisor)
+        marcados = self._exigir_marcados(anuncios, [OTROS_SUPERVISOR[0]])
+        self.assertTrue(any("amigo" in frase for frase in marcados))
+
+    def test_sin_noticia_del_directo_marca(self):
+        armado = self.armar(en_vivo=False, sin_directos=False,
+                            estados=[muestra(False)])
+        supervisor, anuncios, _, _, _, _, _ = armado
+        with con_pseudo():
+            self.iniciar_y_esperar_fin(supervisor)
+        marcados = self._exigir_marcados(anuncios, [OTROS_SUPERVISOR[0]])
+        self.assertIn("[¡OBS está transmitiendo, pero TikTok todavía no "
+                      "muestra el directo.!]", marcados)
+
+    def test_youtube_feliz_marca_los_propios(self):
+        supervisor, anuncios, chats = self._armar_youtube()
+        with con_pseudo():
+            self.iniciar_y_esperar_fin(supervisor)
+        marcados = self._exigir_marcados(anuncios, [OTROS_SUPERVISOR[1]])
+        self.assertIn("[¡Creando el directo en YouTube.!]", marcados)
+        self.assertIn("[¡Tu directo de YouTube ya está al aire.!]", marcados)
+        self.assertEqual(chats, ["https://www.youtube.com/watch?v=vid123"])
+
+    def test_youtube_sin_confirmar_marca_el_aviso_y_la_frase(self):
+        supervisor, anuncios, _ = self._armar_youtube(
+            estados=[muestra(True, duracion=180)] * 50, espera=False)
+        with con_pseudo():
+            supervisor.iniciar()
+            try:
+                self.assertTrue(esperar_condicion(
+                    lambda: any("todavía no muestra el directo" in frase
+                                for frase, _ in anuncios)))
+                avisos = [frase for frase, _ in anuncios
+                          if "todavía no muestra el directo" in frase]
+                self.assertTrue(avisos)
+                for aviso in avisos:
+                    self.assertTrue(aviso.startswith("[¡"), aviso)
+                self.assertTrue(
+                    supervisor.frase_estado().startswith("[¡"))
+            finally:
+                supervisor.abandonar()
+
+    def test_detener_marca_detenida_y_espera(self):
+        supervisor, anuncios, _ = self._supervisor_detener(
+            [muestra(True)] * 6 + [muestra(False)])
+        with con_pseudo():
+            supervisor._detener_obs()
+        self.assertEqual(self._exigir_marcados(anuncios), [
+            "[¡Deteniendo la transmisión. Esperando a que OBS confirme.!]",
+            "[¡Transmisión detenida.!]",
+        ])
+
+    def test_espera_agotada_marca_el_aviso(self):
+        supervisor, anuncios, _ = self._supervisor_detener(
+            [muestra(True)] * 200)
+        with con_pseudo():
+            supervisor._detener_obs()
+        marcados = self._exigir_marcados(anuncios)
+        self.assertIn("[¡OBS sigue transmitiendo. Detén la transmisión en "
+                      "OBS.!]", marcados)
+
+    def test_sin_respuesta_marca_los_dos_caminos(self):
+        supervisor, anuncios, _ = self._supervisor_detener([muestra(True)])
+        with mock.patch.object(
+                obs_supervisor.obs_activacion,
+                "obs_esta_en_ejecucion", return_value=True), con_pseudo():
+            supervisor._crear_gestor = lambda: GestorFalso(fallo="conectar")
+            supervisor._detener_obs()
+        self.assertEqual(self._exigir_marcados(anuncios), [
+            "[¡No se pudo conectar con OBS para detener la transmisión.!]",
+        ])
+
+    def test_fin_que_falla_marca_el_aviso_y_el_reintento(self):
+        def finalizar(id_video):
+            raise RuntimeError("sin red")
+
+        with tempfile.TemporaryDirectory() as carpeta:
+            ruta = Path(carpeta) / "fin_pendiente.json"
+            supervisor, anuncios = self._supervisor_fin(ruta, finalizar)
+            with con_pseudo():
+                supervisor._finalizar_youtube_si_toca()
+                self.assertTrue(esperar_condicion(
+                    lambda: any("al abrir Bellbird" in frase
+                                for frase, _ in anuncios)))
+            marcados = self._exigir_marcados(anuncios)
+            self.assertIn("[¡YouTube no confirmó el fin del directo. Se "
+                          "reintentará durante 10 minutos.!]", marcados)
+            self.assertTrue(any("Bellbird" in frase for frase in marcados))
+
+    def test_reintento_marca_el_fin(self):
+        llamadas = []
+
+        def finalizar(id_video):
+            llamadas.append(id_video)
+            if len(llamadas) <= 2:
+                raise RuntimeError("sin red")
+
+        with tempfile.TemporaryDirectory() as carpeta:
+            ruta = Path(carpeta) / "fin_pendiente.json"
+            supervisor, anuncios = self._supervisor_fin(ruta, finalizar)
+            with con_pseudo():
+                supervisor._finalizar_youtube_si_toca()
+                self.assertTrue(esperar_condicion(
+                    lambda: "[¡Directo finalizado en YouTube.!]" in [
+                        frase for frase, _ in anuncios]))
+        self.assertIn("[¡Directo finalizado en YouTube.!]",
+                      self._exigir_marcados(anuncios))
+
+    def test_panel_tapado_marca_con_el_nombre(self):
+        supervisor, anuncios = self.armar()[:2]
+        with con_pseudo():
+            supervisor._anunciar_panel_tapado("Captura de pantalla")
+        self.assertEqual(len(anuncios), 1)
+        frase, sonido = anuncios[0]
+        self.assertTrue(frase.startswith("[¡"), frase)
+        self.assertIn("Captura de pantalla", frase)
+        self.assertEqual(sonido, "aviso")
+
+    def test_frase_estado_marca_con_destino_confirmado(self):
+        supervisor = self.armar(destino="TikTok")[0]
+        supervisor._ultimo_estado = {"outputActive": True,
+                                     "outputDuration": 180,
+                                     "outputSkippedFrames": 0,
+                                     "outputTotalFrames": 100}
+        supervisor._destino_confirmado = True
+        with con_pseudo():
+            frase = supervisor.frase_estado()
+        self.assertTrue(frase.startswith("[¡"), frase)
+        self.assertIn("TikTok", frase)
+
+    def test_frase_estado_repite_la_ultima_marcada(self):
+        supervisor = self.armar()[0]
+        with con_pseudo():
+            supervisor._anunciar(
+                _("Esperando a que TikTok muestre el directo."), None)
+            frase = supervisor.frase_estado()
+        self.assertTrue(frase.startswith("[¡"), frase)
+
+    def test_duracion_legible_marca_las_unidades(self):
+        with con_pseudo():
+            self.assertEqual(duracion_legible(5), "[¡5 segundos!]")
+            self.assertEqual(duracion_legible(61),
+                             "[¡1 minuto!] y [¡1 segundo!]")
+            self.assertEqual(duracion_legible(3661),
+                             "[¡1 hora!], [¡1 minuto!] y [¡1 segundo!]")
+
+    def test_fin_de_vigilancia_marca_la_duracion(self):
+        estados = [muestra(True, duracion=61),
+                   muestra(False, duracion=61)]
+        armado = self.armar(destino="YouTube", estados=estados,
+                            intervalo=0.01)
+        supervisor, anuncios, _, _, _, _, _ = armado
+        # Dormir real cortito: la vigilancia pide dos muestras con una
+        # siesta mínima en medio.
+        supervisor._dormir = time.sleep
+        with con_pseudo():
+            self.iniciar_y_esperar_fin(supervisor)
+        fines = [(frase, sonido) for frase, sonido in anuncios
+                 if sonido == "transmision_detenida" and "Duró" in frase]
+        self.assertEqual(len(fines), 1)
+        self.assertTrue(fines[0][0].startswith("[¡"), fines[0][0])
 
 
 if __name__ == "__main__":

@@ -10,22 +10,25 @@ from __future__ import annotations
 import base64
 from dataclasses import dataclass
 
+from ytchat.core.idioma import N_, _
 from ytchat.obs.obs_png import imagen_vacia_png
 from ytchat.obs import obs_grabacion
 
 
 # Tipo legible por inputKind. Lo que no está acá se muestra tal cual.
 _TIPOS = {
-    "window_capture": "captura de ventana",
-    "game_capture": "captura de juego",
-    "monitor_capture": "captura de pantalla",
-    "dshow_input": "cámara",
-    "browser_source": "navegador",
-    "image_source": "imagen",
-    "ffmpeg_source": "vídeo",
-    "text_gdiplus_v3": "texto",
-    "text_gdiplus": "texto",
+    "window_capture": N_("captura de ventana"),
+    "game_capture": N_("captura de juego"),
+    "monitor_capture": N_("captura de pantalla"),
+    "dshow_input": N_("cámara"),
+    "browser_source": N_("navegador"),
+    "image_source": N_("imagen"),
+    "ffmpeg_source": N_("vídeo"),
+    "text_gdiplus_v3": N_("texto"),
+    "text_gdiplus": N_("texto"),
 }
+
+_TIPO_ESCENA = N_("escena")
 
 _MICROFONO = "wasapi_input_capture"
 _ESCRITORIO = "wasapi_output_capture"
@@ -100,10 +103,10 @@ def _leer_imagen_vacia(cliente, escena, parada) -> bool | None:
 
 def _formato(ancho, alto) -> str:
     if alto > ancho:
-        return "vertical"
+        return _("vertical")
     if ancho > alto:
-        return "horizontal"
-    return "cuadrado"
+        return _("horizontal")
+    return _("cuadrado")
 
 
 def _base_obs(cliente, destino, parada):
@@ -148,7 +151,7 @@ def _detalle_fuente(cliente, nombre, clase, parada) -> str:
             ajustes = {}
         url = str(ajustes.get("url", "") or "").strip()
         if url.endswith("/chat"):
-            return "panel de chat de la app"
+            return _("panel de chat de la app")
         return ""
     return ""
 
@@ -160,9 +163,9 @@ def _fuentes_obs(cliente, elementos, por_nombre, escenas, parada) -> list:
         visible = bool(elemento.get("sceneItemEnabled", True))
         clase = por_nombre.get(nombre, {}).get("inputKind", "") or ""
         if nombre in escenas:
-            tipo = "escena"
+            tipo = _(_TIPO_ESCENA)
         elif clase:
-            tipo = _TIPOS.get(clase, clase)
+            tipo = _(_TIPOS[clase]) if clase in _TIPOS else clase
         else:
             tipo = ""
         fuentes.append(Fuente(nombre, tipo,
@@ -196,24 +199,23 @@ def _audio_obs(cliente, entradas, parada) -> list:
 def _problemas_revision(perfil, destino, audio, fuentes, imagen) -> list:
     problemas = []
     if perfil != destino:
-        problemas.append(f"OBS está en el perfil {perfil}, no en {destino}. "
-                         "Pulsa Preparar destino.")
+        problemas.append(_("OBS está en el perfil {perfil}, no en {destino}. Pulsa "
+                           "Preparar destino.").format(perfil=perfil, destino=destino))
     for entrada in audio:
         if not entrada.escritorio and entrada.silenciada:
-            problemas.append(f"El micrófono {entrada.nombre} está silenciado.")
+            problemas.append(_("El micrófono {nombre} está silenciado.").format(
+                nombre=entrada.nombre))
     for entrada in audio:
         if entrada.escritorio and entrada.silenciada:
-            problemas.append(f"El audio del escritorio {entrada.nombre} "
-                             "está silenciado.")
+            problemas.append(_("El audio del escritorio {nombre} está silenciado.").format(
+                nombre=entrada.nombre))
     if not any(fuente.visible for fuente in fuentes):
-        problemas.append("La escena no tiene ninguna fuente visible. "
-                         "Para agregar una: Transmisión, sección Escena, "
-                         "elegir la ventana en Ventana que se captura y "
-                         "pulsar Usar esa ventana.")
+        problemas.append(_("La escena no tiene ninguna fuente visible. "
+                           "Para agregar una: Transmisión, sección Escena, elegir la ventana "
+                           "en Ventana que se captura y pulsar Usar esa ventana."))
     if imagen is True:
-        problemas.append("La imagen está vacía: la escena se ve en negro. "
-                         "Revisar que la ventana capturada esté abierta y "
-                         "no minimizada.")
+        problemas.append(_("La imagen está vacía: la escena se ve en negro. "
+                           "Revisar que la ventana capturada esté abierta y no minimizada."))
     return problemas
 
 
@@ -228,7 +230,7 @@ def revisar(cliente, destino, parada=None, grabar=False) -> Revision:
     avisos = ()
     if grabar and obs_grabacion.codificador_propio_en_obs(
             cliente, parada) is True:
-        avisos = (obs_grabacion.AVISO_CODIFICADOR,)
+        avisos = (_(obs_grabacion.AVISO_CODIFICADOR),)
     return Revision(destino, perfil, coleccion, lienzo.get("baseWidth"),
                     lienzo.get("baseHeight"), escena, tuple(fuentes),
                     tuple(audio), imagen, tuple(problemas), tuple(avisos))
@@ -236,34 +238,33 @@ def revisar(cliente, destino, parada=None, grabar=False) -> Revision:
 
 def frase_revision(revision) -> str:
     """Resume la revisión en frases para leer antes de confirmar."""
-    texto = f"Destino {revision.destino}. "
+    partes = [_("Destino {destino}.").format(destino=revision.destino)]
     if isinstance(revision.ancho, int) and isinstance(revision.alto, int):
-        texto += (f"Perfil {revision.perfil}, formato "
-                  f"{_formato(revision.ancho, revision.alto)} "
-                  f"{revision.ancho} por {revision.alto}. ")
+        partes.append(_("Perfil {perfil}, formato {formato} {ancho} por {alto}.").format(
+            perfil=revision.perfil, formato=_formato(revision.ancho, revision.alto),
+            ancho=revision.ancho, alto=revision.alto))
     else:
-        texto += f"Perfil {revision.perfil}. "
-    texto += f"Escena al aire: {revision.escena}. "
+        partes.append(_("Perfil {perfil}.").format(perfil=revision.perfil))
+    partes.append(_("Escena al aire: {escena}.").format(escena=revision.escena))
     visibles = [fuente for fuente in revision.fuentes if fuente.visible]
     if visibles:
-        nombres = []
-        for fuente in visibles:
-            etiqueta = f"{fuente.tipo} {fuente.detalle or fuente.nombre}".strip()
-            nombres.append(etiqueta if etiqueta else fuente.nombre)
-        texto += "Fuentes: " + ", ".join(nombres) + ". "
+        nombres = [(f"{fuente.tipo} {fuente.detalle or fuente.nombre}".strip()
+                     or fuente.nombre) for fuente in visibles]
+        partes.append(_("Fuentes: {fuentes}.").format(fuentes=", ".join(nombres)))
     else:
-        texto += "Sin fuentes visibles. "
+        partes.append(_("Sin fuentes visibles."))
     for entrada in revision.audio:
-        estado = "silenciado" if entrada.silenciada else "con sonido"
+        estado = _("silenciado") if entrada.silenciada else _("con sonido")
         if not entrada.escritorio:
-            texto += f"Micrófono {entrada.nombre} {estado}. "
+            partes.append(_("Micrófono {nombre} {estado}.").format(
+                nombre=entrada.nombre, estado=estado))
         elif entrada.nombre == "Audio del escritorio":
-            texto += f"Audio del escritorio {estado}. "
+            partes.append(_("Audio del escritorio {estado}.").format(estado=estado))
         else:
-            texto += f"Audio del escritorio {entrada.nombre} {estado}. "
-    texto = texto.strip()
+            partes.append(_("Audio del escritorio {nombre} {estado}.").format(
+                nombre=entrada.nombre, estado=estado))
     if revision.problemas:
-        texto += " Atención: " + " ".join(revision.problemas)
+        partes.append(_("Atención: {problemas}").format(problemas=" ".join(revision.problemas)))
     if revision.avisos:
-        texto += " " + " ".join(revision.avisos)
-    return texto
+        partes.append(" ".join(revision.avisos))
+    return " ".join(partes)

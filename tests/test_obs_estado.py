@@ -1,6 +1,8 @@
 import re
 import unittest
 
+from tests.pseudo_prueba import con_pseudo
+from ytchat.core.idioma import _
 from ytchat.obs import obs_estado
 
 
@@ -65,6 +67,62 @@ class FrasesObsTest(unittest.TestCase):
         }
         self.assertEqual({accion: obs_estado.frase_resultado(accion)
                           for accion in esperadas}, esperadas)
+
+
+class TestPseudoEstado(unittest.TestCase):
+    """Pseudotraducción de los textos de `obs_estado`.
+
+    Sin ventanas: llama a las funciones bajo `con_pseudo()` y exige cada
+    texto propio marcado. Los datos (nombres de escena, duraciones,
+    tiempos) viajan con ejemplos y se exigen presentes.
+    """
+
+    def test_nota_se_traduce_donde_se_usa(self):
+        with con_pseudo():
+            self.assertTrue(_(obs_estado.NOTA_TRANSMISION).startswith("[¡"))
+
+    def test_frase_transmision_marca_activa_e_inactiva(self):
+        with con_pseudo():
+            self.assertTrue(obs_estado.frase_transmision(
+                False, 0, 0, 0).startswith("[¡"))
+            activa = obs_estado.frase_transmision(True, 61, 0, 100)
+            self.assertTrue(activa.startswith("[¡"), activa)
+            self.assertIn("1 min", activa)
+            con_perdidos = obs_estado.frase_transmision(True, 3600, 4, 100)
+            self.assertTrue(con_perdidos.startswith("[¡"), con_perdidos)
+            self.assertIn("4", con_perdidos)
+            self.assertIn("de 100", con_perdidos)
+
+    def test_frase_grabacion_marca_los_tres_caminos(self):
+        with con_pseudo():
+            self.assertTrue(obs_estado.frase_grabacion(
+                False, False, "00:00:00.000").startswith("[¡"))
+            en_pausa = obs_estado.frase_grabacion(True, True, "01:02:03.456")
+            self.assertTrue(en_pausa.startswith("[¡"), en_pausa)
+            self.assertIn("01:02:03", en_pausa)
+            grabando = obs_estado.frase_grabacion(True, False, "00:01:02.000")
+            self.assertTrue(grabando.startswith("[¡"), grabando)
+            self.assertIn("00:01:02", grabando)
+
+    def test_frase_escena_marca_con_y_sin_nombre(self):
+        with con_pseudo():
+            con_nombre = obs_estado.frase_escena_al_aire("Escena")
+            self.assertTrue(con_nombre.startswith("[¡"), con_nombre)
+            self.assertIn("Escena", con_nombre)
+            self.assertTrue(obs_estado.frase_escena_al_aire(
+                "").startswith("[¡"))
+
+    def test_resultados_se_traducen_donde_se_usan(self):
+        acciones = ("transmision_iniciada", "transmision_detenida",
+                    "grabacion_iniciada", "grabacion_detenida",
+                    "grabacion_en_pausa", "grabacion_reanudada",
+                    "escena_cambiada")
+        with con_pseudo():
+            for accion in acciones:
+                with self.subTest(accion=accion):
+                    self.assertTrue(
+                        _(obs_estado.frase_resultado(accion)).startswith(
+                            "[¡"), accion)
 
 
 if __name__ == "__main__":

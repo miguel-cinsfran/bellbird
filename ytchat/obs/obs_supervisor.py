@@ -14,6 +14,7 @@ import time
 
 from ytchat.capture import tiktok_vivo
 from ytchat.core import config, diagnostico
+from ytchat.core.idioma import _, ngettext
 from ytchat.obs import obs_activacion
 from ytchat.obs import obs_cliente
 from ytchat.obs import obs_estado
@@ -61,11 +62,11 @@ def duracion_legible(segundos) -> str:
     minutos, resto = divmod(resto, 60)
     partes = []
     if horas:
-        partes.append(f"{horas} hora" if horas == 1 else f"{horas} horas")
+        partes.append(ngettext("{n} hora", "{n} horas", horas).format(n=horas))
     if minutos:
-        partes.append(f"{minutos} minuto" if minutos == 1 else f"{minutos} minutos")
+        partes.append(ngettext("{n} minuto", "{n} minutos", minutos).format(n=minutos))
     if resto or not partes:
-        partes.append(f"{resto} segundo" if resto == 1 else f"{resto} segundos")
+        partes.append(ngettext("{n} segundo", "{n} segundos", resto).format(n=resto))
     if len(partes) == 1:
         return partes[0]
     return ", ".join(partes[:-1]) + " y " + partes[-1]
@@ -96,8 +97,7 @@ class SupervisorTransmision:
         self._reloj = reloj
         self._intervalo_salud = intervalo_salud
         self._limite_tiktok = limite_tiktok
-        self._asegurar = (asegurar if asegurar is not None
-                          else obs_lanzador.asegurar_obs)
+        self._asegurar = asegurar if asegurar is not None else obs_lanzador.asegurar_obs
         self._al_terminar = al_terminar
         self._preparar_emision = preparar_emision
         self._esperar_emision = esperar_emision
@@ -138,19 +138,19 @@ class SupervisorTransmision:
         ultimo = self._ultimo_estado
         if ultimo is not None and bool(ultimo.get("outputActive")):
             try:
-                frase = obs_estado.frase_transmision(
-                    ultimo.get("outputActive"),
-                    ultimo.get("outputDuration", 0),
-                    ultimo.get("outputSkippedFrames", 0),
-                    ultimo.get("outputTotalFrames", 0))
+                frase = obs_estado.frase_transmision(ultimo.get("outputActive"),
+                                                     ultimo.get("outputDuration", 0),
+                                                     ultimo.get("outputSkippedFrames", 0),
+                                                     ultimo.get("outputTotalFrames", 0))
             except Exception:
                 frase = ""
             if frase:
                 if self._destino_confirmado is True:
-                    frase += f", ya se ve en {self._destino}"
+                    frase = _("{frase}, ya se ve en {destino}").format(frase=frase, destino=self._destino)
                 elif self._destino_confirmado is False:
-                    frase += f", sin confirmar en {self._destino}"
-                return f"Directo a {self._destino}: {frase}"
+                    frase = _("{frase}, sin confirmar en {destino}").format(
+                        frase=frase, destino=self._destino)
+                return _("Directo a {destino}: {frase}").format(destino=self._destino, frase=frase)
         texto = (self._ultima_frase or "").strip()
         if texto.endswith("."):
             texto = texto[:-1].rstrip()
@@ -461,8 +461,7 @@ class SupervisorTransmision:
         except Exception as error:
             try:
                 self._anunciar(
-                    "YouTube no confirmó el fin del directo. "
-                    "Se reintentará durante 10 minutos.",
+                    _("YouTube no confirmó el fin del directo. Se reintentará durante 10 minutos."),
                     "transmision_problema")
             except Exception:
                 pass
@@ -573,9 +572,8 @@ class SupervisorTransmision:
                 self._anunciar(frase, SONIDOS_AVISO[tipo])
             nombre = self._panel_tapado(gestor)
             if nombre:
-                frase_panel = (
-                    f"El panel de chat estaba detrás de «{nombre}». "
-                    "Ahora está delante.")
+                frase_panel = (_("El panel de chat estaba detrás de «{nombre}». Ahora está "
+                                 "delante.").format(nombre=nombre))
                 ahora = self._reloj()
                 ultimo = ultimos_avisos.get(frase_panel)
                 if ultimo is None or ahora - ultimo >= PLAZO_REPETICION:

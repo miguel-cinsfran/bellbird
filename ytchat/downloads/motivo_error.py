@@ -7,6 +7,8 @@ que quien llama conserve su mensaje de hoy. Función pura.
 
 from __future__ import annotations
 
+from ytchat.core.idioma import _
+
 
 def motivo_de_error(linea) -> str | None:
     """El motivo en llano de esa línea de error de yt-dlp, o None.
@@ -18,15 +20,15 @@ def motivo_de_error(linea) -> str | None:
         return None
     texto = linea.casefold()
     if "confirm your age" in texto or "age-restricted" in texto:
-        return ("El vídeo tiene restricción de edad y YouTube pide "
-                "iniciar sesión.")
+        return (_("El vídeo tiene restricción de edad y YouTube pide "
+                  "iniciar sesión."))
     if "private video" in texto:
-        return "El vídeo es privado."
+        return _("El vídeo es privado.")
     if "members-only" in texto or "join this channel" in texto:
-        return "El vídeo es solo para miembros del canal."
+        return _("El vídeo es solo para miembros del canal.")
     if "not a bot" in texto:
-        return ("YouTube pide confirmar que no eres un robot. Vuelve a "
-                "intentarlo más tarde.")
+        return (_("YouTube pide confirmar que no eres un robot. Vuelve a "
+                  "intentarlo más tarde."))
     if "video unavailable" in texto or "this video is not available" in texto:
-        return "El vídeo no está disponible."
+        return _("El vídeo no está disponible.")
     return None

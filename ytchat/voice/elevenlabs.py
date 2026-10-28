@@ -15,6 +15,7 @@ import urllib.parse
 import urllib.request
 
 from ytchat.core import diagnostico
+from ytchat.core.idioma import N_, _
 from ytchat.voice import escala_voz
 
 logger = diagnostico.obtener_logger(__name__)
@@ -33,11 +34,12 @@ MOTIVO_LIMITE = "limite"
 MOTIVO_RED = "red"
 MOTIVO_OTRO = "otro"
 
-_MSG_CLAVE = "La clave de ElevenLabs no es válida."
-_MSG_SALDO = "Se acabó el saldo de ElevenLabs."
-_MSG_LIMITE = "ElevenLabs está recibiendo demasiadas peticiones."
-_MSG_RED = "No se pudo conectar con ElevenLabs."
-_MSG_OTRO = "ElevenLabs devolvió un error {codigo}."
+_MSG_CLAVE = N_("La clave de ElevenLabs no es válida.")
+_MSG_SALDO = N_("Se acabó el saldo de ElevenLabs.")
+_MSG_LIMITE = N_("ElevenLabs está recibiendo demasiadas peticiones.")
+_MSG_RED = N_("No se pudo conectar con ElevenLabs.")
+# Traductores: {codigo} es el código de error de ElevenLabs.
+_MSG_OTRO = N_("ElevenLabs devolvió un error {codigo}.")
 
 
 class ElevenLabsError(Exception):
@@ -56,14 +58,14 @@ def _error_de_http(exc) -> ElevenLabsError:
     except Exception:
         cuerpo = ""
     if codigo == 429:
-        return ElevenLabsError(MOTIVO_LIMITE, _MSG_LIMITE)
+        return ElevenLabsError(MOTIVO_LIMITE, _(_MSG_LIMITE))
     # 402 es saldo por contrato; 401 trae `quota_exceeded` en el cuerpo cuando
     # en realidad es saldo y no una clave mala.
     if codigo == 402 or (codigo == 401 and "quota_exceeded" in cuerpo):
-        return ElevenLabsError(MOTIVO_SALDO, _MSG_SALDO)
+        return ElevenLabsError(MOTIVO_SALDO, _(_MSG_SALDO))
     if codigo == 401:
-        return ElevenLabsError(MOTIVO_CLAVE, _MSG_CLAVE)
-    return ElevenLabsError(MOTIVO_OTRO, _MSG_OTRO.format(codigo=codigo))
+        return ElevenLabsError(MOTIVO_CLAVE, _(_MSG_CLAVE))
+    return ElevenLabsError(MOTIVO_OTRO, _(_MSG_OTRO).format(codigo=codigo))
 
 
 class ClienteElevenLabs:
@@ -83,7 +85,7 @@ class ClienteElevenLabs:
             raise _error_de_http(exc) from exc
         except (urllib.error.URLError, OSError) as exc:
             # URLError cubre DNS, tiempo agotado y sin conexión.
-            raise ElevenLabsError(MOTIVO_RED, _MSG_RED) from exc
+            raise ElevenLabsError(MOTIVO_RED, _(_MSG_RED)) from exc
 
     def _peticion(self, metodo: str, url: str, cuerpo=None, aceptar=None):
         cabeceras = {"xi-api-key": self._clave}
@@ -101,7 +103,7 @@ class ClienteElevenLabs:
         try:
             return json.loads(bruto.decode("utf-8"))
         except Exception as exc:
-            raise ElevenLabsError(MOTIVO_OTRO, _MSG_OTRO.format(codigo=200)) from exc
+            raise ElevenLabsError(MOTIVO_OTRO, _(_MSG_OTRO).format(codigo=200)) from exc
 
     def voces(self) -> list[tuple[str, str]]:
         """Todas las voces (id, nombre), recorriendo las páginas."""

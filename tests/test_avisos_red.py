@@ -3,6 +3,7 @@
 import unittest
 
 from ytchat.core.avisos_red import mensaje_de_fallo
+from tests.pseudo_prueba import con_pseudo
 
 
 class TestMensajeDeFallo(unittest.TestCase):
@@ -34,6 +35,25 @@ class TestMensajeDeFallo(unittest.TestCase):
         general = "No se pudo consultar la información del vídeo. Inténtalo de nuevo más tarde."
         self.assertEqual(mensaje_de_fallo(None), general)
         self.assertEqual(mensaje_de_fallo(""), general)
+
+
+class TestPseudoAvisos(unittest.TestCase):
+    """Pseudotraducción: cada aviso de fallo de red sale marcado."""
+
+    def test_todos_los_fallos_salen_marcados(self):
+        with con_pseudo():
+            mensajes = [
+                mensaje_de_fallo("ERROR: 429 Too Many Requests"),
+                mensaje_de_fallo("Connection timed out"),
+                mensaje_de_fallo("Private video removed"),
+                mensaje_de_fallo("fallo inesperado"),
+                mensaje_de_fallo(None),
+                mensaje_de_fallo(""),
+            ]
+        self.assertEqual(len(mensajes), 6)
+        for mensaje in mensajes:
+            with self.subTest(mensaje=mensaje):
+                self.assertTrue(mensaje.startswith("[¡"), mensaje)
 
 
 if __name__ == "__main__":

@@ -6,6 +6,7 @@ import unittest
 import urllib.error
 
 from ytchat.voice import elevenlabs
+from tests.pseudo_prueba import con_pseudo
 
 
 class _RespuestaFalsa:
@@ -183,6 +184,53 @@ class TestContraLaRed(unittest.TestCase):
             self.assertEqual(str(exc), "La clave de ElevenLabs no es válida.")
         else:
             self.fail(f"con una clave inventada no debería haber voces: {voces!r}")
+
+
+class TestPseudoMensajes(unittest.TestCase):
+    """Pseudotraducción: las constantes y cada error salen marcados."""
+
+    def test_constantes_en_espanol(self):
+        self.assertEqual(elevenlabs._MSG_CLAVE,
+                         "La clave de ElevenLabs no es válida.")
+        self.assertEqual(elevenlabs._MSG_SALDO,
+                         "Se acabó el saldo de ElevenLabs.")
+        self.assertEqual(elevenlabs._MSG_LIMITE,
+                         "ElevenLabs está recibiendo demasiadas peticiones.")
+        self.assertEqual(elevenlabs._MSG_RED,
+                         "No se pudo conectar con ElevenLabs.")
+        self.assertEqual(elevenlabs._MSG_OTRO,
+                         "ElevenLabs devolvió un error {codigo}.")
+
+    def _mensaje(self, exc):
+        cliente = elevenlabs.ClienteElevenLabs(
+            "k", abrir=_abrir_que_lanza(exc))
+        with self.assertRaises(elevenlabs.ElevenLabsError) as ctx:
+            cliente.voces()
+        return str(ctx.exception)
+
+    def test_todos_los_errores_salen_marcados(self):
+        with con_pseudo():
+            mensajes = [
+                self._mensaje(_http_error(401, b'{"detail":"unauthorized"}')),
+                self._mensaje(_http_error(
+                    401, b'{"detail":{"status":"quota_exceeded"}}')),
+                self._mensaje(_http_error(402, b"")),
+                self._mensaje(_http_error(429, b"")),
+                self._mensaje(_http_error(500, b"")),
+                self._mensaje(urllib.error.URLError("sin ruta al host")),
+            ]
+            cliente = elevenlabs.ClienteElevenLabs(
+                "k", abrir=_abrir_con(b"no es json"))
+            try:
+                cliente.voces()
+            except elevenlabs.ElevenLabsError as exc:
+                mensajes.append(str(exc))
+            else:
+                self.fail("un cuerpo que no es json debería fallar")
+        self.assertEqual(len(mensajes), 7)
+        for mensaje in mensajes:
+            with self.subTest(mensaje=mensaje):
+                self.assertTrue(mensaje.startswith("[¡"), mensaje)
 
 
 if __name__ == "__main__":

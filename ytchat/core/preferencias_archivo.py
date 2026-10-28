@@ -13,6 +13,7 @@ from pathlib import Path
 from ytchat.core import archivos
 from ytchat.core import config_predeterminada
 from ytchat.core import paths
+from ytchat.core.idioma import _
 
 # Más de esto no es un archivo de preferencias: se rechaza sin leerlo entero.
 LIMITE_BYTES = 1_048_576
@@ -27,13 +28,13 @@ def motivo_no_importable(origen) -> str | None:
     origen = Path(origen)
     try:
         if origen.stat().st_size > LIMITE_BYTES:
-            return "Ese archivo pesa más de 1 MB."
+            return _("Ese archivo pesa más de 1 MB.")
     except OSError:
-        return "No se pudo leer ese archivo."
+        return _("No se pudo leer ese archivo.")
     try:
         texto = origen.read_text(encoding="utf-8")
     except (OSError, UnicodeError):
-        return "No se pudo leer ese archivo."
+        return _("No se pudo leer ese archivo.")
     # Mismo molde con el que la aplicación lee su configuración: sin
     # interpolación y sin sección por defecto.
     parser = configparser.ConfigParser(
@@ -41,10 +42,10 @@ def motivo_no_importable(origen) -> str | None:
     try:
         parser.read_string(texto)
     except configparser.Error:
-        return "Ese archivo no es de preferencias de la aplicación."
+        return _("Ese archivo no es de preferencias de la aplicación.")
     conocidas = set(config_predeterminada.secciones())
     if not any(seccion in conocidas for seccion in parser.sections()):
-        return "Ese archivo no es de preferencias de la aplicación."
+        return _("Ese archivo no es de preferencias de la aplicación.")
     return None
 
 

@@ -3,6 +3,7 @@
 import unittest
 
 from ytchat.downloads.motivo_error import motivo_de_error
+from tests.pseudo_prueba import con_pseudo
 
 
 EDAD = ("ERROR: [youtube] O2yixU7XjGU: Sign in to confirm your age. Use "
@@ -70,6 +71,26 @@ class TestMotivoDeError(unittest.TestCase):
 
     def test_vacio_da_none(self):
         self.assertIsNone(motivo_de_error(""))
+
+
+class TestPseudoMotivos(unittest.TestCase):
+    """Pseudotraducción: cada motivo conocido sale marcado."""
+
+    def test_todos_los_motivos_salen_marcados(self):
+        lineas = [
+            EDAD,
+            "ERROR: [youtube] abc: This video is age-restricted.",
+            "ERROR: [youtube] abc: Private video.",
+            "ERROR: [youtube] abc: This is a members-only video.",
+            "ERROR: [youtube] abc: Sign in to confirm you're not a bot.",
+            "ERROR: [youtube] abc: Video unavailable.",
+        ]
+        with con_pseudo():
+            motivos = [motivo_de_error(linea) for linea in lineas]
+        self.assertEqual(len(motivos), len(lineas))
+        for motivo in motivos:
+            with self.subTest(motivo=motivo):
+                self.assertTrue(motivo.startswith("[¡"), motivo)
 
 
 if __name__ == "__main__":

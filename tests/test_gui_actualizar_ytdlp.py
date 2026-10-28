@@ -2,7 +2,7 @@
 
 La lógica corre sin ventanas con una ventana falsa; la pseudotraducción de
 la ventana real la corre el advisor en la otra PC. El texto final lo arma
-`ytchat/downloads/ytdlp_bin.py`: pasa tal cual, sin marcar.
+`ytchat/downloads/ytdlp_bin.py` y llega marcado.
 """
 
 import unittest
@@ -93,7 +93,7 @@ class TestVentanaYtdlp(unittest.TestCase):
             ventana_ytdlp.abrir_ventana_actualizacion(frame)
         return frame, ventanas[0]
 
-    def test_abre_busca_y_pasa_el_texto_ajeno(self):
+    def test_abre_busca_y_pasa_el_texto_marcado(self):
         def actualizar(avisar=None, progreso=None, cancelar=None):
             return ("ya_al_dia", "1.0", "1.0")
 
@@ -104,7 +104,7 @@ class TestVentanaYtdlp(unittest.TestCase):
         self.assertEqual(ventana.titulo, "[¡Actualizar yt-dlp!]")
         self.assertEqual(ventana.estados[0],
                          "[¡Buscando la última versión de yt-dlp.!]")
-        self.assertIn("Ya tienes yt-dlp al día, versión 1.0.",
+        self.assertIn("[¡Ya tienes yt-dlp al día, versión 1.0.!]",
                       ventana.estados)
         self.assertEqual(ventana.progresos, [100])
 

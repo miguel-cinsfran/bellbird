@@ -16,13 +16,12 @@ from urllib.request import Request, urlopen
 from ytchat.core import diagnostico
 from ytchat.downloads import ffmpeg_bin
 from ytchat.core import paths
+from ytchat.core.idioma import _
 from ytchat.player.esclavo_audio import TAMANIO_MINIMO
 from ytchat.downloads.progreso_ytdlp import PLANTILLA, analizar_linea_progreso
 
 
-URL_API_RELEASES = (
-    "https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest"
-)
+URL_API_RELEASES = "https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest"
 USER_AGENT = "ytchat-tts/2.0"
 NOMBRE_BINARIO = paths.NOMBRE_YTDLP
 NOMBRE_FIRMAS = "SHA2-256SUMS"
@@ -53,18 +52,20 @@ def mensaje_de_actualizacion(estado, version_actual="", version_nueva="",
                              motivo="") -> str:
     """Elige el anuncio breve para cada resultado de la actualización."""
     if estado == "ya_al_dia":
-        return f"Ya tienes yt-dlp al día, versión {version_actual or version_nueva}."
+        # Traductores: {version} es la versión instalada o la nueva de yt-dlp.
+        return _("Ya tienes yt-dlp al día, versión {version}.").format(version=version_actual or version_nueva)
     if estado == "actualizado":
-        return f"yt-dlp se actualizó a la versión {version_nueva or version_actual}."
+        # Traductores: {version} es la versión nueva de yt-dlp.
+        return _("yt-dlp se actualizó a la versión {version}.").format(version=version_nueva or version_actual)
     if estado == "sin_conexion":
-        return "No se pudo comprobar la última versión de yt-dlp. Revisa la conexión a internet."
+        return _("No se pudo comprobar la última versión de yt-dlp. Revisa la conexión a internet.")
     if estado == "firma_incorrecta":
-        return ("La descarga de yt-dlp no pasó una comprobación de seguridad. "
-                "No se instaló nada.")
+        return _("La descarga de yt-dlp no pasó una comprobación de seguridad. No se instaló nada.")
     if estado == "cancelado":
-        return "Se canceló la descarga de yt-dlp."
-    mensaje = "No se pudo actualizar yt-dlp"
-    return f"{mensaje}: {motivo}." if motivo else f"{mensaje}."
+        return _("Se canceló la descarga de yt-dlp.")
+    if motivo:
+        return _("No se pudo actualizar yt-dlp: {motivo}.").format(motivo=motivo)
+    return _("No se pudo actualizar yt-dlp.")
 
 
 def _ruta_actualizada() -> Path:

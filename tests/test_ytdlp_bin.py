@@ -14,6 +14,7 @@ from unittest.mock import MagicMock, patch
 
 from ytchat.downloads import ytdlp_bin
 from ytchat.core import subprocesos
+from tests.pseudo_prueba import con_pseudo
 
 
 class PruebasYtdlpBin(unittest.TestCase):
@@ -874,6 +875,32 @@ class PruebasDescargarVideoCache(unittest.TestCase):
             self.assertIs(subprocess.DEVNULL, capturados.get("stdout"))
             self.assertIs(subprocess.DEVNULL, capturados.get("stderr"))
 
+
+
+class TestPseudoMensajesActualizacion(unittest.TestCase):
+    """Pseudotraducción: cada anuncio de actualización sale marcado."""
+
+    def test_todos_los_estados_salen_marcados(self):
+        with con_pseudo():
+            mensajes = [
+                ytdlp_bin.mensaje_de_actualizacion("ya_al_dia", "2026.08.20"),
+                ytdlp_bin.mensaje_de_actualizacion(
+                    "ya_al_dia", version_nueva="2026.08.21"),
+                ytdlp_bin.mensaje_de_actualizacion(
+                    "actualizado", "2026.08.20", "2026.08.21"),
+                ytdlp_bin.mensaje_de_actualizacion(
+                    "actualizado", version_nueva="2026.08.21"),
+                ytdlp_bin.mensaje_de_actualizacion("sin_conexion"),
+                ytdlp_bin.mensaje_de_actualizacion("firma_incorrecta"),
+                ytdlp_bin.mensaje_de_actualizacion("cancelado"),
+                ytdlp_bin.mensaje_de_actualizacion(
+                    "otro_fallo", motivo="permiso denegado"),
+                ytdlp_bin.mensaje_de_actualizacion("otro_fallo"),
+            ]
+        self.assertTrue(mensajes)
+        for mensaje in mensajes:
+            with self.subTest(mensaje=mensaje):
+                self.assertTrue(mensaje.startswith("[¡"), mensaje)
 
 
 if __name__ == "__main__":

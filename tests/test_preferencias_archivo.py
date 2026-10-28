@@ -11,6 +11,7 @@ from pathlib import Path
 from ytchat.core import config_predeterminada as pred
 from ytchat.core import paths
 from ytchat.core import preferencias_archivo as prefs
+from tests.pseudo_prueba import con_pseudo
 from tests.rutas_temporales import redirigir_rutas
 
 
@@ -179,6 +180,32 @@ class TestRestablecer(unittest.TestCase):
         prefs.importar(origen)
         self.assertEqual((self.datos / "config.anterior.ini").read_text(
             encoding="utf-8"), pred.generar_texto())
+
+
+class TestPseudoMotivos(unittest.TestCase):
+    """Pseudotraducción: cada motivo de rechazo sale marcado."""
+
+    def test_todos_los_motivos_salen_marcados(self):
+        with tempfile.TemporaryDirectory() as carpeta:
+            datos = Path(carpeta)
+            grande = datos / "grande.ini"
+            grande.write_bytes(b"[voz]\n" + b"x" * (prefs.LIMITE_BYTES + 1))
+            texto = datos / "texto.txt"
+            texto.write_text("esto no es un ini\nni [seccion\n",
+                             encoding="utf-8")
+            otro = datos / "otro.ini"
+            otro.write_text("[otro]\nclave = 1\n", encoding="utf-8")
+            with con_pseudo():
+                motivos = [
+                    prefs.motivo_no_importable(grande),
+                    prefs.motivo_no_importable(texto),
+                    prefs.motivo_no_importable(otro),
+                    prefs.motivo_no_importable(datos / "no-existe.ini"),
+                ]
+        self.assertEqual(len(motivos), 4)
+        for motivo in motivos:
+            with self.subTest(motivo=motivo):
+                self.assertTrue(motivo.startswith("[¡"), motivo)
 
 
 if __name__ == "__main__":

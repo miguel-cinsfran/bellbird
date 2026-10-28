@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from ytchat.core.idioma import _
+
 
 def mensaje_de_fallo(motivo) -> str:
     """Convierte el motivo de un fallo de red en un mensaje para el usuario."""
@@ -9,14 +11,14 @@ def mensaje_de_fallo(motivo) -> str:
 
     if any(señal in texto for señal in (
             "429", "too many requests", "sign in to confirm", "not a bot")):
-        return ("El servicio está recibiendo demasiadas solicitudes. "
-                "Vuelve a intentarlo en unos minutos.")
+        return (_("El servicio está recibiendo demasiadas solicitudes. "
+                  "Vuelve a intentarlo en unos minutos."))
     if any(señal in texto for señal in (
             "timeout", "timed out", "connection", "getaddrinfo", "network")):
-        return ("No se pudo consultar el vídeo porque la red no responde. "
-                "Comprueba la conexión e inténtalo de nuevo.")
+        return (_("No se pudo consultar el vídeo porque la red no responde. "
+                  "Comprueba la conexión e inténtalo de nuevo."))
     if any(señal in texto for señal in (
             "not available", "private video", "unavailable", "removed")):
-        return ("El vídeo no está disponible. Comprueba la dirección o que no "
-                "sea privado.")
-    return "No se pudo consultar la información del vídeo. Inténtalo de nuevo más tarde."
+        return (_("El vídeo no está disponible. Comprueba la dirección o que no "
+                  "sea privado."))
+    return _("No se pudo consultar la información del vídeo. Inténtalo de nuevo más tarde.")

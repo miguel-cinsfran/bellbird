@@ -27,7 +27,7 @@ def aplicar_en_caliente(frame):
     _aplicar_recientes(frame)
     frame._actualizar_vigilante_obs()
     from ytchat.ui import gui as _gui
-    _gui.anunciar("Preferencias aplicadas")
+    _gui.anunciar(_("Preferencias aplicadas"))
 
 
 def _reconstruir_atajos_y_menu(frame):
@@ -59,8 +59,8 @@ def _aplicar_voz(frame, voces_actuales):
                 frame._config.get("voz"), voces_nuevas)
             frame.poblar_voces(voces_nuevas, 0 if idx_nuevo is None else idx_nuevo)
             frame._worker.cambiar_motor(motor_cfg, frame._config.get("voz"))
-            _gui.anunciar(f"Motor de voz: "
-                          f"{motores.NOMBRES.get(motor_cfg, motor_cfg)}")
+            _gui.anunciar(_("Motor de voz: {nombre}").format(
+                nombre=_(motores.NOMBRES.get(motor_cfg, motor_cfg))))
         else:
             # Restaurar submenú de voz tras reconstruir (con lista vacía,
             # poblar_voces repone el item «(no disponible)»).

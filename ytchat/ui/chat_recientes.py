@@ -118,11 +118,11 @@ class LecturaRecientes:
                 if fallidos:
                     self._avisar(anuncios.aviso_atajos_globales_fallo(fallidos))
                 else:
-                    self._avisar(anuncios.Aviso(TEXTO_ACTIVOS))
+                    self._avisar(anuncios.Aviso(_(TEXTO_ACTIVOS)))
             elif self._globales.activos:
                 self._globales.desactivar()
                 self._globales_atajos = None
-                self._avisar(anuncios.Aviso(TEXTO_SOLO))
+                self._avisar(anuncios.Aviso(_(TEXTO_SOLO).format(app=config.APP_NAME)))
         except Exception:
             logger.exception("No se pudieron aplicar los atajos de recientes")
 

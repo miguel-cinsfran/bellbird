@@ -655,6 +655,41 @@ class TestTextosAviso(unittest.TestCase):
         self.assertFalse(actualizacion.debe_avisar("basura", "2.9.0", ""))
 
 
+class TestPseudoTextos(unittest.TestCase):
+    """Bajo pseudotraducción, cada frase al usuario sale marcada."""
+
+    def test_textos_de_resultado_salen_marcados(self):
+        with con_pseudo():
+            ok = actualizacion.texto_resultado(
+                {"resultado": "ok", "hacia": "2.3.0"}, "2.2.0")
+            fallo = actualizacion.texto_resultado(
+                {"resultado": "fallo", "motivo": "corte de luz"}, "2.2.0")
+        self.assertTrue(ok.startswith("[¡"), ok)
+        self.assertIn("2.3.0", ok)
+        self.assertTrue(fallo.startswith("[¡"), fallo)
+        self.assertIn("corte de luz", fallo)
+
+    def test_motivos_de_paquete_invalido_salen_marcados(self):
+        import tempfile
+        with con_pseudo():
+            with self.assertRaises(actualizacion.PaqueteInvalido) as manifiesto:
+                actualizacion.validar_paquete("/no/existe", "2.3.0")
+            with tempfile.TemporaryDirectory() as tmp:
+                base = Path(tmp)
+                (base / "manifiesto.json").write_text(
+                    '{"version": "9.9.9", "ejecutable": "App.exe"}',
+                    encoding="utf-8")
+                with mock.patch.object(actualizacion.paths,
+                                       "NOMBRE_MANIFIESTO", "manifiesto.json"):
+                    with self.assertRaises(
+                            actualizacion.PaqueteInvalido) as version:
+                        actualizacion.validar_paquete(base, "2.3.0")
+        for contexto in (manifiesto, version):
+            with self.subTest(mensaje=str(contexto.exception)):
+                self.assertTrue(str(contexto.exception).startswith("[¡"),
+                                str(contexto.exception))
+
+
 class TestRegistraLoQueFalla(unittest.TestCase):
     """Cada ESCONDE del motor deja su línea en el registro."""
 

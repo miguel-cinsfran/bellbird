@@ -286,7 +286,7 @@ class TTSWorker(threading.Thread):
             self._error_elevenlabs_ts = time.monotonic()
             if not self._aviso_dado:
                 self._aviso_dado = True
-                self._avisar(f"{exc} Se usa la voz de Windows.")
+                self._avisar(_("{detalle} Se usa la voz de Windows.").format(detalle=exc))
             respaldo = self._conseguir_respaldo()
             if respaldo is not None:
                 self._leer_frase(respaldo, texto)
@@ -304,7 +304,7 @@ class TTSWorker(threading.Thread):
         if tope > 0 and self._caracteres_elevenlabs() + len(texto) > tope:
             if not self._aviso_tope_dado:
                 self._aviso_tope_dado = True
-                self._avisar(_MSG_TOPE)
+                self._avisar(_(_MSG_TOPE))
             return self._conseguir_respaldo()
         if self._error_reciente():
             return self._conseguir_respaldo()

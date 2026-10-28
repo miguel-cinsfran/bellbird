@@ -31,7 +31,7 @@ class PruebaVoz:
         try:
             prueba = motores.MotorPrism(motor)
         except motores.MotorNoDisponible:
-            anunciar("No se pudo iniciar el motor de voz elegido.")
+            anunciar(_("No se pudo iniciar el motor de voz elegido."))
             return
         self._motor_prueba = prueba
         try:

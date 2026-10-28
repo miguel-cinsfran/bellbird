@@ -103,7 +103,7 @@ class GrabacionAlTransmitir:
                 return
         except Exception as error:
             logger.debug("no se pudo iniciar la grabación: %s", error)
-        self._al_anunciar(FALLO_GRABACION, "grabacion_problema")
+        self._al_anunciar(_(FALLO_GRABACION), "grabacion_problema")
 
     def al_detener(self, estado, real, parada=None):
         if estado.get("outputActive") or not self._la_empezo_la_app:

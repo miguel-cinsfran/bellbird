@@ -211,8 +211,8 @@ def _decidir_aviso(frame, paquete) -> None:
 
 def _avisar_version(version: str) -> None:
     try:
-        anunciar(f"Hay una versión nueva de {APP_NAME}, la {version}. "
-                  "Para instalarla: menú Ayuda, Buscar actualizaciones.")
+        anunciar(_("Hay una versión nueva de {app}, la {version}. "
+                  "Para instalarla: menú Ayuda, Buscar actualizaciones.").format(app=APP_NAME, version=version))
         guardar_version_avisada(version)
     except Exception as exc:
         logger.warning("aviso de versión: %s", exc)

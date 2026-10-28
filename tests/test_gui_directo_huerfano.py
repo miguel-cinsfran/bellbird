@@ -11,6 +11,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 from ytchat.ui import gui_directo_huerfano as huerfano
+from tests.pseudo_prueba import con_pseudo
 
 
 class TestDirectosSinImagen(unittest.TestCase):
@@ -193,6 +194,104 @@ class TestCableadoConsulta(unittest.TestCase):
                   if f is huerfano._anunciar_reintento_pendiente]
         self.assertEqual(len(avisos), 1)
         self.assertEqual(reintentar.call_count, 2)
+
+
+class TestPseudoPreguntarHuerfano(unittest.TestCase):
+    # Sin ventana: el MessageDialog va simulado. Los títulos de los
+    # directos son datos del usuario y van como ejemplo.
+
+    def _preguntar(self, huerfanos):
+        captado = {}
+        creados = []
+
+        def fabrica(padre, mensaje, titulo, estilo):
+            captado["mensaje"] = mensaje
+            captado["titulo"] = titulo
+            dialogo = mock.Mock()
+            dialogo.ShowModal.return_value = huerfano.wx.ID_YES
+            creados.append(dialogo)
+            return dialogo
+
+        frame = SimpleNamespace(
+            _alive=True,
+            _supervisar_transmision=mock.Mock(return_value=False))
+        with con_pseudo(), \
+                mock.patch.object(huerfano.wx, "MessageDialog", fabrica), \
+                mock.patch.object(huerfano.diagnostico, "crear_hilo"):
+            huerfano._preguntar(frame, huerfanos)
+        return captado, creados
+
+    def test_singular_marca_mensaje_titulo_y_botones(self):
+        captado, creados = self._preguntar([("vid1", "Charla")])
+        self.assertIn("Charla", captado["mensaje"])
+        self.assertTrue(captado["mensaje"].startswith("[¡"))
+        self.assertTrue(captado["titulo"].startswith("[¡"))
+        for etiqueta in creados[0].SetYesNoLabels.call_args.args:
+            self.assertTrue(etiqueta.startswith("[¡"), etiqueta)
+
+    def test_plural_marca_mensaje_titulo_y_botones(self):
+        captado, creados = self._preguntar(
+            [("vid1", "Charla"), ("vid2", "Música")])
+        self.assertNotIn("Charla", captado["mensaje"])
+        self.assertTrue(captado["mensaje"].startswith("[¡"))
+        self.assertTrue(captado["titulo"].startswith("[¡"))
+        for etiqueta in creados[0].SetYesNoLabels.call_args.args:
+            self.assertTrue(etiqueta.startswith("[¡"), etiqueta)
+
+
+class TestPseudoAnunciosHuerfano(unittest.TestCase):
+    # Sin ventana: marco y sonidos con dobles.
+
+    def setUp(self):
+        self.captados = []
+        parches = [
+            mock.patch.object(huerfano, "anunciar", self.captados.append),
+            mock.patch.object(huerfano._snd, "reproducir"),
+        ]
+        for parche in parches:
+            parche.start()
+            self.addCleanup(parche.stop)
+        pseudo = con_pseudo()
+        pseudo.__enter__()
+        self.addCleanup(pseudo.__exit__, None, None, None)
+
+    def _exigir_marcados(self, cantidad):
+        self.assertEqual(len(self.captados), cantidad)
+        for frase in self.captados:
+            self.assertTrue(frase.startswith("[¡"), frase)
+        del self.captados[:]
+
+    def _frame(self):
+        return SimpleNamespace(
+            _alive=True,
+            _supervisar_transmision=mock.Mock(return_value=False))
+
+    def test_dejar_al_aire_avisa_marcado(self):
+        dialogo = mock.Mock()
+        dialogo.ShowModal.return_value = huerfano.wx.ID_NO
+        with mock.patch.object(huerfano.wx, "MessageDialog",
+                               return_value=dialogo):
+            huerfano._preguntar(self._frame(), [("vid1", "Charla")])
+        dialogo.SetYesNoLabels.assert_called_once()
+        self._exigir_marcados(1)
+
+    def test_fin_singular_y_plural_marcan(self):
+        frame = self._frame()
+        huerfano._anunciar_fin(frame, 1)
+        self._exigir_marcados(1)
+        huerfano._anunciar_fin(frame, 3)
+        self._exigir_marcados(1)
+
+    def test_fallo_y_pendientes_marcan(self):
+        frame = self._frame()
+        huerfano._anunciar_fallo(frame)
+        self._exigir_marcados(1)
+        huerfano._anunciar_fin_pendiente(frame)
+        self._exigir_marcados(1)
+        huerfano._anunciar_fallo_pendiente(frame)
+        self._exigir_marcados(1)
+        huerfano._anunciar_reintento_pendiente(frame)
+        self._exigir_marcados(1)
 
 
 if __name__ == "__main__":

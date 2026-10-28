@@ -17,6 +17,7 @@ except Exception:
     _HAY_WX = False
 
 from ytchat.ui import gui
+from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
 
 
@@ -350,6 +351,167 @@ class TestBotonDirectoVentana(unittest.TestCase):
         frame.set_conectado(True)
         gui.wx.Yield()
         self.assertFalse(frame._boton_directo.boton.IsShown())
+
+
+# Las etiquetas del botón las arma `transmision_directa.etiqueta`, fuera
+# del alcance: quedan como pendientes. La comparación es exacta en los dos
+# sentidos: falla si aparece un texto nuevo sin envolver y si un pendiente
+# ya no está en el recorrido, para vaciar la lista cuando ese módulo pase
+# por gettext.
+PENDIENTES_BOTON_DIRECTO = (
+    "Transm&itir en directo",
+    "&Finalizar directo",
+    "Deteniendo el directo",
+)
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestPseudoBotonDirectoVentana(unittest.TestCase):
+    # Con ventana: la corre el advisor. No correr aquí.
+
+    def setUp(self):
+        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+
+    def test_no_queda_ningun_texto_propio_sin_envolver(self):
+        from ytchat.ui import boton_directo
+        with con_pseudo():
+            cuadro = wx.Frame(None)
+            panel = wx.Panel(cuadro)
+            conectar = wx.Button(panel, label="Conectar")
+            boton = boton_directo.BotonDirecto(panel, conectar, mock.Mock())
+            vistos = list(textos_sin_marcar(boton.boton))
+            boton.actualizar(False, False, False, True)
+            vistos.extend(textos_sin_marcar(boton.boton))
+            boton.actualizar(False, False, False, True, deteniendo=True)
+            vistos.extend(textos_sin_marcar(boton.boton))
+        self.addCleanup(destruir, cuadro)
+        self.assertEqual(sorted(vistos), sorted(PENDIENTES_BOTON_DIRECTO))
+
+
+class TestPseudoAnunciosBotonDirecto(unittest.TestCase):
+    # Sin ventana: controles y marco con dobles, así se corre acá. Los
+    # textos que arman otros módulos (`mensaje_de_fallo_obs` y el error
+    # del cierre en YouTube) no entran.
+
+    def setUp(self):
+        from ytchat.ui import boton_directo
+        self.modulo = boton_directo
+        self.captados = []
+        parches = [
+            mock.patch.object(boton_directo, "anunciar",
+                              self.captados.append),
+            mock.patch.object(boton_directo._snd, "reproducir"),
+        ]
+        for parche in parches:
+            parche.start()
+            self.addCleanup(parche.stop)
+        pseudo = con_pseudo()
+        pseudo.__enter__()
+        self.addCleanup(pseudo.__exit__, None, None, None)
+
+    def _exigir_marcados(self, cantidad):
+        self.assertEqual(len(self.captados), cantidad)
+        for frase in self.captados:
+            self.assertTrue(frase.startswith("[¡"), frase)
+        del self.captados[:]
+
+    def _boton(self, **config):
+        boton = self.modulo.BotonDirecto.__new__(self.modulo.BotonDirecto)
+        marco = mock.Mock()
+        marco._alive = True
+        marco._config = {"transmision_destino": "TikTok",
+                         "tiktok_usuario": "guardado"}
+        marco._config.update(config)
+        marco._guardar_destino_transmision = mock.Mock(
+            side_effect=lambda d: marco._config.update(
+                {"transmision_destino": d}) or d)
+        marco._guardar_usuario_tiktok = mock.Mock(
+            side_effect=lambda u: marco._config.update(
+                {"tiktok_usuario": u}) or u)
+        marco._supervisar_transmision = mock.Mock()
+        marco._actualizar_boton_directo = mock.Mock()
+        boton._marco = marco
+        boton.boton = mock.Mock()
+        boton._transmitiendo = False
+        boton._deteniendo = False
+        return boton, marco
+
+    def test_pulsar_deteniendo_avisa_marcado(self):
+        boton, marco = self._boton()
+        boton._transmitiendo = True
+        boton._deteniendo = True
+        with mock.patch.object(self.modulo.diagnostico,
+                               "crear_hilo") as hilos:
+            boton._al_pulsar(mock.Mock())
+        hilos.assert_not_called()
+        marco._supervisar_transmision.assert_not_called()
+        self._exigir_marcados(1)
+
+    def test_transmitir_cancelado_avisa_marcado(self):
+        boton, _marco = self._boton()
+        with mock.patch(
+                "ytchat.ui.gui_elegir_destino.pedir_destino",
+                return_value=None), \
+                mock.patch.object(self.modulo.diagnostico,
+                                  "crear_hilo") as hilos:
+            boton._transmitir()
+        hilos.assert_not_called()
+        self._exigir_marcados(1)
+
+    def test_transmitir_revisa_marcado(self):
+        boton, marco = self._boton()
+        with mock.patch(
+                "ytchat.ui.gui_elegir_destino.pedir_destino",
+                return_value=("TikTok", "nuevo")), \
+                mock.patch.object(self.modulo.diagnostico, "crear_hilo"):
+            boton._transmitir()
+        marco._guardar_usuario_tiktok.assert_called_once_with("nuevo")
+        self._exigir_marcados(1)
+
+    def test_revision_ya_transmitiendo_avisa_marcado(self):
+        boton, _marco = self._boton()
+        preparacion = SimpleNamespace(ya_transmitiendo=True,
+                                      revision=mock.sentinel.revision)
+        boton._revision_lista(preparacion, "YouTube", "")
+        self._exigir_marcados(1)
+
+    def test_revision_tiktok_cancelado_avisa_marcado(self):
+        boton, marco = self._boton()
+        preparacion = SimpleNamespace(ya_transmitiendo=False,
+                                      revision=mock.sentinel.revision)
+        with mock.patch(
+                "ytchat.ui.gui_transmision.confirmar_transmision",
+                return_value=False):
+            boton._revision_lista(preparacion, "TikTok", "usuario")
+        marco._supervisar_transmision.assert_not_called()
+        self._exigir_marcados(1)
+
+    def test_finalizar_pide_confirmacion_marcada_y_sigue_marcado(self):
+        boton, _marco = self._boton()
+        boton._transmitiendo = True
+        captado = {}
+        creados = []
+
+        def fabrica(padre, mensaje, titulo, estilo):
+            captado["mensaje"] = mensaje
+            captado["titulo"] = titulo
+            dialogo = mock.Mock()
+            dialogo.ShowModal.return_value = wx.ID_NO
+            creados.append(dialogo)
+            return dialogo
+
+        with mock.patch.object(self.modulo.wx, "MessageDialog", fabrica):
+            boton._finalizar()
+        self.assertTrue(captado["mensaje"].startswith("[¡"))
+        self.assertTrue(captado["titulo"].startswith("[¡"))
+        for etiqueta in creados[0].SetYesNoLabels.call_args.args:
+            self.assertTrue(etiqueta.startswith("[¡"), etiqueta)
+        self._exigir_marcados(1)
+
+    def test_finalizada_avisa_marcado(self):
+        boton, _marco = self._boton()
+        boton._finalizada()
+        self._exigir_marcados(1)
 
 
 if __name__ == "__main__":

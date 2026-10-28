@@ -177,32 +177,32 @@ def _preguntar(frame, huerfanos) -> None:
     """Pregunta en el hilo de la ventana si se finaliza el directo."""
     try:
         if not getattr(frame, "_alive", False):
-            logger.info("revisión de directo huérfano: la ventana se cerró, "
-                        "no se pregunta")
+            logger.info("revisión de directo huérfano: la ventana se cerró, no se pregunta")
             return
         if frame._supervisar_transmision("activo"):
             logger.info("revisión de directo huérfano: hay una transmisión "
                         "propia activa, no se pregunta")
             return
         if len(huerfanos) == 1:
-            texto = (f"Tu directo «{huerfanos[0][1]}» sigue al aire en "
-                     "YouTube, pero OBS no está transmitiendo, así que "
-                     "quienes lo miran no ven nada. ¿Finalizarlo?")
+            texto = (_("Tu directo «{titulo}» sigue al aire en "
+                       "YouTube, pero OBS no está transmitiendo, así que "
+                       "quienes lo miran no ven nada. ¿Finalizarlo?").format(
+                           titulo=huerfanos[0][1]))
         else:
-            texto = (f"Tienes {len(huerfanos)} directos al aire en YouTube "
-                     "sin imagen, porque OBS no está transmitiendo. "
-                     "¿Finalizarlos?")
+            texto = (_("Tienes {cuantos} directos al aire en YouTube "
+                       "sin imagen, porque OBS no está transmitiendo. "
+                       "¿Finalizarlos?").format(cuantos=len(huerfanos)))
         dialogo = wx.MessageDialog(
-            frame, texto, "Directo sin imagen", wx.YES_NO | wx.NO_DEFAULT)
+            frame, texto, _("Directo sin imagen"), wx.YES_NO | wx.NO_DEFAULT)
         try:
-            dialogo.SetYesNoLabels("&Finalizar directo", "&Dejarlo al aire")
+            dialogo.SetYesNoLabels(_("&Finalizar directo"), _("&Dejarlo al aire"))
             dejar = dialogo.ShowModal() != wx.ID_YES
         finally:
             dialogo.Destroy()
         if dejar:
             logger.info("revisión de directo huérfano: el usuario dejó %d "
                         "directos al aire", len(huerfanos))
-            anunciar("El directo sigue al aire.")
+            anunciar(_("El directo sigue al aire."))
             return
         logger.info("revisión de directo huérfano: el usuario pidió finalizar "
                     "%d directos", len(huerfanos))
@@ -265,37 +265,36 @@ def _anunciar_fin(frame, cuantos) -> None:
         return
     _snd.reproducir("desconectado")
     if cuantos == 1:
-        anunciar("Directo finalizado en YouTube.")
+        anunciar(_("Directo finalizado en YouTube."))
     else:
-        anunciar("Directos finalizados en YouTube.")
+        anunciar(_("Directos finalizados en YouTube."))
 
 
 def _anunciar_fallo(frame) -> None:
     if not getattr(frame, "_alive", False):
         return
     _snd.reproducir("error")
-    anunciar("YouTube no confirmó el fin del directo. "
-            "Finalízalo en YouTube Studio.")
+    anunciar(_("YouTube no confirmó el fin del directo. Finalízalo en YouTube Studio."))
 
 
 def _anunciar_fin_pendiente(frame) -> None:
     if not getattr(frame, "_alive", False):
         return
     _snd.reproducir("directo_finalizado")
-    anunciar("Directo finalizado en YouTube.")
+    anunciar(_("Directo finalizado en YouTube."))
 
 
 def _anunciar_fallo_pendiente(frame) -> None:
     if not getattr(frame, "_alive", False):
         return
     _snd.reproducir("transmision_problema")
-    anunciar("YouTube sigue sin confirmar el fin del directo. "
-             f"Se intentará de nuevo al abrir {config.APP_NAME}.")
+    anunciar(_("YouTube sigue sin confirmar el fin del directo. "
+              "Se intentará de nuevo al abrir {app}.").format(
+                  app=config.APP_NAME))
 
 
 def _anunciar_reintento_pendiente(frame) -> None:
     if not getattr(frame, "_alive", False):
         return
     _snd.reproducir("transmision_problema")
-    anunciar("YouTube no confirmó el fin del directo. "
-             "Se reintentará durante 10 minutos.")
+    anunciar(_("YouTube no confirmó el fin del directo. Se reintentará durante 10 minutos."))

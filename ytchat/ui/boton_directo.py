@@ -61,8 +61,7 @@ class BotonDirecto:
 
     def _al_pulsar(self, event):
         if self._deteniendo:
-            anunciar("Deteniendo la transmisión. "
-                     "Esperando a que OBS confirme.")
+            anunciar(_("Deteniendo la transmisión. Esperando a que OBS confirme."))
             return
         if self._transmitiendo:
             self._finalizar()
@@ -76,7 +75,7 @@ class BotonDirecto:
         usuario_guardado = marco._config.get("tiktok_usuario", "") or ""
         elegido = pedir_destino(marco, destino_guardado, usuario_guardado)
         if elegido is None:
-            anunciar("No se transmitió.")
+            anunciar(_("No se transmitió."))
             return
         destino, usuario = elegido
         try:
@@ -89,7 +88,7 @@ class BotonDirecto:
             except Exception:
                 pass
         _snd.reproducir("conectando")
-        anunciar("Revisando OBS antes de transmitir.")
+        anunciar(_("Revisando OBS antes de transmitir."))
         self.boton.Disable()
 
         def _revisar():
@@ -119,8 +118,8 @@ class BotonDirecto:
         self.boton.Enable()
         if preparacion.ya_transmitiendo:
             marco._obs_transmitiendo = True
-            anunciar("OBS ya está transmitiendo. Con este mismo botón "
-                      "puedes finalizar el directo.")
+            anunciar(_("OBS ya está transmitiendo. Con este mismo botón "
+                      "puedes finalizar el directo."))
             marco._actualizar_boton_directo()
             return
         if destino == "YouTube":
@@ -131,7 +130,7 @@ class BotonDirecto:
             return
         from ytchat.ui.gui_transmision import confirmar_transmision
         if not confirmar_transmision(marco, preparacion.revision):
-            anunciar("No se transmitió.")
+            anunciar(_("No se transmitió."))
             return
         marco._supervisar_transmision("iniciar", destino, usuario)
         marco._actualizar_boton_directo()
@@ -140,16 +139,16 @@ class BotonDirecto:
         marco = self._marco
         dialogo = wx.MessageDialog(
             marco,
-            "¿Finalizar el directo? Quienes te están viendo dejarán de verte.",
-            "Finalizar directo", wx.YES_NO | wx.NO_DEFAULT)
+            _("¿Finalizar el directo? Quienes te están viendo dejarán de verte."),
+            _("Finalizar directo"), wx.YES_NO | wx.NO_DEFAULT)
         try:
-            dialogo.SetYesNoLabels("&Finalizar directo",
-                                   "&Seguir transmitiendo")
+            dialogo.SetYesNoLabels(_("&Finalizar directo"),
+                                   _("&Seguir transmitiendo"))
             seguir = dialogo.ShowModal() != wx.ID_YES
         finally:
             dialogo.Destroy()
         if seguir:
-            anunciar("Sigues transmitiendo.")
+            anunciar(_("Sigues transmitiendo."))
             return
         if marco._supervisar_transmision("activo"):
             marco._supervisar_transmision("detener")
@@ -222,7 +221,7 @@ class BotonDirecto:
             return
         marco._obs_transmitiendo = False
         _snd.reproducir("desconectado")
-        anunciar("Transmisión detenida.")
+        anunciar(_("Transmisión detenida."))
         marco._actualizar_boton_directo()
 
     def _finalizada_con_error(self, error):

@@ -296,16 +296,16 @@ class DialogoDirectoYoutube(wx.Dialog):
         self._miniatura = ruta
         nombre = os.path.basename(ruta)
         self.txt_miniatura.SetValue(nombre)
-        anunciar("Miniatura: " + nombre)
+        anunciar(_("Miniatura: {nombre}").format(nombre=nombre))
 
     def _al_quitar_miniatura(self, _event) -> None:
         self._miniatura = ""
-        self.txt_miniatura.SetValue("Ninguna")
-        anunciar("Sin miniatura.")
+        self.txt_miniatura.SetValue(_("Ninguna"))
+        anunciar(_("Sin miniatura."))
 
     def _al_cargar_listas(self, _event) -> None:
         self.btn_cargar_listas.Disable()
-        anunciar("Cargando las listas.")
+        anunciar(_("Cargando las listas."))
 
         def _traer():
             try:
@@ -327,18 +327,18 @@ class DialogoDirectoYoutube(wx.Dialog):
         self.cho_lista.SetItems([texto for _id, texto in self._opciones_lista])
         self.cho_lista.SetSelection(seleccion)
         if not listas:
-            anunciar("El canal no tiene listas.")
+            anunciar(_("El canal no tiene listas."))
         elif len(listas) == 1:
-            anunciar("1 lista.")
+            anunciar(_("1 lista."))
         else:
-            anunciar(f"{len(listas)} listas.")
+            anunciar(_("{cuantas} listas.").format(cuantas=len(listas)))
 
     def _listas_fallo(self, exc) -> None:
         if not self:
             return
         self.btn_cargar_listas.Enable()
-        anunciar("No se pudieron cargar las listas: "
-                 + youtube_api.mensaje_error_api(exc))
+        anunciar(_("No se pudieron cargar las listas: {detalle}").format(
+            detalle=youtube_api.mensaje_error_api(exc)))
 
     def _al_crear(self, _event) -> None:
         lista, lista_titulo = self._opcion_lista_elegida()

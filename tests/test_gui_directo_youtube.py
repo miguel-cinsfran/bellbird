@@ -15,6 +15,7 @@ except Exception:
     _HAY_WX = False
 
 from ytchat.ui import gui_directo_youtube as directo
+from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
 from ytchat.youtube.emision import (
     ETIQUETAS_PRIVACIDAD,
@@ -495,6 +496,131 @@ class TestDialogoDirectoVentana(unittest.TestCase):
                                    return_value=wx.ID_CANCEL):
                 self.assertIsNone(
                     directo.pedir_datos_directo(None, "Hola", "", "unlisted"))
+
+
+# Textos que arman otros módulos y aparecen en el recorrido: las opciones
+# de privacidad, latencia y categoría de `ytchat/youtube/emision.py`
+# (ETIQUETAS_PRIVACIDAD, ETIQUETAS_LATENCIA y CATEGORIAS) y el «Ninguna»
+# de `opciones_lista`, del mismo módulo. El título de la lista recordada
+# es un dato del usuario y va como propio. La comparación es exacta en
+# los dos sentidos: falla si aparece un texto nuevo sin envolver y si un
+# pendiente ya no está en el recorrido, para vaciar la lista cuando ese
+# módulo pase por gettext.
+PENDIENTES_DIRECTO_YOUTUBE = (
+    "Público", "No listado", "Privado",
+    "Normal", "Baja", "Ultrabaja",
+    "Sin cambiar", "Videojuegos", "Personas y blogs", "Entretenimiento",
+    "Música", "Educación", "Ciencia y tecnología", "Deportes", "Comedia",
+    "Noticias y política", "Consejos y estilo",
+    "Ninguna",
+)
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestPseudoDirectoYoutubeVentana(unittest.TestCase):
+    # Con ventana: la corre el advisor. No correr aquí.
+
+    def setUp(self):
+        self.app = wx.App.Get() or wx.App(False)
+
+    def test_no_queda_ningun_texto_visible_sin_envolver(self):
+        with con_pseudo():
+            dialogo = directo.DialogoDirectoYoutube(
+                None, titulo="Hola", lista="PL9", lista_titulo="Mi lista",
+                cargar_listas=lambda: [])
+            sin_marcar = textos_sin_marcar(dialogo, propios=("Mi lista",))
+        self.addCleanup(destruir, dialogo)
+        self.assertEqual(sorted(sin_marcar),
+                         sorted(PENDIENTES_DIRECTO_YOUTUBE))
+
+
+class TestPseudoAnunciosDirectoYoutube(unittest.TestCase):
+    # Sin ventana: los controles van con dobles, así se corre acá. Los
+    # anuncios que arman otros módulos (`error_de_miniatura`, el mensaje
+    # de la API y `str(exc)` de `emision`) no entran.
+
+    def setUp(self):
+        self.captados = []
+        parche = mock.patch.object(directo, "anunciar",
+                                   self.captados.append)
+        parche.start()
+        self.addCleanup(parche.stop)
+        pseudo = con_pseudo()
+        pseudo.__enter__()
+        self.addCleanup(pseudo.__exit__, None, None, None)
+        # El doble se crea sin __init__ y para wx es falso: finge una
+        # ventana viva para que los métodos pasen la guarda `if not self`.
+        parche_vivo = mock.patch.object(
+            directo.DialogoDirectoYoutube, "__bool__", lambda _s: True)
+        parche_vivo.start()
+        self.addCleanup(parche_vivo.stop)
+
+    def _exigir_marcados(self, cantidad):
+        self.assertEqual(len(self.captados), cantidad)
+        for frase in self.captados:
+            self.assertTrue(frase.startswith("[¡"), frase)
+        del self.captados[:]
+
+    def _dialogo(self):
+        dialogo = directo.DialogoDirectoYoutube.__new__(
+            directo.DialogoDirectoYoutube)
+        dialogo._miniatura = ""
+        dialogo._cargar_listas = lambda: []
+        dialogo._opciones_lista = [("", "Ninguna")]
+        dialogo.txt_miniatura = mock.Mock()
+        dialogo.cho_lista = mock.Mock()
+        dialogo.cho_lista.GetSelection.return_value = 0
+        dialogo.btn_cargar_listas = mock.Mock()
+        return dialogo
+
+    def test_quitar_miniatura_anuncia_marcado(self):
+        dialogo = self._dialogo()
+        dialogo._miniatura = "C:\\x\\foto.jpg"
+        dialogo._al_quitar_miniatura(mock.Mock())
+        self._exigir_marcados(1)
+
+    def test_cargar_listas_anuncia_marcado_sin_hilo(self):
+        dialogo = self._dialogo()
+        with mock.patch.object(directo.diagnostico, "crear_hilo") as hilos:
+            dialogo._al_cargar_listas(mock.Mock())
+        dialogo.btn_cargar_listas.Disable.assert_called_once_with()
+        hilos.assert_called_once()
+        self._exigir_marcados(1)
+
+    def test_listas_ok_marca_los_tres_caminos(self):
+        dialogo = self._dialogo()
+        dialogo._listas_ok([])
+        self._exigir_marcados(1)
+        dialogo._listas_ok([("PL1", "Uno")])
+        self._exigir_marcados(1)
+        dialogo._listas_ok([("PL1", "Uno"), ("PL2", "Dos")])
+        self._exigir_marcados(1)
+
+    def test_listas_fallo_marca_el_prefijo_propio(self):
+        dialogo = self._dialogo()
+        dialogo._listas_fallo(RuntimeError("sin red"))
+        self._exigir_marcados(1)
+
+    def test_elegir_miniatura_marca_titulo_filtro_y_anuncio(self):
+        dialogo = self._dialogo()
+        captado = {}
+
+        def fabrica(padre, titulo="", **kwargs):
+            captado["titulo"] = titulo
+            captado["filtro"] = kwargs.get("wildcard")
+            cuadro = mock.MagicMock()
+            cuadro.__enter__.return_value = cuadro
+            cuadro.ShowModal.return_value = wx.ID_OK
+            cuadro.GetPath.return_value = "C:\\x\\foto.png"
+            return cuadro
+
+        with mock.patch.object(directo.wx, "FileDialog", fabrica), \
+                mock.patch.object(directo, "error_de_miniatura",
+                                  return_value=None):
+            dialogo._al_elegir_miniatura(mock.Mock())
+        self.assertTrue(captado["titulo"].startswith("[¡"))
+        self.assertTrue(captado["filtro"].startswith("[¡"))
+        self._exigir_marcados(1)
 
 
 if __name__ == "__main__":

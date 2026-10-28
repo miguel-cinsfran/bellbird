@@ -42,6 +42,7 @@ from ytchat.player import flujo_tiktok
 from ytchat.player import motor_vlc
 from ytchat.player.pantalla_completa import AccionesPantalla, PantallaCompleta
 from ytchat.player import reproductor_ciclo
+from ytchat.player import recuperacion
 from ytchat.player import relevo_ffmpeg
 from ytchat.player.formatos import mejor_audio as _mejor_audio
 from ytchat.player.formatos_youtube import (
@@ -2082,36 +2083,30 @@ class ReproductorPanel(wx.Panel):
                 self._timer.Stop()
             except Exception:
                 pass
-        if estado_final == "ended":
-            if getattr(self, "_vod_por_relevo", False) \
-                    and getattr(self, "_cargando", False):
-                pass
-            elif getattr(self, "_relevo_ffmpeg", None) is not None \
-                    and self._es_directo_actual():
-                self._directo_interrumpido()
-            elif getattr(self, "_relevo_ffmpeg", None) is not None \
-                    and getattr(self, "_relevo_vod_base_ms", None) is not None:
-                self._fin_flujo_vod()
-            elif self._es_fallo_apertura_vod():
-                self._recargar_apertura_vod()
-            elif getattr(self, "_url_flujo", ""):
-                self._terminar_flujo_tiktok()
-            else:
-                self._detener(silencioso=True)
-                anunciar("Fin del vídeo")
-        elif estado_final == "error":
-            if getattr(self, "_vod_por_relevo", False) \
-                    and getattr(self, "_cargando", False):
-                pass
-            elif getattr(self, "_url_flujo", "") \
-                    and getattr(self, "_relevo_ffmpeg", None) is None \
-                    and not self._flujo_sono():
-                self._terminar_flujo_tiktok()
-            elif self._es_fallo_apertura_vod() \
-                    and not self._relevo_con_reintento():
-                self._recargar_apertura_vod()
-            else:
-                self._fallo_reproduccion()
+        decision = recuperacion.decidir_al_terminar(
+            estado_final,
+            vod_cargando=bool(getattr(self, "_vod_por_relevo", False)
+                              and getattr(self, "_cargando", False)),
+            hay_relevo=getattr(self, "_relevo_ffmpeg", None) is not None,
+            relevo_vod=getattr(self, "_relevo_vod_base_ms", None) is not None,
+            es_flujo=bool(getattr(self, "_url_flujo", "")),
+            es_directo=lambda: self._es_directo_actual(),
+            fallo_apertura=lambda: self._es_fallo_apertura_vod(),
+            flujo_sono=lambda: self._flujo_sono(),
+            relevo_con_reintento=lambda: self._relevo_con_reintento())
+        if decision == recuperacion.DIRECTO_INTERRUMPIDO:
+            self._directo_interrumpido()
+        elif decision == recuperacion.FIN_FLUJO_VOD:
+            self._fin_flujo_vod()
+        elif decision == recuperacion.RECARGAR_APERTURA:
+            self._recargar_apertura_vod()
+        elif decision == recuperacion.TERMINAR_FLUJO:
+            self._terminar_flujo_tiktok()
+        elif decision == recuperacion.FIN_VIDEO:
+            self._detener(silencioso=True)
+            anunciar("Fin del vídeo")
+        elif decision == recuperacion.FALLO:
+            self._fallo_reproduccion()
 
     def _relevo_con_reintento(self) -> bool:
         relevo = getattr(self, "_relevo_ffmpeg", None)
@@ -2188,48 +2183,37 @@ class ReproductorPanel(wx.Panel):
             return
         dur = self._duracion_actual()
         bus = getattr(self, "_estado_busqueda", None)
-        ultima = getattr(self, "_relevo_vod_ultima", None)
-        if ultima is None and bus is not None:
-            ultima = bus.confirmada
-        if ultima is None:
-            ultima = getattr(self, "_pos_ms", 0)
-        try:
-            ultima = int(ultima)
-        except Exception:
-            ultima = 0
-        if dur <= 0 or (dur - ultima) <= 5000:
+        ultima = recuperacion.ultima_posicion(
+            getattr(self, "_relevo_vod_ultima", None),
+            bus.confirmada if bus is not None else None,
+            getattr(self, "_pos_ms", 0))
+        rec = getattr(self, "_relevo_vod_recuperaciones", 0)
+        decision = recuperacion.decidir_fin_vod(
+            dur, ultima, rec,
+            getattr(self, "_relevo_vod_base_ms", None),
+            getattr(self, "_relevo_fuentes", None) is not None)
+        if decision == recuperacion.FIN_VIDEO:
             self._detener(silencioso=True)
             anunciar("Fin del vídeo")
             return
-        rec = getattr(self, "_relevo_vod_recuperaciones", 0)
-        if rec >= 2:
-            base = getattr(self, "_relevo_vod_base_ms", None)
-            try:
-                sono = base is not None and int(ultima) > int(base)
-            except Exception:
-                sono = False
-            if not sono:
-                fuentes = getattr(self, "_relevo_fuentes", None)
-                if fuentes is None:
-                    self._detener(silencioso=True)
-                    anunciar("Se cortó el vídeo")
-                    return
-                url, slave = fuentes
-                logger.warning("VOD_RELEVO sin arrancar, sigue con esclavo")
-                self._vod_por_relevo = False
-                self._detener_relevo_ffmpeg()
-                self._tiene_esclavo = bool(slave)
-                self._continuar_reproducir_calidad(
-                    url, slave, False, self._intencion_reproducir)
-                return
+        if decision == recuperacion.CORTE_SONADO:
             logger.warning("VOD_RELEVO corte sin recuperar ultima=%d dur=%d", ultima, dur)
             self._detener(silencioso=True)
             anunciar("Se cortó el vídeo")
             return
-        fuentes = getattr(self, "_relevo_fuentes", None)
-        if fuentes is None:
+        if decision == recuperacion.CORTE:
             self._detener(silencioso=True)
             anunciar("Se cortó el vídeo")
+            return
+        fuentes = getattr(self, "_relevo_fuentes", None)
+        if decision == recuperacion.ESCLAVO:
+            url, slave = fuentes
+            logger.warning("VOD_RELEVO sin arrancar, sigue con esclavo")
+            self._vod_por_relevo = False
+            self._detener_relevo_ffmpeg()
+            self._tiene_esclavo = bool(slave)
+            self._continuar_reproducir_calidad(
+                url, slave, False, self._intencion_reproducir)
             return
         self._relevo_vod_recuperaciones = int(rec) + 1
         logger.warning("VOD_RELEVO recupera=%d ultima=%d dur=%d",
@@ -2242,11 +2226,11 @@ class ReproductorPanel(wx.Panel):
                               inicio_ms=ultima)
 
     def _fallo_reproduccion(self) -> None:
-        """VLC quedó en «error» (no pudo abrir la fuente). Antes no se
-        trataba: el temporizador seguía muestreando y el usuario oía
-        «Cargando vídeo» y luego nada. Con el relevo de ffmpeg se reintenta
-        la conexión unas veces mientras ffmpeg siga vivo; si no, se para y
-        se avisa."""
+        """VLC quedó en «error»: no pudo abrir la fuente.
+
+        Con el relevo de ffmpeg vivo se reintenta unas veces; si no,
+        se para y se avisa, para que no quede en «Cargando vídeo» sin
+        sonido."""
         if getattr(self, "_vod_por_relevo", False) \
                 and getattr(self, "_cargando", False):
             return

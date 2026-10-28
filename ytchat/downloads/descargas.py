@@ -30,6 +30,7 @@ from urllib.parse import parse_qs, urlparse
 from ytchat.core import diagnostico
 from ytchat.core.config import obtener_opciones_descarga
 from ytchat.core import paths
+from ytchat.core.idioma import _
 from ytchat.downloads import ffmpeg_bin
 from ytchat.downloads import fila_descargas
 from ytchat.downloads import ytdlp_bin
@@ -125,8 +126,7 @@ def limpiar_restos_descarga(carpeta, nombre_archivo: str) -> list[str]:
         if not nombre.startswith(base) or not ruta.is_file():
             continue
         resto = nombre[len(base):]
-        if not (resto.endswith(".part") or resto.endswith(".ytdl")
-                or _RE_FRAGMENTO.match(resto)):
+        if not (resto.endswith(".part") or resto.endswith(".ytdl") or _RE_FRAGMENTO.match(resto)):
             continue
         try:
             ruta.unlink()
@@ -164,7 +164,7 @@ def analizar_url(url: str) -> dict:
     ruta = ytdlp_bin.ruta_ytdlp()
     if ruta is None:
         return {"tipo": "error", "id": "", "titulo": "", "cuenta": 0,
-                "mensaje": "yt-dlp no está instalado"}
+                "mensaje": _("yt-dlp no está instalado")}
     # -J (un único JSON) y --flat-playlist: --dump-json emitía un JSON por
     # entrada en las playlists y json.loads fallaba con «Extra data».
     try:
@@ -176,7 +176,7 @@ def analizar_url(url: str) -> dict:
         )
         if resultado.returncode:
             return {"tipo": "error", "id": "", "titulo": "", "cuenta": 0,
-                    "mensaje": resultado.stderr.strip() or "yt-dlp falló"}
+                    "mensaje": resultado.stderr.strip() or _("yt-dlp falló")}
         info = json.loads(resultado.stdout)
     except (OSError, subprocess.SubprocessError, TypeError, ValueError) as exc:
         logger.warning("analizar_url falló: %s", exc)
@@ -184,7 +184,7 @@ def analizar_url(url: str) -> dict:
                 "mensaje": str(exc)}
     if not info:
         return {"tipo": "error", "id": "", "titulo": "", "cuenta": 0,
-                "mensaje": "URL vacía"}
+                "mensaje": _("URL vacía")}
     tipo = info.get("_type")
     if tipo == "playlist" or "entries" in info:
         return {"tipo": "playlist",
@@ -220,17 +220,17 @@ def descargar(url: str, opciones: dict,
     """
     ruta = ytdlp_bin.ruta_ytdlp()
     if ruta is None:
-        estado_cb("error", "yt-dlp no está instalado")
+        estado_cb("error", _("yt-dlp no está instalado"))
         return
 
     if not tiene_ffmpeg():
         # Error CLARO (no el genérico de yt-dlp) para que el usuario ciego
         # sepa exactamente qué falta. La GUI ya hace 3-vías con este mensaje.
         estado_cb("error",
-                   "ffmpeg no encontrado. La descarga necesita ffmpeg para "
-                   "unir audio y vídeo o extraer audio. Usa la versión "
-                   "empaquetada o instala ffmpeg. En desarrollo, alcanza "
-                   "con tener ffmpeg en el PATH.")
+                   _("ffmpeg no encontrado. La descarga necesita ffmpeg para "
+                     "unir audio y vídeo o extraer audio. Usa la versión "
+                     "empaquetada o instala ffmpeg. En desarrollo, alcanza "
+                     "con tener ffmpeg en el PATH."))
         return
 
     enumerar = bool(opciones.get("enumerar", False))
@@ -244,7 +244,7 @@ def descargar(url: str, opciones: dict,
         borrados = limpiar_restos_descarga(carpeta, ultimo_archivo)
         if borrados:
             logger.info("descarga cancelada: borrados %d restos", len(borrados))
-        estado_cb("cancelado", "Descarga cancelada")
+        estado_cb("cancelado", _("Descarga cancelada"))
 
     estado_cb("descargando", "")
     try:
@@ -298,13 +298,13 @@ def descargar(url: str, opciones: dict,
         proceso.wait()
         if cancel_event.is_set():
             limpiar_restos_descarga(carpeta, ultimo_archivo)
-            estado_cb("cancelado", "Descarga cancelada")
+            estado_cb("cancelado", _("Descarga cancelada"))
         elif proceso.returncode == 0:
             estado_cb("completado", "")
         else:
             codigo = proceso.returncode
             motivo = (motivo_de_error(ultimo_error)
-                      or f"yt-dlp terminó con código {codigo}")
+                      or _("yt-dlp terminó con código {codigo}").format(codigo=codigo))
             if ultimo_error:
                 logger.warning("yt-dlp terminó con código %s: %s",
                                codigo, ultimo_error)
@@ -325,11 +325,11 @@ def tiene_ffmpeg() -> bool:
 def frase_aviso_descarga(estado: str, mensaje: str, nombre: str) -> str:
     """Devuelve el aviso accesible de un fin de descarga."""
     if estado == "completado":
-        return "Descarga completada" + (f": {nombre}" if nombre else "")
+        return (_("Descarga completada: {nombre}").format(nombre=nombre) if nombre else _("Descarga completada"))
     if estado == "error":
-        return "Error en la descarga" + (f": {mensaje}" if mensaje else "")
+        return (_("Error en la descarga: {mensaje}").format(mensaje=mensaje) if mensaje else _("Error en la descarga"))
     if estado == "cancelado":
-        return "Descarga cancelada"
+        return _("Descarga cancelada")
     return ""
 
 
@@ -454,7 +454,7 @@ class GestorDescargas:
             try:
                 tomado = self._esperar_turno(item_id, ev)
                 if not tomado:
-                    _cb_estado("cancelado", "Descarga cancelada")
+                    _cb_estado("cancelado", _("Descarga cancelada"))
                     return
                 try:
                     info = analizar_url(url)
@@ -464,7 +464,7 @@ class GestorDescargas:
                         _cb_progreso(it.progreso, "", "", titulo)
                     if ev.is_set():
                         # Cancelada durante el análisis: no lanzar yt-dlp para nada.
-                        _cb_estado("cancelado", "Descarga cancelada")
+                        _cb_estado("cancelado", _("Descarga cancelada"))
                         return
                     logger.info("descarga %s: inicio", item_id)
                     descargar(url, self._opciones, _cb_progreso, _cb_estado, ev)

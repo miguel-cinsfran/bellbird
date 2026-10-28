@@ -12,9 +12,17 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
+from tests.ventanas_prueba import destruir
 from ytchat.core import actualizacion
 from ytchat.core.config import APP_NAME, APP_VERSION
 from ytchat.ui import gui_actualizar_app as app
+
+try:
+    import wx
+    _HAY_WX = True
+except Exception:
+    _HAY_WX = False
 
 
 VERSION_NUEVA = "99.0.0"
@@ -859,6 +867,182 @@ class TestRegistraLoQueFalla(unittest.TestCase):
                 flujo._run_extraer()
         self.assertTrue(any("no se pudo borrar" in mensaje
                             for mensaje in registros.output))
+
+
+def _crear_hilo_en_linea(destino, nombre, **kwargs):
+    hilo = mock.Mock()
+    hilo.start.side_effect = lambda: destino(*kwargs.get("args", ()))
+    hilo.nombre = nombre
+    return hilo
+
+
+class TestPseudoAvisos(unittest.TestCase):
+    """Anuncios propios salen marcados (sin ventana: corre acá)."""
+
+    def _flujo(self):
+        ventana = VentanaFalsa(None, "titulo")
+        flujo = app._FlujoActualizacion(
+            types.SimpleNamespace(Close=mock.Mock()), ventana)
+        return flujo, ventana
+
+    def test_avisos_propios_salen_marcados(self):
+        captados = []
+        with con_pseudo(), \
+                mock.patch.object(app, "anunciar", captados.append), \
+                mock.patch.object(app._snd, "reproducir"), \
+                mock.patch.object(app, "guardar_version_avisada"), \
+                mock.patch.object(app.diagnostico, "crear_hilo",
+                                  side_effect=_crear_hilo_en_linea), \
+                mock.patch.object(sys, "frozen", True, create=True), \
+                mock.patch.object(actualizacion, "carpeta_admite_escritura",
+                                  return_value=True), \
+                mock.patch.object(actualizacion, "descargar_paquete",
+                                  return_value=actualizacion.ResultadoDescarga(
+                                      True, "paquete descargado")), \
+                mock.patch.object(actualizacion, "extraer_paquete",
+                                  return_value=Path("raiz")), \
+                mock.patch.object(actualizacion, "validar_paquete",
+                                  return_value="App.exe"):
+            flujo, ventana = self._flujo()
+            flujo.paquete_elegido = _paquete()
+            flujo._mostrar_respuesta(_paquete())
+            flujo._mostrar_sin_respuesta()
+            flujo._descargar()
+            flujo._actualizar_progreso(40)
+            flujo._mostrar_paquete_invalido("falta el ejecutable")
+            flujo._mostrar_listo(Path("raiz"), "App.exe")
+            flujo._mostrar_descarga_fallida(
+                actualizacion.ResultadoDescarga(False, "descarga cancelada"))
+            flujo._mostrar_descarga_fallida(
+                actualizacion.ResultadoDescarga(False, "la firma SHA-256 no coincide"))
+            flujo._mostrar_descarga_fallida(
+                actualizacion.ResultadoDescarga(False, "boom"))
+            flujo._mostrar_descarga_fallida(
+                actualizacion.ResultadoDescarga(False, ""))
+            app._avisar_version("9.9.9")
+            vistos = list(ventana.anuncios) + ventana.textos_sin_anunciar + captados
+        self.assertTrue(vistos)
+        for texto in vistos:
+            self.assertTrue(texto.startswith("[¡"), texto)
+
+    def test_descarga_que_falla_en_red_avisa_marcado(self):
+        def descargar(*args, **kwargs):
+            raise RuntimeError("corte de luz")
+
+        with con_pseudo(), \
+                mock.patch.object(app.diagnostico, "crear_hilo",
+                                  side_effect=_crear_hilo_en_linea), \
+                mock.patch.object(actualizacion, "descargar_paquete",
+                                  side_effect=descargar):
+            flujo, ventana = self._flujo()
+            flujo.paquete_elegido = _paquete()
+            flujo._descargar()
+        self.assertIn("[¡La descarga no se completó: "
+                      "[¡no se pudo descargar el paquete: corte de luz!].!]",
+                      ventana.anuncios)
+
+    def test_instalar_que_falla_avisa_marcado(self):
+        with con_pseudo(), \
+                mock.patch.object(actualizacion, "lanzar_instalador",
+                                  side_effect=RuntimeError("sin permiso")):
+            flujo, ventana = self._flujo()
+            flujo.paquete_elegido = _paquete()
+            flujo._instalar(Path("raiz"), "App.exe")
+        self.assertIn("[¡No se pudo iniciar la instalación: sin permiso.!]",
+                      ventana.anuncios)
+
+    def test_resultado_de_otro_modulo_pasa_tal_cual(self):
+        # El texto lo arma `ytchat/core/actualizacion.py`: queda pendiente.
+        resultado = {"resultado": "fallo", "motivo": "corte de luz"}
+        captados = []
+        with mock.patch.object(actualizacion, "tomar_resultado",
+                               return_value=resultado), \
+                mock.patch.object(app, "anunciar", captados.append), \
+                mock.patch.object(app._snd, "reproducir"):
+            app._anunciar_resultado()
+        self.assertEqual(
+            captados,
+            [actualizacion.texto_resultado(resultado, APP_VERSION)])
+
+
+# Los textos de la ventana genérica los arma `ytchat/ui/gui_actualizacion.py`:
+# quedan como pendientes hasta que ese módulo pase por gettext.
+PENDIENTES_OTRO_MODULO = (
+    "&Cerrar",
+)
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestPseudoVentana(unittest.TestCase):
+    """Pseudotraducción de la ventana (la corre el advisor)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+
+    def _abrir(self, vistos, pulsar=False, **kwargs):
+        from ytchat.ui.gui_actualizacion import DialogoActualizacion
+        frozen = kwargs.pop("frozen", True)
+        admite = kwargs.pop("admite", True)
+        frame = wx.Frame(None)
+        self.addCleanup(destruir, frame)
+        with mock.patch.object(
+                actualizacion, "consultar_ultima_version",
+                return_value=kwargs.pop("consultar", None)), \
+                mock.patch.object(app.diagnostico, "crear_hilo",
+                                  side_effect=_crear_hilo_en_linea), \
+                mock.patch.object(sys, "frozen", frozen, create=True), \
+                mock.patch.object(actualizacion, "carpeta_admite_escritura",
+                                  return_value=admite), \
+                mock.patch.object(DialogoActualizacion, "en_hilo_principal",
+                                  lambda ventana, funcion, *args: funcion(*args)), \
+                mock.patch.object(app.aviso_diferido, "cuando_libre",
+                                  side_effect=lambda marco, funcion, *a, **k: funcion(*a, **k)), \
+                mock.patch("ytchat.ui.gui_actualizacion.anunciar"), \
+                mock.patch.object(app._snd, "reproducir"), \
+                mock.patch("webbrowser.open"):
+            app.abrir_ventana_actualizacion(frame, **kwargs)
+            ventana = frame._ventana_actualizar_app
+            self.addCleanup(destruir, ventana)
+            if pulsar:
+                ventana._accion()
+            vistos.extend(textos_sin_marcar(ventana))
+            return frame, ventana
+
+    def test_no_queda_ningun_texto_visible_sin_envolver(self):
+        from ytchat.ui import gui_actualizacion
+        vistos = []
+        with con_pseudo(), \
+                mock.patch.object(actualizacion, "descargar_paquete",
+                                  return_value=actualizacion.ResultadoDescarga(
+                                      True, "paquete descargado")), \
+                mock.patch.object(actualizacion, "extraer_paquete",
+                                  return_value=Path("raiz")), \
+                mock.patch.object(actualizacion, "validar_paquete",
+                                  return_value="App.exe"):
+            self._abrir(vistos, paquete=_paquete(VERSION_NUEVA),
+                        frozen=True, admite=True, pulsar=True)
+            self._abrir(vistos, paquete=_paquete(VERSION_NUEVA),
+                        frozen=True, admite=True, al_arrancar=True)
+            real = gui_actualizacion.DialogoActualizacion
+            creadas = []
+
+            def fabrica(padre, titulo):
+                ventana_nueva = real(padre, titulo)
+                creadas.append(ventana_nueva)
+                return ventana_nueva
+
+            frame = wx.Frame(None)
+            self.addCleanup(destruir, frame)
+            with mock.patch.object(gui_actualizacion, "DialogoActualizacion",
+                                   side_effect=fabrica), \
+                    mock.patch.object(app._snd, "reproducir"), \
+                    mock.patch("ytchat.ui.gui_actualizacion.anunciar"):
+                app._mostrar_resultado_en_ventana(frame, "ejemplo", True)
+            self.assertEqual(len(creadas), 1)
+            self.addCleanup(destruir, creadas[0])
+            vistos.extend(textos_sin_marcar(creadas[0]))
+        self.assertEqual(sorted(set(vistos)), sorted(PENDIENTES_OTRO_MODULO))
 
 
 if __name__ == "__main__":

@@ -23,6 +23,7 @@ from ytchat.core import actualizacion
 from ytchat.core import diagnostico
 from ytchat.core import paths
 from ytchat.core.config import APP_NAME, APP_VERSION, guardar_opcion
+from ytchat.core.idioma import _
 from ytchat.downloads import ytdlp_bin
 from ytchat.ui import aviso_diferido
 from ytchat.ui.accesibilidad import anunciar
@@ -45,8 +46,7 @@ def leer_version_avisada(ruta: Path | None = None) -> str:
     parser = configparser.ConfigParser(interpolation=None)
     try:
         parser.read(ruta, encoding="utf-8")
-        return parser.get(SECCION_AVISO, CLAVE_AVISADA,
-                          fallback="").strip()
+        return parser.get(SECCION_AVISO, CLAVE_AVISADA, fallback="").strip()
     except (OSError, configparser.Error, ValueError):
         return ""
 
@@ -113,7 +113,7 @@ def _anunciar_resultado(frame=None) -> None:
 def _mostrar_resultado_en_ventana(frame, texto: str, correcto: bool) -> None:
     """Abre la ventana del resultado con su texto, su barra y el foco."""
     from ytchat.ui.gui_actualizacion import DialogoActualizacion
-    ventana = DialogoActualizacion(frame, "Actualización")
+    ventana = DialogoActualizacion(frame, _("Actualización"))
     ventana.Show()
     ventana.estado(texto)
     ventana.progreso(100 if correcto else 0)
@@ -240,7 +240,7 @@ class _FlujoActualizacion:
         if paquete is not None:
             self._mostrar_respuesta(paquete)
             return
-        self.ventana.estado("Buscando la última versión.")
+        self.ventana.estado(_("Buscando la última versión."))
         diagnostico.crear_hilo(
             self._run_consulta, "BuscarActualizacion").start()
 
@@ -258,35 +258,35 @@ class _FlujoActualizacion:
             return
         if not actualizacion.hay_version_nueva(APP_VERSION, paquete.version):
             self.ventana.progreso(100)
-            self.ventana.estado(f"Esta es la última versión, la {APP_VERSION}.")
+            self.ventana.estado(_("Esta es la última versión, la {version}.").format(version=APP_VERSION))
             return
         self.paquete_elegido = paquete
-        texto = (f"Hay una versión nueva, la {paquete.version}. "
-                 f"La instalada es la {APP_VERSION}.")
+        texto = (_("Hay una versión nueva, la {nueva}. La instalada es la {instalada}.").format(
+            nueva=paquete.version, instalada=APP_VERSION))
         if not getattr(sys, "frozen", False):
-            self.ventana.estado(texto + " Desde el código fuente no se instala: "
-                                "se actualiza con git.")
+            self.ventana.estado(texto + _(" Desde el código fuente no se instala: "
+                                          "se actualiza con git."))
             self._ofrecer_pagina(paquete)
         elif not actualizacion.carpeta_admite_escritura(
                 paths.carpeta_instalacion()):
-            self.ventana.estado(texto + " La carpeta del programa no admite "
-                                "cambios. Se puede descargar a mano desde la página.")
+            self.ventana.estado(texto + _(" La carpeta del programa no admite "
+                                          "cambios. Se puede descargar a mano desde la página."))
             self._ofrecer_pagina(paquete)
         else:
             self.ventana.estado(texto)
             if paquete.notas:
                 self.ventana.notas(paquete.notas)
-            self.ventana.ofrecer_accion("&Descargar e instalar", self._descargar)
+            self.ventana.ofrecer_accion(_("&Descargar e instalar"), self._descargar)
 
     def _mostrar_sin_respuesta(self):
         self.ventana.progreso(0)
-        self.ventana.estado("No se pudo consultar si hay una versión nueva. "
-                            "Revise la conexión a Internet.")
+        self.ventana.estado(_("No se pudo consultar si hay una versión nueva. "
+                              "Revise la conexión a Internet."))
 
     def _ofrecer_pagina(self, paquete):
         if paquete.notas:
             self.ventana.notas(paquete.notas)
-        self.ventana.ofrecer_accion("&Abrir la página", self._abrir_pagina)
+        self.ventana.ofrecer_accion(_("&Abrir la página"), self._abrir_pagina)
 
     def _abrir_pagina(self):
         try:
@@ -297,7 +297,7 @@ class _FlujoActualizacion:
     def _descargar(self):
         self.ventana.quitar_accion()
         self.ventana.estado(
-            f"Descargando la versión {self.paquete_elegido.version}.")
+            _("Descargando la versión {version}.").format(version=self.paquete_elegido.version))
         diagnostico.crear_hilo(
             self._run_descarga, "DescargarActualizacion").start()
 
@@ -311,7 +311,7 @@ class _FlujoActualizacion:
         except Exception as exc:
             logger.warning("descarga del paquete: %s", exc)
             resultado = actualizacion.ResultadoDescarga(
-                False, f"no se pudo descargar el paquete: {exc}")
+                False, _("no se pudo descargar el paquete: {detalle}").format(detalle=exc))
         self.ventana.en_hilo_principal(self._terminar_descarga, resultado)
 
     def _aviso_progreso(self, porcentaje):
@@ -323,27 +323,27 @@ class _FlujoActualizacion:
                 self.ultimo_texto, porcentaje):
             self.ultimo_texto = porcentaje
             self.ventana.txt_estado.SetValue(
-                f"Descargando la versión {self.paquete_elegido.version}: "
-                f"{porcentaje} por ciento")
+                _("Descargando la versión {version}: {porcentaje} por ciento").format(
+                    version=self.paquete_elegido.version, porcentaje=porcentaje))
 
     def _terminar_descarga(self, resultado):
         if not resultado.correcta:
             self._mostrar_descarga_fallida(resultado)
             return
-        self.ventana.estado("Comprobando el paquete.")
+        self.ventana.estado(_("Comprobando el paquete."))
         diagnostico.crear_hilo(
             self._run_extraer, "ComprobarPaquete").start()
 
     def _mostrar_descarga_fallida(self, resultado):
-        motivo = resultado.motivo or "motivo desconocido"
+        motivo = resultado.motivo or _("motivo desconocido")
         self.ventana.progreso(0)
         if "cancelada" in motivo.lower():
-            self.ventana.estado("Descarga cancelada.")
+            self.ventana.estado(_("Descarga cancelada."))
         elif "firma" in motivo.lower():
-            self.ventana.estado("La descarga no se completó: "
-                                "la firma SHA-256 no coincide.")
+            self.ventana.estado(_("La descarga no se completó: "
+                                  "la firma SHA-256 no coincide."))
         else:
-            self.ventana.estado(f"La descarga no se completó: {motivo}.")
+            self.ventana.estado(_("La descarga no se completó: {motivo}.").format(motivo=motivo))
 
     def _run_extraer(self):
         try:
@@ -377,14 +377,14 @@ class _FlujoActualizacion:
         self.ventana.en_hilo_principal(self._mostrar_listo, raiz, ejecutable)
 
     def _mostrar_paquete_invalido(self, motivo):
-        self.ventana.estado(f"El paquete no sirve: {motivo}.")
+        self.ventana.estado(_("El paquete no sirve: {motivo}.").format(motivo=motivo))
 
     def _mostrar_listo(self, raiz, ejecutable):
-        self.ventana.estado(f"Listo para instalar. {APP_NAME} se cierra y vuelve "
-                            "a abrirse sola en alrededor de un minuto. Si hay un "
-                            "chat conectado o un directo en curso, se corta.")
+        self.ventana.estado(_("Listo para instalar. {app} se cierra y vuelve "
+                              "a abrirse sola en alrededor de un minuto. Si hay un "
+                              "chat conectado o un directo en curso, se corta.").format(app=APP_NAME))
         self.ventana.ofrecer_accion(
-            "&Instalar y reiniciar",
+            _("&Instalar y reiniciar"),
             lambda: self._instalar(raiz, ejecutable))
 
     def _instalar(self, raiz, ejecutable):
@@ -393,7 +393,7 @@ class _FlujoActualizacion:
                 raiz, ejecutable, paths.carpeta_instalacion(),
                 paths.ejecutable_actual(), os.getpid(), APP_VERSION)
         except Exception as exc:
-            self.ventana.estado(f"No se pudo iniciar la instalación: {exc}.")
+            self.ventana.estado(_("No se pudo iniciar la instalación: {detalle}.").format(detalle=exc))
             return
         self.frame._cerrar_sin_preguntar = True
         self.frame.Close()
@@ -417,10 +417,10 @@ def abrir_ventana_actualizacion(frame, paquete=None, al_arrancar=False) -> None:
         except Exception:
             pass
         return
-    ventana = DialogoActualizacion(frame, "Buscar actualizaciones")
+    ventana = DialogoActualizacion(frame, _("Buscar actualizaciones"))
     frame._ventana_actualizar_app = ventana
     if al_arrancar:
-        ventana.etiqueta_cerrar("&Más tarde")
+        ventana.etiqueta_cerrar(_("&Más tarde"))
     ventana.Show()
     if al_arrancar:
         try:

@@ -9,6 +9,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+from tests.pseudo_prueba import con_pseudo
 from ytchat.downloads import descargas
 from ytchat.downloads.descargas import (
     GestorDescargas,
@@ -825,6 +826,104 @@ class TestFfmpeg(unittest.TestCase):
                 mock.patch.object(descargas, "tiene_ffmpeg", return_value=False):
             descargar("url", {}, lambda *a: None, lambda *a: estados.append(a), threading.Event())
         self.assertIn("ffmpeg", estados[-1][1])
+
+
+class TestPseudoFrases(unittest.TestCase):
+    """Pseudotraducción de los avisos: lo que oye el usuario sale marcado."""
+
+    def test_frases_de_aviso_salen_marcadas(self):
+        with con_pseudo():
+            frases = [
+                descargas.frase_aviso_descarga("completado", "", "video.mp4"),
+                descargas.frase_aviso_descarga("completado", "", ""),
+                descargas.frase_aviso_descarga("error", "sin espacio", ""),
+                descargas.frase_aviso_descarga("error", "", ""),
+                descargas.frase_aviso_descarga("cancelado", "motivo", "video.mp4"),
+            ]
+        self.assertTrue(frases)
+        for frase in frases:
+            self.assertTrue(frase.startswith("[¡"), frase)
+
+    def test_sin_programa_sale_marcado(self):
+        with con_pseudo(), \
+                mock.patch.object(descargas.ytdlp_bin, "ruta_ytdlp",
+                                  return_value=None):
+            mensaje = descargas.analizar_url("https://example.com/v")["mensaje"]
+            estados = []
+            descargas.descargar("url", {}, lambda *a: None,
+                                lambda *a: estados.append(a),
+                                threading.Event())
+        self.assertTrue(mensaje.startswith("[¡"), mensaje)
+        self.assertTrue(estados[-1][1].startswith("[¡"), estados[-1])
+
+    def test_fallo_del_programa_sale_marcado(self):
+        vacio = mock.Mock(stdout="", stderr="", returncode=1)
+        with con_pseudo(), \
+                mock.patch.object(descargas.ytdlp_bin, "ruta_ytdlp",
+                                  return_value="yt-dlp"), \
+                mock.patch.object(descargas.subprocess, "run",
+                                  return_value=vacio):
+            mensaje = descargas.analizar_url("https://example.com/v")["mensaje"]
+        self.assertTrue(mensaje.startswith("[¡"), mensaje)
+
+    def test_url_vacia_sale_marcada(self):
+        nulo = mock.Mock(stdout="null", stderr="", returncode=0)
+        with con_pseudo(), \
+                mock.patch.object(descargas.ytdlp_bin, "ruta_ytdlp",
+                                  return_value="yt-dlp"), \
+                mock.patch.object(descargas.subprocess, "run",
+                                  return_value=nulo):
+            mensaje = descargas.analizar_url("https://example.com/v")["mensaje"]
+        self.assertTrue(mensaje.startswith("[¡"), mensaje)
+
+    def test_sin_ffmpeg_sale_marcado(self):
+        estados = []
+        with con_pseudo(), \
+                mock.patch.object(descargas.ytdlp_bin, "ruta_ytdlp",
+                                  return_value="yt-dlp"), \
+                mock.patch.object(descargas, "tiene_ffmpeg",
+                                  return_value=False):
+            descargas.descargar("url", {}, lambda *a: None,
+                                lambda *a: estados.append(a),
+                                threading.Event())
+        self.assertTrue(estados[-1][1].startswith("[¡"), estados[-1])
+
+    def test_cancelado_sale_marcado(self):
+        proceso = mock.MagicMock()
+        proceso.returncode = 0
+        proceso.poll.return_value = 0
+        proceso.stdout.readline.side_effect = ["", ""]
+        evento = threading.Event()
+        evento.set()
+        estados = []
+        with con_pseudo(), \
+                mock.patch.object(descargas.ytdlp_bin, "ruta_ytdlp",
+                                  return_value="yt-dlp"), \
+                mock.patch.object(descargas, "tiene_ffmpeg",
+                                  return_value=True), \
+                mock.patch.object(descargas.subprocess, "Popen",
+                                  return_value=proceso):
+            descargas.descargar("url", {"formato": "mp4"}, lambda *a: None,
+                                lambda *a: estados.append(a), evento)
+        self.assertTrue(estados[-1][1].startswith("[¡"), estados[-1])
+
+    def test_codigo_no_cero_sale_marcado(self):
+        proceso = mock.MagicMock()
+        proceso.returncode = 2
+        proceso.poll.return_value = 0
+        proceso.stdout.readline.side_effect = ["", ""]
+        estados = []
+        with con_pseudo(), \
+                mock.patch.object(descargas.ytdlp_bin, "ruta_ytdlp",
+                                  return_value="yt-dlp"), \
+                mock.patch.object(descargas, "tiene_ffmpeg",
+                                  return_value=True), \
+                mock.patch.object(descargas.subprocess, "Popen",
+                                  return_value=proceso):
+            descargas.descargar("url", {"formato": "mp4"}, lambda *a: None,
+                                lambda *a: estados.append(a),
+                                threading.Event())
+        self.assertTrue(estados[-1][1].startswith("[¡"), estados[-1])
 
 
 if __name__ == "__main__": unittest.main()

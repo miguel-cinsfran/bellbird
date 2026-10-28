@@ -980,6 +980,10 @@ class TestPseudoVentana(unittest.TestCase):
     def setUpClass(cls):
         cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
 
+    @classmethod
+    def tearDownClass(cls):
+        del cls.app
+
     def _abrir(self, vistos, pulsar=False, **kwargs):
         from ytchat.ui.gui_actualizacion import DialogoActualizacion
         frozen = kwargs.pop("frozen", True)

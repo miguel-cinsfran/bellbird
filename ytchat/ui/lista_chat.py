@@ -19,6 +19,7 @@ from ytchat.core.config import (
     TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,
     TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE,
 )
+from ytchat.core.idioma import _, ngettext
 
 
 @dataclass(frozen=True, slots=True)
@@ -87,21 +88,30 @@ class ListaChat:
 
 def texto_fila(autor, msg, hora, tipo, monto) -> str:
     """Texto de una fila del chat según su tipo, con los mismos emojis."""
+    datos = {"monto": monto, "autor": autor, "mensaje": msg, "hora": hora}
     if tipo == TIPO_SUPERCHAT and monto:
-        return f"💲 [{monto}] {autor}: {msg}, {hora}"
+        # Traductores: fila de Super Chat; {monto} el importe ya formateado, {autor} su nombre, {mensaje} el texto y {hora} la hora. El emoji del principio se conserva.
+        return _("💲 [{monto}] {autor}: {mensaje}, {hora}").format(**datos)
     if tipo == TIPO_STICKER and monto:
-        return f"🎨 [{monto}] {autor}, {hora}"
+        # Traductores: fila de sticker con importe; {monto} el importe ya formateado, {autor} su nombre y {hora} la hora. El emoji del principio se conserva.
+        return _("🎨 [{monto}] {autor}, {hora}").format(**datos)
     if tipo == TIPO_MIEMBRO:
-        return f"⭐ NUEVO MIEMBRO: {autor}, {hora}"
+        # Traductores: fila de miembro nuevo; {autor} su nombre y {hora} la hora. El emoji del principio se conserva.
+        return _("⭐ NUEVO MIEMBRO: {autor}, {hora}").format(**datos)
     if tipo == TIPO_ENTRADA:
-        return f"👋 {autor} entró, {hora}"
+        # Traductores: fila de entrada al directo; {autor} su nombre y {hora} la hora. El emoji del principio se conserva.
+        return _("👋 {autor} entró, {hora}").format(**datos)
     if tipo == TIPO_SEGUIR:
-        return f"{autor} sigue el canal, {hora}"
+        # Traductores: fila de seguimiento; {autor} su nombre y {hora} la hora.
+        return _("{autor} sigue el canal, {hora}").format(**datos)
     if tipo == TIPO_COMPARTIR:
-        return f"{autor} compartió el directo, {hora}"
+        # Traductores: fila de compartido; {autor} su nombre y {hora} la hora.
+        return _("{autor} compartió el directo, {hora}").format(**datos)
     if tipo == TIPO_COFRE:
-        return f"{autor} envió un cofre, {hora}"
-    return f"{autor}: {msg}, {hora}"
+        # Traductores: fila de cofre; {autor} su nombre y {hora} la hora.
+        return _("{autor} envió un cofre, {hora}").format(**datos)
+    # Traductores: fila común; {autor} su nombre, {mensaje} el texto y {hora} la hora.
+    return _("{autor}: {mensaje}, {hora}").format(**datos)
 
 
 def texto_reciente(filas, n: int) -> str:
@@ -112,9 +122,9 @@ def texto_reciente(filas, n: int) -> str:
     """
     total = len(filas)
     if total == 0:
-        return "Todavía no hay mensajes en el chat."
+        return _("Todavía no hay mensajes en el chat.")
     if n > total:
-        if total == 1:
-            return "El chat tiene 1 mensaje."
-        return f"El chat tiene {total} mensajes."
+        # Traductores: cuántos mensajes hay en el chat; {n} es la cantidad.
+        return ngettext("El chat tiene {n} mensaje.",
+                        "El chat tiene {n} mensajes.", total).format(n=total)
     return filas[total - n]

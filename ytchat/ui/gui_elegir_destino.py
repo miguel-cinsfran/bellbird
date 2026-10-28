@@ -10,6 +10,7 @@ from __future__ import annotations
 import wx
 
 from ytchat.obs.obs_destinos import DESTINOS
+from ytchat.core.idioma import _
 from ytchat.ui import paleta
 from ytchat.ui.accesibilidad import anunciar, nombre_accesible
 
@@ -34,39 +35,41 @@ def validar_eleccion(destino, usuario) -> tuple:
     if destino == "TikTok":
         usuario = tiktok_vivo.usuario_tiktok(usuario or "")
         if not usuario:
-            raise ValueError("Falta el usuario de TikTok.")
+            raise ValueError(_("Falta el usuario de TikTok."))
         return (destino, usuario)
     return (destino, "")
 
 
 class DialogoElegirDestino(wx.Dialog):
     def __init__(self, padre, destino="", usuario=""):
-        super().__init__(padre, title="Transmitir a",
+        super().__init__(padre, title=_("Transmitir a"),
                          name="DialogoElegirDestino")
         destino = destino_inicial(destino)
         self._datos = None
 
         vs = wx.BoxSizer(wx.VERTICAL)
-        self.rotulo_destino = wx.StaticText(self, label="Transmitir a:")
+        self.rotulo_destino = wx.StaticText(self, label=_("Transmitir a:"))
         vs.Add(self.rotulo_destino, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.cho_destino = wx.Choice(
-            self, choices=list(DESTINOS), name="Transmitir a")
+            self, choices=list(DESTINOS), name=_("Transmitir a"))
         self.cho_destino.SetStringSelection(destino)
-        nombre_accesible(self.cho_destino, "Transmitir a")
+        nombre_accesible(self.cho_destino, _("Transmitir a"))
         vs.Add(self.cho_destino, 0, wx.EXPAND | wx.ALL, 10)
 
         self.rotulo_usuario = wx.StaticText(
-            self, label="Usuario de TikTok:")
+            self, label=_("Usuario de TikTok:"))
         vs.Add(self.rotulo_usuario, 0, wx.LEFT | wx.RIGHT, 10)
         self.txt_usuario = wx.TextCtrl(
-            self, value=usuario or "", name="Usuario de TikTok")
-        nombre_accesible(self.txt_usuario, "Usuario de TikTok")
+            self, value=usuario or "", name=_("Usuario de TikTok"))
+        nombre_accesible(self.txt_usuario, _("Usuario de TikTok"))
         vs.Add(self.txt_usuario, 0, wx.EXPAND | wx.ALL, 10)
 
         fila = wx.BoxSizer(wx.HORIZONTAL)
-        self.btn_continuar = wx.Button(self, wx.ID_OK, "&Continuar")
+        # Traductores: botón para seguir con la transmisión.
+        self.btn_continuar = wx.Button(self, wx.ID_OK, _("&Continuar"))
         self.btn_continuar.SetDefault()
-        self.btn_cancelar = wx.Button(self, wx.ID_CANCEL, "C&ancelar")
+        # Traductores: botón para volver sin transmitir.
+        self.btn_cancelar = wx.Button(self, wx.ID_CANCEL, _("C&ancelar"))
         fila.Add(self.btn_continuar, 0, wx.RIGHT, 6)
         fila.Add(self.btn_cancelar, 0)
         vs.Add(fila, 0, wx.ALIGN_RIGHT | wx.ALL, 10)

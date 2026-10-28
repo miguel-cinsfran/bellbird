@@ -19,6 +19,7 @@ módulo en el momento de la llamada, nunca con un `from` directo.
 from __future__ import annotations
 
 from ytchat.capture.montos import texto_importes
+from ytchat.core.idioma import _
 
 
 def _entero_en(meta, clave):

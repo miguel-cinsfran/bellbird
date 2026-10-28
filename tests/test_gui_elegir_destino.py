@@ -15,6 +15,7 @@ except Exception:
     _HAY_WX = False
 
 from ytchat.ui import gui_elegir_destino as elegir
+from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
 
 
@@ -146,6 +147,35 @@ class TestDialogoElegirDestinoVentana(unittest.TestCase):
                                    return_value=wx.ID_CANCEL):
                 self.assertIsNone(
                     elegir.pedir_destino(None, "TikTok", "amigo"))
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestPseudoElegirDestino(unittest.TestCase):
+    # Pseudotraducción de la ventana: la corre el advisor, abre ventanas.
+
+    def setUp(self):
+        self.app = wx.App.Get() or wx.App(False)
+
+    def _dialogo(self, **kwargs):
+        dialogo = elegir.DialogoElegirDestino(None, **kwargs)
+        self.addCleanup(destruir, dialogo)
+        return dialogo
+
+    def test_no_queda_ningun_texto_visible_sin_envolver(self):
+        with con_pseudo():
+            dialogo = self._dialogo(destino="TikTok", usuario="amigo")
+            sin_marcar = textos_sin_marcar(
+                dialogo, propios=("TikTok", "YouTube"))
+        self.assertEqual([], sin_marcar)
+
+    def test_anuncio_propio_sale_marcado(self):
+        dialogo = self._dialogo(destino="TikTok", usuario="")
+        dialogo.txt_usuario.SetValue("")
+        with con_pseudo(), \
+                mock.patch.object(elegir, "anunciar") as anunciar:
+            dialogo._al_continuar(mock.Mock())
+        anunciar.assert_called_once()
+        self.assertTrue(anunciar.call_args.args[0].startswith("[¡"))
 
 
 if __name__ == "__main__":

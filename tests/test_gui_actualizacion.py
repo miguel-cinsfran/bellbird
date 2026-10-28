@@ -14,6 +14,7 @@ except Exception:
     _HAY_WX = False
 
 from ytchat.ui import gui_actualizacion as actualizacion
+from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
 
 
@@ -117,6 +118,22 @@ class TestDialogoActualizacion(unittest.TestCase):
         with open(actualizacion.__file__, encoding="utf-8") as archivo:
             fuente = archivo.read()
         self.assertNotIn("ytdlp", fuente)
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestPseudoVentanaPropia(unittest.TestCase):
+    # Pseudotraducción de los textos propios: la corre el advisor.
+
+    def setUp(self):
+        self.app = wx.App.Get() or wx.App(False)
+
+    def test_no_queda_ningun_texto_visible_sin_envolver(self):
+        titulo = "Título de ejemplo"
+        with con_pseudo():
+            dialogo = actualizacion.DialogoActualizacion(None, titulo)
+            self.addCleanup(destruir, dialogo)
+            sin_marcar = textos_sin_marcar(dialogo, propios=(titulo,))
+        self.assertEqual([], sin_marcar)
 
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")

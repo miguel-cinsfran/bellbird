@@ -3,7 +3,9 @@ from unittest import mock
 
 import wx
 
+from ytchat.core.idioma import _
 from ytchat.ui import gui_redactar
+from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
 
 
@@ -144,6 +146,59 @@ class TestDialogoRedactar(unittest.TestCase):
             dialogo.panel._on_enviar(None)
         self.assertEqual(dialogo._llamadas, [])
         destruir(dialogo)
+
+
+# La etiqueta del panel suelto la arma `ytchat/ui/gui.py` («&Mensaje:»):
+# queda pendiente hasta que ese módulo pase por gettext. La comparación es
+# exacta en los dos sentidos: falla si aparece un texto nuevo sin envolver
+# y si el pendiente ya no está en el recorrido.
+PENDIENTES_REDACTAR = (
+    "&Mensaje:",
+)
+
+
+class TestPseudoRedactar(unittest.TestCase):
+    # Pseudotraducción: abre ventanas, la corre el advisor.
+
+    @classmethod
+    def setUpClass(cls):
+        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        cls.frame = wx.Frame(None)
+
+    @classmethod
+    def tearDownClass(cls):
+        destruir(cls.frame)
+        del cls.frame
+        del cls.app
+
+    def test_panel_solo_deja_pendiente_la_etiqueta_ajena(self):
+        with con_pseudo():
+            panel = gui_redactar.PanelRedactar(
+                self.frame, "&Mensaje:", 200, lambda texto: None)
+            sin_marcar = textos_sin_marcar(panel)
+        panel.Destroy()
+        self.assertEqual(sin_marcar, list(PENDIENTES_REDACTAR))
+
+    def test_dialogo_sin_texto_ajeno_no_deja_nada(self):
+        with con_pseudo():
+            dialogo = gui_redactar.DialogoRedactar(
+                self.frame, _("&Comentario:"), 200, lambda texto: None,
+                titulo=_("Comentar"), nombre_texto=_("Texto del comentario"),
+                nombre_boton=_("Publicar"))
+            sin_marcar = textos_sin_marcar(dialogo)
+        destruir(dialogo)
+        self.assertEqual([], sin_marcar)
+
+    def test_valores_por_defecto_salen_marcados(self):
+        with con_pseudo():
+            dialogo = gui_redactar.DialogoRedactar(
+                self.frame, _("&Comentario:"), 200, lambda texto: None)
+            titulo = dialogo.GetTitle()
+            nombre_texto = dialogo.panel.texto.GetName()
+            boton = dialogo.panel.boton.GetLabel()
+        destruir(dialogo)
+        for texto in (titulo, nombre_texto, boton):
+            self.assertTrue(texto.startswith("[¡"), texto)
 
 
 if __name__ == "__main__":

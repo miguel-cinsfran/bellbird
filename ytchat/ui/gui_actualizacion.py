@@ -12,6 +12,7 @@ import threading
 import wx
 
 from ytchat.core.actualizacion import notas_legibles
+from ytchat.core.idioma import _
 from ytchat.ui import paleta
 from ytchat.ui.accesibilidad import anunciar, nombre_accesible
 
@@ -28,19 +29,24 @@ class DialogoActualizacion(wx.Dialog):
         vs = wx.BoxSizer(wx.VERTICAL)
         self.txt_estado = wx.TextCtrl(
             self, value="", style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_NO_VSCROLL,
-            name="Estado")
+            # Traductores: nombre del cuadro de estado.
+            name=_("Estado"))
         self.txt_estado.SetMinSize(
             (380, 3 * self.txt_estado.GetCharHeight() + 12))
-        nombre_accesible(self.txt_estado, "Estado")
+        # Traductores: nombre del cuadro de estado.
+        nombre_accesible(self.txt_estado, _("Estado"))
         vs.Add(self.txt_estado, 0, wx.EXPAND | wx.ALL, 10)
 
-        self.gauge = wx.Gauge(self, range=100, name="Progreso")
-        nombre_accesible(self.gauge, "Progreso")
+        # Traductores: nombre de la barra de progreso.
+        self.gauge = wx.Gauge(self, range=100, name=_("Progreso"))
+        # Traductores: nombre de la barra de progreso.
+        nombre_accesible(self.gauge, _("Progreso"))
         vs.Add(self.gauge, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
 
         self.txt_notas = wx.TextCtrl(
             self, value="", style=wx.TE_MULTILINE | wx.TE_READONLY,
-            name="Novedades")
+            # Traductores: nombre del cuadro de novedades.
+            name=_("Novedades"))
         try:
             ancho60 = 60 * self.txt_notas.GetCharWidth()
         except Exception:
@@ -50,14 +56,16 @@ class DialogoActualizacion(wx.Dialog):
         except Exception:
             alto_notas = -1
         self.txt_notas.SetMinSize((ancho60, alto_notas))
-        nombre_accesible(self.txt_notas, "Novedades")
+        # Traductores: nombre del cuadro de novedades.
+        nombre_accesible(self.txt_notas, _("Novedades"))
         vs.Add(self.txt_notas, 1, wx.EXPAND | wx.ALL, 10)
         self.txt_notas.Hide()
 
         self.btn_accion = wx.Button(self, wx.ID_ANY, "")
         self.btn_accion.Hide()
 
-        self.btn_cerrar = wx.Button(self, wx.ID_CANCEL, "&Cerrar")
+        # Traductores: botón para cerrar la ventana.
+        self.btn_cerrar = wx.Button(self, wx.ID_CANCEL, _("&Cerrar"))
         fila_botones = wx.BoxSizer(wx.HORIZONTAL)
         fila_botones.Add(self.btn_accion, 0, wx.RIGHT, 10)
         fila_botones.Add(self.btn_cerrar, 0)

@@ -9,6 +9,8 @@ Herramientas y las pruebas.
 
 from __future__ import annotations
 
+from ytchat.core.idioma import _
+
 
 def abrir_ventana_actualizacion(frame) -> None:
     """Abre la ventana de actualización de yt-dlp o enfoca la ya abierta."""
@@ -36,9 +38,10 @@ def abrir_ventana_actualizacion(frame) -> None:
             _mostrar_descarga, version_nueva)
 
     def _mostrar_descarga(version_nueva):
-        ventana.estado(
-            f"Hay una versión nueva de yt-dlp, la {version_nueva}. "
-            "Descargando.")
+        # Traductores: {version} es la versión nueva de yt-dlp.
+        texto = _("Hay una versión nueva de yt-dlp, la {version}. "
+                  "Descargando.")
+        ventana.estado(texto.format(version=version_nueva))
 
     def _progreso(porcentaje, _descargado, _total):
         ventana.en_hilo_principal(_actualizar_progreso, porcentaje)
@@ -48,8 +51,9 @@ def abrir_ventana_actualizacion(frame) -> None:
         ventana.progreso(porcentaje)
         if ytdlp_bin.debe_actualizar_texto_progreso(ultimo_texto, porcentaje):
             ultimo_texto = porcentaje
-            ventana.txt_estado.SetValue(
-                f"Descargando yt-dlp: {porcentaje} por ciento")
+            # Traductores: {porcentaje} es el avance de 0 a 100.
+            texto = _("Descargando yt-dlp: {porcentaje} por ciento")
+            ventana.txt_estado.SetValue(texto.format(porcentaje=porcentaje))
 
     def _terminar(estado, texto):
         if ytdlp_bin.resultado_actualizacion_es_fallo(estado):

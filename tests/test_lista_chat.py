@@ -12,6 +12,7 @@ from ytchat.core.config import (
     TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE,
 )
 from ytchat.ui.lista_chat import ListaChat, MensajeChat, texto_fila, texto_reciente
+from tests.pseudo_prueba import con_pseudo
 
 
 def _msg(n, tipo="text", plataforma="youtube", identificador=None, autor=None):
@@ -309,6 +310,42 @@ class TestTextoFila(unittest.TestCase):
         self.assertEqual(
             texto_fila("Ana", "hola", "12:00:00", TIPO_TEXTO, ""),
             "Ana: hola, 12:00:00")
+
+
+class TestPseudoFilas(unittest.TestCase):
+    """Pseudotraducción de las filas, sin ventanas: corre acá."""
+
+    def test_todas_las_filas_salen_marcadas_con_los_datos(self):
+        casos = [
+            (TIPO_SUPERCHAT, "$5"), (TIPO_STICKER, "$5"),
+            (TIPO_MIEMBRO, ""), (TIPO_ENTRADA, ""), (TIPO_SEGUIR, ""),
+            (TIPO_COMPARTIR, ""), (TIPO_COFRE, ""), (TIPO_TEXTO, ""),
+            (TIPO_SUPERCHAT, ""),
+        ]
+        with con_pseudo():
+            for tipo, monto in casos:
+                with self.subTest(tipo=tipo, monto=monto):
+                    fila = texto_fila("Ana", "hola", "12:00:00", tipo, monto)
+                    self.assertTrue(fila.startswith("[¡"), fila)
+                    self.assertIn("Ana", fila)
+                    self.assertIn("12:00:00", fila)
+            self.assertIn(
+                "$5", texto_fila("Ana", "hola", "12:00:00",
+                                 TIPO_SUPERCHAT, "$5"))
+            self.assertIn(
+                "hola",
+                texto_fila("Ana", "hola", "12:00:00", TIPO_TEXTO, ""))
+
+    def test_recientes_salen_marcados_y_la_fila_pasa_tal_cual(self):
+        with con_pseudo():
+            self.assertEqual(texto_reciente([], 1),
+                             "[¡Todavía no hay mensajes en el chat.!]")
+            self.assertEqual(texto_reciente(["hola"], 2),
+                             "[¡El chat tiene 1 mensaje.!]")
+            self.assertEqual(texto_reciente(["hola", "chau"], 3),
+                             "[¡El chat tiene 2 mensajes.!]")
+            self.assertEqual(texto_reciente(["primero", "último"], 1),
+                             "último")
 
 
 if __name__ == "__main__":

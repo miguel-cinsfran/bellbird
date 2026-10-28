@@ -21,6 +21,8 @@ directo.
 
 from __future__ import annotations
 
+from ytchat.core.idioma import _
+
 
 def on_enviar_live(frame, event):
     from ytchat.ui import gui as _gui

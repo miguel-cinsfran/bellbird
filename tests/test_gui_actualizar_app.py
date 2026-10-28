@@ -965,11 +965,8 @@ class TestPseudoAvisos(unittest.TestCase):
             [actualizacion.texto_resultado(resultado, APP_VERSION)])
 
 
-# Los textos de la ventana genérica los arma `ytchat/ui/gui_actualizacion.py`:
-# quedan como pendientes hasta que ese módulo pase por gettext.
-PENDIENTES_OTRO_MODULO = (
-    "&Cerrar",
-)
+# La ventana genérica ya pasa por gettext: no quedan pendientes.
+PENDIENTES_OTRO_MODULO = ()
 
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")

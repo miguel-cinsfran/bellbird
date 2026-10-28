@@ -4,6 +4,7 @@ import types
 import unittest
 from unittest import mock
 
+from tests.pseudo_prueba import con_pseudo
 from ytchat.ui import gui
 from ytchat.ui import gui_estado
 from ytchat.ui.sesion_conectada import SesionConectada
@@ -94,6 +95,71 @@ class TestFormatoTotalSc(unittest.TestCase):
             gui.YTChatFrame._formato_total_sc(
                 self._frame({"€": 15.0, "$": 10.0})),
             "SC: 3 (€15, $10)")
+
+
+def _hilo_inmediato(objetivo, _nombre):
+    hilo = mock.Mock()
+    hilo.start.side_effect = lambda: objetivo()
+    return hilo
+
+
+class TestPseudoAnuncios(unittest.TestCase):
+    """Pseudotraducción de los anuncios de estado, sin ventanas: corre acá."""
+
+    def test_estado_sin_info_sale_marcado(self):
+        frame = types.SimpleNamespace(_config={},
+                                      _snapshot_sesion=lambda: "SNAP")
+        captados = []
+        with con_pseudo(), \
+                mock.patch.object(gui.estado_sesion, "formatear_estado",
+                                  return_value=""), \
+                mock.patch.object(gui, "anunciar", captados.append):
+            gui_estado.anunciar_estado(frame)
+        self.assertEqual(captados, ["[¡Sin información de estado.!]"])
+
+    def test_autor_sale_marcado(self):
+        for ultimo, esperado in (
+                ("Ana", "[¡Último mensaje leído de Ana!]"),
+                ("", "[¡Todavía no se leyó ningún mensaje.!]")):
+            with self.subTest(ultimo=ultimo):
+                trabajador = mock.Mock()
+                trabajador.ultimo_autor.return_value = ultimo
+                frame = types.SimpleNamespace(_worker=trabajador)
+                captados = []
+                with con_pseudo(), \
+                        mock.patch.object(gui, "anunciar", captados.append):
+                    gui_estado.anunciar_autor(frame)
+                self.assertEqual(captados, [esperado])
+
+    def test_escena_sin_obs_sale_marcada(self):
+        frame = types.SimpleNamespace(_descripcion_escena_en_curso=False)
+        captados = []
+        with con_pseudo(), \
+                mock.patch.object(gui.obs_activacion,
+                                  "obs_esta_en_ejecucion",
+                                  return_value=False), \
+                mock.patch.object(gui, "anunciar", captados.append):
+            gui_estado.describir_escena(frame)
+        self.assertEqual(captados, ["[¡OBS no está abierto.!]"])
+
+    def test_escena_pasa_el_texto_ajeno_tal_cual(self):
+        gestor = mock.Mock()
+        gestor.descripcion_escena.return_value = "Escena: Principal"
+        frame = types.SimpleNamespace(
+            _descripcion_escena_en_curso=False,
+            _anunciar_descripcion_escena=mock.Mock())
+        with mock.patch.object(gui.obs_activacion,
+                               "obs_esta_en_ejecucion",
+                               return_value=True), \
+                mock.patch.object(gui, "GestorPanelObs",
+                                  return_value=gestor), \
+                mock.patch.object(gui.diagnostico, "crear_hilo",
+                                  side_effect=_hilo_inmediato), \
+                mock.patch.object(gui.wx, "CallAfter",
+                                  side_effect=lambda f, *a: f(*a)):
+            gui_estado.describir_escena(frame)
+        frame._anunciar_descripcion_escena.assert_called_once_with(
+            "Escena: Principal")
 
 
 if __name__ == "__main__":

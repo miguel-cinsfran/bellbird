@@ -16,6 +16,7 @@ from ytchat.obs import obs_lanzador
 from ytchat.obs import transmision_directa
 from ytchat.obs.obs_destinos import DESTINOS
 from ytchat.core import diagnostico
+from ytchat.core.idioma import N_, _
 from ytchat.obs import overlay_servidor
 from ytchat.ui.accesibilidad import ContadorAccesible, anunciar, nombre_accesible
 from ytchat.ui.gui import caja_de_grupo
@@ -40,16 +41,15 @@ def confirmar_transmision(padre, revision) -> bool:
     estilo = wx.OK | wx.CANCEL
     if problemas:
         estilo |= wx.CANCEL_DEFAULT
-    dialogo = wx.MessageDialog(
-        padre, frase, "Antes de transmitir", estilo)
+    dialogo = wx.MessageDialog(padre, frase, _("Antes de transmitir"), estilo)
     try:
-        dialogo.SetOKCancelLabels(_ETIQUETA_TRANSMITIR, "&Cancelar")
+        dialogo.SetOKCancelLabels(_(_ETIQUETA_TRANSMITIR), _("&Cancelar"))
         return dialogo.ShowModal() == wx.ID_OK
     finally:
         dialogo.Destroy()
 
 
-_TEXTO_LIENZO = (
+_TEXTO_LIENZO = N_(
     "El programa de emisión compone lo que ven los espectadores sobre un\n"
     "rectángulo de tamaño fijo, llamado lienzo. No es la pantalla del equipo\n"
     "ni la ventana del juego.\n\n"
@@ -59,7 +59,7 @@ _TEXTO_LIENZO = (
     "fondo de este panel es transparente: solo se ven las tarjetas de los\n"
     "mensajes, y solo tapan lo que hay justo debajo de ellas.")
 
-_TEXTO_COMO_SE_COLOCA = (
+_TEXTO_COMO_SE_COLOCA = N_(
     "Este diálogo no crea escenas ni agrega fuentes cualesquiera, salvo la captura de ventana desde la sección Escena. Hace una sola\n"
     "cosa: pone el panel de chat de esta aplicación dentro de una escena de OBS\n"
     "y lo coloca donde quieras.\n\n"
@@ -84,10 +84,17 @@ _TEXTO_COMO_SE_COLOCA = (
 _PUERTO_PANEL_DEFECTO = 8730
 _RUTA_PANEL_CHAT = "/chat"
 
-_ETIQUETA_TRANSMITIR = "&Transmitir"
-_ETIQUETA_DETENER_TRANSMISION = "Detener la &transmisión"
-_ETIQUETA_GRABAR = "&Grabar"
-_ETIQUETA_DETENER_GRABACION = "Detener la &grabación"
+_ETIQUETA_TRANSMITIR = N_("&Transmitir")
+_ETIQUETA_DETENER_TRANSMISION = N_("Detener la &transmisión")
+_ETIQUETA_GRABAR = N_("&Grabar")
+_ETIQUETA_DETENER_GRABACION = N_("Detener la &grabación")
+_ETIQUETAS_POSICION = {
+    "superior-izquierda": N_("Superior izquierda"), "superior-centro": N_("Superior centro"),
+    "superior-derecha": N_("Superior derecha"), "centro-izquierda": N_("Centro izquierda"),
+    "centro": N_("Centro"), "centro-derecha": N_("Centro derecha"),
+    "inferior-izquierda": N_("Inferior izquierda"), "inferior-centro": N_("Inferior centro"),
+    "inferior-derecha": N_("Inferior derecha"),
+}
 
 
 class TransmisionDialog(wx.Dialog):
@@ -97,11 +104,10 @@ class TransmisionDialog(wx.Dialog):
     def __init__(self, parent, gestor=None, alternar_panel=None,
                  supervisar=None, guardar_usuario=None, usuario_tiktok="",
                  asegurar=None, guardar_destino=None):
-        super().__init__(parent, title="Transmisión", size=(680, 680),
+        super().__init__(parent, title=_("Transmisión"), size=(680, 680),
                           name="DialogoTransmision")
         self._gestor = gestor or GestorPanelObs()
-        self._asegurar = (asegurar if asegurar is not None
-                          else obs_lanzador.asegurar_obs)
+        self._asegurar = asegurar if asegurar is not None else obs_lanzador.asegurar_obs
         self._alternar_panel = alternar_panel
         self._supervisar = supervisar
         self._guardar_usuario = guardar_usuario
@@ -135,13 +141,12 @@ class TransmisionDialog(wx.Dialog):
         zona.SetForegroundColour(_T.text)
         self._zona_desplazable = zona
         contenido = wx.BoxSizer(wx.VERTICAL)
-        nota = wx.StaticText(zona, name="NotaTransmision",
-                             label=obs_estado.NOTA_TRANSMISION)
+        nota = wx.StaticText(zona, name="NotaTransmision", label=obs_estado.NOTA_TRANSMISION)
         nota.SetForegroundColour(_T.dim)
         nota.Wrap(560)
         contenido.Add(nota, 0, wx.ALL, 10)
 
-        sizer_transmitir, padre_transmitir = caja_de_grupo(zona, "Transmitir")
+        sizer_transmitir, padre_transmitir = caja_de_grupo(zona, _("Transmitir"))
         self._sizer_transmitir = sizer_transmitir
         self._rotulos_transmision = []
 
@@ -157,119 +162,119 @@ class TransmisionDialog(wx.Dialog):
             fila.Add(control, 1, wx.EXPAND | wx.ALL, 6)
             sizer.Add(fila, proporcion, wx.EXPAND, 0)
 
-        rotulo_destino = nuevo_rotulo(padre_transmitir, "Transmitir a:")
+        rotulo_destino = nuevo_rotulo(padre_transmitir, _("Transmitir a:"))
         self.cho_destino = wx.Choice(padre_transmitir, choices=list(DESTINOS),
-                                     name="Transmitir a")
-        nombre_accesible(self.cho_destino, "Transmitir a")
+                                     name=_("Transmitir a"))
+        nombre_accesible(self.cho_destino, _("Transmitir a"))
         fila_campo(sizer_transmitir, rotulo_destino, self.cho_destino)
-        rotulo_usuario = nuevo_rotulo(padre_transmitir, "Tu usuario de TikTok:")
+        rotulo_usuario = nuevo_rotulo(padre_transmitir, _("Tu usuario de TikTok:"))
         self.txt_usuario_tiktok = wx.TextCtrl(
-            padre_transmitir, value=self._usuario_tiktok, name="Tu usuario de TikTok")
-        nombre_accesible(self.txt_usuario_tiktok, "Tu usuario de TikTok")
+            padre_transmitir, value=self._usuario_tiktok, name=_("Tu usuario de TikTok"))
+        nombre_accesible(self.txt_usuario_tiktok, _("Tu usuario de TikTok"))
         fila_campo(sizer_transmitir, rotulo_usuario, self.txt_usuario_tiktok)
-        self.btn_destino = self._boton(padre_transmitir, "Preparar desti&no", "Preparar destino")
+        self.btn_destino = self._boton(padre_transmitir, _("Preparar desti&no"), _("Preparar destino"))
         sizer_transmitir.Add(self.btn_destino, 0, wx.ALL, 6)
         self.btn_transmitir = self._boton(
-            padre_transmitir, _ETIQUETA_TRANSMITIR, "Transmitir")
+            padre_transmitir, _(_ETIQUETA_TRANSMITIR), _("Transmitir"))
         sizer_transmitir.Add(self.btn_transmitir, 0, wx.ALL, 6)
-        self.btn_grabar = self._boton(padre_transmitir, _ETIQUETA_GRABAR, "Grabar")
+        self.btn_grabar = self._boton(padre_transmitir, _(_ETIQUETA_GRABAR), _("Grabar"))
         sizer_transmitir.Add(self.btn_grabar, 0, wx.ALL, 6)
         self.btn_pausar_grabacion = self._boton(
-            padre_transmitir, "Pausar la gra&bación", "Pausar la grabación")
+            padre_transmitir, _("Pausar la gra&bación"), _("Pausar la grabación"))
         sizer_transmitir.Add(self.btn_pausar_grabacion, 0, wx.ALL, 6)
         contenido.Add(sizer_transmitir, 0, wx.EXPAND | wx.ALL, 10)
 
-        sizer_escena, padre_escena = caja_de_grupo(zona, "Escena")
-        rotulo_escena = nuevo_rotulo(padre_escena, "Escena:")
-        self.cho_escena = wx.Choice(padre_escena, name="Escena")
-        nombre_accesible(self.cho_escena, "Escena")
+        sizer_escena, padre_escena = caja_de_grupo(zona, _("Escena"))
+        rotulo_escena = nuevo_rotulo(padre_escena, _("Escena:"))
+        self.cho_escena = wx.Choice(padre_escena, name=_("Escena"))
+        nombre_accesible(self.cho_escena, _("Escena"))
         fila_campo(sizer_escena, rotulo_escena, self.cho_escena)
-        self.btn_poner_al_aire = self._boton(padre_escena, "Poner al &aire", "Poner al aire")
+        self.btn_poner_al_aire = self._boton(padre_escena, _("Poner al &aire"), _("Poner al aire"))
         sizer_escena.Add(self.btn_poner_al_aire, 0, wx.ALL, 6)
-        rotulo_ventana = nuevo_rotulo(padre_escena, "Ventana que se captura:")
-        self.cho_ventana = wx.Choice(padre_escena, name="Ventana que se captura")
-        nombre_accesible(self.cho_ventana, "Ventana que se captura")
+        rotulo_ventana = nuevo_rotulo(padre_escena, _("Ventana que se captura:"))
+        self.cho_ventana = wx.Choice(padre_escena, name=_("Ventana que se captura"))
+        nombre_accesible(self.cho_ventana, _("Ventana que se captura"))
         fila_campo(sizer_escena, rotulo_ventana, self.cho_ventana)
-        self.btn_usar_ventana = self._boton(padre_escena, "Usar esa &ventana", "Usar esa ventana")
+        self.btn_usar_ventana = self._boton(padre_escena, _("Usar esa &ventana"), _("Usar esa ventana"))
         sizer_escena.Add(self.btn_usar_ventana, 0, wx.ALL, 6)
         self.btn_captura = self._boton(
-            padre_escena, "Guardar una capt&ura de la escena…", "GuardarCaptura")
+            padre_escena, _("Guardar una capt&ura de la escena…"), "GuardarCaptura")
         sizer_escena.Add(self.btn_captura, 0, wx.ALL, 6)
-        self.btn_actualizar = self._boton(padre_escena, "Actualizar e&stado", "ActualizarEstado")
+        self.btn_actualizar = self._boton(padre_escena, _("Actualizar e&stado"), "ActualizarEstado")
         sizer_escena.Add(self.btn_actualizar, 0, wx.ALL, 6)
         contenido.Add(sizer_escena, 1, wx.EXPAND | wx.ALL, 10)
 
-        sizer_vista, padre_vista = caja_de_grupo(zona, "Cómo se ve la escena")
+        sizer_vista, padre_vista = caja_de_grupo(zona, _("Cómo se ve la escena"))
         self.txt_vista_escena = wx.TextCtrl(
             padre_vista, style=wx.TE_MULTILINE | wx.TE_READONLY,
-            name="Cómo se ve la escena")
+            name=_("Cómo se ve la escena"))
         self.txt_vista_escena.SetBackgroundColour(_T.field)
         self.txt_vista_escena.SetForegroundColour(_T.text)
-        nombre_accesible(self.txt_vista_escena, "Cómo se ve la escena")
+        nombre_accesible(self.txt_vista_escena, _("Cómo se ve la escena"))
         self.txt_vista_escena.SetMinSize((-1, 110))
         sizer_vista.Add(self.txt_vista_escena, 1, wx.EXPAND | wx.ALL, 6)
         contenido.Add(sizer_vista, 0, wx.EXPAND | wx.ALL, 10)
 
-        sizer_panel, padre_panel = caja_de_grupo(zona, "Panel de chat, solo YouTube")
+        sizer_panel, padre_panel = caja_de_grupo(zona, _("Panel de chat, solo YouTube"))
         self.chk_panel_chat = wx.CheckBox(
-            padre_panel, label="&Panel de chat para transmitir",
-            name="Panel de chat para transmitir")
+            padre_panel, label=_("&Panel de chat para transmitir"),
+            name=_("Panel de chat para transmitir"))
         self.chk_panel_chat.SetValue(overlay_servidor.esta_encendido())
         self.chk_panel_chat.Enable(self._alternar_panel is not None)
         sizer_panel.Add(self.chk_panel_chat, 0, wx.ALL, 6)
-        self.btn_preparar = self._boton(padre_panel, "Preparar e&l panel", "Preparar el panel")
+        self.btn_preparar = self._boton(padre_panel, _("Preparar e&l panel"), _("Preparar el panel"))
         sizer_panel.Add(self.btn_preparar, 0, wx.ALL, 6)
-        rotulo_fuente = nuevo_rotulo(padre_panel, "Fuente:")
-        self.cho_fuente = wx.Choice(padre_panel, name="Fuente")
-        nombre_accesible(self.cho_fuente, "Fuente")
+        rotulo_fuente = nuevo_rotulo(padre_panel, _("Fuente:"))
+        self.cho_fuente = wx.Choice(padre_panel, name=_("Fuente"))
+        nombre_accesible(self.cho_fuente, _("Fuente"))
         fila_campo(sizer_panel, rotulo_fuente, self.cho_fuente)
-        rotulo_estado = nuevo_rotulo(padre_panel, "Estado del panel:")
+        rotulo_estado = nuevo_rotulo(padre_panel, _("Estado del panel:"))
         sizer_panel.Add(rotulo_estado, 0, wx.ALL, 6)
         self.txt_estado = wx.TextCtrl(
             padre_panel, style=wx.TE_MULTILINE | wx.TE_READONLY,
-            name="Estado del panel")
+            name=_("Estado del panel"))
         self.txt_estado.SetBackgroundColour(_T.field)
         self.txt_estado.SetForegroundColour(_T.text)
-        nombre_accesible(self.txt_estado, "Estado del panel")
+        nombre_accesible(self.txt_estado, _("Estado del panel"))
         self.txt_estado.SetMinSize((-1, 110))
         sizer_panel.Add(self.txt_estado, 1, wx.EXPAND | wx.ALL, 6)
-        rotulo_posicion = nuevo_rotulo(padre_panel, "Posición del panel:")
+        rotulo_posicion = nuevo_rotulo(padre_panel, _("Posición del panel:"))
         self.cho_posicion = wx.Choice(
-            padre_panel, choices=[nombre.replace("-", " ").capitalize()
+            padre_panel, choices=[_(_ETIQUETAS_POSICION[nombre])
                                   for nombre in obs_disposicion.ANCLAJES],
-            name="Posición del panel")
-        nombre_accesible(self.cho_posicion, "Posición del panel")
+            name=_("Posición del panel"))
+        nombre_accesible(self.cho_posicion, _("Posición del panel"))
         fila_campo(sizer_panel, rotulo_posicion, self.cho_posicion)
         self.btn_colocar = self._boton(
-            padre_panel, "&Colocar en esa posición", "Colocar en esa posición")
+            padre_panel, _("&Colocar en esa posición"), _("Colocar en esa posición"))
         sizer_panel.Add(self.btn_colocar, 0, wx.ALL, 6)
-        rotulo_ancho = nuevo_rotulo(padre_panel, "Ancho del panel en píxeles:")
+        rotulo_ancho = nuevo_rotulo(padre_panel, _("Ancho del panel en píxeles:"))
         self.sp_ancho = ContadorAccesible(padre_panel, min=100, max=4000, initial=460,
-                                          name="Ancho del panel en píxeles")
+                                          name=_("Ancho del panel en píxeles"))
         fila_campo(sizer_panel, rotulo_ancho, self.sp_ancho)
-        rotulo_alto = nuevo_rotulo(padre_panel, "Alto del panel en píxeles:")
+        rotulo_alto = nuevo_rotulo(padre_panel, _("Alto del panel en píxeles:"))
         self.sp_alto = ContadorAccesible(padre_panel, min=100, max=4000, initial=620,
-                                         name="Alto del panel en píxeles")
+                                         name=_("Alto del panel en píxeles"))
         fila_campo(sizer_panel, rotulo_alto, self.sp_alto)
-        self.btn_tamano = self._boton(padre_panel, "Apl&icar tamaño", "AplicarTamano")
+        self.btn_tamano = self._boton(padre_panel, _("Apl&icar tamaño"), "AplicarTamano")
         sizer_panel.Add(self.btn_tamano, 0, wx.ALL, 6)
-        self.chk_mostrar = wx.CheckBox(padre_panel, label="&Mostrar el panel en la escena",
+        self.chk_mostrar = wx.CheckBox(padre_panel, label=_("&Mostrar el panel en la escena"),
                                        name="MostrarPanel")
-        self.chk_fijar = wx.CheckBox(padre_panel, label="&Fijar el panel para que no se mueva",
+        self.chk_fijar = wx.CheckBox(padre_panel, label=_("&Fijar el panel para que no se mueva"),
                                      name="FijarPanel")
         sizer_panel.Add(self.chk_mostrar, 0, wx.ALL, 6)
         sizer_panel.Add(self.chk_fijar, 0, wx.ALL, 6)
-        self.btn_frente = self._boton(padre_panel, "P&oner al frente", "PonerAlFrente")
+        self.btn_frente = self._boton(padre_panel, _("P&oner al frente"), "PonerAlFrente")
         sizer_panel.Add(self.btn_frente, 0, wx.ALL, 6)
-        self._etiqueta_ajuste = "A&juste fino"
+        self._etiqueta_ajuste = _("A&juste fino")
         self.btn_ajuste = self._boton(padre_panel, self._etiqueta_ajuste, "AjusteFino")
         sizer_panel.Add(self.btn_ajuste, 0, wx.ALL, 6)
         self.btn_como_se_coloca = self._boton(
-            padre_panel, "Cómo s&e coloca el panel", "Cómo se coloca el panel")
+            padre_panel, _("Cómo s&e coloca el panel"), _("Cómo se coloca el panel"))
         sizer_panel.Add(self.btn_como_se_coloca, 0, wx.ALL, 6)
-        self.btn_lienzo = self._boton(padre_panel, "&Qué es el lienzo", "QueEsElLienzo")
+        self.btn_lienzo = self._boton(padre_panel, _("&Qué es el lienzo"), "QueEsElLienzo")
         sizer_panel.Add(self.btn_lienzo, 0, wx.ALL, 6)
-        self.btn_restaurar = self._boton(padre_panel, "&Restablecer", "RestablecerTransmision")
+        self.btn_restaurar = self._boton(padre_panel, _("&Restablecer"), "RestablecerTransmision")
         sizer_panel.Add(self.btn_restaurar, 0, wx.ALL, 6)
         contenido.Add(sizer_panel, 0, wx.EXPAND | wx.ALL, 10)
         ancho_rotulo = max(rotulo.GetBestSize().GetWidth()
@@ -279,7 +284,7 @@ class TransmisionDialog(wx.Dialog):
         zona.SetSizer(contenido)
         caja.Add(zona, 1, wx.EXPAND)
 
-        self.btn_cerrar = self._boton(panel, "Cerrar", "CerrarTransmision", wx.ID_CANCEL)
+        self.btn_cerrar = self._boton(panel, _("Cerrar"), "CerrarTransmision", wx.ID_CANCEL)
         caja.Add(self.btn_cerrar, 0, wx.ALIGN_RIGHT | wx.ALL, 10)
         panel.SetSizer(caja)
         self._acciones = (self.cho_destino, self.txt_usuario_tiktok, self.btn_destino,
@@ -383,7 +388,7 @@ class TransmisionDialog(wx.Dialog):
     def _anunciar_consulta(self, event):
         if self._operacion_en_vuelo and not self._cerrando:
             # Puede repetirse mientras espera la operación y no debe interrumpir.
-            anunciar("Consultando OBS", False)
+            anunciar(_("Consultando OBS"), False)
 
     def _al_destruir(self, event):
         # Un hilo puede aterrizar después del Destroy; sin esta marca tocaba
@@ -411,16 +416,14 @@ class TransmisionDialog(wx.Dialog):
             self.cho_destino.SetStringSelection(datos.perfil)
         else:
             self.cho_destino.SetSelection(wx.NOT_FOUND)
-        self._mostrar_estados(datos.transmision, datos.grabacion,
-                              datos.al_aire)
+        self._mostrar_estados(datos.transmision, datos.grabacion, datos.al_aire)
 
     def _inicial_cargada(self, datos):
         self._poblar_inicial(datos)
         anunciar(obs_disposicion.describir_preparacion(
             datos.snap.conectado, overlay_servidor.esta_encendido(),
             overlay_servidor.puerto_actual(), NOMBRE_FUENTE in datos.fuentes))
-        self._anunciar_estados(datos.transmision, datos.grabacion,
-                               datos.al_aire)
+        self._anunciar_estados(datos.transmision, datos.grabacion, datos.al_aire)
         self.cho_destino.SetFocus()
 
     def _mostrar_snap(self, snap):
@@ -447,7 +450,7 @@ class TransmisionDialog(wx.Dialog):
         if fuente:
             self.cho_fuente.SetStringSelection(fuente)
         if not fuentes:
-            self.txt_estado.SetValue("La escena no tiene fuentes.")
+            self.txt_estado.SetValue(_("La escena no tiene fuentes."))
 
     def _cargar_ventanas(self, opciones, actual):
         self._valores_ventana = [valor for _sin_uso, valor in opciones or ()]
@@ -486,16 +489,16 @@ class TransmisionDialog(wx.Dialog):
         self._transmitiendo = activa
         self._actualizar_boton(
             self.btn_transmitir,
-            _ETIQUETA_DETENER_TRANSMISION if activa else _ETIQUETA_TRANSMITIR,
-            "Detener la transmisión" if activa else "Transmitir")
+            _(_ETIQUETA_DETENER_TRANSMISION) if activa else _(_ETIQUETA_TRANSMITIR),
+            _("Detener la transmisión") if activa else _("Transmitir"))
 
     def _mostrar_estados(self, transmision, grabacion, al_aire):
         self._mostrar_transmision(bool(transmision.get("outputActive", False)))
         grabando = bool(grabacion.get("outputActive", False))
         self._actualizar_boton(
             self.btn_grabar,
-            _ETIQUETA_DETENER_GRABACION if grabando else _ETIQUETA_GRABAR,
-            "Detener la grabación" if grabando else "Grabar")
+            _(_ETIQUETA_DETENER_GRABACION) if grabando else _(_ETIQUETA_GRABAR),
+            _("Detener la grabación") if grabando else _("Grabar"))
         self.btn_pausar_grabacion.Enable(grabando)
 
     @staticmethod
@@ -547,21 +550,19 @@ class TransmisionDialog(wx.Dialog):
         escena = self._escena()
         valor = self._valor_ventana()
         if not valor:
-            anunciar("Elige primero una ventana en Ventana que se captura.")
+            anunciar(_("Elige primero una ventana en Ventana que se captura."))
             return
         self._en_hilo(lambda: self._aplicar_ventana(escena, valor),
                       self._ventana_aplicada)
 
     def _aplicar_ventana(self, escena, valor):
         # Escena y valor viajan como argumentos: los hilos no leen controles.
-        return consultas_transmision.aplicar_ventana(
-            self._gestor, escena, valor)
+        return consultas_transmision.aplicar_ventana(self._gestor, escena, valor)
 
     def _ventana_aplicada(self, datos):
         self._cargar_fuentes(datos.fuentes, datos.fuente)
         self._mostrar_snap(datos.snap)
-        self._mostrar_estados(datos.transmision, datos.grabacion,
-                              datos.al_aire)
+        self._mostrar_estados(datos.transmision, datos.grabacion, datos.al_aire)
         self._cargar_ventanas(datos.opciones, datos.actual)
         anunciar(datos.frase)
 
@@ -590,8 +591,8 @@ class TransmisionDialog(wx.Dialog):
             self._en_hilo(self._gestor.alternar_transmision, self._transmision_alternada)
             return
         if decision == transmision_directa.ESPERAR_DETENCION:
-            anunciar("Deteniendo la transmisión. "
-                     "Esperando a que OBS confirme.")
+            anunciar(_("Deteniendo la transmisión. "
+                      "Esperando a que OBS confirme."))
             return
         if decision == transmision_directa.DETENER_SUPERVISADA:
             try:
@@ -601,10 +602,10 @@ class TransmisionDialog(wx.Dialog):
             self._mostrar_transmision(False)
             return
         if decision == transmision_directa.FALTA_DESTINO:
-            anunciar("Elige primero a dónde transmitir, en Transmitir a.")
+            anunciar(_("Elige primero a dónde transmitir, en Transmitir a."))
             return
         if decision == transmision_directa.FALTA_USUARIO:
-            anunciar("Escribe tu usuario de TikTok en Tu usuario de TikTok.")
+            anunciar(_("Escribe tu usuario de TikTok en Tu usuario de TikTok."))
             self.txt_usuario_tiktok.SetFocus()
             return
         usuario = _usuario() if destino == "TikTok" else ""
@@ -630,7 +631,7 @@ class TransmisionDialog(wx.Dialog):
 
     def _revision_lista(self, revision, destino, usuario):
         if not confirmar_transmision(self, revision):
-            anunciar("No se transmitió.")
+            anunciar(_("No se transmitió."))
             return
         self._recordar_destino(destino)
         try:
@@ -651,15 +652,14 @@ class TransmisionDialog(wx.Dialog):
     def _grabacion_alternada(self, activa):
         self._actualizar_boton(
             self.btn_grabar,
-            _ETIQUETA_DETENER_GRABACION if activa else _ETIQUETA_GRABAR,
-            "Detener la grabación" if activa else "Grabar")
+            _(_ETIQUETA_DETENER_GRABACION) if activa else _(_ETIQUETA_GRABAR),
+            _("Detener la grabación") if activa else _("Grabar"))
         self.btn_pausar_grabacion.Enable(activa)
         accion = "grabacion_iniciada" if activa else "grabacion_detenida"
         anunciar(obs_estado.frase_resultado(accion))
 
     def _pausar_grabacion(self, event):
-        self._en_hilo(self._gestor.alternar_pausa_grabacion,
-                      self._pausa_grabacion_alternada)
+        self._en_hilo(self._gestor.alternar_pausa_grabacion, self._pausa_grabacion_alternada)
 
     def _pausa_grabacion_alternada(self, en_pausa):
         accion = "grabacion_en_pausa" if en_pausa else "grabacion_reanudada"
@@ -676,11 +676,10 @@ class TransmisionDialog(wx.Dialog):
         # con flechas dispara EVT_CHOICE y eso saldría al aire sin querer.
         destino = self.cho_destino.GetStringSelection()
         if not destino:
-            anunciar("Elige primero a dónde transmitir, en Transmitir a.")
+            anunciar(_("Elige primero a dónde transmitir, en Transmitir a."))
             return
-        anunciar(f"Preparando OBS para {destino}. Puede tardar unos segundos.")
-        self._en_hilo(lambda: self._preparar_destino_en_hilo(destino),
-                      self._destino_preparado)
+        anunciar(_("Preparando OBS para {destino}. Puede tardar unos segundos.").format(destino=destino))
+        self._en_hilo(lambda: self._preparar_destino_en_hilo(destino), self._destino_preparado)
 
     def _preparar_destino_en_hilo(self, destino):
         # El destino se captura en el hilo principal y viaja como argumento;
@@ -706,7 +705,7 @@ class TransmisionDialog(wx.Dialog):
             try:
                 overlay_servidor.encender(puerto)
             except overlay_servidor.OverlayPuertoOcupadoError:
-                return f"No se pudo encender el panel, el puerto {puerto} está ocupado", (), None
+                return _("No se pudo encender el panel, el puerto {puerto} está ocupado").format(puerto=puerto), (), None
         puerto = overlay_servidor.puerto_actual() or puerto
         fuentes = self._gestor.fuentes(escena)
         if NOMBRE_FUENTE not in fuentes:
@@ -778,7 +777,7 @@ class TransmisionDialog(wx.Dialog):
         if aplicado:
             self._anunciar_snap(snap)
         else:
-            anunciar(f"{self._fuente()} todavía no informa su tamaño.")
+            anunciar(_("{fuente} todavía no informa su tamaño.").format(fuente=self._fuente()))
 
     def _mostrar(self, event):
         visible = self.chk_mostrar.GetValue()
@@ -889,7 +888,7 @@ class TransmisionDialog(wx.Dialog):
             return
         self.btn_ajuste.SetLabel(ajuste_fino.etiqueta_boton(False, self._etiqueta_ajuste))
         if decision == ajuste_fino.CONFIRMADO:
-            anunciar("Ajuste confirmado")
+            anunciar(_("Ajuste confirmado"))
         elif decision == ajuste_fino.DESHACER:
             self._deshacer_ajuste()
 
@@ -898,14 +897,14 @@ class TransmisionDialog(wx.Dialog):
         if not transformacion:
             # transformacion() devuelve {} cuando la fuente ya no está en la
             # escena; no hay a dónde volver.
-            anunciar("No se pudo deshacer el ajuste")
+            anunciar(_("No se pudo deshacer el ajuste"))
             return
         escena, fuente = self._escena(), self._fuente()
         self._en_hilo(
             lambda: self._gestor.posicionar(
                 escena, transformacion["positionX"],
                 transformacion["positionY"], transformacion["alignment"], fuente=fuente),
-            lambda resultado: anunciar("Ajuste deshecho"))
+            lambda resultado: anunciar(_("Ajuste deshecho")))
 
     def _cambiar_y_leer(self, escena, fuente, funcion, *argumentos):
         self._restablecimiento.guardar(self._gestor, escena, fuente)
@@ -913,30 +912,31 @@ class TransmisionDialog(wx.Dialog):
         return self._leer(escena, fuente)
 
     def _captura(self, event):
-        with wx.FileDialog(self, "Guardar una captura de la escena", wildcard="Imagen PNG (*.png)|*.png",
+        # Traductores: traduce solo «Imagen PNG»; no cambies «(*.png)|*.png».
+        with wx.FileDialog(self, _("Guardar una captura de la escena"), wildcard=_("Imagen PNG (*.png)|*.png"),
                            defaultFile="captura-escena.png", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT) as dialogo:
             if dialogo.ShowModal() != wx.ID_OK:
                 return
             ruta = dialogo.GetPath()
         escena, fuente = self._escena(), self._fuente()
         self._en_hilo(lambda: self._guardar_captura(escena, fuente, ruta),
-                      lambda resultado: anunciar("Captura guardada"))
+                      lambda resultado: anunciar(_("Captura guardada")))
 
     def _guardar_captura(self, escena, fuente, ruta):
         self._gestor.captura_de_escena(escena, ruta)
         return self._leer(escena, fuente)
 
     def _lienzo(self, event):
-        wx.MessageBox(_TEXTO_LIENZO, "Qué es el lienzo", wx.OK | wx.ICON_INFORMATION, self)
+        wx.MessageBox(_(_TEXTO_LIENZO), _("Qué es el lienzo"), wx.OK | wx.ICON_INFORMATION, self)
 
     def _como_se_coloca(self, event):
-        wx.MessageBox(_TEXTO_COMO_SE_COLOCA, "Cómo se coloca el panel",
+        wx.MessageBox(_(_TEXTO_COMO_SE_COLOCA), _("Cómo se coloca el panel"),
                       wx.OK | wx.ICON_INFORMATION, self)
 
     def _restaurar(self, event):
         escena, fuente = self._escena(), self._fuente()
         self._en_hilo(lambda: self._aplicar_restauracion(escena, fuente),
-                      lambda snap: anunciar("Restablecido"))
+                      lambda snap: anunciar(_("Restablecido")))
 
     def _aplicar_restauracion(self, escena_actual, fuente_actual):
         self._restablecimiento.aplicar(self._gestor)

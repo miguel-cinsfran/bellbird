@@ -10,6 +10,7 @@ from ytchat.obs import obs_cliente
 from ytchat.obs import obs_disposicion
 from ytchat.obs import obs_estado
 from ytchat.obs import obs_lanzador
+from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
 
 try:
@@ -1451,6 +1452,115 @@ class TestElegirFuente(unittest.TestCase):
 
     def test_lista_vacia_devuelve_vacio(self):
         self.assertEqual(consultas_transmision.elegir_fuente(()), "")
+
+
+class TestTablaPosicionesSinVentana(unittest.TestCase):
+    # Sin ventana: la tabla vive en el módulo, así no se crea ningún control.
+
+    def test_tabla_cubre_los_anclajes_con_el_texto_de_hoy(self):
+        self.assertEqual(set(gui_transmision._ETIQUETAS_POSICION),
+                         set(obs_disposicion.ANCLAJES))
+        for nombre in obs_disposicion.ANCLAJES:
+            self.assertEqual(
+                gui_transmision._ETIQUETAS_POSICION[nombre],
+                nombre.replace("-", " ").capitalize())
+
+
+# Textos que arma otro módulo y aparecen en el recorrido: la nota de
+# `ytchat/obs/obs_estado.py` (NOTA_TRANSMISION), que este diálogo muestra tal
+# cual. Los nombres de escenas, fuentes y ventanas son datos del gestor de
+# prueba y van como propios. La comparación es exacta en los dos sentidos:
+# falla si aparece un texto nuevo sin envolver y si un pendiente ya no está
+# en el recorrido, para vaciar la lista cuando ese módulo pase por gettext.
+PENDIENTES_TRANSMISION = (
+    "Desde aquí eliges a dónde transmitir, empiezas y terminas el directo "
+    "y preparas lo que se ve. En el directo se ve una ventana, la que "
+    "eliges en Ventana que se captura. Esa captura no lleva sonido: el "
+    "sonido sale del audio del escritorio y del micrófono de OBS. El panel "
+    "de chat es solo para YouTube: en TikTok los comentarios ya aparecen "
+    "en el directo.",
+)
+
+PROPIOS_TRANSMISION = (
+    "TikTok", "YouTube",
+    "Principal", "Juego",
+    "Cámara", "Chat YTChat",
+    "Champions, de juego.exe", "Charla, de otro.exe",
+)
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestPseudoTransmisionVentana(unittest.TestCase):
+    """Pseudotraducción del diálogo Transmisión.
+
+    Abre ventanas: la corre el advisor en la otra PC, no se corre acá.
+    Construye el diálogo con la pseudotraducción y exige que ningún texto
+    visible propio quede sin envolver.
+    """
+
+    def setUp(self):
+        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.parches = [
+            mock.patch.object(gui_transmision.threading, "Thread", HiloInmediato),
+            mock.patch.object(gui_transmision.wx, "CallAfter", lambda funcion, *args: funcion(*args)),
+            mock.patch.object(gui_transmision, "anunciar", lambda *args, **kwargs: None),
+            mock.patch.object(gui_transmision.sound_player, "reproducir"),
+        ]
+        for parche in self.parches:
+            parche.start()
+        for parche in reversed(self.parches):
+            self.addCleanup(parche.stop)
+
+    def test_no_queda_ningun_texto_visible_sin_envolver(self):
+        with con_pseudo():
+            dialogo = gui_transmision.TransmisionDialog(
+                None, GestorFalso(), asegurar=_asegurar_sin_obs)
+            sin_marcar = textos_sin_marcar(
+                dialogo, propios=PROPIOS_TRANSMISION)
+        self.addCleanup(destruir, dialogo)
+        # Wrap parte la nota en varias líneas: se comparan los espacios normalizados.
+        normalizados = sorted(" ".join(texto.split()) for texto in sin_marcar)
+        esperados = sorted(" ".join(texto.split()) for texto in PENDIENTES_TRANSMISION)
+        self.assertEqual(normalizados, esperados)
+
+
+class TestPseudoConfirmarTransmision(unittest.TestCase):
+    # Sin ventana: el MessageDialog va simulado, así no se abre nada.
+
+    def _revision(self, problemas=()):
+        from ytchat.obs import obs_prevuelo
+        return obs_prevuelo.Revision(
+            "TikTok", "TikTok", "TikTok", 720, 1280, "Principal",
+            (), (), None, tuple(problemas))
+
+    def test_titulo_y_botones_pasan_por_gettext_y_mensaje_queda_pendiente(self):
+        # El mensaje lo arma `ytchat/obs/obs_prevuelo.py` (frase_revision),
+        # fuera del alcance: queda pendiente sin marcar. Cuando se envuelva
+        # ese módulo, esta prueba falla y se actualiza.
+        from ytchat.obs import obs_prevuelo
+        revision = self._revision()
+        captado = {}
+        creados = []
+
+        def fabrica(padre, mensaje, titulo, estilo):
+            captado["mensaje"] = mensaje
+            captado["titulo"] = titulo
+            dialogo = mock.Mock()
+            dialogo.ShowModal.return_value = wx.ID_OK
+            creados.append(dialogo)
+            return dialogo
+
+        with con_pseudo(), \
+                mock.patch.object(gui_transmision.wx, "MessageDialog", fabrica):
+            gui_transmision.confirmar_transmision(
+                mock.sentinel.padre, revision)
+        self.assertEqual(captado["mensaje"],
+                         obs_prevuelo.frase_revision(revision))
+        self.assertFalse(captado["mensaje"].startswith("[¡"))
+        self.assertTrue(captado["titulo"].startswith("[¡"))
+        creados[0].SetOKCancelLabels.assert_called_once()
+        for etiqueta in creados[0].SetOKCancelLabels.call_args.args:
+            self.assertTrue(etiqueta.startswith("[¡"))
 
 
 if __name__ == "__main__":

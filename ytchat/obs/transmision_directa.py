@@ -20,7 +20,7 @@ REVISAR = "revisar"
 
 
 def decidir_transmision(*, hay_supervisor, deteniendo, con_supervisor,
-                        boton_dice_detener, destino, usuario_tiktok) -> str:
+                        transmitiendo, destino, usuario_tiktok) -> str:
     """Elige qué hace el botón Transmitir según el estado actual.
 
     Las tres funciones son perezosas porque cada una consulta al
@@ -33,7 +33,7 @@ def decidir_transmision(*, hay_supervisor, deteniendo, con_supervisor,
         return ESPERAR_DETENCION
     if con_supervisor():
         return DETENER_SUPERVISADA
-    if boton_dice_detener:
+    if transmitiendo:
         return ALTERNAR
     if not destino:
         return FALTA_DESTINO

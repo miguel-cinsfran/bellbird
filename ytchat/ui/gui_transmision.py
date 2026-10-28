@@ -92,6 +92,8 @@ _ETIQUETA_DETENER_GRABACION = "Detener la &grabación"
 
 class TransmisionDialog(wx.Dialog):
 
+    _transmitiendo = False
+
     def __init__(self, parent, gestor=None, alternar_panel=None,
                  supervisar=None, guardar_usuario=None, usuario_tiktok="",
                  asegurar=None, guardar_destino=None):
@@ -480,12 +482,15 @@ class TransmisionDialog(wx.Dialog):
         boton.SetLabel(etiqueta)
         boton.SetName(nombre)
 
-    def _mostrar_estados(self, transmision, grabacion, al_aire):
-        activa = bool(transmision.get("outputActive", False))
+    def _mostrar_transmision(self, activa):
+        self._transmitiendo = activa
         self._actualizar_boton(
             self.btn_transmitir,
             _ETIQUETA_DETENER_TRANSMISION if activa else _ETIQUETA_TRANSMITIR,
             "Detener la transmisión" if activa else "Transmitir")
+
+    def _mostrar_estados(self, transmision, grabacion, al_aire):
+        self._mostrar_transmision(bool(transmision.get("outputActive", False)))
         grabando = bool(grabacion.get("outputActive", False))
         self._actualizar_boton(
             self.btn_grabar,
@@ -579,7 +584,7 @@ class TransmisionDialog(wx.Dialog):
         destino = self.cho_destino.GetStringSelection()
         decision = transmision_directa.decidir_transmision(hay_supervisor=self._supervisar is not None,
             deteniendo=lambda: _preguntar("deteniendo"), con_supervisor=lambda: _preguntar("activo"),
-            boton_dice_detener=self.btn_transmitir.GetLabel() == _ETIQUETA_DETENER_TRANSMISION,
+            transmitiendo=self._transmitiendo,
             destino=destino, usuario_tiktok=_usuario)
         if decision == transmision_directa.ALTERNAR:
             self._en_hilo(self._gestor.alternar_transmision, self._transmision_alternada)
@@ -593,8 +598,7 @@ class TransmisionDialog(wx.Dialog):
                 self._supervisar("detener")
             except Exception:
                 pass
-            self._actualizar_boton(
-                self.btn_transmitir, _ETIQUETA_TRANSMITIR, "Transmitir")
+            self._mostrar_transmision(False)
             return
         if decision == transmision_directa.FALTA_DESTINO:
             anunciar("Elige primero a dónde transmitir, en Transmitir a.")
@@ -634,15 +638,10 @@ class TransmisionDialog(wx.Dialog):
         except Exception as error:
             self._fallo(obs_cliente.mensaje_de_fallo_obs(error))
             return
-        self._actualizar_boton(
-            self.btn_transmitir,
-            _ETIQUETA_DETENER_TRANSMISION, "Detener la transmisión")
+        self._mostrar_transmision(True)
 
     def _transmision_alternada(self, activa):
-        self._actualizar_boton(
-            self.btn_transmitir,
-            _ETIQUETA_DETENER_TRANSMISION if activa else _ETIQUETA_TRANSMITIR,
-            "Detener la transmisión" if activa else "Transmitir")
+        self._mostrar_transmision(activa)
         accion = "transmision_iniciada" if activa else "transmision_detenida"
         anunciar(obs_estado.frase_resultado(accion))
 

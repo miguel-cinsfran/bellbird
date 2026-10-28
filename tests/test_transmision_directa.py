@@ -269,7 +269,7 @@ class DecidirTransmisionTest(unittest.TestCase):
             hay_supervisor=False,
             deteniendo=lambda: llamadas.append("deteniendo") or False,
             con_supervisor=lambda: llamadas.append("activa") or False,
-            boton_dice_detener=False, destino="",
+            transmitiendo=False, destino="",
             usuario_tiktok=lambda: llamadas.append("usuario") or "")
         self.assertEqual(decision, ALTERNAR)
         self.assertEqual(llamadas, [])
@@ -279,7 +279,7 @@ class DecidirTransmisionTest(unittest.TestCase):
         decision = decidir_transmision(
             hay_supervisor=True, deteniendo=lambda: True,
             con_supervisor=lambda: llamadas.append("activa") or False,
-            boton_dice_detener=False, destino="YouTube",
+            transmitiendo=False, destino="YouTube",
             usuario_tiktok=lambda: llamadas.append("usuario") or "")
         self.assertEqual(decision, ESPERAR_DETENCION)
         self.assertEqual(llamadas, [])
@@ -288,7 +288,7 @@ class DecidirTransmisionTest(unittest.TestCase):
         decision = decidir_transmision(
             hay_supervisor=True, deteniendo=lambda: False,
             con_supervisor=lambda: True,
-            boton_dice_detener=False, destino="YouTube",
+            transmitiendo=False, destino="YouTube",
             usuario_tiktok=lambda: (_ for _ in ()).throw(
                 AssertionError("no se normaliza")))
         self.assertEqual(decision, DETENER_SUPERVISADA)
@@ -297,7 +297,7 @@ class DecidirTransmisionTest(unittest.TestCase):
         decision = decidir_transmision(
             hay_supervisor=True, deteniendo=lambda: False,
             con_supervisor=lambda: False,
-            boton_dice_detener=True, destino="",
+            transmitiendo=True, destino="",
             usuario_tiktok=lambda: (_ for _ in ()).throw(
                 AssertionError("no se normaliza")))
         self.assertEqual(decision, ALTERNAR)
@@ -306,7 +306,7 @@ class DecidirTransmisionTest(unittest.TestCase):
         decision = decidir_transmision(
             hay_supervisor=True, deteniendo=lambda: False,
             con_supervisor=lambda: False,
-            boton_dice_detener=False, destino="",
+            transmitiendo=False, destino="",
             usuario_tiktok=lambda: (_ for _ in ()).throw(
                 AssertionError("no se normaliza")))
         self.assertEqual(decision, FALTA_DESTINO)
@@ -315,7 +315,7 @@ class DecidirTransmisionTest(unittest.TestCase):
         decision = decidir_transmision(
             hay_supervisor=True, deteniendo=lambda: False,
             con_supervisor=lambda: False,
-            boton_dice_detener=False, destino="TikTok",
+            transmitiendo=False, destino="TikTok",
             usuario_tiktok=lambda: "")
         self.assertEqual(decision, FALTA_USUARIO)
 
@@ -323,7 +323,7 @@ class DecidirTransmisionTest(unittest.TestCase):
         decision = decidir_transmision(
             hay_supervisor=True, deteniendo=lambda: False,
             con_supervisor=lambda: False,
-            boton_dice_detener=False, destino="TikTok",
+            transmitiendo=False, destino="TikTok",
             usuario_tiktok=lambda: "usuario")
         self.assertEqual(decision, REVISAR)
 
@@ -332,7 +332,7 @@ class DecidirTransmisionTest(unittest.TestCase):
         decision = decidir_transmision(
             hay_supervisor=True, deteniendo=lambda: False,
             con_supervisor=lambda: False,
-            boton_dice_detener=False, destino="YouTube",
+            transmitiendo=False, destino="YouTube",
             usuario_tiktok=lambda: llamadas.append("usuario") or "usuario")
         self.assertEqual(decision, REVISAR)
         self.assertEqual(llamadas, [])

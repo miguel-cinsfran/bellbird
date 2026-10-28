@@ -1134,9 +1134,7 @@ class TestTransmisionDialog(unittest.TestCase):
     def test_transmitir_con_supervisor_activo_detiene_sin_repetir_anuncio(self):
         supervisar, _ = self._dialogo_con_supervisor()
         supervisar.side_effect = lambda accion: accion == "activo"
-        self.dialogo._actualizar_boton(
-            self.dialogo.btn_transmitir,
-            gui_transmision._ETIQUETA_DETENER_TRANSMISION, "Detener la transmisión")
+        self.dialogo._mostrar_transmision(True)
         self.anuncios.clear()
         self._pulsar_transmitir()
         supervisar.assert_any_call("detener")
@@ -1161,6 +1159,16 @@ class TestTransmisionDialog(unittest.TestCase):
         self._pulsar_transmitir()
         self.assertIn(("alternar_transmision",), self.gestor.llamadas)
         self.assertEqual(self.anuncios[-1], "Transmisión iniciada")
+
+    def test_transmitir_con_etiqueta_traducida_y_estado_activo_alterna(self):
+        supervisar, _ = self._dialogo_con_supervisor()
+        supervisar.side_effect = lambda accion: False
+        self.dialogo._mostrar_transmision(True)
+        self.dialogo.btn_transmitir.SetLabel("Stop streaming")
+        self.gestor.revisar = mock.Mock()
+        self._pulsar_transmitir()
+        self.assertIn(("alternar_transmision",), self.gestor.llamadas)
+        self.gestor.revisar.assert_not_called()
 
 
 class TestCargaInicialAseguraObs(unittest.TestCase):

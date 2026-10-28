@@ -18,6 +18,16 @@ Paraguay.
 - Las fuentes que la app creó en OBS conservan su nombre, así que las
   escenas que ya tienes siguen funcionando.
 
+### Novedades
+
+- `Ctrl+Mayús+O`, o *Mostrar OBS* en el menú *Transmisión*, trae al frente
+  la ventana de OBS, también cuando está en el área de notificación. Si OBS
+  espera una respuesta, como la pregunta del modo seguro, el foco va a ese
+  cuadro.
+- Si OBS está abierto pero no responde, la app ya no pide comprobar que
+  esté abierto: dice que puede estar esperando una respuesta y que elijas
+  *Mostrar OBS*.
+
 ### Arreglos
 
 - Al cerrar Preferencias sin guardar después de probar una voz, la voz de

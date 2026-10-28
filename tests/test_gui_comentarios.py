@@ -331,6 +331,15 @@ class TestColumnasPseudo(unittest.TestCase):
         lista.InsertColumn(0, "Sin envolver")
         self.assertEqual(textos_sin_marcar(self.frame), ["Sin envolver"])
 
+    def test_ignora_la_columna_interna_del_listbook(self):
+        libro = wx.Listbook(self.frame)
+        self.addCleanup(destruir, libro)
+        libro.AddPage(wx.Panel(libro), "Pagina")
+        lista = wx.ListCtrl(libro.GetPage(0), style=wx.LC_REPORT)
+        lista.InsertColumn(0, "Sin envolver")
+        self.assertEqual(
+            textos_sin_marcar(self.frame, propios=("Pagina",)), ["Sin envolver"])
+
 
 if __name__ == "__main__":
     unittest.main()

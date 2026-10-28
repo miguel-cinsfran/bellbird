@@ -36,7 +36,9 @@ def _opciones(ventana):
 
 
 def _columnas(ventana):
-    if isinstance(ventana, wx.ListCtrl):
+    if isinstance(ventana, wx.ListCtrl) and not isinstance(
+            ventana.GetParent(), wx.BookCtrlBase):
+        # La lista interna del Listbook trae la cabecera «Pages» de wx, que no es texto de la app.
         try:
             return [ventana.GetColumn(i).GetText()
                     for i in range(ventana.GetColumnCount())]

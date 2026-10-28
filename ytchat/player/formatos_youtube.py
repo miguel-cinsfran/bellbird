@@ -30,35 +30,47 @@ def _altura_auto_vod(alturas, tope: int = 1080):
     return min(lista)
 
 
+def _con_video(f: dict) -> bool:
+    """Dice si el formato trae imagen."""
+    return f.get("vcodec") not in (None, "none")
+
+
+def _con_audio(f: dict) -> bool:
+    """Dice si el formato trae sonido."""
+    return f.get("acodec") not in (None, "none")
+
+
+def _usable(f: dict) -> bool:
+    """Dice si el formato tiene dirección y altura para elegir."""
+    return bool(f.get("url") and f.get("height"))
+
+
+def _preferencia_solo(f: dict):
+    """Ordena vídeos solos de la misma altura: primero https, después mayor tbr."""
+    # El relevo de VOD remuxa mejor desde https que desde m3u8.
+    return (not (f.get("protocol") or "").startswith("m3u8"),
+            f.get("tbr") or 0)
+
+
 def _video_para_altura(info: dict, altura: int) -> tuple[str, bool]:
     """(url, progresivo). Busca el mejor flujo para esa altura; progresivo=True
     si ya trae audio (no hace falta slave)."""
     fmts = info.get("formats", []) or []
-    # 1) Progresivo (audio+vídeo) exacto o cercano por debajo.
-    prog = [f for f in fmts if f.get("vcodec") not in (None, "none")
-            and f.get("acodec") not in (None, "none") and f.get("url") and f.get("height")]
+    prog = [f for f in fmts if _con_video(f) and _con_audio(f) and _usable(f)]
     cand = [f for f in prog if int(f["height"]) <= altura]
     if cand:
         f = max(cand, key=lambda x: int(x["height"]))
+        # El progresivo cercano por debajo no alcanza: solo gana si es exacto.
         if int(f["height"]) == altura:
             return f["url"], True
-    # 2) Vídeo solo a esa altura (se acompañará con audio como slave).
-    # Entre la misma altura se prefiere el que no es HLS: el relevo de VOD
-    # remuxa mejor desde https que desde m3u8.
-    solo = [f for f in fmts if f.get("vcodec") not in (None, "none")
-            and f.get("acodec") in (None, "none") and f.get("url")
-            and f.get("height") and int(f["height"]) == altura]
+    solo = [f for f in fmts if _con_video(f) and not _con_audio(f)
+            and _usable(f) and int(f["height"]) == altura]
     if solo:
-        return max(solo, key=lambda x: (
-            not (x.get("protocol") or "").startswith("m3u8"),
-            x.get("tbr") or 0))["url"], False
-    # 3) Lo mejor progresivo que haya.
+        return max(solo, key=_preferencia_solo)["url"], False
     if prog:
         return max(prog, key=lambda x: int(x["height"]))["url"], True
-    # 4) Si no hay progresivos, se acompañará el mejor vídeo solo con audio.
-    solo = [f for f in fmts if f.get("vcodec") not in (None, "none")
-            and f.get("acodec") in (None, "none") and f.get("url")
-            and f.get("height")]
+    solo = [f for f in fmts if _con_video(f) and not _con_audio(f)
+            and _usable(f)]
     if solo:
         cand = [f for f in solo if int(f["height"]) <= altura]
         if cand:
@@ -67,9 +79,7 @@ def _video_para_altura(info: dict, altura: int) -> tuple[str, bool]:
         else:
             altura_elegida = min(int(f["height"]) for f in solo)
             cand = [f for f in solo if int(f["height"]) == altura_elegida]
-        return max(cand, key=lambda x: (
-            not (x.get("protocol") or "").startswith("m3u8"),
-            x.get("tbr") or 0))["url"], False
+        return max(cand, key=_preferencia_solo)["url"], False
     return "", False
 
 

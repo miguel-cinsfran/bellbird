@@ -7,6 +7,7 @@ pistas m3u8 cuando hay alternativas normales. El directo no cambia.
 import unittest
 
 from ytchat.player import reproductor
+from ytchat.player.formatos_youtube import _video_para_altura
 
 
 def _audio(fid, protocolo, abr, lang, url=None, acodec="mp4a", ext=None):
@@ -91,6 +92,93 @@ class PruebasVideoParaAlturaSinHls(unittest.TestCase):
         url, prog = reproductor._video_para_altura(info, 720)
         self.assertEqual(url, "https://136")
         self.assertFalse(prog)
+
+
+class TestVideoParaAlturaFijado(unittest.TestCase):
+    def test_progresivo_exacto(self):
+        info = {"formats": [
+            {"format_id": "p720", "vcodec": "avc1", "acodec": "mp4a",
+             "height": 720, "protocol": "https", "url": "https://p720"},
+        ]}
+        self.assertEqual(_video_para_altura(info, 720),
+                         ("https://p720", True))
+
+    def test_progresivo_mas_bajo_y_solo_exacto_gana_solo(self):
+        info = {"formats": [
+            {"format_id": "p480", "vcodec": "avc1", "acodec": "mp4a",
+             "height": 480, "protocol": "https", "url": "https://p480"},
+            {"format_id": "s720", "vcodec": "avc1", "acodec": "none",
+             "height": 720, "protocol": "https", "tbr": 1500,
+             "url": "https://s720"},
+        ]}
+        self.assertEqual(_video_para_altura(info, 720),
+                         ("https://s720", False))
+
+    def test_dos_solos_a_la_altura_gana_https_aunque_tenga_menos_tbr(self):
+        info = {"formats": [
+            {"format_id": "s720hls", "vcodec": "avc1", "acodec": "none",
+             "height": 720, "protocol": "m3u8_native", "tbr": 3000,
+             "url": "https://s720hls"},
+            {"format_id": "s720https", "vcodec": "avc1", "acodec": "none",
+             "height": 720, "protocol": "https", "tbr": 1500,
+             "url": "https://s720https"},
+        ]}
+        self.assertEqual(_video_para_altura(info, 720),
+                         ("https://s720https", False))
+
+    def test_dos_https_a_la_altura_gana_mas_tbr(self):
+        info = {"formats": [
+            {"format_id": "s720lento", "vcodec": "avc1", "acodec": "none",
+             "height": 720, "protocol": "https", "tbr": 2000,
+             "url": "https://s720lento"},
+            {"format_id": "s720rapido", "vcodec": "avc1", "acodec": "none",
+             "height": 720, "protocol": "https", "tbr": 3000,
+             "url": "https://s720rapido"},
+        ]}
+        self.assertEqual(_video_para_altura(info, 720),
+                         ("https://s720rapido", False))
+
+    def test_sin_solo_exacto_devuelve_mejor_progresivo_aunque_supere(self):
+        info = {"formats": [
+            {"format_id": "p360", "vcodec": "avc1", "acodec": "mp4a",
+             "height": 360, "protocol": "https", "url": "https://p360"},
+            {"format_id": "p1080", "vcodec": "avc1", "acodec": "mp4a",
+             "height": 1080, "protocol": "https", "url": "https://p1080"},
+        ]}
+        self.assertEqual(_video_para_altura(info, 720),
+                         ("https://p1080", True))
+
+    def test_sin_progresivos_solos_por_debajo_elige_mas_alto(self):
+        info = {"formats": [
+            {"format_id": "s360", "vcodec": "avc1", "acodec": "none",
+             "height": 360, "protocol": "https", "tbr": 1000,
+             "url": "https://s360"},
+            {"format_id": "s480", "vcodec": "avc1", "acodec": "none",
+             "height": 480, "protocol": "https", "tbr": 1500,
+             "url": "https://s480"},
+        ]}
+        self.assertEqual(_video_para_altura(info, 720),
+                         ("https://s480", False))
+
+    def test_sin_progresivos_todos_por_encima_elige_mas_bajo(self):
+        info = {"formats": [
+            {"format_id": "s720", "vcodec": "avc1", "acodec": "none",
+             "height": 720, "protocol": "https", "tbr": 2500,
+             "url": "https://s720"},
+            {"format_id": "s1080", "vcodec": "avc1", "acodec": "none",
+             "height": 1080, "protocol": "https", "tbr": 4500,
+             "url": "https://s1080"},
+        ]}
+        self.assertEqual(_video_para_altura(info, 480),
+                         ("https://s720", False))
+
+    def test_sin_video_devuelve_vacio(self):
+        info = {"formats": [
+            {"format_id": "a140", "vcodec": "none", "acodec": "mp4a",
+             "height": None, "protocol": "https",
+             "url": "https://a140"},
+        ]}
+        self.assertEqual(_video_para_altura(info, 720), ("", False))
 
 
 if __name__ == "__main__":

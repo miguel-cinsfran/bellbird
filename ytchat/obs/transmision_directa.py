@@ -11,6 +11,37 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 
+ALTERNAR = "alternar"
+ESPERAR_DETENCION = "esperar_detencion"
+DETENER_SUPERVISADA = "detener_supervisada"
+FALTA_DESTINO = "falta_destino"
+FALTA_USUARIO = "falta_usuario"
+REVISAR = "revisar"
+
+
+def decidir_transmision(*, hay_supervisor, deteniendo, con_supervisor,
+                        boton_dice_detener, destino, usuario_tiktok) -> str:
+    """Elige qué hace el botón Transmitir según el estado actual.
+
+    Las tres funciones son perezosas porque cada una consulta al
+    supervisor o normaliza lo escrito y solo conviene llamarla si la
+    rama llega a necesitarla.
+    """
+    if not hay_supervisor:
+        return ALTERNAR
+    if deteniendo():
+        return ESPERAR_DETENCION
+    if con_supervisor():
+        return DETENER_SUPERVISADA
+    if boton_dice_detener:
+        return ALTERNAR
+    if not destino:
+        return FALTA_DESTINO
+    if destino == "TikTok" and not usuario_tiktok():
+        return FALTA_USUARIO
+    return REVISAR
+
+
 @dataclass(frozen=True, slots=True)
 class Preparacion:
     """Resultado de `preparar`: o ya se transmite, o hay revisión."""

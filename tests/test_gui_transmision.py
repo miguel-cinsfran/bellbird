@@ -1302,6 +1302,9 @@ class TestGuardarDestinoSinVentana(unittest.TestCase):
         falso._supervisar = mock.Mock()
         for clave, valor in extras.items():
             setattr(falso, clave, valor)
+        falso._recordar_destino = lambda destino: (
+            gui_transmision.TransmisionDialog._recordar_destino(
+                falso, destino))
         return falso
 
     def test_al_confirmar_guarda_el_destino_e_inicia(self):

@@ -13,6 +13,7 @@ from ytchat.obs import obs_destinos
 from ytchat.obs import obs_disposicion
 from ytchat.obs import obs_estado
 from ytchat.obs import obs_lanzador
+from ytchat.obs import transmision_directa
 from ytchat.obs.obs_destinos import DESTINOS
 from ytchat.core import diagnostico
 from ytchat.obs import overlay_servidor
@@ -563,51 +564,52 @@ class TransmisionDialog(wx.Dialog):
         anunciar(self._frase_escena_al_aire(escena))
 
     def _transmitir(self, event):
-        if self._supervisar is None:
+        def _preguntar(accion):
+            try:
+                return bool(self._supervisar(accion))
+            except Exception:
+                return False
+        recordado = {}
+        def _usuario():
+            if "valor" not in recordado:
+                from ytchat.capture import tiktok_vivo
+                recordado["valor"] = tiktok_vivo.usuario_tiktok(
+                    self.txt_usuario_tiktok.GetValue())
+            return recordado["valor"]
+        destino = self.cho_destino.GetStringSelection()
+        decision = transmision_directa.decidir_transmision(hay_supervisor=self._supervisar is not None,
+            deteniendo=lambda: _preguntar("deteniendo"), con_supervisor=lambda: _preguntar("activo"),
+            boton_dice_detener=self.btn_transmitir.GetLabel() == _ETIQUETA_DETENER_TRANSMISION,
+            destino=destino, usuario_tiktok=_usuario)
+        if decision == transmision_directa.ALTERNAR:
             self._en_hilo(self._gestor.alternar_transmision, self._transmision_alternada)
             return
-        try:
-            deteniendo = bool(self._supervisar("deteniendo"))
-        except Exception:
-            deteniendo = False
-        if deteniendo:
+        if decision == transmision_directa.ESPERAR_DETENCION:
             anunciar("Deteniendo la transmisión. "
                      "Esperando a que OBS confirme.")
             return
-        try:
-            con_supervisor = bool(self._supervisar("activo"))
-        except Exception:
-            con_supervisor = False
-        if con_supervisor or self.btn_transmitir.GetLabel() == _ETIQUETA_DETENER_TRANSMISION:
-            if con_supervisor:
-                try:
-                    self._supervisar("detener")
-                except Exception:
-                    pass
-                self._actualizar_boton(
-                    self.btn_transmitir, _ETIQUETA_TRANSMITIR, "Transmitir")
-                return
-            self._en_hilo(self._gestor.alternar_transmision, self._transmision_alternada)
+        if decision == transmision_directa.DETENER_SUPERVISADA:
+            try:
+                self._supervisar("detener")
+            except Exception:
+                pass
+            self._actualizar_boton(
+                self.btn_transmitir, _ETIQUETA_TRANSMITIR, "Transmitir")
             return
-        destino = self.cho_destino.GetStringSelection()
-        if not destino:
+        if decision == transmision_directa.FALTA_DESTINO:
             anunciar("Elige primero a dónde transmitir, en Transmitir a.")
             return
-        usuario = ""
-        if destino == "TikTok":
-            from ytchat.capture import tiktok_vivo
-            usuario = tiktok_vivo.usuario_tiktok(
-                self.txt_usuario_tiktok.GetValue())
-            if not usuario:
-                anunciar("Escribe tu usuario de TikTok en Tu usuario de TikTok.")
-                self.txt_usuario_tiktok.SetFocus()
-                return
-            if usuario != self._usuario_tiktok and self._guardar_usuario is not None:
-                try:
-                    self._guardar_usuario(usuario)
-                except Exception:
-                    pass
-                self._usuario_tiktok = usuario
+        if decision == transmision_directa.FALTA_USUARIO:
+            anunciar("Escribe tu usuario de TikTok en Tu usuario de TikTok.")
+            self.txt_usuario_tiktok.SetFocus()
+            return
+        usuario = _usuario() if destino == "TikTok" else ""
+        if destino == "TikTok" and usuario != self._usuario_tiktok and self._guardar_usuario is not None:
+            try:
+                self._guardar_usuario(usuario)
+            except Exception:
+                pass
+            self._usuario_tiktok = usuario
         self._en_hilo(lambda: self._revisar_prevuelo(destino),
                       lambda revision: self._revision_lista(revision, destino, usuario))
 
@@ -615,15 +617,18 @@ class TransmisionDialog(wx.Dialog):
         # El destino viaja como argumento: los hilos no leen controles de wx.
         return self._gestor.revisar(destino)
 
-    def _revision_lista(self, revision, destino, usuario):
-        if not confirmar_transmision(self, revision):
-            anunciar("No se transmitió.")
-            return
+    def _recordar_destino(self, destino):
         if self._guardar_destino is not None:
             try:
                 self._guardar_destino(destino)
             except Exception:
                 pass
+
+    def _revision_lista(self, revision, destino, usuario):
+        if not confirmar_transmision(self, revision):
+            anunciar("No se transmitió.")
+            return
+        self._recordar_destino(destino)
         try:
             self._supervisar("iniciar", destino, usuario)
         except Exception as error:
@@ -664,12 +669,7 @@ class TransmisionDialog(wx.Dialog):
     def _al_cambiar_destino(self, event):
         # Solo guarda lo elegido, sin anunciar ni preparar: recorrerlo
         # con flechas dispara EVT_CHOICE y preparar ahí saldría al aire.
-        if self._guardar_destino is not None:
-            try:
-                self._guardar_destino(
-                    self.cho_destino.GetStringSelection())
-            except Exception:
-                pass
+        self._recordar_destino(self.cho_destino.GetStringSelection())
         event.Skip()
 
     def _preparar_destino(self, event):
@@ -692,11 +692,7 @@ class TransmisionDialog(wx.Dialog):
     def _destino_preparado(self, datos):
         resultado, inicial, destino = datos
         self._poblar_inicial(inicial)
-        if self._guardar_destino is not None:
-            try:
-                self._guardar_destino(destino)
-            except Exception:
-                pass
+        self._recordar_destino(destino)
         anunciar(obs_destinos.frase_destino_listo(resultado))
         self.btn_transmitir.SetFocus()
 

@@ -4,8 +4,9 @@ import unittest
 
 from ytchat.obs import transmision_directa
 from ytchat.obs.transmision_directa import (
-    FalloCierreYoutube, Preparacion, boton_visible, es_directo_propio,
-    etiqueta, finalizar, preparar)
+    ALTERNAR, DETENER_SUPERVISADA, ESPERAR_DETENCION, FALTA_DESTINO,
+    FALTA_USUARIO, REVISAR, FalloCierreYoutube, Preparacion, boton_visible,
+    decidir_transmision, es_directo_propio, etiqueta, finalizar, preparar)
 
 
 class EsDirectoPropioTest(unittest.TestCase):
@@ -259,6 +260,82 @@ class FinalizarTest(unittest.TestCase):
             finalizar(gestor, finalizar_youtube=_romper)
         self.assertIn("YouTube no confirmó", str(contexto.exception))
         self.assertEqual(gestor.llamadas[-1], "cerrar")
+
+
+class DecidirTransmisionTest(unittest.TestCase):
+    def test_sin_supervisor_alterna_sin_preguntar_nada(self):
+        llamadas = []
+        decision = decidir_transmision(
+            hay_supervisor=False,
+            deteniendo=lambda: llamadas.append("deteniendo") or False,
+            con_supervisor=lambda: llamadas.append("activa") or False,
+            boton_dice_detener=False, destino="",
+            usuario_tiktok=lambda: llamadas.append("usuario") or "")
+        self.assertEqual(decision, ALTERNAR)
+        self.assertEqual(llamadas, [])
+
+    def test_deteniendo_avisa_que_hay_que_esperar(self):
+        llamadas = []
+        decision = decidir_transmision(
+            hay_supervisor=True, deteniendo=lambda: True,
+            con_supervisor=lambda: llamadas.append("activa") or False,
+            boton_dice_detener=False, destino="YouTube",
+            usuario_tiktok=lambda: llamadas.append("usuario") or "")
+        self.assertEqual(decision, ESPERAR_DETENCION)
+        self.assertEqual(llamadas, [])
+
+    def test_con_supervisor_detiene_lo_supervisado(self):
+        decision = decidir_transmision(
+            hay_supervisor=True, deteniendo=lambda: False,
+            con_supervisor=lambda: True,
+            boton_dice_detener=False, destino="YouTube",
+            usuario_tiktok=lambda: (_ for _ in ()).throw(
+                AssertionError("no se normaliza")))
+        self.assertEqual(decision, DETENER_SUPERVISADA)
+
+    def test_boton_que_dice_detener_alterna(self):
+        decision = decidir_transmision(
+            hay_supervisor=True, deteniendo=lambda: False,
+            con_supervisor=lambda: False,
+            boton_dice_detener=True, destino="",
+            usuario_tiktok=lambda: (_ for _ in ()).throw(
+                AssertionError("no se normaliza")))
+        self.assertEqual(decision, ALTERNAR)
+
+    def test_sin_destino_pide_elegir_destino(self):
+        decision = decidir_transmision(
+            hay_supervisor=True, deteniendo=lambda: False,
+            con_supervisor=lambda: False,
+            boton_dice_detener=False, destino="",
+            usuario_tiktok=lambda: (_ for _ in ()).throw(
+                AssertionError("no se normaliza")))
+        self.assertEqual(decision, FALTA_DESTINO)
+
+    def test_tiktok_sin_usuario_pide_el_usuario(self):
+        decision = decidir_transmision(
+            hay_supervisor=True, deteniendo=lambda: False,
+            con_supervisor=lambda: False,
+            boton_dice_detener=False, destino="TikTok",
+            usuario_tiktok=lambda: "")
+        self.assertEqual(decision, FALTA_USUARIO)
+
+    def test_tiktok_con_usuario_pasa_a_revisar(self):
+        decision = decidir_transmision(
+            hay_supervisor=True, deteniendo=lambda: False,
+            con_supervisor=lambda: False,
+            boton_dice_detener=False, destino="TikTok",
+            usuario_tiktok=lambda: "usuario")
+        self.assertEqual(decision, REVISAR)
+
+    def test_youtube_pasa_a_revisar_sin_normalizar(self):
+        llamadas = []
+        decision = decidir_transmision(
+            hay_supervisor=True, deteniendo=lambda: False,
+            con_supervisor=lambda: False,
+            boton_dice_detener=False, destino="YouTube",
+            usuario_tiktok=lambda: llamadas.append("usuario") or "usuario")
+        self.assertEqual(decision, REVISAR)
+        self.assertEqual(llamadas, [])
 
 
 if __name__ == "__main__":

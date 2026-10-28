@@ -38,12 +38,13 @@ def on_enviar_live(frame, event):
 def enviar_live_redactado(frame, texto):
     lcid = frame.sesion.live_chat_id
     frame._accion_api(lambda cli: cli.enviar_mensaje_live(lcid, texto),
-                      "Mensaje enviado al chat")
+                      _("Mensaje enviado al chat"))
 
 
 def accion_api(frame, accion, mensaje_ok: str, sonido: str = "enviado") -> None:
     from ytchat.ui import gui as _gui
-    _gui.anunciar("Enviando")
+    # Traductores: aviso breve mientras se envía.
+    _gui.anunciar(_("Enviando"))
 
     def _run():
         try:
@@ -87,7 +88,7 @@ def api_err(frame, exc):
     _gui._snd.reproducir("error")
     msg = _gui.youtube_api.mensaje_error_api(exc)
     _gui.anunciar(msg)
-    _gui.wx.MessageBox(msg, "Error de la API", _gui.wx.OK | _gui.wx.ICON_ERROR, frame)
+    _gui.wx.MessageBox(msg, _("Error de la API"), _gui.wx.OK | _gui.wx.ICON_ERROR, frame)
 
 
 def actualizar_estado_online(frame):
@@ -151,9 +152,9 @@ def programado_fallo(frame, exc) -> None:
         return
     frame._config["programados_activo"] = False
     if _gui.youtube_api.sesion_caducada(exc):
-        _gui.anunciar("Los mensajes automáticos se detuvieron porque la sesión de YouTube caducó.")
+        _gui.anunciar(_("Los mensajes automáticos se detuvieron porque la sesión de YouTube caducó."))
     else:
-        _gui.anunciar("Los mensajes automáticos se detuvieron por un error del servicio.")
+        _gui.anunciar(_("Los mensajes automáticos se detuvieron por un error del servicio."))
 
 
 def procesar_programado(frame) -> None:
@@ -178,13 +179,21 @@ def procesar_programado(frame) -> None:
 
 def moderar(frame, autor: str, canal_id: str, segundos: int | None) -> None:
     from ytchat.ui import gui as _gui
-    accion = "expulsar 5 minutos a" if segundos else "banear permanentemente a"
-    if _gui.wx.MessageBox(f"¿Seguro que quieres {accion} {autor}?",
-                          "Confirmar moderación",
+    if segundos:
+        # Traductores: confirmación de moderación; {autor} es su nombre.
+        pregunta = _("¿Seguro que quieres expulsar 5 minutos a {autor}?")
+        # Traductores: aviso de expulsión; {autor} es su nombre.
+        ok = _("{autor} expulsado 5 minutos")
+    else:
+        # Traductores: confirmación de moderación; {autor} es su nombre.
+        pregunta = _("¿Seguro que quieres banear permanentemente a {autor}?")
+        # Traductores: aviso de expulsión definitiva; {autor} es su nombre.
+        ok = _("{autor} baneado del directo")
+    if _gui.wx.MessageBox(pregunta.format(autor=autor),
+                          _("Confirmar moderación"),
                           _gui.wx.YES_NO | _gui.wx.ICON_QUESTION, frame) != _gui.wx.YES:
         return
     lcid = frame.sesion.live_chat_id
-    ok = f"{autor} expulsado 5 minutos" if segundos else f"{autor} baneado del directo"
     frame._accion_api(
-        lambda cli: cli.banear_usuario(lcid, canal_id, segundos), ok,
-        sonido="moderacion")
+        lambda cli: cli.banear_usuario(lcid, canal_id, segundos),
+        ok.format(autor=autor), sonido="moderacion")

@@ -27,10 +27,10 @@ def abrir_ventana_actualizacion(frame) -> None:
         except Exception:
             pass
         return
-    ventana = DialogoActualizacion(frame, "Actualizar yt-dlp")
+    ventana = DialogoActualizacion(frame, _("Actualizar yt-dlp"))
     frame._ventana_actualizar_ytdlp = ventana
     ventana.Show()
-    ventana.estado("Buscando la última versión de yt-dlp.")
+    ventana.estado(_("Buscando la última versión de yt-dlp."))
     ultimo_texto = None
 
     def _avisar(version_nueva):

@@ -109,7 +109,7 @@ def anunciar_estado(frame):
     from ytchat.ui import gui as _gui
     toggles = frame._config.get("estado_toggles") or _gui.estado_sesion.ACTIVOS_DEFECTO
     texto = _gui.estado_sesion.formatear_estado(frame._snapshot_sesion(), toggles)
-    _gui.anunciar(texto or "Sin información de estado.")
+    _gui.anunciar(texto or _("Sin información de estado."))
 
 
 def anunciar_autor(frame):
@@ -117,9 +117,10 @@ def anunciar_autor(frame):
     # Por el lector, no por la voz: no espera detrás de la cola.
     autor = frame._worker.ultimo_autor() or ""
     if autor:
-        _gui.anunciar(f"Último mensaje leído de {autor}")
+        # Traductores: {autor} es el nombre de quien escribió.
+        _gui.anunciar(_("Último mensaje leído de {autor}").format(autor=autor))
     else:
-        _gui.anunciar("Todavía no se leyó ningún mensaje.")
+        _gui.anunciar(_("Todavía no se leyó ningún mensaje."))
 
 
 def describir_escena(frame):
@@ -127,7 +128,7 @@ def describir_escena(frame):
     if frame._descripcion_escena_en_curso:
         return
     if not _gui.obs_activacion.obs_esta_en_ejecucion():
-        _gui.anunciar("OBS no está abierto.")
+        _gui.anunciar(_("OBS no está abierto."))
         return
     frame._descripcion_escena_en_curso = True
 

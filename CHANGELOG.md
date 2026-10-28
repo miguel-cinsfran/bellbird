@@ -13,7 +13,8 @@ Paraguay.
 - El programa ahora es `Bellbird.exe`, y el ZIP y su carpeta llevan el
   nombre Bellbird con el número de versión.
 - Un acceso directo a `YTChatTTS.exe` deja de funcionar después de
-  actualizar. Hay que crear uno nuevo que apunte a `Bellbird.exe`.
+  actualizar. Si abrías la app con un acceso directo, bórralo y crea uno
+  nuevo desde `Bellbird.exe`, dentro de la carpeta de la app.
 - Las fuentes que la app creó en OBS conservan su nombre, así que las
   escenas que ya tienes siguen funcionando.
 

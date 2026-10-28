@@ -184,7 +184,7 @@ def analizar_url(url: str) -> dict:
                 "mensaje": str(exc)}
     if not info:
         return {"tipo": "error", "id": "", "titulo": "", "cuenta": 0,
-                "mensaje": _("URL vacía")}
+                "mensaje": _("Enlace vacío")}
     tipo = info.get("_type")
     if tipo == "playlist" or "entries" in info:
         return {"tipo": "playlist",

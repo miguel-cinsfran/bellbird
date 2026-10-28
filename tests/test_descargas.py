@@ -146,6 +146,12 @@ class TestAnalizarUrl(unittest.TestCase):
             res = analizar_url("https://example.com/v")
         self.assertEqual(res["tipo"], "error")
 
+    def test_respuesta_vacia_dice_enlace_vacio(self):
+        with mock.patch.object(descargas.ytdlp_bin, "ruta_ytdlp", return_value="yt-dlp"), \
+                mock.patch.object(descargas.subprocess, "run", return_value=self.resultado({})):
+            res = analizar_url("https://example.com/vacia")
+        self.assertEqual(res["mensaje"], "Enlace vacío")
+
 
 class TestArgumentosDescarga(unittest.TestCase):
     def opciones(self, formato): return {"formato": formato, "bitrate": 256, "carpeta": "/tmp"}

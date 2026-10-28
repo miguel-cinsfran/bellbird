@@ -15,6 +15,7 @@ from unittest import mock
 
 import wx
 
+from tests.pseudo_prueba import con_pseudo
 from tests.ventanas_prueba import destruir
 from ytchat.ui import gui
 
@@ -367,6 +368,50 @@ class TestCableadoMostrarObs(unittest.TestCase):
             frame.GetEventHandler().ProcessEvent(evento)
         mostrar.assert_called_once_with()
         anunciar.assert_called_once_with("OBS no está abierto.")
+
+
+# Textos que arma otro módulo y la barra solo muestra: los nombres de
+# filtro de `ytchat/core/config.py` (FILTROS) y las etiquetas de
+# `ytchat/ui/atajos_captura.py` (ETIQUETAS). La comparación es exacta en
+# los dos sentidos: falla si aparece un texto nuevo sin envolver y si un
+# pendiente ya no está en el recorrido, para vaciar la lista cuando esos
+# módulos pasen por gettext.
+PENDIENTES_OTROS_MODULOS = (
+    "Todos",
+    "Solo texto",
+    "Super Chats",
+    "Membresías",
+    "Leer el último mensaje del chat",
+    "Leer el mensaje 2 desde el final del chat",
+    "Leer el mensaje 3 desde el final del chat",
+    "Leer el mensaje 4 desde el final del chat",
+    "Leer el mensaje 5 desde el final del chat",
+    "Leer el mensaje 6 desde el final del chat",
+    "Leer el mensaje 7 desde el final del chat",
+    "Leer el mensaje 8 desde el final del chat",
+    "Leer el mensaje 9 desde el final del chat",
+    "Leer el mensaje 10 desde el final del chat",
+)
+
+
+class TestPseudoMenu(unittest.TestCase):
+    """Pseudotraducción de la barra real: nada propio sin envolver.
+
+    Abre ventanas: la corre el advisor en la otra PC, no se corre acá.
+    Construye la misma barra real que vuelca la prueba de convenciones y
+    exige que cada etiqueta propia salga marcada.
+    """
+
+    def test_no_queda_ningun_texto_visible_sin_envolver(self):
+        from scripts import convenciones_comandos as cc
+
+        with con_pseudo():
+            entradas = cc.construir_entradas_reales()
+            sin_marcar = sorted(
+                entrada.etiqueta for entrada in entradas
+                if not entrada.etiqueta.startswith("[¡"))
+
+        self.assertEqual(sin_marcar, sorted(PENDIENTES_OTROS_MODULOS))
 
 
 if __name__ == "__main__":

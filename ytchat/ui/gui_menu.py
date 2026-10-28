@@ -15,6 +15,7 @@ import webbrowser
 import wx
 
 from ytchat.core import diagnostico
+from ytchat.core.idioma import _
 from ytchat.core import paths
 from ytchat.obs import obs_ventana
 from ytchat.ui.accesibilidad import anunciar
@@ -32,14 +33,14 @@ def construir_menu(frame):
 
     # Archivo
     m = wx.Menu()
-    frame.mi_conectar = m.Append(wx.ID_ANY, "&Conectar" + frame._accel("conectar"))
-    frame.mi_desconectar = m.Append(wx.ID_ANY, "&Desconectar" + frame._accel("desconectar"))
-    frame.mi_copiar_enlace = m.Append(wx.ID_ANY, "Copiar &enlace del directo" + frame._accel("copiar_enlace"))
+    frame.mi_conectar = m.Append(wx.ID_ANY, _("&Conectar") + frame._accel("conectar"))
+    frame.mi_desconectar = m.Append(wx.ID_ANY, _("&Desconectar") + frame._accel("desconectar"))
+    frame.mi_copiar_enlace = m.Append(wx.ID_ANY, _("Copiar &enlace del directo") + frame._accel("copiar_enlace"))
     m.AppendSeparator()
-    mi_historial = m.Append(wx.ID_ANY, "&Historial de directos…" + frame._accel("abrir_historial"))
+    mi_historial = m.Append(wx.ID_ANY, _("&Historial de directos…") + frame._accel("abrir_historial"))
     m.AppendSeparator()
-    mi_salir = m.Append(wx.ID_EXIT, "&Salir\tAlt+F4")
-    mb.Append(m, "&Archivo")
+    mi_salir = m.Append(wx.ID_EXIT, _("&Salir") + "\tAlt+F4")
+    mb.Append(m, _("&Archivo"))
     frame.Bind(wx.EVT_MENU, lambda e: wx.CallAfter(frame._conectar_si_procede), frame.mi_conectar)
     frame.Bind(wx.EVT_MENU, lambda e: frame._desconectar_si_procede(), frame.mi_desconectar)
     frame._bind_menu(frame.mi_copiar_enlace, frame._copiar_enlace_directo)
@@ -52,7 +53,7 @@ def construir_menu(frame):
     m = wx.Menu()
     frame.mi_enviar_live = m.Append(
         wx.ID_ANY,
-        "&Enviar mensaje al chat del directo (solo YouTube)…" + frame._accel("enviar_chat"))
+        _("&Enviar mensaje al chat del directo (solo YouTube)…") + frame._accel("enviar_chat"))
     m.AppendSeparator()
     sub_f = wx.Menu()
     frame.fi_items = []
@@ -60,32 +61,32 @@ def construir_menu(frame):
         it = sub_f.AppendRadioItem(wx.ID_ANY, nombre)
         frame.fi_items.append(it)
         frame._bind_menu(it, frame._aplicar_filtro, i)
-    frame._mi_filtro_sub = m.AppendSubMenu(sub_f, "&Filtro de mensajes")
-    mb.Append(m, "&Chat")
+    frame._mi_filtro_sub = m.AppendSubMenu(sub_f, _("&Filtro de mensajes"))
+    mb.Append(m, _("&Chat"))
     frame.Bind(wx.EVT_MENU, frame._on_enviar_live, frame.mi_enviar_live)
 
     # Voz (TTS)
     m = wx.Menu()
-    frame.mi_pausa = m.Append(wx.ID_ANY, "&Pausar lectura" + frame._accel("pausa"))
-    mi_det = m.Append(wx.ID_ANY, "&Detener voz" + frame._accel("detener_tts"))
-    mi_vac = m.Append(wx.ID_ANY, "&Vaciar cola")
+    frame.mi_pausa = m.Append(wx.ID_ANY, _("&Pausar lectura") + frame._accel("pausa"))
+    mi_det = m.Append(wx.ID_ANY, _("&Detener voz") + frame._accel("detener_tts"))
+    mi_vac = m.Append(wx.ID_ANY, _("&Vaciar cola"))
     # Estas tres actúan sobre una lectura en curso: sin conexión no hay nada
     # que pausar/detener/vaciar. Los ajustes de voz de abajo sí quedan libres.
     frame._mi_voz_conexion = [frame.mi_pausa, mi_det, mi_vac]
     m.AppendSeparator()
-    mi_vmenos = m.Append(wx.ID_ANY, "Hablar más &lento" + frame._accel("velocidad_menos"))
-    mi_vmas   = m.Append(wx.ID_ANY, "Hablar más &rápido" + frame._accel("velocidad_mas"))
-    mi_volm   = m.Append(wx.ID_ANY, "&Bajar volumen de la voz" + frame._accel("volumen_menos"))
-    mi_volM   = m.Append(wx.ID_ANY, "&Subir volumen de la voz" + frame._accel("volumen_mas"))
+    mi_vmenos = m.Append(wx.ID_ANY, _("Hablar más &lento") + frame._accel("velocidad_menos"))
+    mi_vmas   = m.Append(wx.ID_ANY, _("Hablar más &rápido") + frame._accel("velocidad_mas"))
+    mi_volm   = m.Append(wx.ID_ANY, _("&Bajar volumen de la voz") + frame._accel("volumen_menos"))
+    mi_volM   = m.Append(wx.ID_ANY, _("&Subir volumen de la voz") + frame._accel("volumen_mas"))
     m.AppendSeparator()
     frame.mi_sil_lectura = m.AppendCheckItem(
-        wx.ID_ANY, "S&ilenciar lectura TTS" + frame._accel("silenciar_lectura"))
+        wx.ID_ANY, _("S&ilenciar lectura TTS") + frame._accel("silenciar_lectura"))
     frame.mi_sil_sonidos = m.AppendCheckItem(
-        wx.ID_ANY, "Silenciar s&onidos" + frame._accel("silenciar_sonidos"))
+        wx.ID_ANY, _("Silenciar s&onidos") + frame._accel("silenciar_sonidos"))
     m.AppendSeparator()
     frame.voz_submenu = wx.Menu()
-    m.AppendSubMenu(frame.voz_submenu, "Seleccionar vo&z")
-    mb.Append(m, "Vo&z")
+    m.AppendSubMenu(frame.voz_submenu, _("Seleccionar vo&z"))
+    mb.Append(m, _("Vo&z"))
     frame._bind_menu(frame.mi_pausa, frame._on_pausa, None)
     frame._bind_menu(mi_det, frame._on_detener_tts, None)
     frame._bind_menu(mi_vac, frame._on_vaciar, None)
@@ -98,33 +99,33 @@ def construir_menu(frame):
 
     # Reproductor
     m = wx.Menu()
-    mi_rep_play  = m.Append(wx.ID_ANY, "&Reproducir o pausa" + frame._accel("rep_play"))
-    mi_rep_retro = m.Append(wx.ID_ANY, "R&etroceder 1 minuto" + frame._accel("rep_retro"))
-    mi_rep_avanz = m.Append(wx.ID_ANY, "&Avanzar 1 minuto" + frame._accel("rep_avanz"))
-    mi_rep_directo = m.Append(wx.ID_ANY, "&Ir al directo" + frame._accel("rep_directo"))
-    mi_rep_stop  = m.Append(wx.ID_ANY, "De&tener reproducción" + frame._accel("rep_detener"))
-    mi_rep_mute  = m.Append(wx.ID_ANY, "&Silenciar o activar audio" + frame._accel("rep_mute"))
-    mi_rep_fs    = m.Append(wx.ID_ANY, "Pantalla &completa" + frame._accel("pantalla_completa"))
+    mi_rep_play  = m.Append(wx.ID_ANY, _("&Reproducir o pausa") + frame._accel("rep_play"))
+    mi_rep_retro = m.Append(wx.ID_ANY, _("R&etroceder 1 minuto") + frame._accel("rep_retro"))
+    mi_rep_avanz = m.Append(wx.ID_ANY, _("&Avanzar 1 minuto") + frame._accel("rep_avanz"))
+    mi_rep_directo = m.Append(wx.ID_ANY, _("&Ir al directo") + frame._accel("rep_directo"))
+    mi_rep_stop  = m.Append(wx.ID_ANY, _("De&tener reproducción") + frame._accel("rep_detener"))
+    mi_rep_mute  = m.Append(wx.ID_ANY, _("&Silenciar o activar audio") + frame._accel("rep_mute"))
+    mi_rep_fs    = m.Append(wx.ID_ANY, _("Pantalla &completa") + frame._accel("pantalla_completa"))
     # Submenú de calidad (radio). Se elige la disponible más cercana.
     sub_cal = wx.Menu()
-    for etiqueta, altura in (("Automática", None), ("1080p", 1080), ("720p", 720),
-                             ("480p", 480), ("360p", 360), ("240p", 240), ("144p", 144)):
+    for etiqueta, altura in ((_("Automática"), None), (_("1080p"), 1080), (_("720p"), 720),
+                             (_("480p"), 480), (_("360p"), 360), (_("240p"), 240), (_("144p"), 144)):
         it = sub_cal.AppendRadioItem(wx.ID_ANY, etiqueta)
         frame._bind_menu(it, frame._rep_accion, "set_calidad", altura)
-    m.AppendSubMenu(sub_cal, "Ca&lidad del vídeo")
+    m.AppendSubMenu(sub_cal, _("Ca&lidad del vídeo"))
     m.AppendSeparator()
     # Descargar este vídeo (solo YouTube, no live). Se habilita en
     # `_actualizar_menus_por_conexion` cuando hay URL reproducible.
     frame.mi_descargar_este = m.Append(
-        wx.ID_ANY, "Descargar este &vídeo")
+        wx.ID_ANY, _("Descargar este &vídeo"))
     m.AppendSeparator()
-    mi_rep_volm  = m.Append(wx.ID_ANY, "&Bajar volumen del reproductor" + frame._accel("rep_vol_menos"))
-    mi_rep_volM  = m.Append(wx.ID_ANY, "S&ubir volumen del reproductor" + frame._accel("rep_vol_mas"))
+    mi_rep_volm  = m.Append(wx.ID_ANY, _("&Bajar volumen del reproductor") + frame._accel("rep_vol_menos"))
+    mi_rep_volM  = m.Append(wx.ID_ANY, _("S&ubir volumen del reproductor") + frame._accel("rep_vol_mas"))
     m.AppendSeparator()
-    frame.mi_rep_botones = m.AppendCheckItem(wx.ID_ANY, "Mostrar botones en &pantalla")
+    frame.mi_rep_botones = m.AppendCheckItem(wx.ID_ANY, _("Mostrar botones en &pantalla"))
     frame.mi_rep_botones.Check(bool(frame._config.get("mostrar_botones_reproductor", True)))
     frame._bind_menu(frame.mi_rep_botones, frame._toggle_botones_rep)
-    mb.Append(m, "&Reproductor")
+    mb.Append(m, _("&Reproductor"))
     frame._bind_menu(mi_rep_play, frame._rep_accion, "_toggle_play")
     frame._bind_menu(mi_rep_retro, frame._rep_accion, "_buscar_rel", -60_000)
     frame._bind_menu(mi_rep_avanz, frame._rep_accion, "_buscar_rel", +60_000)
@@ -150,11 +151,11 @@ def construir_menu(frame):
     # Gestor de descargas: SIEMPRE habilitado (funciona sin conexión de
     # chat, abriendo una URL pegada a mano). Ctrl+S es el atajo.
     frame.mi_descargas = m.Append(
-        wx.ID_ANY, "Gestor de &descargas…" + frame._accel("descargas_abrir"))
-    frame.mi_actualizar_ytdlp = m.Append(wx.ID_ANY, "&Actualizar yt-dlp")
+        wx.ID_ANY, _("Gestor de &descargas…") + frame._accel("descargas_abrir"))
+    frame.mi_actualizar_ytdlp = m.Append(wx.ID_ANY, _("&Actualizar yt-dlp"))
     m.AppendSeparator()
-    mi_pref = m.Append(wx.ID_ANY, "&Preferencias…" + frame._accel("abrir_preferencias"))
-    mb.Append(m, "&Herramientas")
+    mi_pref = m.Append(wx.ID_ANY, _("&Preferencias…") + frame._accel("abrir_preferencias"))
+    mb.Append(m, _("&Herramientas"))
     frame.Bind(wx.EVT_MENU, lambda e: wx.CallAfter(frame._abrir_descargas), frame.mi_descargas)
     frame.Bind(wx.EVT_MENU, lambda e: wx.CallAfter(frame._on_actualizar_ytdlp, None),
               frame.mi_actualizar_ytdlp)
@@ -184,21 +185,21 @@ def _construir_menu_transmision(frame, mb):
     from ytchat.ui import gui_transmitir
     m = wx.Menu()
     frame.mi_transmision = m.Append(
-        wx.ID_ANY, "&Panel de transmisión…" + frame._accel("abrir_transmision"))
+        wx.ID_ANY, _("&Panel de transmisión…") + frame._accel("abrir_transmision"))
     frame.mi_obs_micro = m.Append(
-        wx.ID_ANY, "Silenciar el &micrófono de OBS" + frame._accel("obs_micro"))
+        wx.ID_ANY, _("Silenciar el &micrófono de OBS") + frame._accel("obs_micro"))
     frame.mi_mostrar_obs = m.Append(
-        wx.ID_ANY, "Mostrar &OBS" + frame._accel("mostrar_obs"))
+        wx.ID_ANY, _("Mostrar &OBS") + frame._accel("mostrar_obs"))
     frame.mi_avisos_sobrecarga = m.AppendCheckItem(
         wx.ID_ANY,
-        "&Avisar cuando OBS no da abasto" + frame._accel("avisos_sobrecarga"))
+        _("&Avisar cuando OBS no da abasto") + frame._accel("avisos_sobrecarga"))
     frame.mi_avisos_sobrecarga.Check(
         bool(frame._config.get("avisar_sobrecarga", True)))
     frame.mi_grabar_al_transmitir = m.AppendCheckItem(
-        wx.ID_ANY, "&Grabar también al transmitir")
+        wx.ID_ANY, _("&Grabar también al transmitir"))
     frame.mi_grabar_al_transmitir.Check(
         bool(frame._config.get("grabar_al_transmitir", False)))
-    mb.Append(m, "&Transmisión")
+    mb.Append(m, _("&Transmisión"))
     frame.Bind(wx.EVT_MENU,
               lambda e: wx.CallAfter(frame._on_transmision, None),
               frame.mi_transmision)
@@ -212,12 +213,12 @@ def _construir_menu_transmision(frame, mb):
 
 def _construir_menu_ayuda(frame, mb):
     m = wx.Menu()
-    mi_guia = m.Append(wx.ID_ANY, "&Guía de configuración de la API…")
-    mi_incidente = m.Append(wx.ID_ANY, "&Marcar incidencia" + frame._accel("marcar_incidencia"))
-    mi_registros = m.Append(wx.ID_ANY, "Abrir la carpeta de &registros")
-    mi_actualizar_app = m.Append(wx.ID_ANY, "&Buscar actualizaciones…")
-    mi_about = m.Append(wx.ID_ABOUT, "&Acerca de")
-    mb.Append(m, "A&yuda")
+    mi_guia = m.Append(wx.ID_ANY, _("&Guía de configuración de la API…"))
+    mi_incidente = m.Append(wx.ID_ANY, _("&Marcar incidencia") + frame._accel("marcar_incidencia"))
+    mi_registros = m.Append(wx.ID_ANY, _("Abrir la carpeta de &registros"))
+    mi_actualizar_app = m.Append(wx.ID_ANY, _("&Buscar actualizaciones…"))
+    mi_about = m.Append(wx.ID_ABOUT, _("&Acerca de"))
+    mb.Append(m, _("A&yuda"))
     frame.Bind(wx.EVT_MENU, lambda e: webbrowser.open(
         "https://github.com/miguel-cinsfran/ytchat-tts/blob/main/docs/CONFIGURACION_API.md"),
         mi_guia)
@@ -235,8 +236,8 @@ def abrir_carpeta_registros(frame) -> None:
     try:
         os.startfile(str(paths.carpeta_datos()))  # noqa: S606
     except Exception as exc:
-        wx.MessageBox(f"No se pudo abrir la carpeta de registros:\n\n{exc}",
-                      "Carpeta de registros", wx.OK | wx.ICON_ERROR, frame)
+        wx.MessageBox(_("No se pudo abrir la carpeta de registros:\n\n{exc}").format(exc=exc),
+                      _("Carpeta de registros"), wx.OK | wx.ICON_ERROR, frame)
 
 
 def _registrar_menus(frame) -> None:
@@ -293,27 +294,27 @@ def _construir_menu_ver(frame, mb):
         PAG_CHAT, PAG_COMENTARIOS, REG_CONEXION, REG_REPRODUCTOR,
     )
     m = wx.Menu()
-    mi_sig = m.Append(wx.ID_ANY, "Región &siguiente\tF6")
-    mi_ant = m.Append(wx.ID_ANY, "Región &anterior\tShift+F6")
+    mi_sig = m.Append(wx.ID_ANY, _("Región &siguiente") + "\tF6")
+    mi_ant = m.Append(wx.ID_ANY, _("Región &anterior") + "\tShift+F6")
     m.AppendSeparator()
-    mi_conx = m.Append(wx.ID_ANY, "Ir a co&nexión (URL)")
-    mi_lista = m.Append(wx.ID_ANY, "Ir a la &lista del panel actual" + frame._accel("ir_lista"))
-    mi_chat = m.Append(wx.ID_ANY, "Ir a &Chat en vivo")
-    mi_com  = m.Append(wx.ID_ANY, "Ir a Co&mentarios")
-    mi_rep  = m.Append(wx.ID_ANY, "Ir al &Reproductor")
+    mi_conx = m.Append(wx.ID_ANY, _("Ir a co&nexión (URL)"))
+    mi_lista = m.Append(wx.ID_ANY, _("Ir a la &lista del panel actual") + frame._accel("ir_lista"))
+    mi_chat = m.Append(wx.ID_ANY, _("Ir a &Chat en vivo"))
+    mi_com  = m.Append(wx.ID_ANY, _("Ir a Co&mentarios"))
+    mi_rep  = m.Append(wx.ID_ANY, _("Ir al &Reproductor"))
     m.AppendSeparator()
-    mi_estado = m.Append(wx.ID_ANY, "Anunciar &estado" + frame._accel("anunciar_estado"))
-    mi_autor = m.Append(wx.ID_ANY, "Anunciar a&utor del último mensaje" + frame._accel("anunciar_autor"))
+    mi_estado = m.Append(wx.ID_ANY, _("Anunciar &estado") + frame._accel("anunciar_estado"))
+    mi_autor = m.Append(wx.ID_ANY, _("Anunciar a&utor del último mensaje") + frame._accel("anunciar_autor"))
     sub_rec = wx.Menu()
     for n in range(1, 11):
         accion = f"chat_reciente_{n}"
         item = sub_rec.Append(wx.ID_ANY, ETIQUETAS[accion] + frame._accel(accion))
         frame._bind_menu(item, frame._leer_reciente, n)
-    m.AppendSubMenu(sub_rec, "Mensajes recientes &del chat")
-    mi_escena = m.Append(wx.ID_ANY, "Describir la escena de &OBS" + frame._accel("describir_escena"))
-    mi_ia = m.Append(wx.ID_ANY, "Preguntar a la &IA sobre la imagen…" + frame._accel("preguntar_ia"))
-    mi_rapida = m.Append(wx.ID_ANY, "Consul&ta rápida a la IA" + frame._accel("consulta_rapida_ia"))
-    mb.Append(m, "&Ver")
+    m.AppendSubMenu(sub_rec, _("Mensajes recientes &del chat"))
+    mi_escena = m.Append(wx.ID_ANY, _("Describir la escena de &OBS") + frame._accel("describir_escena"))
+    mi_ia = m.Append(wx.ID_ANY, _("Preguntar a la &IA sobre la imagen…") + frame._accel("preguntar_ia"))
+    mi_rapida = m.Append(wx.ID_ANY, _("Consul&ta rápida a la IA") + frame._accel("consulta_rapida_ia"))
+    mb.Append(m, _("&Ver"))
     frame.Bind(wx.EVT_MENU, lambda e: frame._navegar_region(+1), mi_sig)
     frame.Bind(wx.EVT_MENU, lambda e: frame._navegar_region(-1), mi_ant)
     frame.Bind(wx.EVT_MENU, lambda e: frame._ir_region(REG_CONEXION), mi_conx)
@@ -334,36 +335,36 @@ def _construir_menu_ver(frame, mb):
 def _construir_menu_musica(frame, mb):
     m = wx.Menu()
     frame.mi_musica_ventana = m.Append(
-        wx.ID_ANY, "&Elegir música…" + frame._accel("musica_ventana"))
+        wx.ID_ANY, _("&Elegir música…") + frame._accel("musica_ventana"))
     m.AppendSeparator()
     frame.mi_musica_play = m.Append(
-        wx.ID_ANY, "Reproducir o &pausar" + frame._accel("musica_play"))
+        wx.ID_ANY, _("Reproducir o &pausar") + frame._accel("musica_play"))
     frame.mi_musica_siguiente = m.Append(
-        wx.ID_ANY, "&Siguiente canción" + frame._accel("musica_siguiente"))
+        wx.ID_ANY, _("&Siguiente canción") + frame._accel("musica_siguiente"))
     frame.mi_musica_anterior = m.Append(
-        wx.ID_ANY, "Canción &anterior" + frame._accel("musica_anterior"))
+        wx.ID_ANY, _("Canción &anterior") + frame._accel("musica_anterior"))
     frame.mi_musica_vol_mas = m.Append(
-        wx.ID_ANY, "Subir el &volumen" + frame._accel("musica_vol_mas"))
+        wx.ID_ANY, _("Subir el &volumen") + frame._accel("musica_vol_mas"))
     frame.mi_musica_vol_menos = m.Append(
-        wx.ID_ANY, "&Bajar el volumen" + frame._accel("musica_vol_menos"))
+        wx.ID_ANY, _("&Bajar el volumen") + frame._accel("musica_vol_menos"))
     frame.mi_musica_que_suena = m.Append(
-        wx.ID_ANY, "&Qué suena" + frame._accel("musica_que_suena"))
+        wx.ID_ANY, _("&Qué suena") + frame._accel("musica_que_suena"))
     frame.mi_musica_adelantar = m.Append(
-        wx.ID_ANY, "Adelantar 10 segu&ndos" + frame._accel("musica_adelantar"))
+        wx.ID_ANY, _("Adelantar 10 segu&ndos") + frame._accel("musica_adelantar"))
     frame.mi_musica_retroceder = m.Append(
-        wx.ID_ANY, "Re&troceder 10 segundos" + frame._accel("musica_retroceder"))
+        wx.ID_ANY, _("Re&troceder 10 segundos") + frame._accel("musica_retroceder"))
     m.AppendSeparator()
     frame.mi_musica_silenciar = m.AppendCheckItem(
-        wx.ID_ANY, "Silenciar la &música" + frame._accel("musica_silenciar"))
+        wx.ID_ANY, _("Silenciar la &música") + frame._accel("musica_silenciar"))
     mi_detener = m.Append(
-        wx.ID_ANY, "&Detener la música" + frame._accel("musica_detener"))
+        wx.ID_ANY, _("&Detener la música") + frame._accel("musica_detener"))
     frame.mi_musica_aleatorio = m.AppendCheckItem(
-        wx.ID_ANY, "&Orden aleatorio" + frame._accel("musica_aleatorio"))
+        wx.ID_ANY, _("&Orden aleatorio") + frame._accel("musica_aleatorio"))
     frame.mi_musica_aleatorio.Check(
         bool(frame._config.get("musica_aleatorio", False)))
     mi_repetir = m.Append(
-        wx.ID_ANY, "Cambiar la &repetición" + frame._accel("musica_repetir"))
-    mb.Append(m, "&Música")
+        wx.ID_ANY, _("Cambiar la &repetición") + frame._accel("musica_repetir"))
+    mb.Append(m, _("&Música"))
     for item, accion in (
             (frame.mi_musica_ventana, "abrir_ventana"),
             (frame.mi_musica_play, "reproducir_o_pausar"),

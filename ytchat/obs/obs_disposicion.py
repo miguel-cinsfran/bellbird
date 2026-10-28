@@ -109,112 +109,159 @@ def _porcentaje(valor) -> int:
     return int(round(valor))
 
 
+_LUGARES_ANCLADO = {
+    "superior-izquierda": "esquina superior izquierda",
+    "superior-centro": "borde superior, centrado",
+    "superior-derecha": "esquina superior derecha",
+    "centro-izquierda": "borde izquierdo, centrado",
+    "centro": "centro",
+    "centro-derecha": "borde derecho, centrado",
+    "inferior-izquierda": "esquina inferior izquierda",
+    "inferior-centro": "borde inferior, centrado",
+    "inferior-derecha": "esquina inferior derecha",
+}
+
+
+def _lugar_anclado(nombre):
+    return _LUGARES_ANCLADO[nombre]
+
+
+def _lugar_libre(snap):
+    derecha = snap.izquierda + snap.ancho
+    abajo = snap.arriba + snap.alto
+    if snap.izquierda < 0:
+        sale_x = "por la izquierda"
+    elif derecha > snap.lienzo_ancho:
+        sale_x = "por la derecha"
+    else:
+        horizontal = [(snap.izquierda, "izquierdo"),
+                      (snap.lienzo_ancho - derecha, "derecho")]
+        distancia_x, borde_x = min(horizontal)
+        sale_x = ""
+    if snap.arriba < 0:
+        sale_y = "por arriba"
+    elif abajo > snap.lienzo_alto:
+        sale_y = "por abajo"
+    else:
+        vertical = [(snap.arriba, "superior"),
+                    (snap.lienzo_alto - abajo, "inferior")]
+        distancia_y, borde_y = min(vertical)
+        sale_y = ""
+    salidas = " y ".join(salida for salida in (sale_x, sale_y) if salida)
+    distancias = []
+    if not sale_x:
+        distancias.append(
+            f"a {_porcentaje(distancia_x / snap.lienzo_ancho * 100)}% del borde {borde_x}")
+    if not sale_y:
+        distancias.append(
+            f"a {_porcentaje(distancia_y / snap.lienzo_alto * 100)}% del borde {borde_y}")
+    texto = (f"se sale del lienzo {salidas}, y " if salidas and distancias
+             else f"se sale del lienzo {salidas}" if salidas
+             else "") + " y ".join(distancias)
+    return texto
+
+
 def _texto_posicion(snap, largo):
     if not snap.ancho or not snap.alto or not snap.lienzo_ancho or not snap.lienzo_alto:
         return ""
     rect = (snap.izquierda, snap.arriba, snap.ancho, snap.alto)
     nombre = anclaje_de(rect, snap.lienzo_ancho, snap.lienzo_alto)
     if nombre:
-        lugares = {
-            "superior-izquierda": "esquina superior izquierda",
-            "superior-centro": "borde superior, centrado",
-            "superior-derecha": "esquina superior derecha",
-            "centro-izquierda": "borde izquierdo, centrado",
-            "centro": "centro",
-            "centro-derecha": "borde derecho, centrado",
-            "inferior-izquierda": "esquina inferior izquierda",
-            "inferior-centro": "borde inferior, centrado",
-            "inferior-derecha": "esquina inferior derecha",
-        }
-        texto = lugares[nombre]
+        texto = _lugar_anclado(nombre)
     else:
-        derecha = snap.izquierda + snap.ancho
-        abajo = snap.arriba + snap.alto
-        if snap.izquierda < 0:
-            sale_x = "por la izquierda"
-        elif derecha > snap.lienzo_ancho:
-            sale_x = "por la derecha"
-        else:
-            horizontal = [(snap.izquierda, "izquierdo"),
-                          (snap.lienzo_ancho - derecha, "derecho")]
-            distancia_x, borde_x = min(horizontal)
-            sale_x = ""
-        if snap.arriba < 0:
-            sale_y = "por arriba"
-        elif abajo > snap.lienzo_alto:
-            sale_y = "por abajo"
-        else:
-            vertical = [(snap.arriba, "superior"),
-                        (snap.lienzo_alto - abajo, "inferior")]
-            distancia_y, borde_y = min(vertical)
-            sale_y = ""
-        salidas = " y ".join(salida for salida in (sale_x, sale_y) if salida)
-        distancias = []
-        if not sale_x:
-            distancias.append(
-                f"a {_porcentaje(distancia_x / snap.lienzo_ancho * 100)}% del borde {borde_x}")
-        if not sale_y:
-            distancias.append(
-                f"a {_porcentaje(distancia_y / snap.lienzo_alto * 100)}% del borde {borde_y}")
-        texto = (f"se sale del lienzo {salidas}, y " if salidas and distancias
-                 else f"se sale del lienzo {salidas}" if salidas
-                 else "") + " y ".join(distancias)
+        texto = _lugar_libre(snap)
     if not largo:
         texto = texto.capitalize()
     return f"Posición: {texto}" if largo else texto
 
 
+def _conexion(s, largo) -> str:
+    return "OBS: conectado" if largo and s.conectado else ("Sin conexión con OBS" if not s.conectado else "")
+
+
+def _escena(s, largo) -> str:
+    if not s.escena:
+        return ""
+    valor = s.escena + (", no al aire" if not s.al_aire else "")
+    return f"Escena: {valor}" if largo else valor
+
+
+def _tamano(s, largo) -> str:
+    if not s.ancho or not s.alto or not s.lienzo_ancho:
+        return ""
+    porcentaje = _porcentaje(s.ancho / s.lienzo_ancho * 100)
+    return (f"Tamaño: {s.ancho} por {s.alto} píxeles, {porcentaje}% del ancho de pantalla"
+            if largo else f"{s.ancho} por {s.alto}, {porcentaje}% del ancho")
+
+
+def _capa(s, largo) -> str:
+    if not s.tapada_por:
+        valor = "no lo tapa nada"
+    else:
+        valor = f"lo tapa {s.tapada_por}"
+    return f"Capa: {valor}" if largo else valor[0].upper() + valor[1:]
+
+
+def _solape(s, largo) -> str:
+    if not s.solapes:
+        # El modo corto se oye en cada pulsación del ajuste fino.
+        return "No se superpone con ninguna otra fuente" if largo else "Libre"
+    # El porcentaje de superposición es de la otra fuente; el de recorte, del propio panel.
+    partes = [f"al {_porcentaje(porcentaje)}% de {fuente}"
+              for fuente, porcentaje in s.solapes]
+    return "Superpone " + " y ".join(partes)
+
+
+def _visible(s, largo) -> str:
+    return (f"Visible en OBS: {'sí' if s.visible else 'no'}" if largo
+            else ("" if s.visible else "Oculto en OBS"))
+
+
+def _bloqueada(s, largo) -> str:
+    return f"Fijado: {'sí' if s.bloqueada else 'no'}" if largo else ("Fijado" if s.bloqueada else "")
+
+
+def _fuera(s, largo) -> str:
+    if not s.fuera:
+        return ""
+    valor = f"queda fuera del lienzo el {_porcentaje(s.fuera)}% del panel"
+    return f"Recorte: {valor}" if largo else valor.capitalize()
+
+
+def _aspecto(s, largo) -> str:
+    if not s.mensajes_visibles and not s.tamano_letra:
+        return ""
+    return (f"Aspecto: {s.mensajes_visibles} mensajes visibles, tamaño de letra {s.tamano_letra}"
+            if largo else f"{s.mensajes_visibles} mensajes, letra {s.tamano_letra}")
+
+
+def _transparencia(s, largo) -> str:
+    return ("El fondo del panel es transparente. Solo se ven las tarjetas de los mensajes, "
+            "apiladas contra el borde inferior." if largo else "")
+
+
+_COMPONENTES_RENDER = {
+    "conexion": _conexion,
+    "escena": _escena,
+    "posicion": _texto_posicion,
+    "tamano": _tamano,
+    "capa": _capa,
+    "solape": _solape,
+    "visible": _visible,
+    "bloqueada": _bloqueada,
+    "fuera": _fuera,
+    "aspecto": _aspecto,
+    "transparencia": _transparencia,
+}
+
+
 def _render(nombre: str, s: SnapshotPanel, largo: bool) -> str:
     if not s.conectado and nombre != "conexion":
         return ""
-    if nombre == "conexion":
-        return "OBS: conectado" if largo and s.conectado else ("Sin conexión con OBS" if not s.conectado else "")
-    if nombre == "escena":
-        if not s.escena:
-            return ""
-        valor = s.escena + (", no al aire" if not s.al_aire else "")
-        return f"Escena: {valor}" if largo else valor
-    if nombre == "posicion":
-        return _texto_posicion(s, largo)
-    if nombre == "tamano":
-        if not s.ancho or not s.alto or not s.lienzo_ancho:
-            return ""
-        porcentaje = _porcentaje(s.ancho / s.lienzo_ancho * 100)
-        return (f"Tamaño: {s.ancho} por {s.alto} píxeles, {porcentaje}% del ancho de pantalla"
-                if largo else f"{s.ancho} por {s.alto}, {porcentaje}% del ancho")
-    if nombre == "capa":
-        if not s.tapada_por:
-            valor = "no lo tapa nada"
-        else:
-            valor = f"lo tapa {s.tapada_por}"
-        return f"Capa: {valor}" if largo else valor[0].upper() + valor[1:]
-    if nombre == "solape":
-        if not s.solapes:
-            # El modo corto se oye en cada pulsación del ajuste fino.
-            return "No se superpone con ninguna otra fuente" if largo else "Libre"
-        # El porcentaje de superposición es de la otra fuente; el de recorte, del propio panel.
-        partes = [f"al {_porcentaje(porcentaje)}% de {nombre}"
-                  for nombre, porcentaje in s.solapes]
-        return "Superpone " + " y ".join(partes)
-    if nombre == "visible":
-        return (f"Visible en OBS: {'sí' if s.visible else 'no'}" if largo
-                else ("" if s.visible else "Oculto en OBS"))
-    if nombre == "bloqueada":
-        return f"Fijado: {'sí' if s.bloqueada else 'no'}" if largo else ("Fijado" if s.bloqueada else "")
-    if nombre == "fuera":
-        if not s.fuera:
-            return ""
-        valor = f"queda fuera del lienzo el {_porcentaje(s.fuera)}% del panel"
-        return f"Recorte: {valor}" if largo else valor.capitalize()
-    if nombre == "aspecto":
-        if not s.mensajes_visibles and not s.tamano_letra:
-            return ""
-        return (f"Aspecto: {s.mensajes_visibles} mensajes visibles, tamaño de letra {s.tamano_letra}"
-                if largo else f"{s.mensajes_visibles} mensajes, letra {s.tamano_letra}")
-    if nombre == "transparencia":
-        return ("El fondo del panel es transparente. Solo se ven las tarjetas de los mensajes, "
-                "apiladas contra el borde inferior." if largo else "")
-    return ""
+    funcion = _COMPONENTES_RENDER.get(nombre)
+    if funcion is None:
+        return ""
+    return funcion(s, largo)
 
 
 def describir(snap: SnapshotPanel, componentes, modo="corto") -> str:

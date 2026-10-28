@@ -21,6 +21,7 @@ from ytchat.ui import (musica_dialogo_enlace, musica_editor_lista,
                        musica_ventana_acciones,
                        musica_ventana_igualando)
 from ytchat.ui.tema import ALTO_CONTRASTE, _T
+from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
 
 try:
@@ -1845,6 +1846,40 @@ class TestVentanaVigiaYExaminar(unittest.TestCase):
         destruir(ventana)
         self.ventana = None
         ventana.refrescar_por_vigia()  # no debe lanzar
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestVentanaPseudo(unittest.TestCase):
+    """Ningún texto visible de la ventana sin pasar por gettext."""
+
+    # Lo que arma otro módulo y esta ventana solo muestra: queda pendiente
+    # hasta que se envuelva su módulo. Las filas de las listas no se
+    # recorren: el ayudante solo lee opciones de Choice y columnas.
+    PENDIENTES = (
+        # ytchat/music/filtros.py, las opciones de «Ordenar por».
+        "Orden de la colección",
+        "Título",
+        "Artista",
+        "Más recientes primero",
+        "Duración",
+    )
+
+    def setUp(self):
+        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.ventana = None
+
+    def tearDown(self):
+        if self.ventana is not None:
+            self.ventana._cancelar_temporizador()
+            self.ventana._parar_igualando()
+            destruir(self.ventana)
+
+    def test_no_queda_ningun_texto_visible_sin_envolver(self):
+        with con_pseudo():
+            self.ventana = musica_ventana.VentanaMusica(
+                None, ControlFalso(biblioteca=None))
+            sin_marcar = textos_sin_marcar(self.ventana)
+        self.assertEqual(sorted(sin_marcar), sorted(self.PENDIENTES))
 
 
 if __name__ == "__main__":

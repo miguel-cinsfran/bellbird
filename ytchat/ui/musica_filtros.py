@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import wx
 
+from ytchat.core.idioma import _
 from ytchat.music import anuncios, filtros
 from ytchat.ui.accesibilidad import anunciar, nombre_accesible
 from ytchat.ui.tema import _T, _pintar
@@ -30,24 +31,24 @@ class FiltrosMusica:
         self._programar_aviso = programar_aviso
         self._recordar = recordar
         self._avisar = avisar or anunciar
-        self._opciones = ((filtros.TODAS, "Todas las canciones"),)
+        self._opciones = ((filtros.TODAS, _("Todas las canciones")),)
         self._crear(parent)
         self._poner_artistas()
         self._aplicar_visibilidad(avisar=False, enfocar=False)
 
     def _crear(self, parent):
-        self.btn = wx.Button(parent, wx.ID_ANY, "Mostrar los &filtros",
-                             name="Mostrar los filtros")
+        self.btn = wx.Button(parent, wx.ID_ANY, _("Mostrar los &filtros"),
+                              name=_("Mostrar los filtros"))
         _pintar(self.btn, _T.btn, _T.btn_t)
-        self.lb_mostrar = wx.StaticText(parent, label="&Mostrar:")
-        self.cb_mostrar = wx.Choice(parent, name="Mostrar")
+        self.lb_mostrar = wx.StaticText(parent, label=_("&Mostrar:"))
+        self.cb_mostrar = wx.Choice(parent, name=_("Mostrar"))
         _pintar(self.cb_mostrar, _T.field, _T.text)
-        nombre_accesible(self.cb_mostrar, "Mostrar")
+        nombre_accesible(self.cb_mostrar, _("Mostrar"))
         self.cb_mostrar.SetMinSize((ANCHO_MOSTRAR, -1))
-        self.lb_ordenar = wx.StaticText(parent, label="Or&denar por:")
-        self.cb_ordenar = wx.Choice(parent, name="Ordenar por")
+        self.lb_ordenar = wx.StaticText(parent, label=_("Or&denar por:"))
+        self.cb_ordenar = wx.Choice(parent, name=_("Ordenar por"))
         _pintar(self.cb_ordenar, _T.field, _T.text)
-        nombre_accesible(self.cb_ordenar, "Ordenar por")
+        nombre_accesible(self.cb_ordenar, _("Ordenar por"))
         self.cb_ordenar.SetMinSize((ANCHO_ORDENAR, -1))
         self.cb_ordenar.Set([etiqueta for _clave, etiqueta
                              in filtros.CRITERIOS])
@@ -134,11 +135,11 @@ class FiltrosMusica:
 
     def _rotular(self):
         if self.visibles:
-            self.btn.SetLabel("Ocultar los &filtros")
-            nombre_accesible(self.btn, "Ocultar los filtros")
+            self.btn.SetLabel(_("Ocultar los &filtros"))
+            nombre_accesible(self.btn, _("Ocultar los filtros"))
         else:
-            self.btn.SetLabel("Mostrar los &filtros")
-            nombre_accesible(self.btn, "Mostrar los filtros")
+            self.btn.SetLabel(_("Mostrar los &filtros"))
+            nombre_accesible(self.btn, _("Mostrar los filtros"))
 
     def _al_elegir_mostrar(self, evento):
         indice = self.cb_mostrar.GetSelection()

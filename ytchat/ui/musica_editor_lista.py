@@ -10,14 +10,15 @@ from __future__ import annotations
 
 import wx
 
+from ytchat.core.idioma import N_, _
 from ytchat.music import listas, vista
 from ytchat.ui.accesibilidad import anunciar, nombre_accesible
 from ytchat.ui.tema import _T, _pintar
 
 MAX_NOMBRE = 60
-TITULO_NUEVA = "Nueva lista"
-TITULO_EDITAR = "Editar lista"
-TEXTO_NOMBRE_LARGO = "El nombre no puede tener más de 60 caracteres"
+TITULO_NUEVA = N_("Nueva lista")
+TITULO_EDITAR = N_("Editar lista")
+TEXTO_NOMBRE_LARGO = N_("El nombre no puede tener más de 60 caracteres")
 ACCION_CANCELAR = "cancelar"
 ACCION_ALTERNAR = "alternar"
 
@@ -26,7 +27,7 @@ def validar_nombre(nombre):
     """El nombre limpio; levanta `ErrorListas` con el motivo si no sirve."""
     limpio = listas.validar_nombre(nombre)
     if len(limpio) > MAX_NOMBRE:
-        raise listas.ErrorListas(TEXTO_NOMBRE_LARGO)
+        raise listas.ErrorListas(_(TEXTO_NOMBRE_LARGO))
     return limpio
 
 
@@ -90,7 +91,7 @@ class DialogoEditorLista(wx.Dialog):
     def __init__(self, parent, nombre="", temas_carpeta=(),
                  temas_lista=()):
         super().__init__(
-            parent, title=TITULO_EDITAR if nombre else TITULO_NUEVA,
+            parent, title=_(TITULO_EDITAR if nombre else TITULO_NUEVA),
             name="EditorLista")
         self._temas_carpeta = tuple(temas_carpeta or ())
         self._temas_lista = tuple(temas_lista or ())
@@ -112,22 +113,22 @@ class DialogoEditorLista(wx.Dialog):
         panel.SetBackgroundColour(_T.bg)
         panel.SetForegroundColour(_T.text)
         vs = wx.BoxSizer(wx.VERTICAL)
-        vs.Add(wx.StaticText(panel, label="&Nombre:"), 0, wx.ALL, 12)
+        vs.Add(wx.StaticText(panel, label=_("&Nombre:")), 0, wx.ALL, 12)
         self.txt_nombre = self._campo(
-            panel, "Nombre de la lista", MAX_NOMBRE)
+            panel, _("Nombre de la lista"), MAX_NOMBRE)
         vs.Add(self.txt_nombre, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM,
                12)
-        vs.Add(wx.StaticText(panel, label="&Buscar:"), 0, wx.ALL, 12)
-        self.txt_buscar = self._campo(panel, "Buscar canciones")
+        vs.Add(wx.StaticText(panel, label=_("&Buscar:")), 0, wx.ALL, 12)
+        self.txt_buscar = self._campo(panel, _("Buscar canciones"))
         vs.Add(self.txt_buscar, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM,
                12)
-        vs.Add(wx.StaticText(panel, label="C&anciones:"), 0, wx.ALL, 12)
+        vs.Add(wx.StaticText(panel, label=_("C&anciones:")), 0, wx.ALL, 12)
         self.lb_temas = wx.ListCtrl(
             panel, style=wx.LC_REPORT | wx.LC_SINGLE_SEL,
-            name="Canciones de la lista")
+            name=_("Canciones de la lista"))
         _pintar(self.lb_temas, _T.field, _T.text)
-        nombre_accesible(self.lb_temas, "Canciones de la lista")
-        self.lb_temas.InsertColumn(0, "Canción", width=420)
+        nombre_accesible(self.lb_temas, _("Canciones de la lista"))
+        self.lb_temas.InsertColumn(0, _("Canción"), width=420)
         self.lb_temas.EnableCheckBoxes(True)
         self.lb_temas.SetMinSize((460, 300))
         vs.Add(self.lb_temas, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, 12)
@@ -148,10 +149,10 @@ class DialogoEditorLista(wx.Dialog):
 
     def _crear_botones(self, panel):
         fila = wx.BoxSizer(wx.HORIZONTAL)
-        self.btn_guardar = wx.Button(panel, wx.ID_OK, "&Guardar",
-                                     name="Guardar")
-        self.btn_cancelar = wx.Button(panel, wx.ID_CANCEL, "Cancelar",
-                                      name="Cancelar")
+        self.btn_guardar = wx.Button(panel, wx.ID_OK, _("&Guardar"),
+                                      name=_("Guardar"))
+        self.btn_cancelar = wx.Button(panel, wx.ID_CANCEL, _("Cancelar"),
+                                       name=_("Cancelar"))
         for boton in (self.btn_guardar, self.btn_cancelar):
             _pintar(boton, _T.btn, _T.btn_t)
             fila.Add(boton, 0, wx.RIGHT, 8)

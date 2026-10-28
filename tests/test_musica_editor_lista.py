@@ -7,6 +7,7 @@ del nombre, la forma del submenú y el guardado en un directorio temporal.
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from ytchat.music import listas
 from ytchat.music.listas import ErrorListas
@@ -17,6 +18,8 @@ from ytchat.ui.musica_listas_propias import ListasPropiasMusica
 try:
     import wx
     from ytchat.ui import musica_editor_lista
+    from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
+    from tests.ventanas_prueba import destruir
     _HAY_WX = True
 except Exception:
     wx = None
@@ -201,6 +204,38 @@ class TestGuardarLista(unittest.TestCase):
         control.guardar_lista("Vieja", [self.tema_a], "Vieja")
         temas, _ = listas.cargar(self.carpeta, "Vieja")
         self.assertEqual([t.titulo for t in temas], ["A"])
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestEditorPseudo(unittest.TestCase):
+    """Ningún texto visible del editor sin pasar por gettext."""
+
+    def setUp(self):
+        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.dialogo = None
+
+    def tearDown(self):
+        if self.dialogo is not None:
+            destruir(self.dialogo)
+
+    def test_no_queda_ningun_texto_visible_sin_envolver(self):
+        with con_pseudo():
+            self.dialogo = musica_editor_lista.DialogoEditorLista(
+                None, "Mía",
+                (Tema("C:/Musica/rock.mp3", "Rock", artista="Ana"),), ())
+            sin_marcar = textos_sin_marcar(
+                self.dialogo, propios=("Mía", "Rock", "Ana"))
+        self.assertEqual([], sin_marcar)
+
+    def test_el_nombre_largo_se_anuncia_marcado(self):
+        with con_pseudo():
+            self.dialogo = musica_editor_lista.DialogoEditorLista(None)
+            self.dialogo.txt_nombre.SetValue("x" * 61)
+            with mock.patch.object(
+                    musica_editor_lista, "anunciar") as anunciar:
+                self.dialogo._guardar()
+        anunciar.assert_called_once_with(
+            "[¡El nombre no puede tener más de 60 caracteres!]")
 
 
 if __name__ == "__main__":

@@ -12,6 +12,7 @@ from __future__ import annotations
 import wx
 
 from ytchat.core import diagnostico
+from ytchat.core.idioma import N_, _
 from ytchat.music import anuncios, vista
 from ytchat.ui import musica_filtros, musica_menus, musica_teclas
 from ytchat.ui.accesibilidad import anunciar, nombre_accesible
@@ -23,14 +24,14 @@ from ytchat.ui.musica_ventana_acciones import AccionesVentanaMusica
 from ytchat.ui.musica_ventana_igualando import IgualandoVentanaMusica
 
 logger = diagnostico.obtener_logger(__name__)
-TITULO = "Música"
+TITULO = N_("Música")
 
 
 class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
                      IgualandoVentanaMusica, wx.Dialog):
 
     def __init__(self, parent, control, abrir_listas=False):
-        super().__init__(parent, title=TITULO, size=(820, 620),
+        super().__init__(parent, title=_(TITULO), size=(820, 620),
                          name="VentanaMusica")
         self._control = control
         self._abrir_listas = bool(abrir_listas)
@@ -56,19 +57,19 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
         self._panel = panel = wx.Panel(self, name="PanelMusica")
         panel.SetBackgroundColour(_T.bg)
         panel.SetForegroundColour(_T.text)
-        self.lb_colecciones = self._lista(panel, "Colecciones", 190)
+        self.lb_colecciones = self._lista(panel, _("Colecciones"), 190)
         self.lb_colecciones.SetMinSize((220, 190))
         _pintar(self.lb_colecciones, _T.field, _T.text)
-        self.txt_buscar = self._campo(panel, "Buscar en la música")
+        self.txt_buscar = self._campo(panel, _("Buscar en la música"))
         self.filtros = musica_filtros.FiltrosMusica(
             panel, *self._control.filtros_guardados(),
             al_cambiar=self._aplicar_filtro,
             programar_aviso=self._programar_aviso_coincidencias,
             recordar=self._recordar_filtros, avisar=anunciar)
-        self.lb_temas = self._lista(panel, "Canciones", 190)
+        self.lb_temas = self._lista(panel, _("Canciones"), 190)
         self.btn_cola = self._boton(
-            panel, "Mostrar la c&ola", "Mostrar la cola")
-        self.lb_cola = self._lista(panel, "Cola de reproducción", 160)
+            panel, _("Mostrar la c&ola"), _("Mostrar la cola"))
+        self.lb_cola = self._lista(panel, _("Cola de reproducción"), 160)
         self._crear_igualando(panel)
         self._crear_pie(panel)
         self._disponer(panel)
@@ -79,17 +80,17 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
     def _disponer(self, panel):
         arriba = wx.BoxSizer(wx.HORIZONTAL)
         izquierda = wx.BoxSizer(wx.VERTICAL)
-        izquierda.Add(wx.StaticText(panel, label="Co&lecciones:"),
+        izquierda.Add(wx.StaticText(panel, label=_("Co&lecciones:")),
                       0, wx.BOTTOM, 8)
         izquierda.Add(self.lb_colecciones, 1, wx.EXPAND)
         derecha = wx.BoxSizer(wx.VERTICAL)
         fila_buscar = wx.BoxSizer(wx.HORIZONTAL)
-        fila_buscar.Add(wx.StaticText(panel, label="&Buscar:"), 0,
+        fila_buscar.Add(wx.StaticText(panel, label=_("&Buscar:")), 0,
                         wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 8)
         fila_buscar.Add(self.txt_buscar, 1, wx.EXPAND)
         derecha.Add(fila_buscar, 0, wx.EXPAND | wx.BOTTOM, 8)
         derecha.Add(self.filtros.sizer, 0, wx.EXPAND | wx.BOTTOM, 8)
-        derecha.Add(wx.StaticText(panel, label="C&anciones:"), 0, wx.BOTTOM, 8)
+        derecha.Add(wx.StaticText(panel, label=_("C&anciones:")), 0, wx.BOTTOM, 8)
         derecha.Add(self.lb_temas, 1, wx.EXPAND)
         arriba.Add(izquierda, 0, wx.EXPAND | wx.RIGHT, 8)
         arriba.Add(derecha, 1, wx.EXPAND)
@@ -130,16 +131,16 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
 
     def _crear_pie(self, panel):
         """Los botones al pie, en orden de Tab."""
-        self.btn_enlace = self._boton(panel, "Abrir &enlace…", "Abrir enlace")
-        self.btn_nueva = self._boton(panel, "&Nueva lista…", "Nueva lista")
+        self.btn_enlace = self._boton(panel, _("Abrir &enlace…"), _("Abrir enlace"))
+        self.btn_nueva = self._boton(panel, _("&Nueva lista…"), _("Nueva lista"))
         self.btn_carpeta = self._boton(
-            panel, "Cambiar car&peta…", "Cambiar carpeta")
+            panel, _("Cambiar car&peta…"), _("Cambiar carpeta"))
         self.btn_igualar = self._boton(
-            panel, "&Igualar el volumen", "Igualar el volumen")
+            panel, _("&Igualar el volumen"), _("Igualar el volumen"))
         self.btn_examinar = self._boton(
-            panel, "E&xaminar la carpeta", "Examinar la carpeta")
-        self.btn_cerrar = wx.Button(panel, wx.ID_CANCEL, "&Cerrar",
-                                    name="Cerrar")
+            panel, _("E&xaminar la carpeta"), _("Examinar la carpeta"))
+        self.btn_cerrar = wx.Button(panel, wx.ID_CANCEL, _("&Cerrar"),
+                                    name=_("Cerrar"))
         _pintar(self.btn_cerrar, _T.btn, _T.btn_t)
 
     def _conectar(self):
@@ -201,11 +202,11 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
 
     def _rotular_boton_cola(self, visible):
         if visible:
-            self.btn_cola.SetLabel("Ocultar la c&ola")
-            nombre_accesible(self.btn_cola, "Ocultar la cola")
+            self.btn_cola.SetLabel(_("Ocultar la c&ola"))
+            nombre_accesible(self.btn_cola, _("Ocultar la cola"))
         else:
-            self.btn_cola.SetLabel("Mostrar la c&ola")
-            nombre_accesible(self.btn_cola, "Mostrar la cola")
+            self.btn_cola.SetLabel(_("Mostrar la c&ola"))
+            nombre_accesible(self.btn_cola, _("Mostrar la cola"))
 
     def _alternar_cola(self):
         visible = not self.lb_cola.IsShown()

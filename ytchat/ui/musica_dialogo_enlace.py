@@ -8,10 +8,11 @@ from __future__ import annotations
 
 import wx
 
+from ytchat.core.idioma import N_, _
 from ytchat.ui.accesibilidad import nombre_accesible
 from ytchat.ui.tema import _T, _pintar
 
-TITULO = "Abrir enlace"
+TITULO = N_("Abrir enlace")
 MODO_AHORA = "ahora"
 MODO_CONTINUACION = "continuacion"
 MODO_FINAL = "final"
@@ -30,7 +31,7 @@ class DialogoEnlace(wx.Dialog):
     """Dirección de YouTube y los tres modos de agregarla."""
 
     def __init__(self, parent):
-        super().__init__(parent, title=TITULO, name="DialogoEnlace")
+        super().__init__(parent, title=_(TITULO), name="DialogoEnlace")
         self._modo = MODO_AHORA
         self._crear_controles()
         self.Bind(wx.EVT_CHAR_HOOK, self._tecla)
@@ -43,22 +44,22 @@ class DialogoEnlace(wx.Dialog):
         panel.SetForegroundColour(_T.text)
         vs = wx.BoxSizer(wx.VERTICAL)
 
-        vs.Add(wx.StaticText(panel, label="&Dirección de YouTube:"),
-               0, wx.ALL, 8)
-        self.txt_enlace = wx.TextCtrl(panel, name="Dirección de YouTube")
+        vs.Add(wx.StaticText(panel, label=_("&Dirección de YouTube:")),
+                0, wx.ALL, 8)
+        self.txt_enlace = wx.TextCtrl(panel, name=_("Dirección de YouTube"))
         _pintar(self.txt_enlace, _T.field, _T.text)
-        nombre_accesible(self.txt_enlace, "Dirección de YouTube")
+        nombre_accesible(self.txt_enlace, _("Dirección de YouTube"))
         vs.Add(self.txt_enlace, 0, wx.EXPAND | wx.ALL, 8)
 
         botones = wx.WrapSizer(wx.HORIZONTAL, flags=0)
         self.btn_ahora = self._boton(
-            panel, "Reproducir &ahora", "Reproducir ahora")
+            panel, _("Reproducir &ahora"), _("Reproducir ahora"))
         self.btn_continuacion = self._boton(
-            panel, "A co&ntinuación", "A continuación")
+            panel, _("A co&ntinuación"), _("A continuación"))
         self.btn_cola = self._boton(
-            panel, "Agregar a la &cola", "Agregar a la cola")
+            panel, _("Agregar a la &cola"), _("Agregar a la cola"))
         self.btn_cancelar = wx.Button(
-            panel, wx.ID_CANCEL, "Cancelar", name="Cancelar")
+            panel, wx.ID_CANCEL, _("Cancelar"), name=_("Cancelar"))
         _pintar(self.btn_cancelar, _T.btn, _T.btn_t)
         for boton in (self.btn_ahora, self.btn_continuacion,
                       self.btn_cola, self.btn_cancelar):

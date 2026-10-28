@@ -17,6 +17,7 @@ from __future__ import annotations
 import wx
 
 from ytchat.core import diagnostico
+from ytchat.core.idioma import _
 from ytchat.music import anuncios
 from ytchat.music import pregunta_igualar
 from ytchat.music import sonoridad
@@ -39,15 +40,15 @@ class IgualandoVentanaMusica:
         self.txt_igualando = wx.TextCtrl(
             panel, value="",
             style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_NO_VSCROLL,
-            name="Igualación del volumen")
+            name=_("Igualación del volumen"))
         self.txt_igualando.SetMinSize(
             (-1, self.txt_igualando.GetCharHeight() + 12))
         _pintar(self.txt_igualando, _T.field, _T.text)
-        nombre_accesible(self.txt_igualando, "Igualación del volumen")
+        nombre_accesible(self.txt_igualando, _("Igualación del volumen"))
         self.txt_igualando.Hide()
         self.gauge_igualando = wx.Gauge(
-            panel, range=100, name="Progreso de la igualación")
-        nombre_accesible(self.gauge_igualando, "Progreso de la igualación")
+            panel, range=100, name=_("Progreso de la igualación"))
+        nombre_accesible(self.gauge_igualando, _("Progreso de la igualación"))
         self.gauge_igualando.Hide()
         self._igualando_midiendo = False
         self._preguntado_igualar = False
@@ -165,11 +166,11 @@ class IgualandoVentanaMusica:
     def _rotular_boton_igualar(self, midiendo) -> None:
         """Rotula el botón según se esté midiendo o no."""
         if midiendo:
-            self.btn_igualar.SetLabel("Detener la &igualación")
-            nombre_accesible(self.btn_igualar, "Detener la igualación")
+            self.btn_igualar.SetLabel(_("Detener la &igualación"))
+            nombre_accesible(self.btn_igualar, _("Detener la igualación"))
         else:
-            self.btn_igualar.SetLabel("&Igualar el volumen")
-            nombre_accesible(self.btn_igualar, "Igualar el volumen")
+            self.btn_igualar.SetLabel(_("&Igualar el volumen"))
+            nombre_accesible(self.btn_igualar, _("Igualar el volumen"))
 
     def _midiendo_igualacion(self) -> bool:
         """Si el control tiene una medición en curso."""

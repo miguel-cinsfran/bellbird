@@ -1,9 +1,22 @@
-"""Pruebas de los filtros y el orden de la música (filtros.py), sin wx."""
+"""Pruebas de los filtros y el orden de la música (filtros.py), sin wx.
+
+La última clase abre ventanas: la corre el advisor en la otra PC, no se
+corre acá.
+"""
 
 import unittest
 
 from ytchat.music import filtros
 from ytchat.music.modelo import Tema
+
+try:
+    import wx
+    from ytchat.ui import musica_filtros
+    from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
+    from tests.ventanas_prueba import destruir
+    _HAY_WX = True
+except Exception:
+    _HAY_WX = False
 
 
 def _tema(n, **campos):
@@ -220,6 +233,37 @@ class TestNormalizarCriterio(unittest.TestCase):
             with self.subTest(valor=valor):
                 self.assertEqual(filtros.normalizar_criterio(valor),
                                  filtros.CRITERIO_COLECCION)
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestFiltrosPseudo(unittest.TestCase):
+    """Ningún texto visible de los filtros sin pasar por gettext."""
+
+    # Lo que arma otro módulo y estos cuadros solo muestran: queda
+    # pendiente hasta que se envuelva su módulo.
+    PENDIENTES = (
+        # ytchat/music/filtros.py, las opciones de «Ordenar por».
+        "Orden de la colección",
+        "Título",
+        "Artista",
+        "Más recientes primero",
+        "Duración",
+    )
+
+    def setUp(self):
+        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.marco = None
+
+    def tearDown(self):
+        if self.marco is not None:
+            destruir(self.marco)
+
+    def test_no_queda_ningun_texto_visible_sin_envolver(self):
+        with con_pseudo():
+            self.marco = wx.Frame(None)
+            musica_filtros.FiltrosMusica(self.marco)
+            sin_marcar = textos_sin_marcar(self.marco)
+        self.assertEqual(sorted(sin_marcar), sorted(self.PENDIENTES))
 
 
 if __name__ == "__main__":

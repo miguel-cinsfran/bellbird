@@ -25,6 +25,7 @@ CARPETA_IDIOMAS = RAIZ / "idiomas"
 
 PALABRAS_CLAVE = {
     "_": None,
+    "N_": None,
     "ngettext": (1, 2),
     "pgettext": ((1, "c"), 2),
 }

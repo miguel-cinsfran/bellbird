@@ -166,6 +166,11 @@ def _(texto):
     return _estado["traduccion"].gettext(texto)
 
 
+def N_(texto):
+    """Devuelve el texto tal cual; existe para que Babel lo extraiga."""
+    return texto
+
+
 def ngettext(singular, plural, n):
     _resolver()
     return _estado["traduccion"].ngettext(singular, plural, n)

@@ -15,6 +15,7 @@ from ytchat.core import config
 from ytchat.ui import gui, gui_preferencias
 from ytchat.ui.preferencias_lectura import PaginaLectura
 from ytchat.voice import motores
+from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.rutas_temporales import redirigir_rutas
 from tests.ventanas_prueba import destruir
 
@@ -73,6 +74,15 @@ class TestCambiosDeLectura(unittest.TestCase):
         parser.read(self.ruta / "config.ini", encoding="utf-8")
         self.assertEqual(parser.get("lectura", "formato_prefijo"),
                          "mensaje_nombre")
+
+    def test_no_queda_ningun_texto_visible_sin_envolver(self):
+        with con_pseudo():
+            dialogo = self._dialogo()
+            pagina = dialogo.rb_formato.GetParent()
+            sin_marcar = textos_sin_marcar(
+                pagina, propios=("YouTube", "TikTok"))
+
+        self.assertEqual([], sin_marcar)
 
 
 if __name__ == "__main__":

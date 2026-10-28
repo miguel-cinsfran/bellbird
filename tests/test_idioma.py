@@ -66,6 +66,10 @@ class TestPseudo(unittest.TestCase):
                 idioma._("Guardar &nombre en {nombre}"),
                 "[¡Guardar &nombre en {nombre}!]")
 
+    def test_n_devuelve_el_texto_tal_cual(self):
+        self.assertEqual(idioma.N_("Texto con & y {hueco}"),
+                         "Texto con & y {hueco}")
+
 
 class TestResolucion(unittest.TestCase):
 
@@ -137,12 +141,16 @@ class TestPuntaAPunta(unittest.TestCase):
             (raiz / "main.py").write_text(
                 "# Traductores: acción de guardar\n"
                 '_("Guardado")\n'
+                'N_("Solo para extraer")\n'
                 'ngettext("{n} canción", "{n} canciones", n)\n'
                 'pgettext("verbo", "Abrir")\n',
                 encoding="utf-8")
             (raiz / "ytchat" / "__init__.py").write_text("", encoding="utf-8")
 
             traducciones.extraer(carpeta_raiz=raiz, carpeta_idiomas=idiomas)
+            plantilla = traducciones.ruta_plantilla(idiomas)
+            self.assertIn("Solo para extraer",
+                          plantilla.read_text(encoding="utf-8"))
             traducciones.actualizar("en", carpeta_raiz=raiz,
                                     carpeta_idiomas=idiomas)
 

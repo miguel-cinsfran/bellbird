@@ -14,6 +14,7 @@ import wx
 
 from ytchat.core import historial
 from ytchat.core import sonidos_eventos
+from ytchat.core.idioma import _
 from ytchat.voice import sound_player as _snd
 from ytchat.ui.accesibilidad import anunciar, nombre_accesible
 from ytchat.ui.busqueda_teclado import instalar_busqueda_tipo
@@ -27,7 +28,7 @@ _PLATAFORMAS = [("YouTube", "youtube"), ("TikTok", "tiktok")]
 class HistorialDialog(wx.Dialog):
 
     def __init__(self, parent, ruta, on_conectar):
-        super().__init__(parent, title="Historial de directos", size=(600, 480),
+        super().__init__(parent, title=_("Historial de directos"), size=(600, 480),
                          name="DialogoHistorial")
         self._ruta = ruta
         self._on_conectar = on_conectar
@@ -41,7 +42,7 @@ class HistorialDialog(wx.Dialog):
         _pintar(panel, _T.bg, _T.text)
         vs = wx.BoxSizer(wx.VERTICAL)
 
-        nota = wx.StaticText(panel, name="NotaHistorial", label=(
+        nota = wx.StaticText(panel, name="NotaHistorial", label=_(
             "Directos y vídeos vistos. Enter o «Conectar» vuelve a uno; Suprimir "
             "lo quita. Los marcados «· directo» eran emisiones en vivo: los de "
             "TikTok se reconectan si el usuario está en vivo; un directo de "
@@ -59,9 +60,9 @@ class HistorialDialog(wx.Dialog):
         vs.Add(self.nb, 1, wx.EXPAND | wx.ALL, 10)
 
         row = wx.BoxSizer(wx.HORIZONTAL)
-        self.btn_conectar = wx.Button(panel, label="&Conectar", name="ConectarHistorial")
-        self.btn_quitar   = wx.Button(panel, label="&Quitar", name="QuitarHistorial")
-        btn_cerrar        = wx.Button(panel, wx.ID_CANCEL, "C&errar", name="CerrarHistorial")
+        self.btn_conectar = wx.Button(panel, label=_("&Conectar"), name="ConectarHistorial")
+        self.btn_quitar   = wx.Button(panel, label=_("&Quitar"), name="QuitarHistorial")
+        btn_cerrar        = wx.Button(panel, wx.ID_CANCEL, _("C&errar"), name="CerrarHistorial")
         for b in (self.btn_conectar, self.btn_quitar, btn_cerrar):
             _pintar(b, _T.btn, _T.btn_t)
             row.Add(b, 0, wx.RIGHT, 6)
@@ -78,10 +79,12 @@ class HistorialDialog(wx.Dialog):
         pag = wx.Panel(self.nb, name=f"PagHistorial_{plat}")
         _pintar(pag, bg=_T.bg)
         pvs = wx.BoxSizer(wx.VERTICAL)
+        # Traductores: nombre accesible de la lista, con el de la plataforma.
+        nombre = _("Historial de {plataforma}").format(plataforma=titulo)
         lb = wx.ListBox(pag, style=wx.LB_SINGLE | wx.LB_HSCROLL,
-                        name=f"Historial de {titulo}")
+                        name=nombre)
         _pintar(lb, _T.field, _T.text)
-        nombre_accesible(lb, f"Historial de {titulo}")
+        nombre_accesible(lb, nombre)
         instalar_busqueda_tipo(
             lb,
             lambda lb=lb: [lb.GetString(i) for i in range(lb.GetCount())])
@@ -149,7 +152,7 @@ class HistorialDialog(wx.Dialog):
     def _conectar(self):
         e = self._seleccionada()
         if not e:
-            anunciar("Sin selección")
+            anunciar(_("Sin selección"))
             return
         url = e.get("url") or ""
         if not url:
@@ -164,7 +167,7 @@ class HistorialDialog(wx.Dialog):
             return
         self._lista = [x for x in self._lista if x is not e]
         historial.guardar(self._ruta, self._lista)
-        anunciar("Entrada quitada del historial")
+        anunciar(_("Entrada quitada del historial"))
         self._poblar()
 
 

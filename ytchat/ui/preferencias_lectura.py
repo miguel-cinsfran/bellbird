@@ -12,16 +12,17 @@ from __future__ import annotations
 
 import wx
 
+from ytchat.core.idioma import N_, _
 from ytchat.ui.accesibilidad import ContadorAccesible
 from ytchat.ui.tema import _T, _tc
 from ytchat.ui.preferencias_comun import EleccionTexto
 
 
 _FORMATOS = [
-    ("Nombre y mensaje", "nombre_mensaje"),
-    ("Mensaje y después el nombre", "mensaje_nombre"),
-    ("Solo el mensaje",  "solo_mensaje"),
-    ("Solo el nombre",   "solo_nombre"),
+    (N_("Nombre y mensaje"), "nombre_mensaje"),
+    (N_("Mensaje y después el nombre"), "mensaje_nombre"),
+    (N_("Solo el mensaje"),  "solo_mensaje"),
+    (N_("Solo el nombre"),   "solo_nombre"),
 ]
 
 
@@ -50,10 +51,10 @@ class PaginaLectura:
         p = self._make_panel(parent, "PagLectura")
         vs = wx.BoxSizer(wx.VERTICAL)
 
-        vs.Add(self._fila_label(p, "Qué leer de cada mensaje:"), 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
+        vs.Add(self._fila_label(p, _("Qué leer de cada mensaje:")), 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.rb_formato = wx.RadioBox(
-            p, choices=[f[0] for f in _FORMATOS], majorDimension=1,
-            style=wx.RA_SPECIFY_COLS, name="Formato de lectura")
+            p, choices=[_(f[0]) for f in _FORMATOS], majorDimension=1,
+            style=wx.RA_SPECIFY_COLS, name=_("Formato de lectura"))
         self.rb_formato.SetForegroundColour(_T.text)
         self.rb_formato.SetBackgroundColour(_T.bg)
         fa = self._config.get("formato_prefijo", "nombre_mensaje")
@@ -63,9 +64,9 @@ class PaginaLectura:
                 break
         vs.Add(self.rb_formato, 0, wx.ALL, 10)
 
-        self.chk_emojis = wx.CheckBox(p, label="&Quitar emojis (no mostrarlos en la lista ni leerlos)",
+        self.chk_emojis = wx.CheckBox(p, label=_("&Quitar emojis (no mostrarlos en la lista ni leerlos)"),
                                       name="LimpiarEmojis")
-        self.chk_urls   = wx.CheckBox(p, label="Quitar &URLs al leer", name="EliminarURLs")
+        self.chk_urls   = wx.CheckBox(p, label=_("Quitar &URLs al leer"), name="EliminarURLs")
         for c in (self.chk_emojis, self.chk_urls):
             c.SetForegroundColour(_T.text)
         vs.Add(self.chk_emojis, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
@@ -73,10 +74,10 @@ class PaginaLectura:
 
         self._construir_tiktok(p, vs)
 
-        vs.Add(self._fila_label(p, "&Longitud máxima del mensaje (caracteres):"),
+        vs.Add(self._fila_label(p, _("&Longitud máxima del mensaje (caracteres):")),
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_long = ContadorAccesible(p, min=20, max=1000,
-                                   name="Longitud máxima del mensaje")
+                                   name=_("Longitud máxima del mensaje"))
         _tc(self.sp_long)
         vs.Add(self.sp_long, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
@@ -88,30 +89,30 @@ class PaginaLectura:
     def _construir_tiktok(self, p, vs):
         self.chk_entradas = wx.CheckBox(
             p, name="AnunciarEntradas",
-            label="Leer quién &entra al directo (solo TikTok; en directos grandes "
-                  "puede ser muchísimo)")
+            label=_("Leer quién &entra al directo (solo TikTok; en directos grandes "
+                    "puede ser muchísimo)"))
         self.chk_entradas.SetForegroundColour(_T.text)
         vs.Add(self.chk_entradas, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.chk_me_gusta = wx.CheckBox(
             p, name="LeerMeGusta",
-            label="Leer quién da &me gusta (solo TikTok; en directos grandes "
-                  "puede ser muchísimo)")
+            label=_("Leer quién da &me gusta (solo TikTok; en directos grandes "
+                    "puede ser muchísimo)"))
         self.chk_me_gusta.SetForegroundColour(_T.text)
         vs.Add(self.chk_me_gusta, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _construir_recientes(self, p, vs):
-        vs.Add(self._fila_label(p, "Leer los mensajes recientes &con:"),
+        vs.Add(self._fila_label(p, _("Leer los mensajes recientes &con:")),
                0, wx.LEFT | wx.RIGHT, 10)
         self.cho_lectura_recientes = EleccionTexto(
-            p, (("lector", "El lector de pantalla"),
-                ("voz", "La voz de la app")),
-            name="Leer los mensajes recientes con")
+            p, (("lector", _("El lector de pantalla")),
+                ("voz", _("La voz de la app"))),
+            name=_("Leer los mensajes recientes con"))
         _tc(self.cho_lectura_recientes)
         vs.Add(self.cho_lectura_recientes, 0,
                wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         self.chk_lectura_atajos_globales = wx.CheckBox(
-            p, label="Leer los mensajes recientes en cualquier &programa",
+            p, label=_("Leer los mensajes recientes en cualquier &programa"),
             name="LecturaAtajosGlobales")
         self.chk_lectura_atajos_globales.SetForegroundColour(_T.text)
         vs.Add(self.chk_lectura_atajos_globales, 0,

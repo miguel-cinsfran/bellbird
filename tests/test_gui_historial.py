@@ -6,6 +6,7 @@ from unittest import mock
 
 from ytchat.ui import gui_historial
 from ytchat.core import historial
+from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
 
 
@@ -191,6 +192,14 @@ class PruebasHistorialDialog(unittest.TestCase):
             with self.subTest(lista=lista.GetName()):
                 self.assertEqual(obtener_textos(),
                                  list(lista.GetStrings()))
+
+    def test_no_queda_ningun_texto_visible_sin_envolver(self):
+        with con_pseudo():
+            dialogo = self._dialogo([])
+            sin_marcar = textos_sin_marcar(
+                dialogo, propios=("YouTube", "TikTok"))
+
+        self.assertEqual([], sin_marcar)
 
 
 class PruebasOrillaHistorial(unittest.TestCase):

@@ -5168,6 +5168,7 @@ SUPERFICIES = {
     "gui_preferencias.py": "preferencias",
     "gui_redactar.py": "redactar",
     "reproductor.py": "reproductor",
+    "pantalla_completa.py": "reproductor",
     "iconos.py": "reproductor",
     "boton_directo.py": "principal",
     "accesibilidad.py": "principal",

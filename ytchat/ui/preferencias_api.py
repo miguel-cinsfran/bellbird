@@ -11,6 +11,7 @@ import webbrowser
 import wx
 
 from ytchat.core import diagnostico
+from ytchat.core.idioma import _
 from ytchat.ui.accesibilidad import anunciar
 from ytchat.ui.tema import _T, _tc
 from ytchat.ui.preferencias_comun import ANCHO_NOTA, crear_panel
@@ -35,7 +36,7 @@ class PaginaApi:
         p = crear_panel(parent, "PagApi")
         vs = wx.BoxSizer(wx.VERTICAL)
 
-        intro = wx.StaticText(p, name="IntroApi", label=(
+        intro = wx.StaticText(p, name="IntroApi", label=_(
             "La API key permite LEER comentarios (sin iniciar sesión). El cliente "
             "OAuth e iniciar sesión permiten MODERAR el chat, enviar mensajes al "
             "directo y publicar o responder comentarios."))
@@ -44,7 +45,8 @@ class PaginaApi:
         vs.Add(intro, 0, wx.ALL, 10)
 
         if not youtube_api.google_disponible():
-            aviso = wx.StaticText(p, name="AvisoLibreriasApi", label=(
+            # Traductores: no traduzcas el comando «pip install ...», solo el resto.
+            aviso = wx.StaticText(p, name="AvisoLibreriasApi", label=_(
                 "AVISO: faltan las librerías de la API. Instálalas con:\n"
                 "pip install google-api-python-client google-auth-oauthlib"))
             aviso.SetForegroundColour(_T.red)
@@ -53,12 +55,12 @@ class PaginaApi:
         datos = credenciales.cargar()
         grid = wx.FlexGridSizer(3, 2, 8, 8)
         grid.AddGrowableCol(1, 1)
-        self.txt_api = self._fila_api(p, grid, "&API key:", "API key de YouTube",
+        self.txt_api = self._fila_api(p, grid, _("&API key:"), _("API key de YouTube"),
                                       datos.get("api_key", ""))
-        self.txt_cid = self._fila_api(p, grid, "ID de &cliente OAuth:",
-                                      "ID de cliente OAuth", datos.get("oauth_client_id", ""))
-        self.txt_secret = self._fila_api(p, grid, "&Secreto de cliente OAuth:",
-                                         "Secreto de cliente OAuth",
+        self.txt_cid = self._fila_api(p, grid, _("ID de &cliente OAuth:"),
+                                      _("ID de cliente OAuth"), datos.get("oauth_client_id", ""))
+        self.txt_secret = self._fila_api(p, grid, _("&Secreto de cliente OAuth:"),
+                                         _("Secreto de cliente OAuth"),
                                          datos.get("oauth_client_secret", ""), password=True)
         vs.Add(grid, 0, wx.EXPAND | wx.ALL, 10)
 
@@ -73,10 +75,10 @@ class PaginaApi:
 
     def _botones(self, p, vs):
         row = wx.BoxSizer(wx.HORIZONTAL)
-        self.btn_api_guardar = wx.Button(p, label="&Guardar claves", name="GuardarClaves")
-        self.btn_api_login   = wx.Button(p, label="&Iniciar sesión", name="IniciarSesion")
-        self.btn_api_logout  = wx.Button(p, label="Cerrar s&esión", name="CerrarSesion")
-        self.btn_api_guia    = wx.Button(p, label="Abrir g&uía", name="AbrirGuia")
+        self.btn_api_guardar = wx.Button(p, label=_("&Guardar claves"), name="GuardarClaves")
+        self.btn_api_login   = wx.Button(p, label=_("&Iniciar sesión"), name="IniciarSesion")
+        self.btn_api_logout  = wx.Button(p, label=_("Cerrar s&esión"), name="CerrarSesion")
+        self.btn_api_guia    = wx.Button(p, label=_("Abrir g&uía"), name="AbrirGuia")
         for b in (self.btn_api_guardar, self.btn_api_login, self.btn_api_logout, self.btn_api_guia):
             b.SetBackgroundColour(_T.btn)
             b.SetForegroundColour(_T.btn_t)
@@ -100,13 +102,13 @@ class PaginaApi:
 
     def _api_refrescar_estado(self):
         if credenciales.hay_sesion():
-            texto = "Estado: sesión iniciada. Moderación y comentarios activos."
+            texto = _("Estado: sesión iniciada. Moderación y comentarios activos.")
             self.btn_api_logout.Enable()
         else:
-            texto = "Estado: sin sesión. Solo lectura de comentarios (si hay API key)."
+            texto = _("Estado: sin sesión. Solo lectura de comentarios (si hay API key).")
             self.btn_api_logout.Disable()
         if credenciales.usa_cliente_de_la_app():
-            texto += " Se usa el cliente de Google de la aplicación."
+            texto += _(" Se usa el cliente de Google de la aplicación.")
         if not youtube_api.google_disponible():
             self.btn_api_login.Disable()
         self.lbl_estado_api.SetLabel(texto)
@@ -116,7 +118,7 @@ class PaginaApi:
         credenciales.guardar_campo("oauth_client_id", self.txt_cid.GetValue().strip())
         credenciales.guardar_campo("oauth_client_secret", self.txt_secret.GetValue().strip())
         _snd.reproducir("copiar")
-        anunciar("Claves guardadas")
+        anunciar(_("Claves guardadas"))
         self._api_refrescar_estado()
 
     def _api_login(self, event):
@@ -131,8 +133,8 @@ class PaginaApi:
             cid_app = (efectivas.get("oauth_client_id") or "").strip()
             secret_app = (efectivas.get("oauth_client_secret") or "").strip()
             if not (cid_app and secret_app):
-                wx.MessageBox("Rellena el ID y el secreto de cliente OAuth antes de "
-                              "iniciar sesión.", "Faltan datos", wx.OK | wx.ICON_WARNING,
+                wx.MessageBox(_("Rellena el ID y el secreto de cliente OAuth antes de "
+                                "iniciar sesión."), _("Faltan datos"), wx.OK | wx.ICON_WARNING,
                               self._ventana)
                 return
             cid, secret = cid_app, secret_app
@@ -140,7 +142,7 @@ class PaginaApi:
             self._api_guardar(None)
         self._login_en_curso = True
         self.btn_api_login.Disable()
-        anunciar("Abriendo el navegador para iniciar sesión. Autoriza y vuelve aquí.")
+        anunciar(_("Abriendo el navegador para iniciar sesión. Autoriza y vuelve aquí."))
 
         def _run():
             try:
@@ -159,7 +161,7 @@ class PaginaApi:
         self._login_en_curso = False
         self.btn_api_login.Enable()
         _snd.reproducir("conectado")
-        anunciar("Sesión iniciada correctamente.")
+        anunciar(_("Sesión iniciada correctamente."))
         self._api_refrescar_estado()
 
     def _api_login_err(self, exc):
@@ -168,12 +170,12 @@ class PaginaApi:
         self._login_en_curso = False
         self.btn_api_login.Enable()
         _snd.reproducir("error")
-        anunciar("No se pudo iniciar sesión.")
-        wx.MessageBox(f"No se pudo iniciar sesión:\n\n{exc}", "Error de inicio de sesión",
+        anunciar(_("No se pudo iniciar sesión."))
+        wx.MessageBox(_("No se pudo iniciar sesión:\n\n{exc}").format(exc=exc), _("Error de inicio de sesión"),
                       wx.OK | wx.ICON_ERROR, self._ventana)
 
     def _api_logout(self, event):
         credenciales.cerrar_sesion()
         _snd.reproducir("desconectado")
-        anunciar("Sesión cerrada.")
+        anunciar(_("Sesión cerrada."))
         self._api_refrescar_estado()

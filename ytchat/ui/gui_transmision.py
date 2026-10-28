@@ -15,8 +15,11 @@ from ytchat.obs import obs_lanzador
 from ytchat.obs.obs_destinos import DESTINOS
 from ytchat.core import diagnostico
 from ytchat.obs import overlay_servidor
-from ytchat.ui.gui import ContadorAccesible, _T, anunciar, caja_de_grupo, nombre_accesible
+from ytchat.ui.accesibilidad import ContadorAccesible, anunciar, nombre_accesible
+from ytchat.ui.gui import caja_de_grupo
+from ytchat.ui.tema import _T
 from ytchat.obs.obs_panel import GestorPanelObs, NOMBRE_FUENTE
+from ytchat.obs.restablecimiento import RegistroRestablecimiento
 from ytchat.voice import sound_player
 
 logger = diagnostico.obtener_logger(__name__)
@@ -42,6 +45,13 @@ def confirmar_transmision(padre, revision) -> bool:
         return dialogo.ShowModal() == wx.ID_OK
     finally:
         dialogo.Destroy()
+
+
+def _elegir_fuente(fuentes) -> str:
+    """La fuente del chat si está, si no la primera, si no ""."""
+    if NOMBRE_FUENTE in fuentes:
+        return NOMBRE_FUENTE
+    return fuentes[0] if fuentes else ""
 
 
 _TEXTO_LIENZO = (
@@ -100,9 +110,8 @@ class TransmisionDialog(wx.Dialog):
         self._guardar_usuario = guardar_usuario
         self._guardar_destino = guardar_destino
         self._usuario_tiktok = usuario_tiktok or ""
-        self._restablecer = {}
+        self._restablecimiento = RegistroRestablecimiento()
         self._valores_ventana = []
-        self._ultimo_snap = None
         self._ajuste_en_curso = False
         self._ajuste_transformacion = None
         self._movimiento_en_vuelo = False
@@ -397,7 +406,7 @@ class TransmisionDialog(wx.Dialog):
         al_aire = self._gestor.escena_al_aire()
         escena = al_aire if al_aire in escenas else (escenas[0] if escenas else "")
         fuentes = self._gestor.fuentes(escena)
-        fuente = NOMBRE_FUENTE if NOMBRE_FUENTE in fuentes else (fuentes[0] if fuentes else "")
+        fuente = _elegir_fuente(fuentes)
         snap = self._gestor.instantanea(escena, fuente=fuente)
         opciones, actual = self._gestor.ventanas(escena)
         return (escenas, escena, al_aire, fuentes, fuente, snap,
@@ -433,7 +442,6 @@ class TransmisionDialog(wx.Dialog):
         self.cho_destino.SetFocus()
 
     def _mostrar_snap(self, snap):
-        self._ultimo_snap = snap
         self.txt_estado.SetValue(obs_disposicion.describir_fuente(
             self._fuente(), snap, obs_disposicion.COMPONENTES, "largo"))
         anclaje = obs_disposicion.anclaje_de(
@@ -464,9 +472,7 @@ class TransmisionDialog(wx.Dialog):
         self.cho_ventana.Set([texto for texto, _sin_uso in opciones or ()])
         if actual in self._valores_ventana:
             self.cho_ventana.SetSelection(self._valores_ventana.index(actual))
-        elif not opciones:
-            pass
-        else:
+        elif opciones:
             self.cho_ventana.SetSelection(wx.NOT_FOUND)
 
     def _valor_ventana(self):
@@ -485,17 +491,6 @@ class TransmisionDialog(wx.Dialog):
         # Escena y fuente llegan como argumentos: los hilos de trabajo no deben
         # leer controles de wx, eso solo es seguro desde el hilo principal.
         return self._gestor.instantanea(escena, fuente=fuente)
-
-    def _guardar_restauracion(self, escena, fuente):
-        clave = escena, fuente
-        if not fuente or clave in self._restablecer:
-            return
-        snap = self._gestor.instantanea(escena, fuente=fuente)
-        self._restablecer[clave] = {
-            "transformacion": self._gestor.transformacion(escena, fuente=fuente),
-            "ancho": snap.ancho, "alto": snap.alto, "visible": snap.visible,
-            "bloqueada": snap.bloqueada,
-        }
 
     def _anunciar_snap(self, snap):
         anunciar(obs_disposicion.describir_fuente(
@@ -576,7 +571,7 @@ class TransmisionDialog(wx.Dialog):
         # Escena y valor viajan como argumentos: los hilos no leen controles.
         frase = self._gestor.usar_ventana(escena, valor)
         fuentes = self._gestor.fuentes(escena)
-        fuente = NOMBRE_FUENTE if NOMBRE_FUENTE in fuentes else (fuentes[0] if fuentes else "")
+        fuente = _elegir_fuente(fuentes)
         snap = self._gestor.instantanea(escena, fuente=fuente)
         al_aire = self._gestor.escena_al_aire()
         transmision = self._gestor.estado_transmision()
@@ -774,7 +769,7 @@ class TransmisionDialog(wx.Dialog):
 
     def _leer_escena(self, escena):
         fuentes = self._gestor.fuentes(escena)
-        fuente = NOMBRE_FUENTE if NOMBRE_FUENTE in fuentes else (fuentes[0] if fuentes else "")
+        fuente = _elegir_fuente(fuentes)
         return (fuentes, fuente, self._gestor.instantanea(escena, fuente=fuente),
                 *self._gestor.ventanas(escena))
 
@@ -807,7 +802,7 @@ class TransmisionDialog(wx.Dialog):
                       self._tamano_aplicado)
 
     def _aplicar_tamano(self, escena, fuente, ancho, alto):
-        self._guardar_restauracion(escena, fuente)
+        self._restablecimiento.guardar(self._gestor, escena, fuente)
         if fuente == NOMBRE_FUENTE:
             self._gestor.redimensionar(escena, ancho, alto)
             return self._leer(escena, fuente), True
@@ -849,7 +844,7 @@ class TransmisionDialog(wx.Dialog):
         self._en_hilo(lambda: self._preparar_ajuste(escena, fuente), self._ajuste_iniciado)
 
     def _preparar_ajuste(self, escena, fuente):
-        self._guardar_restauracion(escena, fuente)
+        self._restablecimiento.guardar(self._gestor, escena, fuente)
         return self._gestor.transformacion(escena, fuente=fuente), self._leer(escena, fuente)
 
     def _ajuste_iniciado(self, datos):
@@ -960,7 +955,7 @@ class TransmisionDialog(wx.Dialog):
             lambda resultado: anunciar("Ajuste deshecho"))
 
     def _cambiar_y_leer(self, escena, fuente, funcion, *argumentos):
-        self._guardar_restauracion(escena, fuente)
+        self._restablecimiento.guardar(self._gestor, escena, fuente)
         funcion(escena, *argumentos, fuente=fuente)
         return self._leer(escena, fuente)
 
@@ -991,18 +986,7 @@ class TransmisionDialog(wx.Dialog):
                       lambda snap: anunciar("Restablecido"))
 
     def _aplicar_restauracion(self, escena_actual, fuente_actual):
-        for (escena, fuente), datos in self._restablecer.items():
-            transformacion = datos["transformacion"]
-            if transformacion:
-                self._gestor.posicionar(escena, transformacion["positionX"],
-                                        transformacion["positionY"], transformacion["alignment"],
-                                        fuente=fuente)
-            if fuente == NOMBRE_FUENTE:
-                self._gestor.redimensionar(escena, datos["ancho"], datos["alto"])
-            else:
-                self._gestor.escalar(escena, datos["ancho"], datos["alto"], fuente=fuente)
-            self._gestor.mostrar(escena, datos["visible"], fuente=fuente)
-            self._gestor.fijar(escena, datos["bloqueada"], fuente=fuente)
+        self._restablecimiento.aplicar(self._gestor)
         return self._leer(escena_actual, fuente_actual)
 
     def _cerrar(self, event):

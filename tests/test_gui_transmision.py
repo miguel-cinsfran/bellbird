@@ -1362,5 +1362,21 @@ class TestGuardarDestinoSinVentana(unittest.TestCase):
                                  mock.sentinel.inicial, "TikTok"))
 
 
+class TestElegirFuente(unittest.TestCase):
+
+    def test_prefiere_la_del_chat_si_esta(self):
+        self.assertEqual(
+            gui_transmision._elegir_fuente(
+                ("Cámara", gui_transmision.NOMBRE_FUENTE)),
+            gui_transmision.NOMBRE_FUENTE)
+
+    def test_sin_la_del_chat_devuelve_la_primera(self):
+        self.assertEqual(
+            gui_transmision._elegir_fuente(("Cámara", "Juego")), "Cámara")
+
+    def test_lista_vacia_devuelve_vacio(self):
+        self.assertEqual(gui_transmision._elegir_fuente(()), "")
+
+
 if __name__ == "__main__":
     unittest.main()

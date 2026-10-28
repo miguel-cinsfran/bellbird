@@ -16,6 +16,7 @@ import wx
 
 from ytchat.core import diagnostico
 from ytchat.core import sonidos_eventos
+from ytchat.core.idioma import N_, _, ngettext
 from ytchat.youtube import credenciales
 from ytchat.youtube import youtube_api
 from ytchat.voice import sound_player as _snd
@@ -28,7 +29,7 @@ from ytchat.ui.tema import _T, _tc, _pintar
 
 logger = diagnostico.obtener_logger(__name__)
 
-_ORDENES = [("Más relevantes", "relevance"), ("Más recientes", "time")]
+_ORDENES = [(N_("Más relevantes"), "relevance"), (N_("Más recientes"), "time")]
 
 
 class ComentariosPanel(wx.Panel):
@@ -61,51 +62,50 @@ class ComentariosPanel(wx.Panel):
 
         # Fila de control: orden + recargar. Sin campo URL: usa el de la barra.
         row = wx.BoxSizer(wx.HORIZONTAL)
-        lbl = wx.StaticText(self, label="&Orden:", name="EtiquetaOrden")
+        lbl = wx.StaticText(self, label=_("&Orden:"), name="EtiquetaOrden")
         _pintar(lbl, fg=_T.dim)
         row.Add(lbl, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
-        self.cho_orden = wx.Choice(self, choices=[o[0] for o in _ORDENES],
-                                   name="Orden de comentarios")
+        self.cho_orden = wx.Choice(self, choices=[_(o[0]) for o in _ORDENES],
+                                   name=_("Orden de comentarios"))
         _tc(self.cho_orden)
         self.cho_orden.SetSelection(0)
         row.Add(self.cho_orden, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 12)
         # Recorrer las opciones no debe gastar cuota de la API; se aplica aparte.
-        self.btn_aplicar_orden = wx.Button(self, label="Aplicar el &orden",
-                                           name="Aplicar el orden")
+        self.btn_aplicar_orden = wx.Button(self, label=_("Aplicar el &orden"),
+                                           name=_("Aplicar el orden"))
         _btn(self.btn_aplicar_orden)
         self.btn_aplicar_orden.Bind(wx.EVT_BUTTON, lambda e: self._recargar())
         row.Add(self.btn_aplicar_orden, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
-        self.btn_recargar = wx.Button(self, label="&Recargar comentarios",
+        self.btn_recargar = wx.Button(self, label=_("&Recargar comentarios"),
                                       name="RecargarComentarios")
         _btn(self.btn_recargar)
         self.btn_recargar.Bind(wx.EVT_BUTTON, lambda e: self._recargar())
         row.Add(self.btn_recargar, 0, wx.ALIGN_CENTER_VERTICAL)
         vs.Add(row, 0, wx.EXPAND | wx.ALL, 8)
 
-        # Lista
-        lbl = wx.StaticText(self, label="Co&mentarios:", name="EtiquetaListaComentarios")
+        lbl = wx.StaticText(self, label=_("Co&mentarios:"), name="EtiquetaListaComentarios")
         _pintar(lbl, fg=_T.accent)
         vs.Add(lbl, 0, wx.LEFT | wx.RIGHT, 8)
         self.lb = wx.ListBox(self, style=wx.LB_SINGLE | wx.LB_HSCROLL,
-                             name="Lista de comentarios")
+                             name=_("Lista de comentarios"))
         _tc(self.lb)
         pt = int(self._config.get("tamanio_fuente_chat", 12))
         self.lb.SetFont(wx.Font(pt, wx.FONTFAMILY_DEFAULT,
                                 wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
         # Leer/copiar/responder van por Enter, Ctrl+C y la tecla Aplicaciones
         # (menú contextual), igual que el chat del live: no hacen falta botones.
-        self.lb.SetToolTip("Enter lee el comentario con la voz. Ctrl+C copia. "
-                           "Tecla Aplicaciones (o clic derecho) abre el menú.")
+        self.lb.SetToolTip(_("Enter lee el comentario con la voz. Ctrl+C copia. "
+                             "Tecla Aplicaciones (o clic derecho) abre el menú."))
         # msaa=False: lista de contenido dinámico (igual que el chat en vivo);
         # ver el porqué en gui.nombre_accesible().
-        nombre_accesible(self.lb, "Lista de comentarios", msaa=False)
+        nombre_accesible(self.lb, _("Lista de comentarios"), msaa=False)
         vs.Add(self.lb, 1, wx.EXPAND | wx.ALL, 8)
 
         # Botones de acción: solo los que NO dependen del comentario seleccionado
         # (cargar más páginas y comentar en el vídeo). El resto, en el menú.
         row = wx.BoxSizer(wx.HORIZONTAL)
-        self.btn_mas   = wx.Button(self, label="Cargar &más", name="CargarMas")
-        self.btn_comentar  = wx.Button(self, label="Comen&tar en el vídeo", name="ComentarVideo")
+        self.btn_mas   = wx.Button(self, label=_("Cargar &más"), name="CargarMas")
+        self.btn_comentar  = wx.Button(self, label=_("Comen&tar en el vídeo"), name="ComentarVideo")
         for b in (self.btn_mas, self.btn_comentar):
             _btn(b)
             row.Add(b, 0, wx.RIGHT, 6)
@@ -135,7 +135,7 @@ class ComentariosPanel(wx.Panel):
         motivo = redaccion.motivo_comentario(
             bool(self._video_id), credenciales.hay_sesion() and youtube_api.google_disponible(),
             self._comentarios_cerrados)
-        base = "Comen&tar en el vídeo"
+        base = _("Comen&tar en el vídeo")
         self.btn_comentar.SetLabel(redaccion.etiqueta_con_motivo(base, motivo))
 
     def actualizar_estado(self):
@@ -288,14 +288,14 @@ class ComentariosPanel(wx.Panel):
 
     def _formato(self, c: youtube_api.Comentario) -> str:
         if c.es_respuesta:
-            return f"    Respuesta de {c.autor}: {c.texto}"
+            return _("    Respuesta de {autor}: {texto}").format(autor=c.autor, texto=c.texto)
         extra = []
         if c.likes:
-            extra.append(f"{c.likes} me gusta")
+            extra.append(_("{n} me gusta").format(n=c.likes))
         if c.respuestas:
-            extra.append(f"{c.respuestas} respuestas")
-        sufijo = f" [{', '.join(extra)}]" if extra else ""
-        return f"{c.autor}{sufijo}: {c.texto}"
+            extra.append(_("{n} respuestas").format(n=c.respuestas))
+        sufijo = _(" [{sufijo}]").format(sufijo=", ".join(extra)) if extra else ""
+        return _("{autor}{sufijo}: {texto}").format(autor=c.autor, sufijo=sufijo, texto=c.texto)
 
     # ── Selección y acciones ─────────────────────────────────────────────────
 
@@ -341,9 +341,9 @@ class ComentariosPanel(wx.Panel):
         id_leer    = wx.NewIdRef()
         id_copiar  = wx.NewIdRef()
         id_copiar2 = wx.NewIdRef()
-        menu.Append(id_leer,    "Leer con TTS")
-        menu.Append(id_copiar,  "Copiar comentario")
-        menu.Append(id_copiar2, "Copiar todo (autor: comentario)")
+        menu.Append(id_leer,    _("Leer con TTS"))
+        menu.Append(id_copiar,  _("Copiar comentario"))
+        menu.Append(id_copiar2, _("Copiar todo (autor: comentario)"))
         # Handlers sobre el propio menú: mueren con él y no se acumulan
         # bindings en el panel con cada apertura.
         menu.Bind(wx.EVT_MENU, lambda e: self._leer(),       id=id_leer)
@@ -353,7 +353,7 @@ class ComentariosPanel(wx.Panel):
         if credenciales.hay_sesion() and youtube_api.google_disponible():
             menu.AppendSeparator()
             id_resp = wx.NewIdRef()
-            menu.Append(id_resp, f"Responder a {c.autor}")
+            menu.Append(id_resp, _("Responder a {autor}").format(autor=c.autor))
             menu.Bind(wx.EVT_MENU, lambda e: self._responder(), id=id_resp)
 
         self.lb.PopupMenu(menu)
@@ -454,7 +454,7 @@ class ComentariosPanel(wx.Panel):
         _snd.reproducir("error")
         msg = youtube_api.mensaje_error_api(exc)
         anunciar(msg)
-        wx.MessageBox(msg, "No se pudo enviar", wx.OK | wx.ICON_ERROR, self)
+        wx.MessageBox(msg, _("No se pudo enviar"), wx.OK | wx.ICON_ERROR, self)
 
 
 def _btn(b: wx.Button) -> None:

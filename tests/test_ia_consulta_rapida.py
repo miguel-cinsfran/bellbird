@@ -196,7 +196,11 @@ class TestConsultaRapida(unittest.TestCase):
     def test_fallo_de_conexion_avisa_sin_enviar(self):
         self.m_cliente.conectar.side_effect = Exception(
             "connection refused")
-        with mock.patch.object(rapida.envio_ia, "enviar") as envio:
+        # La guarda de consultar ve True y el mensaje del fallo ve False.
+        with mock.patch.object(rapida.obs_activacion,
+                               "obs_esta_en_ejecucion",
+                               side_effect=[True, False]), \
+                mock.patch.object(rapida.envio_ia, "enviar") as envio:
             rapida.consultar(self.marco)
         self.m_anunciar.assert_called_once_with(
             "No se pudo conectar con OBS. Comprueba que OBS esté abierto y "

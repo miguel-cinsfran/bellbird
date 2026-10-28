@@ -13,6 +13,8 @@ from dataclasses import dataclass
 from websockets.exceptions import ConnectionClosed
 from websockets.sync.client import connect
 
+from ytchat.obs import obs_activacion
+
 
 logger = logging.getLogger(f"ytchat.{__name__}")
 
@@ -63,8 +65,13 @@ class ObsError(RuntimeError):
 
 MENSAJE_CONEXION_PERDIDA = "Se perdió la conexión con OBS. Vuelve a conectar."
 
+TEXTO_ABIERTO_SIN_RESPUESTA = (
+    "OBS está abierto pero no responde. Puede estar esperando una "
+    "respuesta: elige Mostrar OBS en el menú Transmisión. Si no, comprueba "
+    "que su servidor websocket esté activado.")
 
-def mensaje_de_fallo_obs(motivo):
+
+def mensaje_de_fallo_obs(motivo, obs_abierto=None):
     """Traduce un motivo técnico a un mensaje breve para el usuario."""
     if isinstance(motivo, ObsError):
         return str(motivo)
@@ -77,6 +84,18 @@ def mensaje_de_fallo_obs(motivo):
     texto = str(motivo or "").lower()
     if any(clave in texto for clave in
            ("refused", "no connection", "10061", "unreachable", "timed out")):
+        # Solo se mira el proceso tras un fallo, así que su costo no pesa
+        # en el camino normal. None se resuelve al llamar para que un
+        # mock.patch sobre obs_activacion alcance a todas las llamadas.
+        consulta = obs_abierto or obs_activacion.obs_esta_en_ejecucion
+        try:
+            abierto = bool(consulta())
+        except Exception as error:
+            logger.warning("No se pudo comprobar si OBS está en ejecución: %s",
+                           error)
+            abierto = False
+        if abierto:
+            return TEXTO_ABIERTO_SIN_RESPUESTA
         return ("No se pudo conectar con OBS. Comprueba que OBS esté abierto y "
                 "que su servidor websocket esté activado.")
     if any(clave in texto for clave in ("authentication", "4009", "unauthorized")):

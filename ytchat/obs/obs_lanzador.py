@@ -12,13 +12,13 @@ from ytchat.obs import obs_cliente
 TEXTO_ABRIENDO = ("Abriendo OBS en segundo plano, en el área de "
                   "notificación. Puede tardar hasta un minuto.")
 TEXTO_MODO_SEGURO = ("OBS se cerró mal la última vez y va a preguntar si "
-                     "iniciar en modo seguro. Busca su ventana con Alt+Tab "
-                     "y elige iniciar normalmente.")
+                     "iniciar en modo seguro. Elige Mostrar OBS en el menú "
+                     "Transmisión y después iniciar normalmente.")
 TEXTO_SIN_RESPUESTA = ("OBS se abrió pero no responde. Comprueba que su "
                        "servidor websocket esté activado.")
 TEXTO_SIN_RESPUESTA_MODO_SEGURO = (
     "OBS no responde. Puede estar esperando que contestes si iniciar "
-    "en modo seguro: busca su ventana con Alt+Tab.")
+    "en modo seguro: elige Mostrar OBS en el menú Transmisión.")
 
 _CLAVE_OBS = r"SOFTWARE\OBS Studio"
 _CLAVE_OBS_32 = r"SOFTWARE\WOW6432Node\OBS Studio"

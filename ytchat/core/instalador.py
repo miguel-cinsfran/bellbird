@@ -267,8 +267,8 @@ def _fallar(resultado: Path, motivo: str,
             resultado.write_text(json.dumps(
                 {"resultado": "fallo", "motivo": motivo},
                 ensure_ascii=False), encoding="utf-8")
-        except OSError:
-            pass
+        except OSError as error:
+            logger.warning("no se pudo escribir el resultado en %s: %s", resultado, error)
     return False
 
 
@@ -281,8 +281,8 @@ def _relanzar_viejo(instalacion: Path, ejecutable_viejo: str, lanzar,
                     orden_para) -> None:
     try:
         _arrancar_en(instalacion, ejecutable_viejo, lanzar, orden_para)
-    except Exception:
-        pass
+    except Exception as error:
+        logger.warning("no se pudo relanzar %s: %s", ejecutable_viejo, error)
 
 
 def _esperar_cierre(esperar_pid, pid: int, tope_cierre: float) -> bool:
@@ -329,13 +329,13 @@ def _deshacer_movidas(instalacion: Path, respaldo: Path,
             destino_tema = instalacion / "sounds" / "themes" / tema
             destino_tema.parent.mkdir(parents=True, exist_ok=True)
             os.replace(respaldo / "sounds" / "themes" / tema, destino_tema)
-        except OSError:
-            pass
+        except OSError as error:
+            logger.warning("no se pudo devolver el tema %s: %s", tema, error)
     for nombre in reversed(progreso.movidas):
         try:
             os.replace(respaldo / nombre, instalacion / nombre)
-        except OSError:
-            pass
+        except OSError as error:
+            logger.warning("no se pudo devolver %s: %s", nombre, error)
 
 
 def _mover_al_respaldo(instalacion: Path, respaldo: Path,
@@ -422,8 +422,8 @@ def _marcar_pendiente(pendiente: Path, arranque: Path, desde: str,
         encoding="utf-8")
     try:
         arranque.unlink()
-    except OSError:
-        pass
+    except OSError as error:
+        logger.warning("no se pudo borrar el arranque anterior %s: %s", arranque, error)
 
 
 def _volver_atras(progreso: _Progreso, instalacion: Path, respaldo: Path,
@@ -434,19 +434,19 @@ def _volver_atras(progreso: _Progreso, instalacion: Path, respaldo: Path,
     for nombre in progreso.copiadas:
         try:
             _borrar_entrada(instalacion / nombre)
-        except OSError:
-            pass
+        except OSError as error:
+            logger.warning("no se pudo borrar %s: %s", instalacion / nombre, error)
     for tema in progreso.temas_copiados:
         try:
             _borrar_entrada(instalacion / "sounds" / "themes" / tema)
-        except OSError:
-            pass
+        except OSError as error:
+            logger.warning("no se pudo borrar el tema %s: %s", tema, error)
     _borrar_sonidos_agregados(instalacion, progreso.sonidos_agregados)
     _devolver_respaldo(respaldo, instalacion)
     try:
         pendiente.unlink()
-    except OSError:
-        pass
+    except OSError as error:
+        logger.warning("no se pudo borrar el pendiente %s: %s", pendiente, error)
     _relanzar_viejo(instalacion, ejecutable_viejo, lanzar, orden_para)
 
 
@@ -467,17 +467,17 @@ def _cerrar_exito(respaldo: Path, pendiente: Path, resultado: Path,
         resultado.write_text(json.dumps(
             {"resultado": "ok", "desde": desde, "hacia": hacia},
             ensure_ascii=False), encoding="utf-8")
-    except OSError:
-        pass
+    except OSError as error:
+        logger.warning("no se pudo escribir el resultado en %s: %s", resultado, error)
     try:
         if respaldo.exists():
             shutil.rmtree(respaldo)
-    except OSError:
-        pass
+    except OSError as error:
+        logger.debug("no se pudo borrar el respaldo %s: %s", respaldo, error)
     try:
         pendiente.unlink()
-    except OSError:
-        pass
+    except OSError as error:
+        logger.warning("no se pudo borrar el pendiente %s: %s", pendiente, error)
 
 
 def _lanzar_y_cerrar(instalacion: Path, ejecutable_nuevo: str,
@@ -581,8 +581,8 @@ def _borrar_sonidos_agregados(instalacion: Path, nombres: list[str]) -> None:
     for nombre in nombres:
         try:
             _borrar_entrada(instalacion / "sounds" / nombre)
-        except OSError:
-            pass
+        except OSError as error:
+            logger.debug("no se pudo borrar el sonido agregado %s: %s", nombre, error)
 
 
 def _devolver_respaldo(respaldo: Path, instalacion: Path) -> None:

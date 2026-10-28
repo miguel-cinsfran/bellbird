@@ -845,5 +845,22 @@ class TestPrincipalInstalador(unittest.TestCase):
             ["--instalar-actualizacion", "inst", "no-numero", "V.exe", "1.0"]), 1)
 
 
+class TestRegistraLoQueFalla(unittest.TestCase):
+    """Cada ESCONDE del instalador deja su línea en `registro.log`."""
+
+    def test_borrado_que_falla_deja_registro(self):
+        import unittest.mock as mock
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            (base / "sounds").mkdir()
+            with mock.patch.object(instalador, "_borrar_entrada",
+                                   side_effect=OSError("bloqueado")):
+                with self.assertLogs(instalador.logger,
+                                     level="DEBUG") as registros:
+                    instalador._borrar_sonidos_agregados(base, ["nuevo.wav"])
+        self.assertTrue(any("no se pudo borrar" in mensaje
+                            for mensaje in registros.output))
+
+
 if __name__ == "__main__":
     unittest.main()

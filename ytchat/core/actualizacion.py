@@ -324,8 +324,8 @@ def descargar_paquete(url_zip: str, url_firma: str, destino: str | os.PathLike,
         if temporal is not None:
             try:
                 temporal.unlink()
-            except OSError:
-                pass
+            except OSError as error:
+                logger.debug("no se pudo borrar el temporal %s: %s", temporal, error)
 
 
 # ── Extracción y validación ────────────────────────────────────────────────
@@ -432,8 +432,8 @@ def confirmar_arranque(version_actual: str,
         datos = json.loads(pendiente.read_text(encoding="utf-8"))
         if isinstance(datos, dict) and datos.get("hacia") == version_actual:
             paths.arranque_confirmado_en(base).write_text("ok", encoding="utf-8")
-    except (OSError, ValueError):
-        pass
+    except (OSError, ValueError) as error:
+        logger.warning("no se pudo confirmar el arranque: %s", error)
 
 
 def tomar_resultado(instalacion: str | os.PathLike | None = None) -> dict | None:
@@ -454,13 +454,13 @@ def tomar_resultado(instalacion: str | os.PathLike | None = None) -> dict | None
         except (OSError, ValueError):
             try:
                 archivo.unlink()
-            except OSError:
-                pass
+            except OSError as error:
+                logger.debug("no se pudo borrar el resultado corrupto %s: %s", archivo, error)
             return None
         try:
             archivo.unlink()
-        except OSError:
-            pass
+        except OSError as error:
+            logger.warning("no se pudo borrar el resultado %s: %s", archivo, error)
         return datos if isinstance(datos, dict) else None
     except OSError:
         return None

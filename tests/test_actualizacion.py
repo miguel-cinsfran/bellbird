@@ -654,5 +654,26 @@ class TestTextosAviso(unittest.TestCase):
         self.assertFalse(actualizacion.debe_avisar("basura", "2.9.0", ""))
 
 
+class TestRegistraLoQueFalla(unittest.TestCase):
+    """Cada ESCONDE del motor deja su línea en el registro."""
+
+    def test_borrado_de_resultado_que_falla_deja_registro(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            paths.carpeta_actualizacion_en(base).mkdir(parents=True)
+            paths.resultado_actualizacion_en(base).write_text(
+                json.dumps({"resultado": "ok", "hacia": "2.3.0"}),
+                encoding="utf-8")
+            with mock.patch.object(Path, "unlink",
+                                   side_effect=OSError("bloqueado")):
+                with self.assertLogs(actualizacion.logger,
+                                     level="DEBUG") as registros:
+                    datos = actualizacion.tomar_resultado(base)
+        self.assertEqual(datos["resultado"], "ok")
+        self.assertTrue(any("no se pudo borrar" in mensaje
+                            for mensaje in registros.output))
+
+
 if __name__ == "__main__":
     unittest.main()

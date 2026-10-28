@@ -841,5 +841,25 @@ class TestConsultaReal(unittest.TestCase):
         self.assertGreater(resultado.tamanio, 0)
 
 
+class TestRegistraLoQueFalla(unittest.TestCase):
+    """El ESCONDE de la ventana deja su línea en el registro."""
+
+    def test_borrado_del_zip_que_falla_deja_registro(self):
+        flujo = app._FlujoActualizacion(mock.Mock(), mock.Mock())
+        flujo.paquete_elegido = _paquete()
+        flujo.ventana.en_hilo_principal.side_effect = (
+            lambda funcion, *args: funcion(*args))
+        with mock.patch.object(actualizacion, "extraer_paquete",
+                               return_value=Path("raiz")), \
+                mock.patch.object(actualizacion, "validar_paquete",
+                                   return_value="App.exe"), \
+                mock.patch.object(Path, "unlink",
+                                   side_effect=OSError("bloqueado")):
+            with self.assertLogs(app.logger, level="DEBUG") as registros:
+                flujo._run_extraer()
+        self.assertTrue(any("no se pudo borrar" in mensaje
+                            for mensaje in registros.output))
+
+
 if __name__ == "__main__":
     unittest.main()

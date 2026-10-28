@@ -360,8 +360,8 @@ class _FlujoActualizacion:
             return
         try:
             Path(paths.paquete_descargado()).unlink(missing_ok=True)
-        except OSError:
-            pass
+        except OSError as error:
+            logger.debug("no se pudo borrar el paquete descargado %s: %s", paths.paquete_descargado(), error)
         try:
             ejecutable = actualizacion.validar_paquete(
                 raiz, self.paquete_elegido.version)

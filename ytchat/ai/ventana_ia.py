@@ -3,22 +3,25 @@
 Sin wx: la ventana solo muestra lo que estas funciones devuelven.
 """
 
-FILA_GUIA = "Sin mensajes. Agrega una captura y escribe tu pregunta."
-TEXTO_ANALIZANDO = "Analizando…"
-TEXTO_CANCELADA = "Consulta cancelada."
-TEXTO_COPIADA = "Respuesta copiada."
-TEXTO_NO_COPIADA = "No se pudo copiar la respuesta."
-TEXTO_SIN_RESPUESTA = "Todavía no hay ninguna respuesta."
-TEXTO_NUEVA = "Conversación nueva."
+from ytchat.core.idioma import N_, _
+
+FILA_GUIA = N_("Sin mensajes. Agrega una captura y escribe tu pregunta.")
+TEXTO_ANALIZANDO = N_("Analizando…")
+TEXTO_CANCELADA = N_("Consulta cancelada.")
+TEXTO_COPIADA = N_("Respuesta copiada.")
+TEXTO_NO_COPIADA = N_("No se pudo copiar la respuesta.")
+TEXTO_SIN_RESPUESTA = N_("Todavía no hay ninguna respuesta.")
+TEXTO_NUEVA = N_("Conversación nueva.")
 
 
 def texto_captura_agregada(fuente) -> str:
-    return "Captura agregada: {}.".format(fuente)
+    # Traductores: anuncio al agregar una imagen; {fuente} es su origen en OBS.
+    return _("Captura agregada: {fuente}.").format(fuente=fuente)
 
 
 def filas_visibles(filas):
     if not filas:
-        return [FILA_GUIA]
+        return [_(FILA_GUIA)]
     return list(filas)
 
 

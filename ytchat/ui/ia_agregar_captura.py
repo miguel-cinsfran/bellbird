@@ -13,6 +13,7 @@ import threading
 import wx
 
 from ytchat.core import diagnostico
+from ytchat.core.idioma import N_, _
 from ytchat.obs import obs_activacion
 from ytchat.obs import obs_captura_ia
 from ytchat.obs import obs_cliente
@@ -23,8 +24,8 @@ from ytchat.voice.sound_player import reproducir
 
 logger = diagnostico.obtener_logger(__name__)
 
-TEXTO_CARGANDO = "Cargando las fuentes de OBS…"
-TEXTO_OBS_CERRADO = "OBS no está abierto."
+TEXTO_CARGANDO = N_("Cargando las fuentes de OBS…")
+TEXTO_OBS_CERRADO = N_("OBS no está abierto.")
 
 ANCHO_VISTA = 320
 ALTO_VISTA = 180
@@ -33,23 +34,28 @@ ALTO_VISTA = 180
 def texto_negra(etiqueta, motivo="", fuente="") -> str:
     """Aviso cuando la captura sale negra, en palabras para el usuario."""
     if motivo == "sin_fuente":
-        return (f"La captura de {etiqueta} salió negra y no se agregó. "
-                "La escena no tiene ninguna captura de pantalla, de "
-                "ventana, de juego ni de cámara. Agrega una en OBS y "
-                "vuelve a intentarlo.")
+        # Traductores: aviso de captura negra; {etiqueta} es lo elegido en «Capturar de».
+        return (_("La captura de {etiqueta} salió negra y no se agregó. "
+                  "La escena no tiene ninguna captura de pantalla, de "
+                  "ventana, de juego ni de cámara. Agrega una en OBS y "
+                  "vuelve a intentarlo.").format(etiqueta=etiqueta))
     if motivo == "sin_elegir":
-        return (f"La captura de {etiqueta} salió negra y no se agregó. "
-                f"La fuente {fuente} no tiene elegido qué capturar. "
-                "Elígelo en las propiedades de la fuente en OBS.")
-    return (f"La captura de {etiqueta} salió negra y no se agregó. Suele "
-            "pasar si la PC no tiene monitor conectado o si la cortina de "
-            "pantalla de NVDA está activa. Prueba en OBS el método de "
-            "captura Windows 10 para esa fuente.")
+        # Traductores: aviso de captura negra; {etiqueta} lo elegido y {fuente} su origen.
+        return (_("La captura de {etiqueta} salió negra y no se agregó. "
+                  "La fuente {fuente} no tiene elegido qué capturar. "
+                  "Elígelo en las propiedades de la fuente en OBS.").format(
+                      etiqueta=etiqueta, fuente=fuente))
+    # Traductores: aviso de captura negra; {etiqueta} es lo elegido en «Capturar de».
+    return (_("La captura de {etiqueta} salió negra y no se agregó. Suele "
+              "pasar si la PC no tiene monitor conectado o si la cortina de "
+              "pantalla de NVDA está activa. Prueba en OBS el método de "
+              "captura Windows 10 para esa fuente.").format(
+                  etiqueta=etiqueta))
 
 
 class DialogoAgregarCaptura(wx.Dialog):
     def __init__(self, padre, cliente):
-        super().__init__(padre, title="Agregar captura",
+        super().__init__(padre, title=_("Agregar captura"),
                          name="DialogoAgregarCaptura")
         self._cliente = cliente
         self._cerrojo = threading.Lock()
@@ -59,28 +65,28 @@ class DialogoAgregarCaptura(wx.Dialog):
         self._generacion_vista = 0
 
         vs = wx.BoxSizer(wx.VERTICAL)
-        self.rotulo_fuente = wx.StaticText(self, label="&Capturar de:")
+        self.rotulo_fuente = wx.StaticText(self, label=_("&Capturar de:"))
         vs.Add(self.rotulo_fuente, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.cho_fuente = wx.Choice(
-            self, choices=[TEXTO_CARGANDO], name="Capturar de")
+            self, choices=[_(TEXTO_CARGANDO)], name=_("Capturar de"))
         self.cho_fuente.SetSelection(0)
-        nombre_accesible(self.cho_fuente, "Capturar de")
+        nombre_accesible(self.cho_fuente, _("Capturar de"))
         vs.Add(self.cho_fuente, 0, wx.EXPAND | wx.ALL, 10)
 
         self.bmp_vista = wx.StaticBitmap(
             self, bitmap=wx.NullBitmap, size=(ANCHO_VISTA, ALTO_VISTA),
-            name="Vista previa")
+            name=_("Vista previa"))
         self.bmp_vista.SetMinSize((ANCHO_VISTA, ALTO_VISTA))
-        nombre_accesible(self.bmp_vista, "Vista previa")
+        nombre_accesible(self.bmp_vista, _("Vista previa"))
         vs.Add(self.bmp_vista, 0, wx.LEFT | wx.RIGHT, 10)
 
         fila = wx.BoxSizer(wx.HORIZONTAL)
-        self.btn_capturar = wx.Button(self, wx.ID_OK, "Captu&rar")
+        self.btn_capturar = wx.Button(self, wx.ID_OK, _("Captu&rar"))
         self.btn_capturar.SetDefault()
-        self.btn_capturar.SetName("Capturar")
+        self.btn_capturar.SetName(_("Capturar"))
         self.btn_capturar.Disable()
-        self.btn_cancelar = wx.Button(self, wx.ID_CANCEL, "Ca&ncelar")
-        self.btn_cancelar.SetName("Cancelar")
+        self.btn_cancelar = wx.Button(self, wx.ID_CANCEL, _("Ca&ncelar"))
+        self.btn_cancelar.SetName(_("Cancelar"))
         fila.Add(self.btn_capturar, 0, wx.RIGHT, 6)
         fila.Add(self.btn_cancelar, 0)
         vs.Add(fila, 0, wx.ALIGN_RIGHT | wx.ALL, 10)

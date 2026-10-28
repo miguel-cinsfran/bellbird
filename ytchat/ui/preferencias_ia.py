@@ -215,7 +215,7 @@ class PaginaIA:
         else:
             # Habilitado a propósito: uno deshabilitado sale del Tab y el
             # lector no lo dice. No es un modelo: `modelo_elegido` lo ignora.
-            self.cho_ia_modelo.Set([opciones_ia.TEXTO_SIN_MODELOS])
+            self.cho_ia_modelo.Set([_(opciones_ia.TEXTO_SIN_MODELOS)])
         if elegir in self._ia_modelos_ids:
             self.cho_ia_modelo.SetSelection(
                 self._ia_modelos_ids.index(elegir))

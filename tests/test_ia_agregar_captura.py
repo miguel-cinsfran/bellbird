@@ -15,6 +15,7 @@ except Exception:
 
 from ytchat.ui import ia_agregar_captura as agregar
 from ytchat.obs import obs_captura_ia
+from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
 
 
@@ -169,6 +170,45 @@ class TestDialogoAgregarCapturaVentana(unittest.TestCase):
             dialogo._al_temporizador(mock.Mock())
         anunciar.assert_not_called()
         self.assertFalse(dialogo.bmp_vista.GetBitmap().IsOk())
+
+    # Lo arma ytchat/obs/obs_captura_ia.py: la escena al aire y sus fuentes.
+    PENDIENTES_OTRO_MODULO = (
+        "Cámara",
+        "Escena al aire: Escena",
+    )
+
+    def test_no_queda_ningun_texto_visible_sin_envolver(self):
+        with con_pseudo():
+            dialogo = self._dialogo()
+            sin_marcar = textos_sin_marcar(dialogo)
+
+        self.assertEqual(sorted(sin_marcar),
+                         sorted(self.PENDIENTES_OTRO_MODULO))
+
+    def test_pseudo_sin_obs_avisa_marcado(self):
+        with con_pseudo(), \
+                mock.patch.object(agregar.obs_activacion,
+                                   "obs_esta_en_ejecucion",
+                                   return_value=False), \
+                mock.patch.object(agregar, "anunciar") as anunciar, \
+                mock.patch.object(agregar, "reproducir"):
+            terminado = mock.Mock()
+            agregar.pedir_captura(mock.Mock(), terminado)
+        args, _kwargs = anunciar.call_args
+        self.assertTrue(args[0].startswith("[¡"), args[0])
+        terminado.assert_called_once_with(None)
+
+    def test_pseudo_negra_anuncia_marcado(self):
+        dialogo = self._dialogo()
+        opcion = dialogo._opcion_elegida()
+        captura = obs_captura_ia.Captura(b"x", 320, 180, True, "sin_elegir",
+                                         "Cámara")
+        with con_pseudo(), \
+                mock.patch.object(agregar, "anunciar") as anunciar, \
+                mock.patch.object(agregar, "reproducir"):
+            dialogo._captura_lista(opcion, captura)
+        args, _kwargs = anunciar.call_args
+        self.assertTrue(args[0].startswith("[¡"), args[0])
 
     def test_escape_cierra_con_cancel(self):
         dialogo = self._dialogo()

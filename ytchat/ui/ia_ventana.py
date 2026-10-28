@@ -19,6 +19,7 @@ from ytchat.ai import envio_ia
 from ytchat.ai import proveedores
 from ytchat.ai import ventana_ia
 from ytchat.core import diagnostico
+from ytchat.core.idioma import N_, _
 from ytchat.core import paths
 from ytchat.obs.obs_panel import GestorPanelObs
 from ytchat.ui import ia_privacidad
@@ -30,21 +31,21 @@ from ytchat.voice.sound_player import reproducir
 
 logger = diagnostico.obtener_logger(__name__)
 
-TITULO = "Preguntar a la IA"
+TITULO = N_("Preguntar a la IA")
 INTERVALO_AVISO_MS = 5000
 INTERVALO_MELODIA_MS = 2000
 
 
 class DialogoMensaje(wx.Dialog):
     def __init__(self, padre, texto):
-        super().__init__(padre, title="Mensaje", name="DialogoMensaje")
+        super().__init__(padre, title=_("Mensaje"), name="DialogoMensaje")
         vs = wx.BoxSizer(wx.VERTICAL)
         self.txt = wx.TextCtrl(
             self, value=texto,
             style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_RICH2,
-            name="Mensaje completo")
+            name=_("Mensaje completo"))
         vs.Add(self.txt, 1, wx.EXPAND | wx.ALL, 10)
-        self.btn = wx.Button(self, wx.ID_OK, "&Cerrar", name="Cerrar")
+        self.btn = wx.Button(self, wx.ID_OK, _("&Cerrar"), name=_("Cerrar"))
         vs.Add(self.btn, 0, wx.ALIGN_RIGHT | wx.ALL, 10)
         self.SetSizerAndFit(vs)
         self.btn.Bind(wx.EVT_BUTTON, self._al_cerrar)
@@ -64,7 +65,7 @@ class DialogoMensaje(wx.Dialog):
 
 class VentanaIA(wx.Dialog):
     def __init__(self, padre, charla=None, descripcion=""):
-        super().__init__(padre, title=TITULO, name="VentanaIA")
+        super().__init__(padre, title=_(TITULO), name="VentanaIA")
         self._charla = charla if charla is not None else conversacion.Conversacion()
         self._descripcion = descripcion or ""
         self._n_consulta = 0
@@ -81,11 +82,11 @@ class VentanaIA(wx.Dialog):
 
     def _crear_conversacion(self, vs) -> None:
         """El rótulo y la lista de la conversación, en el sizer vertical."""
-        self.rotulo_conv = wx.StaticText(self, label="Con&versación:")
+        self.rotulo_conv = wx.StaticText(self, label=_("Con&versación:"))
         vs.Add(self.rotulo_conv, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.lst_conversacion = wx.ListBox(
-            self, style=wx.LB_SINGLE, name="Conversación")
-        nombre_accesible(self.lst_conversacion, "Conversación")
+            self, style=wx.LB_SINGLE, name=_("Conversación"))
+        nombre_accesible(self.lst_conversacion, _("Conversación"))
         instalar_busqueda_tipo(
             self.lst_conversacion,
             lambda: [self.lst_conversacion.GetString(i)
@@ -95,23 +96,23 @@ class VentanaIA(wx.Dialog):
     def _crear_controles(self) -> None:
         vs = wx.BoxSizer(wx.VERTICAL)
         self._crear_conversacion(vs)
-        self.rotulo_msg = wx.StaticText(self, label="&Mensaje:")
+        self.rotulo_msg = wx.StaticText(self, label=_("&Mensaje:"))
         vs.Add(self.rotulo_msg, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.txt_mensaje = wx.TextCtrl(
-            self, name="Mensaje", style=wx.TE_PROCESS_ENTER)
-        nombre_accesible(self.txt_mensaje, "Mensaje")
+            self, name=_("Mensaje"), style=wx.TE_PROCESS_ENTER)
+        nombre_accesible(self.txt_mensaje, _("Mensaje"))
         vs.Add(self.txt_mensaje, 0, wx.EXPAND | wx.ALL, 10)
         fila = wx.BoxSizer(wx.HORIZONTAL)
-        self.btn_enviar = wx.Button(self, wx.ID_ANY, "&Enviar",
-                                    name="Enviar")
-        self.btn_captura = wx.Button(self, wx.ID_ANY, "Agregar &captura",
-                                     name="Agregar captura")
-        self.btn_copiar = wx.Button(self, wx.ID_ANY, "C&opiar respuesta",
-                                    name="Copiar respuesta")
-        self.btn_nueva = wx.Button(self, wx.ID_ANY, "&Nueva conversación",
-                                   name="Nueva conversación")
-        self.btn_cerrar = wx.Button(self, wx.ID_CLOSE, "Ce&rrar",
-                                    name="Cerrar")
+        self.btn_enviar = wx.Button(self, wx.ID_ANY, _("&Enviar"),
+                                    name=_("Enviar"))
+        self.btn_captura = wx.Button(self, wx.ID_ANY, _("Agregar &captura"),
+                                     name=_("Agregar captura"))
+        self.btn_copiar = wx.Button(self, wx.ID_ANY, _("C&opiar respuesta"),
+                                    name=_("Copiar respuesta"))
+        self.btn_nueva = wx.Button(self, wx.ID_ANY, _("&Nueva conversación"),
+                                   name=_("Nueva conversación"))
+        self.btn_cerrar = wx.Button(self, wx.ID_CLOSE, _("Ce&rrar"),
+                                    name=_("Cerrar"))
         for boton in (self.btn_enviar, self.btn_captura, self.btn_copiar,
                       self.btn_nueva, self.btn_cerrar):
             fila.Add(boton, 0, wx.RIGHT, 6)

@@ -15,44 +15,53 @@ from ytchat.ai import conversacion
 from ytchat.ai import protocolos
 from ytchat.ai import proveedores
 from ytchat.ai import sondeo_gratis
+from ytchat.core.idioma import N_, _
 
-TEXTO_PEDIDO_PRUEBA = "Responde solo con la palabra OK."
-TEXTO_SISTEMA_PRUEBA = "Responde con una sola palabra."
-TEXTO_CLAVE_GUARDADA = "Clave guardada."
-TEXTO_CLAVE_BORRADA = "Clave borrada."
-TEXTO_CLAVE_NO_GUARDADA = ("No se pudo guardar la clave en el "
-                           "Administrador de credenciales.")
-TEXTO_CLAVE_NO_BORRADA = ("No se pudo borrar la clave del "
-                          "Administrador de credenciales.")
-TEXTO_FALTA_CLAVE = "Escribe la clave antes de guardarla o probarla."
-TEXTO_CLAVE_CORTA = ("La clave es demasiado corta. Copia la "
-                     "clave entera desde la página del proveedor.")
-TEXTO_CLAVE_CARACTERES = ("La clave tiene espacios o caracteres "
-                          "que una clave no lleva. Cópiala de nuevo.")
-TEXTO_CLAVE_PREFIJO = ("Las claves de {proveedor} empiezan con "
-                       "{prefijo}. Revisa que sea la clave de "
-                       "este proveedor.")
-TEXTO_CONFIRMAR_BORRADO = ("Borra la clave guardada de {proveedor} del "
-                           "Administrador de credenciales. ¿Deseas "
-                           "continuar?")
-TEXTO_PROBANDO = "Probando la clave…"
-TEXTO_PRUEBA_BIEN = "La clave funciona con {modelo}."
-TEXTO_ACTUALIZANDO = "Actualizando la lista de modelos…"
-TEXTO_SONDEANDO = "Comprobando {n} modelos con tu clave."
-TEXTO_LISTA_ACTUALIZADA = ("Lista de modelos actualizada: {n} modelos "
-                           "de {proveedor}.")
-TEXTO_LISTA_ACTUALIZADA_SIN_PROVEEDOR = "Lista de modelos actualizada."
-TEXTO_LISTA_FALLO = ("No se pudo actualizar la lista de modelos. "
-                     "Revisa la conexión y vuelve a intentarlo.")
-TEXTO_LISTA_CON_GRATIS = ("Lista de modelos actualizada: {n} modelos "
-                          "de {proveedor}, {g} gratis con tu clave.")
-TEXTO_LISTA_CON_TU_CLAVE = ("Lista de modelos actualizada: {n} modelos "
-                            "de {proveedor}, {r} funcionan con tu clave.")
-TEXTO_INSTRUCCION_RESTAURADA = "Instrucción restaurada."
-TEXTO_CONTRIBUTOR = "Este modelo entrena con lo que se le envía."
-TEXTO_MARCA_CONTRIBUTOR = ", entrena con lo enviado"
-TEXTO_SIN_MODELOS = ("Sin modelos en la lista. "
-                     "Escribe el modelo en Otro modelo.")
+TEXTO_PEDIDO_PRUEBA = N_("Responde solo con la palabra OK.")
+TEXTO_SISTEMA_PRUEBA = N_("Responde con una sola palabra.")
+TEXTO_CLAVE_GUARDADA = N_("Clave guardada.")
+TEXTO_CLAVE_BORRADA = N_("Clave borrada.")
+TEXTO_CLAVE_NO_GUARDADA = N_("No se pudo guardar la clave en el "
+                             "Administrador de credenciales.")
+TEXTO_CLAVE_NO_BORRADA = N_("No se pudo borrar la clave del "
+                            "Administrador de credenciales.")
+TEXTO_FALTA_CLAVE = N_("Escribe la clave antes de guardarla o probarla.")
+TEXTO_CLAVE_CORTA = N_("La clave es demasiado corta. Copia la "
+                       "clave entera desde la página del proveedor.")
+TEXTO_CLAVE_CARACTERES = N_("La clave tiene espacios o caracteres "
+                            "que una clave no lleva. Cópiala de nuevo.")
+# Traductores: aviso de clave ajena; {proveedor} es su nombre y {prefijo} su inicio.
+TEXTO_CLAVE_PREFIJO = N_("Las claves de {proveedor} empiezan con "
+                         "{prefijo}. Revisa que sea la clave de "
+                         "este proveedor.")
+# Traductores: confirmación de borrado; {proveedor} es su nombre.
+TEXTO_CONFIRMAR_BORRADO = N_("Borra la clave guardada de {proveedor} del "
+                             "Administrador de credenciales. ¿Deseas "
+                             "continuar?")
+TEXTO_PROBANDO = N_("Probando la clave…")
+# Traductores: anuncio de prueba bien; {modelo} es su identificador.
+TEXTO_PRUEBA_BIEN = N_("La clave funciona con {modelo}.")
+TEXTO_ACTUALIZANDO = N_("Actualizando la lista de modelos…")
+# Traductores: anuncio del sondeo; {n} es cuántos modelos se prueban.
+TEXTO_SONDEANDO = N_("Comprobando {n} modelos con tu clave.")
+# Traductores: anuncio de lista nueva; {n} cuántos y {proveedor} su nombre.
+TEXTO_LISTA_ACTUALIZADA = N_("Lista de modelos actualizada: {n} modelos "
+                             "de {proveedor}.")
+TEXTO_LISTA_ACTUALIZADA_SIN_PROVEEDOR = N_("Lista de modelos actualizada.")
+TEXTO_LISTA_FALLO = N_("No se pudo actualizar la lista de modelos. "
+                       "Revisa la conexión y vuelve a intentarlo.")
+# Traductores: anuncio de lista nueva; {n} modelos, {g} gratis, {proveedor} su nombre.
+TEXTO_LISTA_CON_GRATIS = N_("Lista de modelos actualizada: {n} modelos "
+                            "de {proveedor}, {g} gratis con tu clave.")
+# Traductores: anuncio de lista nueva; {n} modelos, {r} útiles, {proveedor} su nombre.
+TEXTO_LISTA_CON_TU_CLAVE = N_("Lista de modelos actualizada: {n} modelos "
+                              "de {proveedor}, {r} funcionan con tu clave.")
+TEXTO_INSTRUCCION_RESTAURADA = N_("Instrucción restaurada.")
+TEXTO_CONTRIBUTOR = N_("Este modelo entrena con lo que se le envía.")
+# Traductores: marca de modelo que entrena, se suma a su nombre.
+TEXTO_MARCA_CONTRIBUTOR = N_(", entrena con lo enviado")
+TEXTO_SIN_MODELOS = N_("Sin modelos en la lista. "
+                       "Escribe el modelo en Otro modelo.")
 
 
 def estado_de_clave(clave):
@@ -64,8 +73,9 @@ def estado_de_clave(clave):
     if not clave:
         return ""
     if len(clave) >= 8:
-        return f"Guardada, termina en {clave[-4:]}"
-    return "Guardada"
+        # Traductores: aviso de la clave guardada; {final} son 4 caracteres.
+        return _("Guardada, termina en {final}").format(final=clave[-4:])
+    return _("Guardada")
 
 
 _CARACTERES_DE_CLAVE = frozenset(
@@ -80,14 +90,14 @@ def problema_de_clave(proveedor, clave):
     """
     limpia = (clave or "").strip()
     if not limpia:
-        return TEXTO_FALTA_CLAVE
+        return _(TEXTO_FALTA_CLAVE)
     if len(limpia) < 20:
-        return TEXTO_CLAVE_CORTA
+        return _(TEXTO_CLAVE_CORTA)
     if any(caracter not in _CARACTERES_DE_CLAVE for caracter in limpia):
-        return TEXTO_CLAVE_CARACTERES
+        return _(TEXTO_CLAVE_CARACTERES)
     prefijo = proveedor.prefijo_clave
     if prefijo and not limpia.startswith(prefijo):
-        return TEXTO_CLAVE_PREFIJO.format(
+        return _(TEXTO_CLAVE_PREFIJO).format(
             proveedor=proveedor.nombre, prefijo=prefijo)
     return ""
 
@@ -112,15 +122,18 @@ def filas_modelos(muestra, proveedor, solo_gratis, marcas=None):
             continue
         etiqueta = modelo.nombre
         if modelo.gratis and not proveedor.gratis_por_clave:
-            etiqueta += ", gratis"
+            # Traductores: marca de modelo gratuito, se suma a su nombre.
+            etiqueta += _(", gratis")
         if proveedor.gratis_por_clave and marcas:
             marca = marcas.get(modelo.id)
             if marca == sondeo_gratis.MARCA_GRATIS:
-                etiqueta += ", gratis"
+                # Traductores: marca de modelo gratuito, se suma a su nombre.
+                etiqueta += _(", gratis")
             elif marca == sondeo_gratis.MARCA_CON_TU_CLAVE:
-                etiqueta += ", funciona con tu clave"
+                # Traductores: marca de modelo útil, se suma a su nombre.
+                etiqueta += _(", funciona con tu clave")
         if modelo.contributor:
-            etiqueta += TEXTO_MARCA_CONTRIBUTOR
+            etiqueta += _(TEXTO_MARCA_CONTRIBUTOR)
         filas.append((modelo.id, etiqueta))
     return filas
 
@@ -131,11 +144,11 @@ def resumen_sondeo(resultados, n, proveedor):
     gratis = sum(1 for valor in marcas.values()
                  if valor == sondeo_gratis.MARCA_GRATIS)
     if gratis:
-        return TEXTO_LISTA_CON_GRATIS.format(
+        return _(TEXTO_LISTA_CON_GRATIS).format(
             n=n, proveedor=proveedor, g=gratis)
     con_clave = sum(1 for valor in marcas.values()
                     if valor == sondeo_gratis.MARCA_CON_TU_CLAVE)
-    return TEXTO_LISTA_CON_TU_CLAVE.format(
+    return _(TEXTO_LISTA_CON_TU_CLAVE).format(
         n=n, proveedor=proveedor, r=con_clave)
 
 
@@ -162,7 +175,7 @@ def separar_modelo_guardado(guardado, filas):
 def aviso_de_modelo(modelo):
     """TEXTO_CONTRIBUTOR si el modelo usa lo enviado para entrenarse."""
     if modelo is not None and modelo.contributor:
-        return TEXTO_CONTRIBUTOR
+        return _(TEXTO_CONTRIBUTOR)
     return ""
 
 
@@ -196,8 +209,8 @@ def pedido_de_prueba(ajustes, muestra, clave):
         piensa, tope_salida = encontrado.piensa, encontrado.tope_salida
     tope = conversacion.max_tokens(
         conversacion.CORTA, piensa, tope_salida)
-    mensajes = [protocolos.Mensaje("usuario", TEXTO_PEDIDO_PRUEBA)]
+    mensajes = [protocolos.Mensaje("usuario", _(TEXTO_PEDIDO_PRUEBA))]
     extra = proveedores.cabeceras(proveedor, str(uuid.uuid4()))
     return protocolos.armar_pedido(
-        protocolo, base, modelo_id, clave, TEXTO_SISTEMA_PRUEBA,
+        protocolo, base, modelo_id, clave, _(TEXTO_SISTEMA_PRUEBA),
         mensajes, tope, extra)

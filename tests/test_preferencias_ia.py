@@ -21,8 +21,7 @@ from tests.ventanas_prueba import destruir
 
 
 # Textos que arma otro módulo y aparecen en la parte recorrida: no se
-# tocan acá. Los nombres salen de `ytchat/ai/proveedores.py` y el aviso de
-# lista vacía es TEXTO_SIN_MODELOS de `ytchat/ai/opciones_ia.py`.
+# tocan acá. Los nombres salen de `ytchat/ai/proveedores.py`.
 PENDIENTES_OTROS_MODULOS = (
     "Google Gemini",
     "OpenAI",
@@ -31,7 +30,6 @@ PENDIENTES_OTROS_MODULOS = (
     "OpenCode Go",
     "Command Code",
     "Otro compatible con OpenAI",
-    "Sin modelos en la lista. Escribe el modelo en Otro modelo.",
 )
 
 

@@ -19,6 +19,7 @@ from ytchat.ai import conversacion
 from ytchat.ai import protocolos
 from ytchat.ai import ventana_ia
 from ytchat.ui import ia_ventana as ventana
+from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
 
 
@@ -468,6 +469,102 @@ class TestVentanaIAVentana(unittest.TestCase):
     def test_la_ventana_no_tiene_casilla_de_analizando(self):
         dialogo = self._ventana()
         self.assertFalse(hasattr(dialogo, "chk_analizando"))
+
+    def test_no_queda_ningun_texto_visible_sin_envolver(self):
+        with con_pseudo():
+            dialogo = self._ventana()
+            sin_marcar = textos_sin_marcar(dialogo)
+
+        self.assertEqual([], sin_marcar)
+
+    def test_detalle_sin_texto_visible_sin_envolver(self):
+        with con_pseudo():
+            dialogo = self._ventana()
+            detalle = ventana.DialogoMensaje(dialogo, "texto largo")
+            self.addCleanup(destruir, detalle)
+            sin_marcar = textos_sin_marcar(detalle)
+
+        self.assertEqual([], sin_marcar)
+
+    def test_pseudo_temporizador_anuncia_marcado(self):
+        dialogo = self._ventana()
+        with con_pseudo(), \
+                mock.patch.object(ventana, "anunciar") as anunciar:
+            dialogo._al_temporizador(mock.Mock())
+        args, kwargs = anunciar.call_args
+        self.assertTrue(args[0].startswith("[¡"), args[0])
+        self.assertEqual(kwargs, {"urgente": False})
+
+    def test_pseudo_escape_en_curso_anuncia_marcado(self):
+        dialogo = self._ventana()
+        dialogo._en_curso = True
+        evento = mock.Mock()
+        evento.GetKeyCode.return_value = wx.WXK_ESCAPE
+        with con_pseudo(), \
+                mock.patch.object(ventana, "anunciar") as anunciar, \
+                mock.patch.object(ventana, "reproducir"):
+            dialogo._al_tecla(evento)
+        args, _kwargs = anunciar.call_args
+        self.assertTrue(args[0].startswith("[¡"), args[0])
+
+    def test_pseudo_copiar_sin_respuesta_anuncia_marcado(self):
+        dialogo = self._ventana()
+        with con_pseudo(), \
+                mock.patch.object(ventana, "anunciar") as anunciar:
+            dialogo._al_copiar(None)
+        args, _kwargs = anunciar.call_args
+        self.assertTrue(args[0].startswith("[¡"), args[0])
+
+    def test_pseudo_copiar_respuesta_anuncia_marcado(self):
+        dialogo = self._ventana()
+        dialogo._charla.agregar_captura(b"j", "Fuente", "10:00")
+        dialogo._charla.confirmar("hola", "respuesta final")
+        with con_pseudo(), \
+                mock.patch.object(ventana.wx, "TheClipboard",
+                                   PortapapelesDoble()), \
+                mock.patch.object(ventana, "anunciar") as anunciar, \
+                mock.patch.object(ventana, "reproducir"):
+            dialogo._al_copiar(None)
+        args, _kwargs = anunciar.call_args
+        self.assertTrue(args[0].startswith("[¡"), args[0])
+
+    def test_pseudo_nueva_conversacion_anuncia_marcado(self):
+        dialogo = self._ventana()
+        dialogo._charla.agregar_captura(b"j", "Fuente", "10:00")
+        with con_pseudo(), \
+                mock.patch.object(ventana, "anunciar") as anunciar:
+            dialogo._al_nueva(None)
+        args, _kwargs = anunciar.call_args
+        self.assertTrue(args[0].startswith("[¡"), args[0])
+
+    def test_pseudo_captura_agregada_anuncia_marcado(self):
+        dialogo = self._ventana()
+        captura = SimpleNamespace(jpeg=b"jpg-falso")
+
+        def _pedir(padre, al_terminar):
+            al_terminar(("Cámara", captura))
+
+        class _Gestor:
+            def conectar(self):
+                pass
+
+            def descripcion_escena(self):
+                return "Escena con una cámara."
+
+            def cerrar(self):
+                pass
+
+        with con_pseudo(), \
+                mock.patch.object(ventana, "pedir_captura",
+                                   side_effect=_pedir), \
+                mock.patch.object(ventana, "GestorPanelObs",
+                                   return_value=_Gestor()), \
+                mock.patch.object(ventana, "anunciar") as anunciar, \
+                mock.patch.object(ventana, "reproducir"):
+            dialogo._al_captura(None)
+        self.assertEqual(anunciar.call_count, 1)
+        args, _kwargs = anunciar.call_args
+        self.assertTrue(args[0].startswith("[¡"), args[0])
 
     def _enviar_con_ajuste(self, decir_analizando):
         dialogo = self._ventana()

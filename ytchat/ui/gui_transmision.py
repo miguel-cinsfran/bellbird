@@ -7,6 +7,7 @@ import threading
 import wx
 
 from ytchat.obs import ajuste_fino
+from ytchat.obs import consultas_transmision
 from ytchat.obs import obs_cliente
 from ytchat.obs import obs_destinos
 from ytchat.obs import obs_disposicion
@@ -45,13 +46,6 @@ def confirmar_transmision(padre, revision) -> bool:
         return dialogo.ShowModal() == wx.ID_OK
     finally:
         dialogo.Destroy()
-
-
-def _elegir_fuente(fuentes) -> str:
-    """La fuente del chat si está, si no la primera, si no ""."""
-    if NOMBRE_FUENTE in fuentes:
-        return NOMBRE_FUENTE
-    return fuentes[0] if fuentes else ""
 
 
 _TEXTO_LIENZO = (
@@ -401,44 +395,32 @@ class TransmisionDialog(wx.Dialog):
     def _cargar_inicial(self):
         self._asegurar(lambda: self._gestor.conectar(),
                        al_anunciar=lambda frase: wx.CallAfter(anunciar, frase))
-        self._gestor.conectar()
-        escenas = self._gestor.escenas()
-        al_aire = self._gestor.escena_al_aire()
-        escena = al_aire if al_aire in escenas else (escenas[0] if escenas else "")
-        fuentes = self._gestor.fuentes(escena)
-        fuente = _elegir_fuente(fuentes)
-        snap = self._gestor.instantanea(escena, fuente=fuente)
-        opciones, actual = self._gestor.ventanas(escena)
-        return (escenas, escena, al_aire, fuentes, fuente, snap,
-                self._gestor.transformacion(escena, fuente=fuente),
-                self._gestor.estado_transmision(), self._gestor.estado_grabacion(),
-                self._gestor.perfil_actual(), opciones, actual,
-                self._gestor.descripcion_escena())
+        return consultas_transmision.cargar_inicial(self._gestor)
 
     def _poblar_inicial(self, datos):
         # Puebla los controles sin anunciar: la carga inicial anuncia aparte
         # y el destino preparado reusa esto para refrescar en silencio.
-        escenas, escena, al_aire, fuentes, fuente, snap, transformacion, transmision, grabacion, perfil, opciones, actual, descripcion = datos
-        self.cho_escena.Set(list(escenas))
-        if escena:
-            self.cho_escena.SetStringSelection(escena)
-        self._cargar_fuentes(fuentes, fuente)
-        self._cargar_ventanas(opciones, actual)
-        self._mostrar_snap(snap)
-        self._mostrar_vista(descripcion)
-        if perfil in DESTINOS:
-            self.cho_destino.SetStringSelection(perfil)
+        self.cho_escena.Set(list(datos.escenas))
+        if datos.escena:
+            self.cho_escena.SetStringSelection(datos.escena)
+        self._cargar_fuentes(datos.fuentes, datos.fuente)
+        self._cargar_ventanas(datos.opciones, datos.actual)
+        self._mostrar_snap(datos.snap)
+        self._mostrar_vista(datos.descripcion)
+        if datos.perfil in DESTINOS:
+            self.cho_destino.SetStringSelection(datos.perfil)
         else:
             self.cho_destino.SetSelection(wx.NOT_FOUND)
-        self._mostrar_estados(transmision, grabacion, al_aire)
+        self._mostrar_estados(datos.transmision, datos.grabacion,
+                              datos.al_aire)
 
     def _inicial_cargada(self, datos):
         self._poblar_inicial(datos)
-        escenas, escena, al_aire, fuentes, fuente, snap, transformacion, transmision, grabacion, perfil, opciones, actual, descripcion = datos
         anunciar(obs_disposicion.describir_preparacion(
-            snap.conectado, overlay_servidor.esta_encendido(),
-            overlay_servidor.puerto_actual(), NOMBRE_FUENTE in fuentes))
-        self._anunciar_estados(transmision, grabacion, al_aire)
+            datos.snap.conectado, overlay_servidor.esta_encendido(),
+            overlay_servidor.puerto_actual(), NOMBRE_FUENTE in datos.fuentes))
+        self._anunciar_estados(datos.transmision, datos.grabacion,
+                               datos.al_aire)
         self.cho_destino.SetFocus()
 
     def _mostrar_snap(self, snap):
@@ -569,24 +551,16 @@ class TransmisionDialog(wx.Dialog):
 
     def _aplicar_ventana(self, escena, valor):
         # Escena y valor viajan como argumentos: los hilos no leen controles.
-        frase = self._gestor.usar_ventana(escena, valor)
-        fuentes = self._gestor.fuentes(escena)
-        fuente = _elegir_fuente(fuentes)
-        snap = self._gestor.instantanea(escena, fuente=fuente)
-        al_aire = self._gestor.escena_al_aire()
-        transmision = self._gestor.estado_transmision()
-        grabacion = self._gestor.estado_grabacion()
-        opciones, actual = self._gestor.ventanas(escena)
-        return (frase, fuentes, fuente, snap, al_aire, transmision,
-                grabacion, opciones, actual)
+        return consultas_transmision.aplicar_ventana(
+            self._gestor, escena, valor)
 
     def _ventana_aplicada(self, datos):
-        frase, fuentes, fuente, snap, al_aire, transmision, grabacion, opciones, actual = datos
-        self._cargar_fuentes(fuentes, fuente)
-        self._mostrar_snap(snap)
-        self._mostrar_estados(transmision, grabacion, al_aire)
-        self._cargar_ventanas(opciones, actual)
-        anunciar(frase)
+        self._cargar_fuentes(datos.fuentes, datos.fuente)
+        self._mostrar_snap(datos.snap)
+        self._mostrar_estados(datos.transmision, datos.grabacion,
+                              datos.al_aire)
+        self._cargar_ventanas(datos.opciones, datos.actual)
+        anunciar(datos.frase)
 
     def _escena_puesta_al_aire(self, escena):
         anunciar(self._frase_escena_al_aire(escena))
@@ -768,18 +742,14 @@ class TransmisionDialog(wx.Dialog):
         event.Skip()
 
     def _leer_escena(self, escena):
-        fuentes = self._gestor.fuentes(escena)
-        fuente = _elegir_fuente(fuentes)
-        return (fuentes, fuente, self._gestor.instantanea(escena, fuente=fuente),
-                *self._gestor.ventanas(escena))
+        return consultas_transmision.leer_escena(self._gestor, escena)
 
     def _escena_cambiada(self, datos):
-        fuentes, fuente, snap, opciones, actual = datos
-        self._cargar_fuentes(fuentes, fuente)
-        self._cargar_ventanas(opciones, actual)
-        if fuentes:
-            self._mostrar_snap(snap)
-            self._anunciar_snap(snap)
+        self._cargar_fuentes(datos.fuentes, datos.fuente)
+        self._cargar_ventanas(datos.opciones, datos.actual)
+        if datos.fuentes:
+            self._mostrar_snap(datos.snap)
+            self._anunciar_snap(datos.snap)
 
     def _cambiar_fuente(self, event):
         if self._operacion_en_vuelo:

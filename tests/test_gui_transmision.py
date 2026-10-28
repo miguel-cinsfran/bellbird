@@ -5,6 +5,7 @@ import unittest
 from unittest import mock
 
 from ytchat.ui import gui_transmision
+from ytchat.obs import consultas_transmision
 from ytchat.obs import obs_cliente
 from ytchat.obs import obs_disposicion
 from ytchat.obs import obs_estado
@@ -1362,20 +1363,83 @@ class TestGuardarDestinoSinVentana(unittest.TestCase):
                                  mock.sentinel.inicial, "TikTok"))
 
 
+class TestConsultasPasanCadaCampoASuLugar(unittest.TestCase):
+    # Sin ventana: los métodos se llaman sobre un objeto falso, así no se
+    # crea ningún control ni hace falta wx.App. Cada campo lleva un valor
+    # distinto para que un cruce de argumentos falle.
+
+    def _inicial(self):
+        return consultas_transmision.CargaInicial(
+            escenas=("Principal", "Juego"), escena="Principal",
+            al_aire=mock.sentinel.al_aire,
+            fuentes=("Cámara", "Chat YTChat"), fuente="Chat YTChat",
+            snap=mock.Mock(),
+            transformacion=mock.sentinel.transformacion,
+            transmision=mock.sentinel.transmision,
+            grabacion=mock.sentinel.grabacion, perfil="TikTok",
+            opciones=mock.sentinel.opciones, actual=mock.sentinel.actual,
+            descripcion=mock.sentinel.descripcion)
+
+    def test_poblar_inicial_reparte_cada_campo(self):
+        falso = mock.Mock()
+        datos = self._inicial()
+        gui_transmision.TransmisionDialog._poblar_inicial(falso, datos)
+        falso._cargar_fuentes.assert_called_once_with(
+            ("Cámara", "Chat YTChat"), "Chat YTChat")
+        falso._cargar_ventanas.assert_called_once_with(
+            mock.sentinel.opciones, mock.sentinel.actual)
+        falso._mostrar_snap.assert_called_once_with(datos.snap)
+        falso._mostrar_vista.assert_called_once_with(
+            mock.sentinel.descripcion)
+        falso._mostrar_estados.assert_called_once_with(
+            mock.sentinel.transmision, mock.sentinel.grabacion,
+            mock.sentinel.al_aire)
+
+    def test_inicial_cargada_anuncia_los_estados_en_orden(self):
+        falso = mock.Mock()
+        datos = self._inicial()
+        with mock.patch.object(gui_transmision, "anunciar"), \
+                mock.patch.object(gui_transmision.overlay_servidor,
+                                  "esta_encendido", return_value=False), \
+                mock.patch.object(gui_transmision.overlay_servidor,
+                                  "puerto_actual", return_value=None):
+            gui_transmision.TransmisionDialog._inicial_cargada(falso, datos)
+        falso._poblar_inicial.assert_called_once_with(datos)
+        falso._anunciar_estados.assert_called_once_with(
+            mock.sentinel.transmision, mock.sentinel.grabacion,
+            mock.sentinel.al_aire)
+
+    def test_ventana_aplicada_muestra_estados_en_orden_y_anuncia(self):
+        falso = mock.Mock()
+        datos = consultas_transmision.VentanaAplicada(
+            frase=mock.sentinel.frase,
+            fuentes=("Cámara", "Chat YTChat"), fuente="Chat YTChat",
+            snap=mock.sentinel.snap, al_aire=mock.sentinel.al_aire,
+            transmision=mock.sentinel.transmision,
+            grabacion=mock.sentinel.grabacion,
+            opciones=mock.sentinel.opciones, actual=mock.sentinel.actual)
+        with mock.patch.object(gui_transmision, "anunciar") as anunciar:
+            gui_transmision.TransmisionDialog._ventana_aplicada(falso, datos)
+        falso._mostrar_estados.assert_called_once_with(
+            mock.sentinel.transmision, mock.sentinel.grabacion,
+            mock.sentinel.al_aire)
+        anunciar.assert_called_once_with(mock.sentinel.frase)
+
+
 class TestElegirFuente(unittest.TestCase):
 
     def test_prefiere_la_del_chat_si_esta(self):
         self.assertEqual(
-            gui_transmision._elegir_fuente(
+            consultas_transmision.elegir_fuente(
                 ("Cámara", gui_transmision.NOMBRE_FUENTE)),
             gui_transmision.NOMBRE_FUENTE)
 
     def test_sin_la_del_chat_devuelve_la_primera(self):
         self.assertEqual(
-            gui_transmision._elegir_fuente(("Cámara", "Juego")), "Cámara")
+            consultas_transmision.elegir_fuente(("Cámara", "Juego")), "Cámara")
 
     def test_lista_vacia_devuelve_vacio(self):
-        self.assertEqual(gui_transmision._elegir_fuente(()), "")
+        self.assertEqual(consultas_transmision.elegir_fuente(()), "")
 
 
 if __name__ == "__main__":

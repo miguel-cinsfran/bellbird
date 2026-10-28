@@ -264,14 +264,26 @@ Windows, WO Mic Device». Si OBS usa el predeterminado, el micrófono es el
 que Windows tenga elegido en ese momento, y puede no ser el que esperas.
 Para que no cambie, elige el dispositivo en las propiedades de la fuente
 de micrófono en OBS.
+Después de activarlo, la aplicación escucha tres segundos. Si no entra
+ningún sonido, suena un aviso propio y dice «El micrófono no recibe
+sonido. Revisa cuál está elegido en Windows o en OBS.».
 
 `Ctrl+Mayús+O`, o *Mostrar OBS* en el menú *Transmisión*, trae al frente la
 ventana de OBS, también cuando está en el área de notificación. Si OBS
 espera una respuesta, como la pregunta del modo seguro, el foco va a ese
 cuadro.
-Después de activarlo, la aplicación escucha tres segundos. Si no entra
-ningún sonido, suena un aviso propio y dice «El micrófono no recibe
-sonido. Revisa cuál está elegido en Windows o en OBS.».
+
+**Grabar el directo.** Con *Grabar también al transmitir* marcada, en el
+menú *Transmisión*, OBS empieza a grabar cuando la transmisión empieza
+bien, y deja de grabar cuando la transmisión se detiene. El archivo queda
+en la carpeta de grabaciones de OBS. Si ya estabas grabando, esa grabación
+sigue como estaba, y cerrar la aplicación no corta ninguna de las dos. Si
+la grabación no se puede iniciar, la transmisión sigue y suena un aviso
+propio con «La transmisión empezó, pero no se pudo iniciar la grabación.».
+Si el perfil de OBS graba con un codificador propio, la revisión antes de
+transmitir lo avisa al final, porque grabar así carga el doble el equipo.
+En ese caso, para que cargue menos, elige en OBS que la grabación use la
+misma calidad que la transmisión. La casilla viene desmarcada.
 
 **Cómo se ve la escena.** La ventana *Transmisión* describe cada fuente de
 adelante hacia atrás: dónde está, qué tamaño tiene y si algo la tapa. Lo

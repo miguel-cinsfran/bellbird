@@ -27,6 +27,15 @@ Paraguay.
 - Si OBS está abierto pero no responde, la app ya no pide comprobar que
   esté abierto: dice que puede estar esperando una respuesta y que elijas
   *Mostrar OBS*.
+- *Grabar también al transmitir*, en el menú *Transmisión*. Con la casilla
+  marcada, OBS empieza a grabar cuando la transmisión empieza bien, y deja
+  de grabar cuando la transmisión se detiene. Si ya estabas grabando, esa
+  grabación sigue como estaba. Viene desmarcada.
+- Si la grabación no se puede iniciar, la transmisión sigue y la app lo
+  avisa con un sonido propio.
+- Con esa casilla marcada, la revisión antes de transmitir avisa si el
+  perfil de OBS graba con un codificador propio. En ese caso, transmitir y
+  grabar a la vez carga el doble el equipo.
 
 ### Arreglos
 

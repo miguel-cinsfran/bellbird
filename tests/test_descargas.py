@@ -735,6 +735,18 @@ class TestGestorDescargasLimite(unittest.TestCase):
         self.assertEqual(list(entradas), urls)
 
 
+class TestEsperarTurno(unittest.TestCase):
+    def test_esperar_turno_con_evento_puesto_no_toma_turno(self):
+        gestor = GestorDescargas({"formato": "mp4", "bitrate": 192, "carpeta": "/tmp"})
+        gestor._turnos = mock.Mock()
+        gestor._empezados = set()
+        evento = threading.Event()
+        evento.set()
+        self.assertFalse(gestor._esperar_turno("x", evento))
+        gestor._turnos.acquire.assert_not_called()
+        self.assertEqual(gestor._empezados, set())
+
+
 class TestGestorUnico(unittest.TestCase):
     def tearDown(self):
         reiniciar_gestor()

@@ -31,6 +31,7 @@ from ytchat.core import diagnostico
 from ytchat.core.config import obtener_opciones_descarga
 from ytchat.core import paths
 from ytchat.downloads import ffmpeg_bin
+from ytchat.downloads import fila_descargas
 from ytchat.downloads import ytdlp_bin
 from ytchat.downloads.argumentos_ytdlp import argumentos_descarga, construir_outtmpl, formato_a_ydl
 from ytchat.downloads.motivo_error import motivo_de_error
@@ -372,6 +373,43 @@ class GestorDescargas:
             if callback not in self._suscriptores_fin:
                 self._suscriptores_fin.append(callback)
 
+    def _esperar_turno(self, item_id, ev) -> bool:
+        # Espera el turno antes de analizar: el semáforo acota cuántos corren
+        # y la fila impone el orden. Si cancelan, vuelve sin tomar el turno.
+        while True:
+            if ev.is_set():
+                return False
+            with self._lock:
+                bloqueado = fila_descargas.bloqueado_por_anterior(
+                    item_id, self._orden, self._empezados, self._items,
+                    self._eventos)
+            if not bloqueado:
+                if self._turnos.acquire(timeout=0.2):
+                    with self._lock:
+                        self._empezados.add(item_id)
+                    return True
+            else:
+                ev.wait(0.02)
+
+    def _avisar_estado(self, it, estado, mensaje, estado_cb) -> None:
+        it.estado = estado
+        it.mensaje = mensaje
+        logger.info("descarga %s: estado %s", it.id, estado)
+        try:
+            estado_cb(it.id, estado, mensaje)
+        except Exception as exc:
+            logger.debug("estado_cb lanzó: %s", exc)
+        nombre = it.nombre if it.nombre != it.url else ""
+        with self._lock:
+            suscriptores = list(self._suscriptores_fin)
+        for suscriptor in suscriptores:
+            try:
+                suscriptor(estado, mensaje, nombre, it)
+            except Exception as exc:
+                logger.warning("suscriptor de descarga lanzó: %s", exc)
+        if estado in ("completado", "cancelado", "error"):
+            logger.info("descarga %s terminó: %s", it.id, estado)
+
     def encolar(self, url: str, progreso_cb: Callable, estado_cb: Callable,
                 creado_cb: Optional[Callable] = None) -> str:
         """Crea un ItemDescarga, lo deja en 'en_cola' y lanza su hilo.
@@ -399,23 +437,7 @@ class GestorDescargas:
             creado_cb(item_id)
 
         def _cb_estado(estado: str, mensaje: str = "") -> None:
-            it.estado = estado
-            it.mensaje = mensaje
-            logger.info("descarga %s: estado %s", item_id, estado)
-            try:
-                estado_cb(item_id, estado, mensaje)
-            except Exception as exc:
-                logger.debug("estado_cb lanzó: %s", exc)
-            nombre = it.nombre if it.nombre != it.url else ""
-            with self._lock:
-                suscriptores = list(self._suscriptores_fin)
-            for suscriptor in suscriptores:
-                try:
-                    suscriptor(estado, mensaje, nombre, it)
-                except Exception as exc:
-                    logger.warning("suscriptor de descarga lanzó: %s", exc)
-            if estado in ("completado", "cancelado", "error"):
-                logger.info("descarga %s terminó: %s", item_id, estado)
+            self._avisar_estado(it, estado, mensaje, estado_cb)
 
         def _cb_progreso(pct: float, vel, eta, nombre: str) -> None:
             it.progreso = max(0.0, min(100.0, float(pct)))
@@ -430,39 +452,10 @@ class GestorDescargas:
             # Doble red de seguridad: capturar lo que sea que se escape.
             tomado = False
             try:
-                # Espera del turno, ANTES de analizar (que también lanza
-                # yt-dlp). El semáforo acota cuántos corren y el repaso de
-                # _orden impone la fila: un hilo solo toma el turno cuando
-                # ningún ítem anterior a él sigue en 'en_cola' sin empezar.
-                # Si cancelan mientras espera, se avisa cancelado sin lanzar
-                # nada y sin tomar el turno.
-                while True:
-                    if ev.is_set():
-                        _cb_estado("cancelado", "Descarga cancelada")
-                        return
-                    with self._lock:
-                        bloqueado = False
-                        for previo in self._orden:
-                            if previo == item_id:
-                                break
-                            if previo in self._empezados:
-                                continue
-                            anterior = self._items.get(previo)
-                            if anterior is None or anterior.estado != "en_cola":
-                                continue
-                            evento_previo = self._eventos.get(previo)
-                            if evento_previo is not None and evento_previo.is_set():
-                                continue
-                            bloqueado = True
-                            break
-                    if not bloqueado:
-                        if self._turnos.acquire(timeout=0.2):
-                            tomado = True
-                            with self._lock:
-                                self._empezados.add(item_id)
-                            break
-                    else:
-                        ev.wait(0.02)
+                tomado = self._esperar_turno(item_id, ev)
+                if not tomado:
+                    _cb_estado("cancelado", "Descarga cancelada")
+                    return
                 try:
                     info = analizar_url(url)
                     it.tipo = info.get("tipo", "video")

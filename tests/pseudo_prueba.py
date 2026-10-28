@@ -45,7 +45,7 @@ def textos_sin_marcar(ventana, propios=()):
         textos = []
         if isinstance(actual, wx.TopLevelWindow):
             textos.append(actual.GetTitle())
-        if isinstance(actual, wx.Notebook):
+        if isinstance(actual, wx.BookCtrlBase):
             textos.extend(actual.GetPageText(i)
                           for i in range(actual.GetPageCount()))
         if isinstance(actual, _CON_ROTULO):

@@ -290,14 +290,17 @@ _LECTORAS_PARSER = {"get", "getboolean", "getint", "has_option"}
 
 def _pares_leidos_en_config():
     """Pares (sección, clave) leídos en `config.py`, `config_descargas.py`,
-    `config_musica.py` y `config_lectura.py`: llamadas `leer_texto`, `leer_booleano`, `leer_entero`,
+    `config_musica.py`, `config_lectura.py`, `config_transmision.py` y
+    `config_voz.py`: llamadas `leer_texto`, `leer_booleano`, `leer_entero`,
     `leer_decimal` (literales en 2.º y 3.º lugar) y parecidas del parser (`get`,
     `getboolean`, ...) con literales en 1.º y 2.º lugar."""
     leidos = set()
     arboles = (_arbol("ytchat/core/config.py"),
                 _arbol("ytchat/core/config_descargas.py"),
                 _arbol("ytchat/core/config_musica.py"),
-                _arbol("ytchat/core/config_lectura.py"))
+                _arbol("ytchat/core/config_lectura.py"),
+                _arbol("ytchat/core/config_transmision.py"),
+                _arbol("ytchat/core/config_voz.py"))
     for arbol in arboles:
         for nodo in ast.walk(arbol):
             if not isinstance(nodo, ast.Call):

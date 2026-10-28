@@ -23,6 +23,8 @@ from ytchat.core.atajos import (
 from ytchat.core.config_descargas import guardar_opciones_descarga, obtener_opciones_descarga
 from ytchat.core.config_lectura import opciones_lectura
 from ytchat.core.config_musica import opciones_musica
+from ytchat.core.config_transmision import opciones_transmision
+from ytchat.core.config_voz import opciones_voz
 
 
 LIBRERIAS_SILENCIADAS = (
@@ -319,6 +321,10 @@ def guardar_opcion(ruta: Path | None, seccion: str, clave: str, valor: str) -> b
 _opciones_musica = opciones_musica
 # La sección [lectura] vive en `config_lectura`: mismo nombre corto.
 _opciones_lectura = opciones_lectura
+# La sección [voz] vive en `config_voz`: mismo nombre corto.
+_opciones_voz = opciones_voz
+# La sección [transmision] vive en `config_transmision`: mismo nombre corto.
+_opciones_transmision = opciones_transmision
 
 
 def cargar_configuracion() -> dict:
@@ -374,54 +380,8 @@ def cargar_configuracion() -> dict:
     if filtro_activo not in ("todos", "texto", "superchat", "miembro"):
         filtro_activo = "todos"
 
-    from ytchat.obs import obs_destinos as _destinos
-    destino = leer_texto(p, "transmision", "destino")
-    if destino not in _destinos.DESTINOS:
-        destino = ""
-
-    from ytchat.youtube import emision as _emision
-    privacidad = leer_texto(p, "transmision", "youtube_privacidad")
-    if privacidad not in _emision.PRIVACIDADES:
-        privacidad = _emision.PRIVACIDAD_INICIAL
-    latencia = leer_texto(p, "transmision", "youtube_latencia")
-    if latencia not in _emision.LATENCIAS:
-        latencia = _emision.LATENCIA_INICIAL
-    categoria = leer_texto(p, "transmision", "youtube_categoria")
-    if categoria not in {identificador for identificador, _t
-                         in _emision.CATEGORIAS}:
-        categoria = ""
-
-    # [voz]: el motor se valida contra los válidos de Prism (importarlos aquí
-    # no arrastra Prism: motores lo importa de forma perezosa). La velocidad se
-    # guarda como porcentaje propio (0..100); la clave vieja en palabras por
-    # minuto se convierte una sola vez y se fija en el archivo, así el arranque
-    # siguiente no vuelve al valor de fábrica.
-    from ytchat.voice import escala_voz as _escala
-    from ytchat.voice import motores as _motores
-    motor = leer_texto(p, "voz", "motor").lower()
-    if motor not in _motores.MOTORES:
-        motor = "sapi"
-    if p.has_option("voz", "velocidad_voz"):
-        velocidad_voz = max(0, min(100, a_entero(
-            leer_texto(p, "voz", "velocidad_voz"), _escala.VELOCIDAD_NORMAL)))
-    elif p.has_option("voz", "velocidad"):
-        velocidad_voz = _escala.velocidad_desde_wpm(
-            a_entero(leer_texto(p, "voz", "velocidad"), 175))
-        guardar_opcion(ruta, "voz", "velocidad_voz", str(velocidad_voz))
-    else:
-        velocidad_voz = _escala.VELOCIDAD_NORMAL
-
     return {
-        "motor": motor,
-        "voz": leer_texto(p, "voz", "voz"),
-        "velocidad_voz": velocidad_voz,
-        "volumen": leer_decimal(p, "voz", "volumen"),
-        "tono": leer_entero(p, "voz", "tono", lo=0, hi=100),
-        "multivoz": leer_booleano(p, "voz", "multivoz"),
-        "voz_eventos": leer_texto(p, "voz", "voz_eventos"),
-        "voz_respaldo": leer_texto(p, "voz", "voz_respaldo"),
-        "elevenlabs_tope": leer_entero(p, "voz", "elevenlabs_tope", lo=0),
-        "elevenlabs_solo_importantes": leer_booleano(p, "voz", "elevenlabs_solo_importantes"),
+        **_opciones_voz(p, ruta),
         "estrategia": estrategia,
         "tamanio_maximo": leer_entero(p, "cola", "tamanio_maximo", lo=1),
         "umbral_solo_nombre": leer_entero(p, "cola", "umbral_solo_nombre"),
@@ -449,21 +409,7 @@ def cargar_configuracion() -> dict:
         "tiktok_anunciar_entradas": leer_booleano(p, "tiktok", "anunciar_entradas"),
         "tiktok_leer_me_gusta": leer_booleano(p, "tiktok", "leer_me_gusta"),
         "tiktok_usuario": leer_texto(p, "tiktok", "usuario"),
-        "transmision_destino": destino,
-        "avisar_sobrecarga": leer_booleano(p, "transmision", "avisar_sobrecarga"),
-        "transmision_youtube_titulo": decodificar_texto_ini(leer_texto(p, "transmision", "youtube_titulo")),
-        "transmision_youtube_descripcion": decodificar_texto_ini(leer_texto(p, "transmision", "youtube_descripcion")),
-        "transmision_youtube_privacidad": privacidad,
-        "transmision_youtube_latencia": latencia,
-        "transmision_youtube_ninos": leer_booleano(p, "transmision", "youtube_ninos"),
-        "transmision_youtube_dvr": leer_booleano(p, "transmision", "youtube_dvr"),
-        "transmision_youtube_categoria": categoria,
-        "transmision_youtube_etiquetas": decodificar_texto_ini(leer_texto(p, "transmision", "youtube_etiquetas")),
-        "transmision_youtube_miniatura": decodificar_texto_ini(
-            leer_texto(p, "transmision", "youtube_miniatura")),
-        "transmision_youtube_lista": leer_texto(p, "transmision", "youtube_lista"),
-        "transmision_youtube_lista_titulo": decodificar_texto_ini(
-            leer_texto(p, "transmision", "youtube_lista_titulo")),
+        **_opciones_transmision(p),
         "programados_activo": leer_booleano(p, "programados", "activo"),
         "buscar_actualizaciones_al_iniciar": leer_booleano(p, "actualizaciones", "buscar_al_iniciar"),
         "registro_detallado": leer_booleano(p, "diagnostico", "registro_detallado"),  # configurar_logging se adelanta al diccionario.

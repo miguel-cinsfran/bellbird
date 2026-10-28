@@ -384,6 +384,73 @@ class TestCargarConfiguracion(unittest.TestCase):
         cfg = self._cargar_en("[voz]\nvolumen = 1.0\n")
         self.assertEqual(cfg["velocidad_voz"], 50)
 
+    def test_voz_y_transmision_conservan_valores_y_orden(self):
+        # Fija lo que devuelve hoy [voz] y [transmision] con valores no de
+        # fábrica, para que el refactor a config_voz y config_transmision
+        # no cambie claves, valores, orden ni lo escrito en el archivo.
+        contenido = (
+            "[voz]\n"
+            "motor = cualquiera\n"
+            "voz = 2\n"
+            "velocidad = 400\n"
+            "volumen = 5.0\n"
+            "tono = 80\n"
+            "multivoz = true\n"
+            "voz_eventos = SAPI\n"
+            "voz_respaldo = respaldo\n"
+            "elevenlabs_tope = -5\n"
+            "elevenlabs_solo_importantes = true\n"
+            "[transmision]\n"
+            "destino = Twitch\n"
+            "avisar_sobrecarga = false\n"
+            "youtube_titulo = Hola\n"
+            "youtube_descripcion = Desc\n"
+            "youtube_privacidad = solo-yo\n"
+            "youtube_latencia = turbo\n"
+            "youtube_ninos = true\n"
+            "youtube_dvr = false\n"
+            "youtube_categoria = 999\n"
+            "youtube_etiquetas = a, b\n"
+            "youtube_miniatura = C:/x.png\n"
+            "youtube_lista = PL123\n"
+            "youtube_lista_titulo = Lista\n"
+        )
+        tmp = Path(self._tmp.name)
+        (tmp / "config.ini").write_text(contenido, encoding="utf-8")
+        with redirigir_rutas(tmp):
+            cfg = config.cargar_configuracion()
+        esperado = [
+            ("motor", "sapi"),
+            ("voz", "2"),
+            ("velocidad_voz", 100),
+            ("volumen", 1.0),
+            ("tono", 80),
+            ("multivoz", True),
+            ("voz_eventos", "SAPI"),
+            ("voz_respaldo", "respaldo"),
+            ("elevenlabs_tope", 0),
+            ("elevenlabs_solo_importantes", True),
+            ("transmision_destino", ""),
+            ("avisar_sobrecarga", False),
+            ("transmision_youtube_titulo", "Hola"),
+            ("transmision_youtube_descripcion", "Desc"),
+            ("transmision_youtube_privacidad", "unlisted"),
+            ("transmision_youtube_latencia", "normal"),
+            ("transmision_youtube_ninos", True),
+            ("transmision_youtube_dvr", False),
+            ("transmision_youtube_categoria", ""),
+            ("transmision_youtube_etiquetas", "a, b"),
+            ("transmision_youtube_miniatura", "C:/x.png"),
+            ("transmision_youtube_lista", "PL123"),
+            ("transmision_youtube_lista_titulo", "Lista"),
+        ]
+        claves = {clave for clave, _ in esperado}
+        pares = [(clave, valor) for clave, valor in cfg.items()
+                 if clave in claves]
+        self.assertEqual(pares, esperado)
+        texto = (tmp / "config.ini").read_text(encoding="utf-8")
+        self.assertIn("velocidad_voz = 100", texto)
+
     def test_motor_invalido_cae_a_sapi(self):
         cfg = self._cargar_en("[voz]\nmotor = cualquiera\n")
         self.assertEqual(cfg["motor"], "sapi")

@@ -7,6 +7,11 @@ YTChat TTS v*/
 YTChat TTS.zip
 YTChat TTS v*.zip
 YTChat TTS v*.zip.sha256
+Bellbird/
+Bellbird v*/
+Bellbird.zip
+Bellbird v*.zip
+Bellbird v*.zip.sha256
 yt-dlp.exe
 
 # Cache del audio esclavo: la crea el reproductor al lado del ejecutable, y

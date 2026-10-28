@@ -12,6 +12,7 @@ from __future__ import annotations
 import wx
 
 from ytchat.core import diagnostico
+from ytchat.core.idioma import _
 from ytchat.obs import obs_cliente
 from ytchat.obs import obs_lanzador
 from ytchat.obs import transmision_directa

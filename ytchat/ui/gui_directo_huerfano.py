@@ -17,6 +17,7 @@ import wx
 from ytchat.core import config
 from ytchat.core import diagnostico
 from ytchat.core import paths
+from ytchat.core.idioma import _
 from ytchat.obs import obs_activacion
 from ytchat.obs.obs_panel import GestorPanelObs
 from ytchat.ui.accesibilidad import anunciar

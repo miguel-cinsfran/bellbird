@@ -5573,5 +5573,477 @@ class TestCableadoAnuncioAjuste(unittest.TestCase):
         self.assertEqual(dichos, ["Volumen de la voz: 45%", "50%", "Velocidad de la voz: 1"])
 
 
+class TestNombresRegion(unittest.TestCase):
+    # Pura, sin ventana: la tabla cubre las tres regiones y da el texto de hoy.
+    # Lo que se guarda y se compara sigue siendo el índice.
+
+    def test_tabla_cubre_las_tres_regiones_con_el_texto_de_hoy(self):
+        self.assertEqual(
+            [gui._NOMBRE_REGION[gui.REG_CONEXION],
+             gui._NOMBRE_REGION[gui.REG_CONTENIDO],
+             gui._NOMBRE_REGION[gui.REG_REPRODUCTOR]],
+            ["Conexión", "Contenido", "Reproductor"])
+
+
+class TestPseudoAnunciosGui(unittest.TestCase):
+    # Sin ventana: controles y marco con dobles, así se corre acá. Los textos
+    # que arman otros módulos (avisos de preferencias, frase de descartes,
+    # motivos de redacción, estado de OBS, resultado de actualización) no entran.
+
+    def setUp(self):
+        self.captados = []
+        parches = [
+            mock.patch.object(gui, "anunciar", self.captados.append),
+            mock.patch.object(gui._snd, "reproducir"),
+        ]
+        for parche in parches:
+            parche.start()
+            self.addCleanup(parche.stop)
+        pseudo = con_pseudo()
+        pseudo.__enter__()
+        self.addCleanup(pseudo.__exit__, None, None, None)
+
+    def _exigir_marcados(self, cantidad):
+        self.assertEqual(len(self.captados), cantidad)
+        for frase in self.captados:
+            self.assertTrue(frase.startswith("[¡"), frase)
+        del self.captados[:]
+
+    def _marco(self, **extras):
+        marco = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        marco._alive = True
+        marco._apagando = False
+        marco._conectado = False
+        marco._conectando = False
+        marco._config = {"silenciar_lectura": False,
+                         "mostrar_total_superchats": False}
+        marco.sb = mock.Mock()
+        marco._metadatos = {}
+        marco.txt_info = mock.Mock()
+        marco._rep_panel = mock.Mock()
+        marco._com_panel = mock.Mock()
+        marco._mostrar_zona = mock.Mock()
+        marco.set_titulo_stream = mock.Mock()
+        marco._fijar_tipo = mock.Mock()
+        marco._set_conectado_ui = mock.Mock()
+        marco._actualizar_estado_online = mock.Mock()
+        marco._texto_tipo = ""
+        marco._titulo_stream = ""
+        marco._voz_nombre = "Voz"
+        marco._sc_totales = {}
+        marco.sesion = mock.Mock(enlace_directo="", tipo_video="desconocido",
+                                 live_chat_id="", video_id="")
+        marco._cola = mock.Mock(qsize=lambda: 0)
+        marco._stats = mock.Mock(leidos=0, superchats=0)
+        marco._worker = mock.Mock(get_rate=lambda: 0, get_volume=lambda: 100)
+        marco.chat_vivo = mock.Mock(filtro=None)
+        marco.chat_vivo.reconstruir = mock.Mock()
+        marco.lb_chat = mock.Mock()
+        marco.lb_chat.GetCount.return_value = 5
+        marco.__dict__.update(extras)
+        return marco
+
+    def test_confirmar_salida_marca_los_tres_caminos(self):
+        self.assertTrue(gui.mensaje_confirmar_salida(
+            True, True, False, True).startswith("[¡"))
+        self.assertTrue(gui.mensaje_confirmar_salida(
+            True, True, False, False).startswith("[¡"))
+        self.assertTrue(gui.mensaje_confirmar_salida(
+            True, False, False, True).startswith("[¡"))
+        self.assertIsNone(gui.mensaje_confirmar_salida(False, True, True, True))
+
+    def test_conflictos_y_conexion_basica_marcados(self):
+        with mock.patch.object(
+                gui, "detectar_conflictos_atajos",
+                return_value=[("Perdedora", "Conservada", "Ctrl+X")]):
+            gui.anunciar_conflictos_atajos({"x": 1})
+        self._exigir_marcados(1)
+        marco = self._marco()
+        marco.on_desconectar_cb = mock.Mock()
+        marco.txt_url = mock.Mock()
+        marco.set_conectado = mock.Mock()
+        marco._actualizar_boton_directo = mock.Mock()
+        marco._conectado = False
+        marco._conectando = True
+        gui.YTChatFrame._on_conectar(marco, None)
+        self._exigir_marcados(1)
+        marco._conectando = False
+        marco.txt_url.GetValue.return_value = "   "
+        captado = {}
+
+        def caja(mensaje, titulo, estilo, padre=None):
+            captado["mensaje"] = mensaje
+            captado["titulo"] = titulo
+            return 0
+
+        with mock.patch.object(gui.wx, "MessageBox", caja):
+            gui.YTChatFrame._on_conectar(marco, None)
+        self.assertTrue(captado["mensaje"].startswith("[¡"))
+        self.assertTrue(captado["titulo"].startswith("[¡"))
+        marco.txt_url.GetValue.return_value = "abc"
+        marco.btn_conectar = mock.Mock()
+        marco.mi_conectar = mock.Mock()
+        marco.mi_desconectar = mock.Mock()
+        marco.on_conectar_cb = mock.Mock()
+        with mock.patch.object(gui.wx, "CallAfter",
+                               side_effect=lambda f, *a: f(*a)):
+            gui.YTChatFrame._on_conectar(marco, None)
+        self._exigir_marcados(1)
+
+    def test_url_invalida_marca_anuncio_y_cuadro(self):
+        marco = self._marco()
+        marco._set_conectado_ui = mock.Mock()
+        marco.txt_url = mock.Mock()
+        captado = {}
+
+        def caja(mensaje, titulo, estilo, padre=None):
+            captado["mensaje"] = mensaje
+            captado["titulo"] = titulo
+            return 0
+
+        with mock.patch.object(gui.wx, "MessageBox", caja):
+            gui.YTChatFrame.url_invalida(marco)
+        self.assertTrue(captado["mensaje"].startswith("[¡"))
+        self.assertTrue(captado["titulo"].startswith("[¡"))
+        self._exigir_marcados(1)
+
+    def test_conectado_y_desconectado_marcados(self):
+        from ytchat.capture import deteccion
+        for tipo in (deteccion.LIVE, deteccion.UPCOMING, deteccion.VOD,
+                     deteccion.DESCONOCIDO):
+            marco = self._marco()
+            marco.sesion.tipo_video = tipo
+            gui.YTChatFrame._anunciar_conectado(marco)
+        self._exigir_marcados(4)
+        marco = self._marco()
+        marco._conectado = True
+        marco._mostrar_zona = mock.Mock()
+        marco.set_titulo_stream = mock.Mock()
+        marco._fijar_tipo = mock.Mock()
+        marco._set_conectado_ui = mock.Mock()
+        marco._actualizar_estado_online = mock.Mock()
+        marco.txt_url = mock.Mock()
+        with mock.patch.object(gui.wx, "CallAfter",
+                               side_effect=lambda f, *a: f(*a)):
+            gui.YTChatFrame.set_conectado(marco, False)
+        self._exigir_marcados(1)
+
+    def test_voz_filtro_y_ajustes_marcados(self):
+        from ytchat.core import anuncio_ajuste
+        from ytchat.core.anuncio_ajuste import AnuncioAjuste
+        marco = self._marco()
+        marco._worker.cambiar_voz = mock.Mock()
+        marco.voz_submenu = mock.Mock()
+        marco._nombre_voz = mock.Mock(return_value="Voz")
+        with mock.patch.object(gui, "guardar_opcion"):
+            gui.YTChatFrame._aplicar_voz(marco, 0)
+        self._exigir_marcados(1)
+        with mock.patch.object(gui, "guardar_opcion"):
+            gui.YTChatFrame._aplicar_filtro(marco, 0)
+        self._exigir_marcados(1)
+        with mock.patch.object(anuncio_ajuste, "COMPARTIDO", AnuncioAjuste()), \
+                mock.patch.object(gui, "guardar_opcion"):
+            gui.YTChatFrame._ajustar_rate(marco, 5)
+            gui.YTChatFrame._ajustar_volume(marco, 5)
+        self._exigir_marcados(2)
+        marco.mi_sil_sonidos = mock.Mock()
+        marco.mi_sil_lectura = mock.Mock()
+        with mock.patch.object(gui, "guardar_opcion"):
+            gui.YTChatFrame._toggle_silenciar_sonidos(marco)
+            gui.YTChatFrame._toggle_silenciar_sonidos(marco)
+            gui.YTChatFrame._toggle_silenciar_lectura(marco)
+            gui.YTChatFrame._toggle_silenciar_lectura(marco)
+        self._exigir_marcados(4)
+
+    def test_pausa_vaciar_detener_e_incidencia_marcados(self):
+        marco = self._marco()
+        marco._worker.toggle_pausa = mock.Mock()
+        marco._worker.esta_pausado = mock.Mock(side_effect=[True, False])
+        marco._sincronizar_pausa = mock.Mock()
+        gui.YTChatFrame._on_pausa(marco, None)
+        gui.YTChatFrame._on_pausa(marco, None)
+        self._exigir_marcados(2)
+        marco._worker.vaciar_cola = mock.Mock()
+        gui.YTChatFrame._on_vaciar(marco, None)
+        marco._worker.detener_actual = mock.Mock()
+        gui.YTChatFrame._on_detener_tts(marco, None)
+        with mock.patch.object(gui.diagnostico, "marcar_incidencia"):
+            gui.YTChatFrame._on_marcar_incidencia(marco, None)
+        self._exigir_marcados(3)
+        marco._descripcion_escena_en_curso = True
+        gui.YTChatFrame._anunciar_descripcion_escena(marco, "")
+        self._exigir_marcados(1)
+
+    def test_copias_silenciamientos_y_enlace_marcados(self):
+        from ytchat.ui.lista_chat import MensajeChat
+        marco = self._marco()
+        dato = MensajeChat(plataforma="youtube", autor="Ana", identificador="c1",
+                           texto="hola http://x", hora="10:00", tipo="texto",
+                           monto="", rol="")
+        marco._get_selected_data = mock.Mock(return_value=dato)
+        marco._clipboard_set = mock.Mock()
+        gui.YTChatFrame._copiar_mensaje(marco)
+        self._exigir_marcados(1)
+        gui.YTChatFrame._copiar_enlace_directo(marco)
+        self._exigir_marcados(1)
+        marco.sesion.enlace_directo = "http://directo"
+        gui.YTChatFrame._copiar_enlace_directo(marco)
+        self._exigir_marcados(1)
+        gui.YTChatFrame._copiar_todo(marco)
+        self._exigir_marcados(1)
+        marco._config.setdefault("silenciados_runtime", set())
+        marco._config.setdefault("silenciados_ocultar", set())
+        gui.YTChatFrame._silenciar_autor(marco, "Ana", False)
+        gui.YTChatFrame._rehabilitar_autor(marco, "Ana")
+        self._exigir_marcados(2)
+        marco._get_selected_data = mock.Mock(return_value=None)
+        captado = {}
+
+        def caja(mensaje, titulo, estilo, padre=None):
+            captado["mensaje"] = mensaje
+            captado["titulo"] = titulo
+            return 0
+
+        marco._get_selected_data = mock.Mock(return_value=dato)
+        with mock.patch.object(gui, "_URL_RE",
+                               mock.Mock(findall=mock.Mock(return_value=[]))), \
+                mock.patch.object(gui.wx, "MessageBox", caja):
+            gui.YTChatFrame._abrir_enlace(marco)
+        self.assertTrue(captado["mensaje"].startswith("[¡"))
+        self.assertTrue(captado["titulo"].startswith("[¡"))
+        self._exigir_marcados(1)
+        with mock.patch.object(gui, "_URL_RE",
+                               mock.Mock(findall=mock.Mock(
+                                   return_value=["http://x"]))), \
+                mock.patch.object(gui.webbrowser, "open"):
+            gui.YTChatFrame._abrir_enlace(marco)
+        self._exigir_marcados(1)
+
+    def test_alias_marca_cuadro_y_anuncio(self):
+        marco = self._marco()
+        marco.lb_chat = mock.Mock()
+        marco.chat_vivo.reconstruir = mock.Mock()
+        captado = {}
+
+        def fabrica(padre, mensaje, titulo, value=""):
+            captado["mensaje"] = mensaje
+            captado["titulo"] = titulo
+            dialogo = mock.Mock()
+            dialogo.ShowModal.return_value = gui.wx.ID_OK
+            dialogo.GetValue.return_value = ""
+            return dialogo
+
+        with mock.patch.object(gui.wx, "TextEntryDialog", fabrica), \
+                mock.patch.object(gui.alias, "vigente", return_value={}), \
+                mock.patch.object(gui.alias, "poner",
+                                  return_value={"ana": "Ana"}), \
+                mock.patch.object(gui.alias, "guardar"), \
+                mock.patch.object(gui.alias, "usar"), \
+                mock.patch.object(gui.paths, "alias",
+                                  return_value="ruta"):
+            gui.YTChatFrame._editar_alias_autor(marco, "Ana")
+        self.assertTrue(captado["mensaje"].startswith("[¡"))
+        self.assertTrue(captado["titulo"].startswith("[¡"))
+        self._exigir_marcados(1)
+
+    def test_cuadros_propios_marcados(self):
+        marco = self._marco()
+        captado = {}
+
+        def caja(mensaje, titulo, estilo, padre=None):
+            captado["mensaje"] = mensaje
+            captado["titulo"] = titulo
+            return 0
+
+        with mock.patch.object(gui.wx, "MessageBox", caja):
+            gui.YTChatFrame._on_about(marco, None)
+        self.assertTrue(captado["mensaje"].startswith("[¡"))
+        self.assertTrue(captado["titulo"].startswith("[¡"))
+        with mock.patch(
+                "ytchat.ui.gui_preferencias.abrir_preferencias",
+                side_effect=RuntimeError("boom")):
+            with mock.patch.object(gui.wx, "MessageBox", caja):
+                gui.YTChatFrame._on_preferencias(marco, None)
+        self.assertTrue(captado["mensaje"].startswith("[¡"))
+        self.assertTrue(captado["titulo"].startswith("[¡"))
+        with mock.patch(
+                "ytchat.ui.gui_descargas.abrir",
+                side_effect=RuntimeError("boom")):
+            with mock.patch.object(gui.wx, "MessageBox", caja):
+                gui.YTChatFrame._abrir_descargas(marco)
+        self.assertTrue(captado["mensaje"].startswith("[¡"))
+        self.assertTrue(captado["titulo"].startswith("[¡"))
+
+    def test_tipos_y_tiktok_pasan_marcados(self):
+        from ytchat.capture import deteccion
+        fijados = []
+        marco = self._marco()
+        marco.chat_vivo.descartar = mock.Mock()
+        marco.chat_vivo.modelo = mock.Mock()
+        marco.lb_chat.Clear = mock.Mock()
+        marco._sc_totales = {}
+        marco._config = {"autoplay_reproductor": False}
+        marco._com_panel = mock.Mock()
+        marco._rep_panel = mock.Mock()
+        marco.nb = mock.Mock()
+        marco._fijar_tipo = fijados.append
+        marco._actualizar_boton_directo = mock.Mock()
+        for tipo in (deteccion.LIVE, deteccion.UPCOMING, deteccion.VOD,
+                     "otro"):
+            gui.YTChatFrame.set_tipo_video(marco, tipo, "video")
+        self.assertEqual(len(fijados), 4)
+        for texto in fijados:
+            self.assertTrue(texto.startswith("[¡"), texto)
+        del fijados[:]
+        avisos = []
+        marco._com_panel.mostrar_no_disponible = avisos.append
+        gui.YTChatFrame.configurar_tiktok(marco, "usuario", "http://flujo")
+        self.assertTrue(fijados[0].startswith("[¡"), fijados[0])
+        self.assertTrue(avisos[0].startswith("[¡"), avisos[0])
+
+    def test_desconectar_marca_el_texto_inicial_y_el_aviso(self):
+        marco = self._marco()
+        marco._conectado = True
+        marco.txt_url = mock.Mock()
+        with mock.patch.object(gui.wx, "CallAfter",
+                               side_effect=lambda f, *a: f(*a)):
+            gui.YTChatFrame.set_conectado(marco, False)
+        fijado = marco._fijar_tipo.call_args.args[0]
+        self.assertTrue(fijado.startswith("[¡"), fijado)
+        self._exigir_marcados(1)
+
+    def test_cierre_pide_confirmacion_marcada(self):
+        marco = self._marco()
+        marco._config = {"confirmar_salida": True}
+        marco._conectado = True
+        marco._supervisor = None
+        marco._obs_transmitiendo = False
+        evento = mock.Mock()
+        evento.CanVeto.return_value = True
+        captado = {}
+        creados = []
+
+        def fabrica(padre, mensaje, titulo, estilo):
+            captado["mensaje"] = mensaje
+            captado["titulo"] = titulo
+            dialogo = mock.Mock()
+            dialogo.ShowModal.return_value = gui.wx.ID_NO
+            creados.append(dialogo)
+            return dialogo
+
+        with mock.patch.object(gui.wx, "MessageDialog", fabrica):
+            gui.YTChatFrame._on_close(marco, evento)
+        self.assertTrue(captado["mensaje"].startswith("[¡"))
+        self.assertTrue(captado["titulo"].startswith("[¡"))
+        evento.Veto.assert_called_once_with()
+
+
+# Textos que arma otro módulo y aparecen en el recorrido de la ventana
+# principal: todo el panel del reproductor (`ytchat/player/reproductor.py`,
+# aún sin gettext). La rama con controles se fuerza para que el recorrido
+# sea el mismo haya o no VLC en la PC. La comparación es exacta en los dos
+# sentidos: falla si aparece un texto nuevo sin envolver y si un pendiente
+# ya no está en el recorrido, para vaciar la lista cuando ese módulo pase
+# por gettext.
+PENDIENTES_VENTANA_PRINCIPAL = (
+    "Reproductor",
+    "Reproducir",
+    "Retroceder 1 min",
+    "Avanzar 1 min",
+    "Detener",
+    "Silenciar audio",
+    "Pantalla completa",
+    "Mostrar botones del reproductor",
+    "Posición:",
+    "0:00 / 0:00",
+    "Volumen:",
+    "Sin reproducir.",
+)
+
+
+def _normalizar(texto): return " ".join(texto.split())
+
+
+class TestPseudoVentanaPrincipal(unittest.TestCase):
+    # Con ventana: la corre el advisor. No correr aquí.
+
+    def setUp(self):
+        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+
+    def _ventana(self):
+        from types import SimpleNamespace
+        from ytchat.player import reproductor
+        configuracion = {
+            "atajos_raw": {}, "filtro_activo": "todos",
+            "mostrar_botones_reproductor": False, "mostrar_metadatos": True,
+            "mostrar_total_superchats": True, "overlay_activo": False,
+            "programados_activo": False,
+        }
+        stats = SimpleNamespace(leidos=0, superchats=0, descartados=0)
+        worker = SimpleNamespace(get_rate=lambda: 0, get_volume=lambda: 100)
+        with mock.patch.object(gui.diagnostico, "crear_hilo"), \
+                mock.patch.object(reproductor, "disponible",
+                                  return_value=True):
+            frame = gui.YTChatFrame(None, configuracion, queue.Queue(),
+                                    stats, worker, __import__("threading").Event())
+        self.addCleanup(destruir, frame)
+        frame.ShowWithoutActivating()
+        gui.wx.Yield()
+        return frame
+
+    def test_no_queda_ningun_texto_propio_sin_envolver(self):
+        with con_pseudo():
+            frame = self._ventana()
+            vistos = list(textos_sin_marcar(frame))
+            for campo in range(7):
+                texto = frame.sb.GetStatusText(campo)
+                if texto:
+                    self.assertTrue(texto.startswith("[¡"), texto)
+        self.assertEqual(sorted(map(_normalizar, set(vistos))),
+                         sorted(map(_normalizar, PENDIENTES_VENTANA_PRINCIPAL)))
+
+
+class TestPseudoIrRegion(unittest.TestCase):
+    # Con ventana: la corre el advisor. No correr aquí.
+
+    def setUp(self):
+        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+
+    def _ventana(self):
+        from types import SimpleNamespace
+        from ytchat.player import reproductor
+        configuracion = {
+            "atajos_raw": {}, "filtro_activo": "todos",
+            "mostrar_botones_reproductor": False, "mostrar_metadatos": True,
+            "mostrar_total_superchats": True, "overlay_activo": False,
+            "programados_activo": False,
+        }
+        stats = SimpleNamespace(leidos=0, superchats=0, descartados=0)
+        worker = SimpleNamespace(get_rate=lambda: 0, get_volume=lambda: 100)
+        with mock.patch.object(gui.diagnostico, "crear_hilo"), \
+                mock.patch.object(reproductor, "disponible",
+                                  return_value=True):
+            frame = gui.YTChatFrame(None, configuracion, queue.Queue(),
+                                    stats, worker, __import__("threading").Event())
+        self.addCleanup(destruir, frame)
+        frame.ShowWithoutActivating()
+        gui.wx.Yield()
+        return frame
+
+    def test_ir_region_anuncia_marcado_en_fija_y_en_contenido(self):
+        captados = []
+        with con_pseudo(), mock.patch.object(gui, "anunciar",
+                                             captados.append):
+            frame = self._ventana()
+            gui.YTChatFrame._ir_region(frame, gui.REG_CONEXION)
+            frame._conectado = True
+            frame._mostrar_zona(True)
+            gui.wx.Yield()
+            gui.YTChatFrame._ir_region(frame, gui.REG_CONTENIDO)
+        self.assertEqual(len(captados), 2)
+        for frase in captados:
+            self.assertTrue(frase.startswith("[¡"), frase)
+
+
 if __name__ == "__main__":
     unittest.main()

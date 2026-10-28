@@ -619,7 +619,7 @@ class YTChatFrame(wx.Frame):
     def _navegar_region(self, delta: int):
         if not self._conectado:
             self.txt_url.SetFocus()
-            anunciar("Conéctate primero para usar los paneles")
+            anunciar(_("Conéctate primero para usar los paneles"))
             return
         self._region_idx = (self._region_idx + delta) % len(self._regiones)
         self._ir_region(self._region_idx)
@@ -628,20 +628,22 @@ class YTChatFrame(wx.Frame):
         if not (0 <= idx < len(self._regiones)):
             return
         if idx != REG_CONEXION and not self._conectado:
-            anunciar("Conéctate primero para usar los paneles")
+            anunciar(_("Conéctate primero para usar los paneles"))
             return
         self._region_idx = idx
         try:    self._regiones[idx]()
         except Exception as exc: logger.debug("ir_region %d: %s", idx, exc)
-        nombre = _NOMBRE_REGION[idx]
+        nombre = _(_NOMBRE_REGION[idx])
         if idx == REG_CONTENIDO:
-            nombre += f": {self.nb.GetPageText(self.nb.GetSelection())}"
+            # Traductores: región actual y pestaña al moverse con F6.
+            nombre = _("{region}: {pagina}").format(
+                region=nombre, pagina=self.nb.GetPageText(self.nb.GetSelection()))
         anunciar(nombre)
 
     def _ir_lista(self):
         """Alt+L: foco directo a la lista de la pestaña actual (chat o comentarios)."""
         if not self._conectado:
-            anunciar("Conéctate primero")
+            anunciar(_("Conéctate primero"))
             return
         self._region_idx = REG_CONTENIDO
         self._foco_contenido()
@@ -669,7 +671,7 @@ class YTChatFrame(wx.Frame):
 
     def _rep_accion(self, metodo: str, *args):
         if getattr(self, "_rep_panel", None) is None:
-            anunciar("El reproductor no está disponible")
+            anunciar(_("El reproductor no está disponible"))
             return
         try:
             getattr(self._rep_panel, metodo)(*args)
@@ -753,25 +755,26 @@ class YTChatFrame(wx.Frame):
                 self.on_desconectar_cb()
             self.set_conectado(False)
             if cancelando:
-                anunciar("Conexión cancelada")
+                anunciar(_("Conexión cancelada"))
                 self.txt_url.SetFocus()
         else:
             url = self.txt_url.GetValue().strip()
             if not url:
-                wx.MessageBox("Introduce una URL o ID de YouTube.",
-                              "Falta URL", wx.OK | wx.ICON_WARNING, self)
+                wx.MessageBox(_("Introduce una URL o ID de YouTube."),
+                              _("Falta URL"), wx.OK | wx.ICON_WARNING, self)
                 self.txt_url.SetFocus()
                 return
             self._conectando = True
             # El botón y «Desconectar» siguen activos para poder cancelar una
             # conexión que no responde.
-            self.btn_conectar.SetLabel("&Cancelar conexión")
+            self.btn_conectar.SetLabel(_("&Cancelar conexión"))
             self.btn_conectar.Enable()
             self.mi_conectar.Enable(False)
             self.mi_desconectar.Enable(True)
             self.txt_url.Disable()
             _snd.reproducir("conectando")
-            anunciar("Conectando")
+            # Traductores: aviso mientras se conecta.
+            anunciar(_("Conectando"))
             if self.on_conectar_cb:
                 self.on_conectar_cb(url)
             self._actualizar_boton_directo()
@@ -782,10 +785,10 @@ class YTChatFrame(wx.Frame):
             return
         _snd.reproducir("error")
         self._set_conectado_ui(False)
-        anunciar("La URL o el ID de YouTube no es válido")
+        anunciar(_("La URL o el ID de YouTube no es válido"))
         self.txt_url.SetFocus()
-        wx.MessageBox("La URL o el ID de YouTube no es válido. Revisa lo que pegaste.",
-                      "URL no válida", wx.OK | wx.ICON_WARNING, self)
+        wx.MessageBox(_("La URL o el ID de YouTube no es válido. Revisa lo que pegaste."),
+                      _("URL no válida"), wx.OK | wx.ICON_WARNING, self)
 
     def _on_preferencias(self, event):
         try:
@@ -809,8 +812,9 @@ class YTChatFrame(wx.Frame):
                 wx.CallLater(300, _aplicar_y_avisar)
         except Exception as exc:
             logger.warning("No se pudo abrir preferencias: %s", exc)
-            wx.MessageBox(f"No se pudo abrir Preferencias:\n{exc}",
-                          "Error", wx.OK | wx.ICON_ERROR, self)
+            wx.MessageBox(_("No se pudo abrir Preferencias:\n{detalle}").format(detalle=exc),
+                          # Traductores: título de un cuadro de error.
+                          _("Error"), wx.OK | wx.ICON_ERROR, self)
         # La pestaña API puede haber cambiado la sesión: refrescar.
         self._actualizar_estado_online()
 
@@ -846,15 +850,17 @@ class YTChatFrame(wx.Frame):
             from ytchat.ui.gui_descargas import abrir
         except Exception as exc:
             logger.warning("No se pudo abrir el gestor de descargas: %s", exc)
-            wx.MessageBox(f"No se pudo abrir el gestor de descargas:\n{exc}",
-                          "Error", wx.OK | wx.ICON_ERROR, self)
+            wx.MessageBox(_("No se pudo abrir el gestor de descargas:\n{detalle}").format(detalle=exc),
+                          # Traductores: título de un cuadro de error.
+                          _("Error"), wx.OK | wx.ICON_ERROR, self)
             return
         try:
             abrir(self, url_inicial=url)
         except Exception as exc:
             logger.warning("gestor de descargas: %s", exc)
-            wx.MessageBox(f"Error en el gestor de descargas:\n{exc}",
-                          "Error", wx.OK | wx.ICON_ERROR, self)
+            wx.MessageBox(_("Error en el gestor de descargas:\n{detalle}").format(detalle=exc),
+                          # Traductores: título de un cuadro de error.
+                          _("Error"), wx.OK | wx.ICON_ERROR, self)
 
     def _aplicar_preferencias_en_caliente(self):
         from ytchat.ui import gui_aplicar_preferencias
@@ -872,14 +878,14 @@ class YTChatFrame(wx.Frame):
 
     def _on_about(self, event):
         wx.MessageBox(
-            f"{APP_NAME} v{APP_VERSION}\n\n"
-            "Lector accesible del chat de YouTube Live con voz de Windows "
-            "o de ElevenLabs.",
-            "Acerca de", wx.OK | wx.ICON_INFORMATION, self)
+            _("{app} v{version}\n\n"
+              "Lector accesible del chat de YouTube Live con voz de Windows "
+              "o de ElevenLabs.").format(app=APP_NAME, version=APP_VERSION),
+            _("Acerca de"), wx.OK | wx.ICON_INFORMATION, self)
 
     def _on_marcar_incidencia(self, event):
         diagnostico.marcar_incidencia()
-        anunciar("La marca de incidencia se guardó")
+        anunciar(_("La marca de incidencia se guardó"))
 
     # ── Handlers de voz / TTS ────────────────────────────────────────────────
 
@@ -888,16 +894,17 @@ class YTChatFrame(wx.Frame):
         pausado = self._worker.esta_pausado()
         self._sincronizar_pausa()
         _snd.reproducir("pausa" if pausado else "reanudar")
-        anunciar("Pausado" if pausado else "Reanudado")
+        # Traductores: lectura en pausa o reanudada.
+        anunciar(_("Pausado") if pausado else _("Reanudado"))
 
     def _on_vaciar(self, event):
         self._worker.vaciar_cola()
         _snd.reproducir("cola_vaciada")
-        anunciar("Cola vaciada")
+        anunciar(_("Cola vaciada"))
 
     def _on_detener_tts(self, event):
         self._worker.detener_actual()
-        anunciar("TTS detenido")
+        anunciar(_("TTS detenido"))
 
     def _aplicar_voz(self, idx: int):
         self._worker.cambiar_voz(idx)
@@ -913,7 +920,8 @@ class YTChatFrame(wx.Frame):
         self._config["voz"] = self._voz_nombre
         guardar_opcion(RUTA_CONFIG, "voz", "voz", self._voz_nombre)
         _snd.reproducir("voz_cambiada")
-        anunciar(f"Voz: {self._voz_nombre}")
+        # Traductores: {nombre} es la voz activa.
+        anunciar(_("Voz: {nombre}").format(nombre=self._voz_nombre))
 
     def _nombre_voz(self, idx: int) -> str:
         it = self.voz_submenu.FindItemByPosition(idx)
@@ -924,7 +932,7 @@ class YTChatFrame(wx.Frame):
         self.chat_vivo.reconstruir()
         guardar_opcion(RUTA_CONFIG, "ui", "filtro_activo",
                        _NOMBRES_FILTRO[idx] if idx < len(_NOMBRES_FILTRO) else "todos")
-        anunciar(f"Filtro: {FILTROS[idx][0]}. {self.lb_chat.GetCount()} mensajes")
+        anunciar(_("Filtro: {filtro}. {n} mensajes").format(filtro=FILTROS[idx][0], n=self.lb_chat.GetCount()))
 
     def _ajustar_rate(self, delta):
         # El worker mueve su porcentaje al instante (lo aplica en su hilo), así
@@ -948,14 +956,14 @@ class YTChatFrame(wx.Frame):
         self._config["silenciar_sonidos"] = nuevo
         self.mi_sil_sonidos.Check(nuevo)
         guardar_opcion(RUTA_CONFIG, "ui", "silenciar_sonidos", "true" if nuevo else "false")
-        anunciar("Sonidos silenciados" if nuevo else "Sonidos activados")
+        anunciar(_("Sonidos silenciados") if nuevo else _("Sonidos activados"))
 
     def _toggle_silenciar_lectura(self):
         nuevo = not self._config.get("silenciar_lectura", False)
         self._config["silenciar_lectura"] = nuevo
         self.mi_sil_lectura.Check(nuevo)
         guardar_opcion(RUTA_CONFIG, "sesion", "silenciar_lectura", "true" if nuevo else "false")
-        anunciar("Lectura TTS silenciada" if nuevo else "Lectura TTS activada")
+        anunciar(_("Lectura TTS silenciada") if nuevo else _("Lectura TTS activada"))
 
     def _snapshot_sesion(self) -> estado_sesion.SnapshotSesion:
         from ytchat.ui import gui_estado
@@ -982,7 +990,7 @@ class YTChatFrame(wx.Frame):
 
     def _anunciar_descripcion_escena(self, texto):
         self._descripcion_escena_en_curso = False
-        anunciar(texto or "Sin información de la escena.")
+        anunciar(texto or _("Sin información de la escena."))
 
     # ── Enviar al chat del directo (API oficial) ─────────────────────────────
 
@@ -1151,8 +1159,8 @@ class YTChatFrame(wx.Frame):
         alias.guardar(paths.alias(), actualizado)
         alias.usar(actualizado)
         self.chat_vivo.reconstruir()
-        anunciar(f"Alias guardado, {actualizado[alias.clave(autor)]}"
-                 if nuevo.strip() else "Alias quitado")
+        anunciar(_("Alias guardado, {nuevo}").format(nuevo=actualizado[alias.clave(autor)])
+                 if nuevo.strip() else _("Alias quitado"))
 
     def _copiar_mensaje(self):
         data = self._get_selected_data()
@@ -1161,16 +1169,16 @@ class YTChatFrame(wx.Frame):
         mensaje = data.texto
         self._clipboard_set(mensaje)
         _snd.reproducir("copiar")
-        anunciar("Mensaje copiado")
+        anunciar(_("Mensaje copiado"))
 
     def _copiar_enlace_directo(self):
         enlace = self.sesion.enlace_directo
         if not enlace:
-            anunciar("No hay ningún directo conectado.")
+            anunciar(_("No hay ningún directo conectado."))
             return
         self._clipboard_set(enlace)
         _snd.reproducir("copiar")
-        anunciar("Enlace del directo copiado.")
+        anunciar(_("Enlace del directo copiado."))
 
     def _copiar_todo(self):
         data = self._get_selected_data()
@@ -1181,7 +1189,7 @@ class YTChatFrame(wx.Frame):
             linea += f" [{data.monto}]"
         self._clipboard_set(linea)
         _snd.reproducir("copiar")
-        anunciar("Línea copiada")
+        anunciar(_("Línea copiada"))
 
     def _releer_mensaje(self):
         data = self._get_selected_data()
@@ -1197,12 +1205,12 @@ class YTChatFrame(wx.Frame):
             return
         urls = _URL_RE.findall(data.texto)
         if not urls:
-            anunciar("No se encontró ningún enlace")
-            wx.MessageBox("No se encontró ningún enlace en este mensaje.",
-                          "Sin enlace", wx.OK | wx.ICON_INFORMATION, self)
+            anunciar(_("No se encontró ningún enlace"))
+            wx.MessageBox(_("No se encontró ningún enlace en este mensaje."),
+                          _("Sin enlace"), wx.OK | wx.ICON_INFORMATION, self)
             return
         webbrowser.open(urls[0])
-        anunciar("Abriendo enlace")
+        anunciar(_("Abriendo enlace"))
 
     # ── Silenciado en caliente ───────────────────────────────────────────────
 
@@ -1217,7 +1225,8 @@ class YTChatFrame(wx.Frame):
             self.chat_vivo.reconstruir()
         else:
             sil_oculto.discard(al)
-        anunciar(f"{autor} silenciado")
+        # Traductores: {autor} es el autor del mensaje.
+        anunciar(_("{autor} silenciado").format(autor=autor))
 
     def _rehabilitar_autor(self, autor: str) -> None:
         if not autor:
@@ -1226,7 +1235,8 @@ class YTChatFrame(wx.Frame):
         self._config.setdefault("silenciados_runtime", set()).discard(al)
         self._config.setdefault("silenciados_ocultar", set()).discard(al)
         self.chat_vivo.reconstruir()
-        anunciar(f"{autor} rehabilitado")
+        # Traductores: {autor} es el autor del mensaje.
+        anunciar(_("{autor} rehabilitado").format(autor=autor))
 
     def _autor_esta_silenciado(self, autor: str) -> bool:
         return autor.lower().strip() in self._config.get("silenciados_runtime", set())
@@ -1290,7 +1300,8 @@ class YTChatFrame(wx.Frame):
         self.chat_vivo.descartar()
         hilos_previos = diagnostico.hilos_vivos_de_la_aplicacion()
         if apagado.hilos_captura_vivos(hilos_previos):
-            anunciar("Cerrando")
+            # Traductores: aviso mientras se cierra la app.
+            anunciar(_("Cerrando"))
         try:    self.Hide()
         except Exception: pass
         if self.on_desconectar_cb:
@@ -1409,11 +1420,12 @@ class YTChatFrame(wx.Frame):
             if estaba:
                 self._mostrar_zona(False)
                 self.set_titulo_stream("")
-                self._fijar_tipo(MENSAJE_INICIAL)
+                self._fijar_tipo(_(MENSAJE_INICIAL))
                 # El fin del directo de TikTok llega con su propio sonido;
                 # el resto de los cortes sigue sonando «desconectado».
                 _snd.reproducir(sonido_desconexion)
-                anunciar("Desconectado")
+                # Traductores: aviso al desconectar.
+                anunciar(_("Desconectado"))
                 # Sacar el foco del panel del reproductor ANTES de que quede
                 # oculto: si el foco sigue dentro, wx tarda en repintar y el
                 # panel «se queda» visible hasta que tabulas. Al campo URL.

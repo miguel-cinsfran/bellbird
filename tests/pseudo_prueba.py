@@ -47,13 +47,18 @@ def _columnas(ventana):
     return []
 
 
-def textos_sin_marcar(ventana, propios=()):
-    """Textos visibles de la ventana y sus hijos que no llevan la marca."""
+def textos_sin_marcar(ventana, propios=(), excluir=()):
+    """Textos visibles de la ventana y sus hijos que no llevan la marca.
+
+    Las ventanas en excluir no se recorren, ni ellas ni sus hijos.
+    """
     propios = set(propios)
     sin_marcar = []
     pendientes = [ventana]
     while pendientes:
         actual = pendientes.pop()
+        if any(actual is excluida for excluida in excluir):
+            continue
         textos = []
         if isinstance(actual, wx.TopLevelWindow):
             textos.append(actual.GetTitle())

@@ -5938,30 +5938,37 @@ class TestPseudoAnunciosGui(unittest.TestCase):
         evento.Veto.assert_called_once_with()
 
 
-# Textos que arma otro módulo y aparecen en el recorrido de la ventana
-# principal: todo el panel del reproductor (`ytchat/player/reproductor.py`,
-# aún sin gettext). La rama con controles se fuerza para que el recorrido
-# sea el mismo haya o no VLC en la PC. La comparación es exacta en los dos
-# sentidos: falla si aparece un texto nuevo sin envolver y si un pendiente
-# ya no está en el recorrido, para vaciar la lista cuando ese módulo pase
-# por gettext.
-PENDIENTES_VENTANA_PRINCIPAL = (
-    "Reproductor",
-    "Reproducir",
-    "Retroceder 1 min",
-    "Avanzar 1 min",
-    "Detener",
-    "Silenciar audio",
-    "Pantalla completa",
-    "Mostrar botones del reproductor",
-    "Posición:",
-    "0:00 / 0:00",
-    "Volumen:",
-    "Sin reproducir.",
-)
+# La comparación es exacta en los dos sentidos: falla si aparece un texto
+# nuevo sin envolver y si un pendiente ya no está en el recorrido, para
+# vaciar la lista cuando cada texto pase por gettext.
+PENDIENTES_VENTANA_PRINCIPAL = ()
 
 
 def _normalizar(texto): return " ".join(texto.split())
+
+
+class TestTextosSinMarcarExcluir(unittest.TestCase):
+    # Con ventana: la corre el advisor. No correr aquí.
+
+    @classmethod
+    def setUpClass(cls):
+        cls.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+
+    @classmethod
+    def tearDownClass(cls):
+        del cls.app
+
+    def test_excluir_saltea_la_ventana_y_sus_hijos(self):
+        marco = gui.wx.Frame(None, title="Marco")
+        self.addCleanup(destruir, marco)
+        gui.wx.StaticText(marco, label="Fuera")
+        panel = gui.wx.Panel(marco)
+        gui.wx.StaticText(panel, label="Dentro")
+        self.assertEqual(sorted(textos_sin_marcar(marco)),
+                         ["Dentro", "Fuera", "Marco"])
+        self.assertEqual(sorted(textos_sin_marcar(marco, excluir=(panel,))),
+                         ["Fuera", "Marco"])
+        self.assertEqual(textos_sin_marcar(panel, excluir=(panel,)), [])
 
 
 class TestPseudoVentanaPrincipal(unittest.TestCase):
@@ -5994,7 +6001,8 @@ class TestPseudoVentanaPrincipal(unittest.TestCase):
     def test_no_queda_ningun_texto_propio_sin_envolver(self):
         with con_pseudo():
             frame = self._ventana()
-            vistos = list(textos_sin_marcar(frame))
+            # El panel es de reproductor.py y se prueba con ese módulo.
+            vistos = list(textos_sin_marcar(frame, excluir=(frame._rep_panel,)))
             for campo in range(7):
                 texto = frame.sb.GetStatusText(campo)
                 if texto:

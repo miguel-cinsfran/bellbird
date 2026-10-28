@@ -14,6 +14,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
+from tests.pseudo_prueba import con_pseudo
 from ytchat.music import anuncios
 from ytchat.music import listas
 from ytchat.music import memoria
@@ -2064,6 +2065,79 @@ class TestSonoridadCableada(unittest.TestCase):
             self.assertEqual([c[1] for c in cargas], [str(ruta.resolve())])
             self.assertEqual(cargas[0][3], esperado)
         self.assertEqual(sonoridad.volumen_efectivo(50, 6.0), 63)
+
+
+class TestPseudoAvisosConsumidores(unittest.TestCase):
+    """Pseudotraducción de los avisos que muestran los consumidores.
+
+    Dispara el camino real con el motor falso y exige lo anunciado
+    marcado. Sin ventanas.
+    """
+
+    @staticmethod
+    def _temas(*titulos):
+        return [Tema(f"C:/m/{titulo.lower()}.mp3", titulo)
+                for titulo in titulos]
+
+    def _con_cola(self, *titulos, **config):
+        control = ControlMusica(_frame(**config))
+        control.reproducir_temas(self._temas(*titulos), en_orden=True)
+        return control
+
+    def test_que_suena_sin_motor_marca(self):
+        with _entorno() as env:
+            control = ControlMusica(_frame())
+            with con_pseudo():
+                control.que_suena()
+        env.anunciar.assert_called_once()
+        texto = env.anunciar.call_args.args[0]
+        self.assertTrue(texto.startswith("[¡"), texto)
+
+    def test_ventana_ya_abierta_marca(self):
+        with _entorno() as env:
+            control = ControlMusica(_frame())
+            ventana = mock.Mock()
+            control.registrar_ventana(ventana)
+            with con_pseudo():
+                control.abrir_ventana()
+        env.anunciar.assert_called_once()
+        texto = env.anunciar.call_args.args[0]
+        self.assertTrue(texto.startswith("[¡"), texto)
+
+    def test_subir_volumen_marca_con_el_numero(self):
+        with _entorno() as env, \
+                mock.patch.object(ControlMusica, "_guardar"):
+            control = ControlMusica(_frame(musica_volumen=40))
+            with con_pseudo():
+                control.subir_volumen()
+        env.anunciar.assert_called_once_with(
+            "[¡Volumen de la música: 50!]")
+
+    def test_quitar_de_cola_marca_con_y_sin_fragmento(self):
+        with _entorno() as env:
+            control = self._con_cola("A", "B", "C")
+            env.anunciar.reset_mock()
+            with con_pseudo():
+                control.quitar_de_cola(2)
+            quitado = env.anunciar.call_args.args[0]
+            env.anunciar.reset_mock()
+            with con_pseudo():
+                control.quitar_de_cola(0)
+            con_fragmento = env.anunciar.call_args.args[0]
+        self.assertTrue(quitado.startswith("[¡"), quitado)
+        self.assertIn("C", quitado)
+        self.assertTrue(con_fragmento.startswith("[¡"), con_fragmento)
+        self.assertIn("A", con_fragmento)
+        self.assertIn("B", con_fragmento)
+
+    def test_quitar_el_unico_marca_fin_de_lista(self):
+        with _entorno() as env:
+            control = self._con_cola("A")
+            env.anunciar.reset_mock()
+            with con_pseudo():
+                control.quitar_de_cola(0)
+        texto = env.anunciar.call_args.args[0]
+        self.assertTrue(texto.startswith("[¡"), texto)
 
 
 if __name__ == "__main__":

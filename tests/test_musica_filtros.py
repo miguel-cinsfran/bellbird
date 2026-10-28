@@ -5,6 +5,7 @@ corre acá.
 """
 
 import unittest
+from unittest import mock
 
 from ytchat.music import filtros
 from ytchat.music.modelo import Tema
@@ -264,6 +265,36 @@ class TestFiltrosPseudo(unittest.TestCase):
             musica_filtros.FiltrosMusica(self.marco)
             sin_marcar = textos_sin_marcar(self.marco)
         self.assertEqual(sorted(sin_marcar), sorted(self.PENDIENTES))
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestPseudoAvisosFiltros(unittest.TestCase):
+    """Pseudotraducción de los avisos de los filtros.
+
+    Dispara el camino real y exige lo avisado marcado. Abre ventanas.
+    """
+
+    def setUp(self):
+        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.marco = None
+
+    def tearDown(self):
+        if self.marco is not None:
+            destruir(self.marco)
+
+    def test_mostrar_y_ocultar_marcan(self):
+        self.marco = wx.Frame(None)
+        avisos = mock.Mock()
+        with con_pseudo():
+            cuadros = musica_filtros.FiltrosMusica(
+                self.marco, avisar=avisos, recordar=mock.Mock())
+            cuadros._aplicar_visibilidad(avisar=True, enfocar=False)
+            primero = avisos.call_args.args[0]
+            cuadros.visibles = not cuadros.visibles
+            cuadros._aplicar_visibilidad(avisar=True, enfocar=False)
+            segundo = avisos.call_args.args[0]
+        self.assertTrue(primero.startswith("[¡"), primero)
+        self.assertTrue(segundo.startswith("[¡"), segundo)
 
 
 if __name__ == "__main__":

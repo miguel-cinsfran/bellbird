@@ -1919,5 +1919,128 @@ class TestVentanaPseudo(unittest.TestCase):
         self.assertEqual(sorted(sin_marcar), sorted(self.PENDIENTES))
 
 
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestPseudoAnunciosVentana(unittest.TestCase):
+    """Pseudotraducción de los avisos que muestra la ventana.
+
+    Dispara el camino real y exige lo anunciado marcado. Abre ventanas.
+    """
+
+    def setUp(self):
+        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.anuncios = []
+        self._parche = mock.patch.object(
+            musica_ventana, "anunciar",
+            lambda texto, urgente=True: self.anuncios.append(texto))
+        self._parche.start()
+        self.ventana = None
+
+    def tearDown(self):
+        if self.ventana is not None:
+            self.ventana._cancelar_temporizador()
+            self.ventana._parar_igualando()
+            destruir(self.ventana)
+        self._parche.stop()
+
+    def _abrir(self, control):
+        self.ventana = musica_ventana.VentanaMusica(None, control)
+        return self.ventana
+
+    def test_alternar_cola_marca_al_mostrar_y_al_ocultar(self):
+        self._abrir(ControlFalso(biblioteca=None))
+        with con_pseudo():
+            self.ventana._alternar_cola()
+            primero = self.anuncios[-1]
+            self.ventana._alternar_cola()
+            segundo = self.anuncios[-1]
+        self.assertTrue(primero.startswith("[¡"), primero)
+        self.assertTrue(segundo.startswith("[¡"), segundo)
+
+    def test_escape_con_texto_marca_borrada(self):
+        self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock", "Jazz")))
+        self.ventana.txt_buscar.SetValue("jaz")
+        with con_pseudo():
+            self.ventana._tecla_buscar(Evento(wx.WXK_ESCAPE))
+        self.assertIn("[¡Búsqueda borrada!]", self.anuncios)
+
+    def test_examinar_sin_carpeta_marca(self):
+        control = ControlFalso(biblioteca=None)
+        self._abrir(control)
+        with mock.patch.object(control, "_carpeta", return_value=""):
+            with con_pseudo():
+                self.ventana.examinar_carpeta()
+        self.assertEqual(self.anuncios, ["[¡No hay carpeta de música. "
+                                         "Elige una en Preferencias, "
+                                         "página Música!]"])
+
+    def test_examen_sin_biblioteca_marca(self):
+        self._abrir(ControlFalso(biblioteca=None))
+        with con_pseudo():
+            self.ventana._al_examinar(None, 0, 0)
+        self.assertEqual(self.anuncios, ["[¡No hay carpeta de música. "
+                                         "Elige una en Preferencias, "
+                                         "página Música!]"])
+
+    def test_renombrar_muestra_titulo_marcado(self):
+        self._abrir(ControlFalso(biblioteca=None))
+        capturados = {}
+
+        class Dialogo:
+            def __init__(self, parent, mensaje, titulo, valor=""):
+                capturados["mensaje"] = mensaje
+                capturados["titulo"] = titulo
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc):
+                return False
+
+            def ShowModal(self):
+                return wx.ID_CANCEL
+
+            def GetValue(self):
+                return ""
+
+        with mock.patch.object(self.ventana, "_coleccion_elegida",
+                               return_value="Rock"), \
+                mock.patch("wx.TextEntryDialog", Dialogo):
+            with con_pseudo():
+                self.ventana._renombrar_lista()
+        self.assertTrue(capturados["mensaje"].startswith("[¡"),
+                        capturados["mensaje"])
+        self.assertTrue(capturados["titulo"].startswith("[¡"),
+                        capturados["titulo"])
+
+    def test_borrar_pide_confirmacion_marcada(self):
+        self._abrir(ControlFalso(biblioteca=None))
+        capturados = {}
+
+        class Dialogo:
+            def __init__(self, parent, mensaje, titulo, estilo):
+                capturados["mensaje"] = mensaje
+                capturados["titulo"] = titulo
+
+            def FindWindow(self, ident):
+                return None
+
+            def ShowModal(self):
+                return wx.ID_NO
+
+            def Destroy(self):
+                pass
+
+        with mock.patch.object(self.ventana, "_coleccion_elegida",
+                               return_value="Rock"), \
+                mock.patch("wx.MessageDialog", Dialogo):
+            with con_pseudo():
+                self.ventana._borrar_lista()
+        self.assertTrue(capturados["mensaje"].startswith("[¡"),
+                        capturados["mensaje"])
+        self.assertIn("Rock", capturados["mensaje"])
+        self.assertTrue(capturados["titulo"].startswith("[¡"),
+                        capturados["titulo"])
+
+
 if __name__ == "__main__":
     unittest.main()

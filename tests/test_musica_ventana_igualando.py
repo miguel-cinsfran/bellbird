@@ -4,10 +4,17 @@ Abren ventanas: las corre el advisor en la otra PC, no se corren acá.
 """
 
 import unittest
+from unittest import mock
 
 try:
     import wx
+    from ytchat.core.idioma import _
+    from ytchat.music import pregunta_igualar
+    from ytchat.music import sonoridad
+    from ytchat.music.sonoridad import ResultadoIgualacion
     from ytchat.ui import musica_ventana
+    from ytchat.ui import musica_ventana_igualando as igualando
+    from ytchat.ui.musica_ventana_igualando import IgualandoVentanaMusica
     from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
     from tests.ventanas_prueba import destruir
     _HAY_WX = True
@@ -117,6 +124,101 @@ class TestIgualandoPseudo(unittest.TestCase):
             nombre = self.ventana.btn_igualar.GetName()
         self.assertEqual(rotulo, "[¡Detener la &igualación!]")
         self.assertEqual(nombre, "[¡Detener la igualación!]")
+
+
+class TestPseudoAnunciosIgualando(unittest.TestCase):
+    """Pseudotraducción de los avisos de la igualación.
+
+    Maneja la mezcla con un control falso, sin ventanas, y exige lo
+    anunciado marcado, con los datos presentes.
+    """
+
+    class Doble(IgualandoVentanaMusica):
+        """La mezcla con un control falso, sin ventana."""
+
+        def __init__(self, control):
+            self._control = control
+            self._preguntado_igualar = False
+
+    def _manejar(self, control):
+        return self.Doble(control)
+
+    def test_detener_marca(self):
+        control = mock.Mock()
+        control.midiendo_igualacion.return_value = True
+        with mock.patch.object(igualando, "anunciar") as anunciar:
+            with con_pseudo():
+                self._manejar(control).alternar_igualacion()
+        control.detener_igualacion.assert_called_once_with()
+        texto = anunciar.call_args.args[0]
+        self.assertTrue(texto.startswith("[¡"), texto)
+
+    def test_sin_carpeta_marca(self):
+        control = mock.Mock()
+        control.midiendo_igualacion.return_value = False
+        control.biblioteca_actual.return_value = None
+        control.biblioteca.side_effect = lambda al: al(None)
+        with mock.patch.object(igualando, "anunciar") as anunciar:
+            with con_pseudo():
+                self._manejar(control).alternar_igualacion()
+        texto = anunciar.call_args.args[0]
+        self.assertTrue(texto.startswith("[¡"), texto)
+
+    def test_empezar_marca_cada_codigo(self):
+        casos = (
+            (sonoridad.INICIO, 7),
+            (sonoridad.YA_MIDIENDO, 7),
+            (sonoridad.OPCION_APAGADA, 0),
+            (sonoridad.SIN_FFMPEG, 0),
+            (sonoridad.NADA_PENDIENTE, 0),
+        )
+        for codigo, total in casos:
+            with self.subTest(codigo=codigo):
+                control = mock.Mock()
+                control.iniciar_medicion.return_value = ResultadoIgualacion(
+                    codigo, total)
+                with mock.patch.object(igualando, "anunciar") as anunciar, \
+                        mock.patch.object(igualando, "_snd"):
+                    with con_pseudo():
+                        self._manejar(control)._empezar_igualacion(["a.mp3"])
+                anunciar.assert_called_once()
+                texto = anunciar.call_args.args[0]
+                self.assertTrue(texto.startswith("[¡"), texto)
+                if total:
+                    self.assertIn("7", texto)
+
+    def test_pregunta_muestra_texto_titulo_y_casilla_marcados(self):
+        control = mock.Mock()
+        control.confirmar_pregunta.return_value = (1, 5 * 1024 * 1024)
+        capturado = {}
+
+        class Dialogo:
+            def __init__(self, parent, mensaje, titulo, estilo):
+                capturado["mensaje"] = mensaje
+                capturado["titulo"] = titulo
+
+            def ShowCheckBox(self, texto):
+                capturado["casilla"] = texto
+
+            def ShowModal(self):
+                return wx.ID_NO
+
+            def IsCheckBoxChecked(self):
+                return False
+
+            def Destroy(self):
+                pass
+
+        with mock.patch.object(igualando.wx, "RichMessageDialog", Dialogo):
+            with con_pseudo():
+                self._manejar(control)._al_pendientes_pregunta(
+                    ["a.mp3"], 5 * 1024 * 1024)
+        for clave in ("mensaje", "titulo", "casilla"):
+            with self.subTest(clave=clave):
+                self.assertTrue(capturado[clave].startswith("[¡"),
+                                capturado[clave])
+        self.assertIn("Hay 1 canción", capturado["mensaje"])
+        self.assertIn("5 MB", capturado["mensaje"])
 
 
 if __name__ == "__main__":

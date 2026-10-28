@@ -867,20 +867,19 @@ class TestTrazaTeclaPantallaCompleta(unittest.TestCase):
     esté gestionada o no. Sin ventana: la ventana se crea sin __init__."""
 
     def _pantalla(self):
-        from ytchat.player import reproductor
-        ventana = reproductor._PantallaCompleta.__new__(reproductor._PantallaCompleta)
-        ventana._panel = mock.Mock()
+        from ytchat.player.pantalla_completa import PantallaCompleta
+        ventana = PantallaCompleta.__new__(PantallaCompleta)
         ventana._atajos = {}
+        ventana._acciones = mock.Mock()
         return ventana
 
     def test_tecla_no_gestionada_queda_en_el_registro(self):
         import wx
-        from ytchat.player import reproductor
         ventana = self._pantalla()
         evento = mock.Mock()
         evento.GetKeyCode.return_value = ord("X")
         evento.GetModifiers.return_value = wx.MOD_NONE
-        with self.assertLogs("ytchat.reproductor", "DEBUG") as capturas:
+        with self.assertLogs("ytchat.pantalla_completa", "DEBUG") as capturas:
             ventana._on_key(evento)
         salida = "\n".join(capturas.output)
         self.assertIn("TECLA origen=pantalla_completa", salida)
@@ -889,17 +888,16 @@ class TestTrazaTeclaPantallaCompleta(unittest.TestCase):
 
     def test_tecla_gestionada_tambien_queda_en_el_registro(self):
         import wx
-        from ytchat.player import reproductor
         ventana = self._pantalla()
         evento = mock.Mock()
         evento.GetKeyCode.return_value = wx.WXK_SPACE
         evento.GetModifiers.return_value = wx.MOD_NONE
-        with self.assertLogs("ytchat.reproductor", "DEBUG") as capturas:
+        with self.assertLogs("ytchat.pantalla_completa", "DEBUG") as capturas:
             ventana._on_key(evento)
         salida = "\n".join(capturas.output)
         self.assertIn("TECLA origen=pantalla_completa", salida)
         self.assertIn("codigo=%d" % wx.WXK_SPACE, salida)
-        ventana._panel._toggle_play.assert_called_once_with()
+        ventana._acciones.pausa.assert_called_once_with()
 
 
 if __name__ == "__main__":

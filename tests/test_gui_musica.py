@@ -1056,13 +1056,13 @@ class TestVentanaYAtajos(unittest.TestCase):
         env.anunciar.assert_called_once_with("Tema 2")
 
     def test_combos_atajo_traduce_los_guardados(self):
-        from ytchat.player import reproductor
+        from ytchat.ui import teclas_wx
         with _entorno():
             control = ControlMusica(_frame())
             combos = control.combos_atajo()
-        self.assertEqual(combos[reproductor._combo_wx("ctrl+alt+space")],
+        self.assertEqual(combos[teclas_wx.combo_wx("ctrl+alt+space")],
                          "musica_play")
-        self.assertEqual(combos[reproductor._combo_wx("ctrl+alt+right")],
+        self.assertEqual(combos[teclas_wx.combo_wx("ctrl+alt+right")],
                          "musica_siguiente")
 
     def test_ejecutar_atajo_llama_a_la_accion(self):

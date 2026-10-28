@@ -129,10 +129,10 @@ class TestRepDirectoWx(unittest.TestCase):
             mapa[(wx.MOD_CONTROL, wx.WXK_END)].__func__,
             reproductor.ReproductorPanel.ir_al_directo)
 
-    def test_combo_wx_traduce_ctrl_end(self):
+    def test_teclas_wx_traduce_ctrl_end(self):
         import wx
-        from ytchat.player import reproductor
-        self.assertEqual(reproductor._combo_wx("ctrl+end"),
+        from ytchat.ui import teclas_wx
+        self.assertEqual(teclas_wx.combo_wx("ctrl+end"),
                          (wx.MOD_CONTROL, wx.WXK_END))
 
     def test_captura_convierte_fin_con_ctrl_en_ctrl_end(self):

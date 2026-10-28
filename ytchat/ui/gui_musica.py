@@ -193,17 +193,17 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica, SonoridadMusica,
     def combos_atajo(self) -> dict:
         """(modificadores, tecla) → acción, para los atajos de música guardados.
 
-        La ventana modal no recibe los atajos del menú: los traduce con el
-        mismo `_combo_wx` que usa el reproductor a pantalla completa.
+        La ventana modal no recibe los atajos del menú: los traduce con
+        `combo_wx` de `teclas_wx`, como la pantalla completa.
         """
-        from ytchat.player import reproductor
+        from ytchat.ui import teclas_wx
         atajos = cfg.parsear_atajos(self._config.get("atajos_raw", {}))
         combos = {}
         for accion in self.acciones_musica():
             atajo = atajos.get(accion)
             if atajo is None:
                 continue
-            combo = reproductor._combo_wx(atajo.texto)
+            combo = teclas_wx.combo_wx(atajo.texto)
             if combo is not None:
                 combos[combo] = accion
         return combos

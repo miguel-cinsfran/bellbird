@@ -14,7 +14,6 @@ se instancia de forma perezosa (al primer uso) para no frenar el arranque.
 from __future__ import annotations
 
 import importlib.util
-import re
 import sys
 import time
 
@@ -41,6 +40,7 @@ from ytchat.downloads import ytdlp_bin
 from ytchat.player import esclavo_audio
 from ytchat.player import flujo_tiktok
 from ytchat.player import motor_vlc
+from ytchat.player.pantalla_completa import AccionesPantalla, PantallaCompleta
 from ytchat.player import reproductor_ciclo
 from ytchat.player import relevo_ffmpeg
 from ytchat.player.formatos import mejor_audio as _mejor_audio
@@ -49,6 +49,7 @@ from ytchat.player.formatos_youtube import (
     _video_para_altura, fuentes_para_directo,
 )
 from ytchat.ui.accesibilidad import anunciar, nombre_accesible
+from ytchat.ui.teclas_wx import combo_wx
 from ytchat.ui.tema import _T, _tc
 from ytchat.core import anuncio_ajuste
 
@@ -178,39 +179,6 @@ def _fmt_hablado(ms) -> str:
     return " ".join(partes)
 
 
-# ── Atajos en pantalla completa ───────────────────────────────────────────────
-# Traducción de los atajos de config («ctrl+p», «ctrl+left», «f5»…) a lo que
-# entrega wx.EVT_CHAR_HOOK: (modificadores, keycode).
-
-_TECLAS_WX = {
-    "left": wx.WXK_LEFT, "right": wx.WXK_RIGHT, "up": wx.WXK_UP,
-    "down": wx.WXK_DOWN, "enter": wx.WXK_RETURN, "space": wx.WXK_SPACE,
-    "end": wx.WXK_END,
-}
-_RE_FKEY_WX = re.compile(r"^f(1[0-2]|[1-9])$")
-
-
-def _combo_wx(texto: str) -> tuple[int, int] | None:
-    """«ctrl+p» → (wx.MOD_CONTROL, ord('P')). None si no se puede traducir."""
-    partes = (texto or "").lower().split("+")
-    if not partes or not partes[-1]:
-        return None
-    mods = 0
-    for p in partes[:-1]:
-        m = {"ctrl": wx.MOD_CONTROL, "alt": wx.MOD_ALT, "shift": wx.MOD_SHIFT}.get(p)
-        if m is None:
-            return None
-        mods |= m
-    tecla = partes[-1]
-    if tecla in _TECLAS_WX:
-        return (mods, _TECLAS_WX[tecla])
-    if _RE_FKEY_WX.match(tecla):
-        return (mods, wx.WXK_F1 + int(tecla[1:]) - 1)
-    if len(tecla) == 1:
-        return (mods, ord(tecla.upper()))
-    return None
-
-
 class _PosAccesible(wx.Accessible):
     """Hace que NVDA lea la posición como tiempo hablado, no el número crudo."""
 
@@ -229,81 +197,6 @@ class _PosAccesible(wx.Accessible):
             return (wx.ACC_OK, p.frase_posicion_directo())
         except Exception:
             return (wx.ACC_OK, "En directo")   # un live no tiene duración que anunciar
-
-
-class _PantallaCompleta(wx.Frame):
-    """Ventana sin bordes a pantalla completa para el vídeo.
-
-    Antes solo atendía Escape/F11 y era una trampa de teclado: los atajos
-    Ctrl+… son aceleradores del menú principal y aquí no llegan. Atiende los
-    atajos del reproductor de Preferencias y las teclas de VLC/YouTube
-    (espacio, flechas, M, F y 0-9).
-    """
-
-    def __init__(self, panel):
-        # Título = el de la ventana principal, no un genérico: es lo que
-        # anuncia el lector y lo que sale en Alt+Tab al entrar.
-        try:
-            principal = wx.GetApp().GetTopWindow()
-            titulo = (principal.GetTitle() if principal else "") or _cfg.APP_NAME
-        except Exception:
-            titulo = _cfg.APP_NAME
-        super().__init__(None, title=titulo, name="PantallaCompleta")
-        self._panel = panel
-        self._atajos = panel._mapa_atajos_fs()
-        self.SetBackgroundColour(wx.BLACK)
-        self.video = wx.Window(self, name="VideoPantallaCompleta")
-        self.video.SetBackgroundColour(wx.BLACK)
-        nombre_accesible(
-            self.video,
-            "Vídeo a pantalla completa. Espacio pausa, flechas buscan y ajustan "
-            "volumen, Escape sale.")
-        self.Bind(wx.EVT_CHAR_HOOK, self._on_key)
-        self.Bind(wx.EVT_CLOSE, self._on_close)
-        self.video.Bind(wx.EVT_LEFT_DCLICK,
-                        lambda e: self._panel.alternar_pantalla_completa())
-        self.ShowFullScreen(True)
-        # Foco al vídeo: recibe el teclado y da nombre accesible al lector.
-        self.video.SetFocus()
-
-    def _on_key(self, event):
-        p = self._panel
-        k = event.GetKeyCode()
-        mods = event.GetModifiers()
-        logger.debug("TECLA origen=pantalla_completa codigo=%s mods=%s", k, mods)
-        if k in (wx.WXK_ESCAPE, wx.WXK_F11):
-            p.alternar_pantalla_completa()
-            return
-        accion = self._atajos.get((mods, k))
-        if accion is not None:
-            accion()
-            return
-        if mods == wx.MOD_NONE:
-            if k in (wx.WXK_SPACE, wx.WXK_MEDIA_PLAY_PAUSE):
-                p._toggle_play(); return
-            if k == wx.WXK_LEFT:
-                p._buscar_rel(-10_000); return
-            if k == wx.WXK_RIGHT:
-                p._buscar_rel(+10_000); return
-            if k == wx.WXK_UP:
-                p._vol_flecha(+5); return
-            if k == wx.WXK_DOWN:
-                p._vol_flecha(-5); return
-            if k == ord("M"):
-                p._toggle_mute(); return
-            if k == ord("F"):
-                p.alternar_pantalla_completa(); return
-            if ord("0") <= k <= ord("9"):
-                p._buscar_porcentaje((k - ord("0")) * 10); return
-            if wx.WXK_NUMPAD0 <= k <= wx.WXK_NUMPAD9:
-                p._buscar_porcentaje((k - wx.WXK_NUMPAD0) * 10); return
-        event.Skip()
-
-    def _on_close(self, event):
-        # Alt+F4: salir por el mismo camino que Escape/F11. Si se destruyera sin
-        # avisar, el panel seguiría apuntando aquí y el vídeo quedaría dibujando
-        # en una ventana muerta (y el siguiente toggle petaría).
-        self._panel.alternar_pantalla_completa()
 
 
 class ReproductorPanel(wx.Panel):
@@ -888,7 +781,7 @@ class ReproductorPanel(wx.Panel):
         for accion, fn in acciones.items():
             at = atajos.get(accion)
             if at:
-                combo = _combo_wx(at.texto)
+                combo = combo_wx(at.texto)
                 if combo:
                     mapa[combo] = fn
         return mapa
@@ -1820,7 +1713,11 @@ class ReproductorPanel(wx.Panel):
                 anunciar(aviso)
             return
         if self._fs is None:
-            self._fs = _PantallaCompleta(self)
+            self._fs = PantallaCompleta(self._mapa_atajos_fs(), AccionesPantalla(
+                salir=self.alternar_pantalla_completa, pausa=self._toggle_play,
+                buscar_rel=self._buscar_rel, volumen=self._vol_flecha,
+                silenciar=self._toggle_mute,
+                buscar_porcentaje=self._buscar_porcentaje))
             self._fijar_salida(self._fs.video.GetHandle())
             anunciar("Pantalla completa. Espacio pausa, flechas buscan y ajustan "
                      "volumen, Escape sale.")

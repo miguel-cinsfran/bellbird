@@ -18,8 +18,8 @@ except Exception:
 class TestComboWx(unittest.TestCase):
 
     def setUp(self):
-        from ytchat.player import reproductor
-        self.combo = reproductor._combo_wx
+        from ytchat.ui import teclas_wx
+        self.combo = teclas_wx.combo_wx
 
     def test_ctrl_letra(self):
         import wx

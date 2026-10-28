@@ -136,7 +136,7 @@ def microfono_por_atajo(preferido, avisar) -> None:
     avisar(texto, "")
     if fuente and not silenciado and obs_audio.es_microfono(fuente):
         if senal_microfono(fuente) is False:
-            avisar(obs_audio.TEXTO_SIN_SENAL, "microfono_sin_senal")
+            avisar(_(obs_audio.TEXTO_SIN_SENAL), "microfono_sin_senal")
 
 
 def dispositivo(cliente, fuente, predeterminado, parada=None) -> tuple:

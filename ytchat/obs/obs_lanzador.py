@@ -108,14 +108,14 @@ def asegurar_obs(probar_conexion, al_anunciar=None, parada=None,
         return False
     ruta = buscar()
     if not ruta:
-        raise ObsNoInstalado("OBS no está instalado en este equipo. "
-                             "Instálalo desde obsproject.com y vuelve a "
-                             "intentarlo.")
+        raise ObsNoInstalado(_("OBS no está instalado en este equipo. "
+                               "Instálalo desde obsproject.com y vuelve a "
+                               "intentarlo."))
     modo_seguro = bool(hubo_cierre_incorrecto())
     if al_anunciar is not None:
-        al_anunciar(TEXTO_ABRIENDO)
+        al_anunciar(_(TEXTO_ABRIENDO))
         if modo_seguro:
-            al_anunciar(TEXTO_MODO_SEGURO)
+            al_anunciar(_(TEXTO_MODO_SEGURO))
     abrir(ruta)
     inicio = reloj()
     while True:

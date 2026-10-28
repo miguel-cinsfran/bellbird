@@ -114,10 +114,12 @@ def preparar(gestor, destino: str, asegurar: Callable, al_anunciar: Callable,
         if bool(gestor.estado_transmision().get("outputActive", False)):
             return Preparacion(ya_transmitiendo=True)
         if gestor.perfil_actual() != destino:
-            al_anunciar(f"Preparando OBS para {destino}.")
+            al_anunciar(_("Preparando OBS para {destino}.").format(
+                destino=destino))
         resultado = gestor.preparar_destino(destino)
         if (resultado or {}).get("perfil_creado"):
-            al_anunciar(f"Se creó en OBS el perfil {destino}.")
+            al_anunciar(_("Se creó en OBS el perfil {destino}.").format(
+                destino=destino))
         revision = gestor.revisar(destino)
         return Preparacion(ya_transmitiendo=False, revision=revision)
     finally:

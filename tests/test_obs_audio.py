@@ -1,6 +1,8 @@
 import random
 import unittest
 
+from tests.pseudo_prueba import con_pseudo
+from ytchat.core.idioma import _
 from ytchat.obs import obs_audio
 from ytchat.obs.obs_audio import elegir_microfono, frase_microfono, nombre_corto
 
@@ -185,6 +187,41 @@ class TieneSenalTest(unittest.TestCase):
             self.assertIs(obs_audio.tiene_senal(elevados, "Mic/Aux"), True,
                           f"sus niveles {canales} subidos {mas}")
         self.assertGreater(probados, 0)
+
+
+class TestPseudoAudio(unittest.TestCase):
+    """Pseudotraducción de los anuncios de `obs_audio`.
+
+    Sin ventanas: llama a `frase_microfono` bajo `con_pseudo()` en todos
+    los caminos y exige el texto propio marcado. El nombre del dispositivo
+    es un dato de Windows y viaja sin marcar.
+    """
+
+    def test_todos_los_caminos_salen_marcados(self):
+        casos = (
+            ("", False, "", False),
+            ("Mic/Aux", True, "", False),
+            ("Mic/Aux", False, "", False),
+            ("Mic/Aux", False, "Micrófono (WO Mic Device)", False),
+            ("Mic/Aux", False, "", True),
+            ("Mic/Aux", False, "Micrófono (WO Mic Device)", True),
+            ("Audio del escritorio", True, "", False),
+            ("Audio del escritorio", False, "", False),
+            ("Audio del escritorio", True, "Micrófono (WO Mic Device)", True),
+        )
+        with con_pseudo():
+            for fuente, silenciado, dispositivo, predeterminado in casos:
+                with self.subTest(fuente=fuente, silenciado=silenciado,
+                                  predeterminado=predeterminado):
+                    frase = frase_microfono(
+                        fuente, silenciado, dispositivo, predeterminado)
+                    self.assertTrue(frase.startswith("[¡"), frase)
+                    if dispositivo and fuente != "Audio del escritorio":
+                        self.assertIn("WO Mic Device", frase)
+
+    def test_texto_sin_senal_se_traduce_donde_se_muestra(self):
+        with con_pseudo():
+            self.assertTrue(_(obs_audio.TEXTO_SIN_SENAL).startswith("[¡"))
 
 
 if __name__ == "__main__":

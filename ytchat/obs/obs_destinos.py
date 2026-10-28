@@ -9,7 +9,15 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 
+from ytchat.core.idioma import N_, _
 from ytchat.obs import obs_cliente
+
+
+# Traductores: {destino} es TikTok o YouTube.
+MENSAJE_SIN_PERFIL = N_("OBS no tiene un perfil llamado {destino}.")
+MENSAJE_EN_TRANSMISION = N_(
+    "No se puede cambiar de destino mientras se transmite.")
+MENSAJE_SIN_APLICAR = N_("OBS no aplicó el destino. Inténtalo de nuevo.")
 
 
 DESTINOS = ("TikTok", "YouTube")
@@ -51,7 +59,7 @@ def _esperar(cliente, leer, cumple, parada, espera, intervalo, dormir, reloj,
     inicio = reloj()
     while True:
         if parada is not None and parada.is_set():
-            raise obs_cliente.ObsError("Operación cancelada.")
+            raise obs_cliente.ObsError(_("Operación cancelada."))
         datos = leer(cliente, parada)
         if cumple(datos):
             return datos
@@ -66,7 +74,7 @@ def _esperar_en_lista(cliente, cumple, parada, espera, intervalo, dormir, reloj)
     # verlo en GetProfileList en vez de darlo por hecho.
     return _esperar(cliente, _lista_perfiles, cumple, parada, espera,
                     intervalo, dormir, reloj,
-                    "OBS no terminó de cambiar de perfil.")
+                    _("OBS no terminó de cambiar de perfil."))
 
 
 def coleccion_para(destino, colecciones):
@@ -98,7 +106,7 @@ def cambiar_coleccion(cliente, nombre, parada=None, espera=60.0,
              lambda vistos: (vistos.get("currentSceneCollectionName", "")
                              or "") == nombre,
              parada, espera, intervalo, dormir, reloj,
-             "OBS no terminó de cambiar de escenas.")
+             _("OBS no terminó de cambiar de escenas."))
 
 
 def preparar_para_transmitir(cliente, destino, parada=None, espera=60.0,
@@ -111,7 +119,7 @@ def preparar_para_transmitir(cliente, destino, parada=None, espera=60.0,
         # preparar_destino cree el que falta; cualquier otro perfil vacío
         # emitiría a ningún lado.
         raise obs_cliente.ObsError(
-            f"OBS no tiene un perfil llamado {destino}.")
+            _(MENSAJE_SIN_PERFIL).format(destino=destino))
     perfil_creado = destino not in perfiles
     preparar_destino(cliente, Destino(destino), parada=parada, espera=espera,
                      intervalo=intervalo, dormir=dormir, reloj=reloj)
@@ -134,15 +142,22 @@ def frase_destino_listo(resultado):
     """Frase de anuncio con el formato del lienzo ya leído de OBS."""
     ancho, alto = resultado["ancho"], resultado["alto"]
     if alto > ancho:
-        formato = "vertical"
+        # Traductores: formato del lienzo dentro de «Listo para transmitir».
+        formato = _("vertical")
     elif ancho > alto:
-        formato = "horizontal"
+        # Traductores: formato del lienzo dentro de «Listo para transmitir».
+        formato = _("horizontal")
     else:
-        formato = "cuadrado"
-    frase = (f"Listo para transmitir a {resultado['destino']}. "
-             f"Formato {formato}, {ancho} por {alto}.")
+        # Traductores: formato del lienzo dentro de «Listo para transmitir».
+        formato = _("cuadrado")
+    # Traductores: {destino} es TikTok o YouTube y {ancho} y {alto} sus píxeles.
+    frase = (_("Listo para transmitir a {destino}. Formato {formato}, "
+               "{ancho} por {alto}.").format(destino=resultado["destino"],
+                                             formato=formato, ancho=ancho,
+                                             alto=alto))
     if resultado.get("perfil_creado"):
-        frase = f"Se creó en OBS el perfil {resultado['destino']}. " + frase
+        frase = (_("Se creó en OBS el perfil {destino}.").format(
+            destino=resultado["destino"]) + " " + frase)
     return frase
 
 
@@ -151,8 +166,7 @@ def preparar_destino(cliente, destino, parada=None, espera=60.0,
     """Deja el perfil de OBS listo para emitir al destino indicado."""
     estado = cliente.pedir("GetStreamStatus", parada=parada)
     if (estado.get("responseData", {}) or {}).get("outputActive"):
-        raise obs_cliente.ObsError(
-            "No se puede cambiar de destino mientras se transmite.")
+        raise obs_cliente.ObsError(_(MENSAJE_EN_TRANSMISION))
 
     datos = _lista_perfiles(cliente, parada)
     perfiles = datos.get("profiles", ()) or ()
@@ -190,12 +204,11 @@ def preparar_destino(cliente, destino, parada=None, espera=60.0,
 
     datos = _lista_perfiles(cliente, parada)
     if (datos.get("currentProfileName", "") or "") != destino.perfil:
-        raise obs_cliente.ObsError("OBS no aplicó el destino. Inténtalo de nuevo.")
+        raise obs_cliente.ObsError(_(MENSAJE_SIN_APLICAR))
     if destino.servidor is not None and destino.clave is not None:
         respuesta = cliente.pedir("GetStreamServiceSettings", parada=parada)
         ajustes = (respuesta.get("responseData", {}) or {}).get(
             "streamServiceSettings", {}) or {}
         if (ajustes.get("server") != destino.servidor
                 or ajustes.get("key") != destino.clave):
-            raise obs_cliente.ObsError(
-                "OBS no aplicó el destino. Inténtalo de nuevo.")
+            raise obs_cliente.ObsError(_(MENSAJE_SIN_APLICAR))

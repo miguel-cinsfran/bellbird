@@ -4,6 +4,7 @@ import json
 import subprocess
 
 from ytchat.core import archivos
+from ytchat.core.idioma import _
 
 
 NO_TOCAR = "no_tocar"
@@ -13,11 +14,12 @@ ACTIVAR = "activar"
 def decidir_activacion(obs_en_ejecucion, ajustes):
     """Indica si la configuración de OBS puede modificarse."""
     if ajustes.activo:
-        return NO_TOCAR, "El servidor websocket de OBS ya está activado"
+        return NO_TOCAR, _("El servidor websocket de OBS ya está activado")
     if obs_en_ejecucion:
         return (NO_TOCAR,
-                "OBS está abierto. Ciérralo y vuelve a pulsar este botón, porque OBS reescribe su configuración al cerrarse")
-    return ACTIVAR, "Se puede activar el servidor websocket de OBS"
+                _("OBS está abierto. Ciérralo y vuelve a pulsar este botón, "
+                  "porque OBS reescribe su configuración al cerrarse"))
+    return ACTIVAR, _("Se puede activar el servidor websocket de OBS")
 
 
 def ajustes_con_servidor_activado(ajustes):
@@ -52,5 +54,6 @@ def activar_servidor(ruta):
         archivos.escribir_json_atomico(
             ruta, ajustes_con_servidor_activado(ajustes), indent=2)
     except (OSError, ValueError, TypeError) as exc:
-        return f"No se pudo activar el servidor websocket de OBS: {exc}"
-    return "El servidor websocket de OBS se activó. Inicia OBS para usarlo"
+        return _("No se pudo activar el servidor websocket de OBS: "
+                 "{error}").format(error=exc)
+    return _("El servidor websocket de OBS se activó. Inicia OBS para usarlo")

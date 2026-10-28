@@ -1487,10 +1487,7 @@ class FinPendienteTest(unittest.TestCase):
 # cual. La comparación es exacta en los dos sentidos: falla si aparece un
 # anuncio propio sin marcar y si un texto ajeno ya no llega, para vaciar la
 # lista cuando ese módulo pase por gettext.
-OTROS_SUPERVISOR = (
-    "OBS está enviando la señal a Restream.",
-    "OBS está enviando la señal a YouTube.",
-)
+OTROS_SUPERVISOR = ()
 
 
 class TestPseudoAnunciosSupervisor(BaseSupervisor):
@@ -1498,9 +1495,7 @@ class TestPseudoAnunciosSupervisor(BaseSupervisor):
 
     Sin ventanas: dispara los caminos bajo `con_pseudo()` y exige cada
     anuncio propio marcado. Los caminos que anuncian frases de otros
-    módulos (`obs_salida`, `obs_cliente`, `emision`, `obs_lanzador`) no
-    entran, salvo los dos veredictos fijos de `frase_salida`, que van
-    como pendientes en OTROS_SUPERVISOR.
+    módulos (`obs_cliente`, `emision`, `obs_lanzador`) no entran.
     """
 
     def _exigir_marcados(self, anuncios, otros=()):
@@ -1586,7 +1581,7 @@ class TestPseudoAnunciosSupervisor(BaseSupervisor):
         supervisor, anuncios, chats, _, _, _, _ = armado
         with con_pseudo():
             self.iniciar_y_esperar_fin(supervisor)
-        marcados = self._exigir_marcados(anuncios, [OTROS_SUPERVISOR[0]])
+        marcados = self._exigir_marcados(anuncios)
         self.assertIn("[¡Comenzando la transmisión.!]", marcados)
         self.assertIn("[¡Tu directo de TikTok ya está al aire.!]", marcados)
         self.assertEqual(chats, ["https://www.tiktok.com/@amigo/live"])
@@ -1596,7 +1591,7 @@ class TestPseudoAnunciosSupervisor(BaseSupervisor):
         supervisor, anuncios, _, _, _, _, _ = armado
         with con_pseudo():
             self.iniciar_y_esperar_fin(supervisor)
-        marcados = self._exigir_marcados(anuncios, [OTROS_SUPERVISOR[0]])
+        marcados = self._exigir_marcados(anuncios)
         self.assertIn("[¡No hay usuario de TikTok guardado: conecta el chat "
                       "a mano.!]", marcados)
 
@@ -1606,7 +1601,7 @@ class TestPseudoAnunciosSupervisor(BaseSupervisor):
         supervisor, anuncios, _, _, _, _, _ = armado
         with con_pseudo():
             self.iniciar_y_esperar_fin(supervisor)
-        marcados = self._exigir_marcados(anuncios, [OTROS_SUPERVISOR[0]])
+        marcados = self._exigir_marcados(anuncios)
         self.assertTrue(any("amigo" in frase for frase in marcados))
 
     def test_sin_noticia_del_directo_marca(self):
@@ -1615,7 +1610,7 @@ class TestPseudoAnunciosSupervisor(BaseSupervisor):
         supervisor, anuncios, _, _, _, _, _ = armado
         with con_pseudo():
             self.iniciar_y_esperar_fin(supervisor)
-        marcados = self._exigir_marcados(anuncios, [OTROS_SUPERVISOR[0]])
+        marcados = self._exigir_marcados(anuncios)
         self.assertIn("[¡OBS está transmitiendo, pero TikTok todavía no "
                       "muestra el directo.!]", marcados)
 
@@ -1623,7 +1618,7 @@ class TestPseudoAnunciosSupervisor(BaseSupervisor):
         supervisor, anuncios, chats = self._armar_youtube()
         with con_pseudo():
             self.iniciar_y_esperar_fin(supervisor)
-        marcados = self._exigir_marcados(anuncios, [OTROS_SUPERVISOR[1]])
+        marcados = self._exigir_marcados(anuncios)
         self.assertIn("[¡Creando el directo en YouTube.!]", marcados)
         self.assertIn("[¡Tu directo de YouTube ya está al aire.!]", marcados)
         self.assertEqual(chats, ["https://www.youtube.com/watch?v=vid123"])

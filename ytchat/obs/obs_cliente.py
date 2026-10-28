@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from websockets.exceptions import ConnectionClosed
 from websockets.sync.client import connect
 
+from ytchat.core.idioma import N_, _
 from ytchat.obs import obs_activacion
 
 
@@ -63,9 +64,10 @@ class ObsError(RuntimeError):
     """Fallo entendible producido al comunicarse con OBS."""
 
 
-MENSAJE_CONEXION_PERDIDA = "Se perdió la conexión con OBS. Vuelve a conectar."
+MENSAJE_CONEXION_PERDIDA = N_(
+    "Se perdió la conexión con OBS. Vuelve a conectar.")
 
-TEXTO_ABIERTO_SIN_RESPUESTA = (
+TEXTO_ABIERTO_SIN_RESPUESTA = N_(
     "OBS está abierto pero no responde. Puede estar esperando una "
     "respuesta: elige Mostrar OBS en el menú Transmisión. Si no, comprueba "
     "que su servidor websocket esté activado.")
@@ -95,17 +97,18 @@ def mensaje_de_fallo_obs(motivo, obs_abierto=None):
                            error)
             abierto = False
         if abierto:
-            return TEXTO_ABIERTO_SIN_RESPUESTA
-        return ("No se pudo conectar con OBS. Comprueba que OBS esté abierto y "
-                "que su servidor websocket esté activado.")
+            return _(TEXTO_ABIERTO_SIN_RESPUESTA)
+        return _("No se pudo conectar con OBS. Comprueba que OBS esté abierto "
+                 "y que su servidor websocket esté activado.")
     if any(clave in texto for clave in ("authentication", "4009", "unauthorized")):
-        return "OBS rechazó la contraseña guardada. Vuelve a conectar para leerla de nuevo."
+        return _("OBS rechazó la contraseña guardada. Vuelve a conectar para "
+                 "leerla de nuevo.")
     if any(clave in texto for clave in ("601", "already exists")):
-        return "Ya existe una fuente con ese nombre en OBS."
+        return _("Ya existe una fuente con ese nombre en OBS.")
     if any(clave in texto for clave in ("600", "not found", "no scene")):
-        return "OBS no encuentra la escena o la fuente indicada."
+        return _("OBS no encuentra la escena o la fuente indicada.")
     # Se comparte la forma de avisos_red, pero OBS necesita una taxonomía propia.
-    return "OBS no pudo completar la operación. Inténtalo de nuevo."
+    return _("OBS no pudo completar la operación. Inténtalo de nuevo.")
 
 
 class ClienteObs:
@@ -200,7 +203,7 @@ class ClienteObs:
                 # OBS colgó: si el transporte se quedara, conectado seguiría en
                 # True y cada petición fallaría con «Inténtalo de nuevo».
                 self.cerrar()
-                raise ObsError(MENSAJE_CONEXION_PERDIDA) from error
+                raise ObsError(_(MENSAJE_CONEXION_PERDIDA)) from error
             except Exception as error:
                 raise ObsError(mensaje_de_fallo_obs(error)) from error
 
@@ -240,7 +243,7 @@ class ClienteObs:
                     mensaje = self._mensaje_seguido(transporte, restante)
                 except ConnectionClosed as error:
                     self.cerrar()
-                    raise ObsError(MENSAJE_CONEXION_PERDIDA) from error
+                    raise ObsError(_(MENSAJE_CONEXION_PERDIDA)) from error
                 except Exception as error:
                     raise ObsError(mensaje_de_fallo_obs(error)) from error
                 if mensaje is None:
@@ -264,7 +267,7 @@ class ClienteObs:
     def _recibir(cls, transporte, parada, limite):
         while True:
             if parada is not None and parada.is_set():
-                raise ObsError("Operación cancelada.")
+                raise ObsError(_("Operación cancelada."))
             restante = limite - time.monotonic()
             if restante <= 0:
                 raise ObsError(mensaje_de_fallo_obs("timed out"))

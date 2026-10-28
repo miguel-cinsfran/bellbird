@@ -2,6 +2,8 @@
 
 import unicodedata
 
+from ytchat.core.idioma import N_, _
+
 
 def _contiene_microfono(nombre: str) -> bool:
     normalizado = unicodedata.normalize("NFD", nombre.casefold())
@@ -37,14 +39,17 @@ def nombre_corto(nombre: str) -> str:
 
 def _frase_predeterminado(corto: str) -> str:
     if corto:
-        return f"Micrófono activado: predeterminado de Windows, {corto}"
-    return "Micrófono activado: predeterminado de Windows"
+        # Traductores: {corto} es el nombre corto del dispositivo.
+        return _("Micrófono activado: predeterminado de Windows, "
+                 "{corto}").format(corto=corto)
+    return _("Micrófono activado: predeterminado de Windows")
 
 
 def _frase_fijo(corto: str) -> str:
     if corto:
-        return f"Micrófono activado: {corto}"
-    return "Micrófono activado"
+        # Traductores: {corto} es el nombre corto del dispositivo.
+        return _("Micrófono activado: {corto}").format(corto=corto)
+    return _("Micrófono activado")
 
 
 def _frase_activada(dispositivo: str, predeterminado: bool) -> str:
@@ -54,21 +59,28 @@ def _frase_activada(dispositivo: str, predeterminado: bool) -> str:
     return _frase_fijo(corto)
 
 
+# Traductores: estado de la fuente de audio; se muestra tras su nombre.
+ESTADO_SILENCIADO = N_("silenciado")
+# Traductores: estado de la fuente de audio; se muestra tras su nombre.
+ESTADO_ACTIVADO = N_("activado")
+
+
 def _frase(fuente: str, estado: str, dispositivo: str,
            predeterminado: bool) -> str:
     if _contiene_microfono(fuente):
         if estado == "silenciado":
-            return "Micrófono silenciado"
+            return _("Micrófono silenciado")
         return _frase_activada(dispositivo, predeterminado)
-    return f"{fuente} {estado}"
+    # Traductores: {fuente} es el nombre de la fuente y {estado} su estado.
+    return _("{fuente} {estado}").format(fuente=fuente, estado=_(estado))
 
 
 def frase_microfono(fuente: str, silenciado: bool, dispositivo: str = "",
                     predeterminado: bool = False) -> str:
     """Compone el anuncio posterior a cambiar el silencio."""
     if not fuente:
-        return "OBS no tiene ninguna fuente de audio"
-    estado = "silenciado" if silenciado else "activado"
+        return _("OBS no tiene ninguna fuente de audio")
+    estado = ESTADO_SILENCIADO if silenciado else ESTADO_ACTIVADO
     return _frase(fuente, estado, dispositivo, predeterminado)
 
 
@@ -76,8 +88,8 @@ def frase_microfono(fuente: str, silenciado: bool, dispositivo: str = "",
 # el 23/10: un micrófono prendido sin hablar sobresale con pico de 0,049.
 UMBRAL_SENAL = 0.0001
 
-TEXTO_SIN_SENAL = ("El micrófono no recibe sonido. Revisa cuál está elegido "
-                   "en Windows o en OBS.")
+TEXTO_SIN_SENAL = N_("El micrófono no recibe sonido. Revisa cuál está "
+                     "elegido en Windows o en OBS.")
 
 
 def _nivel_de_canal(canal) -> float:

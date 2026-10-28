@@ -1,5 +1,6 @@
 import unittest
 
+from tests.pseudo_prueba import con_pseudo
 from ytchat.obs import obs_captura
 from ytchat.obs import obs_cliente
 
@@ -503,6 +504,37 @@ class UsarVentanaTest(unittest.TestCase):
         crear = next(llamada for llamada in doble.llamadas
                      if llamada[0] == "CreateInput")
         self.assertEqual(crear[1]["inputName"], obs_captura.NOMBRE_CAPTURA)
+
+
+class TestPseudoCaptura(unittest.TestCase):
+    """Pseudotraducción de las frases de `obs_captura`.
+
+    Sin ventanas: llama a las funciones bajo `con_pseudo()` y exige el
+    texto propio marcado. El título y el programa de la ventana son datos
+    de OBS y viajan sin marcar.
+    """
+
+    def test_ventana_legible_marca_la_frase_con_los_datos(self):
+        with con_pseudo():
+            frase = obs_captura.ventana_legible("[juego.exe]: Champions")
+        self.assertTrue(frase.startswith("[¡"), frase)
+        self.assertIn("Champions", frase)
+        self.assertIn("juego.exe", frase)
+
+    def test_usar_ventana_marca_las_dos_frases(self):
+        doble = Doble(
+            elementos=(elemento(5, "Juego", "window_capture"),),
+            entradas=({"inputName": "Juego", "inputKind": "window_capture"},))
+        with con_pseudo():
+            existente = obs_captura.usar_ventana(
+                doble, "Escena", "Champions:Ventana:juego.exe")
+            creada = obs_captura.usar_ventana(
+                Doble(video={"baseWidth": 1280, "baseHeight": 720}),
+                "Escena", "Champions:Ventana:juego.exe")
+        self.assertTrue(existente.startswith("[¡"), existente)
+        self.assertIn("Champions", existente)
+        self.assertTrue(creada.startswith("[¡"), creada)
+        self.assertIn("Champions", creada)
 
 
 if __name__ == "__main__":

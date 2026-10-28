@@ -5,18 +5,19 @@ import subprocess
 import time
 
 from ytchat.core import subprocesos
+from ytchat.core.idioma import N_, _
 from ytchat.obs import obs_activacion
 from ytchat.obs import obs_cliente
 
 
-TEXTO_ABRIENDO = ("Abriendo OBS en segundo plano, en el área de "
-                  "notificación. Puede tardar hasta un minuto.")
-TEXTO_MODO_SEGURO = ("OBS se cerró mal la última vez y va a preguntar si "
-                     "iniciar en modo seguro. Elige Mostrar OBS en el menú "
-                     "Transmisión y después iniciar normalmente.")
-TEXTO_SIN_RESPUESTA = ("OBS se abrió pero no responde. Comprueba que su "
-                       "servidor websocket esté activado.")
-TEXTO_SIN_RESPUESTA_MODO_SEGURO = (
+TEXTO_ABRIENDO = N_("Abriendo OBS en segundo plano, en el área de "
+                    "notificación. Puede tardar hasta un minuto.")
+TEXTO_MODO_SEGURO = N_("OBS se cerró mal la última vez y va a preguntar si "
+                       "iniciar en modo seguro. Elige Mostrar OBS en el menú "
+                       "Transmisión y después iniciar normalmente.")
+TEXTO_SIN_RESPUESTA = N_("OBS se abrió pero no responde. Comprueba que su "
+                         "servidor websocket esté activado.")
+TEXTO_SIN_RESPUESTA_MODO_SEGURO = N_(
     "OBS no responde. Puede estar esperando que contestes si iniciar "
     "en modo seguro: elige Mostrar OBS en el menú Transmisión.")
 
@@ -91,7 +92,7 @@ def abrir_obs(ruta, popen=subprocess.Popen):
                   cwd=carpeta, startupinfo=info,
                   creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
     except OSError as error:
-        raise obs_cliente.ObsError("No se pudo abrir OBS.") from error
+        raise obs_cliente.ObsError(_("No se pudo abrir OBS.")) from error
 
 
 def asegurar_obs(probar_conexion, al_anunciar=None, parada=None,
@@ -127,8 +128,8 @@ def asegurar_obs(probar_conexion, al_anunciar=None, parada=None,
             pass
         if reloj() - inicio >= limite:
             if modo_seguro:
-                raise obs_cliente.ObsError(TEXTO_SIN_RESPUESTA_MODO_SEGURO)
-            raise obs_cliente.ObsError(TEXTO_SIN_RESPUESTA)
+                raise obs_cliente.ObsError(_(TEXTO_SIN_RESPUESTA_MODO_SEGURO))
+            raise obs_cliente.ObsError(_(TEXTO_SIN_RESPUESTA))
         if parada is not None and dormir is time.sleep:
             parada.wait(intervalo)
         else:

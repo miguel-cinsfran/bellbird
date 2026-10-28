@@ -7,6 +7,8 @@ import threading
 import unittest
 from unittest import mock
 
+from tests.pseudo_prueba import con_pseudo
+from ytchat.core.idioma import _
 from ytchat.obs import obs_cliente
 from ytchat.obs import obs_lanzador
 from ytchat.obs.obs_lanzador import ObsNoInstalado, abrir_obs, asegurar_obs, ruta_obs
@@ -414,6 +416,66 @@ class CableadoDialogoTest(unittest.TestCase):
         self.assertEqual(argumentos,
                           ("Abriendo OBS en segundo plano, en el área de "
                            "notificación. Puede tardar hasta un minuto.",))
+
+
+class TestPseudoLanzador(unittest.TestCase):
+    """Pseudotraducción de los anuncios y errores de `obs_lanzador`.
+
+    Sin ventanas: dispara los caminos bajo `con_pseudo()` con dobles y
+    exige cada frase propia marcada.
+    """
+
+    def test_anuncios_de_apertura_salen_marcados(self):
+        anuncios = []
+        reloj = RelojFalso()
+        with con_pseudo():
+            asegurar_obs(mock.Mock(), al_anunciar=anuncios.append,
+                         en_ejecucion=lambda: False,
+                         buscar=lambda: RUTA_PRINCIPAL, abrir=mock.Mock(),
+                         dormir=reloj.dormir, reloj=reloj.reloj,
+                         hubo_cierre_incorrecto=lambda: True)
+        self.assertEqual(len(anuncios), 2)
+        for frase in anuncios:
+            self.assertTrue(frase.startswith("[¡"), frase)
+
+    def test_errores_de_apertura_salen_marcados(self):
+        with con_pseudo():
+            with self.assertRaises(ObsNoInstalado) as contexto:
+                asegurar_obs(mock.Mock(), en_ejecucion=lambda: False,
+                             buscar=lambda: "", abrir=mock.Mock(),
+                             hubo_cierre_incorrecto=lambda: False)
+            self.assertTrue(str(contexto.exception).startswith("[¡"),
+                            contexto.exception)
+            reloj = RelojFalso()
+            with self.assertRaises(obs_cliente.ObsError) as contexto:
+                asegurar_obs(
+                    mock.Mock(side_effect=obs_cliente.ObsError("no")),
+                    en_ejecucion=lambda: False, buscar=lambda: RUTA_PRINCIPAL,
+                    abrir=mock.Mock(), dormir=reloj.dormir,
+                    reloj=reloj.reloj, limite=10.0, intervalo=2.0,
+                    hubo_cierre_incorrecto=lambda: False)
+            self.assertTrue(str(contexto.exception).startswith("[¡"),
+                            contexto.exception)
+
+    def test_fallo_al_abrir_sale_marcado(self):
+        def popen_falso(args, **kwargs):
+            raise OSError("sin permiso")
+
+        with con_pseudo():
+            with self.assertRaises(obs_cliente.ObsError) as contexto:
+                abrir_obs("C:\\OBS\\bin\\64bit\\obs64.exe",
+                          popen=popen_falso)
+        self.assertTrue(str(contexto.exception).startswith("[¡"),
+                        contexto.exception)
+
+    def test_constantes_marcadas_se_traducen_al_usarse(self):
+        constantes = (obs_lanzador.TEXTO_ABRIENDO,
+                      obs_lanzador.TEXTO_MODO_SEGURO,
+                      obs_lanzador.TEXTO_SIN_RESPUESTA,
+                      obs_lanzador.TEXTO_SIN_RESPUESTA_MODO_SEGURO)
+        with con_pseudo():
+            for constante in constantes:
+                self.assertTrue(_(constante).startswith("[¡"), constante)
 
 
 if __name__ == "__main__":

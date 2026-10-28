@@ -8,6 +8,7 @@ parada=None)` como `obs_captura` y no crean conexiones. La excepción es
 from __future__ import annotations
 
 from ytchat.core import diagnostico
+from ytchat.core.idioma import _
 from ytchat.obs import dispositivo_windows
 from ytchat.obs import obs_audio
 from ytchat.obs import obs_cliente

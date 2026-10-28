@@ -1,5 +1,7 @@
 import unittest
 
+from tests.pseudo_prueba import con_pseudo
+from ytchat.core.idioma import _
 from ytchat.obs import obs_disposicion as obs
 
 
@@ -401,6 +403,74 @@ class TestFrasesFijadas(unittest.TestCase):
                          "Aspecto: 14 mensajes visibles, tamaño de letra 18\n"
                          "El fondo del panel es transparente. Solo se ven las tarjetas de los mensajes, "
                          "apiladas contra el borde inferior.")
+
+
+class TestPseudoDisposicion(unittest.TestCase):
+    """Pseudotraducción de las descripciones de `obs_disposicion`.
+
+    Sin ventanas: recorre cada componente en los dos modos bajo
+    `con_pseudo()` y exige el texto propio marcado. Los nombres de escena
+    y de fuente son datos y viajan sin marcar.
+    """
+
+    def _snap(self):
+        return obs.SnapshotPanel(
+            conectado=True, escena="Juego", al_aire=False,
+            izquierda=1500, arriba=800, ancho=460, alto=620,
+            lienzo_ancho=1600, lienzo_alto=900, visible=False,
+            bloqueada=True, tapada_por="Cámara",
+            solapes=(("Cámara", 30.4), ("Juego", 4.1)), fuera=22.4,
+            mensajes_visibles=14, tamano_letra=18)
+
+    def test_cada_componente_sale_marcado_en_los_dos_modos(self):
+        with con_pseudo():
+            for nombre in obs.COMPONENTES:
+                for modo in ("corto", "largo"):
+                    with self.subTest(componente=nombre, modo=modo):
+                        texto = obs.describir(self._snap(), (nombre,), modo)
+                        if texto and nombre == "escena" and modo == "corto":
+                            self.assertIn("[¡", texto)
+                        elif texto:
+                            self.assertTrue(texto.startswith("[¡"), texto)
+
+    def test_datos_de_escena_y_fuente_viajan_sin_marcar(self):
+        with con_pseudo():
+            texto = obs.describir(self._snap(), ("escena", "capa"), "largo")
+        self.assertIn("Juego", texto)
+        self.assertIn("Cámara", texto)
+
+    def test_tabla_de_lugares_cubre_los_anclajes(self):
+        self.assertEqual(set(obs._LUGARES_ANCLADO), set(obs.ANCLAJES))
+        with con_pseudo():
+            for nombre in obs._LUGARES_ANCLADO:
+                with self.subTest(anclaje=nombre):
+                    self.assertTrue(
+                        _(obs._LUGARES_ANCLADO[nombre]).startswith("[¡"))
+
+    def test_preparacion_marca_las_cuatro_respuestas(self):
+        with con_pseudo():
+            textos = (
+                obs.describir_preparacion(False, False, 0, False),
+                obs.describir_preparacion(True, True, 8765, True),
+                obs.describir_preparacion(True, False, 0, False),
+                obs.describir_preparacion(True, True, 8765, False),
+            )
+        for texto in textos:
+            self.assertTrue(texto.startswith("[¡"), texto)
+
+    def test_empate_de_bordes_desempata_igual_en_pseudo(self):
+        # A 100 px de cada borde vertical: el empate se desempata con el
+        # texto sin traducir, así que en pseudo sale el mismo borde.
+        snap = obs.SnapshotPanel(
+            conectado=True, izquierda=100, arriba=50, ancho=800, alto=100,
+            lienzo_ancho=1000, lienzo_alto=1000)
+        esperado = obs.describir(snap, ("posicion",), "corto")
+        self.assertIn("derecho", esperado)
+        self.assertNotIn("izquierdo", esperado)
+        with con_pseudo():
+            marcado = obs.describir(snap, ("posicion",), "corto")
+        self.assertIn("[¡derecho!]", marcado)
+        self.assertNotIn("izquierdo", marcado)
 
 
 if __name__ == "__main__":

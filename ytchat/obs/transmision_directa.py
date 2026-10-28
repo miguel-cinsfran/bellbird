@@ -10,6 +10,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Callable
 
+from ytchat.core.idioma import _
+
 
 ALTERNAR = "alternar"
 ESPERAR_DETENCION = "esperar_detencion"
@@ -90,11 +92,11 @@ def etiqueta(transmitiendo, deteniendo=False):
     espera a OBS.
     """
     if deteniendo:
-        return ("Deteniendo el directo",
-                "Deteniendo el directo, esperando a OBS")
+        return (_("Deteniendo el directo"),
+                _("Deteniendo el directo, esperando a OBS"))
     if transmitiendo:
-        return ("&Finalizar directo", "Finalizar directo")
-    return ("Transm&itir en directo", "Transmitir en directo")
+        return (_("&Finalizar directo"), _("Finalizar directo"))
+    return (_("Transm&itir en directo"), _("Transmitir en directo"))
 
 
 def preparar(gestor, destino: str, asegurar: Callable, al_anunciar: Callable,
@@ -154,8 +156,8 @@ def finalizar(gestor, finalizar_youtube=None) -> None:
                 raise
             except Exception as exc:
                 raise FalloCierreYoutube(
-                    "YouTube no confirmó el fin del directo. "
-                    "Finalízalo en YouTube Studio.") from exc
+                    _("YouTube no confirmó el fin del directo. "
+                      "Finalízalo en YouTube Studio.")) from exc
     finally:
         try:
             gestor.cerrar()

@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import time
 
+from ytchat.core.idioma import N_, _
+
 
 def evaluar_inicio(muestras) -> str:
     """Veredicto sobre una lista de dicts de `GetStreamStatus`.
@@ -58,13 +60,16 @@ def frase_salida(veredicto, destino) -> str:
     servicio = {"TikTok": "Restream", "YouTube": "YouTube"}.get(destino,
                                                                  destino)
     if veredicto == "enviando":
-        return f"OBS está enviando la señal a {servicio}."
+        # Traductores: {servicio} es el nombre del servicio de emisión.
+        return _("OBS está enviando la señal a {servicio}.").format(
+            servicio=servicio)
     if veredicto == "reconectando":
-        return (f"OBS no logra conectar con {servicio} y está reintentando. "
-                "Revisa internet.")
+        # Traductores: {servicio} es el nombre del servicio de emisión.
+        return _("OBS no logra conectar con {servicio} y está reintentando. "
+                 "Revisa internet.").format(servicio=servicio)
     if veredicto == "sin_salida":
-        return "OBS no empezó a transmitir."
-    return "OBS todavía no confirma que la señal salga."
+        return _("OBS no empezó a transmitir.")
+    return _("OBS todavía no confirma que la señal salga.")
 
 
 # Umbral compartido por los avisos de cuadros: al menos tantos cuadros y
@@ -96,18 +101,19 @@ def _diferencia(actual, anterior, clave) -> int:
         return 0
 
 
-_FRASE_RECONEXION = "Se cortó la conexión con el servicio, OBS está reconectando."
-_FRASE_VUELTA = "La conexión con el servicio volvió."
+_FRASE_RECONEXION = N_(
+    "Se cortó la conexión con el servicio, OBS está reconectando.")
+_FRASE_VUELTA = N_("La conexión con el servicio volvió.")
 
 
 def _frase_red(porcentaje) -> str:
-    return (f"Se están perdiendo cuadros: {porcentaje} por ciento. "
-            "La red va lenta.")
+    return (_("Se están perdiendo cuadros: {porcentaje} por ciento. "
+              "La red va lenta.").format(porcentaje=porcentaje))
 
 
 def _frase_sobrecarga(porcentaje) -> str:
-    return (f"OBS no da abasto: se pierde el {porcentaje} por ciento "
-            "de los cuadros.")
+    return (_("OBS no da abasto: se pierde el {porcentaje} por ciento "
+              "de los cuadros.").format(porcentaje=porcentaje))
 
 
 def problemas_en_directo(anterior, actual, estadisticas_anterior=None,
@@ -124,10 +130,10 @@ def problemas_en_directo(anterior, actual, estadisticas_anterior=None,
     actual = actual or {}
     avisos = []
     if bool(actual.get("outputReconnecting")):
-        avisos.append(("reconexion", _FRASE_RECONEXION))
+        avisos.append(("reconexion", _(_FRASE_RECONEXION)))
     elif bool(anterior.get("outputReconnecting")) and bool(
             actual.get("outputActive")):
-        avisos.append(("vuelta", _FRASE_VUELTA))
+        avisos.append(("vuelta", _(_FRASE_VUELTA)))
     else:
         porcentaje = _porcentaje(
             _diferencia(actual, anterior, "outputTotalFrames"),

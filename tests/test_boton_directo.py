@@ -358,11 +358,7 @@ class TestBotonDirectoVentana(unittest.TestCase):
 # sentidos: falla si aparece un texto nuevo sin envolver y si un pendiente
 # ya no está en el recorrido, para vaciar la lista cuando ese módulo pase
 # por gettext.
-PENDIENTES_BOTON_DIRECTO = (
-    "Transm&itir en directo",
-    "&Finalizar directo",
-    "Deteniendo el directo",
-)
+PENDIENTES_BOTON_DIRECTO = ()
 
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")

@@ -8,6 +8,8 @@ import time
 import unittest
 from unittest import mock
 
+from tests.pseudo_prueba import con_pseudo
+from ytchat.core.idioma import _
 from ytchat.obs import obs_cliente
 
 
@@ -442,3 +444,43 @@ class RegistroDeFalloTest(unittest.TestCase):
             texto = obs_cliente.mensaje_de_fallo_obs(
                 obs_cliente.ObsError(texto_esperado))
         self.assertEqual(texto, texto_esperado)
+
+
+class TestPseudoMensajesCliente(unittest.TestCase):
+    """Pseudotraducción de los mensajes que muestra `obs_cliente`.
+
+    Sin ventanas: llama a la traducción de fallos y a la cancelación bajo
+    `con_pseudo()`. Los motivos técnicos son datos y no se envuelven.
+    """
+
+    def test_todos_los_mensajes_de_fallo_salen_marcados(self):
+        casos = (
+            ("Connection refused", False),
+            ("Connection refused", True),
+            ("authentication", False),
+            ("4009 unauthorized", False),
+            ("601", False),
+            ("not found", False),
+            ("fallo extraño", False),
+        )
+        with con_pseudo():
+            for motivo, abierto in casos:
+                with self.subTest(motivo=motivo, abierto=abierto):
+                    frase = obs_cliente.mensaje_de_fallo_obs(
+                        motivo, obs_abierto=lambda: abierto)
+                    self.assertTrue(frase.startswith("[¡"), frase)
+
+    def test_constantes_marcadas_se_traducen_al_usarse(self):
+        with con_pseudo():
+            self.assertTrue(
+                _(obs_cliente.MENSAJE_CONEXION_PERDIDA).startswith("[¡"))
+            self.assertTrue(
+                _(obs_cliente.TEXTO_ABIERTO_SIN_RESPUESTA).startswith("[¡"))
+
+    def test_operacion_cancelada_sale_marcada(self):
+        parada = threading.Event()
+        parada.set()
+        with con_pseudo():
+            with self.assertRaises(obs_cliente.ObsError) as contexto:
+                obs_cliente.ClienteObs._recibir(None, parada, 0.0)
+        self.assertTrue(str(contexto.exception).startswith("[¡"), contexto.exception)

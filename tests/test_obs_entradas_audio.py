@@ -1,6 +1,7 @@
 import unittest
 from unittest import mock
 
+from tests.pseudo_prueba import con_pseudo
 from ytchat.obs import obs_audio
 from ytchat.obs import obs_entradas_audio
 from ytchat.obs import dispositivo_windows
@@ -270,6 +271,32 @@ class MicrofonoPorAtajoTest(unittest.TestCase):
         _, avisos, medicion = self._ejecutar(gestor)
         self.assertEqual(avisos, [("Micrófono silenciado", "")])
         medicion.assert_not_called()
+
+
+class TestPseudoAvisoSinSenal(unittest.TestCase):
+    """Pseudotraducción del aviso de micrófono sin señal.
+
+    Sin ventanas: dispara `microfono_por_atajo` bajo `con_pseudo()` con
+    el doble y exige el aviso marcado. El texto lo arma `obs_audio` y lo
+    muestra este módulo.
+    """
+
+    def test_aviso_de_microfono_sin_senal_sale_marcado(self):
+        gestor = DobleGestor(
+            fuentes=("Mic/Aux",), silencio=False,
+            dispositivo=("Micrófono (USB)", False))
+        avisos = []
+        with con_pseudo(), \
+                mock.patch("ytchat.obs.obs_panel.GestorPanelObs",
+                           return_value=gestor), \
+                mock.patch.object(obs_entradas_audio, "senal_microfono",
+                                  return_value=False):
+            obs_entradas_audio.microfono_por_atajo(
+                "Mic/Aux", lambda *args: avisos.append(args))
+        self.assertEqual(len(avisos), 2)
+        self.assertTrue(avisos[0][0].startswith("[¡"), avisos)
+        self.assertTrue(avisos[1][0].startswith("[¡"), avisos)
+        self.assertEqual(avisos[1][1], "microfono_sin_senal")
 
 
 class DispositivoTest(unittest.TestCase):

@@ -8,11 +8,12 @@ from __future__ import annotations
 
 import time
 
+from ytchat.core.idioma import N_, _
 from ytchat.obs import obs_cliente
 
 
-NOMBRE_CAPTURA = "Captura de ventana"
-NOMBRE_SONDA = "YTChat, lista de ventanas"
+NOMBRE_CAPTURA = N_("Captura de ventana")
+NOMBRE_SONDA = N_("YTChat, lista de ventanas")
 
 _TIPOS_CAPTURA = ("window_capture", "game_capture")
 
@@ -33,7 +34,9 @@ def ventana_legible(item_name) -> str:
         return programa
     if not programa:
         return resto
-    return f"{resto}, de {programa}"
+    # Traductores: {resto} es el título de la ventana y {programa} su programa.
+    return _("{resto}, de {programa}").format(resto=resto,
+                                              programa=programa)
 
 
 def es_ventana_sin_titulo(item_name) -> bool:
@@ -67,7 +70,9 @@ def _legible_desde_valor(item_value) -> str:
         return programa
     if not programa:
         return titulo
-    return f"{titulo}, de {programa}"
+    # Traductores: {titulo} es el título de la ventana y {programa} su programa.
+    return _("{titulo}, de {programa}").format(titulo=titulo,
+                                                programa=programa)
 
 
 def _datos(cliente, tipo, datos=None, parada=None):
@@ -217,6 +222,18 @@ def ventanas(cliente, escena, parada=None, dormir=time.sleep,
     return _opciones(items), ""
 
 
+def _nombre_libre(ocupados) -> str:
+    """Nombre para la fuente nueva: el base o el primero con número libre."""
+    nombre = _(NOMBRE_CAPTURA)
+    contador = 2
+    while nombre in ocupados:
+        # Traductores: {nombre} es el nombre base y {contador} el número libre.
+        nombre = _("{nombre} {contador}").format(nombre=_(NOMBRE_CAPTURA),
+                                                 contador=contador)
+        contador += 1
+    return nombre
+
+
 def usar_ventana(cliente, escena, item_value, parada=None) -> str:
     """Hace que la escena capture la ventana indicada y lo anuncia."""
     captura = captura_de_escena(cliente, escena, parada)
@@ -234,15 +251,12 @@ def usar_ventana(cliente, escena, item_value, parada=None) -> str:
                           {"sceneName": escena,
                            "sceneItemId": captura.get("sceneItemId"),
                            "sceneItemEnabled": True}, parada=parada)
-        return f"Ahora se captura {legible}."
+        # Traductores: {legible} es «título, de programa».
+        return _("Ahora se captura {legible}.").format(legible=legible)
     entradas = _datos(cliente, "GetInputList", parada=parada).get(
         "inputs", ()) or ()
     ocupados = {entrada.get("inputName", "") for entrada in entradas}
-    nombre = NOMBRE_CAPTURA
-    contador = 2
-    while nombre in ocupados:
-        nombre = f"{NOMBRE_CAPTURA} {contador}"
-        contador += 1
+    nombre = _nombre_libre(ocupados)
     respuesta = cliente.pedir(
         "CreateInput", {"sceneName": escena, "inputName": nombre,
                         "inputKind": "window_capture",
@@ -271,4 +285,5 @@ def usar_ventana(cliente, escena, item_value, parada=None) -> str:
                                 "boundsWidth": lienzo.get("baseWidth", 0),
                                 "boundsHeight": lienzo.get("baseHeight", 0)}},
         parada=parada)
-    return f"Ahora se captura {legible}."
+    # Traductores: {legible} es «título, de programa».
+    return _("Ahora se captura {legible}.").format(legible=legible)

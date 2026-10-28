@@ -3,6 +3,7 @@
 import threading
 import unittest
 
+from tests.pseudo_prueba import con_pseudo
 from ytchat.obs import obs_cliente
 from ytchat.obs import obs_destinos
 from ytchat.obs.obs_destinos import (
@@ -395,6 +396,86 @@ class PrepararParaTransmitirTest(unittest.TestCase):
             self.assertIsNone(coleccion_para("TikTok", []))
         with self.subTest(caso="todas son destinos"):
             self.assertIsNone(coleccion_para("YouTube", ["TikTok"]))
+
+
+class TestPseudoDestinos(unittest.TestCase):
+    """Pseudotraducción de las frases y errores de `obs_destinos`.
+
+    Sin ventanas: llama a las funciones bajo `con_pseudo()` con el doble
+    medido y exige cada texto propio marcado. Los nombres de perfil y de
+    colección son datos de OBS y viajan sin marcar.
+    """
+
+    def test_frase_destino_listo_marca_formatos_y_perfil_creado(self):
+        with con_pseudo():
+            for ancho, alto in ((720, 1280), (1920, 1080), (1000, 1000)):
+                with self.subTest(ancho=ancho, alto=alto):
+                    frase = frase_destino_listo(
+                        {"destino": "TikTok", "ancho": ancho, "alto": alto})
+                    self.assertTrue(frase.startswith("[¡"), frase)
+                    self.assertIn("TikTok", frase)
+            creado = frase_destino_listo(
+                {"destino": "YouTube", "ancho": 1920, "alto": 1080,
+                 "perfil_creado": True})
+            self.assertTrue(creado.startswith("[¡"), creado)
+            self.assertIn("YouTube", creado)
+
+    def test_errores_de_preparacion_salen_marcados(self):
+        with con_pseudo():
+            with self.assertRaises(obs_cliente.ObsError) as transmitiendo:
+                preparar_destino(
+                    DobleObsDestinos(transmision=True), Destino(perfil="X"))
+            self.assertTrue(str(transmitiendo.exception).startswith("[¡"),
+                            transmitiendo.exception)
+
+            reloj = RelojFalso()
+            with self.assertRaises(obs_cliente.ObsError) as sin_terminar:
+                preparar_destino(
+                    DobleObsDestinos(perfiles=["Viejo"], actual="Viejo",
+                                     demora_creacion=1000,
+                                     demora_cambio=1000),
+                    Destino(perfil="Nuevo"), espera=0.3, intervalo=0.05,
+                    dormir=reloj.dormir, reloj=reloj.reloj)
+            self.assertTrue(str(sin_terminar.exception).startswith("[¡"),
+                            sin_terminar.exception)
+
+            with self.assertRaises(obs_cliente.ObsError) as sin_aplicar:
+                preparar_destino(
+                    DobleObsDestinos(perfiles=["Juego"], actual="Juego",
+                                     fallo_escritura=True),
+                    Destino(perfil="Juego", servidor="rtmp://s", clave="c"))
+            self.assertTrue(str(sin_aplicar.exception).startswith("[¡"),
+                            sin_aplicar.exception)
+
+    def test_perfil_que_falta_y_coleccion_que_no_termina(self):
+        with con_pseudo():
+            with self.assertRaises(obs_cliente.ObsError) as sin_perfil:
+                preparar_para_transmitir(
+                    DobleObsDestinos(perfiles=["YouTube"], actual="YouTube"),
+                    "niche")
+            self.assertTrue(str(sin_perfil.exception).startswith("[¡"),
+                            sin_perfil.exception)
+
+            reloj = RelojFalso()
+            with self.assertRaises(obs_cliente.ObsError) as sin_coleccion:
+                cambiar_coleccion(
+                    DobleObsDestinos(colecciones=["TikTok"],
+                                     coleccion_actual="Otra",
+                                     demora_coleccion=1000),
+                    "TikTok", espera=0.3, intervalo=0.05,
+                    dormir=reloj.dormir, reloj=reloj.reloj)
+            self.assertTrue(str(sin_coleccion.exception).startswith("[¡"),
+                            sin_coleccion.exception)
+
+    def test_parada_cancelada_sale_marcada(self):
+        parada = threading.Event()
+        parada.set()
+        with con_pseudo():
+            with self.assertRaises(obs_cliente.ObsError) as contexto:
+                preparar_destino(DobleObsDestinos(), Destino(perfil="Nuevo"),
+                                 parada=parada)
+        self.assertTrue(str(contexto.exception).startswith("[¡"),
+                        contexto.exception)
 
 
 if __name__ == "__main__":

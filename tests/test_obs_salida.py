@@ -3,6 +3,8 @@
 import threading
 import unittest
 
+from tests.pseudo_prueba import con_pseudo
+from ytchat.core.idioma import _
 from ytchat.obs import obs_salida
 from ytchat.obs.obs_salida import (
     esperar_salida, evaluar_inicio, frase_salida, problemas_en_directo)
@@ -277,6 +279,56 @@ class ProblemasEnDirectoTest(unittest.TestCase):
                           "renderSkippedFrames": 0,
                           "renderTotalFrames": 1000})
         self.assertEqual([tipo for tipo, _ in avisos], ["red", "sobrecarga"])
+
+
+class TestPseudoSalida(unittest.TestCase):
+    """Pseudotraducción de los textos de `obs_salida`.
+
+    Sin ventanas: llama a las funciones bajo `con_pseudo()` y exige cada
+    frase propia marcada, con los datos de ejemplo presentes.
+    """
+
+    def test_frase_salida_marca_los_cuatro_veredictos(self):
+        with con_pseudo():
+            for veredicto in ("enviando", "reconectando", "sin_salida",
+                              "esperando"):
+                with self.subTest(veredicto=veredicto):
+                    frase = obs_salida.frase_salida(veredicto, "TikTok")
+                    self.assertTrue(frase.startswith("[¡"), frase)
+                    if veredicto in ("enviando", "reconectando"):
+                        self.assertIn("Restream", frase)
+
+    def test_problemas_marcan_los_cuatro_avisos(self):
+        with con_pseudo():
+            reconexion = problemas_en_directo(
+                muestra(True, 10), muestra(True, 10, reconectando=True))
+            self.assertTrue(reconexion[0][1].startswith("[¡"), reconexion)
+            vuelta = problemas_en_directo(
+                muestra(True, 10, reconectando=True),
+                muestra(True, 10, reconectando=False))
+            self.assertTrue(vuelta[0][1].startswith("[¡"), vuelta)
+            red = problemas_en_directo(
+                muestra(True, 10, perdidos=0, totales=1000),
+                muestra(True, 20, perdidos=60, totales=1100))
+            self.assertTrue(red[0][1].startswith("[¡"), red)
+            self.assertIn("60", red[0][1])
+            sobrecarga = problemas_en_directo(
+                muestra(True, 10), muestra(True, 20),
+                estadisticas_anterior={"outputSkippedFrames": 0,
+                                       "outputTotalFrames": 1000,
+                                       "renderSkippedFrames": 0,
+                                       "renderTotalFrames": 1000},
+                estadisticas={"outputSkippedFrames": 400,
+                              "outputTotalFrames": 2000,
+                              "renderSkippedFrames": 0,
+                              "renderTotalFrames": 1000})
+            self.assertTrue(sobrecarga[0][1].startswith("[¡"), sobrecarga)
+            self.assertIn("40", sobrecarga[0][1])
+
+    def test_constantes_marcadas_se_traducen_al_usarse(self):
+        with con_pseudo():
+            self.assertTrue(_(obs_salida._FRASE_RECONEXION).startswith("[¡"))
+            self.assertTrue(_(obs_salida._FRASE_VUELTA).startswith("[¡"))
 
 
 if __name__ == "__main__":

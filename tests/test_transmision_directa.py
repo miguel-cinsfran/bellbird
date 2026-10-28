@@ -2,6 +2,7 @@
 
 import unittest
 
+from tests.pseudo_prueba import con_pseudo
 from ytchat.obs import transmision_directa
 from ytchat.obs.transmision_directa import (
     ALTERNAR, DETENER_SUPERVISADA, ESPERAR_DETENCION, FALTA_DESTINO,
@@ -336,6 +337,48 @@ class DecidirTransmisionTest(unittest.TestCase):
             usuario_tiktok=lambda: llamadas.append("usuario") or "usuario")
         self.assertEqual(decision, REVISAR)
         self.assertEqual(llamadas, [])
+
+
+class TestPseudoTransmisionDirecta(unittest.TestCase):
+    """Pseudotraducción de las frases de `transmision_directa`.
+
+    Sin ventana ni OBS: recorre la etiqueta, los anuncios de `preparar` y
+    el error del cierre en YouTube bajo `con_pseudo()`.
+    """
+
+    def test_etiqueta_marca_rotulo_y_nombre_accesible(self):
+        with con_pseudo():
+            for transmitiendo, deteniendo in ((False, False), (True, False),
+                                              (True, True), (False, True)):
+                with self.subTest(transmitiendo=transmitiendo,
+                                  deteniendo=deteniendo):
+                    rotulo, nombre = etiqueta(transmitiendo, deteniendo)
+                    self.assertTrue(rotulo.startswith("[¡"), rotulo)
+                    self.assertTrue(nombre.startswith("[¡"), nombre)
+
+    def test_anuncios_de_preparar_salen_marcados(self):
+        anuncios = []
+        gestor = GestorFalso(transmitiendo=False, perfil="Sin Título",
+                             resultado_preparar={"perfil_creado": True})
+        with con_pseudo():
+            preparar(gestor, "YouTube",
+                     lambda conectar, al_anunciar=None, parada=None: None,
+                     anuncios.append)
+        self.assertEqual(len(anuncios), 2)
+        for frase in anuncios:
+            self.assertTrue(frase.startswith("[¡"), frase)
+
+    def test_fallo_de_cierre_en_youtube_sale_marcado(self):
+        gestor = GestorFalso(transmitiendo=True, perfil="YouTube")
+
+        def _romper():
+            raise RuntimeError("cuota agotada")
+
+        with con_pseudo():
+            with self.assertRaises(FalloCierreYoutube) as contexto:
+                finalizar(gestor, finalizar_youtube=_romper)
+        self.assertTrue(str(contexto.exception).startswith("[¡"),
+                        contexto.exception)
 
 
 if __name__ == "__main__":

@@ -8,6 +8,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
+from tests.pseudo_prueba import con_pseudo
 from ytchat.obs import obs_activacion
 
 
@@ -125,6 +126,34 @@ class TestActivacionObs(unittest.TestCase):
             "server_password": "secreto",
             "server_port": 4455,
         }
+
+
+class TestPseudoActivacion(unittest.TestCase):
+    """Pseudotraducción de las frases de `obs_activacion`.
+
+    Sin ventanas: recorre las tres decisiones y los dos desenlaces de
+    `activar_servidor` bajo `con_pseudo()`.
+    """
+
+    def test_las_tres_decisiones_salen_marcadas(self):
+        casos = ((True, True), (True, False), (False, False))
+        with con_pseudo():
+            for activo, en_ejecucion in casos:
+                with self.subTest(activo=activo, en_ejecucion=en_ejecucion):
+                    _accion, frase = obs_activacion.decidir_activacion(
+                        en_ejecucion, SimpleNamespace(activo=activo))
+                    self.assertTrue(frase.startswith("[¡"), frase)
+
+    def test_activar_servidor_marca_exito_y_error(self):
+        with tempfile.TemporaryDirectory() as directorio, con_pseudo():
+            ruta = Path(directorio) / "config.json"
+            ruta.write_text(json.dumps(TestActivacionObs._ajustes_de_prueba()),
+                            encoding="utf-8")
+            exito = obs_activacion.activar_servidor(ruta)
+            error = obs_activacion.activar_servidor(
+                Path(directorio) / "inexistente.json")
+        self.assertTrue(exito.startswith("[¡"), exito)
+        self.assertTrue(error.startswith("[¡"), error)
 
 
 if __name__ == "__main__":

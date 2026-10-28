@@ -235,7 +235,7 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
                 len(self._control.cola_actual() or ())))
         else:
             self.btn_cola.SetFocus()
-            anunciar(vista.TEXTO_COLA_OCULTA)
+            anunciar(_(vista.TEXTO_COLA_OCULTA))
 
     def _aplicar_filtro(self):
         if self._cargando or (self._fuente is None
@@ -307,7 +307,7 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
                 self.txt_buscar.ChangeValue("")
                 self._aplicar_filtro()
                 self._cancelar_temporizador()
-                anunciar(anuncios.TEXTO_BUSQUEDA_BORRADA)
+                anunciar(_(anuncios.TEXTO_BUSQUEDA_BORRADA))
             else:
                 self._cerrar()
             return

@@ -221,15 +221,16 @@ class ColaMusica:
         resultado = self._coordinador.quitar(indice)
         if resultado.ok and quitado is not None:
             nombre = anuncios.nombre_tema(quitado, self._incluir_artista())
-            texto = anuncios.TEXTO_QUITADO_COLA.format(nombre=nombre)
+            texto = _(anuncios.TEXTO_QUITADO_COLA).format(nombre=nombre)
             nuevo = resultado.estado.actual
             if (indice == antes.posicion and nuevo is not None
                     and not resultado.estado.terminado):
-                texto += ". " + anuncios.nombre_tema(
-                    nuevo, self._incluir_artista())
+                # Traductores: punto que une el aviso con el tema que sigue.
+                texto += _(". {nombre}").format(
+                    nombre=anuncios.nombre_tema(nuevo, self._incluir_artista()))
             self._avisar(anuncios.Aviso(texto))
         elif resultado.codigo == FIN_LISTA:
-            self._avisar(anuncios.Aviso(anuncios.TEXTO_FIN_LISTA))
+            self._avisar(anuncios.Aviso(_(anuncios.TEXTO_FIN_LISTA)))
         else:
             self._avisar(anuncios.aviso_accion(
                 "quitar", resultado, self._incluir_artista()))

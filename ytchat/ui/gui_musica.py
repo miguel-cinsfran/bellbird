@@ -120,7 +120,7 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica, SonoridadMusica,
 
     def que_suena(self) -> None:
         if self._coordinador is None:
-            self._avisar(anuncios.Aviso(anuncios.TEXTO_SIN_TEMA))
+            self._avisar(anuncios.Aviso(_(anuncios.TEXTO_SIN_TEMA)))
             return
         self._avisar(anuncios.aviso_que_suena(self._coordinador.estado(), True))
 
@@ -186,7 +186,7 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica, SonoridadMusica,
             ventana.enfocar_primer_control()
         except Exception:
             logger.debug("No se pudo enfocar el primer control de la ventana")
-        self._avisar(anuncios.Aviso(anuncios.TEXTO_VENTANA_ABIERTA))
+        self._avisar(anuncios.Aviso(_(anuncios.TEXTO_VENTANA_ABIERTA)))
         return True
 
     # ── Atajos dentro de la ventana modal ────────────────────────────────────
@@ -435,7 +435,7 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica, SonoridadMusica,
             self._coordinador.fijar_volumen(nuevo)
         self._sincronizar_silencio()
         texto = anuncio_ajuste.COMPARTIDO.frase(
-            "volumen_musica", anuncios.TEXTO_VOLUMEN.format(valor=nuevo), str(nuevo))
+            "volumen_musica", _(anuncios.TEXTO_VOLUMEN).format(valor=nuevo), str(nuevo))
         self._avisar(anuncios.Aviso(texto))
 
     def _escribir_volumen(self) -> None:

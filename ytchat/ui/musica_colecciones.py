@@ -11,14 +11,15 @@ from __future__ import annotations
 import wx
 
 from ytchat.core import diagnostico
+from ytchat.core.idioma import N_, _
 from ytchat.music import anuncios, listas, vista
 from ytchat.ui import musica_editor_lista, musica_menus
 from ytchat.ui import musica_ventana_acciones as _acciones
 
 logger = diagnostico.obtener_logger(__name__)
 
-TEXTO_CARGANDO = "Cargando la carpeta…"
-TEXTO_SIN_CARPETA = "No hay carpeta de música"
+TEXTO_CARGANDO = N_("Cargando la carpeta…")
+TEXTO_SIN_CARPETA = N_("No hay carpeta de música")
 
 
 def _anunciar_ventana(texto) -> None:
@@ -206,7 +207,7 @@ class ColeccionesVentanaMusica:
         if getattr(self, "_examinando", False):
             return
         if not self._control._carpeta():
-            _anunciar_ventana(anuncios.TEXTO_SIN_CARPETA)
+            _anunciar_ventana(_(anuncios.TEXTO_SIN_CARPETA))
             return
         self._examinando = True
         self._control.reexaminar_carpeta(self._al_examinar)
@@ -217,7 +218,7 @@ class ColeccionesVentanaMusica:
             return
         self._examinando = False
         if biblioteca is None:
-            _anunciar_ventana(anuncios.TEXTO_SIN_CARPETA)
+            _anunciar_ventana(_(anuncios.TEXTO_SIN_CARPETA))
             return
         if biblioteca is not self._biblioteca:
             return

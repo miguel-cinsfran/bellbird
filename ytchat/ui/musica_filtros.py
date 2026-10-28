@@ -127,11 +127,11 @@ class FiltrosMusica:
         if self.visibles:
             if enfocar:
                 self.cb_mostrar.SetFocus()
-            self._avisar(anuncios.TEXTO_FILTROS_VISIBLES)
+            self._avisar(_(anuncios.TEXTO_FILTROS_VISIBLES))
         else:
             if enfocar:
                 self.btn.SetFocus()
-            self._avisar(anuncios.TEXTO_FILTROS_OCULTOS)
+            self._avisar(_(anuncios.TEXTO_FILTROS_OCULTOS))
 
     def _rotular(self):
         if self.visibles:

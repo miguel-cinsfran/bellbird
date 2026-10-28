@@ -86,7 +86,7 @@ class IgualandoVentanaMusica:
         """
         if self._midiendo_igualacion():
             self._control.detener_igualacion()
-            anunciar(sonoridad.TEXTO_IGUALACION_DETENIDA)
+            anunciar(_(sonoridad.TEXTO_IGUALACION_DETENIDA))
             return
         biblioteca = self._control.biblioteca_actual()
         if biblioteca is None:
@@ -100,7 +100,7 @@ class IgualandoVentanaMusica:
         if not self:
             return
         if biblioteca is None:
-            anunciar(anuncios.TEXTO_SIN_CARPETA)
+            anunciar(_(anuncios.TEXTO_SIN_CARPETA))
             return
         self._control.pedir_pendientes(biblioteca, self._al_pendientes_boton)
 
@@ -118,13 +118,13 @@ class IgualandoVentanaMusica:
         resultado = self._control.iniciar_medicion(pendientes)
         if resultado.codigo in (sonoridad.INICIO, sonoridad.YA_MIDIENDO):
             _snd.reproducir(sonoridad.SONIDO_IGUALANDO)
-            anunciar(sonoridad.TEXTO_IGUALANDO.format(total=resultado.total))
+            anunciar(_(sonoridad.TEXTO_IGUALANDO).format(total=resultado.total))
         elif resultado.codigo == sonoridad.OPCION_APAGADA:
-            anunciar(sonoridad.TEXTO_IGUALACION_DESACTIVADA)
+            anunciar(_(sonoridad.TEXTO_IGUALACION_DESACTIVADA))
         elif resultado.codigo == sonoridad.SIN_FFMPEG:
-            anunciar(sonoridad.TEXTO_SIN_FFMPEG)
+            anunciar(_(sonoridad.TEXTO_SIN_FFMPEG))
         else:
-            anunciar(sonoridad.TEXTO_NADA_PENDIENTE)
+            anunciar(_(sonoridad.TEXTO_NADA_PENDIENTE))
 
     def preguntar_igualacion(self, biblioteca) -> None:
         """Pregunta, diferida, si hay que igualar el volumen.

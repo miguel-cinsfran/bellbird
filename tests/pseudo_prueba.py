@@ -35,6 +35,16 @@ def _opciones(ventana):
     return []
 
 
+def _columnas(ventana):
+    if isinstance(ventana, wx.ListCtrl):
+        try:
+            return [ventana.GetColumn(i).GetText()
+                    for i in range(ventana.GetColumnCount())]
+        except Exception:
+            return []
+    return []
+
+
 def textos_sin_marcar(ventana, propios=()):
     """Textos visibles de la ventana y sus hijos que no llevan la marca."""
     propios = set(propios)
@@ -55,6 +65,7 @@ def textos_sin_marcar(ventana, propios=()):
             if etiqueta:
                 textos.append(etiqueta)
         textos.extend(_opciones(actual))
+        textos.extend(_columnas(actual))
         for texto in textos:
             if not texto or texto in propios or texto.startswith("[¡"):
                 continue

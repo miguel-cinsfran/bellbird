@@ -210,7 +210,7 @@ class ComentariosPanel(wx.Panel):
         self.btn_mas.Disable()
         # No urgente: al conectar coincide con el anuncio de «conectado» y no
         # debe pisarlo.
-        anunciar("Cargando comentarios", urgente=False)
+        anunciar(_("Cargando comentarios"), urgente=False)
         orden = _ORDENES[max(0, self.cho_orden.GetSelection())][1]
         vid = self._video_id
         generacion = self._generacion
@@ -258,16 +258,16 @@ class ComentariosPanel(wx.Panel):
         if nuevos:
             partes = []
             if n_hilos:
-                partes.append(f"{n_hilos} comentario" + ("s" if n_hilos != 1 else ""))
+                partes.append(ngettext("{n} comentario", "{n} comentarios", n_hilos).format(n=n_hilos))
             if n_resp:
-                partes.append(f"{n_resp} respuesta" + ("s" if n_resp != 1 else ""))
-            anunciar(f"{' y '.join(partes)}. {len(self._coms)} en total.")
+                partes.append(ngettext("{n} respuesta", "{n} respuestas", n_resp).format(n=n_resp))
+            anunciar(_("{partes}. {total} en total.").format(partes=" y ".join(partes), total=len(self._coms)))
             self.lb.SetSelection(min(anteriores, self.lb.GetCount() - 1))
         elif coms:
             # La página solo traía repetidos (típico con orden «relevancia»).
-            anunciar("No hay comentarios nuevos.")
+            anunciar(_("No hay comentarios nuevos."))
         else:
-            anunciar("No hay comentarios para mostrar.")
+            anunciar(_("No hay comentarios para mostrar."))
 
     def _pagina_err(self, exc, generacion=None):
         if self._es_de_otro_video(generacion):
@@ -362,7 +362,7 @@ class ComentariosPanel(wx.Panel):
     def _leer(self):
         c = self._seleccionado()
         if not c:
-            anunciar("Sin comentario seleccionado")
+            anunciar(_("Sin comentario seleccionado"))
             return
         from ytchat.voice.tts_worker import construir_tts
         self._cola.put({"texto_tts": construir_tts(c.autor, c.texto, self._config),
@@ -371,33 +371,33 @@ class ComentariosPanel(wx.Panel):
     def _copiar(self):
         c = self._seleccionado()
         if not c:
-            anunciar("Sin comentario seleccionado")
+            anunciar(_("Sin comentario seleccionado"))
             return
         copiar_al_portapapeles(c.texto)
         _snd.reproducir("copiar")
-        anunciar("Comentario copiado")
+        anunciar(_("Comentario copiado"))
 
     def _copiar_todo(self):
         c = self._seleccionado()
         if not c:
-            anunciar("Sin comentario seleccionado")
+            anunciar(_("Sin comentario seleccionado"))
             return
         copiar_al_portapapeles(f"{c.autor}: {c.texto}")
         _snd.reproducir("copiar")
-        anunciar("Línea copiada")
+        anunciar(_("Línea copiada"))
 
     def _responder(self):
         c = self._seleccionado()
         if not c:
-            anunciar("Sin comentario seleccionado")
+            anunciar(_("Sin comentario seleccionado"))
             return
         dlg = DialogoRedactar(
-            self, f"&Comentario para {c.autor}:", redaccion.MAXIMO_CHAT,
+            self, _("&Comentario para {autor}:").format(autor=c.autor), redaccion.MAXIMO_CHAT,
             lambda texto: self._enviar_escritura(
                 lambda cli: cli.responder_comentario(c.comment_id, texto),
-                "Respuesta publicada"),
-            titulo="Responder comentario", nombre_texto="Texto del comentario",
-            nombre_boton="Publicar")
+                _("Respuesta publicada")),
+            titulo=_("Responder comentario"), nombre_texto=_("Texto del comentario"),
+            nombre_boton=_("Publicar"))
         dlg.ShowModal()
         dlg.Destroy()
 
@@ -409,17 +409,17 @@ class ComentariosPanel(wx.Panel):
             anunciar(motivo)
             return
         dlg = DialogoRedactar(
-            self, "&Comentario:", redaccion.MAXIMO_CHAT,
+            self, _("&Comentario:"), redaccion.MAXIMO_CHAT,
             lambda texto: self._enviar_escritura(
                 lambda cli: cli.publicar_comentario(self._video_id, texto),
-                "Comentario publicado"),
-            titulo="Comentar", motivo=motivo,
-            nombre_texto="Texto del comentario", nombre_boton="Publicar")
+                _("Comentario publicado")),
+            titulo=_("Comentar"), motivo=motivo,
+            nombre_texto=_("Texto del comentario"), nombre_boton=_("Publicar"))
         dlg.ShowModal()
         dlg.Destroy()
 
     def _enviar_escritura(self, accion, mensaje_ok):
-        anunciar("Enviando")
+        anunciar(_("Enviando"))
 
         def _run():
             try:
@@ -439,7 +439,7 @@ class ComentariosPanel(wx.Panel):
 
     def _escritura_ok(self, mensaje):
         _snd.reproducir("comentario")
-        anunciar(mensaje + ". Recuerda que YouTube puede tardar o retenerlo.")
+        anunciar(_("{mensaje}. Recuerda que YouTube puede tardar o retenerlo.").format(mensaje=mensaje))
 
     def _escritura_err(self, exc):
         if youtube_api.sesion_caducada(exc):

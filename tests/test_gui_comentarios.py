@@ -8,6 +8,7 @@ import wx
 
 from ytchat.ui import gui_comentarios
 from ytchat.youtube import youtube_api
+from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
 
 
@@ -214,6 +215,121 @@ class TestOrillaComentarios(unittest.TestCase):
         self.panel._on_key(evento)
         self.reproducir.assert_not_called()
         evento.Skip.assert_called_once_with()
+
+
+class TestFormatoPseudo(unittest.TestCase):
+    # Sin ventana: _formato no toca wx, solo arma el texto de la fila.
+
+    def _comentario(self):
+        return youtube_api.Comentario("Ana", "hola", 2, "", 1, "c1", "canal")
+
+    def test_fila_marca_lo_propio_y_conserva_los_datos(self):
+        with con_pseudo():
+            texto = gui_comentarios.ComentariosPanel._formato(object(), self._comentario())
+            respuesta = gui_comentarios.ComentariosPanel._formato(
+                object(), youtube_api.Comentario("Luis", "chau", 0, "", 0, "c2", "canal", True))
+        for fila in (texto, respuesta):
+            self.assertTrue(fila.startswith("[¡"))
+        self.assertIn("Ana", texto)
+        self.assertIn("hola", texto)
+        self.assertIn("Luis", respuesta)
+
+
+class TestPseudoVentana(unittest.TestCase):
+    """Pseudotraducción del panel (la corre el advisor)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        cls.frame = wx.Frame(None)
+
+    @classmethod
+    def tearDownClass(cls):
+        destruir(cls.frame)
+        del cls.frame
+        del cls.app
+
+    def test_no_queda_ningun_texto_visible_sin_envolver(self):
+        with mock.patch.object(gui_comentarios.credenciales, "hay_sesion", return_value=True), \
+                mock.patch.object(gui_comentarios.youtube_api, "google_disponible", return_value=True):
+            with con_pseudo():
+                panel = gui_comentarios.ComentariosPanel(self.frame, queue.Queue(), {"tamanio_fuente_chat": 12})
+                panel.set_video("video", autocargar=False)
+                sin_marcar = textos_sin_marcar(panel)
+        self.addCleanup(destruir, panel)
+        self.assertEqual([], sin_marcar)
+
+
+class TestPseudoAvisos(unittest.TestCase):
+    """Anuncios propios salen marcados; los motivos de redaccion no entran (la corre el advisor)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        cls.frame = wx.Frame(None)
+
+    @classmethod
+    def tearDownClass(cls):
+        destruir(cls.frame)
+        del cls.frame
+        del cls.app
+
+    def _panel(self):
+        panel = gui_comentarios.ComentariosPanel(self.frame, queue.Queue(), {"tamanio_fuente_chat": 12})
+        self.addCleanup(destruir, panel)
+        return panel
+
+    def test_avisos_propios_salen_marcados(self):
+        panel = self._panel()
+        panel._coms = [youtube_api.Comentario("Ana", "hola", 0, "", 0, "c1", "canal")]
+        panel.lb.Append("Ana: hola")
+        captados = []
+        with con_pseudo(), mock.patch.object(gui_comentarios, "anunciar", captados.append):
+            panel._leer()
+            panel._copiar()
+            panel._copiar_todo()
+            panel._enviar_escritura = mock.Mock()
+            panel._comentar_cerrado = False
+            panel._pagina_ok([], "", panel._generacion)
+        self.assertTrue(captados)
+        for frase in captados:
+            self.assertTrue(frase.startswith("[¡"), frase)
+
+    def test_cuadro_propio_marcado_y_mensaje_ajeno_pendiente(self):
+        panel = self._panel()
+        captado = {}
+
+        def caja(mensaje, titulo, estilo, padre=None):
+            captado["mensaje"] = mensaje
+            captado["titulo"] = titulo
+            return wx.ID_OK
+
+        with con_pseudo(), mock.patch.object(gui_comentarios.wx, "MessageBox", caja), \
+                mock.patch.object(gui_comentarios._snd, "reproducir"), \
+                mock.patch.object(gui_comentarios, "anunciar"):
+            panel._escritura_err(Exception("commentsDisabled"))
+        self.assertTrue(captado["titulo"].startswith("[¡"))
+        self.assertFalse(captado["mensaje"].startswith("[¡"))
+
+
+class TestColumnasPseudo(unittest.TestCase):
+    """La ayuda lee las cabeceras de columna de los ListCtrl (la corre el advisor)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        cls.frame = wx.Frame(None)
+
+    @classmethod
+    def tearDownClass(cls):
+        destruir(cls.frame)
+        del cls.frame
+        del cls.app
+
+    def test_lee_cabeceras_de_columna(self):
+        lista = wx.ListCtrl(self.frame, style=wx.LC_REPORT)
+        lista.InsertColumn(0, "Sin envolver")
+        self.assertEqual(textos_sin_marcar(self.frame), ["Sin envolver"])
 
 
 if __name__ == "__main__":

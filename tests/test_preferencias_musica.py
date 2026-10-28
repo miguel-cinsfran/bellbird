@@ -18,12 +18,9 @@ from tests.ventanas_prueba import destruir
 
 
 # Textos que arma otro módulo y aparecen en la parte recorrida: no se
-# tocan acá. La salida predeterminada sale de `ytchat/ui/opciones_musica.py`
-# y el botón Examinar del selector, de `nombrar_selector_carpeta` en
-# `ytchat/ui/gui_descargas.py`.
+# tocan acá. La salida predeterminada sale de `ytchat/ui/opciones_musica.py`.
 PENDIENTES_OTROS_MODULOS = (
     "Salida predeterminada",
-    "Examinar…",
 )
 
 

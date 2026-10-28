@@ -7,6 +7,7 @@ from unittest import mock
 
 from ytchat.downloads import descargas
 from ytchat.ui import gui_descargas
+from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
 
 try:
@@ -14,6 +15,20 @@ try:
     _HAY_WX = True
 except Exception:
     _HAY_WX = False
+
+
+class TestTablaEstadosSinVentana(unittest.TestCase):
+    # Sin ventana: la tabla vive en el módulo, así no se crea ningún control.
+
+    def test_tabla_cubre_los_estados_con_el_texto_de_hoy(self):
+        self.assertEqual(set(gui_descargas._ETIQUETAS_ESTADO),
+                         {"en_cola", "descargando", "completado",
+                          "cancelado", "error"})
+        for nombre in ("en_cola", "descargando", "completado",
+                       "cancelado", "error"):
+            self.assertEqual(gui_descargas._ETIQUETAS_ESTADO[nombre], nombre)
+        self.assertEqual(gui_descargas._texto_estado("error", "sin espacio"),
+                         "error: sin espacio")
 
 
 class _DobleControl:
@@ -317,6 +332,69 @@ class TestSonidosDeDescarga(unittest.TestCase):
         gui_descargas.GestorDescargasDialog._actualizar_estado(
             falso, "id", "descargando", "")
         self._sonido.assert_called_once_with("descarga_iniciada")
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestPseudoVentana(unittest.TestCase):
+    """Pseudotraducción de la ventana (la corre el advisor)."""
+
+    def setUp(self):
+        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+
+    def test_no_queda_ningun_texto_visible_sin_envolver(self):
+        cargar = mock.patch.object(gui_descargas.historial_descargas, "cargar", return_value=[])
+        guardar = mock.patch.object(gui_descargas.historial_descargas, "guardar")
+        with cargar, guardar, con_pseudo():
+            dialogo = gui_descargas.GestorDescargasDialog(None)
+            # Son números: las tasas de bits no se traducen.
+            sin_marcar = textos_sin_marcar(dialogo, propios=("192", "256", "320"))
+        self.addCleanup(destruir, dialogo)
+        self.addCleanup(setattr, gui_descargas, "_dialogo_activo", None)
+        self.addCleanup(descargas.reiniciar_gestor)
+        self.assertEqual([], sin_marcar)
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestPseudoAvisos(unittest.TestCase):
+    """Anuncios y cuadros propios salen marcados (la corre el advisor)."""
+
+    def setUp(self):
+        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+
+    def _dialogo(self):
+        cargar = mock.patch.object(gui_descargas.historial_descargas, "cargar", return_value=[])
+        guardar = mock.patch.object(gui_descargas.historial_descargas, "guardar")
+        cargar.start()
+        guardar.start()
+        self.addCleanup(cargar.stop)
+        self.addCleanup(guardar.stop)
+        dialogo = gui_descargas.GestorDescargasDialog(None)
+        self.addCleanup(destruir, dialogo)
+        self.addCleanup(setattr, gui_descargas, "_dialogo_activo", None)
+        self.addCleanup(descargas.reiniciar_gestor)
+        return dialogo
+
+    def test_avisos_y_cuadros_propios_salen_marcados(self):
+        dialogo = self._dialogo()
+        captado = {}
+
+        def caja(mensaje, titulo, estilo, padre=None):
+            captado["mensaje"] = mensaje
+            captado["titulo"] = titulo
+            return wx.ID_OK
+
+        with con_pseudo(), mock.patch.object(gui_descargas.wx, "MessageBox", caja):
+            dialogo._on_anadir(None)
+            dialogo._on_cancelar(None)
+        self.assertTrue(captado["mensaje"].startswith("[¡"))
+        self.assertTrue(captado["titulo"].startswith("[¡"))
+        dialogo._historial = [{"nombre": "v", "fecha": "f", "estado": "completado"}]
+        dialogo._agregar_fila_historial(dialogo._historial[0])
+        avisos = []
+        with con_pseudo(), mock.patch.object(gui_descargas.wx, "MessageBox", return_value=wx.YES), \
+                mock.patch.object(gui_descargas, "anunciar", avisos.append):
+            dialogo._on_vaciar_historial(None)
+        self.assertTrue(avisos and avisos[0].startswith("[¡"))
 
 
 if __name__ == "__main__":

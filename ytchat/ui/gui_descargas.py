@@ -367,7 +367,7 @@ class GestorDescargasDialog(wx.Dialog):
 
         self._gestor.encolar(url, _cb_progreso, _cb_estado, _registrar_fila)
         self.txt_url.SetValue("")
-        anunciar("Añadido a la cola")
+        anunciar(_("Añadido a la cola"))
 
     def _repoblar_lista(self) -> None:
         for item in self._gestor.lista():
@@ -418,31 +418,31 @@ class GestorDescargasDialog(wx.Dialog):
 
     def _on_vaciar_historial(self, _event) -> None:
         cantidad = len(self._historial)
-        mensaje = ("Borra las entradas del historial. No borra ningún archivo "
-                   "descargado del disco, solo la lista. ¿Deseas continuar?")
-        if wx.MessageBox(mensaje, "Vaciar el historial",
+        mensaje = _("Borra las entradas del historial. No borra ningún archivo "
+                    "descargado del disco, solo la lista. ¿Deseas continuar?")
+        if wx.MessageBox(mensaje, _("Vaciar el historial"),
                          wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING, self) != wx.YES:
             return
         self._historial = []
         historial_descargas.guardar(self._ruta_historial, self._historial)
         self.lista_historial.DeleteAllItems()
         if cantidad == 1:
-            anunciar("Se borró 1 entrada del historial")
+            anunciar(_("Se borró 1 entrada del historial"))
         else:
-            anunciar(f"Se borraron {cantidad} entradas del historial")
+            anunciar(_("Se borraron {cantidad} entradas del historial").format(cantidad=cantidad))
 
     def _on_cancelar(self, _event):
         idx = self.lista.GetFirstSelected()
         if idx < 0:
-            wx.MessageBox("Selecciona una descarga de la cola para cancelar.",
-                          "Nada seleccionado", wx.OK | wx.ICON_INFORMATION, self)
+            wx.MessageBox(_("Selecciona una descarga de la cola para cancelar."),
+                          _("Nada seleccionado"), wx.OK | wx.ICON_INFORMATION, self)
             return
         item_id = self._fila_items.get(idx)
         if item_id is None:
             return
         self._gestor.cancelar(item_id)
         # El estado lo confirmará el propio hilo («cancelado»).
-        anunciar("Cancelando descarga")
+        anunciar(_("Cancelando descarga"))
 
     def _on_cerrar(self, _event):
         self._alive = False

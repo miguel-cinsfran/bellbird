@@ -49,8 +49,10 @@ logger = obtener_logger(__name__)
 
 def componer_cabecera_fallos(version: str, momento: datetime) -> str:
     """Compone la separación visible de una sesión de fallos."""
+    # Local: config usa este módulo al cargarse.
+    from ytchat.core.config import APP_NAME
     marca = momento.isoformat(timespec="seconds")
-    return (f"=== INICIO YTChat TTS v{version} {marca} ===\n"
+    return (f"=== INICIO {APP_NAME} v{version} {marca} ===\n"
             "Este archivo anota sucesos internos de Windows; muchos son inofensivos y la aplicación sigue funcionando. Si ves «CIERRE LIMPIO», la sesión terminó bien.")
 
 

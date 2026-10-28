@@ -34,7 +34,7 @@ LIBRERIAS_SILENCIADAS = (
 
 # ── Identidad ─────────────────────────────────────────────────────────────────
 
-APP_NAME    = "YTChat TTS"
+APP_NAME    = "Bellbird"
 APP_VERSION = "2.5.1"
 
 # ── Tipos de mensaje ──────────────────────────────────────────────────────────

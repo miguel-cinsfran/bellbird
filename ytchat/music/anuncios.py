@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ytchat.core import musica_decir
+from ytchat.core import config, musica_decir
 from ytchat.music.modelo import (
     AVANZO,
     COLA_VACIA,
@@ -83,7 +83,7 @@ TEXTO_ATAJOS_GLOBALES_FALLO = (
     "No se pudieron usar en cualquier programa: {lista}. "
     "Las usa otro programa")
 TEXTO_ATAJOS_GLOBALES_ACTIVOS = "Atajos de música activos en cualquier programa"
-TEXTO_ATAJOS_GLOBALES_SOLO = "Atajos de música solo en YTChat"
+TEXTO_ATAJOS_GLOBALES_SOLO = f"Atajos de música solo en {config.APP_NAME}"
 TEXTO_VENTANA_ABIERTA = "La ventana de música ya está abierta"
 TEXTO_BUSQUEDA_BORRADA = "Búsqueda borrada"
 TEXTO_FILTROS_VISIBLES = "Filtros visibles"

@@ -14,6 +14,7 @@ import time
 
 import wx
 
+from ytchat.core import config
 from ytchat.core import diagnostico
 from ytchat.core import paths
 from ytchat.obs import obs_activacion
@@ -288,7 +289,7 @@ def _anunciar_fallo_pendiente(frame) -> None:
         return
     _snd.reproducir("transmision_problema")
     anunciar("YouTube sigue sin confirmar el fin del directo. "
-             "Se intentará de nuevo al abrir YTChat.")
+             f"Se intentará de nuevo al abrir {config.APP_NAME}.")
 
 
 def _anunciar_reintento_pendiente(frame) -> None:

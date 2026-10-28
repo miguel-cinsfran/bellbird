@@ -182,7 +182,7 @@ class RevisarTest(unittest.TestCase):
             Fuente("Captura de ventana", "captura de ventana",
                    "Champions of The Rift", True),
             Fuente("Chat YTChat", "navegador",
-                   "panel de chat de YTChat", True)))
+                   "panel de chat de la app", True)))
         self.assertEqual([(e.nombre, e.silenciada) for e in revision.audio],
                          [("Mic/Aux", False), ("Audio del escritorio", False)])
         self.assertIs(revision.imagen_vacia, False)
@@ -332,7 +332,7 @@ class RevisarTest(unittest.TestCase):
                 silencios={},
                 imagen=imagen_dato(png_plano(1, 1, (200, 0, 0, 255))))
             (fuente,) = revisar(doble, "TikTok").fuentes
-            self.assertEqual(fuente.detalle, "panel de chat de YTChat")
+            self.assertEqual(fuente.detalle, "panel de chat de la app")
         with self.subTest(caso="otra página"):
             doble = DoblePrevuelo(
                 elementos=[{"sourceName": "F", "sceneItemEnabled": True}],
@@ -354,7 +354,7 @@ class FraseRevisionTest(unittest.TestCase):
                          "Destino TikTok. Perfil TikTok, formato vertical "
                          "720 por 1280. Escena al aire: Escena. Fuentes: "
                          "captura de ventana Champions of The Rift, "
-                         "navegador panel de chat de YTChat. "
+                         "navegador panel de chat de la app. "
                          "Micrófono Mic/Aux con sonido. "
                          "Audio del escritorio con sonido.")
 

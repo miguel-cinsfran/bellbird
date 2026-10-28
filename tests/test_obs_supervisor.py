@@ -1453,12 +1453,12 @@ class FinPendienteTest(unittest.TestCase):
             self.assertTrue(esperar_condicion(
                 lambda: any(f == "YouTube sigue sin confirmar el fin del "
                                    "directo. Se intentará de nuevo al abrir "
-                                   "YTChat." for f, _ in anuncios)))
+                                   "Bellbird." for f, _ in anuncios)))
             self.assertEqual([e["id"] for e in fin_pendiente.leer(ruta)],
                              ["vid123"])
         self.assertIn((
             "YouTube sigue sin confirmar el fin del directo. "
-            "Se intentará de nuevo al abrir YTChat.", "transmision_problema"),
+            "Se intentará de nuevo al abrir Bellbird.", "transmision_problema"),
             anuncios)
 
     def test_sin_ruta_no_toca_el_disco_ni_reintenta(self):

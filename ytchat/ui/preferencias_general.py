@@ -11,6 +11,7 @@ import os
 
 import wx
 
+from ytchat.core import config
 from ytchat.core import paths
 from ytchat.core import preferencias_archivo
 from ytchat.ui.accesibilidad import anunciar
@@ -91,7 +92,7 @@ class PaginaGeneral:
         with wx.FileDialog(
                 self._ventana, "Exportar las preferencias",
                 wildcard="Preferencias (*.ini)|*.ini",
-                defaultFile="YTChat TTS preferencias.ini",
+                defaultFile=f"{config.APP_NAME} preferencias.ini",
                 style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT) as cuadro:
             if cuadro.ShowModal() != wx.ID_OK:
                 return

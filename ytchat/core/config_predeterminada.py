@@ -320,11 +320,18 @@ def datos() -> dict[str, dict[str, str]]:
     return {sec: dict(vals) for sec, vals in _CANONICA.items()}
 
 
+def _cabecera() -> str:
+    """La primera línea del ini: el nombre de la app y que es de fábrica."""
+    # Local: config importa este módulo al cargarse.
+    from ytchat.core.config import APP_NAME
+    return f"# {APP_NAME}, configuración de fábrica\n"
+
+
 def generar_texto() -> str:
     """Produce el contenido completo de config.predeterminado.ini."""
     partes: list[str] = []
     partes.append(
-        "# YTChat TTS, configuración de fábrica\n"
+        _cabecera() +
         "# Valores predeterminados. Este archivo se genera con:\n"
         "#   uv run python -m ytchat.core.config_predeterminada\n"
         "# No editar a mano sin regenerar la otra copia: config_predeterminada.py\n"

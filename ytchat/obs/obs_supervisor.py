@@ -13,7 +13,7 @@ import threading
 import time
 
 from ytchat.capture import tiktok_vivo
-from ytchat.core import diagnostico
+from ytchat.core import config, diagnostico
 from ytchat.obs import obs_activacion
 from ytchat.obs import obs_cliente
 from ytchat.obs import obs_estado
@@ -519,7 +519,7 @@ class SupervisorTransmision:
             try:
                 self._anunciar(
                     "YouTube sigue sin confirmar el fin del directo. "
-                    "Se intentará de nuevo al abrir YTChat.",
+                    f"Se intentará de nuevo al abrir {config.APP_NAME}.",
                     "transmision_problema")
             except Exception:
                 pass

@@ -299,7 +299,7 @@ def _detalle_fuente(cliente, nombre, clase, parada) -> str:
             ajustes = {}
         url = str(ajustes.get("url", "") or "").strip()
         if url.endswith("/chat"):
-            return "panel de chat de YTChat"
+            return "panel de chat de la app"
         return ""
     return ""
 

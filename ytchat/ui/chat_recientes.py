@@ -12,7 +12,7 @@ from __future__ import annotations
 import wx
 
 from ytchat.core import atajos as _atajos_fijos
-from ytchat.core import diagnostico
+from ytchat.core import config, diagnostico
 from ytchat.music import anuncios
 from ytchat.ui import atajos_globales
 from ytchat.ui.atajos_globales import combinacion_ctrl_mayus
@@ -40,7 +40,7 @@ ORDEN = (
 BASE_IDS = 0xB100
 
 TEXTO_ACTIVOS = "Mensajes recientes del chat en cualquier programa"
-TEXTO_SOLO = "Mensajes recientes del chat solo en YTChat"
+TEXTO_SOLO = f"Mensajes recientes del chat solo en {config.APP_NAME}"
 
 
 class LecturaRecientes:

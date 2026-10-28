@@ -248,7 +248,7 @@ class VentanaIA(wx.Dialog):
 
     def _al_temporizador(self, _event) -> None:
         if self._decir_analizando:
-            anunciar(ventana_ia.TEXTO_ANALIZANDO, urgente=False)
+            anunciar(_(ventana_ia.TEXTO_ANALIZANDO), urgente=False)
 
     def _al_temporizador_melodia(self, _event) -> None:
         reproducir("ia_analizando")
@@ -291,7 +291,7 @@ class VentanaIA(wx.Dialog):
             if self._en_curso:
                 self._cancelar()
                 reproducir("ia_cancelada")
-                anunciar(ventana_ia.TEXTO_CANCELADA)
+                anunciar(_(ventana_ia.TEXTO_CANCELADA))
                 return
             self._cerrar()
             return
@@ -342,12 +342,12 @@ class VentanaIA(wx.Dialog):
     def _al_copiar(self, _event=None) -> None:
         texto = ventana_ia.ultima_respuesta(self._charla)
         if texto is None:
-            anunciar(ventana_ia.TEXTO_SIN_RESPUESTA)
+            anunciar(_(ventana_ia.TEXTO_SIN_RESPUESTA))
             return
         try:
             if not wx.TheClipboard.Open():
                 reproducir("ia_error")
-                anunciar(ventana_ia.TEXTO_NO_COPIADA)
+                anunciar(_(ventana_ia.TEXTO_NO_COPIADA))
                 return
             try:
                 wx.TheClipboard.SetData(wx.TextDataObject(texto))
@@ -357,10 +357,10 @@ class VentanaIA(wx.Dialog):
         except Exception as fallo:
             logger.warning("VentanaIA: no se pudo copiar: %s", fallo)
             reproducir("ia_error")
-            anunciar(ventana_ia.TEXTO_NO_COPIADA)
+            anunciar(_(ventana_ia.TEXTO_NO_COPIADA))
             return
         reproducir("copiar")
-        anunciar(ventana_ia.TEXTO_COPIADA)
+        anunciar(_(ventana_ia.TEXTO_COPIADA))
 
     def _al_nueva(self, _event=None) -> None:
         self._cancelar()
@@ -369,7 +369,7 @@ class VentanaIA(wx.Dialog):
         self._charla.nueva()
         self._descripcion = ""
         self._rehacer_lista()
-        anunciar(ventana_ia.TEXTO_NUEVA)
+        anunciar(_(ventana_ia.TEXTO_NUEVA))
         self.txt_mensaje.SetFocus()
 
 

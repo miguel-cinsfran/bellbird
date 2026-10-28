@@ -302,7 +302,7 @@ def pedir_captura(padre, al_terminar) -> None:
     None sin abrir nada.
     """
     if not obs_activacion.obs_esta_en_ejecucion():
-        anunciar(TEXTO_OBS_CERRADO)
+        anunciar(_(TEXTO_OBS_CERRADO))
         reproducir("ia_error")
         al_terminar(None)
         return

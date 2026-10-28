@@ -106,10 +106,7 @@ class TransmisionDialog(wx.Dialog):
         self._usuario_tiktok = usuario_tiktok or ""
         self._restablecimiento = RegistroRestablecimiento()
         self._valores_ventana = []
-        self._ajuste_en_curso = False
-        self._ajuste_transformacion = None
-        self._movimiento_en_vuelo = False
-        self._deshacer_pendiente = False
+        self._ajuste = ajuste_fino.EstadoAjuste()
         self._cerrando = False
         self._operacion_en_vuelo = False
         self.SetBackgroundColour(_T.bg)
@@ -808,7 +805,7 @@ class TransmisionDialog(wx.Dialog):
                       self._anunciar_snap)
 
     def _iniciar_ajuste(self, event):
-        if self._ajuste_en_curso:
+        if self._ajuste.en_curso:
             return
         escena, fuente = self._escena(), self._fuente()
         self._en_hilo(lambda: self._preparar_ajuste(escena, fuente), self._ajuste_iniciado)
@@ -818,21 +815,21 @@ class TransmisionDialog(wx.Dialog):
         return self._gestor.transformacion(escena, fuente=fuente), self._leer(escena, fuente)
 
     def _ajuste_iniciado(self, datos):
-        self._ajuste_transformacion, snap = datos
-        self._ajuste_en_curso = True
+        transformacion, snap = datos
+        self._ajuste.entrar(transformacion)
         self.btn_ajuste.SetLabel(ajuste_fino.etiqueta_boton(True, self._etiqueta_ajuste))
         self._mostrar_snap(snap)
         anunciar(ajuste_fino.texto_de_entrada())
         self._anunciar_ajuste(snap)
 
     def _tecla_ajuste(self, event):
-        if not self._ajuste_en_curso:
+        if not self._ajuste.en_curso:
             event.Skip()
             return
         accion, dx, dy = ajuste_fino.resolver(
             event.GetKeyCode(), event.ControlDown(), event.ShiftDown())
         if accion == "mover":
-            if not self._movimiento_en_vuelo:
+            if self._ajuste.puede_mover():
                 self._mover_ajuste(dx, dy)
             return
         if accion == "cancelar":
@@ -845,7 +842,7 @@ class TransmisionDialog(wx.Dialog):
             return
 
     def _mover_ajuste(self, dx, dy):
-        self._movimiento_en_vuelo = True
+        self._ajuste.empezar_movimiento()
         escena = self._escena()
         fuente = self._fuente()
         def mover():
@@ -863,25 +860,22 @@ class TransmisionDialog(wx.Dialog):
         diagnostico.crear_hilo(mover, "AjusteFinoOBS").start()
 
     def _movimiento_terminado(self, snap):
-        self._movimiento_en_vuelo = False
+        decision = self._ajuste.aterrizar()
         if self._cerrando:
             return
-        if self._deshacer_pendiente:
+        if decision == ajuste_fino.DESHACER:
             self._deshacer_ajuste()
-            return
-        if not self._ajuste_en_curso:
-            return
-        self._mostrar_snap(snap)
-        self._anunciar_ajuste(snap)
+        elif decision == ajuste_fino.MOSTRAR:
+            self._mostrar_snap(snap)
+            self._anunciar_ajuste(snap)
 
     def _movimiento_fallo(self, mensaje):
-        self._movimiento_en_vuelo = False
+        decision = self._ajuste.aterrizar()
         if self._cerrando:
             return
-        if self._deshacer_pendiente:
+        if decision == ajuste_fino.DESHACER:
             self._deshacer_ajuste()
-            return
-        if self._ajuste_en_curso:
+        elif decision == ajuste_fino.MOSTRAR:
             self._fallo(mensaje)
 
     def _anunciar_ajuste(self, snap):
@@ -890,28 +884,22 @@ class TransmisionDialog(wx.Dialog):
             snap, ("posicion", "solape", "fuera")), "ajuste")
 
     def _ajuste_perdio_foco(self, event):
-        if self._ajuste_en_curso:
+        if self._ajuste.en_curso:
             self._salir_ajuste(True)
         event.Skip()
 
     def _salir_ajuste(self, confirmar):
-        if not self._ajuste_en_curso:
+        decision = self._ajuste.salir(confirmar)
+        if decision == ajuste_fino.NADA:
             return
-        self._ajuste_en_curso = False
         self.btn_ajuste.SetLabel(ajuste_fino.etiqueta_boton(False, self._etiqueta_ajuste))
-        if confirmar:
+        if decision == ajuste_fino.CONFIRMADO:
             anunciar("Ajuste confirmado")
-            return
-        if self._movimiento_en_vuelo:
-            # Deshacer mientras una flecha sigue en vuelo mandaba dos
-            # peticiones a la vez por el mismo socket; se espera a que aterrice.
-            self._deshacer_pendiente = True
-            return
-        self._deshacer_ajuste()
+        elif decision == ajuste_fino.DESHACER:
+            self._deshacer_ajuste()
 
     def _deshacer_ajuste(self):
-        self._deshacer_pendiente = False
-        transformacion = self._ajuste_transformacion
+        transformacion = self._ajuste.tomar_para_deshacer()
         if not transformacion:
             # transformacion() devuelve {} cuando la fuente ya no está en la
             # escena; no hay a dónde volver.

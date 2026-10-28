@@ -55,5 +55,90 @@ class TestAjusteFino(unittest.TestCase):
                          "Tab sale.")
 
 
+class TestEstadoAjuste(unittest.TestCase):
+
+    def test_valores_iniciales(self):
+        estado = ajuste_fino.EstadoAjuste()
+        self.assertFalse(estado.en_curso)
+        self.assertFalse(estado.en_vuelo)
+        self.assertFalse(estado.deshacer_pendiente)
+        self.assertIsNone(estado.transformacion)
+
+    def test_entrar_guarda_y_activa(self):
+        estado = ajuste_fino.EstadoAjuste()
+        transformacion = {"positionX": 32}
+        estado.entrar(transformacion)
+        self.assertTrue(estado.en_curso)
+        self.assertIs(estado.transformacion, transformacion)
+
+    def test_puede_mover_falso_fuera_del_ajuste(self):
+        self.assertFalse(ajuste_fino.EstadoAjuste().puede_mover())
+
+    def test_puede_mover_verdadero_en_curso(self):
+        estado = ajuste_fino.EstadoAjuste()
+        estado.entrar({})
+        self.assertTrue(estado.puede_mover())
+
+    def test_puede_mover_falso_con_movimiento_en_vuelo(self):
+        estado = ajuste_fino.EstadoAjuste()
+        estado.entrar({})
+        estado.empezar_movimiento()
+        self.assertFalse(estado.puede_mover())
+
+    def test_aterrizar_apaga_el_vuelo_y_muestra(self):
+        estado = ajuste_fino.EstadoAjuste()
+        estado.entrar({})
+        estado.empezar_movimiento()
+        self.assertEqual(estado.aterrizar(), ajuste_fino.MOSTRAR)
+        self.assertFalse(estado.en_vuelo)
+
+    def test_aterrizar_deshace_si_hay_pendiente(self):
+        estado = ajuste_fino.EstadoAjuste()
+        estado.entrar({})
+        estado.empezar_movimiento()
+        estado.salir(False)
+        self.assertEqual(estado.aterrizar(), ajuste_fino.DESHACER)
+
+    def test_aterrizar_nada_si_ya_no_esta_en_curso(self):
+        estado = ajuste_fino.EstadoAjuste()
+        estado.entrar({})
+        estado.empezar_movimiento()
+        estado.salir(True)
+        self.assertEqual(estado.aterrizar(), ajuste_fino.NADA)
+
+    def test_salir_nada_si_no_esta_en_curso(self):
+        self.assertEqual(ajuste_fino.EstadoAjuste().salir(False), ajuste_fino.NADA)
+        self.assertEqual(ajuste_fino.EstadoAjuste().salir(True), ajuste_fino.NADA)
+
+    def test_salir_confirmado(self):
+        estado = ajuste_fino.EstadoAjuste()
+        estado.entrar({})
+        self.assertEqual(estado.salir(True), ajuste_fino.CONFIRMADO)
+        self.assertFalse(estado.en_curso)
+
+    def test_salir_espera_con_movimiento_en_vuelo(self):
+        estado = ajuste_fino.EstadoAjuste()
+        estado.entrar({})
+        estado.empezar_movimiento()
+        self.assertEqual(estado.salir(False), ajuste_fino.ESPERAR)
+        self.assertFalse(estado.en_curso)
+        self.assertTrue(estado.deshacer_pendiente)
+
+    def test_salir_deshace_sin_vuelo(self):
+        estado = ajuste_fino.EstadoAjuste()
+        estado.entrar({})
+        self.assertEqual(estado.salir(False), ajuste_fino.DESHACER)
+
+    def test_secuencia_escape_con_flecha_en_vuelo(self):
+        estado = ajuste_fino.EstadoAjuste()
+        transformacion = {"positionX": 32, "positionY": 18, "alignment": 5}
+        estado.entrar(transformacion)
+        estado.empezar_movimiento()
+        self.assertEqual(estado.salir(False), ajuste_fino.ESPERAR)
+        self.assertEqual(estado.aterrizar(), ajuste_fino.DESHACER)
+        self.assertIs(estado.tomar_para_deshacer(), transformacion)
+        self.assertFalse(estado.deshacer_pendiente)
+
+
 if __name__ == "__main__":
     unittest.main()

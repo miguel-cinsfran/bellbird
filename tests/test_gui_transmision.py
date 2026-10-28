@@ -446,7 +446,7 @@ class TestTransmisionDialog(unittest.TestCase):
         self.dialogo._cambiar_fuente(Evento())
         self.assertEqual(self.gestor.instantaneas[-1], (("Principal",), "Cámara"))
 
-        self.dialogo._ajuste_en_curso = True
+        self.dialogo._ajuste.en_curso = True
         self.dialogo._mover_ajuste(10, 0)
         self.assertEqual(self.gestor.instantaneas[-1], (("Principal",), "Cámara"))
 
@@ -533,7 +533,7 @@ class TestTransmisionDialog(unittest.TestCase):
 
     def test_ajuste_fino_entra_y_anuncia_la_posicion(self):
         self.dialogo._iniciar_ajuste(Evento())
-        self.assertTrue(self.dialogo._ajuste_en_curso)
+        self.assertTrue(self.dialogo._ajuste.en_curso)
         self.assertEqual(self.dialogo.btn_ajuste.GetLabel(), "Ajustando, flechas para mover")
         self.assertIn("Ajuste fino.", self.anuncios[-2])
         self.assertEqual(self.anuncios[-1], "Esquina superior izquierda; Libre.")
@@ -547,7 +547,7 @@ class TestTransmisionDialog(unittest.TestCase):
 
     def test_flecha_se_descarta_si_hay_movimiento_en_vuelo(self):
         self.dialogo._iniciar_ajuste(Evento())
-        self.dialogo._movimiento_en_vuelo = True
+        self.dialogo._ajuste.en_vuelo = True
         self.dialogo._tecla_ajuste(EventoTecla(wx.WXK_RIGHT))
         self.assertNotIn(("mover", "Principal", 10, 0), self.gestor.llamadas)
 
@@ -560,19 +560,19 @@ class TestTransmisionDialog(unittest.TestCase):
     def test_escape_con_movimiento_en_vuelo_espera_a_que_aterrice(self):
         # Dos peticiones a la vez por el mismo socket se pisaban en OBS.
         self.dialogo._iniciar_ajuste(Evento())
-        self.dialogo._movimiento_en_vuelo = True
+        self.dialogo._ajuste.en_vuelo = True
         self.dialogo._tecla_ajuste(EventoTecla(wx.WXK_ESCAPE))
-        self.assertFalse(self.dialogo._ajuste_en_curso)
+        self.assertFalse(self.dialogo._ajuste.en_curso)
         self.assertNotIn(("posicionar", "Principal", 32, 18, 5), self.gestor.llamadas)
 
         self.dialogo._movimiento_terminado(self.gestor.snap)
         self.assertIn(("posicionar", "Principal", 32, 18, 5), self.gestor.llamadas)
         self.assertEqual(self.anuncios[-1], "Ajuste deshecho")
-        self.assertFalse(self.dialogo._deshacer_pendiente)
+        self.assertFalse(self.dialogo._ajuste.deshacer_pendiente)
 
     def test_escape_con_movimiento_fallido_tambien_deshace(self):
         self.dialogo._iniciar_ajuste(Evento())
-        self.dialogo._movimiento_en_vuelo = True
+        self.dialogo._ajuste.en_vuelo = True
         self.dialogo._tecla_ajuste(EventoTecla(wx.WXK_ESCAPE))
         self.dialogo._movimiento_fallo("OBS no contesta")
         self.assertIn(("posicionar", "Principal", 32, 18, 5), self.gestor.llamadas)
@@ -584,23 +584,23 @@ class TestTransmisionDialog(unittest.TestCase):
         self.gestor.transformacion_inicial = {}
         self.dialogo._iniciar_ajuste(Evento())
         self.dialogo._tecla_ajuste(EventoTecla(wx.WXK_ESCAPE))
-        self.assertFalse(self.dialogo._ajuste_en_curso)
+        self.assertFalse(self.dialogo._ajuste.en_curso)
         self.assertNotIn("posicionar", [llamada[0] for llamada in self.gestor.llamadas])
         self.assertEqual(self.anuncios[-1], "No se pudo deshacer el ajuste")
 
     def test_destruir_marca_el_cierre_y_los_movimientos_tardios_no_tocan_controles(self):
         self.dialogo._iniciar_ajuste(Evento())
-        self.dialogo._movimiento_en_vuelo = True
+        self.dialogo._ajuste.en_vuelo = True
         self.dialogo._al_destruir(Evento())
         self.assertTrue(self.dialogo._cerrando)
         with mock.patch.object(self.dialogo, "_mostrar_snap") as mostrar, \
                 mock.patch.object(self.dialogo, "_fallo") as fallo:
             self.dialogo._movimiento_terminado(self.gestor.snap)
-            self.dialogo._movimiento_en_vuelo = True
+            self.dialogo._ajuste.en_vuelo = True
             self.dialogo._movimiento_fallo("tarde")
         mostrar.assert_not_called()
         fallo.assert_not_called()
-        self.assertFalse(self.dialogo._movimiento_en_vuelo)
+        self.assertFalse(self.dialogo._ajuste.en_vuelo)
 
     def test_los_hilos_no_leen_controles_de_wx(self):
         # Escena, fuente y tamaño se capturan en el hilo principal y viajan
@@ -647,14 +647,14 @@ class TestTransmisionDialog(unittest.TestCase):
         self.dialogo._iniciar_ajuste(Evento())
         evento = EventoTecla(wx.WXK_TAB)
         self.dialogo._tecla_ajuste(evento)
-        self.assertFalse(self.dialogo._ajuste_en_curso)
+        self.assertFalse(self.dialogo._ajuste.en_curso)
         self.assertTrue(evento.se_omitio)
         self.assertIn("Ajuste confirmado", self.anuncios)
 
     def test_perder_el_foco_confirma_el_ajuste(self):
         self.dialogo._iniciar_ajuste(Evento())
         self.dialogo._ajuste_perdio_foco(Evento())
-        self.assertFalse(self.dialogo._ajuste_en_curso)
+        self.assertFalse(self.dialogo._ajuste.en_curso)
         self.assertIn("Ajuste confirmado", self.anuncios)
 
     def test_cerrar_no_anuncia_ni_depende_del_error_de_obs(self):

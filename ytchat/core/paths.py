@@ -154,19 +154,11 @@ def ytdlp_actualizado_anterior() -> Path:
     return base / "YTChat TTS" / NOMBRE_YTDLP
 
 
-def log_detallado_anterior() -> Path:
-    return carpeta_datos() / "ytchat-debug.log"
-
-
-def log_fallos_anterior() -> Path:
-    return carpeta_datos() / "ytchat-fallos.log"
-
-
 def pares_de_nombres_anteriores() -> tuple[list, list]:
     """Pares (ruta vieja, ruta nueva) para la migración de nombres del arranque."""
     return ([(ytdlp_actualizado_anterior(), ytdlp_actualizado())],
-            [(log_detallado_anterior(), log_detallado()),
-             (log_fallos_anterior(), log_fallos())])
+            [(carpeta_datos() / "ytchat-debug.log", log_detallado()),
+             (carpeta_datos() / "ytchat-fallos.log", log_fallos())])
 
 
 def cache_audio() -> Path:
@@ -311,6 +303,13 @@ def carpeta_vlc_empaquetada() -> Path:
 def ejecutable_actual() -> str:
     """Nombre simple del ejecutable que está corriendo."""
     return Path(sys.executable).name
+
+
+def orden_de_la_app() -> list[str]:
+    """El .exe solo empaquetado, o el intérprete con main.py desde el código."""
+    if getattr(sys, "frozen", False):
+        return [sys.executable]
+    return [sys.executable, str(_RAIZ_DESARROLLO / "main.py")]
 
 
 def carpeta_interna() -> Path:

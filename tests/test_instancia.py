@@ -5,6 +5,7 @@ import sys
 import time
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from ytchat.core import instancia
 
@@ -40,18 +41,17 @@ class PruebasHayOtraInstancia(unittest.TestCase):
 
 
 class PruebasOrdenReabrir(unittest.TestCase):
-    def test_con_el_paquete_usa_el_ejecutable_solo(self):
-        self.assertEqual(
-            instancia.orden_reabrir(
-                123, ejecutable=r"C:\Apps\Bellbird.exe", empaquetado=True,
-                ruta_main=r"C:\Apps\main.py"),
-            [r"C:\Apps\Bellbird.exe", "--esperar-pid", "123"])
+    def test_sin_orden_usa_la_de_la_app_y_agrega_la_espera(self):
+        with mock.patch.object(instancia.paths, "orden_de_la_app",
+                               return_value=[r"C:\Apps\Bellbird.exe"]) as base:
+            self.assertEqual(instancia.orden_reabrir(123),
+                             [r"C:\Apps\Bellbird.exe", "--esperar-pid", "123"])
+        base.assert_called_once_with()
 
-    def test_desde_el_codigo_pasa_la_ruta_de_main(self):
+    def test_con_orden_agrega_la_espera_al_final(self):
         self.assertEqual(
             instancia.orden_reabrir(
-                123, ejecutable=r"C:\Python\python.exe", empaquetado=False,
-                ruta_main=r"C:\Repo\main.py"),
+                123, orden=[r"C:\Python\python.exe", r"C:\Repo\main.py"]),
             [r"C:\Python\python.exe", r"C:\Repo\main.py",
              "--esperar-pid", "123"])
 

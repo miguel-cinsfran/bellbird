@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
+from ytchat.core import paths
 
 # Mutex de Windows para impedir que se abran dos ventanas a la vez. Se usa
 # ctypes (en vez de win32event) para no añadir otra dependencia.
@@ -19,20 +18,14 @@ _SYNCHRONIZE = 0x00100000
 _TOPE_ESPERA_MS = 20000
 
 
-def orden_reabrir(pid, ejecutable=None, empaquetado=None, ruta_main=None):
+def orden_reabrir(pid, orden=None):
     """Orden para abrir otra instancia que espere a que termine `pid`.
 
-    Con el paquete, el .exe es la aplicación y se lanza solo. Desde el
-    código hay que pasarle main.py al intérprete.
+    Sin `orden` se usa la de la aplicación en curso.
     """
-    exe = sys.executable if ejecutable is None else ejecutable
-    if empaquetado is None:
-        empaquetado = bool(getattr(sys, "frozen", False))
-    if empaquetado:
-        return [exe, "--esperar-pid", str(pid)]
-    if ruta_main is None:
-        ruta_main = Path(__file__).resolve().parents[2] / "main.py"
-    return [exe, str(ruta_main), "--esperar-pid", str(pid)]
+    if orden is None:
+        orden = paths.orden_de_la_app()
+    return [*orden, "--esperar-pid", str(pid)]
 
 
 def _pid_a_esperar(argv):

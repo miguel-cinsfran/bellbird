@@ -60,12 +60,12 @@ TODAS_LAS_FUNCIONES = (
     [nombre for nombre, _ in RUTAS_DE_DATOS if nombre not in CREAN_CARPETA]
     + [nombre for nombre, _ in RUTAS_DE_INSTALACION]
     + ["pagina_overlay", "datos_a_migrar", "carpeta_musica_windows"]
-    + ["ytdlp_actualizado_anterior", "log_detallado_anterior",
-       "log_fallos_anterior", "pares_de_nombres_anteriores"]
+    + ["ytdlp_actualizado_anterior", "pares_de_nombres_anteriores"]
     + ["carpeta_actualizacion", "paquete_descargado", "paquete_extraido",
-       "respaldo_actualizacion", "actualizacion_pendiente",
-       "arranque_confirmado", "resultado_actualizacion",
-       "registro_actualizacion"]
+        "respaldo_actualizacion", "actualizacion_pendiente",
+        "arranque_confirmado", "resultado_actualizacion",
+        "registro_actualizacion"]
+    + ["orden_de_la_app"]
 )
 
 
@@ -221,6 +221,24 @@ class TestNombresAnteriores(unittest.TestCase):
                 registros,
                 [(datos / "ytchat-debug.log", datos / "bellbird-debug.log"),
                  (datos / "ytchat-fallos.log", datos / "bellbird-fallos.log")])
+
+
+class TestOrdenDeLaApp(unittest.TestCase):
+
+    def test_empaquetada_es_solo_el_ejecutable(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            exe = str(Path(tmp) / "Bellbird.exe")
+            with mock.patch.object(sys, "frozen", True, create=True), \
+                 mock.patch.object(sys, "executable", exe):
+                self.assertEqual(paths.orden_de_la_app(), [exe])
+
+    def test_desde_el_codigo_es_el_interprete_con_main(self):
+        with mock.patch.object(sys, "frozen", False, create=True):
+            self.assertEqual(
+                paths.orden_de_la_app(),
+                [sys.executable,
+                 str(Path(paths.__file__).resolve().parent.parent.parent
+                     / "main.py")])
 
 
 class TestDatosAMigrar(unittest.TestCase):

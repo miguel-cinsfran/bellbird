@@ -8,6 +8,20 @@ from datetime import datetime, timedelta, timezone
 from unittest.mock import Mock, patch
 
 import main
+from tests.pseudo_prueba import con_pseudo
+
+
+def _config_marcado(**extras):
+    base = {
+        "usuarios_silenciados": [], "palabras_silenciadas": [],
+        "silenciados_ocultar": set(), "silenciados_runtime": set(),
+        "silenciar_lectura": False, "limpiar_emojis": False,
+        "eliminar_urls": False, "max_longitud_mensaje": 200,
+        "umbral_solo_nombre": 0, "formato_prefijo": "nombre_mensaje",
+        "estrategia": "todas", "tamanio_maximo": 10,
+    }
+    base.update(extras)
+    return base
 
 
 class ConexionFalsa:
@@ -494,6 +508,367 @@ class TestCableadoClasificarPorApi(unittest.TestCase):
             tipo = main._clasificar_por_api("A" * 11)
         self.assertEqual(tipo, main.deteccion.LIVE)
         self.assertEqual(construidos, [{"origen": "efectivas"}])
+
+
+class PruebasPseudoTTS(unittest.TestCase):
+    def _tts(self, tipo, mensaje="", monto="", config=None, **kwargs):
+        cola = queue.Queue()
+        main.procesar_entrante(
+            "Ana", mensaje, tipo, monto, "canal", cola,
+            config if config is not None else _config_marcado(),
+            main.Stats(), on_message=lambda *a, **k: None, **kwargs)
+        return cola.get_nowait()["texto_tts"]
+
+    def test_superchat_con_mensaje_marcado(self):
+        with con_pseudo():
+            texto = self._tts(main.TIPO_SUPERCHAT, "hola", "$5")
+        self.assertTrue(texto.startswith("[¡"), texto)
+
+    def test_superchat_sin_mensaje_marcado(self):
+        with con_pseudo():
+            texto = self._tts(main.TIPO_SUPERCHAT, "", "$5")
+        self.assertTrue(texto.startswith("[¡"), texto)
+
+    def test_etiqueta_de_otro_modulo_marcada(self):
+        # «Regalo» la arma conexion.py: acá solo se exige que el texto
+        # entero salga marcado; traducirla es de ese módulo.
+        with con_pseudo():
+            texto = self._tts(main.TIPO_SUPERCHAT, "hola", "$5",
+                               etiqueta_monto="Regalo")
+        self.assertTrue(texto.startswith("[¡"), texto)
+
+    def test_eventos_de_entrada_marcados(self):
+        with con_pseudo():
+            textos = [
+                self._tts(main.TIPO_MIEMBRO, ""),
+                self._tts(main.TIPO_ENTRADA, ""),
+                self._tts(main.TIPO_SEGUIR, ""),
+                self._tts(main.TIPO_COMPARTIR, ""),
+                self._tts(main.TIPO_COFRE, ""),
+            ]
+        for texto in textos:
+            self.assertTrue(texto.startswith("[¡"), texto)
+
+    def test_me_gusta_con_y_sin_monto_marcado(self):
+        config = _config_marcado(tiktok_leer_me_gusta=True)
+        with con_pseudo():
+            con_monto = self._tts(main.TIPO_ME_GUSTA, "", "15",
+                                   config=config)
+            sin_monto = self._tts(main.TIPO_ME_GUSTA, "", "",
+                                   config=config)
+        self.assertTrue(con_monto.startswith("[¡"), con_monto)
+        self.assertTrue(sin_monto.startswith("[¡"), sin_monto)
+
+    def test_sin_nombre_marcado(self):
+        cola = queue.Queue()
+        cola.put({"texto_tts": "anterior", "autor": "Otro"})
+        config = _config_marcado(umbral_solo_nombre=1)
+        with con_pseudo():
+            main.procesar_entrante(
+                "", "hola", main.TIPO_TEXTO, "", "canal", cola, config,
+                main.Stats(), on_message=lambda *a, **k: None)
+            texto = cola.get_nowait()["texto_tts"]
+            texto = cola.get_nowait()["texto_tts"]
+        self.assertTrue(texto.startswith("[¡"), texto)
+
+    def test_mensaje_comun_marcado(self):
+        with con_pseudo():
+            texto = self._tts(main.TIPO_TEXTO, "hola")
+        self.assertTrue(texto.startswith("[¡"), texto)
+
+
+class _ChatQueFalla:
+    def __init__(self):
+        self.vivo = True
+
+    def is_alive(self):
+        return self.vivo
+
+    def get(self):
+        raise RuntimeError("corte")
+
+    def raise_for_status(self):
+        return None
+
+
+class _ChatUnLote:
+    def __init__(self, items):
+        self.items = items
+        self.vivo = True
+
+    def is_alive(self):
+        return self.vivo
+
+    def get(self):
+        self.vivo = False
+        return _Lote(self.items)
+
+    def raise_for_status(self):
+        return None
+
+
+def _item(ident, mensaje):
+    futuro = int(
+        (datetime.now(timezone.utc) + timedelta(hours=1)).timestamp() * 1_000)
+    return types.SimpleNamespace(
+        id=ident, timestamp=futuro, message=mensaje,
+        author=types.SimpleNamespace(name="Ana", channelId="canal"),
+        type="textMessage", amountString="")
+
+
+class PruebasPseudoCaptura(unittest.TestCase):
+    def _correr(self, captura, config, terminado=False):
+        estados = []
+        with patch.object(main, "_captura", side_effect=captura), \
+                patch.object(main, "_directo_terminado",
+                             return_value=terminado), \
+                patch.object(main._snd, "reproducir"):
+            main.captura_con_reconexion(
+                "v", queue.Queue(), config, threading.Event(), main.Stats(),
+                on_estado=lambda tipo, texto: estados.append((tipo, texto)))
+        return estados
+
+    def _config(self, max_intentos=3):
+        return {"reconectar": True, "max_intentos": max_intentos,
+                "espera_entre_intentos": 0}
+
+    def test_reconexion_desactivada_marcada(self):
+        def captura(video_id, cola, cfg, parada, stats, on_message, on_estado,
+                    sesion_activa, filtro=None):
+            return RuntimeError("corte")
+
+        estados = self._correr(
+            captura, {"reconectar": False, "max_intentos": 3,
+                      "espera_entre_intentos": 0})
+        self.assertEqual(len(estados), 1)
+        self.assertEqual(estados[0][0], "error")
+        with con_pseudo():
+            estados = self._correr(
+                captura, {"reconectar": False, "max_intentos": 3,
+                          "espera_entre_intentos": 0})
+        self.assertTrue(estados[0][1].startswith("[¡"), estados[0][1])
+
+    def test_error_permanente_marcado(self):
+        def captura(video_id, cola, cfg, parada, stats, on_message, on_estado,
+                    sesion_activa, filtro=None):
+            return RuntimeError("private video")
+
+        with con_pseudo():
+            estados = self._correr(captura, self._config())
+        self.assertEqual(estados[0][0], "error_permanente")
+        self.assertTrue(estados[0][1].startswith("[¡"), estados[0][1])
+
+    def test_directo_terminado_marcado(self):
+        def captura(video_id, cola, cfg, parada, stats, on_message, on_estado,
+                    sesion_activa, filtro=None):
+            return RuntimeError("corte")
+
+        with con_pseudo():
+            estados = self._correr(captura, self._config(), terminado=True)
+        self.assertEqual(estados[0][0], "error_permanente")
+        self.assertTrue(estados[0][1].startswith("[¡"), estados[0][1])
+
+    def test_intentos_agotados_marcado(self):
+        def captura(video_id, cola, cfg, parada, stats, on_message, on_estado,
+                    sesion_activa, filtro=None):
+            return RuntimeError("no conecta")
+
+        with con_pseudo():
+            estados = self._correr(captura, self._config(max_intentos=1))
+        textos = [texto for tipo, texto in estados if tipo == "error"]
+        self.assertEqual(len(textos), 1)
+        self.assertTrue(textos[0].startswith("[¡"), textos[0])
+
+    def test_reintento_marcado(self):
+        llamadas = []
+
+        def captura(video_id, cola, cfg, parada, stats, on_message, on_estado,
+                    sesion_activa, filtro=None):
+            llamadas.append(1)
+            if len(llamadas) > 1:
+                parada.set()
+                return None
+            return RuntimeError("corte")
+
+        with con_pseudo():
+            estados = self._correr(captura, self._config(max_intentos=0))
+        textos = [texto for tipo, texto in estados if tipo == "reintentando"]
+        self.assertEqual(len(textos), 1)
+        self.assertTrue(textos[0].startswith("[¡"), textos[0])
+
+    def test_reconectado_marcado(self):
+        llamadas = []
+
+        def captura(video_id, cola, cfg, parada, stats, on_message, on_estado,
+                    sesion_activa, filtro=None):
+            llamadas.append(1)
+            on_estado("conectado", "Conectado. Esperando mensajes...")
+            on_estado("leido", "Chat en lectura.")
+            if len(llamadas) > 1:
+                parada.set()
+                return None
+            return RuntimeError("corte")
+
+        with con_pseudo():
+            estados = self._correr(captura, self._config(max_intentos=0))
+        self.assertTrue(dict(estados)["reconectado"].startswith("[¡"),
+                        dict(estados)["reconectado"])
+
+    def test_error_amigable_marcado(self):
+        casos = ["Invalid video id: x", "cannot find channel id",
+                 "private video", "members only", "finished",
+                 "does not exist", "otro fallo"]
+        with con_pseudo():
+            textos = [main._mensaje_error_amigable(RuntimeError(caso))
+                      for caso in casos]
+        self.assertEqual(len(textos), 7)
+        for texto in textos:
+            self.assertTrue(texto.startswith("[¡"), texto)
+
+    def test_conexion_y_demasiados_errores_marcados(self):
+        estados = []
+        chat = _ChatQueFalla()
+        with patch.dict(sys.modules, {"pytchat": types.SimpleNamespace(
+                create=lambda **_kwargs: chat)}), \
+                patch.object(main, "_cliente_pytchat",
+                             return_value=Mock(close=lambda: None)), \
+                patch.object(main._snd, "reproducir"), \
+                con_pseudo():
+            main._captura_en_loop(
+                "v", queue.Queue(), {}, threading.Event(), main.Stats(),
+                None, lambda tipo, texto: estados.append((tipo, texto)),
+                None)
+        self.assertEqual([tipo for tipo, _ in estados],
+                         ["conectando", "conectado", "error_conexion"])
+        for _, texto in estados:
+            self.assertTrue(texto.startswith("[¡"), texto)
+
+    def test_lectura_marcada(self):
+        estados = []
+        chat = _ChatUnLote([_item("uno", "hola")])
+        with patch.dict(sys.modules, {"pytchat": types.SimpleNamespace(
+                create=lambda **_kwargs: chat)}), \
+                patch.object(main, "_cliente_pytchat",
+                             return_value=Mock(close=lambda: None)), \
+                patch.object(main._snd, "reproducir"), \
+                con_pseudo():
+            main._captura_en_loop(
+                "v", queue.Queue(), _config_marcado(), threading.Event(),
+                main.Stats(), None,
+                lambda tipo, texto: estados.append((tipo, texto)), None)
+        vistos = dict(estados)
+        self.assertTrue(vistos["leido"].startswith("[¡"), vistos["leido"])
+
+    def test_fallo_de_video_marcado(self):
+        from ytchat.core import avisos_red
+        captados = []
+        falso = types.SimpleNamespace(
+            anunciar=lambda texto, urgente=True: captados.append(texto))
+        with con_pseudo(), patch.dict(
+                sys.modules, {"ytchat.ui.accesibilidad": falso}):
+            fallo = avisos_red.mensaje_de_fallo("timeout")
+            main._anunciar_fallo_video(
+                {"fallo": fallo}, lambda f, arg: f(arg))
+        self.assertEqual(len(captados), 1)
+        self.assertTrue(captados[0].startswith("[¡"), captados[0])
+
+    def test_sin_fallo_no_anuncia(self):
+        anunciar = Mock()
+        with patch.dict(sys.modules, {"ytchat.ui.accesibilidad":
+                        types.SimpleNamespace(anunciar=anunciar)}):
+            main._anunciar_fallo_video(
+                {}, lambda f, arg: f(arg))
+        anunciar.assert_not_called()
+
+
+class PruebasPseudoCuadros(unittest.TestCase):
+    def _ctypes_con_caja(self, captados):
+        def caja(hwnd, texto, titulo, tipo):
+            captados.append((texto, titulo))
+            return 0
+        return types.SimpleNamespace(
+            windll=types.SimpleNamespace(
+                user32=types.SimpleNamespace(MessageBoxW=caja)))
+
+    def test_aviso_de_instancia_marcado(self):
+        captados = []
+        with con_pseudo(), \
+                patch.object(main, "_verificar_instancia_unica",
+                             return_value=False), \
+                patch.object(main, "configurar_logging"), \
+                patch.object(main.diagnostico, "instalar_capturadores"), \
+                patch.object(main.diagnostico, "registrar_entorno_en_hilo"), \
+                patch.dict(sys.modules,
+                           {"ctypes": self._ctypes_con_caja(captados)}), \
+                patch.object(sys, "exit", side_effect=SystemExit(0)):
+            with self.assertRaises(SystemExit):
+                main.main()
+        self.assertEqual(len(captados), 1)
+        self.assertTrue(captados[0][0].startswith("[¡"), captados[0][0])
+        self.assertEqual(captados[0][1], main.APP_NAME)
+
+    def _obra_guesa(self, espera):
+        class ObreroFalso:
+            def __init__(self, *args, **kwargs):
+                pass
+
+            def start(self):
+                pass
+
+            def esperar_inicio(self, timeout=None):
+                return espera
+        return ObreroFalso
+
+    def _base_voz(self, captados, espera):
+        return [
+            patch.object(main, "_verificar_instancia_unica",
+                         return_value=True),
+            patch.object(main, "configurar_logging"),
+            patch.object(main.diagnostico, "instalar_capturadores"),
+            patch.object(main.diagnostico, "registrar_entorno_en_hilo"),
+            patch.object(main, "cargar_configuracion", return_value={}),
+            patch.object(main, "cargar_sonidos", return_value={}),
+            patch.object(main.alias, "usar"),
+            patch.object(main.alias, "cargar", return_value={}),
+            patch.object(main._snd, "cargar"),
+            patch.object(main._snd, "reproducir"),
+            patch.object(main, "TTSWorker", self._obra_guesa(espera)),
+            patch.dict(sys.modules,
+                       {"ctypes": self._ctypes_con_caja(captados)}),
+            patch.object(sys, "exit", side_effect=SystemExit(0)),
+        ]
+
+    def test_motor_de_voz_marcado(self):
+        captados = []
+        parches = self._base_voz(captados, False)
+        with con_pseudo():
+            for parche in parches:
+                parche.start()
+            try:
+                with self.assertRaises(SystemExit):
+                    main.main()
+            finally:
+                for parche in reversed(parches):
+                    parche.stop()
+        self.assertEqual(len(captados), 1)
+        self.assertTrue(captados[0][0].startswith("[¡"), captados[0][0])
+        self.assertEqual(captados[0][1], main.APP_NAME)
+
+    def test_wx_faltante_marcado(self):
+        captados = []
+        parches = self._base_voz(captados, True)
+        with con_pseudo(), patch.dict(sys.modules, {"wx": None}):
+            for parche in parches:
+                parche.start()
+            try:
+                with self.assertRaises(SystemExit):
+                    main.main()
+            finally:
+                for parche in reversed(parches):
+                    parche.stop()
+        self.assertEqual(len(captados), 1)
+        self.assertTrue(captados[0][0].startswith("[¡"), captados[0][0])
+        self.assertEqual(captados[0][1], main.APP_NAME)
 
 
 if __name__ == "__main__":

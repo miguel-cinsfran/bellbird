@@ -21,8 +21,6 @@ from ytchat.voice import motores
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.rutas_temporales import redirigir_rutas
 from tests.test_preferencias_atajos import PENDIENTES_ATAJOS
-from tests.test_preferencias_ia import (
-    PENDIENTES_OTROS_MODULOS as PENDIENTES_IA)
 from tests.test_preferencias_musica import (
     PENDIENTES_OTROS_MODULOS as PENDIENTES_MUSICA)
 from tests.test_preferencias_voz import (
@@ -98,7 +96,7 @@ class TestDialogoSinTextosSinEnvolver(unittest.TestCase):
         with con_pseudo():
             dialogo = self._dialogo()
             sin_marcar = textos_sin_marcar(dialogo)
-        esperados = (PENDIENTES_ATAJOS + PENDIENTES_IA + PENDIENTES_MUSICA
+        esperados = (PENDIENTES_ATAJOS + PENDIENTES_MUSICA
                      + PENDIENTES_VOZ + PENDIENTES_PROPIOS)
 
         self.assertEqual(sorted(map(_normalizar, sin_marcar)),

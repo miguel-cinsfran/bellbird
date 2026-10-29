@@ -33,7 +33,6 @@ from ytchat.voice.tts_worker import TTSWorker, sanitizar, construir_tts
 from ytchat.voice.cola_tts import ColaTTS
 from ytchat.voice import sound_player as _snd
 from ytchat.capture import deteccion
-from ytchat.capture import tiktok_captura
 from ytchat.capture.reconexion import FiltroNuevos, espera_reconexion
 from ytchat.core import diagnostico
 from ytchat.core import avisos_red
@@ -42,6 +41,7 @@ from ytchat.capture import conexion
 from ytchat.ui.vista_captura import VistaGui
 from ytchat.capture import alias
 from ytchat.core.sonidos_eventos import rol_de_autor, ROL_PROPIETARIO, ROL_MODERADOR
+from ytchat.core.idioma import N_, _
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -387,7 +387,7 @@ def debe_leer_tts(autor: str, config: dict) -> bool:
 
 def procesar_entrante(autor, mensaje, tipo, monto, canal_id, cola, config, stats,
                       on_message=None, sesion_activa=None,
-                      etiqueta_monto="Super Chat", rol=""):
+                      etiqueta_monto=N_("Super Chat"), rol=""):
     """Pipeline común de cada mensaje entrante (YouTube y TikTok): contadores,
     filtros, texto TTS, aviso a la GUI y encolado de lectura.
 
@@ -396,8 +396,7 @@ def procesar_entrante(autor, mensaje, tipo, monto, canal_id, cola, config, stats
     cuele lecturas de una sesión anterior; el descarte de GUI lo hace on_message.
     """
     stats.inc("recibidos")
-    if tipo in (TIPO_SUPERCHAT, TIPO_STICKER):
-        stats.inc("superchats")
+    if tipo in (TIPO_SUPERCHAT, TIPO_STICKER): stats.inc("superchats")
 
     if not permitido(autor, mensaje, config):
         stats.inc("filtrados"); return
@@ -410,28 +409,31 @@ def procesar_entrante(autor, mensaje, tipo, monto, canal_id, cola, config, stats
 
     umbral = config.get("umbral_solo_nombre", 0)
     if tipo == TIPO_SUPERCHAT and monto:
-        tts_text = (f"{etiqueta_monto} de {autor_visible}: {monto}. {ml}" if ml
-                    else f"{etiqueta_monto} de {autor_visible}: {monto}")
+        # Traductores: {etiqueta} es «Super Chat» o «Regalo».
+        tts_text = (_("{etiqueta} de {autor}: {monto}. {mensaje}") if ml
+                    else _("{etiqueta} de {autor}: {monto}")).format(
+            etiqueta=_(etiqueta_monto), autor=autor_visible, monto=monto, mensaje=ml)
     elif tipo == TIPO_MIEMBRO:
-        tts_text = f"Nuevo miembro: {autor_visible}"
+        tts_text = _("Nuevo miembro: {autor}").format(autor=autor_visible)
     elif tipo == TIPO_ENTRADA:
-        tts_text = f"{autor_visible} entró"
+        tts_text = _("{autor} entró").format(autor=autor_visible)
     elif tipo == TIPO_SEGUIR:
-        tts_text = f"{autor_visible} sigue el canal"
+        tts_text = _("{autor} sigue el canal").format(autor=autor_visible)
     elif tipo == TIPO_COMPARTIR:
-        tts_text = f"{autor_visible} compartió el directo"
+        tts_text = _("{autor} compartió el directo").format(autor=autor_visible)
     elif tipo == TIPO_COFRE:
-        tts_text = f"{autor_visible} envió un cofre"
+        tts_text = _("{autor} envió un cofre").format(autor=autor_visible)
     elif tipo == TIPO_ME_GUSTA:
-        tts_text = f"{autor_visible} dio {monto} me gusta" if monto else f"{autor_visible} dio me gusta"
+        # Traductores: {n} es cuántos «me gusta» dieron.
+        tts_text = (_("{autor} dio {n} me gusta").format(autor=autor_visible, n=monto)
+                    if monto else _("{autor} dio me gusta").format(autor=autor_visible))
     elif umbral > 0 and cola.qsize() >= umbral:
-        tts_text = sanitizar(autor_visible, config["limpiar_emojis"], False, 50) or "Usuario"
+        tts_text = sanitizar(autor_visible, config["limpiar_emojis"], False, 50) or _("Usuario")
     else:
         tts_text = construir_tts(autor_visible, ml or mensaje, config)
 
     hora = datetime.now().strftime('%H:%M:%S')
-    if on_message:
-        on_message(autor, mensaje, hora, tipo, monto, canal_id, rol=rol)
+    if on_message: on_message(autor, mensaje, hora, tipo, monto, canal_id, rol=rol)
 
     if tipo == TIPO_ME_GUSTA and not config.get("tiktok_leer_me_gusta"):
         return  # sin la casilla solo suena en la GUI
@@ -502,7 +504,7 @@ def captura_con_reconexion(video_id, cola, config, parada, stats, on_message=Non
             return
         if tipo == "conectado":
             if llego_conectado[0]:
-                tipo, texto = "reconectado", "Chat reconectado."
+                tipo, texto = "reconectado", _("Chat reconectado.")
             llego_conectado[0] = True
         elif tipo == "conectando" and llego_conectado[0]:
             return
@@ -513,12 +515,11 @@ def captura_con_reconexion(video_id, cola, config, parada, stats, on_message=Non
         conecto[0] = False
         err = _captura(video_id, cola, config, parada, stats, on_message, _estado,
                        sesion_activa, filtro)
-        if conecto[0]:
-            intentos = 0
-        if parada.is_set():
-            break
+        if conecto[0]: intentos = 0
+        if parada.is_set(): break
         if not config["reconectar"]:
-            if on_estado: on_estado("error", "La conexión se cerró y la reconexión está desactivada.")
+            if on_estado: on_estado("error",
+                _("La conexión se cerró y la reconexión está desactivada."))
             parada.set(); break
         if err is not None and _es_error_permanente(err):
             msg = _mensaje_error_amigable(err)
@@ -526,23 +527,26 @@ def captura_con_reconexion(video_id, cola, config, parada, stats, on_message=Non
             _snd.reproducir("error")
             parada.set(); break
         if _directo_terminado(video_id):
-            if on_estado: on_estado("error_permanente", "El directo terminó. Chat desconectado.")
+            if on_estado: on_estado("error_permanente", _("El directo terminó. Chat desconectado."))
             _snd.reproducir("fin_directo")
             parada.set(); break
         intentos += 1
         mi = config["max_intentos"]
         if mi > 0 and intentos >= mi:
-            if on_estado: on_estado("error", f"Se agotaron los {mi} intentos de reconexión.")
+            # Traductores: {n} puede ser 1.
+            if on_estado: on_estado("error",
+                _("Se agotaron los {n} intentos de reconexión.").format(n=mi))
             _snd.reproducir("error")
             parada.set(); break
         espera = espera_reconexion(intentos, config["espera_entre_intentos"])
-        sfx = f" de {mi}" if mi else ""
+        sfx, unidad = (f" de {mi}" if mi else ""), _("segundo") if espera == 1 else _("segundos")
         motivo = str(err) if err is not None else "la conexión se cerró sin error"
         logger.warning("Reconexión del chat video=%s, intento %s: %s",
                        video_id, intentos, motivo)
-        if on_estado: on_estado("reintentando",
-            f"Se perdió la conexión con el chat. Reintentando en {espera} "
-            f"{'segundo' if espera == 1 else 'segundos'} (intento {intentos}{sfx}).")
+        # Traductores: {segundos} puede ser 1; {unidad} es «segundo» o «segundos»; {total} es « de N» o nada.
+        if on_estado: on_estado("reintentando", _("Se perdió la conexión con el chat. "
+            "Reintentando en {segundos} {unidad} (intento {intento}{total}).").format(
+                segundos=espera, unidad=unidad, intento=intentos, total=sfx))
         stats.inc("reconexiones")
         _snd.reproducir("conectando")
         parada.wait(timeout=espera)
@@ -594,17 +598,17 @@ def _captura_en_loop(video_id, cola, config, parada, stats, on_message, on_estad
     try:
         import pytchat
     except ImportError:
-        if on_estado: on_estado("error_permanente", "No se encontró la librería pytchat. Ejecuta instalar.bat.")
+        if on_estado: on_estado("error_permanente",
+            _("No se encontró la librería pytchat. Ejecuta instalar.bat."))
         _snd.reproducir("error")
         parada.set(); return None
 
-    if on_estado: on_estado("conectando", "Conectando al directo...")
+    if on_estado: on_estado("conectando", _("Conectando al directo..."))
     _snd.reproducir("conectando")
 
     cliente = _cliente_pytchat()
     try:
-        chat = pytchat.create(video_id=video_id, interruptable=False,
-                              client=cliente)
+        chat = pytchat.create(video_id=video_id, interruptable=False, client=cliente)
     except Exception as exc:
         try:    cliente.close()
         except Exception: pass
@@ -613,7 +617,7 @@ def _captura_en_loop(video_id, cola, config, parada, stats, on_message, on_estad
         _snd.reproducir("error")
         return exc
 
-    if on_estado: on_estado("conectado", "Conectado. Esperando mensajes...")
+    if on_estado: on_estado("conectado", _("Conectado. Esperando mensajes..."))
     _snd.reproducir("conectado")
     logger.info("Conectado al directo video=%s.", video_id)
 
@@ -632,7 +636,7 @@ def _captura_en_loop(video_id, cola, config, parada, stats, on_message, on_estad
                         stats.inc("filtrados_nuevo"); continue
 
                     autor_obj = getattr(c, "author", None)
-                    autor    = _str(autor_obj and autor_obj.name, "Usuario")
+                    autor    = _str(autor_obj and autor_obj.name, _("Usuario"))
                     canal_id = _str(autor_obj and getattr(autor_obj, "channelId", None), "")
                     rol      = rol_de_autor(autor_obj)
                     mensaje  = _str(getattr(c, "message", None), "")
@@ -655,14 +659,14 @@ def _captura_en_loop(video_id, cola, config, parada, stats, on_message, on_estad
                     # de verdad. Se avisa una sola vez y como tipo interno, que
                     # captura_con_reconexion consume sin mostrarlo al usuario.
                     leido = True
-                    if on_estado: on_estado("leido", "Chat en lectura.")
+                    if on_estado: on_estado("leido", _("Chat en lectura."))
             except Exception as exc:
                 if parada.is_set(): break
                 err_con += 1
                 ultimo_error = exc
                 logger.warning("Error ciclo chat (%d/%d): %s", err_con, MAX_ERR, exc)
                 if err_con >= MAX_ERR:
-                    if on_estado: on_estado("error_conexion", "Demasiados errores consecutivos.")
+                    if on_estado: on_estado("error_conexion", _("Demasiados errores consecutivos."))
                     break
             if not parada.is_set():
                 time.sleep(0.1)
@@ -691,20 +695,21 @@ def _str(v, d):
 def _mensaje_error_amigable(exc) -> str:
     t = str(exc).lower()
     if "invalid video id" in t:
-        return "El ID de vídeo no es válido. Revisa la URL."
+        return _("El ID de vídeo no es válido. Revisa la URL.")
     if "cannot find channel id" in t:
-        return ("YouTube todavía no muestra este vídeo. Pasa en los "
-                "primeros segundos de un directo y siempre con los "
-                "directos privados.")
+        return (_("YouTube todavía no muestra este vídeo. Pasa en los "
+                  "primeros segundos de un directo y siempre con los "
+                  "directos privados."))
     if "private" in t:
-        return "Este directo es privado. No se puede acceder."
+        return _("Este directo es privado. No se puede acceder.")
     if "members only" in t:
-        return "El chat está restringido a miembros del canal."
+        return _("El chat está restringido a miembros del canal.")
     if "finished" in t or "unavailable" in t:
-        return "El directo ha terminado o no está disponible."
+        return _("El directo ha terminado o no está disponible.")
     if "does not exist" in t:
-        return "El vídeo no existe. Revisa la URL."
-    return f"No se pudo conectar: {exc}"
+        return _("El vídeo no existe. Revisa la URL.")
+    # Traductores: {error} es el detalle técnico.
+    return _("No se pudo conectar: {error}").format(error=exc)
 
 
 # ── Main ─────────────────────────────────────────────────────────────────────
@@ -777,9 +782,10 @@ def main():
             MB_TOPMOST = 0x00040000  # Bandera de Win32 para mantener arriba el aviso.
             ctypes.windll.user32.MessageBoxW(
                 0,
-                f"{APP_NAME} ya se está ejecutando.\nCierra la otra ventana antes de abrir una nueva.",
-                APP_NAME,
-                MB_ICONINFORMATION | MB_SETFOREGROUND | MB_TOPMOST
+                # Traductores: {app} es el nombre de la aplicación.
+                (_("{app} ya se está ejecutando.\nCierra la otra ventana "
+                   "antes de abrir una nueva.").format(app=APP_NAME)),
+                APP_NAME, MB_ICONINFORMATION | MB_SETFOREGROUND | MB_TOPMOST
             )
         except Exception:
             pass
@@ -807,9 +813,9 @@ def main():
             import ctypes
             ctypes.windll.user32.MessageBoxW(
                 0,
-                "No se pudo iniciar el motor de voz.\n\n"
-                "Comprueba que tienes al menos una voz instalada en\n"
-                "Configuración → Hora e idioma → Voz.",
+                _("No se pudo iniciar el motor de voz.\n\n"
+                  "Comprueba que tienes al menos una voz instalada en\n"
+                  "Configuración → Hora e idioma → Voz."),
                 APP_NAME,
                 0x10  # MB_ICONERROR
             )
@@ -828,9 +834,10 @@ def main():
             import ctypes
             ctypes.windll.user32.MessageBoxW(
                 0,
-                f"wxPython no está instalado.\nEjecuta instalar.bat.\n\n{exc}",
-                APP_NAME,
-                0x10
+                # Traductores: {detalle} es el error técnico.
+                (_("wxPython no está instalado.\nEjecuta instalar.bat.\n\n{detalle}").format(
+                    detalle=exc)),
+                APP_NAME, 0x10
             )
         except Exception:
             pass

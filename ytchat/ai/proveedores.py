@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from ytchat.ai import catalogo
 from ytchat.ai import protocolos
 from ytchat.core.config import APP_VERSION
+from ytchat.core.idioma import N_
 
 
 @dataclass(frozen=True)
@@ -26,20 +27,23 @@ class Proveedor:
 
 
 PROVEEDORES = (
-    Proveedor("gemini", "Google Gemini", "google", protocolos.GEMINI,
+    Proveedor("gemini", N_("Google Gemini"), "google", protocolos.GEMINI,
               "https://generativelanguage.googleapis.com/v1beta", False,
               gratis_por_clave=True, prefijo_clave="AIza"),
-    Proveedor("openai", "OpenAI", "openai", protocolos.RESPONSES,
+    # Traductores: nombre comercial del proveedor; no se traduce.
+    Proveedor("openai", N_("OpenAI"), "openai", protocolos.RESPONSES,
               "https://api.openai.com/v1", False, prefijo_clave="sk-"),
-    Proveedor("anthropic", "Anthropic", "anthropic", protocolos.ANTHROPIC,
+    # Traductores: nombre comercial del proveedor; no se traduce.
+    Proveedor("anthropic", N_("Anthropic"), "anthropic", protocolos.ANTHROPIC,
               "https://api.anthropic.com/v1", False, prefijo_clave="sk-ant-"),
-    Proveedor("openrouter", "OpenRouter", "openrouter", protocolos.CHAT,
+    # Traductores: nombre comercial del proveedor; no se traduce.
+    Proveedor("openrouter", N_("OpenRouter"), "openrouter", protocolos.CHAT,
               "https://openrouter.ai/api/v1", False, prefijo_clave="sk-or-"),
-    Proveedor("opencode-go", "OpenCode Go", "opencode-go", protocolos.CHAT,
+    Proveedor("opencode-go", N_("OpenCode Go"), "opencode-go", protocolos.CHAT,
               "https://opencode.ai/inference/go/openai/v1", False),
-    Proveedor("commandcode", "Command Code", "commandcode", protocolos.CHAT,
+    Proveedor("commandcode", N_("Command Code"), "commandcode", protocolos.CHAT,
               "https://api.commandcode.ai/provider/v1", False),
-    Proveedor("otro", "Otro compatible con OpenAI", None, protocolos.CHAT,
+    Proveedor("otro", N_("Otro compatible con OpenAI"), None, protocolos.CHAT,
               None, True),
 )
 

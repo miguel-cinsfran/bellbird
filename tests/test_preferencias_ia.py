@@ -20,19 +20,6 @@ from tests.rutas_temporales import redirigir_rutas
 from tests.ventanas_prueba import destruir
 
 
-# Textos que arma otro módulo y aparecen en la parte recorrida: no se
-# tocan acá. Los nombres salen de `ytchat/ai/proveedores.py`.
-PENDIENTES_OTROS_MODULOS = (
-    "Google Gemini",
-    "OpenAI",
-    "Anthropic",
-    "OpenRouter",
-    "OpenCode Go",
-    "Command Code",
-    "Otro compatible con OpenAI",
-)
-
-
 class TestPseudoIA(unittest.TestCase):
     def setUp(self):
         self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
@@ -66,10 +53,18 @@ class TestPseudoIA(unittest.TestCase):
             dialogo = self._dialogo()
             pagina = next(p for p in dialogo._paginas()
                           if p.GetName() == "PagIA")
-            sin_marcar = textos_sin_marcar(
-                pagina, propios=PENDIENTES_OTROS_MODULOS)
+            sin_marcar = textos_sin_marcar(pagina)
 
         self.assertEqual([], sin_marcar)
+
+    def test_nombres_de_proveedores_marcados(self):
+        with con_pseudo():
+            dialogo = self._dialogo()
+            nombres = dialogo.pagina_ia.cho_ia_proveedor.GetStrings()
+
+        self.assertEqual(len(nombres), 7)
+        for nombre in nombres:
+            self.assertTrue(nombre.startswith("[¡"), nombre)
 
     def test_restaurar_marca_la_instruccion(self):
         with con_pseudo():

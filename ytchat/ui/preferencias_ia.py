@@ -91,7 +91,7 @@ class PaginaIA:
         vs.Add(fila_label(p, _("&Proveedor")),
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.cho_ia_proveedor = wx.Choice(
-            p, choices=[pr.nombre for pr in proveedores.PROVEEDORES],
+            p, choices=[_(pr.nombre) for pr in proveedores.PROVEEDORES],
             name="ProveedorIA")
         actual = proveedores.por_id(self._ia_ajustes.proveedor)
         if actual is None:

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-29 16:32-0300\n"
+"POT-Creation-Date: 2026-10-29 16:54-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -593,6 +593,385 @@ msgstr "New conversation."
 msgid "Captura agregada: {fuente}."
 msgstr "Screenshot added: {fuente}."
 
+#. Traductores: aviso que se anuncia cuando se descartan mensajes.
+#: bellbird/capture/descartes.py:19
+msgid ""
+"La lectura va con retraso y se están descartando mensajes. Puedes "
+"buscarlos en la lista del chat."
+msgstr ""
+"Reading is lagging and messages are being discarded. You can find them in"
+" the chat list."
+
+#. Traductores: aviso que se anuncia cuando se descartan mensajes.
+#: bellbird/capture/descartes.py:22
+msgid ""
+"La lectura va con retraso y se están descartando mensajes. Puedes "
+"buscarlos en la lista del chat. Activa en Preferencias la lectura solo "
+"del nombre cuando haya muchos mensajes."
+msgstr ""
+"Reading is lagging and messages are being discarded. You can find them in"
+" the chat list. In Preferences, turn on reading only the name when there "
+"are many messages."
+
+#. Traductores: componente del estado F2. {descartados} es cuántos mensajes se
+#. descartaron.
+#: bellbird/capture/descartes.py:32
+#, python-brace-format
+msgid "Mensajes descartados: {descartados}"
+msgstr "Discarded messages: {descartados}"
+
+# | msgid "{autor} compartió el directo"
+#. Traductores: parte del estado F2 del desfase. {atajo} es el atajo de
+#. teclado.
+#: bellbird/capture/estado_sesion.py:195
+#, python-brace-format
+msgid "Pulsa {atajo} para volver al directo"
+msgstr "Press {atajo} to go back to the live stream"
+
+#. Traductores: parte del estado F2 del desfase cuando no hay atajo.
+#: bellbird/capture/estado_sesion.py:198
+msgid "Para volver: menú Reproductor, Ir al directo"
+msgstr "To go back: Player menu, Go to live"
+
+#. Traductores: componente del estado F2. {velocidad} es la velocidad y
+#. {volumen} el volumen.
+#: bellbird/capture/estado_sesion.py:229
+#, python-brace-format
+msgid "Voz: velocidad {velocidad}, volumen {volumen}%"
+msgstr "Voice: speed {velocidad}, volume {volumen}%"
+
+# | msgid "Panel de chat activo en el puerto {puerto}"
+#. Traductores: componente del estado F2. {puerto} es el puerto del panel.
+#: bellbird/capture/estado_sesion.py:242
+#, python-brace-format
+msgid "Panel de chat activo en el puerto {puerto}, mostrándose"
+msgstr "Chat panel active on port {puerto}, showing"
+
+# | msgid "Panel de chat activo en el puerto {puerto}"
+#. Traductores: componente del estado F2. {puerto} es el puerto del panel.
+#: bellbird/capture/estado_sesion.py:245
+#, python-brace-format
+msgid "Panel de chat activo en el puerto {puerto}, pero nadie lo está mostrando"
+msgstr "Chat panel active on port {puerto}, but nobody is showing it"
+
+# | msgid "Información del vídeo"
+#. Traductores: aviso del panel de información cuando no hay datos.
+#: bellbird/capture/metadatos.py:14
+msgid "Sin información del vídeo."
+msgstr "No video information."
+
+# | msgid "Capa: {valor}"
+#. Traductores: línea del panel de información. {canal} es el nombre del canal.
+#: bellbird/capture/metadatos.py:59
+#, python-brace-format
+msgid "Canal: {canal}"
+msgstr "Channel: {canal}"
+
+# | msgid "Desconectado{sin_tts}"
+#. Traductores: línea del panel de información de un directo. {vistas} es
+#. cuántas personas miran.
+#: bellbird/capture/metadatos.py:66
+#, python-brace-format
+msgid "Espectadores: {vistas}"
+msgstr "Viewers: {vistas}"
+
+# | msgid "Vista previa"
+#. Traductores: línea del panel de información de un vídeo. {vistas} es cuántas
+#. vistas tiene.
+#: bellbird/capture/metadatos.py:69
+#, python-brace-format
+msgid "Vistas: {vistas}"
+msgstr "Views: {vistas}"
+
+# | msgid "&Me gusta:"
+#. Traductores: línea del panel de información. {cuantos} es cuántos me gusta
+#. tiene.
+#: bellbird/capture/metadatos.py:73
+#, python-brace-format
+msgid "Me gusta: {cuantos}"
+msgstr "Likes: {cuantos}"
+
+# | msgid "Co&mentarios:"
+#. Traductores: línea del panel de información. {cuantos} es cuántos
+#. comentarios tiene.
+#: bellbird/capture/metadatos.py:77
+#, python-brace-format
+msgid "Comentarios: {cuantos}"
+msgstr "Comments: {cuantos}"
+
+#. Traductores: línea del panel de información. {fecha} es la fecha de
+#. publicación.
+#: bellbird/capture/metadatos.py:82
+#, python-brace-format
+msgid "Publicado: {fecha}"
+msgstr "Published: {fecha}"
+
+# | msgid "{posicion} de {duracion}"
+#. Traductores: línea del panel de información. {duracion} es cuánto dura.
+#: bellbird/capture/metadatos.py:88
+#, python-brace-format
+msgid "Duración: {duracion}"
+msgstr "Duration: {duracion}"
+
+#. Traductores: aviso de la ventana de mensajes programados cuando el texto
+#. trae un enlace.
+#: bellbird/capture/programados.py:43
+msgid ""
+"YouTube suele bloquear los enlaces en el chat en vivo. Conviene poner el "
+"nombre de usuario en vez de la dirección completa."
+msgstr ""
+"YouTube usually blocks links in live chat. Use the username instead of "
+"the full address."
+
+#. Traductores: estado F2 de los mensajes programados cuando aún no hay hora.
+#: bellbird/capture/programados.py:121
+msgid "Próximo mensaje programado: pendiente de programar"
+msgstr "Next scheduled message: pending"
+
+#. Traductores: estado F2 de los mensajes programados cuando falta menos de un
+#. minuto.
+#: bellbird/capture/programados.py:125
+msgid "Próximo mensaje programado en menos de un minuto"
+msgstr "Next scheduled message in less than a minute"
+
+#. Traductores: estado F2 de los mensajes programados. {minutos} es en cuántos
+#. minutos se envía.
+#: bellbird/capture/programados.py:128
+#, python-brace-format
+msgid "Próximo mensaje programado en {minutos} minuto"
+msgid_plural "Próximo mensaje programado en {minutos} minutos"
+msgstr[0] "Next scheduled message in {minutos} minute"
+msgstr[1] "Next scheduled message in {minutos} minutes"
+
+# | msgid "Conectado al directo. Leyendo el chat."
+#. Traductores: motivo de botón desactivado para escribir en el chat.
+#: bellbird/capture/redaccion.py:27
+msgid "Conéctate a un directo para escribir en el chat"
+msgstr "Connect to a live stream to write in the chat"
+
+#. Traductores: motivo de botón desactivado para escribir en el chat.
+#: bellbird/capture/redaccion.py:30
+msgid "El chat de TikTok no permite escribir desde aquí"
+msgstr "TikTok chat does not allow writing from here"
+
+# | msgid "Este vídeo no tiene un directo con chat activo."
+#. Traductores: motivo de botón desactivado para escribir en el chat.
+#: bellbird/capture/redaccion.py:33
+msgid "Este vídeo no tiene chat en vivo"
+msgstr "This video has no live stream with active chat."
+
+#. Traductores: motivo de botón desactivado para escribir en el chat.
+#: bellbird/capture/redaccion.py:36
+msgid "Faltan las librerías de la API para escribir en el chat"
+msgstr "The API libraries are missing to write in the chat"
+
+#. Traductores: motivo de botón desactivado para escribir en el chat.
+#: bellbird/capture/redaccion.py:39
+msgid "Inicia sesión en Configuración de API para escribir en el chat"
+msgstr "Sign in in API settings to write in the chat"
+
+#. Traductores: motivo de botón desactivado para escribir en el chat.
+#: bellbird/capture/redaccion.py:43
+msgid ""
+"Falta la API key para saber si este directo permite escribir. Ponla en "
+"Preferencias, pestaña API"
+msgstr ""
+"Missing API key to know if this live stream allows writing. Put it in "
+"Preferences, API tab"
+
+# | msgid "No se encontraron salidas de audio"
+#. Traductores: motivo de botón desactivado para escribir en el chat.
+#: bellbird/capture/redaccion.py:46
+msgid "No se encontró este video"
+msgstr "This video was not found"
+
+# | msgid "Este vídeo no es un directo"
+#. Traductores: motivo de botón desactivado para escribir en el chat.
+#: bellbird/capture/redaccion.py:49
+msgid "Este video no es un directo"
+msgstr "This video is not a live stream"
+
+# | msgid "El directo terminó. Chat desconectado."
+#. Traductores: motivo de botón desactivado para escribir en el chat.
+#: bellbird/capture/redaccion.py:52
+msgid "Este directo tiene el chat desactivado"
+msgstr "This live stream has chat disabled"
+
+# | msgid "No se puede retroceder más en este directo"
+#. Traductores: motivo de botón desactivado para escribir en el chat.
+#: bellbird/capture/redaccion.py:54
+msgid "No se pudo acceder al chat de este directo"
+msgstr "Could not access the chat of this live stream"
+
+#. Traductores: motivo de botón desactivado para comentar.
+#: bellbird/capture/redaccion.py:61
+msgid "Conéctate a un vídeo para poder comentar"
+msgstr "Connect to a video to comment"
+
+# | msgid "Este vídeo no tiene un directo con chat activo."
+#. Traductores: motivo de botón desactivado para comentar.
+#: bellbird/capture/redaccion.py:64
+msgid "Este video tiene los comentarios desactivados"
+msgstr "This video has comments disabled"
+
+#. Traductores: motivo de botón desactivado para comentar.
+#: bellbird/capture/redaccion.py:67
+msgid "Inicia sesión en Configuración de API para comentar"
+msgstr "Sign in in API settings to comment"
+
+# | msgid "" "AVISO: faltan las bibliotecas de la API. Instálalas con:\n" "pip
+# | install google-api-python-client google-auth-oauthlib"
+#. Traductores: motivo de botón desactivado para leer comentarios.
+#: bellbird/capture/redaccion.py:74
+msgid ""
+"Faltan las librerías de la API. Instálalas con: pip install google-api-"
+"python-client google-auth-oauthlib"
+msgstr ""
+"The API libraries are missing. Install them with: pip install google-api-"
+"python-client google-auth-oauthlib"
+
+#. Traductores: motivo de botón desactivado para leer comentarios.
+#: bellbird/capture/redaccion.py:78
+msgid ""
+"Falta la API key. Ponla en Preferencias, pestaña API, para leer "
+"comentarios."
+msgstr "Missing API key. Put it in Preferences, API tab, to read comments."
+
+#. Traductores: motivo de botón desactivado para leer comentarios.
+#: bellbird/capture/redaccion.py:81
+msgid "Conéctate a un vídeo para poder leer los comentarios"
+msgstr "Connect to a video to read the comments"
+
+#. Traductores: error que se anuncia al validar el texto a enviar.
+#: bellbird/capture/redaccion.py:89
+msgid "Escribe un mensaje antes de enviar"
+msgstr "Write a message before sending"
+
+#. Traductores: error que se anuncia al validar el texto a enviar. {largo} es
+#. cuántos caracteres tiene y {maximo} el máximo.
+#: bellbird/capture/redaccion.py:92
+#, python-brace-format
+msgid "El mensaje tiene {largo} caracteres y el máximo es {maximo}"
+msgstr "The message has {largo} characters and the maximum is {maximo}"
+
+# | msgid "Sesión iniciada. Ya puedes volver a la aplicación."
+#. Traductores: error permanente que se anuncia y se muestra en la barra de
+#. estado.
+#: bellbird/capture/tiktok_captura.py:303
+msgid "La versión instalada de TikTokLive no es compatible con la aplicación."
+msgstr "The installed TikTokLive version is not compatible with the application."
+
+# | msgid "Conectando al directo…"
+#. Traductores: estado que se anuncia y se muestra en la barra de estado al
+#. conectar.
+#: bellbird/capture/tiktok_captura.py:340
+msgid "Conectado al directo de TikTok."
+msgstr "Connected to the TikTok live stream."
+
+# | msgid "No se encontró la biblioteca pytchat. Ejecuta instalar.bat."
+#: bellbird/capture/tiktok_captura.py:411
+msgid "Falta la librería TikTokLive. Ejecuta instalar.bat."
+msgstr "Missing TikTokLive library. Run instalar.bat."
+
+# | msgid "Directo de TikTok de @{usuario}: leyendo el chat."
+#. Traductores: estado que se anuncia y se muestra en la barra de estado al
+#. conectar. {usuario} es el usuario de TikTok.
+#: bellbird/capture/tiktok_captura.py:429
+#, python-brace-format
+msgid "Conectando al directo de TikTok de @{usuario}..."
+msgstr "Connecting to the TikTok live stream by @{usuario}..."
+
+# | msgid "El directo de TikTok terminó"
+#. Traductores: estado final que se anuncia y se muestra en la barra de estado.
+#: bellbird/capture/tiktok_captura.py:463
+msgid "El directo de TikTok ha terminado."
+msgstr "The TikTok live stream has ended."
+
+# | msgid "Se agotaron los {n} intentos de reconexión."
+#. Traductores: error que se anuncia y se muestra en la barra de estado.
+#. {intentos} es cuántos intentos se hicieron.
+#: bellbird/capture/tiktok_captura.py:476
+#, python-brace-format
+msgid "Se agotaron los {intentos} intentos de reconexión."
+msgstr "All {intentos} reconnection attempts failed."
+
+# | msgid "" "Se perdió la conexión con el chat. Reintentando en {segundos}
+# | {unidad} " "(intento {intento} de {total})."
+#: bellbird/capture/tiktok_captura.py:484
+#, python-brace-format
+msgid "Reintentando en {segundos} segundos (intento {intento} de {maximo})..."
+msgstr "Retrying in {segundos} seconds (attempt {intento} of {maximo})..."
+
+# | msgid "" "Se perdió la conexión con el chat. Reintentando en {segundos}
+# | {unidad} " "(intento {intento})."
+#: bellbird/capture/tiktok_captura.py:488
+#, python-brace-format
+msgid "Reintentando en {segundos} segundos (intento {intento})..."
+msgstr "Retrying in {segundos} seconds (attempt {intento})..."
+
+# | msgid "Esperando a que TikTok muestre el directo."
+#. Traductores: error permanente que se anuncia y se muestra en la barra de
+#. estado.
+#: bellbird/capture/tiktok_errores.py:32
+msgid "Ese usuario de TikTok no está en directo ahora mismo."
+msgstr "That TikTok user is not live right now."
+
+# | msgid "No se encontró el vídeo. Revisa el enlace o el ID."
+#. Traductores: error permanente que se anuncia y se muestra en la barra de
+#. estado.
+#: bellbird/capture/tiktok_errores.py:35
+msgid "No se encontró ese usuario de TikTok. Revisa la URL."
+msgstr "That TikTok user was not found. Check the URL."
+
+#. Traductores: error transitorio que se anuncia y se muestra en la barra de
+#. estado.
+#: bellbird/capture/tiktok_errores.py:38
+msgid ""
+"El servidor de firmas de TikTok no responde o alcanzó su límite. Espera "
+"un momento y reintenta."
+msgstr ""
+"The TikTok signature server is not responding or reached its limit. Wait "
+"a moment and retry."
+
+#. Traductores: error transitorio que se anuncia y se muestra en la barra de
+#. estado.
+#: bellbird/capture/tiktok_errores.py:42
+msgid "TikTok pidió verificación (captcha). Reintenta más tarde."
+msgstr "TikTok asked for verification (captcha). Retry later."
+
+#. Traductores: error transitorio que se anuncia y se muestra en la barra de
+#. estado. {detalle} es el detalle técnico.
+#: bellbird/capture/tiktok_errores.py:45
+#, python-brace-format
+msgid "TikTok no respondió bien (error HTTP): {detalle}"
+msgstr "TikTok did not respond well (HTTP error): {detalle}"
+
+# | msgid "No se pudo agregar el directo a la lista: {detalle}"
+#. Traductores: error transitorio que se anuncia y se muestra en la barra de
+#. estado. {detalle} es el detalle técnico.
+#: bellbird/capture/tiktok_errores.py:47
+#, python-brace-format
+msgid "No se pudo conectar al directo de TikTok: {detalle}"
+msgstr "Could not connect to the TikTok live stream: {detalle}"
+
+# | msgid "Pregunta: {texto}"
+#. Traductores: texto del chat de TikTok que se anuncia. {contenido} es la
+#. pregunta.
+#: bellbird/capture/tiktok_manejadores.py:147
+#, python-brace-format
+msgid "Pregunta: {contenido}"
+msgstr "Question: {contenido}"
+
+# | msgid "El directo de TikTok terminó"
+#: bellbird/capture/tiktok_manejadores.py:159
+msgid "El directo de TikTok está en pausa."
+msgstr "The TikTok live stream is paused."
+
+# | msgid "El directo de TikTok terminó"
+#: bellbird/capture/tiktok_manejadores.py:171
+msgid "El directo de TikTok continúa."
+msgstr "The TikTok live stream continues."
+
 #: bellbird/core/actualizacion.py:290
 msgid "la descarga exige un enlace https"
 msgstr "download requires an https link"
@@ -733,6 +1112,7 @@ msgstr "&Treasure chests:"
 msgid "{dia}/{mes}/{anio}"
 msgstr "{mes}/{dia}/{anio}"
 
+# | msgid "Directo del {fecha}"
 #. Traductores: fila del historial de un directo; {base} es el canal y
 #. el título y {fecha} la fecha corta.
 #: bellbird/core/historial.py:82
@@ -740,6 +1120,7 @@ msgstr "{mes}/{dia}/{anio}"
 msgid "{base} · directo ({fecha})"
 msgstr "{base} · live ({fecha})"
 
+# | msgid "En directo"
 #. Traductores: fila del historial de un directo sin fecha; {base} es
 #. el canal y el título.
 #: bellbird/core/historial.py:86
@@ -7754,4 +8135,16 @@ msgstr "Untitled"
 
 #~ msgid "Se cortó el vídeo"
 #~ msgstr "The video cut out"
+
+#~ msgid "{dia}/{mes}/{anio}"
+#~ msgstr "{mes}/{dia}/{anio}"
+
+#~ msgid "{base} · directo ({fecha})"
+#~ msgstr "{base} · live ({fecha})"
+
+#~ msgid "{base} · directo"
+#~ msgstr "{base} · live"
+
+#~ msgid "{base} ({fecha})"
+#~ msgstr "{base} ({fecha})"
 

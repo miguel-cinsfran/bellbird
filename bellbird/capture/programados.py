@@ -8,6 +8,7 @@ import re
 
 from bellbird.core import archivos
 from bellbird.capture.redaccion import MAXIMO_CHAT as MAX_CARACTERES
+from bellbird.core.idioma import _, ngettext
 
 
 MINUTOS_MINIMOS = 5  # Piso de prudencia contra el antispam.
@@ -38,8 +39,9 @@ def validar_mensaje(texto: str, minutos_min: int, minutos_max: int) -> tuple[str
     aviso = ""
     # Se avisan las formas habituales de URL; YouTube puede bloquearlas.
     if _URL_RE.search(texto):
-        aviso = ("YouTube suele bloquear los enlaces en el chat en vivo. "
-                 "Conviene poner el nombre de usuario en vez de la dirección completa.")
+        # Traductores: aviso de la ventana de mensajes programados cuando el texto trae un enlace.
+        aviso = _("YouTube suele bloquear los enlaces en el chat en vivo. "
+                  "Conviene poner el nombre de usuario en vez de la dirección completa.")
     return "", aviso
 
 
@@ -115,13 +117,17 @@ def describir_proximo(mensajes: list[dict], ahora: float) -> str:
     # es «en menos de un minuto», es que todavía no se ha programado.
     con_hora = [mensaje["proximo"] for mensaje in activos if mensaje["proximo"] > 0]
     if not con_hora:
-        return "Próximo mensaje programado: pendiente de programar"
+        # Traductores: estado F2 de los mensajes programados cuando aún no hay hora.
+        return _("Próximo mensaje programado: pendiente de programar")
     restante = min(con_hora) - ahora
     if restante < 60:
-        return "Próximo mensaje programado en menos de un minuto"
+        # Traductores: estado F2 de los mensajes programados cuando falta menos de un minuto.
+        return _("Próximo mensaje programado en menos de un minuto")
     minutos = math.ceil(restante / 60)
-    unidad = "minuto" if minutos == 1 else "minutos"
-    return f"Próximo mensaje programado en {minutos} {unidad}"
+    # Traductores: estado F2 de los mensajes programados. {minutos} es en cuántos minutos se envía.
+    return ngettext("Próximo mensaje programado en {minutos} minuto",
+                    "Próximo mensaje programado en {minutos} minutos",
+                    minutos).format(minutos=minutos)
 
 
 def _a_bool(valor) -> bool:

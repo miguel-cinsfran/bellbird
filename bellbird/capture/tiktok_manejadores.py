@@ -13,6 +13,7 @@ from bellbird.capture.tiktok_captura import (
     _clase_suscripcion,
     autor_de_evento,
 )
+from bellbird.core.idioma import _
 from bellbird.core.config import (
     TIPO_COFRE,
     TIPO_COMPARTIR,
@@ -142,7 +143,8 @@ def _al_pregunta(on_evento, descartar):
         if not contenido:
             return
         autor, canal_id = autor_de_evento(datos)
-        on_evento(autor, f"Pregunta: {contenido}", TIPO_TEXTO, "", canal_id)
+        # Traductores: texto del chat de TikTok que se anuncia. {contenido} es la pregunta.
+        on_evento(autor, _("Pregunta: {contenido}").format(contenido=contenido), TIPO_TEXTO, "", canal_id)
 
     return _on_question
 
@@ -152,8 +154,9 @@ def _al_pausa(on_estado, descartar):
         if descartar(evento):
             return
         if on_estado:
+            # Traductores: estado que se anuncia y se muestra en la barra de estado.
             on_estado("directo_pausado",
-                      "El directo de TikTok está en pausa.")
+                      _("El directo de TikTok está en pausa."))
 
     return _on_pause
 
@@ -163,8 +166,9 @@ def _al_reanudacion(on_estado, descartar):
         if descartar(evento):
             return
         if on_estado:
+            # Traductores: estado que se anuncia y se muestra en la barra de estado.
             on_estado("directo_reanudado",
-                      "El directo de TikTok continúa.")
+                      _("El directo de TikTok continúa."))
 
     return _on_unpause
 

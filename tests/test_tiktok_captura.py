@@ -8,8 +8,10 @@ import unittest
 from unittest import mock
 
 from bellbird.capture import tiktok_captura
-from bellbird.capture.tiktok_captura import (usuario_de_url, _mensaje_error, _es_error_permanente,
+from bellbird.capture.tiktok_captura import (usuario_de_url,
                             _mejor_flujo, autor_de_evento, es_previo_a_conexion)
+from bellbird.capture.tiktok_errores import (mensaje_error as _mensaje_error,
+    es_error_permanente as _es_error_permanente)
 
 
 class TestUsuarioDeUrl(unittest.TestCase):
@@ -520,6 +522,53 @@ class TestUserSeq(unittest.TestCase):
     def test_si_el_total_falla_entrega_none(self):
         evento = types.SimpleNamespace(total=3, total_user=None)
         self.assertEqual(self._evento(evento), [(3, None)])
+
+
+class TestAvisoConectado(unittest.TestCase):
+    """Al conectar se avisa con el texto exacto que oye el usuario."""
+
+    class _ClienteFalso:
+        room_info = {}
+
+        def __init__(self):
+            self.manejadores = {}
+
+        def on(self, evento):
+            def decorar(func):
+                self.manejadores[evento] = func
+                return func
+            return decorar
+
+        async def connect(self, **kwargs):
+            pass
+
+        async def disconnect(self):
+            pass
+
+    def test_al_conectar_anuncia_conectado_con_texto_exacto(self):
+        cliente = self._ClienteFalso()
+        mod_eventos = types.ModuleType("TikTokLive.events")
+        for nombre in ("ConnectEvent", "CommentEvent", "GiftEvent",
+                       "DisconnectEvent", "LiveEndEvent", "RoomUserSeqEvent",
+                       "JoinEvent", "SubscribeEvent"):
+            setattr(mod_eventos, nombre, type(nombre, (), {}))
+        mod_tiktok = types.ModuleType("TikTokLive")
+        mod_tiktok.TikTokLiveClient = lambda unique_id: cliente
+        mod_tiktok.events = mod_eventos
+        estados = []
+        parada = threading.Event()
+        parada.set()
+        with mock.patch.dict(sys.modules, {"TikTokLive": mod_tiktok,
+                                           "TikTokLive.events": mod_eventos}):
+            error = tiktok_captura._sesion(
+                "pepe", parada, lambda *a: None,
+                lambda tipo, texto: estados.append((tipo, texto)),
+                lambda d: None, None)
+        self.assertIsNone(error)
+        asyncio.run(cliente.manejadores[mod_eventos.ConnectEvent](
+            mod_eventos.ConnectEvent()))
+        self.assertIn(("conectado", "Conectado al directo de TikTok."),
+                      estados)
 
 
 class TestFinDirecto(unittest.TestCase):

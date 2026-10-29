@@ -17,6 +17,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from bellbird.core import config_predeterminada
+from bellbird.core.idioma import _
 
 
 # Códigos de tipo de conexión → etiqueta legible.
@@ -190,9 +191,11 @@ def _render_desfase_directo(s: SnapshotSesion, largo: bool) -> str:
     base = f"Reproductor: {texto}" if largo else texto
     atajo = (s.atajo_directo or "").strip()
     if atajo:
-        vuelta = f"Pulsa {atajo} para volver al directo"
+        # Traductores: parte del estado F2 del desfase. {atajo} es el atajo de teclado.
+        vuelta = _("Pulsa {atajo} para volver al directo").format(atajo=atajo)
     else:
-        vuelta = "Para volver: menú Reproductor, Ir al directo"
+        # Traductores: parte del estado F2 del desfase cuando no hay atajo.
+        vuelta = _("Para volver: menú Reproductor, Ir al directo")
     # En largo la línea es una frase completa y lleva su punto; en corto
     # lo pone el punto final de la frase armada.
     if largo:
@@ -222,7 +225,9 @@ def _render_en_cola(s: SnapshotSesion, largo: bool) -> str:
 
 
 def _render_voz(s: SnapshotSesion, largo: bool) -> str:
-    return (f"Voz: velocidad {s.voz_velocidad}, volumen {s.voz_volumen}%")
+    # Traductores: componente del estado F2. {velocidad} es la velocidad y {volumen} el volumen.
+    return (_("Voz: velocidad {velocidad}, volumen {volumen}%").format(
+        velocidad=s.voz_velocidad, volumen=s.voz_volumen))
 
 
 def _render_lectura_silenciada(s: SnapshotSesion, largo: bool) -> str:
@@ -233,9 +238,12 @@ def _render_overlay(s: SnapshotSesion, largo: bool) -> str:
     if s.overlay_puerto is None:
         return ""
     if s.overlay_clientes:
-        return f"Panel de chat activo en el puerto {s.overlay_puerto}, mostrándose"
-    return (f"Panel de chat activo en el puerto {s.overlay_puerto}, pero nadie "
-            "lo está mostrando")
+        # Traductores: componente del estado F2. {puerto} es el puerto del panel.
+        return _("Panel de chat activo en el puerto {puerto}, mostrándose").format(
+            puerto=s.overlay_puerto)
+    # Traductores: componente del estado F2. {puerto} es el puerto del panel.
+    return (_("Panel de chat activo en el puerto {puerto}, pero nadie "
+              "lo está mostrando").format(puerto=s.overlay_puerto))
 
 
 def _render_programados(s: SnapshotSesion, largo: bool) -> str:

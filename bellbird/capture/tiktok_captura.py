@@ -28,11 +28,14 @@ import re
 import sys
 import time
 
+from bellbird.capture.tiktok_errores import (CLASES_OFFLINE, nombre, mensaje_error,
+    es_error_permanente)
 from bellbird.core import avisos_tiktok
 from bellbird.core import diagnostico
 from bellbird.core import paths
 from bellbird.core.config import (TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_MIEMBRO, TIPO_ENTRADA,
     TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA)
+from bellbird.core.idioma import N_, _
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -295,7 +298,8 @@ def _clase_suscripcion(modulo_eventos):
 
 # Texto del estado permanente cuando la TikTokLive instalada no trae lo que
 # la captura necesita (llega a la GUI por on_estado como los demás estados).
-_TEXTO_VERSION_INCOMPATIBLE = (
+# Traductores: error permanente que se anuncia y se muestra en la barra de estado.
+_TEXTO_VERSION_INCOMPATIBLE = N_(
     "La versión instalada de TikTokLive no es compatible con la aplicación.")
 
 
@@ -332,7 +336,8 @@ def _sesion(usuario, parada, on_evento, on_estado, on_info, on_espectadores,
         except Exception as exc:
             logger.debug("info de sala: %s", exc)
         if on_estado:
-            on_estado("conectado", "Conectado al directo de TikTok.")
+            # Traductores: estado que se anuncia y se muestra en la barra de estado al conectar.
+            on_estado("conectado", _("Conectado al directo de TikTok."))
 
     def descartar(evento) -> bool:
         return es_historico(evento) or es_previo_a_conexion(
@@ -392,44 +397,6 @@ def _sesion(usuario, parada, on_evento, on_estado, on_info, on_espectadores,
     return error[0]
 
 
-# Excepciones de TikTokLive que no vale la pena reintentar. Se comparan por
-# NOMBRE de clase (la librería es opcional, no se importa aquí) y no por
-# subcadena del mensaje: un «404 Not Found» del servidor de firmas es un
-# httpx.HTTPStatusError transitorio, no un usuario inexistente.
-_CLASES_OFFLINE = ("UserOfflineError",)
-_CLASES_NO_EXISTE = ("UserNotFoundError",)
-
-
-def _nombre(exc) -> str:
-    return type(exc).__name__
-
-
-def _es_error_http(exc) -> bool:
-    n = _nombre(exc).lower()
-    return "http" in n or n.endswith("statuserror")
-
-
-def _mensaje_error(exc) -> str:
-    nombre = _nombre(exc)
-    t = f"{nombre}: {exc}".lower()
-    if nombre in _CLASES_OFFLINE:
-        return "Ese usuario de TikTok no está en directo ahora mismo."
-    if nombre in _CLASES_NO_EXISTE:
-        return "No se encontró ese usuario de TikTok. Revisa la URL."
-    if "sign" in t or "euler" in t or "rate" in t and "limit" in t:
-        return ("El servidor de firmas de TikTok no responde o alcanzó su "
-                "límite. Espera un momento y reintenta.")
-    if "captcha" in t or "blocked" in t:
-        return "TikTok pidió verificación (captcha). Reintenta más tarde."
-    if _es_error_http(exc):
-        return f"TikTok no respondió bien (error HTTP): {exc}"
-    return f"No se pudo conectar al directo de TikTok: {exc}"
-
-
-def _es_error_permanente(exc) -> bool:
-    return _nombre(exc) in _CLASES_OFFLINE + _CLASES_NO_EXISTE
-
-
 def capturar_con_reconexion(usuario, config, parada, on_evento,
                             on_estado=None, on_info=None,
                             on_espectadores=None, offline_pasajero=False) -> None:
@@ -439,8 +406,9 @@ def capturar_con_reconexion(usuario, config, parada, on_evento,
     recibe los de ahora y los que pasaron."""
     if not disponible():
         if on_estado:
+            # Traductores: error permanente que se anuncia y se muestra en la barra de estado.
             on_estado("error_permanente",
-                      "Falta la librería TikTokLive. Ejecuta instalar.bat.")
+                      _("Falta la librería TikTokLive. Ejecuta instalar.bat."))
         parada.set()
         return
 
@@ -457,7 +425,8 @@ def capturar_con_reconexion(usuario, config, parada, on_evento,
 
     while not parada.is_set():
         if on_estado:
-            on_estado("conectando", f"Conectando al directo de TikTok de @{usuario}...")
+            # Traductores: estado que se anuncia y se muestra en la barra de estado al conectar. {usuario} es el usuario de TikTok.
+            on_estado("conectando", _("Conectando al directo de TikTok de @{usuario}...").format(usuario=usuario))
         conecto[0] = False
         try:
             err = _sesion(usuario, parada, on_evento, _estado, on_info, on_espectadores,
@@ -471,18 +440,18 @@ def capturar_con_reconexion(usuario, config, parada, on_evento,
             # Preparación imposible con esta versión de la librería: no vale
             # la pena reintentar, se avisa una vez y se termina.
             if on_estado:
-                on_estado("error_permanente", _TEXTO_VERSION_INCOMPATIBLE)
+                on_estado("error_permanente", _(_TEXTO_VERSION_INCOMPATIBLE))
             parada.set()
             break
         if conecto[0]:
             intentos = 0
         if parada.is_set():
             break
-        if err is not None and _es_error_permanente(err) and not (
-                offline_pasajero and _nombre(err) in _CLASES_OFFLINE
+        if err is not None and es_error_permanente(err) and not (
+                offline_pasajero and nombre(err) in CLASES_OFFLINE
                 and not conecto[1]):
             if on_estado:
-                on_estado("error_permanente", _mensaje_error(err))
+                on_estado("error_permanente", mensaje_error(err))
             parada.set()
             break
         if err is None:
@@ -490,24 +459,31 @@ def capturar_con_reconexion(usuario, config, parada, on_evento,
             # Suena «fin_directo», no «desconectado» (ese sigue para YouTube
             # y el resto de los cortes).
             if on_estado:
-                on_estado("fin_directo", "El directo de TikTok ha terminado.")
+                # Traductores: estado final que se anuncia y se muestra en la barra de estado.
+                on_estado("fin_directo", _("El directo de TikTok ha terminado."))
             parada.set()
             break
         if not config.get("reconectar", True):
             if on_estado:
-                on_estado("error", _mensaje_error(err))
+                on_estado("error", mensaje_error(err))
             parada.set()
             break
         intentos += 1
         mi = config.get("max_intentos", 0)
         if mi > 0 and intentos >= mi:
             if on_estado:
-                on_estado("error", f"Se agotaron los {mi} intentos de reconexión.")
+                # Traductores: error que se anuncia y se muestra en la barra de estado. {intentos} es cuántos intentos se hicieron.
+                on_estado("error", _("Se agotaron los {intentos} intentos de reconexión.").format(intentos=mi))
             parada.set()
             break
         espera = config.get("espera_entre_intentos", 10)
-        sfx = f" de {mi}" if mi else ""
         if on_estado:
-            on_estado("reintentando",
-                      f"Reintentando en {espera} segundos (intento {intentos}{sfx})...")
+            # Traductores: estado que se anuncia y se muestra en la barra de estado. {segundos} es la espera, {intento} el intento actual y {maximo} el máximo.
+            if mi:
+                on_estado("reintentando",
+                          _("Reintentando en {segundos} segundos (intento {intento} de {maximo})...").format(segundos=espera, intento=intentos, maximo=mi))
+            else:
+                # Traductores: estado que se anuncia y se muestra en la barra de estado. {segundos} es la espera y {intento} el intento actual.
+                on_estado("reintentando",
+                          _("Reintentando en {segundos} segundos (intento {intento})...").format(segundos=espera, intento=intentos))
         parada.wait(timeout=espera)

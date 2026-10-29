@@ -226,8 +226,8 @@ class TestConsultar(unittest.TestCase):
             charla, preparada, clave,
             enviar=lambda p, c, t: _respuesta("Parte", cortada=True))
         self.assertEqual(
-            texto, "Parte La respuesta quedó cortada por el largo "
-                   "elegido en Preferencias.")
+            texto, "Parte Respuesta incompleta: alcanzó la longitud máxima "
+                   "elegida en Preferencias.")
         self.assertEqual(charla.mensajes[1].texto, "Parte")
 
 
@@ -258,7 +258,7 @@ class TestTextoDeError(unittest.TestCase):
             protocolos.RECHAZO:
                 "El proveedor rechazó la consulta. Puede que el modelo ya "
                 "no esté disponible: en Preferencias, Inteligencia "
-                "artificial, pulsa Actualizar la lista de modelos o "
+                "artificial, pulsa Actualizar lista de modelos o "
                 "elige otro.",
             protocolos.SIN_RED:
                 "No hay conexión con el proveedor. Comprueba la conexión "

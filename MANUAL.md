@@ -121,7 +121,7 @@ tabulador y su nombre dice qué falta. El límite es de 200 caracteres.
 regalos de TikTok por tamaño, seguidores, entradas, la conexión, errores,
 y la orilla al llegar al principio o al final de una lista. `F7` los
 silencia todos. Para callar uno solo, destilda su casilla en
-*Preferencias, Sonidos*, donde *Oír el sonido elegido* deja oír cada uno.
+*Preferencias, Sonidos*, donde *Oír sonido elegido* deja oír cada uno.
 El tema de sonido se elige en la misma página, arriba de la lista:
 `default`, con sonidos grabados, o `suave`, más cortos y tenues. Para
 hacer uno propio, copia `sounds/themes/default` con otro nombre y cambia
@@ -165,11 +165,11 @@ La ventana *Música* (`Ctrl+Mayús+M`):
 - **Canciones**: Intro reproduce. El menú contextual reproduce ahora, a
   continuación de la actual sin cortarla, desde ahí hasta el final, la
   agrega a la cola o a una lista, o crea una lista nueva.
-- **Mostrar la cola**: lo que va a sonar, en orden.
+- **Mostrar cola**: lo que va a sonar, en orden.
 - **Abrir enlace…**: un vídeo o una lista entera de YouTube, que se suma a
   la cola.
-- **Examinar la carpeta**: la recorre de nuevo y dice cuántas canciones
-  nuevas y quitadas encontró.
+- **Examinar carpeta**: la recorre de nuevo y dice cuántas canciones
+  nuevas y eliminadas encontró.
 
 Las canciones nuevas aparecen solas en la lista, sin volver a elegir la
 carpeta: la aplicación la vigila y la pone al día en silencio.
@@ -178,7 +178,7 @@ Las listas se guardan como archivos `.m3u8`, que abren otros
 reproductores. Al reabrir la aplicación, Reproducir sigue la última cola
 desde donde estaba, y dice cuántas canciones tiene: si fue una búsqueda,
 no es la carpeta entera. Para empezar siempre con toda la carpeta,
-desactiva *Recordar la última lista al abrir* en *Preferencias, Música*.
+desactiva *Recordar última lista al abrir* en *Preferencias, Música*.
 
 En *Preferencias, Música* también eliges el orden aleatorio, la
 repetición (nada, toda la cola o la canción actual), el volumen de la
@@ -187,7 +187,7 @@ título, el título y el artista, o solo el artista. Si eliges nada, pasar
 de canción con el atajo igual dice el título. Otra casilla decide si se
 anuncian la pausa, la reanudación y el volver al comienzo.
 
-La casilla *Igualar el volumen de las canciones*, activada de fábrica,
+La casilla *Igualar volumen de las canciones*, activada de fábrica,
 hace que todas suenen parecido, como en Spotify. Cada archivo se mide
 una sola vez con ffmpeg, y su volumen se corrige al empezar cada
 canción. Los archivos no se modifican: solo se guarda el resultado en
@@ -198,7 +198,7 @@ Al abrir la ventana *Música*, si quedan canciones sin medir, la
 aplicación pregunta cuántas son y cuánto ocupan, con *Sí* y *No*. La
 casilla *No volver a preguntar* deja guardado que no pregunte más, y la
 pregunta se activa o se desactiva en *Preferencias, Música*. La ventana
-trae el botón *Igualar el volumen*, que empieza la medición; mientras
+trae el botón *Igualar volumen*, que empieza la medición; mientras
 mide, el botón cambia a *Detener la igualación*. El avance se ve en la
 ventana o con F2. Los enlaces de YouTube suenan con su volumen.
 
@@ -210,7 +210,7 @@ fábrica, y 0 lo desactiva. Pasar de canción con el atajo hace un fundido
 corto, de medio segundo. El sonido de cambio de canción viene apagado de
 fábrica y se activa en la misma página.
 
-La casilla *Usar los atajos de música en cualquier programa* hace que
+La casilla *Usar atajos de música en cualquier programa* hace que
 funcionen aunque estés en OBS o en un juego. Viene apagada porque,
 mientras está activa, esas teclas no les llegan a los demás programas.
 Si otro programa ya tiene alguna, la aplicación te dice cuál.
@@ -367,10 +367,10 @@ proveedor (Google Gemini, OpenAI, Anthropic, OpenRouter, OpenCode Go,
 Command Code u otro compatible con OpenAI), guardas su clave y eliges el
 modelo. La clave queda en el Administrador de credenciales de Windows, no
 en `config.ini`, y la página nunca la muestra: solo dice que está
-guardada y sus cuatro últimos caracteres. *Probar la clave* manda un
+guardada y sus cuatro últimos caracteres. *Probar clave* manda un
 pedido corto y dice si funciona.
 
-*Actualizar la lista de modelos* trae los modelos que aceptan imágenes.
+*Actualizar lista de modelos* trae los modelos que aceptan imágenes.
 Con OpenRouter y OpenCode Go, *Solo gratuitos* deja los que no cobran.
 Con Gemini lo gratis depende de la clave, así que la lista prueba cada
 modelo con la tuya y marca los que funcionan. Tarda unos 30 segundos y
@@ -476,7 +476,7 @@ acción.
 | `F7` | Silenciar los sonidos |
 | `F2` | Estado |
 | `F3` | Autor del último mensaje leído |
-| `Ctrl+F2` | Describir la escena de OBS |
+| `Ctrl+F2` | Describir escena de OBS |
 | `Ctrl+Mayús+F2` | Consulta rápida a la IA sobre la escena |
 
 Al repetir un ajuste de velocidad o de volumen, la primera vez se dice el
@@ -492,9 +492,9 @@ nombre y el valor («Volumen de la voz: 40%») y después solo el valor.
 | `Ctrl+Alt+Mayús+Flecha derecha` / `izquierda` | Adelantar o retroceder 10 segundos |
 | `Ctrl+Alt+T` | Qué suena |
 | `Ctrl+Alt+M` | Silenciar la música |
-| `Ctrl+Alt+D` | Detener la música |
+| `Ctrl+Alt+D` | Detener música |
 | `Ctrl+Alt+A` | Orden aleatorio |
-| `Ctrl+Alt+R` | Cambiar la repetición |
+| `Ctrl+Alt+R` | Cambiar repetición |
 
 ### Fijos
 
@@ -508,7 +508,7 @@ nombre y el valor («Volumen de la voz: 40%») y después solo el valor.
 
 `Ctrl+Mayús+1` lee el último mensaje del chat, `Ctrl+Mayús+2` el anterior
 y así hasta `Ctrl+Mayús+0`, que lee el décimo desde el final. De fábrica
-valen solo con la aplicación al frente; la casilla *Leer los mensajes
+valen solo con la aplicación al frente; la casilla *Leer mensajes
 recientes en cualquier programa* de *Preferencias, Lectura* los hace valer
 en cualquier programa, como los atajos de música.
 
@@ -577,7 +577,7 @@ que se distribuyen así, sin instalador. Agrega la carpeta a las exclusiones.
 **El panel de chat no se ve.** `F2` dice si el panel está activo y si OBS
 lo muestra. Si nadie lo muestra, revisa la fuente de navegador en OBS.
 
-**Algo falla.** *Ayuda, Abrir la carpeta de registros* abre la carpeta
+**Algo falla.** *Ayuda, Abrir carpeta de registros* abre la carpeta
 `data`, donde están los registros. Los errores quedan en
 `data/ytchat.log`, y si la aplicación se cierra sola, también en
 `data/bellbird-fallos.log`. El registro detallado, `data/bellbird-debug.log`,

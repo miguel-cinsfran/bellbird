@@ -71,7 +71,7 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
         # Traductores: nombre accesible de la lista de canciones; una palabra.
         self.lb_temas = self._lista(panel, _("Canciones"), 190)
         self.btn_cola = self._boton(
-            panel, _("Mostrar la c&ola"), _("Mostrar la cola"))
+            panel, _("Mostrar c&ola"), _("Mostrar cola"))
         self.lb_cola = self._lista(panel, _("Cola de reproducción"), 160)
         self._crear_igualando(panel)
         self._crear_pie(panel)
@@ -143,10 +143,10 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
             panel, _("Cambiar car&peta…"), _("Cambiar carpeta"))
         # Traductores: mide e iguala el volumen; segunda, su nombre accesible.
         self.btn_igualar = self._boton(
-            panel, _("&Igualar el volumen"), _("Igualar el volumen"))
+            panel, _("&Igualar volumen"), _("Igualar volumen"))
         # Traductores: vuelve a examinar la carpeta; segunda, su nombre accesible.
         self.btn_examinar = self._boton(
-            panel, _("E&xaminar la carpeta"), _("Examinar la carpeta"))
+            panel, _("E&xaminar carpeta"), _("Examinar carpeta"))
         # Traductores: cierra la ventana; segunda, su nombre accesible.
         self.btn_cerrar = wx.Button(panel, wx.ID_CANCEL, _("&Cerrar"),
                                     name=_("Cerrar"))
@@ -211,11 +211,11 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
 
     def _rotular_boton_cola(self, visible):
         if visible:
-            self.btn_cola.SetLabel(_("Ocultar la c&ola"))
-            nombre_accesible(self.btn_cola, _("Ocultar la cola"))
+            self.btn_cola.SetLabel(_("Ocultar c&ola"))
+            nombre_accesible(self.btn_cola, _("Ocultar cola"))
         else:
-            self.btn_cola.SetLabel(_("Mostrar la c&ola"))
-            nombre_accesible(self.btn_cola, _("Mostrar la cola"))
+            self.btn_cola.SetLabel(_("Mostrar c&ola"))
+            nombre_accesible(self.btn_cola, _("Mostrar cola"))
 
     def _alternar_cola(self):
         visible = not self.lb_cola.IsShown()

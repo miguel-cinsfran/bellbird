@@ -212,12 +212,12 @@ class PreferenciasDialog(wx.Dialog):
         _tc(self.sp_fuente)
         vs.Add(self.sp_fuente, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        self.chk_total_sc = wx.CheckBox(p, label=_("Mostrar el total de &Super Chats en la barra de estado"),
+        self.chk_total_sc = wx.CheckBox(p, label=_("Mostrar total de &Super Chats en la barra de estado"),
                                          name="MostrarTotalSuperChats")
         self.chk_total_sc.SetForegroundColour(_T.text)
         vs.Add(self.chk_total_sc, 0, wx.ALL, 10)
 
-        self.chk_metadatos = wx.CheckBox(p, label=_("Mostrar la pestaña de &información del vídeo (canal, vistas, descripción)"),
+        self.chk_metadatos = wx.CheckBox(p, label=_("Mostrar pestaña de &información del vídeo"),
                                           name="MostrarMetadatos")
         self.chk_metadatos.SetForegroundColour(_T.text)
         vs.Add(self.chk_metadatos, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
@@ -261,8 +261,8 @@ class PreferenciasDialog(wx.Dialog):
         vs = wx.BoxSizer(wx.VERTICAL)
 
         self.chk_reconectar = wx.CheckBox(
-            p, label=_("&Reconectar automáticamente si se corta"),
-            name=_("Reconectar automáticamente si se corta"))
+            p, label=_("&Reconectar automáticamente"),
+            name=_("Reconectar automáticamente"))
         vs.Add(self.chk_reconectar, 0, wx.ALL, 10)
 
         vs.Add(self._fila_label(p, _("&Espera máxima entre intentos, en segundos")),
@@ -308,14 +308,14 @@ class PreferenciasDialog(wx.Dialog):
         vs.Add(self.cho_microfono_obs, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         self.btn_buscar_microfonos = wx.Button(
-            p, label=_("&Buscar los micrófonos en OBS"),
-            name=_("Buscar los micrófonos en OBS"))
+            p, label=_("&Buscar micrófonos en OBS"),
+            name=_("Buscar micrófonos en OBS"))
         vs.Add(self.btn_buscar_microfonos, 0, wx.ALL, 10)
         self.btn_buscar_microfonos.Bind(wx.EVT_BUTTON, self._buscar_microfonos)
 
         self.btn_activar_websocket_obs = wx.Button(
-            p, label=_("&Activar el servidor websocket de OBS"),
-            name=_("Activar el servidor websocket de OBS"))
+            p, label=_("&Activar servidor WebSocket de OBS"),
+            name=_("Activar servidor WebSocket de OBS"))
         vs.Add(self.btn_activar_websocket_obs, 0, wx.ALL, 10)
         self.btn_activar_websocket_obs.Bind(
             wx.EVT_BUTTON, self._activar_servidor_websocket_obs)
@@ -375,7 +375,7 @@ class PreferenciasDialog(wx.Dialog):
         p = self._make_panel(parent, "PagReproductor")
         vs = wx.BoxSizer(wx.VERTICAL)
 
-        self.chk_autoplay = wx.CheckBox(p, label=_("&Reproducir el audio automáticamente al conectar"),
+        self.chk_autoplay = wx.CheckBox(p, label=_("&Reproducir audio automáticamente al conectar"),
                                          name="AutoplayReproductor")
         self.chk_autoplay.SetForegroundColour(_T.text)
         vs.Add(self.chk_autoplay, 0, wx.ALL, 10)
@@ -386,7 +386,7 @@ class PreferenciasDialog(wx.Dialog):
         self.chk_solo_audio.SetForegroundColour(_T.text)
         vs.Add(self.chk_solo_audio, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        self.chk_botones_rep = wx.CheckBox(p, label=_("Mostrar los &botones del reproductor (también con su interruptor y el menú Reproductor)"),
+        self.chk_botones_rep = wx.CheckBox(p, label=_("Mostrar &botones del reproductor"),
                                             name="MostrarBotonesReproductor")
         self.chk_botones_rep.SetForegroundColour(_T.text)
         vs.Add(self.chk_botones_rep, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)

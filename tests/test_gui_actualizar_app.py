@@ -302,7 +302,7 @@ class TestVentana(unittest.TestCase):
         self.assertIn(f"La actualización está preparada. {APP_NAME} se cierra y vuelve "
                       "a abrirse sola en alrededor de un minuto. Si hay un "
                       "chat conectado o un directo "
-                      "en curso, se corta.", ventana.anuncios)
+                      "en curso, se interrumpe.", ventana.anuncios)
         self.assertEqual("&Instalar y reiniciar", ventana.accion_etiqueta)
 
     def test_instalar_llama_antes_de_cerrar(self):

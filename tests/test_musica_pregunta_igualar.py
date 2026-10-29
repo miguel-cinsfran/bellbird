@@ -95,7 +95,7 @@ class TestTextoPregunta(unittest.TestCase):
         self.assertTrue(varias.endswith(COLA))
 
     def test_el_titulo_y_la_casilla_estan_fijos(self):
-        self.assertEqual(pregunta_igualar.TITULO, "Igualar el volumen")
+        self.assertEqual(pregunta_igualar.TITULO, "Igualar volumen")
         self.assertEqual(pregunta_igualar.CASILLA, "&No volver a preguntar")
 
 

@@ -127,7 +127,7 @@ class ProblemasEnDirectoTest(unittest.TestCase):
         self.assertEqual(
             problemas_en_directo(muestra(True, 10), muestra(True, 10, True)),
             [("reconexion",
-              "Se cortó la conexión con el servicio, OBS está reconectando.")])
+              "Se perdió la conexión con el servicio. OBS está reconectando.")])
 
     def test_vuelta_cuando_deja_de_reconectar(self):
         self.assertEqual(

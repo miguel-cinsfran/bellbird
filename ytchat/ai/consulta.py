@@ -17,8 +17,8 @@ from ytchat.ai import proveedores
 from ytchat.ai.catalogo import modelos as modelos_de_catalogo
 from ytchat.core.idioma import N_, _
 
-FRASE_CORTADA = N_("La respuesta quedó cortada por el largo elegido "
-                   "en Preferencias.")
+FRASE_CORTADA = N_("Respuesta incompleta: alcanzó la longitud máxima "
+                   "elegida en Preferencias.")
 
 TEXTO_SIN_NIVEL_GRATUITO = N_("Este modelo no está en el nivel gratuito "
                               "de tu clave. Elige otro modelo.")
@@ -47,9 +47,9 @@ _ERRORES = {
     protocolos.SERVIDOR: N_("El proveedor tuvo un fallo. Vuelve a intentarlo "
                             "en un rato."),
     protocolos.RECHAZO: N_("El proveedor rechazó la consulta. Puede que el "
-                           "modelo ya no esté disponible: en Preferencias, "
-                           "Inteligencia artificial, pulsa Actualizar la lista "
-                           "de modelos o elige otro."),
+                            "modelo ya no esté disponible: en Preferencias, "
+                            "Inteligencia artificial, pulsa Actualizar lista "
+                            "de modelos o elige otro."),
     protocolos.SIN_RED: N_("No hay conexión con el proveedor. Comprueba "
                            "la conexión a internet."),
     protocolos.TIEMPO_AGOTADO: N_("El proveedor tardó demasiado en responder. "

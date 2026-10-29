@@ -51,7 +51,7 @@ class PaginaProgramados:
         vs.Add(intro, 0, wx.ALL, 10)
 
         self.chk_programados = wx.CheckBox(
-            p, label=_("Acti&var los mensajes automáticos"), name="ActivarProgramados")
+            p, label=_("Acti&var mensajes automáticos"), name="ActivarProgramados")
         vs.Add(self.chk_programados, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _programados_lista(self, p, vs):

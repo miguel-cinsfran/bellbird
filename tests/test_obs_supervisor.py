@@ -271,7 +271,7 @@ class ReconexionVueltaTest(BaseSupervisor):
         supervisor, anuncios, _, _, _, _, _ = armado
         self.iniciar_y_esperar_fin(supervisor, plazo=3.0)
         self.assertIn(
-            ("Se cortó la conexión con el servicio, OBS está reconectando.",
+            ("Se perdió la conexión con el servicio. OBS está reconectando.",
              "transmision_problema"), anuncios)
         self.assertIn(("La conexión con el servicio volvió.",
                        "transmision_recuperada"), anuncios)
@@ -324,7 +324,7 @@ class ReconexionPorEstadoRealTest(unittest.TestCase):
         supervisor.iniciar()
         self.assertTrue(esperar_condicion(lambda: not supervisor.activo, 3.0))
         self.assertIn(
-            ("Se cortó la conexión con el servicio, OBS está reconectando.",
+            ("Se perdió la conexión con el servicio. OBS está reconectando.",
              "transmision_problema"), anuncios)
 
 
@@ -1074,7 +1074,7 @@ class FinalizarYoutubeTest(BaseSupervisor):
                 lambda: gestores and gestores[0].llamadas.count(
                     "estado") >= 5))
             self.assertEqual(llamadas, [])
-            frase = ("Se cortó la conexión con el servicio, "
+            frase = ("Se perdió la conexión con el servicio. "
                      "OBS está reconectando.")
             self.assertTrue(esperar_condicion(
                 lambda: frase in [texto for texto, _ in anuncios]))

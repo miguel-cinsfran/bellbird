@@ -668,7 +668,7 @@ def auditar_dialogo(app: Aplicacion, res: Resultado, etiqueta_menu: str,
     # Un diálogo que consulta algo de fuera nace con sus controles
     # deshabilitados y los habilita cuando la carga inicial termina. Si el
     # Tab se recorre antes, mide la pantalla de espera: el 29/10/2026 el
-    # cuadro de Transmisión dio 26 paradas sin «Preparar el panel» ni
+    # cuadro de Transmisión dio 26 paradas sin «Preparar panel» ni
     # «Restablecer» porque la carga desde OBS aún no había terminado.
     if esperar_habilitados:
         limite_espera = time.monotonic() + segundos_espera_habilitados
@@ -1635,12 +1635,12 @@ def _sonido_inicio_guardado_en_disco() -> str:
 def escenario_preferencias_persisten(app: Aplicacion, args, res: Resultado):
     """Una preferencia cambiada y guardada se conserva al reabrir Preferencias.
 
-    Invierte la casilla «Reproducir el sonido de inicio» (General, clave
+    Invierte la casilla «Reproducir sonido de inicio» (General, clave
     `[ui] sonido_inicio`), guarda, comprueba el `config.ini` y reabre para
     comprobar que la casilla muestra el valor invertido. Restaura el valor
     original en un `finally`, como `escenario_transmitir_destino`.
     """
-    NOMBRE_CASILLA = "Reproducir el sonido de inicio"
+    NOMBRE_CASILLA = "Reproducir sonido de inicio"
     previo_txt = _sonido_inicio_guardado_en_disco()
     previo = previo_txt in ("true", "yes", "1", "on")
     invertido = not previo
@@ -1849,7 +1849,7 @@ def escenario_transmision(app: Aplicacion, args, res: Resultado):
     # espera, no el diálogo. Medido el 29/09/2026.
     hay_obs = obs_abierto()
     if hay_obs:
-        esperados_tab = ("Preparar el panel", "Fuente", "Escena",
+        esperados_tab = ("Preparar panel", "Fuente", "Escena",
                          "Poner al aire", "Posición del panel",
                          "Restablecer", "Transmitir", "Grabar")
     else:
@@ -1859,19 +1859,19 @@ def escenario_transmision(app: Aplicacion, args, res: Resultado):
     auditar_dialogo(
         app, res, "Transmisión", "Transmisión",
         vueltas_tab=VUELTAS_TAB_TRANSMISION,
-        esperados=("Estado del panel", "Actualizar estado", "Preparar el panel", "Escena",
+        esperados=("Estado del panel", "Actualizar estado", "Preparar panel", "Escena",
                    "Poner al aire", "Fuente",
                    "Posición del panel", "Ancho del panel", "Alto del panel",
-                   "Aplicar tamaño", "Mostrar el panel", "Fijar el panel",
+                   "Aplicar tamaño", "Mostrar panel en la escena", "Fijar posición del panel",
                    "Poner al frente", "Ajuste fino", "captura", "lienzo",
-                   "Restablecer", "Transmitir", "Grabar", "Pausar la grabación",
+                   "Restablecer", "Transmitir", "Grabar", "Pausar grabación",
                    "Cerrar"),
         # Arranca deshabilitado sin grabación y wx lo saca del orden de Tab.
         esperados_en_tab=esperados_tab,
         # Con OBS abierto la carga inicial tarda: el cuadro nace con todo
         # deshabilitado y auditar el Tab antes mide la pantalla de espera.
-        # Se espera a que «Preparar el panel» se habilite, sin tocar OBS.
-        esperar_habilitados=(("Preparar el panel",) if hay_obs else ()))
+        # Se espera a que «Preparar panel» se habilite, sin tocar OBS.
+        esperar_habilitados=(("Preparar panel",) if hay_obs else ()))
 
 
 def escenario_microfono(app: Aplicacion, args, res: Resultado):
@@ -1907,7 +1907,7 @@ def escenario_musica(app: Aplicacion, args, res: Resultado):
     """
     res.nota("Música: no se reproduce nada, la ventana solo se audita")
     esperados = ("Colecciones", "Buscar en la música", "Mostrar los filtros",
-                 "Canciones", "Mostrar la cola", "Abrir enlace", "Nueva lista",
+                  "Canciones", "Mostrar cola", "Abrir enlace", "Nueva lista",
                  "Cambiar carpeta", "Cerrar")
     auditar_dialogo(
         app, res, "Elegir música…", "Música",
@@ -2334,7 +2334,7 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
                    "elementos en vez de 6")
         # La Cola arranca oculta de fábrica: se la muestra una sola vez con
         # su botón, que así también se prueba, antes de leerla o usarla.
-        propia.pedir("pulsar", nombre="Mostrar la cola", ventana="Música")
+        propia.pedir("pulsar", nombre="Mostrar cola", ventana="Música")
         if _filas_hasta("Música", "Cola de reproducción", 0, 1.0) is None:
             _corta("musica_real: la Cola no responde tras mostrarla")
         # Los filtros arrancan ocultos y no filtran. Se muestra el botón para
@@ -2750,7 +2750,7 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
                 res.nota("musica_real: se agregó un tema de la carpeta a "
                          "la lista")
         n = len(propia.anuncios)
-        _menu("detener la música")
+        _menu("detener música")
         if not propia.esperar_dicho(anuncios_musica.TEXTO_DETENIDA,
                                      segundos=8, desde=n):
             res.fallo("musica_real: detener no anunció "
@@ -2831,7 +2831,7 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
 
         _aire()
         n = len(propia.anuncios)
-        _menu("detener la música")
+        _menu("detener música")
         if not propia.esperar_dicho(anuncios_musica.TEXTO_DETENIDA,
                                      segundos=8, desde=n):
             res.fallo("musica_real: detener no anunció "
@@ -2943,7 +2943,7 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         else:
             res.nota(f"musica_real: la lista sumó {agregados} temas")
 
-        # ── n. Detener la música ──
+        # ── n. Detener música ──
 
         _aire()
         try:
@@ -2951,7 +2951,7 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         except Exception:
             pass
         n = len(propia.anuncios)
-        _menu("detener la música")
+        _menu("detener música")
         if not propia.esperar_dicho(anuncios_musica.TEXTO_DETENIDA,
                                      segundos=8, desde=n):
             res.fallo("musica_real: al final detener no anunció "

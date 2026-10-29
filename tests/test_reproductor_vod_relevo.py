@@ -544,7 +544,7 @@ class PruebasVodRelevoCaidaAEsclavo(unittest.TestCase):
             "https://video", "https://audio251", False, True)
         self.assertFalse(panel._vod_por_relevo)
         frases = [c.args[0] for c in anunciar.call_args_list]
-        self.assertNotIn("Se cortó el vídeo", frases)
+        self.assertNotIn("Vídeo interrumpido", frases)
 
     def test_con_lectura_que_avanzo_agotar_el_tope_corta(self):
         panel = self._panel_bucle()
@@ -555,7 +555,7 @@ class PruebasVodRelevoCaidaAEsclavo(unittest.TestCase):
             panel._fin_flujo_vod()
         panel._continuar_reproducir_calidad.assert_not_called()
         frases = [c.args[0] for c in anunciar.call_args_list]
-        self.assertIn("Se cortó el vídeo", frases)
+        self.assertIn("Vídeo interrumpido", frases)
 
 
 if __name__ == "__main__":

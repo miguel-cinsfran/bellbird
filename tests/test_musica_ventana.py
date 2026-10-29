@@ -287,10 +287,10 @@ class TestVentanaMusica(unittest.TestCase):
         self.assertEqual([control.GetName() for control in interactivos], [
             "Colecciones", "Buscar en la música", "Mostrar los filtros",
             "Mostrar", "Ordenar por", "Canciones",
-            "Mostrar la cola", "Cola de reproducción",
+            "Mostrar cola", "Cola de reproducción",
             "Igualación del volumen", "Abrir enlace",
-            "Nueva lista", "Cambiar carpeta", "Igualar el volumen",
-            "Examinar la carpeta", "Cerrar"])
+            "Nueva lista", "Cambiar carpeta", "Igualar volumen",
+            "Examinar carpeta", "Cerrar"])
 
     def test_instala_busqueda_por_tecleo_en_las_tres_listas(self):
         control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
@@ -318,10 +318,10 @@ class TestVentanaMusica(unittest.TestCase):
             if isinstance(control, (wx.TextCtrl, wx.ListBox, wx.Button))]
         self.assertEqual([control.GetName() for control in interactivos], [
             "Colecciones", "Buscar en la música", "Mostrar los filtros",
-            "Canciones", "Ocultar la cola", "Cola de reproducción",
+            "Canciones", "Ocultar cola", "Cola de reproducción",
             "Igualación del volumen", "Abrir enlace",
-            "Nueva lista", "Cambiar carpeta", "Igualar el volumen",
-            "Examinar la carpeta", "Cerrar"])
+            "Nueva lista", "Cambiar carpeta", "Igualar volumen",
+            "Examinar carpeta", "Cerrar"])
 
     def test_mnemonicos_unicos_en_la_ventana(self):
         self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock")))
@@ -670,18 +670,18 @@ class TestVentanaMusica(unittest.TestCase):
         self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock")))
         self.assertFalse(self.ventana.lb_cola.IsShown())
         self.assertEqual(self.ventana.btn_cola.GetLabel(),
-                         "Mostrar la c&ola")
+                         "Mostrar c&ola")
         self.assertEqual(self.ventana.btn_cola.GetName(),
-                         "Mostrar la cola")
+                         "Mostrar cola")
 
     def test_lo_guardado_visible_se_respeta_al_abrir(self):
         self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock"),
                                  cola_visible=True))
         self.assertTrue(self.ventana.lb_cola.IsShown())
         self.assertEqual(self.ventana.btn_cola.GetLabel(),
-                         "Ocultar la c&ola")
+                         "Ocultar c&ola")
         self.assertEqual(self.ventana.btn_cola.GetName(),
-                         "Ocultar la cola")
+                         "Ocultar cola")
 
     def test_el_boton_muestra_la_cola_con_foco_y_anuncio(self):
         control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
@@ -693,7 +693,7 @@ class TestVentanaMusica(unittest.TestCase):
         self.assertTrue(self.ventana.lb_cola.IsShown())
         foco.assert_called_once_with()
         self.assertEqual(self.ventana.btn_cola.GetLabel(),
-                         "Ocultar la c&ola")
+                         "Ocultar c&ola")
         self.assertIn("Cola visible, 5 canciones", self.anuncios)
         self.assertIn(("recordar_cola_visible", True), control.llamadas)
 
@@ -720,7 +720,7 @@ class TestVentanaMusica(unittest.TestCase):
         self.assertFalse(self.ventana.lb_cola.IsShown())
         foco.assert_called_once_with()
         self.assertEqual(self.ventana.btn_cola.GetLabel(),
-                         "Mostrar la c&ola")
+                         "Mostrar c&ola")
         self.assertIn("Cola oculta", self.anuncios)
         self.assertIn(("recordar_cola_visible", False), control.llamadas)
 
@@ -1458,7 +1458,7 @@ class TestVentanaBotonIgualar(unittest.TestCase):
         control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
         self._abrir(control)
         self.assertEqual(self.ventana.btn_igualar.GetLabel(),
-                         "&Igualar el volumen")
+                         "&Igualar volumen")
         control._midiendo = True
         self.ventana._tic_igualando()
         self.assertEqual(self.ventana.btn_igualar.GetLabel(),
@@ -1466,7 +1466,7 @@ class TestVentanaBotonIgualar(unittest.TestCase):
         control._midiendo = False
         self.ventana._tic_igualando()
         self.assertEqual(self.ventana.btn_igualar.GetLabel(),
-                         "&Igualar el volumen")
+                         "&Igualar volumen")
 
     def test_el_foco_en_el_boton_se_queda_en_el_boton(self):
         control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
@@ -1701,7 +1701,7 @@ class TestDialogoEditorLista(unittest.TestCase):
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestVentanaVigiaYExaminar(unittest.TestCase):
-    """El aviso del vigía y el botón Examinar la carpeta."""
+    """El aviso del vigía y el botón Examinar carpeta."""
 
     def setUp(self):
         self.app = wx.App() if not wx.App.Get() else wx.App.Get()
@@ -1732,9 +1732,9 @@ class TestVentanaVigiaYExaminar(unittest.TestCase):
     def test_el_boton_examinar_tiene_rotulo_nombre_y_tab(self):
         self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock")))
         self.assertEqual(self.ventana.btn_examinar.GetLabel(),
-                         "E&xaminar la carpeta")
+                         "E&xaminar carpeta")
         self.assertEqual(self.ventana.btn_examinar.GetName(),
-                         "Examinar la carpeta")
+                         "Examinar carpeta")
         self.ventana.btn_examinar.SetFocus()
         self.ventana.btn_examinar.Navigate()
         self.assertIs(wx.Window.FindFocus(), self.ventana.btn_cerrar)
@@ -1821,7 +1821,7 @@ class TestVentanaVigiaYExaminar(unittest.TestCase):
         self.assertFalse(self.ventana._examinando)
         self.assertEqual(
             self.anuncios,
-            ["Carpeta examinada: 1 canción nueva y 2 quitadas."])
+            ["Carpeta examinada: 1 canción nueva y 2 eliminadas."])
         self.assertEqual(self.ventana.lb_temas.GetStrings(), ["Rock"])
 
     def test_examinar_sin_cambios_lo_dice(self):

@@ -64,7 +64,7 @@ _TEXTO_COMO_SE_COLOCA = N_(
     "cosa: pone el panel de chat de esta aplicación dentro de una escena de OBS\n"
     "y lo coloca donde quieras.\n\n"
     "El orden es este.\n\n"
-    "Uno. Pulsa Preparar el panel. Eso enciende el servidor del panel y crea la\n"
+    "Uno. Pulsa Preparar panel. Eso enciende el servidor del panel y crea la\n"
     "fuente dentro de la escena elegida, si todavía no estaba.\n\n"
     "Dos. Elige la escena en el desplegable Escena. Recorrerlo no cambia lo que\n"
     "ven los espectadores: para eso está el botón Poner al aire.\n\n"
@@ -180,7 +180,7 @@ class TransmisionDialog(wx.Dialog):
         self.btn_grabar = self._boton(padre_transmitir, _(_ETIQUETA_GRABAR), _("Grabar"))
         sizer_transmitir.Add(self.btn_grabar, 0, wx.ALL, 6)
         self.btn_pausar_grabacion = self._boton(
-            padre_transmitir, _("Pausar la gra&bación"), _("Pausar la grabación"))
+            padre_transmitir, _("Pausar gra&bación"), _("Pausar grabación"))
         sizer_transmitir.Add(self.btn_pausar_grabacion, 0, wx.ALL, 6)
         contenido.Add(sizer_transmitir, 0, wx.EXPAND | wx.ALL, 10)
 
@@ -222,7 +222,7 @@ class TransmisionDialog(wx.Dialog):
         self.chk_panel_chat.SetValue(overlay_servidor.esta_encendido())
         self.chk_panel_chat.Enable(self._alternar_panel is not None)
         sizer_panel.Add(self.chk_panel_chat, 0, wx.ALL, 6)
-        self.btn_preparar = self._boton(padre_panel, _("Preparar e&l panel"), _("Preparar el panel"))
+        self.btn_preparar = self._boton(padre_panel, _("Preparar pane&l"), _("Preparar panel"))
         sizer_panel.Add(self.btn_preparar, 0, wx.ALL, 6)
         rotulo_fuente = nuevo_rotulo(padre_panel, _("Fuente:"))
         self.cho_fuente = wx.Choice(padre_panel, name=_("Fuente"))
@@ -258,9 +258,9 @@ class TransmisionDialog(wx.Dialog):
         fila_campo(sizer_panel, rotulo_alto, self.sp_alto)
         self.btn_tamano = self._boton(padre_panel, _("Apl&icar tamaño"), "AplicarTamano")
         sizer_panel.Add(self.btn_tamano, 0, wx.ALL, 6)
-        self.chk_mostrar = wx.CheckBox(padre_panel, label=_("&Mostrar el panel en la escena"),
+        self.chk_mostrar = wx.CheckBox(padre_panel, label=_("&Mostrar panel en la escena"),
                                        name="MostrarPanel")
-        self.chk_fijar = wx.CheckBox(padre_panel, label=_("&Fijar el panel para que no se mueva"),
+        self.chk_fijar = wx.CheckBox(padre_panel, label=_("&Fijar posición del panel"),
                                      name="FijarPanel")
         sizer_panel.Add(self.chk_mostrar, 0, wx.ALL, 6)
         sizer_panel.Add(self.chk_fijar, 0, wx.ALL, 6)

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-29 08:27-0300\n"
+"POT-Creation-Date: 2026-10-29 09:51-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -212,9 +212,10 @@ msgstr ""
 "\n"
 "{detalle}"
 
+# | msgid "La respuesta quedó cortada por el largo elegido en Preferencias."
 #: ytchat/ai/consulta.py:20
-msgid "La respuesta quedó cortada por el largo elegido en Preferencias."
-msgstr "The response was cut off by the length chosen in Preferences."
+msgid "Respuesta incompleta: alcanzó la longitud máxima elegida en Preferencias."
+msgstr "Incomplete response: reached the maximum length chosen in Preferences."
 
 #: ytchat/ai/consulta.py:23
 msgid "Este modelo no está en el nivel gratuito de tu clave. Elige otro modelo."
@@ -276,11 +277,16 @@ msgstr "The model returned no response. Try again."
 msgid "El proveedor tuvo un fallo. Vuelve a intentarlo en un rato."
 msgstr "The provider failed. Try again in a while."
 
+# | msgid "" "El proveedor rechazó la consulta. Puede que el modelo ya no esté
+# "
+# | "disponible: en Preferencias, Inteligencia artificial, pulsa Actualizar
+# la"
+# | " lista de modelos o elige otro."
 #: ytchat/ai/consulta.py:49
 msgid ""
 "El proveedor rechazó la consulta. Puede que el modelo ya no esté "
-"disponible: en Preferencias, Inteligencia artificial, pulsa Actualizar la"
-" lista de modelos o elige otro."
+"disponible: en Preferencias, Inteligencia artificial, pulsa Actualizar "
+"lista de modelos o elige otro."
 msgstr ""
 "The provider rejected the request. The model may no longer be available: "
 "in Preferences, Artificial intelligence, press Refresh model list or "
@@ -812,39 +818,39 @@ msgid "El vídeo no está disponible."
 msgstr "The video is not available."
 
 #. Traductores: {version} es la versión instalada o la nueva de yt-dlp.
-#: ytchat/downloads/ytdlp_bin.py:56
+#: ytchat/downloads/ytdlp_bin.py:55
 #, python-brace-format
 msgid "Ya tienes yt-dlp al día, versión {version}."
 msgstr "yt-dlp is already up to date, version {version}."
 
 #. Traductores: {version} es la versión nueva de yt-dlp.
-#: ytchat/downloads/ytdlp_bin.py:59
+#: ytchat/downloads/ytdlp_bin.py:58
 #, python-brace-format
 msgid "yt-dlp se actualizó a la versión {version}."
 msgstr "yt-dlp updated to version {version}."
 
-#: ytchat/downloads/ytdlp_bin.py:61
+#: ytchat/downloads/ytdlp_bin.py:60
 msgid ""
 "No se pudo comprobar la última versión de yt-dlp. Revisa la conexión a "
 "internet."
 msgstr "Could not check the latest yt-dlp version. Check your internet connection."
 
-#: ytchat/downloads/ytdlp_bin.py:63
+#: ytchat/downloads/ytdlp_bin.py:62
 msgid ""
 "La descarga de yt-dlp no pasó una comprobación de seguridad. No se "
 "instaló nada."
 msgstr "The yt-dlp download failed a security check. Nothing was installed."
 
-#: ytchat/downloads/ytdlp_bin.py:65
+#: ytchat/downloads/ytdlp_bin.py:64
 msgid "Se canceló la descarga de yt-dlp."
 msgstr "The yt-dlp download was canceled."
 
-#: ytchat/downloads/ytdlp_bin.py:67
+#: ytchat/downloads/ytdlp_bin.py:66
 #, python-brace-format
 msgid "No se pudo actualizar yt-dlp: {motivo}."
 msgstr "Could not update yt-dlp: {motivo}."
 
-#: ytchat/downloads/ytdlp_bin.py:68
+#: ytchat/downloads/ytdlp_bin.py:67
 msgid "No se pudo actualizar yt-dlp."
 msgstr "Could not update yt-dlp."
 
@@ -989,7 +995,7 @@ msgstr "{cantidad} songs up next, from position {posicion}"
 msgid "Eliminado de la cola: {nombre}"
 msgstr "Removed from the queue: {nombre}"
 
-#: ytchat/music/anuncios.py:68 ytchat/ui/gui.py:901
+#: ytchat/music/anuncios.py:68 ytchat/ui/gui.py:898
 msgid "Cola vaciada"
 msgstr "Queue cleared"
 
@@ -1233,9 +1239,10 @@ msgstr "The playlist does not exist: {nombre}"
 msgid "No hay una canción en la posición {posicion}"
 msgstr "There is no song at position {posicion}"
 
+# | msgid "Igualar el volumen"
 #: ytchat/music/pregunta_igualar.py:12 ytchat/ui/musica_ventana.py:146
 #: ytchat/ui/musica_ventana_igualando.py:173
-msgid "Igualar el volumen"
+msgid "Igualar volumen"
 msgstr "Match the volume"
 
 #: ytchat/music/pregunta_igualar.py:13
@@ -1401,11 +1408,13 @@ msgid_plural "{nuevas} canciones nuevas"
 msgstr[0] "{nuevas} new song"
 msgstr[1] "{nuevas} new songs"
 
+# | msgid "{quitadas} quitada"
+# | msgid_plural "{quitadas} quitadas"
 #. Traductores: {quitadas} es cuántas canciones se quitaron; se anuncia.
 #: ytchat/music/vista.py:238
 #, python-brace-format
-msgid "{quitadas} quitada"
-msgid_plural "{quitadas} quitadas"
+msgid "{quitadas} eliminada"
+msgid_plural "{quitadas} eliminadas"
 msgstr[0] "{quitadas} removed"
 msgstr[1] "{quitadas} removed"
 
@@ -2294,8 +2303,9 @@ msgstr "OBS did not start broadcasting."
 msgid "OBS todavía no confirma que la señal salga."
 msgstr "OBS has not confirmed the signal is going out yet."
 
+# | msgid "Se cortó la conexión con el servicio, OBS está reconectando."
 #: ytchat/obs/obs_salida.py:105
-msgid "Se cortó la conexión con el servicio, OBS está reconectando."
+msgid "Se perdió la conexión con el servicio. OBS está reconectando."
 msgstr "Connection to the service dropped, OBS is reconnecting."
 
 #: ytchat/obs/obs_salida.py:106
@@ -2545,7 +2555,7 @@ msgstr ""
 msgid "Buscando el vídeo, {segundos} segundos"
 msgstr "Looking for the video, {segundos} seconds"
 
-#: ytchat/player/reproductor.py:76 ytchat/ui/gui.py:672
+#: ytchat/player/reproductor.py:76 ytchat/ui/gui.py:669
 msgid "El reproductor no está disponible"
 msgstr "The player is not available"
 
@@ -2566,8 +2576,8 @@ msgstr "{posicion} of {duracion}"
 
 #. Traductores: valor del deslizador de posición en un directo, que no tiene
 #. duración.
-#: ytchat/player/reproductor.py:210 ytchat/player/reproductor.py:2070
-#: ytchat/player/reproductor.py:2294 ytchat/player/reproductor.py:2301
+#: ytchat/player/reproductor.py:210 ytchat/player/reproductor.py:2067
+#: ytchat/player/reproductor.py:2291 ytchat/player/reproductor.py:2298
 msgid "En directo"
 msgstr "Live"
 
@@ -2581,12 +2591,12 @@ msgstr "Closing the previous playback"
 
 #. Traductores: aviso al pausar.
 #. Traductores: botón de pausa y reproducción.
-#: ytchat/player/reproductor.py:509 ytchat/player/reproductor.py:1454
+#: ytchat/player/reproductor.py:509 ytchat/player/reproductor.py:1451
 msgid "Pausa"
 msgstr "Pause"
 
 #. Traductores: aviso al reproducir.
-#: ytchat/player/reproductor.py:514 ytchat/player/reproductor.py:2074
+#: ytchat/player/reproductor.py:514 ytchat/player/reproductor.py:2071
 msgid "Reproduciendo"
 msgstr "Playing"
 
@@ -2626,7 +2636,7 @@ msgid "Vídeo. Ctrl+F abre la pantalla completa."
 msgstr "Video. Ctrl+F opens full screen."
 
 #. Traductores: botones del reproductor.
-#: ytchat/player/reproductor.py:630 ytchat/player/reproductor.py:1454
+#: ytchat/player/reproductor.py:630 ytchat/player/reproductor.py:1451
 msgid "Reproducir"
 msgstr "Play"
 
@@ -2654,7 +2664,7 @@ msgstr "Forward 1 minute"
 msgid "Detener"
 msgstr "Stop"
 
-#: ytchat/player/reproductor.py:638 ytchat/player/reproductor.py:1692
+#: ytchat/player/reproductor.py:638 ytchat/player/reproductor.py:1689
 msgid "Silenciar audio"
 msgstr "Mute audio"
 
@@ -2699,7 +2709,7 @@ msgstr "Up arrow raises, down arrow lowers the volume by 1."
 msgid "Sin reproducir."
 msgstr "Not playing."
 
-#: ytchat/player/reproductor.py:696
+#: ytchat/player/reproductor.py:693
 msgid ""
 "Muestra u oculta los botones de control del reproductor. También en el "
 "menú Reproductor. Los atajos funcionan estén o no visibles."
@@ -2707,184 +2717,186 @@ msgstr ""
 "Shows or hides the player control buttons. Also in the Player menu. "
 "Shortcuts work whether they are shown or not."
 
-#: ytchat/player/reproductor.py:806
+#: ytchat/player/reproductor.py:803
 msgid "Ocultar botones del reproductor"
 msgstr "Hide player buttons"
 
-#: ytchat/player/reproductor.py:807
+#: ytchat/player/reproductor.py:804
 msgid "Mostrar botones del reproductor"
 msgstr "Show player buttons"
 
-#: ytchat/player/reproductor.py:832
+#: ytchat/player/reproductor.py:829
 msgid "Botones del reproductor visibles"
 msgstr "Player buttons shown"
 
-#: ytchat/player/reproductor.py:833
+#: ytchat/player/reproductor.py:830
 msgid "Botones del reproductor ocultos"
 msgstr "Player buttons hidden"
 
-#: ytchat/player/reproductor.py:860 ytchat/player/reproductor.py:884
+#: ytchat/player/reproductor.py:857 ytchat/player/reproductor.py:881
 msgid "Vídeo cargado. Pulsa Reproducir."
 msgstr "Video loaded. Press Play."
 
-#: ytchat/player/reproductor.py:886
+#: ytchat/player/reproductor.py:883
 msgid "Este directo no trae vídeo reproducible."
 msgstr "This live stream has no playable video."
 
-#: ytchat/player/reproductor.py:942 ytchat/player/reproductor.py:1372
+#: ytchat/player/reproductor.py:939 ytchat/player/reproductor.py:1369
 msgid "El reproductor no está disponible."
 msgstr "The player is not available."
 
-#: ytchat/player/reproductor.py:947 ytchat/player/reproductor.py:965
-#: ytchat/player/reproductor.py:1667 ytchat/player/reproductor.py:2322
+#: ytchat/player/reproductor.py:944 ytchat/player/reproductor.py:962
+#: ytchat/player/reproductor.py:1664 ytchat/player/reproductor.py:2319
 msgid "Cargando vídeo"
 msgstr "Loading video"
 
-#: ytchat/player/reproductor.py:964 ytchat/player/reproductor.py:1215
-#: ytchat/player/reproductor.py:1356 ytchat/player/reproductor.py:1404
+#: ytchat/player/reproductor.py:961 ytchat/player/reproductor.py:1212
+#: ytchat/player/reproductor.py:1353 ytchat/player/reproductor.py:1401
 msgid "Cargando vídeo…"
 msgstr "Loading video…"
 
-#: ytchat/player/reproductor.py:1269 ytchat/player/reproductor.py:1865
+#: ytchat/player/reproductor.py:1266 ytchat/player/reproductor.py:1862
 msgid "No se pudo mover el vídeo"
 msgstr "Could not move the video"
 
-#: ytchat/player/reproductor.py:1305
+#: ytchat/player/reproductor.py:1302
 msgid "No se pudo mover el directo"
 msgstr "Could not move the live stream"
 
+# | msgid "Detenido"
 #. Traductores: estado en reposo, sin reproducir.
-#: ytchat/player/reproductor.py:1361 ytchat/player/reproductor.py:1409
-msgid "Listo."
-msgstr "Ready."
+#: ytchat/player/reproductor.py:1358 ytchat/player/reproductor.py:1406
+msgid "Detenido."
+msgstr "Stopped."
 
 #. Traductores: {altura} es la altura en píxeles, como en «Calidad 720p».
-#: ytchat/player/reproductor.py:1415
+#: ytchat/player/reproductor.py:1412
 msgid "Calidad automática"
 msgstr "Automatic quality"
 
-#: ytchat/player/reproductor.py:1415
+#: ytchat/player/reproductor.py:1412
 #, python-brace-format
 msgid "Calidad {altura}p"
 msgstr "{altura}p quality"
 
-#: ytchat/player/reproductor.py:1433
+#: ytchat/player/reproductor.py:1430
 msgid "No se pudo cargar el vídeo."
 msgstr "Could not load the video."
 
-#: ytchat/player/reproductor.py:1434
+#: ytchat/player/reproductor.py:1431
 msgid "No se pudo cargar el vídeo"
 msgstr "Could not load the video"
 
 #. Traductores: aviso al pausar.
-#: ytchat/player/reproductor.py:1534
+#: ytchat/player/reproductor.py:1531
 msgid "Pausando"
 msgstr "Pausing"
 
 #. Traductores: aviso al reanudar.
-#: ytchat/player/reproductor.py:1553 ytchat/player/reproductor.py:1564
+#: ytchat/player/reproductor.py:1550 ytchat/player/reproductor.py:1561
 msgid "Reanudando"
 msgstr "Resuming"
 
 #. Traductores: aviso al detener.
-#: ytchat/player/reproductor.py:1659
+#: ytchat/player/reproductor.py:1656
 msgid "Detenido"
 msgstr "Stopped"
 
-#: ytchat/player/reproductor.py:1670
+#: ytchat/player/reproductor.py:1667
 msgid "El vídeo está detenido"
 msgstr "The video is stopped"
 
-#: ytchat/player/reproductor.py:1680 ytchat/player/reproductor.py:2276
+#: ytchat/player/reproductor.py:1677 ytchat/player/reproductor.py:2273
 msgid "En un directo de TikTok no se puede adelantar ni retroceder"
 msgstr "In a TikTok live stream you cannot go forward or back"
 
-#: ytchat/player/reproductor.py:1682
+#: ytchat/player/reproductor.py:1679
 msgid "No se puede buscar en este momento"
 msgstr "Cannot seek right now"
 
-#: ytchat/player/reproductor.py:1692
+#: ytchat/player/reproductor.py:1689
 msgid "Activar audio"
 msgstr "Unmute audio"
 
-#: ytchat/player/reproductor.py:1693
+#: ytchat/player/reproductor.py:1690
 msgid "Audio silenciado"
 msgstr "Audio muted"
 
-#: ytchat/player/reproductor.py:1693
+#: ytchat/player/reproductor.py:1690
 msgid "Audio activado"
 msgstr "Audio unmuted"
 
-#: ytchat/player/reproductor.py:1710
+#: ytchat/player/reproductor.py:1707
 #, python-brace-format
 msgid "Volumen del reproductor: {nuevo} por ciento"
 msgstr "Player volume: {nuevo} percent"
 
-#: ytchat/player/reproductor.py:1711
+#: ytchat/player/reproductor.py:1708
 #, python-brace-format
 msgid "{nuevo} por ciento"
 msgstr "{nuevo} percent"
 
-#: ytchat/player/reproductor.py:1731
+#: ytchat/player/reproductor.py:1728
 msgid ""
 "Pantalla completa. Espacio pausa, flechas buscan y ajustan volumen, "
 "Escape sale."
 msgstr "Full screen. Space pauses, arrows seek and adjust volume, Escape exits."
 
-#: ytchat/player/reproductor.py:1742
+#: ytchat/player/reproductor.py:1739
 msgid "Pantalla completa desactivada"
 msgstr "Full screen off"
 
 #. Traductores: {hablado} es la posición hablada, como «2 minutos».
-#: ytchat/player/reproductor.py:1807
+#: ytchat/player/reproductor.py:1804
 #, python-brace-format
 msgid "Moviendo a {hablado}"
 msgstr "Moving to {hablado}"
 
 #. Traductores: {hablado} es la posición hablada, como «2 minutos».
-#: ytchat/player/reproductor.py:1861
+#: ytchat/player/reproductor.py:1858
 #, python-brace-format
 msgid "Posición {hablado}"
 msgstr "Position {hablado}"
 
-#: ytchat/player/reproductor.py:2025
+#: ytchat/player/reproductor.py:2022
 msgid "El directo de TikTok terminó"
 msgstr "The TikTok live stream ended"
 
-#: ytchat/player/reproductor.py:2030
+#: ytchat/player/reproductor.py:2027
 msgid "No se pudo abrir el directo de TikTok"
 msgstr "Could not open the TikTok live stream"
 
-#: ytchat/player/reproductor.py:2069
+#: ytchat/player/reproductor.py:2066
 msgid "En directo (sin barra de tiempo)."
 msgstr "Live (no time bar)."
 
 #. Traductores: estado en reproducción.
-#: ytchat/player/reproductor.py:2073
+#: ytchat/player/reproductor.py:2070
 msgid "Reproduciendo."
 msgstr "Playing."
 
-#: ytchat/player/reproductor.py:2117 ytchat/player/reproductor.py:2206
+#: ytchat/player/reproductor.py:2114 ytchat/player/reproductor.py:2203
 msgid "Fin del vídeo"
 msgstr "End of the video"
 
-#: ytchat/player/reproductor.py:2155 ytchat/player/reproductor.py:2260
+#: ytchat/player/reproductor.py:2152 ytchat/player/reproductor.py:2257
 msgid "No se pudo reproducir el vídeo"
 msgstr "Could not play the video"
 
-#: ytchat/player/reproductor.py:2170
+#: ytchat/player/reproductor.py:2167
 msgid "El directo se interrumpió"
 msgstr "The live stream was interrupted"
 
-#: ytchat/player/reproductor.py:2173
+#: ytchat/player/reproductor.py:2170
 msgid "El directo se interrumpió."
 msgstr "The live stream was interrupted."
 
-#: ytchat/player/reproductor.py:2211 ytchat/player/reproductor.py:2215
-msgid "Se cortó el vídeo"
-msgstr "The video cut out"
+# | msgid "El directo se interrumpió"
+#: ytchat/player/reproductor.py:2208 ytchat/player/reproductor.py:2212
+msgid "Vídeo interrumpido"
+msgstr "Video interrupted"
 
-#: ytchat/player/reproductor.py:2269
+#: ytchat/player/reproductor.py:2266
 msgid ""
 "En este directo solo se puede retroceder o adelantar con los botones o "
 "las flechas"
@@ -2892,30 +2904,30 @@ msgstr ""
 "In this live stream you can only go back or forward with the buttons or "
 "the arrows"
 
-#: ytchat/player/reproductor.py:2279
+#: ytchat/player/reproductor.py:2276
 msgid "En este directo no se puede adelantar ni retroceder"
 msgstr "In this live stream you cannot go forward or back"
 
-#: ytchat/player/reproductor.py:2282
+#: ytchat/player/reproductor.py:2279
 msgid "No se puede mover este vídeo mientras usa la fuente de internet"
 msgstr "Cannot move this video while it uses the internet source"
 
 #. Traductores: {tiempo} es el atraso, como «1:00» en «Directo, 1:00 atrás».
-#: ytchat/player/reproductor.py:2293
+#: ytchat/player/reproductor.py:2290
 #, python-brace-format
 msgid "Directo, {tiempo} atrás"
 msgstr "Live, {tiempo} behind"
 
-#: ytchat/player/reproductor.py:2331 ytchat/player/reproductor.py:2376
-#: ytchat/player/reproductor.py:2381
+#: ytchat/player/reproductor.py:2328 ytchat/player/reproductor.py:2373
+#: ytchat/player/reproductor.py:2378
 msgid "Ya estás en el directo"
 msgstr "You are already live"
 
-#: ytchat/player/reproductor.py:2332
+#: ytchat/player/reproductor.py:2329
 msgid "No se puede retroceder más en este directo"
 msgstr "Cannot go further back in this live stream"
 
-#: ytchat/player/reproductor.py:2371
+#: ytchat/player/reproductor.py:2368
 msgid "Este vídeo no es un directo"
 msgstr "This video is not a live stream"
 
@@ -3065,9 +3077,10 @@ msgstr "Announce status"
 msgid "Anunciar autor del último mensaje"
 msgstr "Announce last message author"
 
+# | msgid "Describir la escena de OBS"
 #: ytchat/ui/atajos_captura.py:88
-msgid "Describir la escena de OBS"
-msgstr "Describe the OBS scene"
+msgid "Describir escena de OBS"
+msgstr "Describe OBS scene"
 
 #: ytchat/ui/atajos_captura.py:89
 msgid "Consulta rápida a la IA sobre la escena"
@@ -3117,9 +3130,10 @@ msgstr "Music shuffle"
 msgid "Cambiar la repetición de la música"
 msgstr "Change music repeat"
 
+# | msgid "Detener la música"
 #: ytchat/ui/atajos_captura.py:101
-msgid "Detener la música"
-msgstr "Stop the music"
+msgid "Detener música"
+msgstr "Stop music"
 
 #: ytchat/ui/atajos_captura.py:102
 msgid "Adelantar la música 10 segundos"
@@ -3427,7 +3441,7 @@ msgid "¿Salir de la aplicación? Hay una transmisión en curso."
 msgstr "Exit the application? There is a broadcast in progress."
 
 #. Traductores: título de la ventana: nombre de la app y versión.
-#: ytchat/ui/gui.py:182 ytchat/ui/gui.py:1620
+#: ytchat/ui/gui.py:182 ytchat/ui/gui.py:1617
 #, python-brace-format
 msgid "{app} v{version}"
 msgstr "{app} v{version}"
@@ -3459,7 +3473,7 @@ msgstr ""
 "Enter to connect."
 
 #. Traductores: nombre accesible del botón para conectar.
-#: ytchat/ui/gui.py:334 ytchat/ui/gui.py:1673 ytchat/ui/gui_historial.py:63
+#: ytchat/ui/gui.py:334 ytchat/ui/gui.py:1670 ytchat/ui/gui_historial.py:63
 #: ytchat/ui/gui_menu.py:35
 msgid "&Conectar"
 msgstr "&Connect"
@@ -3469,7 +3483,7 @@ msgstr "&Connect"
 msgid "Paneles"
 msgstr "Panes"
 
-#: ytchat/ui/gui.py:363 ytchat/ui/gui.py:428 ytchat/ui/gui.py:437
+#: ytchat/ui/gui.py:363 ytchat/ui/gui.py:425 ytchat/ui/gui.py:434
 msgid "Chat del directo"
 msgstr "Live chat"
 
@@ -3479,15 +3493,15 @@ msgid "Comentarios"
 msgstr "Comments"
 
 #. Traductores: pestaña con los datos del vídeo.
-#: ytchat/ui/gui.py:373 ytchat/ui/gui.py:1603
+#: ytchat/ui/gui.py:373 ytchat/ui/gui.py:1600
 msgid "Información"
 msgstr "Information"
 
-#: ytchat/ui/gui.py:423
+#: ytchat/ui/gui.py:420
 msgid "Mensajes del chat:"
 msgstr "Chat messages:"
 
-#: ytchat/ui/gui.py:434
+#: ytchat/ui/gui.py:431
 msgid ""
 "Mensajes del chat. Intro copia el mensaje. La tecla de aplicaciones abre "
 "el menú contextual."
@@ -3495,19 +3509,19 @@ msgstr ""
 "Chat messages. Enter copies the message. The applications key opens the "
 "context menu."
 
-#: ytchat/ui/gui.py:447 ytchat/ui/ia_ventana.py:99
+#: ytchat/ui/gui.py:444 ytchat/ui/ia_ventana.py:99
 msgid "&Mensaje:"
 msgstr "&Message:"
 
-#: ytchat/ui/gui.py:464
+#: ytchat/ui/gui.py:461
 msgid "Información del vídeo:"
 msgstr "Video information:"
 
-#: ytchat/ui/gui.py:473
+#: ytchat/ui/gui.py:470
 msgid "Información del vídeo"
 msgstr "Video information"
 
-#: ytchat/ui/gui.py:477
+#: ytchat/ui/gui.py:474
 msgid ""
 "Datos del vídeo: canal, vistas, descripción. Solo lectura. Para abrir un "
 "enlace, cópialo y pégalo en el navegador."
@@ -3515,54 +3529,54 @@ msgstr ""
 "Video data: channel, views, description. Read-only. To open a link, copy "
 "it and paste it in the browser."
 
-#: ytchat/ui/gui.py:620 ytchat/ui/gui.py:629
+#: ytchat/ui/gui.py:617 ytchat/ui/gui.py:626
 msgid "Conéctate primero para usar los paneles"
 msgstr "Connect first to use the panes"
 
 #. Traductores: región actual y pestaña al moverse con F6.
-#: ytchat/ui/gui.py:637
+#: ytchat/ui/gui.py:634
 #, python-brace-format
 msgid "{region}: {pagina}"
 msgstr "{region}: {pagina}"
 
-#: ytchat/ui/gui.py:644
+#: ytchat/ui/gui.py:641
 msgid "Conéctate primero"
 msgstr "Connect first"
 
-#: ytchat/ui/gui.py:755
+#: ytchat/ui/gui.py:752
 msgid "Conexión cancelada"
 msgstr "Connection canceled"
 
-#: ytchat/ui/gui.py:760
+#: ytchat/ui/gui.py:757
 msgid "Introduce un enlace o un ID de YouTube."
 msgstr "Enter a YouTube link or ID."
 
-#: ytchat/ui/gui.py:761 ytchat/ui/gui_descargas.py:341
+#: ytchat/ui/gui.py:758 ytchat/ui/gui_descargas.py:341
 msgid "Falta el enlace"
 msgstr "Missing link"
 
-#: ytchat/ui/gui.py:767
+#: ytchat/ui/gui.py:764
 msgid "&Cancelar conexión"
 msgstr "&Cancel connection"
 
 #. Traductores: aviso mientras se conecta.
-#: ytchat/ui/gui.py:774
+#: ytchat/ui/gui.py:771
 msgid "Conectando"
 msgstr "Connecting"
 
-#: ytchat/ui/gui.py:785
+#: ytchat/ui/gui.py:782
 msgid "El enlace o el ID de YouTube no es válido"
 msgstr "The YouTube link or ID is not valid"
 
-#: ytchat/ui/gui.py:787
+#: ytchat/ui/gui.py:784
 msgid "El enlace o el ID de YouTube no es válido. Revisa lo que pegaste."
 msgstr "The YouTube link or ID is not valid. Check what you pasted."
 
-#: ytchat/ui/gui.py:788
+#: ytchat/ui/gui.py:785
 msgid "Enlace no válido"
 msgstr "Invalid link"
 
-#: ytchat/ui/gui.py:811
+#: ytchat/ui/gui.py:808
 #, python-brace-format
 msgid ""
 "No se pudo abrir Preferencias:\n"
@@ -3572,11 +3586,11 @@ msgstr ""
 "{detalle}"
 
 #. Traductores: título de un cuadro de error.
-#: ytchat/ui/gui.py:813 ytchat/ui/gui.py:853 ytchat/ui/gui.py:861
+#: ytchat/ui/gui.py:810 ytchat/ui/gui.py:850 ytchat/ui/gui.py:858
 msgid "Error"
 msgstr "Error"
 
-#: ytchat/ui/gui.py:851
+#: ytchat/ui/gui.py:848
 #, python-brace-format
 msgid ""
 "No se pudo abrir el gestor de descargas:\n"
@@ -3585,7 +3599,7 @@ msgstr ""
 "Could not open the download manager:\n"
 "{detalle}"
 
-#: ytchat/ui/gui.py:859
+#: ytchat/ui/gui.py:856
 #, python-brace-format
 msgid ""
 "Error en el gestor de descargas:\n"
@@ -3594,7 +3608,7 @@ msgstr ""
 "Download manager error:\n"
 "{detalle}"
 
-#: ytchat/ui/gui.py:879
+#: ytchat/ui/gui.py:876
 #, python-brace-format
 msgid ""
 "{app} v{version}\n"
@@ -3606,321 +3620,321 @@ msgstr ""
 "\n"
 "Accessible YouTube Live chat reader with Windows or ElevenLabs voice."
 
-#: ytchat/ui/gui.py:882
+#: ytchat/ui/gui.py:879
 msgid "Acerca de"
 msgstr "About"
 
-#: ytchat/ui/gui.py:886
+#: ytchat/ui/gui.py:883
 msgid "La marca de incidencia se guardó"
 msgstr "The issue mark was saved"
 
 #. Traductores: lectura en pausa o reanudada.
-#: ytchat/ui/gui.py:896
+#: ytchat/ui/gui.py:893
 msgid "Pausado"
 msgstr "Paused"
 
-#: ytchat/ui/gui.py:896
+#: ytchat/ui/gui.py:893
 msgid "Reanudado"
 msgstr "Resumed"
 
-#: ytchat/ui/gui.py:905
+#: ytchat/ui/gui.py:902
 msgid "TTS detenido"
 msgstr "TTS stopped"
 
 #. Traductores: {nombre} es la voz activa.
-#: ytchat/ui/gui.py:922 ytchat/ui/gui.py:1740
+#: ytchat/ui/gui.py:919 ytchat/ui/gui.py:1737
 #, python-brace-format
 msgid "Voz: {nombre}"
 msgstr "Voice: {nombre}"
 
-#: ytchat/ui/gui.py:933
+#: ytchat/ui/gui.py:930
 #, python-brace-format
 msgid "Filtro: {filtro}. {n} mensajes"
 msgstr "Filter: {filtro}. {n} messages"
 
-#: ytchat/ui/gui.py:942
+#: ytchat/ui/gui.py:939
 #, python-brace-format
 msgid "Velocidad de la voz: {valor}"
 msgstr "Voice speed: {valor}"
 
-#: ytchat/ui/gui.py:949
+#: ytchat/ui/gui.py:946
 #, python-brace-format
 msgid "Volumen de la voz: {valor}%"
 msgstr "Voice volume: {valor}%"
 
-#: ytchat/ui/gui.py:957
+#: ytchat/ui/gui.py:954
 msgid "Sonidos silenciados"
 msgstr "Sounds muted"
 
-#: ytchat/ui/gui.py:957
+#: ytchat/ui/gui.py:954
 msgid "Sonidos activados"
 msgstr "Sounds on"
 
-#: ytchat/ui/gui.py:964
+#: ytchat/ui/gui.py:961
 msgid "Lectura TTS silenciada"
 msgstr "TTS reading muted"
 
-#: ytchat/ui/gui.py:964
+#: ytchat/ui/gui.py:961
 msgid "Lectura TTS activada"
 msgstr "TTS reading on"
 
-#: ytchat/ui/gui.py:991
+#: ytchat/ui/gui.py:988
 msgid "Sin información de la escena."
 msgstr "No scene information."
 
-#: ytchat/ui/gui.py:1092
+#: ytchat/ui/gui.py:1089
 msgid "Copiar mensaje"
 msgstr "Copy message"
 
-#: ytchat/ui/gui.py:1093
+#: ytchat/ui/gui.py:1090
 msgid "Copiar todo (autor: mensaje, hora)"
 msgstr "Copy all (author: message, time)"
 
-#: ytchat/ui/gui.py:1094
+#: ytchat/ui/gui.py:1091
 msgid "Releer con TTS"
 msgstr "Re-read with TTS"
 
-#: ytchat/ui/gui.py:1096 ytchat/ui/musica_dialogo_enlace.py:15
+#: ytchat/ui/gui.py:1093 ytchat/ui/musica_dialogo_enlace.py:15
 #: ytchat/ui/musica_ventana.py:138
 msgid "Abrir enlace"
 msgstr "Open link"
 
-#: ytchat/ui/gui.py:1104
+#: ytchat/ui/gui.py:1101
 #, python-brace-format
 msgid "Rehabilitar a {autor} (dejar de silenciar)"
 msgstr "Restore {autor} (stop muting)"
 
-#: ytchat/ui/gui.py:1106
+#: ytchat/ui/gui.py:1103
 #, python-brace-format
 msgid "Silenciar a {autor} (solo TTS)"
 msgstr "Mute {autor} (TTS only)"
 
-#: ytchat/ui/gui.py:1107
+#: ytchat/ui/gui.py:1104
 #, python-brace-format
 msgid "Silenciar a {autor} (ocultar y TTS)"
 msgstr "Mute {autor} (hide and TTS)"
 
-#: ytchat/ui/gui.py:1109
+#: ytchat/ui/gui.py:1106
 #, python-brace-format
 msgid "Poner &alias a {autor}…"
 msgstr "Set &alias for {autor}…"
 
-#: ytchat/ui/gui.py:1111
+#: ytchat/ui/gui.py:1108
 #, python-brace-format
 msgid "Cambiar el &alias de {autor}…"
 msgstr "Change &alias of {autor}…"
 
-#: ytchat/ui/gui.py:1122
+#: ytchat/ui/gui.py:1119
 #, python-brace-format
 msgid "Expulsar 5 min a {autor} (timeout)"
 msgstr "Time out {autor} for 5 min"
 
-#: ytchat/ui/gui.py:1123
+#: ytchat/ui/gui.py:1120
 #, python-brace-format
 msgid "Banear a {autor} del directo (permanente)"
 msgstr "Ban {autor} from the live stream (permanent)"
 
-#: ytchat/ui/gui.py:1145
+#: ytchat/ui/gui.py:1142
 #, python-brace-format
 msgid "Alias para {autor}. Déjalo vacío para eliminarlo."
 msgstr "Alias for {autor}. Leave it empty to remove it."
 
-#: ytchat/ui/gui.py:1146
+#: ytchat/ui/gui.py:1143
 msgid "Alias del usuario"
 msgstr "User alias"
 
-#: ytchat/ui/gui.py:1159
+#: ytchat/ui/gui.py:1156
 #, python-brace-format
 msgid "Alias guardado, {nuevo}"
 msgstr "Alias saved, {nuevo}"
 
-#: ytchat/ui/gui.py:1160
+#: ytchat/ui/gui.py:1157
 msgid "Alias eliminado"
 msgstr "Alias removed"
 
-#: ytchat/ui/gui.py:1169
+#: ytchat/ui/gui.py:1166
 msgid "Mensaje copiado"
 msgstr "Message copied"
 
-#: ytchat/ui/gui.py:1174
+#: ytchat/ui/gui.py:1171
 msgid "No hay ningún directo conectado."
 msgstr "No live stream connected."
 
-#: ytchat/ui/gui.py:1178
+#: ytchat/ui/gui.py:1175
 msgid "Enlace del directo copiado."
 msgstr "Live stream link copied."
 
-#: ytchat/ui/gui.py:1189 ytchat/ui/gui_comentarios.py:387
+#: ytchat/ui/gui.py:1186 ytchat/ui/gui_comentarios.py:387
 msgid "Línea copiada"
 msgstr "Line copied"
 
-#: ytchat/ui/gui.py:1205
+#: ytchat/ui/gui.py:1202
 msgid "No se encontró ningún enlace"
 msgstr "No link found"
 
-#: ytchat/ui/gui.py:1206
+#: ytchat/ui/gui.py:1203
 msgid "No se encontró ningún enlace en este mensaje."
 msgstr "No link found in this message."
 
-#: ytchat/ui/gui.py:1207
+#: ytchat/ui/gui.py:1204
 msgid "Sin enlace"
 msgstr "No link"
 
-#: ytchat/ui/gui.py:1210
+#: ytchat/ui/gui.py:1207
 msgid "Abriendo enlace"
 msgstr "Opening link"
 
 #. Traductores: {autor} es el autor del mensaje.
-#: ytchat/ui/gui.py:1226
+#: ytchat/ui/gui.py:1223
 #, python-brace-format
 msgid "{autor} silenciado"
 msgstr "{autor} muted"
 
 #. Traductores: {autor} es el autor del mensaje.
-#: ytchat/ui/gui.py:1236
+#: ytchat/ui/gui.py:1233
 #, python-brace-format
 msgid "{autor} rehabilitado"
 msgstr "{autor} restored"
 
-#: ytchat/ui/gui.py:1272
+#: ytchat/ui/gui.py:1269
 msgid "Salir"
 msgstr "Exit"
 
 #. Traductores: aviso mientras se cierra la app.
-#: ytchat/ui/gui.py:1300
+#: ytchat/ui/gui.py:1297
 msgid "Cerrando"
 msgstr "Closing"
 
 #. Traductores: aviso al desconectar.
-#: ytchat/ui/gui.py:1422
+#: ytchat/ui/gui.py:1419
 msgid "Desconectado"
 msgstr "Disconnected"
 
-#: ytchat/ui/gui.py:1471
+#: ytchat/ui/gui.py:1468
 msgid "Conectado al directo. Leyendo el chat."
 msgstr "Connected to the live stream. Reading the chat."
 
-#: ytchat/ui/gui.py:1473
+#: ytchat/ui/gui.py:1470
 msgid "Directo programado. Aún no hay chat; puedes ver los comentarios."
 msgstr "Scheduled live stream. No chat yet; you can read the comments."
 
-#: ytchat/ui/gui.py:1475
+#: ytchat/ui/gui.py:1472
 msgid "Vídeo conectado. Comentarios y reproductor disponibles."
 msgstr "Video connected. Comments and player available."
 
 #. Traductores: aviso genérico al conectar.
-#: ytchat/ui/gui.py:1478
+#: ytchat/ui/gui.py:1475
 msgid "Conectado."
 msgstr "Connected."
 
-#: ytchat/ui/gui.py:1530
+#: ytchat/ui/gui.py:1527
 msgid "Directo: leyendo el chat."
 msgstr "Live: reading the chat."
 
-#: ytchat/ui/gui.py:1533
+#: ytchat/ui/gui.py:1530
 msgid "Directo programado: aún sin chat. Hay comentarios."
 msgstr "Scheduled live: no chat yet. There are comments."
 
-#: ytchat/ui/gui.py:1536
+#: ytchat/ui/gui.py:1533
 msgid "Vídeo subido: comentarios y reproductor."
 msgstr "Uploaded video: comments and player."
 
-#: ytchat/ui/gui.py:1539
+#: ytchat/ui/gui.py:1536
 msgid "Tipo no determinado: intentando leer el chat."
 msgstr "Type unknown: trying to read the chat."
 
-#: ytchat/ui/gui.py:1561
+#: ytchat/ui/gui.py:1558
 msgid "Los comentarios no están disponibles en los directos de TikTok."
 msgstr "Comments are not available on TikTok live streams."
 
-#: ytchat/ui/gui.py:1569
+#: ytchat/ui/gui.py:1566
 #, python-brace-format
 msgid "Directo de TikTok de @{usuario}: leyendo el chat."
 msgstr "TikTok live stream by @{usuario}: reading the chat."
 
 #. Traductores: {titulo} es el vídeo y {app} la app.
-#: ytchat/ui/gui.py:1617
+#: ytchat/ui/gui.py:1614
 #, python-brace-format
 msgid "{titulo} — {app}"
 msgstr "{titulo} — {app}"
 
-#: ytchat/ui/gui.py:1630
+#: ytchat/ui/gui.py:1627
 msgid "(no disponible)"
 msgstr "(not available)"
 
-#: ytchat/ui/gui.py:1673 ytchat/ui/gui_menu.py:36
+#: ytchat/ui/gui.py:1670 ytchat/ui/gui_menu.py:36
 msgid "&Desconectar"
 msgstr "&Disconnect"
 
-#: ytchat/ui/gui.py:1721
+#: ytchat/ui/gui.py:1718
 msgid " [sin TTS]"
 msgstr " [no TTS]"
 
 #. Traductores: {titulo} es el vídeo; {sin_tts} avisa si la lectura está
 #. silenciada.
-#: ytchat/ui/gui.py:1724
+#: ytchat/ui/gui.py:1721
 #, python-brace-format
 msgid "Conectado: {titulo}{sin_tts}"
 msgstr "Connected: {titulo}{sin_tts}"
 
 #. Traductores: {sin_tts} avisa si la lectura está silenciada.
-#: ytchat/ui/gui.py:1727
+#: ytchat/ui/gui.py:1724
 #, python-brace-format
 msgid "Conectado{sin_tts}"
 msgstr "Connected{sin_tts}"
 
 #. Traductores: {sin_tts} avisa si la lectura está silenciada.
-#: ytchat/ui/gui.py:1730
+#: ytchat/ui/gui.py:1727
 #, python-brace-format
 msgid "Desconectado{sin_tts}"
 msgstr "Disconnected{sin_tts}"
 
-#: ytchat/ui/gui.py:1733
+#: ytchat/ui/gui.py:1730
 #, python-brace-format
 msgid "Voz vel: {valor}"
 msgstr "Voice rate: {valor}"
 
-#: ytchat/ui/gui.py:1734
+#: ytchat/ui/gui.py:1731
 msgid "Voz vel: --"
 msgstr "Voice rate: --"
 
 #. Traductores: {n} son los mensajes en cola.
-#: ytchat/ui/gui.py:1743
+#: ytchat/ui/gui.py:1740
 #, python-brace-format
 msgid "Cola: {n}"
 msgstr "Queue: {n}"
 
 #. Traductores: la raya indica que no hay dato.
-#: ytchat/ui/gui.py:1745
+#: ytchat/ui/gui.py:1742
 msgid "Cola: —"
 msgstr "Queue: —"
 
 #. Traductores: {n} son los mensajes leídos.
-#: ytchat/ui/gui.py:1747
+#: ytchat/ui/gui.py:1744
 #, python-brace-format
 msgid "Leídos: {n}"
 msgstr "Read: {n}"
 
 #. Traductores: la raya indica que no hay dato.
-#: ytchat/ui/gui.py:1749
+#: ytchat/ui/gui.py:1746
 msgid "Leídos: —"
 msgstr "Read: —"
 
-#: ytchat/ui/gui.py:1751
+#: ytchat/ui/gui.py:1748
 #, python-brace-format
 msgid "Voz vol: {valor}%"
 msgstr "Voice vol: {valor}%"
 
-#: ytchat/ui/gui.py:1752
+#: ytchat/ui/gui.py:1749
 msgid "Voz vol: --"
 msgstr "Voice vol: --"
 
-#: ytchat/ui/gui.py:1771
+#: ytchat/ui/gui.py:1768
 #, python-brace-format
 msgid "SC: {n}"
 msgstr "SC: {n}"
 
-#: ytchat/ui/gui.py:1772
+#: ytchat/ui/gui.py:1769
 #, python-brace-format
 msgid "SC: {n} ({importes})"
 msgstr "SC: {n} ({importes})"
@@ -4034,15 +4048,19 @@ msgstr "The download did not complete: {motivo}."
 msgid "El paquete no sirve: {motivo}."
 msgstr "The package is not valid: {motivo}."
 
+# | msgid "" "La actualización está preparada. {app} se cierra y vuelve a
+# | abrirse sola " "en alrededor de un minuto. Si hay un chat conectado o un
+# | directo en " "curso, se corta."
 #: ytchat/ui/gui_actualizar_app.py:383
 #, python-brace-format
 msgid ""
 "La actualización está preparada. {app} se cierra y vuelve a abrirse sola "
 "en alrededor de un minuto. Si hay un chat conectado o un directo en "
-"curso, se corta."
+"curso, se interrumpe."
 msgstr ""
 "The update is ready. {app} closes and reopens itself in about a minute. "
-"If a chat is connected or a live stream is in progress, it is cut off."
+"If a chat is connected or a live stream is in progress, it is "
+"interrupted."
 
 #: ytchat/ui/gui_actualizar_app.py:387
 msgid "&Instalar y reiniciar"
@@ -4106,12 +4124,14 @@ msgstr "&Order:"
 msgid "Orden de comentarios"
 msgstr "Comment order"
 
+# | msgid "A&plicar el orden"
 #: ytchat/ui/gui_comentarios.py:74
-msgid "A&plicar el orden"
+msgid "A&plicar orden"
 msgstr "A&pply the order"
 
+# | msgid "Aplicar el orden"
 #: ytchat/ui/gui_comentarios.py:75
-msgid "Aplicar el orden"
+msgid "Aplicar orden"
 msgstr "Apply order"
 
 #: ytchat/ui/gui_comentarios.py:79
@@ -4274,9 +4294,10 @@ msgstr "{mensaje}. Remember that YouTube may take a while or hold it."
 msgid "No se pudo enviar"
 msgstr "Could not send"
 
+# | msgid "Vídeo WebM"
 #: ytchat/ui/gui_descargas.py:38
-msgid "Vídeo MP4 (muxed)"
-msgstr "MP4 video (muxed)"
+msgid "Vídeo MP4"
+msgstr "MP4 video"
 
 #: ytchat/ui/gui_descargas.py:39
 msgid "Vídeo WebM"
@@ -4339,32 +4360,38 @@ msgstr "&Format:"
 msgid "Formato"
 msgstr "Format"
 
+# | msgid "Velocidad de la voz"
 #: ytchat/ui/gui_descargas.py:204
-msgid "&Bitrate (kbps):"
-msgstr "&Bitrate (kbps):"
+msgid "&Velocidad de bits (kbps):"
+msgstr "&Bit rate (kbps):"
 
+# | msgid "Velocidad de la voz"
 #: ytchat/ui/gui_descargas.py:209
-msgid "Bitrate"
-msgstr "Bitrate"
+msgid "Velocidad de bits"
+msgstr "Bit rate"
 
+# | msgid "Carpeta &destino:"
 #: ytchat/ui/gui_descargas.py:218
-msgid "Carpeta &destino:"
+msgid "Carpeta de &destino:"
 msgstr "Destination &folder:"
 
+# | msgid "Carpeta destino"
 #: ytchat/ui/gui_descargas.py:223
-msgid "Carpeta destino"
+msgid "Carpeta de destino"
 msgstr "Destination folder"
 
 #: ytchat/ui/gui_descargas.py:223
 msgid "Elige la carpeta de descargas"
 msgstr "Choose the download folder"
 
+# | msgid "&Enumerar ítems de la lista de reproducción (01_, 02_…)"
 #: ytchat/ui/gui_descargas.py:232
-msgid "&Enumerar ítems de la lista de reproducción (01_, 02_…)"
-msgstr "&Number playlist items (01_, 02_…)"
+msgid "&Numerar archivos de la lista de reproducción (01_, 02_…)"
+msgstr "&Number list files (01_, 02_…)"
 
+# | msgid "Abrir enlace"
 #: ytchat/ui/gui_descargas.py:240
-msgid "Añadir enlace"
+msgid "Agregar enlace"
 msgstr "Add link"
 
 #: ytchat/ui/gui_descargas.py:242
@@ -4379,9 +4406,10 @@ msgstr "Video or playlist link"
 msgid "Pega un enlace de YouTube (vídeo o lista de reproducción)."
 msgstr "Paste a YouTube link (video or playlist)."
 
+# | msgid "&Agregar"
 #: ytchat/ui/gui_descargas.py:253
-msgid "Aña&dir"
-msgstr "A&dd"
+msgid "A&gregar"
+msgstr "&Add"
 
 #: ytchat/ui/gui_descargas.py:267
 msgid "Cola de descargas"
@@ -4391,9 +4419,10 @@ msgstr "Download queue"
 msgid "Nombre"
 msgstr "Name"
 
+# | msgid "Cancelando descarga"
 #: ytchat/ui/gui_descargas.py:274
-msgid "&Cancelar seleccionado"
-msgstr "&Cancel selected"
+msgid "&Cancelar descarga"
+msgstr "&Cancel download"
 
 #: ytchat/ui/gui_descargas.py:287 ytchat/ui/gui_descargas.py:288
 msgid "Lista del historial de descargas"
@@ -4403,12 +4432,14 @@ msgstr "Download history list"
 msgid "Fecha"
 msgstr "Date"
 
+# | msgid "&Vaciar el historial"
 #: ytchat/ui/gui_descargas.py:295
-msgid "&Vaciar el historial"
+msgid "&Vaciar historial"
 msgstr "&Clear history"
 
+# | msgid "Vaciar el historial"
 #: ytchat/ui/gui_descargas.py:296 ytchat/ui/gui_descargas.py:423
-msgid "Vaciar el historial"
+msgid "Vaciar historial"
 msgstr "Clear history"
 
 #: ytchat/ui/gui_descargas.py:302
@@ -4419,13 +4450,18 @@ msgstr "Queue"
 msgid "Historial"
 msgstr "History"
 
+# | msgid "Pega un enlace de YouTube (vídeo o lista de reproducción) antes de
+# | añadir."
 #: ytchat/ui/gui_descargas.py:340
-msgid "Pega un enlace de YouTube (vídeo o lista de reproducción) antes de añadir."
+msgid ""
+"Pega un enlace de YouTube (vídeo o lista de reproducción) antes de "
+"agregar."
 msgstr "Paste a YouTube link (video or playlist) before adding."
 
+# | msgid "Agregar a la cola"
 #: ytchat/ui/gui_descargas.py:370
-msgid "Añadido a la cola"
-msgstr "Added to the queue"
+msgid "Agregado a la cola"
+msgstr "Add to the queue"
 
 #: ytchat/ui/gui_descargas.py:421
 msgid ""
@@ -4981,9 +5017,10 @@ msgstr "API setup &guide…"
 msgid "&Marcar incidencia"
 msgstr "&Mark issue"
 
+# | msgid "Abrir la carpeta de &registros"
 #: ytchat/ui/gui_menu.py:236
-msgid "Abrir la carpeta de &registros"
-msgstr "Open the &logs folder"
+msgid "Abrir carpeta de &registros"
+msgstr "Open &logs folder"
 
 #: ytchat/ui/gui_menu.py:237
 msgid "&Buscar actualizaciones…"
@@ -5052,8 +5089,9 @@ msgstr "Announce last message a&uthor"
 msgid "Mensajes recientes &del chat"
 msgstr "&Recent chat messages"
 
+# | msgid "Describir la escena de &OBS"
 #: ytchat/ui/gui_menu.py:332
-msgid "Describir la escena de &OBS"
+msgid "Describir escena de &OBS"
 msgstr "Describe the &OBS scene"
 
 #: ytchat/ui/gui_menu.py:333
@@ -5084,12 +5122,14 @@ msgstr "&Next song"
 msgid "Canción &anterior"
 msgstr "Previous &song"
 
+# | msgid "Subir el &volumen"
 #: ytchat/ui/gui_menu.py:365
-msgid "Subir el &volumen"
+msgid "Subir &volumen"
 msgstr "Raise the &volume"
 
+# | msgid "&Bajar el volumen"
 #: ytchat/ui/gui_menu.py:367
-msgid "&Bajar el volumen"
+msgid "&Bajar volumen"
 msgstr "&Lower the volume"
 
 #: ytchat/ui/gui_menu.py:369
@@ -5108,16 +5148,18 @@ msgstr "Rew&ind 10 seconds"
 msgid "Silenciar la &música"
 msgstr "Mute the &music"
 
+# | msgid "&Detener la música"
 #: ytchat/ui/gui_menu.py:378
-msgid "&Detener la música"
+msgid "&Detener música"
 msgstr "S&top the music"
 
 #: ytchat/ui/gui_menu.py:380
 msgid "&Orden aleatorio"
 msgstr "Sh&uffle"
 
+# | msgid "Cambiar la &repetición"
 #: ytchat/ui/gui_menu.py:384
-msgid "Cambiar la &repetición"
+msgid "Cambiar &repetición"
 msgstr "Change &repeat"
 
 #: ytchat/ui/gui_menu.py:385
@@ -5136,40 +5178,40 @@ msgstr "&OBS source:"
 msgid "Fuente de OBS"
 msgstr "OBS source"
 
-#: ytchat/ui/gui_microfono.py:103
+#: ytchat/ui/gui_microfono.py:104
 msgid "&Dispositivo:"
 msgstr "&Device:"
 
-#: ytchat/ui/gui_microfono.py:106
+#: ytchat/ui/gui_microfono.py:107
 msgid "Dispositivo"
 msgstr "Device"
 
-#: ytchat/ui/gui_microfono.py:110
+#: ytchat/ui/gui_microfono.py:112
 msgid "&Aplicar"
 msgstr "&Apply"
 
-#: ytchat/ui/gui_microfono.py:112 ytchat/ui/gui_transmision.py:287
+#: ytchat/ui/gui_microfono.py:114 ytchat/ui/gui_transmision.py:287
 #: ytchat/ui/ia_ventana.py:48 ytchat/ui/ia_ventana.py:115
 #: ytchat/ui/musica_ventana.py:152
 msgid "Cerrar"
 msgstr "Close"
 
-#: ytchat/ui/gui_microfono.py:173
+#: ytchat/ui/gui_microfono.py:175
 msgid "Elige un dispositivo."
 msgstr "Choose a device."
 
 #. Traductores: {dispositivo} es el nombre del dispositivo elegido.
-#: ytchat/ui/gui_microfono.py:206
+#: ytchat/ui/gui_microfono.py:208
 #, python-brace-format
 msgid "Micrófono cambiado: {dispositivo}."
 msgstr "Microphone changed: {dispositivo}."
 
 #. Traductores: el micrófono quedó elegido pero OBS lo silencia.
-#: ytchat/ui/gui_microfono.py:210
+#: ytchat/ui/gui_microfono.py:212
 msgid "El micrófono está silenciado en OBS."
 msgstr "The microphone is muted in OBS."
 
-#: ytchat/ui/gui_microfono.py:215
+#: ytchat/ui/gui_microfono.py:217
 msgid "El micrófono recibe sonido."
 msgstr "The microphone is receiving sound."
 
@@ -5265,12 +5307,15 @@ msgstr "Chat &font size (8 to 24):"
 msgid "Tamaño de fuente del chat"
 msgstr "Chat font size"
 
+# | msgid "Mostrar el total de &Super Chats en la barra de estado"
 #: ytchat/ui/gui_preferencias.py:215
-msgid "Mostrar el total de &Super Chats en la barra de estado"
+msgid "Mostrar total de &Super Chats en la barra de estado"
 msgstr "Show the Super &Chat total in the status bar"
 
+# | msgid "Mostrar la pestaña de &información del vídeo (canal, vistas,
+# | descripción)"
 #: ytchat/ui/gui_preferencias.py:220
-msgid "Mostrar la pestaña de &información del vídeo (canal, vistas, descripción)"
+msgid "Mostrar pestaña de &información del vídeo"
 msgstr "Show the video &information tab (channel, views, description)"
 
 #: ytchat/ui/gui_preferencias.py:233
@@ -5301,7 +5346,7 @@ msgstr "Maximum queue size"
 msgid "Leer solo el &nombre a partir de"
 msgstr "Read only the &name from"
 
-#: ytchat/ui/gui_preferencias.py:252
+#: ytchat/ui/gui_preferencias.py:251
 msgid "Leer solo el nombre a partir de"
 msgstr "Read only the name from"
 
@@ -5309,13 +5354,15 @@ msgstr "Read only the name from"
 msgid "Con 0, esta opción queda apagada."
 msgstr "With 0, this option stays off."
 
+# | msgid "&Reconectar automáticamente si se corta"
 #: ytchat/ui/gui_preferencias.py:264
-msgid "&Reconectar automáticamente si se corta"
-msgstr "&Reconnect automatically if it drops"
+msgid "&Reconectar automáticamente"
+msgstr "&Reconnect automatically"
 
+# | msgid "Reconectar automáticamente si se corta"
 #: ytchat/ui/gui_preferencias.py:265
-msgid "Reconectar automáticamente si se corta"
-msgstr "Reconnect automatically if it drops"
+msgid "Reconectar automáticamente"
+msgstr "Reconnect automatically"
 
 #: ytchat/ui/gui_preferencias.py:268
 msgid "&Espera máxima entre intentos, en segundos"
@@ -5353,20 +5400,24 @@ msgstr "OBS &microphone"
 msgid "Elegir automáticamente"
 msgstr "Choose automatically"
 
+# | msgid "&Buscar los micrófonos en OBS"
 #: ytchat/ui/gui_preferencias.py:311
-msgid "&Buscar los micrófonos en OBS"
+msgid "&Buscar micrófonos en OBS"
 msgstr "&Find microphones in OBS"
 
+# | msgid "Buscar los micrófonos en OBS"
 #: ytchat/ui/gui_preferencias.py:312
-msgid "Buscar los micrófonos en OBS"
+msgid "Buscar micrófonos en OBS"
 msgstr "Find microphones in OBS"
 
+# | msgid "&Activar el servidor websocket de OBS"
 #: ytchat/ui/gui_preferencias.py:317
-msgid "&Activar el servidor websocket de OBS"
+msgid "&Activar servidor WebSocket de OBS"
 msgstr "&Enable the OBS websocket server"
 
+# | msgid "Activar el servidor websocket de OBS"
 #: ytchat/ui/gui_preferencias.py:318
-msgid "Activar el servidor websocket de OBS"
+msgid "Activar servidor WebSocket de OBS"
 msgstr "Enable the OBS websocket server"
 
 #: ytchat/ui/gui_preferencias.py:356
@@ -5379,19 +5430,19 @@ msgstr "Found {cantidad} microphones in OBS"
 msgid "No se pudo activar el servidor websocket de OBS: {exc}"
 msgstr "Could not enable the OBS websocket server: {exc}"
 
+# | msgid "&Reproducir el audio automáticamente al conectar"
 #: ytchat/ui/gui_preferencias.py:378
-msgid "&Reproducir el audio automáticamente al conectar"
+msgid "&Reproducir audio automáticamente al conectar"
 msgstr "&Play audio automatically on connect"
 
 #: ytchat/ui/gui_preferencias.py:384
 msgid "Reproducir &solo el audio, sin decodificar la imagen"
 msgstr "Play audio &only, without decoding the picture"
 
+# | msgid "Mostrar botones del reproductor"
 #: ytchat/ui/gui_preferencias.py:389
-msgid ""
-"Mostrar los &botones del reproductor (también con su interruptor y el "
-"menú Reproductor)"
-msgstr "Show the player &buttons (also with its switch and the Player menu)"
+msgid "Mostrar &botones del reproductor"
+msgstr "Show player &buttons"
 
 #: ytchat/ui/gui_preferencias.py:395
 msgid "&Tamaño máximo de la caché de vídeo, en megabytes:"
@@ -5527,6 +5578,37 @@ msgstr ""
 "panel's background is transparent: only the message\n"
 "cards show, and they only cover what is right under them."
 
+# | msgid "" "Este diálogo no crea escenas ni agrega otras fuentes, salvo la
+# | captura de" " ventana desde la sección Escena. Hace una sola\n" "cosa:
+# pone
+# | el panel de chat de esta aplicación dentro de una escena de " "OBS\n" "y
+# lo
+# | coloca donde quieras.\n" "\n" "El orden es este.\n" "\n" "Uno. Pulsa
+# | Preparar el panel. Eso enciende el servidor del panel y crea " "la\n"
+# | "fuente dentro de la escena elegida, si todavía no estaba.\n" "\n" "Dos.
+# | Elige la escena en el desplegable Escena. Recorrerlo no cambia lo "
+# "que\n"
+# | "ven los espectadores: para eso está el botón Poner al aire.\n" "\n"
+# "Tres.
+# | Elige qué fuente vas a mover en el desplegable Fuente. Normalmente "
+# "es\n"
+# | "el panel de chat, pero puedes mover cualquier fuente que ya exista en
+# la\n"
+# | "escena. Este diálogo solo agrega el panel y la captura de ventana: lo "
+# | "demás se hace\n" "desde OBS.\n" "\n" "Cuatro. Coloca la fuente. Tienes
+# dos
+# | formas. El desplegable Posición más " "su\n" "botón la lleva a una de
+# nueve
+# | posiciones fijas. El Ajuste fino la mueve " "de\n" "a poco con las
+# flechas,
+# | y confirma con Intro.\n" "\n" "Cinco. El tamaño se cambia con Ancho y Alto
+# y
+# | se aplica con su botón.\n" "\n" "El cuadro Estado del panel describe en
+# todo
+# | momento dónde está la\n" "fuente, de qué tamaño es, si se sale del lienzo
+# | si tapa a otras. Se\n" "actualiza solo con cada cambio.\n" "\n"
+# "Restablecer
+# | deshace todo lo que hiciste desde que abriste esta ventana."
 #: ytchat/ui/gui_transmision.py:63
 msgid ""
 "Este diálogo no crea escenas ni agrega otras fuentes, salvo la captura de"
@@ -5537,8 +5619,7 @@ msgid ""
 "\n"
 "El orden es este.\n"
 "\n"
-"Uno. Pulsa Preparar el panel. Eso enciende el servidor del panel y crea "
-"la\n"
+"Uno. Pulsa Preparar panel. Eso enciende el servidor del panel y crea la\n"
 "fuente dentro de la escena elegida, si todavía no estaba.\n"
 "\n"
 "Dos. Elige la escena en el desplegable Escena. Recorrerlo no cambia lo "
@@ -5676,12 +5757,14 @@ msgstr "Prepare destination"
 msgid "Grabar"
 msgstr "Record"
 
+# | msgid "Pausar la gra&bación"
 #: ytchat/ui/gui_transmision.py:183
-msgid "Pausar la gra&bación"
+msgid "Pausar gra&bación"
 msgstr "Pa&use recording"
 
+# | msgid "Pausar la grabación"
 #: ytchat/ui/gui_transmision.py:183
-msgid "Pausar la grabación"
+msgid "Pausar grabación"
 msgstr "Pause recording"
 
 #: ytchat/ui/gui_transmision.py:187 ytchat/ui/gui_transmision.py:189
@@ -5742,12 +5825,14 @@ msgstr "&Chat panel for streaming"
 msgid "Panel de chat para transmitir"
 msgstr "Chat panel for streaming"
 
+# | msgid "Preparar el panel"
 #: ytchat/ui/gui_transmision.py:225
-msgid "Preparar e&l panel"
-msgstr "Pre&pare the panel"
+msgid "Preparar pane&l"
+msgstr "Pre&pare panel"
 
+# | msgid "Preparar el panel"
 #: ytchat/ui/gui_transmision.py:225
-msgid "Preparar el panel"
+msgid "Preparar panel"
 msgstr "Prepare the panel"
 
 #: ytchat/ui/gui_transmision.py:227
@@ -5802,13 +5887,15 @@ msgstr "Panel height in pixels"
 msgid "Apl&icar tamaño"
 msgstr "Appl&y size"
 
+# | msgid "&Mostrar el panel en la escena"
 #: ytchat/ui/gui_transmision.py:261
-msgid "&Mostrar el panel en la escena"
+msgid "&Mostrar panel en la escena"
 msgstr "Show the panel &in the scene"
 
+# | msgid "Posición del panel"
 #: ytchat/ui/gui_transmision.py:263
-msgid "&Fijar el panel para que no se mueva"
-msgstr "Loc&k the panel so it does not move"
+msgid "&Fijar posición del panel"
+msgstr "&Fix panel position"
 
 #: ytchat/ui/gui_transmision.py:267
 msgid "P&oner al frente"
@@ -5816,7 +5903,7 @@ msgstr "Bring &to front"
 
 #: ytchat/ui/gui_transmision.py:269
 msgid "A&juste fino"
-msgstr "&Fine adjustment"
+msgstr "Fine &adjustment"
 
 #: ytchat/ui/gui_transmision.py:273
 msgid "Cómo s&e coloca el panel"
@@ -6329,12 +6416,14 @@ msgstr "Search the music"
 msgid "Canciones"
 msgstr "Songs"
 
+# | msgid "Mostrar la c&ola"
 #: ytchat/ui/musica_ventana.py:74 ytchat/ui/musica_ventana.py:217
-msgid "Mostrar la c&ola"
+msgid "Mostrar c&ola"
 msgstr "&Show the queue"
 
+# | msgid "Mostrar la cola"
 #: ytchat/ui/musica_ventana.py:74 ytchat/ui/musica_ventana.py:218
-msgid "Mostrar la cola"
+msgid "Mostrar cola"
 msgstr "Show the queue"
 
 #: ytchat/ui/musica_ventana.py:75
@@ -6363,24 +6452,29 @@ msgstr "Change &folder…"
 msgid "Cambiar carpeta"
 msgstr "Change folder"
 
+# | msgid "&Igualar el volumen"
 #: ytchat/ui/musica_ventana.py:146 ytchat/ui/musica_ventana_igualando.py:172
-msgid "&Igualar el volumen"
+msgid "&Igualar volumen"
 msgstr "&Match the volume"
 
+# | msgid "E&xaminar la carpeta"
 #: ytchat/ui/musica_ventana.py:149
-msgid "E&xaminar la carpeta"
+msgid "E&xaminar carpeta"
 msgstr "E&xamine the folder"
 
+# | msgid "Examinar la carpeta"
 #: ytchat/ui/musica_ventana.py:149
-msgid "Examinar la carpeta"
+msgid "Examinar carpeta"
 msgstr "Examine the folder"
 
+# | msgid "Ocultar la c&ola"
 #: ytchat/ui/musica_ventana.py:214
-msgid "Ocultar la c&ola"
+msgid "Ocultar c&ola"
 msgstr "&Hide the queue"
 
+# | msgid "Ocultar la cola"
 #: ytchat/ui/musica_ventana.py:215
-msgid "Ocultar la cola"
+msgid "Ocultar cola"
 msgstr "Hide the queue"
 
 #: ytchat/ui/musica_ventana_acciones.py:22
@@ -6540,8 +6634,9 @@ msgstr "Signed out."
 msgid "{accion} (fija)"
 msgstr "{accion} (fixed)"
 
+# | msgid "&Restablecer los atajos a los valores de fábrica"
 #: ytchat/ui/preferencias_atajos.py:65
-msgid "&Restablecer los atajos a los valores de fábrica"
+msgid "&Restablecer atajos de fábrica"
 msgstr "&Reset shortcuts to factory defaults"
 
 #: ytchat/ui/preferencias_atajos.py:90
@@ -6600,12 +6695,14 @@ msgid ""
 "curso"
 msgstr "Ask before quitting if a chat is connected or a broadcast is in progress"
 
+# | msgid "Reproducir el sonido de &inicio"
 #: ytchat/ui/preferencias_general.py:97
-msgid "Reproducir el sonido de &inicio"
+msgid "Reproducir sonido de &inicio"
 msgstr "Play startup &sound"
 
+# | msgid "Reproducir el sonido de inicio"
 #: ytchat/ui/preferencias_general.py:98
-msgid "Reproducir el sonido de inicio"
+msgid "Reproducir sonido de inicio"
 msgstr "Play startup sound"
 
 #: ytchat/ui/preferencias_general.py:102
@@ -6616,30 +6713,36 @@ msgstr "Save a &detailed log for diagnosing failures"
 msgid "Guardar un registro detallado para diagnosticar fallos"
 msgstr "Save a detailed log for diagnosing failures"
 
+# | msgid "Abrir la carpeta de da&tos"
 #: ytchat/ui/preferencias_general.py:111
-msgid "Abrir la carpeta de da&tos"
+msgid "Abrir carpeta de da&tos"
 msgstr "Open the da&ta folder"
 
+# | msgid "Abrir la carpeta de datos"
 #: ytchat/ui/preferencias_general.py:112
-msgid "Abrir la carpeta de datos"
+msgid "Abrir carpeta de datos"
 msgstr "Open the data folder"
 
+# | msgid "E&xportar las preferencias…"
 #: ytchat/ui/preferencias_general.py:115
-msgid "E&xportar las preferencias…"
+msgid "E&xportar preferencias…"
 msgstr "E&xport preferences…"
 
+# | msgid "Exportar las preferencias"
 #: ytchat/ui/preferencias_general.py:116 ytchat/ui/preferencias_general.py:141
 #: ytchat/ui/preferencias_general.py:153
-msgid "Exportar las preferencias"
+msgid "Exportar preferencias"
 msgstr "Export preferences"
 
+# | msgid "I&mportar las preferencias…"
 #: ytchat/ui/preferencias_general.py:119
-msgid "I&mportar las preferencias…"
+msgid "I&mportar preferencias…"
 msgstr "I&mport preferences…"
 
+# | msgid "Importar las preferencias"
 #: ytchat/ui/preferencias_general.py:120 ytchat/ui/preferencias_general.py:160
 #: ytchat/ui/preferencias_general.py:169 ytchat/ui/preferencias_general.py:176
-msgid "Importar las preferencias"
+msgid "Importar preferencias"
 msgstr "Import preferences"
 
 #: ytchat/ui/preferencias_general.py:123
@@ -6670,6 +6773,8 @@ msgstr "Data folder"
 msgid "Preferencias (*.ini)|*.ini"
 msgstr "Preferences (*.ini)|*.ini"
 
+# | msgid "" "No se pudieron exportar las preferencias:\n" "\n" "{exc}"
+# | msgid "" "No se pudieron exportar preferencias:\n" "\n" "{exc}"
 #: ytchat/ui/preferencias_general.py:152
 #, python-brace-format
 msgid ""
@@ -6685,6 +6790,8 @@ msgstr ""
 msgid "Preferencias exportadas"
 msgstr "Preferences exported"
 
+# | msgid "" "No se pudieron importar las preferencias:\n" "\n" "{exc}"
+# | msgid "" "No se pudieron importar preferencias:\n" "\n" "{exc}"
 #: ytchat/ui/preferencias_general.py:175
 #, python-brace-format
 msgid ""
@@ -6743,8 +6850,9 @@ msgstr "&Provider"
 msgid "&Dirección del servicio"
 msgstr "Ser&vice address"
 
+# | msgid "P&robar la clave"
 #: ytchat/ui/preferencias_ia.py:121
-msgid "P&robar la clave"
+msgid "P&robar clave"
 msgstr "&Test the key"
 
 #: ytchat/ui/preferencias_ia.py:128
@@ -6755,8 +6863,9 @@ msgstr "&Model"
 msgid "Solo gra&tuitos"
 msgstr "&Free only"
 
+# | msgid "&Actualizar la lista de modelos"
 #: ytchat/ui/preferencias_ia.py:138
-msgid "&Actualizar la lista de modelos"
+msgid "&Actualizar lista de modelos"
 msgstr "&Refresh model list"
 
 #: ytchat/ui/preferencias_ia.py:141
@@ -6767,12 +6876,14 @@ msgstr "&Other model"
 msgid "&Instrucción para las capturas"
 msgstr "&Instructions for screenshots"
 
+# | msgid "R&estaurar la instrucción"
 #: ytchat/ui/preferencias_ia.py:166
-msgid "R&estaurar la instrucción"
+msgid "R&estaurar instrucción"
 msgstr "R&estore the instructions"
 
+# | msgid "&Largo de la respuesta"
 #: ytchat/ui/preferencias_ia.py:171
-msgid "&Largo de la respuesta"
+msgid "E&xtensión de la respuesta"
 msgstr "Response &length"
 
 #: ytchat/ui/preferencias_ia.py:175
@@ -6808,76 +6919,79 @@ msgstr "&Save key"
 msgid "Escribir una clave &nueva"
 msgstr "Type a &new key"
 
+# | msgid "&Borrar la clave guardada"
 #: ytchat/ui/preferencias_ia_clave.py:64
-msgid "&Borrar la clave guardada"
-msgstr "&Delete the saved key"
+msgid "E&liminar clave guardada"
+msgstr "&Delete saved key"
 
+# | msgid "E&liminar"
 #: ytchat/ui/preferencias_ia_clave.py:158
-msgid "Borrar la clave"
-msgstr "Delete the key"
+msgid "Eliminar clave"
+msgstr "Delete key"
 
-#: ytchat/ui/preferencias_lectura.py:23
+#: ytchat/ui/preferencias_lectura.py:24
 msgid "Nombre y mensaje"
 msgstr "Name and message"
 
-#: ytchat/ui/preferencias_lectura.py:24
+#: ytchat/ui/preferencias_lectura.py:25
 msgid "Mensaje y después el nombre"
 msgstr "Message then name"
 
-#: ytchat/ui/preferencias_lectura.py:25
+#: ytchat/ui/preferencias_lectura.py:26
 msgid "Solo el mensaje"
 msgstr "Message only"
 
-#: ytchat/ui/preferencias_lectura.py:26
+#: ytchat/ui/preferencias_lectura.py:27
 msgid "Solo el nombre"
 msgstr "Name only"
 
-#: ytchat/ui/preferencias_lectura.py:59
+#: ytchat/ui/preferencias_lectura.py:60
 msgid "Qué leer de cada mensaje:"
 msgstr "What to read from each message:"
 
-#: ytchat/ui/preferencias_lectura.py:62
+#: ytchat/ui/preferencias_lectura.py:63
 msgid "Formato de lectura"
 msgstr "Reading format"
 
-#: ytchat/ui/preferencias_lectura.py:72
+#: ytchat/ui/preferencias_lectura.py:73
 msgid "Omitir emo&jis en la lista y al leer"
 msgstr "Skip emo&jis in the list and when reading"
 
-#: ytchat/ui/preferencias_lectura.py:74
+#: ytchat/ui/preferencias_lectura.py:75
 msgid "Omitir e&nlaces al leer"
 msgstr "Skip links when &reading"
 
-#: ytchat/ui/preferencias_lectura.py:82
+#: ytchat/ui/preferencias_lectura.py:83
 msgid "&Longitud máxima del mensaje (caracteres):"
 msgstr "&Maximum message length (characters):"
 
-#: ytchat/ui/preferencias_lectura.py:85
+#: ytchat/ui/preferencias_lectura.py:86
 msgid "Longitud máxima del mensaje"
 msgstr "Maximum message length"
 
-#: ytchat/ui/preferencias_lectura.py:95
+#: ytchat/ui/preferencias_lectura.py:96
 msgid "Avisos de TikTok"
 msgstr "TikTok notices"
 
-#: ytchat/ui/preferencias_lectura.py:107
+#: ytchat/ui/preferencias_lectura.py:113
 msgid "Leer los mensajes recientes &con:"
 msgstr "Read recent messages &with:"
 
-#: ytchat/ui/preferencias_lectura.py:110
+#: ytchat/ui/preferencias_lectura.py:116
 msgid "El lector de pantalla"
 msgstr "The screen reader"
 
-#: ytchat/ui/preferencias_lectura.py:111
+#: ytchat/ui/preferencias_lectura.py:117
 msgid "La voz de la app"
 msgstr "The app voice"
 
-#: ytchat/ui/preferencias_lectura.py:112
+#: ytchat/ui/preferencias_lectura.py:118
 msgid "Leer los mensajes recientes con"
 msgstr "Read recent messages with"
 
-#: ytchat/ui/preferencias_lectura.py:118
-msgid "Leer los mensajes recientes en cualquier &programa"
+# | msgid "Leer los mensajes recientes en cualquier &programa"
+#: ytchat/ui/preferencias_lectura.py:124
+msgid "Leer mensajes recientes en cualquier &programa"
 msgstr "Read recent messages in any &program"
 
 #: ytchat/ui/preferencias_musica.py:57
@@ -6912,8 +7026,9 @@ msgstr "This song"
 msgid "Repetir la música"
 msgstr "Repeat the music"
 
+# | msgid "Recordar la ú&ltima lista al abrir"
 #: ytchat/ui/preferencias_musica.py:89
-msgid "Recordar la ú&ltima lista al abrir"
+msgid "Recordar ú&ltima lista al abrir"
 msgstr "Remember the &last playlist on open"
 
 #: ytchat/ui/preferencias_musica.py:94
@@ -6952,8 +7067,9 @@ msgstr "The artist only"
 msgid "Qué decir al pasar de canción"
 msgstr "What to say when the song changes"
 
+# | msgid "A&nunciar la pausa, la reanudación y la vuelta al comienzo"
 #: ytchat/ui/preferencias_musica.py:117
-msgid "A&nunciar la pausa, la reanudación y la vuelta al comienzo"
+msgid "A&nunciar pausa, reanudación y vuelta al comienzo"
 msgstr "Announc&e pause, resume, and restart"
 
 #: ytchat/ui/preferencias_musica.py:123
@@ -6972,20 +7088,24 @@ msgstr "Music &audio output"
 msgid "Salida de audio de la música"
 msgstr "Music audio output"
 
+# | msgid "&Buscar las salidas de audio"
 #: ytchat/ui/preferencias_musica.py:146
-msgid "&Buscar las salidas de audio"
+msgid "&Buscar salidas de audio"
 msgstr "Find audio &outputs"
 
+# | msgid "Buscar las salidas de audio"
 #: ytchat/ui/preferencias_musica.py:147
-msgid "Buscar las salidas de audio"
+msgid "Buscar salidas de audio"
 msgstr "Find audio outputs"
 
+# | msgid "&Igualar el volumen de las canciones"
 #: ytchat/ui/preferencias_musica.py:153
-msgid "&Igualar el volumen de las canciones"
+msgid "&Igualar volumen de las canciones"
 msgstr "Match son&g volume"
 
+# | msgid "Igualar el volumen de las canciones"
 #: ytchat/ui/preferencias_musica.py:154
-msgid "Igualar el volumen de las canciones"
+msgid "Igualar volumen de las canciones"
 msgstr "Match song volume"
 
 #: ytchat/ui/preferencias_musica.py:159
@@ -6996,8 +7116,9 @@ msgstr "Ask when opening Music whether to matc&h volume"
 msgid "Preguntar al abrir Música si igualar el volumen"
 msgstr "Ask when opening Music whether to match volume"
 
+# | msgid "Usar los atajos de música en cualquier &programa"
 #: ytchat/ui/preferencias_musica.py:167
-msgid "Usar los atajos de música en cualquier &programa"
+msgid "Usar atajos de música en cualquier &programa"
 msgstr "Use music &shortcuts in any program"
 
 #: ytchat/ui/preferencias_musica.py:202
@@ -7027,8 +7148,9 @@ msgstr ""
 "often blocks links in live chat: it is better to write the username "
 "instead of the full address."
 
+# | msgid "Acti&var los mensajes automáticos"
 #: ytchat/ui/preferencias_programados.py:54
-msgid "Acti&var los mensajes automáticos"
+msgid "Acti&var mensajes automáticos"
 msgstr "&Enable scheduled messages"
 
 #: ytchat/ui/preferencias_programados.py:61
@@ -7080,8 +7202,9 @@ msgstr "Message deleted"
 msgid "&Sonidos:"
 msgstr "&Sounds:"
 
+# | msgid "&Oír el sonido elegido"
 #: ytchat/ui/preferencias_sonidos.py:87
-msgid "&Oír el sonido elegido"
+msgid "&Oír sonido elegido"
 msgstr "&Hear the selected sound"
 
 #: ytchat/ui/preferencias_sonidos.py:97
@@ -7521,4 +7644,46 @@ msgstr "Untitled"
 
 #~ msgid "No mostrar"
 #~ msgstr "Do not show"
+
+#~ msgid "Listo."
+#~ msgstr "Ready."
+
+#~ msgid "Vídeo MP4 (muxed)"
+#~ msgstr "MP4 video (muxed)"
+
+#~ msgid "&Bitrate (kbps):"
+#~ msgstr "&Bitrate (kbps):"
+
+#~ msgid "Bitrate"
+#~ msgstr "Bitrate"
+
+#~ msgid "Añadir enlace"
+#~ msgstr "Add link"
+
+#~ msgid "Aña&dir"
+#~ msgstr "A&dd"
+
+#~ msgid "&Cancelar seleccionado"
+#~ msgstr "&Cancel selected"
+
+#~ msgid "Añadido a la cola"
+#~ msgstr "Added to the queue"
+
+#~ msgid ""
+#~ "Mostrar los &botones del reproductor "
+#~ "(también con su interruptor y el "
+#~ "menú Reproductor)"
+#~ msgstr "Show the player &buttons (also with its switch and the Player menu)"
+
+#~ msgid "Preparar e&l panel"
+#~ msgstr "Pre&pare the panel"
+
+#~ msgid "&Fijar el panel para que no se mueva"
+#~ msgstr "Loc&k the panel so it does not move"
+
+#~ msgid "Borrar la clave"
+#~ msgstr "Delete the key"
+
+#~ msgid "Se cortó el vídeo"
+#~ msgstr "The video cut out"
 

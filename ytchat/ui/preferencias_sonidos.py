@@ -84,7 +84,7 @@ class PaginaSonidos:
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self._crear_lista(vs)
         self._btn_oir = wx.Button(
-            self._panel, label=_("&Oír el sonido elegido"), name="OirSonido")
+            self._panel, label=_("&Oír sonido elegido"), name="OirSonido")
         self._btn_oir.SetBackgroundColour(_T.btn)
         self._btn_oir.SetForegroundColour(_T.btn_t)
         self._btn_oir.Bind(wx.EVT_BUTTON, self._on_oir)

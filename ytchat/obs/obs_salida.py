@@ -102,7 +102,7 @@ def _diferencia(actual, anterior, clave) -> int:
 
 
 _FRASE_RECONEXION = N_(
-    "Se cortó la conexión con el servicio, OBS está reconectando.")
+    "Se perdió la conexión con el servicio. OBS está reconectando.")
 _FRASE_VUELTA = N_("La conexión con el servicio volvió.")
 
 

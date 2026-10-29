@@ -176,8 +176,8 @@ FALTAS_CONOCIDAS = [
     "«Space» en la tecla de «Reproducir o pausar»",
     "«Right» en la tecla de «Siguiente canción»",
     "«Left» en la tecla de «Canción anterior»",
-    "«Up» en la tecla de «Subir el volumen»",
-    "«Down» en la tecla de «Bajar el volumen»",
+    "«Up» en la tecla de «Subir volumen»",
+    "«Down» en la tecla de «Bajar volumen»",
     "«Right» en la tecla de «Adelantar 10 segundos»",
     "«Left» en la tecla de «Retroceder 10 segundos»",
 ]

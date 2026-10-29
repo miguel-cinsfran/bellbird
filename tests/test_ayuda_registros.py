@@ -1,4 +1,4 @@
-"""Cableado de «Abrir la carpeta de registros» del menú Ayuda.
+"""Cableado de «Abrir carpeta de registros» del menú Ayuda.
 
 Sin ventanas: se llama a `abrir_carpeta_registros` con un frame de mentira
 y dobles de `os.startfile` y `wx.MessageBox`. No se corre con wx.App.

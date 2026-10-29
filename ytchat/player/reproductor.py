@@ -1355,7 +1355,7 @@ class ReproductorPanel(wx.Panel):
             if hasattr(self, "_estado_inicio"):
                 self._estado_inicio.cancelar()
             # Traductores: estado en reposo, sin reproducir.
-            self._fijar_estado(_("Listo."))
+            self._fijar_estado(_("Detenido."))
 
     def _reproducir_flujo(self, reproducir: bool = True):
         """Arranca la URL de flujo directa en VLC (mismo camino final que
@@ -1403,7 +1403,7 @@ class ReproductorPanel(wx.Panel):
             if hasattr(self, "_estado_inicio"):
                 self._estado_inicio.cancelar()
             # Traductores: estado en reposo, sin reproducir.
-            self._fijar_estado(_("Listo."))
+            self._fijar_estado(_("Detenido."))
 
     def set_calidad(self, altura):
         """altura=None → automática; si no hay info aún, se aplica al cargar."""
@@ -2205,11 +2205,11 @@ class ReproductorPanel(wx.Panel):
         if decision == recuperacion.CORTE_SONADO:
             logger.warning("VOD_RELEVO corte sin recuperar ultima=%d dur=%d", ultima, dur)
             self._detener(silencioso=True)
-            anunciar(_("Se cortó el vídeo"))
+            anunciar(_("Vídeo interrumpido"))
             return
         if decision == recuperacion.CORTE:
             self._detener(silencioso=True)
-            anunciar(_("Se cortó el vídeo"))
+            anunciar(_("Vídeo interrumpido"))
             return
         fuentes = getattr(self, "_relevo_fuentes", None)
         if decision == recuperacion.ESCLAVO:

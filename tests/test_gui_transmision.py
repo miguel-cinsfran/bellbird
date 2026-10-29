@@ -437,7 +437,7 @@ class TestTransmisionDialog(unittest.TestCase):
                 wx.CommandEvent(wx.EVT_BUTTON.typeId,
                                 self.dialogo.btn_como_se_coloca.GetId()))
         texto = aviso.call_args.args[0]
-        self.assertIn("Preparar el panel", texto)
+        self.assertIn("Preparar panel", texto)
         self.assertIn("Ajuste fino", texto)
 
     def test_leer_y_ajuste_fino_piden_la_instantanea_de_la_fuente_elegida(self):
@@ -749,11 +749,11 @@ class TestTransmisionDialog(unittest.TestCase):
     def test_orden_de_tab_en_el_orden_de_uso(self):
         self.assertEqual(self._nombres_en_orden(self.dialogo), [
             "Transmitir a", "Tu usuario de TikTok", "Preparar destino",
-            "Transmitir", "Grabar", "Pausar la grabación",
+            "Transmitir", "Grabar", "Pausar grabación",
             "Escena", "Poner al aire", "Ventana que se captura",
             "Usar esa ventana", "GuardarCaptura", "ActualizarEstado",
             "Cómo se ve la escena",
-            "Panel de chat para transmitir", "Preparar el panel", "Fuente",
+            "Panel de chat para transmitir", "Preparar panel", "Fuente",
             "Estado del panel",
             "Posición del panel", "Colocar en esa posición",
             "Ancho del panel en píxeles", "Alto del panel en píxeles",

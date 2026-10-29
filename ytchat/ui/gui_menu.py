@@ -233,7 +233,7 @@ def _construir_menu_ayuda(frame, mb):
     m = wx.Menu()
     mi_guia = m.Append(wx.ID_ANY, _("&Guía de configuración de la API…"))
     mi_incidente = m.Append(wx.ID_ANY, _("&Marcar incidencia") + frame._accel("marcar_incidencia"))
-    mi_registros = m.Append(wx.ID_ANY, _("Abrir la carpeta de &registros"))
+    mi_registros = m.Append(wx.ID_ANY, _("Abrir carpeta de &registros"))
     mi_actualizar_app = m.Append(wx.ID_ANY, _("&Buscar actualizaciones…"))
     mi_about = m.Append(wx.ID_ABOUT, _("&Acerca de"))
     mb.Append(m, _("A&yuda"))
@@ -329,7 +329,7 @@ def _construir_menu_ver(frame, mb):
         item = sub_rec.Append(wx.ID_ANY, _(ETIQUETAS[accion]) + frame._accel(accion))
         frame._bind_menu(item, frame._leer_reciente, n)
     m.AppendSubMenu(sub_rec, _("Mensajes recientes &del chat"))
-    mi_escena = m.Append(wx.ID_ANY, _("Describir la escena de &OBS") + frame._accel("describir_escena"))
+    mi_escena = m.Append(wx.ID_ANY, _("Describir escena de &OBS") + frame._accel("describir_escena"))
     mi_ia = m.Append(wx.ID_ANY, _("Preguntar a la &IA sobre la imagen…") + frame._accel("preguntar_ia"))
     mi_rapida = m.Append(wx.ID_ANY, _("Consul&ta rápida a la IA") + frame._accel("consulta_rapida_ia"))
     mb.Append(m, _("&Ver"))
@@ -362,9 +362,9 @@ def _construir_menu_musica(frame, mb):
     frame.mi_musica_anterior = m.Append(
         wx.ID_ANY, _("Canción &anterior") + frame._accel("musica_anterior"))
     frame.mi_musica_vol_mas = m.Append(
-        wx.ID_ANY, _("Subir el &volumen") + frame._accel("musica_vol_mas"))
+        wx.ID_ANY, _("Subir &volumen") + frame._accel("musica_vol_mas"))
     frame.mi_musica_vol_menos = m.Append(
-        wx.ID_ANY, _("&Bajar el volumen") + frame._accel("musica_vol_menos"))
+        wx.ID_ANY, _("&Bajar volumen") + frame._accel("musica_vol_menos"))
     frame.mi_musica_que_suena = m.Append(
         wx.ID_ANY, _("&Qué suena") + frame._accel("musica_que_suena"))
     frame.mi_musica_adelantar = m.Append(
@@ -375,13 +375,13 @@ def _construir_menu_musica(frame, mb):
     frame.mi_musica_silenciar = m.AppendCheckItem(
         wx.ID_ANY, _("Silenciar la &música") + frame._accel("musica_silenciar"))
     mi_detener = m.Append(
-        wx.ID_ANY, _("&Detener la música") + frame._accel("musica_detener"))
+        wx.ID_ANY, _("&Detener música") + frame._accel("musica_detener"))
     frame.mi_musica_aleatorio = m.AppendCheckItem(
         wx.ID_ANY, _("&Orden aleatorio") + frame._accel("musica_aleatorio"))
     frame.mi_musica_aleatorio.Check(
         bool(frame._config.get("musica_aleatorio", False)))
     mi_repetir = m.Append(
-        wx.ID_ANY, _("Cambiar la &repetición") + frame._accel("musica_repetir"))
+        wx.ID_ANY, _("Cambiar &repetición") + frame._accel("musica_repetir"))
     mb.Append(m, _("&Música"))
     for item, accion in (
             (frame.mi_musica_ventana, "abrir_ventana"),

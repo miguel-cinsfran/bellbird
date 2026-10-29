@@ -35,7 +35,7 @@ logger = diagnostico.obtener_logger(__name__)
 
 # Etiquetas legibles para el Choice de formato. mp3/m4a abren el bitrate.
 _FORMATOS_OPCIONES = [
-    (N_("Vídeo MP4 (muxed)"), "mp4"),
+    (N_("Vídeo MP4"), "mp4"),
     (N_("Vídeo WebM"),        "webm"),
     (N_("Audio MP3"),         "mp3"),
     (N_("Audio M4A"),         "m4a"),
@@ -201,12 +201,12 @@ class GestorDescargasDialog(wx.Dialog):
 
         # Bitrate (solo se habilita si formato es audio).
         fila_bit = wx.BoxSizer(wx.HORIZONTAL)
-        lbl_bit = wx.StaticText(padre, label=_("&Bitrate (kbps):"), name="EtiquetaBitrate")
+        lbl_bit = wx.StaticText(padre, label=_("&Velocidad de bits (kbps):"), name="EtiquetaBitrate")
         lbl_bit.SetForegroundColour(_T.text)
         fila_bit.Add(lbl_bit, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
         self.cho_bitrate = wx.Choice(padre,
                                      choices=[str(b) for b in _BITRATE_OPCIONES],
-                                     name=_("Bitrate"))
+                                      name=_("Velocidad de bits"))
         _tc(self.cho_bitrate)
         try:    self.cho_bitrate.SetSelection(
                     _BITRATE_OPCIONES.index(int(self._opciones.get("bitrate", 192))))
@@ -215,12 +215,12 @@ class GestorDescargasDialog(wx.Dialog):
         box.Add(fila_bit, 0, wx.EXPAND | wx.ALL, 6)
 
         fila_carp = wx.BoxSizer(wx.HORIZONTAL)
-        lbl_carp = wx.StaticText(padre, label=_("Carpeta &destino:"), name="EtiquetaCarpeta")
+        lbl_carp = wx.StaticText(padre, label=_("Carpeta de &destino:"), name="EtiquetaCarpeta")
         lbl_carp.SetForegroundColour(_T.text)
         fila_carp.Add(lbl_carp, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
         self.dir_carpeta = wx.DirPickerCtrl(
             padre, path=self._opciones.get("carpeta") or str(paths.descargas_por_defecto()),
-            name=_("Carpeta destino"), message=_("Elige la carpeta de descargas"))
+            name=_("Carpeta de destino"), message=_("Elige la carpeta de descargas"))
         _tc(self.dir_carpeta)
         nombrar_selector_carpeta(self.dir_carpeta)
         fila_carp.Add(self.dir_carpeta, 1, wx.EXPAND)
@@ -229,7 +229,7 @@ class GestorDescargasDialog(wx.Dialog):
         # Enumerar playlist (casilla, sin color).
         self.chk_enumerar = wx.CheckBox(
             padre, name="EnumerarPlaylist",
-            label=_("&Enumerar ítems de la lista de reproducción (01_, 02_…)"))
+            label=_("&Numerar archivos de la lista de reproducción (01_, 02_…)"))
         self.chk_enumerar.SetValue(bool(self._opciones.get("enumerar", False)))
         box.Add(self.chk_enumerar, 0, wx.ALL, 6)
 
@@ -237,7 +237,7 @@ class GestorDescargasDialog(wx.Dialog):
         return box
 
     def _seccion_anadir(self, parent):
-        box, padre = caja_de_grupo(parent, _("Añadir enlace"))
+        box, padre = caja_de_grupo(parent, _("Agregar enlace"))
         fila = wx.BoxSizer(wx.HORIZONTAL)
         lbl = wx.StaticText(padre, label=_("En&lace del vídeo o lista de reproducción:"),
                             name="EtiquetaURL")
@@ -250,7 +250,7 @@ class GestorDescargasDialog(wx.Dialog):
         self.txt_url.SetToolTip(_("Pega un enlace de YouTube (vídeo o lista de reproducción)."))
         self.txt_url.Bind(wx.EVT_TEXT_ENTER, lambda e: self._on_anadir(None))
         fila.Add(self.txt_url, 1, wx.EXPAND)
-        self.btn_anadir = wx.Button(padre, label=_("Aña&dir"), name="AnadirURL")
+        self.btn_anadir = wx.Button(padre, label=_("A&gregar"), name="AnadirURL")
         self.btn_anadir.SetBackgroundColour(_T.btn)
         self.btn_anadir.SetForegroundColour(_T.btn_t)
         self.btn_anadir.Bind(wx.EVT_BUTTON, self._on_anadir)
@@ -271,7 +271,7 @@ class GestorDescargasDialog(wx.Dialog):
         vs_cola.Add(self.lista, 1, wx.EXPAND | wx.ALL, 6)
 
         fila = wx.BoxSizer(wx.HORIZONTAL)
-        self.btn_cancelar = wx.Button(cola, label=_("&Cancelar seleccionado"),
+        self.btn_cancelar = wx.Button(cola, label=_("&Cancelar descarga"),
                                       name="CancelarDescarga")
         self.btn_cancelar.SetBackgroundColour(_T.btn)
         self.btn_cancelar.SetForegroundColour(_T.btn_t)
@@ -292,8 +292,8 @@ class GestorDescargasDialog(wx.Dialog):
         self.lista_historial.InsertColumn(2, _("Estado"), width=140)
         vs_historial.Add(self.lista_historial, 1, wx.EXPAND | wx.ALL, 6)
         self.btn_vaciar_historial = wx.Button(
-            pagina_historial, label=_("&Vaciar el historial"),
-            name=_("Vaciar el historial"))
+            pagina_historial, label=_("&Vaciar historial"),
+            name=_("Vaciar historial"))
         self.btn_vaciar_historial.SetBackgroundColour(_T.btn)
         self.btn_vaciar_historial.SetForegroundColour(_T.btn_t)
         self.btn_vaciar_historial.Bind(wx.EVT_BUTTON, self._on_vaciar_historial)
@@ -337,7 +337,7 @@ class GestorDescargasDialog(wx.Dialog):
     def _on_anadir(self, _event):
         url = self.txt_url.GetValue().strip()
         if not url:
-            wx.MessageBox(_("Pega un enlace de YouTube (vídeo o lista de reproducción) antes de añadir."),
+            wx.MessageBox(_("Pega un enlace de YouTube (vídeo o lista de reproducción) antes de agregar."),
                           _("Falta el enlace"), wx.OK | wx.ICON_INFORMATION, self)
             return
         # Persistimos las opciones elegidas antes de encolar (así el Gestor
@@ -367,7 +367,7 @@ class GestorDescargasDialog(wx.Dialog):
 
         self._gestor.encolar(url, _cb_progreso, _cb_estado, _registrar_fila)
         self.txt_url.SetValue("")
-        anunciar(_("Añadido a la cola"))
+        anunciar(_("Agregado a la cola"))
 
     def _repoblar_lista(self) -> None:
         for item in self._gestor.lista():
@@ -420,7 +420,7 @@ class GestorDescargasDialog(wx.Dialog):
         cantidad = len(self._historial)
         mensaje = _("Borra las entradas del historial. No borra ningún archivo "
                     "descargado del disco, solo la lista. ¿Deseas continuar?")
-        if wx.MessageBox(mensaje, _("Vaciar el historial"),
+        if wx.MessageBox(mensaje, _("Vaciar historial"),
                          wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING, self) != wx.YES:
             return
         self._historial = []

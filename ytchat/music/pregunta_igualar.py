@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from ytchat.core.idioma import N_, _, ngettext
 
-TITULO = N_("Igualar el volumen")
+TITULO = N_("Igualar volumen")
 CASILLA = N_("&No volver a preguntar")
 
 _MB = 1024 * 1024

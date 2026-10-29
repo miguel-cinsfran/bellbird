@@ -169,8 +169,8 @@ class IgualandoVentanaMusica:
             self.btn_igualar.SetLabel(_("Detener la &igualación"))
             nombre_accesible(self.btn_igualar, _("Detener la igualación"))
         else:
-            self.btn_igualar.SetLabel(_("&Igualar el volumen"))
-            nombre_accesible(self.btn_igualar, _("Igualar el volumen"))
+            self.btn_igualar.SetLabel(_("&Igualar volumen"))
+            nombre_accesible(self.btn_igualar, _("Igualar volumen"))
 
     def _midiendo_igualacion(self) -> bool:
         """Si el control tiene una medición en curso."""

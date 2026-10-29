@@ -368,19 +368,19 @@ class TestTextoCarpetaExaminada(unittest.TestCase):
 
     def test_una_quitada_en_singular(self):
         self.assertEqual(vista.texto_carpeta_examinada(0, 1),
-                         "Carpeta examinada: 1 quitada.")
+                          "Carpeta examinada: 1 eliminada.")
 
     def test_varias_quitadas_en_plural(self):
         self.assertEqual(vista.texto_carpeta_examinada(0, 2),
-                         "Carpeta examinada: 2 quitadas.")
+                          "Carpeta examinada: 2 eliminadas.")
 
     def test_nuevas_y_quitadas(self):
         self.assertEqual(vista.texto_carpeta_examinada(2, 3),
-                         "Carpeta examinada: 2 canciones nuevas y 3 quitadas.")
+                          "Carpeta examinada: 2 canciones nuevas y 3 eliminadas.")
 
     def test_singulares_en_las_dos_partes(self):
         self.assertEqual(vista.texto_carpeta_examinada(1, 1),
-                         "Carpeta examinada: 1 canción nueva y 1 quitada.")
+                          "Carpeta examinada: 1 canción nueva y 1 eliminada.")
 
 
 class TestPseudoVista(unittest.TestCase):

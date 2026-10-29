@@ -62,7 +62,7 @@ class PaginaAtajos:
         self._crear_grupos(p, vs)
 
         btn_restablecer = wx.Button(
-            p, label=_("&Restablecer los atajos a los valores de fábrica"),
+            p, label=_("&Restablecer atajos de fábrica"),
             name="RestablecerAtajos")
         btn_restablecer.SetBackgroundColour(_T.btn)
         btn_restablecer.SetForegroundColour(_T.btn_t)

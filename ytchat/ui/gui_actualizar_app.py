@@ -382,7 +382,7 @@ class _FlujoActualizacion:
     def _mostrar_listo(self, raiz, ejecutable):
         self.ventana.estado(_("La actualización está preparada. {app} se cierra y vuelve "
                               "a abrirse sola en alrededor de un minuto. Si hay un "
-                              "chat conectado o un directo en curso, se corta.").format(app=APP_NAME))
+                              "chat conectado o un directo en curso, se interrumpe.").format(app=APP_NAME))
         self.ventana.ofrecer_accion(
             _("&Instalar y reiniciar"),
             lambda: self._instalar(raiz, ejecutable))

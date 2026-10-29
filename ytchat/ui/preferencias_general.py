@@ -94,8 +94,8 @@ class PaginaGeneral:
         vs.Add(self.chk_confirmar_salida, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         self.chk_sonido_inicio = wx.CheckBox(
-            p, label=_("Reproducir el sonido de &inicio"),
-            name=_("Reproducir el sonido de inicio"))
+            p, label=_("Reproducir sonido de &inicio"),
+            name=_("Reproducir sonido de inicio"))
         vs.Add(self.chk_sonido_inicio, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         self.chk_registro_detallado = wx.CheckBox(
@@ -108,16 +108,16 @@ class PaginaGeneral:
         # reiniciar y cierran el diálogo sin guardar, para que Guardar no pise
         # el archivo nuevo con los valores viejos de los controles.
         self.btn_abrir_datos = wx.Button(
-            p, label=_("Abrir la carpeta de da&tos"),
-            name=_("Abrir la carpeta de datos"))
+            p, label=_("Abrir carpeta de da&tos"),
+            name=_("Abrir carpeta de datos"))
         vs.Add(self.btn_abrir_datos, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.btn_exportar_prefs = wx.Button(
-            p, label=_("E&xportar las preferencias…"),
-            name=_("Exportar las preferencias"))
+            p, label=_("E&xportar preferencias…"),
+            name=_("Exportar preferencias"))
         vs.Add(self.btn_exportar_prefs, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.btn_importar_prefs = wx.Button(
-            p, label=_("I&mportar las preferencias…"),
-            name=_("Importar las preferencias"))
+            p, label=_("I&mportar preferencias…"),
+            name=_("Importar preferencias"))
         vs.Add(self.btn_importar_prefs, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.btn_restablecer_prefs = wx.Button(
             p, label=_("Restablecer todas las &preferencias…"),
@@ -138,7 +138,7 @@ class PaginaGeneral:
 
     def _exportar_prefs(self, event):
         with wx.FileDialog(
-                self._ventana, _("Exportar las preferencias"),
+                self._ventana, _("Exportar preferencias"),
                 # Traductores: traduce solo «Preferencias»; no cambies «(*.ini)|*.ini».
                 wildcard=_("Preferencias (*.ini)|*.ini"),
                 defaultFile=f"{config.APP_NAME} preferencias.ini",
@@ -150,14 +150,14 @@ class PaginaGeneral:
             preferencias_archivo.exportar(ruta)
         except Exception as exc:
             wx.MessageBox(_("No se pudieron exportar las preferencias:\n\n{exc}").format(exc=exc),
-                          _("Exportar las preferencias"),
+                          _("Exportar preferencias"),
                           wx.OK | wx.ICON_ERROR, self._ventana)
             return
         anunciar(_("Preferencias exportadas"))
 
     def _importar_prefs(self, event):
         with wx.FileDialog(
-                self._ventana, _("Importar las preferencias"),
+                self._ventana, _("Importar preferencias"),
                 # Traductores: traduce solo «Preferencias»; no cambies «(*.ini)|*.ini».
                 wildcard=_("Preferencias (*.ini)|*.ini"),
                 style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as cuadro:
@@ -166,14 +166,14 @@ class PaginaGeneral:
             ruta = cuadro.GetPath()
         motivo = preferencias_archivo.motivo_no_importable(ruta)
         if motivo is not None:
-            wx.MessageBox(motivo, _("Importar las preferencias"),
+            wx.MessageBox(motivo, _("Importar preferencias"),
                           wx.OK | wx.ICON_WARNING, self._ventana)
             return
         try:
             preferencias_archivo.importar(ruta)
         except Exception as exc:
             wx.MessageBox(_("No se pudieron importar las preferencias:\n\n{exc}").format(exc=exc),
-                          _("Importar las preferencias"),
+                          _("Importar preferencias"),
                           wx.OK | wx.ICON_ERROR, self._ventana)
             return
         wx.MessageBox(_("Preferencias importadas. Se aplican al reiniciar "

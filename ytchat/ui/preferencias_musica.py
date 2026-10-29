@@ -86,7 +86,7 @@ class PaginaMusica:
         vs.Add(self.chk_musica_repetir, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         self.chk_musica_retomar = wx.CheckBox(
-            p, label=_("Recordar la ú&ltima lista al abrir"),
+            p, label=_("Recordar ú&ltima lista al abrir"),
             name="MusicaRetomar")
         self.chk_musica_retomar.SetForegroundColour(_T.text)
         vs.Add(self.chk_musica_retomar, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
@@ -114,7 +114,7 @@ class PaginaMusica:
         _tc(self.cho_musica_decir)
         vs.Add(self.cho_musica_decir, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.chk_musica_decir_pausa = wx.CheckBox(
-            p, label=_("A&nunciar la pausa, la reanudación y la vuelta al comienzo"),
+            p, label=_("A&nunciar pausa, reanudación y vuelta al comienzo"),
             name="MusicaDecirPausa")
         self.chk_musica_decir_pausa.SetForegroundColour(_T.text)
         vs.Add(self.chk_musica_decir_pausa, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
@@ -143,15 +143,15 @@ class PaginaMusica:
         vs.Add(self.cho_musica_salida, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         self.btn_buscar_salidas = wx.Button(
-            p, label=_("&Buscar las salidas de audio"),
-            name=_("Buscar las salidas de audio"))
+            p, label=_("&Buscar salidas de audio"),
+            name=_("Buscar salidas de audio"))
         vs.Add(self.btn_buscar_salidas, 0, wx.ALL, 10)
         self.btn_buscar_salidas.Bind(wx.EVT_BUTTON, self._buscar_salidas)
 
     def _casilla_igualar(self, p, vs):
         self.chk_musica_normalizar = wx.CheckBox(
-            p, label=_("&Igualar el volumen de las canciones"),
-            name=_("Igualar el volumen de las canciones"))
+            p, label=_("&Igualar volumen de las canciones"),
+            name=_("Igualar volumen de las canciones"))
         self.chk_musica_normalizar.SetForegroundColour(_T.text)
         vs.Add(self.chk_musica_normalizar, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
@@ -164,7 +164,7 @@ class PaginaMusica:
 
     def _musica_atajos(self, p, vs):
         self.chk_musica_atajos_globales = wx.CheckBox(
-            p, label=_("Usar los atajos de música en cualquier &programa"),
+            p, label=_("Usar atajos de música en cualquier &programa"),
             name="MusicaAtajosGlobales")
         self.chk_musica_atajos_globales.SetForegroundColour(_T.text)
         vs.Add(self.chk_musica_atajos_globales, 0,

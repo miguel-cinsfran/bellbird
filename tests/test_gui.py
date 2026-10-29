@@ -1654,7 +1654,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ["Buscar actualizaciones al iniciar",
              "Preguntar antes de salir si hay un chat conectado "
              "o una transmisión en curso",
-             "Reproducir el sonido de inicio",
+             "Reproducir sonido de inicio",
              "Guardar un registro detallado para diagnosticar fallos"])
         self.assertFalse(any(p.GetName() == "PagDiagnostico"
                              for p in dialogo._paginas()))
@@ -1683,13 +1683,13 @@ class TestCategoriasDePreferencias(unittest.TestCase):
                 ("Buscar actualizaciones al iniciar", "PagGeneral"),
                 ("Preguntar antes de salir si hay un chat conectado "
                  "o una transmisión en curso", "PagGeneral"),
-                ("Reproducir el sonido de inicio", "PagGeneral"),
+                ("Reproducir sonido de inicio", "PagGeneral"),
                 ("Guardar un registro detallado para diagnosticar fallos",
                  "PagGeneral"),
                 ("Estrategia de la cola", "PagCola"),
                 ("Tamaño máximo de la cola", "PagCola"),
                 ("Leer solo el nombre a partir de", "PagCola"),
-                ("Reconectar automáticamente si se corta", "PagConexion"),
+                ("Reconectar automáticamente", "PagConexion"),
                 ("Espera máxima entre intentos, en segundos", "PagConexion"),
                 ("Número máximo de intentos", "PagConexion"),
                 ("Puerto del panel de chat", "PagTransmision"),
@@ -1774,7 +1774,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
                      "MusicaSonidoTema", "Qué decir al pasar de canción",
                      "MusicaDecirPausa", "Volumen de la música",
                      "Preguntar al abrir Música si igualar el volumen",
-                     "Salida de audio de la música", "Buscar las salidas de audio",
+                     "Salida de audio de la música", "Buscar salidas de audio",
                      "MusicaAtajosGlobales"]
         orden = [h.GetName() for h in pagina.GetChildren()
                  if h.GetName() in esperados]
@@ -1791,17 +1791,17 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             "Carpeta de &música:",
             "Reproducir en orden &aleatorio",
             "&Repetir:",
-            "Recordar la ú&ltima lista al abrir",
+            "Recordar ú&ltima lista al abrir",
             "&Fundido entre canciones, en segundos:",
             "&Sonido al pasar de canción",
             "&Decir al pasar de canción:",
-            "A&nunciar la pausa, la reanudación y la vuelta al comienzo",
+            "A&nunciar pausa, reanudación y vuelta al comienzo",
             "&Volumen de la música",
-            "&Igualar el volumen de las canciones",
+            "&Igualar volumen de las canciones",
             "Pr&eguntar al abrir Música si igualar el volumen",
             "Salida de a&udio de la música",
-            "&Buscar las salidas de audio",
-            "Usar los atajos de música en cualquier &programa",
+            "&Buscar salidas de audio",
+            "Usar atajos de música en cualquier &programa",
         ])
 
     def test_los_mnemonicos_de_musica_no_se_repiten_ni_chocan_con_guardar(self):
@@ -2484,7 +2484,7 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
             boton.GetEventHandler().ProcessEvent(self._evento_boton(boton))
         mensaje.assert_called_once()
         argumentos = mensaje.call_args.args
-        self.assertEqual(argumentos[1], "Borrar la clave")
+        self.assertEqual(argumentos[1], "Eliminar clave")
         self.assertEqual(
             argumentos[2],
             gui.wx.YES_NO | gui.wx.NO_DEFAULT | gui.wx.ICON_WARNING)
@@ -2717,7 +2717,7 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
 
     def _pulsar_actualizar(self, dialogo, muestra, enviar=None,
                            descargar=None):
-        """Corre «Actualizar la lista» con el hilo y la red doblados."""
+        """Corre «Actualizar lista» con el hilo y la red doblados."""
         if enviar is None:
             enviar = mock.Mock()
         if descargar is None:
@@ -3453,9 +3453,9 @@ class TestPreferenciasArchivoBotones(unittest.TestCase):
             ["StaticText", "EleccionTexto"] + ["CheckBox"] * 4 + ["Button"] * 4)
         self.assertEqual(
             [h.GetName() for h in hijos if isinstance(h, gui.wx.Button)],
-            ["Abrir la carpeta de datos",
-             "Exportar las preferencias",
-             "Importar las preferencias",
+            ["Abrir carpeta de datos",
+             "Exportar preferencias",
+             "Importar preferencias",
              "Restablecer todas las preferencias"])
 
     def _cuadro_archivo(self, ruta):
@@ -5078,8 +5078,8 @@ class TestCopiarEnlaceDirecto(unittest.TestCase):
         esperado = frame._accel("describir_escena")
         etiqueta, elemento = next(
             (etiqueta, elemento) for etiqueta, elemento in elementos
-            if "Describir la escena" in etiqueta)
-        self.assertIn("Describir la escena de &OBS", etiqueta)
+            if "Describir escena" in etiqueta)
+        self.assertIn("Describir escena de &OBS", etiqueta)
         self.assertIn(esperado, etiqueta)
         frame._bind_menu.assert_any_call(elemento, frame._describir_escena)
 

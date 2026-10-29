@@ -85,7 +85,7 @@ ETIQUETAS = {
     "silenciar_lectura": N_("Silenciar lectura TTS"),
     "silenciar_sonidos": N_("Silenciar sonidos"), "anunciar_estado": N_("Anunciar estado"),
     "anunciar_autor": N_("Anunciar autor del último mensaje"),
-    "describir_escena": N_("Describir la escena de OBS"),
+    "describir_escena": N_("Describir escena de OBS"),
     "consulta_rapida_ia": N_("Consulta rápida a la IA sobre la escena"),
     "region_siguiente": N_("Región siguiente"), "region_anterior": N_("Región anterior"),
     # Música (Ctrl+Alt)
@@ -98,7 +98,7 @@ ETIQUETAS = {
     "musica_silenciar": N_("Silenciar o devolver el sonido de la música"),
     "musica_aleatorio": N_("Orden aleatorio de la música"),
     "musica_repetir": N_("Cambiar la repetición de la música"),
-    "musica_detener": N_("Detener la música"),
+    "musica_detener": N_("Detener música"),
     "musica_adelantar": N_("Adelantar la música 10 segundos"),
     "musica_retroceder": N_("Retroceder la música 10 segundos"),
     "musica_ventana": N_("Abrir la ventana de música"),

@@ -61,7 +61,7 @@ class SeccionClaveIA:
                   wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.btn_nueva.Bind(wx.EVT_BUTTON, self._on_nueva)
         self.btn_borrar = wx.Button(
-            panel, label=_("&Borrar la clave guardada"), name="BorrarClaveIA")
+            panel, label=_("E&liminar clave guardada"), name="BorrarClaveIA")
         sizer.Add(self.btn_borrar, 0,
                   wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.btn_borrar.Bind(wx.EVT_BUTTON, self._on_borrar)
@@ -155,7 +155,7 @@ class SeccionClaveIA:
         mensaje = opciones_ia.TEXTO_CONFIRMAR_BORRADO.format(
             proveedor=proveedor.nombre)
         respuesta = wx.MessageBox(
-            mensaje, _("Borrar la clave"),
+            mensaje, _("Eliminar clave"),
             wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING, self._panel)
         if respuesta != wx.YES:
             self.btn_borrar.SetFocus()

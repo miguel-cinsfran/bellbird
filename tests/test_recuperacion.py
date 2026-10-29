@@ -285,14 +285,14 @@ class TestDespachoFinVod(unittest.TestCase):
                     aviso.assert_not_called()
                 elif decision == recuperacion.CORTE:
                     panel._detener.assert_called_once_with(silencioso=True)
-                    anunciar.assert_called_once_with("Se cortó el vídeo")
+                    anunciar.assert_called_once_with("Vídeo interrumpido")
                     aviso.assert_not_called()
                 elif decision == recuperacion.CORTE_SONADO:
                     aviso.assert_called_once_with(
                         "VOD_RELEVO corte sin recuperar ultima=%d dur=%d",
                         20000, 60000)
                     panel._detener.assert_called_once_with(silencioso=True)
-                    anunciar.assert_called_once_with("Se cortó el vídeo")
+                    anunciar.assert_called_once_with("Vídeo interrumpido")
                 elif decision == recuperacion.ESCLAVO:
                     aviso.assert_called_once_with(
                         "VOD_RELEVO sin arrancar, sigue con esclavo")

@@ -118,7 +118,7 @@ class PaginaIA:
             self._ia_proveedor_actual, self._ia_clave_cambiada)
         self.ia_clave.construir(p, vs)
         self.btn_ia_probar_clave = wx.Button(
-            p, label=_("P&robar la clave"), name="ProbarClaveIA")
+            p, label=_("P&robar clave"), name="ProbarClaveIA")
         vs.Add(self.btn_ia_probar_clave, 0,
                wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.btn_ia_probar_clave.Bind(
@@ -135,7 +135,7 @@ class PaginaIA:
         vs.Add(self.chk_ia_gratis, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.chk_ia_gratis.Bind(wx.EVT_CHECKBOX, self._on_ia_gratis)
         self.btn_ia_actualizar = wx.Button(
-            p, label=_("&Actualizar la lista de modelos"),
+            p, label=_("&Actualizar lista de modelos"),
             name="ActualizarModelosIA")
         vs.Add(self.btn_ia_actualizar, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         vs.Add(fila_label(p, _("&Otro modelo")),
@@ -163,12 +163,12 @@ class PaginaIA:
         vs.Add(self.txt_ia_pregunta, 0,
                wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.btn_ia_restaurar = wx.Button(
-            p, label=_("R&estaurar la instrucción"), name="RestaurarPreguntaIA")
+            p, label=_("R&estaurar instrucción"), name="RestaurarPreguntaIA")
         vs.Add(self.btn_ia_restaurar, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.btn_ia_restaurar.Bind(wx.EVT_BUTTON, self._on_ia_restaurar)
 
     def _ia_largo(self, p, vs):
-        vs.Add(fila_label(p, _("&Largo de la respuesta")),
+        vs.Add(fila_label(p, _("E&xtensión de la respuesta")),
                0, wx.LEFT | wx.RIGHT, 10)
         # Traductores: largo de la respuesta de la IA.
         self.cho_ia_largo = EleccionTexto(

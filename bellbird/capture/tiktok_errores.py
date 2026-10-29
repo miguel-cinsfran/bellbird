@@ -4,7 +4,7 @@ Cambia solo cuando cambia cómo se clasifican y se cuentan los errores de
 TikTokLive; la conexión y la reconexión viven en tiktok_captura.
 """
 
-from bellbird.core.idioma import _
+from bellbird.core.idioma import N_, _
 
 
 # Excepciones de TikTokLive que no vale la pena reintentar. Se comparan por
@@ -13,6 +13,11 @@ from bellbird.core.idioma import _
 # httpx.HTTPStatusError transitorio, no un usuario inexistente.
 CLASES_OFFLINE = ("UserOfflineError",)
 CLASES_NO_EXISTE = ("UserNotFoundError",)
+
+# Traductores: error transitorio que se anuncia y se muestra en la barra de estado.
+TEXTO_ERROR_FIRMAS = N_(
+    "El servidor de firmas de TikTok no responde o alcanzó su límite. "
+    "Espera un momento y vuelve a intentarlo.")
 
 
 def nombre(exc) -> str:
@@ -32,14 +37,13 @@ def mensaje_error(exc) -> str:
         return _("Ese usuario de TikTok no está en directo ahora mismo.")
     if nombre_exc in CLASES_NO_EXISTE:
         # Traductores: error permanente que se anuncia y se muestra en la barra de estado.
-        return _("No se encontró ese usuario de TikTok. Revisa la URL.")
+        return _("No se encontró ese usuario de TikTok. Revisa el enlace.")
     if "sign" in t or "euler" in t or "rate" in t and "limit" in t:
-        # Traductores: error transitorio que se anuncia y se muestra en la barra de estado.
-        return _("El servidor de firmas de TikTok no responde o alcanzó su "
-                 "límite. Espera un momento y reintenta.")
+        return _(TEXTO_ERROR_FIRMAS)
     if "captcha" in t or "blocked" in t:
         # Traductores: error transitorio que se anuncia y se muestra en la barra de estado.
-        return _("TikTok pidió verificación (captcha). Reintenta más tarde.")
+        return _("TikTok pidió verificación (captcha). Vuelve a intentarlo "
+                 "más tarde.")
     if es_error_http(exc):
         # Traductores: error transitorio que se anuncia y se muestra en la barra de estado. {detalle} es el detalle técnico.
         return _("TikTok no respondió bien (error HTTP): {detalle}").format(detalle=exc)

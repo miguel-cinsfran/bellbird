@@ -71,6 +71,8 @@ class TestMensajesDeError(unittest.TestCase):
         exc = self._exc("UserNotFoundError", "user not found")
         self.assertTrue(_es_error_permanente(exc))
         self.assertIn("No se encontró", _mensaje_error(exc))
+        self.assertEqual(_mensaje_error(exc),
+                         "No se encontró ese usuario de TikTok. Revisa el enlace.")
 
     def test_error_generico_no_es_permanente(self):
         exc = Exception("connection reset by peer")

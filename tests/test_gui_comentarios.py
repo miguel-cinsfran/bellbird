@@ -89,7 +89,7 @@ class TestComentariosPanel(unittest.TestCase):
         self.panel._comentar()
         self.assertEqual(DialogoFalso.instancias, [])
         gui_comentarios.anunciar.assert_called_once_with(
-            "Este video tiene los comentarios desactivados")
+            "Este vídeo tiene los comentarios desactivados")
 
     def test_error_de_comentarios_cerrados_se_olvida_al_cambiar_video(self):
         self.panel._pagina_err(Exception("commentsDisabled"))

@@ -40,8 +40,8 @@ def validar_mensaje(texto: str, minutos_min: int, minutos_max: int) -> tuple[str
     # Se avisan las formas habituales de URL; YouTube puede bloquearlas.
     if _URL_RE.search(texto):
         # Traductores: aviso de la ventana de mensajes programados cuando el texto trae un enlace.
-        aviso = _("YouTube suele bloquear los enlaces en el chat en vivo. "
-                  "Conviene poner el nombre de usuario en vez de la dirección completa.")
+        aviso = _("YouTube suele bloquear los enlaces en el chat del directo. "
+                  "Escribe el nombre de usuario en vez del enlace completo.")
     return "", aviso
 
 
@@ -117,16 +117,16 @@ def describir_proximo(mensajes: list[dict], ahora: float) -> str:
     # es «en menos de un minuto», es que todavía no se ha programado.
     con_hora = [mensaje["proximo"] for mensaje in activos if mensaje["proximo"] > 0]
     if not con_hora:
-        # Traductores: estado F2 de los mensajes programados cuando aún no hay hora.
-        return _("Próximo mensaje programado: pendiente de programar")
+        # Traductores: estado F2 de los mensajes automáticos cuando aún no hay hora.
+        return _("Próximo mensaje automático: pendiente de programar")
     restante = min(con_hora) - ahora
     if restante < 60:
-        # Traductores: estado F2 de los mensajes programados cuando falta menos de un minuto.
-        return _("Próximo mensaje programado en menos de un minuto")
+        # Traductores: estado F2 de los mensajes automáticos cuando falta menos de un minuto.
+        return _("Próximo mensaje automático en menos de un minuto")
     minutos = math.ceil(restante / 60)
-    # Traductores: estado F2 de los mensajes programados. {minutos} es en cuántos minutos se envía.
-    return ngettext("Próximo mensaje programado en {minutos} minuto",
-                    "Próximo mensaje programado en {minutos} minutos",
+    # Traductores: estado F2 de los mensajes automáticos. {minutos} es en cuántos minutos se envía.
+    return ngettext("Próximo mensaje automático en {minutos} minuto",
+                    "Próximo mensaje automático en {minutos} minutos",
                     minutos).format(minutos=minutos)
 
 

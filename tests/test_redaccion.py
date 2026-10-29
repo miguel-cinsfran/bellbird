@@ -20,11 +20,11 @@ class TestRedaccion(unittest.TestCase):
 
     def test_motivo_chat_video_sin_directo(self):
         self.assertEqual(redaccion.motivo_chat(True, False, False, True, True, True),
-                         "Este vídeo no tiene chat en vivo")
+                         "Este vídeo no tiene chat")
 
     def test_motivo_chat_sin_librerias(self):
         self.assertEqual(redaccion.motivo_chat(True, False, True, False, True, True),
-                         "Faltan las librerías de la API para escribir en el chat")
+                         "Faltan las bibliotecas de la API para escribir en el chat")
 
     def test_motivo_chat_sin_sesion(self):
         self.assertIn("Inicia sesión", redaccion.motivo_chat(True, False, True, True, False, True))
@@ -51,10 +51,10 @@ class TestRedaccion(unittest.TestCase):
 
     def test_motivo_chat_detalla_la_causa(self):
         casos = {
-            "sin_credenciales": ("Falta la API key para saber si este directo permite "
-                                  "escribir. Ponla en Preferencias, pestaña API"),
-            "sin_video": "No se encontró este video",
-            "no_es_directo": "Este video no es un directo",
+            "sin_credenciales": ("Falta la clave de API para saber si este directo permite "
+                                  "escribir. Escríbela en Preferencias, categoría API y sesión."),
+            "sin_video": "No se encontró este vídeo",
+            "no_es_directo": "Este vídeo no es un directo",
             "chat_desactivado": "Este directo tiene el chat desactivado",
             "desconocida": "No se pudo acceder al chat de este directo",
         }
@@ -68,7 +68,7 @@ class TestRedaccion(unittest.TestCase):
             with self.subTest(hay_librerias=hay_librerias):
                 motivo = redaccion.motivo_chat(True, False, True, hay_librerias,
                                                 hay_sesion, False)
-                self.assertNotEqual(motivo, "Este vídeo no tiene chat en vivo")
+                self.assertNotEqual(motivo, "Este vídeo no tiene chat")
 
     def test_motivo_chat_llega_al_panel_en_directo_sin_sesion(self):
         self.app = gui.wx.App.Get() or gui.wx.App(False)
@@ -96,13 +96,14 @@ class TestRedaccion(unittest.TestCase):
     def test_motivo_lectura_comentarios_sin_librerias(self):
         self.assertEqual(
             redaccion.motivo_lectura_comentarios(False, True, True),
-            "Faltan las librerías de la API. Instálalas con: pip install "
+            "Faltan las bibliotecas de la API. Instálalas con: pip install "
             "google-api-python-client google-auth-oauthlib")
 
     def test_motivo_lectura_comentarios_sin_api_key(self):
         self.assertEqual(
             redaccion.motivo_lectura_comentarios(True, False, True),
-            "Falta la API key. Ponla en Preferencias, pestaña API, para leer comentarios.")
+            "Falta la clave de API para leer comentarios. Escríbela en "
+            "Preferencias, categoría API y sesión.")
 
     def test_motivo_lectura_comentarios_sin_video(self):
         self.assertEqual(redaccion.motivo_lectura_comentarios(True, True, False),
@@ -112,7 +113,7 @@ class TestRedaccion(unittest.TestCase):
         self.assertEqual(redaccion.motivo_lectura_comentarios(True, True, True), "")
 
     def test_motivo_lectura_comentarios_prioriza_librerias(self):
-        self.assertIn("librerías", redaccion.motivo_lectura_comentarios(False, False, False))
+        self.assertIn("bibliotecas", redaccion.motivo_lectura_comentarios(False, False, False))
 
     def test_validar(self):
         self.assertIn("Escribe", redaccion.validar("  \n ", 3))

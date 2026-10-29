@@ -32,8 +32,8 @@ class TestValidarMensaje(unittest.TestCase):
         self.assertEqual(error, "El intervalo máximo no puede ser menor que el mínimo.")
 
     def test_avisa_url_sin_rechazar(self):
-        aviso_esperado = ("YouTube suele bloquear los enlaces en el chat en vivo. "
-                          "Conviene poner el nombre de usuario en vez de la dirección completa.")
+        aviso_esperado = ("YouTube suele bloquear los enlaces en el chat del directo. "
+                          "Escribe el nombre de usuario en vez del enlace completo.")
         for prefijo in ("http://", "https://", "www."):
             with self.subTest(prefijo=prefijo):
                 error, aviso = programados.validar_mensaje(
@@ -118,29 +118,29 @@ class TestDescribirProximo(unittest.TestCase):
     def test_menos_de_un_minuto(self):
         mensajes = [{"activo": True, "proximo": 30}]
         self.assertEqual(programados.describir_proximo(mensajes, 0),
-                         "Próximo mensaje programado en menos de un minuto")
+                         "Próximo mensaje automático en menos de un minuto")
 
     def test_singular(self):
         mensajes = [{"activo": True, "proximo": 60}]
         self.assertEqual(programados.describir_proximo(mensajes, 0),
-                         "Próximo mensaje programado en 1 minuto")
+                         "Próximo mensaje automático en 1 minuto")
 
     def test_elige_el_mas_cercano_y_redondea(self):
         mensajes = [{"activo": True, "proximo": 301},
                     {"activo": True, "proximo": 500}]
         self.assertEqual(programados.describir_proximo(mensajes, 0),
-                         "Próximo mensaje programado en 6 minutos")
+                         "Próximo mensaje automático en 6 minutos")
 
     def test_recien_cargado_sin_cuerda_no_dice_menos_de_un_minuto(self):
         mensajes = [{"activo": True, "proximo": 0.0}]
         self.assertEqual(programados.describir_proximo(mensajes, 1000.0),
-                         "Próximo mensaje programado: pendiente de programar")
+                         "Próximo mensaje automático: pendiente de programar")
 
     def test_ignora_los_sin_cuerda_si_otro_ya_tiene_hora(self):
         mensajes = [{"activo": True, "proximo": 0.0},
                     {"activo": True, "proximo": 120.0}]
         self.assertEqual(programados.describir_proximo(mensajes, 0),
-                         "Próximo mensaje programado en 2 minutos")
+                         "Próximo mensaje automático en 2 minutos")
 
 
 class TestDescribirMensaje(unittest.TestCase):

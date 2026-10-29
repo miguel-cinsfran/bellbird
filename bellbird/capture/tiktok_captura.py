@@ -408,7 +408,7 @@ def capturar_con_reconexion(usuario, config, parada, on_evento,
         if on_estado:
             # Traductores: error permanente que se anuncia y se muestra en la barra de estado.
             on_estado("error_permanente",
-                      _("Falta la librería TikTokLive. Ejecuta instalar.bat."))
+                      _("Falta la biblioteca TikTokLive. Ejecuta instalar.bat."))
         parada.set()
         return
 
@@ -426,7 +426,7 @@ def capturar_con_reconexion(usuario, config, parada, on_evento,
     while not parada.is_set():
         if on_estado:
             # Traductores: estado que se anuncia y se muestra en la barra de estado al conectar. {usuario} es el usuario de TikTok.
-            on_estado("conectando", _("Conectando al directo de TikTok de @{usuario}...").format(usuario=usuario))
+            on_estado("conectando", _("Conectando al directo de TikTok de @{usuario}…").format(usuario=usuario))
         conecto[0] = False
         try:
             err = _sesion(usuario, parada, on_evento, _estado, on_info, on_espectadores,
@@ -481,9 +481,9 @@ def capturar_con_reconexion(usuario, config, parada, on_evento,
             # Traductores: estado que se anuncia y se muestra en la barra de estado. {segundos} es la espera, {intento} el intento actual y {maximo} el máximo.
             if mi:
                 on_estado("reintentando",
-                          _("Reintentando en {segundos} segundos (intento {intento} de {maximo})...").format(segundos=espera, intento=intentos, maximo=mi))
+                          _("Reintentando en {segundos} segundos (intento {intento} de {maximo})…").format(segundos=espera, intento=intentos, maximo=mi))
             else:
                 # Traductores: estado que se anuncia y se muestra en la barra de estado. {segundos} es la espera y {intento} el intento actual.
                 on_estado("reintentando",
-                          _("Reintentando en {segundos} segundos (intento {intento})...").format(segundos=espera, intento=intentos))
+                          _("Reintentando en {segundos} segundos (intento {intento})…").format(segundos=espera, intento=intentos))
         parada.wait(timeout=espera)

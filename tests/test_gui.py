@@ -413,8 +413,8 @@ class TestComentariosPanel(unittest.TestCase):
         panel.set_video("unvideo", autocargar=True)
         self.assertEqual(panel.lb.GetCount(), 1)
         self.assertEqual(panel.lb.GetString(0),
-                         "Falta la API key. Ponla en Preferencias, pestaña API, "
-                         "para leer comentarios.")
+                         "Falta la clave de API para leer comentarios. Escríbela en "
+                         "Preferencias, categoría API y sesión.")
         self.assertEqual(panel._video_id, "unvideo")
         self.assertNotIn("conectate a un video", panel.btn_comentar.GetLabel().lower())
 
@@ -5371,7 +5371,7 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
             frame._supervisar_transmision("iniciar", "YouTube", "")
         anunciar.assert_called_once_with(
             "Para transmitir a YouTube hace falta iniciar sesión con "
-            "Google, en Preferencias, pestaña API y sesión.")
+            "Google, en Preferencias, categoría API y sesión.")
         pedir.assert_not_called()
         fabrica.assert_not_called()
         self.assertIsNone(frame._supervisor)

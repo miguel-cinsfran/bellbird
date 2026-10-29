@@ -1945,6 +1945,8 @@ class TestCategoriasDePreferenciasSoloLectura(unittest.TestCase):
         cls.parche_ruta.__exit__(None, None, None)
         del cls.dialogo
         del cls.app
+        del cls.ruta
+        del cls.parche_ruta
 
     _buscar = staticmethod(TestCategoriasDePreferencias._buscar)
 
@@ -2965,6 +2967,11 @@ class TestPaginaInteligenciaArtificialSoloLectura(unittest.TestCase):
         cls.tmp.cleanup()
         del cls.dialogo
         del cls.app
+        del cls.tmp
+        del cls.parche_ruta
+        del cls.clave_guardada
+        del cls.claves_por_proveedor
+        del cls.parche_claves
 
     _pagina = TestPaginaInteligenciaArtificial._pagina
     _orden_de_tab = staticmethod(TestPaginaInteligenciaArtificial._orden_de_tab)

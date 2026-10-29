@@ -25,7 +25,6 @@ URL_API_RELEASES = "https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest"
 USER_AGENT = "ytchat-tts/2.0"
 NOMBRE_BINARIO = paths.NOMBRE_YTDLP
 NOMBRE_FIRMAS = "SHA2-256SUMS"
-SUBDIRECTORIO_DATOS = "YTChat TTS"
 TIEMPO_ESPERA = 30
 LIMITE_CACHE = "300K"
 # Limita la caché para no ahogar la reproducción que usa la misma conexión.
@@ -69,10 +68,7 @@ def mensaje_de_actualizacion(estado, version_actual="", version_nueva="",
 
 
 def _ruta_actualizada() -> Path:
-    local_app_data = os.environ.get("LOCALAPPDATA")
-    if local_app_data:
-        return Path(local_app_data) / SUBDIRECTORIO_DATOS / NOMBRE_BINARIO
-    return Path.home() / SUBDIRECTORIO_DATOS / NOMBRE_BINARIO
+    return paths.ytdlp_actualizado()
 
 
 def _ruta_del_paquete() -> Path | None:
@@ -82,8 +78,8 @@ def _ruta_del_paquete() -> Path | None:
 
 
 def ruta_ytdlp() -> str | None:
-    """Devuelve la copia más reciente entre la actualizada (LOCALAPPDATA) y
-    la que viaja junto al ejecutable.
+    """Devuelve la copia más reciente entre la actualizada (en data) y la
+    que viaja junto al ejecutable.
 
     Gana la de fecha de modificación más nueva: si el usuario instala un
     paquete nuevo, su yt-dlp puede ser posterior a la copia que actualizó

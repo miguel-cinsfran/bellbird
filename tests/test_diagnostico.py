@@ -275,7 +275,7 @@ class DiagnosticoTest(unittest.TestCase):
                     config.configurar_logging()
                 self.assertTrue(any(
                     isinstance(m, logging.handlers.RotatingFileHandler)
-                    and Path(m.baseFilename).name == "ytchat-debug.log"
+                    and Path(m.baseFilename).name == "bellbird-debug.log"
                     for m in raiz.handlers))
             finally:
                 for manejador in raiz.handlers[:]:

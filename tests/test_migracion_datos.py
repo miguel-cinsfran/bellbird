@@ -14,8 +14,6 @@ def _instalacion_vieja(inst):
     piezas = {
         "config.ini": "[voz]\nvelocidad = 200\n",
         "credenciales.json": '{"falso": true}',
-        "ytchat-debug.log": "traza vieja\n",
-        "ytchat-debug.log.2": "traza rotada\n",
     }
     for nombre, contenido in piezas.items():
         (inst / nombre).write_text(contenido, encoding="utf-8")
@@ -175,6 +173,150 @@ class TestMigrar(unittest.TestCase):
             self.assertTrue((inst / "config.ini").is_file())
 
 
+def _pares_anteriores(tmp: Path, datos: Path):
+    """Pares (viejo, nuevo) de la migración de nombres, en carpetas reales."""
+    return (
+        [(tmp / "local" / "YTChat TTS" / "yt-dlp.exe", datos / "yt-dlp.exe")],
+        [(datos / "ytchat-debug.log", datos / "bellbird-debug.log"),
+         (datos / "ytchat-fallos.log", datos / "bellbird-fallos.log")],
+    )
+
+
+class TestNombresAnteriores(unittest.TestCase):
+    """El yt-dlp fuera de data y los registros con el nombre viejo."""
+
+    def _migrar(self, inst, datos, pares):
+        return migracion_datos.migrar(inst, datos, [], datos / "sounds.ini", pares)
+
+    def test_ytdlp_se_copia_y_se_borra_el_viejo_y_su_carpeta(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            inst = Path(tmp) / "app"
+            datos = inst / "data"
+            viejo = inst / "local" / "YTChat TTS" / "yt-dlp.exe"
+            viejo.parent.mkdir(parents=True)
+            viejo.write_bytes(b"binario")
+            resultado = self._migrar(inst, datos, _pares_anteriores(inst, datos))
+            self.assertEqual((datos / "yt-dlp.exe").read_bytes(), b"binario")
+            self.assertFalse(viejo.exists())
+            self.assertFalse(viejo.parent.exists())
+            self.assertIn("yt-dlp.exe", resultado.copiados)
+
+    def test_carpeta_del_viejo_con_otros_archivos_no_se_borra(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            inst = Path(tmp) / "app"
+            datos = inst / "data"
+            viejo = inst / "local" / "YTChat TTS" / "yt-dlp.exe"
+            viejo.parent.mkdir(parents=True)
+            viejo.write_bytes(b"binario")
+            (viejo.parent / "otro.txt").write_text("sigue", encoding="utf-8")
+            self._migrar(inst, datos, _pares_anteriores(inst, datos))
+            self.assertFalse(viejo.exists())
+            self.assertTrue(viejo.parent.is_dir())
+            self.assertEqual((viejo.parent / "otro.txt").read_text(encoding="utf-8"),
+                             "sigue")
+
+    def test_destino_del_ytdlp_existente_no_se_pisa(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            inst = Path(tmp) / "app"
+            datos = inst / "data"
+            datos.mkdir(parents=True)
+            (datos / "yt-dlp.exe").write_bytes(b"nuevo")
+            viejo = inst / "local" / "YTChat TTS" / "yt-dlp.exe"
+            viejo.parent.mkdir(parents=True)
+            viejo.write_bytes(b"viejo")
+            resultado = self._migrar(inst, datos, _pares_anteriores(inst, datos))
+            self.assertEqual((datos / "yt-dlp.exe").read_bytes(), b"nuevo")
+            self.assertTrue(viejo.is_file())
+            self.assertIn("yt-dlp.exe", resultado.conflictos)
+
+    def test_fallo_de_copia_de_ytdlp_no_corta_la_migracion(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            inst = Path(tmp) / "app"
+            datos = inst / "data"
+            viejo = inst / "local" / "YTChat TTS" / "yt-dlp.exe"
+            viejo.parent.mkdir(parents=True)
+            viejo.write_bytes(b"binario")
+            datos.mkdir(parents=True)
+            (datos / "ytchat-fallos.log").write_text("fallos", encoding="utf-8")
+            with mock.patch("ytchat.core.migracion_datos.shutil.copy2",
+                            side_effect=OSError("disco lleno")):
+                resultado = self._migrar(inst, datos, _pares_anteriores(inst, datos))
+            self.assertTrue(viejo.is_file())
+            self.assertTrue(any("yt-dlp.exe" in error for error in resultado.errores))
+            self.assertEqual((datos / "bellbird-fallos.log").read_text(encoding="utf-8"),
+                             "fallos")
+
+    def test_copia_con_otro_tamano_no_borra_el_viejo(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            inst = Path(tmp) / "app"
+            datos = inst / "data"
+            viejo = inst / "local" / "YTChat TTS" / "yt-dlp.exe"
+            viejo.parent.mkdir(parents=True)
+            viejo.write_bytes(b"binario")
+
+            def copia_corta(origen, destino, *args, **kwargs):
+                Path(destino).write_bytes(b"x")
+
+            with mock.patch("ytchat.core.migracion_datos.shutil.copy2",
+                            side_effect=copia_corta):
+                resultado = self._migrar(inst, datos, _pares_anteriores(inst, datos))
+            self.assertTrue(viejo.is_file())
+            self.assertTrue(any("tama" in error for error in resultado.errores))
+
+    def test_registros_y_rotados_se_renombran(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            inst = Path(tmp) / "app"
+            datos = inst / "data"
+            datos.mkdir(parents=True)
+            for nombre, contenido in (
+                    ("ytchat-debug.log", "depura"),
+                    ("ytchat-debug.log.1", "depura uno"),
+                    ("ytchat-debug.log.2", "depura dos"),
+                    ("ytchat-fallos.log", "fallos")):
+                (datos / nombre).write_text(contenido, encoding="utf-8")
+            resultado = self._migrar(inst, datos, _pares_anteriores(inst, datos))
+            for nombre, contenido in (
+                    ("bellbird-debug.log", "depura"),
+                    ("bellbird-debug.log.1", "depura uno"),
+                    ("bellbird-debug.log.2", "depura dos"),
+                    ("bellbird-fallos.log", "fallos")):
+                with self.subTest(archivo=nombre):
+                    self.assertEqual((datos / nombre).read_text(encoding="utf-8"),
+                                     contenido)
+            self.assertFalse((datos / "ytchat-debug.log").exists())
+            self.assertFalse((datos / "ytchat-fallos.log").exists())
+            self.assertIn("bellbird-debug.log", resultado.movidos)
+
+    def test_registro_nuevo_existente_no_se_pisa(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            inst = Path(tmp) / "app"
+            datos = inst / "data"
+            datos.mkdir(parents=True)
+            (datos / "ytchat-debug.log").write_text("viejo", encoding="utf-8")
+            (datos / "bellbird-debug.log").write_text("nuevo", encoding="utf-8")
+            resultado = self._migrar(inst, datos, _pares_anteriores(inst, datos))
+            self.assertEqual((datos / "bellbird-debug.log").read_text(encoding="utf-8"),
+                             "nuevo")
+            self.assertTrue((datos / "ytchat-debug.log").is_file())
+            self.assertIn("bellbird-debug.log", resultado.conflictos)
+
+    def test_fallo_al_renombrar_un_registro_no_corta(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            inst = Path(tmp) / "app"
+            datos = inst / "data"
+            datos.mkdir(parents=True)
+            (datos / "ytchat-debug.log").write_text("depura", encoding="utf-8")
+            (datos / "ytchat-fallos.log").write_text("fallos", encoding="utf-8")
+            with mock.patch("ytchat.core.migracion_datos.os.replace",
+                            side_effect=OSError("abierto")), \
+                    mock.patch("ytchat.core.migracion_datos.shutil.copy2",
+                               side_effect=OSError("abierto")):
+                resultado = self._migrar(inst, datos, _pares_anteriores(inst, datos))
+            self.assertTrue(resultado.errores)
+            self.assertTrue((datos / "ytchat-debug.log").is_file())
+            self.assertTrue((datos / "ytchat-fallos.log").is_file())
+
+
 class TestCableadoMain(unittest.TestCase):
 
     def test_migrar_se_llama_antes_que_configurar_logging(self):
@@ -196,6 +338,19 @@ class TestCableadoMain(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 app_main.main()
         self.assertEqual(orden, ["migrar", "logging"])
+
+    def test_migrar_recibe_los_pares_de_nombres_anteriores(self):
+        import main as app_main
+        pares = object()
+        with mock.patch.object(app_main.migracion_datos, "migrar",
+                               return_value=migracion_datos.ResultadoMigracion()) as falso, \
+             mock.patch.object(app_main.paths, "pares_de_nombres_anteriores",
+                               return_value=pares), \
+             mock.patch.object(app_main, "configurar_logging",
+                               side_effect=RuntimeError("corte de prueba")):
+            with self.assertRaises(RuntimeError):
+                app_main.main()
+        self.assertEqual(falso.call_args.args[4], pares)
 
 
 if __name__ == "__main__":

@@ -117,7 +117,7 @@ def configurar_logging(nivel_consola: int = logging.INFO) -> None:
                 paths.log_detallado()))
         except Exception as exc:
             logger.warning(
-                "No se pudo crear ytchat-debug.log: %s", exc)
+                "No se pudo crear %s: %s", paths.log_detallado().name, exc)
 
     # ytchat.log conserva los avisos de terceros, que pueden explicar un fallo.
     # Las librerías de terceros no deben ocultar los diagnósticos propios.

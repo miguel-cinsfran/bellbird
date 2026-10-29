@@ -717,8 +717,8 @@ def main():
     # importar main sin crear el handler de ytchat.log (contaminaba el log real).
     try:
         resultado_migracion = migracion_datos.migrar(
-            paths.carpeta_instalacion(), paths.carpeta_datos(),
-            paths.datos_a_migrar(), paths.sounds_ini())
+            paths.carpeta_instalacion(), paths.carpeta_datos(), paths.datos_a_migrar(),
+            paths.sounds_ini(), paths.pares_de_nombres_anteriores())
     except Exception:
         resultado_migracion = None
     configurar_logging()

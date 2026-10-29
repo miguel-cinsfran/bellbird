@@ -30,8 +30,9 @@ RUTAS_DE_DATOS = [
     ("cache_etiquetas_musica", "etiquetas_musica.json"),
     ("cache_sonoridad_musica", "sonoridad_musica.json"),
     ("log_principal", "ytchat.log"),
-    ("log_detallado", "ytchat-debug.log"),
-    ("log_fallos", "ytchat-fallos.log"),
+    ("log_detallado", "bellbird-debug.log"),
+    ("log_fallos", "bellbird-fallos.log"),
+    ("ytdlp_actualizado", "yt-dlp.exe"),
     ("cache_audio", "cache-audio"),
     ("cache_video", "cache-video"),
     ("audio_temporal", "audio_temporal"),
@@ -59,6 +60,8 @@ TODAS_LAS_FUNCIONES = (
     [nombre for nombre, _ in RUTAS_DE_DATOS if nombre not in CREAN_CARPETA]
     + [nombre for nombre, _ in RUTAS_DE_INSTALACION]
     + ["pagina_overlay", "datos_a_migrar", "carpeta_musica_windows"]
+    + ["ytdlp_actualizado_anterior", "log_detallado_anterior",
+       "log_fallos_anterior", "pares_de_nombres_anteriores"]
     + ["carpeta_actualizacion", "paquete_descargado", "paquete_extraido",
        "respaldo_actualizacion", "actualizacion_pendiente",
        "arranque_confirmado", "resultado_actualizacion",
@@ -178,6 +181,46 @@ class TestFinPendiente(unittest.TestCase):
         # No es un dato de la migración vieja de la raíz a data/.
         self.assertNotIn(paths.fin_pendiente(), paths.datos_a_migrar())
         self.assertNotIn(paths.listas_musica(), paths.datos_a_migrar())
+
+
+class TestNombresAnteriores(unittest.TestCase):
+    """Las rutas viejas que la migración de arranque lleva a los nombres nuevos."""
+
+    def test_ytdlp_actualizado_cuelga_de_data(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            datos = Path(tmp) / "datos"
+            with mock.patch.object(paths, "carpeta_datos", return_value=datos):
+                self.assertEqual(paths.ytdlp_actualizado(), datos / "yt-dlp.exe")
+
+    def test_ytdlp_anterior_usa_localappdata(self):
+        with tempfile.TemporaryDirectory() as tmp, \
+                mock.patch.dict(os.environ, {"LOCALAPPDATA": tmp}):
+            self.assertEqual(
+                paths.ytdlp_actualizado_anterior(),
+                Path(tmp) / "YTChat TTS" / "yt-dlp.exe")
+
+    def test_ytdlp_anterior_sin_localappdata_usa_la_carpeta_del_usuario(self):
+        with tempfile.TemporaryDirectory() as tmp, \
+                mock.patch.dict(os.environ, {}, clear=True), \
+                mock.patch.object(Path, "home", return_value=Path(tmp)):
+            self.assertEqual(
+                paths.ytdlp_actualizado_anterior(),
+                Path(tmp) / "YTChat TTS" / "yt-dlp.exe")
+
+    def test_pares_de_nombres_anteriores(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            datos = Path(tmp) / "datos"
+            with mock.patch.object(paths, "carpeta_datos", return_value=datos), \
+                    mock.patch.dict(os.environ, {"LOCALAPPDATA": tmp}):
+                binarios, registros = paths.pares_de_nombres_anteriores()
+            self.assertEqual(
+                binarios,
+                [(Path(tmp) / "YTChat TTS" / "yt-dlp.exe",
+                  datos / "yt-dlp.exe")])
+            self.assertEqual(
+                registros,
+                [(datos / "ytchat-debug.log", datos / "bellbird-debug.log"),
+                 (datos / "ytchat-fallos.log", datos / "bellbird-fallos.log")])
 
 
 class TestDatosAMigrar(unittest.TestCase):
@@ -394,8 +437,8 @@ class TestGuardaRutas(unittest.TestCase):
     NOMBRES_DATOS = (
         "config.ini", "credenciales.json", "historial_lives.json",
         "historial_descargas.json", "alias.json", "mensajes_programados.json",
-        "fin_pendiente.json", "sounds.ini", "ytchat.log", "ytchat-debug.log",
-        "ytchat-fallos.log", "etiquetas_musica.json", "sonoridad_musica.json",
+        "fin_pendiente.json", "sounds.ini", "ytchat.log", "bellbird-debug.log",
+        "bellbird-fallos.log", "etiquetas_musica.json", "sonoridad_musica.json",
     )
 
     # (archivo, fragmento permitido, motivo). Sin comodines.

@@ -13,6 +13,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from ytchat.downloads import ytdlp_bin
+from ytchat.core import paths
 from ytchat.core import subprocesos
 from tests.pseudo_prueba import con_pseudo
 
@@ -352,22 +353,10 @@ class PruebasYtdlpBin(unittest.TestCase):
                     patch.object(ytdlp_bin, "_ruta_del_paquete", return_value=Path(carpeta) / "no2.exe"):
                 self.assertIsNone(ytdlp_bin.ruta_ytdlp())
 
-    def test_ruta_actualizada_usa_localappdata(self):
-        with tempfile.TemporaryDirectory() as carpeta:
-            with patch.dict(ytdlp_bin.os.environ, {"LOCALAPPDATA": carpeta}):
-                self.assertEqual(
-                    Path(carpeta) / ytdlp_bin.SUBDIRECTORIO_DATOS / "yt-dlp.exe",
-                    ytdlp_bin._ruta_actualizada(),
-                )
-
-    def test_ruta_actualizada_usa_carpeta_del_usuario_sin_localappdata(self):
-        with tempfile.TemporaryDirectory() as carpeta, \
-                patch.dict(ytdlp_bin.os.environ, {}, clear=True), \
-                patch.object(Path, "home", return_value=Path(carpeta)):
-            self.assertEqual(
-                Path.home() / ytdlp_bin.SUBDIRECTORIO_DATOS / "yt-dlp.exe",
-                ytdlp_bin._ruta_actualizada(),
-            )
+    def test_ruta_actualizada_sale_de_paths(self):
+        esperada = Path("carpeta") / "data" / "yt-dlp.exe"
+        with patch.object(paths, "ytdlp_actualizado", return_value=esperada):
+            self.assertEqual(esperada, ytdlp_bin._ruta_actualizada())
 
     def test_descarga_rechaza_url_que_no_es_https(self):
         with tempfile.TemporaryDirectory() as carpeta:

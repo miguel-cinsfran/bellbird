@@ -136,11 +136,37 @@ def log_principal() -> Path:
 
 
 def log_detallado() -> Path:
-    return carpeta_datos() / "ytchat-debug.log"
+    return carpeta_datos() / "bellbird-debug.log"
 
 
 def log_fallos() -> Path:
+    return carpeta_datos() / "bellbird-fallos.log"
+
+
+def ytdlp_actualizado() -> Path:
+    # La copia que la app renueva sola, dentro de data.
+    return carpeta_datos() / NOMBRE_YTDLP
+
+
+def ytdlp_actualizado_anterior() -> Path:
+    # Las versiones con el nombre viejo la dejaban fuera de data.
+    base = Path(os.environ.get("LOCALAPPDATA") or Path.home())
+    return base / "YTChat TTS" / NOMBRE_YTDLP
+
+
+def log_detallado_anterior() -> Path:
+    return carpeta_datos() / "ytchat-debug.log"
+
+
+def log_fallos_anterior() -> Path:
     return carpeta_datos() / "ytchat-fallos.log"
+
+
+def pares_de_nombres_anteriores() -> tuple[list, list]:
+    """Pares (ruta vieja, ruta nueva) para la migración de nombres del arranque."""
+    return ([(ytdlp_actualizado_anterior(), ytdlp_actualizado())],
+            [(log_detallado_anterior(), log_detallado()),
+             (log_fallos_anterior(), log_fallos())])
 
 
 def cache_audio() -> Path:

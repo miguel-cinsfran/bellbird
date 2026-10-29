@@ -6,6 +6,7 @@ cuadro trae letras repetidas, esa prueba se marca con
 `expectedFailure` y el advisor decide el arreglo.
 """
 
+import queue
 import tempfile
 import unittest
 from pathlib import Path
@@ -20,7 +21,7 @@ from tests.test_gui_transmision import (
 from tests.ventanas_prueba import destruir
 from ytchat.ai import catalogo
 from ytchat.core import config
-from ytchat.ui import gui_directo_youtube, gui_historial, gui_microfono, gui_transmision, gui_preferencias
+from ytchat.ui import gui_comentarios, gui_directo_youtube, gui_historial, gui_microfono, gui_transmision, gui_preferencias
 from ytchat.ui import preferencias_ia
 from ytchat.ui import preferencias_ia_clave
 from ytchat.voice import motores
@@ -150,6 +151,21 @@ class TestLetrasAccesoHistorial(unittest.TestCase):
         dialogo = gui_historial.HistorialDialog(None, self.ruta, mock.Mock())
         self.addCleanup(destruir, dialogo)
         self.assertEqual(letras_repetidas(dialogo), {}, gui_historial.__name__)
+
+
+class TestLetrasAccesoComentarios(unittest.TestCase):
+    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
+
+    def setUp(self):
+        self.app = wx.App.Get() or wx.App(False)
+
+    def test_cuadro_sin_letras_repetidas(self):
+        marco = wx.Frame(None)
+        self.addCleanup(destruir, marco)
+        panel = gui_comentarios.ComentariosPanel(
+            marco, queue.Queue(), {"tamanio_fuente_chat": 12})
+        self.addCleanup(destruir, panel)
+        self.assertEqual(letras_repetidas(panel), {})
 
 
 class TestLetrasAccesoTransmision(unittest.TestCase):

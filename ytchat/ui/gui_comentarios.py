@@ -71,8 +71,8 @@ class ComentariosPanel(wx.Panel):
         self.cho_orden.SetSelection(0)
         row.Add(self.cho_orden, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 12)
         # Recorrer las opciones no debe gastar cuota de la API; se aplica aparte.
-        self.btn_aplicar_orden = wx.Button(self, label=_("Aplicar el &orden"),
-                                           name=_("Aplicar el orden"))
+        self.btn_aplicar_orden = wx.Button(self, label=_("A&plicar el orden"),
+                                            name=_("Aplicar el orden"))
         _btn(self.btn_aplicar_orden)
         self.btn_aplicar_orden.Bind(wx.EVT_BUTTON, lambda e: self._recargar())
         row.Add(self.btn_aplicar_orden, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
@@ -104,7 +104,7 @@ class ComentariosPanel(wx.Panel):
         # Botones de acción: solo los que NO dependen del comentario seleccionado
         # (cargar más páginas y comentar en el vídeo). El resto, en el menú.
         row = wx.BoxSizer(wx.HORIZONTAL)
-        self.btn_mas   = wx.Button(self, label=_("Cargar &más"), name="CargarMas")
+        self.btn_mas   = wx.Button(self, label=_("Car&gar más"), name="CargarMas")
         self.btn_comentar  = wx.Button(self, label=_("Comen&tar en el vídeo"), name="ComentarVideo")
         for b in (self.btn_mas, self.btn_comentar):
             _btn(b)

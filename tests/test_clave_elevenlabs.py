@@ -3,6 +3,7 @@
 import unittest
 from unittest import mock
 
+from tests.pseudo_prueba import con_pseudo
 from ytchat.ui import clave_elevenlabs
 from ytchat.voice import elevenlabs
 
@@ -25,6 +26,14 @@ class TestTextoClaveValida(unittest.TestCase):
 
     def test_miles_devuelve_el_texto_si_no_es_numero(self):
         self.assertEqual(clave_elevenlabs._miles("sin número"), "sin número")
+
+    def test_clave_valida_sale_marcada_en_plural_y_singular(self):
+        with con_pseudo():
+            plural = clave_elevenlabs.texto_clave_valida(2, 1234, 10000)
+            singular = clave_elevenlabs.texto_clave_valida(1, 0, 10000)
+        for texto in (plural, singular):
+            with self.subTest(texto=texto):
+                self.assertTrue(texto.startswith("[¡"), texto)
 
 
 class TestComprobar(unittest.TestCase):

@@ -5,6 +5,7 @@ from __future__ import annotations
 import wx
 
 from ytchat.core import diagnostico
+from ytchat.core.idioma import _, ngettext
 
 
 def _miles(numero) -> str:
@@ -16,8 +17,17 @@ def _miles(numero) -> str:
 
 
 def texto_clave_valida(cantidad, usados, limite) -> str:
-    return (f"Clave válida. {cantidad} voces. "
-            f"Usados {_miles(usados)} de {_miles(limite)} caracteres este mes.")
+    try:
+        cuantas = int(cantidad)
+    except (TypeError, ValueError):
+        cuantas = 1
+    # Traductores: resultado de comprobar la clave; {voces} cuántas voces trae,
+    # {usados} y {limite} los caracteres del mes con miles con punto.
+    return ngettext("Clave válida. {voces} voz. Usados {usados} "
+                    "de {limite} caracteres este mes.",
+                    "Clave válida. {voces} voces. Usados {usados} "
+                    "de {limite} caracteres este mes.",
+                    cuantas).format(voces=cantidad, usados=_miles(usados), limite=_miles(limite))
 
 
 def comprobar(clave, al_ok, al_fallo):

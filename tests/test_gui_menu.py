@@ -171,6 +171,7 @@ class TestEquivalenciaMenu(unittest.TestCase):
             ("&Reproductor", "Mostrar botones en &pantalla", ANY, "check"),
             ("&Transmisión", "&Panel de transmisión…", ANY, "normal"),
             ("&Transmisión", "Silenciar el &micrófono de OBS", ANY, "check"),
+            ("&Transmisión", "&Elegir micrófono…", ANY, "normal"),
             ("&Transmisión", "Mostrar &OBS", ANY, "normal"),
             ("&Transmisión", "&Avisar cuando OBS no da abasto", ANY, "check"),
             ("&Transmisión", "&Grabar también al transmitir", ANY, "check"),
@@ -450,6 +451,32 @@ class TestCableadoMostrarObs(unittest.TestCase):
     def test_microfono_de_obs_es_casilla(self):
         frame = self._frame_con_menu()
         self.assertTrue(frame.mi_obs_micro.IsCheckable())
+
+    def test_elegir_microfono_sin_atajo_detras_del_silencio(self):
+        frame = self._frame_con_menu()
+        self.assertEqual(frame.mi_micro_obs.GetItemLabel(),
+                         "&Elegir micrófono…")
+        barra = frame.GetMenuBar()
+        for indice in range(barra.GetMenuCount()):
+            menu = barra.GetMenu(indice)
+            ids = [item.GetId() for item in menu.GetMenuItems()]
+            if frame.mi_obs_micro.GetId() in ids:
+                self.assertEqual(
+                    ids[ids.index(frame.mi_obs_micro.GetId()) + 1],
+                    frame.mi_micro_obs.GetId())
+
+    def test_elegir_microfono_abre_el_cuadro(self):
+        from ytchat.ui import gui_menu
+
+        with mock.patch("ytchat.ui.gui_microfono.abrir_microfono_obs") \
+                as abrir, \
+                mock.patch.object(gui_menu.wx, "CallAfter",
+                                  side_effect=lambda fn, *a: fn(*a)):
+            frame = self._frame_con_menu()
+            evento = wx.CommandEvent(
+                wx.EVT_MENU.typeId, frame.mi_micro_obs.GetId())
+            frame.GetEventHandler().ProcessEvent(evento)
+        abrir.assert_called_once_with(frame)
 
 
 # Textos que arma otro módulo y la barra solo muestra: los nombres de

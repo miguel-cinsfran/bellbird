@@ -40,6 +40,37 @@ def entradas_audio(cliente, parada=None) -> tuple:
     return tuple(pares)
 
 
+def microfonos(cliente, parada=None) -> tuple:
+    """Nombres de las entradas de micrófono, en el orden de OBS."""
+    return tuple(nombre for nombre, tipo in entradas_audio(cliente, parada)
+                 if tipo == TIPO_MICROFONO)
+
+
+def dispositivos(cliente, fuente, parada=None) -> tuple:
+    """Pares (nombre, valor) de dispositivos de la fuente y su actual.
+
+    Sin los de nombre vacío. El actual es "" si OBS no trae ninguno;
+    vacío significa el predeterminado, "default".
+    """
+    ajustes = _datos(cliente, "GetInputSettings", {"inputName": fuente},
+                     parada)
+    actual = (ajustes.get("inputSettings") or {}).get("device_id", "") or ""
+    items = _datos(
+        cliente, "GetInputPropertiesListPropertyItems",
+        {"inputName": fuente, "propertyName": "device_id"},
+        parada).get("propertyItems", ())
+    pares = tuple((item.get("itemName", ""), item.get("itemValue", ""))
+                  for item in items if item.get("itemName", ""))
+    return (pares, actual)
+
+
+def cambiar_dispositivo(cliente, fuente, valor, parada=None) -> None:
+    """Cambia el dispositivo de la fuente sin tocar silencio ni volumen."""
+    cliente.pedir("SetInputSettings",
+                  {"inputName": fuente, "inputSettings": {"device_id": valor},
+                   "overlay": True}, parada)
+
+
 def microfono_especial(cliente, parada=None) -> str:
     try:
         return _datos(cliente, "GetSpecialInputs", parada=parada).get("mic1", "") or ""
@@ -142,8 +173,9 @@ def _texto_del_atajo(preferido) -> tuple:
         gestor.conectar()
         return alternar_microfono(gestor, preferido)
     except Exception:
-        return ("OBS no responde. En OBS, menú Herramientas, Configuración "
-                "del servidor WebSocket, activa el servidor.", "", True)
+        return (_("OBS no responde. En OBS, menú Herramientas, "
+                  "Configuración del servidor WebSocket, activa el servidor."),
+                "", True)
     finally:
         if gestor is not None:
             try:

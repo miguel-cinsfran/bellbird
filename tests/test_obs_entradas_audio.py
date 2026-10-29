@@ -513,5 +513,96 @@ class DispositivoTest(unittest.TestCase):
             ("", False))
 
 
+class MicrofonosTest(unittest.TestCase):
+    def test_filtra_solo_capturas_de_microfono_en_orden(self):
+        cliente = DobleCliente(entradas=ENTRADAS_MANU)
+        self.assertEqual(obs_entradas_audio.microfonos(cliente), ("Mic/Aux",))
+
+    def test_varias_en_orden_de_obs(self):
+        cliente = DobleCliente(entradas=(
+            {"inputName": "Mic/Aux", "inputKind": "wasapi_input_capture"},
+            {"inputName": "Audio USB", "inputKind": "wasapi_input_capture"},
+            {"inputName": "Cámara", "inputKind": "v4l2_input"}))
+        self.assertEqual(obs_entradas_audio.microfonos(cliente),
+                         ("Mic/Aux", "Audio USB"))
+
+    def test_sin_microfonos_da_vacia(self):
+        cliente = DobleCliente(entradas=ENTRADAS_MANU[:1] + ENTRADAS_MANU[2:])
+        self.assertEqual(obs_entradas_audio.microfonos(cliente), ())
+        tipos = [llamada[0] for llamada in cliente.llamadas]
+        self.assertEqual(tipos, ["GetInputList"])
+
+    def test_pasa_la_parada(self):
+        cliente = DobleCliente(entradas=ENTRADAS_MANU)
+        parada = object()
+        obs_entradas_audio.microfonos(cliente, parada)
+        self.assertIs(cliente.llamadas[0][2], parada)
+
+
+class DispositivosTest(unittest.TestCase):
+    PROPIEDADES = (
+        {"itemName": "", "itemValue": "{vacio}"},
+        {"itemName": "Predeterminado", "itemValue": "default"},
+        {"itemName": "Micrófono (USB)", "itemValue": "{mic-2}"})
+
+    def _cliente(self, device_id):
+        ajustes = {"inputKind": "wasapi_input_capture"}
+        if device_id is not None:
+            ajustes["inputSettings"] = {"device_id": device_id}
+        else:
+            ajustes["inputSettings"] = {}
+        return DobleCliente(
+            ajustes=ajustes, propiedades={"device_id": self.PROPIEDADES})
+
+    def test_da_los_pares_y_el_actual(self):
+        pares, actual = obs_entradas_audio.dispositivos(
+            self._cliente("{mic-2}"), "Mic/Aux")
+        self.assertEqual(pares, (("Predeterminado", "default"),
+                                 ("Micrófono (USB)", "{mic-2}")))
+        self.assertEqual(actual, "{mic-2}")
+
+    def test_sin_device_id_el_actual_es_vacio_como_predeterminado(self):
+        pares, actual = obs_entradas_audio.dispositivos(
+            self._cliente(None), "Mic/Aux")
+        self.assertEqual(pares, (("Predeterminado", "default"),
+                                 ("Micrófono (USB)", "{mic-2}")))
+        self.assertEqual(actual, "")
+
+    def test_pide_ajustes_y_lista_con_la_fuente(self):
+        cliente = self._cliente("{mic-2}")
+        obs_entradas_audio.dispositivos(cliente, "Mic/Aux")
+        self.assertEqual(
+            [(tipo, datos) for tipo, datos, _parada in cliente.llamadas],
+            [("GetInputSettings", {"inputName": "Mic/Aux"}),
+             ("GetInputPropertiesListPropertyItems",
+              {"inputName": "Mic/Aux", "propertyName": "device_id"})])
+
+    def test_pasa_la_parada(self):
+        cliente = self._cliente("{mic-2}")
+        parada = object()
+        obs_entradas_audio.dispositivos(cliente, "Mic/Aux", parada)
+        for _tipo, _datos, recibida in cliente.llamadas:
+            self.assertIs(recibida, parada)
+
+
+class CambiarDispositivoTest(unittest.TestCase):
+    def test_manda_ese_pedido_y_ninguno_de_silencio(self):
+        cliente = DobleCliente()
+        obs_entradas_audio.cambiar_dispositivo(cliente, "Mic/Aux", "{mic-2}")
+        self.assertEqual(
+            [(tipo, datos) for tipo, datos, _parada in cliente.llamadas],
+            [("SetInputSettings",
+              {"inputName": "Mic/Aux",
+               "inputSettings": {"device_id": "{mic-2}"},
+               "overlay": True})])
+
+    def test_pasa_la_parada(self):
+        cliente = DobleCliente()
+        parada = object()
+        obs_entradas_audio.cambiar_dispositivo(
+            cliente, "Mic/Aux", "default", parada)
+        self.assertIs(cliente.llamadas[0][2], parada)
+
+
 if __name__ == "__main__":
     unittest.main()

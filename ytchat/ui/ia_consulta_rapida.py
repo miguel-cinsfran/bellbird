@@ -23,6 +23,7 @@ from ytchat.ai import proveedores
 from ytchat.ai import ventana_ia
 from ytchat.core import diagnostico
 from ytchat.core import paths
+from ytchat.core.idioma import _, N_
 from ytchat.obs import obs_activacion
 from ytchat.obs import obs_captura_ia
 from ytchat.obs import obs_cliente
@@ -35,7 +36,8 @@ from ytchat.voice.sound_player import reproducir
 
 logger = diagnostico.obtener_logger(__name__)
 
-TEXTO_EN_CURSO = "Ya hay una consulta rápida en curso."
+# Traductores: aviso cuando ya hay una consulta rápida en curso; se anuncia sin abrir nada.
+TEXTO_EN_CURSO = N_("Ya hay una consulta rápida en curso.")
 
 
 class ConsultaRapida:
@@ -79,7 +81,7 @@ class ConsultaRapida:
         if marco is None:
             return
         if self._en_curso:
-            anunciar(TEXTO_EN_CURSO)
+            anunciar(_(TEXTO_EN_CURSO))
             return
         if not obs_activacion.obs_esta_en_ejecucion():
             anunciar(ia_agregar_captura.TEXTO_OBS_CERRADO)

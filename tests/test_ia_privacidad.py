@@ -9,6 +9,7 @@ from unittest import mock
 
 import wx
 
+from tests.pseudo_prueba import con_pseudo
 from ytchat.ui import ia_privacidad
 
 
@@ -47,6 +48,19 @@ class TestConfirmar(unittest.TestCase):
             self.assertFalse(
                 ia_privacidad.confirmar(None, _ajustes(False), "OpenAI"))
         guardar.assert_not_called()
+
+    def test_aviso_y_titulo_salen_marcados(self):
+        with mock.patch.object(ia_privacidad.wx, "MessageBox",
+                               return_value=wx.YES) as caja, \
+                mock.patch.object(ia_privacidad.ajustes_ia,
+                                   "guardar_privacidad_aceptada",
+                                   return_value=True), \
+                con_pseudo():
+            self.assertTrue(
+                ia_privacidad.confirmar(None, _ajustes(False), "OpenAI"))
+        texto, titulo = caja.call_args.args[0], caja.call_args.args[1]
+        self.assertTrue(texto.startswith("[¡"), texto)
+        self.assertTrue(titulo.startswith("[¡"), titulo)
 
     def test_si_el_guardado_falla_igual_deja_pasar(self):
         def falla_con_valor():

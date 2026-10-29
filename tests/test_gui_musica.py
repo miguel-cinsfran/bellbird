@@ -2139,6 +2139,19 @@ class TestPseudoAvisosConsumidores(unittest.TestCase):
         texto = env.anunciar.call_args.args[0]
         self.assertTrue(texto.startswith("[¡"), texto)
 
+    def test_carpeta_inexistente_marca(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            faltante = str(Path(tmp) / "no_existe")
+            with _entorno() as env:
+                with con_pseudo():
+                    ControlMusica(
+                        _frame(musica_carpeta=faltante)).reproducir_o_pausar()
+        textos = [c.args[0] for c in env.anunciar.call_args_list]
+        self.assertEqual(len(textos), 2)
+        for texto in textos:
+            with self.subTest(texto=texto):
+                self.assertTrue(texto.startswith("[¡"), texto)
+
 
 if __name__ == "__main__":
     unittest.main()

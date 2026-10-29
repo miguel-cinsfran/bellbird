@@ -8,7 +8,10 @@ botón; los controles viven en `gui_preferencias`.
 
 from __future__ import annotations
 
-ETIQUETA_PREDETERMINADA = "Salida predeterminada"
+from ytchat.core.idioma import _, N_
+
+# Traductores: primera opción del combinado de salida de música; la que elige el sistema.
+ETIQUETA_PREDETERMINADA = N_("Salida predeterminada")
 
 
 def opciones_salida(guardada_id, guardada_nombre, encontradas):
@@ -21,7 +24,7 @@ def opciones_salida(guardada_id, guardada_nombre, encontradas):
     (o el id si no hay nombre), para no perderla. La selección es el índice
     de la guardada, o 0 si no hay guardada.
     """
-    etiquetas = [ETIQUETA_PREDETERMINADA]
+    etiquetas = [_(ETIQUETA_PREDETERMINADA)]
     identificadores = [""]
     vistos = {""}
     for par in encontradas or []:

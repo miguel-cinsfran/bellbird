@@ -12,6 +12,7 @@ from __future__ import annotations
 import wx
 
 from ytchat.core import diagnostico
+from ytchat.core.idioma import _
 from ytchat.ui.accesibilidad import anunciar
 from ytchat.ui.busqueda_lista import buscar_prefijo, coincide
 
@@ -80,7 +81,8 @@ class _BusquedaAlTeclear:
             # Que quien busca sepa que se buscó (en toda la lista, dando la
             # vuelta) y no hubo nada; se descarta la última letra para poder
             # seguir completando la búsqueda anterior.
-            anunciar(f"No hay coincidencias con {self._buffer}")
+            # Traductores: aviso de la búsqueda al teclear; {texto} es lo escrito sin coincidencia.
+            anunciar(_("No hay coincidencias con {texto}").format(texto=self._buffer))
             self._buffer = self._buffer[:-1]
 
 

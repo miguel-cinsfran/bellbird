@@ -7,6 +7,7 @@ Todo se comprueba a través del manejador enganchado en wx.EVT_CHAR.
 import unittest
 from unittest import mock
 
+from tests.pseudo_prueba import con_pseudo
 from ytchat.ui import busqueda_teclado
 from ytchat.ui.busqueda_teclado import instalar_busqueda_tipo
 
@@ -133,6 +134,19 @@ class TestBusquedaAlTeclear(unittest.TestCase):
         self.assertEqual(programar.call_count, 2)
         self.assertEqual(programar.call_args_list[1].args[0],
                          busqueda_teclado._MS_RESET_BUSQUEDA)
+
+    def test_sin_coincidencia_avisa_marcado(self):
+        textos = ["Ana: hola, 12:00"]
+        listbox, manejador = _instalar(textos)
+
+        with mock.patch.object(busqueda_teclado.wx, "CallLater"), \
+                mock.patch.object(busqueda_teclado, "anunciar") as anunciar, \
+                con_pseudo():
+            manejador(_tecla("z"))
+
+        anunciar.assert_called_once()
+        texto = anunciar.call_args.args[0]
+        self.assertTrue(texto.startswith("[¡"), texto)
 
     def test_resetear_deja_el_buffer_vacio(self):
         textos = ["Beto: hola, 12:00"]

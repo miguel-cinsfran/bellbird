@@ -9,6 +9,7 @@ import wx
 
 from ytchat.core import config as _cfg
 from ytchat.core import diagnostico
+from ytchat.core.idioma import _
 from ytchat.ui.accesibilidad import nombre_accesible
 
 logger = diagnostico.obtener_logger(__name__)
@@ -78,10 +79,11 @@ class PantallaCompleta(wx.Frame):
         self.SetBackgroundColour(wx.BLACK)
         self.video = wx.Window(self, name="VideoPantallaCompleta")
         self.video.SetBackgroundColour(wx.BLACK)
+        # Traductores: nombre del vídeo a pantalla completa; describe sus teclas.
         nombre_accesible(
             self.video,
-            "Vídeo a pantalla completa. Espacio pausa, flechas buscan y ajustan "
-            "volumen, Escape sale.")
+            _("Vídeo a pantalla completa. Espacio pausa, flechas buscan y ajustan "
+              "volumen, Escape sale."))
         self.Bind(wx.EVT_CHAR_HOOK, self._on_key)
         self.Bind(wx.EVT_CLOSE, self._on_close)
         self.video.Bind(wx.EVT_LEFT_DCLICK,

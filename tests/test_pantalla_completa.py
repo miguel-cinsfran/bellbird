@@ -121,5 +121,30 @@ class TestCableadoPantallaCompleta(unittest.TestCase):
             acciones.buscar_porcentaje, panel._buscar_porcentaje)
 
 
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestPseudoNombreAccesibleVentana(unittest.TestCase):
+    """Con ventana: el nombre accesible del vídeo sale marcado.
+
+    La corre el advisor en otra PC, no correr aquí.
+    """
+
+    def test_nombre_del_video_sale_marcado(self):
+        import wx
+        from tests.pseudo_prueba import con_pseudo
+        from tests.ventanas_prueba import destruir
+        from ytchat.player.pantalla_completa import (
+            AccionesPantalla, PantallaCompleta)
+        app = wx.App.Get() or wx.App(False)
+        acciones = AccionesPantalla(
+            salir=mock.Mock(), pausa=mock.Mock(),
+            buscar_rel=mock.Mock(), volumen=mock.Mock(),
+            silenciar=mock.Mock(), buscar_porcentaje=mock.Mock())
+        with con_pseudo():
+            ventana = PantallaCompleta({}, acciones)
+        self.addCleanup(destruir, ventana)
+        nombre = ventana.video.GetName()
+        self.assertTrue(nombre.startswith("[¡"), nombre)
+
+
 if __name__ == "__main__":
     unittest.main()

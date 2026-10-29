@@ -11,13 +11,16 @@ import wx
 from ytchat.ai import ajustes_ia
 from ytchat.core import diagnostico
 from ytchat.core import paths
+from ytchat.core.idioma import _, N_
 
 logger = diagnostico.obtener_logger(__name__)
 
-TEXTO_AVISO = ("La captura de la escena y lo que escribas se envían "
-               "a {proveedor} para que responda. Este aviso sale una "
-               "sola vez. ¿Enviar?")
-TITULO_AVISO = "Privacidad"
+# Traductores: aviso antes de enviar la captura a la IA; {proveedor} es el nombre del proveedor.
+TEXTO_AVISO = N_("La captura de la escena y lo que escribas se envían "
+                 "a {proveedor} para que responda. Este aviso sale una "
+                 "sola vez. ¿Enviar?")
+# Traductores: título del aviso de privacidad de la IA.
+TITULO_AVISO = N_("Privacidad")
 
 
 def confirmar(padre, ajustes, nombre_proveedor) -> bool:
@@ -25,7 +28,7 @@ def confirmar(padre, ajustes, nombre_proveedor) -> bool:
     if ajustes.privacidad_aceptada:
         return True
     respuesta = wx.MessageBox(
-        TEXTO_AVISO.format(proveedor=nombre_proveedor), TITULO_AVISO,
+        _(TEXTO_AVISO).format(proveedor=nombre_proveedor), _(TITULO_AVISO),
         wx.YES_NO | wx.NO_DEFAULT | wx.ICON_INFORMATION, padre)
     if respuesta != wx.YES:
         return False

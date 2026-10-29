@@ -6,6 +6,7 @@ propiedad general de que la selección siempre es un índice válido.
 
 import unittest
 
+from tests.pseudo_prueba import con_pseudo
 from ytchat.ui.opciones_musica import ETIQUETA_PREDETERMINADA, opciones_salida
 
 
@@ -63,6 +64,11 @@ class TestOpcionesSalida(unittest.TestCase):
         _, _, seleccion = opciones_salida(
             "", "Nombre huérfano", [("altavoces", "Altavoces")])
         self.assertEqual(seleccion, 0)
+
+    def test_predeterminada_sale_marcada(self):
+        with con_pseudo():
+            etiquetas, _, _ = opciones_salida("", "", [])
+        self.assertTrue(etiquetas[0].startswith("[¡"), etiquetas[0])
 
     def test_la_seleccion_siempre_es_un_indice_valido(self):
         casos = [

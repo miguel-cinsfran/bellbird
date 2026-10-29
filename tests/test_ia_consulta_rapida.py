@@ -19,6 +19,7 @@ except Exception:
 from ytchat.ai import consulta
 from ytchat.ai import protocolos
 from ytchat.ui import ia_consulta_rapida as rapida
+from tests.pseudo_prueba import con_pseudo
 from tests.ventanas_prueba import destruir
 
 
@@ -277,6 +278,38 @@ class TestConsultaRapida(unittest.TestCase):
         self.assertIsNone(rapida.tomar_conversacion(self.marco))
         self.assertIsNone(
             rapida.tomar_conversacion(mock.MagicMock()))
+
+
+class TestPseudoEnCurso(unittest.TestCase):
+    """Bajo seudotraducción, el aviso de consulta en curso sale marcado."""
+
+    def test_segunda_llamada_sale_marcada(self):
+        rapida._INSTANCIAS.clear()
+        self.addCleanup(rapida._INSTANCIAS.clear)
+        marco = mock.MagicMock()
+        marco.IsBeingDeleted.return_value = False
+        retenidos = []
+
+        def retenido(target, nombre, **kwargs):
+            retenidos.append((target, kwargs.get("args", ())))
+            hilo = mock.Mock()
+            hilo.start.return_value = None
+            return hilo
+
+        with mock.patch.object(rapida.wx, "Timer",
+                               side_effect=_TemporizadorFalso), \
+                mock.patch.object(rapida.obs_activacion,
+                                  "obs_esta_en_ejecucion",
+                                  return_value=True), \
+                mock.patch.object(rapida.diagnostico, "crear_hilo",
+                                  side_effect=retenido), \
+                mock.patch.object(rapida, "anunciar") as anunciar, \
+                con_pseudo():
+            rapida.consultar(marco)
+            rapida.consultar(marco)
+        anunciar.assert_called_once()
+        texto = anunciar.call_args.args[0]
+        self.assertTrue(texto.startswith("[¡"), texto)
 
 
 class TestAbrirVentanaTomaConversacion(unittest.TestCase):

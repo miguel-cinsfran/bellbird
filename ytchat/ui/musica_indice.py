@@ -10,6 +10,7 @@ import wx
 from ytchat.core import config as cfg
 from ytchat.core import diagnostico
 from ytchat.core import paths
+from ytchat.core.idioma import _, N_
 from ytchat.music import anuncios
 from ytchat.music.consultas_vlc import leer_etiquetas_vlc
 from ytchat.music.biblioteca import Biblioteca, ErrorBiblioteca
@@ -21,7 +22,8 @@ from ytchat.player import motor_vlc
 
 logger = diagnostico.obtener_logger(__name__)
 
-TEXTO_CARPETA_INEXISTENTE = (
+# Traductores: aviso cuando falta la carpeta de música; dice que elija otra en Preferencias.
+TEXTO_CARPETA_INEXISTENTE = N_(
     "No se encontró la carpeta de música. Elige otra en Preferencias, "
     "página Música")
 
@@ -249,7 +251,7 @@ class IndiceMusica:
     def _reproducir_indexado(self, biblioteca) -> None:
         if biblioteca is None:
             self._avisar(anuncios.Aviso(
-                TEXTO_CARPETA_INEXISTENTE, anuncios.SONIDO_ERROR))
+                _(TEXTO_CARPETA_INEXISTENTE), anuncios.SONIDO_ERROR))
             return
         if self._coordinador is None:
             return

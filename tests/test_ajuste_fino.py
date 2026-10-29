@@ -2,6 +2,7 @@
 
 import unittest
 
+from tests.pseudo_prueba import con_pseudo
 from ytchat.obs import ajuste_fino
 
 
@@ -53,6 +54,11 @@ class TestAjusteFino(unittest.TestCase):
                          "Ajuste fino. Flechas para mover, Control para pasos grandes, "
                          "Mayúsculas para pasos de un píxel. Intro confirma, Escape deshace, "
                          "Tab sale.")
+
+    def test_texto_de_entrada_sale_marcado(self):
+        with con_pseudo():
+            texto = ajuste_fino.texto_de_entrada()
+        self.assertTrue(texto.startswith("[¡"), texto)
 
 
 class TestEstadoAjuste(unittest.TestCase):

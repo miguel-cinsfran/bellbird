@@ -1,6 +1,6 @@
 """Adaptador de música sobre la instancia compartida de libVLC.
 
-Cumple el contrato ``Adaptador`` del coordinador usando el libVLC que YTChat
+Cumple el contrato ``Adaptador`` del coordinador usando el libVLC que Bellbird
 ya trae. Sin ``wx``. Los enlaces de YouTube no se resuelven acá: un hilo
 daemon pide la dirección del audio y arranca el reproductor cuando llega, sin
 bloquear al coordinador.

@@ -1609,7 +1609,7 @@ class YTChatFrame(wx.Frame):
             return
         self._titulo_stream = (titulo or "").strip()
         if self._titulo_stream:
-            # Formato tipo navegador: «Nombre del vídeo — YTChat TTS».
+            # Formato tipo navegador: «Nombre del vídeo — Bellbird».
             # Traductores: {titulo} es el vídeo y {app} la app.
             self.SetTitle(_("{titulo} — {app}").format(titulo=self._titulo_stream, app=APP_NAME))
         else:

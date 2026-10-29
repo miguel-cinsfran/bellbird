@@ -60,7 +60,7 @@ def es_directo_propio(es_tiktok, usuario_sesion, usuario_guardado,
     usuario de la sesión coincide con el guardado (sin importar
     mayúsculas ni la arroba inicial). En YouTube solo cuenta la
     conexión pedida: reconocer el canal propio queda para cuando
-    exista transmitir a YouTube desde YTChat.
+                      exista transmitir a YouTube desde Bellbird.
     """
     if conectado_por_transmision:
         return True

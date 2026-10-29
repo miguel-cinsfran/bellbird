@@ -1,6 +1,6 @@
 @echo off
 REM ============================================================================
-REM  YTChat TTS - Arranca la aplicacion desde el codigo fuente (con uv).
+REM  Bellbird - Arranca la aplicacion desde el codigo fuente (con uv).
 REM  Si falta el entorno o alguna dependencia, uv los prepara solo.
 REM ============================================================================
 cd /d "%~dp0"

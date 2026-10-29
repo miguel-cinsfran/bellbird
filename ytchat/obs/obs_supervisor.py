@@ -278,7 +278,7 @@ class SupervisorTransmision:
             pass
 
     def abandonar(self) -> None:
-        # Deja de vigilar sin detener OBS y sin anunciar: cerrar YTChat no
+        # Deja de vigilar sin detener OBS y sin anunciar: cerrar Bellbird no
         # corta el directo.
         self._parada.set()
         self._corte.set()

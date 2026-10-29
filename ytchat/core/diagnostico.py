@@ -1,4 +1,4 @@
-"""Herramientas de diagnóstico de bajo volumen para YTChat TTS."""
+"""Herramientas de diagnóstico de bajo volumen para Bellbird."""
 
 from __future__ import annotations
 

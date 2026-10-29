@@ -1,6 +1,6 @@
 @echo off
 REM ============================================================================
-REM  YTChat TTS - Instalacion del entorno de desarrollo con uv
+REM  Bellbird - Instalacion del entorno de desarrollo con uv
 REM
 REM  Crea el entorno virtual (.venv) con la version correcta de Python,
 REM  instala las dependencias de requirements.txt y genera los sonidos.

@@ -1,6 +1,6 @@
 """Revisión al arranque de directos que quedaron al aire sin imagen.
 
-Los directos se crean sin autoStop: si la persona cierra YTChat y después
+Los directos se crean sin autoStop: si la persona cierra Bellbird y después
 OBS, el directo queda al aire sin imagen hasta que alguien lo finalice.
 Al arrancar, este módulo revisa una sola vez si la cuenta tiene un
 directo al aire atado a su clave mientras OBS no transmite, y pregunta

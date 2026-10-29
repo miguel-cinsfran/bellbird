@@ -404,5 +404,5 @@ def aviso_atajos_globales_activos() -> Aviso:
 
 
 def aviso_atajos_globales_solo() -> Aviso:
-    """Confirmación de que los atajos volvieron a valer solo en YTChat."""
+    """Confirmación de que los atajos volvieron a valer solo en Bellbird."""
     return Aviso(_(_TEXTO_ATAJOS_GLOBALES_SOLO).format(app=config.APP_NAME))

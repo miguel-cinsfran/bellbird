@@ -1,6 +1,6 @@
 """Fines de directo pedidos a YouTube y todavía sin confirmar.
 
-Cuando OBS deja de transmitir, YTChat pide a YouTube que finalice el directo.
+Cuando OBS deja de transmitir, Bellbird pide a YouTube que finalice el directo.
 Si la red falla, el pedido se anota aquí con su fecha y se reintenta: en un
 hilo mientras la app siga abierta, y al volver a abrirla si se cerró antes de
 la confirmación. La E/S va aparte de la lógica para poder probar el reintento

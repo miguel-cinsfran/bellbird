@@ -3,7 +3,7 @@
 Esta guía explica cómo activar las funciones online de Bellbird:
 
 - **Leer comentarios** de cualquier vídeo (no solo directos).
-- **Moderar** el chat en vivo (expulsar o banear usuarios).
+- **Moderar** el chat del directo (expulsar o banear usuarios).
 - **Enviar mensajes** al chat del directo.
 - **Publicar y responder** comentarios.
 
@@ -155,7 +155,7 @@ Dirección directa:
 
 > **La caducidad de 7 días.** Mientras la app esté en estado "Prueba", la
 > sesión caduca cada **7 días** y hay que volver a pulsar "Iniciar sesión" en
-> Configuración. Es un clic y no se pierde nada. En esa misma página hay un
+> Preferencias, categoría API y sesión. Es un clic y no se pierde nada. En esa misma página hay un
 > botón **Publicar app** que quita la caducidad; a cambio, la primera vez
 > aparece un aviso de "app no verificada" que hay que aceptar a mano.
 > Cualquiera de las dos opciones sirve.
@@ -209,7 +209,7 @@ En el navegador, la secuencia es de tres pantallas:
 Al terminar, el navegador muestra "Sesión iniciada. Ya puedes volver a la
 aplicación", y la aplicación anuncia que la sesión se inició correctamente.
 
-A partir de aquí, el estado en Configuración dice "sesión iniciada" y se
+A partir de aquí, el estado en la categoría API y sesión dice "sesión iniciada" y se
 activan la moderación, el envío al chat y publicar comentarios.
 
 ---
@@ -256,13 +256,13 @@ pantalla y hay que desplazar la tabla en horizontal.
   moderador. En la lista del chat, el menú contextual de un mensaje (tecla
   Aplicaciones o Mayús+F10) ofrece **Expulsar 5 minutos** y **Banear del
   directo**. Se pide confirmación antes de actuar.
-- **Escribir en el chat del directo:** en la pestaña *Chat en vivo*, debajo de
+- **Escribir en el chat del directo:** en la pestaña *Chat del directo*, debajo de
   la lista, hay un cuadro de escritura con su botón **Enviar**. `Intro` envía y
-  `Mayúsculas+Intro` inserta un salto de línea. `Alt+Intro` lleva el foco al
+  `Mayús+Intro` inserta un salto de línea. `Alt+Intro` lleva el foco al
   cuadro desde cualquier parte de la ventana. Mientras falte algún requisito,
   el botón sigue alcanzándose con el tabulador y su nombre incluye el motivo,
-  por ejemplo "Enviar (inicia sesión en Configuración de API para escribir en
-  el chat)".
+  por ejemplo "Enviar (inicia sesión en Preferencias, categoría API y sesión,
+  para escribir en el chat)".
 
 ---
 

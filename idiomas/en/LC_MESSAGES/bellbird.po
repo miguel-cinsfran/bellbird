@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-29 07:47-0300\n"
+"POT-Creation-Date: 2026-10-29 08:15-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -19,92 +19,92 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: main.py:387
+#: main.py:354
 msgid "Super Chat"
 msgstr "Super Chat"
 
 #. Traductores: {etiqueta} es «Super Chat» o «Regalo».
-#: main.py:415
+#: main.py:382
 #, python-brace-format
 msgid "{etiqueta} de {autor}: {monto}. {mensaje}"
 msgstr "{etiqueta} from {autor}: {monto}. {mensaje}"
 
-#: main.py:416
+#: main.py:383
 #, python-brace-format
 msgid "{etiqueta} de {autor}: {monto}"
 msgstr "{etiqueta} from {autor}: {monto}"
 
-#: main.py:419
+#: main.py:386
 #, python-brace-format
 msgid "Nuevo miembro: {autor}"
 msgstr "New member: {autor}"
 
-#: main.py:421
+#: main.py:388
 #, python-brace-format
 msgid "{autor} entró"
 msgstr "{autor} joined"
 
-#: main.py:423
+#: main.py:390
 #, python-brace-format
 msgid "{autor} sigue el canal"
 msgstr "{autor} followed the channel"
 
-#: main.py:425
+#: main.py:392
 #, python-brace-format
 msgid "{autor} compartió el directo"
 msgstr "{autor} shared the live stream"
 
-#: main.py:427
+#: main.py:394
 #, python-brace-format
 msgid "{autor} envió un cofre"
 msgstr "{autor} sent a treasure chest"
 
 #. Traductores: {n} es cuántos «me gusta» dieron.
-#: main.py:430
+#: main.py:397
 #, python-brace-format
 msgid "{autor} dio {n} me gusta"
 msgstr "{autor} sent {n} likes"
 
-#: main.py:431
+#: main.py:398
 #, python-brace-format
 msgid "{autor} dio me gusta"
 msgstr "{autor} liked"
 
 #. Traductores: autor cuando el chat no da el nombre; una sola palabra.
 #. Traductores: autor cuando YouTube no da el nombre; una sola palabra.
-#: main.py:433 main.py:641 ytchat/voice/tts_worker.py:98
+#: main.py:400 main.py:608 ytchat/voice/tts_worker.py:98
 #: ytchat/youtube/youtube_api.py:66
 msgid "Usuario"
 msgstr "User"
 
-#: main.py:509
+#: main.py:476
 msgid "Chat reconectado."
 msgstr "Chat reconnected."
 
-#: main.py:524
+#: main.py:491
 msgid "La conexión se cerró y la reconexión está desactivada."
 msgstr "The connection closed and reconnection is turned off."
 
-#: main.py:532
+#: main.py:499
 msgid "El directo terminó. Chat desconectado."
 msgstr "The live stream ended. Chat disconnected."
 
-#: main.py:540
+#: main.py:507
 #, python-brace-format
 msgid "Se agotaron los {n} intentos de reconexión."
 msgstr "All {n} reconnection attempts failed."
 
-#: main.py:544
+#: main.py:511
 msgid "segundo"
 msgstr "second"
 
-#: main.py:544
+#: main.py:511
 msgid "segundos"
 msgstr "seconds"
 
 #. Traductores: {segundos} puede ser 1; {unidad}, segundo o segundos; {total},
 #. el máximo.
-#: main.py:548
+#: main.py:515
 #, python-brace-format
 msgid ""
 "Se perdió la conexión con el chat. Reintentando en {segundos} {unidad} "
@@ -113,7 +113,7 @@ msgstr ""
 "Lost connection to the chat. Retrying in {segundos} {unidad} (attempt "
 "{intento} of {total})."
 
-#: main.py:549
+#: main.py:516
 #, python-brace-format
 msgid ""
 "Se perdió la conexión con el chat. Reintentando en {segundos} {unidad} "
@@ -122,31 +122,31 @@ msgstr ""
 "Lost connection to the chat. Retrying in {segundos} {unidad} (attempt "
 "{intento})."
 
-#: main.py:604
+#: main.py:571
 msgid "No se encontró la librería pytchat. Ejecuta instalar.bat."
 msgstr "Could not find the pytchat library. Run instalar.bat."
 
-#: main.py:608
+#: main.py:575
 msgid "Conectando al directo…"
 msgstr "Connecting to the live stream…"
 
-#: main.py:622
+#: main.py:589
 msgid "Conectado. Esperando mensajes…"
 msgstr "Connected. Waiting for messages…"
 
-#: main.py:663
+#: main.py:630
 msgid "Chat en lectura."
 msgstr "Chat is being read."
 
-#: main.py:670
+#: main.py:637
 msgid "Demasiados errores consecutivos."
 msgstr "Too many consecutive errors."
 
-#: main.py:699
+#: main.py:666
 msgid "El ID de vídeo no es válido. Revisa el enlace."
 msgstr "The video ID is not valid. Check the link."
 
-#: main.py:701
+#: main.py:668
 msgid ""
 "YouTube todavía no muestra este vídeo. Pasa en los primeros segundos de "
 "un directo y siempre con los directos privados."
@@ -154,30 +154,30 @@ msgstr ""
 "YouTube does not show this video yet. This happens in the first seconds "
 "of a live stream, and always with private live streams."
 
-#: main.py:705
+#: main.py:672
 msgid "Este directo es privado. No se puede acceder."
 msgstr "This live stream is private. It cannot be accessed."
 
-#: main.py:707
+#: main.py:674
 msgid "El chat está restringido a miembros del canal."
 msgstr "Chat is restricted to channel members."
 
-#: main.py:709
+#: main.py:676
 msgid "El directo ha terminado o no está disponible."
 msgstr "The live stream has ended or is not available."
 
-#: main.py:711
+#: main.py:678
 msgid "El vídeo no existe. Revisa el enlace."
 msgstr "The video does not exist. Check the link."
 
 #. Traductores: {error} es el detalle técnico.
-#: main.py:713
+#: main.py:680
 #, python-brace-format
 msgid "No se pudo conectar: {error}"
 msgstr "Could not connect: {error}"
 
 #. Traductores: {app} es el nombre de la aplicación.
-#: main.py:786
+#: main.py:753
 #, python-brace-format
 msgid ""
 "{app} ya se está ejecutando.\n"
@@ -186,7 +186,7 @@ msgstr ""
 "{app} is already running.\n"
 "Close the other window before opening a new one."
 
-#: main.py:816
+#: main.py:783
 msgid ""
 "No se pudo iniciar el motor de voz.\n"
 "\n"
@@ -199,7 +199,7 @@ msgstr ""
 "Settings → Time & language → Speech."
 
 #. Traductores: {detalle} es el error técnico.
-#: main.py:838
+#: main.py:805
 #, python-brace-format
 msgid ""
 "wxPython no está instalado.\n"
@@ -688,16 +688,16 @@ msgid ""
 msgstr "Could not look up the video information. Try again later."
 
 #: ytchat/core/avisos_tiktok.py:13
-msgid "Leer en voz alta"
-msgstr "Read aloud"
+msgid "Sonido y voz"
+msgstr "Sound and speech"
 
 #: ytchat/core/avisos_tiktok.py:14
-msgid "Mostrar y sonar"
-msgstr "Show with sound"
+msgid "Solo sonido"
+msgstr "Sound only"
 
 #: ytchat/core/avisos_tiktok.py:15
-msgid "No mostrar"
-msgstr "Do not show"
+msgid "Desactivado"
+msgstr "Off"
 
 #: ytchat/core/avisos_tiktok.py:17
 msgid "&Entradas al directo:"
@@ -5207,8 +5207,8 @@ msgid "Interfaz"
 msgstr "Interface"
 
 #. Traductores: nombre accesible de la lista de sonidos.
-#: ytchat/ui/gui_preferencias.py:123 ytchat/ui/preferencias_sonidos.py:128
-#: ytchat/ui/preferencias_sonidos.py:131
+#: ytchat/ui/gui_preferencias.py:123 ytchat/ui/preferencias_sonidos.py:129
+#: ytchat/ui/preferencias_sonidos.py:132
 msgid "Sonidos"
 msgstr "Sounds"
 
@@ -7072,24 +7072,24 @@ msgstr "Message saved"
 msgid "Mensaje eliminado"
 msgstr "Message deleted"
 
-#: ytchat/ui/preferencias_sonidos.py:82
+#: ytchat/ui/preferencias_sonidos.py:83
 msgid "&Sonidos:"
 msgstr "&Sounds:"
 
-#: ytchat/ui/preferencias_sonidos.py:86
+#: ytchat/ui/preferencias_sonidos.py:87
 msgid "&Oír el sonido elegido"
 msgstr "&Hear the selected sound"
 
-#: ytchat/ui/preferencias_sonidos.py:96
+#: ytchat/ui/preferencias_sonidos.py:97
 msgid "&Tema de sonido:"
 msgstr "&Sound theme:"
 
-#: ytchat/ui/preferencias_sonidos.py:100
+#: ytchat/ui/preferencias_sonidos.py:101
 msgid "Tema de sonido"
 msgstr "Sound theme"
 
 #. Traductores: columna con el nombre de cada sonido.
-#: ytchat/ui/preferencias_sonidos.py:133
+#: ytchat/ui/preferencias_sonidos.py:134
 msgid "Sonido"
 msgstr "Sound"
 
@@ -7508,4 +7508,13 @@ msgstr "Untitled"
 
 #~ msgid "Interfaz y sonidos"
 #~ msgstr "Interface and sounds"
+
+#~ msgid "Leer en voz alta"
+#~ msgstr "Read aloud"
+
+#~ msgid "Mostrar y sonar"
+#~ msgstr "Show with sound"
+
+#~ msgid "No mostrar"
+#~ msgstr "Do not show"
 

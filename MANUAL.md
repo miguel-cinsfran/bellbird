@@ -72,10 +72,13 @@ Cada mensaje se lee con la voz elegida y suena distinto según quién
 escribe (dueño del canal, moderador, cuenta verificada, miembro) y según
 lo que es (Super Chat, membresía, regalo de TikTok).
 
-En TikTok también se leen los stickers y las preguntas del directo. Quién
-da me gusta no se lee de fábrica, porque en un directo grande son
-muchísimos: se enciende en *Preferencias, Lectura*, con la casilla *Leer
-quién da me gusta*. Si quien transmite pone el directo en pausa, se oye
+En TikTok también se leen los stickers y las preguntas del directo. En
+*Preferencias, Lectura* cada aviso de TikTok (entradas, me gusta,
+seguidores, compartidos y cofres) tiene su modo: *Sonido y voz* lo muestra
+en la lista, suena y lo lee; *Solo sonido* lo muestra y suena sin leerlo;
+*Desactivado* no lo muestra. De fábrica, las entradas y los me gusta están
+en *Solo sonido*, y los seguidores, los compartidos y los cofres en *Sonido
+y voz*. Si quien transmite pone el directo en pausa, se oye
 «El directo de TikTok está en pausa.», y al volver, «El directo de TikTok
 continúa.», cada uno con su sonido.
 

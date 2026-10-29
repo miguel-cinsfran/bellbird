@@ -10,9 +10,9 @@ from __future__ import annotations
 
 from ytchat.core.idioma import N_
 
-MODOS = (("leer", N_("Leer en voz alta")),
-         ("mostrar", N_("Mostrar y sonar")),
-         ("ocultar", N_("No mostrar")))
+MODOS = (("leer", N_("Sonido y voz")),
+         ("mostrar", N_("Solo sonido")),
+         ("ocultar", N_("Desactivado")))
 
 AVISOS = (("entrada", "aviso_entradas", N_("&Entradas al directo:"),
            "mostrar"),

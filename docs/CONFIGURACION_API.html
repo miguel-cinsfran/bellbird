@@ -245,8 +245,8 @@ que editar archivos a mano. Lo único que se hace fuera, una sola vez, es
 crear las credenciales en Google Cloud, y eso es lo que cubre esta
 guía.</p>
 <p>La parte de moderar y comentar es opcional. Para <strong>leer
-comentarios</strong> basta con la API key, o sea los pasos 1 a 3; el
-resto se puede saltar.</p>
+comentarios</strong> basta con la clave de API, o sea los pasos 1 a 3;
+el resto se puede saltar.</p>
 <hr />
 <h2 id="cómo-seguir-esta-guía-con-lector-de-pantalla">Cómo seguir esta
 guía con lector de pantalla</h2>
@@ -309,7 +309,8 @@ YouTube Data API v3</h2>
 <p>Pulsar <strong>Habilitar</strong>. Si el botón dice
 <strong>Administrar</strong> en vez de Habilitar, ya estaba activada y
 no hay que hacer nada.</p>
-<h2 id="paso-3--crear-la-api-key">Paso 3 — Crear la API key</h2>
+<h2 id="paso-3--crear-la-clave-de-api">Paso 3 — Crear la clave de
+API</h2>
 <p>Dirección directa:</p>
 <pre><code>https://console.cloud.google.com/apis/credentials?project=TU-PROYECTO</code></pre>
 <ol type="1">
@@ -332,9 +333,10 @@ de la clave abre su ficha de edición, que permite restringirla y
 renombrarla pero <strong>no muestra su valor</strong>.</p>
 </blockquote>
 <p>Con esto ya se pueden <strong>leer comentarios</strong>. En Bellbird:
-botón <strong>Configuración</strong>, pegar la clave en el campo
-<strong>API key</strong>, pulsar <strong>Guardar claves</strong> y
-cerrar. Quien solo quiera leer ha terminado aquí.</p>
+menú Herramientas, <strong>Preferencias…</strong>, página <strong>API y
+sesión</strong>, pegar la clave en el campo <strong>Clave de
+API</strong>, pulsar <strong>Guardar claves</strong> y cerrar. Quien
+solo quiera leer ha terminado aquí.</p>
 <hr />
 <h2 id="paso-4--configurar-la-pantalla-de-consentimiento">Paso 4 —
 Configurar la pantalla de consentimiento</h2>
@@ -425,10 +427,10 @@ visible después, en la lista de clientes.</p>
 <h2 id="paso-6--meter-los-datos-en-la-aplicación">Paso 6 — Meter los
 datos en la aplicación</h2>
 <ol type="1">
-<li>Abrir Bellbird y pulsar el botón
-<strong>Configuración</strong>.</li>
-<li>Pegar la <strong>API key</strong> del paso 3, y el <strong>ID de
-cliente</strong> y el <strong>Secreto de cliente</strong> del paso 5,
+<li>Abrir Bellbird, menú Herramientas, <strong>Preferencias…</strong>,
+página <strong>API y sesión</strong>.</li>
+<li>Pegar la <strong>clave de API</strong> del paso 3, y el <strong>ID
+de cliente</strong> y el <strong>Secreto de cliente</strong> del paso 5,
 cada uno en su campo.</li>
 <li>Pulsar <strong>Guardar claves</strong>.</li>
 <li>Pulsar <strong>Iniciar sesión</strong>. Se abre el navegador.</li>
@@ -473,10 +475,10 @@ horizontal.</p>
 <li><strong>Leer comentarios:</strong> conectarse a un vídeo en la barra
 superior y abrir la pestaña <strong>Comentarios</strong>. Elegir el
 orden y pulsar <strong>Recargar comentarios</strong>. La lista se
-recorre con las flechas; <strong>Enter</strong> lo lee con la voz y
+recorre con las flechas; <strong>Intro</strong> lo lee con la voz y
 <strong>Ctrl+C</strong> lo copia. Para más acciones, el menú contextual
-(tecla <strong>Aplicaciones</strong> o <strong>Mayúsculas+F10</strong>):
-<strong>Leer con TTS</strong>, <strong>Copiar</strong> y
+(tecla <strong>Aplicaciones</strong> o <strong>Mayús+F10</strong>):
+<strong>Leer en voz alta</strong>, <strong>Copiar</strong> y
 <strong>Responder</strong>. <strong>Cargar más</strong> trae la página
 siguiente. Con el orden "Más relevantes", YouTube puede devolver páginas
 repetidas; se descartan y se avisa "No hay comentarios nuevos". "Más
@@ -486,9 +488,9 @@ recientes" pagina de forma más estable.</li>
 seleccionado, y <strong>Comentar en el vídeo</strong> es un botón. La
 API de YouTube <strong>no permite dar "me gusta" a comentarios</strong>,
 solo a vídeos, así que esa acción no existe en la aplicación.</li>
-<li><strong>Moderar el chat en vivo:</strong> conectarse a un directo
-del que se sea dueño o moderador. En la lista del chat, el menú
-contextual de un mensaje (tecla Aplicaciones o Mayúsculas+F10) ofrece
+<li><strong>Moderar el chat del directo:</strong> conectarse a un
+directo del que se sea propietario o moderador. En la lista del chat, el
+menú contextual de un mensaje (tecla Aplicaciones o Mayús+F10) ofrece
 <strong>Expulsar 5 minutos</strong> y <strong>Banear del
 directo</strong>. Se pide confirmación antes de actuar.</li>
 <li><strong>Escribir en el chat del directo:</strong> en la pestaña

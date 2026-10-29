@@ -70,7 +70,7 @@ comentarios.
 ## El chat
 
 Cada mensaje se lee con la voz elegida y suena distinto según quién
-escribe (dueño del canal, moderador, cuenta verificada, miembro) y según
+escribe (propietario del canal, moderador, cuenta verificada, miembro) y según
 lo que es (Super Chat, membresía, regalo de TikTok).
 
 En TikTok también se leen los stickers y las preguntas del directo. En
@@ -337,7 +337,7 @@ vez, sin reintentar.
 
 ## Descargas e historial
 
-**Gestor de descargas** (`Ctrl+Mayús+D`): vídeos, audio o listas enteras,
+**Administrador de descargas** (`Ctrl+Mayús+D`): vídeos, audio o listas enteras,
 en MP4, WebM, MP3 o M4A, con el audio a 192, 256 o 320 kbps. Baja dos a
 la vez y pone las demás en cola. Guarda el historial de lo descargado. La
 carpeta Descargas está junto al programa. yt-dlp se actualiza desde
@@ -448,7 +448,7 @@ acción.
 | `Ctrl+Mayús+P` | Preferencias |
 | `Ctrl+Mayús+H` | Historial de directos |
 | `Ctrl+Mayús+T` | Transmisión |
-| `Ctrl+Mayús+D` | Gestor de descargas |
+| `Ctrl+Mayús+D` | Administrador de descargas |
 | `Ctrl+Mayús+M` | Música |
 | `Ctrl+Mayús+I` | Preguntar a la IA sobre la imagen |
 | `Ctrl+Mayús+O` | Mostrar OBS |

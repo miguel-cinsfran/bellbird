@@ -24,7 +24,7 @@ archivos a mano. Lo único que se hace fuera, una sola vez, es crear las
 credenciales en Google Cloud, y eso es lo que cubre esta guía.
 
 La parte de moderar y comentar es opcional. Para **leer comentarios** basta con
-la API key, o sea los pasos 1 a 3; el resto se puede saltar.
+la clave de API, o sea los pasos 1 a 3; el resto se puede saltar.
 
 ---
 
@@ -89,7 +89,7 @@ Dirección directa, reemplazando el identificador:
 Pulsar **Habilitar**. Si el botón dice **Administrar** en vez de Habilitar, ya
 estaba activada y no hay que hacer nada.
 
-## Paso 3 — Crear la API key
+## Paso 3 — Crear la clave de API
 
 Dirección directa:
 
@@ -108,9 +108,9 @@ Dirección directa:
 > alcanzarlo. Pulsar el *nombre* de la clave abre su ficha de edición, que
 > permite restringirla y renombrarla pero **no muestra su valor**.
 
-Con esto ya se pueden **leer comentarios**. En Bellbird: botón
-**Configuración**, pegar la clave en el campo **API key**, pulsar **Guardar
-claves** y cerrar. Quien solo quiera leer ha terminado aquí.
+Con esto ya se pueden **leer comentarios**. En Bellbird: menú Herramientas,
+**Preferencias…**, página **API y sesión**, pegar la clave en el campo **Clave
+de API**, pulsar **Guardar claves** y cerrar. Quien solo quiera leer ha terminado aquí.
 
 ---
 
@@ -191,8 +191,8 @@ Dirección directa:
 
 ## Paso 6 — Meter los datos en la aplicación
 
-1. Abrir Bellbird y pulsar el botón **Configuración**.
-2. Pegar la **API key** del paso 3, y el **ID de cliente** y el **Secreto de
+1. Abrir Bellbird, menú Herramientas, **Preferencias…**, página **API y sesión**.
+2. Pegar la **clave de API** del paso 3, y el **ID de cliente** y el **Secreto de
    cliente** del paso 5, cada uno en su campo.
 3. Pulsar **Guardar claves**.
 4. Pulsar **Iniciar sesión**. Se abre el navegador.
@@ -242,9 +242,9 @@ pantalla y hay que desplazar la tabla en horizontal.
 
 - **Leer comentarios:** conectarse a un vídeo en la barra superior y abrir la
   pestaña **Comentarios**. Elegir el orden y pulsar **Recargar comentarios**.
-  La lista se recorre con las flechas; **Enter** lo lee con la voz y **Ctrl+C**
+  La lista se recorre con las flechas; **Intro** lo lee con la voz y **Ctrl+C**
   lo copia. Para más acciones, el menú contextual (tecla **Aplicaciones** o
-  **Mayúsculas+F10**): **Leer con TTS**, **Copiar** y **Responder**. **Cargar
+  **Mayús+F10**): **Leer en voz alta**, **Copiar** y **Responder**. **Cargar
   más** trae la página siguiente. Con el orden "Más relevantes", YouTube puede
   devolver páginas repetidas; se descartan y se avisa "No hay comentarios
   nuevos". "Más recientes" pagina de forma más estable.
@@ -252,9 +252,9 @@ pantalla y hay que desplazar la tabla en horizontal.
   menú contextual de un comentario seleccionado, y **Comentar en el vídeo** es
   un botón. La API de YouTube **no permite dar "me gusta" a comentarios**, solo
   a vídeos, así que esa acción no existe en la aplicación.
-- **Moderar el chat en vivo:** conectarse a un directo del que se sea dueño o
+- **Moderar el chat del directo:** conectarse a un directo del que se sea propietario o
   moderador. En la lista del chat, el menú contextual de un mensaje (tecla
-  Aplicaciones o Mayúsculas+F10) ofrece **Expulsar 5 minutos** y **Banear del
+  Aplicaciones o Mayús+F10) ofrece **Expulsar 5 minutos** y **Banear del
   directo**. Se pide confirmación antes de actuar.
 - **Escribir en el chat del directo:** en la pestaña *Chat en vivo*, debajo de
   la lista, hay un cuadro de escritura con su botón **Enviar**. `Intro` envía y

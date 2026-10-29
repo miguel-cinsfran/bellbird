@@ -1,4 +1,8 @@
-"""Pruebas de los avisos de los controles del reproductor."""
+"""Pruebas de los avisos de los controles del reproductor.
+
+Las clases con ventana las corre el advisor (abren ventanas de verdad y
+aquí no se corren): aquí solo se corren las que usan paneles con dobles.
+"""
 
 import unittest
 from unittest import mock
@@ -7,8 +11,16 @@ import time
 import types
 import sys
 
+try:
+    import wx
+    _HAY_WX = True
+except Exception:
+    _HAY_WX = False
+
 from ytchat.player import motor_vlc
 from ytchat.player import reproductor
+from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
+from tests.ventanas_prueba import destruir
 
 
 _MONOTONIC_REAL = time.monotonic
@@ -1390,6 +1402,572 @@ class TestAnchoEstado(unittest.TestCase):
         panel.lbl_estado.GetLabel.return_value = "Sin reproducir."
         panel._ajustar_ancho_estado()
         panel.lbl_estado.SetLabel.assert_called_once_with("Sin reproducir.")
+
+
+class TestFmtHablado(unittest.TestCase):
+    """La posición hablada conserva el español exacto, también en singular."""
+
+    def test_cero_segundos(self):
+        self.assertEqual(reproductor._fmt_hablado(0), "0 segundos")
+
+    def test_un_segundo_en_singular(self):
+        self.assertEqual(reproductor._fmt_hablado(1000), "1 segundo")
+
+    def test_varios_segundos_en_plural(self):
+        self.assertEqual(reproductor._fmt_hablado(2000), "2 segundos")
+
+    def test_minuto_y_segundo_en_singular(self):
+        self.assertEqual(reproductor._fmt_hablado(61_000),
+                         "1 minuto 1 segundo")
+
+    def test_hora_con_minutos_en_cero(self):
+        self.assertEqual(reproductor._fmt_hablado(3_600_000),
+                         "1 hora 0 minutos 0 segundos")
+
+    def test_horas_minutos_y_segundos(self):
+        self.assertEqual(reproductor._fmt_hablado(7_322_000),
+                         "2 horas 2 minutos 2 segundos")
+
+
+class TestPseudoTextosReproductor(unittest.TestCase):
+    """Bajo pseudotraducción, cada frase al usuario sale marcada."""
+
+    def test_avisos_puros_salen_marcados(self):
+        with con_pseudo():
+            marcados = [
+                reproductor.aviso_reproductor(False, False),
+                reproductor.aviso_reproductor(True, False),
+                reproductor._fmt_hablado(0),
+                reproductor._fmt_hablado(1000),
+                reproductor._fmt_hablado(61_000),
+            ]
+        for texto in marcados:
+            with self.subTest(texto=texto):
+                self.assertTrue(texto.startswith("[¡"), texto)
+
+
+# El panel lo arma `ytchat/player/reproductor.py`: sus textos quedan
+# pendientes en otras ventanas y aquí se exige que no quede ninguno sin
+# envolver. La comparación es exacta en los dos sentidos: falla si aparece
+# un texto nuevo sin envolver y si un pendiente ya no está en el recorrido.
+PENDIENTES_REPRODUCTOR = ()
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestPseudoReproductorVentana(unittest.TestCase):
+    # Con ventana: la corre el advisor. No correr aquí.
+
+    def setUp(self):
+        self.app = wx.App(False) if not wx.App.Get() else wx.App.Get()
+
+    def _panel(self):
+        marco = wx.Frame(None)
+        self.addCleanup(destruir, marco)
+        config = {"mostrar_botones_reproductor": True,
+                  "reproductor_solo_audio": False}
+        with mock.patch.object(reproductor, "disponible",
+                               return_value=True):
+            return reproductor.ReproductorPanel(marco, config)
+
+    def test_no_queda_ningun_texto_visible_sin_envolver(self):
+        with con_pseudo():
+            panel = self._panel()
+            sin_marcar = textos_sin_marcar(panel, propios=("0:00 / 0:00",))
+        self.assertEqual(sorted(sin_marcar), sorted(PENDIENTES_REPRODUCTOR))
+
+
+class TestPseudoAnunciosReproductor(unittest.TestCase):
+    """Bajo pseudotraducción, cada anuncio del reproductor sale marcado.
+
+    Sin ventana: paneles con dobles, así se corre acá. Los textos que
+    arma otro módulo (`frase_desfase_directo`, `aviso_sin_pausa` y los
+    avisos de espera de `progreso`) ya salen marcados de su origen.
+    """
+
+    def setUp(self):
+        self.captados = []
+        parches = [
+            mock.patch.object(reproductor, "anunciar", self._guardar),
+            mock.patch("ytchat.voice.sound_player.reproducir"),
+        ]
+        for parche in parches:
+            parche.start()
+            self.addCleanup(parche.stop)
+        pseudo = con_pseudo()
+        pseudo.__enter__()
+        self.addCleanup(pseudo.__exit__, None, None, None)
+
+    def _guardar(self, frase, *args, **kwargs):
+        self.captados.append(frase)
+
+    def _exigir_marcados(self, cantidad):
+        self.assertEqual(len(self.captados), cantidad)
+        for frase in self.captados:
+            self.assertTrue(frase.startswith("[¡"), frase)
+        del self.captados[:]
+
+    def _panel(self, **attrs):
+        panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
+        panel._listo = True
+        panel._gen = 0
+        panel._video_id = "video-cargado"
+        panel._url_flujo = ""
+        panel._player = None
+        panel._ic_mute = mock.Mock()
+        panel._ic_sound = mock.Mock()
+        panel._timer_progreso = mock.Mock()
+        for clave, valor in attrs.items():
+            setattr(panel, clave, valor)
+        return panel
+
+    def test_sin_medio_anuncia_marcado(self):
+        panel = self._panel(_video_id="", _url_flujo="")
+        panel._toggle_play()
+        self._exigir_marcados(1)
+
+    def test_sin_reproductor_anuncia_marcado(self):
+        panel = self._panel(_listo=False)
+        panel._asegurar_player = lambda: False
+        panel._toggle_play()
+        self._exigir_marcados(1)
+
+    def test_pausar_y_reanudar_anuncian_marcado(self):
+        panel = self._panel()
+        panel._asegurar_player = lambda: True
+        panel._player = mock.Mock()
+        panel._orden_transporte = None
+        panel._intencion_reproducir = False
+        panel._estado_vlc_actual = lambda: "playing"
+        panel._mostrar_pausa = mock.Mock()
+        panel._timer = mock.Mock()
+        panel._toggle_play()
+        self._exigir_marcados(1)
+        panel._intencion_reproducir = True
+        panel._orden_transporte = None
+        panel._estado_vlc_actual = lambda: "paused"
+        panel._toggle_play()
+        self._exigir_marcados(1)
+
+    def test_directo_tiktok_sin_pausa_avisa_marcado(self):
+        panel = self._panel(_url_flujo="https://flujo.example/stream.flv")
+        panel._asegurar_player = lambda: True
+        panel._player = mock.Mock()
+        panel._orden_transporte = None
+        panel._intencion_reproducir = False
+        panel._estado_vlc_actual = lambda: "playing"
+        panel._config = {"atajos_raw": {}}
+        panel._toggle_play()
+        self._exigir_marcados(1)
+
+    def test_pantalla_completa_sin_medio_anuncia_marcado(self):
+        panel = self._panel(_video_id="", _url_flujo="", _fs=None)
+        panel.alternar_pantalla_completa()
+        self._exigir_marcados(1)
+
+    def test_pantalla_completa_ida_y_vuelta_anuncian_marcado(self):
+        from ytchat.player.pantalla_completa import AccionesPantalla
+        panel = self._panel(_fs=None, _botones_visibles=True)
+        panel._asegurar_player = lambda: True
+        panel._mapa_atajos_fs = lambda: {}
+        panel._fijar_salida = mock.Mock()
+        panel._video = mock.Mock()
+        panel.btn_play = mock.Mock()
+        with mock.patch.object(reproductor, "PantallaCompleta") as clase:
+            panel.alternar_pantalla_completa()
+            self._exigir_marcados(1)
+            panel._fs = clase.return_value
+            panel.alternar_pantalla_completa()
+            self._exigir_marcados(1)
+
+    def test_silenciar_y_activar_anuncian_marcado(self):
+        panel = self._panel(_muted=False)
+        panel._player = mock.Mock()
+        panel.btn_mute = mock.Mock()
+        panel._toggle_mute()
+        self._exigir_marcados(1)
+        panel._toggle_mute()
+        self._exigir_marcados(1)
+
+    def test_detener_anuncia_marcado(self):
+        panel = self._panel()
+        panel._timer_progreso = mock.Mock()
+        panel._detener()
+        self._exigir_marcados(1)
+
+    def test_volumen_anuncia_nombre_y_valor_marcados(self):
+        from ytchat.core import anuncio_ajuste
+        compartido = anuncio_ajuste.COMPARTIDO
+        ultimo, hora = compartido._ultimo, compartido._hora
+        self.addCleanup(setattr, compartido, "_ultimo", ultimo)
+        self.addCleanup(setattr, compartido, "_hora", hora)
+        compartido._ultimo, compartido._hora = "otro_control", 0.0
+        panel = self._panel(_vol=50)
+        panel.sld_vol = mock.Mock()
+        panel._player = None
+        panel.ajustar_volumen(+20)
+        self._exigir_marcados(1)
+        panel.ajustar_volumen(+1)
+        self._exigir_marcados(1)
+
+    def test_calidades_anuncian_marcado(self):
+        panel = self._panel(_calidad_sel=None, _info=None)
+        panel.set_calidad(None)
+        self._exigir_marcados(1)
+        panel.set_calidad(720)
+        self._exigir_marcados(1)
+
+    def test_cargar_sin_reproductor_anuncia_marcado(self):
+        panel = self._panel(_listo=False)
+        panel._asegurar_player = lambda: False
+        panel.cargar()
+        self._exigir_marcados(1)
+
+    def test_cargar_en_curso_anuncia_marcado(self):
+        panel = self._panel(_cargando=True)
+        panel._asegurar_player = lambda: True
+        panel.cargar()
+        self._exigir_marcados(1)
+
+    def test_cargar_anuncia_marcado(self):
+        from ytchat.player.busqueda_video import EstadoBusqueda
+        panel = self._panel(_cargando=False)
+        panel._asegurar_player = lambda: True
+        panel._estado_busqueda = EstadoBusqueda(confirmada=0)
+        panel._estado_inicio = mock.Mock()
+        panel._timer_progreso = mock.Mock()
+        panel._fijar_estado = mock.Mock()
+        with mock.patch.object(reproductor.diagnostico, "crear_hilo"):
+            panel.cargar()
+        self._exigir_marcados(1)
+
+    def test_error_de_carga_anuncia_marcado(self):
+        panel = self._panel()
+        panel._estado_inicio = mock.Mock()
+        panel._timer_progreso = mock.Mock()
+        panel._fijar_estado = mock.Mock()
+        panel._error_carga()
+        self._exigir_marcados(1)
+
+    def test_progreso_de_carga_anuncia_marcado(self):
+        panel = self._panel(_cargando=True,
+                            _inicio_progreso=time.monotonic() - 5.0,
+                            _ultimo_aviso_progreso=None)
+        panel._fijar_estado = mock.Mock()
+        panel._on_timer_progreso(None)
+        self._exigir_marcados(1)
+
+    def test_transporte_confirmado_anuncia_marcado(self):
+        from ytchat.player.busqueda_video import OrdenTransporte
+        panel = self._panel()
+        panel._mostrar_pausa = mock.Mock()
+        panel._timer = mock.Mock()
+        panel._orden_transporte = OrdenTransporte(intencion_reproducir=False,
+                                                 instante=time.monotonic())
+        panel._evaluar_transporte(estado_forzado="paused")
+        self._exigir_marcados(1)
+        panel._orden_transporte = OrdenTransporte(intencion_reproducir=True,
+                                                 instante=time.monotonic())
+        panel._evaluar_transporte(estado_forzado="playing")
+        self._exigir_marcados(1)
+
+    def test_transporte_fallido_anuncia_marcado(self):
+        from ytchat.player.busqueda_video import OrdenTransporte
+        panel = self._panel()
+        panel._mostrar_pausa = mock.Mock()
+        panel._timer = mock.Mock()
+        panel._orden_transporte = OrdenTransporte(intencion_reproducir=False,
+                                                 instante=time.monotonic() - 10.0)
+        panel._estado_vlc_actual = lambda: "playing"
+        panel._evaluar_transporte(estado_forzado="opening")
+        self._exigir_marcados(1)
+        panel._orden_transporte = OrdenTransporte(intencion_reproducir=True,
+                                                 instante=time.monotonic() - 10.0)
+        panel._estado_vlc_actual = lambda: "paused"
+        panel._evaluar_transporte(estado_forzado="opening")
+        self._exigir_marcados(1)
+
+    def test_transitorio_y_sin_barra_anuncian_marcado(self):
+        panel = self._panel(_cargando=True)
+        panel._estado_vlc_actual = lambda: "playing"
+        panel._aviso_transitorio()
+        self._exigir_marcados(1)
+        panel = self._panel(_cargando=False)
+        panel._estado_vlc_actual = lambda: "stopped"
+        panel._aviso_transitorio()
+        self._exigir_marcados(1)
+        panel = self._panel(_cargando=False,
+                            _url_flujo="https://flujo.example/stream.flv")
+        panel._estado_vlc_actual = lambda: "playing"
+        panel._aviso_sin_barra()
+        self._exigir_marcados(1)
+        panel = self._panel(_cargando=False)
+        panel._estado_vlc_actual = lambda: "playing"
+        panel._aviso_sin_barra()
+        self._exigir_marcados(1)
+
+    def test_busqueda_no_permitida_anuncia_marcado(self):
+        panel = self._panel(_cargando=False, _relevo_ffmpeg=mock.Mock())
+        panel._es_directo_actual = lambda: True
+        panel._estado_vlc_actual = lambda: "playing"
+        panel._aviso_busqueda_no_permitida()
+        self._exigir_marcados(1)
+        panel = self._panel(_cargando=False, _relevo_ffmpeg=None,
+                            _url_flujo="https://flujo.example/stream.flv")
+        panel._es_directo_actual = lambda: True
+        panel._estado_vlc_actual = lambda: "playing"
+        panel._aviso_busqueda_no_permitida()
+        self._exigir_marcados(1)
+        panel = self._panel(_cargando=False, _relevo_ffmpeg=None)
+        panel._es_directo_actual = lambda: True
+        panel._estado_vlc_actual = lambda: "playing"
+        panel._aviso_busqueda_no_permitida()
+        self._exigir_marcados(1)
+        panel = self._panel(_cargando=False, _relevo_ffmpeg=None)
+        panel._es_directo_actual = lambda: False
+        panel._estado_vlc_actual = lambda: "playing"
+        panel._aviso_busqueda_no_permitida()
+        self._exigir_marcados(1)
+
+    def test_salto_en_relevo_anuncia_marcado(self):
+        from ytchat.player.busqueda_video import (
+            MARGEN_VENTANA_SEGMENTOS, EstadoBusqueda)
+        tope = 720 - MARGEN_VENTANA_SEGMENTOS
+        panel = self._panel(_relevo_fuentes=None)
+        panel._saltar_en_relevo(-60_000)
+        self._exigir_marcados(1)
+        panel = self._panel(_relevo_fuentes=("video", "audio"),
+                            _relevo_ventana=(5.0, 720), _relevo_desfase=0)
+        panel._saltar_en_relevo(+60_000)
+        self._exigir_marcados(1)
+        panel = self._panel(_relevo_fuentes=("video", "audio"),
+                            _relevo_ventana=(5.0, 720), _relevo_desfase=tope)
+        panel._saltar_en_relevo(-60_000)
+        self._exigir_marcados(1)
+        panel = self._panel(_relevo_fuentes=("video", "audio"),
+                            _relevo_ventana=(5.0, 720), _relevo_desfase=0)
+        panel._estado_busqueda = EstadoBusqueda(confirmada=0)
+        with mock.patch.object(reproductor.wx, "CallLater"):
+            panel._saltar_en_relevo(+60_000)
+        self._exigir_marcados(1)
+
+    def test_ir_al_directo_anuncia_marcado(self):
+        panel = self._panel()
+        panel._es_directo_actual = lambda: False
+        panel.ir_al_directo()
+        self._exigir_marcados(1)
+        panel = self._panel(_relevo_fuentes=("video", "audio"),
+                            _relevo_desfase=0)
+        panel._es_directo_actual = lambda: True
+        panel.ir_al_directo()
+        self._exigir_marcados(1)
+        panel = self._panel(_relevo_fuentes=None)
+        panel._es_directo_actual = lambda: True
+        panel.ir_al_directo()
+        self._exigir_marcados(1)
+        panel = self._panel(_relevo_fuentes=("video", "audio"),
+                            _relevo_ventana=(5.0, 720), _relevo_desfase=12)
+        panel._es_directo_actual = lambda: True
+        with mock.patch.object(reproductor.wx, "CallLater"):
+            panel.ir_al_directo()
+        self._exigir_marcados(1)
+
+    def test_mover_y_posicion_anuncian_marcado(self):
+        from ytchat.player.busqueda_video import EstadoBusqueda
+        panel = self._panel(_vod_por_relevo=True,
+                            _relevo_vod_base_ms=None)
+        panel._estado_busqueda = EstadoBusqueda(confirmada=0)
+        panel._estado_vlc_actual = lambda: "playing"
+        panel._duracion_actual = lambda: 600_000
+        panel._fijar_tiempo = mock.Mock()
+        panel._timer = mock.Mock()
+        panel._marcar_destino(300_000)
+        self._exigir_marcados(1)
+        bus = mock.Mock()
+        bus.pendiente = True
+        bus.destino = 300_000
+        bus.confirmada = 0
+        bus.candidato = None
+        bus.edad_ms = mock.Mock(return_value=10)
+        bus.observar = mock.Mock(return_value=("confirmado", 5_000))
+        panel._estado_busqueda = bus
+        panel.sld_pos = mock.Mock()
+        with mock.patch.object(reproductor.wx.Window, "FindFocus",
+                               return_value=None):
+            panel._evaluar_busqueda()
+        self._exigir_marcados(1)
+        bus.observar = mock.Mock(return_value=("fallo", None))
+        with mock.patch.object(reproductor.wx.Window, "FindFocus",
+                               return_value=None):
+            panel._evaluar_busqueda()
+        self._exigir_marcados(1)
+
+    def test_deslizador_y_porcentaje_mueven_y_anuncian_marcado(self):
+        from ytchat.player.busqueda_video import EstadoBusqueda
+        panel = self._panel(_vod_por_relevo=False)
+        panel._player = mock.Mock()
+        panel._estado_busqueda = EstadoBusqueda(confirmada=0)
+        panel._busqueda_permitida_actual = lambda: True
+        panel._duracion_actual = lambda: 600_000
+        panel._fijar_tiempo = mock.Mock()
+        panel._timer = mock.Mock()
+        panel.sld_pos = mock.Mock()
+        panel.sld_pos.GetValue.return_value = 500
+        panel._on_sld_pos(None)
+        self._exigir_marcados(1)
+        panel._estado_busqueda = EstadoBusqueda(confirmada=0)
+        panel._buscar_porcentaje(50)
+        self._exigir_marcados(1)
+
+    def test_fin_de_flujo_anuncia_marcado(self):
+        from ytchat.player.busqueda_video import EstadoBusqueda
+        panel = self._panel()
+        panel._timer_progreso = mock.Mock()
+        panel._duracion_actual = lambda: 600_000
+        panel._estado_busqueda = EstadoBusqueda(confirmada=599_000)
+        panel._relevo_vod_ultima = None
+        panel._relevo_vod_base_ms = None
+        panel._pos_ms = 0
+        panel._relevo_vod_recuperaciones = 0
+        panel._fin_flujo_vod()
+        self._exigir_marcados(1)
+        panel = self._panel()
+        panel._timer_progreso = mock.Mock()
+        panel._duracion_actual = lambda: 600_000
+        panel._estado_busqueda = EstadoBusqueda(confirmada=100_000)
+        panel._relevo_vod_ultima = 100_000
+        panel._relevo_vod_base_ms = 0
+        panel._relevo_fuentes = ("video", "audio")
+        panel._pos_ms = 0
+        panel._relevo_vod_recuperaciones = 2
+        panel._fin_flujo_vod()
+        self._exigir_marcados(1)
+
+    def test_fallo_de_reproduccion_y_reintento_anuncian_marcado(self):
+        panel = self._panel(_vod_por_relevo=False, _relevo_ffmpeg=None,
+                            _relevo_reintentos=0)
+        panel._timer_progreso = mock.Mock()
+        panel._fijar_estado = mock.Mock()
+        panel._fallo_reproduccion()
+        self._exigir_marcados(1)
+        panel = self._panel(_recargas_apertura=1)
+        panel._timer_progreso = mock.Mock()
+        panel._fijar_estado = mock.Mock()
+        panel._recargar_apertura_vod()
+        self._exigir_marcados(1)
+        panel = self._panel()
+        panel._timer_progreso = mock.Mock()
+        panel._fijar_estado = mock.Mock()
+        panel._avisar_fallo(reproductor._("falla de mentira"))
+        self.assertTrue(panel._fijar_estado.call_args.args[0].startswith("[¡"))
+        self._exigir_marcados(1)
+
+    def test_directo_interrumpido_anuncia_marcado(self):
+        panel = self._panel(_recargas_directo=0)
+        panel._timer_progreso = mock.Mock()
+        panel.cargar = mock.Mock()
+        panel._directo_interrumpido()
+        self._exigir_marcados(1)
+        panel = self._panel(_recargas_directo=2)
+        panel._timer_progreso = mock.Mock()
+        panel._fijar_estado = mock.Mock()
+        panel._directo_interrumpido()
+        self.assertTrue(panel._fijar_estado.call_args.args[0].startswith("[¡"))
+        self._exigir_marcados(1)
+
+    def test_tiktok_terminado_y_fallo_de_apertura_anuncian_marcado(self):
+        from ytchat.player.busqueda_video import EstadoInicioReproduccion
+        panel = self._panel()
+        panel._timer_progreso = mock.Mock()
+        inicio = EstadoInicioReproduccion()
+        inicio.iniciar()
+        inicio._anunciado = True
+        panel._estado_inicio = inicio
+        panel._terminar_flujo_tiktok()
+        self._exigir_marcados(1)
+        panel = self._panel(_aviso_fallo_flujo=False)
+        panel._timer_progreso = mock.Mock()
+        panel._fijar_estado = mock.Mock()
+        panel._estado_inicio = mock.Mock(anunciado=False, primera=None)
+        with mock.patch.object(reproductor.flujo_tiktok, "sondear_en_hilo"):
+            panel._terminar_flujo_tiktok()
+        self._exigir_marcados(1)
+
+    def test_cierre_anuncia_marcado(self):
+        panel = self._panel()
+        panel.lbl_estado = mock.Mock()
+        panel._fijar_estado = mock.Mock()
+        panel._mostrar_estado_cerrando(True)
+        self.assertTrue(panel._fijar_estado.call_args.args[0].startswith("[¡"))
+        self._exigir_marcados(1)
+        panel._mostrar_estado_cerrando(False)
+        self.assertEqual(self.captados, [])
+
+    def test_etiquetas_y_frases_salen_marcadas(self):
+        panel = self._panel(_botones_visibles=True)
+        with self.subTest(etiqueta="ocultar"):
+            self.assertTrue(panel._etiqueta_toggle().startswith("[¡"))
+        panel._botones_visibles = False
+        with self.subTest(etiqueta="mostrar"):
+            self.assertTrue(panel._etiqueta_toggle().startswith("[¡"))
+        panel = self._panel(_relevo_ffmpeg=mock.Mock(),
+                            _relevo_desfase=5, _relevo_ventana=(5.0, 720))
+        panel._es_directo_actual = lambda: True
+        with self.subTest(etiqueta="directo"):
+            self.assertTrue(panel._etiqueta_directo().startswith("[¡"))
+        panel._relevo_ffmpeg = None
+        with self.subTest(etiqueta="en directo"):
+            self.assertTrue(panel._etiqueta_directo().startswith("[¡"))
+        panel._relevo_fuentes = ("video", "audio")
+        panel._relevo_desfase = 5
+        with self.subTest(frase="desfase"):
+            self.assertTrue(panel.frase_posicion_directo().startswith("[¡"))
+        panel._relevo_fuentes = None
+        with self.subTest(frase="en directo"):
+            self.assertTrue(panel.frase_posicion_directo().startswith("[¡"))
+
+    def test_relevo_listo_refleja_el_anuncio_marcado(self):
+        from ytchat.player.busqueda_video import frase_desfase_directo
+        panel = self._panel(_gen=3, _relevo_gen=5, _video_id="vid")
+        panel._continuar_reproducir_calidad = mock.Mock()
+        panel._fijar_estado = mock.Mock()
+        panel._fijar_tiempo = mock.Mock()
+        panel._estado_inicio = mock.Mock()
+        frase = frase_desfase_directo(60.0)
+        panel._relevo_listo(mock.Mock(), "http://relevo.example/x", 5, 3,
+                            "vid", "video", "", True, anuncio=frase)
+        self.assertTrue(panel._fijar_estado.call_args.args[0].startswith("[¡"))
+        self.assertEqual(self.captados, [])
+        panel._relevo_listo(mock.Mock(), None, 5, 3, "vid", "video", "",
+                            True, anuncio=frase)
+        self._exigir_marcados(1)
+
+    def test_inicio_de_reproduccion_anuncia_marcado(self):
+        from types import SimpleNamespace
+        from ytchat.player.busqueda_video import (
+            EstadoBusqueda, EstadoInicioReproduccion)
+        panel = self._panel(_muted=False, _vol=80, _vod_por_relevo=False,
+                            _relevo_vod_base_ms=None)
+        panel._player = mock.Mock()
+        panel._player.get_state.return_value = SimpleNamespace(name="Playing")
+        panel._player.audio_get_volume.return_value = 80
+        panel._player.get_time.return_value = 500
+        panel._player.get_length.return_value = 600_000
+        inicio = EstadoInicioReproduccion()
+        inicio.iniciar()
+        inicio._primera = 0
+        panel._estado_inicio = inicio
+        panel._marca_reproduccion = time.monotonic() - 2.0
+        panel._marca_extraccion = time.monotonic() - 1.0
+        panel._marca_url = time.monotonic() - 1.0
+        panel._estado_busqueda = EstadoBusqueda(confirmada=0)
+        panel._orden_transporte = None
+        panel._fijar_estado = mock.Mock()
+        panel._fijar_tiempo = mock.Mock()
+        panel.sld_pos = mock.Mock()
+        with mock.patch.object(reproductor.wx.Window, "FindFocus",
+                               return_value=None):
+            panel._on_timer(mock.Mock())
+        self._exigir_marcados(1)
 
 
 if __name__ == "__main__":

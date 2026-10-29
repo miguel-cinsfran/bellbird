@@ -53,6 +53,7 @@ from ytchat.ui.accesibilidad import anunciar, nombre_accesible
 from ytchat.ui.teclas_wx import combo_wx
 from ytchat.ui.tema import _T, _tc
 from ytchat.core import anuncio_ajuste
+from ytchat.core.idioma import _, ngettext
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -72,9 +73,9 @@ def disponible() -> bool:
 def aviso_reproductor(hay_reproductor: bool, hay_medio: bool) -> str:
     """Devuelve el aviso adecuado cuando un control no puede actuar."""
     if not hay_reproductor:
-        return "El reproductor no está disponible"
+        return _("El reproductor no está disponible")
     if not hay_medio:
-        return "No hay ningún vídeo cargado"
+        return _("No hay ningún vídeo cargado")
     return ""
 
 
@@ -115,6 +116,9 @@ _CALIDADES = [2160, 1440, 1080, 720, 480, 360, 240, 144]
 
 # Recargas automáticas seguidas de un directo cuyo relevo se interrumpió.
 TOPE_RECARGAS_DIRECTO = 2
+
+# Clave del volumen en el anuncio compartido con la ventana principal.
+_CONTROL_VOLUMEN = "volumen_reproductor"
 
 
 def _info_video(video_id: str) -> dict:
@@ -173,10 +177,13 @@ def _fmt_hablado(ms) -> str:
     h, m, sec = s // 3600, (s % 3600) // 60, s % 60
     partes = []
     if h:
-        partes.append(f"{h} hora" + ("s" if h != 1 else ""))
+        # Traductores: {n} es la cantidad de horas de la posición.
+        partes.append(ngettext("{n} hora", "{n} horas", h).format(n=h))
     if h or m:
-        partes.append(f"{m} minuto" + ("s" if m != 1 else ""))
-    partes.append(f"{sec} segundo" + ("s" if sec != 1 else ""))
+        # Traductores: {n} es la cantidad de minutos de la posición.
+        partes.append(ngettext("{n} minuto", "{n} minutos", m).format(n=m))
+    # Traductores: {n} es la cantidad de segundos de la posición.
+    partes.append(ngettext("{n} segundo", "{n} segundos", sec).format(n=sec))
     return " ".join(partes)
 
 
@@ -352,12 +359,12 @@ class ReproductorPanel(wx.Panel):
     def _mostrar_estado_cerrando(self, debe_anunciar: bool) -> None:
         try:
             if hasattr(self, "lbl_estado"):
-                self._fijar_estado("Cerrando la reproducción anterior.")
+                self._fijar_estado(_("Cerrando la reproducción anterior."))
         except Exception:
             pass
         if debe_anunciar:
             try:
-                anunciar("Cerrando la reproducción anterior")
+                anunciar(_("Cerrando la reproducción anterior"))
             except Exception:
                 pass
 
@@ -495,11 +502,13 @@ class ReproductorPanel(wx.Panel):
         if desenlace == "confirmada":
             if not intencion_previa:
                 self._quedo_en_pausa(False)
-                anunciar("Pausa")
+                # Traductores: aviso al pausar.
+                anunciar(_("Pausa"))
                 logger.debug("TRANSPORTE desenlace=confirmada intencion=pausa estado=%s edad=%d", estado_norm, edad_ms)
             else:
                 self._quedo_reproduciendo()
-                anunciar("Reproduciendo")
+                # Traductores: aviso al reproducir.
+                anunciar(_("Reproduciendo"))
                 logger.debug("TRANSPORTE desenlace=confirmada intencion=reproducir estado=%s edad=%d", estado_norm, edad_ms)
         else:
             estado_real = self._estado_vlc_actual()
@@ -515,7 +524,7 @@ class ReproductorPanel(wx.Panel):
                         self._timer.Start(500)
                 except Exception:
                     pass
-            mensaje = "No se pudo pausar" if not intencion_previa else "No se pudo reanudar"
+            mensaje = _("No se pudo pausar") if not intencion_previa else _("No se pudo reanudar")
             anunciar(mensaje)
             logger.debug("TRANSPORTE desenlace=fallida intencion=%s estado=%s edad=%d", "pausa" if not intencion_previa else "reproducir", estado_norm, edad_ms)
 
@@ -577,29 +586,32 @@ class ReproductorPanel(wx.Panel):
     # ── UI ─────────────────────────────────────────────────────────────────────
 
     def _build_aviso(self):
-        box = wx.StaticBoxSizer(wx.HORIZONTAL, self, "Reproductor")
+        # Traductores: panel del reproductor.
+        box = wx.StaticBoxSizer(wx.HORIZONTAL, self, _("Reproductor"))
         caja = box.GetStaticBox()
         if not motor_vlc.disponible():
-            txt = ("Reproductor no disponible: falta VLC. Instala VLC "
-                   "(videolan.org) y la librería python-vlc.")
+            txt = (_("Reproductor no disponible: falta VLC. Instala VLC "
+                     "(videolan.org) y la librería python-vlc."))
         else:
-            txt = "Reproductor no disponible: falta yt-dlp (pip install yt-dlp)."
+            txt = _("Reproductor no disponible: falta yt-dlp (pip install yt-dlp).")
         lbl = wx.StaticText(caja, label=txt, name="AvisoReproductor")
         lbl.SetForegroundColour(_T.dim)
         box.Add(lbl, 1, wx.ALL, 8)
         self.SetSizer(box)
 
     def _build_ui(self):
-        box = wx.StaticBoxSizer(wx.VERTICAL, self, "Reproductor")
+        # Traductores: panel del reproductor.
+        box = wx.StaticBoxSizer(wx.VERTICAL, self, _("Reproductor"))
         caja = box.GetStaticBox()
 
         # Superficie de vídeo (VLC dibuja aquí vía set_hwnd). Es una ventana
         # genérica: sin nombre accesible reforzado, el lector no dice nada útil
         # al llegar aquí (p. ej. con doble clic para pantalla completa).
-        self._video = wx.Window(caja, size=(-1, 160), name="Vídeo")
+        # Traductores: superficie donde se ve el vídeo.
+        self._video = wx.Window(caja, size=(-1, 160), name=_("Vídeo"))
         self._video.SetMinSize((-1, 160))  # piso: que no lo aplaste el chat
         self._video.SetBackgroundColour(wx.BLACK)
-        nombre_accesible(self._video, "Vídeo. Doble clic para pantalla completa.")
+        nombre_accesible(self._video, _("Vídeo. Doble clic para pantalla completa."))
         box.Add(self._video, 1, wx.EXPAND | wx.ALL, 6)
 
         # Fila 1: transporte con iconos (nombre accesible + tooltip).
@@ -611,17 +623,19 @@ class ReproductorPanel(wx.Panel):
         # letra) y el lector los leía como «alt+letra». El control va por los
         # atajos Ctrl+… y por Tab+Espacio.
         self._fila_botones = wx.BoxSizer(wx.HORIZONTAL)
-        self.btn_play  = self._btn_icono(self._ic_play, "Reproducir", "Reproducir o pausa")
+        # Traductores: botones del reproductor.
+        self.btn_play  = self._btn_icono(self._ic_play, _("Reproducir"), _("Reproducir o pausa"))
         self.btn_retro = self._btn_icono(iconos.icono("retro", _T.text, _T.btn),
-                                         "Retroceder 1 min", "Retroceder 1 minuto")
+                                         _("Retroceder 1 min"), _("Retroceder 1 minuto"))
         self.btn_avanz = self._btn_icono(iconos.icono("avanz", _T.text, _T.btn),
-                                         "Avanzar 1 min", "Avanzar 1 minuto")
+                                         _("Avanzar 1 min"), _("Avanzar 1 minuto"))
+        # Traductores: botón para detener.
         self.btn_stop  = self._btn_icono(iconos.icono("stop", _T.text, _T.btn),
-                                         "Detener", "Detener")
-        self.btn_mute  = self._btn_icono(self._ic_sound, "Silenciar audio",
-                                         "Silenciar o activar audio")
+                                         _("Detener"), _("Detener"))
+        self.btn_mute  = self._btn_icono(self._ic_sound, _("Silenciar audio"),
+                                         _("Silenciar o activar audio"))
         self.btn_fs    = self._btn_icono(iconos.icono("fullscreen", _T.text, _T.btn),
-                                         "Pantalla completa", "Pantalla completa")
+                                         _("Pantalla completa"), _("Pantalla completa"))
         for b in (self.btn_play, self.btn_retro, self.btn_avanz, self.btn_stop,
                   self.btn_mute, self.btn_fs):
             self._fila_botones.Add(b, 0, wx.RIGHT, 6)
@@ -629,36 +643,40 @@ class ReproductorPanel(wx.Panel):
 
         # Fila 2: posición + tiempo. La calidad va en el menú Reproductor.
         row = wx.BoxSizer(wx.HORIZONTAL)
-        lbl = wx.StaticText(self, label="Posición:", name="EtiquetaPosicion")
+        # Traductores: etiqueta del deslizador de posición.
+        lbl = wx.StaticText(self, label=_("Posición:"), name="EtiquetaPosicion")
         lbl.SetForegroundColour(_T.dim)
         row.Add(lbl, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
         self.sld_pos = wx.Slider(self, value=0, minValue=0, maxValue=1000,
-                                 name="Posición de reproducción")
+                                 name=_("Posición de reproducción"))
         _tc(self.sld_pos, bg=_T.surface)
-        self.sld_pos.SetToolTip("Flecha derecha avanza 10 s, flecha izquierda retrocede 10 s.")
+        self.sld_pos.SetToolTip(_("Flecha derecha avanza 10 s, flecha izquierda retrocede 10 s."))
         self.sld_pos.SetAccessible(_PosAccesible(self))
         row.Add(self.sld_pos, 1, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 8)
-        self.lbl_tiempo = wx.StaticText(self, label="0:00 / 0:00", name="Tiempo")
+        # Traductores: nombre accesible del rótulo con el tiempo transcurrido y el total.
+        self.lbl_tiempo = wx.StaticText(self, label="0:00 / 0:00", name=_("Tiempo"))
         self.lbl_tiempo.SetForegroundColour(_T.text)
         row.Add(self.lbl_tiempo, 0, wx.ALIGN_CENTER_VERTICAL)
         box.Add(row, 0, wx.EXPAND | wx.ALL, 6)
 
         # Fila 3: volumen + estado.
         row = wx.BoxSizer(wx.HORIZONTAL)
-        lbl = wx.StaticText(self, label="Volumen:", name="EtiquetaVolumenReproductor")
+        # Traductores: etiqueta del deslizador de volumen.
+        lbl = wx.StaticText(self, label=_("Volumen:"), name="EtiquetaVolumenReproductor")
         lbl.SetForegroundColour(_T.dim)
         row.Add(lbl, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
         self.sld_vol = wx.Slider(self, value=self._vol, minValue=0, maxValue=100,
-                                 name="Volumen del reproductor")
+                                 name=_("Volumen del reproductor"))
         _tc(self.sld_vol, bg=_T.surface)
         self.sld_vol.SetLineSize(1)
-        self.sld_vol.SetToolTip("Flecha arriba sube, flecha abajo baja el volumen de 1 en 1.")
+        self.sld_vol.SetToolTip(_("Flecha arriba sube, flecha abajo baja el volumen de 1 en 1."))
         self.sld_vol.SetMinSize((160, -1))
         # Los deslizadores son justo el caso donde SetName no basta en Windows.
-        nombre_accesible(self.sld_vol, "Volumen del reproductor")
+        nombre_accesible(self.sld_vol, _("Volumen del reproductor"))
         row.Add(self.sld_vol, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 12)
-        self.lbl_estado = wx.StaticText(self, label="Sin reproducir.", name="EstadoReproductor")
-        self._texto_estado = "Sin reproducir."
+        # Traductores: estado inicial, sin nada cargado.
+        self.lbl_estado = wx.StaticText(self, label=_("Sin reproducir."), name="EstadoReproductor")
+        self._texto_estado = _("Sin reproducir.")
         self.lbl_estado.SetForegroundColour(_T.accent)
         row.Add(self.lbl_estado, 1, wx.ALIGN_CENTER_VERTICAL)
         box.Add(row, 0, wx.EXPAND | wx.ALL, 6)
@@ -672,8 +690,8 @@ class ReproductorPanel(wx.Panel):
         self.btn_toggle_botones.SetBackgroundColour(_T.btn)
         self.btn_toggle_botones.SetForegroundColour(_T.btn_t)
         self.btn_toggle_botones.SetToolTip(
-            "Muestra u oculta los botones de control del reproductor. También en "
-            "el menú Reproductor. Los atajos funcionan estén o no visibles.")
+            _("Muestra u oculta los botones de control del reproductor. También en "
+              "el menú Reproductor. Los atajos funcionan estén o no visibles."))
         row.Add(self.btn_toggle_botones, 0)
         box.Add(row, 0, wx.ALL, 6)
 
@@ -782,8 +800,8 @@ class ReproductorPanel(wx.Panel):
     # ── Botones ocultables (interruptor / menú) ───────────────────────────────
 
     def _etiqueta_toggle(self) -> str:
-        return ("Ocultar botones del reproductor" if self._botones_visibles
-                else "Mostrar botones del reproductor")
+        return (_("Ocultar botones del reproductor") if self._botones_visibles
+                else _("Mostrar botones del reproductor"))
 
     def botones_visibles(self) -> bool:
         return self._botones_visibles
@@ -808,8 +826,8 @@ class ReproductorPanel(wx.Panel):
 
     def alternar_botones(self) -> None:
         self.set_botones_visibles(not self._botones_visibles)
-        anunciar("Botones del reproductor visibles" if self._botones_visibles
-                 else "Botones del reproductor ocultos")
+        anunciar(_("Botones del reproductor visibles") if self._botones_visibles
+                 else _("Botones del reproductor ocultos"))
 
     def set_solo_audio(self, solo_audio: bool) -> None:
         """Fija si el próximo medio se arma sin vídeo. No corta ni recarga lo
@@ -836,7 +854,7 @@ class ReproductorPanel(wx.Panel):
         if self._video_id and autoplay:
             self.cargar(reproducir=True)
         else:
-            self._fijar_estado("Listo. Pulsa Reproducir.")
+            self._fijar_estado(_("Listo. Pulsa Reproducir."))
 
     def set_flujo(self, url: str, autoplay: bool = True) -> None:
         """Reproduce una URL de flujo directa (el flujo de TikTok: FLV, o HLS si no hay FLV).
@@ -860,9 +878,9 @@ class ReproductorPanel(wx.Panel):
         if self._url_flujo and autoplay:
             self._reproducir_flujo()
         elif self._url_flujo:
-            self._fijar_estado("Listo. Pulsa Reproducir.")
+            self._fijar_estado(_("Listo. Pulsa Reproducir."))
         else:
-            self._fijar_estado("Este directo no trae vídeo reproducible.")
+            self._fijar_estado(_("Este directo no trae vídeo reproducible."))
 
     def detener_todo(self) -> None:
         self._precalentamiento_cancelado = True
@@ -918,12 +936,12 @@ class ReproductorPanel(wx.Panel):
             self._mostrar_estado_cerrando(debe)
             return
         if not self._listo or not self._asegurar_player():
-            anunciar("El reproductor no está disponible.")
+            anunciar(_("El reproductor no está disponible."))
             return
         if not self._video_id:
             return
         if self._cargando:
-            anunciar("Cargando vídeo")
+            anunciar(_("Cargando vídeo"))
             return
         logger.debug("CARGA video=%s reproducir=%s", self._video_id,
                      "si" if reproducir else "no")
@@ -940,8 +958,8 @@ class ReproductorPanel(wx.Panel):
         self._relevo_vod_ultima = None
         self._intencion_reproducir = reproducir
         self._cargando = True
-        self._fijar_estado("Cargando vídeo…")
-        anunciar("Cargando vídeo")
+        self._fijar_estado(_("Cargando vídeo…"))
+        anunciar(_("Cargando vídeo"))
         vid = self._video_id
         gen = self._gen   # si cambia al volver, esta carga ya no vale
         marca_inicio = time.monotonic()
@@ -1118,9 +1136,8 @@ class ReproductorPanel(wx.Panel):
             # Directo: el formato combinado que elija yt-dlp, sin cambios.
             url, slave = fuentes_para_directo(self._info)
             if not url:
-                logger.warning(
-                    "reproducir directo sin fuentes: url_superior=%s formats=%d "
-                    "requested_formats=%d is_live=%s",
+                logger.warning("reproducir directo sin fuentes: url_superior=%s formats=%d "
+                               "requested_formats=%d is_live=%s",
                     "sí" if self._info.get("url") else "no",
                     len(self._info.get("formats", []) or []),
                     len(self._info.get("requested_formats", []) or []), es_directo)
@@ -1139,9 +1156,8 @@ class ReproductorPanel(wx.Panel):
             if altura_ef is None:
                 url, slave = fuentes_para_directo(self._info)
                 if not url:
-                    logger.warning(
-                        "reproducir directo sin fuentes: url_superior=%s formats=%d "
-                        "requested_formats=%d is_live=%s",
+                    logger.warning("reproducir directo sin fuentes: url_superior=%s formats=%d "
+                                   "requested_formats=%d is_live=%s",
                         "sí" if self._info.get("url") else "no",
                         len(self._info.get("formats", []) or []),
                         len(self._info.get("requested_formats", []) or []), es_directo)
@@ -1193,7 +1209,7 @@ class ReproductorPanel(wx.Panel):
         # pulsar Reproducir en ese segundo veía «sin medio», relanzaba
         # yt-dlp y mataba el relevo recién arrancado.
         self._cargando = True
-        self._fijar_estado("Cargando vídeo…")
+        self._fijar_estado(_("Cargando vídeo…"))
         leer_ventana = getattr(self, "_relevo_ventana", None) is None \
             and inicio_ms is None
 
@@ -1247,7 +1263,7 @@ class ReproductorPanel(wx.Panel):
                 self._tiene_esclavo = bool(slave)
                 bus = getattr(self, "_estado_busqueda", None)
                 if anuncio or (bus is not None and bus.pendiente):
-                    anunciar("No se pudo mover el vídeo")
+                    anunciar(_("No se pudo mover el vídeo"))
                 self._continuar_reproducir_calidad(url, slave, False, reproducir)
                 return
             self._relevo_ffmpeg = relevo
@@ -1283,7 +1299,7 @@ class ReproductorPanel(wx.Panel):
             self._relevo_desfase = 0
             self._tiene_esclavo = bool(slave)
             if anuncio:
-                anunciar("No se pudo mover el directo")
+                anunciar(_("No se pudo mover el directo"))
             self._continuar_reproducir_calidad(url, slave, True, reproducir)
             return
         self._relevo_ffmpeg = relevo
@@ -1334,11 +1350,12 @@ class ReproductorPanel(wx.Panel):
         if reproducir:
             if hasattr(self, "_estado_inicio"):
                 self._estado_inicio.iniciar()
-            self._fijar_estado("Cargando vídeo…")
+            self._fijar_estado(_("Cargando vídeo…"))
         else:
             if hasattr(self, "_estado_inicio"):
                 self._estado_inicio.cancelar()
-            self._fijar_estado("Listo.")
+            # Traductores: estado en reposo, sin reproducir.
+            self._fijar_estado(_("Listo."))
 
     def _reproducir_flujo(self, reproducir: bool = True):
         """Arranca la URL de flujo directa en VLC (mismo camino final que
@@ -1349,7 +1366,7 @@ class ReproductorPanel(wx.Panel):
             self._mostrar_estado_cerrando(debe)
             return
         if not self._url_flujo or not self._asegurar_player():
-            anunciar("El reproductor no está disponible.")
+            anunciar(_("El reproductor no está disponible."))
             return
         self._cancelar_busqueda()
         self._tiene_esclavo = False
@@ -1381,16 +1398,19 @@ class ReproductorPanel(wx.Panel):
         if reproducir:
             if hasattr(self, "_estado_inicio"):
                 self._estado_inicio.iniciar()
-            self._fijar_estado("Cargando vídeo…")
+            self._fijar_estado(_("Cargando vídeo…"))
         else:
             if hasattr(self, "_estado_inicio"):
                 self._estado_inicio.cancelar()
-            self._fijar_estado("Listo.")
+            # Traductores: estado en reposo, sin reproducir.
+            self._fijar_estado(_("Listo."))
 
     def set_calidad(self, altura):
         """altura=None → automática; si no hay info aún, se aplica al cargar."""
         self._calidad_sel = altura
-        anunciar("Calidad automática" if altura is None else f"Calidad {altura}p")
+        # Traductores: {altura} es la altura en píxeles, como en «Calidad 720p».
+        texto = _("Calidad automática") if altura is None else _("Calidad {altura}p").format(altura=altura)
+        anunciar(texto)
         if self._info is not None:
             self._reproducir_calidad(altura, reproducir=True)
 
@@ -1407,8 +1427,8 @@ class ReproductorPanel(wx.Panel):
         self._timer_progreso.Stop()
         from ytchat.voice import sound_player as _snd
         _snd.reproducir("error")
-        self._fijar_estado("No se pudo cargar el vídeo.")
-        anunciar("No se pudo cargar el vídeo")
+        self._fijar_estado(_("No se pudo cargar el vídeo."))
+        anunciar(_("No se pudo cargar el vídeo"))
 
     def _on_timer_progreso(self, _event):
         if not self._cargando:
@@ -1427,7 +1447,8 @@ class ReproductorPanel(wx.Panel):
     def _mostrar_pausa(self, reproduciendo: bool):
         """Pone icono + texto del botón play/pausa según el estado."""
         self.btn_play.SetBitmap(self._ic_pause if reproduciendo else self._ic_play)
-        self.btn_play.SetLabel("Pausa" if reproduciendo else "Reproducir")
+        # Traductores: botón de pausa y reproducción.
+        self.btn_play.SetLabel(_("Pausa") if reproduciendo else _("Reproducir"))
 
     def _hay_medio(self) -> bool:
         """Hay un vídeo o un directo cargado en el panel."""
@@ -1506,7 +1527,8 @@ class ReproductorPanel(wx.Panel):
                 self._timer.Start(500)
             except Exception:
                 pass
-            anunciar("Pausando")
+            # Traductores: aviso al pausar.
+            anunciar(_("Pausando"))
         elif accion == "reanudar":
             # En un directo de TikTok (sin línea de tiempo) recargamos para
             # volver al momento actual en vez de quedar retrasados.
@@ -1524,7 +1546,8 @@ class ReproductorPanel(wx.Panel):
                     self._timer.Start(500)
                 except Exception:
                     pass
-                anunciar("Reanudando")
+                # Traductores: aviso al reanudar.
+                anunciar(_("Reanudando"))
                 self._reabrir_relevo_vod(destino)
             else:
                 self._player.set_pause(0)
@@ -1534,7 +1557,8 @@ class ReproductorPanel(wx.Panel):
                     self._timer.Start(500)
                 except Exception:
                     pass
-                anunciar("Reanudando")
+                # Traductores: aviso al reanudar.
+                anunciar(_("Reanudando"))
         elif accion == "cargar":
             if self._video_id:
                 self._recargas_directo = 0   # recarga manual: cuenta desde cero
@@ -1628,7 +1652,8 @@ class ReproductorPanel(wx.Panel):
             self._mostrar_pausa(False)
             self._fijar_tiempo(0, 0, mover_slider=True, anunciar_t=False)
         if not silencioso:
-            anunciar("Detenido")
+            # Traductores: aviso al detener.
+            anunciar(_("Detenido"))
 
     def _aviso_transitorio(self) -> str:
         # Motivo transitorio compartido por los dos rechazos de salto: en
@@ -1636,10 +1661,10 @@ class ReproductorPanel(wx.Panel):
         if getattr(self, "_url_flujo", ""):
             return ""
         if getattr(self, "_cargando", False):
-            anunciar("Cargando vídeo")
+            anunciar(_("Cargando vídeo"))
             return "cargando"
         if self._estado_vlc_actual() == "stopped":
-            anunciar("El vídeo está detenido")
+            anunciar(_("El vídeo está detenido"))
             return "detenido"
         return ""
 
@@ -1649,9 +1674,9 @@ class ReproductorPanel(wx.Panel):
         # En un directo de TikTok no hay línea de tiempo; en un directo de
         # YouTube sí (se puede retroceder dentro del margen que da YouTube).
         if self._url_flujo:
-            anunciar("En un directo de TikTok no se puede adelantar ni retroceder")
+            anunciar(_("En un directo de TikTok no se puede adelantar ni retroceder"))
         else:
-            anunciar("No se puede buscar en este momento")
+            anunciar(_("No se puede buscar en este momento"))
 
     def _toggle_mute(self):
         if self._avisar_sin_medio():
@@ -1661,8 +1686,8 @@ class ReproductorPanel(wx.Panel):
         self._muted = not self._muted
         self._player.audio_set_mute(self._muted)
         self.btn_mute.SetBitmap(self._ic_mute if self._muted else self._ic_sound)
-        self.btn_mute.SetLabel("Activar audio" if self._muted else "Silenciar audio")
-        anunciar("Audio silenciado" if self._muted else "Audio activado")
+        self.btn_mute.SetLabel(_("Activar audio") if self._muted else _("Silenciar audio"))
+        anunciar(_("Audio silenciado") if self._muted else _("Audio activado"))
 
     def _aplicar_volumen(self, delta: int) -> int:
         """Ajusta el volumen (slider + VLC) y devuelve el valor nuevo. Común al
@@ -1678,9 +1703,9 @@ class ReproductorPanel(wx.Panel):
             return
         nuevo = self._aplicar_volumen(delta)
         anunciar(anuncio_ajuste.COMPARTIDO.frase(
-            "volumen_reproductor",
-            f"Volumen del reproductor: {nuevo} por ciento",
-            f"{nuevo} por ciento"))
+            _CONTROL_VOLUMEN,
+            _("Volumen del reproductor: {nuevo} por ciento").format(nuevo=nuevo),
+            _("{nuevo} por ciento").format(nuevo=nuevo)))
 
     # ── Pantalla completa ──────────────────────────────────────────────────────
 
@@ -1700,8 +1725,8 @@ class ReproductorPanel(wx.Panel):
                 silenciar=self._toggle_mute,
                 buscar_porcentaje=self._buscar_porcentaje))
             self._fijar_salida(self._fs.video.GetHandle())
-            anunciar("Pantalla completa. Espacio pausa, flechas buscan y ajustan "
-                     "volumen, Escape sale.")
+            anunciar(_("Pantalla completa. Espacio pausa, flechas buscan y ajustan "
+                      "volumen, Escape sale."))
         else:
             self._fijar_salida(self._video.GetHandle())
             self._fs.Destroy()
@@ -1711,7 +1736,7 @@ class ReproductorPanel(wx.Panel):
             # control con nombre accesible del reproductor.
             try:    self.anclar_foco()
             except Exception: pass
-            anunciar("Pantalla completa desactivada")
+            anunciar(_("Pantalla completa desactivada"))
 
     # ── Tiempo / sliders ──────────────────────────────────────────────────────
 
@@ -1775,7 +1800,8 @@ class ReproductorPanel(wx.Panel):
         bus.solicitar(destino, ahora)
         gen = bus.generacion
         if anunciar_usuario:
-            anunciar(f"Moviendo a {_fmt_hablado(destino)}")
+            # Traductores: {hablado} es la posición hablada, como «2 minutos».
+            anunciar(_("Moviendo a {hablado}").format(hablado=_fmt_hablado(destino)))
         dur = self._duracion_actual()
         self._fijar_tiempo(bus.confirmada, dur, mover_slider=True, anunciar_t=False)
         # asegurar observación periódica aunque el medio esté pausado
@@ -1828,11 +1854,12 @@ class ReproductorPanel(wx.Panel):
         if evento == "confirmado":
             logger.debug("%s", traza_busqueda_desenlace(
                 self._topologia_actual(), estado, confirmada_previa, destino_previo, muestra, edad_previa, "confirmado"))
-            anunciar(f"Posición {_fmt_hablado(int(valor))}")
+            # Traductores: {hablado} es la posición hablada, como «2 minutos».
+            anunciar(_("Posición {hablado}").format(hablado=_fmt_hablado(int(valor))))
         elif evento in ("fallo", "vencido"):
             logger.debug("%s", traza_busqueda_desenlace(
                 self._topologia_actual(), estado, confirmada_previa, destino_previo, muestra, edad_previa, evento))
-            anunciar("No se pudo mover el vídeo")
+            anunciar(_("No se pudo mover el vídeo"))
         pos_mostrar = bus.confirmada
         mover = wx.Window.FindFocus() is not self.sld_pos
         self._fijar_tiempo(pos_mostrar, dur, mover_slider=mover, anunciar_t=False)
@@ -1866,8 +1893,7 @@ class ReproductorPanel(wx.Panel):
                 pendiente.Stop()
             except Exception:
                 pass
-        self._relevo_vod_reapertura = wx.CallLater(
-            400, self._reabrir_relevo_vod, int(destino))
+        self._relevo_vod_reapertura = wx.CallLater(400, self._reabrir_relevo_vod, int(destino))
 
     def _confirmar_salto_en_pausa(self, destino) -> None:
         """Confirma un salto hecho en pausa sin tocar VLC ni anunciar.
@@ -1978,7 +2004,7 @@ class ReproductorPanel(wx.Panel):
         if self._avisar_sin_medio():
             return
         self._aplicar_volumen(delta)
-        anuncio_ajuste.COMPARTIDO.registrar("volumen_reproductor")
+        anuncio_ajuste.COMPARTIDO.registrar(_CONTROL_VOLUMEN)
 
     def _on_sld_vol(self, event):
         self._vol = self.sld_vol.GetValue()
@@ -1993,12 +2019,12 @@ class ReproductorPanel(wx.Panel):
     def _terminar_flujo_tiktok(self) -> None:
         if self._flujo_sono():
             self._detener(silencioso=True)
-            anunciar("El directo de TikTok terminó")
+            anunciar(_("El directo de TikTok terminó"))
             return
         if getattr(self, "_aviso_fallo_flujo", False):
             return
         self._aviso_fallo_flujo = True
-        self._avisar_fallo("No se pudo abrir el directo de TikTok")
+        self._avisar_fallo(_("No se pudo abrir el directo de TikTok"))
         flujo_tiktok.sondear_en_hilo(self._url_flujo)
 
     def _on_timer(self, event):
@@ -2037,11 +2063,12 @@ class ReproductorPanel(wx.Panel):
                         (time.monotonic() - self._marca_url) * 1000)
                     self._marca_url = None
                 if getattr(self, "_url_flujo", ""):
-                    self._fijar_estado("En directo (sin barra de tiempo).")
-                    anunciar("En directo")
+                    self._fijar_estado(_("En directo (sin barra de tiempo)."))
+                    anunciar(_("En directo"))
                 else:
-                    self._fijar_estado("Reproduciendo.")
-                    anunciar("Reproduciendo")
+                    # Traductores: estado en reproducción.
+                    self._fijar_estado(_("Reproduciendo."))
+                    anunciar(_("Reproduciendo"))
         self._evaluar_transporte()
         self._evaluar_busqueda()
         if getattr(self, "_relevo_vod_base_ms", None) is not None:
@@ -2084,7 +2111,7 @@ class ReproductorPanel(wx.Panel):
             self._terminar_flujo_tiktok()
         elif decision == recuperacion.FIN_VIDEO:
             self._detener(silencioso=True)
-            anunciar("Fin del vídeo")
+            anunciar(_("Fin del vídeo"))
         elif decision == recuperacion.FALLO:
             self._fallo_reproduccion()
 
@@ -2092,8 +2119,7 @@ class ReproductorPanel(wx.Panel):
         relevo = getattr(self, "_relevo_ffmpeg", None)
         reintentos = getattr(self, "_relevo_reintentos", 0)
         try:
-            return bool(relevo is not None and relevo.activo()
-                        and reintentos < 3)
+            return bool(relevo is not None and relevo.activo() and reintentos < 3)
         except Exception:
             return False
 
@@ -2123,7 +2149,7 @@ class ReproductorPanel(wx.Panel):
         segundo detiene y avisa, igual que el final de _fallo_reproduccion."""
         recargas = int(getattr(self, "_recargas_apertura", 0) or 0)
         if recargas >= 1:
-            self._avisar_fallo("No se pudo reproducir el vídeo")
+            self._avisar_fallo(_("No se pudo reproducir el vídeo"))
             return
         self._recargas_apertura = recargas + 1
         logger.warning("VOD_APERTURA_FALLIDA recarga=%d",
@@ -2138,10 +2164,10 @@ class ReproductorPanel(wx.Panel):
         seguidas para no entrar en bucle si el directo de verdad acabó."""
         recargas = getattr(self, "_recargas_directo", 0)
         self._detener(silencioso=True)
-        anunciar("El directo se interrumpió")
+        anunciar(_("El directo se interrumpió"))
         if recargas >= TOPE_RECARGAS_DIRECTO:
             logger.warning("DIRECTO_INTERRUMPIDO sin recargar recargas=%d", recargas)
-            self._fijar_estado("El directo se interrumpió.")
+            self._fijar_estado(_("El directo se interrumpió."))
             return
         self._recargas_directo = recargas + 1
         logger.warning("DIRECTO_INTERRUMPIDO recarga=%d", self._recargas_directo)
@@ -2174,16 +2200,16 @@ class ReproductorPanel(wx.Panel):
             getattr(self, "_relevo_fuentes", None) is not None)
         if decision == recuperacion.FIN_VIDEO:
             self._detener(silencioso=True)
-            anunciar("Fin del vídeo")
+            anunciar(_("Fin del vídeo"))
             return
         if decision == recuperacion.CORTE_SONADO:
             logger.warning("VOD_RELEVO corte sin recuperar ultima=%d dur=%d", ultima, dur)
             self._detener(silencioso=True)
-            anunciar("Se cortó el vídeo")
+            anunciar(_("Se cortó el vídeo"))
             return
         if decision == recuperacion.CORTE:
             self._detener(silencioso=True)
-            anunciar("Se cortó el vídeo")
+            anunciar(_("Se cortó el vídeo"))
             return
         fuentes = getattr(self, "_relevo_fuentes", None)
         if decision == recuperacion.ESCLAVO:
@@ -2228,7 +2254,7 @@ class ReproductorPanel(wx.Panel):
         logger.warning("REPRODUCCION_ERROR topologia=%s relevo_activo=%s",
                        self._topologia_actual(),
                        relevo.activo() if relevo is not None else "no")
-        self._avisar_fallo("No se pudo reproducir el vídeo")
+        self._avisar_fallo(_("No se pudo reproducir el vídeo"))
 
     def _aviso_busqueda_no_permitida(self, origen="relativo") -> None:
         motivo = self._aviso_transitorio()
@@ -2237,20 +2263,20 @@ class ReproductorPanel(wx.Panel):
         elif getattr(self, "_relevo_ffmpeg", None) is not None \
                 and self._es_directo_actual():
             motivo = "relevo_sin_barra"
-            anunciar("En este directo solo se puede retroceder o adelantar "
-                     "con los botones o las flechas")
+            anunciar(_("En este directo solo se puede retroceder o adelantar "
+                      "con los botones o las flechas"))
         elif self._es_directo_actual():
             # Directo sin relevo (HLS que VLC no supo remuxar o fuente no
             # HLS): las flechas no entran al camino del grabado, se avisa.
             if getattr(self, "_url_flujo", ""):
                 motivo = "tiktok_sin_barra"
-                anunciar("En un directo de TikTok no se puede adelantar ni retroceder")
+                anunciar(_("En un directo de TikTok no se puede adelantar ni retroceder"))
             else:
                 motivo = "directo_sin_relevo"
-                anunciar("En este directo no se puede adelantar ni retroceder")
+                anunciar(_("En este directo no se puede adelantar ni retroceder"))
         else:
             motivo = "vod_dividido"
-            anunciar("No se puede mover este vídeo mientras usa la fuente de internet")
+            anunciar(_("No se puede mover este vídeo mientras usa la fuente de internet"))
         logger.debug("%s", traza_salto_rechazado(self._topologia_actual(), origen, motivo))
 
     def _desfase_relevo_segundos(self) -> float:
@@ -2260,15 +2286,16 @@ class ReproductorPanel(wx.Panel):
     def _etiqueta_directo(self) -> str:
         if getattr(self, "_relevo_ffmpeg", None) is not None \
                 and self._es_directo_actual() and self._relevo_desfase > 0:
-            return f"Directo, {_fmt_t(self._desfase_relevo_segundos() * 1000)} atrás"
-        return "En directo"
+            # Traductores: {tiempo} es el atraso, como «1:00» en «Directo, 1:00 atrás».
+            return _("Directo, {tiempo} atrás").format(tiempo=_fmt_t(self._desfase_relevo_segundos() * 1000))
+        return _("En directo")
 
     def frase_posicion_directo(self) -> str:
         """Valor accesible del deslizador en un directo sin duración."""
         if getattr(self, "_relevo_fuentes", None) is not None \
                 and self._es_directo_actual():
             return frase_desfase_directo(self._desfase_relevo_segundos())
-        return "En directo"
+        return _("En directo")
 
     def _saltar_en_relevo(self, delta_ms: int) -> None:
         """Retroceder o adelantar en un directo por relevo.
@@ -2289,7 +2316,7 @@ class ReproductorPanel(wx.Panel):
             # En pleno reinicio las fuentes se conservan y la pulsación se
             # procesa aunque ffmpeg aún no esté arriba.
             logger.debug("%s", traza_salto_rechazado(topologia, "relativo", "cargando"))
-            anunciar("Cargando vídeo")
+            anunciar(_("Cargando vídeo"))
             return
         segmento_s, ventana_seg = self._relevo_ventana or VENTANA_HLS_SUPUESTA
         segmento_ms = int(segmento_s * 1000)
@@ -2298,8 +2325,8 @@ class ReproductorPanel(wx.Panel):
         if despues == antes:
             motivo = "en_el_directo" if delta_ms > 0 else "fin_de_ventana"
             logger.debug("%s", traza_salto_rechazado(topologia, "relativo", motivo))
-            anunciar("Ya estás en el directo" if delta_ms > 0
-                     else "No se puede retroceder más en este directo")
+            anunciar(_("Ya estás en el directo") if delta_ms > 0
+                     else _("No se puede retroceder más en este directo"))
             return
         logger.debug("%s", traza_salto_relevo(delta_ms, antes, despues,
                                                segmento_ms, ventana_seg))
@@ -2338,18 +2365,17 @@ class ReproductorPanel(wx.Panel):
         relevo ya se está en el borde; en un grabado no hay borde al que ir.
         """
         if not self._es_directo_actual():
-            anunciar("Este vídeo no es un directo")
+            anunciar(_("Este vídeo no es un directo"))
             return
         if getattr(self, "_relevo_fuentes", None) is not None:
             desfase = int(getattr(self, "_relevo_desfase", 0) or 0)
             if desfase == 0:
-                anunciar("Ya estás en el directo")
+                anunciar(_("Ya estás en el directo"))
                 return
-            segmento_s, _ventana = getattr(
-                self, "_relevo_ventana", None) or VENTANA_HLS_SUPUESTA
+            segmento_s, _ventana = getattr(self, "_relevo_ventana", None) or VENTANA_HLS_SUPUESTA
             self._saltar_en_relevo(desfase * int(segmento_s * 1000))
             return
-        anunciar("Ya estás en el directo")
+        anunciar(_("Ya estás en el directo"))
 
     def _buscar_rel(self, delta_ms: int):
         if self._avisar_sin_medio():

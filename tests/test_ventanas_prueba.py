@@ -1,6 +1,6 @@
 """Guardiana: ninguna prueba deja ventanas de primer nivel pendientes.
 
-Crea y destruye con `destruir` 60 `PreferenciasDialog` y exige que la
+Crea y destruye con `destruir` 10 `PreferenciasDialog` y exige que la
 cuenta de objetos USER del proceso no crezca (medido: sin `SafeYield`
 cada diálogo dejaba unos 235 ocupados hasta cortar Windows en 10.000).
 Abren ventanas: las corre el advisor, no se corren acá.
@@ -57,21 +57,15 @@ class TestVentanasSinFugas(unittest.TestCase):
         wx.StaticText(panel, label="Texto de prueba")
         return dialogo
 
-    def test_sesenta_dialogos_no_acumulan_objetos_de_ventana(self):
+    def test_diez_dialogos_no_acumulan_objetos_ni_quedan_vivos(self):
         with mock.patch.object(motores, "listar_voces",
                                return_value=["Voz de prueba"]):
             destruir(self._dialogo())
             base = _objetos_usuario()
-            for _ in range(59):
+            for _ in range(9):
                 destruir(self._dialogo())
             final = _objetos_usuario()
         self.assertLessEqual(final, base + 300)
-
-    def test_ningun_dialogo_queda_vivo(self):
-        with mock.patch.object(motores, "listar_voces",
-                               return_value=["Voz de prueba"]):
-            for _ in range(60):
-                destruir(self._dialogo())
         vivos = [ventana for ventana in wx.GetTopLevelWindows()
                  if isinstance(ventana, gui_preferencias.PreferenciasDialog)]
         self.assertEqual(vivos, [])

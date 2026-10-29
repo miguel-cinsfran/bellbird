@@ -285,15 +285,21 @@ def _recorrer_menus(barra):
 
 
 def _buscar_item_menu(barra, objetivo: str):
-    """Devuelve (id, etiqueta) del ítem cuyo texto coincida. None si no está."""
-    for datos in _recorrer_menus(barra):
-        # Ojo: los ids que reparte `wx.ID_ANY` son NEGATIVOS. Descartar por
-        # `id < 0` para saltarse los menús de nivel superior se lleva puestos
-        # todos los ítems de verdad, y el síntoma es "no existe ese menú".
-        if datos.get("submenu") or datos.get("id") is None:
-            continue
-        etiqueta = datos["etiqueta"].strip().lower()
-        if etiqueta == objetivo or objetivo in etiqueta:
+    """Devuelve (id, etiqueta) del ítem cuyo texto coincida. None si no está.
+
+    La exacta gana: «subir volumen» no puede caer en «Subir volumen de la
+    voz» solo porque ese menú se recorra antes. Sin exacta, como antes, la
+    primera que la contiene."""
+    # Ojo: los ids que reparte `wx.ID_ANY` son NEGATIVOS. Descartar por
+    # `id < 0` para saltarse los menús de nivel superior se lleva puestos
+    # todos los ítems de verdad, y el síntoma es "no existe ese menú".
+    candidatos = [datos for datos in _recorrer_menus(barra)
+                  if not datos.get("submenu") and datos.get("id") is not None]
+    for datos in candidatos:
+        if datos["etiqueta"].strip().lower() == objetivo:
+            return datos["id"], datos["etiqueta"]
+    for datos in candidatos:
+        if objetivo in datos["etiqueta"].strip().lower():
             return datos["id"], datos["etiqueta"]
     return None
 

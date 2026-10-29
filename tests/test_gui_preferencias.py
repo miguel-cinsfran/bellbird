@@ -31,8 +31,7 @@ from tests.ventanas_prueba import destruir
 
 # Textos que arma otro módulo y aparecen en el recorrido del diálogo
 # entero: no se tocan acá. Las etiquetas de la página Estado salen de
-# `bellbird/capture/estado_sesion.py` (ETIQUETAS) y el tema, de
-# `bellbird/core/config.py` (listar_temas_sonido, valor de fábrica).
+# `bellbird/capture/estado_sesion.py` (ETIQUETAS).
 PENDIENTES_PROPIOS = (
     "Estado de conexión y tipo",
     "Título del vídeo o directo",
@@ -53,7 +52,6 @@ PENDIENTES_PROPIOS = (
     "Escena al aire en OBS",
     "Música que suena",
     "Igualación del volumen de la música",
-    "default",
 )
 
 

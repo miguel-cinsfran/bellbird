@@ -103,7 +103,8 @@ class TestPaginaSonidos(unittest.TestCase):
         from bellbird.core import config as cfg
         pagina = PaginaSonidos()
         pagina.cho_tema = mock.Mock()
-        pagina.cho_tema.GetStringSelection.return_value = "suave"
+        pagina._temas = ["default", "suave"]
+        pagina.cho_tema.GetSelection.return_value = 1
         evento = mock.Mock()
         esperada = cfg.ruta_muestra_tema("suave")
         with mock.patch.object(preferencias_sonidos._snd,
@@ -121,7 +122,7 @@ class TestPaginaSonidos(unittest.TestCase):
     def test_elegir_tema_en_control_suena_muestra(self):
         from bellbird.core import config as cfg
         pagina = self._pagina_con_temas(["default", "suave"], "default")
-        pagina.cho_tema.SetStringSelection("suave")
+        pagina.cho_tema.SetStringSelection("Suave")
         evento = wx.CommandEvent(wx.wxEVT_CHOICE, pagina.cho_tema.GetId())
         evento.SetEventObject(pagina.cho_tema)
         evento.SetInt(pagina.cho_tema.GetSelection())
@@ -133,7 +134,7 @@ class TestPaginaSonidos(unittest.TestCase):
 
     def test_oir_usa_el_tema_elegido_sin_guardarlo(self):
         pagina = self._pagina_con_temas(["default", "suave"], "default")
-        pagina.cho_tema.SetStringSelection("suave")
+        pagina.cho_tema.SetStringSelection("Suave")
         pagina._lista.Select(4)
         with mock.patch.object(preferencias_sonidos._snd,
                                "reproducir_archivo") as oir:
@@ -150,7 +151,7 @@ class TestPaginaSonidos(unittest.TestCase):
             "[sonidos]\nvolumen = 0.7\ntema = default\n"
             f"{EVENTOS[0]} = {propia}\n", encoding="utf-8")
         pagina = self._pagina_con_temas(["default", "suave"], "default")
-        pagina.cho_tema.SetStringSelection("suave")
+        pagina.cho_tema.SetStringSelection("Suave")
         pagina._lista.Select(0)
         with mock.patch.object(preferencias_sonidos._snd,
                                "reproducir_archivo") as oir:
@@ -159,7 +160,7 @@ class TestPaginaSonidos(unittest.TestCase):
 
     def test_guardar_tema_y_callados_en_el_mismo_archivo(self):
         pagina = self._pagina_con_temas(["default", "suave"], "default")
-        pagina.cho_tema.SetStringSelection("suave")
+        pagina.cho_tema.SetStringSelection("Suave")
         pagina._lista.CheckItem(0, False)
         with mock.patch.object(preferencias_sonidos._snd, "cargar") as cargar, \
                 mock.patch.object(preferencias_sonidos.cfg, "cargar_sonidos",
@@ -170,6 +171,23 @@ class TestPaginaSonidos(unittest.TestCase):
         texto = self.ruta.read_text(encoding="utf-8")
         self.assertIn("tema = suave", texto)
         self.assertIn(f"{EVENTOS[0]} =", texto)
+
+    def test_elegir_suave_guarda_la_carpeta_en_minuscula(self):
+        pagina = self._pagina_con_temas(["default", "suave"], "default")
+        pagina.cho_tema.SetStringSelection("Suave")
+        with mock.patch.object(preferencias_sonidos._snd, "cargar") as cargar, \
+                mock.patch.object(preferencias_sonidos.cfg, "cargar_sonidos",
+                                   return_value={"eventos": {}}) as fabrica:
+            self.assertTrue(pagina.guardar())
+        fabrica.assert_called_once_with()
+        cargar.assert_called_once_with({"eventos": {}})
+        texto = self.ruta.read_text(encoding="utf-8")
+        self.assertIn("tema = suave", texto)
+
+    def test_default_se_muestra_como_predeterminado(self):
+        pagina = self._pagina_con_temas(["default", "suave"], "default")
+        self.assertEqual(pagina.cho_tema.GetString(0), "Predeterminado")
+        self.assertEqual(pagina.cho_tema.GetString(1), "Suave")
 
     def test_columna_sigue_el_ancho_de_la_lista(self):
         lista = self.pagina._lista
@@ -196,7 +214,8 @@ class TestPaginaSonidos(unittest.TestCase):
             panel = pagina.construir(libro)
             # Los nombres de los temas son datos de afuera, como los de las voces.
             temas = preferencias_sonidos.cfg.listar_temas_sonido()
-            sin_marcar = textos_sin_marcar(panel, propios=temas)
+            visibles = [t[:1].upper() + t[1:] for t in temas if t != "default"]
+            sin_marcar = textos_sin_marcar(panel, propios=temas + visibles)
 
         self.assertEqual([], sin_marcar)
 

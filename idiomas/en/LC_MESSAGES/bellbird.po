@@ -7225,6 +7225,11 @@ msgstr "Message deleted"
 msgid "&Sonidos:"
 msgstr "&Sounds:"
 
+#. Traductores: nombre visible del tema de sonido predeterminado.
+#: bellbird/ui/preferencias_sonidos.py:68
+msgid "Predeterminado"
+msgstr "Default"
+
 # | msgid "&Oír el sonido elegido"
 #: bellbird/ui/preferencias_sonidos.py:87
 msgid "&Oír sonido elegido"

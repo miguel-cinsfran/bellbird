@@ -60,6 +60,15 @@ def _ruta_evento(evento: str, tema: str) -> Path:
             / tema / f"{evento}.wav")
 
 
+def _nombre_visible_tema(tema: str) -> str:
+    """Nombre que muestra el combinado: traducido el predeterminado y
+    con mayúscula inicial cualquier otro."""
+    if tema == "default":
+        # Traductores: nombre visible del tema de sonido predeterminado.
+        return _("Predeterminado")
+    return tema[:1].upper() + tema[1:]
+
+
 class PaginaSonidos:
     """Tema de sonido y lista con casilla, oír el elegido y guardar."""
 
@@ -68,6 +77,7 @@ class PaginaSonidos:
         self._lista = None
         self._btn_oir = None
         self.cho_tema = None
+        self._temas = []
         self._tema_inicial = ""
         self._inicial = set()
 
@@ -97,7 +107,9 @@ class PaginaSonidos:
         vs.Add(fila_label(self._panel, _("&Tema de sonido:")),
                 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         temas = cfg.listar_temas_sonido()
-        self.cho_tema = wx.Choice(self._panel, choices=temas,
+        self._temas = temas
+        visibles = [_nombre_visible_tema(t) for t in temas]
+        self.cho_tema = wx.Choice(self._panel, choices=visibles,
                                    name=_("Tema de sonido"))
         _tc(self.cho_tema)
         actual = cfg.tema_sonido_actual()
@@ -107,7 +119,10 @@ class PaginaSonidos:
         vs.Add(self.cho_tema, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _tema_elegido(self) -> str:
-        return self.cho_tema.GetStringSelection() or cfg.tema_sonido_actual()
+        indice = self.cho_tema.GetSelection()
+        if 0 <= indice < len(self._temas):
+            return self._temas[indice]
+        return cfg.tema_sonido_actual()
 
     def tema_cambiado(self) -> bool:
         """Si el combinado difiere del tema guardado en sounds.ini."""
@@ -116,7 +131,7 @@ class PaginaSonidos:
     def _on_muestra_tema(self, event):
         """Suena la muestra del tema elegido sin cambiar el tema activo."""
         try:
-            tema = self.cho_tema.GetStringSelection()
+            tema = self._tema_elegido()
             if tema:
                 _snd.reproducir_archivo(cfg.ruta_muestra_tema(tema))
         except Exception as exc:

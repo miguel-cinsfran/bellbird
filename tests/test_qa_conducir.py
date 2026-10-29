@@ -231,5 +231,20 @@ class TestAgujasDeBusqueda(unittest.TestCase):
         self.assertIsNone(conducir.aguja_grupo(nombres, [0, 1], [2]))
 
 
+class TestAvisosWx(unittest.TestCase):
+
+    def test_salta_registro_y_traza_y_cuenta_wx(self):
+        lineas = [
+            "12:59:18  Fallo de OBS: ConnectionRefusedError: [WinError 10061]",
+            "Traceback (most recent call last):",
+            '  File "bellbird\\obs\\obs_lanzador.py", line 42, in asegurar_obs',
+            "    conexion = conectar()",
+            "ConnectionRefusedError: [WinError 10061] No se pudo conectar",
+            "..\\src\\msw\\window.cpp(123): RegisterHotKey failed with error 0x00000581",
+            "algo.py:12: DeprecationWarning: f en desuso",
+        ]
+        self.assertEqual(conducir.avisos_wx(lineas), [lineas[5], lineas[6]])
+
+
 if __name__ == "__main__":
     unittest.main()

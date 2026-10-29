@@ -3801,6 +3801,38 @@ def _version_coherente(textos: list, res: Resultado) -> None:
                   "CHANGELOG es %s" % (mostrada, documentada))
 
 
+def avisos_wx(lineas):
+    """Filtra de la salida de error las líneas que son avisos de wx.
+
+    Recibe las líneas tal cual, sin recortar. No cuenta las líneas del
+    registro de la app (empiezan con HH:MM:SS y dos espacios) ni las de
+    una traza de Python, desde 'Traceback (most recent call last):'
+    hasta su línea final de excepción inclusive.
+    """
+    import re
+    marcas = ("should be created as child", "failed with error", "Assert",
+              "wxWidgets", "Warning:", "Error:")
+    avisos = []
+    en_traza = False
+    for cruda in lineas:
+        linea = cruda.strip()
+        if not linea:
+            continue
+        if linea.startswith("Traceback (most recent call last):"):
+            en_traza = True
+            continue
+        if en_traza:
+            if cruda[0].isspace():
+                continue
+            en_traza = False
+            continue
+        if re.match(r"\d\d:\d\d:\d\d  ", linea):
+            continue
+        if any(m in linea for m in marcas):
+            avisos.append(linea)
+    return avisos
+
+
 def escenario_avisos_wx(app: Aplicacion, args, res: Resultado):
     """Lo que wx escribe por la salida de error y nadie lee nunca.
 
@@ -3822,11 +3854,7 @@ def escenario_avisos_wx(app: Aplicacion, args, res: Resultado):
         res.fallo("no se capturó la salida de la aplicación")
         return
     crudo = app.salida_ruta.read_text(encoding="utf-8", errors="replace")
-    lineas = [l.strip() for l in crudo.splitlines() if l.strip()]
-
-    marcas = ("should be created as child", "failed with error", "Assert",
-              "wxWidgets", "Warning:", "Error:")
-    avisos = [l for l in lineas if any(m in l for m in marcas)]
+    avisos = avisos_wx(crudo.splitlines())
 
     # Se agrupan, porque el mismo aviso sale muchas veces y en bruto tapa todo.
     resumen = {}

@@ -2029,6 +2029,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("actualizaciones", "buscar_al_iniciar"),
             ("ui", "confirmar_salida"),
             ("ui", "sonido_inicio"),
+            ("ui", "idioma"),
             ("diagnostico", "registro_detallado"),
             ("overlay", "puerto"), ("obs", "microfono"),
             ("transmision", "avisar_sobrecarga"),
@@ -3444,7 +3445,7 @@ class TestPreferenciasArchivoBotones(unittest.TestCase):
         hijos = pagina.GetChildren()
         self.assertEqual(
             [type(h).__name__ for h in hijos],
-            ["CheckBox"] * 4 + ["Button"] * 4)
+            ["StaticText", "EleccionTexto"] + ["CheckBox"] * 4 + ["Button"] * 4)
         self.assertEqual(
             [h.GetName() for h in hijos if isinstance(h, gui.wx.Button)],
             ["Abrir la carpeta de datos",

@@ -116,6 +116,22 @@ def codigos_con_catalogo(carpeta=None):
     }
 
 
+# Nombre de cada idioma en su propio idioma; un código que no está acá se
+# muestra tal cual. No se traduce: es como cada idioma se nombra a sí mismo.
+NOMBRES_IDIOMA = {"es": "Español", "en": "English"}
+
+
+def idiomas_disponibles(carpeta=None):
+    """Pares (valor, nombre) para la lista de idioma de Preferencias."""
+    # Traductores: el idioma de la interfaz de Windows.
+    opciones = [("windows", _("Idioma de Windows")), ("es", NOMBRES_IDIOMA["es"])]
+    resto = [(codigo, NOMBRES_IDIOMA.get(codigo, codigo))
+             for codigo in codigos_con_catalogo(carpeta)
+             if codigo not in ("es", IDIOMA_PSEUDO)]
+    resto.sort(key=lambda par: par[1])
+    return opciones + resto
+
+
 def _cargar(codigo, carpeta):
     """Traducción del código, con el texto original si no hay catálogo."""
     if codigo == IDIOMA_PSEUDO:

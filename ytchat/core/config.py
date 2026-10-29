@@ -400,7 +400,7 @@ def cargar_configuracion() -> dict:
         "mostrar_metadatos": leer_booleano(p, "ui", "mostrar_metadatos"),
         "confirmar_salida": leer_booleano(p, "ui", "confirmar_salida"),
         "sonido_inicio": leer_booleano(p, "ui", "sonido_inicio"),
-        "filtro_activo": filtro_activo,
+        "idioma": leer_texto(p, "ui", "idioma"), "filtro_activo": filtro_activo,
         "silenciar_sonidos": leer_booleano(p, "ui", "silenciar_sonidos"),
         "silenciar_lectura": leer_booleano(p, "sesion", "silenciar_lectura"),
         "tiktok_aviso_entradas": leer_texto(p, "tiktok", "aviso_entradas"),

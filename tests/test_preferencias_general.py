@@ -11,6 +11,7 @@ from pathlib import Path
 from unittest import mock
 
 from ytchat.core import config
+from ytchat.core import idioma
 from ytchat.ui import gui, gui_preferencias
 from ytchat.voice import motores
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
@@ -48,7 +49,11 @@ class TestGeneralSinTextosSinEnvolver(unittest.TestCase):
             dialogo = self._dialogo()
             sin_marcar = textos_sin_marcar(self._pagina(dialogo))
 
-        self.assertEqual([], sin_marcar)
+        # Los nombres de los idiomas van en su propio idioma y no se
+        # traducen: la excepción sale de `NOMBRES_IDIOMA`, no va a mano.
+        esperados = [nombre for _valor, nombre in idioma.idiomas_disponibles()
+                     if nombre in idioma.NOMBRES_IDIOMA.values()]
+        self.assertEqual(sorted(sin_marcar), sorted(esperados))
 
 
 if __name__ == "__main__":

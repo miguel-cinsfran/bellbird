@@ -12,11 +12,19 @@ import os
 import wx
 
 from ytchat.core import config
+from ytchat.core import idioma
 from ytchat.core import paths
 from ytchat.core import preferencias_archivo
 from ytchat.core.idioma import _
 from ytchat.ui.accesibilidad import anunciar
-from ytchat.ui.preferencias_comun import crear_panel
+from ytchat.ui.preferencias_comun import EleccionTexto, crear_panel, fila_label
+
+
+# Fila de idioma de `_OPCIONES_SIMPLES` en `gui_preferencias`: misma tabla,
+# mismo orden.
+OPCIONES_GENERAL = (
+    ("cho_idioma", "ui", "idioma", "idioma", str, "windows"),
+)
 
 
 class PaginaGeneral:
@@ -28,10 +36,19 @@ class PaginaGeneral:
     def construir(self, parent):
         p = crear_panel(parent, "PagGeneral")
         vs = wx.BoxSizer(wx.VERTICAL)
+        vs.Add(fila_label(p, _("Idi&oma:")), 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
+        self.cho_idioma = EleccionTexto(p, idioma.idiomas_disponibles(),
+                                        name=_("Idioma"))
+        vs.Add(self.cho_idioma, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+        self.cho_idioma.Bind(wx.EVT_CHOICE, self._al_cambiar_idioma)
         self._casillas(p, vs)
         self._botones(p, vs)
         p.SetSizer(vs)
         return p
+
+    def _al_cambiar_idioma(self, event):
+        anunciar(_("El idioma cambia al reiniciar la aplicación."))
+        event.Skip()
 
     def _casillas(self, p, vs):
         self.chk_buscar_actualizaciones = wx.CheckBox(

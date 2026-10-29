@@ -197,5 +197,54 @@ class TestPuntaAPunta(unittest.TestCase):
         mensaje.flags.discard("fuzzy")
 
 
+class TestIdiomasDisponibles(unittest.TestCase):
+    """Pares (valor, nombre) para la lista de idioma de Preferencias."""
+
+    def tearDown(self):
+        idioma._reiniciar()
+
+    def _mo(self, raiz, codigo):
+        destino = Path(raiz) / codigo / "LC_MESSAGES" / f"{idioma.DOMINIO}.mo"
+        destino.parent.mkdir(parents=True)
+        destino.write_bytes(b"")
+
+    def test_sin_catalogos_solo_windows_y_espanol(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with mock.patch.object(idioma, "_", lambda texto: texto):
+                self.assertEqual(
+                    idioma.idiomas_disponibles(tmp),
+                    [("windows", "Idioma de Windows"), ("es", "Español")])
+
+    def test_con_en_suma_english_al_final(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._mo(tmp, "en")
+            with mock.patch.object(idioma, "_", lambda texto: texto):
+                self.assertEqual(
+                    idioma.idiomas_disponibles(tmp),
+                    [("windows", "Idioma de Windows"), ("es", "Español"),
+                     ("en", "English")])
+
+    def test_codigo_sin_nombre_se_muestra_tal_cual_y_ordena_por_nombre(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._mo(tmp, "fr")
+            self._mo(tmp, "en")
+            with mock.patch.object(idioma, "_", lambda texto: texto):
+                self.assertEqual(
+                    idioma.idiomas_disponibles(tmp),
+                    [("windows", "Idioma de Windows"), ("es", "Español"),
+                     ("en", "English"), ("fr", "fr")])
+
+    def test_el_seudo_y_el_espanol_no_se_repiten(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._mo(tmp, "es")
+            self._mo(tmp, "pseudo")
+            self._mo(tmp, "en")
+            with mock.patch.object(idioma, "_", lambda texto: texto):
+                self.assertEqual(
+                    idioma.idiomas_disponibles(tmp),
+                    [("windows", "Idioma de Windows"), ("es", "Español"),
+                     ("en", "English")])
+
+
 if __name__ == "__main__":
     unittest.main()

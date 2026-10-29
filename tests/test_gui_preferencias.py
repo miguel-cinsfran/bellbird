@@ -14,6 +14,7 @@ from unittest import mock
 
 from ytchat.ai import catalogo
 from ytchat.core import config
+from ytchat.core import idioma
 from ytchat.ui import gui, gui_preferencias
 from ytchat.ui import preferencias_ia
 from ytchat.ui import preferencias_ia_clave
@@ -96,8 +97,13 @@ class TestDialogoSinTextosSinEnvolver(unittest.TestCase):
         with con_pseudo():
             dialogo = self._dialogo()
             sin_marcar = textos_sin_marcar(dialogo)
+        # Los nombres de los idiomas van en su propio idioma y no se
+        # traducen: la excepción sale de `NOMBRES_IDIOMA`, no va a mano.
         esperados = (PENDIENTES_ATAJOS + PENDIENTES_MUSICA
-                     + PENDIENTES_VOZ + PENDIENTES_PROPIOS)
+                     + PENDIENTES_VOZ + PENDIENTES_PROPIOS
+                     + tuple(nombre for _valor, nombre
+                             in idioma.idiomas_disponibles()
+                             if nombre in idioma.NOMBRES_IDIOMA.values()))
 
         self.assertEqual(sorted(map(_normalizar, sin_marcar)),
                          sorted(map(_normalizar, esperados)))

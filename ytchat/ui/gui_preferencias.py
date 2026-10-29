@@ -27,7 +27,7 @@ from ytchat.ui.preferencias_comun import (
     ANCHO_NOTA, EleccionTexto, ajustar_ancho_categorias, crear_panel, fila_label)
 from ytchat.ui.preferencias_api import PaginaApi
 from ytchat.ui.preferencias_atajos import PaginaAtajos
-from ytchat.ui.preferencias_general import PaginaGeneral
+from ytchat.ui.preferencias_general import OPCIONES_GENERAL, PaginaGeneral
 from ytchat.ui.preferencias_musica import OPCIONES_MUSICA, PaginaMusica
 from ytchat.ui.preferencias_lectura import OPCIONES_LECTURA, PaginaLectura
 from ytchat.ui.preferencias_ia import PaginaIA
@@ -58,7 +58,7 @@ _OPCIONES_SIMPLES = (
     ("chk_botones_rep", "ui", "mostrar_botones_reproductor", "mostrar_botones_reproductor", bool, True),
     ("sp_cache_video", "ui", "cache_video_mb", "cache_video_mb", int, 1024),
     ("chk_multivoz", "voz", "multivoz", "multivoz", bool, False),
-) + OPCIONES_LECTURA + (
+) + OPCIONES_GENERAL + OPCIONES_LECTURA + (
     ("sp_cola_maxima", "cola", "tamanio_maximo", "tamanio_maximo", int, 15),
     ("sp_umbral_nombre", "cola", "umbral_solo_nombre", "umbral_solo_nombre", int, 0),
     ("chk_reconectar", "reconexion", "reconectar", "reconectar", bool, True),
@@ -108,8 +108,8 @@ class PreferenciasDialog(wx.Dialog):
         _tc(self.lista_categorias, bg=_T.surface)
         self.pagina_general = PaginaGeneral(self)
         self.nb.AddPage(self.pagina_general.construir(self.nb), _("General"))
-        self.chk_buscar_actualizaciones = (
-            self.pagina_general.chk_buscar_actualizaciones)
+        self.chk_buscar_actualizaciones = self.pagina_general.chk_buscar_actualizaciones
+        self.cho_idioma = self.pagina_general.cho_idioma
         self.chk_confirmar_salida = self.pagina_general.chk_confirmar_salida
         self.chk_sonido_inicio = self.pagina_general.chk_sonido_inicio
         self.chk_registro_detallado = self.pagina_general.chk_registro_detallado

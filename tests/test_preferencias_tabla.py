@@ -1,6 +1,6 @@
 """Pruebas de la tabla de opciones simples de Preferencias.
 
-La lista de 41 va literal en este módulo, no se lee de la tabla nueva:
+La lista de 42 va literal en este módulo, no se lee de la tabla nueva:
 así protege la tabla en vez de repetirla.
 """
 
@@ -11,6 +11,7 @@ from ytchat.ui import gui
 from ytchat.ui import gui_preferencias
 from ytchat.voice import motores
 from ytchat.core import config_predeterminada as pred
+from ytchat.core import idioma
 from ytchat.core import musica_decir
 from tests.rutas_temporales import redirigir_rutas
 from tests.ventanas_prueba import destruir
@@ -28,6 +29,7 @@ OPCIONES_ESPERADAS = [
     ("chk_botones_rep", "ui", "mostrar_botones_reproductor", "mostrar_botones_reproductor", bool),
     ("sp_cache_video", "ui", "cache_video_mb", "cache_video_mb", int),
     ("chk_multivoz", "voz", "multivoz", "multivoz", bool),
+    ("cho_idioma", "ui", "idioma", "idioma", str),
     ("chk_emojis", "texto", "limpiar_emojis", "limpiar_emojis", bool),
     ("chk_urls", "texto", "eliminar_urls", "eliminar_urls", bool),
     ("cho_aviso_entradas", "tiktok", "aviso_entradas", "tiktok_aviso_entradas", str),
@@ -100,6 +102,7 @@ class TestTablaOpcionesSimples(unittest.TestCase):
             elif tipo is str:
                 config[en_memoria] = {"musica_decir": "artista",
                                       "lectura_recientes": "voz",
+                                      "idioma": "es",
                                       "tiktok_aviso_entradas": "ocultar",
                                       "tiktok_aviso_me_gusta": "ocultar",
                                       "tiktok_aviso_seguidores": "ocultar",
@@ -110,11 +113,11 @@ class TestTablaOpcionesSimples(unittest.TestCase):
                 config[en_memoria] = por_defecto + 1
         return config
 
-    def test_tabla_tiene_41_filas_sin_repetir_y_cada_atributo_existe(self):
+    def test_tabla_tiene_42_filas_sin_repetir_y_cada_atributo_existe(self):
         tabla = gui_preferencias._OPCIONES_SIMPLES
-        self.assertEqual(len(tabla), 41)
+        self.assertEqual(len(tabla), 42)
         atributos = [fila[0] for fila in tabla]
-        self.assertEqual(len(set(atributos)), 41)
+        self.assertEqual(len(set(atributos)), 42)
         dialogo = self._dialogo()
         for atributo in atributos:
             with self.subTest(atributo=atributo):
@@ -164,6 +167,7 @@ class TestTablaOpcionesSimples(unittest.TestCase):
             elif tipo is str:
                 control.SetValue({"musica_decir": "artista",
                                   "lectura_recientes": "voz",
+                                  "idioma": "es",
                                   "tiktok_aviso_entradas": "ocultar",
                                   "tiktok_aviso_me_gusta": "ocultar",
                                   "tiktok_aviso_seguidores": "ocultar",
@@ -214,6 +218,73 @@ class TestTablaOpcionesSimples(unittest.TestCase):
                 self.assertTrue(hasattr(dialogo, atributo))
                 self.assertIsNotNone(getattr(dialogo, atributo))
                 self.assertIsNot(pred.obtener(seccion, clave, marca), marca)
+
+
+class TestIdiomaEnPreferencias(unittest.TestCase):
+    """El selector de idioma de la página General.
+
+    Abre ventanas: la corre el advisor en la otra PC, no se corre acá.
+    Con `en` en la config el control muestra «English» si hay catálogo,
+    y guardar con «Idioma de Windows» escribe `idioma = windows` en [ui].
+    """
+
+    def setUp(self):
+        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.ruta = Path.cwd()
+        self.parche_ruta = redirigir_rutas(self.ruta)
+        self.parche_ruta.__enter__()
+        self.addCleanup(self.parche_ruta.__exit__, None, None, None)
+
+    def _dialogo(self, config=None):
+        with mock.patch.object(motores, "listar_voces", return_value=["Voz de prueba"]):
+            dialogo = gui_preferencias.PreferenciasDialog(None, config or {})
+        self.addCleanup(destruir, dialogo)
+        return dialogo
+
+    def test_con_idioma_en_muestra_english(self):
+        with mock.patch.object(idioma, "codigos_con_catalogo",
+                               return_value={"en"}):
+            dialogo = self._dialogo({"idioma": "en"})
+        self.assertEqual(dialogo.cho_idioma.GetValue(), "en")
+        self.assertEqual(dialogo.cho_idioma.GetStringSelection(), "English")
+
+    def test_abrir_no_anuncia_el_cambio_de_idioma(self):
+        with mock.patch.object(idioma, "codigos_con_catalogo",
+                               return_value={"en"}), \
+                mock.patch("ytchat.ui.preferencias_general.anunciar") as anunciar:
+            self._dialogo({"idioma": "en"})
+        anunciar.assert_not_called()
+
+    def test_cambiar_idioma_anuncia_que_pide_reiniciar(self):
+        with mock.patch.object(idioma, "codigos_con_catalogo",
+                               return_value={"en"}):
+            dialogo = self._dialogo({"idioma": "es"})
+        dialogo.cho_idioma.SetSelection(2)
+        evento = gui.wx.CommandEvent(gui.wx.wxEVT_CHOICE,
+                                     dialogo.cho_idioma.GetId())
+        evento.SetEventObject(dialogo.cho_idioma)
+        evento.SetInt(2)
+        with mock.patch("ytchat.ui.preferencias_general.anunciar") as anunciar:
+            dialogo.cho_idioma.GetEventHandler().ProcessEvent(evento)
+        anunciar.assert_called_once_with(
+            "El idioma cambia al reiniciar la aplicación.")
+
+    def test_guardar_windows_escribe_idioma_windows(self):
+        with mock.patch.object(idioma, "codigos_con_catalogo",
+                               return_value={"en"}):
+            dialogo = self._dialogo({"idioma": "en"})
+        self.assertEqual(dialogo.cho_idioma.GetValue(), "en")
+        dialogo.cho_idioma.SetValue("windows")
+        with mock.patch.object(gui_preferencias.cfg, "guardar_opciones",
+                               return_value=True) as guardar, \
+                mock.patch.object(gui_preferencias._snd, "reproducir"), \
+                mock.patch.object(gui_preferencias, "anunciar"), \
+                mock.patch.object(dialogo, "EndModal"):
+            dialogo._on_guardar(None)
+        escritos = {(seccion, clave): valor
+                    for seccion, clave, valor in guardar.call_args.args[1]}
+        self.assertEqual(escritos.get(("ui", "idioma")), "windows")
+        self.assertEqual(dialogo._config["idioma"], "windows")
 
 
 class TestMuestraTema(unittest.TestCase):
@@ -283,6 +354,8 @@ class TestPorDefectoContraFabrica(unittest.TestCase):
                 return musica_decir.normalizar(texto)
             if clave == "recientes":
                 return (texto if texto in ("lector", "voz") else "lector")
+            if clave == "idioma":
+                return texto
             if clave.startswith("aviso_"):
                 return texto
             return gui_preferencias.cfg.normalizar_repetir(texto)

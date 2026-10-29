@@ -395,10 +395,9 @@ class TestEnterEnListas(unittest.TestCase):
 class TestComentariosPanel(unittest.TestCase):
 
     def _panel_sin_api_key(self):
-        app = gui_comentarios.wx.App(False)
+        self.app = gui_comentarios.wx.App.Get() or gui_comentarios.wx.App(False)
         frame = gui_comentarios.wx.Frame(None)
         self.addCleanup(destruir, frame)
-        self.addCleanup(destruir, app)
         hay_lectura = self.enterContext(mock.patch.object(gui_comentarios.credenciales, "hay_lectura", return_value=False))
         parches = ((gui_comentarios.youtube_api, "google_disponible", True),
                    (gui_comentarios.credenciales, "hay_sesion", False),

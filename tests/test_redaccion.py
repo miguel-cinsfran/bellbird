@@ -71,10 +71,9 @@ class TestRedaccion(unittest.TestCase):
                 self.assertNotEqual(motivo, "Este vídeo no tiene chat en vivo")
 
     def test_motivo_chat_llega_al_panel_en_directo_sin_sesion(self):
-        app = gui.wx.App(False)
+        self.app = gui.wx.App.Get() or gui.wx.App(False)
         ventana = gui.wx.Frame(None)
         self.addCleanup(destruir, ventana)
-        self.addCleanup(destruir, app)
         panel = gui_redactar.PanelRedactar(ventana, "Mensaje", 200, lambda texto: None)
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
         frame._conectado = True

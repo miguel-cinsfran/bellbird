@@ -29,7 +29,7 @@ RUTAS_DE_DATOS = [
     ("estado_musica", "musica_estado.json"),
     ("cache_etiquetas_musica", "etiquetas_musica.json"),
     ("cache_sonoridad_musica", "sonoridad_musica.json"),
-    ("log_principal", "ytchat.log"),
+    ("log_principal", "bellbird.log"),
     ("log_detallado", "bellbird-debug.log"),
     ("log_fallos", "bellbird-fallos.log"),
     ("ytdlp_actualizado", "yt-dlp.exe"),
@@ -220,7 +220,8 @@ class TestNombresAnteriores(unittest.TestCase):
             self.assertEqual(
                 registros,
                 [(datos / "ytchat-debug.log", datos / "bellbird-debug.log"),
-                 (datos / "ytchat-fallos.log", datos / "bellbird-fallos.log")])
+                 (datos / "ytchat-fallos.log", datos / "bellbird-fallos.log"),
+                 (datos / "ytchat.log", datos / "bellbird.log")])
 
 
 class TestOrdenDeLaApp(unittest.TestCase):
@@ -455,7 +456,7 @@ class TestGuardaRutas(unittest.TestCase):
     NOMBRES_DATOS = (
         "config.ini", "credenciales.json", "historial_lives.json",
         "historial_descargas.json", "alias.json", "mensajes_programados.json",
-        "fin_pendiente.json", "sounds.ini", "ytchat.log", "bellbird-debug.log",
+        "fin_pendiente.json", "sounds.ini", "bellbird.log", "bellbird-debug.log",
         "bellbird-fallos.log", "etiquetas_musica.json", "sonoridad_musica.json",
     )
 

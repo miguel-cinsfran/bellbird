@@ -99,7 +99,7 @@ def configurar_logging(nivel_consola: int = logging.INFO) -> None:
             datefmt="%Y-%m-%d %H:%M:%S"))
         root.addHandler(fh)
     except Exception as exc:
-        logger.warning("No se pudo crear ytchat.log: %s", exc)
+        logger.warning("No se pudo crear %s: %s", paths.log_principal().name, exc)
 
     # El registro detallado viene encendido de fábrica y se apaga en Preferencias.
     detallado = False
@@ -119,7 +119,7 @@ def configurar_logging(nivel_consola: int = logging.INFO) -> None:
             logger.warning(
                 "No se pudo crear %s: %s", paths.log_detallado().name, exc)
 
-    # ytchat.log conserva los avisos de terceros, que pueden explicar un fallo.
+    # El registro principal conserva los avisos de terceros, que pueden explicar un fallo.
     # Las librerías de terceros no deben ocultar los diagnósticos propios.
     for _lib in librerias_silenciadas():
         logging.getLogger(_lib).setLevel(logging.WARNING)

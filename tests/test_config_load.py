@@ -54,13 +54,13 @@ class TestCargarConfiguracion(unittest.TestCase):
         self.assertFalse(
             logging.getLogger("websockets.client").isEnabledFor(logging.DEBUG))
 
-    def test_configurar_logging_conserva_warning_en_ytchat_log(self):
+    def test_configurar_logging_conserva_warning_en_bellbird_log(self):
         """Si este nivel sube, el cierre por tope deja de llegar al archivo y se
         pierde la única pista disponible sobre la corrupción de heap al cerrar."""
         with redirigir_rutas(self._tmp.name):
             config.configurar_logging()
         manejador = next(manejador for manejador in self._root.handlers
-                         if getattr(manejador, "baseFilename", "").endswith("ytchat.log"))
+                          if getattr(manejador, "baseFilename", "").endswith("bellbird.log"))
         self.addCleanup(manejador.close)
         self.assertEqual(manejador.level, logging.WARNING)
 
@@ -71,7 +71,7 @@ class TestCargarConfiguracion(unittest.TestCase):
             config.configurar_logging()
             cuantos = len(self._root.handlers)
             config.configurar_logging()
-        # Una segunda llamada duplicaba cada línea en consola y en ytchat.log.
+        # Una segunda llamada duplicaba cada línea en consola y en bellbird.log.
         self.assertEqual(len(self._root.handlers), cuantos)
 
     def test_guardar_opcion_inserta_tras_la_ultima_clave_de_la_seccion(self):

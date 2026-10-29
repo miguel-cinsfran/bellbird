@@ -580,7 +580,7 @@ lo muestra. Si nadie lo muestra, revisa la fuente de navegador en OBS.
 
 **Algo falla.** *Ayuda, Abrir carpeta de registros* abre la carpeta
 `data`, donde están los registros. Los errores quedan en
-`data/ytchat.log`, y si la aplicación se cierra sola, también en
+`data/bellbird.log`, y si la aplicación se cierra sola, también en
 `data/bellbird-fallos.log`. El registro detallado, `data/bellbird-debug.log`,
 viene encendido; se apaga en *Preferencias, Diagnóstico*, con la casilla
 *Guardar un registro detallado para diagnosticar fallos*. Para avisar de

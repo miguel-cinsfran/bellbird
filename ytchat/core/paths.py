@@ -132,7 +132,7 @@ def sounds_ini() -> Path:
 
 
 def log_principal() -> Path:
-    return carpeta_datos() / "ytchat.log"
+    return carpeta_datos() / "bellbird.log"
 
 
 def log_detallado() -> Path:
@@ -158,7 +158,8 @@ def pares_de_nombres_anteriores() -> tuple[list, list]:
     """Pares (ruta vieja, ruta nueva) para la migración de nombres del arranque."""
     return ([(ytdlp_actualizado_anterior(), ytdlp_actualizado())],
             [(carpeta_datos() / "ytchat-debug.log", log_detallado()),
-             (carpeta_datos() / "ytchat-fallos.log", log_fallos())])
+             (carpeta_datos() / "ytchat-fallos.log", log_fallos()),
+             (carpeta_datos() / "ytchat.log", log_principal())])
 
 
 def cache_audio() -> Path:

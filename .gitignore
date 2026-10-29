@@ -35,10 +35,14 @@ venv/
 
 # Logs
 ytchat.log
+bellbird.log
 # Registros del diagnóstico. Llevan volcado de entorno y trazas: no se suben.
 ytchat-debug.log
 ytchat-debug.log.*
+bellbird-debug.log
+bellbird-debug.log.*
 ytchat-fallos.log
+bellbird-fallos.log
 
 # Secretos de la API de YouTube (los gestiona la app desde Configuración)
 credenciales.json

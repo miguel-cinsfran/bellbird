@@ -300,6 +300,41 @@ class TestNombresAnteriores(unittest.TestCase):
             self.assertTrue((datos / "ytchat-debug.log").is_file())
             self.assertIn("bellbird-debug.log", resultado.conflictos)
 
+    def test_principal_y_rotados_se_renombran(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            inst = Path(tmp) / "app"
+            datos = inst / "data"
+            datos.mkdir(parents=True)
+            for nombre, contenido in (
+                    ("ytchat.log", "principal"),
+                    ("ytchat.log.1", "principal uno")):
+                (datos / nombre).write_text(contenido, encoding="utf-8")
+            with mock.patch.object(paths, "carpeta_datos", return_value=datos):
+                pares = paths.pares_de_nombres_anteriores()
+                resultado = self._migrar(inst, datos, pares)
+            self.assertEqual((datos / "bellbird.log").read_text(encoding="utf-8"),
+                             "principal")
+            self.assertEqual((datos / "bellbird.log.1").read_text(encoding="utf-8"),
+                             "principal uno")
+            self.assertFalse((datos / "ytchat.log").exists())
+            self.assertFalse((datos / "ytchat.log.1").exists())
+            self.assertIn("bellbird.log", resultado.movidos)
+
+    def test_principal_nuevo_existente_no_se_pisa(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            inst = Path(tmp) / "app"
+            datos = inst / "data"
+            datos.mkdir(parents=True)
+            (datos / "ytchat.log").write_text("viejo", encoding="utf-8")
+            (datos / "bellbird.log").write_text("nuevo", encoding="utf-8")
+            with mock.patch.object(paths, "carpeta_datos", return_value=datos):
+                pares = paths.pares_de_nombres_anteriores()
+                resultado = self._migrar(inst, datos, pares)
+            self.assertEqual((datos / "bellbird.log").read_text(encoding="utf-8"),
+                             "nuevo")
+            self.assertTrue((datos / "ytchat.log").is_file())
+            self.assertIn("bellbird.log", resultado.conflictos)
+
     def test_fallo_al_renombrar_un_registro_no_corta(self):
         with tempfile.TemporaryDirectory() as tmp:
             inst = Path(tmp) / "app"

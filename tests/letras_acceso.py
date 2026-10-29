@@ -10,6 +10,13 @@ rótulos que las usan.
 
 import wx
 
+import shutil
+import tempfile
+from pathlib import Path
+
+from scripts import traducciones
+from ytchat.core import idioma
+
 _TIPOS_CON_ROTULO = (wx.StaticText, wx.Button, wx.CheckBox, wx.RadioButton,
                      wx.StaticBox)
 
@@ -51,3 +58,49 @@ def letras_repetidas(contenedor):
         pendientes.extend(reversed(actual.GetChildren()))
     return {letra: rotulos for letra, rotulos in por_letra.items()
             if len(rotulos) > 1}
+
+
+class ingles:
+    """El catálogo inglés del repositorio, instalado y después retirado.
+
+    Compila el `.po` inglés a una carpeta temporal con
+    `scripts/traducciones.py` y lo instala con `idioma.instalar("en",
+    carpeta)`. Al salir deja el español con `idioma._reiniciar()`.
+    Sirve como gestor de contexto o desde `setUpClass` y
+    `tearDownClass`::
+
+        with ingles():
+            ...
+
+        @classmethod
+        def setUpClass(cls):
+            cls._ingles = ingles()
+            cls._ingles.__enter__()
+
+        @classmethod
+        def tearDownClass(cls):
+            cls._ingles.__exit__(None, None, None)
+    """
+
+    def __init__(self):
+        self._temporal = None
+
+    def __enter__(self):
+        self._temporal = tempfile.TemporaryDirectory()
+        carpeta = Path(self._temporal.name)
+        destino = traducciones.ruta_po(carpeta, "en")
+        destino.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(traducciones.ruta_po(
+            traducciones.CARPETA_IDIOMAS, "en"), destino)
+        traducciones.compilar(carpeta_idiomas=carpeta)
+        idioma.instalar("en", carpeta)
+        return self
+
+    def __exit__(self, *exc):
+        try:
+            idioma._reiniciar()
+        finally:
+            if self._temporal is not None:
+                self._temporal.cleanup()
+                self._temporal = None
+        return False

@@ -14,7 +14,7 @@ from unittest import mock
 
 import wx
 
-from tests.letras_acceso import letras_repetidas
+from tests.letras_acceso import ingles, letras_repetidas
 from tests.test_gui_microfono import FUENTES, PARES
 from tests.test_gui_transmision import (
     GestorFalso, HiloInmediato, _asegurar_sin_obs)
@@ -195,6 +195,96 @@ class TestLetrasAccesoTransmision(unittest.TestCase):
 
     def test_cuadro_sin_letras_repetidas(self):
         self.assertEqual(letras_repetidas(self.dialogo), {})
+
+
+class TestLetrasAccesoPreferenciasEnIngles(TestLetrasAccesoPreferencias):
+    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
+    # Gemela en inglés: repite las pruebas sin copiarlas.
+
+    @classmethod
+    def setUpClass(cls):
+        cls._ingles = ingles()
+        cls._ingles.__enter__()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._ingles.__exit__(None, None, None)
+        del cls._ingles
+
+
+class TestLetrasAccesoMicrofonoEnIngles(TestLetrasAccesoMicrofono):
+    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
+    # Gemela en inglés: repite las pruebas sin copiarlas.
+
+    @classmethod
+    def setUpClass(cls):
+        cls._ingles = ingles()
+        cls._ingles.__enter__()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._ingles.__exit__(None, None, None)
+        del cls._ingles
+
+
+class TestLetrasAccesoDirectoYoutubeEnIngles(TestLetrasAccesoDirectoYoutube):
+    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
+    # Gemela en inglés: repite las pruebas sin copiarlas.
+
+    @classmethod
+    def setUpClass(cls):
+        cls._ingles = ingles()
+        cls._ingles.__enter__()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._ingles.__exit__(None, None, None)
+        del cls._ingles
+
+
+class TestLetrasAccesoHistorialEnIngles(TestLetrasAccesoHistorial):
+    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
+    # Gemela en inglés: repite las pruebas sin copiarlas.
+
+    @classmethod
+    def setUpClass(cls):
+        cls._ingles = ingles()
+        cls._ingles.__enter__()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._ingles.__exit__(None, None, None)
+        del cls._ingles
+
+
+class TestLetrasAccesoComentariosEnIngles(TestLetrasAccesoComentarios):
+    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
+    # Gemela en inglés: repite las pruebas sin copiarlas.
+
+    @classmethod
+    def setUpClass(cls):
+        cls._ingles = ingles()
+        cls._ingles.__enter__()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._ingles.__exit__(None, None, None)
+        del cls._ingles
+
+
+class TestLetrasAccesoTransmisionEnIngles(TestLetrasAccesoTransmision):
+    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
+    # Gemela en inglés: repite las pruebas sin copiarlas.
+
+    @classmethod
+    def setUpClass(cls):
+        cls._ingles = ingles()
+        cls._ingles.__enter__()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._ingles.__exit__(None, None, None)
+        del cls._ingles
 
 
 if __name__ == "__main__":

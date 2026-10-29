@@ -4509,7 +4509,7 @@ msgstr "Privacy"
 
 #: ytchat/ui/gui_directo_youtube.py:167
 msgid "&Latencia:"
-msgstr "&Latency:"
+msgstr "Lat&ency:"
 
 #: ytchat/ui/gui_directo_youtube.py:171 ytchat/ui/gui_directo_youtube.py:173
 msgid "Latencia"
@@ -4557,7 +4557,7 @@ msgstr "Thumbnail"
 
 #: ytchat/ui/gui_directo_youtube.py:226
 msgid "Elegir &miniatura…"
-msgstr "Choose &thumbnail…"
+msgstr "&Choose thumbnail…"
 
 #: ytchat/ui/gui_directo_youtube.py:226 ytchat/ui/gui_directo_youtube.py:288
 msgid "Elegir miniatura"
@@ -4739,7 +4739,7 @@ msgstr "De&lete"
 
 #: ytchat/ui/gui_historial.py:65
 msgid "C&errar"
-msgstr "&Close"
+msgstr "Cl&ose"
 
 #. Traductores: nombre accesible de la lista, con el de la plataforma.
 #: ytchat/ui/gui_historial.py:83
@@ -4845,7 +4845,7 @@ msgstr "S&top playback"
 
 #: ytchat/ui/gui_menu.py:106
 msgid "&Silenciar o activar audio"
-msgstr "Mute or un&mute audio"
+msgstr "Mute or &unmute audio"
 
 #: ytchat/ui/gui_menu.py:107
 msgid "Pantalla &completa"
@@ -5072,11 +5072,11 @@ msgstr "&What's playing"
 
 #: ytchat/ui/gui_menu.py:371
 msgid "Adelantar 10 segu&ndos"
-msgstr "Forward 10 seco&nds"
+msgstr "&Forward 10 seconds"
 
 #: ytchat/ui/gui_menu.py:373
 msgid "Re&troceder 10 segundos"
-msgstr "Re&wind 10 seconds"
+msgstr "Rew&ind 10 seconds"
 
 #: ytchat/ui/gui_menu.py:376
 msgid "Silenciar la &música"
@@ -5088,7 +5088,7 @@ msgstr "S&top the music"
 
 #: ytchat/ui/gui_menu.py:380
 msgid "&Orden aleatorio"
-msgstr "&Shuffle"
+msgstr "Sh&uffle"
 
 #: ytchat/ui/gui_menu.py:384
 msgid "Cambiar la &repetición"
@@ -5249,7 +5249,7 @@ msgstr "Sound theme"
 
 #: ytchat/ui/gui_preferencias.py:223
 msgid "Mostrar el total de &Super Chats en la barra de estado"
-msgstr "Show the &Super Chat total in the status bar"
+msgstr "Show the Super &Chat total in the status bar"
 
 #: ytchat/ui/gui_preferencias.py:228
 msgid "Mostrar la pestaña de &información del vídeo (canal, vistas, descripción)"
@@ -5584,7 +5584,7 @@ msgstr "Stop the &broadcast"
 
 #: ytchat/ui/gui_transmision.py:89
 msgid "&Grabar"
-msgstr "&Record"
+msgstr "R&ecord"
 
 #: ytchat/ui/gui_transmision.py:90
 msgid "Detener la &grabación"
@@ -5687,7 +5687,7 @@ msgstr "Window to capture"
 
 #: ytchat/ui/gui_transmision.py:198
 msgid "Usar esa &ventana"
-msgstr "Use that &window"
+msgstr "Use that wind&ow"
 
 #: ytchat/ui/gui_transmision.py:198
 msgid "Usar esa ventana"
@@ -5780,15 +5780,15 @@ msgstr "Appl&y size"
 
 #: ytchat/ui/gui_transmision.py:261
 msgid "&Mostrar el panel en la escena"
-msgstr "&Show the panel in the scene"
+msgstr "Show the panel &in the scene"
 
 #: ytchat/ui/gui_transmision.py:263
 msgid "&Fijar el panel para que no se mueva"
-msgstr "&Lock the panel so it does not move"
+msgstr "Loc&k the panel so it does not move"
 
 #: ytchat/ui/gui_transmision.py:267
 msgid "P&oner al frente"
-msgstr "Bring to &front"
+msgstr "Bring &to front"
 
 #: ytchat/ui/gui_transmision.py:269
 msgid "A&juste fino"
@@ -6422,7 +6422,7 @@ msgstr "YouTube API key"
 
 #: ytchat/ui/preferencias_api.py:60
 msgid "ID de &cliente OAuth:"
-msgstr "OAuth client &ID:"
+msgstr "OAuth &client ID:"
 
 #: ytchat/ui/preferencias_api.py:61
 msgid "ID de cliente OAuth"
@@ -6707,7 +6707,7 @@ msgstr "&Provider"
 
 #: ytchat/ui/preferencias_ia.py:104
 msgid "&Dirección del servicio"
-msgstr "Service &address"
+msgstr "Ser&vice address"
 
 #: ytchat/ui/preferencias_ia.py:121
 msgid "P&robar la clave"
@@ -6812,7 +6812,7 @@ msgstr "Skip emo&jis in the list and when reading"
 
 #: ytchat/ui/preferencias_lectura.py:74
 msgid "Omitir e&nlaces al leer"
-msgstr "Skip li&nks when reading"
+msgstr "Skip links when &reading"
 
 #: ytchat/ui/preferencias_lectura.py:82
 msgid "&Longitud máxima del mensaje (caracteres):"
@@ -6896,7 +6896,7 @@ msgstr "&Play a sound when the song changes"
 
 #: ytchat/ui/preferencias_musica.py:108
 msgid "&Decir al pasar de canción:"
-msgstr "&Announce when the song changes:"
+msgstr "A&nnounce when the song changes:"
 
 #: ytchat/ui/preferencias_musica.py:111
 msgid "Nada"
@@ -6964,7 +6964,7 @@ msgstr "Ask when opening Music whether to match volume"
 
 #: ytchat/ui/preferencias_musica.py:167
 msgid "Usar los atajos de música en cualquier &programa"
-msgstr "Use music shortcuts in any &program"
+msgstr "Use music &shortcuts in any program"
 
 #: ytchat/ui/preferencias_musica.py:202
 msgid "Se encontró 1 salida de audio"
@@ -7142,7 +7142,7 @@ msgstr "Only important things with ElevenLabs"
 #: ytchat/ui/preferencias_voz.py:166
 msgid "U&sar ElevenLabs solo con Super Chats, miembros, cofres, dueño y moderadores"
 msgstr ""
-"&Use ElevenLabs only for Super Chats, members, treasure chests, owner, and "
+"Use ElevenLabs &only for Super Chats, members, treasure chests, owner, and "
 "moderators"
 
 #: ytchat/ui/preferencias_voz.py:173

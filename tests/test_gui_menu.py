@@ -15,6 +15,7 @@ from unittest import mock
 
 import wx
 
+from tests.letras_acceso import ingles
 from tests.pseudo_prueba import con_pseudo
 from tests.ventanas_prueba import destruir
 from ytchat.ui import gui
@@ -522,6 +523,31 @@ class TestPseudoMenu(unittest.TestCase):
                 if not entrada.etiqueta.startswith("[¡"))
 
         self.assertEqual(sin_marcar, sorted(PENDIENTES_OTROS_MODULOS))
+
+
+class TestLetrasMenuEnIngles(unittest.TestCase):
+    """La barra real en inglés: ninguna letra de acceso repetida.
+
+    Abre ventanas: la corre el advisor en la otra PC, no se corre acá.
+    En este archivo no hay prueba en español de esa regla sobre el menú
+    real, así que no es gemela de ninguna.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls._ingles = ingles()
+        cls._ingles.__enter__()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._ingles.__exit__(None, None, None)
+        del cls._ingles
+
+    def test_menu_real_en_ingles_sin_letras_repetidas(self):
+        from scripts import convenciones_comandos as cc
+
+        entradas = cc.construir_entradas_reales()
+        self.assertEqual(cc.faltas_letras_repetidas(entradas), [])
 
 
 if __name__ == "__main__":

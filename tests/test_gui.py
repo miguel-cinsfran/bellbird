@@ -756,6 +756,11 @@ class TestVentanaReal(unittest.TestCase):
                          {"texto_tts": "Ana: hola mundo", "autor": ""})
         self.assertEqual(cola.get()["texto_tts"], "en espera")
 
+    def test_pestana_y_lista_del_chat_llevan_el_nombre_del_glosario(self):
+        frame = self._ventana()
+        self.assertEqual(frame.nb.GetPageText(gui.PAG_CHAT), "Chat del directo")
+        self.assertEqual(frame.lb_chat.GetName(), "Chat del directo")
+
 
 class TestFocoAlActivar(unittest.TestCase):
     """Al activarse la ventana no se roba el foco si ya está en un control

@@ -229,7 +229,7 @@ class GestorDescargasDialog(wx.Dialog):
         # Enumerar playlist (casilla, sin color).
         self.chk_enumerar = wx.CheckBox(
             padre, name="EnumerarPlaylist",
-            label=_("&Enumerar ítems de playlist (01_, 02_…)"))
+            label=_("&Enumerar ítems de la lista de reproducción (01_, 02_…)"))
         self.chk_enumerar.SetValue(bool(self._opciones.get("enumerar", False)))
         box.Add(self.chk_enumerar, 0, wx.ALL, 6)
 
@@ -237,17 +237,17 @@ class GestorDescargasDialog(wx.Dialog):
         return box
 
     def _seccion_anadir(self, parent):
-        box, padre = caja_de_grupo(parent, _("Añadir URL"))
+        box, padre = caja_de_grupo(parent, _("Añadir enlace"))
         fila = wx.BoxSizer(wx.HORIZONTAL)
-        lbl = wx.StaticText(padre, label=_("&URL del vídeo o playlist:"),
+        lbl = wx.StaticText(padre, label=_("En&lace del vídeo o lista de reproducción:"),
                             name="EtiquetaURL")
         lbl.SetForegroundColour(_T.text)
         fila.Add(lbl, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
         self.txt_url = wx.TextCtrl(padre, value="",
                                    style=wx.TE_PROCESS_ENTER,
-                                   name=_("URL del vídeo o playlist"))
+                                   name=_("Enlace del vídeo o lista de reproducción"))
         _tc(self.txt_url)
-        self.txt_url.SetToolTip(_("Pega un enlace de YouTube (vídeo o playlist)."))
+        self.txt_url.SetToolTip(_("Pega un enlace de YouTube (vídeo o lista de reproducción)."))
         self.txt_url.Bind(wx.EVT_TEXT_ENTER, lambda e: self._on_anadir(None))
         fila.Add(self.txt_url, 1, wx.EXPAND)
         self.btn_anadir = wx.Button(padre, label=_("Aña&dir"), name="AnadirURL")
@@ -337,8 +337,8 @@ class GestorDescargasDialog(wx.Dialog):
     def _on_anadir(self, _event):
         url = self.txt_url.GetValue().strip()
         if not url:
-            wx.MessageBox(_("Pega una URL de YouTube (vídeo o playlist) antes de añadir."),
-                          _("Falta la URL"), wx.OK | wx.ICON_INFORMATION, self)
+            wx.MessageBox(_("Pega un enlace de YouTube (vídeo o lista de reproducción) antes de añadir."),
+                          _("Falta el enlace"), wx.OK | wx.ICON_INFORMATION, self)
             return
         # Persistimos las opciones elegidas antes de encolar (así el Gestor
         # las ve). Si luego el usuario cambia el formato en medio, la nueva

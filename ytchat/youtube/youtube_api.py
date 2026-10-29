@@ -135,7 +135,7 @@ def mensaje_error_api(exc) -> str:
     if "commentsdisabled" in low or "disabled comments" in low:
         return _("Los comentarios están desactivados en este vídeo.")
     if "videonotfound" in low or "video not found" in low:
-        return _("No se encontró el vídeo. Revisa la URL o el ID.")
+        return _("No se encontró el vídeo. Revisa el enlace o el ID.")
     if "keyinvalid" in low or "api key not valid" in low or "badrequest" in low and "key" in low:
         return _("La API key no es válida. Revísala en Configuración.")
     if "livestreamingnotenabled" in low:
@@ -145,7 +145,7 @@ def mensaje_error_api(exc) -> str:
         return _("No tienes permiso para esta acción. Debes ser el dueño o "
                  "moderador del directo, y haber iniciado sesión.")
     if "livechatnotfound" in low or "live chat not found" in low:
-        return _("Este vídeo no tiene un chat en vivo activo.")
+        return _("Este vídeo no tiene un directo con chat activo.")
     if "rate" in low and "limit" in low:
         return _("Demasiadas peticiones seguidas. Espera unos segundos.")
     return _("Error de la API de YouTube: {detalle}").format(detalle=texto)

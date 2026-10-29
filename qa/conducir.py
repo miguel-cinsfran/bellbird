@@ -1020,7 +1020,7 @@ def bateria_reproductor(app: Aplicacion, res: Resultado, donde: str,
     # Los aceleradores solo llegan si el foco está DENTRO de un control, no en
     # el frame. Se ancla a propósito para que el resultado no dependa de dónde
     # lo haya dejado la comprobación anterior.
-    for candidato in ("Volumen del reproductor", "URL", "Chat en vivo"):
+    for candidato in ("Volumen del reproductor", "Enlace del directo o vídeo", "Chat del directo"):
         try:
             app.pedir("foco", nombre=candidato)
             break
@@ -1219,9 +1219,9 @@ def escenario_principal(app: Aplicacion, args, res: Resultado):
     # control de verdad. En los diálogos no hace falta porque wx ya le da el
     # foco al primero al abrirlos.
     try:
-        app.pedir("foco", nombre="URL")
+        app.pedir("foco", nombre="Enlace del directo o vídeo")
     except Exception as exc:
-        res.fallo(f"ventana principal: no pude enfocar el campo de URL, {exc}")
+        res.fallo(f"ventana principal: no pude enfocar el campo de enlace, {exc}")
     orden = recorrer_tab(app, res, "ventana principal", vueltas=12)
     res.nota(f"orden de Tab, {len(orden)} paradas: " + " > ".join(orden))
 
@@ -1267,7 +1267,7 @@ def escenario_descargas(app: Aplicacion, args, res: Resultado):
     # El foco tiene que estar DENTRO de un control, no en el frame, o el
     # acelerador no llega. Sin esto el escenario pasaba o fallaba segun que
     # otro escenario se hubiera corrido antes, que es la peor clase de prueba.
-    try:    app.pedir("foco", nombre="URL")
+    try:    app.pedir("foco", nombre="Enlace del directo o vídeo")
     except Exception: pass
     app.teclas(paso_atajo)
     dlg = app.esperar_ventana("Gestor de descargas", segundos=12)
@@ -3794,11 +3794,11 @@ def conectar_de_verdad(app: Aplicacion, res: Resultado, url: str,
     que comprobar a mano que el directo siga emitiendo.
     """
     app.al_frente()
-    # Por el nombre COMPLETO del campo. Pedir foco por «URL» a secas caia en la
-    # etiqueta «URL/ID:», que tambien contiene esa palabra y va antes en el
-    # arbol, y entonces la URL no se escribia nunca. El escenario no lo decia
+    # Por el nombre COMPLETO del campo. Pedir foco por «Enlace» a secas caía en la
+    # etiqueta «Enlace o ID:», que tambien contiene esa palabra y va antes en el
+    # arbol, y entonces el enlace no se escribia nunca. El escenario no lo decia
     # porque las ordenes rechazadas se ignoraban; con `pedir` estricto salta.
-    app.pedir("foco", nombre="URL del directo o vídeo")
+    app.pedir("foco", nombre="Enlace del directo o vídeo")
     app.pedir("texto", valor=url)
     n = len(app.anuncios)
 
@@ -4422,12 +4422,12 @@ def escenario_conectar(app: Aplicacion, args, res: Resultado):
         app.pedir("pulsar", nombre="Conectar", tiempo=3.0, responder_ya=True)
     except Exception:
         pass                      # el cuadro es modal y se come la respuesta
-    dlg = dialogo_nativo("Falta URL", segundos=8)
+    dlg = dialogo_nativo("Falta el enlace", segundos=8)
     if dlg is None:
         res.fallo("conectar: con la URL vacia no aparecio ningun aviso")
     else:
         textos = _textos_de(dlg)
-        res.nota("conectar sin URL abre «Falta URL» con %d textos" % len(textos))
+        res.nota("conectar sin URL abre «Falta el enlace» con %d textos" % len(textos))
         for x in textos[:2]:
             res.nota("  dice: " + x[:70])
         if not textos:
@@ -4442,7 +4442,7 @@ def escenario_conectar(app: Aplicacion, args, res: Resultado):
         app.pedir("pulsar", nombre="Conectar", tiempo=3.0, responder_ya=True)
     except Exception:
         pass
-    dlg = dialogo_nativo("URL", segundos=6) or dialogo_nativo("no vál", segundos=2)
+    dlg = dialogo_nativo("Enlace", segundos=6) or dialogo_nativo("no vál", segundos=2)
     if dlg is not None:
         res.nota("conectar con una URL invalida abre un aviso nativo")
         _cerrar_nativo(dlg)
@@ -4714,7 +4714,7 @@ def escenario_menu_chat(app: Aplicacion, args, res: Resultado):
         res.fallo("menu del chat: no llego ningun mensaje a la lista")
         return
 
-    app.pedir("foco", nombre="Chat en vivo")
+    app.pedir("foco", nombre="Chat del directo")
     app.teclas("down")
     time.sleep(0.5)
 
@@ -4962,7 +4962,7 @@ def escenario_redactar(app: Aplicacion, args, res: Resultado):
 
     orden = recorrer_tab(app, res, "redactar", vueltas=10)
     res.nota("redactar, orden de Tab: " + " > ".join(orden[:5]))
-    esperado = ["Chat en vivo", "Mensaje para el chat", "Enviar"]
+    esperado = ["Chat del directo", "Mensaje para el chat", "Enviar"]
     juntos = " > ".join(orden)
     if not all(x in juntos for x in esperado):
         res.fallo("redactar: el orden de Tab no pasa por lista, cuadro y "

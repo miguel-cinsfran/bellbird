@@ -134,8 +134,7 @@ class TestInformativos(unittest.TestCase):
 
 
 FALTAS_CONOCIDAS = [
-    "Mayúscula a mitad de rótulo en «Ir a conexión (URL)»: «URL»",
-    "Mayúscula a mitad de rótulo en «Ir a Chat en vivo»: «Chat»",
+    "Mayúscula a mitad de rótulo en «Ir a Chat del directo»: «Chat»",
     "Mayúscula a mitad de rótulo en «Ir a Comentarios»: «Comentarios»",
     "Mayúscula a mitad de rótulo en «Ir al Reproductor»: «Reproductor»",
     "Mayúscula a mitad de rótulo en «Super Chats»: «Chats»",

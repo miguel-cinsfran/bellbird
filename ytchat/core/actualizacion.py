@@ -287,7 +287,7 @@ def descargar_paquete(url_zip: str, url_firma: str, destino: str | os.PathLike,
     El temporal no queda nunca en disco.
     """
     if not permitir_http and not (_es_https(url_zip) and _es_https(url_firma)):
-        return ResultadoDescarga(False, _("la descarga exige URL https"))
+        return ResultadoDescarga(False, _("la descarga exige un enlace https"))
     destino = Path(destino)
     temporal = None
     try:

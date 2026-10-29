@@ -427,7 +427,7 @@ def descargar_ytdlp(url: str, firma: str, destino: str | os.PathLike,
                     aviso_progreso=None, cancelar=None) -> ResultadoDescarga:
     """Descarga, verifica y reemplaza un ejecutable sin ejecutar el temporal."""
     if not url.lower().startswith("https://"):
-        return ResultadoDescarga(False, "la descarga exige una URL https")
+        return ResultadoDescarga(False, "la descarga exige un enlace https")
     destino = Path(destino)
     temporal = None
     try:

@@ -322,10 +322,10 @@ class YTChatFrame(wx.Frame):
 
         # ── Barra superior: URL + tipo + Conectar ──
         row = wx.BoxSizer(wx.HORIZONTAL)
-        lbl = wx.StaticText(panel, label=_("&URL/ID:"), name="EtiquetaURL")
+        lbl = wx.StaticText(panel, label=_("&Enlace o ID:"), name="EtiquetaURL")
         _titulo(lbl)
         row.Add(lbl, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
-        self.txt_url = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER, name=_("URL del directo o vídeo"))
+        self.txt_url = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER, name=_("Enlace del directo o vídeo"))
         _tc(self.txt_url)
         self.txt_url.SetToolTip(
             _("Enlace de YouTube (directo o vídeo) o de un directo de TikTok "
@@ -362,7 +362,7 @@ class YTChatFrame(wx.Frame):
         _tc(self.nb, bg=_T.surface)
         self._pag_chat = self._build_pagina_chat(self.nb)
         self._com_panel = ComentariosPanel(self.nb, self._cola, self._config)
-        self.nb.AddPage(self._pag_chat, _("Chat en vivo"))
+        self.nb.AddPage(self._pag_chat, _("Chat del directo"))
         # Traductores: pestaña de comentarios.
         self.nb.AddPage(self._com_panel, _("Comentarios"))
         # Pestaña de información del vídeo (solo lectura). Se añade SIEMPRE al
@@ -427,7 +427,7 @@ class YTChatFrame(wx.Frame):
         vs.Add(lbl, 0, wx.LEFT | wx.RIGHT | wx.TOP, 8)
 
         self.lb_chat = wx.ListBox(
-            pag, style=wx.LB_SINGLE | wx.LB_HSCROLL, name=_("Chat en vivo"))
+            pag, style=wx.LB_SINGLE | wx.LB_HSCROLL, name=_("Chat del directo"))
         _tc(self.lb_chat)
         pt = int(self._config.get("tamanio_fuente_chat", 12))
         self.lb_chat.SetFont(wx.Font(
@@ -436,7 +436,7 @@ class YTChatFrame(wx.Frame):
             _("Mensajes del chat. Enter copia el mensaje. "
               "Tecla aplicaciones abre el menú contextual."))
         # msaa=False: ver el porqué en nombre_accesible() (lista dinámica).
-        nombre_accesible(self.lb_chat, _("Chat en vivo"), msaa=False)
+        nombre_accesible(self.lb_chat, _("Chat del directo"), msaa=False)
         self.chat_vivo = ControladorChat(
             self.lb_chat, MAX_ITEMS_CHAT,
             activo=lambda: self._alive and self._conectado,
@@ -760,8 +760,8 @@ class YTChatFrame(wx.Frame):
         else:
             url = self.txt_url.GetValue().strip()
             if not url:
-                wx.MessageBox(_("Introduce una URL o ID de YouTube."),
-                              _("Falta URL"), wx.OK | wx.ICON_WARNING, self)
+                wx.MessageBox(_("Introduce un enlace o un ID de YouTube."),
+                              _("Falta el enlace"), wx.OK | wx.ICON_WARNING, self)
                 self.txt_url.SetFocus()
                 return
             self._conectando = True
@@ -785,10 +785,10 @@ class YTChatFrame(wx.Frame):
             return
         _snd.reproducir("error")
         self._set_conectado_ui(False)
-        anunciar(_("La URL o el ID de YouTube no es válido"))
+        anunciar(_("El enlace o el ID de YouTube no es válido"))
         self.txt_url.SetFocus()
-        wx.MessageBox(_("La URL o el ID de YouTube no es válido. Revisa lo que pegaste."),
-                      _("URL no válida"), wx.OK | wx.ICON_WARNING, self)
+        wx.MessageBox(_("El enlace o el ID de YouTube no es válido. Revisa lo que pegaste."),
+                      _("Enlace no válido"), wx.OK | wx.ICON_WARNING, self)
 
     def _on_preferencias(self, event):
         try:
@@ -1474,7 +1474,7 @@ class YTChatFrame(wx.Frame):
     def _anunciar_conectado(self) -> None:
         t = self.sesion.tipo_video
         if t == deteccion.LIVE:
-            msg = _("Conectado al directo. Leyendo el chat en vivo.")
+            msg = _("Conectado al directo. Leyendo el chat.")
         elif t == deteccion.UPCOMING:
             msg = _("Directo programado. Aún no hay chat; puedes ver los comentarios.")
         elif t == deteccion.VOD:
@@ -1533,7 +1533,7 @@ class YTChatFrame(wx.Frame):
         # ChangeSelection: sin anuncio de pestaña; el de «conectado» que viene
         # después ya dice qué hay disponible.
         if tipo == deteccion.LIVE:
-            self._fijar_tipo(_("Directo en vivo: leyendo el chat."))
+            self._fijar_tipo(_("Directo: leyendo el chat."))
             self.nb.ChangeSelection(PAG_CHAT)
         elif tipo == deteccion.UPCOMING:
             self._fijar_tipo(_("Directo programado: aún sin chat. Hay comentarios."))
@@ -1681,7 +1681,7 @@ class YTChatFrame(wx.Frame):
         """Deshabilita en la barra de menú lo que solo aplica con una conexión
         activa: navegar por paneles, el filtro y las acciones de voz sobre una
         lectura en curso. Así el usuario no llega por el menú a paneles que no
-        existen aún. Los ajustes de voz y «Ir a URL» /
+        existen aún. Los ajustes de voz y «Ir a conexión» /
         «Anunciar estado» quedan siempre disponibles.
 
         El ítem «Descargar este vídeo» sigue las reglas del diseño: solo se

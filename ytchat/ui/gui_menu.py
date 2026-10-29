@@ -297,9 +297,9 @@ def _construir_menu_ver(frame, mb):
     mi_sig = m.Append(wx.ID_ANY, _("Región &siguiente") + "\tF6")
     mi_ant = m.Append(wx.ID_ANY, _("Región &anterior") + "\tShift+F6")
     m.AppendSeparator()
-    mi_conx = m.Append(wx.ID_ANY, _("Ir a co&nexión (URL)"))
+    mi_conx = m.Append(wx.ID_ANY, _("Ir a co&nexión"))
     mi_lista = m.Append(wx.ID_ANY, _("Ir a la &lista del panel actual") + frame._accel("ir_lista"))
-    mi_chat = m.Append(wx.ID_ANY, _("Ir a &Chat en vivo"))
+    mi_chat = m.Append(wx.ID_ANY, _("Ir a &Chat del directo"))
     mi_com  = m.Append(wx.ID_ANY, _("Ir a Co&mentarios"))
     mi_rep  = m.Append(wx.ID_ANY, _("Ir al &Reproductor"))
     m.AppendSeparator()
@@ -328,7 +328,7 @@ def _construir_menu_ver(frame, mb):
     frame._bind_menu(mi_ia, _abrir_ia, frame)
     frame._bind_menu(mi_rapida, _consulta_rapida, frame)
     # De «Ver», solo tiene sentido con conexión la navegación por paneles;
-    # «Ir a conexión (URL)» y «Anunciar estado» quedan siempre disponibles.
+    # «Ir a conexión» y «Anunciar estado» quedan siempre disponibles.
     frame._mi_ver_conexion = [mi_sig, mi_ant, mi_lista, mi_chat, mi_com, mi_rep]
 
 

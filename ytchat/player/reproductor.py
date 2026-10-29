@@ -614,7 +614,7 @@ class ReproductorPanel(wx.Panel):
         self._video = wx.Window(caja, size=(-1, 160), name=_("Vídeo"))
         self._video.SetMinSize((-1, 160))  # piso: que no lo aplaste el chat
         self._video.SetBackgroundColour(wx.BLACK)
-        nombre_accesible(self._video, _("Vídeo. Doble clic para pantalla completa."))
+        nombre_accesible(self._video, _("Vídeo. Ctrl+F abre la pantalla completa."))
         box.Add(self._video, 1, wx.EXPAND | wx.ALL, 6)
 
         # Fila 1: transporte con iconos (nombre accesible + tooltip).
@@ -857,7 +857,7 @@ class ReproductorPanel(wx.Panel):
         if self._video_id and autoplay:
             self.cargar(reproducir=True)
         else:
-            self._fijar_estado(_("Listo. Pulsa Reproducir."))
+            self._fijar_estado(_("Vídeo cargado. Pulsa Reproducir."))
 
     def set_flujo(self, url: str, autoplay: bool = True) -> None:
         """Reproduce una URL de flujo directa (el flujo de TikTok: FLV, o HLS si no hay FLV).
@@ -881,7 +881,7 @@ class ReproductorPanel(wx.Panel):
         if self._url_flujo and autoplay:
             self._reproducir_flujo()
         elif self._url_flujo:
-            self._fijar_estado(_("Listo. Pulsa Reproducir."))
+            self._fijar_estado(_("Vídeo cargado. Pulsa Reproducir."))
         else:
             self._fijar_estado(_("Este directo no trae vídeo reproducible."))
 

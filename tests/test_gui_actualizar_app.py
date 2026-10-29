@@ -299,7 +299,7 @@ class TestVentana(unittest.TestCase):
         def descargar(*args, **kwargs):
             return actualizacion.ResultadoDescarga(True, "paquete descargado")
         _, ventana = self._abrir_descargable(descargar)
-        self.assertIn(f"Listo para instalar. {APP_NAME} se cierra y vuelve "
+        self.assertIn(f"La actualización está preparada. {APP_NAME} se cierra y vuelve "
                       "a abrirse sola en alrededor de un minuto. Si hay un "
                       "chat conectado o un directo "
                       "en curso, se corta.", ventana.anuncios)

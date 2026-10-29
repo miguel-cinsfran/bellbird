@@ -20,7 +20,7 @@ from tests.test_gui_transmision import (
 from tests.ventanas_prueba import destruir
 from ytchat.ai import catalogo
 from ytchat.core import config
-from ytchat.ui import gui_microfono, gui_transmision, gui_preferencias
+from ytchat.ui import gui_directo_youtube, gui_microfono, gui_transmision, gui_preferencias
 from ytchat.ui import preferencias_ia
 from ytchat.ui import preferencias_ia_clave
 from ytchat.voice import motores
@@ -120,6 +120,18 @@ class TestLetrasAccesoMicrofono(unittest.TestCase):
         padre._config = {"obs_microfono": "Mic/Aux"}
         dialogo = gui_microfono.MicrofonoObsDialog(
             padre, FUENTES, "Mic/Aux", PARES, "{usb}")
+        self.addCleanup(destruir, dialogo)
+        self.assertEqual(letras_repetidas(dialogo), {})
+
+
+class TestLetrasAccesoDirectoYoutube(unittest.TestCase):
+    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
+
+    def setUp(self):
+        self.app = wx.App.Get() or wx.App(False)
+
+    def test_cuadro_sin_letras_repetidas(self):
+        dialogo = gui_directo_youtube.DialogoDirectoYoutube(None, titulo="Hola")
         self.addCleanup(destruir, dialogo)
         self.assertEqual(letras_repetidas(dialogo), {})
 

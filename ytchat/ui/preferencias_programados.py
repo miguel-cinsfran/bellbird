@@ -92,7 +92,7 @@ class PaginaProgramados:
         self.btn_programado_agregar = wx.Button(p, label=_("&Agregar"), name="AgregarProgramado")
         self.btn_programado_guardar = wx.Button(
             p, label=_("&Guardar cambios"), name="GuardarProgramado")
-        self.btn_programado_quitar = wx.Button(p, label=_("&Quitar"), name="QuitarProgramado")
+        self.btn_programado_quitar = wx.Button(p, label=_("E&liminar"), name="QuitarProgramado")
         for boton in (self.btn_programado_agregar, self.btn_programado_guardar,
                       self.btn_programado_quitar):
             boton.SetBackgroundColour(_T.btn)
@@ -173,4 +173,4 @@ class PaginaProgramados:
         self._mensajes_programados.pop(indice)
         programados.guardar(self._ruta_programados, self._mensajes_programados)
         self._refrescar_programados(min(indice, len(self._mensajes_programados) - 1))
-        anunciar(_("Mensaje quitado"))
+        anunciar(_("Mensaje eliminado"))

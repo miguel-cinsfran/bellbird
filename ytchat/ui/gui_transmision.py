@@ -60,7 +60,7 @@ _TEXTO_LIENZO = N_(
     "mensajes, y solo tapan lo que hay justo debajo de ellas.")
 
 _TEXTO_COMO_SE_COLOCA = N_(
-    "Este diálogo no crea escenas ni agrega fuentes cualesquiera, salvo la captura de ventana desde la sección Escena. Hace una sola\n"
+    "Este diálogo no crea escenas ni agrega otras fuentes, salvo la captura de ventana desde la sección Escena. Hace una sola\n"
     "cosa: pone el panel de chat de esta aplicación dentro de una escena de OBS\n"
     "y lo coloca donde quieras.\n\n"
     "El orden es este.\n\n"

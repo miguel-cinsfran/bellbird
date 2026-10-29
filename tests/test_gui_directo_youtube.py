@@ -234,7 +234,7 @@ class TestDialogoDirectoVentana(unittest.TestCase):
         self.assertEqual(dialogo.btn_elegir_miniatura.GetName(),
                          "Elegir miniatura")
         self.assertEqual(dialogo.btn_quitar_miniatura.GetName(),
-                         "Quitar miniatura")
+                         "Eliminar miniatura")
         self.assertEqual(dialogo.cho_lista.GetName(),
                          "Lista de reproducción")
         self.assertEqual(dialogo.btn_cargar_listas.GetName(),
@@ -252,9 +252,9 @@ class TestDialogoDirectoVentana(unittest.TestCase):
         self.assertEqual(dialogo.chk_dvr.GetLabel(),
                          "Permitir re&bobinar el directo")
         self.assertEqual(dialogo.btn_elegir_miniatura.GetLabel(),
-                         "Elegir &miniatura...")
+                         "Elegir &miniatura…")
         self.assertEqual(dialogo.btn_quitar_miniatura.GetLabel(),
-                         "&Quitar miniatura")
+                         "El&iminar miniatura")
         self.assertIn("Lista de re&producción:", textos)
         self.assertEqual(dialogo.btn_cargar_listas.GetLabel(),
                          "Ca&rgar listas")
@@ -264,7 +264,7 @@ class TestDialogoDirectoVentana(unittest.TestCase):
         nombres = ("Título del directo", "Descripción del directo",
                    "Privacidad", "Latencia", "Hecho para niños",
                    "Permitir rebobinar", "Categoría", "Etiquetas",
-                   "Miniatura", "Elegir miniatura", "Quitar miniatura",
+                    "Miniatura", "Elegir miniatura", "Eliminar miniatura",
                    "Lista de reproducción", "Cargar listas",
                    "Revisión de OBS")
         orden = [h.GetName() for h in _controles_en_orden(dialogo)
@@ -458,7 +458,7 @@ class TestDialogoDirectoVentana(unittest.TestCase):
         nombres = ("Título del directo", "Descripción del directo",
                    "Privacidad", "Latencia", "Hecho para niños",
                    "Permitir rebobinar", "Categoría", "Etiquetas",
-                   "Miniatura", "Elegir miniatura", "Quitar miniatura",
+                    "Miniatura", "Elegir miniatura", "Eliminar miniatura",
                    "Lista de reproducción", "Cargar listas",
                    "Revisión de OBS")
         orden = [h.GetName() for h in _controles_en_orden(dialogo)

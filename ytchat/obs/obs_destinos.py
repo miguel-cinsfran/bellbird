@@ -142,16 +142,16 @@ def frase_destino_listo(resultado):
     """Frase de anuncio con el formato del lienzo ya leído de OBS."""
     ancho, alto = resultado["ancho"], resultado["alto"]
     if alto > ancho:
-        # Traductores: formato del lienzo dentro de «Listo para transmitir».
+        # Traductores: formato del lienzo dentro de «OBS preparado para transmitir».
         formato = _("vertical")
     elif ancho > alto:
-        # Traductores: formato del lienzo dentro de «Listo para transmitir».
+        # Traductores: formato del lienzo dentro de «OBS preparado para transmitir».
         formato = _("horizontal")
     else:
-        # Traductores: formato del lienzo dentro de «Listo para transmitir».
+        # Traductores: formato del lienzo dentro de «OBS preparado para transmitir».
         formato = _("cuadrado")
     # Traductores: {destino} es TikTok o YouTube y {ancho} y {alto} sus píxeles.
-    frase = (_("Listo para transmitir a {destino}. Formato {formato}, "
+    frase = (_("OBS preparado para transmitir a {destino}. Formato {formato}, "
                "{ancho} por {alto}.").format(destino=resultado["destino"],
                                              formato=formato, ancho=ancho,
                                              alto=alto))

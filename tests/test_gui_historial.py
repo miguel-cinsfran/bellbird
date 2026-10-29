@@ -162,7 +162,7 @@ class PruebasHistorialDialog(unittest.TestCase):
 
         self.assertEqual(0, dialogo._listas["youtube"].GetCount())
         self.assertEqual([tiktok], historial.cargar(self.ruta))
-        anunciar.assert_called_once_with("Entrada quitada del historial")
+        anunciar.assert_called_once_with("Entrada eliminada del historial")
 
     def test_controles_tienen_los_nombres_accesibles_esperados(self):
         dialogo = self._dialogo([])

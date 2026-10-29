@@ -69,7 +69,7 @@ class PaginaLectura:
                 break
         vs.Add(self.rb_formato, 0, wx.ALL, 10)
 
-        self.chk_emojis = wx.CheckBox(p, label=_("&Quitar emojis (no mostrarlos en la lista ni leerlos)"),
+        self.chk_emojis = wx.CheckBox(p, label=_("Omitir emo&jis en la lista y al leer"),
                                       name="LimpiarEmojis")
         self.chk_urls   = wx.CheckBox(p, label=_("Omitir e&nlaces al leer"), name="EliminarURLs")
         for c in (self.chk_emojis, self.chk_urls):

@@ -330,7 +330,8 @@ class TestAyudas(unittest.TestCase):
     def test_biblioteca_de_una_lista_suma_suprimir(self):
         self.assertEqual(
             vista.ayuda_biblioteca(True),
-            vista.ayuda_biblioteca(False) + ", Suprimir quita de la lista")
+            "Intro reproduce ahora, Mayús más Intro a continuación, Ctrl más Intro "
+            "al final, tecla de aplicaciones para más opciones, Suprimir elimina de la lista")
 
     def test_colecciones(self):
         self.assertEqual(
@@ -341,7 +342,7 @@ class TestAyudas(unittest.TestCase):
     def test_cola(self):
         self.assertEqual(
             vista.ayuda_cola(),
-            "Intro reproduce, Suprimir quita, Alt más flechas mueve, "
+            "Intro reproduce, Suprimir elimina, Alt más flechas mueve, "
             "tecla de aplicaciones para más opciones")
 
     def test_buscar(self):

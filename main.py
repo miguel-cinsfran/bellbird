@@ -605,7 +605,7 @@ def _captura_en_loop(video_id, cola, config, parada, stats, on_message, on_estad
         _snd.reproducir("error")
         parada.set(); return None
 
-    if on_estado: on_estado("conectando", _("Conectando al directo..."))
+    if on_estado: on_estado("conectando", _("Conectando al directo…"))
     _snd.reproducir("conectando")
 
     cliente = _cliente_pytchat()
@@ -619,7 +619,7 @@ def _captura_en_loop(video_id, cola, config, parada, stats, on_message, on_estad
         _snd.reproducir("error")
         return exc
 
-    if on_estado: on_estado("conectado", _("Conectado. Esperando mensajes..."))
+    if on_estado: on_estado("conectado", _("Conectado. Esperando mensajes…"))
     _snd.reproducir("conectado")
     logger.info("Conectado al directo video=%s.", video_id)
 

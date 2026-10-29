@@ -250,7 +250,7 @@ class TestAtajosCaptura(unittest.TestCase):
         self.assertNotIn("Shift", nota)
         self.assertNotIn("Enter", nota)
         for familia in ("Ctrl+Mayús", "Alt+Mayús", "Ctrl+Alt", "teclas F",
-                        "Ctrl para el reproductor", "Alt para el chat"):
+                        "Ctrl es para el reproductor", "Alt para el chat"):
             with self.subTest(familia=familia):
                 self.assertIn(familia, nota)
 

@@ -64,7 +64,7 @@ TEXTO_A_CONTINUACION_POSICION = N_(
     "A continuación: {nombre}, posición {posicion}")
 TEXTO_A_CONTINUACION_VARIOS = N_(
     "{cantidad} canciones a continuación, desde la posición {posicion}")
-TEXTO_QUITADO_COLA = N_("Quitado de la cola: {nombre}")
+TEXTO_QUITADO_COLA = N_("Eliminado de la cola: {nombre}")
 TEXTO_COLA_VACIADA = N_("Cola vaciada")
 TEXTO_COLA_VACIADA_SIGUE = N_("Cola vaciada, sigue sonando {nombre}")
 TEXTO_COLA_MEZCLADA = N_("Cola mezclada")
@@ -79,7 +79,7 @@ TEXTO_LISTA_RENOMBRADA = N_("Lista renombrada: {nombre}")
 TEXTO_LISTA_BORRADA = N_("Lista borrada: {nombre}")
 TEXTO_LISTA_GUARDADA = N_("Lista guardada: {nombre}")
 TEXTO_TEMA_MOVIDO = N_("Canción movida a la posición {posicion} de {total}")
-TEXTO_TEMA_QUITADO = N_("Canción quitada de la lista")
+TEXTO_TEMA_QUITADO = N_("Canción eliminada de la lista")
 TEXTO_COLA_SIN_TEMAS = N_("No hay canciones en la cola")
 TEXTO_LEYENDO_ENLACE = N_("Leyendo el enlace")
 TEXTO_ENLACE_NO_YOUTUBE = N_("Esa dirección no es de YouTube")
@@ -102,10 +102,10 @@ TEXTO_AYUDA_BIBLIOTECA = N_(
     "Intro reproduce ahora, Mayús más Intro a continuación, "
     "Control más Intro al final, tecla de aplicaciones para más opciones")
 TEXTO_AYUDA_BIBLIOTECA_LISTA = N_(
-    "Intro reproduce ahora, Mayús más Intro a continuación, Control más Intro "
-    "al final, tecla de aplicaciones para más opciones, Suprimir quita de la lista")
+    "Intro reproduce ahora, Mayús más Intro a continuación, Ctrl más Intro "
+    "al final, tecla de aplicaciones para más opciones, Suprimir elimina de la lista")
 TEXTO_AYUDA_COLA = N_(
-    "Intro reproduce, Suprimir quita, Alt más flechas mueve, "
+    "Intro reproduce, Suprimir elimina, Alt más flechas mueve, "
     "tecla de aplicaciones para más opciones")
 TEXTO_AYUDA_BUSCAR = N_(
     "Escribe para filtrar, flecha abajo va a las canciones, "

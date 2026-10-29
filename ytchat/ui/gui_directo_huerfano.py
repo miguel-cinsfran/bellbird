@@ -185,8 +185,8 @@ def _preguntar(frame, huerfanos) -> None:
             return
         if len(huerfanos) == 1:
             texto = (_("Tu directo «{titulo}» sigue al aire en "
-                       "YouTube, pero OBS no está transmitiendo, así que "
-                       "quienes lo miran no ven nada. ¿Finalizarlo?").format(
+                       "YouTube, pero OBS no está transmitiendo. "
+                       "Quienes lo miran no ven nada. ¿Finalizarlo?").format(
                            titulo=huerfanos[0][1]))
         else:
             texto = (_("Tienes {cuantos} directos al aire en YouTube "

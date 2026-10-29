@@ -380,7 +380,7 @@ class _FlujoActualizacion:
         self.ventana.estado(_("El paquete no sirve: {motivo}.").format(motivo=motivo))
 
     def _mostrar_listo(self, raiz, ejecutable):
-        self.ventana.estado(_("Listo para instalar. {app} se cierra y vuelve "
+        self.ventana.estado(_("La actualización está preparada. {app} se cierra y vuelve "
                               "a abrirse sola en alrededor de un minuto. Si hay un "
                               "chat conectado o un directo en curso, se corta.").format(app=APP_NAME))
         self.ventana.ofrecer_accion(

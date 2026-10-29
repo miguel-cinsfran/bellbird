@@ -1154,7 +1154,7 @@ class TestAliasDesdeElChat(unittest.TestCase):
         self.assertEqual(alias.visible(self.autor), self.autor)
         guardar.assert_called_once_with(paths.alias(), {})
         frame.chat_vivo.reconstruir.assert_called_once_with()
-        anunciar.assert_called_once_with("Alias quitado")
+        anunciar.assert_called_once_with("Alias eliminado")
         alias.usar({})
 
     def test_cancelar_no_guarda_ni_redibuja(self):

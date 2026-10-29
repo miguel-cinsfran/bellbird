@@ -870,7 +870,7 @@ class TestTransmisionDialog(unittest.TestCase):
         self.assertEqual(
             self.anuncios,
             ["Preparando OBS para TikTok. Puede tardar unos segundos.",
-             "Listo para transmitir a TikTok. "
+             "OBS preparado para transmitir a TikTok. "
              "Formato vertical, 720 por 1280."])
         foco.assert_called_once_with()
         self.assertEqual(self.dialogo.cho_destino.GetStringSelection(),

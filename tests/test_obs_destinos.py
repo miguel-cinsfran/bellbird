@@ -343,19 +343,19 @@ class PrepararParaTransmitirTest(unittest.TestCase):
             self.assertEqual(
                 frase_destino_listo({"destino": "TikTok", "ancho": 720,
                                      "alto": 1280}),
-                "Listo para transmitir a TikTok. "
+                "OBS preparado para transmitir a TikTok. "
                 "Formato vertical, 720 por 1280.")
         with self.subTest(forma="horizontal"):
             self.assertEqual(
                 frase_destino_listo({"destino": "YouTube", "ancho": 1280,
                                      "alto": 720}),
-                "Listo para transmitir a YouTube. "
+                "OBS preparado para transmitir a YouTube. "
                 "Formato horizontal, 1280 por 720.")
         with self.subTest(forma="cuadrado"):
             self.assertEqual(
                 frase_destino_listo({"destino": "TikTok", "ancho": 800,
                                      "alto": 800}),
-                "Listo para transmitir a TikTok. "
+                "OBS preparado para transmitir a TikTok. "
                 "Formato cuadrado, 800 por 800.")
 
     def test_youtube_sin_perfil_lo_crea_y_lo_dice(self):
@@ -381,7 +381,7 @@ class PrepararParaTransmitirTest(unittest.TestCase):
         self.assertNotIn("CreateProfile", doble.tipos())
         self.assertEqual(
             frase_destino_listo(resultado),
-            "Listo para transmitir a YouTube. "
+            "OBS preparado para transmitir a YouTube. "
             "Formato horizontal, 1920 por 1080.")
 
     def test_coleccion_para(self):

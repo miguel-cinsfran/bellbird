@@ -1301,7 +1301,7 @@ class TestOperacionesDeCola(unittest.TestCase):
             control = self._con_cola("A", "B", "C")
             env.anunciar.reset_mock()
             control.quitar_de_cola(2)
-        env.anunciar.assert_called_once_with("Quitado de la cola: C")
+        env.anunciar.assert_called_once_with("Eliminado de la cola: C")
         self.assertEqual([t.titulo for t in control.estado().cola], ["A", "B"])
 
     def test_quitar_el_que_suena_anuncia_tambien_el_nuevo(self):
@@ -1309,7 +1309,7 @@ class TestOperacionesDeCola(unittest.TestCase):
             control = self._con_cola("A", "B", "C")
             env.anunciar.reset_mock()
             control.quitar_de_cola(0)
-        env.anunciar.assert_called_once_with("Quitado de la cola: A. B")
+        env.anunciar.assert_called_once_with("Eliminado de la cola: A. B")
         self.assertEqual(control.estado().actual.titulo, "B")
 
     def test_quitar_el_unico_suena_fin_de_lista_sin_sonido(self):
@@ -1519,7 +1519,7 @@ class TestListasPropias(unittest.TestCase):
                 quitado = env.anunciar.call_args.args[0]
                 restantes, _faltantes = listas.cargar(carpeta, "Rock")
         self.assertEqual(textos, ["Agregado a la lista Rock"])
-        self.assertEqual(quitado, "Canción quitada de la lista")
+        self.assertEqual(quitado, "Canción eliminada de la lista")
         self.assertEqual([t.titulo for t in restantes], ["B"])
 
     def test_crear_renombrar_borrar_y_leer(self):

@@ -81,7 +81,7 @@ class TestAvisosStaticBox(unittest.TestCase):
         self._comprobar_sin_aviso_staticbox()
         self.assertEqual(panel._video.GetParent().GetClassName(), 'wxStaticBox')
         self.assertEqual(
-            panel._video.GetName(), "Vídeo. Doble clic para pantalla completa.")
+            panel._video.GetName(), "Vídeo. Ctrl+F abre la pantalla completa.")
 
 
 if __name__ == "__main__":

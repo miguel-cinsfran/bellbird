@@ -117,12 +117,12 @@ ETIQUETAS = {
 
 
 NOTA_PAGINA = N_(
-    "Cada familia de atajos tiene su modificador: Ctrl para el "
-    "reproductor, Alt para el chat, Ctrl+Mayús para abrir ventanas, "
-    "Alt+Mayús para el directo y OBS, Ctrl+Alt para la música y las "
+    "Cada familia de atajos tiene su modificador. Ctrl es para el "
+    "reproductor, Alt para el chat y Ctrl+Mayús para abrir ventanas. "
+    "Alt+Mayús es para el directo y OBS, Ctrl+Alt para la música y las "
     "teclas F para la voz. Pulsa un botón y luego la combinación que "
-    "quieras: se comprueba sola que sirva para esa familia y que no "
-    "choque con otra. F6, Mayús+F6, F9 a F12 y Alt+F4 son fijas y se "
+    "quieras. La aplicación comprueba que sirva para esa familia y que no "
+    "choque con otra. F6, Mayús+F6, F9 a F12 y Alt+F4 son fijas, y se "
     "muestran para que no se puedan pisar.")
 
 

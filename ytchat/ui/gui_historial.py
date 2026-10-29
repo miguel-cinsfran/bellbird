@@ -43,10 +43,10 @@ class HistorialDialog(wx.Dialog):
         vs = wx.BoxSizer(wx.VERTICAL)
 
         nota = wx.StaticText(panel, name="NotaHistorial", label=_(
-            "Directos y vídeos vistos. Enter o «Conectar» vuelve a uno; Suprimir "
-            "lo quita. Los marcados «· directo» eran emisiones en directo: los de "
-            "TikTok se reconectan si el usuario está en directo; un directo de "
-            "YouTube ya terminado no volverá, pero un vídeo normal sí."))
+            "Directos y vídeos vistos. Intro o «Conectar» vuelve a abrir uno. "
+            "Suprimir lo elimina. Los marcados «· directo» eran emisiones en "
+            "directo. Los de TikTok se reconectan si el usuario está en directo. "
+            "Un directo de YouTube ya terminado no vuelve, pero un vídeo normal sí."))
         _pintar(nota, fg=_T.dim)
         nota.Wrap(560)
         vs.Add(nota, 0, wx.ALL, 10)
@@ -167,7 +167,7 @@ class HistorialDialog(wx.Dialog):
             return
         self._lista = [x for x in self._lista if x is not e]
         historial.guardar(self._ruta, self._lista)
-        anunciar(_("Entrada quitada del historial"))
+        anunciar(_("Entrada eliminada del historial"))
         self._poblar()
 
 

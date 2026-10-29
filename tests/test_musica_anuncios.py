@@ -417,7 +417,7 @@ class TestAvisosDeCola(unittest.TestCase):
 
     def test_quitado_de_la_cola(self):
         aviso = anuncios.aviso_quitado_de_cola("Tema 2")
-        self.assertEqual(aviso.texto, "Quitado de la cola: Tema 2")
+        self.assertEqual(aviso.texto, "Eliminado de la cola: Tema 2")
         self.assertIsNone(aviso.sonido)
 
     def test_cola_vaciada_con_y_sin_tema_actual(self):
@@ -482,7 +482,7 @@ class TestAvisosDeListas(unittest.TestCase):
         self.assertEqual(anuncios.aviso_tema_movido(2, 5).texto,
                           "Canción movida a la posición 2 de 5")
         self.assertEqual(anuncios.aviso_tema_quitado().texto,
-                         "Canción quitada de la lista")
+                         "Canción eliminada de la lista")
         self.assertIsNone(anuncios.aviso_tema_movido(1, 2).sonido)
 
     def test_sin_cola(self):
@@ -556,11 +556,11 @@ class TestTextosVentanaMusica(unittest.TestCase):
             "opciones")
         self.assertEqual(
             anuncios.TEXTO_AYUDA_BIBLIOTECA_LISTA,
-            anuncios.TEXTO_AYUDA_BIBLIOTECA
-            + ", Suprimir quita de la lista")
+            "Intro reproduce ahora, Mayús más Intro a continuación, Ctrl más Intro "
+            "al final, tecla de aplicaciones para más opciones, Suprimir elimina de la lista")
         self.assertEqual(
             anuncios.TEXTO_AYUDA_COLA,
-            "Intro reproduce, Suprimir quita, Alt más flechas mueve, "
+            "Intro reproduce, Suprimir elimina, Alt más flechas mueve, "
             "tecla de aplicaciones para más opciones")
         self.assertEqual(
             anuncios.TEXTO_AYUDA_BUSCAR,

@@ -431,8 +431,8 @@ class YTChatFrame(wx.Frame):
         self.lb_chat.SetFont(wx.Font(
             pt, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
         self.lb_chat.SetToolTip(
-            _("Mensajes del chat. Enter copia el mensaje. "
-              "Tecla aplicaciones abre el menú contextual."))
+            _("Mensajes del chat. Intro copia el mensaje. "
+              "La tecla de aplicaciones abre el menú contextual."))
         # msaa=False: ver el porqué en nombre_accesible() (lista dinámica).
         nombre_accesible(self.lb_chat, _("Chat del directo"), msaa=False)
         self.chat_vivo = ControladorChat(
@@ -474,8 +474,8 @@ class YTChatFrame(wx.Frame):
             style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_AUTO_URL | wx.TE_RICH2)
         _tc(self.txt_info)
         self.txt_info.SetToolTip(
-            _("Datos del vídeo: canal, vistas, descripción. Solo lectura. Los "
-              "enlaces se abren con clic o se copian y pegan en el navegador."))
+            _("Datos del vídeo: canal, vistas, descripción. Solo lectura. Para "
+              "abrir un enlace, cópialo y pégalo en el navegador."))
         vs.Add(self.txt_info, 1, wx.EXPAND | wx.ALL, 8)
 
         pag.SetSizer(vs)
@@ -1142,7 +1142,7 @@ class YTChatFrame(wx.Frame):
         mapa = alias.vigente()
         actual = mapa.get(alias.clave(autor), "")
         dialogo = wx.TextEntryDialog(
-            self, _("Alias para {autor}. Dejar vacío para quitarlo.").format(autor=autor),
+            self, _("Alias para {autor}. Déjalo vacío para eliminarlo.").format(autor=autor),
             _("Alias del usuario"), value=actual)
         try:
             if dialogo.ShowModal() != wx.ID_OK:
@@ -1157,7 +1157,7 @@ class YTChatFrame(wx.Frame):
         alias.usar(actualizado)
         self.chat_vivo.reconstruir()
         anunciar(_("Alias guardado, {nuevo}").format(nuevo=actualizado[alias.clave(autor)])
-                 if nuevo.strip() else _("Alias quitado"))
+                  if nuevo.strip() else _("Alias eliminado"))
 
     def _copiar_mensaje(self):
         data = self._get_selected_data()

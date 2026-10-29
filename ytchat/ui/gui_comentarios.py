@@ -94,8 +94,8 @@ class ComentariosPanel(wx.Panel):
                                 wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
         # Leer/copiar/responder van por Enter, Ctrl+C y la tecla Aplicaciones
         # (menú contextual), igual que el chat del live: no hacen falta botones.
-        self.lb.SetToolTip(_("Enter lee el comentario con la voz. Ctrl+C copia. "
-                             "Tecla Aplicaciones (o clic derecho) abre el menú."))
+        self.lb.SetToolTip(_("Intro lee el comentario con la voz. Ctrl+C copia. "
+                             "La tecla de aplicaciones abre el menú."))
         # msaa=False: lista de contenido dinámico (igual que el chat en vivo);
         # ver el porqué en gui.nombre_accesible().
         nombre_accesible(self.lb, _("Lista de comentarios"), msaa=False)

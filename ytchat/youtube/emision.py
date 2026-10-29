@@ -77,7 +77,7 @@ def cuerpo_emision(titulo, descripcion, privacidad, inicio_iso,
     titulo = titulo[:100]
     descripcion = (descripcion or "").strip()[:5000]
     if privacidad not in PRIVACIDADES:
-        raise ValueError(_("Privacidad inválida: {privacidad}.").format(
+        raise ValueError(_("Privacidad no admitida: {privacidad}.").format(
             privacidad=privacidad))
     if latencia not in LATENCIAS:
         latencia = LATENCIA_INICIAL

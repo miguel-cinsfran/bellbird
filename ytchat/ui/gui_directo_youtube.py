@@ -223,9 +223,9 @@ class DialogoDirectoYoutube(wx.Dialog):
 
         fila_miniatura = wx.BoxSizer(wx.HORIZONTAL)
         self.btn_elegir_miniatura = wx.Button(
-            zona, label=_("Elegir &miniatura..."), name=_("Elegir miniatura"))
+            zona, label=_("Elegir &miniatura…"), name=_("Elegir miniatura"))
         self.btn_quitar_miniatura = wx.Button(
-            zona, label=_("&Quitar miniatura"), name=_("Quitar miniatura"))
+            zona, label=_("El&iminar miniatura"), name=_("Eliminar miniatura"))
         fila_miniatura.Add(self.btn_elegir_miniatura, 0, wx.RIGHT, 6)
         fila_miniatura.Add(self.btn_quitar_miniatura, 0)
         contenido.Add(fila_miniatura, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)

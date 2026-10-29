@@ -137,7 +137,7 @@ def mensaje_error_api(exc) -> str:
     if "videonotfound" in low or "video not found" in low:
         return _("No se encontró el vídeo. Revisa el enlace o el ID.")
     if "keyinvalid" in low or "api key not valid" in low or "badrequest" in low and "key" in low:
-        return _("La API key no es válida. Revísala en Configuración.")
+        return _("YouTube no acepta la API key. Revísala en Preferencias, página API y sesión.")
     if "livestreamingnotenabled" in low:
         return _("La cuenta de YouTube no tiene los directos activados. "
                  "Se activan en YouTube Studio y pueden tardar hasta 24 horas.")

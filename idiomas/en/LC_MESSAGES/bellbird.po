@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-29 11:02-0300\n"
+"POT-Creation-Date: 2026-10-29 16:32-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -725,6 +725,35 @@ msgstr "Shared l&ive streams:"
 msgid "Co&fres:"
 msgstr "&Treasure chests:"
 
+#. Traductores: fecha corta de una fila del historial; se ordena como la
+#. fecha corta de Windows en ese idioma, y en inglés de Estados Unidos es
+#. «{mes}/{dia}/{anio}».
+#: bellbird/core/historial.py:67
+#, python-brace-format
+msgid "{dia}/{mes}/{anio}"
+msgstr "{mes}/{dia}/{anio}"
+
+#. Traductores: fila del historial de un directo; {base} es el canal y
+#. el título y {fecha} la fecha corta.
+#: bellbird/core/historial.py:82
+#, python-brace-format
+msgid "{base} · directo ({fecha})"
+msgstr "{base} · live ({fecha})"
+
+#. Traductores: fila del historial de un directo sin fecha; {base} es
+#. el canal y el título.
+#: bellbird/core/historial.py:86
+#, python-brace-format
+msgid "{base} · directo"
+msgstr "{base} · live"
+
+#. Traductores: fila del historial; {base} es el canal y el título y
+#. {fecha} la fecha corta.
+#: bellbird/core/historial.py:90
+#, python-brace-format
+msgid "{base} ({fecha})"
+msgstr "{base} ({fecha})"
+
 #. Traductores: el idioma de la interfaz de Windows.
 #: bellbird/core/idioma.py:127
 msgid "Idioma de Windows"
@@ -818,39 +847,39 @@ msgid "El vídeo no está disponible."
 msgstr "The video is not available."
 
 #. Traductores: {version} es la versión instalada o la nueva de yt-dlp.
-#: bellbird/downloads/ytdlp_bin.py:60
+#: bellbird/downloads/ytdlp_actualizar.py:45
 #, python-brace-format
 msgid "Ya tienes yt-dlp al día, versión {version}."
 msgstr "yt-dlp is already up to date, version {version}."
 
 #. Traductores: {version} es la versión nueva de yt-dlp.
-#: bellbird/downloads/ytdlp_bin.py:63
+#: bellbird/downloads/ytdlp_actualizar.py:48
 #, python-brace-format
 msgid "yt-dlp se actualizó a la versión {version}."
 msgstr "yt-dlp updated to version {version}."
 
-#: bellbird/downloads/ytdlp_bin.py:65
+#: bellbird/downloads/ytdlp_actualizar.py:50
 msgid ""
 "No se pudo comprobar la última versión de yt-dlp. Revisa la conexión a "
 "internet."
 msgstr "Could not check the latest yt-dlp version. Check your internet connection."
 
-#: bellbird/downloads/ytdlp_bin.py:67
+#: bellbird/downloads/ytdlp_actualizar.py:52
 msgid ""
 "La descarga de yt-dlp no pasó una comprobación de seguridad. No se "
 "instaló nada."
 msgstr "The yt-dlp download failed a security check. Nothing was installed."
 
-#: bellbird/downloads/ytdlp_bin.py:69
+#: bellbird/downloads/ytdlp_actualizar.py:54
 msgid "Se canceló la descarga de yt-dlp."
 msgstr "The yt-dlp download was canceled."
 
-#: bellbird/downloads/ytdlp_bin.py:71
+#: bellbird/downloads/ytdlp_actualizar.py:56
 #, python-brace-format
 msgid "No se pudo actualizar yt-dlp: {motivo}."
 msgstr "Could not update yt-dlp: {motivo}."
 
-#: bellbird/downloads/ytdlp_bin.py:72
+#: bellbird/downloads/ytdlp_actualizar.py:57
 msgid "No se pudo actualizar yt-dlp."
 msgstr "Could not update yt-dlp."
 
@@ -995,7 +1024,7 @@ msgstr "{cantidad} songs up next, from position {posicion}"
 msgid "Eliminado de la cola: {nombre}"
 msgstr "Removed from the queue: {nombre}"
 
-#: bellbird/music/anuncios.py:68 bellbird/ui/gui.py:898
+#: bellbird/music/anuncios.py:68 bellbird/ui/gui.py:897
 msgid "Cola vaciada"
 msgstr "Queue cleared"
 
@@ -1586,7 +1615,7 @@ msgstr ""
 "Show OBS in the Broadcast menu. If not, check that its websocket server "
 "is enabled."
 
-#: bellbird/obs/obs_cliente.py:101
+#: bellbird/obs/obs_cliente.py:103
 msgid ""
 "No se pudo conectar con OBS. Comprueba que OBS esté abierto y que su "
 "servidor websocket esté activado."
@@ -1594,25 +1623,25 @@ msgstr ""
 "Could not connect to OBS. Check that OBS is open and that its websocket "
 "server is enabled."
 
-#: bellbird/obs/obs_cliente.py:104
+#: bellbird/obs/obs_cliente.py:106
 msgid ""
 "OBS rechazó la contraseña guardada. Vuelve a conectar para leerla de "
 "nuevo."
 msgstr "OBS rejected the saved password. Reconnect to read it again."
 
-#: bellbird/obs/obs_cliente.py:107
+#: bellbird/obs/obs_cliente.py:109
 msgid "Ya existe una fuente con ese nombre en OBS."
 msgstr "A source with that name already exists in OBS."
 
-#: bellbird/obs/obs_cliente.py:109
+#: bellbird/obs/obs_cliente.py:111
 msgid "OBS no encuentra la escena o la fuente indicada."
 msgstr "OBS cannot find the given scene or source."
 
-#: bellbird/obs/obs_cliente.py:111
+#: bellbird/obs/obs_cliente.py:113
 msgid "OBS no pudo completar la operación. Inténtalo de nuevo."
 msgstr "OBS could not complete the operation. Try again."
 
-#: bellbird/obs/obs_cliente.py:270 bellbird/obs/obs_destinos.py:62
+#: bellbird/obs/obs_cliente.py:272 bellbird/obs/obs_destinos.py:62
 msgid "Operación cancelada."
 msgstr "Operation canceled."
 
@@ -2025,77 +2054,206 @@ msgstr ""
 "from the desktop audio and the OBS microphone. The chat panel is only for"
 " YouTube: on TikTok comments already appear in the live stream."
 
-#: bellbird/obs/obs_estado.py:14
+#: bellbird/obs/obs_estado.py:15
+msgid ""
+"OBS compone lo que ven los espectadores sobre un\n"
+"rectángulo de tamaño fijo, llamado lienzo. No es la pantalla del equipo\n"
+"ni la ventana del juego.\n"
+"\n"
+"Lo que queda dentro del lienzo se emite. Lo que sobresale del borde se\n"
+"recorta, sin ningún aviso.\n"
+"\n"
+"Que dos fuentes se superpongan no es necesariamente un problema. El\n"
+"fondo de este panel es transparente: solo se ven las tarjetas de los\n"
+"mensajes, y solo tapan lo que hay justo debajo de ellas."
+msgstr ""
+"Broadcast software composes what viewers see on a\n"
+"fixed-size rectangle called the canvas. It is not the computer screen\n"
+"or the game window.\n"
+"\n"
+"What stays inside the canvas goes out. What sticks out past the edge is\n"
+"cropped, without any warning.\n"
+"\n"
+"Two sources overlapping is not necessarily a problem. This\n"
+"panel's background is transparent: only the message\n"
+"cards show, and they only cover what is right under them."
+
+# | msgid "" "Este diálogo no crea escenas ni agrega otras fuentes, salvo la
+# | captura de" " ventana desde la sección Escena. Hace una sola\n" "cosa:
+# pone
+# | el panel de chat de esta aplicación dentro de una escena de " "OBS\n" "y
+# lo
+# | coloca donde quieras.\n" "\n" "El orden es este.\n" "\n" "Uno. Pulsa
+# | Preparar el panel. Eso enciende el servidor del panel y crea " "la\n"
+# | "fuente dentro de la escena elegida, si todavía no estaba.\n" "\n" "Dos.
+# | Elige la escena en el desplegable Escena. Recorrerlo no cambia lo "
+# "que\n"
+# | "ven los espectadores: para eso está el botón Poner al aire.\n" "\n"
+# "Tres.
+# | Elige qué fuente vas a mover en el desplegable Fuente. Normalmente "
+# "es\n"
+# | "el panel de chat, pero puedes mover cualquier fuente que ya exista en
+# la\n"
+# | "escena. Este diálogo solo agrega el panel y la captura de ventana: lo "
+# | "demás se hace\n" "desde OBS.\n" "\n" "Cuatro. Coloca la fuente. Tienes
+# dos
+# | formas. El desplegable Posición más " "su\n" "botón la lleva a una de
+# nueve
+# | posiciones fijas. El Ajuste fino la mueve " "de\n" "a poco con las
+# flechas,
+# | y confirma con Intro.\n" "\n" "Cinco. El tamaño se cambia con Ancho y Alto
+# y
+# | se aplica con su botón.\n" "\n" "El cuadro Estado del panel describe en
+# todo
+# | momento dónde está la\n" "fuente, de qué tamaño es, si se sale del lienzo
+# | si tapa a otras. Se\n" "actualiza solo con cada cambio.\n" "\n"
+# "Restablecer
+# | deshace todo lo que hiciste desde que abriste esta ventana."
+#: bellbird/obs/obs_estado.py:25
+msgid ""
+"Este cuadro de diálogo no crea escenas ni agrega otras fuentes, salvo la "
+"captura de ventana desde la sección Escena. Hace una sola\n"
+"cosa: pone el panel de chat de esta aplicación dentro de una escena de "
+"OBS\n"
+"y lo coloca donde quieras.\n"
+"\n"
+"El orden es este.\n"
+"\n"
+"Uno. Pulsa Preparar panel. Eso enciende el servidor del panel y crea la\n"
+"fuente dentro de la escena elegida, si todavía no estaba.\n"
+"\n"
+"Dos. Elige la escena en el desplegable Escena. Recorrerlo no cambia lo "
+"que\n"
+"ven los espectadores: para eso está el botón Poner al aire.\n"
+"\n"
+"Tres. Elige qué fuente vas a mover en el desplegable Fuente. Normalmente "
+"es\n"
+"el panel de chat, pero puedes mover cualquier fuente que ya exista en la\n"
+"escena. Este cuadro de diálogo solo agrega el panel y la captura de "
+"ventana: lo demás se hace\n"
+"desde OBS.\n"
+"\n"
+"Cuatro. Coloca la fuente. Tienes dos formas. El desplegable Posición más "
+"su\n"
+"botón la lleva a una de nueve posiciones fijas. El Ajuste fino la mueve "
+"de\n"
+"a poco con las flechas, y confirma con Intro.\n"
+"\n"
+"Cinco. El tamaño se cambia con Ancho y Alto y se aplica con su botón.\n"
+"\n"
+"El cuadro Estado del panel describe en todo momento dónde está la\n"
+"fuente, de qué tamaño es, si se sale del lienzo y si tapa a otras. Se\n"
+"actualiza solo con cada cambio.\n"
+"\n"
+"Restablecer deshace todo lo que hiciste desde que abriste esta ventana."
+msgstr ""
+"This dialog does not create scenes or add other sources, except window "
+"capture from the Scene section. It does one\n"
+"thing: it puts this application's chat panel inside an OBS scene\n"
+"and places it where you want.\n"
+"\n"
+"The order is this.\n"
+"\n"
+"One. Press Prepare the panel. That starts the panel server and creates "
+"the\n"
+"source inside the chosen scene, if it was not there yet.\n"
+"\n"
+"Two. Choose the scene in the Scene drop-down. Browsing it does not change"
+" what\n"
+"viewers see: the Put live button is for that.\n"
+"\n"
+"Three. Choose which source to move in the Source drop-down. Normally it "
+"is\n"
+"the chat panel, but you can move any source already in the\n"
+"scene. This dialog only adds the panel and window capture: the rest is "
+"done\n"
+"from OBS.\n"
+"\n"
+"Four. Place the source. There are two ways. The Position drop-down plus "
+"its\n"
+"button moves it to one of nine fixed positions. Fine adjustment moves it\n"
+"little by little with the arrows, and confirms with Enter.\n"
+"\n"
+"Five. Size changes with Width and Height and applies with its button.\n"
+"\n"
+"The Panel status box describes at all times where the\n"
+"source is, how big it is, whether it goes off the canvas, and whether it "
+"covers others. It\n"
+"updates itself with each change.\n"
+"\n"
+"Reset undoes everything you did since you opened this window."
+
+#: bellbird/obs/obs_estado.py:46
 msgid "No se pudo saber que escena está al aire"
 msgstr "Could not tell which scene is live"
 
-#: bellbird/obs/obs_estado.py:20
+#: bellbird/obs/obs_estado.py:52
 msgid "No estás transmitiendo"
 msgstr "You are not broadcasting"
 
-#: bellbird/obs/obs_estado.py:21
+#: bellbird/obs/obs_estado.py:53
 #, python-brace-format
 msgid "Transmitiendo desde hace {duracion}"
 msgstr "Broadcasting for {duracion}"
 
-#: bellbird/obs/obs_estado.py:25
+#: bellbird/obs/obs_estado.py:57
 #, python-brace-format
 msgid " de {t}"
 msgstr " of {t}"
 
-#: bellbird/obs/obs_estado.py:26
+#: bellbird/obs/obs_estado.py:58
 #, python-brace-format
 msgid ", {n}{de} fotogramas perdidos"
 msgstr ", {n}{de} frames dropped"
 
-#: bellbird/obs/obs_estado.py:33
+#: bellbird/obs/obs_estado.py:65
 msgid "No estás grabando"
 msgstr "You are not recording"
 
-#: bellbird/obs/obs_estado.py:35
+#: bellbird/obs/obs_estado.py:67
 #, python-brace-format
 msgid "Grabación en pausa, {tiempo}"
 msgstr "Recording paused, {tiempo}"
 
-#: bellbird/obs/obs_estado.py:36
+#: bellbird/obs/obs_estado.py:68
 #, python-brace-format
 msgid "Grabando, {tiempo}"
 msgstr "Recording, {tiempo}"
 
-#: bellbird/obs/obs_estado.py:41
+#: bellbird/obs/obs_estado.py:73
 #, python-brace-format
 msgid "Al aire: {escena}"
 msgstr "Live: {escena}"
 
-#: bellbird/obs/obs_estado.py:46
+#: bellbird/obs/obs_estado.py:78
 msgid "transmision_iniciada"
 msgstr "transmision_iniciada"
 
-#: bellbird/obs/obs_estado.py:47
+#: bellbird/obs/obs_estado.py:79
 msgid "Transmisión iniciada"
 msgstr "Broadcast started"
 
-#: bellbird/obs/obs_estado.py:48
+#: bellbird/obs/obs_estado.py:80
 msgid "Transmisión detenida"
 msgstr "Broadcast stopped"
 
-#: bellbird/obs/obs_estado.py:49
+#: bellbird/obs/obs_estado.py:81
 msgid "Grabación iniciada"
 msgstr "Recording started"
 
-#: bellbird/obs/obs_estado.py:50
+#: bellbird/obs/obs_estado.py:82
 msgid "Grabación detenida"
 msgstr "Recording stopped"
 
-#: bellbird/obs/obs_estado.py:51
+#: bellbird/obs/obs_estado.py:83
 msgid "Grabación en pausa"
 msgstr "Recording paused"
 
-#: bellbird/obs/obs_estado.py:52
+#: bellbird/obs/obs_estado.py:84
 msgid "Grabación reanudada"
 msgstr "Recording resumed"
 
-#: bellbird/obs/obs_estado.py:53
+#: bellbird/obs/obs_estado.py:85
 msgid "Escena puesta al aire"
 msgstr "Scene put live"
 
@@ -2371,7 +2529,7 @@ msgid "Transmisión detenida."
 msgstr "Broadcast stopped."
 
 #: bellbird/obs/obs_supervisor.py:248 bellbird/ui/boton_directo.py:64
-#: bellbird/ui/gui_transmision.py:594 bellbird/ui/gui_transmitir.py:245
+#: bellbird/ui/gui_transmision.py:578 bellbird/ui/gui_transmitir.py:245
 msgid "Deteniendo la transmisión. Esperando a que OBS confirme."
 msgstr "Stopping the broadcast. Waiting for OBS to confirm."
 
@@ -2556,7 +2714,7 @@ msgstr ""
 msgid "Buscando el vídeo, {segundos} segundos"
 msgstr "Looking for the video, {segundos} seconds"
 
-#: bellbird/player/reproductor.py:76 bellbird/ui/gui.py:670
+#: bellbird/player/reproductor.py:76 bellbird/ui/gui.py:669
 msgid "El reproductor no está disponible"
 msgstr "The player is not available"
 
@@ -2611,7 +2769,7 @@ msgstr "Could not resume"
 
 #. Traductores: panel del reproductor.
 #: bellbird/player/reproductor.py:593 bellbird/player/reproductor.py:607
-#: bellbird/ui/gui.py:91 bellbird/ui/gui_preferencias.py:125
+#: bellbird/ui/gui.py:90 bellbird/ui/gui_preferencias.py:125
 msgid "Reproductor"
 msgstr "Player"
 
@@ -3017,7 +3175,7 @@ msgid "Activar o desactivar los avisos de sobrecarga"
 msgstr "Turn overload warnings on or off"
 
 #. Traductores: acción del atajo que conecta el chat.
-#: bellbird/ui/atajos_captura.py:75 bellbird/ui/gui.py:334
+#: bellbird/ui/atajos_captura.py:75 bellbird/ui/gui.py:333
 msgid "Conectar"
 msgstr "Connect"
 
@@ -3342,7 +3500,7 @@ msgid "Capturado: {atajo}. Se aplica al pulsar Guardar."
 msgstr "Captured: {atajo}. It applies when you press Save."
 
 #: bellbird/ui/boton_directo.py:78 bellbird/ui/boton_directo.py:133
-#: bellbird/ui/gui_transmision.py:634 bellbird/ui/gui_transmitir.py:283
+#: bellbird/ui/gui_transmision.py:618 bellbird/ui/gui_transmitir.py:283
 msgid "No se transmitió."
 msgstr "Did not broadcast."
 
@@ -3399,7 +3557,7 @@ msgstr[1] ""
 "Valid key. {voces} voices. {usados} of {limite} characters used this "
 "month."
 
-#: bellbird/ui/gui.py:74
+#: bellbird/ui/gui.py:73
 msgid ""
 "Sin conectar. Pega un enlace de YouTube (directo o vídeo) o de un directo"
 " de TikTok y pulsa Conectar (Alt+C). En YouTube podrás leer el chat y los"
@@ -3410,15 +3568,15 @@ msgstr ""
 "chat and the comments; on TikTok, the live chat."
 
 #. Traductores: regiones que recorre F6 en la ventana principal.
-#: bellbird/ui/gui.py:91 bellbird/ui/gui_preferencias.py:130
+#: bellbird/ui/gui.py:90 bellbird/ui/gui_preferencias.py:130
 msgid "Conexión"
 msgstr "Connection"
 
-#: bellbird/ui/gui.py:91
+#: bellbird/ui/gui.py:90
 msgid "Contenido"
 msgstr "Content"
 
-#: bellbird/ui/gui.py:109
+#: bellbird/ui/gui.py:108
 #, python-brace-format
 msgid ""
 "Conflicto de atajos: {perdedora} se quedó sin atajo porque {conservada} "
@@ -3427,43 +3585,43 @@ msgstr ""
 "Shortcut conflict: {perdedora} lost its shortcut because {conservada} "
 "uses {combinacion}."
 
-#: bellbird/ui/gui.py:168
+#: bellbird/ui/gui.py:167
 msgid "¿Salir de la aplicación? Hay un chat conectado y una transmisión en curso."
 msgstr ""
 "Exit the application? There is a connected chat and a broadcast in "
 "progress."
 
-#: bellbird/ui/gui.py:170
+#: bellbird/ui/gui.py:169
 msgid "¿Salir de la aplicación? Hay un chat conectado."
 msgstr "Exit the application? There is a connected chat."
 
-#: bellbird/ui/gui.py:172
+#: bellbird/ui/gui.py:171
 msgid "¿Salir de la aplicación? Hay una transmisión en curso."
 msgstr "Exit the application? There is a broadcast in progress."
 
 #. Traductores: título de la ventana: nombre de la app y versión.
-#: bellbird/ui/gui.py:182 bellbird/ui/gui.py:1617
+#: bellbird/ui/gui.py:181 bellbird/ui/gui.py:1616
 #, python-brace-format
 msgid "{app} v{version}"
 msgstr "{app} v{version}"
 
-#: bellbird/ui/gui.py:262
+#: bellbird/ui/gui.py:261
 msgid "&Reanudar lectura"
 msgstr "&Resume reading"
 
-#: bellbird/ui/gui.py:262 bellbird/ui/gui_menu.py:69
+#: bellbird/ui/gui.py:261 bellbird/ui/gui_menu.py:69
 msgid "&Pausar lectura"
 msgstr "&Pause reading"
 
-#: bellbird/ui/gui.py:323
+#: bellbird/ui/gui.py:322
 msgid "&Enlace o ID:"
 msgstr "&Link or ID:"
 
-#: bellbird/ui/gui.py:326
+#: bellbird/ui/gui.py:325
 msgid "Enlace del directo o vídeo"
 msgstr "Live stream or video link"
 
-#: bellbird/ui/gui.py:329
+#: bellbird/ui/gui.py:328
 msgid ""
 "Enlace de YouTube (directo o vídeo) o de un directo de TikTok "
 "(tiktok.com/@usuario/live). También vale el ID de 11 caracteres de "
@@ -3474,35 +3632,35 @@ msgstr ""
 "Enter to connect."
 
 #. Traductores: nombre accesible del botón para conectar.
-#: bellbird/ui/gui.py:334 bellbird/ui/gui.py:1670
+#: bellbird/ui/gui.py:333 bellbird/ui/gui.py:1669
 #: bellbird/ui/gui_historial.py:63 bellbird/ui/gui_menu.py:35
 msgid "&Conectar"
 msgstr "&Connect"
 
 #. Traductores: cuaderno con los paneles.
-#: bellbird/ui/gui.py:359
+#: bellbird/ui/gui.py:358
 msgid "Paneles"
 msgstr "Panes"
 
-#: bellbird/ui/gui.py:363 bellbird/ui/gui.py:426 bellbird/ui/gui.py:435
+#: bellbird/ui/gui.py:362 bellbird/ui/gui.py:425 bellbird/ui/gui.py:434
 msgid "Chat del directo"
 msgstr "Live chat"
 
 #. Traductores: pestaña de comentarios.
-#: bellbird/ui/gui.py:365
+#: bellbird/ui/gui.py:364
 msgid "Comentarios"
 msgstr "Comments"
 
 #. Traductores: pestaña con los datos del vídeo.
-#: bellbird/ui/gui.py:373 bellbird/ui/gui.py:1600
+#: bellbird/ui/gui.py:372 bellbird/ui/gui.py:1599
 msgid "Información"
 msgstr "Information"
 
-#: bellbird/ui/gui.py:421
+#: bellbird/ui/gui.py:420
 msgid "Mensajes del chat:"
 msgstr "Chat messages:"
 
-#: bellbird/ui/gui.py:432
+#: bellbird/ui/gui.py:431
 msgid ""
 "Mensajes del chat. Intro copia el mensaje. La tecla de aplicaciones abre "
 "el menú contextual."
@@ -3510,19 +3668,19 @@ msgstr ""
 "Chat messages. Enter copies the message. The applications key opens the "
 "context menu."
 
-#: bellbird/ui/gui.py:445 bellbird/ui/ia_ventana.py:99
+#: bellbird/ui/gui.py:444 bellbird/ui/ia_ventana.py:99
 msgid "&Mensaje:"
 msgstr "&Message:"
 
-#: bellbird/ui/gui.py:462
+#: bellbird/ui/gui.py:461
 msgid "Información del vídeo:"
 msgstr "Video information:"
 
-#: bellbird/ui/gui.py:471
+#: bellbird/ui/gui.py:470
 msgid "Información del vídeo"
 msgstr "Video information"
 
-#: bellbird/ui/gui.py:475
+#: bellbird/ui/gui.py:474
 msgid ""
 "Datos del vídeo: canal, vistas, descripción. Solo lectura. Para abrir un "
 "enlace, cópialo y pégalo en el navegador."
@@ -3530,54 +3688,54 @@ msgstr ""
 "Video data: channel, views, description. Read-only. To open a link, copy "
 "it and paste it in the browser."
 
-#: bellbird/ui/gui.py:618 bellbird/ui/gui.py:627
+#: bellbird/ui/gui.py:617 bellbird/ui/gui.py:626
 msgid "Conéctate primero para usar los paneles"
 msgstr "Connect first to use the panes"
 
 #. Traductores: región actual y pestaña al moverse con F6.
-#: bellbird/ui/gui.py:635
+#: bellbird/ui/gui.py:634
 #, python-brace-format
 msgid "{region}: {pagina}"
 msgstr "{region}: {pagina}"
 
-#: bellbird/ui/gui.py:642
+#: bellbird/ui/gui.py:641
 msgid "Conéctate primero"
 msgstr "Connect first"
 
-#: bellbird/ui/gui.py:752
+#: bellbird/ui/gui.py:751
 msgid "Conexión cancelada"
 msgstr "Connection canceled"
 
-#: bellbird/ui/gui.py:757
+#: bellbird/ui/gui.py:756
 msgid "Introduce un enlace o un ID de YouTube."
 msgstr "Enter a YouTube link or ID."
 
-#: bellbird/ui/gui.py:758 bellbird/ui/gui_descargas.py:341
+#: bellbird/ui/gui.py:757 bellbird/ui/gui_descargas.py:341
 msgid "Falta el enlace"
 msgstr "Missing link"
 
-#: bellbird/ui/gui.py:764
+#: bellbird/ui/gui.py:763
 msgid "&Cancelar conexión"
 msgstr "&Cancel connection"
 
 #. Traductores: aviso mientras se conecta.
-#: bellbird/ui/gui.py:771
+#: bellbird/ui/gui.py:770
 msgid "Conectando"
 msgstr "Connecting"
 
-#: bellbird/ui/gui.py:782
+#: bellbird/ui/gui.py:781
 msgid "El enlace o el ID de YouTube no es válido"
 msgstr "The YouTube link or ID is not valid"
 
-#: bellbird/ui/gui.py:784
+#: bellbird/ui/gui.py:783
 msgid "El enlace o el ID de YouTube no es válido. Revisa lo que pegaste."
 msgstr "The YouTube link or ID is not valid. Check what you pasted."
 
-#: bellbird/ui/gui.py:785
+#: bellbird/ui/gui.py:784
 msgid "Enlace no válido"
 msgstr "Invalid link"
 
-#: bellbird/ui/gui.py:808
+#: bellbird/ui/gui.py:807
 #, python-brace-format
 msgid ""
 "No se pudo abrir Preferencias:\n"
@@ -3587,11 +3745,11 @@ msgstr ""
 "{detalle}"
 
 #. Traductores: título de un cuadro de error.
-#: bellbird/ui/gui.py:810 bellbird/ui/gui.py:850 bellbird/ui/gui.py:858
+#: bellbird/ui/gui.py:809 bellbird/ui/gui.py:849 bellbird/ui/gui.py:857
 msgid "Error"
 msgstr "Error"
 
-#: bellbird/ui/gui.py:848
+#: bellbird/ui/gui.py:847
 #, python-brace-format
 msgid ""
 "No se pudo abrir el Administrador de descargas:\n"
@@ -3600,7 +3758,7 @@ msgstr ""
 "Could not open the download manager:\n"
 "{detalle}"
 
-#: bellbird/ui/gui.py:856
+#: bellbird/ui/gui.py:855
 #, python-brace-format
 msgid ""
 "Error en el Administrador de descargas:\n"
@@ -3609,7 +3767,7 @@ msgstr ""
 "Download manager error:\n"
 "{detalle}"
 
-#: bellbird/ui/gui.py:876
+#: bellbird/ui/gui.py:875
 #, python-brace-format
 msgid ""
 "{app} v{version}\n"
@@ -3621,321 +3779,321 @@ msgstr ""
 "\n"
 "Accessible YouTube Live chat reader with Windows or ElevenLabs voice."
 
-#: bellbird/ui/gui.py:879
+#: bellbird/ui/gui.py:878
 msgid "Acerca de"
 msgstr "About"
 
-#: bellbird/ui/gui.py:883
+#: bellbird/ui/gui.py:882
 msgid "La marca de incidencia se guardó"
 msgstr "The issue mark was saved"
 
 #. Traductores: lectura en pausa o reanudada.
-#: bellbird/ui/gui.py:893
+#: bellbird/ui/gui.py:892
 msgid "Pausado"
 msgstr "Paused"
 
-#: bellbird/ui/gui.py:893
+#: bellbird/ui/gui.py:892
 msgid "Reanudado"
 msgstr "Resumed"
 
-#: bellbird/ui/gui.py:902
+#: bellbird/ui/gui.py:901
 msgid "Voz detenida"
 msgstr "Speech stopped"
 
 #. Traductores: {nombre} es la voz activa.
-#: bellbird/ui/gui.py:919 bellbird/ui/gui.py:1737
+#: bellbird/ui/gui.py:918 bellbird/ui/gui.py:1736
 #, python-brace-format
 msgid "Voz: {nombre}"
 msgstr "Voice: {nombre}"
 
-#: bellbird/ui/gui.py:930
+#: bellbird/ui/gui.py:929
 #, python-brace-format
 msgid "Filtro: {filtro}. {n} mensajes"
 msgstr "Filter: {filtro}. {n} messages"
 
-#: bellbird/ui/gui.py:939
+#: bellbird/ui/gui.py:938
 #, python-brace-format
 msgid "Velocidad de la voz: {valor}"
 msgstr "Voice speed: {valor}"
 
-#: bellbird/ui/gui.py:946
+#: bellbird/ui/gui.py:945
 #, python-brace-format
 msgid "Volumen de la voz: {valor}%"
 msgstr "Voice volume: {valor}%"
 
-#: bellbird/ui/gui.py:954
+#: bellbird/ui/gui.py:953
 msgid "Sonidos silenciados"
 msgstr "Sounds muted"
 
-#: bellbird/ui/gui.py:954
+#: bellbird/ui/gui.py:953
 msgid "Sonidos activados"
 msgstr "Sounds on"
 
-#: bellbird/ui/gui.py:961
+#: bellbird/ui/gui.py:960
 msgid "Lectura silenciada"
 msgstr "Reading muted"
 
-#: bellbird/ui/gui.py:961
+#: bellbird/ui/gui.py:960
 msgid "Lectura activada"
 msgstr "Reading unmuted"
 
-#: bellbird/ui/gui.py:988
+#: bellbird/ui/gui.py:987
 msgid "Sin información de la escena."
 msgstr "No scene information."
 
-#: bellbird/ui/gui.py:1089
+#: bellbird/ui/gui.py:1088
 msgid "Copiar mensaje"
 msgstr "Copy message"
 
-#: bellbird/ui/gui.py:1090
+#: bellbird/ui/gui.py:1089
 msgid "Copiar todo (autor: mensaje, hora)"
 msgstr "Copy all (author: message, time)"
 
-#: bellbird/ui/gui.py:1091 bellbird/ui/gui_comentarios.py:344
+#: bellbird/ui/gui.py:1090 bellbird/ui/gui_comentarios.py:344
 msgid "Leer en voz alta"
 msgstr "Read aloud"
 
-#: bellbird/ui/gui.py:1093 bellbird/ui/musica_dialogo_enlace.py:15
+#: bellbird/ui/gui.py:1092 bellbird/ui/musica_dialogo_enlace.py:15
 #: bellbird/ui/musica_ventana.py:138
 msgid "Abrir enlace"
 msgstr "Open link"
 
-#: bellbird/ui/gui.py:1101
+#: bellbird/ui/gui.py:1100
 #, python-brace-format
 msgid "Rehabilitar a {autor} (dejar de silenciar)"
 msgstr "Restore {autor} (stop muting)"
 
-#: bellbird/ui/gui.py:1103
+#: bellbird/ui/gui.py:1102
 #, python-brace-format
 msgid "Silenciar voz de {autor}"
 msgstr "Mute voice of {autor}"
 
-#: bellbird/ui/gui.py:1104
+#: bellbird/ui/gui.py:1103
 #, python-brace-format
 msgid "Ocultar y silenciar a {autor}"
 msgstr "Hide and mute {autor}"
 
-#: bellbird/ui/gui.py:1106
+#: bellbird/ui/gui.py:1105
 #, python-brace-format
 msgid "Poner &alias a {autor}…"
 msgstr "Set &alias for {autor}…"
 
-#: bellbird/ui/gui.py:1108
+#: bellbird/ui/gui.py:1107
 #, python-brace-format
 msgid "Cambiar el &alias de {autor}…"
 msgstr "Change &alias of {autor}…"
 
-#: bellbird/ui/gui.py:1119
+#: bellbird/ui/gui.py:1118
 #, python-brace-format
 msgid "Expulsar 5 min a {autor} (timeout)"
 msgstr "Time out {autor} for 5 min"
 
-#: bellbird/ui/gui.py:1120
+#: bellbird/ui/gui.py:1119
 #, python-brace-format
 msgid "Banear a {autor} del directo (permanente)"
 msgstr "Ban {autor} from the live stream (permanent)"
 
-#: bellbird/ui/gui.py:1142
+#: bellbird/ui/gui.py:1141
 #, python-brace-format
 msgid "Alias para {autor}. Déjalo vacío para eliminarlo."
 msgstr "Alias for {autor}. Leave it empty to remove it."
 
-#: bellbird/ui/gui.py:1143
+#: bellbird/ui/gui.py:1142
 msgid "Alias del usuario"
 msgstr "User alias"
 
-#: bellbird/ui/gui.py:1156
+#: bellbird/ui/gui.py:1155
 #, python-brace-format
 msgid "Alias guardado, {nuevo}"
 msgstr "Alias saved, {nuevo}"
 
-#: bellbird/ui/gui.py:1157
+#: bellbird/ui/gui.py:1156
 msgid "Alias eliminado"
 msgstr "Alias removed"
 
-#: bellbird/ui/gui.py:1166
+#: bellbird/ui/gui.py:1165
 msgid "Mensaje copiado"
 msgstr "Message copied"
 
-#: bellbird/ui/gui.py:1171
+#: bellbird/ui/gui.py:1170
 msgid "No hay ningún directo conectado."
 msgstr "No live stream connected."
 
-#: bellbird/ui/gui.py:1175
+#: bellbird/ui/gui.py:1174
 msgid "Enlace del directo copiado."
 msgstr "Live stream link copied."
 
-#: bellbird/ui/gui.py:1186 bellbird/ui/gui_comentarios.py:387
+#: bellbird/ui/gui.py:1185 bellbird/ui/gui_comentarios.py:387
 msgid "Línea copiada"
 msgstr "Line copied"
 
-#: bellbird/ui/gui.py:1202
+#: bellbird/ui/gui.py:1201
 msgid "No se encontró ningún enlace"
 msgstr "No link found"
 
-#: bellbird/ui/gui.py:1203
+#: bellbird/ui/gui.py:1202
 msgid "No se encontró ningún enlace en este mensaje."
 msgstr "No link found in this message."
 
-#: bellbird/ui/gui.py:1204
+#: bellbird/ui/gui.py:1203
 msgid "Sin enlace"
 msgstr "No link"
 
-#: bellbird/ui/gui.py:1207
+#: bellbird/ui/gui.py:1206
 msgid "Abriendo enlace"
 msgstr "Opening link"
 
 #. Traductores: {autor} es el autor del mensaje.
-#: bellbird/ui/gui.py:1223
+#: bellbird/ui/gui.py:1222
 #, python-brace-format
 msgid "{autor} silenciado"
 msgstr "{autor} muted"
 
 #. Traductores: {autor} es el autor del mensaje.
-#: bellbird/ui/gui.py:1233
+#: bellbird/ui/gui.py:1232
 #, python-brace-format
 msgid "{autor} rehabilitado"
 msgstr "{autor} restored"
 
-#: bellbird/ui/gui.py:1269
+#: bellbird/ui/gui.py:1268
 msgid "Salir"
 msgstr "Exit"
 
 #. Traductores: aviso mientras se cierra la app.
-#: bellbird/ui/gui.py:1297
+#: bellbird/ui/gui.py:1296
 msgid "Cerrando"
 msgstr "Closing"
 
 #. Traductores: aviso al desconectar.
-#: bellbird/ui/gui.py:1419
+#: bellbird/ui/gui.py:1418
 msgid "Desconectado"
 msgstr "Disconnected"
 
-#: bellbird/ui/gui.py:1468
+#: bellbird/ui/gui.py:1467
 msgid "Conectado al directo. Leyendo el chat."
 msgstr "Connected to the live stream. Reading the chat."
 
-#: bellbird/ui/gui.py:1470
+#: bellbird/ui/gui.py:1469
 msgid "Directo programado. Aún no hay chat; puedes ver los comentarios."
 msgstr "Scheduled live stream. No chat yet; you can read the comments."
 
-#: bellbird/ui/gui.py:1472
+#: bellbird/ui/gui.py:1471
 msgid "Vídeo conectado. Comentarios y reproductor disponibles."
 msgstr "Video connected. Comments and player available."
 
 #. Traductores: aviso genérico al conectar.
-#: bellbird/ui/gui.py:1475
+#: bellbird/ui/gui.py:1474
 msgid "Conectado."
 msgstr "Connected."
 
-#: bellbird/ui/gui.py:1527
+#: bellbird/ui/gui.py:1526
 msgid "Directo: leyendo el chat."
 msgstr "Live: reading the chat."
 
-#: bellbird/ui/gui.py:1530
+#: bellbird/ui/gui.py:1529
 msgid "Directo programado: aún sin chat. Hay comentarios."
 msgstr "Scheduled live: no chat yet. There are comments."
 
-#: bellbird/ui/gui.py:1533
+#: bellbird/ui/gui.py:1532
 msgid "Vídeo subido: comentarios y reproductor."
 msgstr "Uploaded video: comments and player."
 
-#: bellbird/ui/gui.py:1536
+#: bellbird/ui/gui.py:1535
 msgid "Tipo no determinado: intentando leer el chat."
 msgstr "Type unknown: trying to read the chat."
 
-#: bellbird/ui/gui.py:1558
+#: bellbird/ui/gui.py:1557
 msgid "Los comentarios no están disponibles en los directos de TikTok."
 msgstr "Comments are not available on TikTok live streams."
 
-#: bellbird/ui/gui.py:1566
+#: bellbird/ui/gui.py:1565
 #, python-brace-format
 msgid "Directo de TikTok de @{usuario}: leyendo el chat."
 msgstr "TikTok live stream by @{usuario}: reading the chat."
 
 #. Traductores: {titulo} es el vídeo y {app} la app.
-#: bellbird/ui/gui.py:1614
+#: bellbird/ui/gui.py:1613
 #, python-brace-format
 msgid "{titulo} — {app}"
 msgstr "{titulo} — {app}"
 
-#: bellbird/ui/gui.py:1627
+#: bellbird/ui/gui.py:1626
 msgid "(no disponible)"
 msgstr "(not available)"
 
-#: bellbird/ui/gui.py:1670 bellbird/ui/gui_menu.py:36
+#: bellbird/ui/gui.py:1669 bellbird/ui/gui_menu.py:36
 msgid "&Desconectar"
 msgstr "&Disconnect"
 
-#: bellbird/ui/gui.py:1718
+#: bellbird/ui/gui.py:1717
 msgid " [sin voz]"
 msgstr " [no voice]"
 
 #. Traductores: {titulo} es el vídeo; {sin_tts} avisa si la lectura está
 #. silenciada.
-#: bellbird/ui/gui.py:1721
+#: bellbird/ui/gui.py:1720
 #, python-brace-format
 msgid "Conectado: {titulo}{sin_tts}"
 msgstr "Connected: {titulo}{sin_tts}"
 
 #. Traductores: {sin_tts} avisa si la lectura está silenciada.
-#: bellbird/ui/gui.py:1724
+#: bellbird/ui/gui.py:1723
 #, python-brace-format
 msgid "Conectado{sin_tts}"
 msgstr "Connected{sin_tts}"
 
 #. Traductores: {sin_tts} avisa si la lectura está silenciada.
-#: bellbird/ui/gui.py:1727
+#: bellbird/ui/gui.py:1726
 #, python-brace-format
 msgid "Desconectado{sin_tts}"
 msgstr "Disconnected{sin_tts}"
 
-#: bellbird/ui/gui.py:1730
+#: bellbird/ui/gui.py:1729
 #, python-brace-format
 msgid "Voz vel: {valor}"
 msgstr "Voice rate: {valor}"
 
-#: bellbird/ui/gui.py:1731
+#: bellbird/ui/gui.py:1730
 msgid "Voz vel: --"
 msgstr "Voice rate: --"
 
 #. Traductores: {n} son los mensajes en cola.
-#: bellbird/ui/gui.py:1740
+#: bellbird/ui/gui.py:1739
 #, python-brace-format
 msgid "Cola: {n}"
 msgstr "Queue: {n}"
 
 #. Traductores: la raya indica que no hay dato.
-#: bellbird/ui/gui.py:1742
+#: bellbird/ui/gui.py:1741
 msgid "Cola: —"
 msgstr "Queue: —"
 
 #. Traductores: {n} son los mensajes leídos.
-#: bellbird/ui/gui.py:1744
+#: bellbird/ui/gui.py:1743
 #, python-brace-format
 msgid "Leídos: {n}"
 msgstr "Read: {n}"
 
 #. Traductores: la raya indica que no hay dato.
-#: bellbird/ui/gui.py:1746
+#: bellbird/ui/gui.py:1745
 msgid "Leídos: —"
 msgstr "Read: —"
 
-#: bellbird/ui/gui.py:1748
+#: bellbird/ui/gui.py:1747
 #, python-brace-format
 msgid "Voz vol: {valor}%"
 msgstr "Voice vol: {valor}%"
 
-#: bellbird/ui/gui.py:1749
+#: bellbird/ui/gui.py:1748
 msgid "Voz vol: --"
 msgstr "Voice vol: --"
 
-#: bellbird/ui/gui.py:1768
+#: bellbird/ui/gui.py:1767
 #, python-brace-format
 msgid "SC: {n}"
 msgstr "SC: {n}"
 
-#: bellbird/ui/gui.py:1769
+#: bellbird/ui/gui.py:1768
 #, python-brace-format
 msgid "SC: {n} ({importes})"
 msgstr "SC: {n} ({importes})"
@@ -4080,22 +4238,22 @@ msgstr "Check for updates"
 msgid "&Más tarde"
 msgstr "&Later"
 
-#: bellbird/ui/gui_actualizar_ytdlp.py:30
+#: bellbird/ui/gui_actualizar_ytdlp.py:31
 msgid "Actualizar yt-dlp"
 msgstr "Update yt-dlp"
 
-#: bellbird/ui/gui_actualizar_ytdlp.py:33
+#: bellbird/ui/gui_actualizar_ytdlp.py:34
 msgid "Buscando la última versión de yt-dlp."
 msgstr "Checking for the latest yt-dlp version."
 
 #. Traductores: {version} es la versión nueva de yt-dlp.
-#: bellbird/ui/gui_actualizar_ytdlp.py:42
+#: bellbird/ui/gui_actualizar_ytdlp.py:43
 #, python-brace-format
 msgid "Hay una versión nueva de yt-dlp, la {version}. Descargando."
 msgstr "There is a new yt-dlp version, {version}. Downloading."
 
 #. Traductores: {porcentaje} es el avance de 0 a 100.
-#: bellbird/ui/gui_actualizar_ytdlp.py:55
+#: bellbird/ui/gui_actualizar_ytdlp.py:56
 #, python-brace-format
 msgid "Descargando yt-dlp: {porcentaje} por ciento"
 msgstr "Downloading yt-dlp: {porcentaje} percent"
@@ -4531,7 +4689,7 @@ msgstr "JPG and PNG images (*.jpg;*.jpeg;*.png)|*.jpg;*.jpeg;*.png"
 msgid "Directo de YouTube"
 msgstr "YouTube live stream"
 
-#: bellbird/ui/gui_directo_youtube.py:82 bellbird/ui/gui_transmision.py:87
+#: bellbird/ui/gui_directo_youtube.py:82 bellbird/ui/gui_transmision.py:55
 msgid "&Transmitir"
 msgstr "&Broadcast"
 
@@ -4707,12 +4865,12 @@ msgid "Falta el usuario de TikTok."
 msgstr "Missing TikTok user."
 
 #: bellbird/ui/gui_elegir_destino.py:45 bellbird/ui/gui_elegir_destino.py:54
-#: bellbird/ui/gui_elegir_destino.py:56 bellbird/ui/gui_transmision.py:167
-#: bellbird/ui/gui_transmision.py:168
+#: bellbird/ui/gui_elegir_destino.py:56 bellbird/ui/gui_transmision.py:149
+#: bellbird/ui/gui_transmision.py:150
 msgid "Transmitir a"
 msgstr "Broadcast to"
 
-#: bellbird/ui/gui_elegir_destino.py:51 bellbird/ui/gui_transmision.py:165
+#: bellbird/ui/gui_elegir_destino.py:51 bellbird/ui/gui_transmision.py:147
 msgid "Transmitir a:"
 msgstr "Broadcast to:"
 
@@ -5198,7 +5356,7 @@ msgstr "Device"
 msgid "&Aplicar"
 msgstr "&Apply"
 
-#: bellbird/ui/gui_microfono.py:114 bellbird/ui/gui_transmision.py:287
+#: bellbird/ui/gui_microfono.py:114 bellbird/ui/gui_transmision.py:129
 #: bellbird/ui/ia_ventana.py:48 bellbird/ui/ia_ventana.py:115
 #: bellbird/ui/musica_ventana.py:152
 msgid "Cerrar"
@@ -5257,8 +5415,8 @@ msgid "Interfaz"
 msgstr "Interface"
 
 #. Traductores: nombre accesible de la lista de sonidos.
-#: bellbird/ui/gui_preferencias.py:123 bellbird/ui/preferencias_sonidos.py:129
-#: bellbird/ui/preferencias_sonidos.py:132
+#: bellbird/ui/gui_preferencias.py:123 bellbird/ui/preferencias_sonidos.py:144
+#: bellbird/ui/preferencias_sonidos.py:147
 msgid "Sonidos"
 msgstr "Sounds"
 
@@ -5289,7 +5447,7 @@ msgstr "API and session"
 msgid "Mensajes automáticos"
 msgstr "Scheduled messages"
 
-#: bellbird/ui/gui_preferencias.py:140 bellbird/ui/gui_transmision.py:107
+#: bellbird/ui/gui_preferencias.py:140 bellbird/ui/gui_transmision.py:75
 msgid "Transmisión"
 msgstr "Broadcast"
 
@@ -5563,446 +5721,317 @@ msgstr "Cancel"
 msgid "Antes de transmitir"
 msgstr "Before broadcasting"
 
-#: bellbird/ui/gui_transmision.py:53
-msgid ""
-"OBS compone lo que ven los espectadores sobre un\n"
-"rectángulo de tamaño fijo, llamado lienzo. No es la pantalla del equipo\n"
-"ni la ventana del juego.\n"
-"\n"
-"Lo que queda dentro del lienzo se emite. Lo que sobresale del borde se\n"
-"recorta, sin ningún aviso.\n"
-"\n"
-"Que dos fuentes se superpongan no es necesariamente un problema. El\n"
-"fondo de este panel es transparente: solo se ven las tarjetas de los\n"
-"mensajes, y solo tapan lo que hay justo debajo de ellas."
-msgstr ""
-"Broadcast software composes what viewers see on a\n"
-"fixed-size rectangle called the canvas. It is not the computer screen\n"
-"or the game window.\n"
-"\n"
-"What stays inside the canvas goes out. What sticks out past the edge is\n"
-"cropped, without any warning.\n"
-"\n"
-"Two sources overlapping is not necessarily a problem. This\n"
-"panel's background is transparent: only the message\n"
-"cards show, and they only cover what is right under them."
-
-# | msgid "" "Este diálogo no crea escenas ni agrega otras fuentes, salvo la
-# | captura de" " ventana desde la sección Escena. Hace una sola\n" "cosa:
-# pone
-# | el panel de chat de esta aplicación dentro de una escena de " "OBS\n" "y
-# lo
-# | coloca donde quieras.\n" "\n" "El orden es este.\n" "\n" "Uno. Pulsa
-# | Preparar el panel. Eso enciende el servidor del panel y crea " "la\n"
-# | "fuente dentro de la escena elegida, si todavía no estaba.\n" "\n" "Dos.
-# | Elige la escena en el desplegable Escena. Recorrerlo no cambia lo "
-# "que\n"
-# | "ven los espectadores: para eso está el botón Poner al aire.\n" "\n"
-# "Tres.
-# | Elige qué fuente vas a mover en el desplegable Fuente. Normalmente "
-# "es\n"
-# | "el panel de chat, pero puedes mover cualquier fuente que ya exista en
-# la\n"
-# | "escena. Este diálogo solo agrega el panel y la captura de ventana: lo "
-# | "demás se hace\n" "desde OBS.\n" "\n" "Cuatro. Coloca la fuente. Tienes
-# dos
-# | formas. El desplegable Posición más " "su\n" "botón la lleva a una de
-# nueve
-# | posiciones fijas. El Ajuste fino la mueve " "de\n" "a poco con las
-# flechas,
-# | y confirma con Intro.\n" "\n" "Cinco. El tamaño se cambia con Ancho y Alto
-# y
-# | se aplica con su botón.\n" "\n" "El cuadro Estado del panel describe en
-# todo
-# | momento dónde está la\n" "fuente, de qué tamaño es, si se sale del lienzo
-# | si tapa a otras. Se\n" "actualiza solo con cada cambio.\n" "\n"
-# "Restablecer
-# | deshace todo lo que hiciste desde que abriste esta ventana."
-#: bellbird/ui/gui_transmision.py:63
-msgid ""
-"Este cuadro de diálogo no crea escenas ni agrega otras fuentes, salvo la captura de"
-" ventana desde la sección Escena. Hace una sola\n"
-"cosa: pone el panel de chat de esta aplicación dentro de una escena de "
-"OBS\n"
-"y lo coloca donde quieras.\n"
-"\n"
-"El orden es este.\n"
-"\n"
-"Uno. Pulsa Preparar panel. Eso enciende el servidor del panel y crea la\n"
-"fuente dentro de la escena elegida, si todavía no estaba.\n"
-"\n"
-"Dos. Elige la escena en el desplegable Escena. Recorrerlo no cambia lo "
-"que\n"
-"ven los espectadores: para eso está el botón Poner al aire.\n"
-"\n"
-"Tres. Elige qué fuente vas a mover en el desplegable Fuente. Normalmente "
-"es\n"
-"el panel de chat, pero puedes mover cualquier fuente que ya exista en la\n"
-"escena. Este cuadro de diálogo solo agrega el panel y la captura de ventana: lo "
-"demás se hace\n"
-"desde OBS.\n"
-"\n"
-"Cuatro. Coloca la fuente. Tienes dos formas. El desplegable Posición más "
-"su\n"
-"botón la lleva a una de nueve posiciones fijas. El Ajuste fino la mueve "
-"de\n"
-"a poco con las flechas, y confirma con Intro.\n"
-"\n"
-"Cinco. El tamaño se cambia con Ancho y Alto y se aplica con su botón.\n"
-"\n"
-"El cuadro Estado del panel describe en todo momento dónde está la\n"
-"fuente, de qué tamaño es, si se sale del lienzo y si tapa a otras. Se\n"
-"actualiza solo con cada cambio.\n"
-"\n"
-"Restablecer deshace todo lo que hiciste desde que abriste esta ventana."
-msgstr ""
-"This dialog does not create scenes or add other sources, except window "
-"capture from the Scene section. It does one\n"
-"thing: it puts this application's chat panel inside an OBS scene\n"
-"and places it where you want.\n"
-"\n"
-"The order is this.\n"
-"\n"
-"One. Press Prepare the panel. That starts the panel server and creates "
-"the\n"
-"source inside the chosen scene, if it was not there yet.\n"
-"\n"
-"Two. Choose the scene in the Scene drop-down. Browsing it does not change"
-" what\n"
-"viewers see: the Put live button is for that.\n"
-"\n"
-"Three. Choose which source to move in the Source drop-down. Normally it "
-"is\n"
-"the chat panel, but you can move any source already in the\n"
-"scene. This dialog only adds the panel and window capture: the rest is "
-"done\n"
-"from OBS.\n"
-"\n"
-"Four. Place the source. There are two ways. The Position drop-down plus "
-"its\n"
-"button moves it to one of nine fixed positions. Fine adjustment moves it\n"
-"little by little with the arrows, and confirms with Enter.\n"
-"\n"
-"Five. Size changes with Width and Height and applies with its button.\n"
-"\n"
-"The Panel status box describes at all times where the\n"
-"source is, how big it is, whether it goes off the canvas, and whether it "
-"covers others. It\n"
-"updates itself with each change.\n"
-"\n"
-"Reset undoes everything you did since you opened this window."
-
-#: bellbird/ui/gui_transmision.py:88
+#: bellbird/ui/gui_transmision.py:56
 msgid "Detener la &transmisión"
 msgstr "Stop the &broadcast"
 
-#: bellbird/ui/gui_transmision.py:89
+#: bellbird/ui/gui_transmision.py:57
 msgid "&Grabar"
 msgstr "R&ecord"
 
-#: bellbird/ui/gui_transmision.py:90
+#: bellbird/ui/gui_transmision.py:58
 msgid "Detener la &grabación"
 msgstr "Stop recordin&g"
 
-#: bellbird/ui/gui_transmision.py:92
+#: bellbird/ui/gui_transmision.py:60
 msgid "Superior izquierda"
 msgstr "Top left"
 
-#: bellbird/ui/gui_transmision.py:92
+#: bellbird/ui/gui_transmision.py:60
 msgid "Superior centro"
 msgstr "Top center"
 
-#: bellbird/ui/gui_transmision.py:93
+#: bellbird/ui/gui_transmision.py:61
 msgid "Superior derecha"
 msgstr "Top right"
 
-#: bellbird/ui/gui_transmision.py:93
+#: bellbird/ui/gui_transmision.py:61
 msgid "Centro izquierda"
 msgstr "Middle left"
 
-#: bellbird/ui/gui_transmision.py:94
+#: bellbird/ui/gui_transmision.py:62
 msgid "Centro"
 msgstr "Middle"
 
-#: bellbird/ui/gui_transmision.py:94
+#: bellbird/ui/gui_transmision.py:62
 msgid "Centro derecha"
 msgstr "Middle right"
 
-#: bellbird/ui/gui_transmision.py:95
+#: bellbird/ui/gui_transmision.py:63
 msgid "Inferior izquierda"
 msgstr "Bottom left"
 
-#: bellbird/ui/gui_transmision.py:95
+#: bellbird/ui/gui_transmision.py:63
 msgid "Inferior centro"
 msgstr "Bottom center"
 
-#: bellbird/ui/gui_transmision.py:96
+#: bellbird/ui/gui_transmision.py:64
 msgid "Inferior derecha"
 msgstr "Bottom right"
 
-#: bellbird/ui/gui_transmision.py:149 bellbird/ui/gui_transmision.py:178
-#: bellbird/ui/gui_transmision.py:493
+#: bellbird/ui/gui_transmision.py:144 bellbird/ui/gui_transmision.py:160
+#: bellbird/ui/gui_transmision.py:477
 msgid "Transmitir"
 msgstr "Broadcast"
 
-#: bellbird/ui/gui_transmision.py:170
+#: bellbird/ui/gui_transmision.py:152
 msgid "Tu usuario de TikTok:"
 msgstr "Your TikTok user:"
 
-#: bellbird/ui/gui_transmision.py:172 bellbird/ui/gui_transmision.py:173
+#: bellbird/ui/gui_transmision.py:154 bellbird/ui/gui_transmision.py:155
 msgid "Tu usuario de TikTok"
 msgstr "Your TikTok user"
 
-#: bellbird/ui/gui_transmision.py:175
+#: bellbird/ui/gui_transmision.py:157
 msgid "Preparar desti&no"
 msgstr "Prepare destinatio&n"
 
-#: bellbird/ui/gui_transmision.py:175
+#: bellbird/ui/gui_transmision.py:157
 msgid "Preparar destino"
 msgstr "Prepare destination"
 
-#: bellbird/ui/gui_transmision.py:180 bellbird/ui/gui_transmision.py:501
-#: bellbird/ui/gui_transmision.py:656
+#: bellbird/ui/gui_transmision.py:162 bellbird/ui/gui_transmision.py:485
+#: bellbird/ui/gui_transmision.py:640
 msgid "Grabar"
 msgstr "Record"
 
 # | msgid "Pausar la gra&bación"
-#: bellbird/ui/gui_transmision.py:183
+#: bellbird/ui/gui_transmision.py:165
 msgid "Pausar gra&bación"
 msgstr "Pa&use recording"
 
 # | msgid "Pausar la grabación"
-#: bellbird/ui/gui_transmision.py:183
+#: bellbird/ui/gui_transmision.py:165
 msgid "Pausar grabación"
 msgstr "Pause recording"
 
-#: bellbird/ui/gui_transmision.py:187 bellbird/ui/gui_transmision.py:189
-#: bellbird/ui/gui_transmision.py:190
+#: bellbird/ui/gui_transmision.py:170 bellbird/ui/gui_transmision.py:172
+#: bellbird/ui/gui_transmision.py:173
 msgid "Escena"
 msgstr "Scene"
 
-#: bellbird/ui/gui_transmision.py:188
+#: bellbird/ui/gui_transmision.py:171
 msgid "Escena:"
 msgstr "Scene:"
 
-#: bellbird/ui/gui_transmision.py:192
+#: bellbird/ui/gui_transmision.py:175
 msgid "Poner al &aire"
 msgstr "Put &live"
 
-#: bellbird/ui/gui_transmision.py:192
+#: bellbird/ui/gui_transmision.py:175
 msgid "Poner al aire"
 msgstr "Put live"
 
-#: bellbird/ui/gui_transmision.py:194
+#: bellbird/ui/gui_transmision.py:177
 msgid "Ventana que se captura:"
 msgstr "Window to capture:"
 
-#: bellbird/ui/gui_transmision.py:195 bellbird/ui/gui_transmision.py:196
+#: bellbird/ui/gui_transmision.py:178 bellbird/ui/gui_transmision.py:179
 msgid "Ventana que se captura"
 msgstr "Window to capture"
 
-#: bellbird/ui/gui_transmision.py:198
+#: bellbird/ui/gui_transmision.py:181
 msgid "Usar esa &ventana"
 msgstr "Use that wind&ow"
 
-#: bellbird/ui/gui_transmision.py:198
+#: bellbird/ui/gui_transmision.py:181
 msgid "Usar esa ventana"
 msgstr "Use that window"
 
-#: bellbird/ui/gui_transmision.py:201
+#: bellbird/ui/gui_transmision.py:184
 msgid "Guardar una capt&ura de la escena…"
 msgstr "Save a scene snaps&hot…"
 
-#: bellbird/ui/gui_transmision.py:203
+#: bellbird/ui/gui_transmision.py:186
 msgid "Actualizar e&stado"
 msgstr "Refresh &status"
 
-#: bellbird/ui/gui_transmision.py:207 bellbird/ui/gui_transmision.py:210
-#: bellbird/ui/gui_transmision.py:213
+#: bellbird/ui/gui_transmision.py:191 bellbird/ui/gui_transmision.py:194
+#: bellbird/ui/gui_transmision.py:197
 msgid "Cómo se ve la escena"
 msgstr "How the scene looks"
 
-#: bellbird/ui/gui_transmision.py:218
+#: bellbird/ui/gui_transmision.py:203
 msgid "Panel de chat, solo YouTube"
 msgstr "Chat panel, YouTube only"
 
-#: bellbird/ui/gui_transmision.py:220
+#: bellbird/ui/gui_transmision.py:205
 msgid "&Panel de chat para transmitir"
 msgstr "&Chat panel for streaming"
 
-#: bellbird/ui/gui_transmision.py:221
+#: bellbird/ui/gui_transmision.py:206
 msgid "Panel de chat para transmitir"
 msgstr "Chat panel for streaming"
 
 # | msgid "Preparar el panel"
-#: bellbird/ui/gui_transmision.py:225
+#: bellbird/ui/gui_transmision.py:210
 msgid "Preparar pane&l"
 msgstr "Pre&pare panel"
 
 # | msgid "Preparar el panel"
-#: bellbird/ui/gui_transmision.py:225
+#: bellbird/ui/gui_transmision.py:210
 msgid "Preparar panel"
 msgstr "Prepare the panel"
 
-#: bellbird/ui/gui_transmision.py:227
+#: bellbird/ui/gui_transmision.py:212
 msgid "Fuente:"
 msgstr "Source:"
 
-#: bellbird/ui/gui_transmision.py:228 bellbird/ui/gui_transmision.py:229
+#: bellbird/ui/gui_transmision.py:213 bellbird/ui/gui_transmision.py:214
 msgid "Fuente"
 msgstr "Source"
 
-#: bellbird/ui/gui_transmision.py:231
+#: bellbird/ui/gui_transmision.py:216
 msgid "Estado del panel:"
 msgstr "Panel status:"
 
-#: bellbird/ui/gui_transmision.py:235 bellbird/ui/gui_transmision.py:238
+#: bellbird/ui/gui_transmision.py:220 bellbird/ui/gui_transmision.py:223
 msgid "Estado del panel"
 msgstr "Panel status"
 
-#: bellbird/ui/gui_transmision.py:241
+#: bellbird/ui/gui_transmision.py:226
 msgid "Posición del panel:"
 msgstr "Panel position:"
 
-#: bellbird/ui/gui_transmision.py:245 bellbird/ui/gui_transmision.py:246
+#: bellbird/ui/gui_transmision.py:230 bellbird/ui/gui_transmision.py:231
 msgid "Posición del panel"
 msgstr "Panel position"
 
-#: bellbird/ui/gui_transmision.py:249
+#: bellbird/ui/gui_transmision.py:234
 msgid "&Colocar en esa posición"
 msgstr "&Move to that position"
 
-#: bellbird/ui/gui_transmision.py:249
+#: bellbird/ui/gui_transmision.py:234
 msgid "Colocar en esa posición"
 msgstr "Move to that position"
 
-#: bellbird/ui/gui_transmision.py:251
+#: bellbird/ui/gui_transmision.py:240
 msgid "Ancho del panel en píxeles:"
 msgstr "Panel width in pixels:"
 
-#: bellbird/ui/gui_transmision.py:253
+#: bellbird/ui/gui_transmision.py:242
 msgid "Ancho del panel en píxeles"
 msgstr "Panel width in pixels"
 
-#: bellbird/ui/gui_transmision.py:255
+#: bellbird/ui/gui_transmision.py:244
 msgid "Alto del panel en píxeles:"
 msgstr "Panel height in pixels:"
 
-#: bellbird/ui/gui_transmision.py:257
+#: bellbird/ui/gui_transmision.py:246
 msgid "Alto del panel en píxeles"
 msgstr "Panel height in pixels"
 
-#: bellbird/ui/gui_transmision.py:259
+#: bellbird/ui/gui_transmision.py:248
 msgid "Apl&icar tamaño"
 msgstr "Appl&y size"
 
 # | msgid "&Mostrar el panel en la escena"
-#: bellbird/ui/gui_transmision.py:261
+#: bellbird/ui/gui_transmision.py:250
 msgid "&Mostrar panel en la escena"
 msgstr "Show the panel &in the scene"
 
 # | msgid "Posición del panel"
-#: bellbird/ui/gui_transmision.py:263
+#: bellbird/ui/gui_transmision.py:252
 msgid "&Fijar posición del panel"
 msgstr "&Fix panel position"
 
-#: bellbird/ui/gui_transmision.py:267
+#: bellbird/ui/gui_transmision.py:256
 msgid "P&oner al frente"
 msgstr "Bring &to front"
 
-#: bellbird/ui/gui_transmision.py:269
+#: bellbird/ui/gui_transmision.py:258
 msgid "A&juste fino"
 msgstr "Fine &adjustment"
 
-#: bellbird/ui/gui_transmision.py:273
+#: bellbird/ui/gui_transmision.py:262
 msgid "Cómo s&e coloca el panel"
 msgstr "How the panel is place&d"
 
-#: bellbird/ui/gui_transmision.py:273 bellbird/ui/gui_transmision.py:933
+#: bellbird/ui/gui_transmision.py:262 bellbird/ui/gui_transmision.py:918
 msgid "Cómo se coloca el panel"
 msgstr "How the panel is placed"
 
-#: bellbird/ui/gui_transmision.py:275
+#: bellbird/ui/gui_transmision.py:264
 msgid "&Qué es el lienzo"
 msgstr "&What is the canvas"
 
-#: bellbird/ui/gui_transmision.py:277
+#: bellbird/ui/gui_transmision.py:266
 msgid "&Restablecer"
 msgstr "&Reset"
 
-#: bellbird/ui/gui_transmision.py:391
+#: bellbird/ui/gui_transmision.py:375
 msgid "Consultando OBS"
 msgstr "Asking OBS"
 
-#: bellbird/ui/gui_transmision.py:453
+#: bellbird/ui/gui_transmision.py:437
 msgid "La escena no tiene fuentes."
 msgstr "The scene has no sources."
 
-#: bellbird/ui/gui_transmision.py:493
+#: bellbird/ui/gui_transmision.py:477
 msgid "Detener la transmisión"
 msgstr "Stop the broadcast"
 
-#: bellbird/ui/gui_transmision.py:501 bellbird/ui/gui_transmision.py:656
+#: bellbird/ui/gui_transmision.py:485 bellbird/ui/gui_transmision.py:640
 msgid "Detener la grabación"
 msgstr "Stop the recording"
 
-#: bellbird/ui/gui_transmision.py:553
+#: bellbird/ui/gui_transmision.py:537
 msgid "Elige primero una ventana en Ventana que se captura."
 msgstr "First choose a window in Window to capture."
 
-#: bellbird/ui/gui_transmision.py:605 bellbird/ui/gui_transmision.py:679
+#: bellbird/ui/gui_transmision.py:589 bellbird/ui/gui_transmision.py:663
 msgid "Elige primero a dónde transmitir, en Transmitir a."
 msgstr "First choose where to broadcast, in Broadcast to."
 
-#: bellbird/ui/gui_transmision.py:608
+#: bellbird/ui/gui_transmision.py:592
 msgid "Escribe tu usuario de TikTok en Tu usuario de TikTok."
 msgstr "Type your TikTok user in Your TikTok user."
 
-#: bellbird/ui/gui_transmision.py:681
+#: bellbird/ui/gui_transmision.py:665
 #, python-brace-format
 msgid "Preparando OBS para {destino}. Puede tardar unos segundos."
 msgstr "Preparing OBS for {destino}. It may take a few seconds."
 
-#: bellbird/ui/gui_transmision.py:708
+#: bellbird/ui/gui_transmision.py:692
 #, python-brace-format
 msgid "No se pudo encender el panel, el puerto {puerto} está ocupado"
 msgstr "Could not turn on the panel, port {puerto} is busy"
 
-#: bellbird/ui/gui_transmision.py:780
+#: bellbird/ui/gui_transmision.py:764
 #, python-brace-format
 msgid "{fuente} todavía no informa su tamaño."
 msgstr "{fuente} does not report its size yet."
 
-#: bellbird/ui/gui_transmision.py:891
+#: bellbird/ui/gui_transmision.py:875
 msgid "Ajuste confirmado"
 msgstr "Adjustment confirmed"
 
-#: bellbird/ui/gui_transmision.py:900
+#: bellbird/ui/gui_transmision.py:884
 msgid "No se pudo deshacer el ajuste"
 msgstr "Could not undo the adjustment"
 
-#: bellbird/ui/gui_transmision.py:907
+#: bellbird/ui/gui_transmision.py:891
 msgid "Ajuste deshecho"
 msgstr "Adjustment undone"
 
 #. Traductores: traduce solo «Imagen PNG»; no cambies «(*.png)|*.png».
-#: bellbird/ui/gui_transmision.py:916
+#: bellbird/ui/gui_transmision.py:900
 msgid "Guardar una captura de la escena"
 msgstr "Save a scene snapshot"
 
-#: bellbird/ui/gui_transmision.py:916
+#: bellbird/ui/gui_transmision.py:900
 msgid "Imagen PNG (*.png)|*.png"
 msgstr "PNG Image (*.png)|*.png"
 
-#: bellbird/ui/gui_transmision.py:923
+#: bellbird/ui/gui_transmision.py:907
 msgid "Captura guardada"
 msgstr "Snapshot saved"
 
-#: bellbird/ui/gui_transmision.py:930
+#: bellbird/ui/gui_transmision.py:914
 msgid "Qué es el lienzo"
 msgstr "What is the canvas"
 
-#: bellbird/ui/gui_transmision.py:939
+#: bellbird/ui/gui_transmision.py:924
 msgid "Restablecido"
 msgstr "Reset"
 
@@ -6528,8 +6557,8 @@ msgstr "Default output"
 
 #: bellbird/ui/preferencias_api.py:40
 msgid ""
-"La clave de API permite LEER comentarios (sin iniciar sesión). El cliente "
-"OAuth e iniciar sesión permiten MODERAR el chat, enviar mensajes al "
+"La clave de API permite LEER comentarios (sin iniciar sesión). El cliente"
+" OAuth e iniciar sesión permiten MODERAR el chat, enviar mensajes al "
 "directo y publicar o responder comentarios."
 msgstr ""
 "The API key allows READING comments (without signing in). The OAuth "
@@ -7217,30 +7246,30 @@ msgstr "Message saved"
 msgid "Mensaje eliminado"
 msgstr "Message deleted"
 
-#: bellbird/ui/preferencias_sonidos.py:83
-msgid "&Sonidos:"
-msgstr "&Sounds:"
-
 #. Traductores: nombre visible del tema de sonido predeterminado.
 #: bellbird/ui/preferencias_sonidos.py:68
 msgid "Predeterminado"
 msgstr "Default"
 
+#: bellbird/ui/preferencias_sonidos.py:93
+msgid "&Sonidos:"
+msgstr "&Sounds:"
+
 # | msgid "&Oír el sonido elegido"
-#: bellbird/ui/preferencias_sonidos.py:87
+#: bellbird/ui/preferencias_sonidos.py:97
 msgid "&Oír sonido elegido"
 msgstr "&Hear the selected sound"
 
-#: bellbird/ui/preferencias_sonidos.py:97
+#: bellbird/ui/preferencias_sonidos.py:107
 msgid "&Tema de sonido:"
 msgstr "Sound &theme:"
 
-#: bellbird/ui/preferencias_sonidos.py:101
+#: bellbird/ui/preferencias_sonidos.py:113
 msgid "Tema de sonido"
 msgstr "Sound theme"
 
 #. Traductores: columna con el nombre de cada sonido.
-#: bellbird/ui/preferencias_sonidos.py:134
+#: bellbird/ui/preferencias_sonidos.py:149
 msgid "Sonido"
 msgstr "Sound"
 
@@ -7580,8 +7609,8 @@ msgstr "Could not add the live stream to the playlist: {detalle}"
 
 #: bellbird/youtube/emision.py:293
 msgid ""
-"La cuenta de YouTube no tiene una clave de transmisión reutilizable. Se crea "
-"en YouTube Studio, en Emitir en directo."
+"La cuenta de YouTube no tiene una clave de transmisión reutilizable. Se "
+"crea en YouTube Studio, en Emitir en directo."
 msgstr ""
 "The YouTube account has no reusable stream key. Create one in YouTube "
 "Studio, under Go live."
@@ -7612,8 +7641,8 @@ msgstr "The video was not found. Check the link or the ID."
 
 #: bellbird/youtube/youtube_api.py:140
 msgid ""
-"YouTube no acepta la clave de API. Revísala en Preferencias, página API y "
-"sesión."
+"YouTube no acepta la clave de API. Revísala en Preferencias, página API y"
+" sesión."
 msgstr ""
 "YouTube does not accept the API key. Check it in Preferences, API and "
 "session page."
@@ -7628,8 +7657,8 @@ msgstr ""
 
 #: bellbird/youtube/youtube_api.py:145
 msgid ""
-"No tienes permiso para esta acción. Debes ser el propietario o moderador del "
-"directo, y haber iniciado sesión."
+"No tienes permiso para esta acción. Debes ser el propietario o moderador "
+"del directo, y haber iniciado sesión."
 msgstr ""
 "You do not have permission for this action. You must own or moderate the "
 "live stream, and be signed in."

@@ -51,7 +51,7 @@ class TestConsulta(unittest.TestCase):
 
     def test_etiqueta_completa(self):
         e = {"canal": "Larzock", "titulo": "Módulos", "fecha": "2026-07-08T20:00:00"}
-        self.assertEqual(h.etiqueta(e), "Larzock — Módulos (2026-07-08)")
+        self.assertEqual(h.etiqueta(e), "Larzock — Módulos (08/07/2026)")
 
     def test_etiqueta_sin_datos_usa_clave(self):
         e = {"clave": "pepe", "canal": "", "titulo": "", "fecha": ""}
@@ -60,7 +60,15 @@ class TestConsulta(unittest.TestCase):
     def test_etiqueta_marca_directo(self):
         e = {"canal": "Larzock", "titulo": "Módulos", "fecha": "2026-07-08T20:00:00",
              "directo": True}
-        self.assertEqual(h.etiqueta(e), "Larzock — Módulos · directo (2026-07-08)")
+        self.assertEqual(h.etiqueta(e), "Larzock — Módulos · directo (08/07/2026)")
+
+    def test_etiqueta_fecha_ilegible_se_muestra_cruda(self):
+        e = {"canal": "Larzock", "titulo": "Módulos", "fecha": "fecha-rara-2026"}
+        self.assertEqual(h.etiqueta(e), "Larzock — Módulos (fecha-rara)")
+
+    def test_etiqueta_marca_directo_sin_fecha(self):
+        e = {"canal": "Larzock", "titulo": "Módulos", "fecha": "", "directo": True}
+        self.assertEqual(h.etiqueta(e), "Larzock — Módulos · directo")
 
     def test_upsert_guarda_directo(self):
         l = h.upsert([], "tiktok", "pepe", "u", "T", "C", directo=True)

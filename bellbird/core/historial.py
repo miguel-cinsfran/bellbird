@@ -21,6 +21,7 @@ from pathlib import Path
 
 from bellbird.core import archivos
 from bellbird.core import diagnostico
+from bellbird.core.idioma import _
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -53,16 +54,41 @@ def de_plataforma(lista: list, plataforma: str) -> list:
     return [e for e in lista if e.get("plataforma") == plataforma]
 
 
+def fecha_mostrada(texto: str | None) -> str:
+    """Fecha corta de una fila del historial, o el texto crudo si no se puede leer."""
+    crudo = (texto or "")[:10]
+    try:
+        fecha = datetime.fromisoformat(crudo)
+    except ValueError:
+        return crudo
+    # Traductores: fecha corta de una fila del historial; se ordena como la
+    # fecha corta de Windows en ese idioma, y en inglés de Estados Unidos es
+    # «{mes}/{dia}/{anio}».
+    return _("{dia}/{mes}/{anio}").format(
+        dia=f"{fecha.day:02d}", mes=f"{fecha.month:02d}",
+        anio=f"{fecha.year:04d}")
+
+
 def etiqueta(entrada: dict) -> str:
     """Texto legible de una entrada para la lista (canal — título · directo (fecha))."""
     canal = (entrada.get("canal") or "").strip()
     titulo = (entrada.get("titulo") or "").strip()
-    fecha = (entrada.get("fecha") or "")[:10]
+    fecha = fecha_mostrada(entrada.get("fecha"))
     partes = [p for p in (canal, titulo) if p]
     base = " — ".join(partes) if partes else (entrada.get("clave") or "?")
+    if entrada.get("directo") and fecha:
+        # Traductores: fila del historial de un directo; {base} es el canal y
+        # el título y {fecha} la fecha corta.
+        return _("{base} · directo ({fecha})").format(base=base, fecha=fecha)
     if entrada.get("directo"):
-        base += " · directo"
-    return f"{base} ({fecha})" if fecha else base
+        # Traductores: fila del historial de un directo sin fecha; {base} es
+        # el canal y el título.
+        return _("{base} · directo").format(base=base)
+    if fecha:
+        # Traductores: fila del historial; {base} es el canal y el título y
+        # {fecha} la fecha corta.
+        return _("{base} ({fecha})").format(base=base, fecha=fecha)
+    return base
 
 
 def cargar(ruta: Path) -> list:

@@ -1429,6 +1429,57 @@ class TestFmtHablado(unittest.TestCase):
                          "2 horas 2 minutos 2 segundos")
 
 
+class TestPosAccesibleTextos(unittest.TestCase):
+    """Los tres textos de _PosAccesible pasan por gettext.
+
+    Sin ventana: se arma con __new__ como en test_desfase_accesible.
+    """
+
+    def _accesible(self, pos_ms=0, dur_ms=0, frase=None):
+        panel = types.SimpleNamespace(
+            _pos_ms=pos_ms,
+            _dur_ms=dur_ms,
+            frase_posicion_directo=frase if frase is not None else lambda: "En directo",
+        )
+        acc = reproductor._PosAccesible.__new__(reproductor._PosAccesible)
+        acc._panel = panel
+        return acc
+
+    def test_nombre_sale_marcado(self):
+        acc = self._accesible()
+        with con_pseudo():
+            codigo, texto = acc.GetName(0)
+        self.assertEqual(codigo, wx.ACC_OK)
+        self.assertTrue(texto.startswith("[¡"), texto)
+
+    def test_valor_con_duracion_sale_marcado(self):
+        acc = self._accesible(pos_ms=10_000, dur_ms=60_000)
+        with con_pseudo():
+            codigo, texto = acc.GetValue(0)
+        self.assertEqual(codigo, wx.ACC_OK)
+        self.assertTrue(texto.startswith("[¡"), texto)
+
+    def test_valor_en_directo_sale_marcado(self):
+        def falla():
+            raise RuntimeError("sin frase")
+        acc = self._accesible(frase=falla)
+        with con_pseudo():
+            codigo, texto = acc.GetValue(0)
+        self.assertEqual(codigo, wx.ACC_OK)
+        self.assertTrue(texto.startswith("[¡"), texto)
+
+    def test_en_espanol_son_identicos(self):
+        acc = self._accesible()
+        self.assertEqual(acc.GetName(0), (wx.ACC_OK, "Posición de reproducción"))
+        acc = self._accesible(pos_ms=10_000, dur_ms=60_000)
+        self.assertEqual(
+            acc.GetValue(0), (wx.ACC_OK, "10 segundos de 1 minuto 0 segundos"))
+        def falla():
+            raise RuntimeError("sin frase")
+        acc = self._accesible(frase=falla)
+        self.assertEqual(acc.GetValue(0), (wx.ACC_OK, "En directo"))
+
+
 class TestPseudoTextosReproductor(unittest.TestCase):
     """Bajo pseudotraducción, cada frase al usuario sale marcada."""
 

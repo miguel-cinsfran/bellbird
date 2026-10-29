@@ -195,16 +195,19 @@ class _PosAccesible(wx.Accessible):
         self._panel = panel
 
     def GetName(self, childId):
-        return (wx.ACC_OK, "Posición de reproducción")
+        # Traductores: nombre que el lector de pantalla da al deslizador de posición.
+        return (wx.ACC_OK, _("Posición de reproducción"))
 
     def GetValue(self, childId):
         p = self._panel
         if p._dur_ms > 0:
-            return (wx.ACC_OK, f"{_fmt_hablado(p._pos_ms)} de {_fmt_hablado(p._dur_ms)}")
+            # Traductores: {posicion} y {duracion} son tiempos hablados, como «2 minutos».
+            return (wx.ACC_OK, _("{posicion} de {duracion}").format(posicion=_fmt_hablado(p._pos_ms), duracion=_fmt_hablado(p._dur_ms)))
         try:
             return (wx.ACC_OK, p.frase_posicion_directo())
         except Exception:
-            return (wx.ACC_OK, "En directo")   # un live no tiene duración que anunciar
+            # Traductores: valor del deslizador de posición en un directo, que no tiene duración.
+            return (wx.ACC_OK, _("En directo"))   # un live no tiene duración que anunciar
 
 
 class ReproductorPanel(wx.Panel):

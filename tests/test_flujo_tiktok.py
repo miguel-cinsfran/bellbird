@@ -52,6 +52,33 @@ class TestResumenUrl(unittest.TestCase):
         self.assertNotIn("expire", resumen)
 
 
+class TestMismoFlujo(unittest.TestCase):
+
+    URL_A = ("https://pull-flv-l1-sg01.tiktokcdn.com"
+             "/game/stream-2137954827079778396_hd.flv"
+             "?expire=1761247296&sign=aaaa")
+    URL_B = ("https://pull-flv-l1-sg01.tiktokcdn.com"
+             "/game/stream-2137954827079778396_hd.flv"
+             "?expire=1761247356&sign=bbbb")
+    URL_OTRA_RUTA = ("https://pull-flv-l1-sg01.tiktokcdn.com"
+                     "/game/stream-9999_hd.flv"
+                     "?expire=1761247356&sign=bbbb")
+
+    def test_misma_ruta_con_distinta_firma_es_mismo_flujo(self):
+        self.assertTrue(flujo_tiktok.mismo_flujo(self.URL_A, self.URL_B))
+
+    def test_distinta_ruta_no_es_mismo_flujo(self):
+        self.assertFalse(flujo_tiktok.mismo_flujo(self.URL_A, self.URL_OTRA_RUTA))
+
+    def test_distinto_servidor_no_es_mismo_flujo(self):
+        otra = self.URL_B.replace("sg01", "sg02")
+        self.assertFalse(flujo_tiktok.mismo_flujo(self.URL_A, otra))
+
+    def test_con_una_vacia_no_es_mismo_flujo(self):
+        self.assertFalse(flujo_tiktok.mismo_flujo("", self.URL_B))
+        self.assertFalse(flujo_tiktok.mismo_flujo(self.URL_A, ""))
+
+
 class TestSondear(unittest.TestCase):
 
     def test_pide_rango_y_resume_codigo_tipo_y_bytes(self):

@@ -38,6 +38,18 @@ def resumen_url(url: str, ahora=None) -> str:
     return f"{resumen} vence={vence} quedan={quedan} s"
 
 
+def mismo_flujo(url_a: str, url_b: str) -> bool:
+    """Si las dos URL traen el mismo flujo: igual servidor y ruta.
+
+    La consulta trae firma y vencimiento nuevos en cada conexión y no
+    cuenta. Con una de las dos vacía, falso."""
+    if not url_a or not url_b:
+        return False
+    a = urllib.parse.urlsplit(url_a)
+    b = urllib.parse.urlsplit(url_b)
+    return (a.netloc, a.path) == (b.netloc, b.path)
+
+
 def sondear(url: str, abrir=None, plazo_s: float = 5) -> str:
     if abrir is None:
         abrir = urllib.request.urlopen

@@ -51,6 +51,7 @@ from ytchat.obs import obs_vigilante
 from ytchat.obs import obs_activacion
 from ytchat.obs import obs_cliente
 from ytchat.obs.obs_panel import GestorPanelObs
+from ytchat.player import flujo_tiktok
 from ytchat.ui.barra_estado import anchos_barra_estado
 from ytchat.ui.gui_redactar import PanelRedactar
 from ytchat.ui.sesion_conectada import SesionConectada
@@ -164,8 +165,7 @@ def mensaje_confirmar_salida(confirmar_salida: bool, chat_conectado: bool,
         return None
     transmision = bool(supervisor_activo or obs_transmitiendo)
     if chat_conectado and transmision:
-        return (_("¿Salir de la aplicación? Hay un chat conectado y una "
-                  "transmisión en curso."))
+        return (_("¿Salir de la aplicación? Hay un chat conectado y una transmisión en curso."))
     if chat_conectado:
         return _("¿Salir de la aplicación? Hay un chat conectado.")
     if transmision:
@@ -718,8 +718,7 @@ class YTChatFrame(wx.Frame):
 
     def _on_historial(self):
         from ytchat.ui.gui_historial import abrir_historial
-        abrir_historial(self, self._ruta_historial(),
-                        self._reconectar_desde_historial)
+        abrir_historial(self, self._ruta_historial(), self._reconectar_desde_historial)
 
     def _reconectar_desde_historial(self, url: str) -> None:
         """Desde el historial: si hay una sesión, desconecta; luego pone la URL
@@ -795,8 +794,7 @@ class YTChatFrame(wx.Frame):
             acepto = abrir_preferencias(self, self._config, avisos=avisos)
             # La lista ya se guardó en disco al tocar sus botones: se relee
             # haya aceptado o no, y el reloj se arma de nuevo con la lista nueva.
-            self.programador.recargar(
-                programados.cargar(paths.mensajes_programados()))
+            self.programador.recargar(programados.cargar(paths.mensajes_programados()))
             if acepto:
                 # El anuncio se difiere para que NVDA termine de decir el foco
                 # de la ventana principal antes de hablar, y sin interrumpir lo
@@ -1054,8 +1052,7 @@ class YTChatFrame(wx.Frame):
     def _on_chat_key(self, event):
         k = event.GetKeyCode()
         # La orilla suena sin consumir la tecla: NVDA sigue leyendo la fila.
-        if sonidos_eventos.es_orilla(k, self.lb_chat.GetSelection(),
-                                     self.lb_chat.GetCount()):
+        if sonidos_eventos.es_orilla(k, self.lb_chat.GetSelection(), self.lb_chat.GetCount()):
             _snd.reproducir("orilla")
         if k == ord('C') and event.ControlDown():
             self._copiar_mensaje()
@@ -1268,8 +1265,7 @@ class YTChatFrame(wx.Frame):
                 bool(getattr(self, "_conectado", False)),
                 bool(supervisor is not None and supervisor.activo),
                 bool(getattr(self, "_obs_transmitiendo", False)))
-            puede_vetar = callable(getattr(event, "CanVeto", None)) \
-                and event.CanVeto()
+            puede_vetar = callable(getattr(event, "CanVeto", None)) and event.CanVeto()
             if mensaje is not None and puede_vetar:
                 # Traductores: título del cuadro para salir.
                 dialogo = wx.MessageDialog(
@@ -1358,14 +1354,12 @@ class YTChatFrame(wx.Frame):
             except Exception: pass
 
     def _avisar_descartes(self) -> None:
-        if descartes.hay_que_avisar(self._stats.descartados,
-                                    self.sesion.descartes_avisado):
+        if descartes.hay_que_avisar(self._stats.descartados, self.sesion.descartes_avisado):
             try:
                 _snd.reproducir("aviso")
             except Exception:
                 pass
-            anunciar(descartes.frase_aviso(
-                self._config.get("umbral_solo_nombre", 0)))
+            anunciar(descartes.frase_aviso(self._config.get("umbral_solo_nombre", 0)))
             self.sesion.descartes_avisado = True
 
     def _on_diagnostico_timer(self, event):
@@ -1551,22 +1545,30 @@ class YTChatFrame(wx.Frame):
         reproductor con el flujo de TikTok (FLV, o HLS si no hay FLV). Lo llama main vía wx.CallAfter."""
         if not self._alive:
             return
+        reconexion = self.sesion.es_reconexion_tiktok(usuario)
+        previo = self.sesion.url_flujo_tiktok
         self.sesion.tipo_video = deteccion.LIVE
         self.sesion.es_tiktok = True
         self.sesion.usuario_tiktok = usuario or ""
-        self.chat_vivo.descartar()
-        self.chat_vivo.modelo.limpiar()
-        self._sc_totales.clear()
-        try:    self.lb_chat.Clear()
-        except Exception: pass
+        self.sesion.url_flujo_tiktok = url_flujo or ""
+        if not reconexion:
+            self.chat_vivo.descartar()
+            self.chat_vivo.modelo.limpiar()
+            self._sc_totales.clear()
+            try:    self.lb_chat.Clear()
+            except Exception: pass
         try:    self._com_panel.mostrar_no_disponible(
                     _("Los comentarios no están disponibles en los directos de TikTok."))
         except Exception: pass
-        autoplay = bool(self._config.get("autoplay_reproductor", True))
-        try:    self._rep_panel.set_flujo(url_flujo, autoplay=autoplay)
-        except Exception as exc: logger.debug("reproductor tiktok: %s", exc)
+        if not (reconexion
+                and flujo_tiktok.mismo_flujo(url_flujo, previo)):
+            autoplay = (False if reconexion
+                        else bool(self._config.get("autoplay_reproductor", True)))
+            try:    self._rep_panel.set_flujo(url_flujo, autoplay=autoplay)
+            except Exception as exc: logger.debug("reproductor tiktok: %s", exc)
         self._fijar_tipo(_("Directo de TikTok de @{usuario}: leyendo el chat.").format(usuario=usuario))
-        self.nb.ChangeSelection(PAG_CHAT)
+        if not reconexion:
+            self.nb.ChangeSelection(PAG_CHAT)
         self._actualizar_boton_directo()
 
     def set_url(self, url: str) -> None:
@@ -1638,8 +1640,7 @@ class YTChatFrame(wx.Frame):
         self._voz_nombre = voces[idx_actual]
 
     def _marcar_filtro(self):
-        idx = _IDX_FILTRO.get(
-            _NOMBRES_FILTRO[0] if self.chat_vivo.filtro is None else "", 0)
+        idx = _IDX_FILTRO.get(_NOMBRES_FILTRO[0] if self.chat_vivo.filtro is None else "", 0)
         # Buscar el índice cuyo valor coincide con el filtro del chat.
         for i, (_sin_uso, val) in enumerate(FILTROS):
             if val == self.chat_vivo.filtro:
@@ -1902,8 +1903,7 @@ def iniciar_gui(config, cola, stats, worker, parada,
     gui_actualizar_app.programar_aviso_version(frame)
     gui_directo_huerfano.programar_revision(frame)
     if config.get("sonido_inicio", True):
-        diagnostico.crear_hilo(
-            lambda: _snd.reproducir("app_inicio"), "SonidoInicio").start()
+        diagnostico.crear_hilo(lambda: _snd.reproducir("app_inicio"), "SonidoInicio").start()
     wx.CallAfter(frame._arrancar_precalentamiento)
 
     if url_inicial and iniciar_captura_cb:

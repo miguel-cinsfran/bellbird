@@ -762,6 +762,112 @@ class TestVentanaReal(unittest.TestCase):
         self.assertEqual(frame.lb_chat.GetName(), "Chat del directo")
 
 
+class TestConfigurarTiktokReconexionVentana(unittest.TestCase):
+    """configurar_tiktok en una reconexión no vacía el chat ni suena el flujo."""
+
+    URL_A = ("https://pull-flv-l1-sg01.tiktokcdn.com"
+             "/game/stream-2137954827079778396_hd.flv"
+             "?expire=1761247296&sign=aaaa")
+    URL_B = ("https://pull-flv-l1-sg01.tiktokcdn.com"
+             "/game/stream-2137954827079778396_hd.flv"
+             "?expire=1761247356&sign=bbbb")
+    URL_C = ("https://pull-flv-l1-sg01.tiktokcdn.com"
+             "/game/stream-9999_hd.flv"
+             "?expire=1761247356&sign=bbbb")
+
+    def setUp(self):
+        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+
+    def _ventana(self, autoplay=True):
+        configuracion = {
+            "atajos_raw": {}, "filtro_activo": "todos",
+            "mostrar_botones_reproductor": False, "mostrar_metadatos": True,
+            "mostrar_total_superchats": True, "overlay_activo": False,
+            "programados_activo": False, "autoplay_reproductor": autoplay,
+        }
+        from types import SimpleNamespace
+        stats = SimpleNamespace(leidos=0, superchats=0, descartados=0)
+        worker = SimpleNamespace(get_rate=lambda: 0, get_volume=lambda: 100)
+        with mock.patch.object(gui.diagnostico, "crear_hilo"):
+            frame = gui.YTChatFrame(None, configuracion,
+                                    queue.Queue(), stats, worker,
+                                    __import__("threading").Event())
+        self.addCleanup(destruir, frame)
+        frame.ShowWithoutActivating()
+        gui.wx.Yield()
+        frame._rep_panel = mock.Mock()
+        frame._conectado = True
+        return frame
+
+    def _con_mensaje(self, frame, texto="hola"):
+        frame.agregar_mensaje_chat("Ana", texto, "20:00:00", plataforma="tiktok",
+                                   canal_id="c1")
+        frame.chat_vivo.volcar()
+        gui.wx.Yield()
+
+    def test_primera_conexion_carga_el_flujo_vacia_el_chat_y_muestra_el_chat(self):
+        frame = self._ventana(autoplay=True)
+        self._con_mensaje(frame)
+        frame._sc_totales["Ana"] = 5.0
+        frame.nb.ChangeSelection(gui.PAG_COMENTARIOS)
+        gui.wx.Yield()
+        frame.configurar_tiktok("manu", self.URL_A)
+        gui.wx.Yield()
+        frame._rep_panel.set_flujo.assert_called_once_with(self.URL_A, autoplay=True)
+        self.assertEqual(frame.lb_chat.GetCount(), 0)
+        self.assertEqual(frame.chat_vivo.modelo.todos, [])
+        self.assertEqual(frame._sc_totales, {})
+        self.assertEqual(frame.nb.GetSelection(), gui.PAG_CHAT)
+        self.assertEqual(frame.sesion.url_flujo_tiktok, self.URL_A)
+
+    def test_reconexion_con_el_mismo_flujo_no_toca_nada(self):
+        frame = self._ventana()
+        frame.configurar_tiktok("manu", self.URL_A)
+        gui.wx.Yield()
+        frame._rep_panel.reset_mock()
+        self._con_mensaje(frame)
+        frame._sc_totales["Ana"] = 5.0
+        frame.nb.ChangeSelection(gui.PAG_COMENTARIOS)
+        gui.wx.Yield()
+        frame.configurar_tiktok("manu", self.URL_B)
+        gui.wx.Yield()
+        frame._rep_panel.set_flujo.assert_not_called()
+        self.assertEqual(frame.lb_chat.GetCount(), 1)
+        self.assertEqual(len(frame.chat_vivo.modelo.todos), 1)
+        self.assertEqual(frame._sc_totales, {"Ana": 5.0})
+        self.assertEqual(frame.nb.GetSelection(), gui.PAG_COMENTARIOS)
+        self.assertEqual(frame.sesion.url_flujo_tiktok, self.URL_B)
+
+    def test_reconexion_con_otro_flujo_lo_carga_sin_sonar_y_conserva_el_chat(self):
+        frame = self._ventana(autoplay=True)
+        frame.configurar_tiktok("manu", self.URL_A)
+        gui.wx.Yield()
+        frame._rep_panel.reset_mock()
+        self._con_mensaje(frame)
+        frame.nb.ChangeSelection(gui.PAG_COMENTARIOS)
+        gui.wx.Yield()
+        frame.configurar_tiktok("manu", self.URL_C)
+        gui.wx.Yield()
+        frame._rep_panel.set_flujo.assert_called_once_with(self.URL_C, autoplay=False)
+        self.assertEqual(frame.lb_chat.GetCount(), 1)
+        self.assertEqual(len(frame.chat_vivo.modelo.todos), 1)
+        self.assertEqual(frame.nb.GetSelection(), gui.PAG_COMENTARIOS)
+        self.assertEqual(frame.sesion.url_flujo_tiktok, self.URL_C)
+
+    def test_otro_usuario_sin_reiniciar_es_primera_conexion(self):
+        frame = self._ventana(autoplay=True)
+        frame.configurar_tiktok("manu", self.URL_A)
+        gui.wx.Yield()
+        frame._rep_panel.reset_mock()
+        self._con_mensaje(frame)
+        frame.configurar_tiktok("otro", self.URL_C)
+        gui.wx.Yield()
+        frame._rep_panel.set_flujo.assert_called_once_with(self.URL_C, autoplay=True)
+        self.assertEqual(frame.lb_chat.GetCount(), 0)
+        self.assertEqual(frame.nb.GetSelection(), gui.PAG_CHAT)
+        self.assertEqual(frame.sesion.usuario_tiktok, "otro")
+
+
 class TestFocoAlActivar(unittest.TestCase):
     """Al activarse la ventana no se roba el foco si ya está en un control
     suyo (p. ej. al cerrarse un aviso mientras se estaba en el reproductor)."""
@@ -5636,8 +5742,8 @@ class TestPseudoAnunciosGui(unittest.TestCase):
         marco._titulo_stream = ""
         marco._voz_nombre = "Voz"
         marco._sc_totales = {}
-        marco.sesion = mock.Mock(enlace_directo="", tipo_video="desconocido",
-                                 live_chat_id="", video_id="")
+        marco.sesion = SesionConectada(enlace_directo="", tipo_video="desconocido",
+                                        live_chat_id="", video_id="")
         marco._cola = mock.Mock(qsize=lambda: 0)
         marco._stats = mock.Mock(leidos=0, superchats=0)
         marco._worker = mock.Mock(get_rate=lambda: 0, get_volume=lambda: 100)

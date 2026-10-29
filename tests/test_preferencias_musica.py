@@ -18,10 +18,9 @@ from tests.ventanas_prueba import destruir
 
 
 # Textos que arma otro módulo y aparecen en la parte recorrida: no se
-# tocan acá. La salida predeterminada sale de `ytchat/ui/opciones_musica.py`.
-PENDIENTES_OTROS_MODULOS = (
-    "Salida predeterminada",
-)
+# tocan acá. La salida predeterminada (`ytchat/ui/opciones_musica.py`)
+# ya pasa por gettext y sale marcada, así que no deja pendientes.
+PENDIENTES_OTROS_MODULOS = ()
 
 
 class TestPseudoMusica(unittest.TestCase):

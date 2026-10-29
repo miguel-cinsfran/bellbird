@@ -377,17 +377,14 @@ class YTChatFrame(wx.Frame):
         # queden aplastados por el reproductor en ventanas bajas: 170 dejaba
         # ver 2-3 mensajes; con esto se ven varios más sin tocar el reproductor.
         self.nb.SetMinSize((-1, 260))
-        zvs.Add(self.nb, 3, wx.EXPAND | wx.BOTTOM, 10)
+        zvs.Add(self.nb, 4, wx.EXPAND | wx.BOTTOM, 10)
 
-        # Proporción 3/2 (antes el reproductor iba fijo en 0): chat y reproductor
-        # comparten el alto sobrante con algo más de peso para el chat —que tiene
-        # menos mínimo— para que queden equilibrados; el vídeo crece al agrandar la
-        # ventana en vez de quedar fijo y comerse el espacio del chat.
+        # Proporción 4/1 para lo que sobra, pero a 860x700 mandan los mínimos, que ya superan los 700.
         self._rep_panel = ReproductorPanel(self._zona, self._config)
         # Al alternar los botones del reproductor (desde su interruptor o el menú),
         # sincronizamos la casilla del menú y persistimos la preferencia.
         self._rep_panel.on_botones_toggle = self._on_botones_rep_cambio
-        zvs.Add(self._rep_panel, 2, wx.EXPAND)
+        zvs.Add(self._rep_panel, 1, wx.EXPAND)
 
         self._zona.SetSizer(zvs)
         vs.Add(self._zona, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)

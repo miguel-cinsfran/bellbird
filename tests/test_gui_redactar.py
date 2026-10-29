@@ -105,6 +105,14 @@ class TestPanelRedactar(unittest.TestCase):
         self.assertEqual(panel.texto.GetValue(), "")
         panel.Destroy()
 
+    def test_etiqueta_y_texto_comparten_la_fila_horizontal(self):
+        panel = self.panel()
+        sizer = panel.etiqueta.GetContainingSizer()
+        self.assertIsNotNone(sizer)
+        self.assertIs(panel.texto.GetContainingSizer(), sizer)
+        self.assertEqual(sizer.GetOrientation(), wx.HORIZONTAL)
+        panel.Destroy()
+
 
 class TestDialogoRedactar(unittest.TestCase):
     @classmethod

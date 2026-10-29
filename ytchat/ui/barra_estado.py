@@ -13,12 +13,13 @@ _FIJOS = (
     (3, "Cola: 9999"),
     (4, "Leídos: 99999"),
     (5, "Voz vol: 100%"),
+    (6, "SC: 999 (US$99999.99)"),
 )
 
 
 def anchos_barra_estado(medir):
     """Lista de 7 anchos para SetStatusWidths; medir(texto) da píxeles."""
-    anchos = [-3, 0, -3, 0, 0, 0, -2]
+    anchos = [-5, 0, -3, 0, 0, 0, 0]
     for indice, muestra in _FIJOS:
         anchos[indice] = medir(muestra) + _MARGEN
     return anchos

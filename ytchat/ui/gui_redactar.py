@@ -21,9 +21,9 @@ class PanelRedactar(wx.Panel):
         self._motivo = ""
 
         vs = wx.BoxSizer(wx.VERTICAL)
-        self.etiqueta = wx.StaticText(self, label=etiqueta, name="EtiquetaRedaccion")
-        vs.Add(self.etiqueta, 0, wx.BOTTOM, 4)
         fila = wx.BoxSizer(wx.HORIZONTAL)
+        self.etiqueta = wx.StaticText(self, label=etiqueta, name="EtiquetaRedaccion")
+        fila.Add(self.etiqueta, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
         self.texto = wx.TextCtrl(self, style=wx.TE_MULTILINE, name=_("Mensaje para el chat"))
         self.texto.SetMinSize((-1, 3 * self.texto.GetCharHeight() + 12))
         fila.Add(self.texto, 1, wx.EXPAND | wx.RIGHT, 6)

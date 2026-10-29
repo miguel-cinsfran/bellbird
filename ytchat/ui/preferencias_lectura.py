@@ -15,6 +15,7 @@ import wx
 from ytchat.core.avisos_tiktok import AVISOS, MODOS
 from ytchat.core.idioma import N_, _
 from ytchat.ui.accesibilidad import ContadorAccesible
+from ytchat.ui.gui import caja_de_grupo
 from ytchat.ui.tema import _T, _tc
 from ytchat.ui.preferencias_comun import EleccionTexto
 
@@ -92,16 +93,21 @@ class PaginaLectura:
         return p
 
     def _construir_tiktok(self, p, vs):
-        vs.Add(self._fila_label(p, _("Avisos de TikTok")), 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
+        box, padre = caja_de_grupo(p, _("Avisos de TikTok"))
+        grilla = wx.FlexGridSizer(0, 2, 6, 10)
+        grilla.AddGrowableCol(1, 1)
         for _tipo, clave, etiqueta, _fabrica in AVISOS:
             texto = _(etiqueta)
-            vs.Add(self._fila_label(p, texto), 0, wx.LEFT | wx.RIGHT, 10)
+            grilla.Add(self._fila_label(padre, texto), 0,
+                       wx.ALIGN_CENTER_VERTICAL)
             lista = EleccionTexto(
-                p, [(valor, _(rotulo)) for valor, rotulo in MODOS],
+                padre, [(valor, _(rotulo)) for valor, rotulo in MODOS],
                 name=texto.replace("&", "").rstrip(":"))
             _tc(lista)
             setattr(self, "cho_" + clave, lista)
-            vs.Add(lista, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+            grilla.Add(lista, 0, wx.EXPAND)
+        box.Add(grilla, 1, wx.EXPAND | wx.ALL, 10)
+        vs.Add(box, 0, wx.EXPAND | wx.ALL, 10)
 
     def _construir_recientes(self, p, vs):
         vs.Add(self._fila_label(p, _("Leer los mensajes recientes &con:")),

@@ -611,8 +611,8 @@ class ReproductorPanel(wx.Panel):
         # genérica: sin nombre accesible reforzado, el lector no dice nada útil
         # al llegar aquí (p. ej. con doble clic para pantalla completa).
         # Traductores: superficie donde se ve el vídeo.
-        self._video = wx.Window(caja, size=(-1, 160), name=_("Vídeo"))
-        self._video.SetMinSize((-1, 160))  # piso: que no lo aplaste el chat
+        self._video = wx.Window(caja, size=(-1, 100), name=_("Vídeo"))
+        self._video.SetMinSize((-1, 100))  # piso: que no lo aplaste el chat
         self._video.SetBackgroundColour(wx.BLACK)
         nombre_accesible(self._video, _("Vídeo. Ctrl+F abre la pantalla completa."))
         box.Add(self._video, 1, wx.EXPAND | wx.ALL, 6)
@@ -662,7 +662,7 @@ class ReproductorPanel(wx.Panel):
         row.Add(self.lbl_tiempo, 0, wx.ALIGN_CENTER_VERTICAL)
         box.Add(row, 0, wx.EXPAND | wx.ALL, 6)
 
-        # Fila 3: volumen + estado.
+        # Fila 3: volumen + estado + interruptor para mostrar/ocultar los botones.
         row = wx.BoxSizer(wx.HORIZONTAL)
         # Traductores: etiqueta del deslizador de volumen.
         lbl = wx.StaticText(self, label=_("Volumen:"), name="EtiquetaVolumenReproductor")
@@ -681,13 +681,10 @@ class ReproductorPanel(wx.Panel):
         self.lbl_estado = wx.StaticText(self, label=_("Sin reproducir."), name="EstadoReproductor")
         self._texto_estado = _("Sin reproducir.")
         self.lbl_estado.SetForegroundColour(_T.accent)
-        row.Add(self.lbl_estado, 1, wx.ALIGN_CENTER_VERTICAL)
-        box.Add(row, 0, wx.EXPAND | wx.ALL, 6)
-
-        # Fila 4: interruptor para mostrar/ocultar los botones de control. Va el
-        # último para no estorbar el recorrido de Tab de los controles de uso;
-        # queda siempre visible aunque la fila de botones esté oculta.
-        row = wx.BoxSizer(wx.HORIZONTAL)
+        row.Add(self.lbl_estado, 1, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 12)
+        # El interruptor va el último para no estorbar el recorrido de Tab de
+        # los controles de uso; queda siempre visible aunque la fila de botones
+        # esté oculta.
         self.btn_toggle_botones = wx.Button(self, name="AlternarBotonesReproductor",
                                             label=self._etiqueta_toggle())
         self.btn_toggle_botones.SetBackgroundColour(_T.btn)
@@ -695,8 +692,8 @@ class ReproductorPanel(wx.Panel):
         self.btn_toggle_botones.SetToolTip(
             _("Muestra u oculta los botones de control del reproductor. También en "
               "el menú Reproductor. Los atajos funcionan estén o no visibles."))
-        row.Add(self.btn_toggle_botones, 0)
-        box.Add(row, 0, wx.ALL, 6)
+        row.Add(self.btn_toggle_botones, 0, wx.ALIGN_CENTER_VERTICAL)
+        box.Add(row, 0, wx.EXPAND | wx.ALL, 6)
 
         self.SetSizer(box)
 

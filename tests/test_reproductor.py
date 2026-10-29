@@ -1527,6 +1527,31 @@ class TestPseudoReproductorVentana(unittest.TestCase):
         self.assertEqual(sorted(sin_marcar), sorted(PENDIENTES_REPRODUCTOR))
 
 
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestFilaVolumenInterruptor(unittest.TestCase):
+    """El interruptor de los botones comparte la fila del volumen.
+
+    Con ventana: la corre el advisor. No correr aquí.
+    """
+
+    def setUp(self):
+        self.app = wx.App(False) if not wx.App.Get() else wx.App.Get()
+
+    def _panel(self):
+        marco = wx.Frame(None)
+        self.addCleanup(destruir, marco)
+        config = {"mostrar_botones_reproductor": True,
+                  "reproductor_solo_audio": False}
+        with mock.patch.object(reproductor, "disponible",
+                               return_value=True):
+            return reproductor.ReproductorPanel(marco, config)
+
+    def test_interruptor_y_volumen_en_el_mismo_sizer(self):
+        panel = self._panel()
+        self.assertIs(panel.btn_toggle_botones.GetContainingSizer(),
+                      panel.sld_vol.GetContainingSizer())
+
+
 class TestPseudoAnunciosReproductor(unittest.TestCase):
     """Bajo pseudotraducción, cada anuncio del reproductor sale marcado.
 

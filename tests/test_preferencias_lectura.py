@@ -146,5 +146,63 @@ class TestAvisosTiktok(unittest.TestCase):
         self.assertEqual(parser.get("tiktok", "aviso_cofres"), "ocultar")
 
 
+class TestAvisosEnGrupo(unittest.TestCase):
+    """Los cinco avisos de TikTok van en un recuadro con su título.
+
+    Abren ventanas: las corre el advisor en la otra PC, no se corren acá.
+    """
+
+    def setUp(self):
+        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.ruta = Path(self.tmp.name)
+        (self.ruta / "config.ini").write_text(config._CONFIG_FALLBACK,
+                                              encoding="utf-8")
+        parche = redirigir_rutas(self.ruta)
+        parche.__enter__()
+        self.addCleanup(parche.__exit__, None, None, None)
+
+    def _dialogo(self, configuracion=None):
+        with mock.patch.object(motores, "listar_voces",
+                               return_value=["Voz de prueba"]):
+            dialogo = gui_preferencias.PreferenciasDialog(
+                None, configuracion or {})
+        self.addCleanup(destruir, dialogo)
+        return dialogo
+
+    def _caja_de_avisos(self, dialogo):
+        pagina = next(p for p in dialogo._paginas()
+                      if p.GetName() == "PagLectura")
+        pendientes = [pagina]
+        while pendientes:
+            actual = pendientes.pop()
+            if (isinstance(actual, gui.wx.StaticBox)
+                    and actual.GetLabel() == "Avisos de TikTok"):
+                return actual
+            pendientes.extend(actual.GetChildren())
+        self.fail("sin recuadro de Avisos de TikTok")
+
+    def test_los_cinco_combinados_tienen_como_padre_la_caja(self):
+        dialogo = self._dialogo()
+        caja = self._caja_de_avisos(dialogo)
+        for atributo, _en_memoria, _nombre in AVISOS_ESPERADOS:
+            with self.subTest(atributo=atributo):
+                self.assertIs(getattr(dialogo, atributo).GetParent(), caja)
+
+    def test_la_caja_ordena_en_dos_columnas(self):
+        dialogo = self._dialogo()
+        caja = self._caja_de_avisos(dialogo)
+        pagina = next(p for p in dialogo._paginas()
+                      if p.GetName() == "PagLectura")
+        cajas = [it.GetSizer() for it in pagina.GetSizer().GetChildren()
+                 if isinstance(it.GetSizer(), gui.wx.StaticBoxSizer)]
+        box = next(b for b in cajas if b.GetStaticBox() is caja)
+        grillas = [it.GetSizer() for it in box.GetChildren()
+                   if isinstance(it.GetSizer(), gui.wx.FlexGridSizer)]
+        self.assertEqual(len(grillas), 1)
+        self.assertEqual(grillas[0].GetCols(), 2)
+
+
 if __name__ == "__main__":
     unittest.main()

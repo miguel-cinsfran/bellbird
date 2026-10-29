@@ -1707,8 +1707,13 @@ class TestCategoriasDePreferencias(unittest.TestCase):
                      "Longitud máxima del mensaje",
                      "Leer los mensajes recientes con",
                      "LecturaAtajosGlobales"]
-        orden = [h.GetName() for h in pagina.GetChildren()
-                 if h.GetName() in esperados]
+        orden = []
+        pendientes = list(reversed(pagina.GetChildren()))
+        while pendientes:
+            actual = pendientes.pop()
+            if actual.GetName() in esperados:
+                orden.append(actual.GetName())
+            pendientes.extend(reversed(actual.GetChildren()))
         self.assertEqual(orden, esperados)
 
     def test_los_mnemonicos_de_lectura_no_se_repiten_y_la_c_es_del_control(self):

@@ -96,6 +96,7 @@ class MicrofonoObsDialog(wx.Dialog):
         vs.Add(self.rotulo_fuente, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.cho_fuente = wx.Choice(
             self, choices=list(fuentes), name=_("Fuente de OBS"))
+        self.cho_fuente.SetMinSize((320, -1))
         if fuente:
             self.cho_fuente.SetStringSelection(fuente)
         vs.Add(self.cho_fuente, 0, wx.EXPAND | wx.ALL, 10)
@@ -104,6 +105,7 @@ class MicrofonoObsDialog(wx.Dialog):
         vs.Add(self.rotulo_dispositivo, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.cho_dispositivo = wx.Choice(
             self, choices=[], name=_("Dispositivo"))
+        self.cho_dispositivo.SetMinSize((320, -1))
         vs.Add(self.cho_dispositivo, 0, wx.EXPAND | wx.ALL, 10)
         self._cargar_dispositivos(pares, actual)
         fila = wx.BoxSizer(wx.HORIZONTAL)

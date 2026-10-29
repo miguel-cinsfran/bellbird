@@ -247,9 +247,9 @@ class PreferenciasDialog(wx.Dialog):
 
         vs.Add(self._fila_label(p, _("Leer solo el &nombre a partir de")),
                0, wx.LEFT | wx.RIGHT, 10)
-        self.sp_umbral_nombre = ContadorAccesible(
-            p, min=0, max=500,
+        self.sp_umbral_nombre = ContadorAccesible(p, min=0, max=500,
             name=_("Leer solo el nombre a partir de"))
+        vs.Add(self.sp_umbral_nombre, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         vs.Add(wx.StaticText(p, label=_("Con 0, esta opción queda apagada.")),
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
 

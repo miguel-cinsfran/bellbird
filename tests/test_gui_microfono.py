@@ -175,6 +175,13 @@ class TestMicrofonoObsDialogVentana(unittest.TestCase):
         self.assertEqual(dialogo.cho_dispositivo.GetStringSelection(),
                          "Predeterminado")
 
+    def test_combinados_con_ancho_minimo(self):
+        dialogo = self._dialogo()
+        for combinado in (dialogo.cho_fuente, dialogo.cho_dispositivo):
+            with self.subTest(combinado=combinado.GetName()):
+                self.assertGreaterEqual(
+                    combinado.GetMinSize().GetWidth(), 320)
+
     def test_orden_de_tab_foco_y_botones(self):
         dialogo = self._dialogo()
         focos = [hijo for hijo in dialogo.GetChildren()

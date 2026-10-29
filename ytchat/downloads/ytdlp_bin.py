@@ -13,7 +13,6 @@ from typing import NamedTuple
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-from ytchat.core import config
 from ytchat.core import diagnostico
 from ytchat.downloads import ffmpeg_bin
 from ytchat.core import paths
@@ -36,7 +35,8 @@ else:
 
 
 def _user_agent():
-    # Función y no constante: cuando diagnostico importa este módulo, config todavía no terminó de cargarse.
+    # Import local por el ciclo diagnostico, ytdlp_bin, config.
+    from ytchat.core import config
     return f"Bellbird/{config.APP_VERSION}"
 
 

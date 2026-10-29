@@ -1687,124 +1687,13 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             pendientes.extend(control.GetChildren())
         return None
 
-    def test_tiene_dieciseis_categorias_en_el_orden_acordado(self):
-        dialogo = self._dialogo()
-        self.assertEqual(
-            [dialogo.nb.GetPageText(i) for i in range(dialogo.nb.GetPageCount())],
-            ["General", "Voces", "Lectura", "Cola de lectura", "Interfaz",
-             "Sonidos", "Reproductor", "Música", "Conexión", "Filtros",
-             "Estado (F2)", "Atajos", "API y sesión", "Mensajes automáticos",
-             "Transmisión", "Inteligencia artificial"])
-
-    def test_pagina_general_primera_con_las_cuatro_casillas_en_orden(self):
-        dialogo = self._dialogo()
-        self.assertEqual(dialogo.nb.GetPageText(0), "General")
-        pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagGeneral")
-        casillas = [h.GetName() for h in pagina.GetChildren()
-                    if isinstance(h, gui.wx.CheckBox)]
-        self.assertEqual(
-            casillas,
-            ["Buscar actualizaciones al iniciar",
-             "Preguntar antes de salir si hay un chat conectado "
-             "o una transmisión en curso",
-             "Reproducir sonido de inicio",
-             "Guardar un registro detallado para diagnosticar fallos"])
-        self.assertFalse(any(p.GetName() == "PagDiagnostico"
-                             for p in dialogo._paginas()))
-
     def test_abre_con_el_foco_en_la_lista_de_categorias(self):
         dialogo = self._dialogo()
         self.assertIs(gui.wx.Window.FindFocus(), dialogo.lista_categorias)
 
-    def test_lista_de_categorias_muestra_el_nombre_mas_largo_entero(self):
-        dialogo = self._dialogo()
-        textos = [dialogo.nb.GetPageText(i)
-                  for i in range(dialogo.nb.GetPageCount())]
-        ancho_texto = max(dialogo.lista_categorias.GetTextExtent(t)[0]
-                          for t in textos)
-        self.assertGreaterEqual(
-            dialogo.lista_categorias.GetMinSize().width, ancho_texto)
-        try:
-            ancho_columna = dialogo.lista_categorias.GetColumnWidth(0)
-        except Exception:
-            ancho_columna = ancho_texto
-        self.assertGreaterEqual(ancho_columna, ancho_texto)
-
-    def test_controles_nuevos_tienen_su_nombre_accesible(self):
-        dialogo = self._dialogo()
-        for nombre, pagina in (
-                ("Buscar actualizaciones al iniciar", "PagGeneral"),
-                ("Preguntar antes de salir si hay un chat conectado "
-                 "o una transmisión en curso", "PagGeneral"),
-                ("Reproducir sonido de inicio", "PagGeneral"),
-                ("Guardar un registro detallado para diagnosticar fallos",
-                 "PagGeneral"),
-                ("Estrategia de la cola", "PagCola"),
-                ("Tamaño máximo de la cola", "PagCola"),
-                ("Leer solo el nombre a partir de", "PagCola"),
-                ("Reconectar automáticamente", "PagConexion"),
-                ("Espera máxima entre intentos, en segundos", "PagConexion"),
-                ("Número máximo de intentos", "PagConexion"),
-                ("Puerto del panel de chat", "PagTransmision"),
-                ("Micrófono de OBS", "PagTransmision")):
-            control = self._buscar(dialogo, nombre)
-            self.assertIsNotNone(control)
-            self.assertEqual(control.GetParent().GetName(), pagina)
-
-    def test_pagina_lectura_tiene_los_controles_en_el_orden_de_tab(self):
-        dialogo = self._dialogo()
-        pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagLectura")
-        esperados = ["Formato de lectura", "LimpiarEmojis", "EliminarURLs",
-                     "Entradas al directo", "Me gusta", "Seguidores nuevos",
-                     "Directo compartido", "Cofres",
-                     "Longitud máxima del mensaje",
-                     "Leer los mensajes recientes con",
-                     "LecturaAtajosGlobales"]
-        orden = []
-        pendientes = list(reversed(pagina.GetChildren()))
-        while pendientes:
-            actual = pendientes.pop()
-            if actual.GetName() in esperados:
-                orden.append(actual.GetName())
-            pendientes.extend(reversed(actual.GetChildren()))
-        self.assertEqual(orden, esperados)
-
-    def test_los_mnemonicos_de_lectura_no_se_repiten_y_la_c_es_del_control(self):
-        dialogo = self._dialogo()
-        pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagLectura")
-        letras = []
-        for control in pagina.GetChildren():
-            if not isinstance(control, (gui.wx.StaticText, gui.wx.Button,
-                                        gui.wx.CheckBox, gui.wx.RadioButton)):
-                continue
-            etiqueta = control.GetLabel()
-            if "&" in etiqueta:
-                letras.append(etiqueta.split("&", 1)[1][:1].lower())
-        self.assertEqual(len(letras), len(set(letras)), letras)
-        self.assertEqual(letras.count("c"), 1)
-
-    def test_pagina_voces_tiene_los_controles_en_el_orden_de_tab(self):
-        dialogo = self._dialogo()
-        pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagVoz")
-        esperados = ["Motor de voz", "Voz de lectura", "Velocidad de la voz",
-                     "Volumen de la voz", "Tono de la voz", "Probar voz",
-                     "MultiVoz", "Voz para los eventos"]
-        orden = [h.GetName() for h in pagina.GetChildren()
-                 if h.GetName() in esperados]
-        self.assertEqual(orden, esperados)
-        self.assertEqual(dialogo.pagina_voz.sp_velocidad.GetIncrement(), 5)
-        self.assertEqual(dialogo.pagina_voz.sp_volumen.GetIncrement(), 5)
-        self.assertEqual(dialogo.pagina_voz.sp_tono.GetIncrement(), 5)
-
     def test_mensaje_nuevo_nace_activo(self):
         dialogo = self._dialogo()
         self.assertTrue(dialogo.pagina_programados.chk_mensaje_activo.GetValue())
-
-    def test_lista_de_programados_tiene_nombre_accesible(self):
-        dialogo = self._dialogo()
-        control = self._buscar(dialogo, "Mensajes automáticos guardados")
-        self.assertIsNotNone(control)
-        self.assertIs(control, dialogo.pagina_programados.lista_programados)
 
     def test_microfono_guardado_se_conserva_sin_consultar_obs(self):
         with mock.patch.object(motores, "listar_voces", return_value=["Voz de prueba"]):
@@ -1815,63 +1704,6 @@ class TestCategoriasDePreferencias(unittest.TestCase):
         self.assertEqual(dialogo.cho_microfono_obs.GetStringSelection(), "Mic/Aux")
         self.assertEqual(dialogo.cho_microfono_obs.GetStrings(),
                          ["Elegir automáticamente", "Mic/Aux"])
-
-    def test_pagina_musica_despues_de_reproductor_con_sus_controles_en_orden(self):
-        dialogo = self._dialogo()
-        textos = [dialogo.nb.GetPageText(i)
-                  for i in range(dialogo.nb.GetPageCount())]
-        self.assertEqual(textos.index("Música"), textos.index("Reproductor") + 1)
-        pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagMusica")
-        esperados = ["Carpeta de música", "MusicaAleatorio", "Repetir la música",
-                     "MusicaRetomar", "Fundido entre canciones, en segundos",
-                     "MusicaSonidoTema", "Qué decir al pasar de canción",
-                     "MusicaDecirPausa", "Volumen de la música",
-                     "Preguntar al abrir Música si igualar el volumen",
-                     "Salida de audio de la música", "Buscar salidas de audio",
-                     "MusicaAtajosGlobales"]
-        orden = [h.GetName() for h in pagina.GetChildren()
-                 if h.GetName() in esperados]
-        self.assertEqual(orden, esperados)
-
-    def test_pagina_musica_etiquetas_con_su_mnemonico(self):
-        dialogo = self._dialogo()
-        pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagMusica")
-        etiquetas = [c.GetLabel() for c in pagina.GetChildren()
-                     if isinstance(c, (gui.wx.StaticText, gui.wx.Button,
-                                       gui.wx.CheckBox))
-                     and "&" in c.GetLabel()]
-        self.assertEqual(etiquetas, [
-            "Carpeta de &música:",
-            "Reproducir en orden &aleatorio",
-            "&Repetir:",
-            "Recordar ú&ltima lista al abrir",
-            "&Fundido entre canciones, en segundos:",
-            "&Sonido al pasar de canción",
-            "&Decir al pasar de canción:",
-            "A&nunciar pausa, reanudación y vuelta al comienzo",
-            "&Volumen de la música",
-            "&Igualar volumen de las canciones",
-            "Pr&eguntar al abrir Música si igualar el volumen",
-            "Salida de a&udio de la música",
-            "&Buscar salidas de audio",
-            "Usar atajos de música en cualquier &programa",
-        ])
-
-    def test_los_mnemonicos_de_musica_no_se_repiten_ni_chocan_con_guardar(self):
-        dialogo = self._dialogo()
-        pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagMusica")
-        letras = []
-        for control in pagina.GetChildren():
-            if not isinstance(control, (gui.wx.StaticText, gui.wx.Button,
-                                        gui.wx.CheckBox, gui.wx.RadioButton)):
-                continue
-            etiqueta = control.GetLabel()
-            if "&" in etiqueta:
-                letras.append(etiqueta.split("&", 1)[1][:1].lower())
-        self.assertEqual(len(letras), 14)
-        self.assertEqual(len(letras), len(set(letras)), letras)
-        self.assertNotIn("g", letras)
-        self.assertNotIn("c", letras)
 
     def test_salida_guardada_se_conserva_sin_consultar_vlc(self):
         with mock.patch.object(motores, "listar_voces", return_value=["Voz de prueba"]):
@@ -1993,32 +1825,6 @@ class TestCategoriasDePreferencias(unittest.TestCase):
         hilo.start.assert_called_once_with()
         gestor.conectar.assert_called_once_with()
 
-    def test_las_paginas_se_desplazan_en_vertical(self):
-        # Atajos mide más de 1200 px: sin desplazamiento, sus botones de
-        # abajo (y «Restablecer») quedaban fuera del alcance del ratón.
-        dialogo = self._dialogo()
-        for pagina in dialogo._paginas():
-            with self.subTest(pagina=pagina.GetName()):
-                self.assertIsInstance(pagina, gui.wx.ScrolledWindow)
-                self.assertEqual(pagina.GetScrollPixelsPerUnit(), (0, 20))
-
-    def test_cada_pagina_cabe_a_lo_ancho(self):
-        # No hay desplazamiento horizontal: lo que no quepa a lo ancho se corta.
-        dialogo = self._dialogo()
-        barra = gui.wx.SystemSettings.GetMetric(gui.wx.SYS_VSCROLL_X)
-        for pagina in dialogo._paginas():
-            with self.subTest(pagina=pagina.GetName()):
-                visible = pagina.GetClientSize().width
-                self.assertGreater(visible, 100)
-                self.assertLessEqual(pagina.GetSizer().GetMinSize().width, visible - barra)
-
-    def test_el_dialogo_se_puede_agrandar_pero_no_por_debajo_de_las_paginas(self):
-        dialogo = self._dialogo()
-        self.assertTrue(dialogo.GetWindowStyleFlag() & gui.wx.RESIZE_BORDER)
-        necesario = max(p.GetSizer().GetMinSize().width for p in dialogo._paginas())
-        self.assertGreater(dialogo.GetMinSize().width, necesario)
-        self.assertGreaterEqual(dialogo.GetSize().width, dialogo.GetMinSize().width)
-
     def test_respuestas_de_hilos_ignoran_el_dialogo_destruido(self):
         dialogo = self._dialogo()
         with mock.patch.object(gui_preferencias.PreferenciasDialog, "__bool__",
@@ -2120,6 +1926,223 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("ia", "decir_analizando")])
 
 
+class TestCategoriasDePreferenciasSoloLectura(unittest.TestCase):
+    # Las pruebas de solo lectura comparten un diálogo para construirlo una
+    # sola vez en vez de una por prueba.
+    @classmethod
+    def setUpClass(cls):
+        cls.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        cls.ruta = Path.cwd()
+        cls.parche_ruta = redirigir_rutas(cls.ruta)
+        cls.parche_ruta.__enter__()
+        with mock.patch.object(motores, "listar_voces",
+                               return_value=["Voz de prueba"]):
+            cls.dialogo = gui_preferencias.PreferenciasDialog(None, {})
+
+    @classmethod
+    def tearDownClass(cls):
+        destruir(cls.dialogo)
+        cls.parche_ruta.__exit__(None, None, None)
+        del cls.dialogo
+        del cls.app
+
+    _buscar = staticmethod(TestCategoriasDePreferencias._buscar)
+
+    def test_tiene_dieciseis_categorias_en_el_orden_acordado(self):
+        dialogo = self.dialogo
+        self.assertEqual(
+            [dialogo.nb.GetPageText(i) for i in range(dialogo.nb.GetPageCount())],
+            ["General", "Voces", "Lectura", "Cola de lectura", "Interfaz",
+             "Sonidos", "Reproductor", "Música", "Conexión", "Filtros",
+             "Estado (F2)", "Atajos", "API y sesión", "Mensajes automáticos",
+             "Transmisión", "Inteligencia artificial"])
+
+    def test_pagina_general_primera_con_las_cuatro_casillas_en_orden(self):
+        dialogo = self.dialogo
+        self.assertEqual(dialogo.nb.GetPageText(0), "General")
+        pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagGeneral")
+        casillas = [h.GetName() for h in pagina.GetChildren()
+                    if isinstance(h, gui.wx.CheckBox)]
+        self.assertEqual(
+            casillas,
+            ["Buscar actualizaciones al iniciar",
+             "Preguntar antes de salir si hay un chat conectado "
+             "o una transmisión en curso",
+             "Reproducir sonido de inicio",
+             "Guardar un registro detallado para diagnosticar fallos"])
+        self.assertFalse(any(p.GetName() == "PagDiagnostico"
+                             for p in dialogo._paginas()))
+
+    def test_lista_de_categorias_muestra_el_nombre_mas_largo_entero(self):
+        dialogo = self.dialogo
+        textos = [dialogo.nb.GetPageText(i)
+                  for i in range(dialogo.nb.GetPageCount())]
+        ancho_texto = max(dialogo.lista_categorias.GetTextExtent(t)[0]
+                          for t in textos)
+        self.assertGreaterEqual(
+            dialogo.lista_categorias.GetMinSize().width, ancho_texto)
+        try:
+            ancho_columna = dialogo.lista_categorias.GetColumnWidth(0)
+        except Exception:
+            ancho_columna = ancho_texto
+        self.assertGreaterEqual(ancho_columna, ancho_texto)
+
+    def test_controles_nuevos_tienen_su_nombre_accesible(self):
+        dialogo = self.dialogo
+        for nombre, pagina in (
+                ("Buscar actualizaciones al iniciar", "PagGeneral"),
+                ("Preguntar antes de salir si hay un chat conectado "
+                 "o una transmisión en curso", "PagGeneral"),
+                ("Reproducir sonido de inicio", "PagGeneral"),
+                ("Guardar un registro detallado para diagnosticar fallos",
+                 "PagGeneral"),
+                ("Estrategia de la cola", "PagCola"),
+                ("Tamaño máximo de la cola", "PagCola"),
+                ("Leer solo el nombre a partir de", "PagCola"),
+                ("Reconectar automáticamente", "PagConexion"),
+                ("Espera máxima entre intentos, en segundos", "PagConexion"),
+                ("Número máximo de intentos", "PagConexion"),
+                ("Puerto del panel de chat", "PagTransmision"),
+                ("Micrófono de OBS", "PagTransmision")):
+            control = self._buscar(dialogo, nombre)
+            self.assertIsNotNone(control)
+            self.assertEqual(control.GetParent().GetName(), pagina)
+
+    def test_pagina_lectura_tiene_los_controles_en_el_orden_de_tab(self):
+        dialogo = self.dialogo
+        pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagLectura")
+        esperados = ["Formato de lectura", "LimpiarEmojis", "EliminarURLs",
+                     "Entradas al directo", "Me gusta", "Seguidores nuevos",
+                     "Directo compartido", "Cofres",
+                     "Longitud máxima del mensaje",
+                     "Leer los mensajes recientes con",
+                     "LecturaAtajosGlobales"]
+        orden = []
+        pendientes = list(reversed(pagina.GetChildren()))
+        while pendientes:
+            actual = pendientes.pop()
+            if actual.GetName() in esperados:
+                orden.append(actual.GetName())
+            pendientes.extend(reversed(actual.GetChildren()))
+        self.assertEqual(orden, esperados)
+
+    def test_los_mnemonicos_de_lectura_no_se_repiten_y_la_c_es_del_control(self):
+        dialogo = self.dialogo
+        pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagLectura")
+        letras = []
+        for control in pagina.GetChildren():
+            if not isinstance(control, (gui.wx.StaticText, gui.wx.Button,
+                                        gui.wx.CheckBox, gui.wx.RadioButton)):
+                continue
+            etiqueta = control.GetLabel()
+            if "&" in etiqueta:
+                letras.append(etiqueta.split("&", 1)[1][:1].lower())
+        self.assertEqual(len(letras), len(set(letras)), letras)
+        self.assertEqual(letras.count("c"), 1)
+
+    def test_pagina_voces_tiene_los_controles_en_el_orden_de_tab(self):
+        dialogo = self.dialogo
+        pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagVoz")
+        esperados = ["Motor de voz", "Voz de lectura", "Velocidad de la voz",
+                     "Volumen de la voz", "Tono de la voz", "Probar voz",
+                     "MultiVoz", "Voz para los eventos"]
+        orden = [h.GetName() for h in pagina.GetChildren()
+                 if h.GetName() in esperados]
+        self.assertEqual(orden, esperados)
+        self.assertEqual(dialogo.pagina_voz.sp_velocidad.GetIncrement(), 5)
+        self.assertEqual(dialogo.pagina_voz.sp_volumen.GetIncrement(), 5)
+        self.assertEqual(dialogo.pagina_voz.sp_tono.GetIncrement(), 5)
+
+    def test_lista_de_programados_tiene_nombre_accesible(self):
+        dialogo = self.dialogo
+        control = self._buscar(dialogo, "Mensajes automáticos guardados")
+        self.assertIsNotNone(control)
+        self.assertIs(control, dialogo.pagina_programados.lista_programados)
+
+    def test_pagina_musica_despues_de_reproductor_con_sus_controles_en_orden(self):
+        dialogo = self.dialogo
+        textos = [dialogo.nb.GetPageText(i)
+                  for i in range(dialogo.nb.GetPageCount())]
+        self.assertEqual(textos.index("Música"), textos.index("Reproductor") + 1)
+        pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagMusica")
+        esperados = ["Carpeta de música", "MusicaAleatorio", "Repetir la música",
+                     "MusicaRetomar", "Fundido entre canciones, en segundos",
+                     "MusicaSonidoTema", "Qué decir al pasar de canción",
+                     "MusicaDecirPausa", "Volumen de la música",
+                     "Preguntar al abrir Música si igualar el volumen",
+                     "Salida de audio de la música", "Buscar salidas de audio",
+                     "MusicaAtajosGlobales"]
+        orden = [h.GetName() for h in pagina.GetChildren()
+                 if h.GetName() in esperados]
+        self.assertEqual(orden, esperados)
+
+    def test_pagina_musica_etiquetas_con_su_mnemonico(self):
+        dialogo = self.dialogo
+        pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagMusica")
+        etiquetas = [c.GetLabel() for c in pagina.GetChildren()
+                     if isinstance(c, (gui.wx.StaticText, gui.wx.Button,
+                                       gui.wx.CheckBox))
+                     and "&" in c.GetLabel()]
+        self.assertEqual(etiquetas, [
+            "Carpeta de &música:",
+            "Reproducir en orden &aleatorio",
+            "&Repetir:",
+            "Recordar ú&ltima lista al abrir",
+            "&Fundido entre canciones, en segundos:",
+            "&Sonido al pasar de canción",
+            "&Decir al pasar de canción:",
+            "A&nunciar pausa, reanudación y vuelta al comienzo",
+            "&Volumen de la música",
+            "&Igualar volumen de las canciones",
+            "Pr&eguntar al abrir Música si igualar el volumen",
+            "Salida de a&udio de la música",
+            "&Buscar salidas de audio",
+            "Usar atajos de música en cualquier &programa",
+        ])
+
+    def test_los_mnemonicos_de_musica_no_se_repiten_ni_chocan_con_guardar(self):
+        dialogo = self.dialogo
+        pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagMusica")
+        letras = []
+        for control in pagina.GetChildren():
+            if not isinstance(control, (gui.wx.StaticText, gui.wx.Button,
+                                        gui.wx.CheckBox, gui.wx.RadioButton)):
+                continue
+            etiqueta = control.GetLabel()
+            if "&" in etiqueta:
+                letras.append(etiqueta.split("&", 1)[1][:1].lower())
+        self.assertEqual(len(letras), 14)
+        self.assertEqual(len(letras), len(set(letras)), letras)
+        self.assertNotIn("g", letras)
+        self.assertNotIn("c", letras)
+
+    def test_las_paginas_se_desplazan_en_vertical(self):
+        # Atajos mide más de 1200 px: sin desplazamiento, sus botones de
+        # abajo (y «Restablecer») quedaban fuera del alcance del ratón.
+        dialogo = self.dialogo
+        for pagina in dialogo._paginas():
+            with self.subTest(pagina=pagina.GetName()):
+                self.assertIsInstance(pagina, gui.wx.ScrolledWindow)
+                self.assertEqual(pagina.GetScrollPixelsPerUnit(), (0, 20))
+
+    def test_cada_pagina_cabe_a_lo_ancho(self):
+        # No hay desplazamiento horizontal: lo que no quepa a lo ancho se corta.
+        dialogo = self.dialogo
+        barra = gui.wx.SystemSettings.GetMetric(gui.wx.SYS_VSCROLL_X)
+        for pagina in dialogo._paginas():
+            with self.subTest(pagina=pagina.GetName()):
+                visible = pagina.GetClientSize().width
+                self.assertGreater(visible, 100)
+                self.assertLessEqual(pagina.GetSizer().GetMinSize().width, visible - barra)
+
+    def test_el_dialogo_se_puede_agrandar_pero_no_por_debajo_de_las_paginas(self):
+        dialogo = self.dialogo
+        self.assertTrue(dialogo.GetWindowStyleFlag() & gui.wx.RESIZE_BORDER)
+        necesario = max(p.GetSizer().GetMinSize().width for p in dialogo._paginas())
+        self.assertGreater(dialogo.GetMinSize().width, necesario)
+        self.assertGreaterEqual(dialogo.GetSize().width, dialogo.GetMinSize().width)
+
+
 def _catalogo_de_prueba():
     """Catálogo ya reducido, como lo deja `catalogo.cargar` en disco."""
     base = "https://generativelanguage.googleapis.com/v1beta"
@@ -2197,15 +2220,6 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
                 continue
             orden.append(hijo.GetName())
         return orden
-
-    def test_orden_de_tab_sin_clave_guardada(self):
-        dialogo = self._dialogo()
-        self.assertEqual(self._orden_de_tab(dialogo), [
-            "ProveedorIA", "ClaveIA", "GuardarClaveIA",
-            "ProbarClaveIA", "ModeloIA", "ActualizarModelosIA",
-            "OtroModeloIA", "PreguntaIA", "RestaurarPreguntaIA",
-            "LargoIA", "TiempoIA", "DecirAnalizandoIA",
-        ])
 
     def test_orden_de_tab_con_clave_guardada(self):
         self.clave_guardada = "clave"
@@ -2287,22 +2301,6 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         dialogo.pagina_ia._on_ia_proveedor(None)
         self.assertTrue(dialogo.pagina_ia.ia_clave.txt_clave.IsShown())
         self.assertFalse(dialogo.pagina_ia.ia_clave.txt_estado.IsShown())
-
-    def test_los_mnemonicos_de_ia_no_se_repiten_ni_chocan_con_guardar(self):
-        dialogo = self._dialogo()
-        pagina = self._pagina(dialogo)
-        letras = []
-        for control in pagina.GetChildren():
-            if not isinstance(control, (gui.wx.StaticText, gui.wx.Button,
-                                        gui.wx.CheckBox)):
-                continue
-            etiqueta = control.GetLabel()
-            if "&" in etiqueta:
-                letras.append(etiqueta.split("&", 1)[1][:1].lower())
-        self.assertEqual(len(letras), 16)
-        self.assertEqual(len(letras), len(set(letras)), letras)
-        self.assertNotIn("g", letras)
-        self.assertNotIn("c", letras)
 
     def test_solo_el_proveedor_otro_muestra_la_direccion(self):
         dialogo = self._dialogo()
@@ -2585,18 +2583,6 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         self.assertEqual(dialogo.pagina_ia.lbl_ia_aviso.GetLabel(),
                          opciones_ia.TEXTO_CONTRIBUTOR)
 
-    def test_campos_ia_con_fondo_de_campo(self):
-        dialogo = self._dialogo()
-        campos = [dialogo.pagina_ia.cho_ia_proveedor, dialogo.pagina_ia.txt_ia_direccion,
-                  dialogo.pagina_ia.ia_clave.txt_estado, dialogo.pagina_ia.ia_clave.txt_clave,
-                  dialogo.pagina_ia.cho_ia_modelo, dialogo.pagina_ia.txt_ia_otro,
-                  dialogo.pagina_ia.txt_ia_pregunta, dialogo.pagina_ia.cho_ia_largo,
-                  dialogo.pagina_ia.sp_ia_tiempo]
-        for campo in campos:
-            with self.subTest(control=campo.GetName()):
-                self.assertEqual(campo.GetBackgroundColour(),
-                                 gui._T.field)
-
     def test_aviso_oculto_sin_aviso_y_visible_con_contributor(self):
         dialogo = self._dialogo(self._catalogo_con_openrouter())
         self.assertEqual(dialogo.pagina_ia.lbl_ia_aviso.GetLabel(), "")
@@ -2609,11 +2595,6 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         self.assertEqual(dialogo.pagina_ia.lbl_ia_aviso.GetLabel(),
                          opciones_ia.TEXTO_CONTRIBUTOR)
         self.assertTrue(dialogo.pagina_ia.lbl_ia_aviso.IsShown())
-
-    def test_instruccion_mide_cuatro_renglones(self):
-        dialogo = self._dialogo()
-        self.assertGreaterEqual(
-            dialogo.pagina_ia.txt_ia_pregunta.GetMinSize().height, 90)
 
     def test_probar_dispara_el_boton_y_suena_la_respuesta(self):
         hilo = mock.Mock()
@@ -2951,6 +2932,84 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
             boton.GetEventHandler().ProcessEvent(self._evento_boton(boton))
         self.assertEqual(sondeo_gratis.leer(paths.gratis_ia(), "gemini"), {})
         self.assertFalse(dialogo.pagina_ia.chk_ia_gratis.IsShown())
+
+
+class TestPaginaInteligenciaArtificialSoloLectura(unittest.TestCase):
+    # Las pruebas de solo lectura comparten un diálogo para construirlo una
+    # sola vez en vez de una por prueba.
+    @classmethod
+    def setUpClass(cls):
+        cls.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.parche_ruta = redirigir_rutas(Path(cls.tmp.name))
+        cls.parche_ruta.__enter__()
+        cls.clave_guardada = ""
+        cls.claves_por_proveedor = {}
+        cls.parche_claves = mock.patch.object(
+            preferencias_ia_clave.claves, "leer",
+            side_effect=lambda ident: cls.claves_por_proveedor.get(
+                ident, cls.clave_guardada))
+        cls.parche_claves.start()
+        with mock.patch.object(motores, "listar_voces",
+                               return_value=["Voz de prueba"]), \
+                mock.patch.object(
+                    preferencias_ia.catalogo, "cargar",
+                    return_value=_catalogo_de_prueba()):
+            cls.dialogo = gui_preferencias.PreferenciasDialog(None, {})
+
+    @classmethod
+    def tearDownClass(cls):
+        destruir(cls.dialogo)
+        cls.parche_claves.stop()
+        cls.parche_ruta.__exit__(None, None, None)
+        cls.tmp.cleanup()
+        del cls.dialogo
+        del cls.app
+
+    _pagina = TestPaginaInteligenciaArtificial._pagina
+    _orden_de_tab = staticmethod(TestPaginaInteligenciaArtificial._orden_de_tab)
+
+    def test_orden_de_tab_sin_clave_guardada(self):
+        dialogo = self.dialogo
+        self.assertEqual(self._orden_de_tab(dialogo), [
+            "ProveedorIA", "ClaveIA", "GuardarClaveIA",
+            "ProbarClaveIA", "ModeloIA", "ActualizarModelosIA",
+            "OtroModeloIA", "PreguntaIA", "RestaurarPreguntaIA",
+            "LargoIA", "TiempoIA", "DecirAnalizandoIA",
+        ])
+
+    def test_los_mnemonicos_de_ia_no_se_repiten_ni_chocan_con_guardar(self):
+        dialogo = self.dialogo
+        pagina = self._pagina(dialogo)
+        letras = []
+        for control in pagina.GetChildren():
+            if not isinstance(control, (gui.wx.StaticText, gui.wx.Button,
+                                        gui.wx.CheckBox)):
+                continue
+            etiqueta = control.GetLabel()
+            if "&" in etiqueta:
+                letras.append(etiqueta.split("&", 1)[1][:1].lower())
+        self.assertEqual(len(letras), 16)
+        self.assertEqual(len(letras), len(set(letras)), letras)
+        self.assertNotIn("g", letras)
+        self.assertNotIn("c", letras)
+
+    def test_campos_ia_con_fondo_de_campo(self):
+        dialogo = self.dialogo
+        campos = [dialogo.pagina_ia.cho_ia_proveedor, dialogo.pagina_ia.txt_ia_direccion,
+                  dialogo.pagina_ia.ia_clave.txt_estado, dialogo.pagina_ia.ia_clave.txt_clave,
+                  dialogo.pagina_ia.cho_ia_modelo, dialogo.pagina_ia.txt_ia_otro,
+                  dialogo.pagina_ia.txt_ia_pregunta, dialogo.pagina_ia.cho_ia_largo,
+                  dialogo.pagina_ia.sp_ia_tiempo]
+        for campo in campos:
+            with self.subTest(control=campo.GetName()):
+                self.assertEqual(campo.GetBackgroundColour(),
+                                 gui._T.field)
+
+    def test_instruccion_mide_cuatro_renglones(self):
+        dialogo = self.dialogo
+        self.assertGreaterEqual(
+            dialogo.pagina_ia.txt_ia_pregunta.GetMinSize().height, 90)
 
 
 class TestPreferenciasElevenLabs(unittest.TestCase):

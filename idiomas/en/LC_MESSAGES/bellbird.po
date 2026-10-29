@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-29 09:51-0300\n"
+"POT-Creation-Date: 2026-10-29 10:25-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -818,39 +818,39 @@ msgid "El vídeo no está disponible."
 msgstr "The video is not available."
 
 #. Traductores: {version} es la versión instalada o la nueva de yt-dlp.
-#: ytchat/downloads/ytdlp_bin.py:55
+#: ytchat/downloads/ytdlp_bin.py:60
 #, python-brace-format
 msgid "Ya tienes yt-dlp al día, versión {version}."
 msgstr "yt-dlp is already up to date, version {version}."
 
 #. Traductores: {version} es la versión nueva de yt-dlp.
-#: ytchat/downloads/ytdlp_bin.py:58
+#: ytchat/downloads/ytdlp_bin.py:63
 #, python-brace-format
 msgid "yt-dlp se actualizó a la versión {version}."
 msgstr "yt-dlp updated to version {version}."
 
-#: ytchat/downloads/ytdlp_bin.py:60
+#: ytchat/downloads/ytdlp_bin.py:65
 msgid ""
 "No se pudo comprobar la última versión de yt-dlp. Revisa la conexión a "
 "internet."
 msgstr "Could not check the latest yt-dlp version. Check your internet connection."
 
-#: ytchat/downloads/ytdlp_bin.py:62
+#: ytchat/downloads/ytdlp_bin.py:67
 msgid ""
 "La descarga de yt-dlp no pasó una comprobación de seguridad. No se "
 "instaló nada."
 msgstr "The yt-dlp download failed a security check. Nothing was installed."
 
-#: ytchat/downloads/ytdlp_bin.py:64
+#: ytchat/downloads/ytdlp_bin.py:69
 msgid "Se canceló la descarga de yt-dlp."
 msgstr "The yt-dlp download was canceled."
 
-#: ytchat/downloads/ytdlp_bin.py:66
+#: ytchat/downloads/ytdlp_bin.py:71
 #, python-brace-format
 msgid "No se pudo actualizar yt-dlp: {motivo}."
 msgstr "Could not update yt-dlp: {motivo}."
 
-#: ytchat/downloads/ytdlp_bin.py:67
+#: ytchat/downloads/ytdlp_bin.py:72
 msgid "No se pudo actualizar yt-dlp."
 msgstr "Could not update yt-dlp."
 
@@ -2555,7 +2555,7 @@ msgstr ""
 msgid "Buscando el vídeo, {segundos} segundos"
 msgstr "Looking for the video, {segundos} seconds"
 
-#: ytchat/player/reproductor.py:76 ytchat/ui/gui.py:669
+#: ytchat/player/reproductor.py:76 ytchat/ui/gui.py:670
 msgid "El reproductor no está disponible"
 msgstr "The player is not available"
 
@@ -3016,7 +3016,7 @@ msgid "Activar o desactivar los avisos de sobrecarga"
 msgstr "Turn overload warnings on or off"
 
 #. Traductores: acción del atajo que conecta el chat.
-#: ytchat/ui/atajos_captura.py:75 ytchat/ui/gui.py:334
+#: ytchat/ui/atajos_captura.py:75 ytchat/ui/gui.py:333
 msgid "Conectar"
 msgstr "Connect"
 
@@ -3462,7 +3462,7 @@ msgstr "&Link or ID:"
 msgid "Enlace del directo o vídeo"
 msgstr "Live stream or video link"
 
-#: ytchat/ui/gui.py:329
+#: ytchat/ui/gui.py:328
 msgid ""
 "Enlace de YouTube (directo o vídeo) o de un directo de TikTok "
 "(tiktok.com/@usuario/live). También vale el ID de 11 caracteres de "
@@ -3473,35 +3473,35 @@ msgstr ""
 "Enter to connect."
 
 #. Traductores: nombre accesible del botón para conectar.
-#: ytchat/ui/gui.py:334 ytchat/ui/gui.py:1670 ytchat/ui/gui_historial.py:63
+#: ytchat/ui/gui.py:333 ytchat/ui/gui.py:1670 ytchat/ui/gui_historial.py:63
 #: ytchat/ui/gui_menu.py:35
 msgid "&Conectar"
 msgstr "&Connect"
 
 #. Traductores: cuaderno con los paneles.
-#: ytchat/ui/gui.py:359
+#: ytchat/ui/gui.py:358
 msgid "Paneles"
 msgstr "Panes"
 
-#: ytchat/ui/gui.py:363 ytchat/ui/gui.py:425 ytchat/ui/gui.py:434
+#: ytchat/ui/gui.py:362 ytchat/ui/gui.py:427 ytchat/ui/gui.py:436
 msgid "Chat del directo"
 msgstr "Live chat"
 
 #. Traductores: pestaña de comentarios.
-#: ytchat/ui/gui.py:365
+#: ytchat/ui/gui.py:364
 msgid "Comentarios"
 msgstr "Comments"
 
 #. Traductores: pestaña con los datos del vídeo.
-#: ytchat/ui/gui.py:373 ytchat/ui/gui.py:1600
+#: ytchat/ui/gui.py:372 ytchat/ui/gui.py:1600
 msgid "Información"
 msgstr "Information"
 
-#: ytchat/ui/gui.py:420
+#: ytchat/ui/gui.py:422
 msgid "Mensajes del chat:"
 msgstr "Chat messages:"
 
-#: ytchat/ui/gui.py:431
+#: ytchat/ui/gui.py:433
 msgid ""
 "Mensajes del chat. Intro copia el mensaje. La tecla de aplicaciones abre "
 "el menú contextual."
@@ -3509,19 +3509,19 @@ msgstr ""
 "Chat messages. Enter copies the message. The applications key opens the "
 "context menu."
 
-#: ytchat/ui/gui.py:444 ytchat/ui/ia_ventana.py:99
+#: ytchat/ui/gui.py:446 ytchat/ui/ia_ventana.py:99
 msgid "&Mensaje:"
 msgstr "&Message:"
 
-#: ytchat/ui/gui.py:461
+#: ytchat/ui/gui.py:463
 msgid "Información del vídeo:"
 msgstr "Video information:"
 
-#: ytchat/ui/gui.py:470
+#: ytchat/ui/gui.py:471
 msgid "Información del vídeo"
 msgstr "Video information"
 
-#: ytchat/ui/gui.py:474
+#: ytchat/ui/gui.py:475
 msgid ""
 "Datos del vídeo: canal, vistas, descripción. Solo lectura. Para abrir un "
 "enlace, cópialo y pégalo en el navegador."
@@ -3529,17 +3529,17 @@ msgstr ""
 "Video data: channel, views, description. Read-only. To open a link, copy "
 "it and paste it in the browser."
 
-#: ytchat/ui/gui.py:617 ytchat/ui/gui.py:626
+#: ytchat/ui/gui.py:618 ytchat/ui/gui.py:627
 msgid "Conéctate primero para usar los paneles"
 msgstr "Connect first to use the panes"
 
 #. Traductores: región actual y pestaña al moverse con F6.
-#: ytchat/ui/gui.py:634
+#: ytchat/ui/gui.py:635
 #, python-brace-format
 msgid "{region}: {pagina}"
 msgstr "{region}: {pagina}"
 
-#: ytchat/ui/gui.py:641
+#: ytchat/ui/gui.py:642
 msgid "Conéctate primero"
 msgstr "Connect first"
 
@@ -7349,6 +7349,21 @@ msgstr "Could not start the chosen voice engine."
 #: ytchat/ui/prueba_voz.py:42 ytchat/ui/prueba_voz.py:66
 msgid "Así suena esta voz."
 msgstr "This is how this voice sounds."
+
+#. Traductores: fila de recientes; {plataforma} es YouTube o TikTok y
+#. {etiqueta} el canal, el título y la fecha.
+#: ytchat/ui/recientes_inicio.py:34
+#, python-brace-format
+msgid "{plataforma}: {etiqueta}"
+msgstr "{plataforma}: {etiqueta}"
+
+#: ytchat/ui/recientes_inicio.py:58
+msgid "&Directos recientes:"
+msgstr "&Recent streams:"
+
+#: ytchat/ui/recientes_inicio.py:63 ytchat/ui/recientes_inicio.py:65
+msgid "Directos recientes"
+msgstr "Recent streams"
 
 #: ytchat/voice/elevenlabs.py:37
 msgid "La clave de ElevenLabs no es válida."

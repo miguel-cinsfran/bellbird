@@ -58,7 +58,8 @@ cuenta propia.
 ## Primeros pasos
 
 Al abrir, el foco está en el campo de la dirección. Pega el enlace del
-directo o del vídeo y pulsa Intro.
+directo o del vídeo y pulsa Intro. Si ya viste otros directos, la ventana
+ofrece la lista de recientes, y con Intro se vuelve a abrir uno.
 
 La ventana tiene tres regiones: conexión, contenido y reproductor. `F6` y
 `Mayús+F6` pasan de una a otra, y `Ctrl+Tab` cambia entre las pestañas de

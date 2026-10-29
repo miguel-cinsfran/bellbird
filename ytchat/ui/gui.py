@@ -31,7 +31,7 @@ from ytchat.capture import estado_sesion
 from ytchat.core import historial
 from ytchat.ui.lista_chat import MensajeChat, texto_fila
 from ytchat.ui.chat_vivo import ControladorChat
-from ytchat.ui import atajos_captura
+from ytchat.ui import atajos_captura, recientes_inicio as recientes
 from ytchat.voice import escala_voz
 from ytchat.voice import sound_player as _snd
 from ytchat.youtube import credenciales
@@ -389,6 +389,7 @@ class YTChatFrame(wx.Frame):
         self._zona.SetSizer(zvs)
         vs.Add(self._zona, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self._zona.Hide()
+        self._inicio = recientes.armar(panel, vs, self._zona, self._reconectar_desde_historial)
 
         panel.SetSizer(vs)
         self._panel_principal = panel
@@ -714,8 +715,7 @@ class YTChatFrame(wx.Frame):
             logger.debug("registrar historial: %s", exc)
 
     def _on_historial(self):
-        from ytchat.ui.gui_historial import abrir_historial
-        abrir_historial(self, self._ruta_historial(), self._reconectar_desde_historial)
+        self._inicio.abrir_historial()
 
     def _reconectar_desde_historial(self, url: str) -> None:
         """Desde el historial: si hay una sesión, desconecta; luego pone la URL

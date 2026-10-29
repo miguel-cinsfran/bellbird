@@ -5240,6 +5240,7 @@ SUPERFICIES = {
     "gui_envio_chat.py": "redactar",
     "gui_estado.py": "principal",
     "gui_historial.py": "historial",
+    "recientes_inicio.py": "principal",
     "gui_menu.py": "menus",
     "gui_microfono.py": "microfono",
     "gui_musica.py": "musica",

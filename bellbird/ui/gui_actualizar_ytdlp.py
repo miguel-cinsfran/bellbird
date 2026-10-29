@@ -10,11 +10,12 @@ Herramientas y las pruebas.
 from __future__ import annotations
 
 from bellbird.core.idioma import _
+from bellbird.downloads import ytdlp_actualizar
 
 
 def abrir_ventana_actualizacion(frame) -> None:
     """Abre la ventana de actualización de yt-dlp o enfoca la ya abierta."""
-    from bellbird.ui.gui import diagnostico, logger, ytdlp_bin
+    from bellbird.ui.gui import diagnostico, logger
     from bellbird.ui.gui_actualizacion import DialogoActualizacion
     abierta = getattr(frame, "_ventana_actualizar_ytdlp", None)
     if abierta is not None and not abierta.cerrado:
@@ -49,14 +50,14 @@ def abrir_ventana_actualizacion(frame) -> None:
     def _actualizar_progreso(porcentaje):
         nonlocal ultimo_texto
         ventana.progreso(porcentaje)
-        if ytdlp_bin.debe_actualizar_texto_progreso(ultimo_texto, porcentaje):
+        if ytdlp_actualizar.debe_actualizar_texto_progreso(ultimo_texto, porcentaje):
             ultimo_texto = porcentaje
             # Traductores: {porcentaje} es el avance de 0 a 100.
             texto = _("Descargando yt-dlp: {porcentaje} por ciento")
             ventana.txt_estado.SetValue(texto.format(porcentaje=porcentaje))
 
     def _terminar(estado, texto):
-        if ytdlp_bin.resultado_actualizacion_es_fallo(estado):
+        if ytdlp_actualizar.resultado_actualizacion_es_fallo(estado):
             ventana.progreso(0)
         else:
             ventana.progreso(100)
@@ -68,14 +69,14 @@ def abrir_ventana_actualizacion(frame) -> None:
 
     def _run():
         try:
-            estado, version_actual, version_nueva = ytdlp_bin.actualizar_ytdlp(
+            estado, version_actual, version_nueva = ytdlp_actualizar.actualizar_ytdlp(
                 _avisar, _progreso, ventana.cancelado.is_set)
-            texto = ytdlp_bin.mensaje_de_actualizacion(
+            texto = ytdlp_actualizar.mensaje_de_actualizacion(
                 estado, version_actual, version_nueva)
         except Exception as exc:
             logger.warning("actualización de yt-dlp: %s", exc)
             estado = "otro_fallo"
-            texto = ytdlp_bin.mensaje_de_actualizacion(
+            texto = ytdlp_actualizar.mensaje_de_actualizacion(
                 "otro_fallo", motivo=str(exc))
         ventana.en_hilo_principal(_terminar, estado, texto)
 

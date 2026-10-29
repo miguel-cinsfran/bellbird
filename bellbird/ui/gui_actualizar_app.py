@@ -24,7 +24,7 @@ from bellbird.core import diagnostico
 from bellbird.core import paths
 from bellbird.core.config import APP_NAME, APP_VERSION, guardar_opcion
 from bellbird.core.idioma import _
-from bellbird.downloads import ytdlp_bin
+from bellbird.downloads import ytdlp_actualizar
 from bellbird.ui import aviso_diferido
 from bellbird.ui.accesibilidad import anunciar
 from bellbird.voice import sound_player as _snd
@@ -319,7 +319,7 @@ class _FlujoActualizacion:
 
     def _actualizar_progreso(self, porcentaje):
         self.ventana.progreso(porcentaje)
-        if ytdlp_bin.debe_actualizar_texto_progreso(
+        if ytdlp_actualizar.debe_actualizar_texto_progreso(
                 self.ultimo_texto, porcentaje):
             self.ultimo_texto = porcentaje
             self.ventana.txt_estado.SetValue(

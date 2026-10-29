@@ -37,7 +37,6 @@ from bellbird.voice import sound_player as _snd
 from bellbird.youtube import credenciales
 from bellbird.youtube import youtube_api
 from bellbird.core import diagnostico
-from bellbird.downloads import ytdlp_bin
 from bellbird.core import apagado
 from bellbird.capture.montos import texto_importes
 from bellbird.obs import overlay_servidor

@@ -2,7 +2,7 @@
 
 La lógica corre sin ventanas con una ventana falsa; la pseudotraducción de
 la ventana real la corre el advisor en la otra PC. El texto final lo arma
-`bellbird/downloads/ytdlp_bin.py` y llega marcado.
+`bellbird/downloads/ytdlp_actualizar.py` y llega marcado.
 """
 
 import unittest
@@ -73,7 +73,7 @@ class TestVentanaYtdlp(unittest.TestCase):
     """La lógica, sin ventanas: corre acá."""
 
     def _abrir(self, actualizar):
-        from bellbird.downloads import ytdlp_bin
+        from bellbird.downloads import ytdlp_actualizar
         ventanas = []
 
         def fabrica(padre, titulo):
@@ -86,7 +86,7 @@ class TestVentanaYtdlp(unittest.TestCase):
         frame._ventana_actualizar_ytdlp = None
         with mock.patch("bellbird.ui.gui_actualizacion.DialogoActualizacion",
                         side_effect=fabrica), \
-                mock.patch.object(ytdlp_bin, "actualizar_ytdlp",
+                mock.patch.object(ytdlp_actualizar, "actualizar_ytdlp",
                                   side_effect=actualizar), \
                 mock.patch("bellbird.core.diagnostico.crear_hilo",
                            side_effect=_hilo_inmediato):
@@ -161,7 +161,7 @@ class TestPseudoVentanaYtdlp(unittest.TestCase):
         del cls.app
 
     def test_no_queda_ningun_texto_visible_sin_envolver(self):
-        from bellbird.downloads import ytdlp_bin
+        from bellbird.downloads import ytdlp_actualizar
 
         def actualizar(avisar=None, progreso=None, cancelar=None):
             avisar("2.0")
@@ -171,7 +171,7 @@ class TestPseudoVentanaYtdlp(unittest.TestCase):
         frame = wx.Frame(None)
         self.addCleanup(destruir, frame)
         with con_pseudo(), \
-                mock.patch.object(ytdlp_bin, "actualizar_ytdlp",
+                mock.patch.object(ytdlp_actualizar, "actualizar_ytdlp",
                                   side_effect=actualizar), \
                 mock.patch("bellbird.core.diagnostico.crear_hilo",
                            side_effect=_hilo_inmediato), \

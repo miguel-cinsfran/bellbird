@@ -37,7 +37,7 @@ from bellbird.player import reproductor
 from bellbird.core import apagado
 from bellbird.capture import alias
 from bellbird.capture import programados
-from bellbird.downloads import ytdlp_bin
+from bellbird.downloads import ytdlp_actualizar
 from bellbird.ui.lista_chat import MensajeChat, ListaChat
 from bellbird.ui.sesion_conectada import SesionConectada
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
@@ -4139,7 +4139,7 @@ class TestActualizarYtdlp(unittest.TestCase):
                 mock.patch.object(gui.wx, "ProgressDialog") as dialogo, \
                 mock.patch.object(gui.wx, "MessageBox") as mensaje, \
                 mock.patch.object(gui.diagnostico, "crear_hilo", side_effect=crear), \
-                mock.patch.object(ytdlp_bin, "actualizar_ytdlp", side_effect=doble):
+                mock.patch.object(ytdlp_actualizar, "actualizar_ytdlp", side_effect=doble):
             gui.YTChatFrame._on_actualizar_ytdlp(frame, None)
         return frame, ventanas, hilo, dialogo, mensaje
 
@@ -4180,9 +4180,9 @@ class TestActualizarYtdlp(unittest.TestCase):
                 ventana = ventanas[0]
                 self.assertIn("Buscando", ventana.anuncios[0])
                 self.assertEqual(
-                    ytdlp_bin.mensaje_de_actualizacion(*resultado),
+                    ytdlp_actualizar.mensaje_de_actualizacion(*resultado),
                     ventana.anuncios[-1])
-                if ytdlp_bin.resultado_actualizacion_es_fallo(resultado[0]):
+                if ytdlp_actualizar.resultado_actualizacion_es_fallo(resultado[0]):
                     self.assertEqual(0, ventana.progresos[-1])
                 else:
                     self.assertEqual(100, ventana.progresos[-1])
@@ -4191,7 +4191,7 @@ class TestActualizarYtdlp(unittest.TestCase):
         def doble(avisar, progreso, cancelar):
             return "firma_incorrecta", "", "2026.08.21"
 
-        with mock.patch.object(ytdlp_bin, "mensaje_de_actualizacion",
+        with mock.patch.object(ytdlp_actualizar, "mensaje_de_actualizacion",
                                return_value="hecho") as mensaje:
             _, ventanas, _, _, _ = self._ejecutar(doble)
         mensaje.assert_called_once_with("firma_incorrecta", "", "2026.08.21")
@@ -4243,7 +4243,7 @@ class TestActualizarYtdlp(unittest.TestCase):
         with mock.patch.object(gui, "logger"):
             _, ventanas, _, _, _ = self._ejecutar(doble)
         self.assertEqual(
-            ytdlp_bin.mensaje_de_actualizacion("otro_fallo", motivo="boom"),
+            ytdlp_actualizar.mensaje_de_actualizacion("otro_fallo", motivo="boom"),
             ventanas[0].anuncios[-1])
         self.assertEqual(0, ventanas[0].progresos[-1])
 

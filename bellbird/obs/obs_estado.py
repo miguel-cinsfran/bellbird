@@ -11,6 +11,38 @@ NOTA_TRANSMISION = N_(
     "de chat es solo para YouTube: en TikTok los comentarios ya aparecen "
     "en el directo.")
 
+TEXTO_LIENZO = N_(
+    "El programa de emisión compone lo que ven los espectadores sobre un\n"
+    "rectángulo de tamaño fijo, llamado lienzo. No es la pantalla del equipo\n"
+    "ni la ventana del juego.\n\n"
+    "Lo que queda dentro del lienzo se emite. Lo que sobresale del borde se\n"
+    "recorta, sin ningún aviso.\n\n"
+    "Que dos fuentes se superpongan no es necesariamente un problema. El\n"
+    "fondo de este panel es transparente: solo se ven las tarjetas de los\n"
+    "mensajes, y solo tapan lo que hay justo debajo de ellas.")
+
+TEXTO_COMO_SE_COLOCA = N_(
+    "Este diálogo no crea escenas ni agrega otras fuentes, salvo la captura de ventana desde la sección Escena. Hace una sola\n"
+    "cosa: pone el panel de chat de esta aplicación dentro de una escena de OBS\n"
+    "y lo coloca donde quieras.\n\n"
+    "El orden es este.\n\n"
+    "Uno. Pulsa Preparar panel. Eso enciende el servidor del panel y crea la\n"
+    "fuente dentro de la escena elegida, si todavía no estaba.\n\n"
+    "Dos. Elige la escena en el desplegable Escena. Recorrerlo no cambia lo que\n"
+    "ven los espectadores: para eso está el botón Poner al aire.\n\n"
+    "Tres. Elige qué fuente vas a mover en el desplegable Fuente. Normalmente es\n"
+    "el panel de chat, pero puedes mover cualquier fuente que ya exista en la\n"
+    "escena. Este diálogo solo agrega el panel y la captura de ventana: lo demás se hace\n"
+    "desde OBS.\n\n"
+    "Cuatro. Coloca la fuente. Tienes dos formas. El desplegable Posición más su\n"
+    "botón la lleva a una de nueve posiciones fijas. El Ajuste fino la mueve de\n"
+    "a poco con las flechas, y confirma con Intro.\n\n"
+    "Cinco. El tamaño se cambia con Ancho y Alto y se aplica con su botón.\n\n"
+    "El cuadro Estado del panel describe en todo momento dónde está la\n"
+    "fuente, de qué tamaño es, si se sale del lienzo y si tapa a otras. Se\n"
+    "actualiza solo con cada cambio.\n\n"
+    "Restablecer deshace todo lo que hiciste desde que abriste esta ventana.")
+
 _TEXTO_SIN_ESCENA = N_("No se pudo saber que escena está al aire")
 
 

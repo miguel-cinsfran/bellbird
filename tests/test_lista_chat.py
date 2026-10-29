@@ -9,7 +9,7 @@ import unittest
 
 from ytchat.core.config import (
     TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,
-    TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE,
+    TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
 )
 from ytchat.ui.lista_chat import ListaChat, MensajeChat, texto_fila, texto_reciente
 from tests.pseudo_prueba import con_pseudo
@@ -306,6 +306,19 @@ class TestTextoFila(unittest.TestCase):
             texto_fila("Ana", "hola", "12:00:00", TIPO_COFRE, ""),
             "Ana envió un cofre, 12:00:00")
 
+    def test_me_gusta_uno_y_varios(self):
+        self.assertEqual(
+            texto_fila("Ana", "", "12:00:00", TIPO_ME_GUSTA, "1"),
+            "Ana dio 1 me gusta, 12:00:00")
+        self.assertEqual(
+            texto_fila("Ana", "", "12:00:00", TIPO_ME_GUSTA, "3"),
+            "Ana dio 3 me gusta, 12:00:00")
+
+    def test_me_gusta_sin_monto_cuenta_uno(self):
+        self.assertEqual(
+            texto_fila("Ana", "", "12:00:00", TIPO_ME_GUSTA, ""),
+            "Ana dio 1 me gusta, 12:00:00")
+
     def test_texto_comun(self):
         self.assertEqual(
             texto_fila("Ana", "hola", "12:00:00", TIPO_TEXTO, ""),
@@ -320,7 +333,7 @@ class TestPseudoFilas(unittest.TestCase):
             (TIPO_SUPERCHAT, "$5"), (TIPO_STICKER, "$5"),
             (TIPO_MIEMBRO, ""), (TIPO_ENTRADA, ""), (TIPO_SEGUIR, ""),
             (TIPO_COMPARTIR, ""), (TIPO_COFRE, ""), (TIPO_TEXTO, ""),
-            (TIPO_SUPERCHAT, ""),
+            (TIPO_SUPERCHAT, ""), (TIPO_ME_GUSTA, "3"),
         ]
         with con_pseudo():
             for tipo, monto in casos:

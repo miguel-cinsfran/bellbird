@@ -17,7 +17,7 @@ from dataclasses import dataclass
 
 from ytchat.core.config import (
     TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,
-    TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE,
+    TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
 )
 from ytchat.core.idioma import _, ngettext
 
@@ -86,6 +86,17 @@ class ListaChat:
         self.visibles.clear()
 
 
+def _texto_me_gusta(autor, monto, hora) -> str:
+    try:
+        cuantos = int(monto)
+    except (TypeError, ValueError):
+        cuantos = 1
+    # Traductores: fila de me gusta agrupados; {autor} es quien los dio, {n} cuántos dio y {hora} la hora.
+    return ngettext("{autor} dio {n} me gusta, {hora}",
+                    "{autor} dio {n} me gusta, {hora}", cuantos).format(
+                        autor=autor, n=cuantos, hora=hora)
+
+
 def texto_fila(autor, msg, hora, tipo, monto) -> str:
     """Texto de una fila del chat según su tipo, con los mismos emojis."""
     datos = {"monto": monto, "autor": autor, "mensaje": msg, "hora": hora}
@@ -110,6 +121,8 @@ def texto_fila(autor, msg, hora, tipo, monto) -> str:
     if tipo == TIPO_COFRE:
         # Traductores: fila de cofre; {autor} su nombre y {hora} la hora.
         return _("{autor} envió un cofre, {hora}").format(**datos)
+    if tipo == TIPO_ME_GUSTA:
+        return _texto_me_gusta(autor, monto, hora)
     # Traductores: fila común; {autor} su nombre, {mensaje} el texto y {hora} la hora.
     return _("{autor}: {mensaje}, {hora}").format(**datos)
 

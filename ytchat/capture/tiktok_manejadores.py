@@ -8,10 +8,10 @@ from __future__ import annotations
 
 import time
 
+from ytchat.capture.agrupar_me_gusta import AgrupadorMeGusta
 from ytchat.capture.tiktok_captura import (
     _clase_suscripcion,
     autor_de_evento,
-    debe_pasar_me_gusta,
 )
 from ytchat.core.config import (
     TIPO_COFRE,
@@ -96,21 +96,21 @@ def _al_cofre(on_evento, descartar):
     return _on_envelope
 
 
-def _al_me_gusta(on_evento, descartar, ultimo_me_gusta):
+def _emitir_vencidos(agrupador, on_evento, ahora):
+    """Emite cada grupo de me gusta ya vencido como un aviso con su total."""
+    for autor, canal_id, total in agrupador.vencidos(ahora):
+        on_evento(autor, "", TIPO_ME_GUSTA, str(total), canal_id)
+
+
+def _al_me_gusta(on_evento, descartar, agrupador):
     async def _on_like(evento):
         if descartar(evento):
             return
-        ahora = time.monotonic()
-        if not debe_pasar_me_gusta(ultimo_me_gusta[0], ahora):
-            return
-        ultimo_me_gusta[0] = ahora
         autor, canal_id = autor_de_evento(evento)
-        conteo = getattr(evento, "count", None)
-        if isinstance(conteo, int) and not isinstance(conteo, bool):
-            monto = str(conteo) if conteo > 0 else ""
-        else:
-            monto = ""
-        on_evento(autor, "", TIPO_ME_GUSTA, monto, canal_id)
+        ahora = time.monotonic()
+        agrupador.sumar(autor, canal_id, getattr(evento, "count", None),
+                        ahora)
+        _emitir_vencidos(agrupador, on_evento, ahora)
 
     return _on_like
 
@@ -179,8 +179,12 @@ def _al_entrar(on_evento, descartar):
     return _on_join
 
 
-def _al_contar_espectadores(on_espectadores):
+def _al_contar_espectadores(on_espectadores, agrupador=None, on_evento=None):
     async def _on_user_seq(evento):
+        # El conteo llega seguido: también vacía los me gusta vencidos, para
+        # que el último grupo no quede esperando a otro toque.
+        if agrupador is not None and on_evento is not None:
+            _emitir_vencidos(agrupador, on_evento, time.monotonic())
         # Conteo de espectadores EN VIVO (se actualiza cada pocos segundos).
         if not on_espectadores:
             return
@@ -203,8 +207,8 @@ _EVENTOS_OPCIONALES = [
     ("FollowEvent", _al_seguir, "evento"),
     ("ShareEvent", _al_compartir, "evento"),
     ("EnvelopeEvent", _al_cofre, "evento"),
-    # Los me gusta llegan de a montones: como mucho UNO cada 3 s por
-    # sesión, para no saturar el sonido (ver debe_pasar_me_gusta).
+    # Los me gusta llegan de a montones: se agrupan por persona y cada
+    # grupo sale con su total al vencer la ventana (ver AgrupadorMeGusta).
     ("LikeEvent", _al_me_gusta, "megusta"),
     ("EmoteChatEvent", _al_sticker, "evento"),
     ("QuestionNewEvent", _al_pregunta, "evento"),
@@ -217,7 +221,7 @@ def registrar_manejadores(client, modulo_eventos, *, on_evento,
                           on_espectadores, anunciar_entradas, descartar,
                           on_estado=None):
     """Registra los manejadores de eventos de TikTok en `client`."""
-    ultimo_me_gusta = [None]
+    agrupador = AgrupadorMeGusta()
     clase_comentario = modulo_eventos.CommentEvent
     clase_regalo = modulo_eventos.GiftEvent
     clase_entrada = modulo_eventos.JoinEvent
@@ -236,11 +240,11 @@ def registrar_manejadores(client, modulo_eventos, *, on_evento,
                 continue
             client.on(clase)(fabrica(on_estado, descartar))
         elif modo == "megusta":
-            client.on(clase)(fabrica(on_evento, descartar, ultimo_me_gusta))
+            client.on(clase)(fabrica(on_evento, descartar, agrupador))
         else:
             client.on(clase)(fabrica(on_evento, descartar))
     if anunciar_entradas:
         # Quién entra al directo. Solo si el usuario lo pidió: en directos
         # grandes son constantes y saturarían el TTS.
         client.on(clase_entrada)(_al_entrar(on_evento, descartar))
-    client.on(clase_conteo)(_al_contar_espectadores(on_espectadores))
+    client.on(clase_conteo)(_al_contar_espectadores(on_espectadores, agrupador, on_evento))

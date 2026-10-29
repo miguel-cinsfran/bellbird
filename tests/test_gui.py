@@ -1374,8 +1374,8 @@ class TestIdentidadModeracionChat(unittest.TestCase):
         alias.usar({})
 
 
-class TestMeGustaFueraDelModelo(unittest.TestCase):
-    """El me gusta suena sin tocar ni el modelo ni la lista."""
+class TestMeGustaEnLaLista(unittest.TestCase):
+    """El me gusta entra al modelo y a la lista con su texto agrupado."""
 
     def _frame(self):
         from ytchat.ui.chat_vivo import ControladorChat
@@ -1396,28 +1396,29 @@ class TestMeGustaFueraDelModelo(unittest.TestCase):
             al_superchat=frame._sumar_superchat)
         return frame
 
-    def _registro(self, tipo, texto):
+    def _registro(self, tipo, texto, monto=""):
         return MensajeChat(plataforma="tiktok", autor="Ana",
                            identificador="C", texto=texto, hora="12:00",
-                           tipo=tipo, monto="", rol="")
+                           tipo=tipo, monto=monto, rol="")
 
-    def test_me_gusta_no_toca_modelo_ni_lista(self):
+    def test_me_gusta_ocupa_su_fila_con_su_texto(self):
         from ytchat.core.config import TIPO_TEXTO, TIPO_ME_GUSTA
         from ytchat.ui import chat_vivo
         frame = self._frame()
         primero = self._registro(TIPO_TEXTO, "primero")
-        me_gusta = self._registro(TIPO_ME_GUSTA, "")
+        me_gusta = self._registro(TIPO_ME_GUSTA, "", monto="3")
         segundo = self._registro(TIPO_TEXTO, "segundo")
         with mock.patch.object(chat_vivo._snd, "reproducir") as reproducir:
             self.assertTrue(frame.chat_vivo._procesar(primero))
-            self.assertFalse(frame.chat_vivo._procesar(me_gusta))
+            self.assertTrue(frame.chat_vivo._procesar(me_gusta))
             self.assertTrue(frame.chat_vivo._procesar(segundo))
-        self.assertEqual(len(frame.chat_vivo.modelo.todos), 2)
-        self.assertEqual(len(frame._filas), 2)
-        self.assertIs(frame.chat_vivo.modelo.dato_en_fila(1), segundo)
+        self.assertEqual(len(frame.chat_vivo.modelo.todos), 3)
+        self.assertEqual(len(frame._filas), 3)
+        self.assertIs(frame.chat_vivo.modelo.dato_en_fila(1), me_gusta)
         self.assertEqual(frame._filas[1], frame._format_display(
-            segundo.autor, segundo.texto, segundo.hora,
-            segundo.tipo, segundo.monto))
+            me_gusta.autor, me_gusta.texto, me_gusta.hora,
+            me_gusta.tipo, me_gusta.monto))
+        self.assertEqual(frame._filas[1], "Ana dio 3 me gusta, 12:00")
         sonidos = [llamada.args[0] for llamada in reproducir.call_args_list]
         self.assertEqual(sonidos.count("me_gusta"), 1)
 

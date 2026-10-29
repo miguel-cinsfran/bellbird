@@ -116,14 +116,26 @@ class TestControladorChat(unittest.TestCase):
         self.assertEqual(len(control.modelo.todos), 1)
         self.assertEqual(control.modelo.visibles, [])
 
-    def test_me_gusta_suena_y_no_entra_al_modelo(self):
+    def test_me_gusta_entra_al_modelo_y_a_la_lista(self):
         control = _controlador()
         with mock.patch.object(chat_vivo._snd, "reproducir") as reproducir:
-            visible = control._procesar(_registro(tipo=TIPO_ME_GUSTA))
-        self.assertFalse(visible)
+            visible = control._procesar(
+                _registro(tipo=TIPO_ME_GUSTA, monto="3"))
+        self.assertTrue(visible)
         reproducir.assert_called_once_with("me_gusta")
-        self.assertEqual(control.modelo.todos, [])
-        control.lista.Append.assert_not_called()
+        self.assertEqual(len(control.modelo.todos), 1)
+        control.lista.Append.assert_called_once()
+
+    def test_dos_me_gusta_seguidos_suenan_una_vez(self):
+        control = _controlador()
+        with mock.patch.object(chat_vivo._snd, "reproducir") as reproducir, \
+                mock.patch.object(chat_vivo.time, "monotonic",
+                                  side_effect=[100.0, 101.0]):
+            control._procesar(_registro(tipo=TIPO_ME_GUSTA, monto="3"))
+            control._procesar(_registro(tipo=TIPO_ME_GUSTA, monto="5"))
+        self.assertEqual(reproducir.call_count, 1)
+        self.assertEqual(len(control.modelo.todos), 2)
+        self.assertEqual(control.lista.Append.call_count, 2)
 
     def test_autor_oculto_no_suena_ni_entra(self):
         control = _controlador(oculto=True)

@@ -144,15 +144,24 @@ class TestManejadoresNuevos(unittest.TestCase):
                          [TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE])
         self.assertEqual(recibidos[0][0], "Pepe")
 
-    def test_varios_me_gusta_seguidos_producen_uno_solo(self):
+    def test_rafaga_de_me_gusta_sale_agrupada_al_vencer(self):
+        from ytchat.capture import tiktok_manejadores
         recibidos = []
         cliente, mod_eventos = self._sesion(recibidos)
         ahora_ms = (self.CONECTADO + 1) * 1000
-        for _ in range(3):
-            asyncio.run(cliente.manejadores[mod_eventos.LikeEvent](
-                self._evento(ahora_ms)))
+        with mock.patch.object(tiktok_manejadores.time, "monotonic",
+                               return_value=1000.0):
+            for _ in range(3):
+                asyncio.run(cliente.manejadores[mod_eventos.LikeEvent](
+                    self._evento(ahora_ms)))
+        self.assertEqual(recibidos, [])
+        with mock.patch.object(tiktok_manejadores.time, "monotonic",
+                               return_value=1010.0):
+            asyncio.run(cliente.manejadores[mod_eventos.RoomUserSeqEvent](
+                types.SimpleNamespace(total=5, total_user=100)))
         self.assertEqual(len(recibidos), 1)
         self.assertEqual(recibidos[0][2], TIPO_ME_GUSTA)
+        self.assertEqual(recibidos[0][3], "3")
 
     def test_manejador_nuevo_descarta_historico_y_previo(self):
         recibidos = []
@@ -469,12 +478,26 @@ class TestGuiMeGustaYRegalo(unittest.TestCase):
         base.update(extras)
         return MensajeChat(**base)
 
-    def test_me_gusta_suena_y_no_agrega_fila(self):
+    def test_me_gusta_entra_a_la_lista_con_su_texto(self):
+        from ytchat.ui.lista_chat import texto_fila
         frame = self._frame()
-        visible, sonido = self._procesar(frame, self._registro())
+        visible, sonido = self._procesar(frame, self._registro(monto="3"))
         self.assertEqual(sonido, "me_gusta")
-        self.assertFalse(visible)
-        frame.lb_chat.Append.assert_not_called()
+        self.assertTrue(visible)
+        frame.lb_chat.Append.assert_called_once_with(
+            texto_fila("Ana", "", "12:00", TIPO_ME_GUSTA, "3"))
+
+    def test_dos_me_gusta_seguidos_suenan_una_vez_y_dejan_dos_filas(self):
+        from ytchat.ui import chat_vivo
+        frame = self._frame()
+        with mock.patch.object(chat_vivo._snd, "reproducir") as reproducir, \
+                mock.patch.object(chat_vivo.time, "monotonic",
+                                  side_effect=[100.0, 101.0]):
+            frame.chat_vivo._procesar(self._registro(monto="3"))
+            frame.chat_vivo._procesar(self._registro(monto="5"))
+        self.assertEqual(reproducir.call_count, 1)
+        self.assertEqual(len(frame.chat_vivo.modelo.todos), 2)
+        self.assertEqual(frame.lb_chat.Append.call_count, 2)
 
     def test_regalo_de_1500_diamantes_suena_grande_y_suma(self):
         frame = self._frame()

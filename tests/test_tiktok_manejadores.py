@@ -3,7 +3,9 @@
 import asyncio
 import types
 import unittest
+from unittest import mock
 
+from ytchat.capture import tiktok_manejadores
 from ytchat.capture.tiktok_manejadores import registrar_manejadores
 from ytchat.core.config import TIPO_ME_GUSTA, TIPO_TEXTO
 
@@ -184,24 +186,57 @@ class TestStickersYPreguntas(unittest.TestCase):
         self.assertEqual(recibidos, [])
 
 
-class TestMeGustaConMonto(unittest.TestCase):
-    def test_me_gusta_con_count_en_monto(self):
-        cliente, mod, recibidos, _vistos, _est = _registrar(_TODAS_NUEVAS)
-        asyncio.run(cliente.manejadores[mod.LikeEvent](
-            _evento_me_gusta(15)))
-        self.assertEqual(len(recibidos), 1)
-        self.assertEqual(recibidos[0][2], TIPO_ME_GUSTA)
-        self.assertEqual(recibidos[0][3], "15")
+def _inundar(cliente, mod, cantidad=15, veces=3, reloj=1000.0):
+    with mock.patch.object(tiktok_manejadores.time, "monotonic",
+                           return_value=reloj):
+        for _ in range(veces):
+            asyncio.run(cliente.manejadores[mod.LikeEvent](
+                _evento_me_gusta(cantidad)))
+    return reloj
 
-    def test_me_gusta_sin_count_valido_monto_vacio(self):
+
+def _vaciar_con_conteo(cliente, mod, reloj):
+    with mock.patch.object(tiktok_manejadores.time, "monotonic",
+                           return_value=reloj):
+        asyncio.run(cliente.manejadores[mod.RoomUserSeqEvent](
+            types.SimpleNamespace(total=3, total_user=50)))
+
+
+class TestMeGustaAgrupado(unittest.TestCase):
+    def test_rafaga_de_una_persona_da_una_sola_llamada_con_el_total(self):
         cliente, mod, recibidos, _vistos, _est = _registrar(_TODAS_NUEVAS)
-        asyncio.run(cliente.manejadores[mod.LikeEvent](
-            _evento_me_gusta(0)))
-        self.assertEqual(recibidos[0][3], "")
-        cliente2, mod2, recibidos2, _v2, _e2 = _registrar(_TODAS_NUEVAS)
-        asyncio.run(cliente2.manejadores[mod2.LikeEvent](
-            _evento_me_gusta("hola")))
-        self.assertEqual(recibidos2[0][3], "")
+        reloj = _inundar(cliente, mod, cantidad=15, veces=3)
+        self.assertEqual(recibidos, [])
+        _vaciar_con_conteo(cliente, mod, reloj + 10.0)
+        self.assertEqual(len(recibidos), 1)
+        self.assertEqual(recibidos[0][0], "Ana")
+        self.assertEqual(recibidos[0][2], TIPO_ME_GUSTA)
+        self.assertEqual(recibidos[0][3], "45")
+        self.assertEqual(recibidos[0][4], "1")
+
+    def test_count_invalido_cuenta_uno(self):
+        cliente, mod, recibidos, _vistos, _est = _registrar(_TODAS_NUEVAS)
+        with mock.patch.object(tiktok_manejadores.time, "monotonic",
+                               return_value=1000.0):
+            asyncio.run(cliente.manejadores[mod.LikeEvent](
+                _evento_me_gusta(0)))
+            asyncio.run(cliente.manejadores[mod.LikeEvent](
+                _evento_me_gusta("hola")))
+        _vaciar_con_conteo(cliente, mod, 1010.0)
+        self.assertEqual(len(recibidos), 1)
+        self.assertEqual(recibidos[0][3], "2")
+
+    def test_me_gusta_respeta_descartar(self):
+        cliente, mod, recibidos, _vistos, _est = _registrar(
+            _TODAS_NUEVAS, descartar=lambda evento: True)
+        _inundar(cliente, mod)
+        _vaciar_con_conteo(cliente, mod, 1010.0)
+        self.assertEqual(recibidos, [])
+
+    def test_conteo_tambien_avisa_sus_numeros(self):
+        cliente, mod, _recibidos, vistos, _est = _registrar(_TODAS_NUEVAS)
+        _vaciar_con_conteo(cliente, mod, 1010.0)
+        self.assertEqual(vistos, [(3, 50)])
 
 
 class TestPausaDirecto(unittest.TestCase):

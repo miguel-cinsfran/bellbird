@@ -6,8 +6,11 @@ lotes con un temporizador y reconstruye la vista al cambiar el filtro.
 
 from __future__ import annotations
 
+import time
+
 import wx
 
+from ytchat.capture.tiktok_captura import debe_pasar_me_gusta
 from ytchat.core import diagnostico
 from ytchat.core import sonidos_eventos
 from ytchat.core.config import (
@@ -40,6 +43,7 @@ class ControladorChat:
         self._autor_oculto = autor_oculto
         self._formatear = formatear
         self._al_superchat = al_superchat
+        self._ultimo_me_gusta = None
 
     def encolar(self, registro: MensajeChat) -> None:
         self._pendientes.append(registro)
@@ -53,14 +57,6 @@ class ControladorChat:
         """Aplica UN mensaje ya desencolado al modelo y a la lista. Devuelve si
         quedó visible (se le hizo Append). Solo lo llama volcar."""
         if self._autor_oculto(registro.autor):
-            return False
-
-        if registro.tipo == TIPO_ME_GUSTA:
-            # El me gusta solo suena: no toca ni el modelo ni la lista, para
-            # no desalinear fila ↔ mensaje.
-            _snd.reproducir(sonidos_eventos.sonido_de_mensaje(
-                registro.tipo, registro.rol, registro.monto,
-                registro.plataforma))
             return False
 
         # El modelo (lista_chat) recorta el historial y dice cuántas filas viejas
@@ -79,6 +75,14 @@ class ControladorChat:
             self._al_superchat(registro.monto)
         elif registro.tipo == TIPO_MIEMBRO:
             _snd.reproducir("nuevo_miembro")
+        elif registro.tipo == TIPO_ME_GUSTA:
+            # Suena como mucho uno cada 3 s; a la lista entra como aviso.
+            ahora = time.monotonic()
+            if debe_pasar_me_gusta(self._ultimo_me_gusta, ahora):
+                self._ultimo_me_gusta = ahora
+                _snd.reproducir(sonidos_eventos.sonido_de_mensaje(
+                    registro.tipo, registro.rol, registro.monto,
+                    registro.plataforma))
         else:
             _snd.reproducir(sonidos_eventos.sonido_de_mensaje(registro.tipo,
                                                               registro.rol))

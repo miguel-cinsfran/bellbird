@@ -238,6 +238,55 @@ class TestCargarConfiguracion(unittest.TestCase):
                 self.assertEqual(ruta_lote.read_text(encoding="utf-8"),
                                  ruta_uno.read_text(encoding="utf-8"))
 
+    def test_migracion_generica_escribe_una_sola_vez(self):
+        # Tope: 3 escrituras previas (1 version_atajos y 2 avisos de tiktok) más una genérica.
+        corto = "[cola]\nestrategia = todas\n"
+        tmp = Path(self._tmp.name)
+        (tmp / "config.ini").write_text(corto, encoding="utf-8")
+        with mock.patch("bellbird.core.archivos.escribir_texto_atomico",
+                        wraps=archivos.escribir_texto_atomico) as escribir:
+            with redirigir_rutas(tmp):
+                config.cargar_configuracion()
+        self.assertLessEqual(escribir.call_count, 4)
+        with mock.patch("bellbird.core.archivos.escribir_texto_atomico",
+                        wraps=archivos.escribir_texto_atomico) as escribir2:
+            with redirigir_rutas(tmp):
+                config.cargar_configuracion()
+        self.assertEqual(escribir2.call_count, 0)
+
+    def test_migracion_generica_deja_el_mismo_texto_que_una_por_una(self):
+        from bellbird.core import avisos_tiktok as _avisos
+        from bellbird.core import config_predeterminada as _pred
+        from bellbird.core.atajos import migrar_atajos_config as _migrar_atajos
+        corto = "[cola]\nestrategia = todas\n"
+        tmp1 = Path(self._tmp.name) / "uno"
+        tmp2 = Path(self._tmp.name) / "dos"
+        tmp1.mkdir()
+        tmp2.mkdir()
+        (tmp1 / "config.ini").write_text(corto, encoding="utf-8")
+        (tmp2 / "config.ini").write_text(corto, encoding="utf-8")
+        with redirigir_rutas(tmp1):
+            cfg1 = config.cargar_configuracion()
+        texto1 = (tmp1 / "config.ini").read_text(encoding="utf-8")
+        with redirigir_rutas(tmp2):
+            ruta2 = paths.config_ini()
+            p2 = config._mk_parser()
+            p2.read(ruta2, encoding="utf-8")
+            crudo2 = ({k.strip().lower(): (v or "").strip()
+                       for k, v in p2.items("atajos")}
+                      if p2.has_section("atajos") else {})
+            _migrar_atajos(p2, ruta2, crudo2)
+            _avisos.migrar(p2, ruta2, config.guardar_opcion)
+            for sec, claves in _pred.datos().items():
+                for clave, valor in claves.items():
+                    if not p2.has_option(sec, clave):
+                        config.guardar_opcion(ruta2, sec, clave, valor)
+                        if sec == "atajos":
+                            crudo2[clave] = valor
+        texto2 = (tmp2 / "config.ini").read_text(encoding="utf-8")
+        self.assertEqual(texto1, texto2)
+        self.assertEqual(cfg1["atajos_raw"], crudo2)
+
     def test_regenera_si_falta(self):
         tmp = Path(self._tmp.name)
         with redirigir_rutas(tmp):

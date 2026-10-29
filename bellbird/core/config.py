@@ -352,14 +352,13 @@ def cargar_configuracion() -> dict:
     avisos_tiktok.migrar(p, ruta, guardar_opcion)
     # Migración genérica: agregar toda sección o clave ausente desde la fuente
     # canónica, preservando valores existentes incluso vacíos y claves desconocidas.
-    _atajos_faltantes = []
-    for _sec, _claves in config_predeterminada.datos().items():
-        for _clave, _valor_def in _claves.items():
-            if not p.has_option(_sec, _clave):
-                guardar_opcion(ruta, _sec, _clave, _valor_def)
-                if _sec == "atajos":
-                    atajos_raw[_clave] = _valor_def
-                    _atajos_faltantes.append(_clave)
+    _faltantes = [(s, c, v) for s, cs in config_predeterminada.datos().items()
+                  for c, v in cs.items() if not p.has_option(s, c)]
+    guardar_opciones(ruta, _faltantes)
+    _atajos_faltantes = [c for s, c, _v in _faltantes if s == "atajos"]
+    for _sec, _clave, _valor_def in _faltantes:
+        if _sec == "atajos":
+            atajos_raw[_clave] = _valor_def
     if _atajos_faltantes:
         logger.info("Atajos nuevos añadidos a config.ini: %s", ", ".join(_atajos_faltantes))
 

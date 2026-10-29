@@ -2,7 +2,7 @@
 
 import unittest
 
-from ytchat.core.avisos_red import mensaje_de_fallo
+from bellbird.core.avisos_red import mensaje_de_fallo
 from tests.pseudo_prueba import con_pseudo
 
 

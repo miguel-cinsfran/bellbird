@@ -4,7 +4,7 @@ import unittest
 from types import SimpleNamespace
 from unittest import mock
 
-from ytchat.ui import aviso_diferido
+from bellbird.ui import aviso_diferido
 
 
 def _frame(conectado=False, transmitiendo=False):

@@ -4,8 +4,8 @@ import unittest
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.ui import gui_aplicar_preferencias
-from ytchat.voice import motores
+from bellbird.ui import gui_aplicar_preferencias
+from bellbird.voice import motores
 
 
 def _frame(configuracion):
@@ -22,7 +22,7 @@ class TestAplicarEnCaliente(unittest.TestCase):
         frame = _frame({"motor": "sapi", "voz": "Voz A",
                         "atajos_raw": {}})
         frame._worker.motor_activo.return_value = "sapi"
-        with mock.patch("ytchat.ui.gui.anunciar") as anunciar:
+        with mock.patch("bellbird.ui.gui.anunciar") as anunciar:
             gui_aplicar_preferencias.aplicar_en_caliente(frame)
         anunciar.assert_called_once_with("Preferencias aplicadas")
 
@@ -33,7 +33,7 @@ class TestAplicarEnCaliente(unittest.TestCase):
         frame.voz_submenu.GetMenuItems.return_value = []
         with mock.patch.object(motores, "listar_voces",
                                return_value=["Voz A", "Voz B"]), \
-                mock.patch("ytchat.ui.gui.anunciar") as anunciar:
+                mock.patch("bellbird.ui.gui.anunciar") as anunciar:
             gui_aplicar_preferencias.aplicar_en_caliente(frame)
         frame._worker.cambiar_motor.assert_called_once_with(
             "onecore", "Voz B")
@@ -51,7 +51,7 @@ class TestPseudoTextos(unittest.TestCase):
         with con_pseudo():
             with mock.patch.object(motores, "listar_voces",
                                    return_value=["Voz A", "Voz B"]), \
-                    mock.patch("ytchat.ui.gui.anunciar") as anunciar:
+                    mock.patch("bellbird.ui.gui.anunciar") as anunciar:
                 gui_aplicar_preferencias.aplicar_en_caliente(frame)
         self.assertTrue(anunciar.called)
         for llamada in anunciar.call_args_list:

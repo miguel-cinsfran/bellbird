@@ -9,8 +9,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from ytchat.music import memoria
-from ytchat.music.modelo import EstadoMusica, Tema
+from bellbird.music import memoria
+from bellbird.music.modelo import EstadoMusica, Tema
 
 
 def _estado(temas, posicion):

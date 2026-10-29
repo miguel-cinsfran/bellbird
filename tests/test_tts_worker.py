@@ -7,11 +7,11 @@ import unittest
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.core.idioma import _
-from ytchat.voice import elevenlabs
-from ytchat.voice import motores
-from ytchat.voice import tts_worker
-from ytchat.voice.tts_worker import sanitizar, construir_tts
+from bellbird.core.idioma import _
+from bellbird.voice import elevenlabs
+from bellbird.voice import motores
+from bellbird.voice import tts_worker
+from bellbird.voice.tts_worker import sanitizar, construir_tts
 
 
 class MotorFalso:

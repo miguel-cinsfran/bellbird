@@ -10,15 +10,15 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from ytchat.ui import gui, gui_preferencias
-from ytchat.voice import motores
+from bellbird.ui import gui, gui_preferencias
+from bellbird.voice import motores
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.rutas_temporales import redirigir_rutas
 from tests.ventanas_prueba import destruir
 
 
 # Textos que arma otro módulo y aparecen en la parte recorrida: no se
-# tocan acá. La salida predeterminada (`ytchat/ui/opciones_musica.py`)
+# tocan acá. La salida predeterminada (`bellbird/ui/opciones_musica.py`)
 # ya pasa por gettext y sale marcada, así que no deja pendientes.
 PENDIENTES_OTROS_MODULOS = ()
 

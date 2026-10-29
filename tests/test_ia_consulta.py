@@ -6,12 +6,12 @@ import threading
 import unittest
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.ai import catalogo
-from ytchat.ai import consulta
-from ytchat.ai import conversacion
-from ytchat.ai import protocolos
-from ytchat.ai.ajustes_ia import AjustesIA
-from ytchat.ai.conversacion import Conversacion
+from bellbird.ai import catalogo
+from bellbird.ai import consulta
+from bellbird.ai import conversacion
+from bellbird.ai import protocolos
+from bellbird.ai.ajustes_ia import AjustesIA
+from bellbird.ai.conversacion import Conversacion
 
 IMAGEN = b"\xff\xd8\xfffoto\xff\xd9"
 

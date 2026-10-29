@@ -13,11 +13,11 @@ from unittest import mock
 
 import wx
 
-from ytchat.youtube import youtube_api
-from ytchat.ui import gui
-from ytchat.ui import gui_comentarios
-from ytchat.ui import gui_preferencias
-from ytchat.ui.sesion_conectada import SesionConectada
+from bellbird.youtube import youtube_api
+from bellbird.ui import gui
+from bellbird.ui import gui_comentarios
+from bellbird.ui import gui_preferencias
+from bellbird.ui.sesion_conectada import SesionConectada
 
 
 FRASE_SESION = ("Tu sesión de YouTube caducó. Vuelve a iniciar sesión en "

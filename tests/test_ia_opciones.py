@@ -7,15 +7,15 @@ Sin wx, sin red y sin el Administrador de credenciales: solo el módulo
 import unittest
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.ai import catalogo
-from ytchat.ai import consulta
-from ytchat.ai import conversacion
-from ytchat.ai import opciones_ia
-from ytchat.ai import protocolos
-from ytchat.ai import proveedores
-from ytchat.ai.ajustes_ia import AjustesIA
-from ytchat.ai.conversacion import Conversacion
-from ytchat.core.idioma import _
+from bellbird.ai import catalogo
+from bellbird.ai import consulta
+from bellbird.ai import conversacion
+from bellbird.ai import opciones_ia
+from bellbird.ai import protocolos
+from bellbird.ai import proveedores
+from bellbird.ai.ajustes_ia import AjustesIA
+from bellbird.ai.conversacion import Conversacion
+from bellbird.core.idioma import _
 
 
 def _muestra():
@@ -86,7 +86,7 @@ def _muestra():
 class TestFilasModelos(unittest.TestCase):
 
     def test_gemini_no_marca_gratis_ni_filtra(self):
-        from ytchat.ai import opciones_ia
+        from bellbird.ai import opciones_ia
         proveedor = proveedores.por_id("gemini")
         esperadas = [("gemini-falso", "Gemini Falso"),
                      ("gemini-caro", "Gemini Caro")]
@@ -98,7 +98,7 @@ class TestFilasModelos(unittest.TestCase):
             esperadas)
 
     def test_openrouter_conserva_gratis_y_su_filtro(self):
-        from ytchat.ai import opciones_ia
+        from bellbird.ai import opciones_ia
         proveedor = proveedores.por_id("openrouter")
         filas = dict(opciones_ia.filas_modelos(_muestra(), proveedor, False))
         self.assertEqual(
@@ -115,7 +115,7 @@ class TestFilasModelos(unittest.TestCase):
             {"regalado-falso", "regalado-falso-contributor"})
 
     def test_proveedor_sin_catalogo_da_lista_vacia(self):
-        from ytchat.ai import opciones_ia
+        from bellbird.ai import opciones_ia
         self.assertEqual(
             opciones_ia.filas_modelos(
                 _muestra(), proveedores.por_id("otro"), False), [])
@@ -127,7 +127,7 @@ class TestFilasModelos(unittest.TestCase):
 class TestFilasModelosConMarcas(unittest.TestCase):
 
     def test_sin_marcas_igual_que_siempre(self):
-        from ytchat.ai import opciones_ia
+        from bellbird.ai import opciones_ia
         proveedor = proveedores.por_id("gemini")
         esperadas = [("gemini-falso", "Gemini Falso"),
                      ("gemini-caro", "Gemini Caro")]
@@ -139,8 +139,8 @@ class TestFilasModelosConMarcas(unittest.TestCase):
             esperadas)
 
     def test_marca_gratis_suma_y_filtra(self):
-        from ytchat.ai import opciones_ia
-        from ytchat.ai import sondeo_gratis
+        from bellbird.ai import opciones_ia
+        from bellbird.ai import sondeo_gratis
         proveedor = proveedores.por_id("gemini")
         marcas = {"gemini-falso": sondeo_gratis.MARCA_GRATIS}
         self.assertEqual(
@@ -152,8 +152,8 @@ class TestFilasModelosConMarcas(unittest.TestCase):
             [("gemini-falso", "Gemini Falso, gratis")])
 
     def test_marca_con_tu_clave_suma_sin_filtrar(self):
-        from ytchat.ai import opciones_ia
-        from ytchat.ai import sondeo_gratis
+        from bellbird.ai import opciones_ia
+        from bellbird.ai import sondeo_gratis
         proveedor = proveedores.por_id("gemini")
         marcas = {"gemini-caro": sondeo_gratis.MARCA_CON_TU_CLAVE}
         filas = opciones_ia.filas_modelos(_muestra(), proveedor, False, marcas)
@@ -165,11 +165,11 @@ class TestFilasModelosConMarcas(unittest.TestCase):
 class TestResumenSondeo(unittest.TestCase):
 
     def _piezas(self):
-        from ytchat.ai import sondeo_gratis
+        from bellbird.ai import sondeo_gratis
         return sondeo_gratis
 
     def test_clave_gratuita_lo_dice(self):
-        from ytchat.ai import opciones_ia
+        from bellbird.ai import opciones_ia
         s = self._piezas()
         resultados = {"a": s.RESPONDE, "b": s.DE_PAGO, "c": s.SIN_SABER}
         self.assertEqual(
@@ -178,7 +178,7 @@ class TestResumenSondeo(unittest.TestCase):
             "1 gratis con tu clave.")
 
     def test_clave_no_gratuita_lo_dice(self):
-        from ytchat.ai import opciones_ia
+        from bellbird.ai import opciones_ia
         s = self._piezas()
         resultados = {"a": s.RESPONDE, "b": s.SIN_SABER}
         self.assertEqual(
@@ -190,29 +190,29 @@ class TestResumenSondeo(unittest.TestCase):
 class TestModeloElegido(unittest.TestCase):
 
     def test_otro_gana_sobre_la_lista(self):
-        from ytchat.ai import opciones_ia
+        from bellbird.ai import opciones_ia
         self.assertEqual(
             opciones_ia.modelo_elegido("gemini-falso", "gpt-falso"),
             "gpt-falso")
 
     def test_otro_con_espacios_se_recorta(self):
-        from ytchat.ai import opciones_ia
+        from bellbird.ai import opciones_ia
         self.assertEqual(
             opciones_ia.modelo_elegido("gemini-falso", "  gpt-falso  "),
             "gpt-falso")
 
     def test_otro_vacio_deja_la_lista(self):
-        from ytchat.ai import opciones_ia
+        from bellbird.ai import opciones_ia
         self.assertEqual(
             opciones_ia.modelo_elegido("gemini-falso", "   "),
             "gemini-falso")
 
     def test_sin_lista_ni_otro_da_vacio(self):
-        from ytchat.ai import opciones_ia
+        from bellbird.ai import opciones_ia
         self.assertEqual(opciones_ia.modelo_elegido("", ""), "")
 
     def test_marcador_sin_modelos_cuenta_como_vacio(self):
-        from ytchat.ai import opciones_ia
+        from bellbird.ai import opciones_ia
         self.assertEqual(
             opciones_ia.modelo_elegido(opciones_ia.TEXTO_SIN_MODELOS, ""),
             "")
@@ -221,7 +221,7 @@ class TestModeloElegido(unittest.TestCase):
 class TestSepararModeloGuardado(unittest.TestCase):
 
     def test_guardado_en_filas_va_a_la_lista(self):
-        from ytchat.ai import opciones_ia
+        from bellbird.ai import opciones_ia
         filas = opciones_ia.filas_modelos(
             _muestra(), proveedores.por_id("gemini"), False)
         self.assertEqual(
@@ -229,7 +229,7 @@ class TestSepararModeloGuardado(unittest.TestCase):
             ("gemini-caro", ""))
 
     def test_guardado_fuera_de_filas_va_a_otro(self):
-        from ytchat.ai import opciones_ia
+        from bellbird.ai import opciones_ia
         filas = opciones_ia.filas_modelos(
             _muestra(), proveedores.por_id("openrouter"), True)
         self.assertEqual(
@@ -241,7 +241,7 @@ class TestSepararModeloGuardado(unittest.TestCase):
 class TestAvisoDeModelo(unittest.TestCase):
 
     def test_con_contributor_avisa_corto(self):
-        from ytchat.ai import opciones_ia
+        from bellbird.ai import opciones_ia
         modelos = catalogo.modelos(_muestra(), "openrouter")
         modelo = next(m for m in modelos if m.contributor)
         self.assertEqual(opciones_ia.aviso_de_modelo(modelo),
@@ -250,7 +250,7 @@ class TestAvisoDeModelo(unittest.TestCase):
                          "Este modelo entrena con lo que se le envía.")
 
     def test_sin_contributor_no_avisa(self):
-        from ytchat.ai import opciones_ia
+        from bellbird.ai import opciones_ia
         modelos = catalogo.modelos(_muestra(), "google")
         for modelo in modelos:
             with self.subTest(modelo=modelo.id):
@@ -258,26 +258,26 @@ class TestAvisoDeModelo(unittest.TestCase):
                 self.assertEqual(opciones_ia.aviso_de_modelo(modelo), "")
 
     def test_sin_modelo_no_avisa(self):
-        from ytchat.ai import opciones_ia
+        from bellbird.ai import opciones_ia
         self.assertEqual(opciones_ia.aviso_de_modelo(None), "")
 
 
 class TestEstadoDeClave(unittest.TestCase):
 
     def test_sin_clave_no_dice_nada(self):
-        from ytchat.ai import opciones_ia
+        from bellbird.ai import opciones_ia
         self.assertEqual(opciones_ia.estado_de_clave(""), "")
         self.assertEqual(opciones_ia.estado_de_clave(None), "")
 
     def test_clave_corta_solo_dice_guardada(self):
-        from ytchat.ai import opciones_ia
+        from bellbird.ai import opciones_ia
         for clave in ("abcd", "abcdefg"):
             with self.subTest(clave=clave):
                 self.assertEqual(opciones_ia.estado_de_clave(clave),
                                  "Guardada")
 
     def test_clave_de_ocho_o_mas_muestra_los_ultimos_cuatro(self):
-        from ytchat.ai import opciones_ia
+        from bellbird.ai import opciones_ia
         self.assertEqual(opciones_ia.estado_de_clave("abcdefgh"),
                          "Guardada, termina en efgh")
         clave = "clave-de-prueba-de-treinta-y-nueve-1234"
@@ -286,7 +286,7 @@ class TestEstadoDeClave(unittest.TestCase):
                          "Guardada, termina en 1234")
 
     def test_nunca_muestra_mas_de_cuatro_caracteres_de_la_clave(self):
-        from ytchat.ai import opciones_ia
+        from bellbird.ai import opciones_ia
         claves = ("abcd", "abcdefg", "abcdefgh", "A" * 39)
         for clave in claves:
             with self.subTest(clave=clave):
@@ -299,12 +299,12 @@ class TestEstadoDeClave(unittest.TestCase):
 class TestPedidoDePrueba(unittest.TestCase):
 
     def _pedido(self, proveedor, modelo, clave="clave"):
-        from ytchat.ai import opciones_ia
+        from bellbird.ai import opciones_ia
         ajustes = AjustesIA(proveedor=proveedor, modelo=modelo)
         return opciones_ia.pedido_de_prueba(ajustes, _muestra(), clave)
 
     def test_un_proveedor_de_cada_protocolo(self):
-        from ytchat.ai import opciones_ia
+        from bellbird.ai import opciones_ia
         casos = (
             ("gemini", "gemini-falso", protocolos.GEMINI,
              "https://generativelanguage.googleapis.com/v1beta"),
@@ -338,7 +338,7 @@ class TestPedidoDePrueba(unittest.TestCase):
             conversacion.max_tokens(conversacion.CORTA, False, None))
 
     def test_sin_modelo_levanta_como_preparar(self):
-        from ytchat.ai import opciones_ia
+        from bellbird.ai import opciones_ia
         ajustes = AjustesIA(proveedor="gemini", modelo="   ")
         with self.assertRaises(consulta.FaltaConfiguracion) as salida:
             opciones_ia.pedido_de_prueba(ajustes, _muestra(), "clave")
@@ -356,7 +356,7 @@ class TestProblemaDeClave(unittest.TestCase):
 
     @staticmethod
     def _casos():
-        from ytchat.ai import opciones_ia
+        from bellbird.ai import opciones_ia
         return (
             ("gemini", "", opciones_ia.TEXTO_FALTA_CLAVE),
             ("gemini", "     ", opciones_ia.TEXTO_FALTA_CLAVE),
@@ -381,7 +381,7 @@ class TestProblemaDeClave(unittest.TestCase):
         )
 
     def _problema(self, proveedor, clave):
-        from ytchat.ai import opciones_ia
+        from bellbird.ai import opciones_ia
         return opciones_ia.problema_de_clave(
             proveedores.por_id(proveedor), clave)
 
@@ -391,7 +391,7 @@ class TestProblemaDeClave(unittest.TestCase):
                 self.assertEqual(self._problema(proveedor, clave), esperado)
 
     def test_toda_clave_aceptada_tiene_forma(self):
-        from ytchat.ai import opciones_ia
+        from bellbird.ai import opciones_ia
         permitidos = set(
             "abcdefghijklmnopqrstuvwxyz"
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -444,7 +444,7 @@ class TestFilasMarcadas(unittest.TestCase):
                          "Writely Falso[¡, entrena con lo enviado!]")
 
     def test_resumen_problema_y_estado_van_marcados(self):
-        from ytchat.ai import sondeo_gratis
+        from bellbird.ai import sondeo_gratis
         resultados = {"a": sondeo_gratis.RESPONDE}
         with con_pseudo():
             resumen = opciones_ia.resumen_sondeo(resultados, 1,

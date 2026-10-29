@@ -8,9 +8,9 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from ytchat.player import reproductor
-from ytchat.player.busqueda_video import EstadoBusqueda
-from ytchat.player.tarea_cache_video import TareaCacheVideo
+from bellbird.player import reproductor
+from bellbird.player.busqueda_video import EstadoBusqueda
+from bellbird.player.tarea_cache_video import TareaCacheVideo
 from tests.rutas_temporales import redirigir_rutas
 
 
@@ -146,7 +146,7 @@ class TestReproductorCache(unittest.TestCase):
                     self.assertEqual(len(callbacks), 1)
                     func, args, _k = callbacks[0]
                     with mock.patch.object(panel, "_podar_cache_video") as podar, \
-                         mock.patch("ytchat.voice.sound_player.reproducir"):
+                         mock.patch("bellbird.voice.sound_player.reproducir"):
                         func(*args)
                         podar.assert_not_called()
                         panel._player.set_media.assert_not_called()
@@ -159,7 +159,7 @@ class TestReproductorCache(unittest.TestCase):
                     panel._estado_busqueda = EstadoBusqueda(confirmada=999)
                     panel._inst.media_new = mock.Mock(return_value=mock.Mock(add_option=mock.Mock()))
                     with mock.patch.object(panel, "_podar_cache_video") as podar, \
-                         mock.patch("ytchat.voice.sound_player.reproducir"):
+                         mock.patch("bellbird.voice.sound_player.reproducir"):
                         func2(*args2)
                         podar.assert_called_once()
                         panel._player.set_media.assert_called_once()
@@ -192,7 +192,7 @@ class TestReproductorCache(unittest.TestCase):
             panel._tarea_cache_video = tarea_b
             panel._inst.media_new = mock.Mock(return_value=mock.Mock(add_option=mock.Mock()))
             with mock.patch.object(panel, "_podar_cache_video") as podar, \
-                 mock.patch("ytchat.voice.sound_player.reproducir") as snd:
+                 mock.patch("bellbird.voice.sound_player.reproducir") as snd:
                 panel._player.set_media.reset_mock()
                 reproductor.ReproductorPanel._cache_video_lista(panel, tarea_a, True)
                 podar.assert_not_called()
@@ -384,7 +384,7 @@ class TestReproductorCache(unittest.TestCase):
             panel._intencion_reproducir = False
             panel._vol = 42
             panel._muted = True
-            with mock.patch("ytchat.voice.sound_player.reproducir") as snd:
+            with mock.patch("bellbird.voice.sound_player.reproducir") as snd:
                 reproductor.ReproductorPanel._cache_video_lista(panel, tarea, True)
             medio.add_option.assert_any_call(":network-caching=3000")
             medio.add_option.assert_any_call(":live-caching=1500")
@@ -413,7 +413,7 @@ class TestReproductorCache(unittest.TestCase):
             panel2._intencion_reproducir = True
             panel2._vol = 80
             panel2._muted = False
-            with mock.patch("ytchat.voice.sound_player.reproducir"):
+            with mock.patch("bellbird.voice.sound_player.reproducir"):
                 reproductor.ReproductorPanel._cache_video_lista(panel2, tarea2, True)
             panel2._player.set_pause.assert_not_called()
 
@@ -442,7 +442,7 @@ class TestReproductorCache(unittest.TestCase):
         try:
             with mock.patch.object(reproductor.diagnostico, "crear_hilo", side_effect=fake_crear_hilo), \
                  mock.patch.object(reproductor.wx, "CallAfter", side_effect=lambda f, *a, **k: callbacks.append((f, a, k))), \
-                 redirigir_rutas(Path(tempfile.gettempdir()) / "ytchat-test-cache2"), \
+                 redirigir_rutas(Path(tempfile.gettempdir()) / "bellbird-test-cache2"), \
                  mock.patch.object(reproductor.ytdlp_bin, "descargar_video_cache", side_effect=fake_descargar):
                 panel._descargar_video_cache(panel._video_id, panel._gen)
                 for t in hilos:

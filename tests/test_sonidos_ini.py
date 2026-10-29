@@ -2,7 +2,7 @@
 
 import unittest
 
-from ytchat.core import sonidos_ini
+from bellbird.core import sonidos_ini
 
 
 TEXTO_BASE = """# Comentario de cabecera

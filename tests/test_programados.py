@@ -2,8 +2,8 @@ import unittest
 from pathlib import Path
 import tempfile
 
-from ytchat.capture import programados
-from ytchat.capture import redaccion
+from bellbird.capture import programados
+from bellbird.capture import redaccion
 
 
 class TestConstantes(unittest.TestCase):

@@ -15,13 +15,13 @@ import wave
 from pathlib import Path
 from unittest import mock
 
-from ytchat.music.modelo import Tema
-from ytchat.music import sonoridad
-from ytchat.music.sonoridad import CacheSonoridad
-from ytchat.ui import musica_indice
-from ytchat.ui import musica_sonoridad
-from ytchat.ui.musica_indice import IndiceMusica
-from ytchat.ui.musica_sonoridad import SonoridadMusica
+from bellbird.music.modelo import Tema
+from bellbird.music import sonoridad
+from bellbird.music.sonoridad import CacheSonoridad
+from bellbird.ui import musica_indice
+from bellbird.ui import musica_sonoridad
+from bellbird.ui.musica_indice import IndiceMusica
+from bellbird.ui.musica_sonoridad import SonoridadMusica
 
 
 class _HiloInmediato:
@@ -883,7 +883,7 @@ class TestHiloRealConFfmpeg(unittest.TestCase):
     """Frontera real: ffmpeg mide un WAV y el hilo deja la ganancia."""
 
     def test_el_hilo_deja_la_ganancia_del_wav_en_la_cache(self):
-        from ytchat.downloads import ffmpeg_bin as ffmpeg_real
+        from bellbird.downloads import ffmpeg_bin as ffmpeg_real
         if ffmpeg_real.ruta_ffmpeg() is None:
             self.skipTest("sin ffmpeg en esta máquina")
         with tempfile.TemporaryDirectory() as tmp:

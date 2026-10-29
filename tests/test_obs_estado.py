@@ -2,8 +2,8 @@ import re
 import unittest
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.core.idioma import _
-from ytchat.obs import obs_estado
+from bellbird.core.idioma import _
+from bellbird.obs import obs_estado
 
 
 class NotaTransmisionTest(unittest.TestCase):

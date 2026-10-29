@@ -7,8 +7,8 @@ from types import SimpleNamespace
 
 from tests.pseudo_prueba import con_pseudo
 
-from ytchat.player import motor_vlc
-from ytchat.player.busqueda_video import (
+from bellbird.player import motor_vlc
+from bellbird.player.busqueda_video import (
     CADUCIDAD_DESTINO_MS, EstadoBusqueda, MARGEN_VENTANA_SEGMENTOS,
     PROGRESO_MINIMO_MS, TOLERANCIA_ATRAS_MS, TOLERANCIA_DESTINO_MS,
     TOPE_BUSQUEDA_MS, accion_play_pausa, desfase_tras_salto, destino_acumulado,
@@ -205,7 +205,7 @@ class TestTransporteConfirmado(unittest.TestCase):
 class TestOrdenTransporte(unittest.TestCase):
 
     def test_confirmacion_simetrica_y_limite(self):
-        from ytchat.player.busqueda_video import OrdenTransporte, evaluar_transporte, PLAZO_TRANSPORTE_MS
+        from bellbird.player.busqueda_video import OrdenTransporte, evaluar_transporte, PLAZO_TRANSPORTE_MS
         self.assertEqual(PLAZO_TRANSPORTE_MS, 8000)
         base = 100.0
         orden_pausa = OrdenTransporte(intencion_reproducir=False, instante=base)
@@ -229,7 +229,7 @@ class TestOrdenTransporte(unittest.TestCase):
             self.assertEqual(evaluar_transporte(orden_pausa, est, base + 8.001), "fallida")
 
     def test_fallo_inmediato_por_estado_final(self):
-        from ytchat.player.busqueda_video import OrdenTransporte, evaluar_transporte
+        from bellbird.player.busqueda_video import OrdenTransporte, evaluar_transporte
         base = 200.0
         for est in ("ended", "stopped", "error", "nothingspecial"):
             orden = OrdenTransporte(intencion_reproducir=False, instante=base)
@@ -238,13 +238,13 @@ class TestOrdenTransporte(unittest.TestCase):
             self.assertEqual(evaluar_transporte(orden2, est, base + 0.1), "fallida")
 
     def test_inmutable(self):
-        from ytchat.player.busqueda_video import OrdenTransporte
+        from bellbird.player.busqueda_video import OrdenTransporte
         orden = OrdenTransporte(intencion_reproducir=True, instante=1.0)
         with self.assertRaises(Exception):
             orden.intencion_reproducir = False  # type: ignore
 
     def test_playing_solo_confirma_reproducir(self):
-        from ytchat.player.busqueda_video import OrdenTransporte, evaluar_transporte
+        from bellbird.player.busqueda_video import OrdenTransporte, evaluar_transporte
         base = 300.0
         orden_pausa = OrdenTransporte(intencion_reproducir=False, instante=base)
         orden_play = OrdenTransporte(intencion_reproducir=True, instante=base)
@@ -254,7 +254,7 @@ class TestOrdenTransporte(unittest.TestCase):
         self.assertEqual(evaluar_transporte(orden_play, "paused", base + 0.5), "pendiente")
 
     def test_fronteras_en_ocho_segundos(self):
-        from ytchat.player.busqueda_video import OrdenTransporte, evaluar_transporte
+        from bellbird.player.busqueda_video import OrdenTransporte, evaluar_transporte
         base = 100.0
         orden_pausa = OrdenTransporte(intencion_reproducir=False, instante=base)
         orden_play = OrdenTransporte(intencion_reproducir=True, instante=base)
@@ -329,7 +329,7 @@ class TestDestinoVigente(unittest.TestCase):
 class TestCableadoBusqueda(unittest.TestCase):
 
     def test_pulsaciones_rapidas_acumulan_desde_el_destino_pendiente(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
 
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._player = mock.Mock()
@@ -351,7 +351,7 @@ class TestCableadoBusqueda(unittest.TestCase):
                          [mock.call(20_000), mock.call(30_000)])
 
     def test_salto_no_vuelve_a_cero_con_lectura_atrasada(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
 
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._player = mock.Mock()
@@ -369,7 +369,7 @@ class TestCableadoBusqueda(unittest.TestCase):
         panel._player.set_time.assert_called_once_with(21_038)
 
     def test_salto_siguiente_conserva_como_referencia_el_destino_anterior(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
 
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._player = mock.Mock()
@@ -389,7 +389,7 @@ class TestCableadoBusqueda(unittest.TestCase):
                          [mock.call(25_000), mock.call(35_000)])
 
     def test_on_timer_con_salto_en_vuelo_conserva_el_destino_pendiente(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
 
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._player = mock.Mock()
@@ -417,7 +417,7 @@ class TestCableadoBusqueda(unittest.TestCase):
             0, 60_000, mover_slider=True, anunciar_t=False)
 
     def test_on_timer_al_alcanzar_el_salto_limpia_el_destino_pendiente(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
 
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._player = mock.Mock()
@@ -449,7 +449,7 @@ class TestCableadoBusqueda(unittest.TestCase):
         self.assertIn("Posición", anunciar.call_args[0][0])
 
     def test_buscar_rel_caso_real_con_duracion_atrasada_no_retrocede(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
 
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._player = mock.Mock()
@@ -473,7 +473,7 @@ class TestCableadoBusqueda(unittest.TestCase):
         self.assertEqual(panel._fijar_tiempo.call_args[0][1], 3_600_000)
 
     def test_deslizador_con_busqueda_pendiente_es_absoluto(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._player = mock.Mock()
         panel._player.get_length.return_value = 100_000
@@ -493,7 +493,7 @@ class TestCableadoBusqueda(unittest.TestCase):
         self.assertEqual(panel._estado_busqueda.destino, 30_000)
 
     def test_porcentaje_con_busqueda_pendiente_es_absoluto(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._player = mock.Mock()
         panel._player.get_length.return_value = 100_000
@@ -514,9 +514,9 @@ class TestCableadoBusqueda(unittest.TestCase):
 class TestCableadoPlayPausa(unittest.TestCase):
 
     def test_orden_en_curso_no_invierte_ni_anuncia(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         import time as _t
-        from ytchat.player.busqueda_video import OrdenTransporte
+        from bellbird.player.busqueda_video import OrdenTransporte
 
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._player = mock.Mock()
@@ -531,7 +531,7 @@ class TestCableadoPlayPausa(unittest.TestCase):
         panel._mostrar_pausa = mock.Mock()
 
         with mock.patch.object(reproductor, "anunciar") as anunciar, \
-                mock.patch("ytchat.voice.sound_player.reproducir") as sonido:
+                mock.patch("bellbird.voice.sound_player.reproducir") as sonido:
             panel._toggle_play()
 
         panel._player.set_pause.assert_not_called()
@@ -539,7 +539,7 @@ class TestCableadoPlayPausa(unittest.TestCase):
         sonido.assert_called_once_with("transporte_en_curso")
 
     def test_buffering_pausa_sin_recargar_el_video(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
 
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._player = mock.Mock()
@@ -563,7 +563,7 @@ class TestCableadoPlayPausa(unittest.TestCase):
 class TestPendienteSecuencial(unittest.TestCase):
 
     def _panel_pausa(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._player = mock.Mock()
         panel._player.get_state.return_value = SimpleNamespace(name="playing")
@@ -582,7 +582,7 @@ class TestPendienteSecuencial(unittest.TestCase):
         return panel
 
     def _panel_reanudar(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._player = mock.Mock()
         panel._player.get_state.return_value = SimpleNamespace(name="paused")
@@ -601,11 +601,11 @@ class TestPendienteSecuencial(unittest.TestCase):
         return panel
 
     def test_secuencia_pausa_vence_a_los_ocho_segundos_y_permite_reintentar(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel_pausa()
         inicio = reproductor.time.monotonic()
         with mock.patch.object(reproductor, "anunciar") as anunciar, \
-                mock.patch("ytchat.voice.sound_player.reproducir") as sonido:
+                mock.patch("bellbird.voice.sound_player.reproducir") as sonido:
             panel._toggle_play()
             self.assertEqual(panel._player.set_pause.call_count, 1)
             self.assertEqual(panel._player.set_pause.call_args[0][0], 1)
@@ -637,11 +637,11 @@ class TestPendienteSecuencial(unittest.TestCase):
                 self.assertEqual(panel._player.set_pause.call_args[0][0], 1)
 
     def test_secuencia_reanudar_vence_a_los_ocho_segundos_y_permite_reintentar(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel_reanudar()
         inicio = reproductor.time.monotonic()
         with mock.patch.object(reproductor, "anunciar") as anunciar, \
-                mock.patch("ytchat.voice.sound_player.reproducir") as sonido:
+                mock.patch("bellbird.voice.sound_player.reproducir") as sonido:
             panel._toggle_play()
             self.assertEqual(panel._player.set_pause.call_args[0][0], 0)
             self.assertFalse(panel._intencion_reproducir)
@@ -666,18 +666,18 @@ class TestPendienteSecuencial(unittest.TestCase):
                 self.assertEqual(panel._player.set_pause.call_count, 1)
 
     def test_transitorio_no_confirma_y_mantiene_en_curso(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel_pausa()
         inicio = reproductor.time.monotonic()
         with mock.patch.object(reproductor, "anunciar"), \
-                mock.patch("ytchat.voice.sound_player.reproducir"):
+                mock.patch("bellbird.voice.sound_player.reproducir"):
             panel._toggle_play()
         self.assertTrue(panel._transporte_pendiente)
         panel._player.get_state.return_value = SimpleNamespace(name="opening")
         panel._player.set_pause.reset_mock()
         with mock.patch.object(reproductor.time, "monotonic", return_value=inicio + 1), \
                 mock.patch.object(reproductor, "anunciar") as anunciar, \
-                mock.patch("ytchat.voice.sound_player.reproducir") as sonido:
+                mock.patch("bellbird.voice.sound_player.reproducir") as sonido:
             panel._toggle_play()
         panel._player.set_pause.assert_not_called()
         anunciar.assert_not_called()
@@ -688,17 +688,17 @@ class TestPendienteSecuencial(unittest.TestCase):
         sonido.reset_mock()
         with mock.patch.object(reproductor.time, "monotonic", return_value=inicio + 2), \
                 mock.patch.object(reproductor, "anunciar") as anunciar, \
-                mock.patch("ytchat.voice.sound_player.reproducir") as sonido:
+                mock.patch("bellbird.voice.sound_player.reproducir") as sonido:
             panel._toggle_play()
         panel._player.set_pause.assert_not_called()
         sonido.assert_called_once_with("transporte_en_curso")
 
     def test_cancelacion_al_detener_y_cargar(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         # Al detener
         panel = self._panel_pausa()
         with mock.patch.object(reproductor, "anunciar"), \
-                mock.patch("ytchat.voice.sound_player.reproducir"):
+                mock.patch("bellbird.voice.sound_player.reproducir"):
             panel._toggle_play()
         self.assertTrue(panel._transporte_pendiente)
         panel._timer_progreso = mock.Mock()
@@ -716,14 +716,14 @@ class TestPendienteSecuencial(unittest.TestCase):
         panel._orden_transporte = None
         panel._player.set_pause.reset_mock()
         with mock.patch.object(reproductor, "anunciar") as anunciar, \
-                mock.patch("ytchat.voice.sound_player.reproducir") as sonido:
+                mock.patch("bellbird.voice.sound_player.reproducir") as sonido:
             panel._toggle_play()
         panel._player.set_pause.assert_called_once_with(0)
         anunciar.assert_called_once_with("Reanudando")
         # Al cargar otro medio
         panel2 = self._panel_pausa()
         with mock.patch.object(reproductor, "anunciar"), \
-                mock.patch("ytchat.voice.sound_player.reproducir"):
+                mock.patch("bellbird.voice.sound_player.reproducir"):
             panel2._toggle_play()
         self.assertTrue(panel2._transporte_pendiente)
         panel2._cargando = False
@@ -740,17 +740,17 @@ class TestPendienteSecuencial(unittest.TestCase):
         self.assertFalse(panel2._transporte_pendiente)
 
     def test_estado_final_no_queda_bloqueado_por_pendiente(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel_pausa()
         with mock.patch.object(reproductor, "anunciar"), \
-                mock.patch("ytchat.voice.sound_player.reproducir"):
+                mock.patch("bellbird.voice.sound_player.reproducir"):
             panel._toggle_play()
         self.assertTrue(panel._transporte_pendiente)
         for estado in ("ended", "stopped", "error", "nothingspecial"):
             panel._player.get_state.return_value = SimpleNamespace(name=estado)
             panel.cargar = mock.Mock()
             with mock.patch.object(reproductor, "anunciar"), \
-                    mock.patch("ytchat.voice.sound_player.reproducir") as sonido:
+                    mock.patch("bellbird.voice.sound_player.reproducir") as sonido:
                 panel._toggle_play()
             panel.cargar.assert_called_once_with(reproducir=True)
             sonido.assert_not_called()
@@ -760,8 +760,8 @@ class TestPendienteSecuencial(unittest.TestCase):
 class TestTransporteContratos(unittest.TestCase):
 
     def _panel(self, estado="playing", intencion=True):
-        from ytchat.player import reproductor
-        from ytchat.player.busqueda_video import EstadoBusqueda, EstadoInicioReproduccion
+        from bellbird.player import reproductor
+        from bellbird.player.busqueda_video import EstadoBusqueda, EstadoInicioReproduccion
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._player = mock.Mock()
         panel._player.get_state.return_value = SimpleNamespace(name=estado)
@@ -801,9 +801,9 @@ class TestTransporteContratos(unittest.TestCase):
         return panel
 
     def test_solicitud_sin_anuncio_optimista(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel(estado="playing", intencion=True)
-        with mock.patch.object(reproductor, "anunciar") as anunciar, mock.patch("ytchat.voice.sound_player.reproducir"):
+        with mock.patch.object(reproductor, "anunciar") as anunciar, mock.patch("bellbird.voice.sound_player.reproducir"):
             panel._toggle_play()
             anunciar.assert_called_once_with("Pausando")
             panel._mostrar_pausa.assert_not_called()
@@ -812,11 +812,11 @@ class TestTransporteContratos(unittest.TestCase):
             panel._player.set_pause.assert_called_once_with(1)
 
     def test_confirmacion_por_evento_trasladado(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         import types
         panel = self._panel(estado="playing", intencion=True)
         panel._player.get_state.return_value = SimpleNamespace(name="playing")
-        with mock.patch.object(reproductor, "anunciar"), mock.patch("ytchat.voice.sound_player.reproducir"):
+        with mock.patch.object(reproductor, "anunciar"), mock.patch("bellbird.voice.sound_player.reproducir"):
             panel._toggle_play()
         ident = panel._player
         pausa_tipo = object()
@@ -852,7 +852,7 @@ class TestTransporteContratos(unittest.TestCase):
         # callback de un player anterior llega a CallAfter pero no altera la orden actual
         panel2 = self._panel(estado="playing", intencion=True)
         panel2._player.get_state.return_value = SimpleNamespace(name="playing")
-        with mock.patch.object(reproductor, "anunciar"), mock.patch("ytchat.voice.sound_player.reproducir"):
+        with mock.patch.object(reproductor, "anunciar"), mock.patch("bellbird.voice.sound_player.reproducir"):
             panel2._toggle_play()
         ident_viejo = panel2._player
         pausa_tipo2 = object()
@@ -887,9 +887,9 @@ class TestTransporteContratos(unittest.TestCase):
                 self.assertTrue(panel2._transporte_pendiente)
 
     def test_confirmacion_por_timer_sin_evento(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel(estado="playing", intencion=True)
-        with mock.patch.object(reproductor, "anunciar"), mock.patch("ytchat.voice.sound_player.reproducir"):
+        with mock.patch.object(reproductor, "anunciar"), mock.patch("bellbird.voice.sound_player.reproducir"):
             panel._toggle_play()
         panel._player.get_state.return_value = SimpleNamespace(name="paused")
         # sin evento, el timer evalúa
@@ -900,9 +900,9 @@ class TestTransporteContratos(unittest.TestCase):
             self.assertIsNone(panel._orden_transporte)
 
     def test_vencimiento_reconcilia_y_permite_reintentar(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel(estado="playing", intencion=True)
-        with mock.patch.object(reproductor, "anunciar"), mock.patch("ytchat.voice.sound_player.reproducir"):
+        with mock.patch.object(reproductor, "anunciar"), mock.patch("bellbird.voice.sound_player.reproducir"):
             panel._toggle_play()
         orden = panel._orden_transporte
         self.assertIsNotNone(orden)
@@ -918,18 +918,18 @@ class TestTransporteContratos(unittest.TestCase):
             self.assertTrue(panel._intencion_reproducir)
         # nuevo intento debe funcionar
         panel._player.set_pause.reset_mock()
-        with mock.patch.object(reproductor, "anunciar") as anunciar, mock.patch("ytchat.voice.sound_player.reproducir"):
+        with mock.patch.object(reproductor, "anunciar") as anunciar, mock.patch("bellbird.voice.sound_player.reproducir"):
             panel._toggle_play()
             panel._player.set_pause.assert_called_once_with(1)
             anunciar.assert_called_with("Pausando")
 
     def test_pulsacion_repetida_solo_sonido(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel(estado="playing", intencion=True)
-        with mock.patch.object(reproductor, "anunciar"), mock.patch("ytchat.voice.sound_player.reproducir"):
+        with mock.patch.object(reproductor, "anunciar"), mock.patch("bellbird.voice.sound_player.reproducir"):
             panel._toggle_play()
         panel._player.set_pause.reset_mock()
-        with mock.patch.object(reproductor, "anunciar") as anunciar, mock.patch("ytchat.voice.sound_player.reproducir") as sonido:
+        with mock.patch.object(reproductor, "anunciar") as anunciar, mock.patch("bellbird.voice.sound_player.reproducir") as sonido:
             panel._toggle_play()
             panel._player.set_pause.assert_not_called()
             anunciar.assert_not_called()
@@ -937,9 +937,9 @@ class TestTransporteContratos(unittest.TestCase):
             panel._player.set_pause.assert_not_called()
 
     def test_evento_player_anterior_no_hace_nada(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel(estado="playing", intencion=True)
-        with mock.patch.object(reproductor, "anunciar"), mock.patch("ytchat.voice.sound_player.reproducir"):
+        with mock.patch.object(reproductor, "anunciar"), mock.patch("bellbird.voice.sound_player.reproducir"):
             panel._toggle_play()
         viejo = panel._player
         nuevo = mock.Mock()
@@ -951,9 +951,9 @@ class TestTransporteContratos(unittest.TestCase):
             self.assertIsNotNone(panel._orden_transporte)
 
     def test_evento_posterior_a_cancelar_no_hace_nada(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel(estado="playing", intencion=True)
-        with mock.patch.object(reproductor, "anunciar"), mock.patch("ytchat.voice.sound_player.reproducir"):
+        with mock.patch.object(reproductor, "anunciar"), mock.patch("bellbird.voice.sound_player.reproducir"):
             panel._toggle_play()
         ident = panel._player
         panel._cancelar_transporte()
@@ -962,10 +962,10 @@ class TestTransporteContratos(unittest.TestCase):
             anunciar.assert_not_called()
 
     def test_cancelar_al_detener_cargar_y_flujo(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         for modo in ("detener", "cargar", "flujo"):
             panel = self._panel(estado="playing", intencion=True)
-            with mock.patch.object(reproductor, "anunciar"), mock.patch("ytchat.voice.sound_player.reproducir"):
+            with mock.patch.object(reproductor, "anunciar"), mock.patch("bellbird.voice.sound_player.reproducir"):
                 panel._toggle_play()
             self.assertIsNotNone(panel._orden_transporte)
             if modo == "detener":
@@ -1006,7 +1006,7 @@ class TestTransporteContratos(unittest.TestCase):
                 anunciar.assert_not_called()
 
     def test_busqueda_durante_pausa_mantiene_muestras(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel(estado="paused", intencion=False)
         panel._estado_busqueda = reproductor.EstadoBusqueda(confirmada=0)
         panel._player.get_length.return_value = 100000
@@ -1021,14 +1021,14 @@ class TestTransporteContratos(unittest.TestCase):
         panel._timer.Start.assert_called()
 
     def test_finalizar_pausa_no_detiene_timer_si_busqueda_pendiente(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         import time as _t
         panel = self._panel(estado="playing", intencion=True)
         # crear búsqueda pendiente real
         panel._estado_busqueda.solicitar(50000, _t.monotonic())
         panel._timer = mock.Mock()
         panel._timer.IsRunning.return_value = True
-        with mock.patch.object(reproductor, "anunciar"), mock.patch("ytchat.voice.sound_player.reproducir"):
+        with mock.patch.object(reproductor, "anunciar"), mock.patch("bellbird.voice.sound_player.reproducir"):
             panel._toggle_play()  # solicita pausa
         panel._player.get_state.return_value = SimpleNamespace(name="paused")
         with mock.patch.object(reproductor, "anunciar"):
@@ -1039,7 +1039,7 @@ class TestTransporteContratos(unittest.TestCase):
             self.assertTrue(panel._estado_busqueda.pendiente)
 
     def test_busqueda_confirmada_en_pausa_detiene_timer(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         import time as _t
         panel = self._panel(estado="paused", intencion=False)
         panel._orden_transporte = None
@@ -1064,7 +1064,7 @@ class TestTransporteContratos(unittest.TestCase):
         panel._timer.Stop.assert_called_once()
 
     def test_busqueda_vencida_en_pausa_detiene_timer(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         import time as _t
         panel = self._panel(estado="paused", intencion=False)
         panel._orden_transporte = None
@@ -1082,7 +1082,7 @@ class TestTransporteContratos(unittest.TestCase):
         panel._timer.Stop.assert_called_once()
 
     def test_busqueda_pendiente_en_pausa_no_detiene_timer(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         import time as _t
         panel = self._panel(estado="paused", intencion=False)
         panel._orden_transporte = None
@@ -1385,7 +1385,7 @@ class TestEstadoBusquedaMuestrasLejanas(unittest.TestCase):
         self.assertIsNone(bus.candidato)
 
     def test_generacion_no_revive_y_doble_anuncio(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._listo = True
         panel._video_id = "a"
@@ -1482,7 +1482,7 @@ class TestEstadoBusquedaMuestrasLejanas(unittest.TestCase):
             self.assertFalse(panel2._estado_busqueda.pendiente)
 
     def test_trazas_topologia_sin_url(self):
-        from ytchat.player.traza_transporte import traza_busqueda_orden, traza_busqueda_desenlace
+        from bellbird.player.traza_transporte import traza_busqueda_orden, traza_busqueda_desenlace
         linea = traza_busqueda_orden("dividida", "playing", 0, 60000, 0, 100)
         self.assertIn("topologia=dividida", linea)
         self.assertNotIn("http", linea.lower())
@@ -1501,46 +1501,46 @@ class TestEstadoBusquedaConstantes(unittest.TestCase):
 class TestBusquedaPermitida(unittest.TestCase):
 
     def test_vod_remoto_dividido_no_permitida(self):
-        from ytchat.player.busqueda_video import busqueda_permitida
+        from bellbird.player.busqueda_video import busqueda_permitida
         self.assertFalse(busqueda_permitida(False, False, True))
 
     def test_vod_local_dividido_si_permitida(self):
-        from ytchat.player.busqueda_video import busqueda_permitida
+        from bellbird.player.busqueda_video import busqueda_permitida
         self.assertTrue(busqueda_permitida(False, True, True))
 
     def test_vod_remoto_unica_si_permitida(self):
-        from ytchat.player.busqueda_video import busqueda_permitida
+        from bellbird.player.busqueda_video import busqueda_permitida
         self.assertTrue(busqueda_permitida(False, False, False))
 
     def test_vod_local_unica_si_permitida(self):
-        from ytchat.player.busqueda_video import busqueda_permitida
+        from bellbird.player.busqueda_video import busqueda_permitida
         self.assertTrue(busqueda_permitida(False, True, False))
 
     def test_directo_remoto_dividido_no_permitida(self):
-        from ytchat.player.busqueda_video import busqueda_permitida
+        from bellbird.player.busqueda_video import busqueda_permitida
         self.assertFalse(busqueda_permitida(True, False, True))
 
     def test_directo_local_no_permitida(self):
-        from ytchat.player.busqueda_video import busqueda_permitida
+        from bellbird.player.busqueda_video import busqueda_permitida
         self.assertFalse(busqueda_permitida(True, True, True))
         self.assertFalse(busqueda_permitida(True, True, False))
 
     def test_directo_remoto_unica_no_permitida(self):
-        from ytchat.player.busqueda_video import busqueda_permitida
+        from bellbird.player.busqueda_video import busqueda_permitida
         self.assertFalse(busqueda_permitida(True, False, False))
 
     def test_directo_por_relevo_no_permitida(self):
         # El relevo de ffmpeg deja el directo como un único flujo sin
         # ventana de retroceso para VLC (is_seekable=0, comprobado con un
         # directo real): buscar no hace nada, así que mejor avisar antes.
-        from ytchat.player.busqueda_video import busqueda_permitida
+        from bellbird.player.busqueda_video import busqueda_permitida
         self.assertFalse(busqueda_permitida(True, False, False, usa_relevo=True))
         self.assertFalse(busqueda_permitida(True, True, True, usa_relevo=True))
 
     def test_vod_por_relevo_si_permitida(self):
         # El VOD por relevo en modo grabado reabre ffmpeg desde el destino
         # en cada salto, así que la búsqueda sí está permitida.
-        from ytchat.player.busqueda_video import busqueda_permitida
+        from bellbird.player.busqueda_video import busqueda_permitida
         self.assertTrue(busqueda_permitida(False, False, False, usa_relevo=True))
         self.assertTrue(busqueda_permitida(False, False, True, usa_relevo=True))
 
@@ -1548,15 +1548,15 @@ class TestBusquedaPermitida(unittest.TestCase):
 class TestPosicionEfectiva(unittest.TestCase):
 
     def test_muestra_negativa_es_menos_uno(self):
-        from ytchat.player.busqueda_video import posicion_efectiva
+        from bellbird.player.busqueda_video import posicion_efectiva
         self.assertEqual(posicion_efectiva(60000, -1), -1)
 
     def test_muestra_cero_es_menos_uno(self):
-        from ytchat.player.busqueda_video import posicion_efectiva
+        from bellbird.player.busqueda_video import posicion_efectiva
         self.assertEqual(posicion_efectiva(60000, 0), -1)
 
     def test_muestra_positiva_suma_la_base(self):
-        from ytchat.player.busqueda_video import posicion_efectiva
+        from bellbird.player.busqueda_video import posicion_efectiva
         self.assertEqual(posicion_efectiva(60000, 1500), 61500)
 
 
@@ -1662,13 +1662,13 @@ class TestAccionSinPausa(unittest.TestCase):
 class TestAvisoSinPausa(unittest.TestCase):
 
     def test_con_atajo_nombra_el_atajo(self):
-        from ytchat.player.busqueda_video import aviso_sin_pausa
+        from bellbird.player.busqueda_video import aviso_sin_pausa
         self.assertEqual(
             aviso_sin_pausa("Ctrl+M"),
             "Un directo de TikTok no se puede pausar. Para silenciarlo, pulsa Ctrl+M.")
 
     def test_sin_atajo_usa_silenciar_audio(self):
-        from ytchat.player.busqueda_video import aviso_sin_pausa
+        from bellbird.player.busqueda_video import aviso_sin_pausa
         self.assertEqual(
             aviso_sin_pausa(""),
             "Un directo de TikTok no se puede pausar. Para silenciarlo, usa Silenciar audio.")
@@ -1686,7 +1686,7 @@ class TestPseudoTextos(unittest.TestCase):
                 frase_desfase_directo(125),
                 frase_desfase_directo(61),
             ]
-            from ytchat.player.busqueda_video import aviso_sin_pausa
+            from bellbird.player.busqueda_video import aviso_sin_pausa
             marcados.append(aviso_sin_pausa("Ctrl+M"))
             marcados.append(aviso_sin_pausa(""))
         for texto in marcados:
@@ -1699,7 +1699,7 @@ class TestCableadoSinPausa(unittest.TestCase):
     la pausa sigue igual que hoy. Sin ventana, como el resto del cableado."""
 
     def _panel(self, flujo=True, atajo_mute="ctrl+u"):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._player = mock.Mock()
         panel._player.get_state.return_value = SimpleNamespace(name="playing")
@@ -1720,10 +1720,10 @@ class TestCableadoSinPausa(unittest.TestCase):
         return panel
 
     def test_flujo_en_playing_anuncia_aviso_con_atajo_del_usuario(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel(flujo=True, atajo_mute="ctrl+u")
         with mock.patch.object(reproductor, "anunciar") as anunciar, \
-                mock.patch("ytchat.voice.sound_player.reproducir") as sonido:
+                mock.patch("bellbird.voice.sound_player.reproducir") as sonido:
             panel._toggle_play()
         anunciar.assert_called_once_with(
             "Un directo de TikTok no se puede pausar. Para silenciarlo, pulsa Ctrl+U.")
@@ -1737,10 +1737,10 @@ class TestCableadoSinPausa(unittest.TestCase):
         self.assertIsNone(panel._orden_transporte)
 
     def test_flujo_sin_atajo_de_silenciar_usa_silenciar_audio(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel(flujo=True, atajo_mute="")
         with mock.patch.object(reproductor, "anunciar") as anunciar, \
-                mock.patch("ytchat.voice.sound_player.reproducir") as sonido:
+                mock.patch("bellbird.voice.sound_player.reproducir") as sonido:
             panel._toggle_play()
         anunciar.assert_called_once_with(
             "Un directo de TikTok no se puede pausar. Para silenciarlo, usa Silenciar audio.")
@@ -1749,10 +1749,10 @@ class TestCableadoSinPausa(unittest.TestCase):
         self.assertFalse(panel._transporte_pendiente)
 
     def test_sin_flujo_pausa_como_hoy(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel(flujo=False)
         with mock.patch.object(reproductor, "anunciar") as anunciar, \
-                mock.patch("ytchat.voice.sound_player.reproducir"):
+                mock.patch("bellbird.voice.sound_player.reproducir"):
             panel._toggle_play()
         panel._player.set_pause.assert_called_once_with(1)
         anunciar.assert_called_once_with("Pausando")
@@ -1762,7 +1762,7 @@ class TestCableadoSinPausa(unittest.TestCase):
 class TestEstadoInicioReproduccion(unittest.TestCase):
 
     def test_playing_inmovil_no_anuncia(self):
-        from ytchat.player.busqueda_video import EstadoInicioReproduccion
+        from bellbird.player.busqueda_video import EstadoInicioReproduccion
         est = EstadoInicioReproduccion()
         est.iniciar()
         self.assertFalse(est.observar("playing", 1000))
@@ -1771,7 +1771,7 @@ class TestEstadoInicioReproduccion(unittest.TestCase):
         self.assertTrue(est.requiere)
 
     def test_dos_muestras_con_avance_anuncian_una_vez(self):
-        from ytchat.player.busqueda_video import EstadoInicioReproduccion
+        from bellbird.player.busqueda_video import EstadoInicioReproduccion
         est = EstadoInicioReproduccion()
         est.iniciar()
         self.assertFalse(est.observar("playing", 2000))
@@ -1781,7 +1781,7 @@ class TestEstadoInicioReproduccion(unittest.TestCase):
         self.assertFalse(est.observar("playing", 2600))
 
     def test_no_playing_no_cuenta(self):
-        from ytchat.player.busqueda_video import EstadoInicioReproduccion
+        from bellbird.player.busqueda_video import EstadoInicioReproduccion
         est = EstadoInicioReproduccion()
         est.iniciar()
         self.assertFalse(est.observar("paused", 1000))
@@ -1791,7 +1791,7 @@ class TestEstadoInicioReproduccion(unittest.TestCase):
         self.assertTrue(est.observar("playing", 1300))
 
     def test_cancelar_no_anuncia(self):
-        from ytchat.player.busqueda_video import EstadoInicioReproduccion
+        from bellbird.player.busqueda_video import EstadoInicioReproduccion
         est = EstadoInicioReproduccion()
         est.iniciar()
         est.cancelar()
@@ -1803,8 +1803,8 @@ class TestPausaConBusquedaPendiente(unittest.TestCase):
     """La pausa reconciliada tras un fallo arranca el temporizador si hay búsqueda pendiente."""
 
     def test_pausa_fallida_reconciliada_en_pausa_con_busqueda_arranca_timer(self):
-        from ytchat.player import reproductor
-        from ytchat.player.busqueda_video import EstadoBusqueda, OrdenTransporte
+        from bellbird.player import reproductor
+        from bellbird.player.busqueda_video import EstadoBusqueda, OrdenTransporte
         import time as _t
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._orden_transporte = OrdenTransporte(intencion_reproducir=False, instante=_t.monotonic() - 9)
@@ -1819,8 +1819,8 @@ class TestPausaConBusquedaPendiente(unittest.TestCase):
         panel._timer.Start.assert_called_once_with(500)
 
     def test_pausa_confirmada_con_busqueda_no_toca_timer(self):
-        from ytchat.player import reproductor
-        from ytchat.player.busqueda_video import EstadoBusqueda, OrdenTransporte
+        from bellbird.player import reproductor
+        from bellbird.player.busqueda_video import EstadoBusqueda, OrdenTransporte
         import time as _t
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._orden_transporte = OrdenTransporte(intencion_reproducir=False, instante=_t.monotonic())
@@ -1840,7 +1840,7 @@ class TestDesenlacesTransporte(unittest.TestCase):
     """Cada desenlace de _evaluar_transporte deja intención, botón, temporizador y anuncio exactos."""
 
     def _panel_transporte(self, reproductor, intencion_previa, instante, estados):
-        from ytchat.player.busqueda_video import EstadoBusqueda, OrdenTransporte
+        from bellbird.player.busqueda_video import EstadoBusqueda, OrdenTransporte
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._orden_transporte = OrdenTransporte(intencion_reproducir=intencion_previa, instante=instante)
         panel._transporte_pendiente = True
@@ -1852,7 +1852,7 @@ class TestDesenlacesTransporte(unittest.TestCase):
         return panel
 
     def test_reanudacion_confirmada(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         import time as _t
         panel = self._panel_transporte(reproductor, True, _t.monotonic(), ["playing"])
         with mock.patch.object(reproductor, "anunciar") as anunciar:
@@ -1864,7 +1864,7 @@ class TestDesenlacesTransporte(unittest.TestCase):
         anunciar.assert_called_once_with("Reproduciendo")
 
     def test_pausa_confirmada_sin_busqueda(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         import time as _t
         panel = self._panel_transporte(reproductor, False, _t.monotonic(), ["paused"])
         with mock.patch.object(reproductor, "anunciar") as anunciar:
@@ -1876,7 +1876,7 @@ class TestDesenlacesTransporte(unittest.TestCase):
         anunciar.assert_called_once_with("Pausa")
 
     def test_fallida_con_vlc_en_playing_reconcilia_reproduciendo(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         import time as _t
         panel = self._panel_transporte(reproductor, False, _t.monotonic() - 9, ["playing", "playing"])
         with mock.patch.object(reproductor, "anunciar") as anunciar:
@@ -1888,7 +1888,7 @@ class TestDesenlacesTransporte(unittest.TestCase):
         anunciar.assert_called_once_with("No se pudo pausar")
 
     def test_fallida_en_transitorio_no_toca_intencion_ni_boton(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         import time as _t
         panel = self._panel_transporte(reproductor, True, _t.monotonic() - 9, ["buffering", "buffering"])
         with mock.patch.object(reproductor, "anunciar") as anunciar:

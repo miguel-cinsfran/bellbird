@@ -6,12 +6,12 @@ Abre una ventana: no se corre en el encargo, la corre el advisor.
 import unittest
 from unittest import mock
 
-from ytchat.music.modelo import Tema
+from bellbird.music.modelo import Tema
 from tests.ventanas_prueba import destruir
 
 try:
     import wx
-    from ytchat.ui import musica_editor_lista
+    from bellbird.ui import musica_editor_lista
     _HAY_WX = True
 except Exception:
     wx = None

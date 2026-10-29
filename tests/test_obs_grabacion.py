@@ -11,12 +11,12 @@ import unittest
 from pathlib import Path
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.core.idioma import _
-from ytchat.obs import obs_grabacion
-from ytchat.obs.obs_grabacion import (
+from bellbird.core.idioma import _
+from bellbird.obs import obs_grabacion
+from bellbird.obs.obs_grabacion import (
     AVISO_CODIFICADOR, FALLO_GRABACION, GrabacionAlTransmitir,
     codificador_propio, codificador_propio_en_obs, grabar_al_transmitir)
-from ytchat.obs.obs_supervisor import SupervisorTransmision
+from bellbird.obs.obs_supervisor import SupervisorTransmision
 
 
 def muestra(activa=True):

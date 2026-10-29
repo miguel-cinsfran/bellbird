@@ -11,10 +11,10 @@ from pathlib import Path
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.core.idioma import _
-from ytchat.downloads.ffmpeg_bin import ruta_ffmpeg
-from ytchat.music import sonoridad
-from ytchat.music.sonoridad import (
+from bellbird.core.idioma import _
+from bellbird.downloads.ffmpeg_bin import ruta_ffmpeg
+from bellbird.music import sonoridad
+from bellbird.music.sonoridad import (
     CacheSonoridad,
     ganancia_db,
     leer_medicion,

@@ -10,16 +10,16 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from ytchat.core import config
-from ytchat.ui import gui, gui_preferencias
-from ytchat.voice import motores
+from bellbird.core import config
+from bellbird.ui import gui, gui_preferencias
+from bellbird.voice import motores
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.rutas_temporales import redirigir_rutas
 from tests.ventanas_prueba import destruir
 
 
 # Textos que arma otro módulo y esta página solo muestra, con valores de
-# fábrica: los títulos de grupo de `ytchat/core/config.py`
+# fábrica: los títulos de grupo de `bellbird/core/config.py`
 # (ATAJOS_GRUPOS). La nota (`atajos_captura.NOTA_PAGINA`) y las etiquetas
 # de los botones (`etiqueta_de_accion` y `etiqueta_boton` de
 # `atajos_captura`) ya salen marcadas porque esta página las traduce. La

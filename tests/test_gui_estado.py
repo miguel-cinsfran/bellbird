@@ -5,9 +5,9 @@ import unittest
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.ui import gui
-from ytchat.ui import gui_estado
-from ytchat.ui.sesion_conectada import SesionConectada
+from bellbird.ui import gui
+from bellbird.ui import gui_estado
+from bellbird.ui.sesion_conectada import SesionConectada
 
 
 def _marco_falso(metadatos):

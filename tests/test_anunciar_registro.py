@@ -7,8 +7,8 @@ la interfaz. Solo comprueba que cada anuncio deja una línea y una sola.
 import unittest
 from unittest import mock
 
-from ytchat.ui import accesibilidad
-from ytchat.ui import gui
+from bellbird.ui import accesibilidad
+from bellbird.ui import gui
 
 
 def _lineas_anuncio(registro):
@@ -19,14 +19,14 @@ class AnunciarRegistroTest(unittest.TestCase):
     def test_desde_el_hilo_principal_registra_una_sola_linea(self):
         with mock.patch.object(accesibilidad, "_lector", mock.Mock()), \
                 mock.patch.object(gui.wx, "IsMainThread", return_value=True), \
-                self.assertLogs("ytchat.accesibilidad", level="INFO") as registro:
+                self.assertLogs("bellbird.accesibilidad", level="INFO") as registro:
             accesibilidad.anunciar("Hola")
         self.assertEqual(len(_lineas_anuncio(registro)), 1)
         self.assertIn("ANUNCIO Hola", _lineas_anuncio(registro)[0])
 
     def test_sin_lector_igual_registra(self):
         with mock.patch.object(accesibilidad, "_lector", None), \
-                self.assertLogs("ytchat.accesibilidad", level="INFO") as registro:
+                self.assertLogs("bellbird.accesibilidad", level="INFO") as registro:
             accesibilidad.anunciar("Hola")
         self.assertEqual(_lineas_anuncio(registro),
                          [registro.output[0]])
@@ -39,7 +39,7 @@ class AnunciarRegistroTest(unittest.TestCase):
                                   side_effect=lambda: next(estados)), \
                 mock.patch.object(gui.wx, "CallAfter",
                                   side_effect=lambda fn, *a, **k: fn(*a, **k)), \
-                self.assertLogs("ytchat.accesibilidad", level="INFO") as registro:
+                self.assertLogs("bellbird.accesibilidad", level="INFO") as registro:
             accesibilidad.anunciar("Hola")
         self.assertEqual(len(_lineas_anuncio(registro)), 1)
 

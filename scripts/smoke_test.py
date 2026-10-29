@@ -35,7 +35,7 @@ RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 sys.path.insert(0, RAIZ)
 
-from ytchat.core.config import APP_NAME  # noqa: E402
+from bellbird.core.config import APP_NAME  # noqa: E402
 
 # Tipos de control que deben tener SIEMPRE un nombre accesible (lo que NVDA
 # anuncia al llegar a ellos con Tab). Si alguno aparece sin nombre, es un fallo
@@ -52,17 +52,17 @@ ALCANCE_FASE3 = (
 
 
 def _modulos_de_la_raiz() -> tuple[list[str], list[str]]:
-    """(módulos puros, módulos de GUI) descubiertos en el paquete `ytchat`.
+    """(módulos puros, módulos de GUI) descubiertos en el paquete `bellbird`.
 
     Antes era una lista a mano y se quedaba corta: cada módulo nuevo
     (relevo_ffmpeg, obs_*, overlay_*, programados…) se quedaba fuera del
     smoke sin que nadie lo notara. Es de GUI si importa wx a nivel de módulo;
     los que lo importan dentro de una función siguen siendo puros. Los nombres
-    son completos (`ytchat.core.config`), para que cada módulo se importe una
+    son completos (`bellbird.core.config`), para que cada módulo se importe una
     sola vez y no haya dos copias en memoria.
     """
     puros, gui = [], []
-    paquete = os.path.join(RAIZ, "ytchat")
+    paquete = os.path.join(RAIZ, "bellbird")
     for dirpath, _dirnames, nombres in os.walk(paquete):
         for nombre in sorted(nombres):
             if not nombre.endswith(".py") or nombre == "__init__.py":
@@ -296,7 +296,7 @@ def fase1_logica() -> bool:
     _titulo("FASE 1 — Importar lógica pura (cualquier SO)")
     total = len(_MODULOS_PUROS) + len(_MODULOS_GUI)
     if total < _MINIMO_MODULOS:
-        print(f"  [FALLO] se descubrieron solo {total} módulos en ytchat/ "
+        print(f"  [FALLO] se descubrieron solo {total} módulos en bellbird/ "
               f"(piso: {_MINIMO_MODULOS}): el descubrimiento mira para otro "
               "lado y el smoke quedaría en verde sin comprobar nada.")
         return False

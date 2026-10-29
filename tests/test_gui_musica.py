@@ -15,20 +15,20 @@ from types import SimpleNamespace
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.music import anuncios
-from ytchat.music import listas
-from ytchat.music import memoria
-from ytchat.music.modelo import (AVANZO, FIN_LISTA, REINICIADO, TEMA_FALLIDO,
+from bellbird.music import anuncios
+from bellbird.music import listas
+from bellbird.music import memoria
+from bellbird.music.modelo import (AVANZO, FIN_LISTA, REINICIADO, TEMA_FALLIDO,
                                  EstadoMusica, Resultado, Tema)
-from ytchat.ui import atajos_globales
-from ytchat.ui import gui_musica
-from ytchat.ui import musica_enlaces
-from ytchat.ui import musica_indice
-from ytchat.ui import musica_listas_propias
-from ytchat.ui import musica_memoria
-from ytchat.ui import musica_teclas
-from ytchat.ui import musica_ventana
-from ytchat.ui.gui_musica import ControlMusica, nuevo_volumen, toca_pausar
+from bellbird.ui import atajos_globales
+from bellbird.ui import gui_musica
+from bellbird.ui import musica_enlaces
+from bellbird.ui import musica_indice
+from bellbird.ui import musica_listas_propias
+from bellbird.ui import musica_memoria
+from bellbird.ui import musica_teclas
+from bellbird.ui import musica_ventana
+from bellbird.ui.gui_musica import ControlMusica, nuevo_volumen, toca_pausar
 
 
 class _AdaptadorFalso:
@@ -172,7 +172,7 @@ def _entorno(fabrica=None):
                                    return_value=ruta_cache), \
                 mock.patch.object(musica_indice.paths, "cache_sonoridad_musica",
                                    return_value=ruta_sonoridad), \
-                mock.patch("ytchat.downloads.ffmpeg_bin.ruta_ffmpeg",
+                mock.patch("bellbird.downloads.ffmpeg_bin.ruta_ffmpeg",
                            return_value=None), \
                 mock.patch.object(gui_musica, "_snd", snd):
             yield SimpleNamespace(anunciar=anunciar, snd=snd, creados=creados,
@@ -202,7 +202,7 @@ class TestFuncionesPuras(unittest.TestCase):
 
 
 def _estado(actual=False, terminado=False):
-    from ytchat.music.modelo import EstadoMusica, Tema
+    from bellbird.music.modelo import EstadoMusica, Tema
 
     if actual:
         cola = (Tema("C:/m.mp3", "Tema"),)
@@ -213,7 +213,7 @@ def _estado(actual=False, terminado=False):
 
 
 def _aviso(codigo=AVANZO, tema=None, cola=None, posicion=None, terminado=False):
-    from ytchat.music.modelo import EstadoMusica, Tema
+    from bellbird.music.modelo import EstadoMusica, Tema
 
     if cola is None:
         cola = (Tema("C:/tema.mp3", "Tema 2", artista="Ana"),)
@@ -463,7 +463,7 @@ class TestAvisoAutomatico(unittest.TestCase):
         self.assertEqual(env.snd.sonidos, ["musica_fin"])
 
     def test_aviso_automatico_tema_fallido(self):
-        from ytchat.music.modelo import Tema
+        from bellbird.music.modelo import Tema
         with _entorno() as env:
             control = ControlMusica(_frame())
             control._aviso_automatico(Resultado(
@@ -764,7 +764,7 @@ class TestEtiquetasSegundoPlano(unittest.TestCase):
         return tmp
 
     def test_lee_guarda_y_aplica_al_coordinador_y_la_ventana(self):
-        from ytchat.music.etiquetas import CacheEtiquetas
+        from bellbird.music.etiquetas import CacheEtiquetas
 
         with tempfile.TemporaryDirectory() as tmp:
             self._carpeta_con(tmp)
@@ -805,7 +805,7 @@ class TestEtiquetasSegundoPlano(unittest.TestCase):
                 env.anunciar.assert_not_called()
 
     def test_con_cache_en_disco_no_lee_ni_arranca_hilo(self):
-        from ytchat.music.etiquetas import CacheEtiquetas
+        from bellbird.music.etiquetas import CacheEtiquetas
 
         hilos = []
 
@@ -1057,7 +1057,7 @@ class TestVentanaYAtajos(unittest.TestCase):
         env.anunciar.assert_called_once_with("Tema 2")
 
     def test_combos_atajo_traduce_los_guardados(self):
-        from ytchat.ui import teclas_wx
+        from bellbird.ui import teclas_wx
         with _entorno():
             control = ControlMusica(_frame())
             combos = control.combos_atajo()
@@ -1081,7 +1081,7 @@ class TestVentanaYAtajos(unittest.TestCase):
                 control.ejecutar_atajo("musica_que_suena")
         self.assertEqual(
             registro.output,
-            ["DEBUG:ytchat.gui_musica:ATAJO origen=musica accion=musica_que_suena"])
+            ["DEBUG:bellbird.gui_musica:ATAJO origen=musica accion=musica_que_suena"])
 
     def test_ejecutar_atajo_desconocido_no_hace_nada(self):
         with _entorno():
@@ -1095,7 +1095,7 @@ class TestVentanaYAtajos(unittest.TestCase):
                 control.ejecutar_atajo("no_existe")
         self.assertEqual(
             registro.output,
-            ["DEBUG:ytchat.gui_musica:ATAJO origen=musica accion=no_existe "
+            ["DEBUG:bellbird.gui_musica:ATAJO origen=musica accion=no_existe "
              "desconocida=si"])
 
 
@@ -1185,7 +1185,7 @@ class TestEnlace(unittest.TestCase):
                          "2 canciones agregadas a la cola. Sonando: Uno")
 
     def test_error_del_enlace_avisa_con_sonido(self):
-        from ytchat.music.enlaces import ErrorEnlace
+        from bellbird.music.enlaces import ErrorEnlace
         with _entorno() as env, \
                 mock.patch.object(musica_enlaces.enlaces, "expandir",
                                   side_effect=ErrorEnlace("El enlace no tiene vídeos")):
@@ -1566,7 +1566,7 @@ class TestSnapshotMusica(unittest.TestCase):
         return _frame_con_panel("En el directo", 0)
 
     def test_la_musica_llega_a_la_instantanea(self):
-        from ytchat.ui import gui
+        from bellbird.ui import gui
         frame = self._frame()
         frame._musica = mock.Mock()
         frame._musica.texto_estado.return_value = "Música: A, canción 1 de 2"
@@ -1574,7 +1574,7 @@ class TestSnapshotMusica(unittest.TestCase):
         self.assertEqual(snap.musica, "Música: A, canción 1 de 2")
 
     def test_sin_motor_o_con_fallo_da_vacio(self):
-        from ytchat.ui import gui
+        from bellbird.ui import gui
         frame = self._frame()
         frame._musica = mock.Mock()
         frame._musica.texto_estado.side_effect = RuntimeError("boom")
@@ -2007,16 +2007,16 @@ class TestSonoridadCableada(unittest.TestCase):
     """El cableado de la normalización: indexar mide y el motor envuelve."""
 
     def test_indexar_no_mide_y_con_iniciar_igualacion_si_guarda(self):
-        from ytchat.music import sonoridad
-        from ytchat.music.sonoridad import CacheSonoridad
+        from bellbird.music import sonoridad
+        from bellbird.music.sonoridad import CacheSonoridad
 
         with tempfile.TemporaryDirectory() as tmp:
             for nombre in ("a.mp3", "b.mp3"):
                 (Path(tmp) / nombre).write_bytes(b"audio-" + nombre.encode())
             with _entorno() as env, \
-                    mock.patch("ytchat.downloads.ffmpeg_bin.ruta_ffmpeg",
+                    mock.patch("bellbird.downloads.ffmpeg_bin.ruta_ffmpeg",
                                return_value="ffmpeg"), \
-                    mock.patch("ytchat.music.sonoridad.medir",
+                    mock.patch("bellbird.music.sonoridad.medir",
                                return_value=3.0):
                 control = ControlMusica(_frame(musica_carpeta=tmp))
                 recibidas = []
@@ -2039,8 +2039,8 @@ class TestSonoridadCableada(unittest.TestCase):
                         3.0)
 
     def test_motor_envuelve_con_la_ganancia_guardada(self):
-        from ytchat.music import sonoridad
-        from ytchat.music.sonoridad import CacheSonoridad
+        from bellbird.music import sonoridad
+        from bellbird.music.sonoridad import CacheSonoridad
 
         for normalizar, esperado in (
                 (True, sonoridad.volumen_efectivo(50, 6.0)), (False, 50)):
@@ -2054,7 +2054,7 @@ class TestSonoridadCableada(unittest.TestCase):
                                  info.st_size, 6.0)
                     previa.guardar()
                     with mock.patch(
-                            "ytchat.downloads.ffmpeg_bin.ruta_ffmpeg",
+                            "bellbird.downloads.ffmpeg_bin.ruta_ffmpeg",
                             return_value="ffmpeg"):
                         control = ControlMusica(_frame(
                             musica_carpeta=tmp, musica_normalizar=normalizar,

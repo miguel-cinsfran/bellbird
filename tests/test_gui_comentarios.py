@@ -6,8 +6,8 @@ from unittest import mock
 
 import wx
 
-from ytchat.ui import gui_comentarios
-from ytchat.youtube import youtube_api
+from bellbird.ui import gui_comentarios
+from bellbird.youtube import youtube_api
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
 

@@ -2,7 +2,7 @@
 
 import unittest
 
-from ytchat.core.anuncio_ajuste import AnuncioAjuste
+from bellbird.core.anuncio_ajuste import AnuncioAjuste
 
 
 class RelojFalso:

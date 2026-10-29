@@ -3,13 +3,13 @@
 import unittest
 from unittest import mock
 
-from ytchat.core.config import (
+from bellbird.core.config import (
     TIPO_ENTRADA, TIPO_ME_GUSTA, TIPO_SUPERCHAT, TIPO_TEXTO,
 )
-from ytchat.core.avisos_tiktok import TIPOS_AVISO
-from ytchat.ui import chat_vivo
-from ytchat.ui.chat_vivo import ControladorChat
-from ytchat.ui.lista_chat import MensajeChat
+from bellbird.core.avisos_tiktok import TIPOS_AVISO
+from bellbird.ui import chat_vivo
+from bellbird.ui.chat_vivo import ControladorChat
+from bellbird.ui.lista_chat import MensajeChat
 
 
 def _registro(tipo=TIPO_TEXTO, autor="Ana", texto="hola", monto=""):

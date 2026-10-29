@@ -96,7 +96,7 @@ class TestLeerRegistro(unittest.TestCase):
 class TestTomadosDeFallo(unittest.TestCase):
 
     def _anuncio(self, lista):
-        from ytchat.music import anuncios as anuncios_musica
+        from bellbird.music import anuncios as anuncios_musica
         return anuncios_musica.TEXTO_ATAJOS_GLOBALES_FALLO.format(
             lista=lista)
 
@@ -110,7 +110,7 @@ class TestTomadosDeFallo(unittest.TestCase):
             self._anuncio("Ctrl+Alt+Espacio")), ["Ctrl+Alt+Espacio"])
 
     def test_reconoce_la_de_que_suena(self):
-        from ytchat.ui.atajos_captura import atajo_legible
+        from bellbird.ui.atajos_captura import atajo_legible
         nombre = atajo_legible("ctrl+alt+t")
         tomados = musica_globales.tomados_de_fallo(
             self._anuncio(f"Ctrl+Alt+Espacio, {nombre}"))
@@ -237,8 +237,8 @@ class TestImportanSinAbrirNada(unittest.TestCase):
         self.assertTrue(callable(musica_globales.tomados_de_fallo))
 
     def test_la_tecla_y_el_prefijo_salen_de_las_constantes(self):
-        from ytchat.music import anuncios as anuncios_musica
-        from ytchat.ui.atajos_captura import atajo_legible
+        from bellbird.music import anuncios as anuncios_musica
+        from bellbird.ui.atajos_captura import atajo_legible
         self.assertEqual(musica_globales.TECLA_QUE_SUENA, "^%t")
         self.assertEqual(musica_globales.NOMBRE_QUE_SUENA,
                          atajo_legible("ctrl+alt+t"))
@@ -251,7 +251,7 @@ class TestImportanSinAbrirNada(unittest.TestCase):
         self.assertTrue(callable(ventana_ajena.main))
 
     def test_los_textos_salen_de_la_app(self):
-        from ytchat.music import anuncios as anuncios_musica
+        from bellbird.music import anuncios as anuncios_musica
         self.assertEqual(anuncios_musica.TEXTO_PAUSA, "Música en pausa")
         self.assertEqual(anuncios_musica.TEXTO_REANUDADA,
                          "Música reanudada")
@@ -294,13 +294,13 @@ class TestTraducirAtajoATeclas(unittest.TestCase):
 class TestTablaDePasos(unittest.TestCase):
 
     def test_toda_accion_aparece(self):
-        from ytchat.ui.atajos_globales import ACCIONES
+        from bellbird.ui.atajos_globales import ACCIONES
         en_tabla = {paso.accion for paso in musica_globales.PASOS}
         faltan = [accion for accion in ACCIONES if accion not in en_tabla]
         self.assertEqual(faltan, [])
 
     def test_teclas_son_la_traduccion_de_fabrica(self):
-        from ytchat.core import config_predeterminada
+        from bellbird.core import config_predeterminada
         for paso in musica_globales.PASOS:
             fabrica = config_predeterminada.obtener(
                 "atajos", paso.accion, "")
@@ -310,8 +310,8 @@ class TestTablaDePasos(unittest.TestCase):
             self.assertTrue(paso.teclas)
 
     def test_esperados_salen_de_las_constantes(self):
-        from ytchat.music import anuncios as anuncios_musica
-        from ytchat.music import anuncios_teclas
+        from bellbird.music import anuncios as anuncios_musica
+        from bellbird.music import anuncios_teclas
         permitidos = {
             anuncios_musica.TEXTO_QUE_SUENA.split("{nombre}")[0],
             anuncios_musica.TEXTO_PAUSA,
@@ -352,7 +352,7 @@ class TestTablaDePasos(unittest.TestCase):
         self.assertGreater(veces["musica_repetir"], 0)
 
     def test_repetir_sigue_el_ciclo_de_la_app(self):
-        from ytchat.music import anuncios as anuncios_musica
+        from bellbird.music import anuncios as anuncios_musica
         ciclo = [paso.esperado for paso in musica_globales.PASOS
                  if paso.accion == "musica_repetir"]
         self.assertEqual(ciclo, [anuncios_musica.TEXTO_REPETIR_TODO,
@@ -383,7 +383,7 @@ class TestResolverActivacionConTomadas(unittest.TestCase):
         return Res()
 
     def _propia_con_fallo(self, lista):
-        from ytchat.music import anuncios as anuncios_musica
+        from bellbird.music import anuncios as anuncios_musica
         anuncio = anuncios_musica.TEXTO_ATAJOS_GLOBALES_FALLO.format(
             lista=lista)
         class Propia:
@@ -391,8 +391,8 @@ class TestResolverActivacionConTomadas(unittest.TestCase):
         return Propia()
 
     def test_tomada_de_musica_es_fallo_y_sigue(self):
-        from ytchat.music import anuncios as anuncios_musica
-        from ytchat.ui.atajos_captura import atajo_legible
+        from bellbird.music import anuncios as anuncios_musica
+        from bellbird.ui.atajos_captura import atajo_legible
         nombre = atajo_legible("ctrl+alt+right")
         res = self._res()
         sigue = musica_globales._resolver_activacion(
@@ -404,7 +404,7 @@ class TestResolverActivacionConTomadas(unittest.TestCase):
         self.assertEqual(res.no_probados, [])
 
     def test_tomada_de_que_suena_tambien_es_fallo_y_sigue(self):
-        from ytchat.music import anuncios as anuncios_musica
+        from bellbird.music import anuncios as anuncios_musica
         nombre = musica_globales.NOMBRE_QUE_SUENA
         res = self._res()
         sigue = musica_globales._resolver_activacion(

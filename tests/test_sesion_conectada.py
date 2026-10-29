@@ -2,8 +2,8 @@
 
 import unittest
 
-from ytchat.capture import deteccion
-from ytchat.ui.sesion_conectada import SesionConectada
+from bellbird.capture import deteccion
+from bellbird.ui.sesion_conectada import SesionConectada
 
 
 class TestSesionConectada(unittest.TestCase):

@@ -12,9 +12,9 @@ import time
 import unittest
 from unittest.mock import MagicMock, patch
 
-from ytchat.downloads import ytdlp_bin
-from ytchat.core import paths
-from ytchat.core import subprocesos
+from bellbird.downloads import ytdlp_bin
+from bellbird.core import paths
+from bellbird.core import subprocesos
 from tests.pseudo_prueba import con_pseudo
 
 
@@ -870,12 +870,12 @@ class TestUserAgentConVersionDeLaApp(unittest.TestCase):
     """El User-Agent de las dos fuentes lleva la versión de la app."""
 
     def test_actualizacion_usa_bellbird_y_version(self):
-        from ytchat.core import actualizacion
-        from ytchat.core.config import APP_VERSION
+        from bellbird.core import actualizacion
+        from bellbird.core.config import APP_VERSION
         self.assertEqual(actualizacion.USER_AGENT, f"Bellbird/{APP_VERSION}")
 
     def test_ytdlp_envia_bellbird_y_version(self):
-        from ytchat.core.config import APP_VERSION
+        from bellbird.core.config import APP_VERSION
         esperado = f"Bellbird/{APP_VERSION}"
         pedidos = []
 

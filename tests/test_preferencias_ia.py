@@ -10,11 +10,11 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from ytchat.ai import catalogo
-from ytchat.ui import gui, gui_preferencias
-from ytchat.ui import preferencias_ia
-from ytchat.ui import preferencias_ia_clave
-from ytchat.voice import motores
+from bellbird.ai import catalogo
+from bellbird.ui import gui, gui_preferencias
+from bellbird.ui import preferencias_ia
+from bellbird.ui import preferencias_ia_clave
+from bellbird.voice import motores
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.rutas_temporales import redirigir_rutas
 from tests.ventanas_prueba import destruir

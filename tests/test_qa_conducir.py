@@ -75,8 +75,8 @@ class TestSuperficiesQa(unittest.TestCase):
         raiz = Path(__file__).resolve().parent.parent
         faltan = [
             nombre for nombre in conducir.SUPERFICIES
-            if not (raiz / "ytchat" / "ui" / nombre).is_file()
-            and not (raiz / "ytchat" / "player" / nombre).is_file()
+            if not (raiz / "bellbird" / "ui" / nombre).is_file()
+            and not (raiz / "bellbird" / "player" / nombre).is_file()
         ]
         self.assertEqual(faltan, [])
 
@@ -84,8 +84,8 @@ class TestSuperficiesQa(unittest.TestCase):
         raiz = Path(__file__).resolve().parent.parent
         faltan = [
             nombre for nombre in conducir.SIN_ESCENARIO
-            if not (raiz / "ytchat" / "ui" / nombre).is_file()
-            and not (raiz / "ytchat" / "player" / nombre).is_file()
+            if not (raiz / "bellbird" / "ui" / nombre).is_file()
+            and not (raiz / "bellbird" / "player" / nombre).is_file()
         ]
         self.assertEqual(faltan, [])
 
@@ -191,7 +191,7 @@ class TestAgujasDeBusqueda(unittest.TestCase):
 
     @staticmethod
     def _coincide(aguja, nombre):
-        from ytchat.music.biblioteca import coincide_por_palabras
+        from bellbird.music.biblioteca import coincide_por_palabras
         return coincide_por_palabras(aguja, [Path(nombre).stem])
 
     def test_la_aguja_unica_sale_del_nombre_sin_extension(self):

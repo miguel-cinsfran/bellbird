@@ -6,7 +6,7 @@ del módulo, que no crea controles al importarse.
 
 import unittest
 
-from ytchat.ui.ia_agregar_captura import (
+from bellbird.ui.ia_agregar_captura import (
     TEXTO_CARGANDO,
     TEXTO_OBS_CERRADO,
     texto_negra,

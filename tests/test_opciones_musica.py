@@ -7,7 +7,7 @@ propiedad general de que la selección siempre es un índice válido.
 import unittest
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.ui.opciones_musica import ETIQUETA_PREDETERMINADA, opciones_salida
+from bellbird.ui.opciones_musica import ETIQUETA_PREDETERMINADA, opciones_salida
 
 
 class TestOpcionesSalida(unittest.TestCase):

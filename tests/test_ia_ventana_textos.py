@@ -8,10 +8,10 @@ import unittest
 from datetime import datetime
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.ai import ventana_ia
-from ytchat.ai import conversacion
-from ytchat.ai import protocolos
-from ytchat.core.idioma import _
+from bellbird.ai import ventana_ia
+from bellbird.ai import conversacion
+from bellbird.ai import protocolos
+from bellbird.core.idioma import _
 
 
 class TestTextosVentanaIA(unittest.TestCase):

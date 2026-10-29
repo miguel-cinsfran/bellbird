@@ -10,8 +10,8 @@ import time
 import unittest
 from unittest import mock
 
-from ytchat.player import reproductor
-from ytchat.player.busqueda_video import EstadoBusqueda, EstadoInicioReproduccion
+from bellbird.player import reproductor
+from bellbird.player.busqueda_video import EstadoBusqueda, EstadoInicioReproduccion
 
 
 class _Aplazada:

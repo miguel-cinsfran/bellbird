@@ -10,8 +10,8 @@ from unittest import mock
 from babel.messages import catalog, pofile
 
 from scripts import traducciones
-from ytchat.core import autocomprobacion
-from ytchat.core import paths
+from bellbird.core import autocomprobacion
+from bellbird.core import paths
 
 
 RAIZ = Path(__file__).resolve().parents[1]

@@ -9,8 +9,8 @@ import unittest
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.core.idioma import _
-from ytchat.obs import obs_cliente
+from bellbird.core.idioma import _
+from bellbird.obs import obs_cliente
 
 
 class AjustesObsTest(unittest.TestCase):

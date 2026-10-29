@@ -2,7 +2,7 @@
 
 import unittest
 
-from ytchat.capture.deteccion import (
+from bellbird.capture.deteccion import (
     LIVE, UPCOMING, VOD, DESCONOCIDO,
     clasificar_desde_html, clasificar_desde_api, tiene_chat_en_vivo,
 )

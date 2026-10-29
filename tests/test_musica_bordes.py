@@ -9,7 +9,7 @@ from pathlib import Path
 
 import imageio_ffmpeg
 
-from ytchat.music.bordes import (
+from bellbird.music.bordes import (
     VENTANA_MS,
     TASA,
     medir_bordes,

@@ -26,7 +26,7 @@ CODIGO_PADRE_ARBOL = (
 
 CODIGO_INTERMEDIO_JOB = (
     "import os, subprocess, sys\n"
-    "from ytchat.core import subprocesos\n"
+    "from bellbird.core import subprocesos\n"
     "nieto = subprocess.Popen([sys.executable, '-c', "
     "'import time; time.sleep(60)'])\n"
     "subprocesos.vincular_a_la_app(nieto)\n"
@@ -81,7 +81,7 @@ def _esperar_muerte(pid: int, tope: float = 3.0) -> bool:
 class PruebasArbolProcesos(unittest.TestCase):
 
     def test_cancelar_mata_al_hijo_del_proceso_lanzado(self):
-        from ytchat.core.subprocesos import Estado, ejecutar
+        from bellbird.core.subprocesos import Estado, ejecutar
         with tempfile.TemporaryDirectory() as carpeta:
             pid_archivo = Path(carpeta) / "hijo.pid"
             evento = threading.Event()
@@ -137,7 +137,7 @@ class PruebasArbolProcesos(unittest.TestCase):
 class PruebasFormatoCache(unittest.TestCase):
 
     def test_cache_pide_720p_y_mantiene_limite(self):
-        from ytchat.downloads import ytdlp_bin
+        from bellbird.downloads import ytdlp_bin
         with tempfile.TemporaryDirectory() as carpeta:
             temporal = Path(carpeta) / ".ytcache-x.mp4"
             args = ytdlp_bin._argumentos_video_cache(

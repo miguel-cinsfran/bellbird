@@ -1,7 +1,7 @@
 import unittest
 from unittest import mock
 
-from ytchat.ui import gui
+from bellbird.ui import gui
 
 TEXTO_SIN_SENAL = ("El micrófono no recibe sonido. Revisa cuál está elegido "
                    "en Windows o en OBS.")

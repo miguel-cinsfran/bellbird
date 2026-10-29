@@ -3,7 +3,7 @@
 import unittest
 from unittest import mock
 
-from ytchat.player import reproductor
+from bellbird.player import reproductor
 
 
 class TestCargaReproductor(unittest.TestCase):
@@ -64,12 +64,12 @@ class TestCargaReproductor(unittest.TestCase):
     @mock.patch.object(reproductor, "anunciar")
     def test_error_de_carga_detiene_el_temporizador(self, _anunciar):
         panel = self._panel("A" * 11, True)
-        # `from ytchat.voice import sound_player` mira primero el atributo del
+        # `from bellbird.voice import sound_player` mira primero el atributo del
         # paquete: sin este parche usaría el módulo real si otra prueba ya
         # lo importó.
-        from ytchat import voice as _paquete_voz
+        from bellbird import voice as _paquete_voz
         sonido_falso = mock.Mock()
-        with mock.patch.dict("sys.modules", {"ytchat.voice.sound_player": sonido_falso}), \
+        with mock.patch.dict("sys.modules", {"bellbird.voice.sound_player": sonido_falso}), \
                 mock.patch.object(_paquete_voz, "sound_player", sonido_falso,
                                   create=True):
             panel._error_carga()

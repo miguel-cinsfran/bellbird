@@ -2,8 +2,8 @@
 
 import unittest
 
-from ytchat.music.coordinador import Coordinador
-from ytchat.music.modelo import (
+from bellbird.music.coordinador import Coordinador
+from bellbird.music.modelo import (
     ERROR_MOTOR, OK, SIN_TEMA,
 )
 from tests.test_musica_coordinador import AdaptadorFalso, tema

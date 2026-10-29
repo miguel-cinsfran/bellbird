@@ -87,7 +87,7 @@ echo == Ensamblando la carpeta distribuible ==
 REM Version desde config.py (fuente unica): nombra la carpeta y el zip como
 REM "Bellbird vX.Y.Z", asi el archivo que se manda y la carpeta al descomprimir
 REM dejan clara la version.
-for /f "delims=" %%v in ('uv run python -c "from ytchat.core import config;print(config.APP_VERSION)"') do set "VER=%%v"
+for /f "delims=" %%v in ('uv run python -c "from bellbird.core import config;print(config.APP_VERSION)"') do set "VER=%%v"
 if not defined VER ( echo ERROR: no se pudo leer la version de config.py. & pause & exit /b 1 )
 set "OUT=Bellbird v%VER%"
 REM Ojo: "^>" escapado; un ">" literal en echo redirige y crea un archivo basura.
@@ -157,7 +157,7 @@ if defined FFEXE (
 )
 echo == Empaquetando yt-dlp independiente ==
 echo    La primera vez descarga yt-dlp desde GitHub y puede tardar.
-call uv run python -c "import shutil; from ytchat.downloads import ytdlp_bin; from pathlib import Path; r=ytdlp_bin.asegurar_ytdlp(); p=ytdlp_bin.ruta_ytdlp(); d=Path(r'%OUT%') / 'yt-dlp.exe'; shutil.copy2(p,d) if r.correcta and p else None; print('   ' + ('resultado: ' if r.correcta else 'AVISO: ') + r.motivo)"
+call uv run python -c "import shutil; from bellbird.downloads import ytdlp_bin; from pathlib import Path; r=ytdlp_bin.asegurar_ytdlp(); p=ytdlp_bin.ruta_ytdlp(); d=Path(r'%OUT%') / 'yt-dlp.exe'; shutil.copy2(p,d) if r.correcta and p else None; print('   ' + ('resultado: ' if r.correcta else 'AVISO: ') + r.motivo)"
 REM El lanzador del entorno pesa unos 45 KB; el ejecutable oficial observado
 REM el 21/08/2026 pesa unos 17 MB. Un MiB deja margen y descarta el lanzador.
 set "YTDLP_MIN_BYTES=1048576"

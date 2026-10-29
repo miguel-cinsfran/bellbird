@@ -6,8 +6,8 @@ pistas m3u8 cuando hay alternativas normales. El directo no cambia.
 
 import unittest
 
-from ytchat.player import reproductor
-from ytchat.player.formatos_youtube import _video_para_altura
+from bellbird.player import reproductor
+from bellbird.player.formatos_youtube import _video_para_altura
 
 
 def _audio(fid, protocolo, abr, lang, url=None, acodec="mp4a", ext=None):

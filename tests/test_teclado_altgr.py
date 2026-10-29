@@ -5,7 +5,7 @@ import sys
 import unittest
 from unittest import mock
 
-from ytchat.ui import teclado_altgr
+from bellbird.ui import teclado_altgr
 
 
 def _distribucion_disponible(identificador: str) -> bool:

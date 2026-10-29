@@ -4,9 +4,9 @@ import threading
 import unittest
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.core.idioma import _
-from ytchat.obs import obs_salida
-from ytchat.obs.obs_salida import (
+from bellbird.core.idioma import _
+from bellbird.obs import obs_salida
+from bellbird.obs.obs_salida import (
     esperar_salida, evaluar_inicio, frase_salida, problemas_en_directo)
 
 

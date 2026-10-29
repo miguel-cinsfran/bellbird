@@ -3,7 +3,7 @@
 import unittest
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.player.progreso import aviso_de_espera
+from bellbird.player.progreso import aviso_de_espera
 
 
 class TestAvisoDeEspera(unittest.TestCase):

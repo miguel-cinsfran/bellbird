@@ -7,12 +7,12 @@ corre acá.
 import unittest
 from unittest import mock
 
-from ytchat.music import filtros
-from ytchat.music.modelo import Tema
+from bellbird.music import filtros
+from bellbird.music.modelo import Tema
 
 try:
     import wx
-    from ytchat.ui import musica_filtros
+    from bellbird.ui import musica_filtros
     from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
     from tests.ventanas_prueba import destruir
     _HAY_WX = True
@@ -243,7 +243,7 @@ class TestFiltrosPseudo(unittest.TestCase):
     # Lo que arma otro módulo y estos cuadros solo muestran: queda
     # pendiente hasta que se envuelva su módulo.
     PENDIENTES = (
-        # ytchat/music/filtros.py, las opciones de «Ordenar por».
+        # bellbird/music/filtros.py, las opciones de «Ordenar por».
         "Orden de la colección",
         "Título",
         "Artista",

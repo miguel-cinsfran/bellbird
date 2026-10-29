@@ -479,7 +479,7 @@ class PruebasFiltroReconexion(unittest.TestCase):
         eventos = [linea for linea in registro.output if "YOUTUBE_EVENTO" in linea]
         self.assertEqual(
             eventos,
-            ["DEBUG:ytchat.main:YOUTUBE_EVENTO tipo=superchat monto=$5"])
+            ["DEBUG:bellbird.main:YOUTUBE_EVENTO tipo=superchat monto=$5"])
         self.assertNotIn("Ana", "".join(registro.output))
         self.assertNotIn("mensaje privado", "".join(registro.output))
 
@@ -535,11 +535,11 @@ class TestCableadoClasificarPorApi(unittest.TestCase):
             efectivas=lambda *a, **k: {"origen": "efectivas"})
         youtube_api_falso = types.SimpleNamespace(
             google_disponible=lambda: True, ClienteYouTube=ClienteRegistra)
-        # `from ytchat.youtube import x` mira primero el atributo del paquete:
+        # `from bellbird.youtube import x` mira primero el atributo del paquete:
         # sin estos parches usaría el módulo real si otra prueba ya lo importó.
-        from ytchat import youtube as _paquete_youtube
-        with patch.dict(sys.modules, {"ytchat.youtube.credenciales": credenciales_falso,
-                                       "ytchat.youtube.youtube_api": youtube_api_falso}), \
+        from bellbird import youtube as _paquete_youtube
+        with patch.dict(sys.modules, {"bellbird.youtube.credenciales": credenciales_falso,
+                                       "bellbird.youtube.youtube_api": youtube_api_falso}), \
                 patch.object(_paquete_youtube, "credenciales",
                              credenciales_falso, create=True), \
                 patch.object(_paquete_youtube, "youtube_api",
@@ -800,12 +800,12 @@ class PruebasPseudoCaptura(unittest.TestCase):
         self.assertTrue(vistos["leido"].startswith("[¡"), vistos["leido"])
 
     def test_fallo_de_video_marcado(self):
-        from ytchat.core import avisos_red
+        from bellbird.core import avisos_red
         captados = []
         falso = types.SimpleNamespace(
             anunciar=lambda texto, urgente=True: captados.append(texto))
         with con_pseudo(), patch.dict(
-                sys.modules, {"ytchat.ui.accesibilidad": falso}):
+                sys.modules, {"bellbird.ui.accesibilidad": falso}):
             fallo = avisos_red.mensaje_de_fallo("timeout")
             main._anunciar_fallo_video(
                 {"fallo": fallo}, lambda f, arg: f(arg))
@@ -814,7 +814,7 @@ class PruebasPseudoCaptura(unittest.TestCase):
 
     def test_sin_fallo_no_anuncia(self):
         anunciar = Mock()
-        with patch.dict(sys.modules, {"ytchat.ui.accesibilidad":
+        with patch.dict(sys.modules, {"bellbird.ui.accesibilidad":
                         types.SimpleNamespace(anunciar=anunciar)}):
             main._anunciar_fallo_video(
                 {}, lambda f, arg: f(arg))

@@ -2,9 +2,9 @@ import unittest
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.obs import obs_audio
-from ytchat.obs import obs_entradas_audio
-from ytchat.obs import dispositivo_windows
+from bellbird.obs import obs_audio
+from bellbird.obs import obs_entradas_audio
+from bellbird.obs import dispositivo_windows
 
 TEXTO_SIN_SENAL = ("El micrófono no recibe sonido. Revisa cuál está elegido "
                    "en Windows o en OBS.")
@@ -316,7 +316,7 @@ class MicrofonoPorAtajoTest(unittest.TestCase):
             estados.append(estado)
             if al_estado is not None:
                 al_estado(estado)
-        with mock.patch("ytchat.obs.obs_panel.GestorPanelObs",
+        with mock.patch("bellbird.obs.obs_panel.GestorPanelObs",
                         return_value=gestor) as clase, \
                 mock.patch.object(obs_entradas_audio, "senal_microfono",
                                   return_value=senal) as medicion:
@@ -417,7 +417,7 @@ class EstadoMicrofonoTest(unittest.TestCase):
         gestor.silencios = dict(silencios or {})
         if fallo_conectar:
             gestor.conectar = mock.Mock(side_effect=RuntimeError("sin OBS"))
-        with mock.patch("ytchat.obs.obs_panel.GestorPanelObs",
+        with mock.patch("bellbird.obs.obs_panel.GestorPanelObs",
                         return_value=gestor):
             return obs_entradas_audio.estado_microfono(""), gestor
 
@@ -456,7 +456,7 @@ class TestPseudoAvisoSinSenal(unittest.TestCase):
             dispositivo=("Micrófono (USB)", False))
         avisos = []
         with con_pseudo(), \
-                mock.patch("ytchat.obs.obs_panel.GestorPanelObs",
+                mock.patch("bellbird.obs.obs_panel.GestorPanelObs",
                            return_value=gestor), \
                 mock.patch.object(obs_entradas_audio, "senal_microfono",
                                   return_value=False):

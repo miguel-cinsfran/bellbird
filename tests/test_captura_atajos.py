@@ -22,8 +22,8 @@ class TestCapturaAtajos(unittest.TestCase):
         # wx.App necesaria para instanciar/usar helpers que tocan wx.
         import wx
         self.app = wx.App() if not wx.App.Get() else wx.App.Get()
-        from ytchat.ui import gui_preferencias as gp
-        from ytchat.ui import atajos_captura
+        from bellbird.ui import gui_preferencias as gp
+        from bellbird.ui import atajos_captura
         self.gp = gp
         self.atajos = atajos_captura
 
@@ -45,7 +45,7 @@ class TestCapturaAtajos(unittest.TestCase):
 
     def test_combo_ctrl_alt_flecha_llega_a_la_gramatica(self):
         import wx
-        from ytchat.core import config as cfg
+        from bellbird.core import config as cfg
         combo = self.atajos.combo_a_texto(
             wx.MOD_CONTROL | wx.MOD_ALT, wx.WXK_LEFT)
         self.assertEqual(combo, "ctrl+alt+left")
@@ -58,7 +58,7 @@ class TestCapturaAtajos(unittest.TestCase):
     def test_combo_shift_se_normaliza_y_abre_alt_shift(self):
         import wx
         # Ctrl+Shift se captura tal cual y Alt+Shift ya es un área propia.
-        from ytchat.core import config as cfg
+        from bellbird.core import config as cfg
         combo = self.atajos.combo_a_texto(wx.MOD_CONTROL | wx.MOD_SHIFT, ord("P"))
         self.assertEqual(combo, "ctrl+shift+p")
         self.assertEqual(cfg._normalizar_atajo(combo), "ctrl+shift+p")
@@ -80,7 +80,7 @@ class TestCapturaAtajos(unittest.TestCase):
 
     def test_caja_de_grupo_devuelve_la_caja_como_padre(self):
         import wx
-        from ytchat.ui.gui import caja_de_grupo
+        from bellbird.ui.gui import caja_de_grupo
         frame = wx.Frame(None)
         try:
             panel = wx.Panel(frame)
@@ -95,7 +95,7 @@ class TestCapturaAtajos(unittest.TestCase):
 
     def test_los_atajos_cuelgan_de_su_caja_de_grupo(self):
         import wx
-        from ytchat.core import config as cfg
+        from bellbird.core import config as cfg
         dialogo = self.gp.PreferenciasDialog(None, {})
         try:
             controles = []

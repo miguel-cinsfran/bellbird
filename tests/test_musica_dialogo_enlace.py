@@ -7,7 +7,7 @@ import unittest
 
 try:
     import wx
-    from ytchat.ui import musica_dialogo_enlace
+    from bellbird.ui import musica_dialogo_enlace
     from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
     from tests.ventanas_prueba import destruir
     _HAY_WX = True

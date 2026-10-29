@@ -14,11 +14,11 @@ try:
 except Exception:
     _HAY_WX = False
 
-from ytchat.ai import consulta
-from ytchat.ai import conversacion
-from ytchat.ai import protocolos
-from ytchat.ai import ventana_ia
-from ytchat.ui import ia_ventana as ventana
+from bellbird.ai import consulta
+from bellbird.ai import conversacion
+from bellbird.ai import protocolos
+from bellbird.ai import ventana_ia
+from bellbird.ui import ia_ventana as ventana
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
 

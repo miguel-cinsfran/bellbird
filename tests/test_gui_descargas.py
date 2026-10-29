@@ -5,8 +5,8 @@ import threading
 from types import SimpleNamespace
 from unittest import mock
 
-from ytchat.downloads import descargas
-from ytchat.ui import gui_descargas
+from bellbird.downloads import descargas
+from bellbird.ui import gui_descargas
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
 

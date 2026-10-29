@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from ytchat.downloads.progreso_ytdlp import analizar_linea_progreso
+from bellbird.downloads.progreso_ytdlp import analizar_linea_progreso
 
 
 class TestAnalizarLineaProgreso(unittest.TestCase):

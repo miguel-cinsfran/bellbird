@@ -4,8 +4,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from ytchat.ui import gui_historial
-from ytchat.core import historial
+from bellbird.ui import gui_historial
+from bellbird.core import historial
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
 

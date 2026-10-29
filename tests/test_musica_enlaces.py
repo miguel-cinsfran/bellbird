@@ -12,11 +12,11 @@ import unittest
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.core.idioma import _
-from ytchat.music import enlaces
-from ytchat.music.enlaces import ErrorEnlace
-from ytchat.music.modelo import Tema
-from ytchat.player import motor_vlc
+from bellbird.core.idioma import _
+from bellbird.music import enlaces
+from bellbird.music.enlaces import ErrorEnlace
+from bellbird.music.modelo import Tema
+from bellbird.player import motor_vlc
 
 _HABIL_RED = os.environ.get("YTCHAT_PRUEBAS_RED") == "1"
 
@@ -337,7 +337,7 @@ class TestAdaptadorPorEnlaceReal(unittest.TestCase):
     """Reproduce un vídeo de YouTube por enlace con libVLC y «adummy»."""
 
     def test_reproduce_y_avisa_sonando(self):
-        from ytchat.music.adaptador_vlc import AdaptadorVlc
+        from bellbird.music.adaptador_vlc import AdaptadorVlc
         adaptador = AdaptadorVlc(salida_audio="adummy")
         self.addCleanup(adaptador.cerrar)
         terminado = threading.Event()

@@ -10,7 +10,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-from ytchat.ui import gui_directo_huerfano as huerfano
+from bellbird.ui import gui_directo_huerfano as huerfano
 from tests.pseudo_prueba import con_pseudo
 
 

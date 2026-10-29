@@ -14,7 +14,7 @@ try:
 except Exception:
     _HAY_WX = False
 
-from ytchat.ui import gui_microfono
+from bellbird.ui import gui_microfono
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
 
@@ -63,7 +63,7 @@ def _aplicar_en(dialogo, senal=None, fallo=None, silenciada=False):
                               return_value=senal), \
             mock.patch.object(gui_microfono, "guardar_opcion") \
             as guardar, \
-            mock.patch("ytchat.ui.gui.RUTA_CONFIG", "RUTA"), \
+            mock.patch("bellbird.ui.gui.RUTA_CONFIG", "RUTA"), \
             mock.patch.object(gui_microfono, "anunciar") as anunciar, \
             mock.patch.object(gui_microfono._snd, "reproducir") \
             as reproducir, \
@@ -383,7 +383,7 @@ class TestMicrofonoObsDialogVentana(unittest.TestCase):
                 mock.patch.object(gui_microfono.obs_entradas_audio,
                                   "senal_microfono") as medicion, \
                 mock.patch.object(gui_microfono, "guardar_opcion"), \
-                mock.patch("ytchat.ui.gui.RUTA_CONFIG", "RUTA"), \
+                mock.patch("bellbird.ui.gui.RUTA_CONFIG", "RUTA"), \
                 mock.patch.object(gui_microfono, "anunciar") as anunciar, \
                 mock.patch.object(gui_microfono._snd, "reproducir") \
                 as reproducir, \

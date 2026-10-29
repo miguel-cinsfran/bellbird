@@ -7,8 +7,8 @@ import types
 import unittest
 from unittest import mock
 
-from ytchat.capture import tiktok_captura
-from ytchat.capture.tiktok_captura import (usuario_de_url, _mensaje_error, _es_error_permanente,
+from bellbird.capture import tiktok_captura
+from bellbird.capture.tiktok_captura import (usuario_de_url, _mensaje_error, _es_error_permanente,
                             _mejor_flujo, autor_de_evento, es_previo_a_conexion)
 
 

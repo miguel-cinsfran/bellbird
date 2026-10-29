@@ -1,11 +1,11 @@
 import unittest
 from unittest import mock
 
-from ytchat.capture import deteccion
-from ytchat.ui import gui
-from ytchat.ui import gui_redactar
-from ytchat.capture import redaccion
-from ytchat.ui.sesion_conectada import SesionConectada
+from bellbird.capture import deteccion
+from bellbird.ui import gui
+from bellbird.ui import gui_redactar
+from bellbird.capture import redaccion
+from bellbird.ui.sesion_conectada import SesionConectada
 from tests.ventanas_prueba import destruir
 
 

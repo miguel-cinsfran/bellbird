@@ -8,38 +8,38 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from ytchat.ui import gui
-from ytchat.ui import accesibilidad
-from ytchat.ui import tema
-from ytchat.ui import gui_comentarios
-from ytchat.ui import gui_preferencias
-from ytchat.ui import preferencias_api
-from ytchat.ui import preferencias_general
-from ytchat.ui import preferencias_ia
-from ytchat.ui import preferencias_ia_clave
-from ytchat.ui import preferencias_ia_lista
-from ytchat.ui import preferencias_musica
-from ytchat.ui import preferencias_programados
-from ytchat.ui import preferencias_voz
-from ytchat.voice import motores
-from ytchat.voice.cola_tts import ColaTTS
-from ytchat.ai import ajustes_ia
-from ytchat.ai import catalogo
-from ytchat.ai import conversacion
-from ytchat.ai import opciones_ia
-from ytchat.ai import protocolos
-from ytchat.ai import proveedores
-from ytchat.ai import sondeo_gratis
-from ytchat.core import config
-from ytchat.core import eventos_sonido
-from ytchat.core import paths
-from ytchat.player import reproductor
-from ytchat.core import apagado
-from ytchat.capture import alias
-from ytchat.capture import programados
-from ytchat.downloads import ytdlp_bin
-from ytchat.ui.lista_chat import MensajeChat, ListaChat
-from ytchat.ui.sesion_conectada import SesionConectada
+from bellbird.ui import gui
+from bellbird.ui import accesibilidad
+from bellbird.ui import tema
+from bellbird.ui import gui_comentarios
+from bellbird.ui import gui_preferencias
+from bellbird.ui import preferencias_api
+from bellbird.ui import preferencias_general
+from bellbird.ui import preferencias_ia
+from bellbird.ui import preferencias_ia_clave
+from bellbird.ui import preferencias_ia_lista
+from bellbird.ui import preferencias_musica
+from bellbird.ui import preferencias_programados
+from bellbird.ui import preferencias_voz
+from bellbird.voice import motores
+from bellbird.voice.cola_tts import ColaTTS
+from bellbird.ai import ajustes_ia
+from bellbird.ai import catalogo
+from bellbird.ai import conversacion
+from bellbird.ai import opciones_ia
+from bellbird.ai import protocolos
+from bellbird.ai import proveedores
+from bellbird.ai import sondeo_gratis
+from bellbird.core import config
+from bellbird.core import eventos_sonido
+from bellbird.core import paths
+from bellbird.player import reproductor
+from bellbird.core import apagado
+from bellbird.capture import alias
+from bellbird.capture import programados
+from bellbird.downloads import ytdlp_bin
+from bellbird.ui.lista_chat import MensajeChat, ListaChat
+from bellbird.ui.sesion_conectada import SesionConectada
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.rutas_temporales import redirigir_rutas
 from tests.ventanas_prueba import destruir
@@ -140,7 +140,7 @@ class TestInicioGui(unittest.TestCase):
 
     def test_lector_init_deja_una_instancia_de_lector(self):
         import prism
-        from ytchat.voice import lector as modulo_lector
+        from bellbird.voice import lector as modulo_lector
         contexto = mock.Mock()
         contexto.create.side_effect = prism.PrismError("sin lector")
         anterior = accesibilidad._lector
@@ -459,14 +459,14 @@ class GrabadorDeVoz:
 class TestRegistroEsAnunciable(unittest.TestCase):
 
     def test_obs_vigilante_si_se_anuncia(self):
-        self.assertTrue(gui.registro_es_anunciable("ytchat.obs_vigilante"))
+        self.assertTrue(gui.registro_es_anunciable("bellbird.obs_vigilante"))
 
     def test_diagnostico_no_se_anuncia(self):
-        self.assertFalse(gui.registro_es_anunciable("ytchat.diagnostico"))
+        self.assertFalse(gui.registro_es_anunciable("bellbird.diagnostico"))
 
     def test_tecnicos_no_se_anuncian(self):
-        for nombre in ("ytchat.descargas", "ytchat.main", "ytchat.tts_worker",
-                       "ytchat.sound_player"):
+        for nombre in ("bellbird.descargas", "bellbird.main", "bellbird.tts_worker",
+                       "bellbird.sound_player"):
             with self.subTest(nombre=nombre):
                 self.assertFalse(gui.registro_es_anunciable(nombre))
 
@@ -554,7 +554,7 @@ class TestRegistroEsAnunciable(unittest.TestCase):
     def test_manejador_omite_diagnostico_sin_parchear_anunciar(self):
         grabador = GrabadorDeVoz()
         registro = logging.LogRecord(
-            "ytchat.diagnostico", logging.INFO, __file__, 1, "oculto", (), None)
+            "bellbird.diagnostico", logging.INFO, __file__, 1, "oculto", (), None)
         with mock.patch.object(accesibilidad, "_lector", grabador):
             accesibilidad.WxAnnouncingHandler().emit(registro)
 
@@ -564,7 +564,7 @@ class TestRegistroEsAnunciable(unittest.TestCase):
     def test_manejador_anuncia_mensaje_de_aplicacion(self):
         grabador = GrabadorDeVoz()
         registro = logging.LogRecord(
-            "ytchat.obs_vigilante", logging.INFO, __file__, 1, "OBS volvio a responder", (), None)
+            "bellbird.obs_vigilante", logging.INFO, __file__, 1, "OBS volvio a responder", (), None)
         with mock.patch.object(accesibilidad, "_lector", grabador):
             accesibilidad.WxAnnouncingHandler().emit(registro)
 
@@ -1211,7 +1211,7 @@ class TestIdentidadModeracionChat(unittest.TestCase):
     """Moderación usa exclusivamente el registro seleccionado, nunca el último homónimo."""
 
     def _frame_con_chat(self):
-        from ytchat.ui.chat_vivo import ControladorChat
+        from bellbird.ui.chat_vivo import ControladorChat
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
         frame._config = {"limpiar_emojis": True, "silenciados_runtime": set(),
                          "silenciados_ocultar": set()}
@@ -1241,7 +1241,7 @@ class TestIdentidadModeracionChat(unittest.TestCase):
         return frame
 
     def _encolar_y_volcar(self, frame, plataforma, autor, identificador, texto="hola"):
-        from ytchat.ui import chat_vivo
+        from bellbird.ui import chat_vivo
         with mock.patch.object(chat_vivo.wx, "CallLater", return_value=mock.Mock()):
             frame.agregar_mensaje_chat(autor, texto, "12:00:00", "text", "", identificador,
                                        plataforma=plataforma)
@@ -1378,7 +1378,7 @@ class TestMeGustaEnLaLista(unittest.TestCase):
     """El me gusta entra al modelo y a la lista con su texto agrupado."""
 
     def _frame(self):
-        from ytchat.ui.chat_vivo import ControladorChat
+        from bellbird.ui.chat_vivo import ControladorChat
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
         frame._config = {"limpiar_emojis": True}
         frame._autor_esta_oculto = lambda autor: False
@@ -1402,8 +1402,8 @@ class TestMeGustaEnLaLista(unittest.TestCase):
                            tipo=tipo, monto=monto, rol="")
 
     def test_me_gusta_ocupa_su_fila_con_su_texto(self):
-        from ytchat.core.config import TIPO_TEXTO, TIPO_ME_GUSTA
-        from ytchat.ui import chat_vivo
+        from bellbird.core.config import TIPO_TEXTO, TIPO_ME_GUSTA
+        from bellbird.ui import chat_vivo
         frame = self._frame()
         primero = self._registro(TIPO_TEXTO, "primero")
         me_gusta = self._registro(TIPO_ME_GUSTA, "", monto="3")
@@ -1845,7 +1845,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
 
         with mock.patch.object(preferencias_musica.diagnostico, "crear_hilo",
                                side_effect=crear_hilo), \
-                mock.patch("ytchat.music.consultas_vlc.salidas_audio",
+                mock.patch("bellbird.music.consultas_vlc.salidas_audio",
                            return_value=[("altavoces", "Altavoces")]), \
                 mock.patch.object(preferencias_musica.wx, "CallAfter",
                                   side_effect=lambda funcion, *args: funcion(*args)), \
@@ -2974,8 +2974,8 @@ class TestPreferenciasElevenLabs(unittest.TestCase):
 
     def test_comprobar_clave_con_error_deja_la_voz_deshabilitada(self):
         from tests.test_clave_elevenlabs import _HiloInmediato
-        from ytchat.ui import clave_elevenlabs
-        from ytchat.voice import elevenlabs
+        from bellbird.ui import clave_elevenlabs
+        from bellbird.voice import elevenlabs
         dialogo = self._dialogo({"motor": "elevenlabs"})
         dialogo.pagina_voz.btn_comprobar_clave.Disable()
         dialogo.pagina_voz.txt_clave_eleven.SetValue("mala")
@@ -2999,8 +2999,8 @@ class TestPreferenciasElevenLabs(unittest.TestCase):
 
     def test_comprobar_clave_con_exito_llena_voces_y_anuncia(self):
         from tests.test_clave_elevenlabs import _HiloInmediato
-        from ytchat.ui import clave_elevenlabs
-        from ytchat.voice import elevenlabs
+        from bellbird.ui import clave_elevenlabs
+        from bellbird.voice import elevenlabs
         dialogo = self._dialogo({"motor": "elevenlabs"})
         dialogo.pagina_voz.btn_comprobar_clave.Disable()
         dialogo.pagina_voz.txt_clave_eleven.SetValue("buena")
@@ -4135,7 +4135,7 @@ class TestActualizarYtdlp(unittest.TestCase):
             ventanas.append(ventana)
             return ventana
 
-        with mock.patch("ytchat.ui.gui_actualizacion.DialogoActualizacion",
+        with mock.patch("bellbird.ui.gui_actualizacion.DialogoActualizacion",
                         side_effect=fabrica), \
                 mock.patch.object(gui.wx, "ProgressDialog") as dialogo, \
                 mock.patch.object(gui.wx, "MessageBox") as mensaje, \
@@ -4532,7 +4532,7 @@ class TestCierreVentana(unittest.TestCase):
             def iniciar(self):
                 self.iniciado = True
 
-        with mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+        with mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
                         DobleSupervisor):
             frame._supervisar_transmision("iniciar", "TikTok", "u")
         self.assertEqual(len(creados), 1)
@@ -4563,7 +4563,7 @@ class TestCierreVentana(unittest.TestCase):
             def iniciar(self):
                 pass
 
-        with mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+        with mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
                         DobleSupervisor):
             frame._supervisar_transmision("iniciar", "TikTok", "u")
         _al_anunciar, al_conectar_chat = creados[0]
@@ -4594,7 +4594,7 @@ class TestCierreVentana(unittest.TestCase):
             def iniciar(self):
                 pass
 
-        with mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+        with mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
                         DobleSupervisor):
             frame._supervisar_transmision("iniciar", "TikTok", "u")
         _al_anunciar, al_conectar_chat = creados[0]
@@ -4623,7 +4623,7 @@ class TestCierreVentana(unittest.TestCase):
             def iniciar(self):
                 pass
 
-        with mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+        with mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
                         DobleSupervisor):
             frame._supervisar_transmision("iniciar", "TikTok", "u")
         al_anunciar, _al_conectar_chat = creados[0]
@@ -4651,7 +4651,7 @@ class TestCierreVentana(unittest.TestCase):
             def iniciar(self):
                 pass
 
-        with mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+        with mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
                         DobleSupervisor):
             frame._supervisar_transmision("iniciar", "TikTok", "u")
         al_anunciar, _al_conectar_chat = creados[0]
@@ -4670,7 +4670,7 @@ class TestCierreVentana(unittest.TestCase):
         previo.activo = True
         frame._supervisor = previo
         with mock.patch.object(gui, "anunciar") as anunciar, \
-                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision") as fabrica:
+                mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision") as fabrica:
             frame._supervisar_transmision("iniciar", "TikTok", "u")
         anunciar.assert_called_once_with("Ya hay una transmisión en curso.")
         fabrica.assert_not_called()
@@ -5084,7 +5084,7 @@ class TestCopiarEnlaceDirecto(unittest.TestCase):
         frame._bind_menu.assert_any_call(elemento, frame._describir_escena)
 
     def test_item_de_menu_preguntar_ia_enlazado(self):
-        from ytchat.ui import gui_menu
+        from bellbird.ui import gui_menu
         frame = mock.Mock()
         frame._accel.side_effect = (
             lambda accion: "\tCtrl+Shift+I" if accion == "preguntar_ia" else "")
@@ -5115,7 +5115,7 @@ class TestCopiarEnlaceDirecto(unittest.TestCase):
         frame._bind_menu.assert_any_call(elemento, gui_menu._abrir_ia, frame)
 
     def test_item_de_menu_consulta_rapida_enlazado(self):
-        from ytchat.ui import gui_menu
+        from bellbird.ui import gui_menu
         frame = mock.Mock()
         frame._accel.side_effect = (
             lambda accion: "\tCtrl+Shift+F2" if accion == "consulta_rapida_ia" else "")
@@ -5312,8 +5312,8 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
         with mock.patch.object(gui.credenciales, "cargar", return_value={}), \
                 mock.patch.object(gui.credenciales, "hay_sesion",
                                   return_value=False), \
-                mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo") as pedir, \
-                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision") as fabrica, \
+                mock.patch("bellbird.ui.gui_directo_youtube.pedir_datos_directo") as pedir, \
+                mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision") as fabrica, \
                 mock.patch.object(gui, "anunciar") as anunciar:
             frame._supervisar_transmision("iniciar", "YouTube", "")
         anunciar.assert_called_once_with(
@@ -5328,9 +5328,9 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
         with mock.patch.object(gui.credenciales, "cargar", return_value={"token": "t"}), \
                 mock.patch.object(gui.credenciales, "hay_sesion",
                                   return_value=True), \
-                mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo",
+                mock.patch("bellbird.ui.gui_directo_youtube.pedir_datos_directo",
                            return_value=None), \
-                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision") as fabrica, \
+                mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision") as fabrica, \
                 mock.patch.object(gui, "anunciar") as anunciar:
             frame._supervisar_transmision("iniciar", "YouTube", "")
         anunciar.assert_called_once_with("No se transmitió.")
@@ -5349,11 +5349,11 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
                                                  "api_key": "k-prueba"}) as efectivas, \
                 mock.patch.object(gui.credenciales, "hay_sesion",
                                    return_value=True), \
-                mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo",
+                mock.patch("bellbird.ui.gui_directo_youtube.pedir_datos_directo",
                            return_value=pedido) as pedir, \
                 mock.patch.object(gui.youtube_api, "ClienteYouTube") as cliente, \
                 mock.patch.object(gui, "guardar_opcion") as guardar, \
-                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+                mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
                            self._doble_supervisor(creados)), \
                 mock.patch.object(gui, "anunciar") as anunciar:
             frame._supervisar_transmision("iniciar", "YouTube", "")
@@ -5406,14 +5406,14 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
                                    return_value={"token": "t"}), \
                 mock.patch.object(gui.credenciales, "hay_sesion",
                                    return_value=True), \
-                mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo",
+                mock.patch("bellbird.ui.gui_directo_youtube.pedir_datos_directo",
                            return_value=pedido), \
                 mock.patch.object(gui.youtube_api, "ClienteYouTube"), \
                 mock.patch.object(gui, "guardar_opcion"), \
-                mock.patch("ytchat.youtube.emision.ganchos_youtube",
+                mock.patch("bellbird.youtube.emision.ganchos_youtube",
                            return_value=(mock.Mock(), mock.Mock(),
                                          mock.Mock())) as ganchos, \
-                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+                mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
                            self._doble_supervisor(creados)), \
                 mock.patch.object(gui, "anunciar") as anunciar:
             frame._supervisar_transmision("iniciar", "YouTube", "")
@@ -5437,11 +5437,11 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
                                    return_value={"token": "t"}), \
                 mock.patch.object(gui.credenciales, "hay_sesion",
                                    return_value=True), \
-                mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo",
+                mock.patch("bellbird.ui.gui_directo_youtube.pedir_datos_directo",
                            return_value=pedido) as pedir, \
                 mock.patch.object(gui.youtube_api, "ClienteYouTube"), \
                 mock.patch.object(gui, "guardar_opcion"), \
-                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+                mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
                            self._doble_supervisor(creados)):
             frame._supervisar_transmision("iniciar", "YouTube", "")
         self.assertTrue(callable(pedir.call_args.args[-1]))
@@ -5453,10 +5453,10 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
                                return_value={"token": "t"}), \
                 mock.patch.object(gui.credenciales, "hay_sesion",
                                   return_value=True), \
-                mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo",
+                mock.patch("bellbird.ui.gui_directo_youtube.pedir_datos_directo",
                            return_value=pedido), \
                 mock.patch.object(gui, "guardar_opcion"), \
-                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision") as fabrica, \
+                mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision") as fabrica, \
                 mock.patch.object(gui, "anunciar") as anunciar:
             frame._supervisar_transmision("iniciar", "YouTube", "")
         anunciar.assert_called_once_with("Falta el título del directo.")
@@ -5473,11 +5473,11 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
                                return_value={"token": "t"}), \
                 mock.patch.object(gui.credenciales, "hay_sesion",
                                    return_value=True), \
-                mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo",
+                mock.patch("bellbird.ui.gui_directo_youtube.pedir_datos_directo",
                            return_value=pedido) as pedir, \
                 mock.patch.object(gui.youtube_api, "ClienteYouTube"), \
                 mock.patch.object(gui, "guardar_opcion"), \
-                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+                mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
                            self._doble_supervisor(creados)):
             frame._supervisar_transmision(
                 "iniciar", "YouTube", "", revision=revision)
@@ -5489,8 +5489,8 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
     def test_tiktok_arranca_sin_ganchos_y_sin_pedir_datos(self):
         frame = self._frame()
         creados = []
-        with mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo") as pedir, \
-                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+        with mock.patch("bellbird.ui.gui_directo_youtube.pedir_datos_directo") as pedir, \
+                mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
                            self._doble_supervisor(creados)):
             frame._supervisar_transmision("iniciar", "TikTok", "u")
         pedir.assert_not_called()
@@ -5510,11 +5510,11 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
                                return_value={"token": "t"}), \
                 mock.patch.object(gui.credenciales, "hay_sesion",
                                    return_value=True), \
-                mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo",
+                mock.patch("bellbird.ui.gui_directo_youtube.pedir_datos_directo",
                            return_value=pedido), \
                 mock.patch.object(gui.youtube_api, "ClienteYouTube"), \
                 mock.patch.object(gui, "guardar_opcion"), \
-                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+                mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
                            self._doble_supervisor(creados)):
             frame._supervisar_transmision("iniciar", "YouTube", "")
         return creados[0]["al_conectar_chat"]
@@ -5589,7 +5589,7 @@ class TestOrillaChat(unittest.TestCase):
         return evento
 
     def test_arriba_en_primera_fila_suena_y_se_omite(self):
-        from ytchat.core import sonidos_eventos
+        from bellbird.core import sonidos_eventos
         frame = self._frame(0, 5)
         evento = self._tecla(sonidos_eventos.TECLA_FLECHA_ARRIBA)
         with mock.patch.object(gui._snd, "reproducir") as reproducir:
@@ -5598,7 +5598,7 @@ class TestOrillaChat(unittest.TestCase):
         evento.Skip.assert_called_once_with()
 
     def test_abajo_en_ultima_fila_suena_y_se_omite(self):
-        from ytchat.core import sonidos_eventos
+        from bellbird.core import sonidos_eventos
         frame = self._frame(4, 5)
         evento = self._tecla(sonidos_eventos.TECLA_FLECHA_ABAJO)
         with mock.patch.object(gui._snd, "reproducir") as reproducir:
@@ -5607,7 +5607,7 @@ class TestOrillaChat(unittest.TestCase):
         evento.Skip.assert_called_once_with()
 
     def test_arriba_en_segunda_fila_no_suena(self):
-        from ytchat.core import sonidos_eventos
+        from bellbird.core import sonidos_eventos
         frame = self._frame(1, 5)
         evento = self._tecla(sonidos_eventos.TECLA_FLECHA_ARRIBA)
         with mock.patch.object(gui._snd, "reproducir") as reproducir:
@@ -5674,8 +5674,8 @@ class TestFinDirectoGui(unittest.TestCase):
 
 class TestCableadoAnuncioAjuste(unittest.TestCase):
     def test_ajustar_volume_repetido_acorta_y_otro_control_completa(self):
-        from ytchat.core import anuncio_ajuste
-        from ytchat.core.anuncio_ajuste import AnuncioAjuste
+        from bellbird.core import anuncio_ajuste
+        from bellbird.core.anuncio_ajuste import AnuncioAjuste
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
         volumen = [40]
         velocidad = [0]
@@ -5829,7 +5829,7 @@ class TestPseudoAnunciosGui(unittest.TestCase):
         self._exigir_marcados(1)
 
     def test_conectado_y_desconectado_marcados(self):
-        from ytchat.capture import deteccion
+        from bellbird.capture import deteccion
         for tipo in (deteccion.LIVE, deteccion.UPCOMING, deteccion.VOD,
                      deteccion.DESCONOCIDO):
             marco = self._marco()
@@ -5850,8 +5850,8 @@ class TestPseudoAnunciosGui(unittest.TestCase):
         self._exigir_marcados(1)
 
     def test_voz_filtro_y_ajustes_marcados(self):
-        from ytchat.core import anuncio_ajuste
-        from ytchat.core.anuncio_ajuste import AnuncioAjuste
+        from bellbird.core import anuncio_ajuste
+        from bellbird.core.anuncio_ajuste import AnuncioAjuste
         marco = self._marco()
         marco._worker.cambiar_voz = mock.Mock()
         marco.voz_submenu = mock.Mock()
@@ -5896,7 +5896,7 @@ class TestPseudoAnunciosGui(unittest.TestCase):
         self._exigir_marcados(1)
 
     def test_copias_silenciamientos_y_enlace_marcados(self):
-        from ytchat.ui.lista_chat import MensajeChat
+        from bellbird.ui.lista_chat import MensajeChat
         marco = self._marco()
         dato = MensajeChat(plataforma="youtube", autor="Ana", identificador="c1",
                            texto="hola http://x", hora="10:00", tipo="texto",
@@ -5981,14 +5981,14 @@ class TestPseudoAnunciosGui(unittest.TestCase):
         self.assertTrue(captado["mensaje"].startswith("[¡"))
         self.assertTrue(captado["titulo"].startswith("[¡"))
         with mock.patch(
-                "ytchat.ui.gui_preferencias.abrir_preferencias",
+                "bellbird.ui.gui_preferencias.abrir_preferencias",
                 side_effect=RuntimeError("boom")):
             with mock.patch.object(gui.wx, "MessageBox", caja):
                 gui.YTChatFrame._on_preferencias(marco, None)
         self.assertTrue(captado["mensaje"].startswith("[¡"))
         self.assertTrue(captado["titulo"].startswith("[¡"))
         with mock.patch(
-                "ytchat.ui.gui_descargas.abrir",
+                "bellbird.ui.gui_descargas.abrir",
                 side_effect=RuntimeError("boom")):
             with mock.patch.object(gui.wx, "MessageBox", caja):
                 gui.YTChatFrame._abrir_descargas(marco)
@@ -5996,7 +5996,7 @@ class TestPseudoAnunciosGui(unittest.TestCase):
         self.assertTrue(captado["titulo"].startswith("[¡"))
 
     def test_tipos_y_tiktok_pasan_marcados(self):
-        from ytchat.capture import deteccion
+        from bellbird.capture import deteccion
         fijados = []
         marco = self._marco()
         marco.chat_vivo.descartar = mock.Mock()
@@ -6100,7 +6100,7 @@ class TestPseudoVentanaPrincipal(unittest.TestCase):
 
     def _ventana(self):
         from types import SimpleNamespace
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         configuracion = {
             "atajos_raw": {}, "filtro_activo": "todos",
             "mostrar_botones_reproductor": False, "mostrar_metadatos": True,
@@ -6140,7 +6140,7 @@ class TestPseudoIrRegion(unittest.TestCase):
 
     def _ventana(self):
         from types import SimpleNamespace
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         configuracion = {
             "atajos_raw": {}, "filtro_activo": "todos",
             "mostrar_botones_reproductor": False, "mostrar_metadatos": True,

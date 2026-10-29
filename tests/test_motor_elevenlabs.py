@@ -8,11 +8,11 @@ import wave
 from pathlib import Path
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.core import paths
-from ytchat.core.idioma import _
-from ytchat.voice import elevenlabs
-from ytchat.voice.motor_elevenlabs import MotorElevenLabs
-from ytchat.voice.motores import MotorNoDisponible
+from bellbird.core import paths
+from bellbird.core.idioma import _
+from bellbird.voice import elevenlabs
+from bellbird.voice.motor_elevenlabs import MotorElevenLabs
+from bellbird.voice.motores import MotorNoDisponible
 from tests.rutas_temporales import redirigir_rutas
 
 
@@ -143,7 +143,7 @@ class TestPseudoTextos(unittest.TestCase):
     """Bajo pseudotraducción, cada frase al usuario sale marcada."""
 
     def test_errores_salen_marcados(self):
-        from ytchat.voice import motor_elevenlabs
+        from bellbird.voice import motor_elevenlabs
         with con_pseudo():
             with self.assertRaises(MotorNoDisponible) as sin_clave:
                 MotorElevenLabs("")

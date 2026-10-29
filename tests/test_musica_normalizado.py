@@ -6,8 +6,8 @@ llamadas a `volumen`: el que suena no cambia cuando entra otro tema.
 
 import unittest
 
-from ytchat.music.modelo import Tema
-from ytchat.music.normalizado import Normalizado
+from bellbird.music.modelo import Tema
+from bellbird.music.normalizado import Normalizado
 
 
 class _AdaptadorFalso:

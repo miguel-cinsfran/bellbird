@@ -2,7 +2,7 @@
 
 import unittest
 
-from ytchat.ui.gui_directo_youtube import ancho_con_barra
+from bellbird.ui.gui_directo_youtube import ancho_con_barra
 
 
 class TestAnchoConBarra(unittest.TestCase):

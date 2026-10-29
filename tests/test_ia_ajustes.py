@@ -5,10 +5,10 @@ import unittest
 from pathlib import Path
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.ai import ajustes_ia
-from ytchat.ai.ajustes_ia import AjustesIA
-from ytchat.ai import conversacion
-from ytchat.core import config
+from bellbird.ai import ajustes_ia
+from bellbird.ai.ajustes_ia import AjustesIA
+from bellbird.ai import conversacion
+from bellbird.core import config
 
 
 def _escribir(ruta, texto):

@@ -4,12 +4,12 @@ import types
 import unittest
 from unittest import mock
 
-from ytchat.ui import gui_transmision
-from ytchat.obs import consultas_transmision
-from ytchat.obs import obs_cliente
-from ytchat.obs import obs_disposicion
-from ytchat.obs import obs_estado
-from ytchat.obs import obs_lanzador
+from bellbird.ui import gui_transmision
+from bellbird.obs import consultas_transmision
+from bellbird.obs import obs_cliente
+from bellbird.obs import obs_disposicion
+from bellbird.obs import obs_estado
+from bellbird.obs import obs_lanzador
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
 
@@ -120,7 +120,7 @@ class GestorFalso:
                 "alto": 1280 if vertical else 720}
 
     def revisar(self, destino, parada=None):
-        from ytchat.obs import obs_prevuelo
+        from bellbird.obs import obs_prevuelo
         problemas = getattr(self, "problemas_revision", ())
         return obs_prevuelo.Revision(
             destino, destino, destino, 720, 1280, "Principal",
@@ -1256,7 +1256,7 @@ class TestConfirmarTransmisionSinVentana(unittest.TestCase):
     # Sin ventana: el MessageDialog va simulado, así no se abre nada.
 
     def _revision(self, problemas=()):
-        from ytchat.obs import obs_prevuelo
+        from bellbird.obs import obs_prevuelo
         return obs_prevuelo.Revision(
             "TikTok", "TikTok", "TikTok", 720, 1280, "Principal",
             (), (), None, tuple(problemas))
@@ -1276,7 +1276,7 @@ class TestConfirmarTransmisionSinVentana(unittest.TestCase):
         return acepta, creados
 
     def test_aceptar_devuelve_verdadero_con_mismo_texto_y_etiquetas(self):
-        from ytchat.obs import obs_prevuelo
+        from bellbird.obs import obs_prevuelo
         revision = self._revision()
         acepta, creados = self._confirmar(revision, wx.ID_OK)
         self.assertTrue(acepta)
@@ -1349,7 +1349,7 @@ class TestGuardarDestinoSinVentana(unittest.TestCase):
         falso._supervisar.assert_called_once_with("iniciar", "YouTube", "")
 
     def test_al_preparar_destino_lo_guarda_y_anuncia_listo(self):
-        from ytchat.obs import obs_destinos
+        from bellbird.obs import obs_destinos
         falso = self._falso()
         resultado = {"destino": "TikTok", "perfil": "TikTok",
                      "coleccion": "TikTok", "ancho": 720, "alto": 1280}
@@ -1467,7 +1467,7 @@ class TestTablaPosicionesSinVentana(unittest.TestCase):
 
 
 # Textos que arma otro módulo y aparecen en el recorrido: la nota de
-# `ytchat/obs/obs_estado.py` (NOTA_TRANSMISION), que este diálogo muestra tal
+# `bellbird/obs/obs_estado.py` (NOTA_TRANSMISION), que este diálogo muestra tal
 # cual. Los nombres de escenas, fuentes y ventanas son datos del gestor de
 # prueba y van como propios. La comparación es exacta en los dos sentidos:
 # falla si aparece un texto nuevo sin envolver y si un pendiente ya no está
@@ -1528,15 +1528,15 @@ class TestPseudoConfirmarTransmision(unittest.TestCase):
     # Sin ventana: el MessageDialog va simulado, así no se abre nada.
 
     def _revision(self, problemas=()):
-        from ytchat.obs import obs_prevuelo
+        from bellbird.obs import obs_prevuelo
         return obs_prevuelo.Revision(
             "TikTok", "TikTok", "TikTok", 720, 1280, "Principal",
             (), (), None, tuple(problemas))
 
     def test_titulo_mensaje_y_botones_pasan_por_gettext(self):
-        # El mensaje lo arma `ytchat/obs/obs_prevuelo.py` (frase_revision),
+        # El mensaje lo arma `bellbird/obs/obs_prevuelo.py` (frase_revision),
         # con los datos de ejemplo de la revisión.
-        from ytchat.obs import obs_prevuelo
+        from bellbird.obs import obs_prevuelo
         revision = self._revision()
         captado = {}
         creados = []

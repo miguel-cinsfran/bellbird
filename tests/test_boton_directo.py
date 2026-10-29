@@ -16,7 +16,7 @@ try:
 except Exception:
     _HAY_WX = False
 
-from ytchat.ui import gui
+from bellbird.ui import gui
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
 
@@ -52,7 +52,7 @@ class TestTransmitirSinVentana(unittest.TestCase):
     # Sin ventana: pedir_destino y la revisión de OBS van con dobles.
 
     def _boton(self, **config):
-        from ytchat.ui import boton_directo
+        from bellbird.ui import boton_directo
         boton = boton_directo.BotonDirecto.__new__(
             boton_directo.BotonDirecto)
         marco = mock.Mock()
@@ -73,10 +73,10 @@ class TestTransmitirSinVentana(unittest.TestCase):
         return boton, marco
 
     def test_cancelar_anuncia_y_no_revisa(self):
-        from ytchat.ui import boton_directo
+        from bellbird.ui import boton_directo
         boton, marco = self._boton()
         with mock.patch(
-                "ytchat.ui.gui_elegir_destino.pedir_destino",
+                "bellbird.ui.gui_elegir_destino.pedir_destino",
                 return_value=None) as pedir, \
                 mock.patch.object(boton_directo.diagnostico,
                                   "crear_hilo") as hilos, \
@@ -88,7 +88,7 @@ class TestTransmitirSinVentana(unittest.TestCase):
         marco._guardar_destino_transmision.assert_not_called()
 
     def test_youtube_guarda_y_revisa_aunque_el_guardado_decia_tiktok(self):
-        from ytchat.ui import boton_directo
+        from bellbird.ui import boton_directo
         boton, marco = self._boton(transmision_destino="TikTok",
                                    tiktok_usuario="guardado")
         hilos = []
@@ -105,7 +105,7 @@ class TestTransmitirSinVentana(unittest.TestCase):
                 self.target()
 
         with mock.patch(
-                "ytchat.ui.gui_elegir_destino.pedir_destino",
+                "bellbird.ui.gui_elegir_destino.pedir_destino",
                 return_value=("YouTube", "")), \
                 mock.patch.object(boton_directo.diagnostico,
                                   "crear_hilo",
@@ -128,7 +128,7 @@ class TestTransmitirSinVentana(unittest.TestCase):
             "iniciar", "YouTube", "", revision=revision)
 
     def test_tiktok_guarda_usuario_y_revisa(self):
-        from ytchat.ui import boton_directo
+        from bellbird.ui import boton_directo
         boton, marco = self._boton()
         preparacion = SimpleNamespace(ya_transmitiendo=False,
                                       revision=mock.sentinel.revision)
@@ -141,7 +141,7 @@ class TestTransmitirSinVentana(unittest.TestCase):
                 self.target()
 
         with mock.patch(
-                "ytchat.ui.gui_elegir_destino.pedir_destino",
+                "bellbird.ui.gui_elegir_destino.pedir_destino",
                 return_value=("TikTok", "nuevo")), \
                 mock.patch.object(boton_directo.diagnostico,
                                   "crear_hilo",
@@ -152,7 +152,7 @@ class TestTransmitirSinVentana(unittest.TestCase):
                 mock.patch.object(boton_directo, "anunciar"), \
                 mock.patch.object(boton_directo._snd, "reproducir"), \
                 mock.patch(
-                    "ytchat.ui.gui_transmision.confirmar_transmision",
+                    "bellbird.ui.gui_transmision.confirmar_transmision",
                     return_value=True), \
                 mock.patch.object(boton_directo.wx,
                                   "CallAfter",
@@ -167,7 +167,7 @@ class TestRevisionListaSinVentana(unittest.TestCase):
     # Sin ventana: confirmar y supervisar van con dobles.
 
     def _boton(self):
-        from ytchat.ui import boton_directo
+        from bellbird.ui import boton_directo
         boton = boton_directo.BotonDirecto.__new__(
             boton_directo.BotonDirecto)
         marco = mock.Mock()
@@ -179,25 +179,25 @@ class TestRevisionListaSinVentana(unittest.TestCase):
         return boton, marco
 
     def test_youtube_no_confirma_y_pasa_la_revision(self):
-        from ytchat.ui import boton_directo
+        from bellbird.ui import boton_directo
         boton, marco = self._boton()
         revision = mock.sentinel.revision
         preparacion = SimpleNamespace(ya_transmitiendo=False,
                                       revision=revision)
         with mock.patch(
-                "ytchat.ui.gui_transmision.confirmar_transmision") as confirmar:
+                "bellbird.ui.gui_transmision.confirmar_transmision") as confirmar:
             boton._revision_lista(preparacion, "YouTube", "")
         confirmar.assert_not_called()
         marco._supervisar_transmision.assert_called_once_with(
             "iniciar", "YouTube", "", revision=revision)
 
     def test_tiktok_confirma_como_hoy(self):
-        from ytchat.ui import boton_directo
+        from bellbird.ui import boton_directo
         boton, marco = self._boton()
         preparacion = SimpleNamespace(ya_transmitiendo=False,
                                       revision=mock.sentinel.revision)
         with mock.patch(
-                "ytchat.ui.gui_transmision.confirmar_transmision",
+                "bellbird.ui.gui_transmision.confirmar_transmision",
                 return_value=True) as confirmar:
             boton._revision_lista(preparacion, "TikTok", "usuario")
         confirmar.assert_called_once_with(marco, preparacion.revision)
@@ -205,12 +205,12 @@ class TestRevisionListaSinVentana(unittest.TestCase):
             "iniciar", "TikTok", "usuario")
 
     def test_tiktok_cancelar_anuncia_y_no_inicia(self):
-        from ytchat.ui import boton_directo
+        from bellbird.ui import boton_directo
         boton, marco = self._boton()
         preparacion = SimpleNamespace(ya_transmitiendo=False,
                                       revision=mock.sentinel.revision)
         with mock.patch(
-                "ytchat.ui.gui_transmision.confirmar_transmision",
+                "bellbird.ui.gui_transmision.confirmar_transmision",
                 return_value=False), \
                 mock.patch.object(boton_directo, "anunciar") as anunciar:
             boton._revision_lista(preparacion, "TikTok", "usuario")
@@ -222,7 +222,7 @@ class TestActualizarDeteniendoSinVentana(unittest.TestCase):
     # Sin ventana: el botón es un doble, así se mira lo que dice sin crearlo.
 
     def _boton(self):
-        from ytchat.ui import boton_directo
+        from bellbird.ui import boton_directo
         boton = boton_directo.BotonDirecto.__new__(boton_directo.BotonDirecto)
         boton._conectar = mock.Mock()
         boton._transmitiendo = False
@@ -253,7 +253,7 @@ class TestAlPulsarDeteniendoSinVentana(unittest.TestCase):
     # Sin ventana: se comprueba que pulsar mientras se detiene solo avisa.
 
     def _boton(self):
-        from ytchat.ui import boton_directo
+        from bellbird.ui import boton_directo
         boton = boton_directo.BotonDirecto.__new__(boton_directo.BotonDirecto)
         boton._transmitiendo = True
         boton._deteniendo = True
@@ -264,7 +264,7 @@ class TestAlPulsarDeteniendoSinVentana(unittest.TestCase):
         return boton, marco
 
     def test_pulsar_deteniendo_anuncia_y_no_dialoga_ni_detiene(self):
-        from ytchat.ui import boton_directo
+        from bellbird.ui import boton_directo
         boton, marco = self._boton()
         with mock.patch.object(boton_directo.wx, "MessageDialog") as dialogo, \
                 mock.patch.object(boton_directo, "anunciar") as anunciar, \
@@ -369,7 +369,7 @@ class TestPseudoBotonDirectoVentana(unittest.TestCase):
         self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
 
     def test_no_queda_ningun_texto_propio_sin_envolver(self):
-        from ytchat.ui import boton_directo
+        from bellbird.ui import boton_directo
         with con_pseudo():
             cuadro = wx.Frame(None)
             panel = wx.Panel(cuadro)
@@ -390,7 +390,7 @@ class TestPseudoAnunciosBotonDirecto(unittest.TestCase):
     # del cierre en YouTube) no entran.
 
     def setUp(self):
-        from ytchat.ui import boton_directo
+        from bellbird.ui import boton_directo
         self.modulo = boton_directo
         self.captados = []
         parches = [
@@ -446,7 +446,7 @@ class TestPseudoAnunciosBotonDirecto(unittest.TestCase):
     def test_transmitir_cancelado_avisa_marcado(self):
         boton, _marco = self._boton()
         with mock.patch(
-                "ytchat.ui.gui_elegir_destino.pedir_destino",
+                "bellbird.ui.gui_elegir_destino.pedir_destino",
                 return_value=None), \
                 mock.patch.object(self.modulo.diagnostico,
                                   "crear_hilo") as hilos:
@@ -457,7 +457,7 @@ class TestPseudoAnunciosBotonDirecto(unittest.TestCase):
     def test_transmitir_revisa_marcado(self):
         boton, marco = self._boton()
         with mock.patch(
-                "ytchat.ui.gui_elegir_destino.pedir_destino",
+                "bellbird.ui.gui_elegir_destino.pedir_destino",
                 return_value=("TikTok", "nuevo")), \
                 mock.patch.object(self.modulo.diagnostico, "crear_hilo"):
             boton._transmitir()
@@ -476,7 +476,7 @@ class TestPseudoAnunciosBotonDirecto(unittest.TestCase):
         preparacion = SimpleNamespace(ya_transmitiendo=False,
                                       revision=mock.sentinel.revision)
         with mock.patch(
-                "ytchat.ui.gui_transmision.confirmar_transmision",
+                "bellbird.ui.gui_transmision.confirmar_transmision",
                 return_value=False):
             boton._revision_lista(preparacion, "TikTok", "usuario")
         marco._supervisar_transmision.assert_not_called()

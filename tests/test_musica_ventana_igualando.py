@@ -8,13 +8,13 @@ from unittest import mock
 
 try:
     import wx
-    from ytchat.core.idioma import _
-    from ytchat.music import pregunta_igualar
-    from ytchat.music import sonoridad
-    from ytchat.music.sonoridad import ResultadoIgualacion
-    from ytchat.ui import musica_ventana
-    from ytchat.ui import musica_ventana_igualando as igualando
-    from ytchat.ui.musica_ventana_igualando import IgualandoVentanaMusica
+    from bellbird.core.idioma import _
+    from bellbird.music import pregunta_igualar
+    from bellbird.music import sonoridad
+    from bellbird.music.sonoridad import ResultadoIgualacion
+    from bellbird.ui import musica_ventana
+    from bellbird.ui import musica_ventana_igualando as igualando
+    from bellbird.ui.musica_ventana_igualando import IgualandoVentanaMusica
     from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
     from tests.ventanas_prueba import destruir
     _HAY_WX = True
@@ -85,7 +85,7 @@ class TestIgualandoPseudo(unittest.TestCase):
     # hasta que se envuelva su módulo. Las filas de las listas no se
     # recorren: el ayudante solo lee opciones de Choice y columnas.
     PENDIENTES = (
-        # ytchat/music/filtros.py, las opciones de «Ordenar por».
+        # bellbird/music/filtros.py, las opciones de «Ordenar por».
         "Orden de la colección",
         "Título",
         "Artista",

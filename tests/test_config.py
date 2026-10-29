@@ -2,7 +2,7 @@
 
 import unittest
 
-from ytchat.core import config
+from bellbird.core import config
 
 
 class TestNombreApp(unittest.TestCase):

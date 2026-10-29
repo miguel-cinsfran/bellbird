@@ -1,4 +1,4 @@
-"""Pruebas sin ventana de `ytchat/ui/gui_transmitir.py`.
+"""Pruebas sin ventana de `bellbird/ui/gui_transmitir.py`.
 
 Sin ventanas reales: el frame es un doble (`types.SimpleNamespace` con
 los atributos que usa cada función) y `wx.CallAfter` se reemplaza por
@@ -9,8 +9,8 @@ import unittest
 from types import SimpleNamespace
 from unittest import mock
 
-from ytchat.ui import gui, gui_transmitir
-from ytchat.ui.sesion_conectada import SesionConectada
+from bellbird.ui import gui, gui_transmitir
+from bellbird.ui.sesion_conectada import SesionConectada
 from tests.pseudo_prueba import con_pseudo
 
 
@@ -47,7 +47,7 @@ class TestCambiarOverlay(unittest.TestCase):
         patcher_hilo.start()
         self.addCleanup(patcher_hilo.stop)
         patcher_recarga = mock.patch(
-            "ytchat.obs.obs_panel_recarga.recargar_fuente_panel")
+            "bellbird.obs.obs_panel_recarga.recargar_fuente_panel")
         self._recarga = patcher_recarga.start()
         self.addCleanup(patcher_recarga.stop)
 
@@ -335,7 +335,7 @@ class TestSupervisarTransmision(unittest.TestCase):
             _actualizar_boton_directo=mock.Mock(),
             _al_terminar_supervisor=mock.Mock())
         supervisor = mock.Mock()
-        with mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+        with mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
                         return_value=supervisor) as fabrica:
             gui_transmitir.supervisar_transmision(
                 frame, "iniciar", "TikTok", "alguien")
@@ -365,15 +365,15 @@ class TestSupervisarTransmision(unittest.TestCase):
         sentinela = object()
         with mock.patch.object(gui, "credenciales", credenciales), \
                 mock.patch.object(gui, "youtube_api") as youtube_api, \
-                mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo",
+                mock.patch("bellbird.ui.gui_directo_youtube.pedir_datos_directo",
                            return_value=pedido), \
-                mock.patch("ytchat.youtube.emision.cuerpo_emision",
+                mock.patch("bellbird.youtube.emision.cuerpo_emision",
                            return_value={"cuerpo": True}), \
-                mock.patch("ytchat.youtube.emision.ganchos_youtube",
+                mock.patch("bellbird.youtube.emision.ganchos_youtube",
                            return_value=("p", "e", "f")), \
-                mock.patch("ytchat.core.paths.fin_pendiente",
+                mock.patch("bellbird.core.paths.fin_pendiente",
                            return_value=sentinela), \
-                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+                mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
                            return_value=supervisor) as fabrica:
             gui_transmitir.supervisar_transmision(
                 frame, "iniciar", "YouTube", "")
@@ -416,7 +416,7 @@ class TestSupervisarTransmision(unittest.TestCase):
     def test_iniciar_pasa_el_aviso_de_sobrecarga_de_la_config(self):
         supervisor = mock.Mock()
         frame = self._frame_inicia({"avisar_sobrecarga": False})
-        with mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+        with mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
                         return_value=supervisor) as fabrica:
             gui_transmitir.supervisar_transmision(
                 frame, "iniciar", "TikTok", "alguien")
@@ -426,7 +426,7 @@ class TestSupervisarTransmision(unittest.TestCase):
     def test_el_aviso_de_sobrecarga_lee_la_config_en_cada_llamada(self):
         supervisor = mock.Mock()
         frame = self._frame_inicia({})
-        with mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+        with mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
                         return_value=supervisor) as fabrica:
             gui_transmitir.supervisar_transmision(
                 frame, "iniciar", "TikTok", "alguien")
@@ -436,11 +436,11 @@ class TestSupervisarTransmision(unittest.TestCase):
         self.assertFalse(consulta())
 
     def test_iniciar_pasa_los_enganches_de_grabacion_envueltos(self):
-        from ytchat.obs import obs_salida
-        from ytchat.obs.obs_panel import GestorPanelObs
+        from bellbird.obs import obs_salida
+        from bellbird.obs.obs_panel import GestorPanelObs
         supervisor = mock.Mock()
         frame = self._frame_inicia({})
-        with mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+        with mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
                         return_value=supervisor) as fabrica:
             gui_transmitir.supervisar_transmision(
                 frame, "iniciar", "TikTok", "alguien")
@@ -466,9 +466,9 @@ class TestSupervisarTransmision(unittest.TestCase):
             def envolver_esperar_salida(self, original):
                 return original
 
-        with mock.patch("ytchat.obs.obs_grabacion.GrabacionAlTransmitir",
+        with mock.patch("bellbird.obs.obs_grabacion.GrabacionAlTransmitir",
                         GrabacionFalsa), \
-                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+                mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
                            return_value=supervisor):
             gui_transmitir.supervisar_transmision(
                 frame, "iniciar", "TikTok", "alguien")
@@ -574,15 +574,15 @@ class TestAlConectarChatEnlaceDirecto(unittest.TestCase):
         pedido = {"titulo": "T", "descripcion": "", "privacidad": "private"}
         with mock.patch.object(gui, "credenciales", credenciales), \
                 mock.patch.object(gui, "youtube_api"), \
-                mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo",
+                mock.patch("bellbird.ui.gui_directo_youtube.pedir_datos_directo",
                            return_value=pedido), \
-                mock.patch("ytchat.youtube.emision.cuerpo_emision",
+                mock.patch("bellbird.youtube.emision.cuerpo_emision",
                            return_value={"cuerpo": True}), \
-                mock.patch("ytchat.youtube.emision.ganchos_youtube",
+                mock.patch("bellbird.youtube.emision.ganchos_youtube",
                            return_value=("p", "e", "f")), \
-                mock.patch("ytchat.core.paths.fin_pendiente",
+                mock.patch("bellbird.core.paths.fin_pendiente",
                            return_value=None), \
-                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+                mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
                            return_value=supervisor) as fabrica:
             gui_transmitir.supervisar_transmision(
                 frame, "iniciar", "YouTube", "")
@@ -657,7 +657,7 @@ class TestPseudoAnuncios(unittest.TestCase):
                 mock.patch.object(gui.diagnostico, "crear_hilo",
                                   side_effect=lambda objetivo, nombre, **kwargs:
                                   HiloInmediato(objetivo, nombre, **kwargs)), \
-                mock.patch("ytchat.obs.obs_panel_recarga.recargar_fuente_panel"):
+                mock.patch("bellbird.obs.obs_panel_recarga.recargar_fuente_panel"):
             gui_transmitir.cambiar_overlay(frame, True)
         self._exigir_marcados(1)
         error = gui.overlay_servidor.OverlayPuertoOcupadoError("ocupado")
@@ -723,7 +723,7 @@ class TestPseudoAnuncios(unittest.TestCase):
             guardar_campo=mock.Mock())
         with mock.patch.object(gui, "credenciales", credenciales), \
                 mock.patch.object(gui, "youtube_api"), \
-                mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo",
+                mock.patch("bellbird.ui.gui_directo_youtube.pedir_datos_directo",
                            return_value=None):
             gui_transmitir.supervisar_transmision(
                 frame, "iniciar", "YouTube", "")
@@ -749,15 +749,15 @@ class TestPseudoAnuncios(unittest.TestCase):
                   "privacidad": guardados["privacidad"]}
         with mock.patch.object(gui, "credenciales", credenciales), \
                 mock.patch.object(gui, "youtube_api"), \
-                mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo",
+                mock.patch("bellbird.ui.gui_directo_youtube.pedir_datos_directo",
                            return_value=pedido), \
-                mock.patch("ytchat.youtube.emision.cuerpo_emision",
+                mock.patch("bellbird.youtube.emision.cuerpo_emision",
                            return_value={"cuerpo": True}), \
-                mock.patch("ytchat.youtube.emision.ganchos_youtube",
+                mock.patch("bellbird.youtube.emision.ganchos_youtube",
                            return_value=("p", "e", "f")), \
-                mock.patch("ytchat.core.paths.fin_pendiente",
+                mock.patch("bellbird.core.paths.fin_pendiente",
                            return_value=None), \
-                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision",
+                mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
                            return_value=supervisor) as fabrica:
             gui_transmitir.supervisar_transmision(
                 frame, "iniciar", "YouTube", "")

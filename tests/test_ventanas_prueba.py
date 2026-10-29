@@ -13,8 +13,8 @@ from unittest import mock
 
 try:
     import wx
-    from ytchat.ui import gui_preferencias
-    from ytchat.voice import motores
+    from bellbird.ui import gui_preferencias
+    from bellbird.voice import motores
     _HAY_WX = True
 except Exception:
     _HAY_WX = False

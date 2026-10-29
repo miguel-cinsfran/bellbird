@@ -28,11 +28,11 @@ import time
 from pathlib import Path
 from typing import NamedTuple
 
-from ytchat.core import config_predeterminada
-from ytchat.music import anuncios as anuncios_musica
-from ytchat.music import anuncios_teclas
-from ytchat.ui.atajos_captura import atajo_legible
-from ytchat.ui.atajos_globales import ACCIONES
+from bellbird.core import config_predeterminada
+from bellbird.music import anuncios as anuncios_musica
+from bellbird.music import anuncios_teclas
+from bellbird.ui.atajos_captura import atajo_legible
+from bellbird.ui.atajos_globales import ACCIONES
 
 # La sonda (`qa/sonda.py`) busca por nombre accesible y si no por
 # etiqueta: este es el `name=` de la casilla en `gui_preferencias.py`.

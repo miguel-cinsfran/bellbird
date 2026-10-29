@@ -6,10 +6,10 @@ import configparser
 from pathlib import Path
 from unittest import mock
 
-from ytchat.core import config
-from ytchat.core import config_predeterminada as pred
-from ytchat.core import ini_tipado
-from ytchat.capture import estado_sesion
+from bellbird.core import config
+from bellbird.core import config_predeterminada as pred
+from bellbird.core import ini_tipado
+from bellbird.capture import estado_sesion
 from tests.rutas_temporales import redirigir_rutas
 
 
@@ -32,7 +32,7 @@ class TestArchivoIdentico(unittest.TestCase):
             ruta2 = Path(tmp) / "cli.ini"
             base = Path(__file__).parent.parent
             subprocess.check_call(
-                [sys.executable, "-m", "ytchat.core.config_predeterminada",
+                [sys.executable, "-m", "bellbird.core.config_predeterminada",
                  str(ruta2)],
                 cwd=str(base))
             self.assertEqual(ruta2.read_text(encoding="utf-8"), pred.generar_texto())
@@ -134,7 +134,7 @@ class TestAtajosDefaults(unittest.TestCase):
     def test_boton_fabrica_usa_fuente_canonica_y_no_altera_fijos(self):
         try:
             import wx
-            from ytchat.ui import preferencias_atajos as gp
+            from bellbird.ui import preferencias_atajos as gp
         except Exception:
             self.skipTest("wx no disponible")
         # Preparar dialogo sin construir UI completa
@@ -190,7 +190,7 @@ class TestConstruirBat(unittest.TestCase):
             if sin_espacios.startswith("rem"):
                 continue
             self.assertNotIn(
-                "ytchat.core.config_predeterminada", sin_espacios,
+                "bellbird.core.config_predeterminada", sin_espacios,
                 f"construir.bat:{numero} no debe invocar al generador de config",
             )
         # existe la guarda contra config.ini con salida de error
@@ -376,7 +376,7 @@ class TestReconexionYSonidos(unittest.TestCase):
     def test_generador_se_invoca_como_modulo(self):
         texto = pred.generar_texto()
         self.assertNotIn("python config_predeterminada.py", texto)
-        self.assertIn("-m ytchat.core.config_predeterminada", texto)
+        self.assertIn("-m bellbird.core.config_predeterminada", texto)
 
     def test_plantilla_sounds_sin_activar(self):
         base = Path(__file__).parent.parent

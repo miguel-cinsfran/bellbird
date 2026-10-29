@@ -6,7 +6,7 @@ import types
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.youtube.youtube_api import (
+from bellbird.youtube.youtube_api import (
     ClienteYouTube, FRASE_MINiatura_SIN_VERIFICAR, normalizar_comentario,
     parsear_pagina_comentarios, comentarios_desactivados, es_error_403,
     mensaje_error_api, mensaje_error_miniatura,
@@ -731,27 +731,27 @@ class TestCableadoChatDirecto(unittest.TestCase):
         cliente = mock.Mock(datos_chat_directo=mock.Mock(return_value={
             "hay_video": True, "hay_directo": True, "live_chat_id": ""}))
         modulos = {
-            "ytchat.youtube.credenciales": types.SimpleNamespace(hay_lectura=lambda: True,
+            "bellbird.youtube.credenciales": types.SimpleNamespace(hay_lectura=lambda: True,
                                                       hay_sesion=lambda: False,
                                                       cargar=lambda: {},
                                                       efectivas=lambda *a, **k: {}),
-            "ytchat.youtube.youtube_api": types.SimpleNamespace(
+            "bellbird.youtube.youtube_api": types.SimpleNamespace(
                 google_disponible=lambda: True, ClienteYouTube=lambda _: cliente),
-            "ytchat.ui.gui": types.SimpleNamespace(_gui_frame=frame),
+            "bellbird.ui.gui": types.SimpleNamespace(_gui_frame=frame),
             "wx": types.SimpleNamespace(CallAfter=lambda funcion, *args: funcion(*args)),
         }
-        # `from ytchat.x import y` mira primero el atributo del paquete:
+        # `from bellbird.x import y` mira primero el atributo del paquete:
         # sin estos parches usaría el módulo real si otra prueba ya lo importó.
-        from ytchat import ui as _paquete_ui, youtube as _paquete_youtube
+        from bellbird import ui as _paquete_ui, youtube as _paquete_youtube
         with mock.patch.dict(sys.modules, modulos), \
                 mock.patch.object(_paquete_youtube, "credenciales",
-                                  modulos["ytchat.youtube.credenciales"],
+                                  modulos["bellbird.youtube.credenciales"],
                                   create=True), \
                 mock.patch.object(_paquete_youtube, "youtube_api",
-                                  modulos["ytchat.youtube.youtube_api"],
+                                  modulos["bellbird.youtube.youtube_api"],
                                   create=True), \
                 mock.patch.object(_paquete_ui, "gui",
-                                  modulos["ytchat.ui.gui"],
+                                  modulos["bellbird.ui.gui"],
                                   create=True):
             main._resolver_live_chat_id("abc")
         self.assertEqual(llamadas, [("", "chat_desactivado", "abc", False)])
@@ -770,28 +770,28 @@ class TestCableadoChatDirecto(unittest.TestCase):
             return cliente
 
         modulos = {
-            "ytchat.youtube.credenciales": types.SimpleNamespace(
+            "bellbird.youtube.credenciales": types.SimpleNamespace(
                 hay_lectura=lambda: True,
                 hay_sesion=lambda: False,
                 cargar=lambda: {"origen": "cargar"},
                 efectivas=lambda *a, **k: {"origen": "efectivas"}),
-            "ytchat.youtube.youtube_api": types.SimpleNamespace(
+            "bellbird.youtube.youtube_api": types.SimpleNamespace(
                 google_disponible=lambda: True, ClienteYouTube=cliente_registra),
-            "ytchat.ui.gui": types.SimpleNamespace(_gui_frame=frame),
+            "bellbird.ui.gui": types.SimpleNamespace(_gui_frame=frame),
             "wx": types.SimpleNamespace(CallAfter=lambda funcion, *args: funcion(*args)),
         }
-        # `from ytchat.x import y` mira primero el atributo del paquete:
+        # `from bellbird.x import y` mira primero el atributo del paquete:
         # sin estos parches usaría el módulo real si otra prueba ya lo importó.
-        from ytchat import ui as _paquete_ui, youtube as _paquete_youtube
+        from bellbird import ui as _paquete_ui, youtube as _paquete_youtube
         with mock.patch.dict(sys.modules, modulos), \
                 mock.patch.object(_paquete_youtube, "credenciales",
-                                  modulos["ytchat.youtube.credenciales"],
+                                  modulos["bellbird.youtube.credenciales"],
                                   create=True), \
                 mock.patch.object(_paquete_youtube, "youtube_api",
-                                  modulos["ytchat.youtube.youtube_api"],
+                                  modulos["bellbird.youtube.youtube_api"],
                                   create=True), \
                 mock.patch.object(_paquete_ui, "gui",
-                                  modulos["ytchat.ui.gui"],
+                                  modulos["bellbird.ui.gui"],
                                   create=True):
             main._resolver_live_chat_id("abc")
         self.assertEqual(construidos, [{"origen": "efectivas"}])
@@ -809,26 +809,26 @@ class TestCableadoChatDirecto(unittest.TestCase):
             cliente.datos_chat_directo = mock.Mock(return_value=datos)
         cliente.id_canal_propio = mock.Mock(return_value=canal_propio)
         modulos = {
-            "ytchat.youtube.credenciales": types.SimpleNamespace(
+            "bellbird.youtube.credenciales": types.SimpleNamespace(
                 hay_lectura=lambda: True,
                 hay_sesion=lambda: sesion,
                 cargar=lambda: {},
                 efectivas=lambda *a, **k: {}),
-            "ytchat.youtube.youtube_api": types.SimpleNamespace(
+            "bellbird.youtube.youtube_api": types.SimpleNamespace(
                 google_disponible=lambda: True, ClienteYouTube=lambda _: cliente),
-            "ytchat.ui.gui": types.SimpleNamespace(_gui_frame=frame),
+            "bellbird.ui.gui": types.SimpleNamespace(_gui_frame=frame),
             "wx": types.SimpleNamespace(CallAfter=lambda funcion, *args: funcion(*args)),
         }
-        from ytchat import ui as _paquete_ui, youtube as _paquete_youtube
+        from bellbird import ui as _paquete_ui, youtube as _paquete_youtube
         with mock.patch.dict(sys.modules, modulos), \
                 mock.patch.object(_paquete_youtube, "credenciales",
-                                  modulos["ytchat.youtube.credenciales"],
+                                  modulos["bellbird.youtube.credenciales"],
                                   create=True), \
                 mock.patch.object(_paquete_youtube, "youtube_api",
-                                  modulos["ytchat.youtube.youtube_api"],
+                                  modulos["bellbird.youtube.youtube_api"],
                                   create=True), \
                 mock.patch.object(_paquete_ui, "gui",
-                                  modulos["ytchat.ui.gui"],
+                                  modulos["bellbird.ui.gui"],
                                   create=True):
             main._resolver_live_chat_id("abc")
         return llamadas, cliente

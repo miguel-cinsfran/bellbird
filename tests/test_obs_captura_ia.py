@@ -5,9 +5,9 @@ import struct
 import unittest
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.obs import obs_captura_ia
-from ytchat.obs import obs_cliente
-from ytchat.obs.obs_captura_ia import CapturaFallida, OpcionCaptura
+from bellbird.obs import obs_captura_ia
+from bellbird.obs import obs_cliente
+from bellbird.obs.obs_captura_ia import CapturaFallida, OpcionCaptura
 
 
 def armar_bmp(ancho, alto, blancos=()):

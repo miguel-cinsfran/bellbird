@@ -8,35 +8,35 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from ytchat.core import config
-from ytchat.core import diagnostico
+from bellbird.core import config
+from bellbird.core import diagnostico
 from tests.rutas_temporales import redirigir_rutas
 
 
 class DiagnosticoTest(unittest.TestCase):
     def test_obtener_logger_cuelga_del_arbol_de_la_aplicacion(self):
         logger = diagnostico.obtener_logger("descargas")
-        self.assertTrue(logger.name.startswith("ytchat."))
+        self.assertTrue(logger.name.startswith("bellbird."))
 
     def test_los_loggers_de_la_aplicacion_cuelgan_del_arbol_ytchat(self):
         raiz = Path(__file__).resolve().parent.parent
         descubiertos = 0
-        for ruta in sorted((raiz / "ytchat").rglob("*.py")):
+        for ruta in sorted((raiz / "bellbird").rglob("*.py")):
             if ruta.name == "__init__.py":
                 continue
             descubiertos += 1
-            nombre = "ytchat." + ".".join(
+            nombre = "bellbird." + ".".join(
                 ruta.relative_to(raiz).with_suffix("").parts[1:])
             modulo = importlib.import_module(nombre)
             logger = getattr(modulo, "logger", None)
             if isinstance(logger, logging.Logger):
                 self.assertTrue(
-                    logger.name.startswith("ytchat."),
-                    f"El logger del módulo {nombre} está fuera del árbol ytchat: "
+                    logger.name.startswith("bellbird."),
+                    f"El logger del módulo {nombre} está fuera del árbol bellbird: "
                     f"{logger.name}")
         self.assertGreaterEqual(
             descubiertos, 50,
-            f"la guarda recorrió solo {descubiertos} módulos en ytchat/: "
+            f"la guarda recorrió solo {descubiertos} módulos en bellbird/: "
             "si se movieron las carpetas, hay que actualizarla en vez de "
             "dejarla en verde sin mirar nada")
 
@@ -67,7 +67,7 @@ class DiagnosticoTest(unittest.TestCase):
         with patch.object(diagnostico, "RotatingFileHandler", return_value=logging.Handler()):
             manejador = diagnostico.crear_manejador_detallado("x.log")
         registro = logging.LogRecord(
-            "ytchat.loquesea", logging.DEBUG, "", 0, "prueba", (), None)
+            "bellbird.loquesea", logging.DEBUG, "", 0, "prueba", (), None)
         self.assertTrue(manejador.filter(registro))
 
     def test_manejador_detallado_rechaza_registro_de_websockets(self):
@@ -101,14 +101,14 @@ class DiagnosticoTest(unittest.TestCase):
         self.assertIn("Lector de pantalla activo: NVDA", texto)
 
     def test_lector_activo_devuelve_el_nombre(self):
-        from ytchat.voice import lector as modulo_lector
+        from bellbird.voice import lector as modulo_lector
         falso = MagicMock()
         falso.return_value.nombre.return_value = "NVDA"
         with patch.object(modulo_lector, "Lector", falso):
             self.assertEqual(diagnostico._lector_activo(), ("NVDA", None))
 
     def test_lector_activo_sin_lector_explica_el_motivo(self):
-        from ytchat.voice import lector as modulo_lector
+        from bellbird.voice import lector as modulo_lector
         falso = MagicMock()
         falso.return_value.nombre.return_value = None
         with patch.object(modulo_lector, "Lector", falso):
@@ -482,7 +482,7 @@ class DiagnosticoTest(unittest.TestCase):
             ruta = str(Path(tmp) / "fallos.log")
             guion = (
                 "import sys, threading, time, ctypes\n"
-                "from ytchat.core import diagnostico\n"
+                "from bellbird.core import diagnostico\n"
                 "ruta = sys.argv[1]\n"
                 "diagnostico.instalar_capturadores(ruta, version='prueba')\n"
                 "listo = threading.Event()\n"

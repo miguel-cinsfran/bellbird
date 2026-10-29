@@ -4,20 +4,20 @@ import unittest
 import inspect
 from unittest import mock
 
-from ytchat.core.config import (
+from bellbird.core.config import (
     _normalizar_atajo, parsear_atajos, detectar_conflictos_atajos,
     ATAJOS_DEFAULTS, ATAJOS_AREA, atajo_valido_para_area,
     ATAJOS_FIJOS, ATAJOS_FIJOS_DEFAULTS, ATAJOS_GRUPOS, todos_los_atajos_default,
     _AREA_POR_GRUPO,
 )
-from ytchat.ui import gui_preferencias
-from ytchat.ui import preferencias_atajos
-from ytchat.ui import gui
-from ytchat.ui import gui_menu
-from ytchat.ui import atajos_captura
-from ytchat.core import config
-from ytchat.core import atajos
-from ytchat.ui.gui_preferencias import _ETIQUETAS_ATAJO, etiqueta_de_accion
+from bellbird.ui import gui_preferencias
+from bellbird.ui import preferencias_atajos
+from bellbird.ui import gui
+from bellbird.ui import gui_menu
+from bellbird.ui import atajos_captura
+from bellbird.core import config
+from bellbird.core import atajos
+from bellbird.ui.gui_preferencias import _ETIQUETAS_ATAJO, etiqueta_de_accion
 
 
 class TestNormalizarAtajo(unittest.TestCase):

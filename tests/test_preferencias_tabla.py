@@ -7,12 +7,12 @@ así protege la tabla en vez de repetirla.
 import unittest
 from unittest import mock
 
-from ytchat.ui import gui
-from ytchat.ui import gui_preferencias
-from ytchat.voice import motores
-from ytchat.core import config_predeterminada as pred
-from ytchat.core import idioma
-from ytchat.core import musica_decir
+from bellbird.ui import gui
+from bellbird.ui import gui_preferencias
+from bellbird.voice import motores
+from bellbird.core import config_predeterminada as pred
+from bellbird.core import idioma
+from bellbird.core import musica_decir
 from tests.rutas_temporales import redirigir_rutas
 from tests.ventanas_prueba import destruir
 from pathlib import Path
@@ -251,7 +251,7 @@ class TestIdiomaEnPreferencias(unittest.TestCase):
     def test_abrir_no_anuncia_el_cambio_de_idioma(self):
         with mock.patch.object(idioma, "codigos_con_catalogo",
                                return_value={"en"}), \
-                mock.patch("ytchat.ui.preferencias_general.anunciar") as anunciar:
+                mock.patch("bellbird.ui.preferencias_general.anunciar") as anunciar:
             self._dialogo({"idioma": "en"})
         anunciar.assert_not_called()
 
@@ -264,7 +264,7 @@ class TestIdiomaEnPreferencias(unittest.TestCase):
                                      dialogo.cho_idioma.GetId())
         evento.SetEventObject(dialogo.cho_idioma)
         evento.SetInt(2)
-        with mock.patch("ytchat.ui.preferencias_general.anunciar") as anunciar:
+        with mock.patch("bellbird.ui.preferencias_general.anunciar") as anunciar:
             dialogo.cho_idioma.GetEventHandler().ProcessEvent(evento)
         anunciar.assert_not_called()
 

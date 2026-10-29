@@ -2,8 +2,8 @@
 
 import unittest
 
-from ytchat.core import musica_decir
-from ytchat.music.modelo import Tema
+from bellbird.core import musica_decir
+from bellbird.music.modelo import Tema
 
 
 class TestNormalizar(unittest.TestCase):

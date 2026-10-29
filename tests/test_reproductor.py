@@ -17,8 +17,8 @@ try:
 except Exception:
     _HAY_WX = False
 
-from ytchat.player import motor_vlc
-from ytchat.player import reproductor
+from bellbird.player import motor_vlc
+from bellbird.player import reproductor
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
 
@@ -963,7 +963,7 @@ class TestAvisoAlReproducir(unittest.TestCase):
         anunciar.assert_called_once_with("No hay ningún vídeo cargado")
 
     def test_accion_sin_panel_anuncia_indisponible(self):
-        from ytchat.ui import gui
+        from bellbird.ui import gui
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
         frame._rep_panel = None
         with mock.patch.object(gui, "anunciar") as anunciar:
@@ -1092,7 +1092,7 @@ class TestRelevoRobustez(unittest.TestCase):
         panel._relevo_ffmpeg = self._relevo()
         panel._relevo_reintentos = 3
         with mock.patch.object(reproductor, "anunciar") as anunciar, \
-                mock.patch("ytchat.voice.sound_player.reproducir") as sonido:
+                mock.patch("bellbird.voice.sound_player.reproducir") as sonido:
             panel._fallo_reproduccion()
         panel._player.play.assert_not_called()
         panel._detener.assert_called_once_with(silencioso=True)
@@ -1102,7 +1102,7 @@ class TestRelevoRobustez(unittest.TestCase):
     def test_error_de_vlc_sin_relevo_para_y_avisa(self):
         panel = self._panel()
         with mock.patch.object(reproductor, "anunciar") as anunciar, \
-                mock.patch("ytchat.voice.sound_player.reproducir"):
+                mock.patch("bellbird.voice.sound_player.reproducir"):
             panel._fallo_reproduccion()
         panel._detener.assert_called_once_with(silencioso=True)
         anunciar.assert_called_once_with("No se pudo reproducir el vídeo")
@@ -1227,7 +1227,7 @@ class TestSaltoEnRelevo(unittest.TestCase):
         anunciar.assert_called_once_with("Ya estás en el directo")
 
     def test_retroceder_al_final_de_la_ventana_avisa(self):
-        from ytchat.player.busqueda_video import MARGEN_VENTANA_SEGMENTOS
+        from bellbird.player.busqueda_video import MARGEN_VENTANA_SEGMENTOS
         panel = self._panel(desfase=720 - MARGEN_VENTANA_SEGMENTOS)
         with mock.patch.object(reproductor.relevo_ffmpeg, "RelevoFfmpeg") as clase, \
                 mock.patch.object(reproductor, "anunciar") as anunciar:
@@ -1497,7 +1497,7 @@ class TestPseudoTextosReproductor(unittest.TestCase):
                 self.assertTrue(texto.startswith("[¡"), texto)
 
 
-# El panel lo arma `ytchat/player/reproductor.py`: sus textos quedan
+# El panel lo arma `bellbird/player/reproductor.py`: sus textos quedan
 # pendientes en otras ventanas y aquí se exige que no quede ninguno sin
 # envolver. La comparación es exacta en los dos sentidos: falla si aparece
 # un texto nuevo sin envolver y si un pendiente ya no está en el recorrido.
@@ -1564,7 +1564,7 @@ class TestPseudoAnunciosReproductor(unittest.TestCase):
         self.captados = []
         parches = [
             mock.patch.object(reproductor, "anunciar", self._guardar),
-            mock.patch("ytchat.voice.sound_player.reproducir"),
+            mock.patch("bellbird.voice.sound_player.reproducir"),
         ]
         for parche in parches:
             parche.start()
@@ -1641,7 +1641,7 @@ class TestPseudoAnunciosReproductor(unittest.TestCase):
         self._exigir_marcados(1)
 
     def test_pantalla_completa_ida_y_vuelta_anuncian_marcado(self):
-        from ytchat.player.pantalla_completa import AccionesPantalla
+        from bellbird.player.pantalla_completa import AccionesPantalla
         panel = self._panel(_fs=None, _botones_visibles=True)
         panel._asegurar_player = lambda: True
         panel._mapa_atajos_fs = lambda: {}
@@ -1671,7 +1671,7 @@ class TestPseudoAnunciosReproductor(unittest.TestCase):
         self._exigir_marcados(1)
 
     def test_volumen_anuncia_nombre_y_valor_marcados(self):
-        from ytchat.core import anuncio_ajuste
+        from bellbird.core import anuncio_ajuste
         compartido = anuncio_ajuste.COMPARTIDO
         ultimo, hora = compartido._ultimo, compartido._hora
         self.addCleanup(setattr, compartido, "_ultimo", ultimo)
@@ -1705,7 +1705,7 @@ class TestPseudoAnunciosReproductor(unittest.TestCase):
         self._exigir_marcados(1)
 
     def test_cargar_anuncia_marcado(self):
-        from ytchat.player.busqueda_video import EstadoBusqueda
+        from bellbird.player.busqueda_video import EstadoBusqueda
         panel = self._panel(_cargando=False)
         panel._asegurar_player = lambda: True
         panel._estado_busqueda = EstadoBusqueda(confirmada=0)
@@ -1733,7 +1733,7 @@ class TestPseudoAnunciosReproductor(unittest.TestCase):
         self._exigir_marcados(1)
 
     def test_transporte_confirmado_anuncia_marcado(self):
-        from ytchat.player.busqueda_video import OrdenTransporte
+        from bellbird.player.busqueda_video import OrdenTransporte
         panel = self._panel()
         panel._mostrar_pausa = mock.Mock()
         panel._timer = mock.Mock()
@@ -1747,7 +1747,7 @@ class TestPseudoAnunciosReproductor(unittest.TestCase):
         self._exigir_marcados(1)
 
     def test_transporte_fallido_anuncia_marcado(self):
-        from ytchat.player.busqueda_video import OrdenTransporte
+        from bellbird.player.busqueda_video import OrdenTransporte
         panel = self._panel()
         panel._mostrar_pausa = mock.Mock()
         panel._timer = mock.Mock()
@@ -1805,7 +1805,7 @@ class TestPseudoAnunciosReproductor(unittest.TestCase):
         self._exigir_marcados(1)
 
     def test_salto_en_relevo_anuncia_marcado(self):
-        from ytchat.player.busqueda_video import (
+        from bellbird.player.busqueda_video import (
             MARGEN_VENTANA_SEGMENTOS, EstadoBusqueda)
         tope = 720 - MARGEN_VENTANA_SEGMENTOS
         panel = self._panel(_relevo_fuentes=None)
@@ -1848,7 +1848,7 @@ class TestPseudoAnunciosReproductor(unittest.TestCase):
         self._exigir_marcados(1)
 
     def test_mover_y_posicion_anuncian_marcado(self):
-        from ytchat.player.busqueda_video import EstadoBusqueda
+        from bellbird.player.busqueda_video import EstadoBusqueda
         panel = self._panel(_vod_por_relevo=True,
                             _relevo_vod_base_ms=None)
         panel._estado_busqueda = EstadoBusqueda(confirmada=0)
@@ -1878,7 +1878,7 @@ class TestPseudoAnunciosReproductor(unittest.TestCase):
         self._exigir_marcados(1)
 
     def test_deslizador_y_porcentaje_mueven_y_anuncian_marcado(self):
-        from ytchat.player.busqueda_video import EstadoBusqueda
+        from bellbird.player.busqueda_video import EstadoBusqueda
         panel = self._panel(_vod_por_relevo=False)
         panel._player = mock.Mock()
         panel._estado_busqueda = EstadoBusqueda(confirmada=0)
@@ -1895,7 +1895,7 @@ class TestPseudoAnunciosReproductor(unittest.TestCase):
         self._exigir_marcados(1)
 
     def test_fin_de_flujo_anuncia_marcado(self):
-        from ytchat.player.busqueda_video import EstadoBusqueda
+        from bellbird.player.busqueda_video import EstadoBusqueda
         panel = self._panel()
         panel._timer_progreso = mock.Mock()
         panel._duracion_actual = lambda: 600_000
@@ -1951,7 +1951,7 @@ class TestPseudoAnunciosReproductor(unittest.TestCase):
         self._exigir_marcados(1)
 
     def test_tiktok_terminado_y_fallo_de_apertura_anuncian_marcado(self):
-        from ytchat.player.busqueda_video import EstadoInicioReproduccion
+        from bellbird.player.busqueda_video import EstadoInicioReproduccion
         panel = self._panel()
         panel._timer_progreso = mock.Mock()
         inicio = EstadoInicioReproduccion()
@@ -2002,7 +2002,7 @@ class TestPseudoAnunciosReproductor(unittest.TestCase):
             self.assertTrue(panel.frase_posicion_directo().startswith("[¡"))
 
     def test_relevo_listo_refleja_el_anuncio_marcado(self):
-        from ytchat.player.busqueda_video import frase_desfase_directo
+        from bellbird.player.busqueda_video import frase_desfase_directo
         panel = self._panel(_gen=3, _relevo_gen=5, _video_id="vid")
         panel._continuar_reproducir_calidad = mock.Mock()
         panel._fijar_estado = mock.Mock()
@@ -2019,7 +2019,7 @@ class TestPseudoAnunciosReproductor(unittest.TestCase):
 
     def test_inicio_de_reproduccion_anuncia_marcado(self):
         from types import SimpleNamespace
-        from ytchat.player.busqueda_video import (
+        from bellbird.player.busqueda_video import (
             EstadoBusqueda, EstadoInicioReproduccion)
         panel = self._panel(_muted=False, _vol=80, _vod_por_relevo=False,
                             _relevo_vod_base_ms=None)

@@ -1,8 +1,8 @@
 import unittest
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.obs import obs_captura
-from ytchat.obs import obs_cliente
+from bellbird.obs import obs_captura
+from bellbird.obs import obs_cliente
 
 
 def elemento(identificador, nombre, clase, habilitado=True, indice=0):

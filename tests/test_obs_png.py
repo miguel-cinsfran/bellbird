@@ -5,9 +5,9 @@ import struct
 import unittest
 import zlib
 
-from ytchat.obs import obs_png
-from ytchat.obs.obs_png import imagen_vacia_png
-from ytchat.obs.obs_prevuelo import EntradaAudio
+from bellbird.obs import obs_png
+from bellbird.obs.obs_png import imagen_vacia_png
+from bellbird.obs.obs_prevuelo import EntradaAudio
 from tests.png_prueba import armar_png, png_plano
 
 

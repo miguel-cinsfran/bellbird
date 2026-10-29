@@ -18,7 +18,7 @@ import wx
 from tests.letras_acceso import ingles
 from tests.pseudo_prueba import con_pseudo
 from tests.ventanas_prueba import destruir
-from ytchat.ui import gui
+from bellbird.ui import gui
 
 
 def _construir_lista(accel=None):
@@ -208,7 +208,7 @@ class TestMenuMusica(unittest.TestCase):
     """El menú Música con sus elementos y sus atajos a la vista."""
 
     def _entradas(self):
-        from ytchat.core import config as cfg
+        from bellbird.core import config as cfg
 
         def accel(accion):
             valor = cfg.ATAJOS_DEFAULTS.get(accion, "")
@@ -244,7 +244,7 @@ class TestMenuRecientes(unittest.TestCase):
     """El submenú de mensajes recientes: diez ítems que leen 1 a 10."""
 
     def _ver(self):
-        from ytchat.ui import gui_menu
+        from bellbird.ui import gui_menu
         creados = []
 
         def crear_menu(*args, **kwargs):
@@ -262,7 +262,7 @@ class TestMenuRecientes(unittest.TestCase):
         return frame, creados
 
     def test_items_en_orden_con_sus_etiquetas(self):
-        from ytchat.ui.atajos_captura import ETIQUETAS
+        from bellbird.ui.atajos_captura import ETIQUETAS
         _frame, creados = self._ver()
         sub = creados[1]
         self.assertEqual(
@@ -295,7 +295,7 @@ class TestRegistroDeComandos(unittest.TestCase):
         del cls.app
 
     def test_anota_la_etiqueta_y_no_impide_que_corra_el_manejador_propio(self):
-        from ytchat.ui import gui_menu
+        from bellbird.ui import gui_menu
 
         frame = wx.Frame(None)
         self.addCleanup(destruir, frame)
@@ -317,7 +317,7 @@ class TestRegistroDeComandos(unittest.TestCase):
         self.assertIn("etiqueta=Conectar", registro.output[0])
 
     def test_un_id_que_no_esta_en_la_barra_dice_interrogante(self):
-        from ytchat.ui import gui_menu
+        from bellbird.ui import gui_menu
 
         frame = wx.Frame(None)
         self.addCleanup(destruir, frame)
@@ -341,7 +341,7 @@ class TestAbrirTransmision(unittest.TestCase):
         return frame
 
     def _abrir(self, frame, menu, estado=None):
-        from ytchat.ui import gui_menu
+        from bellbird.ui import gui_menu
         evento = mock.Mock()
         evento.GetMenu.return_value = menu
         hilos = []
@@ -361,7 +361,7 @@ class TestAbrirTransmision(unittest.TestCase):
         return frame
 
     def test_otro_menu_no_consulta(self):
-        from ytchat.ui import gui_menu
+        from bellbird.ui import gui_menu
         frame = self._frame(object())
         evento = mock.Mock()
         evento.GetMenu.return_value = object()
@@ -385,7 +385,7 @@ class TestAbrirTransmision(unittest.TestCase):
         frame.mi_obs_micro.Check.assert_not_called()
 
     def test_con_otra_consulta_en_curso_no_lanza_otra(self):
-        from ytchat.ui import gui_menu
+        from bellbird.ui import gui_menu
         menu = object()
         frame = self._frame(menu)
         frame._consultando_micro = True
@@ -396,7 +396,7 @@ class TestAbrirTransmision(unittest.TestCase):
         crear.assert_not_called()
 
     def test_deja_correr_el_evento_en_los_dos_menus(self):
-        from ytchat.ui import gui_menu
+        from bellbird.ui import gui_menu
         menu = object()
         for abierto in (menu, object()):
             with self.subTest(abierto=abierto):
@@ -420,7 +420,7 @@ class TestCableadoMostrarObs(unittest.TestCase):
         del cls.app
 
     def _frame_con_menu(self):
-        from ytchat.ui import gui_menu
+        from bellbird.ui import gui_menu
 
         frame = wx.Frame(None)
         self.addCleanup(destruir, frame)
@@ -436,7 +436,7 @@ class TestCableadoMostrarObs(unittest.TestCase):
         return frame
 
     def test_elegir_mostrar_obs_anuncia_lo_que_devuelve_mostrar(self):
-        from ytchat.ui import gui_menu
+        from bellbird.ui import gui_menu
 
         frame = self._frame_con_menu()
         with mock.patch.object(gui_menu.obs_ventana, "mostrar",
@@ -468,9 +468,9 @@ class TestCableadoMostrarObs(unittest.TestCase):
                     frame.mi_micro_obs.GetId())
 
     def test_elegir_microfono_abre_el_cuadro(self):
-        from ytchat.ui import gui_menu
+        from bellbird.ui import gui_menu
 
-        with mock.patch("ytchat.ui.gui_microfono.abrir_microfono_obs") \
+        with mock.patch("bellbird.ui.gui_microfono.abrir_microfono_obs") \
                 as abrir, \
                 mock.patch.object(gui_menu.wx, "CallAfter",
                                   side_effect=lambda fn, *a: fn(*a)):
@@ -482,8 +482,8 @@ class TestCableadoMostrarObs(unittest.TestCase):
 
 
 # Textos que arma otro módulo y la barra solo muestra: los nombres de
-# filtro de `ytchat/core/config.py` (FILTROS). Las etiquetas de
-# `ytchat/ui/atajos_captura.py` (ETIQUETAS) ya salen marcadas porque el
+# filtro de `bellbird/core/config.py` (FILTROS). Las etiquetas de
+# `bellbird/ui/atajos_captura.py` (ETIQUETAS) ya salen marcadas porque el
 # menú las traduce con `etiqueta_de_accion`. La comparación es exacta en
 # los dos sentidos: falla si aparece un texto nuevo sin envolver y si un
 # pendiente ya no está en el recorrido, para vaciar la lista cuando esos

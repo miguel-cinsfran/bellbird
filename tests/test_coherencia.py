@@ -11,10 +11,10 @@ import re
 import unittest
 from pathlib import Path
 
-from ytchat.core import config as cfg
-from ytchat.core import config_predeterminada as fabrica
-from ytchat.core import eventos_sonido
-from ytchat.ui import atajos_captura
+from bellbird.core import config as cfg
+from bellbird.core import config_predeterminada as fabrica
+from bellbird.core import eventos_sonido
+from bellbird.ui import atajos_captura
 
 RAIZ = Path(__file__).resolve().parent.parent
 
@@ -36,7 +36,7 @@ def _datos_f2():
     `formatear_estado` cuenta como render porque anuncia
     `transmision_supervisada`, que ningún `_render_*` toca por separado."""
     componentes, etiquetas, render, campos, dichos = set(), set(), set(), set(), set()
-    arbol = _arbol("ytchat/capture/estado_sesion.py")
+    arbol = _arbol("bellbird/capture/estado_sesion.py")
     for nodo in ast.walk(arbol):
         if isinstance(nodo, (ast.Assign, ast.AnnAssign)):
             valor = nodo.value
@@ -71,9 +71,9 @@ class PruebaEstadoF2(unittest.TestCase):
     def test_conjuntos_iguales(self):
         componentes, etiquetas, render, _, _ = _datos_f2()
         candidatos = {
-            "ETIQUETAS (ytchat/capture/estado_sesion.py)": etiquetas,
-            "render (ytchat/capture/estado_sesion.py)": render,
-            "[estado] (ytchat/core/config_predeterminada.py)": set(
+            "ETIQUETAS (bellbird/capture/estado_sesion.py)": etiquetas,
+            "render (bellbird/capture/estado_sesion.py)": render,
+            "[estado] (bellbird/core/config_predeterminada.py)": set(
                 fabrica.seccion("estado")),
         }
         problemas = []
@@ -90,7 +90,7 @@ class PruebaEstadoF2(unittest.TestCase):
         mudos = sorted(campos - dichos)
         self.assertEqual(mudos, [],
                          "Campos de SnapshotSesion que ninguna función de render "
-                         f"lee (ytchat/capture/estado_sesion.py): {mudos}")
+                         f"lee (bellbird/capture/estado_sesion.py): {mudos}")
 
 
 # ── Regla 2: sonidos ────────────────────────────────────────────────────────
@@ -106,13 +106,13 @@ def _ruta_punteada(nodo):
 
 
 def _nombres_y_dinamicos():
-    """Nombres de eventos juntados con `ast` sobre `ytchat/` y `main.py`:
+    """Nombres de eventos juntados con `ast` sobre `bellbird/` y `main.py`:
     literales de `_snd.reproducir(...)` (o `sound_player` por otro nombre),
     segundo argumento literal o `sonido=` de `Aviso(...)`, y valores de las
     constantes `SONIDO*` (incluidos los dicts como `_SONIDO_POR_FIN`).
     Devuelve (nombres, dinámicos) donde dinámicos son "archivo:línea"."""
     nombres, dinamicos = set(), []
-    archivos = sorted((RAIZ / "ytchat").rglob("*.py")) + [RAIZ / "main.py"]
+    archivos = sorted((RAIZ / "bellbird").rglob("*.py")) + [RAIZ / "main.py"]
     for ruta in archivos:
         arbol = ast.parse(ruta.read_text(encoding="utf-8"))
         relativo = str(ruta.relative_to(RAIZ))
@@ -212,7 +212,7 @@ class PruebaSonidos(unittest.TestCase):
         faltan = sorted(nombres - set(cfg._EVENTOS_SONIDO))
         self.assertEqual(faltan, [],
                           "Sonidos usados fuera de config._EVENTOS_SONIDO "
-                          f"(ytchat/core/config.py): {faltan}")
+                          f"(bellbird/core/config.py): {faltan}")
 
 
 class PruebaNombresSonido(unittest.TestCase):
@@ -296,12 +296,12 @@ def _pares_leidos_en_config():
     `leer_decimal` (literales en 2.º y 3.º lugar) y parecidas del parser (`get`,
     `getboolean`, ...) con literales en 1.º y 2.º lugar."""
     leidos = set()
-    arboles = (_arbol("ytchat/core/config.py"),
-                _arbol("ytchat/core/config_descargas.py"),
-                _arbol("ytchat/core/config_musica.py"),
-                _arbol("ytchat/core/config_lectura.py"),
-                _arbol("ytchat/core/config_transmision.py"),
-                _arbol("ytchat/core/config_voz.py"))
+    arboles = (_arbol("bellbird/core/config.py"),
+                _arbol("bellbird/core/config_descargas.py"),
+                _arbol("bellbird/core/config_musica.py"),
+                _arbol("bellbird/core/config_lectura.py"),
+                _arbol("bellbird/core/config_transmision.py"),
+                _arbol("bellbird/core/config_voz.py"))
     for arbol in arboles:
         for nodo in ast.walk(arbol):
             if not isinstance(nodo, ast.Call):
@@ -348,10 +348,10 @@ def _pares_con_control():
     con_control = set()
     tablas = {}
     arboles = {rel: _arbol(rel) for rel in (
-        "ytchat/ui/gui_preferencias.py", "ytchat/ui/preferencias_general.py",
-        "ytchat/ui/preferencias_musica.py",
-        "ytchat/ui/preferencias_lectura.py", "ytchat/ui/preferencias_ia.py",
-        "ytchat/ui/preferencias_voz.py")}
+        "bellbird/ui/gui_preferencias.py", "bellbird/ui/preferencias_general.py",
+        "bellbird/ui/preferencias_musica.py",
+        "bellbird/ui/preferencias_lectura.py", "bellbird/ui/preferencias_ia.py",
+        "bellbird/ui/preferencias_voz.py")}
     for arbol in arboles.values():
         for nodo in ast.walk(arbol):
             if not isinstance(nodo, (ast.Assign, ast.AnnAssign)):
@@ -398,7 +398,7 @@ class PruebaConfiguracion(unittest.TestCase):
                         - set(LEIDAS_FUERA))
         self.assertEqual(
             faltan, [],
-            "Pares de fábrica que no se leen en ytchat/core/config.py: "
+            "Pares de fábrica que no se leen en bellbird/core/config.py: "
             f"{faltan}")
 
     def test_todo_par_tiene_control(self):
@@ -407,10 +407,10 @@ class PruebaConfiguracion(unittest.TestCase):
         self.assertEqual(
             faltan, [],
             "Pares de fábrica sin control en Preferencias "
-            "(ytchat/ui/gui_preferencias.py, ytchat/ui/preferencias_general.py, "
-            "ytchat/ui/preferencias_musica.py, "
-            "ytchat/ui/preferencias_lectura.py, ytchat/ui/preferencias_ia.py, "
-            "ytchat/ui/preferencias_voz.py): "
+            "(bellbird/ui/gui_preferencias.py, bellbird/ui/preferencias_general.py, "
+            "bellbird/ui/preferencias_musica.py, "
+            "bellbird/ui/preferencias_lectura.py, bellbird/ui/preferencias_ia.py, "
+            "bellbird/ui/preferencias_voz.py): "
             f"{faltan}")
 
     def test_excepciones_existen_en_fabrica(self):
@@ -451,7 +451,7 @@ class PruebaAtajos(unittest.TestCase):
         self.assertEqual(
             faltan, [],
             "Claves de [atajos] sin nombre en la tabla de "
-            f"ytchat/ui/atajos_captura.py: {faltan}")
+            f"bellbird/ui/atajos_captura.py: {faltan}")
 
     def test_todo_atajo_figura_en_manual(self):
         manual = _atajos_en_manual()
@@ -469,11 +469,11 @@ class PruebaAtajos(unittest.TestCase):
 
 
 def _solo_lectura_sin_tab():
-    """Llamadas a `wx.TextCtrl(...)` en `ytchat/` y `main.py` cuyo `style=`
+    """Llamadas a `wx.TextCtrl(...)` en `bellbird/` y `main.py` cuyo `style=`
     nombra `TE_READONLY` sin `TE_MULTILINE`: wx en Windows deja esos campos
     de una línea fuera del orden de Tab. Devuelve "archivo:línea"."""
     problemas = []
-    archivos = sorted((RAIZ / "ytchat").rglob("*.py")) + [RAIZ / "main.py"]
+    archivos = sorted((RAIZ / "bellbird").rglob("*.py")) + [RAIZ / "main.py"]
     for ruta in archivos:
         arbol = ast.parse(ruta.read_text(encoding="utf-8"))
         relativo = str(ruta.relative_to(RAIZ))

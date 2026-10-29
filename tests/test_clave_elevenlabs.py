@@ -4,8 +4,8 @@ import unittest
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.ui import clave_elevenlabs
-from ytchat.voice import elevenlabs
+from bellbird.ui import clave_elevenlabs
+from bellbird.voice import elevenlabs
 
 
 class _HiloInmediato:

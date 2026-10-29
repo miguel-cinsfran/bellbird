@@ -9,7 +9,7 @@ import time
 import unittest
 from unittest import mock
 
-from ytchat.player import reproductor
+from bellbird.player import reproductor
 
 
 def _formato_video(fid, protocolo, altura, tbr, url=None):
@@ -306,7 +306,7 @@ class PruebasFalloAperturaVod(unittest.TestCase):
         panel.cargar.reset_mock()
         anunciar.reset_mock()
         with mock.patch.object(reproductor, "anunciar") as anunciar2, \
-                mock.patch("ytchat.voice.sound_player.reproducir") as sonido:
+                mock.patch("bellbird.voice.sound_player.reproducir") as sonido:
             panel._on_timer(None)
         panel.cargar.assert_not_called()
         panel._detener.assert_called_with(silencioso=True)
@@ -324,7 +324,7 @@ class PruebasFalloAperturaVod(unittest.TestCase):
         self.assertNotIn("No se pudo reproducir el vídeo", frases)
         panel.cargar.reset_mock()
         with mock.patch.object(reproductor, "anunciar") as anunciar2, \
-                mock.patch("ytchat.voice.sound_player.reproducir"):
+                mock.patch("bellbird.voice.sound_player.reproducir"):
             panel._on_timer(None)
         panel.cargar.assert_not_called()
         frases = [c.args[0] for c in anunciar2.call_args_list]

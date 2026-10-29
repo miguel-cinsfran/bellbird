@@ -8,8 +8,8 @@ destino reproduciendo, sin pasar por cargar ni por set_pause.
 import unittest
 from unittest import mock
 
-from ytchat.player import reproductor
-from ytchat.player.busqueda_video import EstadoBusqueda
+from bellbird.player import reproductor
+from bellbird.player.busqueda_video import EstadoBusqueda
 
 
 def _info_vod():

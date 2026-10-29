@@ -1,8 +1,8 @@
 import unittest
 from unittest import mock
 
-from ytchat.player import recuperacion
-from ytchat.player import reproductor
+from bellbird.player import recuperacion
+from bellbird.player import reproductor
 
 
 def _funciones(**valores):

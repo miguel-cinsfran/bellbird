@@ -15,7 +15,7 @@ class TestNombreReservado(unittest.TestCase):
     def test_ningun_modulo_liga_el_nombre_de_traduccion(self):
         raiz = Path(__file__).resolve().parent.parent
         archivos = [raiz / "main.py"]
-        archivos.extend(sorted((raiz / "ytchat").rglob("*.py")))
+        archivos.extend(sorted((raiz / "bellbird").rglob("*.py")))
         violaciones = []
         for ruta in archivos:
             arbol = ast.parse(ruta.read_text(encoding="utf-8"),

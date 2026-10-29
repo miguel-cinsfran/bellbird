@@ -9,7 +9,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.obs import obs_activacion
+from bellbird.obs import obs_activacion
 
 
 class TestActivacionObs(unittest.TestCase):

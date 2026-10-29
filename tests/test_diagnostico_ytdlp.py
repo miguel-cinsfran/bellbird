@@ -3,7 +3,7 @@ from __future__ import annotations
 import unittest
 from unittest import mock
 
-from ytchat.core import diagnostico
+from bellbird.core import diagnostico
 
 
 class TestVersionYtdlpDiagnostico(unittest.TestCase):

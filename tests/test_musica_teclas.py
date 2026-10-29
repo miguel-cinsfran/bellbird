@@ -2,9 +2,9 @@
 
 import unittest
 
-from ytchat.music.modelo import ERROR_MOTOR, OK, SIN_TEMA, Resultado
-from ytchat.music.transporte import ResultadoSalto
-from ytchat.ui.musica_teclas import TeclasMusica
+from bellbird.music.modelo import ERROR_MOTOR, OK, SIN_TEMA, Resultado
+from bellbird.music.transporte import ResultadoSalto
+from bellbird.ui.musica_teclas import TeclasMusica
 
 
 class ItemFalso:

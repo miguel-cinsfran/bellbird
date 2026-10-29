@@ -12,10 +12,10 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from ytchat.player import reproductor
-from ytchat.player.busqueda_video import EstadoBusqueda
-from ytchat.player import relevo_ffmpeg
-from ytchat.downloads import ffmpeg_bin
+from bellbird.player import reproductor
+from bellbird.player.busqueda_video import EstadoBusqueda
+from bellbird.player import relevo_ffmpeg
+from bellbird.downloads import ffmpeg_bin
 
 
 def _info_vod_dividido():
@@ -174,7 +174,7 @@ class PruebasSaltoVodRelevo(unittest.TestCase):
         self.assertEqual(panel._duracion_actual(), 60_000)
 
     def test_cache_lista_detiene_el_relevo(self):
-        from ytchat.player.tarea_cache_video import TareaCacheVideo
+        from bellbird.player.tarea_cache_video import TareaCacheVideo
         panel = self._panel()
         with tempfile.TemporaryDirectory() as carpeta:
             destino = Path(carpeta) / "video.mp4"
@@ -187,7 +187,7 @@ class PruebasSaltoVodRelevo(unittest.TestCase):
             panel._muted = False
             relevo_viejo = panel._relevo_ffmpeg
             reapertura_vieja = panel._relevo_vod_reapertura
-            with mock.patch("ytchat.voice.sound_player.reproducir"):
+            with mock.patch("bellbird.voice.sound_player.reproducir"):
                 panel._cache_video_lista(tarea, True)
         relevo_viejo.detener.assert_called_once()
         self.assertIsNone(panel._relevo_ffmpeg)
@@ -378,12 +378,12 @@ class PruebasVentanaReaperturaVodRelevo(unittest.TestCase):
     def test_timer_en_reapertura_con_error_no_detiene(self):
         panel = self._panel_timer("error")
         with mock.patch.object(reproductor, "anunciar"), \
-                mock.patch("ytchat.voice.sound_player.reproducir"):
+                mock.patch("bellbird.voice.sound_player.reproducir"):
             panel._on_timer(None)
         panel._detener.assert_not_called()
 
     def test_cache_lista_apaga_el_modo_relevo(self):
-        from ytchat.player.tarea_cache_video import TareaCacheVideo
+        from bellbird.player.tarea_cache_video import TareaCacheVideo
         panel = self._panel_en_reapertura()
         with tempfile.TemporaryDirectory() as carpeta:
             destino = Path(carpeta) / "video.mp4"
@@ -395,7 +395,7 @@ class PruebasVentanaReaperturaVodRelevo(unittest.TestCase):
             panel._player = mock.Mock()
             panel._inst = mock.Mock()
             panel._inst.media_new.return_value = mock.Mock()
-            with mock.patch("ytchat.voice.sound_player.reproducir"):
+            with mock.patch("bellbird.voice.sound_player.reproducir"):
                 panel._cache_video_lista(tarea, True)
         self.assertFalse(panel._vod_por_relevo)
 

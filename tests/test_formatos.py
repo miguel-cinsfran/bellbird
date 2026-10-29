@@ -2,7 +2,7 @@
 
 import unittest
 
-from ytchat.player.formatos import mejor_audio
+from bellbird.player.formatos import mejor_audio
 
 
 def _audio(url, abr=None, idioma=None, protocolo=None, ext=None,

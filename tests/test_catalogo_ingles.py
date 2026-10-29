@@ -12,7 +12,7 @@ from pathlib import Path
 from babel.messages import catalog, pofile
 
 from scripts import traducciones
-from ytchat.core import idioma
+from bellbird.core import idioma
 
 RAIZ = Path(__file__).resolve().parent.parent
 

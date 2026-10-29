@@ -10,8 +10,8 @@ from pathlib import Path
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.downloads import descargas
-from ytchat.downloads.descargas import (
+from bellbird.downloads import descargas
+from bellbird.downloads.descargas import (
     GestorDescargas,
     INTERVALO_PROGRESO_S,
     analizar_url,

@@ -2,9 +2,9 @@ import random
 import unittest
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.core.idioma import _
-from ytchat.obs import obs_audio
-from ytchat.obs.obs_audio import elegir_microfono, frase_microfono, nombre_corto
+from bellbird.core.idioma import _
+from bellbird.obs import obs_audio
+from bellbird.obs.obs_audio import elegir_microfono, frase_microfono, nombre_corto
 
 TEXTO_SIN_SENAL = ("El micrófono no recibe sonido. Revisa cuál está elegido "
                    "en Windows o en OBS.")

@@ -2,8 +2,8 @@
 
 import unittest
 
-from ytchat.core import config
-from ytchat.core import ini_tipado
+from bellbird.core import config
+from bellbird.core import ini_tipado
 
 
 def _parser(texto: str = ""):

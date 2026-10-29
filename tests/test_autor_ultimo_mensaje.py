@@ -8,9 +8,9 @@ from unittest import mock
 
 import main
 from main import Stats, procesar_entrante
-from ytchat.capture import alias
-from ytchat.ui import gui
-from ytchat.ui import gui_comentarios
+from bellbird.capture import alias
+from bellbird.ui import gui
+from bellbird.ui import gui_comentarios
 
 
 class TestItemLlevaAutorVisible(unittest.TestCase):

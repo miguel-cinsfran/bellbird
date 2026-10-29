@@ -117,7 +117,7 @@ class TestFaltasDeOpciones(unittest.TestCase):
         return contenido
 
     def _snippet_ok(self, **cambios):
-        snippet = {"categoryId": "27", "tags": ["prueba", "ytchat"]}
+        snippet = {"categoryId": "27", "tags": ["prueba", "bellbird"]}
         snippet.update(cambios)
         return snippet
 
@@ -172,7 +172,7 @@ class TestEstadoMiniatura(unittest.TestCase):
         self.assertIn("sin avisos", detalle)
 
     def test_403_del_canal_sin_verificar_pasa(self):
-        from ytchat.youtube import youtube_api
+        from bellbird.youtube import youtube_api
         bien, detalle = directo_real.estado_miniatura(
             "Aviso: " + youtube_api.FRASE_MINiatura_SIN_VERIFICAR)
         self.assertTrue(bien)
@@ -536,7 +536,7 @@ class TestRespaldoSonidos(unittest.TestCase):
     def test_respalda_escribe_y_restaura_byte_a_byte(self):
         import os
         import tempfile
-        from ytchat.core import config
+        from bellbird.core import config
         original = b"[sonidos]\nvolumen = 0.7\n"
         ruta = self._ruta_con(original)
         fd, respaldo = tempfile.mkstemp(suffix=".ini")

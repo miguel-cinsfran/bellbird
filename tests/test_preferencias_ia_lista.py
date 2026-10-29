@@ -3,8 +3,8 @@
 import unittest
 from unittest import mock
 
-from ytchat.ai import proveedores
-from ytchat.ui import preferencias_ia_lista
+from bellbird.ai import proveedores
+from bellbird.ui import preferencias_ia_lista
 
 
 class _Panel:

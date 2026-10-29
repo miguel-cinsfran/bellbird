@@ -14,9 +14,9 @@ from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
-from ytchat.core import actualizacion
-from ytchat.core.config import APP_NAME, APP_VERSION
-from ytchat.ui import gui_actualizar_app as app
+from bellbird.core import actualizacion
+from bellbird.core.config import APP_NAME, APP_VERSION
+from bellbird.ui import gui_actualizar_app as app
 
 try:
     import wx
@@ -142,7 +142,7 @@ class TestVentana(unittest.TestCase):
             return ventana
 
         self._doble(mock.patch(
-            "ytchat.ui.gui_actualizacion.DialogoActualizacion",
+            "bellbird.ui.gui_actualizacion.DialogoActualizacion",
             side_effect=fabrica))
         if paquete is None:
             self._doble(mock.patch.object(
@@ -306,7 +306,7 @@ class TestVentana(unittest.TestCase):
         self.assertEqual("&Instalar y reiniciar", ventana.accion_etiqueta)
 
     def test_instalar_llama_antes_de_cerrar(self):
-        from ytchat.core import paths
+        from bellbird.core import paths
         def descargar(*args, **kwargs):
             return actualizacion.ResultadoDescarga(True, "paquete descargado")
         lanzar = self._doble(mock.patch.object(
@@ -602,7 +602,7 @@ class TestGanchos(unittest.TestCase):
             return ventana
 
         dialogo = self._doble(mock.patch(
-            "ytchat.ui.gui_actualizacion.DialogoActualizacion",
+            "bellbird.ui.gui_actualizacion.DialogoActualizacion",
             side_effect=fabrica))
         anunciar = self._doble(mock.patch.object(app, "anunciar"))
         sonido = self._doble(mock.patch.object(app._snd, "reproducir"))
@@ -773,7 +773,7 @@ class TestDialogoNotas(unittest.TestCase):
         return mock.Mock()
 
     def test_notas_limpia_markdown_y_ubica_el_cursor(self):
-        from ytchat.ui import gui_actualizacion as ui
+        from bellbird.ui import gui_actualizacion as ui
         doble = self._doble()
         ui.DialogoActualizacion.notas(doble, "\r\n\r\n- **Uno** seguido")
         doble.txt_notas.SetValue.assert_called_once_with("• Uno seguido")
@@ -782,7 +782,7 @@ class TestDialogoNotas(unittest.TestCase):
         doble.txt_notas.ShowPosition.assert_called_once_with(0)
 
     def test_notas_vacias_ocultan_el_cuadro(self):
-        from ytchat.ui import gui_actualizacion as ui
+        from bellbird.ui import gui_actualizacion as ui
         doble = self._doble()
         ui.DialogoActualizacion.notas(doble, "   \r\n")
         doble.txt_notas.SetValue.assert_called_once_with("")
@@ -790,7 +790,7 @@ class TestDialogoNotas(unittest.TestCase):
         doble.txt_notas.SetInsertionPoint.assert_not_called()
 
     def test_etiqueta_cerrar_cambia_el_boton(self):
-        from ytchat.ui import gui_actualizacion as ui
+        from bellbird.ui import gui_actualizacion as ui
         doble = self._doble()
         ui.DialogoActualizacion.etiqueta_cerrar(doble, "&Más tarde")
         doble.btn_cerrar.SetLabel.assert_called_once_with("&Más tarde")
@@ -800,7 +800,7 @@ class TestCableado(unittest.TestCase):
 
     def _texto_gui(self):
         ruta = (Path(__file__).resolve().parent.parent
-                / "ytchat" / "ui" / "gui.py")
+                / "bellbird" / "ui" / "gui.py")
         return ruta.read_text(encoding="utf-8")
 
     def test_iniciar_gui_programa_los_tres_ganchos(self):
@@ -819,7 +819,7 @@ class TestCableado(unittest.TestCase):
 
     def test_menu_ayuda_ofrece_buscar_antes_de_acerca(self):
         ruta = (Path(__file__).resolve().parent.parent
-                / "ytchat" / "ui" / "gui_menu.py")
+                / "bellbird" / "ui" / "gui_menu.py")
         texto = ruta.read_text(encoding="utf-8")
         self.assertIn("&Buscar actualizaciones…", texto)
         self.assertLess(texto.index("&Buscar actualizaciones…"),
@@ -983,7 +983,7 @@ class TestPseudoAvisos(unittest.TestCase):
             ["[¡La descarga no se completó: el paquete no trae firma.!]"])
 
     def test_resultado_de_otro_modulo_pasa_tal_cual(self):
-        # El texto lo arma `ytchat/core/actualizacion.py`, ya traducido.
+        # El texto lo arma `bellbird/core/actualizacion.py`, ya traducido.
         resultado = {"resultado": "fallo", "motivo": "corte de luz"}
         captados = []
         with mock.patch.object(actualizacion, "tomar_resultado",
@@ -1013,7 +1013,7 @@ class TestPseudoVentana(unittest.TestCase):
         del cls.app
 
     def _abrir(self, vistos, pulsar=False, **kwargs):
-        from ytchat.ui.gui_actualizacion import DialogoActualizacion
+        from bellbird.ui.gui_actualizacion import DialogoActualizacion
         frozen = kwargs.pop("frozen", True)
         admite = kwargs.pop("admite", True)
         frame = wx.Frame(None)
@@ -1030,7 +1030,7 @@ class TestPseudoVentana(unittest.TestCase):
                                   lambda ventana, funcion, *args: funcion(*args)), \
                 mock.patch.object(app.aviso_diferido, "cuando_libre",
                                   side_effect=lambda marco, funcion, *a, **k: funcion(*a, **k)), \
-                mock.patch("ytchat.ui.gui_actualizacion.anunciar"), \
+                mock.patch("bellbird.ui.gui_actualizacion.anunciar"), \
                 mock.patch.object(app._snd, "reproducir"), \
                 mock.patch("webbrowser.open"):
             app.abrir_ventana_actualizacion(frame, **kwargs)
@@ -1042,7 +1042,7 @@ class TestPseudoVentana(unittest.TestCase):
             return frame, ventana
 
     def test_no_queda_ningun_texto_visible_sin_envolver(self):
-        from ytchat.ui import gui_actualizacion
+        from bellbird.ui import gui_actualizacion
         vistos = []
         with con_pseudo(), \
                 mock.patch.object(actualizacion, "descargar_paquete",
@@ -1069,7 +1069,7 @@ class TestPseudoVentana(unittest.TestCase):
             with mock.patch.object(gui_actualizacion, "DialogoActualizacion",
                                    side_effect=fabrica), \
                     mock.patch.object(app._snd, "reproducir"), \
-                    mock.patch("ytchat.ui.gui_actualizacion.anunciar"):
+                    mock.patch("bellbird.ui.gui_actualizacion.anunciar"):
                 app._mostrar_resultado_en_ventana(frame, "ejemplo", True)
             self.assertEqual(len(creadas), 1)
             self.addCleanup(destruir, creadas[0])

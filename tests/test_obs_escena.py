@@ -3,7 +3,7 @@
 import unittest
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.obs import obs_escena
+from bellbird.obs import obs_escena
 
 
 def elemento(identificador, nombre, indice, x=0, y=0, ancho=0, alto=0,

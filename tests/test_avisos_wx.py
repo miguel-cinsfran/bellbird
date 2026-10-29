@@ -10,9 +10,9 @@ import unittest
 from types import SimpleNamespace
 from unittest import mock
 
-from ytchat.ui import gui
-from ytchat.player import motor_vlc
-from ytchat.player import reproductor
+from bellbird.ui import gui
+from bellbird.player import motor_vlc
+from bellbird.player import reproductor
 from tests.ventanas_prueba import destruir
 
 

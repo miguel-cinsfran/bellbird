@@ -15,7 +15,7 @@ import time
 import unittest
 from pathlib import Path
 
-from ytchat.player import motor_vlc
+from bellbird.player import motor_vlc
 
 PLAZO_S = 10.0
 TASA = 44100

@@ -8,9 +8,9 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from ytchat.core import config
-from ytchat.ui import gui, gui_preferencias
-from ytchat.voice import motores
+from bellbird.core import config
+from bellbird.ui import gui, gui_preferencias
+from bellbird.voice import motores
 from tests.rutas_temporales import redirigir_rutas
 from tests.ventanas_prueba import destruir
 

@@ -2,8 +2,8 @@
 
 import unittest
 
-from ytchat.capture import metadatos
-from ytchat.capture.metadatos import _fmt_num, _fmt_fecha, _fmt_duracion, formatear
+from bellbird.capture import metadatos
+from bellbird.capture.metadatos import _fmt_num, _fmt_fecha, _fmt_duracion, formatear
 
 
 class TestFormateadores(unittest.TestCase):

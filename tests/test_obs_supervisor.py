@@ -12,15 +12,15 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from ytchat.capture.tiktok_vivo import ResultadoEspera
-from ytchat.obs import obs_cliente
-from ytchat.obs import obs_panel
-from ytchat.obs import obs_supervisor
-from ytchat.obs.obs_supervisor import SupervisorTransmision, duracion_legible
+from bellbird.capture.tiktok_vivo import ResultadoEspera
+from bellbird.obs import obs_cliente
+from bellbird.obs import obs_panel
+from bellbird.obs import obs_supervisor
+from bellbird.obs.obs_supervisor import SupervisorTransmision, duracion_legible
 from tests.pseudo_prueba import con_pseudo
-from ytchat.core.idioma import _
-from ytchat.youtube import emision
-from ytchat.youtube import fin_pendiente
+from bellbird.core.idioma import _
+from bellbird.youtube import emision
+from bellbird.youtube import fin_pendiente
 
 
 class RelojFalso:
@@ -694,7 +694,7 @@ class AsegurarObsTest(BaseSupervisor):
         self.assertTrue(all(gestor.cerrado == 1 for gestor in gestores))
 
     def test_sin_obs_anuncia_el_texto_exactoy_no_transmite(self):
-        from ytchat.obs.obs_lanzador import ObsNoInstalado
+        from bellbird.obs.obs_lanzador import ObsNoInstalado
         armado = self.armar(destino="YouTube", estados=[muestra(False)])
         supervisor, anuncios, _, gestores, _, _, _ = armado
 
@@ -1483,7 +1483,7 @@ class FinPendienteTest(unittest.TestCase):
 
 
 # Textos que arma otro módulo y aparecen en los anuncios: las frases de
-# `ytchat/obs/obs_salida.py` (frase_salida), que el supervisor anuncia tal
+# `bellbird/obs/obs_salida.py` (frase_salida), que el supervisor anuncia tal
 # cual. La comparación es exacta en los dos sentidos: falla si aparece un
 # anuncio propio sin marcar y si un texto ajeno ya no llega, para vaciar la
 # lista cuando ese módulo pase por gettext.

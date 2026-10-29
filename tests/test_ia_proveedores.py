@@ -2,10 +2,10 @@
 
 import unittest
 
-from ytchat.ai import catalogo
-from ytchat.ai import protocolos
-from ytchat.ai import proveedores
-from ytchat.core.config import APP_VERSION
+from bellbird.ai import catalogo
+from bellbird.ai import protocolos
+from bellbird.ai import proveedores
+from bellbird.core.config import APP_VERSION
 
 
 def _muestra():

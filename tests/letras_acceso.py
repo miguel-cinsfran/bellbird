@@ -15,7 +15,7 @@ import tempfile
 from pathlib import Path
 
 from scripts import traducciones
-from ytchat.core import idioma
+from bellbird.core import idioma
 
 _TIPOS_CON_ROTULO = (wx.StaticText, wx.Button, wx.CheckBox, wx.RadioButton,
                      wx.StaticBox)

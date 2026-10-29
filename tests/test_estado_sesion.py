@@ -2,8 +2,8 @@
 
 import unittest
 
-from ytchat.capture import descartes
-from ytchat.capture.estado_sesion import (SnapshotSesion, formatear_estado, COMPONENTES,
+from bellbird.capture import descartes
+from bellbird.capture.estado_sesion import (SnapshotSesion, formatear_estado, COMPONENTES,
                            ACTIVOS_DEFECTO, ETIQUETAS, _duracion, _render)
 
 

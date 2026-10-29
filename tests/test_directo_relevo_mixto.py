@@ -10,8 +10,8 @@ aun así queda sin relevo las flechas avisan en vez de buscar.
 import unittest
 from unittest import mock
 
-from ytchat.player import reproductor
-from ytchat.player.busqueda_video import busqueda_permitida
+from bellbird.player import reproductor
+from bellbird.player.busqueda_video import busqueda_permitida
 
 
 def _panel(info, url_flujo=""):

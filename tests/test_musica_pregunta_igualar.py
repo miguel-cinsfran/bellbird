@@ -8,8 +8,8 @@ propiedad de que más bytes nunca dan un tamaño menor.
 import unittest
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.core.idioma import _
-from ytchat.music import pregunta_igualar
+from bellbird.core.idioma import _
+from bellbird.music import pregunta_igualar
 
 
 MB = 1024 * 1024

@@ -4,10 +4,10 @@ import unittest
 
 from scripts import sound_gen
 from tests.pseudo_prueba import con_pseudo
-from ytchat.core import config
-from ytchat.core.idioma import _
-from ytchat.music import anuncios
-from ytchat.music.modelo import (
+from bellbird.core import config
+from bellbird.core.idioma import _
+from bellbird.music import anuncios
+from bellbird.music.modelo import (
     AVANZO,
     COLA_VACIA,
     ERROR_MOTOR,

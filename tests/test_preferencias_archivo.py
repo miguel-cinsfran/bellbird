@@ -8,9 +8,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from ytchat.core import config_predeterminada as pred
-from ytchat.core import paths
-from ytchat.core import preferencias_archivo as prefs
+from bellbird.core import config_predeterminada as pred
+from bellbird.core import paths
+from bellbird.core import preferencias_archivo as prefs
 from tests.pseudo_prueba import con_pseudo
 from tests.rutas_temporales import redirigir_rutas
 

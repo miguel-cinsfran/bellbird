@@ -7,11 +7,11 @@ menú contextual (copiar, silenciar, banear) caía sobre el mensaje equivocado.
 
 import unittest
 
-from ytchat.core.config import (
+from bellbird.core.config import (
     TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,
     TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
 )
-from ytchat.ui.lista_chat import ListaChat, MensajeChat, texto_fila, texto_reciente
+from bellbird.ui.lista_chat import ListaChat, MensajeChat, texto_fila, texto_reciente
 from tests.pseudo_prueba import con_pseudo
 
 

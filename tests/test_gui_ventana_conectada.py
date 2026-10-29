@@ -11,8 +11,8 @@ import unittest
 from types import SimpleNamespace
 from unittest import mock
 
-from ytchat.player import reproductor
-from ytchat.ui import gui
+from bellbird.player import reproductor
+from bellbird.ui import gui
 from tests.ventanas_prueba import destruir
 
 

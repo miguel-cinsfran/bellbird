@@ -70,15 +70,15 @@ anuncia. Su uso está en [qa/README.md](qa/README.md).
 ## Estructura
 
     main.py           punto de entrada
-    ytchat/ui         ventanas y diálogos
-    ytchat/capture    lectura del chat de YouTube y TikTok
-    ytchat/youtube    API de YouTube y sesión de Google
-    ytchat/voice      voces y sonidos
-    ytchat/player     reproductor de vídeo
-    ytchat/music      biblioteca, listas y reproducción de música
-    ytchat/obs        transmisión con OBS
-    ytchat/downloads  descargas con yt-dlp
-    ytchat/core       configuración, rutas y utilidades
+    bellbird/ui         ventanas y diálogos
+    bellbird/capture    lectura del chat de YouTube y TikTok
+    bellbird/youtube    API de YouTube y sesión de Google
+    bellbird/voice      voces y sonidos
+    bellbird/player     reproductor de vídeo
+    bellbird/music      biblioteca, listas y reproducción de música
+    bellbird/obs        transmisión con OBS
+    bellbird/downloads  descargas con yt-dlp
+    bellbird/core       configuración, rutas y utilidades
     tests/            pruebas
     qa/               banco de pruebas de punta a punta
 

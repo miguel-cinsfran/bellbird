@@ -52,7 +52,7 @@ class TestTieneDos(unittest.TestCase):
 class TestEsError(unittest.TestCase):
 
     def _errores(self):
-        from ytchat.ai import consulta
+        from bellbird.ai import consulta
         lista = []
         for nombre in ("_TEXTOS", "_ERRORES"):
             diccionario = getattr(consulta, nombre, None)

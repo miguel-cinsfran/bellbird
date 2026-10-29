@@ -2,8 +2,8 @@
 
 import unittest
 
-from ytchat.core import config
-from ytchat.core import config_lectura
+from bellbird.core import config
+from bellbird.core import config_lectura
 
 
 class TestOpcionesLectura(unittest.TestCase):

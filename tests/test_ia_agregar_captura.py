@@ -13,8 +13,8 @@ try:
 except Exception:
     _HAY_WX = False
 
-from ytchat.ui import ia_agregar_captura as agregar
-from ytchat.obs import obs_captura_ia
+from bellbird.ui import ia_agregar_captura as agregar
+from bellbird.obs import obs_captura_ia
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
 
@@ -171,7 +171,7 @@ class TestDialogoAgregarCapturaVentana(unittest.TestCase):
         anunciar.assert_not_called()
         self.assertFalse(dialogo.bmp_vista.GetBitmap().IsOk())
 
-    # Lo arma ytchat/obs/obs_captura_ia.py: el nombre de la fuente tal
+    # Lo arma bellbird/obs/obs_captura_ia.py: el nombre de la fuente tal
     # cual lo da OBS es dato del usuario y pasa sin marcar. La etiqueta de
     # la escena al aire ya sale marcada porque ese módulo la traduce.
     PENDIENTES_OTRO_MODULO = (

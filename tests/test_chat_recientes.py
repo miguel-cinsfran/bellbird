@@ -9,12 +9,12 @@ import unittest
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.core.atajos import ATAJOS_FIJOS_DEFAULTS
-from ytchat.core.config import APP_NAME
-from ytchat.core.idioma import _
-from ytchat.ui import atajos_globales, chat_recientes, gui
-from ytchat.ui.atajos_globales import AtajosGlobales, combinacion_ctrl_mayus
-from ytchat.voice.cola_tts import ColaTTS
+from bellbird.core.atajos import ATAJOS_FIJOS_DEFAULTS
+from bellbird.core.config import APP_NAME
+from bellbird.core.idioma import _
+from bellbird.ui import atajos_globales, chat_recientes, gui
+from bellbird.ui.atajos_globales import AtajosGlobales, combinacion_ctrl_mayus
+from bellbird.voice.cola_tts import ColaTTS
 
 
 class _ListaFalsa:

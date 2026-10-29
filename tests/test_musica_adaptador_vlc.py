@@ -9,17 +9,17 @@ import wave
 from pathlib import Path
 from unittest import mock
 
-from ytchat.music.adaptador_vlc import AdaptadorVlc, MotorNoDisponible
-from ytchat.music.consultas_vlc import (
+from bellbird.music.adaptador_vlc import AdaptadorVlc, MotorNoDisponible
+from bellbird.music.consultas_vlc import (
     leer_etiquetas_vlc,
     salidas_audio,
 )
-from ytchat.music import adaptador_vlc, cruce, enlaces
-from ytchat.music.bordes import Bordes
-from ytchat.music.enlaces import ErrorEnlace
-from ytchat.music.coordinador import Coordinador
-from ytchat.music.modelo import AVANZO, FIN_LISTA, TEMA_FALLIDO, Tema
-from ytchat.player import motor_vlc
+from bellbird.music import adaptador_vlc, cruce, enlaces
+from bellbird.music.bordes import Bordes
+from bellbird.music.enlaces import ErrorEnlace
+from bellbird.music.coordinador import Coordinador
+from bellbird.music.modelo import AVANZO, FIN_LISTA, TEMA_FALLIDO, Tema
+from bellbird.player import motor_vlc
 
 
 def esperar(condicion, plazo=5.0):
@@ -376,7 +376,7 @@ class TestAdaptadorDobles(_BaseDobles):
         adaptador.asignar_aviso(aviso)
         adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
         reproductor = self.instancia.reproductores[0]
-        with self.assertLogs("ytchat.adaptador_vlc", level="ERROR"):
+        with self.assertLogs("bellbird.adaptador_vlc", level="ERROR"):
             reproductor.gestor.disparar(FakeVlc.EventType.MediaPlayerEndReached)
             reproductor.gestor.disparar(FakeVlc.EventType.MediaPlayerEndReached)
             self.assertTrue(dos.wait(5), "el hilo no siguió tras la excepción")
@@ -593,7 +593,7 @@ class TestAdaptadorCruce(_BaseDobles):
 
     def test_la_que_entra_termina_el_fundido_en_su_volumen(self):
         self.existentes.update({"C:/musica/a.mp3", "C:/musica/b.mp3"})
-        with mock.patch("ytchat.music.bordes.medir_bordes",
+        with mock.patch("bellbird.music.bordes.medir_bordes",
                         return_value=Bordes(0, 0)):
             adaptador = self.crear(cruce_de=lambda: 6)
             adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1, volumen=74)
@@ -605,7 +605,7 @@ class TestAdaptadorCruce(_BaseDobles):
 
     def test_con_cruzaria_true_el_viejo_se_cierra_al_soltar(self):
         self.existentes.update({"C:/musica/a.mp3", "C:/musica/b.mp3"})
-        with mock.patch("ytchat.music.bordes.medir_bordes",
+        with mock.patch("bellbird.music.bordes.medir_bordes",
                         return_value=Bordes(0, 0)):
             adaptador = self.crear(cruce_de=lambda: 1)
             adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
@@ -630,7 +630,7 @@ class TestAdaptadorCruce(_BaseDobles):
 
     def test_el_aviso_por_terminar_cruza_con_la_duracion_elegida(self):
         self.existentes.update({"C:/musica/a.mp3", "C:/musica/b.mp3"})
-        with mock.patch("ytchat.music.bordes.medir_bordes",
+        with mock.patch("bellbird.music.bordes.medir_bordes",
                         return_value=Bordes(0, 0)):
             adaptador = self.crear(cruce_de=lambda: 6)
             adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
@@ -651,7 +651,7 @@ class TestAdaptadorCruce(_BaseDobles):
 
     def test_un_cargar_a_mano_cruza_en_medio_segundo(self):
         self.existentes.update({"C:/musica/a.mp3", "C:/musica/b.mp3"})
-        with mock.patch("ytchat.music.bordes.medir_bordes",
+        with mock.patch("bellbird.music.bordes.medir_bordes",
                         return_value=Bordes(0, 0)):
             adaptador = self.crear(cruce_de=lambda: 6)
             adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
@@ -668,7 +668,7 @@ class TestAdaptadorCruce(_BaseDobles):
     def test_cargar_una_cancion_local_termina_el_fundido_anterior(self):
         self.existentes.update(
             {"C:/musica/a.mp3", "C:/musica/b.mp3", "C:/musica/c.mp3"})
-        with mock.patch("ytchat.music.bordes.medir_bordes",
+        with mock.patch("bellbird.music.bordes.medir_bordes",
                         return_value=Bordes(0, 0)), \
                 mock.patch.object(cruce, "CRUCE_MANUAL_MS", 60000):
             adaptador = self.crear(cruce_de=lambda: 6)
@@ -698,7 +698,7 @@ class TestAdaptadorCruce(_BaseDobles):
 
     def test_tras_cerrar_el_reproductor_la_vigilancia_no_lo_toca(self):
         self.existentes.add("C:/musica/a.mp3")
-        with mock.patch("ytchat.music.bordes.medir_bordes",
+        with mock.patch("bellbird.music.bordes.medir_bordes",
                         return_value=Bordes(0, 0)):
             adaptador = self.crear(cruce_de=lambda: 6)
             adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)
@@ -714,7 +714,7 @@ class TestAdaptadorCruce(_BaseDobles):
 
     def test_con_cruzaria_false_no_hay_aviso_de_fin_anticipado(self):
         self.existentes.update({"C:/musica/a.mp3", "C:/musica/b.mp3"})
-        with mock.patch("ytchat.music.bordes.medir_bordes",
+        with mock.patch("bellbird.music.bordes.medir_bordes",
                         return_value=Bordes(0, 0)):
             adaptador = self.crear(cruce_de=lambda: 1)
             adaptador.cargar(Tema("C:/musica/a.mp3", "a"), 1)

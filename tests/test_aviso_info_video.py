@@ -4,7 +4,7 @@ import unittest
 from unittest import mock
 
 import main
-from ytchat.ui import accesibilidad
+from bellbird.ui import accesibilidad
 
 
 class TestAnuncioDeFalloVideo(unittest.TestCase):

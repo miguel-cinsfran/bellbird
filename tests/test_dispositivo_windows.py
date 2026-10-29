@@ -2,7 +2,7 @@ import sys
 import threading
 import unittest
 
-from ytchat.obs import dispositivo_windows
+from bellbird.obs import dispositivo_windows
 
 
 @unittest.skipUnless(sys.platform == "win32", "COM solo existe en Windows")

@@ -1,4 +1,4 @@
-"""Pruebas del motor compartido de libVLC (`ytchat.player.motor_vlc`)."""
+"""Pruebas del motor compartido de libVLC (`bellbird.player.motor_vlc`)."""
 
 import sys
 import threading
@@ -8,7 +8,7 @@ import unittest
 from types import SimpleNamespace
 from unittest import mock
 
-from ytchat.player import motor_vlc
+from bellbird.player import motor_vlc
 
 
 _MONOTONIC_REAL = time.monotonic
@@ -220,7 +220,7 @@ class TestTramos(_BaseMotorVlc):
 class TestCableado(unittest.TestCase):
 
     def test_panel_toma_la_instancia_compartida(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._inst = None
         panel._listo = True
@@ -231,7 +231,7 @@ class TestCableado(unittest.TestCase):
         self.assertIs(panel._inst, compartida)
 
     def test_panel_sin_reproductor_no_pide_la_instancia(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._inst = None
         panel._listo = False
@@ -240,7 +240,7 @@ class TestCableado(unittest.TestCase):
         pedir.assert_not_called()
 
     def test_autocomprobacion_pide_la_instancia_compartida(self):
-        from ytchat.core import autocomprobacion
+        from bellbird.core import autocomprobacion
         reproductor = mock.Mock()
         compartida = mock.Mock()
         compartida.media_player_new.return_value = reproductor
@@ -255,7 +255,7 @@ class TestCableado(unittest.TestCase):
         reproductor.release.assert_called_once()
 
     def test_autocomprobacion_falla_si_no_se_fija_directsound(self):
-        from ytchat.core import autocomprobacion
+        from bellbird.core import autocomprobacion
         reproductor = mock.Mock()
         compartida = mock.Mock()
         compartida.media_player_new.return_value = reproductor
@@ -269,14 +269,14 @@ class TestCableado(unittest.TestCase):
         reproductor.release.assert_called_once()
 
     def test_autocomprobacion_avisa_si_no_carga(self):
-        from ytchat.core import autocomprobacion
+        from bellbird.core import autocomprobacion
         with mock.patch.object(motor_vlc, "cargar", return_value=False):
             with self.assertRaises(RuntimeError) as error:
                 autocomprobacion._vlc()
         self.assertIn("no se pudo cargar libVLC", str(error.exception))
 
     def test_autocomprobacion_avisa_si_la_instancia_sale_vacia(self):
-        from ytchat.core import autocomprobacion
+        from bellbird.core import autocomprobacion
         with mock.patch.object(motor_vlc, "cargar", return_value=True), \
                 mock.patch.object(motor_vlc, "instancia", return_value=None):
             with self.assertRaises(RuntimeError) as error:

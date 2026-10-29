@@ -3,7 +3,7 @@
 import unittest
 from unittest import mock
 
-from ytchat.obs import consultas_transmision
+from bellbird.obs import consultas_transmision
 
 
 def _gestor():

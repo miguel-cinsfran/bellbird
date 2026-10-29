@@ -4,10 +4,10 @@ import unittest
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.core.idioma import _
-from ytchat.ui import atajos_captura
-from ytchat.ui import teclado_altgr
-from ytchat.core import config
+from bellbird.core.idioma import _
+from bellbird.ui import atajos_captura
+from bellbird.ui import teclado_altgr
+from bellbird.core import config
 
 try:
     import wx  # noqa: F401
@@ -257,7 +257,7 @@ class TestAtajosCaptura(unittest.TestCase):
     @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
     def test_la_pagina_entrega_la_combinacion_al_resolvedor(self):
         import wx
-        from ytchat.ui import preferencias_atajos as gp
+        from bellbird.ui import preferencias_atajos as gp
         dialogo = gp.PaginaAtajos.__new__(gp.PaginaAtajos)
         boton = mock.Mock()
         dialogo._capturando_atajo = ("rep_play", "Reproducir o pausa")
@@ -279,7 +279,7 @@ class TestAtajosCaptura(unittest.TestCase):
     @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
     def test_escape_cancela_la_captura(self):
         import wx
-        from ytchat.ui import preferencias_atajos as gp
+        from bellbird.ui import preferencias_atajos as gp
         dialogo = gp.PaginaAtajos.__new__(gp.PaginaAtajos)
         dialogo._capturando_atajo = ("rep_play", "Reproducir o pausa")
         dialogo._valores_atajo = {"rep_play": "ctrl+q"}
@@ -296,7 +296,7 @@ class TestAtajosCaptura(unittest.TestCase):
     @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
     def test_tab_sale_de_la_captura_y_deja_navegar(self):
         import wx
-        from ytchat.ui import preferencias_atajos as gp
+        from bellbird.ui import preferencias_atajos as gp
         dialogo = gp.PaginaAtajos.__new__(gp.PaginaAtajos)
         dialogo._capturando_atajo = ("rep_play", "Reproducir o pausa")
         dialogo._valores_atajo = {"rep_play": "ctrl+q"}
@@ -312,7 +312,7 @@ class TestAtajosCaptura(unittest.TestCase):
     @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
     def test_tecla_de_solo_modificador_no_resuelve_el_atajo(self):
         import wx
-        from ytchat.ui import preferencias_atajos as gp
+        from bellbird.ui import preferencias_atajos as gp
         dialogo = gp.PaginaAtajos.__new__(gp.PaginaAtajos)
         captura = ("rep_play", "Reproducir o pausa")
         dialogo._capturando_atajo = captura
@@ -329,7 +329,7 @@ class TestAtajosCaptura(unittest.TestCase):
     @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
     def test_enter_solo_desactiva_y_alt_enter_se_captura(self):
         import wx
-        from ytchat.ui import preferencias_atajos as gp
+        from bellbird.ui import preferencias_atajos as gp
         dialogo = gp.PaginaAtajos.__new__(gp.PaginaAtajos)
         dialogo._capturando_atajo = ("rep_play", "Reproducir o pausa")
         dialogo._valores_atajo = {"rep_play": "ctrl+p"}
@@ -355,8 +355,8 @@ class TestAtajosCaptura(unittest.TestCase):
 
     @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
     def test_restablecer_cambia_solo_los_atajos_editables(self):
-        from ytchat.ui import preferencias_atajos as gp
-        from ytchat.core import config as cfg
+        from bellbird.ui import preferencias_atajos as gp
+        from bellbird.core import config as cfg
         dialogo = gp.PaginaAtajos.__new__(gp.PaginaAtajos)
         dialogo._valores_atajo = cfg.todos_los_atajos_default()
         dialogo._valores_atajo["rep_play"] = "ctrl+q"
@@ -374,7 +374,7 @@ class TestAtajosCaptura(unittest.TestCase):
 
     @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
     def test_cancelar_restaurar_la_etiqueta_y_anunciar_sin_cambios(self):
-        from ytchat.ui import preferencias_atajos as gp
+        from bellbird.ui import preferencias_atajos as gp
         dialogo = gp.PaginaAtajos.__new__(gp.PaginaAtajos)
         boton = mock.Mock()
         dialogo._capturando_atajo = ("rep_play", "Reproducir o pausa")

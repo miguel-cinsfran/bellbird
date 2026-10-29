@@ -1,15 +1,15 @@
 """Pseudotraducción de los avisos y cuadros del envío al chat.
 
 Sin ventanas: el MessageBox va simulado y la API también. El mensaje de
-error lo arma `ytchat/youtube/youtube_api.py`: pasa tal cual, sin marcar.
+error lo arma `bellbird/youtube/youtube_api.py`: pasa tal cual, sin marcar.
 """
 
 import unittest
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.ui import gui
-from ytchat.ui import gui_envio_chat as envio
+from bellbird.ui import gui
+from bellbird.ui import gui_envio_chat as envio
 
 
 def _hilo_inmediato(objetivo, _nombre):
@@ -62,7 +62,7 @@ class TestPseudoEnvioChat(unittest.TestCase):
                                   return_value=False), \
                 mock.patch.object(gui.youtube_api, "mensaje_error_api",
                                   return_value="falla ajena"), \
-                mock.patch("ytchat.ui.gui_preferencias.ofrecer_iniciar_sesion",
+                mock.patch("bellbird.ui.gui_preferencias.ofrecer_iniciar_sesion",
                            return_value=False):
             envio.api_err(frame, RuntimeError("x"))
         self.assertTrue(captado["titulo"].startswith("[¡"), captado)
@@ -78,7 +78,7 @@ class TestPseudoEnvioChat(unittest.TestCase):
                                   return_value="sesión caducada"), \
                 mock.patch.object(gui, "anunciar", captados.append), \
                 mock.patch.object(gui._snd, "reproducir"), \
-                mock.patch("ytchat.ui.gui_preferencias.ofrecer_iniciar_sesion",
+                mock.patch("bellbird.ui.gui_preferencias.ofrecer_iniciar_sesion",
                            return_value=False):
             envio.api_err(frame, RuntimeError("x"))
         self.assertEqual(captados, ["sesión caducada"])

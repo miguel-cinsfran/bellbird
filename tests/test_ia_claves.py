@@ -3,7 +3,7 @@
 import os
 import unittest
 
-from ytchat.ai import claves
+from bellbird.ai import claves
 
 PREFIJO_PRUEBA = "Bellbird/ia-prueba/"
 

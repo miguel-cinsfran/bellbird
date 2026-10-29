@@ -4,11 +4,11 @@ import base64
 import unittest
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.core.idioma import _
-from ytchat.obs import obs_prevuelo
-from ytchat.obs.obs_prevuelo import (
+from bellbird.core.idioma import _
+from bellbird.obs import obs_prevuelo
+from bellbird.obs.obs_prevuelo import (
     EntradaAudio, Fuente, Revision, frase_revision, revisar)
-from ytchat.obs.obs_grabacion import AVISO_CODIFICADOR
+from bellbird.obs.obs_grabacion import AVISO_CODIFICADOR
 from tests.png_prueba import armar_png, png_plano
 
 

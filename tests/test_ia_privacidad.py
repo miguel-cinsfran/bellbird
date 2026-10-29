@@ -10,7 +10,7 @@ from unittest import mock
 import wx
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.ui import ia_privacidad
+from bellbird.ui import ia_privacidad
 
 
 def _ajustes(aceptada):

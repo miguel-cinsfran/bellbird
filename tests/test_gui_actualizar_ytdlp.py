@@ -2,7 +2,7 @@
 
 La lógica corre sin ventanas con una ventana falsa; la pseudotraducción de
 la ventana real la corre el advisor en la otra PC. El texto final lo arma
-`ytchat/downloads/ytdlp_bin.py` y llega marcado.
+`bellbird/downloads/ytdlp_bin.py` y llega marcado.
 """
 
 import unittest
@@ -10,7 +10,7 @@ from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
-from ytchat.ui import gui_actualizar_ytdlp as ventana_ytdlp
+from bellbird.ui import gui_actualizar_ytdlp as ventana_ytdlp
 
 try:
     import wx
@@ -73,7 +73,7 @@ class TestVentanaYtdlp(unittest.TestCase):
     """La lógica, sin ventanas: corre acá."""
 
     def _abrir(self, actualizar):
-        from ytchat.downloads import ytdlp_bin
+        from bellbird.downloads import ytdlp_bin
         ventanas = []
 
         def fabrica(padre, titulo):
@@ -84,11 +84,11 @@ class TestVentanaYtdlp(unittest.TestCase):
 
         frame = mock.Mock()
         frame._ventana_actualizar_ytdlp = None
-        with mock.patch("ytchat.ui.gui_actualizacion.DialogoActualizacion",
+        with mock.patch("bellbird.ui.gui_actualizacion.DialogoActualizacion",
                         side_effect=fabrica), \
                 mock.patch.object(ytdlp_bin, "actualizar_ytdlp",
                                   side_effect=actualizar), \
-                mock.patch("ytchat.core.diagnostico.crear_hilo",
+                mock.patch("bellbird.core.diagnostico.crear_hilo",
                            side_effect=_hilo_inmediato):
             ventana_ytdlp.abrir_ventana_actualizacion(frame)
         return frame, ventanas[0]
@@ -98,7 +98,7 @@ class TestVentanaYtdlp(unittest.TestCase):
             return ("ya_al_dia", "1.0", "1.0")
 
         with con_pseudo(), \
-                mock.patch("ytchat.ui.gui_actualizacion.anunciar"):
+                mock.patch("bellbird.ui.gui_actualizacion.anunciar"):
             _frame, ventana = self._abrir(actualizar)
         self.assertTrue(ventana.mostrada)
         self.assertEqual(ventana.titulo, "[¡Actualizar yt-dlp!]")
@@ -115,7 +115,7 @@ class TestVentanaYtdlp(unittest.TestCase):
             return ("ya_al_dia", "1.0", "1.0")
 
         with con_pseudo(), \
-                mock.patch("ytchat.ui.gui_actualizacion.anunciar"):
+                mock.patch("bellbird.ui.gui_actualizacion.anunciar"):
             _frame, ventana = self._abrir(actualizar)
         self.assertIn("[¡Hay una versión nueva de yt-dlp, la 2.0. "
                       "Descargando.!]", ventana.estados)
@@ -129,9 +129,9 @@ class TestVentanaYtdlp(unittest.TestCase):
 
         frame, ventana = self._abrir(actualizar)
         self.assertFalse(ventana.elevada)
-        with mock.patch("ytchat.ui.gui_actualizacion.DialogoActualizacion",
+        with mock.patch("bellbird.ui.gui_actualizacion.DialogoActualizacion",
                         side_effect=AssertionError("no debe crear otra")), \
-                mock.patch("ytchat.core.diagnostico.crear_hilo",
+                mock.patch("bellbird.core.diagnostico.crear_hilo",
                            side_effect=_hilo_inmediato):
             ventana_ytdlp.abrir_ventana_actualizacion(frame)
         self.assertTrue(ventana.elevada)
@@ -161,7 +161,7 @@ class TestPseudoVentanaYtdlp(unittest.TestCase):
         del cls.app
 
     def test_no_queda_ningun_texto_visible_sin_envolver(self):
-        from ytchat.downloads import ytdlp_bin
+        from bellbird.downloads import ytdlp_bin
 
         def actualizar(avisar=None, progreso=None, cancelar=None):
             avisar("2.0")
@@ -173,9 +173,9 @@ class TestPseudoVentanaYtdlp(unittest.TestCase):
         with con_pseudo(), \
                 mock.patch.object(ytdlp_bin, "actualizar_ytdlp",
                                   side_effect=actualizar), \
-                mock.patch("ytchat.core.diagnostico.crear_hilo",
+                mock.patch("bellbird.core.diagnostico.crear_hilo",
                            side_effect=_hilo_inmediato), \
-                mock.patch("ytchat.ui.gui_actualizacion.anunciar"):
+                mock.patch("bellbird.ui.gui_actualizacion.anunciar"):
             ventana_ytdlp.abrir_ventana_actualizacion(frame)
             ventana = frame._ventana_actualizar_ytdlp
             self.addCleanup(destruir, ventana)

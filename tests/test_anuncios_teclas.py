@@ -3,8 +3,8 @@
 import unittest
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.core.idioma import _
-from ytchat.music import anuncios_teclas
+from bellbird.core.idioma import _
+from bellbird.music import anuncios_teclas
 
 
 class TestConstantes(unittest.TestCase):

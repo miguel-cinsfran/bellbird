@@ -3,7 +3,7 @@
 import struct
 import unittest
 
-from ytchat.obs import luz_imagen
+from bellbird.obs import luz_imagen
 
 
 def armar_bmp(ancho, alto, pixel, bpp=24, de_arriba_abajo=False,

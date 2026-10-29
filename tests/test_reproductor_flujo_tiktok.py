@@ -3,7 +3,7 @@
 import unittest
 from unittest import mock
 
-from ytchat.player import reproductor
+from bellbird.player import reproductor
 
 
 def _panel_timer(estado, sono=False):
@@ -53,7 +53,7 @@ class TestFinalDelFlujo(unittest.TestCase):
         with mock.patch.object(reproductor, "anunciar") as anunciar, \
                 mock.patch.object(reproductor.flujo_tiktok,
                                   "sondear_en_hilo") as sonda, \
-                mock.patch("ytchat.voice.sound_player.reproducir") as sonido:
+                mock.patch("bellbird.voice.sound_player.reproducir") as sonido:
             panel._on_timer(None)
             panel._on_timer(None)
 
@@ -70,7 +70,7 @@ class TestFinalDelFlujo(unittest.TestCase):
         with mock.patch.object(reproductor, "anunciar") as anunciar, \
                 mock.patch.object(reproductor.flujo_tiktok,
                                   "sondear_en_hilo") as sonda, \
-                mock.patch("ytchat.voice.sound_player.reproducir") as sonido:
+                mock.patch("bellbird.voice.sound_player.reproducir") as sonido:
             panel._on_timer(None)
 
         panel._detener.assert_called_once_with(silencioso=True)
@@ -86,7 +86,7 @@ class TestFinalDelFlujo(unittest.TestCase):
         with mock.patch.object(reproductor, "anunciar") as anunciar, \
                 mock.patch.object(reproductor.flujo_tiktok,
                                   "sondear_en_hilo") as sonda, \
-                mock.patch("ytchat.voice.sound_player.reproducir") as sonido:
+                mock.patch("bellbird.voice.sound_player.reproducir") as sonido:
             panel._on_timer(None)
             panel._estado_vlc_actual.return_value = "ended"
             panel._on_timer(None)
@@ -101,7 +101,7 @@ class TestFinalDelFlujo(unittest.TestCase):
         with mock.patch.object(reproductor, "anunciar") as anunciar, \
                 mock.patch.object(reproductor.flujo_tiktok,
                                   "sondear_en_hilo") as sonda, \
-                mock.patch("ytchat.voice.sound_player.reproducir") as sonido:
+                mock.patch("bellbird.voice.sound_player.reproducir") as sonido:
             panel._on_timer(None)
 
         panel._detener.assert_called_once_with(silencioso=True)

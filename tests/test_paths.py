@@ -7,8 +7,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from ytchat.core import config
-from ytchat.core import paths
+from bellbird.core import config
+from bellbird.core import paths
 from tests.rutas_temporales import redirigir_rutas
 
 
@@ -474,7 +474,7 @@ class TestGuardaRutas(unittest.TestCase):
         raiz = Path(__file__).resolve().parent.parent
         violaciones = []
         descubiertos = 0
-        for modulo in sorted((raiz / "ytchat").rglob("*.py")):
+        for modulo in sorted((raiz / "bellbird").rglob("*.py")):
             if modulo.name == "__init__.py":
                 continue
             descubiertos += 1
@@ -494,7 +494,7 @@ class TestGuardaRutas(unittest.TestCase):
                             f"{modulo.name}:{nro}: nombra {nombre} entre comillas")
         self.assertGreaterEqual(
             descubiertos, 50,
-            f"la guarda recorrió solo {descubiertos} módulos en ytchat/: "
+            f"la guarda recorrió solo {descubiertos} módulos en bellbird/: "
             "si se movieron las carpetas, hay que actualizarla en vez de "
             "dejarla en verde sin mirar nada")
         self.assertEqual([], violaciones,

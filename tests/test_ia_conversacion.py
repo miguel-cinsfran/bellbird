@@ -3,9 +3,9 @@
 import unittest
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.ai import conversacion
-from ytchat.ai.conversacion import Conversacion
-from ytchat.ai import protocolos
+from bellbird.ai import conversacion
+from bellbird.ai.conversacion import Conversacion
+from bellbird.ai import protocolos
 
 IMAGEN_UNO = b"\xff\xd8\xffuno\xff\xd9"
 IMAGEN_DOS = b"\xff\xd8\xffdos\xff\xd9"

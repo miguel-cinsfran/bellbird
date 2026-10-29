@@ -11,9 +11,9 @@ from unittest import mock
 
 import main
 from tests.pseudo_prueba import con_pseudo
-from ytchat.core import actualizacion
-from ytchat.core import instalador
-from ytchat.core import paths
+from bellbird.core import actualizacion
+from bellbird.core import instalador
+from bellbird.core import paths
 
 
 def _release(zip="App-2.3.0.zip", etiqueta="2.3.0", cuerpo="novedades",
@@ -664,7 +664,7 @@ class TestRamaMain(unittest.TestCase):
 class TestTextosAviso(unittest.TestCase):
 
     def test_ok_anuncia_la_version_nueva(self):
-        from ytchat.core.config import APP_NAME
+        from bellbird.core.config import APP_NAME
         self.assertEqual(
             actualizacion.texto_resultado(
                 {"resultado": "ok", "desde": "2.2.0", "hacia": "2.3.0"},
@@ -685,7 +685,7 @@ class TestTextosAviso(unittest.TestCase):
                     actualizacion.texto_resultado(resultado, "2.2.0"), "")
 
     def test_ok_sin_hacia_usa_la_actual(self):
-        from ytchat.core.config import APP_NAME
+        from bellbird.core.config import APP_NAME
         self.assertEqual(
             actualizacion.texto_resultado({"resultado": "ok"}, "2.2.0"),
             f"{APP_NAME} se actualizó a la versión 2.2.0.")

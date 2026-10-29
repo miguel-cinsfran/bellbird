@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from ytchat.capture import alias
+from bellbird.capture import alias
 
 
 class PruebasAlias(unittest.TestCase):

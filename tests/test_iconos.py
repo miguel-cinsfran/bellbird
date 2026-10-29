@@ -1,6 +1,6 @@
 import unittest
 
-from ytchat.ui import iconos
+from bellbird.ui import iconos
 
 
 class PruebasIconos(unittest.TestCase):

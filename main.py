@@ -20,30 +20,30 @@ warnings.filterwarnings("ignore", category=DeprecationWarning, module="asyncio")
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="pytchat")
 warnings.filterwarnings("ignore", message=".*get_event_loop.*")
 
-from ytchat.core.config import (
+from bellbird.core.config import (
     APP_NAME, APP_VERSION,
     TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,
     TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
     configurar_logging, cargar_configuracion, cargar_sonidos,
 )
-from ytchat.core import avisos_tiktok
-from ytchat.core import paths
-from ytchat.core import migracion_datos
-from ytchat.core.instancia import verificar_instancia_unica as _verificar_instancia_unica
+from bellbird.core import avisos_tiktok
+from bellbird.core import paths
+from bellbird.core import migracion_datos
+from bellbird.core.instancia import verificar_instancia_unica as _verificar_instancia_unica
 
-from ytchat.voice.tts_worker import TTSWorker, sanitizar, construir_tts
-from ytchat.voice.cola_tts import ColaTTS
-from ytchat.voice import sound_player as _snd
-from ytchat.capture import deteccion
-from ytchat.capture.reconexion import FiltroNuevos, espera_reconexion
-from ytchat.core import diagnostico
-from ytchat.core import avisos_red
-from ytchat.downloads import ytdlp_bin
-from ytchat.capture import conexion
-from ytchat.ui.vista_captura import VistaGui
-from ytchat.capture import alias
-from ytchat.core.sonidos_eventos import rol_de_autor, ROL_PROPIETARIO, ROL_MODERADOR
-from ytchat.core.idioma import N_, _
+from bellbird.voice.tts_worker import TTSWorker, sanitizar, construir_tts
+from bellbird.voice.cola_tts import ColaTTS
+from bellbird.voice import sound_player as _snd
+from bellbird.capture import deteccion
+from bellbird.capture.reconexion import FiltroNuevos, espera_reconexion
+from bellbird.core import diagnostico
+from bellbird.core import avisos_red
+from bellbird.downloads import ytdlp_bin
+from bellbird.capture import conexion
+from bellbird.ui.vista_captura import VistaGui
+from bellbird.capture import alias
+from bellbird.core.sonidos_eventos import rol_de_autor, ROL_PROPIETARIO, ROL_MODERADOR
+from bellbird.core.idioma import N_, _
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -122,8 +122,8 @@ def _parsear_titulo(html: str) -> str:
 def _clasificar_por_api(video_id: str) -> str:
     """Reserva: si hay API key, clasifica con la Data API. Si no, desconocido."""
     try:
-        from ytchat.youtube import credenciales
-        from ytchat.youtube import youtube_api
+        from bellbird.youtube import credenciales
+        from bellbird.youtube import youtube_api
         if not (youtube_api.google_disponible() and credenciales.hay_lectura()):
             return deteccion.DESCONOCIDO
         cli = youtube_api.ClienteYouTube(credenciales.efectivas())
@@ -247,7 +247,7 @@ def obtener_info_video(video_id: str, sesion_activa=None) -> tuple[str, str, dic
 def _anunciar_fallo_video(metadatos: dict, call_after) -> None:
     fallo = (metadatos or {}).get("fallo")
     if fallo:
-        from ytchat.ui.accesibilidad import anunciar
+        from bellbird.ui.accesibilidad import anunciar
         call_after(anunciar, fallo)
 
 
@@ -261,9 +261,9 @@ def _resolver_live_chat_id(video_id: str) -> None:
     propio = False
     hay_credenciales = consulta_fallo = hay_video = hay_directo = False
     try:
-        from ytchat.youtube import credenciales
-        from ytchat.capture import redaccion
-        from ytchat.youtube import youtube_api
+        from bellbird.youtube import credenciales
+        from bellbird.capture import redaccion
+        from bellbird.youtube import youtube_api
         hay_credenciales = (youtube_api.google_disponible()
                             and credenciales.hay_lectura())
         if hay_credenciales:
@@ -287,7 +287,7 @@ def _resolver_live_chat_id(video_id: str) -> None:
         causa = redaccion.causa_sin_chat(
             hay_credenciales, consulta_fallo, hay_video, hay_directo, lcid)
         import wx
-        from ytchat.ui import gui as _gm
+        from bellbird.ui import gui as _gm
         if _gm._gui_frame and _gm._gui_frame._alive:
             wx.CallAfter(_gm._gui_frame.set_live_chat_id, lcid, causa,
                          video_id, propio)
@@ -691,7 +691,7 @@ def armar_callbacks_captura(cola, config, stats, parada):
 def iniciar_interfaz(config, cola, stats, worker, parada, iniciar_gui_fn=None):
     """Arranca la GUI y cierra los sonidos al volver del bucle."""
     if iniciar_gui_fn is None:
-        from ytchat.ui.gui import iniciar_gui as iniciar_gui_fn
+        from bellbird.ui.gui import iniciar_gui as iniciar_gui_fn
     iniciar_captura_cb, detener_captura_cb = armar_callbacks_captura(
         cola, config, stats, parada)
     iniciar_gui_fn(
@@ -706,12 +706,12 @@ def main():
     # Autocomprobación del paquete: la corre construir.bat sobre el exe armado.
     # Va antes que todo, sin logging, sin mutex ni ventanas.
     if len(sys.argv) > 1 and sys.argv[1] == "--autocomprobar":
-        from ytchat.core import autocomprobacion
+        from bellbird.core import autocomprobacion
         sys.exit(autocomprobacion.principal(sys.argv[2:]))
     # Modo instalador: corre dentro del exe nuevo mientras la app vieja
     # se cierra. Va primero que todo, sin logging, sin mutex ni ventanas.
     if len(sys.argv) > 1 and sys.argv[1] == "--instalar-actualizacion":
-        from ytchat.core import instalador
+        from bellbird.core import instalador
         sys.exit(instalador.principal_instalador())
     # Aquí y no al importar el módulo: así los tests y el smoke test pueden
     # importar main sin crear el handler de ytchat.log (contaminaba el log real).
@@ -795,7 +795,7 @@ def main():
 
     try:
         import wx
-        from ytchat.ui.gui import iniciar_gui
+        from bellbird.ui.gui import iniciar_gui
     except ImportError as exc:
         try:
             import ctypes

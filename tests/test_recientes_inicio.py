@@ -13,9 +13,9 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-from ytchat.core import config  # primero: abre la cadena sin circular
-from ytchat.core import historial
-from ytchat.ui import recientes_inicio
+from bellbird.core import config  # primero: abre la cadena sin circular
+from bellbird.core import historial
+from bellbird.ui import recientes_inicio
 
 
 def _entrada(plataforma, clave, fecha, url=None):
@@ -172,14 +172,14 @@ class TestRecientesVentana(unittest.TestCase):
     def test_abrir_historial_usa_la_misma_ruta_y_funcion(self):
         _m, _p, _s, _z, recientes, al_conectar = self._marco(self._entradas(1))
         with mock.patch(
-                "ytchat.ui.gui_historial.abrir_historial") as abrir:
+                "bellbird.ui.gui_historial.abrir_historial") as abrir:
             recientes.abrir_historial()
         self.assertEqual(1, abrir.call_count)
         _args, _kwargs = abrir.call_args
         self.assertEqual((self.ruta, al_conectar), (_args[1], _args[2]))
 
     def test_on_historial_delega_en_la_lista(self):
-        from ytchat.ui import gui
+        from bellbird.ui import gui
         marco = gui.YTChatFrame.__new__(gui.YTChatFrame)
         marco._inicio = mock.Mock()
         marco._on_historial()
@@ -195,7 +195,7 @@ class TestOrdenTabDesconectada(unittest.TestCase):
         self.app = wx.App.Get() or wx.App(False)
 
     def _ventana(self):
-        from ytchat.ui import gui
+        from bellbird.ui import gui
         from tests.ventanas_prueba import destruir
         configuracion = {
             "atajos_raw": {}, "filtro_activo": "todos",
@@ -241,8 +241,8 @@ class TestOrdenTabDesconectada(unittest.TestCase):
         # conexión, Intro sobre la lista deja la URL en el campo y programa
         # la conexión. Si gui.py pasa otra función a armar, txt_url queda
         # vacío y CallAfter no recibe _on_conectar.
-        from ytchat.ui import gui
-        from ytchat.ui import recientes_inicio
+        from bellbird.ui import gui
+        from bellbird.ui import recientes_inicio
         entrada = {
             "plataforma": "youtube", "clave": "abcdefghijk",
             "url": "https://www.youtube.com/watch?v=abcdefghijk",

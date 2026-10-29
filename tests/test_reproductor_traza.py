@@ -3,7 +3,7 @@
 import unittest
 from unittest import mock
 
-from ytchat.player import reproductor
+from bellbird.player import reproductor
 
 
 class TestTrazaReproductor(unittest.TestCase):
@@ -37,7 +37,7 @@ class TestTrazaReproductor(unittest.TestCase):
 
         panel._player.set_pause.side_effect = pausar
         with mock.patch.object(reproductor, "anunciar"), \
-                self.assertLogs("ytchat.reproductor", "DEBUG") as capturas:
+                self.assertLogs("bellbird.reproductor", "DEBUG") as capturas:
             panel._toggle_play()
 
         self.assertEqual(orden, ["pausar"])
@@ -49,7 +49,7 @@ class TestTrazaReproductor(unittest.TestCase):
         panel._player.is_seekable.return_value = 1
 
         with mock.patch.object(reproductor, "anunciar"), \
-                self.assertLogs("ytchat.reproductor", "DEBUG") as capturas:
+                self.assertLogs("bellbird.reproductor", "DEBUG") as capturas:
             panel._toggle_play()
 
         self.assertIn("puede_pausar=desconocido", capturas.output[0])
@@ -57,14 +57,14 @@ class TestTrazaReproductor(unittest.TestCase):
 
     def test_buscar_rel_registra_el_pendiente_anterior(self):
         panel = self._panel()
-        from ytchat.player.busqueda_video import EstadoBusqueda
+        from bellbird.player.busqueda_video import EstadoBusqueda
         panel._estado_busqueda = EstadoBusqueda(confirmada=0)
         panel._estado_busqueda.destino = 4000
         panel._estado_busqueda.marca_destino = __import__("time").monotonic()
         panel._player.get_length.return_value = 10000
         panel._player.get_time.return_value = 5000
 
-        with self.assertLogs("ytchat.reproductor", "DEBUG") as capturas:
+        with self.assertLogs("bellbird.reproductor", "DEBUG") as capturas:
             panel._buscar_rel(-1000)
 
         # ahora pos es la confirmada (0), no la lectura cruda
@@ -76,7 +76,7 @@ class TestTrazaReproductor(unittest.TestCase):
         panel = self._panel()
         panel._player.get_length.return_value = 0
 
-        with self.assertLogs("ytchat.reproductor", "DEBUG") as capturas:
+        with self.assertLogs("bellbird.reproductor", "DEBUG") as capturas:
             panel._buscar_rel(1000)
 
         self.assertIn("SALTO_SIN_BARRA origen=relativo dur=0", capturas.output[0])
@@ -86,12 +86,12 @@ class TestTrazaReproductor(unittest.TestCase):
         panel = self._panel()
         panel._player.get_length.return_value = 10000
         panel._player.get_time.return_value = 0
-        from ytchat.player.busqueda_video import EstadoBusqueda
+        from bellbird.player.busqueda_video import EstadoBusqueda
         panel._estado_busqueda = EstadoBusqueda(confirmada=0)
         panel.sld_pos = mock.Mock()
         panel.sld_pos.GetValue.return_value = 500
 
-        with self.assertLogs("ytchat.reproductor", "DEBUG") as capturas:
+        with self.assertLogs("bellbird.reproductor", "DEBUG") as capturas:
             panel._buscar_porcentaje(20)
             panel._on_sld_pos(None)
 
@@ -103,7 +103,7 @@ class TestTrazaReproductor(unittest.TestCase):
         panel = self._panel()
         del panel._asegurar_player
 
-        with self.assertNoLogs("ytchat.reproductor", "DEBUG"):
+        with self.assertNoLogs("bellbird.reproductor", "DEBUG"):
             self.assertTrue(panel._asegurar_player())
 
     def test_asegurar_player_nuevo_registra_la_creacion(self):
@@ -116,7 +116,7 @@ class TestTrazaReproductor(unittest.TestCase):
         panel._fijar_salida = mock.Mock()
 
         with mock.patch.object(reproductor, "_registro_detallado_activo", return_value=False), \
-                self.assertLogs("ytchat.reproductor", "DEBUG") as capturas:
+                self.assertLogs("bellbird.reproductor", "DEBUG") as capturas:
             self.assertTrue(panel._asegurar_player())
 
         self.assertIn("PLAYER_NUEVO", capturas.output[0])
@@ -126,7 +126,7 @@ class TestTrazaReproductor(unittest.TestCase):
         panel._cargando = True
 
         with mock.patch.object(reproductor, "anunciar"), \
-                self.assertNoLogs("ytchat.reproductor", "DEBUG"):
+                self.assertNoLogs("bellbird.reproductor", "DEBUG"):
             panel.cargar()
 
     @mock.patch.object(reproductor.diagnostico, "crear_hilo")
@@ -140,7 +140,7 @@ class TestTrazaReproductor(unittest.TestCase):
         crear_hilo.return_value.start = mock.Mock()
 
         with mock.patch.object(reproductor, "anunciar"), \
-                self.assertLogs("ytchat.reproductor", "DEBUG") as capturas:
+                self.assertLogs("bellbird.reproductor", "DEBUG") as capturas:
             panel.cargar(reproducir=False)
 
         self.assertIn("CARGA video=AAAAAAAAAAA reproducir=no", capturas.output[0])
@@ -149,7 +149,7 @@ class TestTrazaReproductor(unittest.TestCase):
 class TestBusquedaCableado(unittest.TestCase):
 
     def _panel_busqueda(self, confirmada=0):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._listo = True
         panel._video_id = "A" * 11
@@ -188,14 +188,14 @@ class TestBusquedaCableado(unittest.TestCase):
         panel.lbl_estado = mock.Mock()
         panel._timer = mock.Mock()
         panel._timer_progreso = mock.Mock()
-        from ytchat.player.busqueda_video import EstadoBusqueda
+        from bellbird.player.busqueda_video import EstadoBusqueda
         panel._estado_busqueda = EstadoBusqueda(confirmada=confirmada)
         panel._transporte_pendiente = False
         panel._intencion_reproducir = True
         return panel
 
     def test_pulsaciones_rapidas_acumulan_sin_cambiar_confirmada(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel_busqueda(confirmada=10_000)
         panel._player.get_length.return_value = 100_000
         with mock.patch.object(reproductor, "anunciar") as anunciar:
@@ -210,7 +210,7 @@ class TestBusquedaCableado(unittest.TestCase):
             self.assertEqual(anunciar.call_args[0][0], "Moviendo a 30 segundos")
 
     def test_exito_anuncia_posicion_una_vez(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel_busqueda(confirmada=0)
         panel._player.get_length.return_value = 100_000
         panel._player.get_state.return_value.name = "playing"
@@ -228,7 +228,7 @@ class TestBusquedaCableado(unittest.TestCase):
             self.assertIn("Posición", anunciar.call_args[0][0])
 
     def test_fallo_anuncia_no_se_pudo_mover(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel_busqueda(confirmada=10_000)
         panel._player.get_length.return_value = 100_000
         panel._player.get_time.return_value = 10_000
@@ -245,7 +245,7 @@ class TestBusquedaCableado(unittest.TestCase):
             self.assertEqual(panel._estado_busqueda.confirmada, 0)
 
     def test_restauracion_cache_no_anuncia(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel_busqueda(confirmada=15_000)
         panel._inst = mock.Mock()
         panel._player = mock.Mock()
@@ -256,7 +256,7 @@ class TestBusquedaCableado(unittest.TestCase):
         destino = Path(tempfile.gettempdir()) / "ytchat_test_cache.mp4"
         try:
             destino.write_bytes(b"0")
-            from ytchat.player.tarea_cache_video import TareaCacheVideo
+            from bellbird.player.tarea_cache_video import TareaCacheVideo
             tarea = TareaCacheVideo("vid", 0, destino)
             panel._tarea_cache_video = tarea
             panel._gen = 0
@@ -268,7 +268,7 @@ class TestBusquedaCableado(unittest.TestCase):
             panel._player.play = mock.Mock()
             panel._player.set_time = mock.Mock()
             with mock.patch.object(reproductor, "anunciar") as anunciar, \
-                    self.assertLogs("ytchat.reproductor", "DEBUG") as capturas:
+                    self.assertLogs("bellbird.reproductor", "DEBUG") as capturas:
                 panel._cache_video_lista(tarea, True)
                 anunciar.assert_not_called()
             orden = [l for l in capturas.output if "BUSQUEDA_ORDEN" in l]
@@ -281,7 +281,7 @@ class TestBusquedaCableado(unittest.TestCase):
                 pass
 
     def test_todos_los_origenes_usam_misma_busqueda(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         for origen in ("relativo", "porcentaje", "deslizador"):
             panel = self._panel_busqueda(confirmada=20_000)
             panel._player.get_length.return_value = 100_000
@@ -298,7 +298,7 @@ class TestBusquedaCableado(unittest.TestCase):
             self.assertEqual(panel._estado_busqueda.confirmada, 20_000)
 
     def test_detener_cargar_cambiar_flujo_cancelan(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         for accion in ("detener", "cargar", "flujo"):
             panel = self._panel_busqueda(confirmada=10_000)
             panel._player.get_length.return_value = 100_000
@@ -339,7 +339,7 @@ class TestBusquedaCableado(unittest.TestCase):
             self.assertIsNone(panel._estado_busqueda.candidato)
 
     def test_cancelacion_cableada_traza_unica(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel_busqueda(confirmada=10_000)
         panel._player.get_length.return_value = 100_000
         with mock.patch.object(reproductor, "anunciar"):
@@ -350,7 +350,7 @@ class TestBusquedaCableado(unittest.TestCase):
         panel.btn_play = mock.Mock()
         panel._mostrar_pausa = mock.Mock()
         panel._fijar_tiempo = mock.Mock()
-        with self.assertLogs("ytchat.reproductor", "DEBUG") as capturas:
+        with self.assertLogs("bellbird.reproductor", "DEBUG") as capturas:
             with mock.patch.object(reproductor, "anunciar"):
                 panel._detener(silencioso=True)
         lineas = [l for l in capturas.output if "BUSQUEDA_CANCELADO" in l]
@@ -365,16 +365,16 @@ class TestBusquedaCableado(unittest.TestCase):
         self.assertIsNone(panel._estado_busqueda.destino)
         self.assertIsNone(panel._estado_busqueda.candidato)
         # sin pendiente no registra nada
-        with self.assertNoLogs("ytchat.reproductor", "DEBUG"):
+        with self.assertNoLogs("bellbird.reproductor", "DEBUG"):
             panel._detener(silencioso=True)
 
     def test_trazas_contienen_topologia_sin_url(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel_busqueda(confirmada=0)
         panel._player.get_length.return_value = 100_000
         panel._tiene_esclavo = True
         panel._info = {"is_live": True}
-        with self.assertLogs("ytchat.reproductor", "DEBUG") as capturas:
+        with self.assertLogs("bellbird.reproductor", "DEBUG") as capturas:
             with mock.patch.object(reproductor, "anunciar"):
                 panel._buscar_rel(10_000)
         salida = "\n".join(capturas.output)
@@ -386,8 +386,8 @@ class TestBusquedaCableado(unittest.TestCase):
 class TestBusquedaBloqueadaVODDividido(unittest.TestCase):
 
     def _panel_vod_dividido(self, confirmada=40_000):
-        from ytchat.player import reproductor
-        from ytchat.player.busqueda_video import EstadoBusqueda
+        from bellbird.player import reproductor
+        from bellbird.player.busqueda_video import EstadoBusqueda
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._listo = True
         panel._video_id = "VOD12345678"
@@ -436,10 +436,10 @@ class TestBusquedaBloqueadaVODDividido(unittest.TestCase):
         self.assertIn("motivo=vod_dividido", registro.output[0])
 
     def test_relativo_bloqueado_sin_set_time_ni_destino(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel_vod_dividido(confirmada=40_000)
         with mock.patch.object(reproductor, "anunciar") as anunciar:
-            with self.assertLogs("ytchat.reproductor", "DEBUG") as registro:
+            with self.assertLogs("bellbird.reproductor", "DEBUG") as registro:
                 panel._buscar_rel(10_000)
         self._solo_rechazo(registro)
         panel._player.set_time.assert_not_called()
@@ -448,10 +448,10 @@ class TestBusquedaBloqueadaVODDividido(unittest.TestCase):
         anunciar.assert_called_once_with("No se puede mover este vídeo mientras usa la fuente de internet")
 
     def test_porcentaje_bloqueado(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel_vod_dividido()
         with mock.patch.object(reproductor, "anunciar") as anunciar:
-            with self.assertLogs("ytchat.reproductor", "DEBUG") as registro:
+            with self.assertLogs("bellbird.reproductor", "DEBUG") as registro:
                 panel._buscar_porcentaje(50)
         self._solo_rechazo(registro)
         panel._player.set_time.assert_not_called()
@@ -459,10 +459,10 @@ class TestBusquedaBloqueadaVODDividido(unittest.TestCase):
         anunciar.assert_called_once_with("No se puede mover este vídeo mientras usa la fuente de internet")
 
     def test_deslizador_bloqueado(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel_vod_dividido()
         with mock.patch.object(reproductor, "anunciar") as anunciar:
-            with self.assertLogs("ytchat.reproductor", "DEBUG") as registro:
+            with self.assertLogs("bellbird.reproductor", "DEBUG") as registro:
                 panel._on_sld_pos(None)
         self._solo_rechazo(registro)
         panel._player.set_time.assert_not_called()
@@ -470,12 +470,12 @@ class TestBusquedaBloqueadaVODDividido(unittest.TestCase):
         anunciar.assert_called_once_with("No se puede mover este vídeo mientras usa la fuente de internet")
 
     def test_pos_key_flecha_bloqueada(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel_vod_dividido()
         panel.sld_pos = mock.Mock()
         panel._player.get_length.return_value = 120_000
         with mock.patch.object(reproductor, "anunciar") as anunciar:
-            with self.assertLogs("ytchat.reproductor", "DEBUG") as registro:
+            with self.assertLogs("bellbird.reproductor", "DEBUG") as registro:
                 event = mock.Mock()
                 event.GetKeyCode.return_value = reproductor.wx.WXK_RIGHT
                 panel._on_pos_key(event)
@@ -484,12 +484,12 @@ class TestBusquedaBloqueadaVODDividido(unittest.TestCase):
         anunciar.assert_called_once_with("No se puede mover este vídeo mientras usa la fuente de internet")
 
     def test_local_dividido_acepta_busqueda(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel_vod_dividido(confirmada=10_000)
         panel._usando_cache_local = True
         panel._topologia_actual = lambda: "local"
         with mock.patch.object(reproductor, "anunciar"):
-            with self.assertLogs("ytchat.reproductor", "DEBUG") as cap:
+            with self.assertLogs("bellbird.reproductor", "DEBUG") as cap:
                 panel._buscar_rel(10_000)
         panel._player.set_time.assert_called_once()
         self.assertEqual(panel._estado_busqueda.destino, 20_000)
@@ -497,31 +497,31 @@ class TestBusquedaBloqueadaVODDividido(unittest.TestCase):
         self.assertEqual(sum("BUSQUEDA_ORDEN" in o for o in cap.output), 1)
 
     def test_unica_remota_acepta_busqueda(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel_vod_dividido(confirmada=10_000)
         panel._tiene_esclavo = False
         panel._topologia_actual = lambda: "unica"
         panel._info = {"is_live": False}
         with mock.patch.object(reproductor, "anunciar"):
-            with self.assertLogs("ytchat.reproductor", "DEBUG"):
+            with self.assertLogs("bellbird.reproductor", "DEBUG"):
                 panel._buscar_rel(10_000)
         panel._player.set_time.assert_called_once_with(20_000)
         self.assertIsNotNone(panel._estado_busqueda.destino)
 
     def test_cada_accion_aceptada_una_orden_y_muestra(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel_vod_dividido(confirmada=10_000)
         panel._tiene_esclavo = False
         panel._topologia_actual = lambda: "unica"
         with mock.patch.object(reproductor, "anunciar"):
-            with self.assertLogs("ytchat.reproductor", "DEBUG") as cap:
+            with self.assertLogs("bellbird.reproductor", "DEBUG") as cap:
                 panel._buscar_rel(10_000)
         orden = [l for l in cap.output if "BUSQUEDA_ORDEN" in l]
         self.assertEqual(len(orden), 1, cap.output)
         # muestra en evaluacion siguiente
         panel._player.get_time.return_value = 10_000
         panel._player.get_state.return_value.name = "playing"
-        with self.assertLogs("ytchat.reproductor", "DEBUG") as cap2:
+        with self.assertLogs("bellbird.reproductor", "DEBUG") as cap2:
             with mock.patch.object(reproductor.wx.Window, "FindFocus", return_value=None):
                 panel._evaluar_busqueda()
         muestras = [l for l in cap2.output if "BUSQUEDA_MUESTRA" in l]
@@ -535,8 +535,8 @@ class TestBusquedaBloqueadaVODDividido(unittest.TestCase):
 class TestInicioReproduccionCableado(unittest.TestCase):
 
     def _panel_inicio(self):
-        from ytchat.player import reproductor
-        from ytchat.player.busqueda_video import EstadoInicioReproduccion, EstadoBusqueda
+        from bellbird.player import reproductor
+        from bellbird.player.busqueda_video import EstadoInicioReproduccion, EstadoBusqueda
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._listo = True
         panel._video_id = "VID12345678"
@@ -579,7 +579,7 @@ class TestInicioReproduccionCableado(unittest.TestCase):
         return panel
 
     def test_carga_con_playing_inmovil_no_anuncia(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel_inicio()
         panel._info = {"is_live": False, "formats": [{"vcodec": "avc1", "acodec": "mp4a", "height": 720, "url": "http://example.com/video.mp4"}]}
         media = mock.Mock(add_option=mock.Mock())
@@ -600,7 +600,7 @@ class TestInicioReproduccionCableado(unittest.TestCase):
             anunciar.assert_not_called()
 
     def test_carga_con_avance_anuncia_una_vez(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel_inicio()
         panel._info = {"is_live": False, "formats": [{"vcodec": "avc1", "acodec": "mp4a", "height": 720, "url": "http://example.com/video.mp4"}]}
         media = mock.Mock(add_option=mock.Mock())
@@ -624,10 +624,10 @@ class TestInicioReproduccionCableado(unittest.TestCase):
             anunciar.assert_not_called()
 
     def test_cache_local_no_repita_reproduciendo(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         from pathlib import Path
         import tempfile
-        from ytchat.player.tarea_cache_video import TareaCacheVideo
+        from bellbird.player.tarea_cache_video import TareaCacheVideo
         panel = self._panel_inicio()
         panel._info = {"is_live": False, "formats": [{"vcodec": "avc1", "acodec": "mp4a", "height": 720, "url": "http://example.com/video.mp4"}]}
         # simular carga ya confirmada
@@ -659,7 +659,7 @@ class TestInicioReproduccionCableado(unittest.TestCase):
                 panel._player.set_time = mock.Mock()
                 panel._podar_cache_video = mock.Mock()
                 panel._marcar_destino = mock.Mock()
-                with mock.patch("ytchat.voice.sound_player.reproducir"):
+                with mock.patch("bellbird.voice.sound_player.reproducir"):
                     panel._cache_video_lista(tarea, True)
                 anunciar.assert_not_called()
                 panel._player.get_time.return_value = 2000
@@ -668,7 +668,7 @@ class TestInicioReproduccionCableado(unittest.TestCase):
                 anunciar.assert_not_called()
 
     def test_flujo_directo_anuncia_en_directo_no_reproduciendo(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel_inicio()
         panel._url_flujo = "https://example.com/flujo.m3u8"
         panel._info = None
@@ -694,7 +694,7 @@ class TestInicioReproduccionCableado(unittest.TestCase):
             anunciar.assert_not_called()
 
     def test_detener_cancela_inicio_y_no_anuncia(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = self._panel_inicio()
         panel._info = {"is_live": False, "formats": [{"vcodec": "avc1", "acodec": "mp4a", "height": 720, "url": "http://example.com/video.mp4"}]}
         media = mock.Mock(add_option=mock.Mock())
@@ -715,8 +715,8 @@ class TestInicioReproduccionCableado(unittest.TestCase):
             self.assertFalse(panel._estado_inicio.requiere)
 
     def test_inicio_inmovil_no_emite_reproduccion_pero_si_muestra(self):
-        from ytchat.player import reproductor
-        from ytchat.core import diagnostico
+        from bellbird.player import reproductor
+        from bellbird.core import diagnostico
         panel = self._panel_inicio()
         panel._info = {"is_live": False, "formats": [{"vcodec": "avc1", "acodec": "mp4a", "height": 720, "url": "http://example.com/video.mp4"}]}
         media = mock.Mock(add_option=mock.Mock())
@@ -729,7 +729,7 @@ class TestInicioReproduccionCableado(unittest.TestCase):
         panel._player.get_time.return_value = 1000
         with mock.patch.object(reproductor, "anunciar") as anunciar:
             with mock.patch.object(diagnostico.logger, "info") as mock_info:
-                with self.assertLogs("ytchat.reproductor", "DEBUG") as cap:
+                with self.assertLogs("bellbird.reproductor", "DEBUG") as cap:
                     with mock.patch.object(reproductor.wx.Window, "FindFocus", return_value=None):
                         panel._on_timer(None)
                 self.assertTrue(any("INICIO_MUESTRA" in o for o in cap.output), cap.output)
@@ -740,7 +740,7 @@ class TestInicioReproduccionCableado(unittest.TestCase):
                 anunciar.assert_not_called()
                 self.assertNotIn("Reproduciendo", panel.lbl_estado.SetLabel.call_args[0][0] if panel.lbl_estado.SetLabel.call_args else "")
                 panel._player.get_time.return_value = 1000
-                with self.assertLogs("ytchat.reproductor", "DEBUG") as cap2:
+                with self.assertLogs("bellbird.reproductor", "DEBUG") as cap2:
                     with mock.patch.object(reproductor.wx.Window, "FindFocus", return_value=None):
                         panel._on_timer(None)
                 self.assertTrue(any("INICIO_MUESTRA" in o for o in cap2.output))
@@ -749,8 +749,8 @@ class TestInicioReproduccionCableado(unittest.TestCase):
                 anunciar.assert_not_called()
 
     def test_inicio_con_progreso_emite_reproduccion_y_limpia_marca(self):
-        from ytchat.player import reproductor
-        from ytchat.core import diagnostico
+        from bellbird.player import reproductor
+        from bellbird.core import diagnostico
         panel = self._panel_inicio()
         panel._info = {"is_live": False, "formats": [{"vcodec": "avc1", "acodec": "mp4a", "height": 720, "url": "http://example.com/video.mp4"}]}
         media = mock.Mock(add_option=mock.Mock())
@@ -761,14 +761,14 @@ class TestInicioReproduccionCableado(unittest.TestCase):
         panel._player.get_time.return_value = 2000
         with mock.patch.object(reproductor, "anunciar") as anunciar:
             with mock.patch.object(diagnostico.logger, "info") as mock_info:
-                with self.assertLogs("ytchat.reproductor", "DEBUG"):
+                with self.assertLogs("bellbird.reproductor", "DEBUG"):
                     with mock.patch.object(reproductor.wx.Window, "FindFocus", return_value=None):
                         panel._on_timer(None)
                 mock_info.assert_not_called()
                 anunciar.assert_not_called()
                 self.assertIsNotNone(panel._marca_url)
                 panel._player.get_time.return_value = 2300
-                with self.assertLogs("ytchat.reproductor", "DEBUG") as cap2:
+                with self.assertLogs("bellbird.reproductor", "DEBUG") as cap2:
                     with mock.patch.object(reproductor.wx.Window, "FindFocus", return_value=None):
                         panel._on_timer(None)
                 self.assertTrue(any("INICIO_MUESTRA" in o for o in cap2.output))
@@ -787,11 +787,11 @@ class TestInicioReproduccionCableado(unittest.TestCase):
                 anunciar.assert_not_called()
 
     def test_transicion_remoto_dividido_a_cache_habilita_busqueda(self):
-        from ytchat.player import reproductor
-        from ytchat.player.busqueda_video import EstadoBusqueda
+        from bellbird.player import reproductor
+        from bellbird.player.busqueda_video import EstadoBusqueda
         from pathlib import Path
         import tempfile
-        from ytchat.player.tarea_cache_video import TareaCacheVideo
+        from bellbird.player.tarea_cache_video import TareaCacheVideo
         # panel VOD remoto dividido bloqueado
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._listo = True
@@ -820,7 +820,7 @@ class TestInicioReproduccionCableado(unittest.TestCase):
         panel._fijar_tiempo = mock.Mock()
         panel._topologia_actual = lambda: "dividida"
         panel._estado_busqueda = EstadoBusqueda(confirmada=40000)
-        from ytchat.player.busqueda_video import EstadoInicioReproduccion
+        from bellbird.player.busqueda_video import EstadoInicioReproduccion
         panel._estado_inicio = EstadoInicioReproduccion()
         panel._transporte_pendiente = False
         panel._intencion_reproducir = True
@@ -848,7 +848,7 @@ class TestInicioReproduccionCableado(unittest.TestCase):
             panel._podar_cache_video = mock.Mock()
             panel._player.get_time.return_value = 40000
             # no mockear _marcar_destino, dejar que registre destino real
-            with mock.patch("ytchat.voice.sound_player.reproducir"):
+            with mock.patch("bellbird.voice.sound_player.reproducir"):
                 panel._cache_video_lista(tarea, True)
             self.assertTrue(panel._usando_cache_local)
             self.assertFalse(panel._tiene_esclavo)
@@ -867,7 +867,7 @@ class TestTrazaTeclaPantallaCompleta(unittest.TestCase):
     esté gestionada o no. Sin ventana: la ventana se crea sin __init__."""
 
     def _pantalla(self):
-        from ytchat.player.pantalla_completa import PantallaCompleta
+        from bellbird.player.pantalla_completa import PantallaCompleta
         ventana = PantallaCompleta.__new__(PantallaCompleta)
         ventana._atajos = {}
         ventana._acciones = mock.Mock()
@@ -879,7 +879,7 @@ class TestTrazaTeclaPantallaCompleta(unittest.TestCase):
         evento = mock.Mock()
         evento.GetKeyCode.return_value = ord("X")
         evento.GetModifiers.return_value = wx.MOD_NONE
-        with self.assertLogs("ytchat.pantalla_completa", "DEBUG") as capturas:
+        with self.assertLogs("bellbird.pantalla_completa", "DEBUG") as capturas:
             ventana._on_key(evento)
         salida = "\n".join(capturas.output)
         self.assertIn("TECLA origen=pantalla_completa", salida)
@@ -892,7 +892,7 @@ class TestTrazaTeclaPantallaCompleta(unittest.TestCase):
         evento = mock.Mock()
         evento.GetKeyCode.return_value = wx.WXK_SPACE
         evento.GetModifiers.return_value = wx.MOD_NONE
-        with self.assertLogs("ytchat.pantalla_completa", "DEBUG") as capturas:
+        with self.assertLogs("bellbird.pantalla_completa", "DEBUG") as capturas:
             ventana._on_key(evento)
         salida = "\n".join(capturas.output)
         self.assertIn("TECLA origen=pantalla_completa", salida)

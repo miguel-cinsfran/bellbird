@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from unittest import mock
 
-from ytchat.player import reproductor
+from bellbird.player import reproductor
 from tests.rutas_temporales import redirigir_rutas
 
 

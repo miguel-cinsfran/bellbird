@@ -8,9 +8,9 @@ from prism import PrismError
 from prism.common import PrismAlreadyPausedError, PrismNotPausedError
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.core.idioma import _
-from ytchat.voice import escala_voz
-from ytchat.voice.motores import (
+from bellbird.core.idioma import _
+from bellbird.voice import escala_voz
+from bellbird.voice.motores import (
     NOMBRES, MotorNoDisponible, MotorPrism, crear_motor, listar_voces,
 )
 
@@ -224,25 +224,25 @@ class TestPseudoTextos(unittest.TestCase):
 class TestCrearMotor(unittest.TestCase):
 
     def test_sapi_devuelve_motor_prism(self):
-        with mock.patch("ytchat.voice.motores.MotorPrism") as prism:
+        with mock.patch("bellbird.voice.motores.MotorPrism") as prism:
             crear_motor("sapi")
         prism.assert_called_once_with("sapi")
 
     def test_elevenlabs_sin_clave_da_no_disponible(self):
-        with mock.patch("ytchat.youtube.credenciales.cargar",
+        with mock.patch("bellbird.youtube.credenciales.cargar",
                         return_value={"elevenlabs_clave": ""}):
             with self.assertRaises(MotorNoDisponible):
                 crear_motor("elevenlabs")
 
     def test_elevenlabs_usa_la_clave_recibida(self):
-        with mock.patch("ytchat.voice.motor_elevenlabs.MotorElevenLabs") as motor:
+        with mock.patch("bellbird.voice.motor_elevenlabs.MotorElevenLabs") as motor:
             crear_motor("elevenlabs", clave_elevenlabs="mi-clave")
         motor.assert_called_once_with("mi-clave")
 
     def test_elevenlabs_lee_la_clave_de_credenciales(self):
-        with mock.patch("ytchat.youtube.credenciales.cargar",
+        with mock.patch("bellbird.youtube.credenciales.cargar",
                         return_value={"elevenlabs_clave": "guardada"}), \
-             mock.patch("ytchat.voice.motor_elevenlabs.MotorElevenLabs") as motor:
+             mock.patch("bellbird.voice.motor_elevenlabs.MotorElevenLabs") as motor:
             crear_motor("elevenlabs")
         motor.assert_called_once_with("guardada")
 
@@ -250,14 +250,14 @@ class TestCrearMotor(unittest.TestCase):
 class TestListarVocesElevenlabs(unittest.TestCase):
 
     def test_sin_clave_es_vacio(self):
-        with mock.patch("ytchat.youtube.credenciales.cargar",
+        with mock.patch("bellbird.youtube.credenciales.cargar",
                         return_value={"elevenlabs_clave": ""}):
             self.assertEqual(listar_voces("elevenlabs"), [])
 
     def test_devuelve_los_nombres_y_cierra_el_motor(self):
         motor = mock.Mock()
         motor.voces.return_value = ["Voz A", "Voz B"]
-        with mock.patch("ytchat.voice.motores.crear_motor",
+        with mock.patch("bellbird.voice.motores.crear_motor",
                         return_value=motor):
             self.assertEqual(listar_voces("elevenlabs"), ["Voz A", "Voz B"])
         motor.cerrar.assert_called_once()

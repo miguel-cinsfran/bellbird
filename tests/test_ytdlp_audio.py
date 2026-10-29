@@ -6,7 +6,7 @@ import time
 import unittest
 from unittest import mock
 
-from ytchat.downloads import ytdlp_bin
+from bellbird.downloads import ytdlp_bin
 
 
 class PruebasDescargarAudio(unittest.TestCase):
@@ -119,7 +119,7 @@ class PruebasDescargarAudio(unittest.TestCase):
         proceso.wait.side_effect = _espera
         with mock.patch.object(ytdlp_bin, "ruta_ytdlp", return_value="yt-dlp.exe"), \
                 mock.patch.object(ytdlp_bin.subprocess, "Popen", return_value=proceso), \
-                mock.patch("ytchat.core.subprocesos.terminar_arbol") as cortar:
+                mock.patch("bellbird.core.subprocesos.terminar_arbol") as cortar:
             inicio = time.monotonic()
             resultado = ytdlp_bin.descargar_audio("A" * 11, self.destino, tope_segundos=1)
             duracion = time.monotonic() - inicio
@@ -136,7 +136,7 @@ class PruebasRamasDescargarAudio(PruebasDescargarAudio):
         self.destino.write_bytes(b"x" * ytdlp_bin.TAMANIO_MINIMO)
         with mock.patch.object(ytdlp_bin, "ruta_ytdlp", return_value="yt-dlp.exe"), \
                 mock.patch.object(ytdlp_bin.subprocess, "Popen", return_value=self._proceso()), \
-                mock.patch("ytchat.core.subprocesos.vincular_a_la_app",
+                mock.patch("bellbird.core.subprocesos.vincular_a_la_app",
                            side_effect=RuntimeError("sin trabajo")):
             self.assertTrue(ytdlp_bin.descargar_audio("A" * 11, self.destino))
 
@@ -177,7 +177,7 @@ class PruebasRamasDescargarAudio(PruebasDescargarAudio):
         proceso.wait.return_value = 0
         with mock.patch.object(ytdlp_bin, "ruta_ytdlp", return_value="yt-dlp.exe"), \
                 mock.patch.object(ytdlp_bin.subprocess, "Popen", return_value=proceso), \
-                mock.patch("ytchat.core.subprocesos.terminar_arbol",
+                mock.patch("bellbird.core.subprocesos.terminar_arbol",
                            side_effect=RuntimeError("no se pudo")) as cortar:
             inicio = time.monotonic()
             resultado = ytdlp_bin.descargar_audio("A" * 11, self.destino, tope_segundos=1)
@@ -202,7 +202,7 @@ class PruebasRamasDescargarAudio(PruebasDescargarAudio):
         proceso.wait.side_effect = RuntimeError("wait roto")
         with mock.patch.object(ytdlp_bin, "ruta_ytdlp", return_value="yt-dlp.exe"), \
                 mock.patch.object(ytdlp_bin.subprocess, "Popen", return_value=proceso), \
-                mock.patch("ytchat.core.subprocesos.terminar_arbol"):
+                mock.patch("bellbird.core.subprocesos.terminar_arbol"):
             inicio = time.monotonic()
             resultado = ytdlp_bin.descargar_audio("A" * 11, self.destino, tope_segundos=1)
             duracion = time.monotonic() - inicio
@@ -229,7 +229,7 @@ class PruebasRamasDescargarAudio(PruebasDescargarAudio):
         proceso.wait.side_effect = RuntimeError("wait roto")
         with mock.patch.object(ytdlp_bin, "ruta_ytdlp", return_value="yt-dlp.exe"), \
                 mock.patch.object(ytdlp_bin.subprocess, "Popen", return_value=proceso), \
-                mock.patch("ytchat.core.subprocesos.terminar_arbol") as cortar:
+                mock.patch("bellbird.core.subprocesos.terminar_arbol") as cortar:
             inicio = time.monotonic()
             resultado = ytdlp_bin.descargar_audio("A" * 11, self.destino, tope_segundos=1)
             duracion = time.monotonic() - inicio
@@ -295,7 +295,7 @@ class PruebasRamasDescargarAudio(PruebasDescargarAudio):
         proceso.wait.return_value = 0
         with mock.patch.object(ytdlp_bin, "ruta_ytdlp", return_value="yt-dlp.exe"), \
                 mock.patch.object(ytdlp_bin.subprocess, "Popen", return_value=proceso), \
-                mock.patch("ytchat.core.subprocesos.terminar_arbol",
+                mock.patch("bellbird.core.subprocesos.terminar_arbol",
                            side_effect=RuntimeError("no se pudo")):
             inicio = time.monotonic()
             resultado = ytdlp_bin.descargar_audio("A" * 11, self.destino, tope_segundos=1)
@@ -310,7 +310,7 @@ class PruebasRamasDescargarAudio(PruebasDescargarAudio):
         with mock.patch.object(ytdlp_bin, "ruta_ytdlp", return_value="yt-dlp.exe"), \
                 mock.patch.object(ytdlp_bin.subprocess, "Popen", return_value=proceso), \
                 mock.patch("threading.Thread", return_value=hilo), \
-                mock.patch("ytchat.core.subprocesos.terminar_arbol") as cortar:
+                mock.patch("bellbird.core.subprocesos.terminar_arbol") as cortar:
             inicio = time.monotonic()
             resultado = ytdlp_bin.descargar_audio("A" * 11, self.destino, tope_segundos=1)
             duracion = time.monotonic() - inicio

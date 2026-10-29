@@ -7,8 +7,8 @@ import threading
 import time
 import unittest
 
-from ytchat.ai import envio_ia
-from ytchat.ai import protocolos
+from bellbird.ai import envio_ia
+from bellbird.ai import protocolos
 
 
 CLAVE = "clave-secreta-de-prueba"

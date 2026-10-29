@@ -15,8 +15,8 @@ from pathlib import Path
 from unittest import mock
 
 from scripts import actualizar_catalogo_ia
-from ytchat.ai import catalogo
-from ytchat.ai import protocolos
+from bellbird.ai import catalogo
+from bellbird.ai import protocolos
 
 OPENCODE_NPM = "@ai-sdk/openai-compatible"
 OPENCODE_API = "https://opencode.ai/inference/go/openai/v1"
@@ -394,9 +394,9 @@ class TestScript(unittest.TestCase):
     def _salida_de_main(self, descargar):
         with tempfile.TemporaryDirectory() as tmp:
             instala = mock.patch(
-                "ytchat.core.paths.carpeta_instalacion",
+                "bellbird.core.paths.carpeta_instalacion",
                 return_value=Path(tmp))
-            baja = mock.patch("ytchat.ai.catalogo.descargar", descargar)
+            baja = mock.patch("bellbird.ai.catalogo.descargar", descargar)
             with instala, baja, io.StringIO() as texto:
                 with contextlib.redirect_stdout(texto):
                     codigo = actualizar_catalogo_ia.main()

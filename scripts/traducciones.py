@@ -49,7 +49,7 @@ def ruta_mo(carpeta_idiomas, codigo):
 def _archivos_fuente(carpeta_raiz):
     raiz = Path(carpeta_raiz)
     archivos = [raiz / "main.py"]
-    archivos.extend(sorted((raiz / "ytchat").rglob("*.py")))
+    archivos.extend(sorted((raiz / "bellbird").rglob("*.py")))
     return [archivo for archivo in archivos if archivo.is_file()]
 
 
@@ -65,7 +65,7 @@ def _agregar(catalogo, mensaje, archivo, numero, comentarios, contexto):
 
 
 def extraer(carpeta_raiz=RAIZ, carpeta_idiomas=CARPETA_IDIOMAS):
-    """Genera la plantilla .pot desde main.py y ytchat/."""
+    """Genera la plantilla .pot desde main.py y bellbird/."""
     raiz = Path(carpeta_raiz)
     catalogo = catalog.Catalog(domain=DOMINIO, project="Bellbird")
     for archivo in _archivos_fuente(raiz):

@@ -10,18 +10,18 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from ytchat.core.idioma import _
-from ytchat.music import anuncios, filtros, listas
-from ytchat.music import pregunta_igualar
-from ytchat.music import sonoridad
-from ytchat.music.biblioteca import Biblioteca
-from ytchat.music.modelo import EstadoMusica, Tema
-from ytchat.music.sonoridad import ResultadoIgualacion
-from ytchat.ui import (musica_dialogo_enlace, musica_editor_lista,
+from bellbird.core.idioma import _
+from bellbird.music import anuncios, filtros, listas
+from bellbird.music import pregunta_igualar
+from bellbird.music import sonoridad
+from bellbird.music.biblioteca import Biblioteca
+from bellbird.music.modelo import EstadoMusica, Tema
+from bellbird.music.sonoridad import ResultadoIgualacion
+from bellbird.ui import (musica_dialogo_enlace, musica_editor_lista,
                        musica_menus, musica_ventana,
                        musica_ventana_acciones,
                        musica_ventana_igualando)
-from ytchat.ui.tema import ALTO_CONTRASTE, _T
+from bellbird.ui.tema import ALTO_CONTRASTE, _T
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
 
@@ -1868,7 +1868,7 @@ class TestCambiarEstadoTraducido(unittest.TestCase):
             destruir(self.ventana)
 
     def test_cargando_con_texto_traducido(self):
-        from ytchat.ui.musica_colecciones import TEXTO_CARGANDO
+        from bellbird.ui.musica_colecciones import TEXTO_CARGANDO
         with con_pseudo():
             self.ventana = musica_ventana.VentanaMusica(
                 None, ControlFalso(biblioteca=None))
@@ -1877,7 +1877,7 @@ class TestCambiarEstadoTraducido(unittest.TestCase):
         self.assertEqual(self.ventana._temas_filtrados, ())
 
     def test_sin_carpeta_con_texto_traducido_no_es_cargando(self):
-        from ytchat.ui.musica_colecciones import TEXTO_SIN_CARPETA
+        from bellbird.ui.musica_colecciones import TEXTO_SIN_CARPETA
         with con_pseudo():
             self.ventana = musica_ventana.VentanaMusica(
                 None, ControlFalso(biblioteca=None))
@@ -1893,7 +1893,7 @@ class TestVentanaPseudo(unittest.TestCase):
     # hasta que se envuelva su módulo. Las filas de las listas no se
     # recorren: el ayudante solo lee opciones de Choice y columnas.
     PENDIENTES = (
-        # ytchat/music/filtros.py, las opciones de «Ordenar por».
+        # bellbird/music/filtros.py, las opciones de «Ordenar por».
         "Orden de la colección",
         "Título",
         "Artista",

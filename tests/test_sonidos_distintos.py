@@ -11,7 +11,7 @@ import unittest
 import wave
 from pathlib import Path
 
-from ytchat.core import config, eventos_sonido
+from bellbird.core import config, eventos_sonido
 
 RAIZ = Path(__file__).resolve().parent.parent
 TEMAS_DIR = RAIZ / "sounds" / "themes"

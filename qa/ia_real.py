@@ -22,7 +22,7 @@ sys.path.insert(0, str(RAIZ))
 sys.path.insert(0, str(RAIZ / "qa"))
 
 import directo_real
-from ytchat.core.config import APP_NAME  # noqa: E402
+from bellbird.core.config import APP_NAME  # noqa: E402
 from conducir import contestar_salir_si_aparece
 
 TITULO_PRIVACIDAD = "Privacidad"
@@ -54,7 +54,7 @@ def _textos_error() -> tuple:
     """Frases de `consulta` que anuncian una falla, para comparar."""
     global _ERRORES
     if _ERRORES is None:
-        from ytchat.ai import consulta
+        from bellbird.ai import consulta
         dic = getattr(consulta, "_TEXTOS", getattr(consulta, "_ERRORES", None))
         lista = list(dic.values()) if isinstance(dic, dict) else []
         lista.extend(getattr(consulta, n, "") for n in
@@ -100,8 +100,8 @@ def informe(pasos, proveedor, modelo) -> str:
 
 def _config():
     """(proveedor, modelo, espera, problema): lo que hay, sin la clave."""
-    from ytchat.ai import ajustes_ia, claves
-    from ytchat.core import paths
+    from bellbird.ai import ajustes_ia, claves
+    from bellbird.core import paths
     try:
         aj = ajustes_ia.leer(paths.config_ini())
         prov, mod = (aj.proveedor or "").strip(), (aj.modelo or "").strip()
@@ -150,7 +150,7 @@ def _consultar(ctx, pregunta, espera, rapida=False, ventana=None,
                comprueba=None, mala=""):
     """Una consulta: con teclas si es rápida, con valor si hay ventana."""
     from pywinauto import keyboard
-    from ytchat.ai import ventana_ia
+    from bellbird.ai import ventana_ia
     inicio = time.time()
     try:
         ctx["principal"].set_focus()
@@ -221,8 +221,8 @@ def _capturar(ctx, ventana, espera):
 
 def _obs():
     """Abre OBS como lo abre la app si no corre. (estaba, problema)."""
-    from ytchat.obs import obs_lanzador
-    from ytchat.obs.obs_panel import GestorPanelObs
+    from bellbird.obs import obs_lanzador
+    from bellbird.obs.obs_panel import GestorPanelObs
     if directo_real._obs_en_ejecucion():
         return (True, "")
     gestor = GestorPanelObs()
@@ -236,7 +236,7 @@ def _obs():
 
 def _levantar(ctx) -> str:
     """Lanza la app, abre OBS y arma la escena. "" si salió bien."""
-    from ytchat.core import paths
+    from bellbird.core import paths
     tmpdir = tempfile.mkdtemp(prefix="ia-real-")
     ctx["anuncios"] = os.path.join(tmpdir, "anuncios.txt")
     entorno = dict(os.environ, DIRECTO_REAL_ANUNCIOS=ctx["anuncios"],
@@ -281,7 +281,7 @@ def _limpiar(ctx) -> list:
                 notas.append("sin quitar {} ({})".format(fuente, f))
         if ctx.get("creo_panel"):
             try:
-                from ytchat.obs.obs_panel import NOMBRE_FUENTE
+                from bellbird.obs.obs_panel import NOMBRE_FUENTE
                 directo_real._quitar_fuente(gestor, escena, NOMBRE_FUENTE)
             except Exception as f:
                 notas.append("sin quitar el panel ({})".format(f))

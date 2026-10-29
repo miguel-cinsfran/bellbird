@@ -3,8 +3,8 @@
 import unittest
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.obs import transmision_directa
-from ytchat.obs.transmision_directa import (
+from bellbird.obs import transmision_directa
+from bellbird.obs.transmision_directa import (
     ALTERNAR, DETENER_SUPERVISADA, ESPERAR_DETENCION, FALTA_DESTINO,
     FALTA_USUARIO, REVISAR, FalloCierreYoutube, Preparacion, boton_visible,
     decidir_transmision, es_directo_propio, etiqueta, finalizar, preparar)

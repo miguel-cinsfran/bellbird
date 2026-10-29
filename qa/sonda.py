@@ -484,7 +484,7 @@ class Sonda:
     # Todo lo que toca la interfaz corre acá, en el hilo de la interfaz.
     def ejecutar(self, orden):
         import wx
-        from ytchat.ui import gui
+        from bellbird.ui import gui
 
         op = orden.get("op")
         id_orden = orden.get("id")
@@ -994,7 +994,7 @@ class Sonda:
                 # respuesta se puede perder, igual que en `menu_click`.
                 if frame is None:
                     raise RuntimeError("todavía no hay ventana principal")
-                from ytchat.ui import gui_directo_huerfano
+                from bellbird.ui import gui_directo_huerfano
                 self.responder(id_orden, True)
                 wx.CallAfter(gui_directo_huerfano._preguntar, frame,
                              [("qa-sin-id", "Prueba del banco")])
@@ -1161,8 +1161,8 @@ def instalar() -> str:
         raise RuntimeError(
             f"Falta la variable {VAR_DESTINO} con la ruta de la grabación")
 
-    from ytchat.ui import gui
-    from ytchat.ui import accesibilidad
+    from bellbird.ui import gui
+    from bellbird.ui import accesibilidad
     grabador = GrabadorAnuncios(ruta)
 
     # No alcanza con asignar `accesibilidad._lector` acá: `iniciar_gui` llama a

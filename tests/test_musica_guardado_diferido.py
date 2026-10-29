@@ -2,7 +2,7 @@
 
 import unittest
 
-from ytchat.music.guardado_diferido import GuardadoDiferido
+from bellbird.music.guardado_diferido import GuardadoDiferido
 
 
 class _Temporizador:

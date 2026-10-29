@@ -2,7 +2,7 @@
 
 import unittest
 
-from ytchat.capture.agrupar_me_gusta import AgrupadorMeGusta
+from bellbird.capture.agrupar_me_gusta import AgrupadorMeGusta
 
 
 class TestAgruparPorPersona(unittest.TestCase):

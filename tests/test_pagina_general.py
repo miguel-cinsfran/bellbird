@@ -7,7 +7,7 @@ cableado con `wx.MessageDialog` vive en `test_gui.py` y lo corre el advisor.
 
 import unittest
 
-from ytchat.ui.gui import mensaje_confirmar_salida
+from bellbird.ui.gui import mensaje_confirmar_salida
 
 
 class TestMensajeConfirmarSalida(unittest.TestCase):

@@ -46,7 +46,7 @@ RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ))
 sys.path.insert(0, str(RAIZ / "qa"))
 
-from ytchat.core.config import APP_NAME  # noqa: E402
+from bellbird.core.config import APP_NAME  # noqa: E402
 
 from sonda import VAR_DESTINO, VAR_ORDENES, VAR_RESULTADOS  # noqa: E402
 
@@ -1294,13 +1294,13 @@ def _atajo_descargas() -> tuple[tuple, str]:
     """
     texto = "ctrl+shift+d"
     try:
-        from ytchat.core import config_predeterminada
+        from bellbird.core import config_predeterminada
         texto = (config_predeterminada.obtener(
             "atajos", "descargas_abrir", texto) or texto)
     except Exception:
         pass
     try:
-        from ytchat.ui.atajos_captura import atajo_legible
+        from bellbird.ui.atajos_captura import atajo_legible
         legible = atajo_legible(texto) or texto
     except Exception:
         legible = texto
@@ -1624,7 +1624,7 @@ def _sonido_inicio_guardado_en_disco() -> str:
     """El valor de `[ui] sonido_inicio` en el `config.ini` real, en minúsculas."""
     import configparser
     try:
-        from ytchat.core import paths
+        from bellbird.core import paths
         parser = configparser.ConfigParser(interpolation=None)
         parser.read(paths.config_ini(), encoding="utf-8")
         return parser.get("ui", "sonido_inicio", fallback="").strip().lower()
@@ -1745,8 +1745,8 @@ def escenario_preferencias_persisten(app: Aplicacion, args, res: Resultado):
         app.pedir("cerrar_ventana", ventana="Preferencias")
     finally:
         try:
-            from ytchat.core import paths
-            from ytchat.core.config import guardar_opcion
+            from bellbird.core import paths
+            from bellbird.core.config import guardar_opcion
             guardar_opcion(paths.config_ini(), "ui", "sonido_inicio",
                            "true" if previo else "false")
         except Exception as exc:
@@ -1944,7 +1944,7 @@ def agujas_unicas(nombres, indice, tope=6):
     nombre, título, artista o álbum.
     """
     import re
-    from ytchat.music.biblioteca import coincide_por_palabras
+    from bellbird.music.biblioteca import coincide_por_palabras
     if tope <= 0:
         return []
     nombres_sin_extension = [Path(nombre).stem for nombre in nombres]
@@ -1974,7 +1974,7 @@ def aguja_grupo(nombres, incluidos, excluidos):
     palabra que solo es prefijo de otra no sirve para aislar el grupo.
     """
     import re
-    from ytchat.music.biblioteca import coincide_por_palabras
+    from bellbird.music.biblioteca import coincide_por_palabras
     nombres_sin_extension = [Path(nombre).stem for nombre in nombres]
     comunes = set.intersection(*[
         set(re.findall(r"[^\W_]+", nombres_sin_extension[i]))
@@ -2016,14 +2016,14 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
     import shutil
     import tempfile
     import wave
-    from ytchat.core import paths
-    from ytchat.core.config import (
+    from bellbird.core import paths
+    from bellbird.core.config import (
         codificar_texto_ini, decodificar_texto_ini, guardar_opciones)
-    from ytchat.music import anuncios as anuncios_musica
-    from ytchat.music import enlaces as enlaces_musica
-    from ytchat.music import listas as listas_musica
-    from ytchat.music import vista as vista_musica
-    from ytchat.music.biblioteca import EXTENSIONES
+    from bellbird.music import anuncios as anuncios_musica
+    from bellbird.music import enlaces as enlaces_musica
+    from bellbird.music import listas as listas_musica
+    from bellbird.music import vista as vista_musica
+    from bellbird.music.biblioteca import EXTENSIONES
     from tests.test_musica_enlaces import LISTA as _LISTA_PRUEBA
     from tests.test_musica_enlaces import VIDEO as _VIDEO_PRUEBA
 
@@ -2213,7 +2213,7 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
             return anteriores
 
         def _titulo_fila(fila):
-            # Quita el prefijo que pone `ytchat.music.vista.filas_cola`:
+            # Quita el prefijo que pone `bellbird.music.vista.filas_cola`:
             # el estado («Sonando: » o «En pausa: »), el número y el punto.
             # La fila sigue con el título, el artista y la duración separados
             # por «, », así que el título es lo que queda antes de la primera.
@@ -3147,7 +3147,7 @@ def _destino_guardado_en_disco() -> str:
     """El destino de transmisión que guarda el `config.ini`, o cadena vacía."""
     import configparser
     try:
-        from ytchat.core import paths
+        from bellbird.core import paths
         parser = configparser.ConfigParser(interpolation=None)
         parser.read(paths.config_ini(), encoding="utf-8")
         return parser.get("transmision", "destino", fallback="").strip()
@@ -3344,8 +3344,8 @@ def escenario_transmitir_destino(app: Aplicacion, args, res: Resultado):
             res.fallo("transmitir_destino: «Directo de YouTube» no cerró")
     finally:
         try:
-            from ytchat.core import paths
-            from ytchat.core.config import guardar_opcion
+            from bellbird.core import paths
+            from bellbird.core.config import guardar_opcion
             guardar_opcion(paths.config_ini(), "transmision", "destino",
                            previo)
         except Exception as exc:
@@ -5286,7 +5286,7 @@ SIN_ESCENARIO: dict[str, str] = {}
 
 EXTRAS_DE_INTERFAZ = ("reproductor.py", "iconos.py")
 
-# Un modulo de `ytchat/ui/` o de `ytchat/player/` dibuja interfaz si crea o
+# Un modulo de `bellbird/ui/` o de `bellbird/player/` dibuja interfaz si crea o
 # hereda de un control de wx. Los que solo calculan, tocan la red o piden
 # `wx.CallAfter` no se exigen en el barrido: no tienen pantalla que auditar.
 CLASES_DE_WX_QUE_DIBUJAN = frozenset({
@@ -5323,8 +5323,8 @@ def dibuja_interfaz(ruta: Path) -> bool:
 
 def superficies_sin_escenario() -> list[str]:
     """Modulos de interfaz que existen en el disco y no tiene quien los mire."""
-    ui = RAIZ / "ytchat" / "ui"
-    reproductor = RAIZ / "ytchat" / "player"
+    ui = RAIZ / "bellbird" / "ui"
+    reproductor = RAIZ / "bellbird" / "player"
     modulos = {p.name
                for carpeta in (ui, reproductor)
                for p in carpeta.glob("*.py")
@@ -5334,8 +5334,8 @@ def superficies_sin_escenario() -> list[str]:
                    if (ui / n).exists() or (reproductor / n).exists())
     if not modulos:
         raise RuntimeError(
-            "no se encontró ningún módulo de interfaz en ytchat/ui/ ni en "
-            "ytchat/player/: el descubrimiento mira para otro lado y el banco "
+            "no se encontró ningún módulo de interfaz en bellbird/ui/ ni en "
+            "bellbird/player/: el descubrimiento mira para otro lado y el banco "
             "quedaría en verde sin recorrer nada")
     huerfanos = []
     for nombre in sorted(modulos):

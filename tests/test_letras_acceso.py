@@ -19,12 +19,12 @@ from tests.test_gui_microfono import FUENTES, PARES
 from tests.test_gui_transmision import (
     GestorFalso, HiloInmediato, _asegurar_sin_obs)
 from tests.ventanas_prueba import destruir
-from ytchat.ai import catalogo
-from ytchat.core import config
-from ytchat.ui import gui_comentarios, gui_directo_youtube, gui_historial, gui_microfono, gui_transmision, gui_preferencias
-from ytchat.ui import preferencias_ia
-from ytchat.ui import preferencias_ia_clave
-from ytchat.voice import motores
+from bellbird.ai import catalogo
+from bellbird.core import config
+from bellbird.ui import gui_comentarios, gui_directo_youtube, gui_historial, gui_microfono, gui_transmision, gui_preferencias
+from bellbird.ui import preferencias_ia
+from bellbird.ui import preferencias_ia_clave
+from bellbird.voice import motores
 from tests.rutas_temporales import redirigir_rutas
 
 

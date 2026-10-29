@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from ytchat.voice import sound_player
+from bellbird.voice import sound_player
 
 
 class PruebasBarridoAlias(unittest.TestCase):
@@ -143,7 +143,7 @@ class PruebasSoundPlayer(unittest.TestCase):
                     self.assertLogs(sound_player.logger, level="DEBUG") as registro:
                 sound_player.reproducir("mensaje")
 
-        self.assertEqual(registro.output, ["DEBUG:ytchat.sound_player:SONIDO evento=mensaje"])
+        self.assertEqual(registro.output, ["DEBUG:bellbird.sound_player:SONIDO evento=mensaje"])
 
     def test_reproducir_silenciado_anota_que_se_omitio(self):
         sound_player.silenciar_todo(True)
@@ -152,7 +152,7 @@ class PruebasSoundPlayer(unittest.TestCase):
 
         self.assertEqual(
             registro.output,
-            ["DEBUG:ytchat.sound_player:SONIDO evento=mensaje omitido=silenciado"])
+            ["DEBUG:bellbird.sound_player:SONIDO evento=mensaje omitido=silenciado"])
 
     def test_reproducir_desactivado_anota_que_se_omitio(self):
         with mock.patch.object(sound_player, "_activo", False), \
@@ -161,7 +161,7 @@ class PruebasSoundPlayer(unittest.TestCase):
 
         self.assertEqual(
             registro.output,
-            ["DEBUG:ytchat.sound_player:SONIDO evento=mensaje omitido=inactivo"])
+            ["DEBUG:bellbird.sound_player:SONIDO evento=mensaje omitido=inactivo"])
 
     def test_reproducir_evento_sin_archivo_anota_que_se_omitio(self):
         with self.assertLogs(sound_player.logger, level="DEBUG") as registro:
@@ -169,7 +169,7 @@ class PruebasSoundPlayer(unittest.TestCase):
 
         self.assertEqual(
             registro.output,
-            ["DEBUG:ytchat.sound_player:SONIDO evento=inexistente omitido=sin_archivo"])
+            ["DEBUG:bellbird.sound_player:SONIDO evento=inexistente omitido=sin_archivo"])
 
     def test_cerrar_sin_haber_cargado_no_lanza(self):
         sound_player.cerrar()

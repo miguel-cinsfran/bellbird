@@ -10,7 +10,7 @@ from babel.messages import pofile
 
 from scripts import traducciones
 from tests.rutas_temporales import redirigir_rutas
-from ytchat.core import idioma
+from bellbird.core import idioma
 
 
 class TestElegirCodigo(unittest.TestCase):
@@ -137,7 +137,7 @@ class TestPuntaAPunta(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             raiz = Path(tmp) / "proyecto"
             idiomas = Path(tmp) / "idiomas"
-            (raiz / "ytchat").mkdir(parents=True)
+            (raiz / "bellbird").mkdir(parents=True)
             (raiz / "main.py").write_text(
                 "# Traductores: acción de guardar\n"
                 '_("Guardado")\n'
@@ -145,7 +145,7 @@ class TestPuntaAPunta(unittest.TestCase):
                 'ngettext("{n} canción", "{n} canciones", n)\n'
                 'pgettext("verbo", "Abrir")\n',
                 encoding="utf-8")
-            (raiz / "ytchat" / "__init__.py").write_text("", encoding="utf-8")
+            (raiz / "bellbird" / "__init__.py").write_text("", encoding="utf-8")
 
             traducciones.extraer(carpeta_raiz=raiz, carpeta_idiomas=idiomas)
             plantilla = traducciones.ruta_plantilla(idiomas)

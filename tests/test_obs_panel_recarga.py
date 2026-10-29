@@ -4,7 +4,7 @@ import socket
 import unittest
 from unittest import mock
 
-from ytchat.obs import obs_activacion, obs_cliente, obs_panel, obs_panel_recarga
+from bellbird.obs import obs_activacion, obs_cliente, obs_panel, obs_panel_recarga
 
 
 class DobleCliente:

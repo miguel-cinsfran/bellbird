@@ -3,7 +3,7 @@
 import unittest
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.obs import ajuste_fino
+from bellbird.obs import ajuste_fino
 
 
 class TestAjusteFino(unittest.TestCase):

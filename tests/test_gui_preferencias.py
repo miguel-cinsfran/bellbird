@@ -12,13 +12,13 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from ytchat.ai import catalogo
-from ytchat.core import config
-from ytchat.core import idioma
-from ytchat.ui import gui, gui_preferencias
-from ytchat.ui import preferencias_ia
-from ytchat.ui import preferencias_ia_clave
-from ytchat.voice import motores
+from bellbird.ai import catalogo
+from bellbird.core import config
+from bellbird.core import idioma
+from bellbird.ui import gui, gui_preferencias
+from bellbird.ui import preferencias_ia
+from bellbird.ui import preferencias_ia_clave
+from bellbird.voice import motores
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.rutas_temporales import redirigir_rutas
 from tests.test_preferencias_atajos import PENDIENTES_ATAJOS
@@ -31,8 +31,8 @@ from tests.ventanas_prueba import destruir
 
 # Textos que arma otro módulo y aparecen en el recorrido del diálogo
 # entero: no se tocan acá. Las etiquetas de la página Estado salen de
-# `ytchat/capture/estado_sesion.py` (ETIQUETAS) y el tema, de
-# `ytchat/core/config.py` (listar_temas_sonido, valor de fábrica).
+# `bellbird/capture/estado_sesion.py` (ETIQUETAS) y el tema, de
+# `bellbird/core/config.py` (listar_temas_sonido, valor de fábrica).
 PENDIENTES_PROPIOS = (
     "Estado de conexión y tipo",
     "Título del vídeo o directo",

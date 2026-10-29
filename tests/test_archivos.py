@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from ytchat.core import archivos
+from bellbird.core import archivos
 
 
 class TestArchivos(unittest.TestCase):

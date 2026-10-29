@@ -4,7 +4,7 @@ import inspect
 import unittest
 from unittest import mock
 
-from ytchat.core import config as cfg
+from bellbird.core import config as cfg
 
 try:
     import wx  # noqa: F401
@@ -14,7 +14,7 @@ except Exception:
 
 
 def _panel(desfase=0, ventana=(5.0, 720), url_flujo="", en_directo=True):
-    from ytchat.player import reproductor
+    from bellbird.player import reproductor
     panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
     panel._url_flujo = url_flujo
     panel._info = {"is_live": en_directo} if en_directo else {}
@@ -43,8 +43,8 @@ class TestRepDirectoConfig(unittest.TestCase):
             cfg.detectar_conflictos_atajos(dict(cfg.todos_los_atajos_default())), [])
 
     def test_textos_muestran_fin_y_acelerador_sigue_en_ingles(self):
-        from ytchat.ui import atajos_captura
-        from ytchat.ui.gui import _fmt_accel
+        from bellbird.ui import atajos_captura
+        from bellbird.ui.gui import _fmt_accel
         self.assertEqual(atajos_captura.mostrar_atajo("ctrl+end"), "Ctrl+Fin")
         self.assertEqual(_fmt_accel("ctrl+end"), "Ctrl+End")
         self.assertEqual(
@@ -55,7 +55,7 @@ class TestRepDirectoConfig(unittest.TestCase):
 class TestIrAlDirecto(unittest.TestCase):
 
     def test_relevo_a_seis_segmentos_llama_con_treinta_mil(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = _panel(desfase=6, ventana=(5.0, 720))
         with mock.patch.object(panel, "_saltar_en_relevo") as saltar, \
                 mock.patch.object(reproductor, "anunciar") as anunciar:
@@ -64,7 +64,7 @@ class TestIrAlDirecto(unittest.TestCase):
         anunciar.assert_not_called()
 
     def test_relevo_en_desfase_cero_anuncia_sin_saltar(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = _panel(desfase=0)
         with mock.patch.object(panel, "_saltar_en_relevo") as saltar, \
                 mock.patch.object(reproductor, "anunciar") as anunciar:
@@ -73,7 +73,7 @@ class TestIrAlDirecto(unittest.TestCase):
         anunciar.assert_called_once_with("Ya estás en el directo")
 
     def test_tiktok_anuncia_en_el_borde(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = _panel(url_flujo="https://tiktok/flv")
         panel._relevo_fuentes = None
         panel._relevo_ffmpeg = None
@@ -84,7 +84,7 @@ class TestIrAlDirecto(unittest.TestCase):
         anunciar.assert_called_once_with("Ya estás en el directo")
 
     def test_directo_sin_relevo_anuncia_en_el_borde(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = _panel()
         panel._relevo_fuentes = None
         with mock.patch.object(panel, "_saltar_en_relevo") as saltar, \
@@ -94,7 +94,7 @@ class TestIrAlDirecto(unittest.TestCase):
         anunciar.assert_called_once_with("Ya estás en el directo")
 
     def test_grabado_y_sin_medio_avisan_que_no_es_directo(self):
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         for panel in (_panel(en_directo=False),
                       _panel(url_flujo="", en_directo=False)):
             panel._relevo_fuentes = None
@@ -119,7 +119,7 @@ class TestRepDirectoWx(unittest.TestCase):
 
     def test_mapa_de_pantalla_completa_apunta_a_ir_al_directo(self):
         import wx
-        from ytchat.player import reproductor
+        from bellbird.player import reproductor
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._config = {"atajos_raw": {}}
         mapa = panel._mapa_atajos_fs()
@@ -131,19 +131,19 @@ class TestRepDirectoWx(unittest.TestCase):
 
     def test_teclas_wx_traduce_ctrl_end(self):
         import wx
-        from ytchat.ui import teclas_wx
+        from bellbird.ui import teclas_wx
         self.assertEqual(teclas_wx.combo_wx("ctrl+end"),
                          (wx.MOD_CONTROL, wx.WXK_END))
 
     def test_captura_convierte_fin_con_ctrl_en_ctrl_end(self):
         import wx
-        from ytchat.ui import atajos_captura
+        from bellbird.ui import atajos_captura
         self.assertEqual(
             atajos_captura.combo_a_texto(wx.MOD_CONTROL, wx.WXK_END), "ctrl+end")
         self.assertEqual(atajos_captura.tecla_texto(wx.WXK_END), "end")
 
     def test_menu_usa_acelerador_y_enlace(self):
-        from ytchat.ui import gui_menu
+        from bellbird.ui import gui_menu
         fuente = inspect.getsource(gui_menu.construir_menu)
         self.assertIn('"&Ir al directo"', fuente)
         self.assertIn('._accel("rep_directo")', fuente)

@@ -10,9 +10,9 @@ import time
 import unittest
 from pathlib import Path
 
-from ytchat.core import espera_proceso
-from ytchat.core import instalador
-from ytchat.core import paths
+from bellbird.core import espera_proceso
+from bellbird.core import instalador
+from bellbird.core import paths
 
 
 DESDE = "2.1.0"

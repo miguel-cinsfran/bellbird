@@ -9,15 +9,15 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from ytchat.music import listas
-from ytchat.music.listas import ErrorListas
-from ytchat.music.modelo import Tema
-from ytchat.ui import musica_menus
-from ytchat.ui.musica_listas_propias import ListasPropiasMusica
+from bellbird.music import listas
+from bellbird.music.listas import ErrorListas
+from bellbird.music.modelo import Tema
+from bellbird.ui import musica_menus
+from bellbird.ui.musica_listas_propias import ListasPropiasMusica
 
 try:
     import wx
-    from ytchat.ui import musica_editor_lista
+    from bellbird.ui import musica_editor_lista
     from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
     from tests.ventanas_prueba import destruir
     _HAY_WX = True

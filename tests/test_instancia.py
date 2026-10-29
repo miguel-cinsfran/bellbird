@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from ytchat.core import instancia
+from bellbird.core import instancia
 
 RAIZ = Path(__file__).resolve().parent.parent
 
@@ -15,14 +15,14 @@ _NOMBRE_PRUEBA = "YTChatTTS_PruebaInstancia_Mutex"
 
 _GUION = """
 import sys
-from ytchat.core import instancia
+from bellbird.core import instancia
 print(instancia.verificar_instancia_unica([], sys.argv[1]), flush=True)
 sys.stdin.readline()
 """
 
 _GUION_ESPERA = """
 import sys
-from ytchat.core import instancia
+from bellbird.core import instancia
 print(instancia.verificar_instancia_unica(
     ["--esperar-pid", sys.argv[2]], sys.argv[1]), flush=True)
 """

@@ -303,9 +303,9 @@ def construir_entradas_reales() -> list:
     """Construye el menú real con gui_menu y devuelve sus entradas."""
     import wx
 
-    from ytchat.core.config import todos_los_atajos_default
-    from ytchat.ui import gui_menu
-    from ytchat.ui.gui import _fmt_accel
+    from bellbird.core.config import todos_los_atajos_default
+    from bellbird.ui import gui_menu
+    from bellbird.ui.gui import _fmt_accel
 
     app = wx.App(False)
     defaults = todos_los_atajos_default()

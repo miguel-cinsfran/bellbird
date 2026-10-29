@@ -10,10 +10,10 @@ from unittest import mock
 
 import wx
 
-from ytchat.core import paths
-from ytchat.core.eventos_sonido import EVENTOS
-from ytchat.ui import preferencias_sonidos
-from ytchat.ui.preferencias_sonidos import PaginaSonidos
+from bellbird.core import paths
+from bellbird.core.eventos_sonido import EVENTOS
+from bellbird.ui import preferencias_sonidos
+from bellbird.ui.preferencias_sonidos import PaginaSonidos
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 
 
@@ -100,7 +100,7 @@ class TestPaginaSonidos(unittest.TestCase):
             self.assertTrue(ruta.endswith(f"{EVENTOS[0]}.wav"))
 
     def test_cambiar_tema_suena_muestra_sin_guardar(self):
-        from ytchat.core import config as cfg
+        from bellbird.core import config as cfg
         pagina = PaginaSonidos()
         pagina.cho_tema = mock.Mock()
         pagina.cho_tema.GetStringSelection.return_value = "suave"
@@ -119,7 +119,7 @@ class TestPaginaSonidos(unittest.TestCase):
         evento.Skip.assert_called_once_with()
 
     def test_elegir_tema_en_control_suena_muestra(self):
-        from ytchat.core import config as cfg
+        from bellbird.core import config as cfg
         pagina = self._pagina_con_temas(["default", "suave"], "default")
         pagina.cho_tema.SetStringSelection("suave")
         evento = wx.CommandEvent(wx.wxEVT_CHOICE, pagina.cho_tema.GetId())

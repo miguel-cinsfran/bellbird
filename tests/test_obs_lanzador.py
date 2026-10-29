@@ -8,13 +8,13 @@ import unittest
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.core.idioma import _
-from ytchat.obs import obs_cliente
-from ytchat.obs import obs_lanzador
-from ytchat.obs.obs_lanzador import ObsNoInstalado, abrir_obs, asegurar_obs, ruta_obs
+from bellbird.core.idioma import _
+from bellbird.obs import obs_cliente
+from bellbird.obs import obs_lanzador
+from bellbird.obs.obs_lanzador import ObsNoInstalado, abrir_obs, asegurar_obs, ruta_obs
 
 try:
-    from ytchat.ui import gui_transmision
+    from bellbird.ui import gui_transmision
     _HAY_GUI = True
 except Exception:
     _HAY_GUI = False

@@ -4,7 +4,7 @@ import base64
 import json
 import unittest
 
-from ytchat.ai import protocolos
+from bellbird.ai import protocolos
 
 
 IMAGEN = b"\xff\xd8\xfffoto-de-prueba\xff\xd9"

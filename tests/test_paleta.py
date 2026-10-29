@@ -13,8 +13,8 @@ try:
 except Exception:
     _HAY_WX = False
 
-from ytchat.ui import paleta
-from ytchat.ui.tema import _T
+from bellbird.ui import paleta
+from bellbird.ui.tema import _T
 from tests.ventanas_prueba import destruir
 
 
@@ -88,7 +88,7 @@ class TestFondoActualizacion(unittest.TestCase):
         self.app = wx.App.Get() or wx.App(False)
 
     def test_fondo_es_el_de_la_principal(self):
-        from ytchat.ui import gui_actualizacion as actualizacion
+        from bellbird.ui import gui_actualizacion as actualizacion
         dialogo = actualizacion.DialogoActualizacion(None, "Algo")
         self.addCleanup(destruir, dialogo)
         dialogo.Show()
@@ -103,7 +103,7 @@ class TestFondoElegirDestino(unittest.TestCase):
         self.app = wx.App.Get() or wx.App(False)
 
     def test_fondo_es_el_de_la_principal(self):
-        from ytchat.ui import gui_elegir_destino as elegir
+        from bellbird.ui import gui_elegir_destino as elegir
         dialogo = elegir.DialogoElegirDestino(None, destino="YouTube",
                                              usuario="")
         self.addCleanup(destruir, dialogo)
@@ -118,7 +118,7 @@ class TestFondoDirectoYoutube(unittest.TestCase):
         self.app = wx.App.Get() or wx.App(False)
 
     def test_fondo_es_el_de_la_principal(self):
-        from ytchat.ui import gui_directo_youtube as directo
+        from bellbird.ui import gui_directo_youtube as directo
         dialogo = directo.DialogoDirectoYoutube(None)
         self.addCleanup(destruir, dialogo)
         self.assertEqual(dialogo.GetBackgroundColour(), _T.bg)
@@ -130,7 +130,7 @@ class TestFondoAgregarCaptura(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.App.Get() or wx.App(False)
-        from ytchat.ui import ia_agregar_captura as agregar
+        from bellbird.ui import ia_agregar_captura as agregar
         parche_hilo = mock.patch.object(
             agregar.diagnostico, "crear_hilo", side_effect=_hilo_directo)
         parche_hilo.start()
@@ -143,7 +143,7 @@ class TestFondoAgregarCaptura(unittest.TestCase):
         self.addCleanup(parche_llamada.stop)
 
     def test_fondo_es_el_de_la_principal(self):
-        from ytchat.ui import ia_agregar_captura as agregar
+        from bellbird.ui import ia_agregar_captura as agregar
         with mock.patch.object(agregar.obs_captura_ia, "opciones",
                                return_value=[]):
             dialogo = agregar.DialogoAgregarCaptura(None, mock.Mock())
@@ -159,13 +159,13 @@ class TestFondoVentanaIA(unittest.TestCase):
         self.app = wx.App.Get() or wx.App(False)
 
     def test_mensaje_fondo_es_el_de_la_principal(self):
-        from ytchat.ui import ia_ventana as ventana
+        from bellbird.ui import ia_ventana as ventana
         dialogo = ventana.DialogoMensaje(None, "hola")
         self.addCleanup(destruir, dialogo)
         self.assertEqual(dialogo.GetBackgroundColour(), _T.bg)
 
     def test_ventana_fondo_es_el_de_la_principal(self):
-        from ytchat.ui import ia_ventana as ventana
+        from bellbird.ui import ia_ventana as ventana
         dialogo = ventana.VentanaIA(None)
         self.addCleanup(destruir, dialogo)
         self.assertEqual(dialogo.GetBackgroundColour(), _T.bg)
@@ -179,8 +179,8 @@ class TestFondoPreferencias(unittest.TestCase):
         self.app = wx.App.Get() or wx.App(False)
 
     def _dialogo(self):
-        from ytchat.ui import gui_preferencias as preferencias
-        from ytchat.voice import motores
+        from bellbird.ui import gui_preferencias as preferencias
+        from bellbird.voice import motores
         with mock.patch.object(motores, "listar_voces",
                                return_value=["Voz de prueba"]):
             dialogo = preferencias.PreferenciasDialog(None, {})

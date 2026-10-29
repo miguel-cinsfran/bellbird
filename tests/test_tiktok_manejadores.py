@@ -5,9 +5,9 @@ import types
 import unittest
 from unittest import mock
 
-from ytchat.capture import tiktok_manejadores
-from ytchat.capture.tiktok_manejadores import registrar_manejadores
-from ytchat.core.config import TIPO_ME_GUSTA, TIPO_TEXTO
+from bellbird.capture import tiktok_manejadores
+from bellbird.capture.tiktok_manejadores import registrar_manejadores
+from bellbird.core.config import TIPO_ME_GUSTA, TIPO_TEXTO
 
 _TODAS = ("CommentEvent", "GiftEvent", "JoinEvent", "RoomUserSeqEvent",
           "SubscribeEvent", "FollowEvent", "ShareEvent", "EnvelopeEvent",

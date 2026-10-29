@@ -7,7 +7,7 @@ import types
 import unittest
 from unittest import mock
 
-from ytchat.capture import alias
+from bellbird.capture import alias
 import main
 from main import (
     _mensaje_error_amigable, _es_error_permanente,

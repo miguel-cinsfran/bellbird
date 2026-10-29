@@ -6,8 +6,8 @@ import types
 import unittest
 from unittest import mock
 
-from ytchat.capture import tiktok_vivo
-from ytchat.capture.tiktok_vivo import (
+from bellbird.capture import tiktok_vivo
+from bellbird.capture.tiktok_vivo import (
     ResultadoEspera, esperar_en_vivo, esta_en_vivo, url_directo,
     usuario_tiktok)
 

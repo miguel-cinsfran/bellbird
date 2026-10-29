@@ -6,9 +6,9 @@ from pathlib import Path
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.music.biblioteca import (
+from bellbird.music.biblioteca import (
     Biblioteca, ErrorBiblioteca, coincide_por_palabras)
-from ytchat.music.modelo import Tema
+from bellbird.music.modelo import Tema
 
 
 class TestCoincidePorPalabras(unittest.TestCase):
@@ -64,7 +64,7 @@ class TestModelo(unittest.TestCase):
         self.assertFalse(Tema(r"C:\musica\a.mp3", "a").es_enlace)
 
     def test_actual(self):
-        from ytchat.music.modelo import EstadoMusica
+        from bellbird.music.modelo import EstadoMusica
 
         a, b = Tema("a.mp3", "a"), Tema("b.mp3", "b")
         vacio = EstadoMusica((), None, False, False, 100, False)
@@ -343,7 +343,7 @@ class TestBibliotecaConCache(unittest.TestCase):
         self.raiz = Path(self.tmp.name)
         (self.raiz / "a.mp3").write_bytes(b"aaa")
         (self.raiz / "b.mp3").write_bytes(b"bbb")
-        from ytchat.music.etiquetas import CacheEtiquetas
+        from bellbird.music.etiquetas import CacheEtiquetas
         self.ruta_cache = self.raiz / "cache" / "etiquetas.json"
         self.cache = CacheEtiquetas(self.ruta_cache)
 

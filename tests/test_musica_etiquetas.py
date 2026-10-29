@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from ytchat.music.etiquetas import CacheEtiquetas, leer_con_reintento
+from bellbird.music.etiquetas import CacheEtiquetas, leer_con_reintento
 
 
 def _archivo(tmp, nombre="tema.mp3", contenido=b"audio"):

@@ -10,11 +10,11 @@ import logging
 from pathlib import Path
 from unittest import mock
 
-from ytchat.core import archivos
-from ytchat.core import config
-from ytchat.core import config_musica
-from ytchat.core import ini_tipado
-from ytchat.core import paths
+from bellbird.core import archivos
+from bellbird.core import config
+from bellbird.core import config_musica
+from bellbird.core import ini_tipado
+from bellbird.core import paths
 from tests.rutas_temporales import redirigir_rutas
 
 
@@ -150,7 +150,7 @@ class TestCargarConfiguracion(unittest.TestCase):
     def test_guardar_opciones_varias_secciones_escribe_una_sola_vez(self):
         ruta = Path(self._tmp.name) / "config.ini"
         ruta.write_text("[a]\nx = 1\n\n# final\n\n[b]\ny = 2\n", encoding="utf-8")
-        with mock.patch("ytchat.core.archivos.escribir_texto_atomico",
+        with mock.patch("bellbird.core.archivos.escribir_texto_atomico",
                         wraps=archivos.escribir_texto_atomico) as escribir:
             self.assertTrue(config.guardar_opciones(
                 ruta, [("a", "x", "9"), ("b", "z", "3"), ("c", "w", "4")]))
@@ -192,7 +192,7 @@ class TestCargarConfiguracion(unittest.TestCase):
     def test_guardar_opciones_lista_vacia_no_escribe(self):
         ruta = Path(self._tmp.name) / "config.ini"
         ruta.write_text("[a]\nx = 1\n", encoding="utf-8")
-        with mock.patch("ytchat.core.archivos.escribir_texto_atomico") as escribir:
+        with mock.patch("bellbird.core.archivos.escribir_texto_atomico") as escribir:
             self.assertTrue(config.guardar_opciones(ruta, []))
         escribir.assert_not_called()
         self.assertEqual(ruta.read_text(encoding="utf-8"), "[a]\nx = 1\n")
@@ -341,7 +341,7 @@ class TestCargarConfiguracion(unittest.TestCase):
         self.assertIn("microfono =", texto)
 
     def test_programados_arranca_apagado_y_se_persiste_en_el_ejemplo(self):
-        from ytchat.core import config_predeterminada as _pred
+        from bellbird.core import config_predeterminada as _pred
         self.assertEqual(_pred.obtener("programados", "activo"), "false")
         cfg = self._cargar_en(config._CONFIG_FALLBACK)
         self.assertFalse(cfg["programados_activo"])
@@ -699,7 +699,7 @@ class TestCargarConfiguracion(unittest.TestCase):
         self.assertFalse(cfg["descargas_enumerar"])
 
     def test_obtener_opciones_descarga_devuelve_defaults_si_no_existe(self):
-        from ytchat.core import config
+        from bellbird.core import config
         with redirigir_rutas(self._tmp.name):
             op = config.obtener_opciones_descarga()
         self.assertEqual(op["formato"], "mp4")
@@ -708,7 +708,7 @@ class TestCargarConfiguracion(unittest.TestCase):
         self.assertFalse(op["enumerar"])
 
     def test_obtener_opciones_no_persiste_carpeta_por_defecto(self):
-        from ytchat.core import config
+        from bellbird.core import config
         ruta = Path(self._tmp.name) / "config.ini"
         contenido = "[descargas]\nformato = mp4\nbitrate = 192\nenumerar = false\n"
         ruta.write_text(contenido, encoding="utf-8")
@@ -718,7 +718,7 @@ class TestCargarConfiguracion(unittest.TestCase):
         self.assertEqual(ruta.read_text(encoding="utf-8"), contenido)
 
     def test_obtener_opciones_resuelve_carpeta_relativa_contra_datos(self):
-        from ytchat.core import config
+        from bellbird.core import config
         ruta = Path(self._tmp.name) / "config.ini"
         ruta.write_text("[descargas]\ncarpeta = Descargas\n", encoding="utf-8")
         with redirigir_rutas(self._tmp.name):
@@ -726,7 +726,7 @@ class TestCargarConfiguracion(unittest.TestCase):
         self.assertEqual(op["carpeta"], str(Path(self._tmp.name) / "Descargas"))
 
     def test_obtener_opciones_respeta_carpeta_absoluta(self):
-        from ytchat.core import config
+        from bellbird.core import config
         ruta = Path(self._tmp.name) / "config.ini"
         absoluta = Path(self._tmp.name) / "otra"
         ruta.write_text(f"[descargas]\ncarpeta = {absoluta}\n", encoding="utf-8")
@@ -754,7 +754,7 @@ class TestCargarConfiguracion(unittest.TestCase):
                 )
 
     def test_guardar_opciones_descarga_persiste(self):
-        from ytchat.core import config
+        from bellbird.core import config
         with redirigir_rutas(self._tmp.name):
             (Path(self._tmp.name) / "config.ini").write_text(
                 config._CONFIG_FALLBACK, encoding="utf-8")
@@ -767,7 +767,7 @@ class TestCargarConfiguracion(unittest.TestCase):
         self.assertTrue(op["enumerar"])
 
     def test_guardar_opciones_descarga_normaliza_invalidos(self):
-        from ytchat.core import config
+        from bellbird.core import config
         with redirigir_rutas(self._tmp.name):
             (Path(self._tmp.name) / "config.ini").write_text(
                 config._CONFIG_FALLBACK, encoding="utf-8")
@@ -785,7 +785,7 @@ class TestCargarConfiguracion(unittest.TestCase):
 
 
     def test_carpeta_relativa_se_resuelve_contra_instalacion(self):
-        from ytchat.core import config, paths
+        from bellbird.core import config, paths
         with tempfile.TemporaryDirectory() as tmp:
             inst, datos = Path(tmp) / "app", Path(tmp) / "datos"
             inst.mkdir()
@@ -800,7 +800,7 @@ class TestCargarConfiguracion(unittest.TestCase):
             self.assertEqual(op["carpeta"], str(inst / "MisDescargas"))
 
     def test_override_sonido_relativo_se_resuelve_contra_instalacion(self):
-        from ytchat.core import config, paths
+        from bellbird.core import config, paths
         with tempfile.TemporaryDirectory() as tmp:
             inst, datos = Path(tmp) / "app", Path(tmp) / "datos"
             inst.mkdir()
@@ -817,7 +817,7 @@ class TestCargarConfiguracion(unittest.TestCase):
                              inst / "MisSonidos/mio.wav")
 
     def test_sonido_con_valor_vacio_silencia_el_evento(self):
-        from ytchat.core import config
+        from bellbird.core import config
         with redirigir_rutas(self._tmp.name):
             (Path(self._tmp.name) / "sounds.ini").write_text(
                 "[sonidos]\nactivar = true\ncopiar =\n", encoding="utf-8")
@@ -825,7 +825,7 @@ class TestCargarConfiguracion(unittest.TestCase):
         self.assertIsNone(sonidos["eventos"]["copiar"])
 
     def test_sonido_sin_clave_usa_el_archivo_del_tema(self):
-        from ytchat.core import config
+        from bellbird.core import config
         with redirigir_rutas(self._tmp.name):
             (Path(self._tmp.name) / "sounds.ini").write_text(
                 "[sonidos]\nactivar = true\n", encoding="utf-8")
@@ -835,7 +835,7 @@ class TestCargarConfiguracion(unittest.TestCase):
             Path(self._tmp.name) / "sounds" / "themes" / "default" / "copiar.wav")
 
     def test_override_sonido_absoluto_se_respeta(self):
-        from ytchat.core import config
+        from bellbird.core import config
         destino = Path(self._tmp.name) / "mio.wav"
         with redirigir_rutas(self._tmp.name):
             (Path(self._tmp.name) / "sounds.ini").write_text(
@@ -845,8 +845,8 @@ class TestCargarConfiguracion(unittest.TestCase):
         self.assertEqual(sonidos["eventos"]["superchat"], destino)
 
     def test_evento_silenciado_no_encola_nada_en_sound_player(self):
-        from ytchat.core import config
-        from ytchat.voice import sound_player
+        from bellbird.core import config
+        from bellbird.voice import sound_player
         with redirigir_rutas(self._tmp.name):
             (Path(self._tmp.name) / "sounds.ini").write_text(
                 "[sonidos]\nactivar = true\ncopiar =\n", encoding="utf-8")
@@ -866,7 +866,7 @@ class TestCargarConfiguracion(unittest.TestCase):
         sound_player.cerrar()
 
     def test_ruta_muestra_tema_usa_mensaje_nuevo_por_defecto(self):
-        from ytchat.core import config
+        from bellbird.core import config
         with redirigir_rutas(self._tmp.name):
             ruta = config.ruta_muestra_tema("suave")
         self.assertEqual(
@@ -874,7 +874,7 @@ class TestCargarConfiguracion(unittest.TestCase):
             / "mensaje_nuevo.wav")
 
     def test_cargar_sonidos_arma_las_mismas_rutas_que_muestra(self):
-        from ytchat.core import config
+        from bellbird.core import config
         with redirigir_rutas(self._tmp.name):
             (Path(self._tmp.name) / "sounds.ini").write_text(
                 "[sonidos]\nactivar = true\ntema = suave\n", encoding="utf-8")

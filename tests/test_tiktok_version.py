@@ -5,8 +5,8 @@ import threading
 import unittest
 from unittest import mock
 
-from ytchat.capture import tiktok_captura
-from ytchat.capture.tiktok_captura import (
+from bellbird.capture import tiktok_captura
+from bellbird.capture.tiktok_captura import (
     _clase_suscripcion, _TEXTO_VERSION_INCOMPATIBLE)
 
 _HAY_TIKTOKLIVE = tiktok_captura.disponible()

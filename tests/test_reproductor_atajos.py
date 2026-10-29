@@ -18,7 +18,7 @@ except Exception:
 class TestComboWx(unittest.TestCase):
 
     def setUp(self):
-        from ytchat.ui import teclas_wx
+        from bellbird.ui import teclas_wx
         self.combo = teclas_wx.combo_wx
 
     def test_ctrl_letra(self):
@@ -50,9 +50,9 @@ class TestComboWx(unittest.TestCase):
 class TestCableadoAnuncioAjuste(unittest.TestCase):
 
     def test_flecha_registra_y_ajustar_anuncia_solo_el_valor(self):
-        from ytchat.core import anuncio_ajuste
-        from ytchat.core.anuncio_ajuste import AnuncioAjuste
-        from ytchat.player import reproductor
+        from bellbird.core import anuncio_ajuste
+        from bellbird.core.anuncio_ajuste import AnuncioAjuste
+        from bellbird.player import reproductor
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._vol = 40
         panel._player = None

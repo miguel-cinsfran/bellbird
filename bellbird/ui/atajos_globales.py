@@ -1,0 +1,176 @@
+"""Atajos de música que funcionan en cualquier programa.
+
+Mientras están activos, las combinaciones dejan de llegar a los demás
+programas (por eso la casilla viene apagada de fábrica). Lo puro
+(`combinacion_windows`) no toca wx; el registro vive en `AtajosGlobales`,
+que recibe la ventana.
+"""
+
+from __future__ import annotations
+
+import wx
+
+from bellbird.core import diagnostico
+from bellbird.ui.atajos_captura import atajo_legible
+
+logger = diagnostico.obtener_logger(__name__)
+
+# Acciones de música con atajo global, en orden fijo: el índice da el id.
+# Abrir la ventana de música no es global: Ctrl+Mayús+M solo vale dentro.
+ACCIONES = (
+    "musica_play",
+    "musica_siguiente",
+    "musica_anterior",
+    "musica_vol_mas",
+    "musica_vol_menos",
+    "musica_que_suena",
+    "musica_silenciar",
+    "musica_aleatorio",
+    "musica_repetir",
+    "musica_detener",
+    "musica_adelantar",
+    "musica_retroceder",
+)
+
+# Base de los ids propios para `RegisterHotKey`, lejos de otros usos.
+BASE_IDS = 0xB000
+
+# Teclas con nombre del área Ctrl+Alt a su código virtual de Windows.
+_TECLAS_VK = {
+    "left": 0x25,
+    "up": 0x26,
+    "right": 0x27,
+    "down": 0x28,
+    "space": 0x20,
+}
+
+
+def combinacion_windows(texto: str | None) -> tuple[int, int] | None:
+    """Traduce un atajo del área Ctrl+Alt a lo que pide `RegisterHotKey`.
+
+    Devuelve `(modificadores, código virtual)`: los modificadores son
+    `wx.MOD_*` (con los mismos valores que los `MOD_*` de Windows:
+    `MOD_ALT` 1, `MOD_CONTROL` 2) y el código es el VK de Windows
+    (flechas 0x25 a 0x28, Espacio 0x20, letras y dígitos su `ord` en
+    mayúscula). Cualquier otra cosa da None.
+    """
+    partes = (texto or "").strip().lower().replace(" ", "").split("+")
+    if len(partes) == 4:
+        if (set(partes[:3]) != {"ctrl", "alt", "shift"}
+                or partes[3] not in ("left", "right")):
+            return None
+        return (wx.MOD_CONTROL | wx.MOD_ALT | wx.MOD_SHIFT,
+                _TECLAS_VK[partes[3]])
+    if len(partes) != 3:
+        return None
+    primero, segundo, tecla = partes
+    if not ((primero == "ctrl" and segundo == "alt")
+            or (primero == "alt" and segundo == "ctrl")):
+        return None
+    if tecla in _TECLAS_VK:
+        codigo = _TECLAS_VK[tecla]
+    elif len(tecla) == 1 and tecla.isascii() and tecla.isalnum():
+        codigo = ord(tecla.upper())
+    else:
+        return None
+    return (wx.MOD_CONTROL | wx.MOD_ALT, codigo)
+
+
+def combinacion_ctrl_mayus(texto: str | None) -> tuple[int, int] | None:
+    """Traduce un atajo Ctrl+Mayús+dígito a lo que pide `RegisterHotKey`.
+
+    Devuelve `(wx.MOD_CONTROL | wx.MOD_SHIFT, ord(dígito))`. Cualquier
+    otra cosa da None.
+    """
+    partes = (texto or "").strip().lower().replace(" ", "").split("+")
+    if len(partes) != 3:
+        return None
+    primero, segundo, tecla = partes
+    if not ((primero == "ctrl" and segundo == "shift")
+            or (primero == "shift" and segundo == "ctrl")):
+        return None
+    if len(tecla) == 1 and tecla.isascii() and tecla.isdigit():
+        return (wx.MOD_CONTROL | wx.MOD_SHIFT, ord(tecla))
+    return None
+
+
+class AtajosGlobales:
+    """Registra los atajos de música en todo el sistema con una ventana.
+
+    `acciones` es un dict `{acción: función}` con lo mismo que llama el
+    menú de música. `orden` fija qué acciones se registran y en qué orden
+    (el índice da el id desde `base_ids`); `traducir` convierte el texto
+    del atajo en `(modificadores, código virtual)`. Nunca lanza: registrar
+    o soltar puede fallar (otro programa tiene la combinación, la ventana
+    se cerró) y se informa con el valor devuelto, no con excepciones.
+    """
+
+    def __init__(self, ventana, acciones: dict, orden=None,
+                 base_ids=None, traducir=None) -> None:
+        self._ventana = ventana
+        self._acciones = dict(acciones)
+        self._orden = tuple(orden) if orden is not None else ACCIONES
+        self._base_ids = BASE_IDS if base_ids is None else base_ids
+        self._traducir = combinacion_windows if traducir is None else traducir
+        self._registrados: dict[str, tuple[int, object]] = {}
+
+    @property
+    def activos(self) -> bool:
+        """Si hay al menos un atajo registrado."""
+        return bool(self._registrados)
+
+    def activar(self, atajos: dict[str, str]) -> list[str]:
+        """Registra los atajos traducibles y devuelve los que fallaron.
+
+        Solo mira las acciones de música conocidas: cada una con un atajo
+        que se pueda traducir pide su id propio a la ventana. Lo que otro
+        programa ya tiene vuelve como texto legible. Llamarla de nuevo
+        primero desactiva todo.
+        """
+        self.desactivar()
+        fallidos: list[str] = []
+        for indice, accion in enumerate(self._orden):
+            funcion = self._acciones.get(accion)
+            if funcion is None:
+                continue
+            valor = atajos.get(accion)
+            valor = getattr(valor, "texto", valor)
+            if not valor:
+                continue
+            combo = self._traducir(valor)
+            if combo is None:
+                continue
+            mods, vk = combo
+            ident = self._base_ids + indice
+            try:
+                registrado = self._ventana.RegisterHotKey(ident, mods, vk)
+            except Exception:
+                registrado = False
+            if not registrado:
+                fallidos.append(atajo_legible(valor))
+                continue
+            manejador = self._enlazar(ident, accion, funcion)
+            self._registrados[accion] = (ident, manejador)
+        return fallidos
+
+    def _enlazar(self, ident: int, accion: str, funcion) -> object:
+        """Enlaza `EVT_HOTKEY` a la acción, que corre con `CallAfter`."""
+        def al_pulsar(_evento, _funcion=funcion) -> None:
+            logger.debug("ATAJO origen=global accion=%s", accion)
+            wx.CallAfter(_funcion)
+
+        self._ventana.Bind(wx.EVT_HOTKEY, al_pulsar, id=ident)
+        return al_pulsar
+
+    def desactivar(self) -> None:
+        """Suelta todos los registrados. Nunca lanza; dos veces no falla."""
+        registrados, self._registrados = self._registrados, {}
+        for _accion, (ident, _manejador) in registrados.items():
+            try:
+                self._ventana.Unbind(wx.EVT_HOTKEY, id=ident)
+            except Exception:
+                pass
+            try:
+                self._ventana.UnregisterHotKey(ident)
+            except Exception:
+                pass

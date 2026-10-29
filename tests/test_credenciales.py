@@ -7,8 +7,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from ytchat.core import paths
-from ytchat.youtube import credenciales
+from bellbird.core import paths
+from bellbird.youtube import credenciales
 from tests.rutas_temporales import redirigir_rutas
 
 
@@ -224,19 +224,19 @@ def _importar_gui():
     """Importa los módulos de GUI sin crear ventanas. None si no se puede."""
     try:
         import wx  # noqa: F401
-        from ytchat.ui import gui  # noqa: F401
-        from ytchat.ui import gui_comentarios  # noqa: F401
-        from ytchat.ui import gui_preferencias  # noqa: F401
-        from ytchat.ui import preferencias_api  # noqa: F401
-        from ytchat.youtube import youtube_api  # noqa: F401
+        from bellbird.ui import gui  # noqa: F401
+        from bellbird.ui import gui_comentarios  # noqa: F401
+        from bellbird.ui import gui_preferencias  # noqa: F401
+        from bellbird.ui import preferencias_api  # noqa: F401
+        from bellbird.youtube import youtube_api  # noqa: F401
     except Exception:
         return None
     import wx
-    from ytchat.ui import gui
-    from ytchat.ui import gui_comentarios
-    from ytchat.ui import gui_preferencias
-    from ytchat.ui import preferencias_api
-    from ytchat.youtube import youtube_api
+    from bellbird.ui import gui
+    from bellbird.ui import gui_comentarios
+    from bellbird.ui import gui_preferencias
+    from bellbird.ui import preferencias_api
+    from bellbird.youtube import youtube_api
     return wx, gui, gui_comentarios, gui_preferencias, preferencias_api, youtube_api
 
 
@@ -270,7 +270,7 @@ class TestCableadoClienteApp(unittest.TestCase):
         self.assertEqual(dados["api_key"], "KEY-APP")
 
     def test_supervisar_transmision_youtube_construye_con_las_efectivas(self):
-        from ytchat.youtube import emision
+        from bellbird.youtube import emision
         # Sesión iniciada pero sin cliente propio: solo token en el archivo.
         credenciales.guardar_campo("token", '{"refresh_token": "x"}')
         frame = self.gui.YTChatFrame.__new__(self.gui.YTChatFrame)
@@ -279,14 +279,14 @@ class TestCableadoClienteApp(unittest.TestCase):
         pedido = {"titulo": "T", "descripcion": "D",
                   "privacidad": emision.PRIVACIDAD_INICIAL}
         with mock.patch.object(self.youtube_api, "ClienteYouTube") as cliente, \
-                mock.patch("ytchat.ui.gui_directo_youtube.pedir_datos_directo",
+                mock.patch("bellbird.ui.gui_directo_youtube.pedir_datos_directo",
                            return_value=dict(pedido)), \
                 mock.patch.object(frame, "_guardar_datos_directo_youtube",
                                   return_value=dict(pedido)), \
                  mock.patch.object(emision, "ganchos_youtube",
                                    return_value=(mock.Mock(), mock.Mock(),
                                                  mock.Mock())), \
-                mock.patch("ytchat.obs.obs_supervisor.SupervisorTransmision"):
+                mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision"):
             frame._supervisar_transmision("iniciar", destino="YouTube")
         cliente.assert_called_once()
         dados = cliente.call_args.args[0]

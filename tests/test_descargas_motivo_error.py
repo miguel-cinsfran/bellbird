@@ -2,7 +2,7 @@
 
 import unittest
 
-from ytchat.downloads.motivo_error import motivo_de_error
+from bellbird.downloads.motivo_error import motivo_de_error
 from tests.pseudo_prueba import con_pseudo
 
 

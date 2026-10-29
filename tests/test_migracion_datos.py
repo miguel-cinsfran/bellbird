@@ -5,8 +5,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from ytchat.core import migracion_datos
-from ytchat.core import paths
+from bellbird.core import migracion_datos
+from bellbird.core import paths
 
 
 def _instalacion_vieja(inst):
@@ -139,7 +139,7 @@ class TestMigrar(unittest.TestCase):
                 rutas = paths.datos_a_migrar()
                 sonidos = paths.sounds_ini()
                 with mock.patch(
-                        "ytchat.core.migracion_datos.os.replace",
+                        "bellbird.core.migracion_datos.os.replace",
                         side_effect=OSError("bloqueado")):
                     resultado = migracion_datos.migrar(
                         inst, datos, rutas, sonidos)
@@ -161,10 +161,10 @@ class TestMigrar(unittest.TestCase):
                 rutas = paths.datos_a_migrar()
                 sonidos = paths.sounds_ini()
                 with mock.patch(
-                        "ytchat.core.migracion_datos.os.replace",
+                        "bellbird.core.migracion_datos.os.replace",
                         side_effect=OSError("bloqueado")), \
                      mock.patch(
-                        "ytchat.core.migracion_datos.shutil.copy2",
+                        "bellbird.core.migracion_datos.shutil.copy2",
                         side_effect=OSError("disco lleno")):
                     resultado = migracion_datos.migrar(
                         inst, datos, rutas, sonidos)
@@ -238,7 +238,7 @@ class TestNombresAnteriores(unittest.TestCase):
             viejo.write_bytes(b"binario")
             datos.mkdir(parents=True)
             (datos / "ytchat-fallos.log").write_text("fallos", encoding="utf-8")
-            with mock.patch("ytchat.core.migracion_datos.shutil.copy2",
+            with mock.patch("bellbird.core.migracion_datos.shutil.copy2",
                             side_effect=OSError("disco lleno")):
                 resultado = self._migrar(inst, datos, _pares_anteriores(inst, datos))
             self.assertTrue(viejo.is_file())
@@ -257,7 +257,7 @@ class TestNombresAnteriores(unittest.TestCase):
             def copia_corta(origen, destino, *args, **kwargs):
                 Path(destino).write_bytes(b"x")
 
-            with mock.patch("ytchat.core.migracion_datos.shutil.copy2",
+            with mock.patch("bellbird.core.migracion_datos.shutil.copy2",
                             side_effect=copia_corta):
                 resultado = self._migrar(inst, datos, _pares_anteriores(inst, datos))
             self.assertTrue(viejo.is_file())
@@ -342,9 +342,9 @@ class TestNombresAnteriores(unittest.TestCase):
             datos.mkdir(parents=True)
             (datos / "ytchat-debug.log").write_text("depura", encoding="utf-8")
             (datos / "ytchat-fallos.log").write_text("fallos", encoding="utf-8")
-            with mock.patch("ytchat.core.migracion_datos.os.replace",
+            with mock.patch("bellbird.core.migracion_datos.os.replace",
                             side_effect=OSError("abierto")), \
-                    mock.patch("ytchat.core.migracion_datos.shutil.copy2",
+                    mock.patch("bellbird.core.migracion_datos.shutil.copy2",
                                side_effect=OSError("abierto")):
                 resultado = self._migrar(inst, datos, _pares_anteriores(inst, datos))
             self.assertTrue(resultado.errores)

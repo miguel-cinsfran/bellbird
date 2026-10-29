@@ -14,10 +14,10 @@ try:
 except Exception:
     _HAY_WX = False
 
-from ytchat.ui import gui_directo_youtube as directo
+from bellbird.ui import gui_directo_youtube as directo
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
-from ytchat.youtube.emision import (
+from bellbird.youtube.emision import (
     ETIQUETAS_PRIVACIDAD,
     PRIVACIDADES,
     EmisionError,
@@ -169,7 +169,7 @@ class TestDialogoDirectoVentana(unittest.TestCase):
         self.assertEqual(dialogo.FindFocus(), dialogo.txt_titulo)
 
     def test_revision_a_la_vista_lectura_y_orden(self):
-        from ytchat.obs import obs_prevuelo
+        from bellbird.obs import obs_prevuelo
         revision = obs_prevuelo.Revision(
             "YouTube", "YouTube", "Sin Título", 1280, 720, "Principal",
             (), (), None, ())
@@ -190,7 +190,7 @@ class TestDialogoDirectoVentana(unittest.TestCase):
         self.assertEqual(dialogo.FindFocus(), dialogo.txt_titulo)
 
     def test_revision_con_problemas_enfoca_cancelar(self):
-        from ytchat.obs import obs_prevuelo
+        from bellbird.obs import obs_prevuelo
         revision = obs_prevuelo.Revision(
             "YouTube", "YouTube", "Sin Título", 1280, 720, "Principal",
             (), (), None, ("La imagen está vacía.",))
@@ -272,7 +272,7 @@ class TestDialogoDirectoVentana(unittest.TestCase):
         self.assertEqual(orden, list(nombres))
 
     def test_latencia_choices_y_seleccion(self):
-        from ytchat.youtube.emision import ETIQUETAS_LATENCIA, LATENCIAS
+        from bellbird.youtube.emision import ETIQUETAS_LATENCIA, LATENCIAS
         dialogo = self._dialogo(titulo="Hola", latencia="ultraLow")
         self.assertEqual(
             [dialogo.cho_latencia.GetString(i)
@@ -282,7 +282,7 @@ class TestDialogoDirectoVentana(unittest.TestCase):
                          LATENCIAS.index("ultraLow"))
 
     def test_categoria_choices_y_seleccion(self):
-        from ytchat.youtube.emision import CATEGORIAS
+        from bellbird.youtube.emision import CATEGORIAS
         dialogo = self._dialogo(titulo="Hola", categoria="20")
         self.assertEqual(
             [dialogo.cho_categoria.GetString(i)
@@ -499,7 +499,7 @@ class TestDialogoDirectoVentana(unittest.TestCase):
 
 
 # Textos que armaban otros módulos y ya pasan por gettext: las opciones de
-# privacidad, latencia y categoría de `ytchat/youtube/emision.py`
+# privacidad, latencia y categoría de `bellbird/youtube/emision.py`
 # (ETIQUETAS_PRIVACIDAD, ETIQUETAS_LATENCIA y CATEGORIAS, traducidas donde
 # se muestran) y el Ninguna de `opciones_lista`, del mismo módulo. El
 # título de la lista recordada es un dato del usuario y va como propio.

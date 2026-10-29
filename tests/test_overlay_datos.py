@@ -1,6 +1,6 @@
 import unittest
 
-from ytchat.obs.overlay_datos import (
+from bellbird.obs.overlay_datos import (
     COLOR_CUERPO,
     COLOR_DORADO,
     COLOR_TIKTOK,

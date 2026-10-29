@@ -1,6 +1,6 @@
 """Modos por aviso de TikTok: lo que se lee, se muestra o se oculta.
 
-Cubre `ytchat/core/avisos_tiktok.py` sin ventanas: los modos guardados, los
+Cubre `bellbird/core/avisos_tiktok.py` sin ventanas: los modos guardados, los
 de fábrica y los extraños, el filtro del chat y la migración de las dos
 casillas viejas a las cinco claves nuevas.
 """
@@ -8,8 +8,8 @@ casillas viejas a las cinco claves nuevas.
 import configparser
 import unittest
 
-from ytchat.core import avisos_tiktok
-from ytchat.core import config as cfg
+from bellbird.core import avisos_tiktok
+from bellbird.core import config as cfg
 
 
 def _config(**extras):

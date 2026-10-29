@@ -11,7 +11,7 @@ from unittest import mock
 
 import vlc
 
-from ytchat.player import reproductor
+from bellbird.player import reproductor
 
 
 def _panel(info, url_flujo="", cargando=False):

@@ -8,8 +8,8 @@ import unittest
 from unittest import mock
 
 import main
-from ytchat.core import sonidos_eventos
-from ytchat.core.config import (
+from bellbird.core import sonidos_eventos
+from bellbird.core.config import (
     TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,
     TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
 )
@@ -304,8 +304,8 @@ class VistaFalsa:
 
 class TestReenvioRolConexion(unittest.TestCase):
     def _conexiones(self):
-        from ytchat.capture.conexion import Conexiones
-        from ytchat.capture.sesiones import RegistroSesiones
+        from bellbird.capture.conexion import Conexiones
+        from bellbird.capture.sesiones import RegistroSesiones
         vista = VistaFalsa()
         conexiones = Conexiones(
             queue.Queue(), {}, mock.Mock(), threading.Event(),
@@ -333,7 +333,7 @@ class TestReenvioRolConexion(unittest.TestCase):
                                   return_value=True), \
                 mock.patch.object(main, "captura_con_reconexion",
                                   side_effect=captura), \
-                mock.patch("ytchat.obs.overlay_servidor.difundir"):
+                mock.patch("bellbird.obs.overlay_servidor.difundir"):
             conexiones.conectar("dQw4w9WgXcQ")
             callbacks["on_message"]("Ana", "hola", "12:00", main.TIPO_TEXTO,
                                     "", "CANAL1", rol="moderador")
@@ -353,14 +353,14 @@ class TestReenvioRolConexion(unittest.TestCase):
             return _HiloEjecuta(objetivo) if nombre == "TikTok" else _HiloInerte()
 
         conexiones._crear_hilo = hilo
-        from ytchat.capture import tiktok_captura
+        from bellbird.capture import tiktok_captura
         with mock.patch.object(main, "procesar_entrante",
                                side_effect=lambda *a, **k: k["on_message"](
                                    "Ana", "hola", "12:00", main.TIPO_TEXTO,
                                    "", "TIKID", rol="")), \
                 mock.patch.object(tiktok_captura, "capturar_con_reconexion",
                                   side_effect=captura), \
-                mock.patch("ytchat.obs.overlay_servidor.difundir"):
+                mock.patch("bellbird.obs.overlay_servidor.difundir"):
             conexiones._conectar_tiktok("pepe")
             callbacks["on_evento"]("Ana", "hola", main.TIPO_TEXTO, "", "TIKID")
         agregados = self._agregados(vista)
@@ -385,8 +385,8 @@ class _HiloEjecuta:
 
 class TestSonidoGuiPorRol(unittest.TestCase):
     def _frame(self):
-        from ytchat.ui import gui
-        from ytchat.ui.chat_vivo import ControladorChat
+        from bellbird.ui import gui
+        from bellbird.ui.chat_vivo import ControladorChat
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
         frame._config = {"limpiar_emojis": True}
         frame._autor_esta_oculto = lambda autor: False
@@ -401,8 +401,8 @@ class TestSonidoGuiPorRol(unittest.TestCase):
         return frame
 
     def _procesar(self, frame, tipo, rol):
-        from ytchat.ui import chat_vivo
-        from ytchat.ui.lista_chat import MensajeChat
+        from bellbird.ui import chat_vivo
+        from bellbird.ui.lista_chat import MensajeChat
         registro = MensajeChat(plataforma="youtube", autor="Ana",
                                identificador="C", texto="hola", hora="12:00",
                                tipo=tipo, monto="", rol=rol)

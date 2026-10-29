@@ -43,7 +43,7 @@ RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ))
 sys.path.insert(0, str(RAIZ / "qa"))
 
-from ytchat.core.config import APP_NAME  # noqa: E402
+from bellbird.core.config import APP_NAME  # noqa: E402
 
 from conducir import contestar_salir_si_aparece
 
@@ -61,7 +61,7 @@ DESCRIPCION_PRUEBA = (
 # YouTube Studio. La miniatura se genera en un archivo temporal de un color.
 LATENCIA_PRUEBA = "ultraLow"
 CATEGORIA_PRUEBA = "27"
-ETIQUETAS_PRUEBA = "prueba, ytchat"
+ETIQUETAS_PRUEBA = "prueba, bellbird"
 ANCHO_MINIATURA = 1280
 ALTO_MINIATURA = 720
 COLOR_MINIATURA = (30, 60, 120)
@@ -174,7 +174,7 @@ def estado_miniatura(anuncios: str) -> tuple[bool, str]:
     por teléfono (403) también cuenta como bien: es lo esperado si la cuenta
     no está verificada. Cualquier otro anuncio de fallo la marca mal.
     """
-    from ytchat.youtube import youtube_api
+    from bellbird.youtube import youtube_api
     texto = (anuncios or "").lower()
     if youtube_api.FRASE_MINiatura_SIN_VERIFICAR.lower() in texto:
         return (True, "el canal no está verificado por teléfono: YouTube la "
@@ -391,7 +391,7 @@ LOG_CHAT = os.environ.get("DIRECTO_REAL_CHAT", "")
 sys.path.insert(0, REPO)
 os.chdir(REPO)
 sys.argv = [os.path.join(REPO, "main.py")]
-import ytchat.ui.gui as g
+import bellbird.ui.gui as g
 _orig = g.anunciar
 
 def _anunciar(texto, urgente=True):
@@ -418,7 +418,7 @@ def _agregar_mensaje(self, *args, **kwargs):
     return _orig_agregar(self, *args, **kwargs)
 
 g.YTChatFrame.agregar_mensaje_chat = _agregar_mensaje
-import ytchat.player.reproductor as _rep
+import bellbird.player.reproductor as _rep
 _orig_rep_init = _rep.ReproductorPanel.__init__
 
 def _rep_init(self, *a, **k):
@@ -578,8 +578,8 @@ def _cerrar_obs():
 
 
 def _cliente_youtube():
-    from ytchat.core import paths  # noqa: F401  (raíz del paquete)
-    from ytchat.youtube import credenciales, youtube_api
+    from bellbird.core import paths  # noqa: F401  (raíz del paquete)
+    from bellbird.youtube import credenciales, youtube_api
     datos = credenciales.efectivas(credenciales.cargar())
     return youtube_api.ClienteYouTube(datos), credenciales
 
@@ -700,7 +700,7 @@ def _puerto_panel(ruta_config) -> int:
 
 
 def _gestor_obs():
-    from ytchat.obs.obs_panel import GestorPanelObs
+    from bellbird.obs.obs_panel import GestorPanelObs
     gestor = GestorPanelObs()
     gestor.conectar()
     return gestor
@@ -708,7 +708,7 @@ def _gestor_obs():
 
 def _valores_ventanas(gestor, escena, segundos: int = 15) -> dict:
     """Valor `window` de OBS para cada ventana de prueba, por título."""
-    from ytchat.obs import obs_captura
+    from bellbird.obs import obs_captura
     esperados = (VENTANA_CAMARA[0], VENTANA_APLICACION[0])
     fin = time.time() + segundos
     valores: dict = {}
@@ -787,7 +787,7 @@ def _armar_escena_prueba(gestor, url_panel: str) -> tuple[str, bool]:
     Devuelve (escena, creo_panel): el panel solo se crea si no estaba, y se
     anota para quitarlo después. Las dos capturas quedan encima del panel.
     """
-    from ytchat.obs.obs_panel import NOMBRE_FUENTE
+    from bellbird.obs.obs_panel import NOMBRE_FUENTE
     escena = gestor.escena_al_aire()
     if not escena:
         raise RuntimeError("OBS no tiene escena al aire")
@@ -891,7 +891,7 @@ def _detalle_lista_chat(leidos: list[str] | None) -> str:
 
 
 def _transformacion_panel(gestor, escena: str) -> dict:
-    from ytchat.obs.obs_panel import NOMBRE_FUENTE
+    from bellbird.obs.obs_panel import NOMBRE_FUENTE
     elementos = gestor._pedir(
         "GetSceneItemList", {"sceneName": escena}).get(
         "sceneItems", ()) or ()
@@ -1016,8 +1016,8 @@ def _detener_y_finalizar(gestor, cliente, credenciales,
 
 
 def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
-    from ytchat.core import config, paths
-    from ytchat.youtube import credenciales
+    from bellbird.core import config, paths
+    from bellbird.youtube import credenciales
 
     pasos: list[tuple[str, bool, str]] = []
 
@@ -1070,7 +1070,7 @@ def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
     ruta_miniatura = ""
 
     try:
-        from ytchat.core.config import codificar_texto_ini
+        from bellbird.core.config import codificar_texto_ini
         ruta_miniatura = os.path.join(tmpdir, "miniatura-prueba.jpg")
         try:
             _crear_miniatura_prueba(ruta_miniatura)
@@ -1550,7 +1550,7 @@ def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
                                "«Prueba YTChat cámara» y «Prueba YTChat "
                                "aplicación» fuera de la escena")
                     else:
-                        from ytchat.obs.obs_panel import NOMBRE_FUENTE
+                        from bellbird.obs.obs_panel import NOMBRE_FUENTE
                         _quitar_fuente(gestor_obs, escena_prueba,
                                        NOMBRE_FUENTE)
                         anotar(paso, True,

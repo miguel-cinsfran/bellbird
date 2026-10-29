@@ -8,8 +8,8 @@ import unittest
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from ytchat.ui import busqueda_teclado
-from ytchat.ui.busqueda_teclado import instalar_busqueda_tipo
+from bellbird.ui import busqueda_teclado
+from bellbird.ui.busqueda_teclado import instalar_busqueda_tipo
 
 
 def _lista(textos, seleccion=None):

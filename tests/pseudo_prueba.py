@@ -10,7 +10,7 @@ from contextlib import contextmanager
 
 import wx
 
-from ytchat.core import idioma
+from bellbird.core import idioma
 
 
 @contextmanager

@@ -11,7 +11,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from unittest import mock
 
-from ytchat.core import paths
+from bellbird.core import paths
 
 
 @contextmanager

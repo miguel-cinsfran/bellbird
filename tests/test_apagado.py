@@ -1,7 +1,7 @@
 import unittest
 import logging
 
-from ytchat.core import apagado
+from bellbird.core import apagado
 
 
 class PruebasApagado(unittest.TestCase):

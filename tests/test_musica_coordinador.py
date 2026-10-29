@@ -4,8 +4,8 @@ import random
 import threading
 import unittest
 
-from ytchat.music.coordinador import Coordinador, UMBRAL_REINICIO_MS
-from ytchat.music.modelo import (
+from bellbird.music.coordinador import Coordinador, UMBRAL_REINICIO_MS
+from bellbird.music.modelo import (
     AVANZO, COLA_VACIA, ERROR_MOTOR, FIN_LISTA, INICIO_LISTA, OK,
     REINICIADO, SIN_TEMA, TEMA_FALLIDO, VOLUMEN_INVALIDO, Tema,
 )
@@ -998,7 +998,7 @@ class TestAvanceAutomatico(unittest.TestCase):
         ad = AdaptadorFalso()
         c = Coordinador(ad, al_cambiar=explota)
         c.reproducir_lista([tema("a"), tema("b")])
-        with self.assertLogs("ytchat.coordinador", level="ERROR"):
+        with self.assertLogs("bellbird.coordinador", level="ERROR"):
             c.tema_terminado(ad.ultima_ficha(), False)
         self.assertEqual(c.estado().posicion, 1)
 

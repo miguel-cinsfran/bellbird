@@ -4,8 +4,8 @@ import types
 import unittest
 from unittest import mock
 
-from ytchat.obs.obs_panel import NOMBRE_FUENTE
-from ytchat.obs.restablecimiento import RegistroRestablecimiento
+from bellbird.obs.obs_panel import NOMBRE_FUENTE
+from bellbird.obs.restablecimiento import RegistroRestablecimiento
 
 
 def _gestor_con_datos(transformacion=None):

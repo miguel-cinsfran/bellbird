@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import wx
 
+from ytchat.core.avisos_tiktok import AVISOS, MODOS
 from ytchat.core.idioma import N_, _
 from ytchat.ui.accesibilidad import ContadorAccesible
 from ytchat.ui.tema import _T, _tc
@@ -31,8 +32,12 @@ _FORMATOS = [
 OPCIONES_LECTURA = (
     ("chk_emojis", "texto", "limpiar_emojis", "limpiar_emojis", bool, True),
     ("chk_urls", "texto", "eliminar_urls", "eliminar_urls", bool, True),
-    ("chk_entradas", "tiktok", "anunciar_entradas", "tiktok_anunciar_entradas", bool, False),
-    ("chk_me_gusta", "tiktok", "leer_me_gusta", "tiktok_leer_me_gusta", bool, False),
+    ("cho_aviso_entradas", "tiktok", "aviso_entradas", "tiktok_aviso_entradas", str, "mostrar"),
+    ("cho_aviso_me_gusta", "tiktok", "aviso_me_gusta", "tiktok_aviso_me_gusta", str, "mostrar"),
+    ("cho_aviso_seguidores", "tiktok", "aviso_seguidores", "tiktok_aviso_seguidores", str, "leer"),
+    ("cho_aviso_compartidos", "tiktok", "aviso_compartidos",
+     "tiktok_aviso_compartidos", str, "leer"),
+    ("cho_aviso_cofres", "tiktok", "aviso_cofres", "tiktok_aviso_cofres", str, "leer"),
     ("sp_long", "texto", "max_longitud_mensaje", "max_longitud_mensaje", int, 200),
     ("cho_lectura_recientes", "lectura", "recientes", "lectura_recientes", str, "lector"),
     ("chk_lectura_atajos_globales", "lectura", "atajos_globales", "lectura_atajos_globales", bool, False),
@@ -87,18 +92,16 @@ class PaginaLectura:
         return p
 
     def _construir_tiktok(self, p, vs):
-        self.chk_entradas = wx.CheckBox(
-            p, name="AnunciarEntradas",
-            label=_("Leer quién &entra al directo (solo TikTok; en directos grandes "
-                    "puede ser muchísimo)"))
-        self.chk_entradas.SetForegroundColour(_T.text)
-        vs.Add(self.chk_entradas, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-        self.chk_me_gusta = wx.CheckBox(
-            p, name="LeerMeGusta",
-            label=_("Leer quién da &me gusta (solo TikTok; en directos grandes "
-                    "puede ser muchísimo)"))
-        self.chk_me_gusta.SetForegroundColour(_T.text)
-        vs.Add(self.chk_me_gusta, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+        vs.Add(self._fila_label(p, _("Avisos de TikTok")), 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
+        for _tipo, clave, etiqueta, _fabrica in AVISOS:
+            texto = _(etiqueta)
+            vs.Add(self._fila_label(p, texto), 0, wx.LEFT | wx.RIGHT, 10)
+            lista = EleccionTexto(
+                p, [(valor, _(rotulo)) for valor, rotulo in MODOS],
+                name=texto.replace("&", "").rstrip(":"))
+            _tc(lista)
+            setattr(self, "cho_" + clave, lista)
+            vs.Add(lista, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _construir_recientes(self, p, vs):
         vs.Add(self._fila_label(p, _("Leer los mensajes recientes &con:")),

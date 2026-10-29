@@ -1702,7 +1702,8 @@ class TestCategoriasDePreferencias(unittest.TestCase):
         dialogo = self._dialogo()
         pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagLectura")
         esperados = ["Formato de lectura", "LimpiarEmojis", "EliminarURLs",
-                     "AnunciarEntradas", "LeerMeGusta",
+                     "Entradas al directo", "Me gusta", "Seguidores nuevos",
+                     "Directo compartido", "Cofres",
                      "Longitud máxima del mensaje",
                      "Leer los mensajes recientes con",
                      "LecturaAtajosGlobales"]
@@ -2016,7 +2017,9 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("lectura", "formato_prefijo"), ("lectura", "recientes"),
             ("lectura", "atajos_globales"),
             ("texto", "limpiar_emojis"), ("texto", "eliminar_urls"),
-            ("tiktok", "anunciar_entradas"), ("tiktok", "leer_me_gusta"),
+            ("tiktok", "aviso_entradas"), ("tiktok", "aviso_me_gusta"),
+            ("tiktok", "aviso_seguidores"), ("tiktok", "aviso_compartidos"),
+            ("tiktok", "aviso_cofres"),
             ("texto", "max_longitud_mensaje"),
             ("cola", "estrategia"), ("cola", "tamanio_maximo"),
             ("cola", "umbral_solo_nombre"),

@@ -22,7 +22,7 @@ from ytchat.capture.tiktok_captura import (
 from ytchat.core import sonidos_eventos
 from ytchat.core.config import (
     TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE,
-    TIPO_ME_GUSTA,
+    TIPO_ME_GUSTA, TIPO_ENTRADA,
 )
 
 _NOMBRES_EVENTOS = (
@@ -391,12 +391,24 @@ class TestTextosEntranteNuevos(unittest.TestCase):
 
 
 class TestMeGustaConLectura(unittest.TestCase):
+    def test_ocultar_no_avisa_no_encola_y_cuenta_filtrado(self):
+        cola = queue.Queue()
+        avisos = []
+        stats = main.Stats()
+        main.procesar_entrante(
+            "Ana", "", TIPO_ENTRADA, "", "canal", cola,
+            _config_minima(tiktok_aviso_entradas="ocultar"), stats,
+            on_message=lambda *a, **k: avisos.append(a))
+        self.assertEqual(avisos, [])
+        self.assertTrue(cola.empty())
+        self.assertEqual(stats.filtrados, 1)
+
     def test_apagada_no_encola(self):
         cola = queue.Queue()
         avisos = []
         main.procesar_entrante(
             "Ana", "", TIPO_ME_GUSTA, "15", "canal", cola,
-            _config_minima(tiktok_leer_me_gusta=False), main.Stats(),
+            _config_minima(tiktok_aviso_me_gusta="mostrar"), main.Stats(),
             on_message=lambda *a, **k: avisos.append(a))
         self.assertEqual(len(avisos), 1)
         self.assertTrue(cola.empty())
@@ -406,7 +418,7 @@ class TestMeGustaConLectura(unittest.TestCase):
         avisos = []
         main.procesar_entrante(
             "Ana", "", TIPO_ME_GUSTA, "15", "canal", cola,
-            _config_minima(tiktok_leer_me_gusta=True), main.Stats(),
+            _config_minima(tiktok_aviso_me_gusta="leer"), main.Stats(),
             on_message=lambda *a, **k: avisos.append(a))
         self.assertEqual(len(avisos), 1)
         item = cola.get_nowait()
@@ -418,7 +430,7 @@ class TestMeGustaConLectura(unittest.TestCase):
         cola = queue.Queue()
         main.procesar_entrante(
             "Ana", "", TIPO_ME_GUSTA, "", "canal", cola,
-            _config_minima(tiktok_leer_me_gusta=True), main.Stats(),
+            _config_minima(tiktok_aviso_me_gusta="leer"), main.Stats(),
             on_message=lambda *a, **k: None)
         self.assertEqual(
             cola.get_nowait()["texto_tts"], "Ana dio me gusta")

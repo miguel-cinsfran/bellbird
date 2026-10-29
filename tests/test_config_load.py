@@ -542,6 +542,19 @@ class TestCargarConfiguracion(unittest.TestCase):
         cfg = self._cargar_en("[voz]\nvoz = 0\n")
         self.assertEqual(cfg["transmision_destino"], "")
 
+    def test_casilla_vieja_de_entradas_migra_a_leer(self):
+        cfg = self._cargar_en("[tiktok]\nanunciar_entradas = true\n")
+        self.assertEqual(cfg["tiktok_aviso_entradas"], "leer")
+
+    def test_casilla_vieja_de_entradas_apagada_migra_a_mostrar(self):
+        cfg = self._cargar_en("[tiktok]\nanunciar_entradas = false\n")
+        self.assertEqual(cfg["tiktok_aviso_entradas"], "mostrar")
+
+    def test_sin_casillas_viejas_los_avisos_quedan_en_mostrar(self):
+        cfg = self._cargar_en("[tiktok]\nusuario = pepe\n")
+        self.assertEqual(cfg["tiktok_aviso_entradas"], "mostrar")
+        self.assertEqual(cfg["tiktok_aviso_me_gusta"], "mostrar")
+
     def test_destino_de_transmision_valido_se_conserva(self):
         for destino in ("TikTok", "YouTube"):
             cfg = self._cargar_en(f"[transmision]\ndestino = {destino}\n")

@@ -134,6 +134,7 @@ class TestEquivalenciaMenu(unittest.TestCase):
             ("&Filtro de mensajes", "Solo texto", ANY, "radio"),
             ("&Filtro de mensajes", "Super Chats", ANY, "radio"),
             ("&Filtro de mensajes", "Membresías", ANY, "radio"),
+            ("&Filtro de mensajes", "Avisos", ANY, "radio"),
             ("Vo&z", "&Pausar lectura", ANY, "normal"),
             ("Vo&z", "&Detener voz", ANY, "normal"),
             ("Vo&z", "&Vaciar cola", ANY, "normal"),
@@ -491,6 +492,7 @@ PENDIENTES_OTROS_MODULOS = (
     "Solo texto",
     "Super Chats",
     "Membresías",
+    "Avisos",
 )
 
 

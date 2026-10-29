@@ -8,6 +8,7 @@ import sys
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
+from ytchat.core import avisos_tiktok
 from ytchat.core import config_predeterminada
 from ytchat.core import diagnostico
 from ytchat.core.ini_tipado import leer_texto, a_entero, a_decimal, leer_entero, leer_decimal, leer_booleano, separar_por_comas
@@ -27,11 +28,9 @@ from ytchat.core.config_transmision import opciones_transmision
 from ytchat.core.config_voz import opciones_voz
 
 
-LIBRERIAS_SILENCIADAS = (
-    "httpx", "httpcore", "hpack", "h2", "websockets", "googleapiclient",
-    "google_auth_httplib2", "google.auth", "urllib3", "asyncio", "comtypes",
-    "libloader", "PIL", "charset_normalizer",
-)
+LIBRERIAS_SILENCIADAS = ("httpx", "httpcore", "hpack", "h2", "websockets", "googleapiclient",
+    "google_auth_httplib2", "google.auth", "urllib3", "asyncio", "comtypes", "libloader", "PIL",
+    "charset_normalizer")
 
 
 # ── Identidad ─────────────────────────────────────────────────────────────────
@@ -56,6 +55,7 @@ FILTROS = [
     ("Solo texto",   TIPO_TEXTO),
     ("Super Chats",  TIPO_SUPERCHAT),
     ("Membresías",   TIPO_MIEMBRO),
+    ("Avisos",       avisos_tiktok.TIPOS_AVISO),
 ]
 
 
@@ -346,10 +346,10 @@ def cargar_configuracion() -> dict:
     estrategia = leer_texto(p, "cola", "estrategia").lower()
     if estrategia not in ("todas", "limite"): estrategia = "limite"
 
-    atajos_raw = {}
-    if p.has_section("atajos"):
-        atajos_raw = {k.strip().lower(): (v or "").strip() for k, v in p.items("atajos")}
+    atajos_raw = ({k.strip().lower(): (v or "").strip() for k, v in p.items("atajos")}
+                  if p.has_section("atajos") else {})
     migrar_atajos_config(p, ruta, atajos_raw)
+    avisos_tiktok.migrar(p, ruta, guardar_opcion)
     # Migración genérica: agregar toda sección o clave ausente desde la fuente
     # canónica, preservando valores existentes incluso vacíos y claves desconocidas.
     _atajos_faltantes = []
@@ -365,9 +365,7 @@ def cargar_configuracion() -> dict:
 
     desc_op = obtener_opciones_descarga()
 
-    # Estado (F2): un booleano por componente.
     from ytchat.capture.estado_sesion import COMPONENTES as _EST_COMP
-    # Fallback canónico para estado: true donde la fábrica lo marca así.
     _estado_defaults = config_predeterminada.seccion("estado")
     estado_toggles = set()
     for comp in _EST_COMP:
@@ -377,13 +375,12 @@ def cargar_configuracion() -> dict:
             estado_toggles.add(comp)
 
     filtro_activo = leer_texto(p, "ui", "filtro_activo").lower()
-    if filtro_activo not in ("todos", "texto", "superchat", "miembro"):
+    if filtro_activo not in ("todos", "texto", "superchat", "miembro", "avisos"):
         filtro_activo = "todos"
 
     return {
         **_opciones_voz(p, ruta),
-        "estrategia": estrategia,
-        "tamanio_maximo": leer_entero(p, "cola", "tamanio_maximo", lo=1),
+        "estrategia": estrategia, "tamanio_maximo": leer_entero(p, "cola", "tamanio_maximo", lo=1),
         "umbral_solo_nombre": leer_entero(p, "cola", "umbral_solo_nombre"),
         "reconectar": leer_booleano(p, "reconexion", "reconectar"),
         "espera_entre_intentos": leer_entero(p, "reconexion", "espera_entre_intentos", lo=1),
@@ -406,8 +403,11 @@ def cargar_configuracion() -> dict:
         "filtro_activo": filtro_activo,
         "silenciar_sonidos": leer_booleano(p, "ui", "silenciar_sonidos"),
         "silenciar_lectura": leer_booleano(p, "sesion", "silenciar_lectura"),
-        "tiktok_anunciar_entradas": leer_booleano(p, "tiktok", "anunciar_entradas"),
-        "tiktok_leer_me_gusta": leer_booleano(p, "tiktok", "leer_me_gusta"),
+        "tiktok_aviso_entradas": leer_texto(p, "tiktok", "aviso_entradas"),
+        "tiktok_aviso_me_gusta": leer_texto(p, "tiktok", "aviso_me_gusta"),
+        "tiktok_aviso_seguidores": leer_texto(p, "tiktok", "aviso_seguidores"),
+        "tiktok_aviso_compartidos": leer_texto(p, "tiktok", "aviso_compartidos"),
+        "tiktok_aviso_cofres": leer_texto(p, "tiktok", "aviso_cofres"),
         "tiktok_usuario": leer_texto(p, "tiktok", "usuario"),
         **_opciones_transmision(p),
         "programados_activo": leer_booleano(p, "programados", "activo"),

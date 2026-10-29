@@ -57,8 +57,8 @@ from ytchat.ui.gui_redactar import PanelRedactar
 from ytchat.ui.sesion_conectada import SesionConectada
 
 # Mapeo entre índice de FILTROS y clave persistida en config.ini.
-_NOMBRES_FILTRO = ("todos", "texto", "superchat", "miembro")
-_IDX_FILTRO     = {"todos": 0, "texto": 1, "superchat": 2, "miembro": 3}
+_NOMBRES_FILTRO = ("todos", "texto", "superchat", "miembro", "avisos")
+_IDX_FILTRO     = {"todos": 0, "texto": 1, "superchat": 2, "miembro": 3, "avisos": 4}
 # Controles para AnuncioAjuste.COMPARTIDO, compartidos con el reproductor.
 _CONTROL_VELOCIDAD = "velocidad_voz"
 _CONTROL_VOLUMEN = "volumen_voz"

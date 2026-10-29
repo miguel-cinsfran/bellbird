@@ -572,10 +572,11 @@ class PruebasPseudoTTS(unittest.TestCase):
         self.assertTrue(texto.startswith("[¡"), texto)
 
     def test_eventos_de_entrada_marcados(self):
+        config = _config_marcado(tiktok_aviso_entradas="leer")
         with con_pseudo():
             textos = [
                 self._tts(main.TIPO_MIEMBRO, ""),
-                self._tts(main.TIPO_ENTRADA, ""),
+                self._tts(main.TIPO_ENTRADA, "", config=config),
                 self._tts(main.TIPO_SEGUIR, ""),
                 self._tts(main.TIPO_COMPARTIR, ""),
                 self._tts(main.TIPO_COFRE, ""),
@@ -584,7 +585,7 @@ class PruebasPseudoTTS(unittest.TestCase):
             self.assertTrue(texto.startswith("[¡"), texto)
 
     def test_me_gusta_con_y_sin_monto_marcado(self):
-        config = _config_marcado(tiktok_leer_me_gusta=True)
+        config = _config_marcado(tiktok_aviso_me_gusta="leer")
         with con_pseudo():
             con_monto = self._tts(main.TIPO_ME_GUSTA, "", "15",
                                    config=config)

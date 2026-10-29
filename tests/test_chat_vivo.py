@@ -4,8 +4,9 @@ import unittest
 from unittest import mock
 
 from ytchat.core.config import (
-    TIPO_ME_GUSTA, TIPO_SUPERCHAT, TIPO_TEXTO,
+    TIPO_ENTRADA, TIPO_ME_GUSTA, TIPO_SUPERCHAT, TIPO_TEXTO,
 )
+from ytchat.core.avisos_tiktok import TIPOS_AVISO
 from ytchat.ui import chat_vivo
 from ytchat.ui.chat_vivo import ControladorChat
 from ytchat.ui.lista_chat import MensajeChat
@@ -179,6 +180,15 @@ class TestControladorChat(unittest.TestCase):
             control.reconstruir()
         control.lista.Clear.assert_called_once_with()
         control.lista.Append.assert_called_once_with("Ana: visto, 12:00")
+
+    def test_filtro_avisos_deja_solo_los_avisos_en_la_lista(self):
+        control = _controlador(filtro=TIPOS_AVISO)
+        with mock.patch.object(chat_vivo._snd, "reproducir"):
+            control._procesar(_registro(tipo=TIPO_TEXTO, texto="comun"))
+            control._procesar(_registro(tipo=TIPO_ENTRADA, texto="nuevo"))
+        control.lista.Append.assert_called_once_with("Ana: nuevo, 12:00")
+        self.assertEqual(len(control.modelo.todos), 2)
+        self.assertEqual(len(control.modelo.visibles), 1)
 
 
 if __name__ == "__main__":

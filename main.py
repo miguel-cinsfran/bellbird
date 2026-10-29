@@ -26,6 +26,7 @@ from ytchat.core.config import (
     TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
     configurar_logging, cargar_configuracion, cargar_sonidos,
 )
+from ytchat.core import avisos_tiktok
 from ytchat.core import paths
 from ytchat.core import migracion_datos
 
@@ -47,10 +48,8 @@ logger = diagnostico.obtener_logger(__name__)
 
 # Traducción pytchat → tipos internos.
 _TIPO_MAP = {
-    "textMessage":  TIPO_TEXTO,
-    "superChat":    TIPO_SUPERCHAT,
-    "superSticker": TIPO_STICKER,
-    "newSponsor":   TIPO_MIEMBRO,
+    "textMessage": TIPO_TEXTO, "superChat": TIPO_SUPERCHAT,
+    "superSticker": TIPO_STICKER, "newSponsor": TIPO_MIEMBRO,
 }
 
 
@@ -122,8 +121,7 @@ def extraer_video_id(entrada: str) -> str:
 def _descargar_watch(video_id: str, timeout: float = 8.0, al_fallar=None) -> str:
     """Descarga (parcial) el HTML del watch. Cadena vacía si falla."""
     try:
-        req = urllib.request.Request(
-            f"https://www.youtube.com/watch?v={video_id}",
+        req = urllib.request.Request(f"https://www.youtube.com/watch?v={video_id}",
             headers={
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
                 "Accept-Language": "es-ES,es;q=0.9",
@@ -211,8 +209,7 @@ def _metadatos_desde_ytdlp(info: dict) -> dict:
 
 def _info_video_con_modulo(video_id: str) -> dict:
     import yt_dlp
-    opts = {"quiet": True, "no_warnings": True, "skip_download": True,
-            "noplaylist": True,
+    opts = {"quiet": True, "no_warnings": True, "skip_download": True, "noplaylist": True,
             # Evita que una red lenta cuelgue indefinidamente la detección live/VOD.
             "socket_timeout": 20}
     with yt_dlp.YoutubeDL(opts) as ydl:
@@ -398,6 +395,11 @@ def procesar_entrante(autor, mensaje, tipo, monto, canal_id, cola, config, stats
     stats.inc("recibidos")
     if tipo in (TIPO_SUPERCHAT, TIPO_STICKER): stats.inc("superchats")
 
+    modo = avisos_tiktok.modo_de(config, tipo)
+    if modo == "ocultar":
+        stats.inc("filtrados")
+        return
+
     if not permitido(autor, mensaje, config):
         stats.inc("filtrados"); return
 
@@ -435,8 +437,8 @@ def procesar_entrante(autor, mensaje, tipo, monto, canal_id, cola, config, stats
     hora = datetime.now().strftime('%H:%M:%S')
     if on_message: on_message(autor, mensaje, hora, tipo, monto, canal_id, rol=rol)
 
-    if tipo == TIPO_ME_GUSTA and not config.get("tiktok_leer_me_gusta"):
-        return  # sin la casilla solo suena en la GUI
+    if modo == "mostrar":
+        return  # en la lista con su sonido, sin leer
 
     if debe_leer_tts(autor, config) and (sesion_activa is None or sesion_activa()):
         item = {"texto_tts": tts_text, "autor": autor_visible}
@@ -648,8 +650,7 @@ def _captura_en_loop(video_id, cola, config, parada, stats, on_message, on_estad
                     if tipo in (TIPO_SUPERCHAT, TIPO_STICKER):
                         monto = _str(getattr(c, "amountString", None), "")
                     logger.debug("YOUTUBE_EVENTO tipo=%s monto=%s", tipo, monto)
-                    procesar_entrante(autor, mensaje, tipo, monto, canal_id,
-                                      cola, config, stats,
+                    procesar_entrante(autor, mensaje, tipo, monto, canal_id, cola, config, stats,
                                       on_message=on_message,
                                       sesion_activa=sesion_activa, rol=rol)
 
@@ -716,8 +717,7 @@ def _mensaje_error_amigable(exc) -> str:
 
 def armar_callbacks_captura(cola, config, stats, parada):
     """Arma una conexión y devuelve sus dos callbacks asociados."""
-    conexiones = conexion.Conexiones(cola, config, stats, parada,
-                                       vista=VistaGui())
+    conexiones = conexion.Conexiones(cola, config, stats, parada, vista=VistaGui())
     return conexiones.conectar, conexiones.desconectar
 
 

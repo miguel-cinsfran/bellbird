@@ -28,12 +28,11 @@ import re
 import sys
 import time
 
+from ytchat.core import avisos_tiktok
 from ytchat.core import diagnostico
 from ytchat.core import paths
-from ytchat.core.config import (
-    TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_MIEMBRO, TIPO_ENTRADA,
-    TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
-)
+from ytchat.core.config import (TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_MIEMBRO, TIPO_ENTRADA,
+    TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA)
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -462,7 +461,7 @@ def capturar_con_reconexion(usuario, config, parada, on_evento,
         conecto[0] = False
         try:
             err = _sesion(usuario, parada, on_evento, _estado, on_info, on_espectadores,
-                          anunciar_entradas=bool(config.get("tiktok_anunciar_entradas")))
+                           anunciar_entradas=avisos_tiktok.modo_de(config, TIPO_ENTRADA) != "ocultar")
         except Exception as exc:
             # Nada de lo que salga de _sesion puede matar el hilo: se trata
             # como un error de conexión y sigue la misma política de reintentos.

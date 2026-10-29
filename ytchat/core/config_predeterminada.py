@@ -128,8 +128,11 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("version_atajos", "2"),
     ]),
     ("tiktok", [
-        ("anunciar_entradas", "false"),
-        ("leer_me_gusta", "false"),
+        ("aviso_entradas", "mostrar"),
+        ("aviso_me_gusta", "mostrar"),
+        ("aviso_seguidores", "leer"),
+        ("aviso_compartidos", "leer"),
+        ("aviso_cofres", "leer"),
         ("usuario", ""),
     ]),
     ("programados", [

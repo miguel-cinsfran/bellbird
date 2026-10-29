@@ -85,5 +85,66 @@ class TestCambiosDeLectura(unittest.TestCase):
         self.assertEqual([], sin_marcar)
 
 
+AVISOS_ESPERADOS = (
+    ("cho_aviso_entradas", "tiktok_aviso_entradas", "Entradas al directo"),
+    ("cho_aviso_me_gusta", "tiktok_aviso_me_gusta", "Me gusta"),
+    ("cho_aviso_seguidores", "tiktok_aviso_seguidores", "Seguidores nuevos"),
+    ("cho_aviso_compartidos", "tiktok_aviso_compartidos", "Directo compartido"),
+    ("cho_aviso_cofres", "tiktok_aviso_cofres", "Cofres"),
+)
+
+
+class TestAvisosTiktok(unittest.TestCase):
+    """Los cinco avisos de TikTok: lista con nombre accesible y valor.
+
+    Abren ventanas: las corre el advisor en la otra PC, no se corren acá.
+    """
+
+    def setUp(self):
+        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.ruta = Path(self.tmp.name)
+        (self.ruta / "config.ini").write_text(config._CONFIG_FALLBACK,
+                                              encoding="utf-8")
+        parche = redirigir_rutas(self.ruta)
+        parche.__enter__()
+        self.addCleanup(parche.__exit__, None, None, None)
+
+    def _dialogo(self, configuracion=None):
+        with mock.patch.object(motores, "listar_voces",
+                               return_value=["Voz de prueba"]):
+            dialogo = gui_preferencias.PreferenciasDialog(
+                None, configuracion or {})
+        self.addCleanup(destruir, dialogo)
+        return dialogo
+
+    def test_las_cinco_listas_tienen_su_nombre_y_su_valor(self):
+        dialogo = self._dialogo({"tiktok_aviso_entradas": "ocultar",
+                                 "tiktok_aviso_cofres": "mostrar"})
+        esperados = {"cho_aviso_entradas": ("Entradas al directo", "ocultar"),
+                     "cho_aviso_me_gusta": ("Me gusta", "mostrar"),
+                     "cho_aviso_seguidores": ("Seguidores nuevos", "leer"),
+                     "cho_aviso_compartidos": ("Directo compartido", "leer"),
+                     "cho_aviso_cofres": ("Cofres", "mostrar")}
+        for atributo, en_memoria, nombre in AVISOS_ESPERADOS:
+            with self.subTest(atributo=atributo):
+                control = getattr(dialogo, atributo)
+                self.assertEqual(control.GetName(), nombre)
+                self.assertEqual(control.GetValue(), esperados[atributo][1])
+
+    def test_guardar_escribe_la_clave_del_ini(self):
+        dialogo = self._dialogo()
+        dialogo.cho_aviso_cofres.SetValue("ocultar")
+        with mock.patch.object(gui_preferencias._snd, "reproducir"), \
+                mock.patch.object(gui_preferencias, "anunciar"), \
+                mock.patch.object(dialogo, "EndModal"):
+            dialogo._on_guardar(None)
+        self.assertEqual(dialogo._config.get("tiktok_aviso_cofres"), "ocultar")
+        parser = config._mk_parser()
+        parser.read(self.ruta / "config.ini", encoding="utf-8")
+        self.assertEqual(parser.get("tiktok", "aviso_cofres"), "ocultar")
+
+
 if __name__ == "__main__":
     unittest.main()

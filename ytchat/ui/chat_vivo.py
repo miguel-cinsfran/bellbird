@@ -13,6 +13,7 @@ import wx
 from ytchat.capture.tiktok_captura import debe_pasar_me_gusta
 from ytchat.core import diagnostico
 from ytchat.core import sonidos_eventos
+from ytchat.core.avisos_tiktok import pasa_filtro
 from ytchat.core.config import (
     TIPO_ME_GUSTA, TIPO_MIEMBRO, TIPO_STICKER, TIPO_SUPERCHAT,
 )
@@ -63,7 +64,7 @@ class ControladorChat:
         # borrar al principio, para que fila y mensaje sigan alineados: si no,
         # pasados 500 mensajes, copiar o banear caerían sobre el mensaje
         # equivocado.
-        visible = self.filtro is None or registro.tipo == self.filtro
+        visible = pasa_filtro(self.filtro, registro.tipo)
         borrar = self.modelo.agregar(registro, visible)
         for _sin_uso in range(borrar):
             self.lista.Delete(0)
@@ -150,7 +151,7 @@ class ControladorChat:
         self.lista.Clear()
         visibles = self.modelo.reconstruir(
             lambda it: not self._autor_oculto(it.autor)
-            and (self.filtro is None or it.tipo == self.filtro))
+            and pasa_filtro(self.filtro, it.tipo))
         for registro in visibles:
             self.lista.Append(self._formatear(
                 registro.autor, registro.texto, registro.hora, registro.tipo, registro.monto))

@@ -109,7 +109,7 @@ Dirección directa:
 > permite restringirla y renombrarla pero **no muestra su valor**.
 
 Con esto ya se pueden **leer comentarios**. En Bellbird: menú Herramientas,
-**Preferencias…**, página **API y sesión**, pegar la clave en el campo **Clave
+**Preferencias…**, categoría **API y sesión**, pegar la clave en el campo **Clave
 de API**, pulsar **Guardar claves** y cerrar. Quien solo quiera leer ha terminado aquí.
 
 ---
@@ -191,7 +191,7 @@ Dirección directa:
 
 ## Paso 6 — Meter los datos en la aplicación
 
-1. Abrir Bellbird, menú Herramientas, **Preferencias…**, página **API y sesión**.
+1. Abrir Bellbird, menú Herramientas, **Preferencias…**, categoría **API y sesión**.
 2. Pegar la **clave de API** del paso 3, y el **ID de cliente** y el **Secreto de
    cliente** del paso 5, cada uno en su campo.
 3. Pulsar **Guardar claves**.

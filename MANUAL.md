@@ -123,7 +123,7 @@ regalos de TikTok por tamaño, seguidores, entradas, la conexión, errores,
 y la orilla al llegar al principio o al final de una lista. `F7` los
 silencia todos. Para callar uno solo, destilda su casilla en
 *Preferencias, Sonidos*, donde *Oír sonido elegido* deja oír cada uno.
-El tema de sonido se elige en la misma página, arriba de la lista:
+El tema de sonido se elige en la misma categoría, arriba de la lista:
 `default`, con sonidos grabados, o `suave`, más cortos y tenues. Para
 hacer uno propio, copia `sounds/themes/default` con otro nombre y cambia
 los `.wav`. `sounds/CREDITOS.md` dice de dónde sale cada sonido.
@@ -209,7 +209,7 @@ principio y al final. El largo del fundido se elige en *Preferencias,
 Música*, en *Fundido entre canciones, en segundos*: de 0 a 12, con 6 de
 fábrica, y 0 lo desactiva. Pasar de canción con el atajo hace un fundido
 corto, de medio segundo. El sonido de cambio de canción viene apagado de
-fábrica y se activa en la misma página.
+fábrica y se activa en la misma categoría.
 
 La casilla *Usar atajos de música en cualquier programa* hace que
 funcionen aunque estés en OBS o en un juego. Viene apagada porque,
@@ -367,7 +367,7 @@ falta OBS abierto y la clave de un proveedor.
 proveedor (Google Gemini, OpenAI, Anthropic, OpenRouter, OpenCode Go,
 Command Code u otro compatible con OpenAI), guardas su clave y eliges el
 modelo. La clave queda en el Administrador de credenciales de Windows, no
-en `config.ini`, y la página nunca la muestra: solo dice que está
+en `config.ini`, y la categoría nunca la muestra: solo dice que está
 guardada y sus cuatro últimos caracteres. *Probar clave* manda un
 pedido corto y dice si funciona.
 
@@ -377,7 +377,7 @@ Con Gemini lo gratis depende de la clave, así que la lista prueba cada
 modelo con la tuya y marca los que funcionan. Tarda unos 30 segundos y
 suena un aviso mientras tanto.
 
-En la misma página se cambia la instrucción que acompaña a cada captura,
+En la misma categoría se cambia la instrucción que acompaña a cada captura,
 el largo de la respuesta, el tiempo de espera y si se dice «Analizando…»
 mientras espera.
 
@@ -513,7 +513,7 @@ valen solo con la aplicación al frente; la casilla *Leer mensajes
 recientes en cualquier programa* de *Preferencias, Lectura* los hace valer
 en cualquier programa, como los atajos de música.
 
-En la misma página, *Leer los mensajes recientes con* elige quién los
+En la misma categoría, *Leer los mensajes recientes con* elige quién los
 lee: el lector de pantalla, como viene de fábrica, o la voz de la
 aplicación. Con la voz, el mensaje pedido suena en cuanto termina lo que
 se está leyendo, y después siguen los mensajes que esperaban, en su

@@ -86,3 +86,7 @@ gen_py/
 
 # Índice local del código, se regenera.
 /graft/
+
+# Catálogos compilados y plantilla: se generan con scripts/traducciones.py.
+idiomas/**/*.mo
+idiomas/*.pot

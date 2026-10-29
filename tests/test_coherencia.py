@@ -342,13 +342,14 @@ def _filas_de_tabla(nodo, tablas):
 
 def _pares_con_control():
     """Pares con control en Preferencias: tablas `_OPCIONES_SIMPLES`,
-    `OPCIONES_MUSICA`, `OPCIONES_LECTURA` y `OPCIONES_IA`, más llamadas
-    literales `self._set(...)`, `fijar(...)` y `guardar_opcion(...)` de esos
-    archivos."""
+    `OPCIONES_GENERAL`, `OPCIONES_MUSICA`, `OPCIONES_LECTURA` y
+    `OPCIONES_IA`, más llamadas literales `self._set(...)`, `fijar(...)` y
+    `guardar_opcion(...)` de esos archivos."""
     con_control = set()
     tablas = {}
     arboles = {rel: _arbol(rel) for rel in (
-        "ytchat/ui/gui_preferencias.py", "ytchat/ui/preferencias_musica.py",
+        "ytchat/ui/gui_preferencias.py", "ytchat/ui/preferencias_general.py",
+        "ytchat/ui/preferencias_musica.py",
         "ytchat/ui/preferencias_lectura.py", "ytchat/ui/preferencias_ia.py",
         "ytchat/ui/preferencias_voz.py")}
     for arbol in arboles.values():
@@ -358,7 +359,8 @@ def _pares_con_control():
             destinos = nodo.targets if isinstance(nodo, ast.Assign) else [nodo.target]
             for destino in destinos:
                 if isinstance(destino, ast.Name) and destino.id in (
-                        "_OPCIONES_SIMPLES", "OPCIONES_MUSICA",
+                        "_OPCIONES_SIMPLES", "OPCIONES_GENERAL",
+                        "OPCIONES_MUSICA",
                         "OPCIONES_LECTURA", "OPCIONES_IA"):
                     tablas[destino.id] = nodo.value
     for tabla in tablas.values():
@@ -405,7 +407,8 @@ class PruebaConfiguracion(unittest.TestCase):
         self.assertEqual(
             faltan, [],
             "Pares de fábrica sin control en Preferencias "
-            "(ytchat/ui/gui_preferencias.py, ytchat/ui/preferencias_musica.py, "
+            "(ytchat/ui/gui_preferencias.py, ytchat/ui/preferencias_general.py, "
+            "ytchat/ui/preferencias_musica.py, "
             "ytchat/ui/preferencias_lectura.py, ytchat/ui/preferencias_ia.py, "
             "ytchat/ui/preferencias_voz.py): "
             f"{faltan}")

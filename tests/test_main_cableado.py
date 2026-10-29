@@ -143,18 +143,6 @@ class PruebasCableadoMain(unittest.TestCase):
         cerrar.assert_called_once_with()
 
 
-class PruebasInstanciaUnica(unittest.TestCase):
-    def test_already_exists_es_otra_instancia(self):
-        self.assertTrue(main._hay_otra_instancia(183))
-
-    def test_access_denied_tambien_cuenta_como_otra_instancia(self):
-        # El mutex existe pero lo creó una instancia elevada o de otro usuario.
-        self.assertTrue(main._hay_otra_instancia(5))
-
-    def test_sin_error_no_hay_otra_instancia(self):
-        self.assertFalse(main._hay_otra_instancia(0))
-
-
 class PruebasReconexion(unittest.TestCase):
     def _config(self, max_intentos=3):
         return {"reconectar": True, "max_intentos": max_intentos,

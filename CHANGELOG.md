@@ -43,7 +43,7 @@ Paraguay.
 - En TikTok, los me gusta se escriben en la lista del chat, una fila por
   persona: «Ana dio 15 me gusta». Antes solo sonaban.
 - Cada aviso de un directo de TikTok tiene su modo en *Preferencias*,
-  página *Lectura*: entradas, me gusta, seguidores, compartidos y cofres.
+  categoría *Lectura*: entradas, me gusta, seguidores, compartidos y cofres.
   Cada uno se puede leer en voz alta, solo mostrar con su sonido, o no
   mostrar. De fábrica se leen los seguidores, los compartidos y los
   cofres, y las entradas y los me gusta solo se muestran. Si ya tenías
@@ -51,10 +51,19 @@ Paraguay.
 - La lista del chat tiene el filtro *Avisos*, que deja ver solo esos
   avisos de TikTok.
 - La app está también en inglés. El idioma se elige en *Preferencias*,
-  página *General*, y se aplica al reiniciar. De fábrica usa el idioma de
+  categoría *General*, y se aplica al reiniciar. Al guardar, un cuadro
+  ofrece *Reiniciar ahora* o *Más tarde*. De fábrica usa el idioma de
   Windows.
+- Sin conexión, la ventana principal muestra la lista *Directos
+  recientes* con los diez últimos directos y vídeos, de YouTube y TikTok.
+  Intro sobre uno lo vuelve a abrir.
+- El historial y los directos recientes muestran la fecha corta, como
+  27/10/2026, en lugar de 2026-10-27.
 - Los textos de la app usan los términos de Windows, como *Eliminar* e
-  *Intro*, y frases más cortas.
+  *Intro*, y frases más cortas. Algunos nombres cambian: *Administrador de
+  descargas*, *Leer en voz alta*, *Clave de API*, y *voz* donde antes
+  decía TTS. Cada sección de *Preferencias* se llama categoría, como en
+  NVDA.
 
 ### Arreglos
 
@@ -64,7 +73,7 @@ Paraguay.
   vídeo no vuelve a empezar solo.
 - En *Descargas*, el estado de una descarga que espera se lee «en cola»,
   sin el guion bajo.
-- Ninguna letra de acceso se repite en las páginas de *Preferencias* ni
+- Ninguna letra de acceso se repite en las categorías de *Preferencias* ni
   en los cuadros de transmisión, comentarios e historial.
 
 ## 2.5.1, octubre de 2026

@@ -48,6 +48,17 @@ def _yt_dlp():
     import yt_dlp  # noqa: F401
 
 
+def _idiomas():
+    import gettext
+
+    from ytchat.core import idioma
+    from ytchat.core import paths
+    carpeta = paths.carpeta_idiomas()
+    for codigo in idioma.codigos_con_catalogo(carpeta):
+        gettext.translation(
+            idioma.DOMINIO, localedir=str(carpeta), languages=[codigo])
+
+
 def _vlc():
     from ytchat.player import motor_vlc
     if not motor_vlc.cargar():
@@ -76,6 +87,7 @@ PIEZAS = (
     ("API de Google", _api_google),
     ("yt-dlp", _yt_dlp),
     ("VLC", _vlc),
+    ("Idiomas", _idiomas),
 )
 
 

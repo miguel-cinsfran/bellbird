@@ -104,6 +104,12 @@ robocopy "dist\Bellbird" "%OUT%" /E /NFL /NDL /NJH /NJS /NP >nul
 robocopy "sounds" "%OUT%\sounds" /E /NFL /NDL /NJH /NJS /NP >nul
 robocopy "docs"   "%OUT%\docs"   /E /NFL /NDL /NJH /NJS /NP >nul
 robocopy "web"    "%OUT%\web"    /E /NFL /NDL /NJH /NJS /NP >nul
+echo == Compilando los catalogos de traduccion ==
+REM Sin .po no hace nada y no es error: el paquete sale sin idiomas.
+call uv run python scripts\traducciones.py compilar
+if errorlevel 1 ( echo ERROR compilando los catalogos de traduccion. & pause & exit /b 1 )
+REM Solo viajan los .mo compilados, con sus carpetas.
+robocopy "idiomas" "%OUT%\idiomas" *.mo /S /NFL /NDL /NJH /NJS /NP >nul
 if not exist "catalogo_ia.json" ( echo ERROR: falta catalogo_ia.json en la raiz; hay que correr uv run python scripts/actualizar_catalogo_ia.py para generarlo. & pause & exit /b 1 )
 copy /y "catalogo_ia.json" "%OUT%\" >nul
 
@@ -203,6 +209,8 @@ if errorlevel 1 (
 if exist "%OUT%\config.ini" ( echo ERROR: config.ini quedo en el paquete y pisaria el del usuario. & pause & exit /b 1 )
 if not exist "%OUT%\_internal\googleapiclient\discovery_cache\documents\youtube.v3.json" ( echo ERROR: falta youtube.v3.json en el discovery cache; la app no podria hablar con la API. & pause & exit /b 1 )
 if not exist "%OUT%\_internal\prism\_native\_prism_cffi.pyd" ( echo ERROR: falta _prism_cffi.pyd en prism\_native; sin Prism la app arrancaria sin voz ni lector de pantalla. & pause & exit /b 1 )
+REM Cada .po del repositorio tiene que viajar compilado en el paquete.
+for /D %%c in ("idiomas\*") do if exist "%%c\LC_MESSAGES\bellbird.po" if not exist "%OUT%\idiomas\%%~nxc\LC_MESSAGES\bellbird.mo" ( echo ERROR: falta el catalogo compilado de %%~nxc en el paquete. & pause & exit /b 1 )
 echo == Comprobando que el paquete carga lo critico ==
 del /q "%TEMP%\ytchat-autocomprobacion.txt" 2>nul
 start "" /wait "%OUT%\Bellbird.exe" --autocomprobar "%TEMP%\ytchat-autocomprobacion.txt"

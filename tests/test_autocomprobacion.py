@@ -7,7 +7,11 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+from babel.messages import catalog, pofile
+
+from scripts import traducciones
 from ytchat.core import autocomprobacion
+from ytchat.core import paths
 
 
 RAIZ = Path(__file__).resolve().parents[1]
@@ -83,13 +87,63 @@ class TestPrincipal(unittest.TestCase):
             self.assertEqual(codigo, 2)
 
 
+class TestPiezaIdiomas(unittest.TestCase):
+    """La pieza Idiomas carga cada catálogo compilado, sin red de fallback."""
+
+    def _pieza(self):
+        piezas = dict(autocomprobacion.PIEZAS)
+        self.assertIn("Idiomas", piezas)
+        return piezas["Idiomas"]
+
+    def test_sin_catalogos_da_ok(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with mock.patch.object(paths, "carpeta_idiomas",
+                                   return_value=Path(tmp)):
+                resultados = autocomprobacion.comprobar(
+                    [("Idiomas", self._pieza())])
+        self.assertEqual(resultados, [("Idiomas", None)])
+
+    def test_mo_bueno_compilado_da_ok(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            idiomas = Path(tmp)
+            destino = idiomas / "en" / "LC_MESSAGES"
+            destino.mkdir(parents=True)
+            catalogo = catalog.Catalog(locale="en", domain="bellbird")
+            catalogo.add("Guardado", string="Saved")
+            with (destino / "bellbird.po").open("wb") as salida:
+                pofile.write_po(salida, catalogo)
+            compilados = traducciones.compilar(idiomas)
+            self.assertEqual(len(compilados), 1)
+            with mock.patch.object(paths, "carpeta_idiomas",
+                                   return_value=idiomas):
+                resultados = autocomprobacion.comprobar(
+                    [("Idiomas", self._pieza())])
+        self.assertEqual(resultados, [("Idiomas", None)])
+
+    def test_mo_basura_da_falla(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            idiomas = Path(tmp)
+            destino = idiomas / "en" / "LC_MESSAGES"
+            destino.mkdir(parents=True)
+            (destino / "bellbird.mo").write_bytes(
+                b"esto no es un catalogo gettext")
+            with mock.patch.object(paths, "carpeta_idiomas",
+                                   return_value=idiomas):
+                resultados = autocomprobacion.comprobar(
+                    [("Idiomas", self._pieza())])
+        self.assertEqual(len(resultados), 1)
+        nombre, error = resultados[0]
+        self.assertEqual(nombre, "Idiomas")
+        self.assertIsNotNone(error)
+
+
 class TestPiezas(unittest.TestCase):
 
-    def test_los_siete_nombres_en_orden(self):
+    def test_los_ocho_nombres_en_orden(self):
         self.assertEqual(
             [nombre for nombre, _ in autocomprobacion.PIEZAS],
             ["wxPython", "Prism", "pytchat", "TikTokLive", "API de Google",
-             "yt-dlp", "VLC"])
+             "yt-dlp", "VLC", "Idiomas"])
 
 
 class TestPiezasReales(unittest.TestCase):
@@ -108,7 +162,7 @@ class TestPiezasReales(unittest.TestCase):
 class TestCorridaRealDeMain(unittest.TestCase):
     """Lanza `main.py --autocomprobar` de verdad, en un subproceso."""
 
-    def test_escribe_siete_ok_y_sale_cero(self):
+    def test_escribe_ocho_ok_y_sale_cero(self):
         destino_data = RAIZ / "data"
         habia_data = destino_data.exists()
         with tempfile.TemporaryDirectory() as tmp:
@@ -129,6 +183,7 @@ class TestCorridaRealDeMain(unittest.TestCase):
             "OK API de Google",
             "OK yt-dlp",
             "OK VLC",
+            "OK Idiomas",
         ])
         if not habia_data:
             self.assertFalse(destino_data.exists())

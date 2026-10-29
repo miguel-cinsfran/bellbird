@@ -238,7 +238,7 @@ def _construir_menu_ayuda(frame, mb):
     mi_about = m.Append(wx.ID_ABOUT, _("&Acerca de"))
     mb.Append(m, _("A&yuda"))
     frame.Bind(wx.EVT_MENU, lambda e: webbrowser.open(
-        "https://github.com/miguel-cinsfran/ytchat-tts/blob/main/docs/CONFIGURACION_API.md"),
+        "https://github.com/miguel-cinsfran/bellbird/blob/main/docs/CONFIGURACION_API.md"),
         mi_guia)
     frame.Bind(wx.EVT_MENU, lambda e: wx.CallAfter(
         frame._on_marcar_incidencia, None), mi_incidente)

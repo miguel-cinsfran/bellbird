@@ -22,7 +22,7 @@ from ytchat.youtube import youtube_api
 logger = diagnostico.obtener_logger(__name__)
 
 
-URL_GUIA = "https://github.com/miguel-cinsfran/ytchat-tts/blob/main/docs/CONFIGURACION_API.md"
+URL_GUIA = "https://github.com/miguel-cinsfran/bellbird/blob/main/docs/CONFIGURACION_API.md"
 
 
 class PaginaApi:

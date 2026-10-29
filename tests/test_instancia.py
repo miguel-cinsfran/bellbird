@@ -95,7 +95,7 @@ class PruebasEsperarProceso(unittest.TestCase):
 class PruebasVerificarInstanciaUnica(unittest.TestCase):
     def test_el_nombre_del_mutex_de_la_app_no_cambia(self):
         self.assertEqual(instancia._NOMBRE_MUTEX,
-                         "YTChatTTS_SingleInstance_Mutex")
+                          "Bellbird_SingleInstance_Mutex")
 
     @unittest.skipUnless(sys.platform == "win32", "El mutex es de Windows.")
     def test_la_segunda_instancia_en_otro_proceso_da_falso(self):

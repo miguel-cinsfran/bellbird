@@ -12,7 +12,7 @@ _mutex_handle = None
 _ERROR_ACCESS_DENIED = 5      # el mutex existe pero es de otro usuario / instancia elevada
 _ERROR_ALREADY_EXISTS = 183   # el mutex ya lo tiene otra instancia de este usuario
 
-_NOMBRE_MUTEX = "YTChatTTS_SingleInstance_Mutex"
+_NOMBRE_MUTEX = "Bellbird_SingleInstance_Mutex"
 
 _SYNCHRONIZE = 0x00100000
 _TOPE_ESPERA_MS = 20000

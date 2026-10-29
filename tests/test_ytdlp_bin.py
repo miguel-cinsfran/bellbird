@@ -866,6 +866,31 @@ class PruebasDescargarVideoCache(unittest.TestCase):
 
 
 
+class TestUserAgentConVersionDeLaApp(unittest.TestCase):
+    """El User-Agent de las dos fuentes lleva la versión de la app."""
+
+    def test_actualizacion_usa_bellbird_y_version(self):
+        from ytchat.core import actualizacion
+        from ytchat.core.config import APP_VERSION
+        self.assertEqual(actualizacion.USER_AGENT, f"Bellbird/{APP_VERSION}")
+
+    def test_ytdlp_envia_bellbird_y_version(self):
+        from ytchat.core.config import APP_VERSION
+        esperado = f"Bellbird/{APP_VERSION}"
+        pedidos = []
+
+        def espia(solicitud, timeout=None):
+            pedidos.append(solicitud)
+            raise OSError("corte sin red")
+
+        with patch.object(ytdlp_bin, "urlopen", side_effect=espia):
+            ytdlp_bin.ultima_version_ytdlp()
+        self.assertTrue(pedidos, "ultima_version_ytdlp no pidió nada")
+        for pedido in pedidos:
+            with self.subTest(pedido=pedido.full_url):
+                self.assertEqual(pedido.get_header("User-agent"), esperado)
+
+
 class TestPseudoMensajesActualizacion(unittest.TestCase):
     """Pseudotraducción: cada anuncio de actualización sale marcado."""
 

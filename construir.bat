@@ -212,10 +212,10 @@ if not exist "%OUT%\_internal\prism\_native\_prism_cffi.pyd" ( echo ERROR: falta
 REM Cada .po del repositorio tiene que viajar compilado en el paquete.
 for /D %%c in ("idiomas\*") do if exist "%%c\LC_MESSAGES\bellbird.po" if not exist "%OUT%\idiomas\%%~nxc\LC_MESSAGES\bellbird.mo" ( echo ERROR: falta el catalogo compilado de %%~nxc en el paquete. & pause & exit /b 1 )
 echo == Comprobando que el paquete carga lo critico ==
-del /q "%TEMP%\ytchat-autocomprobacion.txt" 2>nul
-start "" /wait "%OUT%\Bellbird.exe" --autocomprobar "%TEMP%\ytchat-autocomprobacion.txt"
+del /q "%TEMP%\bellbird-autocomprobacion.txt" 2>nul
+start "" /wait "%OUT%\Bellbird.exe" --autocomprobar "%TEMP%\bellbird-autocomprobacion.txt"
 set "AUTOCOMP=%errorlevel%"
-type "%TEMP%\ytchat-autocomprobacion.txt" 2>nul
+type "%TEMP%\bellbird-autocomprobacion.txt" 2>nul
 if not "%AUTOCOMP%"=="0" ( echo ERROR: el paquete no carga todo lo critico, ver las lineas FALLA de arriba. & pause & exit /b 1 )
 rmdir /s /q "%OUT%\data" 2>nul
 set "OTROS_DOCS="

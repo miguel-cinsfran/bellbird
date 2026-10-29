@@ -13,6 +13,7 @@ from typing import NamedTuple
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+from ytchat.core import config
 from ytchat.core import diagnostico
 from ytchat.downloads import ffmpeg_bin
 from ytchat.core import paths
@@ -22,7 +23,6 @@ from ytchat.downloads.progreso_ytdlp import PLANTILLA, analizar_linea_progreso
 
 
 URL_API_RELEASES = "https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest"
-USER_AGENT = "ytchat-tts/2.0"
 NOMBRE_BINARIO = paths.NOMBRE_YTDLP
 NOMBRE_FIRMAS = "SHA2-256SUMS"
 TIEMPO_ESPERA = 30
@@ -33,6 +33,11 @@ if hasattr(diagnostico, "obtener_logger"):
     logger = diagnostico.obtener_logger(__name__)
 else:
     logger = logging.getLogger(f"ytchat.{__name__}")
+
+
+def _user_agent():
+    # Función y no constante: cuando diagnostico importa este módulo, config todavía no terminó de cargarse.
+    return f"Bellbird/{config.APP_VERSION}"
 
 
 class ResultadoDescarga(NamedTuple):
@@ -187,8 +192,7 @@ def _bombear_progreso(proceso, aviso_progreso, inicio, tope_segundos) -> bool:
     import queue
     import threading
     cola: queue.Queue = queue.Queue()
-    hilo = threading.Thread(target=_volcar_salida, args=(proceso, cola),
-                            daemon=True)
+    hilo = threading.Thread(target=_volcar_salida, args=(proceso, cola), daemon=True)
     hilo.start()
     while True:
         transcurrido = time.monotonic() - inicio
@@ -269,8 +273,7 @@ def descargar_audio(video_id: str, destino: Path, aviso_progreso=None,
     try:
         proceso = _lanzar_audio(_argumentos_audio(ruta, destino, video_id))
         inicio = time.monotonic()
-        if not _bombear_progreso(proceso, aviso_progreso, inicio,
-                                 tope_segundos):
+        if not _bombear_progreso(proceso, aviso_progreso, inicio, tope_segundos):
             return False
         if not _esperar_cierre(proceso, inicio, tope_segundos):
             return False
@@ -304,8 +307,7 @@ def _argumentos_video_cache(ruta: str | os.PathLike, temporal: Path, video_id: s
 
 
 def descargar_video_cache(video_id: str, destino: Path, cancel_event=None,
-                          tope_segundos: int = 3600,
-                          tope_mb: int | None = None) -> bool:
+                          tope_segundos: int = 3600, tope_mb: int | None = None) -> bool:
     """Descarga vídeo y audio completos a un archivo local limitado."""
     ruta = ruta_ytdlp()
     if ruta is None:
@@ -318,8 +320,7 @@ def descargar_video_cache(video_id: str, destino: Path, cancel_event=None,
                                          dir=destino.parent, delete=False) as archivo:
             temporal = Path(archivo.name)
         temporal.unlink()
-        argumentos = _argumentos_video_cache(ruta, temporal, video_id,
-                                             tope_mb=tope_mb)
+        argumentos = _argumentos_video_cache(ruta, temporal, video_id, tope_mb=tope_mb)
         from ytchat.core.subprocesos import Estado, ejecutar
         estado = ejecutar(
             argumentos, cancel_event=cancel_event, tope_segundos=tope_segundos,
@@ -354,15 +355,14 @@ def descargar_video_cache(video_id: str, destino: Path, cancel_event=None,
 def ultima_version_ytdlp() -> tuple[str, str, str] | None:
     """Devuelve versión, descarga del ejecutable y descarga de sus firmas."""
     try:
-        solicitud = Request(URL_API_RELEASES, headers={"User-Agent": USER_AGENT})
+        solicitud = Request(URL_API_RELEASES, headers={"User-Agent": _user_agent()})
         with urlopen(solicitud, timeout=TIEMPO_ESPERA) as respuesta:
             datos = json.load(respuesta)
         activos = {activo["name"]: activo for activo in datos["assets"]}
         ejecutable = activos[NOMBRE_BINARIO]["browser_download_url"]
         firmas = activos[NOMBRE_FIRMAS]["browser_download_url"]
         return datos["tag_name"], ejecutable, firmas
-    except (HTTPError, URLError, OSError, KeyError, TypeError, ValueError,
-            json.JSONDecodeError):
+    except (HTTPError, URLError, OSError, KeyError, TypeError, ValueError, json.JSONDecodeError):
         return None
 
 
@@ -398,7 +398,7 @@ def debe_actualizar_texto_progreso(anterior: int | None, actual: int | None) -> 
 
 
 def _descargar_archivo(url: str, destino: Path, aviso=None, cancelar=None) -> None:
-    solicitud = Request(url, headers={"User-Agent": USER_AGENT})
+    solicitud = Request(url, headers={"User-Agent": _user_agent()})
     with urlopen(solicitud, timeout=TIEMPO_ESPERA) as respuesta:
         total = None
         try:
@@ -469,7 +469,7 @@ def asegurar_ytdlp(destino: str | os.PathLike | None = None) -> ResultadoDescarg
         return ResultadoDescarga(False, "no se pudo consultar la última versión")
     _sin_uso, url_ejecutable, url_firmas = ultima
     try:
-        solicitud = Request(url_firmas, headers={"User-Agent": USER_AGENT})
+        solicitud = Request(url_firmas, headers={"User-Agent": _user_agent()})
         with urlopen(solicitud, timeout=TIEMPO_ESPERA) as respuesta:
             texto_firmas = respuesta.read().decode("utf-8")
     except (HTTPError, URLError, OSError, UnicodeError):
@@ -497,7 +497,7 @@ def actualizar_ytdlp(avisar_antes_descarga=None, aviso_progreso=None,
         return "ya_al_dia", version_instalada, version_nueva
 
     try:
-        solicitud = Request(url_firmas, headers={"User-Agent": USER_AGENT})
+        solicitud = Request(url_firmas, headers={"User-Agent": _user_agent()})
         with urlopen(solicitud, timeout=TIEMPO_ESPERA) as respuesta:
             texto_firmas = respuesta.read().decode("utf-8")
     except (HTTPError, URLError, OSError, UnicodeError):

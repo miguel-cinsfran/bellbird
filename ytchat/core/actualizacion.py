@@ -27,7 +27,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from ytchat.core import paths
-from ytchat.core.config import APP_NAME
+from ytchat.core.config import APP_NAME, APP_VERSION
 from ytchat.core.idioma import _
 
 
@@ -35,7 +35,7 @@ URL_ULTIMA_VERSION = (
     "https://api.github.com/repos/miguel-cinsfran/bellbird/releases/latest"
 )
 URL_PAGINA_RELEASES = "https://github.com/miguel-cinsfran/bellbird/releases/latest"
-USER_AGENT = "ytchat-tts/2.0"
+USER_AGENT = f"Bellbird/{APP_VERSION}"
 TIEMPO_ESPERA = 30
 
 logger = logging.getLogger(f"ytchat.{__name__}")

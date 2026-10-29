@@ -36,6 +36,7 @@ import argparse
 import glob
 import json
 import os
+import re
 import subprocess
 import sys
 import threading
@@ -3809,7 +3810,6 @@ def avisos_wx(lineas):
     una traza de Python, desde 'Traceback (most recent call last):'
     hasta su línea final de excepción inclusive.
     """
-    import re
     marcas = ("should be created as child", "failed with error", "Assert",
               "wxWidgets", "Warning:", "Error:")
     avisos = []

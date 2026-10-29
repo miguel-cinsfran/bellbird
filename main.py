@@ -539,14 +539,14 @@ def captura_con_reconexion(video_id, cola, config, parada, stats, on_message=Non
             _snd.reproducir("error")
             parada.set(); break
         espera = espera_reconexion(intentos, config["espera_entre_intentos"])
-        sfx, unidad = (f" de {mi}" if mi else ""), _("segundo") if espera == 1 else _("segundos")
+        unidad = _("segundo") if espera == 1 else _("segundos")
         motivo = str(err) if err is not None else "la conexión se cerró sin error"
-        logger.warning("Reconexión del chat video=%s, intento %s: %s",
-                       video_id, intentos, motivo)
-        # Traductores: {segundos} puede ser 1; {unidad} es «segundo» o «segundos»; {total} es « de N» o nada.
-        if on_estado: on_estado("reintentando", _("Se perdió la conexión con el chat. "
-            "Reintentando en {segundos} {unidad} (intento {intento}{total}).").format(
-                segundos=espera, unidad=unidad, intento=intentos, total=sfx))
+        logger.warning("Reconexión del chat video=%s, intento %s: %s", video_id, intentos, motivo)
+        # Traductores: {segundos} puede ser 1; {unidad}, segundo o segundos; {total}, el máximo.
+        if on_estado: on_estado("reintentando", (_("Se perdió la conexión con el chat. "
+            "Reintentando en {segundos} {unidad} (intento {intento} de {total}).") if mi else _("Se"
+            " perdió la conexión con el chat. Reintentando en {segundos} {unidad} (intento"
+            " {intento}).")).format(segundos=espera, unidad=unidad, intento=intentos, total=mi))
         stats.inc("reconexiones")
         _snd.reproducir("conectando")
         parada.wait(timeout=espera)

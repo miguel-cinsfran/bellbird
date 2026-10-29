@@ -199,6 +199,40 @@ class PruebasReconexion(unittest.TestCase):
         estados = self._correr(captura, self._config(max_intentos=3))
         self.assertTrue(any("agotaron los 3" in texto for _, texto in estados))
 
+    def test_aviso_de_reintento_con_maximo_pasa_la_plantilla_entera(self):
+        # La plantilla con {total} tiene que entrar entera en _(): el
+        # fragmento " de N" pegado fuera no lo puede ordenar un traductor.
+        anotados = []
+
+        def guion(texto):
+            anotados.append(texto)
+            return texto
+
+        llamadas = []
+
+        def captura(video_id, cola, cfg, parada, stats, on_message, on_estado,
+                    sesion_activa, filtro=None):
+            llamadas.append(1)
+            if len(llamadas) > 1:
+                parada.set()
+                return None
+            on_estado("conectado", "ok")
+            on_estado("leido", "ok")
+            return RuntimeError("microcorte")
+
+        estados = []
+        with patch.object(main, "_", side_effect=guion), \
+                patch.object(main, "_captura", side_effect=captura), \
+                patch.object(main, "_directo_terminado", return_value=False), \
+                patch.object(main._snd, "reproducir"):
+            main.captura_con_reconexion(
+                "v", queue.Queue(), self._config(max_intentos=3),
+                threading.Event(), main.Stats(),
+                on_estado=lambda tipo, texto: estados.append((tipo, texto)))
+        self.assertIn(
+            "Se perdió la conexión con el chat. Reintentando en {segundos} "
+            "{unidad} (intento {intento} de {total}).", anotados)
+
     def test_conectado_sin_leido_no_reinicia_los_intentos(self):
         caidas = [0]
 

@@ -34,6 +34,17 @@ class TestPaginaSonidos(unittest.TestCase):
         self.pagina = PaginaSonidos()
         self.panel = self.pagina.construir(self.libro)
 
+    def _pagina_con_temas(self, temas, actual):
+        with mock.patch.object(preferencias_sonidos.cfg,
+                               "listar_temas_sonido", return_value=temas), \
+                mock.patch.object(preferencias_sonidos.cfg,
+                                  "tema_sonido_actual", return_value=actual):
+            libro = wx.Notebook(wx.Frame(None), name="LibroPruebaTema")
+            self.addCleanup(libro.GetParent().Destroy)
+            pagina = PaginaSonidos()
+            pagina.construir(libro)
+        return pagina
+
     def test_lista_con_59_filas_marcadas(self):
         self.assertEqual(self.pagina._lista.GetItemCount(), 59)
         self.assertEqual(self.pagina._lista.GetItemCount(), len(EVENTOS))
@@ -88,6 +99,78 @@ class TestPaginaSonidos(unittest.TestCase):
             ruta = str(oir.call_args.args[0])
             self.assertTrue(ruta.endswith(f"{EVENTOS[0]}.wav"))
 
+    def test_cambiar_tema_suena_muestra_sin_guardar(self):
+        from ytchat.core import config as cfg
+        pagina = PaginaSonidos()
+        pagina.cho_tema = mock.Mock()
+        pagina.cho_tema.GetStringSelection.return_value = "suave"
+        evento = mock.Mock()
+        esperada = cfg.ruta_muestra_tema("suave")
+        with mock.patch.object(preferencias_sonidos._snd,
+                               "reproducir_archivo") as sonar, \
+                mock.patch.object(preferencias_sonidos.cfg,
+                                  "guardar_opcion") as guardar, \
+                mock.patch.object(preferencias_sonidos.cfg,
+                                  "cargar_sonidos") as recarga:
+            pagina._on_muestra_tema(evento)
+        sonar.assert_called_once_with(esperada)
+        guardar.assert_not_called()
+        recarga.assert_not_called()
+        evento.Skip.assert_called_once_with()
+
+    def test_elegir_tema_en_control_suena_muestra(self):
+        from ytchat.core import config as cfg
+        pagina = self._pagina_con_temas(["default", "suave"], "default")
+        pagina.cho_tema.SetStringSelection("suave")
+        evento = wx.CommandEvent(wx.wxEVT_CHOICE, pagina.cho_tema.GetId())
+        evento.SetEventObject(pagina.cho_tema)
+        evento.SetInt(pagina.cho_tema.GetSelection())
+        esperada = cfg.ruta_muestra_tema("suave")
+        with mock.patch.object(preferencias_sonidos._snd,
+                               "reproducir_archivo") as sonar:
+            pagina.cho_tema.GetEventHandler().ProcessEvent(evento)
+        sonar.assert_called_once_with(esperada)
+
+    def test_oir_usa_el_tema_elegido_sin_guardarlo(self):
+        pagina = self._pagina_con_temas(["default", "suave"], "default")
+        pagina.cho_tema.SetStringSelection("suave")
+        pagina._lista.Select(4)
+        with mock.patch.object(preferencias_sonidos._snd,
+                               "reproducir_archivo") as oir:
+            pagina._on_oir(None)
+        oir.assert_called_once()
+        ruta = Path(oir.call_args.args[0])
+        self.assertEqual(ruta.name, f"{EVENTOS[4]}.wav")
+        self.assertEqual(ruta.parent.name, "suave")
+        self.assertIn("tema = default", self.ruta.read_text(encoding="utf-8"))
+
+    def test_archivo_propio_de_sounds_ini_gana_al_tema_elegido(self):
+        propia = Path(self.temporal.name) / "propio.wav"
+        self.ruta.write_text(
+            "[sonidos]\nvolumen = 0.7\ntema = default\n"
+            f"{EVENTOS[0]} = {propia}\n", encoding="utf-8")
+        pagina = self._pagina_con_temas(["default", "suave"], "default")
+        pagina.cho_tema.SetStringSelection("suave")
+        pagina._lista.Select(0)
+        with mock.patch.object(preferencias_sonidos._snd,
+                               "reproducir_archivo") as oir:
+            pagina._on_oir(None)
+        oir.assert_called_once_with(propia)
+
+    def test_guardar_tema_y_callados_en_el_mismo_archivo(self):
+        pagina = self._pagina_con_temas(["default", "suave"], "default")
+        pagina.cho_tema.SetStringSelection("suave")
+        pagina._lista.CheckItem(0, False)
+        with mock.patch.object(preferencias_sonidos._snd, "cargar") as cargar, \
+                mock.patch.object(preferencias_sonidos.cfg, "cargar_sonidos",
+                                   return_value={"eventos": {}}) as fabrica:
+            self.assertTrue(pagina.guardar())
+        fabrica.assert_called_once_with()
+        cargar.assert_called_once_with({"eventos": {}})
+        texto = self.ruta.read_text(encoding="utf-8")
+        self.assertIn("tema = suave", texto)
+        self.assertIn(f"{EVENTOS[0]} =", texto)
+
     def test_columna_sigue_el_ancho_de_la_lista(self):
         lista = self.pagina._lista
         lista.SetSize((500, 300))
@@ -111,7 +194,9 @@ class TestPaginaSonidos(unittest.TestCase):
             self.addCleanup(libro.GetParent().Destroy)
             pagina = PaginaSonidos()
             panel = pagina.construir(libro)
-            sin_marcar = textos_sin_marcar(panel)
+            # Los nombres de los temas son datos de afuera, como los de las voces.
+            temas = preferencias_sonidos.cfg.listar_temas_sonido()
+            sin_marcar = textos_sin_marcar(panel, propios=temas)
 
         self.assertEqual([], sin_marcar)
 

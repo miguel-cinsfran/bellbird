@@ -1,8 +1,8 @@
 """Diálogo de Preferencias por categorías (accesible).
 
 Reúne en un solo sitio lo que antes solo se editaba a mano en config.ini y
-sounds.ini: interfaz (fuente, tema de sonido), lectura, filtros de palabras y
-usuarios, y un editor de atajos. Persiste con `config.guardar_opciones`, que
+sounds.ini: interfaz (fuente), sonidos (tema y callados), lectura, filtros de
+palabras y usuarios, y un editor de atajos. Persiste con `config.guardar_opciones`, que
 escribe todo de una vez al pulsar Guardar (conservando comentarios y orden del
 INI), y actualiza el dict de config en memoria.
 La configuración de API/OAuth sigue en su propio diálogo (Herramientas).
@@ -118,9 +118,10 @@ class PreferenciasDialog(wx.Dialog):
         self.chk_multivoz = self.pagina_voz.chk_multivoz
         self.nb.AddPage(self._pag_lectura(self.nb), _("Lectura"))
         self.nb.AddPage(self._pag_cola(self.nb), _("Cola de lectura"))
-        self.nb.AddPage(self._pag_interfaz(self.nb), _("Interfaz y sonidos"))
+        self.nb.AddPage(self._pag_interfaz(self.nb), _("Interfaz"))
         self.pagina_sonidos = PaginaSonidos()
         self.nb.AddPage(self.pagina_sonidos.construir(self.nb), _("Sonidos"))
+        self.cho_tema = self.pagina_sonidos.cho_tema
         self.nb.AddPage(self._pag_reproductor(self.nb), _("Reproductor"))
         self.pagina_musica = PaginaMusica(self, self._config)
         self.nb.AddPage(self.pagina_musica.construir(self.nb), _("Música"))
@@ -211,15 +212,6 @@ class PreferenciasDialog(wx.Dialog):
         _tc(self.sp_fuente)
         vs.Add(self.sp_fuente, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        vs.Add(self._fila_label(p, _("&Tema de sonido:")), 0, wx.LEFT | wx.RIGHT, 10)
-        temas = cfg.listar_temas_sonido()
-        self.cho_tema = wx.Choice(p, choices=temas, name=_("Tema de sonido"))
-        _tc(self.cho_tema)
-        actual = cfg.tema_sonido_actual()
-        self.cho_tema.SetSelection(temas.index(actual) if actual in temas else 0)
-        self.cho_tema.Bind(wx.EVT_CHOICE, self._on_muestra_tema)
-        vs.Add(self.cho_tema, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-
         self.chk_total_sc = wx.CheckBox(p, label=_("Mostrar el total de &Super Chats en la barra de estado"),
                                          name="MostrarTotalSuperChats")
         self.chk_total_sc.SetForegroundColour(_T.text)
@@ -232,16 +224,6 @@ class PreferenciasDialog(wx.Dialog):
 
         p.SetSizer(vs)
         return p
-
-    def _on_muestra_tema(self, event):
-        """Suena la muestra del tema elegido sin cambiar el tema activo."""
-        try:
-            tema = self.cho_tema.GetStringSelection()
-            if tema:
-                _snd.reproducir_archivo(cfg.ruta_muestra_tema(tema))
-        except Exception:
-            pass
-        event.Skip()
 
     def _pag_cola(self, parent):
         p = self._make_panel(parent, "PagCola")
@@ -523,12 +505,7 @@ class PreferenciasDialog(wx.Dialog):
                 self._set(seccion, clave, str(valor))
                 c[en_memoria] = valor
 
-        tema = self.cho_tema.GetStringSelection()
-        if tema and tema != cfg.tema_sonido_actual():
-            if not cfg.guardar_opcion(paths.sounds_ini(), "sonidos", "tema", tema):
-                self._fallo_guardado = True
-            try:    _snd.cargar(cfg.cargar_sonidos())
-            except Exception as exc: logger.warning("recargar sonidos: %s", exc)
+        if self.pagina_sonidos.tema_cambiado():
             self._cambios = True
 
         motor_no_disponible = self.pagina_voz.guardar(self._set, c)

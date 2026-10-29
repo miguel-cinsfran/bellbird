@@ -119,7 +119,7 @@ regalos de TikTok por tamaño, seguidores, entradas, la conexión, errores,
 y la orilla al llegar al principio o al final de una lista. `F7` los
 silencia todos. Para callar uno solo, destilda su casilla en
 *Preferencias, Sonidos*, donde *Oír el sonido elegido* deja oír cada uno.
-En *Preferencias, Interfaz* eliges el tema de sonido:
+El tema de sonido se elige en la misma página, arriba de la lista:
 `default`, con sonidos grabados, o `suave`, más cortos y tenues. Para
 hacer uno propio, copia `sounds/themes/default` con otro nombre y cambia
 los `.wav`. `sounds/CREDITOS.md` dice de dónde sale cada sonido.

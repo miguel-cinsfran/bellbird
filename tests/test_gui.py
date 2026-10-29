@@ -1638,7 +1638,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
         dialogo = self._dialogo()
         self.assertEqual(
             [dialogo.nb.GetPageText(i) for i in range(dialogo.nb.GetPageCount())],
-            ["General", "Voces", "Lectura", "Cola de lectura", "Interfaz y sonidos",
+            ["General", "Voces", "Lectura", "Cola de lectura", "Interfaz",
              "Sonidos", "Reproductor", "Música", "Conexión", "Filtros",
              "Estado (F2)", "Atajos", "API y sesión", "Mensajes automáticos",
              "Transmisión", "Inteligencia artificial"])

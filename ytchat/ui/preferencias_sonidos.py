@@ -1,7 +1,7 @@
 """Página Sonidos del diálogo de Preferencias.
 
-Dueña de su estado: la lista de casillas y el conjunto inicial de
-silenciados. El diálogo solo la construye y le pide `guardar()`.
+Dueña de su estado: el tema elegido, la lista de casillas y el conjunto
+inicial de silenciados. El diálogo solo la construye y le pide `guardar()`.
 Cada fila es un evento de `eventos_sonido.EVENTOS` con su nombre llano;
 destildar lo calla al guardar, sin reiniciar.
 """
@@ -21,7 +21,8 @@ from ytchat.core.eventos_sonido import EVENTOS, NOMBRES
 from ytchat.core.idioma import _
 from ytchat.core.sonidos_ini import con_silenciados, silenciados
 from ytchat.ui.accesibilidad import nombre_accesible
-from ytchat.ui.tema import _T, _pintar
+from ytchat.ui.preferencias_comun import fila_label
+from ytchat.ui.tema import _T, _pintar, _tc
 from ytchat.voice import sound_player as _snd
 
 logger = diagnostico.obtener_logger(__name__)
@@ -36,9 +37,9 @@ def _leer_texto(ruta: Path) -> str:
         return ""
 
 
-def _ruta_evento(evento: str) -> Path:
+def _ruta_evento(evento: str, tema: str) -> Path:
     """Archivo que suena para el botón: el override si lo hay, si no el
-    del tema activo, igual que `config.cargar_sonidos` cuando no calla."""
+    del tema elegido, igual que `config.cargar_sonidos` cuando no calla."""
     ruta = paths.sounds_ini()
     parser = configparser.ConfigParser(interpolation=None)
     try:
@@ -56,16 +57,18 @@ def _ruta_evento(evento: str) -> Path:
                 candidata = paths.carpeta_instalacion() / candidata
             return candidata
     return (paths.carpeta_sonidos() / "themes"
-            / cfg.tema_sonido_actual() / f"{evento}.wav")
+            / tema / f"{evento}.wav")
 
 
 class PaginaSonidos:
-    """Lista de sonidos con casilla y botón para oír el elegido."""
+    """Tema de sonido y lista con casilla, oír el elegido y guardar."""
 
     def __init__(self):
         self._panel = None
         self._lista = None
         self._btn_oir = None
+        self.cho_tema = None
+        self._tema_inicial = ""
         self._inicial = set()
 
     def construir(self, libro) -> wx.ScrolledWindow:
@@ -76,6 +79,7 @@ class PaginaSonidos:
         self._panel.SetBackgroundColour(_T.bg)
         self._panel.SetForegroundColour(_T.text)
         vs = wx.BoxSizer(wx.VERTICAL)
+        self._crear_tema(vs)
         vs.Add(wx.StaticText(self._panel, label=_("&Sonidos:")),
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self._crear_lista(vs)
@@ -88,6 +92,36 @@ class PaginaSonidos:
         self._panel.SetSizer(vs)
         self._cargar_filas()
         return self._panel
+
+    def _crear_tema(self, vs):
+        vs.Add(fila_label(self._panel, _("&Tema de sonido:")),
+                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
+        temas = cfg.listar_temas_sonido()
+        self.cho_tema = wx.Choice(self._panel, choices=temas,
+                                   name=_("Tema de sonido"))
+        _tc(self.cho_tema)
+        actual = cfg.tema_sonido_actual()
+        self._tema_inicial = actual
+        self.cho_tema.SetSelection(temas.index(actual) if actual in temas else 0)
+        self.cho_tema.Bind(wx.EVT_CHOICE, self._on_muestra_tema)
+        vs.Add(self.cho_tema, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+    def _tema_elegido(self) -> str:
+        return self.cho_tema.GetStringSelection() or cfg.tema_sonido_actual()
+
+    def tema_cambiado(self) -> bool:
+        """Si el combinado difiere del tema guardado en sounds.ini."""
+        return self._tema_elegido() != self._tema_inicial
+
+    def _on_muestra_tema(self, event):
+        """Suena la muestra del tema elegido sin cambiar el tema activo."""
+        try:
+            tema = self.cho_tema.GetStringSelection()
+            if tema:
+                _snd.reproducir_archivo(cfg.ruta_muestra_tema(tema))
+        except Exception as exc:
+            logger.warning("Sonidos: no se pudo oír la muestra: %s", exc)
+        event.Skip()
 
     def _crear_lista(self, vs):
         self._lista = wx.ListCtrl(
@@ -136,17 +170,34 @@ class PaginaSonidos:
         if indice < 0 or indice >= len(EVENTOS):
             return
         try:
-            _snd.reproducir_archivo(_ruta_evento(EVENTOS[indice]))
+            _snd.reproducir_archivo(
+                _ruta_evento(EVENTOS[indice], self._tema_elegido()))
         except Exception as exc:
             logger.warning("Sonidos: no se pudo oír: %s", exc)
 
     def guardar(self) -> bool:
-        """Escribe los cambios en sounds.ini y recarga. Sin cambios no
-        escribe. Un fallo de escritura se registra y devuelve False."""
+        """Escribe el tema y los callados en sounds.ini y recarga una sola
+        vez. Sin cambios no escribe. Un fallo de escritura se registra y
+        devuelve False."""
+        tema = self._tema_elegido()
+        tema_cambio = tema != self._tema_inicial
         callados = self._marcados()
-        if callados == self._inicial:
+        callados_cambio = callados != self._inicial
+        if not tema_cambio and not callados_cambio:
             return True
         ruta = paths.sounds_ini()
+        if tema_cambio and not cfg.guardar_opcion(ruta, "sonidos", "tema", tema):
+            return False
+        if callados_cambio and not self._guardar_callados(ruta, callados):
+            return False
+        self._recargar()
+        self._tema_inicial = tema
+        self._inicial = callados
+        return True
+
+    def _guardar_callados(self, ruta, callados) -> bool:
+        # Se lee después de escribir el tema, para que con_silenciados no lo
+        # pise al reescribir el archivo entero.
         try:
             texto = ruta.read_text(encoding="utf-8")
         except OSError as exc:
@@ -158,9 +209,10 @@ class PaginaSonidos:
         except OSError as exc:
             logger.warning("Sonidos: no se pudo escribir %s: %s", ruta, exc)
             return False
+        return True
+
+    def _recargar(self):
         try:
             _snd.cargar(cfg.cargar_sonidos())
         except Exception as exc:
             logger.warning("recargar sonidos: %s", exc)
-        self._inicial = callados
-        return True

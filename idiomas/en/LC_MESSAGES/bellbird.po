@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-29 04:23-0300\n"
+"POT-Creation-Date: 2026-10-29 07:47-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -148,11 +148,11 @@ msgstr "The video ID is not valid. Check the link."
 
 #: main.py:701
 msgid ""
-"YouTube todavía no muestra este vídeo. Pasa en los primeros segundos de un "
-"directo y siempre con los directos privados."
+"YouTube todavía no muestra este vídeo. Pasa en los primeros segundos de "
+"un directo y siempre con los directos privados."
 msgstr ""
-"YouTube does not show this video yet. This happens in the first seconds of "
-"a live stream, and always with private live streams."
+"YouTube does not show this video yet. This happens in the first seconds "
+"of a live stream, and always with private live streams."
 
 #: main.py:705
 msgid "Este directo es privado. No se puede acceder."
@@ -250,11 +250,11 @@ msgstr "The provider quota is exhausted. Wait a while or choose another model."
 
 #: ytchat/ai/consulta.py:37
 msgid ""
-"El proveedor no ofrece ese modelo. Elige otro en Preferencias, Inteligencia"
-" artificial."
+"El proveedor no ofrece ese modelo. Elige otro en Preferencias, "
+"Inteligencia artificial."
 msgstr ""
-"The provider does not offer that model. Choose another one in Preferences, "
-"Artificial intelligence."
+"The provider does not offer that model. Choose another one in "
+"Preferences, Artificial intelligence."
 
 #: ytchat/ai/consulta.py:40
 msgid "El proveedor bloqueó la respuesta con su filtro de contenido."
@@ -279,12 +279,12 @@ msgstr "The provider failed. Try again in a while."
 #: ytchat/ai/consulta.py:49
 msgid ""
 "El proveedor rechazó la consulta. Puede que el modelo ya no esté "
-"disponible: en Preferencias, Inteligencia artificial, pulsa Actualizar la "
-"lista de modelos o elige otro."
+"disponible: en Preferencias, Inteligencia artificial, pulsa Actualizar la"
+" lista de modelos o elige otro."
 msgstr ""
-"The provider rejected the request. The model may no longer be available: in"
-" Preferences, Artificial intelligence, press Refresh model list or choose "
-"another one."
+"The provider rejected the request. The model may no longer be available: "
+"in Preferences, Artificial intelligence, press Refresh model list or "
+"choose another one."
 
 #: ytchat/ai/consulta.py:53
 msgid "No hay conexión con el proveedor. Comprueba la conexión a internet."
@@ -317,36 +317,37 @@ msgstr "Could not complete the request. Try again."
 
 #: ytchat/ai/conversacion.py:15
 msgid ""
-"Revisa esta captura de la transmisión como si fueras el público. Primero di"
-" si hay algún problema: algo en negro, cortado, tapado por otra cosa, fuera"
-" de cuadro, borroso o con texto que no se lee. Si no hay ninguno, empieza "
-"diciendo que todo se ve bien. Después describe en pocas frases qué se ve y "
-"dónde está cada cosa, con posiciones simples como arriba a la izquierda o "
-"en el centro, y menciona brevemente los colores y los adornos."
+"Revisa esta captura de la transmisión como si fueras el público. Primero "
+"di si hay algún problema: algo en negro, cortado, tapado por otra cosa, "
+"fuera de cuadro, borroso o con texto que no se lee. Si no hay ninguno, "
+"empieza diciendo que todo se ve bien. Después describe en pocas frases "
+"qué se ve y dónde está cada cosa, con posiciones simples como arriba a la"
+" izquierda o en el centro, y menciona brevemente los colores y los "
+"adornos."
 msgstr ""
-"Review this screenshot of the broadcast as if you were the audience. First "
-"say if there is anything wrong: something black, cut off, covered by "
-"something else, out of frame, blurry, or with text that cannot be read. If "
-"there is nothing wrong, start by saying everything looks fine. Then "
-"describe in a few sentences what is shown and where each thing is, using "
-"simple positions like top left or center, and briefly mention colors and "
-"decorations."
+"Review this screenshot of the broadcast as if you were the audience. "
+"First say if there is anything wrong: something black, cut off, covered "
+"by something else, out of frame, blurry, or with text that cannot be "
+"read. If there is nothing wrong, start by saying everything looks fine. "
+"Then describe in a few sentences what is shown and where each thing is, "
+"using simple positions like top left or center, and briefly mention "
+"colors and decorations."
 
 #: ytchat/ai/conversacion.py:43
 msgid ""
 "Eres el asistente de un streamer ciego que transmite con OBS. Responde "
-"siempre en español, en prosa breve, sin markdown, sin listas, sin títulos y"
-" sin emojis: la respuesta se lee con un lector de pantalla. Ve directo a lo"
-" que se pregunta. Si algo no se distingue en la imagen, dilo en vez de "
-"suponer. Cuando recibas la lista de fuentes de OBS, usa sus nombres para "
-"decir qué es cada cosa que se ve."
+"siempre en español, en prosa breve, sin markdown, sin listas, sin títulos"
+" y sin emojis: la respuesta se lee con un lector de pantalla. Ve directo "
+"a lo que se pregunta. Si algo no se distingue en la imagen, dilo en vez "
+"de suponer. Cuando recibas la lista de fuentes de OBS, usa sus nombres "
+"para decir qué es cada cosa que se ve."
 msgstr ""
-"You are the assistant of a blind streamer who broadcasts with OBS. Always "
-"respond in English, in brief prose, with no markdown, no lists, no "
+"You are the assistant of a blind streamer who broadcasts with OBS. Always"
+" respond in English, in brief prose, with no markdown, no lists, no "
 "headings, and no emojis: the response is read with a screen reader. Go "
 "straight to what is asked. If something cannot be made out in the image, "
-"say so instead of guessing. When you receive the OBS source list, use its "
-"names to say what each thing shown is."
+"say so instead of guessing. When you receive the OBS source list, use its"
+" names to say what each thing shown is."
 
 #: ytchat/ai/conversacion.py:52
 msgid "Lo que OBS informa de la escena al aire:"
@@ -414,16 +415,18 @@ msgstr "The key has spaces or characters that a key never has. Copy it again."
 #: ytchat/ai/opciones_ia.py:34
 #, python-brace-format
 msgid ""
-"Las claves de {proveedor} empiezan con {prefijo}. Revisa que sea la clave "
-"de este proveedor."
-msgstr "{proveedor} keys start with {prefijo}. Check that it is this provider's key."
+"Las claves de {proveedor} empiezan con {prefijo}. Revisa que sea la clave"
+" de este proveedor."
+msgstr ""
+"{proveedor} keys start with {prefijo}. Check that it is this provider's "
+"key."
 
 #. Traductores: confirmación de borrado; {proveedor} es su nombre.
 #: ytchat/ai/opciones_ia.py:38
 #, python-brace-format
 msgid ""
-"Borra la clave guardada de {proveedor} del Administrador de credenciales. "
-"¿Deseas continuar?"
+"Borra la clave guardada de {proveedor} del Administrador de credenciales."
+" ¿Deseas continuar?"
 msgstr ""
 "Delete the saved {proveedor} key from Credential Manager. Do you want to "
 "continue?"
@@ -469,8 +472,8 @@ msgstr "Could not update the model list. Check the connection and try again."
 #: ytchat/ai/opciones_ia.py:54
 #, python-brace-format
 msgid ""
-"Lista de modelos actualizada: {n} modelos de {proveedor}, {g} gratis con tu"
-" clave."
+"Lista de modelos actualizada: {n} modelos de {proveedor}, {g} gratis con "
+"tu clave."
 msgstr "Model list updated: {n} {proveedor} models, {g} free with your key."
 
 #. Traductores: anuncio de lista nueva; {n} modelos, {r} útiles, {proveedor} su
@@ -478,8 +481,8 @@ msgstr "Model list updated: {n} {proveedor} models, {g} free with your key."
 #: ytchat/ai/opciones_ia.py:57
 #, python-brace-format
 msgid ""
-"Lista de modelos actualizada: {n} modelos de {proveedor}, {r} funcionan con"
-" tu clave."
+"Lista de modelos actualizada: {n} modelos de {proveedor}, {r} funcionan "
+"con tu clave."
 msgstr "Model list updated: {n} {proveedor} models, {r} work with your key."
 
 #: ytchat/ai/opciones_ia.py:59
@@ -656,12 +659,14 @@ msgstr "unknown reason"
 #: ytchat/core/actualizacion.py:508
 #, python-brace-format
 msgid "La actualización no se completó: {motivo}. Sigue la versión {actual}."
-msgstr "The update did not complete: {motivo}. Version {actual} is still installed."
+msgstr ""
+"The update did not complete: {motivo}. Version {actual} is still "
+"installed."
 
 #: ytchat/core/avisos_red.py:14
 msgid ""
-"El servicio está recibiendo demasiadas solicitudes. Vuelve a intentarlo en "
-"unos minutos."
+"El servicio está recibiendo demasiadas solicitudes. Vuelve a intentarlo "
+"en unos minutos."
 msgstr "The service is receiving too many requests. Try again in a few minutes."
 
 #: ytchat/core/avisos_red.py:18
@@ -677,7 +682,9 @@ msgid "El vídeo no está disponible. Comprueba la dirección o que no sea priva
 msgstr "The video is not available. Check the address or whether it is private."
 
 #: ytchat/core/avisos_red.py:24
-msgid "No se pudo consultar la información del vídeo. Inténtalo de nuevo más tarde."
+msgid ""
+"No se pudo consultar la información del vídeo. Inténtalo de nuevo más "
+"tarde."
 msgstr "Could not look up the video information. Try again later."
 
 #: ytchat/core/avisos_tiktok.py:13
@@ -721,11 +728,13 @@ msgstr "Windows language"
 msgid "Ese archivo pesa más de 1 MB."
 msgstr "That file is over 1 MB."
 
-#: ytchat/core/preferencias_archivo.py:33 ytchat/core/preferencias_archivo.py:37
+#: ytchat/core/preferencias_archivo.py:33
+#: ytchat/core/preferencias_archivo.py:37
 msgid "No se pudo leer ese archivo."
 msgstr "Could not read that file."
 
-#: ytchat/core/preferencias_archivo.py:45 ytchat/core/preferencias_archivo.py:48
+#: ytchat/core/preferencias_archivo.py:45
+#: ytchat/core/preferencias_archivo.py:48
 msgid "Ese archivo no es de preferencias de la aplicación."
 msgstr "That file is not an application preferences file."
 
@@ -743,13 +752,13 @@ msgstr "Empty link"
 
 #: ytchat/downloads/descargas.py:230
 msgid ""
-"ffmpeg no encontrado. La descarga necesita ffmpeg para unir audio y vídeo o"
-" extraer audio. Usa la versión empaquetada o instala ffmpeg. En desarrollo,"
-" alcanza con tener ffmpeg en el PATH."
+"ffmpeg no encontrado. La descarga necesita ffmpeg para unir audio y vídeo"
+" o extraer audio. Usa la versión empaquetada o instala ffmpeg. En "
+"desarrollo, alcanza con tener ffmpeg en el PATH."
 msgstr ""
 "ffmpeg not found. Downloading needs ffmpeg to join audio and video or "
-"extract audio. Use the packaged build or install ffmpeg. For development, "
-"having ffmpeg in the PATH is enough."
+"extract audio. Use the packaged build or install ffmpeg. For development,"
+" having ffmpeg in the PATH is enough."
 
 #: ytchat/downloads/descargas.py:247 ytchat/downloads/descargas.py:301
 #: ytchat/downloads/descargas.py:332 ytchat/downloads/descargas.py:457
@@ -793,7 +802,9 @@ msgid "El vídeo es solo para miembros del canal."
 msgstr "The video is for channel members only."
 
 #: ytchat/downloads/motivo_error.py:30
-msgid "YouTube pide confirmar que no eres un robot. Vuelve a intentarlo más tarde."
+msgid ""
+"YouTube pide confirmar que no eres un robot. Vuelve a intentarlo más "
+"tarde."
 msgstr "YouTube asks you to confirm you are not a robot. Try again later."
 
 #: ytchat/downloads/motivo_error.py:33
@@ -820,8 +831,8 @@ msgstr "Could not check the latest yt-dlp version. Check your internet connectio
 
 #: ytchat/downloads/ytdlp_bin.py:63
 msgid ""
-"La descarga de yt-dlp no pasó una comprobación de seguridad. No se instaló "
-"nada."
+"La descarga de yt-dlp no pasó una comprobación de seguridad. No se "
+"instaló nada."
 msgstr "The yt-dlp download failed a security check. Nothing was installed."
 
 #: ytchat/downloads/ytdlp_bin.py:65
@@ -1107,8 +1118,8 @@ msgstr "No songs match"
 
 #: ytchat/music/anuncios.py:102
 msgid ""
-"Intro reproduce ahora, Mayús más Intro a continuación, Control más Intro al"
-" final, tecla de aplicaciones para más opciones"
+"Intro reproduce ahora, Mayús más Intro a continuación, Control más Intro "
+"al final, tecla de aplicaciones para más opciones"
 msgstr ""
 "Enter plays now, Shift plus Enter up next, Ctrl plus Enter at the end, "
 "applications key for more options"
@@ -1233,11 +1244,11 @@ msgstr "&Do not ask again"
 
 #: ytchat/music/pregunta_igualar.py:19
 msgid ""
-"¿Igualar su volumen ahora? Los archivos no se modifican. La medición usa el"
-" procesador y puede tardar."
+"¿Igualar su volumen ahora? Los archivos no se modifican. La medición usa "
+"el procesador y puede tardar."
 msgstr ""
-"Match its volume now? Files are not modified. Measuring uses the processor "
-"and may take a while."
+"Match its volume now? Files are not modified. Measuring uses the "
+"processor and may take a while."
 
 #: ytchat/music/pregunta_igualar.py:32 ytchat/music/pregunta_igualar.py:34
 msgid "menos de 1 MB"
@@ -1309,8 +1320,8 @@ msgid ""
 "Intro reproduce la colección entera, Suprimir borra la lista, tecla de "
 "aplicaciones para más opciones"
 msgstr ""
-"Enter plays the whole collection, Delete removes the playlist, applications"
-" key for more options"
+"Enter plays the whole collection, Delete removes the playlist, "
+"applications key for more options"
 
 #: ytchat/music/vista.py:23
 msgid "Cola oculta"
@@ -1417,8 +1428,8 @@ msgid ""
 "OBS está abierto. Ciérralo y vuelve a pulsar este botón, porque OBS "
 "reescribe su configuración al cerrarse"
 msgstr ""
-"OBS is open. Close it and press this button again, because OBS rewrites its"
-" settings when it closes"
+"OBS is open. Close it and press this button again, because OBS rewrites "
+"its settings when it closes"
 
 #: ytchat/obs/obs_activacion.py:22
 msgid "Se puede activar el servidor websocket de OBS"
@@ -1494,10 +1505,12 @@ msgid "OBS no tiene ninguna fuente de audio"
 msgstr "OBS has no audio source"
 
 #: ytchat/obs/obs_audio.py:113
-msgid "El micrófono no recibe sonido. Revisa cuál está elegido en Windows o en OBS."
+msgid ""
+"El micrófono no recibe sonido. Revisa cuál está elegido en Windows o en "
+"OBS."
 msgstr ""
-"The microphone is getting no sound. Check which one is chosen in Windows or"
-" in OBS."
+"The microphone is getting no sound. Check which one is chosen in Windows "
+"or in OBS."
 
 #: ytchat/obs/obs_captura.py:15
 msgid "Captura de ventana"
@@ -1534,8 +1547,8 @@ msgstr "Now capturing {legible}."
 #: ytchat/obs/obs_captura_ia.py:101
 #, python-brace-format
 msgid ""
-"No se pudo capturar {etiqueta}. Comprueba que esté visible en la escena al "
-"aire."
+"No se pudo capturar {etiqueta}. Comprueba que esté visible en la escena "
+"al aire."
 msgstr "Could not capture {etiqueta}. Check that it is visible in the live scene."
 
 #. Traductores: {nombre} es la fuente y {tipo} su clase, como se lee en la
@@ -1557,12 +1570,12 @@ msgstr "Lost connection to OBS. Reconnect."
 #: ytchat/obs/obs_cliente.py:71
 msgid ""
 "OBS está abierto pero no responde. Puede estar esperando una respuesta: "
-"elige Mostrar OBS en el menú Transmisión. Si no, comprueba que su servidor "
-"websocket esté activado."
+"elige Mostrar OBS en el menú Transmisión. Si no, comprueba que su "
+"servidor websocket esté activado."
 msgstr ""
 "OBS is open but not responding. It may be waiting for an answer: choose "
-"Show OBS in the Broadcast menu. If not, check that its websocket server is "
-"enabled."
+"Show OBS in the Broadcast menu. If not, check that its websocket server "
+"is enabled."
 
 #: ytchat/obs/obs_cliente.py:101
 msgid ""
@@ -1573,7 +1586,9 @@ msgstr ""
 "server is enabled."
 
 #: ytchat/obs/obs_cliente.py:104
-msgid "OBS rechazó la contraseña guardada. Vuelve a conectar para leerla de nuevo."
+msgid ""
+"OBS rechazó la contraseña guardada. Vuelve a conectar para leerla de "
+"nuevo."
 msgstr "OBS rejected the saved password. Reconnect to read it again."
 
 #: ytchat/obs/obs_cliente.py:107
@@ -1633,8 +1648,8 @@ msgstr "square"
 #: ytchat/obs/obs_destinos.py:154
 #, python-brace-format
 msgid ""
-"OBS preparado para transmitir a {destino}. Formato {formato}, {ancho} por "
-"{alto}."
+"OBS preparado para transmitir a {destino}. Formato {formato}, {ancho} por"
+" {alto}."
 msgstr "OBS ready to broadcast to {destino}. {formato} format, {ancho} by {alto}."
 
 #: ytchat/obs/obs_destinos.py:159 ytchat/obs/transmision_directa.py:121
@@ -1862,8 +1877,8 @@ msgid ""
 "El fondo del panel es transparente. Solo se ven las tarjetas de los "
 "mensajes, apiladas contra el borde inferior."
 msgstr ""
-"The panel background is transparent. Only the message cards show, stacked "
-"against the bottom edge."
+"The panel background is transparent. Only the message cards show, stacked"
+" against the bottom edge."
 
 #. Traductores: {nombre} es el nombre de la fuente.
 #: ytchat/obs/obs_disposicion.py:342
@@ -1992,14 +2007,14 @@ msgid ""
 "Desde aquí eliges a dónde transmitir, empiezas y terminas el directo y "
 "preparas lo que se ve. En el directo se ve una ventana, la que eliges en "
 "Ventana que se captura. Esa captura no lleva sonido: el sonido sale del "
-"audio del escritorio y del micrófono de OBS. El panel de chat es solo para "
-"YouTube: en TikTok los comentarios ya aparecen en el directo."
+"audio del escritorio y del micrófono de OBS. El panel de chat es solo "
+"para YouTube: en TikTok los comentarios ya aparecen en el directo."
 msgstr ""
-"From here you choose where to broadcast, start and end the live stream, and"
-" prepare what is shown. The live stream shows one window, the one you "
+"From here you choose where to broadcast, start and end the live stream, "
+"and prepare what is shown. The live stream shows one window, the one you "
 "choose in Window to capture. That capture carries no sound: sound comes "
-"from the desktop audio and the OBS microphone. The chat panel is only for "
-"YouTube: on TikTok comments already appear in the live stream."
+"from the desktop audio and the OBS microphone. The chat panel is only for"
+" YouTube: on TikTok comments already appear in the live stream."
 
 #: ytchat/obs/obs_estado.py:14
 msgid "No se pudo saber que escena está al aire"
@@ -2077,11 +2092,11 @@ msgstr "Scene put live"
 
 #: ytchat/obs/obs_grabacion.py:20
 msgid ""
-"El perfil de OBS graba con un codificador propio: transmitir y grabar a la "
-"vez carga el doble el equipo."
+"El perfil de OBS graba con un codificador propio: transmitir y grabar a "
+"la vez carga el doble el equipo."
 msgstr ""
-"The OBS profile records with its own encoder: broadcasting and recording at"
-" once loads the computer twice as much."
+"The OBS profile records with its own encoder: broadcasting and recording "
+"at once loads the computer twice as much."
 
 #: ytchat/obs/obs_grabacion.py:23
 msgid "La transmisión empezó, pero no se pudo iniciar la grabación."
@@ -2092,16 +2107,17 @@ msgid ""
 "Abriendo OBS en segundo plano, en el área de notificación. Puede tardar "
 "hasta un minuto."
 msgstr ""
-"Opening OBS in the background, in the notification area. It may take up to "
-"a minute."
+"Opening OBS in the background, in the notification area. It may take up "
+"to a minute."
 
 #: ytchat/obs/obs_lanzador.py:15
 msgid ""
-"OBS se cerró mal la última vez y va a preguntar si iniciar en modo seguro. "
-"Elige Mostrar OBS en el menú Transmisión y después iniciar normalmente."
+"OBS se cerró mal la última vez y va a preguntar si iniciar en modo "
+"seguro. Elige Mostrar OBS en el menú Transmisión y después iniciar "
+"normalmente."
 msgstr ""
-"OBS did not close properly last time and will ask whether to start in safe "
-"mode. Choose Show OBS in the Broadcast menu and then start normally."
+"OBS did not close properly last time and will ask whether to start in "
+"safe mode. Choose Show OBS in the Broadcast menu and then start normally."
 
 #: ytchat/obs/obs_lanzador.py:18
 msgid ""
@@ -2116,8 +2132,8 @@ msgid ""
 "OBS no responde. Puede estar esperando que contestes si iniciar en modo "
 "seguro: elige Mostrar OBS en el menú Transmisión."
 msgstr ""
-"OBS is not responding. It may be waiting for you to answer whether to start"
-" in safe mode: choose Show OBS in the Broadcast menu."
+"OBS is not responding. It may be waiting for you to answer whether to "
+"start in safe mode: choose Show OBS in the Broadcast menu."
 
 #: ytchat/obs/obs_lanzador.py:95
 msgid "No se pudo abrir OBS."
@@ -2128,8 +2144,8 @@ msgid ""
 "OBS no está instalado en este equipo. Instálalo desde obsproject.com y "
 "vuelve a intentarlo."
 msgstr ""
-"OBS is not installed on this computer. Install it from obsproject.com and "
-"try again."
+"OBS is not installed on this computer. Install it from obsproject.com and"
+" try again."
 
 #: ytchat/obs/obs_prevuelo.py:20
 msgid "captura de ventana"
@@ -2174,7 +2190,9 @@ msgstr "app chat panel"
 #: ytchat/obs/obs_prevuelo.py:202
 #, python-brace-format
 msgid "OBS está en el perfil {perfil}, no en {destino}. Pulsa Preparar destino."
-msgstr "OBS is on the {perfil} profile, not on {destino}. Press Prepare destination."
+msgstr ""
+"OBS is on the {perfil} profile, not on {destino}. Press Prepare "
+"destination."
 
 #: ytchat/obs/obs_prevuelo.py:206
 #, python-brace-format
@@ -2188,9 +2206,9 @@ msgstr "The {nombre} desktop audio is muted."
 
 #: ytchat/obs/obs_prevuelo.py:213
 msgid ""
-"La escena no tiene ninguna fuente visible. Para agregar una: Transmisión, "
-"sección Escena, elegir la ventana en Ventana que se captura y pulsar Usar "
-"esa ventana."
+"La escena no tiene ninguna fuente visible. Para agregar una: Transmisión,"
+" sección Escena, elegir la ventana en Ventana que se captura y pulsar "
+"Usar esa ventana."
 msgstr ""
 "The scene has no visible source. To add one: Broadcast, Scene section, "
 "choose the window in Window to capture and press Use that window."
@@ -2200,8 +2218,8 @@ msgid ""
 "La imagen está vacía: la escena se ve en negro. Revisar que la ventana "
 "capturada esté abierta y no minimizada."
 msgstr ""
-"The picture is empty: the scene looks black. Check that the captured window"
-" is open and not minimized."
+"The picture is empty: the scene looks black. Check that the captured "
+"window is open and not minimized."
 
 #: ytchat/obs/obs_prevuelo.py:241
 #, python-brace-format
@@ -2382,8 +2400,8 @@ msgid ""
 "OBS está transmitiendo, pero TikTok todavía no muestra ningún directo de "
 "{usuario}. Revisa que en Restream esté activado TikTok."
 msgstr ""
-"OBS is broadcasting, but TikTok still shows no live stream from {usuario}. "
-"Check that TikTok is enabled in Restream."
+"OBS is broadcasting, but TikTok still shows no live stream from "
+"{usuario}. Check that TikTok is enabled in Restream."
 
 #: ytchat/obs/obs_supervisor.py:389
 msgid "OBS está transmitiendo, pero TikTok todavía no muestra el directo."
@@ -2408,8 +2426,8 @@ msgstr "No saved TikTok user: connect the chat manually."
 #: ytchat/obs/obs_supervisor.py:451 ytchat/ui/gui_directo_huerfano.py:300
 msgid "YouTube no confirmó el fin del directo. Se reintentará durante 10 minutos."
 msgstr ""
-"YouTube did not confirm the end of the live stream. It will be retried for "
-"10 minutes."
+"YouTube did not confirm the end of the live stream. It will be retried "
+"for 10 minutes."
 
 #: ytchat/obs/obs_supervisor.py:500 ytchat/ui/gui_directo_huerfano.py:268
 #: ytchat/ui/gui_directo_huerfano.py:284
@@ -2507,8 +2525,8 @@ msgstr "A TikTok live stream cannot be paused. To mute it, use Mute audio."
 
 #: ytchat/player/pantalla_completa.py:85
 msgid ""
-"Vídeo a pantalla completa. Espacio pausa, flechas buscan y ajustan volumen,"
-" Escape sale."
+"Vídeo a pantalla completa. Espacio pausa, flechas buscan y ajustan "
+"volumen, Escape sale."
 msgstr ""
 "Full-screen video. Space pauses, arrows seek and adjust volume, Escape "
 "exits."
@@ -2519,8 +2537,8 @@ msgid ""
 "Sigue buscando el vídeo, {segundos} segundos. Está tardando más de lo "
 "normal."
 msgstr ""
-"Still looking for the video, {segundos} seconds. It is taking longer than "
-"usual."
+"Still looking for the video, {segundos} seconds. It is taking longer than"
+" usual."
 
 #: ytchat/player/progreso.py:18
 #, python-brace-format
@@ -2582,7 +2600,7 @@ msgstr "Could not resume"
 
 #. Traductores: panel del reproductor.
 #: ytchat/player/reproductor.py:593 ytchat/player/reproductor.py:607
-#: ytchat/ui/gui.py:91 ytchat/ui/gui_preferencias.py:124
+#: ytchat/ui/gui.py:91 ytchat/ui/gui_preferencias.py:125
 msgid "Reproductor"
 msgstr "Player"
 
@@ -2683,8 +2701,8 @@ msgstr "Not playing."
 
 #: ytchat/player/reproductor.py:696
 msgid ""
-"Muestra u oculta los botones de control del reproductor. También en el menú"
-" Reproductor. Los atajos funcionan estén o no visibles."
+"Muestra u oculta los botones de control del reproductor. También en el "
+"menú Reproductor. Los atajos funcionan estén o no visibles."
 msgstr ""
 "Shows or hides the player control buttons. Also in the Player menu. "
 "Shortcuts work whether they are shown or not."
@@ -2809,8 +2827,8 @@ msgstr "{nuevo} percent"
 
 #: ytchat/player/reproductor.py:1731
 msgid ""
-"Pantalla completa. Espacio pausa, flechas buscan y ajustan volumen, Escape "
-"sale."
+"Pantalla completa. Espacio pausa, flechas buscan y ajustan volumen, "
+"Escape sale."
 msgstr "Full screen. Space pauses, arrows seek and adjust volume, Escape exits."
 
 #: ytchat/player/reproductor.py:1742
@@ -2868,11 +2886,11 @@ msgstr "The video cut out"
 
 #: ytchat/player/reproductor.py:2269
 msgid ""
-"En este directo solo se puede retroceder o adelantar con los botones o las "
-"flechas"
+"En este directo solo se puede retroceder o adelantar con los botones o "
+"las flechas"
 msgstr ""
-"In this live stream you can only go back or forward with the buttons or the"
-" arrows"
+"In this live stream you can only go back or forward with the buttons or "
+"the arrows"
 
 #: ytchat/player/reproductor.py:2279
 msgid "En este directo no se puede adelantar ni retroceder"
@@ -2927,8 +2945,8 @@ msgstr ""
 
 #: ytchat/ui/atajos_captura.py:53
 msgid ""
-"Debe ser una tecla de función, de F1 a F12, sola, con Ctrl o con Ctrl+Mayús"
-" (por ejemplo F2 o Ctrl+F2)."
+"Debe ser una tecla de función, de F1 a F12, sola, con Ctrl o con "
+"Ctrl+Mayús (por ejemplo F2 o Ctrl+F2)."
 msgstr ""
 "It must be a function key, from F1 to F12, alone, with Ctrl or with "
 "Ctrl+Shift (for example F2 or Ctrl+F2)."
@@ -3161,20 +3179,20 @@ msgstr "Read message 10 from the end of the chat"
 
 #: ytchat/ui/atajos_captura.py:120
 msgid ""
-"Cada familia de atajos tiene su modificador. Ctrl es para el reproductor, "
-"Alt para el chat y Ctrl+Mayús para abrir ventanas. Alt+Mayús es para el "
-"directo y OBS, Ctrl+Alt para la música y las teclas F para la voz. Pulsa un"
-" botón y luego la combinación que quieras. La aplicación comprueba que "
-"sirva para esa familia y que no choque con otra. F6, Mayús+F6, F9 a F12 y "
-"Alt+F4 son fijas, y se muestran para que no se puedan pisar."
+"Cada familia de atajos tiene su modificador. Ctrl es para el reproductor,"
+" Alt para el chat y Ctrl+Mayús para abrir ventanas. Alt+Mayús es para el "
+"directo y OBS, Ctrl+Alt para la música y las teclas F para la voz. Pulsa "
+"un botón y luego la combinación que quieras. La aplicación comprueba que "
+"sirva para esa familia y que no choque con otra. F6, Mayús+F6, F9 a F12 y"
+" Alt+F4 son fijas, y se muestran para que no se puedan pisar."
 msgstr ""
-"Each shortcut family has its own modifier. Ctrl is for the player, Alt for "
-"the chat, and Ctrl+Shift for opening windows. Alt+Shift is for the live "
-"stream and OBS, Ctrl+Alt for music, and the F keys for voice. Press a "
-"button and then the combination you want. The application checks that it "
-"works for that family and does not clash with another. F6, Shift+F6, F9 "
-"through F12, and Alt+F4 are fixed, and they are shown so they cannot be "
-"overwritten."
+"Each shortcut family has its own modifier. Ctrl is for the player, Alt "
+"for the chat, and Ctrl+Shift for opening windows. Alt+Shift is for the "
+"live stream and OBS, Ctrl+Alt for music, and the F keys for voice. Press "
+"a button and then the combination you want. The application checks that "
+"it works for that family and does not clash with another. F6, Shift+F6, "
+"F9 through F12, and Alt+F4 are fixed, and they are shown so they cannot "
+"be overwritten."
 
 #: ytchat/ui/atajos_captura.py:132
 msgid "(sin asignar)"
@@ -3318,7 +3336,9 @@ msgid "Revisando OBS antes de transmitir."
 msgstr "Checking OBS before broadcasting."
 
 #: ytchat/ui/boton_directo.py:121
-msgid "OBS ya está transmitiendo. Con este mismo botón puedes finalizar el directo."
+msgid ""
+"OBS ya está transmitiendo. Con este mismo botón puedes finalizar el "
+"directo."
 msgstr "OBS is already broadcasting. This same button can end the live stream."
 
 #: ytchat/ui/boton_directo.py:142
@@ -3353,25 +3373,29 @@ msgstr "Recent chat messages only in {app}"
 #. {usados} y {limite} los caracteres del mes con miles con punto.
 #: ytchat/ui/clave_elevenlabs.py:26
 #, python-brace-format
-msgid "Clave válida. {voces} voz. Usados {usados} de {limite} caracteres este mes."
+msgid ""
+"Clave válida. {voces} voz. Usados {usados} de {limite} caracteres este "
+"mes."
 msgid_plural ""
 "Clave válida. {voces} voces. Usados {usados} de {limite} caracteres este "
 "mes."
 msgstr[0] "Valid key. {voces} voice. {usados} of {limite} characters used this month."
-msgstr[1] "Valid key. {voces} voices. {usados} of {limite} characters used this month."
+msgstr[1] ""
+"Valid key. {voces} voices. {usados} of {limite} characters used this "
+"month."
 
 #: ytchat/ui/gui.py:74
 msgid ""
-"Sin conectar. Pega un enlace de YouTube (directo o vídeo) o de un directo "
-"de TikTok y pulsa Conectar (Alt+C). En YouTube podrás leer el chat y los "
-"comentarios; en TikTok, el chat del directo."
+"Sin conectar. Pega un enlace de YouTube (directo o vídeo) o de un directo"
+" de TikTok y pulsa Conectar (Alt+C). En YouTube podrás leer el chat y los"
+" comentarios; en TikTok, el chat del directo."
 msgstr ""
-"Not connected. Paste a YouTube link (live stream or video) or a TikTok live"
-" stream link and press Connect (Alt+C). On YouTube you can read the chat "
-"and the comments; on TikTok, the live chat."
+"Not connected. Paste a YouTube link (live stream or video) or a TikTok "
+"live stream link and press Connect (Alt+C). On YouTube you can read the "
+"chat and the comments; on TikTok, the live chat."
 
 #. Traductores: regiones que recorre F6 en la ventana principal.
-#: ytchat/ui/gui.py:91 ytchat/ui/gui_preferencias.py:129
+#: ytchat/ui/gui.py:91 ytchat/ui/gui_preferencias.py:130
 msgid "Conexión"
 msgstr "Connection"
 
@@ -3382,15 +3406,17 @@ msgstr "Content"
 #: ytchat/ui/gui.py:109
 #, python-brace-format
 msgid ""
-"Conflicto de atajos: {perdedora} se quedó sin atajo porque {conservada} usa"
-" {combinacion}."
+"Conflicto de atajos: {perdedora} se quedó sin atajo porque {conservada} "
+"usa {combinacion}."
 msgstr ""
-"Shortcut conflict: {perdedora} lost its shortcut because {conservada} uses "
-"{combinacion}."
+"Shortcut conflict: {perdedora} lost its shortcut because {conservada} "
+"uses {combinacion}."
 
 #: ytchat/ui/gui.py:168
 msgid "¿Salir de la aplicación? Hay un chat conectado y una transmisión en curso."
-msgstr "Exit the application? There is a connected chat and a broadcast in progress."
+msgstr ""
+"Exit the application? There is a connected chat and a broadcast in "
+"progress."
 
 #: ytchat/ui/gui.py:170
 msgid "¿Salir de la aplicación? Hay un chat conectado."
@@ -3425,8 +3451,8 @@ msgstr "Live stream or video link"
 #: ytchat/ui/gui.py:329
 msgid ""
 "Enlace de YouTube (directo o vídeo) o de un directo de TikTok "
-"(tiktok.com/@usuario/live). También vale el ID de 11 caracteres de YouTube."
-" Pulsa Enter para conectar."
+"(tiktok.com/@usuario/live). También vale el ID de 11 caracteres de "
+"YouTube. Pulsa Enter para conectar."
 msgstr ""
 "YouTube link (live stream or video) or a TikTok live stream link "
 "(tiktok.com/@user/live). The 11-character YouTube ID also works. Press "
@@ -3463,8 +3489,8 @@ msgstr "Chat messages:"
 
 #: ytchat/ui/gui.py:434
 msgid ""
-"Mensajes del chat. Intro copia el mensaje. La tecla de aplicaciones abre el"
-" menú contextual."
+"Mensajes del chat. Intro copia el mensaje. La tecla de aplicaciones abre "
+"el menú contextual."
 msgstr ""
 "Chat messages. Enter copies the message. The applications key opens the "
 "context menu."
@@ -3486,8 +3512,8 @@ msgid ""
 "Datos del vídeo: canal, vistas, descripción. Solo lectura. Para abrir un "
 "enlace, cópialo y pégalo en el navegador."
 msgstr ""
-"Video data: channel, views, description. Read-only. To open a link, copy it"
-" and paste it in the browser."
+"Video data: channel, views, description. Read-only. To open a link, copy "
+"it and paste it in the browser."
 
 #: ytchat/ui/gui.py:620 ytchat/ui/gui.py:629
 msgid "Conéctate primero para usar los paneles"
@@ -3930,11 +3956,11 @@ msgstr "Update"
 #: ytchat/ui/gui_actualizar_app.py:214
 #, python-brace-format
 msgid ""
-"Hay una versión nueva de {app}, la {version}. Para instalarla: menú Ayuda, "
-"Buscar actualizaciones."
+"Hay una versión nueva de {app}, la {version}. Para instalarla: menú "
+"Ayuda, Buscar actualizaciones."
 msgstr ""
-"There is a new version of {app}, {version}. To install it: Help menu, Check"
-" for updates."
+"There is a new version of {app}, {version}. To install it: Help menu, "
+"Check for updates."
 
 #: ytchat/ui/gui_actualizar_app.py:243
 msgid "Buscando la última versión."
@@ -3956,8 +3982,8 @@ msgstr " Running from source does not install: update with git."
 
 #: ytchat/ui/gui_actualizar_app.py:272
 msgid ""
-" La carpeta del programa no admite cambios. Se puede descargar a mano desde"
-" la página."
+" La carpeta del programa no admite cambios. Se puede descargar a mano "
+"desde la página."
 msgstr ""
 " The program folder is read-only. You can download it manually from the "
 "page."
@@ -4011,12 +4037,12 @@ msgstr "The package is not valid: {motivo}."
 #: ytchat/ui/gui_actualizar_app.py:383
 #, python-brace-format
 msgid ""
-"La actualización está preparada. {app} se cierra y vuelve a abrirse sola en"
-" alrededor de un minuto. Si hay un chat conectado o un directo en curso, se"
-" corta."
+"La actualización está preparada. {app} se cierra y vuelve a abrirse sola "
+"en alrededor de un minuto. Si hay un chat conectado o un directo en "
+"curso, se corta."
 msgstr ""
-"The update is ready. {app} closes and reopens itself in about a minute. If "
-"a chat is connected or a live stream is in progress, it is cut off."
+"The update is ready. {app} closes and reopens itself in about a minute. "
+"If a chat is connected or a live stream is in progress, it is cut off."
 
 #: ytchat/ui/gui_actualizar_app.py:387
 msgid "&Instalar y reiniciar"
@@ -4102,8 +4128,8 @@ msgstr "Comment list"
 
 #: ytchat/ui/gui_comentarios.py:97
 msgid ""
-"Intro lee el comentario con la voz. Ctrl+C copia. La tecla de aplicaciones "
-"abre el menú."
+"Intro lee el comentario con la voz. Ctrl+C copia. La tecla de "
+"aplicaciones abre el menú."
 msgstr ""
 "Enter reads the comment aloud. Ctrl+C copies. The applications key opens "
 "the menu."
@@ -4406,8 +4432,8 @@ msgid ""
 "Borra las entradas del historial. No borra ningún archivo descargado del "
 "disco, solo la lista. ¿Deseas continuar?"
 msgstr ""
-"Delete the history entries. It does not delete any downloaded file from the"
-" disk, only the list. Do you want to continue?"
+"Delete the history entries. It does not delete any downloaded file from "
+"the disk, only the list. Do you want to continue?"
 
 #: ytchat/ui/gui_descargas.py:430
 msgid "Se borró 1 entrada del historial"
@@ -4442,8 +4468,8 @@ msgstr ""
 #: ytchat/ui/gui_directo_huerfano.py:192
 #, python-brace-format
 msgid ""
-"Tienes {cuantos} directos al aire en YouTube sin imagen, porque OBS no está"
-" transmitiendo. ¿Finalizarlos?"
+"Tienes {cuantos} directos al aire en YouTube sin imagen, porque OBS no "
+"está transmitiendo. ¿Finalizarlos?"
 msgstr ""
 "You have {cuantos} live streams on YouTube with no video, because OBS is "
 "not broadcasting. End them?"
@@ -4723,15 +4749,15 @@ msgstr "Live stream history"
 
 #: ytchat/ui/gui_historial.py:46
 msgid ""
-"Directos y vídeos vistos. Intro o «Conectar» vuelve a abrir uno. Suprimir "
-"lo elimina. Los marcados «· directo» eran emisiones en directo. Los de "
-"TikTok se reconectan si el usuario está en directo. Un directo de YouTube "
-"ya terminado no vuelve, pero un vídeo normal sí."
+"Directos y vídeos vistos. Intro o «Conectar» vuelve a abrir uno. Suprimir"
+" lo elimina. Los marcados «· directo» eran emisiones en directo. Los de "
+"TikTok se reconectan si el usuario está en directo. Un directo de YouTube"
+" ya terminado no vuelve, pero un vídeo normal sí."
 msgstr ""
 "Viewed live streams and videos. Enter or “Connect” reopens one. Delete "
-"removes it. Items marked “live” were live broadcasts. TikTok ones reconnect"
-" if the user is live. An ended YouTube live stream does not come back, but "
-"a regular video does."
+"removes it. Items marked “live” were live broadcasts. TikTok ones "
+"reconnect if the user is live. An ended YouTube live stream does not come"
+" back, but a regular video does."
 
 #: ytchat/ui/gui_historial.py:64 ytchat/ui/preferencias_programados.py:95
 msgid "E&liminar"
@@ -5098,7 +5124,7 @@ msgstr "Change &repeat"
 msgid "&Música"
 msgstr "&Music"
 
-#: ytchat/ui/gui_microfono.py:90 ytchat/ui/gui_preferencias.py:324
+#: ytchat/ui/gui_microfono.py:90 ytchat/ui/gui_preferencias.py:306
 msgid "Micrófono de OBS"
 msgstr "OBS microphone"
 
@@ -5177,280 +5203,272 @@ msgid "Cola de lectura"
 msgstr "Reading queue"
 
 #: ytchat/ui/gui_preferencias.py:121
-msgid "Interfaz y sonidos"
-msgstr "Interface and sounds"
+msgid "Interfaz"
+msgstr "Interface"
 
 #. Traductores: nombre accesible de la lista de sonidos.
-#: ytchat/ui/gui_preferencias.py:123 ytchat/ui/preferencias_sonidos.py:95
-#: ytchat/ui/preferencias_sonidos.py:98
+#: ytchat/ui/gui_preferencias.py:123 ytchat/ui/preferencias_sonidos.py:128
+#: ytchat/ui/preferencias_sonidos.py:131
 msgid "Sonidos"
 msgstr "Sounds"
 
 #. Traductores: título de la ventana de música; una sola palabra.
 #. Traductores: título del diálogo que confirma el borrado; una sola palabra.
-#: ytchat/ui/gui_preferencias.py:126 ytchat/ui/musica_ventana.py:28
+#: ytchat/ui/gui_preferencias.py:127 ytchat/ui/musica_ventana.py:28
 #: ytchat/ui/musica_ventana_acciones.py:20 ytchat/youtube/emision.py:42
 msgid "Música"
 msgstr "Music"
 
-#: ytchat/ui/gui_preferencias.py:130
+#: ytchat/ui/gui_preferencias.py:131
 msgid "Filtros"
 msgstr "Filters"
 
-#: ytchat/ui/gui_preferencias.py:131
+#: ytchat/ui/gui_preferencias.py:132
 msgid "Estado (F2)"
 msgstr "Status (F2)"
 
-#: ytchat/ui/gui_preferencias.py:133
+#: ytchat/ui/gui_preferencias.py:134
 msgid "Atajos"
 msgstr "Shortcuts"
 
-#: ytchat/ui/gui_preferencias.py:135
+#: ytchat/ui/gui_preferencias.py:136
 msgid "API y sesión"
 msgstr "API and session"
 
-#: ytchat/ui/gui_preferencias.py:137
+#: ytchat/ui/gui_preferencias.py:138
 msgid "Mensajes automáticos"
 msgstr "Scheduled messages"
 
-#: ytchat/ui/gui_preferencias.py:139 ytchat/ui/gui_transmision.py:107
+#: ytchat/ui/gui_preferencias.py:140 ytchat/ui/gui_transmision.py:107
 msgid "Transmisión"
 msgstr "Broadcast"
 
-#: ytchat/ui/gui_preferencias.py:141
+#: ytchat/ui/gui_preferencias.py:142
 msgid "Inteligencia artificial"
 msgstr "Artificial intelligence"
 
-#: ytchat/ui/gui_preferencias.py:150 ytchat/ui/musica_editor_lista.py:152
+#: ytchat/ui/gui_preferencias.py:151 ytchat/ui/musica_editor_lista.py:152
 msgid "&Guardar"
 msgstr "&Save"
 
 #. Traductores: botón para cerrar sin publicar.
-#: ytchat/ui/gui_preferencias.py:151 ytchat/ui/gui_redactar.py:103
+#: ytchat/ui/gui_preferencias.py:152 ytchat/ui/gui_redactar.py:103
 #: ytchat/ui/gui_transmision.py:46
 msgid "&Cancelar"
 msgstr "&Cancel"
 
-#: ytchat/ui/gui_preferencias.py:207
+#: ytchat/ui/gui_preferencias.py:208
 msgid "Tamaño de &fuente del chat (8 a 24):"
 msgstr "Chat &font size (8 to 24):"
 
-#: ytchat/ui/gui_preferencias.py:210
+#: ytchat/ui/gui_preferencias.py:211
 msgid "Tamaño de fuente del chat"
 msgstr "Chat font size"
 
-#: ytchat/ui/gui_preferencias.py:214
-msgid "&Tema de sonido:"
-msgstr "&Sound theme:"
-
-#: ytchat/ui/gui_preferencias.py:216
-msgid "Tema de sonido"
-msgstr "Sound theme"
-
-#: ytchat/ui/gui_preferencias.py:223
+#: ytchat/ui/gui_preferencias.py:215
 msgid "Mostrar el total de &Super Chats en la barra de estado"
 msgstr "Show the Super &Chat total in the status bar"
 
-#: ytchat/ui/gui_preferencias.py:228
+#: ytchat/ui/gui_preferencias.py:220
 msgid "Mostrar la pestaña de &información del vídeo (canal, vistas, descripción)"
 msgstr "Show the video &information tab (channel, views, description)"
 
-#: ytchat/ui/gui_preferencias.py:251
+#: ytchat/ui/gui_preferencias.py:233
 msgid "&Estrategia de la cola"
 msgstr "&Queue strategy"
 
-#: ytchat/ui/gui_preferencias.py:252
+#: ytchat/ui/gui_preferencias.py:234
 msgid "Leer todos los mensajes"
 msgstr "Read all messages"
 
-#: ytchat/ui/gui_preferencias.py:253
+#: ytchat/ui/gui_preferencias.py:235
 msgid "Descartar los más viejos si se acumulan"
 msgstr "Drop the oldest when they pile up"
 
-#: ytchat/ui/gui_preferencias.py:254
+#: ytchat/ui/gui_preferencias.py:236
 msgid "Estrategia de la cola"
 msgstr "Queue strategy"
 
-#: ytchat/ui/gui_preferencias.py:259
+#: ytchat/ui/gui_preferencias.py:241
 msgid "Tamaño &máximo de la cola"
 msgstr "&Maximum queue size"
 
-#: ytchat/ui/gui_preferencias.py:263
+#: ytchat/ui/gui_preferencias.py:245
 msgid "Tamaño máximo de la cola"
 msgstr "Maximum queue size"
 
-#: ytchat/ui/gui_preferencias.py:266
+#: ytchat/ui/gui_preferencias.py:248
 msgid "Leer solo el &nombre a partir de"
 msgstr "Read only the &name from"
 
-#: ytchat/ui/gui_preferencias.py:270
+#: ytchat/ui/gui_preferencias.py:252
 msgid "Leer solo el nombre a partir de"
 msgstr "Read only the name from"
 
-#: ytchat/ui/gui_preferencias.py:271
+#: ytchat/ui/gui_preferencias.py:253
 msgid "Con 0, esta opción queda apagada."
 msgstr "With 0, this option stays off."
 
-#: ytchat/ui/gui_preferencias.py:282
+#: ytchat/ui/gui_preferencias.py:264
 msgid "&Reconectar automáticamente si se corta"
 msgstr "&Reconnect automatically if it drops"
 
-#: ytchat/ui/gui_preferencias.py:283
+#: ytchat/ui/gui_preferencias.py:265
 msgid "Reconectar automáticamente si se corta"
 msgstr "Reconnect automatically if it drops"
 
-#: ytchat/ui/gui_preferencias.py:286
+#: ytchat/ui/gui_preferencias.py:268
 msgid "&Espera máxima entre intentos, en segundos"
 msgstr "&Maximum wait between tries, in seconds"
 
-#: ytchat/ui/gui_preferencias.py:290
+#: ytchat/ui/gui_preferencias.py:272
 msgid "Espera máxima entre intentos, en segundos"
 msgstr "Maximum wait between tries, in seconds"
 
-#: ytchat/ui/gui_preferencias.py:293
+#: ytchat/ui/gui_preferencias.py:275
 msgid "Número máximo de &intentos"
 msgstr "Maximum number of &tries"
 
-#: ytchat/ui/gui_preferencias.py:297
+#: ytchat/ui/gui_preferencias.py:279
 msgid "Número máximo de intentos"
 msgstr "Maximum number of tries"
 
-#: ytchat/ui/gui_preferencias.py:308
+#: ytchat/ui/gui_preferencias.py:290
 msgid "A&visar cuando OBS no da abasto"
 msgstr "Warn when OBS &struggles"
 
-#: ytchat/ui/gui_preferencias.py:313
+#: ytchat/ui/gui_preferencias.py:295
 msgid "&Puerto del panel de chat"
 msgstr "Chat panel &port"
 
-#: ytchat/ui/gui_preferencias.py:317
+#: ytchat/ui/gui_preferencias.py:299
 msgid "Puerto del panel de chat"
 msgstr "Chat panel port"
 
-#: ytchat/ui/gui_preferencias.py:320
+#: ytchat/ui/gui_preferencias.py:302
 msgid "&Micrófono de OBS"
 msgstr "OBS &microphone"
 
-#: ytchat/ui/gui_preferencias.py:323 ytchat/ui/gui_preferencias.py:367
+#: ytchat/ui/gui_preferencias.py:305 ytchat/ui/gui_preferencias.py:349
 msgid "Elegir automáticamente"
 msgstr "Choose automatically"
 
-#: ytchat/ui/gui_preferencias.py:329
+#: ytchat/ui/gui_preferencias.py:311
 msgid "&Buscar los micrófonos en OBS"
 msgstr "&Find microphones in OBS"
 
-#: ytchat/ui/gui_preferencias.py:330
+#: ytchat/ui/gui_preferencias.py:312
 msgid "Buscar los micrófonos en OBS"
 msgstr "Find microphones in OBS"
 
-#: ytchat/ui/gui_preferencias.py:335
+#: ytchat/ui/gui_preferencias.py:317
 msgid "&Activar el servidor websocket de OBS"
 msgstr "&Enable the OBS websocket server"
 
-#: ytchat/ui/gui_preferencias.py:336
+#: ytchat/ui/gui_preferencias.py:318
 msgid "Activar el servidor websocket de OBS"
 msgstr "Enable the OBS websocket server"
 
-#: ytchat/ui/gui_preferencias.py:374
+#: ytchat/ui/gui_preferencias.py:356
 #, python-brace-format
 msgid "Se encontraron {cantidad} micrófonos en OBS"
 msgstr "Found {cantidad} microphones in OBS"
 
-#: ytchat/ui/gui_preferencias.py:387
+#: ytchat/ui/gui_preferencias.py:369
 #, python-brace-format
 msgid "No se pudo activar el servidor websocket de OBS: {exc}"
 msgstr "Could not enable the OBS websocket server: {exc}"
 
-#: ytchat/ui/gui_preferencias.py:396
+#: ytchat/ui/gui_preferencias.py:378
 msgid "&Reproducir el audio automáticamente al conectar"
 msgstr "&Play audio automatically on connect"
 
-#: ytchat/ui/gui_preferencias.py:402
+#: ytchat/ui/gui_preferencias.py:384
 msgid "Reproducir &solo el audio, sin decodificar la imagen"
 msgstr "Play audio &only, without decoding the picture"
 
-#: ytchat/ui/gui_preferencias.py:407
+#: ytchat/ui/gui_preferencias.py:389
 msgid ""
-"Mostrar los &botones del reproductor (también con su interruptor y el menú "
-"Reproductor)"
+"Mostrar los &botones del reproductor (también con su interruptor y el "
+"menú Reproductor)"
 msgstr "Show the player &buttons (also with its switch and the Player menu)"
 
-#: ytchat/ui/gui_preferencias.py:413
+#: ytchat/ui/gui_preferencias.py:395
 msgid "&Tamaño máximo de la caché de vídeo, en megabytes:"
 msgstr "&Maximum video cache size, in megabytes:"
 
-#: ytchat/ui/gui_preferencias.py:416
+#: ytchat/ui/gui_preferencias.py:398
 msgid "Tamaño máximo de la caché de vídeo en megabytes"
 msgstr "Maximum video cache size in megabytes"
 
-#: ytchat/ui/gui_preferencias.py:441
+#: ytchat/ui/gui_preferencias.py:423
 msgid ""
 "Elige qué dice la tecla F2 (estado de sesión). Marca lo que quieras oír; "
 "por defecto, los datos del vídeo y del chat. El orden en que se dice es "
 "fijo."
 msgstr ""
-"Choose what the F2 key says (session status). Check what you want to hear; "
-"by default, the video and chat data. The speaking order is fixed."
+"Choose what the F2 key says (session status). Check what you want to "
+"hear; by default, the video and chat data. The speaking order is fixed."
 
-#: ytchat/ui/gui_preferencias.py:465
+#: ytchat/ui/gui_preferencias.py:447
 msgid "&Palabras silenciadas (separadas por comas):"
 msgstr "Muted &words (separated by commas):"
 
-#: ytchat/ui/gui_preferencias.py:469
+#: ytchat/ui/gui_preferencias.py:451
 msgid "Palabras silenciadas"
 msgstr "Muted words"
 
-#: ytchat/ui/gui_preferencias.py:473
+#: ytchat/ui/gui_preferencias.py:455
 msgid "&Usuarios silenciados (separados por comas):"
 msgstr "&Muted users (separated by commas):"
 
-#: ytchat/ui/gui_preferencias.py:477
+#: ytchat/ui/gui_preferencias.py:459
 msgid "Usuarios silenciados"
 msgstr "Muted users"
 
-#: ytchat/ui/gui_preferencias.py:482
+#: ytchat/ui/gui_preferencias.py:464
 msgid ""
-"Estos filtros ocultan y no leen los mensajes que contengan esas palabras o "
-"de esos usuarios. Se aplican a partir del próximo mensaje."
+"Estos filtros ocultan y no leen los mensajes que contengan esas palabras "
+"o de esos usuarios. Se aplican a partir del próximo mensaje."
 msgstr ""
-"These filters hide and skip messages containing those words or from those "
-"users. They apply from the next message."
+"These filters hide and skip messages containing those words or from those"
+" users. They apply from the next message."
 
-#: ytchat/ui/gui_preferencias.py:591
+#: ytchat/ui/gui_preferencias.py:568
 msgid "Preferencias guardadas."
 msgstr "Preferences saved."
 
-#: ytchat/ui/gui_preferencias.py:593
+#: ytchat/ui/gui_preferencias.py:570
 msgid ""
-"Las preferencias se aplicaron, pero no se pudieron guardar en el disco. Se "
-"perderán al cerrar la aplicación."
+"Las preferencias se aplicaron, pero no se pudieron guardar en el disco. "
+"Se perderán al cerrar la aplicación."
 msgstr ""
-"Preferences were applied, but could not be saved to disk. They will be lost"
-" when the application closes."
+"Preferences were applied, but could not be saved to disk. They will be "
+"lost when the application closes."
 
-#: ytchat/ui/gui_preferencias.py:597
+#: ytchat/ui/gui_preferencias.py:574
 msgid "El motor elegido no está disponible, se conserva el anterior."
 msgstr "The chosen engine is not available, keeping the previous one."
 
-#: ytchat/ui/gui_preferencias.py:599
+#: ytchat/ui/gui_preferencias.py:576
 msgid "El cambio del registro detallado se aplica al reiniciar la aplicación."
 msgstr "The detailed logging change applies when the application restarts."
 
-#: ytchat/ui/gui_preferencias.py:604
+#: ytchat/ui/gui_preferencias.py:581
 msgid ""
 "El puerto nuevo del panel de chat se aplica al apagarlo y volver a "
 "encenderlo desde el panel de transmisión."
 msgstr ""
-"The new chat panel port applies when you turn it off and on again from the "
-"broadcast panel."
+"The new chat panel port applies when you turn it off and on again from "
+"the broadcast panel."
 
-#: ytchat/ui/gui_preferencias.py:650
+#: ytchat/ui/gui_preferencias.py:627
 msgid ""
 "Tu sesión de YouTube caducó. ¿Abrir Preferencias para volver a iniciar "
 "sesión?"
 msgstr "Your YouTube session expired. Open Preferences to sign in again?"
 
-#: ytchat/ui/gui_preferencias.py:652
+#: ytchat/ui/gui_preferencias.py:629
 msgid "Sesión caducada"
 msgstr "Session expired"
 
@@ -5511,29 +5529,33 @@ msgstr ""
 
 #: ytchat/ui/gui_transmision.py:63
 msgid ""
-"Este diálogo no crea escenas ni agrega otras fuentes, salvo la captura de "
-"ventana desde la sección Escena. Hace una sola\n"
-"cosa: pone el panel de chat de esta aplicación dentro de una escena de OBS\n"
+"Este diálogo no crea escenas ni agrega otras fuentes, salvo la captura de"
+" ventana desde la sección Escena. Hace una sola\n"
+"cosa: pone el panel de chat de esta aplicación dentro de una escena de "
+"OBS\n"
 "y lo coloca donde quieras.\n"
 "\n"
 "El orden es este.\n"
 "\n"
-"Uno. Pulsa Preparar el panel. Eso enciende el servidor del panel y crea la\n"
+"Uno. Pulsa Preparar el panel. Eso enciende el servidor del panel y crea "
+"la\n"
 "fuente dentro de la escena elegida, si todavía no estaba.\n"
 "\n"
-"Dos. Elige la escena en el desplegable Escena. Recorrerlo no cambia lo que\n"
+"Dos. Elige la escena en el desplegable Escena. Recorrerlo no cambia lo "
+"que\n"
 "ven los espectadores: para eso está el botón Poner al aire.\n"
 "\n"
-"Tres. Elige qué fuente vas a mover en el desplegable Fuente. Normalmente es"
-"\n"
+"Tres. Elige qué fuente vas a mover en el desplegable Fuente. Normalmente "
+"es\n"
 "el panel de chat, pero puedes mover cualquier fuente que ya exista en la\n"
-"escena. Este diálogo solo agrega el panel y la captura de ventana: lo demás"
-" se hace\n"
+"escena. Este diálogo solo agrega el panel y la captura de ventana: lo "
+"demás se hace\n"
 "desde OBS.\n"
 "\n"
-"Cuatro. Coloca la fuente. Tienes dos formas. El desplegable Posición más su"
-"\n"
-"botón la lleva a una de nueve posiciones fijas. El Ajuste fino la mueve de\n"
+"Cuatro. Coloca la fuente. Tienes dos formas. El desplegable Posición más "
+"su\n"
+"botón la lleva a una de nueve posiciones fijas. El Ajuste fino la mueve "
+"de\n"
 "a poco con las flechas, y confirma con Intro.\n"
 "\n"
 "Cinco. El tamaño se cambia con Ancho y Alto y se aplica con su botón.\n"
@@ -5551,21 +5573,23 @@ msgstr ""
 "\n"
 "The order is this.\n"
 "\n"
-"One. Press Prepare the panel. That starts the panel server and creates the\n"
+"One. Press Prepare the panel. That starts the panel server and creates "
+"the\n"
 "source inside the chosen scene, if it was not there yet.\n"
 "\n"
-"Two. Choose the scene in the Scene drop-down. Browsing it does not change "
-"what\n"
+"Two. Choose the scene in the Scene drop-down. Browsing it does not change"
+" what\n"
 "viewers see: the Put live button is for that.\n"
 "\n"
-"Three. Choose which source to move in the Source drop-down. Normally it is\n"
+"Three. Choose which source to move in the Source drop-down. Normally it "
+"is\n"
 "the chat panel, but you can move any source already in the\n"
-"scene. This dialog only adds the panel and window capture: the rest is done"
-"\n"
+"scene. This dialog only adds the panel and window capture: the rest is "
+"done\n"
 "from OBS.\n"
 "\n"
-"Four. Place the source. There are two ways. The Position drop-down plus its"
-"\n"
+"Four. Place the source. There are two ways. The Position drop-down plus "
+"its\n"
 "button moves it to one of nine fixed positions. Fine adjustment moves it\n"
 "little by little with the arrows, and confirms with Enter.\n"
 "\n"
@@ -5925,8 +5949,8 @@ msgid ""
 "Para transmitir a YouTube hace falta iniciar sesión con Google, en "
 "Preferencias, pestaña API y sesión."
 msgstr ""
-"To broadcast to YouTube you must sign in with Google, in Preferences, API "
-"and session tab."
+"To broadcast to YouTube you must sign in with Google, in Preferences, API"
+" and session tab."
 
 #: ytchat/ui/gui_transmitir.py:338
 msgid "El directo está marcado como hecho para niños y YouTube no tiene chat."
@@ -5937,8 +5961,8 @@ msgid ""
 "El directo es privado y YouTube no deja leer su chat. Para leerlo, "
 "transmite como público o no listado."
 msgstr ""
-"The live stream is private and YouTube does not allow reading its chat. To "
-"read it, broadcast as public or unlisted."
+"The live stream is private and YouTube does not allow reading its chat. "
+"To read it, broadcast as public or unlisted."
 
 #: ytchat/ui/gui_transmitir.py:350
 msgid "El chat ya estaba conectado y no se cambió."
@@ -5954,36 +5978,38 @@ msgstr "Loading OBS sources…"
 #, python-brace-format
 msgid ""
 "La captura de {etiqueta} salió negra y no se agregó. La escena no tiene "
-"ninguna captura de pantalla, de ventana, de juego ni de cámara. Agrega una "
-"en OBS y vuelve a intentarlo."
+"ninguna captura de pantalla, de ventana, de juego ni de cámara. Agrega "
+"una en OBS y vuelve a intentarlo."
 msgstr ""
-"The {etiqueta} screenshot came out black and was not added. The scene has "
-"no screen, window, game, or camera capture. Add one in OBS and try again."
+"The {etiqueta} screenshot came out black and was not added. The scene has"
+" no screen, window, game, or camera capture. Add one in OBS and try "
+"again."
 
 #. Traductores: aviso de captura negra; {etiqueta} lo elegido y {fuente} su
 #. origen.
 #: ytchat/ui/ia_agregar_captura.py:44
 #, python-brace-format
 msgid ""
-"La captura de {etiqueta} salió negra y no se agregó. La fuente {fuente} no "
-"tiene elegido qué capturar. Elígelo en las propiedades de la fuente en OBS."
+"La captura de {etiqueta} salió negra y no se agregó. La fuente {fuente} "
+"no tiene elegido qué capturar. Elígelo en las propiedades de la fuente en"
+" OBS."
 msgstr ""
 "The {etiqueta} screenshot came out black and was not added. The {fuente} "
-"source has nothing chosen to capture. Choose it in the source properties in"
-" OBS."
+"source has nothing chosen to capture. Choose it in the source properties "
+"in OBS."
 
 #. Traductores: aviso de captura negra; {etiqueta} es lo elegido en «Capturar
 #. de».
 #: ytchat/ui/ia_agregar_captura.py:49
 #, python-brace-format
 msgid ""
-"La captura de {etiqueta} salió negra y no se agregó. Suele pasar si la PC "
-"no tiene monitor conectado o si la cortina de pantalla de NVDA está activa."
-" Prueba en OBS el método de captura Windows 10 para esa fuente."
+"La captura de {etiqueta} salió negra y no se agregó. Suele pasar si la PC"
+" no tiene monitor conectado o si la cortina de pantalla de NVDA está "
+"activa. Prueba en OBS el método de captura Windows 10 para esa fuente."
 msgstr ""
 "The {etiqueta} screenshot came out black and was not added. This often "
-"happens if the PC has no monitor connected or if the NVDA screen curtain is"
-" on. In OBS, try the Windows 10 capture method for that source."
+"happens if the PC has no monitor connected or if the NVDA screen curtain "
+"is on. In OBS, try the Windows 10 capture method for that source."
 
 #: ytchat/ui/ia_agregar_captura.py:58 ytchat/ui/ia_ventana.py:109
 msgid "Agregar captura"
@@ -6024,8 +6050,8 @@ msgstr "A quick question is already in progress."
 #: ytchat/ui/ia_privacidad.py:19
 #, python-brace-format
 msgid ""
-"La captura de la escena y lo que escribas se envían a {proveedor} para que "
-"responda. Este aviso sale una sola vez. ¿Enviar?"
+"La captura de la escena y lo que escribas se envían a {proveedor} para "
+"que responda. Este aviso sale una sola vez. ¿Enviar?"
 msgstr ""
 "The scene screenshot and what you type are sent to {proveedor} so it can "
 "respond. This notice appears only once. Send?"
@@ -6395,13 +6421,13 @@ msgstr "Default output"
 
 #: ytchat/ui/preferencias_api.py:40
 msgid ""
-"La API key permite LEER comentarios (sin iniciar sesión). El cliente OAuth "
-"e iniciar sesión permiten MODERAR el chat, enviar mensajes al directo y "
-"publicar o responder comentarios."
+"La API key permite LEER comentarios (sin iniciar sesión). El cliente "
+"OAuth e iniciar sesión permiten MODERAR el chat, enviar mensajes al "
+"directo y publicar o responder comentarios."
 msgstr ""
-"The API key allows READING comments (without signing in). The OAuth client "
-"and signing in allow MODERATING the chat, sending messages to the live "
-"stream, and posting or replying to comments."
+"The API key allows READING comments (without signing in). The OAuth "
+"client and signing in allow MODERATING the chat, sending messages to the "
+"live stream, and posting or replying to comments."
 
 #. Traductores: no traduzcas el comando «pip install ...», solo el resto.
 #: ytchat/ui/preferencias_api.py:50
@@ -6533,7 +6559,9 @@ msgid "Sin cambios"
 msgstr "No changes"
 
 #: ytchat/ui/preferencias_atajos.py:127
-msgid "Atajos restablecidos a los valores de fábrica. Se aplican al pulsar Guardar."
+msgid ""
+"Atajos restablecidos a los valores de fábrica. Se aplican al pulsar "
+"Guardar."
 msgstr "Shortcuts reset to factory defaults. They apply when you press Save."
 
 #: ytchat/ui/preferencias_general.py:39
@@ -6563,7 +6591,9 @@ msgid ""
 msgstr "Ask before &quitting if a chat is connected or a broadcast is in progress"
 
 #: ytchat/ui/preferencias_general.py:62
-msgid "Preguntar antes de salir si hay un chat conectado o una transmisión en curso"
+msgid ""
+"Preguntar antes de salir si hay un chat conectado o una transmisión en "
+"curso"
 msgstr "Ask before quitting if a chat is connected or a broadcast is in progress"
 
 #: ytchat/ui/preferencias_general.py:67
@@ -6672,8 +6702,8 @@ msgstr "Preferences imported"
 
 #: ytchat/ui/preferencias_general.py:158
 msgid ""
-"¿Restablecer todas las preferencias a los valores de fábrica? Se guarda una"
-" copia de las actuales en la carpeta de datos."
+"¿Restablecer todas las preferencias a los valores de fábrica? Se guarda "
+"una copia de las actuales en la carpeta de datos."
 msgstr ""
 "Reset all preferences to factory defaults? A copy of the current ones is "
 "saved in the data folder."
@@ -6981,17 +7011,17 @@ msgstr "No audio outputs found"
 
 #: ytchat/ui/preferencias_programados.py:44
 msgid ""
-"Envía mensajes al chat de tu directo cada cierto tiempo. Necesita sesión de"
-" Google iniciada y un directo de YouTube conectado. El intervalo mínimo son"
-" 5 minutos y cada mensaje admite 200 caracteres. YouTube suele bloquear los"
-" enlaces en el chat del directo: conviene escribir el nombre de usuario en "
-"vez de la dirección completa."
+"Envía mensajes al chat de tu directo cada cierto tiempo. Necesita sesión "
+"de Google iniciada y un directo de YouTube conectado. El intervalo mínimo"
+" son 5 minutos y cada mensaje admite 200 caracteres. YouTube suele "
+"bloquear los enlaces en el chat del directo: conviene escribir el nombre "
+"de usuario en vez de la dirección completa."
 msgstr ""
-"Sends messages to your live stream chat every so often. It needs a signed-"
-"in Google session and a connected YouTube live stream. The minimum interval"
-" is 5 minutes and each message allows 200 characters. YouTube often blocks "
-"links in live chat: it is better to write the username instead of the full "
-"address."
+"Sends messages to your live stream chat every so often. It needs a "
+"signed-in Google session and a connected YouTube live stream. The minimum"
+" interval is 5 minutes and each message allows 200 characters. YouTube "
+"often blocks links in live chat: it is better to write the username "
+"instead of the full address."
 
 #: ytchat/ui/preferencias_programados.py:54
 msgid "Acti&var los mensajes automáticos"
@@ -7042,16 +7072,24 @@ msgstr "Message saved"
 msgid "Mensaje eliminado"
 msgstr "Message deleted"
 
-#: ytchat/ui/preferencias_sonidos.py:79
+#: ytchat/ui/preferencias_sonidos.py:82
 msgid "&Sonidos:"
 msgstr "&Sounds:"
 
-#: ytchat/ui/preferencias_sonidos.py:83
+#: ytchat/ui/preferencias_sonidos.py:86
 msgid "&Oír el sonido elegido"
 msgstr "&Hear the selected sound"
 
-#. Traductores: columna con el nombre de cada sonido.
+#: ytchat/ui/preferencias_sonidos.py:96
+msgid "&Tema de sonido:"
+msgstr "&Sound theme:"
+
 #: ytchat/ui/preferencias_sonidos.py:100
+msgid "Tema de sonido"
+msgstr "Sound theme"
+
+#. Traductores: columna con el nombre de cada sonido.
+#: ytchat/ui/preferencias_sonidos.py:133
 msgid "Sonido"
 msgstr "Sound"
 
@@ -7140,10 +7178,12 @@ msgid "Solo lo importante con ElevenLabs"
 msgstr "Only important things with ElevenLabs"
 
 #: ytchat/ui/preferencias_voz.py:166
-msgid "U&sar ElevenLabs solo con Super Chats, miembros, cofres, dueño y moderadores"
+msgid ""
+"U&sar ElevenLabs solo con Super Chats, miembros, cofres, dueño y "
+"moderadores"
 msgstr ""
-"Use ElevenLabs &only for Super Chats, members, treasure chests, owner, and "
-"moderators"
+"Use ElevenLabs &only for Super Chats, members, treasure chests, owner, "
+"and moderators"
 
 #: ytchat/ui/preferencias_voz.py:173
 msgid "Voz de &Windows de respaldo:"
@@ -7155,8 +7195,8 @@ msgstr "Backup Windows voice"
 
 #: ytchat/ui/preferencias_voz.py:201
 msgid ""
-"Usar una voz &distinta para los eventos (Super Chats, regalos, miembros y "
-"entradas)"
+"Usar una voz &distinta para los eventos (Super Chats, regalos, miembros y"
+" entradas)"
 msgstr "Use a di&fferent voice for events (Super Chats, gifts, members, and joins)"
 
 #: ytchat/ui/preferencias_voz.py:206
@@ -7374,8 +7414,8 @@ msgstr "Could not add the live stream to the playlist: {detalle}"
 
 #: ytchat/youtube/emision.py:293
 msgid ""
-"La cuenta de YouTube no tiene una clave de emisión reutilizable. Se crea en"
-" YouTube Studio, en Emitir en directo."
+"La cuenta de YouTube no tiene una clave de emisión reutilizable. Se crea "
+"en YouTube Studio, en Emitir en directo."
 msgstr ""
 "The YouTube account has no reusable stream key. Create one in YouTube "
 "Studio, under Go live."
@@ -7385,14 +7425,16 @@ msgid ""
 "Tu sesión de YouTube caducó. Vuelve a iniciar sesión en Preferencias, "
 "pestaña API y sesión."
 msgstr ""
-"Your YouTube session expired. Sign in again in Preferences, API and session"
-" tab."
+"Your YouTube session expired. Sign in again in Preferences, API and "
+"session tab."
 
 #: ytchat/youtube/youtube_api.py:133
 msgid ""
-"Se agotó la cuota diaria de la API de YouTube. Vuelve a intentarlo mañana o"
-" usa otra clave."
-msgstr "The daily YouTube API quota ran out. Try again tomorrow or use another key."
+"Se agotó la cuota diaria de la API de YouTube. Vuelve a intentarlo mañana"
+" o usa otra clave."
+msgstr ""
+"The daily YouTube API quota ran out. Try again tomorrow or use another "
+"key."
 
 #: ytchat/youtube/youtube_api.py:136
 msgid "Los comentarios están desactivados en este vídeo."
@@ -7403,15 +7445,17 @@ msgid "No se encontró el vídeo. Revisa el enlace o el ID."
 msgstr "The video was not found. Check the link or the ID."
 
 #: ytchat/youtube/youtube_api.py:140
-msgid "YouTube no acepta la API key. Revísala en Preferencias, página API y sesión."
+msgid ""
+"YouTube no acepta la API key. Revísala en Preferencias, página API y "
+"sesión."
 msgstr ""
 "YouTube does not accept the API key. Check it in Preferences, API and "
 "session page."
 
 #: ytchat/youtube/youtube_api.py:142
 msgid ""
-"La cuenta de YouTube no tiene los directos activados. Se activan en YouTube"
-" Studio y pueden tardar hasta 24 horas."
+"La cuenta de YouTube no tiene los directos activados. Se activan en "
+"YouTube Studio y pueden tardar hasta 24 horas."
 msgstr ""
 "The YouTube account does not have live streaming enabled. Enable it in "
 "YouTube Studio; it may take up to 24 hours."
@@ -7461,4 +7505,7 @@ msgstr "Untitled"
 
 #~ msgid "en_cola"
 #~ msgstr "queued"
+
+#~ msgid "Interfaz y sonidos"
+#~ msgstr "Interface and sounds"
 

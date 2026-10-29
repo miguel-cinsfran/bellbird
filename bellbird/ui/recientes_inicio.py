@@ -101,6 +101,8 @@ class RecientesInicio:
 
     def _al_cambio_zona(self, event):
         event.Skip()
+        if not self._zona or not self.caja or not self._panel:
+            return
         self._aplicar_visibilidad()
 
     def _recargar(self):

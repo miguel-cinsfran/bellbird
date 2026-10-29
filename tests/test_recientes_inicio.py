@@ -153,6 +153,14 @@ class TestRecientesVentana(unittest.TestCase):
         self.assertTrue(recientes.caja.IsShown())
         self.assertEqual(3, recientes.lista.GetCount())
 
+    def test_zona_destruida_no_revienta_al_cambiar(self):
+        _m, _p, _s, zona, recientes, _c = self._marco(self._entradas(1))
+        zona.Destroy()
+        self.wx.Yield()
+        evento = mock.Mock()
+        recientes._al_cambio_zona(evento)
+        evento.Skip.assert_called_once_with()
+
     def test_sin_historial_no_muestra_ni_lista_ni_rotulo(self):
         _m, _p, _s, _z, recientes, _c = self._marco([])
         self.assertFalse(recientes.caja.IsShown())

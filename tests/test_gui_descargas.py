@@ -24,11 +24,14 @@ class TestTablaEstadosSinVentana(unittest.TestCase):
         self.assertEqual(set(gui_descargas._ETIQUETAS_ESTADO),
                          {"en_cola", "descargando", "completado",
                           "cancelado", "error"})
-        for nombre in ("en_cola", "descargando", "completado",
-                       "cancelado", "error"):
+        for nombre in ("descargando", "completado", "cancelado", "error"):
             self.assertEqual(gui_descargas._ETIQUETAS_ESTADO[nombre], nombre)
+        self.assertEqual(gui_descargas._ETIQUETAS_ESTADO["en_cola"], "en cola")
         self.assertEqual(gui_descargas._texto_estado("error", "sin espacio"),
                          "error: sin espacio")
+
+    def test_celda_de_una_descarga_en_cola_dice_en_cola(self):
+        self.assertEqual(gui_descargas._texto_estado("en_cola", ""), "en cola")
 
 
 class _DobleControl:

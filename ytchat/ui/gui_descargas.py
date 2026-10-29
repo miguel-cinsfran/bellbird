@@ -65,7 +65,7 @@ def nombrar_selector_carpeta(selector) -> None:
 
 
 _ESTADOS_FINALES = ("completado", "cancelado", "error")
-_ETIQUETAS_ESTADO = {"en_cola": N_("en_cola"), "descargando": N_("descargando"),
+_ETIQUETAS_ESTADO = {"en_cola": N_("en cola"), "descargando": N_("descargando"),
                      "completado": N_("completado"), "cancelado": N_("cancelado"),
                      "error": N_("error")}
 # Cada fin de descarga avisa con su sonido propio.

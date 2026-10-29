@@ -1332,7 +1332,7 @@ def escenario_descargas(app: Aplicacion, args, res: Resultado):
     juntos = " ".join(
         ((c.get("nombre") or "") + " " + (c.get("etiqueta") or ""))
         for c in controles).lower()
-    for esperado in ("formato", "bitrate", "carpeta", "cola", "cerrar"):
+    for esperado in ("formato", "velocidad de bits", "carpeta", "cola", "cerrar"):
         if esperado not in juntos:
             res.fallo(f"descargas: no aparece nada llamado «{esperado}»")
 
@@ -2484,12 +2484,12 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
 
         _aire()
         n = len(propia.anuncios)
-        _menu("subir el volumen")
+        _menu("subir volumen")
         esperado = anuncios_musica.TEXTO_VOLUMEN.format(valor=50)
         if not propia.esperar_dicho(esperado, segundos=8, desde=n):
             res.fallo(f"musica_real: subir no anunció «{esperado}»")
         n = len(propia.anuncios)
-        _menu("bajar el volumen")
+        _menu("bajar volumen")
         esperado = str(40)
         if not propia.esperar_dicho(esperado, segundos=8, desde=n):
             res.fallo(f"musica_real: bajar no anunció «{esperado}»")

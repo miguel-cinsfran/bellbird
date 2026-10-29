@@ -622,10 +622,35 @@ def nombres_segun_windows(rol: str) -> list[str]:
     return list(_ULTIMOS_NOMBRES.get(rol, []))
 
 
+def faltan_habilitados(controles: list[dict],
+                        nombres: tuple[str, ...]) -> list[str]:
+    """Los `nombres` sin ningún control visible y habilitado que los mencione.
+
+    Es la misma regla de `esperados`, pero exigiendo habilitado: un control
+    deshabilitado no entra en el orden de Tab y no cuenta como listo.
+    """
+    faltan = []
+    for e in nombres:
+        aguja = e.lower()
+        listo = False
+        for c in controles:
+            junto = ((c.get("nombre") or "") + " "
+                     + (c.get("etiqueta") or "")).replace("&", "").lower()
+            if (aguja in junto and c.get("habilitado", True)
+                    and c.get("visible", True)):
+                listo = True
+                break
+        if not listo:
+            faltan.append(e)
+    return faltan
+
+
 def auditar_dialogo(app: Aplicacion, res: Resultado, etiqueta_menu: str,
                     titulo: str, vueltas_tab: int = 16,
                     esperados: tuple[str, ...] = (),
-                    esperados_en_tab: tuple[str, ...] = ()) -> bool:
+                    esperados_en_tab: tuple[str, ...] = (),
+                    esperar_habilitados: tuple[str, ...] = (),
+                    segundos_espera_habilitados: float = 20.0) -> bool:
     """Abre un diálogo desde el menú, lo audita entero y lo cierra."""
     app.pedir("frente")
     try:
@@ -639,6 +664,31 @@ def auditar_dialogo(app: Aplicacion, res: Resultado, etiqueta_menu: str,
         res.fallo(f"{titulo}: el menú no abrió ninguna ventana con ese título")
         return False
     res.nota(f"{titulo}: abre desde «{etiqueta_menu}», clase {dlg['clase']}")
+
+    # Un diálogo que consulta algo de fuera nace con sus controles
+    # deshabilitados y los habilita cuando la carga inicial termina. Si el
+    # Tab se recorre antes, mide la pantalla de espera: el 29/10/2026 el
+    # cuadro de Transmisión dio 26 paradas sin «Preparar el panel» ni
+    # «Restablecer» porque la carga desde OBS aún no había terminado.
+    if esperar_habilitados:
+        limite_espera = time.monotonic() + segundos_espera_habilitados
+        pendientes = list(esperar_habilitados)
+        while True:
+            try:
+                pendientes = faltan_habilitados(app.arbol(titulo),
+                                                esperar_habilitados)
+            except Exception:
+                pendientes = list(esperar_habilitados)
+            if not pendientes or time.monotonic() >= limite_espera:
+                break
+            time.sleep(0.5)
+        if not pendientes:
+            res.nota(f"{titulo}: la carga inicial terminó, "
+                     f"«{esperar_habilitados[0]}» está habilitado")
+        else:
+            res.nota(f"{titulo}: «{pendientes[0]}» no se habilitó en "
+                     f"{segundos_espera_habilitados:.0f} segundos, "
+                     "se audita igual")
 
     controles = app.arbol(titulo)
     revisar_nombres(controles, res, titulo)
@@ -673,7 +723,7 @@ def auditar_dialogo(app: Aplicacion, res: Resultado, etiqueta_menu: str,
             break
         time.sleep(0.5)
     res.nota(f"{titulo}, orden de Tab, {len(orden)} paradas: "
-             + " > ".join(orden[:12]))
+             + " > ".join(orden))
     for e in faltan if esperados_en_tab else ():
         res.fallo(f"{titulo}: «{e}» no aparece en el orden de Tab "
                   f"en {SEGUNDOS_TAB_COMPLETO:.0f} segundos")
@@ -718,7 +768,7 @@ def abrir_y_auditar(app: Aplicacion, res: Resultado, etiqueta_menu: str,
     revisar_nombres(controles, res, titulo)
     orden = recorrer_tab(app, res, titulo, vueltas=vueltas_tab,
                          ventana=titulo)
-    res.nota(f"{titulo}, Tab: " + " > ".join(orden[:10]))
+    res.nota(f"{titulo}, Tab: " + " > ".join(orden))
     app.pedir("cerrar_ventana", ventana=titulo)
     if app.esperar_ventana(titulo, segundos=4) is not None:
         res.fallo(f"{titulo}: no cerró")
@@ -1408,7 +1458,7 @@ def escenario_preferencias(app: Aplicacion, args, res: Resultado):
 
     orden = recorrer_tab(app, res, "preferencias", vueltas=20)
     res.nota(f"preferencias, orden de Tab, {len(orden)} paradas: "
-             + " > ".join(orden[:10]))
+             + " > ".join(orden))
 
     # Y ahora el resto de las pestanas, una por una. Auditar solo la visible
     # dejaba fuera la pagina de atajos entera, que son veinte botones.
@@ -1797,7 +1847,8 @@ def escenario_transmision(app: Aplicacion, args, res: Resultado):
     # Sin OBS los controles de OBS nacen deshabilitados a propósito, y wx saca
     # lo deshabilitado del orden de Tab. Exigirlos ahí mide la pantalla de
     # espera, no el diálogo. Medido el 29/09/2026.
-    if obs_abierto():
+    hay_obs = obs_abierto()
+    if hay_obs:
         esperados_tab = ("Preparar el panel", "Fuente", "Escena",
                          "Poner al aire", "Posición del panel",
                          "Restablecer", "Transmitir", "Grabar")
@@ -1816,7 +1867,11 @@ def escenario_transmision(app: Aplicacion, args, res: Resultado):
                    "Restablecer", "Transmitir", "Grabar", "Pausar la grabación",
                    "Cerrar"),
         # Arranca deshabilitado sin grabación y wx lo saca del orden de Tab.
-        esperados_en_tab=esperados_tab)
+        esperados_en_tab=esperados_tab,
+        # Con OBS abierto la carga inicial tarda: el cuadro nace con todo
+        # deshabilitado y auditar el Tab antes mide la pantalla de espera.
+        # Se espera a que «Preparar el panel» se habilite, sin tocar OBS.
+        esperar_habilitados=(("Preparar el panel",) if hay_obs else ()))
 
 
 def escenario_microfono(app: Aplicacion, args, res: Resultado):
@@ -3066,7 +3121,7 @@ def _auditar_actualizacion(app: Aplicacion, res: Resultado, etiqueta_menu: str,
 
     orden = recorrer_tab(app, res, titulo, vueltas=10, ventana=titulo)
     res.nota(f"{titulo}, orden de Tab, {len(orden)} paradas: "
-             + " > ".join(orden[:12]))
+             + " > ".join(orden))
 
     app.pedir("cerrar_ventana", ventana=titulo)
     if app.esperar_ventana(titulo, segundos=4) is not None:
@@ -3158,7 +3213,7 @@ def escenario_transmitir_destino(app: Aplicacion, args, res: Resultado):
     orden = recorrer_tab(app, res, "Transmitir a", vueltas=10,
                          ventana="Transmitir a")
     res.nota("Transmitir a, orden de Tab, %d paradas: %s"
-             % (len(orden), " > ".join(orden[:10])))
+             % (len(orden), " > ".join(orden)))
 
     n = len(app.anuncios)
     app.pedir("pulsar", nombre="Cancelar")
@@ -3282,7 +3337,7 @@ def escenario_transmitir_destino(app: Aplicacion, args, res: Resultado):
         orden = recorrer_tab(app, res, "Directo de YouTube", vueltas=14,
                              ventana="Directo de YouTube")
         res.nota("Directo de YouTube, orden de Tab, %d paradas: %s"
-                 % (len(orden), " > ".join(orden[:10])))
+                 % (len(orden), " > ".join(orden)))
         # Se cierra con «Cancelar»: pulsar «Transmitir» crearía un directo.
         app.pedir("cerrar_ventana", ventana="Directo de YouTube")
         if app.esperar_ventana("Directo de YouTube", segundos=4) is not None:
@@ -3418,7 +3473,7 @@ def escenario_chat(app: Aplicacion, args, res: Resultado):
 
     orden = recorrer_tab(app, res, "principal conectada", vueltas=16)
     res.nota(f"conectado, Tab da {len(orden)} paradas: "
-             + " > ".join(orden[:10]))
+             + " > ".join(orden))
 
 
 def escenario_tiktok(app: Aplicacion, args, res: Resultado):
@@ -3518,7 +3573,7 @@ def escenario_comentarios(app: Aplicacion, args, res: Resultado):
     app.pedir("foco", nombre="Lista de comentarios")
     orden = recorrer_tab(app, res, "comentarios", vueltas=12)
     res.nota("comentarios, orden de Tab, %d paradas: %s"
-             % (len(orden), " > ".join(orden[:10])))
+             % (len(orden), " > ".join(orden)))
 
     # Enter sobre la lista vacía tiene que decir algo. Callarse es lo peor que
     # puede hacer: quien no ve la pantalla no sabe si la tecla llegó.
@@ -3723,15 +3778,27 @@ def _version_coherente(textos: list, res: Resultado) -> None:
     except Exception as exc:
         res.nota(f"no se pudo leer CHANGELOG.md: {exc}")
         return
-    m = re.search(r"^##\s*(\d+\.\d+\.\d+)", texto, re.MULTILINE)
-    documentada = m.group(1) if m else ""
+    # La entrada mas nueva suele ser un trabajo en curso marcado "sin
+    # publicar". Esa no cuenta como publicada: se compara con la primera
+    # entrada publicada. Si la aplicacion ya dice la sin publicar, tambien
+    # es coherente, porque es el momento de publicar.
+    entradas = re.findall(r"^##\s*(\d+\.\d+\.\d+)(.*)$", texto,
+                          re.MULTILINE)
+    sin_publicar = next((v for v, resto in entradas
+                         if "sin publicar" in resto.lower()), "")
+    documentada = next((v for v, resto in entradas
+                        if "sin publicar" not in resto.lower()), "")
     if not documentada:
-        res.fallo("CHANGELOG.md no tiene ninguna entrada de version")
-    elif documentada != mostrada:
-        res.fallo("la aplicacion dice v%s y la entrada mas nueva del CHANGELOG "
-                  "es %s" % (mostrada, documentada))
+        res.fallo("CHANGELOG.md no tiene ninguna entrada de version publicada")
+    elif mostrada == documentada:
+        res.nota(f"version coherente: la aplicacion dice {mostrada} y la "
+                 f"ultima entrada publicada del CHANGELOG es {documentada}")
+    elif sin_publicar and mostrada == sin_publicar:
+        res.nota(f"version coherente: la aplicacion dice {mostrada}, que es "
+                 f"la entrada sin publicar; la ultima publicada es {documentada}")
     else:
-        res.nota(f"version coherente: la aplicacion y el CHANGELOG dicen {mostrada}")
+        res.fallo("la aplicacion dice v%s y la ultima entrada publicada del "
+                  "CHANGELOG es %s" % (mostrada, documentada))
 
 
 def escenario_avisos_wx(app: Aplicacion, args, res: Resultado):
@@ -4983,7 +5050,7 @@ def escenario_redactar(app: Aplicacion, args, res: Resultado):
         res.fallo("redactar: con el cuadro vacio no avisa")
 
     orden = recorrer_tab(app, res, "redactar", vueltas=10)
-    res.nota("redactar, orden de Tab: " + " > ".join(orden[:5]))
+    res.nota("redactar, orden de Tab: " + " > ".join(orden))
     esperado = ["Chat del directo", "Mensaje para el chat", "Enviar"]
     juntos = " > ".join(orden)
     if not all(x in juntos for x in esperado):

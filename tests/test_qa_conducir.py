@@ -127,6 +127,66 @@ class TestEsVentanaDeLaApp(unittest.TestCase):
             self.assertFalse(conducir.es_ventana_de_la_app(nombre))
 
 
+class TestVersionCoherente(unittest.TestCase):
+
+    def _corre_con_changelog(self, texto_changelog, mostrada):
+        with tempfile.TemporaryDirectory() as base:
+            ruta = Path(base) / "CHANGELOG.md"
+            ruta.write_text(texto_changelog, encoding="utf-8")
+            with mock.patch.object(conducir, "RAIZ", Path(base)):
+                res = conducir.Resultado()
+                conducir._version_coherente(
+                    ["Bellbird v%s" % mostrada], res)
+        return res
+
+    def test_salta_la_entrada_sin_publicar(self):
+        texto = ("## 3.0.0, sin publicar\n\nAlgo nuevo.\n\n"
+                 "## 2.5.1, octubre de 2026\n\nArreglos.\n")
+        res = self._corre_con_changelog(texto, "2.5.1")
+        self.assertEqual(res.fallos, [])
+        self.assertTrue(any("2.5.1" in n for n in res.notas))
+
+    def test_la_version_sin_publicar_tambien_es_coherente(self):
+        texto = ("## 3.0.0, sin publicar\n\nAlgo nuevo.\n\n"
+                 "## 2.5.1, octubre de 2026\n\nArreglos.\n")
+        res = self._corre_con_changelog(texto, "3.0.0")
+        self.assertEqual(res.fallos, [])
+
+    def test_otra_version_sigue_fallando(self):
+        texto = ("## 3.0.0, sin publicar\n\nAlgo nuevo.\n\n"
+                 "## 2.5.1, octubre de 2026\n\nArreglos.\n")
+        res = self._corre_con_changelog(texto, "9.9.9")
+        self.assertTrue(res.fallos)
+
+
+class TestFaltanHabilitados(unittest.TestCase):
+
+    def test_habilitado_y_visible_no_falta(self):
+        controles = [{"nombre": "Preparar el panel", "etiqueta": "",
+                      "habilitado": True, "visible": True}]
+        self.assertEqual(
+            conducir.faltan_habilitados(controles, ("Preparar el panel",)),
+            [])
+
+    def test_deshabilitado_falta(self):
+        controles = [{"nombre": "Preparar el panel", "etiqueta": "",
+                      "habilitado": False, "visible": True}]
+        self.assertEqual(
+            conducir.faltan_habilitados(controles, ("Preparar el panel",)),
+            ["Preparar el panel"])
+
+    def test_ausente_falta(self):
+        self.assertEqual(conducir.faltan_habilitados([], ("Restablecer",)),
+                         ["Restablecer"])
+
+    def test_ignora_la_marca_de_mnemonico(self):
+        controles = [{"nombre": "", "etiqueta": "Preparar e&l panel",
+                      "habilitado": True, "visible": True}]
+        self.assertEqual(
+            conducir.faltan_habilitados(controles, ("Preparar el panel",)),
+            [])
+
+
 class TestAgujasDeBusqueda(unittest.TestCase):
 
     @staticmethod

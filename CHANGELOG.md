@@ -36,11 +36,36 @@ Paraguay.
 - Con esa casilla marcada, la revisión antes de transmitir avisa si el
   perfil de OBS graba con un codificador propio. En ese caso, transmitir y
   grabar a la vez carga el doble el equipo.
+- *Elegir micrófono…*, en el menú *Transmisión*, abre un cuadro con la
+  fuente de micrófono de OBS y el dispositivo que usa. Al pulsar
+  *Aplicar*, OBS cambia de dispositivo y la app dice si ya entra sonido.
+  El atajo para silenciar el micrófono usa desde entonces esa fuente.
+- En TikTok, los me gusta se escriben en la lista del chat, una fila por
+  persona: «Ana dio 15 me gusta». Antes solo sonaban.
+- Cada aviso de un directo de TikTok tiene su modo en *Preferencias*,
+  página *Lectura*: entradas, me gusta, seguidores, compartidos y cofres.
+  Cada uno se puede leer en voz alta, solo mostrar con su sonido, o no
+  mostrar. De fábrica se leen los seguidores, los compartidos y los
+  cofres, y las entradas y los me gusta solo se muestran. Si ya tenías
+  marcada la lectura de entradas o de me gusta, se respeta.
+- La lista del chat tiene el filtro *Avisos*, que deja ver solo esos
+  avisos de TikTok.
+- La app está también en inglés. El idioma se elige en *Preferencias*,
+  página *General*, y se aplica al reiniciar. De fábrica usa el idioma de
+  Windows.
+- Los textos de la app usan los términos de Windows, como *Eliminar* e
+  *Intro*, y frases más cortas.
 
 ### Arreglos
 
 - Al cerrar Preferencias sin guardar después de probar una voz, la voz de
   prueba ya no queda abierta.
+- Cuando el chat de TikTok se reconecta, la lista ya no se vacía y el
+  vídeo no vuelve a empezar solo.
+- En *Descargas*, el estado de una descarga que espera se lee «en cola»,
+  sin el guion bajo.
+- Ninguna letra de acceso se repite en las páginas de *Preferencias* ni
+  en los cuadros de transmisión, comentarios e historial.
 
 ## 2.5.1, octubre de 2026
 

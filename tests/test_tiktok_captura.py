@@ -591,6 +591,25 @@ class TestFinDirecto(unittest.TestCase):
             ("fin_directo", "El directo de TikTok ha terminado."), estados)
         self.assertTrue(parada.is_set())
 
+    def test_parada_durante_la_sesion_sale_callada(self):
+        estados = []
+        parada = threading.Event()
+
+        def sesion(usuario, parada, on_evento, on_estado, on_info,
+                   on_espectadores, anunciar_entradas=False):
+            parada.set()
+            return None
+
+        with mock.patch.object(tiktok_captura, "disponible",
+                               return_value=True), \
+                mock.patch.object(tiktok_captura, "_sesion",
+                                   side_effect=sesion):
+            tiktok_captura.capturar_con_reconexion(
+                "pepe", {}, parada, lambda *a: None,
+                on_estado=lambda *a: estados.append(a))
+        tipos = [tipo for tipo, _texto in estados]
+        self.assertEqual(tipos, ["conectando"])
+
     def test_fin_del_directo_no_suena_desconectado(self):
         estados = []
         parada = threading.Event()

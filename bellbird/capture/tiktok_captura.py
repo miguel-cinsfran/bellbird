@@ -28,14 +28,14 @@ import re
 import sys
 import time
 
-from bellbird.capture.tiktok_errores import (CLASES_OFFLINE, nombre, mensaje_error,
-    es_error_permanente)
+from bellbird.capture.tiktok_reconexion import (desenlace, texto_agotado,
+    texto_reintento)
 from bellbird.core import avisos_tiktok
 from bellbird.core import diagnostico
 from bellbird.core import paths
 from bellbird.core.config import (TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_MIEMBRO, TIPO_ENTRADA,
     TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA)
-from bellbird.core.idioma import N_, _
+from bellbird.core.idioma import _
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -296,36 +296,16 @@ def _clase_suscripcion(modulo_eventos):
     return None
 
 
-# Texto del estado permanente cuando la TikTokLive instalada no trae lo que
-# la captura necesita (llega a la GUI por on_estado como los demás estados).
-# Traductores: error permanente que se anuncia y se muestra en la barra de estado.
-_TEXTO_VERSION_INCOMPATIBLE = N_(
-    "La versión instalada de TikTokLive no es compatible con la aplicación.")
-
-
-def _sesion(usuario, parada, on_evento, on_estado, on_info, on_espectadores,
-            anunciar_entradas=False):
-    """Una conexión completa (bloquea hasta desconectar). Devuelve la excepción
-    de conexión si la hubo, o None si terminó con normalidad.
-
-    Lo que falle al preparar la sesión (imports y creación del cliente) no
-    sale como excepción: se devuelve como el error de la sesión, igual que
-    el de conexión, para que el bucle lo informe en vez de matar el hilo."""
-    try:
-        _parchear_extended_user()   # antes de tocar ningún evento (ver la función)
-        from TikTokLive import TikTokLiveClient
-        from TikTokLive.events import (ConnectEvent, CommentEvent, GiftEvent,
-                                       DisconnectEvent, LiveEndEvent,
-                                       RoomUserSeqEvent, JoinEvent)
-        from TikTokLive import events as modulo_eventos
-        from bellbird.capture import tiktok_manejadores
-        client = TikTokLiveClient(unique_id=usuario)
-        _envolver_marcador_historico(client)
-    except Exception as exc:
-        logger.debug("preparación TikTok: %s", exc)
-        return exc
-    error: list = [None]
-    hora_conexion: list = [None]
+def _registrar_manejadores(client, modulo_eventos, on_evento, on_estado,
+                           on_info, on_espectadores, anunciar_entradas,
+                           hora_conexion):
+    """Manejadores de una sesión: conexión, filtrado de previos y cierre.
+    `hora_conexion` es la lista compartida entre `_on_connect` y
+    `descartar`."""
+    from bellbird.capture import tiktok_manejadores
+    ConnectEvent = modulo_eventos.ConnectEvent
+    LiveEndEvent = modulo_eventos.LiveEndEvent
+    DisconnectEvent = modulo_eventos.DisconnectEvent
 
     @client.on(ConnectEvent)
     async def _on_connect(evento):
@@ -361,6 +341,12 @@ def _sesion(usuario, parada, on_evento, on_estado, on_info, on_espectadores,
     async def _on_disconnect(evento):
         pass  # el cierre ordenado lo gestiona quien llama
 
+
+def _correr_cliente(client, parada):
+    """Corre el cliente en su loop hasta que se desconecte. Devuelve la
+    excepción de conexión si la hubo, o None si terminó con normalidad."""
+    error = None
+
     async def _correr():
         vigia = asyncio.create_task(_vigilar_parada(client, parada))
         try:
@@ -377,7 +363,7 @@ def _sesion(usuario, parada, on_evento, on_estado, on_info, on_espectadores,
     try:
         loop.run_until_complete(_correr())
     except Exception as exc:
-        error[0] = exc
+        error = exc
         logger.debug("sesión TikTok: %s", exc)
     finally:
         # Drenar lo pendiente (cierre del websocket, keepalives) antes de
@@ -394,7 +380,49 @@ def _sesion(usuario, parada, on_evento, on_estado, on_info, on_espectadores,
             pass
         try:    loop.close()
         except Exception: pass
-    return error[0]
+    return error
+
+
+def _sesion(usuario, parada, on_evento, on_estado, on_info, on_espectadores,
+            anunciar_entradas=False):
+    """Una conexión completa (bloquea hasta desconectar). Devuelve la excepción
+    de conexión si la hubo, o None si terminó con normalidad.
+
+    Lo que falle al preparar la sesión (imports y creación del cliente) no
+    sale como excepción: se devuelve como el error de la sesión, igual que
+    el de conexión, para que el bucle lo informe en vez de matar el hilo."""
+    try:
+        _parchear_extended_user()   # antes de tocar ningún evento (ver la función)
+        from TikTokLive import TikTokLiveClient
+        from TikTokLive.events import (ConnectEvent, CommentEvent, GiftEvent,
+                                       DisconnectEvent, LiveEndEvent,
+                                       RoomUserSeqEvent, JoinEvent)
+        from TikTokLive import events as modulo_eventos
+        client = TikTokLiveClient(unique_id=usuario)
+        _envolver_marcador_historico(client)
+    except Exception as exc:
+        logger.debug("preparación TikTok: %s", exc)
+        return exc
+    hora_conexion: list = [None]
+    _registrar_manejadores(client, modulo_eventos, on_evento, on_estado,
+                           on_info, on_espectadores, anunciar_entradas,
+                           hora_conexion)
+    return _correr_cliente(client, parada)
+
+
+def _sesion_protegida(usuario, parada, on_evento, on_estado, on_info,
+                       on_espectadores, config):
+    """Una sesión que nunca mata el hilo: lo inesperado vuelve como error
+    de conexión y sigue la misma política de reintentos."""
+    try:
+        return _sesion(usuario, parada, on_evento, on_estado, on_info,
+                       on_espectadores,
+                       anunciar_entradas=avisos_tiktok.modo_de(config, TIPO_ENTRADA) != "ocultar")
+    except Exception as exc:
+        # Nada de lo que salga de _sesion puede matar el hilo: se trata
+        # como un error de conexión y sigue la misma política de reintentos.
+        logger.debug("sesión TikTok inesperada: %s", exc)
+        return exc
 
 
 def capturar_con_reconexion(usuario, config, parada, on_evento,
@@ -424,66 +452,28 @@ def capturar_con_reconexion(usuario, config, parada, on_evento,
             on_estado(tipo, texto)
 
     while not parada.is_set():
-        if on_estado:
-            # Traductores: estado que se anuncia y se muestra en la barra de estado al conectar. {usuario} es el usuario de TikTok.
-            on_estado("conectando", _("Conectando al directo de TikTok de @{usuario}…").format(usuario=usuario))
+        # Traductores: estado que se anuncia y se muestra en la barra de estado al conectar. {usuario} es el usuario de TikTok.
+        _estado("conectando", _("Conectando al directo de TikTok de @{usuario}…").format(usuario=usuario))
         conecto[0] = False
-        try:
-            err = _sesion(usuario, parada, on_evento, _estado, on_info, on_espectadores,
-                           anunciar_entradas=avisos_tiktok.modo_de(config, TIPO_ENTRADA) != "ocultar")
-        except Exception as exc:
-            # Nada de lo que salga de _sesion puede matar el hilo: se trata
-            # como un error de conexión y sigue la misma política de reintentos.
-            logger.debug("sesión TikTok inesperada: %s", exc)
-            err = exc
-        if isinstance(err, (ImportError, AttributeError)):
-            # Preparación imposible con esta versión de la librería: no vale
-            # la pena reintentar, se avisa una vez y se termina.
-            if on_estado:
-                on_estado("error_permanente", _(_TEXTO_VERSION_INCOMPATIBLE))
-            parada.set()
-            break
+        err = _sesion_protegida(usuario, parada, on_evento, _estado, on_info,
+                                on_espectadores, config)
         if conecto[0]:
             intentos = 0
-        if parada.is_set():
-            break
-        if err is not None and es_error_permanente(err) and not (
-                offline_pasajero and nombre(err) in CLASES_OFFLINE
-                and not conecto[1]):
-            if on_estado:
-                on_estado("error_permanente", mensaje_error(err))
-            parada.set()
-            break
-        if err is None:
-            # Conexión que terminó sola (fin del directo): no reintentamos.
-            # Suena «fin_directo», no «desconectado» (ese sigue para YouTube
-            # y el resto de los cortes).
-            if on_estado:
-                # Traductores: estado final que se anuncia y se muestra en la barra de estado.
-                on_estado("fin_directo", _("El directo de TikTok ha terminado."))
-            parada.set()
-            break
-        if not config.get("reconectar", True):
-            if on_estado:
-                on_estado("error", mensaje_error(err))
+        fin = desenlace(err, parado=parada.is_set(),
+                        conecto_alguna=conecto[1],
+                        offline_pasajero=offline_pasajero,
+                        reconectar=config.get("reconectar", True))
+        if fin is not None:
+            if fin[0] is not None:
+                _estado(*fin)
             parada.set()
             break
         intentos += 1
         mi = config.get("max_intentos", 0)
         if mi > 0 and intentos >= mi:
-            if on_estado:
-                # Traductores: error que se anuncia y se muestra en la barra de estado. {intentos} es cuántos intentos se hicieron.
-                on_estado("error", _("Se agotaron los {intentos} intentos de reconexión.").format(intentos=mi))
+            _estado("error", texto_agotado(mi))
             parada.set()
             break
         espera = config.get("espera_entre_intentos", 10)
-        if on_estado:
-            # Traductores: estado que se anuncia y se muestra en la barra de estado. {segundos} es la espera, {intento} el intento actual y {maximo} el máximo.
-            if mi:
-                on_estado("reintentando",
-                          _("Reintentando en {segundos} segundos (intento {intento} de {maximo})…").format(segundos=espera, intento=intentos, maximo=mi))
-            else:
-                # Traductores: estado que se anuncia y se muestra en la barra de estado. {segundos} es la espera y {intento} el intento actual.
-                on_estado("reintentando",
-                          _("Reintentando en {segundos} segundos (intento {intento})…").format(segundos=espera, intento=intentos))
+        _estado("reintentando", texto_reintento(espera, intentos, mi))
         parada.wait(timeout=espera)

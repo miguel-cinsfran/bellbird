@@ -73,7 +73,7 @@ class TestInicioGui(unittest.TestCase):
 
     def _handler_menu(self, frame, elemento):
         return next(llamada.args[1] for llamada in frame.Bind.call_args_list
-                    if llamada.args[2] is elemento)
+                    if len(llamada.args) == 3 and llamada.args[2] is elemento)
 
     def _elemento_menu(self, frame, texto):
         return next(elemento for etiqueta, elemento in frame._elementos_menu

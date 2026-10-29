@@ -295,11 +295,9 @@ class YTChatFrame(wx.Frame):
         from ytchat.ui import gui_transmitir
         gui_transmitir.al_terminar_supervisor(self)
 
-    def _supervisar_transmision(self, accion, destino="", usuario="",
-                                  revision=None):
+    def _supervisar_transmision(self, accion, destino="", usuario="", revision=None):
         from ytchat.ui import gui_transmitir
-        return gui_transmitir.supervisar_transmision(
-            self, accion, destino, usuario, revision)
+        return gui_transmitir.supervisar_transmision(self, accion, destino, usuario, revision)
 
     def _on_actualizar_ytdlp(self, event):
         from ytchat.ui import gui_actualizar_ytdlp
@@ -834,9 +832,11 @@ class YTChatFrame(wx.Frame):
                 anunciar(texto)
             wx.CallAfter(_avisar)
 
+        anterior = self.mi_obs_micro.IsChecked()
         def _alternar():
             obs_entradas_audio.microfono_por_atajo(
-                self._config.get("obs_microfono", ""), avisar)
+                self._config.get("obs_microfono", ""), avisar,
+                lambda e: wx.CallAfter(self.mi_obs_micro.Check, anterior if e is None else e))
 
         diagnostico.crear_hilo(_alternar, "MicrofonoObs").start()
 

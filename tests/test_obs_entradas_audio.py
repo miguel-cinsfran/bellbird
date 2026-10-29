@@ -10,13 +10,28 @@ TEXTO_SIN_SENAL = ("El micrófono no recibe sonido. Revisa cuál está elegido "
                    "en Windows o en OBS.")
 
 
+ENTRADAS_MANU = (
+    {"inputName": "Audio del escritorio", "inputKind": "wasapi_output_capture",
+     "inputKindCaps": 642},
+    {"inputName": "Mic/Aux", "inputKind": "wasapi_input_capture",
+     "inputKindCaps": 130},
+    {"inputName": "Captura de pantalla", "inputKind": "monitor_capture",
+     "inputKindCaps": 32905},
+    {"inputName": "Captura de ventana", "inputKind": "window_capture",
+     "inputKindCaps": 32779},
+)
+
+
 class DobleCliente:
     def __init__(self, entradas=(), silencios=None, ajustes=None,
-                 propiedades=None):
+                 propiedades=None, especial="Mic/Aux",
+                 fallo_especial=False):
         self.entradas = list(entradas)
         self.silencios = dict(silencios or {})
         self.ajustes = dict(ajustes or {})
         self.propiedades = dict(propiedades or {})
+        self.especial = especial
+        self.fallo_especial = fallo_especial
         self.llamadas = []
 
     def pedir(self, tipo, datos=None, parada=None):
@@ -24,6 +39,12 @@ class DobleCliente:
         self.llamadas.append((tipo, datos, parada))
         if tipo == "GetInputList":
             return {"responseData": {"inputs": list(self.entradas)}}
+        if tipo == "GetSpecialInputs":
+            if self.fallo_especial:
+                raise RuntimeError("sin especiales")
+            if self.especial:
+                return {"responseData": {"mic1": self.especial}}
+            return {"responseData": {}}
         if tipo == "GetInputMute":
             nombre = datos["inputName"]
             if nombre not in self.silencios:
@@ -43,12 +64,17 @@ class DobleCliente:
 
 
 class DobleGestor:
-    def __init__(self, fuentes=(), silencio=False, dispositivo=("", False)):
-        self.fuentes = tuple(fuentes)
+    def __init__(self, entradas=(), especial="", silencio=False,
+                 dispositivo=("", False), fuentes=()):
+        self.entradas = tuple(entradas)
+        self.especial = especial
+        if not entradas and fuentes:
+            self.entradas = tuple((nombre, "") for nombre in fuentes)
         self.silencio = silencio
         self.dispositivo_resultado = dispositivo
         self.alternadas = []
         self.consultas = []
+        self.silencios = {}
         self.conectado = False
         self.cerrado = False
 
@@ -59,7 +85,16 @@ class DobleGestor:
         self.cerrado = True
 
     def fuentes_audio(self, parada=None):
-        return self.fuentes
+        return tuple(nombre for nombre, _tipo in self.entradas)
+
+    def entradas_audio(self, parada=None):
+        return self.entradas
+
+    def microfono_especial(self, parada=None):
+        return self.especial
+
+    def silenciada(self, fuente, parada=None):
+        return self.silencios.get(fuente, False)
 
     def alternar_silencio(self, fuente, parada=None):
         self.alternadas.append(fuente)
@@ -99,23 +134,88 @@ class SilencioTest(unittest.TestCase):
         self.assertTrue(cliente.silencios["Mic/Aux"])
 
 
+class EntradasAudioTest(unittest.TestCase):
+    def test_con_la_lista_de_manu_devuelve_los_pares_con_audio(self):
+        cliente = DobleCliente(entradas=ENTRADAS_MANU)
+        pares = obs_entradas_audio.entradas_audio(cliente)
+        nombres = [nombre for nombre, _tipo in pares]
+        self.assertIn("Audio del escritorio", nombres)
+        self.assertIn("Mic/Aux", nombres)
+        self.assertNotIn("Captura de pantalla", nombres)
+        tipos = dict(pares)
+        self.assertEqual(tipos["Mic/Aux"], "wasapi_input_capture")
+
+    def test_no_hace_ninguna_peticion_getinputmute(self):
+        cliente = DobleCliente(entradas=ENTRADAS_MANU)
+        obs_entradas_audio.entradas_audio(cliente)
+        tipos = [llamada[0] for llamada in cliente.llamadas]
+        self.assertEqual(tipos, ["GetInputList"])
+        self.assertNotIn("GetInputMute", tipos)
+
+    def test_sin_caps_entra_igual_por_obs_viejo(self):
+        cliente = DobleCliente(
+            entradas=({"inputName": "Mic/Aux", "inputKind": "wasapi_input_capture"},))
+        self.assertEqual(obs_entradas_audio.entradas_audio(cliente),
+                         (("Mic/Aux", "wasapi_input_capture"),))
+
+
+class MicrofonoEspecialTest(unittest.TestCase):
+    def test_devuelve_el_mic1_de_getspecialinputs(self):
+        cliente = DobleCliente(especial="Mic/Aux")
+        self.assertEqual(obs_entradas_audio.microfono_especial(cliente), "Mic/Aux")
+
+    def test_sin_mic1_da_vacio(self):
+        cliente = DobleCliente(especial="")
+        self.assertEqual(obs_entradas_audio.microfono_especial(cliente), "")
+
+    def test_si_la_peticion_falla_da_vacio(self):
+        cliente = DobleCliente(fallo_especial=True)
+        self.assertEqual(obs_entradas_audio.microfono_especial(cliente), "")
+
+
 class AlternarMicrofonoTest(unittest.TestCase):
+    AVISO_SIN_MICROFONO = ("OBS no tiene ningún micrófono. Elige uno en "
+                           "Preferencias, página Transmisión, Micrófono de OBS.")
+
     def test_elige_el_preferido_y_anuncia_su_estado(self):
-        gestor = DobleGestor(fuentes=("Mic/Aux", "Audio USB"), silencio=True)
-        self.assertEqual(
-            obs_entradas_audio.alternar_microfono(gestor, "Audio USB"),
-            ("Audio USB silenciado", "Audio USB", True))
+        gestor = DobleGestor(
+            entradas=(("Mic/Aux", "wasapi_input_capture"),
+                      ("Audio USB", "wasapi_input_capture")),
+            silencio=True, dispositivo=("Micrófono (USB)", False))
+        texto, fuente, estado = obs_entradas_audio.alternar_microfono(
+            gestor, "Audio USB")
+        self.assertEqual((fuente, estado), ("Audio USB", True))
+        self.assertEqual(texto, "Audio USB silenciado")
         self.assertEqual(gestor.alternadas, ["Audio USB"])
 
     def test_sin_fuentes_anuncia_la_ausencia_y_no_alterna(self):
         gestor = DobleGestor()
         self.assertEqual(obs_entradas_audio.alternar_microfono(gestor, ""),
-                         ("OBS no tiene ninguna fuente de audio", "", False))
+                         (self.AVISO_SIN_MICROFONO, "", False))
         self.assertEqual(gestor.alternadas, [])
 
+    def test_con_solo_audio_del_escritorio_da_vacio_y_no_alterna(self):
+        gestor = DobleGestor(
+            entradas=(("Audio del escritorio", "wasapi_output_capture"),))
+        self.assertEqual(obs_entradas_audio.alternar_microfono(gestor, ""),
+                         (self.AVISO_SIN_MICROFONO, "", False))
+        self.assertEqual(gestor.alternadas, [])
+
+    def test_con_la_lista_de_manu_sin_preferido_elige_mic_aux(self):
+        pares = (("Audio del escritorio", "wasapi_output_capture"),
+                 ("Mic/Aux", "wasapi_input_capture"))
+        gestor = DobleGestor(entradas=pares, especial="Mic/Aux",
+                             silencio=False,
+                             dispositivo=("Micrófono (USB)", False))
+        texto, fuente, estado = obs_entradas_audio.alternar_microfono(
+            gestor, "")
+        self.assertEqual((fuente, estado), ("Mic/Aux", False))
+        self.assertEqual(texto, "Micrófono activado: USB")
+
     def test_activado_nombra_el_dispositivo_y_consulta_el_predeterminado(self):
-        gestor = DobleGestor(fuentes=("Mic/Aux",), silencio=False,
-                             dispositivo=("Micrófono (WO Mic Device)", False))
+        gestor = DobleGestor(
+            entradas=(("Mic/Aux", "wasapi_input_capture"),), silencio=False,
+            dispositivo=("Micrófono (WO Mic Device)", False))
         self.assertEqual(
             obs_entradas_audio.alternar_microfono(gestor, "Mic/Aux"),
             ("Micrófono activado: WO Mic Device", "Mic/Aux", False))
@@ -123,17 +223,19 @@ class AlternarMicrofonoTest(unittest.TestCase):
         self.assertIs(gestor.consultas[0][1],
                       dispositivo_windows.microfono_predeterminado)
 
-    def test_silenciado_no_consulta_el_dispositivo(self):
-        gestor = DobleGestor(fuentes=("Mic/Aux",), silencio=True,
-                             dispositivo=("Micrófono (WO Mic Device)", False))
+    def test_silenciado_tambien_nombra_el_dispositivo(self):
+        gestor = DobleGestor(
+            entradas=(("Mic/Aux", "wasapi_input_capture"),), silencio=True,
+            dispositivo=("Micrófono (WO Mic Device)", False))
         self.assertEqual(
             obs_entradas_audio.alternar_microfono(gestor, "Mic/Aux"),
-            ("Micrófono silenciado", "Mic/Aux", True))
-        self.assertEqual(gestor.consultas, [])
+            ("Micrófono silenciado: WO Mic Device", "Mic/Aux", True))
+        self.assertEqual(len(gestor.consultas), 1)
 
     def test_si_la_consulta_del_dispositivo_lanza_anuncia_como_hoy(self):
-        gestor = DobleGestor(fuentes=("Mic/Aux",), silencio=False,
-                             dispositivo=RuntimeError("sin COM"))
+        gestor = DobleGestor(
+            entradas=(("Mic/Aux", "wasapi_input_capture"),), silencio=False,
+            dispositivo=RuntimeError("sin COM"))
         self.assertEqual(obs_entradas_audio.alternar_microfono(gestor, "Mic/Aux"),
                          ("Micrófono activado", "Mic/Aux", False))
 
@@ -206,21 +308,28 @@ class SenalMicrofonoTest(unittest.TestCase):
 
 
 class MicrofonoPorAtajoTest(unittest.TestCase):
-    def _ejecutar(self, gestor, preferido="Mic/Aux", senal=None):
+    def _ejecutar(self, gestor, preferido="Mic/Aux", senal=None,
+                  al_estado=None):
         avisos = []
+        estados = []
+        def _al_estado(estado):
+            estados.append(estado)
+            if al_estado is not None:
+                al_estado(estado)
         with mock.patch("ytchat.obs.obs_panel.GestorPanelObs",
                         return_value=gestor) as clase, \
                 mock.patch.object(obs_entradas_audio, "senal_microfono",
                                   return_value=senal) as medicion:
             obs_entradas_audio.microfono_por_atajo(
-                preferido, lambda *args: avisos.append(args))
-        return clase, avisos, medicion
+                preferido, lambda *args: avisos.append(args),
+                al_estado=_al_estado)
+        return clase, avisos, medicion, estados
 
     def test_activado_sin_senal_avisa_dos_veces_en_orden_y_con_sonido(self):
         gestor = DobleGestor(
-            fuentes=("Mic/Aux",), silencio=False,
+            entradas=(("Mic/Aux", "wasapi_input_capture"),), silencio=False,
             dispositivo=("Micrófono (USB)", False))
-        clase, avisos, medicion = self._ejecutar(gestor, senal=False)
+        clase, avisos, medicion, estados = self._ejecutar(gestor, senal=False)
         self.assertEqual(avisos, [
             ("Micrófono activado: USB", ""),
             (TEXTO_SIN_SENAL, "microfono_sin_senal")])
@@ -229,48 +338,108 @@ class MicrofonoPorAtajoTest(unittest.TestCase):
 
     def test_activado_con_senal_avisa_una_sola_vez(self):
         gestor = DobleGestor(
-            fuentes=("Mic/Aux",), silencio=False,
+            entradas=(("Mic/Aux", "wasapi_input_capture"),), silencio=False,
             dispositivo=("Micrófono (USB)", False))
-        _, avisos, medicion = self._ejecutar(gestor, senal=True)
+        _, avisos, medicion, _ = self._ejecutar(gestor, senal=True)
         self.assertEqual(avisos, [("Micrófono activado: USB", "")])
         self.assertTrue(medicion.called)
 
     def test_silenciado_no_mide(self):
-        gestor = DobleGestor(fuentes=("Mic/Aux",), silencio=True)
-        _, avisos, medicion = self._ejecutar(gestor, senal=None)
+        gestor = DobleGestor(
+            entradas=(("Mic/Aux", "wasapi_input_capture"),), silencio=True)
+        _, avisos, medicion, _ = self._ejecutar(gestor, senal=None)
         self.assertEqual(avisos, [("Micrófono silenciado", "")])
         medicion.assert_not_called()
 
     def test_con_la_medicion_inalcanzable_no_avisa_nada_mas(self):
         gestor = DobleGestor(
-            fuentes=("Mic/Aux",), silencio=False,
+            entradas=(("Mic/Aux", "wasapi_input_capture"),), silencio=False,
             dispositivo=("Micrófono (USB)", False))
-        _, avisos, medicion = self._ejecutar(gestor, senal=None)
+        _, avisos, medicion, _ = self._ejecutar(gestor, senal=None)
         self.assertEqual(avisos, [("Micrófono activado: USB", "")])
         self.assertTrue(medicion.called)
 
-    def test_fuente_sin_microfono_no_mide(self):
-        gestor = DobleGestor(fuentes=("Audio del escritorio",), silencio=False)
-        _, avisos, medicion = self._ejecutar(gestor)
-        self.assertEqual(avisos, [("Audio del escritorio activado", "")])
+    def test_sin_microfono_avisa_y_no_mide(self):
+        gestor = DobleGestor(
+            entradas=(("Audio del escritorio", "wasapi_output_capture"),),
+            silencio=False)
+        _, avisos, medicion, estados = self._ejecutar(gestor)
+        self.assertEqual(avisos, [(
+            "OBS no tiene ningún micrófono. Elige uno en Preferencias, "
+            "página Transmisión, Micrófono de OBS.", "")])
         medicion.assert_not_called()
+        self.assertEqual(estados, [None])
 
     def test_obs_caido_avisa_el_texto_de_siempre_y_no_mide(self):
         gestor = DobleGestor()
         gestor.conectar = mock.Mock(side_effect=RuntimeError("sin OBS"))
-        _, avisos, medicion = self._ejecutar(gestor)
+        _, avisos, medicion, estados = self._ejecutar(gestor)
         self.assertTrue(gestor.cerrado)
         self.assertEqual(avisos, [(
             "OBS no responde. En OBS, menú Herramientas, Configuración "
             "del servidor WebSocket, activa el servidor.", "")])
         medicion.assert_not_called()
+        self.assertEqual(estados, [None])
 
     def test_un_fallo_al_cerrar_no_se_escapa(self):
-        gestor = DobleGestor(fuentes=("Mic/Aux",), silencio=True)
+        gestor = DobleGestor(
+            entradas=(("Mic/Aux", "wasapi_input_capture"),), silencio=True)
         gestor.cerrar = mock.Mock(side_effect=RuntimeError("socket cerrado"))
-        _, avisos, medicion = self._ejecutar(gestor)
+        _, avisos, medicion, _ = self._ejecutar(gestor)
         self.assertEqual(avisos, [("Micrófono silenciado", "")])
         medicion.assert_not_called()
+
+    def test_al_estado_recibe_verdadero_al_silenciar(self):
+        gestor = DobleGestor(
+            entradas=(("Mic/Aux", "wasapi_input_capture"),), silencio=True,
+            dispositivo=("Micrófono (USB)", False))
+        _, _, _, estados = self._ejecutar(gestor, senal=None)
+        self.assertEqual(estados, [True])
+
+    def test_al_estado_recibe_falso_al_activar(self):
+        gestor = DobleGestor(
+            entradas=(("Mic/Aux", "wasapi_input_capture"),), silencio=False,
+            dispositivo=("Micrófono (USB)", False))
+        _, _, _, estados = self._ejecutar(gestor, senal=True)
+        self.assertEqual(estados, [False])
+
+    def test_al_estado_recibe_nada_sin_microfono(self):
+        gestor = DobleGestor(
+            entradas=(("Audio del escritorio", "wasapi_output_capture"),))
+        _, _, _, estados = self._ejecutar(gestor)
+        self.assertEqual(estados, [None])
+
+
+class EstadoMicrofonoTest(unittest.TestCase):
+    def _estado(self, entradas, especial="Mic/Aux", silencios=None,
+                fallo_conectar=False):
+        gestor = DobleGestor(entradas=entradas, especial=especial)
+        gestor.silencios = dict(silencios or {})
+        if fallo_conectar:
+            gestor.conectar = mock.Mock(side_effect=RuntimeError("sin OBS"))
+        with mock.patch("ytchat.obs.obs_panel.GestorPanelObs",
+                        return_value=gestor):
+            return obs_entradas_audio.estado_microfono(""), gestor
+
+    def test_devuelve_el_silencio_del_microfono(self):
+        estado, _ = self._estado(
+            (("Mic/Aux", "wasapi_input_capture"),), silencios={"Mic/Aux": True})
+        self.assertIs(estado, True)
+
+    def test_devuelve_falso_si_esta_activado(self):
+        estado, _ = self._estado(
+            (("Mic/Aux", "wasapi_input_capture"),),
+            silencios={"Mic/Aux": False})
+        self.assertIs(estado, False)
+
+    def test_sin_microfono_da_nada(self):
+        estado, _ = self._estado(
+            (("Audio del escritorio", "wasapi_output_capture"),))
+        self.assertIsNone(estado)
+
+    def test_si_obs_no_responde_da_nada(self):
+        estado, _ = self._estado((), fallo_conectar=True)
+        self.assertIsNone(estado)
 
 
 class TestPseudoAvisoSinSenal(unittest.TestCase):

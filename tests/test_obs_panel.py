@@ -542,6 +542,26 @@ class GestorPanelObsTest(unittest.TestCase):
                              "Ahora se captura Juego.")
         usar.assert_called_once_with(doble, "Escena", "Juego:X:juego.exe", parada)
 
+    def test_entradas_audio_delega_en_obs_entradas_audio(self):
+        doble = DobleObs()
+        gestor = self.gestor(doble)
+        parada = object()
+        esperado = (("Mic/Aux", "wasapi_input_capture"),)
+        with mock.patch.object(obs_panel.obs_entradas_audio, "entradas_audio",
+                               return_value=esperado) as entradas:
+            self.assertIs(gestor.entradas_audio(parada), esperado)
+        entradas.assert_called_once_with(doble, parada)
+
+    def test_microfono_especial_delega_en_obs_entradas_audio(self):
+        doble = DobleObs()
+        gestor = self.gestor(doble)
+        parada = object()
+        with mock.patch.object(obs_panel.obs_entradas_audio,
+                               "microfono_especial",
+                               return_value="Mic/Aux") as especial:
+            self.assertEqual(gestor.microfono_especial(parada), "Mic/Aux")
+        especial.assert_called_once_with(doble, parada)
+
     def test_dispositivo_delega_en_obs_entradas_audio(self):
         doble = DobleObs()
         gestor = self.gestor(doble)

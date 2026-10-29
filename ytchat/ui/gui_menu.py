@@ -17,6 +17,7 @@ import wx
 from ytchat.core import diagnostico
 from ytchat.core.idioma import _
 from ytchat.core import paths
+from ytchat.obs import obs_entradas_audio
 from ytchat.obs import obs_ventana
 from ytchat.ui.accesibilidad import anunciar
 from ytchat.ui.atajos_captura import ETIQUETAS
@@ -25,9 +26,7 @@ logger = diagnostico.obtener_logger(__name__)
 
 
 def construir_menu(frame):
-    from ytchat.ui.gui import (
-        FILTROS, PAG_CHAT, PAG_COMENTARIOS, REG_CONEXION, REG_REPRODUCTOR,
-    )
+    from ytchat.ui.gui import FILTROS, PAG_CHAT, PAG_COMENTARIOS, REG_CONEXION, REG_REPRODUCTOR
     anterior = frame.GetMenuBar()
     mb = wx.MenuBar()
 
@@ -186,7 +185,7 @@ def _construir_menu_transmision(frame, mb):
     m = wx.Menu()
     frame.mi_transmision = m.Append(
         wx.ID_ANY, _("&Panel de transmisión…") + frame._accel("abrir_transmision"))
-    frame.mi_obs_micro = m.Append(
+    frame.mi_obs_micro = m.AppendCheckItem(
         wx.ID_ANY, _("Silenciar el &micrófono de OBS") + frame._accel("obs_micro"))
     frame.mi_mostrar_obs = m.Append(
         wx.ID_ANY, _("Mostrar &OBS") + frame._accel("mostrar_obs"))
@@ -204,11 +203,30 @@ def _construir_menu_transmision(frame, mb):
               lambda e: wx.CallAfter(frame._on_transmision, None),
               frame.mi_transmision)
     frame.Bind(wx.EVT_MENU, frame._on_obs_micro, frame.mi_obs_micro)
+    frame.Bind(wx.EVT_MENU_OPEN, lambda e: _al_abrir_transmision(frame, m, e))
     frame._bind_menu(frame.mi_mostrar_obs, _mostrar_obs)
     frame._bind_menu(frame.mi_avisos_sobrecarga,
                      frame._alternar_aviso_sobrecarga)
     frame._bind_menu(frame.mi_grabar_al_transmitir,
                      gui_transmitir.alternar_grabar_al_transmitir, frame)
+
+
+def _al_abrir_transmision(frame, menu, evento):
+    evento.Skip()
+    if evento.GetMenu() is not menu:
+        return
+    if getattr(frame, "_consultando_micro", False):
+        return
+    frame._consultando_micro = True
+    preferido = frame._config.get("obs_microfono", "")
+    def _consultar():
+        try:
+            estado = obs_entradas_audio.estado_microfono(preferido)
+        finally:
+            frame._consultando_micro = False
+        if estado is not None:
+            wx.CallAfter(frame.mi_obs_micro.Check, estado)
+    diagnostico.crear_hilo(_consultar, "MicrofonoEstado").start()
 
 
 def _construir_menu_ayuda(frame, mb):

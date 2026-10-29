@@ -8,7 +8,7 @@ parada=None)` como `obs_captura` y no crean conexiones. La excepción es
 from __future__ import annotations
 
 from ytchat.core import diagnostico
-from ytchat.core.idioma import _
+from ytchat.core.idioma import N_, _
 from ytchat.obs import dispositivo_windows
 from ytchat.obs import obs_audio
 from ytchat.obs import obs_cliente
@@ -24,6 +24,27 @@ SUSCRIPCION_METROS = 1 << 16
 def _datos(cliente, tipo, datos=None, parada=None):
     respuesta = cliente.pedir(tipo, datos, parada=parada)
     return respuesta.get("responseData", {})
+
+
+def entradas_audio(cliente, parada=None) -> tuple:
+    entradas = _datos(cliente, "GetInputList", parada=parada).get("inputs", ())
+    pares = []
+    for entrada in entradas:
+        nombre = entrada.get("inputName", "")
+        if not nombre:
+            continue
+        caps = entrada.get("inputKindCaps")
+        if caps is not None and not (int(caps) & (1 << 1)):
+            continue
+        pares.append((nombre, entrada.get("inputKind", "") or ""))
+    return tuple(pares)
+
+
+def microfono_especial(cliente, parada=None) -> str:
+    try:
+        return _datos(cliente, "GetSpecialInputs", parada=parada).get("mic1", "") or ""
+    except Exception:
+        return ""
 
 
 def fuentes_audio(cliente, parada=None) -> tuple:
@@ -51,24 +72,26 @@ def alternar_silencio(cliente, fuente, parada=None) -> bool:
     return bool(datos.get("inputMuted", False))
 
 
-def alternar_microfono(gestor, preferido) -> tuple:
-    """Elige el micrófono, alterna su silencio y arma el anuncio.
+AVISO_SIN_MICROFONO = N_("OBS no tiene ningún micrófono. Elige uno en "
+                         "Preferencias, página Transmisión, Micrófono de OBS.")
 
-    Devuelve `(texto, fuente, silenciado)` para que quien use el resultado
-    pueda, además del anuncio, saber qué fuente quedó y en qué estado.
-    """
-    fuente = obs_audio.elegir_microfono(gestor.fuentes_audio(), preferido)
-    estado = gestor.alternar_silencio(fuente) if fuente else False
+
+def alternar_microfono(gestor, preferido) -> tuple:
+    """Elige el micrófono, alterna su silencio y arma el anuncio."""
+    fuente = obs_audio.elegir_microfono(
+        gestor.entradas_audio(), preferido, gestor.microfono_especial())
+    if not fuente:
+        return (_(AVISO_SIN_MICROFONO), "", False)
+    estado = gestor.alternar_silencio(fuente)
     nombre, predeterminado = "", False
-    if fuente and not estado:
-        try:
-            nombre, predeterminado = gestor.dispositivo(
-                fuente, dispositivo_windows.microfono_predeterminado)
-        except Exception as exc:
-            # Un fallo al leer el dispositivo no convierte esto en un fallo
-            # de OBS: se anuncia el micrófono activado, como antes.
-            logger.debug("No se pudo saber el dispositivo del micrófono: %s", exc)
-            nombre, predeterminado = "", False
+    try:
+        nombre, predeterminado = gestor.dispositivo(
+            fuente, dispositivo_windows.microfono_predeterminado)
+    except Exception as exc:
+        # Un fallo al leer el dispositivo no convierte esto en un fallo
+        # de OBS: se anuncia el micrófono como antes.
+        logger.debug("No se pudo saber el dispositivo del micrófono: %s", exc)
+        nombre, predeterminado = "", False
     texto = obs_audio.frase_microfono(fuente, estado, nombre, predeterminado)
     return texto, fuente, estado
 
@@ -129,11 +152,35 @@ def _texto_del_atajo(preferido) -> tuple:
                 logger.debug("No se pudo cerrar la conexión con OBS: %s", exc)
 
 
-def microfono_por_atajo(preferido, avisar) -> None:
+def estado_microfono(preferido) -> bool | None:
+    """Silencio actual del micrófono, o None sin OBS o sin micrófono."""
+    from ytchat.obs.obs_panel import GestorPanelObs
+    gestor = None
+    try:
+        gestor = GestorPanelObs()
+        gestor.conectar()
+        fuente = obs_audio.elegir_microfono(
+            gestor.entradas_audio(), preferido, gestor.microfono_especial())
+        if not fuente:
+            return None
+        return gestor.silenciada(fuente)
+    except Exception:
+        return None
+    finally:
+        if gestor is not None:
+            try:
+                gestor.cerrar()
+            except Exception as exc:
+                logger.debug("No se pudo cerrar la conexión con OBS: %s", exc)
+
+
+def microfono_por_atajo(preferido, avisar, al_estado=None) -> None:
     """Alterna el micrófono desde el atajo, anuncia y si quedó activado
     mide la señal unos segundos para avisar si no entra nada."""
     texto, fuente, silenciado = _texto_del_atajo(preferido)
     avisar(texto, "")
+    if al_estado is not None:
+        al_estado(None if not fuente else silenciado)
     if fuente and not silenciado and obs_audio.es_microfono(fuente):
         if senal_microfono(fuente) is False:
             avisar(_(obs_audio.TEXTO_SIN_SENAL), "microfono_sin_senal")

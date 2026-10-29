@@ -32,8 +32,7 @@ def fuente_encima_del_panel(elementos, fuente=NOMBRE_FUENTE):
               and elemento.get("sourceName")]
     if not encima:
         return None
-    return max(encima, key=lambda elemento: elemento.get("sceneItemIndex", 0)).get(
-        "sourceName")
+    return max(encima, key=lambda elemento: elemento.get("sceneItemIndex", 0)).get("sourceName")
 
 
 class GestorPanelObs:
@@ -79,9 +78,8 @@ class GestorPanelObs:
                 continue
             clase = entrada.get("inputKind", "") or ""
             tipos[nombre] = obs_prevuelo._TIPOS.get(clase, "")
-        return obs_escena.describir_escena(
-            escena, elementos, lienzo.get("baseWidth", 0),
-            lienzo.get("baseHeight", 0), tipos)
+        return obs_escena.describir_escena(escena, elementos, lienzo.get("baseWidth", 0),
+                                           lienzo.get("baseHeight", 0), tipos)
 
     def poner_escena_al_aire(self, escena, parada=None) -> str:
         self._pedir("SetCurrentProgramScene", {"sceneName": escena}, parada)
@@ -90,6 +88,12 @@ class GestorPanelObs:
     def fuentes_audio(self, parada=None) -> tuple:
         return obs_entradas_audio.fuentes_audio(self._cliente, parada)
 
+    def entradas_audio(self, parada=None) -> tuple:
+        return obs_entradas_audio.entradas_audio(self._cliente, parada)
+
+    def microfono_especial(self, parada=None) -> str:
+        return obs_entradas_audio.microfono_especial(self._cliente, parada)
+
     def silenciada(self, fuente, parada=None) -> bool:
         return obs_entradas_audio.silenciada(self._cliente, fuente, parada)
 
@@ -97,8 +101,7 @@ class GestorPanelObs:
         return obs_entradas_audio.alternar_silencio(self._cliente, fuente, parada)
 
     def dispositivo(self, fuente, predeterminado, parada=None) -> tuple:
-        return obs_entradas_audio.dispositivo(
-            self._cliente, fuente, predeterminado, parada)
+        return obs_entradas_audio.dispositivo(self._cliente, fuente, predeterminado, parada)
 
     def estado_transmision(self, parada=None) -> dict:
         datos = self._pedir("GetStreamStatus", parada=parada)
@@ -151,8 +154,7 @@ class GestorPanelObs:
         return datos.get("currentProfileName", "")
 
     def preparar_destino(self, destino, parada=None) -> dict:
-        return obs_destinos.preparar_para_transmitir(
-            self._cliente, destino, parada)
+        return obs_destinos.preparar_para_transmitir(self._cliente, destino, parada)
 
     def revisar(self, destino, parada=None):
         from ytchat.obs import obs_grabacion, obs_prevuelo
@@ -247,8 +249,7 @@ class GestorPanelObs:
         if elemento is None:
             return {}
         transformacion = elemento["sceneItemTransform"]
-        return {clave: transformacion[clave]
-                for clave in ("positionX", "positionY", "alignment")}
+        return {clave: transformacion[clave] for clave in ("positionX", "positionY", "alignment")}
 
     def posicionar(self, escena, x, y, alineacion, parada=None, *, fuente=NOMBRE_FUENTE) -> None:
         elemento = self._elemento_obligatorio(escena, fuente, parada)
@@ -363,10 +364,9 @@ class GestorPanelObs:
                 lienzo_alto=lienzo.get("baseHeight", 0))
 
         transformacion = panel["sceneItemTransform"]
-        rect_panel = obs_disposicion.rectangulo(
-            transformacion.get("positionX", 0), transformacion.get("positionY", 0),
-            transformacion.get("width", 0), transformacion.get("height", 0),
-            transformacion.get("alignment", 0))
+        rect_panel = obs_disposicion.rectangulo(transformacion.get("positionX", 0),
+            transformacion.get("positionY", 0), transformacion.get("width", 0),
+            transformacion.get("height", 0), transformacion.get("alignment", 0))
         # width/height ya llevan la escala aplicada. El panel se redimensiona
         # escribiendo el tamaño de la entrada (redimensionar), así que el valor
         # editable es sourceWidth/sourceHeight: con width, un panel escalado se

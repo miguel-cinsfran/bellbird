@@ -170,7 +170,7 @@ class TestEquivalenciaMenu(unittest.TestCase):
             ("&Reproductor", "---", None, "sep"),
             ("&Reproductor", "Mostrar botones en &pantalla", ANY, "check"),
             ("&Transmisión", "&Panel de transmisión…", ANY, "normal"),
-            ("&Transmisión", "Silenciar el &micrófono de OBS", ANY, "normal"),
+            ("&Transmisión", "Silenciar el &micrófono de OBS", ANY, "check"),
             ("&Transmisión", "Mostrar &OBS", ANY, "normal"),
             ("&Transmisión", "&Avisar cuando OBS no da abasto", ANY, "check"),
             ("&Transmisión", "&Grabar también al transmitir", ANY, "check"),
@@ -327,6 +327,84 @@ class TestRegistroDeComandos(unittest.TestCase):
         self.assertIn("etiqueta=?", registro.output[0])
 
 
+class TestAbrirTransmision(unittest.TestCase):
+    """Al abrir Transmisión se marca la casilla con el estado real."""
+
+    def _frame(self, menu):
+        frame = mock.Mock()
+        frame._config = {"obs_microfono": "Mic/Aux"}
+        frame.mi_obs_micro = mock.Mock()
+        frame._consultando_micro = False
+        return frame
+
+    def _abrir(self, frame, menu, estado=None):
+        from ytchat.ui import gui_menu
+        evento = mock.Mock()
+        evento.GetMenu.return_value = menu
+        hilos = []
+        def crear_hilo(funcion, nombre):
+            hilo = mock.Mock()
+            hilo.start.side_effect = lambda: hilos.append(funcion)
+            return hilo
+        with mock.patch.object(gui_menu.obs_entradas_audio, "estado_microfono",
+                               return_value=estado), \
+                mock.patch.object(gui_menu.diagnostico, "crear_hilo",
+                                  side_effect=crear_hilo), \
+                mock.patch.object(gui_menu.wx, "CallAfter",
+                                  side_effect=lambda fn, *a: fn(*a)):
+            gui_menu._al_abrir_transmision(frame, menu, evento)
+            for funcion in hilos:
+                funcion()
+        return frame
+
+    def test_otro_menu_no_consulta(self):
+        from ytchat.ui import gui_menu
+        frame = self._frame(object())
+        evento = mock.Mock()
+        evento.GetMenu.return_value = object()
+        with mock.patch.object(gui_menu.diagnostico, "crear_hilo") as crear:
+            gui_menu._al_abrir_transmision(frame, object(), evento)
+        crear.assert_not_called()
+
+    def test_con_estado_verdadero_marca_la_casilla(self):
+        menu = object()
+        frame = self._abrir(self._frame(menu), menu, estado=True)
+        frame.mi_obs_micro.Check.assert_called_once_with(True)
+
+    def test_con_estado_falso_la_desmarca(self):
+        menu = object()
+        frame = self._abrir(self._frame(menu), menu, estado=False)
+        frame.mi_obs_micro.Check.assert_called_once_with(False)
+
+    def test_sin_estado_deja_la_marca_como_estaba(self):
+        menu = object()
+        frame = self._abrir(self._frame(menu), menu, estado=None)
+        frame.mi_obs_micro.Check.assert_not_called()
+
+    def test_con_otra_consulta_en_curso_no_lanza_otra(self):
+        from ytchat.ui import gui_menu
+        menu = object()
+        frame = self._frame(menu)
+        frame._consultando_micro = True
+        evento = mock.Mock()
+        evento.GetMenu.return_value = menu
+        with mock.patch.object(gui_menu.diagnostico, "crear_hilo") as crear:
+            gui_menu._al_abrir_transmision(frame, menu, evento)
+        crear.assert_not_called()
+
+    def test_deja_correr_el_evento_en_los_dos_menus(self):
+        from ytchat.ui import gui_menu
+        menu = object()
+        for abierto in (menu, object()):
+            with self.subTest(abierto=abierto):
+                frame = self._frame(menu)
+                evento = mock.Mock()
+                evento.GetMenu.return_value = abierto
+                with mock.patch.object(gui_menu.diagnostico, "crear_hilo"):
+                    gui_menu._al_abrir_transmision(frame, menu, evento)
+                evento.Skip.assert_called_once_with()
+
+
 class TestCableadoMostrarObs(unittest.TestCase):
     """Elegir Mostrar OBS llama a obs_ventana.mostrar y anuncia su texto."""
 
@@ -369,6 +447,10 @@ class TestCableadoMostrarObs(unittest.TestCase):
         mostrar.assert_called_once_with()
         anunciar.assert_called_once_with("OBS no está abierto.")
 
+    def test_microfono_de_obs_es_casilla(self):
+        frame = self._frame_con_menu()
+        self.assertTrue(frame.mi_obs_micro.IsCheckable())
+
 
 # Textos que arma otro módulo y la barra solo muestra: los nombres de
 # filtro de `ytchat/core/config.py` (FILTROS). Las etiquetas de
@@ -392,6 +474,14 @@ class TestPseudoMenu(unittest.TestCase):
     Construye la misma barra real que vuelca la prueba de convenciones y
     exige que cada etiqueta propia salga marcada.
     """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+
+    @classmethod
+    def tearDownClass(cls):
+        del cls.app
 
     def test_no_queda_ningun_texto_visible_sin_envolver(self):
         from scripts import convenciones_comandos as cc

@@ -14,24 +14,59 @@ def _evento(canales, fuente="Mic/Aux"):
     return {"inputs": [{"inputName": fuente, "inputLevelsMul": canales}]}
 
 
+ENTRADAS_MANU = (
+    ("Audio del escritorio", "wasapi_output_capture"),
+    ("Mic/Aux", "wasapi_input_capture"),
+    ("Captura de pantalla", "monitor_capture"),
+    ("Captura de ventana", "window_capture"),
+)
+
+
 class ElegirMicrofonoTest(unittest.TestCase):
     def test_prefiere_el_nombre_guardado(self):
-        self.assertEqual(elegir_microfono(("Mic/Aux", "Otro"), "Otro"), "Otro")
+        entradas = (("Mic/Aux", "wasapi_input_capture"),
+                    ("Otro", "wasapi_input_capture"))
+        self.assertEqual(elegir_microfono(entradas, "Otro"), "Otro")
 
     def test_el_preferido_gana_a_una_fuente_con_mic(self):
-        self.assertEqual(elegir_microfono(("Mic/Aux", "Audio USB"), "Audio USB"),
-                         "Audio USB")
+        entradas = (("Mic/Aux", "wasapi_input_capture"),
+                    ("Audio USB", "wasapi_input_capture"))
+        self.assertEqual(elegir_microfono(entradas, "Audio USB"), "Audio USB")
 
     def test_elije_la_primera_fuente_con_mic_sin_tildes(self):
-        self.assertEqual(elegir_microfono(
-            ("Audio del escritorio", "Mícrofono USB"), ""), "Mícrofono USB")
+        entradas = (("Audio del escritorio", "wasapi_output_capture"),
+                    ("Mícrofono USB", "wasapi_output_capture"))
+        self.assertEqual(elegir_microfono(entradas, ""), "Mícrofono USB")
 
-    def test_usa_la_primera_fuente_si_no_hay_microfono(self):
-        self.assertEqual(elegir_microfono(("Audio del escritorio", "Auxiliar"), ""),
-                         "Audio del escritorio")
+    def test_sin_microfono_da_vacio_aunque_haya_otras_fuentes(self):
+        entradas = (("Audio del escritorio", "wasapi_output_capture"),
+                    ("Auxiliar", "wasapi_output_capture"))
+        self.assertEqual(elegir_microfono(entradas, ""), "")
 
     def test_devuelve_vacio_sin_fuentes(self):
         self.assertEqual(elegir_microfono((), "Mic/Aux"), "")
+
+    def test_el_especial_gana_al_tipo(self):
+        entradas = (("Micro USB", "wasapi_input_capture"),
+                    ("Mic/Aux", "wasapi_output_capture"))
+        self.assertEqual(
+            elegir_microfono(entradas, "", "Mic/Aux"), "Mic/Aux")
+
+    def test_el_tipo_wasapi_gana_al_nombre(self):
+        entradas = (("Mícrofono viejo", "wasapi_output_capture"),
+                    ("Línea de entrada", "wasapi_input_capture"))
+        self.assertEqual(elegir_microfono(entradas, ""), "Línea de entrada")
+
+    def test_con_la_lista_de_manu_sin_preferido_elige_mic_aux(self):
+        self.assertEqual(
+            elegir_microfono(ENTRADAS_MANU, "", "Mic/Aux"), "Mic/Aux")
+
+    def test_sin_mic1_con_mic_aux_de_tipo_wasapi_tambien(self):
+        self.assertEqual(elegir_microfono(ENTRADAS_MANU, ""), "Mic/Aux")
+
+    def test_con_solo_audio_del_escritorio_da_vacio(self):
+        entradas = (("Audio del escritorio", "wasapi_output_capture"),)
+        self.assertEqual(elegir_microfono(entradas, ""), "")
 
 
 class FraseMicrofonoTest(unittest.TestCase):
@@ -68,10 +103,23 @@ class FraseMicrofonoTest(unittest.TestCase):
         self.assertEqual(frase_microfono("Mic/Aux", False, "", False),
                          "Micrófono activado")
 
-    def test_silenciado_no_nombra_el_dispositivo(self):
+    def test_silenciado_nombra_el_dispositivo_fijo(self):
+        self.assertEqual(
+            frase_microfono("Mic/Aux", True, "Micrófono (WO Mic Device)"),
+            "Micrófono silenciado: WO Mic Device")
+
+    def test_silenciado_nombra_el_predeterminado_con_su_nombre(self):
         self.assertEqual(
             frase_microfono("Mic/Aux", True, "Micrófono (WO Mic Device)", True),
-            "Micrófono silenciado")
+            "Micrófono silenciado: predeterminado de Windows, WO Mic Device")
+
+    def test_silenciado_nombra_el_predeterminado_sin_nombre(self):
+        self.assertEqual(frase_microfono("Mic/Aux", True, "", True),
+                         "Micrófono silenciado: predeterminado de Windows")
+
+    def test_silenciado_sin_dispositivo_anuncia_como_hoy(self):
+        self.assertEqual(frase_microfono("Mic/Aux", True, "", False),
+                         "Micrófono silenciado")
 
     def test_la_fuente_que_no_es_microfono_no_nombra_el_dispositivo(self):
         self.assertEqual(

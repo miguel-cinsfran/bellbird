@@ -18,13 +18,13 @@ def es_microfono(fuente: str) -> bool:
     return _contiene_microfono(fuente)
 
 
-def elegir_microfono(fuentes, preferido: str) -> str:
-    """Devuelve la fuente de audio que se usará como micrófono."""
-    fuentes = tuple(fuentes)
-    if preferido in fuentes:
-        return preferido
-    return next((fuente for fuente in fuentes if _contiene_microfono(fuente)),
-                fuentes[0] if fuentes else "")
+def elegir_microfono(entradas, preferido: str, especial: str = "") -> str:
+    nombres = [nombre for nombre, _tipo in entradas]
+    for candidato in (preferido, especial):
+        if candidato in nombres:
+            return candidato
+    return next((n for n, t in entradas if t == "wasapi_input_capture"),
+                next((n for n, u in entradas if _contiene_microfono(n)), ""))
 
 
 def nombre_corto(nombre: str) -> str:
@@ -59,6 +59,28 @@ def _frase_activada(dispositivo: str, predeterminado: bool) -> str:
     return _frase_fijo(corto)
 
 
+def _frase_silenciado_predeterminado(corto: str) -> str:
+    if corto:
+        # Traductores: {corto} es el nombre corto del dispositivo.
+        return _("Micrófono silenciado: predeterminado de Windows, "
+                 "{corto}").format(corto=corto)
+    return _("Micrófono silenciado: predeterminado de Windows")
+
+
+def _frase_silenciado_fijo(corto: str) -> str:
+    if corto:
+        # Traductores: {corto} es el nombre corto del dispositivo.
+        return _("Micrófono silenciado: {corto}").format(corto=corto)
+    return _("Micrófono silenciado")
+
+
+def _frase_silenciado(dispositivo: str, predeterminado: bool) -> str:
+    corto = nombre_corto(dispositivo) if dispositivo else ""
+    if predeterminado:
+        return _frase_silenciado_predeterminado(corto)
+    return _frase_silenciado_fijo(corto)
+
+
 # Traductores: estado de la fuente de audio; se muestra tras su nombre.
 ESTADO_SILENCIADO = N_("silenciado")
 # Traductores: estado de la fuente de audio; se muestra tras su nombre.
@@ -69,7 +91,7 @@ def _frase(fuente: str, estado: str, dispositivo: str,
            predeterminado: bool) -> str:
     if _contiene_microfono(fuente):
         if estado == "silenciado":
-            return _("Micrófono silenciado")
+            return _frase_silenciado(dispositivo, predeterminado)
         return _frase_activada(dispositivo, predeterminado)
     # Traductores: {fuente} es el nombre de la fuente y {estado} su estado.
     return _("{fuente} {estado}").format(fuente=fuente, estado=_(estado))

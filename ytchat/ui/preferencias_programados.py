@@ -51,7 +51,7 @@ class PaginaProgramados:
         vs.Add(intro, 0, wx.ALL, 10)
 
         self.chk_programados = wx.CheckBox(
-            p, label=_("&Activar los mensajes automáticos"), name="ActivarProgramados")
+            p, label=_("Acti&var los mensajes automáticos"), name="ActivarProgramados")
         vs.Add(self.chk_programados, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _programados_lista(self, p, vs):
@@ -75,7 +75,7 @@ class PaginaProgramados:
         self.sp_min_programado = ContadorAccesible(
             p, min=5, max=240, initial=10, name="MinutosMin")
         vs.Add(self.sp_min_programado, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
-        vs.Add(fila_label(p, _("y &máximo (minutos)")), 0, wx.LEFT | wx.RIGHT, 10)
+        vs.Add(fila_label(p, _("y má&ximo (minutos)")), 0, wx.LEFT | wx.RIGHT, 10)
         self.sp_max_programado = ContadorAccesible(
             p, min=5, max=240, initial=10, name="MinutosMax")
         vs.Add(self.sp_max_programado, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)

@@ -101,10 +101,6 @@ class TestLetrasAccesoPreferencias(unittest.TestCase):
             with self.subTest(pagina=pagina.GetName()):
                 self.assertEqual(letras_repetidas(pagina), {})
 
-    # Chocan la a ("&Activar los mensajes automáticos" y "&Agregar") y
-    # la m ("Cada, &mínimo (minutos)" y "y &máximo (minutos)") en
-    # PagProgramados: no se arregla acá, lo decide el advisor.
-    @unittest.expectedFailure
     def test_pagina_programados_sin_letras_repetidas(self):
         dialogo = self._dialogo()
         pagina = next(p for p in dialogo._paginas()

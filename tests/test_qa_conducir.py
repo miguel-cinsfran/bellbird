@@ -231,6 +231,20 @@ class TestAgujasDeBusqueda(unittest.TestCase):
         self.assertIsNone(conducir.aguja_grupo(nombres, [0, 1], [2]))
 
 
+class TestOrdenarPedidos(unittest.TestCase):
+
+    def test_pedidos_al_reves_salen_en_orden_de_todos(self):
+        self.assertEqual(
+            conducir.ordenar_pedidos(["comentarios", "principal"]),
+            ["principal", "comentarios"])
+
+    def test_fuera_de_todos_queda_al_final_en_orden_pedido(self):
+        self.assertEqual(
+            conducir.ordenar_pedidos(
+                ["directo_youtube", "principal", "musica_real"]),
+            ["principal", "directo_youtube", "musica_real"])
+
+
 class TestAvisosWx(unittest.TestCase):
 
     def test_salta_registro_y_traza_y_cuenta_wx(self):

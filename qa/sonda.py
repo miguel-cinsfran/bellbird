@@ -289,17 +289,28 @@ def _buscar_item_menu(barra, objetivo: str):
 
     La exacta gana: «subir volumen» no puede caer en «Subir volumen de la
     voz» solo porque ese menú se recorra antes. Sin exacta, como antes, la
-    primera que la contiene."""
+    primera que la contiene. Con «menú > ítem» solo se busca dentro de ese
+    menú de nivel superior, sin `&` y sin mayúsculas a la izquierda."""
     # Ojo: los ids que reparte `wx.ID_ANY` son NEGATIVOS. Descartar por
     # `id < 0` para saltarse los menús de nivel superior se lleva puestos
     # todos los ítems de verdad, y el síntoma es "no existe ese menú".
+    texto = str(objetivo or "").strip().lower()
+    menu = None
+    if ">" in texto:
+        pedido, _, resto = texto.partition(">")
+        menu = _limpiar_etiqueta(pedido)
+        texto = resto.strip()
     candidatos = [datos for datos in _recorrer_menus(barra)
                   if not datos.get("submenu") and datos.get("id") is not None]
+    if menu is not None:
+        candidatos = [d for d in candidatos
+                      if _limpiar_etiqueta(str(d.get("camino", ""))
+                                           .split(" > ", 1)[0]) == menu]
     for datos in candidatos:
-        if datos["etiqueta"].strip().lower() == objetivo:
+        if datos["etiqueta"].strip().lower() == texto:
             return datos["id"], datos["etiqueta"]
     for datos in candidatos:
-        if objetivo in datos["etiqueta"].strip().lower():
+        if texto in datos["etiqueta"].strip().lower():
             return datos["id"], datos["etiqueta"]
     return None
 

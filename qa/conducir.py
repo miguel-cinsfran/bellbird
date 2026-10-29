@@ -2396,7 +2396,7 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
 
         _aire()
         n = len(propia.anuncios)
-        _menu("reproducir o pausar")
+        _menu("Música > Reproducir o pausar")
         if not propia.esperar_dicho(anuncios_musica.TEXTO_PAUSA, segundos=8,
                                       desde=n):
             res.fallo("musica_real: pausar no anunció "
@@ -2416,7 +2416,7 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
                 res.fallo("musica_real: pausada y el pico no cayó "
                           "bajo 0,001 en 3 s")
         n = len(propia.anuncios)
-        _menu("reproducir o pausar")
+        _menu("Música > Reproducir o pausar")
         if not propia.esperar_dicho(anuncios_musica.TEXTO_REANUDADA,
                                      segundos=8, desde=n):
             res.fallo("musica_real: reanudar no anunció "
@@ -2485,12 +2485,12 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
 
         _aire()
         n = len(propia.anuncios)
-        _menu("subir volumen")
+        _menu("Música > Subir volumen")
         esperado = anuncios_musica.TEXTO_VOLUMEN.format(valor=50)
         if not propia.esperar_dicho(esperado, segundos=8, desde=n):
             res.fallo(f"musica_real: subir no anunció «{esperado}»")
         n = len(propia.anuncios)
-        _menu("bajar volumen")
+        _menu("Música > Bajar volumen")
         esperado = str(40)
         if not propia.esperar_dicho(esperado, segundos=8, desde=n):
             res.fallo(f"musica_real: bajar no anunció «{esperado}»")
@@ -3561,7 +3561,8 @@ def escenario_comentarios(app: Aplicacion, args, res: Resultado):
 
     # Este otro depende de que haya sesión iniciada, que no está en manos del
     # banco. Se anota lo que se encontró, sin juzgarlo.
-    comentar = botones.get("Comentar en el vídeo")
+    comentar = next((c for clave, c in botones.items()
+                       if clave.startswith("Comentar en el vídeo")), None)
     if comentar is None:
         res.fallo("comentarios: no está el botón «Comentar en el vídeo»")
     else:
@@ -5605,6 +5606,14 @@ EN_TODOS = ["arranque_frio", "reproductor",
             "comentarios", "tiktok", "avisos_wx", "diagnostico", "cierre"]
 
 
+def ordenar_pedidos(pedidos):
+    """Los pedidos en el orden de `EN_TODOS`; el resto al final como vino."""
+    pedidos = list(pedidos)
+    en_todos = [n for n in EN_TODOS if n in pedidos]
+    resto = [n for n in pedidos if n not in EN_TODOS]
+    return en_todos + resto
+
+
 def main() -> int:
     args = _argumentos()
     p = _argumentos.p
@@ -5633,6 +5642,8 @@ def main() -> int:
             p.error("estos modulos de interfaz no tienen escenario que los "
                     "recorra: %s. Escribi uno y anotalo en SUPERFICIES."
                     % ", ".join(huerfanos))
+    else:
+        pedidos = ordenar_pedidos(pedidos)
 
     # Por defecto, dentro de `qa/salida/`, que está en el `.gitignore`: las
     # grabaciones llevan la salida cruda de la aplicación y no se suben. Fuera de

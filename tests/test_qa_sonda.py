@@ -81,7 +81,26 @@ def _barra_volumenes():
     ])
 
 
+def _barra_repetida():
+    return BarraFalsa([
+        MenuFalso("Reproductor", [ItemFalso(11, "&Reproducir o pausar")]),
+        MenuFalso("Música", [ItemFalso(21, "Reproducir o &pausar")]),
+    ])
+
+
 class BuscarItemMenuTest(unittest.TestCase):
+
+    def test_ruta_elige_el_menu_pedido(self):
+        self.assertEqual(
+            sonda._buscar_item_menu(_barra_repetida(),
+                                    "música > reproducir o pausar"),
+            (21, "Reproducir o pausar"))
+
+    def test_sin_ruta_elige_el_primero_como_hoy(self):
+        self.assertEqual(
+            sonda._buscar_item_menu(_barra_repetida(),
+                                    "reproducir o pausar"),
+            (11, "Reproducir o pausar"))
 
     def test_prefiere_la_etiqueta_exacta_antes_que_la_que_contiene(self):
         self.assertEqual(

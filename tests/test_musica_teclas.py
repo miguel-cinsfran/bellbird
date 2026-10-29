@@ -128,7 +128,7 @@ class TestSilencioTeclas(unittest.TestCase):
         host = Host(CoordinadorFalso(silenciado=True))
         host.alternar_silencio()
         self.assertEqual(host.avisos[0].texto,
-                         "Sonido de la música restaurado")
+                         "Sonido de la música activado")
 
     def test_sin_motor_alternar_pide_detener(self):
         host = Host()

@@ -12,7 +12,7 @@ class TestConstantes(unittest.TestCase):
     def test_constantes_con_el_texto_que_oye_el_usuario(self):
         self.assertEqual(anuncios_teclas.TEXTO_SILENCIADA, "Música silenciada")
         self.assertEqual(anuncios_teclas.TEXTO_RESTAURADA,
-                         "Sonido de la música restaurado")
+                         "Sonido de la música activado")
 
 
 class TestPseudoTextos(unittest.TestCase):

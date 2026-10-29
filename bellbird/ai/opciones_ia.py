@@ -56,7 +56,7 @@ TEXTO_LISTA_CON_GRATIS = N_("Lista de modelos actualizada: {n} modelos "
 # Traductores: anuncio de lista nueva; {n} modelos, {r} útiles, {proveedor} su nombre.
 TEXTO_LISTA_CON_TU_CLAVE = N_("Lista de modelos actualizada: {n} modelos "
                               "de {proveedor}, {r} funcionan con tu clave.")
-TEXTO_INSTRUCCION_RESTAURADA = N_("Instrucción restaurada.")
+TEXTO_INSTRUCCION_RESTAURADA = N_("Instrucción restablecida.")
 TEXTO_CONTRIBUTOR = N_("Este modelo entrena con lo que se le envía.")
 # Traductores: marca de modelo que entrena, se suma a su nombre.
 TEXTO_MARCA_CONTRIBUTOR = N_(", entrena con lo enviado")

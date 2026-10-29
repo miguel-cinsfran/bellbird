@@ -898,7 +898,7 @@ class YTChatFrame(wx.Frame):
 
     def _on_detener_tts(self, event):
         self._worker.detener_actual()
-        anunciar(_("TTS detenido"))
+        anunciar(_("Voz detenida"))
 
     def _aplicar_voz(self, idx: int):
         self._worker.cambiar_voz(idx)
@@ -957,7 +957,7 @@ class YTChatFrame(wx.Frame):
         self._config["silenciar_lectura"] = nuevo
         self.mi_sil_lectura.Check(nuevo)
         guardar_opcion(RUTA_CONFIG, "sesion", "silenciar_lectura", "true" if nuevo else "false")
-        anunciar(_("Lectura TTS silenciada") if nuevo else _("Lectura TTS activada"))
+        anunciar(_("Lectura silenciada") if nuevo else _("Lectura activada"))
 
     def _snapshot_sesion(self) -> estado_sesion.SnapshotSesion:
         from bellbird.ui import gui_estado

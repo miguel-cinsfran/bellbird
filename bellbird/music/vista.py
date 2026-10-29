@@ -234,8 +234,8 @@ def _partes_examen(nuevas, quitadas) -> list:
                          "{nuevas} canciones nuevas", nuevas)
         partes.append(texto.format(nuevas=nuevas))
     if quitadas:
-        # Traductores: {quitadas} es cuántas canciones se quitaron; se anuncia.
-        texto = ngettext("{quitadas} eliminada",
-                         "{quitadas} eliminadas", quitadas)
-        partes.append(texto.format(quitadas=quitadas))
+        # Traductores: {eliminadas} es cuántas canciones se eliminaron; se anuncia.
+        texto = ngettext("{eliminadas} eliminada",
+                         "{eliminadas} eliminadas", quitadas)
+        partes.append(texto.format(eliminadas=quitadas))
     return partes

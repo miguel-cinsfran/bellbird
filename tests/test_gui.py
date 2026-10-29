@@ -920,6 +920,60 @@ class TestFocoAlActivar(unittest.TestCase):
         evento.Skip.assert_called_once_with()
 
 
+class TestInterruptoresDeLecturaYSonidos(unittest.TestCase):
+
+    def _frame(self):
+        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame._config = {}
+        frame.mi_sil_lectura = mock.Mock()
+        frame.mi_sil_sonidos = mock.Mock()
+        return frame
+
+    def test_lectura_anuncia_y_persiste_las_dos_veces(self):
+        frame = self._frame()
+        with mock.patch.object(gui, "anunciar") as anunciar, \
+                mock.patch.object(gui, "guardar_opcion") as guardar:
+            frame._toggle_silenciar_lectura()
+        self.assertTrue(frame._config["silenciar_lectura"])
+        self.assertTrue(frame.mi_sil_lectura.Check.call_args.args[0])
+        anunciar.assert_called_once_with("Lectura silenciada")
+        guardar.assert_called_once_with(
+            gui.RUTA_CONFIG, "sesion", "silenciar_lectura", "true")
+        with mock.patch.object(gui, "anunciar") as anunciar, \
+                mock.patch.object(gui, "guardar_opcion") as guardar:
+            frame._toggle_silenciar_lectura()
+        self.assertFalse(frame._config["silenciar_lectura"])
+        self.assertFalse(frame.mi_sil_lectura.Check.call_args.args[0])
+        anunciar.assert_called_once_with("Lectura activada")
+        guardar.assert_called_once_with(
+            gui.RUTA_CONFIG, "sesion", "silenciar_lectura", "false")
+
+    def test_sonidos_anuncia_y_persiste_las_dos_veces(self):
+        frame = self._frame()
+        with mock.patch.object(gui._snd, "esta_silenciado", return_value=False), \
+                mock.patch.object(gui._snd, "silenciar_todo") as silenciar, \
+                mock.patch.object(gui, "anunciar") as anunciar, \
+                mock.patch.object(gui, "guardar_opcion") as guardar:
+            frame._toggle_silenciar_sonidos()
+        self.assertTrue(frame._config["silenciar_sonidos"])
+        silenciar.assert_called_once_with(True)
+        self.assertTrue(frame.mi_sil_sonidos.Check.call_args.args[0])
+        anunciar.assert_called_once_with("Sonidos silenciados")
+        guardar.assert_called_once_with(
+            gui.RUTA_CONFIG, "ui", "silenciar_sonidos", "true")
+        with mock.patch.object(gui._snd, "esta_silenciado", return_value=True), \
+                mock.patch.object(gui._snd, "silenciar_todo") as silenciar, \
+                mock.patch.object(gui, "anunciar") as anunciar, \
+                mock.patch.object(gui, "guardar_opcion") as guardar:
+            frame._toggle_silenciar_sonidos()
+        self.assertFalse(frame._config["silenciar_sonidos"])
+        silenciar.assert_called_once_with(False)
+        self.assertFalse(frame.mi_sil_sonidos.Check.call_args.args[0])
+        anunciar.assert_called_once_with("Sonidos activados")
+        guardar.assert_called_once_with(
+            gui.RUTA_CONFIG, "ui", "silenciar_sonidos", "false")
+
+
 class TestConexionCancelable(unittest.TestCase):
 
     def _frame(self):

@@ -1,7 +1,7 @@
 """Diálogo de historial de directos y vídeos vistos (accesible).
 
 Dos pestañas —YouTube y TikTok— con lo que se ha ido viendo. Enter (o el botón
-Conectar) vuelve a ese directo/vídeo; Suprimir (o Quitar) borra la entrada. La
+Conectar) vuelve a ese directo/vídeo; Suprimir (o Eliminar) borra la entrada. La
 reconexión la hace la ventana principal vía el callback `on_conectar(url)`.
 """
 
@@ -61,7 +61,7 @@ class HistorialDialog(wx.Dialog):
 
         row = wx.BoxSizer(wx.HORIZONTAL)
         self.btn_conectar = wx.Button(panel, label=_("&Conectar"), name="ConectarHistorial")
-        self.btn_quitar   = wx.Button(panel, label=_("&Quitar"), name="QuitarHistorial")
+        self.btn_quitar   = wx.Button(panel, label=_("E&liminar"), name="QuitarHistorial")
         btn_cerrar        = wx.Button(panel, wx.ID_CANCEL, _("C&errar"), name="CerrarHistorial")
         for b in (self.btn_conectar, self.btn_quitar, btn_cerrar):
             _pintar(b, _T.btn, _T.btn_t)

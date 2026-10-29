@@ -20,7 +20,7 @@ from tests.test_gui_transmision import (
 from tests.ventanas_prueba import destruir
 from ytchat.ai import catalogo
 from ytchat.core import config
-from ytchat.ui import gui_directo_youtube, gui_microfono, gui_transmision, gui_preferencias
+from ytchat.ui import gui_directo_youtube, gui_historial, gui_microfono, gui_transmision, gui_preferencias
 from ytchat.ui import preferencias_ia
 from ytchat.ui import preferencias_ia_clave
 from ytchat.voice import motores
@@ -134,6 +134,22 @@ class TestLetrasAccesoDirectoYoutube(unittest.TestCase):
         dialogo = gui_directo_youtube.DialogoDirectoYoutube(None, titulo="Hola")
         self.addCleanup(destruir, dialogo)
         self.assertEqual(letras_repetidas(dialogo), {})
+
+
+class TestLetrasAccesoHistorial(unittest.TestCase):
+    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
+
+    def setUp(self):
+        self.app = wx.App.Get() or wx.App(False)
+        self.temporal = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporal.cleanup)
+        self.ruta = Path(self.temporal.name) / "historial.json"
+        self.ruta.write_text("[]", encoding="utf-8")
+
+    def test_gui_historial_sin_letras_repetidas(self):
+        dialogo = gui_historial.HistorialDialog(None, self.ruta, mock.Mock())
+        self.addCleanup(destruir, dialogo)
+        self.assertEqual(letras_repetidas(dialogo), {}, gui_historial.__name__)
 
 
 class TestLetrasAccesoTransmision(unittest.TestCase):

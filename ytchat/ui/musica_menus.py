@@ -55,7 +55,7 @@ def entradas_biblioteca(es_lista_propia: bool, nombres_listas=()) -> list:
     ]
     if es_lista_propia:
         entradas += [
-            ("&Quitar de esta lista", ACCION_QUITAR_DE_LISTA),
+            ("&Eliminar de esta lista", ACCION_QUITAR_DE_LISTA),
         ]
     return entradas
 
@@ -80,7 +80,7 @@ def entradas_cola() -> list:
     """Las entradas del menú de la Cola."""
     return [
         ("&Reproducir", ACCION_REPRODUCIR),
-        ("&Quitar", ACCION_QUITAR),
+        ("&Eliminar", ACCION_QUITAR),
         ("&Subir", ACCION_SUBIR),
         ("&Bajar", ACCION_BAJAR),
         ("&Ir al que suena", ACCION_IR_AL_QUE_SUENA),

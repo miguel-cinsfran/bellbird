@@ -1051,7 +1051,7 @@ class TestVentanaMusica(unittest.TestCase):
         self.assertEqual(
             [etiqueta for etiqueta, _accion
              in musica_menus.entradas_biblioteca(True)][-1:],
-            ["&Quitar de esta lista"])
+            ["&Eliminar de esta lista"])
 
     def test_entradas_exactas_de_colecciones(self):
         self.assertEqual(
@@ -1068,7 +1068,7 @@ class TestVentanaMusica(unittest.TestCase):
     def test_entradas_exactas_de_la_cola(self):
         self.assertEqual(
             [etiqueta for etiqueta, _accion in musica_menus.entradas_cola()],
-            ["&Reproducir", "&Quitar", "&Subir", "&Bajar",
+            ["&Reproducir", "&Eliminar", "&Subir", "&Bajar",
              "&Ir al que suena", "&Mezclar la cola", "&Vaciar la cola",
              "&Guardar la cola como lista…"])
 

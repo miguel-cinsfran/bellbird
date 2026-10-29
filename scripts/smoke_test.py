@@ -36,6 +36,9 @@ RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, RAIZ)
 
 from bellbird.core.config import APP_NAME  # noqa: E402
+# El mutex vive en instancia.py, que es puro y no arrastra wx: una sola
+# fuente en vez del nombre duplicado.
+from bellbird.core.instancia import _NOMBRE_MUTEX as _MUTEX_INSTANCIA  # noqa: E402
 
 # Tipos de control que deben tener SIEMPRE un nombre accesible (lo que NVDA
 # anuncia al llegar a ellos con Tab). Si alguno aparece sin nombre, es un fallo
@@ -94,9 +97,6 @@ _MODULOS_PUROS, _MODULOS_GUI = _modulos_de_la_raiz()
 _PREFIJO_TITULO = APP_NAME
 _PROCESOS_APLICACION = {"python.exe", "pythonw.exe", "bellbird.exe"}
 
-# El nombre se duplica a propósito: importar main.py arrastra wx y medio
-# paquete. Una prueba vigila que coincida con el de main.py.
-_MUTEX_INSTANCIA = "YTChatTTS_SingleInstance_Mutex"
 _SYNCHRONIZE = 0x00100000
 _ERROR_ACCESS_DENIED = 5
 
@@ -496,8 +496,19 @@ def fase3_accesibilidad() -> bool:
             print("\n  Aplicación cerrada.")
 
 
+def _configurar_salida() -> None:
+    """Pone la salida en UTF-8 con reemplazo: un emoji en un título de la
+    fase 3 no puede tumbar el smoke con UnicodeEncodeError."""
+    for salida in (sys.stdout, sys.stderr):
+        try:
+            salida.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
+
 def main():
     no_gui = "--no-gui" in sys.argv
+    _configurar_salida()
     os.chdir(RAIZ)
     if RAIZ not in sys.path:
         sys.path.insert(0, RAIZ)

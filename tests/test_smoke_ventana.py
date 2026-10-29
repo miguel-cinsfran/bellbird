@@ -4,9 +4,11 @@ import os
 import sys
 import unittest
 from types import SimpleNamespace
+from unittest import mock
 
-from scripts.smoke_test import (RAIZ, _MINIMO_CONTROLES, _MUTEX_INSTANCIA,
-                                _recorrer, arbol_sigue_vivo,
+from bellbird.core import instancia
+from scripts.smoke_test import (_MINIMO_CONTROLES, _MUTEX_INSTANCIA,
+                                _configurar_salida, _recorrer, arbol_sigue_vivo,
                                 es_descendiente, hay_otra_instancia_abierta,
                                 interactivos_sin_nombre, mapa_padres_procesos,
                                 mensaje_fallo_controles, mensaje_fallo_ventana,
@@ -63,11 +65,34 @@ class MutexInstanciaTest(unittest.TestCase):
 
         self.assertFalse(hay_otra_instancia_abierta(nombre))
 
-    def test_el_nombre_coincide_con_el_de_main(self):
-        with open(os.path.join(RAIZ, "main.py"), encoding="utf-8") as archivo:
-            fuente = archivo.read()
+    def test_el_nombre_coincide_con_el_de_instancia(self):
+        self.assertEqual(_MUTEX_INSTANCIA, instancia._NOMBRE_MUTEX)
 
-        self.assertIn(_MUTEX_INSTANCIA, fuente)
+
+class ConfigurarSalidaTest(unittest.TestCase):
+
+    def test_pide_utf8_con_reemplazo_en_ambas_salidas(self):
+        llamadas = []
+
+        class SalidaFalsa:
+            def reconfigure(self, **kwargs):
+                llamadas.append(kwargs)
+
+        falsa = SalidaFalsa()
+        with mock.patch.object(sys, "stdout", falsa), \
+                mock.patch.object(sys, "stderr", falsa):
+            _configurar_salida()
+
+        self.assertEqual(llamadas, [{"encoding": "utf-8", "errors": "replace"},
+                                    {"encoding": "utf-8", "errors": "replace"}])
+
+    def test_no_lanza_si_reconfigurar_falla(self):
+        class SalidaRota:
+            def reconfigure(self, **kwargs):
+                raise OSError("sin consola")
+
+        with mock.patch.object(sys, "stdout", SalidaRota()):
+            _configurar_salida()
 
 
 class InteractivosSinNombreTest(unittest.TestCase):

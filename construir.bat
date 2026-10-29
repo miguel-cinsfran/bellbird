@@ -157,7 +157,7 @@ if defined FFEXE (
 )
 echo == Empaquetando yt-dlp independiente ==
 echo    La primera vez descarga yt-dlp desde GitHub y puede tardar.
-call uv run python -c "import shutil; from bellbird.downloads import ytdlp_bin; from pathlib import Path; r=ytdlp_bin.asegurar_ytdlp(); p=ytdlp_bin.ruta_ytdlp(); d=Path(r'%OUT%') / 'yt-dlp.exe'; shutil.copy2(p,d) if r.correcta and p else None; print('   ' + ('resultado: ' if r.correcta else 'AVISO: ') + r.motivo)"
+call uv run python -c "import shutil; from bellbird.downloads import ytdlp_actualizar, ytdlp_bin; from pathlib import Path; r=ytdlp_actualizar.asegurar_ytdlp(); p=ytdlp_bin.ruta_ytdlp(); d=Path(r'%OUT%') / 'yt-dlp.exe'; shutil.copy2(p,d) if r.correcta and p else None; print('   ' + ('resultado: ' if r.correcta else 'AVISO: ') + r.motivo)"
 REM El lanzador del entorno pesa unos 45 KB; el ejecutable oficial observado
 REM el 21/08/2026 pesa unos 17 MB. Un MiB deja margen y descarta el lanzador.
 set "YTDLP_MIN_BYTES=1048576"

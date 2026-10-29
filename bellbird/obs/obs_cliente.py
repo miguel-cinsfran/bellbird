@@ -77,7 +77,9 @@ def mensaje_de_fallo_obs(motivo, obs_abierto=None):
     """Traduce un motivo técnico a un mensaje breve para el usuario."""
     if isinstance(motivo, ObsError):
         return str(motivo)
-    if isinstance(motivo, BaseException):
+    if isinstance(motivo, ConnectionRefusedError):
+        logger.debug("Fallo de OBS: %s: %s", type(motivo).__name__, str(motivo))
+    elif isinstance(motivo, BaseException):
         logger.warning("Fallo de OBS: %s: %s", type(motivo).__name__,
                        str(motivo), exc_info=motivo)
     else:

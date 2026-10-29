@@ -445,6 +445,16 @@ class RegistroDeFalloTest(unittest.TestCase):
                 obs_cliente.ObsError(texto_esperado))
         self.assertEqual(texto, texto_esperado)
 
+    def test_conexion_rechazada_registra_en_debug_y_no_en_warning(self):
+        motivo = ConnectionRefusedError(10061, "conexion rechazada")
+        with self.assertNoLogs(obs_cliente.logger, level="WARNING"):
+            texto = obs_cliente.mensaje_de_fallo_obs(
+                motivo, obs_abierto=lambda: False)
+        self.assertIn("No se pudo conectar", texto)
+        with self.assertLogs(obs_cliente.logger, level="DEBUG") as registros:
+            obs_cliente.mensaje_de_fallo_obs(motivo, obs_abierto=lambda: False)
+        self.assertEqual(1, len(registros.records))
+
 
 class TestPseudoMensajesCliente(unittest.TestCase):
     """Pseudotraducción de los mensajes que muestra `obs_cliente`.

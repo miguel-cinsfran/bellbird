@@ -37,7 +37,7 @@ class PaginaApi:
         vs = wx.BoxSizer(wx.VERTICAL)
 
         intro = wx.StaticText(p, name="IntroApi", label=_(
-            "La API key permite LEER comentarios (sin iniciar sesión). El cliente "
+            "La clave de API permite LEER comentarios (sin iniciar sesión). El cliente "
             "OAuth e iniciar sesión permiten MODERAR el chat, enviar mensajes al "
             "directo y publicar o responder comentarios."))
         intro.SetForegroundColour(_T.dim)
@@ -47,7 +47,7 @@ class PaginaApi:
         if not youtube_api.google_disponible():
             # Traductores: no traduzcas el comando «pip install ...», solo el resto.
             aviso = wx.StaticText(p, name="AvisoLibreriasApi", label=_(
-                "AVISO: faltan las librerías de la API. Instálalas con:\n"
+                "AVISO: faltan las bibliotecas de la API. Instálalas con:\n"
                 "pip install google-api-python-client google-auth-oauthlib"))
             aviso.SetForegroundColour(_T.red)
             vs.Add(aviso, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
@@ -55,7 +55,7 @@ class PaginaApi:
         datos = credenciales.cargar()
         grid = wx.FlexGridSizer(3, 2, 8, 8)
         grid.AddGrowableCol(1, 1)
-        self.txt_api = self._fila_api(p, grid, _("&API key:"), _("API key de YouTube"),
+        self.txt_api = self._fila_api(p, grid, _("Clave de &API:"), _("Clave de API de YouTube"),
                                       datos.get("api_key", ""))
         self.txt_cid = self._fila_api(p, grid, _("ID de &cliente OAuth:"),
                                       _("ID de cliente OAuth"), datos.get("oauth_client_id", ""))
@@ -105,7 +105,7 @@ class PaginaApi:
             texto = _("Estado: sesión iniciada. Moderación y comentarios activos.")
             self.btn_api_logout.Enable()
         else:
-            texto = _("Estado: sin sesión. Solo lectura de comentarios (si hay API key).")
+            texto = _("Estado: sin sesión. Solo lectura de comentarios (si hay clave de API).")
             self.btn_api_logout.Disable()
         if credenciales.usa_cliente_de_la_app():
             texto += _(" Se usa el cliente de Google de la aplicación.")

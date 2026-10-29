@@ -1321,13 +1321,13 @@ def escenario_descargas(app: Aplicacion, args, res: Resultado):
     try:    app.pedir("foco", nombre="Enlace del directo o vídeo")
     except Exception: pass
     app.teclas(paso_atajo)
-    dlg = app.esperar_ventana("Gestor de descargas", segundos=12)
+    dlg = app.esperar_ventana("Administrador de descargas", segundos=12)
     if dlg is None:
         res.fallo(f"{nombre_atajo} no abrió el gestor de descargas")
         return
     res.nota(f"{nombre_atajo} abre «{dlg['titulo']}», clase {dlg['clase']}")
 
-    controles = app.arbol("Gestor de descargas")
+    controles = app.arbol("Administrador de descargas")
     revisar_nombres(controles, res, "descargas")
 
     juntos = " ".join(
@@ -1341,8 +1341,8 @@ def escenario_descargas(app: Aplicacion, args, res: Resultado):
     res.nota(f"descargas, orden de Tab, {len(orden)} paradas: "
              + " > ".join(orden))
 
-    app.pedir("cerrar_ventana", ventana="Gestor de descargas")
-    if app.esperar_ventana("Gestor de descargas", segundos=3) is None:
+    app.pedir("cerrar_ventana", ventana="Administrador de descargas")
+    if app.esperar_ventana("Administrador de descargas", segundos=3) is None:
         res.nota("descargas: el diálogo cierra")
     else:
         res.fallo("descargas: el diálogo no cerró")

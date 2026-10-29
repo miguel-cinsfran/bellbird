@@ -89,7 +89,7 @@ class TestAtajosCaptura(unittest.TestCase):
     def test_desactivado(self):
         resultado = atajos_captura.resolver("rep_play", None, self.valores)
         self.assertEqual(resultado, (
-            "desactivado", "", "Reproducir o pausa sin atajo. Desactivado."))
+            "desactivado", "", "Reproducir o pausar sin atajo. Desactivado."))
 
     def test_accion_de_area_ctrl_alt_captura_una_flecha(self):
         with mock.patch.dict(config.ATAJOS_AREA, {"musica_siguiente": "ctrl+alt"}):
@@ -260,7 +260,7 @@ class TestAtajosCaptura(unittest.TestCase):
         from bellbird.ui import preferencias_atajos as gp
         dialogo = gp.PaginaAtajos.__new__(gp.PaginaAtajos)
         boton = mock.Mock()
-        dialogo._capturando_atajo = ("rep_play", "Reproducir o pausa")
+        dialogo._capturando_atajo = ("rep_play", "Reproducir o pausar")
         dialogo._valores_atajo = {"rep_play": "ctrl+p"}
         dialogo._botones_atajo = {"rep_play": boton}
         evento = mock.Mock()
@@ -274,14 +274,14 @@ class TestAtajosCaptura(unittest.TestCase):
             "rep_play", "ctrl+q", {"rep_play": "ctrl+q"})
         self.assertEqual(dialogo._valores_atajo["rep_play"], "ctrl+q")
         boton.SetLabel.assert_called_once_with(
-            "Reproducir o pausa: Ctrl+Q")
+            "Reproducir o pausar: Ctrl+Q")
 
     @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
     def test_escape_cancela_la_captura(self):
         import wx
         from bellbird.ui import preferencias_atajos as gp
         dialogo = gp.PaginaAtajos.__new__(gp.PaginaAtajos)
-        dialogo._capturando_atajo = ("rep_play", "Reproducir o pausa")
+        dialogo._capturando_atajo = ("rep_play", "Reproducir o pausar")
         dialogo._valores_atajo = {"rep_play": "ctrl+q"}
         dialogo._botones_atajo = {"rep_play": mock.Mock()}
         evento = mock.Mock()
@@ -298,7 +298,7 @@ class TestAtajosCaptura(unittest.TestCase):
         import wx
         from bellbird.ui import preferencias_atajos as gp
         dialogo = gp.PaginaAtajos.__new__(gp.PaginaAtajos)
-        dialogo._capturando_atajo = ("rep_play", "Reproducir o pausa")
+        dialogo._capturando_atajo = ("rep_play", "Reproducir o pausar")
         dialogo._valores_atajo = {"rep_play": "ctrl+q"}
         dialogo._botones_atajo = {"rep_play": mock.Mock()}
         evento = mock.Mock()
@@ -314,7 +314,7 @@ class TestAtajosCaptura(unittest.TestCase):
         import wx
         from bellbird.ui import preferencias_atajos as gp
         dialogo = gp.PaginaAtajos.__new__(gp.PaginaAtajos)
-        captura = ("rep_play", "Reproducir o pausa")
+        captura = ("rep_play", "Reproducir o pausar")
         dialogo._capturando_atajo = captura
         dialogo._valores_atajo = {"rep_play": "ctrl+q"}
         evento = mock.Mock()
@@ -331,7 +331,7 @@ class TestAtajosCaptura(unittest.TestCase):
         import wx
         from bellbird.ui import preferencias_atajos as gp
         dialogo = gp.PaginaAtajos.__new__(gp.PaginaAtajos)
-        dialogo._capturando_atajo = ("rep_play", "Reproducir o pausa")
+        dialogo._capturando_atajo = ("rep_play", "Reproducir o pausar")
         dialogo._valores_atajo = {"rep_play": "ctrl+p"}
         dialogo._botones_atajo = {"rep_play": mock.Mock()}
         evento = mock.Mock()
@@ -344,7 +344,7 @@ class TestAtajosCaptura(unittest.TestCase):
         resolver.assert_called_once_with(
             "rep_play", "alt+enter", {"rep_play": "alt+enter"})
 
-        dialogo._capturando_atajo = ("rep_play", "Reproducir o pausa")
+        dialogo._capturando_atajo = ("rep_play", "Reproducir o pausar")
         evento.GetModifiers.return_value = wx.MOD_NONE
         with mock.patch.object(
                 gp.atajos_captura, "resolver",
@@ -368,7 +368,7 @@ class TestAtajosCaptura(unittest.TestCase):
         self.assertEqual(dialogo._valores_atajo["rep_play"], "ctrl+p")
         self.assertEqual(dialogo._valores_atajo["salir"], "alt+x")
         dialogo._botones_atajo["rep_play"].SetLabel.assert_called_once_with(
-            "Reproducir o pausa: Ctrl+P")
+            "Reproducir o pausar: Ctrl+P")
         anunciar.assert_called_once_with(
             "Atajos restablecidos a los valores de fábrica. Se aplican al pulsar Guardar.")
 
@@ -377,13 +377,13 @@ class TestAtajosCaptura(unittest.TestCase):
         from bellbird.ui import preferencias_atajos as gp
         dialogo = gp.PaginaAtajos.__new__(gp.PaginaAtajos)
         boton = mock.Mock()
-        dialogo._capturando_atajo = ("rep_play", "Reproducir o pausa")
+        dialogo._capturando_atajo = ("rep_play", "Reproducir o pausar")
         dialogo._valores_atajo = {"rep_play": "ctrl+q"}
         dialogo._botones_atajo = {"rep_play": boton}
         with mock.patch.object(gp, "anunciar") as anunciar:
             dialogo._salir_captura_atajo(True)
         boton.SetLabel.assert_called_once_with(
-            "Reproducir o pausa: Ctrl+Q")
+            "Reproducir o pausar: Ctrl+Q")
         anunciar.assert_called_once_with("Sin cambios")
 
 

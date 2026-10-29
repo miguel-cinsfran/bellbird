@@ -54,13 +54,13 @@ _AREA_AYUDA = {
 }
 ETIQUETAS = {
     # Reproductor
-    "rep_play": N_("Reproducir o pausa"), "rep_retro": N_("Retroceder 1 minuto"),
+    "rep_play": N_("Reproducir o pausar"), "rep_retro": N_("Retroceder 1 minuto"),
     "rep_avanz": N_("Avanzar 1 minuto"), "rep_directo": N_("Ir al directo"),
     "rep_detener": N_("Detener vídeo"),
     "rep_mute": N_("Silenciar o activar audio"),
     "rep_vol_menos": N_("Bajar volumen del reproductor"),
     "rep_vol_mas": N_("Subir volumen del reproductor"),
-    "descargas_abrir": N_("Abrir el gestor de descargas"),
+    "descargas_abrir": N_("Abrir Administrador de descargas"),
     "pantalla_completa": N_("Pantalla completa"),
     "abrir_preferencias": N_("Abrir Preferencias"),
     "abrir_historial": N_("Abrir el historial de directos"),
@@ -80,9 +80,9 @@ ETIQUETAS = {
     "pausa": N_("Pausar o reanudar lectura"), "detener_tts": N_("Detener voz actual"),
     "velocidad_menos": N_("Bajar velocidad"),
     "velocidad_mas": N_("Subir velocidad"),
-    "volumen_menos": N_("Bajar volumen del TTS"),
-    "volumen_mas": N_("Subir volumen del TTS"),
-    "silenciar_lectura": N_("Silenciar lectura TTS"),
+    "volumen_menos": N_("Bajar volumen de la voz"),
+    "volumen_mas": N_("Subir volumen de la voz"),
+    "silenciar_lectura": N_("Silenciar lectura"),
     "silenciar_sonidos": N_("Silenciar sonidos"), "anunciar_estado": N_("Anunciar estado"),
     "anunciar_autor": N_("Anunciar autor del último mensaje"),
     "describir_escena": N_("Describir escena de OBS"),

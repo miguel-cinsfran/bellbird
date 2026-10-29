@@ -341,7 +341,7 @@ class ComentariosPanel(wx.Panel):
         id_leer    = wx.NewIdRef()
         id_copiar  = wx.NewIdRef()
         id_copiar2 = wx.NewIdRef()
-        menu.Append(id_leer,    _("Leer con TTS"))
+        menu.Append(id_leer,    _("Leer en voz alta"))
         menu.Append(id_copiar,  _("Copiar comentario"))
         menu.Append(id_copiar2, _("Copiar todo (autor: comentario)"))
         # Handlers sobre el propio menú: mueren con él y no se acumulan

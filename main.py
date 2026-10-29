@@ -568,7 +568,7 @@ def _captura_en_loop(video_id, cola, config, parada, stats, on_message, on_estad
         import pytchat
     except ImportError:
         if on_estado: on_estado("error_permanente",
-            _("No se encontró la librería pytchat. Ejecuta instalar.bat."))
+            _("No se encontró la biblioteca pytchat. Ejecuta instalar.bat."))
         _snd.reproducir("error")
         parada.set(); return None
 

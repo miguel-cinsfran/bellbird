@@ -290,7 +290,7 @@ def preparar_en_youtube(cliente_yt, cliente_obs, cuerpo, parada=None,
         flujo = cliente_yt.flujo_reutilizable()
         if flujo is None:
             raise EmisionError(
-                _("La cuenta de YouTube no tiene una clave de emisión "
+                _("La cuenta de YouTube no tiene una clave de transmisión "
                   "reutilizable. Se crea en YouTube Studio, en Emitir en "
                   "directo."))
         id_flujo, servidor, clave = flujo

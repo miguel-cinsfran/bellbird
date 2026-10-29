@@ -164,7 +164,7 @@ class PaginaVoz:
         self.chk_solo_importantes = wx.CheckBox(
             p, name=_("Solo lo importante con ElevenLabs"),
             label=_("U&sar ElevenLabs solo con Super Chats, miembros, cofres, "
-                    "dueño y moderadores"))
+                    "propietario y moderadores"))
         self.chk_solo_importantes.SetForegroundColour(_T.text)
         self.chk_solo_importantes.SetValue(
             bool(self._config.get("elevenlabs_solo_importantes", False)))

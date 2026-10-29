@@ -594,7 +594,7 @@ class ReproductorPanel(wx.Panel):
         caja = box.GetStaticBox()
         if not motor_vlc.disponible():
             txt = (_("Reproductor no disponible: falta VLC. Instala VLC "
-                     "(videolan.org) y la librería python-vlc."))
+                     "(videolan.org) y la biblioteca python-vlc."))
         else:
             txt = _("Reproductor no disponible: falta yt-dlp (pip install yt-dlp).")
         lbl = wx.StaticText(caja, label=txt, name="AvisoReproductor")
@@ -627,7 +627,7 @@ class ReproductorPanel(wx.Panel):
         # atajos Ctrl+… y por Tab+Espacio.
         self._fila_botones = wx.BoxSizer(wx.HORIZONTAL)
         # Traductores: botones del reproductor.
-        self.btn_play  = self._btn_icono(self._ic_play, _("Reproducir"), _("Reproducir o pausa"))
+        self.btn_play  = self._btn_icono(self._ic_play, _("Reproducir"), _("Reproducir o pausar"))
         self.btn_retro = self._btn_icono(iconos.icono("retro", _T.text, _T.btn),
                                          _("Retroceder 1 min"), _("Retroceder 1 minuto"))
         self.btn_avanz = self._btn_icono(iconos.icono("avanz", _T.text, _T.btn),

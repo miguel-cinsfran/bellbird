@@ -123,7 +123,7 @@ msgstr ""
 "{intento})."
 
 #: main.py:571
-msgid "No se encontró la librería pytchat. Ejecuta instalar.bat."
+msgid "No se encontró la biblioteca pytchat. Ejecuta instalar.bat."
 msgstr "Could not find the pytchat library. Run instalar.bat."
 
 #: main.py:575
@@ -492,7 +492,7 @@ msgid ""
 msgstr "Model list updated: {n} {proveedor} models, {r} work with your key."
 
 #: bellbird/ai/opciones_ia.py:59
-msgid "Instrucción restaurada."
+msgid "Instrucción restablecida."
 msgstr "Instruction restored."
 
 #: bellbird/ai/opciones_ia.py:60
@@ -1190,8 +1190,8 @@ msgid "Música silenciada"
 msgstr "Music muted"
 
 #: bellbird/music/anuncios_teclas.py:10
-msgid "Sonido de la música restaurado"
-msgstr "Music sound restored"
+msgid "Sonido de la música activado"
+msgstr "Music sound unmuted"
 
 #: bellbird/music/biblioteca.py:106
 #, python-brace-format
@@ -1410,13 +1410,13 @@ msgstr[1] "{nuevas} new songs"
 
 # | msgid "{quitadas} quitada"
 # | msgid_plural "{quitadas} quitadas"
-#. Traductores: {quitadas} es cuántas canciones se quitaron; se anuncia.
+#. Traductores: {eliminadas} es cuántas canciones se eliminaron; se anuncia.
 #: bellbird/music/vista.py:238
 #, python-brace-format
-msgid "{quitadas} eliminada"
-msgid_plural "{quitadas} eliminadas"
-msgstr[0] "{quitadas} removed"
-msgstr[1] "{quitadas} removed"
+msgid "{eliminadas} eliminada"
+msgid_plural "{eliminadas} eliminadas"
+msgstr[0] "{eliminadas} removed"
+msgstr[1] "{eliminadas} removed"
 
 #. Traductores: anuncio al entrar en el ajuste fino; dice qué teclas mueven,
 #. confirman y salen.
@@ -2618,7 +2618,7 @@ msgstr "Player"
 #: bellbird/player/reproductor.py:596
 msgid ""
 "Reproductor no disponible: falta VLC. Instala VLC (videolan.org) y la "
-"librería python-vlc."
+"biblioteca python-vlc."
 msgstr ""
 "Player not available: VLC is missing. Install VLC (videolan.org) and the "
 "python-vlc library."
@@ -2642,7 +2642,7 @@ msgid "Reproducir"
 msgstr "Play"
 
 #: bellbird/player/reproductor.py:630 bellbird/ui/atajos_captura.py:57
-msgid "Reproducir o pausa"
+msgid "Reproducir o pausar"
 msgstr "Play or pause"
 
 #: bellbird/player/reproductor.py:632
@@ -2981,8 +2981,8 @@ msgid "Subir volumen del reproductor"
 msgstr "Raise player volume"
 
 #: bellbird/ui/atajos_captura.py:63
-msgid "Abrir el gestor de descargas"
-msgstr "Open the download manager"
+msgid "Abrir Administrador de descargas"
+msgstr "Open Download manager"
 
 #: bellbird/ui/atajos_captura.py:65
 msgid "Abrir Preferencias"
@@ -3055,16 +3055,16 @@ msgid "Subir velocidad"
 msgstr "Raise speed"
 
 #: bellbird/ui/atajos_captura.py:83
-msgid "Bajar volumen del TTS"
-msgstr "Lower TTS volume"
+msgid "Bajar volumen de la voz"
+msgstr "Lower voice volume"
 
 #: bellbird/ui/atajos_captura.py:84
-msgid "Subir volumen del TTS"
-msgstr "Raise TTS volume"
+msgid "Subir volumen de la voz"
+msgstr "Raise voice volume"
 
 #: bellbird/ui/atajos_captura.py:85
-msgid "Silenciar lectura TTS"
-msgstr "Mute TTS reading"
+msgid "Silenciar lectura"
+msgstr "Mute reading"
 
 #: bellbird/ui/atajos_captura.py:86
 msgid "Silenciar sonidos"
@@ -3594,7 +3594,7 @@ msgstr "Error"
 #: bellbird/ui/gui.py:848
 #, python-brace-format
 msgid ""
-"No se pudo abrir el gestor de descargas:\n"
+"No se pudo abrir el Administrador de descargas:\n"
 "{detalle}"
 msgstr ""
 "Could not open the download manager:\n"
@@ -3603,7 +3603,7 @@ msgstr ""
 #: bellbird/ui/gui.py:856
 #, python-brace-format
 msgid ""
-"Error en el gestor de descargas:\n"
+"Error en el Administrador de descargas:\n"
 "{detalle}"
 msgstr ""
 "Download manager error:\n"
@@ -3639,8 +3639,8 @@ msgid "Reanudado"
 msgstr "Resumed"
 
 #: bellbird/ui/gui.py:902
-msgid "TTS detenido"
-msgstr "TTS stopped"
+msgid "Voz detenida"
+msgstr "Speech stopped"
 
 #. Traductores: {nombre} es la voz activa.
 #: bellbird/ui/gui.py:919 bellbird/ui/gui.py:1737
@@ -3672,12 +3672,12 @@ msgid "Sonidos activados"
 msgstr "Sounds on"
 
 #: bellbird/ui/gui.py:961
-msgid "Lectura TTS silenciada"
-msgstr "TTS reading muted"
+msgid "Lectura silenciada"
+msgstr "Reading muted"
 
 #: bellbird/ui/gui.py:961
-msgid "Lectura TTS activada"
-msgstr "TTS reading on"
+msgid "Lectura activada"
+msgstr "Reading unmuted"
 
 #: bellbird/ui/gui.py:988
 msgid "Sin información de la escena."
@@ -3691,9 +3691,9 @@ msgstr "Copy message"
 msgid "Copiar todo (autor: mensaje, hora)"
 msgstr "Copy all (author: message, time)"
 
-#: bellbird/ui/gui.py:1091
-msgid "Releer con TTS"
-msgstr "Re-read with TTS"
+#: bellbird/ui/gui.py:1091 bellbird/ui/gui_comentarios.py:344
+msgid "Leer en voz alta"
+msgstr "Read aloud"
 
 #: bellbird/ui/gui.py:1093 bellbird/ui/musica_dialogo_enlace.py:15
 #: bellbird/ui/musica_ventana.py:138
@@ -3707,13 +3707,13 @@ msgstr "Restore {autor} (stop muting)"
 
 #: bellbird/ui/gui.py:1103
 #, python-brace-format
-msgid "Silenciar a {autor} (solo TTS)"
-msgstr "Mute {autor} (TTS only)"
+msgid "Silenciar voz de {autor}"
+msgstr "Mute voice of {autor}"
 
 #: bellbird/ui/gui.py:1104
 #, python-brace-format
-msgid "Silenciar a {autor} (ocultar y TTS)"
-msgstr "Mute {autor} (hide and TTS)"
+msgid "Ocultar y silenciar a {autor}"
+msgstr "Hide and mute {autor}"
 
 #: bellbird/ui/gui.py:1106
 #, python-brace-format
@@ -3868,8 +3868,8 @@ msgid "&Desconectar"
 msgstr "&Disconnect"
 
 #: bellbird/ui/gui.py:1718
-msgid " [sin TTS]"
-msgstr " [no TTS]"
+msgid " [sin voz]"
+msgstr " [no voice]"
 
 #. Traductores: {titulo} es el vídeo; {sin_tts} avisa si la lectura está
 #. silenciada.
@@ -4219,10 +4219,6 @@ msgstr " [{sufijo}]"
 msgid "{autor}{sufijo}: {texto}"
 msgstr "{autor}{sufijo}: {texto}"
 
-#: bellbird/ui/gui_comentarios.py:344
-msgid "Leer con TTS"
-msgstr "Read with TTS"
-
 #: bellbird/ui/gui_comentarios.py:345
 msgid "Copiar comentario"
 msgstr "Copy comment"
@@ -4346,7 +4342,7 @@ msgid "error"
 msgstr "error"
 
 #: bellbird/ui/gui_descargas.py:143
-msgid "Gestor de descargas"
+msgid "Administrador de descargas"
 msgstr "Download manager"
 
 #: bellbird/ui/gui_descargas.py:185
@@ -4882,15 +4878,15 @@ msgid "&Subir volumen de la voz"
 msgstr "Raise voice volu&me"
 
 #: bellbird/ui/gui_menu.py:82
-msgid "S&ilenciar lectura TTS"
-msgstr "Mute &TTS reading"
+msgid "S&ilenciar lectura"
+msgstr "Mute &reading"
 
 #: bellbird/ui/gui_menu.py:84
 msgid "Silenciar s&onidos"
 msgstr "Mute so&unds"
 
 #: bellbird/ui/gui_menu.py:87
-msgid "Seleccionar vo&z"
+msgid "Elegir vo&z"
 msgstr "Select vo&ice"
 
 #: bellbird/ui/gui_menu.py:88
@@ -4898,7 +4894,7 @@ msgid "Vo&z"
 msgstr "V&oice"
 
 #: bellbird/ui/gui_menu.py:101
-msgid "&Reproducir o pausa"
+msgid "&Reproducir o pausar"
 msgstr "&Play or pause"
 
 #: bellbird/ui/gui_menu.py:102
@@ -4978,7 +4974,7 @@ msgid "&Reproductor"
 msgstr "&Player"
 
 #: bellbird/ui/gui_menu.py:153
-msgid "Gestor de &descargas…"
+msgid "Administrador de &descargas…"
 msgstr "Download &manager…"
 
 #: bellbird/ui/gui_menu.py:154
@@ -5569,7 +5565,7 @@ msgstr "Before broadcasting"
 
 #: bellbird/ui/gui_transmision.py:53
 msgid ""
-"El programa de emisión compone lo que ven los espectadores sobre un\n"
+"OBS compone lo que ven los espectadores sobre un\n"
 "rectángulo de tamaño fijo, llamado lienzo. No es la pantalla del equipo\n"
 "ni la ventana del juego.\n"
 "\n"
@@ -5624,7 +5620,7 @@ msgstr ""
 # | deshace todo lo que hiciste desde que abriste esta ventana."
 #: bellbird/ui/gui_transmision.py:63
 msgid ""
-"Este diálogo no crea escenas ni agrega otras fuentes, salvo la captura de"
+"Este cuadro de diálogo no crea escenas ni agrega otras fuentes, salvo la captura de"
 " ventana desde la sección Escena. Hace una sola\n"
 "cosa: pone el panel de chat de esta aplicación dentro de una escena de "
 "OBS\n"
@@ -5642,7 +5638,7 @@ msgid ""
 "Tres. Elige qué fuente vas a mover en el desplegable Fuente. Normalmente "
 "es\n"
 "el panel de chat, pero puedes mover cualquier fuente que ya exista en la\n"
-"escena. Este diálogo solo agrega el panel y la captura de ventana: lo "
+"escena. Este cuadro de diálogo solo agrega el panel y la captura de ventana: lo "
 "demás se hace\n"
 "desde OBS.\n"
 "\n"
@@ -6532,7 +6528,7 @@ msgstr "Default output"
 
 #: bellbird/ui/preferencias_api.py:40
 msgid ""
-"La API key permite LEER comentarios (sin iniciar sesión). El cliente "
+"La clave de API permite LEER comentarios (sin iniciar sesión). El cliente "
 "OAuth e iniciar sesión permiten MODERAR el chat, enviar mensajes al "
 "directo y publicar o responder comentarios."
 msgstr ""
@@ -6543,18 +6539,18 @@ msgstr ""
 #. Traductores: no traduzcas el comando «pip install ...», solo el resto.
 #: bellbird/ui/preferencias_api.py:50
 msgid ""
-"AVISO: faltan las librerías de la API. Instálalas con:\n"
+"AVISO: faltan las bibliotecas de la API. Instálalas con:\n"
 "pip install google-api-python-client google-auth-oauthlib"
 msgstr ""
 "WARNING: the API libraries are missing. Install them with:\n"
 "pip install google-api-python-client google-auth-oauthlib"
 
 #: bellbird/ui/preferencias_api.py:58
-msgid "&API key:"
+msgid "Clave de &API:"
 msgstr "&API key:"
 
 #: bellbird/ui/preferencias_api.py:58
-msgid "API key de YouTube"
+msgid "Clave de API de YouTube"
 msgstr "YouTube API key"
 
 #: bellbird/ui/preferencias_api.py:60
@@ -6594,7 +6590,7 @@ msgid "Estado: sesión iniciada. Moderación y comentarios activos."
 msgstr "Status: signed in. Moderation and comments active."
 
 #: bellbird/ui/preferencias_api.py:108
-msgid "Estado: sin sesión. Solo lectura de comentarios (si hay API key)."
+msgid "Estado: sin sesión. Solo lectura de comentarios (si hay clave de API)."
 msgstr "Status: not signed in. Comment reading only (with an API key)."
 
 #: bellbird/ui/preferencias_api.py:111
@@ -7334,7 +7330,7 @@ msgstr "Only important things with ElevenLabs"
 
 #: bellbird/ui/preferencias_voz.py:166
 msgid ""
-"U&sar ElevenLabs solo con Super Chats, miembros, cofres, dueño y "
+"U&sar ElevenLabs solo con Super Chats, miembros, cofres, propietario y "
 "moderadores"
 msgstr ""
 "Use ElevenLabs &only for Super Chats, members, treasure chests, owner, "
@@ -7584,7 +7580,7 @@ msgstr "Could not add the live stream to the playlist: {detalle}"
 
 #: bellbird/youtube/emision.py:293
 msgid ""
-"La cuenta de YouTube no tiene una clave de emisión reutilizable. Se crea "
+"La cuenta de YouTube no tiene una clave de transmisión reutilizable. Se crea "
 "en YouTube Studio, en Emitir en directo."
 msgstr ""
 "The YouTube account has no reusable stream key. Create one in YouTube "
@@ -7616,7 +7612,7 @@ msgstr "The video was not found. Check the link or the ID."
 
 #: bellbird/youtube/youtube_api.py:140
 msgid ""
-"YouTube no acepta la API key. Revísala en Preferencias, página API y "
+"YouTube no acepta la clave de API. Revísala en Preferencias, página API y "
 "sesión."
 msgstr ""
 "YouTube does not accept the API key. Check it in Preferences, API and "
@@ -7632,7 +7628,7 @@ msgstr ""
 
 #: bellbird/youtube/youtube_api.py:145
 msgid ""
-"No tienes permiso para esta acción. Debes ser el dueño o moderador del "
+"No tienes permiso para esta acción. Debes ser el propietario o moderador del "
 "directo, y haber iniciado sesión."
 msgstr ""
 "You do not have permission for this action. You must own or moderate the "

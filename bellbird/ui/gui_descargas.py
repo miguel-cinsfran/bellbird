@@ -140,7 +140,7 @@ class GestorDescargasDialog(wx.Dialog):
 
     def __init__(self, parent, url_inicial: str | None = None):
         global _dialogo_activo
-        super().__init__(parent, title=_("Gestor de descargas"),
+        super().__init__(parent, title=_("Administrador de descargas"),
                          size=(720, 560),
                          name="DialogoGestorDescargas")
         self.SetBackgroundColour(_T.bg)

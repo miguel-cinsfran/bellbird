@@ -27,7 +27,7 @@ class TestMayusculas(unittest.TestCase):
     def test_acepta_minusculas_y_siglas_permitidas(self):
         entradas = [E(("Ver",), "Describir la escena de OBS", "o"),
                     E(("Herramientas",), "Actualizar yt-dlp", "a"),
-                    E(("Voz",), "Silenciar lectura TTS", "i")]
+                    E(("Voz",), "Silenciar lectura", "i")]
         self.assertEqual(cc.faltas_mayusculas(entradas), [])
 
 
@@ -163,7 +163,7 @@ FALTAS_CONOCIDAS = [
     "«Shift» en la tecla de «Elegir música…»",
     "«Shift» en la tecla de «Adelantar 10 segundos»",
     "«Shift» en la tecla de «Retroceder 10 segundos»",
-    "«Shift» en la tecla de «Gestor de descargas…»",
+    "«Shift» en la tecla de «Administrador de descargas…»",
     "«Shift» en la tecla de «Preferencias…»",
     "«Shift» en la tecla de «Marcar incidencia»",
     "«Enter» en la tecla de "

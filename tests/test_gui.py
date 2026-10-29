@@ -1189,7 +1189,7 @@ class TestAliasDesdeElChat(unittest.TestCase):
                 mock.patch.object(gui.credenciales, "hay_sesion", return_value=True):
             frame._mostrar_menu_chat()
 
-        self.assertIn("Silenciar a Carlos (solo TTS)", menu.etiquetas.values())
+        self.assertIn("Silenciar voz de Carlos", menu.etiquetas.values())
         self.assertIn("Expulsar 5 min a Carlos (timeout)", menu.etiquetas.values())
         self.assertIn("Banear a Carlos del directo (permanente)", menu.etiquetas.values())
         self.assertIn("Cambiar el &alias de Carlos…", menu.etiquetas.values())
@@ -1365,7 +1365,7 @@ class TestIdentidadModeracionChat(unittest.TestCase):
                 mock.patch.object(gui.youtube_api, "google_disponible", return_value=True), \
                 mock.patch.object(gui.credenciales, "hay_sesion", return_value=True):
             frame._mostrar_menu_chat()
-        self.assertIn("Silenciar a Carlos (solo TTS)", menu.etiquetas.values())
+        self.assertIn("Silenciar voz de Carlos", menu.etiquetas.values())
         identificador_ban = next(i for i, texto in menu.etiquetas.items() if texto.startswith("Banear"))
         with mock.patch.object(gui.wx, "CallAfter", side_effect=lambda fn, *a: fn(*a)):
             menu.handlers[identificador_ban](None)

@@ -46,7 +46,7 @@ una captura nunca hace fallar un escenario.
 
 Qué sale en la corrida completa: la ventana principal desconectada al
 arrancar; cada diálogo que `esperar_ventana` encuentra, una vez por
-título y escenario (Gestor de descargas, Preferencias, Historial de
+título y escenario (Administrador de descargas, Preferencias, Historial de
 directos, Música, Transmisión, Transmitir a, Directo de YouTube y los que
 abran ayuda, comentarios, conectar y redactar); la ventana principal ya
 conectada al terminar los escenarios que conectan un chat (simulado o
@@ -117,7 +117,7 @@ lo creó la herramienta), cierra las ventanas de prueba y deja la
 configuración y OBS como estaban.
 
 No entra en la corrida completa ni en ningún hook: gasta minutos, toca la
-red y necesita OBS y una cuenta con clave de emisión reutilizable.
+red y necesita OBS y una cuenta con clave de transmisión reutilizable.
 
 ## Música real
 

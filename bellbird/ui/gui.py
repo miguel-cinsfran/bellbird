@@ -844,7 +844,7 @@ class YTChatFrame(wx.Frame):
             from bellbird.ui.gui_descargas import abrir
         except Exception as exc:
             logger.warning("No se pudo abrir el gestor de descargas: %s", exc)
-            wx.MessageBox(_("No se pudo abrir el gestor de descargas:\n{detalle}").format(detalle=exc),
+            wx.MessageBox(_("No se pudo abrir el Administrador de descargas:\n{detalle}").format(detalle=exc),
                           # Traductores: título de un cuadro de error.
                           _("Error"), wx.OK | wx.ICON_ERROR, self)
             return
@@ -852,7 +852,7 @@ class YTChatFrame(wx.Frame):
             abrir(self, url_inicial=url)
         except Exception as exc:
             logger.warning("gestor de descargas: %s", exc)
-            wx.MessageBox(_("Error en el gestor de descargas:\n{detalle}").format(detalle=exc),
+            wx.MessageBox(_("Error en el Administrador de descargas:\n{detalle}").format(detalle=exc),
                           # Traductores: título de un cuadro de error.
                           _("Error"), wx.OK | wx.ICON_ERROR, self)
 
@@ -1087,7 +1087,7 @@ class YTChatFrame(wx.Frame):
 
         menu.Append(id_copiar,  _("Copiar mensaje"))
         menu.Append(id_copiar2, _("Copiar todo (autor: mensaje, hora)"))
-        menu.Append(id_releer,  _("Releer con TTS"))
+        menu.Append(id_releer,  _("Leer en voz alta"))
         menu.AppendSeparator()
         menu.Append(id_link,    _("Abrir enlace"))
         menu.AppendSeparator()
@@ -1099,8 +1099,8 @@ class YTChatFrame(wx.Frame):
             if self._autor_esta_silenciado(autor):
                 menu.Append(id_rehab, _("Rehabilitar a {autor} (dejar de silenciar)").format(autor=autor_mostrado))
             else:
-                menu.Append(id_sil_tts,  _("Silenciar a {autor} (solo TTS)").format(autor=autor_mostrado))
-                menu.Append(id_sil_full, _("Silenciar a {autor} (ocultar y TTS)").format(autor=autor_mostrado))
+                menu.Append(id_sil_tts,  _("Silenciar voz de {autor}").format(autor=autor_mostrado))
+                menu.Append(id_sil_full, _("Ocultar y silenciar a {autor}").format(autor=autor_mostrado))
             if alias.clave(autor) not in alias.vigente():
                 menu.Append(id_alias, _("Poner &alias a {autor}…").format(autor=autor_mostrado))
             else:
@@ -1714,7 +1714,7 @@ class YTChatFrame(wx.Frame):
             logger.debug("enable mi_descargar_este: %s", exc)
 
     def _actualizar_sb(self) -> None:
-        sin_tts = _(" [sin TTS]") if self._config.get("silenciar_lectura", False) else ""
+        sin_tts = _(" [sin voz]") if self._config.get("silenciar_lectura", False) else ""
         if self._conectado and self._titulo_stream:
             # Traductores: {titulo} es el vídeo; {sin_tts} avisa si la lectura está silenciada.
             estado = _("Conectado: {titulo}{sin_tts}").format(titulo=self._titulo_stream[:35], sin_tts=sin_tts)

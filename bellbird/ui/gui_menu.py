@@ -79,12 +79,12 @@ def construir_menu(frame):
     mi_volM   = m.Append(wx.ID_ANY, _("&Subir volumen de la voz") + frame._accel("volumen_mas"))
     m.AppendSeparator()
     frame.mi_sil_lectura = m.AppendCheckItem(
-        wx.ID_ANY, _("S&ilenciar lectura TTS") + frame._accel("silenciar_lectura"))
+        wx.ID_ANY, _("S&ilenciar lectura") + frame._accel("silenciar_lectura"))
     frame.mi_sil_sonidos = m.AppendCheckItem(
         wx.ID_ANY, _("Silenciar s&onidos") + frame._accel("silenciar_sonidos"))
     m.AppendSeparator()
     frame.voz_submenu = wx.Menu()
-    m.AppendSubMenu(frame.voz_submenu, _("Seleccionar vo&z"))
+    m.AppendSubMenu(frame.voz_submenu, _("Elegir vo&z"))
     mb.Append(m, _("Vo&z"))
     frame._bind_menu(frame.mi_pausa, frame._on_pausa, None)
     frame._bind_menu(mi_det, frame._on_detener_tts, None)
@@ -98,7 +98,7 @@ def construir_menu(frame):
 
     # Reproductor
     m = wx.Menu()
-    mi_rep_play  = m.Append(wx.ID_ANY, _("&Reproducir o pausa") + frame._accel("rep_play"))
+    mi_rep_play  = m.Append(wx.ID_ANY, _("&Reproducir o pausar") + frame._accel("rep_play"))
     mi_rep_retro = m.Append(wx.ID_ANY, _("R&etroceder 1 minuto") + frame._accel("rep_retro"))
     mi_rep_avanz = m.Append(wx.ID_ANY, _("&Avanzar 1 minuto") + frame._accel("rep_avanz"))
     mi_rep_directo = m.Append(wx.ID_ANY, _("&Ir al directo") + frame._accel("rep_directo"))
@@ -150,7 +150,7 @@ def construir_menu(frame):
     # Gestor de descargas: SIEMPRE habilitado (funciona sin conexión de
     # chat, abriendo una URL pegada a mano). Ctrl+S es el atajo.
     frame.mi_descargas = m.Append(
-        wx.ID_ANY, _("Gestor de &descargas…") + frame._accel("descargas_abrir"))
+        wx.ID_ANY, _("Administrador de &descargas…") + frame._accel("descargas_abrir"))
     frame.mi_actualizar_ytdlp = m.Append(wx.ID_ANY, _("&Actualizar yt-dlp"))
     m.AppendSeparator()
     mi_pref = m.Append(wx.ID_ANY, _("&Preferencias…") + frame._accel("abrir_preferencias"))

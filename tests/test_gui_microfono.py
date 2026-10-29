@@ -23,7 +23,7 @@ PARES = (("Predeterminado", "default"), ("Micrófono (USB)", "{usb}"))
 
 SIN_OBS = "OBS no pudo completar la operación. Inténtalo de nuevo."
 AVISO_SIN_MICROFONO = ("OBS no tiene ningún micrófono. Elige uno en "
-                       "Preferencias, página Transmisión, Micrófono de OBS.")
+                       "Preferencias, categoría Transmisión, Micrófono de OBS.")
 
 
 def _hilo_sincrono():

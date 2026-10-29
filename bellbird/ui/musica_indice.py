@@ -25,7 +25,7 @@ logger = diagnostico.obtener_logger(__name__)
 # Traductores: aviso cuando falta la carpeta de música; dice que elija otra en Preferencias.
 TEXTO_CARPETA_INEXISTENTE = N_(
     "No se encontró la carpeta de música. Elige otra en Preferencias, "
-    "página Música")
+    "categoría Música")
 
 
 class IndiceMusica:

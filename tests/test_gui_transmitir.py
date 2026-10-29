@@ -325,7 +325,7 @@ class TestSupervisarTransmision(unittest.TestCase):
                 frame, "iniciar", "YouTube", "")
         anunciar.assert_called_once_with(
             "Para transmitir a YouTube hace falta iniciar "
-            "sesión con Google, en Preferencias, pestaña API y sesión.")
+            "sesión con Google, en Preferencias, categoría API y sesión.")
         self.assertIsNone(frame._supervisor)
 
     def test_iniciar_tiktok_crea_e_inicia_supervisor(self):

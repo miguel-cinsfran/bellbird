@@ -104,7 +104,7 @@ def alternar_silencio(cliente, fuente, parada=None) -> bool:
 
 
 AVISO_SIN_MICROFONO = N_("OBS no tiene ningún micrófono. Elige uno en "
-                         "Preferencias, página Transmisión, Micrófono de OBS.")
+                         "Preferencias, categoría Transmisión, Micrófono de OBS.")
 
 
 def alternar_microfono(gestor, preferido) -> tuple:

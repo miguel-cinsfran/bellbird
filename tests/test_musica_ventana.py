@@ -1394,7 +1394,7 @@ class TestVentanaBotonIgualar(unittest.TestCase):
         self.assertEqual(
             self.anuncios,
             ["La igualación del volumen está desactivada. Actívala en "
-             "Preferencias, página Música."])
+             "Preferencias, categoría Música."])
         self.assertEqual(self.sonidos, [])
 
     def test_pulsar_sin_ffmpeg_lo_dice(self):
@@ -1971,7 +1971,7 @@ class TestPseudoAnunciosVentana(unittest.TestCase):
                 self.ventana.examinar_carpeta()
         self.assertEqual(self.anuncios, ["[¡No hay carpeta de música. "
                                          "Elige una en Preferencias, "
-                                         "página Música!]"])
+                                         "categoría Música!]"])
 
     def test_examen_sin_biblioteca_marca(self):
         self._abrir(ControlFalso(biblioteca=None))
@@ -1979,7 +1979,7 @@ class TestPseudoAnunciosVentana(unittest.TestCase):
             self.ventana._al_examinar(None, 0, 0)
         self.assertEqual(self.anuncios, ["[¡No hay carpeta de música. "
                                          "Elige una en Preferencias, "
-                                         "página Música!]"])
+                                         "categoría Música!]"])
 
     def test_renombrar_muestra_titulo_marcado(self):
         self._abrir(ControlFalso(biblioteca=None))

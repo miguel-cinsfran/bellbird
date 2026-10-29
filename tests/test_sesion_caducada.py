@@ -21,7 +21,7 @@ from bellbird.ui.sesion_conectada import SesionConectada
 
 
 FRASE_SESION = ("Tu sesión de YouTube caducó. Vuelve a iniciar sesión en "
-                "Preferencias, pestaña API y sesión.")
+                "Preferencias, categoría API y sesión.")
 FRASE_PROGRAMADO = ("Los mensajes automáticos se detuvieron porque la sesión "
                     "de YouTube caducó.")
 

@@ -255,7 +255,7 @@ def supervisar_transmision(frame, accion, destino="", usuario="",
             datos = _gui.credenciales.cargar()
             if not _gui.credenciales.hay_sesion(datos):
                 _gui.anunciar(_("Para transmitir a YouTube hace falta iniciar "
-                                "sesión con Google, en Preferencias, pestaña API "
+                                "sesión con Google, en Preferencias, categoría API "
                                 "y sesión."))
                 return
             cliente = _gui.youtube_api.ClienteYouTube(

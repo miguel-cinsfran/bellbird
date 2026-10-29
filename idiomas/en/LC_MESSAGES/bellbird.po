@@ -717,31 +717,31 @@ msgstr "Duration: {duracion}"
 #. trae un enlace.
 #: bellbird/capture/programados.py:43
 msgid ""
-"YouTube suele bloquear los enlaces en el chat en vivo. Conviene poner el "
-"nombre de usuario en vez de la dirección completa."
+"YouTube suele bloquear los enlaces en el chat del directo. Escribe el "
+"nombre de usuario en vez del enlace completo."
 msgstr ""
-"YouTube usually blocks links in live chat. Use the username instead of "
-"the full address."
+"YouTube usually blocks links in the live stream chat. Write your username "
+"instead of the full link."
 
-#. Traductores: estado F2 de los mensajes programados cuando aún no hay hora.
+#. Traductores: estado F2 de los mensajes automáticos cuando aún no hay hora.
 #: bellbird/capture/programados.py:121
-msgid "Próximo mensaje programado: pendiente de programar"
-msgstr "Next scheduled message: pending"
+msgid "Próximo mensaje automático: pendiente de programar"
+msgstr "Next automatic message: pending"
 
-#. Traductores: estado F2 de los mensajes programados cuando falta menos de un
+#. Traductores: estado F2 de los mensajes automáticos cuando falta menos de un
 #. minuto.
 #: bellbird/capture/programados.py:125
-msgid "Próximo mensaje programado en menos de un minuto"
-msgstr "Next scheduled message in less than a minute"
+msgid "Próximo mensaje automático en menos de un minuto"
+msgstr "Next automatic message in less than a minute"
 
-#. Traductores: estado F2 de los mensajes programados. {minutos} es en cuántos
+#. Traductores: estado F2 de los mensajes automáticos. {minutos} es en cuántos
 #. minutos se envía.
 #: bellbird/capture/programados.py:128
 #, python-brace-format
-msgid "Próximo mensaje programado en {minutos} minuto"
-msgid_plural "Próximo mensaje programado en {minutos} minutos"
-msgstr[0] "Next scheduled message in {minutos} minute"
-msgstr[1] "Next scheduled message in {minutos} minutes"
+msgid "Próximo mensaje automático en {minutos} minuto"
+msgid_plural "Próximo mensaje automático en {minutos} minutos"
+msgstr[0] "Next automatic message in {minutos} minute"
+msgstr[1] "Next automatic message in {minutos} minutes"
 
 # | msgid "Conectado al directo. Leyendo el chat."
 #. Traductores: motivo de botón desactivado para escribir en el chat.
@@ -757,38 +757,40 @@ msgstr "TikTok chat does not allow writing from here"
 # | msgid "Este vídeo no tiene un directo con chat activo."
 #. Traductores: motivo de botón desactivado para escribir en el chat.
 #: bellbird/capture/redaccion.py:33
-msgid "Este vídeo no tiene chat en vivo"
-msgstr "This video has no live stream with active chat."
+msgid "Este vídeo no tiene chat"
+msgstr "This video has no chat."
 
 #. Traductores: motivo de botón desactivado para escribir en el chat.
 #: bellbird/capture/redaccion.py:36
-msgid "Faltan las librerías de la API para escribir en el chat"
+msgid "Faltan las bibliotecas de la API para escribir en el chat"
 msgstr "The API libraries are missing to write in the chat"
 
 #. Traductores: motivo de botón desactivado para escribir en el chat.
-#: bellbird/capture/redaccion.py:39
-msgid "Inicia sesión en Configuración de API para escribir en el chat"
-msgstr "Sign in in API settings to write in the chat"
+#: bellbird/capture/redaccion.py:8
+msgid ""
+"Inicia sesión en Preferencias, categoría API y sesión, para escribir en "
+"el chat"
+msgstr "Sign in in Preferences, API and session category, to write in the chat"
 
 #. Traductores: motivo de botón desactivado para escribir en el chat.
-#: bellbird/capture/redaccion.py:43
+#: bellbird/capture/redaccion.py:12
 msgid ""
-"Falta la API key para saber si este directo permite escribir. Ponla en "
-"Preferencias, pestaña API"
+"Falta la clave de API para saber si este directo permite escribir. "
+"Escríbela en Preferencias, categoría API y sesión."
 msgstr ""
 "Missing API key to know if this live stream allows writing. Put it in "
-"Preferences, API tab"
+"Preferences, API and session category"
 
 # | msgid "No se encontraron salidas de audio"
 #. Traductores: motivo de botón desactivado para escribir en el chat.
 #: bellbird/capture/redaccion.py:46
-msgid "No se encontró este video"
+msgid "No se encontró este vídeo"
 msgstr "This video was not found"
 
 # | msgid "Este vídeo no es un directo"
 #. Traductores: motivo de botón desactivado para escribir en el chat.
 #: bellbird/capture/redaccion.py:49
-msgid "Este video no es un directo"
+msgid "Este vídeo no es un directo"
 msgstr "This video is not a live stream"
 
 # | msgid "El directo terminó. Chat desconectado."
@@ -811,20 +813,21 @@ msgstr "Connect to a video to comment"
 # | msgid "Este vídeo no tiene un directo con chat activo."
 #. Traductores: motivo de botón desactivado para comentar.
 #: bellbird/capture/redaccion.py:64
-msgid "Este video tiene los comentarios desactivados"
+msgid "Este vídeo tiene los comentarios desactivados"
 msgstr "This video has comments disabled"
 
 #. Traductores: motivo de botón desactivado para comentar.
 #: bellbird/capture/redaccion.py:67
-msgid "Inicia sesión en Configuración de API para comentar"
-msgstr "Sign in in API settings to comment"
+msgid ""
+"Inicia sesión en Preferencias, categoría API y sesión, para comentar"
+msgstr "Sign in in Preferences, API and session category, to comment"
 
 # | msgid "" "AVISO: faltan las bibliotecas de la API. Instálalas con:\n" "pip
 # | install google-api-python-client google-auth-oauthlib"
 #. Traductores: motivo de botón desactivado para leer comentarios.
 #: bellbird/capture/redaccion.py:74
 msgid ""
-"Faltan las librerías de la API. Instálalas con: pip install google-api-"
+"Faltan las bibliotecas de la API. Instálalas con: pip install google-api-"
 "python-client google-auth-oauthlib"
 msgstr ""
 "The API libraries are missing. Install them with: pip install google-api-"
@@ -833,9 +836,11 @@ msgstr ""
 #. Traductores: motivo de botón desactivado para leer comentarios.
 #: bellbird/capture/redaccion.py:78
 msgid ""
-"Falta la API key. Ponla en Preferencias, pestaña API, para leer "
-"comentarios."
-msgstr "Missing API key. Put it in Preferences, API tab, to read comments."
+"Falta la clave de API para leer comentarios. Escríbela en Preferencias, "
+"categoría API y sesión."
+msgstr ""
+"Missing API key to read comments. Put it in Preferences, API and session "
+"category."
 
 #. Traductores: motivo de botón desactivado para leer comentarios.
 #: bellbird/capture/redaccion.py:81
@@ -870,7 +875,7 @@ msgstr "Connected to the TikTok live stream."
 
 # | msgid "No se encontró la biblioteca pytchat. Ejecuta instalar.bat."
 #: bellbird/capture/tiktok_captura.py:411
-msgid "Falta la librería TikTokLive. Ejecuta instalar.bat."
+msgid "Falta la biblioteca TikTokLive. Ejecuta instalar.bat."
 msgstr "Missing TikTokLive library. Run instalar.bat."
 
 # | msgid "Directo de TikTok de @{usuario}: leyendo el chat."
@@ -878,8 +883,8 @@ msgstr "Missing TikTokLive library. Run instalar.bat."
 #. conectar. {usuario} es el usuario de TikTok.
 #: bellbird/capture/tiktok_captura.py:429
 #, python-brace-format
-msgid "Conectando al directo de TikTok de @{usuario}..."
-msgstr "Connecting to the TikTok live stream by @{usuario}..."
+msgid "Conectando al directo de TikTok de @{usuario}…"
+msgstr "Connecting to the TikTok live stream by @{usuario}…"
 
 # | msgid "El directo de TikTok terminó"
 #. Traductores: estado final que se anuncia y se muestra en la barra de estado.
@@ -899,15 +904,15 @@ msgstr "All {intentos} reconnection attempts failed."
 # | {unidad} " "(intento {intento} de {total})."
 #: bellbird/capture/tiktok_captura.py:484
 #, python-brace-format
-msgid "Reintentando en {segundos} segundos (intento {intento} de {maximo})..."
-msgstr "Retrying in {segundos} seconds (attempt {intento} of {maximo})..."
+msgid "Reintentando en {segundos} segundos (intento {intento} de {maximo})…"
+msgstr "Retrying in {segundos} seconds (attempt {intento} of {maximo})…"
 
 # | msgid "" "Se perdió la conexión con el chat. Reintentando en {segundos}
 # | {unidad} " "(intento {intento})."
 #: bellbird/capture/tiktok_captura.py:488
 #, python-brace-format
-msgid "Reintentando en {segundos} segundos (intento {intento})..."
-msgstr "Retrying in {segundos} seconds (attempt {intento})..."
+msgid "Reintentando en {segundos} segundos (intento {intento})…"
+msgstr "Retrying in {segundos} seconds (attempt {intento})…"
 
 # | msgid "Esperando a que TikTok muestre el directo."
 #. Traductores: error permanente que se anuncia y se muestra en la barra de
@@ -920,24 +925,25 @@ msgstr "That TikTok user is not live right now."
 #. Traductores: error permanente que se anuncia y se muestra en la barra de
 #. estado.
 #: bellbird/capture/tiktok_errores.py:35
-msgid "No se encontró ese usuario de TikTok. Revisa la URL."
-msgstr "That TikTok user was not found. Check the URL."
+msgid "No se encontró ese usuario de TikTok. Revisa el enlace."
+msgstr "That TikTok user was not found. Check the link."
 
 #. Traductores: error transitorio que se anuncia y se muestra en la barra de
 #. estado.
-#: bellbird/capture/tiktok_errores.py:38
+#: bellbird/capture/tiktok_errores.py:18
 msgid ""
 "El servidor de firmas de TikTok no responde o alcanzó su límite. Espera "
-"un momento y reintenta."
+"un momento y vuelve a intentarlo."
 msgstr ""
 "The TikTok signature server is not responding or reached its limit. Wait "
-"a moment and retry."
+"a moment and try again."
 
 #. Traductores: error transitorio que se anuncia y se muestra en la barra de
 #. estado.
 #: bellbird/capture/tiktok_errores.py:42
-msgid "TikTok pidió verificación (captcha). Reintenta más tarde."
-msgstr "TikTok asked for verification (captcha). Retry later."
+msgid ""
+"TikTok pidió verificación (captcha). Vuelve a intentarlo más tarde."
+msgstr "TikTok asked for verification (captcha). Try again later."
 
 #. Traductores: error transitorio que se anuncia y se muestra en la barra de
 #. estado. {detalle} es el detalle técnico.
@@ -1354,8 +1360,8 @@ msgid "Orden aleatorio desactivado"
 msgstr "Shuffle off"
 
 #: bellbird/music/anuncios.py:54
-msgid "No hay carpeta de música. Elige una en Preferencias, página Música"
-msgstr "No music folder. Choose one in Preferences, Music page"
+msgid "No hay carpeta de música. Elige una en Preferencias, categoría Música"
+msgstr "No music folder. Choose one in Preferences, Music category"
 
 #: bellbird/music/anuncios.py:55
 msgid "La música no está disponible: no se pudo cargar VLC"
@@ -1706,8 +1712,8 @@ msgstr "Matching the volume of {total} songs"
 #: bellbird/music/sonoridad.py:49
 msgid ""
 "La igualación del volumen está desactivada. Actívala en Preferencias, "
-"página Música."
-msgstr "Volume matching is turned off. Turn it on in Preferences, Music page."
+"categoría Música."
+msgstr "Volume matching is turned off. Turn it on in Preferences, Music category."
 
 #: bellbird/music/sonoridad.py:51
 msgid "No se puede igualar el volumen: falta ffmpeg."
@@ -2341,10 +2347,10 @@ msgstr "The panel still needs setup."
 
 #: bellbird/obs/obs_entradas_audio.py:106
 msgid ""
-"OBS no tiene ningún micrófono. Elige uno en Preferencias, página "
+"OBS no tiene ningún micrófono. Elige uno en Preferencias, categoría "
 "Transmisión, Micrófono de OBS."
 msgstr ""
-"OBS has no microphone. Choose one in Preferences, Broadcast page, OBS "
+"OBS has no microphone. Choose one in Preferences, Broadcast category, OBS "
 "Microphone."
 
 #: bellbird/obs/obs_escena.py:122
@@ -6453,10 +6459,10 @@ msgstr "A broadcast is already in progress."
 #: bellbird/ui/gui_transmitir.py:257
 msgid ""
 "Para transmitir a YouTube hace falta iniciar sesión con Google, en "
-"Preferencias, pestaña API y sesión."
+"Preferencias, categoría API y sesión."
 msgstr ""
 "To broadcast to YouTube you must sign in with Google, in Preferences, API"
-" and session tab."
+" and session category."
 
 #: bellbird/ui/gui_transmitir.py:338
 msgid "El directo está marcado como hecho para niños y YouTube no tiene chat."
@@ -6819,9 +6825,9 @@ msgstr "Hide the filters"
 #. Preferencias.
 #: bellbird/ui/musica_indice.py:27
 msgid ""
-"No se encontró la carpeta de música. Elige otra en Preferencias, página "
+"No se encontró la carpeta de música. Elige otra en Preferencias, categoría "
 "Música"
-msgstr "Music folder not found. Choose another one in Preferences, Music page"
+msgstr "Music folder not found. Choose another one in Preferences, Music category"
 
 #. Traductores: nombre accesible de la lista de colecciones; una palabra.
 #: bellbird/ui/musica_ventana.py:62
@@ -7999,10 +8005,10 @@ msgstr ""
 #: bellbird/youtube/youtube_api.py:128
 msgid ""
 "Tu sesión de YouTube caducó. Vuelve a iniciar sesión en Preferencias, "
-"pestaña API y sesión."
+"categoría API y sesión."
 msgstr ""
 "Your YouTube session expired. Sign in again in Preferences, API and "
-"session tab."
+"session category."
 
 #: bellbird/youtube/youtube_api.py:133
 msgid ""
@@ -8022,11 +8028,11 @@ msgstr "The video was not found. Check the link or the ID."
 
 #: bellbird/youtube/youtube_api.py:140
 msgid ""
-"YouTube no acepta la clave de API. Revísala en Preferencias, página API y"
-" sesión."
+"YouTube no acepta la clave de API. Revísala en Preferencias, categoría API "
+"y sesión."
 msgstr ""
 "YouTube does not accept the API key. Check it in Preferences, API and "
-"session page."
+"session category."
 
 #: bellbird/youtube/youtube_api.py:142
 msgid ""

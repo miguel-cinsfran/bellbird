@@ -228,7 +228,7 @@ class TestReproducir(unittest.TestCase):
         with _entorno() as env:
             ControlMusica(_frame()).reproducir_o_pausar()
         env.anunciar.assert_called_once_with(
-            "No hay carpeta de música. Elige una en Preferencias, página Música")
+            "No hay carpeta de música. Elige una en Preferencias, categoría Música")
         self.assertEqual(env.snd.sonidos, ["error"])
         self.assertEqual(env.creados, [])
 

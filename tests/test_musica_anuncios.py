@@ -293,7 +293,7 @@ class TestOtrosAvisos(unittest.TestCase):
         aviso = anuncios.aviso_sin_carpeta()
         self.assertEqual(
             aviso.texto,
-            "No hay carpeta de música. Elige una en Preferencias, página Música")
+            "No hay carpeta de música. Elige una en Preferencias, categoría Música")
         self.assertEqual(aviso.sonido, "error")
 
     def test_motor_no_disponible_lleva_sonido_de_error(self):

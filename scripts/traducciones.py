@@ -5,6 +5,7 @@
     python scripts/traducciones.py extraer
     python scripts/traducciones.py actualizar <código>
     python scripts/traducciones.py compilar
+    python scripts/traducciones.py revisar <código>
 
 La plantilla queda en idiomas/bellbird.pot. Cada idioma vive en
 idiomas/<código>/LC_MESSAGES/bellbird.po y su catálogo compilado en
@@ -15,6 +16,7 @@ probarlas en una carpeta temporal.
 from __future__ import annotations
 
 import argparse
+import re
 from pathlib import Path
 
 from babel.messages import catalog, extract, mofile, pofile
@@ -113,6 +115,79 @@ def compilar(carpeta_idiomas=CARPETA_IDIOMAS):
     return compilados
 
 
+_HUECO = re.compile(r"\{[^{}]*\}")
+
+
+def _huecos(texto):
+    return sorted(_HUECO.findall(texto))
+
+
+def _accesos(texto):
+    return len(re.findall(r"&(?!&)\S", texto.replace("&&", "")))
+
+
+def _atajo(texto):
+    return texto.split("\t", 1)[1] if "\t" in texto else None
+
+
+def problemas_de(original, traducido):
+    """Lista de problemas de un par original y traducción."""
+    salida = []
+    if _huecos(original) != _huecos(traducido):
+        salida.append(f"huecos {_huecos(original)} contra {_huecos(traducido)}")
+    if _accesos(original) != _accesos(traducido):
+        salida.append("letras de acceso distintas")
+    if _atajo(original) != _atajo(traducido):
+        salida.append("el atajo tras el tabulador cambió")
+    if original.rstrip().endswith("…") != traducido.rstrip().endswith("…"):
+        salida.append("puntos suspensivos distintos")
+    if original.strip() and not traducido.strip():
+        salida.append("vacío")
+    return salida
+
+
+def _pares(mensaje):
+    if isinstance(mensaje.id, (list, tuple)):
+        destinos = mensaje.string or ()
+        return [(mensaje.id[min(i, 1)], d) for i, d in enumerate(destinos)]
+    return [(mensaje.id, mensaje.string)]
+
+
+def revisar(ruta):
+    """Revisa un .po traducido sin leerlo entero.
+
+    Por cada entrada traducida comprueba lo que rompe la app o el lector
+    si sale mal: los huecos con nombre ({autor}) iguales, una letra de
+    acceso donde el original tiene una, el atajo después de un tabulador
+    sin traducir, y los puntos suspensivos donde el original los tiene.
+    Cuenta también las que faltan traducir y las marcadas fuzzy. Sale
+    con 1 si hay algún problema.
+    """
+    with open(ruta, "rb") as archivo:
+        catalogo = pofile.read_po(archivo)
+    total = faltan = difusas = 0
+    errores = []
+    for mensaje in catalogo:
+        if not mensaje.id:
+            continue
+        total += 1
+        if mensaje.fuzzy:
+            difusas += 1
+        pares = _pares(mensaje)
+        if not all(d for _o, d in pares):
+            faltan += 1
+            continue
+        for original, traducido in pares:
+            for problema in problemas_de(original, traducido):
+                lugar = mensaje.locations[0] if mensaje.locations else ("?", 0)
+                errores.append(f"{lugar[0]}:{lugar[1]}: {problema}: {original[:60]!r}")
+    for linea in errores:
+        print(linea)
+    print(f"{total} textos, {total - faltan} traducidos, {faltan} sin traducir, "
+          f"{difusas} fuzzy, {len(errores)} problemas.")
+    return 1 if errores else 0
+
+
 def _agregar_carpetas(parser):
     parser.add_argument("--carpeta-raiz", type=Path, default=RAIZ)
     parser.add_argument("--carpeta-idiomas", type=Path, default=CARPETA_IDIOMAS)
@@ -136,6 +211,12 @@ def _parser():
         "compilar", help="compila todos los .po a .mo")
     compilar_parser.add_argument(
         "--carpeta-idiomas", type=Path, default=CARPETA_IDIOMAS)
+
+    revisar_parser = ordenes.add_parser(
+        "revisar", help="revisa el .po de un idioma")
+    revisar_parser.add_argument("codigo")
+    revisar_parser.add_argument(
+        "--carpeta-idiomas", type=Path, default=CARPETA_IDIOMAS)
     return parser
 
 
@@ -148,6 +229,8 @@ def main(argv=None):
         ruta = actualizar(
             args.codigo, args.carpeta_raiz, args.carpeta_idiomas)
         print(f"Catálogo actualizado: {ruta}")
+    elif args.orden == "revisar":
+        return revisar(ruta_po(args.carpeta_idiomas, args.codigo))
     else:
         rutas = compilar(args.carpeta_idiomas)
         print(f"Catálogos compilados: {len(rutas)}")

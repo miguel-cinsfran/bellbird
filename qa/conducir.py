@@ -1819,6 +1819,28 @@ def escenario_transmision(app: Aplicacion, args, res: Resultado):
         esperados_en_tab=esperados_tab)
 
 
+def escenario_microfono(app: Aplicacion, args, res: Resultado):
+    """El cuadro para elegir el micrófono de OBS.
+
+    Sin OBS no hay nada que auditar: el cuadro solo se abre si OBS
+    responde, sin él la aplicación anuncia el fallo y no se abre. Con OBS
+    abierto se audita entero, pero sin pulsar «Aplicar»: el banco no cambia
+    el micrófono de OBS de la PC donde corre.
+    """
+    if not obs_abierto():
+        res.nota("Micrófono de OBS: OBS está cerrado, el cuadro no se abre "
+                 "y no se audita")
+        return
+    res.nota("Micrófono de OBS: no se pulsa Aplicar, el banco no cambia "
+             "el micrófono de la PC")
+    esperados = ("Fuente de OBS", "Dispositivo", "Aplicar", "Cerrar")
+    auditar_dialogo(
+        app, res, "Elegir micrófono…", "Micrófono de OBS",
+        vueltas_tab=8,
+        esperados=esperados,
+        esperados_en_tab=esperados)
+
+
 def escenario_musica(app: Aplicacion, args, res: Resultado):
     """La ventana de música, abierta por sus dos entradas del menú.
 
@@ -5152,6 +5174,7 @@ SUPERFICIES = {
     "gui_estado.py": "principal",
     "gui_historial.py": "historial",
     "gui_menu.py": "menus",
+    "gui_microfono.py": "microfono",
     "gui_musica.py": "musica",
     "musica_dialogo_enlace.py": "musica",
     "musica_colecciones.py": "musica",
@@ -5278,6 +5301,7 @@ ESCENARIOS = {
     "preferencias_persisten": escenario_preferencias_persisten,
     "historial": escenario_historial,
     "transmision": escenario_transmision,
+    "microfono": escenario_microfono,
     "musica": escenario_musica,
     "musica_real": escenario_musica_real,
     "ia": escenario_ia,
@@ -5463,6 +5487,9 @@ EN_TODOS = ["arranque_frio", "reproductor",
             "menus", "principal", "descargas", "preferencias",
             "preferencias_categorias", "preferencias_persisten",
             "programados", "historial", "transmision",
+            # `microfono` va justo después de `transmision`: los dos
+            # necesitan OBS y auditan cuadros del menú Transmisión.
+            "microfono",
             # `musica` va con `historial` y `transmision`: audita
             # diálogos sin necesitar sesión, así que corre antes de
             # que `chat` simule una.

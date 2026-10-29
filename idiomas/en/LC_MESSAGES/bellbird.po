@@ -7086,7 +7086,7 @@ msgstr "&Hear the selected sound"
 
 #: ytchat/ui/preferencias_sonidos.py:97
 msgid "&Tema de sonido:"
-msgstr "&Sound theme:"
+msgstr "Sound &theme:"
 
 #: ytchat/ui/preferencias_sonidos.py:101
 msgid "Tema de sonido"

@@ -2,6 +2,7 @@
 
 import subprocess
 import sys
+import time
 import unittest
 from pathlib import Path
 
@@ -14,8 +15,15 @@ _NOMBRE_PRUEBA = "YTChatTTS_PruebaInstancia_Mutex"
 _GUION = """
 import sys
 from ytchat.core import instancia
-print(instancia.verificar_instancia_unica(sys.argv[1]), flush=True)
+print(instancia.verificar_instancia_unica([], sys.argv[1]), flush=True)
 sys.stdin.readline()
+"""
+
+_GUION_ESPERA = """
+import sys
+from ytchat.core import instancia
+print(instancia.verificar_instancia_unica(
+    ["--esperar-pid", sys.argv[2]], sys.argv[1]), flush=True)
 """
 
 
@@ -29,6 +37,59 @@ class PruebasHayOtraInstancia(unittest.TestCase):
 
     def test_sin_error_no_hay_otra_instancia(self):
         self.assertFalse(instancia.hay_otra_instancia(0))
+
+
+class PruebasOrdenReabrir(unittest.TestCase):
+    def test_con_el_paquete_usa_el_ejecutable_solo(self):
+        self.assertEqual(
+            instancia.orden_reabrir(
+                123, ejecutable=r"C:\Apps\Bellbird.exe", empaquetado=True,
+                ruta_main=r"C:\Apps\main.py"),
+            [r"C:\Apps\Bellbird.exe", "--esperar-pid", "123"])
+
+    def test_desde_el_codigo_pasa_la_ruta_de_main(self):
+        self.assertEqual(
+            instancia.orden_reabrir(
+                123, ejecutable=r"C:\Python\python.exe", empaquetado=False,
+                ruta_main=r"C:\Repo\main.py"),
+            [r"C:\Python\python.exe", r"C:\Repo\main.py",
+             "--esperar-pid", "123"])
+
+
+class PruebasEsperarProceso(unittest.TestCase):
+    @unittest.skipUnless(sys.platform == "win32", "La espera es de Windows.")
+    def test_vuelve_cuando_el_proceso_termina(self):
+        hijo = subprocess.Popen(
+            [sys.executable, "-B", "-c", "import time; time.sleep(1)"])
+        try:
+            inicio = time.monotonic()
+            instancia.esperar_proceso(hijo.pid)
+            transcurrido = time.monotonic() - inicio
+        finally:
+            hijo.wait(timeout=30)
+        self.assertGreaterEqual(transcurrido, 0.8)
+        self.assertLess(transcurrido, 10)
+
+    @unittest.skipUnless(sys.platform == "win32", "La espera es de Windows.")
+    def test_el_tope_corta_la_espera(self):
+        hijo = subprocess.Popen(
+            [sys.executable, "-B", "-c", "import time; time.sleep(5)"])
+        try:
+            inicio = time.monotonic()
+            instancia.esperar_proceso(hijo.pid, tope=0.2)
+            transcurrido = time.monotonic() - inicio
+        finally:
+            hijo.kill()
+            hijo.wait(timeout=30)
+        self.assertGreaterEqual(transcurrido, 0.15)
+        self.assertLess(transcurrido, 3)
+
+    def test_un_pid_que_ya_no_existe_vuelve_enseguida(self):
+        hijo = subprocess.Popen([sys.executable, "-B", "-c", "pass"])
+        hijo.wait(timeout=30)
+        inicio = time.monotonic()
+        instancia.esperar_proceso(hijo.pid, tope=0.2)
+        self.assertLess(time.monotonic() - inicio, 1.5)
 
 
 class PruebasVerificarInstanciaUnica(unittest.TestCase):
@@ -50,6 +111,38 @@ class PruebasVerificarInstanciaUnica(unittest.TestCase):
                 timeout=30)
             self.assertEqual(segunda.stdout.strip(), "False", segunda.stderr)
         finally:
+            if primero.poll() is None:
+                primero.stdin.write("\n")
+                primero.stdin.flush()
+            primero.wait(timeout=30)
+            primero.stdin.close()
+            primero.stdout.close()
+            primero.stderr.close()
+
+    @unittest.skipUnless(sys.platform == "win32", "El mutex es de Windows.")
+    def test_con_esperar_pid_arranca_despues_de_que_el_primero_suelta(self):
+        primero = subprocess.Popen(
+            [sys.executable, "-B", "-c", _GUION, _NOMBRE_PRUEBA],
+            cwd=RAIZ, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE, text=True)
+        segunda = None
+        try:
+            self.assertEqual(primero.stdout.readline().strip(), "True")
+            segunda = subprocess.Popen(
+                [sys.executable, "-B", "-c", _GUION_ESPERA,
+                 _NOMBRE_PRUEBA, str(primero.pid)],
+                cwd=RAIZ, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                text=True)
+            time.sleep(0.3)
+            self.assertIsNone(segunda.poll(), "la segunda no esperó al primero")
+            primero.stdin.write("\n")
+            primero.stdin.flush()
+            salida, error = segunda.communicate(timeout=30)
+            self.assertEqual(salida.strip(), "True", error)
+        finally:
+            if segunda is not None and segunda.poll() is None:
+                segunda.kill()
+                segunda.communicate()
             if primero.poll() is None:
                 primero.stdin.write("\n")
                 primero.stdin.flush()

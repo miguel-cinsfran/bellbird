@@ -27,7 +27,7 @@ from ytchat.ui.preferencias_comun import (
     ANCHO_NOTA, EleccionTexto, ajustar_ancho_categorias, crear_panel, fila_label)
 from ytchat.ui.preferencias_api import PaginaApi
 from ytchat.ui.preferencias_atajos import PaginaAtajos
-from ytchat.ui.preferencias_general import OPCIONES_GENERAL, PaginaGeneral
+from ytchat.ui.preferencias_general import OPCIONES_GENERAL, PaginaGeneral, ofrecer_reinicio
 from ytchat.ui.preferencias_musica import OPCIONES_MUSICA, PaginaMusica
 from ytchat.ui.preferencias_lectura import OPCIONES_LECTURA, PaginaLectura
 from ytchat.ui.preferencias_ia import PaginaIA
@@ -600,6 +600,7 @@ def abrir_preferencias(parent, config: dict, pagina=None, avisos=None) -> bool:
     avisos que armó el diálogo, para que la ventana principal los diga cuando
     recupera el foco.
     """
+    idioma_previo = config.get("idioma")
     dlg = PreferenciasDialog(parent, config)
     try:
         if pagina:
@@ -613,9 +614,11 @@ def abrir_preferencias(parent, config: dict, pagina=None, avisos=None) -> bool:
         res = dlg.ShowModal()
         if res == wx.ID_OK and avisos is not None:
             avisos.extend(dlg.avisos)
-        return res == wx.ID_OK and dlg.hubo_cambios()
     finally:
         dlg.Destroy()
+    if res == wx.ID_OK and config.get("idioma") != idioma_previo:
+        ofrecer_reinicio(parent)
+    return res == wx.ID_OK and dlg.hubo_cambios()
 
 
 def ofrecer_iniciar_sesion(parent, config) -> bool:

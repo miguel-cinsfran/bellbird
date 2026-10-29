@@ -8,11 +8,13 @@ tabla de opciones simples.
 from __future__ import annotations
 
 import os
+import subprocess
 
 import wx
 
 from ytchat.core import config
 from ytchat.core import idioma
+from ytchat.core import instancia
 from ytchat.core import paths
 from ytchat.core import preferencias_archivo
 from ytchat.core.idioma import _
@@ -25,6 +27,39 @@ from ytchat.ui.preferencias_comun import EleccionTexto, crear_panel, fila_label
 OPCIONES_GENERAL = (
     ("cho_idioma", "ui", "idioma", "idioma", str, "windows"),
 )
+
+
+def ofrecer_reinicio(parent) -> bool:
+    """Ofrece reiniciar para aplicar el idioma nuevo.
+
+    Devuelve True si se eligió reiniciar ahora. El reinicio se deja para
+    después del manejador de Preferencias, cuando ya no hay cuadros abiertos.
+    """
+    dialogo = wx.MessageDialog(
+        parent, _("El idioma nuevo se aplica al reiniciar la aplicación."),
+        _("Idioma"), wx.YES_NO | wx.YES_DEFAULT | wx.ICON_QUESTION | wx.CENTRE)
+    dialogo.SetYesNoLabels(_("&Reiniciar ahora"), _("&Más tarde"))
+    dialogo.SetEscapeId(wx.ID_NO)
+    try:
+        respuesta = dialogo.ShowModal()
+    finally:
+        dialogo.Destroy()
+    if respuesta != wx.ID_YES:
+        return False
+    wx.CallAfter(_reiniciar, parent)
+    return True
+
+
+def _reiniciar(parent) -> None:
+    """Abre otra instancia que espera a esta y cierra la aplicación."""
+    proceso = subprocess.Popen(
+        instancia.orden_reabrir(os.getpid()),
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        close_fds=True,
+    )
+    if parent.Close() is False:
+        # La pregunta de salir vetó el cierre: no queda nada esperando.
+        proceso.terminate()
 
 
 class PaginaGeneral:
@@ -40,15 +75,10 @@ class PaginaGeneral:
         self.cho_idioma = EleccionTexto(p, idioma.idiomas_disponibles(),
                                         name=_("Idioma"))
         vs.Add(self.cho_idioma, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-        self.cho_idioma.Bind(wx.EVT_CHOICE, self._al_cambiar_idioma)
         self._casillas(p, vs)
         self._botones(p, vs)
         p.SetSizer(vs)
         return p
-
-    def _al_cambiar_idioma(self, event):
-        anunciar(_("El idioma cambia al reiniciar la aplicación."))
-        event.Skip()
 
     def _casillas(self, p, vs):
         self.chk_buscar_actualizaciones = wx.CheckBox(

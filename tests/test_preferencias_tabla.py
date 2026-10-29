@@ -255,7 +255,7 @@ class TestIdiomaEnPreferencias(unittest.TestCase):
             self._dialogo({"idioma": "en"})
         anunciar.assert_not_called()
 
-    def test_cambiar_idioma_anuncia_que_pide_reiniciar(self):
+    def test_cambiar_idioma_no_anuncia_nada(self):
         with mock.patch.object(idioma, "codigos_con_catalogo",
                                return_value={"en"}):
             dialogo = self._dialogo({"idioma": "es"})
@@ -266,8 +266,7 @@ class TestIdiomaEnPreferencias(unittest.TestCase):
         evento.SetInt(2)
         with mock.patch("ytchat.ui.preferencias_general.anunciar") as anunciar:
             dialogo.cho_idioma.GetEventHandler().ProcessEvent(evento)
-        anunciar.assert_called_once_with(
-            "El idioma cambia al reiniciar la aplicación.")
+        anunciar.assert_not_called()
 
     def test_guardar_windows_escribe_idioma_windows(self):
         with mock.patch.object(idioma, "codigos_con_catalogo",

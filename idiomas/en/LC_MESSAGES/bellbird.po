@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-29 08:15-0300\n"
+"POT-Creation-Date: 2026-10-29 08:27-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -4057,7 +4057,7 @@ msgstr "Could not start the installation: {detalle}."
 msgid "Buscar actualizaciones"
 msgstr "Check for updates"
 
-#: ytchat/ui/gui_actualizar_app.py:423
+#: ytchat/ui/gui_actualizar_app.py:423 ytchat/ui/preferencias_general.py:41
 msgid "&Más tarde"
 msgstr "&Later"
 
@@ -5462,13 +5462,13 @@ msgstr ""
 "The new chat panel port applies when you turn it off and on again from "
 "the broadcast panel."
 
-#: ytchat/ui/gui_preferencias.py:627
+#: ytchat/ui/gui_preferencias.py:630
 msgid ""
 "Tu sesión de YouTube caducó. ¿Abrir Preferencias para volver a iniciar "
 "sesión?"
 msgstr "Your YouTube session expired. Open Preferences to sign in again?"
 
-#: ytchat/ui/gui_preferencias.py:629
+#: ytchat/ui/gui_preferencias.py:632
 msgid "Sesión caducada"
 msgstr "Session expired"
 
@@ -6565,88 +6565,92 @@ msgid ""
 msgstr "Shortcuts reset to factory defaults. They apply when you press Save."
 
 #: ytchat/ui/preferencias_general.py:39
-msgid "Idi&oma:"
-msgstr "&Language:"
+msgid "El idioma nuevo se aplica al reiniciar la aplicación."
+msgstr "The new language takes effect when the application restarts."
 
-#: ytchat/ui/preferencias_general.py:41
+#: ytchat/ui/preferencias_general.py:40 ytchat/ui/preferencias_general.py:76
 msgid "Idioma"
 msgstr "Language"
 
-#: ytchat/ui/preferencias_general.py:50
-msgid "El idioma cambia al reiniciar la aplicación."
-msgstr "The language changes when the application restarts."
+#: ytchat/ui/preferencias_general.py:41
+msgid "&Reiniciar ahora"
+msgstr "&Restart now"
 
-#: ytchat/ui/preferencias_general.py:55
+#: ytchat/ui/preferencias_general.py:74
+msgid "Idi&oma:"
+msgstr "&Language:"
+
+#: ytchat/ui/preferencias_general.py:85
 msgid "Buscar &actualizaciones al iniciar"
 msgstr "Check for &updates at startup"
 
-#: ytchat/ui/preferencias_general.py:56
+#: ytchat/ui/preferencias_general.py:86
 msgid "Buscar actualizaciones al iniciar"
 msgstr "Check for updates at startup"
 
-#: ytchat/ui/preferencias_general.py:60
+#: ytchat/ui/preferencias_general.py:90
 msgid ""
 "Preguntar antes de &salir si hay un chat conectado o una transmisión en "
 "curso"
 msgstr "Ask before &quitting if a chat is connected or a broadcast is in progress"
 
-#: ytchat/ui/preferencias_general.py:62
+#: ytchat/ui/preferencias_general.py:92
 msgid ""
 "Preguntar antes de salir si hay un chat conectado o una transmisión en "
 "curso"
 msgstr "Ask before quitting if a chat is connected or a broadcast is in progress"
 
-#: ytchat/ui/preferencias_general.py:67
+#: ytchat/ui/preferencias_general.py:97
 msgid "Reproducir el sonido de &inicio"
 msgstr "Play startup &sound"
 
-#: ytchat/ui/preferencias_general.py:68
+#: ytchat/ui/preferencias_general.py:98
 msgid "Reproducir el sonido de inicio"
 msgstr "Play startup sound"
 
-#: ytchat/ui/preferencias_general.py:72
+#: ytchat/ui/preferencias_general.py:102
 msgid "Guardar un registro &detallado para diagnosticar fallos"
 msgstr "Save a &detailed log for diagnosing failures"
 
-#: ytchat/ui/preferencias_general.py:73
+#: ytchat/ui/preferencias_general.py:103
 msgid "Guardar un registro detallado para diagnosticar fallos"
 msgstr "Save a detailed log for diagnosing failures"
 
-#: ytchat/ui/preferencias_general.py:81
+#: ytchat/ui/preferencias_general.py:111
 msgid "Abrir la carpeta de da&tos"
 msgstr "Open the da&ta folder"
 
-#: ytchat/ui/preferencias_general.py:82
+#: ytchat/ui/preferencias_general.py:112
 msgid "Abrir la carpeta de datos"
 msgstr "Open the data folder"
 
-#: ytchat/ui/preferencias_general.py:85
+#: ytchat/ui/preferencias_general.py:115
 msgid "E&xportar las preferencias…"
 msgstr "E&xport preferences…"
 
-#: ytchat/ui/preferencias_general.py:86 ytchat/ui/preferencias_general.py:111
-#: ytchat/ui/preferencias_general.py:123
+#: ytchat/ui/preferencias_general.py:116 ytchat/ui/preferencias_general.py:141
+#: ytchat/ui/preferencias_general.py:153
 msgid "Exportar las preferencias"
 msgstr "Export preferences"
 
-#: ytchat/ui/preferencias_general.py:89
+#: ytchat/ui/preferencias_general.py:119
 msgid "I&mportar las preferencias…"
 msgstr "I&mport preferences…"
 
-#: ytchat/ui/preferencias_general.py:90 ytchat/ui/preferencias_general.py:130
-#: ytchat/ui/preferencias_general.py:139 ytchat/ui/preferencias_general.py:146
+#: ytchat/ui/preferencias_general.py:120 ytchat/ui/preferencias_general.py:160
+#: ytchat/ui/preferencias_general.py:169 ytchat/ui/preferencias_general.py:176
 msgid "Importar las preferencias"
 msgstr "Import preferences"
 
-#: ytchat/ui/preferencias_general.py:93
+#: ytchat/ui/preferencias_general.py:123
 msgid "Restablecer todas las &preferencias…"
 msgstr "Reset all &preferences…"
 
-#: ytchat/ui/preferencias_general.py:94
+#: ytchat/ui/preferencias_general.py:124
 msgid "Restablecer todas las preferencias"
 msgstr "Reset all preferences"
 
-#: ytchat/ui/preferencias_general.py:105
+#: ytchat/ui/preferencias_general.py:135
 #, python-brace-format
 msgid ""
 "No se pudo abrir la carpeta de datos:\n"
@@ -6657,16 +6661,16 @@ msgstr ""
 "\n"
 "{exc}"
 
-#: ytchat/ui/preferencias_general.py:106
+#: ytchat/ui/preferencias_general.py:136
 msgid "Carpeta de datos"
 msgstr "Data folder"
 
 #. Traductores: traduce solo «Preferencias»; no cambies «(*.ini)|*.ini».
-#: ytchat/ui/preferencias_general.py:113 ytchat/ui/preferencias_general.py:132
+#: ytchat/ui/preferencias_general.py:143 ytchat/ui/preferencias_general.py:162
 msgid "Preferencias (*.ini)|*.ini"
 msgstr "Preferences (*.ini)|*.ini"
 
-#: ytchat/ui/preferencias_general.py:122
+#: ytchat/ui/preferencias_general.py:152
 #, python-brace-format
 msgid ""
 "No se pudieron exportar las preferencias:\n"
@@ -6677,11 +6681,11 @@ msgstr ""
 "\n"
 "{exc}"
 
-#: ytchat/ui/preferencias_general.py:126
+#: ytchat/ui/preferencias_general.py:156
 msgid "Preferencias exportadas"
 msgstr "Preferences exported"
 
-#: ytchat/ui/preferencias_general.py:145
+#: ytchat/ui/preferencias_general.py:175
 #, python-brace-format
 msgid ""
 "No se pudieron importar las preferencias:\n"
@@ -6692,15 +6696,15 @@ msgstr ""
 "\n"
 "{exc}"
 
-#: ytchat/ui/preferencias_general.py:149
+#: ytchat/ui/preferencias_general.py:179
 msgid "Preferencias importadas. Se aplican al reiniciar la aplicación."
 msgstr "Preferences imported. They apply when the application restarts."
 
-#: ytchat/ui/preferencias_general.py:151
+#: ytchat/ui/preferencias_general.py:181
 msgid "Preferencias importadas"
 msgstr "Preferences imported"
 
-#: ytchat/ui/preferencias_general.py:158
+#: ytchat/ui/preferencias_general.py:188
 msgid ""
 "¿Restablecer todas las preferencias a los valores de fábrica? Se guarda "
 "una copia de las actuales en la carpeta de datos."
@@ -6708,11 +6712,11 @@ msgstr ""
 "Reset all preferences to factory defaults? A copy of the current ones is "
 "saved in the data folder."
 
-#: ytchat/ui/preferencias_general.py:161 ytchat/ui/preferencias_general.py:173
+#: ytchat/ui/preferencias_general.py:191 ytchat/ui/preferencias_general.py:203
 msgid "Restablecer las preferencias"
 msgstr "Reset preferences"
 
-#: ytchat/ui/preferencias_general.py:172
+#: ytchat/ui/preferencias_general.py:202
 #, python-brace-format
 msgid ""
 "No se pudieron restablecer las preferencias:\n"
@@ -6723,11 +6727,11 @@ msgstr ""
 "\n"
 "{exc}"
 
-#: ytchat/ui/preferencias_general.py:176
+#: ytchat/ui/preferencias_general.py:206
 msgid "Preferencias restablecidas. Se aplican al reiniciar la aplicación."
 msgstr "Preferences reset. They apply when the application restarts."
 
-#: ytchat/ui/preferencias_general.py:178
+#: ytchat/ui/preferencias_general.py:208
 msgid "Preferencias restablecidas"
 msgstr "Preferences reset"
 

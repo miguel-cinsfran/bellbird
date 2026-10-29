@@ -740,7 +740,7 @@ def main():
         paths.log_fallos(), version=APP_VERSION)
     diagnostico.registrar_entorno_en_hilo(APP_VERSION)
 
-    if not _verificar_instancia_unica():
+    if not _verificar_instancia_unica(sys.argv):
         # Ya hay una instancia abierta. Intentamos informar al usuario.
         try:
             import ctypes

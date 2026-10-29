@@ -89,6 +89,23 @@ class PruebasCableadoMain(unittest.TestCase):
         banderas = message_box.call_args.args[3]
         self.assertEqual(banderas, 0x40 | 0x00010000 | 0x00040000)
 
+    def test_main_pasa_los_argumentos_a_la_comprobacion_de_instancia(self):
+        message_box = Mock()
+        ctypes_falso = types.SimpleNamespace(
+            windll=types.SimpleNamespace(
+                user32=types.SimpleNamespace(MessageBoxW=message_box)))
+        with patch.object(main, "_verificar_instancia_unica",
+                          return_value=False) as verificar, \
+                patch.object(main, "configurar_logging"), \
+                patch.object(main.diagnostico, "instalar_capturadores"), \
+                patch.object(main.diagnostico, "registrar_entorno_en_hilo"), \
+                patch.dict(sys.modules, {"ctypes": ctypes_falso}), \
+                patch.object(sys, "exit", side_effect=SystemExit(0)):
+            with self.assertRaises(SystemExit):
+                main.main()
+
+        verificar.assert_called_once_with(sys.argv)
+
     def test_los_callbacks_comparten_el_registro_de_conexiones(self):
         with patch.object(main.conexion, "Conexiones", ConexionFalsa):
             conectar, desconectar = main.armar_callbacks_captura(

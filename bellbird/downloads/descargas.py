@@ -24,7 +24,6 @@ import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Optional
-from urllib.parse import parse_qs, urlparse
 
 from bellbird.core import diagnostico
 from bellbird.core.config import obtener_opciones_descarga
@@ -33,7 +32,8 @@ from bellbird.core.idioma import _
 from bellbird.downloads import ffmpeg_bin
 from bellbird.downloads import fila_descargas
 from bellbird.downloads import ytdlp_bin
-from bellbird.downloads.argumentos_ytdlp import argumentos_descarga, construir_outtmpl, formato_a_ydl
+from bellbird.downloads.argumentos_ytdlp import (
+    argumentos_descarga, construir_outtmpl, formato_a_ydl, recortar_url_registro)
 from bellbird.downloads.motivo_error import motivo_de_error
 from bellbird.downloads.progreso_ytdlp import (
     INTERVALO_PROGRESO_S, PREFIJO_RUTA_FINAL, debe_emitir_progreso,
@@ -94,19 +94,6 @@ def _vigilar_cancelacion(proceso, cancel_event, intervalo=0.2) -> bool:
             return True
     return False
 
-
-def recortar_url_registro(url: str) -> str:
-    """Devuelve el identificador de vídeo sin parámetros para el registro."""
-    partes = urlparse(url)
-    consulta = parse_qs(partes.query)
-    if consulta.get("v"):
-        return consulta["v"][0]
-    segmentos = [segmento for segmento in partes.path.split("/") if segmento]
-    if partes.netloc.lower().endswith("youtu.be") and segmentos:
-        return segmentos[0]
-    if len(segmentos) >= 2 and segmentos[0] in ("shorts", "embed", "live"):
-        return segmentos[1]
-    return segmentos[-1] if segmentos else "sin identificador"
 
 def analizar_url(url: str) -> dict:
     """Inspecciona una URL y devuelve tipo / id / título / cuenta.

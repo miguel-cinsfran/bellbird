@@ -8,10 +8,25 @@ desde `descargas` sigan iguales.
 from __future__ import annotations
 
 from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 
 from bellbird.core import paths
 from bellbird.downloads import ffmpeg_bin
 from bellbird.downloads.progreso_ytdlp import plantillas_progreso
+
+
+def recortar_url_registro(url: str) -> str:
+    """Devuelve el identificador de vídeo sin parámetros para el registro."""
+    partes = urlparse(url)
+    consulta = parse_qs(partes.query)
+    if consulta.get("v"):
+        return consulta["v"][0]
+    segmentos = [segmento for segmento in partes.path.split("/") if segmento]
+    if partes.netloc.lower().endswith("youtu.be") and segmentos:
+        return segmentos[0]
+    if len(segmentos) >= 2 and segmentos[0] in ("shorts", "embed", "live"):
+        return segmentos[1]
+    return segmentos[-1] if segmentos else "sin identificador"
 
 
 def formato_a_ydl(formato: str, bitrate: int) -> str:

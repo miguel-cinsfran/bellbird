@@ -247,6 +247,22 @@ class EstadoBusqueda:
             return self.confirmada
         return int(lectura_actual)
 
+    def _posicion_a_adoptar(self, muestra):
+        if isinstance(muestra, int) and muestra >= 0:
+            return int(muestra)
+        if self._ultima_valida is not None:
+            return int(self._ultima_valida)
+        return None
+
+    def _cerrar_busqueda(self, adopcion=None):
+        self.destino = None
+        self.candidato = None
+        self.marca_destino = None
+        self._ultima_valida = None
+        self._gen += 1
+        if adopcion is not None:
+            self.confirmada = int(adopcion)
+
     def observar(self, muestra, duracion, estado, ahora, es_directo=False):
         if self.destino is None:
             if isinstance(muestra, int) and muestra >= 0:
@@ -259,33 +275,13 @@ class EstadoBusqueda:
         if self.marca_destino is not None:
             edad = (float(ahora) - float(self.marca_destino)) * 1000
             if edad > TOPE_BUSQUEDA_MS:
-                adopcion = None
-                if isinstance(muestra, int) and muestra >= 0:
-                    adopcion = int(muestra)
-                elif self._ultima_valida is not None:
-                    adopcion = int(self._ultima_valida)
-                self.destino = None
-                self.candidato = None
-                self.marca_destino = None
-                self._ultima_valida = None
-                self._gen += 1
-                if adopcion is not None:
-                    self.confirmada = int(adopcion)
+                adopcion = self._posicion_a_adoptar(muestra)
+                self._cerrar_busqueda(adopcion)
                 return ("vencido", adopcion)
 
         if estado_norm in _ESTADOS_FINALES:
-            adopcion = None
-            if isinstance(muestra, int) and muestra >= 0:
-                adopcion = int(muestra)
-            elif self._ultima_valida is not None:
-                adopcion = int(self._ultima_valida)
-            self.destino = None
-            self.candidato = None
-            self.marca_destino = None
-            self._ultima_valida = None
-            self._gen += 1
-            if adopcion is not None:
-                self.confirmada = int(adopcion)
+            adopcion = self._posicion_a_adoptar(muestra)
+            self._cerrar_busqueda(adopcion)
             return ("fallo", adopcion)
 
         if not isinstance(muestra, int) or muestra < 0:
@@ -299,12 +295,7 @@ class EstadoBusqueda:
             cerca_muestra = abs(int(duracion) - int(muestra)) <= TOLERANCIA_DESTINO_MS
             dentro = abs(int(muestra) - int(self.destino)) <= TOLERANCIA_DESTINO_MS
             if cerca_dest and cerca_muestra and dentro:
-                self.confirmada = int(muestra)
-                self.destino = None
-                self.candidato = None
-                self.marca_destino = None
-                self._ultima_valida = None
-                self._gen += 1
+                self._cerrar_busqueda(int(muestra))
                 return ("confirmado", int(muestra))
 
         if abs(int(muestra) - int(self.destino)) > TOLERANCIA_DESTINO_MS:
@@ -318,12 +309,7 @@ class EstadoBusqueda:
             return ("candidato", int(muestra))
 
         if int(muestra) - int(self.candidato) >= PROGRESO_MINIMO_MS:
-            self.confirmada = int(muestra)
-            self.destino = None
-            self.candidato = None
-            self.marca_destino = None
-            self._ultima_valida = None
-            self._gen += 1
+            self._cerrar_busqueda(int(muestra))
             return ("confirmado", int(muestra))
 
         self._ultima_valida = int(muestra)

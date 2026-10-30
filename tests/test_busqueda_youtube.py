@@ -16,14 +16,16 @@ from bellbird.downloads.busqueda_youtube import (
     buscar,
     clasificar_entrada,
     codigo_sp,
+    contenido,
+    es_enlace_de_lista,
     interpretar,
     ordenar,
     refiltrar,
     url_busqueda,
 )
 from bellbird.downloads.textos_busqueda import (
-    texto_detalles,
     texto_duracion,
+    texto_detalles,
     texto_fecha,
     texto_vistas,
 )
@@ -517,8 +519,106 @@ class TestBuscarRealConFalso(unittest.TestCase):
             "inténtalo de nuevo.")
 
 
-class TestTextoDetalles(unittest.TestCase):
+class TestEsEnlaceDeLista(unittest.TestCase):
 
+    def test_tabla(self):
+        casos = [
+            ("https://www.youtube.com/playlist?list=PL123", True),
+            ("https://www.youtube.com/watch?v=abc&list=PL123", False),
+            ("https://www.youtube.com/watch?v=abc", False),
+            ("https://youtu.be/abc", False),
+            ("https://www.youtube.com/channel/UC123", False),
+            ("https://www.youtube.com/@canal", False),
+            ("https://soundcloud.com/artista/sets/nombre", True),
+            ("https://soundcloud.com/artista/nombre", False),
+        ]
+        for url, esperado in casos:
+            with self.subTest(url=url):
+                self.assertEqual(es_enlace_de_lista(url), esperado)
+
+
+def _entrada_contenido(id, url, titulo):
+    return {"id": id, "url": url, "title": titulo}
+
+
+class TestContenidoRealConFalso(unittest.TestCase):
+
+    def _cmd_lista(self, tmp):
+        falso = os.path.join(tmp, "lista.cmd")
+        datos = {
+            "title": "Una lista",
+            "playlist_count": 3,
+            "entries": [
+                _entrada_contenido(
+                    "v1", "https://www.youtube.com/watch?v=v1", "Video 1"),
+                _entrada_contenido(
+                    "v2", "https://www.youtube.com/watch?v=v2", "Video 2"),
+                _entrada_contenido(
+                    "PL9", "https://www.youtube.com/playlist?list=PL9",
+                    "Otra lista"),
+                {"id": "sintitulo",
+                 "url": "https://www.youtube.com/watch?v=sintitulo"},
+            ],
+        }
+        with open(falso, "w", encoding="utf-8") as salida:
+            salida.write("@echo off\r\n")
+            salida.write("echo " + json.dumps(datos) + "\r\n")
+        return falso
+
+    def test_lista_devuelve_titulo_total_y_solo_videos(self):
+        from bellbird.downloads import ytdlp_bin
+        with tempfile.TemporaryDirectory() as tmp:
+            falso = self._cmd_lista(tmp)
+            with mock.patch.object(ytdlp_bin, "ruta_ytdlp",
+                                   return_value=falso):
+                respuesta = contenido(
+                    "https://www.youtube.com/playlist?list=PL123", 1, 10)
+        self.assertEqual(respuesta.error, "")
+        self.assertEqual(respuesta.titulo, "Una lista")
+        self.assertEqual(respuesta.total, 3)
+        self.assertEqual([r.id for r in respuesta.resultados], ["v1", "v2"])
+
+    def test_canal_falla_en_videos_y_sale_por_la_url_sola(self):
+        from bellbird.downloads import ytdlp_bin
+        with tempfile.TemporaryDirectory() as tmp:
+            falso = os.path.join(tmp, "canal.cmd")
+            llamadas = os.path.join(tmp, "llamadas.txt")
+            datos = {
+                "title": "Uploads from X",
+                "playlist_count": 2,
+                "entries": [
+                    _entrada_contenido(
+                        "a", "https://www.youtube.com/watch?v=a", "Video A"),
+                    _entrada_contenido(
+                        "b", "https://www.youtube.com/watch?v=b", "Video B"),
+                ],
+            }
+            with open(falso, "w", encoding="utf-8") as salida:
+                salida.write("@echo off\r\n")
+                salida.write('echo %*>>"' + llamadas + '"\r\n')
+                salida.write('echo %* | findstr /C:"/videos" >nul\r\n')
+                salida.write("if not errorlevel 1 (\r\n")
+                salida.write("echo ERROR: no hay videos 1>&2\r\n")
+                salida.write("exit /b 1\r\n")
+                salida.write(")\r\n")
+                salida.write("echo " + json.dumps(datos) + "\r\n")
+            with mock.patch.object(ytdlp_bin, "ruta_ytdlp",
+                                   return_value=falso):
+                respuesta = contenido(
+                    "https://www.youtube.com/channel/UC123", 1, 10)
+            with open(llamadas, encoding="utf-8") as registro:
+                intentos = [linea.strip() for linea in registro
+                            if linea.strip()]
+        self.assertEqual(respuesta.error, "")
+        self.assertEqual(respuesta.titulo, "Uploads from X")
+        self.assertEqual(respuesta.total, 2)
+        self.assertEqual([r.id for r in respuesta.resultados], ["a", "b"])
+        self.assertEqual(len(intentos), 2)
+        self.assertIn("/videos", intentos[0])
+        self.assertNotIn("/videos", intentos[1])
+
+
+class TestTextoDetalles(unittest.TestCase):
     AHORA = 1700000000
 
     def _resultado(self, **cambios):

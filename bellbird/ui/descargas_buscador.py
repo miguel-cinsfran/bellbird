@@ -13,11 +13,14 @@ from bellbird.core import diagnostico
 from bellbird.core.idioma import _
 from bellbird.downloads import busqueda_youtube
 from bellbird.downloads.busqueda_youtube import (
-    CANTIDAD_DEFECTO, Filtros, clasificar_entrada, ordenar)
-from bellbird.downloads.textos_busqueda import (
-    texto_detalles, texto_duracion, texto_fecha, texto_vistas)
+    CANTIDAD_DEFECTO, Filtros, clasificar_entrada, es_enlace_de_lista, ordenar)
+from bellbird.downloads.textos_busqueda import texto_detalles
 from bellbird.downloads import busquedas_recientes
 from bellbird.ui.accesibilidad import anunciar, nombre_accesible
+from bellbird.ui import buscador_acciones
+from bellbird.ui.buscador_acciones import AccionesResultado
+from bellbird.ui import buscador_contenido
+from bellbird.ui import buscador_tandas
 from bellbird.ui.buscador_filtros import FiltrosBusqueda
 from bellbird.ui.tema import _T, _tc
 from bellbird.voice import sound_player as _snd
@@ -37,9 +40,14 @@ def _sonar_error() -> None:
 class PaginaBuscador(wx.Panel):
     """La pestaña de búsqueda, con su estado."""
 
-    def __init__(self, parent, agregar_url, ruta_recientes):
+    def __init__(self, parent, agregar_urls, ruta_recientes,
+                 abrir_en_bellbird=None, agregar_a_musica=None):
         super().__init__(parent)
-        self._agregar_url = agregar_url
+        self._agregar_urls = agregar_urls
+        self._abrir_en_bellbird = abrir_en_bellbird
+        self._agregar_a_musica = agregar_a_musica
+        self._acciones = AccionesResultado(
+            agregar_urls, abrir_en_bellbird, agregar_a_musica)
         self._ruta = ruta_recientes
         self._recientes = busquedas_recientes.cargar(ruta_recientes)
         self._resultados = []
@@ -47,9 +55,14 @@ class PaginaBuscador(wx.Panel):
         self._filtros = Filtros()
         self._cantidad = CANTIDAD_DEFECTO
         self._inicio = 1
-        self._hay_mas = False
         self._generacion = 0
         self._crear_controles()
+        self._tandas = buscador_tandas.Tandas(self.lista, self.btn_mas)
+        self._vista = buscador_contenido.VistaContenido(
+            self, self._sincronizar_contenido, self._restaurar_vista,
+            self._agregar_urls, self._cantidad_actual)
+        self.btn_volver.Bind(wx.EVT_BUTTON, self._vista.volver)
+        self.btn_todo.Bind(wx.EVT_BUTTON, self._vista.todo)
         self._cargar_opciones()
 
     def _crear_controles(self):
@@ -78,13 +91,8 @@ class PaginaBuscador(wx.Panel):
         fila.Add(self.btn_buscar, 0, wx.LEFT, 6)
         vs.Add(fila, 0, wx.EXPAND | wx.ALL, 6)
         self.filtros = FiltrosBusqueda(self, self._on_orden)
-        self.chk_filtros = self.filtros.chk_filtros
-        self.cho_tipo = self.filtros.cho_tipo
-        self.cho_duracion = self.filtros.cho_duracion
-        self.cho_fecha = self.filtros.cho_fecha
-        self.cho_orden = self.filtros.cho_orden
-        self.chk_filtros.Bind(wx.EVT_CHECKBOX, self._on_filtros)
-        vs.Add(self.chk_filtros, 0, wx.ALL, 6)
+        self.filtros.chk_filtros.Bind(wx.EVT_CHECKBOX, self._on_filtros)
+        vs.Add(self.filtros.chk_filtros, 0, wx.ALL, 6)
 
     def _crear_filtros(self, vs):
         vs.Add(self.filtros.sizer, 0, wx.EXPAND | wx.ALL, 6)
@@ -108,7 +116,9 @@ class PaginaBuscador(wx.Panel):
         self.lista.InsertColumn(3, _("Vistas"), width=110)
         self.lista.InsertColumn(4, _("Fecha"), width=110)
         self.lista.Bind(wx.EVT_LIST_ITEM_SELECTED, self._on_elegir)
-        self.lista.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self._on_agregar)
+        self.lista.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self._on_activar)
+        self.lista.Bind(wx.EVT_KEY_DOWN, self._on_key)
+        self.lista.Bind(wx.EVT_CONTEXT_MENU, self._on_context_menu)
         vs.Add(self.lista, 1, wx.EXPAND | wx.ALL, 6)
 
     def _crear_pie(self, vs):
@@ -122,6 +132,10 @@ class PaginaBuscador(wx.Panel):
         self.txt_detalles.SetMinSize((-1, 90))
         vs.Add(self.txt_detalles, 0, wx.EXPAND | wx.ALL, 6)
         fila = wx.BoxSizer(wx.HORIZONTAL)
+        self.btn_volver = self._crear_boton(
+            fila, _("&Volver a los resultados"), "VolverResultados")
+        self.btn_todo = self._crear_boton(
+            fila, _("Agregar l&ista entera"), "AgregarListaEntera")
         self.btn_agregar = wx.Button(self, label=_("&Agregar a la cola"), name="AgregarACola")
         self.btn_agregar.SetBackgroundColour(_T.btn)
         self.btn_agregar.SetForegroundColour(_T.btn_t)
@@ -135,6 +149,14 @@ class PaginaBuscador(wx.Panel):
         fila.Add(self.btn_mas, 0)
         vs.Add(fila, 0, wx.ALL, 6)
 
+    def _crear_boton(self, fila, etiqueta, nombre):
+        boton = wx.Button(self, label=etiqueta, name=nombre)
+        boton.SetBackgroundColour(_T.btn)
+        boton.SetForegroundColour(_T.btn_t)
+        boton.Show(False)
+        fila.Add(boton, 0, wx.RIGHT, 6)
+        return boton
+
     def _cargar_opciones(self):
         self.campo.Set(self._recientes)
         self.campo.SetValue("")
@@ -144,9 +166,6 @@ class PaginaBuscador(wx.Panel):
         except ValueError:
             inicial = _CANTIDADES.index(str(CANTIDAD_DEFECTO))
         self.cho_cantidad.SetSelection(inicial)
-
-    def _filtros_actuales(self) -> Filtros:
-        return self.filtros.actuales()
 
     def _cantidad_actual(self) -> int:
         idx = self.cho_cantidad.GetSelection()
@@ -162,79 +181,72 @@ class PaginaBuscador(wx.Panel):
             anunciar(_("Escribe una búsqueda o un enlace."))
             return
         if clase == "enlace":
-            self._agregar_url(valor)
             self.campo.SetValue("")
-            anunciar(_("Agregado a la cola"))
+            if es_enlace_de_lista(valor):
+                self._entrar_en_contenido(valor, con_retorno=False)
+                return
+            self._agregar_urls([valor])
             return
+        if self._vista.activa:
+            self._vista.cerrar()
         self._recientes = busquedas_recientes.agregar(self._recientes, valor)
         busquedas_recientes.guardar(self._ruta, self._recientes)
         self.campo.Set(self._recientes)
         self.campo.SetValue(valor)
         self._texto = valor
-        self._filtros = self._filtros_actuales()
+        self._filtros = self.filtros.actuales()
         self._cantidad = self._cantidad_actual()
         self._lanzar(mas=False)
         anunciar(_("Buscando"))
 
     def _lanzar(self, mas: bool) -> None:
-        inicio = self._inicio if mas else 1
         if not mas:
-            self._inicio = 1
-            self._resultados = []
-            self.lista.DeleteAllItems()
             self.txt_detalles.SetValue("")
-            self.btn_mas.Disable()
-        self._generacion += 1
-        hilo = diagnostico.crear_hilo(
-            self._buscar_en_hilo,
-            "BusquedaYoutube",
-            args=(self._generacion, self._texto, self._filtros,
-                  inicio, self._cantidad, mas))
-        hilo.start()
-
-    def _buscar_en_hilo(self, generacion, texto, filtros, inicio, cantidad, mas):
-        respuesta = busqueda_youtube.buscar(texto, filtros, inicio, cantidad)
-        wx.CallAfter(self._al_volver, generacion, respuesta, mas)
+        self._tandas.pedir(
+            lambda inicio, cantidad: busqueda_youtube.buscar(
+                self._texto, self._filtros, inicio, cantidad),
+            self._cantidad, self._al_tanda, mas, nombre="BusquedaYoutube")
+        self._inicio = self._tandas.inicio
+        self._generacion = self._tandas.generacion
 
     def _al_volver(self, generacion, respuesta, mas):
         if not self:
             return
-        if generacion != self._generacion:
+        inicio = self._inicio if mas else 1
+        self._tandas.llegada(generacion, respuesta, inicio, self._cantidad,
+                             mas, self._al_tanda)
+        self._inicio = self._tandas.inicio
+        self._generacion = self._tandas.generacion
+
+    def _al_tanda(self, nuevos, mas, respuesta, foco_en_mas):
+        if not self:
             return
-        foco_en_mas = wx.Window.FindFocus() is self.btn_mas
         if respuesta.error:
-            self._hay_mas = self._hay_mas and mas
-            self.btn_mas.Enable(self._hay_mas)
             self.txt_detalles.SetValue(respuesta.error)
             _sonar_error()
             anunciar(respuesta.error)
             if foco_en_mas:
                 self.lista.SetFocus()
             return
-        vistos = {r.id for r in self._resultados}
-        nuevos = [r for r in respuesta.resultados if r.id not in vistos]
-        self._hay_mas = bool(respuesta.hay_mas)
-        self.btn_mas.Enable(self._hay_mas)
+        self._resultados = self._tandas.acumulado
         if mas:
             self._volver_mas(nuevos, foco_en_mas)
         else:
             self._volver_primera(nuevos, foco_en_mas)
 
     def _volver_primera(self, nuevos, foco_en_mas):
-        self._resultados = ordenar(list(nuevos), self._filtros.orden)
-        self._inicio = 1 + self._cantidad
+        self._resultados = ordenar(self._resultados, self._filtros.orden)
         if not nuevos:
             self.txt_detalles.SetValue(_("Sin resultados"))
             anunciar(_("Sin resultados"))
             return
         self._agregar_filas(self._resultados)
-        self._elegir(0)
-        self._anunciar_cantidad(len(nuevos), mas=False)
+        buscador_contenido.enfocar_fila(self.lista, 0)
+        buscador_tandas.anunciar_tanda(len(nuevos), mas=False)
         if foco_en_mas or wx.Window.FindFocus() in (self.campo, self.btn_buscar):
             self.lista.SetFocus()
 
     def _volver_mas(self, nuevos, foco_en_mas):
-        self._inicio += self._cantidad
         if not nuevos:
             anunciar(_("No hay más resultados"))
             if foco_en_mas:
@@ -242,34 +254,24 @@ class PaginaBuscador(wx.Panel):
             return
         for sel in self._seleccionados():
             self.lista.Select(sel, False)
-        self._resultados.extend(nuevos)
         if self._filtros.orden == "relevancia":
             self._agregar_filas(nuevos)
-            self._elegir(len(self._resultados) - len(nuevos))
+            buscador_contenido.enfocar_fila(
+                self.lista, len(self._resultados) - len(nuevos))
         else:
             self._resultados = ordenar(self._resultados, self._filtros.orden)
             self.lista.DeleteAllItems()
             self._agregar_filas(self._resultados)
-            self._elegir([r.id for r in self._resultados].index(nuevos[0].id))
+            indice = [r.id for r in self._resultados].index(nuevos[0].id)
+            buscador_contenido.enfocar_fila(self.lista, indice)
         if foco_en_mas:
             self.lista.SetFocus()
-        self._anunciar_cantidad(len(nuevos), mas=True)
-
-    def _elegir(self, indice):
-        self.lista.Select(indice)
-        self.lista.Focus(indice)
-        self.lista.EnsureVisible(indice)
-
-    def _anunciar_cantidad(self, cuantos: int, mas: bool) -> None:
-        if cuantos == 1:
-            anunciar(_("1 resultado más") if mas else _("1 resultado"))
-        elif mas:
-            anunciar(_("{cantidad} resultados más").format(cantidad=cuantos))
-        else:
-            anunciar(_("{cantidad} resultados").format(cantidad=cuantos))
+        buscador_tandas.anunciar_tanda(len(nuevos), mas=True)
 
     def _on_mas(self, _event):
-        if self._texto:
+        if self._vista.activa:
+            self._vista.mas()
+        elif self._texto:
             self._lanzar(mas=True)
 
     def _on_orden(self, _event):
@@ -285,7 +287,7 @@ class PaginaBuscador(wx.Panel):
         if elegido is not None:
             for i, resultado in enumerate(self._resultados):
                 if resultado.id == elegido:
-                    self._elegir(i)
+                    buscador_contenido.enfocar_fila(self.lista, i)
                     break
 
     def _on_filtros(self, _event):
@@ -303,28 +305,54 @@ class PaginaBuscador(wx.Panel):
             _sonar_error()
             anunciar(_("Selecciona un resultado."))
             return
-        enlaces, rechazos = [], []
-        for idx in indices:
-            if 0 <= idx < len(self._resultados):
-                resultado = self._resultados[idx]
-                if resultado.tipo == "canal":
-                    rechazos.append(_("Un canal no se puede agregar a la cola."))
-                elif resultado.en_directo:
-                    rechazos.append(_("Un directo en curso no se puede descargar."))
-                elif resultado.programado:
-                    rechazos.append(_("Este directo todavía no empezó."))
-                else:
-                    enlaces.append(resultado.url)
-        for mensaje in dict.fromkeys(rechazos):
+        elegidos = [self._resultados[i] for i in indices
+                    if 0 <= i < len(self._resultados)]
+        urls, rechazos = buscador_acciones.reparto_para_agregar(elegidos)
+        for mensaje in rechazos:
             _sonar_error()
             anunciar(mensaje)
-        for enlace in enlaces:
-            self._agregar_url(enlace)
-        if len(enlaces) == 1:
-            anunciar(_("Agregado a la cola"))
-        elif enlaces:
-            anunciar(_("{cantidad} agregados a la cola").format(
-                cantidad=len(enlaces)))
+        if urls:
+            self._agregar_urls(urls)
+
+    def _on_activar(self, event):
+        indices = self._seleccionados()
+        if not self._vista.activa and len(indices) == 1:
+            elegido = self._resultados[indices[0]] \
+                if 0 <= indices[0] < len(self._resultados) else None
+            if elegido is not None and elegido.tipo in ("lista", "canal"):
+                self._entrar_en_contenido(
+                    elegido.url, es_canal=elegido.tipo == "canal")
+                return
+        self._on_agregar(event)
+
+    def _on_key(self, event):
+        tecla = event.GetKeyCode()
+        if tecla == wx.WXK_BACK and self._vista.activa:
+            self._vista.volver()
+        elif tecla == wx.WXK_WINDOWS_MENU or (tecla == wx.WXK_F10 and event.ShiftDown()):
+            self._mostrar_menu()
+        else:
+            event.Skip()
+
+    def _on_context_menu(self, _event):
+        self._mostrar_menu()
+
+    def _mostrar_menu(self) -> None:
+        elegidos = [self._resultados[i] for i in self._seleccionados()
+                    if 0 <= i < len(self._resultados)]
+        if not elegidos:
+            return
+        entrada = elegidos[0] if len(elegidos) == 1 else elegidos
+        opciones = buscador_acciones.opciones_de(
+            entrada, self._abrir_en_bellbird is not None,
+            self._agregar_a_musica is not None)
+        menu = buscador_acciones.construir_menu(
+            opciones, elegidos, self._acciones,
+            lambda r: self._entrar_en_contenido(
+                r.url, es_canal=r.tipo == "canal") if r is not None else None,
+            self._agregar_urls)
+        self.lista.PopupMenu(menu)
+        menu.Destroy()
 
     def _seleccionados(self) -> list:
         indices = []
@@ -334,15 +362,34 @@ class PaginaBuscador(wx.Panel):
             idx = self.lista.GetNextSelected(idx)
         return indices
 
+    def _entrar_en_contenido(self, url, con_retorno=True, es_canal=False) -> None:
+        self._vista.mostrar(url, {
+            "resultados": self._resultados, "texto": self._texto,
+            "filtros": self._filtros, "inicio": self._inicio,
+            "elegidos": [self._resultados[i].id for i in self._seleccionados()
+                         if 0 <= i < len(self._resultados)],
+        }, con_retorno, es_canal)
+
+    def _sincronizar_contenido(self, todos, nuevos, mas) -> None:
+        self._resultados = list(todos)
+        if not mas:
+            self.lista.DeleteAllItems()
+        self._agregar_filas(nuevos)
+
+    def _restaurar_vista(self, guardados) -> None:
+        self._resultados = guardados["resultados"]
+        self._texto = guardados["texto"]
+        self._filtros = guardados["filtros"]
+        self._inicio = guardados["inicio"]
+        self.lista.DeleteAllItems()
+        self._agregar_filas(self._resultados)
+        for i, resultado in enumerate(self._resultados):
+            if resultado.id in guardados["elegidos"]:
+                self.lista.Select(i)
+        buscador_contenido.enfocar_fila(self.lista, self.lista.GetFirstSelected())
+
     def _agregar_filas(self, nuevos) -> None:
-        ahora = time.time()
-        for resultado in nuevos:
-            i = self.lista.InsertItem(self.lista.GetItemCount(),
-                                      resultado.titulo)
-            self.lista.SetItem(i, 1, resultado.canal)
-            self.lista.SetItem(i, 2, texto_duracion(resultado.duracion))
-            self.lista.SetItem(i, 3, texto_vistas(resultado.vistas))
-            self.lista.SetItem(i, 4, texto_fecha(resultado.marca_tiempo, ahora))
+        buscador_contenido.agregar_filas(self.lista, nuevos)
 
     def fijar_texto(self, url: str | None) -> None:
         self.campo.SetValue(url or "")

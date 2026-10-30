@@ -220,6 +220,8 @@ class RespuestaBusqueda:
     resultados: list
     error: str
     hay_mas: bool
+    titulo: str = ""
+    total: int = 0
 
 
 def _motivo_en_stderr(salida_error: str) -> str | None:
@@ -231,6 +233,19 @@ def _motivo_en_stderr(salida_error: str) -> str | None:
     return motivo
 
 
+def _correr(argumentos):
+    """El proceso terminado de yt-dlp, o None si no se pudo ejecutar."""
+    try:
+        return subprocess.run(
+            argumentos, capture_output=True, text=True, encoding="utf-8",
+            errors="replace",
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+            timeout=60, check=False)
+    except Exception as error:
+        logger.debug("yt-dlp: %s", error)
+        return None
+
+
 def buscar(texto: str, filtros: Filtros, inicio: int,
            cantidad: int) -> RespuestaBusqueda:
     """Busca en YouTube con yt-dlp. No lanza nunca."""
@@ -238,42 +253,68 @@ def buscar(texto: str, filtros: Filtros, inicio: int,
     if ruta is None:
         return RespuestaBusqueda([], _("yt-dlp no está instalado"), False)
     url = url_busqueda(texto, filtros)
-    fin = inicio + cantidad - 1
-    argumentos = [
+    terminado = _correr([
         ruta, "-J", "--flat-playlist", "--no-warnings",
         "--encoding", "utf-8", "--socket-timeout", "20",
         "--extractor-args", "youtubetab:approximate_date",
-        "--playlist-start", str(inicio), "--playlist-end", str(fin), url,
-    ]
-    try:
-        terminado = subprocess.run(
-            argumentos,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-            timeout=60,
-            check=False,
-        )
-    except (subprocess.TimeoutExpired, OSError) as error:
-        logger.debug("buscar: %s", error)
-        return RespuestaBusqueda(
-            [], _("No se pudo completar la búsqueda. Comprueba la conexión e "
-                 "inténtalo de nuevo."), False)
-    except Exception as error:
-        logger.debug("buscar: %s", error)
-        return RespuestaBusqueda(
-            [], _("No se pudo completar la búsqueda. Comprueba la conexión e "
-                 "inténtalo de nuevo."), False)
-    if terminado.returncode != 0:
-        motivo = _motivo_en_stderr(getattr(terminado, "stderr", ""))
+        "--playlist-start", str(inicio),
+        "--playlist-end", str(inicio + cantidad - 1), url,
+    ])
+    if terminado is None or terminado.returncode != 0:
+        motivo = _motivo_en_stderr(getattr(terminado, "stderr", "") or "")
         if motivo:
             return RespuestaBusqueda([], motivo, False)
-        logger.debug("buscar: código %s", terminado.returncode)
+        logger.debug("buscar: %s", getattr(terminado, "returncode", "sin proceso"))
         return RespuestaBusqueda(
             [], _("No se pudo completar la búsqueda. Comprueba la conexión e "
                  "inténtalo de nuevo."), False)
     brutos = interpretar(getattr(terminado, "stdout", ""))
     hay_mas = len(brutos) >= cantidad
     return RespuestaBusqueda(refiltrar(brutos, filtros, time.time()), "", hay_mas)
+
+
+def es_enlace_de_lista(url) -> bool:
+    """Si el enlace es una lista: YouTube con /playlist o conjuntos de SoundCloud."""
+    bajo = url.casefold() if isinstance(url, str) else ""
+    if "/sets/" in bajo:
+        return "soundcloud" in bajo
+    if "youtube" in bajo or "youtu.be" in bajo:
+        return "/playlist" in bajo and "watch" not in bajo
+    return False
+
+
+def contenido(url, inicio, cantidad) -> RespuestaBusqueda:
+    """El contenido de una lista o un canal, por tandas. Solo trae vídeos."""
+    ruta = ytdlp_bin.ruta_ytdlp()
+    if ruta is None:
+        return RespuestaBusqueda([], _("yt-dlp no está instalado"), False, "", 0)
+    bajo = url.casefold() if isinstance(url, str) else ""
+    marcas = ("/channel/", "/@", "/c/", "/user/")
+    intentos = [url + "/videos", url] if any(m in bajo for m in marcas) else [url]
+    ultima = RespuestaBusqueda(
+        [], _("No se pudo leer el contenido. Comprueba la conexión e "
+              "inténtalo de nuevo."), False, "", 0)
+    for intento in intentos:
+        terminado = _correr([
+            ruta, "-J", "--flat-playlist", "--no-warnings",
+            "--socket-timeout", "20", "--playlist-start", str(inicio),
+            "--playlist-end", str(inicio + cantidad - 1), intento,
+        ])
+        if terminado is None or terminado.returncode != 0:
+            motivo = _motivo_en_stderr(getattr(terminado, "stderr", "") or "")
+            if motivo:
+                ultima = RespuestaBusqueda([], motivo, False, "", 0)
+            continue
+        try:
+            datos = json.loads(getattr(terminado, "stdout", ""))
+            if not isinstance(datos, dict):
+                continue
+        except (TypeError, ValueError):
+            continue
+        videos = [r for r in interpretar(getattr(terminado, "stdout", ""))
+                  if r.tipo == "video"]
+        total = datos.get("playlist_count") or 0
+        return RespuestaBusqueda(
+            videos, "", len(datos.get("entries") or []) >= cantidad,
+            str(datos.get("title") or ""), total if isinstance(total, int) else 0)
+    return ultima

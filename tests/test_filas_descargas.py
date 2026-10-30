@@ -62,8 +62,38 @@ class TestConstruir(unittest.TestCase):
         self.assertEqual([f.clave for f in filas], ["2026-10-29T08:00:00|vieja.mp4"])
 
 
-class TestFiltrarCantidades(unittest.TestCase):
+class TestYaDescargado(unittest.TestCase):
 
+    def test_tabla(self):
+        historial = [
+            _entrada("abc", estado="completado",
+                     url="https://www.youtube.com/watch?v=abc"),
+            {"nombre": "vieja.mp4", "fecha": "2026-10-29T08:00:00",
+             "estado": "completado", "url": "dQw4w9WgXcQ",
+             "carpeta": "", "ruta": ""},
+            _entrada("err", estado="error",
+                     url="https://www.youtube.com/watch?v=err"),
+            {"nombre": "rara.mp4", "fecha": "2026-10-29T08:00:00",
+             "estado": "completado", "url": "https://example.com/",
+             "carpeta": "", "ruta": ""},
+        ]
+        casos = [
+            ("https://www.youtube.com/watch?v=abc", True),
+            ("https://www.youtube.com/watch?v=abc&list=PL1", True),
+            ("https://youtu.be/dQw4w9WgXcQ", True),
+            ("https://www.youtube.com/watch?v=err", False),
+            ("https://www.youtube.com/watch?v=nuevo", False),
+            ("https://example.com/", True),
+            ("https://example.com/otra", False),
+            ("", False),
+        ]
+        for url, esperado in casos:
+            with self.subTest(url=url):
+                self.assertEqual(
+                    filas_descargas.ya_descargado(url, historial), esperado)
+
+
+class TestFiltrarCantidades(unittest.TestCase):
     def _filas(self):
         return [
             filas_descargas.Fila("a", "descargando", 10.0, "a", "", "http://x", "", "", "", None),

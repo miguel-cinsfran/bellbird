@@ -43,6 +43,9 @@ def _motivo_youtube(texto: str) -> str | None:
 
 
 def _motivo_plataforma(texto: str) -> str | None:
+    if "unable to extract secondary user id" in texto:
+        return (_("No se pudo leer este perfil de TikTok. Pega el enlace "
+                  "de un vídeo."))
     if any(clave in texto for clave in (
             "logged-in", "authentication", "--cookies", "login required")):
         return _("Esta plataforma pide iniciar sesión.")

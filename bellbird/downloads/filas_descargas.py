@@ -11,6 +11,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
+from bellbird.downloads.argumentos_ytdlp import recortar_url_registro
+
 TODAS = "todas"
 EN_CURSO = "en_curso"
 EN_ESPERA = "en_espera"
@@ -230,3 +232,29 @@ def fecha_legible(iso: str) -> str:
             and "T" not in texto and " " not in texto.strip():
         return momento.strftime("%d/%m/%Y")
     return momento.strftime("%d/%m/%Y %H:%M")
+
+
+def ya_descargado(url, historial) -> bool:
+    """Si ese enlace ya está en el historial como `completado`.
+
+    Vale la URL igual o el mismo identificador recortado, para que una
+    entrada vieja con solo el identificador también cuente. Un
+    identificador vacío o «sin identificador» nunca coincide.
+    """
+    texto = (url or "").strip() if isinstance(url, str) else ""
+    if not texto:
+        return False
+    recorte = recortar_url_registro(texto)
+    if recorte in ("", "sin identificador"):
+        recorte = ""
+    for entrada in historial or []:
+        if not isinstance(entrada, dict) or entrada.get("estado") != "completado":
+            continue
+        otro = str(entrada.get("url") or "")
+        if otro and otro == texto:
+            return True
+        recorte_otro = recortar_url_registro(otro) if otro else ""
+        if recorte and recorte_otro not in ("", "sin identificador") \
+                and recorte_otro == recorte:
+            return True
+    return False

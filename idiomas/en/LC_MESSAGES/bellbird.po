@@ -8777,3 +8777,65 @@ msgstr "{n} years ago"
 
 #~ msgid "{base} ({fecha})"
 #~ msgstr "{base} ({fecha})"
+
+#: bellbird/ui/buscador_acciones.py:27
+msgid "Descargar como a&udio"
+msgstr "D&ownload as audio"
+
+#: bellbird/ui/buscador_acciones.py:28
+msgid "Descargar como &vídeo"
+msgstr "Download as &video"
+
+#: bellbird/ui/buscador_acciones.py:29
+msgid "Abrir en &Bellbird"
+msgstr "Open in &Bellbird"
+
+#: bellbird/ui/buscador_acciones.py:30
+msgid "Agregar a la &música"
+msgstr "Add to &music"
+
+#: bellbird/ui/buscador_acciones.py:31
+msgid "Ver co&ntenido"
+msgstr "View co&ntents"
+
+#: bellbird/ui/buscador_acciones.py:32
+msgid "&Copiar enlace"
+msgstr "&Copy link"
+
+#: bellbird/ui/buscador_acciones.py:33
+msgid "Abrir en el navega&dor"
+msgstr "Open in b&rowser"
+
+#: bellbird/ui/buscador_acciones.py:34
+msgid "Ver &sitios compatibles"
+msgstr "View &supported sites"
+
+#: bellbird/ui/descargas_buscador.py:136
+msgid "&Volver a los resultados"
+msgstr "&Back to results"
+
+#: bellbird/ui/descargas_buscador.py:138
+msgid "Agregar l&ista entera"
+msgstr "Add ent&ire playlist"
+
+#: bellbird/ui/buscador_contenido.py:161
+#, python-brace-format
+msgid "{titulo}: {total} vídeos"
+msgstr "{titulo}: {total} videos"
+
+#: bellbird/downloads/motivo_error.py:47
+msgid "No se pudo leer este perfil de TikTok. Pega el enlace de un vídeo."
+msgstr "This TikTok profile could not be read. Paste the link of a video."
+
+#: bellbird/ui/gui_descargas.py:89
+msgid "Este vídeo ya está en el historial. ¿Agregar de todos modos?"
+msgstr "This video is already in the history. Add anyway?"
+
+#: bellbird/ui/gui_descargas.py:91
+#, python-brace-format
+msgid "{cantidad} ya están en el historial. ¿Agregar de todos modos?"
+msgstr "{cantidad} are already in the history. Add anyway?"
+
+#: bellbird/downloads/busqueda_youtube.py:295
+msgid "No se pudo leer el contenido. Comprueba la conexión e inténtalo de nuevo."
+msgstr "Could not read the contents. Check the connection and try again."

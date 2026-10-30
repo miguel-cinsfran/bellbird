@@ -12,7 +12,8 @@ Accesibilidad (regla de oro NVDA):
     del hilo de descarga.
   - Toda mutación de la GUI desde el hilo de descarga va con `wx.CallAfter`.
 
-Apertura: `abrir(parent, url_inicial=None)` desde `gui._abrir_descargas`.
+Apertura: `abrir(parent, url_inicial=None, abrir_en_bellbird=None, agregar_a_musica=None)`
+desde `gui._abrir_descargas`.
 """
 from __future__ import annotations
 
@@ -25,6 +26,7 @@ from bellbird.core import config as cfg
 from bellbird.core import paths
 from bellbird.core.idioma import _
 from bellbird.downloads.descargas import gestor
+from bellbird.downloads import filas_descargas
 from bellbird.downloads.motivo_error import frase_aviso_descarga
 from bellbird.downloads import historial_descargas
 from bellbird.downloads.opciones_formato import (
@@ -32,6 +34,7 @@ from bellbird.downloads.opciones_formato import (
     etiquetas_de_calidad)
 from bellbird.ui.descargas_buscador import PaginaBuscador
 from bellbird.ui.descargas_listas import _ESTADOS_FINALES, PaginaDescargas
+from bellbird.ui.buscador_acciones import anunciar_agregados
 from bellbird.ui.gui import anunciar, nombre_accesible, _T, _tc
 from bellbird.voice import sound_player as _snd
 
@@ -66,6 +69,31 @@ _registrados: set[str] = set()
 
 def _ruta_historial():
     return paths.historial_descargas()
+
+
+def _memoria_valida(valor, validos, defecto):
+    """El valor si está entre los válidos, o el defecto."""
+    return valor if valor in validos else defecto
+
+
+def _pedidos_nuevos(pedidos, padre) -> list:
+    """Los pedidos que entran: si alguno ya está en el historial, pregunta.
+
+    Con No entran solo los nuevos. Sin repetidos no pregunta nada.
+    """
+    historial = historial_descargas.cargar(_ruta_historial())
+    repetidos = [u for u in pedidos if filas_descargas.ya_descargado(u, historial)]
+    if not repetidos:
+        return list(pedidos)
+    if len(repetidos) == 1:
+        pregunta = _("Este vídeo ya está en el historial. ¿Agregar de todos modos?")
+    else:
+        pregunta = _("{cantidad} ya están en el historial. ¿Agregar de todos modos?").format(
+            cantidad=len(repetidos))
+    if wx.MessageBox(pregunta, _("Administrador de descargas"),
+                     wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION, padre) == wx.YES:
+        return list(pedidos)
+    return [u for u in pedidos if u not in repetidos]
 
 
 def registrar_historial(item, estado: str, ruta=None) -> dict | None:
@@ -126,21 +154,20 @@ def _suscribir_al_gestor() -> None:
 class GestorDescargasDialog(wx.Dialog):
     """Diálogo principal del gestor de descargas."""
 
-    def __init__(self, parent, url_inicial: str | None = None):
+    def __init__(self, parent, url_inicial=None, abrir_en_bellbird=None, agregar_a_musica=None):
         global _dialogo_activo
         super().__init__(parent, title=_("Administrador de descargas"),
                          size=(860, 680),
                          name="DialogoGestorDescargas")
         self.SetBackgroundColour(_T.bg)
         self._alive = True
+        self._abrir_en_bellbird, self._agregar_a_musica = abrir_en_bellbird, agregar_a_musica
         self._opciones = cfg.obtener_opciones_descarga()
         self._gestor = gestor()
-        self._mem_resolucion = self._opciones.get("resolucion", 0)
-        if self._mem_resolucion not in RESOLUCIONES:
-            self._mem_resolucion = 0
-        self._mem_bitrate = self._opciones.get("bitrate", 192)
-        if self._mem_bitrate not in BITRATES:
-            self._mem_bitrate = 192
+        self._mem_resolucion = _memoria_valida(
+            self._opciones.get("resolucion", 0), RESOLUCIONES, 0)
+        self._mem_bitrate = _memoria_valida(
+            self._opciones.get("bitrate", 192), BITRATES, 192)
         self._formato_visto = (self._opciones.get("formato") or "mp4")
         _suscribir_al_gestor()
         self._build_ui()
@@ -199,7 +226,8 @@ class GestorDescargasDialog(wx.Dialog):
     def _seccion_listas(self, parent):
         self.pestanas = wx.Notebook(parent, name="PestanasDescargas")
         self.pagina_buscador = PaginaBuscador(
-            self.pestanas, self.agregar_url, paths.busquedas_recientes())
+            self.pestanas, self.agregar_urls, paths.busquedas_recientes(),
+            self._al_abrir_en_bellbird, self._agregar_a_musica)
         self.pestanas.AddPage(self.pagina_buscador, _("Buscar en YouTube"))
         self.pagina_descargas = PaginaDescargas(
             self.pestanas, self._gestor, _ruta_historial(), self._preparar_opciones)
@@ -272,10 +300,38 @@ class GestorDescargasDialog(wx.Dialog):
         self._opciones = op
         self._gestor.set_opciones(op)
 
-    def agregar_url(self, url: str) -> None:
-        # Lo que encola la pestaña de búsqueda: prepara las opciones y agrega.
-        self._preparar_opciones()
-        self.pagina_descargas.agregar_enlace(url)
+    def agregar_urls(self, urls, formato=None) -> int:
+        """Encola esos enlaces, avisa cuántos entraron y devuelve cuántos fueron.
+
+        Con formato "audio" o "video" encola con ese formato sin mover
+        lo elegido ni guardarlo.
+        """
+        pedidos = _pedidos_nuevos([u for u in (urls or []) if u], self)
+        if not pedidos:
+            return 0
+        if formato in ("audio", "video"):
+            elegidas = self._opciones_actuales()
+            transitorias = dict(elegidas)
+            transitorias["formato"] = "audio_original" if formato == "audio" else "mp4"
+            self._gestor.set_opciones(transitorias)
+            try:
+                for url in pedidos:
+                    self.pagina_descargas.agregar_enlace(url)
+            finally:
+                self._gestor.set_opciones(elegidas)
+        else:
+            self._preparar_opciones()
+            for url in pedidos:
+                self.pagina_descargas.agregar_enlace(url)
+        anunciar_agregados(len(pedidos))
+        return len(pedidos)
+
+    def _al_abrir_en_bellbird(self, url: str) -> None:
+        # Conectar con el modal abierto no anda: primero se cierra.
+        callback = self._abrir_en_bellbird
+        self._on_cerrar(None)
+        if callback is not None:
+            wx.CallAfter(callback, url)
 
     def _on_refresco(self, _event) -> None:
         if not self or not self._alive or not self.pagina_descargas.lista:
@@ -306,11 +362,13 @@ class GestorDescargasDialog(wx.Dialog):
             _dialogo_activo = None
 
 
-def abrir(parent, url_inicial: str | None = None) -> bool:
+def abrir(parent, url_inicial=None, abrir_en_bellbird=None, agregar_a_musica=None) -> bool:
     """Abre el gestor como modal y devuelve True si el usuario lo usó (siempre,
     salvo que falle la apertura). El diálogo persiste las opciones al cerrarse
     vía `cfg.guardar_opciones_descarga` desde los callbacks."""
-    dlg = GestorDescargasDialog(parent, url_inicial=url_inicial)
+    dlg = GestorDescargasDialog(parent, url_inicial=url_inicial,
+                                abrir_en_bellbird=abrir_en_bellbird,
+                                agregar_a_musica=agregar_a_musica)
     try:
         dlg.ShowModal()
     finally:

@@ -89,6 +89,13 @@ class TestMotivoDeError(unittest.TestCase):
                             "obtain file audio codec with ffprobe"),
             "El vídeo no tiene audio.")
 
+    def test_perfil_de_tiktok_pide_enlace_de_video(self):
+        self.assertEqual(
+            motivo_de_error("ERROR: [tiktok:user] scout2015: Unable to "
+                            "extract secondary user ID."),
+            "No se pudo leer este perfil de TikTok. Pega el enlace de "
+            "un vídeo.")
+
     def test_desconocido_da_none(self):
         self.assertIsNone(
             motivo_de_error("ERROR: [youtube] abc: Unable to download webpage"))
@@ -114,6 +121,7 @@ class TestPseudoMotivos(unittest.TestCase):
             "ERROR: [vimeo] abc: This video is only available for logged-in users.",
             "ERROR: Unsupported URL: https://example.com",
             "ERROR: Postprocessing: WARNING: unable to obtain file audio codec.",
+            "ERROR: [tiktok:user] scout2015: Unable to extract secondary user ID.",
         ]
         with con_pseudo():
             motivos = [motivo_de_error(linea) for linea in lineas]

@@ -220,6 +220,14 @@ class TestInicioGui(unittest.TestCase):
         diferir.assert_called_once_with(frame._abrir_descargas)
         frame._abrir_descargas.assert_not_called()
 
+    def test_abrir_descargas_pasa_los_dos_callbacks(self):
+        frame = mock.Mock()
+        with mock.patch("bellbird.ui.gui_descargas.abrir") as abrir:
+            gui.YTChatFrame._abrir_descargas(frame, "https://youtu.be/x")
+        abrir.assert_called_once_with(
+            frame, "https://youtu.be/x", frame._reconectar_desde_historial,
+            frame._musica.agregar_enlace)
+
     def test_menu_actualizar_ytdlp_difiere_la_apertura(self):
         frame = self._menu_frame()
         actualizar = self._handler_menu(frame, frame.mi_actualizar_ytdlp)

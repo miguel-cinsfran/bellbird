@@ -325,6 +325,9 @@ class GestorDescargas:
                         # Cancelada durante el análisis: no lanzar yt-dlp para nada.
                         _cb_estado("cancelado", _("Descarga cancelada"))
                         return
+                    if info.get("en_directo"):
+                        _cb_estado("error", _("Un directo en curso no se puede descargar."))
+                        return
                     logger.info("descarga %s: inicio", item_id)
                     opciones_descarga = dict(opciones)
                     opciones_descarga["es_lista"] = (it.tipo == "playlist")

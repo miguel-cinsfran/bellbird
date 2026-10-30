@@ -139,6 +139,20 @@ class TestAnalizarUrl(unittest.TestCase):
             res = analizar_url("https://example.com/v")
         self.assertEqual(res["tipo"], "error")
 
+    def test_video_en_directo_marca_en_directo(self):
+        for es_directo, marca in ((True, True), (False, False), (None, False)):
+            dato = {"_type": "video", "id": "abc", "title": "Directo"}
+            if es_directo is not None:
+                dato["is_live"] = es_directo
+            with mock.patch.object(descargas.ytdlp_bin, "ruta_ytdlp",
+                                   return_value="yt-dlp"), \
+                    mock.patch.object(descargas.subprocess, "run",
+                                      return_value=self.resultado(dato)):
+                with self.subTest(es_directo=es_directo):
+                    self.assertEqual(
+                        analizar_url("https://example.com/v")["en_directo"],
+                        marca)
+
     def test_respuesta_vacia_dice_enlace_vacio(self):
         with mock.patch.object(descargas.ytdlp_bin, "ruta_ytdlp", return_value="yt-dlp"), \
                 mock.patch.object(descargas.subprocess, "run", return_value=self.resultado({})):
@@ -557,6 +571,27 @@ class TestGestorDescargas(unittest.TestCase):
             self.assertTrue(terminado.wait(1))
         descargar_mock.assert_not_called()
         self.assertEqual(estados, ["cancelado"])
+
+    def test_directo_en_curso_termina_en_error_sin_descargar(self):
+        gestor = GestorDescargas(self.opciones())
+        finales = {}
+        terminado = threading.Event()
+
+        def estado(item_id, valor, mensaje):
+            finales[item_id] = (valor, mensaje)
+            if valor in ("completado", "parcial", "cancelado", "error"):
+                terminado.set()
+
+        with mock.patch.object(
+                descargas, "analizar_url",
+                return_value={"tipo": "video", "id": "x", "titulo": "T",
+                              "cuenta": 1, "en_directo": True}), \
+                mock.patch.object(descargas, "descargar") as descargar_mock:
+            item_id = gestor.encolar("url", lambda *a: None, estado)
+            self.assertTrue(terminado.wait(5))
+        descargar_mock.assert_not_called()
+        self.assertEqual(finales[item_id],
+                         ("error", "Un directo en curso no se puede descargar."))
 
     def test_el_item_lleva_la_carpeta_elegida_al_encolar(self):
         gestor = GestorDescargas(self.opciones())

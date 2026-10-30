@@ -10,6 +10,10 @@ from bellbird.downloads import descargas
 from bellbird.downloads import busqueda_youtube
 from bellbird.downloads import filas_descargas
 from bellbird.ui import descargas_acciones, descargas_buscador, descargas_listas, gui_descargas
+from bellbird.ui import buscador_acciones
+from bellbird.ui.buscador_acciones import AccionesResultado, opciones_de
+from bellbird.ui import buscador_contenido
+from bellbird.ui import buscador_tandas
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
 
@@ -18,6 +22,52 @@ try:
     _HAY_WX = True
 except Exception:
     _HAY_WX = False
+
+
+class TestOpcionesDeResultado(unittest.TestCase):
+    # Sin ventana: opciones_de es pura, solo mira el Resultado.
+
+    def _res(self, tipo="video", directo=False, programado=False):
+        return busqueda_youtube.Resultado(
+            id="a", url="https://www.youtube.com/watch?v=a",
+            titulo="Título a", canal="Canal a", duracion=60, vistas=10,
+            marca_tiempo=1700000000, descripcion="", tipo=tipo,
+            en_directo=directo, programado=programado)
+
+    def test_tabla(self):
+        video = self._res()
+        casos = [
+            ((video, True, True),
+             ("agregar", "audio", "video", "bellbird", "musica", "copiar",
+              "navegador", "sitios")),
+            ((video, False, False),
+             ("agregar", "audio", "video", "copiar", "navegador", "sitios")),
+            ((self._res(directo=True), True, True),
+             ("bellbird", "musica", "copiar", "navegador", "sitios")),
+            ((self._res(directo=True), False, False),
+             ("copiar", "navegador", "sitios")),
+            ((self._res(programado=True), True, True),
+             ("copiar", "navegador", "sitios")),
+            ((self._res(tipo="lista"), True, True),
+             ("contenido", "agregar", "musica", "copiar", "navegador",
+              "sitios")),
+            ((self._res(tipo="lista"), False, False),
+             ("contenido", "agregar", "copiar", "navegador", "sitios")),
+            ((self._res(tipo="canal"), True, True),
+             ("contenido", "copiar", "navegador", "sitios")),
+            (([video, self._res()], True, True),
+             ("agregar", "audio", "video", "sitios")),
+            (([video, self._res(tipo="lista")], False, False),
+             ("agregar", "audio", "video", "sitios")),
+            (([video, self._res(tipo="canal")], True, True),
+             ("sitios",)),
+            (([video, self._res(directo=True)], True, True),
+             ("sitios",)),
+        ]
+        for (entrada, hay_bellbird, hay_musica), esperado in casos:
+            with self.subTest(entrada=entrada, hay_musica=hay_musica):
+                self.assertEqual(
+                    opciones_de(entrada, hay_bellbird, hay_musica), esperado)
 
 
 class TestTablaEstadosSinVentana(unittest.TestCase):
@@ -527,13 +577,16 @@ class TestPaginaUnica(unittest.TestCase):
             self.assertEqual(entradas[0]["url"],
                              "https://www.youtube.com/watch?v=abc&token=secreto")
 
-    def test_agregar_url_encola_y_refresca(self):
+    def test_agregar_urls_encola_y_avisa(self):
         dialogo = self._dialogo()
         with mock.patch.object(gui_descargas.cfg, "guardar_opciones_descarga"), \
-                mock.patch.object(dialogo._gestor, "encolar") as encolar:
-            dialogo.agregar_url("https://youtu.be/abc")
+                mock.patch.object(dialogo._gestor, "encolar") as encolar, \
+                mock.patch.object(buscador_acciones, "anunciar") as anunciar:
+            agregados = dialogo.agregar_urls(["https://youtu.be/abc"])
         encolar.assert_called_once()
         self.assertEqual(encolar.call_args.args[0], "https://youtu.be/abc")
+        self.assertEqual(agregados, 1)
+        anunciar.assert_called_once_with("Agregado a la cola")
 
     def test_cambiar_formato_llena_calidad_y_deshabilita(self):
         dialogo = self._dialogo()
@@ -632,13 +685,15 @@ class TestBuscador(unittest.TestCase):
         gui_descargas._registrados.clear()
         gui_descargas._dialogo_activo = None
 
-    def _dialogo(self, entradas=None, url_inicial=None):
+    def _dialogo(self, entradas=None, url_inicial=None, abrir_en_bellbird=None,
+                 agregar_a_musica=None):
         parches = list(TestPaginaUnica._sin_disco(self, entradas))
         for parche in parches:
             parche.start()
             self.addCleanup(parche.stop)
         dialogo = gui_descargas.GestorDescargasDialog(
-            None, url_inicial=url_inicial)
+            None, url_inicial=url_inicial, abrir_en_bellbird=abrir_en_bellbird,
+            agregar_a_musica=agregar_a_musica)
         self.addCleanup(destruir, dialogo)
         self.addCleanup(setattr, gui_descargas, "_dialogo_activo", None)
         self.addCleanup(descargas.reiniciar_gestor)
@@ -664,6 +719,9 @@ class TestBuscador(unittest.TestCase):
         anunciar = mock.patch.object(descargas_buscador, "anunciar")
         anunciar.start()
         self.addCleanup(anunciar.stop)
+        anunciar_tanda = mock.patch.object(buscador_tandas, "anunciar")
+        anunciar_tanda.start()
+        self.addCleanup(anunciar_tanda.stop)
         sonido = mock.patch.object(descargas_buscador._snd, "reproducir")
         sonido.start()
         self.addCleanup(sonido.stop)
@@ -671,7 +729,9 @@ class TestBuscador(unittest.TestCase):
 
     def _dichos(self):
         return [llamada.args[0]
-                for llamada in descargas_buscador.anunciar.call_args_list]
+                for llamada in descargas_buscador.anunciar.call_args_list] + \
+               [llamada.args[0]
+                for llamada in buscador_tandas.anunciar.call_args_list]
 
     def test_dos_pestanas_con_buscador_primero(self):
         dialogo = self._dialogo()
@@ -689,8 +749,8 @@ class TestBuscador(unittest.TestCase):
         buscar.assert_not_called()
         self.assertEqual(pagina.campo.GetValue(), "")
         self.assertEqual(pagina.campo.GetCount(), 0)
-        self.assertFalse(pagina.chk_filtros.GetValue())
-        self.assertFalse(pagina.cho_tipo.IsShown())
+        self.assertFalse(pagina.filtros.chk_filtros.GetValue())
+        self.assertFalse(pagina.filtros.cho_tipo.IsShown())
         self.assertEqual(pagina.cho_cantidad.GetStringSelection(), "20")
         self.assertEqual(pagina.lista.GetItemCount(), 0)
         self.assertFalse(pagina.btn_mas.IsEnabled())
@@ -723,13 +783,13 @@ class TestBuscador(unittest.TestCase):
         dialogo = self._dialogo()
         pagina = dialogo.pagina_buscador
         url = "https://www.youtube.com/watch?v=abc"
-        with mock.patch.object(pagina, "_agregar_url") as agregar:
+        with mock.patch.object(pagina, "_agregar_urls",
+                                return_value=1) as agregar:
             pagina.campo.SetValue(url)
             pagina._on_buscar(None)
         buscar.assert_not_called()
-        agregar.assert_called_once_with(url)
+        agregar.assert_called_once_with([url])
         self.assertEqual(pagina.campo.GetValue(), "")
-        self.assertIn("Agregado a la cola", self._dichos())
 
     def test_campo_vacio_avisa_sin_buscar(self):
         buscar = self._con_busqueda(_respuesta_busqueda([]))
@@ -865,7 +925,7 @@ class TestBuscador(unittest.TestCase):
         pagina._on_buscar(None)
         pagina.lista.Select(pagina.lista.GetFirstSelected(), False)
         pagina.lista.Select(2)
-        pagina.cho_orden.SetSelection(2)
+        pagina.filtros.cho_orden.SetSelection(2)
         pagina._on_orden(None)
         buscar.assert_called_once()
         self.assertEqual(
@@ -877,14 +937,14 @@ class TestBuscador(unittest.TestCase):
         buscar = self._con_busqueda(_respuesta_busqueda([]))
         dialogo = self._dialogo()
         pagina = dialogo.pagina_buscador
-        pagina.cho_tipo.SetSelection(1)
-        pagina.cho_duracion.SetSelection(2)
-        pagina.cho_fecha.SetSelection(3)
-        pagina.cho_orden.SetSelection(1)
+        pagina.filtros.cho_tipo.SetSelection(1)
+        pagina.filtros.cho_duracion.SetSelection(2)
+        pagina.filtros.cho_fecha.SetSelection(3)
+        pagina.filtros.cho_orden.SetSelection(1)
         pagina.campo.SetValue("cumbia")
         pagina._on_buscar(None)
         self.assertEqual(buscar.call_args.args[1], busqueda_youtube.Filtros())
-        pagina.chk_filtros.SetValue(True)
+        pagina.filtros.chk_filtros.SetValue(True)
         pagina.campo.SetValue("polca")
         pagina._on_buscar(None)
         self.assertEqual(
@@ -910,14 +970,14 @@ class TestBuscador(unittest.TestCase):
     def test_filtros_se_muestran_y_ocultan(self):
         dialogo = self._dialogo()
         pagina = dialogo.pagina_buscador
-        self.assertFalse(pagina.cho_tipo.IsShown())
-        pagina.chk_filtros.SetValue(True)
+        self.assertFalse(pagina.filtros.cho_tipo.IsShown())
+        pagina.filtros.chk_filtros.SetValue(True)
         pagina._on_filtros(None)
-        self.assertTrue(pagina.cho_tipo.IsShown())
-        self.assertTrue(pagina.cho_orden.IsShown())
-        pagina.chk_filtros.SetValue(False)
+        self.assertTrue(pagina.filtros.cho_tipo.IsShown())
+        self.assertTrue(pagina.filtros.cho_orden.IsShown())
+        pagina.filtros.chk_filtros.SetValue(False)
         pagina._on_filtros(None)
-        self.assertFalse(pagina.cho_tipo.IsShown())
+        self.assertFalse(pagina.filtros.cho_tipo.IsShown())
 
     def test_elegir_fila_muestra_detalles_sin_anunciar(self):
         self._con_busqueda(_respuesta_busqueda(
@@ -949,16 +1009,15 @@ class TestBuscador(unittest.TestCase):
         pagina._on_buscar(None)
         for i in range(4):
             pagina.lista.Select(i)
-        with mock.patch.object(pagina, "_agregar_url") as agregar:
+        with mock.patch.object(pagina, "_agregar_urls",
+                                return_value=2) as agregar:
             pagina._on_agregar(None)
-        self.assertEqual(
-            [llamada.args[0] for llamada in agregar.call_args_list],
+        agregar.assert_called_once_with(
             ["https://www.youtube.com/watch?v=v",
              "https://www.youtube.com/playlist?list=PL1"])
         dichos = self._dichos()
         self.assertIn("Un canal no se puede agregar a la cola.", dichos)
         self.assertIn("Un directo en curso no se puede descargar.", dichos)
-        self.assertIn("2 agregados a la cola", dichos)
         self.assertEqual(
             descargas_buscador._snd.reproducir.call_count, 2)
 
@@ -970,7 +1029,7 @@ class TestBuscador(unittest.TestCase):
         pagina.campo.SetValue("cumbia")
         pagina._on_buscar(None)
         pagina.lista.Select(0)
-        with mock.patch.object(pagina, "_agregar_url") as agregar:
+        with mock.patch.object(pagina, "_agregar_urls") as agregar:
             pagina._on_agregar(None)
         agregar.assert_not_called()
         self.assertIn("Este directo todavía no empezó.", self._dichos())
@@ -983,7 +1042,7 @@ class TestBuscador(unittest.TestCase):
         pagina.campo.SetValue("cumbia")
         pagina._on_buscar(None)
         pagina.lista.Select(pagina.lista.GetFirstSelected(), False)
-        with mock.patch.object(pagina, "_agregar_url") as agregar:
+        with mock.patch.object(pagina, "_agregar_urls") as agregar:
             pagina._on_agregar(None)
         agregar.assert_not_called()
         self.assertIn("Selecciona un resultado.", self._dichos())
@@ -1009,8 +1068,8 @@ class TestBuscador(unittest.TestCase):
         self._con_busqueda(_respuesta_busqueda(items))
         dialogo = self._dialogo()
         pagina = dialogo.pagina_buscador
-        pagina.chk_filtros.SetValue(True)
-        pagina.cho_orden.SetSelection(2)
+        pagina.filtros.chk_filtros.SetValue(True)
+        pagina.filtros.cho_orden.SetSelection(2)
         pagina.campo.SetValue("cumbia")
         pagina._on_buscar(None)
         self.assertEqual(
@@ -1028,8 +1087,8 @@ class TestBuscador(unittest.TestCase):
             _respuesta_busqueda([_item("a", 5), _item("b", 9)], hay_mas=True))
         dialogo = self._dialogo()
         pagina = dialogo.pagina_buscador
-        pagina.chk_filtros.SetValue(True)
-        pagina.cho_orden.SetSelection(2)
+        pagina.filtros.chk_filtros.SetValue(True)
+        pagina.filtros.cho_orden.SetSelection(2)
         pagina.campo.SetValue("cumbia")
         pagina._on_buscar(None)
         buscar.return_value = _respuesta_busqueda([_item("c", 7)])
@@ -1079,7 +1138,7 @@ class TestBuscador(unittest.TestCase):
     def test_url_inicial_deja_texto_sin_encolar(self):
         self._con_busqueda(_respuesta_busqueda([]))
         with mock.patch.object(
-                gui_descargas.GestorDescargasDialog, "agregar_url") as agregar:
+                gui_descargas.GestorDescargasDialog, "agregar_urls") as agregar:
             dialogo = self._dialogo(url_inicial="https://youtu.be/inicial")
         self.assertEqual(dialogo.pagina_buscador.campo.GetValue(),
                          "https://youtu.be/inicial")
@@ -1113,6 +1172,478 @@ class TestBuscador(unittest.TestCase):
             segunda = descargas_buscador.PaginaBuscador(marco, agregar, ruta)
             self.addCleanup(destruir, segunda)
             self.assertIn("Cumbia", segunda.campo.GetStrings())
+
+
+def _resultado_lista(id="l"):
+    return busqueda_youtube.Resultado(
+        id=id, url=f"https://www.youtube.com/playlist?list={id.upper()}",
+        titulo=f"Título {id}", canal=f"Canal {id}", duracion=None,
+        vistas=None, marca_tiempo=None, descripcion=f"Descripción {id}",
+        tipo="lista", en_directo=False, programado=False)
+
+
+def _resultado_canal(id="c"):
+    return busqueda_youtube.Resultado(
+        id=id, url=f"https://www.youtube.com/channel/{id.upper()}",
+        titulo=f"Título {id}", canal=f"Canal {id}", duracion=None,
+        vistas=None, marca_tiempo=None, descripcion=f"Descripción {id}",
+        tipo="canal", en_directo=False, programado=False)
+
+
+def _respuesta_contenido(ids=("a", "b"), titulo="Una lista", total=2):
+    return busqueda_youtube.RespuestaBusqueda(
+        [_resultado_busqueda(i) for i in ids], "", False, titulo, total)
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestMenuYVistaBuscador(unittest.TestCase):
+
+    def setUp(self):
+        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        gui_descargas._registrados.clear()
+
+    def tearDown(self):
+        descargas.reiniciar_gestor()
+        gui_descargas._registrados.clear()
+        gui_descargas._dialogo_activo = None
+
+    def _dialogo(self, entradas=None, abrir_en_bellbird=None,
+                 agregar_a_musica=None):
+        parches = list(TestPaginaUnica._sin_disco(self, entradas))
+        for parche in parches:
+            parche.start()
+            self.addCleanup(parche.stop)
+        dialogo = gui_descargas.GestorDescargasDialog(
+            None, abrir_en_bellbird=abrir_en_bellbird,
+            agregar_a_musica=agregar_a_musica)
+        self.addCleanup(destruir, dialogo)
+        self.addCleanup(setattr, gui_descargas, "_dialogo_activo", None)
+        self.addCleanup(descargas.reiniciar_gestor)
+        return dialogo
+
+    def _buscar(self, items):
+        busco = mock.patch.object(
+            descargas_buscador.busqueda_youtube, "buscar",
+            return_value=_respuesta_busqueda(items))
+        busco.start()
+        self.addCleanup(busco.stop)
+        hilo = mock.patch.object(
+            descargas_buscador.diagnostico, "crear_hilo",
+            side_effect=lambda destino, nombre, args=(), **kw:
+            _CorreYa(destino, args))
+        hilo.start()
+        self.addCleanup(hilo.stop)
+        entrega = mock.patch.object(
+            descargas_buscador.wx, "CallAfter",
+            side_effect=lambda funcion, *args, **kw: funcion(*args, **kw))
+        entrega.start()
+        self.addCleanup(entrega.stop)
+        anunciar = mock.patch.object(descargas_buscador, "anunciar")
+        anunciar.start()
+        self.addCleanup(anunciar.stop)
+        anunciar_tanda = mock.patch.object(buscador_tandas, "anunciar")
+        anunciar_tanda.start()
+        self.addCleanup(anunciar_tanda.stop)
+        sonido = mock.patch.object(descargas_buscador._snd, "reproducir")
+        sonido.start()
+        self.addCleanup(sonido.stop)
+
+    def _pagina_buscada(self, dialogo, items, texto="cumbia"):
+        pagina = dialogo.pagina_buscador
+        pagina.campo.SetValue(texto)
+        pagina._on_buscar(None)
+        return pagina
+
+    def _seleccionar_solo(self, pagina, indice):
+        actual = pagina.lista.GetFirstSelected()
+        while actual != -1:
+            pagina.lista.Select(actual, False)
+            actual = pagina.lista.GetFirstSelected()
+        pagina.lista.Select(indice)
+
+    def _menu_disparado(self, pagina):
+        etiquetas = []
+
+        def falso_popup(menu):
+            for it in menu.GetMenuItems():
+                if it.GetKind() != wx.ITEM_NORMAL:
+                    continue
+                etiquetas.append(it.GetItemLabel())
+                menu.ProcessEvent(
+                    wx.CommandEvent(wx.EVT_MENU.typeId, it.GetId()))
+
+        with mock.patch.object(pagina.lista, "PopupMenu", falso_popup):
+            pagina._mostrar_menu()
+        return etiquetas
+
+    def test_menu_dispara_cada_comando(self):
+        items = [_resultado_busqueda("v"), _resultado_lista()]
+        self._buscar(items)
+        dialogo = self._dialogo(abrir_en_bellbird=mock.Mock(),
+                                agregar_a_musica=mock.Mock())
+        dialogo.Show()
+        pagina = self._pagina_buscada(dialogo, items)
+        espias = {n: mock.Mock() for n in (
+            "como_audio", "como_video", "en_bellbird", "a_musica", "copiar",
+            "abrir_en_navegador", "ver_sitios")}
+        with mock.patch.multiple(pagina._acciones, **espias), \
+                mock.patch.object(pagina, "_agregar_urls",
+                                  return_value=1) as agregar, \
+                mock.patch.object(buscador_contenido, "contenido",
+                                  return_value=_respuesta_busqueda([])), \
+                mock.patch.object(buscador_contenido, "anunciar"):
+            self._seleccionar_solo(pagina, 0)
+            etiquetas = self._menu_disparado(pagina)
+        juntos = " ".join(etiquetas).replace("&", "")
+        for texto in ("Agregar a la cola", "Descargar como audio",
+                      "Descargar como vídeo", "Abrir en Bellbird",
+                      "Agregar a la música", "Copiar enlace",
+                      "Abrir en el navegador", "Ver sitios compatibles"):
+            self.assertIn(texto, juntos)
+        self.assertNotIn("Ver contenido", juntos)
+        agregar.assert_called_once_with(["https://www.youtube.com/watch?v=v"])
+        resultado = pagina._resultados[0]
+        espias["como_audio"].assert_called_once_with([resultado])
+        espias["como_video"].assert_called_once_with([resultado])
+        espias["en_bellbird"].assert_called_once_with(resultado)
+        espias["a_musica"].assert_called_once_with(resultado)
+        espias["copiar"].assert_called_once_with(resultado)
+        espias["abrir_en_navegador"].assert_called_once_with(resultado)
+        espias["ver_sitios"].assert_called_once_with()
+        dialogo.Hide()
+
+    def test_menu_de_lista_entra_a_la_vista(self):
+        items = [_resultado_busqueda("v"), _resultado_lista()]
+        self._buscar(items)
+        dialogo = self._dialogo(abrir_en_bellbird=mock.Mock(),
+                                agregar_a_musica=mock.Mock())
+        dialogo.Show()
+        pagina = self._pagina_buscada(dialogo, items)
+        espias = {n: mock.Mock() for n in (
+            "como_audio", "como_video", "a_musica", "copiar",
+            "abrir_en_navegador", "ver_sitios")}
+        with mock.patch.multiple(pagina._acciones, **espias), \
+                mock.patch.object(pagina, "_agregar_urls",
+                                  return_value=1) as agregar, \
+                mock.patch.object(buscador_contenido, "contenido",
+                                  return_value=_respuesta_contenido()), \
+                mock.patch.object(buscador_contenido, "anunciar"):
+            self._seleccionar_solo(pagina, 1)
+            esperada = pagina._resultados[1]
+            self._menu_disparado(pagina)
+        self.assertTrue(pagina._vista.activa)
+        agregar.assert_called_once_with(
+            ["https://www.youtube.com/playlist?list=L"])
+        espias["a_musica"].assert_called_once_with(esperada)
+        dialogo.Hide()
+
+    def test_menu_varios_solo_agrega_si_todos_bajan(self):
+        items = [_resultado_busqueda("v"), _resultado_lista()]
+        self._buscar(items)
+        dialogo = self._dialogo()
+        pagina = self._pagina_buscada(dialogo, items)
+        with mock.patch.object(pagina, "_agregar_urls",
+                               return_value=2) as agregar, \
+                mock.patch.object(buscador_acciones.webbrowser, "open"), \
+                mock.patch.object(pagina._acciones,
+                                  "como_audio") as como_audio, \
+                mock.patch.object(pagina._acciones,
+                                  "como_video") as como_video, \
+                mock.patch.object(pagina._acciones,
+                                  "ver_sitios") as ver_sitios:
+            pagina.lista.Select(0)
+            pagina.lista.Select(1)
+            etiquetas = self._menu_disparado(pagina)
+        self.assertEqual(
+            [e.replace("&", "") for e in etiquetas],
+            ["Agregar a la cola", "Descargar como audio",
+             "Descargar como vídeo", "Ver sitios compatibles"])
+        agregar.assert_called_once_with(
+            ["https://www.youtube.com/watch?v=v",
+             "https://www.youtube.com/playlist?list=L"])
+        ambos = [pagina._resultados[0], pagina._resultados[1]]
+        como_audio.assert_called_once_with(ambos)
+        como_video.assert_called_once_with(ambos)
+        ver_sitios.assert_called_once_with()
+
+    def test_intro_en_lista_entra_retroceso_vuelve_y_recupera(self):
+        items = [_resultado_busqueda("v"), _resultado_lista()]
+        self._buscar(items)
+        dialogo = self._dialogo()
+        dialogo.Show()
+        pagina = self._pagina_buscada(dialogo, items)
+        with mock.patch.object(buscador_contenido, "contenido",
+                               return_value=_respuesta_contenido()), \
+                mock.patch.object(buscador_contenido,
+                                  "anunciar") as anunciar_vista, \
+                mock.patch.object(pagina, "_agregar_urls", return_value=1):
+            self._seleccionar_solo(pagina, 1)
+            pagina._on_activar(None)
+        self.assertTrue(pagina._vista.activa)
+        self.assertEqual(pagina.lista.GetItemCount(), 2)
+        self.assertEqual(pagina.lista.GetItemText(0, 0), "Título a")
+        self.assertEqual(wx.Window.FindFocus(), pagina.lista)
+        self.assertEqual(pagina.lista.GetFirstSelected(), 0)
+        self.assertTrue(pagina.btn_volver.IsShown())
+        self.assertTrue(pagina.btn_todo.IsShown())
+        dichos = [llamada.args[0]
+                  for llamada in anunciar_vista.call_args_list]
+        self.assertIn("Una lista: 2 vídeos", dichos)
+        evento = mock.Mock()
+        evento.GetKeyCode.return_value = wx.WXK_BACK
+        pagina._on_key(evento)
+        self.assertFalse(pagina._vista.activa)
+        self.assertEqual(pagina.lista.GetItemCount(), 2)
+        self.assertEqual(pagina.lista.GetItemText(1, 0), "Título l")
+        self.assertEqual(pagina.lista.GetFirstSelected(), 1)
+        self.assertEqual(wx.Window.FindFocus(), pagina.lista)
+        self.assertFalse(pagina.btn_volver.IsShown())
+        self.assertFalse(pagina.btn_todo.IsShown())
+        dialogo.Hide()
+
+    def test_contenido_sin_total_anuncia_solo_el_titulo(self):
+        items = [_resultado_lista()]
+        self._buscar(items)
+        dialogo = self._dialogo()
+        dialogo.Show()
+        pagina = self._pagina_buscada(dialogo, items)
+        respuesta = busqueda_youtube.RespuestaBusqueda(
+            [_resultado_busqueda("a")], "", False, "YouTube - Videos", 0)
+        with mock.patch.object(buscador_contenido, "contenido",
+                               return_value=respuesta), \
+                mock.patch.object(buscador_contenido,
+                                  "anunciar") as anunciar_vista, \
+                mock.patch.object(pagina, "_agregar_urls", return_value=1):
+            self._seleccionar_solo(pagina, 0)
+            pagina._on_activar(None)
+        dichos = [llamada.args[0]
+                  for llamada in anunciar_vista.call_args_list]
+        self.assertIn("YouTube - Videos", dichos)
+        for dicho in dichos:
+            self.assertNotIn("0 vídeos", dicho)
+        dialogo.Hide()
+
+    def test_volver_con_boton_recupera_la_lista(self):
+        items = [_resultado_busqueda("v"), _resultado_lista()]
+        self._buscar(items)
+        dialogo = self._dialogo()
+        dialogo.Show()
+        pagina = self._pagina_buscada(dialogo, items)
+        with mock.patch.object(buscador_contenido, "contenido",
+                               return_value=_respuesta_contenido()), \
+                mock.patch.object(buscador_contenido, "anunciar"),                 mock.patch.object(pagina, "_agregar_urls", return_value=1):
+            self._seleccionar_solo(pagina, 1)
+            pagina._on_activar(None)
+        self.assertTrue(pagina._vista.activa)
+        pagina.btn_volver.GetEventHandler().ProcessEvent(
+            wx.CommandEvent(wx.EVT_BUTTON.typeId, pagina.btn_volver.GetId()))
+        self.assertFalse(pagina._vista.activa)
+        self.assertEqual(pagina.lista.GetItemCount(), 2)
+        self.assertEqual(pagina.lista.GetFirstSelected(), 1)
+        dialogo.Hide()
+
+    def test_agregar_sobre_lista_agrega_entera(self):
+        items = [_resultado_lista()]
+        self._buscar(items)
+        dialogo = self._dialogo()
+        pagina = self._pagina_buscada(dialogo, items)
+        pagina.lista.Select(0)
+        with mock.patch.object(pagina, "_agregar_urls",
+                               return_value=1) as agregar:
+            pagina._on_agregar(None)
+        agregar.assert_called_once_with(
+            ["https://www.youtube.com/playlist?list=L"])
+
+    def test_pegar_lista_entra_sin_encolar(self):
+        self._buscar([])
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_buscador
+        with mock.patch.object(pagina, "_agregar_urls") as agregar, \
+                mock.patch.object(buscador_contenido, "contenido",
+                                  return_value=_respuesta_contenido()), \
+                mock.patch.object(buscador_contenido, "anunciar"):
+            pagina.campo.SetValue("https://www.youtube.com/playlist?list=PL1")
+            pagina._on_buscar(None)
+        agregar.assert_not_called()
+        self.assertTrue(pagina._vista.activa)
+        self.assertFalse(pagina.btn_volver.IsShown())
+        self.assertTrue(pagina.btn_todo.IsShown())
+
+    def test_pegar_video_encola_sin_entrar(self):
+        self._buscar([])
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_buscador
+        with mock.patch.object(pagina, "_agregar_urls",
+                               return_value=1) as agregar:
+            pagina.campo.SetValue("https://www.youtube.com/watch?v=abc")
+            pagina._on_buscar(None)
+        agregar.assert_called_once_with(["https://www.youtube.com/watch?v=abc"])
+        self.assertFalse(pagina._vista.activa)
+
+    def test_boton_todo_encola_la_lista(self):
+        items = [_resultado_lista()]
+        self._buscar(items)
+        dialogo = self._dialogo()
+        dialogo.Show()
+        pagina = self._pagina_buscada(dialogo, items)
+        with mock.patch.object(buscador_contenido, "contenido",
+                               return_value=_respuesta_contenido()), \
+                mock.patch.object(buscador_contenido, "anunciar"), \
+                mock.patch.object(pagina, "_agregar_urls", return_value=1):
+            self._seleccionar_solo(pagina, 0)
+            pagina._on_activar(None)
+        with mock.patch.object(gui_descargas.cfg,
+                               "guardar_opciones_descarga"), \
+                mock.patch.object(dialogo._gestor, "encolar") as encolar, \
+                mock.patch.object(buscador_acciones, "anunciar"):
+            pagina.btn_todo.GetEventHandler().ProcessEvent(
+                wx.CommandEvent(wx.EVT_BUTTON.typeId, pagina.btn_todo.GetId()))
+        encolar.assert_called_once()
+        self.assertEqual(encolar.call_args.args[0],
+                         "https://www.youtube.com/playlist?list=L")
+        dialogo.Hide()
+
+    def test_menu_con_tecla_y_con_texto(self):
+        items = [_resultado_busqueda("v")]
+        self._buscar(items)
+        dialogo = self._dialogo()
+        pagina = self._pagina_buscada(dialogo, items)
+        pagina.lista.Select(0)
+        with mock.patch.object(pagina, "_mostrar_menu") as mostrar:
+            evento = mock.Mock()
+            evento.GetKeyCode.return_value = wx.WXK_WINDOWS_MENU
+            pagina._on_key(evento)
+            mostrar.assert_called_once_with()
+        with mock.patch.object(pagina, "_mostrar_menu") as mostrar:
+            evento = mock.Mock()
+            evento.GetKeyCode.return_value = wx.WXK_F10
+            evento.ShiftDown.return_value = True
+            pagina._on_key(evento)
+            mostrar.assert_called_once_with()
+        with mock.patch.object(pagina.lista, "PopupMenu"):
+            pagina._on_context_menu(None)
+
+    def test_agregar_urls_con_no_solo_los_nuevos(self):
+        vieja1 = "https://www.youtube.com/watch?v=una"
+        vieja2 = "https://www.youtube.com/watch?v=dos"
+        nueva = "https://www.youtube.com/watch?v=nueva"
+        entradas = [
+            {"id": "una", "nombre": "una.mp4",
+             "fecha": "2026-10-29T08:00:00", "estado": "completado",
+             "url": vieja1, "carpeta": "", "ruta": ""},
+            {"id": "dos", "nombre": "dos.mp4",
+             "fecha": "2026-10-29T08:00:00", "estado": "completado",
+             "url": vieja2, "carpeta": "", "ruta": ""},
+        ]
+        dialogo = self._dialogo(entradas)
+        with mock.patch.object(gui_descargas.cfg,
+                               "guardar_opciones_descarga"), \
+                mock.patch.object(dialogo._gestor, "encolar") as encolar, \
+                mock.patch.object(gui_descargas.wx, "MessageBox",
+                                  return_value=wx.NO) as caja, \
+                mock.patch.object(gui_descargas, "anunciar"):
+            agregados = dialogo.agregar_urls([vieja1, vieja2, nueva])
+        self.assertEqual(
+            caja.call_args.args[0],
+            "2 ya están en el historial. ¿Agregar de todos modos?")
+        encolar.assert_called_once()
+        self.assertEqual(encolar.call_args.args[0], nueva)
+        self.assertEqual(agregados, 1)
+
+    def test_agregar_urls_formato_audio_encola_y_restaura(self):
+        dialogo = self._dialogo()
+        fijas = {"formato": "mp4", "bitrate": 192, "resolucion": 0,
+                 "carpeta": "/tmp", "enumerar": False}
+        formato_visto = dialogo.cho_formato.GetSelection()
+        with mock.patch.object(gui_descargas.cfg,
+                               "guardar_opciones_descarga"), \
+                mock.patch.object(dialogo, "_opciones_actuales",
+                                  return_value=dict(fijas)), \
+                mock.patch.object(dialogo._gestor, "encolar") as encolar, \
+                mock.patch.object(gui_descargas, "anunciar"):
+            vistos = []
+            original = dialogo._gestor.set_opciones
+
+            def espiar(op):
+                vistos.append(dict(op).get("formato"))
+                return original(op)
+
+            with mock.patch.object(dialogo._gestor, "set_opciones",
+                                   side_effect=espiar):
+                agregados = dialogo.agregar_urls(
+                    ["https://youtu.be/abc"], formato="audio")
+        self.assertEqual(agregados, 1)
+        encolar.assert_called_once()
+        self.assertEqual(vistos, ["audio_original", "mp4"])
+        self.assertEqual(dialogo._gestor._opciones["formato"], "mp4")
+        self.assertEqual(dialogo.cho_formato.GetSelection(), formato_visto)
+
+    def test_abrir_en_bellbird_cierra_antes_de_llamar(self):
+        callback = mock.Mock()
+        dialogo = self._dialogo(abrir_en_bellbird=callback)
+        with mock.patch.object(gui_descargas.wx, "CallAfter") as call_after:
+            dialogo._al_abrir_en_bellbird("https://youtu.be/x")
+        self.assertFalse(dialogo._alive)
+        callback.assert_not_called()
+        call_after.assert_called_once_with(callback, "https://youtu.be/x")
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestLetrasMenuBuscador(unittest.TestCase):
+
+    def setUp(self):
+        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+
+    def _casos(self):
+        video = _resultado_busqueda("v")
+        return [
+            ([video], True, True),
+            ([video], False, False),
+            ([_resultado_busqueda("d", directo=True)], True, True),
+            ([_resultado_busqueda("p", programado=True)], False, False),
+            ([_resultado_lista()], True, True),
+            ([_resultado_canal()], False, False),
+            ([video, _resultado_lista()], True, True),
+            ([video, _resultado_canal()], False, False),
+        ]
+
+    def test_letras_del_menu_no_se_repiten(self):
+        from tests.letras_acceso import _letra_de_acceso
+        acciones = mock.Mock()
+        for resultados, hay_bellbird, hay_musica in self._casos():
+            opciones = opciones_de(resultados[0] if len(resultados) == 1
+                                   else resultados, hay_bellbird, hay_musica)
+            with self.subTest(opciones=opciones):
+                menu = buscador_acciones.construir_menu(
+                    opciones, resultados, acciones, mock.Mock(), mock.Mock())
+                try:
+                    letras = {}
+                    for it in menu.GetMenuItems():
+                        if it.GetKind() != wx.ITEM_NORMAL:
+                            continue
+                        letra = _letra_de_acceso(it.GetItemLabel())
+                        self.assertIsNotNone(letra, it.GetItemLabel())
+                        self.assertNotIn(letra, letras, it.GetItemLabel())
+                        letras[letra] = it.GetItemLabel()
+                finally:
+                    menu.Destroy()
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestLetrasMenuBuscadorEnIngles(TestLetrasMenuBuscador):
+    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
+    # Gemela en inglés: repite la prueba sin copiarla.
+
+    @classmethod
+    def setUpClass(cls):
+        from tests.letras_acceso import ingles
+        cls._ingles = ingles()
+        cls._ingles.__enter__()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._ingles.__exit__(None, None, None)
+        del cls._ingles
 
 
 class TestSonidosDeDescarga(unittest.TestCase):

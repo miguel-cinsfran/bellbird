@@ -50,8 +50,7 @@ def analizar_url(url: str) -> dict:
     if not info:
         return {"tipo": "error", "id": "", "titulo": "", "cuenta": 0,
                 "mensaje": _("Enlace vacío")}
-    tipo = info.get("_type")
-    if tipo == "playlist" or "entries" in info:
+    if info.get("_type") == "playlist" or "entries" in info:
         return {"tipo": "playlist",
                 "id": info.get("id", ""),
                 "titulo": info.get("title", ""),
@@ -59,7 +58,8 @@ def analizar_url(url: str) -> dict:
     return {"tipo": "video",
             "id": info.get("id", ""),
             "titulo": info.get("title", ""),
-            "cuenta": 1}
+            "cuenta": 1,
+            "en_directo": bool(info.get("is_live"))}
 
 
 def _sin_ventana() -> int:

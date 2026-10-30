@@ -101,6 +101,22 @@ def _es_opus(audio) -> bool:
     return (audio.get("acodec") or "").startswith("opus")
 
 
+def _canales(audio):
+    """Canales del audio, o None si yt-dlp no lo dice."""
+    canales = audio.get("audio_channels")
+    return canales if isinstance(canales, (int, float)) else None
+
+
+def _priorizar_canales(audios):
+    """Los de 2 canales o menos (o sin dato) antes que el envolvente.
+
+    Sin esto el 258 (5.1 de 6 canales) gana por abr al 140 (estéreo):
+    pesa más sin sonar mejor en dos parlantes.
+    """
+    preferidos = [a for a in audios if (_canales(a) or 0) <= 2]
+    return preferidos or audios
+
+
 def _mejor_audio(audios, ext_video):
     """El audio que se une al vídeo: M4A para MP4, Opus para WebM."""
     if ext_video == "mp4":
@@ -200,10 +216,10 @@ def opciones(info: dict) -> list:
         if _descartado(formato):
             continue
         if _es_video(formato):
-            grupos.setdefault((formato["height"], _cuadros(formato)),
-                              []).append(formato)
+            grupos.setdefault((formato["height"], _cuadros(formato)), []).append(formato)
         elif _es_solo_audio(formato):
             audios.append(formato)
+    audios = _priorizar_canales(audios)
     elegidos = []
     for (alto, cuadros), candidatos in grupos.items():
         resuelto = _opcion_de_grupo(candidatos, audios)

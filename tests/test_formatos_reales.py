@@ -9,12 +9,14 @@ from bellbird.downloads import formatos_reales as fr
 
 def formato(fid, ext="mp4", alto=None, vcodec="none", acodec="none",
             abr=None, tamano=None, nota="", fps=None, proto="https",
-            aprox=False, tbr=None):
+            aprox=False, tbr=None, canales=None):
     """Un formato como los de `--dump-json`, con lo que usa `opciones()`."""
     f = {"format_id": fid, "ext": ext, "height": alto, "vcodec": vcodec,
          "acodec": acodec, "protocol": proto, "format_note": nota}
     if fps is not None:
         f["fps"] = fps
+    if canales is not None:
+        f["audio_channels"] = canales
     if abr is not None:
         f["abr"] = abr
     if tamano is not None:
@@ -137,7 +139,18 @@ class TestSelectorYAudios(unittest.TestCase):
         self.assertTrue(por_selector(opciones, "308")[0].selector.endswith(
             "+251"))
 
-    def test_mejor_audio_es_mas_abr(self):
+    def test_mas_canales_pierde_aunque_tenga_mas_abr(self):
+        opciones = fr.opciones(info_con(
+            formato("299", "mp4", 1080, "avc1.64002A", "none", None,
+                    257619653, "1080p60", fps=60),
+            formato("140", "m4a", None, "none", "mp4a.40.2", 129.5,
+                    10271496, "medium", canales=2),
+            formato("258", "m4a", None, "none", "mp4a.40.2", 387.9,
+                    30767611, "high", canales=6)))
+        self.assertEqual(por_selector(opciones, "299")[0].selector,
+                          "299+140")
+
+    def test_sin_dato_de_canales_gana_mas_abr(self):
         opciones = fr.opciones(info_con(
             formato("299", "mp4", 1080, "avc1.64002A", "none", None,
                     257619653, "1080p60", fps=60),
@@ -146,7 +159,26 @@ class TestSelectorYAudios(unittest.TestCase):
             formato("258", "m4a", None, "none", "mp4a.40.2", 387.9,
                     30767611, "high")))
         self.assertEqual(por_selector(opciones, "299")[0].selector,
-                         "299+258")
+                          "299+258")
+
+    def test_solo_audio_prefiere_menos_canales(self):
+        opciones = fr.opciones(info_con(
+            formato("140", "m4a", None, "none", "mp4a.40.2", 129.5,
+                    10271496, "medium", canales=2),
+            formato("258", "m4a", None, "none", "mp4a.40.2", 387.9,
+                    30767611, "high", canales=6)))
+        self.assertEqual([o.selector for o in opciones], ["140"])
+
+    def test_solo_con_mas_canales_igual_se_usa(self):
+        opciones = fr.opciones(info_con(
+            formato("299", "mp4", 1080, "avc1.64002A", "none", None,
+                    257619653, "1080p60", fps=60),
+            formato("258", "m4a", None, "none", "mp4a.40.2", 387.9,
+                    30767611, "high", canales=6)))
+        self.assertEqual(por_selector(opciones, "299")[0].selector,
+                          "299+258")
+        self.assertIn("258", [o.selector for o in opciones
+                              if "+" not in o.selector])
 
     def test_18_no_entra_si_hay_solo_video_en_su_par(self):
         opciones = fr.opciones(info_con(

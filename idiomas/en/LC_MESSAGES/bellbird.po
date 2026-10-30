@@ -4929,21 +4929,41 @@ msgid "No se pudo enviar"
 msgstr "Could not send"
 
 # | msgid "Vídeo WebM"
-#: bellbird/ui/gui_descargas.py:38
+#: bellbird/downloads/opciones_formato.py:15
+msgid "Vídeo original"
+msgstr "Original video"
+
+#: bellbird/downloads/opciones_formato.py:16
 msgid "Vídeo MP4"
 msgstr "MP4 video"
 
-#: bellbird/ui/gui_descargas.py:39
+#: bellbird/downloads/opciones_formato.py:17
 msgid "Vídeo WebM"
 msgstr "WebM video"
 
-#: bellbird/ui/gui_descargas.py:40
+#: bellbird/downloads/opciones_formato.py:18
+msgid "Audio original"
+msgstr "Original audio"
+
+#: bellbird/downloads/opciones_formato.py:19
 msgid "Audio MP3"
 msgstr "MP3 audio"
 
-#: bellbird/ui/gui_descargas.py:41
+#: bellbird/downloads/opciones_formato.py:20
 msgid "Audio M4A"
 msgstr "M4A audio"
+
+#: bellbird/downloads/opciones_formato.py:21
+msgid "Audio Opus"
+msgstr "Opus audio"
+
+#: bellbird/downloads/opciones_formato.py:22
+msgid "Audio FLAC"
+msgstr "FLAC audio"
+
+#: bellbird/downloads/opciones_formato.py:23
+msgid "Audio WAV"
+msgstr "WAV audio"
 
 #: bellbird/ui/gui_descargas.py:54
 #, python-brace-format
@@ -5031,9 +5051,21 @@ msgstr "&Bit rate (kbps):"
 msgid "Velocidad de bits"
 msgstr "Bit rate"
 
+#: bellbird/ui/gui_descargas.py:192
+msgid "Cali&dad:"
+msgstr "&Quality:"
+
+#: bellbird/ui/gui_descargas.py:195
+msgid "Calidad"
+msgstr "Quality"
+
+#: bellbird/downloads/opciones_formato.py:40
+msgid "Máxima"
+msgstr "Maximum"
+
 # | msgid "Carpeta &destino:"
-#: bellbird/ui/gui_descargas.py:218
-msgid "Carpeta de &destino:"
+#: bellbird/ui/gui_descargas.py:201
+msgid "Carpeta de d&estino:"
 msgstr "Destination f&older:"
 
 # | msgid "Carpeta destino"

@@ -12,6 +12,7 @@ from urllib.parse import parse_qs, urlparse
 
 from bellbird.core import paths
 from bellbird.downloads import ffmpeg_bin
+from bellbird.downloads.opciones_formato import argumentos_de_formato
 from bellbird.downloads.progreso_ytdlp import plantillas_progreso
 
 
@@ -27,23 +28,6 @@ def recortar_url_registro(url: str) -> str:
     if len(segmentos) >= 2 and segmentos[0] in ("shorts", "embed", "live"):
         return segmentos[1]
     return segmentos[-1] if segmentos else "sin identificador"
-
-
-def formato_a_ydl(formato: str, bitrate: int) -> str:
-    """Selector que se pasa a YoutubeDL como `format`.
-
-    mp4/webm piden el mejor stream de vídeo con esa extensión combinada con el
-    mejor audio compatible, y caen a un fallback genérico si no hay.
-    mp3/m4a piden solo el mejor audio y `descargar()` añade la conversión.
-    """
-    f = (formato or "").lower().strip()
-    if f == "mp4":
-        return "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
-    if f == "webm":
-        return "bestvideo[ext=webm]+bestaudio[ext=webm]/best[ext=webm]/best"
-    if f in ("mp3", "m4a"):
-        return "bestaudio/best"
-    return "best"
 
 
 def construir_outtmpl(opciones: dict, enumerar: bool) -> str:
@@ -67,17 +51,15 @@ def argumentos_descarga(url, opciones, enumerar, ffmpeg_location=None) -> list[s
     from bellbird.downloads.descargas import PREFIJO_RUTA_FINAL
     f = (opciones.get("formato") or "mp4").lower().strip()
     bitrate = int(opciones.get("bitrate") or 192)
+    resolucion = int(opciones.get("resolucion") or 0)
     # --print after_move: el nombre que llega por el progreso es el del
     # fragmento («….f140.m4a»); el definitivo solo se sabe tras unir o
     # convertir. --print implica --quiet, y --progress recupera el progreso.
     argumentos = ["--encoding", "utf-8", "--newline", "--no-warnings",
                   "--progress", *plantillas_progreso(),
                   "--print", f"after_move:{PREFIJO_RUTA_FINAL} %(filepath)s",
-                  "-f", formato_a_ydl(f, bitrate), "-o",
-                  construir_outtmpl(opciones, enumerar)]
-    if f in ("mp3", "m4a"):
-        argumentos.extend(["-x", "--audio-format", f,
-                           "--audio-quality", f"{bitrate}K"])
+                  *argumentos_de_formato(f, bitrate, resolucion),
+                  "-o", construir_outtmpl(opciones, enumerar)]
     if ffmpeg_location is None:
         ffmpeg_location = ffmpeg_bin.ruta_ffmpeg()
     if ffmpeg_location is not None:

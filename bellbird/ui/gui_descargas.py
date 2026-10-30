@@ -24,28 +24,17 @@ import wx
 from bellbird.core import diagnostico
 from bellbird.core import config as cfg
 from bellbird.core import paths
-from bellbird.core.idioma import N_, _
+from bellbird.core.idioma import _
 from bellbird.downloads.descargas import frase_aviso_descarga, gestor
 from bellbird.downloads import historial_descargas
+from bellbird.downloads.opciones_formato import (
+    BITRATES, FORMATOS, RESOLUCIONES, clase_de_calidad,
+    etiquetas_de_calidad)
 from bellbird.ui.descargas_listas import _ESTADOS_FINALES, PaginaDescargas
 from bellbird.ui.gui import anunciar, nombre_accesible, caja_de_grupo, _T, _tc
 from bellbird.voice import sound_player as _snd
 
 logger = diagnostico.obtener_logger(__name__)
-
-
-# Etiquetas legibles para el Choice de formato. mp3/m4a abren el bitrate.
-_FORMATOS_OPCIONES = [
-    (N_("Vídeo MP4"), "mp4"),
-    (N_("Vídeo WebM"),        "webm"),
-    (N_("Audio MP3"),         "mp3"),
-    (N_("Audio M4A"),         "m4a"),
-]
-_BITRATE_OPCIONES = [192, 256, 320]
-
-
-def _es_formato_audio(formato: str) -> bool:
-    return (formato or "").lower() in ("mp3", "m4a")
 
 
 def nombrar_selector_carpeta(selector) -> None:
@@ -145,6 +134,13 @@ class GestorDescargasDialog(wx.Dialog):
         self._alive = True
         self._opciones = cfg.obtener_opciones_descarga()
         self._gestor = gestor()
+        self._mem_resolucion = self._opciones.get("resolucion", 0)
+        if self._mem_resolucion not in RESOLUCIONES:
+            self._mem_resolucion = 0
+        self._mem_bitrate = self._opciones.get("bitrate", 192)
+        if self._mem_bitrate not in BITRATES:
+            self._mem_bitrate = 192
+        self._formato_visto = (self._opciones.get("formato") or "mp4")
         _suscribir_al_gestor()
         self._build_ui()
         self.Bind(wx.EVT_CLOSE, self._on_cerrar)
@@ -180,8 +176,8 @@ class GestorDescargasDialog(wx.Dialog):
         lbl_fmt = wx.StaticText(padre, label=_("&Formato:"), name="EtiquetaFormato")
         lbl_fmt.SetForegroundColour(_T.text)
         fila_fmt.Add(lbl_fmt, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
-        etiquetas = [_(et) for et, _sin_uso in _FORMATOS_OPCIONES]
-        valores = [v for _sin_uso, v in _FORMATOS_OPCIONES]
+        etiquetas = [_(et) for et, _sin_uso in FORMATOS]
+        valores = [v for _sin_uso, v in FORMATOS]
         self.cho_formato = wx.Choice(padre, choices=etiquetas, name=_("Formato"))
         _tc(self.cho_formato)
         actual = self._opciones.get("formato", "mp4")
@@ -191,23 +187,18 @@ class GestorDescargasDialog(wx.Dialog):
         fila_fmt.Add(self.cho_formato, 1, wx.EXPAND)
         box.Add(fila_fmt, 0, wx.EXPAND | wx.ALL, 6)
 
-        # Bitrate (solo se habilita si formato es audio).
-        fila_bit = wx.BoxSizer(wx.HORIZONTAL)
-        lbl_bit = wx.StaticText(padre, label=_("&Velocidad de bits (kbps):"), name="EtiquetaBitrate")
-        lbl_bit.SetForegroundColour(_T.text)
-        fila_bit.Add(lbl_bit, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
-        self.cho_bitrate = wx.Choice(padre,
-                                     choices=[str(b) for b in _BITRATE_OPCIONES],
-                                      name=_("Velocidad de bits"))
-        _tc(self.cho_bitrate)
-        try:    self.cho_bitrate.SetSelection(
-                    _BITRATE_OPCIONES.index(int(self._opciones.get("bitrate", 192))))
-        except ValueError: self.cho_bitrate.SetSelection(0)
-        fila_bit.Add(self.cho_bitrate, 1, wx.EXPAND)
-        box.Add(fila_bit, 0, wx.EXPAND | wx.ALL, 6)
+        # Calidad (lo que muestra depende del formato elegido).
+        fila_cal = wx.BoxSizer(wx.HORIZONTAL)
+        lbl_cal = wx.StaticText(padre, label=_("Cali&dad:"), name="EtiquetaCalidad")
+        lbl_cal.SetForegroundColour(_T.text)
+        fila_cal.Add(lbl_cal, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
+        self.cho_calidad = wx.Choice(padre, choices=[], name=_("Calidad"))
+        _tc(self.cho_calidad)
+        fila_cal.Add(self.cho_calidad, 1, wx.EXPAND)
+        box.Add(fila_cal, 0, wx.EXPAND | wx.ALL, 6)
 
         fila_carp = wx.BoxSizer(wx.HORIZONTAL)
-        lbl_carp = wx.StaticText(padre, label=_("Carpeta de &destino:"), name="EtiquetaCarpeta")
+        lbl_carp = wx.StaticText(padre, label=_("Carpeta de d&estino:"), name="EtiquetaCarpeta")
         lbl_carp.SetForegroundColour(_T.text)
         fila_carp.Add(lbl_carp, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
         self.dir_carpeta = wx.DirPickerCtrl(
@@ -225,7 +216,7 @@ class GestorDescargasDialog(wx.Dialog):
         self.chk_enumerar.SetValue(bool(self._opciones.get("enumerar", False)))
         box.Add(self.chk_enumerar, 0, wx.ALL, 6)
 
-        self._on_formato()   # ajusta habilitación del bitrate
+        self._on_formato()   # llena la calidad y ajusta su habilitación
         return box
 
     def _seccion_anadir(self, parent):
@@ -269,24 +260,49 @@ class GestorDescargasDialog(wx.Dialog):
 
     # ── Callbacks de UI ──────────────────────────────────────────────────────
 
-    def _on_formato(self, _event=None):
-        idx = self.cho_formato.GetSelection()
-        if idx < 0 or idx >= len(_FORMATOS_OPCIONES):
+    def _guardar_calidad_previa(self) -> None:
+        if getattr(self, "_formato_visto", None) is None:
             return
-        _sin_uso, valor = _FORMATOS_OPCIONES[idx]
-        es_audio = _es_formato_audio(valor)
-        self.cho_bitrate.Enable(es_audio)
-        # Si pasó de audio a vídeo, no escondemos el valor: el usuario lo
-        # verá gris. Si era vídeo y pasa a audio, ya está en 192/256/320.
+        clase = clase_de_calidad(self._formato_visto)
+        sel = self.cho_calidad.GetSelection()
+        if clase == "resolucion" and 0 <= sel < len(RESOLUCIONES):
+            self._mem_resolucion = RESOLUCIONES[sel]
+        elif clase == "bitrate" and 0 <= sel < len(BITRATES):
+            self._mem_bitrate = BITRATES[sel]
+
+    def _on_formato(self, _event=None):
+        self._guardar_calidad_previa()
+        idx = self.cho_formato.GetSelection()
+        if idx < 0 or idx >= len(FORMATOS):
+            return
+        valor = FORMATOS[idx][1]
+        self._formato_visto = valor
+        self.cho_calidad.Clear()
+        for etiqueta in etiquetas_de_calidad(valor):
+            self.cho_calidad.Append(etiqueta)
+        clase = clase_de_calidad(valor)
+        if clase == "resolucion":
+            try:    sel = RESOLUCIONES.index(self._mem_resolucion)
+            except ValueError: sel = 0
+        elif clase == "bitrate":
+            try:    sel = BITRATES.index(self._mem_bitrate)
+            except ValueError: sel = 0
+        else:
+            sel = -1
+        if sel >= 0:
+            self.cho_calidad.SetSelection(sel)
+        self.cho_calidad.Enable(clase != "")
 
     def _opciones_actuales(self) -> dict:
         idx = self.cho_formato.GetSelection()
-        formato = _FORMATOS_OPCIONES[idx][1] if 0 <= idx < len(_FORMATOS_OPCIONES) else "mp4"
-        try:    bitrate = _BITRATE_OPCIONES[self.cho_bitrate.GetSelection()]
-        except Exception: bitrate = 192
+        formato = FORMATOS[idx][1] if 0 <= idx < len(FORMATOS) else "mp4"
+        self._formato_visto = formato
+        self._guardar_calidad_previa()
         carpeta = self.dir_carpeta.GetPath() or str(paths.descargas_por_defecto())
         enumerar = bool(self.chk_enumerar.GetValue())
-        return {"formato": formato, "bitrate": bitrate, "carpeta": carpeta, "enumerar": enumerar}
+        return {"formato": formato, "bitrate": self._mem_bitrate,
+                "resolucion": self._mem_resolucion,
+                "carpeta": carpeta, "enumerar": enumerar}
 
     def _preparar_opciones(self) -> None:
         # Persistimos las opciones elegidas antes de encolar (así el Gestor

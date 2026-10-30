@@ -1333,7 +1333,7 @@ def escenario_descargas(app: Aplicacion, args, res: Resultado):
     juntos = " ".join(
         ((c.get("nombre") or "") + " " + (c.get("etiqueta") or ""))
         for c in controles).lower()
-    for esperado in ("formato", "velocidad de bits", "carpeta", "lista de descargas", "cerrar"):
+    for esperado in ("formato", "calidad", "carpeta", "lista de descargas", "cerrar"):
         if esperado not in juntos:
             res.fallo(f"descargas: no aparece nada llamado «{esperado}»")
 

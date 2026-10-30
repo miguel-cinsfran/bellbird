@@ -1,7 +1,9 @@
 """Pruebas de accesibilidad del selector y de la página única de descargas."""
 
+import tempfile
 import unittest
 import threading
+from pathlib import Path
 from unittest import mock
 
 from bellbird.downloads import descargas
@@ -76,18 +78,20 @@ class TestEliminarActiva(unittest.TestCase):
     def test_eliminar_activa_no_quita_avisa_y_suena(self):
         gestor = descargas.GestorDescargas(
             {"formato": "mp4", "bitrate": 192, "carpeta": "/tmp"})
-        al_cambiar = mock.Mock()
-        acciones = descargas_acciones.AccionesDescarga(
-            gestor, "ruta-falsa", lambda: None, al_cambiar)
-        with mock.patch.object(descargas_acciones, "anunciar") as anunciar, \
-                mock.patch.object(descargas_acciones._snd, "reproducir") as sonido:
-            for estado in ("descargando", "en_cola"):
-                fila = filas_descargas.Fila("k", estado, 0.0, "n", "",
-                                            "https://youtu.be/x", "", "", "", None)
-                acciones.eliminar(fila)
-        anunciar.assert_called_with("Cancela la descarga antes de eliminarla.")
-        sonido.assert_called_with("error")
-        al_cambiar.assert_not_called()
+        with tempfile.TemporaryDirectory() as tmp:
+            ruta = str(Path(tmp) / "historial.json")
+            al_cambiar = mock.Mock()
+            acciones = descargas_acciones.AccionesDescarga(
+                gestor, ruta, lambda: None, al_cambiar)
+            with mock.patch.object(descargas_acciones, "anunciar") as anunciar, \
+                    mock.patch.object(descargas_acciones._snd, "reproducir") as sonido:
+                for estado in ("descargando", "en_cola"):
+                    fila = filas_descargas.Fila("k", estado, 0.0, "n", "",
+                                                "https://youtu.be/x", "", "", "", None)
+                    acciones.eliminar(fila)
+            anunciar.assert_called_with("Cancela la descarga antes de eliminarla.")
+            sonido.assert_called_with("error")
+            al_cambiar.assert_not_called()
 
 
 class _DobleControl:
@@ -539,6 +543,46 @@ class TestPaginaUnica(unittest.TestCase):
             self.assertEqual(dialogo.txt_url.GetValue(), "")
             anunciar.assert_called_once_with("Agregado a la cola")
 
+    def test_cambiar_formato_llena_calidad_y_deshabilita(self):
+        dialogo = self._dialogo()
+        dialogo.cho_formato.SetSelection(7)
+        dialogo._on_formato()
+        self.assertFalse(dialogo.cho_calidad.IsEnabled())
+        self.assertEqual(dialogo.cho_calidad.GetCount(), 0)
+        dialogo.cho_formato.SetSelection(4)
+        dialogo._on_formato()
+        self.assertTrue(dialogo.cho_calidad.IsEnabled())
+        self.assertEqual(
+            [dialogo.cho_calidad.GetString(i)
+             for i in range(dialogo.cho_calidad.GetCount())],
+            ["128 kbps", "192 kbps", "256 kbps", "320 kbps"])
+        dialogo.cho_formato.SetSelection(1)
+        dialogo._on_formato()
+        self.assertTrue(dialogo.cho_calidad.IsEnabled())
+        self.assertEqual(
+            [dialogo.cho_calidad.GetString(i)
+             for i in range(dialogo.cho_calidad.GetCount())],
+            ["Máxima", "2160p", "1440p", "1080p", "720p", "480p", "360p"])
+
+    def test_volver_a_video_recupera_resolucion(self):
+        dialogo = self._dialogo()
+        dialogo.cho_formato.SetSelection(1)
+        dialogo._on_formato()
+        dialogo.cho_calidad.SetSelection(4)
+        dialogo.cho_formato.SetSelection(4)
+        dialogo._on_formato()
+        dialogo.cho_calidad.SetSelection(2)
+        dialogo.cho_formato.SetSelection(1)
+        dialogo._on_formato()
+        self.assertEqual(dialogo.cho_calidad.GetStringSelection(), "720p")
+        op = dialogo._opciones_actuales()
+        self.assertEqual(
+            (op["formato"], op["resolucion"], op["bitrate"]),
+            ("mp4", 720, 256))
+        for clave in ("formato", "bitrate", "resolucion", "carpeta",
+                      "enumerar"):
+            self.assertIn(clave, op)
+
 
 class TestSonidosDeDescarga(unittest.TestCase):
     """Cada aviso del gestor suena con su sonido propio. Sin ventanas."""
@@ -611,7 +655,10 @@ class TestPseudoVentana(unittest.TestCase):
         guardar_acc = mock.patch.object(descargas_acciones.historial_descargas, "guardar")
         with cargar, guardar, guardar_acc, con_pseudo():
             dialogo = gui_descargas.GestorDescargasDialog(None)
-            sin_marcar = textos_sin_marcar(dialogo, propios=("192", "256", "320"))
+            sin_marcar = textos_sin_marcar(
+                dialogo, propios=("2160p", "1440p", "1080p", "720p", "480p",
+                                  "360p", "128 kbps", "192 kbps", "256 kbps",
+                                  "320 kbps"))
         self.addCleanup(destruir, dialogo)
         self.addCleanup(setattr, gui_descargas, "_dialogo_activo", None)
         self.addCleanup(descargas.reiniciar_gestor)

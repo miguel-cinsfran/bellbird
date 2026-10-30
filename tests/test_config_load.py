@@ -832,6 +832,39 @@ class TestCargarConfiguracion(unittest.TestCase):
         self.assertEqual(op["bitrate"], 192)
         self.assertTrue(op["enumerar"])
 
+    def test_opciones_descarga_resolucion_ida_y_vuelta(self):
+        from bellbird.core import config
+        with redirigir_rutas(self._tmp.name):
+            (Path(self._tmp.name) / "config.ini").write_text(
+                config._CONFIG_FALLBACK, encoding="utf-8")
+            config.guardar_opciones_descarga(
+                {"formato": "mp4", "bitrate": 192, "resolucion": 720,
+                 "carpeta": "/x/y", "enumerar": False})
+            op = config.obtener_opciones_descarga()
+        self.assertEqual(op["resolucion"], 720)
+
+    def test_opciones_descarga_resolucion_invalida_cae_a_cero(self):
+        from bellbird.core import config
+        with redirigir_rutas(self._tmp.name):
+            (Path(self._tmp.name) / "config.ini").write_text(
+                config._CONFIG_FALLBACK, encoding="utf-8")
+            config.guardar_opciones_descarga(
+                {"formato": "mp4", "bitrate": 192, "resolucion": 999,
+                 "carpeta": "/x/y", "enumerar": False})
+            op = config.obtener_opciones_descarga()
+        self.assertEqual(op["resolucion"], 0)
+
+    def test_ini_viejo_con_mp3_se_conserva_sin_resolucion(self):
+        from bellbird.core import config
+        ruta = Path(self._tmp.name) / "config.ini"
+        contenido = "[descargas]\nformato = mp3\nbitrate = 320\nenumerar = false\n"
+        ruta.write_text(contenido, encoding="utf-8")
+        with redirigir_rutas(self._tmp.name):
+            op = config.obtener_opciones_descarga()
+        self.assertEqual((op["formato"], op["bitrate"], op["resolucion"]),
+                         ("mp3", 320, 0))
+        self.assertEqual(ruta.read_text(encoding="utf-8"), contenido)
+
 
     def test_carpeta_relativa_se_resuelve_contra_instalacion(self):
         from bellbird.core import config, paths

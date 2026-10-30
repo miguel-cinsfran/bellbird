@@ -6,11 +6,8 @@ NO se acopla con las 2 llamadas yt-dlp existentes en `main.obtener_info_video`
 ni en `reproductor._info_video`: este módulo hace sus PROPIAS llamadas a
 el programa independiente, en su propio hilo.
 
-Modos soportados:
-  - mp4  : bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best
-  - webm : bestvideo[ext=webm]+bestaudio[ext=webm]/best[ext=webm]/best
-  - mp3  : bestaudio/best + conversión a mp3
-  - m4a  : bestaudio/best + conversión a m4a
+Modos soportados: los nueve de `opciones_formato.FORMATOS`, con sus
+argumentos en `argumentos_ytdlp.argumentos_de_formato`.
 """
 from __future__ import annotations
 
@@ -33,7 +30,7 @@ from bellbird.downloads import ffmpeg_bin
 from bellbird.downloads import fila_descargas
 from bellbird.downloads import ytdlp_bin
 from bellbird.downloads.argumentos_ytdlp import (
-    argumentos_descarga, construir_outtmpl, formato_a_ydl, recortar_url_registro)
+    argumentos_descarga, construir_outtmpl, recortar_url_registro)
 from bellbird.downloads.motivo_error import motivo_de_error
 from bellbird.downloads.progreso_ytdlp import (
     INTERVALO_PROGRESO_S, PREFIJO_RUTA_FINAL, debe_emitir_progreso,

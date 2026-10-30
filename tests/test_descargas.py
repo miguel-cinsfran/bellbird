@@ -20,7 +20,6 @@ from bellbird.downloads.descargas import (
     construir_outtmpl,
     debe_emitir_progreso,
     descargar,
-    formato_a_ydl,
     frase_aviso_descarga,
     gestor,
     reiniciar_gestor,
@@ -59,16 +58,6 @@ class TestFraseAvisoDescarga(unittest.TestCase):
 
     def test_progreso_no_se_anuncia(self):
         self.assertEqual(frase_aviso_descarga("descargando", "", "archivo"), "")
-
-
-class TestFormatoAYdl(unittest.TestCase):
-    def test_mp4(self):
-        self.assertIn("bestvideo[ext=mp4]+bestaudio[ext=m4a]", formato_a_ydl("mp4", 192))
-    def test_webm(self): self.assertIn("bestvideo[ext=webm]", formato_a_ydl("webm", 256))
-    def test_mp3(self): self.assertEqual(formato_a_ydl("mp3", 192), "bestaudio/best")
-    def test_m4a(self): self.assertEqual(formato_a_ydl("m4a", 320), "bestaudio/best")
-    def test_desconocido(self): self.assertEqual(formato_a_ydl("xyz", 192), "best")
-    def test_mayusculas(self): self.assertIn("mp4", formato_a_ydl("MP4", 192))
 
 
 class TestConstruirOuttmpl(unittest.TestCase):
@@ -164,6 +153,15 @@ class TestArgumentosDescarga(unittest.TestCase):
         args = argumentos_descarga("https://example.com/v", self.opciones("mp4"), False)
         self.assertNotIn("-x", args); self.assertNotIn("--audio-format", args)
         self.assertNotIn("--audio-quality", args)
+    def test_pasa_resolucion_y_bitrate_a_la_linea(self):
+        args = argumentos_descarga(
+            "url", {"formato": "mp4", "bitrate": 192,
+                    "resolucion": 720, "carpeta": "/tmp"}, False)
+        self.assertTrue(any("res:720" in a for a in args), args)
+        args = argumentos_descarga(
+            "url", {"formato": "mp3", "bitrate": 320,
+                    "resolucion": 0, "carpeta": "/tmp"}, False)
+        self.assertIn("320K", args)
     def test_no_lleva_quiet(self):
         self.assertNotIn("--quiet", argumentos_descarga("https://example.com/v", self.opciones("mp4"), False))
     def test_url_al_final(self):

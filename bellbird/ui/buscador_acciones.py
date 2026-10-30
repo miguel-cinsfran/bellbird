@@ -79,6 +79,12 @@ def anunciar_agregados(cuantos: int) -> None:
         anunciar(_("Agregado a la cola"))
     elif cuantos > 1:
         anunciar(_("{cantidad} agregados a la cola").format(cantidad=cuantos))
+    else:
+        return
+    try:
+        _snd.reproducir("descarga_encolada")
+    except Exception as error:
+        logger.debug("sin sonido: %s", error)
 
 
 def reparto_para_agregar(resultados) -> tuple[list, list]:

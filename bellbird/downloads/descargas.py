@@ -234,14 +234,8 @@ class GestorDescargas:
             else:
                 ev.wait(0.2)
 
-    def _avisar_estado(self, it, estado, mensaje, estado_cb) -> None:
-        it.estado = estado
-        it.mensaje = mensaje
-        logger.info("descarga %s: estado %s", it.id, estado)
-        try:
-            estado_cb(it.id, estado, mensaje)
-        except Exception as exc:
-            logger.debug("estado_cb lanzó: %s", exc)
+    def _avisar_suscriptores(self, estado, mensaje, it) -> None:
+        # Avisa sin tocar el ítem, desde el hilo de descarga.
         nombre = it.nombre if it.nombre != it.url else ""
         with self._lock:
             suscriptores = list(self._suscriptores_fin)
@@ -250,6 +244,16 @@ class GestorDescargas:
                 suscriptor(estado, mensaje, nombre, it)
             except Exception as exc:
                 logger.warning("suscriptor de descarga lanzó: %s", exc)
+
+    def _avisar_estado(self, it, estado, mensaje, estado_cb) -> None:
+        it.estado = estado
+        it.mensaje = mensaje
+        logger.info("descarga %s: estado %s", it.id, estado)
+        try:
+            estado_cb(it.id, estado, mensaje)
+        except Exception as exc:
+            logger.debug("estado_cb lanzó: %s", exc)
+        self._avisar_suscriptores(estado, mensaje, it)
         if estado in ("completado", "parcial", "cancelado", "error"):
             logger.info("descarga %s terminó: %s", it.id, estado)
 
@@ -300,11 +304,14 @@ class GestorDescargas:
                 logger.debug("progreso_cb lanzó: %s", exc)
 
         def _cb_detalle(cambios: dict) -> None:
+            avisa = cambios.get("procesando") is True and not it.procesando and it.total <= 1
             if "ruta" in cambios:
                 it.rutas.append(cambios["ruta"])
             for clave in ("indice", "total", "procesando"):
                 if clave in cambios:
                     setattr(it, clave, cambios[clave])
+            if avisa:
+                self._avisar_suscriptores("procesando", "", it)
 
         def _run() -> None:
             # Doble red de seguridad: capturar lo que sea que se escape.

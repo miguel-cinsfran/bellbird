@@ -30,6 +30,9 @@ EVENTOS_NUEVOS = [
     "atajos_ocupados",
     "microfono_sin_senal",
     "directo_pausado", "directo_reanudado",
+    "busqueda_iniciada", "busqueda_resultados", "busqueda_sin_resultados",
+    "busqueda_fallida", "descarga_encolada", "descarga_procesando",
+    "cola_descargas_terminada", "descarga_parcial",
 ]
 
 # Tope de duración por evento: la espera de la IA lleva una figura melódica

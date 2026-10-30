@@ -39,6 +39,12 @@ EVENTOS = [
     "microfono_sin_senal",
     # Pausa del directo de TikTok y su vuelta: cada una con su sonido.
     "directo_pausado", "directo_reanudado",
+    # Búsqueda de descargas: pedido, con filas, vacía y con fallo.
+    "busqueda_iniciada", "busqueda_resultados", "busqueda_sin_resultados",
+    "busqueda_fallida",
+    # Cola de descargas: agregado, proceso, fin de la cola y lista parcial.
+    "descarga_encolada", "descarga_procesando", "cola_descargas_terminada",
+    "descarga_parcial",
 ]
 
 # Nombre llano de cada evento para la página Sonidos de Preferencias.
@@ -104,4 +110,12 @@ NOMBRES = {
     "microfono_sin_senal": "Micrófono sin señal",
     "directo_pausado": "Directo de TikTok en pausa",
     "directo_reanudado": "Directo de TikTok continúa",
+    "busqueda_iniciada": "Búsqueda en curso",
+    "busqueda_resultados": "Búsqueda con resultados",
+    "busqueda_sin_resultados": "Búsqueda sin resultados",
+    "busqueda_fallida": "Búsqueda fallida",
+    "descarga_encolada": "Descarga agregada a la cola",
+    "descarga_procesando": "Procesamiento de descarga",
+    "cola_descargas_terminada": "Cola de descargas terminada",
+    "descarga_parcial": "Descarga parcial",
 }

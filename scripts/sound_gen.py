@@ -27,7 +27,7 @@ THEMES_DIR = RAIZ / "sounds" / "themes"
 C4, D4, E4, F4, G4, A4, B4 = 261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88
 C5, D5, E5, F5, G5, A5, B5 = 523.25, 587.33, 659.25, 698.46, 783.99, 880.00, 987.77
 C6, E6 = 1046.50, 1318.51
-A3, F3, E3 = 220.00, 174.61, 164.81
+A3, F3, E3, B3 = 220.00, 174.61, 164.81, 246.94
 
 
 # ── Primitivas ────────────────────────────────────────────────────────────────
@@ -513,6 +513,67 @@ def gen_directo_reanudado():
     return _normalizar(_concat(baja, _silencio(0.03), alta), 0.5)
 
 
+# ── Búsqueda y cola de descargas ────────────────────────────────────────────
+# La búsqueda es una familia nueva en seno claro, distinta del triangular
+# con detune de las descargas. Dentro de cada familia el contorno dice el
+# resultado.
+
+def gen_busqueda_iniciada():
+    # Barrido corto ascendente: una pregunta.
+    barrido = _glide(E5, A5, 0.20, 0.30)
+    return _normalizar(_perc(barrido, 0.004, 0.16), 0.7)
+
+
+def gen_busqueda_resultados():
+    # Dos notas ascendentes con la segunda sostenida: "hay algo".
+    n1 = _perc(_seno(E5, 0.08, 0.32), 0.004, 0.07)
+    n2 = _perc(_seno(A5, 0.20, 0.34), 0.004, 0.16)
+    return _normalizar(_concat(n1, n2), 0.7)
+
+
+def gen_busqueda_sin_resultados():
+    # Una nota sola media que cae apenas al final: "no hay nada".
+    nota = _perc(_seno(A4, 0.22, 0.32), 0.005, 0.18)
+    caida = _perc(_glide(A4, G4, 0.10, 0.30), 0.005, 0.08)
+    return _normalizar(_concat(nota, caida), 0.68)
+
+
+def gen_busqueda_fallida():
+    # Dos notas graves descendentes: "no se pudo buscar".
+    n1 = _perc(_seno(D4, 0.12, 0.32), 0.005, 0.10)
+    n2 = _perc(_seno(B3, 0.20, 0.32), 0.005, 0.16)
+    return _normalizar(_concat(n1, n2), 0.72)
+
+
+def gen_descarga_encolada():
+    # Una nota corta con golpe: breve para no cansar al agregar muchas.
+    return _normalizar(_perc(_detune(A5, 0.16, 0.42), 0.003, 0.10), 0.7)
+
+
+def gen_descarga_procesando():
+    # Tres pulsos iguales en la misma nota: trabajo en curso.
+    pulso = _perc(_detune(E5, 0.07, 0.36), 0.003, 0.05)
+    return _normalizar(
+        _concat(pulso, _silencio(0.04), pulso, _silencio(0.04), pulso,
+                _silencio(0.02)), 0.7)
+
+
+def gen_cola_descargas_terminada():
+    # Arpegio ascendente de cuatro notas, más largo que descarga_completada.
+    notas = [_perc(_detune(f, d, 0.34), 0.003, t)
+             for f, d, t in ((C5, 0.07, 0.06), (E5, 0.07, 0.06),
+                             (G5, 0.07, 0.06), (C6, 0.24, 0.20))]
+    return _normalizar(_concat(*notas), 0.75)
+
+
+def gen_descarga_parcial():
+    # Sube y baja: ni bien ni mal, distinta de descarga_fallida.
+    subida = _perc(_detune(E5, 0.08, 0.36), 0.003, 0.06)
+    cima = _perc(_detune(G5, 0.08, 0.36), 0.003, 0.06)
+    bajada = _perc(_detune(E5, 0.14, 0.36), 0.003, 0.12)
+    return _normalizar(_concat(subida, cima, bajada), 0.7)
+
+
 # ── Tema "suave": senos cálidos con decaimiento tipo marimba/madera ───────────
 # Más redondo, bajo y mate que el tema por defecto: nada de aristas brillantes
 # ni regusto a videojuego. Mismo lenguaje de gestos (ascendente = abrir, etc.).
@@ -796,6 +857,64 @@ def s_directo_reanudado():
     return _normalizar(_concat(baja, _silencio(0.03), alta), 0.45)
 
 
+# ── Búsqueda y cola de descargas en el tema suave ───────────────────────────
+# Los mismos gestos: la búsqueda en seno claro como en el tema por defecto,
+# las descargas en madera cálida.
+
+def s_busqueda_iniciada():
+    # El mismo barrido ascendente en seno claro.
+    barrido = _glide(D5, A5, 0.22, 0.28)
+    return _normalizar(_perc(barrido, 0.005, 0.17), 0.62)
+
+
+def s_busqueda_resultados():
+    # Las mismas dos notas ascendentes, la segunda sostenida.
+    n1 = _perc(_seno(E5, 0.09, 0.30), 0.005, 0.07)
+    n2 = _perc(_seno(A5, 0.22, 0.30), 0.005, 0.17)
+    return _normalizar(_concat(n1, n2), 0.62)
+
+
+def s_busqueda_sin_resultados():
+    # La misma nota sola que cae apenas al final.
+    nota = _perc(_seno(A4, 0.24, 0.30), 0.006, 0.19)
+    caida = _perc(_glide(A4, G4, 0.11, 0.28), 0.006, 0.09)
+    return _normalizar(_concat(nota, caida), 0.6)
+
+
+def s_busqueda_fallida():
+    # Las mismas dos notas graves descendentes.
+    n1 = _perc(_seno(D4, 0.13, 0.30), 0.006, 0.11)
+    n2 = _perc(_seno(B3, 0.21, 0.30), 0.006, 0.17)
+    return _normalizar(_concat(n1, n2), 0.65)
+
+
+def s_descarga_encolada():
+    # La misma nota corta con golpe, en madera.
+    return _normalizar(_madera(A5, 0.16, 0.40, 0.10), 0.65)
+
+
+def s_descarga_procesando():
+    # Los mismos tres pulsos iguales, en madera.
+    pulso = _madera(E5, 0.07, 0.36, 0.05)
+    return _concat(pulso, _silencio(0.04), pulso, _silencio(0.04), pulso,
+                   _silencio(0.02))
+
+
+def s_cola_descargas_terminada():
+    # El mismo arpegio de cuatro notas, en madera.
+    return _seq(_madera(C5, 0.07, 0.34, 0.06),
+                _madera(E5, 0.07, 0.34, 0.06),
+                _madera(G5, 0.07, 0.36, 0.06),
+                _madera(C6, 0.26, 0.38, 0.20))
+
+
+def s_descarga_parcial():
+    # La misma subida y bajada, en madera.
+    return _seq(_madera(E5, 0.08, 0.36, 0.06),
+                _madera(G5, 0.08, 0.36, 0.06),
+                _madera(E5, 0.16, 0.36, 0.12))
+
+
 # ── Reemplazos del tema suave (encargo 174) ──────────────────────────────────
 # Generadores propios para los que eran copia de otro dentro del tema.
 # Cada uno conserva el gesto del evento con notas o duraciones distintas.
@@ -945,6 +1064,15 @@ TEMAS = {
         # Pausa del directo de TikTok y su vuelta.
         "directo_pausado.wav":         gen_directo_pausado,
         "directo_reanudado.wav":       gen_directo_reanudado,
+        # Búsqueda y cola de descargas.
+        "busqueda_iniciada.wav":       gen_busqueda_iniciada,
+        "busqueda_resultados.wav":     gen_busqueda_resultados,
+        "busqueda_sin_resultados.wav": gen_busqueda_sin_resultados,
+        "busqueda_fallida.wav":        gen_busqueda_fallida,
+        "descarga_encolada.wav":       gen_descarga_encolada,
+        "descarga_procesando.wav":     gen_descarga_procesando,
+        "cola_descargas_terminada.wav": gen_cola_descargas_terminada,
+        "descarga_parcial.wav":        gen_descarga_parcial,
     },
     "suave": {
         "app_inicio.wav":    s_app_inicio,
@@ -1017,6 +1145,15 @@ TEMAS = {
         # Pausa del directo de TikTok y su vuelta.
         "directo_pausado.wav":         s_directo_pausado,
         "directo_reanudado.wav":       s_directo_reanudado,
+        # Búsqueda y cola de descargas.
+        "busqueda_iniciada.wav":       s_busqueda_iniciada,
+        "busqueda_resultados.wav":     s_busqueda_resultados,
+        "busqueda_sin_resultados.wav": s_busqueda_sin_resultados,
+        "busqueda_fallida.wav":        s_busqueda_fallida,
+        "descarga_encolada.wav":       s_descarga_encolada,
+        "descarga_procesando.wav":     s_descarga_procesando,
+        "cola_descargas_terminada.wav": s_cola_descargas_terminada,
+        "descarga_parcial.wav":        s_descarga_parcial,
     },
 }
 

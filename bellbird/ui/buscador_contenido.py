@@ -11,7 +11,6 @@ import time
 
 import wx
 
-from bellbird.core import diagnostico
 from bellbird.core.idioma import _
 from bellbird.downloads.busqueda_youtube import contenido
 from bellbird.downloads.textos_busqueda import (
@@ -19,9 +18,6 @@ from bellbird.downloads.textos_busqueda import (
 from bellbird.ui import buscador_tandas
 from bellbird.ui.buscador_tandas import anunciar_tanda
 from bellbird.ui.accesibilidad import anunciar
-from bellbird.voice import sound_player as _snd
-
-logger = diagnostico.obtener_logger(__name__)
 
 
 def agregar_filas(lista, nuevos) -> None:
@@ -43,13 +39,6 @@ def enfocar_fila(lista, indice) -> None:
         lista.EnsureVisible(indice)
     else:
         lista.SetFocus()
-
-
-def _sonar_error() -> None:
-    try:
-        _snd.reproducir("error")
-    except Exception as error:
-        logger.debug("sin sonido de error: %s", error)
 
 
 class VistaContenido:
@@ -97,18 +86,20 @@ class VistaContenido:
         pagina.btn_todo.Show(not es_canal)
         pagina.Layout()
         self._al_sincronizar([], [], False)
-        self._tandas.pedir(
-            lambda inicio, cantidad: contenido(self._url, inicio, cantidad),
-            self._leer_cantidad(), self._al_tanda, nombre="ContenidoLista")
+        buscador_tandas.sonar("busqueda_iniciada")
         anunciar(_("Buscando"))
+        self._pedir(mas=False)
 
     def mas(self) -> None:
         """Trae la tanda siguiente del contenido."""
         if self._activa:
-            self._tandas.pedir(
-                lambda inicio, cantidad: contenido(self._url, inicio, cantidad),
-                self._leer_cantidad(), self._al_tanda, mas=True,
-                nombre="ContenidoLista")
+            self._pedir(mas=True)
+
+    def _pedir(self, mas: bool) -> None:
+        self._tandas.pedir(
+            lambda inicio, cantidad: contenido(self._url, inicio, cantidad),
+            self._leer_cantidad(), self._al_tanda, mas=mas,
+            nombre="ContenidoLista")
 
     def volver(self, _event=None):
         """Sale de la vista y reconstruye lo guardado."""
@@ -133,7 +124,7 @@ class VistaContenido:
             return
         if respuesta.error:
             pagina.txt_detalles.SetValue(respuesta.error)
-            _sonar_error()
+            buscador_tandas.sonar("busqueda_fallida")
             anunciar(respuesta.error)
             self._al_restaurar(self._cerrar_sin_reconstruir())
             if foco_en_mas:
@@ -159,15 +150,21 @@ class VistaContenido:
         self._titulo, self._total = respuesta.titulo, respuesta.total
         self._al_sincronizar(self._tandas.acumulado, list(nuevos), False)
         enfocar_fila(pagina.lista, 0)
+        if not nuevos:
+            buscador_tandas.sonar("busqueda_sin_resultados")
+            anunciar(_("Sin resultados"))
+            return
         if self._total:
             anunciar(_("{titulo}: {total} vídeos").format(
                 titulo=self._titulo, total=self._total))
         elif self._titulo:
             anunciar(self._titulo)
+        buscador_tandas.sonar("busqueda_resultados")
 
     def _volver_mas(self, nuevos, foco_en_mas) -> None:
         pagina = self._pagina
         if not nuevos:
+            buscador_tandas.sonar("busqueda_sin_resultados")
             anunciar(_("No hay más resultados"))
             if foco_en_mas:
                 pagina.lista.SetFocus()
@@ -176,4 +173,5 @@ class VistaContenido:
         enfocar_fila(pagina.lista, len(self._tandas.acumulado) - len(nuevos))
         if foco_en_mas:
             pagina.lista.SetFocus()
+        buscador_tandas.sonar("busqueda_resultados")
         anunciar_tanda(len(nuevos), True)

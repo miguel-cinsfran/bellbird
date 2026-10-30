@@ -425,7 +425,7 @@ class TestPaginaUnica(unittest.TestCase):
         dialogo = self._dialogo()
         pagina = dialogo.pagina_buscador
         with mock.patch.object(descargas_buscador, "anunciar") as anunciar, \
-                mock.patch.object(descargas_buscador._snd, "reproducir") as sonido, \
+                mock.patch.object(buscador_tandas._snd, "reproducir") as sonido, \
                 mock.patch.object(descargas_buscador.wx, "MessageBox",
                                    side_effect=AssertionError("modal")):
             pagina.campo.SetValue("")
@@ -706,7 +706,7 @@ class TestBuscador(unittest.TestCase):
         buscado = busco.start()
         self.addCleanup(busco.stop)
         hilo = mock.patch.object(
-            descargas_buscador.diagnostico, "crear_hilo",
+            buscador_tandas.diagnostico, "crear_hilo",
             side_effect=lambda destino, nombre, args=(), **kw:
             _CorreYa(destino, args))
         hilo.start()
@@ -722,7 +722,7 @@ class TestBuscador(unittest.TestCase):
         anunciar_tanda = mock.patch.object(buscador_tandas, "anunciar")
         anunciar_tanda.start()
         self.addCleanup(anunciar_tanda.stop)
-        sonido = mock.patch.object(descargas_buscador._snd, "reproducir")
+        sonido = mock.patch.object(buscador_tandas._snd, "reproducir")
         sonido.start()
         self.addCleanup(sonido.stop)
         return buscado
@@ -799,7 +799,7 @@ class TestBuscador(unittest.TestCase):
         pagina._on_buscar(None)
         buscar.assert_not_called()
         self.assertIn("Escribe una búsqueda o un enlace.", self._dichos())
-        descargas_buscador._snd.reproducir.assert_called_once_with("error")
+        buscador_tandas._snd.reproducir.assert_called_once_with("error")
 
     def test_enter_en_campo_busca(self):
         buscar = self._con_busqueda(_respuesta_busqueda([]))
@@ -898,8 +898,63 @@ class TestBuscador(unittest.TestCase):
         pagina._on_buscar(None)
         self.assertEqual(pagina.txt_detalles.GetValue(), "Falla la red")
         self.assertIn("Falla la red", self._dichos())
-        descargas_buscador._snd.reproducir.assert_called_with("error")
+        buscador_tandas._snd.reproducir.assert_called_with("busqueda_fallida")
         self.assertFalse(pagina.btn_mas.IsEnabled())
+
+    def _sonidos(self):
+        return [llamada.args[0]
+                for llamada in
+                buscador_tandas._snd.reproducir.call_args_list]
+
+    def test_buscar_suena_iniciada_y_resultados(self):
+        self._con_busqueda(_respuesta_busqueda(
+            [_resultado_busqueda("a"), _resultado_busqueda("b")]))
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_buscador
+        pagina.campo.SetValue("cumbia")
+        pagina._on_buscar(None)
+        self.assertEqual(
+            self._sonidos(), ["busqueda_iniciada", "busqueda_resultados"])
+
+    def test_mostrar_mas_suena_resultados_sin_repetir_iniciada(self):
+        primera = _respuesta_busqueda([_resultado_busqueda("a")], hay_mas=True)
+        segunda = _respuesta_busqueda([_resultado_busqueda("b")])
+        buscar = self._con_busqueda(primera)
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_buscador
+        pagina.campo.SetValue("cumbia")
+        pagina._on_buscar(None)
+        buscar.return_value = segunda
+        pagina._on_mas(None)
+        self.assertEqual(
+            self._sonidos(),
+            ["busqueda_iniciada", "busqueda_resultados",
+             "busqueda_resultados"])
+
+    def test_sin_resultados_suena(self):
+        self._con_busqueda(_respuesta_busqueda([]))
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_buscador
+        pagina.campo.SetValue("zzz sin nada")
+        pagina._on_buscar(None)
+        self.assertEqual(
+            self._sonidos(),
+            ["busqueda_iniciada", "busqueda_sin_resultados"])
+
+    def test_mas_sin_nada_nuevo_suena_sin_resultados(self):
+        primera = _respuesta_busqueda([_resultado_busqueda("a")], hay_mas=True)
+        segunda = _respuesta_busqueda([_resultado_busqueda("a")], hay_mas=True)
+        buscar = self._con_busqueda(primera)
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_buscador
+        pagina.campo.SetValue("cumbia")
+        pagina._on_buscar(None)
+        buscar.return_value = segunda
+        pagina._on_mas(None)
+        self.assertEqual(
+            self._sonidos(),
+            ["busqueda_iniciada", "busqueda_resultados",
+             "busqueda_sin_resultados"])
 
     def test_cambiar_orden_no_busca_y_conserva_seleccion(self):
         items = [
@@ -1009,6 +1064,7 @@ class TestBuscador(unittest.TestCase):
         pagina._on_buscar(None)
         for i in range(4):
             pagina.lista.Select(i)
+        buscador_tandas._snd.reproducir.reset_mock()
         with mock.patch.object(pagina, "_agregar_urls",
                                 return_value=2) as agregar:
             pagina._on_agregar(None)
@@ -1019,7 +1075,7 @@ class TestBuscador(unittest.TestCase):
         self.assertIn("Un canal no se puede agregar a la cola.", dichos)
         self.assertIn("Un directo en curso no se puede descargar.", dichos)
         self.assertEqual(
-            descargas_buscador._snd.reproducir.call_count, 2)
+            buscador_tandas._snd.reproducir.call_count, 2)
 
     def test_agregar_programado_se_rechaza(self):
         self._con_busqueda(_respuesta_busqueda(
@@ -1029,11 +1085,12 @@ class TestBuscador(unittest.TestCase):
         pagina.campo.SetValue("cumbia")
         pagina._on_buscar(None)
         pagina.lista.Select(0)
+        buscador_tandas._snd.reproducir.reset_mock()
         with mock.patch.object(pagina, "_agregar_urls") as agregar:
             pagina._on_agregar(None)
         agregar.assert_not_called()
         self.assertIn("Este directo todavía no empezó.", self._dichos())
-        descargas_buscador._snd.reproducir.assert_called_once_with("error")
+        buscador_tandas._snd.reproducir.assert_called_once_with("error")
 
     def test_agregar_sin_seleccion_avisa(self):
         self._con_busqueda(_respuesta_busqueda([_resultado_busqueda("a")]))
@@ -1042,11 +1099,12 @@ class TestBuscador(unittest.TestCase):
         pagina.campo.SetValue("cumbia")
         pagina._on_buscar(None)
         pagina.lista.Select(pagina.lista.GetFirstSelected(), False)
+        buscador_tandas._snd.reproducir.reset_mock()
         with mock.patch.object(pagina, "_agregar_urls") as agregar:
             pagina._on_agregar(None)
         agregar.assert_not_called()
         self.assertIn("Selecciona un resultado.", self._dichos())
-        descargas_buscador._snd.reproducir.assert_called_once_with("error")
+        buscador_tandas._snd.reproducir.assert_called_once_with("error")
 
     def test_orden_se_aplica_al_llegar(self):
         items = [
@@ -1228,7 +1286,7 @@ class TestMenuYVistaBuscador(unittest.TestCase):
         busco.start()
         self.addCleanup(busco.stop)
         hilo = mock.patch.object(
-            descargas_buscador.diagnostico, "crear_hilo",
+            buscador_tandas.diagnostico, "crear_hilo",
             side_effect=lambda destino, nombre, args=(), **kw:
             _CorreYa(destino, args))
         hilo.start()
@@ -1244,7 +1302,7 @@ class TestMenuYVistaBuscador(unittest.TestCase):
         anunciar_tanda = mock.patch.object(buscador_tandas, "anunciar")
         anunciar_tanda.start()
         self.addCleanup(anunciar_tanda.stop)
-        sonido = mock.patch.object(descargas_buscador._snd, "reproducir")
+        sonido = mock.patch.object(buscador_tandas._snd, "reproducir")
         sonido.start()
         self.addCleanup(sonido.stop)
 
@@ -1422,6 +1480,69 @@ class TestMenuYVistaBuscador(unittest.TestCase):
         for dicho in dichos:
             self.assertNotIn("0 vídeos", dicho)
         dialogo.Hide()
+
+    def _sonidos(self, sonido):
+        return [llamada.args[0] for llamada in sonido.call_args_list]
+
+    def test_vista_suena_iniciada_y_resultados(self):
+        items = [_resultado_busqueda("v"), _resultado_lista()]
+        self._buscar(items)
+        dialogo = self._dialogo()
+        with mock.patch.object(buscador_tandas._snd,
+                               "reproducir") as sonido, \
+                mock.patch.object(buscador_contenido, "anunciar"):
+            pagina = self._pagina_buscada(dialogo, items)
+            with mock.patch.object(buscador_contenido, "contenido",
+                                    return_value=_respuesta_contenido()):
+                self._seleccionar_solo(pagina, 1)
+                pagina._on_activar(None)
+        self.assertEqual(
+            self._sonidos(sonido),
+            ["busqueda_iniciada", "busqueda_resultados",
+             "busqueda_iniciada", "busqueda_resultados"])
+
+    def test_vista_con_error_suena_fallida(self):
+        items = [_resultado_busqueda("v"), _resultado_lista()]
+        self._buscar(items)
+        dialogo = self._dialogo()
+        with mock.patch.object(buscador_tandas._snd,
+                               "reproducir") as sonido, \
+                mock.patch.object(buscador_contenido, "anunciar"):
+            pagina = self._pagina_buscada(dialogo, items)
+            with mock.patch.object(
+                    buscador_contenido, "contenido",
+                    return_value=_respuesta_busqueda(
+                        [], error="Falla la red")):
+                self._seleccionar_solo(pagina, 1)
+                pagina._on_activar(None)
+        self.assertEqual(
+            self._sonidos(sonido),
+            ["busqueda_iniciada", "busqueda_resultados",
+             "busqueda_iniciada", "busqueda_fallida"])
+
+    def test_vista_vacia_anuncia_sin_resultados(self):
+        items = [_resultado_lista()]
+        self._buscar(items)
+        dialogo = self._dialogo()
+        vacia = busqueda_youtube.RespuestaBusqueda(
+            [], "", False, "Una lista", 0)
+        with mock.patch.object(buscador_tandas._snd,
+                               "reproducir") as sonido, \
+                mock.patch.object(buscador_contenido, "contenido",
+                                   return_value=vacia), \
+                mock.patch.object(buscador_contenido,
+                                   "anunciar") as anunciar_vista:
+            pagina = self._pagina_buscada(dialogo, items)
+            self._seleccionar_solo(pagina, 0)
+            pagina._on_activar(None)
+        dichos = [llamada.args[0]
+                  for llamada in anunciar_vista.call_args_list]
+        self.assertIn("Sin resultados", dichos)
+        for dicho in dichos:
+            self.assertNotIn("0 vídeos", dicho)
+        self.assertEqual(
+            self._sonidos(sonido)[-2:],
+            ["busqueda_iniciada", "busqueda_sin_resultados"])
 
     def test_volver_con_boton_recupera_la_lista(self):
         items = [_resultado_busqueda("v"), _resultado_lista()]
@@ -1652,12 +1773,13 @@ class TestSonidosDeDescarga(unittest.TestCase):
     def setUp(self):
         gui_descargas._registrados.clear()
         gui_descargas._dialogo_activo = None
+        gui_descargas._finales_seguidos = 0
         self._n = 0
         for parche in (
                 mock.patch.object(gui_descargas.historial_descargas,
-                                  "cargar", return_value=[]),
+                                   "cargar", return_value=[]),
                 mock.patch.object(gui_descargas.historial_descargas,
-                                  "guardar"),
+                                   "guardar"),
                 mock.patch.object(gui_descargas, "anunciar")):
             parche.start()
             self.addCleanup(parche.stop)
@@ -1668,6 +1790,7 @@ class TestSonidosDeDescarga(unittest.TestCase):
     def tearDown(self):
         gui_descargas._registrados.clear()
         gui_descargas._dialogo_activo = None
+        gui_descargas._finales_seguidos = 0
 
     def _item(self):
         self._n += 1
@@ -1677,7 +1800,7 @@ class TestSonidosDeDescarga(unittest.TestCase):
 
     def test_cada_fin_suena_con_su_sonido(self):
         casos = [("completado", "", "descarga_completada"),
-                 ("parcial", "1 de 2 vídeos", "descarga_fallida"),
+                 ("parcial", "1 de 2 vídeos", "descarga_parcial"),
                  ("error", "sin espacio", "descarga_fallida"),
                  ("cancelado", "", "descarga_cancelada")]
         for estado, mensaje, esperado in casos:
@@ -1702,6 +1825,177 @@ class TestSonidosDeDescarga(unittest.TestCase):
         gui_descargas._fin_descarga_en_gui("descargando", "", "x", item)
         self._sonido.assert_called_once_with("descarga_iniciada")
         self.assertNotIn(item.id, gui_descargas._registrados)
+
+    def test_procesando_suena_sin_anunciar_ni_registrar(self):
+        item = self._item()
+        antes = gui_descargas._finales_seguidos
+        with mock.patch.object(gui_descargas, "anunciar") as anunciar:
+            gui_descargas._fin_descarga_en_gui(
+                "procesando", "", item.nombre, item)
+        self._sonido.assert_called_once_with("descarga_procesando")
+        anunciar.assert_not_called()
+        self.assertNotIn(item.id, gui_descargas._registrados)
+        self.assertEqual(gui_descargas._finales_seguidos, antes)
+
+
+class TestAnunciarAgregados(unittest.TestCase):
+    """Cada agregado a la cola suena con su sonido propio. Sin ventanas."""
+
+    def test_sin_entradas_no_suena_ni_anuncia(self):
+        with mock.patch.object(buscador_acciones._snd,
+                               "reproducir") as sonido, \
+                mock.patch.object(buscador_acciones,
+                                   "anunciar") as anunciar:
+            buscador_acciones.anunciar_agregados(0)
+        sonido.assert_not_called()
+        anunciar.assert_not_called()
+
+    def test_uno_suena_encolada(self):
+        with mock.patch.object(buscador_acciones._snd,
+                               "reproducir") as sonido, \
+                mock.patch.object(buscador_acciones,
+                                   "anunciar") as anunciar:
+            buscador_acciones.anunciar_agregados(1)
+        anunciar.assert_called_once_with("Agregado a la cola")
+        sonido.assert_called_once_with("descarga_encolada")
+
+    def test_varios_suenan_encolada(self):
+        with mock.patch.object(buscador_acciones._snd,
+                               "reproducir") as sonido, \
+                mock.patch.object(buscador_acciones,
+                                   "anunciar") as anunciar:
+            buscador_acciones.anunciar_agregados(3)
+        anunciar.assert_called_once_with("3 agregados a la cola")
+        sonido.assert_called_once_with("descarga_encolada")
+
+
+class TestFinDeCola(unittest.TestCase):
+    """El fin de la cola suena y se anuncia una sola vez. Sin ventanas."""
+
+    def setUp(self):
+        gui_descargas._registrados.clear()
+        gui_descargas._dialogo_activo = None
+        gui_descargas._finales_seguidos = 0
+        self._n = 0
+        for parche in (
+                mock.patch.object(gui_descargas.historial_descargas,
+                                   "cargar", return_value=[]),
+                mock.patch.object(gui_descargas.historial_descargas,
+                                   "guardar")):
+            parche.start()
+            self.addCleanup(parche.stop)
+        parche_sonido = mock.patch.object(gui_descargas._snd, "reproducir")
+        self._sonido = parche_sonido.start()
+        self.addCleanup(parche_sonido.stop)
+        parche_anunciar = mock.patch.object(gui_descargas, "anunciar")
+        self._anunciar = parche_anunciar.start()
+        self.addCleanup(parche_anunciar.stop)
+
+    def tearDown(self):
+        gui_descargas._registrados.clear()
+        gui_descargas._dialogo_activo = None
+        gui_descargas._finales_seguidos = 0
+
+    def _item(self, nombre, estado="descargando"):
+        self._n += 1
+        return descargas.ItemDescarga(
+            f"cola-{self._n}",
+            f"https://www.youtube.com/watch?v=cola{self._n}",
+            "video", estado=estado, nombre=nombre, carpeta="C:/Descargas")
+
+    def _con_cola(self, items):
+        parche = mock.patch.object(gui_descargas, "gestor")
+        gestor_mock = parche.start()
+        self.addCleanup(parche.stop)
+        gestor_mock.return_value.lista.return_value = items
+
+    def test_cola_de_dos_con_ultimo_completado_suena_cola_y_anuncia_una_vez(
+            self):
+        primero = self._item("uno.mp4", estado="completado")
+        segundo = self._item("dos.mp4", estado="descargando")
+        self._con_cola([primero, segundo])
+        gui_descargas._fin_descarga_en_gui(
+            "completado", "", primero.nombre, primero)
+        self._sonido.assert_called_once_with("descarga_completada")
+        self._anunciar.assert_called_once_with(
+            "Descarga completada: uno.mp4")
+        self._sonido.reset_mock()
+        self._anunciar.reset_mock()
+        segundo.estado = "completado"
+        gui_descargas._fin_descarga_en_gui(
+            "completado", "", segundo.nombre, segundo)
+        self._sonido.assert_called_once_with("cola_descargas_terminada")
+        self._anunciar.assert_called_once_with(
+            "Descarga completada: dos.mp4. Cola de descargas terminada")
+        self.assertEqual(gui_descargas._finales_seguidos, 0)
+
+    def test_cola_de_dos_con_error_final_suena_fallo_y_anuncia_cola(self):
+        primero = self._item("uno.mp4", estado="completado")
+        segundo = self._item("dos.mp4", estado="descargando")
+        self._con_cola([primero, segundo])
+        gui_descargas._fin_descarga_en_gui(
+            "completado", "", primero.nombre, primero)
+        segundo.estado = "error"
+        self._sonido.reset_mock()
+        self._anunciar.reset_mock()
+        gui_descargas._fin_descarga_en_gui(
+            "error", "sin espacio", segundo.nombre, segundo)
+        self._sonido.assert_called_once_with("descarga_fallida")
+        self._anunciar.assert_called_once_with(
+            "Error en la descarga: sin espacio. Cola de descargas terminada")
+        self.assertEqual(gui_descargas._finales_seguidos, 0)
+
+    def test_una_sola_descarga_no_nombra_la_cola(self):
+        unico = self._item("uno.mp4", estado="completado")
+        self._con_cola([unico])
+        gui_descargas._fin_descarga_en_gui(
+            "completado", "", unico.nombre, unico)
+        self._sonido.assert_called_once_with("descarga_completada")
+        self._anunciar.assert_called_once_with(
+            "Descarga completada: uno.mp4")
+
+    def test_dos_descargas_separadas_no_nombran_la_cola(self):
+        for nombre in ("uno.mp4", "dos.mp4"):
+            unico = self._item(nombre, estado="completado")
+            self._con_cola([unico])
+            self._sonido.reset_mock()
+            self._anunciar.reset_mock()
+            gui_descargas._fin_descarga_en_gui(
+                "completado", "", unico.nombre, unico)
+            with self.subTest(descarga=nombre):
+                self._sonido.assert_called_once_with("descarga_completada")
+                self._anunciar.assert_called_once_with(
+                    f"Descarga completada: {nombre}")
+        self.assertEqual(gui_descargas._finales_seguidos, 0)
+
+    def test_dos_colas_seguidas_suenan_cola_cada_vez(self):
+        for nombres in (("uno.mp4", "dos.mp4"), ("tres.mp4", "cuatro.mp4")):
+            primero = self._item(nombres[0], estado="completado")
+            segundo = self._item(nombres[1], estado="descargando")
+            self._con_cola([primero, segundo])
+            gui_descargas._fin_descarga_en_gui(
+                "completado", "", primero.nombre, primero)
+            segundo.estado = "completado"
+            self._sonido.reset_mock()
+            self._anunciar.reset_mock()
+            gui_descargas._fin_descarga_en_gui(
+                "completado", "", segundo.nombre, segundo)
+            with self.subTest(cola=nombres):
+                self._sonido.assert_called_once_with(
+                    "cola_descargas_terminada")
+                self.assertIn(
+                    "Cola de descargas terminada",
+                    self._anunciar.call_args.args[0])
+        self.assertEqual(gui_descargas._finales_seguidos, 0)
+        solo = self._item("sola.mp4", estado="completado")
+        self._con_cola([solo])
+        self._sonido.reset_mock()
+        self._anunciar.reset_mock()
+        gui_descargas._fin_descarga_en_gui(
+            "completado", "", solo.nombre, solo)
+        self._sonido.assert_called_once_with("descarga_completada")
+        self._anunciar.assert_called_once_with(
+            "Descarga completada: sola.mp4")
 
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
@@ -1763,7 +2057,7 @@ class TestPseudoAvisos(unittest.TestCase):
     def test_avisos_y_cuadros_propios_salen_marcados(self):
         dialogo = self._dialogo()
         with con_pseudo(), mock.patch.object(descargas_buscador, "anunciar") as anunciar, \
-                mock.patch.object(descargas_buscador._snd, "reproducir"):
+                mock.patch.object(buscador_tandas._snd, "reproducir"):
             dialogo.pagina_buscador.campo.SetValue("")
             dialogo.pagina_buscador._on_buscar(None)
         self.assertTrue(anunciar.call_args.args[0].startswith("[¡"))

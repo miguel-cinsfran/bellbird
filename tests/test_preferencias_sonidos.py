@@ -46,9 +46,9 @@ class TestPaginaSonidos(unittest.TestCase):
         return pagina
 
     def test_lista_con_59_filas_marcadas(self):
-        self.assertEqual(self.pagina._lista.GetItemCount(), 59)
+        self.assertEqual(self.pagina._lista.GetItemCount(), 67)
         self.assertEqual(self.pagina._lista.GetItemCount(), len(EVENTOS))
-        for indice in range(59):
+        for indice in range(67):
             self.assertTrue(self.pagina._lista.IsItemChecked(indice))
 
     def test_destildar_y_guardar_escribe_la_linea_vacia_y_recarga(self):

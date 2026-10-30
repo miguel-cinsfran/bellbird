@@ -12,6 +12,16 @@ import wx
 from bellbird.core import diagnostico
 from bellbird.core.idioma import _
 from bellbird.ui.accesibilidad import anunciar
+from bellbird.voice import sound_player as _snd
+
+logger = diagnostico.obtener_logger(__name__)
+
+
+def sonar(evento: str) -> None:
+    try:
+        _snd.reproducir(evento)
+    except Exception as error:
+        logger.debug("sin sonido de %s: %s", evento, error)
 
 
 def anunciar_tanda(cuantos: int, mas: bool) -> None:

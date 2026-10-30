@@ -53,10 +53,18 @@ def nombrar_selector_carpeta(selector) -> None:
 # Cada fin de descarga avisa con su sonido propio.
 _SONIDO_POR_FIN = {
     "completado": "descarga_completada",
-    "parcial": "descarga_fallida",
+    "parcial": "descarga_parcial",
     "error": "descarga_fallida",
     "cancelado": "descarga_cancelada",
 }
+# Lo que suena mientras la descarga sigue en curso.
+_SONIDO_EN_CURSO = {
+    "descargando": "descarga_iniciada",
+    "procesando": "descarga_procesando",
+}
+# Fines seguidos sin que la cola termine: con dos o más y la cola
+# terminada, el aviso nombra la cola y el contador vuelve a 0.
+_finales_seguidos = 0
 # Cada 500 ms el diálogo abierto vuelca el estado del gestor a sus filas.
 INTERVALO_REFRESCO_MS = 500
 
@@ -119,17 +127,27 @@ def registrar_historial(item, estado: str, ruta=None) -> dict | None:
 
 def _fin_descarga_en_gui(estado: str, mensaje: str, nombre: str, item) -> None:
     """Parte del aviso de fin que toca wx: corre en el hilo de la GUI."""
-    if estado == "descargando":
+    global _finales_seguidos
+    if estado in ("descargando", "procesando"):
         try:
-            _snd.reproducir("descarga_iniciada")
+            _snd.reproducir(_SONIDO_EN_CURSO[estado])
         except Exception as error:
-            logger.debug("no se pudo reproducir el inicio de descarga: %s", error)
+            logger.debug("no se pudo reproducir el aviso en curso: %s", error)
         return
     frase = frase_aviso_descarga(estado, mensaje, nombre)
     if not frase:
         return
+    sonido = _SONIDO_POR_FIN.get(estado, "descarga_cancelada")
+    if estado in _ESTADOS_FINALES:
+        _finales_seguidos += 1
+        if filas_descargas.cola_terminada(gestor().lista()):
+            if _finales_seguidos >= 2:
+                if estado == "completado":
+                    sonido = "cola_descargas_terminada"
+                frase = _("{frase}. Cola de descargas terminada").format(frase=frase)
+            _finales_seguidos = 0
     try:
-        _snd.reproducir(_SONIDO_POR_FIN.get(estado, "descarga_cancelada"))
+        _snd.reproducir(sonido)
     except Exception as error:
         logger.debug("no se pudo reproducir el aviso de descarga: %s", error)
     anunciar(frase)

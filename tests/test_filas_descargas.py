@@ -62,6 +62,27 @@ class TestConstruir(unittest.TestCase):
         self.assertEqual([f.clave for f in filas], ["2026-10-29T08:00:00|vieja.mp4"])
 
 
+class TestColaTerminada(unittest.TestCase):
+
+    def test_vacia_da_falso(self):
+        self.assertFalse(filas_descargas.cola_terminada([]))
+
+    def test_todas_finales_da_verdadero(self):
+        items = [_item("a", estado="completado"),
+                 _item("b", estado="error")]
+        self.assertTrue(filas_descargas.cola_terminada(items))
+
+    def test_alguna_activa_da_falso(self):
+        casos = [
+            [_item("a", estado="completado"),
+             _item("b", estado="descargando")],
+            [_item("a", estado="en_cola")],
+        ]
+        for items in casos:
+            with self.subTest(estados=[i.estado for i in items]):
+                self.assertFalse(filas_descargas.cola_terminada(items))
+
+
 class TestYaDescargado(unittest.TestCase):
 
     def test_tabla(self):

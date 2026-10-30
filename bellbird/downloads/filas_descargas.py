@@ -24,6 +24,13 @@ FILTROS = (TODAS, EN_CURSO, EN_ESPERA, COMPLETADAS, CON_ERRORES)
 FINALES = ("completado", "parcial", "cancelado", "error")
 ACTIVAS = ("descargando", "en_cola")
 
+
+def cola_terminada(items) -> bool:
+    """Si la cola terminó: hay elementos y ninguno sigue activo."""
+    elementos = list(items or [])
+    return bool(elementos) and all(
+        getattr(i, "estado", "") not in ACTIVAS for i in elementos)
+
 _ID_VIEJO = re.compile(r"^[A-Za-z0-9_-]{11}$")
 
 

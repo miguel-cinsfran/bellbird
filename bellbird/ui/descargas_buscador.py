@@ -9,7 +9,6 @@ import time
 
 import wx
 
-from bellbird.core import diagnostico
 from bellbird.core.idioma import _
 from bellbird.downloads import busqueda_youtube
 from bellbird.downloads.busqueda_youtube import (
@@ -23,18 +22,8 @@ from bellbird.ui import buscador_contenido
 from bellbird.ui import buscador_tandas
 from bellbird.ui.buscador_filtros import FiltrosBusqueda
 from bellbird.ui.tema import _T, _tc
-from bellbird.voice import sound_player as _snd
-
-logger = diagnostico.obtener_logger(__name__)
 
 _CANTIDADES = tuple(str(n) for n in busqueda_youtube.CANTIDADES)
-
-
-def _sonar_error() -> None:
-    try:
-        _snd.reproducir("error")
-    except Exception as error:
-        logger.debug("sin sonido de error: %s", error)
 
 
 class PaginaBuscador(wx.Panel):
@@ -177,7 +166,7 @@ class PaginaBuscador(wx.Panel):
         texto = self.campo.GetValue()
         clase, valor = clasificar_entrada(texto)
         if clase == "vacio":
-            _sonar_error()
+            buscador_tandas.sonar("error")
             anunciar(_("Escribe una búsqueda o un enlace."))
             return
         if clase == "enlace":
@@ -196,8 +185,9 @@ class PaginaBuscador(wx.Panel):
         self._texto = valor
         self._filtros = self.filtros.actuales()
         self._cantidad = self._cantidad_actual()
-        self._lanzar(mas=False)
+        buscador_tandas.sonar("busqueda_iniciada")
         anunciar(_("Buscando"))
+        self._lanzar(mas=False)
 
     def _lanzar(self, mas: bool) -> None:
         if not mas:
@@ -223,7 +213,7 @@ class PaginaBuscador(wx.Panel):
             return
         if respuesta.error:
             self.txt_detalles.SetValue(respuesta.error)
-            _sonar_error()
+            buscador_tandas.sonar("busqueda_fallida")
             anunciar(respuesta.error)
             if foco_en_mas:
                 self.lista.SetFocus()
@@ -238,16 +228,19 @@ class PaginaBuscador(wx.Panel):
         self._resultados = ordenar(self._resultados, self._filtros.orden)
         if not nuevos:
             self.txt_detalles.SetValue(_("Sin resultados"))
+            buscador_tandas.sonar("busqueda_sin_resultados")
             anunciar(_("Sin resultados"))
             return
         self._agregar_filas(self._resultados)
         buscador_contenido.enfocar_fila(self.lista, 0)
+        buscador_tandas.sonar("busqueda_resultados")
         buscador_tandas.anunciar_tanda(len(nuevos), mas=False)
         if foco_en_mas or wx.Window.FindFocus() in (self.campo, self.btn_buscar):
             self.lista.SetFocus()
 
     def _volver_mas(self, nuevos, foco_en_mas):
         if not nuevos:
+            buscador_tandas.sonar("busqueda_sin_resultados")
             anunciar(_("No hay más resultados"))
             if foco_en_mas:
                 self.lista.SetFocus()
@@ -266,6 +259,7 @@ class PaginaBuscador(wx.Panel):
             buscador_contenido.enfocar_fila(self.lista, indice)
         if foco_en_mas:
             self.lista.SetFocus()
+        buscador_tandas.sonar("busqueda_resultados")
         buscador_tandas.anunciar_tanda(len(nuevos), mas=True)
 
     def _on_mas(self, _event):
@@ -302,14 +296,14 @@ class PaginaBuscador(wx.Panel):
     def _on_agregar(self, _event):
         indices = self._seleccionados()
         if not indices:
-            _sonar_error()
+            buscador_tandas.sonar("error")
             anunciar(_("Selecciona un resultado."))
             return
         elegidos = [self._resultados[i] for i in indices
                     if 0 <= i < len(self._resultados)]
         urls, rechazos = buscador_acciones.reparto_para_agregar(elegidos)
         for mensaje in rechazos:
-            _sonar_error()
+            buscador_tandas.sonar("error")
             anunciar(mensaje)
         if urls:
             self._agregar_urls(urls)

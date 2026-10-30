@@ -1061,6 +1061,49 @@ class TestGestorUnico(unittest.TestCase):
         self.assertEqual(estados, ["completado"])
 
 
+class TestAvisoProcesando(unittest.TestCase):
+    """El detalle avisa "procesando" una sola vez y nunca en una lista."""
+
+    def _encolar_con_detalle(self, analisis):
+        gestor_prueba = GestorDescargas({"formato": "mp4"})
+        avisos = []
+        gestor_prueba.suscribir_fin(
+            lambda estado, *_: avisos.append(estado))
+        detalle = {}
+        arranco = threading.Event()
+
+        def descarga_simulada(_url, _opciones, _progreso, estado, _cancelar,
+                              al_detalle=None):
+            detalle["cb"] = al_detalle
+            arranco.set()
+            estado("completado", "")
+
+        with mock.patch.object(descargas, "analizar_url",
+                               return_value=analisis), \
+                mock.patch.object(descargas, "descargar",
+                                  side_effect=descarga_simulada):
+            item_id = gestor_prueba.encolar("https://youtu.be/abc",
+                                            lambda *_: None, lambda *_: None)
+            self.assertTrue(arranco.wait(5))
+        return gestor_prueba, avisos, detalle["cb"], item_id
+
+    def test_procesando_avisa_solo_en_la_transicion(self):
+        _gestor, avisos, avisar, _id = self._encolar_con_detalle(
+            {"tipo": "video", "titulo": "T", "cuenta": 1})
+        self.assertNotIn("procesando", avisos)
+        avisar({"procesando": True})
+        self.assertIn("procesando", avisos)
+        cantidad = len(avisos)
+        avisar({"procesando": True})
+        self.assertEqual(len(avisos), cantidad)
+
+    def test_procesando_no_avisa_en_una_lista(self):
+        _gestor, avisos, avisar, _id = self._encolar_con_detalle(
+            {"tipo": "playlist", "titulo": "L", "cuenta": 5})
+        avisar({"procesando": True})
+        self.assertNotIn("procesando", avisos)
+
+
 class TestFfmpeg(unittest.TestCase):
     def test_devuelve_bool(self): self.assertIsInstance(tiene_ffmpeg(), bool)
     def test_faltante_informa_error(self):

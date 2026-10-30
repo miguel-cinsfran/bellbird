@@ -8839,3 +8839,40 @@ msgstr "{cantidad} are already in the history. Add anyway?"
 #: bellbird/downloads/busqueda_youtube.py:295
 msgid "No se pudo leer el contenido. Comprueba la conexión e inténtalo de nuevo."
 msgstr "Could not read the contents. Check the connection and try again."
+
+#: bellbird/core/eventos_sonido.py:113
+msgid "Búsqueda en curso"
+msgstr "Search in progress"
+
+#: bellbird/core/eventos_sonido.py:114
+msgid "Búsqueda con resultados"
+msgstr "Search with results"
+
+#: bellbird/core/eventos_sonido.py:115
+msgid "Búsqueda sin resultados"
+msgstr "Search without results"
+
+#: bellbird/core/eventos_sonido.py:116
+msgid "Búsqueda fallida"
+msgstr "Search failed"
+
+#: bellbird/core/eventos_sonido.py:117
+msgid "Descarga agregada a la cola"
+msgstr "Download added to the queue"
+
+#: bellbird/core/eventos_sonido.py:118
+msgid "Procesamiento de descarga"
+msgstr "Download processing"
+
+#: bellbird/core/eventos_sonido.py:119
+msgid "Cola de descargas terminada"
+msgstr "Download queue finished"
+
+#: bellbird/core/eventos_sonido.py:120
+msgid "Descarga parcial"
+msgstr "Partial download"
+
+#: bellbird/ui/gui_descargas.py:148
+#, python-brace-format
+msgid "{frase}. Cola de descargas terminada"
+msgstr "{frase}. Download queue finished"

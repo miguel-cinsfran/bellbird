@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest import mock
 
 from bellbird.core import config
+from bellbird.core import carpetas_windows
 from bellbird.core import paths
 from tests.rutas_temporales import redirigir_rutas
 
@@ -338,13 +339,13 @@ class TestCarpetaMusicaWindows(unittest.TestCase):
         import ctypes
         with mock.patch.object(ctypes.windll.shell32, "SHGetKnownFolderPath",
                                side_effect=OSError("falla de prueba")):
-            with self.assertLogs(paths.logger, level="DEBUG") as registros:
+            with self.assertLogs(carpetas_windows.logger, level="DEBUG") as registros:
                 self.assertEqual(paths.carpeta_musica_windows(), "")
         self.assertTrue(any("sica" in linea for linea in registros.output))
 
     def test_fuera_de_windows_devuelve_vacio_y_deja_registro(self):
         with mock.patch.object(os, "name", "posix"):
-            with self.assertLogs(paths.logger, level="DEBUG") as registros:
+            with self.assertLogs(carpetas_windows.logger, level="DEBUG") as registros:
                 self.assertEqual(paths.carpeta_musica_windows(), "")
         self.assertTrue(registros.output)
 

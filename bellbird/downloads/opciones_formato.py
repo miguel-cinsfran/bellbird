@@ -1,4 +1,4 @@
-"""Formatos y calidades del Administrador de descargas, sin wx.
+"""Qué opciones de descarga existen: formatos, calidades, plantillas y topes.
 
 Una sola responsabilidad: qué formatos existen, qué calidad admite cada
 uno y con qué opciones de yt-dlp se piden. Lo usan la GUI, la
@@ -24,6 +24,20 @@ FORMATOS = (
 
 RESOLUCIONES = (0, 2160, 1440, 1080, 720, 480, 360)
 BITRATES = (128, 192, 256, 320)
+
+PLANTILLAS = (
+    (N_("Título e identificador"), "titulo_id", "%(title)s [%(id)s]"),
+    (N_("Título"), "titulo", "%(title)s"),
+    (N_("Canal y título"), "canal_titulo", "%(uploader)s - %(title)s"),
+    (N_("Fecha y título"), "fecha_titulo", "%(upload_date>%Y-%m-%d)s - %(title)s"),
+)
+
+SIMULTANEAS_MIN = 1
+SIMULTANEAS_MAX = 5
+# Dos a la vez: la PC que usa la app tiene cuatro núcleos y 7,83 GiB,
+# y diez yt-dlp a la vez la dejan sin resto.
+SIMULTANEAS_DEFECTO = 2
+LIMITE_MAX = 1000
 
 _FORMATOS_VIDEO = ("video_original", "mp4", "webm")
 _FORMATOS_BITRATE = ("mp3", "m4a", "opus")

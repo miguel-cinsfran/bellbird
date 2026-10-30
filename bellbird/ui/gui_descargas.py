@@ -197,25 +197,6 @@ class GestorDescargasDialog(wx.Dialog):
         fila_cal.Add(self.cho_calidad, 1, wx.EXPAND)
         box.Add(fila_cal, 0, wx.EXPAND | wx.ALL, 6)
 
-        fila_carp = wx.BoxSizer(wx.HORIZONTAL)
-        lbl_carp = wx.StaticText(padre, label=_("Carpeta de d&estino:"), name="EtiquetaCarpeta")
-        lbl_carp.SetForegroundColour(_T.text)
-        fila_carp.Add(lbl_carp, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
-        self.dir_carpeta = wx.DirPickerCtrl(
-            padre, path=self._opciones.get("carpeta") or str(paths.descargas_por_defecto()),
-            name=_("Carpeta de destino"), message=_("Elige la carpeta de descargas"))
-        _tc(self.dir_carpeta)
-        nombrar_selector_carpeta(self.dir_carpeta)
-        fila_carp.Add(self.dir_carpeta, 1, wx.EXPAND)
-        box.Add(fila_carp, 0, wx.EXPAND | wx.ALL, 6)
-
-        # Enumerar playlist (casilla, sin color).
-        self.chk_enumerar = wx.CheckBox(
-            padre, name="EnumerarPlaylist",
-            label=_("&Numerar archivos de listas"))
-        self.chk_enumerar.SetValue(bool(self._opciones.get("enumerar", False)))
-        box.Add(self.chk_enumerar, 0, wx.ALL, 6)
-
         self._on_formato()   # llena la calidad y ajusta su habilitación
         return box
 
@@ -294,15 +275,15 @@ class GestorDescargasDialog(wx.Dialog):
         self.cho_calidad.Enable(clase != "")
 
     def _opciones_actuales(self) -> dict:
+        op = cfg.obtener_opciones_descarga()
         idx = self.cho_formato.GetSelection()
         formato = FORMATOS[idx][1] if 0 <= idx < len(FORMATOS) else "mp4"
         self._formato_visto = formato
         self._guardar_calidad_previa()
-        carpeta = self.dir_carpeta.GetPath() or str(paths.descargas_por_defecto())
-        enumerar = bool(self.chk_enumerar.GetValue())
-        return {"formato": formato, "bitrate": self._mem_bitrate,
-                "resolucion": self._mem_resolucion,
-                "carpeta": carpeta, "enumerar": enumerar}
+        op["formato"] = formato
+        op["bitrate"] = self._mem_bitrate
+        op["resolucion"] = self._mem_resolucion
+        return op
 
     def _preparar_opciones(self) -> None:
         # Persistimos las opciones elegidas antes de encolar (así el Gestor

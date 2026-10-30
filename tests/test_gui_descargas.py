@@ -583,6 +583,27 @@ class TestPaginaUnica(unittest.TestCase):
                       "enumerar"):
             self.assertIn(clave, op)
 
+    def test_sin_carpeta_ni_enumerar(self):
+        dialogo = self._dialogo()
+        self.assertFalse(hasattr(dialogo, "dir_carpeta"))
+        self.assertFalse(hasattr(dialogo, "chk_enumerar"))
+
+    def test_opciones_actuales_toma_la_carpeta_guardada(self):
+        dialogo = self._dialogo()
+        guardadas = {"formato": "mp3", "bitrate": 192, "resolucion": 0,
+                     "carpeta": "/guardada", "enumerar": True,
+                     "simultaneas": 5, "limite": 3, "carpeta_lista": True,
+                     "plantilla": "titulo"}
+        with mock.patch.object(gui_descargas.cfg, "obtener_opciones_descarga",
+                               return_value=dict(guardadas)):
+            dialogo.cho_formato.SetSelection(4)
+            dialogo._on_formato()
+            op = dialogo._opciones_actuales()
+        self.assertEqual(op["carpeta"], "/guardada")
+        self.assertTrue(op["enumerar"])
+        self.assertEqual(op["simultaneas"], 5)
+        self.assertEqual(op["formato"], "mp3")
+
 
 class TestSonidosDeDescarga(unittest.TestCase):
     """Cada aviso del gestor suena con su sonido propio. Sin ventanas."""

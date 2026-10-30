@@ -12,8 +12,17 @@ from urllib.parse import parse_qs, urlparse
 
 from bellbird.core import paths
 from bellbird.downloads import ffmpeg_bin
-from bellbird.downloads.opciones_formato import argumentos_de_formato
+from bellbird.downloads.opciones_formato import (
+    PLANTILLAS, argumentos_de_formato)
 from bellbird.downloads.progreso_ytdlp import plantillas_progreso
+
+
+_PLANTILLA_POR_CLAVE = {clave: plantilla for _etiqueta, clave, plantilla in PLANTILLAS}
+
+
+def carpeta_base(opciones: dict) -> Path:
+    """Carpeta elegida en Preferencias o la de por defecto."""
+    return Path(str(opciones.get("carpeta") or paths.descargas_por_defecto()))
 
 
 def recortar_url_registro(url: str) -> str:
@@ -37,13 +46,29 @@ def construir_outtmpl(opciones: dict, enumerar: bool) -> str:
     Con `enumerar=True` yt-dlp prefijará «01 - », «02 - », etc. SOLO si el
     resultado es una playlist; en vídeos sueltos el prefijo no aparece (el
     condicional «&…|» de yt-dlp; un %(playlist_index)02d a secas daba «NA - »).
+    Con `es_lista` y `carpeta_lista` a la vez, la lista va en una subcarpeta
+    con su título; el vídeo suelto va directo en la carpeta de descargas.
     """
-    carpeta = str(opciones.get("carpeta") or paths.descargas_por_defecto())
+    base = carpeta_base(opciones)
+    if opciones.get("es_lista") and opciones.get("carpeta_lista"):
+        base = base / "%(playlist_title)s"
+    plantilla = _PLANTILLA_POR_CLAVE.get(opciones.get("plantilla"), "%(title)s [%(id)s]")
     if enumerar:
-        nombre = "%(playlist_index&{:02d} - |)s%(title)s [%(id)s].%(ext)s"
+        nombre = "%(playlist_index&{:02d} - |)s" + plantilla
     else:
-        nombre = "%(title)s [%(id)s].%(ext)s"
-    return str(Path(carpeta) / nombre)
+        nombre = plantilla
+    return str(base / (nombre + ".%(ext)s"))
+
+
+def argumentos_limite(opciones: dict) -> list[str]:
+    """Tope de velocidad para yt-dlp: `-r {limite}M` o nada con cero."""
+    try:
+        limite = int(opciones.get("limite") or 0)
+    except Exception:
+        return []
+    if limite <= 0:
+        return []
+    return ["-r", f"{limite}M"]
 
 
 def argumentos_descarga(url, opciones, enumerar, ffmpeg_location=None) -> list[str]:
@@ -59,7 +84,8 @@ def argumentos_descarga(url, opciones, enumerar, ffmpeg_location=None) -> list[s
                   "--progress", *plantillas_progreso(),
                   "--print", f"after_move:{PREFIJO_RUTA_FINAL} %(filepath)s",
                   *argumentos_de_formato(f, bitrate, resolucion),
-                  "-o", construir_outtmpl(opciones, enumerar)]
+                  "-o", construir_outtmpl(opciones, enumerar),
+                  *argumentos_limite(opciones)]
     if ffmpeg_location is None:
         ffmpeg_location = ffmpeg_bin.ruta_ffmpeg()
     if ffmpeg_location is not None:

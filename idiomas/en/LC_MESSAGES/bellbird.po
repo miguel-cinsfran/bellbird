@@ -5063,24 +5063,65 @@ msgstr "Quality"
 msgid "Máxima"
 msgstr "Maximum"
 
-# | msgid "Carpeta &destino:"
-#: bellbird/ui/gui_descargas.py:201
-msgid "Carpeta de d&estino:"
-msgstr "Destination f&older:"
-
-# | msgid "Carpeta destino"
-#: bellbird/ui/gui_descargas.py:223
-msgid "Carpeta de destino"
-msgstr "Destination folder"
-
-#: bellbird/ui/gui_descargas.py:223
+#: bellbird/ui/preferencias_descargas.py:49
 msgid "Elige la carpeta de descargas"
 msgstr "Choose the download folder"
 
-# | msgid "&Enumerar ítems de la lista de reproducción (01_, 02_…)"
-#: bellbird/ui/gui_descargas.py:232
+#: bellbird/ui/preferencias_descargas.py:59
 msgid "&Numerar archivos de listas"
-msgstr "&Number playlist files"
+msgstr "&Number files in playlists"
+
+#: bellbird/ui/preferencias_descargas.py:44
+msgid "Carpeta de &descargas:"
+msgstr "Download &folder:"
+
+#: bellbird/ui/preferencias_descargas.py:48 bellbird/ui/preferencias_descargas.py:53
+msgid "Carpeta de descargas"
+msgstr "Download folder"
+
+#: bellbird/ui/preferencias_descargas.py:64
+msgid "Carpeta propia para cada &lista"
+msgstr "Own folder for each p&laylist"
+
+#: bellbird/ui/preferencias_descargas.py:69
+msgid "Nombre de los &archivos:"
+msgstr "File na&mes:"
+
+#: bellbird/ui/preferencias_descargas.py:73
+msgid "Nombre de los archivos"
+msgstr "File name"
+
+#: bellbird/ui/preferencias_descargas.py:79
+msgid "Descargas &simultáneas:"
+msgstr "&Simultaneous downloads:"
+
+#: bellbird/ui/preferencias_descargas.py:83
+msgid "Descargas simultáneas"
+msgstr "Simultaneous downloads"
+
+#: bellbird/ui/preferencias_descargas.py:86
+msgid "Límite de &velocidad en MB/s, 0 sin límite:"
+msgstr "Speed limit in MB/s, 0 to &disable:"
+
+#: bellbird/ui/preferencias_descargas.py:90
+msgid "Límite de velocidad en MB/s"
+msgstr "Speed limit in MB/s"
+
+#: bellbird/downloads/opciones_formato.py:29
+msgid "Título e identificador"
+msgstr "Title and identifier"
+
+#: bellbird/downloads/opciones_formato.py:30
+msgid "Título"
+msgstr "Title"
+
+#: bellbird/downloads/opciones_formato.py:31
+msgid "Canal y título"
+msgstr "Channel and title"
+
+#: bellbird/downloads/opciones_formato.py:32
+msgid "Fecha y título"
+msgstr "Date and title"
 
 # | msgid "Abrir enlace"
 #: bellbird/ui/gui_descargas.py:240

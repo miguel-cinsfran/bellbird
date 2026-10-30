@@ -182,6 +182,7 @@ class TestTablaOpcionesSimples(unittest.TestCase):
                 esperados[(seccion, clave)] = (str(valor), en_memoria, valor)
         with mock.patch.object(gui_preferencias.cfg, "guardar_opciones",
                                return_value=True) as guardar, \
+                mock.patch.object(gui_preferencias.cfg, "guardar_opciones_descarga"), \
                 mock.patch.object(gui_preferencias._snd, "reproducir"), \
                 mock.patch.object(gui_preferencias, "anunciar") as anunciar, \
                 mock.patch.object(dialogo, "EndModal"):

@@ -101,5 +101,23 @@ class TestArgumentosDeFormato(unittest.TestCase):
                     self.assertFalse(tiene, formato)
 
 
+class TestPlantillas(unittest.TestCase):
+    def test_cuatro_claves_en_orden(self):
+        claves = [clave for _etiqueta, clave, _plantilla in op.PLANTILLAS]
+        self.assertEqual(claves, ["titulo_id", "titulo", "canal_titulo",
+                                  "fecha_titulo"])
+
+    def test_plantillas_sin_extension(self):
+        for _etiqueta, _clave, plantilla in op.PLANTILLAS:
+            with self.subTest(plantilla=plantilla):
+                self.assertNotIn(".%(ext)s", plantilla)
+                self.assertIn("%(title)s", plantilla)
+
+    def test_limites_simultaneas(self):
+        self.assertEqual((op.SIMULTANEAS_MIN, op.SIMULTANEAS_MAX,
+                          op.SIMULTANEAS_DEFECTO), (1, 5, 2))
+        self.assertEqual(op.LIMITE_MAX, 1000)
+
+
 if __name__ == "__main__":
     unittest.main()

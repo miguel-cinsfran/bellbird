@@ -19,7 +19,6 @@ import threading
 import time
 import uuid
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Callable, Optional
 
 from bellbird.core import diagnostico
@@ -29,8 +28,9 @@ from bellbird.core.idioma import _
 from bellbird.downloads import ffmpeg_bin
 from bellbird.downloads import fila_descargas
 from bellbird.downloads import ytdlp_bin
+from bellbird.downloads.opciones_formato import SIMULTANEAS_DEFECTO
 from bellbird.downloads.argumentos_ytdlp import (
-    argumentos_descarga, construir_outtmpl, recortar_url_registro)
+    argumentos_descarga, carpeta_base, construir_outtmpl, recortar_url_registro)
 from bellbird.downloads.motivo_error import motivo_de_error
 from bellbird.downloads.progreso_ytdlp import (
     INTERVALO_PROGRESO_S, PREFIJO_RUTA_FINAL, debe_emitir_progreso,
@@ -174,7 +174,7 @@ def descargar(url: str, opciones: dict,
         return
 
     enumerar = bool(opciones.get("enumerar", False))
-    carpeta = Path(construir_outtmpl(opciones, enumerar)).parent
+    carpeta = carpeta_base(opciones)
     al_detalle = al_detalle or (lambda _cambios: None)
     estado = {"ultimo_error": "", "ultimo_archivo": "", "ultimo_ts": None,
               "rutas": [], "indice": 0, "total": 0, "procesando": False}
@@ -269,9 +269,6 @@ def frase_aviso_descarga(estado: str, mensaje: str, nombre: str) -> str:
 
 # ── Gestor de cola ───────────────────────────────────────────────────────────
 
-# Como mucho dos descargas corren a la vez: la PC que usa la app tiene
-# cuatro núcleos y 7,83 GiB, y diez yt-dlp a la vez la dejan sin resto.
-DESCARGAS_SIMULTANEAS = 2
 # La velocidad y el tiempo restante cambian muy seguido: escribirlos en el
 # ítem cada 500 ms haría hablar al lector sin parar.
 INTERVALO_VELOCIDAD_S = 3.0
@@ -291,7 +288,7 @@ class GestorDescargas:
         self._orden: list[str] = []
         self._suscriptores_fin: list[Callable] = []
         self._lock = threading.Lock()
-        self._turnos = threading.Semaphore(DESCARGAS_SIMULTANEAS)
+        self._corriendo = 0
         self._empezados: set[str] = set()
 
     def set_opciones(self, op: dict) -> None:
@@ -311,22 +308,23 @@ class GestorDescargas:
                 self._suscriptores_fin.append(callback)
 
     def _esperar_turno(self, item_id, ev) -> bool:
-        # Espera el turno antes de analizar: el semáforo acota cuántos corren
+        # Espera el turno antes de analizar: el contador acota cuántos corren
         # y la fila impone el orden. Si cancelan, vuelve sin tomar el turno.
         while True:
             if ev.is_set():
                 return False
             with self._lock:
                 bloqueado = fila_descargas.bloqueado_por_anterior(
-                    item_id, self._orden, self._empezados, self._items,
-                    self._eventos)
-            if not bloqueado:
-                if self._turnos.acquire(timeout=0.2):
-                    with self._lock:
-                        self._empezados.add(item_id)
+                    item_id, self._orden, self._empezados, self._items, self._eventos)
+                tope = self._opciones.get("simultaneas", SIMULTANEAS_DEFECTO)
+                if not bloqueado and self._corriendo < tope:
+                    self._corriendo += 1
+                    self._empezados.add(item_id)
                     return True
-            else:
+            if bloqueado:
                 ev.wait(0.02)
+            else:
+                ev.wait(0.2)
 
     def _avisar_estado(self, it, estado, mensaje, estado_cb) -> None:
         it.estado = estado
@@ -351,7 +349,7 @@ class GestorDescargas:
                 creado_cb: Optional[Callable] = None) -> str:
         """Crea un ItemDescarga, lo deja en 'en_cola' y lanza su hilo.
 
-        Como mucho DESCARGAS_SIMULTANEAS corren a la vez; las demás esperan
+        Como mucho las simultáneas elegidas corren a la vez; las demás esperan
         en 'en_cola', en el orden en que se encolaron, y se pueden cancelar
         mientras esperan.
 
@@ -420,11 +418,13 @@ class GestorDescargas:
                         _cb_estado("cancelado", _("Descarga cancelada"))
                         return
                     logger.info("descarga %s: inicio", item_id)
-                    descargar(url, opciones, _cb_progreso, _cb_estado, ev,
-                              _cb_detalle)
+                    opciones_descarga = dict(opciones)
+                    opciones_descarga["es_lista"] = (it.tipo == "playlist")
+                    descargar(url, opciones_descarga, _cb_progreso, _cb_estado, ev, _cb_detalle)
                 finally:
                     if tomado:
-                        self._turnos.release()
+                        with self._lock:
+                            self._corriendo -= 1
             except Exception as exc:
                 logger.warning("hilo descarga: %s", exc)
                 _cb_estado("error", str(exc) or exc.__class__.__name__)

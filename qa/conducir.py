@@ -1333,7 +1333,7 @@ def escenario_descargas(app: Aplicacion, args, res: Resultado):
     juntos = " ".join(
         ((c.get("nombre") or "") + " " + (c.get("etiqueta") or ""))
         for c in controles).lower()
-    for esperado in ("formato", "calidad", "carpeta", "lista de descargas", "cerrar"):
+    for esperado in ("formato", "calidad", "lista de descargas", "cerrar"):
         if esperado not in juntos:
             res.fallo(f"descargas: no aparece nada llamado «{esperado}»")
 
@@ -5302,6 +5302,7 @@ SUPERFICIES = {
     "preferencias_atajos.py": "preferencias",
     "preferencias_general.py": "preferencias",
     "preferencias_musica.py": "preferencias",
+    "preferencias_descargas.py": "preferencias",
     "preferencias_sonidos.py": "preferencias",
     "preferencias_ia.py": "preferencias",
     "preferencias_ia_clave.py": "preferencias",

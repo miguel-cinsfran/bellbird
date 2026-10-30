@@ -16,7 +16,8 @@ from pathlib import Path
 from bellbird.core import diagnostico
 from bellbird.core import paths
 from bellbird.downloads.opciones_formato import (
-    BITRATES, FORMATOS, RESOLUCIONES)
+    BITRATES, FORMATOS, LIMITE_MAX, PLANTILLAS, RESOLUCIONES,
+    SIMULTANEAS_DEFECTO, SIMULTANEAS_MAX, SIMULTANEAS_MIN)
 
 
 logger = diagnostico.obtener_logger(__name__)
@@ -33,6 +34,7 @@ logger = diagnostico.obtener_logger(__name__)
 
 _FORMATOS_VALIDOS = tuple(clave for _etiqueta, clave in FORMATOS)
 _BITRATES_VALIDOS = BITRATES
+_PLANTILLAS_VALIDAS = tuple(clave for _etiqueta, clave, _plantilla in PLANTILLAS)
 
 
 def _validar_y_fijar(ruta, seccion, clave, valor, defecto, validos):
@@ -60,6 +62,94 @@ def _carpeta_descargas(p) -> str:
     return crudo
 
 
+def _entero_descargas(p, ruta, clave, defecto, minimo, maximo) -> int:
+    """Entero de [descargas]: ausente no reescribe, inválido fija el defecto."""
+    from bellbird.core.config import guardar_opcion
+
+    if not p.has_option("descargas", clave):
+        return defecto
+    try:
+        valor = int(str(p.get("descargas", clave)).strip())
+    except Exception:
+        valor = defecto
+    if valor < minimo or valor > maximo:
+        valor = defecto
+        if ruta.exists():
+            guardar_opcion(ruta, "descargas", clave, str(valor))
+    return valor
+
+
+def _booleano_descargas(p, clave) -> bool:
+    """Booleano de [descargas]: ausente es falso y no reescribe."""
+    if not p.has_option("descargas", clave):
+        return False
+    return str(p.get("descargas", clave)).strip().lower() in ("true", "1", "yes", "on")
+
+
+def _plantilla_descargas(p, ruta) -> str:
+    """Clave de plantilla: ausente no reescribe, desconocida fija el defecto."""
+    if not p.has_option("descargas", "plantilla"):
+        return "titulo_id"
+    crudo = str(p.get("descargas", "plantilla")).strip()
+    return _validar_y_fijar(ruta, "descargas", "plantilla", crudo, "titulo_id",
+                            _PLANTILLAS_VALIDAS)
+
+
+def _formato_descargas(p, ruta) -> str:
+    """Formato validado contra los nueve de `opciones_formato`."""
+    crudo = (p.get("descargas", "formato", fallback="mp4").strip().lower()
+             if p.has_section("descargas") else "mp4")
+    return _validar_y_fijar(ruta, "descargas", "formato", crudo, "mp4",
+                            _FORMATOS_VALIDOS)
+
+
+def _bitrate_descargas(p, ruta) -> int:
+    """Bitrate validado contra los cuatro que admite la app."""
+    crudo = (p.get("descargas", "bitrate", fallback="192").strip()
+             if p.has_section("descargas") else "192")
+    try:
+        crudo = int(crudo)
+    except Exception:
+        crudo = 192
+    return _validar_y_fijar(ruta, "descargas", "bitrate", crudo, 192,
+                            _BITRATES_VALIDOS)
+
+
+def _resolucion_descargas(p, ruta) -> int:
+    """Resolución validada: ausente no reescribe, inválida fija cero."""
+    from bellbird.core.config import guardar_opcion
+
+    if not p.has_option("descargas", "resolucion"):
+        return 0
+    try:
+        valor = int(p.get("descargas", "resolucion").strip())
+    except Exception:
+        valor = 0
+    if valor not in RESOLUCIONES:
+        valor = 0
+        if ruta.exists():
+            guardar_opcion(ruta, "descargas", "resolucion", "0")
+    return valor
+
+
+def _enumerar_descargas(p) -> bool:
+    """Numerar archivos de listas: ausente es falso y no reescribe."""
+    crudo = (p.get("descargas", "enumerar", fallback="false").strip().lower()
+             if p.has_section("descargas") else "false")
+    return crudo in ("true", "1", "yes", "on")
+
+
+def _rango(valor, defecto, minimo, maximo) -> int:
+    """Entero dentro del rango o el defecto, para guardar sin INI."""
+    try:
+        numero = int(valor)
+    except Exception:
+        return defecto
+    if numero < minimo or numero > maximo:
+        return defecto
+    return numero
+
+
 def obtener_opciones_descarga() -> dict:
     """Lee la sección [descargas] del INI y devuelve un dict validado.
 
@@ -72,38 +162,22 @@ def obtener_opciones_descarga() -> dict:
     ruta = paths.config_ini()
     p = _mk_parser()
     if ruta.exists():
-        try:    p.read(ruta, encoding="utf-8")
-        except configparser.Error: pass
-
-    # Carpeta: si está vacía o no existe, usar la de descargas por defecto.
-    carpeta = _carpeta_descargas(p)
-
-    formato_crudo = (p.get("descargas", "formato", fallback="mp4").strip().lower()
-                     if p.has_section("descargas") else "mp4")
-    formato = _validar_y_fijar(ruta, "descargas", "formato", formato_crudo, "mp4",
-                               _FORMATOS_VALIDOS)
-    bitrate_crudo = (p.get("descargas", "bitrate", fallback="192").strip()
-                     if p.has_section("descargas") else "192")
-    try:    bitrate_crudo = int(bitrate_crudo)
-    except Exception: bitrate_crudo = 192
-    bitrate = _validar_y_fijar(ruta, "descargas", "bitrate", bitrate_crudo, 192, _BITRATES_VALIDOS)
-
-    if p.has_option("descargas", "resolucion"):
-        try:    resolucion = int(p.get("descargas", "resolucion").strip())
-        except Exception: resolucion = 0
-        if resolucion not in RESOLUCIONES:
-            resolucion = 0
-            if ruta.exists():
-                guardar_opcion(ruta, "descargas", "resolucion", "0")
-    else:
-        resolucion = 0
-
-    enumerar_raw = (p.get("descargas", "enumerar", fallback="false").strip().lower()
-                    if p.has_section("descargas") else "false")
-    enumerar = enumerar_raw in ("true", "1", "yes", "on")
-
-    return {"formato": formato, "bitrate": bitrate, "resolucion": resolucion,
-            "carpeta": carpeta, "enumerar": enumerar}
+        try:
+            p.read(ruta, encoding="utf-8")
+        except configparser.Error:
+            pass
+    formato = _formato_descargas(p, ruta)
+    bitrate = _bitrate_descargas(p, ruta)
+    return {"formato": formato, "bitrate": bitrate,
+            "resolucion": _resolucion_descargas(p, ruta),
+            "carpeta": _carpeta_descargas(p),
+            "enumerar": _enumerar_descargas(p),
+            "simultaneas": _entero_descargas(p, ruta, "simultaneas",
+                                             SIMULTANEAS_DEFECTO,
+                                             SIMULTANEAS_MIN, SIMULTANEAS_MAX),
+            "limite": _entero_descargas(p, ruta, "limite", 0, 0, LIMITE_MAX),
+            "carpeta_lista": _booleano_descargas(p, "carpeta_lista"),
+            "plantilla": _plantilla_descargas(p, ruta)}
 
 
 def guardar_opciones_descarga(op: dict) -> None:
@@ -122,19 +196,28 @@ def guardar_opciones_descarga(op: dict) -> None:
     formato = str(op.get("formato", "mp4")).lower().strip()
     if formato not in _FORMATOS_VALIDOS:
         formato = "mp4"
-    try:    bitrate = int(op.get("bitrate", 192))
-    except Exception: bitrate = 192
+    bitrate = _rango(op.get("bitrate", 192), 192, 0, 10000)
     if bitrate not in _BITRATES_VALIDOS:
         bitrate = 192
-    try:    resolucion = int(op.get("resolucion", 0))
-    except Exception: resolucion = 0
+    resolucion = _rango(op.get("resolucion", 0), 0, 0, 10000)
     if resolucion not in RESOLUCIONES:
         resolucion = 0
     carpeta = str(op.get("carpeta") or paths.descargas_por_defecto()).strip()
     enumerar = bool(op.get("enumerar", False))
-
+    simultaneas = _rango(op.get("simultaneas", SIMULTANEAS_DEFECTO),
+                         SIMULTANEAS_DEFECTO, SIMULTANEAS_MIN, SIMULTANEAS_MAX)
+    limite = _rango(op.get("limite", 0), 0, 0, LIMITE_MAX)
+    carpeta_lista = bool(op.get("carpeta_lista", False))
+    plantilla = str(op.get("plantilla", "titulo_id")).strip()
+    if plantilla not in _PLANTILLAS_VALIDAS:
+        plantilla = "titulo_id"
     guardar_opcion(ruta, "descargas", "formato", formato)
     guardar_opcion(ruta, "descargas", "bitrate", str(bitrate))
     guardar_opcion(ruta, "descargas", "resolucion", str(resolucion))
     guardar_opcion(ruta, "descargas", "carpeta", carpeta)
     guardar_opcion(ruta, "descargas", "enumerar", "true" if enumerar else "false")
+    guardar_opcion(ruta, "descargas", "simultaneas", str(simultaneas))
+    guardar_opcion(ruta, "descargas", "limite", str(limite))
+    guardar_opcion(ruta, "descargas", "carpeta_lista",
+                    "true" if carpeta_lista else "false")
+    guardar_opcion(ruta, "descargas", "plantilla", plantilla)

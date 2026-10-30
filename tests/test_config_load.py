@@ -865,6 +865,43 @@ class TestCargarConfiguracion(unittest.TestCase):
                          ("mp3", 320, 0))
         self.assertEqual(ruta.read_text(encoding="utf-8"), contenido)
 
+    def test_opciones_descarga_nuevas_ida_y_vuelta(self):
+        from bellbird.core import config
+        with redirigir_rutas(self._tmp.name):
+            (Path(self._tmp.name) / "config.ini").write_text(
+                config._CONFIG_FALLBACK, encoding="utf-8")
+            config.guardar_opciones_descarga(
+                {"formato": "mp4", "bitrate": 192, "resolucion": 0,
+                 "carpeta": "/x/y", "enumerar": False, "simultaneas": 5,
+                 "limite": 10, "carpeta_lista": True, "plantilla": "canal_titulo"})
+            op = config.obtener_opciones_descarga()
+        self.assertEqual((op["simultaneas"], op["limite"], op["carpeta_lista"],
+                          op["plantilla"]), (5, 10, True, "canal_titulo"))
+
+    def test_opciones_descarga_nuevas_fuera_de_rango_caen_a_defecto(self):
+        from bellbird.core import config
+        with redirigir_rutas(self._tmp.name):
+            (Path(self._tmp.name) / "config.ini").write_text(
+                config._CONFIG_FALLBACK, encoding="utf-8")
+            config.guardar_opciones_descarga(
+                {"formato": "mp4", "bitrate": 192, "carpeta": "/x/y",
+                 "simultaneas": 9, "limite": 5000, "plantilla": "rara"})
+            op = config.obtener_opciones_descarga()
+        self.assertEqual((op["simultaneas"], op["limite"], op["plantilla"]),
+                         (2, 0, "titulo_id"))
+        self.assertFalse(op["carpeta_lista"])
+
+    def test_ini_viejo_sin_claves_nuevas_usa_defectos_y_no_reescribe(self):
+        from bellbird.core import config
+        ruta = Path(self._tmp.name) / "config.ini"
+        contenido = "[descargas]\nformato = mp3\nbitrate = 320\nenumerar = false\n"
+        ruta.write_text(contenido, encoding="utf-8")
+        with redirigir_rutas(self._tmp.name):
+            op = config.obtener_opciones_descarga()
+        self.assertEqual((op["simultaneas"], op["limite"], op["carpeta_lista"],
+                          op["plantilla"]), (2, 0, False, "titulo_id"))
+        self.assertEqual(ruta.read_text(encoding="utf-8"), contenido)
+
 
     def test_carpeta_relativa_se_resuelve_contra_instalacion(self):
         from bellbird.core import config, paths

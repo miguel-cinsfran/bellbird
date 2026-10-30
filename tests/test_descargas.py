@@ -853,7 +853,8 @@ class TestGestorDescargasLimite(unittest.TestCase):
             gestor.set_opciones(segundas)
             liberar.set()
             self.assertTrue(_esperar_hasta(lambda: len(finales) == 3, tiempo=10))
-        self.assertEqual(recibidas["url-2"], primeras)
+        self.assertEqual({k: v for k, v in recibidas["url-2"].items()
+                           if k != "es_lista"}, primeras)
         self.assertEqual(gestor.obtener(tercero).carpeta, recibidas["url-2"]["carpeta"])
 
     def test_el_turno_respeta_la_fila_aunque_arranquen_al_reves(self):
@@ -914,12 +915,12 @@ class TestGestorDescargasLimite(unittest.TestCase):
 class TestEsperarTurno(unittest.TestCase):
     def test_esperar_turno_con_evento_puesto_no_toma_turno(self):
         gestor = GestorDescargas({"formato": "mp4", "bitrate": 192, "carpeta": "/tmp"})
-        gestor._turnos = mock.Mock()
+        gestor._corriendo = 0
         gestor._empezados = set()
         evento = threading.Event()
         evento.set()
         self.assertFalse(gestor._esperar_turno("x", evento))
-        gestor._turnos.acquire.assert_not_called()
+        self.assertEqual(gestor._corriendo, 0)
         self.assertEqual(gestor._empezados, set())
 
 
@@ -1133,6 +1134,179 @@ class TestPseudoFrases(unittest.TestCase):
                                 lambda *a: estados.append(a),
                                 threading.Event())
         self.assertTrue(estados[-1][1].startswith("[¡"), estados[-1])
+
+
+class TestOuttmplPlantillas(unittest.TestCase):
+    def test_cuatro_nombres(self):
+        casos = {
+            "titulo_id": "%(title)s [%(id)s].%(ext)s",
+            "titulo": "%(title)s.%(ext)s",
+            "canal_titulo": "%(uploader)s - %(title)s.%(ext)s",
+            "fecha_titulo": "%(upload_date>%Y-%m-%d)s - %(title)s.%(ext)s",
+        }
+        for clave, esperado in casos.items():
+            with self.subTest(clave=clave):
+                salida = construir_outtmpl({"carpeta": "/tmp", "plantilla": clave},
+                                           False)
+                self.assertTrue(salida.endswith(esperado), salida)
+
+    def test_con_enumerar_mantiene_prefijo(self):
+        salida = construir_outtmpl({"carpeta": "/tmp", "plantilla": "titulo"},
+                                   True)
+        self.assertIn("playlist_index", salida)
+        self.assertTrue(salida.endswith("%(title)s.%(ext)s"), salida)
+
+    def test_subcarpeta_solo_con_lista_y_carpeta_lista(self):
+        base = {"carpeta": "/tmp", "plantilla": "titulo_id"}
+        con_ambas = construir_outtmpl(dict(base, es_lista=True, carpeta_lista=True),
+                                      False)
+        self.assertIn("%(playlist_title)s", con_ambas)
+        for opciones in (dict(base, es_lista=False, carpeta_lista=True),
+                         dict(base, es_lista=True, carpeta_lista=False),
+                         dict(base, es_lista=False, carpeta_lista=False)):
+            with self.subTest(opciones=opciones):
+                self.assertNotIn("%(playlist_title)s",
+                                 construir_outtmpl(opciones, False))
+
+    def test_clave_desconocida_cae_a_titulo_id(self):
+        self.assertEqual(construir_outtmpl({"carpeta": "/tmp", "plantilla": "rara"},
+                                           False),
+                         construir_outtmpl({"carpeta": "/tmp", "plantilla": "titulo_id"},
+                                           False))
+
+
+class TestLimiteVelocidad(unittest.TestCase):
+    def opciones(self):
+        return {"formato": "mp4", "bitrate": 192, "carpeta": "/tmp"}
+
+    def test_con_limite_agrega_r(self):
+        args = argumentos_descarga("url", dict(self.opciones(), limite=1), False)
+        self.assertIn("-r", args)
+        self.assertEqual(args[args.index("-r") + 1], "1M")
+
+    def test_sin_limite_no_agrega_r(self):
+        args = argumentos_descarga("url", dict(self.opciones(), limite=0), False)
+        self.assertNotIn("-r", args)
+
+
+class TestDescargarCarpetaBase(unittest.TestCase):
+    def test_usa_carpeta_base_con_subcarpeta(self):
+        proceso = mock.MagicMock()
+        proceso.returncode = 0
+        proceso.poll.return_value = 0
+        proceso.stdout.readline.side_effect = ["", ""]
+        opciones = {"formato": "mp4", "carpeta": "/tmp/base",
+                    "plantilla": "titulo", "carpeta_lista": True,
+                    "es_lista": True, "enumerar": False, "limite": 0}
+        evento = threading.Event()
+        evento.set()
+        with mock.patch.object(descargas.ytdlp_bin, "ruta_ytdlp",
+                               return_value="yt-dlp"), \
+                mock.patch.object(descargas, "tiene_ffmpeg", return_value=True), \
+                mock.patch.object(descargas.subprocess, "Popen",
+                                   return_value=proceso) as popen, \
+                mock.patch.object(descargas, "limpiar_restos_descarga",
+                                   return_value=[]) as limpiar:
+            descargas.descargar("url", opciones, lambda *a: None,
+                                lambda *a: None, evento)
+        self.assertTrue(popen.called)
+        outtmpl = popen.call_args.args[0]
+        indice = list(outtmpl).index("-o")
+        self.assertIn("%(playlist_title)s", outtmpl[indice + 1])
+        self.assertEqual(limpiar.call_args.args[0], Path("/tmp/base"))
+
+
+class TestGestorSimultaneas(unittest.TestCase):
+    def _gestor(self, simultaneas):
+        return GestorDescargas({"formato": "mp4", "bitrate": 192,
+                                "carpeta": "/tmp", "simultaneas": simultaneas})
+
+    def _esperar_hasta(self, condicion, tiempo=5):
+        limite = time.time() + tiempo
+        while time.time() < limite:
+            if condicion():
+                return True
+            time.sleep(0.02)
+        return condicion()
+
+    def test_con_una_la_segunda_espera(self):
+        gestor = self._gestor(1)
+        liberar = threading.Event()
+        entradas = []
+        finales = {}
+        candado = threading.Lock()
+
+        def simulada(url, _op, _prog, estado, _cancel, _det=None):
+            with candado:
+                entradas.append(url)
+            liberar.wait(5)
+            estado("completado", "")
+
+        with mock.patch.object(descargas, "analizar_url",
+                               return_value={"tipo": "video"}), \
+                mock.patch.object(descargas, "descargar", side_effect=simulada):
+            gestor.encolar("url-0", lambda *a: None,
+                           lambda i, e, m: finales.__setitem__(i, e))
+            gestor.encolar("url-1", lambda *a: None,
+                           lambda i, e, m: finales.__setitem__(i, e))
+            self.assertTrue(self._esperar_hasta(lambda: len(entradas) >= 1))
+            time.sleep(0.3)
+            self.assertEqual(list(entradas), ["url-0"])
+            liberar.set()
+            self.assertTrue(self._esperar_hasta(lambda: len(finales) == 2,
+                                               tiempo=10))
+
+    def test_subir_simultaneas_desbloquea_al_que_espera(self):
+        gestor = self._gestor(1)
+        liberar = threading.Event()
+        entradas = []
+        finales = {}
+        candado = threading.Lock()
+
+        def simulada(url, _op, _prog, estado, _cancel, _det=None):
+            with candado:
+                entradas.append(url)
+            liberar.wait(5)
+            estado("completado", "")
+
+        with mock.patch.object(descargas, "analizar_url",
+                               return_value={"tipo": "video"}), \
+                mock.patch.object(descargas, "descargar", side_effect=simulada):
+            gestor.encolar("url-0", lambda *a: None,
+                           lambda i, e, m: finales.__setitem__(i, e))
+            gestor.encolar("url-1", lambda *a: None,
+                           lambda i, e, m: finales.__setitem__(i, e))
+            self.assertTrue(self._esperar_hasta(lambda: len(entradas) >= 1))
+            gestor.set_opciones({"formato": "mp4", "bitrate": 192,
+                                 "carpeta": "/tmp", "simultaneas": 5})
+            self.assertTrue(self._esperar_hasta(lambda: len(entradas) == 2,
+                                               tiempo=10))
+            liberar.set()
+            self.assertTrue(self._esperar_hasta(lambda: len(finales) == 2,
+                                               tiempo=10))
+
+    def test_es_lista_llega_segun_tipo(self):
+        gestor = self._gestor(2)
+        recibidas = {}
+        finales = {}
+
+        def simulada(url, opciones, _prog, estado, _cancel, _det=None):
+            recibidas[url] = dict(opciones)
+            estado("completado", "")
+
+        def analizar(url):
+            return {"tipo": "playlist" if url == "url-lista" else "video"}
+
+        with mock.patch.object(descargas, "analizar_url", side_effect=analizar), \
+                mock.patch.object(descargas, "descargar", side_effect=simulada):
+            gestor.encolar("url-lista", lambda *a: None,
+                           lambda i, e, m: finales.__setitem__(i, e))
+            gestor.encolar("url-video", lambda *a: None,
+                           lambda i, e, m: finales.__setitem__(i, e))
+            self.assertTrue(self._esperar_hasta(lambda: len(finales) == 2,
+                                               tiempo=10))
+        self.assertTrue(recibidas["url-lista"].get("es_lista"))
+        self.assertFalse(recibidas["url-video"].get("es_lista"))
 
 
 if __name__ == "__main__": unittest.main()

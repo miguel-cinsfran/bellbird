@@ -29,6 +29,7 @@ from bellbird.ui.preferencias_api import PaginaApi
 from bellbird.ui.preferencias_atajos import PaginaAtajos
 from bellbird.ui.preferencias_general import OPCIONES_GENERAL, PaginaGeneral, ofrecer_reinicio
 from bellbird.ui.preferencias_musica import OPCIONES_MUSICA, PaginaMusica
+from bellbird.ui.preferencias_descargas import PaginaDescargasPreferencias
 from bellbird.ui.preferencias_lectura import OPCIONES_LECTURA, PaginaLectura
 from bellbird.ui.preferencias_ia import PaginaIA
 from bellbird.ui.preferencias_programados import PaginaProgramados
@@ -127,6 +128,8 @@ class PreferenciasDialog(wx.Dialog):
         self.nb.AddPage(self.pagina_musica.construir(self.nb), _("Música"))
         for fila in OPCIONES_MUSICA:
             setattr(self, fila[0], getattr(self.pagina_musica, fila[0]))
+        self.pagina_descargas = PaginaDescargasPreferencias()
+        self.nb.AddPage(self.pagina_descargas.construir(self.nb), _("Descargas"))
         self.nb.AddPage(self._pag_conexion(self.nb), _("Conexión"))
         self.nb.AddPage(self._pag_filtros(self.nb), _("Filtros"))
         self.nb.AddPage(self._pag_estado(self.nb), _("Estado (F2)"))
@@ -523,8 +526,8 @@ class PreferenciasDialog(wx.Dialog):
         c["obs_microfono"] = microfono_obs
 
         self.pagina_musica.guardar(self._set, c)
+        self.pagina_descargas.guardar()
 
-        # Estado (F2): una clave por componente + el set en memoria.
         activos = set()
         for comp, chk in self._chk_estado.items():
             on = chk.GetValue()

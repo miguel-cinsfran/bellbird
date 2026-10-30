@@ -67,5 +67,5 @@ def argumentos_descarga(url, opciones, enumerar, ffmpeg_location=None) -> list[s
         ffmpeg_location = ffmpeg_bin.ruta_ffmpeg()
     if ffmpeg_location is not None:
         argumentos.extend(["--ffmpeg-location", str(ffmpeg_location)])
-    argumentos.extend(["--", url])
+    argumentos.extend(["--no-playlist", "--", url])
     return argumentos

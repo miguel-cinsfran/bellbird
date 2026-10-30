@@ -213,9 +213,9 @@ def descargar(url: str, opciones: dict,
     `return`. NUNCA se re-lanza fuera del hilo.
 
     Callbacks:
-      - progreso_cb(pct: float, velocidad, eta, nombre) — se invoca desde el
+      - progreso_cb(pct: float, velocidad, eta, nombre): se invoca desde el
         progress hook de yt-dlp cada vez que hay actualización de bytes.
-      - estado_cb(estado: str, mensaje: str) — transiciones de estado: primero
+      - estado_cb(estado: str, mensaje: str): transiciones de estado: primero
         "descargando", luego uno de "completado" | "cancelado" | "error".
     """
     ruta = ytdlp_bin.ruta_ytdlp()
@@ -358,7 +358,7 @@ class GestorDescargas:
         self._empezados: set[str] = set()
 
     def set_opciones(self, op: dict) -> None:
-        """Reemplaza las opciones que se pasan a cada descarga nueva."""
+        """Reemplaza las opciones para lo que se encole después."""
         with self._lock:
             self._opciones = dict(op)
 
@@ -423,9 +423,9 @@ class GestorDescargas:
         """
         item_id = uuid.uuid4().hex[:12]
         with self._lock:
-            carpeta = str(self._opciones.get("carpeta") or "")
+            opciones = dict(self._opciones)
         it = ItemDescarga(id=item_id, url=url, tipo="video", nombre=url,
-                          carpeta=carpeta)
+                          carpeta=str(opciones.get("carpeta") or ""))
         ev = threading.Event()
         with self._lock:
             self._items[item_id] = it
@@ -467,7 +467,7 @@ class GestorDescargas:
                         _cb_estado("cancelado", _("Descarga cancelada"))
                         return
                     logger.info("descarga %s: inicio", item_id)
-                    descargar(url, self._opciones, _cb_progreso, _cb_estado, ev)
+                    descargar(url, opciones, _cb_progreso, _cb_estado, ev)
                 finally:
                     if tomado:
                         self._turnos.release()

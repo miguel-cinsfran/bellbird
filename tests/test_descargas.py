@@ -188,6 +188,12 @@ class TestArgumentosDescarga(unittest.TestCase):
         indice = args.index("--ffmpeg-location")
         self.assertEqual(args[indice + 1], r"C:\app\ffmpeg.exe")
 
+    def test_enlace_de_video_con_lista_baja_solo_el_video(self):
+        args = argumentos_descarga("https://example.com/watch?v=X&list=Y",
+                                   self.opciones("mp4"), False)
+        self.assertIn("--no-playlist", args)
+        self.assertLess(args.index("--no-playlist"), args.index("--"))
+
     def test_pide_la_ruta_final_sin_perder_el_progreso(self):
         # --print implica --quiet, que apaga el progreso: --progress lo recupera.
         args = argumentos_descarga("url", self.opciones("mp4"), False)
@@ -686,6 +692,42 @@ class TestGestorDescargasLimite(unittest.TestCase):
         self.assertEqual(finales[fallido], "error")
         self.assertEqual(finales[ok1], "completado")
         self.assertEqual(finales[ok2], "completado")
+
+    def test_encolado_conserva_las_opciones_vigentes_al_encolar(self):
+        # Con los dos turnos ocupados, cambiar las opciones no afecta al
+        # ítem que espera: descarga con las primeras y su carpeta coincide.
+        primeras = {"formato": "mp3", "bitrate": 192, "carpeta": "/tmp/primera",
+                    "enumerar": False}
+        segundas = {"formato": "mp4", "bitrate": 256, "carpeta": "/tmp/segunda",
+                    "enumerar": True}
+        gestor = GestorDescargas(dict(primeras))
+        liberar = threading.Event()
+        candado = threading.Lock()
+        entradas = []
+        recibidas = {}
+        finales = {}
+
+        def descargar_simulada(url, opciones, _progreso, estado, _cancelar):
+            with candado:
+                entradas.append(url)
+                recibidas[url] = dict(opciones)
+            liberar.wait(5)
+            estado("completado", "")
+
+        with mock.patch.object(descargas, "analizar_url",
+                               return_value={"tipo": "video"}), \
+                mock.patch.object(descargas, "descargar",
+                                  side_effect=descargar_simulada):
+            gestor.encolar("url-0", lambda *a: None, self._registrador(finales))
+            gestor.encolar("url-1", lambda *a: None, self._registrador(finales))
+            self.assertTrue(_esperar_hasta(lambda: len(entradas) >= 2))
+            tercero = gestor.encolar("url-2", lambda *a: None,
+                                     self._registrador(finales))
+            gestor.set_opciones(segundas)
+            liberar.set()
+            self.assertTrue(_esperar_hasta(lambda: len(finales) == 3, tiempo=10))
+        self.assertEqual(recibidas["url-2"], primeras)
+        self.assertEqual(gestor.obtener(tercero).carpeta, recibidas["url-2"]["carpeta"])
 
     def test_el_turno_respeta_la_fila_aunque_arranquen_al_reves(self):
         # Sin la fila por _orden, el semáforo atiende en orden de arranque.

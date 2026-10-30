@@ -13,7 +13,7 @@ import threading
 import time
 
 from bellbird.capture import tiktok_vivo
-from bellbird.core import config, diagnostico
+from bellbird.core import diagnostico
 from bellbird.core.idioma import _, ngettext
 from bellbird.obs import obs_activacion
 from bellbird.obs import obs_cliente
@@ -101,15 +101,14 @@ class SupervisorTransmision:
         self._al_terminar = al_terminar
         self._preparar_emision = preparar_emision
         self._esperar_emision = esperar_emision
-        self._finalizar_emision = finalizar_emision
-        self._ruta_fin_pendiente = ruta_fin_pendiente
+        self._cierre = fin_pendiente.CierreYoutube(
+            finalizar_emision, ruta_fin_pendiente, self._anunciar,
+            dormir, reloj)
         # Invocable sin argumentos que decide, en cada vuelta, si el aviso de
         # sobrecarga se anuncia. El supervisor no lee la configuración solo:
         # quien lo crea se la pasa.
         self._avisar_sobrecarga = avisar_sobrecarga or (lambda: True)
         self._id_video = None
-        self._cerrojo_fin = threading.Lock()
-        self._fin_youtube = False
         self._parada = threading.Event()
         self._corte = threading.Event()
         self._hilo = None
@@ -162,8 +161,7 @@ class SupervisorTransmision:
         self._parada.clear()
         self._corte.clear()
         self._id_video = None
-        with self._cerrojo_fin:
-            self._fin_youtube = False
+        self._cierre.reiniciar()
         self._hilo = diagnostico.crear_hilo(
             self._supervisar, "SupervisorTransmision")
         self._hilo.start()
@@ -426,81 +424,7 @@ class SupervisorTransmision:
                     logger.debug("no se pudo avisar el fin de la supervisión: %s", error)
 
     def _finalizar_youtube_si_toca(self) -> None:
-        # Cierra el directo en YouTube una sola vez por emisión, solo con
-        # id de vídeo (los directos de TikTok no tienen). El id se anota
-        # antes de pedirlo: si la red falla, el pedido sobrevive al cierre
-        # en el archivo de fines pendientes. Con la ruta en None no se toca
-        # el disco y no se lanza reintento.
-        gancho = self._finalizar_emision
-        id_video = self._id_video
-        if gancho is None or not id_video:
-            return
-        with self._cerrojo_fin:
-            if self._fin_youtube:
-                return
-            self._fin_youtube = True
-        self._anotar_fin_pendiente(id_video)
-        try:
-            gancho(id_video)
-        except Exception as error:
-            try:
-                self._anunciar(
-                    _("YouTube no confirmó el fin del directo. Se reintentará durante 10 minutos."),
-                    "transmision_problema")
-            except Exception as error_anuncio:
-                logger.debug("no se pudo anunciar el fallo de cierre en YouTube: %s", error_anuncio)
-            logger.warning("no se pudo finalizar la emisión %s: %s",
-                           id_video, error)
-            self._lanzar_reintento_fin(id_video)
-        else:
-            self._quitar_fin_pendiente(id_video)
-
-    def _anotar_fin_pendiente(self, id_video) -> None:
-        if self._ruta_fin_pendiente is None:
-            return
-        try:
-            fin_pendiente.anotar(self._ruta_fin_pendiente, id_video)
-        except Exception as error:
-            logger.debug("no se pudo anotar el fin pendiente: %s", error)
-
-    def _quitar_fin_pendiente(self, id_video) -> None:
-        if self._ruta_fin_pendiente is None:
-            return
-        try:
-            fin_pendiente.quitar(self._ruta_fin_pendiente, id_video)
-        except Exception as error:
-            logger.debug("no se pudo quitar el fin pendiente: %s", error)
-
-    def _lanzar_reintento_fin(self, id_video) -> None:
-        # Sin archivo no hay nada que sobreviva a un cierre de la app, así
-        # que no se abre un reintento a ciegas: la ruta la pone quien usa
-        # el supervisor en producción.
-        if self._ruta_fin_pendiente is None:
-            return
-        try:
-            diagnostico.crear_hilo(
-                lambda: self._reintentar_fin(id_video),
-                "ReintentarFinDirecto").start()
-        except Exception as error:
-            logger.warning("no se pudo lanzar el reintento del fin: %s", error)
-
-    def _reintentar_fin(self, id_video) -> None:
-        def intento():
-            self._finalizar_emision(id_video)
-
-        if fin_pendiente.reintentar(intento, self._dormir, self._reloj):
-            self._quitar_fin_pendiente(id_video)
-            try:
-                self._anunciar(_("Directo finalizado en YouTube."), "directo_finalizado")
-            except Exception as error:
-                logger.debug("no se pudo anunciar el directo finalizado: %s", error)
-        else:
-            try:
-                frase = _("YouTube sigue sin confirmar el fin del directo. "
-                          "Se intentará de nuevo al abrir {app}.")
-                self._anunciar(frase.format(app=config.APP_NAME), "transmision_problema")
-            except Exception as error:
-                logger.debug("no se pudo anunciar el reintento del fin del directo: %s", error)
+        self._cierre.finalizar_si_toca(self._id_video)
 
     def _vigilar(self, gestor) -> None:
         anterior = gestor.estado_transmision(self._parada)

@@ -13,8 +13,9 @@ from bellbird.core import diagnostico
 from bellbird.core.idioma import _
 from bellbird.downloads import busqueda_youtube
 from bellbird.downloads.busqueda_youtube import (
-    CANTIDAD_DEFECTO, Filtros, clasificar_entrada, ordenar, texto_detalles,
-    texto_duracion, texto_fecha, texto_vistas)
+    CANTIDAD_DEFECTO, Filtros, clasificar_entrada, ordenar)
+from bellbird.downloads.textos_busqueda import (
+    texto_detalles, texto_duracion, texto_fecha, texto_vistas)
 from bellbird.downloads import busquedas_recientes
 from bellbird.ui.accesibilidad import anunciar, nombre_accesible
 from bellbird.ui.buscador_filtros import FiltrosBusqueda

@@ -19,11 +19,13 @@ from bellbird.downloads.busqueda_youtube import (
     interpretar,
     ordenar,
     refiltrar,
-    texto_duracion,
+    url_busqueda,
+)
+from bellbird.downloads.textos_busqueda import (
     texto_detalles,
+    texto_duracion,
     texto_fecha,
     texto_vistas,
-    url_busqueda,
 )
 
 

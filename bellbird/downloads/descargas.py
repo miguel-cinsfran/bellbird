@@ -12,7 +12,6 @@ argumentos en `argumentos_ytdlp.argumentos_de_formato`.
 from __future__ import annotations
 
 import logging
-import os
 import subprocess
 import threading
 import time
@@ -33,6 +32,8 @@ from bellbird.downloads.opciones_formato import SIMULTANEAS_DEFECTO
 from bellbird.downloads.argumentos_ytdlp import (
     argumentos_descarga, carpeta_base, construir_outtmpl, recortar_url_registro)
 from bellbird.downloads.motivo_error import motivo_de_error
+from bellbird.downloads.proceso_ytdlp import (
+    _matar_arbol, _vigilar_cancelacion)
 from bellbird.downloads.progreso_ytdlp import (
     INTERVALO_PROGRESO_S, PREFIJO_RUTA_FINAL, debe_emitir_progreso,
     tratar_linea)
@@ -61,32 +62,6 @@ class ItemDescarga:
 
 
 # ── Helpers puros (testeables en Linux) ──────────────────────────────────────
-
-
-def _matar_arbol(proceso) -> None:
-    """Mata a yt-dlp Y a su ffmpeg hijo. En Windows kill() solo mata al
-    padre: el ffmpeg que estaba uniendo audio y vídeo seguía vivo y escribiendo
-    en la carpeta. taskkill /T baja el árbol entero; kill() queda de red."""
-    pid = getattr(proceso, "pid", None)
-    if os.name == "nt" and isinstance(pid, int):
-        try:
-            subprocess.run(["taskkill", "/T", "/F", "/PID", str(pid)],
-                           capture_output=True, timeout=10, check=False,
-                           creationflags=_sin_ventana())
-        except Exception as exc:
-            logger.debug("taskkill: %s", exc)
-    try:
-        proceso.kill()
-    except Exception as exc:
-        logger.debug("kill: %s", exc)
-
-
-def _vigilar_cancelacion(proceso, cancel_event, intervalo=0.2) -> bool:
-    while proceso.poll() is None:
-        if cancel_event.wait(intervalo):
-            _matar_arbol(proceso)
-            return True
-    return False
 
 
 def descargar(url: str, opciones: dict,

@@ -23,9 +23,11 @@ from bellbird.downloads.descargas import (
     gestor,
     reiniciar_gestor,
     tiene_ffmpeg,
-    _vigilar_cancelacion,
 )
 from bellbird.downloads.motivo_error import frase_aviso_descarga
+from bellbird.downloads import proceso_ytdlp
+from bellbird.downloads.proceso_ytdlp import (
+    _matar_arbol, _vigilar_cancelacion)
 from bellbird.downloads.restos_descarga import (
     limpiar_restos_descarga, nombre_base_descarga)
 
@@ -479,24 +481,24 @@ class TestMatarArbol(unittest.TestCase):
 
     def test_en_windows_baja_el_arbol_con_taskkill_y_luego_kill(self):
         proceso = mock.Mock(pid=1234)
-        with mock.patch.object(descargas.os, "name", "nt"), \
-                mock.patch.object(descargas.subprocess, "run") as run:
-            descargas._matar_arbol(proceso)
+        with mock.patch.object(proceso_ytdlp.os, "name", "nt"), \
+                mock.patch.object(proceso_ytdlp.subprocess, "run") as run:
+            _matar_arbol(proceso)
         self.assertEqual(run.call_args.args[0],
                          ["taskkill", "/T", "/F", "/PID", "1234"])
         proceso.kill.assert_called_once()
 
     def test_si_taskkill_falla_igual_hace_kill(self):
         proceso = mock.Mock(pid=1234)
-        with mock.patch.object(descargas.os, "name", "nt"), \
-                mock.patch.object(descargas.subprocess, "run", side_effect=OSError("no")):
-            descargas._matar_arbol(proceso)
+        with mock.patch.object(proceso_ytdlp.os, "name", "nt"), \
+                mock.patch.object(proceso_ytdlp.subprocess, "run", side_effect=OSError("no")):
+            _matar_arbol(proceso)
         proceso.kill.assert_called_once()
 
     def test_sin_pid_real_no_lanza_taskkill(self):
         proceso = mock.Mock()   # pid es un Mock, como en las demás pruebas
-        with mock.patch.object(descargas.subprocess, "run") as run:
-            descargas._matar_arbol(proceso)
+        with mock.patch.object(proceso_ytdlp.subprocess, "run") as run:
+            _matar_arbol(proceso)
         run.assert_not_called()
         proceso.kill.assert_called_once()
 

@@ -1,6 +1,6 @@
 """Pseudotraducción de la página Voces de Preferencias.
 
-Abre ventanas: la corre el advisor en la otra PC, no se corre acá.
+Abre ventanas.
 Construye el diálogo de Preferencias con la pseudotraducción y exige que
 la página no deje ningún texto visible sin envolver.
 """

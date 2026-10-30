@@ -1,7 +1,7 @@
 """Pruebas de la ventana de actualización de yt-dlp.
 
-La lógica corre sin ventanas con una ventana falsa; la pseudotraducción de
-la ventana real la corre el advisor en la otra PC. El texto final lo arma
+La lógica corre sin ventanas con una ventana falsa; la pseudotraducción
+usa la ventana real y la abre. El texto final lo arma
 `bellbird/downloads/ytdlp_actualizar.py` y llega marcado.
 """
 
@@ -150,7 +150,7 @@ class TestVentanaYtdlp(unittest.TestCase):
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestPseudoVentanaYtdlp(unittest.TestCase):
-    """Pseudotraducción de la ventana real: la corre el advisor."""
+    """Pseudotraducción de la ventana real."""
 
     @classmethod
     def setUpClass(cls):

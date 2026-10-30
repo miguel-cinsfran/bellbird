@@ -1,7 +1,7 @@
 """Pruebas del botón directo de transmisión.
 
-Las clases con ventana las corre el advisor (abren ventanas de verdad y
-aquí no se corren): aquí solo se corre TestGuardarDestino, sin ventana.
+Las clases con ventana abren ventanas de verdad y aquí no se corren:
+aquí solo se corre TestGuardarDestino, sin ventana.
 """
 
 import queue
@@ -280,7 +280,6 @@ class TestAlPulsarDeteniendoSinVentana(unittest.TestCase):
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestBotonDirectoVentana(unittest.TestCase):
-    # Con ventana: las corre el advisor. No correr aquí.
 
     def setUp(self):
         self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
@@ -363,7 +362,6 @@ PENDIENTES_BOTON_DIRECTO = ()
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestPseudoBotonDirectoVentana(unittest.TestCase):
-    # Con ventana: la corre el advisor. No correr aquí.
 
     def setUp(self):
         self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()

@@ -124,8 +124,6 @@ class TestCableadoPantallaCompleta(unittest.TestCase):
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestPseudoNombreAccesibleVentana(unittest.TestCase):
     """Con ventana: el nombre accesible del vídeo sale marcado.
-
-    La corre el advisor en otra PC, no correr aquí.
     """
 
     def test_nombre_del_video_sale_marcado(self):

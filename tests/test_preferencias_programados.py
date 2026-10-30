@@ -1,6 +1,6 @@
 """Pseudotraducción de la página Mensajes automáticos de Preferencias.
 
-Abre ventanas: la corre el advisor en la otra PC, no se corre acá.
+Abre ventanas.
 Comprueba que ningún texto visible de la página queda sin pasar por
 gettext. Las líneas de la lista las arma `bellbird/capture/programados.py`,
 fuera del alcance, y la lista no entra en el recorrido.

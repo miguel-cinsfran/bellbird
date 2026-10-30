@@ -510,7 +510,7 @@ PENDIENTES_DIRECTO_YOUTUBE = ()
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestPseudoDirectoYoutubeVentana(unittest.TestCase):
-    # Con ventana: la corre el advisor. No correr aquí.
+    # Abre ventanas.
 
     def setUp(self):
         self.app = wx.App.Get() or wx.App(False)

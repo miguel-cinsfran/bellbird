@@ -1,6 +1,6 @@
 """Pseudotraducción de la página General de Preferencias.
 
-Abre ventanas: la corre el advisor en la otra PC, no se corre acá.
+Abre ventanas.
 Comprueba que ningún texto visible de la página queda sin pasar por
 gettext.
 """
@@ -80,7 +80,7 @@ class _CuadroFalso:
 class TestReinicioPorIdioma(unittest.TestCase):
     """Cuadro de reinicio y relanzado de la aplicación.
 
-    Abre ventanas: la corre el advisor en la otra PC, no se corre acá.
+    Abre ventanas.
     """
 
     def setUp(self):
@@ -188,7 +188,7 @@ def _dialogo_falso(cambiar_idioma):
 class TestCuadroSoloSiCambiaElIdioma(unittest.TestCase):
     """`abrir_preferencias` decide el cuadro comparando el idioma.
 
-    Abre ventanas: la corre el advisor en la otra PC, no se corre acá.
+    Abre ventanas.
     """
 
     def setUp(self):

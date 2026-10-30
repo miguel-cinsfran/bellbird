@@ -500,8 +500,7 @@ PENDIENTES_OTROS_MODULOS = (
 class TestPseudoMenu(unittest.TestCase):
     """Pseudotraducción de la barra real: nada propio sin envolver.
 
-    Abre ventanas: la corre el advisor en la otra PC, no se corre acá.
-    Construye la misma barra real que vuelca la prueba de convenciones y
+    Abre ventanas. Construye la misma barra real que vuelca la prueba de convenciones y
     exige que cada etiqueta propia salga marcada.
     """
 
@@ -528,8 +527,7 @@ class TestPseudoMenu(unittest.TestCase):
 class TestLetrasMenuEnIngles(unittest.TestCase):
     """La barra real en inglés: ninguna letra de acceso repetida.
 
-    Abre ventanas: la corre el advisor en la otra PC, no se corre acá.
-    En este archivo no hay prueba en español de esa regla sobre el menú
+    Abre ventanas. En este archivo no hay prueba en español de esa regla sobre el menú
     real, así que no es gemela de ninguna.
     """
 

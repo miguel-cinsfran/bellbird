@@ -1002,7 +1002,7 @@ PENDIENTES_OTRO_MODULO = ()
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestPseudoVentana(unittest.TestCase):
-    """Pseudotraducción de la ventana (la corre el advisor)."""
+    """Pseudotraducción de la ventana."""
 
     @classmethod
     def setUpClass(cls):

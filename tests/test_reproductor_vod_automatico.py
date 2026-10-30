@@ -1,6 +1,6 @@
 """VOD en calidad automática por el relevo con pistas que no son HLS.
 
-Cubre el encargo 40: altura efectiva, cableado de la rama automática,
+Altura efectiva, cableado de la rama automática,
 audio de respaldo en segundo plano y recarga tras fallo de apertura.
 """
 

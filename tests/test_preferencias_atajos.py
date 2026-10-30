@@ -1,6 +1,6 @@
 """Pseudotraducción de la página Atajos de Preferencias.
 
-Abre ventanas: la corre el advisor en la otra PC, no se corre acá.
+Abre ventanas.
 Comprueba que ningún texto visible propio de la página queda sin pasar
 por gettext.
 """

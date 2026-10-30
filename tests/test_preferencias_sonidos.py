@@ -1,4 +1,4 @@
-"""Pruebas de la página Sonidos (con wx: las corre el advisor en otra PC).
+"""Pruebas de la página Sonidos (con wx).
 
 Usan un sounds.ini temporal real, nunca el de datos.
 """

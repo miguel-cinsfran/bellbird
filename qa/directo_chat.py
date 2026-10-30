@@ -6,8 +6,8 @@ valor, archivos de pedido del corte y API de YouTube) también vive acá,
 pero recibe lo que necesita como argumentos y no importa nada de
 `directo_real.py`, para no armar un import circular.
 
-El corte lo hace la tarea BellbirdCorteRed, que el advisor lanza antes
-del banco: acá solo se escribe el pedido con los segundos y se espera el
+El corte lo hace la tarea BellbirdCorteRed, que tiene que estar
+registrada antes de la escena: acá solo se escribe el pedido con los segundos y se espera el
 `.hecho`. Durante el corte todo Python queda sin red, así que entre el
 pedido y la reconexión no se llama a la API: solo se leen archivos.
 """
@@ -17,7 +17,7 @@ from __future__ import annotations
 import os
 import time
 
-# Tope del corte, igual que en `herramientas/corte_red.ps1`.
+# Tope del corte, igual que el de la tarea `BellbirdCorteRed`.
 TOPE_CORTE = 30
 # Archivos por los que el banco habla con la tarea del corte.
 RUTA_PEDIDO = r"C:\Users\Public\bellbird_corte_red.pedido"

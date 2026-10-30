@@ -122,7 +122,7 @@ class TestDialogoActualizacion(unittest.TestCase):
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestPseudoVentanaPropia(unittest.TestCase):
-    # Pseudotraducción de los textos propios: la corre el advisor.
+    # Pseudotraducción de los textos propios.
 
     def setUp(self):
         self.app = wx.App.Get() or wx.App(False)
@@ -138,7 +138,7 @@ class TestPseudoVentanaPropia(unittest.TestCase):
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestReajuste(unittest.TestCase):
-    """Reajuste a su contenido: abren ventanas, las corre el advisor."""
+    """Reajuste a su contenido: abren ventanas."""
 
     def setUp(self):
         self.app = wx.App.Get() or wx.App(False)

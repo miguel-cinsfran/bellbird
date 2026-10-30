@@ -1,7 +1,7 @@
 """Pruebas de los avisos de los controles del reproductor.
 
-Las clases con ventana las corre el advisor (abren ventanas de verdad y
-aquí no se corren): aquí solo se corren las que usan paneles con dobles.
+Las clases con ventana abren ventanas de verdad y aquí no se corren:
+aquí solo se corren las que usan paneles con dobles.
 """
 
 import unittest
@@ -1506,7 +1506,6 @@ PENDIENTES_REPRODUCTOR = ()
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestPseudoReproductorVentana(unittest.TestCase):
-    # Con ventana: la corre el advisor. No correr aquí.
 
     def setUp(self):
         self.app = wx.App(False) if not wx.App.Get() else wx.App.Get()
@@ -1531,7 +1530,7 @@ class TestPseudoReproductorVentana(unittest.TestCase):
 class TestFilaVolumenInterruptor(unittest.TestCase):
     """El interruptor de los botones comparte la fila del volumen.
 
-    Con ventana: la corre el advisor. No correr aquí.
+    Abre ventanas.
     """
 
     def setUp(self):

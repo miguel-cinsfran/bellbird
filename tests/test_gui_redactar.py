@@ -163,7 +163,7 @@ PENDIENTES_REDACTAR = ()
 
 
 class TestPseudoRedactar(unittest.TestCase):
-    # Pseudotraducción: abre ventanas, la corre el advisor.
+    # Pseudotraducción: abre ventanas.
 
     @classmethod
     def setUpClass(cls):

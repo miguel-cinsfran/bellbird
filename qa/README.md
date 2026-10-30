@@ -77,7 +77,7 @@ Durante la prueba todo suena al 12 %: deja la voz, los sonidos y el
 reproductor al 12 % y al terminar restaura la configuración del dueño
 exactamente como estaba. Si no hay `sounds.ini`, no lo crea.
 
-    python herramientas/escritorio_aparte.py .venv\Scripts\python.exe qa/directo_real.py
+    python qa/directo_real.py
     python qa/directo_real.py --help
 
 Corre en el escritorio aparte y con sesión de Google iniciada: necesita
@@ -105,8 +105,8 @@ y botón «Enviar», por UI Automation sin teclas) y
 lo busca por la API. Con `--corte SEGUNDOS` (tope 30) además le corta la
 red a la app esos segundos y comprueba que avisa la pérdida, se
 reconecta, sigue leyendo y escribiendo, y no repite los comentarios de
-antes del corte. El corte lo hace la tarea BellbirdCorteRed
-(`herramientas/corte_red.ps1`), que hay que lanzar antes del banco: el
+antes del corte. El corte lo hace la tarea BellbirdCorteRed, que tiene
+que estar registrada antes de la escena: el
 banco solo le escribe los segundos en
 `C:\Users\Public\bellbird_corte_red.pedido` y espera su
 `bellbird_corte_red.hecho`.

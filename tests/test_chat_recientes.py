@@ -2,7 +2,7 @@
 
 `TestLecturaRecientes` usa lista y globales falsos y no abre nada: se corre
 acá. `TestRegistroRealRecientes` registra de verdad en Windows con una
-ventana oculta: la corre el advisor en la otra PC.
+ventana oculta.
 """
 
 import unittest
@@ -191,8 +191,7 @@ class TestPseudoTextos(unittest.TestCase):
 
 
 class TestRegistroRealRecientes(unittest.TestCase):
-    """Registra de verdad los diez fijos y los suelta. Abre ventanas: la
-    corre el advisor, no se corre acá."""
+    """Registra de verdad los diez fijos y los suelta. Abre ventanas."""
 
     def setUp(self):
         import wx

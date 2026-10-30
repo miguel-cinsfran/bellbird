@@ -3,7 +3,7 @@
 Solo cubren lo puro (`se_dijo_desde`, `leer_registro`,
 `tomados_de_fallo`, `traducir_atajo_a_teclas`, `PASOS`,
 `_resolver_activacion`) y que los dos módulos importan sin abrir nada.
-La escena real la corre el banco en la otra PC.
+La escena real la corre el banco.
 """
 
 import importlib.util

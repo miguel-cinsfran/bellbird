@@ -16,7 +16,7 @@ from bellbird.core import config, eventos_sonido
 RAIZ = Path(__file__).resolve().parent.parent
 TEMAS_DIR = RAIZ / "sounds" / "themes"
 
-# Los doce avisos con sonido propio (encargo 174, más directo_finalizado y
+# Los doce avisos con sonido propio (más directo_finalizado y
 # la vuelta de la conexión), los cuatro de música y los siete de la IA.
 EVENTOS_NUEVOS = [
     "descarga_iniciada", "descarga_completada", "descarga_fallida",

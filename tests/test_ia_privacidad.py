@@ -1,6 +1,6 @@
 """Pruebas del aviso de privacidad de la IA, sin red.
 
-Con wx: las corre el advisor en otra PC. No correr aquí.
+Con wx.
 """
 
 import unittest

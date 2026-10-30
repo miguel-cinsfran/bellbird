@@ -1,7 +1,6 @@
 """Pseudotraducción del diálogo entero de Preferencias.
 
-Abre ventanas: la corre el advisor en la otra PC, no se corre acá.
-Recorre el diálogo con todas sus páginas y exige que lo único sin
+Abre ventanas. Recorre el diálogo con todas sus páginas y exige que lo único sin
 envolver sea la unión de los pendientes que ya declaran las pruebas de
 cada página (importados, no copiados) más los propios de este diálogo.
 Cualquier texto nuevo sin envolver la pone en rojo.

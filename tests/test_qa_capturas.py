@@ -2,8 +2,7 @@
 
 Las clases `TestNombres`, `TestDedup`, `TestIndice`, `TestColores` y
 `TestArgumentosCapturas` no abren ventanas y corren en cualquier PC. La
-clase `TestCapturaWx` sí crea un `wx.Frame` de verdad y la corre el
-advisor en la otra PC; acá NO se corre.
+clase `TestCapturaWx` sí crea un `wx.Frame` de verdad y abre ventanas.
 """
 
 import importlib.util
@@ -183,7 +182,7 @@ class TestArgumentosCapturas(unittest.TestCase):
 
 
 class TestCapturaWx(unittest.TestCase):
-    """Captura de verdad sobre un `wx.Frame`. La corre el advisor."""
+    """Captura de verdad sobre un `wx.Frame`. Abre ventanas."""
 
     # Va en otro proceso para no depender de lo que la suite cargó antes.
     _GUIA_HIJO = "\n".join([

@@ -1,6 +1,6 @@
 """Pruebas del cuadro de enlace de la música.
 
-Abren ventanas: las corre el advisor en la otra PC, no se corren acá.
+Abren ventanas.
 """
 
 import unittest

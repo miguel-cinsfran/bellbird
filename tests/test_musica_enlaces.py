@@ -292,7 +292,7 @@ def _lista_ya_no_existe(url):
 @unittest.skipUnless(_HABIL_RED,
                      "pruebas de red desactivadas (YTCHAT_PRUEBAS_RED=1)")
 class TestEnlacesRed(unittest.TestCase):
-    """Reales contra YouTube. Solo las corre el advisor con la variable."""
+    """Reales contra YouTube. Solo corren con `YTCHAT_PRUEBAS_RED=1`."""
 
     def test_expandir_un_video(self):
         temas = enlaces.expandir(f"https://www.youtube.com/watch?v={VIDEO}")

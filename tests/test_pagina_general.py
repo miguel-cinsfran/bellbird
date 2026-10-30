@@ -2,7 +2,7 @@
 
 Sin ventanas: solo cubre las funciones puras `mensaje_confirmar_salida`,
 `descargas_sin_terminar` y `mensaje_con_descargas`. El cableado con
-`wx.MessageDialog` vive en `test_gui.py` y lo corre el advisor.
+`wx.MessageDialog` vive en `test_gui.py`.
 """
 
 import unittest

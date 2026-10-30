@@ -1,7 +1,7 @@
 """Pruebas del índice de QA en «Colecciones», sin ventanas ni teclas.
 
 Solo cubren lo puro (`indice_coleccion_qa`) y que el módulo importa sin
-abrir nada. La escena real la corre el banco en la otra PC.
+abrir nada. La escena real la corre el banco.
 """
 
 import importlib.util

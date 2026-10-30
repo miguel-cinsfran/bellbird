@@ -1,7 +1,6 @@
 """Ventana principal conectada a 860x700: chat y vídeo visibles.
 
-Abren ventanas: las corre el advisor en la otra PC, no se corren acá. Con
-el rediseño del encargo (interruptor a la fila del volumen, «Mensaje:» a
+Abren ventanas. Con el rediseño (interruptor a la fila del volumen, «Mensaje:» a
 la izquierda del campo y proporción que cede el vídeo con mínimo 110),
 la lista muestra al menos 6 filas y el vídeo conserva al menos 100 px.
 """
@@ -17,7 +16,6 @@ from tests.ventanas_prueba import destruir
 
 
 class TestVentanaConectadaFabrica(unittest.TestCase):
-    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
 
     def setUp(self):
         self.app = gui.wx.App.Get() or gui.wx.App(False)

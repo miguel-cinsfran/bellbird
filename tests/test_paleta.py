@@ -1,7 +1,6 @@
 """Pruebas de la paleta compartida y de su uso en las ventanas grises.
 
-Crean diálogos de verdad: NO correr en esta máquina (abren ventanas);
-las corre el advisor en otra PC.
+Crean diálogos de verdad: abren ventanas.
 """
 
 import unittest
@@ -28,8 +27,6 @@ def _hilo_directo(target, nombre, **kwargs):
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestPintarVentana(unittest.TestCase):
-    # Con ventana: las corre el advisor. No correr aquí.
-
     def setUp(self):
         self.app = wx.App.Get() or wx.App(False)
 
@@ -82,8 +79,6 @@ class TestPintarVentana(unittest.TestCase):
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestFondoActualizacion(unittest.TestCase):
-    # Con ventana: las corre el advisor. No correr aquí.
-
     def setUp(self):
         self.app = wx.App.Get() or wx.App(False)
 
@@ -97,8 +92,6 @@ class TestFondoActualizacion(unittest.TestCase):
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestFondoElegirDestino(unittest.TestCase):
-    # Con ventana: las corre el advisor. No correr aquí.
-
     def setUp(self):
         self.app = wx.App.Get() or wx.App(False)
 
@@ -112,8 +105,6 @@ class TestFondoElegirDestino(unittest.TestCase):
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestFondoDirectoYoutube(unittest.TestCase):
-    # Con ventana: las corre el advisor. No correr aquí.
-
     def setUp(self):
         self.app = wx.App.Get() or wx.App(False)
 
@@ -126,8 +117,6 @@ class TestFondoDirectoYoutube(unittest.TestCase):
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestFondoAgregarCaptura(unittest.TestCase):
-    # Con ventana: las corre el advisor. No correr aquí.
-
     def setUp(self):
         self.app = wx.App.Get() or wx.App(False)
         from bellbird.ui import ia_agregar_captura as agregar
@@ -153,8 +142,6 @@ class TestFondoAgregarCaptura(unittest.TestCase):
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestFondoVentanaIA(unittest.TestCase):
-    # Con ventana: las corre el advisor. No correr aquí.
-
     def setUp(self):
         self.app = wx.App.Get() or wx.App(False)
 
@@ -173,8 +160,6 @@ class TestFondoVentanaIA(unittest.TestCase):
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestFondoPreferencias(unittest.TestCase):
-    # Con ventana: las corre el advisor. No correr aquí.
-
     def setUp(self):
         self.app = wx.App.Get() or wx.App(False)
 

@@ -1,6 +1,6 @@
 """Pruebas de la página Lectura y de su guardado.
 
-Abren ventanas: las corre el advisor en la otra PC, no se corren acá. La
+Abren ventanas. La
 primera mata la mutación que devuelve siempre el mismo formato desde
 `PaginaLectura.cambios()`; la segunda comprueba el cableado hasta el
 archivo, que guardar escribe en `[lectura] formato_prefijo` lo elegido.
@@ -97,7 +97,7 @@ AVISOS_ESPERADOS = (
 class TestAvisosTiktok(unittest.TestCase):
     """Los cinco avisos de TikTok: lista con nombre accesible y valor.
 
-    Abren ventanas: las corre el advisor en la otra PC, no se corren acá.
+    Abren ventanas.
     """
 
     def setUp(self):
@@ -149,7 +149,7 @@ class TestAvisosTiktok(unittest.TestCase):
 class TestAvisosEnGrupo(unittest.TestCase):
     """Los cinco avisos de TikTok van en un recuadro con su título.
 
-    Abren ventanas: las corre el advisor en la otra PC, no se corren acá.
+    Abren ventanas.
     """
 
     def setUp(self):

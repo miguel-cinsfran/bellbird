@@ -2018,7 +2018,6 @@ class TestLetrasMenuBuscador(unittest.TestCase):
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestLetrasMenuBuscadorEnIngles(TestLetrasMenuBuscador):
-    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
     # Gemela en inglés: repite la prueba sin copiarla.
 
     @classmethod
@@ -2296,7 +2295,7 @@ class TestFinDeCola(unittest.TestCase):
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestPseudoVentana(unittest.TestCase):
-    """Pseudotraducción de la ventana (la corre el advisor)."""
+    """Pseudotraducción de la ventana."""
 
     def setUp(self):
         self.app = wx.App() if not wx.App.Get() else wx.App.Get()
@@ -2322,7 +2321,7 @@ class TestPseudoVentana(unittest.TestCase):
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestPseudoAvisos(unittest.TestCase):
-    """Anuncios y cuadros propios salen marcados (la corre el advisor)."""
+    """Anuncios y cuadros propios salen marcados."""
 
     def setUp(self):
         self.app = wx.App() if not wx.App.Get() else wx.App.Get()

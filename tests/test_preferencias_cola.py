@@ -1,6 +1,6 @@
 """Pruebas de la página Cola de lectura del diálogo de Preferencias.
 
-Abren ventanas: las corre el advisor en la otra PC, no se corren acá.
+Abren ventanas.
 """
 
 import tempfile
@@ -19,7 +19,7 @@ class TestUmbralEnSizer(unittest.TestCase):
     """El contador va en el sizer de la página, con los mismos márgenes
     que el tamaño máximo de la cola.
 
-    Abren ventanas: las corre el advisor en la otra PC, no se corren acá.
+    Abren ventanas.
     """
 
     def setUp(self):

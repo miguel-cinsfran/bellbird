@@ -1,9 +1,9 @@
 """Lista de directos recientes de la pantalla sin conexión.
 
-P1 a P4 con un historial temporal real, la reconexión con la URL al pulsar
+Cubre el historial temporal real, la reconexión con la URL al pulsar
 Intro, la visibilidad al mostrar y ocultar la zona, y el orden de Tab.
-Las pruebas puras no crean ventanas; las de ventana solo corren en la otra
-PC con `herramientas/oficina.py modulos --arbol`.
+Las pruebas puras no crean ventanas; `TestRecientesVentana` y
+`TestOrdenTabDesconectada` abren ventanas.
 """
 
 import queue
@@ -79,7 +79,7 @@ class TestEntradasRecientes(unittest.TestCase):
 
 
 class TestRecientesVentana(unittest.TestCase):
-    """Necesita ventana real: solo corre en la otra PC."""
+    """Necesita ventana real."""
 
     def setUp(self):
         import wx

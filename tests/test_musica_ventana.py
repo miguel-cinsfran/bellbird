@@ -1,7 +1,6 @@
 """Pruebas de la ventana única de música y del cuadro de enlace.
 
-No se corren en el encargo (abren ventanas): quedan escritas para correrlas
-después. Toda ventana de primer nivel se libera con
+Abren ventanas: quedan escritas para correrlas después. Toda ventana de primer nivel se libera con
 `tests/ventanas_prueba.destruir`.
 """
 

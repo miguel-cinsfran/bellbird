@@ -224,7 +224,7 @@ class TestTablaOpcionesSimples(unittest.TestCase):
 class TestIdiomaEnPreferencias(unittest.TestCase):
     """El selector de idioma de la página General.
 
-    Abre ventanas: la corre el advisor en la otra PC, no se corre acá.
+    Abre ventanas.
     Con `en` en la config el control muestra «English» si hay catálogo,
     y guardar con «Idioma de Windows» escribe `idioma = windows` en [ui].
     """

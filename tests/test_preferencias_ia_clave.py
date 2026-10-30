@@ -1,6 +1,6 @@
 """Pseudotraducción de la sección de clave de IA de Preferencias.
 
-Abre ventanas: la corre el advisor en la otra PC, no se corre acá.
+Abre ventanas.
 Construye la sección sobre un panel propio con la pseudotraducción y
 exige que no deje ningún texto visible sin envolver.
 """

@@ -3,7 +3,7 @@
 Sin red ni OBS real: lo externo va con dobles y los hilos corren en el
 acto. `TestConsultaRapida` y `TestAbrirVentanaTomaConversacion` no crean
 controles y corren en cualquier PC. `TestConsultaRapidaVentana` usa
-controles reales: la corre el advisor en otra PC, no correr aquí.
+controles reales. Con ventana.
 """
 
 import unittest
@@ -338,7 +338,6 @@ class TestAbrirVentanaTomaConversacion(unittest.TestCase):
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestConsultaRapidaVentana(unittest.TestCase):
-    # Con ventana: la corre el advisor. No correr aquí.
 
     def setUp(self):
         self.app = wx.App.Get() or wx.App(False)

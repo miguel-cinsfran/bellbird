@@ -283,7 +283,7 @@ def gen_cola_vaciada():
     return _normalizar(_perc(sweep, 0.004, 0.13), 0.55)
 
 
-# ── Avisos con sonido propio (encargo 174) ───────────────────────────────────
+# ── Avisos con sonido propio ───────────────────────────────────
 # Familias por timbre: descargas en triangular con cuerpo (detune), transmisión
 # en seno cálido, actualización en barrido y acorde, y un aviso neutro en
 # campanita de dos notas. Dentro de cada familia el contorno dice el resultado.
@@ -387,7 +387,7 @@ def gen_actualizacion_lista():
     return _normalizar(_perc(acorde, 0.005, 0.34), 0.75)
 
 
-# ── Música: cambio, fin y fallo (encargo 209) ────────────────────────────────
+# ── Música: cambio, fin y fallo ────────────────────────────────
 # Suenan con música de fondo, así que son cortos y de amplitud baja para no
 # tapar ni la música ni el chat. Comparten registro de seno cálido.
 
@@ -763,7 +763,7 @@ def s_actualizacion_lista():
                                   _seno(G5, 0.45, 0.22)), 0.006, 0.34), 0.75)
 
 
-# ── Música en el tema suave (encargo 209) ────────────────────────────────────
+# ── Música en el tema suave ────────────────────────────────────
 # Los mismos gestos en madera cálida, cortos y bajos por sonar con música.
 
 def s_musica_tema():
@@ -942,7 +942,7 @@ def s_descarga_parcial():
                 _madera(E5, 0.16, 0.36, 0.12))
 
 
-# ── Reemplazos del tema suave (encargo 174) ──────────────────────────────────
+# ── Reemplazos del tema suave ──────────────────────────────────
 # Generadores propios para los que eran copia de otro dentro del tema.
 # Cada uno conserva el gesto del evento con notas o duraciones distintas.
 
@@ -1057,7 +1057,7 @@ TEMAS = {
         # directo un gesto de cierre como el de desconexión.
         "orilla.wav":         gen_copiar,
         "fin_directo.wav":    gen_desconectado,
-        # Avisos con sonido propio (encargo 174).
+        # Avisos con sonido propio.
         "descarga_iniciada.wav":       gen_descarga_iniciada,
         "descarga_completada.wav":     gen_descarga_completada,
         "descarga_fallida.wav":        gen_descarga_fallida,
@@ -1071,7 +1071,7 @@ TEMAS = {
         "aviso.wav":                   gen_aviso,
         "actualizacion_disponible.wav": gen_actualizacion_disponible,
         "actualizacion_lista.wav":      gen_actualizacion_lista,
-        # Música (encargo 209).
+        # Música.
         "musica_tema.wav":             gen_musica_tema,
         "musica_fin.wav":              gen_musica_fin,
         "musica_fallo.wav":            gen_musica_fallo,
@@ -1140,7 +1140,7 @@ TEMAS = {
         # de los provisorios sigue reutilizando otros generadores.
         "orilla.wav":         s_orilla,
         "fin_directo.wav":    s_fin_directo,
-        # Avisos con sonido propio (encargo 174).
+        # Avisos con sonido propio.
         "descarga_iniciada.wav":       s_descarga_iniciada,
         "descarga_completada.wav":     s_descarga_completada,
         "descarga_fallida.wav":        s_descarga_fallida,
@@ -1154,7 +1154,7 @@ TEMAS = {
         "aviso.wav":                   s_aviso,
         "actualizacion_disponible.wav": s_actualizacion_disponible,
         "actualizacion_lista.wav":      s_actualizacion_lista,
-        # Música (encargo 209).
+        # Música.
         "musica_tema.wav":             s_musica_tema,
         "musica_fin.wav":              s_musica_fin,
         "musica_fallo.wav":            s_musica_fallo,

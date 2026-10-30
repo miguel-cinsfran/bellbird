@@ -3,7 +3,7 @@
 Crea y destruye con `destruir` 10 `PreferenciasDialog` y exige que la
 cuenta de objetos USER del proceso no crezca (medido: sin `SafeYield`
 cada diálogo dejaba unos 235 ocupados hasta cortar Windows en 10.000).
-Abren ventanas: las corre el advisor, no se corren acá.
+Abren ventanas.
 """
 
 import sys

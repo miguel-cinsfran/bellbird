@@ -1,7 +1,6 @@
 """Pruebas de la ventana Preguntar a la IA.
 
-Con ventana: las corre el advisor en otra PC. No correr aquí, abren
-diálogos.
+Con ventana: abren diálogos.
 """
 
 import unittest
@@ -57,7 +56,6 @@ class PortapapelesDoble:
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestVentanaIAVentana(unittest.TestCase):
-    # Con ventana: las corre el advisor. No correr aquí.
 
     def setUp(self):
         self.app = wx.App.Get() or wx.App(False)

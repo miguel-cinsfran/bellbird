@@ -6249,7 +6249,7 @@ def _normalizar(texto): return " ".join(texto.split())
 
 
 class TestTextosSinMarcarExcluir(unittest.TestCase):
-    # Con ventana: la corre el advisor. No correr aquí.
+    # Abre ventanas.
 
     @classmethod
     def setUpClass(cls):
@@ -6273,7 +6273,7 @@ class TestTextosSinMarcarExcluir(unittest.TestCase):
 
 
 class TestPseudoVentanaPrincipal(unittest.TestCase):
-    # Con ventana: la corre el advisor. No correr aquí.
+    # Abre ventanas.
 
     def setUp(self):
         self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
@@ -6313,7 +6313,7 @@ class TestPseudoVentanaPrincipal(unittest.TestCase):
 
 
 class TestPseudoIrRegion(unittest.TestCase):
-    # Con ventana: la corre el advisor. No correr aquí.
+    # Abre ventanas.
 
     def setUp(self):
         self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()

@@ -236,9 +236,6 @@ class TestAtajosGlobales(unittest.TestCase):
                      "el registro real solo existe en Windows")
 class TestRegistroReal(unittest.TestCase):
     """Registra de verdad con Windows, con una ventana real sin mostrar.
-
-    No se corre en el escritorio del dueño: abre wx. La corre el advisor
-    en la otra PC.
     """
 
     # Letras poco usadas para la combinación de prueba, en orden de intento.

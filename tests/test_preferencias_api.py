@@ -1,6 +1,6 @@
 """Pseudotraducción de la página API y sesión de Preferencias.
 
-Abre ventanas: la corre el advisor en la otra PC, no se corre acá.
+Abre ventanas.
 Comprueba que ningún texto visible de la página queda sin pasar por
 gettext.
 """

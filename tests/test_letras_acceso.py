@@ -1,9 +1,8 @@
 """Letras de acceso sin repetir dentro de cada página o cuadro.
 
-Abren ventanas: van solo en la otra PC, no se corren en esta.
-El ayudante vive en `tests/letras_acceso.py`. Si alguna página o
+Abren ventanas. El ayudante vive en `tests/letras_acceso.py`. Si alguna página o
 cuadro trae letras repetidas, esa prueba se marca con
-`expectedFailure` y el advisor decide el arreglo.
+`expectedFailure` y el arreglo se decide aparte.
 """
 
 import queue
@@ -30,8 +29,6 @@ from tests.rutas_temporales import redirigir_rutas
 
 
 class TestAyudanteLetrasAcceso(unittest.TestCase):
-    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
-
     def setUp(self):
         self.app = wx.App.Get() or wx.App(False)
 
@@ -65,8 +62,6 @@ class TestAyudanteLetrasAcceso(unittest.TestCase):
 
 
 class TestLetrasAccesoPreferencias(unittest.TestCase):
-    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
-
     def setUp(self):
         self.app = wx.App.Get() or wx.App(False)
         self.tmp = tempfile.TemporaryDirectory()
@@ -111,8 +106,6 @@ class TestLetrasAccesoPreferencias(unittest.TestCase):
 
 
 class TestLetrasAccesoMicrofono(unittest.TestCase):
-    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
-
     def setUp(self):
         self.app = wx.App.Get() or wx.App(False)
 
@@ -127,8 +120,6 @@ class TestLetrasAccesoMicrofono(unittest.TestCase):
 
 
 class TestLetrasAccesoDirectoYoutube(unittest.TestCase):
-    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
-
     def setUp(self):
         self.app = wx.App.Get() or wx.App(False)
 
@@ -139,8 +130,6 @@ class TestLetrasAccesoDirectoYoutube(unittest.TestCase):
 
 
 class TestLetrasAccesoHistorial(unittest.TestCase):
-    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
-
     def setUp(self):
         self.app = wx.App.Get() or wx.App(False)
         self.temporal = tempfile.TemporaryDirectory()
@@ -155,8 +144,6 @@ class TestLetrasAccesoHistorial(unittest.TestCase):
 
 
 class TestLetrasAccesoComentarios(unittest.TestCase):
-    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
-
     def setUp(self):
         self.app = wx.App.Get() or wx.App(False)
 
@@ -170,8 +157,6 @@ class TestLetrasAccesoComentarios(unittest.TestCase):
 
 
 class TestLetrasAccesoDescargas(unittest.TestCase):
-    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
-
     def setUp(self):
         self.app = wx.App.Get() or wx.App(False)
 
@@ -204,8 +189,6 @@ class TestLetrasAccesoDescargas(unittest.TestCase):
 
 
 class TestLetrasAccesoTransmision(unittest.TestCase):
-    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
-
     def setUp(self):
         self.app = wx.App.Get() or wx.App(False)
         self.parches = [
@@ -233,7 +216,6 @@ class TestLetrasAccesoTransmision(unittest.TestCase):
 
 
 class TestLetrasAccesoPreferenciasEnIngles(TestLetrasAccesoPreferencias):
-    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
     # Gemela en inglés: repite las pruebas sin copiarlas.
 
     @classmethod
@@ -248,7 +230,6 @@ class TestLetrasAccesoPreferenciasEnIngles(TestLetrasAccesoPreferencias):
 
 
 class TestLetrasAccesoMicrofonoEnIngles(TestLetrasAccesoMicrofono):
-    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
     # Gemela en inglés: repite las pruebas sin copiarlas.
 
     @classmethod
@@ -263,7 +244,6 @@ class TestLetrasAccesoMicrofonoEnIngles(TestLetrasAccesoMicrofono):
 
 
 class TestLetrasAccesoDirectoYoutubeEnIngles(TestLetrasAccesoDirectoYoutube):
-    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
     # Gemela en inglés: repite las pruebas sin copiarlas.
 
     @classmethod
@@ -278,7 +258,6 @@ class TestLetrasAccesoDirectoYoutubeEnIngles(TestLetrasAccesoDirectoYoutube):
 
 
 class TestLetrasAccesoHistorialEnIngles(TestLetrasAccesoHistorial):
-    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
     # Gemela en inglés: repite las pruebas sin copiarlas.
 
     @classmethod
@@ -293,7 +272,6 @@ class TestLetrasAccesoHistorialEnIngles(TestLetrasAccesoHistorial):
 
 
 class TestLetrasAccesoComentariosEnIngles(TestLetrasAccesoComentarios):
-    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
     # Gemela en inglés: repite las pruebas sin copiarlas.
 
     @classmethod
@@ -308,7 +286,6 @@ class TestLetrasAccesoComentariosEnIngles(TestLetrasAccesoComentarios):
 
 
 class TestLetrasAccesoDescargasEnIngles(TestLetrasAccesoDescargas):
-    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
     # Gemela en inglés: repite las pruebas sin copiarlas.
 
     @classmethod
@@ -323,7 +300,6 @@ class TestLetrasAccesoDescargasEnIngles(TestLetrasAccesoDescargas):
 
 
 class TestLetrasAccesoTransmisionEnIngles(TestLetrasAccesoTransmision):
-    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
     # Gemela en inglés: repite las pruebas sin copiarlas.
 
     @classmethod

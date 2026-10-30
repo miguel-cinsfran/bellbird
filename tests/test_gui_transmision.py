@@ -1493,8 +1493,7 @@ PROPIOS_TRANSMISION = (
 class TestPseudoTransmisionVentana(unittest.TestCase):
     """Pseudotraducción del diálogo Transmisión.
 
-    Abre ventanas: la corre el advisor en la otra PC, no se corre acá.
-    Construye el diálogo con la pseudotraducción y exige que ningún texto
+    Abre ventanas. Construye el diálogo con la pseudotraducción y exige que ningún texto
     visible propio quede sin envolver.
     """
 

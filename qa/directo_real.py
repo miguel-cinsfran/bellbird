@@ -16,10 +16,10 @@ a mitad, la limpieza detiene la transmisión, finaliza por API, borra el
 vídeo y desarma la escena igual.
 
 No corre dentro de la suite ni del hook: crea y borra un vídeo de verdad
-en el canal de la sesión iniciada. Se lanza dentro del escritorio aparte,
+en el canal de la sesión iniciada. Se lanza dentro de un escritorio aparte,
 que es donde la aplicación hija queda visible para UI Automation:
 
-    python herramientas/escritorio_aparte.py .venv\\Scripts\\python.exe qa/directo_real.py
+    python qa/directo_real.py
 
 Sin sesión de Google iniciada se niega a correr. Nunca toca código de la
 aplicación: si el id del vídeo no aparece en los anuncios ni la API
@@ -336,7 +336,7 @@ def id_para_limpiar(id_conocido, encontrado_por_titulo,
 
 def pasos_de_limpieza(salio_al_aire, finalizado, id_video,
                       creo_panel, pulso_transmitir=False) -> list:
-    """Orden de la limpieza final, pase lo que pase, del punto 5 del encargo.
+    """Orden de la limpieza final, pase lo que pase.
 
     Si salió al aire y YouTube no lo dio por terminado, primero se detiene
     la transmisión y se finaliza por API; si la falla fue antes de salir al

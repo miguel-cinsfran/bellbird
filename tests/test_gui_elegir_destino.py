@@ -151,7 +151,7 @@ class TestDialogoElegirDestinoVentana(unittest.TestCase):
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestPseudoElegirDestino(unittest.TestCase):
-    # Pseudotraducción de la ventana: la corre el advisor, abre ventanas.
+    # Pseudotraducción de la ventana: abre ventanas.
 
     def setUp(self):
         self.app = wx.App.Get() or wx.App(False)

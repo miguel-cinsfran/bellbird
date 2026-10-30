@@ -16,8 +16,8 @@ Todo fallo queda anotado en `res` con el prefijo «musica_real: » y nunca
 lanza. Lo puro (`se_dijo_desde`, `leer_registro`, `tomados_de_fallo`,
 `traducir_atajo_a_teclas`, `PASOS`) vive acá con pruebas en
 `tests/test_qa_musica_globales.py`. Importar este módulo no abre
-ventanas ni manda teclas: eso solo pasa dentro de
-`probar_atajos_globales`, que corre el banco en la otra PC.
+ventanas ni manda teclas: eso solo pasa dentro de `probar_atajos_globales`,
+que corre en un escritorio aparte porque manda teclas y abre ventanas.
 """
 
 from __future__ import annotations

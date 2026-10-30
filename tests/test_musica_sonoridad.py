@@ -25,7 +25,7 @@ from bellbird.music.sonoridad import (
 
 
 # Resumen real de ffmpeg (stderr) con `ebur128=peak=sample:framelog=quiet`,
-# tomado por el advisor sobre `Bonsai.opus`.
+# medido sobre `Bonsai.opus`.
 SALIDA_FUERTE = """\
 [aist#0:0/opus @ 00000214ac791e00] Guessed Channel Layout: stereo
 Input #0, opus, from 'fuerte.opus':

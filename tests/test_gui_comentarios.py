@@ -236,7 +236,7 @@ class TestFormatoPseudo(unittest.TestCase):
 
 
 class TestPseudoVentana(unittest.TestCase):
-    """Pseudotraducción del panel (la corre el advisor)."""
+    """Pseudotraducción del panel."""
 
     @classmethod
     def setUpClass(cls):
@@ -261,7 +261,7 @@ class TestPseudoVentana(unittest.TestCase):
 
 
 class TestPseudoAvisos(unittest.TestCase):
-    """Anuncios propios salen marcados; los motivos de redaccion no entran (la corre el advisor)."""
+    """Anuncios propios salen marcados; los motivos de redaccion no entran."""
 
     @classmethod
     def setUpClass(cls):
@@ -313,7 +313,7 @@ class TestPseudoAvisos(unittest.TestCase):
 
 
 class TestColumnasPseudo(unittest.TestCase):
-    """La ayuda lee las cabeceras de columna de los ListCtrl (la corre el advisor)."""
+    """La ayuda lee las cabeceras de columna de los ListCtrl."""
 
     @classmethod
     def setUpClass(cls):

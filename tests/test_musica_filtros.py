@@ -1,7 +1,6 @@
 """Pruebas de los filtros y el orden de la música (filtros.py), sin wx.
 
-La última clase abre ventanas: la corre el advisor en la otra PC, no se
-corre acá.
+La última clase abre ventanas.
 """
 
 import unittest

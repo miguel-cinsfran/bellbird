@@ -1,6 +1,6 @@
 """Prueba wx del Enter en la lista del editor de listas.
 
-Abre una ventana: no se corre en el encargo, la corre el advisor.
+Abre una ventana.
 """
 
 import unittest

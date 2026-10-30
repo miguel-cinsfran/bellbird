@@ -7616,7 +7616,7 @@ msgstr "Ask when opening Music whether to match volume"
 # | msgid "Usar atajos de música en cualquier &programa"
 #: bellbird/ui/preferencias_musica.py:167
 msgid "Usar atajos de música en cualquier a&plicación"
-msgstr "Use music shortcuts in any a&pplication"
+msgstr "Use music &shortcuts in any application"
 
 #: bellbird/ui/preferencias_musica.py:202
 msgid "Se encontró 1 salida de audio"

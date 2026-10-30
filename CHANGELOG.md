@@ -64,6 +64,13 @@ Paraguay.
   descargas*, *Leer en voz alta*, *Clave de API*, y *voz* donde antes
   decía TTS. Cada sección de *Preferencias* se llama categoría, como en
   NVDA.
+- Las acciones de moderación del menú contextual del chat se llaman como
+  en YouTube: *Suspender temporalmente* durante 5 minutos y *Ocultar en el
+  canal de YouTube*, que se puede deshacer desde YouTube Studio.
+- En la ventana de música, el botón que vuelve a leer la carpeta se llama
+  *Actualizar carpeta*, con la letra Z. Los avisos dicen *enlace* en vez
+  de *dirección*, *aplicación* en vez de *programa* y *Esc* en vez de
+  *Escape*.
 
 ### Arreglos
 

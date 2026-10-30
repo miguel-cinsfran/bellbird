@@ -52,6 +52,7 @@ from bellbird.obs import obs_cliente
 from bellbird.obs.obs_panel import GestorPanelObs
 from bellbird.player import flujo_tiktok
 from bellbird.ui.barra_estado import anchos_barra_estado
+from bellbird.ui.confirmar_salida import mensaje_confirmar_salida
 from bellbird.ui.gui_redactar import PanelRedactar
 from bellbird.ui.sesion_conectada import SesionConectada
 
@@ -148,26 +149,6 @@ class _LogWx(wx.Log):
 
 
 # ── Frame principal ──────────────────────────────────────────────────────────
-
-def mensaje_confirmar_salida(confirmar_salida: bool, chat_conectado: bool,
-                             supervisor_activo: bool,
-                             obs_transmitiendo: bool) -> str | None:
-    """Mensaje para preguntar antes de salir, o None si no hay que preguntar.
-
-    Pura y sin wx: recibe la opción y los tres estados y decide. Lo
-    importante va primero, en tono de herramienta.
-    """
-    if not confirmar_salida:
-        return None
-    transmision = bool(supervisor_activo or obs_transmitiendo)
-    if chat_conectado and transmision:
-        return (_("¿Salir de la aplicación? Hay un chat conectado y una transmisión en curso."))
-    if chat_conectado:
-        return _("¿Salir de la aplicación? Hay un chat conectado.")
-    if transmision:
-        return _("¿Salir de la aplicación? Hay una transmisión en curso.")
-    return None
-
 
 class YTChatFrame(wx.Frame):
 

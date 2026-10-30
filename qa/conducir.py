@@ -5257,6 +5257,7 @@ def escenario_cierre(app: Aplicacion, args, res: Resultado):
 # llaman `gui*`: sin ellos el descubrimiento miraria para otro lado.
 SUPERFICIES = {
     "gui.py": "principal",
+    "confirmar_salida.py": "principal",
     "gui_actualizacion.py": "actualizaciones",
     "gui_actualizar_app.py": "actualizaciones",
     "gui_actualizar_ytdlp.py": "actualizaciones",

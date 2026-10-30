@@ -10,28 +10,19 @@ import time
 import wx
 
 from bellbird.core import diagnostico
-from bellbird.core.idioma import N_, _
+from bellbird.core.idioma import _
 from bellbird.downloads import busqueda_youtube
 from bellbird.downloads.busqueda_youtube import (
     CANTIDAD_DEFECTO, Filtros, clasificar_entrada, ordenar, texto_detalles,
     texto_duracion, texto_fecha, texto_vistas)
 from bellbird.downloads import busquedas_recientes
 from bellbird.ui.accesibilidad import anunciar, nombre_accesible
+from bellbird.ui.buscador_filtros import FiltrosBusqueda
 from bellbird.ui.tema import _T, _tc
 from bellbird.voice import sound_player as _snd
 
 logger = diagnostico.obtener_logger(__name__)
 
-_TIPOS = ((N_("Vídeos"), "videos"), (N_("Listas"), "listas"),
-          (N_("Canales"), "canales"), (N_("En directo"), "directo"))
-_DURACIONES = ((N_("Cualquiera"), ""), (N_("Menos de 4 minutos"), "corta"),
-               (N_("De 4 a 20 minutos"), "media"),
-               (N_("Más de 20 minutos"), "larga"))
-_FECHAS = ((N_("Cualquiera"), ""), (N_("Hoy"), "hoy"),
-           (N_("Esta semana"), "semana"), (N_("Este mes"), "mes"),
-           (N_("Este año"), "anio"))
-_ORDENES = ((N_("Relevancia"), "relevancia"), (N_("Fecha"), "fecha"),
-            (N_("Vistas"), "vistas"), (N_("Duración"), "duracion"))
 _CANTIDADES = tuple(str(n) for n in busqueda_youtube.CANTIDADES)
 
 
@@ -85,37 +76,17 @@ class PaginaBuscador(wx.Panel):
         self.btn_buscar.Bind(wx.EVT_BUTTON, self._on_buscar)
         fila.Add(self.btn_buscar, 0, wx.LEFT, 6)
         vs.Add(fila, 0, wx.EXPAND | wx.ALL, 6)
-        self.chk_filtros = wx.CheckBox(self, label=_("Mostrar fi&ltros"),
-                                       name=_("Mostrar filtros"))
-        self.chk_filtros.SetForegroundColour(_T.text)
+        self.filtros = FiltrosBusqueda(self, self._on_orden)
+        self.chk_filtros = self.filtros.chk_filtros
+        self.cho_tipo = self.filtros.cho_tipo
+        self.cho_duracion = self.filtros.cho_duracion
+        self.cho_fecha = self.filtros.cho_fecha
+        self.cho_orden = self.filtros.cho_orden
         self.chk_filtros.Bind(wx.EVT_CHECKBOX, self._on_filtros)
         vs.Add(self.chk_filtros, 0, wx.ALL, 6)
 
     def _crear_filtros(self, vs):
-        fila = wx.BoxSizer(wx.HORIZONTAL)
-        self._controles_filtros = []
-        pares = (
-            (_("Ti&po:"), _("Tipo"), _TIPOS),
-            (_("Du&ración:"), _("Duración"), _DURACIONES),
-            (_("Fec&ha:"), _("Fecha"), _FECHAS),
-            (_("&Orden:"), _("Orden"), _ORDENES),
-        )
-        elecciones = []
-        for texto, nombre, _opciones in pares:
-            lbl = wx.StaticText(self, label=texto)
-            lbl.SetForegroundColour(_T.text)
-            fila.Add(lbl, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
-            cho = wx.Choice(self, name=nombre)
-            _tc(cho)
-            fila.Add(cho, 1, wx.EXPAND | wx.RIGHT, 6)
-            self._controles_filtros.extend((lbl, cho))
-            elecciones.append(cho)
-        (self.cho_tipo, self.cho_duracion,
-         self.cho_fecha, self.cho_orden) = elecciones
-        self.cho_orden.Bind(wx.EVT_CHOICE, self._on_orden)
-        for control in self._controles_filtros:
-            control.Show(False)
-        vs.Add(fila, 0, wx.EXPAND | wx.ALL, 6)
+        vs.Add(self.filtros.sizer, 0, wx.EXPAND | wx.ALL, 6)
         fila_cantidad = wx.BoxSizer(wx.HORIZONTAL)
         lbl_cantidad = wx.StaticText(self, label=_("Ca&ntidad:"))
         lbl_cantidad.SetForegroundColour(_T.text)
@@ -166,12 +137,7 @@ class PaginaBuscador(wx.Panel):
     def _cargar_opciones(self):
         self.campo.Set(self._recientes)
         self.campo.SetValue("")
-        for cho, opciones in ((self.cho_tipo, _TIPOS),
-                             (self.cho_duracion, _DURACIONES),
-                             (self.cho_fecha, _FECHAS),
-                             (self.cho_orden, _ORDENES)):
-            cho.Set([_(etiqueta) for etiqueta, _valor in opciones])
-            cho.SetSelection(0)
+        self.filtros.cargar_opciones()
         try:
             inicial = _CANTIDADES.index(str(self._cantidad))
         except ValueError:
@@ -179,19 +145,7 @@ class PaginaBuscador(wx.Panel):
         self.cho_cantidad.SetSelection(inicial)
 
     def _filtros_actuales(self) -> Filtros:
-        if not self.chk_filtros.GetValue():
-            return Filtros()
-
-        def _elegido(cho, opciones):
-            idx = cho.GetSelection()
-            if 0 <= idx < len(opciones):
-                return opciones[idx][1]
-            return opciones[0][1]
-        return Filtros(
-            tipo=_elegido(self.cho_tipo, _TIPOS),
-            duracion=_elegido(self.cho_duracion, _DURACIONES),
-            fecha=_elegido(self.cho_fecha, _FECHAS),
-            orden=_elegido(self.cho_orden, _ORDENES))
+        return self.filtros.actuales()
 
     def _cantidad_actual(self) -> int:
         idx = self.cho_cantidad.GetSelection()
@@ -318,8 +272,7 @@ class PaginaBuscador(wx.Panel):
             self._lanzar(mas=True)
 
     def _on_orden(self, _event):
-        idx = self.cho_orden.GetSelection()
-        orden = _ORDENES[idx][1] if 0 <= idx < len(_ORDENES) else "relevancia"
+        orden = self.filtros.orden_elegido()
         sel = self.lista.GetFirstSelected()
         elegido = self._resultados[sel].id if 0 <= sel < len(self._resultados) else None
         self._filtros = Filtros(
@@ -335,10 +288,7 @@ class PaginaBuscador(wx.Panel):
                     break
 
     def _on_filtros(self, _event):
-        mostrar = self.chk_filtros.GetValue()
-        for control in self._controles_filtros:
-            control.Show(mostrar)
-        self.Layout()
+        self.filtros.aplicar_visibilidad()
 
     def _on_elegir(self, _event):
         sel = self.lista.GetFirstSelected()

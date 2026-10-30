@@ -12,7 +12,6 @@ argumentos en `argumentos_ytdlp.argumentos_de_formato`.
 from __future__ import annotations
 
 import logging
-import json
 import os
 import subprocess
 import threading
@@ -28,6 +27,8 @@ from bellbird.core.idioma import _
 from bellbird.downloads import ffmpeg_bin
 from bellbird.downloads import fila_descargas
 from bellbird.downloads import ytdlp_bin
+from bellbird.downloads.analisis_enlace import (
+    TIEMPO_ESPERA_ANALISIS, analizar_url, _sin_ventana)
 from bellbird.downloads.opciones_formato import SIMULTANEAS_DEFECTO
 from bellbird.downloads.argumentos_ytdlp import (
     argumentos_descarga, carpeta_base, construir_outtmpl, recortar_url_registro)
@@ -61,10 +62,6 @@ class ItemDescarga:
 
 # ── Helpers puros (testeables en Linux) ──────────────────────────────────────
 
-# Tope del análisis previo de la URL: sin él, una red caída dejaba el ítem
-# «en cola» para siempre.
-TIEMPO_ESPERA_ANALISIS = 60
-
 
 def _matar_arbol(proceso) -> None:
     """Mata a yt-dlp Y a su ffmpeg hijo. En Windows kill() solo mata al
@@ -90,53 +87,6 @@ def _vigilar_cancelacion(proceso, cancel_event, intervalo=0.2) -> bool:
             _matar_arbol(proceso)
             return True
     return False
-
-
-def analizar_url(url: str) -> dict:
-    """Inspecciona una URL y devuelve tipo / id / título / cuenta.
-
-    Pide los datos al programa independiente. Si no está disponible, devuelve
-    el mismo error que se informaba cuando faltaba el módulo de Python.
-    """
-    ruta = ytdlp_bin.ruta_ytdlp()
-    if ruta is None:
-        return {"tipo": "error", "id": "", "titulo": "", "cuenta": 0,
-                "mensaje": _("yt-dlp no está instalado")}
-    # -J (un único JSON) y --flat-playlist: --dump-json emitía un JSON por
-    # entrada en las playlists y json.loads fallaba con «Extra data».
-    try:
-        resultado = subprocess.run(
-            [ruta, "-J", "--flat-playlist", "--quiet", "--no-warnings",
-             "--skip-download", "--no-playlist", "--socket-timeout", "20", url],
-            capture_output=True, text=True, creationflags=_sin_ventana(),
-            check=False, timeout=TIEMPO_ESPERA_ANALISIS,
-        )
-        if resultado.returncode:
-            return {"tipo": "error", "id": "", "titulo": "", "cuenta": 0,
-                    "mensaje": resultado.stderr.strip() or _("yt-dlp falló")}
-        info = json.loads(resultado.stdout)
-    except (OSError, subprocess.SubprocessError, TypeError, ValueError) as exc:
-        logger.warning("analizar_url falló: %s", exc)
-        return {"tipo": "error", "id": "", "titulo": "", "cuenta": 0,
-                "mensaje": str(exc)}
-    if not info:
-        return {"tipo": "error", "id": "", "titulo": "", "cuenta": 0,
-                "mensaje": _("Enlace vacío")}
-    tipo = info.get("_type")
-    if tipo == "playlist" or "entries" in info:
-        return {"tipo": "playlist",
-                "id": info.get("id", ""),
-                "titulo": info.get("title", ""),
-                "cuenta": len(info.get("entries") or [])}
-    return {"tipo": "video",
-            "id": info.get("id", ""),
-            "titulo": info.get("title", ""),
-            "cuenta": 1}
-
-
-def _sin_ventana() -> int:
-    """Evita una ventana de consola en Windows al ejecutar yt-dlp."""
-    return getattr(subprocess, "CREATE_NO_WINDOW", 0)
 
 
 def descargar(url: str, opciones: dict,

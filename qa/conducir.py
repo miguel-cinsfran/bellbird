@@ -5266,6 +5266,7 @@ SUPERFICIES = {
     "gui_comentarios.py": "comentarios",
     "gui_descargas.py": "descargas",
     "descargas_buscador.py": "descargas",
+    "buscador_filtros.py": "descargas",
     "descargas_listas.py": "descargas",
     "descargas_acciones.py": "descargas",
     "gui_directo_huerfano.py": "directo_sin_imagen",

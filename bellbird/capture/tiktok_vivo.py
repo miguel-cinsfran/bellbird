@@ -49,6 +49,25 @@ def _es_usuario_inexistente(exc) -> bool:
     return type(exc).__name__ == "UserNotFoundError"
 
 
+async def _consultar_en_vivo(usuario):
+    """`is_live` del usuario, en minúsculas como pide TikTokLive."""
+    from TikTokLive import TikTokLiveClient
+    return await TikTokLiveClient(unique_id=(usuario or "").lower()).is_live()
+
+
+def _fallo_en_vivo(exc, usuario):
+    """Excepción a lanzar por un fallo de `is_live`, o None si es ruido."""
+    if es_limite(exc):
+        return LimiteTikTok(
+            "TikTok está limitando las consultas desde esta conexión.")
+    if _es_usuario_inexistente(exc):
+        return ValueError(
+            f"TikTok no tiene directos de la cuenta {usuario}: no "
+            "existe, nunca hizo un directo o no tiene permiso para "
+            "hacerlos.")
+    return None
+
+
 def esta_en_vivo(usuario) -> bool:
     """¿El usuario de TikTok está en directo ahora mismo?
 
@@ -56,29 +75,14 @@ def esta_en_vivo(usuario) -> bool:
     ValueError; otros errores de red devuelven False y se registran.
     """
     tiktok_captura._parchear_extended_user()
-    try:
-        from TikTokLive import TikTokLiveClient
-    except Exception as exc:
-        logger.debug("tiktok en vivo sin librería: %s", exc)
-        return False
-
-    async def _consultar():
-        return await TikTokLiveClient(unique_id=(usuario or "").lower()).is_live()
-
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:
-        return bool(loop.run_until_complete(_consultar()))
+        return bool(loop.run_until_complete(_consultar_en_vivo(usuario)))
     except Exception as exc:
-        if es_limite(exc):
-            raise LimiteTikTok(
-                "TikTok está limitando las consultas desde esta conexión."
-            ) from exc
-        if _es_usuario_inexistente(exc):
-            raise ValueError(
-                f"TikTok no tiene directos de la cuenta {usuario}: no "
-                "existe, nunca hizo un directo o no tiene permiso para "
-                "hacerlos.") from exc
+        fallo = _fallo_en_vivo(exc, usuario)
+        if fallo is not None:
+            raise fallo from exc
         logger.debug("tiktok en vivo: %s", exc)
         return False
     finally:
@@ -86,6 +90,23 @@ def esta_en_vivo(usuario) -> bool:
             loop.close()
         except Exception as error:
             logger.debug("no se pudo cerrar el bucle: %s", error)
+
+
+def _clasificar_consulta(consultar, usuario):
+    """Una consulta: (visto, limite, error).
+
+    `visto` dice si el directo apareció; `limite` si TikTok frenó la
+    consulta; `error` si la cuenta no tiene directos.
+    """
+    try:
+        return (bool(consultar(usuario)), False, False)
+    except LimiteTikTok:
+        # El límite no cuenta como «no está» ni como «cuenta sin
+        # directos»: suma consulta sin sumar error, así una mezcla no
+        # marca cuenta sin directos.
+        return (False, True, False)
+    except ValueError:
+        return (False, False, True)
 
 
 def esperar_en_vivo(usuario, parada=None, cada=5.0, limite=90.0,
@@ -105,25 +126,12 @@ def esperar_en_vivo(usuario, parada=None, cada=5.0, limite=90.0,
         if parada is not None and parada.is_set():
             return ResultadoEspera(
                 False, consultas > 0 and errores == consultas, ultimo_limite)
-        try:
-            visto = consultar(usuario)
-        except LimiteTikTok:
-            # El límite no cuenta como «no está» ni como «cuenta sin
-            # directos»: suma consulta sin sumar error, así una mezcla no
-            # marca cuenta sin directos. Se duerme lo que dura el bloqueo.
-            consultas += 1
-            ultimo_limite = True
-            visto = False
-        except ValueError:
-            consultas += 1
-            errores += 1
-            ultimo_limite = False
-            visto = False
-        else:
-            consultas += 1
-            ultimo_limite = False
-            if visto:
-                return ResultadoEspera(True, False)
+        visto, es_lim, es_err = _clasificar_consulta(consultar, usuario)
+        consultas += 1
+        errores += es_err
+        ultimo_limite = es_lim
+        if visto:
+            return ResultadoEspera(True, False)
         if reloj() - inicio >= limite:
             return ResultadoEspera(
                 False, consultas > 0 and errores == consultas, ultimo_limite)

@@ -31,6 +31,12 @@ def es_error_http(exc) -> bool:
     return "http" in n or n.endswith("statuserror")
 
 
+def _es_nodo_limite(exc) -> bool:
+    """¿Esta excepción sola es el freno de TikTok?"""
+    return (nombre(exc) == "JSONDecodeError"
+            or _codigo_respuesta(exc) == 403)
+
+
 def _cadena_limite(exc) -> bool:
     # La cadena de causas de Python: la excepción, su __cause__ y su
     # __context__, sin recursar de más: TikTokLive envuelve el fallo de la
@@ -39,9 +45,7 @@ def _cadena_limite(exc) -> bool:
     actual = exc
     while actual is not None and id(actual) not in vistos:
         vistos.add(id(actual))
-        if nombre(actual) == "JSONDecodeError":
-            return True
-        if _codigo_respuesta(actual) == 403:
+        if _es_nodo_limite(actual):
             return True
         causa = getattr(actual, "__cause__", None)
         contexto = getattr(actual, "__context__", None)
@@ -69,13 +73,8 @@ def es_limite(exc) -> bool:
         return False
 
 
-def mensaje_error(exc) -> str:
-    if es_limite(exc):
-        # Traductores: error transitorio que se anuncia y se muestra en la barra de estado.
-        return _("TikTok está limitando las consultas desde esta conexión. "
-                 "Espera un minuto y vuelve a intentarlo.")
-    nombre_exc = nombre(exc)
-    t = f"{nombre_exc}: {exc}".lower()
+def _mensaje_conocido(exc, nombre_exc, t):
+    """Texto propio de un error conocido, o None si es genérico."""
     if nombre_exc in CLASES_OFFLINE:
         # Traductores: error permanente que se anuncia y se muestra en la barra de estado.
         return _("Ese usuario de TikTok no está en directo ahora mismo.")
@@ -91,6 +90,19 @@ def mensaje_error(exc) -> str:
     if es_error_http(exc):
         # Traductores: error transitorio que se anuncia y se muestra en la barra de estado. {detalle} es el detalle técnico.
         return _("TikTok devolvió un error: {detalle}").format(detalle=exc)
+    return None
+
+
+def mensaje_error(exc) -> str:
+    if es_limite(exc):
+        # Traductores: error transitorio que se anuncia y se muestra en la barra de estado.
+        return _("TikTok está limitando las consultas desde esta conexión. "
+                 "Espera un minuto y vuelve a intentarlo.")
+    nombre_exc = nombre(exc)
+    conocido = _mensaje_conocido(
+        exc, nombre_exc, f"{nombre_exc}: {exc}".lower())
+    if conocido is not None:
+        return conocido
     # Traductores: error transitorio que se anuncia y se muestra en la barra de estado. {detalle} es el detalle técnico.
     return _("No se pudo conectar al directo de TikTok: {detalle}").format(detalle=exc)
 

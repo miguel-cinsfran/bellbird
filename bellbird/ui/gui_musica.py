@@ -20,6 +20,9 @@ from bellbird.music.coordinador import Coordinador
 from bellbird.music.guardado_diferido import GuardadoDiferido
 from bellbird.music.modelo import (
     AVANZO, FIN_LISTA, EstadoMusica, Resultado, SIN_TEMA)
+from bellbird.music.transporte import (
+    PASO_VOLUMEN, VOLUMEN_INICIAL, VOLUMEN_MAX, VOLUMEN_MIN, nuevo_volumen,
+    toca_pausar,)
 from bellbird.music.normalizado import Normalizado
 from bellbird.ui import atajos_globales
 from bellbird.ui.accesibilidad import anunciar
@@ -34,28 +37,6 @@ from bellbird.voice import sound_player as _snd
 
 
 logger = diagnostico.obtener_logger(__name__)
-
-PASO_VOLUMEN = 10
-VOLUMEN_MIN = 0
-VOLUMEN_MAX = 100
-VOLUMEN_INICIAL = 50
-
-def nuevo_volumen(actual, paso, minimo=VOLUMEN_MIN, maximo=VOLUMEN_MAX) -> int:
-    """Volumen nuevo tras sumar un paso, recortado a sus límites. Función pura."""
-    try:
-        base = int(actual)
-    except (TypeError, ValueError):
-        base = minimo
-    return max(minimo, min(maximo, base + paso))
-
-
-def toca_pausar(estado) -> bool:
-    """¿«Reproducir o pausar» pausa o reanuda en vez de empezar una lista?
-
-    Sí si el coordinador ya tiene un tema cargado y no terminó. Función pura.
-    """
-    return bool(estado is not None and estado.actual is not None and not estado.terminado)
-
 
 def _resultado_sin_tema() -> Resultado:
     return Resultado(False, SIN_TEMA, EstadoMusica(

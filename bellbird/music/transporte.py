@@ -9,6 +9,28 @@ from bellbird.music.modelo import (
 )
 
 
+PASO_VOLUMEN = 10
+VOLUMEN_MIN = 0
+VOLUMEN_MAX = 100
+VOLUMEN_INICIAL = 50
+
+def nuevo_volumen(actual, paso, minimo=VOLUMEN_MIN, maximo=VOLUMEN_MAX) -> int:
+    """Volumen nuevo tras sumar un paso, recortado a sus límites. Función pura."""
+    try:
+        base = int(actual)
+    except (TypeError, ValueError):
+        base = minimo
+    return max(minimo, min(maximo, base + paso))
+
+
+def toca_pausar(estado) -> bool:
+    """¿«Reproducir o pausar» pausa o reanuda en vez de empezar una lista?
+
+    Sí si el coordinador ya tiene un tema cargado y no terminó. Función pura.
+    """
+    return bool(estado is not None and estado.actual is not None and not estado.terminado)
+
+
 @dataclass(frozen=True)
 class ResultadoSalto:
     """Resultado de un salto, con la posición nueva para el anuncio."""

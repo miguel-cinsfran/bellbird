@@ -10,6 +10,7 @@ import threading
 import time
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest import mock
 
 from bellbird.capture.tiktok_vivo import ResultadoEspera
@@ -209,6 +210,22 @@ class TikTokAusenteTest(BaseSupervisor):
         self.assertEqual(anuncios[-1], (
             "OBS está transmitiendo, pero TikTok todavía no muestra "
             "el directo.", "transmision_problema"))
+
+
+class TikTokLimitadoTest(BaseSupervisor):
+    def test_limitado_anuncia_frase_y_sonido_nuevos(self):
+        armado = self.armar(en_vivo=False, sin_directos=False,
+                            estados=[muestra(False)])
+        supervisor, anuncios, chats, _, _, _, _ = armado
+        supervisor._esperar_en_vivo = (
+            lambda usuario, parada=None, limite=None: SimpleNamespace(
+                en_vivo=False, cuenta_sin_directos=False, limitado=True))
+        self.iniciar_y_esperar_fin(supervisor)
+        self.assertEqual(chats, [])
+        self.assertEqual(anuncios[-1], (
+            "OBS está transmitiendo, pero TikTok está limitando las "
+            "consultas y no se pudo comprobar el directo. Vuelve a "
+            "comprobarlo en un minuto.", "tiktok_limitado"))
 
 
 class DestinoYouTubeTest(BaseSupervisor):

@@ -1,5 +1,6 @@
 """Pruebas de la política de reconexión de TikTok (módulo puro)."""
 
+import json
 import unittest
 
 from bellbird.capture import tiktok_reconexion as rec
@@ -89,6 +90,20 @@ class TestTextos(unittest.TestCase):
         self.assertEqual(
             rec.texto_reintento(10, 2, 0),
             "Reintentando en 10 segundos (intento 2)…")
+
+
+class TestEsperaTras(unittest.TestCase):
+
+    def test_sin_limite_devuelve_la_espera(self):
+        self.assertEqual(rec.espera_tras(RuntimeError("corte"), 10), 10)
+
+    def test_con_limite_sube_a_sesenta(self):
+        exc = json.JSONDecodeError("Expecting value", "", 0)
+        self.assertEqual(rec.espera_tras(exc, 10), 60)
+
+    def test_con_limite_respeta_una_espera_mayor(self):
+        exc = json.JSONDecodeError("Expecting value", "", 0)
+        self.assertEqual(rec.espera_tras(exc, 120), 120)
 
 
 if __name__ == "__main__":

@@ -28,8 +28,8 @@ import re
 import sys
 import time
 
-from bellbird.capture.tiktok_reconexion import (desenlace, texto_agotado,
-    texto_reintento)
+from bellbird.capture.tiktok_reconexion import (desenlace, espera_tras,
+    texto_agotado, texto_reintento)
 from bellbird.core import avisos_tiktok
 from bellbird.core import diagnostico
 from bellbird.core import paths
@@ -474,6 +474,6 @@ def capturar_con_reconexion(usuario, config, parada, on_evento,
             _estado("error", texto_agotado(mi))
             parada.set()
             break
-        espera = config.get("espera_entre_intentos", 10)
+        espera = espera_tras(err, config.get("espera_entre_intentos", 10))
         _estado("reintentando", texto_reintento(espera, intentos, mi))
         parada.wait(timeout=espera)

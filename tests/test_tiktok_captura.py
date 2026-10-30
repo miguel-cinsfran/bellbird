@@ -1,6 +1,7 @@
 """Tests de la lógica pura de tiktok_captura (detección de URLs y errores)."""
 
 import asyncio
+import json
 import sys
 import threading
 import types
@@ -8,6 +9,7 @@ import unittest
 from unittest import mock
 
 from bellbird.capture import tiktok_captura
+from bellbird.capture import tiktok_errores as errores
 from bellbird.capture.tiktok_captura import (usuario_de_url,
                             _mejor_flujo, autor_de_evento, es_previo_a_conexion)
 from bellbird.capture.tiktok_errores import (mensaje_error as _mensaje_error,
@@ -107,6 +109,42 @@ class TestMensajesDeError(unittest.TestCase):
     def test_la_subcadena_sola_no_hace_permanente_un_error(self):
         self.assertFalse(_es_error_permanente(Exception("user not found")))
         self.assertFalse(_es_error_permanente(Exception("stream offline")))
+
+
+class TestLimiteConsultas(unittest.TestCase):
+    """TikTok frena las consultas seguidas con 403 y cuerpo vacío."""
+
+    def _http(self, codigo):
+        exc = type("HTTPStatusError", (Exception,), {})(
+            f"Client error '{codigo}' for url 'https://www.tiktok.com/x'")
+        exc.response = types.SimpleNamespace(status_code=codigo)
+        return exc
+
+    def test_json_decode_es_limite(self):
+        exc = json.JSONDecodeError("Expecting value", "", 0)
+        self.assertTrue(errores.es_limite(exc))
+
+    def test_contexto_failed_parse_room_id_es_limite(self):
+        contexto = json.JSONDecodeError("Expecting value", "", 0)
+        exc = type("FailedParseRoomIdError", (Exception,), {})("room")
+        exc.__context__ = contexto
+        self.assertTrue(errores.es_limite(exc))
+
+    def test_http_403_es_limite_y_500_no(self):
+        self.assertTrue(errores.es_limite(self._http(403)))
+        self.assertFalse(errores.es_limite(self._http(500)))
+
+    def test_usuario_inexistente_no_es_limite(self):
+        exc = type("UserNotFoundError", (Exception,), {})("user not found")
+        self.assertFalse(errores.es_limite(exc))
+
+    def test_mensaje_con_limite(self):
+        exc = json.JSONDecodeError("Expecting value", "", 0)
+        self.assertFalse(_es_error_permanente(exc))
+        self.assertEqual(
+            _mensaje_error(exc),
+            "TikTok está limitando las consultas desde esta conexión. "
+            "Espera un minuto y vuelve a intentarlo.")
 
 
 class TestReconexion(unittest.TestCase):
@@ -224,6 +262,29 @@ class TestReconexion(unittest.TestCase):
         for offline_pasajero in (False, True):
             estados = self._correr(sesion, offline_pasajero=offline_pasajero)
             self.assertEqual(estados[-1][0], "error_permanente")
+
+    def test_con_limite_el_reintento_espera_un_minuto(self):
+        err = json.JSONDecodeError("Expecting value", "", 0)
+        vistas = []
+
+        def sesion(*args, **kwargs):
+            vistas.append(1)
+            return err
+
+        estados = []
+        parada = mock.Mock()
+        parada.is_set.side_effect = lambda: len(vistas) >= 2
+        with mock.patch.object(tiktok_captura, "disponible", return_value=True), \
+                mock.patch.object(tiktok_captura, "_sesion", side_effect=sesion):
+            tiktok_captura.capturar_con_reconexion(
+                "pepe", {"max_intentos": 2, "espera_entre_intentos": 10,
+                         "reconectar": True},
+                parada, on_evento=lambda *a: None,
+                on_estado=lambda tipo, texto: estados.append((tipo, texto)))
+        reintentos = [texto for tipo, texto in estados if tipo == "reintentando"]
+        self.assertTrue(reintentos)
+        self.assertIn("60 segundos", reintentos[0])
+        self.assertEqual(parada.wait.call_args.kwargs["timeout"], 60)
 
 
 

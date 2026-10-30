@@ -579,6 +579,15 @@ def gen_formatos_fallidos():
     return _normalizar(_concat(n1, n2), 0.7)
 
 
+def gen_tiktok_limitado():
+    # TikTok frena las consultas seguidas: dos notas medias que suben,
+    # F4→A4, con hueco. Ni el doble grave de transmision_problema (A3) ni
+    # el batido del error: avisa de una espera, no de un fallo.
+    n1 = _perc(_seno(F4, 0.11, 0.32), 0.005, 0.10)
+    n2 = _perc(_seno(A4, 0.18, 0.32), 0.005, 0.15)
+    return _normalizar(_concat(n1, _silencio(0.04), n2, _silencio(0.02)), 0.7)
+
+
 def gen_descarga_encolada():
     # Una nota corta con golpe: breve para no cansar al agregar muchas.
     return _normalizar(_perc(_detune(A5, 0.16, 0.42), 0.003, 0.10), 0.7)
@@ -947,6 +956,12 @@ def s_formatos_fallidos():
                 _madera(F4, 0.18, 0.32, 0.14))
 
 
+def s_tiktok_limitado():
+    # El mismo gesto ascendente en madera cálida.
+    return _seq(_madera(F4, 0.11, 0.32, 0.09),
+                _madera(A4, 0.18, 0.34, 0.14))
+
+
 def s_descarga_encolada():
     # La misma nota corta con golpe, en madera.
     return _normalizar(_madera(A5, 0.16, 0.40, 0.10), 0.65)
@@ -1136,6 +1151,7 @@ TEMAS = {
         "descarga_procesando.wav":     gen_descarga_procesando,
         "cola_descargas_terminada.wav": gen_cola_descargas_terminada,
         "descarga_parcial.wav":        gen_descarga_parcial,
+        "tiktok_limitado.wav":         gen_tiktok_limitado,
     },
     "suave": {
         "app_inicio.wav":    s_app_inicio,
@@ -1221,6 +1237,7 @@ TEMAS = {
         "descarga_procesando.wav":     s_descarga_procesando,
         "cola_descargas_terminada.wav": s_cola_descargas_terminada,
         "descarga_parcial.wav":        s_descarga_parcial,
+        "tiktok_limitado.wav":         s_tiktok_limitado,
     },
 }
 

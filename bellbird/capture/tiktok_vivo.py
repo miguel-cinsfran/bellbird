@@ -1,8 +1,8 @@
 """Espera a que el directo de TikTok de un usuario sea visible.
 
 Solo lectura, sin conectarse al chat: pregunta si el usuario está en vivo
-con `TikTokLiveClient.is_live()`. Nadie lo llama todavía: lo usará la
-ventana Transmisión para el destino TikTok vía Restream.
+con `TikTokLiveClient.is_live()`. Lo usa el supervisor de la transmisión
+para el destino TikTok vía Restream.
 """
 
 from __future__ import annotations
@@ -13,11 +13,17 @@ import time
 from dataclasses import dataclass
 
 from bellbird.capture import tiktok_captura
+from bellbird.capture.tiktok_errores import ESPERA_LIMITE, es_limite
 from bellbird.core import diagnostico
+from bellbird.core.idioma import _
 
 logger = diagnostico.obtener_logger(__name__)
 
 _USUARIO_RE = re.compile(r"[\w.]+", re.UNICODE)
+
+
+class LimiteTikTok(Exception):
+    """TikTok frenó las consultas seguidas: hay que esperar y reintentar."""
 
 
 @dataclass(frozen=True)
@@ -25,13 +31,15 @@ class ResultadoEspera:
     """Lo que vio `esperar_en_vivo` mientras consultaba.
 
     `en_vivo` dice si el directo apareció; `cuenta_sin_directos` dice si
-    todas las consultas contestaron que la cuenta no tiene directos.
-    Se evalúa como `en_vivo` en un `if`, para no romper lo que espera
-    un bool.
+    todas las consultas contestaron que la cuenta no tiene directos;
+    `limitado` dice si la última consulta fue un límite y el directo no
+    apareció. Se evalúa como `en_vivo` en un `if`, para no romper lo que
+    espera un bool.
     """
 
     en_vivo: bool
     cuenta_sin_directos: bool
+    limitado: bool = False
 
     def __bool__(self):
         return bool(self.en_vivo)
@@ -62,6 +70,10 @@ def esta_en_vivo(usuario) -> bool:
     try:
         return bool(loop.run_until_complete(_consultar()))
     except Exception as exc:
+        if es_limite(exc):
+            raise LimiteTikTok(
+                "TikTok está limitando las consultas desde esta conexión."
+            ) from exc
         if _es_usuario_inexistente(exc):
             raise ValueError(
                 f"TikTok no tiene directos de la cuenta {usuario}: no "
@@ -88,24 +100,59 @@ def esperar_en_vivo(usuario, parada=None, cada=5.0, limite=90.0,
     inicio = reloj()
     consultas = 0
     errores = 0
+    ultimo_limite = False
     while True:
         if parada is not None and parada.is_set():
             return ResultadoEspera(
-                False, consultas > 0 and errores == consultas)
+                False, consultas > 0 and errores == consultas, ultimo_limite)
         try:
             visto = consultar(usuario)
+        except LimiteTikTok:
+            # El límite no cuenta como «no está» ni como «cuenta sin
+            # directos»: suma consulta sin sumar error, así una mezcla no
+            # marca cuenta sin directos. Se duerme lo que dura el bloqueo.
+            consultas += 1
+            ultimo_limite = True
+            visto = False
         except ValueError:
             consultas += 1
             errores += 1
+            ultimo_limite = False
             visto = False
         else:
             consultas += 1
+            ultimo_limite = False
             if visto:
                 return ResultadoEspera(True, False)
         if reloj() - inicio >= limite:
             return ResultadoEspera(
-                False, consultas > 0 and errores == consultas)
-        dormir(cada)
+                False, consultas > 0 and errores == consultas, ultimo_limite)
+        if ultimo_limite:
+            dormir(min(ESPERA_LIMITE, max(0.0, limite - (reloj() - inicio))))
+        else:
+            dormir(cada)
+
+
+def aviso_espera(resultado, usuario) -> tuple:
+    """Frase y sonido cuando el directo no apareció tras esperar.
+
+    El límite manda sobre «cuenta sin directos»: si TikTok frenó las
+    consultas, no se sabe si la cuenta tiene directos o no.
+    """
+    if getattr(resultado, "limitado", False):
+        # Traductores: aviso que se anuncia al transmitir a TikTok.
+        return (_("OBS está transmitiendo, pero TikTok está limitando las "
+                  "consultas y no se pudo comprobar el directo. Vuelve a "
+                  "comprobarlo en un minuto."), "tiktok_limitado")
+    if getattr(resultado, "cuenta_sin_directos", False):
+        # Traductores: aviso que se anuncia al transmitir a TikTok. {usuario} es el usuario de TikTok.
+        return (_("OBS está transmitiendo, pero TikTok todavía no muestra "
+                  "ningún directo de {usuario}. Revisa que en Restream esté "
+                  "activado TikTok.").format(usuario=usuario),
+                "transmision_problema")
+    # Traductores: aviso que se anuncia al transmitir a TikTok.
+    return (_("OBS está transmitiendo, pero TikTok todavía no muestra el directo."),
+            "transmision_problema")
 
 
 def usuario_tiktok(texto) -> str:
@@ -128,5 +175,5 @@ def url_directo(usuario) -> str:
 
 
 # Reexportado para que las pruebas y la ventana no rebusquen el módulo.
-__all__ = ["ResultadoEspera", "esta_en_vivo", "esperar_en_vivo",
-           "usuario_tiktok", "url_directo"]
+__all__ = ["LimiteTikTok", "ResultadoEspera", "aviso_espera", "esta_en_vivo",
+           "esperar_en_vivo", "usuario_tiktok", "url_directo"]

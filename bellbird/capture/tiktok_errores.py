@@ -14,6 +14,9 @@ from bellbird.core.idioma import N_, _
 CLASES_OFFLINE = ("UserOfflineError",)
 CLASES_NO_EXISTE = ("UserNotFoundError",)
 
+# Cuánto dura el bloqueo de TikTok ante consultas seguidas, en segundos.
+ESPERA_LIMITE = 60
+
 # Traductores: error transitorio que se anuncia y se muestra en la barra de estado.
 TEXTO_ERROR_FIRMAS = N_(
     "TikTok no responde por ahora. Espera un momento y vuelve a intentarlo.")
@@ -28,7 +31,49 @@ def es_error_http(exc) -> bool:
     return "http" in n or n.endswith("statuserror")
 
 
+def _cadena_limite(exc) -> bool:
+    # La cadena de causas de Python: la excepción, su __cause__ y su
+    # __context__, sin recursar de más: TikTokLive envuelve el fallo de la
+    # sala una sola vez (FailedParseRoomIdError con un JSONDecodeError).
+    vistos = set()
+    actual = exc
+    while actual is not None and id(actual) not in vistos:
+        vistos.add(id(actual))
+        if nombre(actual) == "JSONDecodeError":
+            return True
+        if _codigo_respuesta(actual) == 403:
+            return True
+        causa = getattr(actual, "__cause__", None)
+        contexto = getattr(actual, "__context__", None)
+        actual = causa if causa is not None else contexto
+    return False
+
+
+def _codigo_respuesta(exc):
+    try:
+        return getattr(getattr(exc, "response", None), "status_code", None)
+    except Exception:
+        return None
+
+
+def es_limite(exc) -> bool:
+    """¿TikTok está frenando las consultas seguidas desde esta conexión?
+
+    Verdadero ante un JSONDecodeError (el 403 con cuerpo vacío que
+    TikTokLive no puede decodificar), venga directo o en la causa, o ante
+    un error HTTP con respuesta 403.
+    """
+    try:
+        return _cadena_limite(exc)
+    except Exception:
+        return False
+
+
 def mensaje_error(exc) -> str:
+    if es_limite(exc):
+        # Traductores: error transitorio que se anuncia y se muestra en la barra de estado.
+        return _("TikTok está limitando las consultas desde esta conexión. "
+                 "Espera un minuto y vuelve a intentarlo.")
     nombre_exc = nombre(exc)
     t = f"{nombre_exc}: {exc}".lower()
     if nombre_exc in CLASES_OFFLINE:

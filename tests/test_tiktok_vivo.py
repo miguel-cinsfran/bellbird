@@ -1,9 +1,11 @@
 """Tests de tiktok_vivo sin red: consultar falso y usuarios puros."""
 
+import json
 import sys
 import threading
 import types
 import unittest
+from types import SimpleNamespace
 from unittest import mock
 
 from bellbird.capture import tiktok_vivo
@@ -165,6 +167,97 @@ class EsperarEnVivoTest(unittest.TestCase):
             dormir=reloj.dormir, reloj=reloj.reloj)
         self.assertFalse(resultado.en_vivo)
         self.assertFalse(resultado.cuenta_sin_directos)
+
+
+class LimiteConsultasTest(unittest.TestCase):
+    def test_esta_en_vivo_lanza_limite(self):
+        modulo = _modulo_tiktok_que_falla(
+            json.JSONDecodeError("Expecting value", "", 0))
+        with mock.patch.dict(sys.modules, {"TikTokLive": modulo}):
+            with self.assertRaises(tiktok_vivo.LimiteTikTok):
+                esta_en_vivo("alguien")
+
+    def test_limite_y_despues_en_vivo(self):
+        reloj = RelojFalso()
+        llamadas = []
+
+        def consultar(usuario):
+            llamadas.append(usuario)
+            if len(llamadas) == 1:
+                raise tiktok_vivo.LimiteTikTok("limitado")
+            return True
+
+        resultado = esperar_en_vivo(
+            "szeiryugaming", cada=5.0, limite=90.0, consultar=consultar,
+            dormir=reloj.dormir, reloj=reloj.reloj)
+        self.assertTrue(resultado.en_vivo)
+        self.assertFalse(getattr(resultado, "limitado", False))
+
+    def test_solo_limites_da_limitado_duerme_60_y_no_pasa_del_limite(self):
+        reloj = RelojFalso()
+
+        def consultar(usuario):
+            raise tiktok_vivo.LimiteTikTok("limitado")
+
+        resultado = esperar_en_vivo(
+            "szeiryugaming", cada=5.0, limite=130.0, consultar=consultar,
+            dormir=reloj.dormir, reloj=reloj.reloj)
+        self.assertFalse(resultado.en_vivo)
+        self.assertTrue(resultado.limitado)
+        self.assertFalse(resultado.cuenta_sin_directos)
+        self.assertEqual(reloj.siestecitas[0], 60)
+        self.assertLessEqual(reloj.ahora, 130.0)
+
+    def test_mezcla_de_limite_y_valueerror_no_marca_cuenta(self):
+        reloj = RelojFalso()
+        llamadas = []
+
+        def consultar(usuario):
+            llamadas.append(usuario)
+            if len(llamadas) <= 2:
+                raise ValueError("sin directos")
+            raise tiktok_vivo.LimiteTikTok("limitado")
+
+        resultado = esperar_en_vivo(
+            "szeiryugaming", cada=5.0, limite=70.0, consultar=consultar,
+            dormir=reloj.dormir, reloj=reloj.reloj)
+        self.assertFalse(resultado.en_vivo)
+        self.assertFalse(resultado.cuenta_sin_directos)
+        self.assertTrue(resultado.limitado)
+
+
+class AvisoEsperaTest(unittest.TestCase):
+    def test_cuenta_sin_directos(self):
+        resultado = SimpleNamespace(en_vivo=False, cuenta_sin_directos=True,
+                                    limitado=False)
+        frase, sonido = tiktok_vivo.aviso_espera(resultado, "amigo")
+        self.assertEqual(
+            frase,
+            "OBS está transmitiendo, pero TikTok todavía no muestra "
+            "ningún directo de amigo. Revisa que en Restream esté "
+            "activado TikTok.")
+        self.assertEqual(sonido, "transmision_problema")
+
+    def test_sin_noticia_del_directo(self):
+        resultado = SimpleNamespace(en_vivo=False, cuenta_sin_directos=False,
+                                    limitado=False)
+        frase, sonido = tiktok_vivo.aviso_espera(resultado, "amigo")
+        self.assertEqual(
+            frase,
+            "OBS está transmitiendo, pero TikTok todavía no muestra "
+            "el directo.")
+        self.assertEqual(sonido, "transmision_problema")
+
+    def test_limitado_manda_sobre_cuenta_sin_directos(self):
+        resultado = SimpleNamespace(en_vivo=False, cuenta_sin_directos=True,
+                                    limitado=True)
+        frase, sonido = tiktok_vivo.aviso_espera(resultado, "amigo")
+        self.assertEqual(
+            frase,
+            "OBS está transmitiendo, pero TikTok está limitando las "
+            "consultas y no se pudo comprobar el directo. Vuelve a "
+            "comprobarlo en un minuto.")
+        self.assertEqual(sonido, "tiktok_limitado")
 
 
 class UsuarioTiktokTest(unittest.TestCase):

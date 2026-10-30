@@ -919,6 +919,16 @@ msgstr "TikTok returned an error: {detalle}"
 msgid "No se pudo conectar al directo de TikTok: {detalle}"
 msgstr "Could not connect to the TikTok live stream: {detalle}"
 
+#. Traductores: error transitorio que se anuncia y se muestra en la barra de
+#. estado.
+#: bellbird/capture/tiktok_errores.py:75
+msgid ""
+"TikTok está limitando las consultas desde esta conexión. "
+"Espera un minuto y vuelve a intentarlo."
+msgstr ""
+"TikTok is rate-limiting requests from this connection. "
+"Wait a minute and try again."
+
 # | msgid "Pregunta: {texto}"
 #. Traductores: texto del chat de TikTok que se anuncia. {contenido} es la
 #. pregunta.
@@ -975,6 +985,17 @@ msgstr "Retrying in {segundos} seconds (attempt {intento} of {maximo})…"
 #, python-brace-format
 msgid "Reintentando en {segundos} segundos (intento {intento})…"
 msgstr "Retrying in {segundos} seconds (attempt {intento})…"
+
+#. Traductores: aviso que se anuncia al transmitir a TikTok.
+#: bellbird/capture/tiktok_vivo.py:144
+msgid ""
+"OBS está transmitiendo, pero TikTok está limitando las "
+"consultas y no se pudo comprobar el directo. Vuelve a "
+"comprobarlo en un minuto."
+msgstr ""
+"OBS is broadcasting, but TikTok is rate-limiting requests "
+"and the live stream could not be checked. Check again in "
+"a minute."
 
 #: bellbird/core/actualizacion.py:290
 msgid "la descarga exige un enlace https"

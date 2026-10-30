@@ -49,6 +49,8 @@ EVENTOS = [
     "escucha_cargando", "escucha_fallida",
     # Elección de formato de un vídeo: consulta y fallo, cada uno con el suyo.
     "formatos_cargando", "formatos_fallidos",
+    # TikTok frena las consultas seguidas: espera un minuto antes de mirar.
+    "tiktok_limitado",
 ]
 
 # Nombre llano de cada evento para la página Sonidos de Preferencias.
@@ -126,4 +128,5 @@ NOMBRES = {
     "escucha_fallida": "Fallo al escuchar",
     "formatos_cargando": "Carga de formatos",
     "formatos_fallidos": "Formatos no disponibles",
+    "tiktok_limitado": "TikTok limita las consultas",
 }

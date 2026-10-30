@@ -6,8 +6,8 @@ sigue reintentando (devuelve None) o termina (devuelve una tupla
 decisiones es el contrato: el mismo del bucle de `capturar_con_reconexion`.
 """
 
-from bellbird.capture.tiktok_errores import (CLASES_OFFLINE, es_error_permanente,
-    mensaje_error, nombre)
+from bellbird.capture.tiktok_errores import (CLASES_OFFLINE, ESPERA_LIMITE,
+    es_error_permanente, es_limite, mensaje_error, nombre)
 from bellbird.core.idioma import N_, _
 
 # Texto del estado permanente cuando la TikTokLive instalada no trae lo que
@@ -41,6 +41,14 @@ def desenlace(err, *, parado, conecto_alguna, offline_pasajero, reconectar):
     if not reconectar:
         return ("error", mensaje_error(err))
     return None
+
+
+def espera_tras(err, espera) -> int:
+    """Espera antes del próximo intento. Con el límite de TikTok se espera
+    lo que dura el bloqueo, nunca menos de lo ya configurado."""
+    if err is not None and es_limite(err):
+        return max(espera, ESPERA_LIMITE)
+    return espera
 
 
 def texto_agotado(maximo):

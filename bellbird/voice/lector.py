@@ -132,5 +132,5 @@ class Lector:
         # Sin braille, o con el lector caído, se ignora en silencio.
         try:
             self._backend.braille(texto)
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo mostrar el braille: %s", error)

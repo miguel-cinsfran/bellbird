@@ -256,8 +256,8 @@ def descargar(url: str, opciones: dict,
         try:
             from bellbird.core.subprocesos import vincular_a_la_app
             vincular_a_la_app(proceso)
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo vincular la descarga a la app: %s", error)
         if cancel_event.is_set():
             cancelar(proceso)
             return

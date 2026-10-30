@@ -84,14 +84,14 @@ class VigilanteObs:
                         fallo = True
                     try:
                         gestor.cerrar()
-                    except Exception:
-                        pass
+                    except Exception as error:
+                        logger.debug("no se pudo cerrar el gestor de OBS: %s", error)
                 self._parada.wait(INTERVALO_SONDEO)
         finally:
             try:
                 gestor.cerrar()
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo cerrar el gestor de OBS: %s", error)
             self._gestor = None
 
 

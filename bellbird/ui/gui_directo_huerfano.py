@@ -75,8 +75,8 @@ def _obs_transmite() -> tuple[bool, str]:
         finally:
             try:
                 gestor.cerrar()
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo cerrar el gestor de OBS: %s", error)
     except Exception:
         return True, "el websocket de OBS no respondió"
     if activo:
@@ -92,8 +92,8 @@ def _guardar_token_si_hay(cliente) -> None:
     if nuevo:
         try:
             credenciales.guardar_campo("token", nuevo)
-        except Exception:
-            pass
+        except Exception as error:
+            logger.warning("no se pudo guardar el token actualizado: %s", error)
 
 
 def _quitar_pendiente(ruta, id_video) -> None:

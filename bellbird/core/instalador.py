@@ -39,8 +39,8 @@ def _preparar_registro(instalacion: Path) -> None:
         logger.removeHandler(manejador)
         try:
             manejador.close()
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo cerrar el manejador del registro: %s", error)
     registro = paths.registro_actualizacion_en(instalacion)
     try:
         registro.parent.mkdir(parents=True, exist_ok=True)
@@ -85,8 +85,8 @@ def matar(proceso) -> None:
     except Exception:
         try:
             proceso.kill()
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo forzar el cierre del proceso: %s", error)
 
 
 def orden_para_exe(ruta_exe: str | os.PathLike) -> list[str]:
@@ -500,8 +500,8 @@ def _lanzar_y_cerrar(instalacion: Path, ejecutable_nuevo: str,
     logger.error("la versión nueva no llegó a abrirse")
     try:
         matar(proceso_nuevo)
-    except Exception:
-        pass
+    except Exception as error:
+        logger.debug("no se pudo detener la versión nueva: %s", error)
     _fallar(resultado, "la versión nueva no llegó a abrirse")
     _volver_atras(progreso, instalacion, respaldo, pendiente,
                   ejecutable_viejo, lanzar, orden_para)
@@ -647,9 +647,6 @@ def principal_instalador(argumentos: list[str] | None = None) -> int:
                       esperar_pid=espera_proceso.esperar_pid, lanzar=lanzar,
                       matar=matar, orden_para=orden_para_exe)
     except Exception as error:
-        try:
-            logger.error("instalador: %s", error)
-        except Exception:
-            pass
+        logger.error("instalador: %s", error)
         return 1
     return 0 if ok else 1

@@ -225,8 +225,8 @@ def listar_voces(motor, fabrica_contexto=None) -> list[str]:
         finally:
             try:
                 instancia.cerrar()
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo cerrar el motor de prueba: %s", error)
     try:
         instancia = MotorPrism(motor, fabrica_contexto)
     except MotorNoDisponible:

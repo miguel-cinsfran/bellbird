@@ -581,8 +581,8 @@ class TransmisionDialog(wx.Dialog):
         if decision == transmision_directa.DETENER_SUPERVISADA:
             try:
                 self._supervisar("detener")
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo detener la supervisión: %s", error)
             self._mostrar_transmision(False)
             return
         if decision == transmision_directa.FALTA_DESTINO:
@@ -596,8 +596,8 @@ class TransmisionDialog(wx.Dialog):
         if destino == "TikTok" and usuario != self._usuario_tiktok and self._guardar_usuario is not None:
             try:
                 self._guardar_usuario(usuario)
-            except Exception:
-                pass
+            except Exception as error:
+                logger.warning("no se pudo guardar el usuario de TikTok: %s", error)
             self._usuario_tiktok = usuario
         self._en_hilo(lambda: self._revisar_prevuelo(destino),
                       lambda revision: self._revision_lista(revision, destino, usuario))
@@ -610,8 +610,8 @@ class TransmisionDialog(wx.Dialog):
         if self._guardar_destino is not None:
             try:
                 self._guardar_destino(destino)
-            except Exception:
-                pass
+            except Exception as error:
+                logger.warning("no se pudo guardar el destino de transmisión: %s", error)
 
     def _revision_lista(self, revision, destino, usuario):
         if not confirmar_transmision(self, revision):
@@ -938,8 +938,8 @@ class TransmisionDialog(wx.Dialog):
     def _cerrar_gestor(self):
         try:
             self._gestor.cerrar()
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo cerrar el gestor de OBS: %s", error)
 
 
 def abrir_transmision(parent, alternar_panel=None, supervisar=None,

@@ -4,6 +4,7 @@ import os
 import subprocess
 import time
 
+from bellbird.core import diagnostico
 from bellbird.core import subprocesos
 from bellbird.core.idioma import N_, _
 from bellbird.obs import obs_activacion
@@ -20,6 +21,8 @@ TEXTO_SIN_RESPUESTA = N_("OBS se abrió pero no responde. Comprueba que su "
 TEXTO_SIN_RESPUESTA_MODO_SEGURO = N_(
     "OBS no responde. Puede estar esperando que contestes si iniciar "
     "en modo seguro: elige Mostrar OBS en el menú Transmisión.")
+
+logger = diagnostico.obtener_logger(__name__)
 
 _CLAVE_OBS = r"SOFTWARE\OBS Studio"
 _CLAVE_OBS_32 = r"SOFTWARE\WOW6432Node\OBS Studio"
@@ -124,8 +127,8 @@ def asegurar_obs(probar_conexion, al_anunciar=None, parada=None,
         try:
             probar_conexion()
             return True
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo conectar con OBS, se reintenta: %s", error)
         if reloj() - inicio >= limite:
             if modo_seguro:
                 raise obs_cliente.ObsError(_(TEXTO_SIN_RESPUESTA_MODO_SEGURO))

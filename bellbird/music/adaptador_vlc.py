@@ -398,8 +398,8 @@ class AdaptadorVlc:
                         and not self._en_fundido(reproductor)):
                     try:
                         reproductor.audio_set_volume(self._volumen)
-                    except Exception:
-                        pass
+                    except Exception as error:
+                        logger.debug("no se pudo fijar el volumen del tema: %s", error)
             elif tipo == _POR_TERMINAR:
                 self._terminar_anticipado(ficha)
             else:
@@ -443,12 +443,12 @@ class AdaptadorVlc:
             self._transiciones.olvidar(reproductor)
         try:
             reproductor.stop()
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo detener el reproductor: %s", error)
         try:
             reproductor.release()
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo liberar el reproductor: %s", error)
         # Mientras libVLC pueda llamar, el gestor conserva vivos sus callbacks.
         self._callbacks.pop(reproductor, None)
 

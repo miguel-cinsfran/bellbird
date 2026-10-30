@@ -10,7 +10,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Callable
 
+from bellbird.core import diagnostico
 from bellbird.core.idioma import _
+
+logger = diagnostico.obtener_logger(__name__)
 
 
 ALTERNAR = "alternar"
@@ -125,8 +128,8 @@ def preparar(gestor, destino: str, asegurar: Callable, al_anunciar: Callable,
     finally:
         try:
             gestor.cerrar()
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo cerrar el gestor de OBS: %s", error)
 
 
 class FalloCierreYoutube(Exception):
@@ -163,5 +166,5 @@ def finalizar(gestor, finalizar_youtube=None) -> None:
     finally:
         try:
             gestor.cerrar()
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo cerrar el gestor de OBS: %s", error)

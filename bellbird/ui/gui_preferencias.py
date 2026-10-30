@@ -337,8 +337,8 @@ class PreferenciasDialog(wx.Dialog):
                 if gestor is not None:
                     try:
                         gestor.cerrar()
-                    except Exception:
-                        pass
+                    except Exception as error:
+                        logger.debug("no se pudo cerrar el gestor de OBS: %s", error)
 
         diagnostico.crear_hilo(consultar, "MicrofonosPrefs").start()
 

@@ -114,8 +114,8 @@ def sesion_caducada(exc) -> bool:
     try:
         if type(exc).__name__ == "RefreshError":
             return True
-    except Exception:
-        pass
+    except Exception as error:
+        logger.debug("no se pudo revisar el tipo de error: %s", error)
     try:
         return "invalid_grant" in str(exc).lower()
     except Exception:

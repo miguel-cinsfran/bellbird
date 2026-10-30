@@ -168,7 +168,7 @@ def construir_menu(frame):
     # lectura siga pausada.
     if anterior is not None:
         try:    anterior.Destroy()
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo destruir el menú anterior: %s", error)
     frame._sincronizar_pausa()
     _registrar_menus(frame)
 

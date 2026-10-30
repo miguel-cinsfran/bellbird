@@ -125,8 +125,8 @@ def volcar_stderr(flujo, pid) -> None:
     finally:
         try:
             flujo.close()
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo cerrar la salida del relevo: %s", error)
 
 
 # Segmentos que ffmpeg deja por detrás del borde al abrir un HLS en vivo
@@ -295,8 +295,8 @@ class RelevoFfmpeg:
             try:
                 from bellbird.core.subprocesos import vincular_a_la_app
                 vincular_a_la_app(self._proceso)
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo vincular el relevo a la app: %s", error)
         except Exception as exc:
             logger.warning("No se pudo iniciar el relevo de ffmpeg: %s", exc)
             return None
@@ -337,9 +337,9 @@ class RelevoFfmpeg:
             return
         try:
             proceso.kill()
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo detener el relevo: %s", error)
         try:
             proceso.wait(timeout=5)
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo esperar el cierre del relevo: %s", error)

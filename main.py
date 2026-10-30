@@ -77,8 +77,8 @@ def extraer_video_id(entrada: str) -> str:
             m = re.match(r"^/([A-Za-z0-9_-]{11})(?:[/?#]|$)", parsed.path)
             if m:
                 return m.group(1)
-    except Exception:
-        pass
+    except Exception as error:
+        logger.debug("no se pudo extraer el id del vídeo de la dirección: %s", error)
     m = re.search(r"[/=]([A-Za-z0-9_-]{11})(?:[?&/#]|$)", entrada)
     if m and _ID_RE.match(m.group(1)):
         return m.group(1)
@@ -558,7 +558,7 @@ def _captura(video_id, cola, config, parada, stats, on_message=None, on_estado=N
                                 on_estado, sesion_activa, filtro)
     finally:
         try:    loop.close()
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo cerrar el bucle: %s", error)
         asyncio.set_event_loop(None)
 
 
@@ -580,7 +580,7 @@ def _captura_en_loop(video_id, cola, config, parada, stats, on_message, on_estad
         chat = pytchat.create(video_id=video_id, interruptable=False, client=cliente)
     except Exception as exc:
         try:    cliente.close()
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo cerrar el cliente del chat: %s", error)
         msg = _mensaje_error_amigable(exc)
         if on_estado: on_estado("error_conexion", msg)
         _snd.reproducir("error")
@@ -646,7 +646,7 @@ def _captura_en_loop(video_id, cola, config, parada, stats, on_message, on_estad
         # El cliente es de este intento (pytchat es síncrono aquí: nadie más
         # lo usa); cerrarlo evita ir dejando sockets por cada reconexión.
         try:    cliente.close()
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo cerrar el cliente del chat: %s", error)
         if not parada.is_set():
             try:    chat.raise_for_status()
             except Exception as exc:
@@ -734,8 +734,8 @@ def main():
                     nombre)
             for error in resultado_migracion.errores:
                 logger.warning("Migración de datos: %s", error)
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo informar el resultado de la migración: %s", error)
     diagnostico.instalar_capturadores(
         paths.log_fallos(), version=APP_VERSION)
     diagnostico.registrar_entorno_en_hilo(APP_VERSION)
@@ -754,8 +754,8 @@ def main():
                    "antes de abrir una nueva.").format(app=APP_NAME)),
                 APP_NAME, MB_ICONINFORMATION | MB_SETFOREGROUND | MB_TOPMOST
             )
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo mostrar el aviso de instancia en curso: %s", error)
         sys.exit(0)
 
     config = cargar_configuracion()
@@ -786,8 +786,8 @@ def main():
                 APP_NAME,
                 0x10  # MB_ICONERROR
             )
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo mostrar el aviso del motor de voz: %s", error)
         _snd.reproducir("error")
         sys.exit(1)
 
@@ -806,8 +806,8 @@ def main():
                     detalle=exc)),
                 APP_NAME, 0x10
             )
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo mostrar el aviso de wxPython ausente: %s", error)
         sys.exit(1)
 
     iniciar_interfaz(config, cola, stats, worker, parada, iniciar_gui_fn=iniciar_gui)

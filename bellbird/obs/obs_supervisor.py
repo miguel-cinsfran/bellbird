@@ -190,8 +190,8 @@ class SupervisorTransmision:
         if self._al_terminar is not None:
             try:
                 self._al_terminar()
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo avisar el fin de la supervisión: %s", error)
 
     def _detener_obs(self) -> None:
         """Pide parar a OBS y espera a que confirme, sin congelar la ventana.
@@ -223,8 +223,8 @@ class SupervisorTransmision:
                 return
             try:
                 gestor.detener_transmision()
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo detener la transmisión en OBS: %s", error)
             self._esperar_a_obs(gestor)
         finally:
             self._cerrar_gestor(gestor)
@@ -274,8 +274,8 @@ class SupervisorTransmision:
             return
         try:
             gestor.cerrar()
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo cerrar el gestor de OBS: %s", error)
 
     def abandonar(self) -> None:
         # Deja de vigilar sin detener OBS y sin anunciar: cerrar Bellbird no
@@ -307,10 +307,7 @@ class SupervisorTransmision:
         try:
             return traer(self._parada)
         except Exception as error:
-            try:
-                logger.debug("no se pudo poner el panel delante: %s", error)
-            except Exception:
-                pass
+            logger.debug("no se pudo poner el panel delante: %s", error)
             return None
 
     def _anunciar_panel_tapado(self, nombre) -> None:
@@ -324,8 +321,8 @@ class SupervisorTransmision:
         finally:
             try:
                 gestor.cerrar()
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo cerrar el gestor de prueba: %s", error)
 
     def _supervisar(self) -> None:
         gestor = None
@@ -414,19 +411,19 @@ class SupervisorTransmision:
             try:
                 self._anunciar(
                     obs_cliente.mensaje_de_fallo_obs(error), "transmision_problema")
-            except Exception:
-                pass
+            except Exception as error_anuncio:
+                logger.debug("no se pudo anunciar el fallo de OBS: %s", error_anuncio)
         finally:
             if gestor is not None:
                 try:
                     gestor.cerrar()
-                except Exception:
-                    pass
+                except Exception as error:
+                    logger.debug("no se pudo cerrar el gestor de OBS: %s", error)
             if self._al_terminar is not None:
                 try:
                     self._al_terminar()
-                except Exception:
-                    pass
+                except Exception as error:
+                    logger.debug("no se pudo avisar el fin de la supervisión: %s", error)
 
     def _finalizar_youtube_si_toca(self) -> None:
         # Cierra el directo en YouTube una sola vez por emisión, solo con
@@ -450,13 +447,10 @@ class SupervisorTransmision:
                 self._anunciar(
                     _("YouTube no confirmó el fin del directo. Se reintentará durante 10 minutos."),
                     "transmision_problema")
-            except Exception:
-                pass
-            try:
-                logger.warning("no se pudo finalizar la emisión %s: %s",
-                               id_video, error)
-            except Exception:
-                pass
+            except Exception as error_anuncio:
+                logger.debug("no se pudo anunciar el fallo de cierre en YouTube: %s", error_anuncio)
+            logger.warning("no se pudo finalizar la emisión %s: %s",
+                           id_video, error)
             self._lanzar_reintento_fin(id_video)
         else:
             self._quitar_fin_pendiente(id_video)
@@ -498,15 +492,15 @@ class SupervisorTransmision:
             self._quitar_fin_pendiente(id_video)
             try:
                 self._anunciar(_("Directo finalizado en YouTube."), "directo_finalizado")
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo anunciar el directo finalizado: %s", error)
         else:
             try:
                 frase = _("YouTube sigue sin confirmar el fin del directo. "
                           "Se intentará de nuevo al abrir {app}.")
                 self._anunciar(frase.format(app=config.APP_NAME), "transmision_problema")
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo anunciar el reintento del fin del directo: %s", error)
 
     def _vigilar(self, gestor) -> None:
         anterior = gestor.estado_transmision(self._parada)
@@ -573,9 +567,6 @@ class SupervisorTransmision:
         try:
             return gestor.estadisticas(self._parada)
         except Exception as error:
-            try:
-                logger.debug("no se pudieron leer las estadísticas de OBS: %s",
-                             error)
-            except Exception:
-                pass
+            logger.debug("no se pudieron leer las estadísticas de OBS: %s",
+                         error)
             return None

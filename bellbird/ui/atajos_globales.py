@@ -168,9 +168,9 @@ class AtajosGlobales:
         for _accion, (ident, _manejador) in registrados.items():
             try:
                 self._ventana.Unbind(wx.EVT_HOTKEY, id=ident)
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo soltar el atajo %s: %s", ident, error)
             try:
                 self._ventana.UnregisterHotKey(ident)
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo desregistrar el atajo %s: %s", ident, error)

@@ -119,18 +119,18 @@ def _mostrar_resultado_en_ventana(frame, texto: str, correcto: bool) -> None:
     ventana.progreso(100 if correcto else 0)
     try:
         ventana.btn_cerrar.SetFocus()
-    except Exception:
-        pass
+    except Exception as error:
+        logger.debug("no se pudo enfocar el cierre: %s", error)
     if not correcto:
         try:
             _snd.reproducir("error")
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo reproducir el aviso de error: %s", error)
     else:
         try:
             _snd.reproducir("actualizacion_lista")
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo reproducir el aviso de actualización: %s", error)
 
 
 def programar_aviso_version(frame) -> None:
@@ -410,12 +410,12 @@ def abrir_ventana_actualizacion(frame, paquete=None, al_arrancar=False) -> None:
     if abierta is not None and not abierta.cerrado:
         try:
             abierta.Raise()
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo traer al frente la ventana: %s", error)
         try:
             abierta.btn_cerrar.SetFocus()
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo enfocar el cierre: %s", error)
         return
     ventana = DialogoActualizacion(frame, _("Buscar actualizaciones"))
     frame._ventana_actualizar_app = ventana
@@ -425,6 +425,6 @@ def abrir_ventana_actualizacion(frame, paquete=None, al_arrancar=False) -> None:
     if al_arrancar:
         try:
             _snd.reproducir("actualizacion_disponible")
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo reproducir el aviso de actualización: %s", error)
     _FlujoActualizacion(frame, ventana).arrancar(paquete)

@@ -171,8 +171,8 @@ def reproducir_archivo(ruta: Path | str | None) -> None:
         if not ruta:
             return
         _encolar(Path(ruta))
-    except Exception:
-        pass
+    except Exception as error:
+        logger.debug("no se pudo encolar el archivo de sonido: %s", error)
 
 
 def cerrar() -> None:
@@ -204,7 +204,7 @@ def _reproducir_winmm(ruta: Path) -> None:
             _alias_activos[alias] = time.monotonic()
     except Exception:
         try:    _mci(f"close {alias}")
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo cerrar el alias: %s", error)
 
 
 def _iniciar_hilo_sonido() -> None:
@@ -261,8 +261,8 @@ def _cerrar_alias_abiertos() -> None:
     for a in alias_abiertos:
         try:
             _mci(f"close {a}")
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo cerrar el alias %s: %s", a, error)
 
 
 def _barrer_alias() -> None:
@@ -282,7 +282,7 @@ def _barrer_alias() -> None:
             _alias_activos.pop(a, None)
     for a in cerrar_estos:
         try:    _mci(f"close {a}")
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo cerrar el alias %s: %s", a, error)
 
 
 def _reproducir_fallback(ruta: Path) -> None:
@@ -294,5 +294,5 @@ def _reproducir_fallback(ruta: Path) -> None:
             str(ruta),
             winsound.SND_FILENAME | winsound.SND_ASYNC | winsound.SND_NODEFAULT,
         )
-    except Exception:
-        pass
+    except Exception as error:
+        logger.debug("no se pudo reproducir con winsound: %s", error)

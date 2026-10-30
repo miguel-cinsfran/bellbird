@@ -450,12 +450,12 @@ def cargar_sonidos() -> dict:
     activar, volumen, tema = True, 0.7, _TEMA_DEFECTO
     if p.has_section("sonidos"):
         try:    activar = p.getboolean("sonidos", "activar", fallback=True)
-        except Exception: pass
+        except Exception as error: logger.warning("no se pudo leer activar de sonidos: %s", error)
         try:    volumen = max(0.0, min(1.0, float(p.get("sonidos", "volumen", fallback="0.7"))))
-        except Exception: pass
+        except Exception as error: logger.warning("no se pudo leer volumen de sonidos: %s", error)
         try:    tema = (p.get("sonidos", "tema", fallback=_TEMA_DEFECTO).strip()
                         or _TEMA_DEFECTO)
-        except Exception: pass
+        except Exception as error: logger.warning("no se pudo leer tema de sonidos: %s", error)
 
     eventos: dict[str, Path | None] = {}
     for ev in _EVENTOS_SONIDO:

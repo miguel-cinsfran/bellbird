@@ -1,8 +1,8 @@
 """Muda los datos de usuario de la raíz a la subcarpeta de datos.
 
-Módulo puro, sin wx y sin logging propio: recibe todas las rutas por
-parámetro y nunca arma una por su cuenta. No lanza nunca: cada fallo se
-anota en el resultado y se sigue con el elemento siguiente.
+Módulo puro, sin wx: recibe todas las rutas por parámetro y nunca arma
+una por su cuenta. No lanza nunca: cada fallo se anota en el resultado
+y se sigue con el elemento siguiente.
 """
 
 from __future__ import annotations
@@ -11,6 +11,10 @@ import os
 import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
+
+from bellbird.core import diagnostico
+
+logger = diagnostico.obtener_logger(__name__)
 
 
 @dataclass
@@ -103,8 +107,8 @@ def _copiar_sounds_ini(instalacion: Path, datos: Path, sounds_ini: Path,
     except Exception as exc:
         try:
             resultado.errores.append(f"{Path(sounds_ini).name}: {exc}")
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo anotar el fallo de sounds.ini en el resultado: %s", error)
 
 
 def _migrar_binario(vieja: Path, nueva: Path,
@@ -185,8 +189,8 @@ def migrar(instalacion: Path, datos: Path, rutas: list[Path],
         except Exception as exc:
             try:
                 resultado.errores.append(f"{Path(ruta).name}: {exc}")
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo anotar el fallo de migración en el resultado: %s", error)
     _copiar_sounds_ini(instalacion, datos, sounds_ini, resultado)
     if pares_anteriores is not None:
         binarios, registros = pares_anteriores

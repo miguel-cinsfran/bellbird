@@ -108,8 +108,8 @@ def preparar() -> None:
     os.environ["PATH"] = base + os.pathsep + os.environ.get("PATH", "")
     try:
         os.add_dll_directory(base)
-    except Exception:
-        pass
+    except Exception as error:
+        logger.debug("no se pudo agregar la carpeta de libVLC: %s", error)
     # Precargar el core: así libvlc.dll encuentra su dependencia bajo PyInstaller.
     try:
         import ctypes

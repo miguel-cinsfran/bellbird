@@ -11,10 +11,13 @@ suena con el evento del mismo nombre.
 
 import re
 
+from bellbird.core import diagnostico
 from bellbird.core.config import (
     TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,
     TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
 )
+
+logger = diagnostico.obtener_logger(__name__)
 
 ROL_PROPIETARIO = "propietario"
 ROL_MODERADOR = "moderador"
@@ -73,8 +76,8 @@ def rol_de_autor(autor) -> str:
             return ROL_VERIFICADO
         if getattr(autor, "isChatSponsor", False):
             return ROL_MIEMBRO
-    except Exception:
-        pass
+    except Exception as error:
+        logger.debug("no se pudo leer el rol del autor: %s", error)
     return ""
 
 

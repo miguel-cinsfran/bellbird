@@ -128,8 +128,8 @@ class MotorElevenLabs:
         if not self._reproducir(ruta):
             try:
                 ruta.unlink()
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo borrar el audio temporal: %s", error)
             return False
         return True
 
@@ -216,8 +216,8 @@ class MotorElevenLabs:
             logger.debug("motor_elevenlabs: %s", exc)
             try:
                 _mci(f"close {alias}")
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo cerrar el alias de audio: %s", error)
             return False
         self._alias = alias
         self._ruta = Path(ruta)
@@ -230,10 +230,10 @@ class MotorElevenLabs:
         if alias:
             try:
                 _mci(f"close {alias}")
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo cerrar el alias de audio: %s", error)
         if ruta is not None:
             try:
                 Path(ruta).unlink()
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo borrar el audio temporal: %s", error)

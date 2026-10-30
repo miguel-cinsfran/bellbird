@@ -21,6 +21,8 @@ from bellbird.ui.accesibilidad import anunciar
 from bellbird.ui.tema import _T, _pintar
 from bellbird.voice import sound_player as _snd
 
+logger = diagnostico.obtener_logger(__name__)
+
 
 class BotonDirecto:
     """Botón «Transmitir en directo» / «Finalizar directo»."""
@@ -80,13 +82,13 @@ class BotonDirecto:
         destino, usuario = elegido
         try:
             marco._guardar_destino_transmision(destino)
-        except Exception:
-            pass
+        except Exception as error:
+            logger.warning("no se pudo guardar el destino de transmisión: %s", error)
         if destino == "TikTok":
             try:
                 usuario = marco._guardar_usuario_tiktok(usuario)
-            except Exception:
-                pass
+            except Exception as error:
+                logger.warning("no se pudo guardar el usuario de TikTok: %s", error)
         _snd.reproducir("conectando")
         anunciar(_("Revisando OBS antes de transmitir."))
         self.boton.Disable()
@@ -210,8 +212,8 @@ class BotonDirecto:
                 if nuevo:
                     try:
                         credenciales.guardar_campo("token", nuevo)
-                    except Exception:
-                        pass
+                    except Exception as error:
+                        logger.warning("no se pudo guardar el token actualizado: %s", error)
 
         return _cerrar
 
@@ -230,12 +232,9 @@ class BotonDirecto:
         if isinstance(error, transmision_directa.FalloCierreYoutube):
             _snd.reproducir("error")
             anunciar(str(error))
-            try:
-                diagnostico.obtener_logger(__name__).warning(
-                    "cierre en YouTube sin supervisor: %s",
-                    error.__cause__ or error)
-            except Exception:
-                pass
+            logger.warning(
+                "cierre en YouTube sin supervisor: %s",
+                error.__cause__ or error)
             return
         _snd.reproducir("error")
         anunciar(obs_cliente.mensaje_de_fallo_obs(error))

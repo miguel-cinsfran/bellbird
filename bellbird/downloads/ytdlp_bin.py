@@ -116,8 +116,8 @@ def _lanzar_audio(argumentos: list):
     try:
         from bellbird.core.subprocesos import vincular_a_la_app
         vincular_a_la_app(proceso)
-    except Exception:
-        pass
+    except Exception as error:
+        logger.debug("no se pudo vincular yt-dlp a la app: %s", error)
     return proceso
 
 
@@ -133,8 +133,8 @@ def _volcar_salida(proceso, cola) -> None:
     except Exception:
         try:
             cola.put(None)
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo avisar el fin de la salida de yt-dlp: %s", error)
 
 
 def _bombear_progreso(proceso, aviso_progreso, inicio, tope_segundos) -> bool:
@@ -154,12 +154,12 @@ def _bombear_progreso(proceso, aviso_progreso, inicio, tope_segundos) -> bool:
             try:
                 from bellbird.core.subprocesos import terminar_arbol
                 terminar_arbol(proceso)
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo terminar yt-dlp por tope: %s", error)
             try:
                 proceso.wait(timeout=5)
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo esperar el cierre de yt-dlp: %s", error)
             return False
         restante = tope_segundos - transcurrido
         espera = restante if restante < 0.2 else 0.2
@@ -195,12 +195,12 @@ def _esperar_cierre(proceso, inicio, tope_segundos) -> bool:
             try:
                 from bellbird.core.subprocesos import terminar_arbol
                 terminar_arbol(proceso)
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo terminar yt-dlp por tope: %s", error)
             try:
                 proceso.wait(timeout=5)
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo esperar el cierre de yt-dlp: %s", error)
             return False
         time.sleep(0.05)
     return True

@@ -144,8 +144,8 @@ def describir_escena(frame):
             if gestor is not None:
                 try:
                     gestor.cerrar()
-                except Exception:
-                    pass
+                except Exception as error:
+                    _gui.logger.debug("no se pudo cerrar el gestor de OBS: %s", error)
             _gui.wx.CallAfter(frame._anunciar_descripcion_escena, texto)
 
     _gui.diagnostico.crear_hilo(_trabajo, "DescribirEscena").start()

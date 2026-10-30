@@ -92,9 +92,10 @@ def api_err(frame, exc):
 
 
 def actualizar_estado_online(frame):
+    from bellbird.ui import gui as _gui
     frame._actualizar_motivo_redaccion()
     try:    frame._com_panel.actualizar_estado()
-    except Exception: pass
+    except Exception as error: _gui.logger.debug("no se pudo actualizar el estado: %s", error)
 
 
 def actualizar_motivo_redaccion(frame):
@@ -105,8 +106,8 @@ def actualizar_motivo_redaccion(frame):
             _gui.youtube_api.google_disponible(), frame._sesion_api_disponible(),
             bool(frame.sesion.live_chat_id), frame.sesion.causa_sin_chat)
         frame._panel_redactar.establecer_motivo(motivo)
-    except Exception:
-        pass
+    except Exception as error:
+        _gui.logger.debug("no se pudo mostrar el motivo de redacción: %s", error)
 
 
 def iniciar_programados_si_corresponde(frame, ahora: float) -> None:

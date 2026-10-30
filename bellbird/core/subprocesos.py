@@ -210,8 +210,8 @@ def _job_app():
                 logger.debug("SetInformationJobObject falló")
                 try:
                     nucleo.CloseHandle(trabajo)
-                except Exception:
-                    pass
+                except Exception as error:
+                    logger.debug("no se pudo cerrar el trabajo tras el fallo: %s", error)
                 return None
             # Se guarda a nivel de módulo y su handle no se cierra nunca:
             # al cerrarse el proceso de la app, Windows mata a los
@@ -270,8 +270,8 @@ def vincular_a_la_app(proceso):
         finally:
             try:
                 nucleo.CloseHandle(handle)
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo cerrar el handle del proceso: %s", error)
     except Exception as exc:
         logger.debug("vincular a la app: %s", exc)
 
@@ -295,8 +295,8 @@ def ejecutar(argumentos, cancel_event=None, tope_segundos=3600, **opciones):
         return Estado.fallo
     try:
         vincular_a_la_app(proceso)
-    except Exception:
-        pass
+    except Exception as error:
+        logger.debug("no se pudo vincular el proceso a la app: %s", error)
 
     inicio = time.monotonic()
     try:

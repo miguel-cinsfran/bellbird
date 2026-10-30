@@ -532,7 +532,7 @@ class TTSWorker(threading.Thread):
     def detener(self):
         if self._paused: self._active.set()
         try:    self.cola.put(_STOP)
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo pedir la detención: %s", error)
         self.join(timeout=5.0)
 
     def detener_actual(self):

@@ -14,10 +14,18 @@ Orden de búsqueda:
 
 from __future__ import annotations
 
+import logging
 import shutil
 import sys
 
+from bellbird.core import diagnostico
 from bellbird.core import paths
+
+# diagnostico importa este módulo para consultar la versión de yt-dlp.
+if hasattr(diagnostico, "obtener_logger"):
+    logger = diagnostico.obtener_logger(__name__)
+else:
+    logger = logging.getLogger(f"bellbird.{__name__}")
 
 NOMBRE_BINARIO = paths.NOMBRE_FFMPEG
 
@@ -31,6 +39,6 @@ def ruta_ffmpeg() -> str | None:
     try:
         import imageio_ffmpeg
         return imageio_ffmpeg.get_ffmpeg_exe()
-    except Exception:
-        pass
+    except Exception as error:
+        logger.debug("no se pudo usar el ffmpeg de imageio: %s", error)
     return shutil.which("ffmpeg")

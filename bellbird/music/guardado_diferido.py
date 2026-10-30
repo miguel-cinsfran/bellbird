@@ -8,6 +8,10 @@ pendiente en el acto, para no perder el cambio al cerrar.
 
 from __future__ import annotations
 
+from bellbird.core import diagnostico
+
+logger = diagnostico.obtener_logger(__name__)
+
 
 class GuardadoDiferido:
     """Agrupa pedidos seguidos y ejecuta el último tras la espera."""
@@ -46,5 +50,5 @@ class GuardadoDiferido:
             return
         try:
             temporizador.Stop()
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo detener el temporizador pendiente: %s", error)

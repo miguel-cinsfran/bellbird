@@ -114,8 +114,8 @@ def _fin_descarga_en_gui(estado: str, mensaje: str, nombre: str, item) -> None:
         return
     try:
         _snd.reproducir(_SONIDO_POR_FIN.get(estado, "descarga_cancelada"))
-    except Exception:
-        pass
+    except Exception as error:
+        logger.debug("no se pudo reproducir el aviso de descarga: %s", error)
     anunciar(frase)
     if estado not in _ESTADOS_FINALES:
         return
@@ -462,8 +462,8 @@ class GestorDescargasDialog(wx.Dialog):
         global _dialogo_activo
         try:
             self._temporizador.Stop()
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo detener el temporizador: %s", error)
         if _dialogo_activo is self:
             _dialogo_activo = None
 
@@ -492,8 +492,8 @@ class GestorDescargasDialog(wx.Dialog):
         if estado == "descargando":
             try:
                 _snd.reproducir("descarga_iniciada")
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo reproducir el inicio de descarga: %s", error)
 
 
 def abrir(parent, url_inicial: str | None = None) -> bool:

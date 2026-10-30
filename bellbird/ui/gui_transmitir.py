@@ -351,8 +351,8 @@ def supervisar_transmision(frame, accion, destino="", usuario="",
                     return
                 try:
                     frame.txt_url.SetValue(url)
-                except Exception:
-                    pass
+                except Exception as error:
+                    _gui.logger.debug("no se pudo mostrar la dirección: %s", error)
                 frame.sesion.conexion_propia = True
                 frame._on_conectar(None)
             _gui.wx.CallAfter(_conectar)

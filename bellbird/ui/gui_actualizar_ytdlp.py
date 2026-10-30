@@ -21,12 +21,12 @@ def abrir_ventana_actualizacion(frame) -> None:
     if abierta is not None and not abierta.cerrado:
         try:
             abierta.Raise()
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo traer al frente la ventana: %s", error)
         try:
             abierta.btn_cerrar.SetFocus()
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo enfocar el cierre: %s", error)
         return
     ventana = DialogoActualizacion(frame, _("Actualizar yt-dlp"))
     frame._ventana_actualizar_ytdlp = ventana
@@ -64,8 +64,8 @@ def abrir_ventana_actualizacion(frame) -> None:
         ventana.estado(texto)
         try:
             ventana.btn_cerrar.SetFocus()
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo enfocar el cierre: %s", error)
 
     def _run():
         try:

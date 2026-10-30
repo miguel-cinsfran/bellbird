@@ -733,8 +733,9 @@ class TestInicioReproduccionCableado(unittest.TestCase):
                     with mock.patch.object(reproductor.wx.Window, "FindFocus", return_value=None):
                         panel._on_timer(None)
                 self.assertTrue(any("INICIO_MUESTRA" in o for o in cap.output), cap.output)
-                self.assertIn("topologia=", cap.output[0].lower())
-                self.assertIn("es_directo=", cap.output[0].lower())
+                linea = next(o for o in cap.output if "topologia=" in o.lower())
+                self.assertIn("topologia=", linea.lower())
+                self.assertIn("es_directo=", linea.lower())
                 mock_info.assert_not_called()
                 self.assertEqual(panel._marca_url, marca_url)
                 anunciar.assert_not_called()

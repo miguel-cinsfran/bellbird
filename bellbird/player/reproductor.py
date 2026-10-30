@@ -363,13 +363,13 @@ class ReproductorPanel(wx.Panel):
         try:
             if hasattr(self, "lbl_estado"):
                 self._fijar_estado(_("Cerrando la reproducción anterior."))
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo mostrar el estado de cierre: %s", error)
         if debe_anunciar:
             try:
                 anunciar(_("Cerrando la reproducción anterior"))
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo anunciar el cierre: %s", error)
 
     def _al_retirar(self, rid: int) -> None:
         ciclo = getattr(self, "_ciclo", None)
@@ -398,15 +398,12 @@ class ReproductorPanel(wx.Panel):
                 pct_anterior = pct
                 if aviso:
                     logger.debug("%s", aviso)
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo avisar el corte de reproducción: %s", error)
 
         def al_estado_traza(nombre):
             def callback(_event):
-                try:
-                    logger.debug("VLC_ESTADO %s", nombre)
-                except Exception:
-                    pass
+                logger.debug("VLC_ESTADO %s", nombre)
             return callback
 
         def al_transporte(estado_norm, nombre_traza):
@@ -414,14 +411,11 @@ class ReproductorPanel(wx.Panel):
 
             def callback(_event):
                 if detallado:
-                    try:
-                        logger.debug("VLC_ESTADO %s", nombre_traza)
-                    except Exception:
-                        pass
+                    logger.debug("VLC_ESTADO %s", nombre_traza)
                 try:
                     wx.CallAfter(self._evaluar_transporte_desde_evento, ident, estado_norm)
-                except Exception:
-                    pass
+                except Exception as error:
+                    logger.debug("no se pudo evaluar el transporte desde el evento: %s", error)
 
             return callback
 
@@ -467,27 +461,27 @@ class ReproductorPanel(wx.Panel):
         self._intencion_reproducir = True
         try:
             self._mostrar_pausa(True)
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo mostrar la pausa: %s", error)
         try:
             self._timer.Start(500)
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo arrancar el temporizador: %s", error)
 
     def _quedo_en_pausa(self, arrancar_si_busca: bool) -> None:
         """Tras un fallo, la búsqueda pendiente necesita que el temporizador corra."""
         self._intencion_reproducir = False
         try:
             self._mostrar_pausa(False)
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo mostrar la pausa: %s", error)
         try:
             if not getattr(self._estado_busqueda, "pendiente", False):
                 self._timer.Stop()
             elif arrancar_si_busca:
                 self._timer.Start(500)
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo ajustar el temporizador: %s", error)
 
     def _evaluar_transporte(self, estado_forzado=None) -> None:
         orden = getattr(self, "_orden_transporte", None)
@@ -525,8 +519,8 @@ class ReproductorPanel(wx.Panel):
                 try:
                     if getattr(self._estado_busqueda, "pendiente", False):
                         self._timer.Start(500)
-                except Exception:
-                    pass
+                except Exception as error:
+                    logger.debug("no se pudo arrancar el temporizador: %s", error)
             mensaje = _("No se pudo pausar") if not intencion_previa else _("No se pudo reanudar")
             anunciar(mensaje)
             logger.debug("TRANSPORTE desenlace=fallida intencion=%s estado=%s edad=%d", "pausa" if not intencion_previa else "reproducir", estado_norm, edad_ms)
@@ -740,8 +734,8 @@ class ReproductorPanel(wx.Panel):
                 texto = self.lbl_estado.GetLabel()
             self.lbl_estado.SetLabel(texto)
             self.lbl_estado.Wrap(ancho)
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo ajustar el texto de estado: %s", error)
 
     def _fijar_estado(self, texto: str) -> None:
         self._texto_estado = texto
@@ -794,8 +788,8 @@ class ReproductorPanel(wx.Panel):
             if self._listo:
                 destino = self.btn_play if self._botones_visibles else self.sld_pos
                 destino.SetFocus()
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo llevar el foco al reproductor: %s", error)
 
     # ── Botones ocultables (interruptor / menú) ───────────────────────────────
 
@@ -822,7 +816,7 @@ class ReproductorPanel(wx.Panel):
         self._aplicar_visibilidad_botones()
         if self.on_botones_toggle:
             try:    self.on_botones_toggle(self._botones_visibles)
-            except Exception: pass
+            except Exception as error: logger.debug("no se pudo avisar los botones: %s", error)
 
     def alternar_botones(self) -> None:
         self.set_botones_visibles(not self._botones_visibles)
@@ -1107,15 +1101,15 @@ class ReproductorPanel(wx.Panel):
         if pendiente is not None:
             try:
                 pendiente.Stop()
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo detener la reapertura pendiente: %s", error)
         directa = getattr(self, "_relevo_directo_reapertura", None)
         self._relevo_directo_reapertura = None
         if directa is not None:
             try:
                 directa.Stop()
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo detener la reapertura directa: %s", error)
         self._relevo_vod_destino_en_pausa = None
         relevo = getattr(self, "_relevo_ffmpeg", None)
         self._relevo_ffmpeg = None
@@ -1525,8 +1519,8 @@ class ReproductorPanel(wx.Panel):
             self._transporte_pendiente = True
             try:
                 self._timer.Start(500)
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo arrancar el temporizador: %s", error)
             # Traductores: aviso al pausar.
             anunciar(_("Pausando"))
         elif accion == "reanudar":
@@ -1544,8 +1538,8 @@ class ReproductorPanel(wx.Panel):
                 self._intencion_reproducir = True
                 try:
                     self._timer.Start(500)
-                except Exception:
-                    pass
+                except Exception as error:
+                    logger.debug("no se pudo arrancar el temporizador: %s", error)
                 # Traductores: aviso al reanudar.
                 anunciar(_("Reanudando"))
                 self._reabrir_relevo_vod(destino)
@@ -1555,8 +1549,8 @@ class ReproductorPanel(wx.Panel):
                 self._transporte_pendiente = True
                 try:
                     self._timer.Start(500)
-                except Exception:
-                    pass
+                except Exception as error:
+                    logger.debug("no se pudo arrancar el temporizador: %s", error)
                 # Traductores: aviso al reanudar.
                 anunciar(_("Reanudando"))
         elif accion == "cargar":
@@ -1605,8 +1599,8 @@ class ReproductorPanel(wx.Panel):
                 if ciclo is not None and ciclo.en_retirada:
                     try:
                         self._player.stop()
-                    except Exception:
-                        pass
+                    except Exception as error:
+                        logger.debug("no se pudo detener el reproductor: %s", error)
                 else:
                     ciclo_local = ciclo
                     rid = ciclo_local.iniciar_retirada() if ciclo_local is not None else 0
@@ -1623,12 +1617,12 @@ class ReproductorPanel(wx.Panel):
                     def _cerrar(gestor=gestor_eventos, rid=rid):
                         try:
                             player.stop()
-                        except Exception:
-                            pass
+                        except Exception as error:
+                            logger.debug("no se pudo detener el reproductor viejo: %s", error)
                         try:
                             player.release()
-                        except Exception:
-                            pass
+                        except Exception as error:
+                            logger.debug("no se pudo liberar el reproductor viejo: %s", error)
                         # Mientras libVLC pueda llamar callbacks, el gestor conserva
                         # vivo el trampolín de ctypes que usa python-vlc.
                         _sin_uso = gestor
@@ -1639,13 +1633,13 @@ class ReproductorPanel(wx.Panel):
                         if app is not None:
                             try:
                                 wx.CallAfter(self._al_retirar, rid)
-                            except Exception:
-                                pass
+                            except Exception as error:
+                                logger.debug("no se pudo agendar el retiro del reproductor: %s", error)
 
                     diagnostico.crear_hilo(_cerrar, "ReproductorStop").start()
             else:
                 try:    self._player.stop()
-                except Exception: pass
+                except Exception as error: logger.debug("no se pudo detener: %s", error)
         if hasattr(self, "_timer"):
             self._timer.Stop()
         if hasattr(self, "btn_play"):
@@ -1735,7 +1729,7 @@ class ReproductorPanel(wx.Panel):
             # completa, el foco quedaba en el aire (el lector se perdía). Va a un
             # control con nombre accesible del reproductor.
             try:    self.anclar_foco()
-            except Exception: pass
+            except Exception as error: logger.debug("no se pudo devolver el foco: %s", error)
             anunciar(_("Pantalla completa desactivada"))
 
     # ── Tiempo / sliders ──────────────────────────────────────────────────────
@@ -1766,8 +1760,8 @@ class ReproductorPanel(wx.Panel):
             if isinstance(info, dict) and info.get("duration"):
                 try:
                     return int(float(info["duration"]) * 1000)
-                except Exception:
-                    pass
+                except Exception as error:
+                    logger.debug("no se pudo leer la duración del relevo: %s", error)
         try:
             return int(self._player.get_length()) if self._player else 0
         except Exception:
@@ -1808,8 +1802,8 @@ class ReproductorPanel(wx.Panel):
         try:
             if bus.pendiente:
                 self._timer.Start(500)
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo arrancar el temporizador: %s", error)
         bus_ref = bus
         def caducar():
             if bus_ref.generacion != gen:
@@ -1878,8 +1872,8 @@ class ReproductorPanel(wx.Panel):
             if pendiente is not None:
                 try:
                     pendiente.Stop()
-                except Exception:
-                    pass
+                except Exception as error:
+                    logger.debug("no se pudo detener la reapertura pendiente: %s", error)
             self._relevo_vod_reapertura = None
             self._relevo_vod_destino_en_pausa = int(destino)
             # _marcar_destino se llama después en todos los llamadores y deja
@@ -1891,8 +1885,8 @@ class ReproductorPanel(wx.Panel):
         if pendiente is not None:
             try:
                 pendiente.Stop()
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo detener la reapertura pendiente: %s", error)
         self._relevo_vod_reapertura = wx.CallLater(400, self._reabrir_relevo_vod, int(destino))
 
     def _confirmar_salto_en_pausa(self, destino) -> None:
@@ -1915,8 +1909,8 @@ class ReproductorPanel(wx.Panel):
         try:
             self._fijar_tiempo(destino, dur, mover_slider=True,
                                anunciar_t=False)
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo fijar el tiempo tras el salto: %s", error)
 
     def _reabrir_relevo_vod(self, destino) -> None:
         self._relevo_vod_reapertura = None
@@ -2041,8 +2035,8 @@ class ReproductorPanel(wx.Panel):
                 actual = self._player.audio_get_volume()
                 if actual >= 0 and actual != self._vol:
                     self._player.audio_set_volume(self._vol)
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo fijar el volumen: %s", error)
         inicio = getattr(self, "_estado_inicio", None)
         if inicio is not None and inicio.requiere:
             estado_inicio = self._estado_vlc_actual()
@@ -2088,8 +2082,8 @@ class ReproductorPanel(wx.Panel):
         if estado_final == "paused" and getattr(self, "_orden_transporte", None) is None and not getattr(self._estado_busqueda, "pendiente", False):
             try:
                 self._timer.Stop()
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo detener el temporizador: %s", error)
         decision = recuperacion.decidir_al_terminar(
             estado_final,
             vod_cargando=bool(getattr(self, "_vod_por_relevo", False)

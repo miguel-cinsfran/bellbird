@@ -11,10 +11,13 @@ import threading
 
 import wx
 
+from bellbird.core import diagnostico
 from bellbird.core.actualizacion import notas_legibles
 from bellbird.core.idioma import _
 from bellbird.ui import paleta
 from bellbird.ui.accesibilidad import anunciar, nombre_accesible
+
+logger = diagnostico.obtener_logger(__name__)
 
 
 class DialogoActualizacion(wx.Dialog):
@@ -78,8 +81,8 @@ class DialogoActualizacion(wx.Dialog):
         self.Bind(wx.EVT_CLOSE, self._al_cerrar)
         try:
             self.btn_cerrar.SetFocus()
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo enfocar el cierre: %s", error)
 
     @property
     def cerrado(self) -> bool:
@@ -95,8 +98,8 @@ class DialogoActualizacion(wx.Dialog):
         if show:
             try:
                 self.btn_cerrar.SetFocus()
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo enfocar el cierre: %s", error)
         return resultado
 
     def estado(self, texto) -> None:
@@ -116,16 +119,16 @@ class DialogoActualizacion(wx.Dialog):
         # dejan `ofrecer_accion` y `quitar_accion` como siempre.
         try:
             self.Layout()
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo repartir la ventana: %s", error)
         try:
             self.Fit()
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo ajustar la ventana: %s", error)
         try:
             self.Layout()
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo repartir la ventana: %s", error)
 
     def notas(self, texto) -> None:
         limpio = notas_legibles(texto)
@@ -135,8 +138,8 @@ class DialogoActualizacion(wx.Dialog):
             try:
                 self.txt_notas.SetInsertionPoint(0)
                 self.txt_notas.ShowPosition(0)
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo llevar al inicio las novedades: %s", error)
         else:
             self.txt_notas.Hide()
         self._reajustar()
@@ -150,16 +153,16 @@ class DialogoActualizacion(wx.Dialog):
         self.btn_accion.SetLabel(etiqueta)
         try:
             self.btn_accion.Unbind(wx.EVT_BUTTON)
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo soltar la acción anterior: %s", error)
         self.btn_accion.Bind(
             wx.EVT_BUTTON, lambda _event: self._accion())
         self.btn_accion.Show()
         self._reajustar()
         try:
             self.btn_accion.SetFocus()
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo enfocar la acción: %s", error)
 
     def quitar_accion(self) -> None:
         self._accion = None
@@ -167,8 +170,8 @@ class DialogoActualizacion(wx.Dialog):
         self._reajustar()
         try:
             self.btn_cerrar.SetFocus()
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo enfocar el cierre: %s", error)
 
     def en_hilo_principal(self, funcion, *args) -> None:
         def _envoltura():
@@ -182,9 +185,9 @@ class DialogoActualizacion(wx.Dialog):
         self._cerrado = True
         try:
             self._cancelado.set()
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo avisar la cancelación: %s", error)
         try:
             self.Destroy()
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo destruir la ventana: %s", error)

@@ -184,7 +184,7 @@ class ComentariosPanel(wx.Panel):
 
     def anclar_foco(self) -> None:
         try:    self.lb.SetFocus()
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo enfocar los comentarios: %s", error)
 
     # ── Carga ────────────────────────────────────────────────────────────────
 

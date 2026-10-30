@@ -140,14 +140,11 @@ class _LogWx(wx.Log):
     """Reenvia el log de wx al logger del modulo sin recortar el texto."""
 
     def DoLogRecord(self, level, msg, info):
-        try:
-            # Mensaje entero, sin recortar: es lo unico para diagnosticar
-            if level in (wx.LOG_FatalError, wx.LOG_Error, wx.LOG_Warning):
-                logger.warning("wx: %s", msg)
-            else:
-                logger.debug("wx: %s", msg)
-        except Exception:
-            pass
+        # Mensaje entero, sin recortar: es lo unico para diagnosticar
+        if level in (wx.LOG_FatalError, wx.LOG_Error, wx.LOG_Warning):
+            logger.warning("wx: %s", msg)
+        else:
+            logger.debug("wx: %s", msg)
 
 
 # ── Frame principal ──────────────────────────────────────────────────────────
@@ -186,8 +183,8 @@ class YTChatFrame(wx.Frame):
         # aplastar el chat, el reproductor y los textos, cortándolos.
         try:
             self.SetMinSize((640, 480))
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo fijar el tamaño mínimo de la ventana: %s", error)
         self._config    = config
         self._cola      = cola
         self._stats     = stats
@@ -535,14 +532,14 @@ class YTChatFrame(wx.Frame):
             dc = wx.ClientDC(self.lbl_tipo)
             dc.SetFont(self.lbl_tipo.GetFont())
             self.lbl_tipo.SetLabel(wordwrap(self._texto_tipo, ancho, dc).rstrip("\n"))
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo ajustar el ancho del tipo de directo: %s", error)
 
     def _fijar_tipo(self, texto: str) -> None:
         self._texto_tipo = texto
         self._ajustar_ancho_tipo()
         try:    self._panel_principal.Layout()
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo reajustar el panel: %s", error)
 
     def _ajustar_minimo_ventana(self) -> None:
         """Piso real de la ventana: lo que pide el sizer (con el reproductor a
@@ -684,7 +681,7 @@ class YTChatFrame(wx.Frame):
         """El panel cambió la visibilidad de los botones (por su interruptor o por
         el menú): sincronizar la casilla del menú y guardar la preferencia."""
         try:    self.mi_rep_botones.Check(bool(visibles))
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo marcar la casilla: %s", error)
         self._config["mostrar_botones_reproductor"] = bool(visibles)
         guardar_opcion(RUTA_CONFIG, "ui", "mostrar_botones_reproductor",
                        "true" if visibles else "false")
@@ -724,7 +721,7 @@ class YTChatFrame(wx.Frame):
         if self._conectado:
             if self.on_desconectar_cb:
                 try:    self.on_desconectar_cb()
-                except Exception: pass
+                except Exception as error: logger.debug("no se pudo desconectar: %s", error)
             self.set_conectado(False)
         self.txt_url.SetValue(url)
         wx.CallAfter(self._on_conectar, None)
@@ -908,7 +905,7 @@ class YTChatFrame(wx.Frame):
         # Marcar el radio del submenú: al clicar lo hace wx solo, pero si
         # llegamos aquí desde Preferencias hay que marcarlo a mano.
         try:    self.voz_submenu.FindItemByPosition(idx).Check(True)
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo marcar la voz: %s", error)
         # Se guarda el NOMBRE, no el número: con el índice, instalar una voz
         # corre la lista y la app hablaría con otra sin avisar.
         self._config["voz"] = self._voz_nombre
@@ -1282,42 +1279,42 @@ class YTChatFrame(wx.Frame):
         if supervisor is not None and supervisor.activo:
             try:
                 supervisor.abandonar()
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo abandonar la supervisión: %s", error)
             self._supervisor = None
         try:    self._timer.Stop()
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo detener el temporizador: %s", error)
         try:    self._diagnostico_timer.Stop()
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo detener el diagnóstico: %s", error)
         self.chat_vivo.descartar()
         hilos_previos = diagnostico.hilos_vivos_de_la_aplicacion()
         if apagado.hilos_captura_vivos(hilos_previos):
             # Traductores: aviso mientras se cierra la app.
             anunciar(_("Cerrando"))
         try:    self.Hide()
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo ocultar la ventana: %s", error)
         if self.on_desconectar_cb:
             try:    self.on_desconectar_cb()
-            except Exception: pass
+            except Exception as error: logger.debug("no se pudo desconectar: %s", error)
         self._parada.set()
         overlay_servidor.apagar()
         try:
             self._rep_panel.detener_todo()
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo detener el panel: %s", error)
         try:
             self._musica.cerrar()
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo cerrar la música: %s", error)
         try:
             self._recientes.cerrar()
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo cerrar los recientes: %s", error)
         try:
             # Interrumpir lo que se esté leyendo (purga) antes de parar, para que
             # el cierre sea inmediato y no termine el mensaje en curso.
             self._worker.detener_actual()
             self._worker.detener()
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo detener la voz: %s", error)
         try:    _snd.cerrar()
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo cerrar los sonidos: %s", error)
         self._cierre_inicio = time.monotonic()
         self._cierre_tope = apagado.TOPE_ESPERA_CIERRE
         self._comprobar_cierre()
@@ -1343,18 +1340,18 @@ class YTChatFrame(wx.Frame):
     def _on_timer(self, event):
         if self._alive:
             try:    self._actualizar_sb()
-            except Exception: pass
+            except Exception as error: logger.debug("no se pudo actualizar la barra: %s", error)
             try:    self._procesar_programado()
-            except Exception: pass
+            except Exception as error: logger.debug("no se pudo enviar lo programado: %s", error)
             try:    self._avisar_descartes()
-            except Exception: pass
+            except Exception as error: logger.debug("no se pudo avisar descartes: %s", error)
 
     def _avisar_descartes(self) -> None:
         if descartes.hay_que_avisar(self._stats.descartados, self.sesion.descartes_avisado):
             try:
                 _snd.reproducir("aviso")
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo reproducir el aviso de descartes: %s", error)
             anunciar(descartes.frase_aviso(self._config.get("umbral_solo_nombre", 0)))
             self.sesion.descartes_avisado = True
 
@@ -1434,26 +1431,26 @@ class YTChatFrame(wx.Frame):
         self.chat_vivo.descartar()
         self.chat_vivo.modelo.limpiar()
         try:    self.lb_chat.Clear()
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo limpiar el chat: %s", error)
         # Super Chats acumulados de la sesión.
         self._sc_totales.clear()
         # Panel de información del vídeo.
         self._metadatos = {}
         try:    self.txt_info.SetValue("")
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo limpiar la información: %s", error)
         # Reproductor y panel de comentarios.
         try:    self._rep_panel.detener_todo()
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo detener el reproductor: %s", error)
         try:    self._com_panel.limpiar()
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo limpiar los comentarios: %s", error)
         # Cola de lectura y lo que se esté leyendo ahora mismo.
         try:
             self._worker.vaciar_cola()
             self._worker.detener_actual()
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo vaciar la cola: %s", error)
         # Contadores a cero.
         try:    self._stats.reset()
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo reiniciar los contadores: %s", error)
         self._actualizar_sb()
 
     def _mostrar_zona(self, mostrar: bool) -> None:
@@ -1491,7 +1488,7 @@ class YTChatFrame(wx.Frame):
             return
         for clave, valor in (("vistas", n), ("vistas_total", total)):
             try:    self._metadatos[clave] = int(valor)
-            except Exception: pass
+            except Exception as error: logger.debug("no se pudo anotar %s: %s", clave, error)
 
     def set_inicio_directo(self, comienzo: str) -> None:
         if not self._alive:
@@ -1510,15 +1507,15 @@ class YTChatFrame(wx.Frame):
         self.chat_vivo.modelo.limpiar()
         self._sc_totales.clear()
         try:    self.lb_chat.Clear()
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo limpiar el chat: %s", error)
         es_live = deteccion.tiene_chat_en_vivo(tipo)
         autoplay = bool(self._config.get("autoplay_reproductor", True))
         # Comentarios: autocargar solo cuando no hay chat en vivo (en un directo
         # no queremos saturar). Reproductor: siempre, con autoplay según prefs.
         try:    self._com_panel.set_video(video_id, autocargar=not es_live)
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo mostrar los comentarios: %s", error)
         try:    self._rep_panel.set_video(video_id, autoplay=autoplay)
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo mostrar el reproductor: %s", error)
 
         # ChangeSelection: sin anuncio de pestaña; el de «conectado» que viene
         # después ya dice qué hay disponible.
@@ -1552,10 +1549,10 @@ class YTChatFrame(wx.Frame):
             self.chat_vivo.modelo.limpiar()
             self._sc_totales.clear()
             try:    self.lb_chat.Clear()
-            except Exception: pass
+            except Exception as error: logger.debug("no se pudo limpiar el chat: %s", error)
         try:    self._com_panel.mostrar_no_disponible(
                     _("Los comentarios no están disponibles en los directos de TikTok."))
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo mostrar el aviso: %s", error)
         if not (reconexion
                 and flujo_tiktok.mismo_flujo(url_flujo, previo)):
             autoplay = (False if reconexion
@@ -1647,9 +1644,9 @@ class YTChatFrame(wx.Frame):
 
     def _sincronizar_checks(self):
         try:    self.mi_sil_sonidos.Check(_snd.esta_silenciado())
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo marcar el silencio: %s", error)
         try:    self.mi_sil_lectura.Check(self._config.get("silenciar_lectura", False))
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo marcar la lectura: %s", error)
 
     # ── Formato y helpers ────────────────────────────────────────────────────
 
@@ -1687,12 +1684,12 @@ class YTChatFrame(wx.Frame):
         con = bool(self._conectado)
         for it in getattr(self, "_mi_ver_conexion", []):
             try:    it.Enable(con)
-            except Exception: pass
+            except Exception as error: logger.debug("no se pudo activar el menú: %s", error)
         try:    self._mi_filtro_sub.Enable(con)
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo activar el filtro: %s", error)
         for it in getattr(self, "_mi_voz_conexion", []):
             try:    it.Enable(con)
-            except Exception: pass
+            except Exception as error: logger.debug("no se pudo activar el menú: %s", error)
 
         # Descargar este vídeo: YouTube + conexión + no live + URL disponible.
         # El panel del reproductor gestiona sus propios avisos, pero afinamos
@@ -1781,8 +1778,8 @@ def copiar_al_portapapeles(text: str) -> None:
             finally:
                 wx.TheClipboard.Close()
             return
-    except Exception:
-        pass
+    except Exception as error:
+        logger.debug("no se pudo copiar con wx: %s", error)
     try:
         import ctypes
         k32 = ctypes.windll.kernel32
@@ -1805,8 +1802,8 @@ def copiar_al_portapapeles(text: str) -> None:
                 k32.GlobalFree(h)
         finally:
             u32.CloseClipboard()
-    except Exception:
-        pass
+    except Exception as error:
+        logger.debug("no se pudo copiar con Win32: %s", error)
 
 
 # ── Entrada ──────────────────────────────────────────────────────────────────
@@ -1891,8 +1888,8 @@ def iniciar_gui(config, cola, stats, worker, parada,
     try:
         frame.Raise()
         frame.txt_url.SetFocus()
-    except Exception:
-        pass
+    except Exception as error:
+        logger.debug("no se pudo enfocar el campo de dirección: %s", error)
     from bellbird.ui import gui_actualizar_app, gui_directo_huerfano
     gui_actualizar_app.programar_confirmacion_arranque()
     gui_actualizar_app.programar_resultado_actualizacion(frame)
@@ -1908,5 +1905,4 @@ def iniciar_gui(config, cola, stats, worker, parada,
     app.MainLoop()
     _gui_frame = None
 
-    try:    logging.getLogger().removeHandler(h)
-    except Exception: pass
+    logging.getLogger().removeHandler(h)

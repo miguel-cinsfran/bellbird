@@ -1481,6 +1481,29 @@ class FinPendienteTest(unittest.TestCase):
         self.assertFalse(any(f == "Directo finalizado en YouTube."
                              for f, _ in anuncios))
 
+    def test_segunda_llamada_no_repite_el_pedido(self):
+        llamadas = []
+        with tempfile.TemporaryDirectory() as carpeta:
+            ruta = Path(carpeta) / "fin_pendiente.json"
+            supervisor, _anuncios = self._supervisor(ruta, llamadas.append)
+            supervisor._finalizar_youtube_si_toca()
+            supervisor._finalizar_youtube_si_toca()
+            self.assertEqual(llamadas, ["vid123"])
+
+    def test_emision_nueva_vuelve_a_pedir_el_fin(self):
+        llamadas = []
+        with tempfile.TemporaryDirectory() as carpeta:
+            ruta = Path(carpeta) / "fin_pendiente.json"
+            supervisor, _anuncios = self._supervisor(ruta, llamadas.append)
+            supervisor._finalizar_youtube_si_toca()
+            supervisor.iniciar()
+            try:
+                supervisor._id_video = "vid456"
+                supervisor._finalizar_youtube_si_toca()
+            finally:
+                supervisor.abandonar()
+            self.assertEqual(llamadas, ["vid123", "vid456"])
+
 
 # Textos que arma otro módulo y aparecen en los anuncios: las frases de
 # `bellbird/obs/obs_salida.py` (frase_salida), que el supervisor anuncia tal

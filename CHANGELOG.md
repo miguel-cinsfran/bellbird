@@ -107,7 +107,7 @@ Paraguay.
   La columna *Progreso* muestra una barra junto al porcentaje.
 - *Elegir formato…*, en el menú contextual de un vídeo, muestra las
   resoluciones que tiene ese vídeo con su tamaño, como «1080p 60 fps, MP4,
-  246 MB», y una opción de solo audio. La elegida se descarga sin cambiar
+  255 MB», y una opción de solo audio. La elegida se descarga sin cambiar
   *Formato* ni *Calidad*. Consultar los formatos tarda unos segundos, y la
   app lo avisa con un sonido.
 - *Formato* tiene nueve opciones: vídeo original, MP4 o WebM, y audio

@@ -94,7 +94,6 @@ REM Ojo: "^>" escapado; un ">" literal en echo redirige y crea un archivo basura
 echo    Version %VER%  -^>  "%OUT%"
 REM Limpia builds previos de CUALQUIER version para no acumular carpetas/zips.
 for /d %%d in ("Bellbird v*") do rmdir /s /q "%%d"
-if exist "Bellbird" rmdir /s /q "Bellbird"
 for /d %%d in ("YTChat TTS v*") do rmdir /s /q "%%d"
 if exist "YTChat TTS" rmdir /s /q "YTChat TTS"
 if exist "%OUT%" rmdir /s /q "%OUT%"

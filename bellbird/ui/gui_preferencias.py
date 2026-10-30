@@ -177,9 +177,6 @@ class PreferenciasDialog(wx.Dialog):
         # aquí, ya con el valor cargado.
         self.pagina_voz.actualizar_eventos()
 
-    def _make_panel(self, parent, name):
-        return crear_panel(parent, name)
-
     def _paginas(self):
         return [self.nb.GetPage(i) for i in range(self.nb.GetPageCount())]
 
@@ -202,10 +199,10 @@ class PreferenciasDialog(wx.Dialog):
             logger.debug("mínimo del diálogo de preferencias: %s", exc)
 
     def _pag_interfaz(self, parent):
-        p = self._make_panel(parent, "PagInterfaz")
+        p = crear_panel(parent, "PagInterfaz")
         vs = wx.BoxSizer(wx.VERTICAL)
 
-        vs.Add(self._fila_label(p, _("Tamaño de &fuente del chat (8 a 24):")),
+        vs.Add(fila_label(p, _("Tamaño de &fuente del chat (8 a 24):")),
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.sp_fuente = ContadorAccesible(p, min=8, max=24,
                                       name=_("Tamaño de fuente del chat"))
@@ -226,7 +223,7 @@ class PreferenciasDialog(wx.Dialog):
         return p
 
     def _pag_cola(self, parent):
-        p = self._make_panel(parent, "PagCola")
+        p = crear_panel(parent, "PagCola")
         vs = wx.BoxSizer(wx.VERTICAL)
 
         self.rb_estrategia = wx.RadioBox(
@@ -238,14 +235,14 @@ class PreferenciasDialog(wx.Dialog):
             0 if self._config.get("estrategia", "limite") == "todas" else 1)
         vs.Add(self.rb_estrategia, 0, wx.ALL, 10)
 
-        vs.Add(self._fila_label(p, _("Tamaño &máximo de la cola")),
+        vs.Add(fila_label(p, _("Tamaño &máximo de la cola")),
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_cola_maxima = ContadorAccesible(
             p, min=1, max=500,
             name=_("Tamaño máximo de la cola"))
         vs.Add(self.sp_cola_maxima, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        vs.Add(self._fila_label(p, _("Leer solo el &nombre a partir de")),
+        vs.Add(fila_label(p, _("Leer solo el &nombre a partir de")),
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_umbral_nombre = ContadorAccesible(p, min=0, max=500,
             name=_("Leer solo el nombre a partir de"))
@@ -257,7 +254,7 @@ class PreferenciasDialog(wx.Dialog):
         return p
 
     def _pag_conexion(self, parent):
-        p = self._make_panel(parent, "PagConexion")
+        p = crear_panel(parent, "PagConexion")
         vs = wx.BoxSizer(wx.VERTICAL)
 
         self.chk_reconectar = wx.CheckBox(
@@ -265,14 +262,14 @@ class PreferenciasDialog(wx.Dialog):
             name=_("Reconectar automáticamente"))
         vs.Add(self.chk_reconectar, 0, wx.ALL, 10)
 
-        vs.Add(self._fila_label(p, _("&Espera máxima entre intentos, en segundos")),
+        vs.Add(fila_label(p, _("&Espera máxima entre intentos, en segundos")),
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_espera_reconexion = ContadorAccesible(
             p, min=1, max=300,
             name=_("Espera máxima entre intentos, en segundos"))
         vs.Add(self.sp_espera_reconexion, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        vs.Add(self._fila_label(p, _("Número máximo de &intentos")),
+        vs.Add(fila_label(p, _("Número máximo de &intentos")),
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_max_intentos = ContadorAccesible(
             p, min=0, max=100,
@@ -283,7 +280,7 @@ class PreferenciasDialog(wx.Dialog):
         return p
 
     def _pag_transmision(self, parent):
-        p = self._make_panel(parent, "PagTransmision")
+        p = crear_panel(parent, "PagTransmision")
         vs = wx.BoxSizer(wx.VERTICAL)
 
         self.chk_avisar_sobrecarga = wx.CheckBox(
@@ -292,14 +289,14 @@ class PreferenciasDialog(wx.Dialog):
         self.chk_avisar_sobrecarga.SetForegroundColour(_T.text)
         vs.Add(self.chk_avisar_sobrecarga, 0, wx.ALL, 10)
 
-        vs.Add(self._fila_label(p, _("&Puerto del panel de chat")),
+        vs.Add(fila_label(p, _("&Puerto del panel de chat")),
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.sp_puerto_overlay = ContadorAccesible(
             p, min=1024, max=65535,
             name=_("Puerto del panel de chat"))
         vs.Add(self.sp_puerto_overlay, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        vs.Add(self._fila_label(p, _("&Micrófono de OBS")),
+        vs.Add(fila_label(p, _("&Micrófono de OBS")),
                0, wx.LEFT | wx.RIGHT, 10)
         guardado = str(self._config.get("obs_microfono", ""))
         opciones = [_("Elegir automáticamente")] + ([guardado] if guardado else [])
@@ -372,7 +369,7 @@ class PreferenciasDialog(wx.Dialog):
         diagnostico.crear_hilo(activar, "ActivarWebsocketObs").start()
 
     def _pag_reproductor(self, parent):
-        p = self._make_panel(parent, "PagReproductor")
+        p = crear_panel(parent, "PagReproductor")
         vs = wx.BoxSizer(wx.VERTICAL)
 
         self.chk_autoplay = wx.CheckBox(p, label=_("&Reproducir audio automáticamente al conectar"),
@@ -406,7 +403,7 @@ class PreferenciasDialog(wx.Dialog):
         # La página vive en PaginaLectura (composición); el diálogo conserva
         # los atributos públicos de los controles para las pruebas y la tabla.
         self.pagina_lectura = PaginaLectura(
-            self._config, self._fila_label, self._make_panel)
+            self._config, fila_label, crear_panel)
         panel = self.pagina_lectura.construir(parent)
         self.rb_formato = self.pagina_lectura.rb_formato
         for fila in OPCIONES_LECTURA:
@@ -416,7 +413,7 @@ class PreferenciasDialog(wx.Dialog):
     def _pag_estado(self, parent):
         """Una casilla por componente del anuncio de estado (tecla F2). Sin
         colores en las casillas: en Windows eso rompe su rol accesible."""
-        p = self._make_panel(parent, "PagEstado")
+        p = crear_panel(parent, "PagEstado")
         vs = wx.BoxSizer(wx.VERTICAL)
 
         nota = wx.StaticText(p, name="NotaEstado", label=_(
@@ -441,10 +438,10 @@ class PreferenciasDialog(wx.Dialog):
         return p
 
     def _pag_filtros(self, parent):
-        p = self._make_panel(parent, "PagFiltros")
+        p = crear_panel(parent, "PagFiltros")
         vs = wx.BoxSizer(wx.VERTICAL)
 
-        vs.Add(self._fila_label(p, _("&Palabras silenciadas (separadas por comas):")),
+        vs.Add(fila_label(p, _("&Palabras silenciadas (separadas por comas):")),
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.txt_palabras = wx.TextCtrl(
             p, value=", ".join(self._config.get("palabras_silenciadas", [])),
@@ -452,7 +449,7 @@ class PreferenciasDialog(wx.Dialog):
         _tc(self.txt_palabras)
         vs.Add(self.txt_palabras, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        vs.Add(self._fila_label(p, _("&Usuarios silenciados (separados por comas):")),
+        vs.Add(fila_label(p, _("&Usuarios silenciados (separados por comas):")),
                0, wx.LEFT | wx.RIGHT, 10)
         self.txt_usuarios = wx.TextCtrl(
             p, value=", ".join(self._config.get("usuarios_silenciados", [])),
@@ -470,9 +467,6 @@ class PreferenciasDialog(wx.Dialog):
 
         p.SetSizer(vs)
         return p
-
-    def _fila_label(self, p, texto):
-        return fila_label(p, texto)
 
     # ── Guardar ───────────────────────────────────────────────────────────────
 

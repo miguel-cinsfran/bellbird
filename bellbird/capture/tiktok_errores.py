@@ -15,7 +15,8 @@ CLASES_OFFLINE = ("UserOfflineError",)
 CLASES_NO_EXISTE = ("UserNotFoundError",)
 
 # Cuánto dura el bloqueo de TikTok ante consultas seguidas, en segundos.
-ESPERA_LIMITE = 60
+# Medido el 30/10/2026: el bloqueo se levanta entre 30 y 35 s.
+ESPERA_LIMITE = 35
 
 # Traductores: error transitorio que se anuncia y se muestra en la barra de estado.
 TEXTO_ERROR_FIRMAS = N_(
@@ -97,7 +98,7 @@ def mensaje_error(exc) -> str:
     if es_limite(exc):
         # Traductores: error transitorio que se anuncia y se muestra en la barra de estado.
         return _("TikTok está limitando las consultas desde esta conexión. "
-                 "Espera un minuto y vuelve a intentarlo.")
+                 "Espera medio minuto y vuelve a intentarlo.")
     nombre_exc = nombre(exc)
     conocido = _mensaje_conocido(
         exc, nombre_exc, f"{nombre_exc}: {exc}".lower())

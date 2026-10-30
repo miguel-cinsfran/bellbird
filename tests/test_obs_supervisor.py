@@ -225,7 +225,7 @@ class TikTokLimitadoTest(BaseSupervisor):
         self.assertEqual(anuncios[-1], (
             "OBS está transmitiendo, pero TikTok está limitando las "
             "consultas y no se pudo comprobar el directo. Vuelve a "
-            "comprobarlo en un minuto.", "tiktok_limitado"))
+            "comprobarlo en medio minuto.", "tiktok_limitado"))
 
 
 class DestinoYouTubeTest(BaseSupervisor):

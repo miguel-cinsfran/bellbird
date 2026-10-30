@@ -8,6 +8,7 @@ import unittest
 from types import SimpleNamespace
 from unittest import mock
 
+from bellbird.capture import tiktok_errores as errores
 from bellbird.capture import tiktok_vivo
 from bellbird.capture.tiktok_vivo import (
     ResultadoEspera, esperar_en_vivo, esta_en_vivo, url_directo,
@@ -193,7 +194,7 @@ class LimiteConsultasTest(unittest.TestCase):
         self.assertTrue(resultado.en_vivo)
         self.assertFalse(getattr(resultado, "limitado", False))
 
-    def test_solo_limites_da_limitado_duerme_60_y_no_pasa_del_limite(self):
+    def test_solo_limites_da_limitado_duerme_el_bloqueo_y_no_lo_pasa(self):
         reloj = RelojFalso()
 
         def consultar(usuario):
@@ -205,7 +206,7 @@ class LimiteConsultasTest(unittest.TestCase):
         self.assertFalse(resultado.en_vivo)
         self.assertTrue(resultado.limitado)
         self.assertFalse(resultado.cuenta_sin_directos)
-        self.assertEqual(reloj.siestecitas[0], 60)
+        self.assertEqual(reloj.siestecitas[0], errores.ESPERA_LIMITE)
         self.assertLessEqual(reloj.ahora, 130.0)
 
     def test_mezcla_de_limite_y_valueerror_no_marca_cuenta(self):
@@ -256,7 +257,7 @@ class AvisoEsperaTest(unittest.TestCase):
             frase,
             "OBS está transmitiendo, pero TikTok está limitando las "
             "consultas y no se pudo comprobar el directo. Vuelve a "
-            "comprobarlo en un minuto.")
+            "comprobarlo en medio minuto.")
         self.assertEqual(sonido, "tiktok_limitado")
 
 

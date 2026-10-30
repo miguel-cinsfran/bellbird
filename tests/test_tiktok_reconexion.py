@@ -3,6 +3,7 @@
 import json
 import unittest
 
+from bellbird.capture import tiktok_errores as errores
 from bellbird.capture import tiktok_reconexion as rec
 
 
@@ -97,9 +98,9 @@ class TestEsperaTras(unittest.TestCase):
     def test_sin_limite_devuelve_la_espera(self):
         self.assertEqual(rec.espera_tras(RuntimeError("corte"), 10), 10)
 
-    def test_con_limite_sube_a_sesenta(self):
+    def test_con_limite_sube_a_la_espera_del_bloqueo(self):
         exc = json.JSONDecodeError("Expecting value", "", 0)
-        self.assertEqual(rec.espera_tras(exc, 10), 60)
+        self.assertEqual(rec.espera_tras(exc, 10), errores.ESPERA_LIMITE)
 
     def test_con_limite_respeta_una_espera_mayor(self):
         exc = json.JSONDecodeError("Expecting value", "", 0)

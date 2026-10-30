@@ -144,7 +144,7 @@ class TestLimiteConsultas(unittest.TestCase):
         self.assertEqual(
             _mensaje_error(exc),
             "TikTok está limitando las consultas desde esta conexión. "
-            "Espera un minuto y vuelve a intentarlo.")
+            "Espera medio minuto y vuelve a intentarlo.")
 
 
 class TestReconexion(unittest.TestCase):
@@ -263,7 +263,7 @@ class TestReconexion(unittest.TestCase):
             estados = self._correr(sesion, offline_pasajero=offline_pasajero)
             self.assertEqual(estados[-1][0], "error_permanente")
 
-    def test_con_limite_el_reintento_espera_un_minuto(self):
+    def test_con_limite_el_reintento_espera_el_bloqueo(self):
         err = json.JSONDecodeError("Expecting value", "", 0)
         vistas = []
 
@@ -283,8 +283,9 @@ class TestReconexion(unittest.TestCase):
                 on_estado=lambda tipo, texto: estados.append((tipo, texto)))
         reintentos = [texto for tipo, texto in estados if tipo == "reintentando"]
         self.assertTrue(reintentos)
-        self.assertIn("60 segundos", reintentos[0])
-        self.assertEqual(parada.wait.call_args.kwargs["timeout"], 60)
+        self.assertIn(f"{errores.ESPERA_LIMITE} segundos", reintentos[0])
+        self.assertEqual(parada.wait.call_args.kwargs["timeout"],
+                         errores.ESPERA_LIMITE)
 
 
 

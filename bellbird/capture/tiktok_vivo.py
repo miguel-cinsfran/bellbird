@@ -150,7 +150,7 @@ def aviso_espera(resultado, usuario) -> tuple:
         # Traductores: aviso que se anuncia al transmitir a TikTok.
         return (_("OBS está transmitiendo, pero TikTok está limitando las "
                   "consultas y no se pudo comprobar el directo. Vuelve a "
-                  "comprobarlo en un minuto."), "tiktok_limitado")
+                  "comprobarlo en medio minuto."), "tiktok_limitado")
     if getattr(resultado, "cuenta_sin_directos", False):
         # Traductores: aviso que se anuncia al transmitir a TikTok. {usuario} es el usuario de TikTok.
         return (_("OBS está transmitiendo, pero TikTok todavía no muestra "

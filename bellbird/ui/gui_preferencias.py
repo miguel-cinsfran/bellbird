@@ -430,7 +430,7 @@ class PreferenciasDialog(wx.Dialog):
         activos = self._config.get("estado_toggles") or estado_sesion.ACTIVOS_DEFECTO
         self._chk_estado: dict = {}
         for comp in estado_sesion.COMPONENTES:
-            chk = wx.CheckBox(p, label=estado_sesion.ETIQUETAS.get(comp, comp),
+            chk = wx.CheckBox(p, label=estado_sesion.etiqueta(comp),
                               name=f"EstadoComponente_{comp}")
             chk.SetForegroundColour(_T.text)
             chk.SetValue(comp in activos)

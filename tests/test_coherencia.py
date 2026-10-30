@@ -31,13 +31,13 @@ def _es_texto(nodo):
 # ── Regla 1: F2 ─────────────────────────────────────────────────────────────
 
 def _datos_f2():
-    """COMPONENTES, ETIQUETAS, claves del dict de render, campos del snapshot
-    y campos dichos (`s.campo`) en una sola pasada por `estado_sesion.py`.
-    `formatear_estado` cuenta como render porque anuncia
+    """COMPONENTES y ETIQUETAS viven en `componentes_estado.py`; claves del
+    dict de render, campos del snapshot y campos dichos (`s.campo`) en
+    `estado_sesion.py`. `formatear_estado` cuenta como render porque anuncia
     `transmision_supervisada`, que ningún `_render_*` toca por separado."""
-    componentes, etiquetas, render, campos, dichos = set(), set(), set(), set(), set()
-    arbol = _arbol("bellbird/capture/estado_sesion.py")
-    for nodo in ast.walk(arbol):
+    componentes, etiquetas = set(), set()
+    arbol_cat = _arbol("bellbird/capture/componentes_estado.py")
+    for nodo in ast.walk(arbol_cat):
         if isinstance(nodo, (ast.Assign, ast.AnnAssign)):
             valor = nodo.value
             destinos = nodo.targets if isinstance(nodo, ast.Assign) else [nodo.target]
@@ -47,7 +47,14 @@ def _datos_f2():
                     componentes = {ast.literal_eval(e) for e in valor.elts}
                 elif nombre == "ETIQUETAS" and isinstance(valor, ast.Dict):
                     etiquetas = {k.value for k in valor.keys}
-                elif (isinstance(valor, ast.Dict) and valor.keys and all(
+    render, campos, dichos = set(), set(), set()
+    arbol = _arbol("bellbird/capture/estado_sesion.py")
+    for nodo in ast.walk(arbol):
+        if isinstance(nodo, (ast.Assign, ast.AnnAssign)):
+            valor = nodo.value
+            destinos = nodo.targets if isinstance(nodo, ast.Assign) else [nodo.target]
+            if len(destinos) == 1 and isinstance(destinos[0], ast.Name):
+                if (isinstance(valor, ast.Dict) and valor.keys and all(
                         _es_texto(k) and isinstance(v, ast.Name)
                         and v.id.startswith("_render")
                         for k, v in zip(valor.keys, valor.values))):
@@ -71,7 +78,7 @@ class PruebaEstadoF2(unittest.TestCase):
     def test_conjuntos_iguales(self):
         componentes, etiquetas, render, _, _ = _datos_f2()
         candidatos = {
-            "ETIQUETAS (bellbird/capture/estado_sesion.py)": etiquetas,
+            "ETIQUETAS (bellbird/capture/componentes_estado.py)": etiquetas,
             "render (bellbird/capture/estado_sesion.py)": render,
             "[estado] (bellbird/core/config_predeterminada.py)": set(
                 fabrica.seccion("estado")),

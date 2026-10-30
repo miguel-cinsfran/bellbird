@@ -9,6 +9,7 @@ from bellbird.obs import overlay_servidor
 from bellbird.obs.overlay_datos import evento_de_mensaje
 
 from bellbird.capture.sesiones import RegistroSesiones
+from bellbird.core.idioma import _
 
 
 logger = diagnostico.obtener_logger(__name__)
@@ -230,7 +231,8 @@ class Conexiones:
             if not self._vista.activa:
                 return
             url_flujo = meta.pop("_url_flujo", "")
-            titulo = (meta.get("titulo") or "").strip() or f"TikTok de @{usuario}"
+            # Traductores: título cuando el directo de TikTok no trae título. {usuario} es el usuario.
+            titulo = (meta.get("titulo") or "").strip() or _("TikTok de @{usuario}").format(usuario=usuario)
             self._vista.set_titulo(titulo)
             self._vista.configurar_tiktok(usuario, url_flujo)
             self._vista.set_metadatos(meta)

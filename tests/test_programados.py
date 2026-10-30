@@ -4,6 +4,7 @@ import tempfile
 
 from bellbird.capture import programados
 from bellbird.capture import redaccion
+from tests.pseudo_prueba import con_pseudo
 
 
 class TestConstantes(unittest.TestCase):
@@ -275,6 +276,24 @@ class TestProgramadorMensajes(unittest.TestCase):
         programador.en_curso = True
         programador.envio_fallido()
         self.assertFalse(programador.en_curso)
+
+
+class TestValidacionPseudo(unittest.TestCase):
+    """Los cuatro mensajes de validación pasan por gettext."""
+
+    def test_cuatro_errores_marcados(self):
+        casos = [
+            ("  ", 10, 10),
+            ("x" * 201, 10, 10),
+            ("Hola", 4, 10),
+            ("Hola", 10, 9),
+        ]
+        for texto, minimo, maximo in casos:
+            with self.subTest(texto=texto[:5], minimo=minimo, maximo=maximo):
+                with con_pseudo():
+                    error, _aviso = programados.validar_mensaje(texto, minimo, maximo)
+                self.assertTrue(error)
+                self.assertIn("[¡", error)
 
 
 if __name__ == "__main__":

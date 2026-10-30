@@ -28,14 +28,18 @@ _URL_RE = re.compile(r"(?:https?://|www\.)", re.IGNORECASE)
 def validar_mensaje(texto: str, minutos_min: int, minutos_max: int) -> tuple[str, str]:
     """Valida un mensaje y devuelve un error y un aviso, en ese orden."""
     if not texto.strip():
-        return "El mensaje no puede estar vacío.", ""
+        # Traductores: validación de mensajes programados (error).
+        return _("El mensaje no puede estar vacío."), ""
     if len(texto) > MAX_CARACTERES:
-        return (f"El mensaje tiene {len(texto)} caracteres y el máximo son "
-                f"{MAX_CARACTERES}."), ""
+        # Traductores: validación de mensajes programados (error). {actual} es el largo y {maximo} el tope.
+        return (_("El mensaje tiene {actual} caracteres y el máximo son "
+                  "{maximo}.").format(actual=len(texto), maximo=MAX_CARACTERES)), ""
     if minutos_min < MINUTOS_MINIMOS:
-        return "El intervalo mínimo son 5 minutos.", ""
+        # Traductores: validación de mensajes programados (error). {minimo} es el mínimo.
+        return _("El intervalo mínimo son {minimo} minutos.").format(minimo=MINUTOS_MINIMOS), ""
     if minutos_max < minutos_min:
-        return "El intervalo máximo no puede ser menor que el mínimo.", ""
+        # Traductores: validación de mensajes programados (error).
+        return _("El intervalo máximo no puede ser menor que el mínimo."), ""
     aviso = ""
     # Se avisan las formas habituales de URL; YouTube puede bloquearlas.
     if _URL_RE.search(texto):
@@ -88,21 +92,28 @@ def puede_enviar(activo: bool, conectado: bool, es_tiktok: bool,
 
 def describir_mensaje(mensaje: dict) -> str:
     """Devuelve la línea accesible que representa un mensaje."""
-    estado = "Activo" if mensaje.get("activo", False) else "Pausado"
+    if mensaje.get("activo", False):
+        # Traductores: estado en la lista de mensajes programados.
+        estado = _("Activo")
+    else:
+        # Traductores: estado en la lista de mensajes programados.
+        estado = _("Pausado")
     minimo = mensaje.get("minutos_min", 10)
     maximo = mensaje.get("minutos_max", minimo)
-    if minimo == maximo:
-        intervalo = f"cada {minimo} {_unidad_minutos(minimo)}"
+    if minimo == maximo and minimo == 1:
+        # Traductores: intervalo en la lista de mensajes programados. {minimo} es cada cuántos minutos.
+        intervalo = _("cada {minimo} minuto").format(minimo=minimo)
+    elif minimo == maximo:
+        # Traductores: intervalo en la lista de mensajes programados. {minimo} es cada cuántos minutos.
+        intervalo = _("cada {minimo} minutos").format(minimo=minimo)
     else:
-        intervalo = f"entre {minimo} y {maximo} minutos"
+        # Traductores: intervalo en la lista de mensajes programados. {minimo} es el mínimo y {maximo} el máximo.
+        intervalo = _("entre {minimo} y {maximo} minutos").format(minimo=minimo, maximo=maximo)
     texto = str(mensaje.get("texto", ""))
     if len(texto) > 60:
         texto = texto[:57] + "..."
-    return f"{estado}, {intervalo}: {texto}"
-
-
-def _unidad_minutos(valor: int) -> str:
-    return "minuto" if valor == 1 else "minutos"
+    # Traductores: línea de la lista de mensajes programados. {estado} es activo o pausado, {intervalo} la frecuencia y {texto} el contenido.
+    return _("{estado}, {intervalo}: {texto}").format(estado=estado, intervalo=intervalo, texto=texto)
 
 
 def describir_proximo(mensajes: list[dict], ahora: float) -> str:

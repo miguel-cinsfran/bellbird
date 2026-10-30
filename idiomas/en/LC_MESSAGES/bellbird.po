@@ -8998,3 +8998,375 @@ msgstr "&Download"
 #: bellbird/ui/elegir_formato.py:60
 msgid "Descargar"
 msgstr "Download"
+
+#. Traductores: rótulo en Preferencias del componente de F2.
+#: bellbird/capture/componentes_estado.py:49
+msgid "Estado de conexión y tipo"
+msgstr "Connection state and type"
+
+#. Traductores: rótulo en Preferencias del componente de F2.
+#: bellbird/capture/componentes_estado.py:51
+msgid "Título del vídeo o directo"
+msgstr "Video or live stream title"
+
+#. Traductores: rótulo en Preferencias del componente de F2.
+#: bellbird/capture/componentes_estado.py:53
+msgid "Canal o autor"
+msgstr "Channel or author"
+
+#. Traductores: rótulo en Preferencias del componente de F2.
+#: bellbird/capture/componentes_estado.py:55
+msgid "Espectadores ahora y en total"
+msgstr "Viewers now and in total"
+
+#. Traductores: rótulo en Preferencias del componente de F2.
+#: bellbird/capture/componentes_estado.py:57
+msgid "Tiempo que lleva el directo"
+msgstr "Live stream elapsed time"
+
+#. Traductores: rótulo en Preferencias del componente de F2.
+#: bellbird/capture/componentes_estado.py:59
+msgid "Cuánto por detrás del directo va el reproductor"
+msgstr "How far behind the live stream the player is"
+
+#. Traductores: rótulo en Preferencias del componente de F2.
+#: bellbird/capture/componentes_estado.py:61
+msgid "Mensajes leídos"
+msgstr "Read messages"
+
+#. Traductores: rótulo en Preferencias del componente de F2.
+#: bellbird/capture/componentes_estado.py:63
+msgid "Super Chats / regalos"
+msgstr "Super Chats / gifts"
+
+#. Traductores: rótulo en Preferencias del componente de F2.
+#: bellbird/capture/componentes_estado.py:65
+msgid "Mensajes en cola de lectura"
+msgstr "Queued messages for reading"
+
+#. Traductores: rótulo en Preferencias del componente de F2.
+#: bellbird/capture/componentes_estado.py:67
+msgid "Velocidad y volumen de la voz"
+msgstr "Voice speed and volume"
+
+#. Traductores: rótulo en Preferencias del componente de F2.
+#: bellbird/capture/componentes_estado.py:69
+msgid "Aviso de lectura silenciada"
+msgstr "Muted reading notice"
+
+#. Traductores: rótulo en Preferencias del componente de F2.
+#: bellbird/capture/componentes_estado.py:75
+msgid "Mensajes descartados"
+msgstr "Discarded messages"
+
+#. Traductores: rótulo en Preferencias del componente de F2.
+#: bellbird/capture/componentes_estado.py:77
+msgid "Estado de la transmisión de OBS"
+msgstr "OBS streaming state"
+
+#. Traductores: rótulo en Preferencias del componente de F2.
+#: bellbird/capture/componentes_estado.py:79
+msgid "Estado de la grabación de OBS"
+msgstr "OBS recording state"
+
+#. Traductores: rótulo en Preferencias del componente de F2.
+#: bellbird/capture/componentes_estado.py:81
+msgid "Escena al aire en OBS"
+msgstr "On-air scene in OBS"
+
+#. Traductores: rótulo en Preferencias del componente de F2.
+#: bellbird/capture/componentes_estado.py:83
+msgid "Música que suena"
+msgstr "Music now playing"
+
+#. Traductores: rótulo en Preferencias del componente de F2.
+#: bellbird/capture/componentes_estado.py:85
+msgid "Igualación del volumen de la música"
+msgstr "Music volume leveling"
+
+#. Traductores: título cuando el directo de TikTok no trae título. {usuario} es
+#. el usuario.
+#: bellbird/capture/conexion.py:235
+#, python-brace-format
+msgid "TikTok de @{usuario}"
+msgstr "TikTok by @{usuario}"
+
+#. Traductores: parte del estado F2 (tipo de conexión).
+#: bellbird/capture/estado_sesion.py:28
+msgid "Directo de TikTok"
+msgstr "TikTok live stream"
+
+#. Traductores: parte del estado F2 (tipo de conexión).
+#: bellbird/capture/estado_sesion.py:32
+msgid "Directo programado"
+msgstr "Scheduled live stream"
+
+#. Traductores: parte del estado F2 (duración del directo).
+#: bellbird/capture/estado_sesion.py:78
+msgid "menos de un minuto"
+msgstr "less than a minute"
+
+#. Traductores: parte del estado F2 (duración). {dias} es el nº de días.
+#: bellbird/capture/estado_sesion.py:86
+#, python-brace-format
+msgid "{dias} día"
+msgstr "{dias} day"
+
+#. Traductores: parte del estado F2 (duración). {dias} es el nº de días.
+#: bellbird/capture/estado_sesion.py:88
+#, python-brace-format
+msgid "{dias} días"
+msgstr "{dias} days"
+
+#. Traductores: parte del estado F2 (duración). {horas} son horas y {minutos}
+#. minutos.
+#: bellbird/capture/estado_sesion.py:92
+#, python-brace-format
+msgid "{horas} h {minutos} min"
+msgstr "{horas} h {minutos} min"
+
+#. Traductores: parte del estado F2 (duración). {minutos} son los minutos.
+#: bellbird/capture/estado_sesion.py:94
+#, python-brace-format
+msgid "{minutos} min"
+msgstr "{minutos} min"
+
+#. Traductores: parte del estado F2 (conexión).
+#: bellbird/capture/estado_sesion.py:104
+msgid "Conectado"
+msgstr "Connected"
+
+#. Traductores: parte del estado F2 (título). {titulo} es el título.
+#: bellbird/capture/estado_sesion.py:114
+#, python-brace-format
+msgid "Título: {titulo}"
+msgstr "Title: {titulo}"
+
+#. Traductores: parte del estado F2 (espectadores TikTok). {n} son los de ahora
+#. y {total} el total.
+#: bellbird/capture/estado_sesion.py:138
+#, python-brace-format
+msgid "Espectador: {n} ahora, {total} en total"
+msgstr "Viewer: {n} now, {total} in total"
+
+#. Traductores: parte del estado F2 (espectadores TikTok). {n} son los de ahora
+#. y {total} el total.
+#: bellbird/capture/estado_sesion.py:141
+#, python-brace-format
+msgid "Espectadores: {n} ahora, {total} en total"
+msgstr "Viewers: {n} now, {total} in total"
+
+#. Traductores: parte del estado F2 (espectadores TikTok). {n} son los de ahora
+#. y {total} el total.
+#: bellbird/capture/estado_sesion.py:144
+#, python-brace-format
+msgid "{n} espectador ahora, {total} en total"
+msgstr "{n} viewer now, {total} in total"
+
+#. Traductores: parte del estado F2 (espectadores TikTok). {n} son los de ahora
+#. y {total} el total.
+#: bellbird/capture/estado_sesion.py:146
+#, python-brace-format
+msgid "{n} espectadores ahora, {total} en total"
+msgstr "{n} viewers now, {total} in total"
+
+#. Traductores: parte del estado F2 (espectadores). {n} es el nº actual.
+#: bellbird/capture/estado_sesion.py:149
+#, python-brace-format
+msgid "Espectador: {n}"
+msgstr "Viewer: {n}"
+
+#. Traductores: parte del estado F2 (espectadores). {n} es el nº actual.
+#: bellbird/capture/estado_sesion.py:152
+#, python-brace-format
+msgid "Espectadores: {n}"
+msgstr "Viewers: {n}"
+
+#. Traductores: parte del estado F2 (espectadores). {n} es el nº actual.
+#: bellbird/capture/estado_sesion.py:155
+#, python-brace-format
+msgid "{n} espectador"
+msgstr "{n} viewer"
+
+#. Traductores: parte del estado F2 (espectadores). {n} es el nº actual.
+#: bellbird/capture/estado_sesion.py:158
+#, python-brace-format
+msgid "{n} espectadores"
+msgstr "{n} viewers"
+
+#. Traductores: parte del estado F2 (vistas). {n} es el nº total.
+#: bellbird/capture/estado_sesion.py:161
+#, python-brace-format
+msgid "Vista: {n}"
+msgstr "View: {n}"
+
+#. Traductores: parte del estado F2 (vistas). {n} es el nº total.
+#: bellbird/capture/estado_sesion.py:164
+#, python-brace-format
+msgid "Vistas: {n}"
+msgstr "Views: {n}"
+
+#. Traductores: parte del estado F2 (vistas). {n} es el nº total.
+#: bellbird/capture/estado_sesion.py:167
+#, python-brace-format
+msgid "{n} vista"
+msgstr "{n} view"
+
+#. Traductores: parte del estado F2 (tiempo). {texto} es la duración.
+#: bellbird/capture/estado_sesion.py:178
+#, python-brace-format
+msgid "Tiempo del directo: {texto}"
+msgstr "Live stream time: {texto}"
+
+#. Traductores: parte del estado F2 (tiempo). {texto} es la duración.
+#: bellbird/capture/estado_sesion.py:180
+#, python-brace-format
+msgid "Lleva {texto}"
+msgstr "Running for {texto}"
+
+#. Traductores: parte del estado F2 del desfase. {texto} es el desfase.
+#: bellbird/capture/estado_sesion.py:189
+#, python-brace-format
+msgid "Reproductor: {texto}"
+msgstr "Player: {texto}"
+
+#. Traductores: parte del estado F2 (leídos). {n} es el nº de mensajes.
+#: bellbird/capture/estado_sesion.py:210
+#, python-brace-format
+msgid "Mensajes leídos: {n}"
+msgstr "Read messages: {n}"
+
+#. Traductores: parte del estado F2 (leídos). {n} es el nº de mensajes.
+#: bellbird/capture/estado_sesion.py:212
+#, python-brace-format
+msgid "{n} leídos"
+msgstr "{n} read"
+
+#. Traductores: parte del estado F2 (aportes TikTok). {n} es el nº y {total} el
+#. importe.
+#: bellbird/capture/estado_sesion.py:224
+#, python-brace-format
+msgid "Aportes: {n} regalos ({total})"
+msgstr "Contributions: {n} gifts ({total})"
+
+#. Traductores: parte del estado F2 (aportes TikTok). {n} es el nº de regalos.
+#: bellbird/capture/estado_sesion.py:227
+#, python-brace-format
+msgid "Aportes: {n} regalos"
+msgstr "Contributions: {n} gifts"
+
+#. Traductores: parte del estado F2 (aportes TikTok). {n} es el nº y {total} el
+#. importe.
+#: bellbird/capture/estado_sesion.py:230
+#, python-brace-format
+msgid "{n} regalos ({total})"
+msgstr "{n} gifts ({total})"
+
+#. Traductores: parte del estado F2 (aportes TikTok). {n} es el nº de regalos.
+#: bellbird/capture/estado_sesion.py:233
+#, python-brace-format
+msgid "{n} regalos"
+msgstr "{n} gifts"
+
+#. Traductores: parte del estado F2 (aportes YouTube). {n} es el nº y {total}
+#. el importe.
+#: bellbird/capture/estado_sesion.py:236
+#, python-brace-format
+msgid "Aportes: {n} Super Chats ({total})"
+msgstr "Contributions: {n} Super Chats ({total})"
+
+#. Traductores: parte del estado F2 (aportes YouTube). {n} es el nº de Super
+#. Chats.
+#: bellbird/capture/estado_sesion.py:239
+#, python-brace-format
+msgid "Aportes: {n} Super Chats"
+msgstr "Contributions: {n} Super Chats"
+
+#. Traductores: parte del estado F2 (aportes YouTube). {n} es el nº y {total}
+#. el importe.
+#: bellbird/capture/estado_sesion.py:242
+#, python-brace-format
+msgid "{n} Super Chats ({total})"
+msgstr "{n} Super Chats ({total})"
+
+#. Traductores: parte del estado F2 (aportes YouTube). {n} es el nº de Super
+#. Chats.
+#: bellbird/capture/estado_sesion.py:244
+#, python-brace-format
+msgid "{n} Super Chats"
+msgstr "{n} Super Chats"
+
+#. Traductores: parte del estado F2 (cola). {n} es el nº en cola.
+#: bellbird/capture/estado_sesion.py:251
+#, python-brace-format
+msgid "En cola: {n}"
+msgstr "In queue: {n}"
+
+#. Traductores: parte del estado F2 (cola). {n} es el nº en cola.
+#: bellbird/capture/estado_sesion.py:253
+#, python-brace-format
+msgid "{n} en cola"
+msgstr "{n} in queue"
+
+#. Traductores: parte del estado F2 (transmisión). {texto} es el estado.
+#: bellbird/capture/estado_sesion.py:352
+#, python-brace-format
+msgid "Transmisión: {texto}"
+msgstr "Broadcast: {texto}"
+
+#. Traductores: validación de mensajes programados (error).
+#: bellbird/capture/programados.py:32
+msgid "El mensaje no puede estar vacío."
+msgstr "The message cannot be empty."
+
+#. Traductores: validación de mensajes programados (error). {actual} es el
+#. largo y {maximo} el tope.
+#: bellbird/capture/programados.py:35
+#, python-brace-format
+msgid "El mensaje tiene {actual} caracteres y el máximo son {maximo}."
+msgstr "The message has {actual} characters and the maximum is {maximo}."
+
+#. Traductores: validación de mensajes programados (error). {minimo} es el
+#. mínimo.
+#: bellbird/capture/programados.py:39
+#, python-brace-format
+msgid "El intervalo mínimo son {minimo} minutos."
+msgstr "The minimum interval is {minimo} minutes."
+
+#. Traductores: validación de mensajes programados (error).
+#: bellbird/capture/programados.py:42
+msgid "El intervalo máximo no puede ser menor que el mínimo."
+msgstr "The maximum interval cannot be less than the minimum."
+
+#. Traductores: estado en la lista de mensajes programados.
+#: bellbird/capture/programados.py:97
+msgid "Activo"
+msgstr "Active"
+
+#. Traductores: intervalo en la lista de mensajes programados. {minimo} es cada
+#. cuántos minutos.
+#: bellbird/capture/programados.py:105
+#, python-brace-format
+msgid "cada {minimo} minuto"
+msgstr "every {minimo} minute"
+
+#. Traductores: intervalo en la lista de mensajes programados. {minimo} es cada
+#. cuántos minutos.
+#: bellbird/capture/programados.py:108
+#, python-brace-format
+msgid "cada {minimo} minutos"
+msgstr "every {minimo} minutes"
+
+#. Traductores: intervalo en la lista de mensajes programados. {minimo} es el
+#. mínimo y {maximo} el máximo.
+#: bellbird/capture/programados.py:111
+#, python-brace-format
+msgid "entre {minimo} y {maximo} minutos"
+msgstr "between {minimo} and {maximo} minutes"
+
+#. Traductores: línea de la lista de mensajes programados. {estado} es activo o
+#. pausado, {intervalo} la frecuencia y {texto} el contenido.
+#: bellbird/capture/programados.py:116
+#, python-brace-format
+msgid "{estado}, {intervalo}: {texto}"
+msgstr "{estado}, {intervalo}: {texto}"

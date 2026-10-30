@@ -16,16 +16,20 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from bellbird.core import config_predeterminada
-from bellbird.core.idioma import _
+from bellbird.capture.componentes_estado import (ACTIVOS_DEFECTO, COMPONENTES, ETIQUETAS, etiqueta)
+from bellbird.core.idioma import N_, _
 
 
-# Códigos de tipo de conexión → etiqueta legible.
+# Códigos de tipo de conexión → etiqueta legible. Se traducen al usarlas.
 _TIPO_TXT = {
-    "live_youtube": "Directo de YouTube",
-    "live_tiktok":  "Directo de TikTok",
-    "vod":          "Vídeo",
-    "upcoming":     "Directo programado",
+    # Traductores: parte del estado F2 (tipo de conexión).
+    "live_youtube": N_("Directo de YouTube"),
+    # Traductores: parte del estado F2 (tipo de conexión).
+    "live_tiktok": N_("Directo de TikTok"),
+    # Traductores: parte del estado F2 (tipo de conexión).
+    "vod": N_("Vídeo"),
+    # Traductores: parte del estado F2 (tipo de conexión).
+    "upcoming": N_("Directo programado"),
 }
 
 
@@ -62,63 +66,6 @@ class SnapshotSesion:
     igualando: str = ""       # progreso de la igualación, ya formateado; "" si no hay
 
 
-# Orden canónico de los componentes: estado → contenido → actividad → ajustes.
-COMPONENTES: tuple[str, ...] = (
-    "estado",
-    "titulo",
-    "canal",
-    "espectadores",
-    "tiempo_directo",
-    "desfase_directo",
-    "mensajes_leidos",
-    "aportes",
-    "en_cola",
-    "voz",
-    "lectura_silenciada",
-    "overlay",
-    "programados",
-    "descartados",
-    "obs_transmision",
-    "obs_grabacion",
-    "obs_escena",
-    "musica",
-    "igualando",
-)
-
-# Activos por defecto: derivan de la sección [estado] de la fuente canónica.
-# Lo relevante para quien mira un directo viene activado; lo técnico apagado.
-def _activos_desde_canonica() -> frozenset[str]:
-    sec = config_predeterminada.seccion("estado")
-    return frozenset(k for k, v in sec.items()
-                     if v.strip().lower() in ("true", "yes", "1", "on"))
-
-
-ACTIVOS_DEFECTO: frozenset[str] = _activos_desde_canonica()
-
-# Etiquetas para el editor de Preferencias.
-ETIQUETAS = {
-    "estado":             "Estado de conexión y tipo",
-    "titulo":             "Título del vídeo o directo",
-    "canal":              "Canal o autor",
-    "espectadores":       "Espectadores ahora y en total",
-    "tiempo_directo":     "Tiempo que lleva el directo",
-    "desfase_directo":    "Cuánto por detrás del directo va el reproductor",
-    "mensajes_leidos":    "Mensajes leídos",
-    "aportes":            "Super Chats / regalos",
-    "en_cola":            "Mensajes en cola de lectura",
-    "voz":                "Velocidad y volumen de la voz",
-    "lectura_silenciada": "Aviso de lectura silenciada",
-    "overlay":            "Panel de chat para transmitir",
-    "programados":        "Mensajes automáticos",
-    "descartados":        "Mensajes descartados",
-    "obs_transmision":    "Estado de la transmisión de OBS",
-    "obs_grabacion":      "Estado de la grabación de OBS",
-    "obs_escena":         "Escena al aire en OBS",
-    "musica":             "Música que suena",
-    "igualando":          "Igualación del volumen de la música",
-}
-
-
 def _fmt_num(n) -> str:
     """Miles con punto al estilo español: 30044 → «30.044»."""
     try:    return f"{int(n):,}".replace(",", ".")
@@ -127,35 +74,93 @@ def _fmt_num(n) -> str:
 
 def _duracion(segundos: int) -> str:
     if segundos < 60:
-        return "menos de un minuto"
+        # Traductores: parte del estado F2 (duración del directo).
+        return _("menos de un minuto")
     minutos = segundos // 60
     # El corte en 48 horas conserva legibles los maratones de hasta dos días.
     if minutos >= 48 * 60:
         dias = minutos // (24 * 60)
         # Hoy es inalcanzable con el corte fijado en 48 horas.
-        return f"{dias} día" if dias == 1 else f"{dias} días"
+        if dias == 1:
+            # Traductores: parte del estado F2 (duración). {dias} es el nº de días.
+            return _("{dias} día").format(dias=dias)
+        # Traductores: parte del estado F2 (duración). {dias} es el nº de días.
+        return _("{dias} días").format(dias=dias)
     horas, minutos = divmod(minutos, 60)
     if horas:
-        return f"{horas} h {minutos} min"
-    return f"{minutos} min"
+        # Traductores: parte del estado F2 (duración). {horas} son horas y {minutos} minutos.
+        return _("{horas} h {minutos} min").format(horas=horas, minutos=minutos)
+    # Traductores: parte del estado F2 (duración). {minutos} son los minutos.
+    return _("{minutos} min").format(minutos=minutos)
 
 
 def _render_estado(s: SnapshotSesion, largo: bool) -> str:
     if not s.conectado:
-        return "Desconectado"
-    return _TIPO_TXT.get(s.tipo, "Conectado")
+        # Traductores: parte del estado F2 (conexión).
+        return _("Desconectado")
+    texto = _TIPO_TXT.get(s.tipo)
+    if texto is None:
+        # Traductores: parte del estado F2 (conexión).
+        return _("Conectado")
+    return _(texto)
 
 
 def _render_titulo(s: SnapshotSesion, largo: bool) -> str:
     t = (s.titulo or "").strip()
     if not t:
         return ""
-    return f"Título: {t}" if largo else t
+    if largo:
+        # Traductores: parte del estado F2 (título). {titulo} es el título.
+        return _("Título: {titulo}").format(titulo=t)
+    return t
 
 
 def _render_canal(s: SnapshotSesion, largo: bool) -> str:
     c = (s.canal or "").strip()
-    return (f"Canal: {c}" if c else "")
+    if not c:
+        return ""
+    # Traductores: parte del estado F2 (canal). {canal} es el canal o autor.
+    return _("Canal: {canal}").format(canal=c)
+
+
+def _espectadores_tiktok(n: str, total: str, largo: bool, singular: bool) -> str:
+    if largo and singular:
+        # Traductores: parte del estado F2 (espectadores TikTok). {n} son los de ahora y {total} el total.
+        return _("Espectador: {n} ahora, {total} en total").format(n=n, total=total)
+    if largo:
+        # Traductores: parte del estado F2 (espectadores TikTok). {n} son los de ahora y {total} el total.
+        return _("Espectadores: {n} ahora, {total} en total").format(n=n, total=total)
+    if singular:
+        # Traductores: parte del estado F2 (espectadores TikTok). {n} son los de ahora y {total} el total.
+        return _("{n} espectador ahora, {total} en total").format(n=n, total=total)
+    # Traductores: parte del estado F2 (espectadores TikTok). {n} son los de ahora y {total} el total.
+    return _("{n} espectadores ahora, {total} en total").format(n=n, total=total)
+
+
+def _espectadores_resto(n: str, en_directo: bool, largo: bool, singular: bool) -> str:
+    if en_directo and largo and singular:
+        # Traductores: parte del estado F2 (espectadores). {n} es el nº actual.
+        return _("Espectador: {n}").format(n=n)
+    if en_directo and largo:
+        # Traductores: parte del estado F2 (espectadores). {n} es el nº actual.
+        return _("Espectadores: {n}").format(n=n)
+    if en_directo and singular:
+        # Traductores: parte del estado F2 (espectadores). {n} es el nº actual.
+        return _("{n} espectador").format(n=n)
+    if en_directo:
+        # Traductores: parte del estado F2 (espectadores). {n} es el nº actual.
+        return _("{n} espectadores").format(n=n)
+    if largo and singular:
+        # Traductores: parte del estado F2 (vistas). {n} es el nº total.
+        return _("Vista: {n}").format(n=n)
+    if largo:
+        # Traductores: parte del estado F2 (vistas). {n} es el nº total.
+        return _("Vistas: {n}").format(n=n)
+    if singular:
+        # Traductores: parte del estado F2 (vistas). {n} es el nº total.
+        return _("{n} vista").format(n=n)
+    # Traductores: parte del estado F2 (vistas). {n} es el nº total.
+    return _("{n} vistas").format(n=n)
 
 
 def _render_espectadores(s: SnapshotSesion, largo: bool) -> str:
@@ -164,31 +169,33 @@ def _render_espectadores(s: SnapshotSesion, largo: bool) -> str:
     n = _fmt_num(s.espectadores)
     # En un directo es el nº de espectadores AHORA; en un vídeo, las vistas
     # totales (números distintos, no confundir).
-    en_directo = s.tipo in ("live_youtube", "live_tiktok")
-    palabra = "espectadores" if en_directo else "vistas"
-    if s.espectadores == 1:
-        palabra = "espectador" if en_directo else "vista"
+    singular = s.espectadores == 1
     if s.tipo == "live_tiktok" and s.espectadores_total is not None:
-        total = _fmt_num(s.espectadores_total)
-        if largo:
-            return f"{palabra.capitalize()}: {n} ahora, {total} en total"
-        return f"{n} {palabra} ahora, {total} en total"
-    return f"{palabra.capitalize()}: {n}" if largo else f"{n} {palabra}"
+        return _espectadores_tiktok(n, _fmt_num(s.espectadores_total), largo, singular)
+    en_directo = s.tipo in ("live_youtube", "live_tiktok")
+    return _espectadores_resto(n, en_directo, largo, singular)
 
 
 def _render_tiempo_directo(s: SnapshotSesion, largo: bool) -> str:
     if s.segundos_directo is None or s.segundos_directo < 0:
         return ""
     texto = _duracion(s.segundos_directo)
-    return (f"Tiempo del directo: {texto}" if largo
-            else f"Lleva {texto}")
+    if largo:
+        # Traductores: parte del estado F2 (tiempo). {texto} es la duración.
+        return _("Tiempo del directo: {texto}").format(texto=texto)
+    # Traductores: parte del estado F2 (tiempo). {texto} es la duración.
+    return _("Lleva {texto}").format(texto=texto)
 
 
 def _render_desfase_directo(s: SnapshotSesion, largo: bool) -> str:
     texto = (s.desfase_directo or "").strip()
     if not texto:
         return ""
-    base = f"Reproductor: {texto}" if largo else texto
+    if largo:
+        # Traductores: parte del estado F2 del desfase. {texto} es el desfase.
+        base = _("Reproductor: {texto}").format(texto=texto)
+    else:
+        base = texto
     atajo = (s.atajo_directo or "").strip()
     if atajo:
         # Traductores: parte del estado F2 del desfase. {atajo} es el atajo de teclado.
@@ -205,23 +212,58 @@ def _render_desfase_directo(s: SnapshotSesion, largo: bool) -> str:
 
 def _render_mensajes_leidos(s: SnapshotSesion, largo: bool) -> str:
     n = _fmt_num(s.mensajes_leidos)
-    return f"Mensajes leídos: {n}" if largo else f"{n} leídos"
+    if largo:
+        # Traductores: parte del estado F2 (leídos). {n} es el nº de mensajes.
+        return _("Mensajes leídos: {n}").format(n=n)
+    # Traductores: parte del estado F2 (leídos). {n} es el nº de mensajes.
+    return _("{n} leídos").format(n=n)
+
+
+def _aportes_tiktok(n: int, total: str, largo: bool) -> str:
+    if largo and total:
+        # Traductores: parte del estado F2 (aportes TikTok). {n} es el nº y {total} el importe.
+        return _("Aportes: {n} regalos ({total})").format(n=n, total=total)
+    if largo:
+        # Traductores: parte del estado F2 (aportes TikTok). {n} es el nº de regalos.
+        return _("Aportes: {n} regalos").format(n=n)
+    if total:
+        # Traductores: parte del estado F2 (aportes TikTok). {n} es el nº y {total} el importe.
+        return _("{n} regalos ({total})").format(n=n, total=total)
+    # Traductores: parte del estado F2 (aportes TikTok). {n} es el nº de regalos.
+    return _("{n} regalos").format(n=n)
+
+
+def _aportes_youtube(n: int, total: str, largo: bool) -> str:
+    if largo and total:
+        # Traductores: parte del estado F2 (aportes YouTube). {n} es el nº y {total} el importe.
+        return _("Aportes: {n} Super Chats ({total})").format(n=n, total=total)
+    if largo:
+        # Traductores: parte del estado F2 (aportes YouTube). {n} es el nº de Super Chats.
+        return _("Aportes: {n} Super Chats").format(n=n)
+    if total:
+        # Traductores: parte del estado F2 (aportes YouTube). {n} es el nº y {total} el importe.
+        return _("{n} Super Chats ({total})").format(n=n, total=total)
+    # Traductores: parte del estado F2 (aportes YouTube). {n} es el nº de Super Chats.
+    return _("{n} Super Chats").format(n=n)
 
 
 def _render_aportes(s: SnapshotSesion, largo: bool) -> str:
     if s.aportes <= 0:
         return ""
-    # «Super Chats» en YouTube, «regalos» en TikTok.
-    palabra = "regalos" if s.tipo == "live_tiktok" else "Super Chats"
-    base = f"{s.aportes} {palabra}"
-    if s.total_aportes:
-        base += f" ({s.total_aportes})"
-    return f"Aportes: {base}" if largo else base
+    # «Super Chats» en YouTube, «regalos» en TikTok, cada uno con su frase.
+    total = (s.total_aportes or "").strip()
+    if s.tipo == "live_tiktok":
+        return _aportes_tiktok(s.aportes, total, largo)
+    return _aportes_youtube(s.aportes, total, largo)
 
 
 def _render_en_cola(s: SnapshotSesion, largo: bool) -> str:
     n = _fmt_num(s.en_cola)
-    return f"En cola: {n}" if largo else f"{n} en cola"
+    if largo:
+        # Traductores: parte del estado F2 (cola). {n} es el nº en cola.
+        return _("En cola: {n}").format(n=n)
+    # Traductores: parte del estado F2 (cola). {n} es el nº en cola.
+    return _("{n} en cola").format(n=n)
 
 
 def _render_voz(s: SnapshotSesion, largo: bool) -> str:
@@ -231,7 +273,10 @@ def _render_voz(s: SnapshotSesion, largo: bool) -> str:
 
 
 def _render_lectura_silenciada(s: SnapshotSesion, largo: bool) -> str:
-    return "Lectura silenciada" if s.lectura_silenciada else ""
+    if not s.lectura_silenciada:
+        return ""
+    # Traductores: parte del estado F2 (lectura silenciada).
+    return _("Lectura silenciada")
 
 
 def _render_overlay(s: SnapshotSesion, largo: bool) -> str:
@@ -305,6 +350,13 @@ def _render(nombre: str, s: SnapshotSesion, largo: bool) -> str:
     return dibujar(s, largo)
 
 
+def _render_supervisada(supervisada: str, modo: str) -> str:
+    if modo == "largo":
+        # Traductores: parte del estado F2 (transmisión). {texto} es el estado.
+        return _("Transmisión: {texto}").format(texto=supervisada)
+    return supervisada
+
+
 def formatear_estado(snap: SnapshotSesion, toggles, modo: str = "corto") -> str:
     """Frase de estado a partir del snapshot y los componentes activos.
 
@@ -315,8 +367,7 @@ def formatear_estado(snap: SnapshotSesion, toggles, modo: str = "corto") -> str:
     partes = []
     supervisada = (snap.transmision_supervisada or "").strip()
     if supervisada:
-        partes.append(f"Transmisión: {supervisada}" if modo == "largo"
-                      else supervisada)
+        partes.append(_render_supervisada(supervisada, modo))
     for nombre in COMPONENTES:
         if nombre not in toggles:
             continue

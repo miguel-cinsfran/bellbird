@@ -29,29 +29,9 @@ from tests.ventanas_prueba import destruir
 
 
 # Textos que arma otro módulo y aparecen en el recorrido del diálogo
-# entero: no se tocan acá. Las etiquetas de la página Estado salen de
-# `bellbird/capture/estado_sesion.py` (ETIQUETAS).
-PENDIENTES_PROPIOS = (
-    "Estado de conexión y tipo",
-    "Título del vídeo o directo",
-    "Canal o autor",
-    "Espectadores ahora y en total",
-    "Tiempo que lleva el directo",
-    "Cuánto por detrás del directo va el reproductor",
-    "Mensajes leídos",
-    "Super Chats / regalos",
-    "Mensajes en cola de lectura",
-    "Velocidad y volumen de la voz",
-    "Aviso de lectura silenciada",
-    "Panel de chat para transmitir",
-    "Mensajes automáticos",
-    "Mensajes descartados",
-    "Estado de la transmisión de OBS",
-    "Estado de la grabación de OBS",
-    "Escena al aire en OBS",
-    "Música que suena",
-    "Igualación del volumen de la música",
-)
+# entero: no se tocan acá. Las etiquetas de la página Estado ya salen
+# marcadas de `bellbird/capture/componentes_estado.py` (etiqueta()).
+PENDIENTES_PROPIOS = ()
 
 
 # El aviso largo de Atajos trae saltos de línea del Wrap: se comparan los

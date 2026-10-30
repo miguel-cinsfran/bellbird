@@ -3,8 +3,10 @@
 import unittest
 
 from bellbird.capture import descartes
+from bellbird.capture import estado_sesion
 from bellbird.capture.estado_sesion import (SnapshotSesion, formatear_estado, COMPONENTES,
                            ACTIVOS_DEFECTO, ETIQUETAS, _duracion, _render)
+from tests.pseudo_prueba import con_pseudo
 
 
 class TestDuracion(unittest.TestCase):
@@ -424,6 +426,67 @@ class TestRamasSinCubrir(unittest.TestCase):
 
     def test_nombre_desconocido_da_vacio(self):
         self.assertEqual(_render("inventado", SnapshotSesion(), False), "")
+
+
+class TestPseudoF2(unittest.TestCase):
+    """Todo texto fijo de F2 pasa por gettext, en largo y en corto."""
+
+    # Componentes con frase propia en estado_sesion (el resto llega armado
+    # de otro módulo y dato crudo como el título corto no se marca).
+    FIJOS = ("estado", "canal", "espectadores", "tiempo_directo",
+             "desfase_directo", "mensajes_leidos", "aportes", "en_cola",
+             "voz", "lectura_silenciada", "overlay")
+
+    def _lleno(self, tipo):
+        return SnapshotSesion(
+            conectado=True, tipo=tipo, titulo="T", canal="C",
+            espectadores=12, espectadores_total=108,
+            segundos_directo=83 * 60,
+            desfase_directo="10 segundos por detrás del directo",
+            atajo_directo="Ctrl+Fin", mensajes_leidos=10, aportes=3,
+            total_aportes="US$12,50", en_cola=3, voz_velocidad=5,
+            voz_volumen=80, lectura_silenciada=True, overlay_puerto=9000,
+            overlay_clientes=1)
+
+    def test_fijos_marcados_en_largo_y_corto(self):
+        for tipo in ("live_youtube", "live_tiktok"):
+            snap = self._lleno(tipo)
+            for modo in ("corto", "largo"):
+                for comp in self.FIJOS:
+                    with self.subTest(tipo=tipo, modo=modo, comp=comp):
+                        with con_pseudo():
+                            out = formatear_estado(snap, {comp}, modo=modo)
+                        self.assertTrue(out, f"{comp} vacío en {tipo} {modo}")
+                        self.assertIn("[¡", out, f"{comp} sin marcar en {tipo} {modo}")
+
+    def test_titulo_largo_marcado_y_corto_crudo(self):
+        snap = SnapshotSesion(titulo="T")
+        with con_pseudo():
+            largo = formatear_estado(snap, {"titulo"}, modo="largo")
+        self.assertIn("[¡", largo)
+        self.assertEqual(formatear_estado(snap, {"titulo"}), "T.")
+
+    def test_supervisada_larga_marcada_y_corta_cruda(self):
+        snap = SnapshotSesion(transmision_supervisada="Supervisada")
+        with con_pseudo():
+            largo = formatear_estado(snap, set(), modo="largo")
+        self.assertIn("[¡", largo)
+        self.assertEqual(formatear_estado(snap, set()), "Supervisada.")
+
+    def test_etiqueta_de_cada_componente_marcada(self):
+        self.assertTrue(callable(getattr(estado_sesion, "etiqueta", None)),
+                        "falta estado_sesion.etiqueta")
+        for comp in COMPONENTES:
+            with self.subTest(comp=comp):
+                with con_pseudo():
+                    texto = estado_sesion.etiqueta(comp)
+                self.assertIn("[¡", texto, f"etiqueta {comp} sin marcar")
+
+    def test_etiqueta_directa_del_catalogo(self):
+        from bellbird.capture.componentes_estado import etiqueta as directa
+        with con_pseudo():
+            texto = directa("estado")
+        self.assertIn("[¡", texto)
 
 
 if __name__ == "__main__":

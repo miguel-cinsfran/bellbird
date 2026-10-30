@@ -362,43 +362,12 @@ class SupervisorTransmision:
                 return
             self._anunciar(frase, "conectado")
             if self._destino == "TikTok" and self._usuario:
-                self._anunciar(_("Esperando a que TikTok muestre el directo."), None)
-                resultado = self._esperar_en_vivo(
-                    self._usuario, self._parada,
-                    limite=self._limite_tiktok)
-                if self._parada.is_set():
+                if not self._confirmar_tiktok():
                     return
-                if resultado.en_vivo:
-                    self._destino_confirmado = True
-                    self._anunciar(_("Tu directo de TikTok ya está al aire."), "al_aire")
-                    self._al_conectar_chat(
-                        tiktok_vivo.url_directo(self._usuario))
-                elif getattr(resultado, "cuenta_sin_directos", False):
-                    self._destino_confirmado = False
-                    self._anunciar(_("OBS está transmitiendo, pero TikTok todavía no muestra "
-                                     "ningún directo de {usuario}. Revisa que en Restream esté "
-                                     "activado TikTok.").format(usuario=self._usuario),
-                                   "transmision_problema")
-                else:
-                    self._destino_confirmado = False
-                    frase = _("OBS está transmitiendo, pero TikTok todavía no muestra el directo.")
-                    self._anunciar(frase, "transmision_problema")
             elif self._destino == "YouTube" and self._id_video \
                     and self._esperar_emision is not None:
-                self._anunciar(_("Esperando a que YouTube muestre el directo."), None)
-                ok = self._esperar_emision(
-                    self._id_video, self._parada, self._limite_tiktok)
-                if self._parada.is_set():
+                if not self._confirmar_youtube():
                     return
-                if ok:
-                    self._destino_confirmado = True
-                    self._anunciar(_("Tu directo de YouTube ya está al aire."), "al_aire")
-                    self._al_conectar_chat(
-                        emision.url_video(self._id_video))
-                else:
-                    self._destino_confirmado = False
-                    self._anunciar(_("OBS está transmitiendo, pero YouTube todavía no muestra "
-                                     "el directo."), "transmision_problema")
             elif self._destino == "TikTok":
                 frase = _("No hay usuario de TikTok guardado: conecta el chat a mano.")
                 self._anunciar(frase, None)
@@ -422,6 +391,47 @@ class SupervisorTransmision:
                     self._al_terminar()
                 except Exception as error:
                     logger.debug("no se pudo avisar el fin de la supervisión: %s", error)
+
+    def _confirmar_tiktok(self) -> bool:
+        self._anunciar(_("Esperando a que TikTok muestre el directo."), None)
+        resultado = self._esperar_en_vivo(
+            self._usuario, self._parada,
+            limite=self._limite_tiktok)
+        if self._parada.is_set():
+            return False
+        if resultado.en_vivo:
+            self._destino_confirmado = True
+            self._anunciar(_("Tu directo de TikTok ya está al aire."), "al_aire")
+            self._al_conectar_chat(
+                tiktok_vivo.url_directo(self._usuario))
+        elif getattr(resultado, "cuenta_sin_directos", False):
+            self._destino_confirmado = False
+            self._anunciar(_("OBS está transmitiendo, pero TikTok todavía no muestra "
+                             "ningún directo de {usuario}. Revisa que en Restream esté "
+                             "activado TikTok.").format(usuario=self._usuario),
+                           "transmision_problema")
+        else:
+            self._destino_confirmado = False
+            frase = _("OBS está transmitiendo, pero TikTok todavía no muestra el directo.")
+            self._anunciar(frase, "transmision_problema")
+        return True
+
+    def _confirmar_youtube(self) -> bool:
+        self._anunciar(_("Esperando a que YouTube muestre el directo."), None)
+        ok = self._esperar_emision(
+            self._id_video, self._parada, self._limite_tiktok)
+        if self._parada.is_set():
+            return False
+        if ok:
+            self._destino_confirmado = True
+            self._anunciar(_("Tu directo de YouTube ya está al aire."), "al_aire")
+            self._al_conectar_chat(
+                emision.url_video(self._id_video))
+        else:
+            self._destino_confirmado = False
+            self._anunciar(_("OBS está transmitiendo, pero YouTube todavía no muestra "
+                             "el directo."), "transmision_problema")
+        return True
 
     def _finalizar_youtube_si_toca(self) -> None:
         self._cierre.finalizar_si_toca(self._id_video)

@@ -1859,8 +1859,12 @@ class TestCategoriasDePreferencias(unittest.TestCase):
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
 
-        self.assertEqual(guardar.call_count, 1)
-        llamada = guardar.call_args.args[1]
+        # La página Descargas guarda cada clave con guardar_opcion: el
+        # guardado general del diálogo sigue siendo uno solo.
+        generales = [llamada for llamada in guardar.call_args_list
+                     if len(llamada.args[1]) > 1]
+        self.assertEqual(len(generales), 1)
+        llamada = generales[0].args[1]
         claves = [(seccion, clave)
                   for seccion, clave, _valor in llamada
                   if seccion != "ia"]
@@ -1955,7 +1959,7 @@ class TestCategoriasDePreferenciasSoloLectura(unittest.TestCase):
         self.assertEqual(
             [dialogo.nb.GetPageText(i) for i in range(dialogo.nb.GetPageCount())],
             ["General", "Voces", "Lectura", "Cola de lectura", "Interfaz",
-             "Sonidos", "Reproductor", "Música", "Conexión", "Filtros",
+             "Sonidos", "Reproductor", "Música", "Descargas", "Conexión", "Filtros",
              "Estado (F2)", "Atajos", "API y sesión", "Mensajes automáticos",
              "Transmisión", "Inteligencia artificial"])
 
@@ -3530,9 +3534,11 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
                 mock.patch.object(gui_preferencias, "anunciar") as anunciar, \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
-        self.assertEqual(guardar.call_count, 1)
+        generales = [llamada for llamada in guardar.call_args_list
+                     if len(llamada.args[1]) > 1]
+        self.assertEqual(len(generales), 1)
         secciones = {seccion for seccion, _clave, _valor
-                     in guardar.call_args.args[1]}
+                     in generales[0].args[1]}
         self.assertTrue({"ia", "programados"}.issubset(secciones))
         self.assertEqual(dialogo.avisos, ["Preferencias guardadas."])
         anunciar.assert_not_called()

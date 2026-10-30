@@ -3186,6 +3186,7 @@ msgstr "{posicion} of {duracion}"
 #. duración.
 #: bellbird/player/reproductor.py:210 bellbird/player/reproductor.py:2067
 #: bellbird/player/reproductor.py:2291 bellbird/player/reproductor.py:2298
+#: bellbird/downloads/busqueda_youtube.py:301 bellbird/ui/descargas_buscador.py:26
 msgid "En directo"
 msgstr "Live"
 
@@ -5025,9 +5026,201 @@ msgstr "1 minute left"
 msgid "quedan {n} segundos"
 msgstr "{n} seconds left"
 
+#: bellbird/ui/descargas_buscador.py:25
+msgid "Vídeos"
+msgstr "Videos"
+
+#: bellbird/ui/descargas_buscador.py:25
+msgid "Listas"
+msgstr "Playlists"
+
+#: bellbird/ui/descargas_buscador.py:26
+msgid "Canales"
+msgstr "Channels"
+
+#: bellbird/ui/descargas_buscador.py:27 bellbird/ui/descargas_buscador.py:30
+msgid "Cualquiera"
+msgstr "Any"
+
+#: bellbird/ui/descargas_buscador.py:27
+msgid "Menos de 4 minutos"
+msgstr "Under 4 minutes"
+
+#: bellbird/ui/descargas_buscador.py:28
+msgid "De 4 a 20 minutos"
+msgstr "4 to 20 minutes"
+
+#: bellbird/ui/descargas_buscador.py:29
+msgid "Más de 20 minutos"
+msgstr "Over 20 minutes"
+
+#: bellbird/ui/descargas_buscador.py:30
+msgid "Hoy"
+msgstr "Today"
+
+#: bellbird/ui/descargas_buscador.py:31
+msgid "Esta semana"
+msgstr "This week"
+
+#: bellbird/ui/descargas_buscador.py:31
+msgid "Este mes"
+msgstr "This month"
+
+#: bellbird/ui/descargas_buscador.py:32
+msgid "Este año"
+msgstr "This year"
+
+#: bellbird/ui/descargas_buscador.py:33
+msgid "Relevancia"
+msgstr "Relevance"
+
+#: bellbird/ui/descargas_buscador.py:34 bellbird/ui/descargas_buscador.py:136
+msgid "Vistas"
+msgstr "Views"
+
+#: bellbird/ui/descargas_buscador.py:34 bellbird/ui/descargas_buscador.py:98
+#: bellbird/ui/descargas_buscador.py:134
+msgid "Duración"
+msgstr "Duration"
+
+#: bellbird/ui/descargas_buscador.py:73
+msgid "B&uscar o pegar enlace:"
+msgstr "Search or paste li&nk:"
+
+#: bellbird/ui/descargas_buscador.py:78
+msgid "Buscar o pegar enlace"
+msgstr "Search or paste link"
+
+#: bellbird/ui/descargas_buscador.py:82
+msgid "&Buscar"
+msgstr "&Search"
+
+#: bellbird/ui/descargas_buscador.py:88
+msgid "Mostrar fi&ltros"
+msgstr "Show fi&lters"
+
+#: bellbird/ui/descargas_buscador.py:89
+msgid "Mostrar filtros"
+msgstr "Show filters"
+
+#: bellbird/ui/descargas_buscador.py:98
+msgid "Ti&po:"
+msgstr "Ty&pe:"
+
+#: bellbird/ui/descargas_buscador.py:98
+msgid "Tipo"
+msgstr "Type"
+
+#: bellbird/ui/descargas_buscador.py:98
+msgid "Du&ración:"
+msgstr "Dura&tion:"
+
+#: bellbird/ui/descargas_buscador.py:100
+msgid "Fec&ha:"
+msgstr "Dat&e:"
+
+#: bellbird/ui/descargas_buscador.py:101
+msgid "&Orden:"
+msgstr "So&rt by:"
+
+#: bellbird/ui/descargas_buscador.py:101
+msgid "Orden"
+msgstr "Sort by"
+
+#: bellbird/ui/descargas_buscador.py:120
+msgid "Ca&ntidad:"
+msgstr "&Amount:"
+
+#: bellbird/ui/descargas_buscador.py:124
+msgid "Cantidad"
+msgstr "Amount"
+
+#: bellbird/ui/descargas_buscador.py:131
+msgid "Resultados de la búsqueda"
+msgstr "Search results"
+
+#: bellbird/ui/descargas_buscador.py:134
+msgid "Canal"
+msgstr "Channel"
+
+#: bellbird/ui/descargas_buscador.py:143
+msgid "D&etalles:"
+msgstr "&Details:"
+
+#: bellbird/ui/descargas_buscador.py:148
+msgid "Detalles"
+msgstr "Details"
+
+#: bellbird/ui/descargas_buscador.py:153
+msgid "&Agregar a la cola"
+msgstr "Add to q&ueue"
+
+#: bellbird/ui/descargas_buscador.py:156
+msgid "Mostrar &más"
+msgstr "Show &more"
+
+#: bellbird/ui/descargas_buscador.py:204
+msgid "Escribe una búsqueda o un enlace."
+msgstr "Type a search or a link."
+
+#: bellbird/ui/descargas_buscador.py:222
+msgid "Buscando"
+msgstr "Searching"
+
+#: bellbird/ui/descargas_buscador.py:272 bellbird/ui/descargas_buscador.py:273
+msgid "Sin resultados"
+msgstr "No results"
+
+#: bellbird/ui/descargas_buscador.py:280
+msgid "No hay más resultados"
+msgstr "No more results"
+
+#: bellbird/ui/descargas_buscador.py:296
+msgid "1 resultado más"
+msgstr "1 more result"
+
+#: bellbird/ui/descargas_buscador.py:310
+msgid "1 resultado"
+msgstr "1 result"
+
+#: bellbird/ui/descargas_buscador.py:298
+#, python-brace-format
+msgid "{cantidad} resultados más"
+msgstr "{cantidad} more results"
+
+#: bellbird/ui/descargas_buscador.py:314
+#, python-brace-format
+msgid "{cantidad} resultados"
+msgstr "{cantidad} results"
+
+#: bellbird/ui/descargas_buscador.py:353
+msgid "Selecciona un resultado."
+msgstr "Select a result."
+
+#: bellbird/ui/descargas_buscador.py:360
+msgid "Un canal no se puede agregar a la cola."
+msgstr "A channel cannot be added to the queue."
+
+#: bellbird/ui/descargas_buscador.py:362
+msgid "Un directo en curso no se puede descargar."
+msgstr "A live stream in progress cannot be downloaded."
+
+#: bellbird/ui/descargas_buscador.py:355
+msgid "Este directo todavía no empezó."
+msgstr "This live stream has not yet started."
+
+#: bellbird/ui/descargas_buscador.py:375
+#, python-brace-format
+msgid "{cantidad} agregados a la cola"
+msgstr "{cantidad} added to the queue"
+
 #: bellbird/ui/gui_descargas.py:143
 msgid "Administrador de descargas"
 msgstr "Download manager"
+
+#: bellbird/ui/gui_descargas.py:204
+msgid "Buscar en YouTube"
+msgstr "Search on YouTube"
 
 #: bellbird/ui/gui_descargas.py:185
 msgid "Opciones de descarga"
@@ -5112,6 +5305,7 @@ msgid "Título e identificador"
 msgstr "Title and identifier"
 
 #: bellbird/downloads/opciones_formato.py:30
+#: bellbird/ui/descargas_buscador.py:132
 msgid "Título"
 msgstr "Title"
 
@@ -5162,7 +5356,8 @@ msgstr "Cancel &download"
 msgid "Lista del historial de descargas"
 msgstr "Download history list"
 
-#: bellbird/ui/gui_descargas.py:291
+#: bellbird/ui/gui_descargas.py:291 bellbird/ui/descargas_buscador.py:33
+#: bellbird/ui/descargas_buscador.py:100 bellbird/ui/descargas_buscador.py:137
 msgid "Fecha"
 msgstr "Date"
 
@@ -8457,6 +8652,10 @@ msgstr "Untitled"
 #: bellbird/downloads/busqueda_youtube.py:262 bellbird/downloads/busqueda_youtube.py:267 bellbird/downloads/busqueda_youtube.py:275
 msgid "No se pudo completar la búsqueda. Comprueba la conexión e inténtalo de nuevo."
 msgstr "Could not complete the search. Check the connection and try again."
+
+#: bellbird/downloads/busqueda_youtube.py:303
+msgid "Programado"
+msgstr "Scheduled"
 
 #: bellbird/downloads/busqueda_youtube.py:309
 msgid "1 vista"

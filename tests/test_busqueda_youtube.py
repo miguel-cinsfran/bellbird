@@ -20,6 +20,7 @@ from bellbird.downloads.busqueda_youtube import (
     ordenar,
     refiltrar,
     texto_duracion,
+    texto_detalles,
     texto_fecha,
     texto_vistas,
     url_busqueda,
@@ -512,6 +513,47 @@ class TestBuscarRealConFalso(unittest.TestCase):
             respuesta.error,
             "No se pudo completar la búsqueda. Comprueba la conexión e "
             "inténtalo de nuevo.")
+
+
+class TestTextoDetalles(unittest.TestCase):
+
+    AHORA = 1700000000
+
+    def _resultado(self, **cambios):
+        datos = dict(
+            id="1", url="https://www.youtube.com/watch?v=1",
+            titulo="CUMBIA PARAGUAYA RETRO", canal="Sanabria OK",
+            duracion=1068, vistas=4353830,
+            marca_tiempo=self.AHORA - 3 * 86400,
+            descripcion="Una descripción", tipo="video",
+            en_directo=False, programado=False)
+        datos.update(cambios)
+        return Resultado(**datos)
+
+    def test_completo_una_linea_por_dato(self):
+        self.assertEqual(
+            texto_detalles(self._resultado(), self.AHORA),
+            "CUMBIA PARAGUAYA RETRO\nSanabria OK\n17:48\n"
+            "4.353.830 vistas\nhace 3 días\nUna descripción")
+
+    def test_omite_los_vacios(self):
+        self.assertEqual(
+            texto_detalles(self._resultado(
+                canal="", duracion=None, vistas=None, marca_tiempo=None,
+                descripcion=""), self.AHORA),
+            "CUMBIA PARAGUAYA RETRO")
+
+    def test_en_directo_y_programado_agregan_su_linea(self):
+        self.assertIn(
+            "En directo",
+            texto_detalles(self._resultado(
+                duracion=None, vistas=None, marca_tiempo=None,
+                descripcion="", en_directo=True), self.AHORA).splitlines())
+        self.assertIn(
+            "Programado",
+            texto_detalles(self._resultado(
+                duracion=None, vistas=None, marca_tiempo=None,
+                descripcion="", programado=True), self.AHORA).splitlines())
 
 
 if __name__ == "__main__":

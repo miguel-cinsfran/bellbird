@@ -20,6 +20,7 @@ RUTAS_DE_DATOS = [
     ("credenciales", "credenciales.json"),
     ("historial_lives", "historial_lives.json"),
     ("historial_descargas", "historial_descargas.json"),
+    ("busquedas_recientes", "busquedas_recientes.json"),
     ("alias", "alias.json"),
     ("mensajes_programados", "mensajes_programados.json"),
     ("fin_pendiente", "fin_pendiente.json"),

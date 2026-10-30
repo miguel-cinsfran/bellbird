@@ -7,8 +7,9 @@ from pathlib import Path
 from unittest import mock
 
 from bellbird.downloads import descargas
+from bellbird.downloads import busqueda_youtube
 from bellbird.downloads import filas_descargas
-from bellbird.ui import descargas_acciones, descargas_listas, gui_descargas
+from bellbird.ui import descargas_acciones, descargas_buscador, descargas_listas, gui_descargas
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
 
@@ -158,26 +159,27 @@ class TestPaginaUnica(unittest.TestCase):
         return (mock.patch.object(descargas_listas.historial_descargas, "cargar",
                                   return_value=list(entradas or [])),
                 mock.patch.object(descargas_listas.historial_descargas, "guardar"),
-                mock.patch.object(descargas_acciones.historial_descargas, "guardar"))
+                mock.patch.object(descargas_acciones.historial_descargas, "guardar"),
+                mock.patch.object(descargas_buscador.busquedas_recientes, "cargar",
+                                  return_value=[]),
+                mock.patch.object(descargas_buscador.busquedas_recientes, "guardar"))
 
     def _dialogo(self, entradas=None):
-        cargar, guardar, guardar_acc = self._sin_disco(entradas)
-        cargar.start()
-        guardar.start()
-        guardar_acc.start()
-        self.addCleanup(cargar.stop)
-        self.addCleanup(guardar.stop)
-        self.addCleanup(guardar_acc.stop)
+        parches = self._sin_disco(entradas)
+        for parche in parches:
+            parche.start()
+            self.addCleanup(parche.stop)
         dialogo = gui_descargas.GestorDescargasDialog(None)
         self.addCleanup(destruir, dialogo)
         self.addCleanup(setattr, gui_descargas, "_dialogo_activo", None)
         self.addCleanup(descargas.reiniciar_gestor)
         return dialogo
 
-    def test_una_sola_pestana_descargas_con_columnas(self):
+    def test_dos_pestanas_buscador_y_descargas_con_columnas(self):
         dialogo = self._dialogo()
-        self.assertEqual(dialogo.pestanas.GetPageCount(), 1)
-        self.assertEqual(dialogo.pestanas.GetPageText(0), "Descargas")
+        self.assertEqual(dialogo.pestanas.GetPageCount(), 2)
+        self.assertEqual(dialogo.pestanas.GetPageText(0), "Buscar en YouTube")
+        self.assertEqual(dialogo.pestanas.GetPageText(1), "Descargas")
         pagina = dialogo.pagina_descargas
         self.assertIsInstance(pagina, descargas_listas.PaginaDescargas)
         self.assertEqual(pagina.lista.GetName(), "Lista de descargas")
@@ -371,18 +373,18 @@ class TestPaginaUnica(unittest.TestCase):
 
     def test_errores_van_sin_modal(self):
         dialogo = self._dialogo()
-        pagina = dialogo.pagina_descargas
-        with mock.patch.object(gui_descargas, "anunciar") as anunciar, \
-                mock.patch.object(gui_descargas._snd, "reproducir") as sonido, \
-                mock.patch.object(gui_descargas.wx, "MessageBox",
+        pagina = dialogo.pagina_buscador
+        with mock.patch.object(descargas_buscador, "anunciar") as anunciar, \
+                mock.patch.object(descargas_buscador._snd, "reproducir") as sonido, \
+                mock.patch.object(descargas_buscador.wx, "MessageBox",
                                    side_effect=AssertionError("modal")):
-            dialogo.txt_url.SetValue("")
-            dialogo._on_anadir(None)
-        anunciar.assert_called_once_with("Escribe un enlace antes de agregar.")
+            pagina.campo.SetValue("")
+            pagina._on_buscar(None)
+        anunciar.assert_called_once_with("Escribe una búsqueda o un enlace.")
         sonido.assert_called_once_with("error")
         with mock.patch.object(descargas_acciones, "anunciar") as anunciar2, \
                 mock.patch.object(descargas_acciones._snd, "reproducir") as sonido2:
-            pagina._on_cancelar(None)
+            dialogo.pagina_descargas._on_cancelar(None)
         anunciar2.assert_called_once_with("Selecciona una descarga.")
         sonido2.assert_called_once_with("error")
 
@@ -525,23 +527,13 @@ class TestPaginaUnica(unittest.TestCase):
             self.assertEqual(entradas[0]["url"],
                              "https://www.youtube.com/watch?v=abc&token=secreto")
 
-    def test_agregar_enlace_encola_y_refresca(self):
+    def test_agregar_url_encola_y_refresca(self):
         dialogo = self._dialogo()
         with mock.patch.object(gui_descargas.cfg, "guardar_opciones_descarga"), \
-                mock.patch.object(gui_descargas, "anunciar") as anunciar:
-            url = "https://youtu.be/abc"
-
-            def encolar_doble(enlace, _progreso, _estado, creado_cb=None):
-                encolar_doble.enlace = enlace
-
-            encolar_doble.enlace = None
-            with mock.patch.object(dialogo._gestor, "encolar",
-                                   side_effect=encolar_doble):
-                dialogo.txt_url.SetValue(url)
-                dialogo._on_anadir(None)
-            self.assertEqual(encolar_doble.enlace, url)
-            self.assertEqual(dialogo.txt_url.GetValue(), "")
-            anunciar.assert_called_once_with("Agregado a la cola")
+                mock.patch.object(dialogo._gestor, "encolar") as encolar:
+            dialogo.agregar_url("https://youtu.be/abc")
+        encolar.assert_called_once()
+        self.assertEqual(encolar.call_args.args[0], "https://youtu.be/abc")
 
     def test_cambiar_formato_llena_calidad_y_deshabilita(self):
         dialogo = self._dialogo()
@@ -603,6 +595,524 @@ class TestPaginaUnica(unittest.TestCase):
         self.assertTrue(op["enumerar"])
         self.assertEqual(op["simultaneas"], 5)
         self.assertEqual(op["formato"], "mp3")
+
+
+def _resultado_busqueda(id, tipo="video", directo=False, programado=False):
+    return busqueda_youtube.Resultado(
+        id=id, url=f"https://www.youtube.com/watch?v={id}",
+        titulo=f"Título {id}", canal=f"Canal {id}", duracion=60, vistas=10,
+        marca_tiempo=1700000000, descripcion=f"Descripción {id}",
+        tipo=tipo, en_directo=directo, programado=programado)
+
+
+def _respuesta_busqueda(items, error="", hay_mas=False):
+    return busqueda_youtube.RespuestaBusqueda(list(items), error, hay_mas)
+
+
+class _CorreYa:
+    """Hilo que corre en el acto, para pruebas sin esperas."""
+
+    def __init__(self, destino, argumentos):
+        self._destino = destino
+        self._argumentos = argumentos
+
+    def start(self):
+        self._destino(*self._argumentos)
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestBuscador(unittest.TestCase):
+
+    def setUp(self):
+        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        gui_descargas._registrados.clear()
+
+    def tearDown(self):
+        descargas.reiniciar_gestor()
+        gui_descargas._registrados.clear()
+        gui_descargas._dialogo_activo = None
+
+    def _dialogo(self, entradas=None, url_inicial=None):
+        parches = list(TestPaginaUnica._sin_disco(self, entradas))
+        for parche in parches:
+            parche.start()
+            self.addCleanup(parche.stop)
+        dialogo = gui_descargas.GestorDescargasDialog(
+            None, url_inicial=url_inicial)
+        self.addCleanup(destruir, dialogo)
+        self.addCleanup(setattr, gui_descargas, "_dialogo_activo", None)
+        self.addCleanup(descargas.reiniciar_gestor)
+        return dialogo
+
+    def _con_busqueda(self, respuesta):
+        busco = mock.patch.object(
+            descargas_buscador.busqueda_youtube, "buscar",
+            return_value=respuesta)
+        buscado = busco.start()
+        self.addCleanup(busco.stop)
+        hilo = mock.patch.object(
+            descargas_buscador.diagnostico, "crear_hilo",
+            side_effect=lambda destino, nombre, args=(), **kw:
+            _CorreYa(destino, args))
+        hilo.start()
+        self.addCleanup(hilo.stop)
+        entrega = mock.patch.object(
+            descargas_buscador.wx, "CallAfter",
+            side_effect=lambda funcion, *args, **kw: funcion(*args, **kw))
+        entrega.start()
+        self.addCleanup(entrega.stop)
+        anunciar = mock.patch.object(descargas_buscador, "anunciar")
+        anunciar.start()
+        self.addCleanup(anunciar.stop)
+        sonido = mock.patch.object(descargas_buscador._snd, "reproducir")
+        sonido.start()
+        self.addCleanup(sonido.stop)
+        return buscado
+
+    def _dichos(self):
+        return [llamada.args[0]
+                for llamada in descargas_buscador.anunciar.call_args_list]
+
+    def test_dos_pestanas_con_buscador_primero(self):
+        dialogo = self._dialogo()
+        self.assertEqual(dialogo.pestanas.GetPageCount(), 2)
+        self.assertEqual(dialogo.pestanas.GetPageText(0), "Buscar en YouTube")
+        self.assertEqual(dialogo.pestanas.GetPageText(1), "Descargas")
+        self.assertIsInstance(dialogo.pagina_buscador,
+                              descargas_buscador.PaginaBuscador)
+        self.assertEqual(tuple(dialogo.GetSize()), (860, 680))
+
+    def test_construir_no_busca_y_deja_todo_en_reposo(self):
+        buscar = self._con_busqueda(_respuesta_busqueda([]))
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_buscador
+        buscar.assert_not_called()
+        self.assertEqual(pagina.campo.GetValue(), "")
+        self.assertEqual(pagina.campo.GetCount(), 0)
+        self.assertFalse(pagina.chk_filtros.GetValue())
+        self.assertFalse(pagina.cho_tipo.IsShown())
+        self.assertEqual(pagina.cho_cantidad.GetStringSelection(), "20")
+        self.assertEqual(pagina.lista.GetItemCount(), 0)
+        self.assertFalse(pagina.btn_mas.IsEnabled())
+        self.assertEqual(
+            [pagina.lista.GetColumn(i).GetText()
+             for i in range(pagina.lista.GetColumnCount())],
+            ["Título", "Canal", "Duración", "Vistas", "Fecha"])
+        self.assertEqual(pagina.lista.GetName(), "Resultados de la búsqueda")
+
+    def test_palabras_buscan_y_muestran(self):
+        buscar = self._con_busqueda(_respuesta_busqueda(
+            [_resultado_busqueda("a"), _resultado_busqueda("b")], hay_mas=True))
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_buscador
+        pagina.campo.SetValue("cumbia")
+        pagina._on_buscar(None)
+        buscar.assert_called_once_with(
+            "cumbia", busqueda_youtube.Filtros(), 1, 20)
+        self.assertEqual(pagina.lista.GetItemCount(), 2)
+        self.assertEqual(pagina.lista.GetItemText(0, 0), "Título a")
+        self.assertEqual(pagina.lista.GetItemText(1, 1), "Canal b")
+        self.assertEqual(pagina.lista.GetFirstSelected(), 0)
+        dichos = self._dichos()
+        self.assertIn("Buscando", dichos)
+        self.assertIn("2 resultados", dichos)
+        self.assertTrue(pagina.btn_mas.IsEnabled())
+
+    def test_enlace_encola_sin_buscar(self):
+        buscar = self._con_busqueda(_respuesta_busqueda([]))
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_buscador
+        url = "https://www.youtube.com/watch?v=abc"
+        with mock.patch.object(pagina, "_agregar_url") as agregar:
+            pagina.campo.SetValue(url)
+            pagina._on_buscar(None)
+        buscar.assert_not_called()
+        agregar.assert_called_once_with(url)
+        self.assertEqual(pagina.campo.GetValue(), "")
+        self.assertIn("Agregado a la cola", self._dichos())
+
+    def test_campo_vacio_avisa_sin_buscar(self):
+        buscar = self._con_busqueda(_respuesta_busqueda([]))
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_buscador
+        pagina.campo.SetValue("   ")
+        pagina._on_buscar(None)
+        buscar.assert_not_called()
+        self.assertIn("Escribe una búsqueda o un enlace.", self._dichos())
+        descargas_buscador._snd.reproducir.assert_called_once_with("error")
+
+    def test_enter_en_campo_busca(self):
+        buscar = self._con_busqueda(_respuesta_busqueda([]))
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_buscador
+        pagina.campo.SetValue("cumbia")
+        evento = wx.CommandEvent(wx.EVT_TEXT_ENTER.typeId,
+                                 pagina.campo.GetId())
+        pagina.campo.GetEventHandler().ProcessEvent(evento)
+        buscar.assert_called_once()
+
+    def test_generacion_vieja_se_descarta(self):
+        primera = _respuesta_busqueda([_resultado_busqueda("viejo")])
+        segunda = _respuesta_busqueda([_resultado_busqueda("nuevo")])
+        buscar = self._con_busqueda(primera)
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_buscador
+        pagina.campo.SetValue("a")
+        pagina._on_buscar(None)
+        buscar.return_value = segunda
+        pagina.campo.SetValue("b")
+        pagina._on_buscar(None)
+        self.assertEqual(buscar.call_count, 2)
+        pagina._al_volver(1, primera, False)
+        self.assertEqual(pagina.lista.GetItemCount(), 1)
+        self.assertEqual(pagina.lista.GetItemText(0, 0), "Título nuevo")
+
+    def test_foco_solo_si_esta_en_campo(self):
+        self._con_busqueda(_respuesta_busqueda([_resultado_busqueda("a")]))
+        dialogo = self._dialogo()
+        dialogo.Show()
+        pagina = dialogo.pagina_buscador
+        pagina.campo.SetFocus()
+        pagina.campo.SetValue("cumbia")
+        pagina._on_buscar(None)
+        self.assertEqual(wx.Window.FindFocus(), pagina.lista)
+        pagina.cho_cantidad.SetFocus()
+        pagina.campo.SetValue("polca")
+        pagina._on_buscar(None)
+        self.assertEqual(wx.Window.FindFocus(), pagina.cho_cantidad)
+        dialogo.Hide()
+
+    def test_mostrar_mas_agrega_sin_repetir(self):
+        primera = _respuesta_busqueda(
+            [_resultado_busqueda("a"), _resultado_busqueda("b")], hay_mas=True)
+        segunda = _respuesta_busqueda(
+            [_resultado_busqueda("b"), _resultado_busqueda("c")], hay_mas=False)
+        buscar = self._con_busqueda(primera)
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_buscador
+        pagina.campo.SetValue("cumbia")
+        pagina._on_buscar(None)
+        buscar.return_value = segunda
+        pagina._on_mas(None)
+        self.assertEqual(buscar.call_count, 2)
+        self.assertEqual(buscar.call_args.args,
+                         ("cumbia", busqueda_youtube.Filtros(), 21, 20))
+        self.assertEqual(pagina.lista.GetItemCount(), 3)
+        self.assertEqual(pagina.lista.GetItemText(2, 0), "Título c")
+        self.assertEqual(pagina.lista.GetFirstSelected(), 2)
+        self.assertIn("1 resultado más", self._dichos())
+        self.assertFalse(pagina.btn_mas.IsEnabled())
+
+    def test_mostrar_mas_sin_nada_nuevo(self):
+        primera = _respuesta_busqueda([_resultado_busqueda("a")], hay_mas=True)
+        segunda = _respuesta_busqueda([_resultado_busqueda("a")], hay_mas=True)
+        buscar = self._con_busqueda(primera)
+        dialogo = self._dialogo()
+        dialogo.Show()
+        pagina = dialogo.pagina_buscador
+        pagina.campo.SetValue("cumbia")
+        pagina._on_buscar(None)
+        buscar.return_value = segunda
+        pagina.btn_mas.SetFocus()
+        pagina._on_mas(None)
+        self.assertIn("No hay más resultados", self._dichos())
+        self.assertEqual(wx.Window.FindFocus(), pagina.lista)
+        dialogo.Hide()
+
+    def test_sin_resultados(self):
+        self._con_busqueda(_respuesta_busqueda([]))
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_buscador
+        pagina.campo.SetValue("zzz sin nada")
+        pagina._on_buscar(None)
+        self.assertEqual(pagina.lista.GetItemCount(), 0)
+        self.assertEqual(pagina.txt_detalles.GetValue(), "Sin resultados")
+        self.assertIn("Sin resultados", self._dichos())
+        self.assertFalse(pagina.btn_mas.IsEnabled())
+
+    def test_error_muestra_texto_y_suena(self):
+        self._con_busqueda(_respuesta_busqueda([], error="Falla la red"))
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_buscador
+        pagina.campo.SetValue("cumbia")
+        pagina._on_buscar(None)
+        self.assertEqual(pagina.txt_detalles.GetValue(), "Falla la red")
+        self.assertIn("Falla la red", self._dichos())
+        descargas_buscador._snd.reproducir.assert_called_with("error")
+        self.assertFalse(pagina.btn_mas.IsEnabled())
+
+    def test_cambiar_orden_no_busca_y_conserva_seleccion(self):
+        items = [
+            busqueda_youtube.Resultado(
+                id="a", url="https://www.youtube.com/watch?v=a",
+                titulo="Título a", canal="Canal a", duracion=30, vistas=5,
+                marca_tiempo=1699000000, descripcion="", tipo="video",
+                en_directo=False, programado=False),
+            busqueda_youtube.Resultado(
+                id="b", url="https://www.youtube.com/watch?v=b",
+                titulo="Título b", canal="Canal b", duracion=10, vistas=9,
+                marca_tiempo=1699900000, descripcion="", tipo="video",
+                en_directo=False, programado=False),
+            busqueda_youtube.Resultado(
+                id="c", url="https://www.youtube.com/watch?v=c",
+                titulo="Título c", canal="Canal c", duracion=20, vistas=7,
+                marca_tiempo=1698000000, descripcion="", tipo="video",
+                en_directo=False, programado=False)]
+        buscar = self._con_busqueda(_respuesta_busqueda(items))
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_buscador
+        pagina.campo.SetValue("cumbia")
+        pagina._on_buscar(None)
+        pagina.lista.Select(pagina.lista.GetFirstSelected(), False)
+        pagina.lista.Select(2)
+        pagina.cho_orden.SetSelection(2)
+        pagina._on_orden(None)
+        buscar.assert_called_once()
+        self.assertEqual(
+            [pagina.lista.GetItemText(i, 0) for i in range(3)],
+            ["Título b", "Título c", "Título a"])
+        self.assertEqual(pagina.lista.GetFirstSelected(), 1)
+
+    def test_sin_marcar_los_desplegables_no_se_usan(self):
+        buscar = self._con_busqueda(_respuesta_busqueda([]))
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_buscador
+        pagina.cho_tipo.SetSelection(1)
+        pagina.cho_duracion.SetSelection(2)
+        pagina.cho_fecha.SetSelection(3)
+        pagina.cho_orden.SetSelection(1)
+        pagina.campo.SetValue("cumbia")
+        pagina._on_buscar(None)
+        self.assertEqual(buscar.call_args.args[1], busqueda_youtube.Filtros())
+        pagina.chk_filtros.SetValue(True)
+        pagina.campo.SetValue("polca")
+        pagina._on_buscar(None)
+        self.assertEqual(
+            buscar.call_args.args[1],
+            busqueda_youtube.Filtros(tipo="listas", duracion="media",
+                                    fecha="mes", orden="fecha"))
+
+    def test_cantidad_opciones_y_tanda(self):
+        buscar = self._con_busqueda(
+            _respuesta_busqueda([_resultado_busqueda("a")], hay_mas=True))
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_buscador
+        self.assertEqual(
+            [pagina.cho_cantidad.GetString(i)
+             for i in range(pagina.cho_cantidad.GetCount())],
+            ["10", "20", "30", "50"])
+        pagina.cho_cantidad.SetSelection(3)
+        pagina.campo.SetValue("cumbia")
+        pagina._on_buscar(None)
+        self.assertEqual(buscar.call_args.args[1:], (busqueda_youtube.Filtros(),
+                                                     1, 50))
+
+    def test_filtros_se_muestran_y_ocultan(self):
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_buscador
+        self.assertFalse(pagina.cho_tipo.IsShown())
+        pagina.chk_filtros.SetValue(True)
+        pagina._on_filtros(None)
+        self.assertTrue(pagina.cho_tipo.IsShown())
+        self.assertTrue(pagina.cho_orden.IsShown())
+        pagina.chk_filtros.SetValue(False)
+        pagina._on_filtros(None)
+        self.assertFalse(pagina.cho_tipo.IsShown())
+
+    def test_elegir_fila_muestra_detalles_sin_anunciar(self):
+        self._con_busqueda(_respuesta_busqueda(
+            [_resultado_busqueda("a"), _resultado_busqueda("b")]))
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_buscador
+        pagina.campo.SetValue("cumbia")
+        pagina._on_buscar(None)
+        descargas_buscador.anunciar.reset_mock()
+        pagina.lista.Select(pagina.lista.GetFirstSelected(), False)
+        pagina.lista.Select(1)
+        pagina._on_elegir(None)
+        self.assertIn("Título b", pagina.txt_detalles.GetValue())
+        descargas_buscador.anunciar.assert_not_called()
+
+    def test_agregar_varios_rechaza_canal_y_directo(self):
+        lista = busqueda_youtube.Resultado(
+            id="l", url="https://www.youtube.com/playlist?list=PL1",
+            titulo="Título l", canal="Canal l", duracion=None, vistas=None,
+            marca_tiempo=None, descripcion="", tipo="lista",
+            en_directo=False, programado=False)
+        items = [_resultado_busqueda("v"), lista,
+                 _resultado_busqueda("c", tipo="canal"),
+                 _resultado_busqueda("d", directo=True)]
+        self._con_busqueda(_respuesta_busqueda(items))
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_buscador
+        pagina.campo.SetValue("cumbia")
+        pagina._on_buscar(None)
+        for i in range(4):
+            pagina.lista.Select(i)
+        with mock.patch.object(pagina, "_agregar_url") as agregar:
+            pagina._on_agregar(None)
+        self.assertEqual(
+            [llamada.args[0] for llamada in agregar.call_args_list],
+            ["https://www.youtube.com/watch?v=v",
+             "https://www.youtube.com/playlist?list=PL1"])
+        dichos = self._dichos()
+        self.assertIn("Un canal no se puede agregar a la cola.", dichos)
+        self.assertIn("Un directo en curso no se puede descargar.", dichos)
+        self.assertIn("2 agregados a la cola", dichos)
+        self.assertEqual(
+            descargas_buscador._snd.reproducir.call_count, 2)
+
+    def test_agregar_programado_se_rechaza(self):
+        self._con_busqueda(_respuesta_busqueda(
+            [_resultado_busqueda("p", programado=True)]))
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_buscador
+        pagina.campo.SetValue("cumbia")
+        pagina._on_buscar(None)
+        pagina.lista.Select(0)
+        with mock.patch.object(pagina, "_agregar_url") as agregar:
+            pagina._on_agregar(None)
+        agregar.assert_not_called()
+        self.assertIn("Este directo todavía no empezó.", self._dichos())
+        descargas_buscador._snd.reproducir.assert_called_once_with("error")
+
+    def test_agregar_sin_seleccion_avisa(self):
+        self._con_busqueda(_respuesta_busqueda([_resultado_busqueda("a")]))
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_buscador
+        pagina.campo.SetValue("cumbia")
+        pagina._on_buscar(None)
+        pagina.lista.Select(pagina.lista.GetFirstSelected(), False)
+        with mock.patch.object(pagina, "_agregar_url") as agregar:
+            pagina._on_agregar(None)
+        agregar.assert_not_called()
+        self.assertIn("Selecciona un resultado.", self._dichos())
+        descargas_buscador._snd.reproducir.assert_called_once_with("error")
+
+    def test_orden_se_aplica_al_llegar(self):
+        items = [
+            busqueda_youtube.Resultado(
+                id="a", url="https://www.youtube.com/watch?v=a",
+                titulo="Título a", canal="Canal a", duracion=30, vistas=5,
+                marca_tiempo=1699000000, descripcion="", tipo="video",
+                en_directo=False, programado=False),
+            busqueda_youtube.Resultado(
+                id="b", url="https://www.youtube.com/watch?v=b",
+                titulo="Título b", canal="Canal b", duracion=10, vistas=9,
+                marca_tiempo=1699900000, descripcion="", tipo="video",
+                en_directo=False, programado=False),
+            busqueda_youtube.Resultado(
+                id="c", url="https://www.youtube.com/watch?v=c",
+                titulo="Título c", canal="Canal c", duracion=20, vistas=7,
+                marca_tiempo=1698000000, descripcion="", tipo="video",
+                en_directo=False, programado=False)]
+        self._con_busqueda(_respuesta_busqueda(items))
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_buscador
+        pagina.chk_filtros.SetValue(True)
+        pagina.cho_orden.SetSelection(2)
+        pagina.campo.SetValue("cumbia")
+        pagina._on_buscar(None)
+        self.assertEqual(
+            [pagina.lista.GetItemText(i, 0) for i in range(3)],
+            ["Título b", "Título c", "Título a"])
+
+    def test_mostrar_mas_reordena_y_sigue_nueva(self):
+        def _item(id, vistas):
+            return busqueda_youtube.Resultado(
+                id=id, url=f"https://www.youtube.com/watch?v={id}",
+                titulo=f"Título {id}", canal="Canal", duracion=10,
+                vistas=vistas, marca_tiempo=1699000000, descripcion="",
+                tipo="video", en_directo=False, programado=False)
+        buscar = self._con_busqueda(
+            _respuesta_busqueda([_item("a", 5), _item("b", 9)], hay_mas=True))
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_buscador
+        pagina.chk_filtros.SetValue(True)
+        pagina.cho_orden.SetSelection(2)
+        pagina.campo.SetValue("cumbia")
+        pagina._on_buscar(None)
+        buscar.return_value = _respuesta_busqueda([_item("c", 7)])
+        pagina._on_mas(None)
+        self.assertEqual(
+            [pagina.lista.GetItemText(i, 0) for i in range(3)],
+            ["Título b", "Título c", "Título a"])
+        self.assertEqual(
+            pagina.lista.GetItemText(pagina.lista.GetFirstSelected(), 0),
+            "Título c")
+
+    def test_llegar_con_foco_en_mas_pasa_a_lista(self):
+        buscar = self._con_busqueda(_respuesta_busqueda(
+            [_resultado_busqueda("a")], hay_mas=True))
+        dialogo = self._dialogo()
+        dialogo.Show()
+        pagina = dialogo.pagina_buscador
+        pagina.campo.SetValue("cumbia")
+        pagina._on_buscar(None)
+        buscar.return_value = _respuesta_busqueda([_resultado_busqueda("b")])
+        pagina.btn_mas.SetFocus()
+        pagina._on_mas(None)
+        self.assertEqual(wx.Window.FindFocus(), pagina.lista)
+        self.assertEqual(pagina.lista.GetFirstSelected(), 1)
+        dialogo.Hide()
+
+    def test_error_en_mas_mantiene_tanda_y_boton(self):
+        primera = _respuesta_busqueda([_resultado_busqueda("a")], hay_mas=True)
+        buscar = self._con_busqueda(primera)
+        dialogo = self._dialogo()
+        dialogo.Show()
+        pagina = dialogo.pagina_buscador
+        pagina.campo.SetValue("cumbia")
+        pagina._on_buscar(None)
+        self.assertEqual(pagina._inicio, 21)
+        buscar.return_value = _respuesta_busqueda([], error="Falla la red")
+        pagina.btn_mas.SetFocus()
+        pagina._on_mas(None)
+        self.assertEqual(pagina.lista.GetItemCount(), 1)
+        self.assertTrue(pagina.btn_mas.IsEnabled())
+        self.assertEqual(pagina._inicio, 21)
+        self.assertEqual(wx.Window.FindFocus(), pagina.lista)
+        pagina._on_mas(None)
+        self.assertEqual(buscar.call_args.args[2], 21)
+        dialogo.Hide()
+
+    def test_url_inicial_deja_texto_sin_encolar(self):
+        self._con_busqueda(_respuesta_busqueda([]))
+        with mock.patch.object(
+                gui_descargas.GestorDescargasDialog, "agregar_url") as agregar:
+            dialogo = self._dialogo(url_inicial="https://youtu.be/inicial")
+        self.assertEqual(dialogo.pagina_buscador.campo.GetValue(),
+                         "https://youtu.be/inicial")
+        agregar.assert_not_called()
+
+    def test_volver_tras_cerrar_no_revienta(self):
+        respuesta = _respuesta_busqueda([_resultado_busqueda("a")])
+        self._con_busqueda(respuesta)
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_buscador
+        pagina.campo.SetValue("cumbia")
+        pagina._on_buscar(None)
+        generacion = pagina._generacion
+        destruir(dialogo)
+        pagina._al_volver(generacion, respuesta, False)
+
+    def test_recientes_se_guardan_y_recuperan(self):
+        import tempfile
+        from pathlib import Path
+        with tempfile.TemporaryDirectory() as tmp:
+            ruta = Path(tmp) / "recientes.json"
+            self._con_busqueda(_respuesta_busqueda([]))
+            marco = wx.Frame(None)
+            self.addCleanup(destruir, marco)
+            agregar = mock.Mock()
+            primera = descargas_buscador.PaginaBuscador(marco, agregar, ruta)
+            self.addCleanup(destruir, primera)
+            primera.campo.SetValue("Cumbia")
+            primera._on_buscar(None)
+            agregar.assert_not_called()
+            segunda = descargas_buscador.PaginaBuscador(marco, agregar, ruta)
+            self.addCleanup(destruir, segunda)
+            self.assertIn("Cumbia", segunda.campo.GetStrings())
 
 
 class TestSonidosDeDescarga(unittest.TestCase):
@@ -674,12 +1184,15 @@ class TestPseudoVentana(unittest.TestCase):
         cargar = mock.patch.object(descargas_listas.historial_descargas, "cargar", return_value=[])
         guardar = mock.patch.object(descargas_listas.historial_descargas, "guardar")
         guardar_acc = mock.patch.object(descargas_acciones.historial_descargas, "guardar")
-        with cargar, guardar, guardar_acc, con_pseudo():
+        cargar_rec = mock.patch.object(descargas_buscador.busquedas_recientes, "cargar",
+                                       return_value=[])
+        guardar_rec = mock.patch.object(descargas_buscador.busquedas_recientes, "guardar")
+        with cargar, guardar, guardar_acc, cargar_rec, guardar_rec, con_pseudo():
             dialogo = gui_descargas.GestorDescargasDialog(None)
             sin_marcar = textos_sin_marcar(
                 dialogo, propios=("2160p", "1440p", "1080p", "720p", "480p",
                                   "360p", "128 kbps", "192 kbps", "256 kbps",
-                                  "320 kbps"))
+                                  "320 kbps", "10", "20", "30", "50"))
         self.addCleanup(destruir, dialogo)
         self.addCleanup(setattr, gui_descargas, "_dialogo_activo", None)
         self.addCleanup(descargas.reiniciar_gestor)
@@ -697,12 +1210,19 @@ class TestPseudoAvisos(unittest.TestCase):
         cargar = mock.patch.object(descargas_listas.historial_descargas, "cargar", return_value=[])
         guardar = mock.patch.object(descargas_listas.historial_descargas, "guardar")
         guardar_acc = mock.patch.object(descargas_acciones.historial_descargas, "guardar")
+        cargar_rec = mock.patch.object(descargas_buscador.busquedas_recientes, "cargar",
+                                       return_value=[])
+        guardar_rec = mock.patch.object(descargas_buscador.busquedas_recientes, "guardar")
         cargar.start()
         guardar.start()
         guardar_acc.start()
+        cargar_rec.start()
+        guardar_rec.start()
         self.addCleanup(cargar.stop)
         self.addCleanup(guardar.stop)
         self.addCleanup(guardar_acc.stop)
+        self.addCleanup(cargar_rec.stop)
+        self.addCleanup(guardar_rec.stop)
         dialogo = gui_descargas.GestorDescargasDialog(None)
         self.addCleanup(destruir, dialogo)
         self.addCleanup(setattr, gui_descargas, "_dialogo_activo", None)
@@ -711,10 +1231,10 @@ class TestPseudoAvisos(unittest.TestCase):
 
     def test_avisos_y_cuadros_propios_salen_marcados(self):
         dialogo = self._dialogo()
-        with con_pseudo(), mock.patch.object(gui_descargas, "anunciar") as anunciar, \
-                mock.patch.object(gui_descargas._snd, "reproducir"):
-            dialogo.txt_url.SetValue("")
-            dialogo._on_anadir(None)
+        with con_pseudo(), mock.patch.object(descargas_buscador, "anunciar") as anunciar, \
+                mock.patch.object(descargas_buscador._snd, "reproducir"):
+            dialogo.pagina_buscador.campo.SetValue("")
+            dialogo.pagina_buscador._on_buscar(None)
         self.assertTrue(anunciar.call_args.args[0].startswith("[¡"))
         with con_pseudo(), mock.patch.object(descargas_acciones, "anunciar") as anunciar2, \
                 mock.patch.object(descargas_acciones._snd, "reproducir"):

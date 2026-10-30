@@ -1,8 +1,7 @@
 """Diálogo «Administrador de descargas» (yt-dlp), accesible y nativo.
 
-Diálogo modal que deja al usuario pegar enlaces de YouTube, elegir
-formato, bitrate, carpeta y numeración, y ver la cola con progreso y
-botón de cancelación por ítem. El motor puro está en `descargas.py`
+Diálogo modal con dos pestañas: buscar en YouTube y ver la cola con
+progreso y acciones por ítem. El motor puro está en `descargas.py`
 (sin wx); este módulo monta la UI y refresca la cola con un
 temporizador.
 
@@ -31,8 +30,9 @@ from bellbird.downloads import historial_descargas
 from bellbird.downloads.opciones_formato import (
     BITRATES, FORMATOS, RESOLUCIONES, clase_de_calidad,
     etiquetas_de_calidad)
+from bellbird.ui.descargas_buscador import PaginaBuscador
 from bellbird.ui.descargas_listas import _ESTADOS_FINALES, PaginaDescargas
-from bellbird.ui.gui import anunciar, nombre_accesible, caja_de_grupo, _T, _tc
+from bellbird.ui.gui import anunciar, nombre_accesible, _T, _tc
 from bellbird.voice import sound_player as _snd
 
 logger = diagnostico.obtener_logger(__name__)
@@ -129,7 +129,7 @@ class GestorDescargasDialog(wx.Dialog):
     def __init__(self, parent, url_inicial: str | None = None):
         global _dialogo_activo
         super().__init__(parent, title=_("Administrador de descargas"),
-                         size=(720, 560),
+                         size=(860, 680),
                          name="DialogoGestorDescargas")
         self.SetBackgroundColour(_T.bg)
         self._alive = True
@@ -153,7 +153,8 @@ class GestorDescargasDialog(wx.Dialog):
         self._temporizador.Start(INTERVALO_REFRESCO_MS)
         _dialogo_activo = self
         if url_inicial:
-            self.txt_url.SetValue(url_inicial)
+            self.pagina_buscador.fijar_texto(url_inicial)
+        wx.CallAfter(self.pagina_buscador.campo.SetFocus)
         self.Centre()
 
     # ── UI ───────────────────────────────────────────────────────────────────
@@ -164,67 +165,42 @@ class GestorDescargasDialog(wx.Dialog):
         panel.SetForegroundColour(_T.text)
         vs = wx.BoxSizer(wx.VERTICAL)
 
-        vs.Add(self._seccion_opciones(panel), 0, wx.EXPAND | wx.ALL, 10)
-        vs.Add(self._seccion_anadir(panel), 0, wx.EXPAND | wx.ALL, 10)
         vs.Add(self._seccion_listas(panel), 1, wx.EXPAND | wx.ALL, 10)
+        vs.Add(self._seccion_opciones(panel), 0, wx.EXPAND | wx.ALL, 10)
         vs.Add(self._seccion_botones(panel), 0, wx.EXPAND | wx.ALL, 10)
         panel.SetSizer(vs)
 
     def _seccion_opciones(self, parent):
-        box, padre = caja_de_grupo(parent, _("Opciones de descarga"))
-        # Formato (Choice, no RadioBox: menos carga cognitiva y mejor con NVDA).
-        fila_fmt = wx.BoxSizer(wx.HORIZONTAL)
-        lbl_fmt = wx.StaticText(padre, label=_("&Formato:"), name="EtiquetaFormato")
+        fila = wx.BoxSizer(wx.HORIZONTAL)
+        lbl_fmt = wx.StaticText(parent, label=_("&Formato:"),
+                                name="EtiquetaFormato")
         lbl_fmt.SetForegroundColour(_T.text)
-        fila_fmt.Add(lbl_fmt, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
+        fila.Add(lbl_fmt, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
         etiquetas = [_(et) for et, _sin_uso in FORMATOS]
         valores = [v for _sin_uso, v in FORMATOS]
-        self.cho_formato = wx.Choice(padre, choices=etiquetas, name=_("Formato"))
+        self.cho_formato = wx.Choice(parent, choices=etiquetas,
+                                     name=_("Formato"))
         _tc(self.cho_formato)
         actual = self._opciones.get("formato", "mp4")
         try:    self.cho_formato.SetSelection(valores.index(actual))
         except ValueError: self.cho_formato.SetSelection(0)
         self.cho_formato.Bind(wx.EVT_CHOICE, self._on_formato)
-        fila_fmt.Add(self.cho_formato, 1, wx.EXPAND)
-        box.Add(fila_fmt, 0, wx.EXPAND | wx.ALL, 6)
-
-        # Calidad (lo que muestra depende del formato elegido).
-        fila_cal = wx.BoxSizer(wx.HORIZONTAL)
-        lbl_cal = wx.StaticText(padre, label=_("Cali&dad:"), name="EtiquetaCalidad")
+        fila.Add(self.cho_formato, 1, wx.EXPAND | wx.RIGHT, 12)
+        lbl_cal = wx.StaticText(parent, label=_("Cali&dad:"),
+                                name="EtiquetaCalidad")
         lbl_cal.SetForegroundColour(_T.text)
-        fila_cal.Add(lbl_cal, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
-        self.cho_calidad = wx.Choice(padre, choices=[], name=_("Calidad"))
+        fila.Add(lbl_cal, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
+        self.cho_calidad = wx.Choice(parent, choices=[], name=_("Calidad"))
         _tc(self.cho_calidad)
-        fila_cal.Add(self.cho_calidad, 1, wx.EXPAND)
-        box.Add(fila_cal, 0, wx.EXPAND | wx.ALL, 6)
-
+        fila.Add(self.cho_calidad, 1, wx.EXPAND)
         self._on_formato()   # llena la calidad y ajusta su habilitación
-        return box
-
-    def _seccion_anadir(self, parent):
-        box, padre = caja_de_grupo(parent, _("Agregar enlace"))
-        fila = wx.BoxSizer(wx.HORIZONTAL)
-        lbl = wx.StaticText(padre, label=_("En&lace del vídeo o lista de reproducción:"),
-                            name="EtiquetaURL")
-        lbl.SetForegroundColour(_T.text)
-        fila.Add(lbl, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
-        self.txt_url = wx.TextCtrl(padre, value="",
-                                   style=wx.TE_PROCESS_ENTER,
-                                   name=_("Enlace del vídeo o lista de reproducción"))
-        _tc(self.txt_url)
-        self.txt_url.SetToolTip(_("Pega un enlace de YouTube (vídeo o lista de reproducción)."))
-        self.txt_url.Bind(wx.EVT_TEXT_ENTER, lambda e: self._on_anadir(None))
-        fila.Add(self.txt_url, 1, wx.EXPAND)
-        self.btn_anadir = wx.Button(padre, label=_("A&gregar"), name="AnadirURL")
-        self.btn_anadir.SetBackgroundColour(_T.btn)
-        self.btn_anadir.SetForegroundColour(_T.btn_t)
-        self.btn_anadir.Bind(wx.EVT_BUTTON, self._on_anadir)
-        fila.Add(self.btn_anadir, 0, wx.LEFT, 6)
-        box.Add(fila, 0, wx.EXPAND | wx.ALL, 6)
-        return box
+        return fila
 
     def _seccion_listas(self, parent):
         self.pestanas = wx.Notebook(parent, name="PestanasDescargas")
+        self.pagina_buscador = PaginaBuscador(
+            self.pestanas, self.agregar_url, paths.busquedas_recientes())
+        self.pestanas.AddPage(self.pagina_buscador, _("Buscar en YouTube"))
         self.pagina_descargas = PaginaDescargas(
             self.pestanas, self._gestor, _ruta_historial(), self._preparar_opciones)
         self.pestanas.AddPage(self.pagina_descargas, _("Descargas"))
@@ -296,18 +272,10 @@ class GestorDescargasDialog(wx.Dialog):
         self._opciones = op
         self._gestor.set_opciones(op)
 
-    def _on_anadir(self, _event):
-        url = self.txt_url.GetValue().strip()
-        if not url:
-            try:
-                _snd.reproducir("error")
-            except Exception as exc: logger.debug("sin sonido: %s", exc)
-            anunciar(_("Escribe un enlace antes de agregar."))
-            return
+    def agregar_url(self, url: str) -> None:
+        # Lo que encola la pestaña de búsqueda: prepara las opciones y agrega.
         self._preparar_opciones()
         self.pagina_descargas.agregar_enlace(url)
-        self.txt_url.SetValue("")
-        anunciar(_("Agregado a la cola"))
 
     def _on_refresco(self, _event) -> None:
         if not self or not self._alive or not self.pagina_descargas.lista:

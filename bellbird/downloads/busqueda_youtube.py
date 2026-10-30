@@ -279,6 +279,31 @@ def buscar(texto: str, filtros: Filtros, inicio: int,
     return RespuestaBusqueda(refiltrar(brutos, filtros, time.time()), "", hay_mas)
 
 
+def texto_detalles(resultado: Resultado, ahora: float) -> str:
+    """Los detalles de un resultado, una línea por dato sin los vacíos."""
+    lineas = []
+    if resultado.titulo:
+        lineas.append(resultado.titulo)
+    if resultado.canal:
+        lineas.append(resultado.canal)
+    duracion = texto_duracion(resultado.duracion)
+    if duracion:
+        lineas.append(duracion)
+    vistas = texto_vistas(resultado.vistas)
+    if vistas:
+        lineas.append(vistas)
+    fecha = texto_fecha(resultado.marca_tiempo, ahora)
+    if fecha:
+        lineas.append(fecha)
+    if resultado.descripcion:
+        lineas.append(resultado.descripcion)
+    if resultado.en_directo:
+        lineas.append(_("En directo"))
+    elif resultado.programado:
+        lineas.append(_("Programado"))
+    return "\n".join(lineas)
+
+
 def texto_duracion(segundos: int | None) -> str:
     """Duración como 17:48 o 1:02:05. Sin dato, cadena vacía."""
     if segundos is None:

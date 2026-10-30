@@ -1333,11 +1333,12 @@ def escenario_descargas(app: Aplicacion, args, res: Resultado):
     juntos = " ".join(
         ((c.get("nombre") or "") + " " + (c.get("etiqueta") or ""))
         for c in controles).lower()
-    for esperado in ("formato", "calidad", "lista de descargas", "cerrar"):
+    for esperado in ("formato", "calidad", "lista de descargas", "cerrar",
+                       "buscar o pegar enlace", "resultados de la búsqueda"):
         if esperado not in juntos:
             res.fallo(f"descargas: no aparece nada llamado «{esperado}»")
 
-    orden = recorrer_tab(app, res, "descargas", vueltas=14)
+    orden = recorrer_tab(app, res, "descargas", vueltas=18)
     res.nota(f"descargas, orden de Tab, {len(orden)} paradas: "
              + " > ".join(orden))
 
@@ -5264,6 +5265,7 @@ SUPERFICIES = {
     "gui_aplicar_preferencias.py": "preferencias",
     "gui_comentarios.py": "comentarios",
     "gui_descargas.py": "descargas",
+    "descargas_buscador.py": "descargas",
     "descargas_listas.py": "descargas",
     "descargas_acciones.py": "descargas",
     "gui_directo_huerfano.py": "directo_sin_imagen",

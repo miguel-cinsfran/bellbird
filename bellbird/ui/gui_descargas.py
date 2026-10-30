@@ -109,6 +109,12 @@ def registrar_historial(item, estado: str, ruta=None) -> dict | None:
 
 def _fin_descarga_en_gui(estado: str, mensaje: str, nombre: str, item) -> None:
     """Parte del aviso de fin que toca wx: corre en el hilo de la GUI."""
+    if estado == "descargando":
+        try:
+            _snd.reproducir("descarga_iniciada")
+        except Exception as error:
+            logger.debug("no se pudo reproducir el inicio de descarga: %s", error)
+        return
     frase = frase_aviso_descarga(estado, mensaje, nombre)
     if not frase:
         return
@@ -349,23 +355,18 @@ class GestorDescargasDialog(wx.Dialog):
         self._opciones = op
         self._gestor.set_opciones(op)
 
-        # Inserción optimista en la cola (estado «en_cola»), luego el hilo
-        # actualiza estado/progreso vía CallAfter.
+        # Inserción optimista en la cola (estado «en_cola»); el temporizador
+        # vuelca después el estado y el progreso del gestor.
         idx = self.lista.InsertItem(self.lista.GetItemCount(), "0 %")
         self.lista.SetItem(idx, 1, _("en cola"))
         self.lista.SetItem(idx, 2, url[:300])
-
-        def _cb_progreso(item_id, pct, _vel, _eta, nombre):
-            wx.CallAfter(self._actualizar_progreso, item_id, pct, nombre)
-
-        def _cb_estado(item_id, estado, mensaje):
-            wx.CallAfter(self._actualizar_estado, item_id, estado, mensaje)
 
         def _registrar_fila(item_id):
             self._items_fila[item_id] = idx
             self._fila_items[idx] = item_id
 
-        self._gestor.encolar(url, _cb_progreso, _cb_estado, _registrar_fila)
+        self._gestor.encolar(url, lambda *_args: None, lambda *_args: None,
+                             _registrar_fila)
         self.txt_url.SetValue("")
         anunciar(_("Agregado a la cola"))
 
@@ -440,6 +441,14 @@ class GestorDescargasDialog(wx.Dialog):
         item_id = self._fila_items.get(idx)
         if item_id is None:
             return
+        item = self._gestor.obtener(item_id)
+        if item is None or item.estado in _ESTADOS_FINALES:
+            try:
+                _snd.reproducir("error")
+            except Exception as error:
+                logger.debug("no se pudo reproducir el aviso de descarga terminada: %s", error)
+            anunciar(_("La descarga ya terminó"))
+            return
         self._gestor.cancelar(item_id)
         # El estado lo confirmará el propio hilo («cancelado»).
         anunciar(_("Cancelando descarga"))
@@ -466,34 +475,6 @@ class GestorDescargasDialog(wx.Dialog):
             logger.debug("no se pudo detener el temporizador: %s", error)
         if _dialogo_activo is self:
             _dialogo_activo = None
-
-    # ── Callbacks del hilo de descarga (CallAfter) ──────────────────────────
-
-    def _actualizar_progreso(self, item_id: str, pct: float, nombre: str) -> None:
-        # _alive cubre el cierre ordenado, pero wx invalida controles al destruirlos.
-        if not self or not self._alive or not self.lista:
-            return
-        idx = self._items_fila.get(item_id)
-        if idx is None:
-            return
-        texto = f"{pct:.0f} %"
-        if nombre:
-            self.lista.SetItem(idx, 2, nombre[:300])
-        self.lista.SetItem(idx, 0, texto)
-
-    def _actualizar_estado(self, item_id: str, estado: str, mensaje: str) -> None:
-        # _alive cubre el cierre ordenado, pero wx invalida controles al destruirlos.
-        if not self or not self._alive or not self.lista:
-            return
-        idx = self._items_fila.get(item_id)
-        if idx is None:
-            return
-        self.lista.SetItem(idx, 1, _texto_estado(estado, mensaje))
-        if estado == "descargando":
-            try:
-                _snd.reproducir("descarga_iniciada")
-            except Exception as error:
-                logger.debug("no se pudo reproducir el inicio de descarga: %s", error)
 
 
 def abrir(parent, url_inicial: str | None = None) -> bool:

@@ -5080,6 +5080,10 @@ msgstr "Nothing selected"
 msgid "Cancelando descarga"
 msgstr "Canceling download"
 
+#: bellbird/ui/gui_descargas.py:450
+msgid "La descarga ya terminó"
+msgstr "The download has already finished"
+
 #: bellbird/ui/gui_directo_huerfano.py:187
 #, python-brace-format
 msgid ""

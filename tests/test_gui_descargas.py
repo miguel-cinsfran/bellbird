@@ -2,7 +2,6 @@
 
 import unittest
 import threading
-from types import SimpleNamespace
 from unittest import mock
 
 from bellbird.downloads import descargas
@@ -132,34 +131,83 @@ class TestGruposGestorDescargas(unittest.TestCase):
         finally:
             destruir(dialogo)
 
-    def test_actualizar_progreso_guarda_cada_dato_en_su_columna(self):
+    def test_refresco_guarda_cada_dato_en_su_columna(self):
         dialogo = gui_descargas.GestorDescargasDialog(None)
         try:
+            item = descargas.ItemDescarga("item", "https://youtu.be/x", "video",
+                                          nombre="archivo.mp4")
+            item.progreso = 42
+            item.estado = "descargando"
+            dialogo._gestor._items[item.id] = item
+            dialogo._gestor._orden.append(item.id)
             dialogo.lista.InsertItem(0, "0 %")
-            dialogo._items_fila["item"] = 0
-            dialogo._actualizar_progreso("item", 42, "archivo.mp4")
+            dialogo._items_fila[item.id] = 0
+            dialogo._fila_items[0] = item.id
+            dialogo._refrescar_desde_gestor()
             self.assertEqual(dialogo.lista.GetItemText(0, 0), "42 %")
             self.assertEqual(dialogo.lista.GetItemText(0, 2), "archivo.mp4")
         finally:
             destruir(dialogo)
 
-    def test_progreso_rezagado_despues_de_cerrar_no_lanza(self):
+    def test_refrescar_sin_cambios_no_reescribe_celdas(self):
         dialogo = gui_descargas.GestorDescargasDialog(None)
-        dialogo.lista.InsertItem(0, "archivo.mp4")
-        dialogo._items_fila["item"] = 0
-        dialogo._on_cerrar(None)
-        wx.Yield()
-        dialogo._actualizar_progreso("item", 50, "archivo.mp4")
-        dialogo._actualizar_estado("item", "completado", "")
+        try:
+            item = descargas.ItemDescarga("item", "https://youtu.be/x", "video",
+                                          nombre="archivo.mp4")
+            item.progreso = 42
+            item.estado = "descargando"
+            dialogo._gestor._items[item.id] = item
+            dialogo._gestor._orden.append(item.id)
+            dialogo.lista.InsertItem(0, "0 %")
+            dialogo._items_fila[item.id] = 0
+            dialogo._fila_items[0] = item.id
+            with mock.patch.object(dialogo.lista, "SetItem",
+                                   wraps=dialogo.lista.SetItem) as escribir:
+                dialogo._refrescar_desde_gestor()
+                self.assertEqual(escribir.call_count, 3)
+                escribir.reset_mock()
+                dialogo._refrescar_desde_gestor()
+                escribir.assert_not_called()
+        finally:
+            destruir(dialogo)
 
-    def test_callbacks_rezagados_despues_de_destruir_no_lanzan(self):
-        dialogo = gui_descargas.GestorDescargasDialog(None)
-        dialogo.lista.InsertItem(0, "archivo.mp4")
-        dialogo._items_fila["item"] = 0
-        destruir(dialogo)
-        wx.Yield()
-        dialogo._actualizar_progreso("item", 50, "archivo.mp4")
-        dialogo._actualizar_estado("item", "completado", "")
+    def test_cancelar_un_item_terminado_no_cancela_y_avisa(self):
+        cargar, guardar = self._sin_disco()
+        with cargar, guardar, \
+                mock.patch.object(gui_descargas, "anunciar") as anunciar, \
+                mock.patch.object(gui_descargas._snd, "reproducir") as sonido:
+            dialogo = gui_descargas.GestorDescargasDialog(None)
+            try:
+                item = descargas.ItemDescarga(
+                    "item", "https://youtu.be/abc", "video", nombre="video.mp4")
+                dialogo._gestor._items[item.id] = item
+                dialogo._gestor._orden.append(item.id)
+                dialogo.lista.InsertItem(0, "100 %")
+                dialogo._items_fila[item.id] = 0
+                dialogo._fila_items[0] = item.id
+                dialogo.lista.Select(0)
+                for final in gui_descargas._ESTADOS_FINALES:
+                    with self.subTest(estado=final):
+                        item.estado = final
+                        anunciar.reset_mock()
+                        sonido.reset_mock()
+                        with mock.patch.object(dialogo._gestor, "cancelar") as cancelar:
+                            dialogo._on_cancelar(None)
+                        cancelar.assert_not_called()
+                        anunciar.assert_called_once_with("La descarga ya terminó")
+                        sonido.assert_called_once_with("error")
+                for pendiente in ("en_cola", "descargando"):
+                    with self.subTest(estado=pendiente):
+                        item.estado = pendiente
+                        anunciar.reset_mock()
+                        sonido.reset_mock()
+                        with mock.patch.object(dialogo._gestor, "cancelar") as cancelar:
+                            dialogo._on_cancelar(None)
+                        cancelar.assert_called_once_with(item.id)
+                        anunciar.assert_called_once_with("Cancelando descarga")
+                        sonido.assert_not_called()
+            finally:
+                destruir(dialogo)
 
     def test_fin_avisado_despues_de_cerrar_el_dialogo(self):
         inicio = threading.Event()
@@ -329,12 +377,12 @@ class TestSonidosDeDescarga(unittest.TestCase):
                 "completado", "", item.nombre, item)
         abrir.assert_not_called()
 
-    def test_al_descargar_suena_la_iniciada(self):
-        falso = SimpleNamespace(_alive=True, lista=mock.Mock(),
-                                _items_fila={"id": 0})
-        gui_descargas.GestorDescargasDialog._actualizar_estado(
-            falso, "id", "descargando", "")
+    def test_al_descargar_suena_la_iniciada_sin_dialogo_abierto(self):
+        self.assertIsNone(gui_descargas._dialogo_activo)
+        item = self._item()
+        gui_descargas._fin_descarga_en_gui("descargando", "", "x", item)
         self._sonido.assert_called_once_with("descarga_iniciada")
+        self.assertNotIn(item.id, gui_descargas._registrados)
 
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")

@@ -260,6 +260,8 @@ class TestVentanaMusica(unittest.TestCase):
             destruir(self.ventana)
         self._parche.stop()
         self.tmp.cleanup()
+        # La App no sobrevive al módulo: viva, wx.GetApp() cambia caminos.
+        del self.app
 
     def _abrir(self, control, abrir_listas=False):
         self.ventana = musica_ventana.VentanaMusica(
@@ -1361,6 +1363,8 @@ class TestVentanaBotonIgualar(unittest.TestCase):
             self.ventana._cancelar_temporizador()
             self.ventana._parar_igualando()
             destruir(self.ventana)
+        # La App no sobrevive al módulo: viva, wx.GetApp() cambia caminos.
+        del self.app
 
     def _abrir(self, control):
         self.control = control
@@ -1503,6 +1507,8 @@ class TestVentanaPreguntaIgualar(unittest.TestCase):
             self.ventana._cancelar_temporizador()
             self.ventana._parar_igualando()
             destruir(self.ventana)
+        # La App no sobrevive al módulo: viva, wx.GetApp() cambia caminos.
+        del self.app
 
     def _abrir(self, control, responder_pedidos=False):
         self.control = control
@@ -1511,9 +1517,10 @@ class TestVentanaPreguntaIgualar(unittest.TestCase):
         return self.ventana
 
     def _dialogo(self, respuesta, marcada):
-        clase = mock.patch.object(
-            musica_ventana_igualando.wx, "RichMessageDialog").start()
-        self.addCleanup(clase.stop)
+        parche = mock.patch.object(
+            musica_ventana_igualando.wx, "RichMessageDialog")
+        clase = parche.start()
+        self.addCleanup(parche.stop)
         dialogo = clase.return_value
         dialogo.ShowModal.return_value = respuesta
         dialogo.IsCheckBoxChecked.return_value = marcada
@@ -1720,6 +1727,8 @@ class TestVentanaVigiaYExaminar(unittest.TestCase):
             destruir(self.ventana)
         self._parche.stop()
         self.tmp.cleanup()
+        # La App no sobrevive al módulo: viva, wx.GetApp() cambia caminos.
+        del self.app
 
     def _abrir(self, control, abrir_listas=False):
         self.ventana = musica_ventana.VentanaMusica(
@@ -1941,6 +1950,8 @@ class TestPseudoAnunciosVentana(unittest.TestCase):
             self.ventana._parar_igualando()
             destruir(self.ventana)
         self._parche.stop()
+        # La App no sobrevive al módulo: viva, wx.GetApp() cambia caminos.
+        del self.app
 
     def _abrir(self, control):
         self.ventana = musica_ventana.VentanaMusica(None, control)

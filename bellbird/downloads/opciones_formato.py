@@ -82,6 +82,21 @@ def argumentos_exactos(selector: str, contenedor: str) -> list[str]:
     return args
 
 
+def transitorias_de(formato) -> dict:
+    """Lo transitorio para descargar con ese formato sin mover lo elegido.
+
+    «audio» y «video» dan su formato guardable; un diccionario (el de una
+    opción exacta elegida) se devuelve igual.
+    """
+    if isinstance(formato, dict):
+        return formato
+    if formato == "audio":
+        return {"formato": "audio_original"}
+    if formato == "video":
+        return {"formato": "mp4"}
+    return {"formato": formato or "mp4"}
+
+
 def _normalizar(formato: str) -> str:
     f = (formato or "").lower().strip()
     if f in ("video_original", "mp4", "webm", "audio_original", "mp3",

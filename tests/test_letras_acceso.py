@@ -20,8 +20,8 @@ from tests.test_gui_transmision import (
 from tests.ventanas_prueba import destruir
 from bellbird.ai import catalogo
 from bellbird.core import config
-from bellbird.downloads import descargas
-from bellbird.ui import descargas_listas, gui_comentarios, gui_descargas, gui_directo_youtube, gui_historial, gui_microfono, gui_transmision, gui_preferencias
+from bellbird.downloads import descargas, formatos_reales
+from bellbird.ui import descargas_listas, elegir_formato, gui_comentarios, gui_descargas, gui_directo_youtube, gui_historial, gui_microfono, gui_transmision, gui_preferencias
 from bellbird.ui import preferencias_ia
 from bellbird.ui import preferencias_ia_clave
 from bellbird.voice import motores
@@ -156,6 +156,31 @@ class TestLetrasAccesoComentarios(unittest.TestCase):
         self.assertEqual(letras_repetidas(panel), {})
 
 
+def _opciones_formato_ejemplo():
+    return [
+        formatos_reales.OpcionFormato(
+            etiqueta="1080p, MP4, 100 MB", selector="299+140",
+            contenedor="mp4", tamano=100000000),
+        formatos_reales.OpcionFormato(
+            etiqueta="720p, MP4, 50 MB", selector="22+140",
+            contenedor="mp4", tamano=50000000),
+        formatos_reales.OpcionFormato(
+            etiqueta="Solo audio, M4A, 128 kbps, 5 MB", selector="140",
+            contenedor="m4a", tamano=5000000),
+    ]
+
+
+class TestLetrasAccesoElegirFormato(unittest.TestCase):
+    def setUp(self):
+        self.app = wx.App.Get() or wx.App(False)
+
+    def test_cuadro_sin_letras_repetidas(self):
+        dialogo = elegir_formato.DialogoFormato(
+            None, _opciones_formato_ejemplo())
+        self.addCleanup(destruir, dialogo)
+        self.assertEqual(letras_repetidas(dialogo), {})
+
+
 class TestLetrasAccesoDescargas(unittest.TestCase):
     def setUp(self):
         self.app = wx.App.Get() or wx.App(False)
@@ -273,6 +298,20 @@ class TestLetrasAccesoHistorialEnIngles(TestLetrasAccesoHistorial):
 
 class TestLetrasAccesoComentariosEnIngles(TestLetrasAccesoComentarios):
     # Gemela en inglés: repite las pruebas sin copiarlas.
+
+    @classmethod
+    def setUpClass(cls):
+        cls._ingles = ingles()
+        cls._ingles.__enter__()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._ingles.__exit__(None, None, None)
+        del cls._ingles
+
+
+class TestLetrasAccesoElegirFormatoEnIngles(TestLetrasAccesoElegirFormato):
+    # Gemela en inglés: repite la prueba sin copiarla.
 
     @classmethod
     def setUpClass(cls):

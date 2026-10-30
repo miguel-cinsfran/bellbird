@@ -27,6 +27,7 @@ def textos() -> dict:
         "escuchar": _("&Escuchar"),
         "audio": _("Descargar como a&udio"),
         "video": _("Descargar como &vídeo"),
+        "formato": _("Elegir &formato…"),
         "bellbird": _("Abrir en &Bellbird"),
         "musica": _("Agregar a la &música"),
         "contenido": _("Ver co&ntenido"),
@@ -58,8 +59,8 @@ def opciones_de(entrada, hay_bellbird, hay_musica) -> tuple:
     elif resultado.tipo == "canal":
         base = ("contenido", "copiar", "navegador")
     else:
-        base = ("agregar", "escuchar", "audio", "video", "bellbird", "musica",
-                "copiar", "navegador")
+        base = ("agregar", "escuchar", "audio", "video", "formato", "bellbird",
+                "musica", "copiar", "navegador")
     if not hay_bellbird:
         base = tuple(o for o in base if o != "bellbird")
     if not hay_musica:
@@ -133,6 +134,7 @@ def _llamadas_menu(resultados, unico, acciones, al_ver_contenido,
         "escuchar": lambda: al_escuchar(unico),
         "audio": lambda: acciones.como_audio(list(resultados)),
         "video": lambda: acciones.como_video(list(resultados)),
+        "formato": lambda: acciones.elegir_formato(unico),
         "bellbird": lambda: acciones.en_bellbird(unico),
         "musica": lambda: acciones.a_musica(unico),
         "contenido": lambda: al_ver_contenido(unico),
@@ -171,6 +173,7 @@ class AccionesResultado:
         self._agregar_urls = agregar_urls
         self._abrir_en_bellbird = abrir_en_bellbird
         self._agregar_a_musica = agregar_a_musica
+        self._consulta_formato = None
 
     def copiar(self, resultado) -> None:
         if resultado is None:
@@ -215,3 +218,12 @@ class AccionesResultado:
         self._agregar_urls(
             [r.url for r in resultados or []], formato="video",
             titulo=titulo_para_anunciar(resultados or []))
+
+    def elegir_formato(self, resultado) -> None:
+        from bellbird.ui import elegir_formato
+        # Una sola consulta por página: si se creara una por llamada, el
+        # aviso de consulta en curso nunca actuaría.
+        if self._consulta_formato is None:
+            self._consulta_formato = elegir_formato.ConsultaFormatos(
+                self._agregar_urls)
+        self._consulta_formato.pedir(resultado)

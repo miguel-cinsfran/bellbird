@@ -560,6 +560,25 @@ def gen_escucha_fallida():
     return _normalizar(_concat(n1, n2), 0.7)
 
 
+def gen_formatos_cargando():
+    # Tres pulsos cortos ascendentes en seno claro: se piden los formatos
+    # del vídeo. Tres notas porque la carga de la escucha es de dos
+    # (E5→G5) y la búsqueda iniciada es un barrido (E5→A5).
+    n1 = _perc(_seno(D5, 0.06, 0.32), 0.004, 0.05)
+    n2 = _perc(_seno(F5, 0.06, 0.32), 0.004, 0.05)
+    n3 = _perc(_seno(A5, 0.12, 0.34), 0.004, 0.10)
+    return _normalizar(_concat(n1, n2, n3), 0.7)
+
+
+def gen_formatos_fallidos():
+    # Dos notas medias descendentes A4→F4: no se pudieron cargar. Distintas
+    # de la caída grave de busqueda_fallida (D4→B3) y del par repetido de
+    # escucha_fallida (E3→E3).
+    n1 = _perc(_seno(A4, 0.11, 0.32), 0.005, 0.10)
+    n2 = _perc(_seno(F4, 0.18, 0.32), 0.005, 0.15)
+    return _normalizar(_concat(n1, n2), 0.7)
+
+
 def gen_descarga_encolada():
     # Una nota corta con golpe: breve para no cansar al agregar muchas.
     return _normalizar(_perc(_detune(A5, 0.16, 0.42), 0.003, 0.10), 0.7)
@@ -915,6 +934,19 @@ def s_escucha_fallida():
                 _madera(E3, 0.18, 0.34, 0.14))
 
 
+def s_formatos_cargando():
+    # Los mismos tres pulsos ascendentes, en madera cálida.
+    return _seq(_madera(D5, 0.06, 0.32, 0.05),
+                _madera(F5, 0.06, 0.32, 0.05),
+                _madera(A5, 0.12, 0.34, 0.10))
+
+
+def s_formatos_fallidos():
+    # Las mismas dos notas medias descendentes, en madera cálida.
+    return _seq(_madera(A4, 0.11, 0.32, 0.09),
+                _madera(F4, 0.18, 0.32, 0.14))
+
+
 def s_descarga_encolada():
     # La misma nota corta con golpe, en madera.
     return _normalizar(_madera(A5, 0.16, 0.40, 0.10), 0.65)
@@ -1098,6 +1130,8 @@ TEMAS = {
         "busqueda_fallida.wav":        gen_busqueda_fallida,
         "escucha_cargando.wav":        gen_escucha_cargando,
         "escucha_fallida.wav":         gen_escucha_fallida,
+        "formatos_cargando.wav":       gen_formatos_cargando,
+        "formatos_fallidos.wav":       gen_formatos_fallidos,
         "descarga_encolada.wav":       gen_descarga_encolada,
         "descarga_procesando.wav":     gen_descarga_procesando,
         "cola_descargas_terminada.wav": gen_cola_descargas_terminada,
@@ -1181,6 +1215,8 @@ TEMAS = {
         "busqueda_fallida.wav":        s_busqueda_fallida,
         "escucha_cargando.wav":        s_escucha_cargando,
         "escucha_fallida.wav":         s_escucha_fallida,
+        "formatos_cargando.wav":       s_formatos_cargando,
+        "formatos_fallidos.wav":       s_formatos_fallidos,
         "descarga_encolada.wav":       s_descarga_encolada,
         "descarga_procesando.wav":     s_descarga_procesando,
         "cola_descargas_terminada.wav": s_cola_descargas_terminada,

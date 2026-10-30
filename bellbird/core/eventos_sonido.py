@@ -47,6 +47,8 @@ EVENTOS = [
     "descarga_parcial",
     # Escucha previa de un resultado: carga y fallo, cada uno con el suyo.
     "escucha_cargando", "escucha_fallida",
+    # Elección de formato de un vídeo: consulta y fallo, cada uno con el suyo.
+    "formatos_cargando", "formatos_fallidos",
 ]
 
 # Nombre llano de cada evento para la página Sonidos de Preferencias.
@@ -122,4 +124,6 @@ NOMBRES = {
     "descarga_parcial": "Descarga parcial",
     "escucha_cargando": "Carga del audio para escuchar",
     "escucha_fallida": "Fallo al escuchar",
+    "formatos_cargando": "Carga de formatos",
+    "formatos_fallidos": "Formatos no disponibles",
 }

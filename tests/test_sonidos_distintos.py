@@ -32,6 +32,7 @@ EVENTOS_NUEVOS = [
     "directo_pausado", "directo_reanudado",
     "busqueda_iniciada", "busqueda_resultados", "busqueda_sin_resultados",
     "busqueda_fallida", "escucha_cargando", "escucha_fallida",
+    "formatos_cargando", "formatos_fallidos",
     "descarga_encolada", "descarga_procesando",
     "cola_descargas_terminada", "descarga_parcial",
 ]

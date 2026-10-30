@@ -39,11 +39,11 @@ class TestOpcionesDeResultado(unittest.TestCase):
         video = self._res()
         casos = [
             ((video, True, True),
-             ("agregar", "escuchar", "audio", "video", "bellbird", "musica",
-              "copiar", "navegador", "sitios")),
+              ("agregar", "escuchar", "audio", "video", "formato", "bellbird",
+               "musica", "copiar", "navegador", "sitios")),
             ((video, False, False),
-             ("agregar", "escuchar", "audio", "video", "copiar", "navegador",
-              "sitios")),
+              ("agregar", "escuchar", "audio", "video", "formato", "copiar",
+               "navegador", "sitios")),
             ((self._res(directo=True), True, True),
              ("bellbird", "musica", "copiar", "navegador", "sitios")),
             ((self._res(directo=True), False, False),
@@ -1355,8 +1355,8 @@ class TestMenuYVistaBuscador(unittest.TestCase):
         dialogo.Show()
         pagina = self._pagina_buscada(dialogo, items)
         espias = {n: mock.Mock() for n in (
-            "como_audio", "como_video", "en_bellbird", "a_musica", "copiar",
-            "abrir_en_navegador", "ver_sitios")}
+            "como_audio", "como_video", "elegir_formato", "en_bellbird",
+            "a_musica", "copiar", "abrir_en_navegador", "ver_sitios")}
         with mock.patch.multiple(pagina._acciones, **espias), \
                 mock.patch.object(pagina, "_agregar_urls",
                                   return_value=1) as agregar, \
@@ -1368,9 +1368,10 @@ class TestMenuYVistaBuscador(unittest.TestCase):
             etiquetas = self._menu_disparado(pagina)
         juntos = " ".join(etiquetas).replace("&", "")
         for texto in ("Agregar a la cola", "Escuchar", "Descargar como audio",
-                      "Descargar como vídeo", "Abrir en Bellbird",
-                      "Agregar a la música", "Copiar enlace",
-                      "Abrir en el navegador", "Ver sitios compatibles"):
+                      "Descargar como vídeo", "Elegir formato",
+                      "Abrir en Bellbird", "Agregar a la música",
+                      "Copiar enlace", "Abrir en el navegador",
+                      "Ver sitios compatibles"):
             self.assertIn(texto, juntos)
         self.assertNotIn("Ver contenido", juntos)
         agregar.assert_called_once_with(["https://www.youtube.com/watch?v=v"],
@@ -1378,6 +1379,7 @@ class TestMenuYVistaBuscador(unittest.TestCase):
         resultado = pagina._resultados[0]
         espias["como_audio"].assert_called_once_with([resultado])
         espias["como_video"].assert_called_once_with([resultado])
+        espias["elegir_formato"].assert_called_once_with(resultado)
         espias["en_bellbird"].assert_called_once_with(resultado)
         espias["a_musica"].assert_called_once_with(resultado)
         espias["copiar"].assert_called_once_with(resultado)
@@ -1714,6 +1716,36 @@ class TestMenuYVistaBuscador(unittest.TestCase):
         self.assertEqual(vistos, ["audio_original", "mp4"])
         self.assertEqual(dialogo._gestor._opciones["formato"], "mp4")
         self.assertEqual(dialogo.cho_formato.GetSelection(), formato_visto)
+
+    def test_agregar_urls_formato_diccionario_encola_exacto_y_restaura(self):
+        dialogo = self._dialogo()
+        formato_visto = dialogo.cho_formato.GetSelection()
+        calidad_vista = dialogo.cho_calidad.GetSelection()
+        exacto = {"formato": "exacto", "selector": "299+140",
+                  "contenedor": "mp4"}
+        with mock.patch.object(gui_descargas.cfg,
+                               "guardar_opciones_descarga"), \
+                mock.patch.object(dialogo._gestor, "encolar") as encolar, \
+                mock.patch.object(gui_descargas, "anunciar"):
+            vistos = []
+            original = dialogo._gestor.set_opciones
+
+            def espiar(op):
+                vistos.append(dict(op))
+                return original(op)
+
+            with mock.patch.object(dialogo._gestor, "set_opciones",
+                                   side_effect=espiar):
+                agregados = dialogo.agregar_urls(
+                    ["https://youtu.be/abc"], formato=dict(exacto),
+                    titulo="Mi vídeo")
+        self.assertEqual(agregados, 1)
+        encolar.assert_called_once()
+        self.assertEqual(vistos[0].get("formato"), "exacto")
+        self.assertEqual(vistos[0].get("selector"), "299+140")
+        self.assertEqual(dialogo._gestor._opciones["formato"], "mp4")
+        self.assertEqual(dialogo.cho_formato.GetSelection(), formato_visto)
+        self.assertEqual(dialogo.cho_calidad.GetSelection(), calidad_vista)
 
     def test_abrir_en_bellbird_cierra_antes_de_llamar(self):
         callback = mock.Mock()

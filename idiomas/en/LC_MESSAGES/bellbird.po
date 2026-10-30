@@ -6650,6 +6650,7 @@ msgstr "&{boton}"
 #: bellbird/ui/musica_dialogo_enlace.py:62
 #: bellbird/ui/musica_editor_lista.py:154
 #: bellbird/ui/musica_editor_lista.py:155
+#: bellbird/ui/elegir_formato.py:65
 msgid "Cancelar"
 msgstr "Cancel"
 
@@ -8786,6 +8787,10 @@ msgstr "D&ownload as audio"
 msgid "Descargar como &vídeo"
 msgstr "Download as &video"
 
+#: bellbird/ui/buscador_acciones.py:30
+msgid "Elegir &formato…"
+msgstr "Choose &format…"
+
 #: bellbird/ui/buscador_acciones.py:29
 msgid "Abrir en &Bellbird"
 msgstr "Open in &Bellbird"
@@ -8965,3 +8970,31 @@ msgstr "{alto}p, {contenedor}, {tamano}"
 #, python-brace-format
 msgid "Solo audio, {contenedor}, {kbps} kbps, {tamano}"
 msgstr "Audio only, {contenedor}, {kbps} kbps, {tamano}"
+
+#: bellbird/ui/elegir_formato.py:21
+msgid "Elegir formato"
+msgstr "Choose format"
+
+#: bellbird/ui/elegir_formato.py:22
+msgid "Cargando formatos"
+msgstr "Loading formats"
+
+#: bellbird/ui/elegir_formato.py:23
+msgid "No se pudieron cargar los formatos."
+msgstr "Could not load the formats."
+
+#: bellbird/ui/elegir_formato.py:49
+msgid "&Formatos:"
+msgstr "&Formats:"
+
+#: bellbird/ui/elegir_formato.py:53 bellbird/ui/elegir_formato.py:55
+msgid "Formatos"
+msgstr "Formats"
+
+#: bellbird/ui/elegir_formato.py:60
+msgid "&Descargar"
+msgstr "&Download"
+
+#: bellbird/ui/elegir_formato.py:60
+msgid "Descargar"
+msgstr "Download"

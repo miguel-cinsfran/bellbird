@@ -31,7 +31,7 @@ from bellbird.downloads.motivo_error import frase_aviso_descarga
 from bellbird.downloads import historial_descargas
 from bellbird.downloads.opciones_formato import (
     BITRATES, FORMATOS, RESOLUCIONES, clase_de_calidad,
-    etiquetas_de_calidad)
+    etiquetas_de_calidad, transitorias_de)
 from bellbird.ui.descargas_buscador import PaginaBuscador
 from bellbird.ui.descargas_listas import _ESTADOS_FINALES, PaginaDescargas
 from bellbird.ui.buscador_acciones import anunciar_agregados
@@ -321,18 +321,18 @@ class GestorDescargasDialog(wx.Dialog):
     def agregar_urls(self, urls, formato=None, titulo=None) -> int:
         """Encola esos enlaces, avisa lo que pasó y devuelve cuántos fueron.
 
-        Con formato "audio" o "video" encola con ese formato sin mover
-        lo elegido ni guardarlo. `titulo` es el del resultado, si es uno
-        solo; el turno se mira antes de encolar.
+        Con un formato dado encola con ese formato sin mover lo elegido
+        ni guardarlo. `titulo` es el del resultado, si es uno solo; el
+        turno se mira antes de encolar.
         """
         pedidos = _pedidos_nuevos([u for u in (urls or []) if u], self)
         if not pedidos:
             return 0
         hay_turno = self._gestor.hay_turno()
-        if formato in ("audio", "video"):
+        if formato:
             elegidas = self._opciones_actuales()
             transitorias = dict(elegidas)
-            transitorias["formato"] = "audio_original" if formato == "audio" else "mp4"
+            transitorias.update(transitorias_de(formato))
             self._gestor.set_opciones(transitorias)
             try:
                 for url in pedidos:

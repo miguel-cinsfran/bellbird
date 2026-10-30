@@ -8454,6 +8454,59 @@ msgstr "Signed in. You can go back to the application."
 msgid "Sin título"
 msgstr "Untitled"
 
+#: bellbird/downloads/busqueda_youtube.py:262 bellbird/downloads/busqueda_youtube.py:267 bellbird/downloads/busqueda_youtube.py:275
+msgid "No se pudo completar la búsqueda. Comprueba la conexión e inténtalo de nuevo."
+msgstr "Could not complete the search. Check the connection and try again."
+
+#: bellbird/downloads/busqueda_youtube.py:309
+msgid "1 vista"
+msgstr "1 view"
+
+#: bellbird/downloads/busqueda_youtube.py:311
+#, python-brace-format
+msgid "{n} vistas"
+msgstr "{n} views"
+
+#: bellbird/downloads/busqueda_youtube.py:329
+msgid "hoy"
+msgstr "today"
+
+#: bellbird/downloads/busqueda_youtube.py:331
+msgid "hace 1 día"
+msgstr "1 day ago"
+
+#: bellbird/downloads/busqueda_youtube.py:333
+#, python-brace-format
+msgid "hace {n} días"
+msgstr "{n} days ago"
+
+#: bellbird/downloads/busqueda_youtube.py:337
+msgid "hace 1 semana"
+msgstr "1 week ago"
+
+#: bellbird/downloads/busqueda_youtube.py:338
+#, python-brace-format
+msgid "hace {n} semanas"
+msgstr "{n} weeks ago"
+
+#: bellbird/downloads/busqueda_youtube.py:342
+msgid "hace 1 mes"
+msgstr "1 month ago"
+
+#: bellbird/downloads/busqueda_youtube.py:343
+#, python-brace-format
+msgid "hace {n} meses"
+msgstr "{n} months ago"
+
+#: bellbird/downloads/busqueda_youtube.py:346
+msgid "hace 1 año"
+msgstr "1 year ago"
+
+#: bellbird/downloads/busqueda_youtube.py:347
+#, python-brace-format
+msgid "hace {n} años"
+msgstr "{n} years ago"
+
 #~ msgid "Aplicar el &orden"
 #~ msgstr "Apply &order"
 

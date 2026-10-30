@@ -104,6 +104,12 @@ Paraguay.
   enlace, cancelar y eliminar. Supr elimina la descarga elegida de la lista.
 - Mientras descarga, la columna *Estado* dice la velocidad y el tiempo que
   falta. En una lista dice también por qué vídeo va, como «vídeo 3 de 10».
+  La columna *Progreso* muestra una barra junto al porcentaje.
+- *Elegir formato…*, en el menú contextual de un vídeo, muestra las
+  resoluciones que tiene ese vídeo con su tamaño, como «1080p 60 fps, MP4,
+  246 MB», y una opción de solo audio. La elegida se descarga sin cambiar
+  *Formato* ni *Calidad*. Consultar los formatos tarda unos segundos, y la
+  app lo avisa con un sonido.
 - *Formato* tiene nueve opciones: vídeo original, MP4 o WebM, y audio
   original, MP3, M4A, Opus, FLAC o WAV. *Calidad* cambia según el formato:
   resolución en vídeo y kbps en audio. El archivo guarda el título y los

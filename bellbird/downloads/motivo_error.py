@@ -49,3 +49,21 @@ def _motivo_plataforma(texto: str) -> str | None:
     if "unsupported url" in texto:
         return _("Este enlace no es compatible con la descarga.")
     return None
+
+
+def frase_aviso_descarga(estado: str, mensaje: str, nombre: str) -> str:
+    """Devuelve el aviso accesible de un fin de descarga."""
+    if estado == "completado":
+        if mensaje:
+            return _("Descarga completada: {nombre}, {mensaje}").format(
+                nombre=nombre, mensaje=mensaje)
+        return (_("Descarga completada: {nombre}").format(nombre=nombre)
+                if nombre else _("Descarga completada"))
+    if estado == "parcial":
+        return _("Descarga con errores: {nombre}, {mensaje}").format(
+            nombre=nombre, mensaje=mensaje)
+    if estado == "error":
+        return (_("Error en la descarga: {mensaje}").format(mensaje=mensaje) if mensaje else _("Error en la descarga"))
+    if estado == "cancelado":
+        return _("Descarga cancelada")
+    return ""

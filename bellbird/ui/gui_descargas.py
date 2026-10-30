@@ -25,7 +25,8 @@ from bellbird.core import diagnostico
 from bellbird.core import config as cfg
 from bellbird.core import paths
 from bellbird.core.idioma import _
-from bellbird.downloads.descargas import frase_aviso_descarga, gestor
+from bellbird.downloads.descargas import gestor
+from bellbird.downloads.motivo_error import frase_aviso_descarga
 from bellbird.downloads import historial_descargas
 from bellbird.downloads.opciones_formato import (
     BITRATES, FORMATOS, RESOLUCIONES, clase_de_calidad,

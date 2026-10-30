@@ -20,12 +20,12 @@ from bellbird.downloads.descargas import (
     construir_outtmpl,
     debe_emitir_progreso,
     descargar,
-    frase_aviso_descarga,
     gestor,
     reiniciar_gestor,
     tiene_ffmpeg,
     _vigilar_cancelacion,
 )
+from bellbird.downloads.motivo_error import frase_aviso_descarga
 from bellbird.downloads.restos_descarga import (
     limpiar_restos_descarga, nombre_base_descarga)
 
@@ -1040,15 +1040,15 @@ class TestPseudoFrases(unittest.TestCase):
     def test_frases_de_aviso_salen_marcadas(self):
         with con_pseudo():
             frases = [
-                descargas.frase_aviso_descarga("completado", "", "video.mp4"),
-                descargas.frase_aviso_descarga("completado", "", ""),
-                descargas.frase_aviso_descarga("completado", "3 vídeos",
+                frase_aviso_descarga("completado", "", "video.mp4"),
+                frase_aviso_descarga("completado", "", ""),
+                frase_aviso_descarga("completado", "3 vídeos",
                                                "video.mp4"),
-                descargas.frase_aviso_descarga("parcial", "1 de 3 vídeos",
+                frase_aviso_descarga("parcial", "1 de 3 vídeos",
                                                "video.mp4"),
-                descargas.frase_aviso_descarga("error", "sin espacio", ""),
-                descargas.frase_aviso_descarga("error", "", ""),
-                descargas.frase_aviso_descarga("cancelado", "motivo", "video.mp4"),
+                frase_aviso_descarga("error", "sin espacio", ""),
+                frase_aviso_descarga("error", "", ""),
+                frase_aviso_descarga("cancelado", "motivo", "video.mp4"),
             ]
         self.assertTrue(frases)
         for frase in frases:

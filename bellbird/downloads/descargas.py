@@ -249,24 +249,6 @@ def tiene_ffmpeg() -> bool:
     return ffmpeg_bin.ruta_ffmpeg() is not None
 
 
-def frase_aviso_descarga(estado: str, mensaje: str, nombre: str) -> str:
-    """Devuelve el aviso accesible de un fin de descarga."""
-    if estado == "completado":
-        if mensaje:
-            return _("Descarga completada: {nombre}, {mensaje}").format(
-                nombre=nombre, mensaje=mensaje)
-        return (_("Descarga completada: {nombre}").format(nombre=nombre)
-                if nombre else _("Descarga completada"))
-    if estado == "parcial":
-        return _("Descarga con errores: {nombre}, {mensaje}").format(
-            nombre=nombre, mensaje=mensaje)
-    if estado == "error":
-        return (_("Error en la descarga: {mensaje}").format(mensaje=mensaje) if mensaje else _("Error en la descarga"))
-    if estado == "cancelado":
-        return _("Descarga cancelada")
-    return ""
-
-
 # ── Gestor de cola ───────────────────────────────────────────────────────────
 
 # La velocidad y el tiempo restante cambian muy seguido: escribirlos en el
@@ -315,7 +297,8 @@ class GestorDescargas:
                 return False
             with self._lock:
                 bloqueado = fila_descargas.bloqueado_por_anterior(
-                    item_id, self._orden, self._empezados, self._items, self._eventos)
+                    item_id, self._orden, self._empezados, self._items,
+                    self._eventos)
                 tope = self._opciones.get("simultaneas", SIMULTANEAS_DEFECTO)
                 if not bloqueado and self._corriendo < tope:
                     self._corriendo += 1
@@ -420,7 +403,8 @@ class GestorDescargas:
                     logger.info("descarga %s: inicio", item_id)
                     opciones_descarga = dict(opciones)
                     opciones_descarga["es_lista"] = (it.tipo == "playlist")
-                    descargar(url, opciones_descarga, _cb_progreso, _cb_estado, ev, _cb_detalle)
+                    descargar(url, opciones_descarga, _cb_progreso, _cb_estado, ev,
+                              _cb_detalle)
                 finally:
                     if tomado:
                         with self._lock:

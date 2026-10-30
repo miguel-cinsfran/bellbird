@@ -175,7 +175,7 @@ class GestorDescargasDialog(wx.Dialog):
     def __init__(self, parent, url_inicial=None, abrir_en_bellbird=None, musica=None):
         global _dialogo_activo
         super().__init__(parent, title=_("Administrador de descargas"),
-                         size=(860, 680),
+                         size=(940, 700),
                          name="DialogoGestorDescargas")
         self.SetBackgroundColour(_T.bg)
         self._alive = True
@@ -210,9 +210,9 @@ class GestorDescargasDialog(wx.Dialog):
         panel.SetForegroundColour(_T.text)
         vs = wx.BoxSizer(wx.VERTICAL)
 
-        vs.Add(self._seccion_listas(panel), 1, wx.EXPAND | wx.ALL, 10)
-        vs.Add(self._seccion_opciones(panel), 0, wx.EXPAND | wx.ALL, 10)
-        vs.Add(self._seccion_botones(panel), 0, wx.EXPAND | wx.ALL, 10)
+        vs.Add(self._seccion_listas(panel), 1, wx.EXPAND | wx.ALL, 12)
+        vs.Add(self._seccion_opciones(panel), 0, wx.EXPAND | wx.ALL, 12)
+        vs.Add(self._seccion_botones(panel), 0, wx.EXPAND | wx.ALL, 12)
         panel.SetSizer(vs)
 
     def _seccion_opciones(self, parent):

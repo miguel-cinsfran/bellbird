@@ -68,7 +68,7 @@ class PaginaBuscador(wx.Panel):
         fila = wx.BoxSizer(wx.HORIZONTAL)
         lbl = wx.StaticText(self, label=_("B&uscar o pegar enlace:"))
         lbl.SetForegroundColour(_T.text)
-        fila.Add(lbl, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
+        fila.Add(lbl, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 8)
         self.campo = wx.ComboBox(
             self, style=wx.CB_DROPDOWN | wx.TE_PROCESS_ENTER,
             name=_("Buscar o pegar enlace"))
@@ -79,23 +79,23 @@ class PaginaBuscador(wx.Panel):
         self.btn_buscar.SetBackgroundColour(_T.btn)
         self.btn_buscar.SetForegroundColour(_T.btn_t)
         self.btn_buscar.Bind(wx.EVT_BUTTON, self._on_buscar)
-        fila.Add(self.btn_buscar, 0, wx.LEFT, 6)
-        vs.Add(fila, 0, wx.EXPAND | wx.ALL, 6)
+        fila.Add(self.btn_buscar, 0, wx.LEFT, 8)
+        vs.Add(fila, 0, wx.EXPAND | wx.ALL, 8)
         self.filtros = FiltrosBusqueda(self, self._on_orden)
         self.filtros.chk_filtros.Bind(wx.EVT_CHECKBOX, self._on_filtros)
-        vs.Add(self.filtros.chk_filtros, 0, wx.ALL, 6)
+        vs.Add(self.filtros.chk_filtros, 0, wx.ALL, 8)
 
     def _crear_filtros(self, vs):
-        vs.Add(self.filtros.sizer, 0, wx.EXPAND | wx.ALL, 6)
+        vs.Add(self.filtros.sizer, 0, wx.EXPAND | wx.ALL, 8)
         fila_cantidad = wx.BoxSizer(wx.HORIZONTAL)
         lbl_cantidad = wx.StaticText(self, label=_("Ca&ntidad:"))
         lbl_cantidad.SetForegroundColour(_T.text)
-        fila_cantidad.Add(lbl_cantidad, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
+        fila_cantidad.Add(lbl_cantidad, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 8)
         self.cho_cantidad = wx.Choice(self, choices=list(_CANTIDADES),
                                      name=_("Cantidad"))
         _tc(self.cho_cantidad)
         fila_cantidad.Add(self.cho_cantidad, 0)
-        vs.Add(fila_cantidad, 0, wx.ALL, 6)
+        vs.Add(fila_cantidad, 0, wx.ALL, 8)
 
     def _crear_lista(self, vs):
         self.lista = wx.ListCtrl(self, style=wx.LC_REPORT,
@@ -110,18 +110,18 @@ class PaginaBuscador(wx.Panel):
         self.lista.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self._on_activar)
         self.lista.Bind(wx.EVT_KEY_DOWN, self._on_key)
         self.lista.Bind(wx.EVT_CONTEXT_MENU, self._on_context_menu)
-        vs.Add(self.lista, 1, wx.EXPAND | wx.ALL, 6)
+        vs.Add(self.lista, 1, wx.EXPAND | wx.ALL, 8)
 
     def _crear_pie(self, vs):
         lbl = wx.StaticText(self, label=_("D&etalles:"))
         lbl.SetForegroundColour(_T.text)
-        vs.Add(lbl, 0, wx.LEFT | wx.RIGHT | wx.TOP, 6)
+        vs.Add(lbl, 0, wx.LEFT | wx.RIGHT | wx.TOP, 8)
         self.txt_detalles = wx.TextCtrl(
             self, style=wx.TE_MULTILINE | wx.TE_READONLY,
             name=_("Detalles"))
         _tc(self.txt_detalles)
         self.txt_detalles.SetMinSize((-1, 90))
-        vs.Add(self.txt_detalles, 0, wx.EXPAND | wx.ALL, 6)
+        vs.Add(self.txt_detalles, 0, wx.EXPAND | wx.ALL, 8)
         fila = wx.BoxSizer(wx.HORIZONTAL)
         self.btn_volver = self._crear_boton(
             fila, _("&Volver a los resultados"), "VolverResultados")
@@ -131,21 +131,21 @@ class PaginaBuscador(wx.Panel):
         self.btn_agregar.SetBackgroundColour(_T.btn)
         self.btn_agregar.SetForegroundColour(_T.btn_t)
         self.btn_agregar.Bind(wx.EVT_BUTTON, self._on_agregar)
-        fila.Add(self.btn_agregar, 0, wx.RIGHT, 6)
+        fila.Add(self.btn_agregar, 0, wx.RIGHT, 8)
         self.btn_mas = wx.Button(self, label=_("Mostrar &más"), name="MostrarMas")
         self.btn_mas.SetBackgroundColour(_T.btn)
         self.btn_mas.SetForegroundColour(_T.btn_t)
         self.btn_mas.Bind(wx.EVT_BUTTON, self._on_mas)
         self.btn_mas.Disable()
         fila.Add(self.btn_mas, 0)
-        vs.Add(fila, 0, wx.ALL, 6)
+        vs.Add(fila, 0, wx.ALL, 8)
 
     def _crear_boton(self, fila, etiqueta, nombre):
         boton = wx.Button(self, label=etiqueta, name=nombre)
         boton.SetBackgroundColour(_T.btn)
         boton.SetForegroundColour(_T.btn_t)
         boton.Show(False)
-        fila.Add(boton, 0, wx.RIGHT, 6)
+        fila.Add(boton, 0, wx.RIGHT, 8)
         return boton
 
     def _cargar_opciones(self):

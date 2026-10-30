@@ -9,7 +9,8 @@ from unittest import mock
 from bellbird.downloads import descargas
 from bellbird.downloads import busqueda_youtube
 from bellbird.downloads import filas_descargas
-from bellbird.ui import descargas_acciones, descargas_buscador, descargas_listas, gui_descargas
+from bellbird.ui import barra_progreso, descargas_acciones, descargas_buscador, descargas_listas, gui_descargas
+from bellbird.ui import tema as _tema
 from bellbird.ui import buscador_acciones, buscador_escucha
 from bellbird.ui.buscador_acciones import AccionesResultado, opciones_de
 from bellbird.ui import buscador_contenido
@@ -754,7 +755,7 @@ class TestBuscador(unittest.TestCase):
         self.assertEqual(dialogo.pestanas.GetPageText(1), "Descargas")
         self.assertIsInstance(dialogo.pagina_buscador,
                               descargas_buscador.PaginaBuscador)
-        self.assertEqual(tuple(dialogo.GetSize()), (860, 680))
+        self.assertEqual(tuple(dialogo.GetSize()), (940, 700))
 
     def test_construir_no_busca_y_deja_todo_en_reposo(self):
         buscar = self._con_busqueda(_respuesta_busqueda([]))
@@ -2291,6 +2292,106 @@ class TestFinDeCola(unittest.TestCase):
         self._sonido.assert_called_once_with("descarga_completada")
         self._anunciar.assert_called_once_with(
             "Descarga completada: sola.mp4")
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestBarraProgresoEnLista(unittest.TestCase):
+    """La columna Progreso dibuja la barra junto al texto, sin cambiarlo."""
+
+    def setUp(self):
+        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        gui_descargas._registrados.clear()
+
+    def tearDown(self):
+        descargas.reiniciar_gestor()
+        gui_descargas._registrados.clear()
+        gui_descargas._dialogo_activo = None
+
+    def _dialogo(self, entradas=None, activos=()):
+        parches = list(TestPaginaUnica._sin_disco(self, entradas))
+        for parche in parches:
+            parche.start()
+            self.addCleanup(parche.stop)
+        dialogo = gui_descargas.GestorDescargasDialog(None)
+        for item in activos:
+            dialogo._gestor._items[item.id] = item
+            dialogo._gestor._orden.append(item.id)
+        dialogo.pagina_descargas.refrescar()
+        self.addCleanup(destruir, dialogo)
+        self.addCleanup(setattr, gui_descargas, "_dialogo_activo", None)
+        self.addCleanup(descargas.reiniciar_gestor)
+        return dialogo
+
+    def _relleno(self):
+        import wx as _wx
+        if _tema.ALTO_CONTRASTE:
+            return _wx.SystemSettings.GetColour(_wx.SYS_COLOUR_HIGHLIGHT)
+        return _tema._T.accent
+
+    def _dialogo_con_filas(self):
+        item = descargas.ItemDescarga(
+            "media", "https://youtu.be/media", "video", nombre="media.mp4")
+        item.estado = "descargando"
+        item.progreso = 45.0
+        return self._dialogo([
+            {"id": "hecha", "nombre": "hecha.mp4",
+             "fecha": "2026-10-30T08:33:00", "estado": "completado",
+             "url": "https://youtu.be/hecha", "carpeta": "C:/D",
+             "ruta": "C:/D/hecha.mp4"},
+            {"id": "mala", "nombre": "mala.mp4",
+             "fecha": "2026-10-29T08:33:00", "estado": "error",
+             "url": "https://youtu.be/mala", "carpeta": "C:/D", "ruta": ""}],
+            activos=[item])
+
+    def test_lista_de_imagenes_con_21_tramos_de_60_por_12(self):
+        pagina = self._dialogo_con_filas().pagina_descargas
+        imagenes = pagina.lista.GetImageList(wx.IMAGE_LIST_SMALL)
+        self.assertEqual(imagenes.GetImageCount(), 21)
+        for indice in (0, 20):
+            self.assertEqual(tuple(imagenes.GetBitmap(indice).GetSize()),
+                             (60, 12))
+        relleno = (self._relleno().Red(), self._relleno().Green(),
+                   self._relleno().Blue())
+        vacia = imagenes.GetBitmap(0).ConvertToImage()
+        for x in range(60):
+            for y in range(12):
+                self.assertNotEqual(
+                    (vacia.GetRed(x, y), vacia.GetGreen(x, y),
+                     vacia.GetBlue(x, y)), relleno)
+        llena = imagenes.GetBitmap(20).ConvertToImage()
+        self.assertEqual(
+            (llena.GetRed(30, 6), llena.GetGreen(30, 6),
+             llena.GetBlue(30, 6)), relleno)
+
+    def test_filas_con_barra_texto_e_imagen(self):
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_descargas
+        item = descargas.ItemDescarga(
+            "media", "https://youtu.be/media", "video", nombre="media.mp4")
+        item.estado = "descargando"
+        item.progreso = 45.0
+        dialogo._gestor._items[item.id] = item
+        dialogo._gestor._orden.append(item.id)
+        pagina._historial = [
+            {"id": "hecha", "nombre": "hecha.mp4",
+             "fecha": "2026-10-30T08:33:00", "estado": "completado",
+             "url": "https://youtu.be/hecha", "carpeta": "C:/D",
+             "ruta": "C:/D/hecha.mp4"},
+            {"id": "mala", "nombre": "mala.mp4",
+             "fecha": "2026-10-29T08:33:00", "estado": "error",
+             "url": "https://youtu.be/mala", "carpeta": "C:/D", "ruta": ""}]
+        with mock.patch.object(pagina.lista, "SetItemImage",
+                               wraps=pagina.lista.SetItemImage) as fijar:
+            pagina.refrescar()
+        self.assertEqual(pagina.lista.GetColumnWidth(0), 120)
+        self.assertEqual(pagina.lista.GetItemText(0, 0), "45 %")
+        self.assertEqual(pagina.lista.GetItemText(1, 0), "100 %")
+        self.assertEqual(pagina.lista.GetItemText(2, 0), "")
+        self.assertEqual(fijar.call_args_list,
+                         [mock.call(0, 9), mock.call(1, 20)])
+        fijar.reset_mock()
+        pagina.refrescar()
+        fijar.assert_not_called()
 
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")

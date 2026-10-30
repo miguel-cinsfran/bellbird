@@ -13,6 +13,7 @@ from bellbird.core import sonidos_eventos
 from bellbird.core.idioma import N_, _
 from bellbird.downloads import filas_descargas
 from bellbird.downloads import historial_descargas
+from bellbird.ui import barra_progreso
 from bellbird.ui.descargas_acciones import AccionesDescarga
 from bellbird.ui.gui import nombre_accesible, _T, _tc
 from bellbird.voice import sound_player as _snd
@@ -120,11 +121,12 @@ class PaginaDescargas(wx.Panel):
         self._historial = historial_descargas.cargar(self._ruta)
         self._filas: list = []
         self._claves: list[str] = []
+        self._tramos: list[int] = []
         self._filtro = filas_descargas.TODAS
         vs = wx.BoxSizer(wx.VERTICAL)
-        vs.Add(self._seccion_filtro(), 0, wx.EXPAND | wx.ALL, 6)
-        vs.Add(self._seccion_lista(), 1, wx.EXPAND | wx.ALL, 6)
-        vs.Add(self._seccion_botones(), 0, wx.ALL, 6)
+        vs.Add(self._seccion_filtro(), 0, wx.EXPAND | wx.ALL, 8)
+        vs.Add(self._seccion_lista(), 1, wx.EXPAND | wx.ALL, 8)
+        vs.Add(self._seccion_botones(), 0, wx.ALL, 8)
         self.SetSizer(vs)
         self.refrescar()
 
@@ -132,7 +134,7 @@ class PaginaDescargas(wx.Panel):
         fila = wx.BoxSizer(wx.HORIZONTAL)
         lbl = wx.StaticText(self, label=_("&Mostrar:"), name="EtiquetaMostrar")
         lbl.SetForegroundColour(_T.text)
-        fila.Add(lbl, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
+        fila.Add(lbl, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 8)
         self.cho_mostrar = wx.Choice(
             self, choices=[_texto_filtro(f, 0) for f in _FILTROS_ORDEN],
             name=_("Mostrar"))
@@ -146,7 +148,10 @@ class PaginaDescargas(wx.Panel):
         self.lista = wx.ListCtrl(self, style=wx.LC_REPORT | wx.LC_SINGLE_SEL,
                                  name="ListaDescargas")
         nombre_accesible(self.lista, _("Lista de descargas"), msaa=False)
-        self.lista.InsertColumn(0, _("Progreso"), width=100)
+        self.lista.AssignImageList(
+            barra_progreso.lista_de_imagenes(self.lista.GetBackgroundColour()),
+            wx.IMAGE_LIST_SMALL)
+        self.lista.InsertColumn(0, _("Progreso"), width=120)
         self.lista.InsertColumn(1, _("Estado"), width=160)
         self.lista.InsertColumn(2, _("Nombre"), width=320)
         self.lista.InsertColumn(3, _("Fecha"), width=140)
@@ -160,7 +165,7 @@ class PaginaDescargas(wx.Panel):
         self.btn_cancelar = wx.Button(self, label=_("C&ancelar descarga"),
                                       name="CancelarDescarga")
         self.btn_cancelar.Bind(wx.EVT_BUTTON, self._on_cancelar)
-        fila.Add(self.btn_cancelar, 0, wx.RIGHT, 6)
+        fila.Add(self.btn_cancelar, 0, wx.RIGHT, 8)
         self.btn_vaciar = wx.Button(self, label=_("Vaciar l&ista"),
                                     name="VaciarLista")
         self.btn_vaciar.Bind(wx.EVT_BUTTON, self._on_vaciar)
@@ -201,15 +206,19 @@ class PaginaDescargas(wx.Panel):
 
     def _sincronizar(self, deseadas: list) -> None:
         claves = list(self._claves)
+        tramos = list(self._tramos)
         pasos = filas_descargas.pasos_para_sincronizar(claves, deseadas)
         for paso in pasos:
             if paso[0] == "borrar":
                 self.lista.DeleteItem(paso[1])
                 del claves[paso[1]]
+                del tramos[paso[1]]
             else:
                 self.lista.InsertItem(paso[1], "")
                 claves.insert(paso[1], paso[2])
+                tramos.insert(paso[1], -1)
         self._claves = deseadas
+        self._tramos = tramos
 
     def _escribir_celdas(self, filtradas: list) -> None:
         for i, fila in enumerate(filtradas):
@@ -219,6 +228,10 @@ class PaginaDescargas(wx.Panel):
             for columna, texto in celdas.items():
                 if self.lista.GetItemText(i, columna) != texto:
                     self.lista.SetItem(i, columna, texto)
+            imagen = barra_progreso.tramo(fila.estado, fila.progreso)
+            if self._tramos[i] != imagen:
+                self.lista.SetItemImage(i, imagen)
+                self._tramos[i] = imagen
 
     def _restaurar(self, clave_sel, sel: int, deseadas: list) -> None:
         if clave_sel in deseadas:

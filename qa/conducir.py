@@ -5263,6 +5263,7 @@ SUPERFICIES = {
     "gui_aplicar_preferencias.py": "preferencias",
     "gui_comentarios.py": "comentarios",
     "gui_descargas.py": "descargas",
+    "descargas_listas.py": "descargas",
     "gui_directo_huerfano.py": "directo_sin_imagen",
     "gui_directo_youtube.py": "transmitir_destino",
     "gui_elegir_destino.py": "transmitir_destino",

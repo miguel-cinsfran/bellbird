@@ -5,7 +5,7 @@ import threading
 from unittest import mock
 
 from bellbird.downloads import descargas
-from bellbird.ui import gui_descargas
+from bellbird.ui import descargas_listas, gui_descargas
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
 
@@ -20,17 +20,17 @@ class TestTablaEstadosSinVentana(unittest.TestCase):
     # Sin ventana: la tabla vive en el módulo, así no se crea ningún control.
 
     def test_tabla_cubre_los_estados_con_el_texto_de_hoy(self):
-        self.assertEqual(set(gui_descargas._ETIQUETAS_ESTADO),
+        self.assertEqual(set(descargas_listas._ETIQUETAS_ESTADO),
                          {"en_cola", "descargando", "completado",
                           "cancelado", "error"})
         for nombre in ("descargando", "completado", "cancelado", "error"):
-            self.assertEqual(gui_descargas._ETIQUETAS_ESTADO[nombre], nombre)
-        self.assertEqual(gui_descargas._ETIQUETAS_ESTADO["en_cola"], "en cola")
-        self.assertEqual(gui_descargas._texto_estado("error", "sin espacio"),
+            self.assertEqual(descargas_listas._ETIQUETAS_ESTADO[nombre], nombre)
+        self.assertEqual(descargas_listas._ETIQUETAS_ESTADO["en_cola"], "en cola")
+        self.assertEqual(descargas_listas._texto_estado("error", "sin espacio"),
                          "error: sin espacio")
 
     def test_celda_de_una_descarga_en_cola_dice_en_cola(self):
-        self.assertEqual(gui_descargas._texto_estado("en_cola", ""), "en cola")
+        self.assertEqual(descargas_listas._texto_estado("en_cola", ""), "en cola")
 
 
 class _DobleControl:
@@ -95,9 +95,9 @@ class TestGruposGestorDescargas(unittest.TestCase):
 
     def _sin_disco(self):
         """El historial no debe tocar el historial_descargas.json real."""
-        return (mock.patch.object(gui_descargas.historial_descargas, "cargar",
+        return (mock.patch.object(descargas_listas.historial_descargas, "cargar",
                                   return_value=[]),
-                mock.patch.object(gui_descargas.historial_descargas, "guardar"))
+                mock.patch.object(descargas_listas.historial_descargas, "guardar"))
 
     def test_listas_en_pestanas_con_nombres_accesibles(self):
         dialogo = gui_descargas.GestorDescargasDialog(None)
@@ -125,8 +125,8 @@ class TestGruposGestorDescargas(unittest.TestCase):
         dialogo = gui_descargas.GestorDescargasDialog(None)
         try:
             self.assertEqual(
-                [dialogo.lista.GetColumn(indice).GetText()
-                 for indice in range(dialogo.lista.GetColumnCount())],
+                [dialogo.pagina_cola.lista.GetColumn(indice).GetText()
+                 for indice in range(dialogo.pagina_cola.lista.GetColumnCount())],
                 ["Progreso", "Estado", "Nombre"])
         finally:
             destruir(dialogo)
@@ -140,12 +140,12 @@ class TestGruposGestorDescargas(unittest.TestCase):
             item.estado = "descargando"
             dialogo._gestor._items[item.id] = item
             dialogo._gestor._orden.append(item.id)
-            dialogo.lista.InsertItem(0, "0 %")
-            dialogo._items_fila[item.id] = 0
-            dialogo._fila_items[0] = item.id
-            dialogo._refrescar_desde_gestor()
-            self.assertEqual(dialogo.lista.GetItemText(0, 0), "42 %")
-            self.assertEqual(dialogo.lista.GetItemText(0, 2), "archivo.mp4")
+            dialogo.pagina_cola.lista.InsertItem(0, "0 %")
+            dialogo.pagina_cola._items_fila[item.id] = 0
+            dialogo.pagina_cola._fila_items[0] = item.id
+            dialogo.pagina_cola.refrescar()
+            self.assertEqual(dialogo.pagina_cola.lista.GetItemText(0, 0), "42 %")
+            self.assertEqual(dialogo.pagina_cola.lista.GetItemText(0, 2), "archivo.mp4")
         finally:
             destruir(dialogo)
 
@@ -158,15 +158,15 @@ class TestGruposGestorDescargas(unittest.TestCase):
             item.estado = "descargando"
             dialogo._gestor._items[item.id] = item
             dialogo._gestor._orden.append(item.id)
-            dialogo.lista.InsertItem(0, "0 %")
-            dialogo._items_fila[item.id] = 0
-            dialogo._fila_items[0] = item.id
-            with mock.patch.object(dialogo.lista, "SetItem",
-                                   wraps=dialogo.lista.SetItem) as escribir:
-                dialogo._refrescar_desde_gestor()
+            dialogo.pagina_cola.lista.InsertItem(0, "0 %")
+            dialogo.pagina_cola._items_fila[item.id] = 0
+            dialogo.pagina_cola._fila_items[0] = item.id
+            with mock.patch.object(dialogo.pagina_cola.lista, "SetItem",
+                                   wraps=dialogo.pagina_cola.lista.SetItem) as escribir:
+                dialogo.pagina_cola.refrescar()
                 self.assertEqual(escribir.call_count, 3)
                 escribir.reset_mock()
-                dialogo._refrescar_desde_gestor()
+                dialogo.pagina_cola.refrescar()
                 escribir.assert_not_called()
         finally:
             destruir(dialogo)
@@ -174,25 +174,25 @@ class TestGruposGestorDescargas(unittest.TestCase):
     def test_cancelar_un_item_terminado_no_cancela_y_avisa(self):
         cargar, guardar = self._sin_disco()
         with cargar, guardar, \
-                mock.patch.object(gui_descargas, "anunciar") as anunciar, \
-                mock.patch.object(gui_descargas._snd, "reproducir") as sonido:
+                mock.patch.object(descargas_listas, "anunciar") as anunciar, \
+                mock.patch.object(descargas_listas._snd, "reproducir") as sonido:
             dialogo = gui_descargas.GestorDescargasDialog(None)
             try:
                 item = descargas.ItemDescarga(
                     "item", "https://youtu.be/abc", "video", nombre="video.mp4")
                 dialogo._gestor._items[item.id] = item
                 dialogo._gestor._orden.append(item.id)
-                dialogo.lista.InsertItem(0, "100 %")
-                dialogo._items_fila[item.id] = 0
-                dialogo._fila_items[0] = item.id
-                dialogo.lista.Select(0)
-                for final in gui_descargas._ESTADOS_FINALES:
+                dialogo.pagina_cola.lista.InsertItem(0, "100 %")
+                dialogo.pagina_cola._items_fila[item.id] = 0
+                dialogo.pagina_cola._fila_items[0] = item.id
+                dialogo.pagina_cola.lista.Select(0)
+                for final in descargas_listas._ESTADOS_FINALES:
                     with self.subTest(estado=final):
                         item.estado = final
                         anunciar.reset_mock()
                         sonido.reset_mock()
                         with mock.patch.object(dialogo._gestor, "cancelar") as cancelar:
-                            dialogo._on_cancelar(None)
+                            dialogo.pagina_cola._on_cancelar(None)
                         cancelar.assert_not_called()
                         anunciar.assert_called_once_with("La descarga ya terminó")
                         sonido.assert_called_once_with("error")
@@ -202,7 +202,7 @@ class TestGruposGestorDescargas(unittest.TestCase):
                         anunciar.reset_mock()
                         sonido.reset_mock()
                         with mock.patch.object(dialogo._gestor, "cancelar") as cancelar:
-                            dialogo._on_cancelar(None)
+                            dialogo.pagina_cola._on_cancelar(None)
                         cancelar.assert_called_once_with(item.id)
                         anunciar.assert_called_once_with("Cancelando descarga")
                         sonido.assert_not_called()
@@ -262,13 +262,15 @@ class TestGruposGestorDescargas(unittest.TestCase):
                     "item", "https://www.youtube.com/watch?v=abc&token=secreto",
                     "video", nombre="video.mp4", carpeta="C:/Descargas")
                 gui_descargas._fin_descarga_en_gui("completado", "", item.nombre, item)
-                self.assertEqual(dialogo.lista_historial.GetItemCount(), 1)
-                self.assertEqual(dialogo.lista_historial.GetItemText(0, 0), "video.mp4")
-                self.assertEqual(dialogo._historial[0]["url"], "abc")
-                self.assertEqual(dialogo._historial[0]["carpeta"], "C:/Descargas")
+                self.assertEqual(dialogo.pagina_historial.lista.GetItemCount(), 1)
+                self.assertEqual(dialogo.pagina_historial.lista.GetItemText(0, 0),
+                                 "video.mp4")
+                self.assertEqual(dialogo.pagina_historial._historial[0]["url"], "abc")
+                self.assertEqual(dialogo.pagina_historial._historial[0]["carpeta"],
+                                 "C:/Descargas")
                 # Un segundo aviso del mismo ítem no duplica la entrada.
                 gui_descargas._fin_descarga_en_gui("completado", "", item.nombre, item)
-                self.assertEqual(dialogo.lista_historial.GetItemCount(), 1)
+                self.assertEqual(dialogo.pagina_historial.lista.GetItemCount(), 1)
             finally:
                 destruir(dialogo)
 
@@ -282,19 +284,20 @@ class TestGruposGestorDescargas(unittest.TestCase):
         gestor._orden.append(item.id)
         dialogo = gui_descargas.GestorDescargasDialog(None)
         try:
-            self.assertEqual(dialogo.lista.GetItemText(0, 0), "0 %")
+            self.assertEqual(dialogo.pagina_cola.lista.GetItemText(0, 0), "0 %")
             self.assertTrue(dialogo._temporizador.IsRunning())
             item.progreso = 42
             item.nombre = "archivo.mp4"
             item.estado = "descargando"
-            dialogo._refrescar_desde_gestor()
-            self.assertEqual(dialogo.lista.GetItemText(0, 0), "42 %")
-            self.assertEqual(dialogo.lista.GetItemText(0, 1), "descargando")
-            self.assertEqual(dialogo.lista.GetItemText(0, 2), "archivo.mp4")
+            dialogo._on_refresco(None)
+            self.assertEqual(dialogo.pagina_cola.lista.GetItemText(0, 0), "42 %")
+            self.assertEqual(dialogo.pagina_cola.lista.GetItemText(0, 1), "descargando")
+            self.assertEqual(dialogo.pagina_cola.lista.GetItemText(0, 2), "archivo.mp4")
             item.estado = "error"
             item.mensaje = "sin espacio"
-            dialogo._refrescar_desde_gestor()
-            self.assertEqual(dialogo.lista.GetItemText(0, 1), "error: sin espacio")
+            dialogo._on_refresco(None)
+            self.assertEqual(dialogo.pagina_cola.lista.GetItemText(0, 1),
+                             "error: sin espacio")
         finally:
             destruir(dialogo)
 
@@ -309,21 +312,54 @@ class TestGruposGestorDescargas(unittest.TestCase):
             destruir(dialogo)
 
     def test_vaciar_historial_deja_la_lista_sin_filas(self):
-        with mock.patch.object(gui_descargas.historial_descargas, "cargar",
+        with mock.patch.object(descargas_listas.historial_descargas, "cargar",
                                return_value=[]), \
-                mock.patch.object(gui_descargas.historial_descargas, "guardar") as guardar, \
-                mock.patch.object(gui_descargas.wx, "MessageBox", return_value=wx.YES), \
-                mock.patch.object(gui_descargas, "anunciar") as anunciar:
+                mock.patch.object(descargas_listas.historial_descargas, "guardar") as guardar, \
+                mock.patch.object(descargas_listas.wx, "MessageBox", return_value=wx.YES), \
+                mock.patch.object(descargas_listas, "anunciar") as anunciar:
             dialogo = gui_descargas.GestorDescargasDialog(None)
             try:
                 entrada = {"nombre": "video.mp4", "fecha": "2026-08-28T12:00:00",
                            "estado": "completado"}
-                dialogo._historial = [entrada]
-                dialogo._agregar_fila_historial(entrada)
-                dialogo._on_vaciar_historial(None)
-                self.assertEqual(dialogo.lista_historial.GetItemCount(), 0)
-                guardar.assert_called_once_with(dialogo._ruta_historial, [])
+                dialogo.pagina_historial._historial = [entrada]
+                dialogo.pagina_historial._agregar_fila_historial(entrada)
+                dialogo.pagina_historial._on_vaciar_historial(None)
+                self.assertEqual(dialogo.pagina_historial.lista.GetItemCount(), 0)
+                guardar.assert_called_once_with(dialogo.pagina_historial._ruta, [])
                 anunciar.assert_called_once_with("Se borró 1 elemento del historial")
+            finally:
+                destruir(dialogo)
+
+    def test_agregar_enlace_encola_y_muestra_la_fila(self):
+        cargar, guardar = self._sin_disco()
+        with cargar, guardar, \
+                mock.patch.object(gui_descargas.cfg, "guardar_opciones_descarga"), \
+                mock.patch.object(gui_descargas, "anunciar") as anunciar:
+            dialogo = gui_descargas.GestorDescargasDialog(None)
+            try:
+                url = "https://youtu.be/abc"
+                fila = dialogo.pagina_cola.lista.GetItemCount()
+
+                def encolar_doble(enlace, _progreso, _estado, creado_cb):
+                    encolar_doble.enlace = enlace
+                    creado_cb("id-nuevo")
+
+                encolar_doble.enlace = None
+                with mock.patch.object(dialogo._gestor, "encolar",
+                                       side_effect=encolar_doble):
+                    dialogo.txt_url.SetValue(url)
+                    dialogo._on_anadir(None)
+                self.assertEqual(encolar_doble.enlace, url)
+                self.assertEqual(
+                    dialogo.pagina_cola.lista.GetItemCount(), fila + 1)
+                self.assertEqual(
+                    dialogo.pagina_cola.lista.GetItemText(fila, 2), url)
+                self.assertEqual(
+                    dialogo.pagina_cola._items_fila["id-nuevo"], fila)
+                self.assertEqual(
+                    dialogo.pagina_cola._fila_items[fila], "id-nuevo")
+                self.assertEqual(dialogo.txt_url.GetValue(), "")
+                anunciar.assert_called_once_with("Agregado a la cola")
             finally:
                 destruir(dialogo)
 
@@ -393,8 +429,8 @@ class TestPseudoVentana(unittest.TestCase):
         self.app = wx.App() if not wx.App.Get() else wx.App.Get()
 
     def test_no_queda_ningun_texto_visible_sin_envolver(self):
-        cargar = mock.patch.object(gui_descargas.historial_descargas, "cargar", return_value=[])
-        guardar = mock.patch.object(gui_descargas.historial_descargas, "guardar")
+        cargar = mock.patch.object(descargas_listas.historial_descargas, "cargar", return_value=[])
+        guardar = mock.patch.object(descargas_listas.historial_descargas, "guardar")
         with cargar, guardar, con_pseudo():
             dialogo = gui_descargas.GestorDescargasDialog(None)
             # Son números: las tasas de bits no se traducen.
@@ -413,8 +449,8 @@ class TestPseudoAvisos(unittest.TestCase):
         self.app = wx.App() if not wx.App.Get() else wx.App.Get()
 
     def _dialogo(self):
-        cargar = mock.patch.object(gui_descargas.historial_descargas, "cargar", return_value=[])
-        guardar = mock.patch.object(gui_descargas.historial_descargas, "guardar")
+        cargar = mock.patch.object(descargas_listas.historial_descargas, "cargar", return_value=[])
+        guardar = mock.patch.object(descargas_listas.historial_descargas, "guardar")
         cargar.start()
         guardar.start()
         self.addCleanup(cargar.stop)
@@ -434,17 +470,19 @@ class TestPseudoAvisos(unittest.TestCase):
             captado["titulo"] = titulo
             return wx.ID_OK
 
-        with con_pseudo(), mock.patch.object(gui_descargas.wx, "MessageBox", caja):
+        with con_pseudo(), mock.patch.object(descargas_listas.wx, "MessageBox", caja):
             dialogo._on_anadir(None)
-            dialogo._on_cancelar(None)
+            dialogo.pagina_cola._on_cancelar(None)
         self.assertTrue(captado["mensaje"].startswith("[¡"))
         self.assertTrue(captado["titulo"].startswith("[¡"))
-        dialogo._historial = [{"nombre": "v", "fecha": "f", "estado": "completado"}]
-        dialogo._agregar_fila_historial(dialogo._historial[0])
+        dialogo.pagina_historial._historial = [
+            {"nombre": "v", "fecha": "f", "estado": "completado"}]
+        dialogo.pagina_historial._agregar_fila_historial(
+            dialogo.pagina_historial._historial[0])
         avisos = []
-        with con_pseudo(), mock.patch.object(gui_descargas.wx, "MessageBox", return_value=wx.YES), \
-                mock.patch.object(gui_descargas, "anunciar", avisos.append):
-            dialogo._on_vaciar_historial(None)
+        with con_pseudo(), mock.patch.object(descargas_listas.wx, "MessageBox", return_value=wx.YES), \
+                mock.patch.object(descargas_listas, "anunciar", avisos.append):
+            dialogo.pagina_historial._on_vaciar_historial(None)
         self.assertTrue(avisos and avisos[0].startswith("[¡"))
 
 

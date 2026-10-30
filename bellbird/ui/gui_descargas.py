@@ -3,8 +3,8 @@
 Diálogo modal que deja al usuario pegar enlaces de YouTube, elegir
 formato, bitrate, carpeta y numeración, y ver la cola con progreso y
 botón de cancelación por ítem. El motor puro está en `descargas.py`
-(sin wx); este módulo solo monta la UI y empuja progreso al
-`wx.ListCtrl` con `wx.CallAfter`.
+(sin wx); este módulo monta la UI y refresca la cola con un
+temporizador.
 
 Accesibilidad (regla de oro NVDA):
   - Cada control interactivo tiene `name=` accesible.
@@ -27,6 +27,8 @@ from bellbird.core import paths
 from bellbird.core.idioma import N_, _
 from bellbird.downloads.descargas import frase_aviso_descarga, gestor, recortar_url_registro
 from bellbird.downloads import historial_descargas
+from bellbird.ui.descargas_listas import (
+    _ESTADOS_FINALES, PaginaCola, PaginaHistorial)
 from bellbird.ui.gui import anunciar, nombre_accesible, caja_de_grupo, _T, _tc
 from bellbird.voice import sound_player as _snd
 
@@ -47,14 +49,6 @@ def _es_formato_audio(formato: str) -> bool:
     return (formato or "").lower() in ("mp3", "m4a")
 
 
-def _texto_estado(estado: str, mensaje: str) -> str:
-    """Celda «Estado» de la cola: el motivo solo acompaña a error/cancelado."""
-    texto = _(_ETIQUETAS_ESTADO.get(estado, estado)) if estado else ""
-    if mensaje and estado in ("error", "cancelado"):
-        return _("{estado}: {mensaje}").format(estado=texto, mensaje=mensaje[:80])[:200]
-    return texto[:200]
-
-
 def nombrar_selector_carpeta(selector) -> None:
     if hasattr(selector, "GetTextCtrl"):
         nombre_accesible(selector.GetTextCtrl(), _("Carpeta de destino de las descargas"))
@@ -64,10 +58,6 @@ def nombrar_selector_carpeta(selector) -> None:
         nombre_accesible(boton_carpeta, _("Examinar…"))
 
 
-_ESTADOS_FINALES = ("completado", "cancelado", "error")
-_ETIQUETAS_ESTADO = {"en_cola": N_("en cola"), "descargando": N_("descargando"),
-                     "completado": N_("completado"), "cancelado": N_("cancelado"),
-                     "error": N_("error")}
 # Cada fin de descarga avisa con su sonido propio.
 _SONIDO_POR_FIN = {
     "completado": "descarga_completada",
@@ -128,7 +118,7 @@ def _fin_descarga_en_gui(estado: str, mensaje: str, nombre: str, item) -> None:
     entrada = registrar_historial(item, estado)
     dialogo = _dialogo_activo
     if entrada is not None and dialogo is not None and dialogo._alive:
-        dialogo._mostrar_entrada_historial(entrada)
+        dialogo.pagina_historial.mostrar_entrada(entrada)
 
 
 def _avisar_fin_descarga(estado: str, mensaje: str, nombre: str, item=None) -> None:
@@ -154,13 +144,7 @@ class GestorDescargasDialog(wx.Dialog):
         self._opciones = cfg.obtener_opciones_descarga()
         self._gestor = gestor()
         _suscribir_al_gestor()
-        self._items_fila: dict[str, int] = {}   # item_id -> índice en ListCtrl
-        self._fila_items: dict[int, str] = {}   # índice -> item_id
-        self._ruta_historial = _ruta_historial()
-        self._historial = historial_descargas.cargar(self._ruta_historial)
         self._build_ui()
-        self._repoblar_lista()
-        self._repoblar_historial()
         self.Bind(wx.EVT_CLOSE, self._on_cerrar)
         # Las filas repobladas al reabrir no tienen callbacks (eran cierres del
         # diálogo anterior): un temporizador vuelca el estado del gestor.
@@ -266,47 +250,10 @@ class GestorDescargasDialog(wx.Dialog):
 
     def _seccion_listas(self, parent):
         self.pestanas = wx.Notebook(parent, name="PestanasDescargas")
-        cola = wx.Panel(self.pestanas)
-        vs_cola = wx.BoxSizer(wx.VERTICAL)
-        self.lista = wx.ListCtrl(cola, style=wx.LC_REPORT | wx.LC_SINGLE_SEL,
-                                 name="ColaDescargas")
-        nombre_accesible(self.lista, _("Cola de descargas"), msaa=False)
-        self.lista.InsertColumn(0, _("Progreso"), width=100)
-        self.lista.InsertColumn(1, _("Estado"), width=160)
-        self.lista.InsertColumn(2, _("Nombre"), width=320)
-        vs_cola.Add(self.lista, 1, wx.EXPAND | wx.ALL, 6)
-
-        fila = wx.BoxSizer(wx.HORIZONTAL)
-        self.btn_cancelar = wx.Button(cola, label=_("C&ancelar descarga"),
-                                      name="CancelarDescarga")
-        self.btn_cancelar.SetBackgroundColour(_T.btn)
-        self.btn_cancelar.SetForegroundColour(_T.btn_t)
-        self.btn_cancelar.Bind(wx.EVT_BUTTON, self._on_cancelar)
-        fila.Add(self.btn_cancelar, 0)
-        vs_cola.Add(fila, 0, wx.ALL, 6)
-        cola.SetSizer(vs_cola)
-
-        pagina_historial = wx.Panel(self.pestanas)
-        vs_historial = wx.BoxSizer(wx.VERTICAL)
-        self.lista_historial = wx.ListCtrl(
-            pagina_historial, style=wx.LC_REPORT | wx.LC_SINGLE_SEL,
-            name=_("Lista del historial de descargas"))
-        nombre_accesible(self.lista_historial, _("Lista del historial de descargas"),
-                         msaa=False)
-        self.lista_historial.InsertColumn(0, _("Nombre"), width=360)
-        self.lista_historial.InsertColumn(1, _("Fecha"), width=180)
-        self.lista_historial.InsertColumn(2, _("Estado"), width=140)
-        vs_historial.Add(self.lista_historial, 1, wx.EXPAND | wx.ALL, 6)
-        self.btn_vaciar_historial = wx.Button(
-            pagina_historial, label=_("Vaciar &historial"),
-            name=_("Vaciar historial"))
-        self.btn_vaciar_historial.SetBackgroundColour(_T.btn)
-        self.btn_vaciar_historial.SetForegroundColour(_T.btn_t)
-        self.btn_vaciar_historial.Bind(wx.EVT_BUTTON, self._on_vaciar_historial)
-        vs_historial.Add(self.btn_vaciar_historial, 0, wx.ALL, 6)
-        pagina_historial.SetSizer(vs_historial)
-        self.pestanas.AddPage(cola, _("Cola"))
-        self.pestanas.AddPage(pagina_historial, _("Historial"))
+        self.pagina_cola = PaginaCola(self.pestanas, self._gestor)
+        self.pagina_historial = PaginaHistorial(self.pestanas, _ruta_historial())
+        self.pestanas.AddPage(self.pagina_cola, _("Cola"))
+        self.pestanas.AddPage(self.pagina_historial, _("Historial"))
         return self.pestanas
 
     def _seccion_botones(self, parent):
@@ -355,103 +302,14 @@ class GestorDescargasDialog(wx.Dialog):
         self._opciones = op
         self._gestor.set_opciones(op)
 
-        # Inserción optimista en la cola (estado «en_cola»); el temporizador
-        # vuelca después el estado y el progreso del gestor.
-        idx = self.lista.InsertItem(self.lista.GetItemCount(), "0 %")
-        self.lista.SetItem(idx, 1, _("en cola"))
-        self.lista.SetItem(idx, 2, url[:300])
-
-        def _registrar_fila(item_id):
-            self._items_fila[item_id] = idx
-            self._fila_items[idx] = item_id
-
-        self._gestor.encolar(url, lambda *_args: None, lambda *_args: None,
-                             _registrar_fila)
+        self.pagina_cola.agregar_enlace(url)
         self.txt_url.SetValue("")
         anunciar(_("Agregado a la cola"))
 
-    def _repoblar_lista(self) -> None:
-        for item in self._gestor.lista():
-            idx = self.lista.InsertItem(self.lista.GetItemCount(), f"{item.progreso:.0f} %")
-            self.lista.SetItem(idx, 2, item.nombre[:300])
-            self.lista.SetItem(idx, 1, _texto_estado(item.estado, item.mensaje))
-            self._items_fila[item.id] = idx
-            self._fila_items[idx] = item.id
-
     def _on_refresco(self, _event) -> None:
-        if not self or not self._alive or not self.lista:
+        if not self or not self._alive or not self.pagina_cola.lista:
             return
-        self._refrescar_desde_gestor()
-
-    def _refrescar_desde_gestor(self) -> None:
-        """Vuelca a cada fila el estado actual de su ítem. Solo escribe lo que
-        cambió: reescribir celdas iguales hace hablar al lector sin motivo."""
-        for item in self._gestor.lista():
-            idx = self._items_fila.get(item.id)
-            if idx is None:
-                continue
-            celdas = {0: f"{item.progreso:.0f} %", 1: _texto_estado(item.estado, item.mensaje)}
-            if item.nombre:
-                celdas[2] = item.nombre[:300]
-            for columna, texto in celdas.items():
-                if self.lista.GetItemText(idx, columna) != texto:
-                    self.lista.SetItem(idx, columna, texto)
-
-    def _repoblar_historial(self) -> None:
-        for entrada in self._historial:
-            self._agregar_fila_historial(entrada)
-
-    def _agregar_fila_historial(self, entrada: dict) -> None:
-        nombre, fecha, estado = historial_descargas.formatear(entrada)
-        idx = self.lista_historial.InsertItem(self.lista_historial.GetItemCount(), nombre)
-        self.lista_historial.SetItem(idx, 1, fecha)
-        self.lista_historial.SetItem(idx, 2, estado)
-
-    def _mostrar_entrada_historial(self, entrada: dict) -> None:
-        """Refleja en la pestaña Historial una entrada recién persistida."""
-        if not self or not self._alive or not self.lista_historial:
-            return
-        self._historial = historial_descargas.agregar(self._historial, entrada)
-        nombre, fecha, estado = historial_descargas.formatear(entrada)
-        self.lista_historial.InsertItem(0, nombre)
-        self.lista_historial.SetItem(0, 1, fecha)
-        self.lista_historial.SetItem(0, 2, estado)
-
-    def _on_vaciar_historial(self, _event) -> None:
-        cantidad = len(self._historial)
-        mensaje = _("Borra los elementos del historial. No borra ningún archivo "
-                    "descargado del disco, solo la lista. ¿Deseas continuar?")
-        if wx.MessageBox(mensaje, _("Vaciar historial"),
-                         wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING, self) != wx.YES:
-            return
-        self._historial = []
-        historial_descargas.guardar(self._ruta_historial, self._historial)
-        self.lista_historial.DeleteAllItems()
-        if cantidad == 1:
-            anunciar(_("Se borró 1 elemento del historial"))
-        else:
-            anunciar(_("Se borraron {cantidad} elementos del historial").format(cantidad=cantidad))
-
-    def _on_cancelar(self, _event):
-        idx = self.lista.GetFirstSelected()
-        if idx < 0:
-            wx.MessageBox(_("Selecciona una descarga de la cola para cancelar."),
-                          _("Nada seleccionado"), wx.OK | wx.ICON_INFORMATION, self)
-            return
-        item_id = self._fila_items.get(idx)
-        if item_id is None:
-            return
-        item = self._gestor.obtener(item_id)
-        if item is None or item.estado in _ESTADOS_FINALES:
-            try:
-                _snd.reproducir("error")
-            except Exception as error:
-                logger.debug("no se pudo reproducir el aviso de descarga terminada: %s", error)
-            anunciar(_("La descarga ya terminó"))
-            return
-        self._gestor.cancelar(item_id)
-        # El estado lo confirmará el propio hilo («cancelado»).
-        anunciar(_("Cancelando descarga"))
+        self.pagina_cola.refrescar()
 
     def _on_cerrar(self, _event):
         self._alive = False

@@ -22,7 +22,7 @@ from tests.ventanas_prueba import destruir
 from bellbird.ai import catalogo
 from bellbird.core import config
 from bellbird.downloads import descargas
-from bellbird.ui import gui_comentarios, gui_descargas, gui_directo_youtube, gui_historial, gui_microfono, gui_transmision, gui_preferencias
+from bellbird.ui import descargas_listas, gui_comentarios, gui_descargas, gui_directo_youtube, gui_historial, gui_microfono, gui_transmision, gui_preferencias
 from bellbird.ui import preferencias_ia
 from bellbird.ui import preferencias_ia_clave
 from bellbird.voice import motores
@@ -176,9 +176,9 @@ class TestLetrasAccesoDescargas(unittest.TestCase):
         self.app = wx.App.Get() or wx.App(False)
 
     def _dialogo(self):
-        cargar = mock.patch.object(gui_descargas.historial_descargas, "cargar",
+        cargar = mock.patch.object(descargas_listas.historial_descargas, "cargar",
                                    return_value=[])
-        guardar = mock.patch.object(gui_descargas.historial_descargas, "guardar")
+        guardar = mock.patch.object(descargas_listas.historial_descargas, "guardar")
         cargar.start()
         guardar.start()
         self.addCleanup(cargar.stop)

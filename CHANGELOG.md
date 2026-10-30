@@ -131,7 +131,7 @@ Paraguay.
 - Cuando TikTok frena las consultas seguidas, la app ya no lo toma por un
   directo que no aparece. Al transmitir avisa que TikTok está limitando
   las consultas, con un sonido propio. Al conectar al chat lo dice así, en
-  lugar de un error técnico, y espera un minuto antes de reintentar.
+  lugar de un error técnico, y espera medio minuto antes de reintentar.
 - F2 dice el singular cuando hay uno solo: «1 regalo», «1 Super Chat» y
   «1 leído».
 - Dos errores de TikTok se entienden mejor: «TikTok no responde por ahora»

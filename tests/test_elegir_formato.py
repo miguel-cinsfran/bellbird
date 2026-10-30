@@ -1,8 +1,8 @@
 """Elegir el formato exacto de un vídeo del buscador.
 
 Sin ventana: `opciones_de` ofrece «formato» solo para un vídeo descargable
-único y en ese orden, y `transitorias_de` con sus tres casos. Con ventana
-(otra PC): el cuadro nuevo y la consulta que lo llena.
+único y en ese orden, y `transitorias_de` con sus tres casos. Abren
+ventanas: el cuadro nuevo y la consulta que lo llena.
 """
 
 import unittest

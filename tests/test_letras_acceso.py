@@ -14,14 +14,15 @@ from unittest import mock
 
 import wx
 
-from tests.letras_acceso import ingles, letras_repetidas
+from tests.letras_acceso import ingles, letras_de_contenedor, letras_repetidas
 from tests.test_gui_microfono import FUENTES, PARES
 from tests.test_gui_transmision import (
     GestorFalso, HiloInmediato, _asegurar_sin_obs)
 from tests.ventanas_prueba import destruir
 from bellbird.ai import catalogo
 from bellbird.core import config
-from bellbird.ui import gui_comentarios, gui_directo_youtube, gui_historial, gui_microfono, gui_transmision, gui_preferencias
+from bellbird.downloads import descargas
+from bellbird.ui import gui_comentarios, gui_descargas, gui_directo_youtube, gui_historial, gui_microfono, gui_transmision, gui_preferencias
 from bellbird.ui import preferencias_ia
 from bellbird.ui import preferencias_ia_clave
 from bellbird.voice import motores
@@ -168,6 +169,40 @@ class TestLetrasAccesoComentarios(unittest.TestCase):
         self.assertEqual(letras_repetidas(panel), {})
 
 
+class TestLetrasAccesoDescargas(unittest.TestCase):
+    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
+
+    def setUp(self):
+        self.app = wx.App.Get() or wx.App(False)
+
+    def _dialogo(self):
+        cargar = mock.patch.object(gui_descargas.historial_descargas, "cargar",
+                                   return_value=[])
+        guardar = mock.patch.object(gui_descargas.historial_descargas, "guardar")
+        cargar.start()
+        guardar.start()
+        self.addCleanup(cargar.stop)
+        self.addCleanup(guardar.stop)
+        dialogo = gui_descargas.GestorDescargasDialog(None)
+        self.addCleanup(destruir, dialogo)
+        self.addCleanup(setattr, gui_descargas, "_dialogo_activo", None)
+        self.addCleanup(descargas.reiniciar_gestor)
+        return dialogo
+
+    def test_cada_pestana_sin_letras_repetidas_con_lo_de_fuera(self):
+        dialogo = self._dialogo()
+        fuera = letras_de_contenedor(dialogo)
+        for indice in range(dialogo.pestanas.GetPageCount()):
+            pagina = dialogo.pestanas.GetPage(indice)
+            juntas = {letra: list(rotulos) for letra, rotulos in fuera.items()}
+            for letra, rotulos in letras_de_contenedor(pagina).items():
+                juntas.setdefault(letra, []).extend(rotulos)
+            repetidas = {letra: rotulos for letra, rotulos in juntas.items()
+                         if len(rotulos) > 1}
+            with self.subTest(pagina=dialogo.pestanas.GetPageText(indice)):
+                self.assertEqual(repetidas, {})
+
+
 class TestLetrasAccesoTransmision(unittest.TestCase):
     # Con ventana: las corre el advisor en la otra PC. No correr aquí.
 
@@ -258,6 +293,21 @@ class TestLetrasAccesoHistorialEnIngles(TestLetrasAccesoHistorial):
 
 
 class TestLetrasAccesoComentariosEnIngles(TestLetrasAccesoComentarios):
+    # Con ventana: las corre el advisor en la otra PC. No correr aquí.
+    # Gemela en inglés: repite las pruebas sin copiarlas.
+
+    @classmethod
+    def setUpClass(cls):
+        cls._ingles = ingles()
+        cls._ingles.__enter__()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._ingles.__exit__(None, None, None)
+        del cls._ingles
+
+
+class TestLetrasAccesoDescargasEnIngles(TestLetrasAccesoDescargas):
     # Con ventana: las corre el advisor en la otra PC. No correr aquí.
     # Gemela en inglés: repite las pruebas sin copiarlas.
 

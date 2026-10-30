@@ -42,8 +42,12 @@ def _con_ambito_propio(ventana):
     return isinstance(ventana.GetParent(), (wx.Notebook, wx.Listbook))
 
 
-def letras_repetidas(contenedor):
-    """Letras de acceso repetidas bajo `contenedor`, con sus rótulos."""
+def letras_de_contenedor(contenedor):
+    """Todas las letras de acceso bajo `contenedor`, con sus rótulos.
+
+    Mismo recorrido que `letras_repetidas`: lo que tiene ámbito propio
+    (un libro o una página de un libro) se mira aparte y aquí no entra.
+    """
     por_letra = {}
     pendientes = list(reversed(contenedor.GetChildren()))
     while pendientes:
@@ -56,6 +60,12 @@ def letras_repetidas(contenedor):
             if letra:
                 por_letra.setdefault(letra, []).append(rotulo)
         pendientes.extend(reversed(actual.GetChildren()))
+    return por_letra
+
+
+def letras_repetidas(contenedor):
+    """Letras de acceso repetidas bajo `contenedor`, con sus rótulos."""
+    por_letra = letras_de_contenedor(contenedor)
     return {letra: rotulos for letra, rotulos in por_letra.items()
             if len(rotulos) > 1}
 

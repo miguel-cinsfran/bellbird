@@ -1,16 +1,16 @@
-"""Diálogo «Gestor de descargas» (yt-dlp) — accesible y nativo.
+"""Diálogo «Administrador de descargas» (yt-dlp), accesible y nativo.
 
-Diálogo modal que deja al usuario pegar URLs de YouTube, elegir formato/bitrate/
-carpeta/enumerar, y ver la cola con progreso y botón «Cancelar» por ítem. El
-motor puro está en `descargas.py` (sin wx, testeable en Linux); este módulo
-solo monta la UI y empuja progreso al `wx.ListCtrl` con `wx.CallAfter`.
+Diálogo modal que deja al usuario pegar enlaces de YouTube, elegir
+formato, bitrate, carpeta y numeración, y ver la cola con progreso y
+botón de cancelación por ítem. El motor puro está en `descargas.py`
+(sin wx); este módulo solo monta la UI y empuja progreso al
+`wx.ListCtrl` con `wx.CallAfter`.
 
 Accesibilidad (regla de oro NVDA):
   - Cada control interactivo tiene `name=` accesible.
-  - Sin color personalizado en casillas ni radios (en Windows rompe su rol).
-  - Errores 3-vías: `_snd.reproducir("descarga_fallida")` + `anunciar()` +
-    texto en la columna Estado del `ListCtrl`. Nunca se re-lanza una
-    excepción fuera del hilo de descarga.
+  - Los errores avisan con sonido, anuncio y texto en la columna
+    Estado del `ListCtrl`. Nunca se re-lanza una excepción fuera
+    del hilo de descarga.
   - Toda mutación de la GUI desde el hilo de descarga va con `wx.CallAfter`.
 
 Apertura: `abrir(parent, url_inicial=None)` desde `gui._abrir_descargas`.
@@ -229,7 +229,7 @@ class GestorDescargasDialog(wx.Dialog):
         # Enumerar playlist (casilla, sin color).
         self.chk_enumerar = wx.CheckBox(
             padre, name="EnumerarPlaylist",
-            label=_("&Numerar archivos de la lista de reproducción (01_, 02_…)"))
+            label=_("&Numerar archivos de listas"))
         self.chk_enumerar.SetValue(bool(self._opciones.get("enumerar", False)))
         box.Add(self.chk_enumerar, 0, wx.ALL, 6)
 
@@ -271,7 +271,7 @@ class GestorDescargasDialog(wx.Dialog):
         vs_cola.Add(self.lista, 1, wx.EXPAND | wx.ALL, 6)
 
         fila = wx.BoxSizer(wx.HORIZONTAL)
-        self.btn_cancelar = wx.Button(cola, label=_("&Cancelar descarga"),
+        self.btn_cancelar = wx.Button(cola, label=_("C&ancelar descarga"),
                                       name="CancelarDescarga")
         self.btn_cancelar.SetBackgroundColour(_T.btn)
         self.btn_cancelar.SetForegroundColour(_T.btn_t)
@@ -292,7 +292,7 @@ class GestorDescargasDialog(wx.Dialog):
         self.lista_historial.InsertColumn(2, _("Estado"), width=140)
         vs_historial.Add(self.lista_historial, 1, wx.EXPAND | wx.ALL, 6)
         self.btn_vaciar_historial = wx.Button(
-            pagina_historial, label=_("&Vaciar historial"),
+            pagina_historial, label=_("Vaciar &historial"),
             name=_("Vaciar historial"))
         self.btn_vaciar_historial.SetBackgroundColour(_T.btn)
         self.btn_vaciar_historial.SetForegroundColour(_T.btn_t)

@@ -4957,7 +4957,7 @@ msgstr "Bit rate"
 # | msgid "Carpeta &destino:"
 #: bellbird/ui/gui_descargas.py:218
 msgid "Carpeta de &destino:"
-msgstr "Destination &folder:"
+msgstr "Destination f&older:"
 
 # | msgid "Carpeta destino"
 #: bellbird/ui/gui_descargas.py:223
@@ -4970,8 +4970,8 @@ msgstr "Choose the download folder"
 
 # | msgid "&Enumerar ítems de la lista de reproducción (01_, 02_…)"
 #: bellbird/ui/gui_descargas.py:232
-msgid "&Numerar archivos de la lista de reproducción (01_, 02_…)"
-msgstr "&Number list files (01_, 02_…)"
+msgid "&Numerar archivos de listas"
+msgstr "&Number playlist files"
 
 # | msgid "Abrir enlace"
 #: bellbird/ui/gui_descargas.py:240
@@ -5005,8 +5005,8 @@ msgstr "Name"
 
 # | msgid "Cancelando descarga"
 #: bellbird/ui/gui_descargas.py:274
-msgid "&Cancelar descarga"
-msgstr "&Cancel download"
+msgid "C&ancelar descarga"
+msgstr "Cancel &download"
 
 #: bellbird/ui/gui_descargas.py:287 bellbird/ui/gui_descargas.py:288
 msgid "Lista del historial de descargas"
@@ -5018,8 +5018,8 @@ msgstr "Date"
 
 # | msgid "&Vaciar el historial"
 #: bellbird/ui/gui_descargas.py:295
-msgid "&Vaciar historial"
-msgstr "&Clear history"
+msgid "Vaciar &historial"
+msgstr "Clear &history"
 
 # | msgid "Vaciar el historial"
 #: bellbird/ui/gui_descargas.py:296 bellbird/ui/gui_descargas.py:423

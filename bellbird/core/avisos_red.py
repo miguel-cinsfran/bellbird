@@ -19,6 +19,6 @@ def mensaje_de_fallo(motivo) -> str:
                   "Comprueba la conexión e inténtalo de nuevo."))
     if any(señal in texto for señal in (
             "not available", "private video", "unavailable", "removed")):
-        return (_("El vídeo no está disponible. Comprueba la dirección o que no "
+        return (_("El vídeo no está disponible. Comprueba el enlace o que no "
                   "sea privado."))
     return _("No se pudo consultar la información del vídeo. Inténtalo de nuevo más tarde.")

@@ -368,7 +368,7 @@ def _construir_menu_musica(frame, mb):
     frame.mi_musica_que_suena = m.Append(
         wx.ID_ANY, _("&Qué suena") + frame._accel("musica_que_suena"))
     frame.mi_musica_adelantar = m.Append(
-        wx.ID_ANY, _("Adelantar 10 segu&ndos") + frame._accel("musica_adelantar"))
+        wx.ID_ANY, _("Avanzar 10 segu&ndos") + frame._accel("musica_adelantar"))
     frame.mi_musica_retroceder = m.Append(
         wx.ID_ANY, _("Re&troceder 10 segundos") + frame._accel("musica_retroceder"))
     m.AppendSeparator()

@@ -181,14 +181,15 @@ def moderar(frame, autor: str, canal_id: str, segundos: int | None) -> None:
     from bellbird.ui import gui as _gui
     if segundos:
         # Traductores: confirmación de moderación; {autor} es su nombre.
-        pregunta = _("¿Seguro que quieres expulsar 5 minutos a {autor}?")
-        # Traductores: aviso de expulsión; {autor} es su nombre.
-        ok = _("{autor} expulsado 5 minutos")
+        pregunta = _("¿Suspender temporalmente a {autor} durante 5 minutos?")
+        # Traductores: aviso de suspensión; {autor} es su nombre.
+        ok = _("{autor} suspendido 5 minutos")
     else:
         # Traductores: confirmación de moderación; {autor} es su nombre.
-        pregunta = _("¿Seguro que quieres banear permanentemente a {autor}?")
-        # Traductores: aviso de expulsión definitiva; {autor} es su nombre.
-        ok = _("{autor} baneado del directo")
+        pregunta = _("¿Ocultar a {autor} en el canal de YouTube? "
+                     "Se puede deshacer desde YouTube Studio.")
+        # Traductores: aviso de ocultación; {autor} es su nombre.
+        ok = _("{autor} oculto en el canal de YouTube")
     if _gui.wx.MessageBox(pregunta.format(autor=autor),
                           _("Confirmar moderación"),
                           _gui.wx.YES_NO | _gui.wx.ICON_QUESTION, frame) != _gui.wx.YES:

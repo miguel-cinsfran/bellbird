@@ -200,7 +200,7 @@ class TestVentana(unittest.TestCase):
     def test_sin_permiso_sugiere_descargar_a_mano(self):
         _, ventana, red = self._abrir(
             consultar=_paquete(VERSION_NUEVA), frozen=True, admite=False)
-        self.assertIn("La carpeta del programa no admite cambios. Se puede "
+        self.assertIn("La carpeta de la aplicación no admite cambios. Se puede "
                       "descargar a mano desde la página.", ventana.anuncios[-1])
         self.assertEqual("&Abrir la página", ventana.accion_etiqueta)
         ventana.pulsar_accion()

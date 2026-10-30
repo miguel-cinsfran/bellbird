@@ -127,7 +127,7 @@ class PruebasDirectoSinRelevo(unittest.TestCase):
         with mock.patch.object(reproductor, "anunciar") as anunciar:
             panel._buscar_rel(-10_000)
         anunciar.assert_called_once_with(
-            "En este directo no se puede adelantar ni retroceder")
+            "En este directo no se puede avanzar ni retroceder")
         panel._ir_a.assert_not_called()
         panel._player.set_time.assert_not_called()
 
@@ -136,7 +136,7 @@ class PruebasDirectoSinRelevo(unittest.TestCase):
         with mock.patch.object(reproductor, "anunciar") as anunciar:
             panel._buscar_rel(-10_000)
         anunciar.assert_called_once_with(
-            "En un directo de TikTok no se puede adelantar ni retroceder")
+            "En un directo de TikTok no se puede avanzar ni retroceder")
         panel._ir_a.assert_not_called()
         panel._player.set_time.assert_not_called()
 

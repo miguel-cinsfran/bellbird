@@ -275,7 +275,7 @@ class TestGruposGestorDescargas(unittest.TestCase):
                 dialogo._on_vaciar_historial(None)
                 self.assertEqual(dialogo.lista_historial.GetItemCount(), 0)
                 guardar.assert_called_once_with(dialogo._ruta_historial, [])
-                anunciar.assert_called_once_with("Se borró 1 entrada del historial")
+                anunciar.assert_called_once_with("Se borró 1 elemento del historial")
             finally:
                 destruir(dialogo)
 

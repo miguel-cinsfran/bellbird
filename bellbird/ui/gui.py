@@ -327,7 +327,7 @@ class YTChatFrame(wx.Frame):
         self.txt_url.SetToolTip(
             _("Enlace de YouTube (directo o vídeo) o de un directo de TikTok "
               "(tiktok.com/@usuario/live). También vale el ID de 11 caracteres de "
-              "YouTube. Pulsa Enter para conectar."))
+              "YouTube. Pulsa Intro para conectar."))
         row.Add(self.txt_url, 1, wx.EXPAND | wx.RIGHT, 8)
         # Traductores: nombre accesible del botón para conectar.
         self.btn_conectar = wx.Button(panel, label=_("&Conectar"), name=_("Conectar"))
@@ -1115,8 +1115,8 @@ class YTChatFrame(wx.Frame):
                          and youtube_api.google_disponible() and credenciales.hay_sesion())
         if moderable:
             menu.AppendSeparator()
-            menu.Append(id_timeout, _("Expulsar 5 min a {autor} (timeout)").format(autor=autor_mostrado))
-            menu.Append(id_ban,     _("Banear a {autor} del directo (permanente)").format(autor=autor_mostrado))
+            menu.Append(id_timeout, _("Suspender temporalmente a {autor} (5 minutos)").format(autor=autor_mostrado))
+            menu.Append(id_ban,     _("Ocultar a {autor} en el canal de YouTube").format(autor=autor_mostrado))
             menu.Bind(wx.EVT_MENU, lambda e: self._moderar(autor, identificador_sel, 300), id=id_timeout)
             menu.Bind(wx.EVT_MENU, lambda e: self._moderar(autor, identificador_sel, None), id=id_ban)
 

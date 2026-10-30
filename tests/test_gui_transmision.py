@@ -1473,7 +1473,7 @@ class TestTablaPosicionesSinVentana(unittest.TestCase):
 # falla si aparece un texto nuevo sin envolver y si un pendiente ya no está
 # en el recorrido, para vaciar la lista cuando ese módulo pase por gettext.
 PENDIENTES_TRANSMISION = (
-    "Desde aquí eliges a dónde transmitir, empiezas y terminas el directo "
+    "Desde aquí eliges a dónde transmitir, inicias y finalizas el directo "
     "y preparas lo que se ve. En el directo se ve una ventana, la que "
     "eliges en Ventana que se captura. Esa captura no lleva sonido: el "
     "sonido sale del audio del escritorio y del micrófono de OBS. El panel "

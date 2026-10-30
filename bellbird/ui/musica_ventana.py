@@ -144,9 +144,9 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
         # Traductores: mide e iguala el volumen; segunda, su nombre accesible.
         self.btn_igualar = self._boton(
             panel, _("&Igualar volumen"), _("Igualar volumen"))
-        # Traductores: vuelve a examinar la carpeta; segunda, su nombre accesible.
+        # Traductores: actualiza la carpeta; segunda, su nombre accesible.
         self.btn_examinar = self._boton(
-            panel, _("E&xaminar carpeta"), _("Examinar carpeta"))
+            panel, _("Actuali&zar carpeta"), _("Actualizar carpeta"))
         # Traductores: cierra la ventana; segunda, su nombre accesible.
         self.btn_cerrar = wx.Button(panel, wx.ID_CANCEL, _("&Cerrar"),
                                     name=_("Cerrar"))

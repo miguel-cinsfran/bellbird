@@ -324,7 +324,7 @@ class TestAyudas(unittest.TestCase):
         self.assertEqual(
             vista.ayuda_biblioteca(False),
             "Intro reproduce ahora, Mayús más Intro a continuación, "
-            "Control más Intro al final, tecla de aplicaciones para más "
+            "Ctrl más Intro al final, tecla de aplicaciones para más "
             "opciones")
 
     def test_biblioteca_de_una_lista_suma_suprimir(self):
@@ -349,38 +349,38 @@ class TestAyudas(unittest.TestCase):
         self.assertEqual(
             vista.ayuda_buscar(),
             "Escribe para filtrar, flecha abajo va a las canciones, "
-            "Escape borra la búsqueda")
+            "Esc borra la búsqueda")
 
 
 class TestTextoCarpetaExaminada(unittest.TestCase):
 
     def test_sin_cambios(self):
         self.assertEqual(vista.texto_carpeta_examinada(0, 0),
-                         "Carpeta examinada: sin cambios.")
+                         "Carpeta actualizada: sin cambios.")
 
     def test_una_cancion_nueva_en_singular(self):
         self.assertEqual(vista.texto_carpeta_examinada(1, 0),
-                         "Carpeta examinada: 1 canción nueva.")
+                         "Carpeta actualizada: 1 canción nueva.")
 
     def test_varias_nuevas_en_plural(self):
         self.assertEqual(vista.texto_carpeta_examinada(3, 0),
-                         "Carpeta examinada: 3 canciones nuevas.")
+                         "Carpeta actualizada: 3 canciones nuevas.")
 
     def test_una_quitada_en_singular(self):
         self.assertEqual(vista.texto_carpeta_examinada(0, 1),
-                          "Carpeta examinada: 1 eliminada.")
+                          "Carpeta actualizada: 1 eliminada.")
 
     def test_varias_quitadas_en_plural(self):
         self.assertEqual(vista.texto_carpeta_examinada(0, 2),
-                          "Carpeta examinada: 2 eliminadas.")
+                          "Carpeta actualizada: 2 eliminadas.")
 
     def test_nuevas_y_quitadas(self):
         self.assertEqual(vista.texto_carpeta_examinada(2, 3),
-                          "Carpeta examinada: 2 canciones nuevas y 3 eliminadas.")
+                          "Carpeta actualizada: 2 canciones nuevas y 3 eliminadas.")
 
     def test_singulares_en_las_dos_partes(self):
         self.assertEqual(vista.texto_carpeta_examinada(1, 1),
-                          "Carpeta examinada: 1 canción nueva y 1 eliminada.")
+                          "Carpeta actualizada: 1 canción nueva y 1 eliminada.")
 
 
 class TestPseudoVista(unittest.TestCase):

@@ -164,7 +164,7 @@ class PaginaMusica:
 
     def _musica_atajos(self, p, vs):
         self.chk_musica_atajos_globales = wx.CheckBox(
-            p, label=_("Usar atajos de música en cualquier &programa"),
+            p, label=_("Usar atajos de música en cualquier a&plicación"),
             name="MusicaAtajosGlobales")
         self.chk_musica_atajos_globales.SetForegroundColour(_T.text)
         vs.Add(self.chk_musica_atajos_globales, 0,

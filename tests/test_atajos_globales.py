@@ -346,7 +346,7 @@ class TestFrasesGlobales(unittest.TestCase):
     def test_textos(self):
         self.assertEqual(
             anuncios.TEXTO_ATAJOS_GLOBALES_ACTIVOS,
-            "Atajos de música activos en cualquier programa")
+            "Atajos de música activos en cualquier aplicación")
         self.assertEqual(
             anuncios.TEXTO_ATAJOS_GLOBALES_SOLO,
             "Atajos de música solo en Bellbird")
@@ -356,8 +356,8 @@ class TestFrasesGlobales(unittest.TestCase):
             ["Ctrl+Alt+T", "Ctrl+Alt+M"])
         self.assertEqual(
             aviso.texto,
-            "No se pudieron usar en cualquier programa: "
-            "Ctrl+Alt+T, Ctrl+Alt+M. Las usa otro programa")
+            "No se pudieron usar en cualquier aplicación: "
+            "Ctrl+Alt+T, Ctrl+Alt+M. Las usa otra aplicación")
         self.assertEqual(aviso.sonido, "atajos_ocupados")
 
     def test_activos_y_solo_no_llevan_sonido(self):

@@ -23,7 +23,7 @@ class TestMensajeDeFallo(unittest.TestCase):
     def test_video_no_disponible(self):
         self.assertEqual(
             mensaje_de_fallo("Private video removed"),
-            "El vídeo no está disponible. Comprueba la dirección o que no "
+            "El vídeo no está disponible. Comprueba el enlace o que no "
             "sea privado.")
 
     def test_motivo_desconocido(self):

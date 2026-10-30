@@ -93,5 +93,5 @@ def texto_de_entrada() -> str:
     """Devuelve el anuncio al entrar en el modo."""
     # Traductores: anuncio al entrar en el ajuste fino; dice qué teclas mueven, confirman y salen.
     return _("Ajuste fino. Flechas para mover, Control para pasos grandes, "
-             "Mayúsculas para pasos de un píxel. Intro confirma, Escape deshace, "
+             "Mayúsculas para pasos de un píxel. Intro confirma, Esc deshace, "
              "Tab sale.")

@@ -82,12 +82,12 @@ TEXTO_TEMA_MOVIDO = N_("Canción movida a la posición {posicion} de {total}")
 TEXTO_TEMA_QUITADO = N_("Canción eliminada de la lista")
 TEXTO_COLA_SIN_TEMAS = N_("No hay canciones en la cola")
 TEXTO_LEYENDO_ENLACE = N_("Leyendo el enlace")
-TEXTO_ENLACE_NO_YOUTUBE = N_("Esa dirección no es de YouTube")
-# Traductores: {lista} son las combinaciones que otro programa ya usa; se oyen.
+TEXTO_ENLACE_NO_YOUTUBE = N_("Ese enlace no es de YouTube")
+# Traductores: {lista} son las combinaciones que otra aplicación ya usa; se oyen.
 TEXTO_ATAJOS_GLOBALES_FALLO = N_(
-    "No se pudieron usar en cualquier programa: {lista}. "
-    "Las usa otro programa")
-TEXTO_ATAJOS_GLOBALES_ACTIVOS = N_("Atajos de música activos en cualquier programa")
+    "No se pudieron usar en cualquier aplicación: {lista}. "
+    "Las usa otra aplicación")
+TEXTO_ATAJOS_GLOBALES_ACTIVOS = N_("Atajos de música activos en cualquier aplicación")
 # Traductores: {app} es el nombre de la aplicación.
 _TEXTO_ATAJOS_GLOBALES_SOLO = N_("Atajos de música solo en {app}")
 TEXTO_ATAJOS_GLOBALES_SOLO = _TEXTO_ATAJOS_GLOBALES_SOLO.format(app=config.APP_NAME)
@@ -100,7 +100,7 @@ TEXTO_TEMAS_COINCIDEN = N_("{cantidad} canciones coinciden")
 TEXTO_NINGUN_TEMA_COINCIDE = N_("Ninguna canción coincide")
 TEXTO_AYUDA_BIBLIOTECA = N_(
     "Intro reproduce ahora, Mayús más Intro a continuación, "
-    "Control más Intro al final, tecla de aplicaciones para más opciones")
+    "Ctrl más Intro al final, tecla de aplicaciones para más opciones")
 TEXTO_AYUDA_BIBLIOTECA_LISTA = N_(
     "Intro reproduce ahora, Mayús más Intro a continuación, Ctrl más Intro "
     "al final, tecla de aplicaciones para más opciones, Suprimir elimina de la lista")
@@ -109,7 +109,7 @@ TEXTO_AYUDA_COLA = N_(
     "tecla de aplicaciones para más opciones")
 TEXTO_AYUDA_BUSCAR = N_(
     "Escribe para filtrar, flecha abajo va a las canciones, "
-    "Escape borra la búsqueda")
+    "Esc borra la búsqueda")
 TEXTO_CONFIRMAR_BORRAR_LISTA = N_("¿Borrar la lista {nombre}?")
 
 

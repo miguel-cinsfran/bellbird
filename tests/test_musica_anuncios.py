@@ -341,7 +341,7 @@ class TestOtrosAvisos(unittest.TestCase):
 
     def test_enlace_no_youtube_lleva_sonido_de_error(self):
         aviso = anuncios.aviso_enlace_no_youtube()
-        self.assertEqual(aviso.texto, "Esa dirección no es de YouTube")
+        self.assertEqual(aviso.texto, "Ese enlace no es de YouTube")
         self.assertEqual(aviso.sonido, "error")
 
     def test_error_de_enlace_lleva_el_mensaje_y_sonido(self):
@@ -552,7 +552,7 @@ class TestTextosVentanaMusica(unittest.TestCase):
         self.assertEqual(
             anuncios.TEXTO_AYUDA_BIBLIOTECA,
             "Intro reproduce ahora, Mayús más Intro a continuación, "
-            "Control más Intro al final, tecla de aplicaciones para más "
+            "Ctrl más Intro al final, tecla de aplicaciones para más "
             "opciones")
         self.assertEqual(
             anuncios.TEXTO_AYUDA_BIBLIOTECA_LISTA,
@@ -565,7 +565,7 @@ class TestTextosVentanaMusica(unittest.TestCase):
         self.assertEqual(
             anuncios.TEXTO_AYUDA_BUSCAR,
             "Escribe para filtrar, flecha abajo va a las canciones, "
-            "Escape borra la búsqueda")
+            "Esc borra la búsqueda")
 
     def test_confirmar_borrar(self):
         self.assertEqual(anuncios.TEXTO_CONFIRMAR_BORRAR_LISTA,

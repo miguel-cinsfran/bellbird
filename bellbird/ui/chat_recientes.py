@@ -40,7 +40,7 @@ ORDEN = (
 # Base de los ids propios para `RegisterHotKey`, lejos de los de música.
 BASE_IDS = 0xB100
 
-TEXTO_ACTIVOS = N_("Mensajes recientes del chat en cualquier programa")
+TEXTO_ACTIVOS = N_("Mensajes recientes del chat en cualquier aplicación")
 TEXTO_SOLO = N_("Mensajes recientes del chat solo en {app}")
 
 

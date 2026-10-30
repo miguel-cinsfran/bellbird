@@ -207,7 +207,7 @@ def texto_resumen(cantidad_total: int, cantidad_filtrada: int,
     return texto.format(total=total)
 
 
-TEXTO_CARPETA_EXAMINADA_SIN_CAMBIOS = N_("Carpeta examinada: sin cambios.")
+TEXTO_CARPETA_EXAMINADA_SIN_CAMBIOS = N_("Carpeta actualizada: sin cambios.")
 
 
 def texto_carpeta_examinada(nuevas: int, quitadas: int) -> str:
@@ -220,7 +220,7 @@ def texto_carpeta_examinada(nuevas: int, quitadas: int) -> str:
     if not partes:
         return _(TEXTO_CARPETA_EXAMINADA_SIN_CAMBIOS)
     # Traductores: {partes} dice cuántas nuevas y quitadas hubo; se anuncia.
-    return _("Carpeta examinada: {partes}.").format(partes=" y ".join(partes))
+    return _("Carpeta actualizada: {partes}.").format(partes=" y ".join(partes))
 
 
 def _partes_examen(nuevas, quitadas) -> list:

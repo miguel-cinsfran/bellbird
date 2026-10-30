@@ -83,7 +83,7 @@ class PantallaCompleta(wx.Frame):
         nombre_accesible(
             self.video,
             _("Vídeo a pantalla completa. Espacio pausa, flechas buscan y ajustan "
-              "volumen, Escape sale."))
+              "volumen, Esc sale."))
         self.Bind(wx.EVT_CHAR_HOOK, self._on_key)
         self.Bind(wx.EVT_CLOSE, self._on_close)
         self.video.Bind(wx.EVT_LEFT_DCLICK,

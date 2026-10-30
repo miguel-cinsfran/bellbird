@@ -121,7 +121,7 @@ class PaginaLectura:
                wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         self.chk_lectura_atajos_globales = wx.CheckBox(
-            p, label=_("Leer mensajes recientes en cualquier &programa"),
+            p, label=_("Leer mensajes recientes en cualquier a&plicación"),
             name="LecturaAtajosGlobales")
         self.chk_lectura_atajos_globales.SetForegroundColour(_T.text)
         vs.Add(self.chk_lectura_atajos_globales, 0,

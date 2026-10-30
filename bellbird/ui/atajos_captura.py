@@ -99,7 +99,7 @@ ETIQUETAS = {
     "musica_aleatorio": N_("Orden aleatorio de la música"),
     "musica_repetir": N_("Cambiar la repetición de la música"),
     "musica_detener": N_("Detener música"),
-    "musica_adelantar": N_("Adelantar la música 10 segundos"),
+    "musica_adelantar": N_("Avanzar la música 10 segundos"),
     "musica_retroceder": N_("Retroceder la música 10 segundos"),
     "musica_ventana": N_("Abrir la ventana de música"),
     "preguntar_ia": N_("Preguntar a la IA sobre la imagen"),
@@ -152,7 +152,7 @@ _NOMBRE_TECLA_LEER = {
     # Traductores: nombre de la tecla como se lee en voz alta, el del teclado en español de Windows.
     "space": N_("Espacio"), "backspace": N_("Retroceso"), "back": N_("Retroceso"),
     # Traductores: nombre de la tecla como se lee en voz alta, el del teclado en español de Windows.
-    "escape": N_("Escape"), "esc": N_("Escape"), "tab": N_("Tab"),
+    "escape": N_("Esc"), "esc": N_("Esc"), "tab": N_("Tab"),
 }
 # Traductores: nombre de la tecla como se lee en voz alta, el del teclado en español de Windows.
 _MOD_LEER = {"ctrl": N_("Ctrl"), "alt": N_("Alt"), "shift": N_("Mayús")}
@@ -198,7 +198,7 @@ def etiqueta_de_accion(accion: str) -> str:
 def texto_de_espera(etiqueta: str, ayuda_area: str) -> str:
     """Devuelve el anuncio para entrar en modo captura."""
     return (_("Pulsa la combinación para {etiqueta}. {ayuda} "
-              "Intro la deja sin atajo. Escape cancela.").format(
+              "Intro la deja sin atajo. Esc cancela.").format(
                   etiqueta=etiqueta, ayuda=_(ayuda_area) if ayuda_area else ""))
 
 

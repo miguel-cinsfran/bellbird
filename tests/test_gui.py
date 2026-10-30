@@ -1244,11 +1244,11 @@ class TestAliasDesdeElChat(unittest.TestCase):
             frame._mostrar_menu_chat()
 
         self.assertIn("Silenciar voz de Carlos", menu.etiquetas.values())
-        self.assertIn("Expulsar 5 min a Carlos (timeout)", menu.etiquetas.values())
-        self.assertIn("Banear a Carlos del directo (permanente)", menu.etiquetas.values())
+        self.assertIn("Suspender temporalmente a Carlos (5 minutos)", menu.etiquetas.values())
+        self.assertIn("Ocultar a Carlos en el canal de YouTube", menu.etiquetas.values())
         self.assertIn("Cambiar el &alias de Carlos…", menu.etiquetas.values())
         identificador_ban = next(i for i, texto in menu.etiquetas.items()
-                                 if texto.startswith("Banear"))
+                                 if texto.startswith("Ocultar a"))
         identificador_silenciar = next(i for i, texto in menu.etiquetas.items()
                                        if texto.startswith("Silenciar"))
         with mock.patch.object(gui.wx, "CallAfter",
@@ -1315,7 +1315,7 @@ class TestIdentidadModeracionChat(unittest.TestCase):
                 mock.patch.object(gui.youtube_api, "google_disponible", return_value=True), \
                 mock.patch.object(gui.credenciales, "hay_sesion", return_value=True):
             frame._mostrar_menu_chat()
-        identificador_ban = next(i for i, texto in menu.etiquetas.items() if texto.startswith("Banear"))
+        identificador_ban = next(i for i, texto in menu.etiquetas.items() if texto.startswith("Ocultar a"))
         with mock.patch.object(gui.wx, "CallAfter", side_effect=lambda fn, *a: fn(*a)):
             menu.handlers[identificador_ban](None)
         frame._moderar.assert_called_once_with("Igual", "AAA", None)
@@ -1333,7 +1333,7 @@ class TestIdentidadModeracionChat(unittest.TestCase):
                 mock.patch.object(gui.youtube_api, "google_disponible", return_value=True), \
                 mock.patch.object(gui.credenciales, "hay_sesion", return_value=True):
             frame._mostrar_menu_chat()
-        identificador_timeout = next(i for i, texto in menu.etiquetas.items() if texto.startswith("Expulsar"))
+        identificador_timeout = next(i for i, texto in menu.etiquetas.items() if texto.startswith("Suspender"))
         with mock.patch.object(gui.wx, "CallAfter", side_effect=lambda fn, *a: fn(*a)):
             menu.handlers[identificador_timeout](None)
         frame._moderar.assert_called_once_with("Igual", "AAA", 300)
@@ -1348,8 +1348,8 @@ class TestIdentidadModeracionChat(unittest.TestCase):
                 mock.patch.object(gui.youtube_api, "google_disponible", return_value=True), \
                 mock.patch.object(gui.credenciales, "hay_sesion", return_value=True):
             frame._mostrar_menu_chat()
-        self.assertNotIn("Banear a Igual del directo (permanente)", menu.etiquetas.values())
-        self.assertNotIn("Expulsar 5 min a Igual (timeout)", menu.etiquetas.values())
+        self.assertNotIn("Ocultar a Igual en el canal de YouTube", menu.etiquetas.values())
+        self.assertNotIn("Suspender temporalmente a Igual (5 minutos)", menu.etiquetas.values())
 
     def test_youtube_sin_identificador_no_muestra_moderacion(self):
         frame = self._frame_con_chat()
@@ -1361,7 +1361,7 @@ class TestIdentidadModeracionChat(unittest.TestCase):
                 mock.patch.object(gui.youtube_api, "google_disponible", return_value=True), \
                 mock.patch.object(gui.credenciales, "hay_sesion", return_value=True):
             frame._mostrar_menu_chat()
-        self.assertNotIn("Banear a Igual del directo (permanente)", menu.etiquetas.values())
+        self.assertNotIn("Ocultar a Igual en el canal de YouTube", menu.etiquetas.values())
 
     def test_copia_usa_texto_del_registro_seleccionado(self):
         frame = self._frame_con_chat()
@@ -1420,7 +1420,7 @@ class TestIdentidadModeracionChat(unittest.TestCase):
                 mock.patch.object(gui.credenciales, "hay_sesion", return_value=True):
             frame._mostrar_menu_chat()
         self.assertIn("Silenciar voz de Carlos", menu.etiquetas.values())
-        identificador_ban = next(i for i, texto in menu.etiquetas.items() if texto.startswith("Banear"))
+        identificador_ban = next(i for i, texto in menu.etiquetas.items() if texto.startswith("Ocultar a"))
         with mock.patch.object(gui.wx, "CallAfter", side_effect=lambda fn, *a: fn(*a)):
             menu.handlers[identificador_ban](None)
         frame._moderar.assert_called_once_with("xX_gamer_29384756_Xx", "CANAL1", None)
@@ -2099,7 +2099,7 @@ class TestCategoriasDePreferenciasSoloLectura(unittest.TestCase):
             "Pr&eguntar al abrir Música si igualar el volumen",
             "Salida de a&udio de la música",
             "&Buscar salidas de audio",
-            "Usar atajos de música en cualquier &programa",
+            "Usar atajos de música en cualquier a&plicación",
         ])
 
     def test_los_mnemonicos_de_musica_no_se_repiten_ni_chocan_con_guardar(self):

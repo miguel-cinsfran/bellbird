@@ -234,7 +234,7 @@ class TestAtajosCaptura(unittest.TestCase):
                 "Conectar", "Debe ser Alt y una tecla (por ejemplo Alt+C)."),
             "Pulsa la combinación para Conectar. "
             "Debe ser Alt y una tecla (por ejemplo Alt+C). "
-            "Intro la deja sin atajo. Escape cancela.")
+            "Intro la deja sin atajo. Esc cancela.")
 
     def test_etiqueta_boton_nombra_la_tecla_en_espanol(self):
         self.assertEqual(
@@ -411,7 +411,7 @@ class TestAtajoLegible(unittest.TestCase):
             "alt+enter": "Alt+Intro",
             "alt+space": "Alt+Espacio",
             "ctrl+backspace": "Ctrl+Retroceso",
-            "ctrl+escape": "Ctrl+Escape",
+            "ctrl+escape": "Ctrl+Esc",
             "ctrl+shift+f5": "Ctrl+Mayús+F5",
         }
         for guardado, esperado in casos.items():

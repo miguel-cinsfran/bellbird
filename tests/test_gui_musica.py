@@ -1448,7 +1448,7 @@ class TestAbrirEnlace(unittest.TestCase):
                 "https://ejemplo.test/video", "final")
         expandir.assert_not_called()
         env.anunciar.assert_called_once_with(
-            "Esa dirección no es de YouTube")
+            "Ese enlace no es de YouTube")
         self.assertEqual(env.snd.sonidos, ["error"])
 
     def test_agregar_enlace_sigue_siendo_el_modo_final(self):
@@ -1916,9 +1916,9 @@ class TestAtajosGlobalesControl(unittest.TestCase):
         with _entorno() as env:
             ControlMusica(marco)
         env.anunciar.assert_called_once_with(
-            "No se pudieron usar en cualquier programa: "
+            "No se pudieron usar en cualquier aplicación: "
             "Ctrl+Alt+Flecha derecha, Ctrl+Alt+Mayús+Flecha derecha. "
-            "Las usa otro programa")
+            "Las usa otra aplicación")
         self.assertEqual(env.snd.sonidos, ["atajos_ocupados"])
 
     def test_aplicar_en_caliente_activa_y_desactiva_con_anuncio(self):
@@ -1933,7 +1933,7 @@ class TestAtajosGlobalesControl(unittest.TestCase):
             self.assertFalse(control._globales.activos)
         self.assertEqual(
             [c.args[0] for c in env.anunciar.call_args_list],
-            ["Atajos de música activos en cualquier programa",
+            ["Atajos de música activos en cualquier aplicación",
              "Atajos de música solo en Bellbird"])
         self.assertEqual(env.snd.sonidos, [])
 
@@ -1946,7 +1946,7 @@ class TestAtajosGlobalesControl(unittest.TestCase):
             control.aplicar_preferencias()
         self.assertTrue(control._globales.activos)
         env.anunciar.assert_called_once_with(
-            "Atajos de música activos en cualquier programa")
+            "Atajos de música activos en cualquier aplicación")
 
     def test_reactiva_si_cambiaron_los_atajos(self):
         marco = _MarcoGlobales(musica_atajos_globales=True)
@@ -1959,7 +1959,7 @@ class TestAtajosGlobalesControl(unittest.TestCase):
                        ord("Y")),
                       marco.registrados.values())
         env.anunciar.assert_called_once_with(
-            "Atajos de música activos en cualquier programa")
+            "Atajos de música activos en cualquier aplicación")
 
     def test_fallo_al_aplicar_se_anuncia_con_su_sonido(self):
         marco = _MarcoGlobales(musica_atajos_globales=True)
@@ -1967,8 +1967,8 @@ class TestAtajosGlobalesControl(unittest.TestCase):
         with _entorno() as env:
             control = ControlMusica(marco)
         env.anunciar.assert_called_once_with(
-            "No se pudieron usar en cualquier programa: "
-            "Ctrl+Alt+T. Las usa otro programa")
+            "No se pudieron usar en cualquier aplicación: "
+            "Ctrl+Alt+T. Las usa otra aplicación")
         self.assertEqual(env.snd.sonidos, ["atajos_ocupados"])
         self.assertTrue(control._globales.activos)
 

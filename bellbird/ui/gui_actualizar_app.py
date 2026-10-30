@@ -269,7 +269,7 @@ class _FlujoActualizacion:
             self._ofrecer_pagina(paquete)
         elif not actualizacion.carpeta_admite_escritura(
                 paths.carpeta_instalacion()):
-            self.ventana.estado(texto + _(" La carpeta del programa no admite "
+            self.ventana.estado(texto + _(" La carpeta de la aplicación no admite "
                                           "cambios. Se puede descargar a mano desde la página."))
             self._ofrecer_pagina(paquete)
         else:

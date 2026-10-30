@@ -45,7 +45,7 @@ class PaginaProgramados:
             "sesión de Google iniciada y un directo de YouTube conectado. El "
             "intervalo mínimo son 5 minutos y cada mensaje admite 200 caracteres. "
             "YouTube suele bloquear los enlaces en el chat del directo: conviene "
-            "escribir el nombre de usuario en vez de la dirección completa."))
+            "escribir el nombre de usuario en vez del enlace completo."))
         intro.SetForegroundColour(_T.dim)
         intro.Wrap(ANCHO_NOTA)
         vs.Add(intro, 0, wx.ALL, 10)

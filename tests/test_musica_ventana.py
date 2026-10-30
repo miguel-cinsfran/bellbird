@@ -292,7 +292,7 @@ class TestVentanaMusica(unittest.TestCase):
             "Mostrar cola", "Cola de reproducción",
             "Igualación del volumen", "Abrir enlace",
             "Nueva lista", "Cambiar carpeta", "Igualar volumen",
-            "Examinar carpeta", "Cerrar"])
+            "Actualizar carpeta", "Cerrar"])
 
     def test_instala_busqueda_por_tecleo_en_las_tres_listas(self):
         control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
@@ -323,7 +323,7 @@ class TestVentanaMusica(unittest.TestCase):
             "Canciones", "Ocultar cola", "Cola de reproducción",
             "Igualación del volumen", "Abrir enlace",
             "Nueva lista", "Cambiar carpeta", "Igualar volumen",
-            "Examinar carpeta", "Cerrar"])
+            "Actualizar carpeta", "Cerrar"])
 
     def test_mnemonicos_unicos_en_la_ventana(self):
         self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock")))
@@ -1627,7 +1627,7 @@ class TestDialogoEnlace(unittest.TestCase):
             control for control in self._panel().GetChildren()
             if isinstance(control, (wx.TextCtrl, wx.Button))]
         self.assertEqual([control.GetName() for control in interactivos], [
-            "Dirección de YouTube", "Reproducir ahora", "A continuación",
+            "Enlace de YouTube", "Reproducir ahora", "A continuación",
             "Agregar a la cola", "Cancelar"])
 
     def test_mnemonicos_unicos(self):
@@ -1708,7 +1708,7 @@ class TestDialogoEditorLista(unittest.TestCase):
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestVentanaVigiaYExaminar(unittest.TestCase):
-    """El aviso del vigía y el botón Examinar carpeta."""
+    """El aviso del vigía y el botón Actualizar carpeta."""
 
     def setUp(self):
         self.app = wx.App() if not wx.App.Get() else wx.App.Get()
@@ -1741,9 +1741,9 @@ class TestVentanaVigiaYExaminar(unittest.TestCase):
     def test_el_boton_examinar_tiene_rotulo_nombre_y_tab(self):
         self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock")))
         self.assertEqual(self.ventana.btn_examinar.GetLabel(),
-                         "E&xaminar carpeta")
+                         "Actuali&zar carpeta")
         self.assertEqual(self.ventana.btn_examinar.GetName(),
-                         "Examinar carpeta")
+                         "Actualizar carpeta")
         self.ventana.btn_examinar.SetFocus()
         self.ventana.btn_examinar.Navigate()
         self.assertIs(wx.Window.FindFocus(), self.ventana.btn_cerrar)
@@ -1830,7 +1830,7 @@ class TestVentanaVigiaYExaminar(unittest.TestCase):
         self.assertFalse(self.ventana._examinando)
         self.assertEqual(
             self.anuncios,
-            ["Carpeta examinada: 1 canción nueva y 2 eliminadas."])
+            ["Carpeta actualizada: 1 canción nueva y 2 eliminadas."])
         self.assertEqual(self.ventana.lb_temas.GetStrings(), ["Rock"])
 
     def test_examinar_sin_cambios_lo_dice(self):
@@ -1840,7 +1840,7 @@ class TestVentanaVigiaYExaminar(unittest.TestCase):
         del self.anuncios[:]
         self.ventana.examinar_carpeta()
         self.assertEqual(self.anuncios,
-                         ["Carpeta examinada: sin cambios."])
+                         ["Carpeta actualizada: sin cambios."])
 
     def test_mientras_examina_otra_pulsacion_no_lanza_otro_hilo(self):
         control = ControlFalso(biblioteca=_biblioteca_de("Rock"))

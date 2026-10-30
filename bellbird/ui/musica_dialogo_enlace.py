@@ -44,11 +44,11 @@ class DialogoEnlace(wx.Dialog):
         panel.SetForegroundColour(_T.text)
         vs = wx.BoxSizer(wx.VERTICAL)
 
-        vs.Add(wx.StaticText(panel, label=_("&Dirección de YouTube:")),
+        vs.Add(wx.StaticText(panel, label=_("Enlace &de YouTube:")),
                 0, wx.ALL, 8)
-        self.txt_enlace = wx.TextCtrl(panel, name=_("Dirección de YouTube"))
+        self.txt_enlace = wx.TextCtrl(panel, name=_("Enlace de YouTube"))
         _pintar(self.txt_enlace, _T.field, _T.text)
-        nombre_accesible(self.txt_enlace, _("Dirección de YouTube"))
+        nombre_accesible(self.txt_enlace, _("Enlace de YouTube"))
         vs.Add(self.txt_enlace, 0, wx.EXPAND | wx.ALL, 8)
 
         botones = wx.WrapSizer(wx.HORIZONTAL, flags=0)

@@ -1674,7 +1674,7 @@ class ReproductorPanel(wx.Panel):
         # En un directo de TikTok no hay línea de tiempo; en un directo de
         # YouTube sí (se puede retroceder dentro del margen que da YouTube).
         if self._url_flujo:
-            anunciar(_("En un directo de TikTok no se puede adelantar ni retroceder"))
+            anunciar(_("En un directo de TikTok no se puede avanzar ni retroceder"))
         else:
             anunciar(_("No se puede buscar en este momento"))
 
@@ -1726,7 +1726,7 @@ class ReproductorPanel(wx.Panel):
                 buscar_porcentaje=self._buscar_porcentaje))
             self._fijar_salida(self._fs.video.GetHandle())
             anunciar(_("Pantalla completa. Espacio pausa, flechas buscan y ajustan "
-                      "volumen, Escape sale."))
+                      "volumen, Esc sale."))
         else:
             self._fijar_salida(self._video.GetHandle())
             self._fs.Destroy()
@@ -2263,17 +2263,17 @@ class ReproductorPanel(wx.Panel):
         elif getattr(self, "_relevo_ffmpeg", None) is not None \
                 and self._es_directo_actual():
             motivo = "relevo_sin_barra"
-            anunciar(_("En este directo solo se puede retroceder o adelantar "
+            anunciar(_("En este directo solo se puede retroceder o avanzar "
                       "con los botones o las flechas"))
         elif self._es_directo_actual():
             # Directo sin relevo (HLS que VLC no supo remuxar o fuente no
             # HLS): las flechas no entran al camino del grabado, se avisa.
             if getattr(self, "_url_flujo", ""):
                 motivo = "tiktok_sin_barra"
-                anunciar(_("En un directo de TikTok no se puede adelantar ni retroceder"))
+                anunciar(_("En un directo de TikTok no se puede avanzar ni retroceder"))
             else:
                 motivo = "directo_sin_relevo"
-                anunciar(_("En este directo no se puede adelantar ni retroceder"))
+                anunciar(_("En este directo no se puede avanzar ni retroceder"))
         else:
             motivo = "vod_dividido"
             anunciar(_("No se puede mover este vídeo mientras usa la fuente de internet"))

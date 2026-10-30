@@ -418,7 +418,7 @@ class GestorDescargasDialog(wx.Dialog):
 
     def _on_vaciar_historial(self, _event) -> None:
         cantidad = len(self._historial)
-        mensaje = _("Borra las entradas del historial. No borra ningún archivo "
+        mensaje = _("Borra los elementos del historial. No borra ningún archivo "
                     "descargado del disco, solo la lista. ¿Deseas continuar?")
         if wx.MessageBox(mensaje, _("Vaciar historial"),
                          wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING, self) != wx.YES:
@@ -427,9 +427,9 @@ class GestorDescargasDialog(wx.Dialog):
         historial_descargas.guardar(self._ruta_historial, self._historial)
         self.lista_historial.DeleteAllItems()
         if cantidad == 1:
-            anunciar(_("Se borró 1 entrada del historial"))
+            anunciar(_("Se borró 1 elemento del historial"))
         else:
-            anunciar(_("Se borraron {cantidad} entradas del historial").format(cantidad=cantidad))
+            anunciar(_("Se borraron {cantidad} elementos del historial").format(cantidad=cantidad))
 
     def _on_cancelar(self, _event):
         idx = self.lista.GetFirstSelected()

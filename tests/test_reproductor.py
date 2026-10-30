@@ -1119,7 +1119,7 @@ class TestRelevoRobustez(unittest.TestCase):
             panel._on_sld_pos(None)
         self.assertEqual(
             [c.args[0] for c in anunciar.call_args_list],
-            ["En este directo solo se puede retroceder o adelantar con los "
+            ["En este directo solo se puede retroceder o avanzar con los "
              "botones o las flechas"] * 2)
         panel._player.set_time.assert_not_called()
         trazas = [str(c.args[1]) for c in debug.call_args_list]

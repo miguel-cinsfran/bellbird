@@ -4,7 +4,7 @@ from bellbird.capture.estado_sesion import _duracion
 from bellbird.core.idioma import N_, _
 
 NOTA_TRANSMISION = N_(
-    "Desde aquí eliges a dónde transmitir, empiezas y terminas el directo "
+    "Desde aquí eliges a dónde transmitir, inicias y finalizas el directo "
     "y preparas lo que se ve. En el directo se ve una ventana, la que "
     "eliges en Ventana que se captura. Esa captura no lleva sonido: el "
     "sonido sale del audio del escritorio y del micrófono de OBS. El panel "

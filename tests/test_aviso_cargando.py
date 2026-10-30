@@ -1,7 +1,7 @@
 """Aviso «Cargando vídeo» mientras el reproductor está cargando.
 
 Mientras un vídeo todavía se está cargando, una flecha o un salto decía
-«En este directo no se puede adelantar ni retroceder» o «No se puede mover
+«En este directo no se puede avanzar ni retroceder» o «No se puede mover
 este vídeo mientras usa la fuente de internet», información falsa dos
 segundos después. Ahora esos rechazos dicen «Cargando vídeo».
 """
@@ -46,7 +46,7 @@ class PruebasAvisoCargando(unittest.TestCase):
         with mock.patch.object(reproductor, "anunciar") as anunciar:
             panel._buscar_rel(-10_000)
         anunciar.assert_called_once_with(
-            "En este directo no se puede adelantar ni retroceder")
+            "En este directo no se puede avanzar ni retroceder")
         panel._ir_a.assert_not_called()
 
     def test_tiktok_cargando_mantiene_frase_de_tiktok(self):
@@ -55,7 +55,7 @@ class PruebasAvisoCargando(unittest.TestCase):
         with mock.patch.object(reproductor, "anunciar") as anunciar:
             panel._buscar_rel(-10_000)
         anunciar.assert_called_once_with(
-            "En un directo de TikTok no se puede adelantar ni retroceder")
+            "En un directo de TikTok no se puede avanzar ni retroceder")
         panel._ir_a.assert_not_called()
 
     def test_grabado_sin_permiso_cargando_avisa_cargando(self):
@@ -96,7 +96,7 @@ class PruebasAvisoCargando(unittest.TestCase):
         with mock.patch.object(reproductor, "anunciar") as anunciar:
             panel._buscar_rel(-10_000)
         anunciar.assert_called_once_with(
-            "En un directo de TikTok no se puede adelantar ni retroceder")
+            "En un directo de TikTok no se puede avanzar ni retroceder")
         panel._ir_a.assert_not_called()
 
     def test_directo_reproduciendo_sin_relevo_mantiene_frase_vieja(self):
@@ -105,7 +105,7 @@ class PruebasAvisoCargando(unittest.TestCase):
         with mock.patch.object(reproductor, "anunciar") as anunciar:
             panel._buscar_rel(-10_000)
         anunciar.assert_called_once_with(
-            "En este directo no se puede adelantar ni retroceder")
+            "En este directo no se puede avanzar ni retroceder")
         panel._ir_a.assert_not_called()
 
     def test_porcentaje_detenido_avisa_detenido(self):
@@ -148,7 +148,7 @@ class PruebasAvisoCargando(unittest.TestCase):
         with mock.patch.object(reproductor, "anunciar") as anunciar:
             panel._buscar_rel(-10_000)
         anunciar.assert_called_once_with(
-            "En un directo de TikTok no se puede adelantar ni retroceder")
+            "En un directo de TikTok no se puede avanzar ni retroceder")
         panel._ir_a.assert_not_called()
 
 

@@ -47,7 +47,7 @@ def texto_negra(etiqueta, motivo="", fuente="") -> str:
                       etiqueta=etiqueta, fuente=fuente))
     # Traductores: aviso de captura negra; {etiqueta} es lo elegido en «Capturar de».
     return (_("La captura de {etiqueta} salió negra y no se agregó. Suele "
-              "pasar si la PC no tiene monitor conectado o si la cortina de "
+              "pasar si el equipo no tiene monitor conectado o si la cortina de "
               "pantalla de NVDA está activa. Prueba en OBS el método de "
               "captura Windows 10 para esa fuente.").format(
                   etiqueta=etiqueta))

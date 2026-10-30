@@ -118,7 +118,7 @@ class TestTomadosDeFallo(unittest.TestCase):
 
     def test_sin_anuncio_de_fallo_da_vacia(self):
         self.assertEqual(musica_globales.tomados_de_fallo(
-            "Atajos de música activos en cualquier programa"), [])
+            "Atajos de música activos en cualquier aplicación"), [])
 
     def test_vacio_da_vacia(self):
         self.assertEqual(musica_globales.tomados_de_fallo(""), [])
@@ -255,7 +255,7 @@ class TestImportanSinAbrirNada(unittest.TestCase):
         self.assertEqual(anuncios_musica.TEXTO_PAUSA, "Música en pausa")
         self.assertEqual(anuncios_musica.TEXTO_REANUDADA,
                          "Música reanudada")
-        self.assertIn("cualquier programa",
+        self.assertIn("cualquier aplicación",
                       anuncios_musica.TEXTO_ATAJOS_GLOBALES_ACTIVOS)
 
 

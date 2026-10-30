@@ -1362,6 +1362,18 @@ class TestEstadoBusquedaMuestrasLejanas(unittest.TestCase):
             self.assertEqual(bus.confirmada, 20_000)
             self.assertFalse(bus.pendiente)
 
+    def test_fallo_con_muestra_no_valida_adopta_ultima_valida(self):
+        bus = EstadoBusqueda(confirmada=5_000)
+        bus.solicitar(60_000, 0.0)
+        ev, _ = bus.observar(10_000, 120_000, "playing", 0.5)
+        self.assertIsNone(ev)
+        self.assertTrue(bus.pendiente)
+        ev, val = bus.observar(-1, 120_000, "ended", 0.6)
+        self.assertEqual(ev, "fallo")
+        self.assertEqual(val, 10_000)
+        self.assertEqual(bus.confirmada, 10_000)
+        self.assertFalse(bus.pendiente)
+
     def test_destino_cero_y_final_video(self):
         bus = EstadoBusqueda(confirmada=10_000)
         bus.solicitar(0, 0.0)

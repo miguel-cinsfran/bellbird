@@ -829,7 +829,7 @@ class YTChatFrame(wx.Frame):
                           _("Error"), wx.OK | wx.ICON_ERROR, self)
             return
         try:
-            abrir(self, url, self._reconectar_desde_historial, self._musica.agregar_enlace)
+            abrir(self, url, self._reconectar_desde_historial, self._musica)
         except Exception as exc:
             logger.warning("gestor de descargas: %s", exc)
             wx.MessageBox(_("Error en el Administrador de descargas:\n{detalle}").format(detalle=exc),

@@ -24,6 +24,7 @@ def textos() -> dict:
     """Los rótulos del menú, traducidos al pedirlos y no al importar."""
     return {
         "agregar": _("&Agregar a la cola"),
+        "escuchar": _("&Escuchar"),
         "audio": _("Descargar como a&udio"),
         "video": _("Descargar como &vídeo"),
         "bellbird": _("Abrir en &Bellbird"),
@@ -57,7 +58,7 @@ def opciones_de(entrada, hay_bellbird, hay_musica) -> tuple:
     elif resultado.tipo == "canal":
         base = ("contenido", "copiar", "navegador")
     else:
-        base = ("agregar", "audio", "video", "bellbird", "musica",
+        base = ("agregar", "escuchar", "audio", "video", "bellbird", "musica",
                 "copiar", "navegador")
     if not hay_bellbird:
         base = tuple(o for o in base if o != "bellbird")
@@ -73,18 +74,39 @@ def _descargable(resultado) -> bool:
     return not resultado.en_directo and not resultado.programado
 
 
-def anunciar_agregados(cuantos: int) -> None:
-    """Avisa cuántos enlaces entraron a la cola, si entró alguno."""
-    if cuantos == 1:
-        anunciar(_("Agregado a la cola"))
-    elif cuantos > 1:
-        anunciar(_("{cantidad} agregados a la cola").format(cantidad=cuantos))
-    else:
+def texto_agregados(cuantos, titulo=None, hay_turno=True) -> str:
+    """Lo que se anuncia al agregar: lo que pasa de verdad. Función pura."""
+    if cuantos != 1:
+        return _("{cantidad} descargas agregadas").format(cantidad=cuantos)
+    if hay_turno:
+        if titulo:
+            return _("Descargando: {titulo}").format(titulo=titulo)
+        return _("Descargando")
+    if titulo:
+        return _("En cola: {titulo}").format(titulo=titulo)
+    return _("En cola")
+
+
+def anunciar_agregados(cuantos, titulo=None, hay_turno=True) -> None:
+    """Avisa lo que pasó al agregar, si entró algo, con su sonido."""
+    if not cuantos:
         return
+    anunciar(texto_agregados(cuantos, titulo, hay_turno))
     try:
         _snd.reproducir("descarga_encolada")
     except Exception as error:
         logger.debug("sin sonido: %s", error)
+
+
+def titulo_para_anunciar(resultados):
+    """El título para el anuncio de agregado, o None si no hay uno solo.
+
+    Solo con un vídeo solo se conoce el título; con varios elegidos, con
+    una lista entera o con un enlace pegado se anuncia sin título.
+    """
+    if len(resultados) == 1 and resultados[0].tipo == "video":
+        return resultados[0].titulo or None
+    return None
 
 
 def reparto_para_agregar(resultados) -> tuple[list, list]:
@@ -102,17 +124,13 @@ def reparto_para_agregar(resultados) -> tuple[list, list]:
     return urls, list(dict.fromkeys(rechazos))
 
 
-def construir_menu(opciones, resultados, acciones, al_ver_contenido,
-                   al_agregar):
-    """El menú con esas opciones, actuando sobre esos resultados.
-
-    `al_ver_contenido(resultado)` entra a la vista y `al_agregar(urls)`
-    encola. Los sitios compatibles van siempre al final, separados.
-    """
-    menu = wx.Menu()
-    unico = resultados[0] if len(resultados) == 1 else None
-    llamadas = {
-        "agregar": lambda: al_agregar([r.url for r in resultados]),
+def _llamadas_menu(resultados, unico, acciones, al_ver_contenido,
+                 al_agregar, al_escuchar):
+    """Qué hace cada opción del menú sobre esos resultados."""
+    return {
+        "agregar": lambda: al_agregar(
+            [r.url for r in resultados], titulo=titulo_para_anunciar(resultados)),
+        "escuchar": lambda: al_escuchar(unico),
         "audio": lambda: acciones.como_audio(list(resultados)),
         "video": lambda: acciones.como_video(list(resultados)),
         "bellbird": lambda: acciones.en_bellbird(unico),
@@ -122,6 +140,20 @@ def construir_menu(opciones, resultados, acciones, al_ver_contenido,
         "navegador": lambda: acciones.abrir_en_navegador(unico),
         "sitios": lambda: acciones.ver_sitios(),
     }
+
+
+def construir_menu(opciones, resultados, acciones, al_ver_contenido,
+                   al_agregar, al_escuchar=None):
+    """El menú con esas opciones, actuando sobre esos resultados.
+
+    `al_ver_contenido(resultado)` entra a la vista, `al_agregar(urls,
+    titulo)` encola y `al_escuchar(resultado)` escucha la previa. Los
+    sitios compatibles van siempre al final, separados.
+    """
+    menu = wx.Menu()
+    unico = resultados[0] if len(resultados) == 1 else None
+    llamadas = _llamadas_menu(resultados, unico, acciones, al_ver_contenido,
+                              al_agregar, al_escuchar)
     for opcion in opciones:
         if opcion == "sitios" and menu.GetMenuItemCount():
             menu.AppendSeparator()
@@ -176,8 +208,10 @@ class AccionesResultado:
 
     def como_audio(self, resultados) -> None:
         self._agregar_urls(
-            [r.url for r in resultados or []], formato="audio")
+            [r.url for r in resultados or []], formato="audio",
+            titulo=titulo_para_anunciar(resultados or []))
 
     def como_video(self, resultados) -> None:
         self._agregar_urls(
-            [r.url for r in resultados or []], formato="video")
+            [r.url for r in resultados or []], formato="video",
+            titulo=titulo_para_anunciar(resultados or []))

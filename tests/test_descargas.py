@@ -11,14 +11,13 @@ from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
 from bellbird.downloads import descargas
-from bellbird.downloads.argumentos_ytdlp import recortar_url_registro
+from bellbird.downloads.argumentos_ytdlp import (
+    argumentos_descarga, construir_outtmpl, recortar_url_registro)
+from bellbird.downloads.progreso_ytdlp import (
+    INTERVALO_PROGRESO_S, debe_emitir_progreso)
 from bellbird.downloads.descargas import (
     GestorDescargas,
-    INTERVALO_PROGRESO_S,
     analizar_url,
-    argumentos_descarga,
-    construir_outtmpl,
-    debe_emitir_progreso,
     descargar,
     gestor,
     reiniciar_gestor,
@@ -959,6 +958,22 @@ class TestEsperarTurno(unittest.TestCase):
         self.assertFalse(gestor._esperar_turno("x", evento))
         self.assertEqual(gestor._corriendo, 0)
         self.assertEqual(gestor._empezados, set())
+
+
+class TestHayTurno(unittest.TestCase):
+    def _gestor(self, simultaneas, corriendo=0):
+        gestor = GestorDescargas({"formato": "mp4", "bitrate": 192,
+                                "carpeta": "/tmp", "simultaneas": simultaneas})
+        gestor._corriendo = corriendo
+        return gestor
+
+    def test_con_turno_libre_da_verdadero(self):
+        self.assertTrue(self._gestor(3, 0).hay_turno())
+        self.assertTrue(self._gestor(3, 2).hay_turno())
+
+    def test_con_limite_ocupado_da_falso(self):
+        self.assertFalse(self._gestor(1, 1).hay_turno())
+        self.assertFalse(self._gestor(3, 3).hay_turno())
 
 
 class TestOlvidar(unittest.TestCase):

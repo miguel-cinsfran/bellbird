@@ -105,6 +105,24 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica, SonoridadMusica,
             return
         self._avisar(anuncios.aviso_que_suena(self._coordinador.estado(), True))
 
+    def pausar_para_escuchar(self) -> bool:
+        """Pausa la música para escuchar, sin avisar. Dice si pausó."""
+        if self._coordinador is None:
+            return False
+        estado = self._coordinador.estado()
+        if not toca_pausar(estado) or estado.pausado:
+            return False
+        return bool(self._coordinador.alternar_pausa().ok)
+
+    def reanudar_tras_escuchar(self) -> None:
+        """Reanuda la música tras la escucha, sin avisar."""
+        if self._coordinador is not None and self._coordinador.estado().pausado:
+            self._coordinador.alternar_pausa()
+
+    def ajustes_escucha(self) -> tuple:
+        """(dispositivo o None, volumen) para la escucha del buscador."""
+        return (self._config.get("musica_salida") or None, self._volumen_config())
+
     # ── Biblioteca compartida y ventana ──────────────────────────────────────
 
     def estado(self):

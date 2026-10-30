@@ -10,7 +10,7 @@ from bellbird.downloads import descargas
 from bellbird.downloads import busqueda_youtube
 from bellbird.downloads import filas_descargas
 from bellbird.ui import descargas_acciones, descargas_buscador, descargas_listas, gui_descargas
-from bellbird.ui import buscador_acciones
+from bellbird.ui import buscador_acciones, buscador_escucha
 from bellbird.ui.buscador_acciones import AccionesResultado, opciones_de
 from bellbird.ui import buscador_contenido
 from bellbird.ui import buscador_tandas
@@ -38,10 +38,11 @@ class TestOpcionesDeResultado(unittest.TestCase):
         video = self._res()
         casos = [
             ((video, True, True),
-             ("agregar", "audio", "video", "bellbird", "musica", "copiar",
-              "navegador", "sitios")),
+             ("agregar", "escuchar", "audio", "video", "bellbird", "musica",
+              "copiar", "navegador", "sitios")),
             ((video, False, False),
-             ("agregar", "audio", "video", "copiar", "navegador", "sitios")),
+             ("agregar", "escuchar", "audio", "video", "copiar", "navegador",
+              "sitios")),
             ((self._res(directo=True), True, True),
              ("bellbird", "musica", "copiar", "navegador", "sitios")),
             ((self._res(directo=True), False, False),
@@ -586,7 +587,20 @@ class TestPaginaUnica(unittest.TestCase):
         encolar.assert_called_once()
         self.assertEqual(encolar.call_args.args[0], "https://youtu.be/abc")
         self.assertEqual(agregados, 1)
-        anunciar.assert_called_once_with("Agregado a la cola")
+        anunciar.assert_called_once_with("Descargando")
+
+    def test_agregar_urls_sin_turno_anuncia_en_cola(self):
+        from bellbird.downloads.opciones_formato import SIMULTANEAS_DEFECTO
+        dialogo = self._dialogo()
+        dialogo._gestor._corriendo = dialogo._gestor._opciones.get(
+            "simultaneas", SIMULTANEAS_DEFECTO)
+        with mock.patch.object(gui_descargas.cfg, "guardar_opciones_descarga"), \
+                mock.patch.object(dialogo._gestor, "encolar"), \
+                mock.patch.object(buscador_acciones, "anunciar") as anunciar:
+            agregados = dialogo.agregar_urls(
+                ["https://youtu.be/abc"], titulo="Mi vídeo")
+        self.assertEqual(agregados, 1)
+        anunciar.assert_called_once_with("En cola: Mi vídeo")
 
     def test_cambiar_formato_llena_calidad_y_deshabilita(self):
         dialogo = self._dialogo()
@@ -686,14 +700,14 @@ class TestBuscador(unittest.TestCase):
         gui_descargas._dialogo_activo = None
 
     def _dialogo(self, entradas=None, url_inicial=None, abrir_en_bellbird=None,
-                 agregar_a_musica=None):
+                 musica=None):
         parches = list(TestPaginaUnica._sin_disco(self, entradas))
         for parche in parches:
             parche.start()
             self.addCleanup(parche.stop)
         dialogo = gui_descargas.GestorDescargasDialog(
             None, url_inicial=url_inicial, abrir_en_bellbird=abrir_en_bellbird,
-            agregar_a_musica=agregar_a_musica)
+            musica=musica)
         self.addCleanup(destruir, dialogo)
         self.addCleanup(setattr, gui_descargas, "_dialogo_activo", None)
         self.addCleanup(descargas.reiniciar_gestor)
@@ -1070,7 +1084,7 @@ class TestBuscador(unittest.TestCase):
             pagina._on_agregar(None)
         agregar.assert_called_once_with(
             ["https://www.youtube.com/watch?v=v",
-             "https://www.youtube.com/playlist?list=PL1"])
+             "https://www.youtube.com/playlist?list=PL1"], titulo=None)
         dichos = self._dichos()
         self.assertIn("Un canal no se puede agregar a la cola.", dichos)
         self.assertIn("Un directo en curso no se puede descargar.", dichos)
@@ -1265,15 +1279,13 @@ class TestMenuYVistaBuscador(unittest.TestCase):
         gui_descargas._registrados.clear()
         gui_descargas._dialogo_activo = None
 
-    def _dialogo(self, entradas=None, abrir_en_bellbird=None,
-                 agregar_a_musica=None):
+    def _dialogo(self, entradas=None, abrir_en_bellbird=None, musica=None):
         parches = list(TestPaginaUnica._sin_disco(self, entradas))
         for parche in parches:
             parche.start()
             self.addCleanup(parche.stop)
         dialogo = gui_descargas.GestorDescargasDialog(
-            None, abrir_en_bellbird=abrir_en_bellbird,
-            agregar_a_musica=agregar_a_musica)
+            None, abrir_en_bellbird=abrir_en_bellbird, musica=musica)
         self.addCleanup(destruir, dialogo)
         self.addCleanup(setattr, gui_descargas, "_dialogo_activo", None)
         self.addCleanup(descargas.reiniciar_gestor)
@@ -1338,7 +1350,7 @@ class TestMenuYVistaBuscador(unittest.TestCase):
         items = [_resultado_busqueda("v"), _resultado_lista()]
         self._buscar(items)
         dialogo = self._dialogo(abrir_en_bellbird=mock.Mock(),
-                                agregar_a_musica=mock.Mock())
+                                musica=mock.Mock())
         dialogo.Show()
         pagina = self._pagina_buscada(dialogo, items)
         espias = {n: mock.Mock() for n in (
@@ -1347,19 +1359,21 @@ class TestMenuYVistaBuscador(unittest.TestCase):
         with mock.patch.multiple(pagina._acciones, **espias), \
                 mock.patch.object(pagina, "_agregar_urls",
                                   return_value=1) as agregar, \
+                mock.patch.object(pagina._escucha, "alternar"), \
                 mock.patch.object(buscador_contenido, "contenido",
                                   return_value=_respuesta_busqueda([])), \
                 mock.patch.object(buscador_contenido, "anunciar"):
             self._seleccionar_solo(pagina, 0)
             etiquetas = self._menu_disparado(pagina)
         juntos = " ".join(etiquetas).replace("&", "")
-        for texto in ("Agregar a la cola", "Descargar como audio",
+        for texto in ("Agregar a la cola", "Escuchar", "Descargar como audio",
                       "Descargar como vídeo", "Abrir en Bellbird",
                       "Agregar a la música", "Copiar enlace",
                       "Abrir en el navegador", "Ver sitios compatibles"):
             self.assertIn(texto, juntos)
         self.assertNotIn("Ver contenido", juntos)
-        agregar.assert_called_once_with(["https://www.youtube.com/watch?v=v"])
+        agregar.assert_called_once_with(["https://www.youtube.com/watch?v=v"],
+                                        titulo="Título v")
         resultado = pagina._resultados[0]
         espias["como_audio"].assert_called_once_with([resultado])
         espias["como_video"].assert_called_once_with([resultado])
@@ -1374,7 +1388,7 @@ class TestMenuYVistaBuscador(unittest.TestCase):
         items = [_resultado_busqueda("v"), _resultado_lista()]
         self._buscar(items)
         dialogo = self._dialogo(abrir_en_bellbird=mock.Mock(),
-                                agregar_a_musica=mock.Mock())
+                                musica=mock.Mock())
         dialogo.Show()
         pagina = self._pagina_buscada(dialogo, items)
         espias = {n: mock.Mock() for n in (
@@ -1383,6 +1397,7 @@ class TestMenuYVistaBuscador(unittest.TestCase):
         with mock.patch.multiple(pagina._acciones, **espias), \
                 mock.patch.object(pagina, "_agregar_urls",
                                   return_value=1) as agregar, \
+                mock.patch.object(pagina._escucha, "alternar"), \
                 mock.patch.object(buscador_contenido, "contenido",
                                   return_value=_respuesta_contenido()), \
                 mock.patch.object(buscador_contenido, "anunciar"):
@@ -1391,7 +1406,7 @@ class TestMenuYVistaBuscador(unittest.TestCase):
             self._menu_disparado(pagina)
         self.assertTrue(pagina._vista.activa)
         agregar.assert_called_once_with(
-            ["https://www.youtube.com/playlist?list=L"])
+            ["https://www.youtube.com/playlist?list=L"], titulo=None)
         espias["a_musica"].assert_called_once_with(esperada)
         dialogo.Hide()
 
@@ -1418,7 +1433,7 @@ class TestMenuYVistaBuscador(unittest.TestCase):
              "Descargar como vídeo", "Ver sitios compatibles"])
         agregar.assert_called_once_with(
             ["https://www.youtube.com/watch?v=v",
-             "https://www.youtube.com/playlist?list=L"])
+             "https://www.youtube.com/playlist?list=L"], titulo=None)
         ambos = [pagina._resultados[0], pagina._resultados[1]]
         como_audio.assert_called_once_with(ambos)
         como_video.assert_called_once_with(ambos)
@@ -1573,7 +1588,7 @@ class TestMenuYVistaBuscador(unittest.TestCase):
                                return_value=1) as agregar:
             pagina._on_agregar(None)
         agregar.assert_called_once_with(
-            ["https://www.youtube.com/playlist?list=L"])
+            ["https://www.youtube.com/playlist?list=L"], titulo=None)
 
     def test_pegar_lista_entra_sin_encolar(self):
         self._buscar([])
@@ -1710,6 +1725,257 @@ class TestMenuYVistaBuscador(unittest.TestCase):
 
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestEscuchaPrevia(TestMenuYVistaBuscador):
+    """Espacio escucha la previa: pausa la música y la reanuda al terminar."""
+
+    def _musica(self, pausa=True):
+        musica = mock.Mock()
+        musica.pausar_para_escuchar.return_value = pausa
+        musica.ajustes_escucha.return_value = (None, 50)
+        return musica
+
+    def _espias_escucha(self):
+        parche_anunciar = mock.patch.object(buscador_escucha, "anunciar")
+        anunciar = parche_anunciar.start()
+        self.addCleanup(parche_anunciar.stop)
+        parche_sonido = mock.patch.object(buscador_escucha._snd, "reproducir")
+        sonido = parche_sonido.start()
+        self.addCleanup(parche_sonido.stop)
+        return anunciar, sonido
+
+    def _con_interna_falsa(self):
+        fabrica = mock.patch.object(buscador_escucha, "Escucha")
+        falsa = fabrica.start()
+        self.addCleanup(fabrica.stop)
+        interna = mock.Mock()
+        interna.url = None
+        falsa.return_value = interna
+        return interna
+
+    def _evento_espacio(self, ctrl=False, mayus=False, alt=False):
+        evento = mock.Mock()
+        evento.GetKeyCode.return_value = wx.WXK_SPACE
+        evento.ControlDown.return_value = ctrl
+        evento.ShiftDown.return_value = mayus
+        evento.AltDown.return_value = alt
+        return evento
+
+    def _pagina_buscada_con_musica(self, items, musica=None):
+        self._buscar(items)
+        dialogo = self._dialogo(musica=musica if musica is not None else self._musica())
+        return dialogo, self._pagina_buscada(dialogo, items)
+
+    def test_pausa_al_empezar_y_reanuda_en_fin(self):
+        musica = self._musica()
+        buscador = buscador_escucha.EscuchaBuscador(musica)
+        interna = mock.Mock()
+        interna.url = None
+        with mock.patch.object(buscador_escucha, "Escucha",
+                               return_value=interna):
+            buscador.alternar(_resultado_busqueda("v"))
+        musica.pausar_para_escuchar.assert_called_once_with()
+        interna.alternar.assert_called_once_with(
+            "https://www.youtube.com/watch?v=v")
+        buscador._al_avisar("fin")
+        musica.reanudar_tras_escuchar.assert_called_once_with()
+
+    def test_reanuda_en_fallo_y_en_detener(self):
+        musica = self._musica()
+        buscador = buscador_escucha.EscuchaBuscador(musica)
+        interna = mock.Mock()
+        interna.url = "https://www.youtube.com/watch?v=v"
+        buscador._escucha = interna
+        buscador._pauso = True
+        anunciar, sonido = self._espias_escucha()
+        buscador._al_avisar("fallo", "se cortó")
+        anunciar.assert_called_once_with("se cortó")
+        sonido.assert_called_once_with("escucha_fallida")
+        musica.reanudar_tras_escuchar.assert_called_once_with()
+        buscador._pauso = True
+        buscador.detener()
+        interna.detener.assert_called_once_with()
+        self.assertEqual(musica.reanudar_tras_escuchar.call_count, 2)
+
+    def test_no_reanuda_si_no_pauso(self):
+        musica = self._musica(pausa=False)
+        buscador = buscador_escucha.EscuchaBuscador(musica)
+        interna = mock.Mock()
+        interna.url = None
+        with mock.patch.object(buscador_escucha, "Escucha",
+                               return_value=interna):
+            buscador.alternar(_resultado_busqueda("v"))
+        buscador._al_avisar("fin")
+        musica.reanudar_tras_escuchar.assert_not_called()
+        buscador.detener()
+        musica.reanudar_tras_escuchar.assert_not_called()
+
+    def test_pasar_de_uno_a_otro_no_reanuda_en_medio(self):
+        musica = self._musica()
+        buscador = buscador_escucha.EscuchaBuscador(musica)
+        interna = mock.Mock()
+        interna.url = None
+        with mock.patch.object(buscador_escucha, "Escucha",
+                               return_value=interna):
+            buscador.alternar(_resultado_busqueda("a"))
+            interna.url = "https://www.youtube.com/watch?v=a"
+            buscador.alternar(_resultado_busqueda("b"))
+        self.assertEqual(musica.pausar_para_escuchar.call_count, 1)
+        interna.alternar.assert_called_with(
+            "https://www.youtube.com/watch?v=b")
+        musica.reanudar_tras_escuchar.assert_not_called()
+
+    def test_canal_directo_y_programado_no_se_escuchan(self):
+        casos = [_resultado_canal(),
+                 _resultado_busqueda("d", directo=True),
+                 _resultado_busqueda("p", programado=True)]
+        for resultado in casos:
+            with self.subTest(tipo=resultado.tipo, directo=resultado.en_directo,
+                              programado=resultado.programado):
+                musica = self._musica()
+                buscador = buscador_escucha.EscuchaBuscador(musica)
+                anunciar, sonido = self._espias_escucha()
+                with mock.patch.object(buscador_escucha, "Escucha") as fabrica:
+                    buscador.alternar(resultado)
+                fabrica.assert_not_called()
+                musica.pausar_para_escuchar.assert_not_called()
+                anunciar.assert_called_once_with(
+                    "Este resultado no se puede escuchar.")
+                sonido.assert_called_once_with("error")
+
+    def test_avisos_de_carga_pausa_y_reproduccion(self):
+        musica = self._musica()
+        buscador = buscador_escucha.EscuchaBuscador(musica)
+        anunciar, sonido = self._espias_escucha()
+        buscador._al_avisar("cargando")
+        sonido.assert_called_once_with("escucha_cargando")
+        anunciar.assert_called_once_with("Cargando vista previa de audio")
+        anunciar.reset_mock()
+        sonido.reset_mock()
+        buscador._al_avisar("pausa")
+        anunciar.assert_called_once_with("En pausa")
+        sonido.assert_not_called()
+        anunciar.reset_mock()
+        buscador._al_avisar("reanudada")
+        anunciar.assert_called_once_with("Reproduciendo")
+        sonido.assert_not_called()
+        anunciar.reset_mock()
+        buscador._al_avisar("sonando")
+        anunciar.assert_not_called()
+
+    def test_aviso_con_pagina_destruida_se_ignora(self):
+        musica = self._musica()
+        buscador = buscador_escucha.EscuchaBuscador(musica)
+        anunciar, sonido = self._espias_escucha()
+        buscador.invalidar()
+        buscador._al_avisar("cargando")
+        anunciar.assert_not_called()
+        sonido.assert_not_called()
+
+    def test_espacio_llama_a_alternar_sin_cambiar_seleccion(self):
+        dialogo, pagina = self._pagina_buscada_con_musica(
+            [_resultado_busqueda("a"), _resultado_busqueda("b")])
+        self._con_interna_falsa()
+        pagina.lista.Focus(1)
+        antes = pagina.lista.GetFirstSelected()
+        evento = self._evento_espacio()
+        with mock.patch.object(pagina._escucha, "alternar") as alternar:
+            pagina._on_key(evento)
+        alternar.assert_called_once_with(pagina._resultados[1])
+        self.assertEqual(pagina.lista.GetFirstSelected(), antes)
+        evento.Skip.assert_not_called()
+
+    def test_espacio_con_ctrl_no_escucha(self):
+        dialogo, pagina = self._pagina_buscada_con_musica(
+            [_resultado_busqueda("a")])
+        self._con_interna_falsa()
+        evento = self._evento_espacio(ctrl=True)
+        with mock.patch.object(pagina._escucha, "alternar") as alternar:
+            pagina._on_key(evento)
+        alternar.assert_not_called()
+        evento.Skip.assert_called_once_with()
+
+    def test_espacio_sin_fila_avisa(self):
+        dialogo, pagina = self._pagina_buscada_con_musica([])
+        self._con_interna_falsa()
+        anunciar, sonido = self._espias_escucha()
+        pagina._on_key(self._evento_espacio())
+        anunciar.assert_called_once_with("Selecciona un resultado.")
+        sonido.assert_called_once_with("error")
+
+    def test_mover_seleccion_detiene(self):
+        dialogo, pagina = self._pagina_buscada_con_musica(
+            [_resultado_busqueda("a"), _resultado_busqueda("b")])
+        interna = self._con_interna_falsa()
+        interna.url = "https://www.youtube.com/watch?v=a"
+        pagina._escucha._escucha = interna
+        pagina.lista.Focus(1)
+        pagina._on_elegir(None)
+        interna.detener.assert_called_once_with()
+
+    def test_busqueda_nueva_detiene(self):
+        dialogo, pagina = self._pagina_buscada_con_musica(
+            [_resultado_busqueda("a")])
+        interna = self._con_interna_falsa()
+        interna.url = "https://www.youtube.com/watch?v=a"
+        pagina._escucha._escucha = interna
+        pagina.campo.SetValue("otra")
+        pagina._on_buscar(None)
+        interna.detener.assert_called_once_with()
+
+    def test_cambio_de_pestana_detiene(self):
+        dialogo, pagina = self._pagina_buscada_con_musica(
+            [_resultado_busqueda("a")])
+        interna = self._con_interna_falsa()
+        interna.url = "https://www.youtube.com/watch?v=a"
+        pagina._escucha._escucha = interna
+        dialogo.Show()
+        dialogo.pestanas.SetSelection(1)
+        interna.detener.assert_called_once_with()
+        dialogo.Hide()
+
+    def test_cerrar_dialogo_detiene_y_reanuda(self):
+        musica = self._musica()
+        dialogo, pagina = self._pagina_buscada_con_musica(
+            [_resultado_busqueda("a")], musica=musica)
+        interna = self._con_interna_falsa()
+        interna.url = "https://www.youtube.com/watch?v=a"
+        pagina._escucha._escucha = interna
+        pagina._escucha._pauso = True
+        dialogo._on_cerrar(None)
+        interna.detener.assert_called_once_with()
+        musica.reanudar_tras_escuchar.assert_called_once_with()
+
+    def test_tab_a_detalles_no_detiene(self):
+        dialogo, pagina = self._pagina_buscada_con_musica(
+            [_resultado_busqueda("a")])
+        interna = self._con_interna_falsa()
+        interna.url = "https://www.youtube.com/watch?v=a"
+        pagina._escucha._escucha = interna
+        pagina.txt_detalles.SetFocus()
+        interna.detener.assert_not_called()
+
+    def test_menu_llega_a_alternar(self):
+        dialogo, pagina = self._pagina_buscada_con_musica(
+            [_resultado_busqueda("v")])
+        self._seleccionar_solo(pagina, 0)
+        resultado = pagina._resultados[0]
+        opciones = buscador_acciones.opciones_de(resultado, False, True)
+        self.assertIn("escuchar", opciones)
+        al_escuchar = mock.Mock()
+        menu = buscador_acciones.construir_menu(
+            opciones, [resultado], pagina._acciones, mock.Mock(),
+            mock.Mock(), al_escuchar)
+        try:
+            for it in menu.GetMenuItems():
+                if it.GetItemLabel().replace("&", "") == "Escuchar":
+                    menu.ProcessEvent(wx.CommandEvent(
+                        wx.EVT_MENU.typeId, it.GetId()))
+        finally:
+            menu.Destroy()
+        al_escuchar.assert_called_once_with(resultado)
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestLetrasMenuBuscador(unittest.TestCase):
 
     def setUp(self):
@@ -1841,6 +2107,27 @@ class TestSonidosDeDescarga(unittest.TestCase):
 class TestAnunciarAgregados(unittest.TestCase):
     """Cada agregado a la cola suena con su sonido propio. Sin ventanas."""
 
+    def test_texto_uno_con_turno_y_titulo(self):
+        self.assertEqual(
+            buscador_acciones.texto_agregados(1, "Mi vídeo", True),
+            "Descargando: Mi vídeo")
+
+    def test_texto_uno_sin_turno_y_titulo(self):
+        self.assertEqual(
+            buscador_acciones.texto_agregados(1, "Mi vídeo", False),
+            "En cola: Mi vídeo")
+
+    def test_texto_uno_sin_titulo(self):
+        self.assertEqual(
+            buscador_acciones.texto_agregados(1, None, True), "Descargando")
+        self.assertEqual(
+            buscador_acciones.texto_agregados(1, None, False), "En cola")
+
+    def test_texto_varios(self):
+        self.assertEqual(
+            buscador_acciones.texto_agregados(3, None, True),
+            "3 descargas agregadas")
+
     def test_sin_entradas_no_suena_ni_anuncia(self):
         with mock.patch.object(buscador_acciones._snd,
                                "reproducir") as sonido, \
@@ -1855,8 +2142,17 @@ class TestAnunciarAgregados(unittest.TestCase):
                                "reproducir") as sonido, \
                 mock.patch.object(buscador_acciones,
                                    "anunciar") as anunciar:
-            buscador_acciones.anunciar_agregados(1)
-        anunciar.assert_called_once_with("Agregado a la cola")
+            buscador_acciones.anunciar_agregados(1, "Mi vídeo", True)
+        anunciar.assert_called_once_with("Descargando: Mi vídeo")
+        sonido.assert_called_once_with("descarga_encolada")
+
+    def test_uno_sin_turno_suena_encolada(self):
+        with mock.patch.object(buscador_acciones._snd,
+                               "reproducir") as sonido, \
+                mock.patch.object(buscador_acciones,
+                                   "anunciar") as anunciar:
+            buscador_acciones.anunciar_agregados(1, "Mi vídeo", False)
+        anunciar.assert_called_once_with("En cola: Mi vídeo")
         sonido.assert_called_once_with("descarga_encolada")
 
     def test_varios_suenan_encolada(self):
@@ -1865,7 +2161,7 @@ class TestAnunciarAgregados(unittest.TestCase):
                 mock.patch.object(buscador_acciones,
                                    "anunciar") as anunciar:
             buscador_acciones.anunciar_agregados(3)
-        anunciar.assert_called_once_with("3 agregados a la cola")
+        anunciar.assert_called_once_with("3 descargas agregadas")
         sonido.assert_called_once_with("descarga_encolada")
 
 

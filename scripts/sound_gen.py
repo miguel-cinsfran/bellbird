@@ -545,6 +545,21 @@ def gen_busqueda_fallida():
     return _normalizar(_concat(n1, n2), 0.72)
 
 
+def gen_escucha_cargando():
+    # Dos pulsos cortos ascendentes en seno claro: se carga la previa.
+    n1 = _perc(_seno(E5, 0.06, 0.32), 0.004, 0.05)
+    n2 = _perc(_seno(G5, 0.10, 0.34), 0.004, 0.08)
+    return _normalizar(_concat(n1, n2), 0.7)
+
+
+def gen_escucha_fallida():
+    # Dos pulsos graves en la misma nota: no se pudo escuchar, sin el
+    # descenso de la búsqueda fallida ni la aspereza del error.
+    n1 = _perc(_seno(E3, 0.12, 0.34), 0.005, 0.10)
+    n2 = _perc(_seno(E3, 0.18, 0.34), 0.005, 0.14)
+    return _normalizar(_concat(n1, n2), 0.7)
+
+
 def gen_descarga_encolada():
     # Una nota corta con golpe: breve para no cansar al agregar muchas.
     return _normalizar(_perc(_detune(A5, 0.16, 0.42), 0.003, 0.10), 0.7)
@@ -888,6 +903,18 @@ def s_busqueda_fallida():
     return _normalizar(_concat(n1, n2), 0.65)
 
 
+def s_escucha_cargando():
+    # Los mismos dos pulsos cortos ascendentes, en madera cálida.
+    return _seq(_madera(E5, 0.06, 0.32, 0.05),
+                _madera(G5, 0.10, 0.34, 0.08))
+
+
+def s_escucha_fallida():
+    # Los mismos dos pulsos graves en la misma nota, en madera cálida.
+    return _seq(_madera(E3, 0.12, 0.34, 0.10),
+                _madera(E3, 0.18, 0.34, 0.14))
+
+
 def s_descarga_encolada():
     # La misma nota corta con golpe, en madera.
     return _normalizar(_madera(A5, 0.16, 0.40, 0.10), 0.65)
@@ -1069,6 +1096,8 @@ TEMAS = {
         "busqueda_resultados.wav":     gen_busqueda_resultados,
         "busqueda_sin_resultados.wav": gen_busqueda_sin_resultados,
         "busqueda_fallida.wav":        gen_busqueda_fallida,
+        "escucha_cargando.wav":        gen_escucha_cargando,
+        "escucha_fallida.wav":         gen_escucha_fallida,
         "descarga_encolada.wav":       gen_descarga_encolada,
         "descarga_procesando.wav":     gen_descarga_procesando,
         "cola_descargas_terminada.wav": gen_cola_descargas_terminada,
@@ -1150,6 +1179,8 @@ TEMAS = {
         "busqueda_resultados.wav":     s_busqueda_resultados,
         "busqueda_sin_resultados.wav": s_busqueda_sin_resultados,
         "busqueda_fallida.wav":        s_busqueda_fallida,
+        "escucha_cargando.wav":        s_escucha_cargando,
+        "escucha_fallida.wav":         s_escucha_fallida,
         "descarga_encolada.wav":       s_descarga_encolada,
         "descarga_procesando.wav":     s_descarga_procesando,
         "cola_descargas_terminada.wav": s_cola_descargas_terminada,

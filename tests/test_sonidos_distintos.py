@@ -31,7 +31,8 @@ EVENTOS_NUEVOS = [
     "microfono_sin_senal",
     "directo_pausado", "directo_reanudado",
     "busqueda_iniciada", "busqueda_resultados", "busqueda_sin_resultados",
-    "busqueda_fallida", "descarga_encolada", "descarga_procesando",
+    "busqueda_fallida", "escucha_cargando", "escucha_fallida",
+    "descarga_encolada", "descarga_procesando",
     "cola_descargas_terminada", "descarga_parcial",
 ]
 

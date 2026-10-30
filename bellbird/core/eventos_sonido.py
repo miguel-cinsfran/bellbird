@@ -45,6 +45,8 @@ EVENTOS = [
     # Cola de descargas: agregado, proceso, fin de la cola y lista parcial.
     "descarga_encolada", "descarga_procesando", "cola_descargas_terminada",
     "descarga_parcial",
+    # Escucha previa de un resultado: carga y fallo, cada uno con el suyo.
+    "escucha_cargando", "escucha_fallida",
 ]
 
 # Nombre llano de cada evento para la página Sonidos de Preferencias.
@@ -118,4 +120,6 @@ NOMBRES = {
     "descarga_procesando": "Procesamiento de descarga",
     "cola_descargas_terminada": "Cola de descargas terminada",
     "descarga_parcial": "Descarga parcial",
+    "escucha_cargando": "Carga del audio para escuchar",
+    "escucha_fallida": "Fallo al escuchar",
 }

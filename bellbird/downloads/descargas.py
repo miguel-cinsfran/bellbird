@@ -11,7 +11,6 @@ argumentos en `argumentos_ytdlp.argumentos_de_formato`.
 """
 from __future__ import annotations
 
-import logging
 import subprocess
 import threading
 import time
@@ -21,7 +20,6 @@ from typing import Callable, Optional
 
 from bellbird.core import diagnostico
 from bellbird.core.config import obtener_opciones_descarga
-from bellbird.core import paths
 from bellbird.core.idioma import _
 from bellbird.downloads import ffmpeg_bin
 from bellbird.downloads import fila_descargas
@@ -34,11 +32,8 @@ from bellbird.downloads.argumentos_ytdlp import (
 from bellbird.downloads.motivo_error import motivo_de_error
 from bellbird.downloads.proceso_ytdlp import (
     _matar_arbol, _vigilar_cancelacion)
-from bellbird.downloads.progreso_ytdlp import (
-    INTERVALO_PROGRESO_S, PREFIJO_RUTA_FINAL, debe_emitir_progreso,
-    tratar_linea)
-from bellbird.downloads.restos_descarga import (
-    limpiar_restos_descarga, nombre_base_descarga)
+from bellbird.downloads.progreso_ytdlp import PREFIJO_RUTA_FINAL, tratar_linea
+from bellbird.downloads.restos_descarga import limpiar_restos_descarga
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -202,6 +197,11 @@ class GestorDescargas:
         """Reemplaza las opciones para lo que se encole después."""
         with self._lock:
             self._opciones = dict(op)
+
+    def hay_turno(self) -> bool:
+        """Si queda un turno libre para descargar ya, sin esperar en cola."""
+        with self._lock:
+            return self._corriendo < self._opciones.get("simultaneas", SIMULTANEAS_DEFECTO)
 
     def suscribir_fin(self, callback: Callable) -> None:
         """Añade un aviso de estado sin duplicarlo.

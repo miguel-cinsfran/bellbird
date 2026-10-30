@@ -3205,7 +3205,7 @@ msgid "Pausa"
 msgstr "Pause"
 
 #. Traductores: aviso al reproducir.
-#: bellbird/player/reproductor.py:514 bellbird/player/reproductor.py:2071
+#: bellbird/player/reproductor.py:514 bellbird/player/reproductor.py:2071 bellbird/ui/buscador_escucha.py:24
 msgid "Reproduciendo"
 msgstr "Playing"
 
@@ -5193,7 +5193,7 @@ msgstr "{cantidad} more results"
 msgid "{cantidad} resultados"
 msgstr "{cantidad} results"
 
-#: bellbird/ui/descargas_buscador.py:353
+#: bellbird/ui/descargas_buscador.py:353 bellbird/ui/buscador_escucha.py:117
 msgid "Selecciona un resultado."
 msgstr "Select a result."
 
@@ -8876,3 +8876,58 @@ msgstr "Partial download"
 #, python-brace-format
 msgid "{frase}. Cola de descargas terminada"
 msgstr "{frase}. Download queue finished"
+
+#: bellbird/core/eventos_sonido.py:123
+msgid "Carga del audio para escuchar"
+msgstr "Loading audio to listen"
+
+#: bellbird/core/eventos_sonido.py:124
+msgid "Fallo al escuchar"
+msgstr "Listening failed"
+
+#: bellbird/music/escucha.py:22
+msgid "No se pudo cargar el audio. Comprueba la conexión e inténtalo de nuevo."
+msgstr "The audio could not be loaded. Check the connection and try again."
+
+#: bellbird/music/escucha.py:23
+msgid "No se pudo iniciar el reproductor de audio."
+msgstr "The audio player could not be started."
+
+#: bellbird/ui/buscador_escucha.py:21
+msgid "Este resultado no se puede escuchar."
+msgstr "This result cannot be played."
+
+#: bellbird/ui/buscador_escucha.py:22
+msgid "Cargando vista previa de audio"
+msgstr "Loading audio preview"
+
+#: bellbird/ui/buscador_escucha.py:23
+msgid "En pausa"
+msgstr "Paused"
+
+#: bellbird/ui/buscador_acciones.py:27
+msgid "&Escuchar"
+msgstr "&Listen"
+
+#: bellbird/ui/buscador_acciones.py:80
+#, python-brace-format
+msgid "{cantidad} descargas agregadas"
+msgstr "{cantidad} downloads added"
+
+#: bellbird/ui/buscador_acciones.py:83
+#, python-brace-format
+msgid "Descargando: {titulo}"
+msgstr "Downloading: {titulo}"
+
+#: bellbird/ui/buscador_acciones.py:84
+msgid "Descargando"
+msgstr "Downloading"
+
+#: bellbird/ui/buscador_acciones.py:86
+#, python-brace-format
+msgid "En cola: {titulo}"
+msgstr "Queued: {titulo}"
+
+#: bellbird/ui/buscador_acciones.py:87
+msgid "En cola"
+msgstr "Queued"

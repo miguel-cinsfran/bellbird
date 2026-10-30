@@ -415,6 +415,57 @@ class TestAleatorio(unittest.TestCase):
         env.anunciar.assert_called_once_with("Orden aleatorio desactivado")
 
 
+class TestPausarParaEscuchar(unittest.TestCase):
+
+    def _sonando(self, pausado=False):
+        from bellbird.music.modelo import EstadoMusica, Tema
+        return EstadoMusica((Tema("C:/m/a.mp3", "A"),), 0, pausado, False,
+                            50, False)
+
+    def test_sonando_pausa_y_dice_que_si(self):
+        from bellbird.music.modelo import OK, Resultado
+        with _entorno() as env:
+            control = ControlMusica(_frame())
+            control._coordinador = mock.Mock()
+            control._coordinador.estado.return_value = self._sonando()
+            control._coordinador.alternar_pausa.return_value = Resultado(
+                True, OK, self._sonando(pausado=True))
+            self.assertTrue(control.pausar_para_escuchar())
+        control._coordinador.alternar_pausa.assert_called_once_with()
+        env.anunciar.assert_not_called()
+        self.assertEqual(env.snd.sonidos, [])
+
+    def test_en_pausa_no_hace_nada(self):
+        with _entorno() as env:
+            control = ControlMusica(_frame())
+            control._coordinador = mock.Mock()
+            control._coordinador.estado.return_value = self._sonando(
+                pausado=True)
+            self.assertFalse(control.pausar_para_escuchar())
+        control._coordinador.alternar_pausa.assert_not_called()
+        env.anunciar.assert_not_called()
+        self.assertEqual(env.snd.sonidos, [])
+
+    def test_sin_coordinador_da_falso(self):
+        with _entorno() as env:
+            control = ControlMusica(_frame())
+            self.assertFalse(control.pausar_para_escuchar())
+        env.anunciar.assert_not_called()
+        self.assertEqual(env.snd.sonidos, [])
+
+    def test_si_no_pudo_pausar_dice_que_no(self):
+        from bellbird.music.modelo import ERROR_MOTOR, Resultado
+        with _entorno() as env:
+            control = ControlMusica(_frame())
+            control._coordinador = mock.Mock()
+            control._coordinador.estado.return_value = self._sonando()
+            control._coordinador.alternar_pausa.return_value = Resultado(
+                False, ERROR_MOTOR, self._sonando())
+            self.assertFalse(control.pausar_para_escuchar())
+        env.anunciar.assert_not_called()
+        self.assertEqual(env.snd.sonidos, [])
+
+
 class TestAvisoAutomatico(unittest.TestCase):
 
     def test_al_cambiar_pasa_por_callafter(self):

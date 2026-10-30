@@ -16,7 +16,7 @@ from bellbird.downloads.busqueda_youtube import (
 from bellbird.downloads.textos_busqueda import texto_detalles
 from bellbird.downloads import busquedas_recientes
 from bellbird.ui.accesibilidad import anunciar, nombre_accesible
-from bellbird.ui import buscador_acciones
+from bellbird.ui import buscador_acciones, buscador_escucha
 from bellbird.ui.buscador_acciones import AccionesResultado
 from bellbird.ui import buscador_contenido
 from bellbird.ui import buscador_tandas
@@ -30,13 +30,15 @@ class PaginaBuscador(wx.Panel):
     """La pestaña de búsqueda, con su estado."""
 
     def __init__(self, parent, agregar_urls, ruta_recientes,
-                 abrir_en_bellbird=None, agregar_a_musica=None):
+                 abrir_en_bellbird=None, musica=None):
         super().__init__(parent)
         self._agregar_urls = agregar_urls
         self._abrir_en_bellbird = abrir_en_bellbird
-        self._agregar_a_musica = agregar_a_musica
+        self._escucha = buscador_escucha.EscuchaBuscador(musica)
         self._acciones = AccionesResultado(
-            agregar_urls, abrir_en_bellbird, agregar_a_musica)
+            agregar_urls, abrir_en_bellbird, self._escucha.agregar_musica)
+        self.GetParent().Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self._escucha.al_cambiar)
+        self.Bind(wx.EVT_WINDOW_DESTROY, self._escucha.al_destruir)
         self._ruta = ruta_recientes
         self._recientes = busquedas_recientes.cargar(ruta_recientes)
         self._resultados = []
@@ -178,6 +180,7 @@ class PaginaBuscador(wx.Panel):
             return
         if self._vista.activa:
             self._vista.cerrar()
+        self.detener_escucha()
         self._recientes = busquedas_recientes.agregar(self._recientes, valor)
         busquedas_recientes.guardar(self._ruta, self._recientes)
         self.campo.Set(self._recientes)
@@ -288,6 +291,7 @@ class PaginaBuscador(wx.Panel):
         self.filtros.aplicar_visibilidad()
 
     def _on_elegir(self, _event):
+        self._escucha.seguir_foco(self.lista, self._resultados)
         sel = self.lista.GetFirstSelected()
         if 0 <= sel < len(self._resultados):
             self.txt_detalles.SetValue(
@@ -306,7 +310,7 @@ class PaginaBuscador(wx.Panel):
             buscador_tandas.sonar("error")
             anunciar(mensaje)
         if urls:
-            self._agregar_urls(urls)
+            self._agregar_urls(urls, titulo=buscador_acciones.titulo_para_anunciar(elegidos))
 
     def _on_activar(self, event):
         indices = self._seleccionados()
@@ -325,6 +329,8 @@ class PaginaBuscador(wx.Panel):
             self._vista.volver()
         elif tecla == wx.WXK_WINDOWS_MENU or (tecla == wx.WXK_F10 and event.ShiftDown()):
             self._mostrar_menu()
+        elif self._escucha.al_teclear(event, self.lista, self._resultados):
+            return
         else:
             event.Skip()
 
@@ -339,12 +345,12 @@ class PaginaBuscador(wx.Panel):
         entrada = elegidos[0] if len(elegidos) == 1 else elegidos
         opciones = buscador_acciones.opciones_de(
             entrada, self._abrir_en_bellbird is not None,
-            self._agregar_a_musica is not None)
+            self._escucha.hay_musica)
         menu = buscador_acciones.construir_menu(
             opciones, elegidos, self._acciones,
             lambda r: self._entrar_en_contenido(
                 r.url, es_canal=r.tipo == "canal") if r is not None else None,
-            self._agregar_urls)
+            self._agregar_urls, self._escucha.alternar)
         self.lista.PopupMenu(menu)
         menu.Destroy()
 
@@ -357,6 +363,7 @@ class PaginaBuscador(wx.Panel):
         return indices
 
     def _entrar_en_contenido(self, url, con_retorno=True, es_canal=False) -> None:
+        self.detener_escucha()
         self._vista.mostrar(url, {
             "resultados": self._resultados, "texto": self._texto,
             "filtros": self._filtros, "inicio": self._inicio,
@@ -371,6 +378,7 @@ class PaginaBuscador(wx.Panel):
         self._agregar_filas(nuevos)
 
     def _restaurar_vista(self, guardados) -> None:
+        self.detener_escucha()
         self._resultados = guardados["resultados"]
         self._texto = guardados["texto"]
         self._filtros = guardados["filtros"]
@@ -381,6 +389,9 @@ class PaginaBuscador(wx.Panel):
             if resultado.id in guardados["elegidos"]:
                 self.lista.Select(i)
         buscador_contenido.enfocar_fila(self.lista, self.lista.GetFirstSelected())
+
+    def detener_escucha(self) -> None:
+        self._escucha.detener()
 
     def _agregar_filas(self, nuevos) -> None:
         buscador_contenido.agregar_filas(self.lista, nuevos)

@@ -226,7 +226,7 @@ class TestInicioGui(unittest.TestCase):
             gui.YTChatFrame._abrir_descargas(frame, "https://youtu.be/x")
         abrir.assert_called_once_with(
             frame, "https://youtu.be/x", frame._reconectar_desde_historial,
-            frame._musica.agregar_enlace)
+            frame._musica)
 
     def test_menu_actualizar_ytdlp_difiere_la_apertura(self):
         frame = self._menu_frame()

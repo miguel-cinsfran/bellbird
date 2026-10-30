@@ -5268,6 +5268,7 @@ SUPERFICIES = {
     "descargas_buscador.py": "descargas",
     "buscador_filtros.py": "descargas",
     "buscador_acciones.py": "descargas",
+    "buscador_escucha.py": "descargas",
     "buscador_contenido.py": "descargas",
     "buscador_tandas.py": "descargas",
     "descargas_listas.py": "descargas",

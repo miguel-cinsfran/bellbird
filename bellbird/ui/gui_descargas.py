@@ -12,7 +12,7 @@ Accesibilidad (regla de oro NVDA):
     del hilo de descarga.
   - Toda mutación de la GUI desde el hilo de descarga va con `wx.CallAfter`.
 
-Apertura: `abrir(parent, url_inicial=None, abrir_en_bellbird=None, agregar_a_musica=None)`
+Apertura: `abrir(parent, url_inicial=None, abrir_en_bellbird=None, musica=None)`
 desde `gui._abrir_descargas`.
 """
 from __future__ import annotations
@@ -172,14 +172,14 @@ def _suscribir_al_gestor() -> None:
 class GestorDescargasDialog(wx.Dialog):
     """Diálogo principal del gestor de descargas."""
 
-    def __init__(self, parent, url_inicial=None, abrir_en_bellbird=None, agregar_a_musica=None):
+    def __init__(self, parent, url_inicial=None, abrir_en_bellbird=None, musica=None):
         global _dialogo_activo
         super().__init__(parent, title=_("Administrador de descargas"),
                          size=(860, 680),
                          name="DialogoGestorDescargas")
         self.SetBackgroundColour(_T.bg)
         self._alive = True
-        self._abrir_en_bellbird, self._agregar_a_musica = abrir_en_bellbird, agregar_a_musica
+        self._abrir_en_bellbird, self._musica = abrir_en_bellbird, musica
         self._opciones = cfg.obtener_opciones_descarga()
         self._gestor = gestor()
         self._mem_resolucion = _memoria_valida(
@@ -245,7 +245,7 @@ class GestorDescargasDialog(wx.Dialog):
         self.pestanas = wx.Notebook(parent, name="PestanasDescargas")
         self.pagina_buscador = PaginaBuscador(
             self.pestanas, self.agregar_urls, paths.busquedas_recientes(),
-            self._al_abrir_en_bellbird, self._agregar_a_musica)
+            self._al_abrir_en_bellbird, self._musica)
         self.pestanas.AddPage(self.pagina_buscador, _("Buscar en YouTube"))
         self.pagina_descargas = PaginaDescargas(
             self.pestanas, self._gestor, _ruta_historial(), self._preparar_opciones)
@@ -318,15 +318,17 @@ class GestorDescargasDialog(wx.Dialog):
         self._opciones = op
         self._gestor.set_opciones(op)
 
-    def agregar_urls(self, urls, formato=None) -> int:
-        """Encola esos enlaces, avisa cuántos entraron y devuelve cuántos fueron.
+    def agregar_urls(self, urls, formato=None, titulo=None) -> int:
+        """Encola esos enlaces, avisa lo que pasó y devuelve cuántos fueron.
 
         Con formato "audio" o "video" encola con ese formato sin mover
-        lo elegido ni guardarlo.
+        lo elegido ni guardarlo. `titulo` es el del resultado, si es uno
+        solo; el turno se mira antes de encolar.
         """
         pedidos = _pedidos_nuevos([u for u in (urls or []) if u], self)
         if not pedidos:
             return 0
+        hay_turno = self._gestor.hay_turno()
         if formato in ("audio", "video"):
             elegidas = self._opciones_actuales()
             transitorias = dict(elegidas)
@@ -341,7 +343,7 @@ class GestorDescargasDialog(wx.Dialog):
             self._preparar_opciones()
             for url in pedidos:
                 self.pagina_descargas.agregar_enlace(url)
-        anunciar_agregados(len(pedidos))
+        anunciar_agregados(len(pedidos), titulo, hay_turno)
         return len(pedidos)
 
     def _al_abrir_en_bellbird(self, url: str) -> None:
@@ -376,17 +378,21 @@ class GestorDescargasDialog(wx.Dialog):
             self._temporizador.Stop()
         except Exception as error:
             logger.debug("no se pudo detener el temporizador: %s", error)
+        try:
+            self.pagina_buscador.detener_escucha()
+        except Exception as error:
+            logger.debug("no se pudo detener la escucha: %s", error)
         if _dialogo_activo is self:
             _dialogo_activo = None
 
 
-def abrir(parent, url_inicial=None, abrir_en_bellbird=None, agregar_a_musica=None) -> bool:
+def abrir(parent, url_inicial=None, abrir_en_bellbird=None, musica=None) -> bool:
     """Abre el gestor como modal y devuelve True si el usuario lo usó (siempre,
     salvo que falle la apertura). El diálogo persiste las opciones al cerrarse
     vía `cfg.guardar_opciones_descarga` desde los callbacks."""
     dlg = GestorDescargasDialog(parent, url_inicial=url_inicial,
                                 abrir_en_bellbird=abrir_en_bellbird,
-                                agregar_a_musica=agregar_a_musica)
+                                musica=musica)
     try:
         dlg.ShowModal()
     finally:

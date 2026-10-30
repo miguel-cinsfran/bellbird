@@ -58,8 +58,7 @@ async def _consultar_en_vivo(usuario):
 def _fallo_en_vivo(exc, usuario):
     """Excepción a lanzar por un fallo de `is_live`, o None si es ruido."""
     if es_limite(exc):
-        return LimiteTikTok(
-            "TikTok está limitando las consultas desde esta conexión.")
+        return LimiteTikTok()
     if _es_usuario_inexistente(exc):
         return ValueError(
             f"TikTok no tiene directos de la cuenta {usuario}: no "

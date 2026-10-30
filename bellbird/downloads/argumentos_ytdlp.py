@@ -13,7 +13,7 @@ from urllib.parse import parse_qs, urlparse
 from bellbird.core import paths
 from bellbird.downloads import ffmpeg_bin
 from bellbird.downloads.opciones_formato import (
-    PLANTILLAS, argumentos_de_formato)
+    PLANTILLAS, argumentos_de_formato, argumentos_exactos)
 from bellbird.downloads.progreso_ytdlp import plantillas_progreso
 
 
@@ -71,6 +71,20 @@ def argumentos_limite(opciones: dict) -> list[str]:
     return ["-r", f"{limite}M"]
 
 
+def argumentos_de_la_opcion(formato, opciones, bitrate, resolucion) -> list[str]:
+    """Args de formato: el exacto con su selector o el formato elegido.
+
+    Con «exacto» se pide tal cual la opción elegida del vídeo; sin
+    selector se trata como MP4, no revienta.
+    """
+    if formato == "exacto" and (opciones.get("selector") or "").strip():
+        return argumentos_exactos(opciones["selector"],
+                                  opciones.get("contenedor") or "")
+    if formato == "exacto":
+        formato = "mp4"
+    return argumentos_de_formato(formato, bitrate, resolucion)
+
+
 def argumentos_descarga(url, opciones, enumerar, ffmpeg_location=None) -> list[str]:
     """Arma los argumentos de una descarga, sin ejecutar programas."""
     from bellbird.downloads.descargas import PREFIJO_RUTA_FINAL
@@ -83,7 +97,7 @@ def argumentos_descarga(url, opciones, enumerar, ffmpeg_location=None) -> list[s
     argumentos = ["--encoding", "utf-8", "--newline", "--no-warnings",
                   "--progress", *plantillas_progreso(),
                   "--print", f"after_move:{PREFIJO_RUTA_FINAL} %(filepath)s",
-                  *argumentos_de_formato(f, bitrate, resolucion),
+                  *argumentos_de_la_opcion(f, opciones, bitrate, resolucion),
                   "-o", construir_outtmpl(opciones, enumerar),
                   *argumentos_limite(opciones)]
     if ffmpeg_location is None:

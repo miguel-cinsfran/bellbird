@@ -63,6 +63,25 @@ def etiquetas_de_calidad(formato: str) -> list[str]:
     return []
 
 
+def argumentos_exactos(selector: str, contenedor: str) -> list[str]:
+    """Opciones de yt-dlp para una opción exacta elegida de un vídeo.
+
+    El selector une dos formatos con «+» o trae los dos en uno solo.
+    `--embed-thumbnail` solo donde va bien: con MP4 o M4A, nunca con
+    WebM ni Opus. Con Opus, `-x` deja el `.opus` sin convertir.
+    """
+    cont = (contenedor or "").lower().strip()
+    args = ["-f", selector]
+    if cont == "opus":
+        args += ["-x"]
+    if "+" in selector:
+        args += ["--merge-output-format", cont]
+    args += ["--embed-metadata"]
+    if cont in ("mp4", "m4a"):
+        args += ["--embed-thumbnail"]
+    return args
+
+
 def _normalizar(formato: str) -> str:
     f = (formato or "").lower().strip()
     if f in ("video_original", "mp4", "webm", "audio_original", "mp3",

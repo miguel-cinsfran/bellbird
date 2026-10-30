@@ -228,6 +228,35 @@ class TestArgumentosDescarga(unittest.TestCase):
         self.assertIn("--progress-template", args)
 
 
+class TestArgumentosDescargaExacto(unittest.TestCase):
+    def opciones(self, selector, contenedor):
+        return {"formato": "exacto", "selector": selector,
+                "contenedor": contenedor, "carpeta": "/tmp"}
+
+    def test_exacta_video_lleva_formato_y_portada(self):
+        args = argumentos_descarga(
+            "url", self.opciones("299+140", "mp4"), False)
+        self.assertIn("299+140", args)
+        indice = args.index("--merge-output-format")
+        self.assertEqual(args[indice + 1], "mp4")
+        self.assertIn("--embed-thumbnail", args)
+
+    def test_exacta_opus_extrae_sin_portada(self):
+        args = argumentos_descarga(
+            "url", self.opciones("251", "opus"), False)
+        self.assertIn("251", args)
+        self.assertIn("-x", args)
+        self.assertNotIn("--audio-format", args)
+        self.assertNotIn("--embed-thumbnail", args)
+
+    def test_exacta_sin_selector_cae_a_mp4(self):
+        self.assertEqual(
+            argumentos_descarga(
+                "url", {"formato": "exacto", "carpeta": "/tmp"}, False),
+            argumentos_descarga(
+                "url", {"formato": "mp4", "carpeta": "/tmp"}, False))
+
+
 class TestDescargar(unittest.TestCase):
     def proceso(self, lineas):
         proceso = mock.MagicMock()

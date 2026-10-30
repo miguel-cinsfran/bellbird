@@ -101,6 +101,42 @@ class TestArgumentosDeFormato(unittest.TestCase):
                     self.assertFalse(tiene, formato)
 
 
+class TestArgumentosExactos(unittest.TestCase):
+    def test_unido_lleva_merge_metadata_y_portada(self):
+        args = op.argumentos_exactos("299+140", "mp4")
+        self.assertEqual(args[0:2], ["-f", "299+140"])
+        indice = args.index("--merge-output-format")
+        self.assertEqual(args[indice + 1], "mp4")
+        self.assertIn("--embed-metadata", args)
+        self.assertIn("--embed-thumbnail", args)
+
+    def test_webm_unido_no_lleva_portada(self):
+        args = op.argumentos_exactos("308+251", "webm")
+        indice = args.index("--merge-output-format")
+        self.assertEqual(args[indice + 1], "webm")
+        self.assertIn("--embed-metadata", args)
+        self.assertNotIn("--embed-thumbnail", args)
+
+    def test_simple_no_lleva_merge(self):
+        args = op.argumentos_exactos("18", "mp4")
+        self.assertEqual(args[0:2], ["-f", "18"])
+        self.assertNotIn("--merge-output-format", args)
+        self.assertIn("--embed-thumbnail", args)
+
+    def test_opus_extrae_sin_convertir_ni_portada(self):
+        args = op.argumentos_exactos("251", "opus")
+        self.assertIn("-x", args)
+        self.assertNotIn("--audio-format", args)
+        self.assertNotIn("--merge-output-format", args)
+        self.assertNotIn("--embed-thumbnail", args)
+        self.assertIn("--embed-metadata", args)
+
+    def test_m4a_no_lleva_extraccion(self):
+        args = op.argumentos_exactos("140", "m4a")
+        self.assertNotIn("-x", args)
+        self.assertIn("--embed-thumbnail", args)
+
+
 class TestPlantillas(unittest.TestCase):
     def test_cuatro_claves_en_orden(self):
         claves = [clave for _etiqueta, clave, _plantilla in op.PLANTILLAS]

@@ -128,6 +128,10 @@ Paraguay.
 
 ### Arreglos
 
+- F2 dice el singular cuando hay uno solo: «1 regalo», «1 Super Chat» y
+  «1 leído».
+- Dos errores de TikTok se entienden mejor: «TikTok no responde por ahora»
+  y «TikTok devolvió un error», en lugar de nombrar piezas internas.
 - Cancelar una descarga que ya terminó dice «La descarga ya terminó», en
   lugar de anunciar que se canceló.
 - Al cerrar Preferencias sin guardar después de probar una voz, la voz de

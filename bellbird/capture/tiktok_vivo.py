@@ -72,8 +72,8 @@ def esta_en_vivo(usuario) -> bool:
     finally:
         try:
             loop.close()
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo cerrar el bucle: %s", error)
 
 
 def esperar_en_vivo(usuario, parada=None, cada=5.0, limite=90.0,

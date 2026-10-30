@@ -226,8 +226,8 @@ def _marcar_historicos(sobre, eventos):
         for ev in eventos:
             try:
                 ev._ytchat_historico = True
-            except Exception:
-                pass
+            except Exception as error:
+                logger.debug("no se pudo anotar la marca de histórico en el evento: %s", error)
     return eventos
 
 
@@ -376,10 +376,10 @@ def _correr_cliente(client, parada):
             if pendientes:
                 loop.run_until_complete(
                     asyncio.gather(*pendientes, return_exceptions=True))
-        except Exception:
-            pass
+        except Exception as error:
+            logger.debug("no se pudo cancelar las tareas al detener: %s", error)
         try:    loop.close()
-        except Exception: pass
+        except Exception as error: logger.debug("no se pudo cerrar el bucle al detener: %s", error)
     return error
 
 

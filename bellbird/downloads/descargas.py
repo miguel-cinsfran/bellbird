@@ -442,6 +442,19 @@ class GestorDescargas:
         if ev is not None:
             ev.set()
 
+    def olvidar(self, item_id: str) -> None:
+        """Saca un ítem terminado de la cola. Si sigue activo no hace nada."""
+        with self._lock:
+            item = self._items.get(item_id)
+            if item is None or item.estado not in ("completado", "parcial",
+                                                   "cancelado", "error"):
+                return
+            self._items.pop(item_id, None)
+            if item_id in self._orden:
+                self._orden.remove(item_id)
+            self._eventos.pop(item_id, None)
+            self._empezados.discard(item_id)
+
     def obtener(self, item_id: str) -> Optional[ItemDescarga]:
         with self._lock:
             return self._items.get(item_id)

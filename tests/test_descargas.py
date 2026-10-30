@@ -11,6 +11,7 @@ from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
 from bellbird.downloads import descargas
+from bellbird.downloads.argumentos_ytdlp import recortar_url_registro
 from bellbird.downloads.descargas import (
     GestorDescargas,
     INTERVALO_PROGRESO_S,
@@ -22,7 +23,6 @@ from bellbird.downloads.descargas import (
     formato_a_ydl,
     frase_aviso_descarga,
     gestor,
-    recortar_url_registro,
     reiniciar_gestor,
     tiene_ffmpeg,
     _vigilar_cancelacion,
@@ -923,6 +923,36 @@ class TestEsperarTurno(unittest.TestCase):
         self.assertFalse(gestor._esperar_turno("x", evento))
         gestor._turnos.acquire.assert_not_called()
         self.assertEqual(gestor._empezados, set())
+
+
+class TestOlvidar(unittest.TestCase):
+    def test_terminado_se_va_y_no_bloquea_al_siguiente(self):
+        from bellbird.downloads import fila_descargas as regla
+        from bellbird.downloads.descargas import ItemDescarga
+        gestor = GestorDescargas({"formato": "mp4", "bitrate": 192, "carpeta": "/tmp"})
+        terminado = ItemDescarga("t", "http://x", "video", estado="completado")
+        siguiente = ItemDescarga("s", "http://x", "video", estado="en_cola")
+        for it in (terminado, siguiente):
+            gestor._items[it.id] = it
+            gestor._orden.append(it.id)
+            gestor._eventos[it.id] = threading.Event()
+        gestor.olvidar("t")
+        self.assertIsNone(gestor.obtener("t"))
+        self.assertNotIn("t", gestor._orden)
+        self.assertNotIn("t", gestor._eventos)
+        self.assertFalse(regla.bloqueado_por_anterior(
+            "s", gestor._orden, gestor._empezados, gestor._items, gestor._eventos))
+
+    def test_activo_se_queda(self):
+        from bellbird.downloads.descargas import ItemDescarga
+        gestor = GestorDescargas({"formato": "mp4", "bitrate": 192, "carpeta": "/tmp"})
+        activo = ItemDescarga("a", "http://x", "video", estado="descargando")
+        gestor._items[activo.id] = activo
+        gestor._orden.append(activo.id)
+        gestor._eventos[activo.id] = threading.Event()
+        gestor.olvidar("a")
+        self.assertIs(gestor.obtener("a"), activo)
+        self.assertIn("a", gestor._orden)
 
 
 class TestGestorUnico(unittest.TestCase):

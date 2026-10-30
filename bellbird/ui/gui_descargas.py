@@ -25,10 +25,9 @@ from bellbird.core import diagnostico
 from bellbird.core import config as cfg
 from bellbird.core import paths
 from bellbird.core.idioma import N_, _
-from bellbird.downloads.descargas import frase_aviso_descarga, gestor, recortar_url_registro
+from bellbird.downloads.descargas import frase_aviso_descarga, gestor
 from bellbird.downloads import historial_descargas
-from bellbird.ui.descargas_listas import (
-    _ESTADOS_FINALES, PaginaCola, PaginaHistorial)
+from bellbird.ui.descargas_listas import _ESTADOS_FINALES, PaginaDescargas
 from bellbird.ui.gui import anunciar, nombre_accesible, caja_de_grupo, _T, _tc
 from bellbird.voice import sound_player as _snd
 
@@ -87,9 +86,10 @@ def registrar_historial(item, estado: str, ruta=None) -> dict | None:
     _registrados.add(item.id)
     ruta = ruta or _ruta_historial()
     entrada = {
+        "id": item.id,
         "fecha": datetime.now().isoformat(timespec="seconds"),
         "nombre": item.nombre or item.url,
-        "url": recortar_url_registro(item.url),
+        "url": item.url,
         "estado": estado,
         "carpeta": item.carpeta or cfg.obtener_opciones_descarga().get("carpeta", ""),
         "ruta": item.rutas[0] if item.rutas else "",
@@ -120,7 +120,7 @@ def _fin_descarga_en_gui(estado: str, mensaje: str, nombre: str, item) -> None:
     entrada = registrar_historial(item, estado)
     dialogo = _dialogo_activo
     if entrada is not None and dialogo is not None and dialogo._alive:
-        dialogo.pagina_historial.mostrar_entrada(entrada)
+        dialogo.pagina_descargas.agregar_entrada(entrada)
 
 
 def _avisar_fin_descarga(estado: str, mensaje: str, nombre: str, item=None) -> None:
@@ -252,10 +252,9 @@ class GestorDescargasDialog(wx.Dialog):
 
     def _seccion_listas(self, parent):
         self.pestanas = wx.Notebook(parent, name="PestanasDescargas")
-        self.pagina_cola = PaginaCola(self.pestanas, self._gestor)
-        self.pagina_historial = PaginaHistorial(self.pestanas, _ruta_historial())
-        self.pestanas.AddPage(self.pagina_cola, _("Cola"))
-        self.pestanas.AddPage(self.pagina_historial, _("Historial"))
+        self.pagina_descargas = PaginaDescargas(
+            self.pestanas, self._gestor, _ruta_historial(), self._preparar_opciones)
+        self.pestanas.AddPage(self.pagina_descargas, _("Descargas"))
         return self.pestanas
 
     def _seccion_botones(self, parent):
@@ -289,12 +288,7 @@ class GestorDescargasDialog(wx.Dialog):
         enumerar = bool(self.chk_enumerar.GetValue())
         return {"formato": formato, "bitrate": bitrate, "carpeta": carpeta, "enumerar": enumerar}
 
-    def _on_anadir(self, _event):
-        url = self.txt_url.GetValue().strip()
-        if not url:
-            wx.MessageBox(_("Pega un enlace de YouTube (vídeo o lista de reproducción) antes de agregar."),
-                          _("Falta el enlace"), wx.OK | wx.ICON_INFORMATION, self)
-            return
+    def _preparar_opciones(self) -> None:
         # Persistimos las opciones elegidas antes de encolar (así el Gestor
         # las ve). Si luego el usuario cambia el formato en medio, la nueva
         # descarga usará la nueva config.
@@ -304,14 +298,23 @@ class GestorDescargasDialog(wx.Dialog):
         self._opciones = op
         self._gestor.set_opciones(op)
 
-        self.pagina_cola.agregar_enlace(url)
+    def _on_anadir(self, _event):
+        url = self.txt_url.GetValue().strip()
+        if not url:
+            try:
+                _snd.reproducir("error")
+            except Exception as exc: logger.debug("sin sonido: %s", exc)
+            anunciar(_("Escribe un enlace antes de agregar."))
+            return
+        self._preparar_opciones()
+        self.pagina_descargas.agregar_enlace(url)
         self.txt_url.SetValue("")
         anunciar(_("Agregado a la cola"))
 
     def _on_refresco(self, _event) -> None:
-        if not self or not self._alive or not self.pagina_cola.lista:
+        if not self or not self._alive or not self.pagina_descargas.lista:
             return
-        self.pagina_cola.refrescar()
+        self.pagina_descargas.refrescar()
 
     def _on_cerrar(self, _event):
         self._alive = False

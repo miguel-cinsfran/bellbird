@@ -1333,7 +1333,7 @@ def escenario_descargas(app: Aplicacion, args, res: Resultado):
     juntos = " ".join(
         ((c.get("nombre") or "") + " " + (c.get("etiqueta") or ""))
         for c in controles).lower()
-    for esperado in ("formato", "velocidad de bits", "carpeta", "cola", "cerrar"):
+    for esperado in ("formato", "velocidad de bits", "carpeta", "lista de descargas", "cerrar"):
         if esperado not in juntos:
             res.fallo(f"descargas: no aparece nada llamado «{esperado}»")
 
@@ -5265,6 +5265,7 @@ SUPERFICIES = {
     "gui_comentarios.py": "comentarios",
     "gui_descargas.py": "descargas",
     "descargas_listas.py": "descargas",
+    "descargas_acciones.py": "descargas",
     "gui_directo_huerfano.py": "directo_sin_imagen",
     "gui_directo_youtube.py": "transmitir_destino",
     "gui_elegir_destino.py": "transmitir_destino",

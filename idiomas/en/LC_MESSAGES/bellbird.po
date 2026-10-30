@@ -5161,6 +5161,153 @@ msgstr "Canceling download"
 msgid "La descarga ya terminó"
 msgstr "The download has already finished"
 
+#: bellbird/ui/descargas_listas.py:133
+msgid "&Mostrar:"
+msgstr "&Show:"
+
+#: bellbird/ui/descargas_listas.py:94
+#, python-brace-format
+msgid "Todas ({cantidad})"
+msgstr "All ({cantidad})"
+
+#: bellbird/ui/descargas_listas.py:87
+#, python-brace-format
+msgid "En curso ({cantidad})"
+msgstr "In progress ({cantidad})"
+
+#: bellbird/ui/descargas_listas.py:89
+#, python-brace-format
+msgid "En espera ({cantidad})"
+msgstr "Waiting ({cantidad})"
+
+#: bellbird/ui/descargas_listas.py:91
+#, python-brace-format
+msgid "Completadas ({cantidad})"
+msgstr "Completed ({cantidad})"
+
+#: bellbird/ui/descargas_listas.py:93
+#, python-brace-format
+msgid "Con errores ({cantidad})"
+msgstr "With errors ({cantidad})"
+
+#: bellbird/ui/descargas_listas.py:148
+msgid "Lista de descargas"
+msgstr "Download list"
+
+#: bellbird/ui/gui_descargas.py:257
+msgid "Descargas"
+msgstr "Downloads"
+
+#: bellbird/ui/descargas_listas.py:313
+msgid "&Abrir archivo"
+msgstr "&Open file"
+
+#: bellbird/ui/descargas_listas.py:314
+msgid "Abrir car&peta"
+msgstr "Open &folder"
+
+#: bellbird/ui/descargas_listas.py:315
+msgid "&Cancelar descarga"
+msgstr "&Cancel download"
+
+#: bellbird/ui/descargas_listas.py:316
+msgid "&Reintentar"
+msgstr "&Retry"
+
+#: bellbird/ui/descargas_listas.py:317
+msgid "&Volver a descargar"
+msgstr "&Download again"
+
+#: bellbird/ui/descargas_listas.py:318
+msgid "Copiar &enlace"
+msgstr "Copy &link"
+
+#: bellbird/ui/descargas_listas.py:319
+msgid "E&liminar de la lista"
+msgstr "R&emove from list"
+
+#: bellbird/ui/descargas_listas.py:337
+msgid "Cancelar &todas"
+msgstr "Cancel &all"
+
+#: bellbird/ui/descargas_listas.py:340
+msgid "Eliminar c&ompletadas"
+msgstr "Remove co&mpleted"
+
+#: bellbird/ui/descargas_listas.py:164
+msgid "Vaciar l&ista"
+msgstr "Clear l&ist"
+
+#: bellbird/ui/descargas_acciones.py:153
+msgid "Vaciar lista"
+msgstr "Clear list"
+
+#: bellbird/ui/descargas_acciones.py:111
+msgid "Enlace copiado"
+msgstr "Link copied"
+
+#: bellbird/ui/descargas_acciones.py:121
+msgid "Eliminada de la lista"
+msgstr "Removed from list"
+
+#: bellbird/ui/descargas_acciones.py:59
+msgid "El archivo ya no está disponible."
+msgstr "The file is no longer available."
+
+#: bellbird/ui/descargas_acciones.py:73
+msgid "La carpeta ya no está disponible."
+msgstr "The folder is no longer available."
+
+#: bellbird/ui/descargas_acciones.py:117
+msgid "Cancela la descarga antes de eliminarla."
+msgstr "Cancel the download before removing it."
+
+#: bellbird/ui/descargas_acciones.py:133
+#, python-brace-format
+msgid "Cancelando {cantidad} descargas"
+msgstr "Canceling {cantidad} downloads"
+
+#: bellbird/ui/descargas_acciones.py:131
+msgid "Cancelando 1 descarga"
+msgstr "Canceling 1 download"
+
+#: bellbird/ui/descargas_acciones.py:126
+msgid "No hay descargas en curso"
+msgstr "No downloads in progress"
+
+#: bellbird/ui/gui_descargas.py:307
+msgid "Escribe un enlace antes de agregar."
+msgstr "Type a link before adding."
+
+#: bellbird/ui/descargas_acciones.py:77
+msgid "Selecciona una descarga."
+msgstr "Select a download."
+
+#: bellbird/ui/descargas_acciones.py:151
+msgid ""
+"Elimina de la lista las descargas terminadas. "
+"No borra ningún archivo del disco. ¿Deseas continuar?"
+msgstr ""
+"Removes finished downloads from the list. "
+"No files are deleted from the disk. Do you want to continue?"
+
+#: bellbird/ui/descargas_acciones.py:143
+msgid "1 descarga eliminada de la lista"
+msgstr "1 download removed from the list"
+
+#: bellbird/ui/descargas_acciones.py:145
+#, python-brace-format
+msgid "{cantidad} descargas eliminadas de la lista"
+msgstr "{cantidad} downloads removed from the list"
+
+#: bellbird/ui/descargas_acciones.py:139
+msgid "No hay descargas completadas"
+msgstr "No completed downloads"
+
+#: bellbird/ui/descargas_acciones.py:150
+msgid "No hay descargas terminadas"
+msgstr "No finished downloads"
+
 #: bellbird/ui/gui_directo_huerfano.py:187
 #, python-brace-format
 msgid ""

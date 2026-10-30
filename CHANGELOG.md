@@ -72,8 +72,58 @@ Paraguay.
   de *dirección*, *aplicación* en vez de *programa* y *Esc* en vez de
   *Escape*.
 
+### El Administrador de descargas, renovado
+
+- La ventana tiene dos pestañas. *Buscar en YouTube* se abre primero, con
+  el foco en el campo. *Descargas* tiene la cola y el historial.
+- En el campo *Buscar o pegar enlace*, las palabras buscan en YouTube y un
+  enlace va a la cola, sea de YouTube o de otro sitio compatible. *Ver
+  sitios compatibles* abre la lista de sitios. El campo recuerda las
+  búsquedas recientes.
+- Los resultados muestran título, canal, duración, vistas y fecha, y el
+  cuadro *Detalles* tiene los datos completos del elegido. *Cantidad*
+  elige cuántos resultados llegan, y *Mostrar más* trae otra tanda.
+- La casilla *Mostrar filtros* agrega tipo (vídeos, listas, canales o en
+  directo), duración, fecha y orden.
+- Intro sobre un vídeo lo descarga sin preguntar y dice «Descargando» o
+  «En cola» con el título. Intro sobre una lista o un canal muestra sus
+  vídeos. Retroceso vuelve a los resultados, y *Agregar lista entera* la
+  descarga completa.
+- Espacio escucha el resultado sin descargarlo, y otra vez Espacio lo
+  pausa. Si sonaba la música, se pausa mientras escuchas y después vuelve.
+- El menú contextual de un resultado permite agregarlo a la cola,
+  escucharlo, descargarlo como audio o como vídeo sin cambiar el formato
+  elegido, abrirlo en Bellbird, agregarlo a la música, ver su contenido,
+  copiar el enlace y abrirlo en el navegador.
+- Antes de agregar algo, la app avisa si ya está en el historial. Un
+  directo en curso no se descarga, y la app lo dice.
+- La pestaña *Descargas* tiene una sola lista, y *Mostrar* elige qué se ve:
+  todas, en curso, en espera, completadas o con errores, cada una con su
+  cantidad. Con la tecla Aplicaciones o `Mayús+F10` se abre el menú para
+  abrir el archivo o su carpeta, reintentar, volver a descargar, copiar el
+  enlace, cancelar y eliminar. Supr elimina la descarga elegida de la lista.
+- Mientras descarga, la columna *Estado* dice la velocidad y el tiempo que
+  falta. En una lista dice también por qué vídeo va, como «vídeo 3 de 10».
+- *Formato* tiene nueve opciones: vídeo original, MP4 o WebM, y audio
+  original, MP3, M4A, Opus, FLAC o WAV. *Calidad* cambia según el formato:
+  resolución en vídeo y kbps en audio. El archivo guarda el título y los
+  datos del vídeo, y la portada cuando el formato la admite.
+- El audio se descarga también en sitios que no lo separan del vídeo, como
+  Dailymotion o Twitch.
+- *Preferencias* tiene la categoría nueva *Descargas*: carpeta, numerar
+  los archivos de una lista, descargas simultáneas, límite de velocidad,
+  carpeta propia para cada lista y nombre de los archivos.
+- Al salir de la app con descargas sin terminar, la pregunta dice cuántas
+  se cancelarán. Aparece aunque tengas desactivada la confirmación al
+  salir.
+- La búsqueda, el agregado a la cola, el procesado, el fin de la cola y
+  una descarga que terminó a medias tienen sonidos propios, en los dos
+  temas.
+
 ### Arreglos
 
+- Cancelar una descarga que ya terminó dice «La descarga ya terminó», en
+  lugar de anunciar que se canceló.
 - Al cerrar Preferencias sin guardar después de probar una voz, la voz de
   prueba ya no queda abierta.
 - Cuando el chat de TikTok se reconecta, la lista ya no se vacía y el

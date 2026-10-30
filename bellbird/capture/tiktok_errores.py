@@ -16,8 +16,7 @@ CLASES_NO_EXISTE = ("UserNotFoundError",)
 
 # Traductores: error transitorio que se anuncia y se muestra en la barra de estado.
 TEXTO_ERROR_FIRMAS = N_(
-    "El servidor de firmas de TikTok no responde o alcanzó su límite. "
-    "Espera un momento y vuelve a intentarlo.")
+    "TikTok no responde por ahora. Espera un momento y vuelve a intentarlo.")
 
 
 def nombre(exc) -> str:
@@ -46,7 +45,7 @@ def mensaje_error(exc) -> str:
                  "más tarde.")
     if es_error_http(exc):
         # Traductores: error transitorio que se anuncia y se muestra en la barra de estado. {detalle} es el detalle técnico.
-        return _("TikTok no respondió bien (error HTTP): {detalle}").format(detalle=exc)
+        return _("TikTok devolvió un error: {detalle}").format(detalle=exc)
     # Traductores: error transitorio que se anuncia y se muestra en la barra de estado. {detalle} es el detalle técnico.
     return _("No se pudo conectar al directo de TikTok: {detalle}").format(detalle=exc)
 

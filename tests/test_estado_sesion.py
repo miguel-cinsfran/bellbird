@@ -489,5 +489,90 @@ class TestPseudoF2(unittest.TestCase):
         self.assertIn("[¡", texto)
 
 
+class TestPluralesTanda2(unittest.TestCase):
+    """Cada ngettext de estado_sesion: con 1 singular y con 2 plural."""
+
+    def test_todas_las_ramas_con_uno_y_dos(self):
+        for n, singular in ((1, True), (2, False)):
+            with self.subTest(n=n):
+                # Aportes: YouTube y TikTok, largo y corto, con y sin total.
+                for tipo, etiqueta in (("live_tiktok", "regalo"),
+                                       ("live_youtube", "Super Chat")):
+                    for modo in ("corto", "largo"):
+                        for con_total in (False, True):
+                            total = "US$%d,00" % n if con_total else ""
+                            snap = SnapshotSesion(conectado=True, tipo=tipo,
+                                                  aportes=n, total_aportes=total)
+                            if etiqueta == "regalo":
+                                nombre = "regalo" if n == 1 else "regalos"
+                            else:
+                                nombre = "Super Chat" if n == 1 else "Super Chats"
+                            if modo == "largo":
+                                esperado = "Aportes: %d %s" % (n, nombre)
+                            else:
+                                esperado = "%d %s" % (n, nombre)
+                            if con_total:
+                                esperado += " (%s)" % total
+                            if modo == "corto":
+                                esperado += "."
+                            with self.subTest(tipo=tipo, modo=modo,
+                                              total=con_total):
+                                self.assertEqual(
+                                    formatear_estado(snap, {"aportes"}, modo),
+                                    esperado)
+                # Espectadores TikTok con total, largo y corto.
+                for modo, esperado in (
+                        ("largo", ("Espectador: 1 ahora, 10 en total"
+                                   if n == 1 else
+                                   "Espectadores: 2 ahora, 10 en total")),
+                        ("corto", ("1 espectador ahora, 10 en total."
+                                   if n == 1 else
+                                   "2 espectadores ahora, 10 en total."))):
+                    snap = SnapshotSesion(conectado=True, tipo="live_tiktok",
+                                          espectadores=n, espectadores_total=10)
+                    with self.subTest(comp="tiktok-total", modo=modo):
+                        self.assertEqual(
+                            formatear_estado(snap, {"espectadores"}, modo),
+                            esperado)
+                # Espectadores YouTube y vistas, largo y corto.
+                for tipo, largo_s, largo_p, corto_s, corto_p in (
+                        ("live_youtube", "Espectador: %d", "Espectadores: %d",
+                         "%d espectador.", "%d espectadores."),
+                        ("vod", "Vista: %d", "Vistas: %d",
+                         "%d vista.", "%d vistas.")):
+                    snap = SnapshotSesion(conectado=True, tipo=tipo,
+                                          espectadores=n)
+                    with self.subTest(comp=tipo, modo="largo"):
+                        self.assertEqual(
+                            formatear_estado(snap, {"espectadores"}, "largo"),
+                            (largo_s if n == 1 else largo_p) % n)
+                    with self.subTest(comp=tipo, modo="corto"):
+                        self.assertEqual(
+                            formatear_estado(snap, {"espectadores"}),
+                            (corto_s if n == 1 else corto_p) % n)
+                # Leídos y en cola, corto.
+                with self.subTest(comp="leidos"):
+                    self.assertEqual(
+                        formatear_estado(SnapshotSesion(mensajes_leidos=n),
+                                         {"mensajes_leidos"}),
+                        "1 leído." if n == 1 else "2 leídos.")
+                with self.subTest(comp="cola"):
+                    self.assertEqual(
+                        formatear_estado(SnapshotSesion(en_cola=n), {"en_cola"}),
+                        "%d en cola." % n)
+                # Días: el singular es inalcanzable por el corte de 48 horas.
+                with self.subTest(comp="dias"):
+                    self.assertEqual(
+                        formatear_estado(
+                            SnapshotSesion(segundos_directo=2 * 24 * 3600),
+                            {"tiempo_directo"}),
+                        "Lleva 2 días.")
+                    self.assertEqual(
+                        formatear_estado(
+                            SnapshotSesion(segundos_directo=2 * 24 * 3600),
+                            {"tiempo_directo"}, "largo"),
+                        "Tiempo del directo: 2 días")
+
+
 if __name__ == "__main__":
     unittest.main()

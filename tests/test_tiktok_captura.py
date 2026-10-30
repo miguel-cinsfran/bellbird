@@ -82,7 +82,9 @@ class TestMensajesDeError(unittest.TestCase):
     def test_error_de_firma(self):
         exc = self._exc("SignAPIError", "sign server unavailable")
         self.assertFalse(_es_error_permanente(exc))
-        self.assertIn("firmas", _mensaje_error(exc))
+        self.assertEqual(_mensaje_error(exc),
+                         "TikTok no responde por ahora. Espera un momento y "
+                         "vuelve a intentarlo.")
 
     def test_404_del_servidor_de_firmas_no_es_usuario_inexistente(self):
         # httpx: «404 Not Found for url …eulerstream…». Antes, por la subcadena
@@ -92,13 +94,15 @@ class TestMensajesDeError(unittest.TestCase):
                         "'https://tiktok.eulerstream.com/webcast/sign_url'")
         self.assertFalse(_es_error_permanente(exc))
         self.assertNotIn("No se encontró", _mensaje_error(exc))
-        self.assertIn("firmas", _mensaje_error(exc))
+        self.assertEqual(_mensaje_error(exc),
+                         "TikTok no responde por ahora. Espera un momento y "
+                         "vuelve a intentarlo.")
 
     def test_error_http_generico_es_transitorio(self):
         exc = self._exc("HTTPStatusError",
                         "Client error '404 Not Found' for url 'https://www.tiktok.com/x'")
         self.assertFalse(_es_error_permanente(exc))
-        self.assertIn("HTTP", _mensaje_error(exc))
+        self.assertIn("TikTok devolvió un error: ", _mensaje_error(exc))
 
     def test_la_subcadena_sola_no_hace_permanente_un_error(self):
         self.assertFalse(_es_error_permanente(Exception("user not found")))

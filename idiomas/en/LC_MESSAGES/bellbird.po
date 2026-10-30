@@ -881,12 +881,8 @@ msgstr "Connecting to the TikTok live stream by @{usuario}…"
 #. Traductores: error transitorio que se anuncia y se muestra en la barra de
 #. estado.
 #: bellbird/capture/tiktok_errores.py:19
-msgid ""
-"El servidor de firmas de TikTok no responde o alcanzó su límite. Espera "
-"un momento y vuelve a intentarlo."
-msgstr ""
-"The TikTok signature server is not responding or reached its limit. Wait "
-"a moment and try again."
+msgid "TikTok no responde por ahora. Espera un momento y vuelve a intentarlo."
+msgstr "TikTok is not responding for now. Wait a moment and try again."
 
 # | msgid "Esperando a que TikTok muestre el directo."
 #. Traductores: error permanente que se anuncia y se muestra en la barra de
@@ -910,10 +906,10 @@ msgstr "TikTok asked for verification (captcha). Try again later."
 
 #. Traductores: error transitorio que se anuncia y se muestra en la barra de
 #. estado. {detalle} es el detalle técnico.
-#: bellbird/capture/tiktok_errores.py:49
+#: bellbird/capture/tiktok_errores.py:48
 #, python-brace-format
-msgid "TikTok no respondió bien (error HTTP): {detalle}"
-msgstr "TikTok did not respond well (HTTP error): {detalle}"
+msgid "TikTok devolvió un error: {detalle}"
+msgstr "TikTok returned an error: {detalle}"
 
 # | msgid "No se pudo agregar el directo a la lista: {detalle}"
 #. Traductores: error transitorio que se anuncia y se muestra en la barra de
@@ -9107,16 +9103,12 @@ msgid "menos de un minuto"
 msgstr "less than a minute"
 
 #. Traductores: parte del estado F2 (duración). {dias} es el nº de días.
-#: bellbird/capture/estado_sesion.py:86
+#: bellbird/capture/estado_sesion.py:85
 #, python-brace-format
 msgid "{dias} día"
-msgstr "{dias} day"
-
-#. Traductores: parte del estado F2 (duración). {dias} es el nº de días.
-#: bellbird/capture/estado_sesion.py:88
-#, python-brace-format
-msgid "{dias} días"
-msgstr "{dias} days"
+msgid_plural "{dias} días"
+msgstr[0] "{dias} day"
+msgstr[1] "{dias} days"
 
 #. Traductores: parte del estado F2 (duración). {horas} son horas y {minutos}
 #. minutos.
@@ -9144,73 +9136,53 @@ msgstr "Title: {titulo}"
 
 #. Traductores: parte del estado F2 (espectadores TikTok). {n} son los de ahora
 #. y {total} el total.
-#: bellbird/capture/estado_sesion.py:138
+#: bellbird/capture/estado_sesion.py:126
 #, python-brace-format
 msgid "Espectador: {n} ahora, {total} en total"
-msgstr "Viewer: {n} now, {total} in total"
+msgid_plural "Espectadores: {n} ahora, {total} en total"
+msgstr[0] "Viewer: {n} now, {total} in total"
+msgstr[1] "Viewers: {n} now, {total} in total"
 
 #. Traductores: parte del estado F2 (espectadores TikTok). {n} son los de ahora
 #. y {total} el total.
-#: bellbird/capture/estado_sesion.py:141
-#, python-brace-format
-msgid "Espectadores: {n} ahora, {total} en total"
-msgstr "Viewers: {n} now, {total} in total"
-
-#. Traductores: parte del estado F2 (espectadores TikTok). {n} son los de ahora
-#. y {total} el total.
-#: bellbird/capture/estado_sesion.py:144
+#: bellbird/capture/estado_sesion.py:129
 #, python-brace-format
 msgid "{n} espectador ahora, {total} en total"
-msgstr "{n} viewer now, {total} in total"
-
-#. Traductores: parte del estado F2 (espectadores TikTok). {n} son los de ahora
-#. y {total} el total.
-#: bellbird/capture/estado_sesion.py:146
-#, python-brace-format
-msgid "{n} espectadores ahora, {total} en total"
-msgstr "{n} viewers now, {total} in total"
+msgid_plural "{n} espectadores ahora, {total} en total"
+msgstr[0] "{n} viewer now, {total} in total"
+msgstr[1] "{n} viewers now, {total} in total"
 
 #. Traductores: parte del estado F2 (espectadores). {n} es el nº actual.
-#: bellbird/capture/estado_sesion.py:149
+#: bellbird/capture/estado_sesion.py:136
 #, python-brace-format
 msgid "Espectador: {n}"
-msgstr "Viewer: {n}"
+msgid_plural "Espectadores: {n}"
+msgstr[0] "Viewer: {n}"
+msgstr[1] "Viewers: {n}"
 
 #. Traductores: parte del estado F2 (espectadores). {n} es el nº actual.
-#: bellbird/capture/estado_sesion.py:152
-#, python-brace-format
-msgid "Espectadores: {n}"
-msgstr "Viewers: {n}"
-
-#. Traductores: parte del estado F2 (espectadores). {n} es el nº actual.
-#: bellbird/capture/estado_sesion.py:155
+#: bellbird/capture/estado_sesion.py:139
 #, python-brace-format
 msgid "{n} espectador"
-msgstr "{n} viewer"
-
-#. Traductores: parte del estado F2 (espectadores). {n} es el nº actual.
-#: bellbird/capture/estado_sesion.py:158
-#, python-brace-format
-msgid "{n} espectadores"
-msgstr "{n} viewers"
+msgid_plural "{n} espectadores"
+msgstr[0] "{n} viewer"
+msgstr[1] "{n} viewers"
 
 #. Traductores: parte del estado F2 (vistas). {n} es el nº total.
-#: bellbird/capture/estado_sesion.py:161
+#: bellbird/capture/estado_sesion.py:142
 #, python-brace-format
 msgid "Vista: {n}"
-msgstr "View: {n}"
+msgid_plural "Vistas: {n}"
+msgstr[0] "View: {n}"
+msgstr[1] "Views: {n}"
 
 #. Traductores: parte del estado F2 (vistas). {n} es el nº total.
-#: bellbird/capture/estado_sesion.py:164
-#, python-brace-format
-msgid "Vistas: {n}"
-msgstr "Views: {n}"
-
-#. Traductores: parte del estado F2 (vistas). {n} es el nº total.
-#: bellbird/capture/estado_sesion.py:167
+#: bellbird/capture/estado_sesion.py:144
 #, python-brace-format
 msgid "{n} vista"
-msgstr "{n} view"
+msgid_plural "{n} vistas"
+msgstr[0] "{n} view"
+msgstr[1] "{n} views"
 
 #. Traductores: parte del estado F2 (tiempo). {texto} es la duración.
 #: bellbird/capture/estado_sesion.py:178
@@ -9237,64 +9209,82 @@ msgid "Mensajes leídos: {n}"
 msgstr "Read messages: {n}"
 
 #. Traductores: parte del estado F2 (leídos). {n} es el nº de mensajes.
+#: bellbird/capture/estado_sesion.py:200
+#, python-brace-format
+msgid "{n} leído"
+msgid_plural "{n} leídos"
+msgstr[0] "{n} read"
+msgstr[1] "{n} read"
+
+#. Traductores: parte del estado F2 (aportes TikTok). {n} es el nº y {total} el
+#. importe.
+#: bellbird/capture/estado_sesion.py:206
+#, python-brace-format
+msgid "Aportes: {n} regalo ({total})"
+msgid_plural "Aportes: {n} regalos ({total})"
+msgstr[0] "Contributions: {n} gift ({total})"
+msgstr[1] "Contributions: {n} gifts ({total})"
+
+#. Traductores: parte del estado F2 (aportes TikTok). {n} es el nº de regalos.
+#: bellbird/capture/estado_sesion.py:209
+#, python-brace-format
+msgid "Aportes: {n} regalo"
+msgid_plural "Aportes: {n} regalos"
+msgstr[0] "Contributions: {n} gift"
+msgstr[1] "Contributions: {n} gifts"
+
+#. Traductores: parte del estado F2 (aportes TikTok). {n} es el nº y {total} el
+#. importe.
 #: bellbird/capture/estado_sesion.py:212
 #, python-brace-format
-msgid "{n} leídos"
-msgstr "{n} read"
-
-#. Traductores: parte del estado F2 (aportes TikTok). {n} es el nº y {total} el
-#. importe.
-#: bellbird/capture/estado_sesion.py:224
-#, python-brace-format
-msgid "Aportes: {n} regalos ({total})"
-msgstr "Contributions: {n} gifts ({total})"
+msgid "{n} regalo ({total})"
+msgid_plural "{n} regalos ({total})"
+msgstr[0] "{n} gift ({total})"
+msgstr[1] "{n} gifts ({total})"
 
 #. Traductores: parte del estado F2 (aportes TikTok). {n} es el nº de regalos.
-#: bellbird/capture/estado_sesion.py:227
+#: bellbird/capture/estado_sesion.py:214
 #, python-brace-format
-msgid "Aportes: {n} regalos"
-msgstr "Contributions: {n} gifts"
-
-#. Traductores: parte del estado F2 (aportes TikTok). {n} es el nº y {total} el
-#. importe.
-#: bellbird/capture/estado_sesion.py:230
-#, python-brace-format
-msgid "{n} regalos ({total})"
-msgstr "{n} gifts ({total})"
-
-#. Traductores: parte del estado F2 (aportes TikTok). {n} es el nº de regalos.
-#: bellbird/capture/estado_sesion.py:233
-#, python-brace-format
-msgid "{n} regalos"
-msgstr "{n} gifts"
+msgid "{n} regalo"
+msgid_plural "{n} regalos"
+msgstr[0] "{n} gift"
+msgstr[1] "{n} gifts"
 
 #. Traductores: parte del estado F2 (aportes YouTube). {n} es el nº y {total}
 #. el importe.
-#: bellbird/capture/estado_sesion.py:236
+#: bellbird/capture/estado_sesion.py:220
 #, python-brace-format
-msgid "Aportes: {n} Super Chats ({total})"
-msgstr "Contributions: {n} Super Chats ({total})"
+msgid "Aportes: {n} Super Chat ({total})"
+msgid_plural "Aportes: {n} Super Chats ({total})"
+msgstr[0] "Contributions: {n} Super Chat ({total})"
+msgstr[1] "Contributions: {n} Super Chats ({total})"
 
 #. Traductores: parte del estado F2 (aportes YouTube). {n} es el nº de Super
 #. Chats.
-#: bellbird/capture/estado_sesion.py:239
+#: bellbird/capture/estado_sesion.py:223
 #, python-brace-format
-msgid "Aportes: {n} Super Chats"
-msgstr "Contributions: {n} Super Chats"
+msgid "Aportes: {n} Super Chat"
+msgid_plural "Aportes: {n} Super Chats"
+msgstr[0] "Contributions: {n} Super Chat"
+msgstr[1] "Contributions: {n} Super Chats"
 
 #. Traductores: parte del estado F2 (aportes YouTube). {n} es el nº y {total}
 #. el importe.
-#: bellbird/capture/estado_sesion.py:242
+#: bellbird/capture/estado_sesion.py:226
 #, python-brace-format
-msgid "{n} Super Chats ({total})"
-msgstr "{n} Super Chats ({total})"
+msgid "{n} Super Chat ({total})"
+msgid_plural "{n} Super Chats ({total})"
+msgstr[0] "{n} Super Chat ({total})"
+msgstr[1] "{n} Super Chats ({total})"
 
 #. Traductores: parte del estado F2 (aportes YouTube). {n} es el nº de Super
 #. Chats.
-#: bellbird/capture/estado_sesion.py:244
+#: bellbird/capture/estado_sesion.py:228
 #, python-brace-format
-msgid "{n} Super Chats"
-msgstr "{n} Super Chats"
+msgid "{n} Super Chat"
+msgid_plural "{n} Super Chats"
+msgstr[0] "{n} Super Chat"
+msgstr[1] "{n} Super Chats"
 
 #. Traductores: parte del estado F2 (cola). {n} es el nº en cola.
 #: bellbird/capture/estado_sesion.py:251
@@ -9303,10 +9293,12 @@ msgid "En cola: {n}"
 msgstr "In queue: {n}"
 
 #. Traductores: parte del estado F2 (cola). {n} es el nº en cola.
-#: bellbird/capture/estado_sesion.py:253
+#: bellbird/capture/estado_sesion.py:247
 #, python-brace-format
 msgid "{n} en cola"
-msgstr "{n} in queue"
+msgid_plural "{n} en cola"
+msgstr[0] "{n} in queue"
+msgstr[1] "{n} in queue"
 
 #. Traductores: parte del estado F2 (transmisión). {texto} es el estado.
 #: bellbird/capture/estado_sesion.py:352

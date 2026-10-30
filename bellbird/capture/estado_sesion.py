@@ -17,7 +17,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from bellbird.capture.componentes_estado import (ACTIVOS_DEFECTO, COMPONENTES, ETIQUETAS, etiqueta)
-from bellbird.core.idioma import N_, _
+from bellbird.core.idioma import N_, _, ngettext
 
 
 # Códigos de tipo de conexión → etiqueta legible. Se traducen al usarlas.
@@ -81,11 +81,8 @@ def _duracion(segundos: int) -> str:
     if minutos >= 48 * 60:
         dias = minutos // (24 * 60)
         # Hoy es inalcanzable con el corte fijado en 48 horas.
-        if dias == 1:
-            # Traductores: parte del estado F2 (duración). {dias} es el nº de días.
-            return _("{dias} día").format(dias=dias)
         # Traductores: parte del estado F2 (duración). {dias} es el nº de días.
-        return _("{dias} días").format(dias=dias)
+        return ngettext("{dias} día", "{dias} días", dias).format(dias=dias)
     horas, minutos = divmod(minutos, 60)
     if horas:
         # Traductores: parte del estado F2 (duración). {horas} son horas y {minutos} minutos.
@@ -123,44 +120,28 @@ def _render_canal(s: SnapshotSesion, largo: bool) -> str:
     return _("Canal: {canal}").format(canal=c)
 
 
-def _espectadores_tiktok(n: str, total: str, largo: bool, singular: bool) -> str:
-    if largo and singular:
-        # Traductores: parte del estado F2 (espectadores TikTok). {n} son los de ahora y {total} el total.
-        return _("Espectador: {n} ahora, {total} en total").format(n=n, total=total)
+def _espectadores_tiktok(cuenta: int, n: str, total: str, largo: bool) -> str:
     if largo:
         # Traductores: parte del estado F2 (espectadores TikTok). {n} son los de ahora y {total} el total.
-        return _("Espectadores: {n} ahora, {total} en total").format(n=n, total=total)
-    if singular:
-        # Traductores: parte del estado F2 (espectadores TikTok). {n} son los de ahora y {total} el total.
-        return _("{n} espectador ahora, {total} en total").format(n=n, total=total)
+        return ngettext("Espectador: {n} ahora, {total} en total",
+                        "Espectadores: {n} ahora, {total} en total", cuenta).format(n=n, total=total)
     # Traductores: parte del estado F2 (espectadores TikTok). {n} son los de ahora y {total} el total.
-    return _("{n} espectadores ahora, {total} en total").format(n=n, total=total)
+    return ngettext("{n} espectador ahora, {total} en total",
+                    "{n} espectadores ahora, {total} en total", cuenta).format(n=n, total=total)
 
 
-def _espectadores_resto(n: str, en_directo: bool, largo: bool, singular: bool) -> str:
-    if en_directo and largo and singular:
-        # Traductores: parte del estado F2 (espectadores). {n} es el nº actual.
-        return _("Espectador: {n}").format(n=n)
+def _espectadores_resto(cuenta: int, n: str, en_directo: bool, largo: bool) -> str:
     if en_directo and largo:
         # Traductores: parte del estado F2 (espectadores). {n} es el nº actual.
-        return _("Espectadores: {n}").format(n=n)
-    if en_directo and singular:
-        # Traductores: parte del estado F2 (espectadores). {n} es el nº actual.
-        return _("{n} espectador").format(n=n)
+        return ngettext("Espectador: {n}", "Espectadores: {n}", cuenta).format(n=n)
     if en_directo:
         # Traductores: parte del estado F2 (espectadores). {n} es el nº actual.
-        return _("{n} espectadores").format(n=n)
-    if largo and singular:
-        # Traductores: parte del estado F2 (vistas). {n} es el nº total.
-        return _("Vista: {n}").format(n=n)
+        return ngettext("{n} espectador", "{n} espectadores", cuenta).format(n=n)
     if largo:
         # Traductores: parte del estado F2 (vistas). {n} es el nº total.
-        return _("Vistas: {n}").format(n=n)
-    if singular:
-        # Traductores: parte del estado F2 (vistas). {n} es el nº total.
-        return _("{n} vista").format(n=n)
+        return ngettext("Vista: {n}", "Vistas: {n}", cuenta).format(n=n)
     # Traductores: parte del estado F2 (vistas). {n} es el nº total.
-    return _("{n} vistas").format(n=n)
+    return ngettext("{n} vista", "{n} vistas", cuenta).format(n=n)
 
 
 def _render_espectadores(s: SnapshotSesion, largo: bool) -> str:
@@ -169,11 +150,11 @@ def _render_espectadores(s: SnapshotSesion, largo: bool) -> str:
     n = _fmt_num(s.espectadores)
     # En un directo es el nº de espectadores AHORA; en un vídeo, las vistas
     # totales (números distintos, no confundir).
-    singular = s.espectadores == 1
+    cuenta = s.espectadores if isinstance(s.espectadores, int) else 2
     if s.tipo == "live_tiktok" and s.espectadores_total is not None:
-        return _espectadores_tiktok(n, _fmt_num(s.espectadores_total), largo, singular)
+        return _espectadores_tiktok(cuenta, n, _fmt_num(s.espectadores_total), largo)
     en_directo = s.tipo in ("live_youtube", "live_tiktok")
-    return _espectadores_resto(n, en_directo, largo, singular)
+    return _espectadores_resto(cuenta, n, en_directo, largo)
 
 
 def _render_tiempo_directo(s: SnapshotSesion, largo: bool) -> str:
@@ -216,35 +197,35 @@ def _render_mensajes_leidos(s: SnapshotSesion, largo: bool) -> str:
         # Traductores: parte del estado F2 (leídos). {n} es el nº de mensajes.
         return _("Mensajes leídos: {n}").format(n=n)
     # Traductores: parte del estado F2 (leídos). {n} es el nº de mensajes.
-    return _("{n} leídos").format(n=n)
+    return ngettext("{n} leído", "{n} leídos", s.mensajes_leidos).format(n=n)
 
 
 def _aportes_tiktok(n: int, total: str, largo: bool) -> str:
     if largo and total:
         # Traductores: parte del estado F2 (aportes TikTok). {n} es el nº y {total} el importe.
-        return _("Aportes: {n} regalos ({total})").format(n=n, total=total)
+        return ngettext("Aportes: {n} regalo ({total})", "Aportes: {n} regalos ({total})", n).format(n=n, total=total)
     if largo:
         # Traductores: parte del estado F2 (aportes TikTok). {n} es el nº de regalos.
-        return _("Aportes: {n} regalos").format(n=n)
+        return ngettext("Aportes: {n} regalo", "Aportes: {n} regalos", n).format(n=n)
     if total:
         # Traductores: parte del estado F2 (aportes TikTok). {n} es el nº y {total} el importe.
-        return _("{n} regalos ({total})").format(n=n, total=total)
+        return ngettext("{n} regalo ({total})", "{n} regalos ({total})", n).format(n=n, total=total)
     # Traductores: parte del estado F2 (aportes TikTok). {n} es el nº de regalos.
-    return _("{n} regalos").format(n=n)
+    return ngettext("{n} regalo", "{n} regalos", n).format(n=n)
 
 
 def _aportes_youtube(n: int, total: str, largo: bool) -> str:
     if largo and total:
         # Traductores: parte del estado F2 (aportes YouTube). {n} es el nº y {total} el importe.
-        return _("Aportes: {n} Super Chats ({total})").format(n=n, total=total)
+        return ngettext("Aportes: {n} Super Chat ({total})", "Aportes: {n} Super Chats ({total})", n).format(n=n, total=total)
     if largo:
         # Traductores: parte del estado F2 (aportes YouTube). {n} es el nº de Super Chats.
-        return _("Aportes: {n} Super Chats").format(n=n)
+        return ngettext("Aportes: {n} Super Chat", "Aportes: {n} Super Chats", n).format(n=n)
     if total:
         # Traductores: parte del estado F2 (aportes YouTube). {n} es el nº y {total} el importe.
-        return _("{n} Super Chats ({total})").format(n=n, total=total)
+        return ngettext("{n} Super Chat ({total})", "{n} Super Chats ({total})", n).format(n=n, total=total)
     # Traductores: parte del estado F2 (aportes YouTube). {n} es el nº de Super Chats.
-    return _("{n} Super Chats").format(n=n)
+    return ngettext("{n} Super Chat", "{n} Super Chats", n).format(n=n)
 
 
 def _render_aportes(s: SnapshotSesion, largo: bool) -> str:
@@ -263,7 +244,7 @@ def _render_en_cola(s: SnapshotSesion, largo: bool) -> str:
         # Traductores: parte del estado F2 (cola). {n} es el nº en cola.
         return _("En cola: {n}").format(n=n)
     # Traductores: parte del estado F2 (cola). {n} es el nº en cola.
-    return _("{n} en cola").format(n=n)
+    return ngettext("{n} en cola", "{n} en cola", s.en_cola).format(n=n)
 
 
 def _render_voz(s: SnapshotSesion, largo: bool) -> str:

@@ -4599,6 +4599,53 @@ class TestCierreVentana(unittest.TestCase):
         evento.Veto.assert_not_called()
         frame.Destroy.assert_called_once_with()
 
+    def test_con_opcion_apagada_y_descarga_en_curso_pregunta_y_veta(self):
+        frame = self._frame()
+        frame._config = {"confirmar_salida": False}
+        frame._conectado = False
+        frame._supervisor = None
+        frame._obs_transmitiendo = False
+        evento = self._evento_vetable()
+        gestor = mock.Mock()
+        gestor.lista.return_value = [mock.Mock(estado="descargando")]
+        dialogo = mock.Mock()
+        dialogo.ShowModal.return_value = gui.wx.ID_NO
+        with mock.patch.object(gui, "gestor", return_value=gestor), \
+                mock.patch.object(gui.wx, "MessageDialog",
+                                  return_value=dialogo) as crear:
+            frame._on_close(evento)
+
+        crear.assert_called_once()
+        args, _kwargs = crear.call_args
+        self.assertEqual(
+            args[1], "¿Salir de la aplicación? Hay 1 descarga sin terminar "
+            "y se cancelará.")
+        self.assertEqual(args[2], "Salir")
+        dialogo.Destroy.assert_called_once_with()
+        evento.Veto.assert_called_once_with()
+        self.assertFalse(frame._apagando)
+        frame.Destroy.assert_not_called()
+
+    def test_con_opcion_apagada_y_sin_descargas_no_pregunta(self):
+        frame = self._frame()
+        frame._config = {"confirmar_salida": False}
+        frame._conectado = False
+        frame._supervisor = None
+        frame._obs_transmitiendo = False
+        evento = self._evento_vetable()
+        gestor = mock.Mock()
+        gestor.lista.return_value = []
+        with mock.patch.object(gui, "gestor", return_value=gestor), \
+                mock.patch.object(gui.wx, "MessageDialog") as crear, \
+                mock.patch.object(gui.diagnostico, "hilos_vivos_de_la_aplicacion", return_value=()), \
+                mock.patch.object(gui, "anunciar"), \
+                mock.patch.object(gui.diagnostico.logger, "info"):
+            frame._on_close(evento)
+
+        crear.assert_not_called()
+        evento.Veto.assert_not_called()
+        frame.Destroy.assert_called_once_with()
+
     def test_encender_el_overlay_con_el_puerto_ocupado_no_persiste_ni_miente(self):
         frame = self._frame()
         frame._config = {"overlay_puerto": 8730, "overlay_activo": False}

@@ -4013,6 +4013,24 @@ msgstr[1] ""
 "Valid key. {voces} voices. {usados} of {limite} characters used this "
 "month."
 
+#: bellbird/ui/confirmar_salida.py:49
+msgid "Hay 1 descarga sin terminar y se cancelará."
+msgstr "1 download is not finished and will be canceled."
+
+#: bellbird/ui/confirmar_salida.py:51
+#, python-brace-format
+msgid "Hay {cantidad} descargas sin terminar y se cancelarán."
+msgstr "{cantidad} downloads are not finished and will be canceled."
+
+#: bellbird/ui/confirmar_salida.py:54
+msgid "¿Salir de la aplicación?"
+msgstr "Exit the application?"
+
+#: bellbird/ui/confirmar_salida.py:55
+#, python-brace-format
+msgid "{mensaje} {descargas}"
+msgstr "{mensaje} {descargas}"
+
 #: bellbird/ui/gui.py:73
 msgid ""
 "Sin conectar. Pega un enlace de YouTube (directo o vídeo) o de un directo"

@@ -29,6 +29,7 @@ from bellbird.capture import deteccion
 from bellbird.capture import metadatos
 from bellbird.capture import estado_sesion
 from bellbird.core import historial
+from bellbird.downloads.descargas import gestor
 from bellbird.ui.lista_chat import MensajeChat, texto_fila
 from bellbird.ui.chat_vivo import ControladorChat
 from bellbird.ui import atajos_captura, recientes_inicio as recientes
@@ -52,7 +53,8 @@ from bellbird.obs import obs_cliente
 from bellbird.obs.obs_panel import GestorPanelObs
 from bellbird.player import flujo_tiktok
 from bellbird.ui.barra_estado import anchos_barra_estado
-from bellbird.ui.confirmar_salida import mensaje_confirmar_salida
+from bellbird.ui.confirmar_salida import (
+    descargas_sin_terminar, mensaje_confirmar_salida, mensaje_con_descargas)
 from bellbird.ui.gui_redactar import PanelRedactar
 from bellbird.ui.sesion_conectada import SesionConectada
 
@@ -1239,6 +1241,11 @@ class YTChatFrame(wx.Frame):
                 bool(getattr(self, "_conectado", False)),
                 bool(supervisor is not None and supervisor.activo),
                 bool(getattr(self, "_obs_transmitiendo", False)))
+            try:
+                mensaje = mensaje_con_descargas(
+                    mensaje, descargas_sin_terminar(gestor().lista()))
+            except Exception as error:
+                logger.debug("no se pudo leer las descargas al salir: %s", error)
             puede_vetar = callable(getattr(event, "CanVeto", None)) and event.CanVeto()
             if mensaje is not None and puede_vetar:
                 # Traductores: título del cuadro para salir.

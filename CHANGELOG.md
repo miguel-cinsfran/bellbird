@@ -80,8 +80,13 @@ Paraguay.
   vídeo no vuelve a empezar solo.
 - En *Descargas*, el estado de una descarga que espera se lee «en cola»,
   sin el guion bajo.
+- En *Descargas*, el enlace de un vídeo abierto desde una lista de
+  reproducción descarga solo ese vídeo, y no la lista entera.
+- En *Descargas*, cada descarga que espera su turno usa el formato y la
+  carpeta que había al agregarla, aunque después cambies las opciones.
 - Ninguna letra de acceso se repite en las categorías de *Preferencias* ni
-  en los cuadros de transmisión, comentarios e historial.
+  en los cuadros de transmisión, comentarios, historial y descargas.
+  *Cancelar descarga* pasa a la letra A y *Vaciar historial* a la H.
 
 ## 2.5.1, octubre de 2026
 

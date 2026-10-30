@@ -21,16 +21,52 @@ class TestTablaEstadosSinVentana(unittest.TestCase):
 
     def test_tabla_cubre_los_estados_con_el_texto_de_hoy(self):
         self.assertEqual(set(descargas_listas._ETIQUETAS_ESTADO),
-                         {"en_cola", "descargando", "completado",
+                         {"en_cola", "descargando", "completado", "parcial",
                           "cancelado", "error"})
         for nombre in ("descargando", "completado", "cancelado", "error"):
             self.assertEqual(descargas_listas._ETIQUETAS_ESTADO[nombre], nombre)
         self.assertEqual(descargas_listas._ETIQUETAS_ESTADO["en_cola"], "en cola")
+        self.assertEqual(descargas_listas._ETIQUETAS_ESTADO["parcial"], "con errores")
         self.assertEqual(descargas_listas._texto_estado("error", "sin espacio"),
                          "error: sin espacio")
+        self.assertEqual(descargas_listas._texto_estado("parcial", "1 de 2 vídeos"),
+                         "con errores: 1 de 2 vídeos")
 
     def test_celda_de_una_descarga_en_cola_dice_en_cola(self):
         self.assertEqual(descargas_listas._texto_estado("en_cola", ""), "en cola")
+
+
+class TestTextoDeItem(unittest.TestCase):
+    # Sin ventana: texto_de_item es puro, solo necesita el ítem.
+
+    def _item(self, **cambios):
+        item = descargas.ItemDescarga("id", "https://youtu.be/x", "video",
+                                      nombre="video.mp4")
+        for clave, valor in cambios.items():
+            setattr(item, clave, valor)
+        return item
+
+    def test_descargando_basico_dice_descargando(self):
+        self.assertEqual(
+            descargas_listas.texto_de_item(self._item(estado="descargando")),
+            "descargando")
+
+    def test_muestra_video_de_la_lista_velocidad_y_tiempo(self):
+        item = self._item(estado="descargando", indice=2, total=4,
+                          velocidad=2048, eta=125)
+        self.assertEqual(
+            descargas_listas.texto_de_item(item),
+            "descargando, vídeo 2 de 4, 2 KB/s, quedan 2 minutos")
+
+    def test_procesando_no_muestra_velocidad_ni_tiempo(self):
+        item = self._item(estado="descargando", procesando=True,
+                          velocidad=2048, eta=125)
+        self.assertEqual(descargas_listas.texto_de_item(item), "procesando")
+
+    def test_parcial_muestra_el_mensaje(self):
+        item = self._item(estado="parcial", mensaje="1 de 2 vídeos")
+        self.assertEqual(descargas_listas.texto_de_item(item),
+                         "con errores: 1 de 2 vídeos")
 
 
 class _DobleControl:
@@ -149,6 +185,29 @@ class TestGruposGestorDescargas(unittest.TestCase):
         finally:
             destruir(dialogo)
 
+    def test_refrescar_muestra_lista_velocidad_y_tiempo(self):
+        dialogo = gui_descargas.GestorDescargasDialog(None)
+        try:
+            item = descargas.ItemDescarga("item", "https://youtu.be/x", "video",
+                                          nombre="archivo.mp4")
+            item.progreso = 38
+            item.estado = "descargando"
+            item.indice = 2
+            item.total = 4
+            item.velocidad = 2048
+            item.eta = 125
+            dialogo._gestor._items[item.id] = item
+            dialogo._gestor._orden.append(item.id)
+            dialogo.pagina_cola.lista.InsertItem(0, "0 %")
+            dialogo.pagina_cola._items_fila[item.id] = 0
+            dialogo.pagina_cola._fila_items[0] = item.id
+            dialogo.pagina_cola.refrescar()
+            self.assertEqual(
+                dialogo.pagina_cola.lista.GetItemText(0, 1),
+                "descargando, vídeo 2 de 4, 2 KB/s, quedan 2 minutos")
+        finally:
+            destruir(dialogo)
+
     def test_refrescar_sin_cambios_no_reescribe_celdas(self):
         dialogo = gui_descargas.GestorDescargasDialog(None)
         try:
@@ -214,7 +273,8 @@ class TestGruposGestorDescargas(unittest.TestCase):
         terminar = threading.Event()
         completada = threading.Event()
 
-        def descarga_simulada(_url, _opciones, _progreso, estado, _cancelar):
+        def descarga_simulada(_url, _opciones, _progreso, estado, _cancelar,
+                              _detalle=None):
             inicio.set()
             terminar.wait(1)
             estado("completado", "")
@@ -261,6 +321,7 @@ class TestGruposGestorDescargas(unittest.TestCase):
                 item = descargas.ItemDescarga(
                     "item", "https://www.youtube.com/watch?v=abc&token=secreto",
                     "video", nombre="video.mp4", carpeta="C:/Descargas")
+                item.rutas = ["C:/Descargas/video.mp4"]
                 gui_descargas._fin_descarga_en_gui("completado", "", item.nombre, item)
                 self.assertEqual(dialogo.pagina_historial.lista.GetItemCount(), 1)
                 self.assertEqual(dialogo.pagina_historial.lista.GetItemText(0, 0),
@@ -268,6 +329,8 @@ class TestGruposGestorDescargas(unittest.TestCase):
                 self.assertEqual(dialogo.pagina_historial._historial[0]["url"], "abc")
                 self.assertEqual(dialogo.pagina_historial._historial[0]["carpeta"],
                                  "C:/Descargas")
+                self.assertEqual(dialogo.pagina_historial._historial[0]["ruta"],
+                                 "C:/Descargas/video.mp4")
                 # Un segundo aviso del mismo ítem no duplica la entrada.
                 gui_descargas._fin_descarga_en_gui("completado", "", item.nombre, item)
                 self.assertEqual(dialogo.pagina_historial.lista.GetItemCount(), 1)
@@ -395,6 +458,7 @@ class TestSonidosDeDescarga(unittest.TestCase):
 
     def test_cada_fin_suena_con_su_sonido(self):
         casos = [("completado", "", "descarga_completada"),
+                 ("parcial", "1 de 2 vídeos", "descarga_fallida"),
                  ("error", "sin espacio", "descarga_fallida"),
                  ("cancelado", "", "descarga_cancelada")]
         for estado, mensaje, esperado in casos:

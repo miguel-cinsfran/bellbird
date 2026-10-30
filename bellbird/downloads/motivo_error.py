@@ -19,6 +19,14 @@ def motivo_de_error(linea) -> str | None:
     if not isinstance(linea, str) or not linea.strip():
         return None
     texto = linea.casefold()
+    causa = _motivo_youtube(texto)
+    if causa is None and "unable to obtain file audio codec" in texto:
+        return _("El vídeo no tiene audio.")
+    return causa or _motivo_plataforma(texto)
+
+
+def _motivo_youtube(texto: str) -> str | None:
+    """Causas propias de YouTube, en el orden en que se miraban acá."""
     if "confirm your age" in texto or "age-restricted" in texto:
         return (_("El vídeo tiene restricción de edad y YouTube pide "
                   "iniciar sesión."))
@@ -31,4 +39,13 @@ def motivo_de_error(linea) -> str | None:
                   "intentarlo más tarde."))
     if "video unavailable" in texto or "this video is not available" in texto:
         return _("El vídeo no está disponible.")
+    return None
+
+
+def _motivo_plataforma(texto: str) -> str | None:
+    if any(clave in texto for clave in (
+            "logged-in", "authentication", "--cookies", "login required")):
+        return _("Esta plataforma pide iniciar sesión.")
+    if "unsupported url" in texto:
+        return _("Este enlace no es compatible con la descarga.")
     return None

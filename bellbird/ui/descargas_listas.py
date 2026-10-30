@@ -15,18 +15,62 @@ from bellbird.voice import sound_player as _snd
 
 logger = diagnostico.obtener_logger(__name__)
 
-_ESTADOS_FINALES = ("completado", "cancelado", "error")
+_ESTADOS_FINALES = ("completado", "parcial", "cancelado", "error")
 _ETIQUETAS_ESTADO = {"en_cola": N_("en cola"), "descargando": N_("descargando"),
-                     "completado": N_("completado"), "cancelado": N_("cancelado"),
-                     "error": N_("error")}
+                     "completado": N_("completado"), "parcial": N_("con errores"),
+                     "cancelado": N_("cancelado"), "error": N_("error")}
 
 
 def _texto_estado(estado: str, mensaje: str) -> str:
-    """Celda «Estado» de la cola: el motivo solo acompaña a error/cancelado."""
+    """Celda «Estado» de la cola: el motivo acompaña a los estados finales."""
     texto = _(_ETIQUETAS_ESTADO.get(estado, estado)) if estado else ""
-    if mensaje and estado in ("error", "cancelado"):
+    if mensaje and estado in ("error", "cancelado", "completado", "parcial"):
         return _("{estado}: {mensaje}").format(estado=texto, mensaje=mensaje[:80])[:200]
     return texto[:200]
+
+
+def _formatear_velocidad(velocidad) -> str:
+    """«850 KB/s» o «3 MB/s», sin decimales porque el lector los lee mal."""
+    if not velocidad or velocidad <= 0:
+        return ""
+    if velocidad < 1024 * 1024:
+        return f"{round(velocidad / 1024):.0f} KB/s"
+    return f"{round(velocidad / (1024 * 1024)):.0f} MB/s"
+
+
+def _formatear_tiempo(eta) -> str:
+    """«quedan 2 minutos», «queda 1 minuto» o «quedan 45 segundos»."""
+    if not eta:
+        return ""
+    segundos = max(0, int(eta))
+    if segundos >= 60:
+        minutos = int(round(segundos / 60))
+        if minutos <= 1:
+            return _("queda 1 minuto")
+        return _("quedan {n} minutos").format(n=minutos)
+    segundos = int(round(segundos / 5)) * 5
+    if segundos <= 0:
+        return ""
+    return _("quedan {n} segundos").format(n=segundos)
+
+
+def texto_de_item(item) -> str:
+    """Celda «Estado» de un ítem: estado, vídeo de la lista, velocidad y tiempo."""
+    if item.estado != "descargando":
+        return _texto_estado(item.estado, item.mensaje)
+    partes = [_("procesando") if item.procesando
+              else _(_ETIQUETAS_ESTADO.get(item.estado, item.estado))]
+    if item.total > 1:
+        partes.append(_("vídeo {indice} de {total}").format(
+            indice=item.indice, total=item.total))
+    if not item.procesando:
+        velocidad = _formatear_velocidad(item.velocidad)
+        if velocidad:
+            partes.append(velocidad)
+        tiempo = _formatear_tiempo(item.eta)
+        if tiempo:
+            partes.append(tiempo)
+    return ", ".join(partes)[:200]
 
 
 class PaginaCola(wx.Panel):
@@ -61,7 +105,7 @@ class PaginaCola(wx.Panel):
         for item in self._gestor.lista():
             idx = self.lista.InsertItem(self.lista.GetItemCount(), f"{item.progreso:.0f} %")
             self.lista.SetItem(idx, 2, item.nombre[:300])
-            self.lista.SetItem(idx, 1, _texto_estado(item.estado, item.mensaje))
+            self.lista.SetItem(idx, 1, texto_de_item(item))
             self._items_fila[item.id] = idx
             self._fila_items[idx] = item.id
 
@@ -72,7 +116,7 @@ class PaginaCola(wx.Panel):
             idx = self._items_fila.get(item.id)
             if idx is None:
                 continue
-            celdas = {0: f"{item.progreso:.0f} %", 1: _texto_estado(item.estado, item.mensaje)}
+            celdas = {0: f"{item.progreso:.0f} %", 1: texto_de_item(item)}
             if item.nombre:
                 celdas[2] = item.nombre[:300]
             for columna, texto in celdas.items():

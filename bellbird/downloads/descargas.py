@@ -9,20 +9,19 @@ el programa independiente, en su propio hilo.
 Modos soportados:
   - mp4  : bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best
   - webm : bestvideo[ext=webm]+bestaudio[ext=webm]/best[ext=webm]/best
-  - mp3  : bestaudio + conversión a mp3
-  - m4a  : bestaudio + conversión a m4a
+  - mp3  : bestaudio/best + conversión a mp3
+  - m4a  : bestaudio/best + conversión a m4a
 """
 from __future__ import annotations
 
 import logging
 import json
 import os
-import re
 import subprocess
 import threading
 import time
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Optional
 from urllib.parse import parse_qs, urlparse
@@ -36,7 +35,11 @@ from bellbird.downloads import fila_descargas
 from bellbird.downloads import ytdlp_bin
 from bellbird.downloads.argumentos_ytdlp import argumentos_descarga, construir_outtmpl, formato_a_ydl
 from bellbird.downloads.motivo_error import motivo_de_error
-from bellbird.downloads.progreso_ytdlp import analizar_linea_progreso
+from bellbird.downloads.progreso_ytdlp import (
+    INTERVALO_PROGRESO_S, PREFIJO_RUTA_FINAL, debe_emitir_progreso,
+    tratar_linea)
+from bellbird.downloads.restos_descarga import (
+    limpiar_restos_descarga, nombre_base_descarga)
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -51,19 +54,19 @@ class ItemDescarga:
     mensaje: str = ""
     nombre: str = ""
     carpeta: str = ""        # destino elegido al encolar (para el historial)
+    rutas: list[str] = field(default_factory=list)
+    indice: int = 0
+    total: int = 0
+    procesando: bool = False
+    velocidad: float | None = None
+    eta: int | None = None
 
 
 # ── Helpers puros (testeables en Linux) ──────────────────────────────────────
 
-INTERVALO_PROGRESO_S = 0.5
 # Tope del análisis previo de la URL: sin él, una red caída dejaba el ítem
 # «en cola» para siempre.
 TIEMPO_ESPERA_ANALISIS = 60
-# Marca con la que yt-dlp imprime la ruta definitiva (tras unir audio y
-# vídeo o convertir): así se distingue de cualquier otra línea de salida.
-PREFIJO_RUTA_FINAL = "RUTA_FINAL"
-# Sufijo de fragmento DASH que deja yt-dlp: «.f140.m4a», «.f137.mp4.part»…
-_RE_FRAGMENTO = re.compile(r"^\.f[\w-]+\.[A-Za-z0-9]+(\.part|\.ytdl)?$")
 
 
 def _matar_arbol(proceso) -> None:
@@ -90,56 +93,6 @@ def _vigilar_cancelacion(proceso, cancel_event, intervalo=0.2) -> bool:
             _matar_arbol(proceso)
             return True
     return False
-
-
-def nombre_base_descarga(nombre_archivo: str) -> str:
-    """«Título [id].f140.m4a.part» → «Título [id]»: lo que comparten todos
-    los archivos (fragmentos, .part, .ytdl) de una misma descarga."""
-    nombre = Path(nombre_archivo).name
-    for sufijo in (".part", ".ytdl"):
-        if nombre.endswith(sufijo):
-            nombre = nombre[: -len(sufijo)]
-    fragmento = re.search(r"\.f[\w-]+\.[A-Za-z0-9]+$", nombre)
-    if fragmento:
-        return nombre[: fragmento.start()]
-    return Path(nombre).stem
-
-
-def limpiar_restos_descarga(carpeta, nombre_archivo: str) -> list[str]:
-    """Borra lo que una descarga cancelada deja en su carpeta.
-
-    Conservador a propósito: solo archivos de ESA carpeta cuyo nombre empiece
-    por el nombre base de la descarga y sean claramente temporales (.part,
-    .ytdl o un fragmento .fNNN.ext). Un archivo ya terminado no se toca.
-    Devuelve los nombres borrados.
-    """
-    base = nombre_base_descarga(nombre_archivo) if nombre_archivo else ""
-    if not base:
-        return []
-    borrados = []
-    try:
-        entradas = list(Path(carpeta).iterdir())
-    except OSError:
-        return []
-    for ruta in entradas:
-        nombre = ruta.name
-        if not nombre.startswith(base) or not ruta.is_file():
-            continue
-        resto = nombre[len(base):]
-        if not (resto.endswith(".part") or resto.endswith(".ytdl") or _RE_FRAGMENTO.match(resto)):
-            continue
-        try:
-            ruta.unlink()
-            borrados.append(nombre)
-        except OSError as exc:
-            logger.debug("no se pudo borrar %s: %s", nombre, exc)
-    return borrados
-
-
-def debe_emitir_progreso(ultimo_ts, ahora, pct):
-    """Decide si toca avisar del progreso, para no inundar la interfaz."""
-    return (ultimo_ts is None or pct >= 100.0 or
-            ahora - ultimo_ts >= INTERVALO_PROGRESO_S)
 
 
 def recortar_url_registro(url: str) -> str:
@@ -204,7 +157,7 @@ def _sin_ventana() -> int:
 
 def descargar(url: str, opciones: dict,
               progreso_cb: Callable, estado_cb: Callable,
-              cancel_event: threading.Event) -> None:
+              cancel_event: threading.Event, al_detalle=None) -> None:
     """Lanza la descarga en el HILO ACTUAL.
 
     Pensada para correr dentro de `threading.Thread(target=descargar, ...)` que
@@ -216,7 +169,10 @@ def descargar(url: str, opciones: dict,
       - progreso_cb(pct: float, velocidad, eta, nombre): se invoca desde el
         progress hook de yt-dlp cada vez que hay actualización de bytes.
       - estado_cb(estado: str, mensaje: str): transiciones de estado: primero
-        "descargando", luego uno de "completado" | "cancelado" | "error".
+        "descargando", luego uno de "completado" | "parcial" | "cancelado" |
+        "error".
+      - al_detalle(cambios: dict): opcional; avisa la ruta de cada archivo
+        terminado, el índice y el total de la lista, y si yt-dlp procesa.
     """
     ruta = ytdlp_bin.ruta_ytdlp()
     if ruta is None:
@@ -234,14 +190,15 @@ def descargar(url: str, opciones: dict,
         return
 
     enumerar = bool(opciones.get("enumerar", False))
-    ultimo_progreso_ts = None
-    ultimo_archivo = ""   # último nombre visto en el progreso: base de la limpieza
     carpeta = Path(construir_outtmpl(opciones, enumerar)).parent
+    al_detalle = al_detalle or (lambda _cambios: None)
+    estado = {"ultimo_error": "", "ultimo_archivo": "", "ultimo_ts": None,
+              "rutas": [], "indice": 0, "total": 0, "procesando": False}
 
     def cancelar(proceso) -> None:
         _matar_arbol(proceso)
         proceso.wait()
-        borrados = limpiar_restos_descarga(carpeta, ultimo_archivo)
+        borrados = limpiar_restos_descarga(carpeta, estado["ultimo_archivo"])
         if borrados:
             logger.info("descarga cancelada: borrados %d restos", len(borrados))
         estado_cb("cancelado", _("Descarga cancelada"))
@@ -250,7 +207,8 @@ def descargar(url: str, opciones: dict,
     try:
         proceso = subprocess.Popen(
             [ruta, *argumentos_descarga(url, opciones, enumerar)],
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            encoding="utf-8", errors="replace",
             creationflags=_sin_ventana(),
         )
         try:
@@ -265,50 +223,35 @@ def descargar(url: str, opciones: dict,
             _vigilar_cancelacion, "Vigilante-cancelacion",
             args=(proceso, cancel_event),
         ).start()
-        ultimo_error = ""
         for linea in iter(proceso.stdout.readline, ""):
             if cancel_event.is_set():
                 cancelar(proceso)
                 return
-            if linea.startswith("ERROR:"):
-                ultimo_error = linea.strip()
-            if linea.startswith(PREFIJO_RUTA_FINAL + " "):
-                # Ruta definitiva: se anuncia y persiste el nombre real, no
-                # el del fragmento temporal.
-                ruta_final = linea[len(PREFIJO_RUTA_FINAL) + 1:].strip()
-                if ruta_final:
-                    try:
-                        progreso_cb(100.0, None, None, Path(ruta_final).name)
-                    except Exception as exc:
-                        logger.debug("progreso_cb lanzó: %s", exc)
-                continue
-            datos = analizar_linea_progreso(linea)
-            if datos is None:
-                continue
-            ultimo_archivo = datos["nombre"]
-            ahora = time.monotonic()
-            if not debe_emitir_progreso(ultimo_progreso_ts, ahora, datos["pct"]):
-                continue
-            ultimo_progreso_ts = ahora
-            try:
-                progreso_cb(datos["pct"], datos["velocidad"], datos["eta"],
-                            datos["nombre"])
-            except Exception as exc:
-                logger.debug("progreso_cb lanzó: %s", exc)
+            tratar_linea(linea, estado, progreso_cb, al_detalle)
         proceso.wait()
         if cancel_event.is_set():
-            limpiar_restos_descarga(carpeta, ultimo_archivo)
+            limpiar_restos_descarga(carpeta, estado["ultimo_archivo"])
             estado_cb("cancelado", _("Descarga cancelada"))
         elif proceso.returncode == 0:
-            estado_cb("completado", "")
+            hechos = len(estado["rutas"])
+            if estado["total"] > 1:
+                estado_cb("completado",
+                          _("{hechos} vídeos").format(hechos=hechos))
+            else:
+                estado_cb("completado", "")
         else:
             codigo = proceso.returncode
-            motivo = (motivo_de_error(ultimo_error)
+            motivo = (motivo_de_error(estado["ultimo_error"])
                       or _("yt-dlp terminó con código {codigo}").format(codigo=codigo))
-            if ultimo_error:
+            if estado["ultimo_error"]:
                 logger.warning("yt-dlp terminó con código %s: %s",
-                               codigo, ultimo_error)
-            estado_cb("error", motivo)
+                               codigo, estado["ultimo_error"])
+            hechos = len(estado["rutas"])
+            if hechos >= 1 and estado["total"] > 1:
+                estado_cb("parcial", _("{hechos} de {total} vídeos").format(
+                    hechos=hechos, total=estado["total"]))
+            else:
+                estado_cb("error", motivo)
     except OSError as exc:
         logger.warning("descargar falló: %s", exc)
         estado_cb("error", str(exc) or exc.__class__.__name__)
@@ -325,7 +268,14 @@ def tiene_ffmpeg() -> bool:
 def frase_aviso_descarga(estado: str, mensaje: str, nombre: str) -> str:
     """Devuelve el aviso accesible de un fin de descarga."""
     if estado == "completado":
-        return (_("Descarga completada: {nombre}").format(nombre=nombre) if nombre else _("Descarga completada"))
+        if mensaje:
+            return _("Descarga completada: {nombre}, {mensaje}").format(
+                nombre=nombre, mensaje=mensaje)
+        return (_("Descarga completada: {nombre}").format(nombre=nombre)
+                if nombre else _("Descarga completada"))
+    if estado == "parcial":
+        return _("Descarga con errores: {nombre}, {mensaje}").format(
+            nombre=nombre, mensaje=mensaje)
     if estado == "error":
         return (_("Error en la descarga: {mensaje}").format(mensaje=mensaje) if mensaje else _("Error en la descarga"))
     if estado == "cancelado":
@@ -338,6 +288,9 @@ def frase_aviso_descarga(estado: str, mensaje: str, nombre: str) -> str:
 # Como mucho dos descargas corren a la vez: la PC que usa la app tiene
 # cuatro núcleos y 7,83 GiB, y diez yt-dlp a la vez la dejan sin resto.
 DESCARGAS_SIMULTANEAS = 2
+# La velocidad y el tiempo restante cambian muy seguido: escribirlos en el
+# ítem cada 500 ms haría hablar al lector sin parar.
+INTERVALO_VELOCIDAD_S = 3.0
 
 class GestorDescargas:
     """Cola de descargas. Cada ítem corre en su propio hilo (daemon).
@@ -407,7 +360,7 @@ class GestorDescargas:
                 suscriptor(estado, mensaje, nombre, it)
             except Exception as exc:
                 logger.warning("suscriptor de descarga lanzó: %s", exc)
-        if estado in ("completado", "cancelado", "error"):
+        if estado in ("completado", "parcial", "cancelado", "error"):
             logger.info("descarga %s terminó: %s", it.id, estado)
 
     def encolar(self, url: str, progreso_cb: Callable, estado_cb: Callable,
@@ -439,14 +392,29 @@ class GestorDescargas:
         def _cb_estado(estado: str, mensaje: str = "") -> None:
             self._avisar_estado(it, estado, mensaje, estado_cb)
 
+        ultimo_detalle_ts = [None]
+
         def _cb_progreso(pct: float, vel, eta, nombre: str) -> None:
             it.progreso = max(0.0, min(100.0, float(pct)))
-            if nombre:
+            if nombre and not (it.tipo == "playlist" and it.nombre != it.url):
                 it.nombre = nombre
+            if isinstance(vel, (int, float)) or isinstance(eta, (int, float)):
+                ahora = time.monotonic()
+                if (ultimo_detalle_ts[0] is None
+                        or ahora - ultimo_detalle_ts[0] >= INTERVALO_VELOCIDAD_S):
+                    it.velocidad, it.eta = vel, eta
+                    ultimo_detalle_ts[0] = ahora
             try:
                 progreso_cb(item_id, it.progreso, vel, eta, it.nombre)
             except Exception as exc:
                 logger.debug("progreso_cb lanzó: %s", exc)
+
+        def _cb_detalle(cambios: dict) -> None:
+            if "ruta" in cambios:
+                it.rutas.append(cambios["ruta"])
+            for clave in ("indice", "total", "procesando"):
+                if clave in cambios:
+                    setattr(it, clave, cambios[clave])
 
         def _run() -> None:
             # Doble red de seguridad: capturar lo que sea que se escape.
@@ -459,6 +427,7 @@ class GestorDescargas:
                 try:
                     info = analizar_url(url)
                     it.tipo = info.get("tipo", "video")
+                    it.total = int(info.get("cuenta") or 0)
                     titulo = info.get("titulo") or ""
                     if titulo:
                         _cb_progreso(it.progreso, "", "", titulo)
@@ -467,7 +436,8 @@ class GestorDescargas:
                         _cb_estado("cancelado", _("Descarga cancelada"))
                         return
                     logger.info("descarga %s: inicio", item_id)
-                    descargar(url, opciones, _cb_progreso, _cb_estado, ev)
+                    descargar(url, opciones, _cb_progreso, _cb_estado, ev,
+                              _cb_detalle)
                 finally:
                     if tomado:
                         self._turnos.release()

@@ -61,6 +61,7 @@ def nombrar_selector_carpeta(selector) -> None:
 # Cada fin de descarga avisa con su sonido propio.
 _SONIDO_POR_FIN = {
     "completado": "descarga_completada",
+    "parcial": "descarga_fallida",
     "error": "descarga_fallida",
     "cancelado": "descarga_cancelada",
 }
@@ -91,6 +92,7 @@ def registrar_historial(item, estado: str, ruta=None) -> dict | None:
         "url": recortar_url_registro(item.url),
         "estado": estado,
         "carpeta": item.carpeta or cfg.obtener_opciones_descarga().get("carpeta", ""),
+        "ruta": item.rutas[0] if item.rutas else "",
     }
     entradas = historial_descargas.agregar(historial_descargas.cargar(ruta), entrada)
     historial_descargas.guardar(ruta, entradas)

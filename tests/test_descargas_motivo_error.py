@@ -62,6 +62,33 @@ class TestMotivoDeError(unittest.TestCase):
             motivo_de_error("ERROR: [youtube] abc: This video is not available."),
             "El vídeo no está disponible.")
 
+    def test_pide_iniciar_sesion(self):
+        self.assertEqual(
+            motivo_de_error("ERROR: [vimeo] abc: This video is only available "
+                            "for logged-in users."),
+            "Esta plataforma pide iniciar sesión.")
+
+    def test_pide_autenticacion(self):
+        self.assertEqual(
+            motivo_de_error("ERROR: [reddit] abc: authentication is required"),
+            "Esta plataforma pide iniciar sesión.")
+
+    def test_enlace_no_compatible(self):
+        self.assertEqual(
+            motivo_de_error("ERROR: Unsupported URL: https://example.com"),
+            "Este enlace no es compatible con la descarga.")
+
+    def test_edad_restringida_gana_sobre_las_cookies(self):
+        self.assertEqual(
+            motivo_de_error("ERROR: age-restricted, use --cookies"),
+            "El vídeo tiene restricción de edad y YouTube pide iniciar sesión.")
+
+    def test_video_sin_audio(self):
+        self.assertEqual(
+            motivo_de_error("ERROR: Postprocessing: WARNING: unable to "
+                            "obtain file audio codec with ffprobe"),
+            "El vídeo no tiene audio.")
+
     def test_desconocido_da_none(self):
         self.assertIsNone(
             motivo_de_error("ERROR: [youtube] abc: Unable to download webpage"))
@@ -84,6 +111,9 @@ class TestPseudoMotivos(unittest.TestCase):
             "ERROR: [youtube] abc: This is a members-only video.",
             "ERROR: [youtube] abc: Sign in to confirm you're not a bot.",
             "ERROR: [youtube] abc: Video unavailable.",
+            "ERROR: [vimeo] abc: This video is only available for logged-in users.",
+            "ERROR: Unsupported URL: https://example.com",
+            "ERROR: Postprocessing: WARNING: unable to obtain file audio codec.",
         ]
         with con_pseudo():
             motivos = [motivo_de_error(linea) for linea in lineas]

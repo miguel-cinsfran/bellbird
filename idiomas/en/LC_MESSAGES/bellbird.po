@@ -1215,27 +1215,59 @@ msgstr "Download error: {mensaje}"
 msgid "Error en la descarga"
 msgstr "Download error"
 
-#: bellbird/downloads/motivo_error.py:23
+#: bellbird/downloads/descargas.py:272
+#, python-brace-format
+msgid "Descarga completada: {nombre}, {mensaje}"
+msgstr "Download completed: {nombre}, {mensaje}"
+
+#: bellbird/downloads/descargas.py:277
+#, python-brace-format
+msgid "Descarga con errores: {nombre}, {mensaje}"
+msgstr "Download finished with errors: {nombre}, {mensaje}"
+
+#: bellbird/downloads/descargas.py:239
+#, python-brace-format
+msgid "{hechos} vídeos"
+msgstr "{hechos} videos"
+
+#: bellbird/downloads/descargas.py:251
+#, python-brace-format
+msgid "{hechos} de {total} vídeos"
+msgstr "{hechos} of {total} videos"
+
+#: bellbird/downloads/motivo_error.py:31
 msgid "El vídeo tiene restricción de edad y YouTube pide iniciar sesión."
 msgstr "The video is age-restricted and YouTube asks you to sign in."
 
-#: bellbird/downloads/motivo_error.py:26
+#: bellbird/downloads/motivo_error.py:34
 msgid "El vídeo es privado."
 msgstr "The video is private."
 
-#: bellbird/downloads/motivo_error.py:28
+#: bellbird/downloads/motivo_error.py:36
 msgid "El vídeo es solo para miembros del canal."
 msgstr "The video is for channel members only."
 
-#: bellbird/downloads/motivo_error.py:30
+#: bellbird/downloads/motivo_error.py:38
 msgid ""
 "YouTube pide confirmar que no eres un robot. Vuelve a intentarlo más "
 "tarde."
 msgstr "YouTube asks you to confirm you are not a robot. Try again later."
 
-#: bellbird/downloads/motivo_error.py:33
+#: bellbird/downloads/motivo_error.py:41
 msgid "El vídeo no está disponible."
 msgstr "The video is not available."
+
+#: bellbird/downloads/motivo_error.py:24
+msgid "El vídeo no tiene audio."
+msgstr "The video has no audio."
+
+#: bellbird/downloads/motivo_error.py:48
+msgid "Esta plataforma pide iniciar sesión."
+msgstr "This platform requires signing in."
+
+#: bellbird/downloads/motivo_error.py:50
+msgid "Este enlace no es compatible con la descarga."
+msgstr "This link cannot be downloaded."
 
 #. Traductores: {version} es la versión instalada o la nueva de yt-dlp.
 #: bellbird/downloads/ytdlp_actualizar.py:45
@@ -4927,6 +4959,33 @@ msgstr "canceled"
 #: bellbird/ui/gui_descargas.py:70
 msgid "error"
 msgstr "error"
+
+#: bellbird/ui/descargas_listas.py:20
+msgid "con errores"
+msgstr "with errors"
+
+#: bellbird/ui/descargas_listas.py:61
+msgid "procesando"
+msgstr "processing"
+
+#: bellbird/ui/descargas_listas.py:64
+#, python-brace-format
+msgid "vídeo {indice} de {total}"
+msgstr "video {indice} of {total}"
+
+#: bellbird/ui/descargas_listas.py:50
+#, python-brace-format
+msgid "quedan {n} minutos"
+msgstr "{n} minutes left"
+
+#: bellbird/ui/descargas_listas.py:49
+msgid "queda 1 minuto"
+msgstr "1 minute left"
+
+#: bellbird/ui/descargas_listas.py:54
+#, python-brace-format
+msgid "quedan {n} segundos"
+msgstr "{n} seconds left"
 
 #: bellbird/ui/gui_descargas.py:143
 msgid "Administrador de descargas"

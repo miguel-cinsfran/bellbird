@@ -27,6 +27,8 @@ from bellbird.downloads.descargas import (
     tiene_ffmpeg,
     _vigilar_cancelacion,
 )
+from bellbird.downloads.restos_descarga import (
+    limpiar_restos_descarga, nombre_base_descarga)
 
 
 class TestDebeEmitirProgreso(unittest.TestCase):
@@ -63,8 +65,8 @@ class TestFormatoAYdl(unittest.TestCase):
     def test_mp4(self):
         self.assertIn("bestvideo[ext=mp4]+bestaudio[ext=m4a]", formato_a_ydl("mp4", 192))
     def test_webm(self): self.assertIn("bestvideo[ext=webm]", formato_a_ydl("webm", 256))
-    def test_mp3(self): self.assertEqual(formato_a_ydl("mp3", 192), "bestaudio")
-    def test_m4a(self): self.assertEqual(formato_a_ydl("m4a", 320), "bestaudio")
+    def test_mp3(self): self.assertEqual(formato_a_ydl("mp3", 192), "bestaudio/best")
+    def test_m4a(self): self.assertEqual(formato_a_ydl("m4a", 320), "bestaudio/best")
     def test_desconocido(self): self.assertEqual(formato_a_ydl("xyz", 192), "best")
     def test_mayusculas(self): self.assertIn("mp4", formato_a_ydl("MP4", 192))
 
@@ -170,6 +172,15 @@ class TestArgumentosDescarga(unittest.TestCase):
     def test_lleva_plantilla_y_salida(self):
         args = argumentos_descarga("url", self.opciones("mp4"), True)
         self.assertIn("--progress-template", args); self.assertIn("-o", args)
+
+    def test_pide_plantilla_de_descarga_y_de_postproceso(self):
+        args = argumentos_descarga("url", self.opciones("mp4"), False)
+        self.assertEqual(args.count("--progress-template"), 2)
+
+    def test_fuerza_utf8_en_la_salida(self):
+        args = argumentos_descarga("url", self.opciones("mp4"), False)
+        indice = args.index("--encoding")
+        self.assertEqual(args[indice + 1], "utf-8")
     def test_usa_ruta_de_ffmpeg_recibida(self):
         args = argumentos_descarga("url", self.opciones("mp3"), False,
                                    r"C:\ffmpeg")
@@ -218,7 +229,7 @@ class TestDescargar(unittest.TestCase):
             mock.patch.object(descargas.subprocess, "Popen", return_value=proceso)
 
     def test_pasa_progreso_al_callback(self):
-        proceso = self.proceso(["PROG 5 10 NA 2 3 nombre con espacios.mp4\n"])
+        proceso = self.proceso(["PROGD 5 10 NA 2 3 NA NA nombre con espacios.mp4\n"])
         progresos = []; estados = []
         with self.preparar(proceso)[0], self.preparar(proceso)[1], self.preparar(proceso)[2]:
             descargar("url", {"formato": "mp4"}, lambda *a: progresos.append(a),
@@ -228,7 +239,7 @@ class TestDescargar(unittest.TestCase):
 
     def test_la_ruta_final_reemplaza_el_nombre_del_fragmento(self):
         proceso = self.proceso([
-            "PROG 5 10 NA 2 3 C:/d/video [x].f140.m4a\n",
+            "PROGD 5 10 NA 2 3 NA NA C:/d/video [x].f140.m4a\n",
             f"{descargas.PREFIJO_RUTA_FINAL} C:/d/video [x].mp4\n",
         ])
         progresos = []; estados = []
@@ -249,8 +260,8 @@ class TestDescargar(unittest.TestCase):
             for ruta in restos + intactos:
                 ruta.write_bytes(b"x")
             proceso = self.proceso([
-                f"PROG 5 10 NA 2 3 {base}.f140.m4a\n",
-                f"PROG 6 10 NA 2 3 {base}.f140.m4a\n",
+                f"PROGD 5 10 NA 2 3 NA NA {base}.f140.m4a\n",
+                f"PROGD 6 10 NA 2 3 NA NA {base}.f140.m4a\n",
             ])
             evento = threading.Event(); estados = []
             with self.preparar(proceso)[0], self.preparar(proceso)[1], self.preparar(proceso)[2]:
@@ -268,7 +279,7 @@ class TestDescargar(unittest.TestCase):
         callback.assert_not_called()
 
     def test_frena_progresos_seguidos(self):
-        lineas = ["PROG 5 10 NA 2 3 nombre.mp4\n"] * 20
+        lineas = ["PROGD 5 10 NA 2 3 NA NA nombre.mp4\n"] * 20
         proceso = self.proceso(lineas)
         progreso = mock.Mock()
         with self.preparar(proceso)[0], self.preparar(proceso)[1], \
@@ -288,8 +299,8 @@ class TestDescargar(unittest.TestCase):
 
     def test_cancelar_durante_progreso_mata_el_proceso(self):
         proceso = self.proceso([
-            "PROG 5 10 NA 2 3 nombre.mp4\n",
-            "PROG 6 10 NA 2 3 nombre.mp4\n",
+            "PROGD 5 10 NA 2 3 NA NA nombre.mp4\n",
+            "PROGD 6 10 NA 2 3 NA NA nombre.mp4\n",
         ])
         evento = threading.Event(); estados = []
 
@@ -406,6 +417,58 @@ class TestDescargar(unittest.TestCase):
         self.assertTrue(any("O2yixU7XjGU" in linea and "código 1" in linea
                             for linea in registro.output))
 
+    def test_lista_avisa_indice_total_y_ruta(self):
+        proceso = self.proceso([
+            "PROGD 5 10 NA 2 3 1 2 C:/d/a.mp4\n",
+            f"{descargas.PREFIJO_RUTA_FINAL} C:/d/a.mp4\n",
+        ])
+        detalles = []
+        with self.preparar(proceso)[0], self.preparar(proceso)[1], self.preparar(proceso)[2]:
+            descargar("url", {"formato": "mp4"}, lambda *a: None,
+                      lambda *a: None, threading.Event(),
+                      al_detalle=detalles.append)
+        self.assertIn({"procesando": False, "indice": 1, "total": 2}, detalles)
+        self.assertIn({"ruta": "C:/d/a.mp4"}, detalles)
+
+    def test_procesando_avisa_sin_convertirlo_en_parcial(self):
+        proceso = self.proceso([
+            "PROC started MoveFiles\n",
+            "PROC started ExtractAudio\n",
+        ])
+        detalles = []; estados = []
+        with self.preparar(proceso)[0], self.preparar(proceso)[1], self.preparar(proceso)[2]:
+            descargar("url", {"formato": "mp4"}, lambda *a: None,
+                      lambda *a: estados.append(a), threading.Event(),
+                      al_detalle=detalles.append)
+        self.assertEqual(detalles, [{"procesando": True}])
+        self.assertEqual(estados[-1], ("completado", ""))
+
+    def test_error_tras_un_video_de_lista_es_parcial(self):
+        proceso = self.proceso([
+            "PROGD 5 10 NA 2 3 1 2 C:/d/a.mp4\n",
+            f"{descargas.PREFIJO_RUTA_FINAL} C:/d/a.mp4\n",
+            "ERROR: [youtube] abc: Private video.\n",
+        ])
+        proceso.returncode = 1
+        estados = []
+        with self.preparar(proceso)[0], self.preparar(proceso)[1], self.preparar(proceso)[2]:
+            descargar("url", {"formato": "mp4"}, lambda *a: None,
+                      lambda *a: estados.append(a), threading.Event())
+        self.assertEqual(estados[-1], ("parcial", "1 de 2 vídeos"))
+
+    def test_completado_de_lista_cuenta_los_videos(self):
+        proceso = self.proceso([
+            "PROGD 5 10 NA 2 3 1 2 C:/d/a.mp4\n",
+            f"{descargas.PREFIJO_RUTA_FINAL} C:/d/a.mp4\n",
+            "PROGD 5 10 NA 2 3 2 2 C:/d/b.mp4\n",
+            f"{descargas.PREFIJO_RUTA_FINAL} C:/d/b.mp4\n",
+        ])
+        estados = []
+        with self.preparar(proceso)[0], self.preparar(proceso)[1], self.preparar(proceso)[2]:
+            descargar("url", {"formato": "mp4"}, lambda *a: None,
+                      lambda *a: estados.append(a), threading.Event())
+        self.assertEqual(estados[-1], ("completado", "2 vídeos"))
+
     def test_sin_programa_es_error(self):
         estados = []
         with mock.patch.object(descargas.ytdlp_bin, "ruta_ytdlp", return_value=None):
@@ -445,12 +508,12 @@ class TestLimpiarRestos(unittest.TestCase):
     def test_nombre_base_quita_fragmento_part_y_extension(self):
         for nombre in ("C:/d/Título [id].f140.m4a.part", "Título [id].f137.mp4",
                        "Título [id].mp4.ytdl", "Título [id].mp4", "Título [id].mp4.part"):
-            self.assertEqual(descargas.nombre_base_descarga(nombre), "Título [id]", nombre)
+            self.assertEqual(nombre_base_descarga(nombre), "Título [id]", nombre)
 
     def test_sin_nombre_no_borra_nada(self):
         with tempfile.TemporaryDirectory() as carpeta:
             (Path(carpeta) / "a.part").write_bytes(b"x")
-            self.assertEqual(descargas.limpiar_restos_descarga(carpeta, ""), [])
+            self.assertEqual(limpiar_restos_descarga(carpeta, ""), [])
             self.assertTrue((Path(carpeta) / "a.part").exists())
 
     def test_borra_solo_temporales_de_esa_descarga(self):
@@ -459,14 +522,14 @@ class TestLimpiarRestos(unittest.TestCase):
                        "V [id].mp4.part", "V [id].mp4", "V [id].jpg", "W [id].mp4.part"]
             for nombre in nombres:
                 (Path(carpeta) / nombre).write_bytes(b"x")
-            borrados = descargas.limpiar_restos_descarga(carpeta, "V [id].f140.m4a")
+            borrados = limpiar_restos_descarga(carpeta, "V [id].f140.m4a")
             self.assertEqual(sorted(borrados), ["V [id].f137.mp4", "V [id].f140.m4a.part",
                                                 "V [id].mp4.part", "V [id].mp4.ytdl"])
             self.assertEqual(sorted(r.name for r in Path(carpeta).iterdir()),
                              ["V [id].jpg", "V [id].mp4", "W [id].mp4.part"])
 
     def test_carpeta_inexistente_no_revienta(self):
-        self.assertEqual(descargas.limpiar_restos_descarga("/no/existe", "a.mp4"), [])
+        self.assertEqual(limpiar_restos_descarga("/no/existe", "a.mp4"), [])
 
 
 class TestGestorDescargas(unittest.TestCase):
@@ -541,6 +604,72 @@ class TestGestorDescargas(unittest.TestCase):
 
         self.assertEqual(progresos[0][4], "Título conocido")
 
+    def test_el_nombre_de_la_lista_no_lo_pisa_cada_video(self):
+        gestor = GestorDescargas(self.opciones())
+        hecho = threading.Event()
+
+        def descargar_falsa(_url, _opciones, progreso, estado, _cancelar,
+                            _detalle=None):
+            progreso(0, "", "", "vídeo suelto")
+            estado("completado", "")
+            hecho.set()
+
+        with mock.patch.object(
+                descargas, "analizar_url",
+                return_value={"tipo": "playlist", "titulo": "Lista",
+                              "cuenta": 2}), \
+                mock.patch.object(descargas, "descargar",
+                                  side_effect=descargar_falsa):
+            item_id = gestor.encolar("url", lambda *a: None, lambda *a: None)
+            self.assertTrue(hecho.wait(1))
+        self.assertEqual(gestor.obtener(item_id).nombre, "Lista")
+
+    def test_el_detalle_de_cada_video_llega_al_item(self):
+        gestor_prueba = GestorDescargas(self.opciones())
+        proceso = mock.MagicMock()
+        proceso.returncode = 0
+        proceso.poll.return_value = 0
+        proceso.stdout.readline.side_effect = [
+            "PROGD 5 10 NA 2 3 1 2 C:/d/a.mp4\n",
+            f"{descargas.PREFIJO_RUTA_FINAL} C:/d/a.mp4\n",
+            "PROGD 5 10 NA 2 3 2 2 C:/d/b.mp4\n",
+            f"{descargas.PREFIJO_RUTA_FINAL} C:/d/b.mp4\n",
+            "",
+        ]
+        finales = {}
+        terminado = threading.Event()
+        total_al_arrancar = []
+
+        def progreso(item_id, *_args):
+            # El total ya está puesto por analizar_url antes de la primera
+            # línea de yt-dlp: lo lee el detalle después, no antes.
+            if not total_al_arrancar:
+                total_al_arrancar.append(gestor_prueba.obtener(item_id).total)
+
+        def estado(item_id, valor, mensaje):
+            finales[item_id] = (valor, mensaje)
+            if valor in ("completado", "parcial", "cancelado", "error"):
+                terminado.set()
+
+        with mock.patch.object(
+                descargas, "analizar_url",
+                return_value={"tipo": "playlist", "titulo": "Lista",
+                              "cuenta": 2}), \
+                mock.patch.object(descargas.ytdlp_bin, "ruta_ytdlp",
+                                  return_value="yt-dlp"), \
+                mock.patch.object(descargas, "tiene_ffmpeg",
+                                  return_value=True), \
+                mock.patch.object(descargas.subprocess, "Popen",
+                                  return_value=proceso):
+            item_id = gestor_prueba.encolar("url", progreso, estado)
+            self.assertTrue(terminado.wait(5))
+        item = gestor_prueba.obtener(item_id)
+        self.assertEqual(total_al_arrancar, [2])
+        self.assertEqual(item.rutas, ["C:/d/a.mp4", "C:/d/b.mp4"])
+        self.assertEqual((item.total, item.indice), (2, 2))
+        self.assertEqual(item.nombre, "Lista")
+        self.assertEqual(finales[item_id], ("completado", "2 vídeos"))
+
 
 def _esperar_hasta(condicion, tiempo=5.0):
     """Espera corta por una condición de hilos, sin sleeps fijos largos."""
@@ -574,7 +703,7 @@ class TestGestorDescargasLimite(unittest.TestCase):
         entradas = []
         finales = {}
 
-        def descargar_simulada(_url, _opciones, _progreso, estado, _cancelar):
+        def descargar_simulada(_url, _opciones, _progreso, estado, _cancelar, _detalle=None):
             nonlocal dentro, maximo
             with candado:
                 dentro += 1
@@ -610,7 +739,7 @@ class TestGestorDescargasLimite(unittest.TestCase):
         entradas = []
         finales = {}
 
-        def descargar_simulada(url, _opciones, _progreso, estado, _cancelar):
+        def descargar_simulada(url, _opciones, _progreso, estado, _cancelar, _detalle=None):
             with candado:
                 entradas.append(url)
             estado("completado", "")
@@ -632,7 +761,7 @@ class TestGestorDescargasLimite(unittest.TestCase):
         entradas = []
         finales = {}
 
-        def descargar_simulada(url, _opciones, _progreso, estado, _cancelar):
+        def descargar_simulada(url, _opciones, _progreso, estado, _cancelar, _detalle=None):
             with candado:
                 entradas.append(url)
             liberar.wait(5)
@@ -670,7 +799,7 @@ class TestGestorDescargasLimite(unittest.TestCase):
         entradas = []
         finales = {}
 
-        def descargar_simulada(url, _opciones, _progreso, estado, _cancelar):
+        def descargar_simulada(url, _opciones, _progreso, estado, _cancelar, _detalle=None):
             with candado:
                 entradas.append(url)
             if url == "url-falla":
@@ -707,7 +836,7 @@ class TestGestorDescargasLimite(unittest.TestCase):
         recibidas = {}
         finales = {}
 
-        def descargar_simulada(url, opciones, _progreso, estado, _cancelar):
+        def descargar_simulada(url, opciones, _progreso, estado, _cancelar, _detalle=None):
             with candado:
                 entradas.append(url)
                 recibidas[url] = dict(opciones)
@@ -750,7 +879,7 @@ class TestGestorDescargasLimite(unittest.TestCase):
             falso.start = lambda: None
             return falso
 
-        def descargar_simulada(url, _opciones, _progreso, estado, _cancelar):
+        def descargar_simulada(url, _opciones, _progreso, estado, _cancelar, _detalle=None):
             with candado:
                 entradas.append(url)
             liberar.wait(5)
@@ -814,7 +943,7 @@ class TestGestorUnico(unittest.TestCase):
         gestor_prueba.suscribir_fin(lambda estado, *_: estados.append(estado))
         terminado = threading.Event()
 
-        def descarga_simulada(_url, _opciones, _progreso, estado, _cancelar):
+        def descarga_simulada(_url, _opciones, _progreso, estado, _cancelar, _detalle=None):
             estado("completado", "")
             terminado.set()
 
@@ -831,7 +960,7 @@ class TestGestorUnico(unittest.TestCase):
         gestor_prueba.suscribir_fin(lambda *args: recibidos.append(args))
         terminado = threading.Event()
 
-        def descarga_simulada(_url, _opciones, _progreso, estado, _cancelar):
+        def descarga_simulada(_url, _opciones, _progreso, estado, _cancelar, _detalle=None):
             estado("completado", "")
             terminado.set()
 
@@ -854,7 +983,7 @@ class TestGestorUnico(unittest.TestCase):
         gestor_prueba.suscribir_fin(lambda estado, *_: estados.append(estado))
         terminado = threading.Event()
 
-        def descarga_simulada(_url, _opciones, _progreso, estado, _cancelar):
+        def descarga_simulada(_url, _opciones, _progreso, estado, _cancelar, _detalle=None):
             estado("completado", "")
             terminado.set()
 
@@ -884,6 +1013,10 @@ class TestPseudoFrases(unittest.TestCase):
             frases = [
                 descargas.frase_aviso_descarga("completado", "", "video.mp4"),
                 descargas.frase_aviso_descarga("completado", "", ""),
+                descargas.frase_aviso_descarga("completado", "3 vídeos",
+                                               "video.mp4"),
+                descargas.frase_aviso_descarga("parcial", "1 de 3 vídeos",
+                                               "video.mp4"),
                 descargas.frase_aviso_descarga("error", "sin espacio", ""),
                 descargas.frase_aviso_descarga("error", "", ""),
                 descargas.frase_aviso_descarga("cancelado", "motivo", "video.mp4"),

@@ -11,7 +11,7 @@ from pathlib import Path
 
 from bellbird.core import paths
 from bellbird.downloads import ffmpeg_bin
-from bellbird.downloads.progreso_ytdlp import PLANTILLA
+from bellbird.downloads.progreso_ytdlp import plantillas_progreso
 
 
 def formato_a_ydl(formato: str, bitrate: int) -> str:
@@ -27,7 +27,7 @@ def formato_a_ydl(formato: str, bitrate: int) -> str:
     if f == "webm":
         return "bestvideo[ext=webm]+bestaudio[ext=webm]/best[ext=webm]/best"
     if f in ("mp3", "m4a"):
-        return "bestaudio"
+        return "bestaudio/best"
     return "best"
 
 
@@ -55,8 +55,8 @@ def argumentos_descarga(url, opciones, enumerar, ffmpeg_location=None) -> list[s
     # --print after_move: el nombre que llega por el progreso es el del
     # fragmento («….f140.m4a»); el definitivo solo se sabe tras unir o
     # convertir. --print implica --quiet, y --progress recupera el progreso.
-    argumentos = ["--newline", "--no-warnings", "--progress",
-                  "--progress-template", PLANTILLA,
+    argumentos = ["--encoding", "utf-8", "--newline", "--no-warnings",
+                  "--progress", *plantillas_progreso(),
                   "--print", f"after_move:{PREFIJO_RUTA_FINAL} %(filepath)s",
                   "-f", formato_a_ydl(f, bitrate), "-o",
                   construir_outtmpl(opciones, enumerar)]

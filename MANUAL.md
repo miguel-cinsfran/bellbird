@@ -306,11 +306,11 @@ al complemento de OBS para NVDA.
 ## Encuadre de cámara
 
 Si en la escena al aire de OBS hay una cámara, la app dice cómo se te ve
-en ella: cuántos rostros hay, si estás centrado, lejos, cortado por arriba
-o por abajo, de lado o con la cabeza inclinada, si falta luz delante o hay
-contraluz, y si la imagen se congeló. Sirve cualquier cámara que OBS
-muestre: webcam, capturadora o el teléfono usado como cámara. La imagen
-se analiza en el equipo y no se envía a ningún sitio.
+en ella: cuántos rostros hay, si estás centrado, lejos, fuera del borde
+superior o inferior, de lado o con la cabeza inclinada, si falta luz
+delante o hay contraluz, y si la imagen se congeló. Sirve cualquier cámara
+que OBS muestre: webcam, capturadora o el teléfono usado como cámara. La
+imagen se analiza en el equipo y no se envía a ningún sitio.
 
 Izquierda y derecha se dicen como el movimiento que tienes que hacer,
 por ejemplo «Muévete a tu izquierda.», no como el lado de la imagen.

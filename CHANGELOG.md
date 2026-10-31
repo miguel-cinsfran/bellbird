@@ -21,11 +21,12 @@ Paraguay.
 ### Novedades
 
 - Encuadre de cámara. `Ctrl+F3` dice cómo se te ve en la cámara de la
-  escena al aire de OBS: si estás centrado, lejos, cortado o con poca luz,
-  y hacia dónde moverte. `Ctrl+Mayús+F3` activa avisos con sonido propio
-  cuando el rostro sale del encuadre y cuando vuelve. Pulsando `Ctrl+F3`
-  dos veces, unos pitidos guían hasta quedar bien encuadrado. La imagen se
-  analiza en el equipo, sin enviarla a ningún sitio.
+  escena al aire de OBS: si estás centrado, lejos, fuera del borde o con
+  poca luz, y hacia dónde moverte. `Ctrl+Mayús+F3` activa avisos con
+  sonido propio cuando el rostro sale del encuadre y cuando vuelve.
+  Pulsando `Ctrl+F3` dos veces, unos pitidos guían hasta quedar bien
+  encuadrado. La imagen se analiza en el equipo, sin enviarla a ningún
+  sitio.
 - `Ctrl+Mayús+O`, o *Mostrar OBS* en el menú *Transmisión*, trae al frente
   la ventana de OBS, también cuando está en el área de notificación. Si OBS
   espera una respuesta, como la pregunta del modo seguro, el foco va a ese

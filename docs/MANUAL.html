@@ -231,6 +231,7 @@ cada versión</a></p>
 <li><a href="#reproductor">Reproductor</a></li>
 <li><a href="#música">Música</a></li>
 <li><a href="#transmitir-en-directo">Transmitir en directo</a></li>
+<li><a href="#encuadre-de-cámara">Encuadre de cámara</a></li>
 <li><a href="#panel-de-chat-para-transmitir">Panel de chat para
 transmitir</a></li>
 <li><a href="#mensajes-automáticos">Mensajes automáticos</a></li>
@@ -524,6 +525,40 @@ dónde quedó la fuente, cuánto se recorta si sale del borde y cuánto la
 tapa otra.</p>
 <p>Todo se puede seguir haciendo a mano en OBS, y la aplicación no
 molesta al complemento de OBS para NVDA.</p>
+<h2 id="encuadre-de-cámara">Encuadre de cámara</h2>
+<p>Si en la escena al aire de OBS hay una cámara, la app dice cómo se te
+ve en ella: cuántos rostros hay, si estás centrado, lejos, cortado por
+arriba o por abajo, de lado o con la cabeza inclinada, si falta luz
+delante o hay contraluz, y si la imagen se congeló. Sirve cualquier
+cámara que OBS muestre: webcam, capturadora o el teléfono usado como
+cámara. La imagen se analiza en el equipo y no se envía a ningún
+sitio.</p>
+<p>Izquierda y derecha se dicen como el movimiento que tienes que hacer,
+por ejemplo «Muévete a tu izquierda.», no como el lado de la imagen.</p>
+<p><strong>A pedido.</strong> <code>Ctrl+F3</code>, o <em>Anunciar
+encuadre de cámara</em> en el menú <em>Transmisión</em>, dice el
+encuadre en ese momento.</p>
+<p><strong>Avisos automáticos.</strong> <code>Ctrl+Mayús+F3</code>, o la
+casilla <em>Avisar si el rostro sale del encuadre</em> del mismo menú,
+activa los avisos. Con ellos activos, la app avisa con un sonido propio
+cuando el rostro sale del encuadre y con otro cuando vuelve, y no dice
+nada mientras sigue bien. Si no hay cámara en OBS u OBS está cerrado,
+espera en silencio. La casilla se recuerda al volver a abrir la app. Con
+los avisos activos, <code>F2</code> dice también el estado de la
+cámara.</p>
+<p><strong>Guía con pitidos.</strong> Pulsa <code>Ctrl+F3</code> dos
+veces seguidas. La app pausa la lectura del chat y emite pitidos que
+suenan del lado hacia el que tienes que moverte, más agudos si tienes
+que subir y más graves si tienes que bajar, y más seguidos cuanto más
+cerca estás. Al quedar bien encuadrado, suena una confirmación, se dice
+el encuadre y la lectura sigue. <code>Ctrl+F3</code> detiene la guía,
+que también termina sola al minuto.</p>
+<p>Si hay más de una cámara en la escena, se usa la que está delante.
+Para elegir otra fuente, escribe su nombre en
+<code>camara_fuente</code>, en la sección <code>[transmision]</code> de
+<code>config.ini</code>. Si izquierda y derecha salen al revés porque la
+cámara ya da la imagen en espejo, pon
+<code>camara_invertir = true</code> en la misma sección.</p>
 <h2 id="panel-de-chat-para-transmitir">Panel de chat para
 transmitir</h2>
 <p>Muestra el chat en grande, con fondo transparente, para tus
@@ -807,6 +842,14 @@ acción.</p>
 <tr>
 <td><code>Ctrl+Mayús+F2</code></td>
 <td>Consulta rápida a la IA sobre la escena</td>
+</tr>
+<tr>
+<td><code>Ctrl+F3</code></td>
+<td>Anunciar encuadre de cámara</td>
+</tr>
+<tr>
+<td><code>Ctrl+Mayús+F3</code></td>
+<td>Avisar si el rostro sale del encuadre</td>
 </tr>
 </tbody>
 </table>

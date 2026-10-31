@@ -15,6 +15,7 @@ Versión 2.4.0 · Windows 10 y 11 · [novedades de cada versión](CHANGELOG.md)
 - [Reproductor](#reproductor)
 - [Música](#música)
 - [Transmitir en directo](#transmitir-en-directo)
+- [Encuadre de cámara](#encuadre-de-cámara)
 - [Panel de chat para transmitir](#panel-de-chat-para-transmitir)
 - [Mensajes automáticos](#mensajes-automáticos)
 - [Descargas e historial](#descargas-e-historial)
@@ -301,6 +302,42 @@ tapa otra.
 
 Todo se puede seguir haciendo a mano en OBS, y la aplicación no molesta
 al complemento de OBS para NVDA.
+
+## Encuadre de cámara
+
+Si en la escena al aire de OBS hay una cámara, la app dice cómo se te ve
+en ella: cuántos rostros hay, si estás centrado, lejos, cortado por arriba
+o por abajo, de lado o con la cabeza inclinada, si falta luz delante o hay
+contraluz, y si la imagen se congeló. Sirve cualquier cámara que OBS
+muestre: webcam, capturadora o el teléfono usado como cámara. La imagen
+se analiza en el equipo y no se envía a ningún sitio.
+
+Izquierda y derecha se dicen como el movimiento que tienes que hacer,
+por ejemplo «Muévete a tu izquierda.», no como el lado de la imagen.
+
+**A pedido.** `Ctrl+F3`, o *Anunciar encuadre de cámara* en el menú
+*Transmisión*, dice el encuadre en ese momento.
+
+**Avisos automáticos.** `Ctrl+Mayús+F3`, o la casilla *Avisar si el
+rostro sale del encuadre* del mismo menú, activa los avisos. Con ellos
+activos, la app avisa con un sonido propio cuando el rostro sale del
+encuadre y con otro cuando vuelve, y no dice nada mientras sigue bien. Si
+no hay cámara en OBS u OBS está cerrado, espera en silencio. La casilla se
+recuerda al volver a abrir la app. Con los avisos activos, `F2` dice
+también el estado de la cámara.
+
+**Guía con pitidos.** Pulsa `Ctrl+F3` dos veces seguidas. La app pausa la
+lectura del chat y emite pitidos que suenan del lado hacia el que tienes
+que moverte, más agudos si tienes que subir y más graves si tienes que
+bajar, y más seguidos cuanto más cerca estás. Al quedar bien encuadrado,
+suena una confirmación, se dice el encuadre y la lectura sigue. `Ctrl+F3`
+detiene la guía, que también termina sola al minuto.
+
+Si hay más de una cámara en la escena, se usa la que está delante. Para
+elegir otra fuente, escribe su nombre en `camara_fuente`, en la sección
+`[transmision]` de `config.ini`. Si izquierda y derecha salen al revés
+porque la cámara ya da la imagen en espejo, pon `camara_invertir = true`
+en la misma sección.
 
 ## Panel de chat para transmitir
 

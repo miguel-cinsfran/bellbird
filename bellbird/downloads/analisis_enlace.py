@@ -38,8 +38,9 @@ def analizar_url(url: str) -> dict:
     # entrada en las playlists y json.loads fallaba con «Extra data».
     try:
         resultado = subprocess.run(
-            [ruta, "-J", "--flat-playlist", "--quiet", "--no-warnings",
-             "--skip-download", "--no-playlist", "--socket-timeout", "20", url],
+            [ruta, *ytdlp_bin.argumentos_comunes(), "-J", "--flat-playlist",
+             "--quiet", "--no-warnings", "--skip-download", "--no-playlist",
+             "--socket-timeout", "20", url],
             capture_output=True, text=True, creationflags=_sin_ventana(),
             check=False, timeout=TIEMPO_ESPERA_ANALISIS,
         )

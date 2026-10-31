@@ -57,6 +57,7 @@ RUTAS_DE_INSTALACION = [
     ("cliente_app", "cliente_app.json"),
     ("ffmpeg_empaquetado", paths.NOMBRE_FFMPEG),
     ("ytdlp_empaquetado", paths.NOMBRE_YTDLP),
+    ("deno_empaquetado", paths.NOMBRE_DENO),
     ("carpeta_vlc_empaquetada", "vlc"),
     ("carpeta_interna", "_internal"),
 ]
@@ -321,6 +322,17 @@ class TestActualizacion(unittest.TestCase):
                 otra = Path(tmp) / "otra"
                 self.assertEqual(paths.paquete_descargado_en(otra),
                                  otra / "data" / "actualizacion" / "paquete.zip")
+
+    def test_nombre_de_deno(self):
+        self.assertEqual(paths.NOMBRE_DENO, "deno.exe")
+
+    def test_deno_empaquetado_cuelga_de_la_instalacion(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            instalacion = Path(tmp) / "app"
+            with mock.patch.object(paths, "carpeta_instalacion",
+                                   return_value=instalacion):
+                self.assertEqual(paths.deno_empaquetado(),
+                                 instalacion / "deno.exe")
 
     def test_nombre_del_manifiesto(self):
         self.assertEqual(paths.NOMBRE_MANIFIESTO, "paquete.json")

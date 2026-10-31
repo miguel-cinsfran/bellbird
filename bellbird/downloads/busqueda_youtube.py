@@ -254,8 +254,8 @@ def buscar(texto: str, filtros: Filtros, inicio: int,
         return RespuestaBusqueda([], _("yt-dlp no está instalado"), False)
     url = url_busqueda(texto, filtros)
     terminado = _correr([
-        ruta, "-J", "--flat-playlist", "--no-warnings",
-        "--encoding", "utf-8", "--socket-timeout", "20",
+        ruta, *ytdlp_bin.argumentos_comunes(), "-J", "--flat-playlist",
+        "--no-warnings", "--encoding", "utf-8", "--socket-timeout", "20",
         "--extractor-args", "youtubetab:approximate_date",
         "--playlist-start", str(inicio),
         "--playlist-end", str(inicio + cantidad - 1), url,
@@ -296,8 +296,9 @@ def contenido(url, inicio, cantidad) -> RespuestaBusqueda:
               "inténtalo de nuevo."), False, "", 0)
     for intento in intentos:
         terminado = _correr([
-            ruta, "-J", "--flat-playlist", "--no-warnings",
-            "--socket-timeout", "20", "--playlist-start", str(inicio),
+            ruta, *ytdlp_bin.argumentos_comunes(), "-J", "--flat-playlist",
+            "--no-warnings", "--socket-timeout", "20",
+            "--playlist-start", str(inicio),
             "--playlist-end", str(inicio + cantidad - 1), intento,
         ])
         if terminado is None or terminado.returncode != 0:

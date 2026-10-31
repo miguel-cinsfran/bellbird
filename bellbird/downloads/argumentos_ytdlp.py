@@ -12,6 +12,7 @@ from urllib.parse import parse_qs, urlparse
 
 from bellbird.core import paths
 from bellbird.downloads import ffmpeg_bin
+from bellbird.downloads import ytdlp_bin
 from bellbird.downloads.opciones_formato import (
     PLANTILLAS, argumentos_de_formato, argumentos_exactos)
 from bellbird.downloads.progreso_ytdlp import (
@@ -94,7 +95,8 @@ def argumentos_descarga(url, opciones, enumerar, ffmpeg_location=None) -> list[s
     # --print after_move: el nombre que llega por el progreso es el del
     # fragmento («….f140.m4a»); el definitivo solo se sabe tras unir o
     # convertir. --print implica --quiet, y --progress recupera el progreso.
-    argumentos = ["--encoding", "utf-8", "--newline", "--no-warnings",
+    argumentos = [*ytdlp_bin.argumentos_comunes(),
+                  "--encoding", "utf-8", "--newline", "--no-warnings",
                   "--progress", *plantillas_progreso(),
                   "--print", f"after_move:{PREFIJO_RUTA_FINAL} %(filepath)s",
                   *argumentos_de_la_opcion(f, opciones, bitrate, resolucion),

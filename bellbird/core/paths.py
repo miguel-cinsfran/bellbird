@@ -32,6 +32,7 @@ NOMBRE_CREDENCIALES = "credenciales.json"
 NOMBRE_CLIENTE_APP = "cliente_app.json"
 NOMBRE_FFMPEG = "ffmpeg.exe" if os.name == "nt" else "ffmpeg"
 NOMBRE_YTDLP = "yt-dlp.exe"
+NOMBRE_DENO = "deno.exe"
 # Manifiesto que construir.bat escribe en la raíz del paquete distribuible.
 NOMBRE_MANIFIESTO = "paquete.json"
 # Huellas de los sonidos de cada tema, para que el instalador conserve
@@ -261,6 +262,10 @@ def ffmpeg_empaquetado() -> Path:
 
 def ytdlp_empaquetado() -> Path:
     return carpeta_instalacion() / NOMBRE_YTDLP
+
+
+def deno_empaquetado() -> Path:
+    return carpeta_instalacion() / NOMBRE_DENO
 
 
 def carpeta_vlc_empaquetada() -> Path:

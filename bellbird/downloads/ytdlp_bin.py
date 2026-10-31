@@ -59,6 +59,23 @@ def ruta_ytdlp() -> str | None:
     return str(max(candidatas, key=fecha))
 
 
+def argumentos_comunes() -> list[str]:
+    """Lo que cada llamada al programa suma tras su ruta.
+
+    Ignora la configuración personal y, si hay deno empaquetado, lo
+    declara como motor de JavaScript con su ruta absoluta.
+    """
+    comunes = ["--ignore-config"]
+    deno = paths.deno_empaquetado()
+    try:
+        hay_deno = deno.is_file()
+    except OSError:
+        hay_deno = False
+    if hay_deno:
+        comunes.extend(["--js-runtimes", f"deno:{deno}"])
+    return comunes
+
+
 def version_ytdlp(ruta: str | os.PathLike) -> str:
     """Lee la versión de un ejecutable sin abrir una ventana de consola."""
     try:
@@ -84,8 +101,9 @@ def info_video(video_id: str) -> dict | None:
         return None
     try:
         resultado = subprocess.run(
-            [ruta, "--dump-json", "--quiet", "--no-warnings",
-             "--skip-download", "--no-playlist", "--socket-timeout", "20",
+            [ruta, *argumentos_comunes(), "--dump-json", "--quiet",
+             "--no-warnings", "--skip-download", "--no-playlist",
+             "--socket-timeout", "20",
              f"https://www.youtube.com/watch?v={video_id}"],
             capture_output=True,
             text=True,
@@ -102,8 +120,9 @@ def info_video(video_id: str) -> dict | None:
 
 
 def _argumentos_audio(ruta: str, destino: Path, video_id: str) -> list:
-    return [ruta, "-f", "ba", "-o", str(destino), "--no-playlist",
-            "--no-warnings", "--newline", "--progress-template", PLANTILLA,
+    return [ruta, *argumentos_comunes(), "-f", "ba", "-o", str(destino),
+            "--no-playlist", "--no-warnings", "--newline",
+            "--progress-template", PLANTILLA,
             f"https://www.youtube.com/watch?v={video_id}"]
 
 
@@ -244,7 +263,7 @@ def descargar_audio(video_id: str, destino: Path, aviso_progreso=None,
 def _argumentos_video_cache(ruta: str | os.PathLike, temporal: Path, video_id: str,
                           tope_mb: int | None = None) -> list[str]:
     argumentos = [
-        str(ruta), "-f",
+        str(ruta), *argumentos_comunes(), "-f",
         "bv*[height<=720][protocol=https]+ba[protocol=https][ext=m4a]/b[height<=720]/bv*+ba/b",
         "-o", str(temporal), "--no-playlist",
         "--no-warnings", "--limit-rate", LIMITE_CACHE,

@@ -911,6 +911,146 @@ class TestUserAgentConVersionDeLaApp(unittest.TestCase):
                 self.assertEqual(pedido.get_header("User-agent"), esperado)
 
 
+class TestArgumentosComunes(unittest.TestCase):
+    """Cada llamada al programa yt-dlp ignora la config del usuario y,
+    si hay deno empaquetado, declara su motor de JavaScript."""
+
+    def test_sin_deno_solo_ignora_la_config(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            instalacion = Path(tmp) / "app"
+            instalacion.mkdir()
+            with patch.object(paths, "carpeta_instalacion",
+                              return_value=instalacion):
+                self.assertEqual(ytdlp_bin.argumentos_comunes(),
+                                 ["--ignore-config"])
+
+    def test_con_deno_agrega_su_motor_con_ruta_absoluta(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            instalacion = Path(tmp) / "app"
+            instalacion.mkdir()
+            (instalacion / "deno.exe").write_bytes(b"falso")
+            with patch.object(paths, "carpeta_instalacion",
+                              return_value=instalacion):
+                comunes = ytdlp_bin.argumentos_comunes()
+            self.assertEqual(comunes[0], "--ignore-config")
+            self.assertEqual(comunes[1], "--js-runtimes")
+            self.assertTrue(comunes[2].startswith("deno:"))
+            ruta = comunes[2][len("deno:"):]
+            self.assertTrue(os.path.isabs(ruta))
+            self.assertEqual(Path(ruta), instalacion / "deno.exe")
+
+    def test_solo_ytdlp_bin_escribe_ignore_config(self):
+        raiz = Path(__file__).resolve().parent.parent / "bellbird" / "downloads"
+        culpables = []
+        for modulo in sorted(raiz.glob("*.py")):
+            if modulo.name == "ytdlp_bin.py":
+                continue
+            if '"--ignore-config"' in modulo.read_text(encoding="utf-8"):
+                culpables.append(modulo.name)
+        self.assertEqual(culpables, [])
+
+
+class TestCableadoComunes(unittest.TestCase):
+    """Cada sitio intercala los comunes justo después de la ruta."""
+
+    def _comunes(self):
+        return ytdlp_bin.argumentos_comunes()
+
+    def test_info_video_los_intercala(self):
+        respuesta = MagicMock(returncode=0, stdout='{"title": "Prueba"}')
+        with patch.object(ytdlp_bin, "ruta_ytdlp",
+                          return_value="yt-dlp.exe"), \
+                patch.object(ytdlp_bin.subprocess, "run",
+                             return_value=respuesta) as ejecutar:
+            ytdlp_bin.info_video("A" * 11)
+        args = ejecutar.call_args.args[0]
+        comunes = self._comunes()
+        self.assertEqual(args[0], "yt-dlp.exe")
+        self.assertEqual(args[1:1 + len(comunes)], comunes)
+
+    def test_audio_los_intercala(self):
+        from pathlib import Path as Ruta
+        with tempfile.TemporaryDirectory() as tmp:
+            destino = Ruta(tmp) / "tema.webm"
+            args = ytdlp_bin._argumentos_audio("yt-dlp.exe", destino, "A" * 11)
+        comunes = self._comunes()
+        self.assertEqual(args[0], "yt-dlp.exe")
+        self.assertEqual(args[1:1 + len(comunes)], comunes)
+
+    def test_video_cache_los_intercala(self):
+        with tempfile.TemporaryDirectory() as carpeta:
+            temporal = Path(carpeta) / ".ytcache-x.mp4"
+            args = ytdlp_bin._argumentos_video_cache(
+                "yt-dlp.exe", temporal, "A" * 11)
+        comunes = self._comunes()
+        self.assertEqual(args[0], "yt-dlp.exe")
+        self.assertEqual(args[1:1 + len(comunes)], comunes)
+
+    def test_analizar_url_los_intercala(self):
+        from bellbird.downloads import analisis_enlace
+        respuesta = MagicMock(returncode=0, stdout='{"id": "abc"}')
+        with patch.object(analisis_enlace.ytdlp_bin, "ruta_ytdlp",
+                          return_value="yt-dlp.exe"), \
+                patch.object(analisis_enlace.subprocess, "run",
+                             return_value=respuesta) as ejecutar:
+            analisis_enlace.analizar_url("https://example.com/v")
+        args = ejecutar.call_args.args[0]
+        comunes = self._comunes()
+        self.assertEqual(args[0], "yt-dlp.exe")
+        self.assertEqual(args[1:1 + len(comunes)], comunes)
+
+    def test_buscar_los_intercala(self):
+        from bellbird.downloads import busqueda_youtube
+        terminado = MagicMock(returncode=0, stdout='{"entries": []}',
+                              stderr="")
+        with patch.object(busqueda_youtube.ytdlp_bin, "ruta_ytdlp",
+                          return_value="yt-dlp.exe"), \
+                patch.object(busqueda_youtube.subprocess, "run",
+                             return_value=terminado) as ejecutar:
+            busqueda_youtube.buscar("cumbia", busqueda_youtube.Filtros(), 1, 10)
+        args = ejecutar.call_args.args[0]
+        comunes = self._comunes()
+        self.assertEqual(args[0], "yt-dlp.exe")
+        self.assertEqual(args[1:1 + len(comunes)], comunes)
+
+    def test_contenido_los_intercala(self):
+        from bellbird.downloads import busqueda_youtube
+        terminado = MagicMock(returncode=0, stdout='{"entries": []}',
+                              stderr="")
+        with patch.object(busqueda_youtube.ytdlp_bin, "ruta_ytdlp",
+                          return_value="yt-dlp.exe"), \
+                patch.object(busqueda_youtube.subprocess, "run",
+                             return_value=terminado) as ejecutar:
+            busqueda_youtube.contenido(
+                "https://www.youtube.com/playlist?list=PL123", 1, 10)
+        args = ejecutar.call_args.args[0]
+        comunes = self._comunes()
+        self.assertEqual(args[0], "yt-dlp.exe")
+        self.assertEqual(args[1:1 + len(comunes)], comunes)
+
+    def test_extraer_plano_los_intercala(self):
+        from bellbird.music import enlaces
+        respuesta = MagicMock(returncode=0, stdout='{"id": "abc"}')
+        with patch.object(enlaces.ytdlp_bin, "ruta_ytdlp",
+                          return_value="yt-dlp.exe"), \
+                patch.object(enlaces.subprocess, "run",
+                             return_value=respuesta) as ejecutar:
+            enlaces._extraer_plano_con_programa(
+                "yt-dlp.exe", "https://youtu.be/abc123")
+        args = ejecutar.call_args.args[0]
+        comunes = self._comunes()
+        self.assertEqual(args[0], "yt-dlp.exe")
+        self.assertEqual(args[1:1 + len(comunes)], comunes)
+
+    def test_argumentos_descarga_empiezan_con_los_comunes(self):
+        from bellbird.downloads.argumentos_ytdlp import argumentos_descarga
+        args = argumentos_descarga("https://example.com/v",
+                                   {"formato": "mp4", "carpeta": "/tmp"},
+                                   False)
+        comunes = self._comunes()
+        self.assertEqual(args[:len(comunes)], comunes)
+
+
 class TestPseudoMensajesActualizacion(unittest.TestCase):
     """Pseudotraducción: cada anuncio de actualización sale marcado."""
 

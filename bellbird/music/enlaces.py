@@ -116,7 +116,8 @@ def temas_de_info(datos) -> tuple[Tema, ...]:
 
 
 def _extraer_plano_con_programa(ruta: str, url: str) -> dict:
-    argumentos = [ruta, "--flat-playlist", "-J", "--no-warnings", url]
+    argumentos = [ruta, *ytdlp_bin.argumentos_comunes(),
+                  "--flat-playlist", "-J", "--no-warnings", url]
     try:
         resultado = subprocess.run(
             argumentos, capture_output=True, text=True, timeout=TOPE_PROGRAMA,

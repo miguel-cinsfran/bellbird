@@ -12,6 +12,7 @@ Bellbird.zip
 Bellbird v*.zip
 Bellbird v*.zip.sha256
 yt-dlp.exe
+deno.exe
 
 # Cache del audio esclavo: la crea el reproductor al lado del ejecutable, y
 # corriendo desde el repositorio cae en la raiz. Son megas por video.

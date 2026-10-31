@@ -171,6 +171,22 @@ if not exist "%OUT%\yt-dlp.exe" (
     echo    OK: yt-dlp.exe independiente copiado, %%~zf bytes.
   )
 )
+echo == Empaquetando deno para yt-dlp ==
+REM Sin deno, yt-dlp avisa que extraer sin motor quedo en desuso.
+call uv run python scripts\bajar_deno.py "%OUT%"
+REM deno.exe pesa decenas de MB, medido el 31/10/2026: 98 MB; un umbral de
+REM 10 MB descarta un archivo roto y deja margen.
+set "DENO_MIN_BYTES=10485760"
+if not exist "%OUT%\deno.exe" (
+  echo    AVISO: no se obtuvo deno.exe; el paquete saldra sin motor de JavaScript.
+) else (
+  for %%f in ("%OUT%\deno.exe") do if %%~zf LSS %DENO_MIN_BYTES% (
+    echo    AVISO: deno.exe pesa %%~zf bytes y no parece el programa; se elimina.
+    del /q "%OUT%\deno.exe"
+  ) else (
+    echo    OK: deno.exe empaquetado, %%~zf bytes.
+  )
+)
 REM El paquete no trae config.ini: pisaria el del usuario al descomprimir
 REM encima, y la aplicacion lo crea sola en data al arrancar.
 REM sounds.ini sigue con el tratamiento previo: intentar git, si no local.

@@ -5291,6 +5291,7 @@ SUPERFICIES = {
     "gui_historial.py": "historial",
     "recientes_inicio.py": "principal",
     "gui_menu.py": "menus",
+    "menu_transmision.py": "menus",
     "gui_microfono.py": "microfono",
     "gui_musica.py": "musica",
     "musica_dialogo_enlace.py": "musica",

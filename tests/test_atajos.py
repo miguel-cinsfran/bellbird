@@ -385,8 +385,9 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertTrue(all(accion in parsear_atajos({}) for accion in acciones))
 
     def test_menus_usan_el_sistema_para_los_nuevos_atajos(self):
+        from bellbird.ui import menu_transmision
         fuente = inspect.getsource(gui_menu.construir_menu)
-        fuente += inspect.getsource(gui_menu._construir_menu_transmision)
+        fuente += inspect.getsource(menu_transmision.construir)
         fuente += inspect.getsource(gui_menu._construir_menu_ver)
         fuente += inspect.getsource(gui_menu._construir_menu_musica)
         fuente += inspect.getsource(gui_menu._construir_menu_ayuda)

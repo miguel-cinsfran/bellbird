@@ -341,7 +341,7 @@ class TestAbrirTransmision(unittest.TestCase):
         return frame
 
     def _abrir(self, frame, menu, estado=None):
-        from bellbird.ui import gui_menu
+        from bellbird.ui import menu_transmision
         evento = mock.Mock()
         evento.GetMenu.return_value = menu
         hilos = []
@@ -349,24 +349,24 @@ class TestAbrirTransmision(unittest.TestCase):
             hilo = mock.Mock()
             hilo.start.side_effect = lambda: hilos.append(funcion)
             return hilo
-        with mock.patch.object(gui_menu.obs_entradas_audio, "estado_microfono",
+        with mock.patch.object(menu_transmision.obs_entradas_audio, "estado_microfono",
                                return_value=estado), \
-                mock.patch.object(gui_menu.diagnostico, "crear_hilo",
+                mock.patch.object(menu_transmision.diagnostico, "crear_hilo",
                                   side_effect=crear_hilo), \
-                mock.patch.object(gui_menu.wx, "CallAfter",
+                mock.patch.object(menu_transmision.wx, "CallAfter",
                                   side_effect=lambda fn, *a: fn(*a)):
-            gui_menu._al_abrir_transmision(frame, menu, evento)
+            menu_transmision._al_abrir_transmision(frame, menu, evento)
             for funcion in hilos:
                 funcion()
         return frame
 
     def test_otro_menu_no_consulta(self):
-        from bellbird.ui import gui_menu
+        from bellbird.ui import menu_transmision
         frame = self._frame(object())
         evento = mock.Mock()
         evento.GetMenu.return_value = object()
-        with mock.patch.object(gui_menu.diagnostico, "crear_hilo") as crear:
-            gui_menu._al_abrir_transmision(frame, object(), evento)
+        with mock.patch.object(menu_transmision.diagnostico, "crear_hilo") as crear:
+            menu_transmision._al_abrir_transmision(frame, object(), evento)
         crear.assert_not_called()
 
     def test_con_estado_verdadero_marca_la_casilla(self):
@@ -385,26 +385,26 @@ class TestAbrirTransmision(unittest.TestCase):
         frame.mi_obs_micro.Check.assert_not_called()
 
     def test_con_otra_consulta_en_curso_no_lanza_otra(self):
-        from bellbird.ui import gui_menu
+        from bellbird.ui import menu_transmision
         menu = object()
         frame = self._frame(menu)
         frame._consultando_micro = True
         evento = mock.Mock()
         evento.GetMenu.return_value = menu
-        with mock.patch.object(gui_menu.diagnostico, "crear_hilo") as crear:
-            gui_menu._al_abrir_transmision(frame, menu, evento)
+        with mock.patch.object(menu_transmision.diagnostico, "crear_hilo") as crear:
+            menu_transmision._al_abrir_transmision(frame, menu, evento)
         crear.assert_not_called()
 
     def test_deja_correr_el_evento_en_los_dos_menus(self):
-        from bellbird.ui import gui_menu
+        from bellbird.ui import menu_transmision
         menu = object()
         for abierto in (menu, object()):
             with self.subTest(abierto=abierto):
                 frame = self._frame(menu)
                 evento = mock.Mock()
                 evento.GetMenu.return_value = abierto
-                with mock.patch.object(gui_menu.diagnostico, "crear_hilo"):
-                    gui_menu._al_abrir_transmision(frame, menu, evento)
+                with mock.patch.object(menu_transmision.diagnostico, "crear_hilo"):
+                    menu_transmision._al_abrir_transmision(frame, menu, evento)
                 evento.Skip.assert_called_once_with()
 
 
@@ -420,7 +420,7 @@ class TestCableadoMostrarObs(unittest.TestCase):
         del cls.app
 
     def _frame_con_menu(self):
-        from bellbird.ui import gui_menu
+        from bellbird.ui import menu_transmision
 
         frame = wx.Frame(None)
         self.addCleanup(destruir, frame)
@@ -431,18 +431,18 @@ class TestCableadoMostrarObs(unittest.TestCase):
         frame._on_obs_micro = mock.Mock()
         frame._alternar_aviso_sobrecarga = mock.Mock()
         barra = wx.MenuBar()
-        gui_menu._construir_menu_transmision(frame, barra)
+        menu_transmision.construir(frame, barra)
         frame.SetMenuBar(barra)
         return frame
 
     def test_elegir_mostrar_obs_anuncia_lo_que_devuelve_mostrar(self):
-        from bellbird.ui import gui_menu
+        from bellbird.ui import menu_transmision
 
         frame = self._frame_con_menu()
-        with mock.patch.object(gui_menu.obs_ventana, "mostrar",
+        with mock.patch.object(menu_transmision.obs_ventana, "mostrar",
                                return_value="OBS no está abierto.") as mostrar, \
-                mock.patch.object(gui_menu, "anunciar") as anunciar, \
-                mock.patch.object(gui_menu.wx, "CallAfter",
+                mock.patch.object(menu_transmision, "anunciar") as anunciar, \
+                mock.patch.object(menu_transmision.wx, "CallAfter",
                                   side_effect=lambda fn, *a: fn(*a)):
             evento = wx.CommandEvent(
                 wx.EVT_MENU.typeId, frame.mi_mostrar_obs.GetId())
@@ -468,11 +468,11 @@ class TestCableadoMostrarObs(unittest.TestCase):
                     frame.mi_micro_obs.GetId())
 
     def test_elegir_microfono_abre_el_cuadro(self):
-        from bellbird.ui import gui_menu
+        from bellbird.ui import menu_transmision
 
         with mock.patch("bellbird.ui.gui_microfono.abrir_microfono_obs") \
                 as abrir, \
-                mock.patch.object(gui_menu.wx, "CallAfter",
+                mock.patch.object(menu_transmision.wx, "CallAfter",
                                   side_effect=lambda fn, *a: fn(*a)):
             frame = self._frame_con_menu()
             evento = wx.CommandEvent(

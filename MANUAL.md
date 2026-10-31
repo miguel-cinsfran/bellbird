@@ -391,7 +391,12 @@ para YouTube y otra para TikTok. Los directos terminados salen marcados.
 lleva al aire, mensajes leídos, donaciones, el panel de chat y los
 mensajes automáticos. Qué entra en el resumen se elige en *Preferencias,
 Estado (F2)*, incluidos los datos de OBS y la canción que suena. Mientras
-transmites desde la aplicación, `F2` empieza por cómo va el directo.
+transmites desde la aplicación, `F2` empieza por cómo va el directo. Con la
+sesión de YouTube iniciada, también dice cuántas unidades de la cuota diaria
+se usaron hoy desde este equipo, con un número aproximado que se reinicia a
+medianoche, hora del Pacífico, cuando Google repone la cuota. Como la cuota se
+comparte entre quienes usan la aplicación, sirve para saber si un error de
+cuota viene de tu uso o del de otros.
 
 `F3` dice quién mandó el último mensaje leído, y `Ctrl+F2` describe la
 escena de OBS.
@@ -595,7 +600,9 @@ novedades y la instala: la descarga se comprueba con su firma, la
 aplicación se cierra y vuelve a abrirse sola en alrededor de un minuto. Se
 conservan la carpeta `data`, las descargas y tus sonidos. Si la versión
 nueva no abre, vuelve sola a la anterior. Al iniciarse, una versión nueva
-se anuncia una sola vez.
+se anuncia una sola vez. Si entre la versión instalada y la nueva hay
+otras, la ventana muestra las novedades de todas, de la más nueva a la más
+vieja, cada una con su encabezado.
 
 ## Configuración
 

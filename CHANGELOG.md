@@ -79,6 +79,14 @@ Paraguay.
   *Actualizar carpeta*, con la letra Z. Los avisos dicen *enlace* en vez
   de *dirección*, *aplicación* en vez de *programa* y *Esc* en vez de
   *Escape*.
+- Con la sesión de YouTube iniciada, `F2` dice cuántas unidades de la cuota
+  diaria se usaron hoy desde este equipo. El número es aproximado, y como la
+  cuota se comparte entre quienes usan la aplicación, sirve para saber si un
+  error de cuota viene de tu uso o del de otros. Se puede quitar del resumen en
+  *Preferencias, Estado (F2)*.
+- Si entre la versión instalada y la nueva hay otras, la ventana de
+  actualización muestra las novedades de todas, de la más nueva a la más
+  vieja, cada una con su encabezado y su número de versión.
 
 ### El Administrador de descargas, renovado
 

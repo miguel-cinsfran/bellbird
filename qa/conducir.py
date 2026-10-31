@@ -39,6 +39,7 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 from pathlib import Path
@@ -1944,6 +1945,22 @@ def _nuevo_anuncio(propia, desde, segundos):
     return None
 
 
+def _frase_final_guia(propia, desde, segundos):
+    """Lo que dijo la guía tras el inicio: frase, o None si no terminó."""
+    limite = time.monotonic() + segundos
+    while time.monotonic() < limite:
+        for anuncio in propia.anuncios[desde:]:
+            texto = anuncio.get("texto", "") or ""
+            bajado = texto.lower()
+            if not texto or "sigue los pitidos" in bajado:
+                continue
+            if "guía de encuadre" in bajado and "detenida" in bajado:
+                return None
+            return texto
+        time.sleep(0.2)
+    return None
+
+
 def escenario_encuadre(app: Aplicacion, args, res: Resultado):
     """Ctrl+F3 anuncia el encuadre y los avisos siguen al rostro.
 
@@ -2052,6 +2069,29 @@ def escenario_encuadre(app: Aplicacion, args, res: Resultado):
             res.fallo("Encuadre: vuelto el rostro, no avisó de la vuelta")
         else:
             res.nota("Encuadre: vuelto el rostro, avisó «Rostro centrado.»")
+        try:
+            antes = len(propia.anuncios)
+            propia.teclas(("f3", ["ctrl"]), ("f3", ["ctrl"]))
+        except VentanaNoActiva as exc:
+            res.no_probado("Encuadre: no se pudo pulsar dos veces Ctrl+F3, "
+                           f"{exc}")
+        else:
+            if not propia.esperar_dicho(
+                    "Guía de encuadre. Sigue los pitidos.",
+                    segundos=10, desde=antes):
+                res.nota("Encuadre: la doble pulsación no inició la guía")
+            else:
+                frase = _frase_final_guia(propia, len(propia.anuncios),
+                                          segundos=10.0)
+                if frase is None:
+                    res.nota("Encuadre: la guía no terminó sola en 10 s")
+                    try:
+                        propia.teclas(("f3", ["ctrl"]))
+                    except VentanaNoActiva as exc:
+                        res.no_probado("Encuadre: no se pudo detener la guía, "
+                                       f"{exc}")
+                else:
+                    res.nota(f"Encuadre: la guía terminó sola: «{frase}»")
     finally:
         if propia is not None:
             propia.cerrar()
@@ -5465,6 +5505,7 @@ SUPERFICIES = {
     "gui_menu.py": "menus",
     "menu_transmision.py": "menus",
     "gui_microfono.py": "microfono",
+    "guia_encuadre.py": "encuadre",
     "gui_musica.py": "musica",
     "musica_dialogo_enlace.py": "musica",
     "musica_colecciones.py": "musica",

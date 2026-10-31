@@ -232,17 +232,17 @@ class PreferenciasDialog(wx.Dialog):
             0 if self._config.get("estrategia", "limite") == "todas" else 1)
         vs.Add(self.rb_estrategia, 0, wx.ALL, 10)
 
-        vs.Add(fila_label(p, _("Tamaño &máximo de la cola")),
+        vs.Add(fila_label(p, _("Tamaño &máximo de la cola:")),
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_cola_maxima = ContadorAccesible(
             p, min=1, max=500,
             name=_("Tamaño máximo de la cola"))
         vs.Add(self.sp_cola_maxima, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        vs.Add(fila_label(p, _("Leer solo el &nombre a partir de")),
+        vs.Add(fila_label(p, _("Leer solo el &nombre desde esta cantidad de mensajes en cola:")),
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_umbral_nombre = ContadorAccesible(p, min=0, max=500,
-            name=_("Leer solo el nombre a partir de"))
+            name=_("Leer solo el nombre desde esta cantidad de mensajes en cola"))
         vs.Add(self.sp_umbral_nombre, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         vs.Add(wx.StaticText(p, label=_("Con 0, esta opción queda apagada.")),
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
@@ -259,14 +259,14 @@ class PreferenciasDialog(wx.Dialog):
             name=_("Reconectar automáticamente"))
         vs.Add(self.chk_reconectar, 0, wx.ALL, 10)
 
-        vs.Add(fila_label(p, _("&Espera máxima entre intentos, en segundos")),
+        vs.Add(fila_label(p, _("&Espera máxima entre intentos, en segundos:")),
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_espera_reconexion = ContadorAccesible(
             p, min=1, max=300,
             name=_("Espera máxima entre intentos, en segundos"))
         vs.Add(self.sp_espera_reconexion, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        vs.Add(fila_label(p, _("Número máximo de &intentos")),
+        vs.Add(fila_label(p, _("Número máximo de &intentos:")),
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_max_intentos = ContadorAccesible(
             p, min=0, max=100,
@@ -285,14 +285,14 @@ class PreferenciasDialog(wx.Dialog):
             name="AvisarSobrecargaObs")
         vs.Add(self.chk_avisar_sobrecarga, 0, wx.ALL, 10)
 
-        vs.Add(fila_label(p, _("&Puerto del panel de chat")),
+        vs.Add(fila_label(p, _("&Puerto del panel de chat:")),
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.sp_puerto_overlay = ContadorAccesible(
             p, min=1024, max=65535,
             name=_("Puerto del panel de chat"))
         vs.Add(self.sp_puerto_overlay, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        vs.Add(fila_label(p, _("&Micrófono de OBS")),
+        vs.Add(fila_label(p, _("&Micrófono de OBS:")),
                0, wx.LEFT | wx.RIGHT, 10)
         guardado = str(self._config.get("obs_microfono", ""))
         opciones = [_("Elegir automáticamente")] + ([guardado] if guardado else [])

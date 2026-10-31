@@ -55,6 +55,7 @@ class PaginaProgramados:
         vs.Add(self.chk_programados, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _programados_lista(self, p, vs):
+        vs.Add(fila_label(p, _("Me&nsajes:")), 0, wx.LEFT | wx.RIGHT, 10)
         self.lista_programados = wx.ListBox(p, choices=[
             programados.describir_mensaje(m) for m in self._mensajes_programados
         ], name="ListaProgramados")
@@ -66,16 +67,16 @@ class PaginaProgramados:
         vs.Add(self.lista_programados, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
 
     def _programados_datos(self, p, vs):
-        vs.Add(fila_label(p, _("&Texto del mensaje")), 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
+        vs.Add(fila_label(p, _("&Texto del mensaje:")), 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.txt_programado = wx.TextCtrl(p, name="TextoProgramado")
         self.txt_programado.SetMaxLength(200)
         vs.Add(self.txt_programado, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
 
-        vs.Add(fila_label(p, _("Cada, &mínimo (minutos)")), 0, wx.LEFT | wx.RIGHT, 10)
+        vs.Add(fila_label(p, _("Intervalo &mínimo, en minutos:")), 0, wx.LEFT | wx.RIGHT, 10)
         self.sp_min_programado = ContadorAccesible(
             p, min=5, max=240, initial=10, name="MinutosMin")
         vs.Add(self.sp_min_programado, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
-        vs.Add(fila_label(p, _("y má&ximo (minutos)")), 0, wx.LEFT | wx.RIGHT, 10)
+        vs.Add(fila_label(p, _("Intervalo má&ximo, en minutos:")), 0, wx.LEFT | wx.RIGHT, 10)
         self.sp_max_programado = ContadorAccesible(
             p, min=5, max=240, initial=10, name="MinutosMax")
         vs.Add(self.sp_max_programado, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)

@@ -1,6 +1,6 @@
 """Los filtros de la ventana de música: por artista y por orden.
 
-Una clase con su propio estado que arma el botón, los rótulos y los dos
+Una clase con su propio estado que arma la casilla, los rótulos y los dos
 cuadros, los muestra u oculta y sabe qué temas quedan. No lee atributos
 privados de la ventana: recibe los invocables que necesita.
 """
@@ -19,7 +19,7 @@ ANCHO_ORDENAR = 190
 
 
 class FiltrosMusica:
-    """El botón «Mostrar los filtros» y los dos cuadros que pliega."""
+    """La casilla «Mostrar filtros» y los dos cuadros que pliega."""
 
     def __init__(self, parent, visibles=False, artista="",
                  orden=filtros.CRITERIO_COLECCION, al_cambiar=None,
@@ -37,9 +37,9 @@ class FiltrosMusica:
         self._aplicar_visibilidad(avisar=False, enfocar=False)
 
     def _crear(self, parent):
-        self.btn = wx.Button(parent, wx.ID_ANY, _("Mostrar los &filtros"),
-                              name=_("Mostrar los filtros"))
-        _pintar(self.btn, _T.btn, _T.btn_t)
+        self.btn = wx.CheckBox(parent, label=_("Mostrar fi&ltros"),
+                               name=_("Mostrar filtros"))
+        self.btn.SetForegroundColour(_T.text)
         self.lb_mostrar = wx.StaticText(parent, label=_("&Mostrar:"))
         self.cb_mostrar = wx.Choice(parent, name=_("Mostrar"))
         _pintar(self.cb_mostrar, _T.field, _T.text)
@@ -54,7 +54,7 @@ class FiltrosMusica:
                              in filtros.CRITERIOS])
         self.cb_ordenar.SetSelection(self._indice_orden())
         self.sizer = self._armar_sizer()
-        self.btn.Bind(wx.EVT_BUTTON, lambda evento: self.alternar())
+        self.btn.Bind(wx.EVT_CHECKBOX, self._al_marcar)
         self.cb_mostrar.Bind(wx.EVT_CHOICE, self._al_elegir_mostrar)
         self.cb_ordenar.Bind(wx.EVT_CHOICE, self._al_elegir_orden)
 
@@ -94,9 +94,17 @@ class FiltrosMusica:
     def alternar(self):
         """Muestra u oculta los dos cuadros, reaplica y avisa lo que hizo."""
         self.visibles = not self.visibles
+        self.btn.SetValue(self.visibles)
         if callable(self._al_cambiar):
             self._al_cambiar()
         self._aplicar_visibilidad()
+
+    def _al_marcar(self, evento):
+        self.visibles = bool(self.btn.GetValue())
+        if callable(self._al_cambiar):
+            self._al_cambiar()
+        self._aplicar_visibilidad()
+        evento.Skip()
 
     def _poner_artistas(self):
         self.cb_mostrar.Set([etiqueta for _clave, etiqueta
@@ -134,12 +142,7 @@ class FiltrosMusica:
             self._avisar(_(anuncios.TEXTO_FILTROS_OCULTOS))
 
     def _rotular(self):
-        if self.visibles:
-            self.btn.SetLabel(_("Ocultar los &filtros"))
-            nombre_accesible(self.btn, _("Ocultar los filtros"))
-        else:
-            self.btn.SetLabel(_("Mostrar los &filtros"))
-            nombre_accesible(self.btn, _("Mostrar los filtros"))
+        self.btn.SetValue(self.visibles)
 
     def _al_elegir_mostrar(self, evento):
         indice = self.cb_mostrar.GetSelection()

@@ -32,8 +32,8 @@ class SeccionClaveIA:
     def construir(self, panel, sizer):
         self._panel = panel
         # Traductores: rótulo de la clave de IA del proveedor elegido.
-        etiqueta = wx.StaticText(panel, label=_("Cla&ve"))
-        etiqueta.SetForegroundColour(_T.accent)
+        etiqueta = wx.StaticText(panel, label=_("Cla&ve:"))
+        etiqueta.SetForegroundColour(_T.text)
         sizer.Add(etiqueta, 0, wx.LEFT | wx.RIGHT, 10)
         self.txt_estado = wx.TextCtrl(
             panel, style=wx.TE_MULTILINE | wx.TE_READONLY,

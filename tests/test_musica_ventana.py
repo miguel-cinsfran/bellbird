@@ -284,9 +284,9 @@ class TestVentanaMusica(unittest.TestCase):
         interactivos = [
             control for control in self._panel().GetChildren()
             if isinstance(control, (wx.TextCtrl, wx.Choice, wx.ListBox,
-                                    wx.Button))]
+                                    wx.Button, wx.CheckBox))]
         self.assertEqual([control.GetName() for control in interactivos], [
-            "Colecciones", "Buscar en la música", "Mostrar los filtros",
+            "Colecciones", "Buscar en la música", "Mostrar filtros",
             "Mostrar", "Ordenar por", "Canciones",
             "Mostrar cola", "Cola de reproducción",
             "Igualación del volumen", "Abrir enlace",
@@ -316,9 +316,10 @@ class TestVentanaMusica(unittest.TestCase):
         self.assertTrue(self.ventana.lb_cola.IsShown())
         interactivos = [
             control for control in self._panel().GetChildren()
-            if isinstance(control, (wx.TextCtrl, wx.ListBox, wx.Button))]
+            if isinstance(control, (wx.TextCtrl, wx.ListBox, wx.Button,
+                                    wx.CheckBox))]
         self.assertEqual([control.GetName() for control in interactivos], [
-            "Colecciones", "Buscar en la música", "Mostrar los filtros",
+            "Colecciones", "Buscar en la música", "Mostrar filtros",
             "Canciones", "Ocultar cola", "Cola de reproducción",
             "Igualación del volumen", "Abrir enlace",
             "Nueva lista", "Cambiar carpeta", "Igualar volumen",
@@ -736,9 +737,9 @@ class TestVentanaMusica(unittest.TestCase):
         self._abrir(ControlFalso(biblioteca=_biblioteca_de("Rock")))
         self.assertFalse(self.ventana.filtros.visibles)
         self.assertEqual(self.ventana.filtros.btn.GetLabel(),
-                         "Mostrar los &filtros")
+                         "Mostrar fi&ltros")
         self.assertEqual(self.ventana.filtros.btn.GetName(),
-                         "Mostrar los filtros")
+                         "Mostrar filtros")
         self.assertFalse(self.ventana.filtros.cb_mostrar.IsShown())
         self.assertFalse(self.ventana.filtros.cb_ordenar.IsShown())
         self.assertFalse(self.ventana.filtros.lb_mostrar.IsShown())
@@ -750,9 +751,9 @@ class TestVentanaMusica(unittest.TestCase):
             filtros_guardados=(True, "", "coleccion")))
         self.assertTrue(self.ventana.filtros.visibles)
         self.assertEqual(self.ventana.filtros.btn.GetLabel(),
-                         "Ocultar los &filtros")
+                         "Mostrar fi&ltros")
         self.assertEqual(self.ventana.filtros.btn.GetName(),
-                         "Ocultar los filtros")
+                         "Mostrar filtros")
         self.assertTrue(self.ventana.filtros.cb_mostrar.IsShown())
         self.assertTrue(self.ventana.filtros.cb_ordenar.IsShown())
 
@@ -765,7 +766,7 @@ class TestVentanaMusica(unittest.TestCase):
         self.assertTrue(self.ventana.filtros.cb_mostrar.IsShown())
         foco.assert_called_once_with()
         self.assertEqual(self.ventana.filtros.btn.GetLabel(),
-                         "Ocultar los &filtros")
+                         "Mostrar fi&ltros")
         self.assertIn("Filtros visibles", self.anuncios)
         self.assertIn(("recordar_filtros", True, "", "coleccion"),
                       control.llamadas)
@@ -780,7 +781,7 @@ class TestVentanaMusica(unittest.TestCase):
         self.assertFalse(self.ventana.filtros.cb_mostrar.IsShown())
         foco.assert_called_once_with()
         self.assertEqual(self.ventana.filtros.btn.GetLabel(),
-                         "Mostrar los &filtros")
+                         "Mostrar fi&ltros")
         self.assertIn("Filtros ocultos", self.anuncios)
         self.assertIn(("recordar_filtros", False, "", "coleccion"),
                       control.llamadas)

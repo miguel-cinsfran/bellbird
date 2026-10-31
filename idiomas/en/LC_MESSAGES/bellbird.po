@@ -6453,21 +6453,21 @@ msgstr "Drop the oldest when they pile up"
 msgid "Estrategia de la cola"
 msgstr "Queue strategy"
 
-#: bellbird/ui/gui_preferencias.py:241
-msgid "Tamaño &máximo de la cola"
-msgstr "&Maximum queue size"
+#: bellbird/ui/gui_preferencias.py:235
+msgid "Tamaño &máximo de la cola:"
+msgstr "&Maximum queue size:"
 
 #: bellbird/ui/gui_preferencias.py:245
 msgid "Tamaño máximo de la cola"
 msgstr "Maximum queue size"
 
-#: bellbird/ui/gui_preferencias.py:248
-msgid "Leer solo el &nombre a partir de"
-msgstr "Read only the &name from"
+#: bellbird/ui/gui_preferencias.py:242
+msgid "Leer solo el &nombre desde esta cantidad de mensajes en cola:"
+msgstr "Read only the &name from this many queued messages:"
 
-#: bellbird/ui/gui_preferencias.py:251
-msgid "Leer solo el nombre a partir de"
-msgstr "Read only the name from"
+#: bellbird/ui/gui_preferencias.py:245
+msgid "Leer solo el nombre desde esta cantidad de mensajes en cola"
+msgstr "Read only the name from this many queued messages"
 
 #: bellbird/ui/gui_preferencias.py:253
 msgid "Con 0, esta opción queda apagada."
@@ -6483,17 +6483,17 @@ msgstr "&Reconnect automatically"
 msgid "Reconectar automáticamente"
 msgstr "Reconnect automatically"
 
-#: bellbird/ui/gui_preferencias.py:268
-msgid "&Espera máxima entre intentos, en segundos"
-msgstr "&Maximum wait between tries, in seconds"
+#: bellbird/ui/gui_preferencias.py:262
+msgid "&Espera máxima entre intentos, en segundos:"
+msgstr "&Maximum wait between tries, in seconds:"
 
 #: bellbird/ui/gui_preferencias.py:272
 msgid "Espera máxima entre intentos, en segundos"
 msgstr "Maximum wait between tries, in seconds"
 
-#: bellbird/ui/gui_preferencias.py:275
-msgid "Número máximo de &intentos"
-msgstr "Maximum number of &tries"
+#: bellbird/ui/gui_preferencias.py:269
+msgid "Número máximo de &intentos:"
+msgstr "Maximum number of &tries:"
 
 #: bellbird/ui/gui_preferencias.py:279
 msgid "Número máximo de intentos"
@@ -6503,17 +6503,17 @@ msgstr "Maximum number of tries"
 msgid "A&visar cuando OBS no da abasto"
 msgstr "Warn when OBS &struggles"
 
-#: bellbird/ui/gui_preferencias.py:295
-msgid "&Puerto del panel de chat"
-msgstr "Chat panel &port"
+#: bellbird/ui/gui_preferencias.py:288
+msgid "&Puerto del panel de chat:"
+msgstr "Chat panel &port:"
 
 #: bellbird/ui/gui_preferencias.py:299
 msgid "Puerto del panel de chat"
 msgstr "Chat panel port"
 
-#: bellbird/ui/gui_preferencias.py:302
-msgid "&Micrófono de OBS"
-msgstr "OBS &microphone"
+#: bellbird/ui/gui_preferencias.py:295
+msgid "&Micrófono de OBS:"
+msgstr "OBS &microphone:"
 
 #: bellbird/ui/gui_preferencias.py:305 bellbird/ui/gui_preferencias.py:349
 msgid "Elegir automáticamente"
@@ -7363,13 +7363,13 @@ msgstr "Save"
 msgid "Todas las canciones"
 msgstr "All songs"
 
-#: bellbird/ui/musica_filtros.py:40 bellbird/ui/musica_filtros.py:141
-msgid "Mostrar los &filtros"
-msgstr "Show the &filters"
+#: bellbird/ui/musica_filtros.py:40
+msgid "Mostrar fi&ltros"
+msgstr "Show fi&lters"
 
-#: bellbird/ui/musica_filtros.py:41 bellbird/ui/musica_filtros.py:142
-msgid "Mostrar los filtros"
-msgstr "Show the filters"
+#: bellbird/ui/musica_filtros.py:41
+msgid "Mostrar filtros"
+msgstr "Show filters"
 
 #: bellbird/ui/musica_filtros.py:43
 msgid "&Mostrar:"
@@ -7387,13 +7387,11 @@ msgstr "Sor&t by:"
 msgid "Ordenar por"
 msgstr "Sort by"
 
-#: bellbird/ui/musica_filtros.py:138
-msgid "Ocultar los &filtros"
-msgstr "Hide the &filters"
+#~ msgid "Ocultar los &filtros"
+#~ msgstr "Hide the &filters"
 
-#: bellbird/ui/musica_filtros.py:139
-msgid "Ocultar los filtros"
-msgstr "Hide the filters"
+#~ msgid "Ocultar los filtros"
+#~ msgstr "Hide the filters"
 
 #. Traductores: aviso cuando falta la carpeta de música; dice que elija otra en
 #. Preferencias.
@@ -7851,21 +7849,21 @@ msgid "Preferencias restablecidas"
 msgstr "Preferences reset"
 
 #: bellbird/ui/preferencias_ia.py:91
-msgid "&Proveedor"
-msgstr "&Provider"
+msgid "&Proveedor:"
+msgstr "&Provider:"
 
 #: bellbird/ui/preferencias_ia.py:104
-msgid "&Dirección del servicio"
-msgstr "Ser&vice address"
+msgid "&Dirección del servicio:"
+msgstr "Ser&vice address:"
 
 # | msgid "P&robar la clave"
 #: bellbird/ui/preferencias_ia.py:121
 msgid "P&robar clave"
 msgstr "&Test the key"
 
-#: bellbird/ui/preferencias_ia.py:128
-msgid "&Modelo"
-msgstr "&Model"
+#: bellbird/ui/preferencias_ia.py:129
+msgid "&Modelo:"
+msgstr "&Model:"
 
 #: bellbird/ui/preferencias_ia.py:133
 msgid "Solo gra&tuitos"
@@ -7876,13 +7874,13 @@ msgstr "&Free only"
 msgid "&Actualizar lista de modelos"
 msgstr "&Refresh model list"
 
-#: bellbird/ui/preferencias_ia.py:141
-msgid "&Otro modelo"
-msgstr "&Other model"
+#: bellbird/ui/preferencias_ia.py:142
+msgid "&Otro modelo:"
+msgstr "&Other model:"
 
-#: bellbird/ui/preferencias_ia.py:157
-msgid "&Instrucción para las capturas"
-msgstr "&Instructions for screenshots"
+#: bellbird/ui/preferencias_ia.py:158
+msgid "&Instrucción para las capturas:"
+msgstr "&Instructions for screenshots:"
 
 # | msgid "R&estaurar la instrucción"
 #: bellbird/ui/preferencias_ia.py:166
@@ -7890,9 +7888,9 @@ msgid "R&estaurar instrucción"
 msgstr "R&estore the instructions"
 
 # | msgid "&Largo de la respuesta"
-#: bellbird/ui/preferencias_ia.py:171
-msgid "E&xtensión de la respuesta"
-msgstr "Response &length"
+#: bellbird/ui/preferencias_ia.py:172
+msgid "E&xtensión de la respuesta:"
+msgstr "Response &length:"
 
 #: bellbird/ui/preferencias_ia.py:175
 msgid "Corta"
@@ -7906,9 +7904,9 @@ msgstr "Medium"
 msgid "Larga"
 msgstr "Long"
 
-#: bellbird/ui/preferencias_ia.py:180
-msgid "Tiempo de e&spera en segundos"
-msgstr "&Wait time in seconds"
+#: bellbird/ui/preferencias_ia.py:181
+msgid "Tiempo de e&spera en segundos:"
+msgstr "&Wait time in seconds:"
 
 #: bellbird/ui/preferencias_ia.py:188
 msgid "Decir Anali&zando mientras espera"
@@ -7916,8 +7914,8 @@ msgstr "Say &Analyzing while waiting"
 
 #. Traductores: rótulo de la clave de IA del proveedor elegido.
 #: bellbird/ui/preferencias_ia_clave.py:35
-msgid "Cla&ve"
-msgstr "&Key"
+msgid "Cla&ve:"
+msgstr "&Key:"
 
 #: bellbird/ui/preferencias_ia_clave.py:54
 msgid "G&uardar clave"
@@ -8082,16 +8080,16 @@ msgid "A&nunciar pausa, reanudación y vuelta al comienzo"
 msgstr "Announc&e pause, resume, and restart"
 
 #: bellbird/ui/preferencias_musica.py:123
-msgid "&Volumen de la música"
-msgstr "Music vol&ume"
+msgid "&Volumen de la música:"
+msgstr "Music vol&ume:"
 
 #: bellbird/ui/preferencias_musica.py:127
 msgid "Volumen de la música"
 msgstr "Music volume"
 
 #: bellbird/ui/preferencias_musica.py:134
-msgid "Salida de a&udio de la música"
-msgstr "Music &audio output"
+msgid "Salida de a&udio de la música:"
+msgstr "Music &audio output:"
 
 #: bellbird/ui/preferencias_musica.py:141
 msgid "Salida de audio de la música"
@@ -8176,17 +8174,21 @@ msgstr "&Enable scheduled messages"
 msgid "Mensajes automáticos guardados"
 msgstr "Scheduled messages saved"
 
-#: bellbird/ui/preferencias_programados.py:69
-msgid "&Texto del mensaje"
-msgstr "Message &text"
+#: bellbird/ui/preferencias_programados.py:58
+msgid "Me&nsajes:"
+msgstr "Messa&ges:"
 
-#: bellbird/ui/preferencias_programados.py:74
-msgid "Cada, &mínimo (minutos)"
-msgstr "Every, &minimum (minutes)"
+#: bellbird/ui/preferencias_programados.py:70
+msgid "&Texto del mensaje:"
+msgstr "Message &text:"
 
-#: bellbird/ui/preferencias_programados.py:78
-msgid "y má&ximo (minutos)"
-msgstr "and ma&ximum (minutes)"
+#: bellbird/ui/preferencias_programados.py:75
+msgid "Intervalo &mínimo, en minutos:"
+msgstr "Interval &minimum, in minutes:"
+
+#: bellbird/ui/preferencias_programados.py:79
+msgid "Intervalo má&ximo, en minutos:"
+msgstr "Interval ma&ximum, in minutes:"
 
 #: bellbird/ui/preferencias_programados.py:84
 msgid "&Enviar este mensaje"

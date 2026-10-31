@@ -296,5 +296,41 @@ class TestPseudoAvisosFiltros(unittest.TestCase):
         self.assertTrue(segundo.startswith("[¡"), segundo)
 
 
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestCasillaFiltros(unittest.TestCase):
+    """La casilla muestra y oculta los cuadros con los anuncios de hoy.
+
+    Abre ventanas.
+    """
+
+    def setUp(self):
+        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.marco = None
+
+    def tearDown(self):
+        if self.marco is not None:
+            destruir(self.marco)
+
+    def test_marcar_muestra_y_desmarcar_oculta_con_anuncio(self):
+        self.marco = wx.Frame(None)
+        avisos = []
+        recordados = []
+        cuadros = musica_filtros.FiltrosMusica(
+            self.marco, avisar=avisos.append,
+            recordar=lambda *estado: recordados.append(estado))
+        self.assertIsInstance(cuadros.btn, wx.CheckBox)
+        self.assertEqual(cuadros.btn.GetLabel(), "Mostrar fi&ltros")
+        self.assertEqual(cuadros.btn.GetName(), "Mostrar filtros")
+        cuadros.btn.SetValue(True)
+        cuadros._al_marcar(mock.Mock())
+        self.assertTrue(cuadros.cb_mostrar.IsShown())
+        self.assertEqual(avisos[-1], "Filtros visibles")
+        cuadros.btn.SetValue(False)
+        cuadros._al_marcar(mock.Mock())
+        self.assertFalse(cuadros.cb_mostrar.IsShown())
+        self.assertEqual(avisos[-1], "Filtros ocultos")
+        self.assertEqual(cuadros.btn.GetLabel(), "Mostrar fi&ltros")
+
+
 if __name__ == "__main__":
     unittest.main()

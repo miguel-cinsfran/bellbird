@@ -120,7 +120,7 @@ class PaginaMusica:
         vs.Add(self.chk_musica_decir_pausa, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _musica_audio(self, p, vs):
-        vs.Add(fila_label(p, _("&Volumen de la música")),
+        vs.Add(fila_label(p, _("&Volumen de la música:")),
                0, wx.LEFT | wx.RIGHT, 10)
         self.sp_musica_volumen = ContadorAccesible(
             p, min=0, max=100,
@@ -131,7 +131,7 @@ class PaginaMusica:
 
         # Al abrir no se consulta VLC: la lista se arma solo con la salida
         # guardada (o la predeterminada) y se completa con el botón.
-        vs.Add(fila_label(p, _("Salida de a&udio de la música")),
+        vs.Add(fila_label(p, _("Salida de a&udio de la música:")),
                0, wx.LEFT | wx.RIGHT, 10)
         etiquetas, identificadores, seleccion = opciones_musica.opciones_salida(
             str(self._config.get("musica_salida", "") or ""),

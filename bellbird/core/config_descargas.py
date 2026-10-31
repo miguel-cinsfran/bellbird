@@ -180,6 +180,14 @@ def obtener_opciones_descarga() -> dict:
             "plantilla": _plantilla_descargas(p, ruta)}
 
 
+def _plantilla_guardada(op: dict) -> str:
+    """Plantilla validada contra las que admite la app."""
+    plantilla = str(op.get("plantilla", "titulo_id")).strip()
+    if plantilla not in _PLANTILLAS_VALIDAS:
+        plantilla = "titulo_id"
+    return plantilla
+
+
 def guardar_opciones_descarga(op: dict) -> None:
     """Persiste todas las opciones de descarga de una vez. Valida y normaliza
     los valores antes de escribir."""
@@ -208,9 +216,7 @@ def guardar_opciones_descarga(op: dict) -> None:
                          SIMULTANEAS_DEFECTO, SIMULTANEAS_MIN, SIMULTANEAS_MAX)
     limite = _rango(op.get("limite", 0), 0, 0, LIMITE_MAX)
     carpeta_lista = bool(op.get("carpeta_lista", False))
-    plantilla = str(op.get("plantilla", "titulo_id")).strip()
-    if plantilla not in _PLANTILLAS_VALIDAS:
-        plantilla = "titulo_id"
+    plantilla = _plantilla_guardada(op)
     guardar_opcion(ruta, "descargas", "formato", formato)
     guardar_opcion(ruta, "descargas", "bitrate", str(bitrate))
     guardar_opcion(ruta, "descargas", "resolucion", str(resolucion))

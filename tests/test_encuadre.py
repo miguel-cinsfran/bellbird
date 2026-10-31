@@ -116,13 +116,13 @@ class TestCortados(unittest.TestCase):
         encuadre = analizar([arriba], ANCHO, ALTO)
         self.assertIn("cortado_arriba", encuadre.problemas)
         self.assertNotIn("alto", encuadre.problemas)
-        self.assertEqual(frase(encuadre), "Rostro cortado arriba.")
+        self.assertEqual(frase(encuadre), "Rostro fuera del borde superior.")
         abajo = hacer_rostro(240, 320, 160, 160, (280, 440), (360, 440),
                              (320, 460))
         encuadre_abajo = analizar([abajo], ANCHO, ALTO)
         self.assertIn("cortado_abajo", encuadre_abajo.problemas)
         self.assertNotIn("bajo", encuadre_abajo.problemas)
-        self.assertEqual(frase(encuadre_abajo), "Rostro cortado abajo.")
+        self.assertEqual(frase(encuadre_abajo), "Rostro fuera del borde inferior.")
 
 
 class TestLejos(unittest.TestCase):

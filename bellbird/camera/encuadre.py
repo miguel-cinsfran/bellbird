@@ -73,10 +73,10 @@ class Aviso:
 
 # Frase por código de problema. Se traducen al armar la frase.
 _FRASE_POR_PROBLEMA = {
-    # Traductores: aviso de encuadre, rostro cortado por arriba.
-    "cortado_arriba": N_("Rostro cortado arriba."),
-    # Traductores: aviso de encuadre, rostro cortado por abajo.
-    "cortado_abajo": N_("Rostro cortado abajo."),
+    # Traductores: aviso de encuadre, rostro fuera del borde superior.
+    "cortado_arriba": N_("Rostro fuera del borde superior."),
+    # Traductores: aviso de encuadre, rostro fuera del borde inferior.
+    "cortado_abajo": N_("Rostro fuera del borde inferior."),
     # Traductores: aviso de encuadre, moverse a la propia izquierda.
     "mover_izquierda": N_("Muévete a tu izquierda."),
     # Traductores: aviso de encuadre, moverse a la propia derecha.

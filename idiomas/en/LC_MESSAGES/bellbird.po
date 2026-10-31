@@ -9390,15 +9390,15 @@ msgstr "between {minimo} and {maximo} minutes"
 msgid "{estado}, {intervalo}: {texto}"
 msgstr "{estado}, {intervalo}: {texto}"
 
-#. Traductores: aviso de encuadre, rostro cortado por arriba.
-#: bellbird/camera/encuadre.py:74
-msgid "Rostro cortado arriba."
-msgstr "Face cut off at the top."
+#. Traductores: aviso de encuadre, rostro fuera del borde superior.
+#: bellbird/camera/encuadre.py:77
+msgid "Rostro fuera del borde superior."
+msgstr "Face past the top edge."
 
-#. Traductores: aviso de encuadre, rostro cortado por abajo.
-#: bellbird/camera/encuadre.py:76
-msgid "Rostro cortado abajo."
-msgstr "Face cut off at the bottom."
+#. Traductores: aviso de encuadre, rostro fuera del borde inferior.
+#: bellbird/camera/encuadre.py:79
+msgid "Rostro fuera del borde inferior."
+msgstr "Face past the bottom edge."
 
 #. Traductores: aviso de encuadre, moverse a la propia izquierda.
 #: bellbird/camera/encuadre.py:78

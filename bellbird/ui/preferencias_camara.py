@@ -58,7 +58,7 @@ class PaginaCamara:
             name="InvertirCamara")
         self.chk_invertir_camara.SetValue(
             bool(self._config.get("camara_invertir", False)))
-        vs.Add(self.chk_invertir_camara, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+        vs.Add(self.chk_invertir_camara, 0, wx.ALL, 10)
 
         p.SetSizer(vs)
         return p

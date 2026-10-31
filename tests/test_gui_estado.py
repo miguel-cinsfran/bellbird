@@ -63,6 +63,23 @@ class TestSnapshotEspectadores(unittest.TestCase):
         self.assertEqual(snap.espectadores_total, None)
 
 
+class TestSnapshotCuotaYoutube(unittest.TestCase):
+
+    def test_con_sesion_lleva_las_unidades_usadas(self):
+        with mock.patch("bellbird.youtube.credenciales.hay_sesion",
+                        return_value=True), \
+             mock.patch("bellbird.youtube.cuota.usadas_hoy",
+                        return_value=42):
+            snap = gui_estado.snapshot_sesion(_marco_falso({}))
+        self.assertEqual(snap.cuota_youtube, 42)
+
+    def test_sin_sesion_queda_en_none(self):
+        with mock.patch("bellbird.youtube.credenciales.hay_sesion",
+                        return_value=False):
+            snap = gui_estado.snapshot_sesion(_marco_falso({}))
+        self.assertIsNone(snap.cuota_youtube)
+
+
 class TestTotalAportesTexto(unittest.TestCase):
 
     def test_una_divisa(self):

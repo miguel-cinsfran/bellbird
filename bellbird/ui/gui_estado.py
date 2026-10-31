@@ -33,6 +33,14 @@ def _texto_camara(frame):
     return encuadre_camara.texto_estado(frame)
 
 
+def _cuota_youtube():
+    """Unidades usadas hoy, solo si hay sesión de YouTube iniciada."""
+    from bellbird.youtube import credenciales, cuota
+    if not credenciales.hay_sesion():
+        return None
+    return cuota.usadas_hoy()
+
+
 def _supervisada(frame):
     try:
         supervisor = getattr(frame, "_supervisor", None)
@@ -114,6 +122,7 @@ def snapshot_sesion(frame):
         obs_escena=(_gui.obs_estado.frase_escena_al_aire(estado_obs.escena)
                     if estado_obs else ""),
         transmision_supervisada=supervisada,
+        cuota_youtube=_seguro(_cuota_youtube, None),
     )
 
 

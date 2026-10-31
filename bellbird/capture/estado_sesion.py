@@ -18,6 +18,7 @@ from dataclasses import dataclass
 
 from bellbird.capture.componentes_estado import (ACTIVOS_DEFECTO, COMPONENTES, ETIQUETAS, etiqueta)
 from bellbird.core.idioma import N_, _, ngettext
+from bellbird.youtube.cuota import FECHA_COSTOS
 
 
 # Códigos de tipo de conexión → etiqueta legible. Se traducen al usarlas.
@@ -65,6 +66,7 @@ class SnapshotSesion:
     musica: str = ""          # qué suena ahora, ya formateado; "" si no hay
     igualando: str = ""       # progreso de la igualación, ya formateado; "" si no hay
     camara: str = ""          # última frase del encuadre; "" si no se vigila
+    cuota_youtube: int | None = None  # unidades usadas hoy; None sin sesión
 
 
 def _fmt_num(n) -> str:
@@ -309,6 +311,16 @@ def _render_camara(s: SnapshotSesion, largo: bool) -> str:
     return _("Cámara: {texto}").format(texto=texto)
 
 
+def _render_cuota_youtube(s: SnapshotSesion, largo: bool) -> str:
+    if s.cuota_youtube is None:
+        return ""
+    # Traductores: parte del estado F2 (cuota de YouTube). {usadas} son las
+    # unidades y {fecha} la fecha de la tabla de costos.
+    return _("Cuota de YouTube usada hoy en esta PC: unas {usadas} de 10.000, "
+             "con los costos del {fecha}").format(
+        usadas=_fmt_num(s.cuota_youtube), fecha=FECHA_COSTOS)
+
+
 _RENDERERS = {
     "estado": _render_estado,
     "titulo": _render_titulo,
@@ -330,6 +342,7 @@ _RENDERERS = {
     "musica": _render_musica,
     "igualando": _render_igualando,
     "camara": _render_camara,
+    "cuota_youtube": _render_cuota_youtube,
 }
 
 

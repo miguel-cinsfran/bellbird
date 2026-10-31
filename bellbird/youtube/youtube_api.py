@@ -20,6 +20,7 @@ from dataclasses import dataclass
 
 from bellbird.core import diagnostico
 from bellbird.core.idioma import N_, _
+from bellbird.youtube import cuota
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -281,20 +282,18 @@ class ClienteYouTube:
     # -- servicios --
     def _lectura(self):
         if self._svc_lectura is None:
-            from googleapiclient.discovery import build
-            self._svc_lectura = build("youtube", "v3", developerKey=self._api_key,
-                                      cache_discovery=False)
+            self._svc_lectura = cuota.construir(
+                developerKey=self._api_key, cache_discovery=False)
         return self._svc_lectura
 
     def _escritura(self):
         if self._svc_escritura is None:
-            from googleapiclient.discovery import build
             creds, nuevo = _cargar_credenciales(self._token_json)
             if nuevo != self._token_json:
                 self._token_actualizado = nuevo
                 self._token_json = nuevo
-            self._svc_escritura = build("youtube", "v3", credentials=creds,
-                                        cache_discovery=False)
+            self._svc_escritura = cuota.construir(
+                credentials=creds, cache_discovery=False)
         return self._svc_escritura
 
     # -- lectura de comentarios (API key) --

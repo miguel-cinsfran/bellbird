@@ -32,6 +32,7 @@ COMPONENTES: tuple[str, ...] = (
     "musica",
     "igualando",
     "camara",
+    "cuota_youtube",
 )
 
 # Activos por defecto: derivan de la sección [estado] de la fuente canónica.
@@ -86,6 +87,8 @@ ETIQUETAS = {
     "igualando": N_("Igualación del volumen de la música"),
     # Traductores: rótulo en Preferencias del componente de F2.
     "camara": N_("Encuadre de cámara"),
+    # Traductores: rótulo en Preferencias del componente de F2.
+    "cuota_youtube": N_("Cuota de YouTube usada hoy"),
 }
 
 

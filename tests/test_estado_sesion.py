@@ -1,6 +1,7 @@
 """Tests del formateo del estado de sesión (F2)."""
 
 import unittest
+from unittest import mock
 
 from bellbird.capture import descartes
 from bellbird.capture import estado_sesion
@@ -269,7 +270,7 @@ class TestDesfaseConVuelta(unittest.TestCase):
 class TestMusica(unittest.TestCase):
 
     def test_componente_al_final_con_etiqueta(self):
-        self.assertEqual(COMPONENTES[-3], "musica")
+        self.assertEqual(COMPONENTES[-4], "musica")
         self.assertEqual(ETIQUETAS["musica"], "Música que suena")
 
     def test_se_dibuja_con_dato(self):
@@ -290,7 +291,7 @@ class TestMusica(unittest.TestCase):
 class TestIgualando(unittest.TestCase):
 
     def test_componente_al_final_con_etiqueta(self):
-        self.assertEqual(COMPONENTES[-2], "igualando")
+        self.assertEqual(COMPONENTES[-3], "igualando")
         self.assertEqual(ETIQUETAS["igualando"],
                          "Igualación del volumen de la música")
 
@@ -308,6 +309,40 @@ class TestIgualando(unittest.TestCase):
 
     def test_activo_de_fabrica(self):
         self.assertIn("igualando", ACTIVOS_DEFECTO)
+
+
+class TestCuotaYoutube(unittest.TestCase):
+
+    def test_componente_al_final_con_etiqueta(self):
+        self.assertEqual(COMPONENTES[-1], "cuota_youtube")
+        self.assertEqual(ETIQUETAS["cuota_youtube"],
+                         "Cuota de YouTube usada hoy")
+
+    def test_sin_sesion_no_dice_nada(self):
+        self.assertEqual(
+            formatear_estado(SnapshotSesion(cuota_youtube=None),
+                             {"cuota_youtube"}), "")
+
+    def test_con_numero_dice_el_texto_con_la_fecha(self):
+        self.assertEqual(
+            formatear_estado(SnapshotSesion(cuota_youtube=1234),
+                             {"cuota_youtube"}),
+            "Cuota de YouTube usada hoy en esta PC: unas 1.234 de 10.000, "
+            "con los costos del 15/10/2026.")
+
+    def test_activo_de_fabrica(self):
+        self.assertIn("cuota_youtube", ACTIVOS_DEFECTO)
+
+    def test_solo_se_consulta_con_sesion_iniciada(self):
+        from bellbird.ui import gui_estado
+        with mock.patch("bellbird.youtube.credenciales.hay_sesion",
+                        return_value=False):
+            self.assertIsNone(gui_estado._cuota_youtube())
+        with mock.patch("bellbird.youtube.credenciales.hay_sesion",
+                        return_value=True), \
+             mock.patch("bellbird.youtube.cuota.usadas_hoy",
+                        return_value=7):
+            self.assertEqual(gui_estado._cuota_youtube(), 7)
 
 
 class TestEspectadoresConTotal(unittest.TestCase):

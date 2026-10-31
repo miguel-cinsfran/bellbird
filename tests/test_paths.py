@@ -24,6 +24,7 @@ RUTAS_DE_DATOS = [
     ("alias", "alias.json"),
     ("mensajes_programados", "mensajes_programados.json"),
     ("fin_pendiente", "fin_pendiente.json"),
+    ("cuota_youtube", "cuota_youtube.json"),
     ("catalogo_ia", "catalogo_ia.json"),
     ("gratis_ia", "gratis_ia.json"),
     ("sounds_ini", "sounds.ini"),

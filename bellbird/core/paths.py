@@ -234,6 +234,10 @@ def carpeta_sonidos() -> Path:
     return carpeta_instalacion() / "sounds"
 
 
+def modelo_rostros() -> Path:
+    return carpeta_instalacion() / "modelos" / "face_detection_yunet_2023mar.onnx"
+
+
 def carpeta_idiomas() -> Path:
     return carpeta_instalacion() / "idiomas"
 

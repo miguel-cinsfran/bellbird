@@ -55,6 +55,14 @@ websockets>=13
 yt-dlp>=2025.1.1
 python-vlc>=3.0.20
 
+# ── Detector de rostros de la cámara (OPCIONAL) ─────────────────────────────
+# Para el encuadre de cámara: OpenCV con su detector YuNet encuentra los
+# rostros en la imagen y numpy mide la luz. Sin estas dependencias, el
+# encuadre de cámara avisa y el resto de la app funciona igual.
+# Headless porque no se usa ninguna ventana de OpenCV.
+opencv-python-headless>=5.0
+numpy>=2.3
+
 # ── ffmpeg bundleado (necesario para descargar) ──────────────────────────────
 # imageio-ffmpeg trae un ffmpeg.exe portable dentro del paquete (sin red). El
 # `construir.bat` lo copia junto al .exe para que el gestor de descargas

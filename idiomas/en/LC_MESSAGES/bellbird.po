@@ -9462,3 +9462,26 @@ msgstr "Main face centered."
 #: bellbird/camera/encuadre.py:165 bellbird/camera/encuadre.py:219
 msgid "Rostro centrado."
 msgstr "Face centered."
+
+#. Traductores: aviso de encuadre, contraluz detrás de la persona.
+#: bellbird/camera/encuadre.py:97
+msgid "Contraluz: la luz está detrás de ti."
+msgstr "Backlit: the light is behind you."
+
+#. Traductores: aviso de encuadre, poca luz sobre el rostro.
+#: bellbird/camera/encuadre.py:99
+msgid "Rostro oscuro: falta luz delante."
+msgstr "Dark face: there is not enough light in front."
+
+#. Traductores: aviso de encuadre, la imagen no cambia.
+#: bellbird/camera/encuadre.py:170
+msgid "Imagen congelada."
+msgstr "Frozen image."
+
+#: bellbird/camera/detector_rostros.py:70 bellbird/camera/detector_rostros.py:73 bellbird/camera/detector_rostros.py:79 bellbird/camera/detector_rostros.py:89
+msgid "No se pudo cargar el detector de rostros."
+msgstr "Could not load the face detector."
+
+#: bellbird/camera/detector_rostros.py:96
+msgid "No se pudo leer la imagen."
+msgstr "Could not read the image."

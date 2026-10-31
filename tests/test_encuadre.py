@@ -4,11 +4,13 @@ import math
 import unittest
 
 from bellbird.camera.encuadre import (
+    ContadorCongelada,
     Encuadre,
     Rostro,
     VigiaEncuadre,
     analizar,
     frase,
+    principal,
 )
 
 ANCHO = 640
@@ -286,6 +288,80 @@ class TestVigiaReiniciar(unittest.TestCase):
         self.assertIsNone(vigia.observar(bien(), 9.0))
         self.assertIsNone(vigia.observar(bien(), 10.5))
         self.assertIsNone(vigia.observar(estado, 11.0))
+
+
+class TestPrincipal(unittest.TestCase):
+
+    def test_el_de_mayor_area_y_a_igual_area_el_primero(self):
+        chico = rostro_en(0.5, oy=0.35, tam=0.12)
+        grande = rostro_en(0.2, oy=0.33, tam=0.33)
+        self.assertIs(principal([chico, grande]), grande)
+        gemelo = rostro_en(0.5, oy=0.35, tam=0.12)
+        self.assertIs(principal([chico, gemelo]), chico)
+
+
+class TestLuz(unittest.TestCase):
+
+    def test_contraluz_con_fondo_mucho_mas_claro(self):
+        encuadre = analizar([rostro_centrado()], ANCHO, ALTO, luz_rostro=100.0,
+                            luz_fondo=180.0)
+        self.assertIn("contraluz", encuadre.problemas)
+        self.assertEqual(frase(encuadre), "Contraluz: la luz está detrás de ti.")
+
+    def test_oscuro_con_poca_luz_delante(self):
+        encuadre = analizar([rostro_centrado()], ANCHO, ALTO, luz_rostro=30.0,
+                            luz_fondo=40.0)
+        self.assertIn("oscuro", encuadre.problemas)
+        self.assertEqual(frase(encuadre), "Rostro oscuro: falta luz delante.")
+
+    def test_contraluz_excluye_oscuro(self):
+        encuadre = analizar([rostro_centrado()], ANCHO, ALTO, luz_rostro=30.0,
+                            luz_fondo=150.0)
+        self.assertIn("contraluz", encuadre.problemas)
+        self.assertNotIn("oscuro", encuadre.problemas)
+
+    def test_en_el_umbral_justo_no_avisa(self):
+        al_limite = analizar([rostro_centrado()], ANCHO, ALTO, luz_rostro=50.0,
+                             luz_fondo=120.0)
+        self.assertNotIn("contraluz", al_limite.problemas)
+        self.assertNotIn("oscuro", al_limite.problemas)
+
+    def test_sin_luz_no_mira_ni_contraluz_ni_oscuro(self):
+        encuadre = analizar([rostro_centrado()], ANCHO, ALTO, luz_fondo=200.0)
+        self.assertNotIn("contraluz", encuadre.problemas)
+        self.assertNotIn("oscuro", encuadre.problemas)
+
+
+class TestCongelada(unittest.TestCase):
+
+    def test_congelada_es_el_unico_problema(self):
+        cara = rostro_en(0.25, oy=0.20, tam=0.33, y=40)
+        encuadre = analizar([cara], ANCHO, ALTO, congelada=True)
+        self.assertEqual(encuadre.problemas, ("congelada",))
+        self.assertEqual(frase(encuadre), "Imagen congelada.")
+
+    def test_congelada_no_cuenta_rostros(self):
+        rostros = [rostro_centrado(), rostro_en(0.85, oy=0.35, tam=0.12)]
+        encuadre = analizar(rostros, ANCHO, ALTO, congelada=True)
+        self.assertEqual(encuadre.cantidad, 2)
+        self.assertEqual(frase(encuadre), "Imagen congelada.")
+
+
+class TestContadorCongelada(unittest.TestCase):
+
+    def test_cuatro_nueve_no_avisa_y_cinco_si(self):
+        contador = ContadorCongelada()
+        self.assertFalse(contador.observar("huella", 0.0))
+        self.assertFalse(contador.observar("huella", 4.9))
+        self.assertTrue(contador.observar("huella", 5.0))
+
+    def test_huella_distinta_reinicia_la_cuenta(self):
+        contador = ContadorCongelada()
+        self.assertFalse(contador.observar("primera", 0.0))
+        self.assertTrue(contador.observar("primera", 5.0))
+        self.assertFalse(contador.observar("segunda", 6.0))
+        self.assertFalse(contador.observar("segunda", 10.9))
+        self.assertTrue(contador.observar("segunda", 11.0))
 
 
 if __name__ == "__main__":

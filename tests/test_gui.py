@@ -2242,7 +2242,7 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
             "ProveedorIA", "EstadoClaveIA", "NuevaClaveIA",
             "BorrarClaveIA", "ProbarClaveIA", "ModeloIA",
             "ActualizarModelosIA", "OtroModeloIA", "PreguntaIA",
-            "RestaurarPreguntaIA", "LargoIA", "TiempoIA", "DecirAnalizandoIA",
+            "RestablecerPreguntaIA", "LargoIA", "TiempoIA", "DecirAnalizandoIA",
         ])
 
     def test_orden_de_tab_escribiendo_una_clave_nueva(self):
@@ -2254,7 +2254,7 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
             "ProveedorIA", "ClaveIA", "GuardarClaveIA",
             "BorrarClaveIA", "ProbarClaveIA", "ModeloIA",
             "ActualizarModelosIA", "OtroModeloIA", "PreguntaIA",
-            "RestaurarPreguntaIA", "LargoIA", "TiempoIA", "DecirAnalizandoIA",
+            "RestablecerPreguntaIA", "LargoIA", "TiempoIA", "DecirAnalizandoIA",
         ])
 
     def test_con_clave_guardada_no_hay_campo_de_escritura_visible(self):
@@ -2993,7 +2993,7 @@ class TestPaginaInteligenciaArtificialSoloLectura(unittest.TestCase):
         self.assertEqual(self._orden_de_tab(dialogo), [
             "ProveedorIA", "ClaveIA", "GuardarClaveIA",
             "ProbarClaveIA", "ModeloIA", "ActualizarModelosIA",
-            "OtroModeloIA", "PreguntaIA", "RestaurarPreguntaIA",
+            "OtroModeloIA", "PreguntaIA", "RestablecerPreguntaIA",
             "LargoIA", "TiempoIA", "DecirAnalizandoIA",
         ])
 

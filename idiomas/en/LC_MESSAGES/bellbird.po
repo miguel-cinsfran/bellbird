@@ -7883,9 +7883,10 @@ msgid "&Instrucción para las capturas:"
 msgstr "&Instructions for screenshots:"
 
 # | msgid "R&estaurar la instrucción"
-#: bellbird/ui/preferencias_ia.py:166
-msgid "R&estaurar instrucción"
-msgstr "R&estore the instructions"
+# | msgid "R&estaurar instrucción"
+#: bellbird/ui/preferencias_ia.py:167
+msgid "R&establecer instrucción"
+msgstr "R&eset the instructions"
 
 # | msgid "&Largo de la respuesta"
 #: bellbird/ui/preferencias_ia.py:172

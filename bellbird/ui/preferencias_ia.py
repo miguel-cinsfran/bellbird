@@ -164,7 +164,7 @@ class PaginaIA:
         vs.Add(self.txt_ia_pregunta, 0,
                wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.btn_ia_restaurar = wx.Button(
-            p, label=_("R&estaurar instrucción"), name="RestaurarPreguntaIA")
+            p, label=_("R&establecer instrucción"), name="RestablecerPreguntaIA")
         vs.Add(self.btn_ia_restaurar, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.btn_ia_restaurar.Bind(wx.EVT_BUTTON, self._on_ia_restaurar)
 

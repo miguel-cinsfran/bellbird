@@ -168,6 +168,12 @@ Paraguay.
 - Ninguna letra de acceso se repite en las categorías de *Preferencias* ni
   en los cuadros de transmisión, comentarios, historial y descargas.
   *Cancelar descarga* pasa a la letra A y *Vaciar historial* a la H.
+- Las letras de acceso de cada categoría de *Preferencias* ya no repiten
+  las de *Guardar* y *Cancelar*, ni las de la ventana principal la de
+  *Enlace o ID*. Cambian *Enviar* en el chat del directo (Alt+N), *Leer
+  los mensajes recientes con* (Alt+R), y en *API y sesión* y *Mensajes
+  automáticos* los botones de guardar (Alt+A), *Clave de API* (Alt+V),
+  *ID de cliente OAuth* (Alt+O) y *Agregar* (Alt+R).
 
 ## 2.5.1, octubre de 2026
 

@@ -1,0 +1,6 @@
+rostro.jpg
+
+Retrato oficial de la astronauta Ellen Ochoa, de la NASA, achicado a 320
+por 400. Dominio público, como toda obra del gobierno de Estados Unidos:
+https://commons.wikimedia.org/wiki/File:Ellen_Ochoa.jpg
+Lo usa la prueba real del detector de rostros.

@@ -202,9 +202,9 @@ class TestAtajosCaptura(unittest.TestCase):
     def test_ayuda_ctrl_alt_nombra_a_mayus(self):
         self.assertEqual(
             atajos_captura._AREA_AYUDA["ctrl+alt"],
-            "Debe ser Ctrl+Alt y una flecha, Espacio, una letra o un número, "
-            "o Ctrl+Alt+Mayús y Flecha izquierda o derecha "
-            "(por ejemplo Ctrl+Alt+T).")
+            "Debe ser Ctrl+Alt y una flecha, Espacio, una letra o un número "
+            "(por ejemplo Ctrl+Alt+T). También vale Ctrl+Alt+Mayús y Flecha "
+            "izquierda o derecha.")
 
     def test_titulos_de_grupo_dicen_mayus(self):
         grupos = dict(config.ATAJOS_GRUPOS)

@@ -54,9 +54,9 @@ class PaginaApi:
         datos = credenciales.cargar()
         grid = wx.FlexGridSizer(3, 2, 8, 8)
         grid.AddGrowableCol(1, 1)
-        self.txt_api = self._fila_api(p, grid, _("Clave de &API:"), _("Clave de API de YouTube"),
+        self.txt_api = self._fila_api(p, grid, _("Cla&ve de API:"), _("Clave de API de YouTube"),
                                       datos.get("api_key", ""))
-        self.txt_cid = self._fila_api(p, grid, _("ID de &cliente OAuth:"),
+        self.txt_cid = self._fila_api(p, grid, _("ID de cliente &OAuth:"),
                                       _("ID de cliente OAuth"), datos.get("oauth_client_id", ""))
         self.txt_secret = self._fila_api(p, grid, _("&Secreto de cliente OAuth:"),
                                          _("Secreto de cliente OAuth"),
@@ -74,7 +74,7 @@ class PaginaApi:
 
     def _botones(self, p, vs):
         row = wx.BoxSizer(wx.HORIZONTAL)
-        self.btn_api_guardar = wx.Button(p, label=_("&Guardar claves"), name="GuardarClaves")
+        self.btn_api_guardar = wx.Button(p, label=_("Gu&ardar claves"), name="GuardarClaves")
         self.btn_api_login   = wx.Button(p, label=_("&Iniciar sesión"), name="IniciarSesion")
         self.btn_api_logout  = wx.Button(p, label=_("Cerrar s&esión"), name="CerrarSesion")
         self.btn_api_guia    = wx.Button(p, label=_("Abrir g&uía"), name="AbrirGuia")

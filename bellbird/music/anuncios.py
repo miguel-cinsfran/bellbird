@@ -103,7 +103,7 @@ TEXTO_AYUDA_BIBLIOTECA = N_(
     "Ctrl más Intro al final, tecla de aplicaciones para más opciones")
 TEXTO_AYUDA_BIBLIOTECA_LISTA = N_(
     "Intro reproduce ahora, Mayús más Intro a continuación, Ctrl más Intro "
-    "al final, tecla de aplicaciones para más opciones, Suprimir elimina de la lista")
+    "al final, tecla de aplicaciones para más opciones. Suprimir elimina de la lista")
 TEXTO_AYUDA_COLA = N_(
     "Intro reproduce, Suprimir elimina, Alt más flechas mueve, "
     "tecla de aplicaciones para más opciones")

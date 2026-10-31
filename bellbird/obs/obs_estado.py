@@ -39,8 +39,8 @@ TEXTO_COMO_SE_COLOCA = N_(
     "a poco con las flechas, y confirma con Intro.\n\n"
     "Cinco. El tamaño se cambia con Ancho y Alto y se aplica con su botón.\n\n"
     "El cuadro Estado del panel describe en todo momento dónde está la\n"
-    "fuente, de qué tamaño es, si se sale del lienzo y si tapa a otras. Se\n"
-    "actualiza solo con cada cambio.\n\n"
+    "fuente y de qué tamaño es. También dice si se sale del lienzo y si tapa\n"
+    "a otras. Se actualiza solo con cada cambio.\n\n"
     "Restablecer deshace todo lo que hiciste desde que abriste esta ventana.")
 
 _TEXTO_SIN_ESCENA = N_("No se pudo saber que escena está al aire")

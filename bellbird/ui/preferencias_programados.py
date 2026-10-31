@@ -90,9 +90,9 @@ class PaginaProgramados:
 
     def _programados_botones(self, p, vs):
         fila = wx.BoxSizer(wx.HORIZONTAL)
-        self.btn_programado_agregar = wx.Button(p, label=_("&Agregar"), name="AgregarProgramado")
+        self.btn_programado_agregar = wx.Button(p, label=_("Ag&regar"), name="AgregarProgramado")
         self.btn_programado_guardar = wx.Button(
-            p, label=_("&Guardar cambios"), name="GuardarProgramado")
+            p, label=_("Gu&ardar cambios"), name="GuardarProgramado")
         self.btn_programado_quitar = wx.Button(p, label=_("E&liminar"), name="QuitarProgramado")
         for boton in (self.btn_programado_agregar, self.btn_programado_guardar,
                       self.btn_programado_quitar):

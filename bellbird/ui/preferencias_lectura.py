@@ -110,7 +110,7 @@ class PaginaLectura:
         vs.Add(box, 0, wx.EXPAND | wx.ALL, 10)
 
     def _construir_recientes(self, p, vs):
-        vs.Add(self._fila_label(p, _("Leer los mensajes recientes &con:")),
+        vs.Add(self._fila_label(p, _("Leer los mensajes &recientes con:")),
                0, wx.LEFT | wx.RIGHT, 10)
         self.cho_lectura_recientes = EleccionTexto(
             p, (("lector", _("El lector de pantalla")),

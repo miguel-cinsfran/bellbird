@@ -331,7 +331,8 @@ class TestAyudas(unittest.TestCase):
         self.assertEqual(
             vista.ayuda_biblioteca(True),
             "Intro reproduce ahora, Mayús más Intro a continuación, Ctrl más Intro "
-            "al final, tecla de aplicaciones para más opciones, Suprimir elimina de la lista")
+            "al final, tecla de aplicaciones para más opciones. "
+            "Suprimir elimina de la lista")
 
     def test_colecciones(self):
         self.assertEqual(

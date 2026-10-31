@@ -1117,7 +1117,7 @@ msgstr "&Live joins:"
 
 #: bellbird/core/avisos_tiktok.py:19
 msgid "&Me gusta:"
-msgstr "Like&s:"
+msgstr "Li&kes:"
 
 #: bellbird/core/avisos_tiktok.py:20
 msgid "&Seguidores nuevos:"
@@ -1611,8 +1611,7 @@ msgstr ""
 #: bellbird/music/anuncios.py:105
 msgid ""
 "Intro reproduce ahora, Mayús más Intro a continuación, Ctrl más Intro al "
-"final, tecla de aplicaciones para más opciones, Suprimir elimina de la "
-"lista"
+"final, tecla de aplicaciones para más opciones. Suprimir elimina de la lista"
 msgstr ""
 "Enter plays now, Shift plus Enter up next, Ctrl plus Enter at the end, "
 "applications key for more options, Delete removes from the list"
@@ -2607,8 +2606,8 @@ msgid ""
 "Cinco. El tamaño se cambia con Ancho y Alto y se aplica con su botón.\n"
 "\n"
 "El cuadro Estado del panel describe en todo momento dónde está la\n"
-"fuente, de qué tamaño es, si se sale del lienzo y si tapa a otras. Se\n"
-"actualiza solo con cada cambio.\n"
+"fuente y de qué tamaño es. También dice si se sale del lienzo y si tapa\n"
+"a otras. Se actualiza solo con cada cambio.\n"
 "\n"
 "Restablecer deshace todo lo que hiciste desde que abriste esta ventana."
 msgstr ""
@@ -3577,16 +3576,17 @@ msgstr "It must be Alt+Shift and a key (for example Alt+Shift+C)."
 
 #: bellbird/ui/atajos_captura.py:52
 msgid ""
-"Debe ser Ctrl+Alt y una flecha, Espacio, una letra o un número, o "
-"Ctrl+Alt+Mayús y Flecha izquierda o derecha (por ejemplo Ctrl+Alt+T)."
+"Debe ser Ctrl+Alt y una flecha, Espacio, una letra o un número (por "
+"ejemplo Ctrl+Alt+T). También vale Ctrl+Alt+Mayús y Flecha izquierda o "
+"derecha."
 msgstr ""
 "It must be Ctrl+Alt and an arrow, Spacebar, a letter or a number, or "
 "Ctrl+Alt+Shift and Left or Right arrow (for example Ctrl+Alt+T)."
 
 #: bellbird/ui/atajos_captura.py:53
 msgid ""
-"Debe ser una tecla de función, de F1 a F12, sola, con Ctrl o con "
-"Ctrl+Mayús (por ejemplo F2 o Ctrl+F2)."
+"Debe ser una tecla de función, de F1 a F12 (por ejemplo F2). Puede ir "
+"sola, con Ctrl o con Ctrl+Mayús (por ejemplo Ctrl+F2)."
 msgstr ""
 "It must be a function key, from F1 to F12, alone, with Ctrl or with "
 "Ctrl+Shift (for example F2 or Ctrl+F2)."
@@ -4792,7 +4792,7 @@ msgstr "Apply order"
 
 #: bellbird/ui/gui_comentarios.py:79
 msgid "&Recargar comentarios"
-msgstr "&Reload comments"
+msgstr "R&eload comments"
 
 #: bellbird/ui/gui_comentarios.py:86
 msgid "Co&mentarios:"
@@ -4812,7 +4812,7 @@ msgstr ""
 
 #: bellbird/ui/gui_comentarios.py:107
 msgid "Car&gar más"
-msgstr "&Load more"
+msgstr "Lo&ad more"
 
 #: bellbird/ui/gui_comentarios.py:108 bellbird/ui/gui_comentarios.py:138
 msgid "Comen&tar en el vídeo"
@@ -5303,7 +5303,7 @@ msgstr "File name"
 
 #: bellbird/ui/preferencias_descargas.py:79
 msgid "Descargas &simultáneas:"
-msgstr "&Simultaneous downloads:"
+msgstr "Simul&taneous downloads:"
 
 #: bellbird/ui/preferencias_descargas.py:83
 msgid "Descargas simultáneas"
@@ -6429,7 +6429,7 @@ msgstr "Chat font size"
 # | msgid "Mostrar el total de &Super Chats en la barra de estado"
 #: bellbird/ui/gui_preferencias.py:215
 msgid "Mostrar total de &Super Chats en la barra de estado"
-msgstr "Show the Super &Chat total in the status bar"
+msgstr "Show the Super Chat &total in the status bar"
 
 # | msgid "Mostrar la pestaña de &información del vídeo (canal, vistas,
 # | descripción)"
@@ -6501,7 +6501,7 @@ msgstr "Maximum number of tries"
 
 #: bellbird/ui/gui_preferencias.py:290
 msgid "A&visar cuando OBS no da abasto"
-msgstr "Warn when OBS &struggles"
+msgstr "&Warn when OBS struggles"
 
 #: bellbird/ui/gui_preferencias.py:288
 msgid "&Puerto del panel de chat:"
@@ -6647,7 +6647,11 @@ msgid "Mensaje para el chat"
 msgstr "Message for the chat"
 
 #. Traductores: botón para enviar el mensaje.
-#: bellbird/ui/gui_redactar.py:31 bellbird/ui/ia_ventana.py:106
+#: bellbird/ui/gui_redactar.py:32
+msgid "E&nviar"
+msgstr "&Send"
+
+#: bellbird/ui/ia_ventana.py:106
 msgid "&Enviar"
 msgstr "&Send"
 
@@ -7533,7 +7537,7 @@ msgstr ""
 "pip install google-api-python-client google-auth-oauthlib"
 
 #: bellbird/ui/preferencias_api.py:58
-msgid "Clave de &API:"
+msgid "Cla&ve de API:"
 msgstr "&API key:"
 
 #: bellbird/ui/preferencias_api.py:58
@@ -7541,8 +7545,8 @@ msgid "Clave de API de YouTube"
 msgstr "YouTube API key"
 
 #: bellbird/ui/preferencias_api.py:60
-msgid "ID de &cliente OAuth:"
-msgstr "OAuth &client ID:"
+msgid "ID de cliente &OAuth:"
+msgstr "OAuth c&lient ID:"
 
 #: bellbird/ui/preferencias_api.py:61
 msgid "ID de cliente OAuth"
@@ -7557,8 +7561,8 @@ msgid "Secreto de cliente OAuth"
 msgstr "OAuth client secret"
 
 #: bellbird/ui/preferencias_api.py:78
-msgid "&Guardar claves"
-msgstr "&Save keys"
+msgid "Gu&ardar claves"
+msgstr "Save &keys"
 
 #: bellbird/ui/preferencias_api.py:79
 msgid "&Iniciar sesión"
@@ -7699,7 +7703,7 @@ msgstr "Ask before quitting if a chat is connected or a broadcast is in progress
 # | msgid "Reproducir el sonido de &inicio"
 #: bellbird/ui/preferencias_general.py:97
 msgid "Reproducir sonido de &inicio"
-msgstr "Play startup &sound"
+msgstr "Play startup s&ound"
 
 # | msgid "Reproducir el sonido de inicio"
 #: bellbird/ui/preferencias_general.py:98
@@ -7920,7 +7924,7 @@ msgstr "&Key:"
 
 #: bellbird/ui/preferencias_ia_clave.py:54
 msgid "G&uardar clave"
-msgstr "&Save key"
+msgstr "Save ke&y"
 
 #: bellbird/ui/preferencias_ia_clave.py:59
 msgid "Escribir una clave &nueva"
@@ -7981,7 +7985,7 @@ msgid "Avisos de TikTok"
 msgstr "TikTok notices"
 
 #: bellbird/ui/preferencias_lectura.py:113
-msgid "Leer los mensajes recientes &con:"
+msgid "Leer los mensajes &recientes con:"
 msgstr "Read recent messages &with:"
 
 #: bellbird/ui/preferencias_lectura.py:116
@@ -8041,7 +8045,7 @@ msgstr "Remember the &last playlist on open"
 
 #: bellbird/ui/preferencias_musica.py:94
 msgid "&Fundido entre canciones, en segundos:"
-msgstr "&Crossfade between songs, in seconds:"
+msgstr "Crossfade &between songs, in seconds:"
 
 #: bellbird/ui/preferencias_musica.py:98
 msgid "Fundido entre canciones, en segundos"
@@ -8128,7 +8132,7 @@ msgstr "Ask when opening Music whether to match volume"
 # | msgid "Usar atajos de música en cualquier &programa"
 #: bellbird/ui/preferencias_musica.py:167
 msgid "Usar atajos de música en cualquier a&plicación"
-msgstr "Use music &shortcuts in any application"
+msgstr "Use music shortcuts &in any application"
 
 #: bellbird/ui/preferencias_musica.py:202
 msgid "Se encontró 1 salida de audio"
@@ -8193,15 +8197,15 @@ msgstr "Interval ma&ximum, in minutes:"
 
 #: bellbird/ui/preferencias_programados.py:84
 msgid "&Enviar este mensaje"
-msgstr "&Send this message"
+msgstr "Se&nd this message"
 
 #: bellbird/ui/preferencias_programados.py:92
-msgid "&Agregar"
+msgid "Ag&regar"
 msgstr "&Add"
 
 #: bellbird/ui/preferencias_programados.py:94
-msgid "&Guardar cambios"
-msgstr "Save &changes"
+msgid "Gu&ardar cambios"
+msgstr "Sa&ve changes"
 
 #: bellbird/ui/preferencias_programados.py:152
 msgid "Mensaje agregado"
@@ -8227,7 +8231,7 @@ msgstr "Default"
 
 #: bellbird/ui/preferencias_sonidos.py:93
 msgid "&Sonidos:"
-msgstr "&Sounds:"
+msgstr "S&ounds:"
 
 # | msgid "&Oír el sonido elegido"
 #: bellbird/ui/preferencias_sonidos.py:97
@@ -8273,7 +8277,7 @@ msgstr "ElevenLabs key"
 
 #: bellbird/ui/preferencias_voz.py:82
 msgid "Compro&bar clave"
-msgstr "&Check key"
+msgstr "C&heck key"
 
 #: bellbird/ui/preferencias_voz.py:82
 msgid "Comprobar clave"

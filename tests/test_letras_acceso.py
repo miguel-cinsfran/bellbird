@@ -7,13 +7,16 @@ cuadro trae letras repetidas, esa prueba se marca con
 
 import queue
 import tempfile
+import threading
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest import mock
 
 import wx
 
-from tests.letras_acceso import ingles, letras_de_contenedor, letras_repetidas
+from tests.letras_acceso import (
+    ingles, letras_repetidas, repetidas_con_lo_de_fuera)
 from tests.test_gui_microfono import FUENTES, PARES
 from tests.test_gui_transmision import (
     GestorFalso, HiloInmediato, _asegurar_sin_obs)
@@ -21,7 +24,7 @@ from tests.ventanas_prueba import destruir
 from bellbird.ai import catalogo
 from bellbird.core import config
 from bellbird.downloads import descargas, formatos_reales
-from bellbird.ui import descargas_listas, elegir_formato, gui_comentarios, gui_descargas, gui_directo_youtube, gui_historial, gui_microfono, gui_transmision, gui_preferencias
+from bellbird.ui import descargas_listas, elegir_formato, gui, gui_comentarios, gui_descargas, gui_directo_youtube, gui_historial, gui_microfono, gui_transmision, gui_preferencias
 from bellbird.ui import preferencias_ia
 from bellbird.ui import preferencias_ia_clave
 from bellbird.voice import motores
@@ -90,19 +93,12 @@ class TestLetrasAccesoPreferencias(unittest.TestCase):
         self.addCleanup(destruir, dialogo)
         return dialogo
 
-    def test_cada_pagina_sin_letras_repetidas(self):
+    def test_cada_pagina_sin_letras_repetidas_con_lo_de_fuera(self):
         dialogo = self._dialogo()
-        for pagina in dialogo._paginas():
-            if pagina.GetName() == "PagProgramados":
-                continue
-            with self.subTest(pagina=pagina.GetName()):
-                self.assertEqual(letras_repetidas(pagina), {})
-
-    def test_pagina_programados_sin_letras_repetidas(self):
-        dialogo = self._dialogo()
-        pagina = next(p for p in dialogo._paginas()
-                      if p.GetName() == "PagProgramados")
-        self.assertEqual(letras_repetidas(pagina), {})
+        for pagina, repetidas in repetidas_con_lo_de_fuera(
+                dialogo, dialogo.nb).items():
+            with self.subTest(pagina=pagina):
+                self.assertEqual(repetidas, {})
 
 
 class TestLetrasAccesoMicrofono(unittest.TestCase):
@@ -137,10 +133,13 @@ class TestLetrasAccesoHistorial(unittest.TestCase):
         self.ruta = Path(self.temporal.name) / "historial.json"
         self.ruta.write_text("[]", encoding="utf-8")
 
-    def test_gui_historial_sin_letras_repetidas(self):
+    def test_cada_pagina_sin_letras_repetidas_con_lo_de_fuera(self):
         dialogo = gui_historial.HistorialDialog(None, self.ruta, mock.Mock())
         self.addCleanup(destruir, dialogo)
-        self.assertEqual(letras_repetidas(dialogo), {}, gui_historial.__name__)
+        for pagina, repetidas in repetidas_con_lo_de_fuera(
+                dialogo, dialogo.nb).items():
+            with self.subTest(pagina=pagina):
+                self.assertEqual(repetidas, {}, gui_historial.__name__)
 
 
 class TestLetrasAccesoComentarios(unittest.TestCase):
@@ -201,15 +200,9 @@ class TestLetrasAccesoDescargas(unittest.TestCase):
 
     def test_cada_pestana_sin_letras_repetidas_con_lo_de_fuera(self):
         dialogo = self._dialogo()
-        fuera = letras_de_contenedor(dialogo)
-        for indice in range(dialogo.pestanas.GetPageCount()):
-            pagina = dialogo.pestanas.GetPage(indice)
-            juntas = {letra: list(rotulos) for letra, rotulos in fuera.items()}
-            for letra, rotulos in letras_de_contenedor(pagina).items():
-                juntas.setdefault(letra, []).extend(rotulos)
-            repetidas = {letra: rotulos for letra, rotulos in juntas.items()
-                         if len(rotulos) > 1}
-            with self.subTest(pagina=dialogo.pestanas.GetPageText(indice)):
+        for pagina, repetidas in repetidas_con_lo_de_fuera(
+                dialogo, dialogo.pestanas).items():
+            with self.subTest(pagina=pagina):
                 self.assertEqual(repetidas, {})
 
 
@@ -238,6 +231,35 @@ class TestLetrasAccesoTransmision(unittest.TestCase):
 
     def test_cuadro_sin_letras_repetidas(self):
         self.assertEqual(letras_repetidas(self.dialogo), {})
+
+
+class TestLetrasAccesoPrincipal(unittest.TestCase):
+    def setUp(self):
+        self.app = wx.App.Get() or wx.App(False)
+
+    def _ventana(self):
+        configuracion = {
+            "atajos_raw": {}, "filtro_activo": "todos",
+            "mostrar_botones_reproductor": False, "mostrar_metadatos": True,
+            "mostrar_total_superchats": True, "overlay_activo": False,
+            "programados_activo": False,
+        }
+        stats = SimpleNamespace(leidos=0, superchats=0, descartados=0)
+        worker = SimpleNamespace(get_rate=lambda: 0, get_volume=lambda: 100)
+        with mock.patch.object(gui.diagnostico, "crear_hilo"):
+            frame = gui.YTChatFrame(None, configuracion, queue.Queue(),
+                                    stats, worker, threading.Event())
+        self.addCleanup(destruir, frame)
+        frame.ShowWithoutActivating()
+        wx.Yield()
+        return frame
+
+    def test_cada_pagina_sin_letras_repetidas_con_lo_de_fuera(self):
+        frame = self._ventana()
+        for pagina, repetidas in repetidas_con_lo_de_fuera(
+                frame, frame.nb).items():
+            with self.subTest(pagina=pagina):
+                self.assertEqual(repetidas, {})
 
 
 class TestLetrasAccesoPreferenciasEnIngles(TestLetrasAccesoPreferencias):
@@ -340,6 +362,20 @@ class TestLetrasAccesoDescargasEnIngles(TestLetrasAccesoDescargas):
 
 class TestLetrasAccesoTransmisionEnIngles(TestLetrasAccesoTransmision):
     # Gemela en inglés: repite las pruebas sin copiarlas.
+
+    @classmethod
+    def setUpClass(cls):
+        cls._ingles = ingles()
+        cls._ingles.__enter__()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._ingles.__exit__(None, None, None)
+        del cls._ingles
+
+
+class TestLetrasAccesoPrincipalEnIngles(TestLetrasAccesoPrincipal):
+    # Gemela en inglés: repite la prueba sin copiarla.
 
     @classmethod
     def setUpClass(cls):

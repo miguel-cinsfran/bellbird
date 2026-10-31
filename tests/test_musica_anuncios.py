@@ -557,7 +557,8 @@ class TestTextosVentanaMusica(unittest.TestCase):
         self.assertEqual(
             anuncios.TEXTO_AYUDA_BIBLIOTECA_LISTA,
             "Intro reproduce ahora, Mayús más Intro a continuación, Ctrl más Intro "
-            "al final, tecla de aplicaciones para más opciones, Suprimir elimina de la lista")
+            "al final, tecla de aplicaciones para más opciones. "
+            "Suprimir elimina de la lista")
         self.assertEqual(
             anuncios.TEXTO_AYUDA_COLA,
             "Intro reproduce, Suprimir elimina, Alt más flechas mueve, "

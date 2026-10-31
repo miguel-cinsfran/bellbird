@@ -29,7 +29,7 @@ class PanelRedactar(wx.Panel):
         self.texto.SetMinSize((-1, 3 * self.texto.GetCharHeight() + 12))
         fila.Add(self.texto, 1, wx.EXPAND | wx.RIGHT, 6)
         # Traductores: botón para enviar el mensaje.
-        self.boton = wx.Button(self, label=_("&Enviar"), name=_("Enviar mensaje al chat"))
+        self.boton = wx.Button(self, label=_("E&nviar"), name=_("Enviar mensaje al chat"))
         fila.Add(self.boton, 0, wx.ALIGN_BOTTOM)
         vs.Add(fila, 1, wx.EXPAND)
         self.SetSizer(vs)

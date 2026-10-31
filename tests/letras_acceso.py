@@ -70,6 +70,27 @@ def letras_repetidas(contenedor):
             if len(rotulos) > 1}
 
 
+def repetidas_con_lo_de_fuera(ventana, libro):
+    """Choques de cada página del libro con los controles de fuera.
+
+    Devuelve, por texto de página, las letras que se repiten al sumar la
+    página a todo lo que está fuera del libro. La página se mira sola,
+    como en `letras_de_contenedor`, y lo de fuera es lo que queda de la
+    ventana al descontar el libro y sus páginas.
+    """
+    fuera = letras_de_contenedor(ventana)
+    repetidas = {}
+    for indice in range(libro.GetPageCount()):
+        pagina = libro.GetPage(indice)
+        juntas = {letra: list(rotulos) for letra, rotulos in fuera.items()}
+        for letra, rotulos in letras_de_contenedor(pagina).items():
+            juntas.setdefault(letra, []).extend(rotulos)
+        repetidas[libro.GetPageText(indice)] = {
+            letra: rotulos for letra, rotulos in juntas.items()
+            if len(rotulos) > 1}
+    return repetidas
+
+
 class ingles:
     """El catálogo inglés del repositorio, instalado y después retirado.
 

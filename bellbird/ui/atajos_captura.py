@@ -49,8 +49,8 @@ _AREA_AYUDA = {
     "alt": N_("Debe ser Alt y una tecla (por ejemplo Alt+C)."),
     "ctrl+shift": N_("Debe ser Ctrl+Mayús y una tecla (por ejemplo Ctrl+Mayús+P)."),
     "alt+shift": N_("Debe ser Alt+Mayús y una tecla (por ejemplo Alt+Mayús+C)."),
-    "ctrl+alt": N_("Debe ser Ctrl+Alt y una flecha, Espacio, una letra o un número, o Ctrl+Alt+Mayús y Flecha izquierda o derecha (por ejemplo Ctrl+Alt+T)."),
-    "f": N_("Debe ser una tecla de función, de F1 a F12, sola, con Ctrl o con Ctrl+Mayús (por ejemplo F2 o Ctrl+F2)."),
+    "ctrl+alt": N_("Debe ser Ctrl+Alt y una flecha, Espacio, una letra o un número (por ejemplo Ctrl+Alt+T). También vale Ctrl+Alt+Mayús y Flecha izquierda o derecha."),
+    "f": N_("Debe ser una tecla de función, de F1 a F12 (por ejemplo F2). Puede ir sola, con Ctrl o con Ctrl+Mayús (por ejemplo Ctrl+F2)."),
 }
 ETIQUETAS = {
     # Reproductor

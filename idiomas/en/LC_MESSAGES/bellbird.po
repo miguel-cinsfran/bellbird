@@ -9485,3 +9485,16 @@ msgstr "Could not load the face detector."
 #: bellbird/camera/detector_rostros.py:96
 msgid "No se pudo leer la imagen."
 msgstr "Could not read the image."
+
+#: bellbird/obs/obs_camara.py:114
+msgid "No hay ninguna cámara en OBS."
+msgstr "There is no camera in OBS."
+
+#: bellbird/obs/obs_camara.py:119
+msgid "La cámara de OBS no está en la escena al aire."
+msgstr "The OBS camera is not in the live scene."
+
+#: bellbird/obs/obs_camara.py:110
+#, python-brace-format
+msgid "La fuente {nombre} no está en la escena al aire."
+msgstr "Source {nombre} is not in the live scene."

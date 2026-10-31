@@ -85,7 +85,7 @@ def motivo_negra(clases, ajustes_por_nombre) -> tuple:
     return ("", "")
 
 
-def _datos(cliente, tipo, datos=None, parada=None):
+def datos_respuesta(cliente, tipo, datos=None, parada=None):
     respuesta = cliente.pedir(tipo, datos, parada=parada)
     return respuesta.get("responseData", {}) or {}
 
@@ -97,7 +97,7 @@ def _entero(valor) -> int:
         return 0
 
 
-def _texto_fallo(opcion) -> str:
+def texto_fallo(opcion) -> str:
     return (_("No se pudo capturar {etiqueta}. Comprueba que esté "
               "visible en la escena al aire.").format(
                   etiqueta=opcion.etiqueta))
@@ -127,15 +127,15 @@ def _opcion_elemento(elemento, por_nombre):
 
 def opciones(cliente, parada=None) -> tuple:
     """Lo que se puede capturar, con la escena al aire primero."""
-    escena = _datos(cliente, "GetCurrentProgramScene",
+    escena = datos_respuesta(cliente, "GetCurrentProgramScene",
                     parada=parada).get("currentProgramSceneName", "") or ""
-    lienzo = _datos(cliente, "GetVideoSettings", parada=parada)
+    lienzo = datos_respuesta(cliente, "GetVideoSettings", parada=parada)
     base = OpcionCaptura(escena, _("Escena al aire: {escena}").format(escena=escena),
                          _entero(lienzo.get("baseWidth")),
                          _entero(lienzo.get("baseHeight")))
-    elementos = _datos(cliente, "GetSceneItemList", {"sceneName": escena},
+    elementos = datos_respuesta(cliente, "GetSceneItemList", {"sceneName": escena},
                        parada).get("sceneItems", ()) or ()
-    entradas = _datos(cliente, "GetInputList",
+    entradas = datos_respuesta(cliente, "GetInputList",
                       parada=parada).get("inputs", ()) or ()
     por_nombre = {entrada.get("inputName", ""): entrada.get("inputKind", "")
                   for entrada in entradas if entrada.get("inputName", "")}
@@ -173,7 +173,7 @@ def _tamano_salida(opcion, lado) -> tuple:
     return (ancho, round(opcion.alto * ancho / opcion.ancho))
 
 
-def _decodificar(texto) -> bytes:
+def decodificar(texto) -> bytes:
     texto = str(texto or "")
     if "," in texto:
         texto = texto.split(",", 1)[1]
@@ -184,9 +184,9 @@ def _medir(cliente, opcion, parada) -> bool | None:
     parametros = _parametros_lado(opcion, 160)
     parametros["imageFormat"] = "bmp"
     try:
-        datos = _datos(cliente, "GetSourceScreenshot",
+        datos = datos_respuesta(cliente, "GetSourceScreenshot",
                        {"sourceName": opcion.fuente, **parametros}, parada)
-        return luz_imagen.es_negra(_decodificar(datos.get("imageData", "")))
+        return luz_imagen.es_negra(decodificar(datos.get("imageData", "")))
     except Exception as error:
         # Medir no es motivo para perder la captura.
         logger.warning("obs_captura_ia: no se pudo medir la luz de %r: %s",
@@ -196,14 +196,14 @@ def _medir(cliente, opcion, parada) -> bool | None:
 
 def _pares_visibles(cliente, opcion, parada) -> tuple:
     """Pares (nombre, clase) visibles según la opción a capturar."""
-    escena = _datos(cliente, "GetCurrentProgramScene",
+    escena = datos_respuesta(cliente, "GetCurrentProgramScene",
                     parada=parada).get("currentProgramSceneName", "") or ""
     por_clase = {
         entrada.get("inputName", ""): entrada.get("inputKind", "")
-        for entrada in _datos(cliente, "GetInputList",
+        for entrada in datos_respuesta(cliente, "GetInputList",
                               parada=parada).get("inputs", ()) or ()
         if entrada.get("inputName", "")}
-    elementos = _datos(cliente, "GetSceneItemList", {"sceneName": escena},
+    elementos = datos_respuesta(cliente, "GetSceneItemList", {"sceneName": escena},
                        parada).get("sceneItems", ()) or ()
     if opcion.fuente != escena:
         return [(opcion.fuente, por_clase.get(opcion.fuente, "") or "")]
@@ -219,7 +219,7 @@ def _ajustes_capturas(cliente, pares, parada) -> dict:
     ajustes = {}
     for (nombre, clase) in pares:
         if clase in TIPOS_CAPTURA:
-            ajustes[nombre] = _datos(
+            ajustes[nombre] = datos_respuesta(
                 cliente, "GetInputSettings",
                 {"inputName": nombre}, parada).get(
                     "inputSettings", {}) or {}
@@ -248,11 +248,11 @@ def capturar(cliente, opcion, lado=1280, calidad=75, parada=None) -> Captura:
     parametros["imageFormat"] = "jpg"
     parametros["imageCompressionQuality"] = calidad
     try:
-        datos = _datos(cliente, "GetSourceScreenshot",
+        datos = datos_respuesta(cliente, "GetSourceScreenshot",
                        {"sourceName": opcion.fuente, **parametros}, parada)
-        jpeg = _decodificar(datos.get("imageData", ""))
+        jpeg = decodificar(datos.get("imageData", ""))
     except Exception as error:
-        raise CapturaFallida(_texto_fallo(opcion)) from error
+        raise CapturaFallida(texto_fallo(opcion)) from error
     (ancho, alto) = _tamano_salida(opcion, lado)
     negra = _medir(cliente, opcion, parada)
     motivo = ""
@@ -268,8 +268,8 @@ def vista_previa(cliente, opcion, lado=320, parada=None) -> bytes:
     parametros["imageFormat"] = "jpg"
     parametros["imageCompressionQuality"] = 60
     try:
-        datos = _datos(cliente, "GetSourceScreenshot",
+        datos = datos_respuesta(cliente, "GetSourceScreenshot",
                        {"sourceName": opcion.fuente, **parametros}, parada)
-        return _decodificar(datos.get("imageData", ""))
+        return decodificar(datos.get("imageData", ""))
     except Exception as error:
-        raise CapturaFallida(_texto_fallo(opcion)) from error
+        raise CapturaFallida(texto_fallo(opcion)) from error

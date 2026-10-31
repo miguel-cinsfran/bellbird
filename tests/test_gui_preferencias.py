@@ -17,6 +17,7 @@ from bellbird.core import idioma
 from bellbird.ui import gui, gui_preferencias
 from bellbird.ui import preferencias_ia
 from bellbird.ui import preferencias_ia_clave
+from bellbird.ui import preferencias_transmision
 from bellbird.voice import motores
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.rutas_temporales import redirigir_rutas
@@ -174,7 +175,7 @@ class TestPaginaDescargas(unittest.TestCase):
                 mock.patch.object(gui_preferencias.cfg,
                                   "guardar_opciones_descarga") as guardar_desc, \
                 mock.patch.object(gui_preferencias._snd, "reproducir"), \
-                mock.patch.object(gui_preferencias, "anunciar"), \
+                mock.patch.object(preferencias_transmision, "anunciar"), \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
         escrita = guardar_desc.call_args.args[0]

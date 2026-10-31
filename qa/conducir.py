@@ -5540,6 +5540,7 @@ SUPERFICIES = {
     "preferencias_ia_lista.py": "preferencias",
     "preferencias_lectura.py": "preferencias",
     "preferencias_programados.py": "preferencias",
+    "preferencias_transmision.py": "preferencias",
     "preferencias_voz.py": "preferencias",
     "paleta.py": "actualizaciones",
 }

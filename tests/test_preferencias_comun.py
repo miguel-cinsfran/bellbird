@@ -8,7 +8,7 @@ import unittest
 
 import wx
 
-from bellbird.ui.preferencias_comun import fila_botones
+from bellbird.ui.preferencias_comun import fila_botones, opciones_con_elegida
 from tests.ventanas_prueba import destruir
 
 
@@ -46,6 +46,23 @@ class TestFilaBotones(unittest.TestCase):
         bordes = [elemento.GetBorder()
                   for elemento in fila.GetChildren()]
         self.assertEqual(bordes, [10] * len(botones))
+
+
+class TestOpcionesConElegida(unittest.TestCase):
+    # Sin ventana: mezcla pura de nombres.
+
+    def test_automatico_solo(self):
+        self.assertEqual(opciones_con_elegida("Elegir", "", []), ["Elegir"])
+
+    def test_elegida_y_encontradas_sin_repetir(self):
+        self.assertEqual(
+            opciones_con_elegida("Elegir", "Vieja", ["Nueva", "Vieja", ""]),
+            ["Elegir", "Vieja", "Nueva"])
+
+    def test_elegida_vacia_no_suma(self):
+        self.assertEqual(
+            opciones_con_elegida("Elegir", "", ["Una"]),
+            ["Elegir", "Una"])
 
 
 if __name__ == "__main__":

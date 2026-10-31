@@ -13,6 +13,7 @@ from unittest import mock
 
 from bellbird.core import config
 from bellbird.ui import gui, gui_preferencias
+from bellbird.ui import preferencias_transmision
 from bellbird.ui.preferencias_lectura import PaginaLectura
 from bellbird.voice import motores
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
@@ -65,7 +66,7 @@ class TestCambiosDeLectura(unittest.TestCase):
         dialogo = self._dialogo()
         dialogo.rb_formato.SetSelection(1)
         with mock.patch.object(gui_preferencias._snd, "reproducir"), \
-                mock.patch.object(gui_preferencias, "anunciar"), \
+                mock.patch.object(preferencias_transmision, "anunciar"), \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
         self.assertEqual(dialogo._config.get("formato_prefijo"),
@@ -176,7 +177,7 @@ class TestAvisosTiktok(unittest.TestCase):
         dialogo = self._dialogo()
         dialogo.cho_aviso_cofres.SetValue("ocultar")
         with mock.patch.object(gui_preferencias._snd, "reproducir"), \
-                mock.patch.object(gui_preferencias, "anunciar"), \
+                mock.patch.object(preferencias_transmision, "anunciar"), \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
         self.assertEqual(dialogo._config.get("tiktok_aviso_cofres"), "ocultar")

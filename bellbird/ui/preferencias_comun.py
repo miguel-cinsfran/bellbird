@@ -67,6 +67,15 @@ def fila_botones(botones, borde=6):
     return fila
 
 
+def opciones_con_elegida(automatico, elegida, encontradas) -> list:
+    """El desplegable con la elegida conservada y las halladas sin repetir."""
+    opciones = [automatico]
+    for fuente in (elegida, *(encontradas or ())):
+        if fuente and fuente not in opciones:
+            opciones.append(fuente)
+    return opciones
+
+
 def _ancho_categorias(libro, lista):
     textos = [libro.GetPageText(i) for i in range(libro.GetPageCount())]
     if not textos:

@@ -361,7 +361,8 @@ def _pares_con_control():
         "bellbird/ui/gui_preferencias.py", "bellbird/ui/preferencias_general.py",
         "bellbird/ui/preferencias_musica.py",
         "bellbird/ui/preferencias_lectura.py", "bellbird/ui/preferencias_ia.py",
-        "bellbird/ui/preferencias_voz.py")}
+        "bellbird/ui/preferencias_voz.py",
+        "bellbird/ui/preferencias_transmision.py")}
     for arbol in arboles.values():
         for nodo in ast.walk(arbol):
             if not isinstance(nodo, (ast.Assign, ast.AnnAssign)):
@@ -420,7 +421,8 @@ class PruebaConfiguracion(unittest.TestCase):
             "(bellbird/ui/gui_preferencias.py, bellbird/ui/preferencias_general.py, "
             "bellbird/ui/preferencias_musica.py, "
             "bellbird/ui/preferencias_lectura.py, bellbird/ui/preferencias_ia.py, "
-            "bellbird/ui/preferencias_voz.py): "
+            "bellbird/ui/preferencias_voz.py, "
+            "bellbird/ui/preferencias_transmision.py): "
             f"{faltan}")
 
     def test_excepciones_existen_en_fabrica(self):

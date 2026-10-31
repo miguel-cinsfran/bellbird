@@ -20,6 +20,7 @@ from bellbird.ui import preferencias_ia_clave
 from bellbird.ui import preferencias_ia_lista
 from bellbird.ui import preferencias_musica
 from bellbird.ui import preferencias_programados
+from bellbird.ui import preferencias_transmision
 from bellbird.ui import preferencias_voz
 from bellbird.voice import motores
 from bellbird.voice.cola_tts import ColaTTS
@@ -1818,14 +1819,14 @@ class TestCategoriasDePreferencias(unittest.TestCase):
 
         gestor = mock.Mock()
         gestor.fuentes_audio.return_value = ("Mic/Aux",)
-        with mock.patch.object(gui_preferencias.diagnostico, "crear_hilo",
+        with mock.patch.object(preferencias_transmision.diagnostico, "crear_hilo",
                                side_effect=crear_hilo), \
-                mock.patch.object(gui_preferencias, "GestorPanelObs",
+                mock.patch.object(preferencias_transmision, "GestorPanelObs",
                                   return_value=gestor) as gestor_clase, \
-                mock.patch.object(gui_preferencias.obs_cliente, "leer_ajustes"), \
-                mock.patch.object(gui_preferencias.wx, "CallAfter",
+                mock.patch.object(preferencias_transmision.obs_cliente, "leer_ajustes"), \
+                mock.patch.object(preferencias_transmision.wx, "CallAfter",
                                   side_effect=lambda funcion, *args: funcion(*args)):
-            dialogo._buscar_microfonos(None)
+            dialogo.pagina_transmision._buscar_microfonos(None)
             gestor_clase.assert_not_called()
             consulta["target"]()
 
@@ -1837,14 +1838,14 @@ class TestCategoriasDePreferencias(unittest.TestCase):
         dialogo = self._dialogo()
         with mock.patch.object(gui_preferencias.PreferenciasDialog, "__bool__",
                                lambda self: False, create=True), \
-                mock.patch.object(gui_preferencias, "anunciar") as anunciar, \
+                mock.patch.object(preferencias_transmision, "anunciar") as anunciar, \
                 mock.patch.object(preferencias_api, "anunciar") as anunciar_api, \
                 mock.patch.object(preferencias_ia, "anunciar") as anunciar_ia, \
                 mock.patch.object(gui_preferencias._snd, "reproducir") as sonar, \
                 mock.patch.object(preferencias_api._snd, "reproducir") as sonar_api, \
                 mock.patch.object(gui_preferencias.wx, "MessageBox") as aviso, \
                 mock.patch.object(preferencias_api.wx, "MessageBox") as aviso_api:
-            dialogo._microfonos_encontrados(("Mic/Aux",))
+            dialogo.pagina_transmision._microfonos_encontrados(("Mic/Aux",))
             dialogo.pagina_api._api_login_ok()
             dialogo.pagina_api._api_login_err(RuntimeError("x"))
             dialogo.pagina_ia._ia_prueba_lista(True, "x")
@@ -1863,7 +1864,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
         dialogo = self._dialogo()
         with mock.patch.object(gui_preferencias.cfg, "guardar_opciones") as guardar, \
                 mock.patch.object(gui_preferencias._snd, "reproducir"), \
-                mock.patch.object(gui_preferencias, "anunciar"), \
+                mock.patch.object(preferencias_transmision, "anunciar"), \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
 
@@ -2386,7 +2387,7 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
                 with mock.patch.object(dialogo, "EndModal"), \
                         mock.patch.object(gui_preferencias._snd,
                                           "reproducir"), \
-                        mock.patch.object(gui_preferencias, "anunciar"):
+                        mock.patch.object(preferencias_transmision, "anunciar"):
                     dialogo._on_guardar(None)
                 self.assertEqual(getattr(ajustes_ia.leer(self._ruta()), clave),
                                  esperado)
@@ -2413,7 +2414,7 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         dialogo.pagina_ia.chk_ia_analizando.SetValue(True)
         with mock.patch.object(dialogo, "EndModal"), \
                 mock.patch.object(gui_preferencias._snd, "reproducir"), \
-                mock.patch.object(gui_preferencias, "anunciar"):
+                mock.patch.object(preferencias_transmision, "anunciar"):
             dialogo._on_guardar(None)
         leidos = ajustes_ia.leer(self._ruta())
         self.assertTrue(leidos.privacidad_aceptada)
@@ -3217,7 +3218,7 @@ class TestPreferenciasElevenLabs(unittest.TestCase):
         with mock.patch.object(gui_preferencias.cfg, "guardar_opciones",
                                return_value=True) as guardar, \
                 mock.patch.object(gui_preferencias._snd, "reproducir"), \
-                mock.patch.object(gui_preferencias, "anunciar") as anunciar, \
+                mock.patch.object(preferencias_transmision, "anunciar") as anunciar, \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
         claves = [(seccion, clave, valor)
@@ -3235,7 +3236,7 @@ class TestPreferenciasElevenLabs(unittest.TestCase):
                 mock.patch.object(preferencias_voz.credenciales,
                                   "guardar_campo") as guardar_campo, \
                 mock.patch.object(gui_preferencias._snd, "reproducir"), \
-                mock.patch.object(gui_preferencias, "anunciar"), \
+                mock.patch.object(preferencias_transmision, "anunciar"), \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
         guardar_campo.assert_called_once_with("elevenlabs_clave", "clave-secreta")
@@ -3337,7 +3338,7 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
 
     def _guardar(self, dialogo):
         with mock.patch.object(gui_preferencias._snd, "reproducir"), \
-                mock.patch.object(gui_preferencias, "anunciar") as anunciar, \
+                mock.patch.object(preferencias_transmision, "anunciar") as anunciar, \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
         # Los avisos ya no se dicen acá: los junta el diálogo y los dice la
@@ -3356,7 +3357,7 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         self.addCleanup(destruir, dialogo)
         with mock.patch.object(gui_preferencias.cfg, "guardar_opciones") as guardar, \
                 mock.patch.object(gui_preferencias._snd, "reproducir"), \
-                mock.patch.object(gui_preferencias, "anunciar") as anunciar, \
+                mock.patch.object(preferencias_transmision, "anunciar") as anunciar, \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
         claves = [(seccion, clave)
@@ -3389,7 +3390,7 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         dialogo.pagina_sonidos._lista.CheckItem(0, False)
         with mock.patch.object(gui_preferencias._snd, "reproducir"), \
                 mock.patch.object(gui_preferencias._snd, "cargar"), \
-                mock.patch.object(gui_preferencias, "anunciar"), \
+                mock.patch.object(preferencias_transmision, "anunciar"), \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
         texto = (self.ruta / "sounds.ini").read_text(encoding="utf-8")
@@ -3526,7 +3527,7 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         with mock.patch.object(gui_preferencias.cfg, "guardar_opciones",
                                return_value=False), \
                 mock.patch.object(gui_preferencias._snd, "reproducir") as sonar, \
-                mock.patch.object(gui_preferencias, "anunciar") as anunciar, \
+                mock.patch.object(preferencias_transmision, "anunciar") as anunciar, \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
         self.assertEqual(dialogo.avisos, [frase])
@@ -3539,7 +3540,7 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         with mock.patch.object(gui_preferencias.cfg, "guardar_opciones",
                                return_value=True) as guardar, \
                 mock.patch.object(gui_preferencias._snd, "reproducir") as sonar, \
-                mock.patch.object(gui_preferencias, "anunciar") as anunciar, \
+                mock.patch.object(preferencias_transmision, "anunciar") as anunciar, \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
         generales = [llamada for llamada in guardar.call_args_list

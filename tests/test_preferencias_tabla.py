@@ -9,6 +9,7 @@ from unittest import mock
 
 from bellbird.ui import gui
 from bellbird.ui import gui_preferencias
+from bellbird.ui import preferencias_transmision
 from bellbird.voice import motores
 from bellbird.core import config_predeterminada as pred
 from bellbird.core import idioma
@@ -184,7 +185,7 @@ class TestTablaOpcionesSimples(unittest.TestCase):
                                return_value=True) as guardar, \
                 mock.patch.object(gui_preferencias.cfg, "guardar_opciones_descarga"), \
                 mock.patch.object(gui_preferencias._snd, "reproducir"), \
-                mock.patch.object(gui_preferencias, "anunciar") as anunciar, \
+                mock.patch.object(preferencias_transmision, "anunciar") as anunciar, \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
         self.assertEqual(guardar.call_count, 1)
@@ -278,7 +279,7 @@ class TestIdiomaEnPreferencias(unittest.TestCase):
         with mock.patch.object(gui_preferencias.cfg, "guardar_opciones",
                                return_value=True) as guardar, \
                 mock.patch.object(gui_preferencias._snd, "reproducir"), \
-                mock.patch.object(gui_preferencias, "anunciar"), \
+                mock.patch.object(preferencias_transmision, "anunciar"), \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
         escritos = {(seccion, clave): valor

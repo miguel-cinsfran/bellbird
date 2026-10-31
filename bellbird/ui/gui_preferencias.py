@@ -19,16 +19,15 @@ from bellbird.core.ini_tipado import separar_por_comas
 from bellbird.core.idioma import _
 from bellbird.ui import atajos_captura
 from bellbird.capture import estado_sesion
-from bellbird.obs import obs_cliente
-from bellbird.obs import obs_activacion
 from bellbird.voice import sound_player as _snd
-from bellbird.ui.gui import ContadorAccesible, _T, _tc, anunciar, nombre_accesible
+from bellbird.ui.gui import ContadorAccesible, _T, _tc, nombre_accesible
 from bellbird.ui import paleta
 from bellbird.ui.preferencias_comun import (
     ANCHO_NOTA, EleccionTexto, ajustar_ancho_categorias, crear_panel, fila_label)
 from bellbird.ui.preferencias_api import PaginaApi
 from bellbird.ui.preferencias_atajos import PaginaAtajos
 from bellbird.ui.preferencias_general import OPCIONES_GENERAL, PaginaGeneral, ofrecer_reinicio
+from bellbird.ui.preferencias_transmision import PaginaTransmision
 from bellbird.ui.preferencias_musica import OPCIONES_MUSICA, PaginaMusica
 from bellbird.ui.preferencias_descargas import PaginaDescargasPreferencias
 from bellbird.ui.preferencias_lectura import OPCIONES_LECTURA, PaginaLectura
@@ -36,7 +35,6 @@ from bellbird.ui.preferencias_ia import PaginaIA
 from bellbird.ui.preferencias_programados import PaginaProgramados
 from bellbird.ui.preferencias_sonidos import PaginaSonidos
 from bellbird.ui.preferencias_voz import PaginaVoz
-from bellbird.obs.obs_panel import GestorPanelObs
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -139,7 +137,11 @@ class PreferenciasDialog(wx.Dialog):
         self.pagina_programados = PaginaProgramados()
         self.nb.AddPage(self.pagina_programados.construir(self.nb), _("Mensajes automáticos"))
         self.chk_programados = self.pagina_programados.chk_programados
-        self.nb.AddPage(self._pag_transmision(self.nb), _("Transmisión"))
+        self.pagina_transmision = PaginaTransmision(self, self._config)
+        self.nb.AddPage(self.pagina_transmision.construir(self.nb), _("Transmisión"))
+        self.sp_puerto_overlay = self.pagina_transmision.sp_puerto_overlay
+        self.chk_avisar_sobrecarga = self.pagina_transmision.chk_avisar_sobrecarga
+        self.cho_microfono_obs = self.pagina_transmision.cho_microfono_obs
         self.pagina_ia = PaginaIA(self, self._ruta)
         self.nb.AddPage(self.pagina_ia.construir(self.nb), _("Inteligencia artificial"))
         ajustar_ancho_categorias(self.nb, self.lista_categorias)
@@ -275,94 +277,6 @@ class PreferenciasDialog(wx.Dialog):
 
         p.SetSizer(vs)
         return p
-
-    def _pag_transmision(self, parent):
-        p = crear_panel(parent, "PagTransmision")
-        vs = wx.BoxSizer(wx.VERTICAL)
-
-        self.chk_avisar_sobrecarga = wx.CheckBox(
-            p, label=_("A&visar cuando OBS no da abasto"),
-            name="AvisarSobrecargaObs")
-        vs.Add(self.chk_avisar_sobrecarga, 0, wx.ALL, 10)
-
-        vs.Add(fila_label(p, _("&Puerto del panel de chat:")),
-               0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
-        self.sp_puerto_overlay = ContadorAccesible(
-            p, min=1024, max=65535,
-            name=_("Puerto del panel de chat"))
-        vs.Add(self.sp_puerto_overlay, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-
-        vs.Add(fila_label(p, _("&Micrófono de OBS:")),
-               0, wx.LEFT | wx.RIGHT, 10)
-        guardado = str(self._config.get("obs_microfono", ""))
-        opciones = [_("Elegir automáticamente")] + ([guardado] if guardado else [])
-        self.cho_microfono_obs = wx.Choice(p, choices=opciones, name=_("Micrófono de OBS"))
-        self.cho_microfono_obs.SetSelection(1 if guardado else 0)
-        vs.Add(self.cho_microfono_obs, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-
-        self.btn_buscar_microfonos = wx.Button(
-            p, label=_("&Buscar micrófonos en OBS"),
-            name=_("Buscar micrófonos en OBS"))
-        vs.Add(self.btn_buscar_microfonos, 0, wx.ALL, 10)
-        self.btn_buscar_microfonos.Bind(wx.EVT_BUTTON, self._buscar_microfonos)
-
-        self.btn_activar_websocket_obs = wx.Button(
-            p, label=_("&Activar servidor WebSocket de OBS"),
-            name=_("Activar servidor WebSocket de OBS"))
-        vs.Add(self.btn_activar_websocket_obs, 0, wx.ALL, 10)
-        self.btn_activar_websocket_obs.Bind(
-            wx.EVT_BUTTON, self._activar_servidor_websocket_obs)
-
-        p.SetSizer(vs)
-        return p
-
-    def _buscar_microfonos(self, event):
-        # Consultar OBS puede tardar o no responder, por eso nunca corre en la interfaz.
-        def consultar():
-            gestor = None
-            try:
-                gestor = GestorPanelObs(ajustes=obs_cliente.leer_ajustes())
-                gestor.conectar()
-                wx.CallAfter(self._microfonos_encontrados, gestor.fuentes_audio())
-            except Exception as exc:
-                wx.CallAfter(anunciar, obs_cliente.mensaje_de_fallo_obs(exc))
-            finally:
-                if gestor is not None:
-                    try:
-                        gestor.cerrar()
-                    except Exception as error:
-                        logger.debug("no se pudo cerrar el gestor de OBS: %s", error)
-
-        diagnostico.crear_hilo(consultar, "MicrofonosPrefs").start()
-
-    def _microfonos_encontrados(self, fuentes):
-        if not self:   # el diálogo pudo cerrarse mientras OBS respondía
-            return
-        elegido = self.cho_microfono_obs.GetStringSelection()
-        opciones = [_("Elegir automáticamente")]
-        # La fuente guardada se conserva aunque OBS no responda o ya no la vea.
-        for fuente in (elegido, *fuentes):
-            if fuente and fuente not in opciones:
-                opciones.append(fuente)
-        self.cho_microfono_obs.Set(opciones)
-        self.cho_microfono_obs.SetStringSelection(elegido or opciones[0])
-        anunciar(_("Se encontraron {cantidad} micrófonos en OBS").format(cantidad=len(fuentes)))
-
-    def _activar_servidor_websocket_obs(self, event):
-        def activar():
-            try:
-                accion, mensaje = obs_activacion.decidir_activacion(
-                    obs_activacion.obs_esta_en_ejecucion(),
-                    obs_cliente.leer_ajustes())
-                if accion == obs_activacion.ACTIVAR:
-                    mensaje = obs_activacion.activar_servidor(
-                        obs_cliente.RUTA_CONFIG_OBS)
-            except Exception as exc:
-                logger.warning("No se pudo activar el servidor websocket de OBS: %s", exc)
-                mensaje = _("No se pudo activar el servidor websocket de OBS: {exc}").format(exc=exc)
-            wx.CallAfter(anunciar, mensaje)
-
-        diagnostico.crear_hilo(activar, "ActivarWebsocketObs").start()
 
     def _pag_reproductor(self, parent):
         p = crear_panel(parent, "PagReproductor")
@@ -507,10 +421,7 @@ class PreferenciasDialog(wx.Dialog):
         c["estrategia"] = estrategia
         registro_detallado = c["registro_detallado"]
         puerto_overlay = c["overlay_puerto"]
-        microfono_obs = ("" if self.cho_microfono_obs.GetSelection() == 0
-                         else self.cho_microfono_obs.GetStringSelection())
-        self._set("obs", "microfono", microfono_obs)
-        c["obs_microfono"] = microfono_obs
+        self.pagina_transmision.guardar(self._set, c)
 
         self.pagina_musica.guardar(self._set, c)
         self.pagina_descargas.guardar()

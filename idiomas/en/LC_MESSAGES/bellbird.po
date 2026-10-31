@@ -7518,13 +7518,12 @@ msgstr "Default output"
 
 #: bellbird/ui/preferencias_api.py:40
 msgid ""
-"La clave de API permite leer comentarios sin iniciar sesión. Con el cliente "
-"OAuth y la sesión iniciada se puede moderar el chat, enviar mensajes al "
-"directo y publicar o responder comentarios."
+"La clave de API permite leer comentarios sin iniciar sesión. Con la sesión "
+"iniciada también se puede moderar el chat, enviar mensajes y comentar."
 msgstr ""
-"The API key allows reading comments without signing in. With the OAuth "
-"client and the session started, the chat can be moderated, messages can be "
-"sent to the live stream, and comments can be posted or replied to."
+"The API key allows reading comments without signing in. With the session "
+"started, the chat can also be moderated, messages sent, and comments "
+"posted."
 
 #. Traductores: no traduzcas el comando «pip install ...», solo el resto.
 #: bellbird/ui/preferencias_api.py:50

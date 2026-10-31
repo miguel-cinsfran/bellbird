@@ -37,9 +37,8 @@ class PaginaApi:
         vs = wx.BoxSizer(wx.VERTICAL)
 
         intro = wx.StaticText(p, name="IntroApi", label=_(
-            "La clave de API permite leer comentarios sin iniciar sesión. Con el cliente "
-            "OAuth y la sesión iniciada se puede moderar el chat, enviar mensajes al "
-            "directo y publicar o responder comentarios."))
+            "La clave de API permite leer comentarios sin iniciar sesión. Con la sesión "
+            "iniciada también se puede moderar el chat, enviar mensajes y comentar."))
         intro.SetForegroundColour(_T.dim)
         intro.Wrap(ANCHO_NOTA)
         vs.Add(intro, 0, wx.ALL, 10)

@@ -14,7 +14,8 @@ from bellbird.core import paths
 from bellbird.downloads import ffmpeg_bin
 from bellbird.downloads.opciones_formato import (
     PLANTILLAS, argumentos_de_formato, argumentos_exactos)
-from bellbird.downloads.progreso_ytdlp import plantillas_progreso
+from bellbird.downloads.progreso_ytdlp import (
+    PREFIJO_RUTA_FINAL, plantillas_progreso)
 
 
 _PLANTILLA_POR_CLAVE = {clave: plantilla for _etiqueta, clave, plantilla in PLANTILLAS}
@@ -87,7 +88,6 @@ def argumentos_de_la_opcion(formato, opciones, bitrate, resolucion) -> list[str]
 
 def argumentos_descarga(url, opciones, enumerar, ffmpeg_location=None) -> list[str]:
     """Arma los argumentos de una descarga, sin ejecutar programas."""
-    from bellbird.downloads.descargas import PREFIJO_RUTA_FINAL
     f = (opciones.get("formato") or "mp4").lower().strip()
     bitrate = int(opciones.get("bitrate") or 192)
     resolucion = int(opciones.get("resolucion") or 0)

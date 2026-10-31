@@ -20,6 +20,11 @@ logger = diagnostico.obtener_logger(__name__)
 TIEMPO_ESPERA_ANALISIS = 60
 
 
+def _error(mensaje: str) -> dict:
+    return {"tipo": "error", "id": "", "titulo": "", "cuenta": 0,
+            "mensaje": mensaje}
+
+
 def analizar_url(url: str) -> dict:
     """Inspecciona una URL y devuelve tipo / id / título / cuenta.
 
@@ -28,8 +33,7 @@ def analizar_url(url: str) -> dict:
     """
     ruta = ytdlp_bin.ruta_ytdlp()
     if ruta is None:
-        return {"tipo": "error", "id": "", "titulo": "", "cuenta": 0,
-                "mensaje": _("yt-dlp no está instalado")}
+        return _error(_("yt-dlp no está instalado"))
     # -J (un único JSON) y --flat-playlist: --dump-json emitía un JSON por
     # entrada en las playlists y json.loads fallaba con «Extra data».
     try:
@@ -40,16 +44,13 @@ def analizar_url(url: str) -> dict:
             check=False, timeout=TIEMPO_ESPERA_ANALISIS,
         )
         if resultado.returncode:
-            return {"tipo": "error", "id": "", "titulo": "", "cuenta": 0,
-                    "mensaje": resultado.stderr.strip() or _("yt-dlp falló")}
+            return _error(resultado.stderr.strip() or _("yt-dlp falló"))
         info = json.loads(resultado.stdout)
     except (OSError, subprocess.SubprocessError, TypeError, ValueError) as exc:
         logger.warning("analizar_url falló: %s", exc)
-        return {"tipo": "error", "id": "", "titulo": "", "cuenta": 0,
-                "mensaje": str(exc)}
+        return _error(str(exc))
     if not info:
-        return {"tipo": "error", "id": "", "titulo": "", "cuenta": 0,
-                "mensaje": _("Enlace vacío")}
+        return _error(_("Enlace vacío"))
     if info.get("_type") == "playlist" or "entries" in info:
         return {"tipo": "playlist",
                 "id": info.get("id", ""),

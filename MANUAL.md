@@ -378,7 +378,9 @@ vez, sin reintentar.
 en MP4, WebM, MP3 o M4A, con el audio a 192, 256 o 320 kbps. Baja dos a
 la vez y pone las demás en cola. Guarda el historial de lo descargado. La
 carpeta Descargas está junto al programa. yt-dlp se actualiza desde
-*Herramientas, Actualizar yt-dlp*.
+*Herramientas, Actualizar yt-dlp*. El canal de esa actualización se elige
+en *Preferencias, Descargas*: *Estable*, el de fábrica, o *Diario*, con
+los arreglos antes y más riesgo de fallos.
 
 **Historial de directos** (`Ctrl+Mayús+H`): lo que viste, con una pestaña
 para YouTube y otra para TikTok. Los directos terminados salen marcados.

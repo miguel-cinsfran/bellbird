@@ -133,6 +133,13 @@ Paraguay.
 - La búsqueda, el agregado a la cola, el procesado, el fin de la cola y
   una descarga que terminó a medias tienen sonidos propios, en los dos
   temas.
+- El paquete trae el programa que YouTube pide ahora para leer sus
+  vídeos, así que las descargas y el reproductor obtienen todos los
+  formatos. Abrir un vídeo o empezar una descarga tarda alrededor de un
+  segundo y medio más.
+- En *Preferencias*, categoría *Descargas*, *Canal de actualización de
+  yt-dlp* elige entre *Estable* y *Diario*. *Diario* trae los arreglos
+  para YouTube unos días antes, y puede traer fallos nuevos.
 
 ### Aspecto de la aplicación
 

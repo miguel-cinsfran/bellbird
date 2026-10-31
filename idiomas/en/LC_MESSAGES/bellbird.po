@@ -9389,3 +9389,76 @@ msgstr "between {minimo} and {maximo} minutes"
 #, python-brace-format
 msgid "{estado}, {intervalo}: {texto}"
 msgstr "{estado}, {intervalo}: {texto}"
+
+#. Traductores: aviso de encuadre, rostro cortado por arriba.
+#: bellbird/camera/encuadre.py:74
+msgid "Rostro cortado arriba."
+msgstr "Face cut off at the top."
+
+#. Traductores: aviso de encuadre, rostro cortado por abajo.
+#: bellbird/camera/encuadre.py:76
+msgid "Rostro cortado abajo."
+msgstr "Face cut off at the bottom."
+
+#. Traductores: aviso de encuadre, moverse a la propia izquierda.
+#: bellbird/camera/encuadre.py:78
+msgid "Muévete a tu izquierda."
+msgstr "Move to your left."
+
+#. Traductores: aviso de encuadre, moverse a la propia derecha.
+#: bellbird/camera/encuadre.py:80
+msgid "Muévete a tu derecha."
+msgstr "Move to your right."
+
+#. Traductores: aviso de encuadre, rostro alto en la imagen.
+#: bellbird/camera/encuadre.py:82
+msgid "Rostro alto en la imagen."
+msgstr "Face high in the image."
+
+#. Traductores: aviso de encuadre, rostro bajo en la imagen.
+#: bellbird/camera/encuadre.py:84
+msgid "Rostro bajo en la imagen."
+msgstr "Face low in the image."
+
+#. Traductores: aviso de encuadre, rostro lejos de la cámara.
+#: bellbird/camera/encuadre.py:86
+msgid "Rostro lejos: acércate a la cámara."
+msgstr "Face far away: move closer to the camera."
+
+#. Traductores: aviso de encuadre, rostro muy cerca de la cámara.
+#: bellbird/camera/encuadre.py:88
+msgid "Rostro muy cerca: aléjate de la cámara."
+msgstr "Face too close: move away from the camera."
+
+#. Traductores: aviso de encuadre, rostro de lado.
+#: bellbird/camera/encuadre.py:90
+msgid "Rostro de lado: mira a la cámara."
+msgstr "Face turned aside: look at the camera."
+
+#. Traductores: aviso de encuadre, cabeza inclinada.
+#: bellbird/camera/encuadre.py:92
+msgid "Cabeza inclinada."
+msgstr "Head tilted."
+
+#. Traductores: aviso de encuadre, sin rostros en la imagen.
+#: bellbird/camera/encuadre.py:153
+msgid "Ningún rostro."
+msgstr "No face."
+
+#. Traductores: aviso de encuadre, {n} es cuántos rostros hay.
+#: bellbird/camera/encuadre.py:157
+#, python-brace-format
+msgid "{n} rostro."
+msgid_plural "{n} rostros."
+msgstr[0] "{n} face."
+msgstr[1] "{n} faces."
+
+#. Traductores: aviso de encuadre, el principal está centrado.
+#: bellbird/camera/encuadre.py:162
+msgid "Rostro principal centrado."
+msgstr "Main face centered."
+
+#. Traductores: aviso de encuadre, sin problemas.
+#: bellbird/camera/encuadre.py:165 bellbird/camera/encuadre.py:219
+msgid "Rostro centrado."
+msgstr "Face centered."

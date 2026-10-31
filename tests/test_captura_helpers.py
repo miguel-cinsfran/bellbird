@@ -1,5 +1,6 @@
 """Tests de helpers de captura de main: errores, cola y filtros."""
 
+import os
 import queue
 import sys
 import threading
@@ -119,6 +120,9 @@ class TestDirectoTerminado(unittest.TestCase):
                                side_effect=RuntimeError("sin red")):
             self.assertFalse(main._directo_terminado("v"))
 
+    @unittest.skipUnless(
+        os.environ.get("BELLBIRD_PRUEBAS_CON_RED") == "1",
+        "prueba real desactivada: BELLBIRD_PRUEBAS_CON_RED=1")
     def test_directo_terminado_real(self):
         # Sin dobles en la frontera: yt-dlp de verdad. o8itjwRYFvs es un
         # directo no listado que ya terminó, medido el 17/10/2026.

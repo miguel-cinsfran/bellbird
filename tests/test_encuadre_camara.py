@@ -16,7 +16,7 @@ from bellbird.capture import estado_sesion
 from bellbird.core import atajos
 from bellbird.obs.obs_camara import CamaraNoEncontrada, CamaraObs
 from bellbird.obs.obs_captura_ia import CapturaFallida
-from bellbird.ui import encuadre_camara
+from bellbird.ui import encuadre_camara, guia_encuadre
 
 
 def _rostro_centrado():
@@ -223,17 +223,49 @@ class TestAnunciarEncuadre(_Testigo):
         self.correr_llamadas(llamadas)
         anunciar.assert_called_once_with("Fallo traducido de OBS.")
 
-    def test_dos_pulsaciones_lanzan_una_sola_consulta(self):
+    def test_doble_pulsacion_inicia_la_guia(self):
         marco = _nuevo_marco()
-        self.inst(marco)
+        inst = self.inst(marco)
         self.patch_obj(encuadre_camara.detector_rostros, "disponible",
                        return_value=True)
         self.patch_obj(encuadre_camara.obs_activacion,
                        "obs_esta_en_ejecucion", return_value=True)
         crear = self.patch_obj(encuadre_camara.diagnostico, "crear_hilo")
-        encuadre_camara.anunciar_encuadre(marco)
-        encuadre_camara.anunciar_encuadre(marco)
+        iniciar = self.patch_obj(guia_encuadre.Guia, "iniciar")
+        with mock.patch.object(encuadre_camara.time, "monotonic",
+                               side_effect=[100.0, 100.3]):
+            encuadre_camara.anunciar_encuadre(marco)
+            encuadre_camara.anunciar_encuadre(marco)
         self.assertEqual(crear.call_count, 1)
+        iniciar.assert_called_once_with(marco, "", False,
+                                        inst._vigia.reiniciar)
+
+    def test_dos_pulsaciones_separadas_consultan_dos_veces(self):
+        marco = _nuevo_marco()
+        inst = self.inst(marco)
+        self.patch_obj(encuadre_camara.detector_rostros, "disponible",
+                       return_value=True)
+        self.patch_obj(encuadre_camara.obs_activacion,
+                       "obs_esta_en_ejecucion", return_value=True)
+        crear = self.patch_obj(encuadre_camara.diagnostico, "crear_hilo")
+        iniciar = self.patch_obj(guia_encuadre.Guia, "iniciar")
+        with mock.patch.object(encuadre_camara.time, "monotonic",
+                               side_effect=[100.0, 200.0]):
+            encuadre_camara.anunciar_encuadre(marco)
+            inst._en_curso = False
+            encuadre_camara.anunciar_encuadre(marco)
+        self.assertEqual(crear.call_count, 2)
+        iniciar.assert_not_called()
+
+    def test_con_guia_en_marcha_el_atajo_la_detiene(self):
+        marco = _nuevo_marco()
+        self.inst(marco)
+        self.patch_obj(guia_encuadre.Guia, "en_marcha", return_value=True)
+        detener = self.patch_obj(guia_encuadre.Guia, "detener")
+        crear = self.patch_obj(encuadre_camara.diagnostico, "crear_hilo")
+        encuadre_camara.anunciar_encuadre(marco)
+        detener.assert_called_once_with("Guía de encuadre detenida.")
+        crear.assert_not_called()
 
 
 class TestEspejo(_Testigo):
@@ -340,6 +372,20 @@ class TestVigilancia(_Testigo):
         self.assertEqual(llamadas, [])
         anunciar.assert_not_called()
         self.assertEqual(inst._ultima_frase, "OBS no está abierto.")
+
+    def test_con_guia_en_marcha_la_vigilancia_calla(self):
+        marco = _nuevo_marco(avisar_encuadre=True)
+        inst = self._inst_con_gris(marco)
+        self.patch_obj(guia_encuadre.Guia, "en_marcha", return_value=True)
+        anunciar = self.parchear_modulo("anunciar")
+        suena = self.parchear_modulo("reproducir")
+        llamadas = self.parchear_wx()
+        for ahora in (0.0, 1.0, 2.0, 3.0):
+            encuadre_camara._paso(inst, ahora)
+        self.assertEqual(llamadas, [])
+        anunciar.assert_not_called()
+        suena.assert_not_called()
+        self.assertEqual(inst._ultima_frase, "Ningún rostro.")
 
 
 class TestAlternarAvisos(_Testigo):

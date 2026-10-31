@@ -22,7 +22,7 @@ from bellbird.core.idioma import N_, _
 from bellbird.obs import obs_activacion, obs_camara, obs_cliente
 from bellbird.obs.obs_camara import CamaraNoEncontrada
 from bellbird.obs.obs_captura_ia import CapturaFallida
-from bellbird.ui import ia_agregar_captura
+from bellbird.ui import guia_encuadre, ia_agregar_captura
 from bellbird.ui.accesibilidad import anunciar
 from bellbird.voice.sound_player import reproducir
 
@@ -41,6 +41,9 @@ TEXTO_AVISOS_DESACTIVADOS = N_("Avisos de encuadre desactivados")
 INTERVALO_VUELTA = 0.5
 ESPERA_TRAS_FALLO = 5.0
 INTERVALO_REBUSCAR = 10.0
+
+# Doble pulsación del atajo que inicia la guía de encuadre con pitidos.
+VENTANA_DOBLE_PULSACION = 0.6
 
 
 class _Terminar(Exception):
@@ -75,6 +78,8 @@ class _Encuadre:
         self._contador = encuadre.ContadorCongelada()
         self._ultima_frase = ""
         self._candado = threading.Lock()
+        self._guia = guia_encuadre.Guia()
+        self._ultima_pulsacion = 0.0
 
     @property
     def _frame(self):
@@ -119,8 +124,20 @@ def _invertir(marco) -> bool:
 
 
 def anunciar_encuadre(frame) -> None:
-    """Dice el encuadre actual de la cámara. Sin sonido: va por tecla."""
+    """Dice el encuadre actual; dos veces seguidas inicia la guía."""
     inst = _instancia_para(frame)
+    ahora = time.monotonic()
+    if inst._guia.en_marcha():
+        inst._guia.detener(_(guia_encuadre.TEXTO_GUIA_DETENIDA))
+        inst._ultima_pulsacion = 0.0
+        return
+    if ahora - inst._ultima_pulsacion < VENTANA_DOBLE_PULSACION:
+        inst._ultima_pulsacion = 0.0
+        marco = inst._frame
+        inst._guia.iniciar(marco, _fuente(marco), _invertir(marco),
+                           inst._vigia.reiniciar)
+        return
+    inst._ultima_pulsacion = ahora
     if inst._en_curso:
         return
     if not detector_rostros.disponible():
@@ -298,7 +315,7 @@ def _vuelta(inst, ahora) -> None:
     frase = encuadre.frase(estado)
     inst._ultima_frase = frase
     aviso = inst._vigia.observar(estado, ahora)
-    if aviso is not None:
+    if aviso is not None and not inst._guia.en_marcha():
         wx.CallAfter(_avisar, aviso)
 
 

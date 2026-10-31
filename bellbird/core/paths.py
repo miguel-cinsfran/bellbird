@@ -234,6 +234,11 @@ def carpeta_sonidos() -> Path:
     return carpeta_instalacion() / "sounds"
 
 
+def carpeta_guia() -> Path:
+    # Pitidos de la guía de encuadre: fijos, iguales para los dos temas.
+    return carpeta_sonidos() / "guia"
+
+
 def modelo_rostros() -> Path:
     return carpeta_instalacion() / "modelos" / "face_detection_yunet_2023mar.onnx"
 

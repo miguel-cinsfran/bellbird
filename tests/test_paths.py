@@ -49,6 +49,7 @@ RUTAS_DE_INSTALACION = [
     ("musica_por_defecto", "Música"),
     ("catalogo_ia_empaquetado", "catalogo_ia.json"),
     ("carpeta_sonidos", "sounds"),
+    ("carpeta_guia", os.path.join("sounds", "guia")),
     ("modelo_rostros", os.path.join("modelos",
                                     "face_detection_yunet_2023mar.onnx")),
     ("carpeta_idiomas", "idiomas"),

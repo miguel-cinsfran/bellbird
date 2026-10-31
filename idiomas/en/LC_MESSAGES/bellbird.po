@@ -9501,6 +9501,7 @@ msgstr "Source {nombre} is not in the live scene."
 
 #. Traductores: aviso cuando el detector de rostros no está instalado.
 #: bellbird/ui/encuadre_camara.py:33
+#: bellbird/ui/guia_encuadre.py:37
 msgid "El detector de rostros no está instalado."
 msgstr "The face detector is not installed."
 
@@ -9513,6 +9514,16 @@ msgstr "Framing warnings on"
 #: bellbird/ui/encuadre_camara.py:37
 msgid "Avisos de encuadre desactivados"
 msgstr "Framing warnings off"
+
+#. Traductores: anuncio al empezar la guía de encuadre con pitidos.
+#: bellbird/ui/guia_encuadre.py:33
+msgid "Guía de encuadre. Sigue los pitidos."
+msgstr "Framing guide. Follow the beeps."
+
+#. Traductores: anuncio al terminar la guía de encuadre.
+#: bellbird/ui/guia_encuadre.py:35
+msgid "Guía de encuadre detenida."
+msgstr "Framing guide stopped."
 
 #: bellbird/ui/menu_transmision.py:27
 msgid "Anunciar en&cuadre de cámara"

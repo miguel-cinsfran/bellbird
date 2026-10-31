@@ -28,6 +28,7 @@ C4, D4, E4, F4, G4, A4, B4 = 261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493
 C5, D5, E5, F5, G5, A5, B5 = 523.25, 587.33, 659.25, 698.46, 783.99, 880.00, 987.77
 C6, E6 = 1046.50, 1318.51
 A3, F3, E3, B3 = 220.00, 174.61, 164.81, 246.94
+D3 = 146.83
 
 
 # ── Primitivas ────────────────────────────────────────────────────────────────
@@ -1284,6 +1285,69 @@ PANEO = {
 }
 
 
+# ── Guía de encuadre: pitidos con lado y altura ─────────────────────────────
+# Carpeta fija `sounds/guia/`, igual para los dos temas: no son eventos y
+# por eso no entran en TEMAS. Nueve pitidos cortos de 80 ms, uno por lado
+# (izquierda, centro, derecha) y altura (arriba, medio, abajo): el lado
+# sale por un canal (el otro queda en silencio) y la altura por el tono,
+# agudo para subir y grave para bajar. Más `listo` (confirmación que
+# sube) y `sin_rostro` (zumbido grave y corto).
+GUIA_DIR = RAIZ / "sounds" / "guia"
+
+GUIA_TONO = {"arriba": A5, "medio": A4, "abajo": A3}
+GUIA_PANEO = {"izquierda": -1.0, "centro": 0.0, "derecha": 1.0}
+
+
+def gen_guia_pitido(lado: str, altura: str):
+    # Pitido corto de 80 ms: el tono dice si subir o bajar, el canal dice
+    # hacia qué lado moverse.
+    return _normalizar(
+        _perc(_seno(GUIA_TONO[altura], 0.08, 0.40), 0.004, 0.06), 0.6)
+
+
+def gen_guia_listo():
+    # Confirmación de que quedó centrada: dos notas que suben, E5→A5.
+    n1 = _perc(_seno(E5, 0.09, 0.32), 0.004, 0.07)
+    n2 = _perc(_seno(A5, 0.16, 0.34), 0.004, 0.12)
+    return _normalizar(_concat(n1, n2), 0.7)
+
+
+def gen_guia_sin_rostro():
+    # Zumbido grave y corto: no hay rostro a la vista.
+    return _normalizar(_perc(_seno(D3, 0.20, 0.40), 0.005, 0.15), 0.65)
+
+
+GUIA = {f"{lado}_{altura}.wav": (lado, altura)
+        for lado in ("izquierda", "centro", "derecha")
+        for altura in ("arriba", "medio", "abajo")}
+GUIA["listo.wav"] = None
+GUIA["sin_rostro.wav"] = None
+
+
+def generar_guia(destino: Path | None = None,
+                 sobreescribir: bool = False) -> int:
+    destino = destino or GUIA_DIR
+    destino.mkdir(parents=True, exist_ok=True)
+    n = 0
+    for nombre, lados in GUIA.items():
+        ruta = destino / nombre
+        if ruta.exists() and not sobreescribir:
+            print(f"  [saltar]  {nombre}  (ya existe)")
+            continue
+        if lados is None:
+            muestras = gen_guia_listo() if nombre == "listo.wav" \
+                else gen_guia_sin_rostro()
+            pan = 0.0
+        else:
+            lado, altura = lados
+            muestras = gen_guia_pitido(lado, altura)
+            pan = GUIA_PANEO[lado]
+        _escribir_wav(ruta, muestras, pan=pan)
+        print(f"  [crear ]  {nombre:20s}  {ruta.stat().st_size:6d} bytes")
+        n += 1
+    return n
+
+
 # ── Entrada ───────────────────────────────────────────────────────────────────
 
 def generar_tema(tema: str, destino: Path | None = None,
@@ -1308,16 +1372,24 @@ def main():
     ap = argparse.ArgumentParser(description="Genera los WAV de retroalimentación.")
     ap.add_argument("-f", "--forzar", action="store_true", help="Sobreescribir existentes")
     ap.add_argument("-t", "--tema", default="all",
-                    help=f"Tema a generar: {', '.join(TEMAS)} o 'all' (por defecto)")
+                    help=f"Tema a generar: {', '.join(TEMAS)}, guia o 'all' (por defecto)")
     ap.add_argument("-d", "--destino", default=None,
                     help="Carpeta de salida (por defecto sounds/themes/<tema>)")
     args = ap.parse_args()
 
-    temas = list(TEMAS) if args.tema == "all" else [args.tema]
-    if any(t not in TEMAS for t in temas):
-        ap.error(f"tema desconocido. Opciones: {', '.join(TEMAS)}, all")
+    if args.tema not in list(TEMAS) + ["all", "guia"]:
+        ap.error(f"tema desconocido. Opciones: {', '.join(TEMAS)}, guia, all")
 
     total = 0
+    if args.tema in ("all", "guia"):
+        print(f"\n  Guía -> {GUIA_DIR}")
+        print("-" * 60)
+        n = generar_guia(sobreescribir=args.forzar)
+        total += n
+        print("-" * 60)
+        print(f"  {n} creado(s). {len(GUIA) - n} saltado(s).")
+    temas = list(TEMAS) if args.tema == "all" else \
+        [args.tema] if args.tema in TEMAS else []
     for t in temas:
         destino = Path(args.destino) if args.destino else (THEMES_DIR / t)
         print(f"\n  Tema '{t}' -> {destino}")

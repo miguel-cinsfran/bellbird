@@ -21,7 +21,7 @@ from bellbird.ui.buscador_acciones import AccionesResultado
 from bellbird.ui import buscador_contenido
 from bellbird.ui import buscador_tandas
 from bellbird.ui.buscador_filtros import FiltrosBusqueda
-from bellbird.ui.tema import _T, _tc
+from bellbird.ui.tema import boton_principal
 
 _CANTIDADES = tuple(str(n) for n in busqueda_youtube.CANTIDADES)
 
@@ -67,17 +67,14 @@ class PaginaBuscador(wx.Panel):
     def _crear_campo(self, vs):
         fila = wx.BoxSizer(wx.HORIZONTAL)
         lbl = wx.StaticText(self, label=_("B&uscar o pegar enlace:"))
-        lbl.SetForegroundColour(_T.text)
         fila.Add(lbl, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 8)
         self.campo = wx.ComboBox(
             self, style=wx.CB_DROPDOWN | wx.TE_PROCESS_ENTER,
             name=_("Buscar o pegar enlace"))
-        _tc(self.campo)
         self.campo.Bind(wx.EVT_TEXT_ENTER, self._on_buscar)
         fila.Add(self.campo, 1, wx.EXPAND)
         self.btn_buscar = wx.Button(self, label=_("&Buscar"), name="BuscarYoutube")
-        self.btn_buscar.SetBackgroundColour(_T.btn)
-        self.btn_buscar.SetForegroundColour(_T.btn_t)
+        boton_principal(self.btn_buscar)
         self.btn_buscar.Bind(wx.EVT_BUTTON, self._on_buscar)
         fila.Add(self.btn_buscar, 0, wx.LEFT, 8)
         vs.Add(fila, 0, wx.EXPAND | wx.ALL, 8)
@@ -89,11 +86,9 @@ class PaginaBuscador(wx.Panel):
         vs.Add(self.filtros.sizer, 0, wx.EXPAND | wx.ALL, 8)
         fila_cantidad = wx.BoxSizer(wx.HORIZONTAL)
         lbl_cantidad = wx.StaticText(self, label=_("Ca&ntidad:"))
-        lbl_cantidad.SetForegroundColour(_T.text)
         fila_cantidad.Add(lbl_cantidad, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 8)
         self.cho_cantidad = wx.Choice(self, choices=list(_CANTIDADES),
                                      name=_("Cantidad"))
-        _tc(self.cho_cantidad)
         fila_cantidad.Add(self.cho_cantidad, 0)
         vs.Add(fila_cantidad, 0, wx.ALL, 8)
 
@@ -114,12 +109,10 @@ class PaginaBuscador(wx.Panel):
 
     def _crear_pie(self, vs):
         lbl = wx.StaticText(self, label=_("D&etalles:"))
-        lbl.SetForegroundColour(_T.text)
         vs.Add(lbl, 0, wx.LEFT | wx.RIGHT | wx.TOP, 8)
         self.txt_detalles = wx.TextCtrl(
             self, style=wx.TE_MULTILINE | wx.TE_READONLY,
             name=_("Detalles"))
-        _tc(self.txt_detalles)
         self.txt_detalles.SetMinSize((-1, 90))
         vs.Add(self.txt_detalles, 0, wx.EXPAND | wx.ALL, 8)
         fila = wx.BoxSizer(wx.HORIZONTAL)
@@ -128,13 +121,9 @@ class PaginaBuscador(wx.Panel):
         self.btn_todo = self._crear_boton(
             fila, _("Agregar l&ista entera"), "AgregarListaEntera")
         self.btn_agregar = wx.Button(self, label=_("&Agregar a la cola"), name="AgregarACola")
-        self.btn_agregar.SetBackgroundColour(_T.btn)
-        self.btn_agregar.SetForegroundColour(_T.btn_t)
         self.btn_agregar.Bind(wx.EVT_BUTTON, self._on_agregar)
         fila.Add(self.btn_agregar, 0, wx.RIGHT, 8)
         self.btn_mas = wx.Button(self, label=_("Mostrar &más"), name="MostrarMas")
-        self.btn_mas.SetBackgroundColour(_T.btn)
-        self.btn_mas.SetForegroundColour(_T.btn_t)
         self.btn_mas.Bind(wx.EVT_BUTTON, self._on_mas)
         self.btn_mas.Disable()
         fila.Add(self.btn_mas, 0)
@@ -142,8 +131,6 @@ class PaginaBuscador(wx.Panel):
 
     def _crear_boton(self, fila, etiqueta, nombre):
         boton = wx.Button(self, label=etiqueta, name=nombre)
-        boton.SetBackgroundColour(_T.btn)
-        boton.SetForegroundColour(_T.btn_t)
         boton.Show(False)
         fila.Add(boton, 0, wx.RIGHT, 8)
         return boton

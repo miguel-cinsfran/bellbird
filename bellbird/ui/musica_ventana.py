@@ -17,7 +17,7 @@ from bellbird.music import anuncios, vista
 from bellbird.ui import musica_filtros, musica_menus, musica_teclas
 from bellbird.ui.accesibilidad import anunciar, nombre_accesible
 from bellbird.ui.busqueda_teclado import instalar_busqueda_tipo
-from bellbird.ui.tema import _T, _pintar
+from bellbird.ui import paleta
 from bellbird.ui.musica_colecciones import (
     TEXTO_CARGANDO, TEXTO_SIN_CARPETA, ColeccionesVentanaMusica)
 from bellbird.ui.musica_ventana_acciones import AccionesVentanaMusica
@@ -47,21 +47,18 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
         self._primera_carga = True
         self._temporizador = None
         self._combos = control.combos_atajo() or {}
-        self.SetBackgroundColour(_T.bg)
         self._crear_controles()
         self.Bind(wx.EVT_CHAR_HOOK, self._tecla_atajo)
         self.Centre()
         self._inicio()
+        paleta.pintar_ventana(self)
         self._ajustar_minimo()
 
     def _crear_controles(self):
         self._panel = panel = wx.Panel(self, name="PanelMusica")
-        panel.SetBackgroundColour(_T.bg)
-        panel.SetForegroundColour(_T.text)
         # Traductores: nombre accesible de la lista de colecciones; una palabra.
         self.lb_colecciones = self._lista(panel, _("Colecciones"), 190)
         self.lb_colecciones.SetMinSize((220, 190))
-        _pintar(self.lb_colecciones, _T.field, _T.text)
         self.txt_buscar = self._campo(panel, _("Buscar en la música"))
         self.filtros = musica_filtros.FiltrosMusica(
             panel, *self._control.filtros_guardados(),
@@ -110,7 +107,6 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
     @staticmethod
     def _campo(panel, nombre):
         campo = wx.TextCtrl(panel, name=nombre)
-        _pintar(campo, _T.field, _T.text)
         nombre_accesible(campo, nombre)
         return campo
 
@@ -118,7 +114,6 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
     def _lista(panel, nombre, alto):
         lista = wx.ListBox(
             panel, style=wx.LB_SINGLE | wx.LB_HSCROLL, name=nombre)
-        _pintar(lista, _T.field, _T.text)
         nombre_accesible(lista, nombre)
         instalar_busqueda_tipo(
             lista,
@@ -129,7 +124,6 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
     @staticmethod
     def _boton(panel, etiqueta, nombre):
         boton = wx.Button(panel, wx.ID_ANY, etiqueta, name=nombre)
-        _pintar(boton, _T.btn, _T.btn_t)
         return boton
 
     def _crear_pie(self, panel):
@@ -150,7 +144,6 @@ class VentanaMusica(ColeccionesVentanaMusica, AccionesVentanaMusica,
         # Traductores: cierra la ventana; segunda, su nombre accesible.
         self.btn_cerrar = wx.Button(panel, wx.ID_CANCEL, _("&Cerrar"),
                                     name=_("Cerrar"))
-        _pintar(self.btn_cerrar, _T.btn, _T.btn_t)
 
     def _conectar(self):
         self.txt_buscar.Bind(wx.EVT_TEXT, self._al_filtrar)

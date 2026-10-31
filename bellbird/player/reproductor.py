@@ -51,7 +51,7 @@ from bellbird.player.formatos_youtube import (
 )
 from bellbird.ui.accesibilidad import anunciar, nombre_accesible
 from bellbird.ui.teclas_wx import combo_wx
-from bellbird.ui.tema import _T, _tc
+from bellbird.ui.tema import _T
 from bellbird.core import anuncio_ajuste
 from bellbird.core.idioma import _, ngettext
 
@@ -646,7 +646,6 @@ class ReproductorPanel(wx.Panel):
         row.Add(lbl, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
         self.sld_pos = wx.Slider(self, value=0, minValue=0, maxValue=1000,
                                  name=_("Posición de reproducción"))
-        _tc(self.sld_pos, bg=_T.surface)
         self.sld_pos.SetToolTip(_("Flecha derecha avanza 10 s, flecha izquierda retrocede 10 s."))
         self.sld_pos.SetAccessible(_PosAccesible(self))
         row.Add(self.sld_pos, 1, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 8)
@@ -664,7 +663,6 @@ class ReproductorPanel(wx.Panel):
         row.Add(lbl, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
         self.sld_vol = wx.Slider(self, value=self._vol, minValue=0, maxValue=100,
                                  name=_("Volumen del reproductor"))
-        _tc(self.sld_vol, bg=_T.surface)
         self.sld_vol.SetLineSize(1)
         self.sld_vol.SetToolTip(_("Flecha arriba sube, flecha abajo baja el volumen de 1 en 1."))
         self.sld_vol.SetMinSize((160, -1))

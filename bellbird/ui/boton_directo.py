@@ -34,7 +34,7 @@ class BotonDirecto:
         self._transmitiendo = False
         self._deteniendo = False
         self.boton = wx.Button(panel, label=etiqueta, name=nombre)
-        _pintar(self.boton, _T.primary, _T.primary_t)
+        _pintar(self.boton, _T.btn, _T.btn_t)
         self.boton.SetFont(self.boton.GetFont().Bold())
         self.boton.Bind(wx.EVT_BUTTON, self._al_pulsar)
 

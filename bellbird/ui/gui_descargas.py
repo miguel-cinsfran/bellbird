@@ -35,7 +35,8 @@ from bellbird.downloads.opciones_formato import (
 from bellbird.ui.descargas_buscador import PaginaBuscador
 from bellbird.ui.descargas_listas import _ESTADOS_FINALES, PaginaDescargas
 from bellbird.ui.buscador_acciones import anunciar_agregados
-from bellbird.ui.gui import anunciar, nombre_accesible, _T, _tc
+from bellbird.ui.gui import anunciar, nombre_accesible
+from bellbird.ui import paleta
 from bellbird.voice import sound_player as _snd
 
 logger = diagnostico.obtener_logger(__name__)
@@ -176,8 +177,7 @@ class GestorDescargasDialog(wx.Dialog):
         global _dialogo_activo
         super().__init__(parent, title=_("Administrador de descargas"),
                          size=(940, 700),
-                         name="DialogoGestorDescargas")
-        self.SetBackgroundColour(_T.bg)
+                          name="DialogoGestorDescargas")
         self._alive = True
         self._abrir_en_bellbird, self._musica = abrir_en_bellbird, musica
         self._opciones = cfg.obtener_opciones_descarga()
@@ -200,14 +200,13 @@ class GestorDescargasDialog(wx.Dialog):
         if url_inicial:
             self.pagina_buscador.fijar_texto(url_inicial)
         wx.CallAfter(self.pagina_buscador.campo.SetFocus)
+        paleta.pintar_ventana(self)
         self.Centre()
 
     # ── UI ───────────────────────────────────────────────────────────────────
 
     def _build_ui(self):
         panel = wx.Panel(self, name="PanelGestorDescargas")
-        panel.SetBackgroundColour(_T.bg)
-        panel.SetForegroundColour(_T.text)
         vs = wx.BoxSizer(wx.VERTICAL)
 
         vs.Add(self._seccion_listas(panel), 1, wx.EXPAND | wx.ALL, 12)
@@ -219,13 +218,11 @@ class GestorDescargasDialog(wx.Dialog):
         fila = wx.BoxSizer(wx.HORIZONTAL)
         lbl_fmt = wx.StaticText(parent, label=_("&Formato:"),
                                 name="EtiquetaFormato")
-        lbl_fmt.SetForegroundColour(_T.text)
         fila.Add(lbl_fmt, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
         etiquetas = [_(et) for et, _sin_uso in FORMATOS]
         valores = [v for _sin_uso, v in FORMATOS]
         self.cho_formato = wx.Choice(parent, choices=etiquetas,
                                      name=_("Formato"))
-        _tc(self.cho_formato)
         actual = self._opciones.get("formato", "mp4")
         try:    self.cho_formato.SetSelection(valores.index(actual))
         except ValueError: self.cho_formato.SetSelection(0)
@@ -233,10 +230,8 @@ class GestorDescargasDialog(wx.Dialog):
         fila.Add(self.cho_formato, 1, wx.EXPAND | wx.RIGHT, 12)
         lbl_cal = wx.StaticText(parent, label=_("Cali&dad:"),
                                 name="EtiquetaCalidad")
-        lbl_cal.SetForegroundColour(_T.text)
         fila.Add(lbl_cal, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
         self.cho_calidad = wx.Choice(parent, choices=[], name=_("Calidad"))
-        _tc(self.cho_calidad)
         fila.Add(self.cho_calidad, 1, wx.EXPAND)
         self._on_formato()   # llena la calidad y ajusta su habilitación
         return fila
@@ -256,8 +251,6 @@ class GestorDescargasDialog(wx.Dialog):
         fila = wx.BoxSizer(wx.HORIZONTAL)
         self.btn_cerrar = wx.Button(parent, wx.ID_CANCEL, _("&Cerrar"),
                                     name="CerrarGestorDescargas")
-        self.btn_cerrar.SetBackgroundColour(_T.btn)
-        self.btn_cerrar.SetForegroundColour(_T.btn_t)
         self.btn_cerrar.Bind(wx.EVT_BUTTON, self._on_cerrar)
         fila.Add(self.btn_cerrar, 0, wx.RIGHT, 6)
         return fila

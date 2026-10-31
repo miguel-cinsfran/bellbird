@@ -20,6 +20,7 @@ from bellbird.core.idioma import N_, _
 from bellbird.obs import overlay_servidor
 from bellbird.ui.accesibilidad import ContadorAccesible, anunciar, nombre_accesible
 from bellbird.ui.gui import caja_de_grupo
+from bellbird.ui import paleta
 from bellbird.ui.tema import _T
 from bellbird.obs.obs_panel import GestorPanelObs, NOMBRE_FUENTE
 from bellbird.obs.restablecimiento import RegistroRestablecimiento
@@ -79,18 +80,16 @@ class TransmisionDialog(wx.Dialog):
         self._ajuste = ajuste_fino.EstadoAjuste()
         self._cerrando = False
         self._operacion_en_vuelo = False
-        self.SetBackgroundColour(_T.bg)
         self._crear_controles()
         self._temporizador_consulta = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self._anunciar_consulta, self._temporizador_consulta)
         self.Bind(wx.EVT_WINDOW_DESTROY, self._al_destruir)
         self.Centre()
+        paleta.pintar_ventana(self)
         self._en_hilo(self._cargar_inicial, self._inicial_cargada)
 
     def _crear_controles(self):
         panel = wx.Panel(self, name="PanelTransmision")
-        panel.SetBackgroundColour(_T.bg)
-        panel.SetForegroundColour(_T.text)
         caja = wx.BoxSizer(wx.VERTICAL)
         # Contenido desplazable (solo vertical): necesita 1121 px de alto y el
         # diálogo mide 680, así que la mitad quedaba fuera del alcance del
@@ -98,8 +97,6 @@ class TransmisionDialog(wx.Dialog):
         zona = wx.ScrolledWindow(panel, name="ZonaTransmision",
                                  style=wx.TAB_TRAVERSAL | wx.VSCROLL)
         zona.SetScrollRate(0, 20)
-        zona.SetBackgroundColour(_T.bg)
-        zona.SetForegroundColour(_T.text)
         self._zona_desplazable = zona
         contenido = wx.BoxSizer(wx.VERTICAL)
         nota = wx.StaticText(zona, name="NotaTransmision", label=obs_estado.NOTA_TRANSMISION)
@@ -185,8 +182,6 @@ class TransmisionDialog(wx.Dialog):
         self.txt_vista_escena = wx.TextCtrl(
             padre_vista, style=wx.TE_MULTILINE | wx.TE_READONLY,
             name=_("Cómo se ve la escena"))
-        self.txt_vista_escena.SetBackgroundColour(_T.field)
-        self.txt_vista_escena.SetForegroundColour(_T.text)
         nombre_accesible(self.txt_vista_escena, _("Cómo se ve la escena"))
         self.txt_vista_escena.SetMinSize((-1, 110))
         sizer_vista.Add(self.txt_vista_escena, 1, wx.EXPAND | wx.ALL, 6)
@@ -211,8 +206,6 @@ class TransmisionDialog(wx.Dialog):
         self.txt_estado = wx.TextCtrl(
             padre_panel, style=wx.TE_MULTILINE | wx.TE_READONLY,
             name=_("Estado del panel"))
-        self.txt_estado.SetBackgroundColour(_T.field)
-        self.txt_estado.SetForegroundColour(_T.text)
         nombre_accesible(self.txt_estado, _("Estado del panel"))
         self.txt_estado.SetMinSize((-1, 110))
         sizer_panel.Add(self.txt_estado, 1, wx.EXPAND | wx.ALL, 6)
@@ -290,7 +283,6 @@ class TransmisionDialog(wx.Dialog):
 
     def _nuevo_rotulo(self, padre, texto):
         rotulo = wx.StaticText(padre, label=texto)
-        rotulo.SetForegroundColour(_T.text)
         self._rotulos_transmision.append(rotulo)
         return rotulo
 
@@ -304,8 +296,6 @@ class TransmisionDialog(wx.Dialog):
     @staticmethod
     def _boton(panel, etiqueta, nombre, identificador=wx.ID_ANY):
         boton = wx.Button(panel, identificador, etiqueta, name=nombre)
-        boton.SetBackgroundColour(_T.btn)
-        boton.SetForegroundColour(_T.btn_t)
         return boton
 
     def _en_hilo(self, funcion, al_terminar=None):

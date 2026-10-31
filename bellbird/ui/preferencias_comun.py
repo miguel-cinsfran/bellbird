@@ -56,7 +56,7 @@ def crear_panel(parent, name):
 
 def fila_label(p, texto):
     lbl = wx.StaticText(p, label=texto)
-    lbl.SetForegroundColour(_T.accent)
+    lbl.SetForegroundColour(_T.text)
     return lbl
 
 

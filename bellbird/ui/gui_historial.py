@@ -18,6 +18,7 @@ from bellbird.core.idioma import _
 from bellbird.voice import sound_player as _snd
 from bellbird.ui.accesibilidad import anunciar, nombre_accesible
 from bellbird.ui.busqueda_teclado import instalar_busqueda_tipo
+from bellbird.ui import paleta
 from bellbird.ui.tema import _T, _pintar
 
 logger = diagnostico.obtener_logger(__name__)
@@ -33,13 +34,12 @@ class HistorialDialog(wx.Dialog):
         self._ruta = ruta
         self._on_conectar = on_conectar
         self._lista = historial.cargar(ruta)
-        _pintar(self, bg=_T.bg)
         self._build_ui()
+        paleta.pintar_ventana(self)
         self.Centre()
 
     def _build_ui(self):
         panel = wx.Panel(self, name="PanelHistorial")
-        _pintar(panel, _T.bg, _T.text)
         vs = wx.BoxSizer(wx.VERTICAL)
 
         nota = wx.StaticText(panel, name="NotaHistorial", label=_(
@@ -64,7 +64,6 @@ class HistorialDialog(wx.Dialog):
         self.btn_quitar   = wx.Button(panel, label=_("E&liminar"), name="QuitarHistorial")
         btn_cerrar        = wx.Button(panel, wx.ID_CANCEL, _("C&errar"), name="CerrarHistorial")
         for b in (self.btn_conectar, self.btn_quitar, btn_cerrar):
-            _pintar(b, _T.btn, _T.btn_t)
             row.Add(b, 0, wx.RIGHT, 6)
         vs.Add(row, 0, wx.ALIGN_RIGHT | wx.ALL, 10)
 
@@ -77,13 +76,11 @@ class HistorialDialog(wx.Dialog):
     def _crear_pagina(self, titulo, plat):
         """La pestaña de una plataforma y su lista, ya enlazada."""
         pag = wx.Panel(self.nb, name=f"PagHistorial_{plat}")
-        _pintar(pag, bg=_T.bg)
         pvs = wx.BoxSizer(wx.VERTICAL)
         # Traductores: nombre accesible de la lista, con el de la plataforma.
         nombre = _("Historial de {plataforma}").format(plataforma=titulo)
         lb = wx.ListBox(pag, style=wx.LB_SINGLE | wx.LB_HSCROLL,
                         name=nombre)
-        _pintar(lb, _T.field, _T.text)
         nombre_accesible(lb, nombre)
         instalar_busqueda_tipo(
             lb,

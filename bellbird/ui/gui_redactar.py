@@ -6,6 +6,7 @@ import wx
 
 from bellbird.capture import redaccion
 from bellbird.core.idioma import _
+from bellbird.ui import paleta
 
 
 def _anunciar(texto: str) -> None:
@@ -30,17 +31,10 @@ class PanelRedactar(wx.Panel):
         # Traductores: botón para enviar el mensaje.
         self.boton = wx.Button(self, label=_("&Enviar"), name=_("Enviar mensaje al chat"))
         fila.Add(self.boton, 0, wx.ALIGN_BOTTOM)
-        self._aplicar_paleta()
         vs.Add(fila, 1, wx.EXPAND)
         self.SetSizer(vs)
         self.boton.Bind(wx.EVT_BUTTON, self._on_enviar)
         self.texto.Bind(wx.EVT_CHAR_HOOK, self._on_char_hook)
-
-    def _aplicar_paleta(self):
-        # Paleta de la app; con alto contraste _pintar no toca nada.
-        from bellbird.ui.tema import _T, _pintar
-        _pintar(self.texto, _T.field, _T.text)
-        _pintar(self.boton, _T.btn, _T.btn_t)
 
     def establecer_motivo(self, motivo: str) -> None:
         self._motivo = motivo or ""
@@ -80,6 +74,8 @@ class PanelRedactar(wx.Panel):
 
 
 class DialogoRedactar(wx.Dialog):
+    texto_enviado = ""
+
     def __init__(self, parent, etiqueta, maximo, al_enviar,
                  titulo=None, motivo="", nombre_texto=None,
                  nombre_boton=None):
@@ -90,7 +86,6 @@ class DialogoRedactar(wx.Dialog):
         nombre_boton = _("Publicar") if nombre_boton is None else nombre_boton
         super().__init__(parent, title=titulo, name="DialogoRedactar")
         self._al_enviar = al_enviar
-        self.texto_enviado = ""
         vs = wx.BoxSizer(wx.VERTICAL)
         self.panel = PanelRedactar(self, etiqueta, maximo, self._enviar)
         self.panel.texto.SetName(nombre_texto)
@@ -104,6 +99,7 @@ class DialogoRedactar(wx.Dialog):
         vs.Add(cancelar, 0, wx.ALIGN_RIGHT | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.SetSizerAndFit(vs)
         self.Bind(wx.EVT_BUTTON, lambda e: self.EndModal(wx.ID_CANCEL), cancelar)
+        paleta.pintar_ventana(self)
 
     def _enviar(self, texto) -> None:
         self.texto_enviado = texto

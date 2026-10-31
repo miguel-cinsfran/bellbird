@@ -23,6 +23,7 @@ from bellbird.obs import obs_cliente
 from bellbird.obs import obs_activacion
 from bellbird.voice import sound_player as _snd
 from bellbird.ui.gui import ContadorAccesible, _T, _tc, anunciar, nombre_accesible
+from bellbird.ui import paleta
 from bellbird.ui.preferencias_comun import (
     ANCHO_NOTA, EleccionTexto, ajustar_ancho_categorias, crear_panel, fila_label)
 from bellbird.ui.preferencias_api import PaginaApi
@@ -88,17 +89,15 @@ class PreferenciasDialog(wx.Dialog):
         self._fallo_guardado = False
         self._pendientes = []
         self.avisos = []
-        self.SetBackgroundColour(_T.bg)
         self._build_ui()
         self._ajustar_minimo()
+        paleta.pintar_ventana(self)
         self.Centre()
 
     # ── UI ───────────────────────────────────────────────────────────────────
 
     def _build_ui(self):
         panel = wx.Panel(self, name="PanelPreferencias")
-        panel.SetBackgroundColour(_T.bg)
-        panel.SetForegroundColour(_T.text)
         vs = wx.BoxSizer(wx.VERTICAL)
 
         # La lista se anuncia sola al recorrerla, a diferencia de las pestañas.
@@ -153,9 +152,8 @@ class PreferenciasDialog(wx.Dialog):
         row = wx.BoxSizer(wx.HORIZONTAL)
         btn_guardar = wx.Button(panel, wx.ID_OK, _("&Guardar"), name="GuardarPreferencias")
         btn_cancelar = wx.Button(panel, wx.ID_CANCEL, _("&Cancelar"), name="CancelarPreferencias")
+        paleta.tema.boton_principal(btn_guardar)
         for b in (btn_guardar, btn_cancelar):
-            b.SetBackgroundColour(_T.btn)
-            b.SetForegroundColour(_T.btn_t)
             row.Add(b, 0, wx.RIGHT, 6)
         vs.Add(row, 0, wx.ALIGN_RIGHT | wx.ALL, 10)
 
@@ -207,19 +205,15 @@ class PreferenciasDialog(wx.Dialog):
 
         vs.Add(fila_label(p, _("Tamaño de &fuente del chat (8 a 24):")),
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
-        self.sp_fuente = ContadorAccesible(p, min=8, max=24,
-                                      name=_("Tamaño de fuente del chat"))
-        _tc(self.sp_fuente)
+        self.sp_fuente = ContadorAccesible(p, min=8, max=24, name=_("Tamaño de fuente del chat"))
         vs.Add(self.sp_fuente, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         self.chk_total_sc = wx.CheckBox(p, label=_("Mostrar total de &Super Chats en la barra de estado"),
                                          name="MostrarTotalSuperChats")
-        self.chk_total_sc.SetForegroundColour(_T.text)
         vs.Add(self.chk_total_sc, 0, wx.ALL, 10)
 
         self.chk_metadatos = wx.CheckBox(p, label=_("Mostrar pestaña de &información del vídeo"),
                                           name="MostrarMetadatos")
-        self.chk_metadatos.SetForegroundColour(_T.text)
         vs.Add(self.chk_metadatos, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         p.SetSizer(vs)
@@ -289,7 +283,6 @@ class PreferenciasDialog(wx.Dialog):
         self.chk_avisar_sobrecarga = wx.CheckBox(
             p, label=_("A&visar cuando OBS no da abasto"),
             name="AvisarSobrecargaObs")
-        self.chk_avisar_sobrecarga.SetForegroundColour(_T.text)
         vs.Add(self.chk_avisar_sobrecarga, 0, wx.ALL, 10)
 
         vs.Add(fila_label(p, _("&Puerto del panel de chat")),
@@ -377,18 +370,15 @@ class PreferenciasDialog(wx.Dialog):
 
         self.chk_autoplay = wx.CheckBox(p, label=_("&Reproducir audio automáticamente al conectar"),
                                          name="AutoplayReproductor")
-        self.chk_autoplay.SetForegroundColour(_T.text)
         vs.Add(self.chk_autoplay, 0, wx.ALL, 10)
 
         self.chk_solo_audio = wx.CheckBox(
             p, label=_("Reproducir &solo el audio, sin decodificar la imagen"),
             name="SoloAudioReproductor")
-        self.chk_solo_audio.SetForegroundColour(_T.text)
         vs.Add(self.chk_solo_audio, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         self.chk_botones_rep = wx.CheckBox(p, label=_("Mostrar &botones del reproductor"),
                                             name="MostrarBotonesReproductor")
-        self.chk_botones_rep.SetForegroundColour(_T.text)
         vs.Add(self.chk_botones_rep, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         etiqueta_cache = wx.StaticText(
@@ -432,7 +422,6 @@ class PreferenciasDialog(wx.Dialog):
         for comp in estado_sesion.COMPONENTES:
             chk = wx.CheckBox(p, label=estado_sesion.etiqueta(comp),
                               name=f"EstadoComponente_{comp}")
-            chk.SetForegroundColour(_T.text)
             chk.SetValue(comp in activos)
             self._chk_estado[comp] = chk
             vs.Add(chk, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
@@ -449,7 +438,6 @@ class PreferenciasDialog(wx.Dialog):
         self.txt_palabras = wx.TextCtrl(
             p, value=", ".join(self._config.get("palabras_silenciadas", [])),
             name=_("Palabras silenciadas"))
-        _tc(self.txt_palabras)
         vs.Add(self.txt_palabras, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         vs.Add(fila_label(p, _("&Usuarios silenciados (separados por comas):")),
@@ -457,7 +445,6 @@ class PreferenciasDialog(wx.Dialog):
         self.txt_usuarios = wx.TextCtrl(
             p, value=", ".join(self._config.get("usuarios_silenciados", [])),
             name=_("Usuarios silenciados"))
-        _tc(self.txt_usuarios)
         vs.Add(self.txt_usuarios, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         nota = wx.StaticText(p, label=_(

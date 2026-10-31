@@ -1,10 +1,11 @@
 """Paleta «crema + salvia» (ver docs/PALETA-COLORES.md)
-Fondo crema, salvia como color de marca y muy pocos tonos con papel fijo.
-`accent` y `red` son colores de TEXTO (secciones, estados, errores), no
-fondos: son la salvia y el rojo oscurecidos lo justo para dar 4.5:1 sobre
-el fondo. Contraste comprobado con la fórmula WCAG en cada par texto/fondo
-real de la app; todos dan 4.5:1 o más. Con el contraste alto de Windows
-activado (ALTO_CONTRASTE) la paleta no se aplica y manda el tema del sistema.
+Fondo crema, campos y listas en blanco para que se distingan del fondo, y
+la salvia viva como color de marca en la acción principal y en los títulos
+de grupo. `accent` es salvia de texto y de botón principal, `red` el rojo
+de error: ambos dan 4.5:1 o más con la fórmula WCAG en cada fondo de la
+app (crema, blanco de superficie y blanco de campo), igual que el texto
+principal y el secundario. Con el contraste alto de Windows activado
+(ALTO_CONTRASTE) la paleta no se aplica y manda el tema del sistema.
 """
 
 from __future__ import annotations
@@ -18,18 +19,18 @@ logger = diagnostico.obtener_logger(__name__)
 
 
 class _T:
-    bg      = wx.Colour(247, 244, 238)  # #F7F4EE  crema (fondo de marca)
-    surface = wx.Colour(255, 255, 255)  # #FFFFFF  paneles, grupos, pestañas
-    field   = wx.Colour(233, 225, 211)  # #E9E1D3  campos (secundario/beige)
+    bg      = wx.Colour(247, 244, 238)  # #F7F4EE  fondo crema de la app
+    surface = wx.Colour(255, 255, 255)  # #FFFFFF  paneles, grupos y pestañas
+    field   = wx.Colour(255, 255, 255)  # #FFFFFF  campos y listas, blancos
     text    = wx.Colour(51,  51,  51)   # #333333  texto principal
     dim     = wx.Colour(107, 107, 107)  # #6B6B6B  texto secundario
-    accent  = wx.Colour(63,  91,  58)   # #3F5B3A  salvia oscurecida (primario, texto)
-    red     = wx.Colour(179, 38,  30)   # #B3261E  error
-    btn     = wx.Colour(233, 225, 211)  # botones secundarios (= field)
-    btn_t   = wx.Colour(51,  51,  51)
-    # Botón primario (Conectar): salvia tal cual del md, texto oscuro encima.
-    primary   = wx.Colour(202, 215, 197)  # #CAD7C5  salvia (marca, sin oscurecer)
-    primary_t = wx.Colour(51,  51,  51)
+    accent  = wx.Colour(51,  112, 74)   # #33704A  salvia de marca y títulos
+    red     = wx.Colour(179, 38,  30)   # #B3261E  texto de error
+    btn     = wx.Colour(233, 225, 211)  # #E9E1D3  botones secundarios
+    btn_t   = wx.Colour(51,  51,  51)   # #333333  texto de botón secundario
+    # Botón principal: salvia de marca con texto blanco encima.
+    primary   = wx.Colour(51,  112, 74)   # #33704A  acción principal
+    primary_t = wx.Colour(255, 255, 255)  # #FFFFFF  texto sobre el principal
 
 
 def _detectar_alto_contraste() -> bool:
@@ -68,6 +69,11 @@ def _pintar(w, bg=None, fg=None):
 
 def _tc(w, bg=None, fg=None):
     _pintar(w, bg or _T.field, fg or _T.text)
+
+
+def boton_principal(boton):
+    """Pinta el botón de la acción principal con `primary` y `primary_t`."""
+    _pintar(boton, _T.primary, _T.primary_t)
 
 
 def _titulo(w, color=None):

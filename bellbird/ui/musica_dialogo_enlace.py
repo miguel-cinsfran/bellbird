@@ -10,7 +10,7 @@ import wx
 
 from bellbird.core.idioma import N_, _
 from bellbird.ui.accesibilidad import nombre_accesible
-from bellbird.ui.tema import _T, _pintar
+from bellbird.ui import paleta
 
 TITULO = N_("Abrir enlace")
 MODO_AHORA = "ahora"
@@ -36,18 +36,16 @@ class DialogoEnlace(wx.Dialog):
         self._crear_controles()
         self.Bind(wx.EVT_CHAR_HOOK, self._tecla)
         self.Centre()
+        paleta.pintar_ventana(self)
 
     def _crear_controles(self):
         panel = wx.Panel(self, name="PanelEnlace")
         self._panel = panel
-        panel.SetBackgroundColour(_T.bg)
-        panel.SetForegroundColour(_T.text)
         vs = wx.BoxSizer(wx.VERTICAL)
 
         vs.Add(wx.StaticText(panel, label=_("Enlace &de YouTube:")),
                 0, wx.ALL, 8)
         self.txt_enlace = wx.TextCtrl(panel, name=_("Enlace de YouTube"))
-        _pintar(self.txt_enlace, _T.field, _T.text)
         nombre_accesible(self.txt_enlace, _("Enlace de YouTube"))
         vs.Add(self.txt_enlace, 0, wx.EXPAND | wx.ALL, 8)
 
@@ -60,7 +58,6 @@ class DialogoEnlace(wx.Dialog):
             panel, _("Agregar a la &cola"), _("Agregar a la cola"))
         self.btn_cancelar = wx.Button(
             panel, wx.ID_CANCEL, _("Cancelar"), name=_("Cancelar"))
-        _pintar(self.btn_cancelar, _T.btn, _T.btn_t)
         for boton in (self.btn_ahora, self.btn_continuacion,
                       self.btn_cola, self.btn_cancelar):
             botones.Add(boton, 0, wx.RIGHT, 6)
@@ -80,7 +77,6 @@ class DialogoEnlace(wx.Dialog):
     @staticmethod
     def _boton(panel, etiqueta, nombre):
         boton = wx.Button(panel, wx.ID_ANY, etiqueta, name=nombre)
-        _pintar(boton, _T.btn, _T.btn_t)
         return boton
 
     def _elegir(self, modo):

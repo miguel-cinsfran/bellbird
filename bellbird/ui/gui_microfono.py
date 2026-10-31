@@ -18,6 +18,7 @@ from bellbird.obs import obs_audio
 from bellbird.obs import obs_cliente
 from bellbird.obs import obs_entradas_audio
 from bellbird.ui.accesibilidad import anunciar
+from bellbird.ui import paleta
 from bellbird.voice import sound_player as _snd
 
 logger = diagnostico.obtener_logger(__name__)
@@ -120,6 +121,7 @@ class MicrofonoObsDialog(wx.Dialog):
         self.btn_aplicar.Bind(wx.EVT_BUTTON, self._al_aplicar)
         self.btn_cerrar.Bind(wx.EVT_BUTTON, self._al_cerrar)
         self.Bind(wx.EVT_CHAR_HOOK, self._al_tecla)
+        paleta.pintar_ventana(self)
         self.cho_dispositivo.SetFocus()
 
     def _cargar_dispositivos(self, pares, actual) -> None:

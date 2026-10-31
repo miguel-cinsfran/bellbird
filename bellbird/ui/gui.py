@@ -56,6 +56,7 @@ from bellbird.ui.barra_estado import anchos_barra_estado
 from bellbird.ui.confirmar_salida import (
     descargas_sin_terminar, mensaje_confirmar_salida, mensaje_con_descargas)
 from bellbird.ui.gui_redactar import PanelRedactar
+from bellbird.ui import paleta
 from bellbird.ui.sesion_conectada import SesionConectada
 
 # Mapeo entre índice de FILTROS y clave persistida en config.ini.
@@ -202,7 +203,6 @@ class YTChatFrame(wx.Frame):
         self._supervisor = None
         self._descripcion_escena_en_curso = False
 
-        _pintar(self, bg=_T.bg)
         self._build_menubar()
         if self._config.get("overlay_activo", False):
             self._cambiar_overlay(True)
@@ -294,7 +294,6 @@ class YTChatFrame(wx.Frame):
         from bellbird.player.reproductor import ReproductorPanel
 
         panel = wx.Panel(self, name="PanelPrincipal")
-        _pintar(panel, _T.bg, _T.text)
         vs = wx.BoxSizer(wx.VERTICAL)
 
         # ── Barra superior: URL + tipo + Conectar ──
@@ -303,7 +302,6 @@ class YTChatFrame(wx.Frame):
         _titulo(lbl)
         row.Add(lbl, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
         self.txt_url = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER, name=_("Enlace del directo o vídeo"))
-        _tc(self.txt_url)
         self.txt_url.SetToolTip(
             _("Enlace de YouTube (directo o vídeo) o de un directo de TikTok "
               "(tiktok.com/@usuario/live). También vale el ID de 11 caracteres de "
@@ -331,7 +329,6 @@ class YTChatFrame(wx.Frame):
         # conexión y se vuelve a ocultar al desconectar (queda solo la barra
         # superior), para que no aparezca todo a medio cargar. ──
         self._zona = wx.Panel(panel, name="ZonaContenido")
-        _pintar(self._zona, bg=_T.bg)
         zvs = wx.BoxSizer(wx.VERTICAL)
 
         # Traductores: cuaderno con los paneles.
@@ -391,10 +388,10 @@ class YTChatFrame(wx.Frame):
         self.sb.SetStatusWidths(anchos_barra_estado(lambda t: self.sb.GetTextExtent(t)[0]))
         self._actualizar_sb()
         self._set_conectado_ui(False)   # estado inicial: desconectado
+        paleta.pintar_ventana(self)
 
     def _build_pagina_chat(self, parent) -> wx.Panel:
         pag = wx.Panel(parent, name="PaginaChat")
-        _pintar(pag, _T.bg, _T.text)
         vs = wx.BoxSizer(wx.VERTICAL)
 
         lbl = wx.StaticText(pag, label=_("Mensajes del chat:"), name="EtiquetaChat")
@@ -403,7 +400,6 @@ class YTChatFrame(wx.Frame):
 
         self.lb_chat = wx.ListBox(
             pag, style=wx.LB_SINGLE | wx.LB_HSCROLL, name=_("Chat del directo"))
-        _tc(self.lb_chat)
         pt = int(self._config.get("tamanio_fuente_chat", 12))
         self.lb_chat.SetFont(wx.Font(
             pt, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
@@ -435,7 +431,6 @@ class YTChatFrame(wx.Frame):
 
     def _build_pagina_info(self, parent) -> wx.Panel:
         pag = wx.Panel(parent, name="PaginaInfo")
-        _pintar(pag, _T.bg, _T.text)
         vs = wx.BoxSizer(wx.VERTICAL)
 
         lbl = wx.StaticText(pag, label=_("Información del vídeo:"), name="EtiquetaInfo")
@@ -449,7 +444,6 @@ class YTChatFrame(wx.Frame):
         self.txt_info = wx.TextCtrl(
             pag, value="", name=_("Información del vídeo"),
             style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_AUTO_URL | wx.TE_RICH2)
-        _tc(self.txt_info)
         self.txt_info.SetToolTip(
             _("Datos del vídeo: canal, vistas, descripción. Solo lectura. Para "
               "abrir un enlace, cópialo y pégalo en el navegador."))

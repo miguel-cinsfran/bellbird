@@ -13,7 +13,7 @@ from bellbird.core import diagnostico
 from bellbird.core.idioma import N_, _
 from bellbird.downloads import formatos_reales, ytdlp_bin
 from bellbird.ui.accesibilidad import anunciar, nombre_accesible
-from bellbird.ui.tema import _T, _pintar, _tc
+from bellbird.ui import paleta
 from bellbird.voice import sound_player as _snd
 
 logger = diagnostico.obtener_logger(__name__)
@@ -37,13 +37,12 @@ class DialogoFormato(wx.Dialog):
         super().__init__(parent, title=_(TITULO), name="DialogoFormato")
         self._opciones = list(opciones)
         self._crear_controles()
+        paleta.pintar_ventana(self)
         self.Centre()
 
     def _crear_controles(self):
         panel = wx.Panel(self, name="PanelFormato")
         self.panel = panel
-        panel.SetBackgroundColour(_T.bg)
-        panel.SetForegroundColour(_T.text)
         vs = wx.BoxSizer(wx.VERTICAL)
 
         vs.Add(wx.StaticText(panel, label=_("&Formatos:")),
@@ -51,19 +50,16 @@ class DialogoFormato(wx.Dialog):
         self.lista = wx.ListBox(
             panel, choices=[o.etiqueta for o in self._opciones],
             name=_("Formatos"))
-        _tc(self.lista)
         nombre_accesible(self.lista, _("Formatos"))
         vs.Add(self.lista, 1, wx.EXPAND | wx.ALL, 8)
 
         fila = wx.BoxSizer(wx.HORIZONTAL)
         self.btn_descargar = wx.Button(
             panel, wx.ID_OK, _("&Descargar"), name=_("Descargar"))
-        _pintar(self.btn_descargar, _T.btn, _T.btn_t)
         self.btn_descargar.SetDefault()
         fila.Add(self.btn_descargar, 0, wx.RIGHT, 8)
         self.btn_cancelar = wx.Button(
             panel, wx.ID_CANCEL, _("Cancelar"), name=_("Cancelar"))
-        _pintar(self.btn_cancelar, _T.btn, _T.btn_t)
         fila.Add(self.btn_cancelar, 0)
         vs.Add(fila, 0, wx.ALL, 8)
 

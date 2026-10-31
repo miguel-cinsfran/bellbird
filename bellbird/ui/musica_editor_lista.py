@@ -13,7 +13,7 @@ import wx
 from bellbird.core.idioma import N_, _
 from bellbird.music import listas, vista
 from bellbird.ui.accesibilidad import anunciar, nombre_accesible
-from bellbird.ui.tema import _T, _pintar
+from bellbird.ui import paleta
 
 MAX_NOMBRE = 60
 TITULO_NUEVA = N_("Nueva lista")
@@ -106,12 +106,11 @@ class DialogoEditorLista(wx.Dialog):
         self.Bind(wx.EVT_CHAR_HOOK, self._tecla)
         self.Fit()
         self.Centre()
+        paleta.pintar_ventana(self)
         (self.lb_temas if nombre else self.txt_nombre).SetFocus()
 
     def _crear_controles(self):
         self._panel = panel = wx.Panel(self, name="PanelEditorLista")
-        panel.SetBackgroundColour(_T.bg)
-        panel.SetForegroundColour(_T.text)
         vs = wx.BoxSizer(wx.VERTICAL)
         vs.Add(wx.StaticText(panel, label=_("&Nombre:")), 0, wx.ALL, 12)
         self.txt_nombre = self._campo(
@@ -126,7 +125,6 @@ class DialogoEditorLista(wx.Dialog):
         self.lb_temas = wx.ListCtrl(
             panel, style=wx.LC_REPORT | wx.LC_SINGLE_SEL,
             name=_("Canciones de la lista"))
-        _pintar(self.lb_temas, _T.field, _T.text)
         nombre_accesible(self.lb_temas, _("Canciones de la lista"))
         self.lb_temas.InsertColumn(0, _("Canción"), width=420)
         self.lb_temas.EnableCheckBoxes(True)
@@ -143,7 +141,6 @@ class DialogoEditorLista(wx.Dialog):
         campo = wx.TextCtrl(panel, name=nombre)
         if largo is not None:
             campo.SetMaxLength(largo)
-        _pintar(campo, _T.field, _T.text)
         nombre_accesible(campo, nombre)
         return campo
 
@@ -154,7 +151,6 @@ class DialogoEditorLista(wx.Dialog):
         self.btn_cancelar = wx.Button(panel, wx.ID_CANCEL, _("Cancelar"),
                                        name=_("Cancelar"))
         for boton in (self.btn_guardar, self.btn_cancelar):
-            _pintar(boton, _T.btn, _T.btn_t)
             fila.Add(boton, 0, wx.RIGHT, 8)
         self.btn_guardar.SetDefault()
         self.btn_guardar.Bind(wx.EVT_BUTTON, self._guardar)

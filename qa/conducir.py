@@ -4858,7 +4858,7 @@ def escenario_menu_chat(app: Aplicacion, args, res: Resultado):
         res.nota("  " + e[:70])
 
     juntas = " ".join(entradas).lower()
-    for esperada in ("copiar", "releer", "enlace", "silenciar"):
+    for esperada in ("copiar", "leer en voz alta", "enlace", "silenciar"):
         if esperada not in juntas:
             res.fallo("menu del chat: no aparece ninguna entrada de «%s»"
                       % esperada)

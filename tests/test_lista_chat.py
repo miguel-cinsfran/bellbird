@@ -284,7 +284,7 @@ class TestTextoFila(unittest.TestCase):
     def test_miembro(self):
         self.assertEqual(
             texto_fila("Ana", "hola", "12:00:00", TIPO_MIEMBRO, ""),
-            "⭐ NUEVO MIEMBRO: Ana, 12:00:00")
+            "⭐ Nuevo miembro: Ana, 12:00:00")
 
     def test_entrada(self):
         self.assertEqual(

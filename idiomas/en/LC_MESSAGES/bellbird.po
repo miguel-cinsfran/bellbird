@@ -4543,14 +4543,14 @@ msgstr "Connected{sin_tts}"
 msgid "Desconectado{sin_tts}"
 msgstr "Disconnected{sin_tts}"
 
-#: bellbird/ui/gui.py:1729
+#: bellbird/ui/gui.py:1714
 #, python-brace-format
-msgid "Voz vel: {valor}"
-msgstr "Voice rate: {valor}"
+msgid "Velocidad: {valor}"
+msgstr "Speed: {valor}"
 
-#: bellbird/ui/gui.py:1730
-msgid "Voz vel: --"
-msgstr "Voice rate: --"
+#: bellbird/ui/gui.py:1715
+msgid "Velocidad: --"
+msgstr "Speed: --"
 
 #. Traductores: {n} son los mensajes en cola.
 #: bellbird/ui/gui.py:1739
@@ -4574,24 +4574,24 @@ msgstr "Read: {n}"
 msgid "Leídos: —"
 msgstr "Read: —"
 
-#: bellbird/ui/gui.py:1747
+#: bellbird/ui/gui.py:1732
 #, python-brace-format
-msgid "Voz vol: {valor}%"
-msgstr "Voice vol: {valor}%"
+msgid "Volumen: {valor} %"
+msgstr "Volume: {valor} %"
 
-#: bellbird/ui/gui.py:1748
-msgid "Voz vol: --"
-msgstr "Voice vol: --"
+#: bellbird/ui/gui.py:1733
+msgid "Volumen: --"
+msgstr "Volume: --"
 
-#: bellbird/ui/gui.py:1767
+#: bellbird/ui/gui.py:1752
 #, python-brace-format
-msgid "SC: {n}"
-msgstr "SC: {n}"
+msgid "Super Chats: {n}"
+msgstr "Super Chats: {n}"
 
-#: bellbird/ui/gui.py:1768
+#: bellbird/ui/gui.py:1753
 #, python-brace-format
-msgid "SC: {n} ({importes})"
-msgstr "SC: {n} ({importes})"
+msgid "Super Chats: {n} ({importes})"
+msgstr "Super Chats: {n} ({importes})"
 
 #. Traductores: nombre del cuadro de estado.
 #: bellbird/ui/gui_actualizacion.py:33 bellbird/ui/gui_actualizacion.py:37
@@ -5903,13 +5903,13 @@ msgstr "Live stream history"
 
 #: bellbird/ui/gui_historial.py:46
 msgid ""
-"Directos y vídeos vistos. Intro o «Conectar» vuelve a abrir uno. Suprimir"
+"Directos y vídeos vistos. Intro o «Conectar» vuelve a abrir uno. Supr"
 " lo elimina. Los marcados «· directo» eran emisiones en directo. Los de "
 "TikTok se reconectan si el usuario está en directo. Un directo de YouTube"
 " ya terminado no vuelve, pero un vídeo normal sí."
 msgstr ""
-"Viewed live streams and videos. Enter or “Connect” reopens one. Delete "
-"removes it. Items marked “live” were live broadcasts. TikTok ones "
+"Viewed live streams and videos. Enter or “Connect” reopens one. Delete"
+" removes it. Items marked “live” were live broadcasts. TikTok ones "
 "reconnect if the user is live. An ended YouTube live stream does not come"
 " back, but a regular video does."
 
@@ -6687,39 +6687,39 @@ msgstr "R&ecord"
 msgid "Detener la &grabación"
 msgstr "Stop recordin&g"
 
-#: bellbird/ui/gui_transmision.py:60
+#: bellbird/obs/obs_disposicion.py:18
 msgid "Superior izquierda"
 msgstr "Top left"
 
-#: bellbird/ui/gui_transmision.py:60
+#: bellbird/obs/obs_disposicion.py:18
 msgid "Superior centro"
 msgstr "Top center"
 
-#: bellbird/ui/gui_transmision.py:61
+#: bellbird/obs/obs_disposicion.py:19
 msgid "Superior derecha"
 msgstr "Top right"
 
-#: bellbird/ui/gui_transmision.py:61
+#: bellbird/obs/obs_disposicion.py:19
 msgid "Centro izquierda"
 msgstr "Middle left"
 
-#: bellbird/ui/gui_transmision.py:62
+#: bellbird/obs/obs_disposicion.py:20
 msgid "Centro"
 msgstr "Middle"
 
-#: bellbird/ui/gui_transmision.py:62
+#: bellbird/obs/obs_disposicion.py:20
 msgid "Centro derecha"
 msgstr "Middle right"
 
-#: bellbird/ui/gui_transmision.py:63
+#: bellbird/obs/obs_disposicion.py:21
 msgid "Inferior izquierda"
 msgstr "Bottom left"
 
-#: bellbird/ui/gui_transmision.py:63
+#: bellbird/obs/obs_disposicion.py:21
 msgid "Inferior centro"
 msgstr "Bottom center"
 
-#: bellbird/ui/gui_transmision.py:64
+#: bellbird/obs/obs_disposicion.py:22
 msgid "Inferior derecha"
 msgstr "Bottom right"
 
@@ -6728,13 +6728,13 @@ msgstr "Bottom right"
 msgid "Transmitir"
 msgstr "Broadcast"
 
-#: bellbird/ui/gui_transmision.py:152
-msgid "Tu usuario de TikTok:"
-msgstr "Your TikTok user:"
+#: bellbird/ui/gui_transmision.py:145
+msgid "Usuario de TikTok:"
+msgstr "TikTok user:"
 
-#: bellbird/ui/gui_transmision.py:154 bellbird/ui/gui_transmision.py:155
-msgid "Tu usuario de TikTok"
-msgstr "Your TikTok user"
+#: bellbird/ui/gui_transmision.py:147 bellbird/ui/gui_transmision.py:148
+msgid "Usuario de TikTok"
+msgstr "TikTok user"
 
 #: bellbird/ui/gui_transmision.py:157
 msgid "Preparar desti&no"
@@ -6937,9 +6937,9 @@ msgstr "First choose a window in Window to capture."
 msgid "Elige primero a dónde transmitir, en Transmitir a."
 msgstr "First choose where to broadcast, in Broadcast to."
 
-#: bellbird/ui/gui_transmision.py:592
-msgid "Escribe tu usuario de TikTok en Tu usuario de TikTok."
-msgstr "Type your TikTok user in Your TikTok user."
+#: bellbird/ui/gui_transmision.py:591
+msgid "Escribe tu usuario de TikTok en Usuario de TikTok."
+msgstr "Type your TikTok user in TikTok user."
 
 #: bellbird/ui/gui_transmision.py:665
 #, python-brace-format
@@ -7217,8 +7217,8 @@ msgstr "🎨 [{monto}] {autor}, {hora}"
 #. emoji del principio se conserva.
 #: bellbird/ui/lista_chat.py:111
 #, python-brace-format
-msgid "⭐ NUEVO MIEMBRO: {autor}, {hora}"
-msgstr "⭐ NEW MEMBER: {autor}, {hora}"
+msgid "⭐ Nuevo miembro: {autor}, {hora}"
+msgstr "⭐ New member: {autor}, {hora}"
 
 #. Traductores: fila de entrada al directo; {autor} su nombre y {hora} la hora.
 #. El emoji del principio se conserva.
@@ -7518,13 +7518,13 @@ msgstr "Default output"
 
 #: bellbird/ui/preferencias_api.py:40
 msgid ""
-"La clave de API permite LEER comentarios (sin iniciar sesión). El cliente"
-" OAuth e iniciar sesión permiten MODERAR el chat, enviar mensajes al "
+"La clave de API permite leer comentarios sin iniciar sesión. Con el cliente "
+"OAuth y la sesión iniciada se puede moderar el chat, enviar mensajes al "
 "directo y publicar o responder comentarios."
 msgstr ""
-"The API key allows READING comments (without signing in). The OAuth "
-"client and signing in allow MODERATING the chat, sending messages to the "
-"live stream, and posting or replying to comments."
+"The API key allows reading comments without signing in. With the OAuth "
+"client and the session started, the chat can be moderated, messages can be "
+"sent to the live stream, and comments can be posted or replied to."
 
 #. Traductores: no traduzcas el comando «pip install ...», solo el resto.
 #: bellbird/ui/preferencias_api.py:50

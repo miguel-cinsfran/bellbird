@@ -56,13 +56,6 @@ _ETIQUETA_TRANSMITIR = N_("&Transmitir")
 _ETIQUETA_DETENER_TRANSMISION = N_("Detener la &transmisión")
 _ETIQUETA_GRABAR = N_("&Grabar")
 _ETIQUETA_DETENER_GRABACION = N_("Detener la &grabación")
-_ETIQUETAS_POSICION = {
-    "superior-izquierda": N_("Superior izquierda"), "superior-centro": N_("Superior centro"),
-    "superior-derecha": N_("Superior derecha"), "centro-izquierda": N_("Centro izquierda"),
-    "centro": N_("Centro"), "centro-derecha": N_("Centro derecha"),
-    "inferior-izquierda": N_("Inferior izquierda"), "inferior-centro": N_("Inferior centro"),
-    "inferior-derecha": N_("Inferior derecha"),
-}
 
 
 class TransmisionDialog(wx.Dialog):
@@ -149,10 +142,10 @@ class TransmisionDialog(wx.Dialog):
                                      name=_("Transmitir a"))
         nombre_accesible(self.cho_destino, _("Transmitir a"))
         self._fila_campo(sizer_transmitir, rotulo_destino, self.cho_destino)
-        rotulo_usuario = self._nuevo_rotulo(padre_transmitir, _("Tu usuario de TikTok:"))
+        rotulo_usuario = self._nuevo_rotulo(padre_transmitir, _("Usuario de TikTok:"))
         self.txt_usuario_tiktok = wx.TextCtrl(
-            padre_transmitir, value=self._usuario_tiktok, name=_("Tu usuario de TikTok"))
-        nombre_accesible(self.txt_usuario_tiktok, _("Tu usuario de TikTok"))
+            padre_transmitir, value=self._usuario_tiktok, name=_("Usuario de TikTok"))
+        nombre_accesible(self.txt_usuario_tiktok, _("Usuario de TikTok"))
         self._fila_campo(sizer_transmitir, rotulo_usuario, self.txt_usuario_tiktok)
         self.btn_destino = self._boton(padre_transmitir, _("Preparar desti&no"), _("Preparar destino"))
         sizer_transmitir.Add(self.btn_destino, 0, wx.ALL, 6)
@@ -225,7 +218,7 @@ class TransmisionDialog(wx.Dialog):
         sizer_panel.Add(self.txt_estado, 1, wx.EXPAND | wx.ALL, 6)
         rotulo_posicion = self._nuevo_rotulo(padre_panel, _("Posición del panel:"))
         self.cho_posicion = wx.Choice(
-            padre_panel, choices=[_(_ETIQUETAS_POSICION[nombre])
+            padre_panel, choices=[_(obs_disposicion.etiqueta_anclaje(nombre))
                                   for nombre in obs_disposicion.ANCLAJES],
             name=_("Posición del panel"))
         nombre_accesible(self.cho_posicion, _("Posición del panel"))
@@ -340,11 +333,16 @@ class TransmisionDialog(wx.Dialog):
                 self._alternar_panel(self.chk_panel_chat.GetValue()))
 
     def _activar(self, activo):
+        pide_usuario = obs_destinos.usa_usuario_tiktok(self._destino_elegido())
         for control in self._acciones:
             if control is self.chk_panel_chat:
                 control.Enable(self._alternar_panel is not None)
                 continue
-            control.Enable(activo)
+            control.Enable(activo and (control is not self.txt_usuario_tiktok or pide_usuario))
+
+    def _destino_elegido(self):
+        sel = self.cho_destino.GetSelection()
+        return DESTINOS[sel] if sel != wx.NOT_FOUND else None
 
     def _terminar(self, resultado, al_terminar):
         self._temporizador_consulta.Stop()
@@ -400,6 +398,7 @@ class TransmisionDialog(wx.Dialog):
             self.cho_destino.SetStringSelection(datos.perfil)
         else:
             self.cho_destino.SetSelection(wx.NOT_FOUND)
+        self.txt_usuario_tiktok.Enable(obs_destinos.usa_usuario_tiktok(self._destino_elegido()))
         self._mostrar_estados(datos.transmision, datos.grabacion, datos.al_aire)
 
     def _inicial_cargada(self, datos):
@@ -589,7 +588,7 @@ class TransmisionDialog(wx.Dialog):
             anunciar(_("Elige primero a dónde transmitir, en Transmitir a."))
             return
         if decision == transmision_directa.FALTA_USUARIO:
-            anunciar(_("Escribe tu usuario de TikTok en Tu usuario de TikTok."))
+            anunciar(_("Escribe tu usuario de TikTok en Usuario de TikTok."))
             self.txt_usuario_tiktok.SetFocus()
             return
         usuario = _usuario() if destino == "TikTok" else ""
@@ -653,11 +652,11 @@ class TransmisionDialog(wx.Dialog):
         # Solo guarda lo elegido, sin anunciar ni preparar: recorrerlo
         # con flechas dispara EVT_CHOICE y preparar ahí saldría al aire.
         self._recordar_destino(self.cho_destino.GetStringSelection())
+        self.txt_usuario_tiktok.Enable(obs_destinos.usa_usuario_tiktok(self._destino_elegido()))
         event.Skip()
 
     def _preparar_destino(self, event):
-        # Elegir en el desplegable no prepara nada por sí solo: recorrerlo
-        # con flechas dispara EVT_CHOICE y eso saldría al aire sin querer.
+        # Como en _al_cambiar_destino: recorrerlo dispara EVT_CHOICE.
         destino = self.cho_destino.GetStringSelection()
         if not destino:
             anunciar(_("Elige primero a dónde transmitir, en Transmitir a."))

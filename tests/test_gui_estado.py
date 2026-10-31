@@ -83,18 +83,18 @@ class TestFormatoTotalSc(unittest.TestCase):
 
     def test_sin_totales(self):
         self.assertEqual(
-            gui.YTChatFrame._formato_total_sc(self._frame({})), "SC: 3")
+            gui.YTChatFrame._formato_total_sc(self._frame({})), "Super Chats: 3")
 
     def test_una_divisa(self):
         self.assertEqual(
             gui.YTChatFrame._formato_total_sc(self._frame({"€": 15.5})),
-            "SC: 3 (€15.50)")
+            "Super Chats: 3 (€15.50)")
 
     def test_dos_divisas(self):
         self.assertEqual(
             gui.YTChatFrame._formato_total_sc(
                 self._frame({"€": 15.0, "$": 10.0})),
-            "SC: 3 (€15, $10)")
+            "Super Chats: 3 (€15, $10)")
 
 
 def _hilo_inmediato(objetivo, _nombre):

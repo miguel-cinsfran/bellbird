@@ -748,7 +748,7 @@ class TestTransmisionDialog(unittest.TestCase):
 
     def test_orden_de_tab_en_el_orden_de_uso(self):
         self.assertEqual(self._nombres_en_orden(self.dialogo), [
-            "Transmitir a", "Tu usuario de TikTok", "Preparar destino",
+            "Transmitir a", "Usuario de TikTok", "Preparar destino",
             "Transmitir", "Grabar", "Pausar grabación",
             "Escena", "Poner al aire", "Ventana que se captura",
             "Usar esa ventana", "GuardarCaptura", "ActualizarEstado",
@@ -903,7 +903,7 @@ class TestTransmisionDialog(unittest.TestCase):
     def test_campo_usuario_va_entre_destino_y_preparar(self):
         dialogo = self.dialogo
         self.assertEqual(dialogo.txt_usuario_tiktok.GetName(),
-                         "Tu usuario de TikTok")
+                         "Usuario de TikTok")
         acciones = dialogo._acciones
         indice = acciones.index(dialogo.cho_destino)
         self.assertIs(acciones[indice + 1], dialogo.txt_usuario_tiktok)
@@ -930,7 +930,7 @@ class TestTransmisionDialog(unittest.TestCase):
     def test_cada_campo_tiene_su_rotulo_visible_antes(self):
         casos = [
             (self.dialogo.cho_destino, "Transmitir a:"),
-            (self.dialogo.txt_usuario_tiktok, "Tu usuario de TikTok:"),
+            (self.dialogo.txt_usuario_tiktok, "Usuario de TikTok:"),
             (self.dialogo.cho_escena, "Escena:"),
             (self.dialogo.cho_ventana, "Ventana que se captura:"),
             (self.dialogo.cho_fuente, "Fuente:"),
@@ -1071,7 +1071,7 @@ class TestTransmisionDialog(unittest.TestCase):
             self._pulsar_transmitir()
         self.assertEqual(
             self.anuncios,
-            ["Escribe tu usuario de TikTok en Tu usuario de TikTok."])
+            ["Escribe tu usuario de TikTok en Usuario de TikTok."])
         foco.assert_called_once_with()
         self.assertNotIn(mock.call("iniciar", "TikTok", mock.ANY),
                          supervisar.call_args_list)
@@ -1454,15 +1454,81 @@ class TestElegirFuente(unittest.TestCase):
         self.assertEqual(consultas_transmision.elegir_fuente(()), "")
 
 
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestCampoUsuarioSegunDestino(unittest.TestCase):
+    # El campo de usuario solo sirve con TikTok: con otro destino o sin
+    # selección queda deshabilitado y fuera del Tab.
+
+    def setUp(self):
+        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.parches = [
+            mock.patch.object(gui_transmision.threading, "Thread", HiloInmediato),
+            mock.patch.object(gui_transmision.wx, "CallAfter", lambda funcion, *args: funcion(*args)),
+            mock.patch.object(gui_transmision, "anunciar", lambda *args, **kwargs: None),
+            mock.patch.object(gui_transmision.sound_player, "reproducir"),
+        ]
+        for parche in self.parches: parche.start()
+        self.gestor = GestorFalso()
+        self.dialogo = None
+
+    def tearDown(self):
+        if self.dialogo is not None:
+            destruir(self.dialogo)
+        for parche in reversed(self.parches): parche.stop()
+
+    def _dialogo_con_perfil(self, perfil):
+        self.gestor.perfil = perfil
+        self.dialogo = gui_transmision.TransmisionDialog(
+            None, self.gestor, asegurar=_asegurar_sin_obs)
+        return self.dialogo
+
+    def _elegir(self, dialogo, destino):
+        dialogo.cho_destino.SetStringSelection(destino)
+        dialogo.cho_destino.GetEventHandler().ProcessEvent(
+            wx.CommandEvent(wx.EVT_CHOICE.typeId,
+                            dialogo.cho_destino.GetId()))
+
+    def test_abrir_con_tiktok_guardado_deja_el_campo_habilitado(self):
+        dialogo = self._dialogo_con_perfil("TikTok")
+        self.assertEqual(dialogo.cho_destino.GetStringSelection(), "TikTok")
+        self.assertTrue(dialogo.txt_usuario_tiktok.IsEnabled())
+
+    def test_abrir_con_youtube_deja_el_campo_deshabilitado(self):
+        dialogo = self._dialogo_con_perfil("YouTube")
+        self.assertEqual(dialogo.cho_destino.GetStringSelection(), "YouTube")
+        self.assertFalse(dialogo.txt_usuario_tiktok.IsEnabled())
+
+    def test_abrir_sin_destino_deja_el_campo_deshabilitado(self):
+        dialogo = self._dialogo_con_perfil("N5000-Grabacion")
+        self.assertEqual(dialogo.cho_destino.GetSelection(), wx.NOT_FOUND)
+        self.assertFalse(dialogo.txt_usuario_tiktok.IsEnabled())
+
+    def test_cambiar_destino_reevalua_el_campo(self):
+        dialogo = self._dialogo_con_perfil("YouTube")
+        self.assertFalse(dialogo.txt_usuario_tiktok.IsEnabled())
+        self._elegir(dialogo, "TikTok")
+        self.assertTrue(dialogo.txt_usuario_tiktok.IsEnabled())
+        self._elegir(dialogo, "YouTube")
+        self.assertFalse(dialogo.txt_usuario_tiktok.IsEnabled())
+
+    def test_campo_usuario_tiene_el_rotulo_y_el_nombre_nuevo(self):
+        dialogo = self._dialogo_con_perfil("")
+        self.assertEqual(dialogo.txt_usuario_tiktok.GetName(),
+                         "Usuario de TikTok")
+        hijos = list(dialogo.txt_usuario_tiktok.GetParent().GetChildren())
+        indice = hijos.index(dialogo.txt_usuario_tiktok)
+        rotulo = hijos[indice - 1]
+        self.assertIsInstance(rotulo, wx.StaticText)
+        self.assertEqual(rotulo.GetLabel(), "Usuario de TikTok:")
+
+
 class TestTablaPosicionesSinVentana(unittest.TestCase):
     # Sin ventana: la tabla vive en el módulo, así no se crea ningún control.
 
     def test_tabla_cubre_los_anclajes_con_el_texto_de_hoy(self):
-        self.assertEqual(set(gui_transmision._ETIQUETAS_POSICION),
-                         set(obs_disposicion.ANCLAJES))
         for nombre in obs_disposicion.ANCLAJES:
             self.assertEqual(
-                gui_transmision._ETIQUETAS_POSICION[nombre],
+                obs_disposicion.etiqueta_anclaje(nombre),
                 nombre.replace("-", " ").capitalize())
 
 

@@ -13,6 +13,19 @@ ANCLAJES: dict[str, int] = {
     "inferior-izquierda": 9, "inferior-centro": 8, "inferior-derecha": 10,
 }
 
+_ETIQUETAS_ANCLAJE = {
+    "superior-izquierda": N_("Superior izquierda"), "superior-centro": N_("Superior centro"),
+    "superior-derecha": N_("Superior derecha"), "centro-izquierda": N_("Centro izquierda"),
+    "centro": N_("Centro"), "centro-derecha": N_("Centro derecha"),
+    "inferior-izquierda": N_("Inferior izquierda"), "inferior-centro": N_("Inferior centro"),
+    "inferior-derecha": N_("Inferior derecha"),
+}
+
+
+def etiqueta_anclaje(nombre) -> str:
+    """Etiqueta visible de un anclaje para los desplegables."""
+    return _ETIQUETAS_ANCLAJE[nombre]
+
 
 def coordenadas(anclaje, lienzo_ancho, lienzo_alto, margen_pct=2.0):
     if anclaje not in ANCLAJES:

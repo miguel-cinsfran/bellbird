@@ -95,7 +95,7 @@ class TestSimbolosIniciales(unittest.TestCase):
         self.items = [
             "@judithvanessaperezflores9374: saludos a mis hijos, 21:14:10",
             "💲 [5 €] Pepe: gracias, 21:14:11",
-            "⭐ NUEVO MIEMBRO: Marta, 21:14:12",
+            "⭐ Nuevo miembro: Marta, 21:14:12",
             "👋 Carlos entró, 21:14:13",
         ]
 

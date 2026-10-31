@@ -1711,8 +1711,8 @@ class YTChatFrame(wx.Frame):
             estado = _("Desconectado{sin_tts}").format(sin_tts=sin_tts)
         self.sb.SetStatusText(estado, 0)
 
-        try:    self.sb.SetStatusText(_("Voz vel: {valor}").format(valor=self._worker.get_rate()), 1)
-        except Exception: self.sb.SetStatusText(_("Voz vel: --"), 1)
+        try:    self.sb.SetStatusText(_("Velocidad: {valor}").format(valor=self._worker.get_rate()), 1)
+        except Exception: self.sb.SetStatusText(_("Velocidad: --"), 1)
 
         nombre = self._voz_nombre or "—"
         if len(nombre) > 28:
@@ -1729,8 +1729,8 @@ class YTChatFrame(wx.Frame):
         # Traductores: la raya indica que no hay dato.
         except Exception: self.sb.SetStatusText(_("Leídos: —"), 4)
 
-        try:    self.sb.SetStatusText(_("Voz vol: {valor}%").format(valor=self._worker.get_volume()), 5)
-        except Exception: self.sb.SetStatusText(_("Voz vol: --"), 5)
+        try:    self.sb.SetStatusText(_("Volumen: {valor} %").format(valor=self._worker.get_volume()), 5)
+        except Exception: self.sb.SetStatusText(_("Volumen: --"), 5)
 
         if self._config.get("mostrar_total_superchats", True):
             self.sb.SetStatusText(self._formato_total_sc(), 6)
@@ -1747,10 +1747,10 @@ class YTChatFrame(wx.Frame):
         try:    n = self._stats.superchats
         except Exception: n = 0
         importes = texto_importes(self._sc_totales)
-        # Traductores: SC abrevia Super Chats; {n} e {importes} son cantidad e importes.
+        # Traductores: {n} e {importes} son cantidad e importes.
         if not importes:
-            return _("SC: {n}").format(n=n)
-        return _("SC: {n} ({importes})").format(n=n, importes=importes)
+            return _("Super Chats: {n}").format(n=n)
+        return _("Super Chats: {n} ({importes})").format(n=n, importes=importes)
 
 
 # ── Portapapeles ─────────────────────────────────────────────────────────────

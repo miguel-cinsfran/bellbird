@@ -108,7 +108,7 @@ def texto_fila(autor, msg, hora, tipo, monto) -> str:
         return _("🎨 [{monto}] {autor}, {hora}").format(**datos)
     if tipo == TIPO_MIEMBRO:
         # Traductores: fila de miembro nuevo; {autor} su nombre y {hora} la hora. El emoji del principio se conserva.
-        return _("⭐ NUEVO MIEMBRO: {autor}, {hora}").format(**datos)
+        return _("⭐ Nuevo miembro: {autor}, {hora}").format(**datos)
     if tipo == TIPO_ENTRADA:
         # Traductores: fila de entrada al directo; {autor} su nombre y {hora} la hora. El emoji del principio se conserva.
         return _("👋 {autor} entró, {hora}").format(**datos)

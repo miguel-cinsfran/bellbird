@@ -22,6 +22,11 @@ MENSAJE_SIN_APLICAR = N_("OBS no aplicó el destino. Inténtalo de nuevo.")
 
 DESTINOS = ("TikTok", "YouTube")
 
+
+def usa_usuario_tiktok(destino) -> bool:
+    """Si el destino pide el usuario de TikTok: solo TikTok."""
+    return destino == "TikTok"
+
 # Perfiles que esta ruta sí deja crear al que falta: el supervisor carga
 # servidor y clave de la cuenta en el perfil YouTube antes de arrancar OBS,
 # así que uno nuevo no emite al vacío. TikTok sigue pidiendo su clave de

@@ -8,7 +8,7 @@ from bellbird.obs import obs_cliente
 from bellbird.obs import obs_destinos
 from bellbird.obs.obs_destinos import (
     Destino, cambiar_coleccion, coleccion_para, frase_destino_listo,
-    preparar_destino, preparar_para_transmitir)
+    preparar_destino, preparar_para_transmitir, usa_usuario_tiktok)
 
 
 class DobleObsDestinos:
@@ -396,6 +396,19 @@ class PrepararParaTransmitirTest(unittest.TestCase):
             self.assertIsNone(coleccion_para("TikTok", []))
         with self.subTest(caso="todas son destinos"):
             self.assertIsNone(coleccion_para("YouTube", ["TikTok"]))
+
+
+class TestUsaUsuarioTiktok(unittest.TestCase):
+    # El campo de usuario de la ventana Transmisión solo sirve con TikTok.
+
+    def test_tiktok_usa_el_usuario(self):
+        self.assertTrue(usa_usuario_tiktok("TikTok"))
+
+    def test_youtube_no_usa_el_usuario(self):
+        self.assertFalse(usa_usuario_tiktok("YouTube"))
+
+    def test_sin_seleccion_no_usa_el_usuario(self):
+        self.assertFalse(usa_usuario_tiktok(None))
 
 
 class TestPseudoDestinos(unittest.TestCase):

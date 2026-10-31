@@ -9,11 +9,11 @@ _MARGEN = 24
 
 # Campo fijo: índice en la barra y muestra que siempre entra entera.
 _FIJOS = (
-    (1, "Voz vel: 100"),
+    (1, "Velocidad: 100"),
     (3, "Cola: 9999"),
     (4, "Leídos: 99999"),
-    (5, "Voz vol: 100%"),
-    (6, "SC: 999 (US$99999.99)"),
+    (5, "Volumen: 100 %"),
+    (6, "Super Chats: 999 (US$99999.99)"),
 )
 
 

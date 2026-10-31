@@ -35,6 +35,7 @@ logger = diagnostico.obtener_logger(__name__)
 _FORMATOS_VALIDOS = tuple(clave for _etiqueta, clave in FORMATOS)
 _BITRATES_VALIDOS = BITRATES
 _PLANTILLAS_VALIDAS = tuple(clave for _etiqueta, clave, _plantilla in PLANTILLAS)
+_CANALES_YTDLP_VALIDOS = ("estable", "diario")
 
 
 def _validar_y_fijar(ruta, seccion, clave, valor, defecto, validos):
@@ -93,6 +94,14 @@ def _plantilla_descargas(p, ruta) -> str:
     crudo = str(p.get("descargas", "plantilla")).strip()
     return _validar_y_fijar(ruta, "descargas", "plantilla", crudo, "titulo_id",
                             _PLANTILLAS_VALIDAS)
+
+
+def _canal_descargas(p, ruta) -> str:
+    """Canal de actualización de yt-dlp: ausente o raro vale estable."""
+    crudo = (p.get("descargas", "canal_ytdlp", fallback="estable").strip().lower()
+             if p.has_section("descargas") else "estable")
+    return _validar_y_fijar(ruta, "descargas", "canal_ytdlp", crudo, "estable",
+                            _CANALES_YTDLP_VALIDOS)
 
 
 def _formato_descargas(p, ruta) -> str:
@@ -177,7 +186,8 @@ def obtener_opciones_descarga() -> dict:
                                              SIMULTANEAS_MIN, SIMULTANEAS_MAX),
             "limite": _entero_descargas(p, ruta, "limite", 0, 0, LIMITE_MAX),
             "carpeta_lista": _booleano_descargas(p, "carpeta_lista"),
-            "plantilla": _plantilla_descargas(p, ruta)}
+            "plantilla": _plantilla_descargas(p, ruta),
+            "canal_ytdlp": _canal_descargas(p, ruta)}
 
 
 def _plantilla_guardada(op: dict) -> str:
@@ -186,6 +196,16 @@ def _plantilla_guardada(op: dict) -> str:
     if plantilla not in _PLANTILLAS_VALIDAS:
         plantilla = "titulo_id"
     return plantilla
+
+
+def _guardar_canal_ytdlp(op: dict, ruta) -> None:
+    """Valida el canal y lo guarda: sin clave o raro vale estable."""
+    from bellbird.core.config import guardar_opcion
+
+    canal = str(op.get("canal_ytdlp", "estable")).strip().lower()
+    if canal not in _CANALES_YTDLP_VALIDOS:
+        canal = "estable"
+    guardar_opcion(ruta, "descargas", "canal_ytdlp", canal)
 
 
 def guardar_opciones_descarga(op: dict) -> None:
@@ -227,3 +247,4 @@ def guardar_opciones_descarga(op: dict) -> None:
     guardar_opcion(ruta, "descargas", "carpeta_lista",
                     "true" if carpeta_lista else "false")
     guardar_opcion(ruta, "descargas", "plantilla", plantilla)
+    _guardar_canal_ytdlp(op, ruta)

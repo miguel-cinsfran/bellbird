@@ -14,9 +14,26 @@ from bellbird.core.idioma import _
 from bellbird.downloads import ytdlp_bin
 
 
-URL_API_RELEASES = "https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest"
+REPOSITORIOS_YTDLP = {"estable": "yt-dlp/yt-dlp",
+                      "diario": "yt-dlp/yt-dlp-nightly-builds"}
 NOMBRE_BINARIO = paths.NOMBRE_YTDLP
 NOMBRE_FIRMAS = "SHA2-256SUMS"
+
+
+def _url_api_ytdlp(canal="estable") -> str:
+    """URL de la última publicación del repositorio del canal."""
+    repositorio = REPOSITORIOS_YTDLP.get(canal, REPOSITORIOS_YTDLP["estable"])
+    return f"https://api.github.com/repos/{repositorio}/releases/latest"
+
+
+def _canal_configurado() -> str:
+    """Canal elegido en Preferencias: estable si falta o no se puede leer."""
+    # Import local por el mismo ciclo que `_user_agent`.
+    from bellbird.core import config
+    try:
+        return config.obtener_opciones_descarga().get("canal_ytdlp", "estable")
+    except Exception:
+        return "estable"
 
 
 def _user_agent():
@@ -57,10 +74,11 @@ def mensaje_de_actualizacion(estado, version_actual="", version_nueva="",
     return _("No se pudo actualizar yt-dlp.")
 
 
-def ultima_version_ytdlp() -> tuple[str, str, str] | None:
+def ultima_version_ytdlp(canal="estable") -> tuple[str, str, str] | None:
     """Devuelve versión, descarga del ejecutable y descarga de sus firmas."""
     try:
-        solicitud = Request(URL_API_RELEASES, headers={"User-Agent": _user_agent()})
+        solicitud = Request(_url_api_ytdlp(canal),
+                            headers={"User-Agent": _user_agent()})
         with urlopen(solicitud, timeout=ytdlp_bin.TIEMPO_ESPERA) as respuesta:
             datos = json.load(respuesta)
         activos = {activo["name"]: activo for activo in datos["assets"]}
@@ -194,7 +212,7 @@ def actualizar_ytdlp(avisar_antes_descarga=None, aviso_progreso=None,
     """
     ruta = ytdlp_bin.ruta_ytdlp()
     version_instalada = ytdlp_bin.version_ytdlp(ruta) if ruta else ""
-    ultima = ultima_version_ytdlp()
+    ultima = ultima_version_ytdlp(_canal_configurado())
     if ultima is None:
         return "sin_conexion", version_instalada, ""
 

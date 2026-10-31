@@ -28,7 +28,9 @@ class PaginaDescargasPreferencias:
         self.cho_descargas_plantilla = None
         self.sp_descargas_simultaneas = None
         self.sp_descargas_limite = None
+        self.cho_descargas_canal = None
         self._plantillas_claves = [clave for _etiqueta, clave, _plantilla in PLANTILLAS]
+        self._canales_claves = ["estable", "diario"]
 
     def construir(self, parent):
         p = crear_panel(parent, "PagDescargas")
@@ -36,6 +38,7 @@ class PaginaDescargasPreferencias:
         self._descargas_carpeta(p, vs)
         self._descargas_listas(p, vs)
         self._descargas_topes(p, vs)
+        self._descargas_canal(p, vs)
         self._cargar()
         p.SetSizer(vs)
         return p
@@ -91,8 +94,18 @@ class PaginaDescargasPreferencias:
         vs.Add(self.sp_descargas_limite, 0,
                wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
+    def _descargas_canal(self, p, vs):
+        vs.Add(fila_label(p, _("Canal de actualización de &yt-dlp:")),
+               0, wx.LEFT | wx.RIGHT, 10)
+        self.cho_descargas_canal = wx.Choice(
+            p, choices=[_("Estable"), _("Diario")],
+            name=_("Canal de actualización de yt-dlp"))
+        _tc(self.cho_descargas_canal)
+        vs.Add(self.cho_descargas_canal, 0,
+               wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
     def _cargar(self):
-        """Vuelca las opciones guardadas en los seis controles."""
+        """Vuelca las opciones guardadas en los siete controles."""
         opciones = cfg.obtener_opciones_descarga()
         self.dir_descargas.SetPath(str(opciones.get("carpeta") or ""))
         self.chk_descargas_numerar.SetValue(bool(opciones.get("enumerar", False)))
@@ -104,6 +117,11 @@ class PaginaDescargasPreferencias:
         self.cho_descargas_plantilla.SetSelection(indice)
         self.sp_descargas_simultaneas.SetValue(int(opciones.get("simultaneas", 2)))
         self.sp_descargas_limite.SetValue(int(opciones.get("limite", 0)))
+        try:
+            canal = self._canales_claves.index(opciones.get("canal_ytdlp"))
+        except ValueError:
+            canal = 0
+        self.cho_descargas_canal.SetSelection(canal)
 
     def guardar(self):
         """Guarda la página sin tocar formato, bitrate ni resolución."""
@@ -118,4 +136,9 @@ class PaginaDescargasPreferencias:
             opciones["plantilla"] = "titulo_id"
         opciones["simultaneas"] = int(self.sp_descargas_simultaneas.GetValue())
         opciones["limite"] = int(self.sp_descargas_limite.GetValue())
+        canal = self.cho_descargas_canal.GetSelection()
+        if 0 <= canal < len(self._canales_claves):
+            opciones["canal_ytdlp"] = self._canales_claves[canal]
+        else:
+            opciones["canal_ytdlp"] = "estable"
         cfg.guardar_opciones_descarga(opciones)

@@ -5317,6 +5317,22 @@ msgstr "Speed limit in MB/s, 0 to &disable:"
 msgid "Límite de velocidad en MB/s"
 msgstr "Speed limit in MB/s"
 
+#: bellbird/ui/preferencias_descargas.py:98
+msgid "Canal de actualización de &yt-dlp:"
+msgstr "&yt-dlp update channel:"
+
+#: bellbird/ui/preferencias_descargas.py:102
+msgid "Canal de actualización de yt-dlp"
+msgstr "yt-dlp update channel"
+
+#: bellbird/ui/preferencias_descargas.py:101
+msgid "Estable"
+msgstr "Stable"
+
+#: bellbird/ui/preferencias_descargas.py:101
+msgid "Diario"
+msgstr "Nightly"
+
 #: bellbird/downloads/opciones_formato.py:29
 msgid "Título e identificador"
 msgstr "Title and identifier"

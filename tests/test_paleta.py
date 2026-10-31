@@ -36,15 +36,23 @@ class TestColores(unittest.TestCase):
         self.assertEqual((_T.field.Red(), _T.field.Green(), _T.field.Blue()),
                          (255, 255, 255))
         self.assertEqual((_T.accent.Red(), _T.accent.Green(), _T.accent.Blue()),
-                         (0x33, 0x70, 0x4A))
+                         (0x0B, 0x6E, 0x63))
         self.assertEqual((_T.primary.Red(), _T.primary.Green(), _T.primary.Blue()),
-                         (0x33, 0x70, 0x4A))
+                         (0x0B, 0x6E, 0x63))
         self.assertEqual((_T.primary_t.Red(), _T.primary_t.Green(),
                           _T.primary_t.Blue()), (255, 255, 255))
+        self.assertEqual((_T.bg.Red(), _T.bg.Green(), _T.bg.Blue()),
+                         (0xF3, 0xF6, 0xF6))
+        self.assertEqual((_T.text.Red(), _T.text.Green(), _T.text.Blue()),
+                         (0x1C, 0x26, 0x29))
+        self.assertEqual((_T.dim.Red(), _T.dim.Green(), _T.dim.Blue()),
+                         (0x56, 0x65, 0x6A))
+        self.assertEqual((_T.btn.Red(), _T.btn.Green(), _T.btn.Blue()),
+                         (0xE2, 0xE8, 0xE8))
 
     def test_contraste_de_cada_par(self):
         for texto in (_T.text, _T.dim, _T.accent, _T.red):
-            for fondo in (_T.bg, _T.surface, _T.field):
+            for fondo in (_T.bg, _T.surface, _T.field, _T.btn):
                 with self.subTest(texto=texto, fondo=fondo):
                     self.assertGreaterEqual(_relacion(texto, fondo), 4.5)
         self.assertGreaterEqual(_relacion(_T.primary_t, _T.primary), 4.5)

@@ -1,9 +1,10 @@
-"""Paleta «crema + salvia» (ver docs/PALETA-COLORES.md)
-Fondo crema, campos y listas en blanco para que se distingan del fondo, y
-la salvia viva como color de marca en la acción principal y en los títulos
-de grupo. `accent` es salvia de texto y de botón principal, `red` el rojo
-de error: ambos dan 4.5:1 o más con la fórmula WCAG en cada fondo de la
-app (crema, blanco de superficie y blanco de campo), igual que el texto
+"""Paleta «pájaro campana» (ver docs/PALETA-COLORES.md)
+Blanco frío de fondo, campos y listas en blanco puro para que se distingan
+del fondo, y el turquesa de la garganta del ave como color de marca en la
+acción principal y en los títulos de grupo. `accent` es turquesa oscuro de
+texto y de botón principal, `red` el rojo de error: ambos dan 4.5:1 o más
+con la fórmula WCAG en cada fondo de la app (blanco frío, blanco de
+superficie, blanco de campo y gris verdoso de botón), igual que el texto
 principal y el secundario. Con el contraste alto de Windows activado
 (ALTO_CONTRASTE) la paleta no se aplica y manda el tema del sistema.
 """
@@ -19,17 +20,17 @@ logger = diagnostico.obtener_logger(__name__)
 
 
 class _T:
-    bg      = wx.Colour(247, 244, 238)  # #F7F4EE  fondo crema de la app
+    bg      = wx.Colour(243, 246, 246)  # #F3F6F6  fondo blanco frío de la app
     surface = wx.Colour(255, 255, 255)  # #FFFFFF  paneles, grupos y pestañas
     field   = wx.Colour(255, 255, 255)  # #FFFFFF  campos y listas, blancos
-    text    = wx.Colour(51,  51,  51)   # #333333  texto principal
-    dim     = wx.Colour(107, 107, 107)  # #6B6B6B  texto secundario
-    accent  = wx.Colour(51,  112, 74)   # #33704A  salvia de marca y títulos
-    red     = wx.Colour(179, 38,  30)   # #B3261E  texto de error
-    btn     = wx.Colour(233, 225, 211)  # #E9E1D3  botones secundarios
-    btn_t   = wx.Colour(51,  51,  51)   # #333333  texto de botón secundario
-    # Botón principal: salvia de marca con texto blanco encima.
-    primary   = wx.Colour(51,  112, 74)   # #33704A  acción principal
+    text    = wx.Colour(28,  38,  41)   # #1C2629  pizarra, texto principal
+    dim     = wx.Colour(86,  101, 106)  # #56656A  pizarra media, texto secundario
+    accent  = wx.Colour(11,  110, 99)   # #0B6E63  turquesa de marca y títulos
+    red     = wx.Colour(180, 35,  24)   # #B42318  texto de error
+    btn     = wx.Colour(226, 232, 232)  # #E2E8E8  gris verdoso, botones secundarios
+    btn_t   = wx.Colour(28,  38,  41)   # #1C2629  texto de botón secundario
+    # Botón principal: turquesa de marca con texto blanco encima.
+    primary   = wx.Colour(11,  110, 99)   # #0B6E63  acción principal
     primary_t = wx.Colour(255, 255, 255)  # #FFFFFF  texto sobre el principal
 
 

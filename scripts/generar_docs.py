@@ -44,13 +44,13 @@ DOCUMENTOS = [
 # cualquier equipo sin conexión.
 _ESTILO = """<style>
 :root {
-  --fondo: #ffffff; --texto: #1c1917; --tenue: #57534e;
-  --acento: #b8452f; --borde: #e7e5e4; --codigo-fondo: #f5f5f4;
+  --fondo: #ffffff; --texto: #1c2629; --tenue: #56656a;
+  --acento: #0b6e63; --borde: #e2e8e8; --codigo-fondo: #f3f6f6;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --fondo: #1c1917; --texto: #e7e5e4; --tenue: #a8a29e;
-    --acento: #e8745c; --borde: #44403c; --codigo-fondo: #292524;
+    --fondo: #14191b; --texto: #e4ebeb; --tenue: #9aa8ac;
+    --acento: #45c9b6; --borde: #2f393c; --codigo-fondo: #1c2427;
   }
 }
 html { -webkit-text-size-adjust: 100%; }

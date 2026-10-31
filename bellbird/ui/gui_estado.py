@@ -33,6 +33,16 @@ def _texto_camara(frame):
     return encuadre_camara.texto_estado(frame)
 
 
+def _supervisada(frame):
+    try:
+        supervisor = getattr(frame, "_supervisor", None)
+        if supervisor is None or not supervisor.activo:
+            return ""
+        return supervisor.frase_estado()
+    except Exception:
+        return ""
+
+
 def _tipo_sesion(frame):
     """El tipo de conexión para F2: TikTok y YouTube son LIVE por dentro."""
     from bellbird.ui import gui as _gui
@@ -65,10 +75,7 @@ def snapshot_sesion(frame):
     estado_obs = _seguro(lambda: vigilante.estado(), None) if vigilante else None
     transmision = estado_obs.transmision if estado_obs else None
     grabacion = estado_obs.grabacion if estado_obs else None
-    supervisor = getattr(frame, "_supervisor", None)
-    supervisada = _seguro(
-        lambda: supervisor.frase_estado()
-        if supervisor is not None and supervisor.activo else "", "")
+    supervisada = _supervisada(frame)
     return _gui.estado_sesion.SnapshotSesion(
         conectado=frame._conectado,
         tipo=tipo,

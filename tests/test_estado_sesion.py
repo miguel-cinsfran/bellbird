@@ -269,7 +269,7 @@ class TestDesfaseConVuelta(unittest.TestCase):
 class TestMusica(unittest.TestCase):
 
     def test_componente_al_final_con_etiqueta(self):
-        self.assertEqual(COMPONENTES[-2], "musica")
+        self.assertEqual(COMPONENTES[-3], "musica")
         self.assertEqual(ETIQUETAS["musica"], "Música que suena")
 
     def test_se_dibuja_con_dato(self):
@@ -290,7 +290,7 @@ class TestMusica(unittest.TestCase):
 class TestIgualando(unittest.TestCase):
 
     def test_componente_al_final_con_etiqueta(self):
-        self.assertEqual(COMPONENTES[-1], "igualando")
+        self.assertEqual(COMPONENTES[-2], "igualando")
         self.assertEqual(ETIQUETAS["igualando"],
                          "Igualación del volumen de la música")
 

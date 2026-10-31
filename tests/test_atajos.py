@@ -315,9 +315,9 @@ class TestParsearAtajos(unittest.TestCase):
     def test_conflicto_descarta_el_segundo(self):
         # Dos acciones reclamando la misma tecla: la segunda se descarta.
         atajos = parsear_atajos({"pausa": "f3", "detener_tts": "f3"})
-        teclas = [a.tecla for a in atajos.values()]
-        # 'f3' aparece una sola vez.
-        self.assertEqual(teclas.count("f3"), 1)
+        textos = [a.texto for a in atajos.values()]
+        # 'f3' aparece una sola vez ('ctrl+f3' es otra combinación).
+        self.assertEqual(textos.count("f3"), 1)
 
     def test_override_valido(self):
         atajos = parsear_atajos({"pausa": "alt+j"})
@@ -351,7 +351,9 @@ class TestParsearAtajos(unittest.TestCase):
                 ("musica_repetir", "ctrl+alt+r", "ctrl+alt"),
                 ("musica_detener", "ctrl+alt+d", "ctrl+alt"),
                 ("musica_adelantar", "ctrl+alt+shift+right", "ctrl+alt"),
-                ("musica_retroceder", "ctrl+alt+shift+left", "ctrl+alt")):
+                ("musica_retroceder", "ctrl+alt+shift+left", "ctrl+alt"),
+                ("anunciar_encuadre", "ctrl+f3", "f"),
+                ("avisos_encuadre", "ctrl+shift+f3", "f")):
             self.assertEqual(ATAJOS_DEFAULTS[accion], valor)
             self.assertTrue(atajo_valido_para_area(accion, valor),
                             f"{accion} no tiene un atajo válido para su área")
@@ -388,6 +390,7 @@ class TestParsearAtajos(unittest.TestCase):
         from bellbird.ui import menu_transmision
         fuente = inspect.getsource(gui_menu.construir_menu)
         fuente += inspect.getsource(menu_transmision.construir)
+        fuente += inspect.getsource(menu_transmision._agregar_encuadre)
         fuente += inspect.getsource(gui_menu._construir_menu_ver)
         fuente += inspect.getsource(gui_menu._construir_menu_musica)
         fuente += inspect.getsource(gui_menu._construir_menu_ayuda)
@@ -420,6 +423,8 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertIn('._accel("musica_detener")', fuente)
         self.assertIn('._accel("musica_adelantar")', fuente)
         self.assertIn('._accel("musica_retroceder")', fuente)
+        self.assertIn('._accel("anunciar_encuadre")', fuente)
+        self.assertIn('._accel("avisos_encuadre")', fuente)
         self.assertNotIn("musica_listas", fuente)
         self.assertNotIn("\\tAlt+L", fuente)
         self.assertNotIn("\\tCtrl+F", fuente)

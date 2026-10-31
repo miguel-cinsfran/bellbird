@@ -51,6 +51,8 @@ EVENTOS = [
     "formatos_cargando", "formatos_fallidos",
     # TikTok frena las consultas seguidas: espera un minuto antes de mirar.
     "tiktok_limitado",
+    # Encuadre de cámara: el rostro sale y vuelve, cada uno con el suyo.
+    "encuadre_fuera", "encuadre_dentro",
 ]
 
 # Nombre llano de cada evento para la página Sonidos de Preferencias.
@@ -129,4 +131,6 @@ NOMBRES = {
     "formatos_cargando": "Carga de formatos",
     "formatos_fallidos": "Formatos no disponibles",
     "tiktok_limitado": "TikTok limita las consultas",
+    "encuadre_fuera": "Rostro fuera del encuadre",
+    "encuadre_dentro": "Rostro de vuelta en el encuadre",
 }

@@ -23,6 +23,9 @@ def opciones_transmision(p) -> dict:
         "transmision_destino": destino,
         "avisar_sobrecarga": leer_booleano(p, "transmision", "avisar_sobrecarga"),
         "grabar_al_transmitir": leer_booleano(p, "transmision", "grabar_al_transmitir"),
+        "avisar_encuadre": leer_booleano(p, "transmision", "avisar_encuadre"),
+        "camara_fuente": leer_texto(p, "transmision", "camara_fuente"),
+        "camara_invertir": leer_booleano(p, "transmision", "camara_invertir"),
         **_opciones_youtube(p),
     }
 

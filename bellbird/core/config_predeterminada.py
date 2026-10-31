@@ -109,6 +109,8 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("musica_retroceder", "ctrl+alt+shift+left"),
         ("musica_ventana", "ctrl+shift+m"),
         ("preguntar_ia", "ctrl+shift+i"),
+        ("anunciar_encuadre", "ctrl+f3"),
+        ("avisos_encuadre", "ctrl+shift+f3"),
     ]),
     ("ui", [
         ("tamanio_fuente_chat", "12"),
@@ -153,6 +155,9 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("destino", ""),
         ("avisar_sobrecarga", "true"),
         ("grabar_al_transmitir", "false"),
+        ("avisar_encuadre", "false"),
+        ("camara_fuente", ""),
+        ("camara_invertir", "false"),
         ("youtube_titulo", ""),
         ("youtube_descripcion", ""),
         ("youtube_privacidad", "unlisted"),
@@ -185,6 +190,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("obs_escena", "false"),
         ("musica", "true"),
         ("igualando", "true"),
+        ("camara", "true"),
     ]),
     ("descargas", [
         ("formato", "mp4"),
@@ -271,6 +277,9 @@ _COMENTARIOS: dict[str, str] = {
         "# Transmisión: destino del directo y datos del directo de\n"
         "# YouTube (se piden al transmitir y se recuerdan). La\n"
         "# descripción guarda los saltos de línea como \\n.\n"
+        "# La cámara de la escena al aire se busca sola; camara_fuente\n"
+        "# la fija por nombre. camara_invertir invierte izquierda y\n"
+        "# derecha además del espejo que informa OBS.\n"
     ),
     "estado": (
         "# Componentes que anuncia F2. true se dice, false se omite.\n"

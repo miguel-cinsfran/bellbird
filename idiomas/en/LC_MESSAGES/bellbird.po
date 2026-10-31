@@ -9498,3 +9498,45 @@ msgstr "The OBS camera is not in the live scene."
 #, python-brace-format
 msgid "La fuente {nombre} no está en la escena al aire."
 msgstr "Source {nombre} is not in the live scene."
+
+#. Traductores: aviso cuando el detector de rostros no está instalado.
+#: bellbird/ui/encuadre_camara.py:33
+msgid "El detector de rostros no está instalado."
+msgstr "The face detector is not installed."
+
+#. Traductores: aviso al activar los avisos automáticos del encuadre.
+#: bellbird/ui/encuadre_camara.py:35
+msgid "Avisos de encuadre activados"
+msgstr "Framing warnings on"
+
+#. Traductores: aviso al desactivar los avisos automáticos del encuadre.
+#: bellbird/ui/encuadre_camara.py:37
+msgid "Avisos de encuadre desactivados"
+msgstr "Framing warnings off"
+
+#: bellbird/ui/menu_transmision.py:27
+msgid "Anunciar en&cuadre de cámara"
+msgstr "Announce camera &framing"
+
+#: bellbird/ui/menu_transmision.py:29
+msgid "A&visar si el rostro sale del encuadre"
+msgstr "Warn when the face &leaves the frame"
+
+#. Traductores: rótulo en Preferencias del componente de F2.
+#: bellbird/capture/componentes_estado.py:88
+msgid "Encuadre de cámara"
+msgstr "Camera framing"
+
+#. Traductores: componente del estado F2. {texto} es el encuadre actual.
+#: bellbird/capture/estado_sesion.py:309
+#, python-brace-format
+msgid "Cámara: {texto}"
+msgstr "Camera: {texto}"
+
+#: bellbird/ui/atajos_captura.py:90
+msgid "Anunciar encuadre de cámara"
+msgstr "Announce camera framing"
+
+#: bellbird/ui/atajos_captura.py:91
+msgid "Avisar si el rostro sale del encuadre"
+msgstr "Warn when the face leaves the frame"

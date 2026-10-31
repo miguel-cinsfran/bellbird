@@ -64,6 +64,7 @@ class SnapshotSesion:
                               # (p. ej. «Ctrl+Fin»); "" si está desactivado
     musica: str = ""          # qué suena ahora, ya formateado; "" si no hay
     igualando: str = ""       # progreso de la igualación, ya formateado; "" si no hay
+    camara: str = ""          # última frase del encuadre; "" si no se vigila
 
 
 def _fmt_num(n) -> str:
@@ -300,6 +301,14 @@ def _render_igualando(s: SnapshotSesion, largo: bool) -> str:
     return s.igualando or ""
 
 
+def _render_camara(s: SnapshotSesion, largo: bool) -> str:
+    texto = (s.camara or "").strip().removesuffix(".")
+    if not texto:
+        return ""
+    # Traductores: componente del estado F2. {texto} es el encuadre actual.
+    return _("Cámara: {texto}").format(texto=texto)
+
+
 _RENDERERS = {
     "estado": _render_estado,
     "titulo": _render_titulo,
@@ -320,6 +329,7 @@ _RENDERERS = {
     "obs_escena": _render_obs_escena,
     "musica": _render_musica,
     "igualando": _render_igualando,
+    "camara": _render_camara,
 }
 
 

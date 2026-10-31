@@ -479,6 +479,8 @@ acción.
 | `F3` | Autor del último mensaje leído |
 | `Ctrl+F2` | Describir escena de OBS |
 | `Ctrl+Mayús+F2` | Consulta rápida a la IA sobre la escena |
+| `Ctrl+F3` | Anunciar encuadre de cámara |
+| `Ctrl+Mayús+F3` | Avisar si el rostro sale del encuadre |
 
 Al repetir un ajuste de velocidad o de volumen, la primera vez se dice el
 nombre y el valor («Volumen de la voz: 40%») y después solo el valor.

@@ -87,6 +87,8 @@ ETIQUETAS = {
     "anunciar_autor": N_("Anunciar autor del último mensaje"),
     "describir_escena": N_("Describir escena de OBS"),
     "consulta_rapida_ia": N_("Consulta rápida a la IA sobre la escena"),
+    "anunciar_encuadre": N_("Anunciar encuadre de cámara"),
+    "avisos_encuadre": N_("Avisar si el rostro sale del encuadre"),
     "region_siguiente": N_("Región siguiente"), "region_anterior": N_("Región anterior"),
     # Música (Ctrl+Alt)
     "musica_play": N_("Reproducir o pausar la música"),

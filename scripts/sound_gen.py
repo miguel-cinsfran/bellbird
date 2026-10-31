@@ -588,6 +588,23 @@ def gen_tiktok_limitado():
     return _normalizar(_concat(n1, _silencio(0.04), n2, _silencio(0.02)), 0.7)
 
 
+def gen_encuadre_fuera():
+    # El rostro sale del encuadre: gesto que baja, A5→E5. Ni el descenso
+    # grave de busqueda_fallida (D4→B3) ni el par repetido de
+    # escucha_fallida: avisa dónde está el rostro, no un fallo.
+    n1 = _perc(_seno(A5, 0.11, 0.32), 0.005, 0.10)
+    n2 = _perc(_seno(E5, 0.18, 0.32), 0.005, 0.15)
+    return _normalizar(_concat(n1, n2), 0.7)
+
+
+def gen_encuadre_dentro():
+    # El rostro vuelve al encuadre: el mismo gesto que sube, E5→A5, más
+    # breve que la vuelta de busqueda_resultados.
+    n1 = _perc(_seno(E5, 0.08, 0.32), 0.004, 0.07)
+    n2 = _perc(_seno(A5, 0.12, 0.34), 0.004, 0.10)
+    return _normalizar(_concat(n1, n2), 0.7)
+
+
 def gen_descarga_encolada():
     # Una nota corta con golpe: breve para no cansar al agregar muchas.
     return _normalizar(_perc(_detune(A5, 0.16, 0.42), 0.003, 0.10), 0.7)
@@ -962,6 +979,18 @@ def s_tiktok_limitado():
                 _madera(A4, 0.18, 0.34, 0.14))
 
 
+def s_encuadre_fuera():
+    # El mismo gesto que baja, en madera cálida.
+    return _seq(_madera(A5, 0.11, 0.32, 0.09),
+                _madera(E5, 0.18, 0.32, 0.14))
+
+
+def s_encuadre_dentro():
+    # El mismo gesto que sube, más breve, en madera cálida.
+    return _seq(_madera(E5, 0.08, 0.32, 0.06),
+                _madera(A5, 0.12, 0.34, 0.10))
+
+
 def s_descarga_encolada():
     # La misma nota corta con golpe, en madera.
     return _normalizar(_madera(A5, 0.16, 0.40, 0.10), 0.65)
@@ -1152,6 +1181,8 @@ TEMAS = {
         "cola_descargas_terminada.wav": gen_cola_descargas_terminada,
         "descarga_parcial.wav":        gen_descarga_parcial,
         "tiktok_limitado.wav":         gen_tiktok_limitado,
+        "encuadre_fuera.wav":          gen_encuadre_fuera,
+        "encuadre_dentro.wav":         gen_encuadre_dentro,
     },
     "suave": {
         "app_inicio.wav":    s_app_inicio,
@@ -1238,6 +1269,8 @@ TEMAS = {
         "cola_descargas_terminada.wav": s_cola_descargas_terminada,
         "descarga_parcial.wav":        s_descarga_parcial,
         "tiktok_limitado.wav":         s_tiktok_limitado,
+        "encuadre_fuera.wav":          s_encuadre_fuera,
+        "encuadre_dentro.wav":         s_encuadre_dentro,
     },
 }
 

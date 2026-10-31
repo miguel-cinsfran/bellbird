@@ -1892,10 +1892,182 @@ def escenario_microfono(app: Aplicacion, args, res: Resultado):
              "el micrófono de la PC")
     esperados = ("Fuente de OBS", "Dispositivo", "Aplicar", "Cerrar")
     auditar_dialogo(
-        app, res, "Elegir micrófono…", "Micrófono de OBS",
+        app, "Elegir micrófono…", "Micrófono de OBS",
         vueltas_tab=8,
         esperados=esperados,
         esperados_en_tab=esperados)
+
+
+def _bmp_gris(ruta, ancho=160, alto=120, tono=128):
+    """Un BMP gris de 24 bits, para tapar el rostro en la prueba."""
+    import struct
+    fila = bytes([tono, tono, tono]) * ancho
+    fila += b"\x00" * ((4 - len(fila) % 4) % 4)
+    datos = fila * alto
+    cabecera = struct.pack("<2sIHHI", b"BM", 54 + len(datos), 0, 0, 54)
+    info = struct.pack("<IiiHHIIiiII", 40, ancho, alto, 1, 24, 0,
+                       len(datos), 0, 0, 0, 0)
+    ruta.write_bytes(cabecera + info + datos)
+
+
+def _quitar_fuente_encuadre(gestor, escena, nombre):
+    """Saca la fuente de la escena y borra la entrada, sin reventar."""
+    try:
+        elementos = gestor._pedir(
+            "GetSceneItemList", {"sceneName": escena}).get(
+            "sceneItems", ()) or ()
+    except Exception:
+        return
+    for elemento in elementos:
+        if elemento.get("sourceName") == nombre \
+                and elemento.get("sceneItemId") is not None:
+            try:
+                gestor._pedir("RemoveSceneItem",
+                              {"sceneName": escena,
+                               "sceneItemId": elemento.get("sceneItemId")})
+            except Exception:
+                pass
+    try:
+        gestor._pedir("RemoveInput", {"inputName": nombre})
+    except Exception:
+        pass
+
+
+def _nuevo_anuncio(propia, desde, segundos):
+    """El primer anuncio nuevo, o None si no llega a tiempo."""
+    limite = time.monotonic() + segundos
+    while time.monotonic() < limite:
+        nuevos = propia.anuncios[desde:]
+        if nuevos:
+            return nuevos[0].get("texto", "")
+        time.sleep(0.2)
+    return None
+
+
+def escenario_encuadre(app: Aplicacion, args, res: Resultado):
+    """Ctrl+F3 anuncia el encuadre y los avisos siguen al rostro.
+
+    Monta su propia aplicación con la cámara ya elegida, como
+    arranque_frio: la configuración se escribe antes de abrir. Sin OBS
+    no hay nada que mirar y se vuelve. La fuente sigue visible todo el
+    tiempo: lo que cambia es su archivo, entre la foto de prueba y un
+    gris generado en un temporal. Deja OBS y config.ini como los
+    encontró.
+    """
+    from bellbird.core import paths as _rutas
+    from bellbird.core.config import guardar_opcion
+    if not obs_abierto():
+        res.nota("Encuadre: OBS está cerrado, no hay cámara que mirar")
+        return
+    ruta_config = _rutas.config_ini()
+    respaldo = ruta_config.read_bytes() if ruta_config.is_file() else None
+    nombre = "Prueba Bellbird encuadre"
+    gestor = None
+    escena = ""
+    temporal = Path(tempfile.mkdtemp(prefix="qa-encuadre-"))
+    gris = temporal / "gris.bmp"
+    propia = None
+    try:
+        from bellbird.obs.obs_panel import GestorPanelObs
+        gestor = GestorPanelObs()
+        try:
+            gestor.conectar()
+        except Exception as exc:
+            res.nota(f"Encuadre: OBS no contestó, {exc}")
+            return
+        escena = gestor.escena_al_aire()
+        if not escena:
+            res.nota("Encuadre: OBS no tiene escena al aire")
+            return
+        _bmp_gris(gris)
+        foto = RAIZ / "tests" / "datos" / "rostro.jpg"
+        _quitar_fuente_encuadre(gestor, escena, nombre)
+        try:
+            gestor._pedir("CreateInput",
+                          {"sceneName": escena, "inputName": nombre,
+                           "inputKind": "image_source",
+                           "inputSettings": {"file": str(foto)},
+                           "sceneItemEnabled": True})
+        except Exception as exc:
+            res.fallo(f"Encuadre: no se pudo agregar la fuente, {exc}")
+            return
+        if not guardar_opcion(ruta_config, "transmision", "camara_fuente",
+                              nombre):
+            res.fallo("Encuadre: no se pudo fijar la cámara en config.ini")
+            return
+        propia = Aplicacion(app.anuncios_ruta.parent / "encuadre")
+        propia.arrancar()
+        if not propia.esperar_lista(segundos=60):
+            res.fallo("Encuadre: la aplicación no contestó al ping en 60 s")
+            return
+        try:
+            antes = len(propia.anuncios)
+            propia.teclas(("f3", ["ctrl"]))
+        except VentanaNoActiva as exc:
+            res.no_probado(f"Encuadre: no se pudo pulsar Ctrl+F3, {exc}")
+            return
+        dicho = _nuevo_anuncio(propia, antes, segundos=20.0)
+        if dicho is None:
+            res.fallo("Encuadre: Ctrl+F3 no anunció nada")
+            return
+        if "ningún rostro" in dicho.lower():
+            res.fallo(f"Encuadre: Ctrl+F3 anunció «{dicho}» "
+                      "con el rostro a la vista")
+            return
+        res.nota(f"Encuadre: Ctrl+F3 anunció «{dicho}»")
+        try:
+            antes = len(propia.anuncios)
+            propia.teclas(("f3", ["ctrl", "shift"]))
+        except VentanaNoActiva as exc:
+            res.no_probado(f"Encuadre: no se pudo activar avisos, {exc}")
+            return
+        if not propia.esperar_dicho("Avisos de encuadre activados",
+                                    segundos=10, desde=antes):
+            res.fallo("Encuadre: no se activaron los avisos")
+            return
+        try:
+            gestor._pedir("SetInputSettings",
+                          {"inputName": nombre,
+                           "inputSettings": {"file": str(gris)}})
+        except Exception as exc:
+            res.fallo(f"Encuadre: no se pudo tapar el rostro, {exc}")
+            return
+        antes = len(propia.anuncios)
+        if not propia.esperar_dicho("Ningún rostro.", segundos=6,
+                                    desde=antes):
+            res.fallo("Encuadre: tapado el rostro, no avisó que no hay "
+                      "ninguno en 6 s")
+            return
+        res.nota("Encuadre: tapado el rostro, avisó «Ningún rostro.»")
+        try:
+            gestor._pedir("SetInputSettings",
+                          {"inputName": nombre,
+                           "inputSettings": {"file": str(foto)}})
+        except Exception as exc:
+            res.fallo(f"Encuadre: no se pudo mostrar el rostro, {exc}")
+            return
+        antes = len(propia.anuncios)
+        if not propia.esperar_dicho("Rostro centrado.", segundos=8,
+                                    desde=antes):
+            res.fallo("Encuadre: vuelto el rostro, no avisó de la vuelta")
+        else:
+            res.nota("Encuadre: vuelto el rostro, avisó «Rostro centrado.»")
+    finally:
+        if propia is not None:
+            propia.cerrar()
+        if respaldo is not None:
+            try:
+                ruta_config.write_bytes(respaldo)
+            except Exception as exc:
+                res.fallo(f"Encuadre: no se pudo restaurar config.ini, {exc}")
+        if gestor is not None:
+            _quitar_fuente_encuadre(gestor, escena, nombre)
+            try:
+                gestor.cerrar()
+            except Exception:
+                pass
+        import shutil
+        shutil.rmtree(temporal, ignore_errors=True)
 
 
 def escenario_musica(app: Aplicacion, args, res: Resultado):
@@ -5421,6 +5593,7 @@ ESCENARIOS = {
     "historial": escenario_historial,
     "transmision": escenario_transmision,
     "microfono": escenario_microfono,
+    "encuadre": escenario_encuadre,
     "musica": escenario_musica,
     "musica_real": escenario_musica_real,
     "ia": escenario_ia,
@@ -5609,6 +5782,9 @@ EN_TODOS = ["arranque_frio", "reproductor",
             # `microfono` va justo después de `transmision`: los dos
             # necesitan OBS y auditan cuadros del menú Transmisión.
             "microfono",
+            # `encuadre` va con `transmision` y `microfono`: necesita OBS
+            # y monta su propia aplicación, como `arranque_frio`.
+            "encuadre",
             # `musica` va con `historial` y `transmision`: audita
             # diálogos sin necesitar sesión, así que corre antes de
             # que `chat` simule una.
@@ -5704,6 +5880,15 @@ def main() -> int:
 
     # `musica_real` también monta su propia aplicación con datos preparados,
     # igual que `arranque_frio`: la configuración se escribe ANTES de lanzar.
+    # `encuadre` monta la suya con la cámara ya elegida, por el mismo motivo.
+    if "encuadre" in pedidos:
+        pedidos = [n for n in pedidos if n != "encuadre"]
+        print()
+        print("--- escenario: encuadre ---")
+        try:
+            escenario_encuadre(app, args, res)
+        except Exception as exc:
+            res.fallo(f"encuadre: el escenario reventó, {exc!r}")
     if "musica_real" in pedidos:
         pedidos = [n for n in pedidos if n != "musica_real"]
         print()

@@ -31,6 +31,7 @@ COMPONENTES: tuple[str, ...] = (
     "obs_escena",
     "musica",
     "igualando",
+    "camara",
 )
 
 # Activos por defecto: derivan de la sección [estado] de la fuente canónica.
@@ -83,6 +84,8 @@ ETIQUETAS = {
     "musica": N_("Música que suena"),
     # Traductores: rótulo en Preferencias del componente de F2.
     "igualando": N_("Igualación del volumen de la música"),
+    # Traductores: rótulo en Preferencias del componente de F2.
+    "camara": N_("Encuadre de cámara"),
 }
 
 

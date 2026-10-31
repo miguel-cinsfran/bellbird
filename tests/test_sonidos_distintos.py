@@ -36,6 +36,7 @@ EVENTOS_NUEVOS = [
     "descarga_encolada", "descarga_procesando",
     "cola_descargas_terminada", "descarga_parcial",
     "tiktok_limitado",
+    "encuadre_fuera", "encuadre_dentro",
 ]
 
 # Tope de duración por evento: la espera de la IA lleva una figura melódica

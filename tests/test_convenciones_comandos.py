@@ -160,6 +160,7 @@ FALTAS_CONOCIDAS = [
     "«Shift» en la tecla de «Silenciar el micrófono de OBS»",
     "«Shift» en la tecla de «Mostrar OBS»",
     "«Shift» en la tecla de «Avisar cuando OBS no da abasto»",
+    "«Shift» en la tecla de «Avisar si el rostro sale del encuadre»",
     "«Shift» en la tecla de «Elegir música…»",
     "«Shift» en la tecla de «Avanzar 10 segundos»",
     "«Shift» en la tecla de «Retroceder 10 segundos»",

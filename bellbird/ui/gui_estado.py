@@ -28,21 +28,30 @@ def _entero_en(meta, clave):
     except (TypeError, ValueError): return None
 
 
+def _texto_camara(frame):
+    from bellbird.ui import encuadre_camara
+    return encuadre_camara.texto_estado(frame)
+
+
+def _tipo_sesion(frame):
+    """El tipo de conexión para F2: TikTok y YouTube son LIVE por dentro."""
+    from bellbird.ui import gui as _gui
+    if frame._conectado and frame.sesion.es_tiktok:
+        return "live_tiktok"
+    if frame.sesion.tipo_video == _gui.deteccion.LIVE:
+        return "live_youtube"
+    if frame.sesion.tipo_video == _gui.deteccion.VOD:
+        return "vod"
+    if frame.sesion.tipo_video == _gui.deteccion.UPCOMING:
+        return "upcoming"
+    return ""
+
+
 def snapshot_sesion(frame):
     """Reúne el estado actual para F2. Los datos del vídeo salen de los
     metadatos capturados al conectar (título, canal, espectadores)."""
     from bellbird.ui import gui as _gui
-    # Tipo: hay que distinguir TikTok de YouTube (ambos son LIVE por dentro).
-    if frame._conectado and frame.sesion.es_tiktok:
-        tipo = "live_tiktok"
-    elif frame.sesion.tipo_video == _gui.deteccion.LIVE:
-        tipo = "live_youtube"
-    elif frame.sesion.tipo_video == _gui.deteccion.VOD:
-        tipo = "vod"
-    elif frame.sesion.tipo_video == _gui.deteccion.UPCOMING:
-        tipo = "upcoming"
-    else:
-        tipo = ""
+    tipo = _tipo_sesion(frame)
     meta = frame._metadatos or {}
     espectadores = _entero_en(meta, "vistas")
     espectadores_total = _entero_en(meta, "vistas_total")
@@ -87,6 +96,7 @@ def snapshot_sesion(frame):
         descartados=_gui.descartes.frase_estado(
             _seguro(lambda: frame._stats.descartados, 0)),
         musica=_seguro(lambda: frame._musica.texto_estado(), ""), igualando=_seguro(lambda: frame._musica.texto_igualando(), ""),
+        camara=_seguro(lambda: _texto_camara(frame), ""),
         obs_transmision=(_gui.obs_estado.frase_transmision(
             transmision["outputActive"], transmision["outputDuration"],
             transmision["outputSkippedFrames"], transmision["outputTotalFrames"])

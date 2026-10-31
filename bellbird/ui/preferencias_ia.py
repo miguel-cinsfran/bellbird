@@ -23,7 +23,7 @@ from bellbird.core import paths
 from bellbird.core.idioma import _
 from bellbird.ui.accesibilidad import ContadorAccesible, anunciar
 from bellbird.ui.tema import _tc
-from bellbird.ui.preferencias_comun import EleccionTexto, crear_panel, fila_label
+from bellbird.ui.preferencias_comun import EleccionTexto, crear_panel, fila_botones, fila_label
 from bellbird.ui.preferencias_ia_clave import SeccionClaveIA
 from bellbird.ui.preferencias_ia_lista import ActualizacionModelosIA
 from bellbird.voice import sound_player as _snd
@@ -119,25 +119,26 @@ class PaginaIA:
         self.ia_clave.construir(p, vs)
         self.btn_ia_probar_clave = wx.Button(
             p, label=_("P&robar clave"), name="ProbarClaveIA")
-        vs.Add(self.btn_ia_probar_clave, 0,
-               wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.btn_ia_probar_clave.Bind(
             wx.EVT_BUTTON, self._on_ia_probar_clave)
+        vs.Add(fila_botones((self.ia_clave.btn_guardar,
+                             self.btn_ia_probar_clave)), 0,
+               wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _ia_modelo(self, p, vs):
         vs.Add(fila_label(p, _("&Modelo")), 0, wx.LEFT | wx.RIGHT, 10)
         self.cho_ia_modelo = wx.Choice(p, choices=[], name="ModeloIA")
-        vs.Add(self.cho_ia_modelo, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.cho_ia_modelo.Bind(wx.EVT_CHOICE, self._on_ia_modelo)
-        self.chk_ia_gratis = wx.CheckBox(
-            p, label=_("Solo gra&tuitos"), name="SoloGratuitosIA")
+        self.chk_ia_gratis = wx.CheckBox(p, label=_("Solo gra&tuitos"), name="SoloGratuitosIA")
         self.chk_ia_gratis.SetValue(bool(self._ia_ajustes.solo_gratis))
-        vs.Add(self.chk_ia_gratis, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.chk_ia_gratis.Bind(wx.EVT_CHECKBOX, self._on_ia_gratis)
-        self.btn_ia_actualizar = wx.Button(
-            p, label=_("&Actualizar lista de modelos"),
-            name="ActualizarModelosIA")
-        vs.Add(self.btn_ia_actualizar, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+        self.btn_ia_actualizar = wx.Button(p, label=_("&Actualizar lista de modelos"),
+                                           name="ActualizarModelosIA")
+        fila = wx.BoxSizer(wx.HORIZONTAL)
+        fila.Add(self.cho_ia_modelo, 1, wx.EXPAND | wx.LEFT | wx.BOTTOM, 10)
+        fila.Add(self.btn_ia_actualizar, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+        vs.Add(fila, 0, wx.EXPAND, 0)
+        vs.Add(self.chk_ia_gratis, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         vs.Add(fila_label(p, _("&Otro modelo")),
                0, wx.LEFT | wx.RIGHT, 10)
         self.txt_ia_otro = wx.TextCtrl(p, value="", name="OtroModeloIA")

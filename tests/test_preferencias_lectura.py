@@ -85,6 +85,45 @@ class TestCambiosDeLectura(unittest.TestCase):
         self.assertEqual([], sin_marcar)
 
 
+class TestDisenoFormato(unittest.TestCase):
+    """El grupo de formato lleva su título en el recuadro, sin etiqueta suelta.
+
+    Abren ventanas.
+    """
+
+    def setUp(self):
+        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.ruta = Path(self.tmp.name)
+        (self.ruta / "config.ini").write_text(config._CONFIG_FALLBACK,
+                                              encoding="utf-8")
+        parche = redirigir_rutas(self.ruta)
+        parche.__enter__()
+        self.addCleanup(parche.__exit__, None, None, None)
+
+    def _dialogo(self, configuracion=None):
+        with mock.patch.object(motores, "listar_voces",
+                               return_value=["Voz de prueba"]):
+            dialogo = gui_preferencias.PreferenciasDialog(
+                None, configuracion or {})
+        self.addCleanup(destruir, dialogo)
+        return dialogo
+
+    def test_el_grupo_lleva_el_titulo_y_no_hay_etiqueta_suelta(self):
+        dialogo = self._dialogo()
+        self.assertEqual(dialogo.rb_formato.GetLabel(),
+                         "Qué leer de cada mensaje")
+        textos = []
+        pendientes = [dialogo.rb_formato.GetParent()]
+        while pendientes:
+            actual = pendientes.pop()
+            if isinstance(actual, gui.wx.StaticText):
+                textos.append(actual.GetLabel())
+            pendientes.extend(actual.GetChildren())
+        self.assertNotIn("Qué leer de cada mensaje:", textos)
+
+
 AVISOS_ESPERADOS = (
     ("cho_aviso_entradas", "tiktok_aviso_entradas", "Entradas al directo"),
     ("cho_aviso_me_gusta", "tiktok_aviso_me_gusta", "Me gusta"),

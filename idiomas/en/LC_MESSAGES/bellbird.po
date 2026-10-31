@@ -7953,9 +7953,9 @@ msgstr "Message only"
 msgid "Solo el nombre"
 msgstr "Name only"
 
-#: bellbird/ui/preferencias_lectura.py:60
-msgid "Qué leer de cada mensaje:"
-msgstr "What to read from each message:"
+#: bellbird/ui/preferencias_lectura.py:61
+msgid "Qué leer de cada mensaje"
+msgstr "What to read from each message"
 
 #: bellbird/ui/preferencias_lectura.py:63
 msgid "Formato de lectura"

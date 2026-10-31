@@ -164,6 +164,18 @@ class PruebasHistorialDialog(unittest.TestCase):
         self.assertEqual([tiktok], historial.cargar(self.ruta))
         anunciar.assert_called_once_with("Entrada eliminada del historial")
 
+    def test_mide_760_por_540_y_la_lista_respira_dentro_de_la_pestana(self):
+        dialogo = self._dialogo([])
+        self.assertEqual(tuple(dialogo.GetSize()), (760, 540))
+        for plat in ("youtube", "tiktok"):
+            with self.subTest(plataforma=plat):
+                lista = dialogo._listas[plat]
+                sizer = lista.GetContainingSizer()
+                self.assertIsNotNone(sizer)
+                partida = sizer.GetItem(lista)
+                self.assertTrue(partida.GetFlag() & gui_historial.wx.ALL)
+                self.assertEqual(partida.GetBorder(), 8)
+
     def test_controles_tienen_los_nombres_accesibles_esperados(self):
         dialogo = self._dialogo([])
         controles = {

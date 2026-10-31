@@ -50,10 +50,10 @@ class SeccionClaveIA:
         _tc(self.txt_clave)
 
     def _crear_botones(self, panel, sizer):
+        # Sin agregar a la página: la página lo junta con «Probar clave»
+        # en una fila compartida.
         self.btn_guardar = wx.Button(
             panel, label=_("G&uardar clave"), name="GuardarClaveIA")
-        sizer.Add(self.btn_guardar, 0,
-                  wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.btn_guardar.Bind(wx.EVT_BUTTON, self._on_guardar)
         self.btn_nueva = wx.Button(
             panel, label=_("Escribir una clave &nueva"), name="NuevaClaveIA")

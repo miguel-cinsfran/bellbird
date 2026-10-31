@@ -29,7 +29,7 @@ _PLATAFORMAS = [("YouTube", "youtube"), ("TikTok", "tiktok")]
 class HistorialDialog(wx.Dialog):
 
     def __init__(self, parent, ruta, on_conectar):
-        super().__init__(parent, title=_("Historial de directos"), size=(600, 480),
+        super().__init__(parent, title=_("Historial de directos"), size=(760, 540),
                          name="DialogoHistorial")
         self._ruta = ruta
         self._on_conectar = on_conectar

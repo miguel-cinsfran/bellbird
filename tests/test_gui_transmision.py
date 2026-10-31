@@ -376,6 +376,28 @@ class TestTransmisionDialog(unittest.TestCase):
         self.assertEqual(self.dialogo.btn_usar_ventana.GetName(), "Usar esa ventana")
         self.assertEqual(self.dialogo.btn_usar_ventana.GetLabel(), "Usar esa &ventana")
 
+    def test_cada_boton_de_campo_comparte_la_fila_con_su_campo(self):
+        for campo, boton in (
+                (self.dialogo.cho_escena, self.dialogo.btn_poner_al_aire),
+                (self.dialogo.cho_ventana, self.dialogo.btn_usar_ventana)):
+            with self.subTest(boton=boton.GetName()):
+                fila = campo.GetContainingSizer()
+                self.assertIsNotNone(fila)
+                self.assertIs(boton.GetContainingSizer(), fila)
+                ventanas = [hijo.GetWindow()
+                            for hijo in fila.GetChildren()]
+                self.assertLess(ventanas.index(campo),
+                                ventanas.index(boton))
+
+    def test_captura_y_actualizar_van_juntos_en_una_fila_partible(self):
+        botones = (self.dialogo.btn_captura, self.dialogo.btn_actualizar)
+        fila = botones[0].GetContainingSizer()
+        self.assertIsInstance(fila, wx.WrapSizer)
+        self.assertIs(botones[1].GetContainingSizer(), fila)
+        self.assertEqual([hijo.GetWindow()
+                          for hijo in fila.GetChildren()],
+                         list(botones))
+
     def test_carga_inicial_llena_las_ventanas_y_elige_la_actual(self):
         self.assertEqual(self.dialogo.cho_ventana.GetStrings(),
                          ["Champions, de juego.exe", "Charla, de otro.exe"])
@@ -909,23 +931,23 @@ class TestTransmisionDialog(unittest.TestCase):
         self.assertIs(acciones[indice + 1], dialogo.txt_usuario_tiktok)
         self.assertIs(acciones[indice + 2], dialogo.btn_destino)
         sizer = dialogo._sizer_transmitir
-        # Cada campo va en su fila horizontal: el sizer guarda filas, y el
-        # campo es la segunda ventana de su fila, después del rótulo.
-        secuencia = []
-        for elemento in sizer.GetChildren():
-            ventana = elemento.GetWindow()
-            if ventana is not None:
-                secuencia.append(ventana)
-                continue
-            fila = elemento.GetSizer()
-            if fila is not None:
-                interiores = [hijo.GetWindow()
-                              for hijo in fila.GetChildren()]
-                secuencia.append(interiores[1] if len(interiores) > 1
-                                 else None)
-        indice = secuencia.index(dialogo.cho_destino)
-        self.assertIs(secuencia[indice + 1], dialogo.txt_usuario_tiktok)
-        self.assertIs(secuencia[indice + 2], dialogo.btn_destino)
+        # Cada campo va en su fila horizontal y los botones de la sección
+        # van juntos en una fila partible, en el mismo orden de creación.
+        filas = [elemento.GetSizer()
+                 for elemento in sizer.GetChildren()]
+        self.assertEqual(len(filas), 3)
+        for fila, control in ((filas[0], dialogo.cho_destino),
+                              (filas[1], dialogo.txt_usuario_tiktok)):
+            with self.subTest(control=control.GetName()):
+                ventanas = [hijo.GetWindow()
+                            for hijo in fila.GetChildren()]
+                self.assertIs(ventanas[1], control)
+        botones = (dialogo.btn_destino, dialogo.btn_transmitir,
+                   dialogo.btn_grabar, dialogo.btn_pausar_grabacion)
+        self.assertIsInstance(filas[2], wx.WrapSizer)
+        self.assertEqual([hijo.GetWindow()
+                          for hijo in filas[2].GetChildren()],
+                         list(botones))
 
     def test_cada_campo_tiene_su_rotulo_visible_antes(self):
         casos = [

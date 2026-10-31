@@ -180,14 +180,14 @@ class DialogoDirectoYoutube(wx.Dialog):
             name=_("Hecho para niños"))
         self.chk_ninos.SetValue(bool(ninos))
         nombre_accesible(self.chk_ninos, _("Hecho para niños"))
-        contenido.Add(self.chk_ninos, 0, wx.LEFT | wx.RIGHT, 10)
+        contenido.Add(self.chk_ninos, 0, wx.LEFT | wx.RIGHT | wx.TOP, 6)
 
         self.chk_dvr = wx.CheckBox(
             zona, label=_("Permitir re&bobinar el directo"),
             name=_("Permitir rebobinar"))
         self.chk_dvr.SetValue(bool(dvr))
         nombre_accesible(self.chk_dvr, _("Permitir rebobinar"))
-        contenido.Add(self.chk_dvr, 0, wx.LEFT | wx.RIGHT, 10)
+        contenido.Add(self.chk_dvr, 0, wx.LEFT | wx.RIGHT | wx.TOP, 6)
 
         rotulo_categoria = wx.StaticText(zona, label=_("Cate&goría:"))
         contenido.Add(rotulo_categoria, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)

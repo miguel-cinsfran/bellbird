@@ -60,6 +60,13 @@ def fila_label(p, texto):
     return lbl
 
 
+def fila_botones(botones, borde=6):
+    fila = wx.WrapSizer(wx.HORIZONTAL)
+    for boton in botones:
+        fila.Add(boton, 0, wx.RIGHT, borde)
+    return fila
+
+
 def _ancho_categorias(libro, lista):
     textos = [libro.GetPageText(i) for i in range(libro.GetPageCount())]
     if not textos:

@@ -57,9 +57,9 @@ class PaginaLectura:
         p = self._make_panel(parent, "PagLectura")
         vs = wx.BoxSizer(wx.VERTICAL)
 
-        vs.Add(self._fila_label(p, _("Qué leer de cada mensaje:")), 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.rb_formato = wx.RadioBox(
-            p, choices=[_(f[0]) for f in _FORMATOS], majorDimension=1,
+            p, label=_("Qué leer de cada mensaje"),
+            choices=[_(f[0]) for f in _FORMATOS], majorDimension=1,
             style=wx.RA_SPECIFY_COLS, name=_("Formato de lectura"))
         self.rb_formato.SetForegroundColour(_T.text)
         self.rb_formato.SetBackgroundColour(_T.bg)

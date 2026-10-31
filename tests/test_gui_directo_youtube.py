@@ -259,6 +259,14 @@ class TestDialogoDirectoVentana(unittest.TestCase):
         self.assertEqual(dialogo.btn_cargar_listas.GetLabel(),
                          "Ca&rgar listas")
 
+    def test_casillas_con_borde_de_arriba_como_los_demas_controles(self):
+        dialogo = self._dialogo(titulo="Hola")
+        for casilla in (dialogo.chk_ninos, dialogo.chk_dvr):
+            with self.subTest(casilla=casilla.GetName()):
+                partida = casilla.GetContainingSizer().GetItem(casilla)
+                self.assertTrue(partida.GetFlag() & wx.TOP)
+                self.assertEqual(partida.GetBorder(), 6)
+
     def test_orden_de_tab_con_las_opciones(self):
         dialogo = self._dialogo(titulo="Hola")
         nombres = ("Título del directo", "Descripción del directo",

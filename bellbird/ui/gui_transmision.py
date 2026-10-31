@@ -21,6 +21,7 @@ from bellbird.obs import overlay_servidor
 from bellbird.ui.accesibilidad import ContadorAccesible, anunciar, nombre_accesible
 from bellbird.ui.gui import caja_de_grupo
 from bellbird.ui import paleta
+from bellbird.ui.preferencias_comun import fila_botones
 from bellbird.ui.tema import _T
 from bellbird.obs.obs_panel import GestorPanelObs, NOMBRE_FUENTE
 from bellbird.obs.restablecimiento import RegistroRestablecimiento
@@ -145,15 +146,14 @@ class TransmisionDialog(wx.Dialog):
         nombre_accesible(self.txt_usuario_tiktok, _("Usuario de TikTok"))
         self._fila_campo(sizer_transmitir, rotulo_usuario, self.txt_usuario_tiktok)
         self.btn_destino = self._boton(padre_transmitir, _("Preparar desti&no"), _("Preparar destino"))
-        sizer_transmitir.Add(self.btn_destino, 0, wx.ALL, 6)
         self.btn_transmitir = self._boton(
             padre_transmitir, _(_ETIQUETA_TRANSMITIR), _("Transmitir"))
-        sizer_transmitir.Add(self.btn_transmitir, 0, wx.ALL, 6)
         self.btn_grabar = self._boton(padre_transmitir, _(_ETIQUETA_GRABAR), _("Grabar"))
-        sizer_transmitir.Add(self.btn_grabar, 0, wx.ALL, 6)
         self.btn_pausar_grabacion = self._boton(
             padre_transmitir, _("Pausar gra&bación"), _("Pausar grabación"))
-        sizer_transmitir.Add(self.btn_pausar_grabacion, 0, wx.ALL, 6)
+        sizer_transmitir.Add(fila_botones((self.btn_destino, self.btn_transmitir,
+                                           self.btn_grabar, self.btn_pausar_grabacion)),
+                             0, wx.ALL, 6)
         contenido.Add(sizer_transmitir, 0, wx.EXPAND | wx.ALL, 10)
 
     def _crear_seccion_escena(self, zona, contenido):
@@ -161,20 +161,20 @@ class TransmisionDialog(wx.Dialog):
         rotulo_escena = self._nuevo_rotulo(padre_escena, _("Escena:"))
         self.cho_escena = wx.Choice(padre_escena, name=_("Escena"))
         nombre_accesible(self.cho_escena, _("Escena"))
-        self._fila_campo(sizer_escena, rotulo_escena, self.cho_escena)
         self.btn_poner_al_aire = self._boton(padre_escena, _("Poner al &aire"), _("Poner al aire"))
-        sizer_escena.Add(self.btn_poner_al_aire, 0, wx.ALL, 6)
+        self._fila_campo(sizer_escena, rotulo_escena, self.cho_escena,
+                         boton=self.btn_poner_al_aire)
         rotulo_ventana = self._nuevo_rotulo(padre_escena, _("Ventana que se captura:"))
         self.cho_ventana = wx.Choice(padre_escena, name=_("Ventana que se captura"))
         nombre_accesible(self.cho_ventana, _("Ventana que se captura"))
-        self._fila_campo(sizer_escena, rotulo_ventana, self.cho_ventana)
         self.btn_usar_ventana = self._boton(padre_escena, _("Usar esa &ventana"), _("Usar esa ventana"))
-        sizer_escena.Add(self.btn_usar_ventana, 0, wx.ALL, 6)
+        self._fila_campo(sizer_escena, rotulo_ventana, self.cho_ventana,
+                         boton=self.btn_usar_ventana)
         self.btn_captura = self._boton(
             padre_escena, _("Guardar una capt&ura de la escena…"), "GuardarCaptura")
-        sizer_escena.Add(self.btn_captura, 0, wx.ALL, 6)
         self.btn_actualizar = self._boton(padre_escena, _("Actualizar e&stado"), "ActualizarEstado")
-        sizer_escena.Add(self.btn_actualizar, 0, wx.ALL, 6)
+        sizer_escena.Add(fila_botones((self.btn_captura, self.btn_actualizar)),
+                         0, wx.ALL, 6)
         contenido.Add(sizer_escena, 1, wx.EXPAND | wx.ALL, 10)
 
     def _crear_seccion_vista(self, zona, contenido):
@@ -287,10 +287,12 @@ class TransmisionDialog(wx.Dialog):
         return rotulo
 
     @staticmethod
-    def _fila_campo(sizer, rotulo, control, proporcion=0):
+    def _fila_campo(sizer, rotulo, control, proporcion=0, boton=None):
         fila = wx.BoxSizer(wx.HORIZONTAL)
         fila.Add(rotulo, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 6)
         fila.Add(control, 1, wx.EXPAND | wx.ALL, 6)
+        if boton is not None:
+            fila.Add(boton, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 6)
         sizer.Add(fila, proporcion, wx.EXPAND, 0)
 
     @staticmethod
@@ -475,24 +477,16 @@ class TransmisionDialog(wx.Dialog):
         self.btn_pausar_grabacion.Enable(grabando)
 
     @staticmethod
-    def _frase_transmision(estado):
-        return obs_estado.frase_transmision(
-            estado.get("outputActive", False), estado.get("outputDuration", 0),
-            estado.get("outputSkippedFrames", 0), estado.get("outputTotalFrames", 0))
-
-    @staticmethod
-    def _frase_grabacion(estado):
-        return obs_estado.frase_grabacion(
-            estado.get("outputActive", False), estado.get("outputPaused", False),
-            estado.get("outputTimecode", ""))
-
-    @staticmethod
     def _frase_escena_al_aire(escena):
         return obs_estado.frase_escena_al_aire(escena)
 
     def _anunciar_estados(self, transmision, grabacion, al_aire):
-        anunciar(self._frase_transmision(transmision))
-        anunciar(self._frase_grabacion(grabacion))
+        anunciar(obs_estado.frase_transmision(
+            transmision.get("outputActive", False), transmision.get("outputDuration", 0),
+            transmision.get("outputSkippedFrames", 0), transmision.get("outputTotalFrames", 0)))
+        anunciar(obs_estado.frase_grabacion(
+            grabacion.get("outputActive", False), grabacion.get("outputPaused", False),
+            grabacion.get("outputTimecode", "")))
         anunciar(self._frase_escena_al_aire(al_aire))
 
     def _actualizar(self, event):

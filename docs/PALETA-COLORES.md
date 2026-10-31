@@ -35,33 +35,41 @@ oscuro propio (con contraste alto se apaga la paleta entera, ver arriba).
 |---|---|---|
 | `bg` | `#F7F4EE` | Crema. Fondo general de la ventana y de los diálogos. |
 | `surface` | `#FFFFFF` | Blanco. Paneles, grupos y pestañas. |
-| `field` | `#E9E1D3` | Beige. Campos de texto y listas. |
-| `text` | `#333333` | Texto principal. |
+| `field` | `#FFFFFF` | Blanco. Campos de texto y listas: se recortan del fondo crema. |
+| `text` | `#333333` | Texto principal, también el de las etiquetas de campo. |
 | `dim` | `#6B6B6B` | Texto secundario: notas, estados, subtítulos. |
-| `accent` | `#3F5B3A` | Salvia oscurecida. Solo texto: títulos de sección y estados «bien». |
+| `accent` | `#33704A` | Salvia. Títulos de los recuadros y estados «bien». |
 | `red` | `#B3261E` | Rojo. Solo texto: errores. |
-| `btn` / `btn_t` | `#E9E1D3` / `#333333` | Botones secundarios (mismo beige que los campos). |
-| `primary` / `primary_t` | `#CAD7C5` / `#333333` | Salvia de marca sin oscurecer. Solo el botón principal (Conectar). |
+| `btn` / `btn_t` | `#E9E1D3` / `#333333` | Beige. Botones secundarios. |
+| `primary` / `primary_t` | `#33704A` / `#FFFFFF` | Salvia con texto blanco. Un solo botón principal por ventana. |
 
 Contraste medido (WCAG) de los pares que existen de verdad en la ventana:
 
 | Par | Relación |
 |---|---|
 | `text` sobre `bg` | 11,5 |
-| `text` sobre `surface` | 12,6 |
-| `text` sobre `field` | 9,7 |
-| `text` sobre `primary` | 8,5 |
+| `text` sobre `field` y `surface` | 12,6 |
+| `text` sobre `btn` | 9,7 |
+| `primary_t` sobre `primary` | 5,9 |
 | `dim` sobre `bg` | 4,9 |
-| `dim` sobre `surface` | 5,3 |
-| `accent` sobre `bg` | 6,9 |
+| `dim` sobre `field` | 5,3 |
+| `accent` sobre `bg` | 5,4 |
+| `accent` sobre `field` | 5,9 |
 | `red` sobre `bg` | 6,0 |
+| `red` sobre `field` | 6,5 |
 
-Regla derivada de la tabla: **`dim` no se pone sobre `field`** (daría 4,1).
-Dentro de un campo o una lista, el texto es siempre `text`.
+**Un solo camino de color.** Toda ventana llama a `paleta.pintar_ventana`
+al final de su construcción. Pinta el color de base por tipo de control y
+respeta el que un control ya tenga con papel propio (una nota en `dim`, un
+error en `red`). Dos papeles se aplican siempre: el botón por defecto sale
+como principal, y el título de cada recuadro en `accent` y en negrita. Una
+ventana sin botón por defecto marca su acción principal con
+`tema.boton_principal`. Los deslizadores y las barras de progreso toman el
+fondo de su panel.
 
-Por qué `accent` no es el salvia de marca: `#CAD7C5` sobre crema da 1,3, es un
-color de relleno, no de texto. Para títulos y estados se usa la misma familia
-oscurecida hasta `#3F5B3A`. Lo mismo con el rojo.
+**Dónde va la salvia.** Solo en los títulos de los recuadros y en la acción
+principal, así el color marca la jerarquía. Las etiquetas de campo van en
+`text`.
 
 ## Panel de chat para la emisión — `web/chat.html` y `overlay_datos.py`
 

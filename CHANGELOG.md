@@ -126,6 +126,23 @@ Paraguay.
   una descarga que terminó a medias tienen sonidos propios, en los dos
   temas.
 
+### Aspecto de la aplicación
+
+- Todas las ventanas usan los mismos colores. Los campos y las listas son
+  blancos, el botón principal de cada ventana va en salvia con texto
+  blanco, y los títulos de los grupos también van en salvia.
+- En Transmisión, Preferencias y Directo de YouTube, cada botón está junto
+  al campo sobre el que actúa, y los botones de una misma sección van en
+  una fila. El Historial de directos es más grande y muestra los títulos
+  enteros.
+- Todas las etiquetas de Preferencias terminan en dos puntos. En Mensajes
+  automáticos la lista tiene su etiqueta, y los intervalos se llaman
+  «Intervalo mínimo» e «Intervalo máximo». En Música, mostrar los filtros
+  es una casilla, como en Descargas.
+- La barra de estado dice «Velocidad», «Volumen» y «Super Chats» en lugar
+  de abreviaturas. En Transmisión, el usuario de TikTok solo se puede
+  escribir cuando el destino es TikTok.
+
 ### Arreglos
 
 - Cuando TikTok frena las consultas seguidas, la app ya no lo toma por un

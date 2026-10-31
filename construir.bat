@@ -77,8 +77,8 @@ call uv run pyinstaller main.py ^
   --collect-submodules pytchat ^
   --collect-all TikTokLive ^
   --collect-all yt_dlp ^
+  --collect-all cv2 ^
   --exclude-module imageio_ffmpeg ^
-  --exclude-module numpy ^
   --hidden-import vlc ^
   --add-data "!YTDOC!;googleapiclient/discovery_cache/documents"
 if errorlevel 1 ( echo ERROR en PyInstaller. & pause & exit /b 1 )
@@ -103,6 +103,7 @@ robocopy "dist\Bellbird" "%OUT%" /E /NFL /NDL /NJH /NJS /NP >nul
 robocopy "sounds" "%OUT%\sounds" /E /NFL /NDL /NJH /NJS /NP >nul
 robocopy "docs"   "%OUT%\docs"   /E /NFL /NDL /NJH /NJS /NP >nul
 robocopy "web"    "%OUT%\web"    /E /NFL /NDL /NJH /NJS /NP >nul
+robocopy "modelos" "%OUT%\modelos" /E /NFL /NDL /NJH /NJS /NP >nul
 echo == Compilando los catalogos de traduccion ==
 REM Sin .po no hace nada y no es error: el paquete sale sin idiomas.
 call uv run python scripts\traducciones.py compilar
@@ -208,6 +209,7 @@ if errorlevel 1 (
 if exist "%OUT%\config.ini" ( echo ERROR: config.ini quedo en el paquete y pisaria el del usuario. & pause & exit /b 1 )
 if not exist "%OUT%\_internal\googleapiclient\discovery_cache\documents\youtube.v3.json" ( echo ERROR: falta youtube.v3.json en el discovery cache; la app no podria hablar con la API. & pause & exit /b 1 )
 if not exist "%OUT%\_internal\prism\_native\_prism_cffi.pyd" ( echo ERROR: falta _prism_cffi.pyd en prism\_native; sin Prism la app arrancaria sin voz ni lector de pantalla. & pause & exit /b 1 )
+if not exist "%OUT%\modelos\face_detection_yunet_2023mar.onnx" ( echo ERROR: falta el modelo del detector de rostros en modelos; el encuadre de camara no funcionaria. & pause & exit /b 1 )
 REM Cada .po del repositorio tiene que viajar compilado en el paquete.
 for /D %%c in ("idiomas\*") do if exist "%%c\LC_MESSAGES\bellbird.po" if not exist "%OUT%\idiomas\%%~nxc\LC_MESSAGES\bellbird.mo" ( echo ERROR: falta el catalogo compilado de %%~nxc en el paquete. & pause & exit /b 1 )
 echo == Comprobando que el paquete carga lo critico ==
@@ -220,7 +222,6 @@ rmdir /s /q "%OUT%\data" 2>nul
 set "OTROS_DOCS="
 for %%f in ("%OUT%\_internal\googleapiclient\discovery_cache\documents\*") do if /i not "%%~nxf"=="youtube.v3.json" set "OTROS_DOCS=1"
 if defined OTROS_DOCS echo    AVISO: quedaron documentos de API de Google ademas de youtube.v3.json en el paquete.
-if exist "%OUT%\_internal\numpy" echo    AVISO: numpy sigue en el paquete y deberia estar excluido.
 
 echo == Escribiendo el manifiesto del paquete ==
 REM Lo lee el instalador para saber que version trae el zip y cual es su exe.

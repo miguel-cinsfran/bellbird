@@ -137,13 +137,39 @@ class TestPiezaIdiomas(unittest.TestCase):
         self.assertIsNotNone(error)
 
 
+class TestPiezaDetectorRostros(unittest.TestCase):
+    """La pieza Detector de rostros corre YuNet de verdad, sin ventanas."""
+
+    def _pieza(self):
+        piezas = dict(autocomprobacion.PIEZAS)
+        self.assertIn("Detector de rostros", piezas)
+        return piezas["Detector de rostros"]
+
+    def test_imagen_gris_da_ok(self):
+        resultados = autocomprobacion.comprobar(
+            [("Detector de rostros", self._pieza())])
+        self.assertEqual(resultados, [("Detector de rostros", None)])
+
+    def test_sin_modelo_da_falla(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            faltante = Path(tmp) / "no-existe.onnx"
+            with mock.patch.object(paths, "modelo_rostros",
+                                   return_value=faltante):
+                resultados = autocomprobacion.comprobar(
+                    [("Detector de rostros", self._pieza())])
+        self.assertEqual(len(resultados), 1)
+        nombre, error = resultados[0]
+        self.assertEqual(nombre, "Detector de rostros")
+        self.assertIsNotNone(error)
+
+
 class TestPiezas(unittest.TestCase):
 
-    def test_los_ocho_nombres_en_orden(self):
+    def test_los_nueve_nombres_en_orden(self):
         self.assertEqual(
             [nombre for nombre, _ in autocomprobacion.PIEZAS],
             ["wxPython", "Prism", "pytchat", "TikTokLive", "API de Google",
-             "yt-dlp", "VLC", "Idiomas"])
+             "yt-dlp", "VLC", "Idiomas", "Detector de rostros"])
 
 
 class TestPiezasReales(unittest.TestCase):
@@ -184,9 +210,28 @@ class TestCorridaRealDeMain(unittest.TestCase):
             "OK yt-dlp",
             "OK VLC",
             "OK Idiomas",
+            "OK Detector de rostros",
         ])
         if not habia_data:
             self.assertFalse(destino_data.exists())
+
+
+class TestConstruirLlevaDetector(unittest.TestCase):
+    """construir.bat junta OpenCV y frena si el modelo no viaja."""
+
+    def _texto(self):
+        return (RAIZ / "construir.bat").read_text(encoding="utf-8")
+
+    def test_paquete_junta_opencv_con_numpy(self):
+        texto = self._texto()
+        self.assertIn("--collect-all cv2", texto)
+        self.assertNotIn("--exclude-module numpy", texto)
+
+    def test_paquete_copia_modelos_y_frena_sin_onnx(self):
+        texto = self._texto()
+        self.assertIn('robocopy "modelos" "%OUT%\\modelos"', texto)
+        self.assertIn(
+            '"%OUT%\\modelos\\face_detection_yunet_2023mar.onnx"', texto)
 
 
 if __name__ == "__main__":

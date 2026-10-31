@@ -79,6 +79,21 @@ def _vlc():
             logger.debug("No se pudo liberar el reproductor de VLC: %s", exc)
 
 
+def _detector_rostros():
+    import cv2
+    import numpy
+
+    from bellbird.camera import detector_rostros
+    from bellbird.core import paths
+    # Gris lisa: da igual si hay rostros, solo importa que el detector corra.
+    gris = numpy.full((64, 64), 128, dtype=numpy.uint8)
+    ok, datos = cv2.imencode(".bmp", gris)
+    if not ok:
+        raise RuntimeError("no se pudo codificar la imagen de prueba")
+    detector = detector_rostros.DetectorRostros(paths.modelo_rostros())
+    detector.analizar(datos.tobytes())
+
+
 PIEZAS = (
     ("wxPython", _wxpython),
     ("Prism", _prism),
@@ -88,6 +103,7 @@ PIEZAS = (
     ("yt-dlp", _yt_dlp),
     ("VLC", _vlc),
     ("Idiomas", _idiomas),
+    ("Detector de rostros", _detector_rostros),
 )
 
 

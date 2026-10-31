@@ -1910,6 +1910,9 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("diagnostico", "registro_detallado"),
             ("overlay", "puerto"), ("obs", "microfono"),
             ("transmision", "avisar_sobrecarga"),
+            ("transmision", "avisar_encuadre"),
+            ("transmision", "camara_fuente"),
+            ("transmision", "camara_invertir"),
             ("musica", "aleatorio"), ("musica", "repetir"),
             ("musica", "retomar"), ("musica", "sonido_tema"),
             ("musica", "decir"), ("musica", "decir_pausa"), ("musica", "normalizar"),
@@ -1963,14 +1966,14 @@ class TestCategoriasDePreferenciasSoloLectura(unittest.TestCase):
 
     _buscar = staticmethod(TestCategoriasDePreferencias._buscar)
 
-    def test_tiene_dieciseis_categorias_en_el_orden_acordado(self):
+    def test_tiene_dieciocho_categorias_en_el_orden_acordado(self):
         dialogo = self.dialogo
         self.assertEqual(
             [dialogo.nb.GetPageText(i) for i in range(dialogo.nb.GetPageCount())],
             ["General", "Voces", "Lectura", "Cola de lectura", "Interfaz",
              "Sonidos", "Reproductor", "Música", "Descargas", "Conexión", "Filtros",
              "Estado (F2)", "Atajos", "API y sesión", "Mensajes automáticos",
-             "Transmisión", "Inteligencia artificial"])
+             "Transmisión", "Cámara", "Inteligencia artificial"])
 
     def test_pagina_general_primera_con_las_cuatro_casillas_en_orden(self):
         dialogo = self.dialogo

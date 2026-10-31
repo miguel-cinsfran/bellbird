@@ -28,6 +28,7 @@ from bellbird.ui.preferencias_api import PaginaApi
 from bellbird.ui.preferencias_atajos import PaginaAtajos
 from bellbird.ui.preferencias_general import OPCIONES_GENERAL, PaginaGeneral, ofrecer_reinicio
 from bellbird.ui.preferencias_transmision import PaginaTransmision
+from bellbird.ui.preferencias_camara import PaginaCamara
 from bellbird.ui.preferencias_musica import OPCIONES_MUSICA, PaginaMusica
 from bellbird.ui.preferencias_descargas import PaginaDescargasPreferencias
 from bellbird.ui.preferencias_lectura import OPCIONES_LECTURA, PaginaLectura
@@ -142,6 +143,8 @@ class PreferenciasDialog(wx.Dialog):
         self.sp_puerto_overlay = self.pagina_transmision.sp_puerto_overlay
         self.chk_avisar_sobrecarga = self.pagina_transmision.chk_avisar_sobrecarga
         self.cho_microfono_obs = self.pagina_transmision.cho_microfono_obs
+        self.pagina_camara = PaginaCamara(self, self._config)
+        self.nb.AddPage(self.pagina_camara.construir(self.nb), _("Cámara"))
         self.pagina_ia = PaginaIA(self, self._ruta)
         self.nb.AddPage(self.pagina_ia.construir(self.nb), _("Inteligencia artificial"))
         ajustar_ancho_categorias(self.nb, self.lista_categorias)
@@ -422,6 +425,7 @@ class PreferenciasDialog(wx.Dialog):
         registro_detallado = c["registro_detallado"]
         puerto_overlay = c["overlay_puerto"]
         self.pagina_transmision.guardar(self._set, c)
+        self.pagina_camara.guardar(self._set, c)
 
         self.pagina_musica.guardar(self._set, c)
         self.pagina_descargas.guardar()

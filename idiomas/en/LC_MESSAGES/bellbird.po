@@ -9551,3 +9551,36 @@ msgstr "Announce camera framing"
 #: bellbird/ui/atajos_captura.py:91
 msgid "Avisar si el rostro sale del encuadre"
 msgstr "Warn when the face leaves the frame"
+
+#: bellbird/ui/preferencias_camara.py:40
+msgid "Cá&mara de OBS:"
+msgstr "&OBS camera:"
+
+#: bellbird/ui/preferencias_camara.py:46
+msgid "Cámara de OBS"
+msgstr "OBS camera"
+
+#: bellbird/ui/preferencias_camara.py:51
+msgid "&Buscar cámaras en OBS"
+msgstr "&Find cameras in OBS"
+
+#: bellbird/ui/preferencias_camara.py:52
+msgid "Buscar cámaras en OBS"
+msgstr "Find cameras in OBS"
+
+#: bellbird/ui/preferencias_camara.py:57
+msgid "&Invertir izquierda y derecha"
+msgstr "&Invert left and right"
+
+#: bellbird/ui/preferencias_camara.py:97
+msgid "Se encontró una cámara en OBS."
+msgstr "Found one camera in OBS."
+
+#: bellbird/ui/preferencias_camara.py:99
+#, python-brace-format
+msgid "Se encontraron {cantidad} cámaras en OBS."
+msgstr "Found {cantidad} cameras in OBS."
+
+#: bellbird/ui/gui_preferencias.py:147
+msgid "Cámara"
+msgstr "Camera"

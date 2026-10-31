@@ -212,6 +212,19 @@ class TestEspejo(unittest.TestCase):
         self.assertFalse(camara.espejo)
 
 
+class TestFuentesVideo(unittest.TestCase):
+    def test_solo_dshow_en_orden_y_sin_vacias(self):
+        doble = Doble(entradas=[
+            entrada("Cam"), entrada("Sonido", "wasapi_input_capture"),
+            {"inputName": "", "inputKind": "dshow_input"},
+            entrada("Otra")])
+        self.assertEqual(obs_camara.fuentes_video(doble), ("Cam", "Otra"))
+
+    def test_sin_camaras_da_vacio(self):
+        doble = Doble(entradas=[entrada("Sonido", "wasapi_input_capture")])
+        self.assertEqual(obs_camara.fuentes_video(doble), ())
+
+
 class TestCapturarCuadro(unittest.TestCase):
     def test_pide_bmp_con_el_ancho_a_la_fuente(self):
         doble = Doble(

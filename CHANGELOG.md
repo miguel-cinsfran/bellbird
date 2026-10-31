@@ -26,7 +26,8 @@ Paraguay.
   sonido propio cuando el rostro sale del encuadre y cuando vuelve.
   Pulsando `Ctrl+F3` dos veces, unos pitidos guían hasta quedar bien
   encuadrado. La imagen se analiza en el equipo, sin enviarla a ningún
-  sitio.
+  sitio. La cámara, los avisos y la inversión de izquierda y derecha se
+  eligen en la categoría nueva *Cámara* de Preferencias.
 - `Ctrl+Mayús+O`, o *Mostrar OBS* en el menú *Transmisión*, trae al frente
   la ventana de OBS, también cuando está en el área de notificación. Si OBS
   espera una respuesta, como la pregunta del modo seguro, el foco va a ese

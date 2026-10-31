@@ -86,6 +86,16 @@ def _buscar_en(elementos, cliente, por_nombre, nombre, nivel, acumulado,
     return None
 
 
+def fuentes_video(cliente, parada=None) -> tuple:
+    """Nombres de las cámaras de OBS, en el orden de OBS."""
+    entradas = obs_captura_ia.datos_respuesta(
+        cliente, "GetInputList", parada=parada).get("inputs", ()) or ()
+    return tuple(entrada.get("inputName", "")
+                 for entrada in entradas
+                 if entrada.get("inputKind", "") == "dshow_input"
+                 and entrada.get("inputName", ""))
+
+
 def buscar_camara(cliente, nombre="", parada=None) -> CamaraObs:
     """La cámara visible en la escena al aire, y si sale en espejo.
 

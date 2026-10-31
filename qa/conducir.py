@@ -5541,6 +5541,7 @@ SUPERFICIES = {
     "preferencias_lectura.py": "preferencias",
     "preferencias_programados.py": "preferencias",
     "preferencias_transmision.py": "preferencias",
+    "preferencias_camara.py": "preferencias",
     "preferencias_voz.py": "preferencias",
     "paleta.py": "actualizaciones",
 }

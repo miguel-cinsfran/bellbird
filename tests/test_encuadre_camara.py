@@ -423,6 +423,24 @@ class TestAlternarAvisos(_Testigo):
         sincronizar.assert_called_once_with(marco)
 
 
+class TestAplicarPreferencia(_Testigo):
+
+    def test_marca_la_casilla_y_sincroniza(self):
+        marco = _nuevo_marco(avisar_encuadre=True)
+        sincronizar = self.parchear_modulo("sincronizar")
+        encuadre_camara.aplicar_preferencia(marco)
+        marco.mi_avisos_encuadre.Check.assert_called_once_with(True)
+        sincronizar.assert_called_once_with(marco)
+
+    def test_los_fallos_no_salen(self):
+        marco = _nuevo_marco()
+        marco.mi_avisos_encuadre.Check.side_effect = RuntimeError("x")
+        sincronizar = self.parchear_modulo(
+            "sincronizar", side_effect=RuntimeError("y"))
+        encuadre_camara.aplicar_preferencia(marco)
+        sincronizar.assert_called_once_with(marco)
+
+
 class TestSincronizar(_Testigo):
 
     def test_activa_arranca_y_no_duplica(self):

@@ -26,6 +26,13 @@ class TestAplicarEnCaliente(unittest.TestCase):
             gui_aplicar_preferencias.aplicar_en_caliente(frame)
         anunciar.assert_called_once_with("Preferencias aplicadas")
 
+    def test_aplicar_llama_a_preferencia_de_encuadre(self):
+        frame = _frame({"avisar_encuadre": True})
+        with mock.patch("bellbird.ui.gui.anunciar"), \
+                mock.patch("bellbird.ui.encuadre_camara.aplicar_preferencia") as preferencia:
+            gui_aplicar_preferencias.aplicar_en_caliente(frame)
+        preferencia.assert_called_once_with(frame)
+
     def test_motor_distinto_anuncia_el_nombre(self):
         frame = _frame({"motor": "onecore", "voz": "Voz B",
                         "atajos_raw": {}})

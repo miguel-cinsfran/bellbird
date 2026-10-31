@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from bellbird.core import diagnostico
 from bellbird.core.idioma import _
+from bellbird.ui import encuadre_camara
 
 
 logger = diagnostico.obtener_logger(__name__)
@@ -22,6 +23,7 @@ def aplicar_en_caliente(frame):
     _aplicar_voz(frame, voces_actuales)
     _aplicar_ajustes_de_voz(frame)
     _aplicar_interfaz_y_vista(frame)
+    encuadre_camara.aplicar_preferencia(frame)
     _aplicar_reproductor(frame)
     _aplicar_musica(frame)
     _aplicar_recientes(frame)

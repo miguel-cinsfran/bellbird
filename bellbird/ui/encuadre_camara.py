@@ -217,6 +217,22 @@ def alternar_avisos(frame) -> None:
     sincronizar(frame)
 
 
+def aplicar_preferencia(frame) -> None:
+    """Marca la casilla de avisos y sincroniza la vigilancia.
+
+    Nada sale de acá: cada paso atrapa y registra sus propios fallos.
+    """
+    try:
+        frame.mi_avisos_encuadre.Check(
+            bool(frame._config.get("avisar_encuadre", False)))
+    except Exception as fallo:
+        logger.warning("EncuadreCamara: sin casilla: %s", fallo)
+    try:
+        sincronizar(frame)
+    except Exception as fallo:
+        logger.warning("EncuadreCamara: sin vigilancia: %s", fallo)
+
+
 def sincronizar(frame) -> None:
     """Pone en marcha o detiene la vigilancia según la preferencia."""
     inst = _instancia_para(frame)

@@ -256,10 +256,7 @@ INTERNAS = {
     ("tiktok", "usuario"): "lo guarda la ventana Transmisión (gui_transmitir.py:42)",
     ("transmision", "destino"): "lo guarda la ventana Transmisión (gui_transmitir.py:51)",
     ("transmision", "avisar_sobrecarga"): "lo cambia su menú (gui_transmitir.py:60)",
-    ("transmision", "avisar_encuadre"): "lo cambia su casilla del menú Transmisión (encuadre_camara.py, alternar_avisos)",
     ("transmision", "grabar_al_transmitir"): "lo cambia su menú (gui_transmitir.py, alternar_grabar_al_transmitir)",
-    ("transmision", "camara_fuente"): "solo en config.ini: no tiene control en Preferencias",
-    ("transmision", "camara_invertir"): "solo en config.ini: no tiene control en Preferencias",
     ("transmision", "youtube_titulo"): "lo guarda la ventana Transmisión (gui_transmitir.py:79)",
     ("transmision", "youtube_descripcion"): "la guarda la ventana Transmisión (gui_transmitir.py:79)",
     ("transmision", "youtube_privacidad"): "la guarda la ventana Transmisión (gui_transmitir.py:79)",
@@ -362,7 +359,8 @@ def _pares_con_control():
         "bellbird/ui/preferencias_musica.py",
         "bellbird/ui/preferencias_lectura.py", "bellbird/ui/preferencias_ia.py",
         "bellbird/ui/preferencias_voz.py",
-        "bellbird/ui/preferencias_transmision.py")}
+        "bellbird/ui/preferencias_transmision.py",
+        "bellbird/ui/preferencias_camara.py")}
     for arbol in arboles.values():
         for nodo in ast.walk(arbol):
             if not isinstance(nodo, (ast.Assign, ast.AnnAssign)):
@@ -422,7 +420,8 @@ class PruebaConfiguracion(unittest.TestCase):
             "bellbird/ui/preferencias_musica.py, "
             "bellbird/ui/preferencias_lectura.py, bellbird/ui/preferencias_ia.py, "
             "bellbird/ui/preferencias_voz.py, "
-            "bellbird/ui/preferencias_transmision.py): "
+            "bellbird/ui/preferencias_transmision.py, "
+            "bellbird/ui/preferencias_camara.py): "
             f"{faltan}")
 
     def test_excepciones_existen_en_fabrica(self):

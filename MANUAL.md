@@ -333,11 +333,11 @@ bajar, y más seguidos cuanto más cerca estás. Al quedar bien encuadrado,
 suena una confirmación, se dice el encuadre y la lectura sigue. `Ctrl+F3`
 detiene la guía, que también termina sola al minuto.
 
-Si hay más de una cámara en la escena, se usa la que está delante. Para
-elegir otra fuente, escribe su nombre en `camara_fuente`, en la sección
-`[transmision]` de `config.ini`. Si izquierda y derecha salen al revés
-porque la cámara ya da la imagen en espejo, pon `camara_invertir = true`
-en la misma sección.
+Si hay más de una cámara en la escena, se usa la que está delante. La
+cámara se elige en *Preferencias, Cámara*, con *Buscar cámaras en OBS*,
+sin escribir nada en `config.ini`. Si las indicaciones de izquierda y
+derecha salen al revés, marca *Invertir izquierda y derecha*. Los avisos
+se activan desde la misma categoría.
 
 ## Panel de chat para transmitir
 

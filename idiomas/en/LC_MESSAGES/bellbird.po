@@ -9576,10 +9576,10 @@ msgstr "YouTube quota used today"
 #: bellbird/capture/estado_sesion.py:319
 #, python-brace-format
 msgid ""
-"Cuota de YouTube usada hoy en esta PC: unas {usadas} de 10.000, con los "
+"Cuota de YouTube usada hoy en este equipo: unas {usadas} de 10.000, con los "
 "costos del {fecha}"
 msgstr ""
-"YouTube quota used today on this PC: about {usadas} of 10,000, with the "
+"YouTube quota used today on this computer: about {usadas} of 10,000, with the "
 "costs from {fecha}"
 
 #: bellbird/ui/atajos_captura.py:90

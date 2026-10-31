@@ -316,7 +316,7 @@ def _render_cuota_youtube(s: SnapshotSesion, largo: bool) -> str:
         return ""
     # Traductores: parte del estado F2 (cuota de YouTube). {usadas} son las
     # unidades y {fecha} la fecha de la tabla de costos.
-    return _("Cuota de YouTube usada hoy en esta PC: unas {usadas} de 10.000, "
+    return _("Cuota de YouTube usada hoy en este equipo: unas {usadas} de 10.000, "
              "con los costos del {fecha}").format(
         usadas=_fmt_num(s.cuota_youtube), fecha=FECHA_COSTOS)
 

@@ -327,7 +327,7 @@ class TestCuotaYoutube(unittest.TestCase):
         self.assertEqual(
             formatear_estado(SnapshotSesion(cuota_youtube=1234),
                              {"cuota_youtube"}),
-            "Cuota de YouTube usada hoy en esta PC: unas 1.234 de 10.000, "
+            "Cuota de YouTube usada hoy en este equipo: unas 1.234 de 10.000, "
             "con los costos del 15/10/2026.")
 
     def test_activo_de_fabrica(self):

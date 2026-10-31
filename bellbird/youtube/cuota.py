@@ -145,7 +145,7 @@ def _registrar(metodo: str, ahora_utc=None) -> None:
 
 
 def usadas_hoy(ahora_utc=None) -> int:
-    """Unidades gastadas hoy en esta PC, según el día del Pacífico."""
+    """Unidades gastadas hoy en este equipo, según el día del Pacífico."""
     with _LOCK:
         return _leer_hoy(ahora_utc)["unidades"]
 

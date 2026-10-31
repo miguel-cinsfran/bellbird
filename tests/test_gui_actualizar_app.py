@@ -14,7 +14,7 @@ from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
-from bellbird.core import actualizacion
+from bellbird.core import actualizacion, novedades
 from bellbird.core.config import APP_NAME, APP_VERSION
 from bellbird.ui import gui_actualizar_app as app
 
@@ -146,7 +146,7 @@ class TestVentana(unittest.TestCase):
             side_effect=fabrica))
         if paquete is None:
             self._doble(mock.patch.object(
-                actualizacion, "consultar_ultima_version",
+                novedades, "consultar_con_novedades",
                 return_value=consultar))
         self._doble(mock.patch.object(
             app.diagnostico, "crear_hilo", side_effect=crear))
@@ -404,7 +404,7 @@ class TestVentana(unittest.TestCase):
 
     def test_con_paquete_no_consulta_la_red(self):
         consulta = self._doble(mock.patch.object(
-            actualizacion, "consultar_ultima_version",
+            novedades, "consultar_con_novedades",
             side_effect=AssertionError("no debe consultar la red")))
         _, ventana, _ = self._abrir(
             paquete=_paquete(VERSION_NUEVA), frozen=True, admite=True)
@@ -477,7 +477,7 @@ class TestGanchos(unittest.TestCase):
         self._doble(mock.patch.object(sys, "frozen", frozen, create=True))
         self._doble(mock.patch.object(actualizacion, "limpiar_restos"))
         self._doble(mock.patch.object(
-            actualizacion, "consultar_ultima_version",
+            novedades, "consultar_con_novedades",
             return_value=_paquete(version)))
         anunciar = self._doble(mock.patch.object(app, "anunciar"))
         self._doble(mock.patch.object(
@@ -660,7 +660,7 @@ class TestGanchos(unittest.TestCase):
         demoras = self._reloj()
         self._doble(mock.patch.object(sys, "frozen", False, create=True))
         self._doble(mock.patch.object(
-            actualizacion, "consultar_ultima_version",
+            novedades, "consultar_con_novedades",
             return_value=_paquete("9.9.9")))
         anunciar = self._doble(mock.patch.object(app, "anunciar"))
         leer = self._doble(mock.patch.object(
@@ -682,7 +682,7 @@ class TestGanchos(unittest.TestCase):
     def test_sin_conexion_no_anuncia(self):
         self._reloj()
         self._doble(mock.patch.object(
-            actualizacion, "consultar_ultima_version", return_value=None))
+            novedades, "consultar_con_novedades", return_value=None))
         anunciar = self._doble(mock.patch.object(app, "anunciar"))
         guardar = self._doble(mock.patch.object(app, "guardar_version_avisada"))
         app.programar_aviso_version(self._frame())
@@ -694,7 +694,7 @@ class TestGanchos(unittest.TestCase):
         limpiar = self._doble(mock.patch.object(
             actualizacion, "limpiar_restos"))
         consultar = self._doble(mock.patch.object(
-            actualizacion, "consultar_ultima_version"))
+            novedades, "consultar_con_novedades"))
         frame = types.SimpleNamespace(
             _config={"buscar_actualizaciones_al_iniciar": False})
         app.programar_aviso_version(frame)
@@ -705,7 +705,7 @@ class TestGanchos(unittest.TestCase):
         self._reloj()
         self._doble(mock.patch.object(actualizacion, "limpiar_restos"))
         consultar = self._doble(mock.patch.object(
-            actualizacion, "consultar_ultima_version", return_value=None))
+            novedades, "consultar_con_novedades", return_value=None))
         frame = types.SimpleNamespace(
             _config={"buscar_actualizaciones_al_iniciar": True})
         app.programar_aviso_version(frame)
@@ -715,7 +715,7 @@ class TestGanchos(unittest.TestCase):
         self._reloj()
         self._doble(mock.patch.object(actualizacion, "limpiar_restos"))
         consultar = self._doble(mock.patch.object(
-            actualizacion, "consultar_ultima_version", return_value=None))
+            novedades, "consultar_con_novedades", return_value=None))
         app.programar_aviso_version(self._frame())
         consultar.assert_called_once_with()
 
@@ -729,7 +729,7 @@ class TestGanchos(unittest.TestCase):
             orden.append("consultar")
             return None
         self._doble(mock.patch.object(
-            actualizacion, "consultar_ultima_version",
+            novedades, "consultar_con_novedades",
             side_effect=_consultar))
         self._doble(mock.patch.object(app, "anunciar"))
         app.programar_aviso_version(self._frame())
@@ -744,7 +744,7 @@ class TestGanchos(unittest.TestCase):
             actualizacion, "tomar_resultado",
             side_effect=RuntimeError("boom")))
         self._doble(mock.patch.object(
-            actualizacion, "consultar_ultima_version",
+            novedades, "consultar_con_novedades",
             side_effect=RuntimeError("boom")))
         with mock.patch.object(app, "logger"):
             app.programar_confirmacion_arranque()
@@ -1019,7 +1019,7 @@ class TestPseudoVentana(unittest.TestCase):
         frame = wx.Frame(None)
         self.addCleanup(destruir, frame)
         with mock.patch.object(
-                actualizacion, "consultar_ultima_version",
+                novedades, "consultar_con_novedades",
                 return_value=kwargs.pop("consultar", None)), \
                 mock.patch.object(app.diagnostico, "crear_hilo",
                                   side_effect=_crear_hilo_en_linea), \

@@ -1167,6 +1167,12 @@ msgstr "{base} ({fecha})"
 msgid "Idioma de Windows"
 msgstr "Windows language"
 
+#. Traductores: encabezado de las novedades de una versión.
+#: bellbird/core/novedades.py:31
+#, python-brace-format
+msgid "Versión {version}"
+msgstr "Version {version}"
+
 #: bellbird/core/preferencias_archivo.py:31
 msgid "Ese archivo pesa más de 1 MB."
 msgstr "That file is over 1 MB."

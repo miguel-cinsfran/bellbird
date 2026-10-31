@@ -19,7 +19,7 @@ from pathlib import Path
 
 import wx
 
-from bellbird.core import actualizacion
+from bellbird.core import actualizacion, novedades
 from bellbird.core import diagnostico
 from bellbird.core import paths
 from bellbird.core.config import APP_NAME, APP_VERSION, guardar_opcion
@@ -167,7 +167,7 @@ def _consultar_version(frame) -> None:
     if not buscar:
         return
     try:
-        paquete = actualizacion.consultar_ultima_version()
+        paquete = novedades.consultar_con_novedades()
     except Exception as exc:
         logger.warning("aviso de versión: %s", exc)
         return
@@ -246,7 +246,7 @@ class _FlujoActualizacion:
 
     def _run_consulta(self):
         try:
-            paquete = actualizacion.consultar_ultima_version()
+            paquete = novedades.consultar_con_novedades()
         except Exception as exc:
             logger.warning("consulta de versión: %s", exc)
             paquete = None

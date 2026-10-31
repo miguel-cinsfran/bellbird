@@ -1908,7 +1908,7 @@ def escenario_musica(app: Aplicacion, args, res: Resultado):
     música real no se toca: la ventana solo se abre, se audita y se cierra.
     """
     res.nota("Música: no se reproduce nada, la ventana solo se audita")
-    esperados = ("Colecciones", "Buscar en la música", "Mostrar los filtros",
+    esperados = ("Colecciones", "Buscar en la música", "Mostrar filtros",
                   "Canciones", "Mostrar cola", "Abrir enlace", "Nueva lista",
                  "Cambiar carpeta", "Cerrar")
     auditar_dialogo(
@@ -2339,16 +2339,24 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         propia.pedir("pulsar", nombre="Mostrar cola", ventana="Música")
         if _filas_hasta("Música", "Cola de reproducción", 0, 1.0) is None:
             _corta("musica_real: la Cola no responde tras mostrarla")
-        # Los filtros arrancan ocultos y no filtran. Se muestra el botón para
-        # comprobar que los dos cuadros aparecen, y se vuelven a ocultar para
-        # no cambiar lo que ve el resto del recorrido.
-        propia.pedir("pulsar", nombre="Mostrar los filtros", ventana="Música")
+        # Los filtros arrancan ocultos y no filtran. Se marca la casilla para
+        # comprobar que los dos cuadros aparecen y que se anuncia, y se vuelve
+        # a desmarcar para no cambiar lo que ve el resto del recorrido.
+        n = len(propia.anuncios)
+        propia.pedir("casilla", nombre="Mostrar filtros", ventana="Música",
+                     valor=True)
         for nombre in ("Mostrar", "Ordenar por"):
             rama = subarbol(_arbol("Música"), nombre)
             if not rama or not rama[0].get("visible"):
                 res.fallo("musica_real: al mostrar los filtros no aparece "
                           f"«{nombre}»")
-        propia.pedir("pulsar", nombre="Ocultar los filtros", ventana="Música")
+        if not propia.esperar_dicho("Filtros visibles", segundos=5, desde=n):
+            res.fallo("musica_real: al mostrar los filtros no se anunció")
+        n = len(propia.anuncios)
+        propia.pedir("casilla", nombre="Mostrar filtros", ventana="Música",
+                     valor=False)
+        if not propia.esperar_dicho("Filtros ocultos", segundos=5, desde=n):
+            res.fallo("musica_real: al ocultar los filtros no se anunció")
         # Con `--capturas`: la misma ventana, ahora con la cola visible. La
         # apertura con la cola oculta ya la capturó `esperar_ventana`.
         captor_musica = getattr(args, "captor", None)

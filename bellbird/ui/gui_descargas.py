@@ -35,6 +35,7 @@ from bellbird.downloads.opciones_formato import (
 from bellbird.ui.descargas_buscador import PaginaBuscador
 from bellbird.ui.descargas_listas import _ESTADOS_FINALES, PaginaDescargas
 from bellbird.ui.buscador_acciones import anunciar_agregados
+from bellbird.ui.descargas_acciones import ofrecer_carpeta
 from bellbird.ui.gui import anunciar, nombre_accesible
 from bellbird.ui import paleta
 from bellbird.voice import sound_player as _snd
@@ -66,6 +67,7 @@ _SONIDO_EN_CURSO = {
 # Fines seguidos sin que la cola termine: con dos o más y la cola
 # terminada, el aviso nombra la cola y el contador vuelve a 0.
 _finales_seguidos = 0
+_carpeta_a_ofrecer = ""
 # Cada 500 ms el diálogo abierto vuelca el estado del gestor a sus filas.
 INTERVALO_REFRESCO_MS = 500
 
@@ -124,7 +126,7 @@ def registrar_historial(item, estado: str, ruta=None) -> dict | None:
 
 def _fin_descarga_en_gui(estado: str, mensaje: str, nombre: str, item) -> None:
     """Parte del aviso de fin que toca wx: corre en el hilo de la GUI."""
-    global _finales_seguidos
+    global _finales_seguidos, _carpeta_a_ofrecer
     if estado in ("descargando", "procesando"):
         try:
             _snd.reproducir(_SONIDO_EN_CURSO[estado])
@@ -150,10 +152,19 @@ def _fin_descarga_en_gui(estado: str, mensaje: str, nombre: str, item) -> None:
     anunciar(frase)
     if estado not in _ESTADOS_FINALES:
         return
+    if _cerrar_tanda(estado, item):
+        ofrecer_carpeta(_carpeta_a_ofrecer, _dialogo_activo)
+        _carpeta_a_ofrecer = ""
+
+
+def _cerrar_tanda(estado: str, item) -> bool:
+    global _carpeta_a_ofrecer
     entrada = registrar_historial(item, estado)
-    dialogo = _dialogo_activo
-    if entrada is not None and dialogo is not None and dialogo._alive:
-        dialogo.pagina_descargas.agregar_entrada(entrada)
+    if entrada is not None and _dialogo_activo is not None and _dialogo_activo._alive:
+        _dialogo_activo.pagina_descargas.agregar_entrada(entrada)
+    if estado == "completado" and item is not None:
+        _carpeta_a_ofrecer = item.carpeta or cfg.obtener_opciones_descarga().get("carpeta", "")
+    return filas_descargas.cola_terminada(gestor().lista())
 
 
 def _avisar_fin_descarga(estado: str, mensaje: str, nombre: str, item=None) -> None:

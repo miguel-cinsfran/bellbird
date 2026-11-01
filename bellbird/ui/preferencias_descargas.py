@@ -25,6 +25,7 @@ class PaginaDescargasPreferencias:
         self.dir_descargas = None
         self.chk_descargas_numerar = None
         self.chk_descargas_carpeta_lista = None
+        self.chk_descargas_preguntar = None
         self.cho_descargas_plantilla = None
         self.sp_descargas_simultaneas = None
         self.sp_descargas_limite = None
@@ -80,6 +81,12 @@ class PaginaDescargasPreferencias:
         self.chk_descargas_carpeta_lista.SetForegroundColour(_T.text)
         vs.Add(self.chk_descargas_carpeta_lista, 0,
                wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+        self.chk_descargas_preguntar = wx.CheckBox(
+            p, label=_("Pr&eguntar si se abre la carpeta al terminar la cola"),
+            name="DescargasPreguntarAlTerminar")
+        self.chk_descargas_preguntar.SetForegroundColour(_T.text)
+        vs.Add(self.chk_descargas_preguntar, 0,
+               wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _descargas_topes(self, p, vs):
         vs.Add(fila_label(p, _("Descargas &simultáneas:")),
@@ -113,6 +120,8 @@ class PaginaDescargasPreferencias:
         self.dir_descargas.SetPath(str(opciones.get("carpeta") or ""))
         self.chk_descargas_numerar.SetValue(bool(opciones.get("enumerar", False)))
         self.chk_descargas_carpeta_lista.SetValue(bool(opciones.get("carpeta_lista", False)))
+        self.chk_descargas_preguntar.SetValue(
+            bool(opciones.get("preguntar_al_terminar", False)))
         try:
             indice = self._plantillas_claves.index(opciones.get("plantilla"))
         except ValueError:
@@ -132,6 +141,7 @@ class PaginaDescargasPreferencias:
         opciones["carpeta"] = self.dir_descargas.GetPath()
         opciones["enumerar"] = bool(self.chk_descargas_numerar.GetValue())
         opciones["carpeta_lista"] = bool(self.chk_descargas_carpeta_lista.GetValue())
+        opciones["preguntar_al_terminar"] = bool(self.chk_descargas_preguntar.GetValue())
         indice = self.cho_descargas_plantilla.GetSelection()
         if 0 <= indice < len(self._plantillas_claves):
             opciones["plantilla"] = self._plantillas_claves[indice]

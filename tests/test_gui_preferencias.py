@@ -116,7 +116,7 @@ class TestPaginaDescargas(unittest.TestCase):
         self.addCleanup(destruir, dialogo)
         return dialogo
 
-    def test_pagina_descargas_tras_musica_con_siete_controles(self):
+    def test_pagina_descargas_tras_musica_con_ocho_controles(self):
         dialogo = self._dialogo()
         textos = [dialogo.nb.GetPageText(i)
                   for i in range(dialogo.nb.GetPageCount())]
@@ -126,12 +126,15 @@ class TestPaginaDescargas(unittest.TestCase):
             [pagina.dir_descargas.GetName(),
              pagina.chk_descargas_numerar.GetLabel(),
              pagina.chk_descargas_carpeta_lista.GetLabel(),
+             pagina.chk_descargas_preguntar.GetLabel(),
              pagina.cho_descargas_plantilla.GetName(),
              pagina.sp_descargas_simultaneas.GetName(),
              pagina.sp_descargas_limite.GetName(),
              pagina.cho_descargas_canal.GetName()],
             ["Carpeta de descargas", "&Numerar archivos de listas",
-             "Carpeta propia para cada &lista", "Nombre de los archivos",
+             "Carpeta propia para cada &lista",
+             "Pr&eguntar si se abre la carpeta al terminar la cola",
+             "Nombre de los archivos",
              "Descargas simultáneas", "Límite de velocidad en MB/s",
              "Canal de actualización de yt-dlp"])
         self.assertEqual(pagina.cho_descargas_canal.GetCount(), 2)
@@ -141,6 +144,24 @@ class TestPaginaDescargas(unittest.TestCase):
         self.assertEqual(pagina.sp_descargas_simultaneas.GetMin(), 1)
         self.assertEqual(pagina.sp_descargas_simultaneas.GetMax(), 5)
         self.assertEqual(pagina.sp_descargas_limite.GetMax(), 1000)
+
+    def test_preguntar_al_terminar_carga_y_guarda(self):
+        texto = config._CONFIG_FALLBACK.replace(
+            "[descargas]\n", "[descargas]\npreguntar_al_terminar = true\n")
+        (self.ruta / "config.ini").write_text(texto, encoding="utf-8")
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_descargas
+        self.assertEqual(pagina.chk_descargas_preguntar.GetName(),
+                         "DescargasPreguntarAlTerminar")
+        self.assertTrue(pagina.chk_descargas_preguntar.GetValue())
+        pagina.chk_descargas_preguntar.SetValue(False)
+        pagina.guardar()
+        self.assertFalse(
+            config.obtener_opciones_descarga()["preguntar_al_terminar"])
+        pagina.chk_descargas_preguntar.SetValue(True)
+        pagina.guardar()
+        self.assertTrue(
+            config.obtener_opciones_descarga()["preguntar_al_terminar"])
 
     def test_guardar_descargas_no_pierde_formato_ni_resolucion(self):
         dialogo = self._dialogo()

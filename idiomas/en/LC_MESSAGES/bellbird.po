@@ -4942,12 +4942,20 @@ msgid "&Cancelar"
 msgstr "&Cancel"
 
 #: bellbird/ui/descargas_acciones.py
-msgid "El archivo ya no está disponible."
-msgstr "The file is no longer available."
+msgid "Descargas terminadas. ¿Abrir la carpeta?"
+msgstr "Downloads finished. Open the folder?"
+
+#: bellbird/ui/descargas_acciones.py bellbird/ui/gui_descargas.py
+msgid "Administrador de descargas"
+msgstr "Download manager"
 
 #: bellbird/ui/descargas_acciones.py
 msgid "La carpeta ya no está disponible."
 msgstr "The folder is no longer available."
+
+#: bellbird/ui/descargas_acciones.py
+msgid "El archivo ya no está disponible."
+msgstr "The file is no longer available."
 
 #: bellbird/ui/descargas_acciones.py
 msgid "Selecciona una descarga."
@@ -6111,10 +6119,6 @@ msgstr "This video is already in the history. Add anyway?"
 #, python-brace-format
 msgid "{cantidad} ya están en el historial. ¿Agregar de todos modos?"
 msgstr "{cantidad} are already in the history. Add anyway?"
-
-#: bellbird/ui/gui_descargas.py
-msgid "Administrador de descargas"
-msgstr "Download manager"
 
 #: bellbird/ui/gui_descargas.py
 #, python-brace-format
@@ -8125,6 +8129,14 @@ msgid "Elige la carpeta de descargas"
 msgstr "Choose the download folder"
 
 #: bellbird/ui/preferencias_descargas.py
+msgid "Nombre de los &archivos:"
+msgstr "File na&mes:"
+
+#: bellbird/ui/preferencias_descargas.py
+msgid "Nombre de los archivos"
+msgstr "File name"
+
+#: bellbird/ui/preferencias_descargas.py
 msgid "&Numerar archivos de listas"
 msgstr "&Number files in playlists"
 
@@ -8133,12 +8145,8 @@ msgid "Carpeta propia para cada &lista"
 msgstr "Own folder for each p&laylist"
 
 #: bellbird/ui/preferencias_descargas.py
-msgid "Nombre de los &archivos:"
-msgstr "File na&mes:"
-
-#: bellbird/ui/preferencias_descargas.py
-msgid "Nombre de los archivos"
-msgstr "File name"
+msgid "Pr&eguntar si se abre la carpeta al terminar la cola"
+msgstr "Ask whether to open the folder when the &queue finishes"
 
 #: bellbird/ui/preferencias_descargas.py
 msgid "Descargas &simultáneas:"

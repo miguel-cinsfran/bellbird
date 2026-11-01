@@ -908,6 +908,22 @@ class TestCargarConfiguracion(unittest.TestCase):
                           op["plantilla"]), (2, 0, False, "titulo_id"))
         self.assertEqual(ruta.read_text(encoding="utf-8"), contenido)
 
+    def test_preguntar_al_terminar_ausente_es_falso_y_va_y_vuelve(self):
+        from bellbird.core import config
+        ruta = Path(self._tmp.name) / "config.ini"
+        contenido = "[descargas]\nformato = mp4\nbitrate = 192\n"
+        ruta.write_text(contenido, encoding="utf-8")
+        with redirigir_rutas(self._tmp.name):
+            op = config.obtener_opciones_descarga()
+            self.assertFalse(op["preguntar_al_terminar"])
+            self.assertEqual(ruta.read_text(encoding="utf-8"), contenido)
+            config.guardar_opciones_descarga(
+                dict(op, preguntar_al_terminar=True))
+            op_nueva = config.obtener_opciones_descarga()
+        self.assertTrue(op_nueva["preguntar_al_terminar"])
+        self.assertIn("preguntar_al_terminar = true",
+                      ruta.read_text(encoding="utf-8"))
+
 
     def test_carpeta_relativa_se_resuelve_contra_instalacion(self):
         from bellbird.core import config, paths

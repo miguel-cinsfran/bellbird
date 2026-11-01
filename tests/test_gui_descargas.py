@@ -2327,6 +2327,194 @@ class TestFinDeCola(unittest.TestCase):
 
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestOfrecerCarpetaAlTerminar(unittest.TestCase):
+    """La pregunta de abrir la carpeta al terminar la cola. Sin ventanas."""
+
+    def setUp(self):
+        gui_descargas._registrados.clear()
+        gui_descargas._dialogo_activo = None
+        gui_descargas._finales_seguidos = 0
+        gui_descargas._carpeta_a_ofrecer = ""
+        self._n = 0
+        self._preguntar = False
+        self._carpeta_guardada = "C:/Base"
+        self._respuesta = wx.NO
+        self._existe = True
+        parches = (
+            mock.patch.object(gui_descargas.historial_descargas, "cargar",
+                              return_value=[]),
+            mock.patch.object(gui_descargas.historial_descargas, "guardar"),
+            mock.patch.object(gui_descargas, "anunciar"),
+            mock.patch.object(gui_descargas._snd, "reproducir"),
+            mock.patch.object(gui_descargas, "gestor"),
+            mock.patch("bellbird.core.config.obtener_opciones_descarga",
+                       side_effect=self._opciones),
+            mock.patch.object(descargas_acciones.wx, "CallLater"),
+            mock.patch.object(descargas_acciones.wx, "MessageBox",
+                              side_effect=lambda *a, **k: self._respuesta),
+            mock.patch.object(descargas_acciones.os, "startfile"),
+            mock.patch.object(descargas_acciones.os.path, "exists",
+                              side_effect=lambda _ruta: self._existe),
+            mock.patch.object(descargas_acciones, "anunciar"),
+        )
+        for parche in parches:
+            parche.start()
+            self.addCleanup(parche.stop)
+        self._gestor = gui_descargas.gestor.return_value
+        self._mensaje = descargas_acciones.wx.MessageBox
+        self._programada = descargas_acciones.wx.CallLater
+        self._inicio = descargas_acciones.os.startfile
+        self._anuncio = descargas_acciones.anunciar
+        self._sonido = gui_descargas._snd.reproducir
+
+    def tearDown(self):
+        gui_descargas._registrados.clear()
+        gui_descargas._dialogo_activo = None
+        gui_descargas._finales_seguidos = 0
+        gui_descargas._carpeta_a_ofrecer = ""
+
+    def _opciones(self):
+        return {"preguntar_al_terminar": self._preguntar,
+                "carpeta": self._carpeta_guardada}
+
+    def _item(self, nombre, estado="descargando", carpeta="C:/Descargas"):
+        self._n += 1
+        return descargas.ItemDescarga(
+            f"aviso-{self._n}",
+            f"https://www.youtube.com/watch?v=aviso{self._n}",
+            "video", estado=estado, nombre=nombre, carpeta=carpeta)
+
+    def _con_cola(self, items):
+        self._gestor.lista.return_value = items
+
+    def _fin(self, item, estado="completado", mensaje=""):
+        item.estado = estado
+        gui_descargas._fin_descarga_en_gui(estado, mensaje, item.nombre, item)
+
+    def _abrir_la_pregunta(self):
+        """Corre lo que CallLater dejó programado, como a los dos segundos."""
+        llamada = self._programada.call_args
+        self.assertIsNotNone(llamada, "no se programó la pregunta")
+        self.assertEqual(llamada.args[0], 2000)
+        llamada.args[1](*llamada.args[2:])
+
+    def test_una_sola_completada_pregunta(self):
+        self._preguntar = True
+        unico = self._item("uno.mp4")
+        self._con_cola([unico])
+        self._fin(unico)
+        self._abrir_la_pregunta()
+        self._mensaje.assert_called_once_with(
+            "Descargas terminadas. ¿Abrir la carpeta?",
+            "Administrador de descargas",
+            wx.YES_NO | wx.ICON_QUESTION, None)
+
+    def test_dos_completadas_preguntan_una_vez_al_final(self):
+        self._preguntar = True
+        primera = self._item("uno.mp4", carpeta="C:/Uno")
+        segunda = self._item("dos.mp4", carpeta="C:/Dos")
+        self._con_cola([primera, segunda])
+        self._fin(primera)
+        self._programada.assert_not_called()
+        segunda.estado = "completado"
+        self._fin(segunda)
+        self.assertEqual(self._programada.call_count, 1)
+        self._abrir_la_pregunta()
+        self._mensaje.assert_called_once()
+
+    def test_la_pregunta_llega_dos_segundos_despues_del_aviso(self):
+        self._preguntar = True
+        unico = self._item("uno.mp4")
+        self._con_cola([unico])
+        self._fin(unico)
+        self._programada.assert_called_once()
+        self.assertEqual(self._programada.call_args.args[0], 2000)
+        self._mensaje.assert_not_called()
+        self._sonido.assert_called_once_with("descarga_completada")
+        gui_descargas.anunciar.assert_called_once_with(
+            "Descarga completada: uno.mp4")
+        self._abrir_la_pregunta()
+        self._mensaje.assert_called_once()
+
+    def test_solo_errores_no_preguntan(self):
+        self._preguntar = True
+        primera = self._item("uno.mp4", estado="error")
+        segunda = self._item("dos.mp4")
+        self._con_cola([primera, segunda])
+        self._fin(primera, "error", "sin espacio")
+        segunda.estado = "error"
+        self._fin(segunda, "error", "sin espacio")
+        self._programada.assert_not_called()
+
+    def test_error_despues_de_completada_pregunta_por_la_completada(self):
+        self._preguntar = True
+        self._respuesta = wx.YES
+        primera = self._item("uno.mp4", carpeta="C:/Uno")
+        segunda = self._item("dos.mp4")
+        self._con_cola([primera, segunda])
+        self._fin(primera)
+        segunda.estado = "error"
+        self._fin(segunda, "error", "sin espacio")
+        self._abrir_la_pregunta()
+        self._inicio.assert_called_once_with("C:/Uno")
+
+    def test_si_abre_la_carpeta_y_no_no_abre_nada(self):
+        self._preguntar = True
+        self._respuesta = wx.YES
+        unico = self._item("uno.mp4", carpeta="C:/Uno")
+        self._con_cola([unico])
+        self._fin(unico)
+        self._abrir_la_pregunta()
+        self._inicio.assert_called_once_with("C:/Uno")
+        self._inicio.reset_mock()
+        otro = self._item("dos.mp4", carpeta="C:/Dos")
+        self._con_cola([otro])
+        self._respuesta = wx.NO
+        self._fin(otro)
+        self._abrir_la_pregunta()
+        self._inicio.assert_not_called()
+
+    def test_carpeta_inexistente_suena_error_y_anuncia(self):
+        self._preguntar = True
+        self._respuesta = wx.YES
+        self._existe = False
+        unico = self._item("uno.mp4", carpeta="C:/Ya no")
+        self._con_cola([unico])
+        self._fin(unico)
+        self._abrir_la_pregunta()
+        self._sonido.assert_called_with("error")
+        self._anuncio.assert_called_once_with(
+            "La carpeta ya no está disponible.")
+        self._inicio.assert_not_called()
+
+    def test_tanda_sin_completadas_despues_de_una_con_completadas_no_pregunta(
+            self):
+        self._preguntar = True
+        primera = self._item("uno.mp4", carpeta="C:/Uno")
+        self._con_cola([primera])
+        self._fin(primera)
+        self._abrir_la_pregunta()
+        self.assertEqual(self._mensaje.call_count, 1)
+        self.assertEqual(gui_descargas._carpeta_a_ofrecer, "")
+        otro = self._item("dos.mp4", estado="error")
+        self._con_cola([otro])
+        self._fin(otro, "error", "sin espacio")
+        self.assertEqual(self._programada.call_count, 1)
+
+    def test_desmarcada_no_pregunta_ni_arrastra_la_carpeta(self):
+        unico = self._item("uno.mp4", carpeta="C:/Uno")
+        self._con_cola([unico])
+        self._fin(unico)
+        self._programada.assert_not_called()
+        self.assertEqual(gui_descargas._carpeta_a_ofrecer, "")
+        self._preguntar = True
+        otro = self._item("dos.mp4", estado="error")
+        self._con_cola([otro])
+        self._fin(otro, "error", "sin espacio")
+        self._programada.assert_not_called()
+
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestBarraProgresoEnLista(unittest.TestCase):
     """La columna Progreso dibuja la barra junto al texto, sin cambiarlo."""
 

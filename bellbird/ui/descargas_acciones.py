@@ -12,6 +12,7 @@ import subprocess
 import wx
 
 from bellbird.core import diagnostico
+from bellbird.core import config as cfg
 from bellbird.core.idioma import _
 from bellbird.downloads import filas_descargas
 from bellbird.downloads.filas_descargas import (
@@ -29,6 +30,37 @@ def _falta(texto: str) -> None:
     except Exception as error:
         logger.debug("sin sonido: %s", error)
     anunciar(texto)
+
+
+def ofrecer_carpeta(carpeta, padre) -> None:
+    """Pregunta, dos segundos después, si se abre la carpeta descargada."""
+    if not carpeta or not cfg.obtener_opciones_descarga().get(
+            "preguntar_al_terminar", False):
+        return
+    wx.CallLater(2000, _preguntar_carpeta, carpeta, padre)
+
+
+def _padre_vigente(padre):
+    if padre is not None and getattr(padre, "_alive", True):
+        return padre
+    app = wx.GetApp()
+    return app.GetTopWindow() if app is not None else None
+
+
+def _preguntar_carpeta(carpeta, padre) -> None:
+    if wx.MessageBox(
+            _("Descargas terminadas. ¿Abrir la carpeta?"),
+            _("Administrador de descargas"),
+            wx.YES_NO | wx.ICON_QUESTION, _padre_vigente(padre)) != wx.YES:
+        return
+    if not os.path.exists(carpeta):
+        _falta(_("La carpeta ya no está disponible."))
+        return
+    try:
+        os.startfile(carpeta)
+    except Exception as error:
+        logger.debug("abrir carpeta: %s", error)
+        _falta(_("La carpeta ya no está disponible."))
 
 
 class AccionesDescarga:

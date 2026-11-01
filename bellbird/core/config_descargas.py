@@ -186,6 +186,7 @@ def obtener_opciones_descarga() -> dict:
                                              SIMULTANEAS_MIN, SIMULTANEAS_MAX),
             "limite": _entero_descargas(p, ruta, "limite", 0, 0, LIMITE_MAX),
             "carpeta_lista": _booleano_descargas(p, "carpeta_lista"),
+            "preguntar_al_terminar": _booleano_descargas(p, "preguntar_al_terminar"),
             "plantilla": _plantilla_descargas(p, ruta),
             "canal_ytdlp": _canal_descargas(p, ruta)}
 
@@ -229,6 +230,8 @@ def _valores_para_guardar(op: dict) -> dict:
                                   SIMULTANEAS_DEFECTO, SIMULTANEAS_MIN, SIMULTANEAS_MAX)),
         "limite": str(_rango(op.get("limite", 0), 0, 0, LIMITE_MAX)),
         "carpeta_lista": "true" if bool(op.get("carpeta_lista", False)) else "false",
+        "preguntar_al_terminar": (
+            "true" if bool(op.get("preguntar_al_terminar", False)) else "false"),
         "plantilla": _plantilla_guardada(op),
     }
 

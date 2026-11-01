@@ -47,7 +47,8 @@ from bellbird.player import relevo_ffmpeg
 from bellbird.player.formatos import mejor_audio as _mejor_audio
 from bellbird.player.formatos_youtube import (
     _altura_auto_vod, _alturas_disponibles, _es_hls, _preferir_hls,
-    _video_para_altura, espera_para_abrir, fuentes_para_directo,
+    _video_para_altura, espera_para_abrir, fuentes_de_vod,
+    fuentes_para_directo,
 )
 from bellbird.ui.accesibilidad import anunciar, nombre_accesible
 from bellbird.ui.teclas_wx import combo_wx
@@ -1128,40 +1129,24 @@ class ReproductorPanel(wx.Panel):
         if es_directo:
             # Directo: el formato combinado que elija yt-dlp, sin cambios.
             url, slave = fuentes_para_directo(self._info)
-            if not url:
-                logger.warning("reproducir directo sin fuentes: url_superior=%s formats=%d "
-                               "requested_formats=%d is_live=%s",
-                    "sí" if self._info.get("url") else "no",
-                    len(self._info.get("formats", []) or []),
-                    len(self._info.get("requested_formats", []) or []), es_directo)
-            elif not slave and _es_hls(self._info, url):
-                # HLS mixto (una sola URL con vídeo y audio): sin relevo VLC
-                # reproduce el HLS directo y las flechas caen en destinos sin
-                # sentido con la duración de la ventana. Va por el relevo con
-                # una sola entrada (ver relevo_ffmpeg.argumentos_relevo).
-                self._relevo_ventana = None
-                self._arrancar_relevo(url, "", reproducir)
-                return
-        elif altura is None:
-            # VOD en automático: altura efectiva y la misma rama que la
-            # calidad elegida a mano, con pistas que no son HLS.
-            altura_ef = _altura_auto_vod(_alturas_disponibles(self._info))
-            if altura_ef is None:
-                url, slave = fuentes_para_directo(self._info)
-                if not url:
-                    logger.warning("reproducir directo sin fuentes: url_superior=%s formats=%d "
-                                   "requested_formats=%d is_live=%s",
-                        "sí" if self._info.get("url") else "no",
-                        len(self._info.get("formats", []) or []),
-                        len(self._info.get("requested_formats", []) or []), es_directo)
-            else:
-                url, prog = _video_para_altura(self._info, altura_ef)
-                slave = None if prog else _mejor_audio(self._info, evitar_hls=True)
         else:
-            url, prog = _video_para_altura(self._info, altura)
-            slave = None if prog else _mejor_audio(self._info, evitar_hls=True)
+            url, slave = fuentes_de_vod(self._info, altura)
         if not url:
+            logger.warning("reproducir directo sin fuentes: url_superior=%s formats=%d "
+                           "requested_formats=%d is_live=%s",
+                "sí" if self._info.get("url") else "no",
+                len(self._info.get("formats", []) or []),
+                len(self._info.get("requested_formats", []) or []), es_directo)
             self._error_carga()
+            return
+
+        if es_directo and not slave and _es_hls(self._info, url):
+            # HLS mixto (una sola URL con vídeo y audio): sin relevo VLC
+            # reproduce el HLS directo y las flechas caen en destinos sin
+            # sentido con la duración de la ventana. Va por el relevo con
+            # una sola entrada (ver relevo_ffmpeg.argumentos_relevo).
+            self._relevo_ventana = None
+            self._arrancar_relevo(url, "", reproducir)
             return
 
         if slave:

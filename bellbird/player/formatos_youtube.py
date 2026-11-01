@@ -132,6 +132,20 @@ def fuentes_para_directo(info: dict) -> tuple[str, str]:
     return "", ""
 
 
+def fuentes_de_vod(info: dict, altura) -> tuple[str, str]:
+    """(url de vídeo, url de audio esclavo) de un vídeo grabado.
+
+    Con `altura` None se usa la altura automática; si no hay ninguna altura,
+    se cae a `fuentes_para_directo`, como el resto del camino.
+    """
+    if altura is None:
+        altura = _altura_auto_vod(_alturas_disponibles(info))
+        if altura is None:
+            return fuentes_para_directo(info)
+    url, progresivo = _video_para_altura(info, altura)
+    return url, "" if progresivo else _mejor_audio(info, evitar_hls=True)
+
+
 def espera_para_abrir(info: dict, altura, ahora: float) -> float:
     """Segundos a esperar antes de abrir las direcciones que se van a usar.
 
@@ -142,16 +156,8 @@ def espera_para_abrir(info: dict, altura, ahora: float) -> float:
     """
     if info.get("is_live"):
         url, slave = fuentes_para_directo(info)
-    elif altura is None:
-        altura_ef = _altura_auto_vod(_alturas_disponibles(info))
-        if altura_ef is None:
-            url, slave = fuentes_para_directo(info)
-        else:
-            url, prog = _video_para_altura(info, altura_ef)
-            slave = "" if prog else _mejor_audio(info, evitar_hls=True)
     else:
-        url, prog = _video_para_altura(info, altura)
-        slave = "" if prog else _mejor_audio(info, evitar_hls=True)
+        url, slave = fuentes_de_vod(info, altura)
     return segundos_hasta_disponible(info, (url, slave), ahora)
 
 

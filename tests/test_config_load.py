@@ -613,6 +613,12 @@ class TestCargarConfiguracion(unittest.TestCase):
         cfg = self._cargar_en("[transmision]\ndestino = Twitch\n")
         self.assertEqual(cfg["transmision_destino"], "")
 
+    def test_titulo_estado_obs_se_lee_y_sin_la_clave_queda_apagado(self):
+        cfg = self._cargar_en("[transmision]\ntitulo_estado_obs = true\n")
+        self.assertTrue(cfg["titulo_estado_obs"])
+        cfg = self._cargar_en("[voz]\nvoz = 0\n")
+        self.assertFalse(cfg["titulo_estado_obs"])
+
     def test_directo_youtube_arranca_vacio_y_no_listado(self):
         cfg = self._cargar_en("[voz]\nvoz = 0\n")
         self.assertEqual(cfg["transmision_youtube_titulo"], "")

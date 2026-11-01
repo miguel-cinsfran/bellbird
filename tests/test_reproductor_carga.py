@@ -122,6 +122,38 @@ class TestCargaReproductor(unittest.TestCase):
         self.assertLess(orden.index("sleep"), orden.index("_info_listo"))
         self.assertEqual(orden[orden.index("sleep") + 1], 7.5)
 
+    @mock.patch.object(reproductor, "anunciar")
+    def test_carga_con_solo_audio_duerme_lo_del_audio_y_no_lo_del_video(
+            self, _anunciar):
+        panel = self._panel("A" * 11, False)
+        panel._calidad_sel = 720
+        panel._solo_audio = True
+        info = {"is_live": False, "formats": [
+            {"url": "https://video", "height": 720, "vcodec": "avc",
+             "acodec": "none", "available_at": 1019},
+            {"url": "https://audio", "vcodec": "none", "acodec": "mp4a",
+             "abr": 128, "ext": "m4a", "available_at": 1004},
+        ]}
+
+        def crear_hilo(target, _nombre):
+            hilo = mock.Mock()
+            hilo.start = target
+            return hilo
+
+        with mock.patch.object(reproductor, "_info_video",
+                               return_value=info), \
+                mock.patch.object(reproductor, "_preparar_audio_local",
+                                  return_value=None), \
+                mock.patch.object(reproductor.diagnostico, "crear_hilo",
+                                  side_effect=crear_hilo), \
+                mock.patch.object(reproductor.wx, "CallAfter"), \
+                mock.patch.object(reproductor.time, "time",
+                                  return_value=1000.0), \
+                mock.patch.object(reproductor.time, "sleep") as dormir:
+            panel.cargar()
+
+        dormir.assert_called_once_with(4.0)
+
     @mock.patch.object(reproductor.time, "monotonic", return_value=5)
     @mock.patch.object(reproductor, "anunciar")
     def test_golpe_del_temporizador_anuncia_progreso(self, anunciar, _monotonic):

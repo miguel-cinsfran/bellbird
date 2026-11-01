@@ -2199,10 +2199,7 @@ class ReproductorPanel(wx.Panel):
             return
         if decision == recuperacion.CORTE_SONADO:
             logger.warning("VOD_RELEVO corte sin recuperar ultima=%d dur=%d", ultima, dur)
-            self._detener(silencioso=True)
-            anunciar(_("Vídeo interrumpido"))
-            return
-        if decision == recuperacion.CORTE:
+        if decision in (recuperacion.CORTE_SONADO, recuperacion.CORTE):
             self._detener(silencioso=True)
             anunciar(_("Vídeo interrumpido"))
             return

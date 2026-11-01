@@ -208,6 +208,31 @@ def _guardar_canal_ytdlp(op: dict, ruta) -> None:
     guardar_opcion(ruta, "descargas", "canal_ytdlp", canal)
 
 
+def _valores_para_guardar(op: dict) -> dict:
+    """Opciones validadas y normalizadas para escribir en el INI."""
+    formato = str(op.get("formato", "mp4")).lower().strip()
+    if formato not in _FORMATOS_VALIDOS:
+        formato = "mp4"
+    bitrate = _rango(op.get("bitrate", 192), 192, 0, 10000)
+    if bitrate not in _BITRATES_VALIDOS:
+        bitrate = 192
+    resolucion = _rango(op.get("resolucion", 0), 0, 0, 10000)
+    if resolucion not in RESOLUCIONES:
+        resolucion = 0
+    return {
+        "formato": formato,
+        "bitrate": str(bitrate),
+        "resolucion": str(resolucion),
+        "carpeta": str(op.get("carpeta") or paths.descargas_por_defecto()).strip(),
+        "enumerar": "true" if bool(op.get("enumerar", False)) else "false",
+        "simultaneas": str(_rango(op.get("simultaneas", SIMULTANEAS_DEFECTO),
+                                  SIMULTANEAS_DEFECTO, SIMULTANEAS_MIN, SIMULTANEAS_MAX)),
+        "limite": str(_rango(op.get("limite", 0), 0, 0, LIMITE_MAX)),
+        "carpeta_lista": "true" if bool(op.get("carpeta_lista", False)) else "false",
+        "plantilla": _plantilla_guardada(op),
+    }
+
+
 def guardar_opciones_descarga(op: dict) -> None:
     """Persiste todas las opciones de descarga de una vez. Valida y normaliza
     los valores antes de escribir."""
@@ -220,31 +245,6 @@ def guardar_opciones_descarga(op: dict) -> None:
         except Exception as exc:
             logger.debug("guardar_opciones_descarga: no se pudo crear config.ini: %s", exc)
             return
-
-    formato = str(op.get("formato", "mp4")).lower().strip()
-    if formato not in _FORMATOS_VALIDOS:
-        formato = "mp4"
-    bitrate = _rango(op.get("bitrate", 192), 192, 0, 10000)
-    if bitrate not in _BITRATES_VALIDOS:
-        bitrate = 192
-    resolucion = _rango(op.get("resolucion", 0), 0, 0, 10000)
-    if resolucion not in RESOLUCIONES:
-        resolucion = 0
-    carpeta = str(op.get("carpeta") or paths.descargas_por_defecto()).strip()
-    enumerar = bool(op.get("enumerar", False))
-    simultaneas = _rango(op.get("simultaneas", SIMULTANEAS_DEFECTO),
-                         SIMULTANEAS_DEFECTO, SIMULTANEAS_MIN, SIMULTANEAS_MAX)
-    limite = _rango(op.get("limite", 0), 0, 0, LIMITE_MAX)
-    carpeta_lista = bool(op.get("carpeta_lista", False))
-    plantilla = _plantilla_guardada(op)
-    guardar_opcion(ruta, "descargas", "formato", formato)
-    guardar_opcion(ruta, "descargas", "bitrate", str(bitrate))
-    guardar_opcion(ruta, "descargas", "resolucion", str(resolucion))
-    guardar_opcion(ruta, "descargas", "carpeta", carpeta)
-    guardar_opcion(ruta, "descargas", "enumerar", "true" if enumerar else "false")
-    guardar_opcion(ruta, "descargas", "simultaneas", str(simultaneas))
-    guardar_opcion(ruta, "descargas", "limite", str(limite))
-    guardar_opcion(ruta, "descargas", "carpeta_lista",
-                    "true" if carpeta_lista else "false")
-    guardar_opcion(ruta, "descargas", "plantilla", plantilla)
+    for clave, valor in _valores_para_guardar(op).items():
+        guardar_opcion(ruta, "descargas", clave, valor)
     _guardar_canal_ytdlp(op, ruta)

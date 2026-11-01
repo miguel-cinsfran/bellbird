@@ -58,6 +58,17 @@ class PaginaDescargasPreferencias:
                wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _descargas_listas(self, p, vs):
+        self._descargas_casillas(p, vs)
+        vs.Add(fila_label(p, _("Nombre de los &archivos:")),
+               0, wx.LEFT | wx.RIGHT, 10)
+        etiquetas = [_(etiqueta) for etiqueta, _clave, _plantilla in PLANTILLAS]
+        self.cho_descargas_plantilla = wx.Choice(
+            p, choices=etiquetas, name=_("Nombre de los archivos"))
+        _tc(self.cho_descargas_plantilla)
+        vs.Add(self.cho_descargas_plantilla, 0,
+               wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+    def _descargas_casillas(self, p, vs):
         self.chk_descargas_numerar = wx.CheckBox(
             p, label=_("&Numerar archivos de listas"),
             name="DescargasNumerar")
@@ -68,14 +79,6 @@ class PaginaDescargasPreferencias:
             name="DescargasCarpetaLista")
         self.chk_descargas_carpeta_lista.SetForegroundColour(_T.text)
         vs.Add(self.chk_descargas_carpeta_lista, 0,
-               wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-        vs.Add(fila_label(p, _("Nombre de los &archivos:")),
-               0, wx.LEFT | wx.RIGHT, 10)
-        etiquetas = [_(etiqueta) for etiqueta, _clave, _plantilla in PLANTILLAS]
-        self.cho_descargas_plantilla = wx.Choice(
-            p, choices=etiquetas, name=_("Nombre de los archivos"))
-        _tc(self.cho_descargas_plantilla)
-        vs.Add(self.cho_descargas_plantilla, 0,
                wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _descargas_topes(self, p, vs):

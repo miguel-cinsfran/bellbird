@@ -76,10 +76,6 @@ _dialogo_activo = None
 _registrados: set[str] = set()
 
 
-def _ruta_historial():
-    return paths.historial_descargas()
-
-
 def _memoria_valida(valor, validos, defecto):
     """El valor si está entre los válidos, o el defecto."""
     return valor if valor in validos else defecto
@@ -90,7 +86,7 @@ def _pedidos_nuevos(pedidos, padre) -> list:
 
     Con No entran solo los nuevos. Sin repetidos no pregunta nada.
     """
-    historial = historial_descargas.cargar(_ruta_historial())
+    historial = historial_descargas.cargar(paths.historial_descargas())
     repetidos = [u for u in pedidos if filas_descargas.ya_descargado(u, historial)]
     if not repetidos:
         return list(pedidos)
@@ -111,7 +107,7 @@ def registrar_historial(item, estado: str, ruta=None) -> dict | None:
     if item is None or item.id in _registrados:
         return None
     _registrados.add(item.id)
-    ruta = ruta or _ruta_historial()
+    ruta = ruta or paths.historial_descargas()
     entrada = {
         "id": item.id,
         "fecha": datetime.now().isoformat(timespec="seconds"),
@@ -166,10 +162,6 @@ def _avisar_fin_descarga(estado: str, mensaje: str, nombre: str, item=None) -> N
     wx.CallAfter(_fin_descarga_en_gui, estado, mensaje, nombre, item)
 
 
-def _suscribir_al_gestor() -> None:
-    gestor().suscribir_fin(_avisar_fin_descarga)
-
-
 class GestorDescargasDialog(wx.Dialog):
     """Diálogo principal del gestor de descargas."""
 
@@ -187,7 +179,7 @@ class GestorDescargasDialog(wx.Dialog):
         self._mem_bitrate = _memoria_valida(
             self._opciones.get("bitrate", 192), BITRATES, 192)
         self._formato_visto = (self._opciones.get("formato") or "mp4")
-        _suscribir_al_gestor()
+        gestor().suscribir_fin(_avisar_fin_descarga)
         self._build_ui()
         self.Bind(wx.EVT_CLOSE, self._on_cerrar)
         # Las filas repobladas al reabrir no tienen callbacks (eran cierres del
@@ -243,7 +235,7 @@ class GestorDescargasDialog(wx.Dialog):
             self._al_abrir_en_bellbird, self._musica)
         self.pestanas.AddPage(self.pagina_buscador, _("Buscar en YouTube"))
         self.pagina_descargas = PaginaDescargas(
-            self.pestanas, self._gestor, _ruta_historial(), self._preparar_opciones)
+            self.pestanas, self._gestor, paths.historial_descargas(), self._preparar_opciones)
         self.pestanas.AddPage(self.pagina_descargas, _("Descargas"))
         return self.pestanas
 
@@ -308,7 +300,6 @@ class GestorDescargasDialog(wx.Dialog):
         op = self._opciones_actuales()
         try:    cfg.guardar_opciones_descarga(op)
         except Exception as exc: logger.debug("guardar opciones: %s", exc)
-        self._opciones = op
         self._gestor.set_opciones(op)
 
     def agregar_urls(self, urls, formato=None, titulo=None) -> int:

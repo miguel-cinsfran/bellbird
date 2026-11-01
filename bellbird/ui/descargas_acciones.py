@@ -23,6 +23,14 @@ from bellbird.voice import sound_player as _snd
 logger = diagnostico.obtener_logger(__name__)
 
 
+def _falta(texto: str) -> None:
+    try:
+        _snd.reproducir("error")
+    except Exception as error:
+        logger.debug("sin sonido: %s", error)
+    anunciar(texto)
+
+
 class AccionesDescarga:
     """Ejecuta cada acción del menú sobre la fila dada."""
 
@@ -33,11 +41,7 @@ class AccionesDescarga:
         self._al_cambiar = al_cambiar
 
     def _falta(self, texto: str) -> None:
-        try:
-            _snd.reproducir("error")
-        except Exception as error:
-            logger.debug("sin sonido: %s", error)
-        anunciar(texto)
+        _falta(texto)
 
     def abrir_archivo(self, fila) -> None:
         if fila is None or "abrir_archivo" not in filas_descargas.acciones(fila):

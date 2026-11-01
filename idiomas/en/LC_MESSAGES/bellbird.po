@@ -4055,6 +4055,10 @@ msgstr "Could not move the live stream"
 msgid "Detenido."
 msgstr "Stopped."
 
+#: bellbird/player/reproductor.py
+msgid "Con solo audio, la calidad no se usa"
+msgstr "With sound only, the quality is not used"
+
 #. Traductores: {altura} es la altura en píxeles, como en «Calidad 720p».
 #: bellbird/player/reproductor.py
 msgid "Calidad automática"
@@ -7048,8 +7052,8 @@ msgid "&Reproducir audio automáticamente al conectar"
 msgstr "&Play audio automatically on connect"
 
 #: bellbird/ui/gui_preferencias.py
-msgid "Reproducir &solo el audio, sin decodificar la imagen"
-msgstr "Play audio &only, without decoding the picture"
+msgid "Reproducir &solo el audio, sin imagen"
+msgstr "Play s&ound only, without the picture"
 
 #: bellbird/ui/gui_preferencias.py
 msgid "Mostrar &botones del reproductor"

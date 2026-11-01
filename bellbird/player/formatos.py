@@ -46,6 +46,33 @@ def mejor_audio(info: dict, evitar_hls: bool = False) -> str:
     return mejor["url"]
 
 
+def _canales_estereo(formato: dict) -> bool:
+    """Dice si la pista tiene dos canales o menos, o si no informa canales."""
+    canales = formato.get("audio_channels")
+    return not isinstance(canales, (int, float)) or canales <= 2
+
+
+def mejor_audio_estereo(info: dict) -> str:
+    """URL de la mejor pista de solo audio que no es HLS y no pasa de dos
+    canales. Si no queda ninguna de dos canales o menos, elige entre las
+    demás que no son HLS; si todas son HLS, devuelve "".
+
+    Un formato multicanal abre mucho más lento en VLC al saltar (medido el
+    01/11/2026: 5,5 s contra 0,37 s), así que se descarta mientras haya una
+    alternativa de dos canales.
+    """
+    auds = [f for f in info.get("formats", []) or []
+            if f.get("acodec") != "none"
+            and f.get("vcodec") in (None, "none") and f.get("url")]
+    sin_hls = [f for f in auds
+               if not (f.get("protocol") or "").startswith("m3u8")]
+    if not sin_hls:
+        return ""
+    estereo = [f for f in sin_hls if _canales_estereo(f)]
+    elegidas = estereo or sin_hls
+    return mejor_audio({"formats": elegidas}, evitar_hls=True)
+
+
 def segundos_hasta_disponible(info: dict, direcciones, ahora: float,
                                tope: float = 15.0) -> float:
     """Segundos que faltan para que las direcciones elegidas estén listas.

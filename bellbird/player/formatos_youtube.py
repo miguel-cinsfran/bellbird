@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from bellbird.player.formatos import (
     mejor_audio as _mejor_audio,
+    mejor_audio_estereo,
     segundos_hasta_disponible,
 )
 
@@ -132,12 +133,20 @@ def fuentes_para_directo(info: dict) -> tuple[str, str]:
     return "", ""
 
 
-def fuentes_de_vod(info: dict, altura) -> tuple[str, str]:
+def fuentes_de_vod(info: dict, altura,
+                   solo_audio: bool = False) -> tuple[str, str]:
     """(url de vídeo, url de audio esclavo) de un vídeo grabado.
 
     Con `altura` None se usa la altura automática; si no hay ninguna altura,
-    se cae a `fuentes_para_directo`, como el resto del camino.
+    se cae a `fuentes_para_directo`, como el resto del camino. Con
+    `solo_audio`, y si hay una pista de audio directa, se devuelve esa sola
+    dirección: sin vídeo, sin esclavo y sin relevo. Si no hay ninguna que no
+    sea HLS, se sigue con las reglas normales.
     """
+    if solo_audio:
+        audio = mejor_audio_estereo(info)
+        if audio:
+            return audio, ""
     if altura is None:
         altura = _altura_auto_vod(_alturas_disponibles(info))
         if altura is None:
@@ -146,7 +155,8 @@ def fuentes_de_vod(info: dict, altura) -> tuple[str, str]:
     return url, "" if progresivo else _mejor_audio(info, evitar_hls=True)
 
 
-def espera_para_abrir(info: dict, altura, ahora: float) -> float:
+def espera_para_abrir(info: dict, altura, ahora: float,
+                      solo_audio: bool = False) -> float:
     """Segundos a esperar antes de abrir las direcciones que se van a usar.
 
     YouTube responde 403 a la dirección de un formato hasta su
@@ -157,7 +167,7 @@ def espera_para_abrir(info: dict, altura, ahora: float) -> float:
     if info.get("is_live"):
         url, slave = fuentes_para_directo(info)
     else:
-        url, slave = fuentes_de_vod(info, altura)
+        url, slave = fuentes_de_vod(info, altura, solo_audio)
     return segundos_hasta_disponible(info, (url, slave), ahora)
 
 

@@ -1696,6 +1696,14 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             pendientes.extend(control.GetChildren())
         return None
 
+    def test_casilla_solo_audio_dice_sin_imagen_y_se_traduce(self):
+        self.assertEqual(self._dialogo().chk_solo_audio.GetLabel(),
+                         "Reproducir &solo el audio, sin imagen")
+        from tests.letras_acceso import ingles
+        with ingles():
+            self.assertEqual(self._dialogo().chk_solo_audio.GetLabel(),
+                             "Play s&ound only, without the picture")
+
     def test_abre_con_el_foco_en_la_lista_de_categorias(self):
         dialogo = self._dialogo()
         self.assertIs(gui.wx.Window.FindFocus(), dialogo.lista_categorias)

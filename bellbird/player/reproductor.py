@@ -214,6 +214,9 @@ class _PosAccesible(wx.Accessible):
 class ReproductorPanel(wx.Panel):
     """Reproductor siempre visible (no es una pestaña): imagen + controles."""
 
+    # Valor mientras `__init__` no leyó la preferencia.
+    _solo_audio = False
+
     def __init__(self, parent, config):
         super().__init__(parent, name="PanelReproductor")
         self._config = config
@@ -246,7 +249,7 @@ class ReproductorPanel(wx.Panel):
         # Reproductor sin imagen: quien solo escucha no paga la decodificación
         # de vídeo (casilla «Reproducir solo el audio» de Preferencias). Vale
         # desde la próxima vez que se arma el medio.
-        self._solo_audio = bool(config.get("reproductor_solo_audio", False))
+        self._solo_audio = bool(config.get("reproductor_solo_audio", True))
         self.on_botones_toggle = None
         self._calidad_sel = None
         self._alturas = []
@@ -969,7 +972,8 @@ class ReproductorPanel(wx.Panel):
                 logger.warning("info vídeo: %s", exc)
                 wx.CallAfter(self._error_carga, gen)
                 return
-            time.sleep(espera_para_abrir(info, self._calidad_sel, time.time()))
+            time.sleep(espera_para_abrir(info, self._calidad_sel, time.time(),
+                                        self._solo_audio))
             # El audio local es respaldo y no bloquea el arranque: la
             # reproducción empieza en cuanto hay info y la descarga corre
             # después en su propio hilo.
@@ -1009,7 +1013,7 @@ class ReproductorPanel(wx.Panel):
         self._marca_reproduccion = marca_inicio
         self._marca_extraccion = marca_extraccion
         self._reproducir_calidad(self._calidad_sel, reproducir)
-        if not info.get("is_live"):
+        if not info.get("is_live") and not self._solo_audio:
             self._descargar_video_cache(vid, gen)
 
     def _podar_cache_video(self, carpeta):
@@ -1130,7 +1134,7 @@ class ReproductorPanel(wx.Panel):
             # Directo: el formato combinado que elija yt-dlp, sin cambios.
             url, slave = fuentes_para_directo(self._info)
         else:
-            url, slave = fuentes_de_vod(self._info, altura)
+            url, slave = fuentes_de_vod(self._info, altura, self._solo_audio)
         if not url:
             logger.warning("reproducir directo sin fuentes: url_superior=%s formats=%d "
                            "requested_formats=%d is_live=%s",
@@ -1386,6 +1390,12 @@ class ReproductorPanel(wx.Panel):
     def set_calidad(self, altura):
         """altura=None → automática; si no hay info aún, se aplica al cargar."""
         self._calidad_sel = altura
+        if (self._info is not None and not self._info.get("is_live")
+                and self._solo_audio):
+            # Con un VOD por audio directo no hay imagen que cambiar: recargar
+            # el medio cortaría el sonido sin ganar nada.
+            anunciar(_("Con solo audio, la calidad no se usa"))
+            return
         # Traductores: {altura} es la altura en píxeles, como en «Calidad 720p».
         texto = _("Calidad automática") if altura is None else _("Calidad {altura}p").format(altura=altura)
         anunciar(texto)

@@ -71,6 +71,35 @@ class PruebasArranqueVodRelevo(unittest.TestCase):
             "https://video", "https://audio", True, inicio_ms=0)
         self.assertFalse(panel._tiene_esclavo)
 
+    def test_solo_audio_abre_una_sola_direccion_sin_relevo(self):
+        panel = self._panel()
+        panel._solo_audio = True
+        with mock.patch.object(panel, "_arrancar_relevo") as arrancar, \
+                mock.patch.object(reproductor, "anunciar"):
+            panel._reproducir_calidad(1080, True)
+        arrancar.assert_not_called()
+        panel._inst.media_new.assert_called_once_with("https://audio")
+        opciones = [c.args[0] for c in
+                    panel._inst.media_new.return_value.add_option.call_args_list]
+        self.assertIn(":no-video", opciones)
+        self.assertFalse(panel._vod_por_relevo)
+
+    def test_solo_audio_sin_pista_directa_sigue_por_el_relevo(self):
+        panel = self._panel()
+        panel._solo_audio = True
+        panel._info = {"is_live": False, "duration": 3600, "formats": [
+            {"url": "https://video", "height": 1080, "vcodec": "avc",
+             "acodec": "none"},
+            {"url": "https://audio-hls", "vcodec": "none", "acodec": "mp4a",
+             "protocol": "m3u8_native", "abr": 128},
+        ]}
+        with mock.patch.object(panel, "_arrancar_relevo") as arrancar, \
+                mock.patch.object(reproductor, "anunciar"):
+            panel._reproducir_calidad(1080, True)
+        arrancar.assert_called_once_with(
+            "https://video", "https://audio-hls", True, inicio_ms=0)
+        panel._error_carga.assert_not_called()
+
     def test_vod_fuente_unica_no_usa_relevo(self):
         panel = self._panel()
         panel._info = {"is_live": False, "duration": 3600, "formats": [

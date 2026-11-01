@@ -9,6 +9,7 @@ from unittest import mock
 
 from bellbird.player import formatos_youtube
 from bellbird.player import reproductor
+from bellbird.player.formatos import mejor_audio_estereo
 from bellbird.player.formatos_youtube import _video_para_altura
 from bellbird.player.formatos_youtube import espera_para_abrir
 
@@ -80,6 +81,41 @@ class PruebasMejorAudioSinHls(unittest.TestCase):
         ]}
         url = reproductor._mejor_audio(info, evitar_hls=True)
         self.assertIn(url, ("https://233", "https://234"))
+
+
+class PruebasMejorAudioEstereo(unittest.TestCase):
+    """El solo audio evita las pistas multicanal y las HLS."""
+
+    def test_descarta_la_multicanal_si_hay_estereo(self):
+        info = {"formats": [
+            _pista_audio("https://258", 0, "m4a", "mp4a", 384, canales=6),
+            _pista_audio("https://140", 0, "m4a", "mp4a", 128, canales=2),
+        ]}
+        self.assertEqual(mejor_audio_estereo(info), "https://140")
+
+    def test_doblaje_estereo_no_gana_a_la_original(self):
+        info = {"formats": [
+            _pista_audio("https://doblaje", 0, "m4a", "mp4a", 200,
+                         canales=2, lang=-1),
+            _pista_audio("https://original", 0, "webm", "opus", 128,
+                         canales=2, lang=10),
+        ]}
+        self.assertEqual(mejor_audio_estereo(info), "https://original")
+
+    def test_sin_estereo_usa_las_demas_que_no_son_hls(self):
+        info = {"formats": [
+            _pista_audio("https://258", 0, "webm", "opus", 384, canales=6),
+            _pista_audio("https://hls", 0, "m4a", "mp4a", 128, canales=2,
+                         protocolo="m3u8_native"),
+        ]}
+        self.assertEqual(mejor_audio_estereo(info), "https://258")
+
+    def test_solo_hls_devuelve_vacio(self):
+        info = {"formats": [
+            _pista_audio("https://hls", 0, "m4a", "mp4a", 128, canales=2,
+                         protocolo="m3u8_native"),
+        ]}
+        self.assertEqual(mejor_audio_estereo(info), "")
 
 
 class PruebasVideoParaAlturaSinHls(unittest.TestCase):
@@ -189,10 +225,14 @@ def _video(url, altura, cuando, protocolo="https"):
             "protocol": protocolo, "url": url, "available_at": cuando}
 
 
-def _pista_audio(url, cuando, ext, acodec, abr):
-    return {"vcodec": "none", "acodec": acodec, "abr": abr,
-            "language_preference": 10, "ext": ext, "url": url,
-            "available_at": cuando}
+def _pista_audio(url, cuando, ext, acodec, abr, canales=None, lang=10,
+                 protocolo="https"):
+    pista = {"vcodec": "none", "acodec": acodec, "abr": abr,
+             "language_preference": lang, "ext": ext, "protocol": protocolo,
+             "url": url, "available_at": cuando}
+    if canales is not None:
+        pista["audio_channels"] = canales
+    return pista
 
 
 class PruebasEsperaParaAbrir(unittest.TestCase):
@@ -212,6 +252,16 @@ class PruebasEsperaParaAbrir(unittest.TestCase):
             _pista_audio("https://audio", 1001, "m4a", "mp4a", 128),
         ]}
         self.assertEqual(espera_para_abrir(info, None, 1000.0), 13.0)
+
+    def test_solo_audio_espera_solo_la_direccion_de_audio(self):
+        info = {"is_live": False, "formats": [
+            _video("https://video", 720, 1019),
+            _pista_audio("https://audio", 1004, "m4a", "mp4a", 128),
+            _pista_audio("https://258", 1015, "m4a", "mp4a", 384,
+                         canales=6),
+        ]}
+        self.assertEqual(
+            espera_para_abrir(info, 720, 1000.0, solo_audio=True), 4.0)
 
     def test_directo_usa_fuentes_para_directo(self):
         info = {"is_live": True, "formats": [

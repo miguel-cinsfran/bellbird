@@ -388,6 +388,20 @@ class TestReproducirDirecto(unittest.TestCase):
             "requested_formats=%d is_live=%s", "no", 0, 0, True)
         panel._error_carga.assert_called_once_with()
 
+    def test_directo_con_solo_audio_elige_lo_mismo_que_sin_el(self):
+        info = {"is_live": True, "formats": [], "requested_formats": [
+            {"vcodec": "avc1", "acodec": "none", "url": "video-solicitado"},
+            {"vcodec": "none", "acodec": "mp4a", "url": "audio-solicitado"},
+        ]}
+        llamadas = []
+        for solo_audio in (False, True):
+            panel = self._panel(info)
+            panel._solo_audio = solo_audio
+            with mock.patch.object(panel, "_arrancar_relevo") as arrancar:
+                panel._reproducir_calidad(None, reproducir=False)
+            llamadas.append(arrancar.call_args)
+        self.assertEqual(llamadas[0], llamadas[1])
+
 
 class _YoutubeDL:
     def __init__(self, opciones):
@@ -516,6 +530,51 @@ class TestSoloAudio(unittest.TestCase):
         panel._continuar_reproducir_calidad(
             "https://video", "https://audio", True, False)
         self.assertNotIn(":no-video", self._opciones(medio))
+
+    def test_cambiar_calidad_en_vod_solo_audio_avisa_y_no_recarga(self):
+        panel = self._panel()
+        panel._info = {"is_live": False}
+        panel._reproducir_calidad = mock.Mock()
+        panel.set_solo_audio(True)
+        with mock.patch.object(reproductor, "anunciar") as anunciar:
+            panel.set_calidad(720)
+        anunciar.assert_called_once_with("Con solo audio, la calidad no se usa")
+        panel._reproducir_calidad.assert_not_called()
+        self.assertEqual(panel._calidad_sel, 720)
+
+    def test_cambiar_calidad_sin_solo_audio_anuncia_y_recarga(self):
+        panel = self._panel()
+        panel._info = {"is_live": False}
+        panel._reproducir_calidad = mock.Mock()
+        panel.set_solo_audio(False)
+        with mock.patch.object(reproductor, "anunciar") as anunciar:
+            panel.set_calidad(720)
+        anunciar.assert_called_once_with("Calidad 720p")
+        panel._reproducir_calidad.assert_called_once_with(720, reproducir=True)
+
+    def test_info_listo_con_solo_audio_no_descarga_el_video(self):
+        panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
+        panel._gen = 0
+        panel._video_id = "vid"
+        panel._calidad_sel = None
+        panel._timer_progreso = mock.Mock()
+        panel._solo_audio = True
+        panel._reproducir_calidad = mock.Mock()
+        panel._descargar_video_cache = mock.Mock()
+        panel._info_listo({"is_live": False, "formats": []}, True, "vid", 0)
+        panel._descargar_video_cache.assert_not_called()
+
+    def test_info_listo_sin_solo_audio_sigue_descargando_el_video(self):
+        panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
+        panel._gen = 0
+        panel._video_id = "vid"
+        panel._calidad_sel = None
+        panel._timer_progreso = mock.Mock()
+        panel._solo_audio = False
+        panel._reproducir_calidad = mock.Mock()
+        panel._descargar_video_cache = mock.Mock()
+        panel._info_listo({"is_live": False, "formats": []}, True, "vid", 0)
+        panel._descargar_video_cache.assert_called_once_with("vid", 0)
 
     def test_constructor_lee_la_preferencia_del_config(self):
         with mock.patch.object(reproductor.wx.Panel, "__init__", return_value=None), \

@@ -116,7 +116,8 @@ class TestCargaReproductor(unittest.TestCase):
                                   return_value=7.5) as espera:
             panel.cargar()
 
-        espera.assert_called_once_with(info, None, mock.ANY)
+        espera.assert_called_once_with(info, None, mock.ANY,
+                                       panel._solo_audio)
         dormir_mock.assert_called_once_with(7.5)
         self.assertLess(orden.index("sleep"), orden.index("_info_listo"))
         self.assertEqual(orden[orden.index("sleep") + 1], 7.5)

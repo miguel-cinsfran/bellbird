@@ -368,6 +368,14 @@ class TestCargarConfiguracion(unittest.TestCase):
         self.assertFalse(cfg["confirmar_salida"])
         self.assertFalse(cfg["sonido_inicio"])
 
+    def test_reproductor_solo_audio_ausente_arranca_encendido(self):
+        cfg = self._cargar_en("[ui]\ntamanio_fuente_chat = 12\n")
+        self.assertTrue(cfg["reproductor_solo_audio"])
+
+    def test_reproductor_solo_audio_false_guardado_se_conserva(self):
+        cfg = self._cargar_en("[ui]\nreproductor_solo_audio = false\n")
+        self.assertFalse(cfg["reproductor_solo_audio"])
+
     def test_clave_sobrante_guardar_historial_se_ignora_sin_error(self):
         # Un config.ini de usuario que todavía trae la opción muerta se
         # sigue leyendo sin error y la clave sobrante se ignora.

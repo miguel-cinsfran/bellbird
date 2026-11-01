@@ -84,6 +84,43 @@ class TestCargaReproductor(unittest.TestCase):
 
         panel._timer_progreso.Stop.assert_called_once_with()
 
+    @mock.patch.object(reproductor, "anunciar")
+    def test_cargar_duerme_la_espera_antes_de_avisar_la_info(self, _anunciar):
+        panel = self._panel("A" * 11, False)
+        info = {"is_live": False, "formats": []}
+        orden = []
+
+        def crear_hilo(target, _nombre):
+            hilo = mock.Mock()
+            hilo.start = target
+            return hilo
+
+        def call_after(fn, *args):
+            orden.append(fn.__name__)
+
+        def dormir(segundos):
+            orden.append("sleep")
+            orden.append(segundos)
+
+        with mock.patch.object(reproductor, "_info_video",
+                               return_value=info), \
+                mock.patch.object(reproductor, "_preparar_audio_local",
+                                  return_value=None), \
+                mock.patch.object(reproductor.diagnostico, "crear_hilo",
+                                  side_effect=crear_hilo), \
+                mock.patch.object(reproductor.wx, "CallAfter",
+                                  side_effect=call_after), \
+                mock.patch.object(reproductor.time, "sleep",
+                                  side_effect=dormir) as dormir_mock, \
+                mock.patch.object(reproductor, "espera_para_abrir",
+                                  return_value=7.5) as espera:
+            panel.cargar()
+
+        espera.assert_called_once_with(info, None, mock.ANY)
+        dormir_mock.assert_called_once_with(7.5)
+        self.assertLess(orden.index("sleep"), orden.index("_info_listo"))
+        self.assertEqual(orden[orden.index("sleep") + 1], 7.5)
+
     @mock.patch.object(reproductor.time, "monotonic", return_value=5)
     @mock.patch.object(reproductor, "anunciar")
     def test_golpe_del_temporizador_anuncia_progreso(self, anunciar, _monotonic):

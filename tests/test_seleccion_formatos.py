@@ -5,9 +5,12 @@ pistas m3u8 cuando hay alternativas normales. El directo no cambia.
 """
 
 import unittest
+from unittest import mock
 
+from bellbird.player import formatos_youtube
 from bellbird.player import reproductor
 from bellbird.player.formatos_youtube import _video_para_altura
+from bellbird.player.formatos_youtube import espera_para_abrir
 
 
 def _audio(fid, protocolo, abr, lang, url=None, acodec="mp4a", ext=None):
@@ -179,6 +182,48 @@ class TestVideoParaAlturaFijado(unittest.TestCase):
              "url": "https://a140"},
         ]}
         self.assertEqual(_video_para_altura(info, 720), ("", False))
+
+
+def _video(url, altura, cuando, protocolo="https"):
+    return {"vcodec": "avc", "acodec": "none", "height": altura,
+            "protocol": protocolo, "url": url, "available_at": cuando}
+
+
+def _pista_audio(url, cuando, ext, acodec, abr):
+    return {"vcodec": "none", "acodec": acodec, "abr": abr,
+            "language_preference": 10, "ext": ext, "url": url,
+            "available_at": cuando}
+
+
+class PruebasEsperaParaAbrir(unittest.TestCase):
+
+    def test_con_altura_cuenta_el_video_y_el_audio_elegidos(self):
+        info = {"is_live": False, "formats": [
+            _video("https://video", 720, 1010),
+            _pista_audio("https://audio", 1005, "m4a", "mp4a", 128),
+            _pista_audio("https://otro-audio", 1015, "webm", "opus", 160),
+        ]}
+        self.assertEqual(espera_para_abrir(info, 720, 1000.0), 10.0)
+
+    def test_con_altura_none_usa_la_altura_automatica(self):
+        info = {"is_live": False, "formats": [
+            _video("https://1080", 1080, 1013),
+            _video("https://720", 720, 1002),
+            _pista_audio("https://audio", 1001, "m4a", "mp4a", 128),
+        ]}
+        self.assertEqual(espera_para_abrir(info, None, 1000.0), 13.0)
+
+    def test_directo_usa_fuentes_para_directo(self):
+        info = {"is_live": True, "formats": [
+            _video("https://video", 720, 1004),
+            _pista_audio("https://audio", 1009, "m4a", "mp4a", 128),
+        ]}
+        with mock.patch.object(formatos_youtube, "fuentes_para_directo",
+                               return_value=("https://video",
+                                             "https://audio")) as fuentes:
+            espera = espera_para_abrir(info, 720, 1000.0)
+        fuentes.assert_called_once_with(info)
+        self.assertEqual(espera, 9.0)
 
 
 if __name__ == "__main__":

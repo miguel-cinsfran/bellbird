@@ -59,6 +59,17 @@ def decidir_al_terminar(estado, *, vod_cargando, hay_relevo, relevo_vod,
     return NADA
 
 
+def sigue_cargando(cargando, vod_por_relevo, hay_relevo, es_flujo) -> bool:
+    """¿Un estado final de VLC es viejo porque la carga sigue en curso?
+
+    Un VOD que se está recargando (por relevo o por apertura) no terminó: no
+    hay que anunciar el fin ni detenerlo. El directo con relevo activo y el
+    flujo de TikTok quedan fuera para que un corte real se siga atendiendo.
+    """
+    return bool(cargando and (vod_por_relevo
+                              or (not hay_relevo and not es_flujo)))
+
+
 def ultima_posicion(relevo_ultima, confirmada, pos_ms) -> int:
     """Última posición efectiva conocida del relevo de VOD.
 

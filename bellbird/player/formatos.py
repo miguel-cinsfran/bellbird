@@ -44,3 +44,27 @@ def mejor_audio(info: dict, evitar_hls: bool = False) -> str:
             return ((x.get("language_preference") or 0), (x.get("abr") or 0))
     mejor = max(auds, key=_clave)
     return mejor["url"]
+
+
+def segundos_hasta_disponible(info: dict, direcciones, ahora: float,
+                               tope: float = 15.0) -> float:
+    """Segundos que faltan para que las direcciones elegidas estén listas.
+
+    yt-dlp informa en `available_at` la hora (epoch) a la que YouTube abre
+    cada formato; antes de esa hora la dirección responde 403. Se mira solo
+    lo pedido, se toma la hora más lejana y se limita entre 0 y `tope` para
+    no frenar la carga por un formato que no se va a usar. Un formato sin
+    `available_at` o con un valor que no es número ya está disponible.
+    """
+    pedidas = {direccion for direccion in (direcciones or ()) if direccion}
+    if not pedidas:
+        return 0.0
+    hasta = 0.0
+    for formato in info.get("formats", []) or []:
+        if formato.get("url") not in pedidas:
+            continue
+        disponible = formato.get("available_at")
+        if not isinstance(disponible, (int, float)):
+            continue
+        hasta = max(hasta, float(disponible) - ahora)
+    return min(max(hasta, 0.0), float(tope))

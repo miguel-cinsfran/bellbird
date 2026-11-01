@@ -237,6 +237,21 @@ class TestUrlAudio(unittest.TestCase):
             url = enlaces.url_audio("https://youtu.be/abc123")
         self.assertEqual(url, "audio-https")
 
+    def test_duerme_lo_que_falta_antes_de_devolver_la_direccion(self):
+        info = {"formats": [
+            {"vcodec": "none", "acodec": "mp4a", "url": "audio-https",
+             "language_preference": 10, "available_at": 1003},
+        ]}
+        with mock.patch.object(enlaces.ytdlp_bin, "ruta_ytdlp",
+                               return_value=r"C:\yt-dlp.exe"), \
+                mock.patch.object(enlaces.ytdlp_bin, "info_video",
+                                  return_value=info), \
+                mock.patch.object(enlaces.time, "time", return_value=1000.0), \
+                mock.patch.object(enlaces.time, "sleep") as dormir:
+            url = enlaces.url_audio("https://www.youtube.com/watch?v=abc123")
+        self.assertEqual(url, "audio-https")
+        dormir.assert_called_once_with(3.0)
+
     def test_sin_audio_lanza(self):
         with mock.patch.object(enlaces.ytdlp_bin, "ruta_ytdlp",
                                return_value=None), \

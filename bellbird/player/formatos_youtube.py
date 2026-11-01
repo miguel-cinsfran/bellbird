@@ -6,7 +6,10 @@ wx y sin libVLC.
 
 from __future__ import annotations
 
-from bellbird.player.formatos import mejor_audio as _mejor_audio
+from bellbird.player.formatos import (
+    mejor_audio as _mejor_audio,
+    segundos_hasta_disponible,
+)
 
 
 def _alturas_disponibles(info: dict) -> list[int]:
@@ -127,6 +130,29 @@ def fuentes_para_directo(info: dict) -> tuple[str, str]:
     if video:
         return video, audio
     return "", ""
+
+
+def espera_para_abrir(info: dict, altura, ahora: float) -> float:
+    """Segundos a esperar antes de abrir las direcciones que se van a usar.
+
+    YouTube responde 403 a la dirección de un formato hasta su
+    `available_at`; esperar esa hora antes de dársela a ffmpeg evita el
+    relevo fallido. Se eligen las direcciones con las mismas reglas que
+    `_reproducir_calidad`.
+    """
+    if info.get("is_live"):
+        url, slave = fuentes_para_directo(info)
+    elif altura is None:
+        altura_ef = _altura_auto_vod(_alturas_disponibles(info))
+        if altura_ef is None:
+            url, slave = fuentes_para_directo(info)
+        else:
+            url, prog = _video_para_altura(info, altura_ef)
+            slave = "" if prog else _mejor_audio(info, evitar_hls=True)
+    else:
+        url, prog = _video_para_altura(info, altura)
+        slave = "" if prog else _mejor_audio(info, evitar_hls=True)
+    return segundos_hasta_disponible(info, (url, slave), ahora)
 
 
 def _es_hls(info: dict, url: str) -> bool:

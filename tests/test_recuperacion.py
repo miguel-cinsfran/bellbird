@@ -138,6 +138,23 @@ class TestOrdenPerezoso(unittest.TestCase):
         fallo_apertura.assert_not_called()
 
 
+class TestSigueCargando(unittest.TestCase):
+
+    def test_tabla_de_las_cuatro_entradas(self):
+        casos = (
+            (True, True, False, False, True),
+            (True, False, False, False, True),
+            (True, False, True, False, False),
+            (True, False, False, True, False),
+        )
+        for cargando, vod, relevo, flujo, esperado in casos:
+            with self.subTest(cargando=cargando, vod=vod, relevo=relevo,
+                              flujo=flujo):
+                self.assertEqual(
+                    recuperacion.sigue_cargando(cargando, vod, relevo, flujo),
+                    esperado)
+
+
 class TestUltimaPosicion(unittest.TestCase):
 
     def test_usa_relevo(self):

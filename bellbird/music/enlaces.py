@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import re
 import subprocess
+import time
 
 from bellbird.core.idioma import N_, _
 from bellbird.downloads import ytdlp_bin
@@ -192,7 +193,9 @@ def url_audio(origen: str) -> str:
     video_id = id_de_url(origen)
     if not video_id:
         raise ErrorEnlace(_(TEXTO_NO_SE_PUDO_LEER))
-    url = formatos.mejor_audio(_info_video(video_id))
+    info = _info_video(video_id)
+    url = formatos.mejor_audio(info)
     if not url:
         raise ErrorEnlace(_(TEXTO_NO_SE_PUDO_LEER))
+    time.sleep(formatos.segundos_hasta_disponible(info, (url,), time.time()))
     return url

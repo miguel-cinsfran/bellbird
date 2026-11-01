@@ -154,6 +154,7 @@ class PruebasAudioRespaldoNoBloquea(unittest.TestCase):
         panel._url_flujo = ""
         panel._gen = 0
         panel._cargando = False
+        panel._calidad_sel = None
         panel._asegurar_player = mock.Mock(return_value=True)
         panel._timer_progreso = mock.Mock()
         panel._fijar_estado = mock.Mock()
@@ -350,6 +351,40 @@ class PruebasFalloAperturaVod(unittest.TestCase):
         panel.cargar.assert_not_called()
         frases = [c.args[0] for c in anunciar.call_args_list]
         self.assertIn("Fin del vídeo", frases)
+
+
+class PruebasCargaEnCursoNoAnunciaFin(unittest.TestCase):
+
+    def test_ended_con_carga_en_curso_no_anuncia_fin_ni_detiene(self):
+        panel = _panel_timer("ended", False)
+        panel._cargando = True
+        with mock.patch.object(reproductor, "anunciar") as anunciar:
+            panel._on_timer(None)
+        panel._detener.assert_not_called()
+        panel.cargar.assert_not_called()
+        frases = [c.args[0] for c in anunciar.call_args_list]
+        self.assertNotIn("Fin del vídeo", frases)
+
+    def test_error_con_carga_en_curso_no_avisa_el_fallo_ni_detiene(self):
+        panel = _panel_timer("error", False)
+        panel._cargando = True
+        panel._fallo_reproduccion = mock.Mock()
+        with mock.patch.object(reproductor, "anunciar") as anunciar:
+            panel._on_timer(None)
+        panel._fallo_reproduccion.assert_not_called()
+        panel._detener.assert_not_called()
+        anunciar.assert_not_called()
+
+    def test_directo_con_relevo_activo_sigue_interrumpiendose(self):
+        panel = _panel_timer("ended", False)
+        panel._cargando = True
+        panel._relevo_ffmpeg = mock.Mock()
+        panel._es_directo_actual = mock.Mock(return_value=True)
+        panel._directo_interrumpido = mock.Mock()
+        with mock.patch.object(reproductor, "anunciar"):
+            panel._on_timer(None)
+        panel._directo_interrumpido.assert_called_once_with()
+        panel._detener.assert_not_called()
 
 
 if __name__ == "__main__":

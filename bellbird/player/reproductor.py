@@ -47,7 +47,7 @@ from bellbird.player import relevo_ffmpeg
 from bellbird.player.formatos import mejor_audio as _mejor_audio
 from bellbird.player.formatos_youtube import (
     _altura_auto_vod, _alturas_disponibles, _es_hls, _preferir_hls,
-    _video_para_altura, fuentes_para_directo,
+    _video_para_altura, espera_para_abrir, fuentes_para_directo,
 )
 from bellbird.ui.accesibilidad import anunciar, nombre_accesible
 from bellbird.ui.teclas_wx import combo_wx
@@ -968,6 +968,7 @@ class ReproductorPanel(wx.Panel):
                 logger.warning("info vídeo: %s", exc)
                 wx.CallAfter(self._error_carga, gen)
                 return
+            time.sleep(espera_para_abrir(info, self._calidad_sel, time.time()))
             # El audio local es respaldo y no bloquea el arranque: la
             # reproducción empieza en cuanto hay info y la descarga corre
             # después en su propio hilo.
@@ -2084,8 +2085,10 @@ class ReproductorPanel(wx.Panel):
                 logger.debug("no se pudo detener el temporizador: %s", error)
         decision = recuperacion.decidir_al_terminar(
             estado_final,
-            vod_cargando=bool(getattr(self, "_vod_por_relevo", False)
-                              and getattr(self, "_cargando", False)),
+            vod_cargando=recuperacion.sigue_cargando(
+                getattr(self, "_cargando", False), getattr(self, "_vod_por_relevo", False),
+                getattr(self, "_relevo_ffmpeg", None) is not None,
+                bool(getattr(self, "_url_flujo", ""))),
             hay_relevo=getattr(self, "_relevo_ffmpeg", None) is not None,
             relevo_vod=getattr(self, "_relevo_vod_base_ms", None) is not None,
             es_flujo=bool(getattr(self, "_url_flujo", "")),

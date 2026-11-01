@@ -18,7 +18,6 @@ import os
 import re
 import shutil
 import subprocess
-import sys
 import tempfile
 import zipfile
 from pathlib import Path
@@ -29,6 +28,11 @@ from urllib.request import Request, urlopen
 from bellbird.core import paths
 from bellbird.core.config import APP_NAME, APP_VERSION
 from bellbird.core.idioma import _
+from bellbird.core.versiones import version_como_tupla
+# Se reexportan con el mismo nombre para quien las llama como
+# `actualizacion.debe_avisar` o `actualizacion.hay_version_nueva`.
+from bellbird.core.versiones import debe_avisar as debe_avisar
+from bellbird.core.versiones import hay_version_nueva as hay_version_nueva
 
 
 URL_ULTIMA_VERSION = (
@@ -61,50 +65,6 @@ class ResultadoDescarga(NamedTuple):
     correcta: bool
     motivo: str
     codigo: str = ""
-
-
-# ── Versiones ─────────────────────────────────────────────────────────────
-
-_VERSION_RE = re.compile(r"^v?(\d+(?:\.\d+)*)$")
-
-
-def version_como_tupla(texto: str | None) -> tuple[int, ...] | None:
-    """Convierte un texto de versión en tupla de enteros comparable.
-
-    "v2.10.0", "2.10.0" y "2.10" dan tuplas; "2.10" equivale a "2.10.0".
-    Un texto que no es versión devuelve None.
-    """
-    if not isinstance(texto, str):
-        return None
-    texto = texto.strip()
-    if not _VERSION_RE.match(texto):
-        return None
-    partes = tuple(int(p) for p in texto.lstrip("v").split("."))
-    while len(partes) < 3:
-        partes = partes + (0,)
-    return partes
-
-
-def hay_version_nueva(actual: str | None, publicada: str | None) -> bool:
-    """Verdadero solo si la publicada es estrictamente mayor. Nunca compara textos."""
-    tupla_actual = version_como_tupla(actual)
-    tupla_publicada = version_como_tupla(publicada)
-    if tupla_actual is None or tupla_publicada is None:
-        return False
-    return tupla_publicada > tupla_actual
-
-
-def debe_avisar(version_publicada: str | None, version_actual: str | None,
-                ultima_avisada: str | None) -> bool:
-    """Verdadero solo si hay versión nueva y todavía no se avisó esa.
-
-    La avisada se compara como tupla, así «2.10» y «2.10.0» cuentan como
-    la misma y no se repite el aviso.
-    """
-    if not hay_version_nueva(version_actual, version_publicada):
-        return False
-    return (version_como_tupla(version_publicada)
-            != version_como_tupla(ultima_avisada))
 
 
 # ── Novedades ──────────────────────────────────────────────────────────────

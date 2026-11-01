@@ -1,4 +1,4 @@
-<!-- original: es/CHANGELOG.md c1e42294988447ccdc7675e806675de1886fde4f -->
+<!-- original: es/CHANGELOG.md 52e322a63581da93d420efcdafbbb208dfa607ed -->
 # What's new in Bellbird
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/CHANGELOG.md).

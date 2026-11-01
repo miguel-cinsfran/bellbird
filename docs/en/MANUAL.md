@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md e8409c25db7c50ea05573527f92ec43465240f6f -->
+<!-- original: es/MANUAL.md 2f0b4c1888480bf0099ce42c02d42513f154bba1 -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).

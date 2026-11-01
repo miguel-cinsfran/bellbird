@@ -37,8 +37,6 @@ class PaginaBuscador(wx.Panel):
         self._escucha = buscador_escucha.EscuchaBuscador(musica)
         self._acciones = AccionesResultado(
             agregar_urls, abrir_en_bellbird, self._escucha.agregar_musica)
-        self.GetParent().Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self._escucha.al_cambiar)
-        self.Bind(wx.EVT_WINDOW_DESTROY, self._escucha.al_destruir)
         self._ruta = ruta_recientes
         self._recientes = busquedas_recientes.cargar(ruta_recientes)
         self._resultados = []
@@ -167,7 +165,6 @@ class PaginaBuscador(wx.Panel):
             return
         if self._vista.activa:
             self._vista.cerrar()
-        self.detener_escucha()
         self._recientes = busquedas_recientes.agregar(self._recientes, valor)
         busquedas_recientes.guardar(self._ruta, self._recientes)
         self.campo.Set(self._recientes)
@@ -278,7 +275,6 @@ class PaginaBuscador(wx.Panel):
         self.filtros.aplicar_visibilidad()
 
     def _on_elegir(self, _event):
-        self._escucha.seguir_foco(self.lista, self._resultados)
         sel = self.lista.GetFirstSelected()
         if 0 <= sel < len(self._resultados):
             self.txt_detalles.SetValue(
@@ -350,7 +346,6 @@ class PaginaBuscador(wx.Panel):
         return indices
 
     def _entrar_en_contenido(self, url, con_retorno=True, es_canal=False) -> None:
-        self.detener_escucha()
         self._vista.mostrar(url, {
             "resultados": self._resultados, "texto": self._texto,
             "filtros": self._filtros, "inicio": self._inicio,
@@ -365,7 +360,6 @@ class PaginaBuscador(wx.Panel):
         self._agregar_filas(nuevos)
 
     def _restaurar_vista(self, guardados) -> None:
-        self.detener_escucha()
         self._resultados = guardados["resultados"]
         self._texto = guardados["texto"]
         self._filtros = guardados["filtros"]
@@ -376,9 +370,6 @@ class PaginaBuscador(wx.Panel):
             if resultado.id in guardados["elegidos"]:
                 self.lista.Select(i)
         buscador_contenido.enfocar_fila(self.lista, self.lista.GetFirstSelected())
-
-    def detener_escucha(self) -> None:
-        self._escucha.detener()
 
     def _agregar_filas(self, nuevos) -> None:
         buscador_contenido.agregar_filas(self.lista, nuevos)

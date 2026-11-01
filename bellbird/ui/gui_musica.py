@@ -14,7 +14,7 @@ from bellbird.core import anuncio_ajuste, musica_decir
 from bellbird.core import config as cfg
 from bellbird.core import diagnostico
 from bellbird.core.idioma import _
-from bellbird.music import anuncios, cruce
+from bellbird.music import anuncios, cruce, enlaces
 from bellbird.music.adaptador_vlc import AdaptadorVlc, MotorNoDisponible
 from bellbird.music.coordinador import Coordinador
 from bellbird.music.guardado_diferido import GuardadoDiferido
@@ -54,6 +54,7 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica, SonoridadMusica,
         self._preparando = False
         self._cerrado = False
         self._biblioteca = None
+        EnlacesMusica.__init__(self)
         # La ventana de música abierta, si hay.
         self._ventanas = {}
         self._retomo_intentado = False
@@ -105,23 +106,17 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica, SonoridadMusica,
             return
         self._avisar(anuncios.aviso_que_suena(self._coordinador.estado(), True))
 
-    def pausar_para_escuchar(self) -> bool:
-        """Pausa la música para escuchar, sin avisar. Dice si pausó."""
-        if self._coordinador is None:
-            return False
-        estado = self._coordinador.estado()
-        if not toca_pausar(estado) or estado.pausado:
-            return False
-        return bool(self._coordinador.alternar_pausa().ok)
+    def suena_enlace(self, url) -> bool:
+        """Si la música tiene ese vídeo como tema actual y se puede pausar.
 
-    def reanudar_tras_escuchar(self) -> None:
-        """Reanuda la música tras la escucha, sin avisar."""
-        if self._coordinador is not None and self._coordinador.estado().pausado:
-            self._coordinador.alternar_pausa()
-
-    def ajustes_escucha(self) -> tuple:
-        """(dispositivo o None, volumen) para la escucha del buscador."""
-        return (self._config.get("musica_salida") or None, self._volumen_config())
+        Compara el identificador del vídeo, así que da igual la forma de la
+        dirección. Dos direcciones sin identificador no son iguales.
+        """
+        estado = self._coordinador.estado() if self._coordinador else None
+        if not toca_pausar(estado):
+            return False
+        pedido = enlaces.id_de_url(url)
+        return bool(pedido) and pedido == enlaces.id_de_url(estado.actual.origen)
 
     # ── Biblioteca compartida y ventana ──────────────────────────────────────
 

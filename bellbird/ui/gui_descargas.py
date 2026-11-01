@@ -373,10 +373,6 @@ class GestorDescargasDialog(wx.Dialog):
             self._temporizador.Stop()
         except Exception as error:
             logger.debug("no se pudo detener el temporizador: %s", error)
-        try:
-            self.pagina_buscador.detener_escucha()
-        except Exception as error:
-            logger.debug("no se pudo detener la escucha: %s", error)
         if _dialogo_activo is self:
             _dialogo_activo = None
 

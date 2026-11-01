@@ -45,8 +45,6 @@ EVENTOS = [
     # Cola de descargas: agregado, proceso, fin de la cola y lista parcial.
     "descarga_encolada", "descarga_procesando", "cola_descargas_terminada",
     "descarga_parcial",
-    # Escucha previa de un resultado: carga y fallo, cada uno con el suyo.
-    "escucha_cargando", "escucha_fallida",
     # Elección de formato de un vídeo: consulta y fallo, cada uno con el suyo.
     "formatos_cargando", "formatos_fallidos",
     # TikTok frena las consultas seguidas: espera un minuto antes de mirar.
@@ -129,8 +127,6 @@ NOMBRES = {
     "descarga_procesando": "Procesamiento de descarga",
     "cola_descargas_terminada": "Cola de descargas terminada",
     "descarga_parcial": "Descarga parcial",
-    "escucha_cargando": "Carga del audio para escuchar",
-    "escucha_fallida": "Fallo al escuchar",
     "formatos_cargando": "Carga de formatos",
     "formatos_fallidos": "Formatos no disponibles",
     "tiktok_limitado": "TikTok limita las consultas",

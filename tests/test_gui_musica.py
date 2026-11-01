@@ -415,57 +415,6 @@ class TestAleatorio(unittest.TestCase):
         env.anunciar.assert_called_once_with("Orden aleatorio desactivado")
 
 
-class TestPausarParaEscuchar(unittest.TestCase):
-
-    def _sonando(self, pausado=False):
-        from bellbird.music.modelo import EstadoMusica, Tema
-        return EstadoMusica((Tema("C:/m/a.mp3", "A"),), 0, pausado, False,
-                            50, False)
-
-    def test_sonando_pausa_y_dice_que_si(self):
-        from bellbird.music.modelo import OK, Resultado
-        with _entorno() as env:
-            control = ControlMusica(_frame())
-            control._coordinador = mock.Mock()
-            control._coordinador.estado.return_value = self._sonando()
-            control._coordinador.alternar_pausa.return_value = Resultado(
-                True, OK, self._sonando(pausado=True))
-            self.assertTrue(control.pausar_para_escuchar())
-        control._coordinador.alternar_pausa.assert_called_once_with()
-        env.anunciar.assert_not_called()
-        self.assertEqual(env.snd.sonidos, [])
-
-    def test_en_pausa_no_hace_nada(self):
-        with _entorno() as env:
-            control = ControlMusica(_frame())
-            control._coordinador = mock.Mock()
-            control._coordinador.estado.return_value = self._sonando(
-                pausado=True)
-            self.assertFalse(control.pausar_para_escuchar())
-        control._coordinador.alternar_pausa.assert_not_called()
-        env.anunciar.assert_not_called()
-        self.assertEqual(env.snd.sonidos, [])
-
-    def test_sin_coordinador_da_falso(self):
-        with _entorno() as env:
-            control = ControlMusica(_frame())
-            self.assertFalse(control.pausar_para_escuchar())
-        env.anunciar.assert_not_called()
-        self.assertEqual(env.snd.sonidos, [])
-
-    def test_si_no_pudo_pausar_dice_que_no(self):
-        from bellbird.music.modelo import ERROR_MOTOR, Resultado
-        with _entorno() as env:
-            control = ControlMusica(_frame())
-            control._coordinador = mock.Mock()
-            control._coordinador.estado.return_value = self._sonando()
-            control._coordinador.alternar_pausa.return_value = Resultado(
-                False, ERROR_MOTOR, self._sonando())
-            self.assertFalse(control.pausar_para_escuchar())
-        env.anunciar.assert_not_called()
-        self.assertEqual(env.snd.sonidos, [])
-
-
 class TestAvisoAutomatico(unittest.TestCase):
 
     def test_al_cambiar_pasa_por_callafter(self):
@@ -1513,6 +1462,120 @@ class TestAbrirEnlace(unittest.TestCase):
                          "2 canciones agregadas a la cola")
         self.assertEqual([t.titulo for t in control.estado().cola],
                          ["X", "Uno", "Dos"])
+
+
+class TestSuenaEnlace(unittest.TestCase):
+    """`suena_enlace`: el vídeo pedido es el tema actual de la música."""
+
+    def _control_con(self, origen, pausado=False, terminado=False):
+        control = ControlMusica(_frame())
+        estado = EstadoMusica(
+            (Tema(origen, "Tema"),), 0, pausado, terminado, 50, False)
+        control._coordinador = mock.Mock()
+        control._coordinador.estado.return_value = estado
+        return control
+
+    def test_el_mismo_video_suena(self):
+        with _entorno():
+            control = self._control_con(
+                "https://www.youtube.com/watch?v=abc")
+            self.assertTrue(control.suena_enlace(
+                "https://www.youtube.com/watch?v=abc"))
+
+    def test_en_pausa_tambien_suena(self):
+        with _entorno():
+            control = self._control_con(
+                "https://www.youtube.com/watch?v=abc", pausado=True)
+            self.assertTrue(control.suena_enlace(
+                "https://www.youtube.com/watch?v=abc"))
+
+    def test_otro_video_no_suena(self):
+        with _entorno():
+            control = self._control_con(
+                "https://www.youtube.com/watch?v=abc")
+            self.assertFalse(control.suena_enlace(
+                "https://www.youtube.com/watch?v=otro"))
+
+    def test_otra_forma_de_la_misma_direccion_suena(self):
+        with _entorno():
+            control = self._control_con(
+                "https://www.youtube.com/watch?v=abc")
+            self.assertTrue(control.suena_enlace("https://youtu.be/abc"))
+
+    def test_sin_coordinador_no_suena(self):
+        with _entorno():
+            self.assertFalse(ControlMusica(_frame()).suena_enlace(
+                "https://www.youtube.com/watch?v=abc"))
+
+    def test_con_la_musica_detenida_no_suena(self):
+        with _entorno():
+            control = self._control_con(
+                "https://www.youtube.com/watch?v=abc", terminado=True)
+            self.assertFalse(control.suena_enlace(
+                "https://www.youtube.com/watch?v=abc"))
+
+    def test_dos_direcciones_sin_id_no_son_iguales(self):
+        with _entorno():
+            control = self._control_con(
+                "https://www.youtube.com/playlist?list=UNA")
+            self.assertFalse(control.suena_enlace(
+                "https://www.youtube.com/playlist?list=OTRA"))
+
+
+class TestLeyendoEnlace(unittest.TestCase):
+    """`leyendo_enlace`: la dirección queda anotada mientras se expande."""
+
+    URL = "https://www.youtube.com/watch?v=uno"
+
+    @staticmethod
+    def _hilos(pendientes):
+        def crear_hilo(target, nombre, *, args=(), daemon=True):
+            if nombre == "musica-enlace":
+                pendientes.append((target, args))
+                return _HiloDiferido(target, args)
+            return _HiloInmediato(target, args)
+
+        return crear_hilo
+
+    def test_antes_durante_y_despues_de_leer(self):
+        pendientes = []
+        temas = (Tema(self.URL, "Uno"),)
+        with _entorno(), \
+                mock.patch.object(gui_musica.diagnostico, "crear_hilo",
+                                  self._hilos(pendientes)), \
+                mock.patch.object(musica_enlaces.enlaces, "expandir",
+                                  return_value=temas):
+            control = ControlMusica(_frame())
+            self.assertFalse(control.leyendo_enlace(self.URL))
+            control.abrir_enlace(self.URL, "ahora")
+            self.assertTrue(control.leyendo_enlace(self.URL))
+            destino, args = pendientes[-1]
+            destino(*args)
+            self.assertFalse(control.leyendo_enlace(self.URL))
+
+    def test_tras_un_error_tambien_sale(self):
+        pendientes = []
+        with _entorno(), \
+                mock.patch.object(gui_musica.diagnostico, "crear_hilo",
+                                  self._hilos(pendientes)), \
+                mock.patch.object(musica_enlaces.enlaces, "expandir",
+                                  side_effect=RuntimeError("boom")), \
+                mock.patch.object(musica_enlaces.logger, "exception"):
+            control = ControlMusica(_frame())
+            control.abrir_enlace(self.URL, "ahora")
+            self.assertTrue(control.leyendo_enlace(self.URL))
+            destino, args = pendientes[-1]
+            destino(*args)
+            self.assertFalse(control.leyendo_enlace(self.URL))
+
+    def test_si_no_se_crea_el_hilo_no_queda_dentro(self):
+        with _entorno(), \
+                mock.patch.object(gui_musica.diagnostico, "crear_hilo",
+                                  side_effect=RuntimeError("sin hilo")):
+            control = ControlMusica(_frame())
+            with self.assertRaises(RuntimeError):
+                control.abrir_enlace(self.URL, "ahora")
+            self.assertFalse(control.leyendo_enlace(self.URL))
 
 
 class TestListasPropias(unittest.TestCase):

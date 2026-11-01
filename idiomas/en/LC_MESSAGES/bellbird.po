@@ -2385,14 +2385,6 @@ msgstr "Could not read the link"
 msgid "El enlace no tiene vídeos"
 msgstr "The link has no videos"
 
-#: bellbird/music/escucha.py
-msgid "No se pudo cargar el audio. Comprueba la conexión e inténtalo de nuevo."
-msgstr "The audio could not be loaded. Check the connection and try again."
-
-#: bellbird/music/escucha.py
-msgid "No se pudo iniciar el reproductor de audio."
-msgstr "The audio player could not be started."
-
 #: bellbird/music/filtros.py
 msgid "Orden de la colección"
 msgstr "Collection order"
@@ -3890,7 +3882,7 @@ msgid "Pausa"
 msgstr "Pause"
 
 #. Traductores: aviso al reproducir.
-#: bellbird/player/reproductor.py bellbird/ui/buscador_escucha.py
+#: bellbird/player/reproductor.py
 msgid "Reproduciendo"
 msgstr "Playing"
 
@@ -4754,14 +4746,6 @@ msgstr "No more results"
 #: bellbird/ui/buscador_escucha.py
 msgid "Este resultado no se puede escuchar."
 msgstr "This result cannot be played."
-
-#: bellbird/ui/buscador_escucha.py
-msgid "Cargando vista previa de audio"
-msgstr "Loading audio preview"
-
-#: bellbird/ui/buscador_escucha.py
-msgid "En pausa"
-msgstr "Paused"
 
 #: bellbird/ui/buscador_escucha.py bellbird/ui/descargas_buscador.py
 msgid "Selecciona un resultado."

@@ -576,25 +576,10 @@ def gen_busqueda_fallida():
     return _normalizar(_concat(n1, n2), 0.72)
 
 
-def gen_escucha_cargando():
-    # Dos pulsos cortos ascendentes en seno claro: se carga la previa.
-    n1 = _perc(_seno(E5, 0.06, 0.32), 0.004, 0.05)
-    n2 = _perc(_seno(G5, 0.10, 0.34), 0.004, 0.08)
-    return _normalizar(_concat(n1, n2), 0.7)
-
-
-def gen_escucha_fallida():
-    # Dos pulsos graves en la misma nota: no se pudo escuchar, sin el
-    # descenso de la búsqueda fallida ni la aspereza del error.
-    n1 = _perc(_seno(E3, 0.12, 0.34), 0.005, 0.10)
-    n2 = _perc(_seno(E3, 0.18, 0.34), 0.005, 0.14)
-    return _normalizar(_concat(n1, n2), 0.7)
-
-
 def gen_formatos_cargando():
     # Tres pulsos cortos ascendentes en seno claro: se piden los formatos
-    # del vídeo. Tres notas porque la carga de la escucha es de dos
-    # (E5→G5) y la búsqueda iniciada es un barrido (E5→A5).
+    # del vídeo. Tres notas porque la búsqueda iniciada es un barrido
+    # (E5→A5).
     n1 = _perc(_seno(D5, 0.06, 0.32), 0.004, 0.05)
     n2 = _perc(_seno(F5, 0.06, 0.32), 0.004, 0.05)
     n3 = _perc(_seno(A5, 0.12, 0.34), 0.004, 0.10)
@@ -603,8 +588,7 @@ def gen_formatos_cargando():
 
 def gen_formatos_fallidos():
     # Dos notas medias descendentes A4→F4: no se pudieron cargar. Distintas
-    # de la caída grave de busqueda_fallida (D4→B3) y del par repetido de
-    # escucha_fallida (E3→E3).
+    # de la caída grave de busqueda_fallida (D4→B3).
     n1 = _perc(_seno(A4, 0.11, 0.32), 0.005, 0.10)
     n2 = _perc(_seno(F4, 0.18, 0.32), 0.005, 0.15)
     return _normalizar(_concat(n1, n2), 0.7)
@@ -621,8 +605,8 @@ def gen_tiktok_limitado():
 
 def gen_encuadre_fuera():
     # El rostro sale del encuadre: gesto que baja, A5→E5. Ni el descenso
-    # grave de busqueda_fallida (D4→B3) ni el par repetido de
-    # escucha_fallida: avisa dónde está el rostro, no un fallo.
+    # grave de busqueda_fallida (D4→B3): avisa dónde está el rostro, no un
+    # fallo.
     n1 = _perc(_seno(A5, 0.11, 0.32), 0.005, 0.10)
     n2 = _perc(_seno(E5, 0.18, 0.32), 0.005, 0.15)
     return _normalizar(_concat(n1, n2), 0.7)
@@ -1003,18 +987,6 @@ def s_busqueda_fallida():
     return _normalizar(_concat(n1, n2), 0.65)
 
 
-def s_escucha_cargando():
-    # Los mismos dos pulsos cortos ascendentes, en madera cálida.
-    return _seq(_madera(E5, 0.06, 0.32, 0.05),
-                _madera(G5, 0.10, 0.34, 0.08))
-
-
-def s_escucha_fallida():
-    # Los mismos dos pulsos graves en la misma nota, en madera cálida.
-    return _seq(_madera(E3, 0.12, 0.34, 0.10),
-                _madera(E3, 0.18, 0.34, 0.14))
-
-
 def s_formatos_cargando():
     # Los mismos tres pulsos ascendentes, en madera cálida.
     return _seq(_madera(D5, 0.06, 0.32, 0.05),
@@ -1231,8 +1203,6 @@ TEMAS = {
         "busqueda_resultados.wav":     gen_busqueda_resultados,
         "busqueda_sin_resultados.wav": gen_busqueda_sin_resultados,
         "busqueda_fallida.wav":        gen_busqueda_fallida,
-        "escucha_cargando.wav":        gen_escucha_cargando,
-        "escucha_fallida.wav":         gen_escucha_fallida,
         "formatos_cargando.wav":       gen_formatos_cargando,
         "formatos_fallidos.wav":       gen_formatos_fallidos,
         "descarga_encolada.wav":       gen_descarga_encolada,
@@ -1323,8 +1293,6 @@ TEMAS = {
         "busqueda_resultados.wav":     s_busqueda_resultados,
         "busqueda_sin_resultados.wav": s_busqueda_sin_resultados,
         "busqueda_fallida.wav":        s_busqueda_fallida,
-        "escucha_cargando.wav":        s_escucha_cargando,
-        "escucha_fallida.wav":         s_escucha_fallida,
         "formatos_cargando.wav":       s_formatos_cargando,
         "formatos_fallidos.wav":       s_formatos_fallidos,
         "descarga_encolada.wav":       s_descarga_encolada,

@@ -1757,33 +1757,46 @@ class TestMenuYVistaBuscador(unittest.TestCase):
         call_after.assert_called_once_with(callback, "https://youtu.be/x")
 
 
+class _MusicaFalsa:
+    """Doble del control de música: anota lo que el buscador le pide."""
+
+    def __init__(self, suena=False, leyendo=False):
+        self.suena = suena
+        self.leyendo = leyendo
+        self.abiertos = []
+        self.pausas = 0
+
+    def suena_enlace(self, url):
+        return self.suena
+
+    def leyendo_enlace(self, url):
+        return self.leyendo
+
+    def abrir_enlace(self, url, modo="final"):
+        self.abiertos.append((url, modo))
+        self.leyendo = True
+
+    def agregar_enlace(self, url):
+        self.abiertos.append((url, "final"))
+
+    def reproducir_o_pausar(self):
+        self.pausas += 1
+
+    def detener(self):
+        raise AssertionError("la navegación no debe detener la música")
+
+
+class _ListaFalsa:
+    def __init__(self, indice=0):
+        self.indice = indice
+
+    def GetFocusedItem(self):
+        return self.indice
+
+
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestEscuchaPrevia(TestMenuYVistaBuscador):
-    """Espacio escucha la previa: pausa la música y la reanuda al terminar."""
-
-    def _musica(self, pausa=True):
-        musica = mock.Mock()
-        musica.pausar_para_escuchar.return_value = pausa
-        musica.ajustes_escucha.return_value = (None, 50)
-        return musica
-
-    def _espias_escucha(self):
-        parche_anunciar = mock.patch.object(buscador_escucha, "anunciar")
-        anunciar = parche_anunciar.start()
-        self.addCleanup(parche_anunciar.stop)
-        parche_sonido = mock.patch.object(buscador_escucha._snd, "reproducir")
-        sonido = parche_sonido.start()
-        self.addCleanup(parche_sonido.stop)
-        return anunciar, sonido
-
-    def _con_interna_falsa(self):
-        fabrica = mock.patch.object(buscador_escucha, "Escucha")
-        falsa = fabrica.start()
-        self.addCleanup(fabrica.stop)
-        interna = mock.Mock()
-        interna.url = None
-        falsa.return_value = interna
-        return interna
+    """Escuchar un resultado del buscador desde la música."""
 
     def _evento_espacio(self, ctrl=False, mayus=False, alt=False):
         evento = mock.Mock()
@@ -1793,210 +1806,130 @@ class TestEscuchaPrevia(TestMenuYVistaBuscador):
         evento.AltDown.return_value = alt
         return evento
 
+    def _espias(self):
+        parche_anunciar = mock.patch.object(buscador_escucha, "anunciar")
+        anunciar = parche_anunciar.start()
+        self.addCleanup(parche_anunciar.stop)
+        parche_sonido = mock.patch.object(buscador_escucha._snd, "reproducir")
+        sonido = parche_sonido.start()
+        self.addCleanup(parche_sonido.stop)
+        return anunciar, sonido
+
+    def _teclear(self, resultado, musica, indice=0):
+        buscador = buscador_escucha.EscuchaBuscador(musica)
+        return buscador.al_teclear(
+            self._evento_espacio(), _ListaFalsa(indice), [resultado])
+
     def _pagina_buscada_con_musica(self, items, musica=None):
         self._buscar(items)
-        dialogo = self._dialogo(musica=musica if musica is not None else self._musica())
+        dialogo = self._dialogo(
+            musica=musica if musica is not None else _MusicaFalsa())
         return dialogo, self._pagina_buscada(dialogo, items)
 
-    def test_pausa_al_empezar_y_reanuda_en_fin(self):
-        musica = self._musica()
-        buscador = buscador_escucha.EscuchaBuscador(musica)
-        interna = mock.Mock()
-        interna.url = None
-        with mock.patch.object(buscador_escucha, "Escucha",
-                               return_value=interna):
-            buscador.alternar(_resultado_busqueda("v"))
-        musica.pausar_para_escuchar.assert_called_once_with()
-        interna.alternar.assert_called_once_with(
-            "https://www.youtube.com/watch?v=v")
-        buscador._al_avisar("fin")
-        musica.reanudar_tras_escuchar.assert_called_once_with()
+    def test_p1_espacio_abre_en_la_musica_con_ahora(self):
+        musica = _MusicaFalsa()
+        resultado = _resultado_busqueda("v")
+        self.assertTrue(self._teclear(resultado, musica))
+        self.assertEqual(musica.abiertos, [(resultado.url, "ahora")])
+        self.assertEqual(musica.pausas, 0)
 
-    def test_reanuda_en_fallo_y_en_detener(self):
-        musica = self._musica()
-        buscador = buscador_escucha.EscuchaBuscador(musica)
-        interna = mock.Mock()
-        interna.url = "https://www.youtube.com/watch?v=v"
-        buscador._escucha = interna
-        buscador._pauso = True
-        anunciar, sonido = self._espias_escucha()
-        buscador._al_avisar("fallo", "se cortó")
-        anunciar.assert_called_once_with("se cortó")
-        sonido.assert_called_once_with("escucha_fallida")
-        musica.reanudar_tras_escuchar.assert_called_once_with()
-        buscador._pauso = True
-        buscador.detener()
-        interna.detener.assert_called_once_with()
-        self.assertEqual(musica.reanudar_tras_escuchar.call_count, 2)
+    def test_p2_el_mismo_video_pausa_o_reanuda(self):
+        musica = _MusicaFalsa(suena=True)
+        resultado = _resultado_busqueda("v")
+        self.assertTrue(self._teclear(resultado, musica))
+        self.assertEqual(musica.pausas, 1)
+        self.assertEqual(musica.abiertos, [])
 
-    def test_no_reanuda_si_no_pauso(self):
-        musica = self._musica(pausa=False)
-        buscador = buscador_escucha.EscuchaBuscador(musica)
-        interna = mock.Mock()
-        interna.url = None
-        with mock.patch.object(buscador_escucha, "Escucha",
-                               return_value=interna):
-            buscador.alternar(_resultado_busqueda("v"))
-        buscador._al_avisar("fin")
-        musica.reanudar_tras_escuchar.assert_not_called()
-        buscador.detener()
-        musica.reanudar_tras_escuchar.assert_not_called()
+    def test_p3_mientras_se_lee_no_lo_agrega_dos_veces(self):
+        musica = _MusicaFalsa()
+        resultado = _resultado_busqueda("v")
+        self._teclear(resultado, musica)
+        self._teclear(resultado, musica)
+        self.assertEqual(musica.abiertos, [(resultado.url, "ahora")])
 
-    def test_pasar_de_uno_a_otro_no_reanuda_en_medio(self):
-        musica = self._musica()
-        buscador = buscador_escucha.EscuchaBuscador(musica)
-        interna = mock.Mock()
-        interna.url = None
-        with mock.patch.object(buscador_escucha, "Escucha",
-                               return_value=interna):
-            buscador.alternar(_resultado_busqueda("a"))
-            interna.url = "https://www.youtube.com/watch?v=a"
-            buscador.alternar(_resultado_busqueda("b"))
-        self.assertEqual(musica.pausar_para_escuchar.call_count, 1)
-        interna.alternar.assert_called_with(
-            "https://www.youtube.com/watch?v=b")
-        musica.reanudar_tras_escuchar.assert_not_called()
-
-    def test_canal_directo_y_programado_no_se_escuchan(self):
-        casos = [_resultado_canal(),
-                 _resultado_busqueda("d", directo=True),
-                 _resultado_busqueda("p", programado=True)]
-        for resultado in casos:
-            with self.subTest(tipo=resultado.tipo, directo=resultado.en_directo,
-                              programado=resultado.programado):
-                musica = self._musica()
-                buscador = buscador_escucha.EscuchaBuscador(musica)
-                anunciar, sonido = self._espias_escucha()
-                with mock.patch.object(buscador_escucha, "Escucha") as fabrica:
-                    buscador.alternar(resultado)
-                fabrica.assert_not_called()
-                musica.pausar_para_escuchar.assert_not_called()
+    def test_p4_no_escuchable_o_sin_musica_avisa_con_error(self):
+        anunciar, sonido = self._espias()
+        casos = [
+            ("canal", _resultado_canal(), _MusicaFalsa()),
+            ("lista", _resultado_lista(), _MusicaFalsa()),
+            ("directo", _resultado_busqueda("d", directo=True), _MusicaFalsa()),
+            ("programado", _resultado_busqueda("p", programado=True),
+             _MusicaFalsa()),
+            ("sin música", _resultado_busqueda("v"), None),
+        ]
+        for nombre, resultado, musica in casos:
+            with self.subTest(caso=nombre):
+                self._teclear(resultado, musica)
                 anunciar.assert_called_once_with(
                     "Este resultado no se puede escuchar.")
                 sonido.assert_called_once_with("error")
+                if musica is not None:
+                    self.assertEqual(musica.abiertos, [])
+                    self.assertEqual(musica.pausas, 0)
+                anunciar.reset_mock()
+                sonido.reset_mock()
 
-    def test_avisos_de_carga_pausa_y_reproduccion(self):
-        musica = self._musica()
-        buscador = buscador_escucha.EscuchaBuscador(musica)
-        anunciar, sonido = self._espias_escucha()
-        buscador._al_avisar("cargando")
-        sonido.assert_called_once_with("escucha_cargando")
-        anunciar.assert_called_once_with("Cargando vista previa de audio")
-        anunciar.reset_mock()
-        sonido.reset_mock()
-        buscador._al_avisar("pausa")
-        anunciar.assert_called_once_with("En pausa")
-        sonido.assert_not_called()
-        anunciar.reset_mock()
-        buscador._al_avisar("reanudada")
-        anunciar.assert_called_once_with("Reproduciendo")
-        sonido.assert_not_called()
-        anunciar.reset_mock()
-        buscador._al_avisar("sonando")
-        anunciar.assert_not_called()
-
-    def test_aviso_con_pagina_destruida_se_ignora(self):
-        musica = self._musica()
-        buscador = buscador_escucha.EscuchaBuscador(musica)
-        anunciar, sonido = self._espias_escucha()
-        buscador.invalidar()
-        buscador._al_avisar("cargando")
-        anunciar.assert_not_called()
-        sonido.assert_not_called()
-
-    def test_espacio_llama_a_alternar_sin_cambiar_seleccion(self):
+    def test_p5_navegar_no_toca_la_musica(self):
+        items = [_resultado_busqueda("a"), _resultado_busqueda("b")]
+        musica = _MusicaFalsa()
         dialogo, pagina = self._pagina_buscada_con_musica(
-            [_resultado_busqueda("a"), _resultado_busqueda("b")])
-        self._con_interna_falsa()
+            items, musica=musica)
+        dialogo.Show()
+        pagina.lista.Focus(0)
+        self.assertTrue(pagina._escucha.al_teclear(
+            self._evento_espacio(), pagina.lista, pagina._resultados))
         pagina.lista.Focus(1)
-        antes = pagina.lista.GetFirstSelected()
-        evento = self._evento_espacio()
-        with mock.patch.object(pagina._escucha, "alternar") as alternar:
-            pagina._on_key(evento)
-        alternar.assert_called_once_with(pagina._resultados[1])
-        self.assertEqual(pagina.lista.GetFirstSelected(), antes)
-        evento.Skip.assert_not_called()
+        pagina._on_elegir(None)
+        dialogo.pestanas.SetSelection(1)
+        pagina.campo.SetValue("otra")
+        pagina._on_buscar(None)
+        with mock.patch.object(buscador_contenido, "contenido",
+                               return_value=_respuesta_contenido()), \
+                mock.patch.object(buscador_contenido, "anunciar"):
+            pagina._entrar_en_contenido(pagina._resultados[0].url)
+            pagina._vista.volver()
+        dialogo._soltar()
+        dialogo.Hide()
+        self.assertEqual(musica.abiertos, [(items[0].url, "ahora")])
+        self.assertEqual(musica.pausas, 0)
 
-    def test_espacio_con_ctrl_no_escucha(self):
-        dialogo, pagina = self._pagina_buscada_con_musica(
-            [_resultado_busqueda("a")])
-        self._con_interna_falsa()
-        evento = self._evento_espacio(ctrl=True)
-        with mock.patch.object(pagina._escucha, "alternar") as alternar:
-            pagina._on_key(evento)
-        alternar.assert_not_called()
-        evento.Skip.assert_called_once_with()
-
-    def test_espacio_sin_fila_avisa(self):
-        dialogo, pagina = self._pagina_buscada_con_musica([])
-        self._con_interna_falsa()
-        anunciar, sonido = self._espias_escucha()
-        pagina._on_key(self._evento_espacio())
+    def test_p6_modificadores_dejan_pasar_y_sin_fila_avisa(self):
+        musica = _MusicaFalsa()
+        resultado = _resultado_busqueda("v")
+        for modificador in ("ctrl", "mayus", "alt"):
+            with self.subTest(modificador=modificador):
+                buscador = buscador_escucha.EscuchaBuscador(musica)
+                evento = self._evento_espacio(**{modificador: True})
+                self.assertFalse(buscador.al_teclear(
+                    evento, _ListaFalsa(0), [resultado]))
+                self.assertEqual(musica.abiertos, [])
+        anunciar, sonido = self._espias()
+        buscador = buscador_escucha.EscuchaBuscador(musica)
+        self.assertTrue(buscador.al_teclear(
+            self._evento_espacio(), _ListaFalsa(0), []))
         anunciar.assert_called_once_with("Selecciona un resultado.")
         sonido.assert_called_once_with("error")
 
-    def test_mover_seleccion_detiene(self):
+    def test_el_foco_se_queda_en_la_lista(self):
+        items = [_resultado_busqueda("a"), _resultado_busqueda("b")]
+        musica = _MusicaFalsa()
         dialogo, pagina = self._pagina_buscada_con_musica(
-            [_resultado_busqueda("a"), _resultado_busqueda("b")])
-        interna = self._con_interna_falsa()
-        interna.url = "https://www.youtube.com/watch?v=a"
-        pagina._escucha._escucha = interna
-        pagina.lista.Focus(1)
-        pagina._on_elegir(None)
-        interna.detener.assert_called_once_with()
-
-    def test_busqueda_nueva_detiene(self):
-        dialogo, pagina = self._pagina_buscada_con_musica(
-            [_resultado_busqueda("a")])
-        interna = self._con_interna_falsa()
-        interna.url = "https://www.youtube.com/watch?v=a"
-        pagina._escucha._escucha = interna
-        pagina.campo.SetValue("otra")
-        pagina._on_buscar(None)
-        interna.detener.assert_called_once_with()
-
-    def test_cambio_de_pestana_detiene(self):
-        dialogo, pagina = self._pagina_buscada_con_musica(
-            [_resultado_busqueda("a")])
-        interna = self._con_interna_falsa()
-        interna.url = "https://www.youtube.com/watch?v=a"
-        pagina._escucha._escucha = interna
+            items, musica=musica)
         dialogo.Show()
-        dialogo.pestanas.SetSelection(1)
-        interna.detener.assert_called_once_with()
+        pagina.lista.SetFocus()
+        self.assertTrue(pagina._escucha.al_teclear(
+            self._evento_espacio(), pagina.lista, pagina._resultados))
+        self.assertIs(wx.Window.FindFocus(), pagina.lista)
+        self.assertEqual(musica.abiertos, [(items[0].url, "ahora")])
         dialogo.Hide()
 
-    def test_cerrar_dialogo_detiene_y_reanuda(self):
-        musica = self._musica()
-        dialogo, pagina = self._pagina_buscada_con_musica(
-            [_resultado_busqueda("a")], musica=musica)
-        interna = self._con_interna_falsa()
-        interna.url = "https://www.youtube.com/watch?v=a"
-        pagina._escucha._escucha = interna
-        pagina._escucha._pauso = True
-        dialogo._on_cerrar(None)
-        interna.detener.assert_called_once_with()
-        musica.reanudar_tras_escuchar.assert_called_once_with()
-
-    def test_tab_a_detalles_no_detiene(self):
-        dialogo, pagina = self._pagina_buscada_con_musica(
-            [_resultado_busqueda("a")])
-        interna = self._con_interna_falsa()
-        interna.url = "https://www.youtube.com/watch?v=a"
-        pagina._escucha._escucha = interna
-        pagina.txt_detalles.SetFocus()
-        interna.detener.assert_not_called()
-
-    def test_menu_llega_a_alternar(self):
-        dialogo, pagina = self._pagina_buscada_con_musica(
-            [_resultado_busqueda("v")])
-        self._seleccionar_solo(pagina, 0)
-        resultado = pagina._resultados[0]
+    def test_el_menu_escuchar_llega_a_alternar(self):
+        resultado = _resultado_busqueda("v")
         opciones = buscador_acciones.opciones_de(resultado, False, True)
         self.assertIn("escuchar", opciones)
         al_escuchar = mock.Mock()
         menu = buscador_acciones.construir_menu(
-            opciones, [resultado], pagina._acciones, mock.Mock(),
+            opciones, [resultado], mock.Mock(), mock.Mock(),
             mock.Mock(), al_escuchar)
         try:
             for it in menu.GetMenuItems():

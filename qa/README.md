@@ -64,6 +64,24 @@ Lo que no sale: los menús contextuales y los cuadros nativos de Windows
 wx de nivel superior, y eso no es una: no se fuerza y queda anotado en el
 índice como no capturado, con su motivo.
 
+## Barrido con pseudotraducción
+
+`pseudo.py` arranca la aplicación con `BELLBIRD_IDIOMA=pseudo` y recorre la
+ventana principal, la barra de menú, los cuadros que abren las entradas que
+terminan en «…», cada categoría de Preferencias y una sesión simulada de
+YouTube con un mensaje y F2. Lista cada texto que no salió marcado con
+`[¡...!]`, con la ventana y el control donde apareció, sin repetirlo, y sale
+con 1 si encontró alguno.
+
+    python -I herramientas/otra_pc.py qa qa/pseudo.py
+
+No muestra el valor de un campo de texto ni los elementos de una lista de
+datos del usuario. Deja fuera las cabeceras de columna, las opciones de
+RadioBox y las dos entradas con «…» que dejan algo abierto al cerrarlas sin
+guardar: «Guía de configuración de la API…» abre el navegador y «Panel de
+transmisión…» puede lanzar OBS. Corre en la PC donde no hay nadie, como el
+resto del banco.
+
 ## Directo real de prueba
 
 `directo_real.py` hace un directo de YouTube «No listado» de alrededor de

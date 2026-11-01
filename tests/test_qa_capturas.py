@@ -181,6 +181,73 @@ class TestArgumentosCapturas(unittest.TestCase):
             self.assertEqual(len(app.llamadas), 1)
 
 
+# GetUserObjectInformationW con UOI_NAME y OpenInputDesktop con acceso de
+# lectura alcanzan para comparar los nombres de los escritorios.
+_NOMBRE_DE_ESCRITORIO = 2
+_LECTURA_DE_ESCRITORIO = 0x0001
+
+
+def _escritorio_de_entrada() -> bool:
+    """Dice si el escritorio del hilo es el que recibe la entrada.
+
+    En el escritorio aparte que usa la suite, que no se muestra,
+    PrintWindow con PW_RENDERFULLCONTENT devuelve negro. Se comparan los
+    nombres del escritorio del hilo y del de entrada; si no se puede abrir
+    el de entrada, se considera que no es el de entrada.
+    """
+    import ctypes
+    from ctypes import wintypes
+
+    user32 = ctypes.WinDLL("user32", use_last_error=True)
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32.GetCurrentThreadId.restype = wintypes.DWORD
+    user32.GetThreadDesktop.argtypes = [wintypes.DWORD]
+    user32.GetThreadDesktop.restype = wintypes.HANDLE
+    user32.OpenInputDesktop.argtypes = [
+        wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+    user32.OpenInputDesktop.restype = wintypes.HANDLE
+    user32.GetUserObjectInformationW.argtypes = [
+        wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p, wintypes.DWORD,
+        ctypes.POINTER(wintypes.DWORD)]
+    user32.GetUserObjectInformationW.restype = wintypes.BOOL
+    user32.CloseDesktop.argtypes = [wintypes.HANDLE]
+    user32.CloseDesktop.restype = wintypes.BOOL
+
+    def _nombre(escritorio):
+        largo = wintypes.DWORD()
+        user32.GetUserObjectInformationW(
+            escritorio, _NOMBRE_DE_ESCRITORIO, None, 0, ctypes.byref(largo))
+        if not largo.value:
+            return ""
+        buffer = ctypes.create_unicode_buffer(largo.value)
+        if not user32.GetUserObjectInformationW(
+                escritorio, _NOMBRE_DE_ESCRITORIO,
+                ctypes.cast(buffer, ctypes.c_void_p), ctypes.sizeof(buffer),
+                ctypes.byref(largo)):
+            return ""
+        return buffer.value
+
+    hilo = user32.GetThreadDesktop(kernel32.GetCurrentThreadId())
+    if not hilo:
+        return False
+    entrada = user32.OpenInputDesktop(0, False, _LECTURA_DE_ESCRITORIO)
+    if not entrada:
+        return False
+    try:
+        nombre_hilo = _nombre(hilo)
+        nombre_entrada = _nombre(entrada)
+    finally:
+        user32.CloseDesktop(entrada)
+    return bool(nombre_hilo) and nombre_hilo.casefold() == nombre_entrada.casefold()
+
+
+class TestEscritorioDeEntrada(unittest.TestCase):
+    """La decisión de saltar la captura fuera del escritorio de entrada."""
+
+    def test_ejecuta_las_funciones_de_windows_de_verdad(self):
+        self.assertIsInstance(_escritorio_de_entrada(), bool)
+
+
 class TestCapturaWx(unittest.TestCase):
     """Captura de verdad sobre un `wx.Frame`. Abre ventanas."""
 
@@ -252,6 +319,10 @@ class TestCapturaWx(unittest.TestCase):
             self.assertEqual((ancho, alto), (marco_ancho, marco_alto))
 
     def test_el_centro_tiene_el_color_del_panel(self):
+        if not _escritorio_de_entrada():
+            self.skipTest(
+                "el escritorio del proceso no es el de entrada: "
+                "PrintWindow devuelve negro")
         import tempfile
         with tempfile.TemporaryDirectory() as base:
             destino = Path(base) / "prueba.png"

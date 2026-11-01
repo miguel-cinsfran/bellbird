@@ -86,7 +86,6 @@ class PreferenciasDialog(wx.Dialog):
         self._config = config
         self._ruta = paths.config_ini()
         self._cambios = False
-        self._fallo_guardado = False
         self._pendientes = []
         self.avisos = []
         self._build_ui()
@@ -390,7 +389,6 @@ class PreferenciasDialog(wx.Dialog):
         # Los atajos ya vienen validados desde la captura (área + conflicto), así
         # que aquí solo se guardan; no hace falta revalidar por escritura.
 
-        # Opciones simples: las de la tabla van por el bucle, el resto a mano.
         for atributo, seccion, clave, en_memoria, tipo, _por_defecto in _OPCIONES_SIMPLES:
             control = getattr(self, atributo)
             if tipo is bool:
@@ -448,7 +446,8 @@ class PreferenciasDialog(wx.Dialog):
 
         self.pagina_atajos.guardar(self._set, c)
 
-        self._pendientes.extend(self.pagina_ia._cambios_ia())
+        self._pendientes.extend([*self.pagina_ia._cambios_ia(),
+                                 *self.pagina_general.cambios_canal()])
         if not self.pagina_sonidos.guardar():
             self._fallo_guardado = True
         if not cfg.guardar_opciones(self._ruta, self._pendientes):

@@ -10,7 +10,7 @@ import unittest
 from unittest import mock
 from urllib.error import URLError
 
-from bellbird.core import actualizacion, novedades
+from bellbird.core import actualizacion, canal_app, novedades
 from bellbird.core.config import APP_VERSION
 
 
@@ -79,6 +79,30 @@ class TestJuntarNovedades(unittest.TestCase):
         texto = novedades.juntar_novedades(
             [_publicacion("v3.0.0", "")], "2.0.0", "3.0.0")
         self.assertEqual("## Versión 3.0.0", texto)
+
+    def test_con_betas_las_incluye_y_las_ordena(self):
+        publicaciones = [
+            _publicacion("v3.0.0", "estable"),
+            _publicacion("v3.0.0-beta.10", "diez"),
+            _publicacion("v3.0.0-beta.2", "dos"),
+            _publicacion("v3.0.0-beta.1", "uno"),
+            _publicacion("v3.0.0-beta.3", "borrador", draft=True),
+        ]
+        texto = novedades.juntar_novedades(
+            publicaciones, "2.5.1", "3.0.0", incluir_betas=True)
+        self.assertEqual(["3.0.0", "3.0.0-beta.10", "3.0.0-beta.2",
+                          "3.0.0-beta.1"], _versiones(texto))
+        self.assertIn("diez", texto)
+        self.assertNotIn("borrador", texto)
+
+    def test_sin_betas_por_defecto_las_deja_fuera(self):
+        publicaciones = [
+            _publicacion("v3.0.0", "estable"),
+            _publicacion("v3.0.0-beta.10", "previa", prerelease=True),
+        ]
+        texto = novedades.juntar_novedades(publicaciones, "2.5.1", "3.0.0")
+        self.assertEqual(["3.0.0"], _versiones(texto))
+        self.assertNotIn("previa", texto)
 
     def test_entrada_que_no_es_lista_devuelve_vacio(self):
         self.assertEqual("", novedades.juntar_novedades(None, "2.0.0", "3.0.0"))
@@ -183,6 +207,63 @@ class TestConsultarConNovedades(unittest.TestCase):
                     return_value=self._respuesta(publicaciones)):
             paquete = novedades.consultar_con_novedades()
         self.assertEqual(["3.0.0"], _versiones(paquete.notas))
+
+    def test_canal_beta_ofrece_la_beta_y_sus_novedades(self):
+        publicaciones = [
+            _publicacion("v3.0.0-beta.1", "uno"),
+            _publicacion("v3.0.0-beta.2", "dos"),
+            _publicacion("v2.5.1", "instalada"),
+        ]
+        paquete_beta = self._paquete("v3.0.0-beta.2")
+        with mock.patch.object(
+                canal_app, "canal_guardado", return_value="beta"), \
+                mock.patch.object(
+                    canal_app, "consultar_ultima_beta",
+                    return_value=paquete_beta), \
+                mock.patch.object(
+                    actualizacion, "consultar_ultima_version") as estable, \
+                mock.patch.object(
+                    novedades, "urlopen",
+                    return_value=self._respuesta(publicaciones)):
+            paquete = novedades.consultar_con_novedades()
+        estable.assert_not_called()
+        self.assertEqual("v3.0.0-beta.2", paquete.version)
+        self.assertEqual(["3.0.0-beta.2", "3.0.0-beta.1"],
+                         _versiones(paquete.notas))
+
+    def test_canal_estable_no_consulta_betas(self):
+        publicaciones = [
+            _publicacion("v3.0.0", "estable"),
+            _publicacion("v3.1.0-beta.1", "previa", prerelease=True),
+        ]
+        with mock.patch.object(
+                canal_app, "canal_guardado", return_value="estable"), \
+                mock.patch.object(
+                    canal_app, "consultar_ultima_beta") as beta, \
+                mock.patch.object(
+                    actualizacion, "consultar_ultima_version",
+                    return_value=self._paquete("v3.0.0")), \
+                mock.patch.object(
+                    novedades, "urlopen",
+                    return_value=self._respuesta(publicaciones)):
+            paquete = novedades.consultar_con_novedades()
+        beta.assert_not_called()
+        self.assertEqual("v3.0.0", paquete.version)
+        self.assertEqual(["3.0.0"], _versiones(paquete.notas))
+
+    def test_canal_raro_usa_la_consulta_estable(self):
+        with mock.patch.object(
+                canal_app, "canal_guardado", return_value="raro"), \
+                mock.patch.object(
+                    canal_app, "consultar_ultima_beta") as beta, \
+                mock.patch.object(
+                    actualizacion, "consultar_ultima_version",
+                    return_value=self._paquete("v3.0.0")), \
+                mock.patch.object(
+                    novedades, "urlopen", side_effect=URLError("sin red")):
+            paquete = novedades.consultar_con_novedades()
+        beta.assert_not_called()
+        self.assertEqual("v3.0.0", paquete.version)
 
 
 if __name__ == "__main__":

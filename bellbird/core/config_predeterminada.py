@@ -202,6 +202,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
     ]),
     ("actualizaciones", [
         ("buscar_al_iniciar", "true"),
+        ("canal", "estable"),
     ]),
     ("musica", [
         ("carpeta", "Música"),
@@ -291,7 +292,10 @@ _COMENTARIOS: dict[str, str] = {
         "# Gestor de descargas con yt-dlp. Formato: mp4 | webm | mp3 | m4a.\n"
         "# Bitrate solo para audio. Carpeta portable junto al ejecutable.\n"
     ),
-    "actualizaciones": "# Buscar actualizaciones de la app al iniciar.\n",
+    "actualizaciones": (
+        "# Buscar actualizaciones de la app al iniciar y qué versiones mirar:\n"
+        "# estable (solo estables) o beta (estables y betas).\n"
+    ),
     "musica": (
         "# Música local: carpeta de la biblioteca, orden y opciones de\n"
         "# reproducción. La salida es el identificador de un dispositivo\n"

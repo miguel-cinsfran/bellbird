@@ -357,6 +357,20 @@ class TestCargarConfiguracion(unittest.TestCase):
         cfg = self._cargar_en("[actualizaciones]\nbuscar_al_iniciar = false\n")
         self.assertFalse(cfg["buscar_actualizaciones_al_iniciar"])
 
+    def test_canal_de_actualizaciones_se_agrega_estable(self):
+        self._cargar_en("[actualizaciones]\nbuscar_al_iniciar = false\n")
+        ruta = Path(self._tmp.name) / "config.ini"
+        p = config._mk_parser()
+        p.read(ruta, encoding="utf-8")
+        self.assertEqual(p.get("actualizaciones", "canal"), "estable")
+
+    def test_canal_de_actualizaciones_beta_se_conserva(self):
+        self._cargar_en("[actualizaciones]\ncanal = beta\n")
+        ruta = Path(self._tmp.name) / "config.ini"
+        p = config._mk_parser()
+        p.read(ruta, encoding="utf-8")
+        self.assertEqual(p.get("actualizaciones", "canal"), "beta")
+
     def test_opciones_generales_por_defecto_activadas(self):
         cfg = self._cargar_en(config._CONFIG_FALLBACK)
         self.assertTrue(cfg["confirmar_salida"])

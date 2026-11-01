@@ -12,6 +12,7 @@ import subprocess
 
 import wx
 
+from bellbird.core import canal_app
 from bellbird.core import config
 from bellbird.core import idioma
 from bellbird.core import instancia
@@ -20,6 +21,7 @@ from bellbird.core import preferencias_archivo
 from bellbird.core.idioma import _
 from bellbird.ui.accesibilidad import anunciar
 from bellbird.ui.preferencias_comun import EleccionTexto, crear_panel, fila_label
+from bellbird.ui.tema import _tc
 
 
 # Fila de idioma de `_OPCIONES_SIMPLES` en `gui_preferencias`: misma tabla,
@@ -85,6 +87,7 @@ class PaginaGeneral:
             p, label=_("Buscar &actualizaciones al iniciar"),
             name=_("Buscar actualizaciones al iniciar"))
         vs.Add(self.chk_buscar_actualizaciones, 0, wx.ALL, 10)
+        self._canal_actualizaciones(p, vs)
 
         self.chk_confirmar_salida = wx.CheckBox(
             p, label=_("Preguntar antes de &salir si hay un chat conectado "
@@ -102,6 +105,24 @@ class PaginaGeneral:
             p, label=_("Guardar un registro &detallado para diagnosticar fallos"),
             name=_("Guardar un registro detallado para diagnosticar fallos"))
         vs.Add(self.chk_registro_detallado, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+    def _canal_actualizaciones(self, p, vs):
+        vs.Add(fila_label(p, _("Canal de actuali&zaciones:")),
+               0, wx.LEFT | wx.RIGHT, 10)
+        self.cho_canal_actualizaciones = wx.Choice(
+            p, choices=[_("Estable"), _("Beta")],
+            name=_("Canal de actualizaciones"))
+        _tc(self.cho_canal_actualizaciones)
+        self.cho_canal_actualizaciones.SetSelection(
+            1 if canal_app.canal_guardado() == "beta" else 0)
+        vs.Add(self.cho_canal_actualizaciones, 0,
+               wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+    def cambios_canal(self):
+        """Lo que esta página guarda fuera de la tabla: (sección, clave, valor)."""
+        indice = self.cho_canal_actualizaciones.GetSelection()
+        canal = canal_app.CANALES[indice] if 0 <= indice < 2 else "estable"
+        return [("actualizaciones", "canal", canal)]
 
     def _botones(self, p, vs):
         # Archivo de preferencias: la importación y el restablecimiento piden

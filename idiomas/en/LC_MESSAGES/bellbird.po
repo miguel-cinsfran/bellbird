@@ -8156,7 +8156,7 @@ msgstr "Speed limit in MB/s"
 msgid "Canal de actualización de &yt-dlp:"
 msgstr "&yt-dlp update channel:"
 
-#: bellbird/ui/preferencias_descargas.py
+#: bellbird/ui/preferencias_descargas.py bellbird/ui/preferencias_general.py
 msgid "Estable"
 msgstr "Stable"
 
@@ -8191,6 +8191,18 @@ msgstr "Check for &updates at startup"
 #: bellbird/ui/preferencias_general.py
 msgid "Buscar actualizaciones al iniciar"
 msgstr "Check for updates at startup"
+
+#: bellbird/ui/preferencias_general.py
+msgid "Canal de actuali&zaciones:"
+msgstr "Update c&hannel:"
+
+#: bellbird/ui/preferencias_general.py
+msgid "Beta"
+msgstr "Beta"
+
+#: bellbird/ui/preferencias_general.py
+msgid "Canal de actualizaciones"
+msgstr "Update channel"
 
 #: bellbird/ui/preferencias_general.py
 msgid ""

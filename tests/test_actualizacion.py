@@ -2,6 +2,7 @@
 
 import hashlib
 import http.server
+import itertools
 import json
 import threading
 import unittest
@@ -14,6 +15,7 @@ from tests.pseudo_prueba import con_pseudo
 from bellbird.core import actualizacion
 from bellbird.core import instalador
 from bellbird.core import paths
+from bellbird.core import versiones
 
 
 def _release(zip="App-2.3.0.zip", etiqueta="2.3.0", cuerpo="novedades",
@@ -51,6 +53,34 @@ class TestVersiones(unittest.TestCase):
                 self.assertIsNone(actualizacion.version_como_tupla(basura))
                 self.assertFalse(actualizacion.hay_version_nueva(basura, "2.3.0"))
                 self.assertFalse(actualizacion.hay_version_nueva("2.3.0", basura))
+
+    def test_beta_con_y_sin_v(self):
+        self.assertEqual(actualizacion.version_como_tupla("3.0.0-beta.1"),
+                         (3, 0, 0, -1, 1))
+        self.assertEqual(actualizacion.version_como_tupla("v3.0.0-beta.1"),
+                         (3, 0, 0, -1, 1))
+        self.assertEqual(actualizacion.version_como_tupla("3.0-beta.10"),
+                         (3, 0, 0, -1, 10))
+
+    def test_otros_sufijos_siguen_dando_none(self):
+        for basura in ("3.0.0-rc.1", "3.0.0-beta", "3.0.0-beta.",
+                       "3.0.0-beta.x", "3.0.0-beta.1.2", "3.0.0-alpha.1",
+                       "3.0.0+build.1"):
+            with self.subTest(basura=basura):
+                self.assertIsNone(actualizacion.version_como_tupla(basura))
+
+    def test_orden_de_estables_y_betas_en_todos_los_pares(self):
+        lista = ["2.5.1", "3.0.0-beta.1", "3.0.0-beta.2",
+                 "3.0.0-beta.10", "3.0.0", "3.0.1"]
+        for menor, mayor in itertools.combinations(lista, 2):
+            with self.subTest(menor=menor, mayor=mayor):
+                clave_menor = versiones.orden_version(
+                    versiones.version_como_tupla(menor))
+                clave_mayor = versiones.orden_version(
+                    versiones.version_como_tupla(mayor))
+                self.assertLess(clave_menor, clave_mayor)
+                self.assertTrue(actualizacion.hay_version_nueva(menor, mayor))
+                self.assertFalse(actualizacion.hay_version_nueva(mayor, menor))
 
 
 CUERPO_221 = (

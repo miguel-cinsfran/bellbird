@@ -274,6 +274,7 @@ INTERNAS = {
 
 # Pares que se leen fuera de `config.py`: dónde se lee cada uno.
 LEIDAS_FUERA = {
+    ("actualizaciones", "canal"): "la lee canal_app.canal_guardado (canal_app.py)",
     ("ia", "direccion"): "la lee ajustes_ia.leer (ajustes_ia.py:94)",
     ("ia", "largo"): "la lee ajustes_ia.leer (ajustes_ia.py:96)",
     ("ia", "modelo"): "la lee ajustes_ia.leer (ajustes_ia.py:93)",
@@ -347,11 +348,24 @@ def _filas_de_tabla(nodo, tablas):
     return []
 
 
+def _pares_de_cambio(nodo):
+    """Pares (sección, clave) de un `return [(sección, clave, valor), ...]`."""
+    if not isinstance(nodo, ast.List):
+        return []
+    pares = []
+    for elemento in nodo.elts:
+        if (isinstance(elemento, ast.Tuple) and len(elemento.elts) >= 3
+                and _es_texto(elemento.elts[0])
+                and _es_texto(elemento.elts[1])):
+            pares.append((elemento.elts[0].value, elemento.elts[1].value))
+    return pares
+
+
 def _pares_con_control():
     """Pares con control en Preferencias: tablas `_OPCIONES_SIMPLES`,
     `OPCIONES_GENERAL`, `OPCIONES_MUSICA`, `OPCIONES_LECTURA` y
-    `OPCIONES_IA`, más llamadas literales `self._set(...)`, `fijar(...)` y
-    `guardar_opcion(...)` de esos archivos."""
+    `OPCIONES_IA`, más llamadas literales `self._set(...)`, `fijar(...)`,
+    `guardar_opcion(...)` y las devoluciones de las páginas con `cambios()`."""
     con_control = set()
     tablas = {}
     arboles = {rel: _arbol(rel) for rel in (
@@ -392,6 +406,13 @@ def _pares_con_control():
                     and len(nodo.args) >= 3
                     and _es_texto(nodo.args[1]) and _es_texto(nodo.args[2])):
                 con_control.add((nodo.args[1].value, nodo.args[2].value))
+    for arbol in arboles.values():
+        for nodo in ast.walk(arbol):
+            if (isinstance(nodo, ast.FunctionDef)
+                    and nodo.name.startswith("cambios")):
+                for hijo in ast.walk(nodo):
+                    if isinstance(hijo, ast.Return) and hijo.value is not None:
+                        con_control.update(_pares_de_cambio(hijo.value))
     return con_control
 
 

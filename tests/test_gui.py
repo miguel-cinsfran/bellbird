@@ -1912,6 +1912,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("reconexion", "espera_entre_intentos"),
             ("reconexion", "max_intentos"),
             ("actualizaciones", "buscar_al_iniciar"),
+            ("actualizaciones", "canal"),
             ("ui", "confirmar_salida"),
             ("ui", "sonido_inicio"),
             ("ui", "idioma"),
@@ -2018,6 +2019,7 @@ class TestCategoriasDePreferenciasSoloLectura(unittest.TestCase):
         dialogo = self.dialogo
         for nombre, pagina in (
                 ("Buscar actualizaciones al iniciar", "PagGeneral"),
+                ("Canal de actualizaciones", "PagGeneral"),
                 ("Preguntar antes de salir si hay un chat conectado "
                  "o una transmisión en curso", "PagGeneral"),
                 ("Reproducir sonido de inicio", "PagGeneral"),
@@ -3596,7 +3598,8 @@ class TestPreferenciasArchivoBotones(unittest.TestCase):
         hijos = pagina.GetChildren()
         self.assertEqual(
             [type(h).__name__ for h in hijos],
-            ["StaticText", "EleccionTexto"] + ["CheckBox"] * 4 + ["Button"] * 4)
+            ["StaticText", "EleccionTexto", "CheckBox", "StaticText",
+             "Choice"] + ["CheckBox"] * 3 + ["Button"] * 4)
         self.assertEqual(
             [h.GetName() for h in hijos if isinstance(h, gui.wx.Button)],
             ["Abrir carpeta de datos",

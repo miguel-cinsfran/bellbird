@@ -14,6 +14,7 @@ from unittest import mock
 from bellbird.core import config
 from bellbird.core import idioma
 from bellbird.ui import gui, gui_preferencias, preferencias_general
+from bellbird.ui import preferencias_transmision
 from bellbird.voice import motores
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.rutas_temporales import redirigir_rutas
@@ -55,6 +56,63 @@ class TestGeneralSinTextosSinEnvolver(unittest.TestCase):
         esperados = [nombre for _valor, nombre in idioma.idiomas_disponibles()
                      if nombre in idioma.NOMBRES_IDIOMA.values()]
         self.assertEqual(sorted(sin_marcar), sorted(esperados))
+
+
+class TestCanalDeActualizaciones(unittest.TestCase):
+    """Cuadro combinado Estable o Beta de la página General.
+
+    Abre ventanas.
+    """
+
+    def setUp(self):
+        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.ruta = Path(self.tmp.name)
+        (self.ruta / "config.ini").write_text(config._CONFIG_FALLBACK,
+                                              encoding="utf-8")
+        parche = redirigir_rutas(self.ruta)
+        parche.__enter__()
+        self.addCleanup(parche.__exit__, None, None, None)
+
+    def _dialogo(self, configuracion=None):
+        with mock.patch.object(motores, "listar_voces",
+                               return_value=["Voz de prueba"]):
+            dialogo = gui_preferencias.PreferenciasDialog(
+                None, configuracion or {})
+        self.addCleanup(destruir, dialogo)
+        return dialogo
+
+    def test_es_un_cuadro_combinado_con_estable_y_beta(self):
+        dialogo = self._dialogo()
+        control = dialogo.pagina_general.cho_canal_actualizaciones
+        self.assertIsInstance(control, gui.wx.Choice)
+        self.assertEqual(control.GetName(), "Canal de actualizaciones")
+        self.assertEqual(
+            [control.GetString(i) for i in range(control.GetCount())],
+            ["Estable", "Beta"])
+        self.assertEqual(control.GetSelection(), 0)
+
+    def test_canal_guardado_beta_se_muestra(self):
+        (self.ruta / "config.ini").write_text(
+            "[actualizaciones]\ncanal = beta\n", encoding="utf-8")
+        dialogo = self._dialogo()
+        self.assertEqual(dialogo.pagina_general.cho_canal_actualizaciones.GetSelection(), 1)
+
+    def test_guardar_escribe_el_canal_elegido(self):
+        dialogo = self._dialogo()
+        dialogo.pagina_general.cho_canal_actualizaciones.SetSelection(1)
+        with mock.patch.object(gui_preferencias.cfg, "guardar_opciones",
+                               return_value=True) as guardar, \
+                mock.patch.object(gui_preferencias.cfg,
+                                  "guardar_opciones_descarga"), \
+                mock.patch.object(gui_preferencias._snd, "reproducir"), \
+                mock.patch.object(preferencias_transmision, "anunciar"), \
+                mock.patch.object(dialogo, "EndModal"):
+            dialogo._on_guardar(None)
+        escritos = {(seccion, clave): valor
+                    for seccion, clave, valor in guardar.call_args.args[1]}
+        self.assertEqual(escritos.get(("actualizaciones", "canal")), "beta")
 
 
 class _CuadroFalso:

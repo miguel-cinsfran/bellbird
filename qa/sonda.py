@@ -330,10 +330,6 @@ def _iterar(ventana):
 # captura de la pantalla física. `ImageGrab` o `mss` no sirven acá.
 PW_RENDERFULLCONTENT = 2
 
-# Tope para esperar el pintado antes de capturar. Un repintado normal tarda
-# milisegundos; el tope cubre una PC cargada sin colgar la captura.
-TOPE_PINTADO_S = 10.0
-
 
 def _todos_los_libros(ventana):
     """Cada cuaderno de pestañas que cuelgue de esta ventana.
@@ -440,54 +436,32 @@ def _dibujar_ventana_a_rgb(ventana):
     return ancho, alto, rgb
 
 
-def _pintura_pendiente(ventana) -> bool:
-    """Si la ventana o algún hijo visible tiene una región por pintar."""
-    import ctypes
-    from ctypes import wintypes
-    user32 = ctypes.windll.user32
-    user32.GetUpdateRect.argtypes = [
-        wintypes.HWND, ctypes.POINTER(wintypes.RECT), wintypes.BOOL]
-    user32.GetUpdateRect.restype = wintypes.BOOL
-    for v in _iterar(ventana):
-        try:
-            if not v.IsShownOnScreen():
-                continue
-            hwnd = v.GetHandle()
-        except Exception:
-            continue
-        if not hwnd:
-            continue
-        rect = wintypes.RECT()
-        if user32.GetUpdateRect(hwnd, ctypes.byref(rect), False):
-            return True
-    return False
-
-
 def _dejar_pintar(ventana) -> None:
-    """Espera a que la ventana se pinte, con un tope de tiempo.
+    """Deja que la ventana se pinte antes de capturarla.
 
-    Refresca y actualiza la ventana y sus hijos visibles mientras quede
-    alguna región por pintar. Una espera fija se quedaba corta en una PC
-    cargada y la captura salía negra.
+    Cede el bucle durante 400 ms: rondas de `SafeYield()` y `Update()`
+    con `time.sleep(0.01)` entre ellas. Sin la espera real la captura
+    sale en negro porque el pintado no alcanza a llegar.
     """
     import wx
     try:
         ventana.Refresh()
     except Exception:
         pass
+    try:
+        ventana.Update()
+    except Exception:
+        pass
     inicio = time.monotonic()
-    while time.monotonic() - inicio < TOPE_PINTADO_S:
+    while time.monotonic() - inicio < 0.4:
         try:
             wx.SafeYield()
         except Exception:
             break
-        for v in _iterar(ventana):
-            try:
-                v.Update()
-            except Exception:
-                pass
-        if not _pintura_pendiente(ventana):
-            return
+        try:
+            ventana.Update()
+        except Exception:
+            pass
         time.sleep(0.01)
 
 

@@ -400,6 +400,10 @@ la carpeta al terminar la cola*, en *Preferencias, Descargas*, la app hace una
 sola pregunta cuando termina toda la cola, si algo se descargó bien. Viene
 desmarcada, porque la pregunta se lleva el foco.
 
+En el buscador, Espacio pone el resultado a sonar en la música sin
+descargarlo: corta solo la canción actual y queda en la cola como una más.
+Otra vez Espacio lo pausa.
+
 **Historial de directos** (`Ctrl+Mayús+H`): lo que viste, con una pestaña
 para YouTube y otra para TikTok. Los directos terminados salen marcados.
 

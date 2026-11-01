@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md 2f0b4c1888480bf0099ce42c02d42513f154bba1 -->
+<!-- original: es/MANUAL.md 77cf5ba9c2e1219ec33921ba98c2110cad85bb8e -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -400,6 +400,10 @@ Enter on a finished download opens the file. With *Ask whether to open the
 folder when the queue finishes*, in *Preferences, Downloads*, the app asks one
 question when the whole queue finishes, if something downloaded correctly. It
 is unchecked, because the question takes the focus.
+
+In the search, Spacebar plays the result in the music player without
+downloading it. It cuts only the current song and stays in the queue like any
+other. Spacebar again pauses it.
 
 **Live stream history** (`Ctrl+Shift+H`): what you watched, with one tab
 for YouTube and another for TikTok. Ended live streams are marked.

@@ -118,8 +118,9 @@ Paraguay.
   «En cola» con el título. Intro sobre una lista o un canal muestra sus
   vídeos. Retroceso vuelve a los resultados, y *Agregar lista entera* la
   descarga completa.
-- Espacio escucha el resultado sin descargarlo, y otra vez Espacio lo
-  pausa. Si sonaba la música, se pausa mientras escuchas y después vuelve.
+- Espacio pone el resultado a sonar en la música, sin descargarlo: corta
+  solo la canción actual y queda en la cola como una más. Otra vez Espacio
+  lo pausa.
 - El menú contextual de un resultado permite agregarlo a la cola,
   escucharlo, descargarlo como audio o como vídeo sin cambiar el formato
   elegido, abrirlo en Bellbird, agregarlo a la música, ver su contenido,

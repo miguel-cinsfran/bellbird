@@ -1,4 +1,4 @@
-<!-- original: es/CHANGELOG.md 52e322a63581da93d420efcdafbbb208dfa607ed -->
+<!-- original: es/CHANGELOG.md 90375a170448252613e17e4d918ab9768d314286 -->
 # What's new in Bellbird
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/CHANGELOG.md).
@@ -120,9 +120,9 @@ Paraguay.
   “Queued” with the title. Enter on a playlist or a channel shows its
   videos. Backspace returns to the results, and *Add whole playlist*
   downloads it completely.
-- Spacebar listens to the result without downloading it, and Spacebar again
-  pauses it. If music was playing, it pauses while you listen and then
-  returns.
+- Spacebar plays the result in the music player, without downloading it. It
+  cuts only the current song and stays in the queue like any other. Spacebar
+  again pauses it.
 - The context menu of a result lets you add it to the queue, listen to it,
   download it as audio or as video without changing the chosen format,
   open it in Bellbird, add it to the music, view its contents, copy the

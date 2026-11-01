@@ -11,6 +11,7 @@ import wx
 
 from bellbird.core import diagnostico
 from bellbird.core.idioma import N_, _
+from bellbird.music.modelo import Tema
 from bellbird.ui.accesibilidad import anunciar
 from bellbird.voice import sound_player as _snd
 
@@ -65,8 +66,7 @@ class EscuchaBuscador:
     def alternar(self, resultado) -> None:
         """Escucha ese resultado, o pausa o reanuda si ya es el que suena.
 
-        Mientras la dirección se está leyendo, otro pedido igual no la agrega
-        dos veces.
+        Arma el tema con lo que el resultado ya trae, sin leer el enlace.
         """
         if not _escuchable(resultado) or self._musica is None:
             self._sonar("error")
@@ -75,9 +75,8 @@ class EscuchaBuscador:
         if self._musica.suena_enlace(resultado.url):
             self._musica.reproducir_o_pausar()
             return
-        if self._musica.leyendo_enlace(resultado.url):
-            return
-        self._musica.abrir_enlace(resultado.url, "ahora")
+        titulo = getattr(resultado, "titulo", "") or resultado.url
+        self._musica.reproducir_ahora((Tema(resultado.url, titulo),))
 
     def al_teclear(self, event, lista, resultados) -> bool:
         """Espacio sobre la lista: escucha la fila enfocada. Dice si la usó.

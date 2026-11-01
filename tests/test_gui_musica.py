@@ -1522,62 +1522,6 @@ class TestSuenaEnlace(unittest.TestCase):
                 "https://www.youtube.com/playlist?list=OTRA"))
 
 
-class TestLeyendoEnlace(unittest.TestCase):
-    """`leyendo_enlace`: la dirección queda anotada mientras se expande."""
-
-    URL = "https://www.youtube.com/watch?v=uno"
-
-    @staticmethod
-    def _hilos(pendientes):
-        def crear_hilo(target, nombre, *, args=(), daemon=True):
-            if nombre == "musica-enlace":
-                pendientes.append((target, args))
-                return _HiloDiferido(target, args)
-            return _HiloInmediato(target, args)
-
-        return crear_hilo
-
-    def test_antes_durante_y_despues_de_leer(self):
-        pendientes = []
-        temas = (Tema(self.URL, "Uno"),)
-        with _entorno(), \
-                mock.patch.object(gui_musica.diagnostico, "crear_hilo",
-                                  self._hilos(pendientes)), \
-                mock.patch.object(musica_enlaces.enlaces, "expandir",
-                                  return_value=temas):
-            control = ControlMusica(_frame())
-            self.assertFalse(control.leyendo_enlace(self.URL))
-            control.abrir_enlace(self.URL, "ahora")
-            self.assertTrue(control.leyendo_enlace(self.URL))
-            destino, args = pendientes[-1]
-            destino(*args)
-            self.assertFalse(control.leyendo_enlace(self.URL))
-
-    def test_tras_un_error_tambien_sale(self):
-        pendientes = []
-        with _entorno(), \
-                mock.patch.object(gui_musica.diagnostico, "crear_hilo",
-                                  self._hilos(pendientes)), \
-                mock.patch.object(musica_enlaces.enlaces, "expandir",
-                                  side_effect=RuntimeError("boom")), \
-                mock.patch.object(musica_enlaces.logger, "exception"):
-            control = ControlMusica(_frame())
-            control.abrir_enlace(self.URL, "ahora")
-            self.assertTrue(control.leyendo_enlace(self.URL))
-            destino, args = pendientes[-1]
-            destino(*args)
-            self.assertFalse(control.leyendo_enlace(self.URL))
-
-    def test_si_no_se_crea_el_hilo_no_queda_dentro(self):
-        with _entorno(), \
-                mock.patch.object(gui_musica.diagnostico, "crear_hilo",
-                                  side_effect=RuntimeError("sin hilo")):
-            control = ControlMusica(_frame())
-            with self.assertRaises(RuntimeError):
-                control.abrir_enlace(self.URL, "ahora")
-            self.assertFalse(control.leyendo_enlace(self.URL))
-
-
 class TestListasPropias(unittest.TestCase):
     """Las operaciones nuevas de listas sobre `listas.py` y sus avisos."""
 

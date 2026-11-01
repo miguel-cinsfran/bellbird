@@ -9,6 +9,7 @@ from unittest import mock
 from bellbird.downloads import descargas
 from bellbird.downloads import busqueda_youtube
 from bellbird.downloads import filas_descargas
+from bellbird.music.modelo import Tema
 from bellbird.ui import barra_progreso, descargas_acciones, descargas_buscador, descargas_listas, gui_descargas
 from bellbird.ui import tema as _tema
 from bellbird.ui import buscador_acciones, buscador_escucha
@@ -1760,24 +1761,20 @@ class TestMenuYVistaBuscador(unittest.TestCase):
 class _MusicaFalsa:
     """Doble del control de música: anota lo que el buscador le pide."""
 
-    def __init__(self, suena=False, leyendo=False):
+    def __init__(self, suena=False):
         self.suena = suena
-        self.leyendo = leyendo
-        self.abiertos = []
+        self.reproducidos = []
+        self.agregados = []
         self.pausas = 0
 
     def suena_enlace(self, url):
         return self.suena
 
-    def leyendo_enlace(self, url):
-        return self.leyendo
-
-    def abrir_enlace(self, url, modo="final"):
-        self.abiertos.append((url, modo))
-        self.leyendo = True
+    def reproducir_ahora(self, temas):
+        self.reproducidos.append(tuple(temas))
 
     def agregar_enlace(self, url):
-        self.abiertos.append((url, "final"))
+        self.agregados.append(url)
 
     def reproducir_o_pausar(self):
         self.pausas += 1
@@ -1826,11 +1823,12 @@ class TestEscuchaPrevia(TestMenuYVistaBuscador):
             musica=musica if musica is not None else _MusicaFalsa())
         return dialogo, self._pagina_buscada(dialogo, items)
 
-    def test_p1_espacio_abre_en_la_musica_con_ahora(self):
+    def test_p1_espacio_reproduce_el_tema_sin_leer_el_enlace(self):
         musica = _MusicaFalsa()
         resultado = _resultado_busqueda("v")
         self.assertTrue(self._teclear(resultado, musica))
-        self.assertEqual(musica.abiertos, [(resultado.url, "ahora")])
+        self.assertEqual(musica.reproducidos,
+                         [(Tema(resultado.url, resultado.titulo),)])
         self.assertEqual(musica.pausas, 0)
 
     def test_p2_el_mismo_video_pausa_o_reanuda(self):
@@ -1838,14 +1836,7 @@ class TestEscuchaPrevia(TestMenuYVistaBuscador):
         resultado = _resultado_busqueda("v")
         self.assertTrue(self._teclear(resultado, musica))
         self.assertEqual(musica.pausas, 1)
-        self.assertEqual(musica.abiertos, [])
-
-    def test_p3_mientras_se_lee_no_lo_agrega_dos_veces(self):
-        musica = _MusicaFalsa()
-        resultado = _resultado_busqueda("v")
-        self._teclear(resultado, musica)
-        self._teclear(resultado, musica)
-        self.assertEqual(musica.abiertos, [(resultado.url, "ahora")])
+        self.assertEqual(musica.reproducidos, [])
 
     def test_p4_no_escuchable_o_sin_musica_avisa_con_error(self):
         anunciar, sonido = self._espias()
@@ -1864,7 +1855,7 @@ class TestEscuchaPrevia(TestMenuYVistaBuscador):
                     "Este resultado no se puede escuchar.")
                 sonido.assert_called_once_with("error")
                 if musica is not None:
-                    self.assertEqual(musica.abiertos, [])
+                    self.assertEqual(musica.reproducidos, [])
                     self.assertEqual(musica.pausas, 0)
                 anunciar.reset_mock()
                 sonido.reset_mock()
@@ -1890,7 +1881,9 @@ class TestEscuchaPrevia(TestMenuYVistaBuscador):
             pagina._vista.volver()
         dialogo._soltar()
         dialogo.Hide()
-        self.assertEqual(musica.abiertos, [(items[0].url, "ahora")])
+        self.assertEqual(
+            musica.reproducidos,
+            [(Tema(items[0].url, items[0].titulo),)])
         self.assertEqual(musica.pausas, 0)
 
     def test_p6_modificadores_dejan_pasar_y_sin_fila_avisa(self):
@@ -1902,7 +1895,7 @@ class TestEscuchaPrevia(TestMenuYVistaBuscador):
                 evento = self._evento_espacio(**{modificador: True})
                 self.assertFalse(buscador.al_teclear(
                     evento, _ListaFalsa(0), [resultado]))
-                self.assertEqual(musica.abiertos, [])
+                self.assertEqual(musica.reproducidos, [])
         anunciar, sonido = self._espias()
         buscador = buscador_escucha.EscuchaBuscador(musica)
         self.assertTrue(buscador.al_teclear(
@@ -1920,7 +1913,9 @@ class TestEscuchaPrevia(TestMenuYVistaBuscador):
         self.assertTrue(pagina._escucha.al_teclear(
             self._evento_espacio(), pagina.lista, pagina._resultados))
         self.assertIs(wx.Window.FindFocus(), pagina.lista)
-        self.assertEqual(musica.abiertos, [(items[0].url, "ahora")])
+        self.assertEqual(
+            musica.reproducidos,
+            [(Tema(items[0].url, items[0].titulo),)])
         dialogo.Hide()
 
     def test_el_menu_escuchar_llega_a_alternar(self):

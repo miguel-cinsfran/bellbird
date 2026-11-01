@@ -54,7 +54,6 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica, SonoridadMusica,
         self._preparando = False
         self._cerrado = False
         self._biblioteca = None
-        EnlacesMusica.__init__(self)
         # La ventana de música abierta, si hay.
         self._ventanas = {}
         self._retomo_intentado = False

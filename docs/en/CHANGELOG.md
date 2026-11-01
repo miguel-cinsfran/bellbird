@@ -1,4 +1,4 @@
-<!-- original: es/CHANGELOG.md 90375a170448252613e17e4d918ab9768d314286 -->
+<!-- original: es/CHANGELOG.md d018beaa2c8181ab2ea5b79019ba741803cf84f0 -->
 # What's new in Bellbird
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/CHANGELOG.md).
@@ -73,8 +73,11 @@ Paraguay.
   (`Alt+N`) with the last ten live streams and videos, from YouTube and
   TikTok. Enter opens one, `Delete` removes it from the history, and its
   context menu offers to open it, remove it or open the full history.
+- With sound only, a long video jumps in under a second. When the audio
+  track is larger than 10 MB, another source is used, with somewhat lower
+  sound quality.
 - *Play sound only, without the picture* is checked by default. With it, a
-  recorded video jumps in less than half a second. With the check box
+  recorded video jumps in less than a second. With the check box
   cleared you see the picture, and each jump takes a few seconds. If you
   had already changed it, your choice is kept. A live stream behaves as
   before.
@@ -123,6 +126,9 @@ Paraguay.
 - Spacebar plays the result in the music player, without downloading it. It
   cuts only the current song and stays in the queue like any other. Spacebar
   again pauses it.
+- *Open in Bellbird* leaves the sound free for the player. If the result is
+  the song that is playing, the music stops and the song leaves the queue. If
+  another song is playing, it pauses.
 - The context menu of a result lets you add it to the queue, listen to it,
   download it as audio or as video without changing the chosen format,
   open it in Bellbird, add it to the music, view its contents, copy the

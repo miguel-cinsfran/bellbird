@@ -70,8 +70,11 @@ Paraguay.
   con los diez últimos directos y vídeos, de YouTube y TikTok. Intro abre
   uno, `Supr` lo elimina del historial y su menú contextual ofrece abrirlo,
   eliminarlo o abrir el historial completo.
+- Con solo el audio, un vídeo largo salta en menos de un segundo. Cuando la
+  pista de audio pasa de 10 MB se usa otra fuente, con algo menos de calidad
+  de sonido.
 - *Reproducir solo el audio, sin imagen* viene marcada de fábrica. Con ella,
-  un vídeo grabado salta en menos de medio segundo.
+  un vídeo grabado salta en menos de un segundo.
   Con la casilla desmarcada se ve la imagen, y cada salto tarda unos segundos.
   Si ya la habías cambiado, se conserva lo que elegiste. En un directo se
   comporta como antes.
@@ -121,6 +124,9 @@ Paraguay.
 - Espacio pone el resultado a sonar en la música, sin descargarlo: corta
   solo la canción actual y queda en la cola como una más. Otra vez Espacio
   lo pausa.
+- *Abrir en Bellbird* deja el sonido libre para el reproductor. Si el
+  resultado es la canción que suena, la música se detiene y la canción sale
+  de la cola. Si suena otra, queda en pausa.
 - El menú contextual de un resultado permite agregarlo a la cola,
   escucharlo, descargarlo como audio o como vídeo sin cambiar el formato
   elegido, abrirlo en Bellbird, agregarlo a la música, ver su contenido,

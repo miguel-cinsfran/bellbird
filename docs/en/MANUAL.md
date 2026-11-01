@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md 77cf5ba9c2e1219ec33921ba98c2110cad85bb8e -->
+<!-- original: es/MANUAL.md 08917255a3a8442425c2772f285d7c950bbec4e9 -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -148,8 +148,9 @@ back up to an hour. `Ctrl+End` returns to the live stream. In a video, the
 position slider arrows move ten seconds.
 
 *Play sound only, without the picture*, in *Preferences, Player*, is checked.
-With it, a recorded video opens a single audio link and jumps in less than
-half a second, and the quality is not used. Cleared, you see the picture and
+With it, a recorded video opens a single link and jumps in less than a
+second, and the quality is not used. If the audio track is larger than 10 MB,
+that link has somewhat lower sound quality. Cleared, you see the picture and
 each jump takes a few seconds. In a live stream the way of connecting does not
 change: only the picture stops showing.
 

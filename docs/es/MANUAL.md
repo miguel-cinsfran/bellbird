@@ -147,8 +147,9 @@ se puede retroceder hasta una hora. `Ctrl+Fin` vuelve al directo. En un
 vídeo, las flechas del deslizador de posición mueven diez segundos.
 
 *Reproducir solo el audio, sin imagen*, en *Preferencias, Reproductor*, viene
-marcada. Con ella, un vídeo grabado abre un solo enlace de audio y salta en
-menos de medio segundo, y la calidad no se usa. Desmarcada, se ve la imagen y
+marcada. Con ella, un vídeo grabado abre un solo enlace y salta en menos de
+un segundo, y la calidad no se usa. Si la pista de audio pasa de 10 MB, ese
+enlace tiene algo menos de calidad de sonido. Desmarcada, se ve la imagen y
 cada salto tarda unos segundos. En un directo no cambia la forma de conectar:
 solo deja de mostrarse la imagen.
 

@@ -84,3 +84,15 @@ def frase_resultado(accion) -> str:
         "grabacion_reanudada": N_("Grabación reanudada"),
         "escena_cambiada": N_("Escena puesta al aire"),
     }[accion])
+
+
+def sonido_resultado(accion) -> str:
+    """Sonido propio de cada resultado de transmisión y grabación."""
+    return {
+        "transmision_iniciada": "al_aire",
+        "transmision_detenida": "transmision_detenida",
+        "grabacion_iniciada": "grabacion_iniciada",
+        "grabacion_detenida": "grabacion_detenida",
+        "grabacion_en_pausa": "grabacion_en_pausa",
+        "grabacion_reanudada": "grabacion_reanudada",
+    }[accion]

@@ -1910,6 +1910,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("diagnostico", "registro_detallado"),
             ("overlay", "puerto"), ("obs", "microfono"),
             ("transmision", "avisar_sobrecarga"),
+            ("transmision", "titulo_estado_obs"),
             ("transmision", "avisar_encuadre"),
             ("transmision", "camara_fuente"),
             ("transmision", "camara_invertir"),

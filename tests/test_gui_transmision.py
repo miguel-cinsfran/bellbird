@@ -723,6 +723,35 @@ class TestTransmisionDialog(unittest.TestCase):
         self.assertEqual(self.anuncios[-3:], ["Transmisión iniciada", "Grabación iniciada",
                                                "Grabación en pausa"])
 
+    def test_cada_resultado_reproduce_su_sonido_y_anuncia_la_frase(self):
+        with mock.patch.object(gui_transmision.sound_player,
+                               "reproducir") as reproducir:
+            self.dialogo._transmision_alternada(True)
+            self.dialogo._transmision_alternada(False)
+            self.dialogo._grabacion_alternada(True)
+            self.dialogo._grabacion_alternada(False)
+            self.dialogo._pausa_grabacion_alternada(True)
+            self.dialogo._pausa_grabacion_alternada(False)
+        self.assertEqual([llamada.args[0]
+                          for llamada in reproducir.call_args_list], [
+            "al_aire", "transmision_detenida", "grabacion_iniciada",
+            "grabacion_detenida", "grabacion_en_pausa", "grabacion_reanudada"])
+        self.assertEqual(self.anuncios[-6:], [
+            "Transmisión iniciada", "Transmisión detenida",
+            "Grabación iniciada", "Grabación detenida",
+            "Grabación en pausa", "Grabación reanudada"])
+
+    def test_el_sonido_suena_antes_del_anuncio(self):
+        orden = []
+        with mock.patch.object(
+                gui_transmision.sound_player, "reproducir",
+                side_effect=lambda evento: orden.append(("sonido", evento))), \
+                mock.patch.object(
+                    gui_transmision, "anunciar",
+                    side_effect=lambda frase, *a: orden.append(("frase", frase))):
+            self.dialogo._grabacion_alternada(True)
+        self.assertEqual([paso[0] for paso in orden], ["sonido", "frase"])
+
     def test_actualizar_estado_cambia_etiquetas_nombres_y_pausa(self):
         self.gestor.transmitiendo = True
         self.gestor.grabando = True

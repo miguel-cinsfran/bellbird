@@ -57,6 +57,7 @@ from bellbird.ui.confirmar_salida import (
     descargas_sin_terminar, mensaje_confirmar_salida, mensaje_con_descargas)
 from bellbird.ui.gui_redactar import PanelRedactar
 from bellbird.ui import paleta
+from bellbird.ui import titulo_ventana
 from bellbird.ui.sesion_conectada import SesionConectada
 
 # Mapeo entre índice de FILTROS y clave persistida en config.ini.
@@ -836,7 +837,8 @@ class YTChatFrame(wx.Frame):
 
     def _actualizar_vigilante_obs(self):
         activos = set(self._config.get("estado_toggles") or ())
-        if _OBS_COMPONENTES.intersection(activos):
+        con_titulo = bool(self._config.get("titulo_estado_obs", False))
+        if con_titulo or _OBS_COMPONENTES.intersection(activos):
             if self._obs_vigilante is None:
                 self._obs_vigilante = obs_vigilante.VigilanteObs()
                 self._obs_vigilante.iniciar()
@@ -1327,6 +1329,8 @@ class YTChatFrame(wx.Frame):
             except Exception as error: logger.debug("no se pudo enviar lo programado: %s", error)
             try:    self._avisar_descartes()
             except Exception as error: logger.debug("no se pudo avisar descartes: %s", error)
+            try:    titulo_ventana.aplicar(self)
+            except Exception as error: logger.debug("no se pudo actualizar el título: %s", error)
 
     def _avisar_descartes(self) -> None:
         if descartes.hay_que_avisar(self._stats.descartados, self.sesion.descartes_avisado):
@@ -1586,13 +1590,7 @@ class YTChatFrame(wx.Frame):
         if not self._alive:
             return
         self._titulo_stream = (titulo or "").strip()
-        if self._titulo_stream:
-            # Formato tipo navegador: «Nombre del vídeo — Bellbird».
-            # Traductores: {titulo} es el vídeo y {app} la app.
-            self.SetTitle(_("{titulo} — {app}").format(titulo=self._titulo_stream, app=APP_NAME))
-        else:
-            # Traductores: título de la ventana: nombre de la app y versión.
-            self.SetTitle(_("{app} v{version}").format(app=APP_NAME, version=APP_VERSION))
+        titulo_ventana.aplicar(self)
 
     def auto_conectar(self) -> None:
         self._on_conectar(None)

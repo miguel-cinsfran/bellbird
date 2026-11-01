@@ -68,6 +68,18 @@ class FrasesObsTest(unittest.TestCase):
         self.assertEqual({accion: obs_estado.frase_resultado(accion)
                           for accion in esperadas}, esperadas)
 
+    def test_sonidos_de_resultado_para_las_seis_acciones(self):
+        esperados = {
+            "transmision_iniciada": "al_aire",
+            "transmision_detenida": "transmision_detenida",
+            "grabacion_iniciada": "grabacion_iniciada",
+            "grabacion_detenida": "grabacion_detenida",
+            "grabacion_en_pausa": "grabacion_en_pausa",
+            "grabacion_reanudada": "grabacion_reanudada",
+        }
+        self.assertEqual({accion: obs_estado.sonido_resultado(accion)
+                          for accion in esperados}, esperados)
+
 
 class TestPseudoEstado(unittest.TestCase):
     """Pseudotraducción de los textos de `obs_estado`.

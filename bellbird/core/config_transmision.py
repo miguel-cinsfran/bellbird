@@ -22,6 +22,7 @@ def opciones_transmision(p) -> dict:
     return {
         "transmision_destino": destino,
         "avisar_sobrecarga": leer_booleano(p, "transmision", "avisar_sobrecarga"),
+        "titulo_estado_obs": leer_booleano(p, "transmision", "titulo_estado_obs"),
         "grabar_al_transmitir": leer_booleano(p, "transmision", "grabar_al_transmitir"),
         "avisar_encuadre": leer_booleano(p, "transmision", "avisar_encuadre"),
         "camara_fuente": leer_texto(p, "transmision", "camara_fuente"),

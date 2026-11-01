@@ -590,6 +590,7 @@ class TransmisionDialog(wx.Dialog):
     def _transmision_alternada(self, activa):
         self._mostrar_transmision(activa)
         accion = "transmision_iniciada" if activa else "transmision_detenida"
+        sound_player.reproducir(obs_estado.sonido_resultado(accion))
         anunciar(obs_estado.frase_resultado(accion))
 
     def _grabar(self, event):
@@ -602,6 +603,7 @@ class TransmisionDialog(wx.Dialog):
             _("Detener la grabación") if activa else _("Grabar"))
         self.btn_pausar_grabacion.Enable(activa)
         accion = "grabacion_iniciada" if activa else "grabacion_detenida"
+        sound_player.reproducir(obs_estado.sonido_resultado(accion))
         anunciar(obs_estado.frase_resultado(accion))
 
     def _pausar_grabacion(self, event):
@@ -609,6 +611,7 @@ class TransmisionDialog(wx.Dialog):
 
     def _pausa_grabacion_alternada(self, en_pausa):
         accion = "grabacion_en_pausa" if en_pausa else "grabacion_reanudada"
+        sound_player.reproducir(obs_estado.sonido_resultado(accion))
         anunciar(obs_estado.frase_resultado(accion))
 
     def _al_cambiar_destino(self, event):

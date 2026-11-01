@@ -53,6 +53,9 @@ EVENTOS = [
     "tiktok_limitado",
     # Encuadre de cámara: el rostro sale y vuelve, cada uno con el suyo.
     "encuadre_fuera", "encuadre_dentro",
+    # Grabación desde la ventana de Transmisión, cada resultado con el suyo.
+    "grabacion_iniciada", "grabacion_detenida",
+    "grabacion_en_pausa", "grabacion_reanudada",
 ]
 
 # Nombre llano de cada evento para la página Sonidos de Preferencias.
@@ -133,4 +136,8 @@ NOMBRES = {
     "tiktok_limitado": "TikTok limita las consultas",
     "encuadre_fuera": "Rostro fuera del encuadre",
     "encuadre_dentro": "Rostro de vuelta en el encuadre",
+    "grabacion_iniciada": "Grabación iniciada",
+    "grabacion_detenida": "Grabación detenida",
+    "grabacion_en_pausa": "Grabación en pausa",
+    "grabacion_reanudada": "Grabación reanudada",
 }

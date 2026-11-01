@@ -350,6 +350,36 @@ def gen_grabacion_problema():
         _concat(grave, _silencio(0.04), agudo, _silencio(0.02)), 0.7)
 
 
+def gen_grabacion_iniciada():
+    # Subida G4→D5: la grabación arranca, sin el brillo del arpegio de al_aire
+    # ni la subida de transmision_recuperada (G4-C5).
+    n1 = _perc(_seno(G4, 0.09, 0.32), 0.004, 0.07)
+    n2 = _perc(_seno(D5, 0.18, 0.34), 0.004, 0.14)
+    return _normalizar(_concat(n1, n2), 0.7)
+
+
+def gen_grabacion_detenida():
+    # Bajada D5→G4, espejo de la iniciada y más corta que el descenso de
+    # transmision_detenida (G5-E5-C5).
+    n1 = _perc(_seno(D5, 0.10, 0.32), 0.004, 0.08)
+    n2 = _perc(_seno(G4, 0.18, 0.32), 0.004, 0.14)
+    return _normalizar(_concat(n1, n2), 0.68)
+
+
+def gen_grabacion_en_pausa():
+    # Dos notas iguales A4, cortas y con hueco: el tiempo se detuvo. No es la
+    # repetición grave de transmision_problema (A3).
+    nota = _perc(_seno(A4, 0.10, 0.32), 0.004, 0.08)
+    return _normalizar(
+        _concat(nota, _silencio(0.08), nota, _silencio(0.02)), 0.65)
+
+
+def gen_grabacion_reanudada():
+    # Barrido sostenido E4→B4: el tiempo vuelve a correr, distinto del salto
+    # corto de reanudar (G4-C5).
+    return _normalizar(_perc(_glide(E4, B4, 0.28, 0.28), 0.005, 0.22), 0.67)
+
+
 def gen_directo_finalizado():
     # Confirmación de cierre corta y resuelta: subida E5→C6 que asienta.
     # Distinta del descenso de transmision_detenida y del arpegio de al_aire.
@@ -783,6 +813,30 @@ def s_grabacion_problema():
     return _concat(grave, _silencio(0.04), agudo, _silencio(0.02))
 
 
+def s_grabacion_iniciada():
+    # Subida G4→D5 en madera: la grabación arranca sin brillo.
+    return _seq(_madera(G4, 0.09, 0.34, 0.07),
+                _madera(D5, 0.18, 0.36, 0.14))
+
+
+def s_grabacion_detenida():
+    # Bajada D5→G4, espejo de la iniciada.
+    return _seq(_madera(D5, 0.10, 0.32, 0.08),
+                _madera(G4, 0.18, 0.32, 0.14))
+
+
+def s_grabacion_en_pausa():
+    # Dos notas iguales A4 con hueco: el tiempo se detuvo.
+    nota = _madera(A4, 0.10, 0.32, 0.08)
+    return _normalizar(
+        _concat(nota, _silencio(0.08), nota, _silencio(0.02)), 0.65)
+
+
+def s_grabacion_reanudada():
+    # Barrido F4→C5: el tiempo vuelve a correr.
+    return _normalizar(_perc(_glide(F4, C5, 0.28, 0.26), 0.006, 0.20), 0.65)
+
+
 def s_directo_finalizado():
     return _seq(_madera(E5, 0.11, 0.34, 0.09),
                 _madera(C6, 0.20, 0.36, 0.16))
@@ -1143,6 +1197,10 @@ TEMAS = {
         "transmision_detenida.wav":    gen_transmision_detenida,
         "transmision_problema.wav":    gen_transmision_problema,
         "grabacion_problema.wav":      gen_grabacion_problema,
+        "grabacion_iniciada.wav":      gen_grabacion_iniciada,
+        "grabacion_detenida.wav":      gen_grabacion_detenida,
+        "grabacion_en_pausa.wav":      gen_grabacion_en_pausa,
+        "grabacion_reanudada.wav":     gen_grabacion_reanudada,
         "transmision_recuperada.wav":  gen_transmision_recuperada,
         "directo_finalizado.wav":      gen_directo_finalizado,
         "aviso.wav":                   gen_aviso,
@@ -1231,6 +1289,10 @@ TEMAS = {
         "transmision_detenida.wav":    s_transmision_detenida,
         "transmision_problema.wav":    s_transmision_problema,
         "grabacion_problema.wav":      s_grabacion_problema,
+        "grabacion_iniciada.wav":      s_grabacion_iniciada,
+        "grabacion_detenida.wav":      s_grabacion_detenida,
+        "grabacion_en_pausa.wav":      s_grabacion_en_pausa,
+        "grabacion_reanudada.wav":     s_grabacion_reanudada,
         "transmision_recuperada.wav":  s_transmision_recuperada,
         "directo_finalizado.wav":      s_directo_finalizado,
         "aviso.wav":                   s_aviso,

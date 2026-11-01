@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-01 00:11-0300\n"
+"POT-Creation-Date: 2026-11-01 09:16-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -5278,7 +5278,7 @@ msgstr ""
 "{combinacion}."
 
 #. Traductores: título de la ventana: nombre de la app y versión.
-#: bellbird/ui/gui.py
+#: bellbird/ui/gui.py bellbird/ui/titulo_ventana.py
 #, python-brace-format
 msgid "{app} v{version}"
 msgstr "{app} v{version}"
@@ -5673,12 +5673,6 @@ msgstr "Comments are not available on TikTok live streams."
 #, python-brace-format
 msgid "Directo de TikTok de @{usuario}: leyendo el chat."
 msgstr "TikTok live stream by @{usuario}: reading the chat."
-
-#. Traductores: {titulo} es el vídeo y {app} la app.
-#: bellbird/ui/gui.py
-#, python-brace-format
-msgid "{titulo} — {app}"
-msgstr "{titulo} — {app}"
 
 #: bellbird/ui/gui.py
 msgid "(no disponible)"
@@ -8729,6 +8723,10 @@ msgid "A&visar cuando OBS no da abasto"
 msgstr "&Warn when OBS struggles"
 
 #: bellbird/ui/preferencias_transmision.py
+msgid "Mostrar en el &título de la ventana si se transmite o se graba"
+msgstr "Show streaming or recording in the &title of the window"
+
+#: bellbird/ui/preferencias_transmision.py
 msgid "&Puerto del panel de chat:"
 msgstr "Chat panel &port:"
 
@@ -8910,6 +8908,24 @@ msgstr "&Recent streams:"
 #: bellbird/ui/recientes_inicio.py
 msgid "Directos recientes"
 msgstr "Recent streams"
+
+#: bellbird/ui/titulo_ventana.py
+msgid "(Transmitiendo y grabando)"
+msgstr "(Streaming and recording)"
+
+#: bellbird/ui/titulo_ventana.py
+msgid "(Transmitiendo)"
+msgstr "(Streaming)"
+
+#: bellbird/ui/titulo_ventana.py
+msgid "(Grabando)"
+msgstr "(Recording)"
+
+#. Traductores: {titulo} es el vídeo y {app} la app.
+#: bellbird/ui/titulo_ventana.py
+#, python-brace-format
+msgid "{titulo} — {app}"
+msgstr "{titulo} — {app}"
 
 #: bellbird/voice/elevenlabs.py
 msgid "La clave de ElevenLabs no es válida."

@@ -29,14 +29,22 @@ class PaginaTransmision:
         self._ventana = ventana
         self._config = config
 
+    def _casillas_de_aviso(self, p, vs):
+        avisar = wx.CheckBox(
+            p, label=_("A&visar cuando OBS no da abasto"),
+            name="AvisarSobrecargaObs")
+        vs.Add(avisar, 0, wx.ALL, 10)
+        titulo = wx.CheckBox(
+            p, label=_("Mostrar en el &título de la ventana si se transmite o se graba"),
+            name="TituloEstadoObs")
+        vs.Add(titulo, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+        return avisar, titulo
+
     def construir(self, parent):
         p = crear_panel(parent, "PagTransmision")
         vs = wx.BoxSizer(wx.VERTICAL)
 
-        self.chk_avisar_sobrecarga = wx.CheckBox(
-            p, label=_("A&visar cuando OBS no da abasto"),
-            name="AvisarSobrecargaObs")
-        vs.Add(self.chk_avisar_sobrecarga, 0, wx.ALL, 10)
+        self.chk_avisar_sobrecarga, self.chk_titulo_estado_obs = self._casillas_de_aviso(p, vs)
 
         vs.Add(fila_label(p, _("&Puerto del panel de chat:")),
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)

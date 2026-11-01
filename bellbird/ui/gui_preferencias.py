@@ -71,6 +71,7 @@ _OPCIONES_SIMPLES = (
     ("chk_registro_detallado", "diagnostico", "registro_detallado", "registro_detallado", bool, True),
     ("sp_puerto_overlay", "overlay", "puerto", "overlay_puerto", int, 8730),
     ("chk_avisar_sobrecarga", "transmision", "avisar_sobrecarga", "avisar_sobrecarga", bool, True),
+    ("chk_titulo_estado_obs", "transmision", "titulo_estado_obs", "titulo_estado_obs", bool, False),
 ) + OPCIONES_MUSICA
 
 
@@ -140,9 +141,8 @@ class PreferenciasDialog(wx.Dialog):
         self.chk_programados = self.pagina_programados.chk_programados
         self.pagina_transmision = PaginaTransmision(self, self._config)
         self.nb.AddPage(self.pagina_transmision.construir(self.nb), _("Transmisión"))
-        self.sp_puerto_overlay = self.pagina_transmision.sp_puerto_overlay
-        self.chk_avisar_sobrecarga = self.pagina_transmision.chk_avisar_sobrecarga
-        self.cho_microfono_obs = self.pagina_transmision.cho_microfono_obs
+        for _nombre in ("sp_puerto_overlay", "chk_avisar_sobrecarga", "chk_titulo_estado_obs", "cho_microfono_obs"):
+            setattr(self, _nombre, getattr(self.pagina_transmision, _nombre))
         self.pagina_camara = PaginaCamara(self, self._config)
         self.nb.AddPage(self.pagina_camara.construir(self.nb), _("Cámara"))
         self.pagina_ia = PaginaIA(self, self._ruta)

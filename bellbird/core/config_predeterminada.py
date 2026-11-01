@@ -154,6 +154,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
     ("transmision", [
         ("destino", ""),
         ("avisar_sobrecarga", "true"),
+        ("titulo_estado_obs", "false"),
         ("grabar_al_transmitir", "false"),
         ("avisar_encuadre", "false"),
         ("camara_fuente", ""),

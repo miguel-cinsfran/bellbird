@@ -10,3 +10,8 @@ visión que transmiten.
 - [Guía de configuración de la API de YouTube](CONFIGURACION_API.html)
 - [Política de privacidad](PRIVACIDAD.html)
 - [Código fuente](https://github.com/miguel-cinsfran/bellbird)
+
+## English
+
+- [User manual](en/MANUAL.html)
+- [What's new](en/CHANGELOG.html)

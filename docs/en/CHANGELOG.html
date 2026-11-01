@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10.1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Bellbird, what's new</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <style>
+  :root {
+    --fondo: #ffffff; --texto: #1c2629; --tenue: #56656a;
+    --acento: #0b6e63; --borde: #e2e8e8; --codigo-fondo: #f3f6f6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --fondo: #14191b; --texto: #e4ebeb; --tenue: #9aa8ac;
+      --acento: #45c9b6; --borde: #2f393c; --codigo-fondo: #1c2427;
+    }
+  }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.65; color: var(--texto); background: var(--fondo);
+    max-width: 46rem; margin: 0 auto; padding: 2rem 1.25rem 4rem;
+    font-size: 1.05rem;
+  }
+  h1, h2, h3 { line-height: 1.25; margin-top: 2.2rem; }
+  h1 { font-size: 1.9rem; color: var(--acento); border-bottom: 2px solid var(--borde); padding-bottom: .4rem; }
+  h2 { font-size: 1.4rem; border-bottom: 1px solid var(--borde); padding-bottom: .3rem; }
+  h3 { font-size: 1.15rem; color: var(--tenue); }
+  a { color: var(--acento); }
+  code {
+    background: var(--codigo-fondo); padding: .12em .35em;
+    border-radius: 4px; font-size: .9em;
+  }
+  pre {
+    background: var(--codigo-fondo); padding: 1rem; border-radius: 6px;
+    overflow-x: auto; border: 1px solid var(--borde);
+  }
+  pre code { background: none; padding: 0; }
+  table { border-collapse: collapse; width: 100%; overflow-x: auto; display: block; }
+  th, td { border: 1px solid var(--borde); padding: .5rem .7rem; text-align: left; }
+  th { background: var(--codigo-fondo); }
+  blockquote {
+    border-left: 3px solid var(--acento); margin: 1rem 0;
+    padding: .2rem 1rem; color: var(--tenue);
+  }
+  hr { border: none; border-top: 1px solid var(--borde); margin: 2rem 0; }
+  </style>
+</head>
+<body>
+<!-- original: es/CHANGELOG.md c1e42294988447ccdc7675e806675de1886fde4f -->
+
+<h1 id="whats-new-in-bellbird">What's new in Bellbird</h1>
+<p>This is a translation of the Spanish original, made with artificial
+intelligence. If you find an error, report it at <a
+href="https://github.com/miguel-cinsfran/bellbird/issues">https://github.com/miguel-cinsfran/bellbird/issues</a>.
+See the <a href="../es/CHANGELOG.html">original in Spanish</a>.</p>
+<p>What changes in each version, in plain language. Technical details
+are in the git history.</p>
+<h2 id="300-unreleased">3.0.0, unreleased</h2>
+<p>The app is now called Bellbird, after the bellbird, the national bird
+of Paraguay.</p>
+<h3 id="the-new-name">The new name</h3>
+<ul>
+<li>The program is now <code>Bellbird.exe</code>, and the ZIP and its
+folder carry the name Bellbird with the version number.</li>
+<li>A shortcut to <code>YTChatTTS.exe</code> stops working after
+updating. If you opened the app from a shortcut, delete it and create a
+new one from <code>Bellbird.exe</code>, inside the app folder.</li>
+<li>Sources that the app created in OBS keep their name, so the scenes
+you already have keep working.</li>
+</ul>
+<h3 id="whats-new">What's new</h3>
+<ul>
+<li>Camera framing. <code>Ctrl+F3</code> says how you look in the camera
+of the OBS live scene: whether you are centered, far away, outside the
+edge or with little light, and where to move. <code>Ctrl+Shift+F3</code>
+turns on warnings with their own sound when the face leaves the frame
+and when it returns. Pressing <code>Ctrl+F3</code> twice, beeps guide
+you until you are well framed. The image is analyzed on the computer,
+without sending it anywhere. The camera, the warnings and the left-right
+inversion are chosen in the new <em>Camera</em> category of
+Preferences.</li>
+<li><code>Ctrl+Shift+O</code>, or <em>Show OBS</em> in the
+<em>Broadcast</em> menu, brings the OBS window to the front, also when
+it is in the notification area. If OBS is waiting for an answer, such as
+the safe mode question, focus goes to that box.</li>
+<li>If OBS is open but not responding, the app no longer asks you to
+check that it is open: it says it may be waiting for an answer and that
+you choose <em>Show OBS</em>.</li>
+<li><em>Record while broadcasting</em>, in the <em>Broadcast</em> menu.
+With the check box checked, OBS starts recording when the broadcast
+starts well, and stops recording when the broadcast stops. If you were
+already recording, that recording continues as it was. It is
+unchecked.</li>
+<li>If recording cannot start, the broadcast continues and the app warns
+with its own sound.</li>
+<li>With that check box checked, the check before broadcasting warns if
+the OBS profile records with its own encoder. In that case, broadcasting
+and recording at the same time puts twice the load on the computer.</li>
+<li><em>Choose microphone…</em>, in the <em>Broadcast</em> menu, opens a
+box with the OBS microphone source and the device it uses. When you
+press <em>Apply</em>, OBS changes the device and the app says whether
+sound is coming in. The shortcut to mute the microphone uses that source
+from then on.</li>
+<li>On TikTok, likes are written in the chat list, one row per person:
+“Ana sent 15 likes”. Before, they only played a sound.</li>
+<li>Each TikTok live stream notice has its mode in <em>Preferences</em>,
+<em>Reading</em> category: joins, likes, followers, shares and treasure
+chests. Each one can be read aloud, only shown with its sound, or not
+shown. By default, followers, shares and treasure chests are read, and
+joins and likes are only shown. If you already had join or like reading
+checked, it is respected.</li>
+<li>The chat list has the <em>Notices</em> filter, which shows only
+those TikTok notices.</li>
+<li>The app is also in English. The language is chosen in
+<em>Preferences</em>, <em>General</em> category, and applies on restart.
+When saving, a box offers <em>Restart now</em> or <em>Later</em>. By
+default it uses the Windows language.</li>
+<li>Without a connection, the main window shows the <em>Recent
+streams</em> list with the last ten live streams and videos, from
+YouTube and TikTok. Enter on one reopens it.</li>
+<li>The history and recent streams show the short date, such as
+10/27/2026, instead of 2026-10-27.</li>
+<li>The app texts use Windows terms, such as <em>Delete</em> and
+<em>Enter</em>, and shorter phrases. Some names change: <em>Download
+manager</em>, <em>Read aloud</em>, <em>API key</em>, and <em>voice</em>
+where it used to say TTS. Each section of <em>Preferences</em> is called
+a category, as in NVDA.</li>
+<li>The moderation actions in the chat context menu are named as on
+YouTube: <em>Put in timeout</em> for 5 minutes and <em>Hide on the
+YouTube channel</em>, which can be undone from YouTube Studio.</li>
+<li>In the music window, the button that reads the folder again is
+called <em>Refresh folder</em>, with the letter Z. Notices say
+<em>link</em> instead of <em>address</em>, <em>application</em> instead
+of <em>program</em> and <em>Esc</em> instead of <em>Escape</em>.</li>
+<li>With the YouTube session started, <code>F2</code> says how many
+units of the daily quota were used today from this computer. The number
+is approximate, and because the quota is shared among those who use the
+application, it helps to know whether a quota error comes from your use
+or from others'. It can be removed from the summary in <em>Preferences,
+Status (F2)</em>.</li>
+<li>If there are other versions between the installed one and the new
+one, the update window shows the what's new of all of them, from the
+newest to the oldest, each with its heading and version number.</li>
+</ul>
+<h3 id="the-download-manager-renewed">The Download manager, renewed</h3>
+<ul>
+<li>The window has two tabs. <em>Search on YouTube</em> opens first,
+with the focus in the field. <em>Downloads</em> has the queue and the
+history.</li>
+<li>In the <em>Search or paste link</em> field, words search YouTube and
+a link goes to the queue, whether from YouTube or another supported
+site. <em>View supported sites</em> opens the list of sites. The field
+remembers recent searches.</li>
+<li>Results show title, channel, duration, views and date, and the
+<em>Details</em> box has the full data of the selected one.
+<em>Amount</em> chooses how many results arrive, and <em>Show more</em>
+brings another batch.</li>
+<li>The <em>Show filters</em> check box adds type (videos, playlists,
+channels or live), duration, date and order.</li>
+<li>Enter on a video downloads it without asking and says “Downloading”
+or “Queued” with the title. Enter on a playlist or a channel shows its
+videos. Backspace returns to the results, and <em>Add whole
+playlist</em> downloads it completely.</li>
+<li>Spacebar listens to the result without downloading it, and Spacebar
+again pauses it. If music was playing, it pauses while you listen and
+then returns.</li>
+<li>The context menu of a result lets you add it to the queue, listen to
+it, download it as audio or as video without changing the chosen format,
+open it in Bellbird, add it to the music, view its contents, copy the
+link and open it in the browser.</li>
+<li>Before adding something, the app warns if it is already in the
+history. An ongoing live stream is not downloaded, and the app says
+so.</li>
+<li>The <em>Downloads</em> tab has a single list, and <em>Show</em>
+chooses what is shown: all, in progress, waiting, completed or with
+errors, each with its amount. With the Applications key or
+<code>Shift+F10</code> the menu opens to open the file or its folder,
+retry, download again, copy the link, cancel and delete. Delete removes
+the selected download from the list.</li>
+<li>While downloading, the <em>Status</em> column says the speed and the
+time left. In a playlist it also says which video it is on, such as
+“video 3 of 10”. The <em>Progress</em> column shows a bar next to the
+percentage.</li>
+<li><em>Choose format…</em>, in the context menu of a video, shows the
+resolutions that video has with its size, such as “1080p 60 fps, MP4,
+255 MB”, and an audio-only option. The chosen one downloads without
+changing <em>Format</em> or <em>Quality</em>. Checking the formats takes
+a few seconds, and the app warns with a sound.</li>
+<li><em>Format</em> has nine options: original video, MP4 or WebM, and
+original audio, MP3, M4A, Opus, FLAC or WAV. <em>Quality</em> changes
+with the format: resolution for video and kbps for audio. The file keeps
+the title and the video data, and the thumbnail when the format allows
+it.</li>
+<li>Audio is also downloaded on sites that do not separate it from
+video, such as Dailymotion or Twitch.</li>
+<li><em>Preferences</em> has the new <em>Downloads</em> category:
+folder, numbering the files of a playlist, simultaneous downloads, speed
+limit, own folder for each playlist and file names.</li>
+<li>When you exit the app with unfinished downloads, the question says
+how many will be canceled. It appears even if you have turned off the
+confirmation on exit.</li>
+<li>Search, adding to the queue, processing, the end of the queue and a
+download that ended halfway have their own sounds, in both themes.</li>
+<li>The package brings the program YouTube now asks for to read its
+videos, so downloads and the player get all formats. Opening a video or
+starting a download takes about a second and a half longer.</li>
+<li>In <em>Preferences</em>, <em>Downloads</em> category, <em>yt-dlp
+update channel</em> chooses between <em>Stable</em> and
+<em>Nightly</em>. <em>Nightly</em> brings fixes for YouTube a few days
+earlier, and may bring new failures.</li>
+</ul>
+<h3 id="application-appearance">Application appearance</h3>
+<ul>
+<li>The window, the streaming chat panel and the documentation change
+colors, with a palette inspired by the bellbird: cool white and
+turquoise. All text still meets the minimum contrast.</li>
+<li>All windows use the same colors. Fields and lists are white, the
+main button of each window is turquoise with white text, and group
+titles are also turquoise.</li>
+<li>In Broadcast, Preferences and YouTube live stream, each button is
+next to the field it acts on, and the buttons of the same section are in
+one row. The Live stream history is larger and shows full titles.</li>
+<li>All Preferences labels end with a colon. In Scheduled messages the
+list has its label, and the intervals are called “Minimum interval” and
+“Maximum interval”. In Music, showing the filters is a check box, as in
+Downloads.</li>
+<li>The status bar says “Speed”, “Volume” and “Super Chats” instead of
+abbreviations. In Broadcast, the TikTok user can only be typed when the
+destination is TikTok.</li>
+</ul>
+<h3 id="fixes">Fixes</h3>
+<ul>
+<li>When TikTok slows down repeated requests, the app no longer takes it
+for a live stream that does not appear. When broadcasting it warns that
+TikTok is rate-limiting requests, with its own sound. When connecting to
+the chat it says so, instead of a technical error, and waits half a
+minute before retrying.</li>
+<li>F2 says the singular when there is only one: “1 gift”, “1 Super
+Chat” and “1 read”.</li>
+<li>Two TikTok errors are understood better: “TikTok is not responding
+for now” and “TikTok returned an error”, instead of naming internal
+parts.</li>
+<li>Canceling a download that already finished says “The download
+already finished”, instead of announcing that it was canceled.</li>
+<li>When closing Preferences without saving after testing a voice, the
+test voice no longer stays open.</li>
+<li>When the TikTok chat reconnects, the list is no longer emptied and
+the video does not start again on its own.</li>
+<li>In <em>Downloads</em>, the status of a waiting download is read
+“queued”, without the underscore.</li>
+<li>In <em>Downloads</em>, the link of a video opened from a playlist
+downloads only that video, and not the whole playlist.</li>
+<li>In <em>Downloads</em>, each download waiting for its turn uses the
+format and folder that existed when it was added, even if you later
+change the options.</li>
+<li>No access letter repeats in the <em>Preferences</em> categories or
+in the broadcast, comments, history and downloads boxes. <em>Cancel
+download</em> moves to the letter A and <em>Clear history</em> to
+H.</li>
+<li>The access letters of each <em>Preferences</em> category no longer
+repeat those of <em>Save</em> and <em>Cancel</em>, nor do those of the
+main window repeat the one of <em>Link or ID</em>. <em>Send</em> changes
+in the live stream chat (Alt+N), <em>Read recent messages with</em>
+(Alt+R), and in <em>API and session</em> and <em>Scheduled messages</em>
+the save buttons (Alt+A), <em>API key</em> (Alt+V), <em>OAuth client
+ID</em> (Alt+O) and <em>Add</em> (Alt+R).</li>
+</ul>
+<h2 id="251-october-2026">2.5.1, October 2026</h2>
+<p>Music and TikTok live stream fixes, and filters for the library.</p>
+<h3 id="license">License</h3>
+<ul>
+<li><strong>The application moves to the GPL-3.0 license.</strong>
+Anyone who uses this code in another program must publish theirs under
+the same license. Versions up to 2.5.0 remain under the MIT
+license.</li>
+</ul>
+<h3 id="music">Music</h3>
+<ul>
+<li><strong>Music and the player no longer share the volume.</strong>
+Before, muting the video or the live stream with Ctrl+M also muted the
+music, and pausing one could affect the other. Now each one has its own
+volume.</li>
+<li><strong>Matching also raises quiet songs.</strong> Before it only
+lowered loud ones, and with music volume at 100 it could not raise any.
+It raises each song as far as its peak allows, without distorting.</li>
+<li><strong>The crossfade between songs no longer causes volume
+jumps.</strong> The ending song goes down from its own volume. Also,
+changing songs in the middle of a crossfade no longer leaves the
+previous one playing.</li>
+<li><strong>The search filters by the start of each word.</strong> When
+you type “a”, songs with a word that starts with “a” come up, not every
+song with an a in the middle. Several words are searched in any order:
+“lou oj” finds “Ojos” by Lou Cornago.</li>
+<li><strong>Filters and order.</strong> The “Show filters” button opens
+two boxes: “Show”, to see all songs or those of one artist, and “Sort
+by”, with collection order, title, artist, newest first or duration.
+They combine with Find, they say how many songs remain and they are
+remembered for next time. A song with several artists appears under each
+one. With the filters hidden, all songs are shown.</li>
+<li><strong>Your own playlists.</strong> In the playlist editor, Enter
+checks and unchecks the song, same as Spacebar. “New playlist” and “Edit
+playlist” offer the folder songs even if a playlist is selected in
+Collections. If a playlist is missing a song because its file is gone,
+the warning says which one, and it is not repeated when browsing
+Collections.</li>
+</ul>
+<h3 id="lists-throughout-the-application">Lists throughout the
+application</h3>
+<ul>
+<li><strong>Typing several letters in a row jumps to the item that
+starts that way.</strong> Before it only worked in the chat and in
+comments. Now also in the history, the AI conversation, scheduled
+messages and music playlists.</li>
+</ul>
+<h3 id="tiktok">TikTok</h3>
+<ul>
+<li><strong>If the live stream cannot be opened, it says so.</strong>
+Before you heard “End of the video” even if the live stream had never
+started playing. Now it warns with an error sound that it could not be
+opened, and the log notes the reason so the cause can be found.</li>
+</ul>
+<h2 id="250-october-2026">2.5.0, October 2026</h2>
+<p>Asking an AI what is shown in the broadcast, and transitions between
+songs.</p>
+<h3 id="asking-the-ai">Asking the AI</h3>
+<ul>
+<li><strong>A window to ask what is shown, with Ctrl+Shift+I.</strong>
+Add a screenshot of the live scene or of an OBS source and ask whatever
+you want: whether the camera is on, whether something came out black,
+what text is on screen. The response is read when it arrives and stays
+in the conversation so you can keep asking.</li>
+<li><strong>Quick question with Ctrl+Shift+F2.</strong> Captures the
+live scene, sends it and reads the response without opening any window.
+The default question asks first for problems in the scene and then
+describes it.</li>
+<li><strong>Artificial intelligence page in Preferences.</strong> You
+choose the provider (Google Gemini, OpenAI, Anthropic, OpenRouter,
+OpenCode Go, Command Code or another OpenAI-compatible one), save the
+key and choose the model. The key is kept in Windows Credential Manager.
+The model list brings only those that accept images, and with OpenRouter
+and OpenCode Go it can show only the free ones.</li>
+<li><strong>Their own warnings.</strong> A melody plays while it waits,
+and there are sounds for the request sent, the response, the failure and
+the cancellation. If the screenshot comes out black, it is not sent, and
+it says why: the scene has no capture or a source has nothing chosen to
+capture.</li>
+<li><strong>The first send asks for confirmation</strong>, because the
+screenshot and what you type leave your computer toward the
+provider.</li>
+</ul>
+<h3 id="music-1">Music</h3>
+<ul>
+<li><strong>Crossfade between songs.</strong> The end of a song blends
+with the beginning of the next, and the silence that many files have at
+the start and end is skipped. It lasts 6 seconds by default; it is
+changed in Preferences, Music page, from 0 to 12, and 0 turns it off.
+Changing songs with the shortcut makes a short fade, of half a
+second.</li>
+<li><strong>Volume matching corrects by the right amount.</strong>
+Before it exaggerated the difference between songs. Also, it no longer
+measures on its own: when opening the Music window it asks whether to
+measure the pending songs, and the window has a button to start and
+stop.</li>
+<li><strong>The song change sound is off by default</strong> and, if you
+turn it on, it is softer and lower.</li>
+<li><strong>The folder is watched.</strong> New songs appear on their
+own in the list. The Music window has the Refresh folder button, and the
+default folder is Music, next to the program.</li>
+<li><strong>When resuming, it says how many songs the queue
+has</strong>, for example “Resuming 6: evergreen”. With “Remember the
+last playlist on open”, Play follows the last queue, which may be a
+search and not the whole folder.</li>
+<li><strong>More formats:</strong> aiff, aif, mka and webm.</li>
+</ul>
+<h3 id="chat-and-reading">Chat and reading</h3>
+<ul>
+<li><strong>The ten most recent messages, with Ctrl+Shift and a
+number.</strong> 1 reads the last one and 0 the tenth from the end. A
+Preferences check box, Reading page, makes them work in any
+application.</li>
+<li><strong>With the screen reader or with the application
+voice.</strong> On the same page you choose who reads them. With the
+voice, the requested message plays before the ones that are waiting, and
+then those follow in their order.</li>
+<li><strong>When the application opens, the address field is
+empty.</strong> The last address is no longer remembered from one time
+to the next. To return to a live stream there is the History.</li>
+</ul>
+<h3 id="broadcast">Broadcast</h3>
+<ul>
+<li><strong>The microphone says which device it uses.</strong> When you
+unmute it with Alt+Shift+M, for example: “Microphone on: Windows
+default, WO Mic Device”. If OBS uses the default, it says so, because
+that microphone changes when Windows chooses another.</li>
+<li><strong>Warning if the microphone is getting no sound.</strong>
+After unmuting, the application listens for three seconds. If nothing
+comes in, its own sound plays and it says “The microphone is getting no
+sound. Check which one is chosen in Windows or in OBS.”.</li>
+<li><strong>The Broadcast window explains what is shown in the live
+stream</strong>: the window chosen in Window to capture. That capture
+carries no sound, which comes from the desktop audio and the OBS
+microphone.</li>
+<li><strong>The chat panel appears in OBS again after restarting the
+application.</strong> If OBS opened before the application, the chat did
+not appear in the live stream until the source was reloaded by hand. Now
+the application reloads it on its own when the panel is turned on.</li>
+<li><strong>The TikTok user works with uppercase letters.</strong>
+TikTok only recognizes the user in lowercase, and with an uppercase
+letter the application did not find the live stream. Now it turns it to
+lowercase on its own, also the one already saved.</li>
+<li><strong>The TikTok chat connects even if the live stream takes time
+to show up.</strong> When going live, TikTok sometimes says for a few
+seconds that there is no live stream, and the application gave up. Now
+it tries again until it appears.</li>
+<li><strong>F2 says how many viewers there are now on TikTok and how
+many passed.</strong> Before it counted as viewers everyone who had
+entered since the beginning, and the number only went up. Now it says,
+for example, “12 viewers now, 108 in total”.</li>
+<li><strong>A TikTok live stream is not paused in the player.</strong>
+TikTok does not keep what was broadcast, so resuming meant opening it
+again and it got stuck. Now pause warns that it cannot and says the Mute
+audio shortcut, which silences the live stream without stopping it.</li>
+<li><strong>More TikTok events.</strong> Comments made only with
+stickers are read (“Ana: sticker”) and questions (“Ana: Question: ...”).
+When TikTok pauses the live stream or resumes it, its own sound plays
+for each case and it is said. New check box in Preferences, Read who
+likes: checked, in addition to the sound “Ana sent 15 likes” is read. It
+is unchecked because in large live streams likes do not stop.</li>
+</ul>
+<h3 id="sounds-and-windows">Sounds and windows</h3>
+<ul>
+<li><strong>Sounds page in Preferences</strong>, to silence each sound
+separately.</li>
+<li><strong>Busy tone</strong> when another program already uses one of
+the shortcuts that work in any application. Before, the error sound
+played.</li>
+<li><strong>The windows that stayed gray</strong> (Preferences, the
+update ones, Broadcast to and the AI ones) use the colors of the main
+window. With Windows high contrast nothing changes.</li>
+<li><strong>Download errors</strong> say the reason in plain
+language.</li>
+<li><strong>Texts that were cut off</strong>: the Send button when you
+cannot write in the chat, the voice speed and volume in the status bar,
+and the fields of the YouTube live stream dialog, which stayed stuck to
+the scroll bar. The help text of the main window is no longer cut off
+when disconnecting from a live stream. In Preferences, Status (F2), the
+viewers check box now says “Viewers now and in total”.</li>
+</ul>
+<h3 id="to-find-problems">To find problems</h3>
+<ul>
+<li>The diagnostic log notes which sound played, which shortcut or menu
+command was used and what type each chat event was, without the message
+text or who wrote it. The list of internal processes is no longer
+repeated every 30 seconds when it did not change.</li>
+<li><strong>The detailed log is on</strong> in a new installation.
+Anyone who had already turned it off in Preferences keeps it off.</li>
+<li><strong>Help, Open logs folder</strong> opens the folder where the
+logs are, to send them when something fails.</li>
+<li>The failure file no longer grows without end: when it passes 1 MB it
+is saved separately and a new one starts.</li>
+</ul>
+<h2 id="241-october-2026">2.4.1, October 2026</h2>
+<ul>
+<li><strong>The automatic update no longer stops when closing the
+previous version.</strong> The installer waited a minute and showed “the
+application did not close in time” even though YTChat TTS had already
+closed. It happened when another program, such as the screen reader or
+the antivirus, was still watching the process. Now it detects the close
+immediately. From 2.3.4 or 2.4.0 it updates the usual way.</li>
+</ul>
+<h2 id="240-october-2026">2.4.0, October 2026</h2>
+<p>Music while you stream, without opening another program.</p>
+<h3 id="music-2">Music</h3>
+<ul>
+<li><strong>A Music menu with its shortcuts.</strong> Ctrl+Alt+Spacebar
+plays or pauses, Ctrl+Alt+Right arrow and Ctrl+Alt+Left arrow go to the
+next or previous song, Ctrl+Alt+Up arrow and Ctrl+Alt+Down arrow raise
+and lower the music volume, and Ctrl+Alt+T says what is playing.
+Ctrl+Alt+M mutes the music, Ctrl+Alt+D stops it, Ctrl+Alt+A changes
+shuffle, Ctrl+Alt+R changes repeat, and Ctrl+Alt+Shift+Right arrow and
+Ctrl+Alt+Shift+Left arrow fast forward and rewind 10 seconds. The first
+time it may take a few seconds to prepare, and it announces it.</li>
+<li><strong>Your Windows Music folder, or the one you choose.</strong>
+If you do not choose another one in Preferences, Music page, the Windows
+Music folder is used, even if you moved it to another drive. That page
+also has shuffle, repeat the whole queue or the current song, music
+volume (separate from voice and player) and which audio output it plays
+on.</li>
+<li><strong>What is said when a song changes.</strong> Choose between
+nothing, the title, the title and the artist, or only the artist. With
+“Nothing” only the song change sound plays, if you leave it on, but when
+you change songs with the shortcut the title is said, because you asked
+for it. Another check box decides whether “Music paused”, “Music
+resumed” and “From the beginning” are announced.</li>
+<li><strong>The Music window, with Ctrl+Shift+M.</strong> Searches your
+folder while you type, even if you do not type accents. Plays the chosen
+song or the whole result, adds it to the queue, shows the queue and
+jumps to any song with Enter. With “Play next”, the chosen song plays
+when the current one ends, without cutting anything, and then the queue
+continues where it was. While it is open, the music shortcuts keep
+working.</li>
+<li><strong>Title and artist of each file.</strong> Songs first appear
+with the file name and, a few seconds later, with the title and artist
+that the file itself brings, without the song you are on moving. The
+second time you open the folder they already appear that way from the
+start.</li>
+<li><strong>Your own playlists, in the same window.</strong> In the
+Collections list, “Library” is your folder and below it are your
+playlists, each with how many songs it has. Create one with “Add to a
+playlist” and “New playlist…” from the menu of a song, rename and delete
+them, remove songs with Delete and move them with Alt+Up arrow and
+Alt+Down arrow. You can also save the playing queue as a playlist. They
+are saved as .m3u8 files, which other players can open.</li>
+<li><strong>YouTube links and playlists.</strong> In the Music window,
+“Open link…” accepts a video or a whole YouTube playlist and adds its
+audio to the queue. Shuffle also works for those playlists.</li>
+<li><strong>Matching song volume.</strong> All songs sound similar, as
+in Spotify: each file is measured once, in the background, and the
+volume is corrected when each song starts. The first time its own sound
+plays and it says how many songs are going to be measured. Progress
+appears in the Music window and in F2, and it is turned off with a check
+box on the Music page.</li>
+<li><strong>F2 says what is playing</strong>, if you leave it on on the
+“Status (F2)” page.</li>
+<li><strong>Resumes where it left off.</strong> When you open YTChat and
+press Play, it follows the last queue from the song it was on. It does
+not start playing on its own.</li>
+<li><strong>Shortcuts in any application</strong>, optional. With the
+check box on the Music page, music shortcuts work even when you are in
+OBS or in a game. It is off because while it is on those keys do not
+reach other programs. Where NVDA thinks there is a table, such as the
+desktop, it keeps Ctrl+Alt+arrows: there press NVDA+F2 before the
+shortcut.</li>
+</ul>
+<h3 id="shortcuts">Shortcuts</h3>
+<ul>
+<li><strong>Each family of keys, an area.</strong> Ctrl is the player,
+Alt the chat, Ctrl+Shift opens windows, Alt+Shift is the live stream and
+OBS, the F keys are voice and Ctrl+Alt is music. That is why some
+default ones change: connect and disconnect move to Alt+Shift+C and
+Alt+Shift+D, go to the messages list to Alt+Shift+L, the OBS microphone
+to Alt+Shift+M, mark an incident to Alt+Shift+I, copy the link to
+Alt+Shift+E and the download manager to Ctrl+Shift+D. If you had changed
+one, yours is respected.</li>
+<li><strong>Keys with their English name</strong> on the Shortcuts page
+of Preferences and when capturing a combination.</li>
+<li><strong>Ctrl+Alt with letters and numbers.</strong> In Preferences,
+Shortcuts page, the music ones accept Ctrl+Alt with a letter or a
+number. When capturing it, the application checks your keyboard: if
+AltGr with that key writes something, such as the at sign on the Latin
+American keyboard, it tells you and asks for another one, so you can
+keep typing that character in the chat.</li>
+</ul>
+<h3 id="chat">Chat</h3>
+<ul>
+<li><strong>A connection drop no longer closes the live stream.</strong>
+Before, if the connection to the chat dropped, when it came back on its
+own the application read messages but did not let you write or moderate.
+Now it warns “Lost connection to the chat”, retries after 1, 2, 5 and 10
+seconds, and then according to the “Maximum wait between tries” in
+Preferences. When it returns it says “Chat reconnected.” and everything
+continues as before the drop.</li>
+<li><strong>Messages are not repeated after a drop.</strong> What was
+already read is not read again when reconnecting.</li>
+</ul>
+<h3 id="screens">Screens</h3>
+<ul>
+<li><strong>The YouTube live stream window fits on short
+screens.</strong> On a screen 768 pixels high, the Broadcast and Cancel
+buttons were cut off. Now the fields scroll and those buttons always
+stay in view.</li>
+<li><strong>Read-only fields are reached with Tab.</strong> The volume
+matching progress in the Music window and the thumbnail in the YouTube
+live stream window were skipped when moving with Tab.</li>
+<li><strong>Full names in Preferences.</strong> The page list no longer
+cuts “Reading queue”, “Interface and sounds” or “Scheduled
+messages”.</li>
+</ul>
+<h2 id="234-october-2026">2.3.4, October 2026</h2>
+<p>Fixes that came out of a test live stream.</p>
+<h3 id="broadcast-1">Broadcast</h3>
+<ul>
+<li><strong>A single warning when OBS cannot keep up, and it can be
+turned off.</strong> Before, two long phrases played every minute while
+playing. Now it is a single one, “OBS cannot keep up: 16 percent of
+frames are dropped”, and it is not repeated before five minutes.
+Ctrl+Shift+A turns it off and on again, and it is saved. It is also in
+the Broadcast menu and on the Broadcast page of Preferences. Network and
+reconnection warnings always continue.</li>
+<li><strong>Copying the link of a private live stream.</strong>
+Ctrl+Shift+E now copies the link of the private or made-for-kids live
+stream that the application creates. Before it said that no live stream
+was connected.</li>
+</ul>
+<h3 id="chat-1">Chat</h3>
+<ul>
+<li><strong>The chat stops retrying a live stream that already
+ended.</strong> If the chat stayed connected to a live stream that had
+ended, it repeated without end “Disconnected” and “Retrying in 15
+seconds (attempt 1 of 20)”. Now the application checks whether the live
+stream is still live. If it ended, it says it once, “The live stream
+ended. Chat disconnected”, with the end of live stream sound, and stops
+trying. If it is still live, it retries as before, and the limit of
+twenty attempts is now met.</li>
+</ul>
+<h2 id="233-october-2026">2.3.3, October 2026</h2>
+<p>A fix that completes the Stop change from 2.3.2.</p>
+<ul>
+<li><strong>The live stream button waits for OBS.</strong> While Stop
+waits for OBS to confirm, the button says <em>Stopping the live
+stream</em> instead of offering <em>Broadcast live</em> again. If you
+press it during that time, it warns that it is waiting for OBS and does
+not try another broadcast, which OBS rejected with “Cannot switch
+destinations while broadcasting.” The same in the Broadcast window. When
+OBS confirms, the button returns on its own to <em>Broadcast
+live</em>.</li>
+</ul>
+<h2 id="232-october-2026">2.3.2, October 2026</h2>
+<p>Fixes for broadcasting with an unstable network and an option for the
+player to use less.</p>
+<h3 id="broadcast-2">Broadcast</h3>
+<ul>
+<li><strong>Stop waits for OBS to confirm.</strong> Before it said
+“Broadcast stopped” instantly, even if OBS took almost a minute to stop
+with the network down. Now it says it when OBS really stopped. If it
+takes more than three seconds, it warns that it is waiting. If after
+ninety seconds OBS is still broadcasting, it says so for you to stop it
+in OBS.</li>
+<li><strong>The YouTube live stream ends even if the network
+drops.</strong> If YouTube does not confirm the end, the application
+tries again on its own every fifteen seconds for ten minutes, and warns
+with a new sound when it succeeds. If it does not succeed, it tries
+again the next time you open YTChat, without asking you.</li>
+<li><strong>Warning when OBS reconnects, and when it returns.</strong>
+The reconnection warning existed but could never play. Now it plays when
+the connection to the service drops and, with another new sound, when
+the connection returns.</li>
+<li><strong>Warning when the computer cannot keep up.</strong> If frames
+are lost because the computer cannot encode or draw the scene, it says
+so with the percentage and suggests closing programs. It is different
+from the slow network warning.</li>
+<li>Each type of warning is repeated at most once per minute.</li>
+</ul>
+<h3 id="player">Player</h3>
+<ul>
+<li><strong>Play only the audio.</strong> New check box in Preferences,
+Player page. With it, the player does not decode the picture of anything
+it plays, live streams or YouTube and TikTok videos, and the video card
+is left free for OBS. It is unchecked.</li>
+</ul>
+<h3 id="to-find-problems-1">To find problems</h3>
+<ul>
+<li>The log saves each thing the application announces, and what the
+check of live streams left on air decided when opening. Chat messages
+are not saved.</li>
+</ul>
+<h2 id="231-october-2026">2.3.1, October 2026</h2>
+<p>Updater fixes and a new General page in Preferences.</p>
+<h3 id="updates">Updates</h3>
+<ul>
+<li><strong>The second update no longer fails.</strong> Before
+extracting a new version, the application deletes what the previous
+update left, and that step always failed. The fix travels inside this
+version: to go from 2.3.0 to 2.3.1 you still have to delete the
+<code>data\actualizacion\nueva</code> folder by hand before updating.
+The following ones no longer need it.</li>
+<li><strong>The update window is fully visible.</strong> It was small,
+and the what's new and the <em>Later</em> button were not visible. Now
+it grows with its content, puts the buttons in a row and can be
+enlarged.</li>
+</ul>
+<h3 id="preferences">Preferences</h3>
+<ul>
+<li><strong>General page, the first in the list.</strong> It gathers
+<em>Check for updates at startup</em> and the detailed log, which were
+in Connection and Diagnostics, and adds:
+<ul>
+<li>Ask before exiting if there is a connected chat or a broadcast in
+progress.</li>
+<li>Remember the last address: when opening, the field brings the last
+live stream you connected to.</li>
+<li>Play the startup sound.</li>
+<li>Open the data folder.</li>
+<li>Export and import preferences, to move them to another computer or
+save a copy. The keys of your accounts are not exported.</li>
+<li>Reset all preferences to factory values.</li>
+</ul></li>
+<li>Before importing or resetting, a copy of the current preferences is
+saved in the data folder.</li>
+<li>The Diagnostics page disappears.</li>
+</ul>
+<h2 id="230-october-2026">2.3.0, October 2026</h2>
+<p>More voices to read the chat and more options when creating a YouTube
+live stream.</p>
+<h3 id="voices">Voices</h3>
+<ul>
+<li><strong>Voices page in Preferences.</strong> There you choose the
+voice engine, the voice, the speed, the volume and the pitch. <em>Test
+voice</em> lets you hear how it sounds before saving, and when saving
+the change is applied without restarting.</li>
+<li><strong>Three voice engines.</strong> The usual Windows voices (SAPI
+5), the Windows OneCore voices, and ElevenLabs, which generates the
+voice on the internet with your account key.</li>
+<li><strong>ElevenLabs does not leave the chat mute.</strong> If the
+internet drops, the key does not work or the balance runs out, the
+message is read with the Windows voice and the application warns you
+once. You can set a character limit per session and use it only for
+Super Chats, members, treasure chests, the channel owner and moderators.
+<em>Check key</em> tells you how many voices your account has and how
+many characters you used this month.</li>
+<li><strong>Your voice no longer changes on its own when installing
+another one.</strong> Before the voice position in the list was saved,
+and a new voice shifted the list. Now the name is saved. The first time
+you open this version, your saved voice converts on its own.</li>
+<li><strong>Speed goes from 0 to 100.</strong> F9 and F10 move it by 5
+and the application says the number. The speed you had sounds the same
+as before.</li>
+<li><strong>Announcements come back on their own if you restart the
+screen reader.</strong> If you open or restart NVDA or JAWS with the
+application already open, announcements play again a few seconds
+later.</li>
+</ul>
+<h3 id="preferences-1">Preferences</h3>
+<ul>
+<li><strong>Save is instant and audible.</strong> Before it took a
+moment and the warning was lost when the window closed. Now it saves
+everything at once, the sound plays when you press <em>Save</em> and,
+back in the main window, the application says “Preferences saved” along
+with any other warning.</li>
+</ul>
+<h3 id="updates-and-warnings">Updates and warnings</h3>
+<ul>
+<li><strong>If there is a new version, its window opens when the
+application starts.</strong> It shows the what's new and has two
+buttons: <em>Download and install</em> and <em>Later</em>. With
+<em>Later</em> it closes and the next time you open the application it
+asks again. Before it only said it by voice once, and if you were
+reading something else with the reader, you missed it.</li>
+<li><strong>The what's new is read well.</strong> It no longer starts
+with blank lines or brings asterisks, each point goes on a single line
+with its bullet and the cursor stays at the beginning.</li>
+<li><strong>When an update finishes, a window opens with the
+result.</strong> If at that moment there is a connected chat, a
+broadcast or another window open, it waits for you to finish so it does
+not pull you out of place.</li>
+<li><strong>Each warning has its sound.</strong> Download started,
+finished, with error and canceled; live stream on air, broadcast stopped
+and problem in the broadcast; update available and ready; and a little
+bell for general warnings, such as discarded messages. Before several
+used the same sound and you had to wait to hear the text to know what
+happened.</li>
+<li><strong>The “suave” theme no longer repeats sounds.</strong> Ten
+events that sounded like another one now have their own sound.</li>
+<li><strong>On startup it no longer says “Preparing the player” or
+“Player ready”.</strong> The player is prepared the same way,
+silently.</li>
+</ul>
+<h3 id="sounds">Sounds</h3>
+<ul>
+<li><strong>The “suave” theme sounds different again.</strong> Since
+2.2.0 its sounds were a copy of the “default” theme. Now they are their
+own sounds, shorter and softer. It is chosen in <em>Preferences,
+Interface and sounds</em>.</li>
+</ul>
+<h3 id="youtube-live-stream">YouTube live stream</h3>
+<ul>
+<li><strong>The live stream window has more options,</strong> and all
+are remembered for next time:
+<ul>
+<li>normal, low or ultra-low latency. With ultra-low the chat arrives
+almost at the moment;</li>
+<li>made for kids. If you check it, YouTube turns off the live stream
+chat;</li>
+<li>allow rewinding the live stream;</li>
+<li>category and tags;</li>
+<li>thumbnail, a JPG or PNG image up to 2 MB that you choose with the
+Windows box;</li>
+<li>a playlist of your channel, so the live stream is saved in it. The
+playlists are brought with the “Load lists” button.</li>
+</ul></li>
+<li><strong>If YouTube does not accept the thumbnail, the category, the
+tags or the list,</strong> the live stream goes out anyway and the
+application tells you why.</li>
+</ul>
+<h2 id="221-october-2026">2.2.1, October 2026</h2>
+<p>Fixes to update without hitches and a lighter package.</p>
+<ul>
+<li><strong>OBS no longer blocks updates.</strong> The OBS that the
+application opened used files from the YTChat folder, and as long as it
+stayed open the update could not replace them. Now OBS uses its
+own.</li>
+<li><strong>If an update cannot finish because a file is in
+use,</strong> the warning says it may be OBS and that you close it
+before trying again. This also works to go from 2.2.0 to this version:
+if you opened OBS from 2.2.0, close it before updating.</li>
+<li><strong>The package goes down from 175 to 147 MB.</strong> It no
+longer brings documents from other Google services or a library that the
+application does not use.</li>
+</ul>
+<h2 id="220-october-2026">2.2.0, October 2026</h2>
+<p>This version lets you start and end a YouTube or TikTok live stream
+from the application itself, without opening OBS or the Restream page.
+Signing in with Google no longer requires creating your own credentials.
+The application updates on its own, the sounds are new recordings and
+there are different sounds depending on who writes and what happens in
+the live stream.</p>
+<h3 id="going-live">Going live</h3>
+<ul>
+<li><strong>Broadcast live button in the main window.</strong> When you
+press it, you choose the destination, YouTube or TikTok, with the one
+from last time already selected. The application opens OBS if needed,
+without taking focus from the screen reader, switches to the profile for
+that destination and reads a check before going live: format, scene,
+sources, audio and any problem, such as an empty scene or a muted
+microphone. While broadcasting, the same button says <strong>End live
+stream</strong>.</li>
+<li><strong>YouTube without touching the YouTube page.</strong> A single
+window asks for the title, the description and the privacy (public,
+unlisted or private), and shows the OBS check. When you press
+<em>Broadcast</em>, the application creates the live stream on the
+channel, loads the key into OBS, starts broadcasting, waits for YouTube
+to show it and connects the chat on its own. The title and description
+are remembered for next time.</li>
+<li><strong>TikTok through Restream.</strong> The application uses the
+OBS profile called <code>TikTok</code>, waits for TikTok to show the
+live stream and connects the chat.</li>
+<li><strong>Choosing what is broadcast.</strong> In the
+<em>Broadcast</em> window (<code>Ctrl+Shift+T</code>) you choose the
+window that the scene captures, for example a game. That window is
+ordered by sections and its fields say what to do when something is
+missing.</li>
+<li><strong><code>Ctrl+Shift+E</code> copies the link of the connected
+live stream</strong>, to pass it to someone.</li>
+<li><strong><code>F2</code> first says what state the live stream is
+in</strong> that the application supervises, and whether TikTok or
+YouTube already shows it.</li>
+<li><strong><code>F2</code> says how to return to the live
+stream</strong> when the player is behind: “10 seconds behind the live
+stream. Press Ctrl+End to return to the live stream.”, with the shortcut
+you have configured.</li>
+<li><strong>An internet drop does not end the YouTube live
+stream.</strong> If OBS loses the connection, for example when changing
+Wi-Fi, YouTube waits for the signal to return instead of closing the
+live stream, and the application warns that OBS is reconnecting. When
+finishing from the application or from OBS, the application closes the
+live stream on YouTube.</li>
+<li><strong>The chat panel is not left covered.</strong> If another
+source in the scene, such as a screen or camera capture, is over the
+panel, the application brings it forward when going live and during the
+live stream, and says which source was covering it.</li>
+<li><strong><code>Ctrl+F2</code> describes the OBS scene:</strong> what
+sources it has, which one is in front, where each one is, whether it is
+visible and what covers it. The <em>Broadcast</em> window shows the same
+in its own section, <em>How the scene looks</em>, and the panel status
+has its own label.</li>
+<li><strong>A live stream is not left on air without video.</strong>
+When opening the application, if you have a YouTube live stream on air
+while OBS is not broadcasting, for example because you closed OBS after
+closing the application, it asks whether to end it.</li>
+<li><strong>The list of windows to capture no longer brings untitled
+windows</strong>, which were read as “(null)”.</li>
+</ul>
+<h3 id="signing-in-with-google">Signing in with Google</h3>
+<ul>
+<li><strong>Without your own credentials.</strong> Before you had to
+create a project in Google Cloud and load its client. Now it is enough
+to press <em>Sign in</em> in <em>Preferences, API and session</em>: the
+application brings its own client. Google shows an unverified app
+warning, which is passed with <em>Advanced options</em> and
+<em>Continue</em>. Anyone who already had their own credentials keeps
+using them.</li>
+</ul>
+<h3 id="updates-1">Updates</h3>
+<ul>
+<li><strong>The application updates on its own.</strong> In <em>Help,
+Check for updates</em> a window says whether there is a new version,
+shows its what's new in a box that can be scrolled, and downloads and
+installs it with a button. The application closes and reopens in about a
+minute. If the new version does not open, it returns on its own to the
+previous one and says so on startup. The configuration, the session, the
+history, the downloads and the sounds you have changed are kept.</li>
+<li><strong>Warning on startup.</strong> If there is a new version, it
+is announced only once.</li>
+<li><strong>Updating yt-dlp has its own window,</strong> with the
+status, a progress bar and each step announced: searching, downloading
+and the result.</li>
+</ul>
+<h3 id="sounds-1">Sounds</h3>
+<ul>
+<li><strong>New sounds.</strong> All sounds are new recordings, in the
+public domain, chosen one by one so they can be told apart. The
+<code>sounds/CREDITOS.md</code> file says where each one came from.</li>
+<li><strong>A sound depending on who writes.</strong> Messages from the
+channel owner, a moderator, a verified account and a member sound
+different from a common message.</li>
+<li><strong>Edge.</strong> When you reach the start or the end of the
+chat, comments or history list with the arrows, a dull thud plays.</li>
+<li><strong>End of the live stream.</strong> When a TikTok live stream
+ends, a door closing plays, and not the disconnection sound.</li>
+</ul>
+<h3 id="tiktok-live-streams">TikTok live streams</h3>
+<ul>
+<li><strong>More things from the live stream.</strong> In addition to
+the chat and gifts, it reads who follows the channel, who shares the
+live stream and who sends a treasure chest, each one with its sound.
+Likes only play a sound, at most one every three seconds, so they do not
+cover the chat.</li>
+<li><strong>Gifts sound according to their size:</strong> a coin for the
+small ones, several for the medium ones and a shower of coins with a
+melody for the large ones.</li>
+<li><strong>Whoever joins the live stream has their own sound,</strong>
+a door opening, when joins are turned on in <em>Preferences,
+Reading</em>.</li>
+<li><strong>Old messages are not read when connecting.</strong> TikTok
+sends the last messages of the live stream when connecting. Messages
+from before the connection were already discarded, and now also those
+that TikTok marks as old.</li>
+</ul>
+<h3 id="other-changes">Other changes</h3>
+<ul>
+<li><strong><code>F3</code> says the author of the last message
+read.</strong></li>
+<li><strong>The application no longer closes on its own when ending a
+live stream.</strong> It was caused by the failure log itself, which
+noted too much.</li>
+<li><strong>Scheduled messages are only sent to your own live
+stream.</strong> Before they were sent to any connected YouTube live
+stream with the session started, also to another channel's. Also, what
+you change in Preferences is applied without restarting, a new message
+is born active and the first one does not go out suddenly when
+connecting.</li>
+<li><strong>When browsing the sound themes in Preferences, a sample
+plays</strong> of each one, without changing the theme until you
+accept.</li>
+<li><strong>When adjusting the same value several times, only the number
+is said.</strong> The first time, for example, “Voice volume: 40%”, and
+the following ones only “45%”, as long as you stay with the same control
+within the minute. When you move to another one, such as speed, it says
+the name again. In the player volume slider the number is no longer
+heard twice.</li>
+<li><strong>Sounds no longer slow down the window,</strong> and the
+player takes less time to start the first time.</li>
+<li><strong>The configuration accepts <code>%</code>, <code>#</code> and
+<code>;</code></strong> in texts, for example in a live stream title,
+without losing them when saving.</li>
+</ul>
+<h2 id="210-october-2026">2.1.0, October 2026</h2>
+<p>This version adds a chat panel for the broadcast, the ability to
+write in the chat from the application itself and a window to compose
+the OBS scene without seeing the screen. The player obeys much better,
+downloads are ordered and warn when they finish, and the application
+data moves to its own folder.</p>
+<h3 id="player-1">Player</h3>
+<ul>
+<li><strong>The player obeys instantly.</strong> After fast forwarding
+or rewinding, pause and play were lost for ten or twenty seconds:
+“pause” was announced three times in a row and the video kept playing.
+In YouTube videos the audio travels separately from the video, and both
+reached the player over the network: the audio slowed everything else
+down. Now the audio is saved first on disk, in the
+<code>cache-audio</code> folder inside the <code>data</code> folder, and
+all commands are obeyed. By the way, the video starts showing in less
+than a second instead of six.</li>
+<li><strong>Live streams no longer freeze every minute and a
+half.</strong> The video and audio of a live stream arrived separately
+and the player lost sync between them every 60 or 90 seconds, stopping
+for 25 to 50 seconds. Now they are joined before playing, with ffmpeg, a
+program included in the application. If ffmpeg takes time to start, the
+player waits for it to be ready instead of failing silently. If the live
+stream drops, it says so and reconnects on its own, up to twice.</li>
+<li><strong>Rewind and fast forward work in live streams.</strong> The
+one-minute buttons and the ten-second arrows did nothing when the live
+stream arrives with separate tracks. Now each jump restarts the video
+and audio join a few seconds before the live edge, with a cut of two or
+three seconds. Consecutive arrows add up, and each one announces where
+you land: “20 seconds behind the live stream”, “Live”. In live streams
+with separate tracks you can go back up to an hour, which is what
+YouTube keeps. Moving the slider or asking for a percentage is not
+available in these live streams, and the application says so.</li>
+<li><strong>Live streams that YouTube serves with video and audio
+together also move, with less margin.</strong> They only allow going
+back about 30 seconds. When a live stream does not allow jumps, the
+arrows say so instead of failing with a confusing warning.</li>
+<li><strong>Go to live with <code>Ctrl+End</code>.</strong> After
+rewinding, the <em>Player</em> menu has “Go to live”, with
+<code>Ctrl+End</code>, which returns to the live edge at once. If you
+are already live, it says so.</li>
+<li><strong>The slider and <code>F2</code> say how far behind the live
+stream you are.</strong> Before the slider said “Live” even if you had
+gone back. Now it says “40 seconds behind the live stream”, and
+<code>F2</code> announces it too when you are behind.</li>
+<li><strong>Rewinding in a live stream no longer jumps two hours
+back.</strong> The player used a wrong duration, and a one-minute rewind
+ended at the beginning of the live stream window.</li>
+<li><strong>Seeking with the video loading or stopped says the
+reason.</strong> If you ask for a jump while the video is loading, it
+says “Loading video” and not that it cannot fast forward. With the video
+stopped it says “The video is stopped”. It works for live streams and
+for recorded videos.</li>
+<li><strong>Moving the video while paused saves the
+destination.</strong> If you move the video while paused, when you
+resume it continues from the new position and not from the
+beginning.</li>
+<li><strong>Videos split into tracks play.</strong> Some recorded videos
+arrive with video and audio in separate tracks. Now they play, and you
+can jump without waiting for the download to finish. If a video does not
+start playing, it is loaded again once before warning that it could not
+be played.</li>
+<li><strong>The video of live streams loads again.</strong> YouTube
+stopped offering a single stream with picture and sound together and the
+application kept waiting for it. Now it joins video and audio when they
+arrive separately, and if it still cannot, it notes in the log what it
+found.</li>
+<li><strong>The video cache respects its limit.</strong> A video that
+does not fit in the configured limit is no longer downloaded entirely:
+the download stops right away and leaves no files. The cache downloads
+videos at 720p, and the remains of interrupted downloads are deleted on
+their own.</li>
+<li><strong>The audio cache can no longer hang.</strong> If the audio
+download stops advancing, it is cut by time.</li>
+<li><strong>Pressing many times to fast forward no longer desyncs the
+player.</strong> Some presses were lost and the announced time went back
+on its own. And pressing play or pause while the video was loading made
+it start from zero.</li>
+<li><strong>The video cuts less.</strong> The network buffer was very
+small and any connection fluctuation interrupted playback.</li>
+</ul>
+<h3 id="chat-and-voice">Chat and voice</h3>
+<ul>
+<li><strong>Pausing reading (<code>F5</code>) really pauses the current
+sentence</strong>, and while it is paused, voice, speed and volume
+changes are handled.</li>
+<li><strong>The first message after reconnecting is no longer
+cut.</strong> A pending mute order was applied to the next message.</li>
+<li><strong>A configured voice that no longer exists does not prevent
+starting the application.</strong> The first available one is used and
+it is noted in the log.</li>
+<li><strong>Warnings are no longer cut in half, not even in
+menus.</strong> Before the text of a warning was lost if another key was
+pressed right away. Now it is heard entirely. The only ones that do not
+interrupt are those that repeat on their own: the warning that a video
+is still loading and the one that OBS is being queried.</li>
+<li><strong>Long sounds from custom themes are no longer cut at 5
+seconds.</strong></li>
+<li><strong>Super Chats in yen, won or rupees add up well.</strong>
+“¥1,000” added 1.</li>
+<li><strong>When reconnecting to a different live stream, nothing from
+the previous chat reaches the new one.</strong> Scheduled messages and
+the writing box can no longer end up in the chat that closed, nor the
+comments of the previous video in the new one.</li>
+<li><strong>Reconnecting for real counts.</strong> With unstable Wi-Fi,
+five micro-drops spread over hours used up the attempts even if each
+reconnection had worked. Now only consecutive failures count. The
+default values are 15 seconds between tries and 20 attempts, about five
+minutes in total, and they are changed in <em>Preferences,
+Connection</em>.</li>
+<li><strong>It warns when messages are being lost.</strong> If more chat
+comes in than the voice can read, the application discards the oldest.
+Now it says so once per session, reminds you that those messages are
+still written in the chat list and suggests turning on reading only the
+name, which is what makes the voice keep up. <code>F2</code> can also
+say how many are going, if that data is turned on in
+<em>Preferences</em>.</li>
+<li><strong>One more way to have the chat read to you: first the
+message, then who wrote it.</strong> In <em>Preferences, Reading</em>,
+next to the three that already existed. You hear “hello everyone, from
+Lucía”. It is useful when many messages arrive in a row: you hear the
+content before the name and can decide whether it interests you without
+waiting.</li>
+<li><strong>Aliases for names that are impossible to hear.</strong> Many
+YouTube names are strings of letters and numbers that the voice reads
+entirely in each message. Now a short name can be set for them: in the
+chat list, context menu on a message and <em>Set alias</em>. From that
+moment, that user is read and shown with the alias. To remove it, open
+the same thing and leave the field empty. The real name is not lost:
+timeout, hiding, muting and replying still act on the real account.</li>
+<li><strong>Voice failures are noted.</strong> If the synthesizer fails
+when announcing something, before there was not even a trace.</li>
+</ul>
+<h3 id="tiktok-1">TikTok</h3>
+<ul>
+<li><strong>TikTok live streams reconnect with version 6.6.6 of the
+library.</strong> With the version that the project installs today, the
+connection stayed at “Connecting to the TikTok live stream” without
+reaching anything. Now it connects, and if something fails while
+preparing, it says so instead of staying silent. A user who is not live
+is reported as such.</li>
+</ul>
+<h3 id="youtube">YouTube</h3>
+<ul>
+<li><strong>If the YouTube session expires, the application says it by
+voice.</strong> Before Google's technical text was read and the
+application kept believing there was a session. Now it warns, deletes
+the expired session and asks you to sign in again in <em>Preferences,
+API and session</em>. If the failure came from something you did, it
+offers to open that category. Scheduled messages only warn.</li>
+<li><strong>Signing in again after signing out works again.</strong>
+Before Google returned an incomplete permission and moderating,
+commenting or writing in the chat failed with a format error.</li>
+<li><strong>Moderation acts on the user in the selected row.</strong>
+Before moderation looked for the user by the visible name.</li>
+<li><strong>You can now write in the live chat.</strong> Below the
+message list there is a writing box with its <em>Send</em> button.
+<code>Enter</code> sends the message and <code>Shift+Enter</code>
+inserts a line break. After sending it, the box is emptied and focus
+stays inside, so the next one can be written without tabbing. When the
+connection or the Google session is missing, the box and the button are
+still reached with Tab, and the reason is part of the button name.</li>
+<li><strong>When you cannot write in the chat, it now says why.</strong>
+It distinguishes whether the API key is missing, whether the video does
+not exist, whether it is not a live stream or whether the live stream
+has chat turned off.</li>
+<li><strong>Commenting and replying on videos.</strong> In the
+<em>Comments</em> tab, the <em>Comment on the video</em> and
+<em>Reply</em> buttons open the same box in a window.</li>
+<li><strong>Posting a comment and replying to one already work.</strong>
+They did nothing: the text was written, <em>Publish</em> was pressed,
+the window closed and nothing was sent or warned.</li>
+<li><strong>In a video with comments closed it no longer lets you write
+one.</strong> Before you could write it entirely and only when
+publishing did you find out that you could not.</li>
+<li><strong><code>Enter</code> copies the selected message, and
+<code>Alt+Enter</code> opens the writing box.</strong> Before, in the
+chat and comment lists, <code>Enter</code> did nothing.</li>
+<li><strong>Connecting became fast again.</strong> It had become slow,
+from twenty to thirty seconds on some computers.</li>
+<li><strong>Disconnecting while it says “Connecting…” is
+possible</strong>, and closing the application does not wait for a
+YouTube query to finish.</li>
+<li><strong><code>F2</code> says how many people are watching the live
+stream and how long it has been broadcasting.</strong> The viewer number
+was wrong and said zero even if there were people. Now it is correct and
+updates on its own every minute.</li>
+<li><strong>The API configuration guide is rewritten.</strong> Each step
+gives the exact address of the corresponding Google Cloud screen, and
+the points where it is easy to get stuck with a screen reader are
+explained.</li>
+</ul>
+<h3 id="obs-and-broadcast">OBS and broadcast</h3>
+<ul>
+<li><p><strong>A chat panel for viewers to see.</strong> Messages appear
+on a page with a transparent background that can be added to the
+broadcast, so that whoever watches the live stream reads the chat
+without leaving the video. The panel is turned on in the
+<em>Broadcast</em> window, with the <em>Chat panel for streaming</em>
+check box, which opens from the <em>Broadcast, Streaming panel…</em>
+menu or with <code>Ctrl+Shift+T</code>. If it is left on when closing
+the application, it turns on by itself when opening it again.</p></li>
+<li><p><strong>The chat panel does not repeat messages or show old
+ones.</strong> Turning it on and off quickly does not repeat messages,
+and if the application closes it stops showing the ones it had
+received.</p></li>
+<li><p><strong>Composing the scene without seeing the screen.</strong>
+In the <em>Broadcast</em> window you choose the scene and <strong>any of
+its sources</strong> (the chat panel, the camera, the game capture),
+move it to any of the nine usual positions, change its size, show or
+hide it, pin it so it does not move by accident and put it in front of
+the rest.</p>
+<p>Each change is announced aloud with what you need to know: what
+position it ended in, what size it has, what part of the screen it
+takes, whether it goes past the edge and, above all, <strong>whether
+another source is covering it and how much</strong>. That is the
+question that cannot be answered by looking.</p>
+<p>There is also a fine adjustment mode: it is turned on with a button
+and from there the arrows move the panel, in normal steps, large with
+<code>Control</code> or one pixel with <code>Shift</code>.
+<code>Enter</code> confirms and <code>Esc</code> undoes. And a button
+saves a snapshot of the scene, to show it to someone who sees.</p>
+<p>That way a complete scene can be built blind: the game in the center,
+the camera in a smaller frame at the top right and the chat in a
+corner.</p></li>
+<li><p><strong>Broadcast, record and put a scene on air from the same
+window.</strong> There are buttons to start and stop the broadcast and
+the recording, pause, and put the chosen scene on air. <code>F2</code>
+can also say whether OBS is broadcasting, recording or with a scene on
+air, if that data is turned on in <em>Preferences, Status
+(F2)</em>.</p></li>
+<li><p><strong>Mute the OBS microphone with
+<code>Ctrl+Shift+M</code>.</strong> The application checks and toggles
+the mute of the microphone source chosen in <em>Preferences,
+Broadcast</em>.</p></li>
+<li><p><strong>The chat panel check box works even if OBS is not
+there.</strong> Before it stopped responding if OBS did not answer, even
+though the panel does not need OBS for anything.</p></li>
+<li><p><strong>The OBS server is turned on from here.</strong>
+<em>Preferences, Broadcast</em>, <em>Enable the OBS websocket
+server</em> button, without having to look for it in the OBS
+menus.</p></li>
+<li><p><strong>When OBS cannot be turned on, it says why.</strong>
+Before an empty message came out.</p></li>
+<li><p><strong>Browsing a drop-down no longer changes anything.</strong>
+In the <em>Broadcast</em> window, going through the nine positions with
+the arrows moved the panel inside OBS once per arrow, live. Now the
+position is chosen and applied with its button.</p></li>
+<li><p><strong>The <em>Broadcast</em> window explains where the panel is
+in plain language.</strong> Before it mixed three percentages that
+measured different things. There is a new button that explains in what
+order the window is used.</p></li>
+<li><p><strong>The <em>Broadcast</em> window does not get stuck</strong>
+if the chosen source has disappeared in OBS or if OBS closes the
+connection: it warns and lets you continue. “Apply size” on a scaled
+panel no longer shrinks it to half.</p></li>
+<li><p><strong>OBS: the broadcast time was a thousand times
+larger.</strong> One minute was announced as “16 hours 40
+minutes”.</p></li>
+</ul>
+<h3 id="downloads">Downloads</h3>
+<ul>
+<li><strong>At most two downloads at a time.</strong> Before, queuing
+ten downloads launched them all at once. Now two run, the rest wait
+“queued”, in the order they were requested, and they can be canceled
+while waiting.</li>
+<li><strong>Canceling no longer leaves programs open.</strong> When
+canceling a download, or when closing the application, the programs that
+were downloading the file, including ffmpeg, close with it.</li>
+<li><strong>The name of each download is that of the final
+file.</strong> Before the name of a temporary chunk was announced. And
+“Enumerate” no longer puts “NA - ” in front of single videos.</li>
+<li><strong>Finished downloads have their own history.</strong> The
+queue and the history are in two tabs of the manager, and the history is
+kept between sessions. When reopening the window, the progress of
+downloads in progress is still there.</li>
+<li><strong>Downloads warn when they finish</strong>, whether the
+manager is open or closed, and the queue is no longer forgotten when
+closing the window.</li>
+<li><strong>The Downloads folder is always next to the
+application.</strong> Before it depended on where the program was opened
+from.</li>
+<li><strong>In downloads, progress is read first.</strong> The columns
+became progress, status and name, which is the order that matters.</li>
+</ul>
+<h3 id="preferences-and-shortcuts">Preferences and shortcuts</h3>
+<ul>
+<li><strong>Preferences is browsed with a list of categories</strong>,
+not with tabs. With a screen reader, the arrows announce each category
+as you pass through it. There are thirteen, arranged by topic.</li>
+<li><strong>Preferences saves safely and warns if it could not
+save.</strong> Before it wrote directly on the configuration file and
+announced “Preferences saved” no matter what happened. Now, if the disk
+does not accept the write, it says so with the error sound: the options
+stay applied until closing the application, but they will be lost when
+it closes.</li>
+<li><strong>Shortcuts are changed in a single step, and applied when you
+press <em>Save</em>.</strong> The action button is activated and the
+combination is pressed, without leaving the list. The window warns that
+the change is applied when you press <em>Save</em>, and <em>Cancel</em>
+discards it. <code>Enter</code> alone leaves the action without a
+shortcut and <code>Esc</code> cancels. If the combination is not valid
+or is already in use, the reason is given by voice and in an on-screen
+warning, and the button keeps waiting for another.</li>
+<li><strong>Reset the shortcuts.</strong> A button at the end of the
+list returns all customizable combinations to their original values, and
+it is also applied when you press <em>Save</em>.</li>
+<li><strong>Three new shortcuts to open windows</strong>:
+<code>Ctrl+Shift+P</code> opens Preferences, <code>Ctrl+Shift+H</code>
+the live stream history and <code>Ctrl+Shift+I</code> marks an incident
+in the log.</li>
+<li><strong>Nine options that existed and could not be touched.</strong>
+How the reading queue behaves when the chat speeds up, automatic
+reconnection, the chat panel port, the OBS microphone that the shortcut
+mutes, and the detailed log, which until now was only turned on by
+editing a file by hand.</li>
+<li><strong>Number counters can be rewritten without deleting
+first.</strong> When you enter one, its content is selected.</li>
+<li><strong>New light palette, with cream and sage green tones.</strong>
+The main window now has a minimum size, and long warnings fit the width
+instead of going out of the window.</li>
+<li><strong>The texts that the screen reader reads have their
+accents.</strong> Fifteen were written without them, so they were heard
+badly pronounced: “maxímo” for “máximo”, “transmisiòn” for
+“transmisión”.</li>
+<li><strong>Preferences: the Shortcuts category is fully
+visible.</strong> Before two thirds of the buttons were outside the
+window. Now the window can be enlarged.</li>
+<li><strong>Windows high contrast mode is respected.</strong> The
+application stopped applying its fixed colors over the system
+theme.</li>
+</ul>
+<h3 id="data-and-installation">Data and installation</h3>
+<ul>
+<li><strong>Data moves on its own to the <code>data</code>
+folder.</strong> The configuration, credentials, history, aliases,
+scheduled messages and logs were next to the program. When opening the
+new version, those files move to the <code>data</code> folder without
+doing anything. The Downloads folder stays next to the program.</li>
+<li><strong>The files that the application saves are written
+safely.</strong> This is the case of the history, credentials, scheduled
+messages and OBS configuration: a close halfway no longer leaves them
+empty.</li>
+<li><strong>Two defects of unexpected closes on exit were
+addressed.</strong> The player left loose ends when closing, which match
+the abrupt closes that appeared in the log. It cannot be considered
+cured until it is used for a while, but the log now leaves a trace of
+that close instead of staying silent.</li>
+<li><strong>The detailed log is off.</strong> It is a diagnostic option
+and it was on by default, which made the log file grow without
+need.</li>
+<li><strong>The diagnostic log stopped filling with noise.</strong> Nine
+out of ten lines were from internal libraries, and with a long session
+that noise erased the beginning of the file, which is exactly where the
+problem usually is.</li>
+<li><strong>The failure file no longer scares.</strong> It collects
+internal Windows events, and many are harmless. Now each startup writes
+a line that explains it and says which is the signal that the session
+ended well.</li>
+<li><strong>A black window no longer opens on startup.</strong> It
+appeared for an instant and stole focus from the screen reader. Now the
+query is done in the background.</li>
+</ul>
+<h2 id="201-august-2026">2.0.1, August 2026</h2>
+<p>A fixes version. It does not bring big new features: it makes the
+ones that already existed bother less and warn better.</p>
+<ul>
+<li><strong>Diagnostics stopped talking on its own.</strong> Every
+thirty seconds it announced by voice how many live threads there were.
+It was information to fix problems, not to listen to while watching a
+live stream. Now it is still saved in the log, but silently.</li>
+<li><strong>The player controls are no longer mute.</strong> Pressing
+play, mute or seek without a loaded video did absolutely nothing, not
+even say it. Now they answer “No video is loaded” or “The player is not
+available”, as the case may be.</li>
+<li><strong>The player shortcuts always work.</strong> They were off
+until you connected to something, so the seven Control combinations
+seemed broken.</li>
+<li><strong>It warns when you press play.</strong> Before there was a
+long silence while it loaded, which seemed like it had blocked. Now it
+says “Loading video”.</li>
+<li><strong>Clear warnings when the network fails.</strong> Before, if
+YouTube did not answer or the video was private, nothing was heard. Now
+it says it in words: that the network is not responding, that the video
+is not available, or that you have to wait a few minutes because too
+many requests were made.</li>
+<li><strong>Preferences shortcuts are grouped.</strong> The twenty
+buttons were loose; now the reader announces which group each one
+belongs to, “Player” or “Connection and chat”.</li>
+<li><strong>yt-dlp can be updated from the application.</strong> Tools
+menu → Update yt-dlp. It is the piece that breaks when YouTube changes
+something inside, and until now you had to wait for a new version of the
+whole program. It checks which version is published, compares it with
+the installed one and downloads it only if needed, verifying that the
+file is authentic.</li>
+<li><strong>Downloads use that same yt-dlp.</strong> Before the download
+manager carried its own copy inside, which stayed old even if you
+updated. Now everything uses the same one, and the version the
+application shows is the real one.</li>
+<li><strong>A leak that made the chat read twice inside was
+fixed.</strong> If you reconnected to another live stream without
+disconnecting first, the previous connection stayed alive asking YouTube
+for messages forever, silently, until closing the program.</li>
+<li><strong>The downloads folder is no longer saved on its own.</strong>
+A path from the machine where the program was built was written into the
+configuration.</li>
+<li>A menu entry that no longer led anywhere was removed, and warnings
+also come out on the braille line.</li>
+</ul>
+<h2 id="200-july-2026">2.0.0, July 2026</h2>
+<ul>
+<li><strong>TikTok live streams, now polished.</strong> The first
+version premiered them and this one makes them reliable: all comments
+are read with their author, the live stream video is heard, and F2 shows
+live viewers. Optional: read who joins the live stream (off by default,
+in Preferences → Reading).</li>
+<li><strong>Live stream history</strong> (File menu): saves what you
+have watched, in two tabs (YouTube and TikTok), to return to a live
+stream with Enter without remembering the link. Live streams are marked
+as such, because when they end they may stop existing.</li>
+<li><strong>Letter search in the chat and comments</strong>: type a few
+letters in a row (“mig”) and jump to the message that starts that way,
+announcing it. It wraps around the list if needed and warns if there are
+no matches.</li>
+<li><strong>Second voice for events</strong> (optional): Super Chats,
+gifts and new members can be read with a voice different from the one
+for messages.</li>
+<li><strong>Shortcuts captured by pressing them</strong>: in Preferences
+→ Shortcuts you no longer write the combination by hand; you press the
+action button and then the keys, and the app checks on its own that it
+is valid and does not clash with another.</li>
+<li><strong>Configurable spoken status (F2)</strong>: it says the live
+stream data (title, channel, viewers, messages read, contributions…) and
+in Preferences → Status you choose exactly what it counts.</li>
+<li><strong>Smoother chat with the screen reader</strong>: browsing the
+list with the arrows while messages arrive no longer blocks.</li>
+<li><strong>Consistent menus</strong>: actions that need a connection
+are disabled when there is none, and disconnecting is instant (before it
+could freeze the window for a few seconds).</li>
+<li><strong>More robust YouTube reconnection</strong>: a network error
+that left the connection broken until reconnecting by hand now recovers
+on its own.</li>
+<li><strong>Polished player</strong>: resuming a live stream after
+pausing it returns to the current moment, full screen carries the video
+title, and in live streams “Live” is shown instead of a confusing
+progress bar.</li>
+</ul>
+<h2 id="100-july-2026">1.0.0, July 2026</h2>
+<p>First version. Reading of the YouTube Live chat with SAPI5 voices;
+video comments with reading, replying and posting; integrated video
+player with keyboard-manageable full screen; moderation and sending to
+the chat with the official API; video information tab; and TikTok live
+streams (read only). Keyboard-navigable interface, with voice and
+braille announcements.</p>
+</body>
+</html>

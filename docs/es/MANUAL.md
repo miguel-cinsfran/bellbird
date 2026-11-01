@@ -170,7 +170,7 @@ La ventana *Música* (`Ctrl+Mayús+M`):
 - **Mostrar cola**: lo que va a sonar, en orden.
 - **Abrir enlace…**: un vídeo o una lista entera de YouTube, que se suma a
   la cola.
-- **Examinar carpeta**: la recorre de nuevo y dice cuántas canciones
+- **Actualizar carpeta**: la recorre de nuevo y dice cuántas canciones
   nuevas y eliminadas encontró.
 
 Las canciones nuevas aparecen solas en la lista, sin volver a elegir la
@@ -630,7 +630,7 @@ lo muestra. Si nadie lo muestra, revisa la fuente de navegador en OBS.
 `data`, donde están los registros. Los errores quedan en
 `data/bellbird.log`, y si la aplicación se cierra sola, también en
 `data/bellbird-fallos.log`. El registro detallado, `data/bellbird-debug.log`,
-viene encendido; se apaga en *Preferencias, Diagnóstico*, con la casilla
+viene encendido; se apaga en *Preferencias, General*, con la casilla
 *Guardar un registro detallado para diagnosticar fallos*. Para avisar de
 un fallo, reproduce el problema y manda los tres archivos.
 

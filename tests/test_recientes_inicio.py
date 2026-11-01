@@ -195,6 +195,14 @@ class TestRecientesVentana(unittest.TestCase):
             recientes._on_context_menu(mock.Mock())
         mostrar.assert_called_once_with()
 
+    def test_clic_derecho_real_abre_el_menu(self):
+        _m, _p, _s, _z, recientes, _c = self._marco(self._entradas(1))
+        evento = self.wx.ContextMenuEvent(
+            self.wx.wxEVT_CONTEXT_MENU, recientes.lista.GetId())
+        with mock.patch.object(recientes, "_mostrar_menu") as mostrar:
+            recientes.lista.ProcessEvent(evento)
+        mostrar.assert_called_once_with()
+
     def test_menu_con_fila_da_las_tres_opciones_y_cada_una_llama(self):
         _m, _p, _s, _z, recientes, _c = self._marco(self._entradas(2))
         recientes.lista.SetSelection(0)

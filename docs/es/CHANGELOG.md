@@ -39,6 +39,10 @@ Paraguay.
   marcada, OBS empieza a grabar cuando la transmisión empieza bien, y deja
   de grabar cuando la transmisión se detiene. Si ya estabas grabando, esa
   grabación sigue como estaba. Viene desmarcada.
+- Iniciar, pausar, reanudar y detener la grabación tienen sonidos propios.
+- *Mostrar en el título de la ventana si se transmite o se graba*, en
+  *Preferencias, Transmisión*, antepone ese estado al título. Viene
+  desmarcada.
 - Si la grabación no se puede iniciar, la transmisión sigue y la app lo
   avisa con un sonido propio.
 - Con esa casilla marcada, la revisión antes de transmitir avisa si el
@@ -62,9 +66,18 @@ Paraguay.
   categoría *General*, y se aplica al reiniciar. Al guardar, un cuadro
   ofrece *Reiniciar ahora* o *Más tarde*. De fábrica usa el idioma de
   Windows.
-- Sin conexión, la ventana principal muestra la lista *Directos
-  recientes* con los diez últimos directos y vídeos, de YouTube y TikTok.
-  Intro sobre uno lo vuelve a abrir.
+- Sin conexión, la ventana principal muestra la lista *Recientes* (`Alt+S`)
+  con los diez últimos directos y vídeos, de YouTube y TikTok. Intro abre
+  uno, `Supr` lo elimina del historial y su menú contextual ofrece abrirlo,
+  eliminarlo o abrir el historial completo.
+- *Reproducir solo el audio, sin imagen* viene marcada de fábrica. Con ella,
+  un vídeo grabado salta en menos de medio segundo.
+  Con la casilla desmarcada se ve la imagen, y cada salto tarda unos segundos.
+  Si ya la habías cambiado, se conserva lo que elegiste. En un directo se
+  comporta como antes.
+- La opción *Preguntar si se abre la carpeta al terminar la cola*, en
+  *Preferencias, Descargas*, hace una sola pregunta cuando termina toda la
+  cola, si algo se descargó bien. Viene desmarcada.
 - El historial y los directos recientes muestran la fecha corta, como
   27/10/2026, en lugar de 2026-10-27.
 - Los textos de la app usan los términos de Windows, como *Eliminar* e
@@ -171,6 +184,10 @@ Paraguay.
 
 ### Arreglos
 
+- Algunos vídeos de YouTube no se abrían al primer intento, o decían «Fin
+  del vídeo» sin haber empezado. Ahora la app espera los pocos segundos que
+  YouTube tarda en dejar disponible el vídeo, y si la apertura falla, dice
+  que falló.
 - Cuando TikTok frena las consultas seguidas, la app ya no lo toma por un
   directo que no aparece. Al transmitir avisa que TikTok está limitando
   las consultas, con un sonido propio. Al conectar al chat lo dice así, en

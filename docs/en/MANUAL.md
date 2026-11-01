@@ -63,8 +63,9 @@ your own account.
 
 When the application opens, the focus is in the address field. Paste the
 link of the live stream or the video and press Enter. If you have already
-watched other live streams, the window offers the list of recent ones, and
-Enter reopens one.
+watched other live streams, the window offers the *Recent items* list
+(`Alt+N`). Enter opens one, `Delete` removes it from the history, and the
+context menu offers to open it, remove it or open the full history.
 
 The window has three regions: connection, content and player. `F6` and
 `Shift+F6` move from one to another, and `Ctrl+Tab` switches between the
@@ -145,6 +146,12 @@ In a live stream, one-minute jumps add up and say where you land: “40
 seconds behind the live stream”. With YouTube's separate tracks you can go
 back up to an hour. `Ctrl+End` returns to the live stream. In a video, the
 position slider arrows move ten seconds.
+
+*Play sound only, without the picture*, in *Preferences, Player*, is checked.
+With it, a recorded video opens a single audio link and jumps in less than
+half a second, and the quality is not used. Cleared, you see the picture and
+each jump takes a few seconds. In a live stream the way of connecting does not
+change: only the picture stops showing.
 
 A TikTok live stream cannot be paused: when you press play or pause, the
 application says so and names the Mute audio shortcut, `Ctrl+M`, which
@@ -291,6 +298,10 @@ load on the computer. In that case, to reduce the load, choose in OBS that
 recording use the same quality as the broadcast. The check box is
 unchecked.
 
+Starting, pausing, resuming and stopping a recording have their own sounds.
+With *Show streaming or recording in the title of the window*, in
+*Preferences, Broadcast*, the title starts with that status. It is unchecked.
+
 **How the scene looks.** The *Broadcast* window describes each source from
 front to back: where it is, what size it has and whether something covers
 it. The same is heard with `Ctrl+F2`. From there you can move a source to
@@ -384,6 +395,11 @@ downloaded. The Downloads folder is next to the program. yt-dlp is updated
 from *Tools, Update yt-dlp*. The channel for that update is chosen in
 *Preferences, Downloads*: *Stable*, the default, or *Nightly*, with fixes
 sooner and more risk of failures.
+
+Enter on a finished download opens the file. With *Ask whether to open the
+folder when the queue finishes*, in *Preferences, Downloads*, the app asks one
+question when the whole queue finishes, if something downloaded correctly. It
+is unchecked, because the question takes the focus.
 
 **Live stream history** (`Ctrl+Shift+H`): what you watched, with one tab
 for YouTube and another for TikTok. Ended live streams are marked.

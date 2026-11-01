@@ -256,6 +256,11 @@ elijas <em>Mostrar OBS</em>.</li>
 cuando la transmisión empieza bien, y deja de grabar cuando la
 transmisión se detiene. Si ya estabas grabando, esa grabación sigue como
 estaba. Viene desmarcada.</li>
+<li>Iniciar, pausar, reanudar y detener la grabación tienen sonidos
+propios.</li>
+<li><em>Mostrar en el título de la ventana si se transmite o se
+graba</em>, en <em>Preferencias, Transmisión</em>, antepone ese estado
+al título. Viene desmarcada.</li>
 <li>Si la grabación no se puede iniciar, la transmisión sigue y la app
 lo avisa con un sonido propio.</li>
 <li>Con esa casilla marcada, la revisión antes de transmitir avisa si el
@@ -281,9 +286,20 @@ esos avisos de TikTok.</li>
 <em>Preferencias</em>, categoría <em>General</em>, y se aplica al
 reiniciar. Al guardar, un cuadro ofrece <em>Reiniciar ahora</em> o
 <em>Más tarde</em>. De fábrica usa el idioma de Windows.</li>
-<li>Sin conexión, la ventana principal muestra la lista <em>Directos
-recientes</em> con los diez últimos directos y vídeos, de YouTube y
-TikTok. Intro sobre uno lo vuelve a abrir.</li>
+<li>Sin conexión, la ventana principal muestra la lista
+<em>Recientes</em> (<code>Alt+S</code>) con los diez últimos directos y
+vídeos, de YouTube y TikTok. Intro abre uno, <code>Supr</code> lo
+elimina del historial y su menú contextual ofrece abrirlo, eliminarlo o
+abrir el historial completo.</li>
+<li><em>Reproducir solo el audio, sin imagen</em> viene marcada de
+fábrica. Con ella, un vídeo grabado salta en menos de medio segundo. Con
+la casilla desmarcada se ve la imagen, y cada salto tarda unos segundos.
+Si ya la habías cambiado, se conserva lo que elegiste. En un directo se
+comporta como antes.</li>
+<li>La opción <em>Preguntar si se abre la carpeta al terminar la
+cola</em>, en <em>Preferencias, Descargas</em>, hace una sola pregunta
+cuando termina toda la cola, si algo se descargó bien. Viene
+desmarcada.</li>
 <li>El historial y los directos recientes muestran la fecha corta, como
 27/10/2026, en lugar de 2026-10-27.</li>
 <li>Los textos de la app usan los términos de Windows, como
@@ -402,6 +418,10 @@ puede escribir cuando el destino es TikTok.</li>
 </ul>
 <h3 id="arreglos">Arreglos</h3>
 <ul>
+<li>Algunos vídeos de YouTube no se abrían al primer intento, o decían
+«Fin del vídeo» sin haber empezado. Ahora la app espera los pocos
+segundos que YouTube tarda en dejar disponible el vídeo, y si la
+apertura falla, dice que falló.</li>
 <li>Cuando TikTok frena las consultas seguidas, la app ya no lo toma por
 un directo que no aparece. Al transmitir avisa que TikTok está limitando
 las consultas, con un sonido propio. Al conectar al chat lo dice así, en

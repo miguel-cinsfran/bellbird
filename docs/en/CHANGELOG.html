@@ -263,6 +263,11 @@ already recording, that recording continues as it was. It is
 unchecked.</li>
 <li>If recording cannot start, the broadcast continues and the app warns
 with its own sound.</li>
+<li>Starting, pausing, resuming and stopping a recording have their own
+sounds.</li>
+<li><em>Show streaming or recording in the title of the window</em>, in
+<em>Preferences, Broadcast</em>, puts that status at the start of the
+title. It is unchecked.</li>
 <li>With that check box checked, the check before broadcasting warns if
 the OBS profile records with its own encoder. In that case, broadcasting
 and recording at the same time puts twice the load on the computer.</li>
@@ -286,8 +291,19 @@ those TikTok notices.</li>
 When saving, a box offers <em>Restart now</em> or <em>Later</em>. By
 default it uses the Windows language.</li>
 <li>Without a connection, the main window shows the <em>Recent
-streams</em> list with the last ten live streams and videos, from
-YouTube and TikTok. Enter on one reopens it.</li>
+items</em> list (<code>Alt+N</code>) with the last ten live streams and
+videos, from YouTube and TikTok. Enter opens one, <code>Delete</code>
+removes it from the history, and its context menu offers to open it,
+remove it or open the full history.</li>
+<li><em>Play sound only, without the picture</em> is checked by default.
+With it, a recorded video jumps in less than half a second. With the
+check box cleared you see the picture, and each jump takes a few
+seconds. If you had already changed it, your choice is kept. A live
+stream behaves as before.</li>
+<li>The option <em>Ask whether to open the folder when the queue
+finishes</em>, in <em>Preferences, Downloads</em>, asks one question
+when the whole queue finishes, if something downloaded correctly. It is
+unchecked.</li>
 <li>The history and recent streams show the short date, such as
 10/27/2026, instead of 2026-10-27.</li>
 <li>The app texts use Windows terms, such as <em>Delete</em> and
@@ -400,6 +416,10 @@ destination is TikTok.</li>
 </ul>
 <h3 id="fixes">Fixes</h3>
 <ul>
+<li>Some YouTube videos did not open on the first try, or said the video
+had ended before it started. The app now waits the few seconds YouTube
+takes to make the video available, and if opening fails, it says
+so.</li>
 <li>When TikTok slows down repeated requests, the app no longer takes it
 for a live stream that does not appear. When broadcasting it warns that
 TikTok is rate-limiting requests, with its own sound. When connecting to

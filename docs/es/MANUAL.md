@@ -60,7 +60,9 @@ cuenta propia.
 
 Al abrir, el foco está en el campo de la dirección. Pega el enlace del
 directo o del vídeo y pulsa Intro. Si ya viste otros directos, la ventana
-ofrece la lista de recientes, y con Intro se vuelve a abrir uno.
+ofrece la lista *Recientes* (`Alt+S`). Intro abre uno, `Supr` lo elimina del
+historial y el menú contextual ofrece abrirlo, eliminarlo o abrir el
+historial completo.
 
 La ventana tiene tres regiones: conexión, contenido y reproductor. `F6` y
 `Mayús+F6` pasan de una a otra, y `Ctrl+Tab` cambia entre las pestañas de
@@ -143,6 +145,12 @@ En un directo, los saltos de un minuto se acumulan y dicen dónde quedas:
 «40 segundos por detrás del directo». Con las pistas separadas de YouTube
 se puede retroceder hasta una hora. `Ctrl+Fin` vuelve al directo. En un
 vídeo, las flechas del deslizador de posición mueven diez segundos.
+
+*Reproducir solo el audio, sin imagen*, en *Preferencias, Reproductor*, viene
+marcada. Con ella, un vídeo grabado abre un solo enlace de audio y salta en
+menos de medio segundo, y la calidad no se usa. Desmarcada, se ve la imagen y
+cada salto tarda unos segundos. En un directo no cambia la forma de conectar:
+solo deja de mostrarse la imagen.
 
 Un directo de TikTok no se puede pausar: al pulsar reproducir o
 pausar, la aplicación lo dice y nombra el atajo de Silenciar,
@@ -290,6 +298,11 @@ transmitir lo avisa al final, porque grabar así carga el doble el equipo.
 En ese caso, para que cargue menos, elige en OBS que la grabación use la
 misma calidad que la transmisión. La casilla viene desmarcada.
 
+Iniciar, pausar, reanudar y detener la grabación tienen sonidos propios. Con
+*Mostrar en el título de la ventana si se transmite o se graba*, en
+*Preferencias, Transmisión*, el título empieza por ese estado. Viene
+desmarcada.
+
 **Cómo se ve la escena.** La ventana *Transmisión* describe cada fuente de
 adelante hacia atrás: dónde está, qué tamaño tiene y si algo la tapa. Lo
 mismo se oye con `Ctrl+F2`. Desde ahí puedes mover una fuente a una de
@@ -381,6 +394,11 @@ carpeta Descargas está junto al programa. yt-dlp se actualiza desde
 *Herramientas, Actualizar yt-dlp*. El canal de esa actualización se elige
 en *Preferencias, Descargas*: *Estable*, el de fábrica, o *Diario*, con
 los arreglos antes y más riesgo de fallos.
+
+Intro sobre una descarga terminada abre el archivo. Con *Preguntar si se abre
+la carpeta al terminar la cola*, en *Preferencias, Descargas*, la app hace una
+sola pregunta cuando termina toda la cola, si algo se descargó bien. Viene
+desmarcada, porque la pregunta se lleva el foco.
 
 **Historial de directos** (`Ctrl+Mayús+H`): lo que viste, con una pestaña
 para YouTube y otra para TikTok. Los directos terminados salen marcados.

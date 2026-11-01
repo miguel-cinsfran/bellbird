@@ -44,6 +44,11 @@ Paraguay.
   recording continues as it was. It is unchecked.
 - If recording cannot start, the broadcast continues and the app warns
   with its own sound.
+- Starting, pausing, resuming and stopping a recording have their own
+  sounds.
+- *Show streaming or recording in the title of the window*, in
+  *Preferences, Broadcast*, puts that status at the start of the title. It
+  is unchecked.
 - With that check box checked, the check before broadcasting warns if the
   OBS profile records with its own encoder. In that case, broadcasting and
   recording at the same time puts twice the load on the computer.
@@ -64,9 +69,18 @@ Paraguay.
 - The app is also in English. The language is chosen in *Preferences*,
   *General* category, and applies on restart. When saving, a box offers
   *Restart now* or *Later*. By default it uses the Windows language.
-- Without a connection, the main window shows the *Recent streams* list
-  with the last ten live streams and videos, from YouTube and TikTok.
-  Enter on one reopens it.
+- Without a connection, the main window shows the *Recent items* list
+  (`Alt+N`) with the last ten live streams and videos, from YouTube and
+  TikTok. Enter opens one, `Delete` removes it from the history, and its
+  context menu offers to open it, remove it or open the full history.
+- *Play sound only, without the picture* is checked by default. With it, a
+  recorded video jumps in less than half a second. With the check box
+  cleared you see the picture, and each jump takes a few seconds. If you
+  had already changed it, your choice is kept. A live stream behaves as
+  before.
+- The option *Ask whether to open the folder when the queue finishes*, in
+  *Preferences, Downloads*, asks one question when the whole queue finishes,
+  if something downloaded correctly. It is unchecked.
 - The history and recent streams show the short date, such as 10/27/2026,
   instead of 2026-10-27.
 - The app texts use Windows terms, such as *Delete* and *Enter*, and
@@ -170,6 +184,9 @@ Paraguay.
 
 ### Fixes
 
+- Some YouTube videos did not open on the first try, or said the video had
+  ended before it started. The app now waits the few seconds YouTube takes to
+  make the video available, and if opening fails, it says so.
 - When TikTok slows down repeated requests, the app no longer takes it for
   a live stream that does not appear. When broadcasting it warns that
   TikTok is rate-limiting requests, with its own sound. When connecting to

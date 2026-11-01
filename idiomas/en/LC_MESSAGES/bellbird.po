@@ -211,7 +211,6 @@ msgstr ""
 "\n"
 "{detalle}"
 
-# | msgid "La respuesta quedó cortada por el largo elegido en Preferencias."
 #: bellbird/ai/consulta.py
 msgid "Respuesta incompleta: alcanzó la longitud máxima elegida en Preferencias."
 msgstr "Incomplete response: reached the maximum length chosen in Preferences."
@@ -276,11 +275,8 @@ msgstr "The model returned no response. Try again."
 msgid "El proveedor tuvo un fallo. Vuelve a intentarlo en un rato."
 msgstr "The provider failed. Try again in a while."
 
-# | msgid "" "El proveedor rechazó la consulta. Puede que el modelo ya no esté
 # "
-# | "disponible: en Preferencias, Inteligencia artificial, pulsa Actualizar
 # la"
-# | " lista de modelos o elige otro."
 #: bellbird/ai/consulta.py
 msgid ""
 "El proveedor rechazó la consulta. Puede que el modelo ya no esté "
@@ -889,7 +885,6 @@ msgstr "Connected"
 msgid "Título: {titulo}"
 msgstr "Title: {titulo}"
 
-# | msgid "Capa: {valor}"
 #. Traductores: parte del estado F2 (canal). {canal} es el canal o autor.
 #. Traductores: línea del panel de información. {canal} es el nombre del canal.
 #: bellbird/capture/estado_sesion.py bellbird/capture/metadatos.py
@@ -965,7 +960,6 @@ msgstr "Running for {texto}"
 msgid "Reproductor: {texto}"
 msgstr "Player: {texto}"
 
-# | msgid "{autor} compartió el directo"
 #. Traductores: parte del estado F2 del desfase. {atajo} es el atajo de
 #. teclado.
 #: bellbird/capture/estado_sesion.py
@@ -1088,14 +1082,12 @@ msgstr "Voice: speed {velocidad}, volume {volumen}%"
 msgid "Lectura silenciada"
 msgstr "Reading muted"
 
-# | msgid "Panel de chat activo en el puerto {puerto}"
 #. Traductores: componente del estado F2. {puerto} es el puerto del panel.
 #: bellbird/capture/estado_sesion.py
 #, python-brace-format
 msgid "Panel de chat activo en el puerto {puerto}, mostrándose"
 msgstr "Chat panel active on port {puerto}, showing"
 
-# | msgid "Panel de chat activo en el puerto {puerto}"
 #. Traductores: componente del estado F2. {puerto} es el puerto del panel.
 #: bellbird/capture/estado_sesion.py
 #, python-brace-format
@@ -1125,13 +1117,11 @@ msgstr ""
 msgid "Transmisión: {texto}"
 msgstr "Broadcast: {texto}"
 
-# | msgid "Información del vídeo"
 #. Traductores: aviso del panel de información cuando no hay datos.
 #: bellbird/capture/metadatos.py
 msgid "Sin información del vídeo."
 msgstr "No video information."
 
-# | msgid "Desconectado{sin_tts}"
 #. Traductores: línea del panel de información de un directo. {vistas} es
 #. cuántas personas miran.
 #. Traductores: línea del panel de información de un vídeo. {vistas} es cuántas
@@ -1141,13 +1131,11 @@ msgstr "No video information."
 msgid "Espectadores: {vistas}"
 msgstr "Viewers: {vistas}"
 
-# | msgid "Vista previa"
 #: bellbird/capture/metadatos.py
 #, python-brace-format
 msgid "Vistas: {vistas}"
 msgstr "Views: {vistas}"
 
-# | msgid "&Me gusta:"
 #. Traductores: línea del panel de información. {cuantos} es cuántos me gusta
 #. tiene.
 #: bellbird/capture/metadatos.py
@@ -1155,7 +1143,6 @@ msgstr "Views: {vistas}"
 msgid "Me gusta: {cuantos}"
 msgstr "Likes: {cuantos}"
 
-# | msgid "Co&mentarios:"
 #. Traductores: línea del panel de información. {cuantos} es cuántos
 #. comentarios tiene.
 #: bellbird/capture/metadatos.py
@@ -1170,7 +1157,6 @@ msgstr "Comments: {cuantos}"
 msgid "Publicado: {fecha}"
 msgstr "Published: {fecha}"
 
-# | msgid "{posicion} de {duracion}"
 #. Traductores: línea del panel de información. {duracion} es cuánto dura.
 #: bellbird/capture/metadatos.py
 #, python-brace-format
@@ -1286,7 +1272,6 @@ msgstr ""
 "Missing API key to know if this live stream allows writing. Put it in "
 "Preferences, API and session category"
 
-# | msgid "Conectado al directo. Leyendo el chat."
 #. Traductores: motivo de botón desactivado para escribir en el chat.
 #: bellbird/capture/redaccion.py
 msgid "Conéctate a un directo para escribir en el chat"
@@ -1297,7 +1282,6 @@ msgstr "Connect to a live stream to write in the chat"
 msgid "El chat de TikTok no permite escribir desde aquí"
 msgstr "TikTok chat does not allow writing from here"
 
-# | msgid "Este vídeo no tiene un directo con chat activo."
 #. Traductores: motivo de botón desactivado para escribir en el chat.
 #: bellbird/capture/redaccion.py
 msgid "Este vídeo no tiene chat"
@@ -1308,25 +1292,21 @@ msgstr "This video has no chat."
 msgid "Faltan las bibliotecas de la API para escribir en el chat"
 msgstr "The API libraries are missing to write in the chat"
 
-# | msgid "No se encontraron salidas de audio"
 #. Traductores: motivo de botón desactivado para escribir en el chat.
 #: bellbird/capture/redaccion.py
 msgid "No se encontró este vídeo"
 msgstr "This video was not found"
 
-# | msgid "Este vídeo no es un directo"
 #. Traductores: motivo de botón desactivado para escribir en el chat.
 #: bellbird/capture/redaccion.py bellbird/player/reproductor.py
 msgid "Este vídeo no es un directo"
 msgstr "This video is not a live stream"
 
-# | msgid "El directo terminó. Chat desconectado."
 #. Traductores: motivo de botón desactivado para escribir en el chat.
 #: bellbird/capture/redaccion.py
 msgid "Este directo tiene el chat desactivado"
 msgstr "This live stream has chat disabled"
 
-# | msgid "No se puede retroceder más en este directo"
 #. Traductores: motivo de botón desactivado para escribir en el chat.
 #: bellbird/capture/redaccion.py
 msgid "No se pudo acceder al chat de este directo"
@@ -1337,7 +1317,6 @@ msgstr "Could not access the chat of this live stream"
 msgid "Conéctate a un vídeo para poder comentar"
 msgstr "Connect to a video to comment"
 
-# | msgid "Este vídeo no tiene un directo con chat activo."
 #. Traductores: motivo de botón desactivado para comentar.
 #: bellbird/capture/redaccion.py
 msgid "Este vídeo tiene los comentarios desactivados"
@@ -1348,8 +1327,6 @@ msgstr "This video has comments disabled"
 msgid "Inicia sesión en Preferencias, categoría API y sesión, para comentar"
 msgstr "Sign in in Preferences, API and session category, to comment"
 
-# | msgid "" "AVISO: faltan las bibliotecas de la API. Instálalas con:\n" "pip
-# | install google-api-python-client google-auth-oauthlib"
 #. Traductores: motivo de botón desactivado para leer comentarios.
 #: bellbird/capture/redaccion.py
 msgid ""
@@ -1385,19 +1362,16 @@ msgstr "Write a message before sending"
 msgid "El mensaje tiene {largo} caracteres y el máximo es {maximo}"
 msgstr "The message has {largo} characters and the maximum is {maximo}"
 
-# | msgid "Conectando al directo…"
 #. Traductores: estado que se anuncia y se muestra en la barra de estado al
 #. conectar.
 #: bellbird/capture/tiktok_captura.py
 msgid "Conectado al directo de TikTok."
 msgstr "Connected to the TikTok live stream."
 
-# | msgid "No se encontró la biblioteca pytchat. Ejecuta instalar.bat."
 #: bellbird/capture/tiktok_captura.py
 msgid "Falta la biblioteca TikTokLive. Ejecuta instalar.bat."
 msgstr "Missing TikTokLive library. Run instalar.bat."
 
-# | msgid "Directo de TikTok de @{usuario}: leyendo el chat."
 #. Traductores: estado que se anuncia y se muestra en la barra de estado al
 #. conectar. {usuario} es el usuario de TikTok.
 #: bellbird/capture/tiktok_captura.py
@@ -1411,14 +1385,12 @@ msgstr "Connecting to the TikTok live stream by @{usuario}…"
 msgid "TikTok no responde por ahora. Espera un momento y vuelve a intentarlo."
 msgstr "TikTok is not responding for now. Wait a moment and try again."
 
-# | msgid "Esperando a que TikTok muestre el directo."
 #. Traductores: error permanente que se anuncia y se muestra en la barra de
 #. estado.
 #: bellbird/capture/tiktok_errores.py
 msgid "Ese usuario de TikTok no está en directo ahora mismo."
 msgstr "That TikTok user is not live right now."
 
-# | msgid "No se encontró el vídeo. Revisa el enlace o el ID."
 #. Traductores: error permanente que se anuncia y se muestra en la barra de
 #. estado.
 #: bellbird/capture/tiktok_errores.py
@@ -1448,7 +1420,6 @@ msgstr ""
 "TikTok is rate-limiting requests from this connection. Wait half a minute "
 "and try again."
 
-# | msgid "No se pudo agregar el directo a la lista: {detalle}"
 #. Traductores: error transitorio que se anuncia y se muestra en la barra de
 #. estado. {detalle} es el detalle técnico.
 #: bellbird/capture/tiktok_errores.py
@@ -1456,7 +1427,6 @@ msgstr ""
 msgid "No se pudo conectar al directo de TikTok: {detalle}"
 msgstr "Could not connect to the TikTok live stream: {detalle}"
 
-# | msgid "Pregunta: {texto}"
 #. Traductores: texto del chat de TikTok que se anuncia. {contenido} es la
 #. pregunta.
 #: bellbird/capture/tiktok_manejadores.py
@@ -1464,30 +1434,25 @@ msgstr "Could not connect to the TikTok live stream: {detalle}"
 msgid "Pregunta: {contenido}"
 msgstr "Question: {contenido}"
 
-# | msgid "El directo de TikTok terminó"
 #: bellbird/capture/tiktok_manejadores.py
 msgid "El directo de TikTok está en pausa."
 msgstr "The TikTok live stream is paused."
 
-# | msgid "El directo de TikTok terminó"
 #: bellbird/capture/tiktok_manejadores.py
 msgid "El directo de TikTok continúa."
 msgstr "The TikTok live stream continues."
 
-# | msgid "Sesión iniciada. Ya puedes volver a la aplicación."
 #. Traductores: error permanente que se anuncia y se muestra en la barra de
 #. estado.
 #: bellbird/capture/tiktok_reconexion.py
 msgid "La versión instalada de TikTokLive no es compatible con la aplicación."
 msgstr "The installed TikTokLive version is not compatible with the application."
 
-# | msgid "El directo de TikTok terminó"
 #. Traductores: estado final que se anuncia y se muestra en la barra de estado.
 #: bellbird/capture/tiktok_reconexion.py
 msgid "El directo de TikTok ha terminado."
 msgstr "The TikTok live stream has ended."
 
-# | msgid "Se agotaron los {n} intentos de reconexión."
 #. Traductores: error que se anuncia y se muestra en la barra de estado.
 #. {intentos} es cuántos intentos se hicieron.
 #: bellbird/capture/tiktok_reconexion.py
@@ -1495,8 +1460,6 @@ msgstr "The TikTok live stream has ended."
 msgid "Se agotaron los {intentos} intentos de reconexión."
 msgstr "All {intentos} reconnection attempts failed."
 
-# | msgid "" "Se perdió la conexión con el chat. Reintentando en {segundos}
-# | {unidad} " "(intento {intento} de {total})."
 #. Traductores: estado que se anuncia y se muestra en la barra de estado.
 #. {segundos} es la espera, {intento} el intento actual y {maximo} el máximo.
 #: bellbird/capture/tiktok_reconexion.py
@@ -1504,8 +1467,6 @@ msgstr "All {intentos} reconnection attempts failed."
 msgid "Reintentando en {segundos} segundos (intento {intento} de {maximo})…"
 msgstr "Retrying in {segundos} seconds (attempt {intento} of {maximo})…"
 
-# | msgid "" "Se perdió la conexión con el chat. Reintentando en {segundos}
-# | {unidad} " "(intento {intento})."
 #. Traductores: estado que se anuncia y se muestra en la barra de estado.
 #. {segundos} es la espera y {intento} el intento actual.
 #: bellbird/capture/tiktok_reconexion.py
@@ -1626,8 +1587,6 @@ msgstr ""
 "Could not look up the video because the network is not responding. Check "
 "the connection and try again."
 
-# | msgid "El vídeo no está disponible. Comprueba la dirección o que no sea
-# | privado."
 #: bellbird/core/avisos_red.py
 msgid "El vídeo no está disponible. Comprueba el enlace o que no sea privado."
 msgstr "The video is not available. Check the link or whether it is private."
@@ -1676,7 +1635,6 @@ msgstr "&Treasure chests:"
 msgid "{dia}/{mes}/{anio}"
 msgstr "{mes}/{dia}/{anio}"
 
-# | msgid "Directo del {fecha}"
 #. Traductores: fila del historial de un directo; {base} es el canal y
 #. el título y {fecha} la fecha corta.
 #: bellbird/core/historial.py
@@ -1684,7 +1642,6 @@ msgstr "{mes}/{dia}/{anio}"
 msgid "{base} · directo ({fecha})"
 msgstr "{base} · live ({fecha})"
 
-# | msgid "En directo"
 #. Traductores: fila del historial de un directo sin fecha; {base} es
 #. el canal y el título.
 #: bellbird/core/historial.py
@@ -1879,7 +1836,6 @@ msgstr "Download error: {mensaje}"
 msgid "Error en la descarga"
 msgstr "Download error"
 
-# | msgid "Vídeo WebM"
 #: bellbird/downloads/opciones_formato.py
 msgid "Vídeo original"
 msgstr "Original video"
@@ -2251,13 +2207,10 @@ msgstr "No songs in the queue"
 msgid "Leyendo el enlace"
 msgstr "Reading the link"
 
-# | msgid "Esa dirección no es de YouTube"
 #: bellbird/music/anuncios.py
 msgid "Ese enlace no es de YouTube"
 msgstr "That link is not from YouTube"
 
-# | msgid "No se pudieron usar en cualquier programa: {lista}. Las usa otro
-# | programa"
 #. Traductores: {lista} son las combinaciones que otra aplicación ya usa; se
 #. oyen.
 #: bellbird/music/anuncios.py
@@ -2267,7 +2220,6 @@ msgid ""
 "aplicación"
 msgstr "Could not use in any application: {lista}. Another application uses them"
 
-# | msgid "Atajos de música activos en cualquier programa"
 #: bellbird/music/anuncios.py
 msgid "Atajos de música activos en cualquier aplicación"
 msgstr "Music shortcuts active in any application"
@@ -2307,9 +2259,7 @@ msgstr "{cantidad} songs match"
 msgid "Ninguna canción coincide"
 msgstr "No songs match"
 
-# | msgid "" "Intro reproduce ahora, Mayús más Intro a continuación, Control
 # más
-# | Intro " "al final, tecla de aplicaciones para más opciones"
 #: bellbird/music/anuncios.py
 msgid ""
 "Intro reproduce ahora, Mayús más Intro a continuación, Ctrl más Intro al "
@@ -2335,8 +2285,6 @@ msgstr ""
 "Enter plays, Delete removes, Alt plus arrows moves, applications key for "
 "more options"
 
-# | msgid "" "Escribe para filtrar, flecha abajo va a las canciones, Escape
-# | borra la " "búsqueda"
 #: bellbird/music/anuncios.py
 msgid "Escribe para filtrar, flecha abajo va a las canciones, Esc borra la búsqueda"
 msgstr "Type to filter, down arrow goes to the songs, Esc clears the search"
@@ -2435,7 +2383,6 @@ msgstr "The playlist does not exist: {nombre}"
 msgid "No hay una canción en la posición {posicion}"
 msgstr "There is no song at position {posicion}"
 
-# | msgid "Igualar el volumen"
 #: bellbird/music/pregunta_igualar.py bellbird/ui/musica_ventana.py
 #: bellbird/ui/musica_ventana_igualando.py
 msgid "Igualar volumen"
@@ -2582,12 +2529,10 @@ msgstr "Paused: {fila}"
 msgid "Sonando: {fila}"
 msgstr "Playing: {fila}"
 
-# | msgid "Carpeta examinada: sin cambios."
 #: bellbird/music/vista.py
 msgid "Carpeta actualizada: sin cambios."
 msgstr "Folder refreshed: no changes."
 
-# | msgid "Carpeta examinada: {partes}."
 #. Traductores: {partes} dice cuántas nuevas y quitadas hubo; se anuncia.
 #: bellbird/music/vista.py
 #, python-brace-format
@@ -2602,8 +2547,6 @@ msgid_plural "{nuevas} canciones nuevas"
 msgstr[0] "{nuevas} new song"
 msgstr[1] "{nuevas} new songs"
 
-# | msgid "{quitadas} quitada"
-# | msgid_plural "{quitadas} quitadas"
 #. Traductores: {eliminadas} es cuántas canciones se eliminaron; se anuncia.
 #: bellbird/music/vista.py
 #, python-brace-format
@@ -2612,9 +2555,6 @@ msgid_plural "{eliminadas} eliminadas"
 msgstr[0] "{eliminadas} removed"
 msgstr[1] "{eliminadas} removed"
 
-# | msgid "" "Ajuste fino. Flechas para mover, Control para pasos grandes,
-# | Mayúsculas " "para pasos de un píxel. Intro confirma, Escape deshace, Tab
-# | sale."
 #. Traductores: anuncio al entrar en el ajuste fino; dice qué teclas mueven,
 #. confirman y salen.
 #: bellbird/obs/ajuste_fino.py
@@ -3252,14 +3192,9 @@ msgstr[1] "{n} sources"
 msgid "Escena al aire: {escena}. {palabra}, de adelante hacia atrás."
 msgstr "Live scene: {escena}. {palabra}, from front to back."
 
-# | msgid "" "Desde aquí eliges a dónde transmitir, empiezas y terminas el
-# | directo y " "preparas lo que se ve. En el directo se ve una ventana, la
 # que
-# | eliges en " "Ventana que se captura. Esa captura no lleva sonido: el
 # sonido
-# | sale del " "audio del escritorio y del micrófono de OBS. El panel de chat
 # es
-# | solo " "para YouTube: en TikTok los comentarios ya aparecen en el
 # directo."
 #: bellbird/obs/obs_estado.py
 msgid ""
@@ -3299,37 +3234,18 @@ msgstr ""
 "panel's background is transparent: only the message\n"
 "cards show, and they only cover what is right under them."
 
-# | msgid "" "Este diálogo no crea escenas ni agrega otras fuentes, salvo la
-# | captura de" " ventana desde la sección Escena. Hace una sola\n" "cosa:
 # pone
-# | el panel de chat de esta aplicación dentro de una escena de " "OBS\n" "y
 # lo
-# | coloca donde quieras.\n" "\n" "El orden es este.\n" "\n" "Uno. Pulsa
-# | Preparar el panel. Eso enciende el servidor del panel y crea " "la\n"
-# | "fuente dentro de la escena elegida, si todavía no estaba.\n" "\n" "Dos.
-# | Elige la escena en el desplegable Escena. Recorrerlo no cambia lo "
 # "que\n"
-# | "ven los espectadores: para eso está el botón Poner al aire.\n" "\n"
 # "Tres.
-# | Elige qué fuente vas a mover en el desplegable Fuente. Normalmente "
 # "es\n"
-# | "el panel de chat, pero puedes mover cualquier fuente que ya exista en
 # la\n"
-# | "escena. Este diálogo solo agrega el panel y la captura de ventana: lo "
-# | "demás se hace\n" "desde OBS.\n" "\n" "Cuatro. Coloca la fuente. Tienes
 # dos
-# | formas. El desplegable Posición más " "su\n" "botón la lleva a una de
 # nueve
-# | posiciones fijas. El Ajuste fino la mueve " "de\n" "a poco con las
 # flechas,
-# | y confirma con Intro.\n" "\n" "Cinco. El tamaño se cambia con Ancho y Alto
 # y
-# | se aplica con su botón.\n" "\n" "El cuadro Estado del panel describe en
 # todo
-# | momento dónde está la\n" "fuente, de qué tamaño es, si se sale del lienzo
-# | si tapa a otras. Se\n" "actualiza solo con cada cambio.\n" "\n"
 # "Restablecer
-# | deshace todo lo que hiciste desde que abriste esta ventana."
 #: bellbird/obs/obs_estado.py
 msgid ""
 "Este cuadro de diálogo no crea escenas ni agrega otras fuentes, salvo la "
@@ -3674,7 +3590,6 @@ msgstr "OBS did not start broadcasting."
 msgid "OBS todavía no confirma que la señal salga."
 msgstr "OBS has not confirmed the signal is going out yet."
 
-# | msgid "Se cortó la conexión con el servicio, OBS está reconectando."
 #: bellbird/obs/obs_salida.py
 msgid "Se perdió la conexión con el servicio. OBS está reconectando."
 msgstr "Connection to the service dropped, OBS is reconnecting."
@@ -3870,9 +3785,7 @@ msgid ""
 "audio."
 msgstr "A TikTok live stream cannot be paused. To mute it, use Mute audio."
 
-# | msgid "" "Vídeo a pantalla completa. Espacio pausa, flechas buscan y
 # ajustan
-# | " "volumen, Escape sale."
 #: bellbird/player/pantalla_completa.py
 msgid ""
 "Vídeo a pantalla completa. Espacio pausa, flechas buscan y ajustan volumen,"
@@ -4087,7 +4000,6 @@ msgstr "Could not move the video"
 msgid "No se pudo mover el directo"
 msgstr "Could not move the live stream"
 
-# | msgid "Detenido"
 #. Traductores: estado en reposo, sin reproducir.
 #: bellbird/player/reproductor.py
 msgid "Detenido."
@@ -4130,7 +4042,6 @@ msgstr "Stopped"
 msgid "El vídeo está detenido"
 msgstr "The video is stopped"
 
-# | msgid "En un directo de TikTok no se puede adelantar ni retroceder"
 #: bellbird/player/reproductor.py
 msgid "En un directo de TikTok no se puede avanzar ni retroceder"
 msgstr "In a TikTok live stream you cannot go forward or back"
@@ -4161,8 +4072,6 @@ msgstr "Player volume: {nuevo} percent"
 msgid "{nuevo} por ciento"
 msgstr "{nuevo} percent"
 
-# | msgid "" "Pantalla completa. Espacio pausa, flechas buscan y ajustan
-# | volumen, " "Escape sale."
 #: bellbird/player/reproductor.py
 msgid ""
 "Pantalla completa. Espacio pausa, flechas buscan y ajustan volumen, Esc "
@@ -4218,13 +4127,10 @@ msgstr "The live stream was interrupted"
 msgid "El directo se interrumpió."
 msgstr "The live stream was interrupted."
 
-# | msgid "El directo se interrumpió"
 #: bellbird/player/reproductor.py
 msgid "Vídeo interrumpido"
 msgstr "Video interrupted"
 
-# | msgid "" "En este directo solo se puede retroceder o adelantar con los
-# | botones o " "las flechas"
 #: bellbird/player/reproductor.py
 msgid ""
 "En este directo solo se puede retroceder o avanzar con los botones o las "
@@ -4233,7 +4139,6 @@ msgstr ""
 "In this live stream you can only go back or forward with the buttons or the"
 " arrows"
 
-# | msgid "En este directo no se puede adelantar ni retroceder"
 #: bellbird/player/reproductor.py
 msgid "En este directo no se puede avanzar ni retroceder"
 msgstr "In this live stream you cannot go forward or back"
@@ -4402,7 +4307,6 @@ msgstr "Announce status"
 msgid "Anunciar autor del último mensaje"
 msgstr "Announce last message author"
 
-# | msgid "Describir la escena de OBS"
 #: bellbird/ui/atajos_captura.py
 msgid "Describir escena de OBS"
 msgstr "Describe OBS scene"
@@ -4463,12 +4367,10 @@ msgstr "Music shuffle"
 msgid "Cambiar la repetición de la música"
 msgstr "Change music repeat"
 
-# | msgid "Detener la música"
 #: bellbird/ui/atajos_captura.py
 msgid "Detener música"
 msgstr "Stop music"
 
-# | msgid "Adelantar la música 10 segundos"
 #: bellbird/ui/atajos_captura.py
 msgid "Avanzar la música 10 segundos"
 msgstr "Move the music forward 10 seconds"
@@ -4612,7 +4514,6 @@ msgstr "Spacebar"
 msgid "Retroceso"
 msgstr "Backspace"
 
-# | msgid "Escena"
 #. Traductores: nombre de la tecla como se lee en voz alta, el del teclado en
 #. español de Windows.
 #: bellbird/ui/atajos_captura.py
@@ -4637,8 +4538,6 @@ msgstr "Alt"
 msgid "Mayús"
 msgstr "Shift"
 
-# | msgid "" "Pulsa la combinación para {etiqueta}. {ayuda} Intro la deja sin
-# | atajo. " "Escape cancela."
 #: bellbird/ui/atajos_captura.py
 #, python-brace-format
 msgid ""
@@ -4932,7 +4831,6 @@ msgstr "{cantidad} results"
 msgid "No hay coincidencias con {texto}"
 msgstr "No matches for {texto}"
 
-# | msgid "Mensajes recientes del chat en cualquier programa"
 #: bellbird/ui/chat_recientes.py
 msgid "Mensajes recientes del chat en cualquier aplicación"
 msgstr "Recent chat messages in any application"
@@ -5003,7 +4901,6 @@ msgstr "The download has already finished"
 msgid "Cancelando descarga"
 msgstr "Canceling download"
 
-# | msgid "Agregar a la cola"
 #: bellbird/ui/descargas_acciones.py
 msgid "Agregado a la cola"
 msgstr "Add to the queue"
@@ -5213,7 +5110,6 @@ msgstr "Status"
 msgid "Nombre"
 msgstr "Name"
 
-# | msgid "Cancelando descarga"
 #: bellbird/ui/descargas_listas.py
 msgid "C&ancelar descarga"
 msgstr "Cancel &download"
@@ -5357,9 +5253,6 @@ msgstr "&Link or ID:"
 msgid "Enlace del directo o vídeo"
 msgstr "Live stream or video link"
 
-# | msgid "" "Enlace de YouTube (directo o vídeo) o de un directo de TikTok "
-# | "(tiktok.com/@usuario/live). También vale el ID de 11 caracteres de "
-# | "YouTube. Pulsa Enter para conectar."
 #: bellbird/ui/gui.py
 msgid ""
 "Enlace de YouTube (directo o vídeo) o de un directo de TikTok "
@@ -5865,8 +5758,6 @@ msgstr "There is a new version, {nueva}. The installed one is {instalada}."
 msgid " Desde el código fuente no se instala: se actualiza con git."
 msgstr " Running from source does not install: update with git."
 
-# | msgid "" " La carpeta del programa no admite cambios. Se puede descargar a
-# | mano " "desde la página."
 #: bellbird/ui/gui_actualizar_app.py
 msgid ""
 " La carpeta de la aplicación no admite cambios. Se puede descargar a mano "
@@ -5921,9 +5812,6 @@ msgstr "The download did not complete: {motivo}."
 msgid "El paquete no sirve: {motivo}."
 msgstr "The package is not valid: {motivo}."
 
-# | msgid "" "La actualización está preparada. {app} se cierra y vuelve a
-# | abrirse sola " "en alrededor de un minuto. Si hay un chat conectado o un
-# | directo en " "curso, se corta."
 #: bellbird/ui/gui_actualizar_app.py
 #, python-brace-format
 msgid ""
@@ -5992,12 +5880,10 @@ msgstr "Newest"
 msgid "Orden de comentarios"
 msgstr "Comment order"
 
-# | msgid "A&plicar el orden"
 #: bellbird/ui/gui_comentarios.py
 msgid "A&plicar orden"
 msgstr "A&pply the order"
 
-# | msgid "Aplicar el orden"
 #: bellbird/ui/gui_comentarios.py
 msgid "Aplicar orden"
 msgstr "Apply order"
@@ -6467,7 +6353,6 @@ msgstr "Scheduled messages stopped because of a service error."
 msgid "¿Suspender temporalmente a {autor} durante 5 minutos?"
 msgstr "Put {autor} in timeout for 5 minutes?"
 
-# | msgid "{autor} expulsado 5 minutos"
 #. Traductores: aviso de suspensión; {autor} es su nombre.
 #: bellbird/ui/gui_envio_chat.py
 #, python-brace-format
@@ -6482,7 +6367,6 @@ msgid ""
 "Studio."
 msgstr "Hide {autor} on the YouTube channel? You can undo this from YouTube Studio."
 
-# | msgid "{autor} sigue el canal"
 #. Traductores: aviso de ocultación; {autor} es su nombre.
 #: bellbird/ui/gui_envio_chat.py
 #, python-brace-format
@@ -6709,12 +6593,10 @@ msgstr "&Preferences…"
 msgid "&Herramientas"
 msgstr "&Tools"
 
-# | msgid "captura de juego"
 #: bellbird/ui/gui_menu.py
 msgid "Manual de &uso"
 msgstr "&User manual"
 
-# | msgid "Novedades"
 #: bellbird/ui/gui_menu.py
 msgid "&Novedades"
 msgstr "&What's new"
@@ -6727,7 +6609,6 @@ msgstr "API setup &guide…"
 msgid "&Marcar incidencia"
 msgstr "&Mark issue"
 
-# | msgid "Abrir la carpeta de &registros"
 #: bellbird/ui/gui_menu.py
 msgid "Abrir carpeta de &registros"
 msgstr "Open &logs folder"
@@ -6744,7 +6625,6 @@ msgstr "&About"
 msgid "A&yuda"
 msgstr "&Help"
 
-# | msgid "captura de juego"
 #: bellbird/ui/gui_menu.py
 msgid "Manual de uso"
 msgstr "User manual"
@@ -6764,7 +6644,6 @@ msgstr ""
 msgid "Carpeta de registros"
 msgstr "Logs folder"
 
-# | msgid "" "No se pudo abrir la carpeta de datos:\n" "\n" "{exc}"
 #: bellbird/ui/gui_menu.py
 #, python-brace-format
 msgid ""
@@ -6816,7 +6695,6 @@ msgstr "Announce last message a&uthor"
 msgid "Mensajes recientes &del chat"
 msgstr "&Recent chat messages"
 
-# | msgid "Describir la escena de &OBS"
 #: bellbird/ui/gui_menu.py
 msgid "Describir escena de &OBS"
 msgstr "Describe the &OBS scene"
@@ -6849,12 +6727,10 @@ msgstr "&Next song"
 msgid "Canción &anterior"
 msgstr "Previous &song"
 
-# | msgid "Subir el &volumen"
 #: bellbird/ui/gui_menu.py
 msgid "Subir &volumen"
 msgstr "Raise the &volume"
 
-# | msgid "&Bajar el volumen"
 #: bellbird/ui/gui_menu.py
 msgid "&Bajar volumen"
 msgstr "&Lower the volume"
@@ -6863,7 +6739,6 @@ msgstr "&Lower the volume"
 msgid "&Qué suena"
 msgstr "&What's playing"
 
-# | msgid "Adelantar 10 segu&ndos"
 #: bellbird/ui/gui_menu.py
 msgid "Avanzar 10 segu&ndos"
 msgstr "&Forward 10 seconds"
@@ -6876,7 +6751,6 @@ msgstr "Rew&ind 10 seconds"
 msgid "Silenciar la &música"
 msgstr "Mute the &music"
 
-# | msgid "&Detener la música"
 #: bellbird/ui/gui_menu.py
 msgid "&Detener música"
 msgstr "S&top the music"
@@ -6885,7 +6759,6 @@ msgstr "S&top the music"
 msgid "&Orden aleatorio"
 msgstr "Sh&uffle"
 
-# | msgid "Cambiar la &repetición"
 #: bellbird/ui/gui_menu.py
 msgid "Cambiar &repetición"
 msgstr "Change &repeat"
@@ -7033,13 +6906,10 @@ msgstr "Chat &font size (8 to 24):"
 msgid "Tamaño de fuente del chat"
 msgstr "Chat font size"
 
-# | msgid "Mostrar el total de &Super Chats en la barra de estado"
 #: bellbird/ui/gui_preferencias.py
 msgid "Mostrar total de &Super Chats en la barra de estado"
 msgstr "Show the Super Chat &total in the status bar"
 
-# | msgid "Mostrar la pestaña de &información del vídeo (canal, vistas,
-# | descripción)"
 #: bellbird/ui/gui_preferencias.py
 msgid "Mostrar pestaña de &información del vídeo"
 msgstr "Show the video &information tab (channel, views, description)"
@@ -7080,12 +6950,10 @@ msgstr "Read only the name from this many queued messages"
 msgid "Con 0, esta opción queda apagada."
 msgstr "With 0, this option stays off."
 
-# | msgid "&Reconectar automáticamente si se corta"
 #: bellbird/ui/gui_preferencias.py
 msgid "&Reconectar automáticamente"
 msgstr "&Reconnect automatically"
 
-# | msgid "Reconectar automáticamente si se corta"
 #: bellbird/ui/gui_preferencias.py
 msgid "Reconectar automáticamente"
 msgstr "Reconnect automatically"
@@ -7106,7 +6974,6 @@ msgstr "Maximum number of &tries:"
 msgid "Número máximo de intentos"
 msgstr "Maximum number of tries"
 
-# | msgid "&Reproducir el audio automáticamente al conectar"
 #: bellbird/ui/gui_preferencias.py
 msgid "&Reproducir audio automáticamente al conectar"
 msgstr "&Play audio automatically on connect"
@@ -7115,7 +6982,6 @@ msgstr "&Play audio automatically on connect"
 msgid "Reproducir &solo el audio, sin decodificar la imagen"
 msgstr "Play audio &only, without decoding the picture"
 
-# | msgid "Mostrar botones del reproductor"
 #: bellbird/ui/gui_preferencias.py
 msgid "Mostrar &botones del reproductor"
 msgstr "Show player &buttons"
@@ -7252,12 +7118,10 @@ msgstr "Prepare destination"
 msgid "Grabar"
 msgstr "Record"
 
-# | msgid "Pausar la gra&bación"
 #: bellbird/ui/gui_transmision.py
 msgid "Pausar gra&bación"
 msgstr "Pa&use recording"
 
-# | msgid "Pausar la grabación"
 #: bellbird/ui/gui_transmision.py
 msgid "Pausar grabación"
 msgstr "Pause recording"
@@ -7314,12 +7178,10 @@ msgstr "Chat panel, YouTube only"
 msgid "&Panel de chat para transmitir"
 msgstr "&Chat panel for streaming"
 
-# | msgid "Preparar el panel"
 #: bellbird/ui/gui_transmision.py
 msgid "Preparar pane&l"
 msgstr "Pre&pare panel"
 
-# | msgid "Preparar el panel"
 #: bellbird/ui/gui_transmision.py
 msgid "Preparar panel"
 msgstr "Prepare the panel"
@@ -7376,12 +7238,10 @@ msgstr "Panel height in pixels"
 msgid "Apl&icar tamaño"
 msgstr "Appl&y size"
 
-# | msgid "&Mostrar el panel en la escena"
 #: bellbird/ui/gui_transmision.py
 msgid "&Mostrar panel en la escena"
 msgstr "Show the panel &in the scene"
 
-# | msgid "Posición del panel"
 #: bellbird/ui/gui_transmision.py
 msgid "&Fijar posición del panel"
 msgstr "&Fix panel position"
@@ -7582,10 +7442,6 @@ msgstr ""
 "source has nothing chosen to capture. Choose it in the source properties in"
 " OBS."
 
-# | msgid "" "La captura de {etiqueta} salió negra y no se agregó. Suele pasar
-# | si la PC" " no tiene monitor conectado o si la cortina de pantalla de NVDA
-# | está " "activa. Prueba en OBS el método de captura Windows 10 para esa
-# | fuente."
 #. Traductores: aviso de captura negra; {etiqueta} es lo elegido en «Capturar
 #. de».
 #: bellbird/ui/ia_agregar_captura.py
@@ -7821,12 +7677,10 @@ msgstr "Loading the folder…"
 msgid "No hay carpeta de música"
 msgstr "No music folder"
 
-# | msgid "Directo de YouTube"
 #: bellbird/ui/musica_dialogo_enlace.py
 msgid "Enlace &de YouTube:"
 msgstr "&YouTube link:"
 
-# | msgid "Directo de YouTube"
 #: bellbird/ui/musica_dialogo_enlace.py
 msgid "Enlace de YouTube"
 msgstr "YouTube link"
@@ -7934,12 +7788,10 @@ msgstr "Search the music"
 msgid "Canciones"
 msgstr "Songs"
 
-# | msgid "Mostrar la c&ola"
 #: bellbird/ui/musica_ventana.py
 msgid "Mostrar c&ola"
 msgstr "&Show the queue"
 
-# | msgid "Mostrar la cola"
 #: bellbird/ui/musica_ventana.py
 msgid "Mostrar cola"
 msgstr "Show the queue"
@@ -7970,27 +7822,22 @@ msgstr "Change &folder…"
 msgid "Cambiar carpeta"
 msgstr "Change folder"
 
-# | msgid "&Igualar el volumen"
 #: bellbird/ui/musica_ventana.py bellbird/ui/musica_ventana_igualando.py
 msgid "&Igualar volumen"
 msgstr "&Match the volume"
 
-# | msgid "Cambiar carpeta"
 #: bellbird/ui/musica_ventana.py
 msgid "Actuali&zar carpeta"
 msgstr "Refresh f&older"
 
-# | msgid "Cambiar carpeta"
 #: bellbird/ui/musica_ventana.py
 msgid "Actualizar carpeta"
 msgstr "Refresh folder"
 
-# | msgid "Ocultar la c&ola"
 #: bellbird/ui/musica_ventana.py
 msgid "Ocultar c&ola"
 msgstr "&Hide the queue"
 
-# | msgid "Ocultar la cola"
 #: bellbird/ui/musica_ventana.py
 msgid "Ocultar cola"
 msgstr "Hide the queue"
@@ -8149,7 +7996,6 @@ msgstr "Signed out."
 msgid "{accion} (fija)"
 msgstr "{accion} (fixed)"
 
-# | msgid "&Restablecer los atajos a los valores de fábrica"
 #: bellbird/ui/preferencias_atajos.py
 msgid "&Restablecer atajos de fábrica"
 msgstr "&Reset shortcuts to factory defaults"
@@ -8299,12 +8145,10 @@ msgstr "Ask before &quitting if a chat is connected or a broadcast is in progres
 msgid "Preguntar antes de salir si hay un chat conectado o una transmisión en curso"
 msgstr "Ask before quitting if a chat is connected or a broadcast is in progress"
 
-# | msgid "Reproducir el sonido de &inicio"
 #: bellbird/ui/preferencias_general.py
 msgid "Reproducir sonido de &inicio"
 msgstr "Play startup s&ound"
 
-# | msgid "Reproducir el sonido de inicio"
 #: bellbird/ui/preferencias_general.py
 msgid "Reproducir sonido de inicio"
 msgstr "Play startup sound"
@@ -8317,32 +8161,26 @@ msgstr "Save a &detailed log for diagnosing failures"
 msgid "Guardar un registro detallado para diagnosticar fallos"
 msgstr "Save a detailed log for diagnosing failures"
 
-# | msgid "Abrir la carpeta de da&tos"
 #: bellbird/ui/preferencias_general.py
 msgid "Abrir carpeta de da&tos"
 msgstr "Open the da&ta folder"
 
-# | msgid "Abrir la carpeta de datos"
 #: bellbird/ui/preferencias_general.py
 msgid "Abrir carpeta de datos"
 msgstr "Open the data folder"
 
-# | msgid "E&xportar las preferencias…"
 #: bellbird/ui/preferencias_general.py
 msgid "E&xportar preferencias…"
 msgstr "E&xport preferences…"
 
-# | msgid "Exportar las preferencias"
 #: bellbird/ui/preferencias_general.py
 msgid "Exportar preferencias"
 msgstr "Export preferences"
 
-# | msgid "I&mportar las preferencias…"
 #: bellbird/ui/preferencias_general.py
 msgid "I&mportar preferencias…"
 msgstr "I&mport preferences…"
 
-# | msgid "Importar las preferencias"
 #: bellbird/ui/preferencias_general.py
 msgid "Importar preferencias"
 msgstr "Import preferences"
@@ -8375,8 +8213,6 @@ msgstr "Data folder"
 msgid "Preferencias (*.ini)|*.ini"
 msgstr "Preferences (*.ini)|*.ini"
 
-# | msgid "" "No se pudieron exportar las preferencias:\n" "\n" "{exc}"
-# | msgid "" "No se pudieron exportar preferencias:\n" "\n" "{exc}"
 #: bellbird/ui/preferencias_general.py
 #, python-brace-format
 msgid ""
@@ -8392,8 +8228,6 @@ msgstr ""
 msgid "Preferencias exportadas"
 msgstr "Preferences exported"
 
-# | msgid "" "No se pudieron importar las preferencias:\n" "\n" "{exc}"
-# | msgid "" "No se pudieron importar preferencias:\n" "\n" "{exc}"
 #: bellbird/ui/preferencias_general.py
 #, python-brace-format
 msgid ""
@@ -8452,7 +8286,6 @@ msgstr "&Provider:"
 msgid "&Dirección del servicio:"
 msgstr "Ser&vice address:"
 
-# | msgid "P&robar la clave"
 #: bellbird/ui/preferencias_ia.py
 msgid "P&robar clave"
 msgstr "&Test the key"
@@ -8465,7 +8298,6 @@ msgstr "&Model:"
 msgid "Solo gra&tuitos"
 msgstr "&Free only"
 
-# | msgid "&Actualizar la lista de modelos"
 #: bellbird/ui/preferencias_ia.py
 msgid "&Actualizar lista de modelos"
 msgstr "&Refresh model list"
@@ -8478,13 +8310,10 @@ msgstr "&Other model:"
 msgid "&Instrucción para las capturas:"
 msgstr "&Instructions for screenshots:"
 
-# | msgid "R&estaurar la instrucción"
-# | msgid "R&estaurar instrucción"
 #: bellbird/ui/preferencias_ia.py
 msgid "R&establecer instrucción"
 msgstr "R&eset the instructions"
 
-# | msgid "&Largo de la respuesta"
 #: bellbird/ui/preferencias_ia.py
 msgid "E&xtensión de la respuesta:"
 msgstr "Response &length:"
@@ -8522,12 +8351,10 @@ msgstr "Save ke&y"
 msgid "Escribir una clave &nueva"
 msgstr "Type a &new key"
 
-# | msgid "&Borrar la clave guardada"
 #: bellbird/ui/preferencias_ia_clave.py
 msgid "E&liminar clave guardada"
 msgstr "&Delete saved key"
 
-# | msgid "E&liminar"
 #: bellbird/ui/preferencias_ia_clave.py
 msgid "Eliminar clave"
 msgstr "Delete key"
@@ -8592,8 +8419,6 @@ msgstr "The app voice"
 msgid "Leer los mensajes recientes con"
 msgstr "Read recent messages with"
 
-# | msgid "Leer los mensajes recientes en cualquier &programa"
-# | msgid "Leer mensajes recientes en cualquier &programa"
 #: bellbird/ui/preferencias_lectura.py
 msgid "Leer mensajes recientes en cualquier a&plicación"
 msgstr "Read recent messages in any a&pplication"
@@ -8630,7 +8455,6 @@ msgstr "This song"
 msgid "Repetir la música"
 msgstr "Repeat the music"
 
-# | msgid "Recordar la ú&ltima lista al abrir"
 #: bellbird/ui/preferencias_musica.py
 msgid "Recordar ú&ltima lista al abrir"
 msgstr "Remember the &last playlist on open"
@@ -8671,7 +8495,6 @@ msgstr "The artist only"
 msgid "Qué decir al pasar de canción"
 msgstr "What to say when the song changes"
 
-# | msgid "A&nunciar la pausa, la reanudación y la vuelta al comienzo"
 #: bellbird/ui/preferencias_musica.py
 msgid "A&nunciar pausa, reanudación y vuelta al comienzo"
 msgstr "Announc&e pause, resume, and restart"
@@ -8692,22 +8515,18 @@ msgstr "Music &audio output:"
 msgid "Salida de audio de la música"
 msgstr "Music audio output"
 
-# | msgid "&Buscar las salidas de audio"
 #: bellbird/ui/preferencias_musica.py
 msgid "&Buscar salidas de audio"
 msgstr "Find audio &outputs"
 
-# | msgid "Buscar las salidas de audio"
 #: bellbird/ui/preferencias_musica.py
 msgid "Buscar salidas de audio"
 msgstr "Find audio outputs"
 
-# | msgid "&Igualar el volumen de las canciones"
 #: bellbird/ui/preferencias_musica.py
 msgid "&Igualar volumen de las canciones"
 msgstr "Match son&g volume"
 
-# | msgid "Igualar el volumen de las canciones"
 #: bellbird/ui/preferencias_musica.py
 msgid "Igualar volumen de las canciones"
 msgstr "Match song volume"
@@ -8720,8 +8539,6 @@ msgstr "Ask when opening Music whether to matc&h volume"
 msgid "Preguntar al abrir Música si igualar el volumen"
 msgstr "Ask when opening Music whether to match volume"
 
-# | msgid "Usar los atajos de música en cualquier &programa"
-# | msgid "Usar atajos de música en cualquier &programa"
 #: bellbird/ui/preferencias_musica.py
 msgid "Usar atajos de música en cualquier a&plicación"
 msgstr "Use music shortcuts &in any application"
@@ -8739,15 +8556,10 @@ msgstr "Found {cantidad} audio outputs"
 msgid "No se encontraron salidas de audio"
 msgstr "No audio outputs found"
 
-# | msgid "" "Envía mensajes al chat de tu directo cada cierto tiempo.
 # Necesita
-# | sesión " "de Google iniciada y un directo de YouTube conectado. El
 # intervalo
-# | mínimo" " son 5 minutos y cada mensaje admite 200 caracteres. YouTube
 # suele
-# | " "bloquear los enlaces en el chat del directo: conviene escribir el
 # nombre
-# | " "de usuario en vez de la dirección completa."
 #: bellbird/ui/preferencias_programados.py
 msgid ""
 "Envía mensajes al chat de tu directo cada cierto tiempo. Necesita sesión de"
@@ -8762,7 +8574,6 @@ msgstr ""
 "links in live chat: it is better to write the username instead of the full "
 "link."
 
-# | msgid "Acti&var los mensajes automáticos"
 #: bellbird/ui/preferencias_programados.py
 msgid "Acti&var mensajes automáticos"
 msgstr "&Enable scheduled messages"
@@ -8824,7 +8635,6 @@ msgstr "Default"
 msgid "&Sonidos:"
 msgstr "S&ounds:"
 
-# | msgid "&Oír el sonido elegido"
 #: bellbird/ui/preferencias_sonidos.py
 msgid "&Oír sonido elegido"
 msgstr "&Hear the selected sound"
@@ -8858,22 +8668,18 @@ msgstr "Chat panel port"
 msgid "&Micrófono de OBS:"
 msgstr "OBS &microphone:"
 
-# | msgid "&Buscar los micrófonos en OBS"
 #: bellbird/ui/preferencias_transmision.py
 msgid "&Buscar micrófonos en OBS"
 msgstr "&Find microphones in OBS"
 
-# | msgid "Buscar los micrófonos en OBS"
 #: bellbird/ui/preferencias_transmision.py
 msgid "Buscar micrófonos en OBS"
 msgstr "Find microphones in OBS"
 
-# | msgid "&Activar el servidor websocket de OBS"
 #: bellbird/ui/preferencias_transmision.py
 msgid "&Activar servidor WebSocket de OBS"
 msgstr "&Enable the OBS websocket server"
 
-# | msgid "Activar el servidor websocket de OBS"
 #: bellbird/ui/preferencias_transmision.py
 msgid "Activar servidor WebSocket de OBS"
 msgstr "Enable the OBS websocket server"

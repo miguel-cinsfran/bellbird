@@ -1472,7 +1472,7 @@ class YTChatFrame(wx.Frame):
         """Espectadores en vivo; TikTok lo refresca cada pocos segundos."""
         if not self._alive:
             return
-        for clave, valor in (("vistas", n), ("vistas_total", total)):
+        for clave, valor in (p for p in (("vistas", n), ("vistas_total", total)) if p[1] is not None):
             try:    self._metadatos[clave] = int(valor)
             except Exception as error: logger.debug("no se pudo anotar %s: %s", clave, error)
 

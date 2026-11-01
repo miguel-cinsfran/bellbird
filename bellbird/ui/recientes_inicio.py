@@ -13,7 +13,7 @@ import wx
 from bellbird.core import historial
 from bellbird.core import paths
 from bellbird.core.idioma import _
-from bellbird.ui.accesibilidad import nombre_accesible
+from bellbird.ui.accesibilidad import anunciar, nombre_accesible
 from bellbird.ui.busqueda_teclado import instalar_busqueda_tipo
 from bellbird.ui.tema import _T, _pintar, _tc, _titulo
 
@@ -34,6 +34,21 @@ def texto_reciente(entrada):
     # {etiqueta} el canal, el título y la fecha.
     return _("{plataforma}: {etiqueta}").format(
         plataforma=plataforma, etiqueta=historial.etiqueta(entrada))
+
+
+def quitar_entrada(ruta, entrada):
+    """Saca del historial la entrada que coincide en plataforma, clave y fecha.
+
+    No se compara por identidad: `entradas_recientes` devuelve objetos de
+    otra carga del archivo.
+    """
+    restantes = [
+        e for e in historial.cargar(ruta)
+        if not (e.get("plataforma") == entrada.get("plataforma")
+                and e.get("clave") == entrada.get("clave")
+                and e.get("fecha") == entrada.get("fecha"))
+    ]
+    historial.guardar(ruta, restantes)
 
 
 def abrir_historial(parent, ruta, al_conectar):
@@ -57,24 +72,24 @@ class RecientesInicio:
         self._zona = zona
         self._ruta = paths.historial_lives() if ruta is None else ruta
         self._al_conectar = al_conectar
-        self.entradas = []
         self.caja = wx.Panel(panel, name="RecientesInicio")
         _pintar(self.caja, bg=_T.bg)
         vs = wx.BoxSizer(wx.VERTICAL)
         self.rotulo = wx.StaticText(
-            self.caja, label=_("&Directos recientes:"), name="EtiquetaRecientes")
+            self.caja, label=_("Reciente&s:"), name="EtiquetaRecientes")
         _titulo(self.rotulo)
         vs.Add(self.rotulo, 0, wx.LEFT | wx.RIGHT | wx.TOP, 8)
         self.lista = wx.ListBox(
             self.caja, style=wx.LB_SINGLE | wx.LB_HSCROLL,
-            name=_("Directos recientes"))
+            name=_("Recientes, Intro para abrir"))
         _tc(self.lista)
-        nombre_accesible(self.lista, _("Directos recientes"))
+        nombre_accesible(self.lista, _("Recientes, Intro para abrir"))
         instalar_busqueda_tipo(
             self.lista,
             lambda: [self.lista.GetString(i) for i in range(self.lista.GetCount())])
         self.lista.Bind(wx.EVT_LISTBOX_DCLICK, lambda e: self._conectar())
         self.lista.Bind(wx.EVT_KEY_DOWN, self.al_tecla)
+        self.lista.Bind(wx.EVT_CONTEXT_MENU, self._on_context_menu)
         vs.Add(self.lista, 1, wx.EXPAND | wx.ALL, 8)
         self.caja.SetSizer(vs)
         self._sizer.Insert(
@@ -105,24 +120,64 @@ class RecientesInicio:
             return
         self._aplicar_visibilidad()
 
-    def _recargar(self):
-        """Lee el historial y llena la lista, con la primera fila elegida."""
+    def _recargar(self, posicion=0):
+        """Lee el historial y llena la lista, con `posicion` elegida."""
         self.entradas = entradas_recientes(self._ruta)
         self.lista.Clear()
         for entrada in self.entradas:
             self.lista.Append(texto_reciente(entrada))
         if self.entradas:
-            self.lista.SetSelection(0)
+            self.lista.SetSelection(min(posicion, len(self.entradas) - 1))
             self.caja.Show()
         else:
             self.caja.Hide()
 
     def al_tecla(self, event):
-        """Intro reconecta; el resto sigue su curso."""
-        if event.GetKeyCode() in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
+        """Intro reconecta; Supr elimina; el menú abre con su tecla."""
+        tecla = event.GetKeyCode()
+        if tecla in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
             self._conectar()
+        elif tecla == wx.WXK_DELETE:
+            self._quitar()
+        elif tecla == wx.WXK_WINDOWS_MENU or (
+                tecla == wx.WXK_F10 and event.ShiftDown()):
+            self._mostrar_menu()
         else:
             event.Skip()
+
+    def _on_context_menu(self, _event):
+        self._mostrar_menu()
+
+    def _mostrar_menu(self):
+        elegida = self.lista.GetSelection()
+        hay = elegida != wx.NOT_FOUND and elegida < len(self.entradas)
+        menu = wx.Menu()
+        if hay:
+            abrir = wx.NewIdRef()
+            menu.Append(abrir, _("&Abrir"))
+            menu.Bind(wx.EVT_MENU, lambda e: self._conectar(), id=abrir)
+            quitar = wx.NewIdRef()
+            menu.Append(quitar, _("&Eliminar del historial"))
+            menu.Bind(wx.EVT_MENU, lambda e: self._quitar(), id=quitar)
+        completo = wx.NewIdRef()
+        menu.Append(completo, _("Abrir &historial completo"))
+        menu.Bind(wx.EVT_MENU, lambda e: self.abrir_historial(), id=completo)
+        self.lista.PopupMenu(menu)
+        menu.Destroy()
+
+    def _quitar(self):
+        elegida = self.lista.GetSelection()
+        if elegida == wx.NOT_FOUND or elegida >= len(self.entradas):
+            return
+        quitar_entrada(self._ruta, self.entradas[elegida])
+        anunciar(_("Entrada eliminada del historial"))
+        self._recargar(elegida)
+        self._panel.Layout()
+        if not self.entradas:
+            campo = self._panel.FindWindowByName(
+                _("Enlace del directo o vídeo"))
+            if campo is not None:
+                campo.SetFocus()
 
     def _conectar(self):
         elegida = self.lista.GetSelection()

@@ -48,6 +48,20 @@ class TestSetEspectadores(unittest.TestCase):
         self.assertEqual(frame._metadatos, {"vistas": 4,
                                            "vistas_total": 50})
 
+    def test_total_none_no_deja_error_en_el_registro(self):
+        frame = self._frame()
+        frame._metadatos = {"vistas": 3, "vistas_total": 50}
+        with self.assertNoLogs(gui.logger, level="DEBUG"):
+            gui.YTChatFrame.set_espectadores(frame, 4, None)
+        self.assertEqual(frame._metadatos, {"vistas": 4,
+                                           "vistas_total": 50})
+
+    def test_total_que_no_es_numero_sigue_registrandose(self):
+        frame = self._frame()
+        with self.assertLogs(gui.logger, level="DEBUG") as registro:
+            gui.YTChatFrame.set_espectadores(frame, 4, "muchos")
+        self.assertIn("no se pudo anotar vistas_total", registro.output[0])
+
 
 class TestSnapshotEspectadores(unittest.TestCase):
 

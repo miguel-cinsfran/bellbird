@@ -78,6 +78,25 @@ class TestEntradasRecientes(unittest.TestCase):
             [], recientes_inicio.entradas_recientes(self.ruta))
 
 
+class TestQuitarEntrada(unittest.TestCase):
+
+    def setUp(self):
+        self.temporal = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporal.cleanup)
+        self.ruta = Path(self.temporal.name) / "historial.json"
+
+    def test_saca_solo_la_que_coincide_y_conserva_la_de_otra_plataforma(self):
+        youtube = _entrada("youtube", "misma", "2026-03-01T10:00:00")
+        tiktok = _entrada("tiktok", "misma", "2026-03-01T10:00:00")
+        otra = _entrada("youtube", "otra", "2026-03-02T10:00:00")
+        historial.guardar(self.ruta, [youtube, tiktok, otra])
+        elegida = next(e for e in historial.cargar(self.ruta)
+                       if e["plataforma"] == "youtube" and e["clave"] == "misma")
+        recientes_inicio.quitar_entrada(self.ruta, elegida)
+        quedan = [(e["plataforma"], e["clave"]) for e in historial.cargar(self.ruta)]
+        self.assertEqual([("tiktok", "misma"), ("youtube", "otra")], quedan)
+
+
 class TestRecientesVentana(unittest.TestCase):
     """Necesita ventana real."""
 
@@ -117,8 +136,9 @@ class TestRecientesVentana(unittest.TestCase):
     def test_con_historial_muestra_rotulo_lista_y_primera_fila(self):
         marco, panel, sizer, zona, recientes, _ = self._marco(self._entradas())
         self.assertTrue(recientes.caja.IsShown())
-        self.assertEqual("&Directos recientes:", recientes.rotulo.GetLabel())
-        self.assertEqual("Directos recientes", recientes.lista.GetName())
+        self.assertEqual("Reciente&s:", recientes.rotulo.GetLabel())
+        self.assertEqual("Recientes, Intro para abrir",
+                         recientes.lista.GetName())
         self.assertEqual(10, recientes.lista.GetCount())
         self.assertEqual(0, recientes.lista.GetSelection())
         self.assertTrue(
@@ -141,6 +161,80 @@ class TestRecientesVentana(unittest.TestCase):
         recientes.al_tecla(evento)
         al_conectar.assert_not_called()
         evento.Skip.assert_called_once_with()
+
+    def test_supr_quita_anuncia_y_deja_elegida_la_misma_fila(self):
+        _m, _p, _s, _z, recientes, _c = self._marco(self._entradas(3))
+        recientes.lista.SetSelection(1)
+        with mock.patch.object(recientes_inicio, "anunciar") as anunciar:
+            evento = mock.Mock()
+            evento.GetKeyCode.return_value = self.wx.WXK_DELETE
+            recientes.al_tecla(evento)
+        anunciar.assert_called_once_with("Entrada eliminada del historial")
+        evento.Skip.assert_not_called()
+        self.assertEqual("clave-00", recientes.entradas[1]["clave"])
+        self.assertEqual(1, recientes.lista.GetSelection())
+        self.assertNotIn(
+            "clave-01", [e["clave"] for e in historial.cargar(self.ruta)])
+
+    def test_teclas_del_menu_lo_abren(self):
+        _m, _p, _s, _z, recientes, _c = self._marco(self._entradas(3))
+        for tecla, mayusculas in (
+                (self.wx.WXK_WINDOWS_MENU, False),
+                (self.wx.WXK_F10, True)):
+            with self.subTest(tecla=tecla):
+                evento = mock.Mock()
+                evento.GetKeyCode.return_value = tecla
+                evento.ShiftDown.return_value = mayusculas
+                with mock.patch.object(recientes, "_mostrar_menu") as mostrar:
+                    recientes.al_tecla(evento)
+                mostrar.assert_called_once_with()
+
+    def test_clic_derecho_abre_el_menu(self):
+        _m, _p, _s, _z, recientes, _c = self._marco(self._entradas(1))
+        with mock.patch.object(recientes, "_mostrar_menu") as mostrar:
+            recientes._on_context_menu(mock.Mock())
+        mostrar.assert_called_once_with()
+
+    def test_menu_con_fila_da_las_tres_opciones_y_cada_una_llama(self):
+        _m, _p, _s, _z, recientes, _c = self._marco(self._entradas(2))
+        recientes.lista.SetSelection(0)
+        etiquetas = []
+
+        def falso_popup(menu):
+            for item in menu.GetMenuItems():
+                if item.GetKind() != self.wx.ITEM_NORMAL:
+                    continue
+                etiquetas.append(item.GetItemLabel())
+                menu.ProcessEvent(
+                    self.wx.CommandEvent(self.wx.EVT_MENU.typeId, item.GetId()))
+
+        with mock.patch.object(recientes, "_conectar") as conectar, \
+                mock.patch.object(recientes, "_quitar") as quitar, \
+                mock.patch.object(recientes, "abrir_historial") as abrir, \
+                mock.patch.object(
+                    recientes.lista, "PopupMenu", falso_popup):
+            recientes._mostrar_menu()
+        self.assertEqual(
+            ["&Abrir", "&Eliminar del historial",
+             "Abrir &historial completo"], etiquetas)
+        conectar.assert_called_once_with()
+        quitar.assert_called_once_with()
+        abrir.assert_called_once_with()
+
+    def test_menu_sin_fila_solo_da_el_historial_completo(self):
+        _m, _p, _s, _z, recientes, _c = self._marco(self._entradas(2))
+        recientes.lista.SetSelection(self.wx.NOT_FOUND)
+        etiquetas = []
+
+        def falso_popup(menu):
+            etiquetas.extend(item.GetItemLabel()
+                             for item in menu.GetMenuItems()
+                             if item.GetKind() == self.wx.ITEM_NORMAL)
+
+        with mock.patch.object(
+                recientes.lista, "PopupMenu", falso_popup):
+            recientes._mostrar_menu()
+        self.assertEqual(["Abrir &historial completo"], etiquetas)
 
     def test_zona_visible_oculta_y_zona_oculta_muestra(self):
         marco, panel, sizer, zona, recientes, _ = self._marco(self._entradas(3))
@@ -270,6 +364,32 @@ class TestOrdenTabDesconectada(unittest.TestCase):
                 marco._inicio.al_tecla(evento)
             self.assertEqual(entrada["url"], marco.txt_url.GetValue())
             diferir.assert_called_once_with(marco._on_conectar, None)
+
+    def test_supr_en_recientes_deja_el_foco_en_la_direccion(self):
+        # Cableado ventana real: al quedar la lista vacía, la caja se oculta
+        # y el foco va al campo de la dirección, buscado por su nombre.
+        from bellbird.ui import recientes_inicio
+        entrada = {
+            "plataforma": "youtube", "clave": "abcdefghijk",
+            "url": "https://www.youtube.com/watch?v=abcdefghijk",
+            "titulo": "Título", "canal": "Canal",
+            "fecha": "2026-03-01T10:00:00", "directo": False,
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            ruta = Path(tmp) / "historial.json"
+            historial.guardar(ruta, [entrada])
+            with mock.patch.object(recientes_inicio.paths, "historial_lives",
+                                   return_value=ruta):
+                marco = self._ventana()
+            self.assertEqual(1, marco._inicio.lista.GetCount())
+            evento = mock.Mock()
+            evento.GetKeyCode.return_value = self.wx.WXK_DELETE
+            with mock.patch.object(recientes_inicio, "anunciar") as anunciar:
+                marco._inicio.al_tecla(evento)
+            anunciar.assert_called_once_with("Entrada eliminada del historial")
+            self.assertEqual([], historial.cargar(ruta))
+            self.assertFalse(marco._inicio.caja.IsShown())
+            self.assertIs(marco.FindFocus(), marco.txt_url)
 
 
 if __name__ == "__main__":

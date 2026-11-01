@@ -4927,6 +4927,20 @@ msgstr "Exit the application?"
 msgid "{mensaje} {descargas}"
 msgstr "{mensaje} {descargas}"
 
+#: bellbird/ui/confirmar_transmision.py bellbird/ui/gui_directo_youtube.py
+msgid "&Transmitir"
+msgstr "&Broadcast"
+
+#: bellbird/ui/confirmar_transmision.py
+msgid "Antes de transmitir"
+msgstr "Before broadcasting"
+
+#. Traductores: botón para cerrar sin publicar.
+#: bellbird/ui/confirmar_transmision.py bellbird/ui/gui_preferencias.py
+#: bellbird/ui/gui_redactar.py
+msgid "&Cancelar"
+msgstr "&Cancel"
+
 #: bellbird/ui/descargas_acciones.py
 msgid "El archivo ya no está disponible."
 msgstr "The file is no longer available."
@@ -5295,7 +5309,7 @@ msgstr "&Pause reading"
 msgid "&Enlace o ID:"
 msgstr "&Link or ID:"
 
-#: bellbird/ui/gui.py
+#: bellbird/ui/gui.py bellbird/ui/recientes_inicio.py
 msgid "Enlace del directo o vídeo"
 msgstr "Live stream or video link"
 
@@ -6188,10 +6202,6 @@ msgstr ""
 msgid "Imágenes JPG y PNG (*.jpg;*.jpeg;*.png)|*.jpg;*.jpeg;*.png"
 msgstr "JPG and PNG images (*.jpg;*.jpeg;*.png)|*.jpg;*.jpeg;*.png"
 
-#: bellbird/ui/gui_directo_youtube.py bellbird/ui/gui_transmision.py
-msgid "&Transmitir"
-msgstr "&Broadcast"
-
 #. Traductores: botón para volver sin transmitir.
 #: bellbird/ui/gui_directo_youtube.py bellbird/ui/gui_elegir_destino.py
 msgid "C&ancelar"
@@ -6465,7 +6475,7 @@ msgstr "{plataforma} history"
 msgid "Sin selección"
 msgstr "Nothing selected"
 
-#: bellbird/ui/gui_historial.py
+#: bellbird/ui/gui_historial.py bellbird/ui/recientes_inicio.py
 msgid "Entrada eliminada del historial"
 msgstr "History entry deleted"
 
@@ -6953,12 +6963,6 @@ msgstr "Artificial intelligence"
 msgid "&Guardar"
 msgstr "&Save"
 
-#. Traductores: botón para cerrar sin publicar.
-#: bellbird/ui/gui_preferencias.py bellbird/ui/gui_redactar.py
-#: bellbird/ui/gui_transmision.py
-msgid "&Cancelar"
-msgstr "&Cancel"
-
 #: bellbird/ui/gui_preferencias.py
 msgid "Tamaño de &fuente del chat (8 a 24):"
 msgstr "Chat &font size (8 to 24):"
@@ -7146,10 +7150,6 @@ msgstr "Compose"
 #, python-brace-format
 msgid "&{boton}"
 msgstr "&{boton}"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Antes de transmitir"
-msgstr "Before broadcasting"
 
 #: bellbird/ui/gui_transmision.py
 msgid "Detener la &transmisión"
@@ -8902,12 +8902,24 @@ msgid "{plataforma}: {etiqueta}"
 msgstr "{plataforma}: {etiqueta}"
 
 #: bellbird/ui/recientes_inicio.py
-msgid "&Directos recientes:"
-msgstr "&Recent streams:"
+msgid "Reciente&s:"
+msgstr "Rece&nt items:"
 
 #: bellbird/ui/recientes_inicio.py
-msgid "Directos recientes"
-msgstr "Recent streams"
+msgid "Recientes, Intro para abrir"
+msgstr "Recent items, Enter to open"
+
+#: bellbird/ui/recientes_inicio.py
+msgid "&Abrir"
+msgstr "&Open"
+
+#: bellbird/ui/recientes_inicio.py
+msgid "&Eliminar del historial"
+msgstr "&Delete from history"
+
+#: bellbird/ui/recientes_inicio.py
+msgid "Abrir &historial completo"
+msgstr "Open full &history"
 
 #: bellbird/ui/titulo_ventana.py
 msgid "(Transmitiendo y grabando)"

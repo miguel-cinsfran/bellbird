@@ -19,6 +19,7 @@ from bellbird.core import diagnostico
 from bellbird.core.idioma import N_, _
 from bellbird.obs import overlay_servidor
 from bellbird.ui.accesibilidad import ContadorAccesible, anunciar, nombre_accesible
+from bellbird.ui.confirmar_transmision import _ETIQUETA_TRANSMITIR, confirmar_transmision
 from bellbird.ui.gui import caja_de_grupo
 from bellbird.ui import paleta
 from bellbird.ui.preferencias_comun import fila_botones
@@ -30,31 +31,9 @@ from bellbird.voice import sound_player
 logger = diagnostico.obtener_logger(__name__)
 
 
-def confirmar_transmision(padre, revision) -> bool:
-    """Pide confirmar el inicio del directo con la revisión a la vista.
-
-    Mismo texto, título, etiquetas y regla de cancelación por defecto
-    que la ventana Transmisión: si la revisión trae problemas, el foco
-    arranca en Cancelar.
-    """
-    from bellbird.obs import obs_prevuelo
-    frase = obs_prevuelo.frase_revision(revision)
-    problemas = bool(getattr(revision, "problemas", ()))
-    estilo = wx.OK | wx.CANCEL
-    if problemas:
-        estilo |= wx.CANCEL_DEFAULT
-    dialogo = wx.MessageDialog(padre, frase, _("Antes de transmitir"), estilo)
-    try:
-        dialogo.SetOKCancelLabels(_(_ETIQUETA_TRANSMITIR), _("&Cancelar"))
-        return dialogo.ShowModal() == wx.ID_OK
-    finally:
-        dialogo.Destroy()
-
-
 _PUERTO_PANEL_DEFECTO = 8730
 _RUTA_PANEL_CHAT = "/chat"
 
-_ETIQUETA_TRANSMITIR = N_("&Transmitir")
 _ETIQUETA_DETENER_TRANSMISION = N_("Detener la &transmisión")
 _ETIQUETA_GRABAR = N_("&Grabar")
 _ETIQUETA_DETENER_GRABACION = N_("Detener la &grabación")

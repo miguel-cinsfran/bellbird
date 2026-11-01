@@ -4,6 +4,7 @@ import types
 import unittest
 from unittest import mock
 
+from bellbird.ui import confirmar_transmision as modulo_confirmar
 from bellbird.ui import gui_transmision
 from bellbird.obs import consultas_transmision
 from bellbird.obs import obs_cliente
@@ -1292,8 +1293,8 @@ class TestConfirmarTransmisionSinVentana(unittest.TestCase):
             creados.append((args, dialogo))
             return dialogo
 
-        with mock.patch.object(gui_transmision.wx, "MessageDialog", fabrica):
-            acepta = gui_transmision.confirmar_transmision(
+        with mock.patch.object(modulo_confirmar.wx, "MessageDialog", fabrica):
+            acepta = modulo_confirmar.confirmar_transmision(
                 mock.sentinel.padre, revision)
         return acepta, creados
 
@@ -1629,9 +1630,9 @@ class TestPseudoConfirmarTransmision(unittest.TestCase):
             return dialogo
 
         with con_pseudo(), \
-                mock.patch.object(gui_transmision.wx, "MessageDialog", fabrica):
+                mock.patch.object(modulo_confirmar.wx, "MessageDialog", fabrica):
             esperada = obs_prevuelo.frase_revision(revision)
-            gui_transmision.confirmar_transmision(
+            modulo_confirmar.confirmar_transmision(
                 mock.sentinel.padre, revision)
         self.assertEqual(captado["mensaje"], esperada)
         self.assertTrue(captado["mensaje"].startswith("[¡"))

@@ -5520,6 +5520,7 @@ SUPERFICIES = {
     "ia_consulta_rapida.py": "ia",
     "ia_privacidad.py": "ia",
     "gui_transmision.py": "transmision",
+    "confirmar_transmision.py": "transmision",
     "gui_transmitir.py": "transmitir_destino",
     "gui_preferencias.py": "preferencias",
     "gui_redactar.py": "redactar",

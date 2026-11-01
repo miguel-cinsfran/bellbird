@@ -256,7 +256,7 @@ class GestorPanelObsTest(unittest.TestCase):
         doble = DobleObs([elemento(1, "Juego", 3), elemento(2, "Cámara", 8),
                           elemento(3, obs_panel.NOMBRE_FUENTE, 5)])
         self.assertEqual(self.gestor(doble).fuentes("Escena"),
-                         ("Cámara", "Chat YTChat", "Juego"))
+                         ("Cámara", "Chat en el vídeo", "Juego"))
 
     def test_descripcion_escena_pide_escena_elementos_lienzo_y_entradas(self):
         doble = DobleObs(
@@ -275,7 +275,7 @@ class GestorPanelObsTest(unittest.TestCase):
             frase,
             "Escena al aire: Escena. 2 fuentes, de adelante hacia atrás.\n"
             "1: Juego, captura de juego, ocupa toda la imagen, se ve.\n"
-            "2: Chat YTChat, navegador, esquina inferior izquierda, "
+            "2: Chat en el vídeo, navegador, esquina inferior izquierda, "
             "460 por 620 píxeles, visible en OBS, pero no aparece en "
             "la imagen: la tapa entera Juego.")
 

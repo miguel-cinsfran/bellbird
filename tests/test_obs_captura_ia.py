@@ -325,8 +325,8 @@ class TestCapturarMotivo(unittest.TestCase):
     def test_negra_solo_navegador_da_sin_fuente(self):
         doble = Doble(
             escena="Escena",
-            elementos=(elemento("Chat YTChat", 1),),
-            entradas=({"inputName": "Chat YTChat",
+            elementos=(elemento("Chat en el vídeo", 1),),
+            entradas=({"inputName": "Chat en el vídeo",
                        "inputKind": "browser_source"},))
         captura = obs_captura_ia.capturar(
             doble, self._opcion_escena("Escena"))

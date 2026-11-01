@@ -61,8 +61,8 @@ class GestorFalso:
         self.llamadas.append(("poner_escena_al_aire", escena))
         return self.escena_resultante
     def fuentes(self, escena):
-        return {"Principal": tuple(fuente for fuente in ("Cámara", "Chat YTChat", "Juego")
-                                    if fuente != "Chat YTChat" or self.tiene_panel),
+        return {"Principal": tuple(fuente for fuente in ("Cámara", "Chat en el vídeo", "Juego")
+                                    if fuente != "Chat en el vídeo" or self.tiene_panel),
                 "Juego": ("Captura",)}.get(escena, ())
     def asegurar_fuente(self, *args):
         self.llamadas.append(("asegurar_fuente",) + args)
@@ -292,8 +292,8 @@ class TestTransmisionDialog(unittest.TestCase):
         self.assertEqual(self.dialogo.cho_posicion.GetSelection(), wx.NOT_FOUND)
 
     def test_carga_las_fuentes_y_prefiere_el_panel_de_chat(self):
-        self.assertEqual(self.dialogo.cho_fuente.GetStrings(), ["Cámara", "Chat YTChat", "Juego"])
-        self.assertEqual(self.dialogo.cho_fuente.GetStringSelection(), "Chat YTChat")
+        self.assertEqual(self.dialogo.cho_fuente.GetStrings(), ["Cámara", "Chat en el vídeo", "Juego"])
+        self.assertEqual(self.dialogo.cho_fuente.GetStringSelection(), "Chat en el vídeo")
 
     def test_apertura_anuncia_el_estado_sin_preparar_nada(self):
         gestor = GestorFalso()
@@ -540,8 +540,8 @@ class TestTransmisionDialog(unittest.TestCase):
             ("fijar", "Principal", False),
         ])
         self.assertEqual(self.gestor.fuentes_enviadas[-8:], [
-            ("posicionar", "Chat YTChat"), ("redimensionar", None),
-            ("mostrar", "Chat YTChat"), ("fijar", "Chat YTChat"),
+            ("posicionar", "Chat en el vídeo"), ("redimensionar", None),
+            ("mostrar", "Chat en el vídeo"), ("fijar", "Chat en el vídeo"),
             ("posicionar", "Cámara"), ("escalar", "Cámara"),
             ("mostrar", "Cámara"), ("fijar", "Cámara"),
         ])
@@ -1233,7 +1233,7 @@ class TestCargaInicialAseguraObs(unittest.TestCase):
         gestor.conectar.side_effect = lambda: orden.append("conectar")
         gestor.escenas.return_value = ("Principal",)
         gestor.escena_al_aire.return_value = "Principal"
-        gestor.fuentes.return_value = ("Chat YTChat",)
+        gestor.fuentes.return_value = ("Chat en el vídeo",)
         gestor.instantanea.return_value = mock.sentinel.snap
         gestor.transformacion.return_value = {}
         gestor.estado_transmision.return_value = {}
@@ -1436,7 +1436,7 @@ class TestConsultasPasanCadaCampoASuLugar(unittest.TestCase):
         return consultas_transmision.CargaInicial(
             escenas=("Principal", "Juego"), escena="Principal",
             al_aire=mock.sentinel.al_aire,
-            fuentes=("Cámara", "Chat YTChat"), fuente="Chat YTChat",
+            fuentes=("Cámara", "Chat en el vídeo"), fuente="Chat en el vídeo",
             snap=mock.Mock(),
             transformacion=mock.sentinel.transformacion,
             transmision=mock.sentinel.transmision,
@@ -1449,7 +1449,7 @@ class TestConsultasPasanCadaCampoASuLugar(unittest.TestCase):
         datos = self._inicial()
         gui_transmision.TransmisionDialog._poblar_inicial(falso, datos)
         falso._cargar_fuentes.assert_called_once_with(
-            ("Cámara", "Chat YTChat"), "Chat YTChat")
+            ("Cámara", "Chat en el vídeo"), "Chat en el vídeo")
         falso._cargar_ventanas.assert_called_once_with(
             mock.sentinel.opciones, mock.sentinel.actual)
         falso._mostrar_snap.assert_called_once_with(datos.snap)
@@ -1477,7 +1477,7 @@ class TestConsultasPasanCadaCampoASuLugar(unittest.TestCase):
         falso = mock.Mock()
         datos = consultas_transmision.VentanaAplicada(
             frase=mock.sentinel.frase,
-            fuentes=("Cámara", "Chat YTChat"), fuente="Chat YTChat",
+            fuentes=("Cámara", "Chat en el vídeo"), fuente="Chat en el vídeo",
             snap=mock.sentinel.snap, al_aire=mock.sentinel.al_aire,
             transmision=mock.sentinel.transmision,
             grabacion=mock.sentinel.grabacion,
@@ -1594,7 +1594,7 @@ PENDIENTES_TRANSMISION = ()
 PROPIOS_TRANSMISION = (
     "TikTok", "YouTube",
     "Principal", "Juego",
-    "Cámara", "Chat YTChat",
+    "Cámara", "Chat en el vídeo",
     "Champions, de juego.exe", "Charla, de otro.exe",
 )
 

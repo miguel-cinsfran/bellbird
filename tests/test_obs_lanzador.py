@@ -373,7 +373,7 @@ class CableadoDialogoTest(unittest.TestCase):
                 return "Principal"
 
             def fuentes(self, escena):
-                return ("Chat YTChat",)
+                return ("Chat en el vídeo",)
 
             def ventanas(self, escena, parada=None):
                 return ((), "")

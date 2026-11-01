@@ -10,7 +10,7 @@ def _gestor():
     gestor = mock.Mock()
     gestor.escenas.return_value = ("Principal", "Juego")
     gestor.escena_al_aire.return_value = "Juego"
-    gestor.fuentes.return_value = ("Cámara", "Chat YTChat")
+    gestor.fuentes.return_value = ("Cámara", "Chat en el vídeo")
     gestor.instantanea.return_value = mock.sentinel.snap
     gestor.transformacion.return_value = mock.sentinel.transformacion
     gestor.estado_transmision.return_value = mock.sentinel.transmision
@@ -37,13 +37,13 @@ class TestCargarInicial(unittest.TestCase):
 
     def test_elige_la_fuente_del_chat(self):
         datos = consultas_transmision.cargar_inicial(_gestor())
-        self.assertEqual(datos.fuente, "Chat YTChat")
+        self.assertEqual(datos.fuente, "Chat en el vídeo")
 
     def test_cada_campo_viene_de_su_llamada(self):
         datos = consultas_transmision.cargar_inicial(_gestor())
         self.assertEqual(datos.escenas, ("Principal", "Juego"))
         self.assertEqual(datos.al_aire, "Juego")
-        self.assertEqual(datos.fuentes, ("Cámara", "Chat YTChat"))
+        self.assertEqual(datos.fuentes, ("Cámara", "Chat en el vídeo"))
         self.assertIs(datos.snap, mock.sentinel.snap)
         self.assertIs(datos.transformacion, mock.sentinel.transformacion)
         self.assertIs(datos.transmision, mock.sentinel.transmision)
@@ -70,8 +70,8 @@ class TestAplicarVentana(unittest.TestCase):
         datos = consultas_transmision.aplicar_ventana(
             _gestor(), "Principal", "Champions:Ventana:juego.exe")
         self.assertIs(datos.frase, mock.sentinel.frase)
-        self.assertEqual(datos.fuentes, ("Cámara", "Chat YTChat"))
-        self.assertEqual(datos.fuente, "Chat YTChat")
+        self.assertEqual(datos.fuentes, ("Cámara", "Chat en el vídeo"))
+        self.assertEqual(datos.fuente, "Chat en el vídeo")
         self.assertIs(datos.snap, mock.sentinel.snap)
         self.assertEqual(datos.al_aire, "Juego")
         self.assertIs(datos.transmision, mock.sentinel.transmision)
@@ -87,7 +87,7 @@ class TestAplicarVentana(unittest.TestCase):
             "Principal", "Champions:Ventana:juego.exe")
         gestor.fuentes.assert_called_once_with("Principal")
         gestor.instantanea.assert_called_once_with(
-            "Principal", fuente="Chat YTChat")
+            "Principal", fuente="Chat en el vídeo")
         self.assertEqual(
             [llamada[0] for llamada in gestor.mock_calls],
             ["usar_ventana", "fuentes", "instantanea", "escena_al_aire",
@@ -98,8 +98,8 @@ class TestLeerEscena(unittest.TestCase):
 
     def test_cada_campo_viene_de_su_llamada(self):
         datos = consultas_transmision.leer_escena(_gestor(), "Juego")
-        self.assertEqual(datos.fuentes, ("Cámara", "Chat YTChat"))
-        self.assertEqual(datos.fuente, "Chat YTChat")
+        self.assertEqual(datos.fuentes, ("Cámara", "Chat en el vídeo"))
+        self.assertEqual(datos.fuente, "Chat en el vídeo")
         self.assertIs(datos.snap, mock.sentinel.snap)
         self.assertIs(datos.opciones, mock.sentinel.opciones)
         self.assertIs(datos.actual, mock.sentinel.actual)
@@ -109,7 +109,7 @@ class TestLeerEscena(unittest.TestCase):
         consultas_transmision.leer_escena(gestor, "Juego")
         gestor.fuentes.assert_called_once_with("Juego")
         gestor.instantanea.assert_called_once_with(
-            "Juego", fuente="Chat YTChat")
+            "Juego", fuente="Chat en el vídeo")
         gestor.ventanas.assert_called_once_with("Juego")
         self.assertEqual(
             [llamada[0] for llamada in gestor.mock_calls],

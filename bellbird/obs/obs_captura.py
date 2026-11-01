@@ -13,7 +13,7 @@ from bellbird.obs import obs_cliente
 
 
 NOMBRE_CAPTURA = N_("Captura de ventana")
-NOMBRE_SONDA = N_("YTChat, lista de ventanas")
+NOMBRE_SONDA = N_("Bellbird, lista de ventanas")
 
 _TIPOS_CAPTURA = ("window_capture", "game_capture")
 

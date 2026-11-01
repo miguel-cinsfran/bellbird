@@ -35,11 +35,11 @@ class DoblePrevuelo:
         self.codificador = codificador
         self.elementos = list(elementos if elementos is not None else (
             {"sourceName": "Captura de ventana", "sceneItemEnabled": True},
-            {"sourceName": "Chat YTChat", "sceneItemEnabled": True}))
+            {"sourceName": "Chat en el vídeo", "sceneItemEnabled": True}))
         self.entradas = list(entradas if entradas is not None else (
             {"inputName": "Captura de ventana",
              "inputKind": "window_capture"},
-            {"inputName": "Chat YTChat", "inputKind": "browser_source"},
+            {"inputName": "Chat en el vídeo", "inputKind": "browser_source"},
             {"inputName": "Audio del escritorio",
              "inputKind": "wasapi_output_capture"},
             {"inputName": "Mic/Aux", "inputKind": "wasapi_input_capture"}))
@@ -47,7 +47,7 @@ class DoblePrevuelo:
             "Captura de ventana": {
                 "window": ("Champions of The Rift:SDL_app:"
                            "Champions of The Rift.exe")},
-            "Chat YTChat": {"url": "http://127.0.0.1:8765/panel/chat"}})
+            "Chat en el vídeo": {"url": "http://127.0.0.1:8765/panel/chat"}})
         self.silencios = dict(silencios if silencios is not None else {
             "Audio del escritorio": False, "Mic/Aux": False})
         self.escenas = list(escenas)
@@ -129,7 +129,7 @@ class RevisarTest(unittest.TestCase):
         self.assertEqual(revision.fuentes, (
             Fuente("Captura de ventana", "captura de ventana",
                    "Champions of The Rift", True),
-            Fuente("Chat YTChat", "navegador",
+            Fuente("Chat en el vídeo", "navegador",
                    "panel de chat de la app", True)))
         self.assertEqual([(e.nombre, e.silenciada) for e in revision.audio],
                          [("Mic/Aux", False), ("Audio del escritorio", False)])
@@ -528,8 +528,8 @@ class TestPseudoFraseRevision(unittest.TestCase):
         # El título de la ventana es un dato de OBS y queda sin marcar.
         self.assertEqual(detalles["Captura de ventana"],
                          "Champions of The Rift")
-        self.assertTrue(detalles["Chat YTChat"].startswith("[¡"),
-                        detalles["Chat YTChat"])
+        self.assertTrue(detalles["Chat en el vídeo"].startswith("[¡"),
+                        detalles["Chat en el vídeo"])
 
     def test_cada_problema_sale_marcado(self):
         doble = DoblePrevuelo(

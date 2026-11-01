@@ -2,37 +2,11 @@
 
 from __future__ import annotations
 
-from bellbird.obs import (obs_disposicion, obs_captura, obs_cliente,
-                        obs_destinos, obs_entradas_audio, obs_escena)
-
-
-NOMBRE_FUENTE = "Chat YTChat"
-TIPO_FUENTE = "browser_source"
-
-
-def fuente_encima_del_panel(elementos, fuente=NOMBRE_FUENTE):
-    """Nombre de la fuente visible que tapa al panel, o None.
-
-    Mira la lista `sceneItems` de `GetSceneItemList` y devuelve la fuente
-    visible de índice más alto por encima del panel. Devuelve None si el
-    panel está arriba, si está oculto, si no está en la lista o si solo lo
-    tapan fuentes ocultas. Ocultar el panel es decisión de la persona.
-    """
-    panel = next((elemento for elemento in elementos
-                  if elemento.get("sourceName") == fuente), None)
-    if panel is None:
-        return None
-    if not panel.get("sceneItemEnabled", True):
-        return None
-    indice_panel = panel.get("sceneItemIndex", 0)
-    encima = [elemento for elemento in elementos
-              if elemento is not panel
-              and elemento.get("sceneItemIndex", 0) > indice_panel
-              and elemento.get("sceneItemEnabled", True)
-              and elemento.get("sourceName")]
-    if not encima:
-        return None
-    return max(encima, key=lambda elemento: elemento.get("sceneItemIndex", 0)).get("sourceName")
+from bellbird.obs import (fuente_chat, obs_disposicion, obs_captura,
+                        obs_cliente, obs_destinos, obs_entradas_audio,
+                        obs_escena)
+from bellbird.obs.fuente_chat import (NOMBRE_FUENTE, TIPO_FUENTE,
+                                      fuente_encima_del_panel)
 
 
 class GestorPanelObs:
@@ -45,6 +19,7 @@ class GestorPanelObs:
 
     def conectar(self, parada=None) -> None:
         self._cliente.conectar(parada)
+        fuente_chat.renombrar_anterior(self._pedir, parada)
 
     def cerrar(self) -> None:
         self._cliente.cerrar()
@@ -154,7 +129,10 @@ class GestorPanelObs:
         return datos.get("currentProfileName", "")
 
     def preparar_destino(self, destino, parada=None) -> dict:
-        return obs_destinos.preparar_para_transmitir(self._cliente, destino, parada)
+        resultado = obs_destinos.preparar_para_transmitir(
+            self._cliente, destino, parada)
+        fuente_chat.renombrar_anterior(self._pedir, parada)
+        return resultado
 
     def revisar(self, destino, parada=None):
         from bellbird.obs import obs_grabacion, obs_prevuelo

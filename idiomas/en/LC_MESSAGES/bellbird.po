@@ -2607,6 +2607,11 @@ msgstr ""
 "Fine adjustment. Arrows move, Ctrl for big steps, Shift for one-pixel "
 "steps. Enter confirms, Esc undoes, Tab exits."
 
+#. Traductores: nombre fijo de la fuente en OBS; no se traduce al usarlo.
+#: bellbird/obs/fuente_chat.py
+msgid "Chat en el vídeo"
+msgstr "Chat on video"
+
 #: bellbird/obs/obs_activacion.py
 msgid "El servidor websocket de OBS ya está activado"
 msgstr "The OBS websocket server is already enabled"
@@ -2716,8 +2721,8 @@ msgid "Captura de ventana"
 msgstr "Window capture"
 
 #: bellbird/obs/obs_captura.py
-msgid "YTChat, lista de ventanas"
-msgstr "YTChat, window list"
+msgid "Bellbird, lista de ventanas"
+msgstr "Bellbird, window list"
 
 #. Traductores: {resto} es el título de la ventana y {programa} su programa.
 #: bellbird/obs/obs_captura.py
@@ -8193,18 +8198,6 @@ msgid "Buscar actualizaciones al iniciar"
 msgstr "Check for updates at startup"
 
 #: bellbird/ui/preferencias_general.py
-msgid "Canal de actuali&zaciones:"
-msgstr "Update c&hannel:"
-
-#: bellbird/ui/preferencias_general.py
-msgid "Beta"
-msgstr "Beta"
-
-#: bellbird/ui/preferencias_general.py
-msgid "Canal de actualizaciones"
-msgstr "Update channel"
-
-#: bellbird/ui/preferencias_general.py
 msgid ""
 "Preguntar antes de &salir si hay un chat conectado o una transmisión en "
 "curso"
@@ -8229,6 +8222,18 @@ msgstr "Save a &detailed log for diagnosing failures"
 #: bellbird/ui/preferencias_general.py
 msgid "Guardar un registro detallado para diagnosticar fallos"
 msgstr "Save a detailed log for diagnosing failures"
+
+#: bellbird/ui/preferencias_general.py
+msgid "Canal de actuali&zaciones:"
+msgstr "Update c&hannel:"
+
+#: bellbird/ui/preferencias_general.py
+msgid "Beta"
+msgstr "Beta"
+
+#: bellbird/ui/preferencias_general.py
+msgid "Canal de actualizaciones"
+msgstr "Update channel"
 
 #: bellbird/ui/preferencias_general.py
 msgid "Abrir carpeta de da&tos"

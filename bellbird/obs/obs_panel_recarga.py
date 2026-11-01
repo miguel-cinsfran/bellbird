@@ -9,9 +9,15 @@ abierto.
 from __future__ import annotations
 
 from bellbird.core import diagnostico
-from bellbird.obs import obs_activacion, obs_cliente, obs_panel
+from bellbird.obs import fuente_chat, obs_activacion, obs_cliente, obs_panel
 
 logger = diagnostico.obtener_logger(__name__)
+
+
+def _pedir_sin_sobre(cliente):
+    """Adapta el cliente, que devuelve el sobre, a lo que espera fuente_chat."""
+    return lambda tipo, datos=None, parada=None: cliente.pedir(
+        tipo, datos, parada).get("responseData", {})
 
 
 def recargar_fuente_panel(crear_cliente=None, obs_abierto=None) -> bool:
@@ -31,13 +37,12 @@ def recargar_fuente_panel(crear_cliente=None, obs_abierto=None) -> bool:
     try:
         cliente = crear_cliente()
         cliente.conectar()
+        fuente_chat.renombrar_anterior(_pedir_sin_sobre(cliente))
         respuesta = cliente.pedir("GetInputList")
         entradas = respuesta.get("responseData", {}).get("inputs", ())
-        fuente = next((entrada for entrada in entradas
-                       if entrada.get("inputName") == obs_panel.NOMBRE_FUENTE
-                       and entrada.get("inputKind") == obs_panel.TIPO_FUENTE),
-                      None)
-        if fuente is None:
+        if not any(entrada.get("inputName") == obs_panel.NOMBRE_FUENTE
+                   and entrada.get("inputKind") == obs_panel.TIPO_FUENTE
+                   for entrada in entradas):
             return False
         cliente.pedir("PressInputPropertiesButton", {
             "inputName": obs_panel.NOMBRE_FUENTE,

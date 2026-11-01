@@ -558,20 +558,12 @@ class TestCableadoMostrarObs(unittest.TestCase):
         abrir.assert_called_once_with(frame)
 
 
-# Textos que arma otro módulo y la barra solo muestra: los nombres de
-# filtro de `bellbird/core/config.py` (FILTROS). Las etiquetas de
-# `bellbird/ui/atajos_captura.py` (ETIQUETAS) ya salen marcadas porque el
-# menú las traduce con `etiqueta_de_accion`. La comparación es exacta en
-# los dos sentidos: falla si aparece un texto nuevo sin envolver y si un
-# pendiente ya no está en el recorrido, para vaciar la lista cuando esos
-# módulos pasen por gettext.
-PENDIENTES_OTROS_MODULOS = (
-    "Todos",
-    "Solo texto",
-    "Super Chats",
-    "Membresías",
-    "Avisos",
-)
+# Textos que arma otro módulo y la barra solo muestra. Las etiquetas de
+# `bellbird/ui/atajos_captura.py` (ETIQUETAS) y los nombres de filtro de
+# `bellbird/ui/gui_menu.py` (FILTROS) ya salen marcados porque el menú los
+# traduce. La comparación es exacta en los dos sentidos: falla si aparece
+# un texto nuevo sin envolver y si un pendiente ya no está en el recorrido.
+PENDIENTES_OTROS_MODULOS = ()
 
 
 class TestPseudoMenu(unittest.TestCase):

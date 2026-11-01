@@ -100,7 +100,7 @@ class TransmisionDialog(wx.Dialog):
         zona.SetScrollRate(0, 20)
         self._zona_desplazable = zona
         contenido = wx.BoxSizer(wx.VERTICAL)
-        nota = wx.StaticText(zona, name="NotaTransmision", label=obs_estado.NOTA_TRANSMISION)
+        nota = wx.StaticText(zona, name="NotaTransmision", label=_(obs_estado.NOTA_TRANSMISION))
         nota.SetForegroundColour(_T.dim)
         nota.Wrap(560)
         contenido.Add(nota, 0, wx.ALL, 10)

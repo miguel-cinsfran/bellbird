@@ -7,6 +7,7 @@ from dataclasses import dataclass
 
 from bellbird.core import config_predeterminada
 from bellbird.core import diagnostico
+from bellbird.core.idioma import N_
 
 
 # ── Atajos de teclado ─────────────────────────────────────────────────────────
@@ -53,31 +54,31 @@ ATAJOS_FIJOS = {
 
 # Agrupación para el editor de Preferencias (título de grupo, acciones).
 ATAJOS_GRUPOS = [
-    ("Reproductor (Ctrl)",
+    (N_("Reproductor (Ctrl)"),
      ["rep_play", "rep_retro", "rep_avanz", "rep_directo", "rep_detener", "rep_mute",
       "rep_vol_menos", "rep_vol_mas", "pantalla_completa"]),
-    ("Chat (Alt)",
+    (N_("Chat (Alt)"),
      ["enviar_chat"]),
-    ("Ventanas (Ctrl+Mayús)",
+    (N_("Ventanas (Ctrl+Mayús)"),
      ["abrir_preferencias", "abrir_historial", "abrir_transmision",
       "descargas_abrir", "musica_ventana", "preguntar_ia", "mostrar_obs"]),
-    ("Directo y OBS (Alt+Mayús)",
+    (N_("Directo y OBS (Alt+Mayús)"),
      ["conectar", "desconectar", "ir_lista", "copiar_enlace",
       "marcar_incidencia", "obs_micro", "avisos_sobrecarga"]),
-     ("Voz y lectura (teclas F)",
+     (N_("Voz y lectura (teclas F)"),
       ["pausa", "detener_tts", "velocidad_menos", "velocidad_mas",
        "volumen_menos", "volumen_mas", "silenciar_lectura",
        "silenciar_sonidos", "anunciar_estado", "anunciar_autor",
         "describir_escena", "consulta_rapida_ia",
         "anunciar_encuadre", "avisos_encuadre"]),
-    ("Música (Ctrl+Alt)",
+    (N_("Música (Ctrl+Alt)"),
      ["musica_play", "musica_siguiente", "musica_anterior",
       "musica_vol_mas", "musica_vol_menos", "musica_que_suena",
       "musica_silenciar", "musica_aleatorio", "musica_repetir",
       "musica_detener", "musica_adelantar", "musica_retroceder"]),
-    ("Ventana y navegación (fijos)",
+    (N_("Ventana y navegación (fijos)"),
      ["salir", "region_siguiente", "region_anterior"]),
-    ("Mensajes recientes del chat (fijos)",
+    (N_("Mensajes recientes del chat (fijos)"),
      ["chat_reciente_1", "chat_reciente_2", "chat_reciente_3",
       "chat_reciente_4", "chat_reciente_5", "chat_reciente_6",
       "chat_reciente_7", "chat_reciente_8", "chat_reciente_9",

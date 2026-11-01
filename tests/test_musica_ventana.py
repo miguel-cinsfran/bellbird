@@ -1898,17 +1898,11 @@ class TestCambiarEstadoTraducido(unittest.TestCase):
 class TestVentanaPseudo(unittest.TestCase):
     """Ningún texto visible de la ventana sin pasar por gettext."""
 
-    # Lo que arma otro módulo y esta ventana solo muestra: queda pendiente
-    # hasta que se envuelva su módulo. Las filas de las listas no se
-    # recorren: el ayudante solo lee opciones de Choice y columnas.
-    PENDIENTES = (
-        # bellbird/music/filtros.py, las opciones de «Ordenar por».
-        "Orden de la colección",
-        "Título",
-        "Artista",
-        "Más recientes primero",
-        "Duración",
-    )
+    # La ventana traduce las opciones de «Ordenar por» que arma
+    # `bellbird/music/filtros.py`, así que no queda ninguna pendiente. Las
+    # filas de las listas no se recorren: el ayudante solo lee opciones de
+    # Choice y columnas.
+    PENDIENTES = ()
 
     def setUp(self):
         self.app = wx.App() if not wx.App.Get() else wx.App.Get()

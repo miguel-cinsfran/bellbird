@@ -14,17 +14,28 @@ import webbrowser
 
 import wx
 
+from bellbird.core import avisos_tiktok
 from bellbird.core import diagnostico
-from bellbird.core.idioma import _, idioma_actual
+from bellbird.core.config import TIPO_MIEMBRO, TIPO_SUPERCHAT, TIPO_TEXTO
+from bellbird.core.idioma import _, N_, idioma_actual
 from bellbird.core import paths
 from bellbird.ui import menu_transmision
 from bellbird.ui.atajos_captura import ETIQUETAS
 
 logger = diagnostico.obtener_logger(__name__)
 
+FILTROS = [
+    (N_("Todos"),        None),
+    (N_("Solo texto"),   TIPO_TEXTO),
+    (N_("Super Chats"),  TIPO_SUPERCHAT),
+    (N_("Membresías"),   TIPO_MIEMBRO),
+    # Traductores: filtro del chat que muestra solo los avisos de TikTok.
+    (N_("Avisos"),       avisos_tiktok.TIPOS_AVISO),
+]
+
 
 def construir_menu(frame):
-    from bellbird.ui.gui import FILTROS, PAG_CHAT, PAG_COMENTARIOS, REG_CONEXION, REG_REPRODUCTOR
+    from bellbird.ui.gui import PAG_CHAT, PAG_COMENTARIOS, REG_CONEXION, REG_REPRODUCTOR
     anterior = frame.GetMenuBar()
     mb = wx.MenuBar()
 
@@ -55,7 +66,7 @@ def construir_menu(frame):
     sub_f = wx.Menu()
     frame.fi_items = []
     for i, (nombre, _sin_uso) in enumerate(FILTROS):
-        it = sub_f.AppendRadioItem(wx.ID_ANY, nombre)
+        it = sub_f.AppendRadioItem(wx.ID_ANY, _(nombre))
         frame.fi_items.append(it)
         frame._bind_menu(it, frame._aplicar_filtro, i)
     frame._mi_filtro_sub = m.AppendSubMenu(sub_f, _("&Filtro de mensajes"))

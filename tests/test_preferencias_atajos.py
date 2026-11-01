@@ -19,23 +19,13 @@ from tests.ventanas_prueba import destruir
 
 
 # Textos que arma otro módulo y esta página solo muestra, con valores de
-# fábrica: los títulos de grupo de `bellbird/core/config.py`
-# (ATAJOS_GRUPOS). La nota (`atajos_captura.NOTA_PAGINA`) y las etiquetas
-# de los botones (`etiqueta_de_accion` y `etiqueta_boton` de
-# `atajos_captura`) ya salen marcadas porque esta página las traduce. La
-# comparación es exacta en los dos sentidos: falla si aparece un texto
-# nuevo sin envolver y si un pendiente ya no está en el recorrido, para
-# vaciar la lista cuando esos módulos pasen por gettext.
-PENDIENTES_ATAJOS = (
-    "Reproductor (Ctrl)",
-    "Chat (Alt)",
-    "Ventanas (Ctrl+Mayús)",
-    "Directo y OBS (Alt+Mayús)",
-    "Voz y lectura (teclas F)",
-    "Música (Ctrl+Alt)",
-    "Ventana y navegación (fijos)",
-    "Mensajes recientes del chat (fijos)",
-)
+# fábrica. La nota (`atajos_captura.NOTA_PAGINA`), los títulos de grupo de
+# `bellbird/core/atajos.py` (ATAJOS_GRUPOS) y las etiquetas de los botones
+# (`etiqueta_de_accion` y `etiqueta_boton` de `atajos_captura`) ya salen
+# marcadas porque esta página las traduce. La comparación es exacta en los
+# dos sentidos: falla si aparece un texto nuevo sin envolver y si un
+# pendiente ya no está en el recorrido.
+PENDIENTES_ATAJOS = ()
 
 
 # Wrap parte la nota en varias líneas: se comparan los espacios normalizados.

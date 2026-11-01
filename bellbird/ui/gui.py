@@ -18,7 +18,8 @@ import webbrowser
 import wx
 from wx.lib.wordwrap import wordwrap
 
-from bellbird.core.config import APP_NAME, APP_VERSION, TIPO_TEXTO, FILTROS
+from bellbird.core.config import APP_NAME, APP_VERSION, TIPO_TEXTO
+from bellbird.ui.gui_menu import FILTROS
 from bellbird.core.config import parsear_atajos, detectar_conflictos_atajos, guardar_opcion
 from bellbird.core.idioma import N_, _
 from bellbird.core import paths
@@ -899,7 +900,7 @@ class YTChatFrame(wx.Frame):
         self.chat_vivo.reconstruir()
         guardar_opcion(RUTA_CONFIG, "ui", "filtro_activo",
                        _NOMBRES_FILTRO[idx] if idx < len(_NOMBRES_FILTRO) else "todos")
-        anunciar(_("Filtro: {filtro}. {n} mensajes").format(filtro=FILTROS[idx][0], n=self.lb_chat.GetCount()))
+        anunciar(_("Filtro: {filtro}. {n} mensajes").format(filtro=_(FILTROS[idx][0]), n=self.lb_chat.GetCount()))
 
     def _ajustar_rate(self, delta):
         # El worker mueve su porcentaje al instante (lo aplica en su hilo), así

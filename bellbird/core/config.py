@@ -50,15 +50,6 @@ TIPO_COMPARTIR = "compartir" # alguien comparte el directo (solo TikTok)
 TIPO_COFRE     = "cofre"     # cofre de regalos (solo TikTok)
 TIPO_ME_GUSTA  = "me_gusta"  # me gusta del directo (solo TikTok, solo suena)
 
-FILTROS = [
-    ("Todos",        None),
-    ("Solo texto",   TIPO_TEXTO),
-    ("Super Chats",  TIPO_SUPERCHAT),
-    ("Membresías",   TIPO_MIEMBRO),
-    ("Avisos",       avisos_tiktok.TIPOS_AVISO),
-]
-
-
 # ── Carpeta base ──────────────────────────────────────────────────────────────
 # Cuando se empaqueta con PyInstaller (onedir), los archivos editables
 # (config.ini, sounds.ini, sounds/) viven junto al .exe, no dentro de

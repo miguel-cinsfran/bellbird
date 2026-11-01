@@ -1554,20 +1554,12 @@ class TestTablaPosicionesSinVentana(unittest.TestCase):
                 nombre.replace("-", " ").capitalize())
 
 
-# Textos que arma otro módulo y aparecen en el recorrido: la nota de
-# `bellbird/obs/obs_estado.py` (NOTA_TRANSMISION), que este diálogo muestra tal
-# cual. Los nombres de escenas, fuentes y ventanas son datos del gestor de
-# prueba y van como propios. La comparación es exacta en los dos sentidos:
-# falla si aparece un texto nuevo sin envolver y si un pendiente ya no está
-# en el recorrido, para vaciar la lista cuando ese módulo pase por gettext.
-PENDIENTES_TRANSMISION = (
-    "Desde aquí eliges a dónde transmitir, inicias y finalizas el directo "
-    "y preparas lo que se ve. En el directo se ve una ventana, la que "
-    "eliges en Ventana que se captura. Esa captura no lleva sonido: el "
-    "sonido sale del audio del escritorio y del micrófono de OBS. El panel "
-    "de chat es solo para YouTube: en TikTok los comentarios ya aparecen "
-    "en el directo.",
-)
+# Los nombres de escenas, fuentes y ventanas son datos del gestor de
+# prueba y van como propios. La nota de `bellbird/obs/obs_estado.py`
+# (NOTA_TRANSMISION) ya sale marcada porque este diálogo la traduce. La
+# comparación es exacta en los dos sentidos: falla si aparece un texto
+# nuevo sin envolver y si un pendiente ya no está en el recorrido.
+PENDIENTES_TRANSMISION = ()
 
 PROPIOS_TRANSMISION = (
     "TikTok", "YouTube",

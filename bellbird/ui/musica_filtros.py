@@ -50,7 +50,7 @@ class FiltrosMusica:
         _pintar(self.cb_ordenar, _T.field, _T.text)
         nombre_accesible(self.cb_ordenar, _("Ordenar por"))
         self.cb_ordenar.SetMinSize((ANCHO_ORDENAR, -1))
-        self.cb_ordenar.Set([etiqueta for _clave, etiqueta
+        self.cb_ordenar.Set([_(etiqueta) for _clave, etiqueta
                              in filtros.CRITERIOS])
         self.cb_ordenar.SetSelection(self._indice_orden())
         self.sizer = self._armar_sizer()

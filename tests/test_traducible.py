@@ -8,6 +8,62 @@ revienta.
 import ast
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest import mock
+
+from bellbird.core import idioma
+
+
+class TestEtiquetasDeTablas(unittest.TestCase):
+    """Las etiquetas de las tablas de datos salen traducidas al mostrarse."""
+
+    def setUp(self):
+        idioma.instalar(idioma.IDIOMA_PSEUDO)
+
+    def tearDown(self):
+        idioma._reiniciar()
+
+    def test_etiquetas_de_los_filtros_salen_marcadas(self):
+        from bellbird.ui import gui_menu
+
+        visibles = [idioma._(nombre) for nombre, _valor in gui_menu.FILTROS]
+        self.assertTrue(all(texto.startswith("[¡") for texto in visibles),
+                        visibles)
+
+    def test_anuncio_del_filtro_sale_marcado(self):
+        from bellbird.ui import gui
+
+        falso = SimpleNamespace(
+            chat_vivo=SimpleNamespace(filtro=None, reconstruir=lambda: None),
+            lb_chat=mock.Mock(**{"GetCount.return_value": 3}))
+        with mock.patch.object(gui, "guardar_opcion"), \
+                mock.patch.object(gui, "anunciar") as anunciar:
+            gui.YTChatFrame._aplicar_filtro(falso, 0)
+        texto = anunciar.call_args.args[0]
+        self.assertTrue(texto.startswith("[¡"), texto)
+        self.assertIn("[¡Todos!]", texto)
+
+    def test_criterios_de_orden_salen_marcados(self):
+        from bellbird.music import filtros
+
+        visibles = [idioma._(etiqueta)
+                    for _clave, etiqueta in filtros.CRITERIOS]
+        self.assertTrue(all(texto.startswith("[¡") for texto in visibles),
+                        visibles)
+
+    def test_titulos_de_grupos_de_atajos_salen_marcados(self):
+        from bellbird.core import atajos
+
+        visibles = [idioma._(titulo)
+                    for titulo, _acciones in atajos.ATAJOS_GRUPOS]
+        self.assertTrue(all(texto.startswith("[¡") for texto in visibles),
+                        visibles)
+
+    def test_tema_suave_sale_marcado(self):
+        from bellbird.ui import preferencias_sonidos
+
+        self.assertTrue(
+            preferencias_sonidos._nombre_visible_tema("suave").startswith("[¡"))
 
 
 class TestNombreReservado(unittest.TestCase):

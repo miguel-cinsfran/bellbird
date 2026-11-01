@@ -75,7 +75,7 @@ class PaginaAtajos:
 
     def _crear_grupos(self, p, vs):
         for titulo, acciones in cfg.ATAJOS_GRUPOS:
-            box, padre = caja_de_grupo(p, titulo)
+            box, padre = caja_de_grupo(p, _(titulo))
             for accion in acciones:
                 etiqueta = etiqueta_de_accion(accion)
                 fija = accion in cfg.ATAJOS_FIJOS

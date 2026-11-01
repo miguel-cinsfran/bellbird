@@ -66,6 +66,9 @@ def _nombre_visible_tema(tema: str) -> str:
     if tema == "default":
         # Traductores: nombre visible del tema de sonido predeterminado.
         return _("Predeterminado")
+    if tema == "suave":
+        # Traductores: nombre visible del tema de sonido suave.
+        return _("Suave")
     return tema[:1].upper() + tema[1:]
 
 

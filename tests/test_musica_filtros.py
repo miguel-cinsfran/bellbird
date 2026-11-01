@@ -239,16 +239,9 @@ class TestNormalizarCriterio(unittest.TestCase):
 class TestFiltrosPseudo(unittest.TestCase):
     """Ningún texto visible de los filtros sin pasar por gettext."""
 
-    # Lo que arma otro módulo y estos cuadros solo muestran: queda
-    # pendiente hasta que se envuelva su módulo.
-    PENDIENTES = (
-        # bellbird/music/filtros.py, las opciones de «Ordenar por».
-        "Orden de la colección",
-        "Título",
-        "Artista",
-        "Más recientes primero",
-        "Duración",
-    )
+    # Los cuadros traducen las opciones de «Ordenar por» que arma
+    # `bellbird/music/filtros.py`, así que no queda ninguna pendiente.
+    PENDIENTES = ()
 
     def setUp(self):
         self.app = wx.App() if not wx.App.Get() else wx.App.Get()

@@ -1573,6 +1573,38 @@ msgstr "unknown reason"
 msgid "La actualización no se completó: {motivo}. Sigue la versión {actual}."
 msgstr "The update did not complete: {motivo}. Version {actual} is still installed."
 
+#: bellbird/core/atajos.py
+msgid "Reproductor (Ctrl)"
+msgstr "Player (Ctrl)"
+
+#: bellbird/core/atajos.py
+msgid "Chat (Alt)"
+msgstr "Chat (Alt)"
+
+#: bellbird/core/atajos.py
+msgid "Ventanas (Ctrl+Mayús)"
+msgstr "Windows (Ctrl+Shift)"
+
+#: bellbird/core/atajos.py
+msgid "Directo y OBS (Alt+Mayús)"
+msgstr "Live and OBS (Alt+Shift)"
+
+#: bellbird/core/atajos.py
+msgid "Voz y lectura (teclas F)"
+msgstr "Voice and reading (F keys)"
+
+#: bellbird/core/atajos.py
+msgid "Música (Ctrl+Alt)"
+msgstr "Music (Ctrl+Alt)"
+
+#: bellbird/core/atajos.py
+msgid "Ventana y navegación (fijos)"
+msgstr "Window and navigation (fixed)"
+
+#: bellbird/core/atajos.py
+msgid "Mensajes recientes del chat (fijos)"
+msgstr "Recent chat messages (fixed)"
+
 #: bellbird/core/avisos_red.py
 msgid ""
 "El servicio está recibiendo demasiadas solicitudes. Vuelve a intentarlo en "
@@ -1876,7 +1908,8 @@ msgstr "WAV audio"
 msgid "Título e identificador"
 msgstr "Title and identifier"
 
-#: bellbird/downloads/opciones_formato.py bellbird/ui/descargas_buscador.py
+#: bellbird/downloads/opciones_formato.py bellbird/music/filtros.py
+#: bellbird/ui/descargas_buscador.py
 msgid "Título"
 msgstr "Title"
 
@@ -2359,6 +2392,23 @@ msgstr "The audio could not be loaded. Check the connection and try again."
 #: bellbird/music/escucha.py
 msgid "No se pudo iniciar el reproductor de audio."
 msgstr "The audio player could not be started."
+
+#: bellbird/music/filtros.py
+msgid "Orden de la colección"
+msgstr "Collection order"
+
+#: bellbird/music/filtros.py
+msgid "Artista"
+msgstr "Artist"
+
+#: bellbird/music/filtros.py
+msgid "Más recientes primero"
+msgstr "Most recent first"
+
+#: bellbird/music/filtros.py bellbird/ui/buscador_filtros.py
+#: bellbird/ui/descargas_buscador.py
+msgid "Duración"
+msgstr "Duration"
 
 #: bellbird/music/listas.py
 msgid "Escribe un nombre para la lista"
@@ -4770,10 +4820,6 @@ msgstr "Date"
 msgid "Vistas"
 msgstr "Views"
 
-#: bellbird/ui/buscador_filtros.py bellbird/ui/descargas_buscador.py
-msgid "Duración"
-msgstr "Duration"
-
 #: bellbird/ui/buscador_filtros.py bellbird/ui/musica_filtros.py
 msgid "Mostrar fi&ltros"
 msgstr "Show fi&lters"
@@ -6428,6 +6474,27 @@ msgstr "Nothing selected"
 #: bellbird/ui/gui_historial.py
 msgid "Entrada eliminada del historial"
 msgstr "History entry deleted"
+
+#: bellbird/ui/gui_menu.py
+msgid "Todos"
+msgstr "All"
+
+#: bellbird/ui/gui_menu.py
+msgid "Solo texto"
+msgstr "Text only"
+
+#: bellbird/ui/gui_menu.py
+msgid "Super Chats"
+msgstr "Super Chats"
+
+#: bellbird/ui/gui_menu.py
+msgid "Membresías"
+msgstr "Memberships"
+
+#. Traductores: filtro del chat que muestra solo los avisos de TikTok.
+#: bellbird/ui/gui_menu.py
+msgid "Avisos"
+msgstr "Alerts"
 
 #: bellbird/ui/gui_menu.py
 msgid "Copiar &enlace del directo"
@@ -8630,6 +8697,11 @@ msgstr "Message deleted"
 #: bellbird/ui/preferencias_sonidos.py
 msgid "Predeterminado"
 msgstr "Default"
+
+#. Traductores: nombre visible del tema de sonido suave.
+#: bellbird/ui/preferencias_sonidos.py
+msgid "Suave"
+msgstr "Soft"
 
 #: bellbird/ui/preferencias_sonidos.py
 msgid "&Sonidos:"

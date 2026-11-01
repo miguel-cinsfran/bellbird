@@ -10,6 +10,8 @@ from __future__ import annotations
 import re
 import unicodedata
 
+from bellbird.core.idioma import N_
+
 TODAS = ""
 SIN_ARTISTA = "sin artista"
 
@@ -20,11 +22,11 @@ CRITERIO_RECIENTES = "recientes"
 CRITERIO_DURACION = "duracion"
 
 CRITERIOS = (
-    (CRITERIO_COLECCION, "Orden de la colección"),
-    (CRITERIO_TITULO, "Título"),
-    (CRITERIO_ARTISTA, "Artista"),
-    (CRITERIO_RECIENTES, "Más recientes primero"),
-    (CRITERIO_DURACION, "Duración"),
+    (CRITERIO_COLECCION, N_("Orden de la colección")),
+    (CRITERIO_TITULO, N_("Título")),
+    (CRITERIO_ARTISTA, N_("Artista")),
+    (CRITERIO_RECIENTES, N_("Más recientes primero")),
+    (CRITERIO_DURACION, N_("Duración")),
 )
 
 _SEPARADOR = re.compile(r"\s*(?:&|,|\b(?:feat|ft)\b\.?)\s*", re.IGNORECASE)

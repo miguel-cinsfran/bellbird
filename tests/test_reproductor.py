@@ -575,6 +575,44 @@ class TestAvisoDeCorte(unittest.TestCase):
         self.assertEqual(reproductor.aviso_de_corte(80, 99), "")
 
 
+class TestBufferingVlc(unittest.TestCase):
+
+    def test_el_evento_de_buffer_llega_al_aviso_de_corte(self):
+        import vlc
+        panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
+        gestor = mock.Mock()
+        panel._player = mock.Mock()
+        panel._player.event_manager.return_value = gestor
+        panel._gestor_eventos_vlc = None
+        nombres = ("MediaPlayerPlaying", "MediaPlayerPaused",
+                   "MediaPlayerStopped", "MediaPlayerEndReached",
+                   "MediaPlayerEncounteredError", "MediaPlayerBuffering")
+        tipos = types.SimpleNamespace(**{nombre: object()
+                                         for nombre in nombres})
+        with mock.patch.object(
+                motor_vlc, "modulo",
+                return_value=types.SimpleNamespace(EventType=tipos)), \
+                mock.patch.object(reproductor, "_registro_detallado_activo",
+                                  return_value=True):
+            panel._enganchar_eventos_vlc()
+
+        al_buffer = None
+        for tipo, callback in panel._callbacks_vlc:
+            if tipo is tipos.MediaPlayerBuffering:
+                al_buffer = callback
+                break
+        self.assertIsNotNone(al_buffer, "no se enganchó el búfer")
+        evento = vlc.Event()
+        evento.u.new_cache = 50.0
+        with mock.patch.object(reproductor.logger, "debug") as registro:
+            al_buffer(evento)
+
+        self.assertIn(mock.call("%s", "VLC_CORTE empezó porcentaje=50"),
+                      registro.call_args_list)
+        self.assertFalse(any("no se pudo avisar el corte" in str(llamada)
+                             for llamada in registro.call_args_list))
+
+
 class TestRelojMonotonic(unittest.TestCase):
 
     def test_otro_hilo_recibe_tiempo_real_y_no_consume_valores(self):

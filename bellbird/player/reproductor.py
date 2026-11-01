@@ -393,7 +393,7 @@ class ReproductorPanel(wx.Panel):
         def al_buffer(event):
             nonlocal pct_anterior
             try:
-                pct = event.u.media_player_buffering.new_cache
+                pct = event.u.new_cache
                 aviso = aviso_de_corte(pct, pct_anterior)
                 pct_anterior = pct
                 if aviso:

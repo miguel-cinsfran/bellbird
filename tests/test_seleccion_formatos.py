@@ -12,6 +12,7 @@ from bellbird.player import reproductor
 from bellbird.player.formatos import mejor_audio_estereo
 from bellbird.player.formatos_youtube import _video_para_altura
 from bellbird.player.formatos_youtube import espera_para_abrir
+from bellbird.player.formatos_youtube import fuentes_de_vod
 
 
 def _audio(fid, protocolo, abr, lang, url=None, acodec="mp4a", ext=None):
@@ -274,6 +275,70 @@ class PruebasEsperaParaAbrir(unittest.TestCase):
             espera = espera_para_abrir(info, 720, 1000.0)
         fuentes.assert_called_once_with(info)
         self.assertEqual(espera, 9.0)
+
+
+_MIB = 1024 * 1024
+
+
+def _formato_18(cuando, url="https://18", protocolo="https"):
+    return {"format_id": "18", "vcodec": "avc", "acodec": "mp4a",
+            "protocol": protocolo, "url": url, "available_at": cuando,
+            "height": 360, "ext": "mp4"}
+
+
+def _pista_con_tamano(url, tamano, cuando=1000, clave="filesize"):
+    pista = _pista_audio(url, cuando, "m4a", "mp4a", 128)
+    if tamano is not None:
+        pista[clave] = tamano
+    return pista
+
+
+class PruebasSoloAudioPistaGrande(unittest.TestCase):
+    """Con solo audio, una pista de más de 10 MiB pasa al formato 18."""
+
+    def test_pista_grande_con_formato_18_usa_el_18_sin_esclavo(self):
+        pista = _pista_con_tamano("https://audio", 39 * _MIB,
+                                  clave="filesize_approx")
+        info = {"formats": [pista, _formato_18(1000)]}
+        self.assertEqual(fuentes_de_vod(info, 720, solo_audio=True),
+                         ("https://18", ""))
+
+    def test_pista_de_exactamente_10_mib_sigue_siendo_la_pista(self):
+        pista = _pista_con_tamano("https://audio", 10 * _MIB)
+        info = {"formats": [pista, _formato_18(1000)]}
+        self.assertEqual(fuentes_de_vod(info, 720, solo_audio=True),
+                         ("https://audio", ""))
+
+    def test_pista_de_tamano_desconocido_sigue_siendo_la_pista(self):
+        pista = _pista_con_tamano("https://audio", None)
+        info = {"formats": [pista, _formato_18(1000)]}
+        self.assertEqual(fuentes_de_vod(info, 720, solo_audio=True),
+                         ("https://audio", ""))
+
+    def test_pista_grande_sin_formato_18_utilizable_sigue_siendo_la_pista(self):
+        pista = _pista_con_tamano("https://audio", 39 * _MIB)
+        variante = _formato_18(1000, url="https://18-drc")
+        variante["format_id"] = "18-drc"
+        info = {"formats": [pista, variante]}
+        self.assertEqual(fuentes_de_vod(info, 720, solo_audio=True),
+                         ("https://audio", ""))
+
+    def test_sin_solo_audio_devuelve_video_y_esclavo_como_antes(self):
+        info = {"formats": [
+            {"format_id": "s720", "vcodec": "avc", "acodec": "none",
+             "height": 720, "protocol": "https", "url": "https://video"},
+            _pista_con_tamano("https://audio", 39 * _MIB),
+            _formato_18(1000),
+        ]}
+        self.assertEqual(fuentes_de_vod(info, 720), ("https://video",
+                                                     "https://audio"))
+
+    def test_solo_audio_espera_por_el_formato_18(self):
+        pista = _pista_con_tamano("https://audio", 39 * _MIB, cuando=1012)
+        info = {"is_live": False,
+                "formats": [pista, _formato_18(1004)]}
+        self.assertEqual(
+            espera_para_abrir(info, 720, 1000.0, solo_audio=True), 4.0)
 
 
 if __name__ == "__main__":

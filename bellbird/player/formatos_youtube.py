@@ -133,6 +133,53 @@ def fuentes_para_directo(info: dict) -> tuple[str, str]:
     return "", ""
 
 
+# Medido el 01/11/2026 con libVLC y `:no-video`: una pista de audio de más de
+# 10 MiB tarda unos 5,5 s por salto y el reproductor acaba avisando que no
+# pudo mover el vídeo, mientras que hasta 10 MiB abre y salta en menos de un
+# segundo. El mecanismo no está demostrado: la hipótesis es que YouTube frena
+# los pedidos abiertos a pistas grandes, el mismo tope que yt-dlp informa en
+# `http_chunk_size`, y que el formato 18 no lo sufre.
+_TOPE_PISTA_GRANDE = 10 * 1024 * 1024
+
+
+def _formato_18(info: dict):
+    """Formato 18 utilizable para reemplazar una pista de audio grande.
+
+    Se exige el identificador exacto: variantes como `18-drc` no se midieron.
+    """
+    for f in info.get("formats", []) or []:
+        if f.get("format_id") != "18":
+            continue
+        if not f.get("url") or not _con_audio(f) or not _con_video(f):
+            continue
+        if (f.get("protocol") or "").startswith("m3u8"):
+            continue
+        return f
+    return None
+
+
+def _fuente_solo_audio(info: dict) -> str:
+    """Dirección para el modo solo audio, con el relevo de las pistas grandes.
+
+    Si la pista elegida pasa del tope y hay un formato 18 utilizable, se
+    devuelve el 18, que es progresivo y no necesita esclavo. En los demás
+    casos se devuelve la pista, y "" si no hay ninguna.
+    """
+    audio = mejor_audio_estereo(info)
+    if not audio:
+        return ""
+    formato = next((f for f in info.get("formats", []) or []
+                    if f.get("url") == audio), None)
+    tamano = 0
+    if formato is not None:
+        tamano = (formato.get("filesize")
+                  or formato.get("filesize_approx") or 0)
+    if tamano <= _TOPE_PISTA_GRANDE:
+        return audio
+    alternativo = _formato_18(info)
+    return alternativo["url"] if alternativo is not None else audio
+
+
 def fuentes_de_vod(info: dict, altura,
                    solo_audio: bool = False) -> tuple[str, str]:
     """(url de vídeo, url de audio esclavo) de un vídeo grabado.
@@ -140,11 +187,12 @@ def fuentes_de_vod(info: dict, altura,
     Con `altura` None se usa la altura automática; si no hay ninguna altura,
     se cae a `fuentes_para_directo`, como el resto del camino. Con
     `solo_audio`, y si hay una pista de audio directa, se devuelve esa sola
-    dirección: sin vídeo, sin esclavo y sin relevo. Si no hay ninguna que no
-    sea HLS, se sigue con las reglas normales.
+    dirección: sin vídeo, sin esclavo y sin relevo. Si esa pista pasa del
+    tope y hay un formato 18 utilizable, se devuelve el 18 por la misma vía.
+    Si no hay ninguna pista que no sea HLS, se sigue con las reglas normales.
     """
     if solo_audio:
-        audio = mejor_audio_estereo(info)
+        audio = _fuente_solo_audio(info)
         if audio:
             return audio, ""
     if altura is None:

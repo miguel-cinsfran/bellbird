@@ -665,6 +665,20 @@ class TestPaginaUnica(unittest.TestCase):
         self.assertEqual(op["simultaneas"], 5)
         self.assertEqual(op["formato"], "mp3")
 
+    def test_cambiar_de_pestana_anuncia_su_nombre(self):
+        dialogo = self._dialogo()
+        with mock.patch.object(gui_descargas, "anunciar") as anunciar:
+            dialogo.pestanas.AdvanceSelection()
+            anunciar.assert_called_once_with("Descargas")
+            anunciar.reset_mock()
+            dialogo.pestanas.AdvanceSelection()
+            anunciar.assert_called_once_with("Buscar en YouTube")
+
+    def test_abrir_no_anuncia_ninguna_pestana(self):
+        with mock.patch.object(gui_descargas, "anunciar") as anunciar:
+            self._dialogo()
+        anunciar.assert_not_called()
+
 
 def _resultado_busqueda(id, tipo="video", directo=False, programado=False):
     return busqueda_youtube.Resultado(

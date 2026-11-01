@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md 08917255a3a8442425c2772f285d7c950bbec4e9 -->
+<!-- original: es/MANUAL.md b101a59b633fb8434410cd8c76287b1ebbc33907 -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -625,6 +625,10 @@ open, it returns by itself to the previous one. On startup, a new version is
 announced only once. If there are other versions between the installed one
 and the new one, the window shows the what's new of all of them, from the
 newest to the oldest, each with its heading.
+
+In *Preferences, General*, *Update channel* chooses which versions are offered.
+*Stable*, the default option, offers only stable versions. *Beta* also offers
+test versions, which can have defects.
 
 ## Configuration
 

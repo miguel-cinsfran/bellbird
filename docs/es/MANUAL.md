@@ -627,6 +627,10 @@ se anuncia una sola vez. Si entre la versión instalada y la nueva hay
 otras, la ventana muestra las novedades de todas, de la más nueva a la más
 vieja, cada una con su encabezado.
 
+En *Preferencias, General*, *Canal de actualizaciones* elige qué versiones se
+ofrecen. *Estable*, la opción de fábrica, ofrece solo versiones estables.
+*Beta* ofrece también las versiones de prueba, que pueden traer defectos.
+
 ## Configuración
 
 Casi todo está en *Herramientas, Preferencias*. Se guarda al pulsar

@@ -20,6 +20,8 @@ Paraguay.
 
 ### Novedades
 
+- *Canal de actualizaciones*, en Preferencias: *Estable*, de fábrica, ofrece
+  solo versiones estables, y *Beta* ofrece también las de prueba.
 - Encuadre de cámara. `Ctrl+F3` dice cómo se te ve en la cámara de la
   escena al aire de OBS: si estás centrado, lejos, fuera del borde o con
   poca luz, y hacia dónde moverte. `Ctrl+Mayús+F3` activa avisos con

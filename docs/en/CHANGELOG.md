@@ -1,4 +1,4 @@
-<!-- original: es/CHANGELOG.md d018beaa2c8181ab2ea5b79019ba741803cf84f0 -->
+<!-- original: es/CHANGELOG.md b4e9e7fffd0d27b513bef5e8c65843fa02420a79 -->
 # What's new in Bellbird
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/CHANGELOG.md).
@@ -23,6 +23,8 @@ Paraguay.
 
 ### What's new
 
+- *Update channel*, in Preferences: *Stable*, the default, offers only stable
+  versions, and *Beta* also offers test versions.
 - Camera framing. `Ctrl+F3` says how you look in the camera of the OBS
   live scene: whether you are centered, far away, outside the edge or with
   little light, and where to move. `Ctrl+Shift+F3` turns on warnings with

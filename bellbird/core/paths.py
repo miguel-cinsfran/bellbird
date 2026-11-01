@@ -254,6 +254,18 @@ def carpeta_idiomas() -> Path:
     return carpeta_instalacion() / "idiomas"
 
 
+def documento(nombre, idioma) -> Path:
+    """Ruta del documento HTML en el idioma pedido, con el español de respaldo."""
+    corto = (idioma or "").strip().lower()
+    if corto != "pseudo":
+        corto = corto.split("_")[0].split("-")[0]
+    if corto and corto != "pseudo":
+        ruta = carpeta_instalacion() / "docs" / corto / f"{nombre}.html"
+        if ruta.is_file():
+            return ruta
+    return carpeta_instalacion() / "docs" / "es" / f"{nombre}.html"
+
+
 def pagina_overlay() -> Path:
     return carpeta_instalacion() / "web" / "chat.html"
 

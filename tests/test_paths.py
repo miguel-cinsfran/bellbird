@@ -190,6 +190,49 @@ class TestFinPendiente(unittest.TestCase):
         self.assertNotIn(paths.listas_musica(), paths.datos_a_migrar())
 
 
+class TestDocumento(unittest.TestCase):
+    """El HTML del idioma en uso, con el español como respaldo."""
+
+    def _instalacion(self, *rutas):
+        temporal = tempfile.TemporaryDirectory()
+        self.addCleanup(temporal.cleanup)
+        instalacion = Path(temporal.name) / "app"
+        for ruta in rutas:
+            archivo = instalacion / "docs" / ruta
+            archivo.parent.mkdir(parents=True, exist_ok=True)
+            archivo.write_text("", encoding="utf-8")
+        return instalacion
+
+    def test_idioma_con_documento_usa_el_suyo(self):
+        instalacion = self._instalacion("en/MANUAL.html")
+        with mock.patch.object(paths, "carpeta_instalacion",
+                               return_value=instalacion):
+            self.assertEqual(paths.documento("MANUAL", "en"),
+                             instalacion / "docs" / "en" / "MANUAL.html")
+
+    def test_idioma_sin_documento_cae_a_es(self):
+        instalacion = self._instalacion("es/MANUAL.html")
+        with mock.patch.object(paths, "carpeta_instalacion",
+                               return_value=instalacion):
+            self.assertEqual(paths.documento("MANUAL", "pt"),
+                             instalacion / "docs" / "es" / "MANUAL.html")
+
+    def test_codigo_con_region_usa_su_idioma_base(self):
+        instalacion = self._instalacion("en/MANUAL.html")
+        with mock.patch.object(paths, "carpeta_instalacion",
+                               return_value=instalacion):
+            self.assertEqual(paths.documento("MANUAL", "en_US"),
+                             instalacion / "docs" / "en" / "MANUAL.html")
+
+    def test_pseudo_usa_es(self):
+        instalacion = self._instalacion("pseudo/MANUAL.html",
+                                        "es/MANUAL.html")
+        with mock.patch.object(paths, "carpeta_instalacion",
+                               return_value=instalacion):
+            self.assertEqual(paths.documento("MANUAL", "pseudo"),
+                             instalacion / "docs" / "es" / "MANUAL.html")
+
+
 class TestNombresAnteriores(unittest.TestCase):
     """Las rutas viejas que la migración de arranque lleva a los nombres nuevos."""
 

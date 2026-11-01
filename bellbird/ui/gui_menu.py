@@ -15,7 +15,7 @@ import webbrowser
 import wx
 
 from bellbird.core import diagnostico
-from bellbird.core.idioma import _
+from bellbird.core.idioma import _, idioma_actual
 from bellbird.core import paths
 from bellbird.ui import menu_transmision
 from bellbird.ui.atajos_captura import ETIQUETAS
@@ -173,12 +173,18 @@ def construir_menu(frame):
 
 def _construir_menu_ayuda(frame, mb):
     m = wx.Menu()
+    mi_manual = m.Append(wx.ID_ANY, _("Manual de &uso") + "\tF1")
+    mi_novedades = m.Append(wx.ID_ANY, _("&Novedades"))
     mi_guia = m.Append(wx.ID_ANY, _("&Guía de configuración de la API…"))
     mi_incidente = m.Append(wx.ID_ANY, _("&Marcar incidencia") + frame._accel("marcar_incidencia"))
     mi_registros = m.Append(wx.ID_ANY, _("Abrir carpeta de &registros"))
     mi_actualizar_app = m.Append(wx.ID_ANY, _("&Buscar actualizaciones…"))
     mi_about = m.Append(wx.ID_ABOUT, _("&Acerca de"))
     mb.Append(m, _("A&yuda"))
+    frame.Bind(wx.EVT_MENU, lambda e: abrir_documento_paquete(
+        frame, "MANUAL", _("Manual de uso")), mi_manual)
+    frame.Bind(wx.EVT_MENU, lambda e: abrir_documento_paquete(
+        frame, "CHANGELOG", _("Novedades")), mi_novedades)
     frame.Bind(wx.EVT_MENU, lambda e: webbrowser.open(
         "https://github.com/miguel-cinsfran/bellbird/blob/main/docs/CONFIGURACION_API.md"),
         mi_guia)
@@ -198,6 +204,15 @@ def abrir_carpeta_registros(frame) -> None:
     except Exception as exc:
         wx.MessageBox(_("No se pudo abrir la carpeta de registros:\n\n{exc}").format(exc=exc),
                       _("Carpeta de registros"), wx.OK | wx.ICON_ERROR, frame)
+
+
+def abrir_documento_paquete(frame, nombre: str, titulo: str) -> None:
+    """Abre en el navegador un documento de la instalación."""
+    try:
+        os.startfile(str(paths.documento(nombre, idioma_actual())))  # noqa: S606
+    except Exception as exc:
+        wx.MessageBox(_("No se pudo abrir el documento:\n\n{exc}").format(exc=exc),
+                      titulo, wx.OK | wx.ICON_ERROR, frame)
 
 
 def _registrar_menus(frame) -> None:

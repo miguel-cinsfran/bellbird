@@ -9,7 +9,7 @@ La escribo yo, que soy ciego, y la usa en sus directos un amigo que
 también lo es. Hasta la versión 2.5 se llamaba YTChat TTS.
 
 [Descargar la última versión](https://github.com/miguel-cinsfran/bellbird/releases/latest)
-· [Manual de uso](MANUAL.md) · [Novedades](CHANGELOG.md)
+· [Manual de uso](docs/es/MANUAL.md) · [Novedades](docs/es/CHANGELOG.md)
 
 ## Qué hace
 

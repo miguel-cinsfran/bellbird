@@ -131,7 +131,8 @@ class TestVersionCoherente(unittest.TestCase):
 
     def _corre_con_changelog(self, texto_changelog, mostrada):
         with tempfile.TemporaryDirectory() as base:
-            ruta = Path(base) / "CHANGELOG.md"
+            ruta = Path(base) / "docs" / "es" / "CHANGELOG.md"
+            ruta.parent.mkdir(parents=True, exist_ok=True)
             ruta.write_text(texto_changelog, encoding="utf-8")
             with mock.patch.object(conducir, "RAIZ", Path(base)):
                 res = conducir.Resultado()

@@ -3997,7 +3997,7 @@ def _version_coherente(textos: list, res: Resultado) -> None:
         return
 
     try:
-        texto = (RAIZ / "CHANGELOG.md").read_text(encoding="utf-8")
+        texto = (RAIZ / "docs" / "es" / "CHANGELOG.md").read_text(encoding="utf-8")
     except Exception as exc:
         res.nota(f"no se pudo leer CHANGELOG.md: {exc}")
         return

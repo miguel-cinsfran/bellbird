@@ -195,12 +195,9 @@ if errorlevel 1 ( echo    AVISO: sin git; sounds.ini local ^(puede llevar ajuste
 copy /y "LICENSE"    "%OUT%\" >nul
 REM Documentacion de cara al usuario en HTML (se abre con doble clic; el amigo
 REM no tiene por que saber abrir un Markdown). Se genera con scripts\generar_docs.py y
-REM viaja tambien dentro de docs/. La dejamos ademas en la raiz, a la vista. El
-REM historial de versiones (CHANGELOG) va como docs/CHANGELOG.html, enlazado
-REM desde el propio Manual ("que hay de nuevo").
-copy /y "docs\MANUAL.html" "%OUT%\Manual.html" >nul
-REM Solo en la raiz: sus enlaces (docs/...) se calculan desde ahi y dentro de docs/ quedaban rotos.
-del /q "%OUT%\docs\MANUAL.html" >nul 2>&1
+REM viaja tambien dentro de docs/, con una carpeta por idioma. En la raiz va una
+REM pagina corta que lleva al manual de cada idioma; sus enlaces valen desde ahi.
+copy /y "docs\manual-paquete.html" "%OUT%\Manual.html" >nul
 
 REM Cliente de Google de la app: si esta en la raiz, viaja junto al exe
 REM para que quien no tenga credenciales propias igual pueda iniciar sesion.

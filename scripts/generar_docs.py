@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""Genera las versiones HTML de la documentación con pandoc (manual, novedades
-y guía de la API).
+"""Genera las versiones HTML de la documentación con pandoc.
 
 Los .md son cómodos para editar y se leen bien en GitHub, pero el amigo que usa
 la aplicación no tiene por qué saber abrir un Markdown. Este script convierte
@@ -8,19 +7,25 @@ los documentos de cara al usuario a HTML autocontenido (con el estilo dentro del
 propio archivo, sin depender de nada externo), fácil de abrir con doble clic y
 de leer con lector de pantalla.
 
-El historial de versiones vive en `CHANGELOG.md` (en llano, una entrada por
-versión; el detalle técnico queda en los commits).
+Cada idioma tiene su carpeta en `docs/`: `docs/es/`, `docs/en/` y las que
+lleguen. Cada `.md` se convierte al `.html` que queda a su lado. El manual y el
+historial de versiones viven en esas carpetas; la guía de la API sigue suelta
+en `docs/`.
+
+Además escribe `docs/manual-paquete.html`, una página corta que lleva al manual
+de cada idioma desde la raíz del paquete.
 
 Uso:
     uv run python scripts/generar_docs.py
 
-Requiere pandoc en el PATH (https://pandoc.org). Los HTML se escriben en docs/ y
-se versionan; hay que regenerarlos y commitearlos cuando cambie un .md. El
-paquete distribuible (construir.bat) copia docs/, así que viajan con la app.
+Requiere pandoc en el PATH (https://pandoc.org). Los HTML se escriben junto a
+su .md y se versionan; hay que regenerarlos y commitearlos cuando cambie un .md.
+El paquete distribuible (construir.bat) copia docs/, así que viajan con la app.
 """
 
 from __future__ import annotations
 
+import re
 import shutil
 import subprocess
 import sys
@@ -31,13 +36,17 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 DOCS = RAIZ / "docs"
 
-# (origen .md, destino .html en docs/, título de la página). El título es lo que
-# lee el lector de pantalla al abrir y lo que sale en la pestaña del navegador.
-DOCUMENTOS = [
-    (RAIZ / "MANUAL.md",              "MANUAL.html",            "Bellbird, manual de uso"),
-    (RAIZ / "CHANGELOG.md",           "CHANGELOG.html",         "Bellbird — Novedades"),
-    (DOCS / "CONFIGURACION_API.md",   "CONFIGURACION_API.html", "Bellbird — Configurar la API de YouTube"),
-]
+# Título de la pestaña y del lector de pantalla para cada documento e idioma.
+TITULOS = {
+    ("es", "MANUAL"): "Bellbird, manual de uso",
+    ("es", "CHANGELOG"): "Bellbird — Novedades",
+    ("es", "CONFIGURACION_API"): "Bellbird — Configurar la API de YouTube",
+    ("en", "MANUAL"): "Bellbird, user manual",
+    ("en", "CHANGELOG"): "Bellbird, what's new",
+}
+
+# Cómo se llama el manual en la página del paquete, en cada idioma.
+NOMBRES_MANUAL = {"es": "Manual de uso", "en": "User manual"}
 
 # Estilo embebido: sobrio, legible y responsivo, con modo claro y oscuro según
 # el sistema. Sin fuentes ni recursos externos, para que el HTML se abra en
@@ -85,19 +94,51 @@ hr { border: none; border-top: 1px solid var(--borde); margin: 2rem 0; }
 </style>
 """
 
-
-# Los .md se enlazan entre sí por su nombre .md (para que funcionen en GitHub).
-# En el HTML esos enlaces deben apuntar al HTML equivalente. Los enlaces se
-# calculan desde la RAÍZ del paquete, que es donde el usuario abre «Manual.html»
-# (MANUAL); la guía de la API queda en la subcarpeta docs/.
-_REESCRITURA_ENLACES = {
-    'href="MANUAL.md"':                'href="MANUAL.html"',
-    'href="CHANGELOG.md"':             'href="docs/CHANGELOG.html"',
-    'href="docs/CONFIGURACION_API.md"': 'href="docs/CONFIGURACION_API.html"',
-}
+_ESQUEMA = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*:")
+_HREF = re.compile(r'href="([^"]*)"')
 
 
-def _convertir(md: Path, salida: Path, titulo: str, header: Path) -> bool:
+def documentos_sueltos():
+    """Los .md de docs/ que no viven en una carpeta de idioma."""
+    return [DOCS / "CONFIGURACION_API.md"]
+
+
+def idiomas():
+    """Carpetas de idioma de docs/ que tienen algún .md."""
+    return sorted(carpeta for carpeta in DOCS.iterdir()
+                  if carpeta.is_dir() and any(carpeta.glob("*.md")))
+
+
+def _titulo(idioma, md):
+    return TITULOS.get((idioma, md.stem), md.stem)
+
+
+def documentos():
+    """Origen, destino, título e idioma de cada documento a convertir."""
+    lista = [(md, md.with_suffix(".html"), _titulo("es", md), "es")
+             for md in documentos_sueltos()]
+    for carpeta in idiomas():
+        for md in sorted(carpeta.glob("*.md")):
+            lista.append((md, md.with_suffix(".html"),
+                          _titulo(carpeta.name, md), carpeta.name))
+    return lista
+
+
+def _reescribir_enlaces(html: str) -> str:
+    """Pasa los enlaces relativos a .md a su .html y deja intactos los absolutos."""
+    def cambiar(coincidencia):
+        url = coincidencia.group(1)
+        if _ESQUEMA.match(url) or url.startswith("#"):
+            return coincidencia.group(0)
+        if url.endswith(".md"):
+            return f'href="{url[:-3]}.html"'
+        return coincidencia.group(0)
+
+    return _HREF.sub(cambiar, html)
+
+
+def _convertir(md: Path, salida: Path, titulo: str, header: Path,
+               idioma: str = "es") -> bool:
     if not md.exists():
         print(f"  [saltado] no existe {md.name}")
         return True   # no es un fallo: puede que ese .md aún no exista
@@ -106,7 +147,7 @@ def _convertir(md: Path, salida: Path, titulo: str, header: Path) -> bool:
     cmd = [
         "pandoc", str(md), "-o", str(salida),
         "--standalone", "--from", "gfm", "--to", "html5",
-        "--metadata", f"pagetitle={titulo}", "--metadata", "lang=es",
+        "--metadata", f"pagetitle={titulo}", "--metadata", f"lang={idioma}",
         "--include-in-header", str(header),
     ]
     try:
@@ -115,10 +156,42 @@ def _convertir(md: Path, salida: Path, titulo: str, header: Path) -> bool:
         print(f"  [FALLO] {md.name}: {exc.stderr.strip()}")
         return False
     html = salida.read_text(encoding="utf-8")
-    for viejo, nuevo in _REESCRITURA_ENLACES.items():
-        html = html.replace(viejo, nuevo)
-    salida.write_text(html, encoding="utf-8")
-    print(f"  [ok] {md.name}  ->  docs/{salida.name}")
+    salida.write_text(_reescribir_enlaces(html), encoding="utf-8")
+    print(f"  [ok] {md.name}  ->  {salida.name}")
+    return True
+
+
+def _escribir_manual_paquete() -> bool:
+    """Página corta que lleva al manual de cada idioma desde la raíz del paquete."""
+    enlaces = []
+    for carpeta in idiomas():
+        if (carpeta / "MANUAL.md").is_file():
+            nombre = NOMBRES_MANUAL.get(carpeta.name, "Manual de uso")
+            enlaces.append(f'<li><a href="docs/{carpeta.name}/MANUAL.html">'
+                           f"{nombre}</a></li>")
+    if not enlaces:
+        print("  [saltado] ningún idioma tiene manual")
+        return True
+    html = (
+        "<!DOCTYPE html>\n"
+        '<html lang="es">\n'
+        "<head>\n"
+        '<meta charset="utf-8">\n'
+        '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
+        "<title>Bellbird, manual de uso</title>\n"
+        "<!-- Los enlaces valen desde la raíz del paquete. -->\n"
+        f"{_ESTILO}"
+        "</head>\n"
+        "<body>\n"
+        "<h1>Bellbird</h1>\n"
+        "<ul>\n"
+        + "\n".join(f"  {enlace}" for enlace in enlaces)
+        + "\n</ul>\n"
+        "</body>\n"
+        "</html>\n"
+    )
+    (DOCS / "manual-paquete.html").write_text(html, encoding="utf-8")
+    print("  [ok] manual-paquete.html")
     return True
 
 
@@ -135,8 +208,9 @@ def main() -> int:
         header = Path(f.name)
     ok = True
     try:
-        for md, nombre, titulo in DOCUMENTOS:
-            ok = _convertir(md, DOCS / nombre, titulo, header) and ok
+        for md, salida, titulo, idioma in documentos():
+            ok = _convertir(md, salida, titulo, header, idioma) and ok
+        ok = _escribir_manual_paquete() and ok
     finally:
         try:    header.unlink()
         except OSError: pass

@@ -11,6 +11,7 @@ después sin tocarla.
 
 import sys
 import unittest
+from pathlib import Path
 from unittest import mock
 
 import wx
@@ -199,12 +200,85 @@ class TestEquivalenciaMenu(unittest.TestCase):
             ("&Herramientas", "&Actualizar yt-dlp", ANY, "normal"),
             ("&Herramientas", "---", None, "sep"),
             ("&Herramientas", "&Preferencias…", ANY, "normal"),
+            ("A&yuda", "Manual de &uso\tF1", ANY, "normal"),
+            ("A&yuda", "&Novedades", ANY, "normal"),
             ("A&yuda", "&Guía de configuración de la API…", ANY, "normal"),
             ("A&yuda", "&Marcar incidencia", ANY, "normal"),
             ("A&yuda", "Abrir carpeta de &registros", ANY, "normal"),
             ("A&yuda", "&Buscar actualizaciones…", ANY, "normal"),
             ("A&yuda", "&Acerca de", gui.wx.ID_ABOUT, "normal"),
         ], lista)
+
+
+class TestMenuAyudaDocumentos(unittest.TestCase):
+    """Manual y Novedades abren el HTML del idioma en uso."""
+
+    def _ayuda(self):
+        from bellbird.ui import gui_menu
+
+        items = {}
+
+        def crear_menu(*_args, **_kwargs):
+            menu = mock.MagicMock()
+
+            def crear_item(*args):
+                etiqueta = args[1] if len(args) > 1 else args[0]
+                item = mock.Mock()
+                item._etiqueta = etiqueta
+                items[etiqueta] = item
+                return item
+
+            menu.Append.side_effect = crear_item
+            return menu
+
+        frame = mock.Mock()
+        frame._accel.return_value = ""
+        with mock.patch.object(gui.wx, "Menu", side_effect=crear_menu):
+            gui_menu._construir_menu_ayuda(frame, mock.Mock())
+        return frame, items
+
+    def _manejador(self, frame, etiqueta):
+        for llamada in frame.Bind.call_args_list:
+            item = llamada.args[2] if len(llamada.args) > 2 else None
+            if getattr(item, "_etiqueta", "") == etiqueta:
+                return llamada.args[1]
+        raise AssertionError(f"no se enlazó {etiqueta}")
+
+    def test_cada_comando_abre_su_documento_en_el_idioma_en_uso(self):
+        from bellbird.ui import gui_menu
+
+        def documento(nombre, idioma):
+            return Path(f"C:/app/docs/{idioma}/{nombre}.html")
+
+        with mock.patch.object(gui_menu, "idioma_actual", return_value="en"), \
+                mock.patch.object(gui_menu.paths, "documento",
+                                  side_effect=documento) as ruta, \
+                mock.patch.object(gui_menu.os, "startfile") as abrir:
+            frame, _items = self._ayuda()
+            self._manejador(frame, "Manual de &uso\tF1")(None)
+            self._manejador(frame, "&Novedades")(None)
+
+        self.assertEqual([llamada.args for llamada in ruta.call_args_list],
+                         [("MANUAL", "en"), ("CHANGELOG", "en")])
+        self.assertEqual([llamada.args[0] for llamada in abrir.call_args_list],
+                         [str(Path("C:/app/docs/en/MANUAL.html")),
+                          str(Path("C:/app/docs/en/CHANGELOG.html"))])
+
+    def test_si_no_se_puede_abrir_muestra_el_error_en_un_cuadro(self):
+        from bellbird.ui import gui_menu
+
+        with mock.patch.object(gui_menu, "idioma_actual", return_value="es"), \
+                mock.patch.object(gui_menu.paths, "documento",
+                                  return_value=Path("x.html")), \
+                mock.patch.object(gui_menu.os, "startfile",
+                                  side_effect=OSError("sin navegador")), \
+                mock.patch.object(gui_menu.wx, "MessageBox") as cuadro:
+            frame, _items = self._ayuda()
+            self._manejador(frame, "&Novedades")(None)
+
+        cuadro.assert_called_once()
+        self.assertIn("sin navegador", cuadro.call_args.args[0])
+        self.assertEqual(cuadro.call_args.args[1], "Novedades")
 
 
 class TestMenuMusica(unittest.TestCase):

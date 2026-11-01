@@ -5823,7 +5823,7 @@ msgid "Super Chats: {n} ({importes})"
 msgstr "Super Chats: {n} ({importes})"
 
 #. Traductores: nombre del cuadro de novedades.
-#: bellbird/ui/gui_actualizacion.py
+#: bellbird/ui/gui_actualizacion.py bellbird/ui/gui_menu.py
 msgid "Novedades"
 msgstr "News"
 
@@ -6709,6 +6709,16 @@ msgstr "&Preferences…"
 msgid "&Herramientas"
 msgstr "&Tools"
 
+# | msgid "captura de juego"
+#: bellbird/ui/gui_menu.py
+msgid "Manual de &uso"
+msgstr "&User manual"
+
+# | msgid "Novedades"
+#: bellbird/ui/gui_menu.py
+msgid "&Novedades"
+msgstr "&What's new"
+
 #: bellbird/ui/gui_menu.py
 msgid "&Guía de configuración de la API…"
 msgstr "API setup &guide…"
@@ -6734,6 +6744,11 @@ msgstr "&About"
 msgid "A&yuda"
 msgstr "&Help"
 
+# | msgid "captura de juego"
+#: bellbird/ui/gui_menu.py
+msgid "Manual de uso"
+msgstr "User manual"
+
 #: bellbird/ui/gui_menu.py
 #, python-brace-format
 msgid ""
@@ -6748,6 +6763,18 @@ msgstr ""
 #: bellbird/ui/gui_menu.py
 msgid "Carpeta de registros"
 msgstr "Logs folder"
+
+# | msgid "" "No se pudo abrir la carpeta de datos:\n" "\n" "{exc}"
+#: bellbird/ui/gui_menu.py
+#, python-brace-format
+msgid ""
+"No se pudo abrir el documento:\n"
+"\n"
+"{exc}"
+msgstr ""
+"Could not open the document:\n"
+"\n"
+"{exc}"
 
 #: bellbird/ui/gui_menu.py
 msgid "Región &siguiente"

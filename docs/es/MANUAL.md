@@ -457,7 +457,7 @@ aviso de aplicación no verificada: abre la opción avanzada y elige
 continuar.
 
 La cuota diaria de YouTube se comparte entre quienes usan la aplicación.
-Para tener la tuya, sigue [docs/CONFIGURACION_API.md](docs/CONFIGURACION_API.md),
+Para tener la tuya, sigue [la guía de configuración de la API](../CONFIGURACION_API.md),
 escrita para leerse con lector de pantalla. Sin sesión, todo lo demás
 funciona igual.
 
@@ -636,5 +636,5 @@ un fallo, reproduce el problema y manda los tres archivos.
 
 ## Licencia
 
-GPL-3.0 desde la 2.5.1. Ver [LICENSE](LICENSE). Las versiones hasta la
+GPL-3.0 desde la 2.5.1. Ver [LICENSE](../../LICENSE). Las versiones hasta la
 2.5.0 se publicaron con licencia MIT.

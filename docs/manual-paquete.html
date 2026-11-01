@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bellbird, manual de uso</title>
+<!-- Los enlaces valen desde la raíz del paquete. -->
+<style>
+:root {
+  --fondo: #ffffff; --texto: #1c2629; --tenue: #56656a;
+  --acento: #0b6e63; --borde: #e2e8e8; --codigo-fondo: #f3f6f6;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fondo: #14191b; --texto: #e4ebeb; --tenue: #9aa8ac;
+    --acento: #45c9b6; --borde: #2f393c; --codigo-fondo: #1c2427;
+  }
+}
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.65; color: var(--texto); background: var(--fondo);
+  max-width: 46rem; margin: 0 auto; padding: 2rem 1.25rem 4rem;
+  font-size: 1.05rem;
+}
+h1, h2, h3 { line-height: 1.25; margin-top: 2.2rem; }
+h1 { font-size: 1.9rem; color: var(--acento); border-bottom: 2px solid var(--borde); padding-bottom: .4rem; }
+h2 { font-size: 1.4rem; border-bottom: 1px solid var(--borde); padding-bottom: .3rem; }
+h3 { font-size: 1.15rem; color: var(--tenue); }
+a { color: var(--acento); }
+code {
+  background: var(--codigo-fondo); padding: .12em .35em;
+  border-radius: 4px; font-size: .9em;
+}
+pre {
+  background: var(--codigo-fondo); padding: 1rem; border-radius: 6px;
+  overflow-x: auto; border: 1px solid var(--borde);
+}
+pre code { background: none; padding: 0; }
+table { border-collapse: collapse; width: 100%; overflow-x: auto; display: block; }
+th, td { border: 1px solid var(--borde); padding: .5rem .7rem; text-align: left; }
+th { background: var(--codigo-fondo); }
+blockquote {
+  border-left: 3px solid var(--acento); margin: 1rem 0;
+  padding: .2rem 1rem; color: var(--tenue);
+}
+hr { border: none; border-top: 1px solid var(--borde); margin: 2rem 0; }
+</style>
+</head>
+<body>
+<h1>Bellbird</h1>
+<ul>
+  <li><a href="docs/es/MANUAL.html">Manual de uso</a></li>
+</ul>
+</body>
+</html>

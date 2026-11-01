@@ -444,7 +444,7 @@ def _atajos_en_manual():
     "`Ctrl+Flecha derecha`"). Lo mismo vale para "`Ctrl+Flecha arriba` /
     `abajo`" y "`Ctrl+Alt+Flecha derecha` / `izquierda`."""
     vistos = set()
-    for linea in (RAIZ / "MANUAL.md").read_text(encoding="utf-8").splitlines():
+    for linea in (RAIZ / "docs" / "es" / "MANUAL.md").read_text(encoding="utf-8").splitlines():
         anterior = ""
         for tramo in re.findall(r"`([^`]+)`", linea):
             tramo = tramo.strip()

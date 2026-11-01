@@ -12,15 +12,44 @@ from scripts import generar_docs
 class DocumentosTest(unittest.TestCase):
 
     def test_los_documentos_de_origen_existen(self):
-        for origen, _, _ in generar_docs.DOCUMENTOS:
+        for origen, _, _, _ in generar_docs.documentos():
             self.assertTrue(origen.exists(), f"No existe el documento {origen}")
 
-    def test_los_destinos_de_los_enlaces_se_generan(self):
-        destinos = {nombre for _, nombre, _ in generar_docs.DOCUMENTOS}
-        for reemplazo in generar_docs._REESCRITURA_ENLACES.values():
-            destino = reemplazo.removeprefix('href="').removesuffix('"')
-            self.assertEqual(Path(destino).suffix, ".html")
-            self.assertIn(Path(destino).name, destinos)
+    def test_descubre_los_md_de_cada_carpeta_de_idioma(self):
+        with tempfile.TemporaryDirectory() as temporal:
+            docs = Path(temporal)
+            (docs / "CONFIGURACION_API.md").write_text("# Guía", encoding="utf-8")
+            for idioma in ("es", "en"):
+                (docs / idioma).mkdir()
+                for nombre in ("MANUAL", "CHANGELOG"):
+                    (docs / idioma / f"{nombre}.md").write_text(
+                        "# Documento", encoding="utf-8")
+            with patch.object(generar_docs, "DOCS", docs):
+                encontrados = {
+                    (origen.relative_to(docs).as_posix(),
+                     destino.relative_to(docs).as_posix(), idioma)
+                    for origen, destino, _, idioma in generar_docs.documentos()
+                }
+
+        self.assertEqual(encontrados, {
+            ("CONFIGURACION_API.md", "CONFIGURACION_API.html", "es"),
+            ("es/MANUAL.md", "es/MANUAL.html", "es"),
+            ("es/CHANGELOG.md", "es/CHANGELOG.html", "es"),
+            ("en/MANUAL.md", "en/MANUAL.html", "en"),
+            ("en/CHANGELOG.md", "en/CHANGELOG.html", "en"),
+        })
+
+
+class EnlacesTest(unittest.TestCase):
+
+    def test_pasa_los_relativos_md_a_html_y_deja_los_absolutos(self):
+        html = ('<a href="CHANGELOG.md">Novedades</a>'
+                '<a href="../CONFIGURACION_API.md">Guía</a>'
+                '<a href="https://ejemplo.es/guia.md">Fuera</a>')
+        reescrito = generar_docs._reescribir_enlaces(html)
+        self.assertIn('href="CHANGELOG.html"', reescrito)
+        self.assertIn('href="../CONFIGURACION_API.html"', reescrito)
+        self.assertIn('href="https://ejemplo.es/guia.md"', reescrito)
 
 
 class ConvertirTest(unittest.TestCase):
@@ -46,16 +75,17 @@ class ConvertirTest(unittest.TestCase):
             header.write_text("<style></style>", encoding="utf-8")
 
             def simular_pandoc(*_args, **_kwargs):
-                salida.write_text('<a href="MANUAL.md">Manual</a>', encoding="utf-8")
+                salida.write_text('<a href="CHANGELOG.md">Novedades</a>',
+                                  encoding="utf-8")
 
             with patch.object(generar_docs.subprocess, "run",
                               side_effect=simular_pandoc) as ejecutar:
                 convertido = generar_docs._convertir(
-                    markdown, salida, "Título", header)
+                    markdown, salida, "Título", header, "es")
 
             self.assertTrue(convertido)
             ejecutar.assert_called_once()
-            self.assertIn('href="MANUAL.html"',
+            self.assertIn('href="CHANGELOG.html"',
                           salida.read_text(encoding="utf-8"))
 
     def test_devuelve_falso_si_pandoc_falla(self):
@@ -71,3 +101,26 @@ class ConvertirTest(unittest.TestCase):
                     markdown, raiz / "salida.html", "Título", raiz / "estilo.html")
 
         self.assertFalse(convertido)
+
+
+class ManualDelPaqueteTest(unittest.TestCase):
+
+    def test_enlaza_el_manual_de_cada_idioma_que_lo_tiene(self):
+        with tempfile.TemporaryDirectory() as temporal:
+            docs = Path(temporal)
+            for idioma in ("es", "en", "pt"):
+                (docs / idioma).mkdir()
+            (docs / "es" / "MANUAL.md").write_text("# Manual", encoding="utf-8")
+            (docs / "en" / "MANUAL.md").write_text("# Manual", encoding="utf-8")
+            (docs / "pt" / "CHANGELOG.md").write_text("# Cambios", encoding="utf-8")
+            with patch.object(generar_docs, "DOCS", docs):
+                self.assertTrue(generar_docs._escribir_manual_paquete())
+
+            pagina = (docs / "manual-paquete.html").read_text(encoding="utf-8")
+
+        self.assertIn('href="docs/es/MANUAL.html"', pagina)
+        self.assertIn("Manual de uso", pagina)
+        self.assertIn('href="docs/en/MANUAL.html"', pagina)
+        self.assertIn("User manual", pagina)
+        self.assertNotIn("docs/pt/MANUAL.html", pagina)
+        self.assertIn("Los enlaces valen desde la raíz del paquete", pagina)

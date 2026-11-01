@@ -14,7 +14,6 @@ import re
 import threading
 import time
 import webbrowser
-from datetime import datetime
 
 import wx
 from wx.lib.wordwrap import wordwrap

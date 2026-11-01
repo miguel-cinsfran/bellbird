@@ -18,6 +18,8 @@ módulo en el momento de la llamada, nunca con un `from` directo.
 
 from __future__ import annotations
 
+from datetime import datetime
+
 from bellbird.capture.montos import texto_importes
 from bellbird.core.idioma import _
 
@@ -91,7 +93,7 @@ def snapshot_sesion(frame):
         canal=(meta.get("canal") or "").strip(),
         espectadores=espectadores,
         espectadores_total=espectadores_total,
-        segundos_directo=_seguro(lambda: int(_gui.time.time() - _gui.datetime.fromisoformat(
+        segundos_directo=_seguro(lambda: int(_gui.time.time() - datetime.fromisoformat(
             meta["comienzo_directo"].replace("Z", "+00:00")).timestamp()), None),
         desfase_directo=_seguro(lambda: frame._rep_panel.frase_posicion_directo() if frame._rep_panel._desfase_relevo_segundos() > 0 else "", ""),
         atajo_directo=_seguro(

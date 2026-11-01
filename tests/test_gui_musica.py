@@ -1583,6 +1583,22 @@ class TestCederAlReproductor(unittest.TestCase):
                               if l[0] == "cargar"])
             self.assertNotIn(("reanudar",), env.creados[0].llamadas)
 
+    def test_p1_quita_el_tema_actual_y_no_el_primero(self):
+        with _entorno() as env:
+            control = ControlMusica(_frame())
+            control.reproducir_temas_desde(
+                self._temas("uno", "dos", "tres"), 1)
+            env.creados[0].llamadas.clear()
+            dialogo = _GestorQueAbre(control)
+            dialogo.abrir("https://youtu.be/dos")
+            estado = control.estado()
+        self.assertEqual([t.titulo for t in estado.cola], ["UNO", "TRES"])
+        self.assertIsNone(estado.posicion)
+        self.assertFalse(estado.pausado)
+        self.assertFalse(estado.terminado)
+        self.assertFalse([l for l in env.creados[0].llamadas
+                          if l[0] == "cargar"])
+
     def test_p2_otro_tema_queda_en_pausa_con_la_cola_intacta(self):
         with _entorno() as env:
             control = ControlMusica(_frame())

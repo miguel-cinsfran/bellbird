@@ -231,6 +231,33 @@ class TestConsultarConNovedades(unittest.TestCase):
         self.assertEqual(["3.0.0-beta.2", "3.0.0-beta.1"],
                          _versiones(paquete.notas))
 
+    def test_canal_beta_incluye_la_beta_intermedia_y_estable_no(self):
+        publicaciones = [
+            _publicacion("v3.0.0-beta.1", "beta intermedia", prerelease=True),
+            _publicacion("v3.0.0-beta.2", "beta nueva", prerelease=True),
+            _publicacion("v3.0.0", "estable"),
+        ]
+        with mock.patch.object(
+                canal_app, "canal_guardado", return_value="beta"), \
+                mock.patch.object(
+                    canal_app, "consultar_ultima_beta",
+                    return_value=self._paquete("v3.0.0-beta.2")), \
+                mock.patch.object(
+                    novedades, "urlopen",
+                    return_value=self._respuesta(publicaciones)):
+            notas_beta = novedades.consultar_con_novedades().notas
+        with mock.patch.object(
+                canal_app, "canal_guardado", return_value="estable"), \
+                mock.patch.object(
+                    actualizacion, "consultar_ultima_version",
+                    return_value=self._paquete("v3.0.0")), \
+                mock.patch.object(
+                    novedades, "urlopen",
+                    return_value=self._respuesta(publicaciones)):
+            notas_estable = novedades.consultar_con_novedades().notas
+        self.assertIn("beta intermedia", notas_beta)
+        self.assertNotIn("beta intermedia", notas_estable)
+
     def test_canal_estable_no_consulta_betas(self):
         publicaciones = [
             _publicacion("v3.0.0", "estable"),

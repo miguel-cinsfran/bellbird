@@ -343,6 +343,8 @@ class GestorDescargasDialog(wx.Dialog):
 
     def _al_abrir_en_bellbird(self, url: str) -> None:
         # Conectar con el modal abierto no anda: primero se cierra.
+        if self._musica is not None:
+            self._musica.ceder_al_reproductor(url)
         callback = self._abrir_en_bellbird
         self._on_cerrar(None)
         if callback is not None:

@@ -21,6 +21,7 @@ from bellbird.music import memoria
 from bellbird.music.modelo import (AVANZO, FIN_LISTA, REINICIADO, TEMA_FALLIDO,
                                  EstadoMusica, Resultado, Tema)
 from bellbird.ui import atajos_globales
+from bellbird.ui import gui_descargas
 from bellbird.ui import gui_musica
 from bellbird.ui import musica_enlaces
 from bellbird.ui import musica_indice
@@ -1520,6 +1521,121 @@ class TestSuenaEnlace(unittest.TestCase):
                 "https://www.youtube.com/playlist?list=UNA")
             self.assertFalse(control.suena_enlace(
                 "https://www.youtube.com/playlist?list=OTRA"))
+
+
+class _GestorQueAbre:
+    """El gestor de descargas sin construir la ventana: usa su método real."""
+
+    def __init__(self, musica, al_cerrar=None):
+        self._musica = musica
+        self._abrir_en_bellbird = None
+        self.al_cerrar = al_cerrar
+        self.cerrado = 0
+
+    def _on_cerrar(self, _event):
+        self.cerrado += 1
+        if self.al_cerrar is not None:
+            self.al_cerrar()
+
+    def abrir(self, url):
+        gui_descargas.GestorDescargasDialog._al_abrir_en_bellbird(self, url)
+
+
+class TestCederAlReproductor(unittest.TestCase):
+    """Abrir un resultado en Bellbird deja la música fuera del camino."""
+
+    @staticmethod
+    def _temas(*ids):
+        return [Tema(f"https://www.youtube.com/watch?v={i}", i.upper())
+                for i in ids]
+
+    def test_p1_el_mismo_tema_se_detiene_y_sale_de_la_cola(self):
+        for pausado in (False, True):
+            with self.subTest(pausado=pausado), _entorno() as env:
+                control = ControlMusica(_frame())
+                control.reproducir_temas(
+                    self._temas("uno", "dos"), en_orden=True)
+                if pausado:
+                    control.reproducir_o_pausar()
+                env.programador.disparar()
+                self.assertIsNotNone(memoria.leer(env.memoria))
+                ventana = _VentanaFalsa(control)
+                control.registrar_ventana(ventana)
+                env.creados[0].llamadas.clear()
+                visto = {}
+                dialogo = _GestorQueAbre(
+                    control, lambda: visto.update(estado=control.estado()))
+                dialogo.abrir("https://youtu.be/uno")
+                estado = control.estado()
+                env.programador.disparar()
+                guardada = memoria.leer(env.memoria)
+            self.assertEqual(dialogo.cerrado, 1)
+            self.assertIsNone(visto["estado"].posicion)
+            self.assertEqual([t.titulo for t in visto["estado"].cola],
+                             ["DOS"])
+            self.assertEqual([t.titulo for t in estado.cola], ["DOS"])
+            self.assertIsNone(estado.posicion)
+            self.assertFalse(estado.pausado)
+            self.assertFalse(estado.terminado)
+            self.assertIsNone(guardada)
+            self.assertEqual(ventana.tamanos[-1], 1)
+            self.assertFalse([l for l in env.creados[0].llamadas
+                              if l[0] == "cargar"])
+            self.assertNotIn(("reanudar",), env.creados[0].llamadas)
+
+    def test_p2_otro_tema_queda_en_pausa_con_la_cola_intacta(self):
+        with _entorno() as env:
+            control = ControlMusica(_frame())
+            control.reproducir_temas(self._temas("uno", "dos"), en_orden=True)
+            env.programador.disparar()
+            env.anunciar.reset_mock()
+            env.snd.sonidos.clear()
+            env.creados[0].llamadas.clear()
+            visto = {}
+            dialogo = _GestorQueAbre(
+                control, lambda: visto.update(estado=control.estado()))
+            dialogo.abrir("https://youtu.be/dos")
+            estado = control.estado()
+        self.assertEqual([t.titulo for t in estado.cola], ["UNO", "DOS"])
+        self.assertEqual(estado.posicion, 0)
+        self.assertTrue(estado.pausado)
+        self.assertFalse(estado.terminado)
+        self.assertEqual(visto["estado"], estado)
+        self.assertIn(("pausar",), env.creados[0].llamadas)
+        self.assertNotIn(("detener",), env.creados[0].llamadas)
+        self.assertNotIn(("reanudar",), env.creados[0].llamadas)
+        env.anunciar.assert_called_once_with("Música en pausa")
+        self.assertEqual(env.snd.sonidos, [])
+
+    def test_p3_no_cambia_nada_ni_anuncia(self):
+        for caso in ("pausa_otro", "sin_motor", "sin_tema", "terminada"):
+            with self.subTest(caso=caso), _entorno() as env:
+                control, url = self._escenario_p3(caso)
+                env.anunciar.reset_mock()
+                env.snd.sonidos.clear()
+                antes = control.estado()
+                dialogo = _GestorQueAbre(control)
+                dialogo.abrir(url)
+                despues = control.estado()
+            self.assertEqual(dialogo.cerrado, 1)
+            env.anunciar.assert_not_called()
+            self.assertEqual(env.snd.sonidos, [])
+            self.assertEqual(despues, antes)
+
+    def _escenario_p3(self, caso):
+        if caso == "sin_motor":
+            return ControlMusica(_frame()), "https://youtu.be/uno"
+        control = ControlMusica(_frame())
+        if caso == "sin_tema":
+            control.reproducir_temas([])
+            return control, "https://youtu.be/uno"
+        if caso == "terminada":
+            control.reproducir_temas(self._temas("uno"), en_orden=True)
+            control._coordinador.quitar(0)
+            return control, "https://youtu.be/uno"
+        control.reproducir_temas(self._temas("uno", "dos"), en_orden=True)
+        control.reproducir_o_pausar()
+        return control, "https://youtu.be/dos"
 
 
 class TestListasPropias(unittest.TestCase):

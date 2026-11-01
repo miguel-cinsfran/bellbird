@@ -8,6 +8,7 @@ from bellbird.core import diagnostico
 from bellbird.core.idioma import _
 from bellbird.music import anuncios
 from bellbird.music import enlaces
+from bellbird.music.transporte import toca_pausar
 
 
 logger = diagnostico.obtener_logger(__name__)
@@ -35,6 +36,22 @@ class EnlacesMusica:
     def agregar_enlace(self, url) -> None:
         """Expande un enlace de YouTube y suma sus temas al final de la cola."""
         self.abrir_enlace(url, "final")
+
+    def ceder_al_reproductor(self, url) -> None:
+        """Deja la música fuera del camino al abrir ese vídeo en Bellbird.
+
+        Si es el tema actual, se detiene y sale de la cola. Si suena otro,
+        queda en pausa sin reanudarse. Sin tema activo no hace nada.
+        """
+        if not self.suena_enlace(url):
+            estado = self.estado()
+            if toca_pausar(estado) and not estado.pausado:
+                self.reproducir_o_pausar()
+            return
+        indice = self.estado().posicion
+        # Quitar el actual antes de detener haría sonar al siguiente.
+        self.detener()
+        self.quitar_de_cola(indice)
 
     def _expandir_enlace(self, url, modo) -> None:
         try:

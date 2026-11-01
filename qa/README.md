@@ -73,7 +73,7 @@ YouTube con un mensaje y F2. Lista cada texto que no salió marcado con
 `[¡...!]`, con la ventana y el control donde apareció, sin repetirlo, y sale
 con 1 si encontró alguno.
 
-    python -I herramientas/otra_pc.py qa qa/pseudo.py
+    python qa/pseudo.py
 
 No muestra el valor de un campo de texto ni los elementos de una lista de
 datos del usuario. Deja fuera las cabeceras de columna, las opciones de

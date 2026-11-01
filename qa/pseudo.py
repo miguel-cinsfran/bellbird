@@ -3,7 +3,7 @@
 Arranca la app con `BELLBIRD_IDIOMA=pseudo`, recorre la ventana principal,
 los menús, los cuadros que abren, Preferencias y una sesión simulada, anota
 cada texto que no lleva la marca `[¡...!]` y se lanza con
-`python -I herramientas/otra_pc.py qa qa/pseudo.py`.
+`python qa/pseudo.py`.
 """
 
 from __future__ import annotations

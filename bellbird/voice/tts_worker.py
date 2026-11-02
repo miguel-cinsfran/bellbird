@@ -19,7 +19,8 @@ import threading
 import time
 
 from bellbird.core import diagnostico
-from bellbird.core.idioma import N_, _
+from bellbird.core.idioma import _
+from bellbird.voice import caida_elevenlabs
 from bellbird.voice import escala_voz
 from bellbird.voice import elevenlabs
 from bellbird.voice import motores
@@ -34,13 +35,6 @@ _ESPERA_SUBIDA = 1.0
 _PASO_SUBIDA = 0.005
 # Ritmo con que se mira la bajada mientras el motor suena.
 _PASO_ESPERA = 0.05
-
-# Tras un fallo de ElevenLabs no se reintenta la nube por este tiempo: si no,
-# cada mensaje sin red esperaría el tiempo agotado del cliente.
-_VENTANA_ERROR_ELEVENLABS = 60.0
-
-_MSG_TOPE = N_("Se alcanzó el límite de caracteres de ElevenLabs de esta sesión. "
-                "Se usa la voz de Windows.")
 
 
 def _entero(valor, defecto: int) -> int:
@@ -123,12 +117,9 @@ class TTSWorker(threading.Thread):
         # ajustes; el motor se crea perezoso, en el hilo del worker.
         self._respaldo = respaldo_windows.Respaldo(
             self._fabrica_motor, config.get("voz_respaldo") or "")
-        self._tope_elevenlabs = max(0, _entero(config.get("elevenlabs_tope"), 0))
-        self._solo_importantes = bool(config.get("elevenlabs_solo_importantes"))
-        # Marca de tiempo del último fallo de ElevenLabs y estado de los avisos.
-        self._error_elevenlabs_ts = 0.0
-        self._aviso_dado = False
-        self._aviso_tope_dado = False
+        self._caida = caida_elevenlabs.CaidaElevenLabs(
+            _entero(config.get("elevenlabs_tope"), 0),
+            config.get("elevenlabs_solo_importantes"))
         # Motor que está sonando ahora (principal o respaldo), para que la
         # pausa, la purga, la velocidad y el volumen lleguen al correcto.
         self._sonando = None
@@ -282,10 +273,9 @@ class TTSWorker(threading.Thread):
         try:
             sono = self._leer_frase(elegido, texto)
         except elevenlabs.ElevenLabsError as exc:
-            self._error_elevenlabs_ts = time.monotonic()
-            if not self._aviso_dado:
-                self._aviso_dado = True
-                self._avisar(_("{detalle} Se usa la voz de Windows.").format(detalle=exc))
+            aviso = self._caida.fallo(exc)
+            if aviso:
+                self._avisar(aviso)
             respaldo = self._conseguir_respaldo()
             if respaldo is not None:
                 self._leer_frase(respaldo, texto)
@@ -293,31 +283,21 @@ class TTSWorker(threading.Thread):
         if sono:
             # Un mensaje bien leído por ElevenLabs cierra la racha: el próximo
             # fallo vuelve a avisar.
-            self._aviso_dado = False
+            self._caida.exito()
 
     def _elegir_motor_elevenlabs(self, texto: str, importante: bool):
         """Motor para este mensaje: el principal o el respaldo de Windows."""
-        if self._solo_importantes and not importante:
-            return self._conseguir_respaldo()
-        tope = self._tope_elevenlabs
-        if tope > 0 and self._caracteres_elevenlabs() + len(texto) > tope:
-            if not self._aviso_tope_dado:
-                self._aviso_tope_dado = True
-                self._avisar(_(_MSG_TOPE))
-            return self._conseguir_respaldo()
-        if self._error_reciente():
-            return self._conseguir_respaldo()
-        return self._motor
+        usar, aviso = self._caida.elegir(
+            importante, self._caracteres_elevenlabs(), len(texto))
+        if aviso:
+            self._avisar(aviso)
+        return self._conseguir_respaldo() if usar else self._motor
 
     def _caracteres_elevenlabs(self) -> int:
         try:
             return int(self._motor.caracteres_usados())
         except Exception:
             return 0
-
-    def _error_reciente(self) -> bool:
-        ts = self._error_elevenlabs_ts
-        return bool(ts) and (time.monotonic() - ts) < _VENTANA_ERROR_ELEVENLABS
 
     def _conseguir_respaldo(self):
         """Crea (una sola vez) la voz de Windows del respaldo, o None si falla."""
@@ -400,8 +380,7 @@ class TTSWorker(threading.Thread):
     def _configurar_elevenlabs(self, tope, solo_importantes, voz_respaldo) -> None:
         """Aplica los ajustes de ElevenLabs leídos de Preferencias, ya dentro
         del hilo del worker (el respaldo y sus ajustes le pertenecen)."""
-        self._tope_elevenlabs = max(0, _entero(tope, self._tope_elevenlabs))
-        self._solo_importantes = bool(solo_importantes)
+        self._caida.configurar(tope, solo_importantes)
         self._elegir_voz_respaldo(voz_respaldo or "")
 
     def _elegir_voz_respaldo(self, voz) -> None:

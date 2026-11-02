@@ -8,6 +8,7 @@ from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
 from bellbird.core.idioma import _
+from bellbird.voice import caida_elevenlabs
 from bellbird.voice import elevenlabs
 from bellbird.voice import motores
 from bellbird.voice import tts_worker
@@ -443,7 +444,7 @@ class TestRespaldoElevenLabs(unittest.TestCase):
         self.assertEqual(len(worker._avisos), 1)
         self.assertIn("Se usa la voz de Windows", worker._avisos[0])
 
-    @mock.patch.object(tts_worker, "_VENTANA_ERROR_ELEVENLABS", 0.0)
+    @mock.patch.object(caida_elevenlabs, "_VENTANA_ERROR_ELEVENLABS", 0.0)
     def test_aviso_una_vez_por_racha_y_otra_tras_racha_nueva(self):
         worker, el, sapi = self._worker()
         el.falla = elevenlabs.ElevenLabsError(
@@ -473,11 +474,11 @@ class TestRespaldoElevenLabs(unittest.TestCase):
 
         # Encolado: todavía no se aplicó nada (lo hace el hilo del worker).
         worker.configurar_elevenlabs(5000, True, "Voz B")
-        self.assertEqual(worker._tope_elevenlabs, 0)
+        self.assertEqual(worker._caida.tope, 0)
         worker._procesar_comandos()
 
-        self.assertEqual(worker._tope_elevenlabs, 5000)
-        self.assertTrue(worker._solo_importantes)
+        self.assertEqual(worker._caida.tope, 5000)
+        self.assertTrue(worker._caida.solo_importantes)
         self.assertEqual(worker._respaldo.voz, "Voz B")
         # La voz del respaldo ya creado cambia sin recrearlo.
         self.assertIs(worker._respaldo.motor, sapi)
@@ -629,7 +630,7 @@ class TestPseudoTextos(unittest.TestCase):
                                                "formato_prefijo": "mensaje_nombre"}),
                 construir_tts("", "hola", {"limpiar_emojis": True,
                                            "formato_prefijo": "nombre_mensaje"}),
-                _(tts_worker._MSG_TOPE),
+                _(caida_elevenlabs._MSG_TOPE),
             ]
         self.assertEqual(len(avisos_fallo), 1)
         self.assertEqual(len(avisos_tope), 1)

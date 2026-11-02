@@ -319,6 +319,18 @@ class FuenteCompletaTest(unittest.TestCase):
                         "Se ve completa", obs.describir(snap, self.COMPONENTES, modo))
 
 
+class FuenteSinNombreTest(unittest.TestCase):
+    COMPONENTES = ("capa", "solape", "visible", "fuera")
+
+    def test_sin_nombre_no_dice_se_ve_completa(self):
+        limpia = obs.SnapshotPanel(conectado=True)
+        for modo in ("corto", "largo"):
+            with self.subTest(modo=modo):
+                self.assertNotIn(
+                    "Se ve completa",
+                    obs.describir_fuente("", limpia, self.COMPONENTES, modo))
+
+
 class TestFrasesFijadas(unittest.TestCase):
     # Fija las frases que oye el usuario hoy, para que el refactor no cambie ni un carácter.
     def test_desconectado(self):

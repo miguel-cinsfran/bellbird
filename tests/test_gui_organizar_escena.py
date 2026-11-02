@@ -143,7 +143,7 @@ class TestOrganizarEscenaDialog(unittest.TestCase):
             conectado=True, escena="Principal", ancho=800, alto=500,
             lienzo_ancho=1600, lienzo_alto=900, izquierda=32, arriba=18,
             visible=False, bloqueada=True)
-        self.dialogo._tras_operacion(snap)
+        self.dialogo._en_hilo(lambda: snap)
         self.assertIn("Fuente: Chat en el vídeo",
                       self.dialogo.txt_descripcion.GetValue())
         self.assertIn("800 por 500", self.dialogo.txt_descripcion.GetValue())
@@ -324,12 +324,12 @@ class TestOrganizarEscenaDialog(unittest.TestCase):
                          "Ayuda de Organizar escena")
 
     def test_sin_barra_de_desplazamiento(self):
-        self.dialogo.SetSize((600, 1080))
-        self.dialogo.Layout()
         zona = self.dialogo._zona_desplazable
-        zona.Layout()
-        self.assertLessEqual(zona.GetVirtualSize().GetHeight(),
-                             zona.GetClientSize().GetHeight())
+        virtual = zona.GetVirtualSize().GetHeight()
+        self.assertGreaterEqual(zona.GetClientSize().GetHeight(), virtual)
+        disponible = wx.Display(self.dialogo).GetClientArea().GetHeight()
+        if virtual > disponible - 120:
+            self.assertLessEqual(self.dialogo.GetSize().GetHeight(), disponible)
 
     def test_ancho_minimo_600(self):
         self.assertGreaterEqual(self.dialogo.GetMinSize().GetWidth(), 600)

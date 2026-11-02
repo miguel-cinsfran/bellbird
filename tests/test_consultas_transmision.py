@@ -4,6 +4,7 @@ import unittest
 from unittest import mock
 
 from bellbird.obs import consultas_transmision
+from bellbird.obs import obs_disposicion
 
 
 def _gestor():
@@ -81,6 +82,28 @@ class TestAplicarVentana(unittest.TestCase):
             [llamada[0] for llamada in gestor.mock_calls],
             ["usar_ventana", "fuentes", "instantanea", "escena_al_aire",
              "estado_transmision", "estado_grabacion", "ventanas"])
+
+
+class TestDescripcionDeFuente(unittest.TestCase):
+
+    def _snap(self):
+        return obs_disposicion.SnapshotPanel(
+            conectado=True, escena="Principal", ancho=460, alto=620,
+            lienzo_ancho=1600, lienzo_alto=900)
+
+    def test_sin_fuente_devuelve_solo_la_escena(self):
+        texto = consultas_transmision.descripcion_de_fuente(
+            "Escena: Principal. No tiene fuentes.", "", self._snap())
+        self.assertEqual(texto, "Escena: Principal. No tiene fuentes.")
+        self.assertNotIn("OBS: conectado", texto)
+
+    def test_con_fuente_deja_fuera_conexion_escena_y_transparencia(self):
+        texto = consultas_transmision.descripcion_de_fuente(
+            "Escena: Principal.", "Chat en el vídeo", self._snap())
+        self.assertIn("Fuente: Chat en el vídeo", texto)
+        self.assertNotIn("OBS: conectado", texto)
+        self.assertNotIn("\nEscena:", texto)
+        self.assertNotIn("El fondo del panel es transparente", texto)
 
 
 class TestLeerEscena(unittest.TestCase):

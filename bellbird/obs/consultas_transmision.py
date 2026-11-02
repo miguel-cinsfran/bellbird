@@ -125,7 +125,12 @@ def mover(gestor, escena, dx, dy, fuente):
 
 
 def descripcion_de_fuente(descripcion, fuente, snap):
+    if not fuente:
+        return descripcion or ""
+    componentes = tuple(
+        componente for componente in obs_disposicion.COMPONENTES
+        if componente not in ("conexion", "escena", "transparencia"))
     detalle = obs_disposicion.describir_fuente(
-        fuente, snap, obs_disposicion.COMPONENTES, "largo")
+        fuente, snap, componentes, "largo")
     return "\n\n".join(
         parte for parte in (descripcion or "", detalle) if parte)

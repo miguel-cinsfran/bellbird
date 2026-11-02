@@ -1316,10 +1316,10 @@ class TestTablaPosicionesSinVentana(unittest.TestCase):
 
 
 # Los nombres de escenas, fuentes y ventanas son datos del gestor de
-# prueba y van como propios. La nota de `bellbird/obs/obs_estado.py`
-# (NOTA_TRANSMISION) ya sale marcada porque este diálogo la traduce. La
-# comparación es exacta en los dos sentidos: falla si aparece un texto
-# nuevo sin envolver y si un pendiente ya no está en el recorrido.
+# prueba y van como propios. Los textos propios del diálogo ya salen
+# marcados porque se traducen. La comparación es exacta en los dos
+# sentidos: falla si aparece un texto nuevo sin envolver y si un pendiente
+# ya no está en el recorrido.
 PENDIENTES_TRANSMISION = ()
 
 PROPIOS_TRANSMISION = (

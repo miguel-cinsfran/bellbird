@@ -342,6 +342,11 @@ def describir(snap: SnapshotPanel, componentes, modo="corto") -> str:
 
 
 def describir_fuente(nombre, snap, componentes, modo="corto") -> str:
+    if not nombre:
+        # Sin nombre no hay fuente que describir: «Se ve completa» solo habla
+        # del panel y confunde cuando el cuadro describe la escena.
+        componentes = tuple(
+            componente for componente in componentes if componente != "capa")
     texto = describir(snap, componentes, modo)
     if not nombre:
         return texto

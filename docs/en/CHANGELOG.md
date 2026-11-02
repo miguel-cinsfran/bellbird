@@ -1,4 +1,4 @@
-<!-- original: es/CHANGELOG.md d70dc54b2d84830e6563a115478181ca86562320 -->
+<!-- original: es/CHANGELOG.md 13311616a746916c1bf5406ff8ca7a5ad25d67d6 -->
 # What's new in Bellbird
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/CHANGELOG.md).
@@ -42,6 +42,10 @@ Paraguay.
   once.
 - *Update channel*, in Preferences: *Stable*, the default, offers only stable
   versions, and *Beta* also offers test versions.
+- Some commands were renamed to match Windows: *Announce current song* in
+  the *Music* menu, and *Lower voice speed* and *Raise voice speed* in the
+  *Voice* menu. If a key is already assigned to another action, the notice
+  when opening the app says which one and which shortcut was turned off.
 - Camera framing. `Ctrl+F3` says how you look in the camera of the OBS
   live scene: whether you are centered, far away, outside the edge or with
   little light, and where to move. `Ctrl+Shift+F3` turns on warnings with

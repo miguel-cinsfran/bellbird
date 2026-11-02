@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md b3735a963a3cf1ea83ad17710efbf13cd3c641fa -->
+<!-- original: es/MANUAL.md c2517a81b4b7073e9056a2366aa0369428d3d02a -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -127,7 +127,7 @@ name says what is missing. The limit is 200 characters.
 TikTok gifts by size, followers, joins, the connection, errors, and the
 edge when you reach the start or the end of a list. `F7` mutes them all.
 To silence only one, clear its check box in *Preferences, Sounds*, where
-*Hear the selected sound* lets you hear each one. The sound theme is
+*Play the selected sound* lets you hear each one. The sound theme is
 chosen in the same category, above the list: `default`, with recorded
 sounds, or `suave`, shorter and softer. To make your own, copy
 `sounds/themes/default` with another name and change the `.wav` files.
@@ -239,7 +239,7 @@ to YouTube with your Google account, and to TikTok through Restream.
 
 **Once:**
 
-- Turn on the OBS websocket server in *Preferences, Broadcast*. If OBS is
+- Turn on the OBS WebSocket server in *Preferences, Broadcast*. If OBS is
   closed, the application opens it in the notification area without
   taking focus from the screen reader.
 - For TikTok, an OBS profile called `TikTok` with Restream.
@@ -585,7 +585,7 @@ name and the value (“Voice volume: 40%”) and after that only the value.
 | `Ctrl+Alt+Right arrow` / `Left arrow` | Next or previous song |
 | `Ctrl+Alt+Up arrow` / `Down arrow` | Music volume |
 | `Ctrl+Alt+Shift+Right arrow` / `Left arrow` | Fast forward or rewind 10 seconds |
-| `Ctrl+Alt+T` | What is playing |
+| `Ctrl+Alt+T` | Announce current song |
 | `Ctrl+Alt+M` | Mute the music |
 | `Ctrl+Alt+D` | Stop music |
 | `Ctrl+Alt+A` | Random order |
@@ -683,9 +683,9 @@ OBS.
 **Something fails.** *Help, Open logs folder* opens the `data` folder,
 where the logs are. Errors stay in `data/bellbird.log`, and if the
 application closes by itself, also in `data/bellbird-fallos.log`. The
-detailed log, `data/bellbird-debug.log`, is on by default; it is turned
+detailed log, `data/bellbird-debug.log`, is enabled by default; it is turned
 off in *Preferences, General*, with the *Save a detailed log for
-diagnosing failures* check box. To report a failure, reproduce the
+diagnosing errors* check box. To report an error, reproduce the
 problem and send the three files.
 
 ## License

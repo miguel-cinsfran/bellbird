@@ -1961,7 +1961,7 @@ def escenario_microfono(app: Aplicacion, args, res: Resultado):
              "el micrófono de la PC")
     esperados = ("Fuente de OBS", "Dispositivo", "Aplicar", "Cerrar")
     auditar_dialogo(
-        app, "Elegir micrófono…", "Micrófono de OBS",
+        app, res, "Elegir micrófono…", "Micrófono de OBS",
         vueltas_tab=8,
         esperados=esperados,
         esperados_en_tab=esperados)

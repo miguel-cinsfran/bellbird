@@ -118,7 +118,7 @@ class PaginaIA:
             self._ia_proveedor_actual, self._ia_clave_cambiada)
         self.ia_clave.construir(p, vs)
         self.btn_ia_probar_clave = wx.Button(
-            p, label=_("P&robar clave"), name="ProbarClaveIA")
+            p, label=_("Compro&bar clave"), name=_("Comprobar clave"))
         self.btn_ia_probar_clave.Bind(
             wx.EVT_BUTTON, self._on_ia_probar_clave)
         vs.Add(fila_botones((self.ia_clave.btn_guardar,
@@ -186,7 +186,7 @@ class PaginaIA:
         self.sp_ia_tiempo.SetValue(self._ia_ajustes.tiempo_espera)
         vs.Add(self.sp_ia_tiempo, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.chk_ia_analizando = wx.CheckBox(
-            p, label=_("Anunciar Anali&zando mientras espera"),
+            p, label=_("Anunciar «Anali&zando» mientras espera"),
             name="DecirAnalizandoIA")
         self.chk_ia_analizando.SetValue(
             bool(self._ia_ajustes.decir_analizando))

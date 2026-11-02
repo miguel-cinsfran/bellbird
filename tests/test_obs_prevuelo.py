@@ -178,7 +178,7 @@ class RevisarTest(unittest.TestCase):
             "La escena no tiene ninguna fuente visible. "
             "Agrégala en Organizar escena.",
             "La imagen está vacía: la escena se ve en negro. "
-            "Revisar que la ventana capturada esté abierta y "
+            "Comprueba que la ventana capturada esté abierta y "
             "no minimizada."])
 
     def test_escena_sin_fuentes_visibles(self):
@@ -197,7 +197,7 @@ class RevisarTest(unittest.TestCase):
         revision = revisar(doble, "TikTok")
         self.assertIs(revision.imagen_vacia, True)
         self.assertIn("La imagen está vacía: la escena se ve en negro. "
-                      "Revisar que la ventana capturada esté abierta y "
+                      "Comprueba que la ventana capturada esté abierta y "
                       "no minimizada.",
                       revision.problemas)
 

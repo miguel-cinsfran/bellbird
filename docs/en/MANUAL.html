@@ -216,7 +216,7 @@
   </style>
 </head>
 <body>
-<!-- original: es/MANUAL.md 21181cfa5345a1acc4e233553681a3f51b0556d4 -->
+<!-- original: es/MANUAL.md 9cf519a775887779fe6ec749b90107716ac0afc8 -->
 
 <h1 id="bellbird-user-manual">Bellbird, user manual</h1>
 <p>This is a translation of the Spanish original, made with artificial
@@ -527,9 +527,9 @@ button chosen by default is <em>Cancel</em>.</li>
 the privacy and, if you want, the latency, the category, the tags, the
 thumbnail and the playlist. The application remembers everything.
 <em>Unlisted</em> is for testing.</li>
-<li>When the live stream goes on air, the application connects the chat
-on its own and announces it: “Your YouTube live stream is now on
-air”.</li>
+<li>When the live stream starts, the application connects the chat on
+its own and announces it: “Your YouTube live stream is now in
+progress”.</li>
 <li>During the live stream, the application warns if the connection
 fails. If the internet connection is lost, YouTube waits for it to come
 back without ending the live stream.</li>
@@ -671,7 +671,7 @@ video.</p>
 partly outside is cropped without warning. OBS calls that rectangle the
 canvas, and that is why <em>Arrange scene</em> says how much is cropped.
 If another source covers the panel, the application puts it in front
-when going on air and tells you which one was covering it.
+when the scene is current and tells you which one was covering it.
 <code>F2</code> says whether the panel is active and whether OBS is
 showing it, and the server only listens on your computer.</p>
 <h2 id="scheduled-messages">Scheduled messages</h2>
@@ -713,9 +713,9 @@ what you watched, with a tab for YouTube and another for TikTok, and
 finished live streams appear marked.</p>
 <h2 id="spoken-status">Spoken status</h2>
 <p><code>F2</code> summarizes the situation: connection, title, channel,
-viewers, how long it has been on air, messages read, donations, the chat
-panel and scheduled messages. What goes into the summary is chosen in
-<em>Preferences</em>, on the <em>Status (F2)</em> category, including
+viewers, how long it has been in progress, messages read, donations, the
+chat panel and scheduled messages. What goes into the summary is chosen
+in <em>Preferences</em>, on the <em>Status (F2)</em> category, including
 the OBS data and the song that is playing. While you stream from the
 application, <code>F2</code> starts with how the live stream is going.
 With the YouTube session started, it also says how many units of the
@@ -733,8 +733,8 @@ Browse it with the arrow keys and close it with <code>Esc</code> or
 <code>Ctrl+F2</code> describes the OBS scene.</p>
 <h2 id="asking-the-ai">Asking the AI</h2>
 <p>An artificial intelligence looks at a screenshot of OBS and tells you
-what it sees: whether the camera is on, whether a source came out black
-or what text is on screen. It needs OBS open and a provider key.</p>
+what it sees: whether the camera is on, whether a source is black or
+what text is on screen. It needs OBS open and a provider key.</p>
 <h3 id="setting-up-artificial-intelligence">Setting up artificial
 intelligence</h3>
 <p>In <em>Preferences</em>, on the <em>Artificial intelligence</em>
@@ -743,8 +743,8 @@ OpenRouter, OpenCode Go, Command Code or another compatible with
 OpenAI), save its key and choose the model. The key is kept in the
 Windows Credential Manager, not in <code>config.ini</code>, and the
 category never shows it: it only says that it is saved and its last four
-characters. The <em>Test the key</em> button sends a short request and
-says whether it works.</p>
+characters. The <em>Check key</em> button sends a short request and says
+whether it works.</p>
 <p>The <em>Refresh model list</em> button brings the models that accept
 images. With OpenRouter and OpenCode Go, the <em>Free only</em> check
 box leaves those that do not charge. With Gemini, what is free depends
@@ -756,7 +756,7 @@ screenshot, the length of the response, the waiting time and whether
 “Analyzing…” is said while it waits.</p>
 <h3 id="the-ask-the-ai-window">The Ask the AI window</h3>
 <p><code>Ctrl+Shift+I</code> opens the window, where the <em>Add
-screenshot</em> button lets you choose the live scene or a single
+screenshot</em> button lets you choose the current scene or a single
 source. In the <em>Message</em> field you type the question and
 <code>Enter</code> sends it. Right after adding a screenshot you can
 leave it empty, and the instruction is used. The response is read when
@@ -765,19 +765,18 @@ opens each full message. You can keep asking about the same screenshot
 or add another. <code>Esc</code> cancels the request in progress and, if
 there is none, closes the window.</p>
 <h3 id="quick-query">Quick query</h3>
-<p><code>Ctrl+Shift+F2</code> captures the live scene, sends it with the
-instruction and reads the response without opening anything. The next
-<code>Ctrl+Shift+I</code> opens the window with that conversation, to
-keep asking.</p>
+<p><code>Ctrl+Shift+F2</code> captures the current scene, sends it with
+the instruction and reads the response without opening anything. The
+next <code>Ctrl+Shift+I</code> opens the window with that conversation,
+to keep asking.</p>
 <h3 id="privacy">Privacy</h3>
 <p>The screenshot and what you type leave your computer and go to the
 provider. The first send warns you and asks for confirmation once. Some
 models use what they receive for training, and the list says so next to
 the name.</p>
-<p>If the screenshot comes out black, it is not sent. This usually
-happens with the NVDA screen curtain or on a computer with no monitor
-connected. In OBS, change the capture method of that source to Windows
-10.</p>
+<p>If the screenshot is black, it is not sent. This happens with the
+NVDA screen curtain or on a computer with no monitor connected. In OBS,
+change the capture method of that source to Windows 10.</p>
 <h2 id="google-session">Google session</h2>
 <p>The Google session is needed to moderate, write in the chat, comment
 on videos and create the YouTube live stream. In <em>Preferences</em>,
@@ -983,7 +982,7 @@ their action.</p>
 </tr>
 <tr>
 <td><code>Ctrl+Shift+F2</code></td>
-<td>Quick query to the AI about the scene</td>
+<td>Ask the AI about the scene</td>
 </tr>
 <tr>
 <td><code>Ctrl+F3</code></td>
@@ -1030,7 +1029,7 @@ value.</p>
 </tr>
 <tr>
 <td><code>Ctrl+Alt+M</code></td>
-<td>Mute or restore the music sound</td>
+<td>Mute or turn on the music audio</td>
 </tr>
 <tr>
 <td><code>Ctrl+Alt+D</code></td>

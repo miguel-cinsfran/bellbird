@@ -3,7 +3,7 @@
 La mezcla guarda la fuente elegida (la carpeta o una lista propia) y carga
 sus temas en la lista que arma `VentanaMusica`. «Biblioteca» es la carpeta;
 debajo va una fila por lista propia. Intro reproduce la colección entera y
-Suprimir borra la lista, previa confirmación.
+Supr elimina la lista, previa confirmación.
 """
 
 from __future__ import annotations

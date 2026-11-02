@@ -614,7 +614,7 @@ class TestAlConectarChatEnlaceDirecto(unittest.TestCase):
              "ninos": False})
         self.assertEqual(frame.sesion.enlace_directo, self.URL)
         anunciar.assert_called_once_with(
-            "El directo es privado y YouTube no deja leer su chat. "
+            "El directo es privado y YouTube no permite leer su chat. "
             "Para leerlo, transmite como público o no listado.")
 
     def test_ninos_guarda_el_enlace_antes_de_avisar(self):

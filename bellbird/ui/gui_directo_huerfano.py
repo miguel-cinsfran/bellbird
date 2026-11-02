@@ -184,25 +184,25 @@ def _preguntar(frame, huerfanos) -> None:
                         "propia activa, no se pregunta")
             return
         if len(huerfanos) == 1:
-            texto = (_("Tu directo «{titulo}» sigue al aire en "
+            texto = (_("Tu directo «{titulo}» sigue en curso en "
                        "YouTube, pero OBS no está transmitiendo. "
                        "Quienes lo miran no ven nada. ¿Finalizarlo?").format(
                            titulo=huerfanos[0][1]))
         else:
-            texto = (_("Tienes {cuantos} directos al aire en YouTube "
+            texto = (_("Tienes {cuantos} directos en curso en YouTube "
                        "sin imagen, porque OBS no está transmitiendo. "
                        "¿Finalizarlos?").format(cuantos=len(huerfanos)))
         dialogo = wx.MessageDialog(
             frame, texto, _("Directo sin imagen"), wx.YES_NO | wx.NO_DEFAULT)
         try:
-            dialogo.SetYesNoLabels(_("&Finalizar directo"), _("&Dejarlo al aire"))
+            dialogo.SetYesNoLabels(_("&Finalizar directo"), _("&Dejarlo en curso"))
             dejar = dialogo.ShowModal() != wx.ID_YES
         finally:
             dialogo.Destroy()
         if dejar:
             logger.info("revisión de directo huérfano: el usuario dejó %d "
-                        "directos al aire", len(huerfanos))
-            anunciar(_("El directo sigue al aire."))
+                        "directos en curso", len(huerfanos))
+            anunciar(_("El directo sigue en curso."))
             return
         logger.info("revisión de directo huérfano: el usuario pidió finalizar "
                     "%d directos", len(huerfanos))

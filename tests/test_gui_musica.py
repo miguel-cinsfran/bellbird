@@ -1364,7 +1364,7 @@ class TestOperacionesDeCola(unittest.TestCase):
             control = self._con_cola("A", "B", "C")
             env.anunciar.reset_mock()
             control.mezclar_cola()
-        env.anunciar.assert_called_once_with("Cola mezclada")
+        env.anunciar.assert_called_once_with("Cola en orden aleatorio")
         self.assertEqual(len(control.estado().cola), 3)
 
 
@@ -1734,7 +1734,7 @@ class TestListasPropias(unittest.TestCase):
                 devueltos = control.temas_de_lista("Final")
         self.assertEqual(creada, "Lista creada: Rock")
         self.assertEqual(renombrada, "Lista renombrada: Otra")
-        self.assertEqual(borrada, "Lista borrada: Otra")
+        self.assertEqual(borrada, "Lista eliminada: Otra")
         self.assertEqual([t.titulo for t in devueltos], ["A"])
         env.anunciar.assert_not_called()
 
@@ -1902,7 +1902,7 @@ class TestRetomar(unittest.TestCase):
                 cargas = [l for l in env.creados[0].llamadas if l[0] == "cargar"]
                 textos = [c.args[0] for c in env.anunciar.call_args_list]
                 self.assertEqual([c[1] for c in cargas], [str(b.resolve())])
-                self.assertIn("Retomando 2 canciones: B", textos)
+                self.assertIn("Reanudando 2 canciones: B", textos)
                 control.detener()
                 env.programador.disparar()
                 env.anunciar.reset_mock()
@@ -1911,7 +1911,7 @@ class TestRetomar(unittest.TestCase):
                 textos = [c.args[0] for c in env.anunciar.call_args_list]
                 self.assertEqual(cargas[-1][1],
                                  str((carpeta / "z.mp3").resolve()))
-                self.assertNotIn("Retomando 2 canciones: B", textos)
+                self.assertNotIn("Reanudando 2 canciones: B", textos)
 
     def test_sin_memoria_reproduce_la_carpeta(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -1920,7 +1920,7 @@ class TestRetomar(unittest.TestCase):
                 ControlMusica(_frame(musica_carpeta=tmp)).reproducir_o_pausar()
                 textos = [c.args[0] for c in env.anunciar.call_args_list]
         self.assertEqual(textos, ["Preparando la música", "a"])
-        self.assertNotIn("Retomando", " ".join(textos))
+        self.assertNotIn("Reanudando", " ".join(textos))
 
     def test_con_retomar_apagado_no_retoma(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -1936,7 +1936,7 @@ class TestRetomar(unittest.TestCase):
                 cargas = [l for l in env.creados[0].llamadas if l[0] == "cargar"]
                 textos = [c.args[0] for c in env.anunciar.call_args_list]
         self.assertEqual(cargas[0][1], str((carpeta / "z.mp3").resolve()))
-        self.assertNotIn("Retomando 1 canción: A", textos)
+        self.assertNotIn("Reanudando 1 canción: A", textos)
 
 
 class _Evento:

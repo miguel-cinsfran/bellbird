@@ -98,7 +98,7 @@ class PruebasYtdlpBin(unittest.TestCase):
         self.assertEqual(("cancelado", "2026.08.20", "2026.08.21"), estado)
     def test_mensaje_ya_al_dia(self):
         self.assertEqual(
-            "Ya tienes yt-dlp al día, versión 2026.08.20.",
+            "yt-dlp ya está actualizado, versión 2026.08.20.",
             ytdlp_actualizar.mensaje_de_actualizacion("ya_al_dia", "2026.08.20"),
         )
 

@@ -351,7 +351,7 @@ class TestVentanaIAVentana(unittest.TestCase):
                 mock.patch.object(ventana, "reproducir") as sonar:
             dialogo._al_enviar(None)
         anunciar.assert_called_once_with(
-            "Se agotó la cuota del proveedor. Espera un rato "
+            "Se agotó la cuota del proveedor. Espera unos minutos "
             "o elige otro modelo.")
         self.assertEqual(sonar.mock_calls, [mock.call("ia_enviada"),
                                             mock.call("ia_error")])

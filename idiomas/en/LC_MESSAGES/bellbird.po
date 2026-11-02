@@ -147,8 +147,8 @@ msgstr "The video ID is not recognized. Check the link."
 
 #: main.py
 msgid ""
-"YouTube todavía no muestra este vídeo. Pasa en los primeros segundos de un "
-"directo y siempre con los directos privados."
+"YouTube todavía no muestra este vídeo. Ocurre en los primeros segundos de "
+"un directo y siempre con los directos privados."
 msgstr ""
 "YouTube does not show this video yet. This happens in the first seconds of "
 "a live stream, and always with private live streams."
@@ -244,8 +244,8 @@ msgstr ""
 "intelligence."
 
 #: bellbird/ai/consulta.py
-msgid "Se agotó la cuota del proveedor. Espera un rato o elige otro modelo."
-msgstr "The provider quota is exhausted. Wait a while or choose another model."
+msgid "Se agotó la cuota del proveedor. Espera unos minutos o elige otro modelo."
+msgstr "The provider quota is exhausted. Wait a few minutes or choose another model."
 
 #: bellbird/ai/consulta.py
 msgid ""
@@ -261,11 +261,11 @@ msgstr "The provider blocked the response with its content filter."
 
 #: bellbird/ai/consulta.py
 msgid ""
-"El modelo gastó todo el espacio pensando y no respondió. Elige una "
-"respuesta más larga en Preferencias."
+"El modelo usó todo el límite de la respuesta en razonar y no respondió. "
+"Elige una respuesta más larga en Preferencias."
 msgstr ""
-"The model used up all its thinking space and gave no answer. Choose a "
-"longer response in Preferences."
+"The model used the whole response limit on reasoning and gave no answer. "
+"Choose a longer response in Preferences."
 
 #: bellbird/ai/consulta.py
 msgid "El modelo no devolvió ninguna respuesta. Vuelve a intentarlo."
@@ -383,7 +383,7 @@ msgid "Clave guardada."
 msgstr "Key saved."
 
 #: bellbird/ai/opciones_ia.py
-msgid "Clave borrada."
+msgid "Clave eliminada."
 msgstr "Key deleted."
 
 #: bellbird/ai/opciones_ia.py
@@ -391,7 +391,7 @@ msgid "No se pudo guardar la clave en el Administrador de credenciales."
 msgstr "Could not save the key in Credential Manager."
 
 #: bellbird/ai/opciones_ia.py
-msgid "No se pudo borrar la clave del Administrador de credenciales."
+msgid "No se pudo eliminar la clave del Administrador de credenciales."
 msgstr "Could not delete the key from Credential Manager."
 
 #: bellbird/ai/opciones_ia.py
@@ -423,11 +423,11 @@ msgstr "{proveedor} keys start with {prefijo}. Check that it is this provider's 
 #: bellbird/ai/opciones_ia.py
 #, python-brace-format
 msgid ""
-"Borra la clave guardada de {proveedor} del Administrador de credenciales. "
-"¿Deseas continuar?"
+"Se eliminará la clave guardada de {proveedor} del Administrador de "
+"credenciales. ¿Deseas continuar?"
 msgstr ""
-"Delete the saved {proveedor} key from Credential Manager. Do you want to "
-"continue?"
+"The saved {proveedor} key will be deleted from Credential Manager. Do you "
+"want to continue?"
 
 #: bellbird/ai/opciones_ia.py
 msgid "Probando la clave…"
@@ -1099,15 +1099,11 @@ msgid "Cámara: {texto}"
 msgstr "Camera: {texto}"
 
 #. Traductores: parte del estado F2 (cuota de YouTube). {usadas} son las
-#. unidades y {fecha} la fecha de la tabla de costos.
+#. unidades.
 #: bellbird/capture/estado_sesion.py
 #, python-brace-format
-msgid ""
-"Cuota de YouTube usada hoy en este equipo: unas {usadas} de 10.000, con los"
-" costos del {fecha}"
-msgstr ""
-"YouTube quota used today on this computer: about {usadas} of 10,000, with "
-"the costs from {fecha}"
+msgid "Cuota de YouTube usada hoy en este equipo: unas {usadas} de 10.000"
+msgstr "YouTube quota used today on this computer: about {usadas} of 10,000"
 
 #. Traductores: parte del estado F2 (transmisión). {texto} es el estado.
 #: bellbird/capture/estado_sesion.py
@@ -1537,8 +1533,8 @@ msgid "el paquete no trae manifiesto"
 msgstr "the package has no manifest"
 
 #: bellbird/core/actualizacion.py
-msgid "el manifiesto del paquete no se entiende"
-msgstr "the package manifest could not be understood"
+msgid "el manifiesto del paquete no se reconoce"
+msgstr "the package manifest is not recognized"
 
 #: bellbird/core/actualizacion.py
 msgid "la versión del paquete no coincide con la publicada"
@@ -1740,7 +1736,7 @@ msgstr "Could not read the contents. Check the connection and try again."
 msgid ""
 "ffmpeg no encontrado. La descarga necesita ffmpeg para unir audio y vídeo o"
 " extraer audio. Usa la versión empaquetada o instala ffmpeg. En desarrollo,"
-" alcanza con tener ffmpeg en el PATH."
+" basta con tener ffmpeg en el PATH."
 msgstr ""
 "ffmpeg not found. Downloading needs ffmpeg to join audio and video or "
 "extract audio. Use the packaged build or install ffmpeg. For development, "
@@ -1990,7 +1986,7 @@ msgstr "{n} years ago"
 #. Traductores: {version} es la versión instalada o la nueva de yt-dlp.
 #: bellbird/downloads/ytdlp_actualizar.py
 #, python-brace-format
-msgid "Ya tienes yt-dlp al día, versión {version}."
+msgid "yt-dlp ya está actualizado, versión {version}."
 msgstr "yt-dlp is already up to date, version {version}."
 
 #. Traductores: {version} es la versión nueva de yt-dlp.
@@ -2102,7 +2098,7 @@ msgstr "Music paused: {nombre}, song {posicion} of {total}"
 #. Traductores: {cantidad} es cuántas canciones; se oye al retomar la música.
 #: bellbird/music/anuncios.py
 #, python-brace-format
-msgid "Retomando {cantidad}: {nombre}"
+msgid "Reanudando {cantidad}: {nombre}"
 msgstr "Resuming {cantidad}: {nombre}"
 
 #: bellbird/music/anuncios.py
@@ -2175,8 +2171,8 @@ msgid "Cola vaciada, sigue sonando {nombre}"
 msgstr "Queue cleared, still playing {nombre}"
 
 #: bellbird/music/anuncios.py
-msgid "Cola mezclada"
-msgstr "Queue shuffled"
+msgid "Cola en orden aleatorio"
+msgstr "Queue in random order"
 
 #: bellbird/music/anuncios.py
 msgid "Repetir: no"
@@ -2217,7 +2213,7 @@ msgstr "Playlist renamed: {nombre}"
 
 #: bellbird/music/anuncios.py
 #, python-brace-format
-msgid "Lista borrada: {nombre}"
+msgid "Lista eliminada: {nombre}"
 msgstr "Playlist deleted: {nombre}"
 
 #: bellbird/music/anuncios.py
@@ -2270,7 +2266,7 @@ msgid "La ventana de música ya está abierta"
 msgstr "The music window is already open"
 
 #: bellbird/music/anuncios.py
-msgid "Búsqueda borrada"
+msgid "Búsqueda vaciada"
 msgstr "Search cleared"
 
 #: bellbird/music/anuncios.py
@@ -2306,27 +2302,26 @@ msgstr ""
 #: bellbird/music/anuncios.py
 msgid ""
 "Intro reproduce ahora, Mayús más Intro a continuación, Ctrl más Intro al "
-"final, tecla de aplicaciones para más opciones. Suprimir elimina de la "
-"lista"
+"final, tecla de aplicaciones para más opciones. Supr elimina de la lista"
 msgstr ""
 "Enter plays now, Shift plus Enter up next, Ctrl plus Enter at the end, "
 "applications key for more options, Delete removes from the list"
 
 #: bellbird/music/anuncios.py
 msgid ""
-"Intro reproduce, Suprimir elimina, Alt más flechas mueve, tecla de "
-"aplicaciones para más opciones"
+"Intro reproduce, Supr elimina, Alt más flechas mueve, tecla de aplicaciones"
+" para más opciones"
 msgstr ""
 "Enter plays, Delete removes, Alt plus arrows moves, applications key for "
 "more options"
 
 #: bellbird/music/anuncios.py
-msgid "Escribe para filtrar, flecha abajo va a las canciones, Esc borra la búsqueda"
+msgid "Escribe para filtrar, flecha abajo va a las canciones, Esc vacía la búsqueda"
 msgstr "Type to filter, down arrow goes to the songs, Esc clears the search"
 
 #: bellbird/music/anuncios.py
 #, python-brace-format
-msgid "¿Borrar la lista {nombre}?"
+msgid "¿Eliminar la lista {nombre}?"
 msgstr "Delete the {nombre} playlist?"
 
 #. Traductores: {titulo} es la canción y {artista} su artista; filas y avisos.
@@ -2507,7 +2502,7 @@ msgstr "Library"
 
 #: bellbird/music/vista.py
 msgid ""
-"Intro reproduce la colección entera, Suprimir borra la lista, tecla de "
+"Intro reproduce la colección entera, Supr elimina la lista, tecla de "
 "aplicaciones para más opciones"
 msgstr ""
 "Enter plays the whole collection, Delete removes the playlist, applications"
@@ -2637,7 +2632,8 @@ msgstr "Check before broadcasting: {primer_problema}"
 msgid "Preparado para transmitir a {destino}"
 msgstr "Ready to broadcast to {destino}"
 
-#: bellbird/obs/estado_panel.py bellbird/obs/obs_estado.py
+#: bellbird/obs/estado_panel.py bellbird/obs/obs_captura_ia.py
+#: bellbird/obs/obs_estado.py
 #, python-brace-format
 msgid "Escena actual: {escena}"
 msgstr "Current scene: {escena}"
@@ -2777,16 +2773,16 @@ msgstr ""
 
 #: bellbird/obs/obs_camara.py
 #, python-brace-format
-msgid "La fuente {nombre} no está en la escena al aire."
-msgstr "Source {nombre} is not in the live scene."
+msgid "La fuente {nombre} no está en la escena actual."
+msgstr "Source {nombre} is not in the current scene."
 
 #: bellbird/obs/obs_camara.py bellbird/ui/preferencias_camara.py
 msgid "No hay ninguna cámara en OBS."
 msgstr "There is no camera in OBS."
 
 #: bellbird/obs/obs_camara.py
-msgid "La cámara de OBS no está en la escena al aire."
-msgstr "The OBS camera is not in the live scene."
+msgid "La cámara de OBS no está en la escena actual."
+msgstr "The OBS camera is not in the current scene."
 
 #: bellbird/obs/obs_captura.py
 msgid "Captura de ventana"
@@ -2823,9 +2819,9 @@ msgstr "Now capturing {legible}."
 #: bellbird/obs/obs_captura_ia.py
 #, python-brace-format
 msgid ""
-"No se pudo capturar {etiqueta}. Comprueba que esté visible en la escena al "
-"aire."
-msgstr "Could not capture {etiqueta}. Check that it is visible in the live scene."
+"No se pudo capturar {etiqueta}. Comprueba que esté visible en la escena "
+"actual."
+msgstr "Could not capture {etiqueta}. Check that it is visible in the current scene."
 
 #. Traductores: {nombre} es la fuente y {tipo} su clase, como se lee en la
 #. lista.
@@ -2833,11 +2829,6 @@ msgstr "Could not capture {etiqueta}. Check that it is visible in the live scene
 #, python-brace-format
 msgid "{nombre} ({tipo})"
 msgstr "{nombre} ({tipo})"
-
-#: bellbird/obs/obs_captura_ia.py
-#, python-brace-format
-msgid "Escena al aire: {escena}"
-msgstr "Live scene: {escena}"
 
 #: bellbird/obs/obs_cliente.py
 msgid "Se perdió la conexión con OBS. Vuelve a conectar."
@@ -3289,8 +3280,8 @@ msgid ""
 "OBS.\n"
 "\n"
 "Posición y Mover fuente la llevan a uno de nueve lugares. Mover con flechas"
-" la mueve en pasos pequeños: Control da pasos grandes, Mayúsculas pasos de "
-"un píxel, Intro confirma y Esc deshace.\n"
+" la mueve en pasos pequeños: Ctrl da pasos grandes, Mayús pasos de un "
+"píxel, Intro confirma y Esc deshace.\n"
 "\n"
 "Ancho, Alto y Cambiar tamaño fijan su tamaño en píxeles.\n"
 "\n"
@@ -3508,7 +3499,7 @@ msgstr "The scene has no visible source. Add it in Arrange scene."
 
 #: bellbird/obs/obs_prevuelo.py
 msgid ""
-"La imagen está vacía: la escena se ve en negro. Revisar que la ventana "
+"La imagen está vacía: la escena se ve en negro. Comprueba que la ventana "
 "capturada esté abierta y no minimizada."
 msgstr ""
 "The picture is empty: the scene looks black. Check that the captured window"
@@ -3592,8 +3583,12 @@ msgstr "Connection to the service is back."
 
 #: bellbird/obs/obs_salida.py
 #, python-brace-format
-msgid "Se están perdiendo fotogramas: {porcentaje} por ciento. La red va lenta."
-msgstr "Frames are being dropped: {porcentaje} percent. The network is slow."
+msgid ""
+"Se están perdiendo fotogramas: {porcentaje} por ciento. La conexión de red "
+"es lenta."
+msgstr ""
+"Frames are being dropped: {porcentaje} percent. The network connection is "
+"slow."
 
 #: bellbird/obs/obs_salida.py
 #, python-brace-format
@@ -3677,7 +3672,7 @@ msgid "Creando el directo en YouTube."
 msgstr "Creating the live stream on YouTube."
 
 #: bellbird/obs/obs_supervisor.py
-msgid "No hay usuario de TikTok guardado: conecta el chat a mano."
+msgid "No hay usuario de TikTok guardado: conecta el chat manualmente."
 msgstr "No saved TikTok user: connect the chat manually."
 
 #: bellbird/obs/obs_supervisor.py
@@ -3715,12 +3710,12 @@ msgid "No se pudo mostrar la ventana de OBS."
 msgstr "Could not show the OBS window."
 
 #: bellbird/obs/transmision_directa.py
-msgid "Deteniendo el directo"
-msgstr "Stopping the live stream"
+msgid "Finalizando el directo"
+msgstr "Ending the live stream"
 
 #: bellbird/obs/transmision_directa.py
-msgid "Deteniendo el directo, esperando a OBS"
-msgstr "Stopping the live stream, waiting for OBS"
+msgid "Finalizando el directo, esperando a OBS"
+msgstr "Ending the live stream, waiting for OBS"
 
 #: bellbird/obs/transmision_directa.py bellbird/ui/confirmar_transmision.py
 #: bellbird/ui/gui_directo_huerfano.py
@@ -3972,7 +3967,7 @@ msgid "Vídeo cargado. Pulsa Reproducir."
 msgstr "Video loaded. Press Play."
 
 #: bellbird/player/reproductor.py
-msgid "Este directo no trae vídeo reproducible."
+msgid "Este directo no tiene vídeo reproducible."
 msgstr "This live stream has no playable video."
 
 #: bellbird/player/reproductor.py
@@ -4179,10 +4174,12 @@ msgstr "It must be Alt+Shift and a key (for example Alt+Shift+C)."
 #: bellbird/ui/atajos_captura.py
 msgid ""
 "Debe ser Ctrl+Alt y una flecha, Espacio, una letra o un número (por ejemplo"
-" Ctrl+Alt+T). También vale Ctrl+Alt+Mayús y Flecha izquierda o derecha."
+" Ctrl+Alt+T). También se acepta Ctrl+Alt+Mayús y Flecha izquierda o "
+"derecha."
 msgstr ""
-"It must be Ctrl+Alt and an arrow, Spacebar, a letter or a number, or "
-"Ctrl+Alt+Shift and Left or Right arrow (for example Ctrl+Alt+T)."
+"It must be Ctrl+Alt and an arrow, Spacebar, a letter or a number (for "
+"example Ctrl+Alt+T). Ctrl+Alt+Shift and Left or Right arrow are also "
+"accepted."
 
 #: bellbird/ui/atajos_captura.py
 msgid ""
@@ -4319,8 +4316,8 @@ msgid "Describir escena de OBS"
 msgstr "Describe OBS scene"
 
 #: bellbird/ui/atajos_captura.py
-msgid "Consulta rápida a la IA sobre la escena"
-msgstr "Quick AI question about the scene"
+msgid "Preguntar a la IA sobre la escena"
+msgstr "Ask the AI about the scene"
 
 #: bellbird/ui/atajos_captura.py
 msgid "Anunciar encuadre de cámara"
@@ -4363,8 +4360,8 @@ msgid "Anunciar canción actual"
 msgstr "Announce current song"
 
 #: bellbird/ui/atajos_captura.py
-msgid "Silenciar o devolver el sonido de la música"
-msgstr "Mute or unmute the music"
+msgid "Silenciar o activar el audio de la música"
+msgstr "Mute or turn on the music audio"
 
 #: bellbird/ui/atajos_captura.py
 msgid "Orden aleatorio de la música"
@@ -4440,16 +4437,15 @@ msgid ""
 "Alt para el chat y Ctrl+Mayús para abrir ventanas. Alt+Mayús es para el "
 "directo y OBS, Ctrl+Alt para la música y las teclas F para la voz. Pulsa un"
 " botón y luego la combinación que quieras. La aplicación comprueba que "
-"sirva para esa familia y que no choque con otra. F6, Mayús+F6, F9 a F12 y "
-"Alt+F4 son fijas, y se muestran para que no se puedan pisar."
+"sirva para esa familia y que no coincida con otra. F6, Mayús+F6, F9 a F12 y"
+" Alt+F4 son fijas, y se muestran para que no se puedan reemplazar."
 msgstr ""
 "Each shortcut family has its own modifier. Ctrl is for the player, Alt for "
 "the chat, and Ctrl+Shift for opening windows. Alt+Shift is for the live "
 "stream and OBS, Ctrl+Alt for music, and the F keys for voice. Press a "
 "button and then the combination you want. The application checks that it "
-"works for that family and does not clash with another. F6, Shift+F6, F9 "
-"through F12, and Alt+F4 are fixed, and they are shown so they cannot be "
-"overwritten."
+"works for that family and does not match another. F6, Shift+F6, F9 through "
+"F12, and Alt+F4 are fixed, and they are shown so they cannot be replaced."
 
 #: bellbird/ui/atajos_captura.py
 msgid "(sin asignar)"
@@ -4570,8 +4566,8 @@ msgstr "That combination cannot be used. Choose another."
 
 #: bellbird/ui/atajos_captura.py
 #, python-brace-format
-msgid "No vale aquí. {ayuda}"
-msgstr "Not valid here. {ayuda}"
+msgid "No se puede usar aquí. {ayuda}"
+msgstr "Cannot be used here. {ayuda}"
 
 #: bellbird/ui/atajos_captura.py
 #, python-brace-format
@@ -5822,8 +5818,8 @@ msgstr " Running from source does not install: update with git."
 
 #: bellbird/ui/gui_actualizar_app.py
 msgid ""
-" La carpeta de la aplicación no admite cambios. Se puede descargar a mano "
-"desde la página."
+" La carpeta de la aplicación no admite cambios. Se puede descargar "
+"manualmente desde la página."
 msgstr ""
 " The application folder is read-only. You can download it manually from the"
 " page."
@@ -5834,7 +5830,7 @@ msgstr "&Download and install"
 
 #: bellbird/ui/gui_actualizar_app.py
 msgid ""
-"No se pudo consultar si hay una versión nueva. Revise la conexión a "
+"No se pudo consultar si hay una versión nueva. Comprueba la conexión a "
 "Internet."
 msgstr "Could not check for a new version. Check the internet connection."
 
@@ -5871,8 +5867,8 @@ msgstr "The download did not complete: {motivo}."
 
 #: bellbird/ui/gui_actualizar_app.py
 #, python-brace-format
-msgid "El paquete no sirve: {motivo}."
-msgstr "The package is not valid: {motivo}."
+msgid "No se puede usar el paquete: {motivo}."
+msgstr "The package cannot be used: {motivo}."
 
 #: bellbird/ui/gui_actualizar_app.py
 #, python-brace-format
@@ -6152,32 +6148,32 @@ msgstr "Downloads"
 #: bellbird/ui/gui_directo_huerfano.py
 #, python-brace-format
 msgid ""
-"Tu directo «{titulo}» sigue al aire en YouTube, pero OBS no está "
+"Tu directo «{titulo}» sigue en curso en YouTube, pero OBS no está "
 "transmitiendo. Quienes lo miran no ven nada. ¿Finalizarlo?"
 msgstr ""
-"Your live stream “{titulo}” is still live on YouTube, but OBS is not "
-"broadcasting. People watching it see nothing. End it?"
+"Your live stream “{titulo}” is still in progress on YouTube, but OBS is not"
+" broadcasting. People watching it see nothing. End it?"
 
 #: bellbird/ui/gui_directo_huerfano.py
 #, python-brace-format
 msgid ""
-"Tienes {cuantos} directos al aire en YouTube sin imagen, porque OBS no está"
-" transmitiendo. ¿Finalizarlos?"
+"Tienes {cuantos} directos en curso en YouTube sin imagen, porque OBS no "
+"está transmitiendo. ¿Finalizarlos?"
 msgstr ""
-"You have {cuantos} live streams on YouTube with no video, because OBS is "
-"not broadcasting. End them?"
+"You have {cuantos} live streams in progress on YouTube with no video, "
+"because OBS is not broadcasting. End them?"
 
 #: bellbird/ui/gui_directo_huerfano.py
 msgid "Directo sin imagen"
 msgstr "Live stream without video"
 
 #: bellbird/ui/gui_directo_huerfano.py
-msgid "&Dejarlo al aire"
-msgstr "&Leave it live"
+msgid "&Dejarlo en curso"
+msgstr "&Leave it in progress"
 
 #: bellbird/ui/gui_directo_huerfano.py
-msgid "El directo sigue al aire."
-msgstr "The live stream is still live."
+msgid "El directo sigue en curso."
+msgstr "The live stream is still in progress."
 
 #: bellbird/ui/gui_directo_huerfano.py bellbird/youtube/fin_pendiente.py
 msgid "Directo finalizado en YouTube."
@@ -7432,7 +7428,7 @@ msgstr "The live stream is marked as made for kids and YouTube has no chat."
 
 #: bellbird/ui/gui_transmitir.py
 msgid ""
-"El directo es privado y YouTube no deja leer su chat. Para leerlo, "
+"El directo es privado y YouTube no permite leer su chat. Para leerlo, "
 "transmite como público o no listado."
 msgstr ""
 "The live stream is private and YouTube does not allow reading its chat. To "
@@ -7461,37 +7457,37 @@ msgstr "Loading OBS sources…"
 #: bellbird/ui/ia_agregar_captura.py
 #, python-brace-format
 msgid ""
-"La captura de {etiqueta} salió negra y no se agregó. La escena no tiene "
+"La captura de {etiqueta} está en negro y no se agregó. La escena no tiene "
 "ninguna captura de pantalla, de ventana, de juego ni de cámara. Agrega una "
 "en OBS y vuelve a intentarlo."
 msgstr ""
-"The {etiqueta} screenshot came out black and was not added. The scene has "
-"no screen, window, game, or camera capture. Add one in OBS and try again."
+"The {etiqueta} screenshot is black and was not added. The scene has no "
+"screen, window, game, or camera capture. Add one in OBS and try again."
 
 #. Traductores: aviso de captura negra; {etiqueta} lo elegido y {fuente} su
 #. origen.
 #: bellbird/ui/ia_agregar_captura.py
 #, python-brace-format
 msgid ""
-"La captura de {etiqueta} salió negra y no se agregó. La fuente {fuente} no "
-"tiene elegido qué capturar. Elígelo en las propiedades de la fuente en OBS."
+"La captura de {etiqueta} está en negro y no se agregó. La fuente {fuente} "
+"no tiene elegido qué capturar. Elígelo en las propiedades de la fuente en "
+"OBS."
 msgstr ""
-"The {etiqueta} screenshot came out black and was not added. The {fuente} "
-"source has nothing chosen to capture. Choose it in the source properties in"
-" OBS."
+"The {etiqueta} screenshot is black and was not added. The {fuente} source "
+"has nothing chosen to capture. Choose it in the source properties in OBS."
 
 #. Traductores: aviso de captura negra; {etiqueta} es lo elegido en «Capturar
 #. de».
 #: bellbird/ui/ia_agregar_captura.py
 #, python-brace-format
 msgid ""
-"La captura de {etiqueta} salió negra y no se agregó. Suele pasar si el "
+"La captura de {etiqueta} está en negro y no se agregó. Ocurre cuando el "
 "equipo no tiene monitor conectado o si la cortina de pantalla de NVDA está "
 "activa. Prueba en OBS el método de captura Windows 10 para esa fuente."
 msgstr ""
-"The {etiqueta} screenshot came out black and was not added. This often "
-"happens if the computer has no monitor connected or if the NVDA screen "
-"curtain is on. In OBS, try the Windows 10 capture method for that source."
+"The {etiqueta} screenshot is black and was not added. This happens when the"
+" computer has no monitor connected or if the NVDA screen curtain is on. In "
+"OBS, try the Windows 10 capture method for that source."
 
 #: bellbird/ui/ia_agregar_captura.py bellbird/ui/ia_ventana.py
 msgid "Agregar captura"
@@ -7533,7 +7529,7 @@ msgstr "A quick question is already in progress."
 #, python-brace-format
 msgid ""
 "La captura de la escena y lo que escribas se envían a {proveedor} para que "
-"responda. Este aviso sale una sola vez. ¿Enviar?"
+"responda. Este aviso aparece una sola vez. ¿Enviar?"
 msgstr ""
 "The scene screenshot and what you type are sent to {proveedor} so it can "
 "respond. This notice appears only once. Send?"
@@ -8385,9 +8381,13 @@ msgstr "&Provider:"
 msgid "&Dirección del servicio:"
 msgstr "Ser&vice address:"
 
-#: bellbird/ui/preferencias_ia.py
-msgid "P&robar clave"
-msgstr "&Test the key"
+#: bellbird/ui/preferencias_ia.py bellbird/ui/preferencias_voz.py
+msgid "Compro&bar clave"
+msgstr "C&heck key"
+
+#: bellbird/ui/preferencias_ia.py bellbird/ui/preferencias_voz.py
+msgid "Comprobar clave"
+msgstr "Check key"
 
 #: bellbird/ui/preferencias_ia.py
 msgid "&Modelo:"
@@ -8434,8 +8434,8 @@ msgid "Tiempo de e&spera en segundos:"
 msgstr "&Wait time in seconds:"
 
 #: bellbird/ui/preferencias_ia.py
-msgid "Anunciar Anali&zando mientras espera"
-msgstr "Announce &Analyzing while waiting"
+msgid "Anunciar «Anali&zando» mientras espera"
+msgstr "Announce “&Analyzing” while waiting"
 
 #. Traductores: rótulo de la clave de IA del proveedor elegido.
 #: bellbird/ui/preferencias_ia_clave.py
@@ -8855,14 +8855,6 @@ msgid "Clave de ElevenLabs"
 msgstr "ElevenLabs key"
 
 #: bellbird/ui/preferencias_voz.py
-msgid "Compro&bar clave"
-msgstr "C&heck key"
-
-#: bellbird/ui/preferencias_voz.py
-msgid "Comprobar clave"
-msgstr "Check key"
-
-#: bellbird/ui/preferencias_voz.py
 msgid "&Voz principal:"
 msgstr "&Main voice:"
 
@@ -9045,8 +9037,8 @@ msgid "ElevenLabs no reconoce la clave."
 msgstr "ElevenLabs does not recognize the key."
 
 #: bellbird/voice/elevenlabs.py
-msgid "Se acabó el saldo de ElevenLabs."
-msgstr "The ElevenLabs balance ran out."
+msgid "Se agotó el saldo de ElevenLabs."
+msgstr "The ElevenLabs balance is exhausted."
 
 #: bellbird/voice/elevenlabs.py
 msgid "ElevenLabs está recibiendo demasiadas peticiones."

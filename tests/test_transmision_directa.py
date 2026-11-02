@@ -78,14 +78,14 @@ class EtiquetaTest(unittest.TestCase):
     def test_deteniendo_avisa_que_se_espera_a_obs(self):
         self.assertEqual(
             etiqueta(True, deteniendo=True),
-            ("Deteniendo el directo",
-             "Deteniendo el directo, esperando a OBS"))
+            ("Finalizando el directo",
+             "Finalizando el directo, esperando a OBS"))
 
     def test_deteniendo_manda_aunque_no_transmita(self):
         self.assertEqual(
             etiqueta(False, deteniendo=True),
-            ("Deteniendo el directo",
-             "Deteniendo el directo, esperando a OBS"))
+            ("Finalizando el directo",
+             "Finalizando el directo, esperando a OBS"))
 
 
 class GestorFalso:

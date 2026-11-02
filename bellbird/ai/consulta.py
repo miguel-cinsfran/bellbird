@@ -32,16 +32,17 @@ _MSG_DIRECCION = N_("Escribe una dirección válida para el proveedor "
 _ERRORES = {
     protocolos.CLAVE_RECHAZADA: N_("El proveedor rechazó la clave. Revísala "
                                    "en Preferencias, Inteligencia artificial."),
-    protocolos.CUOTA: N_("Se agotó la cuota del proveedor. Espera un rato "
+    protocolos.CUOTA: N_("Se agotó la cuota del proveedor. Espera unos minutos "
                          "o elige otro modelo."),
     protocolos.MODELO_INEXISTENTE: N_("El proveedor no ofrece ese modelo. "
                                       "Elige otro en Preferencias, "
                                       "Inteligencia artificial."),
     protocolos.BLOQUEADA: N_("El proveedor bloqueó la respuesta con su filtro "
                              "de contenido."),
-    protocolos.SIN_TEXTO_POR_TOKENS: N_("El modelo gastó todo el espacio "
-                                        "pensando y no respondió. Elige una "
-                                        "respuesta más larga en Preferencias."),
+    protocolos.SIN_TEXTO_POR_TOKENS: N_("El modelo usó todo el límite de la "
+                                        "respuesta en razonar y no respondió. "
+                                        "Elige una respuesta más larga en "
+                                        "Preferencias."),
     protocolos.RESPUESTA_VACIA: N_("El modelo no devolvió ninguna respuesta. "
                                    "Vuelve a intentarlo."),
     protocolos.SERVIDOR: N_("El proveedor devolvió un error. Vuelve a "

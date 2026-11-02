@@ -117,7 +117,7 @@ def buscar_camara(cliente, nombre="", parada=None) -> CamaraObs:
                              1.0, parada)
         if hallada is None:
             raise CamaraNoEncontrada(
-                _("La fuente {nombre} no está en la escena al aire.").format(
+                _("La fuente {nombre} no está en la escena actual.").format(
                     nombre=nombre))
         return hallada
     if "dshow_input" not in por_nombre.values():
@@ -126,7 +126,7 @@ def buscar_camara(cliente, nombre="", parada=None) -> CamaraObs:
                          parada)
     if hallada is None:
         raise CamaraNoEncontrada(
-            _("La cámara de OBS no está en la escena al aire."))
+            _("La cámara de OBS no está en la escena actual."))
     return hallada
 
 

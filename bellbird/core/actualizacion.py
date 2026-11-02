@@ -347,9 +347,9 @@ def validar_paquete(carpeta: str | os.PathLike, version_esperada: str) -> str:
     try:
         datos = json.loads(manifiesto.read_text(encoding="utf-8"))
     except (OSError, ValueError):
-        raise PaqueteInvalido(_("el manifiesto del paquete no se entiende"))
+        raise PaqueteInvalido(_("el manifiesto del paquete no se reconoce"))
     if not isinstance(datos, dict):
-        raise PaqueteInvalido(_("el manifiesto del paquete no se entiende"))
+        raise PaqueteInvalido(_("el manifiesto del paquete no se reconoce"))
     version = datos.get("version")
     if version_como_tupla(version) != version_como_tupla(version_esperada):
         raise PaqueteInvalido(

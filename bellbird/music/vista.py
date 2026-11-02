@@ -18,7 +18,7 @@ from bellbird.music.biblioteca import coincide_por_palabras
 ETIQUETA_BIBLIOTECA = N_("Biblioteca")
 
 TEXTO_AYUDA_COLECCIONES = N_(
-    "Intro reproduce la colección entera, Suprimir borra la lista, "
+    "Intro reproduce la colección entera, Supr elimina la lista, "
     "tecla de aplicaciones para más opciones")
 TEXTO_COLA_OCULTA = N_("Cola oculta")
 # Traductores: {total} es cuántas canciones hay en la carpeta; se lee en el resumen.

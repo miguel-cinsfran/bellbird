@@ -332,25 +332,25 @@ class TestAyudas(unittest.TestCase):
             vista.ayuda_biblioteca(True),
             "Intro reproduce ahora, Mayús más Intro a continuación, Ctrl más Intro "
             "al final, tecla de aplicaciones para más opciones. "
-            "Suprimir elimina de la lista")
+            "Supr elimina de la lista")
 
     def test_colecciones(self):
         self.assertEqual(
             vista.ayuda_colecciones(),
-            "Intro reproduce la colección entera, Suprimir borra la lista, "
+            "Intro reproduce la colección entera, Supr elimina la lista, "
             "tecla de aplicaciones para más opciones")
 
     def test_cola(self):
         self.assertEqual(
             vista.ayuda_cola(),
-            "Intro reproduce, Suprimir elimina, Alt más flechas mueve, "
+            "Intro reproduce, Supr elimina, Alt más flechas mueve, "
             "tecla de aplicaciones para más opciones")
 
     def test_buscar(self):
         self.assertEqual(
             vista.ayuda_buscar(),
             "Escribe para filtrar, flecha abajo va a las canciones, "
-            "Esc borra la búsqueda")
+            "Esc vacía la búsqueda")
 
 
 class TestTextoCarpetaExaminada(unittest.TestCase):

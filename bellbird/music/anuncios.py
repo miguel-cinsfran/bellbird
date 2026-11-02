@@ -48,7 +48,7 @@ TEXTO_EN_PAUSA = N_("En pausa: {nombre}. Canción {posicion} de {total}")
 TEXTO_ESTADO_MUSICA = N_("Música: {nombre}, canción {posicion} de {total}")
 TEXTO_ESTADO_MUSICA_PAUSA = N_("Música en pausa: {nombre}, canción {posicion} de {total}")
 # Traductores: {cantidad} es cuántas canciones; se oye al retomar la música.
-TEXTO_RETOMANDO = N_("Retomando {cantidad}: {nombre}")
+TEXTO_RETOMANDO = N_("Reanudando {cantidad}: {nombre}")
 TEXTO_ALEATORIO_ON = N_("Orden aleatorio activado")
 TEXTO_ALEATORIO_OFF = N_("Orden aleatorio desactivado")
 TEXTO_SIN_CARPETA = N_("No hay carpeta de música. Elige una en Preferencias, categoría Música")
@@ -67,7 +67,7 @@ TEXTO_A_CONTINUACION_VARIOS = N_(
 TEXTO_QUITADO_COLA = N_("Eliminado de la cola: {nombre}")
 TEXTO_COLA_VACIADA = N_("Cola vaciada")
 TEXTO_COLA_VACIADA_SIGUE = N_("Cola vaciada, sigue sonando {nombre}")
-TEXTO_COLA_MEZCLADA = N_("Cola mezclada")
+TEXTO_COLA_MEZCLADA = N_("Cola en orden aleatorio")
 TEXTO_REPETIR_NO = N_("Repetir: no")
 TEXTO_REPETIR_TODO = N_("Repetir: toda la cola")
 TEXTO_REPETIR_TEMA = N_("Repetir: esta canción")
@@ -76,7 +76,7 @@ TEXTO_FALTANTES = N_("No se encontraron {cantidad} canciones de la lista: {nombr
 TEXTO_AGREGADO_A_LISTA = N_("Agregado a la lista {nombre}")
 TEXTO_LISTA_CREADA = N_("Lista creada: {nombre}")
 TEXTO_LISTA_RENOMBRADA = N_("Lista renombrada: {nombre}")
-TEXTO_LISTA_BORRADA = N_("Lista borrada: {nombre}")
+TEXTO_LISTA_BORRADA = N_("Lista eliminada: {nombre}")
 TEXTO_LISTA_GUARDADA = N_("Lista guardada: {nombre}")
 TEXTO_TEMA_MOVIDO = N_("Canción movida a la posición {posicion} de {total}")
 TEXTO_TEMA_QUITADO = N_("Canción eliminada de la lista")
@@ -92,7 +92,7 @@ TEXTO_ATAJOS_GLOBALES_ACTIVOS = N_("Atajos de música activos en cualquier aplic
 _TEXTO_ATAJOS_GLOBALES_SOLO = N_("Atajos de música solo en {app}")
 TEXTO_ATAJOS_GLOBALES_SOLO = _TEXTO_ATAJOS_GLOBALES_SOLO.format(app=config.APP_NAME)
 TEXTO_VENTANA_ABIERTA = N_("La ventana de música ya está abierta")
-TEXTO_BUSQUEDA_BORRADA = N_("Búsqueda borrada")
+TEXTO_BUSQUEDA_BORRADA = N_("Búsqueda vaciada")
 TEXTO_FILTROS_VISIBLES = N_("Filtros visibles")
 TEXTO_FILTROS_OCULTOS = N_("Filtros ocultos")
 TEXTO_UN_TEMA_COINCIDE = N_("1 canción coincide")
@@ -103,14 +103,14 @@ TEXTO_AYUDA_BIBLIOTECA = N_(
     "Ctrl más Intro al final, tecla de aplicaciones para más opciones")
 TEXTO_AYUDA_BIBLIOTECA_LISTA = N_(
     "Intro reproduce ahora, Mayús más Intro a continuación, Ctrl más Intro "
-    "al final, tecla de aplicaciones para más opciones. Suprimir elimina de la lista")
+    "al final, tecla de aplicaciones para más opciones. Supr elimina de la lista")
 TEXTO_AYUDA_COLA = N_(
-    "Intro reproduce, Suprimir elimina, Alt más flechas mueve, "
+    "Intro reproduce, Supr elimina, Alt más flechas mueve, "
     "tecla de aplicaciones para más opciones")
 TEXTO_AYUDA_BUSCAR = N_(
     "Escribe para filtrar, flecha abajo va a las canciones, "
-    "Esc borra la búsqueda")
-TEXTO_CONFIRMAR_BORRAR_LISTA = N_("¿Borrar la lista {nombre}?")
+    "Esc vacía la búsqueda")
+TEXTO_CONFIRMAR_BORRAR_LISTA = N_("¿Eliminar la lista {nombre}?")
 
 
 @dataclass(frozen=True)

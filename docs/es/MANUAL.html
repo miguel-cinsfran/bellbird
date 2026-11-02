@@ -522,8 +522,8 @@ elegido de entrada es <em>Cancelar</em>.</li>
 descripción, la privacidad y, si quieres, la latencia, la categoría, las
 etiquetas, la miniatura y la lista de reproducción. La aplicación
 recuerda todo. <em>No listado</em> sirve para probar.</li>
-<li>Cuando el directo sale al aire, la aplicación conecta el chat sola y
-lo anuncia: «Tu directo de YouTube ya está al aire».</li>
+<li>Cuando se inicia el directo, la aplicación conecta el chat sola y lo
+anuncia: «Tu directo de YouTube ya está en curso».</li>
 <li>Durante el directo, la aplicación avisa si la conexión falla. Si se
 pierde la conexión a internet, YouTube espera a que vuelva sin terminar
 el directo.</li>
@@ -603,13 +603,13 @@ control.</p>
 <p>Todo se puede seguir haciendo a mano en OBS, y la aplicación no
 interrumpe el complemento de OBS para NVDA.</p>
 <h2 id="encuadre-de-cámara">Encuadre de cámara</h2>
-<p>Si en la escena al aire de OBS hay una cámara, la aplicación dice
-cómo se te ve en ella. Informa cuántos rostros hay, si estás centrado,
-lejos, fuera del borde superior o inferior, de lado o con la cabeza
-inclinada, si falta luz delante o hay contraluz, y si la imagen se
-congeló. Sirve cualquier cámara que OBS muestre: webcam, capturadora o
-el teléfono usado como cámara. La imagen se analiza en el equipo y no se
-envía a ningún sitio.</p>
+<p>Si en la escena actual de OBS hay una cámara, la aplicación dice cómo
+se te ve en ella. Informa cuántos rostros hay, si estás centrado, lejos,
+fuera del borde superior o inferior, de lado o con la cabeza inclinada,
+si falta luz delante o hay contraluz, y si la imagen se congeló. Sirve
+cualquier cámara que OBS muestre: webcam, capturadora o el teléfono
+usado como cámara. La imagen se analiza en el equipo y no se envía a
+ningún sitio.</p>
 <p>Izquierda y derecha se dicen como el movimiento que tienes que hacer,
 por ejemplo «Muévete a tu izquierda.», no como el lado de la imagen.</p>
 <h3 id="anunciar-el-encuadre-a-pedido">Anunciar el encuadre a
@@ -663,9 +663,10 @@ TikTok ya muestra los comentarios sobre el vídeo.</p>
 <p>Lo que no cabe en el vídeo no se emite, y una fuente que queda en
 parte fuera se recorta sin aviso. OBS llama lienzo a ese rectángulo, y
 por eso <em>Organizar escena</em> dice cuánto se recorta. Si otra fuente
-tapa el panel, la aplicación lo pone delante al salir al aire y te dice
-cuál lo tapaba. <code>F2</code> dice si el panel está activo y si OBS lo
-está mostrando, y el servidor solo escucha en tu equipo.</p>
+tapa el panel, la aplicación lo pone delante al estar en la escena
+actual y te dice cuál lo tapaba. <code>F2</code> dice si el panel está
+activo y si OBS lo está mostrando, y el servidor solo escucha en tu
+equipo.</p>
 <h2 id="mensajes-automáticos">Mensajes automáticos</h2>
 <p>Mandan mensajes al chat cada cierto tiempo, por ejemplo tus redes
 cada diez minutos. Se configuran en <em>Preferencias</em>, categoría
@@ -704,7 +705,7 @@ lo que viste, con una pestaña para YouTube y otra para TikTok, y los
 directos terminados salen marcados.</p>
 <h2 id="estado-por-voz">Estado por voz</h2>
 <p><code>F2</code> resume la situación: conexión, título, canal,
-espectadores, cuánto lleva al aire, mensajes leídos, donaciones, el
+espectadores, cuánto lleva en curso, mensajes leídos, donaciones, el
 panel de chat y los mensajes automáticos. Qué entra en el resumen se
 elige en <em>Preferencias</em>, categoría <em>Estado (F2)</em>,
 incluidos los datos de OBS y la canción que suena. Mientras transmites
@@ -733,8 +734,8 @@ OpenCode Go, Command Code u otro compatible con OpenAI), guardas su
 clave y eliges el modelo. La clave queda en el Administrador de
 credenciales de Windows, no en <code>config.ini</code>, y la categoría
 nunca la muestra: solo dice que está guardada y sus cuatro últimos
-caracteres. El botón <em>Probar clave</em> manda un pedido corto y dice
-si funciona.</p>
+caracteres. El botón <em>Comprobar clave</em> manda un pedido corto y
+dice si funciona.</p>
 <p>El botón <em>Actualizar lista de modelos</em> trae los modelos que
 aceptan imágenes. Con OpenRouter y OpenCode Go, la casilla <em>Solo
 gratuitos</em> deja los que no cobran. Con Gemini, lo gratis depende de
@@ -747,7 +748,7 @@ captura, la longitud de la respuesta, el tiempo de espera y si se dice
 <h3 id="la-ventana-de-preguntar-a-la-ia">La ventana de Preguntar a la
 IA</h3>
 <p><code>Ctrl+Mayús+I</code> abre la ventana, donde el botón <em>Agregar
-captura</em> deja elegir la escena al aire o una fuente suelta. En el
+captura</em> deja elegir la escena actual o una fuente suelta. En el
 campo <em>Mensaje</em> escribes la pregunta y <code>Intro</code> la
 envía. Justo después de agregar una captura puedes dejarlo vacío, y se
 usa la instrucción. La respuesta se lee al llegar y queda en
@@ -756,7 +757,7 @@ entero. Puedes seguir preguntando sobre la misma captura o agregar otra.
 <code>Esc</code> cancela la consulta en curso y, si no hay ninguna,
 cierra.</p>
 <h3 id="consulta-rápida">Consulta rápida</h3>
-<p><code>Ctrl+Mayús+F2</code> captura la escena al aire, la envía con la
+<p><code>Ctrl+Mayús+F2</code> captura la escena actual, la envía con la
 instrucción y lee la respuesta sin abrir nada. El siguiente
 <code>Ctrl+Mayús+I</code> abre la ventana con esa conversación, para
 seguir preguntando.</p>
@@ -765,9 +766,9 @@ seguir preguntando.</p>
 El primer envío lo avisa y pide confirmación una sola vez. Algunos
 modelos usan lo que reciben para entrenar, y la lista lo dice al lado
 del nombre.</p>
-<p>Si la captura sale negra, no se envía, y suele pasar con la cortina
-de pantalla de NVDA o en un equipo sin monitor conectado. En OBS, cambia
-el método de captura de esa fuente a Windows 10.</p>
+<p>Si la captura está en negro, no se envía, y ocurre con la cortina de
+pantalla de NVDA o en un equipo sin monitor conectado. En OBS, cambia el
+método de captura de esa fuente a Windows 10.</p>
 <h2 id="sesión-de-google">Sesión de Google</h2>
 <p>La sesión de Google hace falta para moderar, escribir en el chat,
 comentar vídeos y crear el directo de YouTube. En <em>Preferencias</em>,
@@ -971,7 +972,7 @@ a su acción.</p>
 </tr>
 <tr>
 <td><code>Ctrl+Mayús+F2</code></td>
-<td>Consulta rápida a la IA sobre la escena</td>
+<td>Preguntar a la IA sobre la escena</td>
 </tr>
 <tr>
 <td><code>Ctrl+F3</code></td>
@@ -1018,7 +1019,7 @@ valor.</p>
 </tr>
 <tr>
 <td><code>Ctrl+Alt+M</code></td>
-<td>Silenciar o devolver el sonido de la música</td>
+<td>Silenciar o activar el audio de la música</td>
 </tr>
 <tr>
 <td><code>Ctrl+Alt+D</code></td>

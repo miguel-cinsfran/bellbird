@@ -145,7 +145,7 @@ class ProblemasEnDirectoTest(unittest.TestCase):
         actual = muestra(True, 20, perdidos=60, totales=1100)
         self.assertEqual(problemas_en_directo(anterior, actual),
                          [("red", "Se están perdiendo fotogramas: 60 por ciento. "
-                                  "La red va lenta.")])
+                                  "La conexión de red es lenta.")])
 
     def test_pocos_cuadros_no_avisa(self):
         anterior = muestra(True, 10, perdidos=0, totales=1000)
@@ -162,7 +162,7 @@ class ProblemasEnDirectoTest(unittest.TestCase):
         actual = muestra(True, 20, perdidos=6, totales=1100)
         self.assertEqual(problemas_en_directo(anterior, actual),
                          [("red", "Se están perdiendo fotogramas: 6 por ciento. "
-                                  "La red va lenta.")])
+                                  "La conexión de red es lenta.")])
 
     def test_cuatro_por_ciento_no_avisa(self):
         anterior = muestra(True, 10, perdidos=0, totales=1000)

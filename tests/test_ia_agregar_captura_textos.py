@@ -23,9 +23,9 @@ class TestTextosAgregarCaptura(unittest.TestCase):
 
     def test_negra_nombra_la_fuente(self):
         self.assertEqual(
-            texto_negra("Escena al aire: Escena"),
-            "La captura de Escena al aire: Escena salió negra y no se "
-            "agregó. Suele pasar si el equipo no tiene monitor conectado o si "
+            texto_negra("Escena actual: Escena"),
+            "La captura de Escena actual: Escena está en negro y no se "
+            "agregó. Ocurre cuando el equipo no tiene monitor conectado o si "
             "la cortina de pantalla de NVDA está activa. Prueba en OBS el "
             "método de captura Windows 10 para esa fuente.")
 
@@ -40,16 +40,16 @@ class TestTextosAgregarCaptura(unittest.TestCase):
 
     def test_negra_sin_fuente_pide_agregar(self):
         self.assertEqual(
-            texto_negra("Escena al aire: Escena", "sin_fuente", ""),
-            "La captura de Escena al aire: Escena salió negra y no se "
+            texto_negra("Escena actual: Escena", "sin_fuente", ""),
+            "La captura de Escena actual: Escena está en negro y no se "
             "agregó. La escena no tiene ninguna captura de pantalla, de "
             "ventana, de juego ni de cámara. Agrega una en OBS y vuelve a "
             "intentarlo.")
 
     def test_negra_sin_elegir_nombra_la_fuente(self):
         self.assertEqual(
-            texto_negra("Escena al aire: Escena", "sin_elegir", "Pantalla"),
-            "La captura de Escena al aire: Escena salió negra y no se "
+            texto_negra("Escena actual: Escena", "sin_elegir", "Pantalla"),
+            "La captura de Escena actual: Escena está en negro y no se "
             "agregó. La fuente Pantalla no tiene elegido qué capturar. "
             "Elígelo en las propiedades de la fuente en OBS.")
 

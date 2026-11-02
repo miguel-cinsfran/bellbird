@@ -107,7 +107,7 @@ class TestOpciones(unittest.TestCase):
         doble = Doble()
         primera = obs_captura_ia.opciones(doble)[0]
         self.assertEqual(primera, OpcionCaptura(
-            "Juego", "Escena al aire: Juego", 1600, 900))
+            "Juego", "Escena actual: Juego", 1600, 900))
 
     def test_orden_y_filtrado(self):
         doble = Doble(elementos=(
@@ -119,7 +119,7 @@ class TestOpciones(unittest.TestCase):
             elemento("Chat", 1, ancho=800, alto=600)))
         opciones = obs_captura_ia.opciones(doble)
         self.assertEqual([o.etiqueta for o in opciones],
-                         ["Escena al aire: Juego",
+                         ["Escena actual: Juego",
                           "Juego (captura de ventana)", "Rara",
                           "Chat (navegador)"])
         self.assertEqual((opciones[1].ancho, opciones[1].alto),
@@ -141,7 +141,7 @@ class TestOpciones(unittest.TestCase):
 class TestCapturar(unittest.TestCase):
     def test_apaisada_pide_solo_ancho(self):
         doble = Doble()
-        opcion = OpcionCaptura("Juego", "Escena al aire: Juego", 1600, 900)
+        opcion = OpcionCaptura("Juego", "Escena actual: Juego", 1600, 900)
         captura = obs_captura_ia.capturar(doble, opcion)
         principal = doble.capturas()[0]
         self.assertEqual(principal["imageFormat"], "jpg")
@@ -215,12 +215,12 @@ class TestCapturar(unittest.TestCase):
 
     def test_falla_principal_da_captura_fallida(self):
         doble = Doble(falla_principal=True)
-        opcion = OpcionCaptura("Juego", "Escena al aire: Juego", 1600, 900)
+        opcion = OpcionCaptura("Juego", "Escena actual: Juego", 1600, 900)
         with self.assertRaises(CapturaFallida) as contexto:
             obs_captura_ia.capturar(doble, opcion)
         self.assertEqual(str(contexto.exception),
-                         "No se pudo capturar Escena al aire: Juego. "
-                         "Comprueba que esté visible en la escena al aire.")
+                         "No se pudo capturar Escena actual: Juego. "
+                         "Comprueba que esté visible en la escena actual.")
         self.assertIsInstance(contexto.exception.__cause__,
                               obs_cliente.ObsError)
 
@@ -418,11 +418,11 @@ class TestVistaPrevia(unittest.TestCase):
         doble = Doble(falla_principal=True)
         with self.assertRaises(CapturaFallida) as contexto:
             obs_captura_ia.vista_previa(
-                doble, OpcionCaptura("Juego", "Escena al aire: Juego",
+                doble, OpcionCaptura("Juego", "Escena actual: Juego",
                                      1600, 900))
         self.assertEqual(str(contexto.exception),
-                         "No se pudo capturar Escena al aire: Juego. "
-                         "Comprueba que esté visible en la escena al aire.")
+                         "No se pudo capturar Escena actual: Juego. "
+                         "Comprueba que esté visible en la escena actual.")
 
     def test_pide_fuente(self):
         doble = Doble()

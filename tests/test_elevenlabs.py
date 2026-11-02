@@ -145,12 +145,12 @@ class TestErrores(unittest.TestCase):
     def test_401_con_quota_es_saldo(self):
         exc = self._motivo(_http_error(401, b'{"detail":{"status":"quota_exceeded"}}'))
         self.assertEqual(exc.motivo, "saldo")
-        self.assertEqual(str(exc), "Se acabó el saldo de ElevenLabs.")
+        self.assertEqual(str(exc), "Se agotó el saldo de ElevenLabs.")
 
     def test_402_es_saldo(self):
         exc = self._motivo(_http_error(402, b""))
         self.assertEqual(exc.motivo, "saldo")
-        self.assertEqual(str(exc), "Se acabó el saldo de ElevenLabs.")
+        self.assertEqual(str(exc), "Se agotó el saldo de ElevenLabs.")
 
     def test_429_es_limite(self):
         exc = self._motivo(_http_error(429, b""))
@@ -193,7 +193,7 @@ class TestPseudoMensajes(unittest.TestCase):
         self.assertEqual(elevenlabs._MSG_CLAVE,
                          "ElevenLabs no reconoce la clave.")
         self.assertEqual(elevenlabs._MSG_SALDO,
-                         "Se acabó el saldo de ElevenLabs.")
+                         "Se agotó el saldo de ElevenLabs.")
         self.assertEqual(elevenlabs._MSG_LIMITE,
                          "ElevenLabs está recibiendo demasiadas peticiones.")
         self.assertEqual(elevenlabs._MSG_RED,

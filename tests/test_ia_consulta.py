@@ -239,8 +239,8 @@ class TestTextoDeError(unittest.TestCase):
                 "El proveedor rechazó la clave. Revísala en Preferencias, "
                 "Inteligencia artificial.",
             protocolos.CUOTA:
-                "Se agotó la cuota del proveedor. Espera un rato o elige "
-                "otro modelo.",
+                "Se agotó la cuota del proveedor. Espera unos minutos o "
+                "elige otro modelo.",
             protocolos.MODELO_INEXISTENTE:
                 "El proveedor no ofrece ese modelo. Elige otro "
                 "en Preferencias, Inteligencia artificial.",
@@ -248,8 +248,8 @@ class TestTextoDeError(unittest.TestCase):
                 "El proveedor bloqueó la respuesta con su filtro "
                 "de contenido.",
             protocolos.SIN_TEXTO_POR_TOKENS:
-                "El modelo gastó todo el espacio pensando y no respondió. "
-                "Elige una respuesta más larga en Preferencias.",
+                "El modelo usó todo el límite de la respuesta en razonar y "
+                "no respondió. Elige una respuesta más larga en Preferencias.",
             protocolos.RESPUESTA_VACIA:
                 "El modelo no devolvió ninguna respuesta. Vuelve "
                 "a intentarlo.",
@@ -288,7 +288,7 @@ class TestTextoDeError(unittest.TestCase):
         error = protocolos.ErrorIA(protocolos.CUOTA, "detalle")
         self.assertEqual(
             consulta.texto_de_error(error),
-            "Se agotó la cuota del proveedor. Espera un rato o elige "
+            "Se agotó la cuota del proveedor. Espera unos minutos o elige "
             "otro modelo.")
 
     def test_sin_captura_sin_texto_y_falta(self):

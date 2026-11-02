@@ -152,7 +152,7 @@ class TestBuscarConNombre(unittest.TestCase):
         with self.assertRaises(CamaraNoEncontrada) as contexto:
             obs_camara.buscar_camara(doble, "Foto")
         self.assertEqual(str(contexto.exception),
-                         "La fuente Foto no está en la escena al aire.")
+                         "La fuente Foto no está en la escena actual.")
 
 
 class TestFrasesDeError(unittest.TestCase):
@@ -172,7 +172,7 @@ class TestFrasesDeError(unittest.TestCase):
         with self.assertRaises(CamaraNoEncontrada) as contexto:
             obs_camara.buscar_camara(doble)
         self.assertEqual(str(contexto.exception),
-                         "La cámara de OBS no está en la escena al aire.")
+                         "La cámara de OBS no está en la escena actual.")
 
     def test_solo_apagada_es_fuera_de_la_escena(self):
         doble = Doble(
@@ -181,7 +181,7 @@ class TestFrasesDeError(unittest.TestCase):
         with self.assertRaises(CamaraNoEncontrada) as contexto:
             obs_camara.buscar_camara(doble)
         self.assertEqual(str(contexto.exception),
-                         "La cámara de OBS no está en la escena al aire.")
+                         "La cámara de OBS no está en la escena actual.")
 
 
 class TestEspejo(unittest.TestCase):
@@ -249,7 +249,7 @@ class TestCapturarCuadro(unittest.TestCase):
             obs_camara.capturar_cuadro(doble, camara)
         self.assertEqual(str(contexto.exception),
                          "No se pudo capturar Cam. Comprueba que esté "
-                         "visible en la escena al aire.")
+                         "visible en la escena actual.")
 
 
 if __name__ == "__main__":

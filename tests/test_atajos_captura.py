@@ -38,7 +38,7 @@ class TestAtajosCaptura(unittest.TestCase):
         resultado = atajos_captura.resolver("rep_play", "alt+k", self.valores)
         self.assertEqual(resultado, (
             "rechazado", None,
-            "No vale aquí. Debe ser Ctrl y una tecla (por ejemplo Ctrl+P)."))
+            "No se puede usar aquí. Debe ser Ctrl y una tecla (por ejemplo Ctrl+P)."))
 
     def test_describir_escena_acepta_ctrl_f2(self):
         resultado = atajos_captura.resolver("describir_escena", "ctrl+f2", {})
@@ -54,7 +54,7 @@ class TestAtajosCaptura(unittest.TestCase):
     def test_consulta_rapida_acepta_ctrl_shift_f2(self):
         self.assertEqual(
             atajos_captura.ETIQUETAS.get("consulta_rapida_ia"),
-            "Consulta rápida a la IA sobre la escena")
+            "Preguntar a la IA sobre la escena")
         resultado = atajos_captura.resolver(
             "consulta_rapida_ia", "ctrl+shift+f2", {})
         self.assertEqual(resultado, (
@@ -203,7 +203,7 @@ class TestAtajosCaptura(unittest.TestCase):
         self.assertEqual(
             atajos_captura._AREA_AYUDA["ctrl+alt"],
             "Debe ser Ctrl+Alt y una flecha, Espacio, una letra o un número "
-            "(por ejemplo Ctrl+Alt+T). También vale Ctrl+Alt+Mayús y Flecha "
+            "(por ejemplo Ctrl+Alt+T). También se acepta Ctrl+Alt+Mayús y Flecha "
             "izquierda o derecha.")
 
     def test_titulos_de_grupo_dicen_mayus(self):

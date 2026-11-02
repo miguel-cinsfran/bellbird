@@ -662,7 +662,7 @@ def _mensaje_error_amigable(exc) -> str:
     if "invalid video id" in t:
         return _("No se reconoce el ID del vídeo. Comprueba el enlace.")
     if "cannot find channel id" in t:
-        return (_("YouTube todavía no muestra este vídeo. Pasa en los "
+        return (_("YouTube todavía no muestra este vídeo. Ocurre en los "
                   "primeros segundos de un directo y siempre con los "
                   "directos privados."))
     if "private" in t:

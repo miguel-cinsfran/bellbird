@@ -270,7 +270,7 @@ class _FlujoActualizacion:
         elif not actualizacion.carpeta_admite_escritura(
                 paths.carpeta_instalacion()):
             self.ventana.estado(texto + _(" La carpeta de la aplicación no admite "
-                                          "cambios. Se puede descargar a mano desde la página."))
+                                          "cambios. Se puede descargar manualmente desde la página."))
             self._ofrecer_pagina(paquete)
         else:
             self.ventana.estado(texto)
@@ -281,7 +281,7 @@ class _FlujoActualizacion:
     def _mostrar_sin_respuesta(self):
         self.ventana.progreso(0)
         self.ventana.estado(_("No se pudo consultar si hay una versión nueva. "
-                              "Revise la conexión a Internet."))
+                              "Comprueba la conexión a Internet."))
 
     def _ofrecer_pagina(self, paquete):
         if paquete.notas:
@@ -377,7 +377,7 @@ class _FlujoActualizacion:
         self.ventana.en_hilo_principal(self._mostrar_listo, raiz, ejecutable)
 
     def _mostrar_paquete_invalido(self, motivo):
-        self.ventana.estado(_("El paquete no sirve: {motivo}.").format(motivo=motivo))
+        self.ventana.estado(_("No se puede usar el paquete: {motivo}.").format(motivo=motivo))
 
     def _mostrar_listo(self, raiz, ejecutable):
         self.ventana.estado(_("La actualización está preparada. {app} se cierra y vuelve "

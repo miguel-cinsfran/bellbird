@@ -95,8 +95,8 @@ def etiqueta(transmitiendo, deteniendo=False):
     espera a OBS.
     """
     if deteniendo:
-        return (_("Deteniendo el directo"),
-                _("Deteniendo el directo, esperando a OBS"))
+        return (_("Finalizando el directo"),
+                _("Finalizando el directo, esperando a OBS"))
     if transmitiendo:
         return (_("&Finalizar directo"), _("Finalizar directo"))
     return (_("Transm&itir en directo"), _("Transmitir en directo"))

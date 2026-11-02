@@ -292,8 +292,8 @@ Para transmitir, pulsa *Transmitir en directo*, junto a *Conectar*.
    privacidad y, si quieres, la latencia, la categoría, las etiquetas, la
    miniatura y la lista de reproducción. La aplicación recuerda todo.
    *No listado* sirve para probar.
-4. Cuando el directo sale al aire, la aplicación conecta el chat sola y lo
-   anuncia: «Tu directo de YouTube ya está al aire».
+4. Cuando se inicia el directo, la aplicación conecta el chat sola y lo
+   anuncia: «Tu directo de YouTube ya está en curso».
 5. Durante el directo, la aplicación avisa si la conexión falla. Si se pierde
    la conexión a internet, YouTube espera a que vuelva sin terminar el directo.
 
@@ -376,7 +376,7 @@ complemento de OBS para NVDA.
 
 ## Encuadre de cámara
 
-Si en la escena al aire de OBS hay una cámara, la aplicación dice cómo se te ve
+Si en la escena actual de OBS hay una cámara, la aplicación dice cómo se te ve
 en ella. Informa cuántos rostros hay, si estás centrado, lejos, fuera del borde
 superior o inferior, de lado o con la cabeza inclinada, si falta luz delante o
 hay contraluz, y si la imagen se congeló. Sirve cualquier cámara que OBS
@@ -440,7 +440,7 @@ vídeo.
 Lo que no cabe en el vídeo no se emite, y una fuente que queda en parte fuera
 se recorta sin aviso. OBS llama lienzo a ese rectángulo, y por eso
 *Organizar escena* dice cuánto se recorta. Si otra fuente tapa el panel, la aplicación lo
-pone delante al salir al aire y te dice cuál lo tapaba. `F2` dice si el panel
+pone delante al estar en la escena actual y te dice cuál lo tapaba. `F2` dice si el panel
 está activo y si OBS lo está mostrando, y el servidor solo escucha en tu
 equipo.
 
@@ -486,8 +486,8 @@ para YouTube y otra para TikTok, y los directos terminados salen marcados.
 
 ## Estado por voz
 
-`F2` resume la situación: conexión, título, canal, espectadores, cuánto lleva al
-aire, mensajes leídos, donaciones, el panel de chat y los mensajes automáticos.
+`F2` resume la situación: conexión, título, canal, espectadores, cuánto lleva en
+curso, mensajes leídos, donaciones, el panel de chat y los mensajes automáticos.
 Qué entra en el resumen se elige en *Preferencias*, categoría *Estado (F2)*,
 incluidos los datos de OBS y la canción que suena. Mientras transmites desde la
 aplicación, `F2` empieza por cómo va el directo. Con la sesión de YouTube
@@ -518,7 +518,7 @@ Gemini, OpenAI, Anthropic, OpenRouter, OpenCode Go, Command Code u otro
 compatible con OpenAI), guardas su clave y eliges el modelo. La clave queda en
 el Administrador de credenciales de Windows, no en `config.ini`, y la categoría
 nunca la muestra: solo dice que está guardada y sus cuatro últimos caracteres.
-El botón *Probar clave* manda un pedido corto y dice si funciona.
+El botón *Comprobar clave* manda un pedido corto y dice si funciona.
 
 El botón *Actualizar lista de modelos* trae los modelos que aceptan imágenes. Con
 OpenRouter y OpenCode Go, la casilla *Solo gratuitos* deja los que no cobran. Con
@@ -533,7 +533,7 @@ mientras espera.
 ### La ventana de Preguntar a la IA
 
 `Ctrl+Mayús+I` abre la ventana, donde el botón *Agregar captura* deja elegir la
-escena al aire o una fuente suelta. En el campo *Mensaje* escribes la pregunta y
+escena actual o una fuente suelta. En el campo *Mensaje* escribes la pregunta y
 `Intro` la envía. Justo después de agregar una captura puedes dejarlo vacío, y se
 usa la instrucción. La respuesta se lee al llegar y queda en *Conversación*,
 donde `Intro` abre cada mensaje entero. Puedes seguir preguntando sobre la misma
@@ -542,7 +542,7 @@ cierra.
 
 ### Consulta rápida
 
-`Ctrl+Mayús+F2` captura la escena al aire, la envía con la instrucción y lee la
+`Ctrl+Mayús+F2` captura la escena actual, la envía con la instrucción y lee la
 respuesta sin abrir nada. El siguiente `Ctrl+Mayús+I` abre la ventana con esa
 conversación, para seguir preguntando.
 
@@ -552,7 +552,7 @@ La captura y lo que escribas salen de tu equipo hacia el proveedor. El primer
 envío lo avisa y pide confirmación una sola vez. Algunos modelos usan lo que
 reciben para entrenar, y la lista lo dice al lado del nombre.
 
-Si la captura sale negra, no se envía, y suele pasar con la cortina de pantalla
+Si la captura está en negro, no se envía, y ocurre con la cortina de pantalla
 de NVDA o en un equipo sin monitor conectado. En OBS, cambia el método de
 captura de esa fuente a Windows 10.
 
@@ -631,7 +631,7 @@ atajos. Todos figuran además en la barra de menú, junto a su acción.
 | `F2` | Anunciar estado. Dos veces seguidas, abrir la lista |
 | `F3` | Anunciar autor del último mensaje |
 | `Ctrl+F2` | Describir escena de OBS |
-| `Ctrl+Mayús+F2` | Consulta rápida a la IA sobre la escena |
+| `Ctrl+Mayús+F2` | Preguntar a la IA sobre la escena |
 | `Ctrl+F3` | Anunciar encuadre de cámara |
 | `Ctrl+Mayús+F3` | Avisar si el rostro sale del encuadre |
 
@@ -647,7 +647,7 @@ nombre y el valor («Volumen de la voz: 40%») y después solo el valor.
 | `Ctrl+Alt+Flecha arriba` / `abajo` | Subir o bajar el volumen de la música |
 | `Ctrl+Alt+Mayús+Flecha derecha` / `izquierda` | Avanzar o retroceder la música 10 segundos |
 | `Ctrl+Alt+T` | Anunciar canción actual |
-| `Ctrl+Alt+M` | Silenciar o devolver el sonido de la música |
+| `Ctrl+Alt+M` | Silenciar o activar el audio de la música |
 | `Ctrl+Alt+D` | Detener música |
 | `Ctrl+Alt+A` | Orden aleatorio de la música |
 | `Ctrl+Alt+R` | Cambiar la repetición de la música |

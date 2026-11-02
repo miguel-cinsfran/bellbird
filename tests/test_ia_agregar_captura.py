@@ -110,7 +110,7 @@ class TestDialogoAgregarCapturaVentana(unittest.TestCase):
         self.assertIs(dialogo.FindFocus(), dialogo.cho_fuente)
         self.assertEqual(dialogo.cho_fuente.GetSelection(), 0)
         self.assertEqual(dialogo.cho_fuente.GetStringSelection(),
-                         "Escena al aire: Escena")
+                         "Escena actual: Escena")
         self.assertEqual(dialogo._opciones[0].fuente, "Escena")
         self.assertTrue(dialogo.btn_capturar.IsEnabled())
 
@@ -173,7 +173,7 @@ class TestDialogoAgregarCapturaVentana(unittest.TestCase):
 
     # Lo arma bellbird/obs/obs_captura_ia.py: el nombre de la fuente tal
     # cual lo da OBS es dato del usuario y pasa sin marcar. La etiqueta de
-    # la escena al aire ya sale marcada porque ese módulo la traduce.
+    # la escena actual ya sale marcada porque ese módulo la traduce.
     PENDIENTES_OTRO_MODULO = (
         "Cámara",
     )

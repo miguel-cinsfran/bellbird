@@ -18,7 +18,6 @@ from dataclasses import dataclass
 
 from bellbird.capture.componentes_estado import (ACTIVOS_DEFECTO, COMPONENTES, ETIQUETAS, etiqueta)
 from bellbird.core.idioma import N_, _, ngettext
-from bellbird.youtube.cuota import FECHA_COSTOS
 
 
 # Códigos de tipo de conexión → etiqueta legible. Se traducen al usarlas.
@@ -313,10 +312,9 @@ def _render_cuota_youtube(s: SnapshotSesion, largo: bool) -> str:
     if s.cuota_youtube is None:
         return ""
     # Traductores: parte del estado F2 (cuota de YouTube). {usadas} son las
-    # unidades y {fecha} la fecha de la tabla de costos.
-    return _("Cuota de YouTube usada hoy en este equipo: unas {usadas} de 10.000, "
-             "con los costos del {fecha}").format(
-        usadas=_fmt_num(s.cuota_youtube), fecha=FECHA_COSTOS)
+    # unidades.
+    return _("Cuota de YouTube usada hoy en este equipo: unas {usadas} de 10.000").format(
+        usadas=_fmt_num(s.cuota_youtube))
 
 
 _RENDERERS = {

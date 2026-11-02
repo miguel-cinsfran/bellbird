@@ -17,7 +17,7 @@ logger = diagnostico.obtener_logger(__name__)
 
 # Traductores: aviso antes de enviar la captura a la IA; {proveedor} es el nombre del proveedor.
 TEXTO_AVISO = N_("La captura de la escena y lo que escribas se envían "
-                 "a {proveedor} para que responda. Este aviso sale una "
+                 "a {proveedor} para que responda. Este aviso aparece una "
                  "sola vez. ¿Enviar?")
 # Traductores: título del aviso de privacidad de la IA.
 TITULO_AVISO = N_("Privacidad")

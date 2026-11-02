@@ -236,9 +236,9 @@ class TestActualizarDeteniendoSinVentana(unittest.TestCase):
         boton = self._boton()
         boton.actualizar(False, False, False, True, deteniendo=True)
         self.assertTrue(boton._deteniendo)
-        boton.boton.SetLabel.assert_called_once_with("Deteniendo el directo")
+        boton.boton.SetLabel.assert_called_once_with("Finalizando el directo")
         boton.boton.SetName.assert_called_once_with(
-            "Deteniendo el directo, esperando a OBS")
+            "Finalizando el directo, esperando a OBS")
         boton.boton.Hide.assert_not_called()
 
     def test_actualizar_sin_deteniendo_vuelve_a_finalizar(self):

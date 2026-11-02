@@ -1,6 +1,6 @@
-"""Consulta rápida a la IA sobre la escena al aire, sin abrir ventanas.
+"""Preguntar a la IA sobre la escena actual, sin abrir ventanas.
 
-Ctrl+Mayús+F2 captura la escena al aire de OBS, la envía con la
+Ctrl+Mayús+F2 captura la escena actual de OBS, la envía con la
 instrucción de Preferencias y anuncia la respuesta. Al terminar, la
 conversación queda guardada en la instancia: la ventana Preguntar a la
 IA la toma con `tomar_conversacion` y arranca con ella.
@@ -263,7 +263,7 @@ def _instancia_para(frame):
 
 
 def consultar(frame) -> None:
-    """Pregunta por la escena al aire sin abrir ninguna ventana."""
+    """Pregunta por la escena actual sin abrir ninguna ventana."""
     _instancia_para(frame).consultar()
 
 

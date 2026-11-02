@@ -243,7 +243,7 @@ class TestConsultaRapida(unittest.TestCase):
                                side_effect=fallo):
             rapida.consultar(self.marco)
         self.m_anunciar.assert_called_once_with(
-            "Se agotó la cuota del proveedor. Espera un rato "
+            "Se agotó la cuota del proveedor. Espera unos minutos "
             "o elige otro modelo.")
         self.assertEqual(
             self.m_sonar.mock_calls,

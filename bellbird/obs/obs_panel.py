@@ -307,7 +307,7 @@ class GestorPanelObs:
         }, parada)
 
     def traer_panel_adelante(self, parada=None):
-        """Sube el panel si otra fuente visible lo tapa en la escena al aire.
+        """Sube el panel si otra fuente visible lo tapa en la escena actual.
 
         Devuelve el nombre de la fuente que lo tapaba, o None si ya estaba
         arriba. No crea el panel si no existe y no pide nada más a OBS

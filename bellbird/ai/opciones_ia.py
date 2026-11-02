@@ -20,10 +20,10 @@ from bellbird.core.idioma import N_, _
 TEXTO_PEDIDO_PRUEBA = N_("Responde solo con la palabra OK.")
 TEXTO_SISTEMA_PRUEBA = N_("Responde con una sola palabra.")
 TEXTO_CLAVE_GUARDADA = N_("Clave guardada.")
-TEXTO_CLAVE_BORRADA = N_("Clave borrada.")
+TEXTO_CLAVE_BORRADA = N_("Clave eliminada.")
 TEXTO_CLAVE_NO_GUARDADA = N_("No se pudo guardar la clave en el "
                              "Administrador de credenciales.")
-TEXTO_CLAVE_NO_BORRADA = N_("No se pudo borrar la clave del "
+TEXTO_CLAVE_NO_BORRADA = N_("No se pudo eliminar la clave del "
                             "Administrador de credenciales.")
 TEXTO_FALTA_CLAVE = N_("Escribe la clave antes de guardarla o probarla.")
 TEXTO_CLAVE_CORTA = N_("La clave es demasiado corta. Copia la "
@@ -35,8 +35,8 @@ TEXTO_CLAVE_PREFIJO = N_("Las claves de {proveedor} empiezan con "
                          "{prefijo}. Revisa que sea la clave de "
                          "este proveedor.")
 # Traductores: confirmación de borrado; {proveedor} es su nombre.
-TEXTO_CONFIRMAR_BORRADO = N_("Borra la clave guardada de {proveedor} del "
-                             "Administrador de credenciales. ¿Deseas "
+TEXTO_CONFIRMAR_BORRADO = N_("Se eliminará la clave guardada de {proveedor} "
+                             "del Administrador de credenciales. ¿Deseas "
                              "continuar?")
 TEXTO_PROBANDO = N_("Probando la clave…")
 # Traductores: anuncio de prueba bien; {modelo} es su identificador.

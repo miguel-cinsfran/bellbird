@@ -765,7 +765,7 @@ class TestPseudoTransmisionVentana(unittest.TestCase):
                 None, GestorFalso(), asegurar=_asegurar_sin_obs)
             sin_marcar = textos_sin_marcar(dialogo, propios=(
                 "TikTok", "YouTube", "Principal", "Juego", "Mic/Aux",
-                "Deteniendo el directo", "Deteniendo el directo, esperando a OBS"))
+                "Finalizando el directo", "Finalizando el directo, esperando a OBS"))
         self.addCleanup(destruir, dialogo)
         self.assertEqual([], sin_marcar)
 

@@ -876,7 +876,7 @@ class ReproductorPanel(wx.Panel):
         elif self._url_flujo:
             self._fijar_estado(_("Vídeo cargado. Pulsa Reproducir."))
         else:
-            self._fijar_estado(_("Este directo no trae vídeo reproducible."))
+            self._fijar_estado(_("Este directo no tiene vídeo reproducible."))
 
     def detener_todo(self) -> None:
         self._precalentamiento_cancelado = True

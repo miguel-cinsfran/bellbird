@@ -381,12 +381,12 @@ class TestEstadoParaF2(unittest.TestCase):
 
     def test_retomando_una_cancion(self):
         aviso = anuncios.aviso_retomando("Tema 3", 1)
-        self.assertEqual(aviso.texto, "Retomando 1 canción: Tema 3")
+        self.assertEqual(aviso.texto, "Reanudando 1 canción: Tema 3")
         self.assertIsNone(aviso.sonido)
 
     def test_retomando_varias_canciones(self):
         aviso = anuncios.aviso_retomando("Tema 3", 6)
-        self.assertEqual(aviso.texto, "Retomando 6 canciones: Tema 3")
+        self.assertEqual(aviso.texto, "Reanudando 6 canciones: Tema 3")
         self.assertIsNone(aviso.sonido)
 
 
@@ -428,7 +428,7 @@ class TestAvisosDeCola(unittest.TestCase):
 
     def test_cola_mezclada(self):
         aviso = anuncios.aviso_cola_mezclada()
-        self.assertEqual(aviso.texto, "Cola mezclada")
+        self.assertEqual(aviso.texto, "Cola en orden aleatorio")
         self.assertIsNone(aviso.sonido)
 
     def test_repetir_con_los_tres_modos(self):
@@ -474,7 +474,7 @@ class TestAvisosDeListas(unittest.TestCase):
         self.assertEqual(anuncios.aviso_lista_renombrada("Rock").texto,
                          "Lista renombrada: Rock")
         self.assertEqual(anuncios.aviso_lista_borrada("Rock").texto,
-                         "Lista borrada: Rock")
+                         "Lista eliminada: Rock")
         self.assertEqual(anuncios.aviso_lista_guardada("Rock").texto,
                          "Lista guardada: Rock")
 
@@ -539,7 +539,7 @@ class TestPropiedad(unittest.TestCase):
 class TestTextosVentanaMusica(unittest.TestCase):
 
     def test_busqueda(self):
-        self.assertEqual(anuncios.TEXTO_BUSQUEDA_BORRADA, "Búsqueda borrada")
+        self.assertEqual(anuncios.TEXTO_BUSQUEDA_BORRADA, "Búsqueda vaciada")
 
     def test_coincidencias(self):
         self.assertEqual(anuncios.TEXTO_UN_TEMA_COINCIDE, "1 canción coincide")
@@ -558,22 +558,22 @@ class TestTextosVentanaMusica(unittest.TestCase):
             anuncios.TEXTO_AYUDA_BIBLIOTECA_LISTA,
             "Intro reproduce ahora, Mayús más Intro a continuación, Ctrl más Intro "
             "al final, tecla de aplicaciones para más opciones. "
-            "Suprimir elimina de la lista")
+            "Supr elimina de la lista")
         self.assertEqual(
             anuncios.TEXTO_AYUDA_COLA,
-            "Intro reproduce, Suprimir elimina, Alt más flechas mueve, "
+            "Intro reproduce, Supr elimina, Alt más flechas mueve, "
             "tecla de aplicaciones para más opciones")
         self.assertEqual(
             anuncios.TEXTO_AYUDA_BUSCAR,
             "Escribe para filtrar, flecha abajo va a las canciones, "
-            "Esc borra la búsqueda")
+            "Esc vacía la búsqueda")
 
     def test_confirmar_borrar(self):
         self.assertEqual(anuncios.TEXTO_CONFIRMAR_BORRAR_LISTA,
-                         "¿Borrar la lista {nombre}?")
+                         "¿Eliminar la lista {nombre}?")
         self.assertEqual(
             anuncios.TEXTO_CONFIRMAR_BORRAR_LISTA.format(nombre="Rock"),
-            "¿Borrar la lista Rock?")
+            "¿Eliminar la lista Rock?")
 
 
 class TestPseudoAnuncios(unittest.TestCase):

@@ -323,12 +323,11 @@ class TestCuotaYoutube(unittest.TestCase):
             formatear_estado(SnapshotSesion(cuota_youtube=None),
                              {"cuota_youtube"}), "")
 
-    def test_con_numero_dice_el_texto_con_la_fecha(self):
+    def test_con_numero_dice_el_texto(self):
         self.assertEqual(
             formatear_estado(SnapshotSesion(cuota_youtube=1234),
                              {"cuota_youtube"}),
-            "Cuota de YouTube usada hoy en este equipo: unas 1.234 de 10.000, "
-            "con los costos del 15/10/2026.")
+            "Cuota de YouTube usada hoy en este equipo: unas 1.234 de 10.000.")
 
     def test_activo_de_fabrica(self):
         self.assertIn("cuota_youtube", ACTIVOS_DEFECTO)

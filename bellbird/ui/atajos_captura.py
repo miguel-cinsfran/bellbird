@@ -49,7 +49,7 @@ _AREA_AYUDA = {
     "alt": N_("Debe ser Alt y una tecla (por ejemplo Alt+C)."),
     "ctrl+shift": N_("Debe ser Ctrl+Mayús y una tecla (por ejemplo Ctrl+Mayús+P)."),
     "alt+shift": N_("Debe ser Alt+Mayús y una tecla (por ejemplo Alt+Mayús+C)."),
-    "ctrl+alt": N_("Debe ser Ctrl+Alt y una flecha, Espacio, una letra o un número (por ejemplo Ctrl+Alt+T). También vale Ctrl+Alt+Mayús y Flecha izquierda o derecha."),
+    "ctrl+alt": N_("Debe ser Ctrl+Alt y una flecha, Espacio, una letra o un número (por ejemplo Ctrl+Alt+T). También se acepta Ctrl+Alt+Mayús y Flecha izquierda o derecha."),
     "f": N_("Debe ser una tecla de función, de F1 a F12 (por ejemplo F2). Puede ir sola, con Ctrl o con Ctrl+Mayús (por ejemplo Ctrl+F2)."),
 }
 ETIQUETAS = {
@@ -88,7 +88,7 @@ ETIQUETAS = {
     "silenciar_sonidos": N_("Silenciar sonidos"), "anunciar_estado": N_("Anunciar estado"),
     "anunciar_autor": N_("Anunciar autor del último mensaje"),
     "describir_escena": N_("Describir escena de OBS"),
-    "consulta_rapida_ia": N_("Consulta rápida a la IA sobre la escena"),
+    "consulta_rapida_ia": N_("Preguntar a la IA sobre la escena"),
     "anunciar_encuadre": N_("Anunciar encuadre de cámara"),
     "avisos_encuadre": N_("Avisar si el rostro sale del encuadre"),
     "region_siguiente": N_("Región siguiente"), "region_anterior": N_("Región anterior"),
@@ -99,7 +99,7 @@ ETIQUETAS = {
     "musica_vol_mas": N_("Subir el volumen de la música"),
     "musica_vol_menos": N_("Bajar el volumen de la música"),
     "musica_que_suena": N_("Anunciar canción actual"),
-    "musica_silenciar": N_("Silenciar o devolver el sonido de la música"),
+    "musica_silenciar": N_("Silenciar o activar el audio de la música"),
     "musica_aleatorio": N_("Orden aleatorio de la música"),
     "musica_repetir": N_("Cambiar la repetición de la música"),
     "musica_detener": N_("Detener música"),
@@ -126,8 +126,8 @@ NOTA_PAGINA = N_(
     "Alt+Mayús es para el directo y OBS, Ctrl+Alt para la música y las "
     "teclas F para la voz. Pulsa un botón y luego la combinación que "
     "quieras. La aplicación comprueba que sirva para esa familia y que no "
-    "choque con otra. F6, Mayús+F6, F9 a F12 y Alt+F4 son fijas, y se "
-    "muestran para que no se puedan pisar.")
+    "coincida con otra. F6, Mayús+F6, F9 a F12 y Alt+F4 son fijas, y se "
+    "muestran para que no se puedan reemplazar.")
 
 
 def mostrar_atajo(valor: str) -> str:
@@ -225,7 +225,7 @@ def resolver(accion: str, combo: str | None,
         return "rechazado", None, _("Esa combinación no se puede usar. Elige otra.")
     if not cfg.atajo_valido_para_area(accion, normalizado):
         ayuda = _AREA_AYUDA.get(cfg.ATAJOS_AREA.get(accion), "")
-        return "rechazado", None, _("No vale aquí. {ayuda}").format(ayuda=_(ayuda) if ayuda else "")
+        return "rechazado", None, _("No se puede usar aquí. {ayuda}").format(ayuda=_(ayuda) if ayuda else "")
 
     if normalizado.startswith("ctrl+alt+"):
         tecla = normalizado.split("+")[-1]

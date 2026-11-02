@@ -343,7 +343,7 @@ def supervisar_transmision(frame, accion, destino="", usuario="",
                             guardados["privacidad"]):
                         frame.sesion.enlace_directo = url
                         _gui.anunciar(
-                            _("El directo es privado y YouTube no deja "
+                            _("El directo es privado y YouTube no permite "
                               "leer su chat. Para leerlo, transmite como "
                               "público o no listado."))
                         return

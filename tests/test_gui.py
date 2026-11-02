@@ -2261,7 +2261,7 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         dialogo = self._dialogo()
         self.assertEqual(self._orden_de_tab(dialogo), [
             "ProveedorIA", "EstadoClaveIA", "NuevaClaveIA",
-            "BorrarClaveIA", "ProbarClaveIA", "ModeloIA",
+            "BorrarClaveIA", "Comprobar clave", "ModeloIA",
             "ActualizarModelosIA", "OtroModeloIA", "PreguntaIA",
             "RestablecerPreguntaIA", "LargoIA", "TiempoIA", "DecirAnalizandoIA",
         ])
@@ -2273,7 +2273,7 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         boton.GetEventHandler().ProcessEvent(self._evento_boton(boton))
         self.assertEqual(self._orden_de_tab(dialogo), [
             "ProveedorIA", "ClaveIA", "GuardarClaveIA",
-            "BorrarClaveIA", "ProbarClaveIA", "ModeloIA",
+            "BorrarClaveIA", "Comprobar clave", "ModeloIA",
             "ActualizarModelosIA", "OtroModeloIA", "PreguntaIA",
             "RestablecerPreguntaIA", "LargoIA", "TiempoIA", "DecirAnalizandoIA",
         ])
@@ -2421,7 +2421,7 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         self.assertEqual(dialogo.pagina_ia.chk_ia_analizando.GetName(),
                          "DecirAnalizandoIA")
         self.assertEqual(dialogo.pagina_ia.chk_ia_analizando.GetLabel(),
-                         "Anunciar Anali&zando mientras espera")
+                         "Anunciar «Anali&zando» mientras espera")
         self.assertFalse(dialogo.pagina_ia.chk_ia_analizando.GetValue())
 
     def test_guardar_conserva_privacidad_y_escribe_decir_analizando(self):
@@ -3013,7 +3013,7 @@ class TestPaginaInteligenciaArtificialSoloLectura(unittest.TestCase):
         dialogo = self.dialogo
         self.assertEqual(self._orden_de_tab(dialogo), [
             "ProveedorIA", "ClaveIA", "GuardarClaveIA",
-            "ProbarClaveIA", "ModeloIA", "ActualizarModelosIA",
+            "Comprobar clave", "ModeloIA", "ActualizarModelosIA",
             "OtroModeloIA", "PreguntaIA", "RestablecerPreguntaIA",
             "LargoIA", "TiempoIA", "DecirAnalizandoIA",
         ])
@@ -5744,7 +5744,7 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
         frame._on_conectar.assert_not_called()
         frame.txt_url.SetValue.assert_not_called()
         anunciar.assert_called_once_with(
-            "El directo es privado y YouTube no deja leer su chat. Para "
+            "El directo es privado y YouTube no permite leer su chat. Para "
             "leerlo, transmite como público o no listado.")
 
     def test_no_listado_si_conecta_el_chat(self):

@@ -95,7 +95,7 @@ NOMBRES = {
     "descarga_completada": "Descarga completada",
     "descarga_fallida": "Descarga fallida",
     "descarga_cancelada": "Descarga cancelada",
-    "al_aire": "Directo al aire",
+    "al_aire": "Directo en curso",
     "transmision_detenida": "Transmisión detenida",
     "transmision_problema": "Problema de la transmisión",
     "grabacion_problema": "Problema de la grabación",

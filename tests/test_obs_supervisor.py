@@ -249,7 +249,7 @@ class SinUsuarioTest(BaseSupervisor):
         self.assertEqual(anuncios, [
             ("Comenzando la transmisión.", "conectando"),
             ("OBS está enviando la señal a Restream.", "conectado"),
-            ("No hay usuario de TikTok guardado: conecta el chat a mano.",
+            ("No hay usuario de TikTok guardado: conecta el chat manualmente.",
              None),
         ])
         self.assertEqual(chats, [])
@@ -269,7 +269,7 @@ class ProblemaRepetidoTest(BaseSupervisor):
         supervisor, anuncios, _, _, _, _, reloj = armado
         self.iniciar_y_esperar_fin(supervisor, plazo=3.0)
         frase = ("Se están perdiendo fotogramas: 60 por ciento. "
-                 "La red va lenta.")
+                 "La conexión de red es lenta.")
         apariciones = [a for a in anuncios if a[0] == frase]
         # 19 sondeos con problema en 95 s de reloj falso: avisa a los 5 s y
         # a los 65 s, y calla las repeticiones de en medio.
@@ -1633,7 +1633,7 @@ class TestPseudoAnunciosSupervisor(BaseSupervisor):
             self.iniciar_y_esperar_fin(supervisor)
         marcados = self._exigir_marcados(anuncios)
         self.assertIn("[¡No hay usuario de TikTok guardado: conecta el chat "
-                      "a mano.!]", marcados)
+                      "manualmente.!]", marcados)
 
     def test_cuenta_sin_directos_marca_con_el_usuario(self):
         armado = self.armar(en_vivo=False, sin_directos=True,

@@ -224,7 +224,7 @@ def _problemas_revision(audio, fuentes, imagen) -> list:
                            "Agrégala en Organizar escena."))
     if imagen is True:
         problemas.append(_("La imagen está vacía: la escena se ve en negro. "
-                           "Revisar que la ventana capturada esté abierta y no minimizada."))
+                           "Comprueba que la ventana capturada esté abierta y no minimizada."))
     return problemas
 
 

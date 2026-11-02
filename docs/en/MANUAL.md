@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md 21181cfa5345a1acc4e233553681a3f51b0556d4 -->
+<!-- original: es/MANUAL.md 9cf519a775887779fe6ec749b90107716ac0afc8 -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -293,8 +293,8 @@ To go live, press *Broadcast live*, next to *Connect*.
    privacy and, if you want, the latency, the category, the tags, the thumbnail
    and the playlist. The application remembers everything. *Unlisted* is for
    testing.
-4. When the live stream goes on air, the application connects the chat on its
-   own and announces it: “Your YouTube live stream is now on air”.
+4. When the live stream starts, the application connects the chat on its own
+   and announces it: “Your YouTube live stream is now in progress”.
 5. During the live stream, the application warns if the connection fails. If
    the internet connection is lost, YouTube waits for it to come back without
    ending the live stream.
@@ -444,7 +444,7 @@ the video.
 What does not fit in the video is not broadcast, and a source that is partly
 outside is cropped without warning. OBS calls that rectangle the canvas, and
 that is why *Arrange scene* says how much is cropped. If another source covers
-the panel, the application puts it in front when going on air and tells you
+the panel, the application puts it in front when the scene is current and tells you
 which one was covering it. `F2` says whether the panel is active and whether OBS
 is showing it, and the server only listens on your computer.
 
@@ -493,7 +493,7 @@ for YouTube and another for TikTok, and finished live streams appear marked.
 ## Spoken status
 
 `F2` summarizes the situation: connection, title, channel, viewers, how long it
-has been on air, messages read, donations, the chat panel and scheduled
+has been in progress, messages read, donations, the chat panel and scheduled
 messages. What goes into the summary is chosen in *Preferences*, on the
 *Status (F2)* category, including the OBS data and the song that is playing.
 While you stream from the application, `F2` starts with how the live stream is
@@ -514,7 +514,7 @@ with `Esc` or *Close*.
 ## Asking the AI
 
 An artificial intelligence looks at a screenshot of OBS and tells you what it
-sees: whether the camera is on, whether a source came out black or what text is
+sees: whether the camera is on, whether a source is black or what text is
 on screen. It needs OBS open and a provider key.
 
 ### Setting up artificial intelligence
@@ -524,7 +524,7 @@ provider (Google Gemini, OpenAI, Anthropic, OpenRouter, OpenCode Go, Command
 Code or another compatible with OpenAI), save its key and choose the model. The
 key is kept in the Windows Credential Manager, not in `config.ini`, and the
 category never shows it: it only says that it is saved and its last four
-characters. The *Test the key* button sends a short request and says whether it
+characters. The *Check key* button sends a short request and says whether it
 works.
 
 The *Refresh model list* button brings the models that accept images. With
@@ -540,7 +540,7 @@ while it waits.
 ### The Ask the AI window
 
 `Ctrl+Shift+I` opens the window, where the *Add screenshot* button lets you
-choose the live scene or a single source. In the *Message* field you type the
+choose the current scene or a single source. In the *Message* field you type the
 question and `Enter` sends it. Right after adding a screenshot you can leave it
 empty, and the instruction is used. The response is read when it arrives and
 stays in *Conversation*, where `Enter` opens each full message. You can keep
@@ -549,7 +549,7 @@ progress and, if there is none, closes the window.
 
 ### Quick query
 
-`Ctrl+Shift+F2` captures the live scene, sends it with the instruction and reads
+`Ctrl+Shift+F2` captures the current scene, sends it with the instruction and reads
 the response without opening anything. The next `Ctrl+Shift+I` opens the window
 with that conversation, to keep asking.
 
@@ -559,7 +559,7 @@ The screenshot and what you type leave your computer and go to the provider. The
 first send warns you and asks for confirmation once. Some models use what they
 receive for training, and the list says so next to the name.
 
-If the screenshot comes out black, it is not sent. This usually happens with the
+If the screenshot is black, it is not sent. This happens with the
 NVDA screen curtain or on a computer with no monitor connected. In OBS, change
 the capture method of that source to Windows 10.
 
@@ -638,7 +638,7 @@ shortcuts. They all also appear in the menu bar, next to their action.
 | `F2` | Announce the status. Twice in a row, open the list |
 | `F3` | Announce the author of the last message |
 | `Ctrl+F2` | Describe the OBS scene |
-| `Ctrl+Shift+F2` | Quick query to the AI about the scene |
+| `Ctrl+Shift+F2` | Ask the AI about the scene |
 | `Ctrl+F3` | Announce camera framing |
 | `Ctrl+Shift+F3` | Warn when the face leaves the frame |
 
@@ -654,7 +654,7 @@ and the value (“Voice volume: 40%”) and after that only the value.
 | `Ctrl+Alt+Up Arrow` / `Down Arrow` | Raise or lower the music volume |
 | `Ctrl+Alt+Shift+Right Arrow` / `Left Arrow` | Fast-forward or rewind the music 10 seconds |
 | `Ctrl+Alt+T` | Announce current song |
-| `Ctrl+Alt+M` | Mute or restore the music sound |
+| `Ctrl+Alt+M` | Mute or turn on the music audio |
 | `Ctrl+Alt+D` | Stop music |
 | `Ctrl+Alt+A` | Shuffle the music |
 | `Ctrl+Alt+R` | Change the music repeat mode |

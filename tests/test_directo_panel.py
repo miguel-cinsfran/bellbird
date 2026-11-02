@@ -127,7 +127,7 @@ class TestDirectoPanel(unittest.TestCase):
                 mock.patch.object(self.panel._temporizador, "Start") as armar:
             self.panel._finalizar()
         self.supervisar.assert_any_call("detener")
-        self.assertEqual(self.boton.GetLabel(), "Deteniendo el directo")
+        self.assertEqual(self.boton.GetLabel(), "Finalizando el directo")
         armar.assert_called_once_with(2000)
 
     def test_temporizador_devuelve_el_boton_al_estado_normal(self):

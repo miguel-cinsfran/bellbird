@@ -59,7 +59,7 @@ def mensaje_de_actualizacion(estado, version_actual="", version_nueva="",
     """Elige el anuncio breve para cada resultado de la actualización."""
     if estado == "ya_al_dia":
         # Traductores: {version} es la versión instalada o la nueva de yt-dlp.
-        return _("Ya tienes yt-dlp al día, versión {version}.").format(version=version_actual or version_nueva)
+        return _("yt-dlp ya está actualizado, versión {version}.").format(version=version_actual or version_nueva)
     if estado == "actualizado":
         # Traductores: {version} es la versión nueva de yt-dlp.
         return _("yt-dlp se actualizó a la versión {version}.").format(version=version_nueva or version_actual)

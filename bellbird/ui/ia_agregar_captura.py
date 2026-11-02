@@ -35,19 +35,19 @@ def texto_negra(etiqueta, motivo="", fuente="") -> str:
     """Aviso cuando la captura sale negra, en palabras para el usuario."""
     if motivo == "sin_fuente":
         # Traductores: aviso de captura negra; {etiqueta} es lo elegido en «Capturar de».
-        return (_("La captura de {etiqueta} salió negra y no se agregó. "
+        return (_("La captura de {etiqueta} está en negro y no se agregó. "
                   "La escena no tiene ninguna captura de pantalla, de "
                   "ventana, de juego ni de cámara. Agrega una en OBS y "
                   "vuelve a intentarlo.").format(etiqueta=etiqueta))
     if motivo == "sin_elegir":
         # Traductores: aviso de captura negra; {etiqueta} lo elegido y {fuente} su origen.
-        return (_("La captura de {etiqueta} salió negra y no se agregó. "
+        return (_("La captura de {etiqueta} está en negro y no se agregó. "
                   "La fuente {fuente} no tiene elegido qué capturar. "
                   "Elígelo en las propiedades de la fuente en OBS.").format(
                       etiqueta=etiqueta, fuente=fuente))
     # Traductores: aviso de captura negra; {etiqueta} es lo elegido en «Capturar de».
-    return (_("La captura de {etiqueta} salió negra y no se agregó. Suele "
-              "pasar si el equipo no tiene monitor conectado o si la cortina de "
+    return (_("La captura de {etiqueta} está en negro y no se agregó. Ocurre "
+              "cuando el equipo no tiene monitor conectado o si la cortina de "
               "pantalla de NVDA está activa. Prueba en OBS el método de "
               "captura Windows 10 para esa fuente.").format(
                   etiqueta=etiqueta))

@@ -176,7 +176,7 @@ class TestVentana(unittest.TestCase):
     def test_sin_respuesta_avisa_y_deja_la_barra_en_cero(self):
         _, ventana, _ = self._abrir(consultar=None)
         self.assertIn("No se pudo consultar si hay una versión nueva. "
-                      "Revise la conexión a Internet.", ventana.anuncios)
+                      "Comprueba la conexión a Internet.", ventana.anuncios)
         self.assertEqual(0, ventana.progresos[-1])
 
     def test_sin_version_nueva_anuncia_la_instalada(self):
@@ -201,7 +201,7 @@ class TestVentana(unittest.TestCase):
         _, ventana, red = self._abrir(
             consultar=_paquete(VERSION_NUEVA), frozen=True, admite=False)
         self.assertIn("La carpeta de la aplicación no admite cambios. Se puede "
-                      "descargar a mano desde la página.", ventana.anuncios[-1])
+                      "descargar manualmente desde la página.", ventana.anuncios[-1])
         self.assertEqual("&Abrir la página", ventana.accion_etiqueta)
         ventana.pulsar_accion()
         red.assert_called_once_with(actualizacion.URL_PAGINA_RELEASES)
@@ -281,7 +281,7 @@ class TestVentana(unittest.TestCase):
             return actualizacion.ResultadoDescarga(True, "paquete descargado")
         _, ventana = self._abrir_descargable(descargar, extraer=extraer)
         self.assertIn("Comprobando el paquete.", ventana.anuncios)
-        self.assertIn("El paquete no sirve: la versión del paquete no "
+        self.assertIn("No se puede usar el paquete: la versión del paquete no "
                       "coincide con la publicada.", ventana.anuncios)
 
     def test_validar_invalido_muestra_que_no_sirve(self):
@@ -292,7 +292,7 @@ class TestVentana(unittest.TestCase):
             return actualizacion.ResultadoDescarga(True, "paquete descargado")
         _, ventana = self._abrir_descargable(descargar, validar=validar)
         self.assertIn("Comprobando el paquete.", ventana.anuncios)
-        self.assertIn("El paquete no sirve: falta el ejecutable.",
+        self.assertIn("No se puede usar el paquete: falta el ejecutable.",
                       ventana.anuncios)
 
     def test_descarga_bien_deja_listo_e_instalar(self):

@@ -104,7 +104,7 @@ class TestVentanaYtdlp(unittest.TestCase):
         self.assertEqual(ventana.titulo, "[¡Actualizar yt-dlp!]")
         self.assertEqual(ventana.estados[0],
                          "[¡Buscando la última versión de yt-dlp.!]")
-        self.assertIn("[¡Ya tienes yt-dlp al día, versión 1.0.!]",
+        self.assertIn("[¡yt-dlp ya está actualizado, versión 1.0.!]",
                       ventana.estados)
         self.assertEqual(ventana.progresos, [100])
 

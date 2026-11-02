@@ -1966,7 +1966,7 @@ class TestPseudoAnunciosVentana(unittest.TestCase):
         self.ventana.txt_buscar.SetValue("jaz")
         with con_pseudo():
             self.ventana._tecla_buscar(Evento(wx.WXK_ESCAPE))
-        self.assertIn("[¡Búsqueda borrada!]", self.anuncios)
+        self.assertIn("[¡Búsqueda vaciada!]", self.anuncios)
 
     def test_examinar_sin_carpeta_marca(self):
         control = ControlFalso(biblioteca=None)

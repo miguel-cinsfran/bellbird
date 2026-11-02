@@ -369,7 +369,7 @@ class SupervisorTransmision:
                 if not self._confirmar_youtube():
                     return
             elif self._destino == "TikTok":
-                frase = _("No hay usuario de TikTok guardado: conecta el chat a mano.")
+                frase = _("No hay usuario de TikTok guardado: conecta el chat manualmente.")
                 self._anunciar(frase, None)
             self._vigilar(gestor)
         except Exception as error:

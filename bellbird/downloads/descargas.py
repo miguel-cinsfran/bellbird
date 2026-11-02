@@ -89,7 +89,7 @@ def descargar(url: str, opciones: dict,
         estado_cb("error",
                    _("ffmpeg no encontrado. La descarga necesita ffmpeg para "
                      "unir audio y vídeo o extraer audio. Usa la versión "
-                     "empaquetada o instala ffmpeg. En desarrollo, alcanza "
+                     "empaquetada o instala ffmpeg. En desarrollo, basta "
                      "con tener ffmpeg en el PATH."))
         return
 

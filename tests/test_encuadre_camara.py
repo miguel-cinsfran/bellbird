@@ -363,7 +363,7 @@ class TestVigilancia(_Testigo):
         self.patch_obj(encuadre_camara.obs_cliente, "ClienteObs")
         self.patch_obj(encuadre_camara.obs_camara, "buscar_camara",
                        side_effect=CamaraNoEncontrada(
-                           "La cámara de OBS no está en la escena al aire."))
+                           "La cámara de OBS no está en la escena actual."))
         anunciar = self.parchear_modulo("anunciar")
         suena = self.parchear_modulo("reproducir")
         llamadas = self.parchear_wx()
@@ -374,7 +374,7 @@ class TestVigilancia(_Testigo):
         suena.assert_not_called()
         self.assertEqual(inst._vigia._anunciado, "dentro")
         self.assertEqual(inst._ultima_frase,
-                         "La cámara de OBS no está en la escena al aire.")
+                         "La cámara de OBS no está en la escena actual.")
 
     def test_con_obs_cerrado_guarda_su_texto_y_calla(self):
         marco = _nuevo_marco(avisar_encuadre=True)

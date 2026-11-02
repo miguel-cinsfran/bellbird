@@ -35,7 +35,7 @@ MOTIVO_RED = "red"
 MOTIVO_OTRO = "otro"
 
 _MSG_CLAVE = N_("ElevenLabs no reconoce la clave.")
-_MSG_SALDO = N_("Se acabó el saldo de ElevenLabs.")
+_MSG_SALDO = N_("Se agotó el saldo de ElevenLabs.")
 _MSG_LIMITE = N_("ElevenLabs está recibiendo demasiadas peticiones.")
 _MSG_RED = N_("No se pudo conectar con ElevenLabs.")
 # Traductores: {codigo} es el código de error de ElevenLabs.

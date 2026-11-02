@@ -99,7 +99,7 @@ def _entero(valor) -> int:
 
 def texto_fallo(opcion) -> str:
     return (_("No se pudo capturar {etiqueta}. Comprueba que esté "
-              "visible en la escena al aire.").format(
+              "visible en la escena actual.").format(
                   etiqueta=opcion.etiqueta))
 
 
@@ -130,7 +130,7 @@ def opciones(cliente, parada=None) -> tuple:
     escena = datos_respuesta(cliente, "GetCurrentProgramScene",
                     parada=parada).get("currentProgramSceneName", "") or ""
     lienzo = datos_respuesta(cliente, "GetVideoSettings", parada=parada)
-    base = OpcionCaptura(escena, _("Escena al aire: {escena}").format(escena=escena),
+    base = OpcionCaptura(escena, _("Escena actual: {escena}").format(escena=escena),
                          _entero(lienzo.get("baseWidth")),
                          _entero(lienzo.get("baseHeight")))
     elementos = datos_respuesta(cliente, "GetSceneItemList", {"sceneName": escena},
@@ -243,7 +243,7 @@ def _averiguar_motivo(cliente, opcion, parada) -> tuple:
 
 
 def capturar(cliente, opcion, lado=1280, calidad=75, parada=None) -> Captura:
-    """Captura la opción en JPEG acotado y avisa si salió negra."""
+    """Captura la opción en JPEG acotado y avisa si está en negro."""
     parametros = _parametros_lado(opcion, lado)
     parametros["imageFormat"] = "jpg"
     parametros["imageCompressionQuality"] = calidad

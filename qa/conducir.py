@@ -2786,7 +2786,7 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         else:
             res.nota("musica_real: el volumen sube a 50 y vuelve a 40")
 
-        # ── f. Qué suena contiene el título actual ──
+        # ── f. Anunciar canción actual contiene el título actual ──
 
         _aire()
         cola = _filas("Música", "Cola de reproducción") or []
@@ -2794,7 +2794,7 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
         titulo_actual = _titulo_fila(actual) if actual else ""
         if not actual or not titulo_actual:
             res.fallo("musica_real: la cola no marca ningún tema actual y "
-                      "no se puede probar qué suena")
+                      "no se puede probar la canción actual")
         else:
             antes, despues = anuncios_musica.TEXTO_QUE_SUENA.split("{nombre}")
             posicion = cola.index(actual) + 1
@@ -2802,10 +2802,10 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
             fragmento_tema = despues.format(posicion=posicion,
                                             total=len(cola))
             n = len(propia.anuncios)
-            _menu("qué suena")
+            _menu("anunciar canción actual")
             if not propia.esperar_dicho(fragmento_titulo, segundos=8,
                                         desde=n):
-                res.fallo("musica_real: «Qué suena» no dijo "
+                res.fallo("musica_real: «Anunciar canción actual» no dijo "
                           f"«{fragmento_titulo}»")
             else:
                 limite = time.monotonic() + 8
@@ -2821,14 +2821,14 @@ def escenario_musica_real(app: Aplicacion, args, res: Resultado):
                         break
                     time.sleep(0.1)
                 if oido:
-                    res.nota(f"musica_real: qué suena dice «{oido}»")
+                    res.nota(f"musica_real: anunciar canción actual dice «{oido}»")
                 elif not any(fragmento_tema.lower()
                              in d.get("texto", "").lower()
                              for d in propia.anuncios[n:]):
-                    res.fallo("musica_real: «Qué suena» no dijo "
+                    res.fallo("musica_real: «Anunciar canción actual» no dijo "
                               f"«{fragmento_tema}»")
                 else:
-                    res.fallo("musica_real: «Qué suena» dijo "
+                    res.fallo("musica_real: «Anunciar canción actual» dijo "
                               f"«{fragmento_titulo}» y «{fragmento_tema}» "
                               "pero nunca en el mismo anuncio")
 
@@ -4849,11 +4849,11 @@ def escenario_conectar(app: Aplicacion, args, res: Resultado):
         app.pedir("pulsar", nombre="Conectar", tiempo=3.0, responder_ya=True)
     except Exception:
         pass
-    dlg = dialogo_nativo("Enlace", segundos=6) or dialogo_nativo("no vál", segundos=2)
+    dlg = dialogo_nativo("Enlace", segundos=6) or dialogo_nativo("no reconocido", segundos=2)
     if dlg is not None:
         res.nota("conectar con una URL invalida abre un aviso nativo")
         _cerrar_nativo(dlg)
-    elif app.dijo("no es válido", desde=n) or app.dijo("no válido", desde=n):
+    elif app.dijo("no se reconoce", desde=n):
         res.nota("conectar con una URL invalida se anuncia con voz")
     else:
         res.fallo("conectar: una URL invalida no produjo ni aviso ni anuncio")

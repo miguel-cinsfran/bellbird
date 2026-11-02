@@ -186,7 +186,7 @@ class PaginaIA:
         self.sp_ia_tiempo.SetValue(self._ia_ajustes.tiempo_espera)
         vs.Add(self.sp_ia_tiempo, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.chk_ia_analizando = wx.CheckBox(
-            p, label=_("Decir Anali&zando mientras espera"),
+            p, label=_("Anunciar Anali&zando mientras espera"),
             name="DecirAnalizandoIA")
         self.chk_ia_analizando.SetValue(
             bool(self._ia_ajustes.decir_analizando))

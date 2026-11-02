@@ -110,8 +110,8 @@ from bellbird.ui.tema import ALTO_CONTRASTE, _T, _pintar, _tc, _titulo
 def anunciar_conflictos_atajos(raw: dict | None) -> None:
     for perdedora, conservada, combinacion in detectar_conflictos_atajos(raw):
         anunciar(
-            _("Conflicto de atajos: {perdedora} se quedó sin atajo porque "
-              "{conservada} usa {combinacion}.").format(
+            _("{combinacion} ya está asignado a {conservada}. "
+              "Se desactivó el atajo de {perdedora}.").format(
                 perdedora=perdedora, conservada=conservada, combinacion=combinacion))
 
 
@@ -753,10 +753,10 @@ class YTChatFrame(wx.Frame):
             return
         _snd.reproducir("error")
         self._set_conectado_ui(False)
-        anunciar(_("El enlace o el ID de YouTube no es válido"))
+        anunciar(_("No se reconoce el enlace o el ID de YouTube"))
         self.txt_url.SetFocus()
-        wx.MessageBox(_("El enlace o el ID de YouTube no es válido. Revisa lo que pegaste."),
-                      _("Enlace no válido"), wx.OK | wx.ICON_WARNING, self)
+        wx.MessageBox(_("No se reconoce el enlace o el ID de YouTube. Comprueba el enlace pegado."),
+                      _("Enlace no reconocido"), wx.OK | wx.ICON_WARNING, self)
 
     def _on_preferencias(self, event):
         try:
@@ -1073,7 +1073,7 @@ class YTChatFrame(wx.Frame):
         if autor:
             autor_mostrado = alias.visible(autor)
             if self._autor_esta_silenciado(autor):
-                menu.Append(id_rehab, _("Rehabilitar a {autor} (dejar de silenciar)").format(autor=autor_mostrado))
+                menu.Append(id_rehab, _("Dejar de silenciar a {autor}").format(autor=autor_mostrado))
             else:
                 menu.Append(id_sil_tts,  _("Silenciar voz de {autor}").format(autor=autor_mostrado))
                 menu.Append(id_sil_full, _("Ocultar y silenciar a {autor}").format(autor=autor_mostrado))
@@ -1205,7 +1205,7 @@ class YTChatFrame(wx.Frame):
         self._config.setdefault("silenciados_ocultar", set()).discard(al)
         self.chat_vivo.reconstruir()
         # Traductores: {autor} es el autor del mensaje.
-        anunciar(_("{autor} rehabilitado").format(autor=autor))
+        anunciar(_("{autor} ya no está silenciado").format(autor=autor))
 
     def _autor_esta_silenciado(self, autor: str) -> bool:
         return autor.lower().strip() in self._config.get("silenciados_runtime", set())
@@ -1691,7 +1691,7 @@ class YTChatFrame(wx.Frame):
             logger.debug("enable mi_descargar_este: %s", exc)
 
     def _actualizar_sb(self) -> None:
-        sin_tts = _(" [sin voz]") if self._config.get("silenciar_lectura", False) else ""
+        sin_tts = _(" [lectura silenciada]") if self._config.get("silenciar_lectura", False) else ""
         if self._conectado and self._titulo_stream:
             # Traductores: {titulo} es el vídeo; {sin_tts} avisa si la lectura está silenciada.
             estado = _("Conectado: {titulo}{sin_tts}").format(titulo=self._titulo_stream[:35], sin_tts=sin_tts)

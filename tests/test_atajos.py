@@ -514,8 +514,8 @@ class TestParsearAtajos(unittest.TestCase):
         with mock.patch.object(gui, "anunciar", side_effect=anuncios.append):
             gui.anunciar_conflictos_atajos({"pausa": "f6"})
         self.assertEqual(anuncios, [
-            "Conflicto de atajos: pausa se quedó sin atajo porque "
-            "region_siguiente usa f6."
+            "f6 ya está asignado a region_siguiente. "
+            "Se desactivó el atajo de pausa."
         ])
 
 

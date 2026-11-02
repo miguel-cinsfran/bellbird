@@ -87,7 +87,7 @@ class TestCanalDeActualizaciones(unittest.TestCase):
         dialogo = self._dialogo()
         control = dialogo.pagina_general.cho_canal_actualizaciones
         self.assertIsInstance(control, gui.wx.Choice)
-        self.assertEqual(control.GetName(), "Canal de actualizaciones")
+        self.assertEqual(control.GetName(), "Canal de actualización")
         self.assertEqual(
             [control.GetString(i) for i in range(control.GetCount())],
             ["Estable", "Beta"])

@@ -82,8 +82,8 @@ def construir_menu(frame):
     # que pausar/detener/vaciar. Los ajustes de voz de abajo sí quedan libres.
     frame._mi_voz_conexion = [frame.mi_pausa, mi_det, mi_vac]
     m.AppendSeparator()
-    mi_vmenos = m.Append(wx.ID_ANY, _("Hablar más &lento") + frame._accel("velocidad_menos"))
-    mi_vmas   = m.Append(wx.ID_ANY, _("Hablar más &rápido") + frame._accel("velocidad_mas"))
+    mi_vmenos = m.Append(wx.ID_ANY, _("Bajar ve&locidad de la voz") + frame._accel("velocidad_menos"))
+    mi_vmas   = m.Append(wx.ID_ANY, _("Subi&r velocidad de la voz") + frame._accel("velocidad_mas"))
     mi_volm   = m.Append(wx.ID_ANY, _("&Bajar volumen de la voz") + frame._accel("volumen_menos"))
     mi_volM   = m.Append(wx.ID_ANY, _("&Subir volumen de la voz") + frame._accel("volumen_mas"))
     m.AppendSeparator()
@@ -186,7 +186,7 @@ def _construir_menu_ayuda(frame, mb):
     m = wx.Menu()
     mi_manual = m.Append(wx.ID_ANY, _("Manual de &uso") + "\tF1")
     mi_novedades = m.Append(wx.ID_ANY, _("&Novedades"))
-    mi_guia = m.Append(wx.ID_ANY, _("&Guía de configuración de la API…"))
+    mi_guia = m.Append(wx.ID_ANY, _("&Guía de configuración de la API"))
     mi_incidente = m.Append(wx.ID_ANY, _("&Marcar incidencia") + frame._accel("marcar_incidencia"))
     mi_registros = m.Append(wx.ID_ANY, _("Abrir carpeta de &registros"))
     mi_actualizar_app = m.Append(wx.ID_ANY, _("&Buscar actualizaciones…"))
@@ -334,7 +334,7 @@ def _construir_menu_musica(frame, mb):
     frame.mi_musica_vol_menos = m.Append(
         wx.ID_ANY, _("&Bajar volumen") + frame._accel("musica_vol_menos"))
     frame.mi_musica_que_suena = m.Append(
-        wx.ID_ANY, _("&Qué suena") + frame._accel("musica_que_suena"))
+        wx.ID_ANY, _("Anunciar &canción actual") + frame._accel("musica_que_suena"))
     frame.mi_musica_adelantar = m.Append(
         wx.ID_ANY, _("Avanzar 10 segu&ndos") + frame._accel("musica_adelantar"))
     frame.mi_musica_retroceder = m.Append(

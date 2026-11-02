@@ -152,9 +152,9 @@ class PaginaVoz:
 
         # Tope de caracteres por sesión (0 sin tope), «solo lo importante» y
         # la voz de Windows de respaldo. Solo se ven con ElevenLabs.
-        lbl_tope = fila_label(p, _("T&ope de caracteres por sesión (0 sin tope):"))
+        lbl_tope = fila_label(p, _("Límite de caracteres p&or sesión (0 sin límite):"))
         self.sp_tope_eleven = ContadorAccesible(
-            p, min=0, max=1000000, name=_("Tope de caracteres de ElevenLabs"),
+            p, min=0, max=1000000, name=_("Límite de caracteres de ElevenLabs"),
             initial=max(0, int(self._config.get("elevenlabs_tope", 0) or 0)))
         self.sp_tope_eleven.SetIncrement(1000)
         _tc(self.sp_tope_eleven)

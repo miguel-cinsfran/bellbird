@@ -205,7 +205,7 @@ class TestConsultaRapida(unittest.TestCase):
             rapida.consultar(self.marco)
         self.m_anunciar.assert_called_once_with(
             "No se pudo conectar con OBS. Comprueba que OBS esté abierto y "
-            "que su servidor websocket esté activado.")
+            "que su servidor WebSocket esté activado.")
         self.m_sonar.assert_called_once_with("ia_error")
         envio.assert_not_called()
         self.m_cliente.cerrar.assert_called_once_with()

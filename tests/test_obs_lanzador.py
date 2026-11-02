@@ -262,7 +262,7 @@ class AsegurarObsTest(unittest.TestCase):
         self.assertEqual(
             str(contexto.exception),
             "OBS se abrió pero no responde. Comprueba que su servidor "
-            "websocket esté activado.")
+            "WebSocket esté activado.")
 
     def test_parada_puesta_sale_sin_anunciar(self):
         parada = threading.Event()

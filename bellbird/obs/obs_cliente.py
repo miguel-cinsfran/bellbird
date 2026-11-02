@@ -70,7 +70,7 @@ MENSAJE_CONEXION_PERDIDA = N_(
 TEXTO_ABIERTO_SIN_RESPUESTA = N_(
     "OBS está abierto pero no responde. Puede estar esperando una "
     "respuesta: elige Mostrar OBS en el menú Transmisión. Si no, comprueba "
-    "que su servidor websocket esté activado.")
+    "que su servidor WebSocket esté activado.")
 
 
 def mensaje_de_fallo_obs(motivo, obs_abierto=None):
@@ -101,7 +101,7 @@ def mensaje_de_fallo_obs(motivo, obs_abierto=None):
         if abierto:
             return _(TEXTO_ABIERTO_SIN_RESPUESTA)
         return _("No se pudo conectar con OBS. Comprueba que OBS esté abierto "
-                 "y que su servidor websocket esté activado.")
+                 "y que su servidor WebSocket esté activado.")
     if any(clave in texto for clave in ("authentication", "4009", "unauthorized")):
         return _("OBS rechazó la contraseña guardada. Vuelve a conectar para "
                  "leerla de nuevo.")

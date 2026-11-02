@@ -38,7 +38,7 @@ _PASO_ESPERA = 0.05
 # cada mensaje sin red esperaría el tiempo agotado del cliente.
 _VENTANA_ERROR_ELEVENLABS = 60.0
 
-_MSG_TOPE = N_("Se alcanzó el tope de caracteres de ElevenLabs de esta sesión. "
+_MSG_TOPE = N_("Se alcanzó el límite de caracteres de ElevenLabs de esta sesión. "
                 "Se usa la voz de Windows.")
 
 

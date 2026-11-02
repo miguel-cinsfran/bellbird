@@ -142,8 +142,8 @@ msgid "Demasiados errores consecutivos."
 msgstr "Too many consecutive errors."
 
 #: main.py
-msgid "El ID de vídeo no es válido. Revisa el enlace."
-msgstr "The video ID is not valid. Check the link."
+msgid "No se reconoce el ID del vídeo. Comprueba el enlace."
+msgstr "The video ID is not recognized. Check the link."
 
 #: main.py
 msgid ""
@@ -2691,8 +2691,8 @@ msgid "Grabación guardada: {nombre}"
 msgstr "Recording saved: {nombre}"
 
 #: bellbird/obs/obs_activacion.py
-msgid "El servidor websocket de OBS ya está activado"
-msgstr "The OBS websocket server is already enabled"
+msgid "El servidor WebSocket de OBS ya está activado"
+msgstr "The OBS WebSocket server is already enabled"
 
 #: bellbird/obs/obs_activacion.py
 msgid ""
@@ -2703,17 +2703,17 @@ msgstr ""
 " settings when it closes"
 
 #: bellbird/obs/obs_activacion.py
-msgid "Se puede activar el servidor websocket de OBS"
-msgstr "The OBS websocket server can be enabled"
+msgid "Se puede activar el servidor WebSocket de OBS"
+msgstr "The OBS WebSocket server can be enabled"
 
 #: bellbird/obs/obs_activacion.py
 #, python-brace-format
-msgid "No se pudo activar el servidor websocket de OBS: {error}"
-msgstr "Could not enable the OBS websocket server: {error}"
+msgid "No se pudo activar el servidor WebSocket de OBS: {error}"
+msgstr "Could not enable the OBS WebSocket server: {error}"
 
 #: bellbird/obs/obs_activacion.py
-msgid "El servidor websocket de OBS se activó. Inicia OBS para usarlo"
-msgstr "The OBS websocket server was enabled. Start OBS to use it"
+msgid "El servidor WebSocket de OBS se activó. Inicia OBS para usarlo"
+msgstr "The OBS WebSocket server was enabled. Start OBS to use it"
 
 #. Traductores: {corto} es el nombre corto del dispositivo.
 #: bellbird/obs/obs_audio.py
@@ -2843,18 +2843,18 @@ msgstr "Lost connection to OBS. Reconnect."
 msgid ""
 "OBS está abierto pero no responde. Puede estar esperando una respuesta: "
 "elige Mostrar OBS en el menú Transmisión. Si no, comprueba que su servidor "
-"websocket esté activado."
+"WebSocket esté activado."
 msgstr ""
 "OBS is open but not responding. It may be waiting for an answer: choose "
-"Show OBS in the Broadcast menu. If not, check that its websocket server is "
+"Show OBS in the Broadcast menu. If not, check that its WebSocket server is "
 "enabled."
 
 #: bellbird/obs/obs_cliente.py
 msgid ""
 "No se pudo conectar con OBS. Comprueba que OBS esté abierto y que su "
-"servidor websocket esté activado."
+"servidor WebSocket esté activado."
 msgstr ""
-"Could not connect to OBS. Check that OBS is open and that its websocket "
+"Could not connect to OBS. Check that OBS is open and that its WebSocket "
 "server is enabled."
 
 #: bellbird/obs/obs_cliente.py
@@ -3422,10 +3422,10 @@ msgstr ""
 
 #: bellbird/obs/obs_lanzador.py
 msgid ""
-"OBS se abrió pero no responde. Comprueba que su servidor websocket esté "
+"OBS se abrió pero no responde. Comprueba que su servidor WebSocket esté "
 "activado."
 msgstr ""
-"OBS opened but is not responding. Check that its websocket server is "
+"OBS opened but is not responding. Check that its WebSocket server is "
 "enabled."
 
 #: bellbird/obs/obs_lanzador.py
@@ -4279,12 +4279,12 @@ msgid "Detener voz actual"
 msgstr "Stop current voice"
 
 #: bellbird/ui/atajos_captura.py
-msgid "Bajar velocidad"
-msgstr "Lower speed"
+msgid "Bajar velocidad de la voz"
+msgstr "Lower voice speed"
 
 #: bellbird/ui/atajos_captura.py
-msgid "Subir velocidad"
-msgstr "Raise speed"
+msgid "Subir velocidad de la voz"
+msgstr "Raise voice speed"
 
 #: bellbird/ui/atajos_captura.py
 msgid "Bajar volumen de la voz"
@@ -4355,8 +4355,8 @@ msgid "Bajar el volumen de la música"
 msgstr "Lower the music volume"
 
 #: bellbird/ui/atajos_captura.py
-msgid "Qué suena"
-msgstr "What's playing"
+msgid "Anunciar canción actual"
+msgstr "Announce current song"
 
 #: bellbird/ui/atajos_captura.py
 msgid "Silenciar o devolver el sonido de la música"
@@ -5271,11 +5271,11 @@ msgstr "Content"
 #: bellbird/ui/gui.py
 #, python-brace-format
 msgid ""
-"Conflicto de atajos: {perdedora} se quedó sin atajo porque {conservada} usa"
-" {combinacion}."
+"{combinacion} ya está asignado a {conservada}. Se desactivó el atajo de "
+"{perdedora}."
 msgstr ""
-"Shortcut conflict: {perdedora} lost its shortcut because {conservada} uses "
-"{combinacion}."
+"{combinacion} is already assigned to {conservada}. The shortcut for "
+"{perdedora} was turned off."
 
 #. Traductores: título de la ventana: nombre de la app y versión.
 #: bellbird/ui/gui.py bellbird/ui/titulo_ventana.py
@@ -5401,16 +5401,16 @@ msgid "Conectando"
 msgstr "Connecting"
 
 #: bellbird/ui/gui.py
-msgid "El enlace o el ID de YouTube no es válido"
-msgstr "The YouTube link or ID is not valid"
+msgid "No se reconoce el enlace o el ID de YouTube"
+msgstr "The YouTube link or ID is not recognized"
 
 #: bellbird/ui/gui.py
-msgid "El enlace o el ID de YouTube no es válido. Revisa lo que pegaste."
-msgstr "The YouTube link or ID is not valid. Check what you pasted."
+msgid "No se reconoce el enlace o el ID de YouTube. Comprueba el enlace pegado."
+msgstr "The YouTube link or ID is not recognized. Check the pasted link."
 
 #: bellbird/ui/gui.py
-msgid "Enlace no válido"
-msgstr "Invalid link"
+msgid "Enlace no reconocido"
+msgstr "Link not recognized"
 
 #: bellbird/ui/gui.py
 #, python-brace-format
@@ -5528,8 +5528,8 @@ msgstr "Open link"
 
 #: bellbird/ui/gui.py
 #, python-brace-format
-msgid "Rehabilitar a {autor} (dejar de silenciar)"
-msgstr "Restore {autor} (stop muting)"
+msgid "Dejar de silenciar a {autor}"
+msgstr "Unmute {autor}"
 
 #: bellbird/ui/gui.py
 #, python-brace-format
@@ -5620,8 +5620,8 @@ msgstr "{autor} muted"
 #. Traductores: {autor} es el autor del mensaje.
 #: bellbird/ui/gui.py
 #, python-brace-format
-msgid "{autor} rehabilitado"
-msgstr "{autor} restored"
+msgid "{autor} ya no está silenciado"
+msgstr "{autor} is no longer muted"
 
 #: bellbird/ui/gui.py
 msgid "Salir"
@@ -5683,8 +5683,8 @@ msgid "&Desconectar"
 msgstr "&Disconnect"
 
 #: bellbird/ui/gui.py
-msgid " [sin voz]"
-msgstr " [no voice]"
+msgid " [lectura silenciada]"
+msgstr " [reading muted]"
 
 #. Traductores: {titulo} es el vídeo; {sin_tts} avisa si la lectura está
 #. silenciada.
@@ -6549,12 +6549,12 @@ msgid "&Vaciar cola"
 msgstr "&Clear queue"
 
 #: bellbird/ui/gui_menu.py
-msgid "Hablar más &lento"
-msgstr "Speak s&lower"
+msgid "Bajar ve&locidad de la voz"
+msgstr "&Lower voice speed"
 
 #: bellbird/ui/gui_menu.py
-msgid "Hablar más &rápido"
-msgstr "Speak &faster"
+msgid "Subi&r velocidad de la voz"
+msgstr "Raise voice spee&d"
 
 #: bellbird/ui/gui_menu.py
 msgid "&Bajar volumen de la voz"
@@ -6685,8 +6685,8 @@ msgid "&Novedades"
 msgstr "&What's new"
 
 #: bellbird/ui/gui_menu.py
-msgid "&Guía de configuración de la API…"
-msgstr "API setup &guide…"
+msgid "&Guía de configuración de la API"
+msgstr "API setup &guide"
 
 #: bellbird/ui/gui_menu.py
 msgid "&Marcar incidencia"
@@ -6819,8 +6819,8 @@ msgid "&Bajar volumen"
 msgstr "&Lower the volume"
 
 #: bellbird/ui/gui_menu.py
-msgid "&Qué suena"
-msgstr "&What's playing"
+msgid "Anunciar &canción actual"
+msgstr "&Announce current song"
 
 #: bellbird/ui/gui_menu.py
 msgid "Avanzar 10 segu&ndos"
@@ -7093,11 +7093,11 @@ msgid "&Guardar"
 msgstr "&Save"
 
 #: bellbird/ui/gui_preferencias.py
-msgid "Tamaño de &fuente del chat (8 a 24):"
+msgid "Tamaño de &letra del chat (8 a 24):"
 msgstr "Chat &font size (8 to 24):"
 
 #: bellbird/ui/gui_preferencias.py
-msgid "Tamaño de fuente del chat"
+msgid "Tamaño de letra del chat"
 msgstr "Chat font size"
 
 #: bellbird/ui/gui_preferencias.py
@@ -7117,7 +7117,7 @@ msgid "Leer todos los mensajes"
 msgstr "Read all messages"
 
 #: bellbird/ui/gui_preferencias.py
-msgid "Descartar los más viejos si se acumulan"
+msgid "Descartar los más antiguos si se acumulan"
 msgstr "Drop the oldest when they pile up"
 
 #: bellbird/ui/gui_preferencias.py
@@ -7141,7 +7141,7 @@ msgid "Leer solo el nombre desde esta cantidad de mensajes en cola"
 msgstr "Read only the name from this many queued messages"
 
 #: bellbird/ui/gui_preferencias.py
-msgid "Con 0, esta opción queda apagada."
+msgid "Con 0, esta opción queda desactivada."
 msgstr "With 0, this option stays off."
 
 #: bellbird/ui/gui_preferencias.py
@@ -7243,8 +7243,8 @@ msgstr "The detailed logging change applies when the application restarts."
 
 #: bellbird/ui/gui_preferencias.py
 msgid ""
-"El puerto del chat en el vídeo se aplica al apagarlo y volver a encenderlo "
-"desde el panel de transmisión."
+"El puerto del chat en el vídeo se aplica al desactivarlo y volver a "
+"activarlo desde el panel de transmisión."
 msgstr ""
 "The chat on video port applies when you turn it off and on again from the "
 "broadcast panel."
@@ -8208,15 +8208,15 @@ msgid "Reproducir sonido de inicio"
 msgstr "Play startup sound"
 
 #: bellbird/ui/preferencias_general.py
-msgid "Guardar un registro &detallado para diagnosticar fallos"
-msgstr "Save a &detailed log for diagnosing failures"
+msgid "Guardar un registro &detallado para diagnosticar errores"
+msgstr "Save a &detailed log for diagnosing errors"
 
 #: bellbird/ui/preferencias_general.py
-msgid "Guardar un registro detallado para diagnosticar fallos"
-msgstr "Save a detailed log for diagnosing failures"
+msgid "Guardar un registro detallado para diagnosticar errores"
+msgstr "Save a detailed log for diagnosing errors"
 
 #: bellbird/ui/preferencias_general.py
-msgid "Canal de actuali&zaciones:"
+msgid "Canal de actuali&zación:"
 msgstr "Update c&hannel:"
 
 #: bellbird/ui/preferencias_general.py
@@ -8224,7 +8224,7 @@ msgid "Beta"
 msgstr "Beta"
 
 #: bellbird/ui/preferencias_general.py
-msgid "Canal de actualizaciones"
+msgid "Canal de actualización"
 msgstr "Update channel"
 
 #: bellbird/ui/preferencias_general.py
@@ -8401,8 +8401,8 @@ msgid "Tiempo de e&spera en segundos:"
 msgstr "&Wait time in seconds:"
 
 #: bellbird/ui/preferencias_ia.py
-msgid "Decir Anali&zando mientras espera"
-msgstr "Say &Analyzing while waiting"
+msgid "Anunciar Anali&zando mientras espera"
+msgstr "Announce &Analyzing while waiting"
 
 #. Traductores: rótulo de la clave de IA del proveedor elegido.
 #: bellbird/ui/preferencias_ia_clave.py
@@ -8498,7 +8498,7 @@ msgid "Carpeta de música"
 msgstr "Music folder"
 
 #: bellbird/ui/preferencias_musica.py
-msgid "Reproducir en orden &aleatorio"
+msgid "Orden &aleatorio"
 msgstr "Play in &random order"
 
 #: bellbird/ui/preferencias_musica.py
@@ -8538,8 +8538,8 @@ msgid "&Sonido al pasar de canción"
 msgstr "&Play a sound when the song changes"
 
 #: bellbird/ui/preferencias_musica.py
-msgid "&Decir al pasar de canción:"
-msgstr "A&nnounce when the song changes:"
+msgid "Anunciar al pasar &de canción:"
+msgstr "Announce when the so&ng changes:"
 
 #: bellbird/ui/preferencias_musica.py
 msgid "Nada"
@@ -8558,8 +8558,8 @@ msgid "Solo el artista"
 msgstr "The artist only"
 
 #: bellbird/ui/preferencias_musica.py
-msgid "Qué decir al pasar de canción"
-msgstr "What to say when the song changes"
+msgid "Qué anunciar al pasar de canción"
+msgstr "What to announce when the song changes"
 
 #: bellbird/ui/preferencias_musica.py
 msgid "A&nunciar pausa, reanudación y vuelta al comienzo"
@@ -8707,8 +8707,8 @@ msgid "&Sonidos:"
 msgstr "S&ounds:"
 
 #: bellbird/ui/preferencias_sonidos.py
-msgid "&Oír sonido elegido"
-msgstr "&Hear the selected sound"
+msgid "&Reproducir sonido elegido"
+msgstr "&Play the selected sound"
 
 #: bellbird/ui/preferencias_sonidos.py
 msgid "&Tema de sonido:"
@@ -8766,8 +8766,8 @@ msgstr "Found {cantidad} microphones in OBS"
 
 #: bellbird/ui/preferencias_transmision.py
 #, python-brace-format
-msgid "No se pudo activar el servidor websocket de OBS: {exc}"
-msgstr "Could not enable the OBS websocket server: {exc}"
+msgid "No se pudo activar el servidor WebSocket de OBS: {exc}"
+msgstr "Could not enable the OBS WebSocket server: {exc}"
 
 #: bellbird/ui/preferencias_voz.py
 msgid "(comprueba la clave)"
@@ -8842,11 +8842,11 @@ msgid "Probar voz"
 msgstr "Test voice"
 
 #: bellbird/ui/preferencias_voz.py
-msgid "T&ope de caracteres por sesión (0 sin tope):"
+msgid "Límite de caracteres p&or sesión (0 sin límite):"
 msgstr "Character &limit per session (0 for no limit):"
 
 #: bellbird/ui/preferencias_voz.py
-msgid "Tope de caracteres de ElevenLabs"
+msgid "Límite de caracteres de ElevenLabs"
 msgstr "ElevenLabs character limit"
 
 #: bellbird/ui/preferencias_voz.py
@@ -8999,7 +8999,7 @@ msgstr "Could not start the {nombre} engine: {detalle}"
 
 #: bellbird/voice/tts_worker.py
 msgid ""
-"Se alcanzó el tope de caracteres de ElevenLabs de esta sesión. Se usa la "
+"Se alcanzó el límite de caracteres de ElevenLabs de esta sesión. Se usa la "
 "voz de Windows."
 msgstr ""
 "The ElevenLabs character limit for this session was reached. The Windows "

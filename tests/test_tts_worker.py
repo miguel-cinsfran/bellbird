@@ -429,7 +429,7 @@ class TestRespaldoElevenLabs(unittest.TestCase):
         self.assertEqual([t for t, _ in sapi.hablados], ["hola", "otra"])
         self.assertEqual([t for t, _ in el.hablados], [])
         self.assertEqual(len(worker._avisos), 1)
-        self.assertIn("tope de caracteres", worker._avisos[0])
+        self.assertIn("límite de caracteres", worker._avisos[0])
 
     def test_error_reciente_va_al_respaldo_sin_reintentar(self):
         worker, el, sapi = self._worker()

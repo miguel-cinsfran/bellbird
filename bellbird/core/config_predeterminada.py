@@ -248,12 +248,12 @@ _COMENTARIOS: dict[str, str] = {
         "# primera del sistema; se guarda por nombre. Multivoz usa otra\n"
         "# voz para eventos (Super Chats, regalos). Se cambia en\n"
         "# Preferencias > Lectura. Con ElevenLabs, voz_respaldo es la voz\n"
-        "# de Windows que suena si falla o se pasa el tope de caracteres\n"
-        "# (elevenlabs_tope, 0 sin tope), y elevenlabs_solo_importantes\n"
+        "# de Windows que suena si falla o se pasa el límite de caracteres\n"
+        "# (elevenlabs_tope, 0 sin límite), y elevenlabs_solo_importantes\n"
         "# reserva la nube para Super Chats, stickers, miembros, cofres,\n"
         "# el dueño del canal y los moderadores.\n"
     ),
-    "cola": "# Cola de lectura: con límite descarta los más viejos si se llena.\n",
+    "cola": "# Cola de lectura: con límite descarta los más antiguos si se llena.\n",
     "reconexion": "# Reconexión automática si se corta el chat.\n",
     "lectura": (
         "# Qué parte del mensaje se lee: nombre y mensaje, solo uno, etc.\n"
@@ -275,7 +275,7 @@ _COMENTARIOS: dict[str, str] = {
     ),
     "sesion": "# Silenciar lectura al arrancar.\n",
     "tiktok": "# Solo TikTok: anunciar quién entra al directo puede ser muchísimo.\n",
-    "diagnostico": "# Registro detallado para diagnosticar fallos (requiere reiniciar).\n",
+    "diagnostico": "# Registro detallado para diagnosticar errores (requiere reiniciar).\n",
     "overlay": "# Chat en el vídeo para transmitir por navegador (overlay web).\n",
     "obs": "# Integración con OBS: nombre de la fuente de micrófono.\n",
     "transmision": (

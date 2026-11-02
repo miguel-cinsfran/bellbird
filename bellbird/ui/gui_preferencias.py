@@ -207,9 +207,9 @@ class PreferenciasDialog(wx.Dialog):
         p = crear_panel(parent, "PagInterfaz")
         vs = wx.BoxSizer(wx.VERTICAL)
 
-        vs.Add(fila_label(p, _("Tamaño de &fuente del chat (8 a 24):")),
+        vs.Add(fila_label(p, _("Tamaño de &letra del chat (8 a 24):")),
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
-        self.sp_fuente = ContadorAccesible(p, min=8, max=24, name=_("Tamaño de fuente del chat"))
+        self.sp_fuente = ContadorAccesible(p, min=8, max=24, name=_("Tamaño de letra del chat"))
         vs.Add(self.sp_fuente, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         self.chk_total_sc = wx.CheckBox(p, label=_("Mostrar total de &Super Chats en la barra de estado"),
@@ -230,7 +230,7 @@ class PreferenciasDialog(wx.Dialog):
         self.rb_estrategia = wx.RadioBox(
             p, label=_("&Estrategia de la cola"), majorDimension=1,
             choices=[_("Leer todos los mensajes"),
-                     _("Descartar los más viejos si se acumulan")],
+                     _("Descartar los más antiguos si se acumulan")],
             style=wx.RA_SPECIFY_COLS, name=_("Estrategia de la cola"))
         self.rb_estrategia.SetSelection(
             0 if self._config.get("estrategia", "limite") == "todas" else 1)
@@ -248,7 +248,7 @@ class PreferenciasDialog(wx.Dialog):
         self.sp_umbral_nombre = ContadorAccesible(p, min=0, max=500,
             name=_("Leer solo el nombre desde esta cantidad de mensajes en cola"))
         vs.Add(self.sp_umbral_nombre, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-        vs.Add(wx.StaticText(p, label=_("Con 0, esta opción queda apagada.")),
+        vs.Add(wx.StaticText(p, label=_("Con 0, esta opción queda desactivada.")),
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
 
         p.SetSizer(vs)
@@ -476,8 +476,8 @@ class PreferenciasDialog(wx.Dialog):
         # El servidor del panel ya escucha en el puerto viejo; no se reinicia
         # solo, así que se avisa dónde se aplica.
         if puerto_overlay != puerto_anterior and c.get("overlay_activo", False):
-            self.avisos.append(_("El puerto del chat en el vídeo se aplica al apagarlo y "
-                                 "volver a encenderlo desde el panel de transmisión."))
+            self.avisos.append(_("El puerto del chat en el vídeo se aplica al desactivarlo y "
+                                 "volver a activarlo desde el panel de transmisión."))
         self.EndModal(wx.ID_OK)
 
     def hubo_cambios(self) -> bool:

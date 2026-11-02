@@ -102,16 +102,16 @@ class PaginaGeneral:
         vs.Add(self.chk_sonido_inicio, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         self.chk_registro_detallado = wx.CheckBox(
-            p, label=_("Guardar un registro &detallado para diagnosticar fallos"),
-            name=_("Guardar un registro detallado para diagnosticar fallos"))
+            p, label=_("Guardar un registro &detallado para diagnosticar errores"),
+            name=_("Guardar un registro detallado para diagnosticar errores"))
         vs.Add(self.chk_registro_detallado, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _canal_actualizaciones(self, p, vs):
-        vs.Add(fila_label(p, _("Canal de actuali&zaciones:")),
+        vs.Add(fila_label(p, _("Canal de actuali&zación:")),
                0, wx.LEFT | wx.RIGHT, 10)
         self.cho_canal_actualizaciones = wx.Choice(
             p, choices=[_("Estable"), _("Beta")],
-            name=_("Canal de actualizaciones"))
+            name=_("Canal de actualización"))
         _tc(self.cho_canal_actualizaciones)
         self.cho_canal_actualizaciones.SetSelection(
             1 if canal_app.canal_guardado() == "beta" else 0)

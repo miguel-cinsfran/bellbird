@@ -71,7 +71,7 @@ class AutenticacionTest(unittest.TestCase):
 class MensajesDeFalloTest(unittest.TestCase):
     def test_error_de_obs_conserva_su_texto(self):
         texto = ("No se pudo conectar con OBS. Comprueba que OBS esté abierto y "
-                 "que su servidor websocket esté activado.")
+                 "que su servidor WebSocket esté activado.")
         self.assertEqual(obs_cliente.mensaje_de_fallo_obs(obs_cliente.ObsError(texto)), texto)
 
     def test_traducir_dos_veces_conserva_el_mismo_texto(self):
@@ -84,7 +84,7 @@ class MensajesDeFalloTest(unittest.TestCase):
         self.assertEqual(obs_cliente.mensaje_de_fallo_obs(
             "Connection refused", obs_abierto=lambda: False),
                          "No se pudo conectar con OBS. Comprueba que OBS esté abierto y "
-                         "que su servidor websocket esté activado.")
+                         "que su servidor WebSocket esté activado.")
 
     def test_conexion_rechazada_con_obs_abierto_avisa_que_no_responde(self):
         self.assertEqual(
@@ -97,7 +97,7 @@ class MensajesDeFalloTest(unittest.TestCase):
             obs_cliente.mensaje_de_fallo_obs(
                 "Connection refused", obs_abierto=lambda: False),
             "No se pudo conectar con OBS. Comprueba que OBS esté abierto y "
-            "que su servidor websocket esté activado.")
+            "que su servidor WebSocket esté activado.")
 
     def test_conexion_rechazada_si_falla_la_comprobacion_cuenta_como_cerrado(self):
         def obs_abierto_que_falla():
@@ -108,7 +108,7 @@ class MensajesDeFalloTest(unittest.TestCase):
         self.assertEqual(
             texto,
             "No se pudo conectar con OBS. Comprueba que OBS esté abierto y "
-            "que su servidor websocket esté activado.")
+            "que su servidor WebSocket esté activado.")
 
     def test_fallo_de_autenticacion_no_consulta_si_obs_esta_abierto(self):
         def obs_abierto_que_falla():
@@ -434,7 +434,7 @@ class RegistroDeFalloTest(unittest.TestCase):
             texto = obs_cliente.mensaje_de_fallo_obs(
                 "timed out", obs_abierto=lambda: False)
         self.assertEqual(texto, "No se pudo conectar con OBS. Comprueba que OBS esté "
-                                "abierto y que su servidor websocket esté activado.")
+                                "abierto y que su servidor WebSocket esté activado.")
         self.assertIn("timed out", registro.output[0])
         self.assertIsNone(registro.records[0].exc_info)
 

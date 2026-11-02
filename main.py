@@ -663,7 +663,7 @@ def _str(v, d):
 def _mensaje_error_amigable(exc) -> str:
     t = str(exc).lower()
     if "invalid video id" in t:
-        return _("El ID de vídeo no es válido. Revisa el enlace.")
+        return _("No se reconoce el ID del vídeo. Comprueba el enlace.")
     if "cannot find channel id" in t:
         return (_("YouTube todavía no muestra este vídeo. Pasa en los "
                   "primeros segundos de un directo y siempre con los "

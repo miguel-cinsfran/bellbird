@@ -71,7 +71,7 @@ class PaginaMusica:
 
     def _musica_orden(self, p, vs):
         self.chk_musica_aleatorio = wx.CheckBox(
-            p, label=_("Reproducir en orden &aleatorio"),
+            p, label=_("Orden &aleatorio"),
             name="MusicaAleatorio")
         self.chk_musica_aleatorio.SetForegroundColour(_T.text)
         vs.Add(self.chk_musica_aleatorio, 0, wx.ALL, 10)
@@ -105,12 +105,12 @@ class PaginaMusica:
         self.chk_musica_sonido_tema.SetForegroundColour(_T.text)
         vs.Add(self.chk_musica_sonido_tema, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        vs.Add(fila_label(p, _("&Decir al pasar de canción:")), 0, wx.LEFT | wx.RIGHT, 10)
+        vs.Add(fila_label(p, _("Anunciar al pasar &de canción:")), 0, wx.LEFT | wx.RIGHT, 10)
         # Traductores: no decir nada al pasar de canción.
         self.cho_musica_decir = EleccionTexto(
             p, (("nada", _("Nada")), ("titulo", _("El título")),
                 ("titulo_artista", _("El título y el artista")), ("artista", _("Solo el artista"))),
-            normalizar=musica_decir.normalizar, name=_("Qué decir al pasar de canción"))
+            normalizar=musica_decir.normalizar, name=_("Qué anunciar al pasar de canción"))
         _tc(self.cho_musica_decir)
         vs.Add(self.cho_musica_decir, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.chk_musica_decir_pausa = wx.CheckBox(

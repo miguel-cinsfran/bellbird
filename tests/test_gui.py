@@ -1997,7 +1997,7 @@ class TestCategoriasDePreferenciasSoloLectura(unittest.TestCase):
              "Preguntar antes de salir si hay un chat conectado "
              "o una transmisión en curso",
              "Reproducir sonido de inicio",
-             "Guardar un registro detallado para diagnosticar fallos"])
+             "Guardar un registro detallado para diagnosticar errores"])
         self.assertFalse(any(p.GetName() == "PagDiagnostico"
                              for p in dialogo._paginas()))
 
@@ -2019,11 +2019,11 @@ class TestCategoriasDePreferenciasSoloLectura(unittest.TestCase):
         dialogo = self.dialogo
         for nombre, pagina in (
                 ("Buscar actualizaciones al iniciar", "PagGeneral"),
-                ("Canal de actualizaciones", "PagGeneral"),
+                ("Canal de actualización", "PagGeneral"),
                 ("Preguntar antes de salir si hay un chat conectado "
                  "o una transmisión en curso", "PagGeneral"),
                 ("Reproducir sonido de inicio", "PagGeneral"),
-                ("Guardar un registro detallado para diagnosticar fallos",
+                ("Guardar un registro detallado para diagnosticar errores",
                  "PagGeneral"),
                 ("Estrategia de la cola", "PagCola"),
                 ("Tamaño máximo de la cola", "PagCola"),
@@ -2096,7 +2096,7 @@ class TestCategoriasDePreferenciasSoloLectura(unittest.TestCase):
         pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagMusica")
         esperados = ["Carpeta de música", "MusicaAleatorio", "Repetir la música",
                      "MusicaRetomar", "Fundido entre canciones, en segundos",
-                     "MusicaSonidoTema", "Qué decir al pasar de canción",
+                     "MusicaSonidoTema", "Qué anunciar al pasar de canción",
                      "MusicaDecirPausa", "Volumen de la música",
                      "Preguntar al abrir Música si igualar el volumen",
                      "Salida de audio de la música", "Buscar salidas de audio",
@@ -2114,12 +2114,12 @@ class TestCategoriasDePreferenciasSoloLectura(unittest.TestCase):
                      and "&" in c.GetLabel()]
         self.assertEqual(etiquetas, [
             "Carpeta de &música:",
-            "Reproducir en orden &aleatorio",
+            "Orden &aleatorio",
             "&Repetir:",
             "Recordar ú&ltima lista al abrir",
             "&Fundido entre canciones, en segundos:",
             "&Sonido al pasar de canción",
-            "&Decir al pasar de canción:",
+            "Anunciar al pasar &de canción:",
             "A&nunciar pausa, reanudación y vuelta al comienzo",
             "&Volumen de la música:",
             "&Igualar volumen de las canciones",
@@ -2415,7 +2415,7 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         self.assertEqual(dialogo.pagina_ia.chk_ia_analizando.GetName(),
                          "DecirAnalizandoIA")
         self.assertEqual(dialogo.pagina_ia.chk_ia_analizando.GetLabel(),
-                         "Decir Anali&zando mientras espera")
+                         "Anunciar Anali&zando mientras espera")
         self.assertFalse(dialogo.pagina_ia.chk_ia_analizando.GetValue())
 
     def test_guardar_conserva_privacidad_y_escribe_decir_analizando(self):
@@ -3098,7 +3098,7 @@ class TestPreferenciasElevenLabs(unittest.TestCase):
         for ctrl in dialogo.pagina_voz._eleven_ctrls:
             self.assertTrue(ctrl.IsShown())
         for nombre in ("Clave de ElevenLabs", "Comprobar clave",
-                       "Tope de caracteres de ElevenLabs",
+                       "Límite de caracteres de ElevenLabs",
                        "Solo lo importante con ElevenLabs",
                        "Voz de Windows de respaldo"):
             self.assertIsNotNone(self._buscar(dialogo, nombre))
@@ -3443,7 +3443,7 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
     def test_estrategia_guarda_la_clave_y_no_la_etiqueta(self):
         for seleccion, clave, etiqueta in (
                 (0, "todas", "Leer todos los mensajes"),
-                (1, "limite", "Descartar los más viejos si se acumulan")):
+                (1, "limite", "Descartar los más antiguos si se acumulan")):
             with self.subTest(clave=clave):
                 dialogo = self._dialogo()
                 dialogo.rb_estrategia.SetSelection(seleccion)
@@ -3459,8 +3459,8 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         self._guardar(dialogo)
 
         self.assertIn(
-            "El puerto del chat en el vídeo se aplica al apagarlo y "
-            "volver a encenderlo desde el panel de transmisión.",
+            "El puerto del chat en el vídeo se aplica al desactivarlo y "
+            "volver a activarlo desde el panel de transmisión.",
             dialogo.avisos)
 
     def test_el_puerto_sin_cambios_o_con_el_panel_apagado_no_avisa(self):

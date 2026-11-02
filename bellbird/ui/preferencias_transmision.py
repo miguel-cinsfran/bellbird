@@ -119,7 +119,7 @@ class PaginaTransmision:
                         obs_cliente.RUTA_CONFIG_OBS)
             except Exception as exc:
                 logger.warning("No se pudo activar el servidor websocket de OBS: %s", exc)
-                mensaje = _("No se pudo activar el servidor websocket de OBS: {exc}").format(exc=exc)
+                mensaje = _("No se pudo activar el servidor WebSocket de OBS: {exc}").format(exc=exc)
             wx.CallAfter(anunciar, mensaje)
 
         diagnostico.crear_hilo(activar, "ActivarWebsocketObs").start()

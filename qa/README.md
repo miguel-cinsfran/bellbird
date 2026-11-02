@@ -77,8 +77,8 @@ con 1 si encontró alguno.
 
 No muestra el valor de un campo de texto ni los elementos de una lista de
 datos del usuario. Deja fuera las cabeceras de columna, las opciones de
-RadioBox y las dos entradas con «…» que dejan algo abierto al cerrarlas sin
-guardar: «Guía de configuración de la API…» abre el navegador y «Panel de
+RadioBox y las entradas que dejan algo abierto al cerrarlas sin guardar:
+«Guía de configuración de la API» abre el navegador y «Panel de
 transmisión…» puede lanzar OBS. Corre en la PC donde no hay nadie, como el
 resto del banco.
 
@@ -140,8 +140,8 @@ red y necesita OBS y una cuenta con clave de transmisión reutilizable.
 ## Música real
 
 `musica_real` pone música de verdad al 10 % de volumen y recorre cada
-comando: reproducir, pausar, siguiente, anterior, volumen, qué suena,
-orden aleatorio, a continuación, cola, listas guardadas y los dos enlaces
+comando: reproducir, pausar, siguiente, anterior, volumen, anunciar canción
+actual, orden aleatorio, a continuación, cola, listas guardadas y los dos enlaces
 de YouTube. Comprueba con el medidor de sonido de Windows
 (`qa/medidor_sonido.py`) que el sonido de verdad empieza, se pausa, sigue
 y se detiene. Con la música sonando prueba los atajos globales: activa la casilla desde Preferencias, manda Ctrl+Alt+Espacio de verdad con una ventana ajena al frente y comprueba que pausa y reanuda sin robarle el foco ni escribirle, y que con la casilla apagada el atajo no hace nada. No entra en la corrida completa: suena, usa la red y cambia

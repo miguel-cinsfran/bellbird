@@ -19,7 +19,7 @@ from main import (
 class TestErrores(unittest.TestCase):
 
     def test_id_invalido(self):
-        self.assertIn("no es válido", _mensaje_error_amigable("Invalid video id"))
+        self.assertIn("No se reconoce el ID del vídeo", _mensaje_error_amigable("Invalid video id"))
 
     def test_privado(self):
         self.assertIn("privado", _mensaje_error_amigable("This live is private"))

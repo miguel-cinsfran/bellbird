@@ -640,7 +640,7 @@ def _probar_apagados(propia, res, hwnd, pid, registro) -> None:
                        "perdidas)")
         return
     if dicho:
-        res.fallo(f"musica_real: {NOMBRE_QUE_SUENA} dijo qué suena con los "
+        res.fallo(f"musica_real: {NOMBRE_QUE_SUENA} dijo la canción actual con los "
                   f"atajos apagados")
     else:
         res.nota(f"musica_real: con los atajos apagados {NOMBRE_QUE_SUENA} "
@@ -650,8 +650,8 @@ def _probar_apagados(propia, res, hwnd, pid, registro) -> None:
 def probar_atajos_globales(propia, res, carpeta_tmp) -> None:
     """Tramo de atajos globales de `musica_real`, con la música sonando.
 
-    Activa la casilla desde Preferencias, comprueba que dice qué suena
-    con una ventana ajena al frente, desactiva la casilla y comprueba que
+    Activa la casilla desde Preferencias, comprueba que «Anunciar canción
+    actual» dice la canción con una ventana ajena al frente, desactiva la casilla y comprueba que
     el atajo ya no hace nada. Cierra la ventana ajena en un `finally` e
     intenta dejar la casilla apagada si algo falló en el camino. La
     configuración en disco la restaura `musica_real` al final, como ya

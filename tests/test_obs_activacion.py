@@ -105,7 +105,7 @@ class TestActivacionObs(unittest.TestCase):
                 frase = obs_activacion.activar_servidor(ruta)
             resultado = json.loads(ruta.read_text(encoding="utf-8"))
 
-        self.assertIn("No se pudo activar el servidor websocket de OBS", frase)
+        self.assertIn("No se pudo activar el servidor WebSocket de OBS", frase)
         self.assertEqual(resultado, ajustes)
 
     def test_activar_servidor_informa_el_error_si_no_existe_el_archivo(self):
@@ -114,7 +114,7 @@ class TestActivacionObs(unittest.TestCase):
 
             frase = obs_activacion.activar_servidor(ruta)
 
-        self.assertIn("No se pudo activar el servidor websocket de OBS", frase)
+        self.assertIn("No se pudo activar el servidor WebSocket de OBS", frase)
 
     @staticmethod
     def _ajustes_de_prueba():

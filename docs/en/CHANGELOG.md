@@ -1,4 +1,4 @@
-<!-- original: es/CHANGELOG.md 568eaad1ad5cbb99e1b39d2a748748237216e3bb -->
+<!-- original: es/CHANGELOG.md d70dc54b2d84830e6563a115478181ca86562320 -->
 # What's new in Bellbird
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/CHANGELOG.md).
@@ -34,6 +34,12 @@ Paraguay.
 - *Start or stop recording* (`Alt+Shift+G`) and *Pause or resume recording*
   (`Alt+Shift+P`), in the *Broadcast* menu. If OBS does not pause the
   recording, the app says so.
+- When you stop the recording, the app says “Recording saved” with the file
+  name. *Saved recordings…*, in the *Broadcast* menu and in the panel, lets
+  you open what was recorded, open its folder, copy the path and remove it
+  from the list.
+- Matching the volume takes less time, because it measures several songs at
+  once.
 - *Update channel*, in Preferences: *Stable*, the default, offers only stable
   versions, and *Beta* also offers test versions.
 - Camera framing. `Ctrl+F3` says how you look in the camera of the OBS

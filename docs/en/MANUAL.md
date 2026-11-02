@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md 8dd9753cfd4d3c4e817acc3f75a3b247a535d7c0 -->
+<!-- original: es/MANUAL.md b3735a963a3cf1ea83ad17710efbf13cd3c641fa -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -309,6 +309,14 @@ recording* with `Alt+Shift+P`. They announce and sound the same as the
 panel buttons do. If no recording is in progress, pausing says so and changes
 nothing in OBS. If OBS does not pause the recording, the application says
 so: some profiles may not allow it.
+
+When you stop the recording, from the application or because the broadcast
+ended, you hear “Recording saved” with the file name. *Saved recordings…*, in
+the *Broadcast* menu and in the panel, lists what was recorded that way, from
+newest to oldest. From there you can open the file with `Enter`, open its
+folder, copy the path or remove it from the list with `Delete`. Removing it
+from the list does not delete the file. What you stop from the OBS window does
+not appear in the list.
 
 **The broadcast panel.** *Status*, at the top, says whether everything is
 ready or what to check, the current scene, the microphone and the recording.

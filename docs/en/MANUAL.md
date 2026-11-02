@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md d2680eacd8e142564da808d92607ae73fb56bcc8 -->
+<!-- original: es/MANUAL.md 6fcbe4631ff5f4ea200c693254f55b49e83fc87b -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -493,6 +493,11 @@ Pacific time, when Google restores the quota. Because the quota is shared among
 those who use the application, it helps to know whether a quota error comes from
 your use or from others.
 
+If you press `F2` twice in a row, in under half a second, the *Session status*
+window opens with a list: one line for each part of the status, including those
+that are not in the spoken summary. Browse it with the arrow keys and close it
+with `Esc` or *Close*.
+
 `F3` says who sent the last message read, and `Ctrl+F2` describes the OBS scene.
 
 ## Asking the AI
@@ -619,7 +624,7 @@ shortcuts. They all also appear in the menu bar, next to their action.
 | `F11` / `F12` | Lower or raise voice volume |
 | `F4` | Mute reading |
 | `F7` | Mute sounds |
-| `F2` | Announce status |
+| `F2` | Announce the status. Twice in a row, open the list |
 | `F3` | Announce the author of the last message |
 | `Ctrl+F2` | Describe the OBS scene |
 | `Ctrl+Shift+F2` | Quick query to the AI about the scene |

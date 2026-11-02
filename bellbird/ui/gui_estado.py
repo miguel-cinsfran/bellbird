@@ -21,7 +21,10 @@ from __future__ import annotations
 from datetime import datetime
 
 from bellbird.capture.montos import texto_importes
+from bellbird.core.doble_pulsacion import DoblePulsacion
 from bellbird.core.idioma import _
+
+_PULSACIONES = DoblePulsacion()
 
 
 def _entero_en(meta, clave):
@@ -134,7 +137,16 @@ def total_aportes_texto(frame) -> str:
 
 
 def anunciar_estado(frame):
+    from bellbird.ui import dialogo_estado
     from bellbird.ui import gui as _gui
+
+    if _PULSACIONES.contar("anunciar_estado", _gui.time.monotonic()) == 1:
+        lineas = _gui.estado_sesion.formatear_estado(
+            frame._snapshot_sesion(), _gui.estado_sesion.COMPONENTES,
+            "largo").splitlines()
+        dialogo_estado.abrir_estado(frame, lineas)
+        return
+
     toggles = frame._config.get("estado_toggles") or _gui.estado_sesion.ACTIVOS_DEFECTO
     texto = _gui.estado_sesion.formatear_estado(frame._snapshot_sesion(), toggles)
     _gui.anunciar(texto or _("Sin información de estado."))

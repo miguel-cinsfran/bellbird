@@ -5196,6 +5196,29 @@ msgstr "Cancel &all"
 msgid "Eliminar c&ompletadas"
 msgstr "Remove co&mpleted"
 
+#: bellbird/ui/dialogo_estado.py
+msgid "Estado de la sesión"
+msgstr "Session status"
+
+#: bellbird/ui/dialogo_estado.py bellbird/ui/gui_estado.py
+msgid "Sin información de estado."
+msgstr "No status information."
+
+#: bellbird/ui/dialogo_estado.py bellbird/ui/gui_grabaciones.py
+#: bellbird/ui/gui_microfono.py bellbird/ui/gui_organizar_escena.py
+#: bellbird/ui/gui_transmision.py bellbird/ui/ia_ventana.py
+#: bellbird/ui/musica_ventana.py
+msgid "Cerrar"
+msgstr "Close"
+
+#. Traductores: botón para cerrar la ventana.
+#. Traductores: cierra la ventana; segunda, su nombre accesible.
+#: bellbird/ui/dialogo_estado.py bellbird/ui/gui_actualizacion.py
+#: bellbird/ui/gui_descargas.py bellbird/ui/ia_ventana.py
+#: bellbird/ui/musica_ventana.py
+msgid "&Cerrar"
+msgstr "&Close"
+
 #: bellbird/ui/directo_panel.py
 msgid "Elige primero a dónde transmitir, en Transmitir a."
 msgstr "First choose where to broadcast, in Broadcast to."
@@ -5765,13 +5788,6 @@ msgstr "Super Chats: {n} ({importes})"
 #: bellbird/ui/gui_actualizacion.py bellbird/ui/gui_menu.py
 msgid "Novedades"
 msgstr "News"
-
-#. Traductores: botón para cerrar la ventana.
-#. Traductores: cierra la ventana; segunda, su nombre accesible.
-#: bellbird/ui/gui_actualizacion.py bellbird/ui/gui_descargas.py
-#: bellbird/ui/ia_ventana.py bellbird/ui/musica_ventana.py
-msgid "&Cerrar"
-msgstr "&Close"
 
 #: bellbird/ui/gui_actualizar_app.py
 msgid "Actualización"
@@ -6415,10 +6431,6 @@ msgstr "{autor} hidden on the YouTube channel"
 msgid "Confirmar moderación"
 msgstr "Confirm moderation"
 
-#: bellbird/ui/gui_estado.py
-msgid "Sin información de estado."
-msgstr "No status information."
-
 #. Traductores: {autor} es el nombre de quien escribió.
 #: bellbird/ui/gui_estado.py
 #, python-brace-format
@@ -6444,12 +6456,6 @@ msgstr "Open &folder"
 #: bellbird/ui/gui_grabaciones.py
 msgid "&Copiar ruta"
 msgstr "&Copy path"
-
-#: bellbird/ui/gui_grabaciones.py bellbird/ui/gui_microfono.py
-#: bellbird/ui/gui_organizar_escena.py bellbird/ui/gui_transmision.py
-#: bellbird/ui/ia_ventana.py bellbird/ui/musica_ventana.py
-msgid "Cerrar"
-msgstr "Close"
 
 #: bellbird/ui/gui_grabaciones.py
 msgid "Grabaciones"

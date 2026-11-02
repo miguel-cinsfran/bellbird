@@ -5569,6 +5569,7 @@ SUPERFICIES = {
     "gui_elegir_destino.py": "transmitir_destino",
     "gui_envio_chat.py": "redactar",
     "gui_estado.py": "principal",
+    "dialogo_estado.py": "principal",
     "gui_historial.py": "historial",
     "gui_grabaciones.py": "grabaciones",
     "recientes_inicio.py": "principal",

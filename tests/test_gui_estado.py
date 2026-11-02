@@ -5,6 +5,8 @@ import unittest
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
+from bellbird.core.doble_pulsacion import DoblePulsacion
+from bellbird.ui import dialogo_estado
 from bellbird.ui import gui
 from bellbird.ui import gui_estado
 from bellbird.ui.sesion_conectada import SesionConectada
@@ -191,6 +193,74 @@ class TestPseudoAnuncios(unittest.TestCase):
             gui_estado.describir_escena(frame)
         frame._anunciar_descripcion_escena.assert_called_once_with(
             "Escena: Principal")
+
+
+class TestDoblePulsacionEnF2(unittest.TestCase):
+    """Dos pulsaciones seguidas abren la lista; separadas dicen el estado."""
+
+    def setUp(self):
+        parche = mock.patch.object(gui_estado, "_PULSACIONES",
+                                   DoblePulsacion())
+        parche.start()
+        self.addCleanup(parche.stop)
+
+    def _frame(self):
+        return types.SimpleNamespace(
+            _config={"estado_toggles": {"estado"}},
+            _snapshot_sesion=lambda: "SNAP")
+
+    def test_dos_rapidas_abren_el_cuadro_con_todas_las_partes(self):
+        frame = self._frame()
+        anuncios, abiertos = [], []
+        with mock.patch.object(gui.time, "monotonic",
+                               side_effect=[100.0, 100.3]), \
+                mock.patch.object(
+                    gui.estado_sesion, "formatear_estado",
+                    side_effect=["Estado corto.", "Uno\nDos"]) as formatear, \
+                mock.patch.object(gui, "anunciar", anuncios.append), \
+                mock.patch.object(
+                    dialogo_estado, "abrir_estado",
+                    lambda padre, lineas: abiertos.append((padre, lineas))):
+            gui_estado.anunciar_estado(frame)
+            gui_estado.anunciar_estado(frame)
+        self.assertEqual(anuncios, ["Estado corto."])
+        self.assertEqual(abiertos, [(frame, ["Uno", "Dos"])])
+        self.assertEqual(formatear.call_args_list, [
+            mock.call("SNAP", {"estado"}),
+            mock.call("SNAP", gui.estado_sesion.COMPONENTES, "largo"),
+        ])
+
+    def test_dos_separadas_dicen_el_estado_dos_veces(self):
+        frame = self._frame()
+        anuncios, abiertos = [], []
+        with mock.patch.object(gui.time, "monotonic",
+                               side_effect=[100.0, 100.7]), \
+                mock.patch.object(gui.estado_sesion, "formatear_estado",
+                                  return_value="Estado.") as formatear, \
+                mock.patch.object(gui, "anunciar", anuncios.append), \
+                mock.patch.object(
+                    dialogo_estado, "abrir_estado",
+                    lambda padre, lineas: abiertos.append((padre, lineas))):
+            gui_estado.anunciar_estado(frame)
+            gui_estado.anunciar_estado(frame)
+        self.assertEqual(anuncios, ["Estado.", "Estado."])
+        self.assertEqual(abiertos, [])
+        self.assertEqual(formatear.call_count, 2)
+
+    def test_sin_datos_abre_la_lista_vacia(self):
+        frame = self._frame()
+        abiertos = []
+        with mock.patch.object(gui.time, "monotonic",
+                               side_effect=[100.0, 100.3]), \
+                mock.patch.object(gui.estado_sesion, "formatear_estado",
+                                  side_effect=["", ""]), \
+                mock.patch.object(gui, "anunciar"), \
+                mock.patch.object(
+                    dialogo_estado, "abrir_estado",
+                    lambda padre, lineas: abiertos.append(lineas)):
+            gui_estado.anunciar_estado(frame)
+            gui_estado.anunciar_estado(frame)
+        self.assertEqual(abiertos, [[]])
 
 
 if __name__ == "__main__":

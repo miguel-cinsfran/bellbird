@@ -487,6 +487,11 @@ Pacífico, cuando Google repone la cuota. Como la cuota se comparte entre
 quienes usan la aplicación, sirve para saber si un error de cuota viene de tu
 uso o del de otros.
 
+Si pulsas `F2` dos veces seguidas, antes de medio segundo, se abre la ventana
+*Estado de la sesión* con una lista: cada parte del estado en una línea,
+incluidas las que no entran en el resumen hablado. Recórrela con las flechas y
+ciérrala con `Esc` o con *Cerrar*.
+
 `F3` dice quién mandó el último mensaje leído, y `Ctrl+F2` describe la escena de
 OBS.
 
@@ -613,7 +618,7 @@ atajos. Todos figuran además en la barra de menú, junto a su acción.
 | `F11` / `F12` | Bajar o subir volumen de la voz |
 | `F4` | Silenciar lectura |
 | `F7` | Silenciar sonidos |
-| `F2` | Anunciar estado |
+| `F2` | Anunciar estado. Dos veces seguidas, abrir la lista |
 | `F3` | Anunciar autor del último mensaje |
 | `Ctrl+F2` | Describir escena de OBS |
 | `Ctrl+Mayús+F2` | Consulta rápida a la IA sobre la escena |

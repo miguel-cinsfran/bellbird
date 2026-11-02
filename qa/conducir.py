@@ -5581,6 +5581,9 @@ SUPERFICIES = {
     "ia_privacidad.py": "ia",
     "gui_transmision.py": "transmision",
     "gui_organizar_escena.py": "organizar_escena",
+    "control_grabacion.py": "transmision",
+    "directo_panel.py": "transmision",
+    "mover_con_flechas.py": "organizar_escena",
     "confirmar_transmision.py": "transmision",
     "gui_transmitir.py": "transmitir_destino",
     "gui_preferencias.py": "preferencias",
@@ -5610,7 +5613,10 @@ SUPERFICIES = {
 
 # Módulos que dibujan interfaz sin escena a propósito: cada uno lleva su
 # motivo como valor y no cuenta como huérfano en `superficies_sin_escenario()`.
-SIN_ESCENARIO: dict[str, str] = {}
+SIN_ESCENARIO: dict[str, str] = {
+    "operaciones_obs.py": "opera sobre OBS en un hilo para las ventanas; no abre una propia.",
+    "comandos_grabacion.py": "comandos del menú Transmisión que actúan sobre OBS; no abren ventana.",
+}
 
 EXTRAS_DE_INTERFAZ = ("reproductor.py", "iconos.py")
 

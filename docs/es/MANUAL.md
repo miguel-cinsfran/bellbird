@@ -245,8 +245,8 @@ YouTube con tu cuenta de Google, y a TikTok por Restream.
 - Para TikTok, un perfil de OBS llamado `TikTok` con Restream.
 - Para YouTube, la sesión de Google iniciada y los directos activados en
   tu canal. El perfil `YouTube` de OBS lo crea la aplicación.
-- En la ventana *Transmisión* (`Ctrl+Mayús+T`), sección *Escena*, elige
-  qué ventana se captura, por ejemplo un juego. En el directo se ve esa
+- En el *Panel de transmisión* (`Ctrl+Mayús+T`), pulsa *Organizar escena* y
+  elige qué ventana se captura, por ejemplo un juego. En el directo se ve esa
   ventana, pero su captura no lleva sonido: el sonido sale del audio del
   escritorio y del micrófono de OBS.
 
@@ -308,17 +308,26 @@ También se puede grabar sin abrir el panel: *Iniciar o detener grabación*
 en el menú *Transmisión* con `Alt+Mayús+G`, y *Pausar o reanudar
 grabación* con `Alt+Mayús+P`. Anuncian y suenan igual que los botones del
 panel. Si no hay una grabación en curso, pausar lo dice y no cambia nada en
-OBS.
+OBS. Si OBS no pausa la grabación, la aplicación lo dice: algunos perfiles
+pueden no permitirlo.
 
-**Cómo se ve la escena.** La ventana *Transmisión* describe cada fuente de
-adelante hacia atrás: dónde está, qué tamaño tiene y si algo la tapa. Lo
-mismo se oye con `Ctrl+F2`. Desde ahí puedes mover una fuente a una de
-nueve posiciones (por ejemplo, inferior derecha), cambiarle el tamaño,
-ocultarla, fijarla, ponerla adelante, moverla con flechas en el ajuste
-fino, guardar una captura de la escena para que la vea alguien, grabar, y
-deshacer todo lo hecho desde que abriste la ventana. Cada cambio dice
-dónde quedó la fuente, cuánto se recorta si sale del borde y cuánto la
-tapa otra.
+**El panel de transmisión.** *Estado*, arriba, dice si está todo preparado o qué
+revisar, la escena actual, el micrófono y la grabación. Desde el panel se inicia
+y se finaliza el directo por el mismo camino que el botón de la ventana
+principal, se graba, se silencia o se elige el micrófono y se cambia la escena
+actual. Solo aparece lo que sirve en ese momento: *Usuario de TikTok* con TikTok,
+*Mostrar chat en el vídeo* con YouTube y *Pausar grabación* mientras se graba.
+Intro nunca inicia ni finaliza un directo.
+
+**Organizar escena.** Esta ventana se abre desde el panel. *Descripción de la
+escena* dice cada fuente, dónde está, qué tamaño tiene y si algo la tapa. Lo
+mismo se oye con `Ctrl+F2`. Aquí puedes elegir qué ventana se captura, mover una
+fuente a una de nueve posiciones (por ejemplo, abajo a la derecha), cambiarle el
+tamaño, ocultarla, bloquearla, traerla al frente, moverla con flechas, guardar
+una imagen de la escena para que la vea alguien y deshacer todo lo hecho desde
+que abriste la ventana. Elegir otra escena no cambia lo que ven los espectadores.
+Cada cambio dice dónde quedó la fuente, cuánto se recorta si sale del vídeo y
+qué la tapa. *Ayuda* explica cada control.
 
 Todo se puede seguir haciendo a mano en OBS, y la aplicación no molesta
 al complemento de OBS para NVDA.
@@ -367,14 +376,15 @@ navegador con esta dirección:
 
     http://127.0.0.1:8730/chat
 
-Se activa en la ventana *Transmisión*. Cada mensaje sale en una tarjeta
+Se activa con *Mostrar chat en el vídeo*, en el *Panel de transmisión*, y si la
+escena actual no tiene la fuente, la agrega. Cada mensaje sale en una tarjeta
 con la inicial y un color por persona, y las donaciones en dorado con el
 importe. Solo se usa con YouTube: TikTok ya muestra los comentarios sobre
 el vídeo.
 
-Lo que no cabe en el lienzo de OBS no se emite, y una fuente que queda
-en parte fuera se recorta sin aviso. Por eso la ventana *Transmisión* dice cuánto se
-recorta. Si otra fuente tapa el panel, la aplicación lo pone delante al
+Lo que no cabe en el vídeo no se emite, y una fuente que queda en parte fuera
+se recorta sin aviso. OBS llama lienzo a ese rectángulo. Por eso *Organizar
+escena* dice cuánto se recorta. Si otra fuente tapa el panel, la aplicación lo pone delante al
 salir al aire y te dice cuál lo tapaba. `F2` dice si el panel está activo
 y si OBS lo está mostrando. El servidor solo escucha en tu PC.
 
@@ -520,7 +530,7 @@ acción.
 |---|---|
 | `Ctrl+Mayús+P` | Preferencias |
 | `Ctrl+Mayús+H` | Historial de directos |
-| `Ctrl+Mayús+T` | Transmisión |
+| `Ctrl+Mayús+T` | Panel de transmisión |
 | `Ctrl+Mayús+D` | Administrador de descargas |
 | `Ctrl+Mayús+M` | Música |
 | `Ctrl+Mayús+I` | Preguntar a la IA sobre la imagen |

@@ -1,4 +1,4 @@
-<!-- original: es/CHANGELOG.md b4e9e7fffd0d27b513bef5e8c65843fa02420a79 -->
+<!-- original: es/CHANGELOG.md 568eaad1ad5cbb99e1b39d2a748748237216e3bb -->
 # What's new in Bellbird
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/CHANGELOG.md).
@@ -18,11 +18,22 @@ Paraguay.
 - A shortcut to `YTChatTTS.exe` stops working after updating. If you opened
   the app from a shortcut, delete it and create a new one from
   `Bellbird.exe`, inside the app folder.
-- Sources that the app created in OBS keep their name, so the scenes you
-  already have keep working.
+- The OBS chat source renames itself to “Chat on video” and keeps its place
+  and size, so the scenes you already have keep working.
 
 ### What's new
 
+- The *Broadcast panel* was reorganized. At the top, *Status* says how
+  everything is. *Broadcast live* prepares OBS and checks the scene with a
+  single button, the same as the button in the main window, and asks for
+  confirmation when ending. Only the controls that are useful at that moment
+  are shown.
+- *Arrange scene*, a new window that opens from the panel, gathers what
+  organizes a scene: which window is captured and where each source goes.
+  Choosing another scene there does not change what viewers see.
+- *Start or stop recording* (`Alt+Shift+G`) and *Pause or resume recording*
+  (`Alt+Shift+P`), in the *Broadcast* menu. If OBS does not pause the
+  recording, the app says so.
 - *Update channel*, in Preferences: *Stable*, the default, offers only stable
   versions, and *Beta* also offers test versions.
 - Camera framing. `Ctrl+F3` says how you look in the camera of the OBS

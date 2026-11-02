@@ -216,7 +216,7 @@
   </style>
 </head>
 <body>
-<!-- original: es/MANUAL.md cb975066ef2c9fb4fbdfe9e758cb18fe04674286 -->
+<!-- original: es/MANUAL.md 8dd9753cfd4d3c4e817acc3f75a3b247a535d7c0 -->
 
 <h1 id="bellbird-user-manual">Bellbird, user manual</h1>
 <p>This is a translation of the Spanish original, made with artificial
@@ -473,9 +473,9 @@ Restream.</li>
 <li>For YouTube, the Google session started and live streams enabled on
 your channel. The application creates the OBS <code>YouTube</code>
 profile.</li>
-<li>In the <em>Broadcast</em> window (<code>Ctrl+Shift+T</code>),
-<em>Scene</em> section, choose which window is captured, for example a
-game. The live stream shows that window, but its capture carries no
+<li>In the <em>Broadcast panel</em> (<code>Ctrl+Shift+T</code>), press
+<em>Arrange scene</em> and choose which window is captured, for example
+a game. The live stream shows that window, but its capture carries no
 sound: sound comes from the desktop audio and the OBS microphone.</li>
 </ul>
 <p><strong>Each time:</strong> press <strong>Broadcast live</strong>,
@@ -537,17 +537,27 @@ recording</em> in the <em>Broadcast</em> menu with
 <code>Alt+Shift+G</code>, and <em>Pause or resume recording</em> with
 <code>Alt+Shift+P</code>. They announce and sound the same as the panel
 buttons do. If no recording is in progress, pausing says so and changes
-nothing in OBS.</p>
-<p><strong>How the scene looks.</strong> The <em>Broadcast</em> window
-describes each source from front to back: where it is, what size it has
-and whether something covers it. The same is heard with
-<code>Ctrl+F2</code>. From there you can move a source to one of nine
-positions (for example, bottom right), change its size, hide it, pin it,
-bring it forward, move it with arrows in fine adjustment, save a
-snapshot of the scene for someone to see, record, and undo everything
-done since you opened the window. Each change says where the source
-ended up, how much is cropped if it goes past the edge and how much
-another source covers it.</p>
+nothing in OBS. If OBS does not pause the recording, the application
+says so: some profiles may not allow it.</p>
+<p><strong>The broadcast panel.</strong> <em>Status</em>, at the top,
+says whether everything is ready or what to check, the current scene,
+the microphone and the recording. From the panel you start and end the
+live stream the same way as the button in the main window, you record,
+mute or choose the microphone and change the current scene. Only what is
+useful at that moment appears: <em>TikTok user</em> with TikTok,
+<em>Show chat on video</em> with YouTube and <em>Pause recording</em>
+while recording. Enter never starts or ends a live stream.</p>
+<p><strong>Arrange scene.</strong> This window opens from the panel.
+<em>Scene description</em> says each source, where it is, what size it
+has and whether something covers it. The same is heard with
+<code>Ctrl+F2</code>. Here you can choose which window is captured, move
+a source to one of nine positions (for example, bottom right), change
+its size, hide it, lock it, bring it forward, move it with arrows, save
+an image of the scene for someone to see and undo everything done since
+you opened the window. Choosing another scene does not change what
+viewers see. Each change says where the source ended up, how much is
+cropped if it goes past the video and what covers it. <em>Help</em>
+explains each control.</p>
 <p>Everything can still be done by hand in OBS, and the application does
 not bother the OBS plugin for NVDA.</p>
 <h2 id="camera-framing">Camera framing</h2>
@@ -589,17 +599,18 @@ on from the same category.</p>
 It is added in OBS (or Streamlabs, or Prism Live Studio) as a browser
 source with this address:</p>
 <pre><code>http://127.0.0.1:8730/chat</code></pre>
-<p>It is turned on in the <em>Broadcast</em> window. Each message
-appears on a card with the initial and a color per person, and donations
-in gold with the amount. It is only used with YouTube: TikTok already
-shows comments over the video.</p>
-<p>What does not fit on the OBS canvas is not broadcast, and a source
-that is partly outside is cropped without warning. That is why the
-<em>Broadcast</em> window says how much is cropped. If another source
-covers the panel, the application brings it forward when going live and
-tells you which one was covering it. <code>F2</code> says whether the
-panel is active and whether OBS is showing it. The server only listens
-on your computer.</p>
+<p>It is turned on with <em>Show chat on video</em>, in the
+<em>Broadcast panel</em>, and if the current scene does not have the
+source, it adds it. Each message appears on a card with the initial and
+a color per person, and donations in gold with the amount. It is only
+used with YouTube: TikTok already shows comments over the video.</p>
+<p>What does not fit in the video is not broadcast, and a source that is
+partly outside is cropped without warning. OBS calls that rectangle the
+canvas. That is why <em>Arrange scene</em> says how much is cropped. If
+another source covers the panel, the application brings it forward when
+going live and tells you which one was covering it. <code>F2</code> says
+whether the panel is active and whether OBS is showing it. The server
+only listens on your computer.</p>
 <h2 id="scheduled-messages">Scheduled messages</h2>
 <p>They send messages to the chat every so often, for example your
 social networks every ten minutes. They are configured in
@@ -776,7 +787,7 @@ action.</p>
 </tr>
 <tr>
 <td><code>Ctrl+Shift+T</code></td>
-<td>Broadcast</td>
+<td>Broadcast panel</td>
 </tr>
 <tr>
 <td><code>Ctrl+Shift+D</code></td>

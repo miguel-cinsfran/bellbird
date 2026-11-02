@@ -15,11 +15,21 @@ Paraguay.
 - Un acceso directo a `YTChatTTS.exe` deja de funcionar después de
   actualizar. Si abrías la app con un acceso directo, bórralo y crea uno
   nuevo desde `Bellbird.exe`, dentro de la carpeta de la app.
-- Las fuentes que la app creó en OBS conservan su nombre, así que las
-  escenas que ya tienes siguen funcionando.
+- La fuente del chat en OBS se renombra sola a «Chat en el vídeo» y conserva
+  su lugar y su tamaño, así que las escenas que ya tienes siguen funcionando.
 
 ### Novedades
 
+- El *Panel de transmisión* se reorganizó. Arriba, *Estado* dice cómo está
+  todo. *Transmitir en directo* prepara OBS y revisa la escena con un solo
+  botón, igual que el botón de la ventana principal, y pide confirmación al
+  finalizar. Solo se muestran los controles que sirven en ese momento.
+- *Organizar escena*, una ventana nueva que se abre desde el panel, reúne lo
+  que ordena una escena: qué ventana se captura y dónde va cada fuente. Elegir
+  otra escena ahí no cambia lo que ven los espectadores.
+- *Iniciar o detener grabación* (`Alt+Mayús+G`) y *Pausar o reanudar
+  grabación* (`Alt+Mayús+P`), en el menú *Transmisión*. Si OBS no pausa la
+  grabación, la app lo dice.
 - *Canal de actualizaciones*, en Preferencias: *Estable*, de fábrica, ofrece
   solo versiones estables, y *Beta* ofrece también las de prueba.
 - Encuadre de cámara. `Ctrl+F3` dice cómo se te ve en la cámara de la

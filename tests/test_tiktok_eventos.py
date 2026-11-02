@@ -21,8 +21,8 @@ from bellbird.capture.tiktok_captura import (
 )
 from bellbird.core import sonidos_eventos
 from bellbird.core.config import (
-    TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE,
-    TIPO_ME_GUSTA, TIPO_ENTRADA,
+    TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_SEGUIR,
+    TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA, TIPO_ENTRADA,
 )
 
 _NOMBRES_EVENTOS = (
@@ -342,22 +342,56 @@ class TestTextosEntranteNuevos(unittest.TestCase):
                          "Ana compartió el directo")
         self.assertEqual(self._leer_tts(TIPO_COFRE), "Ana envió un cofre")
 
-    def test_eventos_nuevos_usan_voz_de_eventos_con_multivoz(self):
-        for tipo in (TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE):
+    def test_evento_en_secundaria_marca_el_item(self):
+        for tipo, clave in ((TIPO_SUPERCHAT, "evento_superchat"),
+                            (TIPO_MIEMBRO, "evento_miembro"),
+                            (TIPO_SEGUIR, "evento_seguir"),
+                            (TIPO_COMPARTIR, "evento_compartir"),
+                            (TIPO_COFRE, "evento_cofre")):
             cola = queue.Queue()
             main.procesar_entrante(
                 "Ana", "", tipo, "", "canal", cola,
-                _config_minima(multivoz=True, voz_eventos="Microsoft Pablo"),
+                _config_minima(**{clave: "secundaria"}),
                 main.Stats(), on_message=lambda *a, **k: None)
-            self.assertEqual(cola.get_nowait()["voz"], "Microsoft Pablo")
+            item = cola.get_nowait()
+            self.assertIs(item.get("secundaria"), True)
+            self.assertNotIn("voz", item)
 
-    def test_sin_voz_de_eventos_no_marca_voz(self):
+    def test_sticker_comparte_el_evento_del_superchat(self):
+        cola = queue.Queue()
+        main.procesar_entrante(
+            "Ana", "hola", TIPO_STICKER, "$5", "canal", cola,
+            _config_minima(evento_superchat="secundaria"), main.Stats(),
+            on_message=lambda *a, **k: None)
+        self.assertIs(cola.get_nowait().get("secundaria"), True)
+
+    def test_evento_en_principal_no_marca_secundaria(self):
         cola = queue.Queue()
         main.procesar_entrante(
             "Ana", "", TIPO_SEGUIR, "", "canal", cola,
-            _config_minima(multivoz=True, voz_eventos=""),
-            main.Stats(), on_message=lambda *a, **k: None)
-        self.assertNotIn("voz", cola.get_nowait())
+            _config_minima(evento_seguir="principal"), main.Stats(),
+            on_message=lambda *a, **k: None)
+        item = cola.get_nowait()
+        self.assertNotIn("secundaria", item)
+        self.assertNotIn("voz", item)
+
+    def test_evento_en_mostrar_avisa_pero_no_lee(self):
+        cola = queue.Queue()
+        avisos = []
+        main.procesar_entrante(
+            "Ana", "", TIPO_SEGUIR, "", "canal", cola,
+            _config_minima(evento_seguir="mostrar"), main.Stats(),
+            on_message=lambda *a, **k: avisos.append(a))
+        self.assertEqual(len(avisos), 1)
+        self.assertTrue(cola.empty())
+
+    def test_texto_siempre_va_con_la_principal(self):
+        cola = queue.Queue()
+        main.procesar_entrante(
+            "Ana", "hola", TIPO_TEXTO, "", "canal", cola,
+            _config_minima(evento_superchat="secundaria"), main.Stats(),
+            on_message=lambda *a, **k: None)
+        self.assertNotIn("secundaria", cola.get_nowait())
 
     def test_importante_en_superchat_y_moderador(self):
         cola = queue.Queue()
@@ -397,7 +431,7 @@ class TestMeGustaConLectura(unittest.TestCase):
         stats = main.Stats()
         main.procesar_entrante(
             "Ana", "", TIPO_ENTRADA, "", "canal", cola,
-            _config_minima(tiktok_aviso_entradas="ocultar"), stats,
+            _config_minima(evento_entrada="ocultar"), stats,
             on_message=lambda *a, **k: avisos.append(a))
         self.assertEqual(avisos, [])
         self.assertTrue(cola.empty())
@@ -408,7 +442,7 @@ class TestMeGustaConLectura(unittest.TestCase):
         avisos = []
         main.procesar_entrante(
             "Ana", "", TIPO_ME_GUSTA, "15", "canal", cola,
-            _config_minima(tiktok_aviso_me_gusta="mostrar"), main.Stats(),
+            _config_minima(evento_me_gusta="mostrar"), main.Stats(),
             on_message=lambda *a, **k: avisos.append(a))
         self.assertEqual(len(avisos), 1)
         self.assertTrue(cola.empty())
@@ -418,7 +452,7 @@ class TestMeGustaConLectura(unittest.TestCase):
         avisos = []
         main.procesar_entrante(
             "Ana", "", TIPO_ME_GUSTA, "15", "canal", cola,
-            _config_minima(tiktok_aviso_me_gusta="leer"), main.Stats(),
+            _config_minima(evento_me_gusta="principal"), main.Stats(),
             on_message=lambda *a, **k: avisos.append(a))
         self.assertEqual(len(avisos), 1)
         item = cola.get_nowait()
@@ -430,7 +464,7 @@ class TestMeGustaConLectura(unittest.TestCase):
         cola = queue.Queue()
         main.procesar_entrante(
             "Ana", "", TIPO_ME_GUSTA, "", "canal", cola,
-            _config_minima(tiktok_aviso_me_gusta="leer"), main.Stats(),
+            _config_minima(evento_me_gusta="principal"), main.Stats(),
             on_message=lambda *a, **k: None)
         self.assertEqual(
             cola.get_nowait()["texto_tts"], "Ana dio me gusta")

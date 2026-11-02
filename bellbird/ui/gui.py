@@ -1843,7 +1843,7 @@ def iniciar_gui(config, cola, stats, worker, parada,
 
     # Conversión de una sola vez: los números de voz viejos pasan a nombre y se
     # fijan en config.ini, así instalar una voz no cambia la voz elegida.
-    for clave in ("voz", "voz_eventos"):
+    for clave in ("voz", "voz_eventos", "voz_secundaria"):
         nombre = escala_voz.migrar_voz(config.get(clave), voces)
         if nombre is not None:
             config[clave] = nombre

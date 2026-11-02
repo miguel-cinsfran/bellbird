@@ -362,7 +362,7 @@ def procesar_entrante(autor, mensaje, tipo, monto, canal_id, cola, config, stats
     stats.inc("recibidos")
     if tipo in (TIPO_SUPERCHAT, TIPO_STICKER): stats.inc("superchats")
 
-    modo = avisos_tiktok.modo_de(config, tipo)
+    modo = avisos_tiktok.modo_evento(config, tipo)
     if modo == "ocultar":
         stats.inc("filtrados")
         return
@@ -414,13 +414,10 @@ def procesar_entrante(autor, mensaje, tipo, monto, canal_id, cola, config, stats
         if (tipo in (TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_COFRE)
                 or rol in (ROL_PROPIETARIO, ROL_MODERADOR)):
             item["importante"] = True
-        # Multi-voz: los eventos (Super Chats, regalos, miembros, entradas) se
-        # leen con otra voz si está activado; los mensajes normales, con la base.
-        if config.get("multivoz") and tipo in (TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,
-                                               TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE):
-            voz_ev = config.get("voz_eventos")
-            if voz_ev:
-                item["voz"] = voz_ev
+        # Los eventos con voz secundaria llevan la marca; el worker conoce la
+        # voz, la velocidad y el volumen.
+        if modo == "secundaria":
+            item["secundaria"] = True
         encolar(cola, item, config, stats)
         stats.inc("leidos")
 

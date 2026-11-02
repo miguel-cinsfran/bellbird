@@ -542,6 +542,23 @@ class TestCargarConfiguracion(unittest.TestCase):
         self.assertEqual(cfg["elevenlabs_tope"], 30000)
         self.assertFalse(cfg["elevenlabs_solo_importantes"])
 
+    def test_voz_secundaria_de_fabrica(self):
+        cfg = self._cargar_en(config._CONFIG_FALLBACK)
+        self.assertEqual(cfg["voz_secundaria"], "")
+        self.assertEqual(cfg["velocidad_secundaria"], 50)
+        self.assertEqual(cfg["volumen_secundaria"], 1.0)
+        self.assertEqual(cfg["voz_respaldo_secundaria"], "")
+
+    def test_voz_secundaria_se_lee(self):
+        cfg = self._cargar_en(
+            "[voz]\nvoz_secundaria = Voz B\nvelocidad_secundaria = 20\n"
+            "volumen_secundaria = 0.3\n"
+            "voz_respaldo_secundaria = Respaldo secundario\n")
+        self.assertEqual(cfg["voz_secundaria"], "Voz B")
+        self.assertEqual(cfg["velocidad_secundaria"], 20)
+        self.assertEqual(cfg["volumen_secundaria"], 0.3)
+        self.assertEqual(cfg["voz_respaldo_secundaria"], "Respaldo secundario")
+
     def test_elevenlabs_tope_negativo_cae_a_cero(self):
         cfg = self._cargar_en("[voz]\nelevenlabs_tope = -5\n")
         self.assertEqual(cfg["elevenlabs_tope"], 0)
@@ -625,6 +642,59 @@ class TestCargarConfiguracion(unittest.TestCase):
         cfg = self._cargar_en("[tiktok]\nusuario = pepe\n")
         self.assertEqual(cfg["tiktok_aviso_entradas"], "mostrar")
         self.assertEqual(cfg["tiktok_aviso_me_gusta"], "mostrar")
+
+    def test_migracion_eventos_con_multivoz(self):
+        cfg = self._cargar_en(
+            "[voz]\nmultivoz = true\nvoz_eventos = Voz B\n"
+            "[tiktok]\nanunciar_entradas = true\nleer_me_gusta = true\n"
+            "aviso_seguidores = leer\naviso_compartidos = mostrar\n"
+            "aviso_cofres = ocultar\n")
+        self.assertEqual(cfg["evento_superchat"], "secundaria")
+        self.assertEqual(cfg["evento_miembro"], "secundaria")
+        self.assertEqual(cfg["evento_entrada"], "secundaria")
+        self.assertEqual(cfg["evento_me_gusta"], "principal")
+        self.assertEqual(cfg["evento_seguir"], "secundaria")
+        self.assertEqual(cfg["evento_compartir"], "mostrar")
+        self.assertEqual(cfg["evento_cofre"], "ocultar")
+        self.assertEqual(cfg["voz_secundaria"], "Voz B")
+        texto = (Path(self._tmp.name) / "config.ini").read_text(encoding="utf-8")
+        for vieja in ("multivoz = true", "voz_eventos = Voz B",
+                      "anunciar_entradas = true", "leer_me_gusta = true"):
+            self.assertIn(vieja, texto)
+
+    def test_migracion_eventos_sin_multivoz(self):
+        cfg = self._cargar_en(
+            "[voz]\nmultivoz = false\nvoz_eventos = Voz B\n"
+            "[tiktok]\nanunciar_entradas = true\nleer_me_gusta = true\n")
+        self.assertEqual(cfg["evento_superchat"], "principal")
+        self.assertEqual(cfg["evento_miembro"], "principal")
+        self.assertEqual(cfg["evento_entrada"], "principal")
+        self.assertEqual(cfg["evento_me_gusta"], "principal")
+        self.assertEqual(cfg["evento_seguir"], "principal")
+
+    def test_migracion_eventos_conserva_voz_secundaria_existente(self):
+        cfg = self._cargar_en(
+            "[voz]\nmultivoz = true\nvoz_eventos = Otra\n"
+            "voz_secundaria = Ya elegida\n")
+        self.assertEqual(cfg["voz_secundaria"], "Ya elegida")
+        self.assertEqual(cfg["evento_superchat"], "secundaria")
+
+    def test_eventos_presentes_no_se_migran(self):
+        cfg = self._cargar_en(
+            "[voz]\nmultivoz = true\nvoz_eventos = Voz B\n"
+            "[eventos]\nsuperchat = mostrar\n")
+        self.assertEqual(cfg["evento_superchat"], "mostrar")
+        self.assertEqual(cfg["voz_secundaria"], "")
+
+    def test_migracion_eventos_corre_una_sola_vez(self):
+        self._cargar_en("[voz]\nmultivoz = true\nvoz_eventos = Voz B\n")
+        ruta = Path(self._tmp.name) / "config.ini"
+        texto = ruta.read_text(encoding="utf-8")
+        ruta.write_text(texto.replace("multivoz = true", "multivoz = false"),
+                        encoding="utf-8")
+        with redirigir_rutas(Path(self._tmp.name)):
+            cfg = config.cargar_configuracion()
+        self.assertEqual(cfg["evento_superchat"], "secundaria")
 
     def test_destino_de_transmision_valido_se_conserva(self):
         for destino in ("TikTok", "YouTube"):

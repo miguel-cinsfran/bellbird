@@ -47,6 +47,63 @@ class TestModoDe(unittest.TestCase):
             tipos, [cfg.TIPO_ENTRADA, cfg.TIPO_ME_GUSTA, cfg.TIPO_SEGUIR,
                     cfg.TIPO_COMPARTIR, cfg.TIPO_COFRE])
         self.assertEqual(avisos_tiktok.TIPOS_AVISO, frozenset(tipos))
+        self.assertNotIn(cfg.TIPO_SUPERCHAT, avisos_tiktok.TIPOS_AVISO)
+        self.assertNotIn(cfg.TIPO_MIEMBRO, avisos_tiktok.TIPOS_AVISO)
+
+
+class TestEventos(unittest.TestCase):
+    def test_sticker_comparte_el_evento_superchat(self):
+        self.assertEqual(avisos_tiktok.evento_de(cfg.TIPO_SUPERCHAT), "superchat")
+        self.assertEqual(avisos_tiktok.evento_de(cfg.TIPO_STICKER), "superchat")
+
+    def test_los_siete_eventos_tienen_su_tipo(self):
+        esperado = {
+            cfg.TIPO_SUPERCHAT: "superchat", cfg.TIPO_STICKER: "superchat",
+            cfg.TIPO_MIEMBRO: "miembro", cfg.TIPO_ENTRADA: "entrada",
+            cfg.TIPO_ME_GUSTA: "me_gusta", cfg.TIPO_SEGUIR: "seguir",
+            cfg.TIPO_COMPARTIR: "compartir", cfg.TIPO_COFRE: "cofre",
+        }
+        for tipo, evento in esperado.items():
+            with self.subTest(tipo=tipo):
+                self.assertEqual(avisos_tiktok.evento_de(tipo), evento)
+        self.assertIsNone(avisos_tiktok.evento_de(cfg.TIPO_TEXTO))
+
+    def test_modos_y_rotulos(self):
+        self.assertEqual([modo for modo, _rotulo in avisos_tiktok.MODOS_EVENTO],
+                         ["principal", "secundaria", "mostrar", "ocultar"])
+        self.assertEqual([rotulo for _modo, rotulo in avisos_tiktok.MODOS_EVENTO],
+                         ["Voz principal", "Voz secundaria", "Solo sonido",
+                          "Desactivado"])
+
+    def test_modo_guardado(self):
+        config = {"evento_superchat": "mostrar"}
+        self.assertEqual(
+            avisos_tiktok.modo_evento(config, cfg.TIPO_SUPERCHAT), "mostrar")
+
+    def test_ausente_da_el_de_fabrica(self):
+        self.assertEqual(
+            avisos_tiktok.modo_evento({}, cfg.TIPO_MIEMBRO), "principal")
+        self.assertEqual(
+            avisos_tiktok.modo_evento({}, cfg.TIPO_ENTRADA), "mostrar")
+        self.assertEqual(
+            avisos_tiktok.modo_evento({}, cfg.TIPO_ME_GUSTA), "mostrar")
+
+    def test_extrano_da_el_de_fabrica(self):
+        config = {"evento_cofre": "raro"}
+        self.assertEqual(
+            avisos_tiktok.modo_evento(config, cfg.TIPO_COFRE), "principal")
+
+    def test_texto_no_es_evento(self):
+        self.assertIsNone(avisos_tiktok.modo_evento({}, cfg.TIPO_TEXTO))
+
+    def test_opciones_eventos_validan_y_completan(self):
+        texto = "[eventos]\nsuperchat = mostrar\nmiembro = raro\n"
+        parser = configparser.ConfigParser(interpolation=None)
+        parser.read_string(texto)
+        opciones = avisos_tiktok.opciones_eventos(parser)
+        self.assertEqual(opciones["evento_superchat"], "mostrar")
+        self.assertEqual(opciones["evento_miembro"], "principal")
+        self.assertEqual(opciones["evento_entrada"], "mostrar")
 
 
 class TestPasaFiltro(unittest.TestCase):

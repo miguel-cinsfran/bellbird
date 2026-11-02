@@ -9,7 +9,9 @@ para no cerrar un import circular.
 
 from __future__ import annotations
 
-from bellbird.core.ini_tipado import leer_texto, leer_decimal, leer_entero, leer_booleano
+from bellbird.core.ini_tipado import (
+    leer_texto, leer_decimal, leer_entero, leer_booleano, a_entero, a_decimal,
+)
 
 
 def opciones_voz(p, ruta) -> dict:
@@ -36,7 +38,7 @@ def opciones_voz(p, ruta) -> dict:
     else:
         velocidad_voz = _escala.VELOCIDAD_NORMAL
 
-    return {
+    return {**opciones_secundarias(p),
         "motor": motor,
         "voz": leer_texto(p, "voz", "voz"),
         "velocidad_voz": velocidad_voz,
@@ -47,4 +49,22 @@ def opciones_voz(p, ruta) -> dict:
         "voz_respaldo": leer_texto(p, "voz", "voz_respaldo"),
         "elevenlabs_tope": leer_entero(p, "voz", "elevenlabs_tope", lo=0),
         "elevenlabs_solo_importantes": leer_booleano(p, "voz", "elevenlabs_solo_importantes"),
+    }
+
+
+def opciones_secundarias(p) -> dict:
+    """La voz secundaria con su velocidad, su volumen y su respaldo.
+
+    Los valores de fábrica viven acá: la sección [voz] los lee aunque falten
+    en config.ini."""
+    from bellbird.voice import escala_voz as _escala
+    velocidad = max(0, min(100, a_entero(
+        leer_texto(p, "voz", "velocidad_secundaria"), _escala.VELOCIDAD_NORMAL)))
+    volumen = max(0.0, min(1.0, a_decimal(
+        leer_texto(p, "voz", "volumen_secundaria"), 1.0)))
+    return {
+        "voz_secundaria": leer_texto(p, "voz", "voz_secundaria"),
+        "velocidad_secundaria": velocidad,
+        "volumen_secundaria": volumen,
+        "voz_respaldo_secundaria": leer_texto(p, "voz", "voz_respaldo_secundaria"),
     }

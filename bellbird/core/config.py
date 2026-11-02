@@ -340,7 +340,7 @@ def cargar_configuracion() -> dict:
     atajos_raw = ({k.strip().lower(): (v or "").strip() for k, v in p.items("atajos")}
                   if p.has_section("atajos") else {})
     migrar_atajos_config(p, ruta, atajos_raw)
-    avisos_tiktok.migrar(p, ruta, guardar_opcion)
+    avisos_tiktok.migrar(p, ruta, guardar_opcion, guardar_opciones)
     # Migración genérica: agregar toda sección o clave ausente desde la fuente
     # canónica, preservando valores existentes incluso vacíos y claves desconocidas.
     _faltantes = [(s, c, v) for s, cs in config_predeterminada.datos().items()
@@ -369,7 +369,7 @@ def cargar_configuracion() -> dict:
         filtro_activo = "todos"
 
     return {
-        **_opciones_voz(p, ruta),
+        **_opciones_voz(p, ruta), **avisos_tiktok.opciones_eventos(p),
         "estrategia": estrategia, "tamanio_maximo": leer_entero(p, "cola", "tamanio_maximo", lo=1),
         "umbral_solo_nombre": leer_entero(p, "cola", "umbral_solo_nombre"),
         "reconectar": leer_booleano(p, "reconexion", "reconectar"),

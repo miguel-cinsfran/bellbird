@@ -1657,6 +1657,14 @@ msgstr "Shared l&ive streams:"
 msgid "Co&fres:"
 msgstr "&Treasure chests:"
 
+#: bellbird/core/avisos_tiktok.py
+msgid "Voz principal"
+msgstr "Main voice"
+
+#: bellbird/core/avisos_tiktok.py
+msgid "Voz secundaria"
+msgstr "Secondary voice"
+
 #. Traductores: fecha corta de una fila del historial; se ordena como la
 #. fecha corta de Windows en ese idioma, y en inglés de Estados Unidos es
 #. «{mes}/{dia}/{anio}».

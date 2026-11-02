@@ -245,13 +245,12 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
 _COMENTARIOS: dict[str, str] = {
     "voz": (
         "# Motor de voz: sapi, onecore o elevenlabs. Voz vacía es la\n"
-        "# primera del sistema; se guarda por nombre. Multivoz usa otra\n"
-        "# voz para eventos (Super Chats, regalos). Se cambia en\n"
-        "# Preferencias > Lectura. Con ElevenLabs, voz_respaldo es la voz\n"
-        "# de Windows que suena si falla o se pasa el límite de caracteres\n"
-        "# (elevenlabs_tope, 0 sin límite), y elevenlabs_solo_importantes\n"
-        "# reserva la nube para Super Chats, stickers, miembros, cofres,\n"
-        "# el dueño del canal y los moderadores.\n"
+        "# primera del sistema; se guarda por nombre. multivoz y la voz\n"
+        "# secundaria se cambian en Preferencias > Voces. Con ElevenLabs,\n"
+        "# voz_respaldo es la voz de Windows que suena si falla o se pasa\n"
+        "# el límite de caracteres (elevenlabs_tope, 0 sin límite), y\n"
+        "# elevenlabs_solo_importantes reserva la nube para Super Chats,\n"
+        "# stickers, miembros, cofres, el dueño del canal y los moderadores.\n"
     ),
     "cola": "# Cola de lectura: con límite descarta los más antiguos si se llena.\n",
     "reconexion": "# Reconexión automática si se corta el chat.\n",

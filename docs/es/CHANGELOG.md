@@ -35,8 +35,14 @@ Paraguay.
   permite abrir lo grabado, abrir su carpeta, copiar la ruta y eliminarlo de la
   lista.
 - Igualar el volumen tarda menos, porque mide varias canciones a la vez.
-- *Canal de actualizaciones*, en Preferencias: *Estable*, de fábrica, ofrece
+- *Canal de actualización*, en Preferencias: *Estable*, de fábrica, ofrece
   solo versiones estables, y *Beta* ofrece también las de prueba.
+- Los menús, Preferencias y los avisos usan las palabras de Windows: *Límite
+  de caracteres* en vez de tope, *Activar* en vez de encender, *Anunciar
+  canción actual* en vez de *Qué suena*, *Dejar de silenciar* en vez de
+  rehabilitar, y *Bajar velocidad de la voz* y *Subir velocidad de la voz*
+  en el menú *Voz*. Si una tecla ya está asignada a otra acción, el aviso al
+  abrir la app dice a cuál y qué atajo se desactivó.
 - Encuadre de cámara. `Ctrl+F3` dice cómo se te ve en la cámara de la
   escena al aire de OBS: si estás centrado, lejos, fuera del borde o con
   poca luz, y hacia dónde moverte. `Ctrl+Mayús+F3` activa avisos con

@@ -333,10 +333,10 @@ no se leen.</p>
 motor (SAPI 5, OneCore o ElevenLabs), la voz, la velocidad, el volumen y
 el tono, y <em>Probar voz</em> deja oírla antes de guardar. Puedes usar
 una segunda voz para los Super Chats, los regalos, las membresías y las
-entradas. Con ElevenLabs puedes poner un tope de caracteres por sesión o
-usarlo solo con los mensajes importantes. Si falla la red o se acaba el
-saldo, lee la voz de Windows y lo avisa una vez. La clave se guarda en
-<code>credenciales.json</code>.</p>
+entradas. Con ElevenLabs puedes poner un límite de caracteres por sesión
+o usarlo solo con los mensajes importantes. Si falla la red o se acaba
+el saldo, lee la voz de Windows y lo avisa una vez. La clave se guarda
+en <code>credenciales.json</code>.</p>
 <p><strong>Alias.</strong> Para los nombres que son una tira de letras y
 números: menú contextual sobre un mensaje, <em>Poner alias</em>, y
 escribe cómo quieres oírlo. Vale también para los mensajes que ya
@@ -352,14 +352,15 @@ caracteres.</p>
 <p><strong>Sonidos.</strong> Hay uno para cada cosa: mensajes, Super
 Chats, miembros, regalos de TikTok por tamaño, seguidores, entradas, la
 conexión, errores, y la orilla al llegar al principio o al final de una
-lista. <code>F7</code> los silencia todos. Para callar uno solo,
-destilda su casilla en <em>Preferencias, Sonidos</em>, donde <em>Oír
-sonido elegido</em> deja oír cada uno. El tema de sonido se elige en la
-misma categoría, arriba de la lista: <code>default</code>, con sonidos
-grabados, o <code>suave</code>, más cortos y tenues. Para hacer uno
-propio, copia <code>sounds/themes/default</code> con otro nombre y
-cambia los <code>.wav</code>. <code>sounds/CREDITOS.md</code> dice de
-dónde sale cada sonido.</p>
+lista. <code>F7</code> los silencia todos. Para silenciar uno solo,
+desactiva su casilla en <em>Preferencias, Sonidos</em>, donde
+<em>Reproducir sonido elegido</em> deja oír cada uno. El tema de sonido
+se elige en la misma categoría, arriba de la lista:
+<code>default</code>, con sonidos grabados, o <code>suave</code>, más
+cortos y tenues. Para hacer uno propio, copia
+<code>sounds/themes/default</code> con otro nombre y cambia los
+<code>.wav</code>. <code>sounds/CREDITOS.md</code> dice de dónde sale
+cada sonido.</p>
 <p><strong>Comentarios de vídeos.</strong> Con un vídeo ya publicado, la
 pestaña de comentarios los muestra y los lee. Con sesión de Google
 puedes comentar y responder.</p>
@@ -461,7 +462,7 @@ aplicación: a YouTube con tu cuenta de Google, y a TikTok por
 Restream.</p>
 <p><strong>Una sola vez:</strong></p>
 <ul>
-<li>Activa el servidor websocket de OBS desde <em>Preferencias,
+<li>Activa el servidor WebSocket de OBS desde <em>Preferencias,
 Transmisión</em>. Si OBS está cerrado, la aplicación lo abre en el área
 de notificación sin quitarle el foco al lector de pantalla.</li>
 <li>Para TikTok, un perfil de OBS llamado <code>TikTok</code> con
@@ -947,7 +948,7 @@ valor.</p>
 </tr>
 <tr>
 <td><code>Ctrl+Alt+T</code></td>
-<td>Qué suena</td>
+<td>Anunciar canción actual</td>
 </tr>
 <tr>
 <td><code>Ctrl+Alt+M</code></td>
@@ -1038,7 +1039,7 @@ iniciarse, una versión nueva se anuncia una sola vez. Si entre la
 versión instalada y la nueva hay otras, la ventana muestra las novedades
 de todas, de la más nueva a la más vieja, cada una con su
 encabezado.</p>
-<p>En <em>Preferencias, General</em>, <em>Canal de actualizaciones</em>
+<p>En <em>Preferencias, General</em>, <em>Canal de actualización</em>
 elige qué versiones se ofrecen. <em>Estable</em>, la opción de fábrica,
 ofrece solo versiones estables. <em>Beta</em> ofrece también las
 versiones de prueba, que pueden traer defectos.</p>
@@ -1067,9 +1068,9 @@ registros</em> abre la carpeta <code>data</code>, donde están los
 registros. Los errores quedan en <code>data/bellbird.log</code>, y si la
 aplicación se cierra sola, también en
 <code>data/bellbird-fallos.log</code>. El registro detallado,
-<code>data/bellbird-debug.log</code>, viene encendido; se apaga en
+<code>data/bellbird-debug.log</code>, viene activado; se desactiva en
 <em>Preferencias, General</em>, con la casilla <em>Guardar un registro
-detallado para diagnosticar fallos</em>. Para avisar de un fallo,
+detallado para diagnosticar errores</em>. Para avisar de un error,
 reproduce el problema y manda los tres archivos.</p>
 <h2 id="licencia">Licencia</h2>
 <p>GPL-3.0 desde la 2.5.1. Ver <a href="../../LICENSE">LICENSE</a>. Las

@@ -106,7 +106,7 @@ En *Preferencias, Filtros* van las palabras y los usuarios que no se leen.
 ElevenLabs), la voz, la velocidad, el volumen y el tono, y *Probar voz*
 deja oírla antes de guardar. Puedes usar una segunda voz para los Super
 Chats, los regalos, las membresías y las entradas. Con ElevenLabs puedes
-poner un tope de caracteres por sesión o usarlo solo con los mensajes
+poner un límite de caracteres por sesión o usarlo solo con los mensajes
 importantes. Si falla la red o se acaba el saldo, lee la voz de Windows y
 lo avisa una vez. La clave se guarda en `credenciales.json`.
 
@@ -124,8 +124,8 @@ tabulador y su nombre dice qué falta. El límite es de 200 caracteres.
 **Sonidos.** Hay uno para cada cosa: mensajes, Super Chats, miembros,
 regalos de TikTok por tamaño, seguidores, entradas, la conexión, errores,
 y la orilla al llegar al principio o al final de una lista. `F7` los
-silencia todos. Para callar uno solo, destilda su casilla en
-*Preferencias, Sonidos*, donde *Oír sonido elegido* deja oír cada uno.
+silencia todos. Para silenciar uno solo, desactiva su casilla en
+*Preferencias, Sonidos*, donde *Reproducir sonido elegido* deja oír cada uno.
 El tema de sonido se elige en la misma categoría, arriba de la lista:
 `default`, con sonidos grabados, o `suave`, más cortos y tenues. Para
 hacer uno propio, copia `sounds/themes/default` con otro nombre y cambia
@@ -239,7 +239,7 @@ YouTube con tu cuenta de Google, y a TikTok por Restream.
 
 **Una sola vez:**
 
-- Activa el servidor websocket de OBS desde *Preferencias, Transmisión*.
+- Activa el servidor WebSocket de OBS desde *Preferencias, Transmisión*.
   Si OBS está cerrado, la aplicación lo abre en el área de notificación
   sin quitarle el foco al lector de pantalla.
 - Para TikTok, un perfil de OBS llamado `TikTok` con Restream.
@@ -585,7 +585,7 @@ nombre y el valor («Volumen de la voz: 40%») y después solo el valor.
 | `Ctrl+Alt+Flecha derecha` / `izquierda` | Canción siguiente o anterior |
 | `Ctrl+Alt+Flecha arriba` / `abajo` | Volumen de la música |
 | `Ctrl+Alt+Mayús+Flecha derecha` / `izquierda` | Adelantar o retroceder 10 segundos |
-| `Ctrl+Alt+T` | Qué suena |
+| `Ctrl+Alt+T` | Anunciar canción actual |
 | `Ctrl+Alt+M` | Silenciar la música |
 | `Ctrl+Alt+D` | Detener música |
 | `Ctrl+Alt+A` | Orden aleatorio |
@@ -652,7 +652,7 @@ se anuncia una sola vez. Si entre la versión instalada y la nueva hay
 otras, la ventana muestra las novedades de todas, de la más nueva a la más
 vieja, cada una con su encabezado.
 
-En *Preferencias, General*, *Canal de actualizaciones* elige qué versiones se
+En *Preferencias, General*, *Canal de actualización* elige qué versiones se
 ofrecen. *Estable*, la opción de fábrica, ofrece solo versiones estables.
 *Beta* ofrece también las versiones de prueba, que pueden traer defectos.
 
@@ -682,9 +682,9 @@ lo muestra. Si nadie lo muestra, revisa la fuente de navegador en OBS.
 `data`, donde están los registros. Los errores quedan en
 `data/bellbird.log`, y si la aplicación se cierra sola, también en
 `data/bellbird-fallos.log`. El registro detallado, `data/bellbird-debug.log`,
-viene encendido; se apaga en *Preferencias, General*, con la casilla
-*Guardar un registro detallado para diagnosticar fallos*. Para avisar de
-un fallo, reproduce el problema y manda los tres archivos.
+viene activado; se desactiva en *Preferencias, General*, con la casilla
+*Guardar un registro detallado para diagnosticar errores*. Para avisar de
+un error, reproduce el problema y manda los tres archivos.
 
 ## Licencia
 

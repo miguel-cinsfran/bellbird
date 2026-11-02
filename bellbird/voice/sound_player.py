@@ -120,6 +120,11 @@ def esta_silenciado() -> bool:
     return _silenciado_usuario or not _activo
 
 
+def puede_sonar() -> bool:
+    """¿Los sonidos pueden sonar ahora? Ni silenciados por F7 ni desactivados."""
+    return not _silenciado_usuario and _activo
+
+
 def _encolar(ruta: Path) -> None:
     """Encola para el hilo de sonido o usa el fallback sin hilo.
 
@@ -166,7 +171,7 @@ def reproducir_archivo(ruta: Path | str | None) -> None:
     encola. Si el archivo no existe, no suena nada.
     """
     try:
-        if _silenciado_usuario or not _activo:
+        if not puede_sonar():
             return
         if not ruta:
             return

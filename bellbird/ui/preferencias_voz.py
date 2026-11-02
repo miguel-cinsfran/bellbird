@@ -13,6 +13,7 @@ from bellbird.youtube import credenciales
 from bellbird.ui import clave_elevenlabs
 from bellbird.ui.gui import ContadorAccesible, _T, _tc, anunciar
 from bellbird.ui.preferencias_comun import crear_panel, fila_label
+from bellbird.ui.preferencias_voz_secundaria import BloqueVozSecundaria
 from bellbird.ui.prueba_voz import PruebaVoz
 
 _SIN_CLAVE_ELEVEN = N_("(comprueba la clave)")
@@ -39,10 +40,13 @@ class PaginaVoz:
 
         self._crear_motor(p, vs)
         lbl_clave = self._crear_clave(p, vs)
-        vacio_voz = self._crear_voz_lectura(p, vs, es_eleven)
+        self._crear_voz_lectura(p, vs, es_eleven)
         self._crear_ajustes(p, vs)
         self._crear_eleven(p, vs, lbl_clave)
-        self._crear_multivoz(p, vs, vacio_voz)
+        self._voz_secundaria = BloqueVozSecundaria(
+            self._config, self._probar_voz_secundaria)
+        vs.Add(self._voz_secundaria.construir(
+            p, self._voces, self._voces_respaldo), 0, wx.EXPAND | wx.ALL, 10)
         self._prueba = PruebaVoz()
         # El motor de prueba se cierra al cerrar el diálogo por cualquier camino.
         # Se escucha en el panel: el diálogo llega al evento como un wx.Window
@@ -92,7 +96,7 @@ class PaginaVoz:
         # Voz del motor elegido. También está en el menú Voz → Seleccionar voz;
         # aquí queda junto al resto de ajustes de lectura para encontrarla más
         # fácil.
-        vs.Add(fila_label(p, _("&Voz de lectura:")), 0, wx.LEFT | wx.RIGHT, 10)
+        vs.Add(fila_label(p, _("&Voz principal:")), 0, wx.LEFT | wx.RIGHT, 10)
         if es_eleven:
             # Nunca se va a la red en el hilo de la interfaz: la lista queda
             # vacía hasta que se compruebe la clave.
@@ -102,11 +106,10 @@ class PaginaVoz:
             self._voces = motores.listar_voces(motores.MOTORES[self._motor_idx])
             vacio_voz = _NO_HAY_VOCES
         self.cho_voz = wx.Choice(p, choices=self._voces or [vacio_voz],
-                                  name=_("Voz de lectura"))
+                                  name=_("Voz principal"))
         _tc(self.cho_voz)
         self._cargar_voces(self.cho_voz, self._config.get("voz"), vacio=vacio_voz)
         vs.Add(self.cho_voz, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-        return vacio_voz
 
     def _crear_ajustes(self, p, vs):
         from bellbird.voice import escala_voz
@@ -193,35 +196,12 @@ class PaginaVoz:
             lbl_respaldo, self.cho_voz_respaldo,
         ]
 
-    def _crear_multivoz(self, p, vs, vacio_voz):
-        # Multi-voz: una voz distinta para los eventos (Super Chats, regalos,
-        # miembros, entradas). Desactivada por defecto.
-        self.chk_multivoz = wx.CheckBox(
-            p, name="MultiVoz",
-            label=_("Usar una voz &distinta para los eventos (Super Chats, regalos, "
-                    "miembros y entradas)"))
-        self.chk_multivoz.SetForegroundColour(_T.text)
-        vs.Add(self.chk_multivoz, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
-
-        vs.Add(fila_label(p, _("Voz para los &eventos:")), 0, wx.LEFT | wx.RIGHT, 10)
-        self.cho_voz_eventos = wx.Choice(
-            p, choices=self._voces or [vacio_voz], name=_("Voz para los eventos"))
-        _tc(self.cho_voz_eventos)
-        self._cargar_voces(self.cho_voz_eventos, self._config.get("voz_eventos"),
-                           vacio=vacio_voz)
-        self.actualizar_eventos()
-        self.chk_multivoz.Bind(
-            wx.EVT_CHECKBOX,
-            lambda e: self.cho_voz_eventos.Enable(bool(self._voces) and e.IsChecked()))
-        vs.Add(self.cho_voz_eventos, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-
-    def actualizar_eventos(self) -> None:
-        self.cho_voz_eventos.Enable(
-            bool(self._voces) and self.chk_multivoz.GetValue())
-
     def _mostrar_controles_eleven(self, visible: bool) -> None:
         for ctrl in getattr(self, "_eleven_ctrls", ()):
             ctrl.Show(visible)
+        bloque = getattr(self, "_voz_secundaria", None)
+        if bloque is not None:
+            bloque.mostrar_respaldo(visible)
         panel = getattr(self, "_pag_voz_panel", None)
         if panel is not None:
             panel.Layout()
@@ -230,9 +210,7 @@ class PaginaVoz:
         self._voces = []
         self._cargar_voces(self.cho_voz, self._config.get("voz"),
                            vacio=_SIN_CLAVE_ELEVEN)
-        self._cargar_voces(self.cho_voz_eventos, self._config.get("voz_eventos"),
-                           vacio=_SIN_CLAVE_ELEVEN)
-        self.cho_voz_eventos.Disable()
+        self._voz_secundaria.recargar_voces(self._voces)
         if self.txt_clave_eleven.GetValue().strip():
             self.btn_comprobar_clave.Disable()
             self._comprobar_clave(anunciar_ok)
@@ -259,9 +237,7 @@ class PaginaVoz:
         self._voces = [nombre for _id, nombre in pares]
         self._cargar_voces(self.cho_voz, self._config.get("voz"),
                            vacio=_SIN_CLAVE_ELEVEN)
-        self._cargar_voces(self.cho_voz_eventos, self._config.get("voz_eventos"),
-                           vacio=_SIN_CLAVE_ELEVEN)
-        self.actualizar_eventos()
+        self._voz_secundaria.recargar_voces(self._voces)
         if anunciar_ok:
             anunciar(clave_elevenlabs.texto_clave_valida(
                 len(self._voces), usados, limite))
@@ -272,8 +248,7 @@ class PaginaVoz:
         self.btn_comprobar_clave.Enable()
         self._voces = []
         self._cargar_voces(self.cho_voz, None, vacio=_SIN_CLAVE_ELEVEN)
-        self._cargar_voces(self.cho_voz_eventos, None, vacio=_SIN_CLAVE_ELEVEN)
-        self.cho_voz_eventos.Disable()
+        self._voz_secundaria.recargar_voces(self._voces)
         anunciar(mensaje)
 
     def _cargar_voces(self, choice, guardada, vacio=_NO_HAY_VOCES) -> None:
@@ -309,8 +284,7 @@ class PaginaVoz:
         self._mostrar_controles_eleven(False)
         self._voces = motores.listar_voces(motor)
         self._cargar_voces(self.cho_voz, self._config.get("voz"))
-        self._cargar_voces(self.cho_voz_eventos, self._config.get("voz_eventos"))
-        self.actualizar_eventos()
+        self._voz_secundaria.recargar_voces(self._voces)
 
     def _on_probar_voz(self, event) -> None:
         motor = self._motor_elegido()
@@ -330,6 +304,25 @@ class PaginaVoz:
             self.cho_voz.GetStringSelection(),
             self.sp_velocidad.GetValue(), self.sp_volumen.GetValue())
 
+    def _probar_voz_secundaria(self) -> None:
+        from bellbird.voice import escala_voz
+
+        motor = self._motor_elegido()
+        voz, velocidad, volumen = self._voz_secundaria.datos_de_prueba()
+        if motor == "elevenlabs":
+            if not self._voces:
+                anunciar(_("Primero comprueba la clave."))
+                return
+            self._prueba.probar_elevenlabs(
+                self.txt_clave_eleven.GetValue().strip(),
+                voz or self.cho_voz.GetStringSelection(), velocidad, volumen)
+            return
+        indice = escala_voz.resolver_voz(voz, self._voces) if voz else None
+        if indice is None:
+            indice = self.cho_voz.GetSelection()
+        self._prueba.probar_prism(
+            motor, indice, velocidad, volumen, self.sp_tono.GetValue())
+
     def _cerrar_motor_prueba(self) -> None:
         self._prueba.cerrar()
 
@@ -344,6 +337,7 @@ class PaginaVoz:
         # Si el motor elegido no tiene voces no se guardan motor ni voz (se
         # conservan los anteriores); el resto de las opciones se guarda igual.
         motor_no_disponible = self._guardar_motor_y_voces(fijar, en_memoria)
+        self._voz_secundaria.guardar(fijar, en_memoria, bool(self._voces))
         self._guardar_clave_elevenlabs(fijar, en_memoria)
         self._guardar_ajustes_voz(fijar, en_memoria)
         return motor_no_disponible
@@ -359,9 +353,6 @@ class PaginaVoz:
             nom_voz = self.cho_voz.GetStringSelection()
             fijar("voz", "voz", nom_voz)
             en_memoria["voz"] = nom_voz
-            nom_ev = self.cho_voz_eventos.GetStringSelection()
-            fijar("voz", "voz_eventos", nom_ev)
-            en_memoria["voz_eventos"] = nom_ev
         else:
             motor_no_disponible = True
         return motor_no_disponible

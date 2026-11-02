@@ -275,6 +275,13 @@ INTERNAS = {
 # Pares que se leen fuera de `config.py`: dónde se lee cada uno.
 LEIDAS_FUERA = {
     ("actualizaciones", "canal"): "la lee canal_app.canal_guardado (canal_app.py)",
+    ("eventos", "superchat"): "la lee avisos_tiktok.opciones_eventos (avisos_tiktok.py)",
+    ("eventos", "miembro"): "la lee avisos_tiktok.opciones_eventos (avisos_tiktok.py)",
+    ("eventos", "entrada"): "la lee avisos_tiktok.opciones_eventos (avisos_tiktok.py)",
+    ("eventos", "me_gusta"): "la lee avisos_tiktok.opciones_eventos (avisos_tiktok.py)",
+    ("eventos", "seguir"): "la lee avisos_tiktok.opciones_eventos (avisos_tiktok.py)",
+    ("eventos", "compartir"): "la lee avisos_tiktok.opciones_eventos (avisos_tiktok.py)",
+    ("eventos", "cofre"): "la lee avisos_tiktok.opciones_eventos (avisos_tiktok.py)",
     ("ia", "direccion"): "la lee ajustes_ia.leer (ajustes_ia.py:94)",
     ("ia", "largo"): "la lee ajustes_ia.leer (ajustes_ia.py:96)",
     ("ia", "modelo"): "la lee ajustes_ia.leer (ajustes_ia.py:93)",
@@ -373,6 +380,7 @@ def _pares_con_control():
         "bellbird/ui/preferencias_musica.py",
         "bellbird/ui/preferencias_lectura.py", "bellbird/ui/preferencias_ia.py",
         "bellbird/ui/preferencias_voz.py",
+        "bellbird/ui/preferencias_voz_secundaria.py",
         "bellbird/ui/preferencias_transmision.py",
         "bellbird/ui/preferencias_camara.py")}
     for arbol in arboles.values():
@@ -441,6 +449,7 @@ class PruebaConfiguracion(unittest.TestCase):
             "bellbird/ui/preferencias_musica.py, "
             "bellbird/ui/preferencias_lectura.py, bellbird/ui/preferencias_ia.py, "
             "bellbird/ui/preferencias_voz.py, "
+            "bellbird/ui/preferencias_voz_secundaria.py, "
             "bellbird/ui/preferencias_transmision.py, "
             "bellbird/ui/preferencias_camara.py): "
             f"{faltan}")

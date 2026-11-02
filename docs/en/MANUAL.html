@@ -216,7 +216,7 @@
   </style>
 </head>
 <body>
-<!-- original: es/MANUAL.md 7476ef5c897e2ea6db724e12d72d393b609a1413 -->
+<!-- original: es/MANUAL.md d2680eacd8e142564da808d92607ae73fb56bcc8 -->
 
 <h1 id="bellbird-user-manual">Bellbird, user manual</h1>
 <p>This is a translation of the Spanish original, made with artificial
@@ -297,16 +297,21 @@ depending on who writes: channel owner, moderator, verified account or
 member. It also changes depending on what it is: Super Chat, membership
 or TikTok gift.</p>
 <p>On TikTok, stickers and live questions are also read. In
-<em>Preferences</em>, on the <em>Reading</em> category, each TikTok
-notice (joins, likes, followers, shares and treasure chests) has its
-mode. <em>Sound and speech</em> shows it in the list, plays its sound
-and reads it; <em>Sound only</em> shows it and plays its sound without
-reading it; <em>Off</em> does not show it. By default, joins and likes
-are set to <em>Sound only</em>, and followers, shares and treasure
-chests to <em>Sound and speech</em>. If the streamer pauses the live
-stream, you hear “The TikTok live stream is paused.”, and when it
-resumes, “The TikTok live stream continues.”, each one with its
-sound.</p>
+<em>Preferences</em>, on the <em>Reading</em> category, the <em>Live
+events</em> group has one list per event: <em>Super Chats and
+gifts</em>, <em>Memberships</em>, <em>Live joins</em>, <em>Likes</em>,
+<em>New followers</em>, <em>Shared live streams</em> and <em>Treasure
+chests</em>. Each list chooses between <em>Main voice</em>,
+<em>Secondary voice</em>, <em>Sound only</em> and <em>Off</em>. <em>Main
+voice</em> and <em>Secondary voice</em> show it in the list, play its
+sound and read it; <em>Sound only</em> shows it and plays its sound
+without reading it; <em>Off</em> does not show it. By default, joins and
+likes are set to <em>Sound only</em>, and the rest to <em>Main
+voice</em>. The secondary voice and its settings are chosen in
+<em>Preferences</em>, on the <em>Voices</em> category. If the streamer
+pauses the live stream, you hear “The TikTok live stream is paused.”,
+and when it resumes, “The TikTok live stream continues.”, each one with
+its sound.</p>
 <p>In the list, the arrows move from message to message and typing a few
 letters jumps to the first author that starts that way. The context menu
 copies the message, mutes the author for the session, sets an alias and,
@@ -347,14 +352,21 @@ read.</p>
 <h3 id="voices">Voices</h3>
 <p>Bellbird can read the chat with three voice engines: SAPI 5 and
 OneCore, which come with Windows, and ElevenLabs, which needs an
-account. To choose the engine, the voice, the speed, the volume and the
-pitch, open <em>Preferences</em> and go to the <em>Voices</em> category.
-The <em>Test voice</em> button plays a sample before saving. To make
-Super Chats, gifts, memberships and joins stand out, assign them a
-second voice. With ElevenLabs you can set a character limit per session
-or use it only for important messages. If the network fails or the
-balance runs out, the application reads with the Windows voice and warns
-you once. The key is saved in <code>credenciales.json</code>.</p>
+account. To choose the engine, the main voice, the speed, the volume and
+the pitch, open <em>Preferences</em> and go to the <em>Voices</em>
+category. The <em>Test voice</em> button plays a sample before saving.
+The <em>Secondary voice</em> group chooses the voice for the events set
+to that mode in <em>Preferences</em>, on the <em>Reading</em> category:
+<em>Voice</em>, <em>Speed (0 to 100)</em>, <em>Volume (0 to 100)</em>
+and <em>Test secondary voice</em>. With <em>Same as the main voice</em>,
+the secondary voice plays with the main voice and its own settings. With
+ElevenLabs, <em>Backup Windows voice</em> chooses the voice that plays
+if the network fails or the balance runs out, and <em>Same as the main
+voice backup</em> follows the main voice backup. You can also set a
+character limit per session or use ElevenLabs only for important
+messages. If the network fails or the balance runs out, the application
+reads with the Windows voice and warns you once. The key is saved in
+<code>credenciales.json</code>.</p>
 <h3 id="alias">Alias</h3>
 <p>The alias is for names that are a combination of letters and numbers.
 Open the context menu of a message, choose <em>Set alias</em> for

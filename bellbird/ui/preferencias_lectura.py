@@ -12,12 +12,23 @@ from __future__ import annotations
 
 import wx
 
-from bellbird.core.avisos_tiktok import AVISOS, MODOS
+from bellbird.core.avisos_tiktok import EVENTOS, MODOS_EVENTO
 from bellbird.core.idioma import N_, _
 from bellbird.ui.accesibilidad import ContadorAccesible
 from bellbird.ui.gui import caja_de_grupo
 from bellbird.ui.tema import _T, _tc
 from bellbird.ui.preferencias_comun import EleccionTexto
+
+
+_EVENTOS_LECTURA = {
+    "superchat": N_("&Super Chats y regalos:"),
+    "miembro": N_("&Membresías:"),
+    "entrada": N_("&Entradas al directo:"),
+    "me_gusta": N_("Me g&usta:"),
+    "seguir": N_("Seguidores nue&vos:"),
+    "compartir": N_("&Directo compartido:"),
+    "cofre": N_("Co&fres:"),
+}
 
 
 _FORMATOS = [
@@ -33,12 +44,20 @@ _FORMATOS = [
 OPCIONES_LECTURA = (
     ("chk_emojis", "texto", "limpiar_emojis", "limpiar_emojis", bool, True),
     ("chk_urls", "texto", "eliminar_urls", "eliminar_urls", bool, True),
-    ("cho_aviso_entradas", "tiktok", "aviso_entradas", "tiktok_aviso_entradas", str, "mostrar"),
-    ("cho_aviso_me_gusta", "tiktok", "aviso_me_gusta", "tiktok_aviso_me_gusta", str, "mostrar"),
-    ("cho_aviso_seguidores", "tiktok", "aviso_seguidores", "tiktok_aviso_seguidores", str, "leer"),
-    ("cho_aviso_compartidos", "tiktok", "aviso_compartidos",
-     "tiktok_aviso_compartidos", str, "leer"),
-    ("cho_aviso_cofres", "tiktok", "aviso_cofres", "tiktok_aviso_cofres", str, "leer"),
+    ("cho_evento_superchat", "eventos", "superchat", "evento_superchat",
+     str, "principal"),
+    ("cho_evento_miembro", "eventos", "miembro", "evento_miembro",
+     str, "principal"),
+    ("cho_evento_entrada", "eventos", "entrada", "evento_entrada",
+     str, "mostrar"),
+    ("cho_evento_me_gusta", "eventos", "me_gusta", "evento_me_gusta",
+     str, "mostrar"),
+    ("cho_evento_seguir", "eventos", "seguir", "evento_seguir",
+     str, "principal"),
+    ("cho_evento_compartir", "eventos", "compartir", "evento_compartir",
+     str, "principal"),
+    ("cho_evento_cofre", "eventos", "cofre", "evento_cofre",
+     str, "principal"),
     ("sp_long", "texto", "max_longitud_mensaje", "max_longitud_mensaje", int, 200),
     ("cho_lectura_recientes", "lectura", "recientes", "lectura_recientes", str, "lector"),
     ("chk_lectura_atajos_globales", "lectura", "atajos_globales", "lectura_atajos_globales", bool, False),
@@ -78,7 +97,7 @@ class PaginaLectura:
         vs.Add(self.chk_emojis, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         vs.Add(self.chk_urls, 0, wx.ALL, 10)
 
-        self._construir_tiktok(p, vs)
+        self._construir_eventos(p, vs)
 
         vs.Add(self._fila_label(p, _("&Longitud máxima del mensaje (caracteres):")),
                0, wx.LEFT | wx.RIGHT, 10)
@@ -92,19 +111,19 @@ class PaginaLectura:
         p.SetSizer(vs)
         return p
 
-    def _construir_tiktok(self, p, vs):
-        box, padre = caja_de_grupo(p, _("Avisos de TikTok"))
+    def _construir_eventos(self, p, vs):
+        box, padre = caja_de_grupo(p, _("Eventos del directo"))
         grilla = wx.FlexGridSizer(0, 2, 6, 10)
         grilla.AddGrowableCol(1, 1)
-        for _tipo, clave, etiqueta, _fabrica in AVISOS:
-            texto = _(etiqueta)
+        for clave, _fabrica in EVENTOS:
+            texto = _(_EVENTOS_LECTURA[clave])
             grilla.Add(self._fila_label(padre, texto), 0,
                        wx.ALIGN_CENTER_VERTICAL)
             lista = EleccionTexto(
-                padre, [(valor, _(rotulo)) for valor, rotulo in MODOS],
+                padre, [(valor, _(rotulo)) for valor, rotulo in MODOS_EVENTO],
                 name=texto.replace("&", "").rstrip(":"))
             _tc(lista)
-            setattr(self, "cho_" + clave, lista)
+            setattr(self, "cho_evento_" + clave, lista)
             grilla.Add(lista, 0, wx.EXPAND)
         box.Add(grilla, 1, wx.EXPAND | wx.ALL, 10)
         vs.Add(box, 0, wx.EXPAND | wx.ALL, 10)

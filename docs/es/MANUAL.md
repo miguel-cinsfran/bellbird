@@ -76,14 +76,17 @@ propietario del canal, moderador, cuenta verificada o miembro. También cambia
 según lo que es: Super Chat, membresía o regalo de TikTok.
 
 En TikTok también se leen los stickers y las preguntas del directo. En
-*Preferencias*, categoría *Lectura*, cada aviso de TikTok (entradas, me gusta,
-seguidores, compartidos y cofres) tiene su modo. *Sonido y voz* lo muestra en
-la lista, suena y lo lee; *Solo sonido* lo muestra y suena sin leerlo;
-*Desactivado* no lo muestra. De fábrica, las entradas y los me gusta están en
-*Solo sonido*, y los seguidores, los compartidos y los cofres en *Sonido y voz*.
-Si quien transmite pone el directo en pausa, se oye «El directo de TikTok
-está en pausa.», y al volver, «El directo de TikTok continúa.», cada uno con
-su sonido.
+*Preferencias*, categoría *Lectura*, el grupo *Eventos del directo* tiene una
+lista por evento: *Super Chats y regalos*, *Membresías*, *Entradas al directo*,
+*Me gusta*, *Seguidores nuevos*, *Directo compartido* y *Cofres*. Cada lista
+elige entre *Voz principal*, *Voz secundaria*, *Solo sonido* y *Desactivado*.
+*Voz principal* y *Voz secundaria* lo muestran en la lista, suenan y lo leen;
+*Solo sonido* lo muestra y suena sin leerlo; *Desactivado* no lo muestra. De
+fábrica, las entradas y los me gusta están en *Solo sonido*, y el resto en
+*Voz principal*. La voz secundaria y sus ajustes se eligen en *Preferencias*,
+categoría *Voces*. Si quien transmite pone el directo en pausa, se oye «El
+directo de TikTok está en pausa.», y al volver, «El directo de TikTok
+continúa.», cada uno con su sonido.
 
 En la lista, las flechas van de mensaje en mensaje y escribir unas letras
 salta al primer autor que empieza así. El menú contextual copia el mensaje,
@@ -109,13 +112,18 @@ categoría *Filtros*.
 
 Bellbird puede leer el chat con tres motores de voz: SAPI 5 y OneCore, que
 vienen con Windows, y ElevenLabs, que necesita una cuenta. Para elegir el
-motor, la voz, la velocidad, el volumen y el tono, abre *Preferencias* y ve a la
-categoría *Voces*. El botón *Probar voz* reproduce una muestra antes de guardar.
-Para que los Super Chats, los regalos, las membresías y las entradas se
-distingan, asígnales una segunda voz. Con ElevenLabs puedes poner un límite de
-caracteres por sesión o usarlo solo con los mensajes importantes. Si falla la
-red o se acaba el saldo, la aplicación lee con la voz de Windows y lo avisa
-una vez. La clave se guarda en `credenciales.json`.
+motor, la voz principal, la velocidad, el volumen y el tono, abre
+*Preferencias* y ve a la categoría *Voces*. El botón *Probar voz* reproduce una
+muestra antes de guardar. El grupo *Voz secundaria* elige la voz de los eventos
+que estén en ese modo en *Preferencias*, categoría *Lectura*: *Voz*,
+*Velocidad (0 a 100)*, *Volumen (0 a 100)* y *Probar voz secundaria*. Con
+*Igual que la voz principal*, la secundaria suena con la voz principal y sus
+propios ajustes. Con ElevenLabs, *Voz de Windows de respaldo* elige la voz que
+suena si falla la red o se acaba el saldo, y *Igual que el respaldo de la voz
+principal* sigue al respaldo de la principal. También puedes poner un límite de
+caracteres por sesión o usar ElevenLabs solo con los mensajes importantes. Si
+falla la red o se acaba el saldo, la aplicación lee con la voz de Windows y lo
+avisa una vez. La clave se guarda en `credenciales.json`.
 
 ### Alias
 

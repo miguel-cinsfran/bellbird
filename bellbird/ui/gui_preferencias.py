@@ -58,7 +58,6 @@ _OPCIONES_SIMPLES = (
     ("chk_metadatos", "ui", "mostrar_metadatos", "mostrar_metadatos", bool, True),
     ("chk_botones_rep", "ui", "mostrar_botones_reproductor", "mostrar_botones_reproductor", bool, True),
     ("sp_cache_video", "ui", "cache_video_mb", "cache_video_mb", int, 1024),
-    ("chk_multivoz", "voz", "multivoz", "multivoz", bool, False),
 ) + OPCIONES_GENERAL + OPCIONES_LECTURA + (
     ("sp_cola_maxima", "cola", "tamanio_maximo", "tamanio_maximo", int, 15),
     ("sp_umbral_nombre", "cola", "umbral_solo_nombre", "umbral_solo_nombre", int, 0),
@@ -114,7 +113,6 @@ class PreferenciasDialog(wx.Dialog):
         self.chk_registro_detallado = self.pagina_general.chk_registro_detallado
         self.pagina_voz = PaginaVoz(self, self._config)
         self.nb.AddPage(self.pagina_voz.construir(self.nb), _("Voces"))
-        self.chk_multivoz = self.pagina_voz.chk_multivoz
         self.nb.AddPage(self._pag_lectura(self.nb), _("Lectura"))
         self.nb.AddPage(self._pag_cola(self.nb), _("Cola de lectura"))
         self.nb.AddPage(self._pag_interfaz(self.nb), _("Interfaz"))
@@ -167,7 +165,7 @@ class PreferenciasDialog(wx.Dialog):
         self.lista_categorias.SetFocus()
 
     def _cargar_opciones_simples(self):
-        """Vuelca la config en los 33 controles de la tabla. El valor por
+        """Vuelca la config en los controles de la tabla. El valor por
         defecto de cada fila es el de fábrica, y se usa tanto si la config no
         trae la clave como si el valor no se puede convertir al tipo."""
         for atributo, _seccion, _clave, en_memoria, tipo, por_defecto in _OPCIONES_SIMPLES:
@@ -177,10 +175,6 @@ class PreferenciasDialog(wx.Dialog):
             except (TypeError, ValueError):
                 valor = por_defecto
             control.SetValue(valor)
-        # El estado de los controles que depende del valor de una opción simple
-        # se decidió en `_build_ui` con el valor viejo del control; se recalcula
-        # aquí, ya con el valor cargado.
-        self.pagina_voz.actualizar_eventos()
 
     def _paginas(self):
         return [self.nb.GetPage(i) for i in range(self.nb.GetPageCount())]

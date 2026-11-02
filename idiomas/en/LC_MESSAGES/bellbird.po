@@ -1625,19 +1625,7 @@ msgstr "The video is not available. Check the link or whether it is private."
 msgid "No se pudo consultar la información del vídeo. Inténtalo de nuevo más tarde."
 msgstr "Could not look up the video information. Try again later."
 
-#: bellbird/core/avisos_tiktok.py
-msgid "Sonido y voz"
-msgstr "Sound and speech"
-
-#: bellbird/core/avisos_tiktok.py
-msgid "Solo sonido"
-msgstr "Sound only"
-
-#: bellbird/core/avisos_tiktok.py
-msgid "Desactivado"
-msgstr "Off"
-
-#: bellbird/core/avisos_tiktok.py
+#: bellbird/core/avisos_tiktok.py bellbird/ui/preferencias_lectura.py
 msgid "&Entradas al directo:"
 msgstr "&Live joins:"
 
@@ -1653,17 +1641,25 @@ msgstr "&New followers:"
 msgid "Directo compar&tido:"
 msgstr "Shared l&ive streams:"
 
-#: bellbird/core/avisos_tiktok.py
+#: bellbird/core/avisos_tiktok.py bellbird/ui/preferencias_lectura.py
 msgid "Co&fres:"
 msgstr "&Treasure chests:"
 
-#: bellbird/core/avisos_tiktok.py
+#: bellbird/core/avisos_tiktok.py bellbird/ui/preferencias_voz.py
 msgid "Voz principal"
 msgstr "Main voice"
 
-#: bellbird/core/avisos_tiktok.py
+#: bellbird/core/avisos_tiktok.py bellbird/ui/preferencias_voz_secundaria.py
 msgid "Voz secundaria"
 msgstr "Secondary voice"
+
+#: bellbird/core/avisos_tiktok.py
+msgid "Solo sonido"
+msgstr "Sound only"
+
+#: bellbird/core/avisos_tiktok.py
+msgid "Desactivado"
+msgstr "Off"
 
 #. Traductores: fecha corta de una fila del historial; se ordena como la
 #. fecha corta de Windows en ese idioma, y en inglés de Estados Unidos es
@@ -8436,6 +8432,26 @@ msgid "Eliminar clave"
 msgstr "Delete key"
 
 #: bellbird/ui/preferencias_lectura.py
+msgid "&Super Chats y regalos:"
+msgstr "Super Chats and &gifts:"
+
+#: bellbird/ui/preferencias_lectura.py
+msgid "&Membresías:"
+msgstr "M&emberships:"
+
+#: bellbird/ui/preferencias_lectura.py
+msgid "Me g&usta:"
+msgstr "Li&kes:"
+
+#: bellbird/ui/preferencias_lectura.py
+msgid "Seguidores nue&vos:"
+msgstr "&New followers:"
+
+#: bellbird/ui/preferencias_lectura.py
+msgid "&Directo compartido:"
+msgstr "Shared l&ive streams:"
+
+#: bellbird/ui/preferencias_lectura.py
 msgid "Nombre y mensaje"
 msgstr "Name and message"
 
@@ -8476,8 +8492,8 @@ msgid "Longitud máxima del mensaje"
 msgstr "Maximum message length"
 
 #: bellbird/ui/preferencias_lectura.py
-msgid "Avisos de TikTok"
-msgstr "TikTok notices"
+msgid "Eventos del directo"
+msgstr "Live events"
 
 #: bellbird/ui/preferencias_lectura.py
 msgid "Leer los mensajes &recientes con:"
@@ -8812,12 +8828,8 @@ msgid "Comprobar clave"
 msgstr "Check key"
 
 #: bellbird/ui/preferencias_voz.py
-msgid "&Voz de lectura:"
-msgstr "&Reading voice:"
-
-#: bellbird/ui/preferencias_voz.py
-msgid "Voz de lectura"
-msgstr "Reading voice"
+msgid "&Voz principal:"
+msgstr "&Main voice:"
 
 #: bellbird/ui/preferencias_voz.py
 msgid "Ve&locidad (0 a 100):"
@@ -8868,7 +8880,7 @@ msgid ""
 "U&sar ElevenLabs solo con Super Chats, miembros, cofres, propietario y "
 "moderadores"
 msgstr ""
-"Use ElevenLabs &only for Super Chats, members, treasure chests, owner, and "
+"Use ElevenLabs o&nly for Super Chats, members, treasure chests, owner, and "
 "moderators"
 
 #: bellbird/ui/preferencias_voz.py
@@ -8880,26 +8892,56 @@ msgid "Voz de Windows de respaldo"
 msgstr "Backup Windows voice"
 
 #: bellbird/ui/preferencias_voz.py
-msgid ""
-"Usar una voz &distinta para los eventos (Super Chats, regalos, miembros y "
-"entradas)"
-msgstr "Use a di&fferent voice for events (Super Chats, gifts, members, and joins)"
-
-#: bellbird/ui/preferencias_voz.py
-msgid "Voz para los &eventos:"
-msgstr "Voice for &events:"
-
-#: bellbird/ui/preferencias_voz.py
-msgid "Voz para los eventos"
-msgstr "Voice for events"
-
-#: bellbird/ui/preferencias_voz.py
 msgid "Escribe la clave de ElevenLabs."
 msgstr "Type the ElevenLabs key."
 
 #: bellbird/ui/preferencias_voz.py
 msgid "Primero comprueba la clave."
 msgstr "Check the key first."
+
+#: bellbird/ui/preferencias_voz_secundaria.py
+msgid "Igual que la voz principal"
+msgstr "Same as the main voice"
+
+#: bellbird/ui/preferencias_voz_secundaria.py
+msgid "Igual que el respaldo de la voz principal"
+msgstr "Same as the main voice backup"
+
+#: bellbird/ui/preferencias_voz_secundaria.py
+msgid "Vo&z:"
+msgstr "Vo&ice:"
+
+#: bellbird/ui/preferencias_voz_secundaria.py
+msgid "Veloci&dad (0 a 100):"
+msgstr "Sp&eed (0 to 100):"
+
+#: bellbird/ui/preferencias_voz_secundaria.py
+msgid "Velocidad de la voz secundaria"
+msgstr "Secondary voice speed"
+
+#: bellbird/ui/preferencias_voz_secundaria.py
+msgid "Volum&en (0 a 100):"
+msgstr "V&olume (0 to 100):"
+
+#: bellbird/ui/preferencias_voz_secundaria.py
+msgid "Volumen de la voz secundaria"
+msgstr "Secondary voice volume"
+
+#: bellbird/ui/preferencias_voz_secundaria.py
+msgid "Proba&r voz secundaria"
+msgstr "Test secondar&y voice"
+
+#: bellbird/ui/preferencias_voz_secundaria.py
+msgid "Probar voz secundaria"
+msgstr "Test secondary voice"
+
+#: bellbird/ui/preferencias_voz_secundaria.py
+msgid "Voz de W&indows de respaldo:"
+msgstr "&Backup Windows voice:"
+
+#: bellbird/ui/preferencias_voz_secundaria.py
+msgid "Voz de Windows de respaldo de la voz secundaria"
+msgstr "Backup Windows voice for the secondary voice"
 
 #: bellbird/ui/prueba_voz.py
 msgid "No se pudo iniciar el motor de voz elegido."

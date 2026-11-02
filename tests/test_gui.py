@@ -123,7 +123,7 @@ class TestInicioGui(unittest.TestCase):
     def test_iniciar_gui_guarda_el_nombre_de_la_voz_numerica(self):
         aplicacion = mock.Mock()
         frame = mock.Mock()
-        configuracion = {"voz": "1", "voz_eventos": ""}
+        configuracion = {"voz": "1"}
         worker = mock.Mock()
         worker.voces.return_value = ["Voz A", "Voz B"]
 
@@ -1894,17 +1894,20 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("ui", "mostrar_metadatos"),
             ("ui", "mostrar_botones_reproductor"),
             ("ui", "cache_video_mb"),
-            ("voz", "motor"), ("voz", "voz"), ("voz", "voz_eventos"),
-            ("voz", "multivoz"), ("voz", "velocidad_voz"),
-            ("voz", "volumen"), ("voz", "tono"),
-            ("voz", "voz_respaldo"), ("voz", "elevenlabs_tope"),
+            ("voz", "motor"), ("voz", "voz"),
+            ("voz", "velocidad_voz"), ("voz", "volumen"), ("voz", "tono"),
+            ("voz", "voz_respaldo"), ("voz", "voz_secundaria"),
+            ("voz", "velocidad_secundaria"), ("voz", "volumen_secundaria"),
+            ("voz", "voz_respaldo_secundaria"),
+            ("voz", "elevenlabs_tope"),
             ("voz", "elevenlabs_solo_importantes"),
             ("lectura", "formato_prefijo"), ("lectura", "recientes"),
             ("lectura", "atajos_globales"),
             ("texto", "limpiar_emojis"), ("texto", "eliminar_urls"),
-            ("tiktok", "aviso_entradas"), ("tiktok", "aviso_me_gusta"),
-            ("tiktok", "aviso_seguidores"), ("tiktok", "aviso_compartidos"),
-            ("tiktok", "aviso_cofres"),
+            ("eventos", "superchat"), ("eventos", "miembro"),
+            ("eventos", "entrada"), ("eventos", "me_gusta"),
+            ("eventos", "seguir"), ("eventos", "compartir"),
+            ("eventos", "cofre"),
             ("texto", "max_longitud_mensaje"),
             ("cola", "estrategia"), ("cola", "tamanio_maximo"),
             ("cola", "umbral_solo_nombre"),
@@ -2072,9 +2075,8 @@ class TestCategoriasDePreferenciasSoloLectura(unittest.TestCase):
     def test_pagina_voces_tiene_los_controles_en_el_orden_de_tab(self):
         dialogo = self.dialogo
         pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagVoz")
-        esperados = ["Motor de voz", "Voz de lectura", "Velocidad de la voz",
-                     "Volumen de la voz", "Tono de la voz", "Probar voz",
-                     "MultiVoz", "Voz para los eventos"]
+        esperados = ["Motor de voz", "Voz principal", "Velocidad de la voz",
+                     "Volumen de la voz", "Tono de la voz", "Probar voz"]
         orden = [h.GetName() for h in pagina.GetChildren()
                  if h.GetName() in esperados]
         self.assertEqual(orden, esperados)

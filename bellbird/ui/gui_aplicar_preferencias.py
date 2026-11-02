@@ -85,21 +85,34 @@ def _aplicar_ajustes_de_voz(frame):
             int(frame._config.get("velocidad_voz", _gui.escala_voz.VELOCIDAD_NORMAL)), 0)
         if vel_cfg != frame._worker.get_rate():
             frame._worker.fijar_rate(vel_cfg)
-        vol_cfg = max(0, min(100, int(round(
-            float(frame._config.get("volumen", 1.0)) * 100))))
-        if vol_cfg != frame._worker.get_volume():
-            frame._worker.fijar_volumen_pct(vol_cfg)
-        tono_cfg = max(0, min(100, int(frame._config.get("tono", 50))))
-        if tono_cfg != frame._worker.get_tono():
-            frame._worker.fijar_tono(tono_cfg)
+        _fijar_volumen_y_tono(frame)
         # ElevenLabs: tope, «solo lo importante» y voz de respaldo también
         # se aplican en caliente (el worker los lee solo al crearse).
         frame._worker.configurar_elevenlabs(
             int(frame._config.get("elevenlabs_tope", 0) or 0),
             bool(frame._config.get("elevenlabs_solo_importantes", False)),
             frame._config.get("voz_respaldo") or "")
+        frame._worker.configurar_voz_secundaria(
+            frame._config.get("voz_secundaria") or "",
+            max(0, min(100, int(frame._config.get(
+                "velocidad_secundaria",
+                _gui.escala_voz.VELOCIDAD_NORMAL)))),
+            max(0.0, min(1.0, float(frame._config.get(
+                "volumen_secundaria", 1.0)))),
+            frame._config.get("voz_respaldo_secundaria") or "")
     except Exception as exc:
         logger.debug("aplicar ajustes de voz desde preferencias: %s", exc)
+
+
+def _fijar_volumen_y_tono(frame):
+    # Volumen y tono absolutos: solo si cambiaron, sin anunciar.
+    vol_cfg = max(0, min(100, int(round(
+        float(frame._config.get("volumen", 1.0)) * 100))))
+    if vol_cfg != frame._worker.get_volume():
+        frame._worker.fijar_volumen_pct(vol_cfg)
+    tono_cfg = max(0, min(100, int(frame._config.get("tono", 50))))
+    if tono_cfg != frame._worker.get_tono():
+        frame._worker.fijar_tono(tono_cfg)
 
 
 def _aplicar_interfaz_y_vista(frame):

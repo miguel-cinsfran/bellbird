@@ -30,9 +30,11 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("velocidad_voz", "50"),
         ("volumen", "1.0"),
         ("tono", "50"),
-        ("multivoz", "false"),
-        ("voz_eventos", ""),
         ("voz_respaldo", ""),
+        ("voz_secundaria", ""),
+        ("velocidad_secundaria", "50"),
+        ("volumen_secundaria", "1.0"),
+        ("voz_respaldo_secundaria", ""),
         ("elevenlabs_tope", "30000"),
         ("elevenlabs_solo_importantes", "false"),
     ]),
@@ -133,12 +135,16 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("version_atajos", "2"),
     ]),
     ("tiktok", [
-        ("aviso_entradas", "mostrar"),
-        ("aviso_me_gusta", "mostrar"),
-        ("aviso_seguidores", "leer"),
-        ("aviso_compartidos", "leer"),
-        ("aviso_cofres", "leer"),
         ("usuario", ""),
+    ]),
+    ("eventos", [
+        ("superchat", "principal"),
+        ("miembro", "principal"),
+        ("entrada", "mostrar"),
+        ("me_gusta", "mostrar"),
+        ("seguir", "principal"),
+        ("compartir", "principal"),
+        ("cofre", "principal"),
     ]),
     ("programados", [
         ("activo", "false"),
@@ -245,8 +251,8 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
 _COMENTARIOS: dict[str, str] = {
     "voz": (
         "# Motor de voz: sapi, onecore o elevenlabs. Voz vacía es la\n"
-        "# primera del sistema; se guarda por nombre. multivoz y la voz\n"
-        "# secundaria se cambian en Preferencias > Voces. Con ElevenLabs,\n"
+        "# primera del sistema; se guarda por nombre. La voz principal y\n"
+        "# la secundaria se cambian en Preferencias > Voces. Con ElevenLabs,\n"
         "# voz_respaldo es la voz de Windows que suena si falla o se pasa\n"
         "# el límite de caracteres (elevenlabs_tope, 0 sin límite), y\n"
         "# elevenlabs_solo_importantes reserva la nube para Super Chats,\n"
@@ -273,7 +279,8 @@ _COMENTARIOS: dict[str, str] = {
         "# idioma: windows o un código (es, en); se aplica al reiniciar.\n"
     ),
     "sesion": "# Silenciar lectura al arrancar.\n",
-    "tiktok": "# Solo TikTok: anunciar quién entra al directo puede ser muchísimo.\n",
+    "tiktok": "# Usuario de TikTok. Los avisos de cada evento van en [eventos].\n",
+    "eventos": "# Modo de cada evento; se cambia en Preferencias > Lectura.\n",
     "diagnostico": "# Registro detallado para diagnosticar errores (requiere reiniciar).\n",
     "overlay": "# Chat en el vídeo para transmitir por navegador (overlay web).\n",
     "obs": "# Integración con OBS: nombre de la fuente de micrófono.\n",

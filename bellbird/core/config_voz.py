@@ -44,8 +44,6 @@ def opciones_voz(p, ruta) -> dict:
         "velocidad_voz": velocidad_voz,
         "volumen": leer_decimal(p, "voz", "volumen"),
         "tono": leer_entero(p, "voz", "tono", lo=0, hi=100),
-        "multivoz": leer_booleano(p, "voz", "multivoz"),
-        "voz_eventos": leer_texto(p, "voz", "voz_eventos"),
         "voz_respaldo": leer_texto(p, "voz", "voz_respaldo"),
         "elevenlabs_tope": leer_entero(p, "voz", "elevenlabs_tope", lo=0),
         "elevenlabs_solo_importantes": leer_booleano(p, "voz", "elevenlabs_solo_importantes"),

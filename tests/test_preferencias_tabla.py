@@ -1,6 +1,6 @@
 """Pruebas de la tabla de opciones simples de Preferencias.
 
-La lista de 43 va literal en este módulo, no se lee de la tabla nueva:
+La lista de 44 va literal en este módulo, no se lee de la tabla nueva:
 así protege la tabla en vez de repetirla.
 """
 
@@ -29,15 +29,16 @@ OPCIONES_ESPERADAS = [
     ("chk_metadatos", "ui", "mostrar_metadatos", "mostrar_metadatos", bool),
     ("chk_botones_rep", "ui", "mostrar_botones_reproductor", "mostrar_botones_reproductor", bool),
     ("sp_cache_video", "ui", "cache_video_mb", "cache_video_mb", int),
-    ("chk_multivoz", "voz", "multivoz", "multivoz", bool),
     ("cho_idioma", "ui", "idioma", "idioma", str),
     ("chk_emojis", "texto", "limpiar_emojis", "limpiar_emojis", bool),
     ("chk_urls", "texto", "eliminar_urls", "eliminar_urls", bool),
-    ("cho_aviso_entradas", "tiktok", "aviso_entradas", "tiktok_aviso_entradas", str),
-    ("cho_aviso_me_gusta", "tiktok", "aviso_me_gusta", "tiktok_aviso_me_gusta", str),
-    ("cho_aviso_seguidores", "tiktok", "aviso_seguidores", "tiktok_aviso_seguidores", str),
-    ("cho_aviso_compartidos", "tiktok", "aviso_compartidos", "tiktok_aviso_compartidos", str),
-    ("cho_aviso_cofres", "tiktok", "aviso_cofres", "tiktok_aviso_cofres", str),
+    ("cho_evento_superchat", "eventos", "superchat", "evento_superchat", str),
+    ("cho_evento_miembro", "eventos", "miembro", "evento_miembro", str),
+    ("cho_evento_entrada", "eventos", "entrada", "evento_entrada", str),
+    ("cho_evento_me_gusta", "eventos", "me_gusta", "evento_me_gusta", str),
+    ("cho_evento_seguir", "eventos", "seguir", "evento_seguir", str),
+    ("cho_evento_compartir", "eventos", "compartir", "evento_compartir", str),
+    ("cho_evento_cofre", "eventos", "cofre", "evento_cofre", str),
     ("sp_long", "texto", "max_longitud_mensaje", "max_longitud_mensaje", int),
     ("cho_lectura_recientes", "lectura", "recientes", "lectura_recientes", str),
     ("chk_lectura_atajos_globales", "lectura", "atajos_globales", "lectura_atajos_globales", bool),
@@ -105,21 +106,23 @@ class TestTablaOpcionesSimples(unittest.TestCase):
                 config[en_memoria] = {"musica_decir": "artista",
                                       "lectura_recientes": "voz",
                                       "idioma": "es",
-                                      "tiktok_aviso_entradas": "ocultar",
-                                      "tiktok_aviso_me_gusta": "ocultar",
-                                      "tiktok_aviso_seguidores": "ocultar",
-                                      "tiktok_aviso_compartidos": "ocultar",
-                                      "tiktok_aviso_cofres": "ocultar"}.get(
+                                      "evento_superchat": "ocultar",
+                                      "evento_miembro": "secundaria",
+                                      "evento_entrada": "ocultar",
+                                      "evento_me_gusta": "secundaria",
+                                      "evento_seguir": "ocultar",
+                                      "evento_compartir": "ocultar",
+                                      "evento_cofre": "secundaria"}.get(
                                           en_memoria, "tema")
             else:
                 config[en_memoria] = por_defecto + 1
         return config
 
-    def test_tabla_tiene_43_filas_sin_repetir_y_cada_atributo_existe(self):
+    def test_tabla_tiene_44_filas_sin_repetir_y_cada_atributo_existe(self):
         tabla = gui_preferencias._OPCIONES_SIMPLES
-        self.assertEqual(len(tabla), 43)
+        self.assertEqual(len(tabla), 44)
         atributos = [fila[0] for fila in tabla]
-        self.assertEqual(len(set(atributos)), 43)
+        self.assertEqual(len(set(atributos)), 44)
         dialogo = self._dialogo()
         for atributo in atributos:
             with self.subTest(atributo=atributo):
@@ -152,11 +155,6 @@ class TestTablaOpcionesSimples(unittest.TestCase):
             with self.subTest(atributo=atributo):
                 self.assertEqual(getattr(dialogo, atributo).GetValue(), por_defecto)
 
-    def test_multivoz_en_true_habilita_voz_eventos(self):
-        dialogo = self._dialogo({"multivoz": True})
-        self.assertTrue(dialogo.chk_multivoz.GetValue())
-        self.assertTrue(dialogo.pagina_voz.cho_voz_eventos.IsEnabled())
-
     def test_guardar_escribe_texto_y_memoria_con_tipo_exacto(self):
         dialogo = self._dialogo()
         esperados = {}
@@ -170,11 +168,13 @@ class TestTablaOpcionesSimples(unittest.TestCase):
                 control.SetValue({"musica_decir": "artista",
                                   "lectura_recientes": "voz",
                                   "idioma": "es",
-                                  "tiktok_aviso_entradas": "ocultar",
-                                  "tiktok_aviso_me_gusta": "ocultar",
-                                  "tiktok_aviso_seguidores": "ocultar",
-                                  "tiktok_aviso_compartidos": "ocultar",
-                                  "tiktok_aviso_cofres": "ocultar"}.get(
+                                  "evento_superchat": "ocultar",
+                                  "evento_miembro": "secundaria",
+                                  "evento_entrada": "ocultar",
+                                  "evento_me_gusta": "secundaria",
+                                  "evento_seguir": "ocultar",
+                                  "evento_compartir": "ocultar",
+                                  "evento_cofre": "secundaria"}.get(
                                       en_memoria, "tema"))
                 valor = control.GetValue()
                 esperados[(seccion, clave)] = (valor, en_memoria, valor)
@@ -306,7 +306,8 @@ class TestPorDefectoContraFabrica(unittest.TestCase):
                 return (texto if texto in ("lector", "voz") else "lector")
             if clave == "idioma":
                 return texto
-            if clave.startswith("aviso_"):
+            if clave in ("superchat", "miembro", "entrada", "me_gusta",
+                         "seguir", "compartir", "cofre"):
                 return texto
             return gui_preferencias.cfg.normalizar_repetir(texto)
         return tipo(texto)

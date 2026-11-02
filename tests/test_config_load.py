@@ -11,6 +11,7 @@ from pathlib import Path
 from unittest import mock
 
 from bellbird.core import archivos
+from bellbird.core import avisos_tiktok
 from bellbird.core import config
 from bellbird.core import config_musica
 from bellbird.core import ini_tipado
@@ -466,9 +467,11 @@ class TestCargarConfiguracion(unittest.TestCase):
             "velocidad = 400\n"
             "volumen = 5.0\n"
             "tono = 80\n"
-            "multivoz = true\n"
-            "voz_eventos = SAPI\n"
             "voz_respaldo = respaldo\n"
+            "voz_secundaria = Voz B\n"
+            "velocidad_secundaria = 25\n"
+            "volumen_secundaria = 0.4\n"
+            "voz_respaldo_secundaria = Respaldo B\n"
             "elevenlabs_tope = -5\n"
             "elevenlabs_solo_importantes = true\n"
             "[transmision]\n"
@@ -492,13 +495,15 @@ class TestCargarConfiguracion(unittest.TestCase):
         with redirigir_rutas(tmp):
             cfg = config.cargar_configuracion()
         esperado = [
+            ("voz_secundaria", "Voz B"),
+            ("velocidad_secundaria", 25),
+            ("volumen_secundaria", 0.4),
+            ("voz_respaldo_secundaria", "Respaldo B"),
             ("motor", "sapi"),
             ("voz", "2"),
             ("velocidad_voz", 100),
             ("volumen", 1.0),
             ("tono", 80),
-            ("multivoz", True),
-            ("voz_eventos", "SAPI"),
             ("voz_respaldo", "respaldo"),
             ("elevenlabs_tope", 0),
             ("elevenlabs_solo_importantes", True),
@@ -632,16 +637,22 @@ class TestCargarConfiguracion(unittest.TestCase):
 
     def test_casilla_vieja_de_entradas_migra_a_leer(self):
         cfg = self._cargar_en("[tiktok]\nanunciar_entradas = true\n")
-        self.assertEqual(cfg["tiktok_aviso_entradas"], "leer")
+        self.assertEqual(cfg["evento_entrada"], "principal")
+        self.assertEqual(
+            avisos_tiktok.modo_de(cfg, config.TIPO_ENTRADA), "leer")
+        self.assertNotIn("tiktok_aviso_entradas", cfg)
 
     def test_casilla_vieja_de_entradas_apagada_migra_a_mostrar(self):
         cfg = self._cargar_en("[tiktok]\nanunciar_entradas = false\n")
-        self.assertEqual(cfg["tiktok_aviso_entradas"], "mostrar")
+        self.assertEqual(cfg["evento_entrada"], "mostrar")
+        self.assertEqual(
+            avisos_tiktok.modo_de(cfg, config.TIPO_ENTRADA), "mostrar")
+        self.assertNotIn("tiktok_aviso_entradas", cfg)
 
     def test_sin_casillas_viejas_los_avisos_quedan_en_mostrar(self):
         cfg = self._cargar_en("[tiktok]\nusuario = pepe\n")
-        self.assertEqual(cfg["tiktok_aviso_entradas"], "mostrar")
-        self.assertEqual(cfg["tiktok_aviso_me_gusta"], "mostrar")
+        self.assertEqual(cfg["evento_entrada"], "mostrar")
+        self.assertEqual(cfg["evento_me_gusta"], "mostrar")
 
     def test_migracion_eventos_con_multivoz(self):
         cfg = self._cargar_en(

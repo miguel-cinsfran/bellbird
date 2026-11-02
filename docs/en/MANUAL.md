@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md 7476ef5c897e2ea6db724e12d72d393b609a1413 -->
+<!-- original: es/MANUAL.md d2680eacd8e142564da808d92607ae73fb56bcc8 -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -78,11 +78,14 @@ who writes: channel owner, moderator, verified account or member. It also
 changes depending on what it is: Super Chat, membership or TikTok gift.
 
 On TikTok, stickers and live questions are also read. In *Preferences*, on the
-*Reading* category, each TikTok notice (joins, likes, followers, shares and
-treasure chests) has its mode. *Sound and speech* shows it in the list, plays
-its sound and reads it; *Sound only* shows it and plays its sound without
-reading it; *Off* does not show it. By default, joins and likes are set to
-*Sound only*, and followers, shares and treasure chests to *Sound and speech*.
+*Reading* category, the *Live events* group has one list per event:
+*Super Chats and gifts*, *Memberships*, *Live joins*, *Likes*, *New followers*, *Shared live
+streams* and *Treasure chests*. Each list chooses between *Main voice*,
+*Secondary voice*, *Sound only* and *Off*. *Main voice* and *Secondary voice*
+show it in the list, play its sound and read it; *Sound only* shows it and
+plays its sound without reading it; *Off* does not show it. By default, joins
+and likes are set to *Sound only*, and the rest to *Main voice*. The secondary
+voice and its settings are chosen in *Preferences*, on the *Voices* category.
 If the streamer pauses the live stream, you hear “The TikTok live stream is
 paused.”, and when it resumes, “The TikTok live stream continues.”, each one
 with its sound.
@@ -111,13 +114,18 @@ The words and users that are not read are configured in *Preferences*, on the
 
 Bellbird can read the chat with three voice engines: SAPI 5 and OneCore, which
 come with Windows, and ElevenLabs, which needs an account. To choose the
-engine, the voice, the speed, the volume and the pitch, open *Preferences* and
-go to the *Voices* category. The *Test voice* button plays a sample before
-saving. To make Super Chats, gifts, memberships and joins stand out, assign
-them a second voice. With ElevenLabs you can set a character limit per session
-or use it only for important messages. If the network fails or the balance
-runs out, the application reads with the Windows voice and warns you once. The
-key is saved in `credenciales.json`.
+engine, the main voice, the speed, the volume and the pitch, open
+*Preferences* and go to the *Voices* category. The *Test voice* button plays a
+sample before saving. The *Secondary voice* group chooses the voice for the
+events set to that mode in *Preferences*, on the *Reading* category: *Voice*,
+*Speed (0 to 100)*, *Volume (0 to 100)* and *Test secondary voice*. With
+*Same as the main voice*, the secondary voice plays with the main voice and its
+own settings. With ElevenLabs, *Backup Windows voice* chooses the voice that
+plays if the network fails or the balance runs out, and *Same as the main voice
+backup* follows the main voice backup. You can also set a character limit per
+session or use ElevenLabs only for important messages. If the network fails or
+the balance runs out, the application reads with the Windows voice and warns
+you once. The key is saved in `credenciales.json`.
 
 ### Alias
 

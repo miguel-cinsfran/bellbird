@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import wx
 
+from bellbird.camera import tono_guia
 from bellbird.core import diagnostico
 from bellbird.core.idioma import _
 from bellbird.obs import obs_camara
@@ -14,6 +15,7 @@ from bellbird.obs import obs_cliente
 from bellbird.ui.accesibilidad import anunciar
 from bellbird.ui.preferencias_comun import (
     crear_panel, fila_label, opciones_con_elegida)
+from bellbird.voice import sonido_memoria
 
 
 logger = diagnostico.obtener_logger(__name__)
@@ -29,7 +31,14 @@ class PaginaCamara:
     def construir(self, parent):
         p = crear_panel(parent, "PagCamara")
         vs = wx.BoxSizer(wx.VERTICAL)
+        self._avisos(p, vs)
+        self._camara(p, vs)
+        self._invertir(p, vs)
+        self._sonido(p, vs)
+        p.SetSizer(vs)
+        return p
 
+    def _avisos(self, p, vs):
         self.chk_avisar_encuadre = wx.CheckBox(
             p, label=_("A&visar si el rostro sale del encuadre"),
             name="AvisarEncuadre")
@@ -37,6 +46,7 @@ class PaginaCamara:
             bool(self._config.get("avisar_encuadre", False)))
         vs.Add(self.chk_avisar_encuadre, 0, wx.ALL, 10)
 
+    def _camara(self, p, vs):
         vs.Add(fila_label(p, _("Cá&mara de OBS:")),
                0, wx.LEFT | wx.RIGHT, 10)
         guardada = str(self._config.get("camara_fuente", "") or "")
@@ -46,13 +56,13 @@ class PaginaCamara:
             p, choices=opciones, name=_("Cámara de OBS"))
         self.cho_camara_obs.SetSelection(1 if guardada else 0)
         vs.Add(self.cho_camara_obs, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-
         self.btn_buscar_camaras = wx.Button(
             p, label=_("&Buscar cámaras en OBS"),
             name=_("Buscar cámaras en OBS"))
         vs.Add(self.btn_buscar_camaras, 0, wx.ALL, 10)
         self.btn_buscar_camaras.Bind(wx.EVT_BUTTON, self._buscar_camaras)
 
+    def _invertir(self, p, vs):
         self.chk_invertir_camara = wx.CheckBox(
             p, label=_("&Invertir izquierda y derecha"),
             name="InvertirCamara")
@@ -60,8 +70,21 @@ class PaginaCamara:
             bool(self._config.get("camara_invertir", False)))
         vs.Add(self.chk_invertir_camara, 0, wx.ALL, 10)
 
-        p.SetSizer(vs)
-        return p
+    def _sonido(self, p, vs):
+        vs.Add(fila_label(p, _("&Sonido de la guía:")),
+               0, wx.LEFT | wx.RIGHT, 10)
+        timbre = tono_guia.normalizar_timbre(
+            self._config.get("guia_timbre", "normal"))
+        self.cho_sonido_guia = wx.Choice(
+            p, choices=[_("Normal"), _("Cálido"), _("8 bits")],
+            name=_("Sonido de la guía"))
+        self.cho_sonido_guia.SetSelection(tono_guia.TIMBRES.index(timbre))
+        vs.Add(self.cho_sonido_guia, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+        self.cho_sonido_guia.Bind(wx.EVT_CHOICE, self._elegir_sonido)
+
+    def _elegir_sonido(self, event):
+        timbre = tono_guia.TIMBRES[self.cho_sonido_guia.GetSelection()]
+        sonido_memoria.reproducir(tono_guia.muestra(timbre))
 
     def _buscar_camaras(self, event):
         # Consultar OBS puede tardar o no responder, por eso nunca corre en la interfaz.
@@ -112,3 +135,6 @@ class PaginaCamara:
         invertir = bool(self.chk_invertir_camara.GetValue())
         fijar("transmision", "camara_invertir", "true" if invertir else "false")
         en_memoria["camara_invertir"] = invertir
+        timbre = tono_guia.TIMBRES[self.cho_sonido_guia.GetSelection()]
+        fijar("transmision", "guia_timbre", timbre)
+        en_memoria["guia_timbre"] = timbre

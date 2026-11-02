@@ -123,6 +123,13 @@ def _invertir(marco) -> bool:
         return False
 
 
+def _timbre(marco) -> str:
+    try:
+        return str(marco._config.get("guia_timbre", "normal") or "normal")
+    except Exception:
+        return "normal"
+
+
 def anunciar_encuadre(frame) -> None:
     """Dice el encuadre actual; dos veces seguidas inicia la guía."""
     inst = _instancia_para(frame)
@@ -135,7 +142,7 @@ def anunciar_encuadre(frame) -> None:
         inst._ultima_pulsacion = 0.0
         marco = inst._frame
         inst._guia.iniciar(marco, _fuente(marco), _invertir(marco),
-                           inst._vigia.reiniciar)
+                           _timbre(marco), inst._vigia.reiniciar)
         return
     inst._ultima_pulsacion = ahora
     if inst._en_curso:

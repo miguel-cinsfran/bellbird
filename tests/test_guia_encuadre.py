@@ -103,7 +103,7 @@ class TestIniciar(_Testigo):
         crear = self.parchear("diagnostico").crear_hilo
         al_terminar = mock.Mock()
         guiada = Guia()
-        self.assertTrue(guiada.iniciar(marco, "", False, al_terminar))
+        self.assertTrue(guiada.iniciar(marco, "", False, "normal", al_terminar))
         anunciar.assert_called_once_with(
             "Guía de encuadre. Sigue los pitidos.")
         self.assertEqual(marco._worker.cambios, 1)
@@ -117,7 +117,7 @@ class TestIniciar(_Testigo):
         self.parchear("anunciar")
         self.parchear("diagnostico").crear_hilo
         guiada = Guia()
-        self.assertTrue(guiada.iniciar(marco, "", False, mock.Mock()))
+        self.assertTrue(guiada.iniciar(marco, "", False, "normal", mock.Mock()))
         self.assertEqual(marco._worker.cambios, 0)
         self.assertTrue(marco._worker.esta_pausado())
 
@@ -127,7 +127,7 @@ class TestIniciar(_Testigo):
         anunciar = self.parchear("anunciar")
         crear = self.parchear("diagnostico").crear_hilo
         guiada = Guia()
-        self.assertFalse(guiada.iniciar(marco, "", False, mock.Mock()))
+        self.assertFalse(guiada.iniciar(marco, "", False, "normal", mock.Mock()))
         anunciar.assert_called_once_with(
             "El detector de rostros no está instalado.")
         crear.assert_not_called()
@@ -139,7 +139,7 @@ class TestIniciar(_Testigo):
         anunciar = self.parchear("anunciar")
         crear = self.parchear("diagnostico").crear_hilo
         guiada = Guia()
-        self.assertFalse(guiada.iniciar(marco, "", False, mock.Mock()))
+        self.assertFalse(guiada.iniciar(marco, "", False, "normal", mock.Mock()))
         anunciar.assert_called_once_with("OBS no está abierto.")
         crear.assert_not_called()
 
@@ -152,7 +152,7 @@ class TestIniciar(_Testigo):
         guiada = Guia()
         guiada._hilo = hilo
         crear = self.parchear("diagnostico").crear_hilo
-        self.assertFalse(guiada.iniciar(marco, "", False, mock.Mock()))
+        self.assertFalse(guiada.iniciar(marco, "", False, "normal", mock.Mock()))
         crear.assert_not_called()
 
 
@@ -171,10 +171,12 @@ class TestDetener(_Testigo):
     def test_devuelve_pausa_reinicia_y_anuncia(self):
         marco = MarcoFalso(pausado=True)
         self.parchear("anunciar")
+        memoria = self.parchear("sonido_memoria")
         anunciar = guia_encuadre.anunciar
         guiada = self._en_marcha(marco, pausada=True)
         terminar = guiada._al_terminar
         guiada.detener("Guía de encuadre detenida.")
+        memoria.detener.assert_called_once_with()
         self.assertEqual(marco._worker.cambios, 1)
         self.assertFalse(marco._worker.esta_pausado())
         terminar.assert_called_once_with()
@@ -193,6 +195,7 @@ class TestDetener(_Testigo):
     def test_con_marco_muerto_no_toca_nada(self):
         marco = MarcoFalso(pausado=True)
         self.parchear("anunciar")
+        self.parchear("sonido_memoria")
         anunciar = guia_encuadre.anunciar
         guiada = self._en_marcha(marco, pausada=True)
         guiada._marco = lambda: None
@@ -212,19 +215,30 @@ class TestPaso(_Testigo):
             inicio=0.0, cliente=mock.Mock(), camara=mock.Mock(),
             detector=detector, espejo=False)
 
-    def test_un_cuadro_fuera_suena_el_pitido_que_toca(self):
+    def test_el_ritmo_de_la_guia_es_el_nuevo(self):
+        self.assertEqual(guia_encuadre.INTERVALO_GUIA, 0.05)
+
+    def test_un_cuadro_fuera_suena_el_pitido_con_paneo_y_nota(self):
         self.parchear("obs_camara").capturar_cuadro.return_value = b"cuadro"
-        suena = self.parchear("reproducir_archivo")
+        tonos = self.parchear("tono_guia")
+        tonos.pitido.return_value = b"pitido"
+        memoria = self.parchear("sonido_memoria")
+        archivo = self.parchear("reproducir_archivo")
         llamadas = self.parchear_wx()
         guiada = Guia()
+        guiada._timbre = "calido"
         guiada._marcha = self._marcha([_rostro(0.2, 0.35)])
         self.assertTrue(guiada._paso(1.0))
         self.assertEqual(llamadas, [])
-        (ruta,), _ = suena.call_args
-        self.assertTrue(str(ruta).endswith("izquierda_medio.wav"))
+        pulso = guia.pulso(_rostro(0.2, 0.35), ANCHO, ALTO)
+        tonos.pitido.assert_called_once_with(
+            pulso.paneo, pulso.frecuencia, "calido")
+        memoria.reproducir.assert_called_once_with(b"pitido")
+        archivo.assert_not_called()
 
     def test_sin_rostro_suena_cada_un_segundo(self):
         self.parchear("obs_camara").capturar_cuadro.return_value = b"cuadro"
+        self.parchear("sonido_memoria")
         suena = self.parchear("reproducir_archivo")
         self.parchear_wx()
         guiada = Guia()
@@ -237,8 +251,43 @@ class TestPaso(_Testigo):
         self.assertTrue(guiada._paso(2.1))
         self.assertTrue(str(suena.call_args[0][0]).endswith("sin_rostro.wav"))
 
+    def test_en_la_zona_arranca_el_tono_una_sola_vez(self):
+        self.parchear("obs_camara").capturar_cuadro.return_value = b"cuadro"
+        tonos = self.parchear("tono_guia")
+        tonos.tono_centro.return_value = b"centro"
+        memoria = self.parchear("sonido_memoria")
+        memoria.reproducir.return_value = True
+        self.parchear_wx()
+        guiada = Guia()
+        guiada._marcha = self._marcha([_rostro(0.5, 0.35)])
+        self.assertTrue(guiada._paso(1.0))
+        self.assertTrue(guiada._paso(1.1))
+        tonos.tono_centro.assert_called_once_with("normal")
+        memoria.reproducir.assert_called_once_with(b"centro", bucle=True)
+
+    def test_al_salir_de_la_zona_corta_el_tono(self):
+        self.parchear("obs_camara").capturar_cuadro.return_value = b"cuadro"
+        tonos = self.parchear("tono_guia")
+        tonos.tono_centro.return_value = b"centro"
+        tonos.pitido.return_value = b"pitido"
+        memoria = self.parchear("sonido_memoria")
+        memoria.reproducir.return_value = True
+        self.parchear_wx()
+        guiada = Guia()
+        guiada._marcha = self._marcha([_rostro(0.5, 0.35)])
+        self.assertTrue(guiada._paso(1.0))
+        memoria.detener.reset_mock()
+        guiada._marcha.detector.analizar.return_value = _cuadro_con(
+            [_rostro(0.2, 0.35)])
+        self.assertTrue(guiada._paso(1.1))
+        memoria.detener.assert_called_once_with()
+        memoria.reproducir.assert_called_with(b"pitido")
+
     def test_centrada_tras_racha_termina_con_listo_y_frase(self):
         self.parchear("obs_camara").capturar_cuadro.return_value = b"cuadro"
+        self.parchear("tono_guia").tono_centro.return_value = b"centro"
+        memoria = self.parchear("sonido_memoria")
+        memoria.reproducir.return_value = True
         suena = self.parchear("reproducir_archivo")
         anunciar = self.parchear("anunciar")
         llamadas = self.parchear_wx()
@@ -253,6 +302,7 @@ class TestPaso(_Testigo):
         self.assertFalse(guiada._paso(2.6))
         nombres = [str(llamada[0][0]) for llamada in suena.call_args_list]
         self.assertTrue(nombres[-1].endswith("listo.wav"))
+        memoria.detener.assert_called()
         self.assertEqual(len(llamadas), 1)
         self.correr(llamadas)
         terminar.assert_called_once_with()
@@ -260,6 +310,7 @@ class TestPaso(_Testigo):
 
     def test_a_los_60_segundos_se_detiene(self):
         self.parchear("obs_camara").capturar_cuadro.return_value = b"cuadro"
+        self.parchear("sonido_memoria")
         suena = self.parchear("reproducir_archivo")
         llamadas = self.parchear_wx()
         guiada = Guia()
@@ -271,10 +322,12 @@ class TestPaso(_Testigo):
         self.assertIs(funcion.__self__, guiada)
         self.assertIs(funcion.__func__, Guia.detener)
         self.assertEqual(args, ("Guía de encuadre detenida.",))
+        self.correr(llamadas)
+        guia_encuadre.sonido_memoria.detener.assert_called_once_with()
 
     def test_fallo_de_captura_cierra_con_su_texto(self):
-        self.parchear("obs_camara").capturar_cuadro.side_effect = \
-            CamaraNoEncontrada("No hay ninguna cámara en OBS.")
+        self.parchear("obs_camara").capturar_cuadro.side_effect =             CamaraNoEncontrada("No hay ninguna cámara en OBS.")
+        memoria = self.parchear("sonido_memoria")
         suena = self.parchear("reproducir_archivo")
         llamadas = self.parchear_wx()
         guiada = Guia()
@@ -283,6 +336,8 @@ class TestPaso(_Testigo):
         suena.assert_not_called()
         self.assertEqual(llamadas[0][1],
                          ("No hay ninguna cámara en OBS.",))
+        self.correr(llamadas)
+        memoria.detener.assert_called_once_with()
 
 
 class TestBucle(_Testigo):

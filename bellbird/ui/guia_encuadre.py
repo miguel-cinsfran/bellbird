@@ -3,8 +3,8 @@
 Su única razón para cambiar: la guía en marcha, con su hilo, sus
 pitidos, su fin y la pausa de la lectura. `encuadre_camara` la arranca y
 la detiene por la API pública (`Guia` con `iniciar`, `detener` y
-`en_marcha`), pasándole el marco, la fuente, si invierte y una función
-al terminar; ninguna lee privados de la otra.
+`en_marcha`), pasándole el marco, la fuente, si invierte, el timbre y una
+función al terminar; ninguna lee privados de la otra.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ import weakref
 
 import wx
 
-from bellbird.camera import guia
+from bellbird.camera import guia, tono_guia
 from bellbird.camera.detector_rostros import DetectorRostros, disponible
 from bellbird.core import diagnostico, paths
 from bellbird.core.idioma import N_, _
@@ -24,6 +24,7 @@ from bellbird.obs.obs_camara import CamaraNoEncontrada
 from bellbird.obs.obs_captura_ia import CapturaFallida
 from bellbird.ui import ia_agregar_captura
 from bellbird.ui.accesibilidad import anunciar
+from bellbird.voice import sonido_memoria
 from bellbird.voice.sound_player import reproducir_archivo
 
 
@@ -37,7 +38,7 @@ TEXTO_GUIA_DETENIDA = N_("Guía de encuadre detenida.")
 TEXTO_GUIA_SIN_DETECTOR = N_("El detector de rostros no está instalado.")
 
 # Ritmo de cuadros de la guía y duración máxima antes de detenerse sola.
-INTERVALO_GUIA = 0.25
+INTERVALO_GUIA = 0.05
 DURACION_MAXIMA_GUIA = 60.0
 
 
@@ -51,13 +52,15 @@ class Guia:
         self._pausa_tomada = False
         self._al_terminar = None
         self._marco = lambda: None
+        self._timbre = "normal"
+        self._centro_sonando = False
 
     def en_marcha(self) -> bool:
         """¿La guía está sonando en su hilo?"""
         hilo = self._hilo
         return hilo is not None and hilo.is_alive()
 
-    def iniciar(self, marco, fuente: str, invertir: bool,
+    def iniciar(self, marco, fuente: str, invertir: bool, timbre: str,
                 al_terminar) -> bool:
         """Anuncia el inicio, pausa la lectura y lanza el hilo."""
         if self.en_marcha():
@@ -71,6 +74,22 @@ class Guia:
             anunciar(_(ia_agregar_captura.TEXTO_OBS_CERRADO))
             return False
         anunciar(_(TEXTO_GUIA_INICIO))
+        self._tomar_pausa(marco)
+        try:
+            self._marco = weakref.ref(marco)
+        except TypeError:
+            self._marco = lambda: marco
+        self._al_terminar = al_terminar
+        self._timbre = tono_guia.normalizar_timbre(timbre)
+        self._centro_sonando = False
+        self._parada = threading.Event()
+        self._hilo = diagnostico.crear_hilo(
+            lambda: self._bucle(fuente, invertir), "GuiaEncuadre")
+        self._hilo.start()
+        return True
+
+    def _tomar_pausa(self, marco) -> None:
+        """Pausa la lectura si no lo estaba y recuerda si hay que devolverla."""
         try:
             pausada = marco._worker.esta_pausado()
             if not pausada:
@@ -79,19 +98,11 @@ class Guia:
         except Exception as fallo:
             logger.warning("GuiaEncuadre: sin pausa: %s", fallo)
             self._pausa_tomada = False
-        try:
-            self._marco = weakref.ref(marco)
-        except TypeError:
-            self._marco = lambda: marco
-        self._al_terminar = al_terminar
-        self._parada = threading.Event()
-        self._hilo = diagnostico.crear_hilo(
-            lambda: self._bucle(fuente, invertir), "GuiaEncuadre")
-        self._hilo.start()
-        return True
 
     def detener(self, mensaje) -> None:
-        """Cierra la guía: devuelve la pausa, avisa y dice el final."""
+        """Cierra la guía: corta el tono, devuelve la pausa, avisa y dice el final."""
+        sonido_memoria.detener()
+        self._centro_sonando = False
         parada, self._parada = self._parada, None
         self._hilo = None
         if parada is not None:
@@ -124,6 +135,7 @@ class Guia:
         except Exception as fallo:
             wx.CallAfter(self.detener, _texto_fallo(fallo))
             return
+        self._centro_sonando = False
         self._marcha = guia.Marcha(
             inicio=time.monotonic(), cliente=cliente, camara=camara,
             detector=DetectorRostros(),
@@ -154,16 +166,37 @@ class Guia:
         except Exception as fallo:
             wx.CallAfter(self.detener, _texto_fallo(fallo))
             return False
-        accion, nombre, frase_final = guia.cuadro(
+        accion, tono, frase_final = guia.cuadro(
             marcha, cuadro.rostros, cuadro.ancho, cuadro.alto,
             cuadro.luz_rostro, cuadro.luz_fondo, ahora)
         if accion == "lista":
-            reproducir_archivo(paths.carpeta_guia() / "listo.wav")
-            wx.CallAfter(self.detener, frase_final)
+            self._terminar_lista(frase_final)
             return False
-        if accion == "pitido":
-            reproducir_archivo(paths.carpeta_guia() / nombre)
+        self._sonar(accion, tono)
         return True
+
+    def _sonar(self, accion, tono) -> None:
+        """El tono del centro, un pitido o el aviso sin rostro."""
+        if accion == "centro":
+            if not self._centro_sonando:
+                self._centro_sonando = sonido_memoria.reproducir(
+                    tono_guia.tono_centro(self._timbre), bucle=True)
+            return
+        if self._centro_sonando:
+            sonido_memoria.detener()
+            self._centro_sonando = False
+        if accion == "pitido":
+            sonido_memoria.reproducir(
+                tono_guia.pitido(tono.paneo, tono.frecuencia, self._timbre))
+        elif accion == "sin_rostro":
+            reproducir_archivo(paths.carpeta_guia() / "sin_rostro.wav")
+
+    def _terminar_lista(self, frase_final) -> None:
+        """Confirma el encuadre y cierra la guía."""
+        sonido_memoria.detener()
+        self._centro_sonando = False
+        reproducir_archivo(paths.carpeta_guia() / "listo.wav")
+        wx.CallAfter(self.detener, frase_final)
 
 
 def _texto_fallo(fallo) -> str:

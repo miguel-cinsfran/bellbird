@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md ac59f2140104aa737771ccf0c38b4f2e092dd98d -->
+<!-- original: es/MANUAL.md 21181cfa5345a1acc4e233553681a3f51b0556d4 -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -407,16 +407,25 @@ also says the camera status.
 ### Beep guide
 
 Press `Ctrl+F3` twice in a row. The application pauses chat reading and plays
-beeps that sound from the side you have to move to. They are higher if you have
-to go up, lower if you have to go down and faster the closer you are. When you
-are well framed, a confirmation sounds, the framing is said and reading
-continues. `Ctrl+F3` stops the guide, which also ends on its own after a minute.
+beeps that sound from the side you have to move to, further to that side the
+farther you are from the center. The note rises or falls continuously with the
+height of your eyes: higher if you have to go up and lower if you have to go
+down. The beeps repeat faster the closer you are, between 0.08 and 0.6 seconds.
+When your face is in the center, a steady tone sounds; when it leaves, the beeps
+return. After 1.5 seconds in the center, a confirmation sounds, the framing is
+said and reading continues. `Ctrl+F3` stops the guide, which also ends on its
+own after a minute.
+
+The timbre of the beeps is chosen in *Preferences*, on the *Camera* category,
+with the *Guide sound* list: *Normal*, *Warm* or *8-bit*. When you choose one, a
+sample with that timbre sounds.
 
 If there is more than one camera in the scene, the one in front is used. The
 camera is chosen in *Preferences*, on the *Camera* category, with
 *Find cameras in OBS*, without writing anything in `config.ini`. If the left and
-right indications come out reversed, check *Invert left and right*. The warnings are
-turned on from the same category.
+right indications come out reversed, check *Invert left and right*. The guide
+sound is chosen in the *Guide sound* list. The warnings are turned on from the
+same category.
 
 ## Chat panel for streaming
 

@@ -27,8 +27,16 @@ def opciones_transmision(p) -> dict:
         "avisar_encuadre": leer_booleano(p, "transmision", "avisar_encuadre"),
         "camara_fuente": leer_texto(p, "transmision", "camara_fuente"),
         "camara_invertir": leer_booleano(p, "transmision", "camara_invertir"),
+        "guia_timbre": _timbre(p),
         **_opciones_youtube(p),
     }
+
+
+def _timbre(p) -> str:
+    """El timbre de la guía, «normal» si el archivo trae otro valor."""
+    from bellbird.camera.tono_guia import TIMBRES
+    timbre = leer_texto(p, "transmision", "guia_timbre")
+    return timbre if timbre in TIMBRES else "normal"
 
 
 def _opciones_youtube(p) -> dict:

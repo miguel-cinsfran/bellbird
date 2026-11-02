@@ -32,6 +32,46 @@ class TestPaginaCamara(unittest.TestCase):
         self.addCleanup(destruir, dialogo)
         return dialogo
 
+    def test_la_lista_de_sonido_tiene_su_nombre_y_sus_opciones(self):
+        dialogo = self._dialogo({})
+        lista = dialogo.pagina_camara.cho_sonido_guia
+        self.assertEqual(lista.GetName(), "Sonido de la guía")
+        self.assertEqual(lista.GetStrings(), ["Normal", "Cálido", "8 bits"])
+        self.assertEqual(lista.GetSelection(), 0)
+
+    def test_la_lista_conserva_el_timbre_guardado(self):
+        dialogo = self._dialogo({"guia_timbre": "calido"})
+        self.assertEqual(
+            dialogo.pagina_camara.cho_sonido_guia.GetStringSelection(),
+            "Cálido")
+
+    def test_un_timbre_desconocido_muestra_normal(self):
+        dialogo = self._dialogo({"guia_timbre": "raro"})
+        self.assertEqual(
+            dialogo.pagina_camara.cho_sonido_guia.GetSelection(), 0)
+
+    def test_guardar_el_timbre_lo_deja_en_transmision(self):
+        dialogo = self._dialogo({})
+        dialogo.pagina_camara.cho_sonido_guia.SetSelection(2)
+        cambios = {}
+        dialogo.pagina_camara.guardar(
+            lambda s, k, v: cambios.setdefault((s, k), v), dialogo._config)
+        self.assertEqual(cambios[("transmision", "guia_timbre")], "8bits")
+        self.assertEqual(dialogo._config["guia_timbre"], "8bits")
+
+    def test_al_cambiar_la_eleccion_suena_la_muestra_elegida(self):
+        dialogo = self._dialogo({})
+        lista = dialogo.pagina_camara.cho_sonido_guia
+        lista.SetSelection(1)
+        with mock.patch.object(preferencias_camara.tono_guia, "muestra",
+                               return_value=b"muestra") as muestra,                 mock.patch.object(preferencias_camara.sonido_memoria,
+                                  "reproducir") as reproducir:
+            lista.GetEventHandler().ProcessEvent(
+                preferencias_camara.wx.CommandEvent(
+                    preferencias_camara.wx.EVT_CHOICE.typeId, lista.GetId()))
+        muestra.assert_called_once_with("calido")
+        reproducir.assert_called_once_with(b"muestra")
+
     def test_camara_guardada_se_conserva_sin_consultar_obs(self):
         dialogo = self._dialogo({"camara_fuente": "Cam"})
         self.assertEqual(dialogo.pagina_camara.cho_camara_obs.GetStringSelection(), "Cam")

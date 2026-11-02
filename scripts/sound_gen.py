@@ -1315,24 +1315,12 @@ PANEO = {
 }
 
 
-# ── Guía de encuadre: pitidos con lado y altura ─────────────────────────────
+# ── Guía de encuadre: confirmación y aviso sin rostro ────────────────────────
 # Carpeta fija `sounds/guia/`, igual para los dos temas: no son eventos y
-# por eso no entran en TEMAS. Nueve pitidos cortos de 80 ms, uno por lado
-# (izquierda, centro, derecha) y altura (arriba, medio, abajo): el lado
-# sale por un canal (el otro queda en silencio) y la altura por el tono,
-# agudo para subir y grave para bajar. Más `listo` (confirmación que
-# sube) y `sin_rostro` (zumbido grave y corto).
+# por eso no entran en TEMAS. Los pitidos y el tono del centro se generan
+# en memoria con `bellbird/camera/tono_guia.py`; acá quedan solo `listo`
+# (confirmación que sube) y `sin_rostro` (zumbido grave y corto).
 GUIA_DIR = RAIZ / "sounds" / "guia"
-
-GUIA_TONO = {"arriba": A5, "medio": A4, "abajo": A3}
-GUIA_PANEO = {"izquierda": -1.0, "centro": 0.0, "derecha": 1.0}
-
-
-def gen_guia_pitido(lado: str, altura: str):
-    # Pitido corto de 80 ms: el tono dice si subir o bajar, el canal dice
-    # hacia qué lado moverse.
-    return _normalizar(
-        _perc(_seno(GUIA_TONO[altura], 0.08, 0.40), 0.004, 0.06), 0.6)
 
 
 def gen_guia_listo():
@@ -1347,11 +1335,7 @@ def gen_guia_sin_rostro():
     return _normalizar(_perc(_seno(D3, 0.20, 0.40), 0.005, 0.15), 0.65)
 
 
-GUIA = {f"{lado}_{altura}.wav": (lado, altura)
-        for lado in ("izquierda", "centro", "derecha")
-        for altura in ("arriba", "medio", "abajo")}
-GUIA["listo.wav"] = None
-GUIA["sin_rostro.wav"] = None
+GUIA = {"listo.wav": gen_guia_listo, "sin_rostro.wav": gen_guia_sin_rostro}
 
 
 def generar_guia(destino: Path | None = None,
@@ -1359,20 +1343,12 @@ def generar_guia(destino: Path | None = None,
     destino = destino or GUIA_DIR
     destino.mkdir(parents=True, exist_ok=True)
     n = 0
-    for nombre, lados in GUIA.items():
+    for nombre, generador in GUIA.items():
         ruta = destino / nombre
         if ruta.exists() and not sobreescribir:
             print(f"  [saltar]  {nombre}  (ya existe)")
             continue
-        if lados is None:
-            muestras = gen_guia_listo() if nombre == "listo.wav" \
-                else gen_guia_sin_rostro()
-            pan = 0.0
-        else:
-            lado, altura = lados
-            muestras = gen_guia_pitido(lado, altura)
-            pan = GUIA_PANEO[lado]
-        _escribir_wav(ruta, muestras, pan=pan)
+        _escribir_wav(ruta, generador(), pan=0.0)
         print(f"  [crear ]  {nombre:20s}  {ruta.stat().st_size:6d} bytes")
         n += 1
     return n

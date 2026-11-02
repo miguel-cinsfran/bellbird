@@ -8105,6 +8105,27 @@ msgid "&Invertir izquierda y derecha"
 msgstr "&Invert left and right"
 
 #: bellbird/ui/preferencias_camara.py
+msgid "&Sonido de la guía:"
+msgstr "&Guide sound:"
+
+#. Traductores: latencia del directo; una sola palabra.
+#: bellbird/ui/preferencias_camara.py bellbird/youtube/emision.py
+msgid "Normal"
+msgstr "Normal"
+
+#: bellbird/ui/preferencias_camara.py
+msgid "Cálido"
+msgstr "Warm"
+
+#: bellbird/ui/preferencias_camara.py
+msgid "8 bits"
+msgstr "8-bit"
+
+#: bellbird/ui/preferencias_camara.py
+msgid "Sonido de la guía"
+msgstr "Guide sound"
+
+#: bellbird/ui/preferencias_camara.py
 msgid "Se encontró una cámara en OBS."
 msgstr "Found one camera in OBS."
 
@@ -9099,11 +9120,6 @@ msgstr "Unlisted"
 #: bellbird/youtube/emision.py
 msgid "Privado"
 msgstr "Private"
-
-#. Traductores: latencia del directo; una sola palabra.
-#: bellbird/youtube/emision.py
-msgid "Normal"
-msgstr "Normal"
 
 #: bellbird/youtube/emision.py
 msgid "Baja"

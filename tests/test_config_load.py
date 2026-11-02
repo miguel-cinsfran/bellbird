@@ -738,6 +738,21 @@ class TestCargarConfiguracion(unittest.TestCase):
         cfg = self._cargar_en("[voz]\nvoz = 0\n")
         self.assertFalse(cfg["titulo_estado_obs"])
 
+    def test_guia_timbre_arranca_en_normal(self):
+        cfg = self._cargar_en("[voz]\nvoz = 0\n")
+        self.assertEqual(cfg["guia_timbre"], "normal")
+
+    def test_guia_timbre_valido_se_conserva(self):
+        for timbre in ("normal", "calido", "8bits"):
+            with self.subTest(timbre=timbre):
+                cfg = self._cargar_en(
+                    f"[transmision]\nguia_timbre = {timbre}\n")
+                self.assertEqual(cfg["guia_timbre"], timbre)
+
+    def test_guia_timbre_desconocido_cae_a_normal(self):
+        cfg = self._cargar_en("[transmision]\nguia_timbre = raro\n")
+        self.assertEqual(cfg["guia_timbre"], "normal")
+
     def test_directo_youtube_arranca_vacio_y_no_listado(self):
         cfg = self._cargar_en("[voz]\nvoz = 0\n")
         self.assertEqual(cfg["transmision_youtube_titulo"], "")

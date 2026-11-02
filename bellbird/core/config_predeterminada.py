@@ -168,6 +168,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("avisar_encuadre", "false"),
         ("camara_fuente", ""),
         ("camara_invertir", "false"),
+        ("guia_timbre", "normal"),
         ("youtube_titulo", ""),
         ("youtube_descripcion", ""),
         ("youtube_privacidad", "unlisted"),

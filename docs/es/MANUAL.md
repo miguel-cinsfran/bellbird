@@ -403,17 +403,25 @@ aplicación, y con los avisos activos, `F2` dice también el estado de la cámar
 ### Guía con pitidos
 
 Pulsa `Ctrl+F3` dos veces seguidas. La aplicación pausa la lectura del chat y
-emite pitidos que suenan del lado hacia el que tienes que moverte. Son más
-agudos si tienes que subir, más graves si tienes que bajar y más seguidos
-cuanto más cerca estás. Al quedar bien encuadrado, suena una confirmación, se
-dice el encuadre y la lectura sigue. `Ctrl+F3` detiene la guía, que también
-termina sola al minuto.
+emite pitidos que suenan del lado hacia el que tienes que moverte, cada vez más
+a ese lado cuanto más lejos estás del centro. La nota sube o baja de forma
+continua según la altura de los ojos: más aguda si tienes que subir y más grave
+si tienes que bajar. Los pitidos se repiten más seguidos cuanto más cerca
+estás, entre 0,08 y 0,6 segundos. Cuando el rostro queda en el centro, suena un
+tono seguido; al salir vuelven los pitidos. A los 1,5 segundos seguidos en el
+centro, suena una confirmación, se dice el encuadre y la lectura sigue.
+`Ctrl+F3` detiene la guía, que también termina sola al minuto.
+
+El timbre de los pitidos se elige en *Preferencias*, categoría *Cámara*, con la
+lista *Sonido de la guía*: *Normal*, *Cálido* u *8 bits*. Al elegir uno suena
+una muestra con ese timbre.
 
 Si hay más de una cámara en la escena, se usa la que está delante. La cámara se
 elige en *Preferencias*, categoría *Cámara*, con *Buscar cámaras en OBS*, sin
 escribir nada en `config.ini`. Si las indicaciones de izquierda y derecha salen
-al revés, marca *Invertir izquierda y derecha*. Los avisos se activan desde la
-misma categoría.
+al revés, marca *Invertir izquierda y derecha*. El sonido de la guía se elige
+en la lista *Sonido de la guía*. Los avisos se activan desde la misma
+categoría.
 
 ## Panel de chat para transmitir
 

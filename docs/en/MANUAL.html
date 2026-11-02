@@ -216,7 +216,7 @@
   </style>
 </head>
 <body>
-<!-- original: es/MANUAL.md ac59f2140104aa737771ccf0c38b4f2e092dd98d -->
+<!-- original: es/MANUAL.md 21181cfa5345a1acc4e233553681a3f51b0556d4 -->
 
 <h1 id="bellbird-user-manual">Bellbird, user manual</h1>
 <p>This is a translation of the Spanish original, made with artificial
@@ -637,16 +637,25 @@ when you open the application again, and with the warnings on,
 <h3 id="beep-guide">Beep guide</h3>
 <p>Press <code>Ctrl+F3</code> twice in a row. The application pauses
 chat reading and plays beeps that sound from the side you have to move
-to. They are higher if you have to go up, lower if you have to go down
-and faster the closer you are. When you are well framed, a confirmation
-sounds, the framing is said and reading continues. <code>Ctrl+F3</code>
-stops the guide, which also ends on its own after a minute.</p>
+to, further to that side the farther you are from the center. The note
+rises or falls continuously with the height of your eyes: higher if you
+have to go up and lower if you have to go down. The beeps repeat faster
+the closer you are, between 0.08 and 0.6 seconds. When your face is in
+the center, a steady tone sounds; when it leaves, the beeps return.
+After 1.5 seconds in the center, a confirmation sounds, the framing is
+said and reading continues. <code>Ctrl+F3</code> stops the guide, which
+also ends on its own after a minute.</p>
+<p>The timbre of the beeps is chosen in <em>Preferences</em>, on the
+<em>Camera</em> category, with the <em>Guide sound</em> list:
+<em>Normal</em>, <em>Warm</em> or <em>8-bit</em>. When you choose one, a
+sample with that timbre sounds.</p>
 <p>If there is more than one camera in the scene, the one in front is
 used. The camera is chosen in <em>Preferences</em>, on the
 <em>Camera</em> category, with <em>Find cameras in OBS</em>, without
 writing anything in <code>config.ini</code>. If the left and right
 indications come out reversed, check <em>Invert left and right</em>. The
-warnings are turned on from the same category.</p>
+guide sound is chosen in the <em>Guide sound</em> list. The warnings are
+turned on from the same category.</p>
 <h2 id="chat-panel-for-streaming">Chat panel for streaming</h2>
 <p>It shows the chat large, with a transparent background, for your
 viewers. It is added in OBS (or Streamlabs, or Prism Live Studio) as a

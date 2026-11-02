@@ -237,7 +237,23 @@ class TestAnunciarEncuadre(_Testigo):
             encuadre_camara.anunciar_encuadre(marco)
             encuadre_camara.anunciar_encuadre(marco)
         self.assertEqual(crear.call_count, 1)
-        iniciar.assert_called_once_with(marco, "", False,
+        iniciar.assert_called_once_with(marco, "", False, "normal",
+                                        inst._vigia.reiniciar)
+
+    def test_doble_pulsacion_pasa_el_timbre_guardado(self):
+        marco = _nuevo_marco(guia_timbre="calido")
+        inst = self.inst(marco)
+        self.patch_obj(encuadre_camara.detector_rostros, "disponible",
+                       return_value=True)
+        self.patch_obj(encuadre_camara.obs_activacion,
+                       "obs_esta_en_ejecucion", return_value=True)
+        self.patch_obj(encuadre_camara.diagnostico, "crear_hilo")
+        iniciar = self.patch_obj(guia_encuadre.Guia, "iniciar")
+        with mock.patch.object(encuadre_camara.time, "monotonic",
+                               side_effect=[100.0, 100.3]):
+            encuadre_camara.anunciar_encuadre(marco)
+            encuadre_camara.anunciar_encuadre(marco)
+        iniciar.assert_called_once_with(marco, "", False, "calido",
                                         inst._vigia.reiniciar)
 
     def test_dos_pulsaciones_separadas_consultan_dos_veces(self):

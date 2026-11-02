@@ -30,6 +30,19 @@ _TIPOS = {
 
 _TIPO_ESCENA = N_("escena")
 
+
+def tipos_de_entradas(entradas) -> dict:
+    """Tipo legible de cada entrada de OBS, por nombre."""
+    tipos = {}
+    for entrada in entradas or ():
+        nombre = entrada.get("inputName", "")
+        if not nombre:
+            continue
+        clase = entrada.get("inputKind", "") or ""
+        tipos[nombre] = _TIPOS.get(clase, "")
+    return tipos
+
+
 _MICROFONO = "wasapi_input_capture"
 _ESCRITORIO = "wasapi_output_capture"
 

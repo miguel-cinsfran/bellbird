@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import wx
 
-from bellbird.obs import ajuste_fino
 from bellbird.obs import consultas_transmision
 from bellbird.obs import obs_cliente
 from bellbird.obs import obs_destinos
@@ -16,15 +15,14 @@ from bellbird.obs.obs_destinos import DESTINOS
 from bellbird.core import diagnostico
 from bellbird.core.idioma import N_, _
 from bellbird.obs import overlay_servidor
-from bellbird.ui.accesibilidad import ContadorAccesible, anunciar, nombre_accesible
+from bellbird.ui.accesibilidad import anunciar, nombre_accesible
 from bellbird.ui.confirmar_transmision import _ETIQUETA_TRANSMITIR, confirmar_transmision
 from bellbird.ui.gui import caja_de_grupo
+from bellbird.ui.gui_organizar_escena import OrganizarEscenaDialog
 from bellbird.ui.operaciones_obs import OperacionesObs
 from bellbird.ui import paleta
 from bellbird.ui.preferencias_comun import boton, fila_botones, fila_campo
-from bellbird.ui.tema import _T
 from bellbird.obs.obs_panel import GestorPanelObs, NOMBRE_FUENTE
-from bellbird.obs.restablecimiento import RegistroRestablecimiento
 from bellbird.voice import sound_player
 
 logger = diagnostico.obtener_logger(__name__)
@@ -54,12 +52,8 @@ class TransmisionDialog(wx.Dialog):
         self._guardar_usuario = guardar_usuario
         self._guardar_destino = guardar_destino
         self._usuario_tiktok = usuario_tiktok or ""
-        self._restablecimiento = RegistroRestablecimiento()
-        self._valores_ventana = []
-        self._ajuste = ajuste_fino.EstadoAjuste()
         self._operaciones = OperacionesObs(
-            self, self._activar, self._escribir_fallo, self._enfocar_tras_fallo,
-            self._tras_operacion)
+            self, self._activar, self._escribir_fallo, self._enfocar_tras_fallo)
         self._crear_controles()
         self.Centre()
         paleta.pintar_ventana(self)
@@ -68,43 +62,31 @@ class TransmisionDialog(wx.Dialog):
     def _crear_controles(self):
         panel = wx.Panel(self, name="PanelTransmision")
         caja = wx.BoxSizer(wx.VERTICAL)
-        # Contenido desplazable (solo vertical): necesita 1121 px de alto y el
-        # diálogo mide 680, así que la mitad quedaba fuera del alcance del
-        # ratón. El foco (Tab) desplaza solo hasta el control.
+        # Contenido desplazable (solo vertical): el foco (Tab) desplaza solo
+        # hasta el control.
         zona = wx.ScrolledWindow(panel, name="ZonaTransmision",
                                  style=wx.TAB_TRAVERSAL | wx.VSCROLL)
         zona.SetScrollRate(0, 20)
         self._zona_desplazable = zona
         contenido = wx.BoxSizer(wx.VERTICAL)
-        nota = wx.StaticText(zona, name="NotaTransmision", label=_(obs_estado.NOTA_TRANSMISION))
-        nota.SetForegroundColour(_T.dim)
-        nota.Wrap(560)
-        contenido.Add(nota, 0, wx.ALL, 10)
-
         self._crear_seccion_transmitir(zona, contenido)
         self._crear_seccion_escena(zona, contenido)
-        self._crear_seccion_vista(zona, contenido)
         self._crear_seccion_panel(zona, contenido)
-
         ancho_rotulo = max(rotulo.GetBestSize().GetWidth()
                            for rotulo in self._rotulos_transmision)
         for rotulo in self._rotulos_transmision:
             rotulo.SetMinSize((ancho_rotulo, -1))
         zona.SetSizer(contenido)
         caja.Add(zona, 1, wx.EXPAND)
-
         self.btn_cerrar = boton(panel, _("Cerrar"), "CerrarTransmision", wx.ID_CANCEL)
         caja.Add(self.btn_cerrar, 0, wx.ALIGN_RIGHT | wx.ALL, 10)
         panel.SetSizer(caja)
         self._acciones = (self.cho_destino, self.txt_usuario_tiktok, self.btn_destino,
-                          self.btn_transmitir, self.btn_grabar, self.btn_pausar_grabacion,
-                          self.cho_escena, self.btn_poner_al_aire, self.cho_ventana,
-                          self.btn_usar_ventana, self.btn_captura,
-                          self.btn_actualizar, self.chk_panel_chat, self.btn_preparar,
-                          self.cho_fuente, self.cho_posicion, self.btn_colocar,
-                          self.sp_ancho, self.sp_alto, self.btn_tamano, self.chk_mostrar,
-                          self.chk_fijar, self.btn_frente, self.btn_ajuste,
-                          self.btn_como_se_coloca, self.btn_restaurar)
+                          self.btn_transmitir, self.btn_grabar,
+                          self.btn_pausar_grabacion, self.cho_escena,
+                          self.btn_poner_al_aire, self.btn_organizar,
+                          self.btn_actualizar, self.chk_panel_chat,
+                          self.btn_preparar)
         self._enlazar_eventos()
 
     def _crear_seccion_transmitir(self, zona, contenido):
@@ -140,28 +122,12 @@ class TransmisionDialog(wx.Dialog):
         self.btn_poner_al_aire = boton(padre_escena, _("Poner al &aire"), _("Poner al aire"))
         fila_campo(sizer_escena, rotulo_escena, self.cho_escena,
                    boton=self.btn_poner_al_aire)
-        rotulo_ventana = self._nuevo_rotulo(padre_escena, _("Ventana que se captura:"))
-        self.cho_ventana = wx.Choice(padre_escena, name=_("Ventana que se captura"))
-        nombre_accesible(self.cho_ventana, _("Ventana que se captura"))
-        self.btn_usar_ventana = boton(padre_escena, _("Usar esa &ventana"), _("Usar esa ventana"))
-        fila_campo(sizer_escena, rotulo_ventana, self.cho_ventana,
-                   boton=self.btn_usar_ventana)
-        self.btn_captura = boton(
-            padre_escena, _("Guardar una capt&ura de la escena…"), "GuardarCaptura")
+        self.btn_organizar = boton(
+            padre_escena, _("&Organizar escena…"), _("Organizar escena…"))
         self.btn_actualizar = boton(padre_escena, _("Actualizar e&stado"), "ActualizarEstado")
-        sizer_escena.Add(fila_botones((self.btn_captura, self.btn_actualizar)),
+        sizer_escena.Add(fila_botones((self.btn_organizar, self.btn_actualizar)),
                          0, wx.ALL, 6)
         contenido.Add(sizer_escena, 1, wx.EXPAND | wx.ALL, 10)
-
-    def _crear_seccion_vista(self, zona, contenido):
-        sizer_vista, padre_vista = caja_de_grupo(zona, _("Cómo se ve la escena"))
-        self.txt_vista_escena = wx.TextCtrl(
-            padre_vista, style=wx.TE_MULTILINE | wx.TE_READONLY,
-            name=_("Cómo se ve la escena"))
-        nombre_accesible(self.txt_vista_escena, _("Cómo se ve la escena"))
-        self.txt_vista_escena.SetMinSize((-1, 110))
-        sizer_vista.Add(self.txt_vista_escena, 1, wx.EXPAND | wx.ALL, 6)
-        contenido.Add(sizer_vista, 0, wx.EXPAND | wx.ALL, 10)
 
     def _crear_seccion_panel(self, zona, contenido):
         sizer_panel, padre_panel = caja_de_grupo(zona, _("Panel de chat, solo YouTube"))
@@ -173,10 +139,6 @@ class TransmisionDialog(wx.Dialog):
         sizer_panel.Add(self.chk_panel_chat, 0, wx.ALL, 6)
         self.btn_preparar = boton(padre_panel, _("Preparar pane&l"), _("Preparar panel"))
         sizer_panel.Add(self.btn_preparar, 0, wx.ALL, 6)
-        rotulo_fuente = self._nuevo_rotulo(padre_panel, _("Fuente:"))
-        self.cho_fuente = wx.Choice(padre_panel, name=_("Fuente"))
-        nombre_accesible(self.cho_fuente, _("Fuente"))
-        fila_campo(sizer_panel, rotulo_fuente, self.cho_fuente)
         rotulo_estado = self._nuevo_rotulo(padre_panel, _("Estado del panel:"))
         sizer_panel.Add(rotulo_estado, 0, wx.ALL, 6)
         self.txt_estado = wx.TextCtrl(
@@ -185,69 +147,14 @@ class TransmisionDialog(wx.Dialog):
         nombre_accesible(self.txt_estado, _("Estado del panel"))
         self.txt_estado.SetMinSize((-1, 110))
         sizer_panel.Add(self.txt_estado, 1, wx.EXPAND | wx.ALL, 6)
-        rotulo_posicion = self._nuevo_rotulo(padre_panel, _("Posición del panel:"))
-        self.cho_posicion = wx.Choice(
-            padre_panel, choices=[_(obs_disposicion.etiqueta_anclaje(nombre))
-                                  for nombre in obs_disposicion.ANCLAJES],
-            name=_("Posición del panel"))
-        nombre_accesible(self.cho_posicion, _("Posición del panel"))
-        fila_campo(sizer_panel, rotulo_posicion, self.cho_posicion)
-        self.btn_colocar = boton(
-            padre_panel, _("&Colocar en esa posición"), _("Colocar en esa posición"))
-        sizer_panel.Add(self.btn_colocar, 0, wx.ALL, 6)
-        self._crear_seccion_panel_tamano(padre_panel, sizer_panel)
         contenido.Add(sizer_panel, 0, wx.EXPAND | wx.ALL, 10)
-
-    def _crear_seccion_panel_tamano(self, padre_panel, sizer_panel):
-        rotulo_ancho = self._nuevo_rotulo(padre_panel, _("Ancho del panel en píxeles:"))
-        self.sp_ancho = ContadorAccesible(padre_panel, min=100, max=4000, initial=460,
-                                          name=_("Ancho del panel en píxeles"))
-        fila_campo(sizer_panel, rotulo_ancho, self.sp_ancho)
-        rotulo_alto = self._nuevo_rotulo(padre_panel, _("Alto del panel en píxeles:"))
-        self.sp_alto = ContadorAccesible(padre_panel, min=100, max=4000, initial=620,
-                                         name=_("Alto del panel en píxeles"))
-        fila_campo(sizer_panel, rotulo_alto, self.sp_alto)
-        self.btn_tamano = boton(padre_panel, _("Apl&icar tamaño"), "AplicarTamano")
-        sizer_panel.Add(self.btn_tamano, 0, wx.ALL, 6)
-        self.chk_mostrar = wx.CheckBox(padre_panel, label=_("&Mostrar panel en la escena"),
-                                       name="MostrarPanel")
-        self.chk_fijar = wx.CheckBox(padre_panel, label=_("&Fijar posición del panel"),
-                                     name="FijarPanel")
-        sizer_panel.Add(self.chk_mostrar, 0, wx.ALL, 6)
-        sizer_panel.Add(self.chk_fijar, 0, wx.ALL, 6)
-        self.btn_frente = boton(padre_panel, _("P&oner al frente"), "PonerAlFrente")
-        sizer_panel.Add(self.btn_frente, 0, wx.ALL, 6)
-        self._etiqueta_ajuste = _("A&juste fino")
-        self.btn_ajuste = boton(padre_panel, self._etiqueta_ajuste, "AjusteFino")
-        sizer_panel.Add(self.btn_ajuste, 0, wx.ALL, 6)
-        self.btn_como_se_coloca = boton(
-            padre_panel, _("Cómo s&e coloca el panel"), _("Cómo se coloca el panel"))
-        sizer_panel.Add(self.btn_como_se_coloca, 0, wx.ALL, 6)
-        self.btn_lienzo = boton(padre_panel, _("&Qué es el lienzo"), "QueEsElLienzo")
-        sizer_panel.Add(self.btn_lienzo, 0, wx.ALL, 6)
-        self.btn_restaurar = boton(padre_panel, _("&Restablecer"), "RestablecerTransmision")
-        sizer_panel.Add(self.btn_restaurar, 0, wx.ALL, 6)
 
     def _enlazar_eventos(self):
         self.btn_actualizar.Bind(wx.EVT_BUTTON, self._actualizar)
         self.btn_preparar.Bind(wx.EVT_BUTTON, self._preparar)
         self.chk_panel_chat.Bind(wx.EVT_CHECKBOX, self._alternar_panel_chat)
-        self.cho_escena.Bind(wx.EVT_CHOICE, self._cambiar_escena)
         self.btn_poner_al_aire.Bind(wx.EVT_BUTTON, self._poner_al_aire)
-        self.btn_usar_ventana.Bind(wx.EVT_BUTTON, self._usar_ventana)
-        self.cho_fuente.Bind(wx.EVT_CHOICE, self._cambiar_fuente)
-        # Recorrer con flechas dispara EVT_CHOICE y esto sale al aire.
-        self.btn_colocar.Bind(wx.EVT_BUTTON, self._colocar)
-        self.btn_tamano.Bind(wx.EVT_BUTTON, self._tamano)
-        self.chk_mostrar.Bind(wx.EVT_CHECKBOX, self._mostrar)
-        self.chk_fijar.Bind(wx.EVT_CHECKBOX, self._fijar)
-        self.btn_frente.Bind(wx.EVT_BUTTON, self._frente)
-        self.btn_ajuste.Bind(wx.EVT_BUTTON, self._iniciar_ajuste)
-        self.btn_ajuste.Bind(wx.EVT_KILL_FOCUS, self._ajuste_perdio_foco)
-        self.btn_captura.Bind(wx.EVT_BUTTON, self._captura)
-        self.btn_como_se_coloca.Bind(wx.EVT_BUTTON, self._como_se_coloca)
-        self.btn_lienzo.Bind(wx.EVT_BUTTON, self._lienzo)
-        self.btn_restaurar.Bind(wx.EVT_BUTTON, self._restaurar)
+        self.btn_organizar.Bind(wx.EVT_BUTTON, self._organizar_escena)
         self.cho_destino.Bind(wx.EVT_CHOICE, self._al_cambiar_destino)
         self.btn_destino.Bind(wx.EVT_BUTTON, self._preparar_destino)
         self.btn_transmitir.Bind(wx.EVT_BUTTON, self._transmitir)
@@ -255,7 +162,6 @@ class TransmisionDialog(wx.Dialog):
         self.btn_pausar_grabacion.Bind(wx.EVT_BUTTON, self._pausar_grabacion)
         self.btn_cerrar.Bind(wx.EVT_BUTTON, self._cerrar)
         self.Bind(wx.EVT_CLOSE, self._cerrar)
-        self.Bind(wx.EVT_CHAR_HOOK, self._tecla_ajuste)
 
     def _nuevo_rotulo(self, padre, texto):
         rotulo = wx.StaticText(padre, label=texto)
@@ -278,10 +184,6 @@ class TransmisionDialog(wx.Dialog):
     def _destino_elegido(self):
         sel = self.cho_destino.GetSelection()
         return DESTINOS[sel] if sel != wx.NOT_FOUND else None
-
-    def _tras_operacion(self, resultado):
-        if isinstance(resultado, obs_disposicion.SnapshotPanel):
-            self._mostrar_snap(resultado)
 
     def _escribir_fallo(self, mensaje):
         self.txt_estado.SetValue(mensaje)
@@ -307,10 +209,6 @@ class TransmisionDialog(wx.Dialog):
         self.cho_escena.Set(list(datos.escenas))
         if datos.escena:
             self.cho_escena.SetStringSelection(datos.escena)
-        self._cargar_fuentes(datos.fuentes, datos.fuente)
-        self._cargar_ventanas(datos.opciones, datos.actual)
-        self._mostrar_snap(datos.snap)
-        self._mostrar_vista(datos.descripcion)
         if datos.perfil in DESTINOS:
             self.cho_destino.SetStringSelection(datos.perfil)
         else:
@@ -320,66 +218,16 @@ class TransmisionDialog(wx.Dialog):
 
     def _inicial_cargada(self, datos):
         self._poblar_inicial(datos)
-        anunciar(obs_disposicion.describir_preparacion(
-            datos.snap.conectado, overlay_servidor.esta_encendido(),
-            overlay_servidor.puerto_actual(), NOMBRE_FUENTE in datos.fuentes))
+        frase = obs_disposicion.describir_preparacion(
+            True, overlay_servidor.esta_encendido(),
+            overlay_servidor.puerto_actual(), NOMBRE_FUENTE in datos.fuentes)
+        self.txt_estado.SetValue(frase)
+        anunciar(frase)
         self._anunciar_estados(datos.transmision, datos.grabacion, datos.al_aire)
         self.cho_destino.SetFocus()
 
-    def _mostrar_snap(self, snap):
-        self.txt_estado.SetValue(obs_disposicion.describir_fuente(
-            self._fuente(), snap, obs_disposicion.COMPONENTES, "largo"))
-        anclaje = obs_disposicion.anclaje_de(
-            (snap.izquierda, snap.arriba, snap.ancho, snap.alto),
-            snap.lienzo_ancho, snap.lienzo_alto)
-        self.cho_posicion.SetSelection(
-            tuple(obs_disposicion.ANCLAJES).index(anclaje)
-            if anclaje else wx.NOT_FOUND)
-        if snap.ancho:
-            self.sp_ancho.SetValue(snap.ancho)
-        if snap.alto:
-            self.sp_alto.SetValue(snap.alto)
-        self.chk_mostrar.SetValue(snap.visible)
-        self.chk_fijar.SetValue(snap.bloqueada)
-
-    def _mostrar_vista(self, descripcion):
-        self.txt_vista_escena.SetValue(descripcion or "")
-
-    def _cargar_fuentes(self, fuentes, fuente=""):
-        self.cho_fuente.Set(list(fuentes))
-        if fuente:
-            self.cho_fuente.SetStringSelection(fuente)
-        if not fuentes:
-            self.txt_estado.SetValue(_("La escena no tiene fuentes."))
-
-    def _cargar_ventanas(self, opciones, actual):
-        self._valores_ventana = [valor for _sin_uso, valor in opciones or ()]
-        self.cho_ventana.Set([texto for texto, _sin_uso in opciones or ()])
-        if actual in self._valores_ventana:
-            self.cho_ventana.SetSelection(self._valores_ventana.index(actual))
-        elif opciones:
-            self.cho_ventana.SetSelection(wx.NOT_FOUND)
-
-    def _valor_ventana(self):
-        indice = self.cho_ventana.GetSelection()
-        if indice == wx.NOT_FOUND or indice < 0 or indice >= len(self._valores_ventana):
-            return ""
-        return self._valores_ventana[indice]
-
     def _escena(self):
         return self.cho_escena.GetStringSelection()
-
-    def _fuente(self):
-        return self.cho_fuente.GetStringSelection()
-
-    def _leer(self, escena, fuente):
-        # Escena y fuente llegan como argumentos: los hilos de trabajo no deben
-        # leer controles de wx, eso solo es seguro desde el hilo principal.
-        return self._gestor.instantanea(escena, fuente=fuente)
-
-    def _anunciar_snap(self, snap):
-        anunciar(obs_disposicion.describir_fuente(
-            self._fuente(), snap, obs_disposicion.ACTIVOS_DEFECTO))
 
     def _actualizar_boton(self, boton, etiqueta, nombre):
         boton.SetLabel(etiqueta)
@@ -415,48 +263,21 @@ class TransmisionDialog(wx.Dialog):
         anunciar(self._frase_escena_al_aire(al_aire))
 
     def _actualizar(self, event):
-        escena, fuente = self._escena(), self._fuente()
-        self._en_hilo(lambda: self._leer_estados(escena, fuente), self._estados_leidos)
+        self._en_hilo(self._leer_estados, self._estados_leidos)
 
-    def _leer_estados(self, escena, fuente):
-        return (self._leer(escena, fuente), self._gestor.escena_al_aire(),
-                self._gestor.estado_transmision(), self._gestor.estado_grabacion(),
-                *self._gestor.ventanas(escena),
-                self._gestor.descripcion_escena())
+    def _leer_estados(self):
+        return (self._gestor.escena_al_aire(), self._gestor.estado_transmision(),
+                self._gestor.estado_grabacion())
 
     def _estados_leidos(self, datos):
-        snap, al_aire, transmision, grabacion, opciones, actual, descripcion = datos
-        self._mostrar_snap(snap)
-        self._mostrar_vista(descripcion)
+        al_aire, transmision, grabacion = datos
         self._mostrar_estados(transmision, grabacion, al_aire)
-        self._cargar_ventanas(opciones, actual)
-        self._anunciar_snap(snap)
         self._anunciar_estados(transmision, grabacion, al_aire)
 
     def _poner_al_aire(self, event):
         escena = self._escena()
         self._en_hilo(lambda: self._gestor.poner_escena_al_aire(escena),
                       self._escena_puesta_al_aire)
-
-    def _usar_ventana(self, event):
-        escena = self._escena()
-        valor = self._valor_ventana()
-        if not valor:
-            anunciar(_("Elige primero una ventana en Ventana que se captura."))
-            return
-        self._en_hilo(lambda: self._aplicar_ventana(escena, valor),
-                      self._ventana_aplicada)
-
-    def _aplicar_ventana(self, escena, valor):
-        # Escena y valor viajan como argumentos: los hilos no leen controles.
-        return consultas_transmision.aplicar_ventana(self._gestor, escena, valor)
-
-    def _ventana_aplicada(self, datos):
-        self._cargar_fuentes(datos.fuentes, datos.fuente)
-        self._mostrar_snap(datos.snap)
-        self._mostrar_estados(datos.transmision, datos.grabacion, datos.al_aire)
-        self._cargar_ventanas(datos.opciones, datos.actual)
-        anunciar(datos.frase)
 
     def _escena_puesta_al_aire(self, escena):
         anunciar(self._frase_escena_al_aire(escena))
@@ -591,252 +412,37 @@ class TransmisionDialog(wx.Dialog):
 
     def _preparar(self, event):
         escena = self._escena()
-        ancho, alto = self.sp_ancho.GetValue(), self.sp_alto.GetValue()
-        self._en_hilo(lambda: self._preparar_panel(escena, ancho, alto), self._panel_preparado)
+        self._en_hilo(lambda: self._preparar_panel(escena), self._panel_preparado)
 
-    def _preparar_panel(self, escena, ancho, alto):
+    def _preparar_panel(self, escena):
         puerto = overlay_servidor.puerto_actual() or _PUERTO_PANEL_DEFECTO
         if not overlay_servidor.esta_encendido():
             try:
                 overlay_servidor.encender(puerto)
             except overlay_servidor.OverlayPuertoOcupadoError:
-                return _("No se pudo encender el panel, el puerto {puerto} está ocupado").format(puerto=puerto), (), None
+                return _("No se pudo encender el panel, el puerto {puerto} está ocupado").format(puerto=puerto)
         puerto = overlay_servidor.puerto_actual() or puerto
         fuentes = self._gestor.fuentes(escena)
         if NOMBRE_FUENTE not in fuentes:
             url = f"http://127.0.0.1:{puerto}{_RUTA_PANEL_CHAT}"
-            self._gestor.asegurar_fuente(escena, url, ancho, alto)
+            self._gestor.asegurar_fuente(escena, url, 460, 620)
             fuentes = self._gestor.fuentes(escena)
-        snap = self._gestor.instantanea(escena, fuente=NOMBRE_FUENTE)
-        frase = obs_disposicion.describir_preparacion(
-            snap.conectado, overlay_servidor.esta_encendido(), puerto,
+        return obs_disposicion.describir_preparacion(
+            True, overlay_servidor.esta_encendido(), puerto,
             NOMBRE_FUENTE in fuentes)
-        return frase, fuentes, snap
 
-    def _panel_preparado(self, datos):
-        frase, fuentes, snap = datos
-        if snap is not None:
-            self._cargar_fuentes(fuentes, NOMBRE_FUENTE)
-            self._mostrar_snap(snap)
+    def _panel_preparado(self, frase):
+        self.txt_estado.SetValue(frase)
         anunciar(frase)
 
-    def _cambiar_escena(self, event):
-        if self._operaciones.en_vuelo:
-            return
+    def _organizar_escena(self, event):
         escena = self._escena()
-        self._en_hilo(lambda: self._leer_escena(escena), self._escena_cambiada)
-        event.Skip()
-
-    def _leer_escena(self, escena):
-        return consultas_transmision.leer_escena(self._gestor, escena)
-
-    def _escena_cambiada(self, datos):
-        self._cargar_fuentes(datos.fuentes, datos.fuente)
-        self._cargar_ventanas(datos.opciones, datos.actual)
-        if datos.fuentes:
-            self._mostrar_snap(datos.snap)
-            self._anunciar_snap(datos.snap)
-
-    def _cambiar_fuente(self, event):
-        if self._operaciones.en_vuelo:
-            return
-        escena, fuente = self._escena(), self._fuente()
-        self._en_hilo(lambda: self._leer(escena, fuente), self._anunciar_snap)
-        event.Skip()
-
-    def _colocar(self, event):
-        anclaje = tuple(obs_disposicion.ANCLAJES)[self.cho_posicion.GetSelection()]
-        escena, fuente = self._escena(), self._fuente()
-        self._en_hilo(lambda: self._cambiar_y_leer(escena, fuente, self._gestor.colocar, anclaje),
-                      self._anunciar_snap)
-        event.Skip()
-
-    def _tamano(self, event):
-        escena, fuente = self._escena(), self._fuente()
-        ancho, alto = self.sp_ancho.GetValue(), self.sp_alto.GetValue()
-        self._en_hilo(lambda: self._aplicar_tamano(escena, fuente, ancho, alto),
-                      self._tamano_aplicado)
-
-    def _aplicar_tamano(self, escena, fuente, ancho, alto):
-        self._restablecimiento.guardar(self._gestor, escena, fuente)
-        if fuente == NOMBRE_FUENTE:
-            self._gestor.redimensionar(escena, ancho, alto)
-            return self._leer(escena, fuente), True
-        if not self._gestor.escalar(escena, ancho, alto, fuente=fuente):
-            return self._leer(escena, fuente), False
-        return self._leer(escena, fuente), True
-
-    def _tamano_aplicado(self, datos):
-        snap, aplicado = datos
-        self._mostrar_snap(snap)
-        if aplicado:
-            self._anunciar_snap(snap)
-        else:
-            anunciar(_("{fuente} todavía no informa su tamaño.").format(fuente=self._fuente()))
-
-    def _mostrar(self, event):
-        visible = self.chk_mostrar.GetValue()
-        escena, fuente = self._escena(), self._fuente()
-        self._en_hilo(lambda: self._cambiar_y_leer(escena, fuente, self._gestor.mostrar, visible),
-                      self._anunciar_snap)
-        event.Skip()
-
-    def _fijar(self, event):
-        fijada = self.chk_fijar.GetValue()
-        escena, fuente = self._escena(), self._fuente()
-        self._en_hilo(lambda: self._cambiar_y_leer(escena, fuente, self._gestor.fijar, fijada),
-                      self._anunciar_snap)
-        event.Skip()
-
-    def _frente(self, event):
-        escena, fuente = self._escena(), self._fuente()
-        self._en_hilo(lambda: self._cambiar_y_leer(escena, fuente, self._gestor.al_frente),
-                      self._anunciar_snap)
-
-    def _iniciar_ajuste(self, event):
-        if self._ajuste.en_curso:
-            return
-        escena, fuente = self._escena(), self._fuente()
-        self._en_hilo(lambda: self._preparar_ajuste(escena, fuente), self._ajuste_iniciado)
-
-    def _preparar_ajuste(self, escena, fuente):
-        self._restablecimiento.guardar(self._gestor, escena, fuente)
-        return self._gestor.transformacion(escena, fuente=fuente), self._leer(escena, fuente)
-
-    def _ajuste_iniciado(self, datos):
-        transformacion, snap = datos
-        self._ajuste.entrar(transformacion)
-        self.btn_ajuste.SetLabel(ajuste_fino.etiqueta_boton(True, self._etiqueta_ajuste))
-        self._mostrar_snap(snap)
-        anunciar(ajuste_fino.texto_de_entrada())
-        self._anunciar_ajuste(snap)
-
-    def _tecla_ajuste(self, event):
-        if not self._ajuste.en_curso:
-            event.Skip()
-            return
-        accion, dx, dy = ajuste_fino.resolver(
-            event.GetKeyCode(), event.ControlDown(), event.ShiftDown())
-        if accion == "mover":
-            if self._ajuste.puede_mover():
-                self._mover_ajuste(dx, dy)
-            return
-        if accion == "cancelar":
-            self._salir_ajuste(False)
-            return
-        if accion in ("confirmar", "salir"):
-            self._salir_ajuste(True)
-            if accion == "salir":
-                event.Skip()
-            return
-
-    def _mover_ajuste(self, dx, dy):
-        self._ajuste.empezar_movimiento()
-        escena = self._escena()
-        fuente = self._fuente()
-        def mover():
-            try:
-                self._gestor.mover(escena, dx, dy, fuente=fuente)
-                snap = self._leer(escena, fuente)
-            except obs_cliente.ObsError as error:
-                wx.CallAfter(self._movimiento_fallo, str(error))
-            except Exception as error:
-                logger.warning("ajuste fino OBS: %r", error)
-                wx.CallAfter(self._movimiento_fallo,
-                             obs_cliente.mensaje_de_fallo_obs(error))
-            else:
-                wx.CallAfter(self._movimiento_terminado, snap)
-        diagnostico.crear_hilo(mover, "AjusteFinoOBS").start()
-
-    def _movimiento_terminado(self, snap):
-        decision = self._ajuste.aterrizar()
-        if self._operaciones.cerrando:
-            return
-        if decision == ajuste_fino.DESHACER:
-            self._deshacer_ajuste()
-        elif decision == ajuste_fino.MOSTRAR:
-            self._mostrar_snap(snap)
-            self._anunciar_ajuste(snap)
-
-    def _movimiento_fallo(self, mensaje):
-        decision = self._ajuste.aterrizar()
-        if self._operaciones.cerrando:
-            return
-        if decision == ajuste_fino.DESHACER:
-            self._deshacer_ajuste()
-        elif decision == ajuste_fino.MOSTRAR:
-            self._fallo(mensaje)
-
-    def _anunciar_ajuste(self, snap):
-        # Aquí la fuente no cambia y ya se anunció al entrar; los otros anuncios pueden cambiar de fuente y llevan nombre.
-        anunciar(obs_disposicion.describir(
-            snap, ("posicion", "solape", "fuera")), "ajuste")
-
-    def _ajuste_perdio_foco(self, event):
-        if self._ajuste.en_curso:
-            self._salir_ajuste(True)
-        event.Skip()
-
-    def _salir_ajuste(self, confirmar):
-        decision = self._ajuste.salir(confirmar)
-        if decision == ajuste_fino.NADA:
-            return
-        self.btn_ajuste.SetLabel(ajuste_fino.etiqueta_boton(False, self._etiqueta_ajuste))
-        if decision == ajuste_fino.CONFIRMADO:
-            anunciar(_("Ajuste confirmado"))
-        elif decision == ajuste_fino.DESHACER:
-            self._deshacer_ajuste()
-
-    def _deshacer_ajuste(self):
-        transformacion = self._ajuste.tomar_para_deshacer()
-        if not transformacion:
-            # transformacion() devuelve {} cuando la fuente ya no está en la
-            # escena; no hay a dónde volver.
-            anunciar(_("No se pudo deshacer el ajuste"))
-            return
-        escena, fuente = self._escena(), self._fuente()
-        self._en_hilo(
-            lambda: self._gestor.posicionar(
-                escena, transformacion["positionX"],
-                transformacion["positionY"], transformacion["alignment"], fuente=fuente),
-            lambda resultado: anunciar(_("Ajuste deshecho")))
-
-    def _cambiar_y_leer(self, escena, fuente, funcion, *argumentos):
-        self._restablecimiento.guardar(self._gestor, escena, fuente)
-        funcion(escena, *argumentos, fuente=fuente)
-        return self._leer(escena, fuente)
-
-    def _captura(self, event):
-        # Traductores: traduce solo «Imagen PNG»; no cambies «(*.png)|*.png».
-        with wx.FileDialog(self, _("Guardar una captura de la escena"), wildcard=_("Imagen PNG (*.png)|*.png"),
-                           defaultFile="captura-escena.png", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT) as dialogo:
-            if dialogo.ShowModal() != wx.ID_OK:
-                return
-            ruta = dialogo.GetPath()
-        escena, fuente = self._escena(), self._fuente()
-        self._en_hilo(lambda: self._guardar_captura(escena, fuente, ruta),
-                      lambda resultado: anunciar(_("Captura guardada")))
-
-    def _guardar_captura(self, escena, fuente, ruta):
-        self._gestor.captura_de_escena(escena, ruta)
-        return self._leer(escena, fuente)
-
-    def _lienzo(self, event):
-        wx.MessageBox(_(obs_estado.TEXTO_LIENZO), _("Qué es el lienzo"),
-                      wx.OK | wx.ICON_INFORMATION, self)
-
-    def _como_se_coloca(self, event):
-        wx.MessageBox(_(obs_estado.TEXTO_COMO_SE_COLOCA), _("Cómo se coloca el panel"),
-                      wx.OK | wx.ICON_INFORMATION, self)
-
-    def _restaurar(self, event):
-        escena, fuente = self._escena(), self._fuente()
-        self._en_hilo(lambda: self._aplicar_restauracion(escena, fuente),
-                      lambda snap: anunciar(_("Restablecido")))
-
-    def _aplicar_restauracion(self, escena_actual, fuente_actual):
-        self._restablecimiento.aplicar(self._gestor)
-        return self._leer(escena_actual, fuente_actual)
+        dialogo = OrganizarEscenaDialog(self, self._gestor, escena)
+        try:
+            dialogo.ShowModal()
+        finally:
+            dialogo.Destroy()
+            self.btn_organizar.SetFocus()
 
     def _cerrar(self, event):
         if self._operaciones.cerrando:

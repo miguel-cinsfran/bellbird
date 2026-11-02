@@ -11,7 +11,6 @@ from bellbird.ui import gui_transmision
 from bellbird.obs import consultas_transmision
 from bellbird.obs import obs_cliente
 from bellbird.obs import obs_disposicion
-from bellbird.obs import obs_estado
 from bellbird.obs import obs_lanzador
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
@@ -88,7 +87,10 @@ class GestorFalso:
     def instantanea(self, *args, **kwargs):
         self.instantaneas.append((args, kwargs.get("fuente")))
         return self.snap
-    def descripcion_escena(self, parada=None):
+    def descripcion_escena(self, escena=None, parada=None):
+        if escena:
+            return (f"Escena: {escena}. 1 fuente, de adelante hacia atrás.\n"
+                    "1: Juego, captura de pantalla, ocupa todo el vídeo, se ve.")
         return ("Escena actual: Principal. 1 fuente, de adelante hacia atrás.\n"
                 "1: Juego, captura de pantalla, ocupa todo el vídeo, se ve.")
     def captura_de_escena(self, *args): self.llamadas.append(("captura_de_escena",) + args)
@@ -200,7 +202,7 @@ class TestTransmisionDialog(unittest.TestCase):
             None, gestor, asegurar=_asegurar_sin_obs)
         self.assertIn("OBS no está disponible", self.dialogo.txt_estado.GetValue())
         self.assertFalse(self.dialogo.cho_escena.IsEnabled())
-        self.assertFalse(self.dialogo.btn_tamano.IsEnabled())
+        self.assertFalse(self.dialogo.btn_organizar.IsEnabled())
 
     def test_una_excepcion_no_prevista_libera_el_dialogo_y_avisa(self):
         # Solo se capturaba ObsError: un TypeError (la fuente elegida ya no
@@ -275,34 +277,10 @@ class TestTransmisionDialog(unittest.TestCase):
         self.dialogo._activar(True)
         self.assertFalse(self.dialogo.chk_panel_chat.IsEnabled())
 
-    def test_elegir_una_posicion_no_coloca_el_panel(self):
-        self.gestor.colocar = mock.Mock()
-        evento = wx.CommandEvent(wx.EVT_CHOICE.typeId, self.dialogo.cho_posicion.GetId())
-        self.dialogo.cho_posicion.GetEventHandler().ProcessEvent(evento)
-        self.gestor.colocar.assert_not_called()
 
-    def test_boton_colocar_usa_la_clave_del_anclaje_elegido(self):
-        self.dialogo.cho_posicion.SetSelection(8)
-        self.dialogo.btn_colocar.GetEventHandler().ProcessEvent(
-            wx.CommandEvent(wx.EVT_BUTTON.typeId, self.dialogo.btn_colocar.GetId()))
-        self.assertIn(("colocar", "Principal", "inferior-derecha"), self.gestor.llamadas)
 
-    def test_mostrar_instantanea_refleja_el_anclaje_real_del_panel(self):
-        self.dialogo._mostrar_snap(self.gestor.snap)
-        self.assertEqual(self.dialogo.cho_posicion.GetStringSelection(), "Arriba a la izquierda")
 
-    def test_mostrar_instantanea_fuera_de_anclajes_deja_sin_posicion(self):
-        snap = obs_disposicion.SnapshotPanel(
-            conectado=True, escena="Principal", ancho=460, alto=620,
-            lienzo_ancho=1600, lienzo_alto=900, izquierda=100, arriba=100,
-            visible=True, bloqueada=False)
-        self.dialogo.cho_posicion.SetSelection(0)
-        self.dialogo._mostrar_snap(snap)
-        self.assertEqual(self.dialogo.cho_posicion.GetSelection(), wx.NOT_FOUND)
 
-    def test_carga_las_fuentes_y_prefiere_el_panel_de_chat(self):
-        self.assertEqual(self.dialogo.cho_fuente.GetStrings(), ["Cámara", "Chat en el vídeo", "Juego"])
-        self.assertEqual(self.dialogo.cho_fuente.GetStringSelection(), "Chat en el vídeo")
 
     def test_apertura_anuncia_el_estado_sin_preparar_nada(self):
         gestor = GestorFalso()
@@ -351,18 +329,7 @@ class TestTransmisionDialog(unittest.TestCase):
         self.assertEqual(self.anuncios[-1],
                          "No se pudo encender el panel, el puerto 8765 está ocupado")
 
-    def test_cambiar_escena_rehace_las_fuentes(self):
-        self.dialogo.cho_escena.SetStringSelection("Juego")
-        self.dialogo._cambiar_escena(Evento())
-        self.assertEqual(self.dialogo.cho_fuente.GetStrings(), ["Captura"])
-        self.assertEqual(self.dialogo.cho_fuente.GetStringSelection(), "Captura")
-        self.assertNotIn(("poner_escena_al_aire", "Juego"), self.gestor.llamadas)
 
-    def test_cambiar_escena_no_pone_la_escena_elegida_al_aire(self):
-        self.gestor.poner_escena_al_aire = mock.Mock()
-        self.dialogo.cho_escena.SetStringSelection("Juego")
-        self.dialogo._cambiar_escena(Evento())
-        self.gestor.poner_escena_al_aire.assert_not_called()
 
     def test_poner_al_aire_usa_la_escena_elegida_y_anuncia_la_devuelta(self):
         self.dialogo.cho_escena.SetStringSelection("Juego")
@@ -376,268 +343,39 @@ class TestTransmisionDialog(unittest.TestCase):
         self.assertIs(self.dialogo._acciones[indice + 1], self.dialogo.btn_poner_al_aire)
         self.assertEqual(self.dialogo.btn_poner_al_aire.GetName(), "Poner al aire")
 
-    def test_ventana_va_entre_poner_al_aire_y_captura_en_acciones_y_tab(self):
-        acciones = self.dialogo._acciones
-        indice = acciones.index(self.dialogo.btn_poner_al_aire)
-        self.assertIs(acciones[indice + 1], self.dialogo.cho_ventana)
-        self.assertIs(acciones[indice + 2], self.dialogo.btn_usar_ventana)
-        self.assertIs(acciones[indice + 3], self.dialogo.btn_captura)
-        self.assertEqual(self.dialogo.cho_ventana.GetName(), "Ventana que se captura")
-        self.assertEqual(self.dialogo.btn_usar_ventana.GetName(), "Usar esa ventana")
-        self.assertEqual(self.dialogo.btn_usar_ventana.GetLabel(), "Usar esa &ventana")
 
-    def test_cada_boton_de_campo_comparte_la_fila_con_su_campo(self):
-        for campo, boton in (
-                (self.dialogo.cho_escena, self.dialogo.btn_poner_al_aire),
-                (self.dialogo.cho_ventana, self.dialogo.btn_usar_ventana)):
-            with self.subTest(boton=boton.GetName()):
-                fila = campo.GetContainingSizer()
-                self.assertIsNotNone(fila)
-                self.assertIs(boton.GetContainingSizer(), fila)
-                ventanas = [hijo.GetWindow()
-                            for hijo in fila.GetChildren()]
-                self.assertLess(ventanas.index(campo),
-                                ventanas.index(boton))
 
-    def test_captura_y_actualizar_van_juntos_en_una_fila_partible(self):
-        botones = (self.dialogo.btn_captura, self.dialogo.btn_actualizar)
-        fila = botones[0].GetContainingSizer()
-        self.assertIsInstance(fila, wx.WrapSizer)
-        self.assertIs(botones[1].GetContainingSizer(), fila)
-        self.assertEqual([hijo.GetWindow()
-                          for hijo in fila.GetChildren()],
-                         list(botones))
 
-    def test_carga_inicial_llena_las_ventanas_y_elige_la_actual(self):
-        self.assertEqual(self.dialogo.cho_ventana.GetStrings(),
-                         ["Champions, de juego.exe", "Charla, de otro.exe"])
-        self.assertEqual(self.dialogo.cho_ventana.GetStringSelection(),
-                         "Champions, de juego.exe")
-        self.assertEqual(self.dialogo._valor_ventana(),
-                         "Champions:Ventana:juego.exe")
 
-    def test_cargar_ventanas_vacias_deja_el_desplegable_vacio(self):
-        self.dialogo._cargar_ventanas((), "")
-        self.assertEqual(self.dialogo.cho_ventana.GetStrings(), [])
-        self.assertEqual(self.dialogo._valor_ventana(), "")
 
-    def test_elegir_en_el_desplegable_de_ventanas_no_cambia_nada(self):
-        self.gestor.usar_ventana = mock.Mock()
-        self.dialogo.cho_ventana.SetSelection(1)
-        evento = wx.CommandEvent(wx.EVT_CHOICE.typeId,
-                                 self.dialogo.cho_ventana.GetId())
-        self.dialogo.cho_ventana.GetEventHandler().ProcessEvent(evento)
-        self.gestor.usar_ventana.assert_not_called()
 
-    def test_usar_ventana_sin_seleccion_solo_avisa(self):
-        self.dialogo.cho_ventana.SetSelection(wx.NOT_FOUND)
-        self.dialogo._usar_ventana(Evento())
-        self.assertEqual(self.anuncios,
-                         ["Elige primero una ventana en Ventana que se captura."])
-        self.assertNotIn("usar_ventana",
-                         [llamada[0] for llamada in self.gestor.llamadas])
 
-    def test_usar_ventana_llama_con_escena_y_valor_y_anuncia_solo_la_frase(self):
-        self.dialogo.cho_escena.SetStringSelection("Principal")
-        self.dialogo.cho_ventana.SetSelection(0)
-        self.gestor.llamadas.clear()
-        self.dialogo._usar_ventana(Evento())
-        self.assertIn(("usar_ventana", "Principal",
-                       "Champions:Ventana:juego.exe"), self.gestor.llamadas)
-        self.assertEqual(self.anuncios,
-                         ["Ahora se captura Champions, de juego.exe."])
-        self.assertIn(("ventanas", "Principal"), self.gestor.llamadas)
 
-    def test_cambiar_escena_vuelve_a_pedir_las_ventanas(self):
-        self.gestor.llamadas.clear()
-        self.dialogo.cho_escena.SetStringSelection("Juego")
-        self.dialogo._cambiar_escena(Evento())
-        self.assertIn(("ventanas", "Juego"), self.gestor.llamadas)
 
-    def test_actualizar_estado_vuelve_a_pedir_las_ventanas(self):
-        self.gestor.llamadas.clear()
-        self.dialogo._actualizar(Evento())
-        self.assertIn(("ventanas", "Principal"), self.gestor.llamadas)
 
-    def test_boton_como_se_coloca_tiene_nombre_y_es_una_accion(self):
-        self.assertEqual(self.dialogo.btn_como_se_coloca.GetName(), "Cómo se coloca el panel")
-        self.assertIn(self.dialogo.btn_como_se_coloca, self.dialogo._acciones)
 
-    def test_boton_como_se_coloca_muestra_la_guia(self):
-        with mock.patch.object(gui_transmision.wx, "MessageBox") as aviso:
-            self.dialogo.btn_como_se_coloca.GetEventHandler().ProcessEvent(
-                wx.CommandEvent(wx.EVT_BUTTON.typeId,
-                                self.dialogo.btn_como_se_coloca.GetId()))
-        texto = aviso.call_args.args[0]
-        self.assertIn("Preparar panel", texto)
-        self.assertIn("Ajuste fino", texto)
 
-    def test_leer_y_ajuste_fino_piden_la_instantanea_de_la_fuente_elegida(self):
-        self.dialogo.cho_fuente.SetSelection(0)
-        self.gestor.instantaneas.clear()
 
-        self.dialogo._cambiar_fuente(Evento())
-        self.assertEqual(self.gestor.instantaneas[-1], (("Principal",), "Cámara"))
 
-        self.dialogo._ajuste.en_curso = True
-        self.dialogo._mover_ajuste(10, 0)
-        self.assertEqual(self.gestor.instantaneas[-1], (("Principal",), "Cámara"))
 
-    def test_aplicar_tamano_usa_los_dos_numeros(self):
-        self.dialogo.sp_ancho.SetValue(800)
-        self.dialogo.sp_alto.SetValue(500)
-        self.dialogo._tamano(Evento())
-        self.assertIn(("redimensionar", "Principal", 800, 500), self.gestor.llamadas)
 
-    def test_acciones_operan_sobre_la_fuente_elegida(self):
-        self.dialogo.cho_fuente.SetStringSelection("Cámara")
-        self.dialogo.cho_posicion.SetSelection(0)
-        self.dialogo._colocar(Evento())
-        self.dialogo._mostrar(Evento())
-        self.dialogo._fijar(Evento())
-        self.dialogo._frente(Evento())
-        self.assertEqual(self.gestor.fuentes_enviadas[-4:], [
-            ("colocar", "Cámara"), ("mostrar", "Cámara"),
-            ("fijar", "Cámara"), ("al_frente", "Cámara"),
-        ])
 
-    def test_aplicar_tamano_redimensiona_el_panel_y_escala_otra_fuente(self):
-        self.dialogo._tamano(Evento())
-        self.dialogo.cho_fuente.SetStringSelection("Cámara")
-        self.dialogo._tamano(Evento())
-        self.assertIn(("redimensionar", "Principal", 460, 620), self.gestor.llamadas)
-        self.assertIn(("escalar", "Principal", 460, 620), self.gestor.llamadas)
-        self.assertIn(("redimensionar", None), self.gestor.fuentes_enviadas)
-        self.assertIn(("escalar", "Cámara"), self.gestor.fuentes_enviadas)
 
-    def test_tamano_sin_imagen_no_anuncia_exito(self):
-        self.dialogo.cho_fuente.SetStringSelection("Cámara")
-        self.gestor.escalable = False
-        self.dialogo._tamano(Evento())
-        self.assertEqual(self.anuncios[-1], "Cámara todavía no informa su tamaño.")
-        self.assertNotIn("Cámara. 460 por 620", self.anuncios)
 
-    def test_mostrar_usa_el_valor_de_la_casilla(self):
-        self.dialogo.chk_mostrar.SetValue(False)
-        self.dialogo._mostrar(Evento())
-        self.assertIn(("mostrar", "Principal", False), self.gestor.llamadas)
 
-    def test_fijar_usa_el_valor_de_la_casilla(self):
-        self.dialogo.chk_fijar.SetValue(True)
-        self.dialogo._fijar(Evento())
-        self.assertIn(("fijar", "Principal", True), self.gestor.llamadas)
 
-    def test_poner_al_frente_llama_al_gestor(self):
-        self.dialogo._frente(Evento())
-        self.assertIn(("al_frente", "Principal"), self.gestor.llamadas)
 
-    def test_restablecer_devuelve_los_valores_de_las_dos_fuentes_tocadas(self):
-        self.dialogo._tamano(Evento())
-        self.dialogo.cho_fuente.SetStringSelection("Cámara")
-        self.dialogo._tamano(Evento())
-        self.dialogo._restaurar(Evento())
-        self.assertEqual(self.gestor.llamadas[-8:-4], [
-            ("posicionar", "Principal", 32, 18, 5),
-            ("redimensionar", "Principal", 460, 620),
-            ("mostrar", "Principal", True),
-            ("fijar", "Principal", False),
-        ])
-        self.assertEqual(self.gestor.llamadas[-4:], [
-            ("posicionar", "Principal", 32, 18, 5),
-            ("escalar", "Principal", 460, 620),
-            ("mostrar", "Principal", True),
-            ("fijar", "Principal", False),
-        ])
-        self.assertEqual(self.gestor.fuentes_enviadas[-8:], [
-            ("posicionar", "Chat en el vídeo"), ("redimensionar", None),
-            ("mostrar", "Chat en el vídeo"), ("fijar", "Chat en el vídeo"),
-            ("posicionar", "Cámara"), ("escalar", "Cámara"),
-            ("mostrar", "Cámara"), ("fijar", "Cámara"),
-        ])
 
-    def test_anuncia_la_instantanea_nueva_despues_del_cambio(self):
-        self.gestor.snap_nuevo = obs_disposicion.SnapshotPanel(
-            conectado=True, escena="Principal", ancho=800, alto=500,
-            lienzo_ancho=1600, lienzo_alto=900, izquierda=32, arriba=18,
-            visible=False, bloqueada=True)
-        self.dialogo._frente(Evento())
-        self.assertIn("800 por 500", self.anuncios[-1])
-        self.assertIn("Oculta", self.anuncios[-1])
 
-    def test_ajuste_fino_entra_y_anuncia_la_posicion(self):
-        self.dialogo._iniciar_ajuste(Evento())
-        self.assertTrue(self.dialogo._ajuste.en_curso)
-        self.assertEqual(self.dialogo.btn_ajuste.GetLabel(), "Ajustando, flechas para mover")
-        self.assertIn("Ajuste fino.", self.anuncios[-2])
-        self.assertEqual(self.anuncios[-1], "Arriba a la izquierda.")
 
-    def test_flecha_del_ajuste_mueve_y_anuncia_el_conjunto_corto(self):
-        self.dialogo._iniciar_ajuste(Evento())
-        self.anuncios.clear()
-        self.dialogo._tecla_ajuste(EventoTecla(wx.WXK_RIGHT))
-        self.assertIn(("mover", "Principal", 10, 0), self.gestor.llamadas)
-        self.assertEqual(self.anuncios[-1], "Arriba a la izquierda.")
 
-    def test_flecha_se_descarta_si_hay_movimiento_en_vuelo(self):
-        self.dialogo._iniciar_ajuste(Evento())
-        self.dialogo._ajuste.en_vuelo = True
-        self.dialogo._tecla_ajuste(EventoTecla(wx.WXK_RIGHT))
-        self.assertNotIn(("mover", "Principal", 10, 0), self.gestor.llamadas)
 
-    def test_escape_restaura_la_colocacion(self):
-        self.dialogo._iniciar_ajuste(Evento())
-        self.dialogo._tecla_ajuste(EventoTecla(wx.WXK_ESCAPE))
-        self.assertIn(("posicionar", "Principal", 32, 18, 5), self.gestor.llamadas)
-        self.assertIn("Ajuste deshecho", self.anuncios)
 
-    def test_escape_con_movimiento_en_vuelo_espera_a_que_aterrice(self):
-        # Dos peticiones a la vez por el mismo socket se pisaban en OBS.
-        self.dialogo._iniciar_ajuste(Evento())
-        self.dialogo._ajuste.en_vuelo = True
-        self.dialogo._tecla_ajuste(EventoTecla(wx.WXK_ESCAPE))
-        self.assertFalse(self.dialogo._ajuste.en_curso)
-        self.assertNotIn(("posicionar", "Principal", 32, 18, 5), self.gestor.llamadas)
 
-        self.dialogo._movimiento_terminado(self.gestor.snap)
-        self.assertIn(("posicionar", "Principal", 32, 18, 5), self.gestor.llamadas)
-        self.assertEqual(self.anuncios[-1], "Ajuste deshecho")
-        self.assertFalse(self.dialogo._ajuste.deshacer_pendiente)
-
-    def test_escape_con_movimiento_fallido_tambien_deshace(self):
-        self.dialogo._iniciar_ajuste(Evento())
-        self.dialogo._ajuste.en_vuelo = True
-        self.dialogo._tecla_ajuste(EventoTecla(wx.WXK_ESCAPE))
-        self.dialogo._movimiento_fallo("OBS no contesta")
-        self.assertIn(("posicionar", "Principal", 32, 18, 5), self.gestor.llamadas)
-        self.assertNotIn("OBS no contesta", self.anuncios)
-
-    def test_escape_sin_transformacion_guardada_no_revienta(self):
-        # transformacion() devuelve {} si la fuente desapareció de la escena:
-        # antes era un KeyError en el hilo principal.
-        self.gestor.transformacion_inicial = {}
-        self.dialogo._iniciar_ajuste(Evento())
-        self.dialogo._tecla_ajuste(EventoTecla(wx.WXK_ESCAPE))
-        self.assertFalse(self.dialogo._ajuste.en_curso)
-        self.assertNotIn("posicionar", [llamada[0] for llamada in self.gestor.llamadas])
-        self.assertEqual(self.anuncios[-1], "No se pudo deshacer el ajuste")
-
-    def test_destruir_marca_el_cierre_y_los_movimientos_tardios_no_tocan_controles(self):
-        self.dialogo._iniciar_ajuste(Evento())
-        self.dialogo._ajuste.en_vuelo = True
-        self.dialogo._operaciones._al_destruir(Evento())
-        self.assertTrue(self.dialogo._operaciones.cerrando)
-        with mock.patch.object(self.dialogo, "_mostrar_snap") as mostrar, \
-                mock.patch.object(self.dialogo, "_fallo") as fallo:
-            self.dialogo._movimiento_terminado(self.gestor.snap)
-            self.dialogo._ajuste.en_vuelo = True
-            self.dialogo._movimiento_fallo("tarde")
-        mostrar.assert_not_called()
-        fallo.assert_not_called()
-        self.assertFalse(self.dialogo._ajuste.en_vuelo)
 
     def test_los_hilos_no_leen_controles_de_wx(self):
-        # Escena, fuente y tamaño se capturan en el hilo principal y viajan
-        # como argumentos; leer un wx.Choice desde otro hilo no es seguro.
+        # Escena se captura en el hilo principal y viaja como argumento; leer
+        # un wx.Choice desde otro hilo no es seguro.
         original = gui_transmision.diagnostico.crear_hilo
         dialogo = self.dialogo
         fuera_del_hilo = AssertionError("control de wx leído desde un hilo")
@@ -645,52 +383,83 @@ class TestTransmisionDialog(unittest.TestCase):
         def crear_hilo(funcion, nombre, **kwargs):
             def envuelta():
                 pendientes = []
-                with mock.patch.object(dialogo, "_escena", side_effect=fuera_del_hilo), \
-                        mock.patch.object(dialogo, "_fuente", side_effect=fuera_del_hilo), \
-                        mock.patch.object(dialogo.sp_ancho, "GetValue", side_effect=fuera_del_hilo), \
-                        mock.patch.object(dialogo.sp_alto, "GetValue", side_effect=fuera_del_hilo), \
-                        mock.patch.object(gui_transmision.wx, "CallAfter",
+                with mock.patch.object(dialogo, "_escena", side_effect=fuera_del_hilo),                         mock.patch.object(gui_transmision.wx, "CallAfter",
                                           lambda f, *a: pendientes.append((f, a))):
                     funcion()
                 for funcion_pendiente, argumentos in pendientes:
                     funcion_pendiente(*argumentos)
             return original(envuelta, nombre, **kwargs)
 
-        with mock.patch.object(gui_transmision.diagnostico, "crear_hilo", crear_hilo), \
-                mock.patch.object(gui_transmision.logger, "warning") as aviso, \
-                mock.patch.object(operaciones_obs.logger, "warning") as aviso_obs, \
-                mock.patch.object(gui_transmision.overlay_servidor, "esta_encendido",
-                                  return_value=True), \
-                mock.patch.object(gui_transmision.overlay_servidor, "puerto_actual",
+        with mock.patch.object(gui_transmision.diagnostico, "crear_hilo", crear_hilo),                 mock.patch.object(gui_transmision.logger, "warning") as aviso,                 mock.patch.object(operaciones_obs.logger, "warning") as aviso_obs,                 mock.patch.object(gui_transmision.overlay_servidor, "esta_encendido",
+                                  return_value=True),                 mock.patch.object(gui_transmision.overlay_servidor, "puerto_actual",
                                   return_value=8730):
-            for accion in (dialogo._actualizar, dialogo._poner_al_aire, dialogo._preparar,
-                           dialogo._cambiar_escena, dialogo._cambiar_fuente, dialogo._colocar,
-                           dialogo._tamano, dialogo._mostrar, dialogo._fijar, dialogo._frente,
-                           dialogo._restaurar, dialogo._iniciar_ajuste,
-                           dialogo._usar_ventana):
+            for accion in (dialogo._actualizar, dialogo._poner_al_aire,
+                           dialogo._preparar):
                 with self.subTest(accion=accion.__name__):
                     accion(Evento())
                     self.assertFalse(dialogo._operaciones.en_vuelo)
-            dialogo._tecla_ajuste(EventoTecla(wx.WXK_RIGHT))
-            dialogo._tecla_ajuste(EventoTecla(wx.WXK_ESCAPE))
-            self.assertIn(("mover", "Principal", 10, 0), self.gestor.llamadas)
         aviso.assert_not_called()
         aviso_obs.assert_not_called()
         self.assertNotIn("OBS no pudo completar la operación. Inténtalo de nuevo.", self.anuncios)
 
-    def test_tab_confirma_y_deja_navegar(self):
-        self.dialogo._iniciar_ajuste(Evento())
-        evento = EventoTecla(wx.WXK_TAB)
-        self.dialogo._tecla_ajuste(evento)
-        self.assertFalse(self.dialogo._ajuste.en_curso)
-        self.assertTrue(evento.se_omitio)
-        self.assertIn("Ajuste confirmado", self.anuncios)
+    def test_organizar_escena_abre_con_la_escena_elegida_y_devuelve_el_foco(self):
+        self.dialogo.cho_escena.SetStringSelection("Juego")
+        creado = mock.Mock()
+        with mock.patch.object(gui_transmision, "OrganizarEscenaDialog",
+                               return_value=creado) as fabrica,                 mock.patch.object(self.dialogo.btn_organizar, "SetFocus") as foco:
+            self.dialogo._organizar_escena(Evento())
+        fabrica.assert_called_once_with(self.dialogo, self.gestor, "Juego")
+        creado.ShowModal.assert_called_once_with()
+        creado.Destroy.assert_called_once_with()
+        foco.assert_called_once_with()
 
-    def test_perder_el_foco_confirma_el_ajuste(self):
-        self.dialogo._iniciar_ajuste(Evento())
-        self.dialogo._ajuste_perdio_foco(Evento())
-        self.assertFalse(self.dialogo._ajuste.en_curso)
-        self.assertIn("Ajuste confirmado", self.anuncios)
+    def test_organizar_escena_cierra_el_cuadro_aunque_falle(self):
+        creado = mock.Mock()
+        creado.ShowModal.side_effect = RuntimeError("roto")
+        with mock.patch.object(gui_transmision, "OrganizarEscenaDialog",
+                               return_value=creado):
+            with self.assertRaises(RuntimeError):
+                self.dialogo._organizar_escena(Evento())
+        creado.Destroy.assert_called_once_with()
+
+    def test_el_panel_ya_no_tiene_los_controles_que_salieron(self):
+        for nombre in ("Ventana que se captura", "Usar esa ventana", "Fuente",
+                       "Posición del panel", "Colocar en esa posición",
+                       "Ancho del panel en píxeles", "Alto del panel en píxeles",
+                       "AplicarTamano", "MostrarPanel", "FijarPanel",
+                       "PonerAlFrente", "AjusteFino", "Cómo se coloca el panel",
+                       "QueEsElLienzo", "RestablecerTransmision",
+                       "GuardarCaptura", "NotaTransmision"):
+            with self.subTest(nombre=nombre):
+                self.assertIsNone(
+                    self._control_por_nombre(self.dialogo, nombre))
+        self.assertEqual(self.dialogo.btn_organizar.GetLabel(),
+                         "&Organizar escena…")
+
+    def test_elegir_escena_en_el_panel_no_recarga_ni_pone_al_aire(self):
+        self.gestor.fuentes = mock.Mock()
+        self.gestor.poner_escena_al_aire = mock.Mock()
+        self.dialogo.cho_escena.SetStringSelection("Juego")
+        self.dialogo.cho_escena.GetEventHandler().ProcessEvent(
+            wx.CommandEvent(wx.EVT_CHOICE.typeId,
+                            self.dialogo.cho_escena.GetId()))
+        self.gestor.fuentes.assert_not_called()
+        self.gestor.poner_escena_al_aire.assert_not_called()
+
+    def test_actualizar_estado_no_pide_fuente_ventanas_ni_descripcion(self):
+        self.gestor.instantanea = mock.Mock()
+        self.gestor.ventanas = mock.Mock()
+        self.gestor.descripcion_escena = mock.Mock()
+        self.dialogo._actualizar(Evento())
+        self.gestor.instantanea.assert_not_called()
+        self.gestor.ventanas.assert_not_called()
+        self.gestor.descripcion_escena.assert_not_called()
+
+    def test_estado_del_panel_muestra_la_frase_de_preparacion(self):
+        self.dialogo._panel_preparado("Chat en el vídeo activado.")
+        self.assertEqual(self.dialogo.txt_estado.GetValue(),
+                         "Chat en el vídeo activado.")
+        self.assertEqual(self.anuncios[-1], "Chat en el vídeo activado.")
 
     def test_cerrar_no_anuncia_ni_depende_del_error_de_obs(self):
         self.gestor.cerrar = mock.Mock(side_effect=obs_cliente.ObsError("sin red"))
@@ -720,9 +489,6 @@ class TestTransmisionDialog(unittest.TestCase):
         self.dialogo._cerrar(Evento())
         temporizador.Stop.assert_called_once_with()
 
-    def test_ajuste_fino_declara_su_categoria(self):
-        self.dialogo._anunciar_ajuste(self.gestor.snap)
-        self.assertEqual(self.categorias[-1], "ajuste")
 
     def test_botones_de_transmision_y_grabacion_llaman_al_gestor_y_anuncian(self):
         self.dialogo._transmitir(Evento())
@@ -780,6 +546,14 @@ class TestTransmisionDialog(unittest.TestCase):
     def test_pausa_esta_deshabilitada_si_no_se_esta_grabando(self):
         self.assertFalse(self.dialogo.btn_pausar_grabacion.IsEnabled())
 
+    def test_organizar_y_actualizar_van_juntos_en_una_fila_partible(self):
+        botones = (self.dialogo.btn_organizar, self.dialogo.btn_actualizar)
+        fila = botones[0].GetContainingSizer()
+        self.assertIsInstance(fila, wx.WrapSizer)
+        self.assertIs(botones[1].GetContainingSizer(), fila)
+        self.assertEqual([hijo.GetWindow() for hijo in fila.GetChildren()],
+                         list(botones))
+
     def test_destino_va_antes_de_transmitir_en_las_acciones(self):
         acciones = self.dialogo._acciones
         self.assertLess(acciones.index(self.dialogo.btn_grabar),
@@ -793,7 +567,6 @@ class TestTransmisionDialog(unittest.TestCase):
                  for elemento in sizer.GetChildren()
                  if elemento.GetSizer() is not None]
         self.assertEqual(cajas, ["Transmitir", "Escena",
-                                "Cómo se ve la escena",
                                 "Panel de chat, solo YouTube"])
         exterior = self.dialogo.btn_cerrar.GetParent().GetSizer()
         ventanas = [elemento.GetWindow() for elemento in exterior.GetChildren()
@@ -813,16 +586,10 @@ class TestTransmisionDialog(unittest.TestCase):
         self.assertEqual(self._nombres_en_orden(self.dialogo), [
             "Transmitir a", "Usuario de TikTok", "Preparar destino",
             "Transmitir", "Grabar", "Pausar grabación",
-            "Escena", "Poner al aire", "Ventana que se captura",
-            "Usar esa ventana", "GuardarCaptura", "ActualizarEstado",
-            "Cómo se ve la escena",
-            "Panel de chat para transmitir", "Preparar panel", "Fuente",
-            "Estado del panel",
-            "Posición del panel", "Colocar en esa posición",
-            "Ancho del panel en píxeles", "Alto del panel en píxeles",
-            "AplicarTamano", "MostrarPanel", "FijarPanel", "PonerAlFrente",
-            "AjusteFino", "Cómo se coloca el panel", "QueEsElLienzo",
-            "RestablecerTransmision", "CerrarTransmision",
+            "Escena", "Poner al aire", "Organizar escena…",
+            "ActualizarEstado",
+            "Panel de chat para transmitir", "Preparar panel",
+            "Estado del panel", "CerrarTransmision",
         ])
 
     @staticmethod
@@ -832,14 +599,13 @@ class TestTransmisionDialog(unittest.TestCase):
             return ""
         return etiqueta[posicion + 1].upper()
 
-    def test_letras_de_atajo_unicas_y_ascii_con_v_para_la_ventana(self):
+    def test_letras_de_atajo_unicas_y_ascii(self):
         letras = [self._letra_de_atajo(etiqueta)
                   for etiqueta in self._etiquetas_de_botones(self.dialogo)]
         letras = [letra for letra in letras if letra]
         self.assertEqual(len(letras), len(set(letras)), letras)
         for letra in letras:
             self.assertTrue(letra.isascii(), letra)
-        self.assertIn("V", letras)
         self.assertEqual(
             self._letra_de_atajo(gui_transmision._ETIQUETA_DETENER_TRANSMISION),
             self._letra_de_atajo(gui_transmision._ETIQUETA_TRANSMITIR))
@@ -855,10 +621,9 @@ class TestTransmisionDialog(unittest.TestCase):
             etiquetas.extend(self._etiquetas_de_botones(hijo))
         return etiquetas
 
-    def test_cuatro_secciones_con_sus_titulos(self):
+    def test_tres_secciones_con_sus_titulos(self):
         titulos = [hijo.GetLabel() for hijo in self._cajas(self.dialogo)]
         self.assertEqual(titulos, ["Transmitir", "Escena",
-                                  "Cómo se ve la escena",
                                   "Panel de chat, solo YouTube"])
 
     def _cajas(self, ventana):
@@ -995,12 +760,7 @@ class TestTransmisionDialog(unittest.TestCase):
             (self.dialogo.cho_destino, "Transmitir a:"),
             (self.dialogo.txt_usuario_tiktok, "Usuario de TikTok:"),
             (self.dialogo.cho_escena, "Escena:"),
-            (self.dialogo.cho_ventana, "Ventana que se captura:"),
-            (self.dialogo.cho_fuente, "Fuente:"),
             (self.dialogo.txt_estado, "Estado del panel:"),
-            (self.dialogo.cho_posicion, "Posición del panel:"),
-            (self.dialogo.sp_ancho, "Ancho del panel en píxeles:"),
-            (self.dialogo.sp_alto, "Alto del panel en píxeles:"),
         ]
         for control, esperado in casos:
             with self.subTest(control=control.GetName()):
@@ -1018,60 +778,29 @@ class TestTransmisionDialog(unittest.TestCase):
     def test_estado_del_panel_nombre_padre_y_orden(self):
         self.assertEqual(self.dialogo.txt_estado.GetName(), "Estado del panel")
         self.assertIs(self.dialogo.txt_estado.GetParent(),
-                      self.dialogo.cho_fuente.GetParent())
-        hijos = list(self.dialogo.cho_fuente.GetParent().GetChildren())
+                      self.dialogo.btn_preparar.GetParent())
+        hijos = list(self.dialogo.btn_preparar.GetParent().GetChildren())
         self.assertEqual(hijos.index(self.dialogo.txt_estado),
-                         hijos.index(self.dialogo.cho_fuente) + 2)
-        rotulo = hijos[hijos.index(self.dialogo.cho_fuente) + 1]
+                         hijos.index(self.dialogo.btn_preparar) + 2)
+        rotulo = hijos[hijos.index(self.dialogo.btn_preparar) + 1]
         self.assertIsInstance(rotulo, wx.StaticText)
         self.assertEqual(rotulo.GetLabel(), "Estado del panel:")
-        self.assertLess(hijos.index(self.dialogo.txt_estado),
-                        hijos.index(self.dialogo.cho_posicion))
 
     def test_estado_del_panel_sigue_siendo_lectura_multilinea(self):
         estilo = self.dialogo.txt_estado.GetWindowStyleFlag()
         self.assertTrue(estilo & wx.TE_READONLY)
         self.assertTrue(estilo & wx.TE_MULTILINE)
 
-    def test_vista_escena_nombre_lectura_y_una_oracion_por_linea(self):
-        vista = self.dialogo.txt_vista_escena
-        self.assertEqual(vista.GetName(), "Cómo se ve la escena")
-        estilo = vista.GetWindowStyleFlag()
-        self.assertTrue(estilo & wx.TE_READONLY)
-        self.assertTrue(estilo & wx.TE_MULTILINE)
-        self.assertEqual(vista.GetValue(), self.gestor.descripcion_escena())
-        self.assertGreaterEqual(len(vista.GetValue().splitlines()), 2)
-        # El título del grupo ya dice «Cómo se ve la escena»: sin rótulo
-        # repetido encima del cuadro, que el cuadro se anuncia solo.
-        rotulos = [hijo.GetLabel() for hijo in vista.GetParent().GetChildren()
-                   if isinstance(hijo, wx.StaticText)]
-        self.assertNotIn("Cómo se ve la escena:", rotulos)
 
-    def test_vista_escena_va_entre_la_escena_y_el_panel(self):
-        cajas = [control.GetParent() for control in (
-            self.dialogo.cho_destino, self.dialogo.cho_escena,
-            self.dialogo.txt_vista_escena, self.dialogo.chk_panel_chat)]
-        for caja in cajas:
-            self.assertIsInstance(caja, wx.StaticBox)
-        hijos = list(self.dialogo._zona_desplazable.GetChildren())
-        indices = [hijos.index(caja) for caja in cajas]
-        self.assertEqual(indices, sorted(indices))
-        self.assertEqual(len(set(indices)), 4)
 
-    def test_actualizar_estado_refresca_la_vista(self):
-        self.gestor.descripcion_escena = lambda parada=None: (
-            "Escena actual: Juego. No tiene fuentes.")
-        self.dialogo._actualizar(Evento())
-        self.assertEqual(self.dialogo.txt_vista_escena.GetValue(),
-                         "Escena actual: Juego. No tiene fuentes.")
 
-    def test_mostrar_estados_no_agrega_la_escena_al_aire(self):
-        self.dialogo._mostrar_snap(self.gestor.snap)
+    def test_mostrar_estados_no_toca_el_estado_del_panel(self):
+        self.dialogo.txt_estado.SetValue("La frase de preparación.")
         self.dialogo._mostrar_estados(self.gestor.estado_transmision(),
                                       self.gestor.estado_grabacion(),
                                       "Principal")
-        self.assertNotIn("Escena actual: Principal",
-                         self.dialogo.txt_estado.GetValue())
+        self.assertEqual(self.dialogo.txt_estado.GetValue(),
+                         "La frase de preparación.")
 
     def test_mostrar_estados_sigue_actualizando_los_botones(self):
         self.gestor.transmitiendo = True
@@ -1092,12 +821,6 @@ class TestTransmisionDialog(unittest.TestCase):
         self.assertTrue(self._esta_dentro(self.dialogo.cho_destino, zona))
         self.assertFalse(self._esta_dentro(self.dialogo.btn_cerrar, zona))
 
-    def test_nota_transmision_explica_la_ventana_y_el_sonido(self):
-        # Wrap mete saltos de línea en la etiqueta: se comparan sin ellos.
-        nota = self._control_por_nombre(self.dialogo, "NotaTransmision")
-        self.assertIsInstance(nota, wx.StaticText)
-        self.assertEqual(" ".join(nota.GetLabel().split()),
-                         " ".join(obs_estado.NOTA_TRANSMISION.split()))
 
     def _control_por_nombre(self, ventana, nombre):
         for hijo in ventana.GetChildren():
@@ -1279,40 +1002,49 @@ class TestCargaInicialAseguraObs(unittest.TestCase):
         falso._gestor.conectar.assert_not_called()
 
 
-class TestVistaEscenaSinVentana(unittest.TestCase):
-    # Sin ventana: los métodos se llaman sobre un objeto falso, así no se
-    # crea ningún control ni se toca OBS.
 
-    def test_leer_estados_pide_la_descripcion_en_el_hilo(self):
+
+class TestPanelSinConsultasDeFuente(unittest.TestCase):
+    # Sin ventana: el panel ya no pide instantánea, ventanas ni descripción.
+
+    def test_leer_estados_pide_solo_lo_del_panel(self):
         gestor = mock.Mock()
-        gestor.instantanea.return_value = mock.sentinel.snap
         gestor.escena_al_aire.return_value = "Principal"
         gestor.estado_transmision.return_value = mock.sentinel.transmision
         gestor.estado_grabacion.return_value = mock.sentinel.grabacion
-        gestor.ventanas.return_value = (mock.sentinel.opciones, mock.sentinel.actual)
-        gestor.descripcion_escena.return_value = mock.sentinel.descripcion
-        falso = types.SimpleNamespace(
-            _gestor=gestor,
-            _leer=lambda escena, fuente: gestor.instantanea(
-                escena, fuente=fuente))
-        datos = gui_transmision.TransmisionDialog._leer_estados(
-            falso, "Principal", "Cámara")
-        gestor.descripcion_escena.assert_called_once_with()
-        self.assertIs(datos[-1], mock.sentinel.descripcion)
+        falso = types.SimpleNamespace(_gestor=gestor)
+        datos = gui_transmision.TransmisionDialog._leer_estados(falso)
+        self.assertEqual(datos, ("Principal", mock.sentinel.transmision,
+                                 mock.sentinel.grabacion))
+        gestor.instantanea.assert_not_called()
+        gestor.ventanas.assert_not_called()
+        gestor.descripcion_escena.assert_not_called()
 
-    def test_estados_leidos_muestra_la_vista(self):
+    def test_estados_leidos_muestra_y_anuncia_sin_la_descripcion(self):
         falso = mock.Mock()
         gui_transmision.TransmisionDialog._estados_leidos(
-            falso, (mock.sentinel.snap, mock.sentinel.al_aire,
-                    mock.sentinel.transmision, mock.sentinel.grabacion,
-                    mock.sentinel.opciones, mock.sentinel.actual,
-                    mock.sentinel.descripcion))
-        falso._mostrar_vista.assert_called_once_with(mock.sentinel.descripcion)
+            falso, ("Principal", mock.sentinel.transmision,
+                    mock.sentinel.grabacion))
+        falso._mostrar_estados.assert_called_once_with(
+            mock.sentinel.transmision, mock.sentinel.grabacion, "Principal")
+        falso._anunciar_estados.assert_called_once_with(
+            mock.sentinel.transmision, mock.sentinel.grabacion, "Principal")
+        falso._mostrar_vista.assert_not_called()
 
-    def test_mostrar_vista_vacia_deja_el_cuadro_vacio(self):
+    def test_inicial_cargada_escribe_la_frase_sin_instantanea(self):
+        datos = types.SimpleNamespace(
+            escenas=("Principal",), escena="Principal",
+            al_aire=mock.sentinel.al_aire,
+            fuentes=("Chat en el vídeo",),
+            transmision=mock.sentinel.transmision,
+            grabacion=mock.sentinel.grabacion, perfil="")
         falso = mock.Mock()
-        gui_transmision.TransmisionDialog._mostrar_vista(falso, "")
-        falso.txt_vista_escena.SetValue.assert_called_once_with("")
+        with mock.patch.object(gui_transmision.overlay_servidor,
+                               "esta_encendido", return_value=False),                 mock.patch.object(gui_transmision.overlay_servidor,
+                                  "puerto_actual", return_value=None),                 mock.patch.object(gui_transmision, "anunciar"):
+            gui_transmision.TransmisionDialog._inicial_cargada(falso, datos)
+        falso.txt_estado.SetValue.assert_called_once()
+        falso._poblar_inicial.assert_called_once_with(datos)
 
 
 class TestConfirmarTransmisionSinVentana(unittest.TestCase):
@@ -1447,25 +1179,16 @@ class TestConsultasPasanCadaCampoASuLugar(unittest.TestCase):
         return consultas_transmision.CargaInicial(
             escenas=("Principal", "Juego"), escena="Principal",
             al_aire=mock.sentinel.al_aire,
-            fuentes=("Cámara", "Chat en el vídeo"), fuente="Chat en el vídeo",
-            snap=mock.Mock(),
-            transformacion=mock.sentinel.transformacion,
+            fuentes=("Cámara", "Chat en el vídeo"),
             transmision=mock.sentinel.transmision,
-            grabacion=mock.sentinel.grabacion, perfil="TikTok",
-            opciones=mock.sentinel.opciones, actual=mock.sentinel.actual,
-            descripcion=mock.sentinel.descripcion)
+            grabacion=mock.sentinel.grabacion, perfil="TikTok")
 
     def test_poblar_inicial_reparte_cada_campo(self):
         falso = mock.Mock()
         datos = self._inicial()
         gui_transmision.TransmisionDialog._poblar_inicial(falso, datos)
-        falso._cargar_fuentes.assert_called_once_with(
-            ("Cámara", "Chat en el vídeo"), "Chat en el vídeo")
-        falso._cargar_ventanas.assert_called_once_with(
-            mock.sentinel.opciones, mock.sentinel.actual)
-        falso._mostrar_snap.assert_called_once_with(datos.snap)
-        falso._mostrar_vista.assert_called_once_with(
-            mock.sentinel.descripcion)
+        falso.cho_escena.Set.assert_called_once_with(["Principal", "Juego"])
+        falso.cho_escena.SetStringSelection.assert_called_once_with("Principal")
         falso._mostrar_estados.assert_called_once_with(
             mock.sentinel.transmision, mock.sentinel.grabacion,
             mock.sentinel.al_aire)
@@ -1480,25 +1203,11 @@ class TestConsultasPasanCadaCampoASuLugar(unittest.TestCase):
                                   "puerto_actual", return_value=None):
             gui_transmision.TransmisionDialog._inicial_cargada(falso, datos)
         falso._poblar_inicial.assert_called_once_with(datos)
+        falso.txt_estado.SetValue.assert_called_once()
         falso._anunciar_estados.assert_called_once_with(
             mock.sentinel.transmision, mock.sentinel.grabacion,
             mock.sentinel.al_aire)
 
-    def test_ventana_aplicada_muestra_estados_en_orden_y_anuncia(self):
-        falso = mock.Mock()
-        datos = consultas_transmision.VentanaAplicada(
-            frase=mock.sentinel.frase,
-            fuentes=("Cámara", "Chat en el vídeo"), fuente="Chat en el vídeo",
-            snap=mock.sentinel.snap, al_aire=mock.sentinel.al_aire,
-            transmision=mock.sentinel.transmision,
-            grabacion=mock.sentinel.grabacion,
-            opciones=mock.sentinel.opciones, actual=mock.sentinel.actual)
-        with mock.patch.object(gui_transmision, "anunciar") as anunciar:
-            gui_transmision.TransmisionDialog._ventana_aplicada(falso, datos)
-        falso._mostrar_estados.assert_called_once_with(
-            mock.sentinel.transmision, mock.sentinel.grabacion,
-            mock.sentinel.al_aire)
-        anunciar.assert_called_once_with(mock.sentinel.frase)
 
 
 class TestElegirFuente(unittest.TestCase):

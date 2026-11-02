@@ -35,23 +35,14 @@ class TestCargarInicial(unittest.TestCase):
         datos = consultas_transmision.cargar_inicial(gestor)
         self.assertEqual(datos.escena, "Principal")
 
-    def test_elige_la_fuente_del_chat(self):
-        datos = consultas_transmision.cargar_inicial(_gestor())
-        self.assertEqual(datos.fuente, "Chat en el vídeo")
-
     def test_cada_campo_viene_de_su_llamada(self):
         datos = consultas_transmision.cargar_inicial(_gestor())
         self.assertEqual(datos.escenas, ("Principal", "Juego"))
         self.assertEqual(datos.al_aire, "Juego")
         self.assertEqual(datos.fuentes, ("Cámara", "Chat en el vídeo"))
-        self.assertIs(datos.snap, mock.sentinel.snap)
-        self.assertIs(datos.transformacion, mock.sentinel.transformacion)
         self.assertIs(datos.transmision, mock.sentinel.transmision)
         self.assertIs(datos.grabacion, mock.sentinel.grabacion)
         self.assertIs(datos.perfil, mock.sentinel.perfil)
-        self.assertIs(datos.opciones, mock.sentinel.opciones)
-        self.assertIs(datos.actual, mock.sentinel.actual)
-        self.assertIs(datos.descripcion, mock.sentinel.descripcion)
 
     def test_llama_al_gestor_en_el_mismo_orden(self):
         gestor = _gestor()
@@ -59,9 +50,7 @@ class TestCargarInicial(unittest.TestCase):
         self.assertEqual(
             [llamada[0] for llamada in gestor.mock_calls],
             ["conectar", "escenas", "escena_al_aire", "fuentes",
-             "instantanea", "ventanas", "transformacion",
-             "estado_transmision", "estado_grabacion", "perfil_actual",
-             "descripcion_escena"])
+             "estado_transmision", "estado_grabacion", "perfil_actual"])
 
 
 class TestAplicarVentana(unittest.TestCase):
@@ -103,6 +92,7 @@ class TestLeerEscena(unittest.TestCase):
         self.assertIs(datos.snap, mock.sentinel.snap)
         self.assertIs(datos.opciones, mock.sentinel.opciones)
         self.assertIs(datos.actual, mock.sentinel.actual)
+        self.assertIs(datos.descripcion, mock.sentinel.descripcion)
 
     def test_pide_la_escena_dada_y_llama_en_orden(self):
         gestor = _gestor()
@@ -111,9 +101,10 @@ class TestLeerEscena(unittest.TestCase):
         gestor.instantanea.assert_called_once_with(
             "Juego", fuente="Chat en el vídeo")
         gestor.ventanas.assert_called_once_with("Juego")
+        gestor.descripcion_escena.assert_called_once_with("Juego")
         self.assertEqual(
             [llamada[0] for llamada in gestor.mock_calls],
-            ["fuentes", "instantanea", "ventanas"])
+            ["fuentes", "instantanea", "ventanas", "descripcion_escena"])
 
 
 if __name__ == "__main__":

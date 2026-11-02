@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from bellbird.obs import obs_disposicion
 from bellbird.obs.obs_panel import NOMBRE_FUENTE
 
 
@@ -20,15 +21,9 @@ class CargaInicial:
     escena: str
     al_aire: str
     fuentes: object
-    fuente: str
-    snap: object
-    transformacion: object
     transmision: object
     grabacion: object
     perfil: object
-    opciones: object
-    actual: object
-    descripcion: object
 
 
 def cargar_inicial(gestor) -> CargaInicial:
@@ -37,17 +32,11 @@ def cargar_inicial(gestor) -> CargaInicial:
     al_aire = gestor.escena_al_aire()
     escena = al_aire if al_aire in escenas else (escenas[0] if escenas else "")
     fuentes = gestor.fuentes(escena)
-    fuente = elegir_fuente(fuentes)
-    snap = gestor.instantanea(escena, fuente=fuente)
-    opciones, actual = gestor.ventanas(escena)
     return CargaInicial(
         escenas=escenas, escena=escena, al_aire=al_aire, fuentes=fuentes,
-        fuente=fuente, snap=snap,
-        transformacion=gestor.transformacion(escena, fuente=fuente),
         transmision=gestor.estado_transmision(),
         grabacion=gestor.estado_grabacion(),
-        perfil=gestor.perfil_actual(), opciones=opciones, actual=actual,
-        descripcion=gestor.descripcion_escena())
+        perfil=gestor.perfil_actual())
 
 
 @dataclass(frozen=True)
@@ -85,6 +74,7 @@ class EscenaLeida:
     snap: object
     opciones: object
     actual: object
+    descripcion: object
 
 
 def leer_escena(gestor, escena) -> EscenaLeida:
@@ -94,4 +84,48 @@ def leer_escena(gestor, escena) -> EscenaLeida:
     opciones, actual = gestor.ventanas(escena)
     return EscenaLeida(
         fuentes=fuentes, fuente=fuente, snap=snap, opciones=opciones,
-        actual=actual)
+        actual=actual, descripcion=gestor.descripcion_escena(escena))
+
+
+def aplicar_tamano(gestor, registro, escena, fuente, ancho, alto):
+    registro.guardar(gestor, escena, fuente)
+    if fuente == NOMBRE_FUENTE:
+        gestor.redimensionar(escena, ancho, alto)
+        aplicado = True
+    else:
+        aplicado = bool(gestor.escalar(escena, ancho, alto, fuente=fuente))
+    return gestor.instantanea(escena, fuente=fuente), aplicado
+
+
+def cambiar_y_leer(gestor, registro, escena, fuente, funcion, *argumentos):
+    registro.guardar(gestor, escena, fuente)
+    funcion(escena, *argumentos, fuente=fuente)
+    return gestor.instantanea(escena, fuente=fuente)
+
+
+def preparar_ajuste(gestor, registro, escena, fuente):
+    registro.guardar(gestor, escena, fuente)
+    return (gestor.transformacion(escena, fuente=fuente),
+            gestor.instantanea(escena, fuente=fuente))
+
+
+def capturar(gestor, escena, fuente, ruta):
+    gestor.captura_de_escena(escena, ruta)
+    return gestor.instantanea(escena, fuente=fuente)
+
+
+def restaurar(gestor, registro, escena, fuente):
+    registro.aplicar(gestor)
+    return gestor.instantanea(escena, fuente=fuente)
+
+
+def mover(gestor, escena, dx, dy, fuente):
+    gestor.mover(escena, dx, dy, fuente=fuente)
+    return gestor.instantanea(escena, fuente=fuente)
+
+
+def descripcion_de_fuente(descripcion, fuente, snap):
+    detalle = obs_disposicion.describir_fuente(
+        fuente, snap, obs_disposicion.COMPONENTES, "largo")
+    return "\n\n".join(
+        parte for parte in (descripcion or "", detalle) if parte)

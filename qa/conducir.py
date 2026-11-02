@@ -1852,9 +1852,9 @@ def escenario_transmision(app: Aplicacion, args, res: Resultado):
     # espera, no el diálogo. Medido el 29/09/2026.
     hay_obs = obs_abierto()
     if hay_obs:
-        esperados_tab = ("Preparar panel", "Fuente", "Escena",
-                         "Poner al aire", "Posición del panel",
-                         "Restablecer", "Transmitir", "Grabar")
+        esperados_tab = ("Preparar panel", "Escena", "Poner al aire",
+                         "Organizar escena", "Actualizar estado",
+                         "Transmitir", "Grabar")
     else:
         esperados_tab = ("Transmitir",)
         res.nota("Transmisión: OBS está cerrado, así que los controles de OBS "
@@ -1862,19 +1862,80 @@ def escenario_transmision(app: Aplicacion, args, res: Resultado):
     auditar_dialogo(
         app, res, "Transmisión", "Transmisión",
         vueltas_tab=VUELTAS_TAB_TRANSMISION,
-        esperados=("Estado del panel", "Actualizar estado", "Preparar panel", "Escena",
-                   "Poner al aire", "Fuente",
-                   "Posición del panel", "Ancho del panel", "Alto del panel",
-                   "Aplicar tamaño", "Mostrar panel en la escena", "Fijar posición del panel",
-                   "Poner al frente", "Ajuste fino", "captura", "lienzo",
-                   "Restablecer", "Transmitir", "Grabar", "Pausar grabación",
-                   "Cerrar"),
+        esperados=("Estado del panel", "Actualizar estado", "Preparar panel",
+                   "Escena", "Poner al aire", "Organizar escena",
+                   "Transmitir", "Grabar", "Pausar grabación", "Cerrar"),
         # Arranca deshabilitado sin grabación y wx lo saca del orden de Tab.
         esperados_en_tab=esperados_tab,
         # Con OBS abierto la carga inicial tarda: el cuadro nace con todo
         # deshabilitado y auditar el Tab antes mide la pantalla de espera.
         # Se espera a que «Preparar panel» se habilite, sin tocar OBS.
         esperar_habilitados=(("Preparar panel",) if hay_obs else ()))
+
+
+def escenario_organizar_escena(app: Aplicacion, args, res: Resultado):
+    """La ventana que organiza las fuentes de una escena, abierta desde el panel.
+
+    Sin OBS no se puede llegar: el botón del panel nace deshabilitado. Con OBS
+    abierto se audita el orden de Tab completo y se cierra la ventana, que no
+    debe cerrar la conexión del panel.
+    """
+    if not obs_abierto():
+        res.nota("Organizar escena: OBS está cerrado, el botón nace "
+                 "deshabilitado y el cuadro no se audita")
+        return
+    esperados = ("Escena", "Guardar imagen", "Descripción de la escena",
+                 "Ventana", "Capturar ventana", "Fuente", "Posición",
+                 "Mover fuente", "Ancho", "Alto", "Cambiar tamaño",
+                 "Mostrar en la escena", "Bloquear posición", "Traer al frente",
+                 "Mover con flechas", "Deshacer cambios", "Ayuda", "Cerrar")
+    app.pedir("frente")
+    try:
+        app.abrir_por_menu("Transmisión")
+    except Exception as exc:
+        res.fallo(f"Organizar escena: no se pudo abrir Transmisión, {exc}")
+        return
+    if app.esperar_ventana("Transmisión", 15) is None:
+        res.fallo("Organizar escena: no se abrió el panel Transmisión")
+        return
+    limite = time.monotonic() + 20
+    while faltan_habilitados(app.arbol("Transmisión"),
+                             ("Organizar escena",)) and time.monotonic() < limite:
+        time.sleep(0.5)
+    try:
+        app.pedir("pulsar", nombre="Organizar escena…", responder_ya=True)
+    except Exception as exc:
+        res.fallo(f"Organizar escena: no se pudo pulsar el botón, {exc}")
+        app.pedir("cerrar_ventana", ventana="Transmisión")
+        return
+    if app.esperar_ventana("Organizar escena", 15) is None:
+        res.fallo("Organizar escena: el botón no abrió la ventana")
+        app.pedir("cerrar_ventana", ventana="Transmisión")
+        return
+    res.nota("Organizar escena: abre desde el botón del panel Transmisión")
+    controles = app.arbol("Organizar escena")
+    revisar_nombres(controles, res, "Organizar escena")
+    juntos = " ".join(
+        ((c.get("nombre") or "") + " " + (c.get("etiqueta") or ""))
+        for c in controles).replace("&", "").lower()
+    for esperado in esperados:
+        if esperado.lower() not in juntos:
+            res.fallo(f"Organizar escena: no aparece nada llamado «{esperado}»")
+    orden = recorrer_tab(app, res, "Organizar escena",
+                         vueltas=VUELTAS_TAB_TRANSMISION,
+                         ventana="Organizar escena")
+    res.nota("Organizar escena, orden de Tab, "
+             f"{len(orden)} paradas: " + " > ".join(orden))
+    for esperado in esperados:
+        if esperado.lower() not in " ".join(orden).replace("&", "").lower():
+            res.fallo(f"Organizar escena: «{esperado}» no aparece en el "
+                      "orden de Tab")
+    app.pedir("cerrar_ventana", ventana="Organizar escena")
+    if app.esperar_ventana("Organizar escena", 4) is not None:
+        res.fallo("Organizar escena: la ventana no cerró")
+    app.pedir("cerrar_ventana", ventana="Transmisión")
+    if app.esperar_ventana("Transmisión", 4) is not None:
+        res.fallo("Organizar escena: el panel no cerró")
 
 
 def escenario_microfono(app: Aplicacion, args, res: Resultado):
@@ -5521,6 +5582,7 @@ SUPERFICIES = {
     "ia_consulta_rapida.py": "ia",
     "ia_privacidad.py": "ia",
     "gui_transmision.py": "transmision",
+    "gui_organizar_escena.py": "organizar_escena",
     "confirmar_transmision.py": "transmision",
     "gui_transmitir.py": "transmitir_destino",
     "gui_preferencias.py": "preferencias",
@@ -5637,6 +5699,7 @@ ESCENARIOS = {
     "preferencias_persisten": escenario_preferencias_persisten,
     "historial": escenario_historial,
     "transmision": escenario_transmision,
+    "organizar_escena": escenario_organizar_escena,
     "microfono": escenario_microfono,
     "encuadre": escenario_encuadre,
     "musica": escenario_musica,
@@ -5823,7 +5886,7 @@ def _instalar_capturas(captor):
 EN_TODOS = ["arranque_frio", "reproductor",
             "menus", "principal", "descargas", "preferencias",
             "preferencias_categorias", "preferencias_persisten",
-            "programados", "historial", "transmision",
+            "programados", "historial", "transmision", "organizar_escena",
             # `microfono` va justo después de `transmision`: los dos
             # necesitan OBS y auditan cuadros del menú Transmisión.
             "microfono",

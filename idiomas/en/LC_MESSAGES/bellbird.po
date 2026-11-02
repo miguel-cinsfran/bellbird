@@ -2595,15 +2595,19 @@ msgid_plural "{eliminadas} eliminadas"
 msgstr[0] "{eliminadas} removed"
 msgstr[1] "{eliminadas} removed"
 
-#. Traductores: anuncio al entrar en el ajuste fino; dice qué teclas mueven,
-#. confirman y salen.
+#: bellbird/obs/ajuste_fino.py
+msgid "Moviendo con flechas"
+msgstr "Moving with arrows"
+
+#. Traductores: anuncio al mover con flechas; dice qué teclas mueven, confirman
+#. y salen.
 #: bellbird/obs/ajuste_fino.py
 msgid ""
-"Ajuste fino. Flechas para mover, Control para pasos grandes, Mayúsculas "
-"para pasos de un píxel. Intro confirma, Esc deshace, Tab sale."
+"Flechas para mover, Control para pasos grandes, Mayúsculas para pasos de un"
+" píxel. Intro confirma, Esc deshace, Tab sale."
 msgstr ""
-"Fine adjustment. Arrows move, Ctrl for big steps, Shift for one-pixel "
-"steps. Enter confirms, Esc undoes, Tab exits."
+"Arrows move, Ctrl for big steps, Shift for one-pixel steps. Enter confirms,"
+" Esc undoes, Tab exits."
 
 #. Traductores: nombre fijo de la fuente en OBS; no se traduce al usarlo.
 #: bellbird/obs/fuente_chat.py
@@ -3176,6 +3180,11 @@ msgstr " and {p} percent is off the video"
 msgid "Escena actual: {escena}. No tiene fuentes."
 msgstr "Current scene: {escena}. It has no sources."
 
+#: bellbird/obs/obs_escena.py
+#, python-brace-format
+msgid "Escena: {escena}. No tiene fuentes."
+msgstr "Scene: {escena}. It has no sources."
+
 #. Traductores: {n} es la cantidad de fuentes de la escena.
 #: bellbird/obs/obs_escena.py
 #, python-brace-format
@@ -3189,128 +3198,61 @@ msgstr[1] "{n} sources"
 msgid "Escena actual: {escena}. {palabra}, de adelante hacia atrás."
 msgstr "Current scene: {escena}. {palabra}, from front to back."
 
-# que
-# sonido
-# es
-# directo."
-#: bellbird/obs/obs_estado.py
-msgid ""
-"Desde aquí eliges a dónde transmitir, inicias y finalizas el directo y "
-"preparas lo que se ve. En el directo se ve una ventana, la que eliges en "
-"Ventana que se captura. Esa captura no lleva sonido: el sonido sale del "
-"audio del escritorio y del micrófono de OBS. El panel de chat es solo para "
-"YouTube: en TikTok los comentarios ya aparecen en el directo."
-msgstr ""
-"From here you choose where to broadcast, start and end the live stream, and"
-" prepare what is shown. The live stream shows one window, the one you "
-"choose in Window to capture. That capture carries no sound: sound comes "
-"from the desktop audio and the OBS microphone. The chat panel is only for "
-"YouTube: on TikTok comments already appear in the live stream."
+#: bellbird/obs/obs_escena.py
+#, python-brace-format
+msgid "Escena: {escena}. {palabra}, de adelante hacia atrás."
+msgstr "Scene: {escena}. {palabra}, from front to back."
 
 #: bellbird/obs/obs_estado.py
 msgid ""
-"OBS compone lo que ven los espectadores sobre un\n"
-"rectángulo de tamaño fijo, llamado lienzo. No es la pantalla del equipo\n"
-"ni la ventana del juego.\n"
+"Esta ventana ordena lo que se ve en una escena de OBS. Los espectadores "
+"solo lo ven si esa escena es la actual.\n"
 "\n"
-"Lo que queda dentro del lienzo se emite. Lo que sobresale del borde se\n"
-"recorta, sin ningún aviso.\n"
+"Escena elige cuál se organiza. Recorrer la lista no cambia nada en el "
+"directo.\n"
 "\n"
-"Que dos fuentes se superpongan no es necesariamente un problema. El\n"
-"fondo de este panel es transparente: solo se ven las tarjetas de los\n"
-"mensajes, y solo tapan lo que hay justo debajo de ellas."
+"Ventana y Capturar ventana eligen qué ventana del equipo se ve en el vídeo."
+" La captura no lleva sonido: el sonido sale del audio del escritorio y del "
+"micrófono de OBS.\n"
+"\n"
+"Fuente elige el elemento que se va a mover. Otras fuentes se agregan desde "
+"OBS.\n"
+"\n"
+"Posición y Mover fuente la llevan a uno de nueve lugares. Mover con flechas"
+" la mueve en pasos pequeños: Control da pasos grandes, Mayúsculas pasos de "
+"un píxel, Intro confirma y Esc deshace.\n"
+"\n"
+"Ancho, Alto y Cambiar tamaño fijan su tamaño en píxeles.\n"
+"\n"
+"Lo que sobresale del vídeo se recorta sin aviso. OBS llama lienzo a ese "
+"rectángulo. El fondo del chat en el vídeo es transparente: solo se ven las "
+"tarjetas de los mensajes, y solo tapan lo que hay justo debajo.\n"
+"\n"
+"Deshacer cambios vuelve a como estaba todo al abrir esta ventana."
 msgstr ""
-"Broadcast software composes what viewers see on a\n"
-"fixed-size rectangle called the canvas. It is not the computer screen\n"
-"or the game window.\n"
+"This window arranges what is seen in an OBS scene. Viewers only see it if "
+"that scene is the current one.\n"
 "\n"
-"What stays inside the canvas goes out. What sticks out past the edge is\n"
-"cropped, without any warning.\n"
+"Scene chooses which one to arrange. Moving through the list changes nothing"
+" in the live stream.\n"
 "\n"
-"Two sources overlapping is not necessarily a problem. This\n"
-"panel's background is transparent: only the message\n"
-"cards show, and they only cover what is right under them."
-
-# pone
-# lo
-# "que\n"
-# "Tres.
-# "es\n"
-# la\n"
-# dos
-# nueve
-# flechas,
-# y
-# todo
-# "Restablecer
-#: bellbird/obs/obs_estado.py
-msgid ""
-"Este cuadro de diálogo no crea escenas ni agrega otras fuentes, salvo la "
-"captura de ventana desde la sección Escena. Hace una sola\n"
-"cosa: pone el panel de chat de esta aplicación dentro de una escena de OBS\n"
-"y lo coloca donde quieras.\n"
+"Window and Capture window choose which window on the computer is seen in "
+"the video. The capture has no sound: the sound comes from the desktop audio"
+" and the OBS microphone.\n"
 "\n"
-"El orden es este.\n"
+"Source chooses the element to move. Other sources are added from OBS.\n"
 "\n"
-"Uno. Pulsa Preparar panel. Eso enciende el servidor del panel y crea la\n"
-"fuente dentro de la escena elegida, si todavía no estaba.\n"
+"Position and Move source take it to one of nine places. Move with arrows "
+"moves it in small steps: Ctrl gives big steps, Shift one-pixel steps, Enter"
+" confirms and Esc undoes.\n"
 "\n"
-"Dos. Elige la escena en el desplegable Escena. Recorrerlo no cambia lo que\n"
-"ven los espectadores: para eso está el botón Poner al aire.\n"
+"Width, Height and Resize set its size in pixels.\n"
 "\n"
-"Tres. Elige qué fuente vas a mover en el desplegable Fuente. Normalmente es"
+"What sticks out of the video is cropped without warning. OBS calls that "
+"rectangle the canvas. The chat background in the video is transparent: only"
+" the message cards are seen, and they only cover what is just below them.\n"
 "\n"
-"el panel de chat, pero puedes mover cualquier fuente que ya exista en la\n"
-"escena. Este cuadro de diálogo solo agrega el panel y la captura de "
-"ventana: lo demás se hace\n"
-"desde OBS.\n"
-"\n"
-"Cuatro. Coloca la fuente. Tienes dos formas. El desplegable Posición más su"
-"\n"
-"botón la lleva a una de nueve posiciones fijas. El Ajuste fino la mueve de\n"
-"a poco con las flechas, y confirma con Intro.\n"
-"\n"
-"Cinco. El tamaño se cambia con Ancho y Alto y se aplica con su botón.\n"
-"\n"
-"El cuadro Estado del panel describe en todo momento dónde está la\n"
-"fuente y de qué tamaño es. También dice si se sale del lienzo y si tapa\n"
-"a otras. Se actualiza solo con cada cambio.\n"
-"\n"
-"Restablecer deshace todo lo que hiciste desde que abriste esta ventana."
-msgstr ""
-"This dialog does not create scenes or add other sources, except window "
-"capture from the Scene section. It does one\n"
-"thing: it puts this application's chat panel inside an OBS scene\n"
-"and places it where you want.\n"
-"\n"
-"The order is this.\n"
-"\n"
-"One. Press Prepare the panel. That starts the panel server and creates the\n"
-"source inside the chosen scene, if it was not there yet.\n"
-"\n"
-"Two. Choose the scene in the Scene drop-down. Browsing it does not change "
-"what\n"
-"viewers see: the Put live button is for that.\n"
-"\n"
-"Three. Choose which source to move in the Source drop-down. Normally it is\n"
-"the chat panel, but you can move any source already in the\n"
-"scene. This dialog only adds the panel and window capture: the rest is done"
-"\n"
-"from OBS.\n"
-"\n"
-"Four. Place the source. There are two ways. The Position drop-down plus its"
-"\n"
-"button moves it to one of nine fixed positions. Fine adjustment moves it\n"
-"little by little with the arrows, and confirms with Enter.\n"
-"\n"
-"Five. Size changes with Width and Height and applies with its button.\n"
-"\n"
-"The Panel status box describes at all times where the\n"
-"source is, how big it is, whether it goes off the canvas, and whether it "
-"covers others. It\n"
-"updates itself with each change.\n"
-"\n"
-"Reset undoes everything you did since you opened this window."
+"Undo changes returns everything to how it was when this window opened."
 
 #: bellbird/obs/obs_estado.py
 msgid "No se pudo obtener la escena actual"
@@ -6636,7 +6578,7 @@ msgstr "&Check for updates…"
 msgid "&Acerca de"
 msgstr "&About"
 
-#: bellbird/ui/gui_menu.py
+#: bellbird/ui/gui_menu.py bellbird/ui/gui_organizar_escena.py
 msgid "A&yuda"
 msgstr "&Help"
 
@@ -6806,8 +6748,9 @@ msgstr "Device"
 msgid "&Aplicar"
 msgstr "&Apply"
 
-#: bellbird/ui/gui_microfono.py bellbird/ui/gui_transmision.py
-#: bellbird/ui/ia_ventana.py bellbird/ui/musica_ventana.py
+#: bellbird/ui/gui_microfono.py bellbird/ui/gui_organizar_escena.py
+#: bellbird/ui/gui_transmision.py bellbird/ui/ia_ventana.py
+#: bellbird/ui/musica_ventana.py
 msgid "Cerrar"
 msgstr "Close"
 
@@ -6829,6 +6772,128 @@ msgstr "The microphone is muted in OBS."
 #: bellbird/ui/gui_microfono.py
 msgid "El micrófono recibe sonido."
 msgstr "The microphone is receiving sound."
+
+#: bellbird/ui/gui_organizar_escena.py
+msgid "Organizar escena"
+msgstr "Arrange scene"
+
+#: bellbird/ui/gui_organizar_escena.py bellbird/ui/gui_transmision.py
+msgid "Escena"
+msgstr "Scene"
+
+#: bellbird/ui/gui_organizar_escena.py
+msgid "&Escena:"
+msgstr "&Scene:"
+
+#: bellbird/ui/gui_organizar_escena.py
+msgid "Guardar &imagen…"
+msgstr "Save &image…"
+
+#: bellbird/ui/gui_organizar_escena.py
+msgid "&Descripción de la escena:"
+msgstr "Scene &description:"
+
+#: bellbird/ui/gui_organizar_escena.py
+msgid "Ventana capturada"
+msgstr "Captured window"
+
+#: bellbird/ui/gui_organizar_escena.py
+msgid "&Ventana:"
+msgstr "&Window:"
+
+#: bellbird/ui/gui_organizar_escena.py
+msgid "&Capturar ventana"
+msgstr "&Capture window"
+
+#: bellbird/ui/gui_organizar_escena.py
+msgid "Colocar fuente"
+msgstr "Place source"
+
+#: bellbird/ui/gui_organizar_escena.py
+msgid "&Fuente:"
+msgstr "S&ource:"
+
+#: bellbird/ui/gui_organizar_escena.py
+msgid "&Posición:"
+msgstr "&Position:"
+
+#: bellbird/ui/gui_organizar_escena.py
+msgid "&Mover fuente"
+msgstr "&Move source"
+
+#: bellbird/ui/gui_organizar_escena.py
+msgid "&Ancho:"
+msgstr "Wid&th:"
+
+#: bellbird/ui/gui_organizar_escena.py
+msgid "Ancho en píxeles"
+msgstr "Width in pixels"
+
+#: bellbird/ui/gui_organizar_escena.py
+msgid "A&lto:"
+msgstr "H&eight:"
+
+#: bellbird/ui/gui_organizar_escena.py
+msgid "Alto en píxeles"
+msgstr "Height in pixels"
+
+#: bellbird/ui/gui_organizar_escena.py
+msgid "Cambiar &tamaño"
+msgstr "&Resize"
+
+#: bellbird/ui/gui_organizar_escena.py
+msgid "Mostrar en la esce&na"
+msgstr "Show i&n scene"
+
+#: bellbird/ui/gui_organizar_escena.py
+msgid "&Bloquear posición"
+msgstr "&Lock position"
+
+#: bellbird/ui/gui_organizar_escena.py
+msgid "Traer al f&rente"
+msgstr "Bring to &front"
+
+#: bellbird/ui/gui_organizar_escena.py
+msgid "Mover con flec&has"
+msgstr "Move with &arrows"
+
+#: bellbird/ui/gui_organizar_escena.py
+msgid "Deshacer cambi&os"
+msgstr "&Undo changes"
+
+#: bellbird/ui/gui_organizar_escena.py
+msgid "La escena no tiene fuentes."
+msgstr "The scene has no sources."
+
+#: bellbird/ui/gui_organizar_escena.py
+msgid "Elige primero una ventana en Ventana."
+msgstr "First choose a window in Window."
+
+#: bellbird/ui/gui_organizar_escena.py
+#, python-brace-format
+msgid "{fuente} todavía no informa su tamaño."
+msgstr "{fuente} does not report its size yet."
+
+#. Traductores: traduce solo «Imagen PNG»; no cambies «(*.png)|*.png».
+#: bellbird/ui/gui_organizar_escena.py
+msgid "Guardar imagen de la escena"
+msgstr "Save scene image"
+
+#: bellbird/ui/gui_organizar_escena.py
+msgid "Imagen PNG (*.png)|*.png"
+msgstr "PNG Image (*.png)|*.png"
+
+#: bellbird/ui/gui_organizar_escena.py
+msgid "Imagen guardada"
+msgstr "Image saved"
+
+#: bellbird/ui/gui_organizar_escena.py
+msgid "Ayuda de Organizar escena"
+msgstr "Arrange scene help"
+
+#: bellbird/ui/gui_organizar_escena.py
+msgid "Cambios deshechos"
+msgstr "Changes undone"
 
 #: bellbird/ui/gui_preferencias.py
 msgid "Preferencias"
@@ -7132,10 +7197,6 @@ msgid "Pausar grabación"
 msgstr "Pause recording"
 
 #: bellbird/ui/gui_transmision.py
-msgid "Escena"
-msgstr "Scene"
-
-#: bellbird/ui/gui_transmision.py
 msgid "Escena:"
 msgstr "Scene:"
 
@@ -7148,32 +7209,16 @@ msgid "Poner al aire"
 msgstr "Put live"
 
 #: bellbird/ui/gui_transmision.py
-msgid "Ventana que se captura:"
-msgstr "Window to capture:"
+msgid "&Organizar escena…"
+msgstr "&Arrange scene…"
 
 #: bellbird/ui/gui_transmision.py
-msgid "Ventana que se captura"
-msgstr "Window to capture"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Usar esa &ventana"
-msgstr "Use that wind&ow"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Usar esa ventana"
-msgstr "Use that window"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Guardar una capt&ura de la escena…"
-msgstr "Save a scene snaps&hot…"
+msgid "Organizar escena…"
+msgstr "Arrange scene…"
 
 #: bellbird/ui/gui_transmision.py
 msgid "Actualizar e&stado"
 msgstr "Refresh &status"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Cómo se ve la escena"
-msgstr "How the scene looks"
 
 #: bellbird/ui/gui_transmision.py
 msgid "Panel de chat, solo YouTube"
@@ -7196,14 +7241,6 @@ msgid "Preparar panel"
 msgstr "Prepare the panel"
 
 #: bellbird/ui/gui_transmision.py
-msgid "Fuente:"
-msgstr "Source:"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Fuente"
-msgstr "Source"
-
-#: bellbird/ui/gui_transmision.py
 msgid "Estado del panel:"
 msgstr "Panel status:"
 
@@ -7212,92 +7249,12 @@ msgid "Estado del panel"
 msgstr "Panel status"
 
 #: bellbird/ui/gui_transmision.py
-msgid "Posición del panel:"
-msgstr "Panel position:"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Posición del panel"
-msgstr "Panel position"
-
-#: bellbird/ui/gui_transmision.py
-msgid "&Colocar en esa posición"
-msgstr "&Move to that position"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Colocar en esa posición"
-msgstr "Move to that position"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Ancho del panel en píxeles:"
-msgstr "Panel width in pixels:"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Ancho del panel en píxeles"
-msgstr "Panel width in pixels"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Alto del panel en píxeles:"
-msgstr "Panel height in pixels:"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Alto del panel en píxeles"
-msgstr "Panel height in pixels"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Apl&icar tamaño"
-msgstr "Appl&y size"
-
-#: bellbird/ui/gui_transmision.py
-msgid "&Mostrar panel en la escena"
-msgstr "Show the panel &in the scene"
-
-#: bellbird/ui/gui_transmision.py
-msgid "&Fijar posición del panel"
-msgstr "&Fix panel position"
-
-#: bellbird/ui/gui_transmision.py
-msgid "P&oner al frente"
-msgstr "Bring &to front"
-
-#: bellbird/ui/gui_transmision.py
-msgid "A&juste fino"
-msgstr "Fine &adjustment"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Cómo s&e coloca el panel"
-msgstr "How the panel is place&d"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Cómo se coloca el panel"
-msgstr "How the panel is placed"
-
-#: bellbird/ui/gui_transmision.py
-msgid "&Qué es el lienzo"
-msgstr "&What is the canvas"
-
-#: bellbird/ui/gui_transmision.py
-msgid "&Restablecer"
-msgstr "&Reset"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Consultando OBS"
-msgstr "Asking OBS"
-
-#: bellbird/ui/gui_transmision.py
-msgid "La escena no tiene fuentes."
-msgstr "The scene has no sources."
-
-#: bellbird/ui/gui_transmision.py
 msgid "Detener la transmisión"
 msgstr "Stop the broadcast"
 
 #: bellbird/ui/gui_transmision.py
 msgid "Detener la grabación"
 msgstr "Stop the recording"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Elige primero una ventana en Ventana que se captura."
-msgstr "First choose a window in Window to capture."
 
 #: bellbird/ui/gui_transmision.py
 msgid "Elige primero a dónde transmitir, en Transmitir a."
@@ -7316,44 +7273,6 @@ msgstr "Preparing OBS for {destino}. It may take a few seconds."
 #, python-brace-format
 msgid "No se pudo encender el panel, el puerto {puerto} está ocupado"
 msgstr "Could not turn on the panel, port {puerto} is busy"
-
-#: bellbird/ui/gui_transmision.py
-#, python-brace-format
-msgid "{fuente} todavía no informa su tamaño."
-msgstr "{fuente} does not report its size yet."
-
-#: bellbird/ui/gui_transmision.py
-msgid "Ajuste confirmado"
-msgstr "Adjustment confirmed"
-
-#: bellbird/ui/gui_transmision.py
-msgid "No se pudo deshacer el ajuste"
-msgstr "Could not undo the adjustment"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Ajuste deshecho"
-msgstr "Adjustment undone"
-
-#. Traductores: traduce solo «Imagen PNG»; no cambies «(*.png)|*.png».
-#: bellbird/ui/gui_transmision.py
-msgid "Guardar una captura de la escena"
-msgstr "Save a scene snapshot"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Imagen PNG (*.png)|*.png"
-msgstr "PNG Image (*.png)|*.png"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Captura guardada"
-msgstr "Snapshot saved"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Qué es el lienzo"
-msgstr "What is the canvas"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Restablecido"
-msgstr "Reset"
 
 #: bellbird/ui/gui_transmitir.py
 #, python-brace-format
@@ -7675,6 +7594,18 @@ msgstr "&Record while broadcasting"
 msgid "&Transmisión"
 msgstr "&Broadcast"
 
+#: bellbird/ui/mover_con_flechas.py
+msgid "Posición confirmada"
+msgstr "Position confirmed"
+
+#: bellbird/ui/mover_con_flechas.py
+msgid "No se pudo deshacer el movimiento"
+msgstr "Could not undo the movement"
+
+#: bellbird/ui/mover_con_flechas.py
+msgid "Movimiento deshecho"
+msgstr "Movement undone"
+
 #. Traductores: punto que une el aviso con el tema que sigue.
 #: bellbird/ui/musica_cola.py
 #, python-brace-format
@@ -7887,6 +7818,10 @@ msgstr "Stop matching"
 #: bellbird/ui/opciones_musica.py
 msgid "Salida predeterminada"
 msgstr "Default output"
+
+#: bellbird/ui/operaciones_obs.py
+msgid "Consultando OBS"
+msgstr "Asking OBS"
 
 #: bellbird/ui/preferencias_api.py
 msgid ""

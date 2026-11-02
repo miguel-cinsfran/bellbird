@@ -5,9 +5,40 @@ from __future__ import annotations
 import wx
 
 from bellbird.core import diagnostico
+from bellbird.ui.accesibilidad import nombre_accesible
 from bellbird.ui.tema import _T
 
 logger = diagnostico.obtener_logger(__name__)
+
+
+def nombre_de_etiqueta(etiqueta) -> str:
+    """El nombre accesible de un rótulo, sin la letra de acceso ni los dos puntos."""
+    return etiqueta.replace("&", "").rstrip(":")
+
+
+def grilla_campos():
+    """Grilla de rótulo, campo y botón con la columna central creciente."""
+    grilla = wx.FlexGridSizer(0, 3, 8, 8)
+    grilla.AddGrowableCol(1, 1)
+    return grilla
+
+
+def fila_grilla(grilla, rotulo, control, boton=None):
+    """Agrega a la grilla una fila de rótulo ya creado, campo y botón opcional."""
+    grilla.Add(rotulo, 0, wx.ALIGN_CENTER_VERTICAL)
+    grilla.Add(control, 0, wx.EXPAND)
+    if boton is None:
+        grilla.AddSpacer(0)
+    else:
+        grilla.Add(boton, 0, wx.EXPAND)
+
+
+def lista_con_nombre(padre, etiqueta, opciones=None):
+    """Un wx.Choice con su nombre accesible igual al rótulo."""
+    control = wx.Choice(padre, choices=opciones or [],
+                        name=nombre_de_etiqueta(etiqueta))
+    nombre_accesible(control, control.GetName())
+    return control
 
 
 class EleccionTexto(wx.Choice):

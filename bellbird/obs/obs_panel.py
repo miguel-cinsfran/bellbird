@@ -40,21 +40,18 @@ class GestorPanelObs:
         datos = self._pedir("GetCurrentProgramScene", parada=parada)
         return datos.get("currentProgramSceneName", "")
 
-    def descripcion_escena(self, parada=None) -> str:
+    def descripcion_escena(self, escena=None, parada=None) -> str:
         from bellbird.obs import obs_prevuelo
-        escena = self.escena_al_aire(parada)
+        actual = escena is None
+        if actual:
+            escena = self.escena_al_aire(parada)
         elementos = self._elementos(escena, parada)
         lienzo = self._pedir("GetVideoSettings", parada=parada)
         entradas = self._pedir("GetInputList", parada=parada).get("inputs", ())
-        tipos = {}
-        for entrada in entradas:
-            nombre = entrada.get("inputName", "")
-            if not nombre:
-                continue
-            clase = entrada.get("inputKind", "") or ""
-            tipos[nombre] = obs_prevuelo._TIPOS.get(clase, "")
-        return obs_escena.describir_escena(escena, elementos, lienzo.get("baseWidth", 0),
-                                           lienzo.get("baseHeight", 0), tipos)
+        return obs_escena.describir_escena(
+            escena, elementos, lienzo.get("baseWidth", 0),
+            lienzo.get("baseHeight", 0),
+            obs_prevuelo.tipos_de_entradas(entradas), actual=actual)
 
     def poner_escena_al_aire(self, escena, parada=None) -> str:
         self._pedir("SetCurrentProgramScene", {"sceneName": escena}, parada)

@@ -86,12 +86,12 @@ def resolver(codigo, ctrl, shift) -> tuple:
 
 def etiqueta_boton(activo, etiqueta_base) -> str:
     """Devuelve la etiqueta que corresponde al estado del modo."""
-    return "Ajustando, flechas para mover" if activo else etiqueta_base
+    return _("Moviendo con flechas") if activo else etiqueta_base
 
 
 def texto_de_entrada() -> str:
     """Devuelve el anuncio al entrar en el modo."""
-    # Traductores: anuncio al entrar en el ajuste fino; dice qué teclas mueven, confirman y salen.
-    return _("Ajuste fino. Flechas para mover, Control para pasos grandes, "
+    # Traductores: anuncio al mover con flechas; dice qué teclas mueven, confirman y salen.
+    return _("Flechas para mover, Control para pasos grandes, "
              "Mayúsculas para pasos de un píxel. Intro confirma, Esc deshace, "
              "Tab sale.")

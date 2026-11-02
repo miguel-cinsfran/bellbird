@@ -463,6 +463,20 @@ class AvisosGrabacionTest(unittest.TestCase):
         self.assertEqual(revision.avisos, ())
 
 
+class TestTiposDeEntradas(unittest.TestCase):
+
+    def test_traduce_las_clases_conocidas_y_descarta_las_sin_nombre(self):
+        entradas = ({"inputName": "Cámara", "inputKind": "dshow_input"},
+                    {"inputName": "", "inputKind": "browser_source"},
+                    {"inputName": "Rara", "inputKind": "clase_nueva"})
+        self.assertEqual(
+            obs_prevuelo.tipos_de_entradas(entradas),
+            {"Cámara": "cámara", "Rara": ""})
+
+    def test_lista_vacia_no_rompe(self):
+        self.assertEqual(obs_prevuelo.tipos_de_entradas(()), {})
+
+
 class TestTablaTiposSinVentana(unittest.TestCase):
     # Sin ventana: la tabla vive en el módulo, así no se crea ningún control.
 

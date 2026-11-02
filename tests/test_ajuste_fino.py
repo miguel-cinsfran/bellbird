@@ -42,16 +42,16 @@ class TestAjusteFino(unittest.TestCase):
         self.assertEqual(ajuste_fino.resolver(ord("A"), False, False), ("ignorar", 0, 0))
 
     def test_etiqueta_activa(self):
-        self.assertEqual(ajuste_fino.etiqueta_boton(True, "Ajuste &fino"),
-                         "Ajustando, flechas para mover")
+        self.assertEqual(ajuste_fino.etiqueta_boton(True, "Mover con flec&has"),
+                         "Moviendo con flechas")
 
     def test_etiqueta_inactiva(self):
-        self.assertEqual(ajuste_fino.etiqueta_boton(False, "Ajuste &fino"),
-                         "Ajuste &fino")
+        self.assertEqual(ajuste_fino.etiqueta_boton(False, "Mover con flec&has"),
+                         "Mover con flec&has")
 
     def test_texto_de_entrada(self):
         self.assertEqual(ajuste_fino.texto_de_entrada(),
-                         "Ajuste fino. Flechas para mover, Control para pasos grandes, "
+                         "Flechas para mover, Control para pasos grandes, "
                          "Mayúsculas para pasos de un píxel. Intro confirma, Esc deshace, "
                          "Tab sale.")
 

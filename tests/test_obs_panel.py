@@ -279,6 +279,17 @@ class GestorPanelObsTest(unittest.TestCase):
             "460 por 620 píxeles, visible en OBS, pero no aparece en "
             "el vídeo: la tapa entera Juego.")
 
+    def test_descripcion_de_una_escena_pedida_usa_su_nombre(self):
+        doble = DobleObs(
+            [elemento(1, "Rara", 0, x=800, y=450, ancho=1600, alto=900,
+                      alineacion=0)],
+            entradas=[{"inputName": "Rara", "inputKind": "image_source"}])
+        frase = self.gestor(doble).descripcion_escena("Juego")
+        self.assertTrue(frase.startswith("Escena: Juego."), frase)
+        self.assertNotIn("Escena actual", frase)
+        self.assertIn(("GetSceneItemList", {"sceneName": "Juego"}, None),
+                      doble.llamadas)
+
     def test_descripcion_escena_con_clase_desconocida_no_muestra_la_clase(self):
         doble = DobleObs(
             [elemento(1, "Rara", 0, x=800, y=450, ancho=1600, alto=900,

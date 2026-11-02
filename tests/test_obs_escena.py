@@ -26,6 +26,20 @@ class DescribirEscenaTest(unittest.TestCase):
             obs_escena.describir_escena("Juego", [], *LIENZO, {}),
             "Escena actual: Juego. No tiene fuentes.")
 
+    def test_escena_pedida_no_dice_actual(self):
+        self.assertEqual(
+            obs_escena.describir_escena("Juego", [], *LIENZO, {},
+                                        actual=False),
+            "Escena: Juego. No tiene fuentes.")
+
+    def test_escena_pedida_con_fuentes_no_dice_actual(self):
+        frase = obs_escena.describir_escena(
+            "Juego", [elemento(1, "Fondo", 0, 800, 450, 1600, 900, 0)],
+            *LIENZO, {"Fondo": "imagen"}, actual=False)
+        self.assertEqual(
+            frase.splitlines()[0],
+            "Escena: Juego. 1 fuente, de adelante hacia atrás.")
+
     def test_una_sola_fuente_en_singular(self):
         frase = obs_escena.describir_escena(
             "Juego", [elemento(1, "Fondo", 0, 800, 450, 1600, 900, 0)],

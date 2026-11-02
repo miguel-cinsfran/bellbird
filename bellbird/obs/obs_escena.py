@@ -185,25 +185,35 @@ def _frase_fuente(numero, elemento, rect, delanteros, lienzo_ancho,
     return ", ".join(partes) + "."
 
 
-def describir_escena(escena, elementos, lienzo_ancho, lienzo_alto, tipos) -> str:
-    """Frase con la escena al aire y una oración por fuente.
+def describir_escena(escena, elementos, lienzo_ancho, lienzo_alto, tipos,
+                     actual=True) -> str:
+    """Frase con la escena y una oración por fuente.
 
-    Las fuentes salen de adelante hacia atrás (sceneItemIndex más alto
-    primero). Cada oración trae nombre, tipo, posición, tamaño y estado,
-    una por línea para que NVDA la recorra por partes.
+    Con `actual=True` la escena es la que está al aire. Las fuentes salen de
+    adelante hacia atrás (sceneItemIndex más alto primero). Cada oración trae
+    nombre, tipo, posición, tamaño y estado, una por línea para que NVDA la
+    recorra por partes.
     """
     ordenados = sorted(elementos or (),
                        key=lambda elemento: elemento.get("sceneItemIndex", 0),
                        reverse=True)
     if not ordenados:
-        return _("Escena actual: {escena}. No tiene fuentes.").format(
-            escena=escena)
+        if actual:
+            return _("Escena actual: {escena}. No tiene fuentes.").format(
+                escena=escena)
+        return _("Escena: {escena}. No tiene fuentes.").format(escena=escena)
     # Traductores: {n} es la cantidad de fuentes de la escena.
     palabra = ngettext("1 fuente", "{n} fuentes", len(ordenados)).format(
         n=len(ordenados))
-    lineas = [_("Escena actual: {escena}. {palabra}, "
-                "de adelante hacia atrás.").format(
-                    escena=escena, palabra=palabra)]
+    if actual:
+        primera = _("Escena actual: {escena}. {palabra}, "
+                    "de adelante hacia atrás.").format(
+                        escena=escena, palabra=palabra)
+    else:
+        primera = _("Escena: {escena}. {palabra}, "
+                    "de adelante hacia atrás.").format(
+                        escena=escena, palabra=palabra)
+    lineas = [primera]
     rects = [_rectangulo_de(elemento) for elemento in ordenados]
     for numero, (elemento, rect) in enumerate(zip(ordenados, rects), 1):
         delanteros = [(str(otro.get("sourceName") or _("sin nombre")), otro_rect)

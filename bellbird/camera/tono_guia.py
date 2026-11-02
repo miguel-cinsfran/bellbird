@@ -59,7 +59,7 @@ def _onda(frecuencia: float, muestras: int, timbre: str, con_envolvente: bool):
     if timbre == "calido":
         onda = np.sin(fase) + 0.3 * np.sin(2 * fase) + 0.1 * np.sin(3 * fase)
     elif timbre == "8bits":
-        onda = np.sign(np.sin(fase))
+        onda = np.where(np.sin(fase) >= 0, 1.0, -1.0)
     else:
         onda = np.sin(fase)
     if con_envolvente:
@@ -74,14 +74,13 @@ def _muestras_pitido(frecuencia: float, timbre: str):
 
 
 def _muestras_centro(timbre: str):
-    """Medio segundo de la nota de partida, con el último muestreo en cero.
+    """Medio segundo de la nota de partida, con ciclos enteros.
 
-    El largo cae en ciclos enteros de 440 Hz, así que el bucle no corta la
-    onda. El muestreo extra del final vale cero y evita el chasquido al
-    repetir.
+    El largo es un número entero de ciclos de 440 Hz, sin repetir el punto
+    de inicio al final, así que el bucle sigue la onda sin un salto propio.
     """
     muestras = int(round(DURACION_CENTRO * FRECUENCIA_MUESTREO))
-    return _onda(FRECUENCIA_CENTRO, muestras + 1, timbre, con_envolvente=False)
+    return _onda(FRECUENCIA_CENTRO, muestras, timbre, con_envolvente=False)
 
 
 def _estereo(mono, paneo: float):

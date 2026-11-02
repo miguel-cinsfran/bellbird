@@ -50,10 +50,17 @@ class TestPitido(unittest.TestCase):
 
 class TestTonoCentro(unittest.TestCase):
 
-    def test_empieza_y_termina_en_cero(self):
-        _, _, _, muestras = _muestras(tono_guia.tono_centro("normal"))
-        self.assertEqual(muestras[0].tolist(), [0, 0])
-        self.assertEqual(muestras[-1].tolist(), [0, 0])
+    def test_el_bucle_no_salta_mas_que_la_propia_onda(self):
+        for timbre in tono_guia.TIMBRES:
+            with self.subTest(timbre=timbre):
+                _, _, frecuencia, muestras = _muestras(
+                    tono_guia.tono_centro(timbre))
+                canal = muestras[:, 0].astype(int)
+                saltos = np.abs(np.diff(canal))
+                salto_bucle = abs(int(canal[0]) - int(canal[-1]))
+                self.assertLessEqual(salto_bucle, int(saltos.max()))
+                ciclos = len(canal) * tono_guia.FRECUENCIA_CENTRO / frecuencia
+                self.assertAlmostEqual(ciclos, round(ciclos), places=6)
 
     def test_dura_medio_segundo_y_suena_centrado(self):
         _, _, frecuencia, muestras = _muestras(

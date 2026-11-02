@@ -5618,6 +5618,7 @@ SUPERFICIES = {
     "preferencias_transmision.py": "preferencias",
     "preferencias_camara.py": "preferencias",
     "preferencias_voz.py": "preferencias",
+    "preferencias_voz_secundaria.py": "preferencias",
     "paleta.py": "actualizaciones",
 }
 

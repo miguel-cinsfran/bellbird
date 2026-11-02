@@ -434,6 +434,40 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertNotIn("\\tAlt+L", fuente)
         self.assertNotIn("\\tCtrl+F", fuente)
 
+    def test_cada_comando_de_grabacion_muestra_su_propio_atajo(self):
+        from bellbird.ui import menu_transmision
+
+        etiquetas = []
+
+        def crear_menu():
+            menu = mock.MagicMock()
+            menu.Append.side_effect = lambda *args: (
+                etiquetas.append(args[-1]) or mock.Mock())
+            menu.AppendCheckItem.side_effect = (
+                lambda *args: etiquetas.append(args[-1]) or mock.Mock())
+            menu.AppendSeparator.side_effect = lambda: None
+            return menu
+
+        frame = mock.Mock()
+        frame._accel.side_effect = lambda accion: "\t" + accion
+        frame._config = {"avisar_sobrecarga": True,
+                         "grabar_al_transmitir": False,
+                         "avisar_encuadre": False}
+        with mock.patch.object(menu_transmision.wx, "Menu",
+                               side_effect=crear_menu), \
+                mock.patch.object(menu_transmision.encuadre_camara,
+                                  "sincronizar"):
+            menu_transmision.construir(frame, mock.Mock())
+
+        self.assertTrue(any(
+            etiqueta.startswith("Iniciar o detener g&rabación")
+            and etiqueta.endswith("\tobs_grabar")
+            for etiqueta in etiquetas))
+        self.assertTrue(any(
+            etiqueta.startswith("Pa&usar o reanudar grabación")
+            and etiqueta.endswith("\tobs_pausar_grabacion")
+            for etiqueta in etiquetas))
+
     def test_conflicto_incluye_las_fijas(self):
         self.assertEqual(
             detectar_conflictos_atajos({"pausa": "f6"}),

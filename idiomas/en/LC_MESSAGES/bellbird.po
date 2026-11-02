@@ -8950,6 +8950,19 @@ msgstr "(Recording)"
 msgid "{titulo} — {app}"
 msgstr "{titulo} — {app}"
 
+#: bellbird/voice/caida_elevenlabs.py
+msgid ""
+"Se alcanzó el límite de caracteres de ElevenLabs de esta sesión. Se usa la "
+"voz de Windows."
+msgstr ""
+"The ElevenLabs character limit for this session was reached. The Windows "
+"voice is used."
+
+#: bellbird/voice/caida_elevenlabs.py
+#, python-brace-format
+msgid "{detalle} Se usa la voz de Windows."
+msgstr "{detalle} The Windows voice is used."
+
 #: bellbird/voice/elevenlabs.py
 msgid "ElevenLabs no reconoce la clave."
 msgstr "ElevenLabs does not recognize the key."
@@ -9007,14 +9020,6 @@ msgstr "Could not import Prism for the {nombre} engine: {detalle}"
 msgid "No se pudo iniciar el motor {nombre}: {detalle}"
 msgstr "Could not start the {nombre} engine: {detalle}"
 
-#: bellbird/voice/tts_worker.py
-msgid ""
-"Se alcanzó el límite de caracteres de ElevenLabs de esta sesión. Se usa la "
-"voz de Windows."
-msgstr ""
-"The ElevenLabs character limit for this session was reached. The Windows "
-"voice is used."
-
 #. Traductores: {m} es el mensaje y {a} su autor; se lee en voz alta.
 #: bellbird/voice/tts_worker.py
 #, python-brace-format
@@ -9025,11 +9030,6 @@ msgstr "{m}, by {a}"
 #, python-brace-format
 msgid "{autor}: {mensaje}"
 msgstr "{autor}: {mensaje}"
-
-#: bellbird/voice/tts_worker.py
-#, python-brace-format
-msgid "{detalle} Se usa la voz de Windows."
-msgstr "{detalle} The Windows voice is used."
 
 #. Traductores: privacidad del directo; una sola palabra.
 #: bellbird/youtube/emision.py

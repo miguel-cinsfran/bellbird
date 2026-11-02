@@ -7,7 +7,7 @@ from unittest import mock
 
 from bellbird.capture import tiktok_manejadores
 from bellbird.capture.tiktok_manejadores import registrar_manejadores
-from bellbird.core.config import TIPO_ME_GUSTA, TIPO_TEXTO
+from bellbird.core.config import TIPO_COFRE, TIPO_ME_GUSTA, TIPO_TEXTO
 
 _TODAS = ("CommentEvent", "GiftEvent", "JoinEvent", "RoomUserSeqEvent",
           "SubscribeEvent", "FollowEvent", "ShareEvent", "EnvelopeEvent",
@@ -237,6 +237,39 @@ class TestMeGustaAgrupado(unittest.TestCase):
         cliente, mod, _recibidos, vistos, _est = _registrar(_TODAS_NUEVAS)
         _vaciar_con_conteo(cliente, mod, 1010.0)
         self.assertEqual(vistos, [(3, 50)])
+
+
+class TestCofreConRemitente(unittest.TestCase):
+    """El cofre se anuncia con el nombre de quien lo envió, si viene."""
+
+    def _cofre(self):
+        cliente, mod, recibidos, _vistos, _est = _registrar(_TODAS_NUEVAS)
+        return cliente, mod, recibidos
+
+    def test_entrega_el_nombre_del_remitente_del_cofre(self):
+        from TikTokLive.events import EnvelopeEvent
+        from TikTokLiveProto.v3.webcast.model.message.redenvelope import (
+            MessageRedEnvelopInfo)
+        cliente, mod, recibidos = self._cofre()
+        evento = EnvelopeEvent(envelope_info=MessageRedEnvelopInfo(
+            send_user_name="Ana", send_user_id="7"))
+        asyncio.run(cliente.manejadores[mod.EnvelopeEvent](evento))
+        self.assertEqual(recibidos, [("Ana", "", TIPO_COFRE, "", "7")])
+
+    def test_sin_nombre_usa_el_autor_del_evento(self):
+        from TikTokLive.events import EnvelopeEvent
+        from TikTokLiveProto.v3.webcast.model.message.redenvelope import (
+            MessageRedEnvelopInfo)
+        cliente, mod, recibidos = self._cofre()
+        evento = EnvelopeEvent(envelope_info=MessageRedEnvelopInfo())
+        asyncio.run(cliente.manejadores[mod.EnvelopeEvent](evento))
+        self.assertEqual(recibidos, [("Usuario", "", TIPO_COFRE, "", "")])
+
+    def test_sin_envelope_info_usa_el_autor_del_evento(self):
+        from TikTokLive.events import EnvelopeEvent
+        cliente, mod, recibidos = self._cofre()
+        asyncio.run(cliente.manejadores[mod.EnvelopeEvent](EnvelopeEvent()))
+        self.assertEqual(recibidos, [("Usuario", "", TIPO_COFRE, "", "")])
 
 
 class TestPausaDirecto(unittest.TestCase):

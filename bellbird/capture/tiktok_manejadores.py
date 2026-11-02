@@ -91,8 +91,14 @@ def _al_cofre(on_evento, descartar):
     async def _on_envelope(evento):
         if descartar(evento):
             return
-        autor, canal_id = autor_de_evento(evento)
-        on_evento(autor, "", TIPO_COFRE, "", canal_id)
+        info = getattr(evento, "envelope_info", None)
+        nombre = (getattr(info, "send_user_name", "") or "").strip()
+        canal_id = str(getattr(info, "send_user_id", "") or "").strip()
+        if not nombre or not canal_id:
+            autor, ident = autor_de_evento(evento)
+            nombre = nombre or autor
+            canal_id = canal_id or ident
+        on_evento(nombre, "", TIPO_COFRE, "", canal_id)
 
     return _on_envelope
 

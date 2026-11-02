@@ -178,7 +178,7 @@ class TestEquivalenciaMenu(unittest.TestCase):
             ("&Transmisión", "Mostrar &OBS", ANY, "normal"),
             ("&Transmisión", "Iniciar o detener g&rabación", ANY, "normal"),
             ("&Transmisión", "Pa&usar o reanudar grabación", ANY, "normal"),
-            ("&Transmisión", "Grabaciones…", ANY, "normal"),
+            ("&Transmisión", "Grabaciones guar&dadas…", ANY, "normal"),
             ("&Transmisión", "&Avisar si OBS se sobrecarga", ANY, "check"),
             ("&Transmisión", "&Grabar también al transmitir", ANY, "check"),
             ("&Transmisión", "---", None, "sep"),

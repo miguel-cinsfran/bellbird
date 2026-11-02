@@ -4907,8 +4907,8 @@ msgid "&Reanudar grabación"
 msgstr "&Keep recording"
 
 #: bellbird/ui/control_grabacion.py bellbird/ui/menu_transmision.py
-msgid "Grabaciones…"
-msgstr "Recordings…"
+msgid "Grabaciones guar&dadas…"
+msgstr "Sa&ved recordings…"
 
 #: bellbird/ui/descargas_acciones.py
 msgid "Descargas terminadas. ¿Abrir la carpeta?"

@@ -19,7 +19,7 @@ _INICIAR_GRABACION = N_("Iniciar &grabación")
 _DETENER_GRABACION = N_("Detener &grabación")
 _PAUSAR_GRABACION = N_("&Pausar grabación")
 _REANUDAR_GRABACION = N_("&Reanudar grabación")
-_GRABACIONES = N_("Grabaciones…")
+_GRABACIONES = N_("Grabaciones guar&dadas…")
 
 
 def _crear_botones(padre):
@@ -27,9 +27,9 @@ def _crear_botones(padre):
                       name=nombre_de_etiqueta(_(_INICIAR_GRABACION)))
     pausar = wx.Button(padre, label=_(_PAUSAR_GRABACION),
                        name=nombre_de_etiqueta(_(_PAUSAR_GRABACION)))
-    grabaciones = wx.Button(padre, label=_(_GRABACIONES),
+    boton_lista = wx.Button(padre, label=_(_GRABACIONES),
                             name=nombre_de_etiqueta(_(_GRABACIONES)))
-    return boton, pausar, grabaciones
+    return boton, pausar, boton_lista
 
 
 class ControlGrabacion:

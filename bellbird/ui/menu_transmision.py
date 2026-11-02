@@ -38,7 +38,7 @@ def _agregar_encuadre(frame, m):
 def _agregar_grabaciones(frame, m):
     """El comando que abre la lista de grabaciones guardadas."""
     from bellbird.ui import gui_grabaciones
-    frame.mi_grabaciones = m.Append(wx.ID_ANY, _("Grabaciones…"))
+    frame.mi_grabaciones = m.Append(wx.ID_ANY, _("Grabaciones guar&dadas…"))
     frame._bind_menu(frame.mi_grabaciones,
                      gui_grabaciones.abrir_grabaciones, frame)
 

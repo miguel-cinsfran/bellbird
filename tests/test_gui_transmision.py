@@ -288,7 +288,7 @@ class TestPanelTransmision(unittest.TestCase):
         self.assertEqual(self._nombres_en_orden(self.dialogo), [
             "Estado", "Transmitir a", "Transmitir en directo",
             "Mostrar chat en el vídeo", "Iniciar grabación",
-            "Grabaciones…", "Silenciar micrófono", "Elegir micrófono…",
+            "Grabaciones guardadas…", "Silenciar micrófono", "Elegir micrófono…",
             "Escena",
             "Cambiar escena", "Organizar escena…", "Mostrar OBS",
             "Actualizar estado", "Cerrar"])
@@ -298,7 +298,7 @@ class TestPanelTransmision(unittest.TestCase):
         self.assertEqual(self._nombres_en_orden(self.dialogo), [
             "Estado", "Transmitir a", "Usuario de TikTok",
             "Transmitir en directo", "Iniciar grabación",
-            "Grabaciones…", "Silenciar micrófono", "Elegir micrófono…",
+            "Grabaciones guardadas…", "Silenciar micrófono", "Elegir micrófono…",
             "Escena",
             "Cambiar escena", "Organizar escena…", "Mostrar OBS",
             "Actualizar estado", "Cerrar"])

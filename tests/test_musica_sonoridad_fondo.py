@@ -458,6 +458,26 @@ class TestIniciarIgualacion(unittest.TestCase):
             self.assertEqual(vistos, [temas[0].origen])
             self.assertIsNone(anfitrion._progreso_sonoridad)
 
+    def test_detener_a_mitad_no_guarda_al_final(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            temas = [_tema_local(tmp, "a.mp3"), _tema_local(tmp, "b.mp3")]
+
+            def _medir(_ruta, _origen):
+                anfitrion.detener_igualacion()
+                return 1.5
+
+            anfitrion = _Anfitrion(biblioteca=_BibliotecaFalsa(temas),
+                                    cache=CacheSonoridad(
+                                        Path(tmp) / "s.json"))
+            with mock.patch.object(musica_sonoridad.ffmpeg_bin,
+                                    "ruta_ffmpeg",
+                                    return_value="C:/ffmpeg.exe"),                     mock.patch.object(musica_sonoridad.medicion_paralela,
+                                        "trabajos_de_medicion",
+                                        return_value=1),                     mock.patch.object(musica_sonoridad.sonoridad, "medir",
+                                        side_effect=_medir),                     mock.patch.object(CacheSonoridad, "guardar") as guardar:
+                anfitrion._medir_sonoridad_fondo(tuple(temas), 3)
+            guardar.assert_not_called()
+
     def test_iniciar_limpia_la_bandera_de_detener(self):
         with tempfile.TemporaryDirectory() as tmp:
             anfitrion = self._anfitrion_con(tmp)

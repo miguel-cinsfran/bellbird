@@ -1768,7 +1768,7 @@ def escenario_grabaciones(app: Aplicacion, args, res: Resultado):
     """La ventana que lista las grabaciones que la app detuvo."""
     esperados = ("Grabaciones", "Abrir", "Abrir carpeta", "Copiar ruta",
                  "Eliminar de la lista", "Cerrar")
-    auditar_dialogo(app, res, "Transmisión > Grabaciones…", "Grabaciones",
+    auditar_dialogo(app, res, "Transmisión > Grabaciones guardadas…", "Grabaciones",
                     vueltas_tab=10, esperados=esperados,
                     esperados_en_tab=esperados)
 

@@ -216,17 +216,17 @@
   </style>
 </head>
 <body>
-<!-- original: es/MANUAL.md c2517a81b4b7073e9056a2366aa0369428d3d02a -->
+<!-- original: es/MANUAL.md 7476ef5c897e2ea6db724e12d72d393b609a1413 -->
 
 <h1 id="bellbird-user-manual">Bellbird, user manual</h1>
 <p>This is a translation of the Spanish original, made with artificial
 intelligence. If you find an error, report it at <a
 href="https://github.com/miguel-cinsfran/bellbird/issues">https://github.com/miguel-cinsfran/bellbird/issues</a>.
 See the <a href="../es/MANUAL.html">original in Spanish</a>.</p>
-<p>Reads the chat of YouTube and TikTok live streams aloud, for people
-who are blind or have low vision and stream. Everything is handled with
-the keyboard and tested with NVDA.</p>
-<p>Version 2.4.0 · Windows 10 and 11 · <a href="CHANGELOG.html">what's new
+<p>Bellbird reads the chat of YouTube and TikTok live streams aloud for
+people who are blind or have low vision and stream. The whole
+application is handled with the keyboard and tested with NVDA.</p>
+<p>Version 2.5.1 · Windows 10 and 11 · <a href="CHANGELOG.html">what's new
 in each version</a></p>
 <h2 id="contents">Contents</h2>
 <ul>
@@ -248,7 +248,8 @@ streaming</a></li>
 <li><a href="#keyboard-shortcuts">Keyboard shortcuts</a></li>
 <li><a href="#accessibility">Accessibility</a></li>
 <li><a href="#updating">Updating</a></li>
-<li><a href="#configuration">Configuration</a></li>
+<li><a href="#where-preferences-are-saved">Where preferences are
+saved</a></li>
 <li><a href="#common-problems">Common problems</a></li>
 </ul>
 <h2 id="what-it-does">What it does</h2>
@@ -260,54 +261,61 @@ message.</li>
 <li>Plays the live stream video inside the application.</li>
 <li>Plays music from your folder, your playlists or YouTube while you
 stream.</li>
-<li>Starts and ends your live stream with OBS Studio, and describes by
+<li>Starts and ends your live stream with OBS Studio and describes by
 voice how the scene looks.</li>
 <li>Shows the chat to your viewers in a panel for OBS.</li>
-<li>Moderates, writes in the chat and sends scheduled messages, with
-your Google session.</li>
+<li>Moderates, writes in the chat and sends scheduled messages with your
+Google session.</li>
 <li>Downloads video and audio.</li>
 </ul>
-<p>On TikTok it only reads: TikTok has no official way to comment or
-moderate.</p>
+<p>On TikTok it only reads, because TikTok has no official way to
+comment or moderate.</p>
 <h2 id="installation">Installation</h2>
-<p>Extract the ZIP to any folder and open <code>Bellbird.exe</code>. You
-do not need to install anything or have administrator permissions: the
-ZIP brings everything you need.</p>
-<p>You need Windows 10 or 11, internet and at least one Windows voice
-(in <em>Settings, Time &amp; language, Speech</em>). ElevenLabs is
-optional and requires your own account.</p>
+<p>Extract the ZIP to any folder and open <code>Bellbird.exe</code>; you
+do not need to install anything or have administrator permissions,
+because the ZIP brings everything you need.</p>
+<p>You need Windows 10 or 11, an internet connection and at least one
+Windows voice, which you choose in <em>Settings, Time &amp; language,
+Speech</em>; ElevenLabs is optional and requires your own account.</p>
 <h2 id="getting-started">Getting started</h2>
-<p>When the application opens, the focus is in the address field. Paste
-the link of the live stream or the video and press Enter. If you have
-already watched other live streams, the window offers the <em>Recent
-items</em> list (<code>Alt+N</code>). Enter opens one,
-<code>Delete</code> removes it from the history, and the context menu
-offers to open it, remove it or open the full history.</p>
-<p>The window has three regions: connection, content and player.
-<code>F6</code> and <code>Shift+F6</code> move from one to another, and
-<code>Ctrl+Tab</code> switches between the chat, comments and
-information tabs. Each change is announced. The Applications key opens
-the context menu of the chat or comment list.</p>
+<p>When the application opens, the focus is in the <em>Link or ID</em>
+field: paste the link of the live stream or the video and press
+<code>Enter</code>. If you have already watched other live streams, the
+window offers the <em>Recent items</em> list (<code>Alt+N</code>).
+<code>Enter</code> opens one, <code>Delete</code> removes it from the
+history, and the context menu offers to open it, remove it or open the
+full history.</p>
+<p>The window has three regions, <em>Connection</em>, <em>Content</em>
+and <em>Player</em>, and <code>F6</code> and <code>Shift+F6</code> move
+from one to another, while <code>Ctrl+Tab</code> switches between the
+chat, comments and information tabs. Each change of region or tab is
+announced. The Applications key opens the context menu of the chat or
+comment list.</p>
 <h2 id="the-chat">The chat</h2>
 <p>Each message is read with the chosen voice and sounds different
-depending on who writes (channel owner, moderator, verified account,
-member) and on what it is (Super Chat, membership, TikTok gift).</p>
+depending on who writes: channel owner, moderator, verified account or
+member. It also changes depending on what it is: Super Chat, membership
+or TikTok gift.</p>
 <p>On TikTok, stickers and live questions are also read. In
-<em>Preferences, Reading</em>, each TikTok notice (joins, likes,
-followers, shares and treasure chests) has its mode: <em>Sound and
-speech</em> shows it in the list, plays its sound and reads it;
-<em>Sound only</em> shows it and plays its sound without reading it;
-<em>Off</em> does not show it. By default, joins and likes are set to
-<em>Sound only</em>, and followers, shares and treasure chests to
-<em>Sound and speech</em>. If the streamer pauses the live stream, you
-hear “The TikTok live stream is paused.”, and when it resumes, “The
-TikTok live stream continues.”, each one with its sound.</p>
+<em>Preferences</em>, on the <em>Reading</em> category, each TikTok
+notice (joins, likes, followers, shares and treasure chests) has its
+mode. <em>Sound and speech</em> shows it in the list, plays its sound
+and reads it; <em>Sound only</em> shows it and plays its sound without
+reading it; <em>Off</em> does not show it. By default, joins and likes
+are set to <em>Sound only</em>, and followers, shares and treasure
+chests to <em>Sound and speech</em>. If the streamer pauses the live
+stream, you hear “The TikTok live stream is paused.”, and when it
+resumes, “The TikTok live stream continues.”, each one with its
+sound.</p>
 <p>In the list, the arrows move from message to message and typing a few
 letters jumps to the first author that starts that way. The context menu
 copies the message, mutes the author for the session, sets an alias and,
-with a Google session, puts them in timeout or hides them.</p>
-<p><strong>Reading format</strong>, in <em>Preferences,
-Reading</em>:</p>
+with a Google session, puts the author in timeout or hides the author on
+the YouTube channel.</p>
+<h3 id="reading-format">Reading format</h3>
+<p>The reading format is chosen in <em>Preferences</em>, on the
+<em>Reading</em> category, and decides which part of each message is
+read.</p>
 <table>
 <thead>
 <tr>
@@ -334,209 +342,226 @@ Reading</em>:</p>
 </tr>
 </tbody>
 </table>
-<p><em>Preferences, Filters</em> holds the words and users that are not
-read.</p>
-<p><strong>Voices.</strong> In <em>Preferences, Voices</em> you choose
-the engine (SAPI 5, OneCore or ElevenLabs), the voice, the speed, the
-volume and the pitch, and <em>Test voice</em> lets you hear it before
-saving. You can use a second voice for Super Chats, gifts, memberships
-and joins. With ElevenLabs you can set a character limit per session or
-use it only for important messages. If the network fails or the balance
-runs out, it reads with the Windows voice and warns you once. The key is
-saved in <code>credenciales.json</code>.</p>
-<p><strong>Alias.</strong> For names that are a string of letters and
-numbers: context menu on a message, <em>Set alias</em>, and type how you
-want to hear it. It also works for messages that were already there.
-Moderation still acts on the real account. To remove it, leave the field
-empty.</p>
-<p><strong>Writing in the chat.</strong> Below the list is the writing
-box, or <code>Alt+Enter</code> from anywhere. <code>Enter</code> sends
-and <code>Shift+Enter</code> inserts a line break. If something is
-missing to be able to write (Google session, a YouTube live stream with
-chat), the <em>Send</em> button is still reachable with Tab and its name
-says what is missing. The limit is 200 characters.</p>
-<p><strong>Sounds.</strong> There is one for each thing: messages, Super
-Chats, members, TikTok gifts by size, followers, joins, the connection,
-errors, and the edge when you reach the start or the end of a list.
-<code>F7</code> mutes them all. To silence only one, clear its check box
-in <em>Preferences, Sounds</em>, where <em>Play the selected sound</em>
-lets you hear each one. The sound theme is chosen in the same category,
-above the list: <code>default</code>, with recorded sounds, or
-<code>suave</code>, shorter and softer. To make your own, copy
-<code>sounds/themes/default</code> with another name and change the
-<code>.wav</code> files. <code>sounds/CREDITOS.md</code> says where each
-sound comes from.</p>
-<p><strong>Video comments.</strong> With a published video, the comments
-tab shows and reads them. With a Google session you can comment and
-reply.</p>
+<p>The words and users that are not read are configured in
+<em>Preferences</em>, on the <em>Filters</em> category.</p>
+<h3 id="voices">Voices</h3>
+<p>Bellbird can read the chat with three voice engines: SAPI 5 and
+OneCore, which come with Windows, and ElevenLabs, which needs an
+account. To choose the engine, the voice, the speed, the volume and the
+pitch, open <em>Preferences</em> and go to the <em>Voices</em> category.
+The <em>Test voice</em> button plays a sample before saving. To make
+Super Chats, gifts, memberships and joins stand out, assign them a
+second voice. With ElevenLabs you can set a character limit per session
+or use it only for important messages. If the network fails or the
+balance runs out, the application reads with the Windows voice and warns
+you once. The key is saved in <code>credenciales.json</code>.</p>
+<h3 id="alias">Alias</h3>
+<p>The alias is for names that are a combination of letters and numbers.
+Open the context menu of a message, choose <em>Set alias</em> for
+<author>… and type how you want to hear it. The alias also applies to
+messages that were already there, and moderation still acts on the real
+account. To remove it, leave the field empty.</p>
+<h3 id="writing-in-the-chat">Writing in the chat</h3>
+<p>The writing box comes after the list in the Tab order, and
+<code>Alt+Enter</code> moves the focus to it from anywhere.
+<code>Enter</code> sends the message and <code>Shift+Enter</code>
+inserts a line break. If something is missing to be able to write, such
+as the Google session or a YouTube live stream with chat, the
+<em>Send</em> button is still reachable with Tab and its name says what
+is missing. The limit is 200 characters.</p>
+<h3 id="sounds">Sounds</h3>
+<p>There is a sound for each thing: messages, Super Chats, members,
+TikTok gifts by size, followers, joins, the connection, errors and the
+edge when you reach the start or the end of a list. <code>F7</code>
+mutes them all. To silence only one, clear its check box in
+<em>Preferences</em>, on the <em>Sounds</em> category, where <em>Play
+the selected sound</em> plays each one. The sound theme is chosen in the
+same category, before the list of check boxes: <em>Default</em>, with
+recorded sounds, or <em>Soft</em>, shorter and softer. To make your own,
+copy <code>sounds/themes/default</code> with another name and change the
+<code>.wav</code> files, and <code>sounds/CREDITOS.md</code> says where
+each sound comes from.</p>
+<h3 id="video-comments">Video comments</h3>
+<p>With a published video, the comments tab shows the comments and reads
+them. With a Google session you can comment and reply.</p>
 <h2 id="player">Player</h2>
 <p>The live stream video plays inside the application, with libVLC.
 Quality is chosen in the <em>Player</em> menu, and the on-screen buttons
-are hidden from that menu or from <em>Preferences, Player</em>.</p>
-<p>In a live stream, one-minute jumps add up and say where you land: “40
-seconds behind the live stream”. With YouTube's separate tracks you can
-go back up to an hour. <code>Ctrl+End</code> returns to the live stream.
-In a video, the position slider arrows move ten seconds.</p>
-<p><em>Play sound only, without the picture</em>, in <em>Preferences,
-Player</em>, is checked. With it, a recorded video opens a single link
-and jumps in less than a second, and the quality is not used. If the
-audio track is larger than 10 MB, that link has somewhat lower sound
-quality. Cleared, you see the picture and each jump takes a few seconds.
-In a live stream the way of connecting does not change: only the picture
-stops showing.</p>
+are hidden from that menu or from <em>Preferences</em>, on the
+<em>Player</em> category.</p>
+<p>In a live stream, one-minute jumps add up and say where you land, for
+example “40 seconds behind the live stream”. With YouTube's separate
+tracks you can go back up to an hour, and <code>Ctrl+End</code> returns
+to the live stream. In a video, the position slider arrows move ten
+seconds.</p>
+<p>The <em>Play sound only, without the picture</em> check box, in
+<em>Preferences</em>, on the <em>Player</em> category, is checked. With
+it, a recorded video opens a single link and jumps in less than a
+second, and the quality is not used. If the audio track is larger than
+10 MB, that link has somewhat lower sound quality. Cleared, you see the
+picture and each jump takes a few seconds. In a live stream the way of
+connecting does not change: only the picture stops showing.</p>
 <p>A TikTok live stream cannot be paused: when you press play or pause,
 the application says so and names the Mute audio shortcut,
-<code>Ctrl+M</code>, which silences it without stopping it.</p>
+<code>Ctrl+M</code>, which silences it without interrupting it.</p>
 <p>The audio of each YouTube video is saved in
 <code>data/cache-audio</code>, so that pausing and jumping respond
-instantly. The last three are kept.</p>
+instantly, and the last three are kept.</p>
 <h2 id="music">Music</h2>
-<p>To play music while you stream, without opening another program. It
-uses the Music folder next to the program, or the one you choose in
-<em>Preferences, Music</em>. It is handled from the <em>Music</em> menu
-or with the <code>Ctrl+Alt</code> shortcuts (see the <a
-href="#music-ctrlalt">table</a>).</p>
+<p>To play music while you stream, without opening another application,
+use the Music folder next to the application, or the one you choose in
+<em>Preferences</em>, on the <em>Music</em> category. Music is handled
+from the <em>Music</em> menu or with the <code>Ctrl+Alt</code> shortcuts
+(see the <a href="#music-ctrlalt">table</a>).</p>
 <p>The <em>Music</em> window (<code>Ctrl+Shift+M</code>):</p>
 <ul>
-<li><strong>Collections</strong>: <em>Library</em> is your folder, and
-below it are your playlists, each one with how many songs it has
-(“Library: 195”).</li>
-<li><strong>Find</strong>: filters while you type, even if you do not
-type accents.</li>
-<li><strong>Songs</strong>: Enter plays. The context menu plays now,
-next after the current song without cutting it, from there to the end,
-adds it to the queue or to a playlist, or creates a new playlist.</li>
-<li><strong>Show the queue</strong>: what is going to play, in
-order.</li>
-<li><strong>Open link…</strong>: a video or a whole YouTube playlist,
-which is added to the queue.</li>
-<li><strong>Refresh folder</strong>: scans it again and says how many
-new and deleted songs it found.</li>
+<li><em>Collections</em>: <em>Library</em> is your folder and, next,
+your playlists, each one with how many songs it has (“Library:
+195”).</li>
+<li><em>Find</em>: filters while you type, even if you do not type
+accents.</li>
+<li><em>Songs</em>: <code>Enter</code> plays. The context menu plays
+now, next after the current song and without interrupting it, or plays
+from there to the end. It also adds the song to the queue or to a
+playlist, or creates a new playlist.</li>
+<li><em>Show the queue</em>: what is going to play, in order.</li>
+<li><em>Open link…</em>: a video or a whole YouTube playlist, which is
+added to the queue.</li>
+<li><em>Refresh folder</em>: scans it again and says how many new and
+deleted songs it found.</li>
 </ul>
 <p>New songs appear on their own in the list, without choosing the
-folder again: the application watches it and updates it silently.</p>
+folder again: the application watches the folder and updates it without
+warning.</p>
 <p>Playlists are saved as <code>.m3u8</code> files, which other players
 can open. When you reopen the application, Play follows the last queue
-from where it was, and says how many songs it has: if it was a search,
-it is not the whole folder. To always start with the whole folder, turn
-off <em>Remember the last playlist on open</em> in <em>Preferences,
-Music</em>.</p>
-<p>In <em>Preferences, Music</em> you also choose shuffle, repeat
-(nothing, whole queue or current song), music volume, audio output and
-what is said when a song changes: nothing, the title, the title and the
-artist, or only the artist. If you choose nothing, changing songs with
-the shortcut still says the title. Another check box decides whether
-pause, resume and return to the beginning are announced.</p>
+from where it was and says how many songs it has, which may not be the
+whole folder if it was a search. To always start with the whole folder,
+turn off <em>Remember the last playlist on open</em> in
+<em>Preferences</em>, on the <em>Music</em> category.</p>
+<p>In <em>Preferences</em>, on the <em>Music</em> category, you also
+choose shuffle, repeat (nothing, whole queue or current song), music
+volume and audio output. To choose what is said when a song changes, you
+have nothing, the title, the title and the artist, or only the artist.
+If you choose nothing, changing songs with the shortcut still says the
+title. Another check box decides whether pause, resume and return to the
+beginning are announced.</p>
 <p>The <em>Match song volume</em> check box, on by default, makes all
 songs sound similar, as in Spotify. Each file is measured once with
-ffmpeg, and its volume is corrected when each song starts. The files are
+ffmpeg and its volume is corrected when each song starts. The files are
 not modified: only the result is saved in a cache. The application never
-measures on its own: not when reading the folder, not when saving
+measures on its own, not when reading the folder, not when saving
 preferences, not when playing with a shortcut.</p>
 <p>When you open the <em>Music</em> window, if there are songs not yet
 measured, the application asks how many there are and how much space
 they take, with <em>Yes</em> and <em>No</em>. The <em>Do not ask
 again</em> check box saves that it should not ask again, and the
-question is turned on or off in <em>Preferences, Music</em>. The window
-has the <em>Match the volume</em> button, which starts measuring; while
-it measures, the button changes to <em>Stop matching</em>. Progress is
-shown in the window or with F2. YouTube links play at their own
-volume.</p>
+question is turned on or off in <em>Preferences</em>, on the
+<em>Music</em> category. The window has the <em>Match the volume</em>
+button, which starts measuring; while it measures, the button changes to
+<em>Stop matching</em>. Progress is shown in the window or with
+<code>F2</code>, and YouTube links play at their own volume.</p>
 <p>When one song changes to the next, the end of one fades into the
 beginning of the other, without the silence that many files have at the
-start and end. The fade length is chosen in <em>Preferences, Music</em>,
-in <em>Crossfade between songs, in seconds</em>: from 0 to 12, with 6 by
-default, and 0 turns it off. Changing songs with the shortcut makes a
-short fade, of half a second. The song change sound is off by default
-and is turned on in the same category.</p>
+start and end. The fade length is chosen in <em>Preferences</em>, on the
+<em>Music</em> category, in <em>Crossfade between songs, in
+seconds</em>: from 0 to 12, with 6 by default, and 0 turns it off.
+Changing songs with the shortcut makes a short fade, of half a second.
+The song change sound is off by default and is turned on in the same
+category.</p>
 <p>The <em>Use music shortcuts in any application</em> check box makes
-them work even when you are in OBS or in a game. It is off because,
-while it is on, those keys do not reach other programs. If another
-program already uses one, the application tells you which.</p>
+the shortcuts work even when you are in OBS or in a game. It is off
+because, while it is on, those keys do not reach the other applications.
+If another application already uses one of them, the application tells
+you which one.</p>
 <p>NVDA uses <code>Ctrl+Alt+arrows</code> to move through tables. Where
-it thinks there is a table, such as the desktop or File Explorer, it
-keeps those keys and the music does not receive them. There, press
-<code>NVDA+F2</code> and then the shortcut: NVDA lets the next key
-through. In a window without tables, such as Notepad, they work without
-that.</p>
+it thinks there is a table, such as the desktop or File Explorer, NVDA
+keeps those keys and the music does not receive them. In that case,
+press <code>NVDA+F2</code> and then the shortcut, and NVDA lets the next
+key through. In a window without tables, such as Notepad, the shortcuts
+work without that.</p>
 <h2 id="going-live">Going live</h2>
 <p>With OBS Studio, the live stream is started and ended from the
 application: to YouTube with your Google account, and to TikTok through
 Restream.</p>
-<p><strong>Once:</strong></p>
-<ul>
-<li>Turn on the OBS WebSocket server in <em>Preferences, Broadcast</em>.
-If OBS is closed, the application opens it in the notification area
-without taking focus from the screen reader.</li>
-<li>For TikTok, an OBS profile called <code>TikTok</code> with
-Restream.</li>
-<li>For YouTube, the Google session started and live streams enabled on
-your channel. The application creates the OBS <code>YouTube</code>
-profile.</li>
-<li>In the <em>Broadcast panel</em> (<code>Ctrl+Shift+T</code>), press
-<em>Arrange scene</em> and choose which window is captured, for example
-a game. The live stream shows that window, but its capture carries no
-sound: sound comes from the desktop audio and the OBS microphone.</li>
-</ul>
-<p><strong>Each time:</strong> press <strong>Broadcast live</strong>,
-next to <em>Connect</em>.</p>
+<h3 id="before-going-live-for-the-first-time">Before going live for the
+first time</h3>
+<p>Before going live for the first time, turn on the OBS WebSocket
+server in <em>Preferences</em>, on the <em>Broadcast</em> category. If
+OBS is closed, the application opens it in the notification area without
+moving the focus away from the screen reader.</p>
+<p>For TikTok you need an OBS profile called <code>TikTok</code> with
+Restream, and for YouTube, the Google session started and live streams
+enabled on your channel; the <code>YouTube</code> OBS profile is created
+by the application.</p>
+<p>In the <em>Broadcast panel</em> (<code>Ctrl+Shift+T</code>), press
+<em>Arrange scene…</em> and choose which window is captured, for example
+a game. The live stream shows that window, but its capture does not
+carry sound: the sound comes from the desktop audio and the OBS
+microphone.</p>
+<h3 id="to-go-live">To go live</h3>
+<p>To go live, press <em>Broadcast live</em>, next to
+<em>Connect</em>.</p>
 <ol type="1">
-<li>Choose the destination. The one from last time is already selected,
-so Enter is enough.</li>
+<li>Choose the destination. The one from last time is already chosen, so
+you only need to press <code>Enter</code>.</li>
 <li>The application prepares OBS and checks the scene: destination,
-format, sources, audio, and whether something is wrong, such as an empty
+format, sources, audio and whether something is wrong, such as an empty
 scene, a black image or a muted microphone. If it finds problems, the
-button selected by default is <em>Cancel</em>.</li>
-<li>For YouTube, in the same window you set the title, description,
-privacy and, if you want, latency, category, tags, thumbnail and
-playlist. Everything is remembered. <em>Unlisted</em> is useful for
-testing.</li>
-<li>When the live stream goes live, the application connects the chat on
-its own and announces it: “Your YouTube live stream is already
-live”.</li>
-<li>During the live stream it warns if the connection fails. If the
-internet drops, YouTube waits for it to return without ending the live
-stream.</li>
+button chosen by default is <em>Cancel</em>.</li>
+<li>For YouTube, in the same window you type the title, the description,
+the privacy and, if you want, the latency, the category, the tags, the
+thumbnail and the playlist. The application remembers everything.
+<em>Unlisted</em> is for testing.</li>
+<li>When the live stream goes on air, the application connects the chat
+on its own and announces it: “Your YouTube live stream is now on
+air”.</li>
+<li>During the live stream, the application warns if the connection
+fails. If the internet connection is lost, YouTube waits for it to come
+back without ending the live stream.</li>
 </ol>
-<p>The button changes to <strong>End live stream</strong>, which asks
-for confirmation with <em>Keep broadcasting</em> selected by default.
-Closing the application does not end the live stream: when you return,
-it recognizes it. <code>Alt+Shift+E</code> copies the live stream
-link.</p>
-<p><code>Alt+Shift+M</code> mutes or unmutes the OBS microphone. When
-you unmute it, it says which device it uses, for example “Microphone on:
-Windows default, WO Mic Device”. If OBS uses the default, the microphone
-is the one Windows has selected at that moment, and it may not be the
-one you expect. To keep it from changing, choose the device in the
-properties of the microphone source in OBS. After unmuting, the
-application listens for three seconds. If no sound comes in, a sound of
-its own plays and it says “The microphone is getting no sound. Check
-which one is chosen in Windows or in OBS.”.</p>
+<p>The button changes to <em>End live stream</em>, which asks for
+confirmation with <em>Keep broadcasting</em> chosen by default. Closing
+the application does not interrupt the live stream: when you come back,
+the application recognizes it, and <code>Alt+Shift+E</code> copies the
+live stream link.</p>
+<p><code>Alt+Shift+M</code> mutes or turns on the OBS microphone. When
+you turn it on, the application says which device it uses, for example
+“Microphone on: Windows default, WO Mic Device”. If OBS uses the default
+device, the microphone is the one Windows has chosen at that moment and
+may not be the one you expect. To keep it from changing, choose the
+device in the properties of the microphone source in OBS. After you turn
+it on, the application listens for three seconds. If no sound comes in,
+it plays its own warning and says “The microphone is not receiving
+sound. Check which one is chosen in Windows or in OBS.”.</p>
 <p><code>Ctrl+Shift+O</code>, or <em>Show OBS</em> in the
 <em>Broadcast</em> menu, brings the OBS window to the front, also when
 it is in the notification area. If OBS is waiting for an answer, such as
-the safe mode question, focus goes to that box.</p>
-<p><strong>Recording the live stream.</strong> With <em>Record while
-broadcasting</em> checked, in the <em>Broadcast</em> menu, OBS starts
-recording when the broadcast starts well, and stops recording when the
-broadcast stops. The file goes to the OBS recordings folder. If you were
-already recording, that recording continues as it was, and closing the
-application does not cut either of them. If recording cannot start, the
-broadcast continues and a sound of its own plays with “Broadcasting
-started, but recording could not start.”. If the OBS profile records
-with its own encoder, the check before broadcasting warns at the end,
-because recording that way puts twice the load on the computer. In that
-case, to reduce the load, choose in OBS that recording use the same
-quality as the broadcast. The check box is unchecked.</p>
-<p>Starting, pausing, resuming and stopping a recording have their own
+the safe mode question, the focus goes to that dialog box.</p>
+<h3 id="recording-the-live-stream">Recording the live stream</h3>
+<p>With <em>Record while broadcasting</em> checked, in the
+<em>Broadcast</em> menu, OBS starts recording when the broadcast starts
+well and stops recording when the broadcast stops. The file is saved in
+the OBS recordings folder. If you were already recording, that recording
+continues as it was, and closing the application does not interrupt
+either one. If the recording cannot start, the broadcast continues and
+it plays its own warning with “The broadcast started, but the recording
+could not start.”. If the OBS profile records with its own encoder, the
+check before broadcasting warns at the end, because recording that way
+loads the computer twice. In that case, to load it less, choose in OBS
+that the recording uses the same quality as the broadcast, and the check
+box is cleared by default.</p>
+<p>Starting, pausing, resuming and stopping the recording have their own
 sounds. With <em>Show streaming or recording in the title of the
-window</em>, in <em>Preferences, Broadcast</em>, the title starts with
-that status. It is unchecked.</p>
-<p>You can also record without opening the panel: <em>Start or stop
-recording</em> in the <em>Broadcast</em> menu with
-<code>Alt+Shift+G</code>, and <em>Pause or resume recording</em> with
-<code>Alt+Shift+P</code>. They announce and sound the same as the panel
-buttons do. If no recording is in progress, pausing says so and changes
+window</em>, in <em>Preferences</em>, on the <em>Broadcast</em>
+category, the title starts with that state, and the check box is cleared
+by default.</p>
+<p>You can also record without opening the panel. To start or stop
+recording, use <em>Start or stop recording</em> in the
+<em>Broadcast</em> menu with <code>Alt+Shift+G</code>. To pause or
+resume, use <em>Pause or resume recording</em> with
+<code>Alt+Shift+P</code>, which announce and sound the same as the panel
+buttons. If no recording is in progress, pausing says so and changes
 nothing in OBS. If OBS does not pause the recording, the application
 says so: some profiles may not allow it.</p>
 <p>When you stop the recording, from the application or because the
@@ -545,183 +570,203 @@ broadcast ended, you hear “Recording saved” with the file name.
 panel, lists what was recorded that way, from newest to oldest. From
 there you can open the file with <code>Enter</code>, open its folder,
 copy the path or remove it from the list with <code>Delete</code>.
-Removing it from the list does not delete the file. What you stop from
-the OBS window does not appear in the list.</p>
-<p><strong>The broadcast panel.</strong> <em>Status</em>, at the top,
-says whether everything is ready or what to check, the current scene,
-the microphone and the recording. From the panel you start and end the
-live stream the same way as the button in the main window, you record,
-mute or choose the microphone and change the current scene. Only what is
-useful at that moment appears: <em>TikTok user</em> with TikTok,
-<em>Show chat on video</em> with YouTube and <em>Pause recording</em>
-while recording. Enter never starts or ends a live stream.</p>
-<p><strong>Arrange scene.</strong> This window opens from the panel.
-<em>Scene description</em> says each source, where it is, what size it
-has and whether something covers it. The same is heard with
-<code>Ctrl+F2</code>. Here you can choose which window is captured, move
-a source to one of nine positions (for example, bottom right), change
-its size, hide it, lock it, bring it forward, move it with arrows, save
-an image of the scene for someone to see and undo everything done since
-you opened the window. Choosing another scene does not change what
-viewers see. Each change says where the source ended up, how much is
-cropped if it goes past the video and what covers it. <em>Help</em>
+Removing it from the list does not delete the file, and what is stopped
+from the OBS window does not appear in the list.</p>
+<h3 id="the-broadcast-panel">The broadcast panel</h3>
+<p>The <em>Status</em> field says whether everything is ready or what to
+check, the current scene, the microphone and the recording. From the
+panel the live stream is started and ended the same way as with the
+button in the main window. It also records, mutes or chooses the
+microphone and changes the current scene. Only what is useful at that
+moment appears: <em>TikTok user</em> with TikTok, <em>Show chat on
+video</em> with YouTube and <em>Pause recording</em> while recording,
+and <code>Enter</code> never starts or ends a live stream.</p>
+<h3 id="arrange-scene">Arrange scene</h3>
+<p>The <em>Arrange scene</em> window opens from the panel and lets you
+adjust the scene sources. The <em>Scene description</em> field says each
+source, where it is, what size it has and whether something covers it,
+and the same is heard with <code>Ctrl+F2</code>. Here you can choose
+which window is captured and move a source to one of the nine positions,
+for example <em>Center</em>, or change its size. You can also hide it,
+lock it, bring it to the front, move it with arrows, save an image of
+the scene for someone to see and undo everything done since you opened
+the window. Choosing another scene does not change what the viewers see.
+Each change says where the source ended up, how much is cropped if it
+goes outside the video and what covers it, and the <em>Help</em> button
 explains each control.</p>
 <p>Everything can still be done by hand in OBS, and the application does
-not bother the OBS plugin for NVDA.</p>
+not interrupt the OBS plugin for NVDA.</p>
 <h2 id="camera-framing">Camera framing</h2>
-<p>If there is a camera in the OBS live scene, the app says how you look
-in it: how many faces there are, whether you are centered, far away,
-outside the top or bottom edge, to the side or with your head tilted,
-whether there is not enough light in front or there is backlight, and
+<p>If there is a camera in the live OBS scene, the application says how
+you look in it. It reports how many faces there are, whether you are
+centered, far away, outside the top or bottom edge, sideways or with
+your head tilted, whether there is light in front or backlight, and
 whether the image froze. Any camera that OBS shows works: webcam,
 capture card or the phone used as a camera. The image is analyzed on the
 computer and is not sent anywhere.</p>
 <p>Left and right are said as the movement you have to make, for example
 “Move to your left.”, not as the side of the image.</p>
-<p><strong>On request.</strong> <code>Ctrl+F3</code>, or <em>Announce
-camera framing</em> in the <em>Broadcast</em> menu, says the framing at
-that moment.</p>
-<p><strong>Automatic warnings.</strong> <code>Ctrl+Shift+F3</code>, or
-the <em>Warn when the face leaves the frame</em> check box in the same
-menu, turns on the warnings. With them on, the app warns with a sound of
-its own when the face leaves the frame and with another when it returns,
-and says nothing while it stays well. If there is no camera in OBS or
-OBS is closed, it waits silently. The check box is remembered when you
-reopen the app. With warnings on, <code>F2</code> also says the camera
-status.</p>
-<p><strong>Guiding with beeps.</strong> Press <code>Ctrl+F3</code> twice
-in a row. The app pauses chat reading and emits beeps that sound from
-the side toward which you have to move, higher if you have to go up and
-lower if you have to go down, and more frequent the closer you are. When
-you are well framed, a confirmation plays, the framing is said and
-reading continues. <code>Ctrl+F3</code> stops the guide, which also ends
-on its own after a minute.</p>
+<h3 id="announcing-the-framing-on-request">Announcing the framing on
+request</h3>
+<p>To know the framing at a given moment, press <code>Ctrl+F3</code> or
+choose <em>Announce camera framing</em> in the <em>Broadcast</em>
+menu.</p>
+<h3 id="automatic-warnings">Automatic warnings</h3>
+<p>The <em>Warn when the face leaves the frame</em> check box, in the
+<em>Broadcast</em> menu, or <code>Ctrl+Shift+F3</code>, turns on the
+warnings. With the warnings on, the application warns with its own sound
+when the face leaves the frame and with another when it comes back, and
+says nothing while it stays well. If there is no camera in OBS or OBS is
+closed, it waits without doing anything. The check box is remembered
+when you open the application again, and with the warnings on,
+<code>F2</code> also says the camera status.</p>
+<h3 id="beep-guide">Beep guide</h3>
+<p>Press <code>Ctrl+F3</code> twice in a row. The application pauses
+chat reading and plays beeps that sound from the side you have to move
+to. They are higher if you have to go up, lower if you have to go down
+and faster the closer you are. When you are well framed, a confirmation
+sounds, the framing is said and reading continues. <code>Ctrl+F3</code>
+stops the guide, which also ends on its own after a minute.</p>
 <p>If there is more than one camera in the scene, the one in front is
-used. The camera is chosen in <em>Preferences, Camera</em>, with
-<em>Find cameras in OBS</em>, without writing anything in
-<code>config.ini</code>. If the left and right indications come out
-reversed, check <em>Invert left and right</em>. The warnings are turned
-on from the same category.</p>
+used. The camera is chosen in <em>Preferences</em>, on the
+<em>Camera</em> category, with <em>Find cameras in OBS</em>, without
+writing anything in <code>config.ini</code>. If the left and right
+indications come out reversed, check <em>Invert left and right</em>. The
+warnings are turned on from the same category.</p>
 <h2 id="chat-panel-for-streaming">Chat panel for streaming</h2>
-<p>Shows the chat large, on a transparent background, for your viewers.
-It is added in OBS (or Streamlabs, or Prism Live Studio) as a browser
-source with this address:</p>
+<p>It shows the chat large, with a transparent background, for your
+viewers. It is added in OBS (or Streamlabs, or Prism Live Studio) as a
+browser source with this link:</p>
 <pre><code>http://127.0.0.1:8730/chat</code></pre>
 <p>It is turned on with <em>Show chat on video</em>, in the
 <em>Broadcast panel</em>, and if the current scene does not have the
 source, it adds it. Each message appears on a card with the initial and
-a color per person, and donations in gold with the amount. It is only
-used with YouTube: TikTok already shows comments over the video.</p>
+a color for each person, and donations in gold with the amount. It is
+only used with YouTube: TikTok already shows the comments over the
+video.</p>
 <p>What does not fit in the video is not broadcast, and a source that is
 partly outside is cropped without warning. OBS calls that rectangle the
-canvas. That is why <em>Arrange scene</em> says how much is cropped. If
-another source covers the panel, the application brings it forward when
-going live and tells you which one was covering it. <code>F2</code> says
-whether the panel is active and whether OBS is showing it. The server
-only listens on your computer.</p>
+canvas, and that is why <em>Arrange scene</em> says how much is cropped.
+If another source covers the panel, the application puts it in front
+when going on air and tells you which one was covering it.
+<code>F2</code> says whether the panel is active and whether OBS is
+showing it, and the server only listens on your computer.</p>
 <h2 id="scheduled-messages">Scheduled messages</h2>
 <p>They send messages to the chat every so often, for example your
 social networks every ten minutes. They are configured in
-<em>Preferences, Scheduled messages</em>: each one with its text, its
-interval (fixed or variable within a range, from five minutes) and a
-check box to prepare it without sending it.</p>
+<em>Preferences</em>, on the <em>Scheduled messages</em> category: each
+one with its text, its interval (fixed or variable within a range, from
+five minutes) and a check box to leave it ready without sending it.</p>
 <p>They only work on your own YouTube live stream and with a Google
-session. The first one goes out after the interval, not when connecting.
-Sending is not announced, because the message is already read in the
-chat. <code>F2</code> says how long until the next one. YouTube usually
-blocks links: better the username than the address. If YouTube returns
-an error, they stop and a warning is given once, without retrying.</p>
+session. The first one goes out after the interval, not when connecting,
+and sending is not announced, because the message is already read in the
+chat. <code>F2</code> says how long is left for the next one, and
+YouTube usually blocks links, so the user name is better than the link.
+If YouTube returns an error, the messages stop and a warning is given
+once, without retrying.</p>
 <h2 id="downloads-and-history">Downloads and history</h2>
-<p><strong>Download manager</strong> (<code>Ctrl+Shift+D</code>):
+<h3 id="download-manager">Download manager</h3>
+<p>The <em>Download manager</em> (<code>Ctrl+Shift+D</code>) downloads
 videos, audio or whole playlists, in MP4, WebM, MP3 or M4A, with audio
-at 192, 256 or 320 kbps. It downloads two at a time and queues the rest.
-It keeps the history of what was downloaded. The Downloads folder is
-next to the program. yt-dlp is updated from <em>Tools, Update
-yt-dlp</em>. The channel for that update is chosen in <em>Preferences,
-Downloads</em>: <em>Stable</em>, the default, or <em>Nightly</em>, with
-fixes sooner and more risk of failures.</p>
-<p>Enter on a finished download opens the file. With <em>Ask whether to
-open the folder when the queue finishes</em>, in <em>Preferences,
-Downloads</em>, the app asks one question when the whole queue finishes,
-if something downloaded correctly. It is unchecked, because the question
-takes the focus.</p>
-<p>In the search, Spacebar plays the result in the music player without
-downloading it. It cuts only the current song and stays in the queue
-like any other. Spacebar again pauses it.</p>
-<p><strong>Live stream history</strong> (<code>Ctrl+Shift+H</code>):
-what you watched, with one tab for YouTube and another for TikTok. Ended
-live streams are marked.</p>
+at 192, 256 or 320 kbps. It downloads two at a time, queues the rest and
+saves the history of what was downloaded. The Downloads folder is next
+to the application, and yt-dlp is updated from <em>Tools</em>,
+<em>Update yt-dlp</em>. The update channel is chosen in
+<em>Preferences</em>, on the <em>Downloads</em> category:
+<em>Stable</em>, the default, or <em>Nightly</em>, with fixes earlier
+and more risk of errors.</p>
+<p><code>Enter</code> on a finished download opens the file. With
+<em>Ask whether to open the folder when the queue finishes</em>, in
+<em>Preferences</em>, on the <em>Downloads</em> category, the
+application asks one question when the whole queue finishes, if
+something downloaded correctly. It is cleared by default, because the
+question takes the focus.</p>
+<p>In the search box, Space plays the result in the music without
+downloading it: it interrupts only the current song and leaves it in the
+queue as one more, and Space again pauses it.</p>
+<h3 id="live-stream-history">Live stream history</h3>
+<p>The <em>Live stream history</em> (<code>Ctrl+Shift+H</code>) shows
+what you watched, with a tab for YouTube and another for TikTok, and
+finished live streams appear marked.</p>
 <h2 id="spoken-status">Spoken status</h2>
 <p><code>F2</code> summarizes the situation: connection, title, channel,
-viewers, how long it has been live, messages read, donations, the chat
+viewers, how long it has been on air, messages read, donations, the chat
 panel and scheduled messages. What goes into the summary is chosen in
-<em>Preferences, Status (F2)</em>, including OBS data and the song that
-is playing. While you stream from the application, <code>F2</code>
-starts with how the live stream is going. With the YouTube session
-started, it also says how many units of the daily quota were used today
-from this computer, with an approximate number that resets at midnight,
-Pacific time, when Google restores the quota. Because the quota is
-shared among those who use the application, it helps to know whether a
-quota error comes from your use or from others'.</p>
+<em>Preferences</em>, on the <em>Status (F2)</em> category, including
+the OBS data and the song that is playing. While you stream from the
+application, <code>F2</code> starts with how the live stream is going.
+With the YouTube session started, it also says how many units of the
+daily quota were used today from this computer. The number is
+approximate and resets at midnight, Pacific time, when Google restores
+the quota. Because the quota is shared among those who use the
+application, it helps to know whether a quota error comes from your use
+or from others.</p>
 <p><code>F3</code> says who sent the last message read, and
 <code>Ctrl+F2</code> describes the OBS scene.</p>
 <h2 id="asking-the-ai">Asking the AI</h2>
-<p>An AI looks at an OBS screenshot and tells you what is shown: whether
-the camera is on, whether a source came out black, what text is on
-screen. It needs OBS open and a provider key.</p>
-<p><strong>Setting it up.</strong> In <em>Preferences, Artificial
-intelligence</em> you choose the provider (Google Gemini, OpenAI,
-Anthropic, OpenRouter, OpenCode Go, Command Code or another
-OpenAI-compatible one), save its key and choose the model. The key is
-kept in Windows Credential Manager, not in <code>config.ini</code>, and
-the category never shows it: it only says that it is saved and its last
-four characters. <em>Test the key</em> sends a short request and says
-whether it works.</p>
-<p><em>Refresh model list</em> brings the models that accept images.
-With OpenRouter and OpenCode Go, <em>Free only</em> leaves the ones that
-do not charge. With Gemini what is free depends on the key, so the list
-tests each model with yours and marks the ones that work. It takes about
-30 seconds and a sound plays meanwhile.</p>
-<p>In the same category you change the instruction that accompanies each
-screenshot, the response length, the time to wait and whether
+<p>An artificial intelligence looks at a screenshot of OBS and tells you
+what it sees: whether the camera is on, whether a source came out black
+or what text is on screen. It needs OBS open and a provider key.</p>
+<h3 id="setting-up-artificial-intelligence">Setting up artificial
+intelligence</h3>
+<p>In <em>Preferences</em>, on the <em>Artificial intelligence</em>
+category, you choose the provider (Google Gemini, OpenAI, Anthropic,
+OpenRouter, OpenCode Go, Command Code or another compatible with
+OpenAI), save its key and choose the model. The key is kept in the
+Windows Credential Manager, not in <code>config.ini</code>, and the
+category never shows it: it only says that it is saved and its last four
+characters. The <em>Test the key</em> button sends a short request and
+says whether it works.</p>
+<p>The <em>Refresh model list</em> button brings the models that accept
+images. With OpenRouter and OpenCode Go, the <em>Free only</em> check
+box leaves those that do not charge. With Gemini, what is free depends
+on the key, so the list tests each model with yours and marks the ones
+that work. It takes about 30 seconds and a warning sounds in the
+meantime.</p>
+<p>In the same category you change the instruction that goes with each
+screenshot, the length of the response, the waiting time and whether
 “Analyzing…” is said while it waits.</p>
-<p><strong>The window.</strong> <code>Ctrl+Shift+I</code> opens it.
-<em>Add screenshot</em> lets you choose the live scene or a single
-source. In <em>Message</em> you write the question and
+<h3 id="the-ask-the-ai-window">The Ask the AI window</h3>
+<p><code>Ctrl+Shift+I</code> opens the window, where the <em>Add
+screenshot</em> button lets you choose the live scene or a single
+source. In the <em>Message</em> field you type the question and
 <code>Enter</code> sends it. Right after adding a screenshot you can
 leave it empty, and the instruction is used. The response is read when
 it arrives and stays in <em>Conversation</em>, where <code>Enter</code>
 opens each full message. You can keep asking about the same screenshot
-or add another. <code>Esc</code> cancels the current request, and if
+or add another. <code>Esc</code> cancels the request in progress and, if
 there is none, closes the window.</p>
-<p><strong>Quick question.</strong> <code>Ctrl+Shift+F2</code> captures
-the live scene, sends it with the instruction and reads the response
-without opening anything. The next <code>Ctrl+Shift+I</code> opens the
-window with that conversation, to keep asking.</p>
-<p><strong>Privacy.</strong> The screenshot and what you type leave your
-computer toward the provider. The first send warns about it and asks for
-confirmation only once. Some models use what they receive for training,
-and the list says so next to the name.</p>
+<h3 id="quick-query">Quick query</h3>
+<p><code>Ctrl+Shift+F2</code> captures the live scene, sends it with the
+instruction and reads the response without opening anything. The next
+<code>Ctrl+Shift+I</code> opens the window with that conversation, to
+keep asking.</p>
+<h3 id="privacy">Privacy</h3>
+<p>The screenshot and what you type leave your computer and go to the
+provider. The first send warns you and asks for confirmation once. Some
+models use what they receive for training, and the list says so next to
+the name.</p>
 <p>If the screenshot comes out black, it is not sent. This usually
-happens with the NVDA screen curtain or on a computer without a monitor
+happens with the NVDA screen curtain or on a computer with no monitor
 connected. In OBS, change the capture method of that source to Windows
 10.</p>
 <h2 id="google-session">Google session</h2>
-<p>It is needed to moderate, write in the chat, comment on videos and
-create the YouTube live stream. In <em>Preferences, API and
-session</em>, press <em>Sign in</em> and authorize in the browser. You
-do not need to create anything in Google Cloud. While Google has not
-finished verifying the application, it shows an unverified app warning:
-open the advanced option and choose to continue.</p>
+<p>The Google session is needed to moderate, write in the chat, comment
+on videos and create the YouTube live stream. In <em>Preferences</em>,
+on the <em>API and session</em> category, press <em>Sign in</em> and
+authorize in the browser, without creating anything in Google Cloud.
+While Google has not finished verifying the application, it shows an
+unverified application notice: open the advanced option and choose to
+continue.</p>
 <p>The daily YouTube quota is shared among those who use the
 application. To have your own, follow <a
-href="../CONFIGURACION_API.html">the API configuration guide</a> (in
-Spanish), written to be read with a screen reader. Without a session,
-everything else works the same.</p>
+href="../CONFIGURACION_API.html">the API setup guide</a>, written to be
+read with a screen reader. Without a session, everything else works the
+same.</p>
 <h2 id="keyboard-shortcuts">Keyboard shortcuts</h2>
-<p>Each family of keys is an area, and it is respected also when you
-customize them. They all appear as well in the menu bar, next to their
-action.</p>
+<p>Each family of keys is an area, and that is respected also when
+customizing the shortcuts. They all also appear in the menu bar, next to
+their action.</p>
 <h3 id="player-ctrl">Player (Ctrl)</h3>
 <table>
 <thead>
@@ -736,12 +781,12 @@ action.</p>
 <td>Play or pause</td>
 </tr>
 <tr>
-<td><code>Ctrl+Left arrow</code> / <code>Right arrow</code></td>
-<td>Rewind or fast forward one minute</td>
+<td><code>Ctrl+Left Arrow</code> / <code>Right Arrow</code></td>
+<td>Back or forward 1 minute</td>
 </tr>
 <tr>
-<td><code>Ctrl+Up arrow</code> / <code>Down arrow</code></td>
-<td>Player volume</td>
+<td><code>Ctrl+Up Arrow</code> / <code>Down Arrow</code></td>
+<td>Raise or lower player volume</td>
 </tr>
 <tr>
 <td><code>Ctrl+End</code></td>
@@ -749,11 +794,11 @@ action.</p>
 </tr>
 <tr>
 <td><code>Ctrl+D</code></td>
-<td>Stop</td>
+<td>Stop video</td>
 </tr>
 <tr>
 <td><code>Ctrl+M</code></td>
-<td>Mute audio</td>
+<td>Mute or unmute audio</td>
 </tr>
 <tr>
 <td><code>Ctrl+F</code></td>
@@ -787,23 +832,23 @@ action.</p>
 <tbody>
 <tr>
 <td><code>Ctrl+Shift+P</code></td>
-<td>Preferences</td>
+<td>Open Preferences</td>
 </tr>
 <tr>
 <td><code>Ctrl+Shift+H</code></td>
-<td>Live stream history</td>
+<td>Open the live stream history</td>
 </tr>
 <tr>
 <td><code>Ctrl+Shift+T</code></td>
-<td>Broadcast panel</td>
+<td>Open Broadcast</td>
 </tr>
 <tr>
 <td><code>Ctrl+Shift+D</code></td>
-<td>Download manager</td>
+<td>Open Download manager</td>
 </tr>
 <tr>
 <td><code>Ctrl+Shift+M</code></td>
-<td>Music</td>
+<td>Open the music window</td>
 </tr>
 <tr>
 <td><code>Ctrl+Shift+I</code></td>
@@ -835,7 +880,7 @@ action.</p>
 </tr>
 <tr>
 <td><code>Alt+Shift+L</code></td>
-<td>Go to the messages list</td>
+<td>Go to the list of the current panel</td>
 </tr>
 <tr>
 <td><code>Alt+Shift+E</code></td>
@@ -843,11 +888,11 @@ action.</p>
 </tr>
 <tr>
 <td><code>Alt+Shift+I</code></td>
-<td>Mark an incident in the log</td>
+<td>Mark an incident</td>
 </tr>
 <tr>
 <td><code>Alt+Shift+M</code></td>
-<td>Mute or unmute the OBS microphone</td>
+<td>Mute the OBS microphone</td>
 </tr>
 <tr>
 <td><code>Alt+Shift+G</code></td>
@@ -878,15 +923,15 @@ action.</p>
 </tr>
 <tr>
 <td><code>F8</code></td>
-<td>Cut the current sentence</td>
+<td>Stop current voice</td>
 </tr>
 <tr>
 <td><code>F9</code> / <code>F10</code></td>
-<td>Voice speed</td>
+<td>Lower or raise voice speed</td>
 </tr>
 <tr>
 <td><code>F11</code> / <code>F12</code></td>
-<td>Voice volume</td>
+<td>Lower or raise voice volume</td>
 </tr>
 <tr>
 <td><code>F4</code></td>
@@ -898,19 +943,19 @@ action.</p>
 </tr>
 <tr>
 <td><code>F2</code></td>
-<td>Status</td>
+<td>Announce status</td>
 </tr>
 <tr>
 <td><code>F3</code></td>
-<td>Author of the last message read</td>
+<td>Announce the author of the last message</td>
 </tr>
 <tr>
 <td><code>Ctrl+F2</code></td>
-<td>Describe OBS scene</td>
+<td>Describe the OBS scene</td>
 </tr>
 <tr>
 <td><code>Ctrl+Shift+F2</code></td>
-<td>Quick AI question about the scene</td>
+<td>Quick query to the AI about the scene</td>
 </tr>
 <tr>
 <td><code>Ctrl+F3</code></td>
@@ -935,21 +980,21 @@ value.</p>
 </thead>
 <tbody>
 <tr>
-<td><code>Ctrl+Alt+Spacebar</code></td>
-<td>Play or pause</td>
+<td><code>Ctrl+Alt+Space</code></td>
+<td>Play or pause the music</td>
 </tr>
 <tr>
-<td><code>Ctrl+Alt+Right arrow</code> / <code>Left arrow</code></td>
-<td>Next or previous song</td>
+<td><code>Ctrl+Alt+Right Arrow</code> / <code>Left Arrow</code></td>
+<td>Next song or previous song</td>
 </tr>
 <tr>
-<td><code>Ctrl+Alt+Up arrow</code> / <code>Down arrow</code></td>
-<td>Music volume</td>
+<td><code>Ctrl+Alt+Up Arrow</code> / <code>Down Arrow</code></td>
+<td>Raise or lower the music volume</td>
 </tr>
 <tr>
-<td><code>Ctrl+Alt+Shift+Right arrow</code> /
-<code>Left arrow</code></td>
-<td>Fast forward or rewind 10 seconds</td>
+<td><code>Ctrl+Alt+Shift+Right Arrow</code> /
+<code>Left Arrow</code></td>
+<td>Fast-forward or rewind the music 10 seconds</td>
 </tr>
 <tr>
 <td><code>Ctrl+Alt+T</code></td>
@@ -957,7 +1002,7 @@ value.</p>
 </tr>
 <tr>
 <td><code>Ctrl+Alt+M</code></td>
-<td>Mute the music</td>
+<td>Mute or restore the music sound</td>
 </tr>
 <tr>
 <td><code>Ctrl+Alt+D</code></td>
@@ -965,11 +1010,11 @@ value.</p>
 </tr>
 <tr>
 <td><code>Ctrl+Alt+A</code></td>
-<td>Random order</td>
+<td>Shuffle the music</td>
 </tr>
 <tr>
 <td><code>Ctrl+Alt+R</code></td>
-<td>Change repeat</td>
+<td>Change the music repeat mode</td>
 </tr>
 </tbody>
 </table>
@@ -984,7 +1029,7 @@ value.</p>
 <tbody>
 <tr>
 <td><code>F6</code> / <code>Shift+F6</code></td>
-<td>Change region</td>
+<td>Next or previous region</td>
 </tr>
 <tr>
 <td><code>Ctrl+Tab</code></td>
@@ -992,93 +1037,99 @@ value.</p>
 </tr>
 <tr>
 <td><code>Alt+F4</code></td>
-<td>Exit</td>
+<td>Exit the application</td>
 </tr>
 </tbody>
 </table>
 <h3 id="recent-chat-messages-ctrlshift-and-a-number">Recent chat
 messages (Ctrl+Shift and a number)</h3>
 <p><code>Ctrl+Shift+1</code> reads the last chat message,
-<code>Ctrl+Shift+2</code> the one before it and so on up to
+<code>Ctrl+Shift+2</code> the one before and so on up to
 <code>Ctrl+Shift+0</code>, which reads the tenth from the end. By
-default they work only with the application in front; the <em>Read
-recent messages in any application</em> check box in <em>Preferences,
-Reading</em> makes them work in any application, like the music
-shortcuts.</p>
+default, these shortcuts only work with the application in front; the
+<em>Read recent messages in any application</em> check box in
+<em>Preferences</em>, on the <em>Reading</em> category makes them work
+in any application, like the music shortcuts.</p>
 <p>In the same category, <em>Read recent messages with</em> chooses who
 reads them: the screen reader, as it comes by default, or the
 application voice. With the voice, the requested message plays as soon
-as what is being read ends, and then the messages that were waiting
+as what is being read finishes, and then the messages that were waiting
 follow, in their order.</p>
-<p>If another program already uses one of these combinations, or the
-music ones, a busy tone plays and the application says which ones.</p>
+<p>If another application already uses one of these combinations, or the
+music ones, a busy tone sounds and the application says which ones.</p>
 <h3 id="changing-a-shortcut">Changing a shortcut</h3>
-<p>In <em>Preferences, Shortcuts</em>, each action has a button whose
-name includes its shortcut. Activate it and press the new combination.
-<code>Enter</code> alone leaves the action without a shortcut and
-<code>Esc</code> cancels. If the combination does not work for that area
-or is already used, it says why and the button keeps waiting. When
-capturing a <code>Ctrl+Alt</code> with a letter, the application checks
-whether on your keyboard <code>AltGr</code> with that key writes
-something, such as the at sign, and in that case asks for another one.
-<em>Reset</em> returns everything to factory defaults. Nothing is saved
-until you press <em>Save</em>.</p>
+<p>In <em>Preferences</em>, on the <em>Shortcuts</em> category, each
+action has a button whose name includes its shortcut. Activate it and
+press the new combination: <code>Enter</code> only leaves the action
+without a shortcut and <code>Esc</code> cancels. If the combination does
+not work for that area or is already used, it says why and the button
+keeps waiting. When you capture a <code>Ctrl+Alt</code> with a letter,
+the application checks whether on your keyboard <code>AltGr</code> with
+that key types something, such as the at sign, and in that case it asks
+for another one. The <em>Reset shortcuts to factory defaults</em> button
+returns everything to factory defaults, and nothing is saved until you
+press <em>Save</em>.</p>
 <h2 id="accessibility">Accessibility</h2>
-<p>It is the main criterion of the project.</p>
+<p>Accessibility is the main criterion of the project.</p>
 <ul>
 <li>Each control has an accessible name and is reached with Tab or with
-the arrows.</li>
+arrows.</li>
 <li>The menu bar is the native Windows one.</li>
-<li>What the application warns on its own goes by voice, by braille and
-with a sound of its own.</li>
+<li>What the application announces on its own goes by voice, by braille
+and with its own sound.</li>
 <li>It is tested with NVDA on Windows 10 and 11.</li>
 </ul>
 <p>The chat panel for streaming is the only part that does not receive
-focus, because it is for the viewers. The accessible chat is the list in
-the main window.</p>
+focus, because it is for the viewers, and the accessible chat is the
+list in the main window.</p>
 <h2 id="updating">Updating</h2>
-<p><em>Help, Check for updates</em> says whether there is a new version,
-shows its what's new and installs it: the download is checked with its
-signature, the application closes and reopens by itself in about a
-minute. The <code>data</code> folder, downloads and your sounds are
-kept. If the new version does not open, it returns by itself to the
-previous one. On startup, a new version is announced only once. If there
-are other versions between the installed one and the new one, the window
-shows the what's new of all of them, from the newest to the oldest, each
-with its heading.</p>
-<p>In <em>Preferences, General</em>, <em>Update channel</em> chooses
-which versions are offered. <em>Stable</em>, the default option, offers
-only stable versions. <em>Beta</em> also offers test versions, which can
-have defects.</p>
-<h2 id="configuration">Configuration</h2>
-<p>Almost everything is in <em>Tools, Preferences</em>. It is saved when
-you press <em>Save</em> and <em>Cancel</em> discards it. The settings
-live in <code>data/config.ini</code> and <code>data/sounds.ini</code>,
-which can be edited with Notepad and are regenerated if deleted.</p>
+<p>The <em>Help</em>, <em>Check for updates</em> command says whether
+there is a new version, shows what is new and installs it. The download
+is checked with its signature, and the application closes and opens
+again on its own in about a minute. The <code>data</code> folder,
+downloads and your sounds are kept, and if the new version does not
+open, it goes back to the previous one on its own. When it starts, a new
+version is announced once. If there are other versions between the
+installed one and the new one, the window shows what is new in all of
+them, from newest to oldest, each one with its heading.</p>
+<p>In <em>Preferences</em>, on the <em>General</em> category, <em>Update
+channel</em> chooses which versions are offered. <em>Stable</em>, the
+factory option, offers only stable versions, and <em>Beta</em> also
+offers test versions, which may bring defects.</p>
+<h2 id="where-preferences-are-saved">Where preferences are saved</h2>
+<p>Almost everything is in <em>Preferences</em>, in the <em>Tools</em>
+menu, and it is saved when you press <em>Save</em>, while
+<em>Cancel</em> discards it. Preferences live in
+<code>data/config.ini</code> and <code>data/sounds.ini</code>, which can
+be edited with Notepad and are regenerated if they are deleted.</p>
 <h2 id="common-problems">Common problems</h2>
-<p><strong>No voices.</strong> Add one in <em>Settings, Time &amp;
-language, Speech</em>, or try the OneCore engine in <em>Preferences,
-Voices</em>. Windows 11 neural voices do not show up in SAPI 5:
+<h3 id="no-voices">No voices</h3>
+<p>Add a voice in <em>Settings, Time &amp; language, Speech</em>, or try
+the OneCore engine in <em>Preferences</em>, on the <em>Voices</em>
+category. Windows 11 neural voices do not appear in SAPI 5:
 <em>TTSVoicePatcher</em> exposes them.</p>
-<p><strong>“Windows protected your PC”.</strong> It is SmartScreen,
-because the executable is not signed. Choose <em>More info, Run
-anyway</em>.</p>
-<p><strong>The antivirus warns.</strong> It is a common false positive
-with programs distributed this way, without an installer. Add the folder
-to the exclusions.</p>
-<p><strong>The chat panel is not visible.</strong> <code>F2</code> says
-whether the panel is active and whether OBS shows it. If nobody shows
-it, check the browser source in OBS.</p>
-<p><strong>Something fails.</strong> <em>Help, Open logs folder</em>
-opens the <code>data</code> folder, where the logs are. Errors stay in
-<code>data/bellbird.log</code>, and if the application closes by itself,
-also in <code>data/bellbird-fallos.log</code>. The detailed log,
-<code>data/bellbird-debug.log</code>, is enabled by default; it is
-turned off in <em>Preferences, General</em>, with the <em>Save a
-detailed log for diagnosing errors</em> check box. To report an error,
-reproduce the problem and send the three files.</p>
+<h3 id="windows-protected-your-pc">“Windows protected your PC”</h3>
+<p>This notice is SmartScreen, because the executable is not signed.
+Choose <em>More information</em>, <em>Run anyway</em>.</p>
+<h3 id="the-antivirus-warns">The antivirus warns</h3>
+<p>It is a common false positive with applications distributed this way,
+without an installer, so add the folder to the exclusions.</p>
+<h3 id="the-chat-panel-is-not-visible">The chat panel is not
+visible</h3>
+<p><code>F2</code> says whether the panel is active and whether OBS
+shows it. If nobody shows it, check the browser source in OBS.</p>
+<h3 id="if-something-does-not-work">If something does not work</h3>
+<p>The <em>Help</em>, <em>Open logs folder</em> command opens the
+<code>data</code> folder, where the logs are. Errors are saved in
+<code>data/bellbird.log</code>, and if the application closes on its
+own, also in <code>data/bellbird-fallos.log</code>. The detailed log,
+<code>data/bellbird-debug.log</code>, is on by default; it is turned off
+in <em>Preferences</em>, on the <em>General</em> category, with the
+<em>Save a detailed log for diagnosing errors</em> check box. To report
+an error, reproduce the problem and send the three files.</p>
 <h2 id="license">License</h2>
-<p>GPL-3.0 since 2.5.1. See <a href="../../LICENSE">LICENSE</a>.
-Versions up to 2.5.0 were released under the MIT license.</p>
+<p>Bellbird uses the GPL-3.0 license from version 2.5.1, and you can
+read <a href="../../LICENSE">LICENSE</a>. Versions up to 2.5.0 were
+published with the MIT license.</p>
 </body>
 </html>

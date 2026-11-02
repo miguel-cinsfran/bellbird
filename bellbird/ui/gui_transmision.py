@@ -13,6 +13,7 @@ from bellbird.obs.obs_destinos import DESTINOS
 from bellbird.obs.obs_panel import GestorPanelObs, NOMBRE_FUENTE
 from bellbird.ui import gui_microfono, menu_transmision, paleta, tema
 from bellbird.ui.accesibilidad import anunciar, nombre_accesible
+from bellbird.ui.control_grabacion import ControlGrabacion
 from bellbird.ui.directo_panel import DirectoPanel
 from bellbird.ui.gui import caja_de_grupo
 from bellbird.ui.gui_organizar_escena import OrganizarEscenaDialog
@@ -133,7 +134,7 @@ class TransmisionDialog(wx.Dialog):
 
     def _crear_grupo_grabacion(self, zona, contenido):
         sizer, padre = caja_de_grupo(zona, _("Grabación"))
-        self._grabacion = menu_transmision.ControlGrabacion(
+        self._grabacion = ControlGrabacion(
             padre, self._operaciones, self._gestor, self._refrescar_estado,
             self.btn_directo)
         self.btn_grabar = self._grabacion.boton

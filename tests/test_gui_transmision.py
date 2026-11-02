@@ -12,6 +12,7 @@ from bellbird.obs import obs_disposicion
 from bellbird.obs import estado_panel
 from bellbird.obs import obs_prevuelo
 from bellbird.ui import confirmar_transmision as modulo_confirmar
+from bellbird.ui import control_grabacion
 from bellbird.ui import directo_panel
 from bellbird.ui import gui_microfono
 from bellbird.ui import gui_transmision
@@ -201,10 +202,10 @@ class TestPanelTransmision(unittest.TestCase):
                               lambda funcion, *args: funcion(*args)),
             mock.patch.object(gui_transmision, "anunciar", anunciar),
             mock.patch.object(operaciones_obs, "anunciar", anunciar),
-            mock.patch.object(menu_transmision, "anunciar", anunciar),
+            mock.patch.object(control_grabacion, "anunciar", anunciar),
             mock.patch.object(gui_microfono, "anunciar", anunciar),
             mock.patch.object(operaciones_obs.sound_player, "reproducir"),
-            mock.patch.object(menu_transmision.sound_player, "reproducir"),
+            mock.patch.object(control_grabacion.sound_player, "reproducir"),
             mock.patch.object(directo_panel, "anunciar", anunciar),
             mock.patch.object(directo_panel.sound_player, "reproducir"),
         ]
@@ -486,21 +487,21 @@ class TestPanelTransmision(unittest.TestCase):
 
     def test_grabacion_suena_y_anuncia_como_antes(self):
         self._pulsar(self.dialogo.btn_grabar)
-        menu_transmision.sound_player.reproducir.assert_called_once_with(
+        control_grabacion.sound_player.reproducir.assert_called_once_with(
             "grabacion_iniciada")
         self.assertIn("Grabación iniciada", self.anuncios)
-        menu_transmision.sound_player.reproducir.reset_mock()
+        control_grabacion.sound_player.reproducir.reset_mock()
         self._pulsar(self.dialogo.btn_pausar)
-        menu_transmision.sound_player.reproducir.assert_called_once_with(
+        control_grabacion.sound_player.reproducir.assert_called_once_with(
             "grabacion_en_pausa")
         self.assertIn("Grabación en pausa", self.anuncios)
 
     def test_el_sonido_de_grabacion_va_antes_del_anuncio(self):
         orden = []
         with mock.patch.object(
-                menu_transmision.sound_player, "reproducir",
+                control_grabacion.sound_player, "reproducir",
                 side_effect=lambda evento: orden.append(("sonido", evento))),                 mock.patch.object(
-                    menu_transmision, "anunciar",
+                    control_grabacion, "anunciar",
                     side_effect=lambda frase, *a: orden.append(
                         ("frase", frase))):
             self._pulsar(self.dialogo.btn_grabar)
@@ -707,7 +708,7 @@ class TestPseudoTransmisionVentana(unittest.TestCase):
             mock.patch.object(operaciones_obs, "anunciar",
                               lambda *args, **kwargs: None),
             mock.patch.object(operaciones_obs.sound_player, "reproducir"),
-            mock.patch.object(menu_transmision.sound_player, "reproducir"),
+            mock.patch.object(control_grabacion.sound_player, "reproducir"),
             mock.patch.object(directo_panel, "anunciar",
                               lambda *args, **kwargs: None),
             mock.patch.object(directo_panel.sound_player, "reproducir"),

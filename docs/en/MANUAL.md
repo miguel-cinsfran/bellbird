@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md b101a59b633fb8434410cd8c76287b1ebbc33907 -->
+<!-- original: es/MANUAL.md cb975066ef2c9fb4fbdfe9e758cb18fe04674286 -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -303,6 +303,12 @@ Starting, pausing, resuming and stopping a recording have their own sounds.
 With *Show streaming or recording in the title of the window*, in
 *Preferences, Broadcast*, the title starts with that status. It is unchecked.
 
+You can also record without opening the panel: *Start or stop recording*
+in the *Broadcast* menu with `Alt+Shift+G`, and *Pause or resume
+recording* with `Alt+Shift+P`. They announce and sound the same as the
+panel buttons do. If no recording is in progress, pausing says so and changes
+nothing in OBS.
+
 **How the scene looks.** The *Broadcast* window describes each source from
 front to back: where it is, what size it has and whether something covers
 it. The same is heard with `Ctrl+F2`. From there you can move a source to
@@ -529,6 +535,8 @@ them. They all appear as well in the menu bar, next to their action.
 | `Alt+Shift+E` | Copy the live stream link |
 | `Alt+Shift+I` | Mark an incident in the log |
 | `Alt+Shift+M` | Mute or unmute the OBS microphone |
+| `Alt+Shift+G` | Start or stop recording |
+| `Alt+Shift+P` | Pause or resume recording |
 | `Alt+Shift+A` | Turn overload warnings on or off |
 
 ### Voice and reading (F keys)

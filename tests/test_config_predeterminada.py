@@ -363,6 +363,11 @@ class TestReconexionYSonidos(unittest.TestCase):
         self.assertEqual(
             pred.obtener("transmision", "grabar_al_transmitir"), "false")
 
+    def test_fabrica_trae_atajos_de_grabacion(self):
+        self.assertEqual(pred.obtener("atajos", "obs_grabar"), "alt+shift+g")
+        self.assertEqual(
+            pred.obtener("atajos", "obs_pausar_grabacion"), "alt+shift+p")
+
     def test_lectura_de_grabar_al_transmitir_es_bool(self):
         with tempfile.TemporaryDirectory() as tmp:
             (Path(tmp) / "config.ini").write_text(

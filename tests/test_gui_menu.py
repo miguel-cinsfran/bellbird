@@ -176,6 +176,8 @@ class TestEquivalenciaMenu(unittest.TestCase):
             ("&Transmisión", "Silenciar &micrófono de OBS", ANY, "check"),
             ("&Transmisión", "&Elegir micrófono…", ANY, "normal"),
             ("&Transmisión", "Mostrar &OBS", ANY, "normal"),
+            ("&Transmisión", "Iniciar o detener g&rabación", ANY, "normal"),
+            ("&Transmisión", "Pa&usar o reanudar grabación", ANY, "normal"),
             ("&Transmisión", "&Avisar si OBS se sobrecarga", ANY, "check"),
             ("&Transmisión", "&Grabar también al transmitir", ANY, "check"),
             ("&Transmisión", "---", None, "sep"),
@@ -208,6 +210,14 @@ class TestEquivalenciaMenu(unittest.TestCase):
             ("A&yuda", "&Buscar actualizaciones…", ANY, "normal"),
             ("A&yuda", "&Acerca de", gui.wx.ID_ABOUT, "normal"),
         ], lista)
+
+    def test_transmision_sin_letras_de_acceso_repetidas(self):
+        _, lista = _construir_lista()
+        letras = [texto[texto.index("&") + 1].lower()
+                  for menu, texto, _dato, _tipo in lista
+                  if menu == "&Transmisión" and texto != "---"
+                  and "&" in texto]
+        self.assertEqual(len(letras), len(set(letras)))
 
 
 class TestMenuAyudaDocumentos(unittest.TestCase):
@@ -556,6 +566,60 @@ class TestCableadoMostrarObs(unittest.TestCase):
                 wx.EVT_MENU.typeId, frame.mi_micro_obs.GetId())
             frame.GetEventHandler().ProcessEvent(evento)
         abrir.assert_called_once_with(frame)
+
+
+class TestCableadoGrabacion(unittest.TestCase):
+    """Elegir los comandos de grabación llega a comandos_grabacion."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+
+    @classmethod
+    def tearDownClass(cls):
+        del cls.app
+
+    def _frame_con_menu(self):
+        from bellbird.ui import menu_transmision
+
+        frame = wx.Frame(None)
+        self.addCleanup(destruir, frame)
+        frame._accel = lambda _accion: ""
+        frame._bind_menu = gui.YTChatFrame._bind_menu.__get__(frame)
+        frame._config = {"avisar_sobrecarga": True}
+        frame._on_transmision = mock.Mock()
+        frame._on_obs_micro = mock.Mock()
+        frame._alternar_aviso_sobrecarga = mock.Mock()
+        barra = wx.MenuBar()
+        menu_transmision.construir(frame, barra)
+        frame.SetMenuBar(barra)
+        return frame
+
+    def _elegir(self, frame, item):
+        from bellbird.ui import menu_transmision
+
+        with mock.patch.object(menu_transmision.wx, "CallAfter",
+                               side_effect=lambda fn, *a: fn(*a)):
+            evento = wx.CommandEvent(wx.EVT_MENU.typeId, item.GetId())
+            frame.GetEventHandler().ProcessEvent(evento)
+
+    def test_iniciar_o_detener_llega_al_comando(self):
+        from bellbird.ui import comandos_grabacion
+
+        with mock.patch.object(comandos_grabacion,
+                               "alternar_grabacion") as comando:
+            frame = self._frame_con_menu()
+            self._elegir(frame, frame.mi_obs_grabar)
+        comando.assert_called_once_with(frame)
+
+    def test_pausar_o_reanudar_llega_al_comando(self):
+        from bellbird.ui import comandos_grabacion
+
+        with mock.patch.object(comandos_grabacion,
+                               "alternar_pausa_grabacion") as comando:
+            frame = self._frame_con_menu()
+            self._elegir(frame, frame.mi_obs_pausar_grabacion)
+        comando.assert_called_once_with(frame)
 
 
 # Textos que arma otro módulo y la barra solo muestra. Las etiquetas de

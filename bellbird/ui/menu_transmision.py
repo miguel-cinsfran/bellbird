@@ -35,6 +35,17 @@ def _agregar_encuadre(frame, m):
     encuadre_camara.sincronizar(frame)
 
 
+def _agregar_avisos(frame, m):
+    """Las casillas de avisos de sobrecarga y grabación al transmitir."""
+    frame.mi_avisos_sobrecarga = m.AppendCheckItem(
+        wx.ID_ANY,
+        _("&Avisar si OBS se sobrecarga") + frame._accel("avisos_sobrecarga"))
+    frame.mi_avisos_sobrecarga.Check(bool(frame._config.get("avisar_sobrecarga", True)))
+    frame.mi_grabar_al_transmitir = m.AppendCheckItem(
+        wx.ID_ANY, _("&Grabar también al transmitir"))
+    frame.mi_grabar_al_transmitir.Check(bool(frame._config.get("grabar_al_transmitir", False)))
+
+
 def construir(frame, mb):
     m = wx.Menu()
     frame.mi_transmision = m.Append(
@@ -44,13 +55,13 @@ def construir(frame, mb):
     frame.mi_micro_obs = m.Append(wx.ID_ANY, _("&Elegir micrófono…"))
     frame.mi_mostrar_obs = m.Append(
         wx.ID_ANY, _("Mostrar &OBS") + frame._accel("mostrar_obs"))
-    frame.mi_avisos_sobrecarga = m.AppendCheckItem(
+    frame.mi_obs_grabar = m.Append(
         wx.ID_ANY,
-        _("&Avisar si OBS se sobrecarga") + frame._accel("avisos_sobrecarga"))
-    frame.mi_avisos_sobrecarga.Check(bool(frame._config.get("avisar_sobrecarga", True)))
-    frame.mi_grabar_al_transmitir = m.AppendCheckItem(
-        wx.ID_ANY, _("&Grabar también al transmitir"))
-    frame.mi_grabar_al_transmitir.Check(bool(frame._config.get("grabar_al_transmitir", False)))
+        _("Iniciar o detener g&rabación") + frame._accel("obs_grabar"))
+    frame.mi_obs_pausar_grabacion = m.Append(
+        wx.ID_ANY,
+        _("Pa&usar o reanudar grabación") + frame._accel("obs_pausar_grabacion"))
+    _agregar_avisos(frame, m)
     _agregar_encuadre(frame, m)
     mb.Append(m, _("&Transmisión"))
     _enlazar(frame, m)
@@ -58,6 +69,7 @@ def construir(frame, mb):
 
 def _enlazar(frame, m):
     """Conecta el menú Transmisión ya armado con sus manejadores."""
+    from bellbird.ui import comandos_grabacion
     from bellbird.ui import gui_microfono
     from bellbird.ui import gui_transmitir
     frame.Bind(wx.EVT_MENU,
@@ -67,6 +79,10 @@ def _enlazar(frame, m):
     frame._bind_menu(frame.mi_micro_obs, gui_microfono.abrir_microfono_obs, frame)
     frame.Bind(wx.EVT_MENU_OPEN, lambda e: _al_abrir_transmision(frame, m, e))
     frame._bind_menu(frame.mi_mostrar_obs, mostrar_obs)
+    frame._bind_menu(frame.mi_obs_grabar,
+                     comandos_grabacion.alternar_grabacion, frame)
+    frame._bind_menu(frame.mi_obs_pausar_grabacion,
+                     comandos_grabacion.alternar_pausa_grabacion, frame)
     frame._bind_menu(frame.mi_avisos_sobrecarga, frame._alternar_aviso_sobrecarga)
     frame._bind_menu(frame.mi_grabar_al_transmitir,
                      gui_transmitir.alternar_grabar_al_transmitir, frame)

@@ -343,6 +343,8 @@ class TestParsearAtajos(unittest.TestCase):
                 ("describir_escena", "ctrl+f2", "f"),
                 ("consulta_rapida_ia", "ctrl+shift+f2", "f"),
                 ("obs_micro", "alt+shift+m", "alt+shift"),
+                ("obs_grabar", "alt+shift+g", "alt+shift"),
+                ("obs_pausar_grabacion", "alt+shift+p", "alt+shift"),
                 ("avisos_sobrecarga", "alt+shift+a", "alt+shift"),
                 ("musica_ventana", "ctrl+shift+m", "ctrl+shift"),
                 ("preguntar_ia", "ctrl+shift+i", "ctrl+shift"),
@@ -391,6 +393,7 @@ class TestParsearAtajos(unittest.TestCase):
         fuente = inspect.getsource(gui_menu.construir_menu)
         fuente += inspect.getsource(menu_transmision.construir)
         fuente += inspect.getsource(menu_transmision._agregar_encuadre)
+        fuente += inspect.getsource(menu_transmision._agregar_avisos)
         fuente += inspect.getsource(gui_menu._construir_menu_ver)
         fuente += inspect.getsource(gui_menu._construir_menu_musica)
         fuente += inspect.getsource(gui_menu._construir_menu_ayuda)
@@ -401,6 +404,8 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertIn('._accel("marcar_incidencia")', fuente)
         self.assertIn('._accel("abrir_transmision")', fuente)
         self.assertIn('._accel("mostrar_obs")', fuente)
+        self.assertIn('._accel("obs_grabar")', fuente)
+        self.assertIn('._accel("obs_pausar_grabacion")', fuente)
         self.assertIn('._accel("copiar_enlace")', fuente)
         self.assertIn('._accel("anunciar_autor")', fuente)
         # Los diez recientes se arman en un bucle con su etiqueta y su _accel.

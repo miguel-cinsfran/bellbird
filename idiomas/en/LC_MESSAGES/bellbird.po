@@ -4212,6 +4212,14 @@ msgid "Silenciar el micrófono de OBS"
 msgstr "Mute the OBS microphone"
 
 #: bellbird/ui/atajos_captura.py
+msgid "Iniciar o detener la grabación"
+msgstr "Start or stop recording"
+
+#: bellbird/ui/atajos_captura.py
+msgid "Pausar o reanudar la grabación"
+msgstr "Pause or resume recording"
+
+#: bellbird/ui/atajos_captura.py
 msgid "Activar o desactivar los avisos de sobrecarga"
 msgstr "Turn overload warnings on or off"
 
@@ -4852,6 +4860,22 @@ msgstr "Before broadcasting"
 #: bellbird/ui/gui_redactar.py
 msgid "&Cancelar"
 msgstr "&Cancel"
+
+#: bellbird/ui/control_grabacion.py
+msgid "Iniciar &grabación"
+msgstr "&Begin recording"
+
+#: bellbird/ui/control_grabacion.py
+msgid "Detener &grabación"
+msgstr "Stop &recording"
+
+#: bellbird/ui/control_grabacion.py
+msgid "&Pausar grabación"
+msgstr "&Pause recording"
+
+#: bellbird/ui/control_grabacion.py
+msgid "&Reanudar grabación"
+msgstr "&Keep recording"
 
 #: bellbird/ui/descargas_acciones.py
 msgid "Descargas terminadas. ¿Abrir la carpeta?"
@@ -7322,6 +7346,10 @@ msgid "Grabación al transmitir desactivada"
 msgstr "Recording while broadcasting off"
 
 #: bellbird/ui/gui_transmitir.py
+msgid "No hay ninguna grabación en curso."
+msgstr "No recording is in progress."
+
+#: bellbird/ui/gui_transmitir.py
 msgid "Ya hay una transmisión en curso."
 msgstr "A broadcast is already in progress."
 
@@ -7573,22 +7601,6 @@ msgstr[0] "The chat has {n} message."
 msgstr[1] "The chat has {n} messages."
 
 #: bellbird/ui/menu_transmision.py
-msgid "Iniciar &grabación"
-msgstr "&Begin recording"
-
-#: bellbird/ui/menu_transmision.py
-msgid "Detener &grabación"
-msgstr "Stop &recording"
-
-#: bellbird/ui/menu_transmision.py
-msgid "&Pausar grabación"
-msgstr "&Pause recording"
-
-#: bellbird/ui/menu_transmision.py
-msgid "&Reanudar grabación"
-msgstr "&Keep recording"
-
-#: bellbird/ui/menu_transmision.py
 msgid "Anunciar en&cuadre de cámara"
 msgstr "Announce camera &framing"
 
@@ -7611,6 +7623,14 @@ msgstr "&Choose microphone…"
 #: bellbird/ui/menu_transmision.py
 msgid "Mostrar &OBS"
 msgstr "Show &OBS"
+
+#: bellbird/ui/menu_transmision.py
+msgid "Iniciar o detener g&rabación"
+msgstr "&Start or stop recording"
+
+#: bellbird/ui/menu_transmision.py
+msgid "Pa&usar o reanudar grabación"
+msgstr "Pause or resume recor&ding"
 
 #: bellbird/ui/menu_transmision.py
 msgid "&Avisar si OBS se sobrecarga"

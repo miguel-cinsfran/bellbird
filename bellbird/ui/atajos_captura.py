@@ -69,6 +69,8 @@ ETIQUETAS = {
     "mostrar_obs": N_("Mostrar OBS"),
     "copiar_enlace": N_("Copiar enlace del directo"),
     "obs_micro": N_("Silenciar el micrófono de OBS"),
+    "obs_grabar": N_("Iniciar o detener la grabación"),
+    "obs_pausar_grabacion": N_("Pausar o reanudar la grabación"),
     "avisos_sobrecarga": N_("Activar o desactivar los avisos de sobrecarga"),
     # Conexión y chat
     # Traductores: acción del atajo que conecta el chat.

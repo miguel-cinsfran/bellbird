@@ -304,6 +304,12 @@ Iniciar, pausar, reanudar y detener la grabación tienen sonidos propios. Con
 *Preferencias, Transmisión*, el título empieza por ese estado. Viene
 desmarcada.
 
+También se puede grabar sin abrir el panel: *Iniciar o detener grabación*
+en el menú *Transmisión* con `Alt+Mayús+G`, y *Pausar o reanudar
+grabación* con `Alt+Mayús+P`. Anuncian y suenan igual que los botones del
+panel. Si no hay una grabación en curso, pausar lo dice y no cambia nada en
+OBS.
+
 **Cómo se ve la escena.** La ventana *Transmisión* describe cada fuente de
 adelante hacia atrás: dónde está, qué tamaño tiene y si algo la tapa. Lo
 mismo se oye con `Ctrl+F2`. Desde ahí puedes mover una fuente a una de
@@ -530,6 +536,8 @@ acción.
 | `Alt+Mayús+E` | Copiar el enlace del directo |
 | `Alt+Mayús+I` | Marcar una incidencia en el registro |
 | `Alt+Mayús+M` | Silenciar o activar el micrófono de OBS |
+| `Alt+Mayús+G` | Iniciar o detener la grabación |
+| `Alt+Mayús+P` | Pausar o reanudar la grabación |
 | `Alt+Mayús+A` | Activar o desactivar los avisos de sobrecarga |
 
 ### Voz y lectura (teclas F)

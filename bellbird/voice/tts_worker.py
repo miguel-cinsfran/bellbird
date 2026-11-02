@@ -25,6 +25,7 @@ from bellbird.voice import escala_voz
 from bellbird.voice import elevenlabs
 from bellbird.voice import motores
 from bellbird.voice import respaldo_windows
+from bellbird.voice import voz_secundaria
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -117,6 +118,8 @@ class TTSWorker(threading.Thread):
         # ajustes; el motor se crea perezoso, en el hilo del worker.
         self._respaldo = respaldo_windows.Respaldo(
             self._fabrica_motor, config.get("voz_respaldo") or "")
+        self._voz_secundaria = voz_secundaria.VozSecundaria(
+            self._fabrica_motor, config, config.get("tono"))
         self._caida = caida_elevenlabs.CaidaElevenLabs(
             _entero(config.get("elevenlabs_tope"), 0),
             config.get("elevenlabs_solo_importantes"))
@@ -179,7 +182,9 @@ class TTSWorker(threading.Thread):
                     autor = item.get("autor") or ""
                     if autor:
                         self._ultimo_autor = autor
-                    self._hablar(texto, item.get("voz"), item.get("importante", False)); _err = 0
+                    self._hablar(texto, item.get("voz"),
+                                 item.get("importante", False), item.get("secundaria"))
+                    _err = 0
                 except Exception as exc:
                     _err += 1
                     if _err <= 5:
@@ -233,6 +238,7 @@ class TTSWorker(threading.Thread):
         if self._motor is not None:
             self._motor.cerrar()
         self._respaldo.cerrar()
+        self._voz_secundaria.cerrar()
 
     # ── Voz y habla ──────────────────────────────────────────────────────────
 
@@ -247,22 +253,27 @@ class TTSWorker(threading.Thread):
         if idx != self._voz_actual and self._motor.elegir_voz(idx):
             self._voz_actual = idx
 
-    def _hablar(self, texto: str, voz=None, importante=False) -> None:
-        # Multi-voz: si el mensaje pide una voz concreta, se usa; si no, la base.
-        self._aplicar_voz(voz)
+    def _hablar(self, texto: str, voz=None, importante=False, secundaria=False) -> None:
+        # Secundaria con sus ajustes si el mensaje la pide y existe, si no la del mensaje o la base.
+        ajuste = self._voz_secundaria.indice(self._voces, secundaria)
+        self._aplicar_voz(self._voz_secundaria.voz if ajuste else voz)
+        self._motor.fijar_velocidad(ajuste[1] if ajuste else self._rate)
+        self._motor.fijar_volumen(ajuste[2] if ajuste else self._volume)
+        self._voz_secundaria.sonando = ajuste is not None
         # Una purga pedida con la voz callada (p. ej. detener_actual() al
         # reconectar) quedaba armada y cortaba el SIGUIENTE mensaje: el primer
         # mensaje de cada reconexión se oía a medias. No había nada que cortar,
         # así que se descarta antes de hablar.
         self._purge_pending.clear()
         if self._motor.motor == "elevenlabs":
-            self._hablar_elevenlabs(texto, importante)
-            return
-        self._leer_frase(self._motor, texto)
+            self._hablar_elevenlabs(texto, importante, ajuste is not None)
+        else:
+            self._leer_frase(self._motor, texto)
+        self._voz_secundaria.sonando = False
 
-    def _hablar_elevenlabs(self, texto: str, importante: bool) -> None:
+    def _hablar_elevenlabs(self, texto: str, importante: bool, secundaria: bool = False) -> None:
         """Lee con ElevenLabs y cae al respaldo según el estado de la sesión."""
-        elegido = self._elegir_motor_elevenlabs(texto, importante)
+        elegido = self._elegir_motor_elevenlabs(texto, importante, secundaria)
         if elegido is None:
             return
         if elegido is not self._motor:
@@ -276,7 +287,7 @@ class TTSWorker(threading.Thread):
             aviso = self._caida.fallo(exc)
             if aviso:
                 self._avisar(aviso)
-            respaldo = self._conseguir_respaldo()
+            respaldo = self._conseguir_respaldo(secundaria)
             if respaldo is not None:
                 self._leer_frase(respaldo, texto)
             return
@@ -285,13 +296,13 @@ class TTSWorker(threading.Thread):
             # fallo vuelve a avisar.
             self._caida.exito()
 
-    def _elegir_motor_elevenlabs(self, texto: str, importante: bool):
+    def _elegir_motor_elevenlabs(self, texto: str, importante: bool, secundaria: bool = False):
         """Motor para este mensaje: el principal o el respaldo de Windows."""
         usar, aviso = self._caida.elegir(
             importante, self._caracteres_elevenlabs(), len(texto))
         if aviso:
             self._avisar(aviso)
-        return self._conseguir_respaldo() if usar else self._motor
+        return self._conseguir_respaldo(secundaria) if usar else self._motor
 
     def _caracteres_elevenlabs(self) -> int:
         try:
@@ -299,8 +310,10 @@ class TTSWorker(threading.Thread):
         except Exception:
             return 0
 
-    def _conseguir_respaldo(self):
+    def _conseguir_respaldo(self, secundaria=False):
         """Crea (una sola vez) la voz de Windows del respaldo, o None si falla."""
+        if secundaria:
+            return self._voz_secundaria.conseguir_respaldo(self._respaldo.voz, self._tono)
         return self._respaldo.conseguir(self._rate, self._volume, self._tono)
 
     def _leer_frase(self, motor, texto: str) -> bool:
@@ -386,6 +399,11 @@ class TTSWorker(threading.Thread):
     def _elegir_voz_respaldo(self, voz) -> None:
         """Cambia la voz del respaldo sin recrearlo."""
         self._respaldo.cambiar_voz(voz)
+        self._voz_secundaria.seguir_respaldo(voz)
+
+    def _configurar_voz_secundaria(self, voz, velocidad, volumen, respaldo) -> None:
+        """Aplica en caliente la voz secundaria y su respaldo."""
+        self._voz_secundaria.configurar(voz, velocidad, volumen, respaldo, self._respaldo.voz, self._tono)
 
     def _cambiar_motor(self, motor, voz) -> None:
         """Reemplaza el motor activo dentro del hilo del worker.
@@ -434,10 +452,14 @@ class TTSWorker(threading.Thread):
                     self._cambiar_motor(*val)
                 elif cmd == "elevenlabs":
                     self._configurar_elevenlabs(*val)
+                elif cmd == "voz_secundaria":
+                    self._configurar_voz_secundaria(*val)
                 elif cmd == "rate":
-                    self._motor_de_comandos().fijar_velocidad(val)
+                    if not self._voz_secundaria.sonando:
+                        self._motor_de_comandos().fijar_velocidad(val)
                 elif cmd == "volume":
-                    self._motor_de_comandos().fijar_volumen(val)
+                    if not self._voz_secundaria.sonando:
+                        self._motor_de_comandos().fijar_volumen(val)
                 elif cmd == "tono":
                     self._motor_de_comandos().fijar_tono(val)
                 elif cmd == "purge":
@@ -510,6 +532,10 @@ class TTSWorker(threading.Thread):
         El trabajo real ocurre en el hilo del worker, dueño del respaldo y de
         sus ajustes; llamarlo desde la interfaz no toca la red ni el motor."""
         self._cmds.put(("elevenlabs", (tope, solo_importantes, voz_respaldo)))
+
+    def configurar_voz_secundaria(self, voz, velocidad, volumen, respaldo) -> None:
+        """Pide aplicar en caliente la voz secundaria y su respaldo."""
+        self._cmds.put(("voz_secundaria", (voz, velocidad, volumen, respaldo)))
 
     def cambiar_rate(self, pasos: int) -> None:
         # El contador se actualiza AQUÍ (en el hilo del llamador) y al hilo TTS

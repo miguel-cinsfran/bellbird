@@ -133,6 +133,11 @@ class TestArranque(unittest.TestCase):
         self.assertEqual(motor.elegidas, [0])
         self.assertEqual((motor.velocidad, motor.volumen, motor.tono), (40, 50, 30))
 
+    def test_un_worker_sin_arrancar_cierra_sin_error(self):
+        worker = _worker_con(MotorFalso())
+        worker._cerrar_motor()
+        self.assertIsNone(worker._motor)
+
     def test_voz_desinstalada_cae_a_la_primera(self):
         motor = MotorFalso()
         worker = _worker_con(motor, {"voz": "Lucía"})

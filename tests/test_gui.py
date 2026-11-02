@@ -5903,6 +5903,45 @@ class TestCableadoAnuncioAjuste(unittest.TestCase):
         dichos = [llamada.args[0] for llamada in anunciar.call_args_list]
         self.assertEqual(dichos, ["Volumen de la voz: 45%", "50%", "Velocidad de la voz: 1"])
 
+    def _frases_ajuste(self, metodo, inicial, *deltas):
+        from bellbird.core import anuncio_ajuste
+        from bellbird.core.anuncio_ajuste import AnuncioAjuste
+        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        valor = [inicial]
+        frame._worker = mock.Mock()
+        frame._worker.cambiar_volumen.side_effect = lambda d: valor.__setitem__(
+            0, max(0, min(100, valor[0] + d)))
+        frame._worker.cambiar_rate.side_effect = lambda d: valor.__setitem__(
+            0, max(0, min(100, valor[0] + d)))
+        frame._worker.get_volume.side_effect = lambda: valor[0]
+        frame._worker.get_rate.side_effect = lambda: valor[0]
+        with mock.patch.object(anuncio_ajuste, "COMPARTIDO", AnuncioAjuste()), \
+                mock.patch.object(gui, "guardar_opcion"), \
+                mock.patch.object(gui, "anunciar") as anunciar:
+            for delta in deltas:
+                metodo(frame, delta)
+        return [llamada.args[0] for llamada in anunciar.call_args_list]
+
+    def test_ajustar_volume_en_el_maximo_dice_maximo_completo_y_corto(self):
+        self.assertEqual(
+            self._frases_ajuste(gui.YTChatFrame._ajustar_volume, 100, +5, +5),
+            ["Volumen de la voz: 100%, máximo", "100%, máximo"])
+
+    def test_ajustar_volume_en_el_minimo_dice_minimo_completo_y_corto(self):
+        self.assertEqual(
+            self._frases_ajuste(gui.YTChatFrame._ajustar_volume, 0, -5, -5),
+            ["Volumen de la voz: 0%, mínimo", "0%, mínimo"])
+
+    def test_ajustar_rate_en_el_maximo_dice_maximo_completo_y_corto(self):
+        self.assertEqual(
+            self._frases_ajuste(gui.YTChatFrame._ajustar_rate, 100, +1, +1),
+            ["Velocidad de la voz: 100, máximo", "100, máximo"])
+
+    def test_ajustar_rate_en_el_minimo_dice_minimo_completo_y_corto(self):
+        self.assertEqual(
+            self._frases_ajuste(gui.YTChatFrame._ajustar_rate, 0, -1, -1),
+            ["Velocidad de la voz: 0, mínimo", "0, mínimo"])
+
 
 class TestNombresRegion(unittest.TestCase):
     # Pura, sin ventana: la tabla cubre las tres regiones y da el texto de hoy.

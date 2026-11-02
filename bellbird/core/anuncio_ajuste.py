@@ -15,6 +15,24 @@ from __future__ import annotations
 
 import time
 
+from bellbird.core.idioma import _
+from bellbird.voice import escala_voz
+
+# Controles para AnuncioAjuste.COMPARTIDO, compartidos con el reproductor.
+_CONTROL_VELOCIDAD = "velocidad_voz"
+_CONTROL_VOLUMEN = "volumen_voz"
+
+
+def con_limite(texto: str, valor: int, minimo: int, maximo: int) -> str:
+    """Agrega «, máximo» o «, mínimo» cuando `valor` quedó en un tope."""
+    if valor >= maximo:
+        # Traductores: tope superior del valor que se acaba de ajustar.
+        return texto + _(", máximo")
+    if valor <= minimo:
+        # Traductores: tope inferior del valor que se acaba de ajustar.
+        return texto + _(", mínimo")
+    return texto
+
 
 class AnuncioAjuste:
     """Recuerda el último control ajustado y su hora, y elige la frase."""
@@ -48,3 +66,18 @@ class AnuncioAjuste:
 
 
 COMPARTIDO = AnuncioAjuste()
+
+
+def anuncio_velocidad(pct: int) -> str:
+    """Frase para anunciar la velocidad, con el tope si quedó en un extremo."""
+    completa = _("Velocidad de la voz: {valor}").format(valor=pct)
+    dicha = COMPARTIDO.frase(_CONTROL_VELOCIDAD, completa, f"{pct}")
+    return con_limite(
+        dicha, pct, escala_voz.VELOCIDAD_MIN, escala_voz.VELOCIDAD_MAX)
+
+
+def anuncio_volumen(v: int) -> str:
+    """Frase para anunciar el volumen, con el tope si quedó en un extremo."""
+    completa = _("Volumen de la voz: {valor}%").format(valor=v)
+    dicha = COMPARTIDO.frase(_CONTROL_VOLUMEN, completa, f"{v}%")
+    return con_limite(dicha, v, 0, 100)

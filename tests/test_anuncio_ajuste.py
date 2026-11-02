@@ -1,8 +1,10 @@
 """Tests del anuncio corto al ajustar un valor varias veces seguidas."""
 
 import unittest
+from unittest import mock
 
-from bellbird.core.anuncio_ajuste import AnuncioAjuste
+from bellbird.core import anuncio_ajuste
+from bellbird.core.anuncio_ajuste import AnuncioAjuste, con_limite
 
 
 class RelojFalso:
@@ -72,6 +74,55 @@ class TestAnuncioAjuste(unittest.TestCase):
                          "Volumen del reproductor: 40 por ciento",
                          "40 por ciento"),
             "40 por ciento")
+
+
+class TestConLimite(unittest.TestCase):
+
+    def test_en_el_maximo_agrega_maximo(self):
+        self.assertEqual(
+            con_limite("Volumen de la voz: 100%", 100, 0, 100),
+            "Volumen de la voz: 100%, máximo")
+
+    def test_en_el_minimo_agrega_minimo(self):
+        self.assertEqual(
+            con_limite("Volumen de la voz: 0%", 0, 0, 100),
+            "Volumen de la voz: 0%, mínimo")
+
+    def test_en_el_medio_no_cambia(self):
+        self.assertEqual(
+            con_limite("Volumen de la voz: 50%", 50, 0, 100),
+            "Volumen de la voz: 50%")
+
+
+class TestAnuncioVelocidad(unittest.TestCase):
+
+    def test_en_el_maximo_dice_maximo_completo_y_corto(self):
+        with mock.patch.object(anuncio_ajuste, "COMPARTIDO", AnuncioAjuste()):
+            self.assertEqual(anuncio_ajuste.anuncio_velocidad(100),
+                             "Velocidad de la voz: 100, máximo")
+            self.assertEqual(anuncio_ajuste.anuncio_velocidad(100),
+                             "100, máximo")
+
+    def test_fuera_del_tope_no_cambia(self):
+        with mock.patch.object(anuncio_ajuste, "COMPARTIDO", AnuncioAjuste()):
+            self.assertEqual(anuncio_ajuste.anuncio_velocidad(50),
+                             "Velocidad de la voz: 50")
+            self.assertEqual(anuncio_ajuste.anuncio_velocidad(50), "50")
+
+
+class TestAnuncioVolumen(unittest.TestCase):
+
+    def test_en_el_minimo_dice_minimo_completo_y_corto(self):
+        with mock.patch.object(anuncio_ajuste, "COMPARTIDO", AnuncioAjuste()):
+            self.assertEqual(anuncio_ajuste.anuncio_volumen(0),
+                             "Volumen de la voz: 0%, mínimo")
+            self.assertEqual(anuncio_ajuste.anuncio_volumen(0), "0%, mínimo")
+
+    def test_fuera_del_tope_no_cambia(self):
+        with mock.patch.object(anuncio_ajuste, "COMPARTIDO", AnuncioAjuste()):
+            self.assertEqual(anuncio_ajuste.anuncio_volumen(50),
+                             "Volumen de la voz: 50%")
+            self.assertEqual(anuncio_ajuste.anuncio_volumen(50), "50%")
 
 
 if __name__ == "__main__":

@@ -1567,6 +1567,26 @@ msgstr "unknown reason"
 msgid "La actualización no se completó: {motivo}. Sigue la versión {actual}."
 msgstr "The update did not complete: {motivo}. Version {actual} is still installed."
 
+#. Traductores: tope superior del valor que se acaba de ajustar.
+#: bellbird/core/anuncio_ajuste.py
+msgid ", máximo"
+msgstr ", maximum"
+
+#. Traductores: tope inferior del valor que se acaba de ajustar.
+#: bellbird/core/anuncio_ajuste.py
+msgid ", mínimo"
+msgstr ", minimum"
+
+#: bellbird/core/anuncio_ajuste.py
+#, python-brace-format
+msgid "Velocidad de la voz: {valor}"
+msgstr "Voice speed: {valor}"
+
+#: bellbird/core/anuncio_ajuste.py
+#, python-brace-format
+msgid "Volumen de la voz: {valor}%"
+msgstr "Voice volume: {valor}%"
+
 #: bellbird/core/atajos.py
 msgid "Reproductor (Ctrl)"
 msgstr "Player (Ctrl)"
@@ -5507,16 +5527,6 @@ msgstr "Voice: {nombre}"
 #, python-brace-format
 msgid "Filtro: {filtro}. {n} mensajes"
 msgstr "Filter: {filtro}. {n} messages"
-
-#: bellbird/ui/gui.py
-#, python-brace-format
-msgid "Velocidad de la voz: {valor}"
-msgstr "Voice speed: {valor}"
-
-#: bellbird/ui/gui.py
-#, python-brace-format
-msgid "Volumen de la voz: {valor}%"
-msgstr "Voice volume: {valor}%"
 
 #: bellbird/ui/gui.py
 msgid "Sonidos silenciados"

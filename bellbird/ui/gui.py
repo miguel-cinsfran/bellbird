@@ -63,9 +63,6 @@ from bellbird.ui.sesion_conectada import SesionConectada
 # Mapeo entre índice de FILTROS y clave persistida en config.ini.
 _NOMBRES_FILTRO = ("todos", "texto", "superchat", "miembro", "avisos")
 _IDX_FILTRO     = {"todos": 0, "texto": 1, "superchat": 2, "miembro": 3, "avisos": 4}
-# Controles para AnuncioAjuste.COMPARTIDO, compartidos con el reproductor.
-_CONTROL_VELOCIDAD = "velocidad_voz"
-_CONTROL_VOLUMEN = "volumen_voz"
 
 MAX_ITEMS_CHAT  = 500
 TIMER_STATUS_MS = 1000
@@ -910,15 +907,13 @@ class YTChatFrame(wx.Frame):
         self._worker.cambiar_rate(delta)
         pct = self._worker.get_rate()
         guardar_opcion(RUTA_CONFIG, "voz", "velocidad_voz", str(pct))
-        anunciar(anuncio_ajuste.COMPARTIDO.frase(
-            _CONTROL_VELOCIDAD, _("Velocidad de la voz: {valor}").format(valor=pct), f"{pct}"))
+        anunciar(anuncio_ajuste.anuncio_velocidad(pct))
 
     def _ajustar_volume(self, delta):
         self._worker.cambiar_volumen(delta)
         v = self._worker.get_volume()
         guardar_opcion(RUTA_CONFIG, "voz", "volumen", f"{v / 100:.2f}")
-        anunciar(anuncio_ajuste.COMPARTIDO.frase(
-            _CONTROL_VOLUMEN, _("Volumen de la voz: {valor}%").format(valor=v), f"{v}%"))
+        anunciar(anuncio_ajuste.anuncio_volumen(v))
 
     def _toggle_silenciar_sonidos(self):
         nuevo = not _snd.esta_silenciado()

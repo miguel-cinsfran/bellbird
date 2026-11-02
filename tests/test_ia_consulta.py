@@ -254,7 +254,7 @@ class TestTextoDeError(unittest.TestCase):
                 "El modelo no devolvió ninguna respuesta. Vuelve "
                 "a intentarlo.",
             protocolos.SERVIDOR:
-                "El proveedor tuvo un fallo. Vuelve a intentarlo en un rato.",
+                "El proveedor devolvió un error. Vuelve a intentarlo más tarde.",
             protocolos.RECHAZO:
                 "El proveedor rechazó la consulta. Puede que el modelo ya "
                 "no esté disponible: en Preferencias, Inteligencia "

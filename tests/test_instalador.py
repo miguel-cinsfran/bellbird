@@ -611,7 +611,7 @@ class TestCaracterizacionFallos(BaseInstalador):
             resultado,
             {"resultado": "fallo",
              "motivo": "el paquete no es válido: "
-                       "el ejecutable del paquete no es válido"})
+                       "el paquete no indica un ejecutable que se pueda usar"})
         self.assertEqual(_sin_estado(_foto(self.instalacion)), foto_antes)
         self.assertEqual(self.lanzados, [])
 

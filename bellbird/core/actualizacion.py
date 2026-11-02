@@ -358,7 +358,7 @@ def validar_paquete(carpeta: str | os.PathLike, version_esperada: str) -> str:
     if (not isinstance(ejecutable, str) or not ejecutable.lower().endswith(".exe")
             or "/" in ejecutable or "\\" in ejecutable
             or ejecutable in (".", "..")):
-        raise PaqueteInvalido(_("el ejecutable del paquete no es válido"))
+        raise PaqueteInvalido(_("el paquete no indica un ejecutable que se pueda usar"))
     if not (carpeta / ejecutable).is_file():
         raise PaqueteInvalido(_("el paquete no trae el ejecutable"))
     for prohibido in ("data", "Descargas"):

@@ -34,7 +34,7 @@ MOTIVO_LIMITE = "limite"
 MOTIVO_RED = "red"
 MOTIVO_OTRO = "otro"
 
-_MSG_CLAVE = N_("La clave de ElevenLabs no es válida.")
+_MSG_CLAVE = N_("ElevenLabs no reconoce la clave.")
 _MSG_SALDO = N_("Se acabó el saldo de ElevenLabs.")
 _MSG_LIMITE = N_("ElevenLabs está recibiendo demasiadas peticiones.")
 _MSG_RED = N_("No se pudo conectar con ElevenLabs.")

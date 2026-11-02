@@ -3127,7 +3127,7 @@ class TestPreferenciasElevenLabs(unittest.TestCase):
         dialogo.pagina_voz.txt_clave_eleven.SetValue("mala")
         cliente = mock.Mock()
         cliente.voces.side_effect = elevenlabs.ElevenLabsError(
-            elevenlabs.MOTIVO_CLAVE, "La clave de ElevenLabs no es válida.")
+            elevenlabs.MOTIVO_CLAVE, "ElevenLabs no reconoce la clave.")
         with mock.patch.object(elevenlabs, "ClienteElevenLabs",
                                return_value=cliente), \
                 mock.patch.object(
@@ -3141,7 +3141,7 @@ class TestPreferenciasElevenLabs(unittest.TestCase):
         self.assertEqual(dialogo.pagina_voz.cho_voz.GetStringSelection(),
                          "(comprueba la clave)")
         self.assertTrue(dialogo.pagina_voz.btn_comprobar_clave.IsEnabled())
-        anunciar.assert_called_once_with("La clave de ElevenLabs no es válida.")
+        anunciar.assert_called_once_with("ElevenLabs no reconoce la clave.")
 
     def test_comprobar_clave_con_exito_llena_voces_y_anuncia(self):
         from tests.test_clave_elevenlabs import _HiloInmediato

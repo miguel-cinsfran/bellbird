@@ -140,7 +140,7 @@ class TestErrores(unittest.TestCase):
     def test_401_sin_quota_es_clave(self):
         exc = self._motivo(_http_error(401, b'{"detail":"unauthorized"}'))
         self.assertEqual(exc.motivo, "clave")
-        self.assertEqual(str(exc), "La clave de ElevenLabs no es válida.")
+        self.assertEqual(str(exc), "ElevenLabs no reconoce la clave.")
 
     def test_401_con_quota_es_saldo(self):
         exc = self._motivo(_http_error(401, b'{"detail":{"status":"quota_exceeded"}}'))
@@ -181,7 +181,7 @@ class TestContraLaRed(unittest.TestCase):
             if exc.motivo == "red":
                 self.skipTest(f"sin conexión a ElevenLabs: {exc}")
             self.assertEqual(exc.motivo, "clave")
-            self.assertEqual(str(exc), "La clave de ElevenLabs no es válida.")
+            self.assertEqual(str(exc), "ElevenLabs no reconoce la clave.")
         else:
             self.fail(f"con una clave inventada no debería haber voces: {voces!r}")
 
@@ -191,7 +191,7 @@ class TestPseudoMensajes(unittest.TestCase):
 
     def test_constantes_en_espanol(self):
         self.assertEqual(elevenlabs._MSG_CLAVE,
-                         "La clave de ElevenLabs no es válida.")
+                         "ElevenLabs no reconoce la clave.")
         self.assertEqual(elevenlabs._MSG_SALDO,
                          "Se acabó el saldo de ElevenLabs.")
         self.assertEqual(elevenlabs._MSG_LIMITE,

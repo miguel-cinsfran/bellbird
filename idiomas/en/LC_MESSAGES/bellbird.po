@@ -272,8 +272,8 @@ msgid "El modelo no devolvió ninguna respuesta. Vuelve a intentarlo."
 msgstr "The model returned no response. Try again."
 
 #: bellbird/ai/consulta.py
-msgid "El proveedor tuvo un fallo. Vuelve a intentarlo en un rato."
-msgstr "The provider failed. Try again in a while."
+msgid "El proveedor devolvió un error. Vuelve a intentarlo más tarde."
+msgstr "The provider returned an error. Try again later."
 
 # "
 # la"
@@ -1545,8 +1545,8 @@ msgid "la versión del paquete no coincide con la publicada"
 msgstr "the package version does not match the published one"
 
 #: bellbird/core/actualizacion.py
-msgid "el ejecutable del paquete no es válido"
-msgstr "the package executable is not valid"
+msgid "el paquete no indica un ejecutable que se pueda usar"
+msgstr "the package does not name an executable that can be used"
 
 #: bellbird/core/actualizacion.py
 msgid "el paquete no trae el ejecutable"
@@ -8941,8 +8941,8 @@ msgid "{titulo} — {app}"
 msgstr "{titulo} — {app}"
 
 #: bellbird/voice/elevenlabs.py
-msgid "La clave de ElevenLabs no es válida."
-msgstr "The ElevenLabs key is not valid."
+msgid "ElevenLabs no reconoce la clave."
+msgstr "ElevenLabs does not recognize the key."
 
 #: bellbird/voice/elevenlabs.py
 msgid "Se acabó el saldo de ElevenLabs."

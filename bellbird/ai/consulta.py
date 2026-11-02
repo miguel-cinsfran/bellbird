@@ -44,8 +44,8 @@ _ERRORES = {
                                         "respuesta más larga en Preferencias."),
     protocolos.RESPUESTA_VACIA: N_("El modelo no devolvió ninguna respuesta. "
                                    "Vuelve a intentarlo."),
-    protocolos.SERVIDOR: N_("El proveedor tuvo un fallo. Vuelve a intentarlo "
-                            "en un rato."),
+    protocolos.SERVIDOR: N_("El proveedor devolvió un error. Vuelve a "
+                            "intentarlo más tarde."),
     protocolos.RECHAZO: N_("El proveedor rechazó la consulta. Puede que el "
                             "modelo ya no esté disponible: en Preferencias, "
                             "Inteligencia artificial, pulsa Actualizar lista "

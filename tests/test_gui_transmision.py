@@ -323,23 +323,45 @@ class TestPanelTransmision(unittest.TestCase):
         self.assertEqual(dialogo.txt_estado.GetValue().splitlines()[0],
                          "Elige a dónde transmitir")
 
-    def test_estado_tiene_cinco_lineas_y_es_solo_lectura(self):
+    def test_estado_alto_para_seis_lineas_y_sin_barra_vertical(self):
         estilo = self.dialogo.txt_estado.GetWindowStyleFlag()
         self.assertTrue(estilo & wx.TE_READONLY)
         self.assertTrue(estilo & wx.TE_MULTILINE)
         self.assertTrue(estilo & wx.TE_RICH2)
-        self.assertEqual(estilo & wx.TE_NO_VSCROLL, wx.TE_NO_VSCROLL)
+        self.assertFalse(estilo & wx.TE_NO_VSCROLL)
         self.assertGreaterEqual(self.dialogo.txt_estado.GetMinSize().GetHeight(),
-                                5 * self.dialogo.txt_estado.GetCharHeight())
+                                6 * self.dialogo.txt_estado.GetCharHeight())
 
-    def test_primera_linea_en_negrita(self):
-        self.dialogo._mostrar_estado(
-            estado_panel.resumir(
-                "YouTube", {}, {}, "Principal", "Mic/Aux", False, ()))
-        attr = wx.TextAttr()
-        self.assertTrue(self.dialogo.txt_estado.GetStyle(0, attr))
-        self.assertGreaterEqual(attr.GetFont().GetWeight(),
+    def test_primera_linea_en_negrita_y_el_resto_normal(self):
+        titular = "Revisa antes de transmitir: algo"
+        self.dialogo._mostrar_estado(estado_panel.EstadoPanel(
+            titular, "aviso", ("Escena actual: Principal",)))
+        primera = wx.TextAttr()
+        segunda = wx.TextAttr()
+        self.assertTrue(self.dialogo.txt_estado.GetStyle(0, primera))
+        self.assertTrue(self.dialogo.txt_estado.GetStyle(
+            len(titular) + 1, segunda))
+        self.assertGreaterEqual(primera.GetFont().GetWeight(),
                                 wx.FONTWEIGHT_BOLD)
+        self.assertLess(segunda.GetFont().GetWeight(), wx.FONTWEIGHT_BOLD)
+        if not tema.ALTO_CONTRASTE:
+            self.assertEqual(primera.GetTextColour(), tema._T.red)
+            self.assertNotEqual(segunda.GetTextColour(), tema._T.red)
+
+    def test_ventana_mide_al_menos_600_de_ancho(self):
+        self.assertGreaterEqual(self.dialogo.GetSize().GetWidth(), 600)
+        self._elegir("TikTok")
+        self.assertGreaterEqual(self.dialogo.GetSize().GetWidth(), 600)
+
+    def test_al_pasar_de_tiktok_a_youtube_baja_el_alto(self):
+        self._elegir("TikTok")
+        alto_tiktok = self.dialogo.GetSize().GetHeight()
+        self._elegir("YouTube")
+        alto_youtube = self.dialogo.GetSize().GetHeight()
+        self.assertLess(alto_youtube, alto_tiktok)
+        zona = self.dialogo._zona_desplazable
+        self.assertGreaterEqual(zona.GetClientSize().GetHeight(),
+                                zona.GetVirtualSize().GetHeight())
 
     def test_zona_sin_barra_vertical_al_abrir(self):
         zona = self.dialogo._zona_desplazable
@@ -359,8 +381,10 @@ class TestPanelTransmision(unittest.TestCase):
         with mock.patch.object(tema, "ALTO_CONTRASTE", False):
             self.dialogo._fallo("OBS no contesta")
         self.assertEqual(self.dialogo.txt_estado.GetValue(), "OBS no contesta")
-        self.assertEqual(self.dialogo.txt_estado.GetForegroundColour(),
-                         tema._T.red)
+        if not tema.ALTO_CONTRASTE:
+            attr = wx.TextAttr()
+            self.assertTrue(self.dialogo.txt_estado.GetStyle(0, attr))
+            self.assertEqual(attr.GetTextColour(), tema._T.red)
 
     def test_fallo_enfoca_actualizar_estado(self):
         with mock.patch.object(self.dialogo.btn_actualizar, "SetFocus") as foco:

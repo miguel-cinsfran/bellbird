@@ -345,7 +345,7 @@ class GestorPanelObs:
         # width/height ya llevan la escala aplicada. El panel se redimensiona
         # escribiendo el tamaño de la entrada (redimensionar), así que el valor
         # editable es sourceWidth/sourceHeight: con width, un panel escalado se
-        # encogía a la mitad con cada «Aplicar tamaño». Las demás fuentes se
+        # encogía a la mitad con cada cambio de tamaño. Las demás fuentes se
         # escalan (escalar) y ahí sí manda el tamaño en pantalla.
         if fuente == NOMBRE_FUENTE:
             ancho = transformacion.get("sourceWidth") or rect_panel[2]

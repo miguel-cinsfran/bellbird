@@ -101,15 +101,20 @@ def _igualar_rotulos(zona):
         rotulo.SetMinSize((ancho, -1))
 
 
+def ajustar_zona(ventana, zona, contenido):
+    """Recalcula el alto mínimo de la zona según lo que está visible."""
+    alto = min(contenido.CalcMin().GetHeight(),
+               wx.Display(ventana).GetClientArea().GetHeight() - 120)
+    zona.SetMinSize((-1, alto))
+
+
 def fijar_zona(ventana, zona, contenido):
     """Fija el sizer de la zona y un alto que no tape la barra de tareas."""
     zona.SetSizer(contenido)
     _igualar_rotulos(zona)
     # Fit mide un ScrolledWindow por su mínimo, no por su contenido: sin
     # este mínimo el diálogo nace colapsado y solo se ven los botones.
-    alto = min(contenido.GetMinSize().GetHeight(),
-               wx.Display(ventana).GetClientArea().GetHeight() - 120)
-    zona.SetMinSize((-1, alto))
+    ajustar_zona(ventana, zona, contenido)
 
 
 def fila_label(p, texto):
@@ -155,23 +160,23 @@ def mostrar_control(control, visible, foco):
 class CampoEstado(wx.TextCtrl):
     """Cuadro de solo lectura para el estado, con su primera línea en negrita."""
 
-    def __init__(self, padre, nombre, lineas=5):
+    def __init__(self, padre, nombre, lineas=6):
         super().__init__(
-            padre, style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_RICH2
-            | wx.TE_NO_VSCROLL, name=nombre)
+            padre, style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_RICH2,
+            name=nombre)
         self.SetMinSize((-1, lineas * self.GetCharHeight() + 8))
 
     def mostrar(self, estado):
-        self.SetValue("\n".join((estado.titular, *estado.lineas)))
+        texto = "\n".join((estado.titular, *estado.lineas))
+        self.SetValue(texto)
         color = tema._T.red if estado.tono == "aviso" else tema._T.primary
-        if not tema.ALTO_CONTRASTE:
-            tema._pintar(self, fg=color)
-        self.SetStyle(0, len(estado.titular), self._atributo(color))
+        self.SetStyle(0, len(texto), self._atributo(None))
+        self.SetStyle(0, len(estado.titular), self._atributo(color, True))
 
-    def _atributo(self, color):
+    def _atributo(self, color, negrita=False):
         atributo = wx.TextAttr()
-        atributo.SetFont(self.GetFont().Bold())
-        if not tema.ALTO_CONTRASTE:
+        atributo.SetFont(self.GetFont().Bold() if negrita else self.GetFont())
+        if color is not None and not tema.ALTO_CONTRASTE:
             atributo.SetTextColour(color)
         return atributo
 

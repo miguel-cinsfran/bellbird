@@ -2609,6 +2609,11 @@ msgstr ""
 "Arrows move, Ctrl for big steps, Shift for one-pixel steps. Enter confirms,"
 " Esc undoes, Tab exits."
 
+#: bellbird/obs/estado_panel.py bellbird/obs/obs_estado.py
+#, python-brace-format
+msgid "Transmitiendo desde hace {duracion}"
+msgstr "Broadcasting for {duracion}"
+
 #: bellbird/obs/estado_panel.py
 #, python-brace-format
 msgid "Transmitiendo a {destino} desde hace {duracion}"
@@ -3308,11 +3313,6 @@ msgstr "You are not broadcasting"
 
 #: bellbird/obs/obs_estado.py
 #, python-brace-format
-msgid "Transmitiendo desde hace {duracion}"
-msgstr "Broadcasting for {duracion}"
-
-#: bellbird/obs/obs_estado.py
-#, python-brace-format
 msgid " de {t}"
 msgstr " of {t}"
 
@@ -3474,13 +3474,8 @@ msgid "El audio del escritorio {nombre} está silenciado."
 msgstr "The {nombre} desktop audio is muted."
 
 #: bellbird/obs/obs_prevuelo.py
-msgid ""
-"La escena no tiene ninguna fuente visible. Para agregar una: Transmisión, "
-"sección Escena, elegir la ventana en Ventana que se captura y pulsar Usar "
-"esa ventana."
-msgstr ""
-"The scene has no visible source. To add one: Broadcast, Scene section, "
-"choose the window in Window to capture and press Use that window."
+msgid "La escena no tiene ninguna fuente visible. Agrégala en Organizar escena."
+msgstr "The scene has no visible source. Add it in Arrange scene."
 
 #: bellbird/obs/obs_prevuelo.py
 msgid ""

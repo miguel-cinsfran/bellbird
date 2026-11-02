@@ -18,8 +18,8 @@ from bellbird.ui.gui import caja_de_grupo
 from bellbird.ui.gui_organizar_escena import OrganizarEscenaDialog
 from bellbird.ui.operaciones_obs import OperacionesObs
 from bellbird.ui.preferencias_comun import (
-    CampoEstado, boton, fijar_zona, fila_campo, fila_horizontal,
-    mostrar_control, mostrar_fila)
+    CampoEstado, ajustar_zona, boton, fijar_zona, fila_campo,
+    fila_horizontal, mostrar_control, mostrar_fila)
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -97,7 +97,7 @@ class TransmisionDialog(wx.Dialog):
             self.btn_cambiar_escena, self.btn_organizar, self.btn_mostrar_obs,
             self.btn_actualizar, self.btn_cerrar)
         self.SetMinSize((600, -1))
-        self.Fit()
+        self._acomodar()
 
     def _crear_estado(self, zona, contenido):
         rotulo = wx.StaticText(zona, label=_("&Estado:"))
@@ -223,8 +223,15 @@ class TransmisionDialog(wx.Dialog):
             self.chk_chat,
             destino == "YouTube" and self._alternar_panel is not None,
             self.btn_directo)
+        ajustar_zona(self, self._zona_desplazable,
+                     self._zona_desplazable.GetSizer())
+        self._acomodar()
+
+    def _acomodar(self):
         self.Layout()
         self.Fit()
+        self.SetSize((max(600, self.GetSize().GetWidth()),
+                      self.GetSize().GetHeight()))
 
     def _mostrar_estado(self, estado):
         self._estado_actual = estado

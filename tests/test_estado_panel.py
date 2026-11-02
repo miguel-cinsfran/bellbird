@@ -41,6 +41,12 @@ class TestTitular(unittest.TestCase):
             "Transmitiendo a TikTok desde hace menos de un minuto")
         self.assertEqual(estado.tono, "activo")
 
+    def test_transmitiendo_sin_destino_no_deja_un_hueco(self):
+        estado = _resumir(
+            destino="",
+            transmision={"outputActive": True, "outputDuration": 61})
+        self.assertEqual(estado.titular, "Transmitiendo desde hace 1 min")
+
     def test_transmitiendo_reutiliza_la_duracion_de_obs_estado(self):
         estado = _resumir(
             transmision={"outputActive": True, "outputDuration": 61})

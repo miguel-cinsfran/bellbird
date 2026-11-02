@@ -131,7 +131,7 @@ class OrganizarEscenaDialog(wx.Dialog):
         controles = (rotulo_ancho, self.sp_ancho, rotulo_alto, self.sp_alto,
                      self.btn_tamano)
         for control in controles:
-            fila.Add(control, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 4)
+            fila.Add(control, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.RIGHT, 4)
         sizer.Add(fila, 0, wx.ALIGN_LEFT | wx.ALL, 6)
 
     def _crear_fila_controles(self, padre, sizer):

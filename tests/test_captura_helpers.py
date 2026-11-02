@@ -398,7 +398,7 @@ class TestFiltros(unittest.TestCase):
                     limpiar_emojis=True, eliminar_urls=False,
                     max_longitud_mensaje=200, umbral_solo_nombre=umbral,
                     formato_prefijo="nombre_mensaje", estrategia="todas",
-                    tamanio_maximo=10, tiktok_aviso_entradas="leer",
+                    tamanio_maximo=10, evento_entrada="principal",
                 )
                 procesar_entrante(autor, "hola", tipo, monto, "canal", cola,
                                   config, Stats())

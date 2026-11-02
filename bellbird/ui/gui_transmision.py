@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import threading
-
 import wx
 
 from bellbird.obs import ajuste_fino
@@ -21,8 +19,9 @@ from bellbird.obs import overlay_servidor
 from bellbird.ui.accesibilidad import ContadorAccesible, anunciar, nombre_accesible
 from bellbird.ui.confirmar_transmision import _ETIQUETA_TRANSMITIR, confirmar_transmision
 from bellbird.ui.gui import caja_de_grupo
+from bellbird.ui.operaciones_obs import OperacionesObs
 from bellbird.ui import paleta
-from bellbird.ui.preferencias_comun import fila_botones
+from bellbird.ui.preferencias_comun import boton, fila_botones, fila_campo
 from bellbird.ui.tema import _T
 from bellbird.obs.obs_panel import GestorPanelObs, NOMBRE_FUENTE
 from bellbird.obs.restablecimiento import RegistroRestablecimiento
@@ -58,12 +57,10 @@ class TransmisionDialog(wx.Dialog):
         self._restablecimiento = RegistroRestablecimiento()
         self._valores_ventana = []
         self._ajuste = ajuste_fino.EstadoAjuste()
-        self._cerrando = False
-        self._operacion_en_vuelo = False
+        self._operaciones = OperacionesObs(
+            self, self._activar, self._escribir_fallo, self._enfocar_tras_fallo,
+            self._tras_operacion)
         self._crear_controles()
-        self._temporizador_consulta = wx.Timer(self)
-        self.Bind(wx.EVT_TIMER, self._anunciar_consulta, self._temporizador_consulta)
-        self.Bind(wx.EVT_WINDOW_DESTROY, self._al_destruir)
         self.Centre()
         paleta.pintar_ventana(self)
         self._en_hilo(self._cargar_inicial, self._inicial_cargada)
@@ -96,7 +93,7 @@ class TransmisionDialog(wx.Dialog):
         zona.SetSizer(contenido)
         caja.Add(zona, 1, wx.EXPAND)
 
-        self.btn_cerrar = self._boton(panel, _("Cerrar"), "CerrarTransmision", wx.ID_CANCEL)
+        self.btn_cerrar = boton(panel, _("Cerrar"), "CerrarTransmision", wx.ID_CANCEL)
         caja.Add(self.btn_cerrar, 0, wx.ALIGN_RIGHT | wx.ALL, 10)
         panel.SetSizer(caja)
         self._acciones = (self.cho_destino, self.txt_usuario_tiktok, self.btn_destino,
@@ -118,17 +115,17 @@ class TransmisionDialog(wx.Dialog):
         self.cho_destino = wx.Choice(padre_transmitir, choices=list(DESTINOS),
                                      name=_("Transmitir a"))
         nombre_accesible(self.cho_destino, _("Transmitir a"))
-        self._fila_campo(sizer_transmitir, rotulo_destino, self.cho_destino)
+        fila_campo(sizer_transmitir, rotulo_destino, self.cho_destino)
         rotulo_usuario = self._nuevo_rotulo(padre_transmitir, _("Usuario de TikTok:"))
         self.txt_usuario_tiktok = wx.TextCtrl(
             padre_transmitir, value=self._usuario_tiktok, name=_("Usuario de TikTok"))
         nombre_accesible(self.txt_usuario_tiktok, _("Usuario de TikTok"))
-        self._fila_campo(sizer_transmitir, rotulo_usuario, self.txt_usuario_tiktok)
-        self.btn_destino = self._boton(padre_transmitir, _("Preparar desti&no"), _("Preparar destino"))
-        self.btn_transmitir = self._boton(
+        fila_campo(sizer_transmitir, rotulo_usuario, self.txt_usuario_tiktok)
+        self.btn_destino = boton(padre_transmitir, _("Preparar desti&no"), _("Preparar destino"))
+        self.btn_transmitir = boton(
             padre_transmitir, _(_ETIQUETA_TRANSMITIR), _("Transmitir"))
-        self.btn_grabar = self._boton(padre_transmitir, _(_ETIQUETA_GRABAR), _("Grabar"))
-        self.btn_pausar_grabacion = self._boton(
+        self.btn_grabar = boton(padre_transmitir, _(_ETIQUETA_GRABAR), _("Grabar"))
+        self.btn_pausar_grabacion = boton(
             padre_transmitir, _("Pausar gra&bación"), _("Pausar grabación"))
         sizer_transmitir.Add(fila_botones((self.btn_destino, self.btn_transmitir,
                                            self.btn_grabar, self.btn_pausar_grabacion)),
@@ -140,18 +137,18 @@ class TransmisionDialog(wx.Dialog):
         rotulo_escena = self._nuevo_rotulo(padre_escena, _("Escena:"))
         self.cho_escena = wx.Choice(padre_escena, name=_("Escena"))
         nombre_accesible(self.cho_escena, _("Escena"))
-        self.btn_poner_al_aire = self._boton(padre_escena, _("Poner al &aire"), _("Poner al aire"))
-        self._fila_campo(sizer_escena, rotulo_escena, self.cho_escena,
-                         boton=self.btn_poner_al_aire)
+        self.btn_poner_al_aire = boton(padre_escena, _("Poner al &aire"), _("Poner al aire"))
+        fila_campo(sizer_escena, rotulo_escena, self.cho_escena,
+                   boton=self.btn_poner_al_aire)
         rotulo_ventana = self._nuevo_rotulo(padre_escena, _("Ventana que se captura:"))
         self.cho_ventana = wx.Choice(padre_escena, name=_("Ventana que se captura"))
         nombre_accesible(self.cho_ventana, _("Ventana que se captura"))
-        self.btn_usar_ventana = self._boton(padre_escena, _("Usar esa &ventana"), _("Usar esa ventana"))
-        self._fila_campo(sizer_escena, rotulo_ventana, self.cho_ventana,
-                         boton=self.btn_usar_ventana)
-        self.btn_captura = self._boton(
+        self.btn_usar_ventana = boton(padre_escena, _("Usar esa &ventana"), _("Usar esa ventana"))
+        fila_campo(sizer_escena, rotulo_ventana, self.cho_ventana,
+                   boton=self.btn_usar_ventana)
+        self.btn_captura = boton(
             padre_escena, _("Guardar una capt&ura de la escena…"), "GuardarCaptura")
-        self.btn_actualizar = self._boton(padre_escena, _("Actualizar e&stado"), "ActualizarEstado")
+        self.btn_actualizar = boton(padre_escena, _("Actualizar e&stado"), "ActualizarEstado")
         sizer_escena.Add(fila_botones((self.btn_captura, self.btn_actualizar)),
                          0, wx.ALL, 6)
         contenido.Add(sizer_escena, 1, wx.EXPAND | wx.ALL, 10)
@@ -174,12 +171,12 @@ class TransmisionDialog(wx.Dialog):
         self.chk_panel_chat.SetValue(overlay_servidor.esta_encendido())
         self.chk_panel_chat.Enable(self._alternar_panel is not None)
         sizer_panel.Add(self.chk_panel_chat, 0, wx.ALL, 6)
-        self.btn_preparar = self._boton(padre_panel, _("Preparar pane&l"), _("Preparar panel"))
+        self.btn_preparar = boton(padre_panel, _("Preparar pane&l"), _("Preparar panel"))
         sizer_panel.Add(self.btn_preparar, 0, wx.ALL, 6)
         rotulo_fuente = self._nuevo_rotulo(padre_panel, _("Fuente:"))
         self.cho_fuente = wx.Choice(padre_panel, name=_("Fuente"))
         nombre_accesible(self.cho_fuente, _("Fuente"))
-        self._fila_campo(sizer_panel, rotulo_fuente, self.cho_fuente)
+        fila_campo(sizer_panel, rotulo_fuente, self.cho_fuente)
         rotulo_estado = self._nuevo_rotulo(padre_panel, _("Estado del panel:"))
         sizer_panel.Add(rotulo_estado, 0, wx.ALL, 6)
         self.txt_estado = wx.TextCtrl(
@@ -194,8 +191,8 @@ class TransmisionDialog(wx.Dialog):
                                   for nombre in obs_disposicion.ANCLAJES],
             name=_("Posición del panel"))
         nombre_accesible(self.cho_posicion, _("Posición del panel"))
-        self._fila_campo(sizer_panel, rotulo_posicion, self.cho_posicion)
-        self.btn_colocar = self._boton(
+        fila_campo(sizer_panel, rotulo_posicion, self.cho_posicion)
+        self.btn_colocar = boton(
             padre_panel, _("&Colocar en esa posición"), _("Colocar en esa posición"))
         sizer_panel.Add(self.btn_colocar, 0, wx.ALL, 6)
         self._crear_seccion_panel_tamano(padre_panel, sizer_panel)
@@ -205,12 +202,12 @@ class TransmisionDialog(wx.Dialog):
         rotulo_ancho = self._nuevo_rotulo(padre_panel, _("Ancho del panel en píxeles:"))
         self.sp_ancho = ContadorAccesible(padre_panel, min=100, max=4000, initial=460,
                                           name=_("Ancho del panel en píxeles"))
-        self._fila_campo(sizer_panel, rotulo_ancho, self.sp_ancho)
+        fila_campo(sizer_panel, rotulo_ancho, self.sp_ancho)
         rotulo_alto = self._nuevo_rotulo(padre_panel, _("Alto del panel en píxeles:"))
         self.sp_alto = ContadorAccesible(padre_panel, min=100, max=4000, initial=620,
                                          name=_("Alto del panel en píxeles"))
-        self._fila_campo(sizer_panel, rotulo_alto, self.sp_alto)
-        self.btn_tamano = self._boton(padre_panel, _("Apl&icar tamaño"), "AplicarTamano")
+        fila_campo(sizer_panel, rotulo_alto, self.sp_alto)
+        self.btn_tamano = boton(padre_panel, _("Apl&icar tamaño"), "AplicarTamano")
         sizer_panel.Add(self.btn_tamano, 0, wx.ALL, 6)
         self.chk_mostrar = wx.CheckBox(padre_panel, label=_("&Mostrar panel en la escena"),
                                        name="MostrarPanel")
@@ -218,17 +215,17 @@ class TransmisionDialog(wx.Dialog):
                                      name="FijarPanel")
         sizer_panel.Add(self.chk_mostrar, 0, wx.ALL, 6)
         sizer_panel.Add(self.chk_fijar, 0, wx.ALL, 6)
-        self.btn_frente = self._boton(padre_panel, _("P&oner al frente"), "PonerAlFrente")
+        self.btn_frente = boton(padre_panel, _("P&oner al frente"), "PonerAlFrente")
         sizer_panel.Add(self.btn_frente, 0, wx.ALL, 6)
         self._etiqueta_ajuste = _("A&juste fino")
-        self.btn_ajuste = self._boton(padre_panel, self._etiqueta_ajuste, "AjusteFino")
+        self.btn_ajuste = boton(padre_panel, self._etiqueta_ajuste, "AjusteFino")
         sizer_panel.Add(self.btn_ajuste, 0, wx.ALL, 6)
-        self.btn_como_se_coloca = self._boton(
+        self.btn_como_se_coloca = boton(
             padre_panel, _("Cómo s&e coloca el panel"), _("Cómo se coloca el panel"))
         sizer_panel.Add(self.btn_como_se_coloca, 0, wx.ALL, 6)
-        self.btn_lienzo = self._boton(padre_panel, _("&Qué es el lienzo"), "QueEsElLienzo")
+        self.btn_lienzo = boton(padre_panel, _("&Qué es el lienzo"), "QueEsElLienzo")
         sizer_panel.Add(self.btn_lienzo, 0, wx.ALL, 6)
-        self.btn_restaurar = self._boton(padre_panel, _("&Restablecer"), "RestablecerTransmision")
+        self.btn_restaurar = boton(padre_panel, _("&Restablecer"), "RestablecerTransmision")
         sizer_panel.Add(self.btn_restaurar, 0, wx.ALL, 6)
 
     def _enlazar_eventos(self):
@@ -265,39 +262,6 @@ class TransmisionDialog(wx.Dialog):
         self._rotulos_transmision.append(rotulo)
         return rotulo
 
-    @staticmethod
-    def _fila_campo(sizer, rotulo, control, proporcion=0, boton=None):
-        fila = wx.BoxSizer(wx.HORIZONTAL)
-        fila.Add(rotulo, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 6)
-        fila.Add(control, 1, wx.EXPAND | wx.ALL, 6)
-        if boton is not None:
-            fila.Add(boton, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 6)
-        sizer.Add(fila, proporcion, wx.EXPAND, 0)
-
-    @staticmethod
-    def _boton(panel, etiqueta, nombre, identificador=wx.ID_ANY):
-        boton = wx.Button(panel, identificador, etiqueta, name=nombre)
-        return boton
-
-    def _en_hilo(self, funcion, al_terminar=None):
-        self._activar(False)
-        self._operacion_en_vuelo = True
-        self._temporizador_consulta.StartOnce(400)
-        def ejecutar():
-            try:
-                resultado = funcion()
-            except obs_cliente.ObsError as error:
-                wx.CallAfter(self._fallo, str(error))
-            except Exception as error:
-                # Cualquier otro fallo (la fuente ya no existe en OBS y
-                # obs_panel devuelve None, falta web/chat.html…) mataba el
-                # hilo sin avisar y dejaba el diálogo con todo desactivado.
-                logger.warning("operación OBS: %r", error)
-                wx.CallAfter(self._fallo, obs_cliente.mensaje_de_fallo_obs(error))
-            else:
-                wx.CallAfter(self._terminar, resultado, al_terminar)
-        diagnostico.crear_hilo(ejecutar, "TransmisionOBS").start()
-
     def _alternar_panel_chat(self, event):
         if self._alternar_panel is not None:
             self.chk_panel_chat.SetValue(
@@ -315,40 +279,22 @@ class TransmisionDialog(wx.Dialog):
         sel = self.cho_destino.GetSelection()
         return DESTINOS[sel] if sel != wx.NOT_FOUND else None
 
-    def _terminar(self, resultado, al_terminar):
-        self._temporizador_consulta.Stop()
-        self._operacion_en_vuelo = False
-        if self._cerrando:
-            return
-        self._activar(True)
+    def _tras_operacion(self, resultado):
         if isinstance(resultado, obs_disposicion.SnapshotPanel):
             self._mostrar_snap(resultado)
-        if al_terminar:
-            al_terminar(resultado)
 
-    def _fallo(self, mensaje):
-        self._temporizador_consulta.Stop()
-        self._operacion_en_vuelo = False
-        if self._cerrando:
-            return
-        self._activar(False)
+    def _escribir_fallo(self, mensaje):
         self.txt_estado.SetValue(mensaje)
-        sound_player.reproducir("error")
-        anunciar(mensaje)
+
+    def _enfocar_tras_fallo(self):
         self.btn_actualizar.Enable(True)
         self.btn_actualizar.SetFocus()
 
-    def _anunciar_consulta(self, event):
-        if self._operacion_en_vuelo and not self._cerrando:
-            # Puede repetirse mientras espera la operación y no debe interrumpir.
-            anunciar(_("Consultando OBS"), False)
+    def _en_hilo(self, funcion, al_terminar=None):
+        self._operaciones.en_hilo(funcion, al_terminar)
 
-    def _al_destruir(self, event):
-        # Un hilo puede aterrizar después del Destroy; sin esta marca tocaba
-        # controles ya muertos y wx levantaba RuntimeError.
-        self._cerrando = True
-        self._temporizador_consulta.Stop()
-        event.Skip()
+    def _fallo(self, mensaje):
+        self._operaciones.fallo(mensaje)
 
     def _cargar_inicial(self):
         self._asegurar(lambda: self._gestor.conectar(),
@@ -675,7 +621,7 @@ class TransmisionDialog(wx.Dialog):
         anunciar(frase)
 
     def _cambiar_escena(self, event):
-        if self._operacion_en_vuelo:
+        if self._operaciones.en_vuelo:
             return
         escena = self._escena()
         self._en_hilo(lambda: self._leer_escena(escena), self._escena_cambiada)
@@ -692,7 +638,7 @@ class TransmisionDialog(wx.Dialog):
             self._anunciar_snap(datos.snap)
 
     def _cambiar_fuente(self, event):
-        if self._operacion_en_vuelo:
+        if self._operaciones.en_vuelo:
             return
         escena, fuente = self._escena(), self._fuente()
         self._en_hilo(lambda: self._leer(escena, fuente), self._anunciar_snap)
@@ -804,7 +750,7 @@ class TransmisionDialog(wx.Dialog):
 
     def _movimiento_terminado(self, snap):
         decision = self._ajuste.aterrizar()
-        if self._cerrando:
+        if self._operaciones.cerrando:
             return
         if decision == ajuste_fino.DESHACER:
             self._deshacer_ajuste()
@@ -814,7 +760,7 @@ class TransmisionDialog(wx.Dialog):
 
     def _movimiento_fallo(self, mensaje):
         decision = self._ajuste.aterrizar()
-        if self._cerrando:
+        if self._operaciones.cerrando:
             return
         if decision == ajuste_fino.DESHACER:
             self._deshacer_ajuste()
@@ -893,10 +839,9 @@ class TransmisionDialog(wx.Dialog):
         return self._leer(escena_actual, fuente_actual)
 
     def _cerrar(self, event):
-        if self._cerrando:
+        if self._operaciones.cerrando:
             return
-        self._cerrando = True
-        self._temporizador_consulta.Stop()
+        self._operaciones.cerrar()
         diagnostico.crear_hilo(self._cerrar_gestor, "CerrarTransmisionOBS").start()
         self.EndModal(wx.ID_CANCEL)
 

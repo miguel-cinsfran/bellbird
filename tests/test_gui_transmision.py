@@ -1,10 +1,12 @@
 """Pruebas del diálogo de Transmisión sin conectar con OBS."""
 
 import types
+import threading
 import unittest
 from unittest import mock
 
 from bellbird.ui import confirmar_transmision as modulo_confirmar
+from bellbird.ui import operaciones_obs
 from bellbird.ui import gui_transmision
 from bellbird.obs import consultas_transmision
 from bellbird.obs import obs_cliente
@@ -175,9 +177,10 @@ class TestTransmisionDialog(unittest.TestCase):
             self.anuncios.append(texto)
             self.categorias.append(categoria)
         self.parches = [
-            mock.patch.object(gui_transmision.threading, "Thread", HiloInmediato),
+            mock.patch.object(threading, "Thread", HiloInmediato),
             mock.patch.object(gui_transmision.wx, "CallAfter", lambda funcion, *args: funcion(*args)),
             mock.patch.object(gui_transmision, "anunciar", anunciar),
+            mock.patch.object(operaciones_obs, "anunciar", anunciar),
             mock.patch.object(gui_transmision.sound_player, "reproducir"),
         ]
         for parche in self.parches: parche.start()
@@ -204,11 +207,17 @@ class TestTransmisionDialog(unittest.TestCase):
         # existe en OBS) mataba el hilo y dejaba todo desactivado para siempre.
         def falla():
             raise TypeError("'NoneType' object is not subscriptable")
-        with mock.patch.object(gui_transmision.logger, "warning"):
+        with mock.patch.object(operaciones_obs.logger, "warning"):
             self.dialogo._en_hilo(falla)
-        self.assertFalse(self.dialogo._operacion_en_vuelo)
+        self.assertFalse(self.dialogo._operaciones.en_vuelo)
         self.assertIn("OBS no pudo completar la operación",
                       self.dialogo.txt_estado.GetValue())
+
+    def test_un_fallo_habilita_y_enfoca_actualizar_estado(self):
+        with mock.patch.object(self.dialogo.btn_actualizar, "SetFocus") as foco:
+            self.dialogo._fallo("OBS no contesta")
+        self.assertTrue(self.dialogo.btn_actualizar.IsEnabled())
+        foco.assert_called_once_with()
 
     def test_casilla_del_panel_alterna_el_servidor(self):
         destruir(self.dialogo)
@@ -615,8 +624,8 @@ class TestTransmisionDialog(unittest.TestCase):
     def test_destruir_marca_el_cierre_y_los_movimientos_tardios_no_tocan_controles(self):
         self.dialogo._iniciar_ajuste(Evento())
         self.dialogo._ajuste.en_vuelo = True
-        self.dialogo._al_destruir(Evento())
-        self.assertTrue(self.dialogo._cerrando)
+        self.dialogo._operaciones._al_destruir(Evento())
+        self.assertTrue(self.dialogo._operaciones.cerrando)
         with mock.patch.object(self.dialogo, "_mostrar_snap") as mostrar, \
                 mock.patch.object(self.dialogo, "_fallo") as fallo:
             self.dialogo._movimiento_terminado(self.gestor.snap)
@@ -649,6 +658,7 @@ class TestTransmisionDialog(unittest.TestCase):
 
         with mock.patch.object(gui_transmision.diagnostico, "crear_hilo", crear_hilo), \
                 mock.patch.object(gui_transmision.logger, "warning") as aviso, \
+                mock.patch.object(operaciones_obs.logger, "warning") as aviso_obs, \
                 mock.patch.object(gui_transmision.overlay_servidor, "esta_encendido",
                                   return_value=True), \
                 mock.patch.object(gui_transmision.overlay_servidor, "puerto_actual",
@@ -660,11 +670,12 @@ class TestTransmisionDialog(unittest.TestCase):
                            dialogo._usar_ventana):
                 with self.subTest(accion=accion.__name__):
                     accion(Evento())
-                    self.assertFalse(dialogo._operacion_en_vuelo)
+                    self.assertFalse(dialogo._operaciones.en_vuelo)
             dialogo._tecla_ajuste(EventoTecla(wx.WXK_RIGHT))
             dialogo._tecla_ajuste(EventoTecla(wx.WXK_ESCAPE))
             self.assertIn(("mover", "Principal", 10, 0), self.gestor.llamadas)
         aviso.assert_not_called()
+        aviso_obs.assert_not_called()
         self.assertNotIn("OBS no pudo completar la operación. Inténtalo de nuevo.", self.anuncios)
 
     def test_tab_confirma_y_deja_navegar(self):
@@ -691,20 +702,20 @@ class TestTransmisionDialog(unittest.TestCase):
 
     def test_consulta_rapida_no_anuncia_la_espera(self):
         temporizador = mock.Mock()
-        self.dialogo._temporizador_consulta = temporizador
+        self.dialogo._operaciones._temporizador_consulta = temporizador
         self.dialogo._actualizar(Evento())
         temporizador.StartOnce.assert_called_once_with(400)
         temporizador.Stop.assert_called_once_with()
         self.assertNotIn("Consultando OBS", self.anuncios)
 
     def test_consulta_lenta_anuncia_la_espera(self):
-        self.dialogo._operacion_en_vuelo = True
-        self.dialogo._anunciar_consulta(Evento())
+        self.dialogo._operaciones.en_vuelo = True
+        self.dialogo._operaciones._anunciar_consulta(Evento())
         self.assertIn("Consultando OBS", self.anuncios)
 
     def test_cerrar_detiene_el_aviso_pendiente(self):
         temporizador = mock.Mock()
-        self.dialogo._temporizador_consulta = temporizador
+        self.dialogo._operaciones._temporizador_consulta = temporizador
         self.dialogo.EndModal = mock.Mock()
         self.dialogo._cerrar(Evento())
         temporizador.Stop.assert_called_once_with()
@@ -1514,9 +1525,10 @@ class TestCampoUsuarioSegunDestino(unittest.TestCase):
     def setUp(self):
         self.app = wx.App() if not wx.App.Get() else wx.App.Get()
         self.parches = [
-            mock.patch.object(gui_transmision.threading, "Thread", HiloInmediato),
+            mock.patch.object(threading, "Thread", HiloInmediato),
             mock.patch.object(gui_transmision.wx, "CallAfter", lambda funcion, *args: funcion(*args)),
             mock.patch.object(gui_transmision, "anunciar", lambda *args, **kwargs: None),
+            mock.patch.object(operaciones_obs, "anunciar", lambda *args, **kwargs: None),
             mock.patch.object(gui_transmision.sound_player, "reproducir"),
         ]
         for parche in self.parches: parche.start()
@@ -1620,9 +1632,10 @@ class TestPseudoTransmisionVentana(unittest.TestCase):
     def setUp(self):
         self.app = wx.App() if not wx.App.Get() else wx.App.Get()
         self.parches = [
-            mock.patch.object(gui_transmision.threading, "Thread", HiloInmediato),
+            mock.patch.object(threading, "Thread", HiloInmediato),
             mock.patch.object(gui_transmision.wx, "CallAfter", lambda funcion, *args: funcion(*args)),
             mock.patch.object(gui_transmision, "anunciar", lambda *args, **kwargs: None),
+            mock.patch.object(operaciones_obs, "anunciar", lambda *args, **kwargs: None),
             mock.patch.object(gui_transmision.sound_player, "reproducir"),
         ]
         for parche in self.parches:

@@ -24,7 +24,7 @@ from tests.ventanas_prueba import destruir
 from bellbird.ai import catalogo
 from bellbird.core import config
 from bellbird.downloads import descargas, formatos_reales
-from bellbird.ui import descargas_listas, elegir_formato, gui, gui_comentarios, gui_descargas, gui_directo_youtube, gui_historial, gui_microfono, gui_transmision, gui_preferencias
+from bellbird.ui import descargas_listas, operaciones_obs, elegir_formato, gui, gui_comentarios, gui_descargas, gui_directo_youtube, gui_historial, gui_microfono, gui_transmision, gui_preferencias
 from bellbird.ui import preferencias_ia
 from bellbird.ui import preferencias_ia_clave
 from bellbird.voice import motores
@@ -210,11 +210,13 @@ class TestLetrasAccesoTransmision(unittest.TestCase):
     def setUp(self):
         self.app = wx.App.Get() or wx.App(False)
         self.parches = [
-            mock.patch.object(gui_transmision.threading, "Thread",
+            mock.patch.object(threading, "Thread",
                               HiloInmediato),
             mock.patch.object(gui_transmision.wx, "CallAfter",
                               lambda funcion, *args: funcion(*args)),
             mock.patch.object(gui_transmision, "anunciar",
+                              lambda *args, **kwargs: None),
+            mock.patch.object(operaciones_obs, "anunciar",
                               lambda *args, **kwargs: None),
             mock.patch.object(gui_transmision.sound_player, "reproducir"),
         ]

@@ -67,6 +67,19 @@ def fila_botones(botones, borde=6):
     return fila
 
 
+def fila_campo(sizer, rotulo, control, proporcion=0, boton=None):
+    fila = wx.BoxSizer(wx.HORIZONTAL)
+    fila.Add(rotulo, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 6)
+    fila.Add(control, 1, wx.EXPAND | wx.ALL, 6)
+    if boton is not None:
+        fila.Add(boton, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 6)
+    sizer.Add(fila, proporcion, wx.EXPAND, 0)
+
+
+def boton(panel, etiqueta, nombre, identificador=wx.ID_ANY):
+    return wx.Button(panel, identificador, etiqueta, name=nombre)
+
+
 def opciones_con_elegida(automatico, elegida, encontradas) -> list:
     """El desplegable con la elegida conservada y las halladas sin repetir."""
     opciones = [automatico]

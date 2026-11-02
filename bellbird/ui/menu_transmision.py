@@ -35,8 +35,17 @@ def _agregar_encuadre(frame, m):
     encuadre_camara.sincronizar(frame)
 
 
+def _agregar_grabaciones(frame, m):
+    """El comando que abre la lista de grabaciones guardadas."""
+    from bellbird.ui import gui_grabaciones
+    frame.mi_grabaciones = m.Append(wx.ID_ANY, _("Grabaciones…"))
+    frame._bind_menu(frame.mi_grabaciones,
+                     gui_grabaciones.abrir_grabaciones, frame)
+
+
 def _agregar_avisos(frame, m):
-    """Las casillas de avisos de sobrecarga y grabación al transmitir."""
+    """La lista de grabaciones y las casillas de avisos al transmitir."""
+    _agregar_grabaciones(frame, m)
     frame.mi_avisos_sobrecarga = m.AppendCheckItem(
         wx.ID_ANY,
         _("&Avisar si OBS se sobrecarga") + frame._accel("avisos_sobrecarga"))

@@ -24,7 +24,7 @@ class DobleObs:
     def __init__(self, elementos=None, entradas=(), escena="Escena", escenas=None,
                   silencios=None, grupos=None, perfiles=(), perfil_actual="",
                   estadisticas=None, reconectando=False, parametros=None,
-                  pausa_no_cambia=False):
+                  pausa_no_cambia=False, ruta_grabacion=""):
         self.elementos = list(elementos or ())
         self.entradas = list(entradas)
         self.grupos = dict(grupos or {})
@@ -39,6 +39,7 @@ class DobleObs:
         self.transmitiendo = False
         self.grabando = False
         self.grabacion_en_pausa = False
+        self.ruta_grabacion = ruta_grabacion
         self.reconectando = reconectando
         self.estadisticas = dict(estadisticas or {})
         self.parametros = dict(parametros or {})
@@ -92,6 +93,12 @@ class DobleObs:
         if tipo == "ToggleRecord":
             self.grabando = not self.grabando
             return {"responseData": {"outputActive": self.grabando}}
+        if tipo == "StartRecord":
+            self.grabando = True
+            return {"responseData": {}}
+        if tipo == "StopRecord":
+            self.grabando = False
+            return {"responseData": {"outputPath": self.ruta_grabacion}}
         if tipo == "ToggleRecordPause":
             if self.pausa_no_cambia:
                 return {"responseData": {"outputPaused": True}}
@@ -368,6 +375,21 @@ class GestorPanelObsTest(unittest.TestCase):
         self.assertEqual([llamada[0] for llamada in doble.llamadas[-3:]],
                          ["GetRecordStatus", "ToggleRecordPause",
                           "GetRecordStatus"])
+
+    def test_alternar_grabacion_con_ruta_usa_stop_record_y_devuelve_la_ruta(self):
+        doble = DobleObs(ruta_grabacion="C:/Videos/clip.mp4")
+        doble.grabando = True
+        self.assertEqual(self.gestor(doble).alternar_grabacion_con_ruta(),
+                         (False, "C:/Videos/clip.mp4"))
+        self.assertEqual([llamada[0] for llamada in doble.llamadas],
+                         ["GetRecordStatus", "StopRecord"])
+
+    def test_alternar_grabacion_con_ruta_inicia_sin_ruta(self):
+        doble = DobleObs()
+        self.assertEqual(self.gestor(doble).alternar_grabacion_con_ruta(),
+                         (True, ""))
+        self.assertEqual([llamada[0] for llamada in doble.llamadas],
+                         ["GetRecordStatus", "StartRecord"])
 
     def test_alternar_pausa_ignora_la_respuesta_si_el_estado_no_cambia(self):
         doble = DobleObs(pausa_no_cambia=True)

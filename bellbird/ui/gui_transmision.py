@@ -139,7 +139,9 @@ class TransmisionDialog(wx.Dialog):
             self.btn_directo)
         self.btn_grabar = self._grabacion.boton
         self.btn_pausar = self._grabacion.pausar
-        sizer.Add(fila_horizontal((self.btn_grabar, self.btn_pausar)),
+        self.btn_grabaciones = self._grabacion.grabaciones
+        sizer.Add(fila_horizontal((self.btn_grabar, self.btn_pausar,
+                                   self.btn_grabaciones)),
                   0, wx.ALL, 6)
         contenido.Add(sizer, 0, wx.EXPAND | wx.ALL, 10)
 

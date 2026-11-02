@@ -1,6 +1,7 @@
 """Pruebas del panel de transmisión sin conectar con OBS."""
 
 import pathlib
+import tempfile
 import threading
 import unittest
 from types import SimpleNamespace
@@ -10,7 +11,7 @@ from bellbird.obs import consultas_transmision
 from bellbird.obs import obs_cliente
 from bellbird.obs import obs_disposicion
 from bellbird.obs import estado_panel
-from bellbird.obs import obs_prevuelo
+from bellbird.obs import grabaciones, obs_prevuelo
 from bellbird.ui import confirmar_transmision as modulo_confirmar
 from bellbird.ui import control_grabacion
 from bellbird.ui import directo_panel
@@ -44,6 +45,7 @@ class GestorFalso:
         self.transmitiendo = False
         self.grabando = False
         self.grabacion_en_pausa = False
+        self.ruta_grabacion = ""
         self.silenciado = False
         self.escena_resultante = "Principal"
         self.problemas_revision = ()
@@ -88,6 +90,10 @@ class GestorFalso:
         self.grabando = not self.grabando
         self.llamadas.append(("alternar_grabacion",))
         return self.grabando
+    def alternar_grabacion_con_ruta(self):
+        self.grabando = not self.grabando
+        self.llamadas.append(("alternar_grabacion_con_ruta",))
+        return self.grabando, "" if self.grabando else self.ruta_grabacion
     def alternar_pausa_grabacion(self):
         anterior = self.grabacion_en_pausa
         self.grabacion_en_pausa = not self.grabacion_en_pausa
@@ -282,7 +288,8 @@ class TestPanelTransmision(unittest.TestCase):
         self.assertEqual(self._nombres_en_orden(self.dialogo), [
             "Estado", "Transmitir a", "Transmitir en directo",
             "Mostrar chat en el vídeo", "Iniciar grabación",
-            "Silenciar micrófono", "Elegir micrófono…", "Escena",
+            "Grabaciones…", "Silenciar micrófono", "Elegir micrófono…",
+            "Escena",
             "Cambiar escena", "Organizar escena…", "Mostrar OBS",
             "Actualizar estado", "Cerrar"])
 
@@ -291,7 +298,8 @@ class TestPanelTransmision(unittest.TestCase):
         self.assertEqual(self._nombres_en_orden(self.dialogo), [
             "Estado", "Transmitir a", "Usuario de TikTok",
             "Transmitir en directo", "Iniciar grabación",
-            "Silenciar micrófono", "Elegir micrófono…", "Escena",
+            "Grabaciones…", "Silenciar micrófono", "Elegir micrófono…",
+            "Escena",
             "Cambiar escena", "Organizar escena…", "Mostrar OBS",
             "Actualizar estado", "Cerrar"])
 
@@ -485,6 +493,26 @@ class TestPanelTransmision(unittest.TestCase):
                          "&Reanudar grabación")
         self.assertIn("Grabación iniciada", self.anuncios)
         self.assertIn("Grabación en pausa", self.anuncios)
+
+    def test_boton_grabaciones_abre_la_ventana(self):
+        from bellbird.ui import gui_grabaciones
+
+        with mock.patch.object(gui_grabaciones,
+                               "abrir_grabaciones") as abrir:
+            self._pulsar(self.dialogo.btn_grabaciones)
+        abrir.assert_called_once_with(self.dialogo)
+
+    def test_detener_con_ruta_anuncia_el_archivo(self):
+        self.gestor.ruta_grabacion = "C:/Videos/clip.mp4"
+        with tempfile.TemporaryDirectory() as tmp:
+            ruta = pathlib.Path(tmp) / "grabaciones.json"
+            with mock.patch.object(grabaciones.paths, "grabaciones",
+                                   return_value=ruta):
+                self._pulsar(self.dialogo.btn_grabar)
+                self._pulsar(self.dialogo.btn_grabar)
+        self.assertIn("Grabación guardada: clip.mp4", self.anuncios)
+        control_grabacion.sound_player.reproducir.assert_called_with(
+            "grabacion_detenida")
 
     def test_pausa_que_no_cambia_no_anuncia_pausa(self):
         self._pulsar(self.dialogo.btn_grabar)

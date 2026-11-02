@@ -13,7 +13,7 @@ from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
 from bellbird.core.idioma import _
-from bellbird.obs import obs_grabacion
+from bellbird.obs import grabaciones, obs_grabacion
 from bellbird.obs.obs_grabacion import (
     AVISO_CODIFICADOR, FALLO_GRABACION, GrabacionAlTransmitir,
     alternar_pausa, codificador_propio, codificador_propio_en_obs,
@@ -268,11 +268,13 @@ class EnvolverEsperarSalidaTest(unittest.TestCase):
 
 
 class GestorReal:
-    def __init__(self, registro, estados):
+    def __init__(self, registro, estados, ruta_grabacion="", falla=False):
         self._registro = registro
         self._estados = list(estados)
         self._indice = 0
         self._cliente = self
+        self._ruta_grabacion = ruta_grabacion
+        self._falla = falla
         self.llamadas = []
 
     def estado_transmision(self, parada=None):
@@ -290,11 +292,19 @@ class GestorReal:
         self._registro["grabando"] = not self._registro["grabando"]
         return self._registro["grabando"]
 
+    def alternar_grabacion_con_ruta(self, parada=None):
+        self.llamadas.append("alternar_grabacion_con_ruta")
+        if self._falla:
+            raise RuntimeError("no se pudo detener")
+        self._registro["grabando"] = not self._registro["grabando"]
+        return self._registro["grabando"], self._ruta_grabacion
+
 
 class EnvolverCrearGestorTest(unittest.TestCase):
     def _armar(self, ya_grabando=False):
         registro = {"grabando": ya_grabando}
         creados = []
+        anuncios = []
 
         def crear_gestor(cliente=None):
             gestor = GestorGrabacion(registro)
@@ -302,12 +312,13 @@ class EnvolverCrearGestorTest(unittest.TestCase):
             return gestor
 
         grabacion = GrabacionAlTransmitir(
-            activa=lambda: True, al_anunciar=lambda frase, sonido: None,
+            activa=lambda: True,
+            al_anunciar=lambda frase, sonido: anuncios.append((frase, sonido)),
             crear_gestor=crear_gestor)
-        return grabacion, registro, creados
+        return grabacion, registro, creados, anuncios
 
     def test_detiene_una_sola_vez_la_grabacion_de_la_app(self):
-        grabacion, registro, creados = self._armar()
+        grabacion, registro, creados, anuncios = self._armar()
         grabacion.envolver_esperar_salida(
             lambda cliente, parada=None: "enviando")(object())
         self.assertTrue(registro["grabando"])
@@ -317,10 +328,42 @@ class EnvolverCrearGestorTest(unittest.TestCase):
         envoltorio.estado_transmision()
         envoltorio.estado_transmision()
         self.assertFalse(registro["grabando"])
-        self.assertEqual(real.llamadas.count("alternar_grabacion"), 1)
+        self.assertEqual(real.llamadas.count("alternar_grabacion_con_ruta"), 1)
+
+    def test_al_detener_avisa_el_archivo_y_lo_anota(self):
+        grabacion, registro, creados, anuncios = self._armar()
+        grabacion.envolver_esperar_salida(
+            lambda cliente, parada=None: "enviando")(object())
+        creados.clear()
+        real = GestorReal(registro, [{"outputActive": False}],
+                          ruta_grabacion="C:/Videos/clip.mp4")
+        envoltorio = grabacion.envolver_crear_gestor(lambda: real)()
+        with tempfile.TemporaryDirectory() as tmp:
+            ruta = Path(tmp) / "grabaciones.json"
+            with mock.patch.object(grabaciones.paths, "grabaciones",
+                                   return_value=ruta):
+                envoltorio.estado_transmision()
+            entradas = grabaciones.leer(ruta)
+        self.assertEqual(entradas,
+                         [{"ruta": "C:/Videos/clip.mp4", "fecha": mock.ANY}])
+        self.assertEqual(anuncios, [
+            ("Grabación guardada: clip.mp4", "grabacion_detenida")])
+        self.assertEqual(real.llamadas.count("alternar_grabacion_con_ruta"), 1)
+
+    def test_si_detener_falla_no_lanza_ni_anuncia(self):
+        grabacion, registro, creados, anuncios = self._armar()
+        grabacion.envolver_esperar_salida(
+            lambda cliente, parada=None: "enviando")(object())
+        real = GestorReal(registro, [{"outputActive": False}], falla=True)
+        envoltorio = grabacion.envolver_crear_gestor(lambda: real)()
+        with self.assertLogs(obs_grabacion.logger, level="DEBUG"):
+            envoltorio.estado_transmision()
+        self.assertTrue(registro["grabando"])
+        self.assertEqual(anuncios, [])
+        self.assertEqual(real.llamadas.count("alternar_grabacion_con_ruta"), 1)
 
     def test_no_toca_una_grabacion_que_no_empezo_la_app(self):
-        grabacion, registro, creados = self._armar()
+        grabacion, registro, creados, anuncios = self._armar()
         real = GestorReal(registro, [{"outputActive": False}])
         envoltorio = grabacion.envolver_crear_gestor(lambda: real)()
         envoltorio.estado_transmision()
@@ -328,7 +371,7 @@ class EnvolverCrearGestorTest(unittest.TestCase):
         self.assertFalse(registro["grabando"])
 
     def test_si_la_grabacion_ya_termino_no_alterna(self):
-        grabacion, registro, creados = self._armar()
+        grabacion, registro, creados, anuncios = self._armar()
         grabacion.envolver_esperar_salida(
             lambda cliente, parada=None: "enviando")(object())
         creados.clear()
@@ -375,6 +418,12 @@ class ObsDeGrabacion:
         self._registro["grabando"] = not self._registro["grabando"]
         self._registro["cambios"] += 1
         return self._registro["grabando"]
+
+    def alternar_grabacion_con_ruta(self, parada=None):
+        self.llamadas.append("alternar_grabacion_con_ruta")
+        self._registro["grabando"] = not self._registro["grabando"]
+        self._registro["cambios"] += 1
+        return self._registro["grabando"], ""
 
     def traer_panel_adelante(self, parada=None):
         return None

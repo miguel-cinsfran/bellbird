@@ -178,6 +178,7 @@ class TestEquivalenciaMenu(unittest.TestCase):
             ("&Transmisión", "Mostrar &OBS", ANY, "normal"),
             ("&Transmisión", "Iniciar o detener g&rabación", ANY, "normal"),
             ("&Transmisión", "Pa&usar o reanudar grabación", ANY, "normal"),
+            ("&Transmisión", "Grabaciones…", ANY, "normal"),
             ("&Transmisión", "&Avisar si OBS se sobrecarga", ANY, "check"),
             ("&Transmisión", "&Grabar también al transmitir", ANY, "check"),
             ("&Transmisión", "---", None, "sep"),
@@ -620,6 +621,15 @@ class TestCableadoGrabacion(unittest.TestCase):
             frame = self._frame_con_menu()
             self._elegir(frame, frame.mi_obs_pausar_grabacion)
         comando.assert_called_once_with(frame)
+
+    def test_grabaciones_abre_la_ventana(self):
+        from bellbird.ui import gui_grabaciones
+
+        with mock.patch.object(gui_grabaciones,
+                               "abrir_grabaciones") as abrir:
+            frame = self._frame_con_menu()
+            self._elegir(frame, frame.mi_grabaciones)
+        abrir.assert_called_once_with(frame)
 
 
 # Textos que arma otro módulo y la barra solo muestra. Las etiquetas de

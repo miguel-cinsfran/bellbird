@@ -118,6 +118,9 @@ class GestorPanelObs:
     def alternar_grabacion(self, parada=None) -> bool:
         return bool(self._pedir("ToggleRecord", parada=parada).get("outputActive", False))
 
+    def alternar_grabacion_con_ruta(self, parada=None):
+        return obs_grabacion.alternar_con_ruta(self._pedir, parada)
+
     def alternar_pausa_grabacion(self, parada=None):
         return obs_grabacion.alternar_pausa(self._pedir, parada)
 

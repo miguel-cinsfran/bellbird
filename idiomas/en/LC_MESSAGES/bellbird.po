@@ -2673,6 +2673,23 @@ msgstr "Recording: stopped"
 msgid "Chat en el vídeo"
 msgstr "Chat on video"
 
+#: bellbird/obs/grabaciones.py
+#, python-brace-format
+msgid "{nombre}, {fecha}, {tamano}"
+msgstr "{nombre}, {fecha}, {tamano}"
+
+#. Traductores: fecha y hora de una grabación; se ordena como la fecha
+#. corta de Windows en ese idioma. {hora} y {minuto} van con dos cifras.
+#: bellbird/obs/grabaciones.py
+#, python-brace-format
+msgid "{dia}/{mes}/{anio} {hora}:{minuto}"
+msgstr "{mes}/{dia}/{anio} {hora}:{minuto}"
+
+#: bellbird/obs/grabaciones.py
+#, python-brace-format
+msgid "Grabación guardada: {nombre}"
+msgstr "Recording saved: {nombre}"
+
 #: bellbird/obs/obs_activacion.py
 msgid "El servidor websocket de OBS ya está activado"
 msgstr "The OBS websocket server is already enabled"
@@ -4889,6 +4906,10 @@ msgstr "&Pause recording"
 msgid "&Reanudar grabación"
 msgstr "&Keep recording"
 
+#: bellbird/ui/control_grabacion.py bellbird/ui/menu_transmision.py
+msgid "Grabaciones…"
+msgstr "Recordings…"
+
 #: bellbird/ui/descargas_acciones.py
 msgid "Descargas terminadas. ¿Abrir la carpeta?"
 msgstr "Downloads finished. Open the folder?"
@@ -4897,11 +4918,11 @@ msgstr "Downloads finished. Open the folder?"
 msgid "Administrador de descargas"
 msgstr "Download manager"
 
-#: bellbird/ui/descargas_acciones.py
+#: bellbird/ui/descargas_acciones.py bellbird/ui/gui_grabaciones.py
 msgid "La carpeta ya no está disponible."
 msgstr "The folder is no longer available."
 
-#: bellbird/ui/descargas_acciones.py
+#: bellbird/ui/descargas_acciones.py bellbird/ui/gui_grabaciones.py
 msgid "El archivo ya no está disponible."
 msgstr "The file is no longer available."
 
@@ -4925,7 +4946,7 @@ msgstr "Add to the queue"
 msgid "Cancela la descarga antes de eliminarla."
 msgstr "Cancel the download before removing it."
 
-#: bellbird/ui/descargas_acciones.py
+#: bellbird/ui/descargas_acciones.py bellbird/ui/gui_grabaciones.py
 msgid "Eliminada de la lista"
 msgstr "Removed from list"
 
@@ -5159,7 +5180,7 @@ msgstr "&Download again"
 msgid "Copiar &enlace"
 msgstr "Copy &link"
 
-#: bellbird/ui/descargas_listas.py
+#: bellbird/ui/descargas_listas.py bellbird/ui/gui_grabaciones.py
 msgid "E&liminar de la lista"
 msgstr "R&emove from list"
 
@@ -6402,6 +6423,36 @@ msgstr "Last message read from {autor}"
 msgid "Todavía no se leyó ningún mensaje."
 msgstr "No message has been read yet."
 
+#: bellbird/ui/gui_grabaciones.py
+msgid "No hay grabaciones guardadas."
+msgstr "No saved recordings."
+
+#: bellbird/ui/gui_grabaciones.py bellbird/ui/recientes_inicio.py
+msgid "&Abrir"
+msgstr "&Open"
+
+#: bellbird/ui/gui_grabaciones.py
+msgid "Abrir ca&rpeta"
+msgstr "Open &folder"
+
+#: bellbird/ui/gui_grabaciones.py
+msgid "&Copiar ruta"
+msgstr "&Copy path"
+
+#: bellbird/ui/gui_grabaciones.py bellbird/ui/gui_microfono.py
+#: bellbird/ui/gui_organizar_escena.py bellbird/ui/gui_transmision.py
+#: bellbird/ui/ia_ventana.py bellbird/ui/musica_ventana.py
+msgid "Cerrar"
+msgstr "Close"
+
+#: bellbird/ui/gui_grabaciones.py
+msgid "Grabaciones"
+msgstr "Recordings"
+
+#: bellbird/ui/gui_grabaciones.py
+msgid "Ruta copiada"
+msgstr "Path copied"
+
 #: bellbird/ui/gui_historial.py
 msgid "Historial de directos"
 msgstr "Live stream history"
@@ -6822,12 +6873,6 @@ msgstr "Device"
 #: bellbird/ui/gui_microfono.py
 msgid "&Aplicar"
 msgstr "&Apply"
-
-#: bellbird/ui/gui_microfono.py bellbird/ui/gui_organizar_escena.py
-#: bellbird/ui/gui_transmision.py bellbird/ui/ia_ventana.py
-#: bellbird/ui/musica_ventana.py
-msgid "Cerrar"
-msgstr "Close"
 
 #: bellbird/ui/gui_microfono.py
 msgid "Elige un dispositivo."
@@ -8868,10 +8913,6 @@ msgstr "Rece&nt items:"
 #: bellbird/ui/recientes_inicio.py
 msgid "Recientes, Intro para abrir"
 msgstr "Recent items, Enter to open"
-
-#: bellbird/ui/recientes_inicio.py
-msgid "&Abrir"
-msgstr "&Open"
 
 #: bellbird/ui/recientes_inicio.py
 msgid "&Eliminar del historial"

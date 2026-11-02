@@ -1764,6 +1764,15 @@ def escenario_historial(app: Aplicacion, args, res: Resultado):
                     vueltas_tab=12)
 
 
+def escenario_grabaciones(app: Aplicacion, args, res: Resultado):
+    """La ventana que lista las grabaciones que la app detuvo."""
+    esperados = ("Grabaciones", "Abrir", "Abrir carpeta", "Copiar ruta",
+                 "Eliminar de la lista", "Cerrar")
+    auditar_dialogo(app, res, "Transmisión > Grabaciones…", "Grabaciones",
+                    vueltas_tab=10, esperados=esperados,
+                    esperados_en_tab=esperados)
+
+
 def obs_abierto() -> bool:
     """¿Hay un proceso `obs64.exe` corriendo? Falso ante cualquier error."""
     try:
@@ -5561,6 +5570,7 @@ SUPERFICIES = {
     "gui_envio_chat.py": "redactar",
     "gui_estado.py": "principal",
     "gui_historial.py": "historial",
+    "gui_grabaciones.py": "grabaciones",
     "recientes_inicio.py": "principal",
     "gui_menu.py": "menus",
     "menu_transmision.py": "menus",
@@ -5702,6 +5712,7 @@ ESCENARIOS = {
     "preferencias_categorias": escenario_preferencias_categorias,
     "preferencias_persisten": escenario_preferencias_persisten,
     "historial": escenario_historial,
+    "grabaciones": escenario_grabaciones,
     "transmision": escenario_transmision,
     "organizar_escena": escenario_organizar_escena,
     "microfono": escenario_microfono,
@@ -5890,7 +5901,8 @@ def _instalar_capturas(captor):
 EN_TODOS = ["arranque_frio", "reproductor",
             "menus", "principal", "descargas", "preferencias",
             "preferencias_categorias", "preferencias_persisten",
-            "programados", "historial", "transmision", "organizar_escena",
+            "programados", "historial", "grabaciones", "transmision",
+            "organizar_escena",
             # `microfono` va justo después de `transmision`: los dos
             # necesitan OBS y auditan cuadros del menú Transmisión.
             "microfono",

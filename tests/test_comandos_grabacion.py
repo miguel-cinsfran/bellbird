@@ -1,10 +1,12 @@
 """Pruebas sin ventana de `bellbird/ui/comandos_grabacion.py`."""
 
+import tempfile
 import unittest
+from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-from bellbird.obs import obs_cliente
+from bellbird.obs import grabaciones, obs_cliente
 from bellbird.ui import comandos_grabacion
 
 
@@ -29,10 +31,12 @@ class HiloInmediato:
 class GestorGrabacionFalso:
     """Doble de GestorPanelObs para los comandos de grabación del menú."""
 
-    def __init__(self, grabando=False, en_pausa=False, fallo=None):
+    def __init__(self, grabando=False, en_pausa=False, fallo=None,
+                 ruta_grabacion=""):
         self.grabando = grabando
         self.en_pausa = en_pausa
         self.fallo = fallo
+        self.ruta_grabacion = ruta_grabacion
         self.llamadas = []
         self.cerrado = False
 
@@ -53,6 +57,11 @@ class GestorGrabacionFalso:
         self.llamadas.append("alternar_grabacion")
         self.grabando = not self.grabando
         return self.grabando
+
+    def alternar_grabacion_con_ruta(self):
+        self.llamadas.append("alternar_grabacion_con_ruta")
+        self.grabando = not self.grabando
+        return self.grabando, "" if self.grabando else self.ruta_grabacion
 
     def alternar_pausa_grabacion(self):
         anterior = self.en_pausa
@@ -94,6 +103,20 @@ class TestComandosGrabacion(unittest.TestCase):
         anunciar.assert_called_once_with("Grabación detenida")
         sonar.assert_called_once_with("grabacion_detenida")
         self.assertTrue(gestor.cerrado)
+
+    def test_detener_con_ruta_anuncia_el_archivo_y_lo_anota(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            ruta = Path(tmp) / "grabaciones.json"
+            gestor = GestorGrabacionFalso(
+                grabando=True, ruta_grabacion="C:/Videos/x.mp4")
+            with mock.patch.object(grabaciones.paths, "grabaciones",
+                                   return_value=ruta):
+                gestor, anunciar, sonar = self._correr(
+                    comandos_grabacion.alternar_grabacion, gestor)
+            self.assertEqual(grabaciones.leer(ruta),
+                             [{"ruta": "C:/Videos/x.mp4", "fecha": mock.ANY}])
+        anunciar.assert_called_once_with("Grabación guardada: x.mp4")
+        sonar.assert_called_once_with("grabacion_detenida")
 
     def test_pausar_avisa_y_suena_como_el_panel(self):
         gestor, anunciar, sonar = self._correr(

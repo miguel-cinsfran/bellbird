@@ -4,7 +4,7 @@ import wx
 
 from bellbird.core import diagnostico
 from bellbird.core.idioma import _
-from bellbird.obs import obs_cliente, obs_estado, obs_grabacion
+from bellbird.obs import grabaciones, obs_cliente, obs_estado, obs_grabacion
 from bellbird.obs.obs_panel import GestorPanelObs
 from bellbird.ui.accesibilidad import anunciar
 from bellbird.voice import sound_player
@@ -41,10 +41,11 @@ def _ejecutar_en_obs(operacion):
 def alternar_grabacion(frame):
     """Inicia o detiene la grabación de OBS, como el botón del panel."""
     def _operacion(gestor):
-        activa = gestor.alternar_grabacion()
+        activa, ruta = gestor.alternar_grabacion_con_ruta()
         accion = "grabacion_iniciada" if activa else "grabacion_detenida"
-        return (obs_estado.frase_resultado(accion),
-                obs_estado.sonido_resultado(accion))
+        frase = (obs_estado.frase_resultado(accion) if activa
+                 else grabaciones.anotar_y_decir(ruta))
+        return frase, obs_estado.sonido_resultado(accion)
     _ejecutar_en_obs(_operacion)
 
 

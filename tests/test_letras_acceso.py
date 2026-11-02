@@ -24,7 +24,7 @@ from tests.ventanas_prueba import destruir
 from bellbird.ai import catalogo
 from bellbird.core import config
 from bellbird.downloads import descargas, formatos_reales
-from bellbird.ui import descargas_listas, operaciones_obs, elegir_formato, gui, gui_comentarios, gui_descargas, gui_directo_youtube, gui_historial, gui_microfono, gui_organizar_escena, gui_transmision, gui_preferencias, control_grabacion, mover_con_flechas
+from bellbird.ui import descargas_listas, operaciones_obs, elegir_formato, gui, gui_comentarios, gui_descargas, gui_directo_youtube, gui_grabaciones, gui_historial, gui_microfono, gui_organizar_escena, gui_transmision, gui_preferencias, control_grabacion, mover_con_flechas
 from bellbird.ui import preferencias_ia
 from bellbird.ui import preferencias_ia_clave
 from bellbird.voice import motores
@@ -140,6 +140,24 @@ class TestLetrasAccesoHistorial(unittest.TestCase):
                 dialogo, dialogo.nb).items():
             with self.subTest(pagina=pagina):
                 self.assertEqual(repetidas, {}, gui_historial.__name__)
+
+
+class TestLetrasAccesoGrabaciones(unittest.TestCase):
+    def setUp(self):
+        self.app = wx.App.Get() or wx.App(False)
+        self.temporal = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporal.cleanup)
+        self.ruta = Path(self.temporal.name) / "grabaciones.json"
+        parche = mock.patch.object(gui_grabaciones.grabaciones.paths,
+                                   "grabaciones", return_value=self.ruta)
+        parche.start()
+        self.addCleanup(parche.stop)
+
+    def test_cuadro_sin_letras_repetidas(self):
+        dialogo = gui_grabaciones.GrabacionesDialog(None)
+        self.addCleanup(destruir, dialogo)
+        self.assertEqual(letras_repetidas(dialogo), {},
+                         gui_grabaciones.__name__)
 
 
 class TestLetrasAccesoComentarios(unittest.TestCase):
@@ -350,6 +368,20 @@ class TestLetrasAccesoDirectoYoutubeEnIngles(TestLetrasAccesoDirectoYoutube):
 
 class TestLetrasAccesoHistorialEnIngles(TestLetrasAccesoHistorial):
     # Gemela en inglés: repite las pruebas sin copiarlas.
+
+    @classmethod
+    def setUpClass(cls):
+        cls._ingles = ingles()
+        cls._ingles.__enter__()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._ingles.__exit__(None, None, None)
+        del cls._ingles
+
+
+class TestLetrasAccesoGrabacionesEnIngles(TestLetrasAccesoGrabaciones):
+    # Gemela en inglés: repite la prueba sin copiarla.
 
     @classmethod
     def setUpClass(cls):

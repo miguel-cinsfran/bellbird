@@ -9,7 +9,7 @@ from __future__ import annotations
 import wx
 
 from bellbird.core.idioma import N_, _
-from bellbird.obs import obs_estado, obs_grabacion
+from bellbird.obs import grabaciones, obs_estado, obs_grabacion
 from bellbird.ui.accesibilidad import anunciar
 from bellbird.ui.preferencias_comun import mostrar_control, nombre_de_etiqueta
 from bellbird.voice import sound_player
@@ -19,6 +19,17 @@ _INICIAR_GRABACION = N_("Iniciar &grabación")
 _DETENER_GRABACION = N_("Detener &grabación")
 _PAUSAR_GRABACION = N_("&Pausar grabación")
 _REANUDAR_GRABACION = N_("&Reanudar grabación")
+_GRABACIONES = N_("Grabaciones…")
+
+
+def _crear_botones(padre):
+    boton = wx.Button(padre, label=_(_INICIAR_GRABACION),
+                      name=nombre_de_etiqueta(_(_INICIAR_GRABACION)))
+    pausar = wx.Button(padre, label=_(_PAUSAR_GRABACION),
+                       name=nombre_de_etiqueta(_(_PAUSAR_GRABACION)))
+    grabaciones = wx.Button(padre, label=_(_GRABACIONES),
+                            name=nombre_de_etiqueta(_(_GRABACIONES)))
+    return boton, pausar, grabaciones
 
 
 class ControlGrabacion:
@@ -31,12 +42,10 @@ class ControlGrabacion:
         self._foco = foco
         self.grabando = False
         self.en_pausa = False
-        self.boton = wx.Button(padre, label=_(_INICIAR_GRABACION),
-                               name=nombre_de_etiqueta(_(_INICIAR_GRABACION)))
-        self.pausar = wx.Button(padre, label=_(_PAUSAR_GRABACION),
-                               name=nombre_de_etiqueta(_(_PAUSAR_GRABACION)))
+        self.boton, self.pausar, self.grabaciones = _crear_botones(padre)
         self.boton.Bind(wx.EVT_BUTTON, self._alternar)
         self.pausar.Bind(wx.EVT_BUTTON, self._alternar_pausa)
+        self.grabaciones.Bind(wx.EVT_BUTTON, self._abrir_grabaciones)
 
     def fijar(self, grabando, en_pausa):
         self.grabando = bool(grabando)
@@ -52,12 +61,22 @@ class ControlGrabacion:
 
     def _alternar(self, event):
         self._operaciones.en_hilo(
-            self._gestor.alternar_grabacion, self._alternada)
+            self._gestor.alternar_grabacion_con_ruta, self._alternada)
 
-    def _alternada(self, activa):
+    def _alternada(self, resultado):
+        activa, ruta = resultado
         self.fijar(activa, False)
-        accion = "grabacion_iniciada" if activa else "grabacion_detenida"
-        self._resultado(accion)
+        if activa:
+            self._resultado("grabacion_iniciada")
+            return
+        sound_player.reproducir(obs_estado.sonido_resultado("grabacion_detenida"))
+        anunciar(grabaciones.anotar_y_decir(ruta))
+        self._al_cambiar()
+
+    def _abrir_grabaciones(self, event):
+        from bellbird.ui import gui_grabaciones
+        gui_grabaciones.abrir_grabaciones(
+            wx.GetTopLevelParent(self.grabaciones))
 
     def _alternar_pausa(self, event):
         self._operaciones.en_hilo(

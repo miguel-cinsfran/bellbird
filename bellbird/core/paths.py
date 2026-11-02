@@ -76,6 +76,10 @@ def historial_descargas() -> Path:
     return carpeta_datos() / "historial_descargas.json"
 
 
+def grabaciones() -> Path:
+    return carpeta_datos() / "grabaciones.json"
+
+
 def busquedas_recientes() -> Path:
     return carpeta_datos() / "busquedas_recientes.json"
 

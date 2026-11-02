@@ -14,6 +14,7 @@ import time
 
 from bellbird.core import diagnostico, ini_tipado, paths
 from bellbird.core.idioma import N_, _
+from bellbird.obs import grabaciones
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -85,6 +86,21 @@ def _datos_respuesta(respuesta):
     return (respuesta or {}).get("responseData", respuesta or {})
 
 
+def alternar_con_ruta(pedir, parada=None):
+    """Inicia o detiene la grabación y devuelve su estado y la ruta.
+
+    Medido el 02/11/2026 con OBS 5.7.6: StopRecord devuelve `outputPath`
+    con el archivo que quedó, y ToggleRecord no. Por eso la parada usa
+    StopRecord y confirma antes con GetRecordStatus.
+    """
+    estado = _datos_respuesta(pedir("GetRecordStatus", parada=parada))
+    if estado.get("outputActive"):
+        datos = _datos_respuesta(pedir("StopRecord", parada=parada))
+        return False, str(datos.get("outputPath") or "")
+    pedir("StartRecord", parada=parada)
+    return True, ""
+
+
 def _leer_pausa(pedir, parada=None):
     """Devuelve el outputPaused confirmado por GetRecordStatus."""
     estado = _datos_respuesta(pedir("GetRecordStatus", parada=parada))
@@ -145,7 +161,10 @@ class GrabacionAlTransmitir:
         self._la_empezo_la_app = False
         try:
             if real.estado_grabacion(parada).get("outputActive"):
-                real.alternar_grabacion(parada)
+                activa, ruta = real.alternar_grabacion_con_ruta(parada)
+                if not activa:
+                    self._al_anunciar(grabaciones.anotar_y_decir(ruta),
+                                      "grabacion_detenida")
         except Exception as error:
             logger.debug("no se pudo detener la grabación: %s", error)
 

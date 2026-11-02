@@ -2160,6 +2160,9 @@ class TestFinDeCola(unittest.TestCase):
         parche_anunciar = mock.patch.object(gui_descargas, "anunciar")
         self._anunciar = parche_anunciar.start()
         self.addCleanup(parche_anunciar.stop)
+        parche_ofrecer = mock.patch.object(gui_descargas, "ofrecer_carpeta")
+        parche_ofrecer.start()
+        self.addCleanup(parche_ofrecer.stop)
 
     def tearDown(self):
         gui_descargas._registrados.clear()

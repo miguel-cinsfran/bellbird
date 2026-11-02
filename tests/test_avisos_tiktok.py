@@ -19,11 +19,21 @@ def _config(**extras):
 
 
 class TestModoDe(unittest.TestCase):
-    def test_modo_guardado(self):
-        self.assertEqual(
-            avisos_tiktok.modo_de(
-                _config(tiktok_aviso_me_gusta="ocultar"), cfg.TIPO_ME_GUSTA),
-            "ocultar")
+    def test_principal_y_secundaria_dan_leer(self):
+        for modo in ("principal", "secundaria"):
+            with self.subTest(modo=modo):
+                self.assertEqual(
+                    avisos_tiktok.modo_de(
+                        _config(evento_entrada=modo), cfg.TIPO_ENTRADA),
+                    "leer")
+
+    def test_mostrar_y_ocultar_se_conservan(self):
+        for modo in ("mostrar", "ocultar"):
+            with self.subTest(modo=modo):
+                self.assertEqual(
+                    avisos_tiktok.modo_de(
+                        _config(evento_entrada=modo), cfg.TIPO_ENTRADA),
+                    modo)
 
     def test_ausente_da_el_de_fabrica(self):
         self.assertEqual(
@@ -31,10 +41,21 @@ class TestModoDe(unittest.TestCase):
         self.assertEqual(
             avisos_tiktok.modo_de({}, cfg.TIPO_SEGUIR), "leer")
 
+    def test_las_claves_viejas_de_tiktok_no_se_leen(self):
+        self.assertEqual(
+            avisos_tiktok.modo_de(
+                _config(tiktok_aviso_entradas="ocultar"), cfg.TIPO_ENTRADA),
+            "mostrar")
+        self.assertEqual(
+            avisos_tiktok.modo_de(
+                _config(tiktok_aviso_entradas="leer",
+                        evento_entrada="ocultar"), cfg.TIPO_ENTRADA),
+            "ocultar")
+
     def test_extrano_da_el_de_fabrica(self):
         self.assertEqual(
             avisos_tiktok.modo_de(
-                _config(tiktok_aviso_entradas="fuerte"), cfg.TIPO_ENTRADA),
+                _config(evento_entrada="fuerte"), cfg.TIPO_ENTRADA),
             "mostrar")
 
     def test_tipo_que_no_es_aviso_da_none(self):
@@ -131,58 +152,64 @@ class TestMigrar(unittest.TestCase):
         parser.read_string(texto)
         return parser
 
-    def test_viejo_verdadero_migra_a_leer(self):
-        parser = self._parser("[tiktok]\nanunciar_entradas = true\n")
+    def _migrar(self, texto):
+        parser = self._parser(texto)
         escritas = []
         avisos_tiktok.migrar(
             parser, "ruta", lambda r, s, c, v: escritas.append((r, s, c, v)))
-        self.assertIn(("ruta", "tiktok", "aviso_entradas", "leer"), escritas)
-        self.assertEqual(parser.get("tiktok", "aviso_entradas"), "leer")
+        return parser, escritas
 
-    def test_viejo_falso_migra_a_mostrar(self):
-        parser = self._parser("[tiktok]\nanunciar_entradas = false\n")
-        escritas = []
-        avisos_tiktok.migrar(
-            parser, "ruta", lambda r, s, c, v: escritas.append((r, s, c, v)))
-        self.assertIn(("ruta", "tiktok", "aviso_entradas", "mostrar"), escritas)
-        self.assertEqual(parser.get("tiktok", "aviso_entradas"), "mostrar")
+    def test_casilla_vieja_verdadera_migra_a_principal(self):
+        parser, escritas = self._migrar(
+            "[tiktok]\nanunciar_entradas = true\n")
+        self.assertIn(("ruta", "eventos", "entrada", "principal"), escritas)
+        self.assertEqual(parser.get("eventos", "entrada"), "principal")
 
-    def test_viejo_ausente_migra_a_mostrar(self):
-        parser = self._parser("[tiktok]\nusuario = pepe\n")
-        escritas = []
-        avisos_tiktok.migrar(
-            parser, "ruta", lambda r, s, c, v: escritas.append((r, s, c, v)))
-        self.assertIn(("ruta", "tiktok", "aviso_entradas", "mostrar"), escritas)
-        self.assertIn(("ruta", "tiktok", "aviso_me_gusta", "mostrar"), escritas)
-        self.assertEqual(parser.get("tiktok", "aviso_entradas"), "mostrar")
-        self.assertEqual(
-            parser.get("tiktok", "anunciar_entradas", fallback="ausente"),
-            "ausente")
+    def test_casilla_vieja_falsa_migra_a_mostrar(self):
+        parser, escritas = self._migrar(
+            "[tiktok]\nanunciar_entradas = false\n")
+        self.assertIn(("ruta", "eventos", "entrada", "mostrar"), escritas)
+        self.assertEqual(parser.get("eventos", "entrada"), "mostrar")
+
+    def test_viejo_ausente_deja_los_valores_de_fabrica(self):
+        parser, _escritas = self._migrar("[tiktok]\nusuario = pepe\n")
+        self.assertEqual(parser.get("eventos", "entrada"), "mostrar")
+        self.assertEqual(parser.get("eventos", "me_gusta"), "mostrar")
+        self.assertFalse(parser.has_option("tiktok", "aviso_entradas"))
+        self.assertFalse(parser.has_option("tiktok", "aviso_me_gusta"))
 
     def test_me_gusta_migra_desde_leer_me_gusta(self):
-        parser = self._parser("[tiktok]\nleer_me_gusta = true\n")
-        escritas = []
-        avisos_tiktok.migrar(
-            parser, "ruta", lambda r, s, c, v: escritas.append((r, s, c, v)))
-        self.assertIn(("ruta", "tiktok", "aviso_me_gusta", "leer"), escritas)
-        self.assertEqual(parser.get("tiktok", "aviso_me_gusta"), "leer")
+        parser, escritas = self._migrar(
+            "[tiktok]\nleer_me_gusta = true\n")
+        self.assertIn(("ruta", "eventos", "me_gusta", "principal"), escritas)
+        self.assertEqual(parser.get("eventos", "me_gusta"), "principal")
 
-    def test_clave_nueva_presente_no_se_toca(self):
-        parser = self._parser("[tiktok]\nanunciar_entradas = true\n"
-                              "aviso_entradas = ocultar\n")
-        escritas = []
-        avisos_tiktok.migrar(
-            parser, "ruta", lambda r, s, c, v: escritas.append((r, s, c, v)))
-        self.assertNotIn(("ruta", "tiktok", "aviso_entradas", "leer"), escritas)
-        self.assertEqual(parser.get("tiktok", "aviso_entradas"), "ocultar")
+    def test_las_claves_viejas_de_aviso_se_leen(self):
+        parser, escritas = self._migrar(
+            "[tiktok]\naviso_cofres = ocultar\n"
+            "aviso_compartidos = mostrar\n")
+        self.assertIn(("ruta", "eventos", "cofre", "ocultar"), escritas)
+        self.assertIn(("ruta", "eventos", "compartir", "mostrar"), escritas)
+        self.assertEqual(parser.get("eventos", "cofre"), "ocultar")
+        self.assertEqual(parser.get("eventos", "compartir"), "mostrar")
 
-    def test_sin_seccion_tiktok_la_crea_en_el_parser(self):
-        parser = self._parser("[ui]\nfiltro_activo = todos\n")
-        escritas = []
-        avisos_tiktok.migrar(
-            parser, "ruta", lambda r, s, c, v: escritas.append((r, s, c, v)))
-        self.assertEqual(parser.get("tiktok", "aviso_entradas"), "mostrar")
+    def test_clave_nueva_presente_manda(self):
+        parser, _escritas = self._migrar(
+            "[tiktok]\nanunciar_entradas = true\n"
+            "aviso_entradas = ocultar\n")
+        self.assertEqual(parser.get("eventos", "entrada"), "ocultar")
 
+    def test_sin_eventos_crea_la_seccion_sin_tocar_tiktok(self):
+        parser, _escritas = self._migrar("[ui]\nfiltro_activo = todos\n")
+        self.assertEqual(parser.get("eventos", "entrada"), "mostrar")
+        self.assertFalse(parser.has_section("tiktok"))
+
+    def test_eventos_presentes_no_se_migran(self):
+        parser, escritas = self._migrar(
+            "[eventos]\nsuperchat = mostrar\n"
+            "[tiktok]\nanunciar_entradas = true\n")
+        self.assertEqual(parser.get("eventos", "superchat"), "mostrar")
+        self.assertEqual(escritas, [])
 
 if __name__ == "__main__":
     unittest.main()

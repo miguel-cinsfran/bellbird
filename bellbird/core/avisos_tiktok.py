@@ -1,19 +1,14 @@
-"""Modos por aviso de TikTok y por evento: voz, sonido o nada.
+"""Modos por evento: voz principal, voz secundaria, sonido o nada.
 
-Cada aviso de un directo (entradas, me gusta, seguidores, compartidos y
-cofres) guarda su modo en `[tiktok]` y cada evento de la app su modo en
-`[eventos]`. La app los consulta antes de leer, mostrar o descartar. Puro y
-sin wx: `config` lo importa sin ciclo porque los tipos son los mismos textos
-que `config.TIPO_*`.
+Cada evento de la app guarda su modo en `[eventos]`. La app los consulta
+antes de leer, mostrar o descartar. Las claves `tiktok_aviso_*` de las
+configuraciones viejas solo se leen al migrar. Puro y sin wx: `config` lo
+importa sin ciclo porque los tipos son los mismos textos que `config.TIPO_*`.
 """
 
 from __future__ import annotations
 
 from bellbird.core.idioma import N_
-
-MODOS = (("leer", N_("Sonido y voz")),
-         ("mostrar", N_("Solo sonido")),
-         ("ocultar", N_("Desactivado")))
 
 AVISOS = (("entrada", "aviso_entradas", N_("&Entradas al directo:"),
            "mostrar"),
@@ -44,23 +39,22 @@ _EVENTO_DE_TIPO = {
     "entrada": "entrada", "me_gusta": "me_gusta", "seguir": "seguir",
     "compartir": "compartir", "cofre": "cofre",
 }
-_FABRICA = {tipo: fabrica for tipo, _clave, _rotulo, fabrica in AVISOS}
-_CLAVE = {tipo: "tiktok_" + clave for tipo, clave, _rotulo, _fabrica in AVISOS}
 _CLAVE_EVENTO = {tipo: clave
                  for tipo, clave, _rotulo, _fabrica in AVISOS}
-_VALIDOS = frozenset(modo for modo, _rotulo in MODOS)
 _FABRICA_EVENTO = dict(EVENTOS)
 _VALIDOS_EVENTO = frozenset(modo for modo, _rotulo in MODOS_EVENTO)
 
 
 def modo_de(config, tipo) -> str | None:
-    """Modo guardado del aviso, el de fábrica si falta o es extraño."""
-    if tipo not in _FABRICA:
+    """Modo de lectura del aviso según el evento.
+
+    Los dos modos con voz leen. Los otros dos conservan su nombre. `None`
+    para un tipo que no es un aviso de la captura.
+    """
+    modo = modo_evento(config, tipo)
+    if modo is None:
         return None
-    valor = config.get(_CLAVE[tipo])
-    if isinstance(valor, str) and valor in _VALIDOS:
-        return valor
-    return _FABRICA[tipo]
+    return "leer" if modo in ("principal", "secundaria") else modo
 
 
 def evento_de(tipo) -> str | None:
@@ -104,19 +98,12 @@ def pasa_filtro(filtro, tipo) -> bool:
 
 
 def migrar(parser, ruta, guardar, guardar_varias=None) -> None:
-    """Pasa las claves viejas a las nuevas, una sola vez.
+    """Pasa las claves viejas a `[eventos]`, una sola vez.
 
     Escribe en el disco con `guardar` (o `guardar_varias` en un solo lote) y
     también en el parser, para que la lectura de después lo vea. Las claves
-    viejas no se borran."""
+    viejas se leen pero no se escriben ni se borran."""
     cambios = []
-    for vieja, nueva in (("anunciar_entradas", "aviso_entradas"),
-                         ("leer_me_gusta", "aviso_me_gusta")):
-        if parser.has_option("tiktok", nueva):
-            continue
-        valor = "leer" if _booleano(parser, "tiktok", vieja) else "mostrar"
-        _fijar(parser, "tiktok", nueva, valor)
-        cambios.append(("tiktok", nueva, valor))
     if not parser.has_section("eventos"):
         cambios.extend(_migrar_eventos(parser))
     _escribir(ruta, cambios, guardar, guardar_varias)
@@ -127,11 +114,10 @@ def _migrar_eventos(parser) -> list:
     secundaria = (_booleano(parser, "voz", "multivoz")
                   and bool(_texto(parser, "voz", "voz_eventos")))
     cambios = []
-    for clave, fabrica in EVENTOS:
+    for clave, _fabrica in EVENTOS:
         nuevo = _modo_nuevo(parser, clave, secundaria)
-        if nuevo != fabrica:
-            _fijar(parser, "eventos", clave, nuevo)
-            cambios.append(("eventos", clave, nuevo))
+        _fijar(parser, "eventos", clave, nuevo)
+        cambios.append(("eventos", clave, nuevo))
     if not parser.has_option("voz", "voz_secundaria"):
         voz_eventos = _texto(parser, "voz", "voz_eventos")
         if voz_eventos:
@@ -157,6 +143,10 @@ def _modo_viejo(parser, clave) -> str:
         valor = (parser.get("tiktok", nueva) or "").strip().lower()
         if valor in ("leer", "mostrar", "ocultar"):
             return valor
+    vieja = {"entrada": "anunciar_entradas",
+             "me_gusta": "leer_me_gusta"}.get(clave)
+    if vieja is not None and parser.has_option("tiktok", vieja):
+        return "leer" if _booleano(parser, "tiktok", vieja) else "mostrar"
     return "mostrar" if clave in ("entrada", "me_gusta") else "leer"
 
 

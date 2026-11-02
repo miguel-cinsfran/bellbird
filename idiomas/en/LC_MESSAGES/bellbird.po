@@ -3379,6 +3379,14 @@ msgstr ""
 msgid "La transmisión empezó, pero no se pudo iniciar la grabación."
 msgstr "Broadcasting started, but recording could not start."
 
+#: bellbird/obs/obs_grabacion.py
+msgid "OBS no pausó la grabación: este perfil puede no permitirlo."
+msgstr "OBS did not pause the recording: this profile may not allow it."
+
+#: bellbird/obs/obs_grabacion.py
+msgid "OBS no reanudó la grabación."
+msgstr "OBS did not resume the recording."
+
 #: bellbird/obs/obs_lanzador.py
 msgid ""
 "Abriendo OBS en segundo plano, en el área de notificación. Puede tardar "
@@ -4808,6 +4816,10 @@ msgid_plural ""
 "mes."
 msgstr[0] "Valid key. {voces} voice. {usados} of {limite} characters used this month."
 msgstr[1] "Valid key. {voces} voices. {usados} of {limite} characters used this month."
+
+#: bellbird/ui/comandos_grabacion.py
+msgid "No hay ninguna grabación en curso."
+msgstr "No recording is in progress."
 
 #: bellbird/ui/confirmar_salida.py
 msgid "¿Salir de la aplicación? Hay un chat conectado y una transmisión en curso."
@@ -7346,10 +7358,6 @@ msgid "Grabación al transmitir desactivada"
 msgstr "Recording while broadcasting off"
 
 #: bellbird/ui/gui_transmitir.py
-msgid "No hay ninguna grabación en curso."
-msgstr "No recording is in progress."
-
-#: bellbird/ui/gui_transmitir.py
 msgid "Ya hay una transmisión en curso."
 msgstr "A broadcast is already in progress."
 
@@ -7609,6 +7617,14 @@ msgid "A&visar si el rostro sale del encuadre"
 msgstr "Warn when the face &leaves the frame"
 
 #: bellbird/ui/menu_transmision.py
+msgid "&Avisar si OBS se sobrecarga"
+msgstr "&Warn if OBS is overloaded"
+
+#: bellbird/ui/menu_transmision.py
+msgid "&Grabar también al transmitir"
+msgstr "&Record while broadcasting"
+
+#: bellbird/ui/menu_transmision.py
 msgid "&Panel de transmisión…"
 msgstr "&Broadcast panel…"
 
@@ -7631,14 +7647,6 @@ msgstr "&Start or stop recording"
 #: bellbird/ui/menu_transmision.py
 msgid "Pa&usar o reanudar grabación"
 msgstr "Pause or resume recor&ding"
-
-#: bellbird/ui/menu_transmision.py
-msgid "&Avisar si OBS se sobrecarga"
-msgstr "&Warn if OBS is overloaded"
-
-#: bellbird/ui/menu_transmision.py
-msgid "&Grabar también al transmitir"
-msgstr "&Record while broadcasting"
 
 #: bellbird/ui/menu_transmision.py
 msgid "&Transmisión"

@@ -89,9 +89,10 @@ class GestorFalso:
         self.llamadas.append(("alternar_grabacion",))
         return self.grabando
     def alternar_pausa_grabacion(self):
+        anterior = self.grabacion_en_pausa
         self.grabacion_en_pausa = not self.grabacion_en_pausa
         self.llamadas.append(("alternar_pausa_grabacion",))
-        return self.grabacion_en_pausa
+        return self.grabacion_en_pausa, anterior
     def alternar_transmision(self):
         self.transmitiendo = not self.transmitiendo
         self.llamadas.append(("alternar_transmision",))
@@ -484,6 +485,19 @@ class TestPanelTransmision(unittest.TestCase):
                          "&Reanudar grabación")
         self.assertIn("Grabación iniciada", self.anuncios)
         self.assertIn("Grabación en pausa", self.anuncios)
+
+    def test_pausa_que_no_cambia_no_anuncia_pausa(self):
+        self._pulsar(self.dialogo.btn_grabar)
+        with mock.patch.object(self.gestor, "alternar_pausa_grabacion",
+                               return_value=(None, False)):
+            self._pulsar(self.dialogo.btn_pausar)
+        self.assertEqual(self.dialogo.btn_pausar.GetLabel(),
+                         "&Pausar grabación")
+        self.assertIn(
+            "OBS no pausó la grabación: este perfil puede no permitirlo.",
+            self.anuncios)
+        self.assertNotIn("Grabación en pausa", self.anuncios)
+        control_grabacion.sound_player.reproducir.assert_called_with("error")
 
     def test_grabacion_suena_y_anuncia_como_antes(self):
         self._pulsar(self.dialogo.btn_grabar)

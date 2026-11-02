@@ -9,13 +9,15 @@ import threading
 import time
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
 from bellbird.core.idioma import _
 from bellbird.obs import obs_grabacion
 from bellbird.obs.obs_grabacion import (
     AVISO_CODIFICADOR, FALLO_GRABACION, GrabacionAlTransmitir,
-    codificador_propio, codificador_propio_en_obs, grabar_al_transmitir)
+    alternar_pausa, codificador_propio, codificador_propio_en_obs,
+    grabar_al_transmitir)
 from bellbird.obs.obs_supervisor import SupervisorTransmision
 
 
@@ -53,6 +55,41 @@ class DobleParametros:
     def pedidos(self):
         return [(datos.get("parameterCategory"), datos.get("parameterName"))
                 for _tipo, datos in self.llamadas]
+
+
+class AlternarPausaTest(unittest.TestCase):
+    """El estado que manda es el que OBS confirma, no el del Toggle."""
+
+    def test_respuesta_del_toggle_no_alcanza_si_el_estado_no_cambia(self):
+        llamadas = []
+
+        def pedir(tipo, datos=None, parada=None):
+            llamadas.append(tipo)
+            if tipo == "GetRecordStatus":
+                return {"outputPaused": False}
+            if tipo == "ToggleRecordPause":
+                return {"outputPaused": True}
+            raise AssertionError(tipo)
+
+        with mock.patch.object(obs_grabacion.time, "sleep"):
+            self.assertEqual(obs_grabacion.alternar_pausa(pedir), (None, False))
+        self.assertEqual(llamadas, ["GetRecordStatus", "ToggleRecordPause"]
+                         + ["GetRecordStatus"] * 5)
+
+    def test_devuelve_el_estado_nuevo_cuando_cambia(self):
+        for inicial, nuevo in ((False, True), (True, False)):
+            with self.subTest(inicial=inicial):
+                estados = iter((inicial, nuevo))
+
+                def pedir(tipo, datos=None, parada=None):
+                    if tipo == "GetRecordStatus":
+                        return {"outputPaused": next(estados)}
+                    return {"outputPaused": nuevo}
+
+                with mock.patch.object(obs_grabacion.time, "sleep"):
+                    self.assertEqual(
+                        obs_grabacion.alternar_pausa(pedir),
+                        (nuevo, inicial))
 
 
 class CodificadorPropioTest(unittest.TestCase):

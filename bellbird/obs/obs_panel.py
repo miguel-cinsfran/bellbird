@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from bellbird.obs import (fuente_chat, obs_disposicion, obs_captura,
                         obs_cliente, obs_destinos, obs_entradas_audio,
-                        obs_escena)
+                        obs_escena, obs_grabacion)
 from bellbird.obs.fuente_chat import (NOMBRE_FUENTE, TIPO_FUENTE,
                                       fuente_encima_del_panel)
 
@@ -118,8 +118,8 @@ class GestorPanelObs:
     def alternar_grabacion(self, parada=None) -> bool:
         return bool(self._pedir("ToggleRecord", parada=parada).get("outputActive", False))
 
-    def alternar_pausa_grabacion(self, parada=None) -> bool:
-        return bool(self._pedir("ToggleRecordPause", parada=parada).get("outputPaused", False))
+    def alternar_pausa_grabacion(self, parada=None):
+        return obs_grabacion.alternar_pausa(self._pedir, parada)
 
     def perfil_actual(self, parada=None) -> str:
         datos = self._pedir("GetProfileList", parada=parada)

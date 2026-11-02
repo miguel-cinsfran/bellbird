@@ -4,7 +4,7 @@ import wx
 
 from bellbird.core import diagnostico
 from bellbird.core.idioma import _
-from bellbird.obs import obs_cliente, obs_estado
+from bellbird.obs import obs_cliente, obs_estado, obs_grabacion
 from bellbird.obs.obs_panel import GestorPanelObs
 from bellbird.ui.accesibilidad import anunciar
 from bellbird.voice import sound_player
@@ -26,14 +26,9 @@ def _ejecutar_en_obs(operacion):
         gestor = GestorPanelObs()
         try:
             gestor.conectar()
-            accion = operacion(gestor)
+            frase, sonido = operacion(gestor)
         except Exception as error:
             frase, sonido = obs_cliente.mensaje_de_fallo_obs(error), "error"
-        else:
-            frase = (_("No hay ninguna grabación en curso.") if accion is None
-                     else obs_estado.frase_resultado(accion))
-            sonido = ("error" if accion is None
-                      else obs_estado.sonido_resultado(accion))
         finally:
             try:
                 gestor.cerrar()
@@ -45,16 +40,23 @@ def _ejecutar_en_obs(operacion):
 
 def alternar_grabacion(frame):
     """Inicia o detiene la grabación de OBS, como el botón del panel."""
-    _ejecutar_en_obs(lambda gestor: (
-        "grabacion_iniciada" if gestor.alternar_grabacion()
-        else "grabacion_detenida"))
+    def _operacion(gestor):
+        activa = gestor.alternar_grabacion()
+        accion = "grabacion_iniciada" if activa else "grabacion_detenida"
+        return (obs_estado.frase_resultado(accion),
+                obs_estado.sonido_resultado(accion))
+    _ejecutar_en_obs(_operacion)
 
 
 def alternar_pausa_grabacion(frame):
     """Pausa o reanuda la grabación; sin ninguna en curso, lo dice."""
     def _operacion(gestor):
         if not gestor.estado_grabacion().get("outputActive"):
-            return None
-        return ("grabacion_en_pausa" if gestor.alternar_pausa_grabacion()
-                else "grabacion_reanudada")
+            return _("No hay ninguna grabación en curso."), "error"
+        cambio, en_pausa = gestor.alternar_pausa_grabacion()
+        if cambio is None:
+            return obs_grabacion.frase_fallo_pausa(en_pausa), "error"
+        accion = "grabacion_en_pausa" if cambio else "grabacion_reanudada"
+        return (obs_estado.frase_resultado(accion),
+                obs_estado.sonido_resultado(accion))
     _ejecutar_en_obs(_operacion)

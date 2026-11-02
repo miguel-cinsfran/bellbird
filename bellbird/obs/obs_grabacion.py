@@ -10,6 +10,7 @@ supervisor.
 from __future__ import annotations
 
 import configparser
+import time
 
 from bellbird.core import diagnostico, ini_tipado, paths
 from bellbird.core.idioma import N_, _
@@ -21,6 +22,9 @@ AVISO_CODIFICADOR = N_(
     "a la vez carga el doble el equipo.")
 FALLO_GRABACION = N_(
     "La transmisión empezó, pero no se pudo iniciar la grabación.")
+FALLO_PAUSA = N_(
+    "OBS no pausó la grabación: este perfil puede no permitirlo.")
+FALLO_REANUDAR = N_("OBS no reanudó la grabación.")
 
 
 def codificador_propio(modo, calidad_simple, codificador_avanzado) -> bool:
@@ -75,6 +79,36 @@ def grabar_al_transmitir(ruta=None) -> bool:
     except Exception as error:
         logger.debug("no se pudo leer grabar_al_transmitir: %s", error)
         return False
+
+
+def _datos_respuesta(respuesta):
+    return (respuesta or {}).get("responseData", respuesta or {})
+
+
+def _leer_pausa(pedir, parada=None):
+    """Devuelve el outputPaused confirmado por GetRecordStatus."""
+    estado = _datos_respuesta(pedir("GetRecordStatus", parada=parada))
+    return bool(estado.get("outputPaused", False))
+
+
+# Medido el 02/11/2026 con OBS 5.7.6: ToggleRecordPause puede responder
+# outputPaused=True sin cambiar la grabación. El estado válido es el que
+# devuelve GetRecordStatus después.
+def alternar_pausa(pedir, parada=None):
+    """Pausa o reanuda y confirma con GetRecordStatus."""
+    en_pausa = _leer_pausa(pedir, parada)
+    pedir("ToggleRecordPause", parada=parada)
+    for _intento in range(5):
+        time.sleep(0.2)
+        nuevo = _leer_pausa(pedir, parada)
+        if nuevo != en_pausa:
+            return nuevo, en_pausa
+    return None, en_pausa
+
+
+def frase_fallo_pausa(en_pausa) -> str:
+    """El aviso cuando ToggleRecordPause no cambió el estado."""
+    return _(FALLO_REANUDAR if en_pausa else FALLO_PAUSA)
 
 
 class GrabacionAlTransmitir:

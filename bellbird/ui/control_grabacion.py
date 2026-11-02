@@ -9,7 +9,7 @@ from __future__ import annotations
 import wx
 
 from bellbird.core.idioma import N_, _
-from bellbird.obs import obs_estado
+from bellbird.obs import obs_estado, obs_grabacion
 from bellbird.ui.accesibilidad import anunciar
 from bellbird.ui.preferencias_comun import mostrar_control, nombre_de_etiqueta
 from bellbird.voice import sound_player
@@ -63,9 +63,14 @@ class ControlGrabacion:
         self._operaciones.en_hilo(
             self._gestor.alternar_pausa_grabacion, self._pausa_alternada)
 
-    def _pausa_alternada(self, en_pausa):
-        self.fijar(self.grabando, en_pausa)
-        accion = "grabacion_en_pausa" if en_pausa else "grabacion_reanudada"
+    def _pausa_alternada(self, resultado):
+        cambio, en_pausa = resultado
+        if cambio is None:
+            sound_player.reproducir("error")
+            anunciar(obs_grabacion.frase_fallo_pausa(en_pausa))
+            return
+        self.fijar(self.grabando, cambio)
+        accion = "grabacion_en_pausa" if cambio else "grabacion_reanudada"
         self._resultado(accion)
 
     def _resultado(self, accion):

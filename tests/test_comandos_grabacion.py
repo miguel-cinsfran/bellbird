@@ -55,9 +55,10 @@ class GestorGrabacionFalso:
         return self.grabando
 
     def alternar_pausa_grabacion(self):
-        self.llamadas.append("alternar_pausa_grabacion")
+        anterior = self.en_pausa
         self.en_pausa = not self.en_pausa
-        return self.en_pausa
+        self.llamadas.append("alternar_pausa_grabacion")
+        return self.en_pausa, anterior
 
 
 class TestComandosGrabacion(unittest.TestCase):
@@ -117,6 +118,22 @@ class TestComandosGrabacion(unittest.TestCase):
         self.assertEqual(gestor.llamadas, ["conectar", "estado_grabacion"])
         anunciar.assert_called_once_with("No hay ninguna grabación en curso.")
         sonar.assert_called_once_with("error")
+
+    def test_pausa_sin_cambio_avisa_el_fallo_segun_el_estado(self):
+        casos = (
+            (False, "OBS no pausó la grabación: este perfil puede no permitirlo."),
+            (True, "OBS no reanudó la grabación."),
+        )
+        for en_pausa, frase in casos:
+            with self.subTest(en_pausa=en_pausa):
+                gestor = GestorGrabacionFalso(grabando=True,
+                                              en_pausa=en_pausa)
+                gestor.alternar_pausa_grabacion = mock.Mock(
+                    return_value=(None, en_pausa))
+                gestor, anunciar, sonar = self._correr(
+                    comandos_grabacion.alternar_pausa_grabacion, gestor)
+                anunciar.assert_called_once_with(frase)
+                sonar.assert_called_once_with("error")
 
     def test_si_cerrar_falla_igual_avisa_el_resultado(self):
         gestor = GestorGrabacionFalso(grabando=False)

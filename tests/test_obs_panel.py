@@ -23,7 +23,8 @@ def elemento(identificador, nombre, indice, x=32, y=882, ancho=460, alto=620,
 class DobleObs:
     def __init__(self, elementos=None, entradas=(), escena="Escena", escenas=None,
                   silencios=None, grupos=None, perfiles=(), perfil_actual="",
-                  estadisticas=None, reconectando=False, parametros=None):
+                  estadisticas=None, reconectando=False, parametros=None,
+                  pausa_no_cambia=False):
         self.elementos = list(elementos or ())
         self.entradas = list(entradas)
         self.grupos = dict(grupos or {})
@@ -42,6 +43,7 @@ class DobleObs:
         self.estadisticas = dict(estadisticas or {})
         self.parametros = dict(parametros or {})
         self.parametros_pedidos = []
+        self.pausa_no_cambia = pausa_no_cambia
 
     def conectar(self, parada=None):
         self.conectado = True
@@ -91,6 +93,8 @@ class DobleObs:
             self.grabando = not self.grabando
             return {"responseData": {"outputActive": self.grabando}}
         if tipo == "ToggleRecordPause":
+            if self.pausa_no_cambia:
+                return {"responseData": {"outputPaused": True}}
             self.grabacion_en_pausa = not self.grabacion_en_pausa
             return {"responseData": {"outputPaused": self.grabacion_en_pausa}}
         if tipo == "GetCurrentProgramScene":
@@ -359,9 +363,18 @@ class GestorPanelObsTest(unittest.TestCase):
         gestor = self.gestor(doble)
         self.assertTrue(gestor.alternar_transmision())
         self.assertTrue(gestor.alternar_grabacion())
-        self.assertTrue(gestor.alternar_pausa_grabacion())
+        with mock.patch.object(obs_grabacion.time, "sleep"):
+            self.assertEqual(gestor.alternar_pausa_grabacion(), (True, False))
         self.assertEqual([llamada[0] for llamada in doble.llamadas[-3:]],
-                         ["ToggleStream", "ToggleRecord", "ToggleRecordPause"])
+                         ["GetRecordStatus", "ToggleRecordPause",
+                          "GetRecordStatus"])
+
+    def test_alternar_pausa_ignora_la_respuesta_si_el_estado_no_cambia(self):
+        doble = DobleObs(pausa_no_cambia=True)
+        gestor = self.gestor(doble)
+        with mock.patch.object(obs_grabacion.time, "sleep"):
+            self.assertEqual(gestor.alternar_pausa_grabacion(), (None, False))
+        self.assertFalse(doble.grabacion_en_pausa)
 
     def test_instantanea_sin_solapes(self):
         snap = self.gestor(DobleObs([elemento(1, obs_panel.NOMBRE_FUENTE, 0)])).instantanea("Escena")

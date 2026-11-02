@@ -83,10 +83,12 @@ elige entre *Voz principal*, *Voz secundaria*, *Solo sonido* y *Desactivado*.
 *Voz principal* y *Voz secundaria* lo muestran en la lista, suenan y lo leen;
 *Solo sonido* lo muestra y suena sin leerlo; *Desactivado* no lo muestra. De
 fábrica, las entradas y los me gusta están en *Solo sonido*, y el resto en
-*Voz principal*. La voz secundaria y sus ajustes se eligen en *Preferencias*,
-categoría *Voces*. Si quien transmite pone el directo en pausa, se oye «El
-directo de TikTok está en pausa.», y al volver, «El directo de TikTok
-continúa.», cada uno con su sonido.
+*Voz principal*. Debajo de *Me gusta* hay un contador, *Agrupar me gusta
+durante, en segundos*, que decide cuántos segundos se juntan los me gusta de
+una misma persona antes de avisar el total. La voz secundaria y sus ajustes
+se eligen en *Preferencias*, categoría *Voces*. Si quien transmite pone el
+directo en pausa, se oye «El directo de TikTok está en pausa.», y al volver,
+«El directo de TikTok continúa.», cada uno con su sonido.
 
 En la lista, las flechas van de mensaje en mensaje y escribir unas letras
 salta al primer autor que empieza así. El menú contextual copia el mensaje,

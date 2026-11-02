@@ -52,6 +52,8 @@ OPCIONES_LECTURA = (
      str, "mostrar"),
     ("cho_evento_me_gusta", "eventos", "me_gusta", "evento_me_gusta",
      str, "mostrar"),
+    ("sp_segundos_me_gusta", "tiktok", "segundos_me_gusta",
+     "tiktok_segundos_me_gusta", int, 10),
     ("cho_evento_seguir", "eventos", "seguir", "evento_seguir",
      str, "principal"),
     ("cho_evento_compartir", "eventos", "compartir", "evento_compartir",
@@ -125,6 +127,15 @@ class PaginaLectura:
             _tc(lista)
             setattr(self, "cho_evento_" + clave, lista)
             grilla.Add(lista, 0, wx.EXPAND)
+            if clave == "me_gusta":
+                grilla.Add(self._fila_label(
+                    padre, _("&Agrupar me gusta durante (segundos):")), 0,
+                    wx.ALIGN_CENTER_VERTICAL)
+                self.sp_segundos_me_gusta = ContadorAccesible(
+                    padre, min=1, max=120,
+                    name=_("Agrupar me gusta durante, en segundos"))
+                _tc(self.sp_segundos_me_gusta)
+                grilla.Add(self.sp_segundos_me_gusta, 0)
         box.Add(grilla, 1, wx.EXPAND | wx.ALL, 10)
         vs.Add(box, 0, wx.EXPAND | wx.ALL, 10)
 

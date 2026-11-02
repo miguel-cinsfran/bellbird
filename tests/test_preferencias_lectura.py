@@ -214,9 +214,28 @@ class TestEventosDelDirecto(unittest.TestCase):
         caja = self._caja_de_eventos(pagina)
         etiquetas = [h.GetLabel() for h in caja.GetChildren()
                      if isinstance(h, gui.wx.StaticText)]
-        self.assertEqual(etiquetas,
-                         [etiqueta for _a, _m, etiqueta, _n
-                          in EVENTOS_ESPERADOS])
+        esperadas = []
+        for atributo, _m, etiqueta, _n in EVENTOS_ESPERADOS:
+            esperadas.append(etiqueta)
+            if atributo == "cho_evento_me_gusta":
+                esperadas.append("&Agrupar me gusta durante (segundos):")
+        self.assertEqual(etiquetas, esperadas)
+
+    def test_el_contador_de_me_gusta_va_despues_de_su_lista(self):
+        dialogo = self._dialogo()
+        contador = dialogo.sp_segundos_me_gusta
+        self.assertEqual(contador.GetName(),
+                         "Agrupar me gusta durante, en segundos")
+        self.assertEqual((contador.GetMin(), contador.GetMax()), (1, 120))
+        self.assertEqual(contador.GetValue(), 10)
+        caja = self._caja_de_eventos(
+            next(p for p in dialogo._paginas()
+                 if p.GetName() == "PagLectura"))
+        controles = [h for h in caja.GetChildren()
+                     if isinstance(h, (gui.wx.Choice, gui.wx.SpinCtrl))]
+        indice = controles.index(dialogo.cho_evento_me_gusta)
+        self.assertIs(controles[indice + 1], contador)
+        self.assertIs(controles[indice + 2], dialogo.cho_evento_seguir)
 
     def test_guardar_escribe_la_seccion_eventos(self):
         dialogo = self._dialogo()

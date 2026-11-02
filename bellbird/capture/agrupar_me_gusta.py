@@ -13,10 +13,16 @@ class AgrupadorMeGusta:
     """Junta toques por persona y suelta los grupos ya vencidos."""
 
     def __init__(self, ventana: float = 10.0):
-        self.ventana = float(ventana)
+        self.ventana = ventana
         # Clave -> [autor, canal_id, total, primer_toque]. El dict conserva
         # el orden del primer toque de cada grupo, que es el orden de salida.
         self._grupos: dict[str, list] = {}
+
+    def _segundos(self) -> float:
+        """Segundos de la ventana vigentes ahora. `ventana` puede ser un
+        número o una función sin argumentos, para que un cambio de
+        configuración valga sin reconectar."""
+        return float(self.ventana() if callable(self.ventana) else self.ventana)
 
     def sumar(self, autor: str, canal_id: str, cantidad, ahora: float) -> None:
         """Acumula los toques de esa persona. Lo que no es un entero
@@ -40,10 +46,11 @@ class AgrupadorMeGusta:
         segundos o más, como (autor, canal_id, total), en el orden de su
         primer toque. El autor es el último nombre que llegó."""
         listos = []
+        ventana = self._segundos()
         por_primer_toque = sorted(self._grupos.items(),
                                   key=lambda kv: kv[1][3])
         for clave, (autor, canal_id, total, primero) in por_primer_toque:
-            if ahora - primero >= self.ventana:
+            if ahora - primero >= ventana:
                 listos.append((autor, canal_id, total))
                 del self._grupos[clave]
         return listos

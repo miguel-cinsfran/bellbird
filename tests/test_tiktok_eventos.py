@@ -187,6 +187,33 @@ class TestManejadoresNuevos(unittest.TestCase):
                 getattr(mod_eventos, nombre_clase)](historico))
         self.assertEqual(recibidos, [])
 
+    def test_cambiar_los_segundos_vale_para_los_grupos_siguientes(self):
+        from bellbird.capture import tiktok_manejadores
+        recibidos = []
+        config = {"tiktok_segundos_me_gusta": 10}
+        cliente, mod_eventos = self._sesion(recibidos, config)
+        ahora_ms = (self.CONECTADO + 1) * 1000
+        with mock.patch.object(tiktok_manejadores.time, "monotonic",
+                               return_value=1000.0):
+            asyncio.run(cliente.manejadores[mod_eventos.LikeEvent](
+                self._evento(ahora_ms)))
+        self.assertEqual(recibidos, [])
+        config["tiktok_segundos_me_gusta"] = 3
+        with mock.patch.object(tiktok_manejadores.time, "monotonic",
+                               return_value=1004.0):
+            asyncio.run(cliente.manejadores[mod_eventos.RoomUserSeqEvent](
+                types.SimpleNamespace(total=3, total_user=50)))
+        self.assertEqual(len(recibidos), 1)
+        self.assertEqual(recibidos[0][2], TIPO_ME_GUSTA)
+
+    def test_entradas_solo_se_piden_si_el_evento_no_esta_desactivado(self):
+        for modo, registra in (("ocultar", False), ("principal", True)):
+            with self.subTest(modo=modo):
+                cliente, mod_eventos = self._sesion(
+                    [], {"evento_entrada": modo})
+                self.assertEqual(
+                    mod_eventos.JoinEvent in cliente.manejadores, registra)
+
 
 class TestEnvoltorioHistoricoReal(unittest.TestCase):
     """El envoltorio con el método REAL del cliente y sobres REALES de

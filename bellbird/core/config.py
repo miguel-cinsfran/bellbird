@@ -22,7 +22,7 @@ from bellbird.core.atajos import (
     parsear_atajos, detectar_conflictos_atajos, migrar_atajos_config,
 )  # noqa: F401  (reexport para quien importa desde config)
 from bellbird.core.config_descargas import guardar_opciones_descarga, obtener_opciones_descarga
-from bellbird.core.config_lectura import opciones_lectura
+from bellbird.core.config_lectura import opciones_lectura, opciones_tiktok
 from bellbird.core.config_musica import opciones_musica
 from bellbird.core.config_transmision import opciones_transmision
 from bellbird.core.config_voz import opciones_voz
@@ -393,7 +393,7 @@ def cargar_configuracion() -> dict:
         "idioma": leer_texto(p, "ui", "idioma"), "filtro_activo": filtro_activo,
         "silenciar_sonidos": leer_booleano(p, "ui", "silenciar_sonidos"),
         "silenciar_lectura": leer_booleano(p, "sesion", "silenciar_lectura"),
-        "tiktok_usuario": leer_texto(p, "tiktok", "usuario"),
+        **opciones_tiktok(p),
         **_opciones_transmision(p),
         "programados_activo": leer_booleano(p, "programados", "activo"),
         "buscar_actualizaciones_al_iniciar": leer_booleano(p, "actualizaciones", "buscar_al_iniciar"),

@@ -8502,6 +8502,14 @@ msgid "Eventos del directo"
 msgstr "Live events"
 
 #: bellbird/ui/preferencias_lectura.py
+msgid "&Agrupar me gusta durante (segundos):"
+msgstr "Group likes &for (seconds):"
+
+#: bellbird/ui/preferencias_lectura.py
+msgid "Agrupar me gusta durante, en segundos"
+msgstr "Group likes for, in seconds"
+
+#: bellbird/ui/preferencias_lectura.py
 msgid "Leer los mensajes &recientes con:"
 msgstr "Read recent messages &with:"
 

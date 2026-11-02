@@ -228,11 +228,20 @@ _EVENTOS_OPCIONALES = [
 ]
 
 
+def _segundos_me_gusta(config) -> int:
+    """Segundos de agrupación de los me gusta, con el borde de la config."""
+    try:
+        segundos = int((config or {}).get("tiktok_segundos_me_gusta", 10))
+    except (TypeError, ValueError):
+        return 10
+    return max(1, min(120, segundos))
+
+
 def registrar_manejadores(client, modulo_eventos, *, on_evento,
                           on_espectadores, config, descartar,
                           on_estado=None):
     """Registra los manejadores de eventos de TikTok en `client`."""
-    agrupador = AgrupadorMeGusta()
+    agrupador = AgrupadorMeGusta(ventana=lambda: _segundos_me_gusta(config))
     clase_comentario = modulo_eventos.CommentEvent
     clase_regalo = modulo_eventos.GiftEvent
     clase_entrada = modulo_eventos.JoinEvent

@@ -1910,6 +1910,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("eventos", "entrada"), ("eventos", "me_gusta"),
             ("eventos", "seguir"), ("eventos", "compartir"),
             ("eventos", "cofre"),
+            ("tiktok", "segundos_me_gusta"),
             ("texto", "max_longitud_mensaje"),
             ("cola", "estrategia"), ("cola", "tamanio_maximo"),
             ("cola", "umbral_solo_nombre"),

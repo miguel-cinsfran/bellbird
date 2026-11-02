@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md 6fcbe4631ff5f4ea200c693254f55b49e83fc87b -->
+<!-- original: es/MANUAL.md ac59f2140104aa737771ccf0c38b4f2e092dd98d -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -84,11 +84,13 @@ streams* and *Treasure chests*. Each list chooses between *Main voice*,
 *Secondary voice*, *Sound only* and *Off*. *Main voice* and *Secondary voice*
 show it in the list, play its sound and read it; *Sound only* shows it and
 plays its sound without reading it; *Off* does not show it. By default, joins
-and likes are set to *Sound only*, and the rest to *Main voice*. The secondary
-voice and its settings are chosen in *Preferences*, on the *Voices* category.
-If the streamer pauses the live stream, you hear “The TikTok live stream is
-paused.”, and when it resumes, “The TikTok live stream continues.”, each one
-with its sound.
+and likes are set to *Sound only*, and the rest to *Main voice*. Below *Likes*
+there is a counter, *Group likes for, in seconds*, that decides how many
+seconds the likes of the same person are grouped before the total is
+announced. The secondary voice and its settings are chosen in *Preferences*,
+on the *Voices* category. If the streamer pauses the live stream, you hear
+“The TikTok live stream is paused.”, and when it resumes, “The TikTok live
+stream continues.”, each one with its sound.
 
 In the list, the arrows move from message to message and typing a few letters
 jumps to the first author that starts that way. The context menu copies the

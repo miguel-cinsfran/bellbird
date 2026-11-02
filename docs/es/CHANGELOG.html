@@ -217,110 +217,112 @@
 </head>
 <body>
 <h1 id="novedades-de-bellbird">Novedades de Bellbird</h1>
-<p>Qué cambia en cada versión, en lenguaje llano. El detalle técnico
-está en el historial de git.</p>
+<p>Qué cambia en cada versión, contado en lenguaje llano y pensado para
+quien usa la aplicación. El detalle técnico de cada cambio está en el
+historial de git.</p>
 <h2 id="300-sin-publicar">3.0.0, sin publicar</h2>
-<p>La app pasa a llamarse Bellbird, por el pájaro campana, el ave
-nacional de Paraguay.</p>
+<p>La aplicación pasa a llamarse Bellbird, por el pájaro campana, que es
+el ave nacional de Paraguay. También estrena un panel de transmisión,
+grabaciones, encuadre de cámara y un Administrador de descargas
+nuevo.</p>
 <h3 id="el-nombre-nuevo">El nombre nuevo</h3>
 <ul>
-<li>El programa ahora es <code>Bellbird.exe</code>, y el ZIP y su
+<li>La aplicación ahora es <code>Bellbird.exe</code>. El ZIP y su
 carpeta llevan el nombre Bellbird con el número de versión.</li>
 <li>Un acceso directo a <code>YTChatTTS.exe</code> deja de funcionar
-después de actualizar. Si abrías la app con un acceso directo, bórralo y
-crea uno nuevo desde <code>Bellbird.exe</code>, dentro de la carpeta de
-la app.</li>
+después de actualizar. Si abrías la aplicación con un acceso directo,
+elimínalo y crea uno nuevo desde <code>Bellbird.exe</code>, dentro de la
+carpeta de la aplicación.</li>
 <li>La fuente del chat en OBS se renombra sola a «Chat en el vídeo» y
-conserva su lugar y su tamaño, así que las escenas que ya tienes siguen
+conserva su lugar y su tamaño. Las escenas que ya tienes siguen
 funcionando.</li>
 </ul>
 <h3 id="novedades">Novedades</h3>
 <ul>
-<li>El <em>Panel de transmisión</em> se reorganizó. Arriba,
+<li>El <em>Panel de transmisión</em> se organizó de nuevo.
 <em>Estado</em> dice cómo está todo. <em>Transmitir en directo</em>
-prepara OBS y revisa la escena con un solo botón, igual que el botón de
-la ventana principal, y pide confirmación al finalizar. Solo se muestran
+prepara OBS y revisa la escena con un solo botón, igual que el de la
+ventana principal, y pide confirmación al finalizar. Solo se muestran
 los controles que sirven en ese momento.</li>
-<li><em>Organizar escena</em>, una ventana nueva que se abre desde el
-panel, reúne lo que ordena una escena: qué ventana se captura y dónde va
+<li><em>Organizar escena</em> es una ventana nueva que se abre desde el
+panel. Reúne lo que ordena una escena: qué ventana se captura y dónde va
 cada fuente. Elegir otra escena ahí no cambia lo que ven los
 espectadores.</li>
 <li><em>Iniciar o detener grabación</em> (<code>Alt+Mayús+G</code>) y
-<em>Pausar o reanudar grabación</em> (<code>Alt+Mayús+P</code>), en el
-menú <em>Transmisión</em>. Si OBS no pausa la grabación, la app lo
-dice.</li>
-<li>Al detener la grabación, la app dice «Grabación guardada» con el
-nombre del archivo. <em>Grabaciones guardadas…</em>, en el menú
+<em>Pausar o reanudar grabación</em> (<code>Alt+Mayús+P</code>) están en
+el menú <em>Transmisión</em>. Si OBS no pausa la grabación, la
+aplicación lo dice.</li>
+<li>Al detener la grabación, la aplicación dice «Grabación guardada» con
+el nombre del archivo. <em>Grabaciones guardadas…</em>, en el menú
 <em>Transmisión</em> y en el panel, permite abrir lo grabado, abrir su
 carpeta, copiar la ruta y eliminarlo de la lista.</li>
 <li>Igualar el volumen tarda menos, porque mide varias canciones a la
 vez.</li>
-<li><em>Canal de actualización</em>, en Preferencias: <em>Estable</em>,
-de fábrica, ofrece solo versiones estables, y <em>Beta</em> ofrece
-también las de prueba.</li>
-<li>Los menús, Preferencias y los avisos usan las palabras de Windows:
-<em>Límite de caracteres</em> en vez de tope, <em>Activar</em> en vez de
-encender, <em>Anunciar canción actual</em> en vez de <em>Qué suena</em>,
-<em>Dejar de silenciar</em> en vez de rehabilitar, y <em>Bajar velocidad
-de la voz</em> y <em>Subir velocidad de la voz</em> en el menú
-<em>Voz</em>. Si una tecla ya está asignada a otra acción, el aviso al
-abrir la app dice a cuál y qué atajo se desactivó.</li>
+<li><em>Canal de actualización</em>, en <em>Preferencias</em>, tiene dos
+opciones. <em>Estable</em>, de fábrica, ofrece solo versiones estables.
+<em>Beta</em> ofrece también las de prueba.</li>
+<li>Los menús, las <em>Preferencias</em> y los avisos usan las palabras
+de Windows para el límite de caracteres y para activar una opción.
+También dicen anunciar canción actual, dejar de silenciar, y bajar y
+subir velocidad de la voz en el menú <em>Voz</em>. Si una tecla ya está
+asignada a otra acción, el aviso al abrir la aplicación dice a cuál y
+qué atajo se desactivó.</li>
 <li>Encuadre de cámara. <code>Ctrl+F3</code> dice cómo se te ve en la
 cámara de la escena al aire de OBS: si estás centrado, lejos, fuera del
 borde o con poca luz, y hacia dónde moverte. <code>Ctrl+Mayús+F3</code>
 activa avisos con sonido propio cuando el rostro sale del encuadre y
-cuando vuelve. Pulsando <code>Ctrl+F3</code> dos veces, unos pitidos
+cuando vuelve. Si pulsas <code>Ctrl+F3</code> dos veces, unos pitidos te
 guían hasta quedar bien encuadrado. La imagen se analiza en el equipo,
 sin enviarla a ningún sitio. La cámara, los avisos y la inversión de
-izquierda y derecha se eligen en la categoría nueva <em>Cámara</em> de
-Preferencias.</li>
+izquierda y derecha se eligen en la categoría <em>Cámara</em> de
+<em>Preferencias</em>.</li>
 <li><code>Ctrl+Mayús+O</code>, o <em>Mostrar OBS</em> en el menú
 <em>Transmisión</em>, trae al frente la ventana de OBS, también cuando
 está en el área de notificación. Si OBS espera una respuesta, como la
 pregunta del modo seguro, el foco va a ese cuadro.</li>
-<li>Si OBS está abierto pero no responde, la app ya no pide comprobar
-que esté abierto: dice que puede estar esperando una respuesta y que
-elijas <em>Mostrar OBS</em>.</li>
+<li>Si OBS está abierto pero no responde, la aplicación ya no pide
+comprobar que esté abierto. Dice que puede estar esperando una respuesta
+y que elijas <em>Mostrar OBS</em>.</li>
 <li><em>Grabar también al transmitir</em>, en el menú
-<em>Transmisión</em>. Con la casilla marcada, OBS empieza a grabar
-cuando la transmisión empieza bien, y deja de grabar cuando la
-transmisión se detiene. Si ya estabas grabando, esa grabación sigue como
-estaba. Viene desmarcada.</li>
+<em>Transmisión</em>, hace que OBS empiece a grabar cuando la
+transmisión empieza bien y deje de grabar cuando se detiene. Si ya
+estabas grabando, esa grabación sigue como estaba. Viene
+desmarcada.</li>
 <li>Iniciar, pausar, reanudar y detener la grabación tienen sonidos
 propios.</li>
 <li><em>Mostrar en el título de la ventana si se transmite o se
 graba</em>, en <em>Preferencias, Transmisión</em>, antepone ese estado
 al título. Viene desmarcada.</li>
-<li>Si la grabación no se puede iniciar, la transmisión sigue y la app
-lo avisa con un sonido propio.</li>
+<li>Si la grabación no se puede iniciar, la transmisión sigue y la
+aplicación lo avisa con un sonido propio.</li>
 <li>Con esa casilla marcada, la revisión antes de transmitir avisa si el
 perfil de OBS graba con un codificador propio. En ese caso, transmitir y
 grabar a la vez carga el doble el equipo.</li>
 <li><em>Elegir micrófono…</em>, en el menú <em>Transmisión</em>, abre un
 cuadro con la fuente de micrófono de OBS y el dispositivo que usa. Al
-pulsar <em>Aplicar</em>, OBS cambia de dispositivo y la app dice si ya
-entra sonido. El atajo para silenciar el micrófono usa desde entonces
-esa fuente.</li>
-<li>En TikTok, los me gusta se escriben en la lista del chat, una fila
-por persona: «Ana dio 15 me gusta». Antes solo sonaban.</li>
+pulsar <em>Aplicar</em>, OBS cambia de dispositivo y la aplicación dice
+si ya entra sonido. El atajo para silenciar el micrófono usa desde
+entonces esa fuente.</li>
+<li>En TikTok, los corazones se escriben en la lista del chat, una fila
+por persona y con la cantidad de cada una. Antes solo sonaban.</li>
 <li>Cada aviso de un directo de TikTok tiene su modo en
-<em>Preferencias</em>, categoría <em>Lectura</em>: entradas, me gusta,
+<em>Preferencias</em>, categoría <em>Lectura</em>: entradas, corazones,
 seguidores, compartidos y cofres. Cada uno se puede leer en voz alta,
 solo mostrar con su sonido, o no mostrar. De fábrica se leen los
-seguidores, los compartidos y los cofres, y las entradas y los me gusta
-solo se muestran. Si ya tenías marcada la lectura de entradas o de me
-gusta, se respeta.</li>
+seguidores, los compartidos y los cofres, y las entradas y los corazones
+solo se muestran. Si ya tenías marcada la lectura de entradas o de
+corazones, se respeta.</li>
 <li>La lista del chat tiene el filtro <em>Avisos</em>, que deja ver solo
 esos avisos de TikTok.</li>
-<li>La app está también en inglés. El idioma se elige en
+<li>La aplicación está también en inglés. El idioma se elige en
 <em>Preferencias</em>, categoría <em>General</em>, y se aplica al
 reiniciar. Al guardar, un cuadro ofrece <em>Reiniciar ahora</em> o
 <em>Más tarde</em>. De fábrica usa el idioma de Windows.</li>
 <li>Sin conexión, la ventana principal muestra la lista
 <em>Recientes</em> (<code>Alt+S</code>) con los diez últimos directos y
-vídeos, de YouTube y TikTok. Intro abre uno, <code>Supr</code> lo
-elimina del historial y su menú contextual ofrece abrirlo, eliminarlo o
-abrir el historial completo.</li>
+vídeos, de YouTube y TikTok. <code>Intro</code> abre uno,
+<code>Supr</code> lo elimina del historial y su menú contextual ofrece
+abrirlo, eliminarlo o abrir el historial completo.</li>
 <li>Con solo el audio, un vídeo largo salta en menos de un segundo.
 Cuando la pista de audio pasa de 10 MB se usa otra fuente, con algo
 menos de calidad de sonido.</li>
@@ -335,28 +337,29 @@ cuando termina toda la cola, si algo se descargó bien. Viene
 desmarcada.</li>
 <li>El historial y los directos recientes muestran la fecha corta, como
 27/10/2026, en lugar de 2026-10-27.</li>
-<li>Los textos de la app usan los términos de Windows, como
+<li>Los textos de la aplicación usan los términos de Windows, como
 <em>Eliminar</em> e <em>Intro</em>, y frases más cortas. Algunos nombres
 cambian: <em>Administrador de descargas</em>, <em>Leer en voz alta</em>,
-<em>Clave de API</em>, y <em>voz</em> donde antes decía TTS. Cada
-sección de <em>Preferencias</em> se llama categoría, como en NVDA.</li>
+<em>Clave de API</em>, y <em>voz</em> en lugar del nombre anterior de la
+lectura. Cada sección de <em>Preferencias</em> se llama categoría, como
+en NVDA.</li>
 <li>Las acciones de moderación del menú contextual del chat se llaman
-como en YouTube: <em>Suspender temporalmente</em> durante 5 minutos y
-<em>Ocultar en el canal de YouTube</em>, que se puede deshacer desde
-YouTube Studio.</li>
+como en YouTube. La opción de suspender dura 5 minutos y la de ocultar
+actúa en el canal de YouTube, que se puede deshacer desde YouTube
+Studio.</li>
 <li>En la ventana de música, el botón que vuelve a leer la carpeta se
 llama <em>Actualizar carpeta</em>, con la letra Z. Los avisos dicen
-<em>enlace</em> en vez de <em>dirección</em>, <em>aplicación</em> en vez
-de <em>programa</em> y <em>Esc</em> en vez de <em>Escape</em>.</li>
+enlace, aplicación y <em>Esc</em> en lugar de las palabras
+anteriores.</li>
 <li>Con la sesión de YouTube iniciada, <code>F2</code> dice cuántas
 unidades de la cuota diaria se usaron hoy desde este equipo. El número
 es aproximado, y como la cuota se comparte entre quienes usan la
 aplicación, sirve para saber si un error de cuota viene de tu uso o del
-de otros. Se puede quitar del resumen en <em>Preferencias, Estado
+de otros. Se puede eliminar del resumen en <em>Preferencias, Estado
 (F2)</em>.</li>
 <li>Si entre la versión instalada y la nueva hay otras, la ventana de
 actualización muestra las novedades de todas, de la más nueva a la más
-vieja, cada una con su encabezado y su número de versión.</li>
+antigua. Cada una lleva su encabezado y su número de versión.</li>
 </ul>
 <h3 id="el-administrador-de-descargas-renovado">El Administrador de
 descargas, renovado</h3>
@@ -373,29 +376,32 @@ el cuadro <em>Detalles</em> tiene los datos completos del elegido.
 <em>Cantidad</em> elige cuántos resultados llegan, y <em>Mostrar
 más</em> trae otra tanda.</li>
 <li>La casilla <em>Mostrar filtros</em> agrega tipo (vídeos, listas,
-canales o en directo), duración, fecha y orden.</li>
-<li>Intro sobre un vídeo lo descarga sin preguntar y dice «Descargando»
-o «En cola» con el título. Intro sobre una lista o un canal muestra sus
-vídeos. Retroceso vuelve a los resultados, y <em>Agregar lista
-entera</em> la descarga completa.</li>
-<li>Espacio pone el resultado a sonar en la música, sin descargarlo:
-corta solo la canción actual y queda en la cola como una más. Otra vez
-Espacio lo pausa.</li>
+canales o directo), duración, fecha y orden.</li>
+<li><code>Intro</code> sobre un vídeo lo descarga sin preguntar y dice
+«Descargando» o «En cola» con el título. <code>Intro</code> sobre una
+lista o un canal muestra sus vídeos. <code>Retroceso</code> vuelve a los
+resultados, y <em>Agregar lista entera</em> la descarga completa.</li>
+<li><code>Espacio</code> pone el resultado a sonar en la música, sin
+descargarlo. Detiene solo la canción actual y queda en la cola como una
+más. Otra vez <code>Espacio</code> lo pausa.</li>
 <li><em>Abrir en Bellbird</em> deja el sonido libre para el reproductor.
 Si el resultado es la canción que suena, la música se detiene y la
 canción sale de la cola. Si suena otra, queda en pausa.</li>
-<li>El menú contextual de un resultado permite agregarlo a la cola,
-escucharlo, descargarlo como audio o como vídeo sin cambiar el formato
-elegido, abrirlo en Bellbird, agregarlo a la música, ver su contenido,
-copiar el enlace y abrirlo en el navegador.</li>
-<li>Antes de agregar algo, la app avisa si ya está en el historial. Un
-directo en curso no se descarga, y la app lo dice.</li>
+<li>El menú contextual de un resultado permite varias acciones. Puedes
+agregarlo a la cola, escucharlo, descargarlo como audio o como vídeo sin
+cambiar el formato elegido, abrirlo en Bellbird o agregarlo a la música.
+También puedes ver su contenido, copiar el enlace y abrirlo en el
+navegador.</li>
+<li>Antes de agregar algo, la aplicación avisa si ya está en el
+historial. Un directo en curso no se descarga, y la aplicación lo
+dice.</li>
 <li>La pestaña <em>Descargas</em> tiene una sola lista, y
 <em>Mostrar</em> elige qué se ve: todas, en curso, en espera,
 completadas o con errores, cada una con su cantidad. Con la tecla
 Aplicaciones o <code>Mayús+F10</code> se abre el menú para abrir el
 archivo o su carpeta, reintentar, volver a descargar, copiar el enlace,
-cancelar y eliminar. Supr elimina la descarga elegida de la lista.</li>
+cancelar y eliminar. <code>Supr</code> elimina la descarga elegida de la
+lista.</li>
 <li>Mientras descarga, la columna <em>Estado</em> dice la velocidad y el
 tiempo que falta. En una lista dice también por qué vídeo va, como
 «vídeo 3 de 10». La columna <em>Progreso</em> muestra una barra junto al
@@ -404,7 +410,7 @@ porcentaje.</li>
 las resoluciones que tiene ese vídeo con su tamaño, como «1080p 60 fps,
 MP4, 255 MB», y una opción de solo audio. La elegida se descarga sin
 cambiar <em>Formato</em> ni <em>Calidad</em>. Consultar los formatos
-tarda unos segundos, y la app lo avisa con un sonido.</li>
+tarda unos segundos, y la aplicación lo avisa con un sonido.</li>
 <li><em>Formato</em> tiene nueve opciones: vídeo original, MP4 o WebM, y
 audio original, MP3, M4A, Opus, FLAC o WAV. <em>Calidad</em> cambia
 según el formato: resolución en vídeo y kbps en audio. El archivo guarda
@@ -416,20 +422,20 @@ como Dailymotion o Twitch.</li>
 carpeta, numerar los archivos de una lista, descargas simultáneas,
 límite de velocidad, carpeta propia para cada lista y nombre de los
 archivos.</li>
-<li>Al salir de la app con descargas sin terminar, la pregunta dice
-cuántas se cancelarán. Aparece aunque tengas desactivada la confirmación
-al salir.</li>
+<li>Al salir de la aplicación con descargas sin terminar, la pregunta
+dice cuántas se cancelarán. Aparece aunque tengas desactivada la
+confirmación al salir.</li>
 <li>La búsqueda, el agregado a la cola, el procesado, el fin de la cola
 y una descarga que terminó a medias tienen sonidos propios, en los dos
 temas.</li>
-<li>El paquete trae el programa que YouTube pide ahora para leer sus
+<li>El paquete trae la herramienta que YouTube pide ahora para leer sus
 vídeos, así que las descargas y el reproductor obtienen todos los
 formatos. Abrir un vídeo o empezar una descarga tarda alrededor de un
 segundo y medio más.</li>
 <li>En <em>Preferencias</em>, categoría <em>Descargas</em>, <em>Canal de
 actualización de yt-dlp</em> elige entre <em>Estable</em> y
 <em>Diario</em>. <em>Diario</em> trae los arreglos para YouTube unos
-días antes, y puede traer fallos nuevos.</li>
+días antes, y puede traer errores nuevos.</li>
 </ul>
 <h3 id="aspecto-de-la-aplicación">Aspecto de la aplicación</h3>
 <ul>
@@ -440,38 +446,39 @@ mínimo.</li>
 <li>Todas las ventanas usan los mismos colores. Los campos y las listas
 son blancos, el botón principal de cada ventana va en turquesa con texto
 blanco, y los títulos de los grupos también van en turquesa.</li>
-<li>En Transmisión, Preferencias y Directo de YouTube, cada botón está
-junto al campo sobre el que actúa, y los botones de una misma sección
-van en una fila. El Historial de directos es más grande y muestra los
-títulos enteros.</li>
-<li>Todas las etiquetas de Preferencias terminan en dos puntos. En
-Mensajes automáticos la lista tiene su etiqueta, y los intervalos se
-llaman «Intervalo mínimo» e «Intervalo máximo». En Música, mostrar los
-filtros es una casilla, como en Descargas.</li>
+<li>En <em>Transmisión</em>, <em>Preferencias</em> y <em>Directo de
+YouTube</em>, cada botón está junto al campo sobre el que actúa, y los
+botones de una misma sección van en una fila. El <em>Historial de
+directos</em> es más grande y muestra los títulos enteros.</li>
+<li>Todas las etiquetas de <em>Preferencias</em> terminan en dos puntos.
+En <em>Mensajes automáticos</em> la lista tiene su etiqueta, y los
+intervalos se llaman «Intervalo mínimo» e «Intervalo máximo». En
+<em>Música</em>, mostrar los filtros es una casilla, como en
+<em>Descargas</em>.</li>
 <li>La barra de estado dice «Velocidad», «Volumen» y «Super Chats» en
-lugar de abreviaturas. En Transmisión, el usuario de TikTok solo se
-puede escribir cuando el destino es TikTok.</li>
+lugar de abreviaturas. En <em>Transmisión</em>, el usuario de TikTok
+solo se puede escribir cuando el destino es TikTok.</li>
 </ul>
 <h3 id="arreglos">Arreglos</h3>
 <ul>
 <li>Algunos vídeos de YouTube no se abrían al primer intento, o decían
-«Fin del vídeo» sin haber empezado. Ahora la app espera los pocos
+«Fin del vídeo» sin haber empezado. Ahora la aplicación espera los pocos
 segundos que YouTube tarda en dejar disponible el vídeo, y si la
 apertura falla, dice que falló.</li>
-<li>Cuando TikTok frena las consultas seguidas, la app ya no lo toma por
-un directo que no aparece. Al transmitir avisa que TikTok está limitando
-las consultas, con un sonido propio. Al conectar al chat lo dice así, en
-lugar de un error técnico, y espera medio minuto antes de
+<li>Cuando TikTok frena las consultas seguidas, la aplicación ya no lo
+toma por un directo que no aparece. Al transmitir avisa que TikTok está
+limitando las consultas, con un sonido propio. Al conectar al chat lo
+dice así, en lugar de un error técnico, y espera medio minuto antes de
 reintentar.</li>
-<li>F2 dice el singular cuando hay uno solo: «1 regalo», «1 Super Chat»
-y «1 leído».</li>
+<li><code>F2</code> dice el singular cuando hay uno solo: «1 regalo», «1
+Super Chat» y «1 leído».</li>
 <li>Dos errores de TikTok se entienden mejor: «TikTok no responde por
 ahora» y «TikTok devolvió un error», en lugar de nombrar piezas
 internas.</li>
 <li>Cancelar una descarga que ya terminó dice «La descarga ya terminó»,
 en lugar de anunciar que se canceló.</li>
-<li>Al cerrar Preferencias sin guardar después de probar una voz, la voz
-de prueba ya no queda abierta.</li>
+<li>Al cerrar <em>Preferencias</em> sin guardar después de probar una
+voz, la voz de prueba ya no queda abierta.</li>
 <li>Cuando el chat de TikTok se reconecta, la lista ya no se vacía y el
 vídeo no vuelve a empezar solo.</li>
 <li>En <em>Descargas</em>, el estado de una descarga que espera se lee
@@ -484,196 +491,196 @@ opciones.</li>
 <li>Ninguna letra de acceso se repite en las categorías de
 <em>Preferencias</em> ni en los cuadros de transmisión, comentarios,
 historial y descargas. <em>Cancelar descarga</em> pasa a la letra A y
-<em>Vaciar historial</em> a la H.</li>
+vaciar el historial a la H.</li>
 <li>Las letras de acceso de cada categoría de <em>Preferencias</em> ya
-no repiten las de <em>Guardar</em> y <em>Cancelar</em>, ni las de la
-ventana principal la de <em>Enlace o ID</em>. Cambian <em>Enviar</em> en
-el chat del directo (Alt+N), <em>Leer los mensajes recientes con</em>
-(Alt+R), y en <em>API y sesión</em> y <em>Mensajes automáticos</em> los
-botones de guardar (Alt+A), <em>Clave de API</em> (Alt+V), <em>ID de
-cliente OAuth</em> (Alt+O) y <em>Agregar</em> (Alt+R).</li>
+no repiten las de <em>Guardar</em> y <em>Cancelar</em>. Tampoco repiten
+la de <em>Enlace o ID</em> de la ventana principal. Cambian
+<em>Enviar</em> en el chat del directo (<code>Alt+N</code>), <em>Leer
+los mensajes recientes con</em> (<code>Alt+R</code>). Además, en <em>API
+y sesión</em> y <em>Mensajes automáticos</em> cambian los botones de
+guardar (<code>Alt+A</code>), <em>Clave de API</em>
+(<code>Alt+V</code>), <em>ID de cliente OAuth</em> (<code>Alt+O</code>)
+y <em>Agregar</em> (<code>Alt+R</code>).</li>
 </ul>
 <h2 id="251-octubre-de-2026">2.5.1, octubre de 2026</h2>
-<p>Arreglos de la música y del directo de TikTok, y filtros para la
-biblioteca.</p>
+<p>Arreglos de la música y del directo de TikTok, y filtros nuevos para
+la biblioteca de canciones.</p>
 <h3 id="licencia">Licencia</h3>
 <ul>
-<li><strong>La aplicación pasa a la licencia GPL-3.0.</strong> Quien use
-este código en otro programa tiene que publicar el suyo con la misma
-licencia. Las versiones hasta la 2.5.0 siguen con la licencia MIT.</li>
+<li>La aplicación pasa a la licencia GPL-3.0. Quien use este código en
+otra aplicación tiene que publicar la suya con la misma licencia. Las
+versiones hasta la 2.5.0 siguen con la licencia MIT.</li>
 </ul>
 <h3 id="música">Música</h3>
 <ul>
-<li><strong>La música y el reproductor ya no comparten el
-volumen.</strong> Antes, silenciar el vídeo o el directo con Ctrl+M
-callaba también la música, y pausar uno podía afectar al otro. Ahora
-cada uno tiene su volumen.</li>
-<li><strong>La igualación sube también las canciones flojas.</strong>
-Antes solo bajaba las fuertes, y con el volumen de la música en 100 no
-podía subir ninguna. Sube cada canción hasta donde lo permite su pico,
-sin distorsionar.</li>
-<li><strong>El fundido entre canciones ya no da saltos de
-volumen.</strong> La canción que termina baja desde su propio volumen.
-Además, pasar de canción en medio de un fundido ya no deja la anterior
-sonando.</li>
-<li><strong>El buscador filtra por el comienzo de cada palabra.</strong>
-Al escribir «a» salen las canciones con una palabra que empieza por «a»,
-no todas las que tienen una a en medio. Varias palabras se buscan en
-cualquier orden: «lou oj» encuentra «Ojos» de Lou Cornago.</li>
-<li><strong>Filtros y orden.</strong> El botón «Mostrar los filtros»
-abre dos cuadros: «Mostrar», para ver todas las canciones o las de un
-artista, y «Ordenar por», con el orden de la colección, título, artista,
-más recientes primero o duración. Se combinan con Buscar, dicen cuántas
-canciones quedan y se recuerdan para la próxima vez. Una canción con
-varios artistas aparece en cada uno. Con los filtros ocultos se ven
-todas las canciones.</li>
-<li><strong>Listas propias.</strong> En el editor de listas, Enter marca
-y desmarca la canción, igual que Espacio. «Nueva lista» y «Editar lista»
+<li>La música y el reproductor ya no comparten el volumen. Antes,
+silenciar el vídeo o el directo con <code>Ctrl+M</code> callaba también
+la música, y pausar uno podía afectar al otro. Ahora cada uno tiene su
+volumen.</li>
+<li>La igualación sube también las canciones flojas. Antes solo bajaba
+las fuertes, y con el volumen de la música en 100 no podía subir
+ninguna. Sube cada canción hasta donde lo permite su pico, sin
+distorsionar.</li>
+<li>El fundido entre canciones ya no da saltos de volumen. La canción
+que termina baja desde su propio volumen. Además, pasar de canción en
+medio de un fundido ya no deja la anterior sonando.</li>
+<li>El buscador filtra por el comienzo de cada palabra. Al escribir «a»
+salen las canciones con una palabra que empieza por «a», no todas las
+que tienen una a en medio. Varias palabras se buscan en cualquier orden:
+«lou oj» encuentra «Ojos» de Lou Cornago.</li>
+<li>La lista de canciones se puede filtrar y ordenar. <em>Mostrar
+filtros</em> abre dos cuadros: <em>Mostrar</em>, para ver todas las
+canciones o las de un artista, y <em>Ordenar por</em>, con el orden de
+la colección, título, artista, más recientes primero o duración. Se
+combinan con Buscar, dicen cuántas canciones quedan y se recuerdan para
+la próxima vez. Una canción con varios artistas aparece en cada uno. Con
+los filtros ocultos se ven todas las canciones.</li>
+<li>Puedes crear listas propias. En el editor de listas,
+<code>Intro</code> marca y desmarca la canción, igual que
+<code>Espacio</code>. <em>Nueva lista</em> y <em>Editar lista</em>
 ofrecen las canciones de la carpeta aunque esté elegida una lista en
 Colecciones. Si a una lista le falta una canción porque su archivo ya no
 está, el aviso dice cuál, y al recorrer Colecciones no se repite.</li>
 </ul>
 <h3 id="listas-en-toda-la-aplicación">Listas en toda la aplicación</h3>
 <ul>
-<li><strong>Escribir varias letras seguidas salta al elemento que
-empieza así.</strong> Antes solo funcionaba en el chat y en los
-comentarios. Ahora también en el historial, la conversación con la IA,
-los mensajes automáticos y las listas de la música.</li>
+<li>Escribir varias letras seguidas salta al elemento que empieza así.
+Antes solo funcionaba en el chat y en los comentarios. Ahora también en
+el historial, la conversación con la IA, los mensajes automáticos y las
+listas de la música.</li>
 </ul>
 <h3 id="tiktok">TikTok</h3>
 <ul>
-<li><strong>Si el directo no se puede abrir, se dice.</strong> Antes se
-oía «Fin del vídeo» aunque el directo nunca hubiera empezado a sonar.
-Ahora se avisa con sonido de error que no se pudo abrir, y el registro
-anota el motivo para poder encontrar la causa.</li>
+<li>Si el directo no se puede abrir, se dice. Antes se oía «Fin del
+vídeo» aunque el directo nunca hubiera empezado a sonar. Ahora se avisa
+con sonido de error que no se pudo abrir, y el registro anota el motivo
+para poder encontrar la causa.</li>
 </ul>
 <h2 id="250-octubre-de-2026">2.5.0, octubre de 2026</h2>
-<p>Preguntar a una IA qué se ve en la transmisión, y transiciones entre
-canciones.</p>
+<p>Preguntar a una inteligencia artificial qué se ve en la transmisión,
+y transiciones nuevas entre canciones.</p>
 <h3 id="preguntar-a-la-ia">Preguntar a la IA</h3>
 <ul>
-<li><strong>Una ventana para preguntar qué se ve, con
-Ctrl+Mayús+I.</strong> Agrega una captura de la escena al aire o de una
-fuente de OBS y pregunta lo que quieras: si la cámara está encendida, si
-algo salió en negro, qué texto hay en pantalla. La respuesta se lee al
-llegar y queda en la conversación para seguir preguntando.</li>
-<li><strong>Consulta rápida con Ctrl+Mayús+F2.</strong> Captura la
-escena al aire, la envía y lee la respuesta sin abrir ninguna ventana.
-La pregunta de fábrica pide primero los problemas de la escena y después
-la describe.</li>
-<li><strong>Página Inteligencia artificial en Preferencias.</strong>
-Eliges el proveedor (Google Gemini, OpenAI, Anthropic, OpenRouter,
-OpenCode Go, Command Code u otro compatible con OpenAI), guardas la
-clave y eliges el modelo. La clave queda en el Administrador de
-credenciales de Windows. La lista de modelos trae solo los que aceptan
-imágenes, y con OpenRouter y OpenCode Go puede mostrar solo los
+<li>Una ventana nueva con <code>Ctrl+Mayús+I</code> permite preguntar
+qué se ve. Agrega una captura de la escena al aire o de una fuente de
+OBS y pregunta lo que quieras: si la cámara está activada, si algo salió
+en negro, qué texto hay en pantalla. La respuesta se lee al llegar y
+queda en la conversación para seguir preguntando.</li>
+<li>La consulta rápida con <code>Ctrl+Mayús+F2</code> captura la escena
+al aire, la envía y lee la respuesta sin abrir ninguna ventana. La
+pregunta de fábrica pide primero los problemas de la escena y después la
+describe.</li>
+<li>En <em>Preferencias</em> hay una página nueva, <em>Inteligencia
+artificial</em>. Eliges el proveedor (Google Gemini, OpenAI, Anthropic,
+OpenRouter, OpenCode Go, Command Code u otro compatible con OpenAI),
+guardas la clave y eliges el modelo. La clave queda en el Administrador
+de credenciales de Windows. La lista de modelos trae solo los que
+aceptan imágenes, y con OpenRouter y OpenCode Go puede mostrar solo los
 gratuitos.</li>
-<li><strong>Avisos propios.</strong> Suena una melodía mientras espera,
-y hay sonidos para la consulta enviada, la respuesta, el fallo y la
-cancelación. Si la captura sale negra, no se envía, y se dice por qué:
-la escena no tiene captura o una fuente no tiene elegido qué
-capturar.</li>
-<li><strong>El primer envío pide confirmación</strong>, porque la
-captura y lo que escribas salen de tu PC hacia el proveedor.</li>
+<li>La espera tiene su melodía, y hay sonidos para la consulta enviada,
+la respuesta, el error y la cancelación. Si la captura sale negra, no se
+envía, y se dice por qué: la escena no tiene captura o una fuente no
+tiene elegido qué capturar.</li>
+<li>El primer envío pide confirmación, porque la captura y lo que
+escribas salen de tu equipo hacia el proveedor.</li>
 </ul>
 <h3 id="música-1">Música</h3>
 <ul>
-<li><strong>Fundido entre canciones.</strong> El final de una canción se
-mezcla con el principio de la siguiente, y se salta el silencio que
-muchos archivos traen al principio y al final. Dura 6 segundos de
-fábrica; se cambia en Preferencias, página Música, de 0 a 12, y 0 lo
-desactiva. Pasar de canción con el atajo hace un fundido corto, de medio
-segundo.</li>
-<li><strong>La igualación del volumen corrige en su justa
-medida.</strong> Antes exageraba la diferencia entre canciones. Además
-ya no mide por su cuenta: al abrir la ventana Música pregunta si medir
-las canciones pendientes, y la ventana tiene un botón para empezar y
+<li>Hay un fundido entre canciones. El final de una canción se mezcla
+con el principio de la siguiente, y se salta el silencio que muchos
+archivos traen al principio y al final. Dura 6 segundos de fábrica. Se
+cambia en <em>Preferencias</em>, página <em>Música</em>, de 0 a 12, y 0
+lo desactiva. Pasar de canción con el atajo hace un fundido corto, de
+medio segundo.</li>
+<li>La igualación del volumen corrige en su justa medida. Antes
+exageraba la diferencia entre canciones. Además ya no mide por su
+cuenta: al abrir la ventana <em>Música</em> pregunta si medir las
+canciones pendientes, y la ventana tiene un botón para empezar y
 detener.</li>
-<li><strong>El sonido de cambio de canción viene apagado de
-fábrica</strong> y, si lo activas, es más suave y más grave.</li>
-<li><strong>La carpeta se vigila.</strong> Las canciones nuevas aparecen
-solas en la lista. La ventana Música tiene el botón Examinar la carpeta,
-y la carpeta de fábrica es Música, junto al programa.</li>
-<li><strong>Al retomar se dice cuántas canciones tiene la cola</strong>,
-por ejemplo «Retomando 6 canciones: evergreen». Con «Recordar la última
-lista al abrir», reproducir sigue la última cola, que puede ser una
+<li>El sonido de cambio de canción viene desactivado de fábrica. Si lo
+activas, es más suave y más grave.</li>
+<li>La carpeta se vigila. Las canciones nuevas aparecen solas en la
+lista. La ventana <em>Música</em> tiene el botón <em>Examinar…</em>, y
+la carpeta de fábrica es Música, junto a la aplicación.</li>
+<li>Al retomar se dice cuántas canciones tiene la cola, por ejemplo
+«Retomando 6 canciones: evergreen». Con la opción de recordar la última
+lista al abrir, reproducir sigue la última cola, que puede ser una
 búsqueda y no la carpeta entera.</li>
-<li><strong>Más formatos:</strong> aiff, aif, mka y webm.</li>
+<li>Hay más formatos: aiff, aif, mka y webm.</li>
 </ul>
 <h3 id="chat-y-lectura">Chat y lectura</h3>
 <ul>
-<li><strong>Los diez mensajes más recientes, con Ctrl+Mayús y un
-número.</strong> 1 lee el último y 0 el décimo desde el final. Una
-casilla de Preferencias, página Lectura, los hace valer en cualquier
-programa.</li>
-<li><strong>Con el lector de pantalla o con la voz de la
-aplicación.</strong> En la misma página eliges quién los lee. Con la
-voz, el mensaje pedido suena antes que los que esperan, y después esos
-siguen en su orden.</li>
-<li><strong>Al abrir la aplicación, el campo de dirección está
-vacío.</strong> Ya no se recuerda la última dirección entre una vez y
-otra. Para volver a un directo está el Historial.</li>
+<li>Los diez mensajes más recientes se leen con <code>Ctrl+Mayús</code>
+y un número. 1 lee el último y 0 el décimo desde el final. Una casilla
+de <em>Preferencias</em>, página <em>Lectura</em>, los hace valer en
+cualquier aplicación.</li>
+<li>Los mensajes se leen con el lector de pantalla o con la voz de la
+aplicación. En la misma página eliges quién los lee. Con la voz, el
+mensaje pedido suena antes que los que esperan, y después esos siguen en
+su orden.</li>
+<li>Al abrir la aplicación, el campo <em>Enlace o ID</em> está vacío. Ya
+no se recuerda el último enlace entre una vez y otra. Para volver a un
+directo está el <em>Historial de directos</em>.</li>
 </ul>
 <h3 id="transmisión">Transmisión</h3>
 <ul>
-<li><strong>El micrófono dice qué dispositivo usa.</strong> Al activarlo
-con Alt+Mayús+M, por ejemplo: «Micrófono activado: predeterminado de
-Windows, WO Mic Device». Si OBS usa el predeterminado, lo dice, porque
-ese micrófono cambia cuando Windows elige otro.</li>
-<li><strong>Aviso si el micrófono no recibe sonido.</strong> Después de
+<li>El micrófono dice qué dispositivo usa al activarlo con
+<code>Alt+Mayús+M</code>, por ejemplo: «Micrófono activado:
+predeterminado de Windows, WO Mic Device». Si OBS usa el predeterminado,
+lo dice, porque ese micrófono cambia cuando Windows elige otro.</li>
+<li>Si el micrófono no recibe sonido, hay un aviso. Después de
 activarlo, la aplicación escucha tres segundos. Si no entra nada, suena
 un sonido propio y dice «El micrófono no recibe sonido. Revisa cuál está
 elegido en Windows o en OBS.».</li>
-<li><strong>La ventana Transmisión explica qué se ve en el
-directo</strong>: la ventana elegida en Ventana que se captura. Esa
-captura no lleva sonido, que sale del audio del escritorio y del
-micrófono de OBS.</li>
-<li><strong>El panel de chat vuelve a salir en OBS tras reiniciar la
-aplicación.</strong> Si OBS se abría antes que la aplicación, el chat no
-aparecía en el directo hasta recargar la fuente a mano. Ahora la
-aplicación la recarga sola al encender el panel.</li>
-<li><strong>El usuario de TikTok funciona con mayúsculas.</strong>
-TikTok solo reconoce el usuario en minúsculas, y con una mayúscula la
-aplicación no encontraba el directo. Ahora lo pasa a minúsculas sola,
-también el que ya estaba guardado.</li>
-<li><strong>El chat de TikTok se conecta aunque el directo tarde en
-figurar.</strong> Al salir al aire, TikTok a veces dice unos segundos
-que no hay directo, y la aplicación se rendía. Ahora vuelve a intentarlo
-hasta que aparece.</li>
-<li><strong>F2 dice cuántos espectadores hay ahora en TikTok y cuántos
-pasaron.</strong> Antes decía como espectadores a todos los que habían
+<li>La ventana <em>Transmisión</em> explica qué se ve en el directo: la
+ventana elegida en la ventana que se captura. Esa captura no lleva
+sonido, que sale del audio del escritorio y del micrófono de OBS.</li>
+<li>El panel de chat vuelve a salir en OBS tras reiniciar la aplicación.
+Si OBS se abría antes que la aplicación, el chat no aparecía en el
+directo hasta recargar la fuente a mano. Ahora la aplicación la recarga
+sola al activar el panel.</li>
+<li>El usuario de TikTok funciona con mayúsculas. TikTok solo reconoce
+el usuario en minúsculas, y con una mayúscula la aplicación no
+encontraba el directo. Ahora lo pasa a minúsculas sola, también el que
+ya estaba guardado.</li>
+<li>El chat de TikTok se conecta aunque el directo tarde en figurar. Al
+salir al aire, TikTok a veces dice unos segundos que no hay directo, y
+la aplicación se rendía. Ahora vuelve a intentarlo hasta que
+aparece.</li>
+<li><code>F2</code> dice cuántos espectadores hay ahora en TikTok y
+cuántos pasaron. Antes decía como espectadores a todos los que habían
 entrado desde el principio, y el número solo subía. Ahora dice, por
 ejemplo, «12 espectadores ahora, 108 en total».</li>
-<li><strong>Un directo de TikTok no se pausa en el reproductor.</strong>
-TikTok no guarda lo emitido, así que al reanudar había que volver a
-abrirlo y se trababa. Ahora la pausa avisa que no se puede y dice el
-atajo de Silenciar, que calla el directo sin cortarlo.</li>
-<li><strong>Más eventos de TikTok.</strong> Se leen los comentarios
-hechos solo con stickers («Ana: sticker») y las preguntas («Ana:
-Pregunta: ...»). Cuando TikTok pausa el directo o lo retoma, suena un
-sonido propio para cada caso y se dice. Casilla nueva en Preferencias,
-Leer quién da me gusta: marcada, además del sonido se lee «Ana dio 15 me
-gusta». Viene desmarcada porque en directos grandes los me gusta no
+<li>Un directo de TikTok no se pausa en el reproductor. TikTok no guarda
+lo emitido, así que al reanudar había que volver a abrirlo y se
+bloqueaba. Ahora la pausa avisa que no se puede y dice el atajo de
+Silenciar, que calla el directo sin interrumpirlo.</li>
+<li>Hay más eventos de TikTok. Se leen los comentarios hechos solo con
+stickers («Ana: sticker») y las preguntas («Ana: Pregunta:»). Cuando
+TikTok pausa el directo o lo retoma, suena un sonido propio para cada
+caso y se dice. Hay una casilla nueva en <em>Preferencias</em>, leer
+quién da corazones: marcada, además del sonido se lee «Ana dio 15
+corazones». Viene desmarcada porque en directos grandes los corazones no
 paran.</li>
 </ul>
 <h3 id="sonidos-y-ventanas">Sonidos y ventanas</h3>
 <ul>
-<li><strong>Página Sonidos en Preferencias</strong>, para callar cada
-sonido por separado.</li>
-<li><strong>Tono de ocupado</strong> cuando otro programa ya usa uno de
-los atajos que valen en cualquier programa. Antes sonaba el de
-error.</li>
-<li><strong>Las ventanas que quedaban grises</strong> (Preferencias, las
-de actualización, Transmitir a y las de la IA) usan los colores de la
-ventana principal. Con el contraste alto de Windows no cambia nada.</li>
-<li><strong>Los errores de las descargas</strong> dicen el motivo en
-llano.</li>
-<li><strong>Textos que se veían cortados</strong>: el botón Enviar
-cuando no se puede escribir en el chat, la velocidad y el volumen de la
-voz en la barra de estado, y los campos del diálogo Directo de YouTube,
-que quedaban pegados a la barra de desplazamiento. El texto de ayuda de
-la ventana principal ya no queda cortado al desconectarse de un directo.
-En Preferencias, Estado (F2), la casilla de espectadores dice ahora
+<li>La página <em>Sonidos</em> de <em>Preferencias</em> permite
+silenciar cada sonido por separado.</li>
+<li>Suena un tono de ocupado cuando otra aplicación ya usa uno de los
+atajos que valen en cualquier aplicación. Antes sonaba el de error.</li>
+<li>Las ventanas que quedaban grises usan los colores de la ventana
+principal. Son las de <em>Preferencias</em>, actualización,
+<em>Transmitir a</em> y la de la IA. Con el contraste alto de Windows no
+cambia nada.</li>
+<li>Los errores de las descargas dicen el motivo en lenguaje llano.</li>
+<li>Algunos textos se veían incompletos. Eran el botón <em>Enviar</em>
+cuando no se puede escribir en el chat y la velocidad y el volumen de la
+voz en la barra de estado. También eran los campos del cuadro
+<em>Directo de YouTube</em>, que quedaban pegados a la barra de
+desplazamiento. El texto de ayuda de la ventana principal ya no queda
+incompleto al desconectarse de un directo. En <em>Preferencias</em>,
+<em>Estado (F2)</em>, la casilla de espectadores dice ahora
 «Espectadores ahora y en total».</li>
 </ul>
 <h3 id="para-encontrar-problemas">Para encontrar problemas</h3>
@@ -682,206 +689,218 @@ En Preferencias, Estado (F2), la casilla de espectadores dice ahora
 comando del menú se usó y de qué tipo fue cada evento del chat, sin el
 texto de los mensajes ni quién los escribió. La lista de procesos
 internos ya no se repite cada 30 segundos cuando no cambió.</li>
-<li><strong>El registro detallado viene encendido</strong> en una
-instalación nueva. Quien ya lo tenía apagado en Preferencias lo conserva
-apagado.</li>
-<li><strong>Ayuda, Abrir la carpeta de registros</strong> abre la
+<li>El registro detallado viene activado en una instalación nueva. Quien
+ya lo tenía desactivado en <em>Preferencias</em> lo conserva
+desactivado.</li>
+<li>En <em>Ayuda</em>, la opción Abrir la carpeta de registros abre la
 carpeta donde están los registros, para mandarlos cuando algo
 falla.</li>
-<li>El archivo de fallos ya no crece sin fin: al pasar de 1 MB se guarda
-aparte y empieza uno nuevo.</li>
+<li>El archivo de errores ya no crece sin fin: al pasar de 1 MB se
+guarda aparte y empieza uno nuevo.</li>
 </ul>
 <h2 id="241-octubre-de-2026">2.4.1, octubre de 2026</h2>
 <ul>
-<li><strong>La actualización automática ya no se detiene al cerrar la
-versión anterior.</strong> El instalador esperaba un minuto y mostraba
-«la aplicación no se cerró a tiempo» aunque YTChat TTS ya se había
-cerrado. Pasaba cuando otro programa, como el lector de pantalla o el
+<li>La actualización automática ya no se detiene al cerrar la versión
+anterior. El instalador esperaba un minuto y mostraba «la aplicación no
+se cerró a tiempo» aunque la versión anterior ya se había cerrado.
+Pasaba cuando otra aplicación, como el lector de pantalla o el
 antivirus, seguía vigilando el proceso. Ahora detecta el cierre en el
 momento. Desde la 2.3.4 o la 2.4.0 se actualiza de la forma
 habitual.</li>
 </ul>
 <h2 id="240-octubre-de-2026">2.4.0, octubre de 2026</h2>
-<p>Música mientras transmites, sin abrir otro programa.</p>
+<p>Música mientras transmites, sin abrir otra aplicación en el
+equipo.</p>
 <h3 id="música-2">Música</h3>
 <ul>
-<li><strong>Un menú Música con sus atajos.</strong> Ctrl+Alt+Espacio
-reproduce o pausa, Ctrl+Alt+Flecha derecha y Ctrl+Alt+Flecha izquierda
-pasan a la canción siguiente o a la anterior, Ctrl+Alt+Flecha arriba y
-Ctrl+Alt+Flecha abajo suben y bajan el volumen de la música, y
-Ctrl+Alt+T dice qué suena. Ctrl+Alt+M silencia la música, Ctrl+Alt+D la
-detiene, Ctrl+Alt+A cambia el orden aleatorio, Ctrl+Alt+R cambia la
-repetición, y Ctrl+Alt+Mayús+Flecha derecha y Ctrl+Alt+Mayús+Flecha
-izquierda adelantan y retroceden 10 segundos. La primera vez puede
-tardar unos segundos en prepararse, y lo anuncia.</li>
-<li><strong>Tu carpeta Música de Windows, o la que elijas.</strong> Si
-no eliges otra en Preferencias, página Música, se usa la carpeta Música
-de Windows, aunque la hayas movido a otro disco. En esa página también
-están el orden aleatorio, repetir toda la cola o la canción actual, el
-volumen de la música (aparte del de la voz y del reproductor) y por qué
-salida de audio suena.</li>
-<li><strong>Qué se dice al pasar de canción.</strong> Elige entre nada,
-el título, el título y el artista, o solo el artista. Con «Nada» solo
-suena el sonido de cambio de canción, si lo dejas activado, pero cuando
-pasas de canción con el atajo se dice el título, porque lo pediste. Otra
-casilla decide si se anuncian «Música en pausa», «Música reanudada» y
-«Desde el comienzo».</li>
-<li><strong>La ventana Música, con Ctrl+Mayús+M.</strong> Busca en tu
-carpeta mientras escribes, aunque no pongas las tildes. Reproduce la
-canción elegida o todo el resultado, agrégalo a la cola, mira la cola y
-salta a cualquier canción con Intro. Con «Reproducir a continuación», la
-canción elegida suena al terminar la actual, sin cortar nada, y después
-la cola sigue donde iba. Mientras está abierta, los atajos de música
-siguen funcionando.</li>
-<li><strong>Título y artista de cada archivo.</strong> Las canciones
-aparecen primero con el nombre del archivo y, unos segundos después, con
-el título y el artista que trae el propio archivo, sin que se mueva la
-canción en que estás. La segunda vez que abres la carpeta ya salen así
-desde el principio.</li>
-<li><strong>Listas propias, en la misma ventana.</strong> En la lista
-Colecciones, «Biblioteca» es tu carpeta y debajo están tus listas, cada
-una con cuántas canciones tiene. Crea una con «Agregar a una lista» y
-«Nueva lista…» del menú de una canción, renómbralas y bórralas, quita
-canciones con Supr y cámbialas de lugar con Alt+Flecha arriba y
-Alt+Flecha abajo. También puedes guardar la cola que suena como lista.
-Se guardan como archivos .m3u8, que abren otros reproductores.</li>
-<li><strong>Enlaces y listas de YouTube.</strong> En la ventana Música,
-«Abrir enlace…» acepta un vídeo o una lista entera de YouTube y suma su
-audio a la cola. El aleatorio también vale para esas listas.</li>
-<li><strong>Igualar el volumen de las canciones.</strong> Todas suenan
-parecido, como en Spotify: cada archivo se mide una sola vez, de fondo,
+<li>El menú <em>Música</em> tiene sus atajos. Con
+<code>Ctrl+Alt+Espacio</code> puedes reproducir o pausar.
+<code>Ctrl+Alt+Flecha derecha</code> y
+<code>Ctrl+Alt+Flecha izquierda</code> pasan a la canción siguiente o a
+la anterior. <code>Ctrl+Alt+Flecha arriba</code> y
+<code>Ctrl+Alt+Flecha abajo</code> suben y bajan el volumen de la
+música, y <code>Ctrl+Alt+T</code> dice qué suena.
+<code>Ctrl+Alt+M</code> silencia la música, <code>Ctrl+Alt+D</code> la
+detiene, <code>Ctrl+Alt+A</code> cambia el orden aleatorio y
+<code>Ctrl+Alt+R</code> cambia la repetición.
+<code>Ctrl+Alt+Mayús+Flecha derecha</code> y
+<code>Ctrl+Alt+Mayús+Flecha izquierda</code> adelantan y retroceden 10
+segundos. La primera vez puede tardar unos segundos en prepararse, y lo
+anuncia.</li>
+<li>Se usa tu carpeta Música de Windows, o la que elijas en
+<em>Preferencias</em>, página <em>Música</em>, aunque la hayas movido a
+otro disco. En esa página también están el orden aleatorio, repetir toda
+la cola o la canción actual y el volumen de la música. Ese volumen es
+aparte del de la voz y del reproductor, y ahí se elige por qué salida de
+audio suena.</li>
+<li>Al pasar de canción se puede decir nada, el título, el título y el
+artista, o solo el artista. Con <em>Nada</em> solo suena el sonido de
+cambio de canción, si lo dejas activado, pero cuando pasas de canción
+con el atajo se dice el título, porque lo pediste. Otra casilla decide
+si se anuncian «Música en pausa», «Música reanudada» y «Desde el
+comienzo».</li>
+<li>La ventana <em>Música</em> se abre con <code>Ctrl+Mayús+M</code>.
+Busca en tu carpeta mientras escribes, aunque no pongas las tildes.
+Reproduce la canción elegida o todo el resultado, agrégalo a la cola,
+mira la cola y salta a cualquier canción con <code>Intro</code>. Con la
+opción de reproducir a continuación, la canción elegida suena al
+terminar la actual, sin interrumpir nada, y después la cola sigue donde
+iba. Mientras está abierta, los atajos de música siguen
+funcionando.</li>
+<li>Las canciones aparecen primero con el nombre del archivo y, unos
+segundos después, con el título y el artista que trae el propio archivo,
+sin que se mueva la canción en que estás. La segunda vez que abres la
+carpeta ya salen así desde el principio.</li>
+<li>Hay listas propias en la misma ventana. En la lista
+<em>Colecciones</em>, <em>Biblioteca</em> es tu carpeta y debajo están
+tus listas, cada una con cuántas canciones tiene. Crea una con la opción
+de agregar a una lista y <em>Nueva lista…</em> del menú de una canción.
+Renómbralas y elimínalas, elimina canciones con <code>Supr</code> y
+cámbialas de lugar con <code>Alt+Flecha arriba</code> y
+<code>Alt+Flecha abajo</code>. También puedes guardar la cola que suena
+como lista. Se guardan como archivos .m3u8, que abren otros
+reproductores.</li>
+<li>Los enlaces y las listas de YouTube se abren desde la ventana
+<em>Música</em>. <em>Abrir enlace…</em> acepta un vídeo o una lista
+entera de YouTube y suma su audio a la cola. El orden aleatorio también
+vale para esas listas.</li>
+<li>La igualación del volumen de las canciones hace que todas suenen
+parecido, como en Spotify. Cada archivo se mide una sola vez, de fondo,
 y el volumen se corrige al empezar cada canción. La primera vez se oye
 un sonido propio y se dice cuántas canciones se van a medir. El avance
-aparece en la ventana Música y en F2, y se apaga con una casilla de la
-página Música.</li>
-<li><strong>F2 dice qué suena</strong>, si lo dejas activado en la
-página «Estado (F2)».</li>
-<li><strong>Retoma donde quedó.</strong> Al abrir YTChat y pulsar
-Reproducir, sigue la última cola desde la canción en que estaba. No
-empieza a sonar sola.</li>
-<li><strong>Atajos en cualquier programa</strong>, opcional. Con la
-casilla de la página Música, los atajos de música funcionan aunque estés
-en OBS o en un juego. Viene apagada porque mientras está activa esas
-teclas no llegan a los demás programas. Donde NVDA cree que hay una
-tabla, como el escritorio, se queda con Ctrl+Alt+flechas: ahí pulsa
-NVDA+F2 antes del atajo.</li>
+aparece en la ventana <em>Música</em> y en <code>F2</code>, y se
+desactiva con una casilla de la página <em>Música</em>.</li>
+<li><code>F2</code> dice qué suena, si lo dejas activado en la página
+<em>Estado (F2)</em>.</li>
+<li>Al abrir YTChat y pulsar Reproducir, sigue la última cola desde la
+canción en que estaba. No empieza a sonar sola.</li>
+<li>Los atajos de música pueden funcionar en cualquier aplicación, si
+marcas la casilla de la página <em>Música</em>. Así funcionan aunque
+estés en OBS o en un juego. Viene desactivada porque, mientras está
+activa, esas teclas no llegan a las demás aplicaciones. Donde NVDA cree
+que hay una tabla, como el escritorio, se queda con
+<code>Ctrl+Alt+flechas</code>: ahí pulsa <code>NVDA+F2</code> antes del
+atajo.</li>
 </ul>
 <h3 id="atajos">Atajos</h3>
 <ul>
-<li><strong>Cada familia de teclas, un área.</strong> Ctrl es el
-reproductor, Alt el chat, Ctrl+Mayús abre ventanas, Alt+Mayús es el
-directo y OBS, las teclas F son la voz y Ctrl+Alt la música. Por eso
-cambian algunos de fábrica: conectar y desconectar pasan a Alt+Mayús+C y
-Alt+Mayús+D, ir a la lista de mensajes a Alt+Mayús+L, el micrófono de
-OBS a Alt+Mayús+M, marcar una incidencia a Alt+Mayús+I, copiar el enlace
-a Alt+Mayús+E y el gestor de descargas a Ctrl+Mayús+D. Si habías
-cambiado alguno, se respeta el tuyo.</li>
-<li><strong>Las teclas con su nombre en español</strong> en la página
-Atajos de Preferencias y al capturar una combinación.</li>
-<li><strong>Ctrl+Alt con letras y números.</strong> En Preferencias,
-página Atajos, los de música aceptan Ctrl+Alt con una letra o un número.
-Al capturarlo, la aplicación revisa tu teclado: si AltGr con esa tecla
-escribe algo, como la arroba en el teclado latinoamericano, te lo dice y
-te pide otra, para que puedas seguir escribiendo ese carácter en el
-chat.</li>
+<li>Cada familia de teclas tiene un área. <code>Ctrl</code> es el
+reproductor, <code>Alt</code> el chat, <code>Ctrl+Mayús</code> abre
+ventanas, <code>Alt+Mayús</code> es el directo y OBS, las teclas
+<code>F</code> son la voz y <code>Ctrl+Alt</code> la música. Por eso
+cambian algunos de fábrica. Conectar y desconectar pasan a
+<code>Alt+Mayús+C</code> y <code>Alt+Mayús+D</code>, ir a la lista de
+mensajes a <code>Alt+Mayús+L</code> y el micrófono de OBS a
+<code>Alt+Mayús+M</code>. Marcar una incidencia pasa a
+<code>Alt+Mayús+I</code>, copiar el enlace a <code>Alt+Mayús+E</code> y
+el <em>Administrador de descargas</em> a <code>Ctrl+Mayús+D</code>. Si
+habías cambiado alguno, se respeta el tuyo.</li>
+<li>Las teclas llevan su nombre en español en la página <em>Atajos</em>
+de <em>Preferencias</em> y al capturar una combinación.</li>
+<li>Los atajos de música aceptan <code>Ctrl+Alt</code> con una letra o
+un número. Al capturarlo, la aplicación revisa tu teclado: si
+<code>AltGr</code> con esa tecla escribe algo, como la arroba en el
+teclado latinoamericano, te lo dice y te pide otra. Así puedes seguir
+escribiendo ese carácter en el chat.</li>
 </ul>
 <h3 id="chat">Chat</h3>
 <ul>
-<li><strong>Un corte de conexión ya no cierra el directo.</strong>
-Antes, si se cortaba la conexión con el chat, al volver sola la
-aplicación leía los mensajes pero no dejaba escribir ni moderar. Ahora
-avisa «Se perdió la conexión con el chat», reintenta a los 1, 2, 5 y 10
-segundos, y después según la «Espera máxima entre intentos» de
-Preferencias. Al volver dice «Chat reconectado.» y todo sigue como antes
-del corte.</li>
-<li><strong>Los mensajes no se repiten tras un corte.</strong> Lo que ya
-se había leído no se vuelve a leer al reconectar.</li>
+<li>Una pérdida de conexión ya no cierra el directo. Antes, si se
+interrumpía la conexión con el chat, al volver sola la aplicación leía
+los mensajes pero no dejaba escribir ni moderar. Ahora avisa «Se perdió
+la conexión con el chat», reintenta a los 1, 2, 5 y 10 segundos, y
+después según la <em>Espera máxima entre intentos, en segundos</em> de
+<em>Preferencias</em>. Al volver dice «Chat reconectado.» y todo sigue
+como antes del corte.</li>
+<li>Los mensajes no se repiten tras un corte. Lo que ya se había leído
+no se vuelve a leer al reconectar.</li>
 </ul>
 <h3 id="pantallas">Pantallas</h3>
 <ul>
-<li><strong>La ventana del directo de YouTube cabe en pantallas
-bajas.</strong> En una pantalla de 768 píxeles de alto se cortaban los
-botones Transmitir y Cancelar. Ahora los campos se desplazan y esos
-botones quedan siempre a la vista.</li>
-<li><strong>Los campos de solo lectura se alcanzan con Tab.</strong> El
-avance de la igualación del volumen en la ventana Música y la miniatura
-en la ventana del directo de YouTube se saltaban al recorrer con
-Tab.</li>
-<li><strong>Nombres enteros en Preferencias.</strong> La lista de
-páginas ya no corta «Cola de lectura», «Interfaz y sonidos» ni «Mensajes
-automáticos».</li>
+<li>La ventana del directo de YouTube cabe en pantallas de poca altura.
+En una pantalla de 768 píxeles de alto no se veían los botones
+<em>Transmitir</em> y <em>Cancelar</em>. Ahora los campos se desplazan y
+esos botones quedan siempre a la vista.</li>
+<li>Los campos de solo lectura se alcanzan con <code>Tab</code>. El
+avance de la igualación del volumen en la ventana <em>Música</em> y la
+miniatura en la ventana del directo de YouTube se saltaban al recorrer
+con <code>Tab</code>.</li>
+<li>Los nombres enteros se ven en <em>Preferencias</em>. La lista de
+páginas ya no corta <em>Cola de lectura</em>, <em>Interfaz</em> ni
+<em>Mensajes automáticos</em>.</li>
 </ul>
 <h2 id="234-octubre-de-2026">2.3.4, octubre de 2026</h2>
-<p>Arreglos que salieron de un directo de prueba.</p>
+<p>Arreglos que salieron de un directo de prueba con la red
+inestable.</p>
 <h3 id="transmisión-1">Transmisión</h3>
 <ul>
-<li><strong>Un solo aviso cuando OBS no da abasto, y se puede
-apagar.</strong> Antes sonaban dos frases largas cada minuto mientras se
-jugaba. Ahora es una sola, «OBS no da abasto: se pierde el 16 por ciento
-de los cuadros», y no se repite antes de cinco minutos. Ctrl+Shift+A lo
-apaga y lo vuelve a encender, y queda guardado. También está en el menú
-Transmisión y en la página Transmisión de Preferencias. Los avisos de
-red y de reconexión siguen siempre.</li>
-<li><strong>Copiar el enlace de un directo privado.</strong>
-Ctrl+Shift+E ahora copia el enlace del directo privado o para niños que
-crea la aplicación. Antes decía que no había ningún directo
-conectado.</li>
+<li>Cuando OBS no da abasto hay un solo aviso, y se puede desactivar.
+Antes sonaban dos frases largas cada minuto mientras se jugaba. Ahora es
+una sola, «OBS no da abasto: se pierde el 16 por ciento de los cuadros»,
+y no se repite antes de cinco minutos. <code>Ctrl+Mayús+A</code> lo
+desactiva y lo vuelve a activar, y queda guardado. También está en el
+menú <em>Transmisión</em> y en la página <em>Transmisión</em> de
+<em>Preferencias</em>. Los avisos de red y de reconexión siguen
+siempre.</li>
+<li>Copiar el enlace de un directo privado funciona.
+<code>Ctrl+Mayús+E</code> ahora copia el enlace del directo privado o
+para niños que crea la aplicación. Antes decía que no había ningún
+directo conectado.</li>
 </ul>
 <h3 id="chat-1">Chat</h3>
 <ul>
-<li><strong>El chat deja de reintentar un directo que ya
-terminó.</strong> Si el chat quedaba conectado a un directo que había
-terminado, repetía sin fin «Desconectado» y «Reintentando en 15 segundos
-(intento 1 de 20)». Ahora la aplicación comprueba si el directo sigue en
-vivo. Si terminó, lo dice una vez, «El directo terminó. Chat
-desconectado», con el sonido de fin del directo, y deja de intentar. Si
-sigue en vivo, reintenta como antes, y el límite de veinte intentos
-ahora se cumple.</li>
+<li>El chat deja de reintentar un directo que ya terminó. Si el chat
+quedaba conectado a un directo que había terminado, repetía sin fin
+«Desconectado» y «Reintentando en 15 segundos (intento 1 de 20)». Ahora
+la aplicación comprueba si el directo sigue en directo. Si terminó, lo
+dice una vez, «El directo terminó. Chat desconectado», con el sonido de
+fin del directo, y deja de intentar. Si sigue en directo, reintenta como
+antes, y el límite de veinte intentos ahora se cumple.</li>
 </ul>
 <h2 id="233-octubre-de-2026">2.3.3, octubre de 2026</h2>
-<p>Un arreglo que completa lo de Detener de la 2.3.2.</p>
+<p>Un arreglo que completa lo de Detener que se explicó en la versión
+2.3.2.</p>
 <ul>
-<li><strong>El botón del directo espera a OBS.</strong> Mientras Detener
-espera a que OBS confirme, el botón dice <em>Deteniendo el directo</em>
-en vez de volver a ofrecer <em>Transmitir en directo</em>. Si lo pulsas
-en ese rato, avisa que se está esperando a OBS y no intenta otra
-transmisión, que OBS rechazaba con «No se puede cambiar de destino
-mientras se transmite». Lo mismo en la ventana Transmisión. Cuando OBS
-confirma, el botón vuelve solo a <em>Transmitir en directo</em>.</li>
+<li>El botón del directo espera a OBS. Mientras Detener espera a que OBS
+confirme, el botón dice <em>Deteniendo el directo</em> en vez de volver
+a ofrecer <em>Transmitir en directo</em>. Si lo pulsas en ese rato,
+avisa que se está esperando a OBS y no intenta otra transmisión, que OBS
+rechazaba con «No se puede cambiar de destino mientras se transmite». Lo
+mismo pasa en la ventana <em>Transmisión</em>. Cuando OBS confirma, el
+botón vuelve solo a <em>Transmitir en directo</em>.</li>
 </ul>
 <h2 id="232-octubre-de-2026">2.3.2, octubre de 2026</h2>
-<p>Arreglos para transmitir con la red inestable y una opción para que
-el reproductor gaste menos.</p>
+<p>Arreglos para transmitir con la red inestable y una opción nueva para
+que el reproductor gaste menos recursos del equipo.</p>
 <h3 id="transmisión-2">Transmisión</h3>
 <ul>
-<li><strong>Detener espera a que OBS confirme.</strong> Antes decía
-«Transmisión detenida» al instante, aunque OBS tardara casi un minuto en
-parar con la red caída. Ahora lo dice cuando OBS de verdad paró. Si
-tarda más de tres segundos, avisa que está esperando. Si a los noventa
-segundos OBS sigue transmitiendo, lo dice para que lo detengas en
-OBS.</li>
-<li><strong>El directo de YouTube se termina aunque se corte la
-red.</strong> Si YouTube no confirma el fin, la aplicación lo vuelve a
-intentar sola cada quince segundos durante diez minutos, y avisa con un
-sonido nuevo cuando lo logra. Si no lo logra, lo intenta otra vez la
-próxima vez que abras YTChat, sin preguntarte.</li>
-<li><strong>Aviso cuando OBS se reconecta, y cuando vuelve.</strong> El
-aviso de reconexión existía pero no podía sonar nunca. Ahora suena al
-cortarse la conexión con el servicio y, con otro sonido nuevo, cuando la
-conexión vuelve.</li>
-<li><strong>Aviso cuando el equipo no da abasto.</strong> Si se pierden
-cuadros porque la computadora no llega a codificar o a dibujar la
-escena, lo dice con el porcentaje y te sugiere cerrar programas. Es
-distinto del aviso de red lenta.</li>
+<li>Detener espera a que OBS confirme. Antes decía «Transmisión
+detenida» al instante, aunque OBS tardara casi un minuto en parar con la
+red caída. Ahora lo dice cuando OBS de verdad paró. Si tarda más de tres
+segundos, avisa que está esperando. Si a los noventa segundos OBS sigue
+transmitiendo, lo dice para que lo detengas en OBS.</li>
+<li>El directo de YouTube se termina aunque falle la red. Si YouTube no
+confirma el fin, la aplicación lo vuelve a intentar sola cada quince
+segundos durante diez minutos, y avisa con un sonido nuevo cuando lo
+logra. Si no lo logra, lo intenta otra vez la próxima vez que abras
+YTChat, sin preguntarte.</li>
+<li>Hay aviso cuando OBS se reconecta y cuando vuelve. El aviso de
+reconexión existía pero no podía sonar nunca. Ahora suena al cortarse la
+conexión con el servicio y, con otro sonido nuevo, cuando la conexión
+vuelve.</li>
+<li>Hay aviso cuando el equipo no da abasto. Si se pierden cuadros
+porque el equipo no llega a codificar o a dibujar la escena, lo dice con
+el porcentaje y te sugiere cerrar aplicaciones. Es distinto del aviso de
+red lenta.</li>
 <li>Cada tipo de aviso se repite como mucho una vez por minuto.</li>
 </ul>
 <h3 id="reproductor">Reproductor</h3>
 <ul>
-<li><strong>Reproducir solo el audio.</strong> Casilla nueva en
-Preferencias, página Reproductor. Con ella, el reproductor no decodifica
-la imagen de nada de lo que reproduce, directos o vídeos de YouTube y
-TikTok, y la tarjeta de video queda libre para OBS. Viene
-desmarcada.</li>
+<li>La casilla <em>Reproducir solo el audio, sin imagen</em>, en
+<em>Preferencias</em>, página <em>Reproductor</em>, hace que el
+reproductor no decodifique la imagen de nada de lo que reproduce. Vale
+para directos o vídeos de YouTube y TikTok, y la tarjeta de vídeo queda
+libre para OBS. Viene desmarcada.</li>
 </ul>
 <h3 id="para-encontrar-problemas-1">Para encontrar problemas</h3>
 <ul>
@@ -890,36 +909,34 @@ decidió la revisión de directos que quedaron al aire al abrir. Los
 mensajes del chat no se guardan.</li>
 </ul>
 <h2 id="231-octubre-de-2026">2.3.1, octubre de 2026</h2>
-<p>Arreglos del actualizador y una página General nueva en
-Preferencias.</p>
+<p>Arreglos del actualizador y una página <em>General</em> nueva en las
+<em>Preferencias</em> de la aplicación.</p>
 <h3 id="actualizaciones">Actualizaciones</h3>
 <ul>
-<li><strong>La segunda actualización ya no falla.</strong> Antes de
-descomprimir una versión nueva, la aplicación borra lo que dejó la
-actualización anterior, y en ese paso fallaba siempre. El arreglo viaja
-dentro de esta versión: para pasar de la 2.3.0 a la 2.3.1 todavía hay
-que borrar a mano la carpeta <code>data\actualizacion\nueva</code> antes
-de actualizar. Las siguientes ya no lo necesitan.</li>
-<li><strong>La ventana de actualización se ve entera.</strong> Quedaba
-chica, y las novedades y el botón <em>Más tarde</em> no se veían. Ahora
-crece con su contenido, pone los botones en una fila y se puede
-agrandar.</li>
+<li>La segunda actualización ya no falla. Antes de descomprimir una
+versión nueva, la aplicación borra lo que dejó la actualización
+anterior, y en ese paso fallaba siempre. El arreglo viaja dentro de esta
+versión: para pasar de la 2.3.0 a la 2.3.1 todavía hay que borrar a mano
+la carpeta <code>data\actualizacion\nueva</code> antes de actualizar.
+Las siguientes ya no lo necesitan.</li>
+<li>La ventana de actualización se ve entera. Quedaba chica, y las
+novedades y el botón <em>Más tarde</em> no se veían. Ahora crece con su
+contenido, pone los botones en una fila y se puede agrandar.</li>
 </ul>
 <h3 id="preferencias">Preferencias</h3>
 <ul>
-<li><strong>Página General, la primera de la lista.</strong> Reúne
+<li>La página <em>General</em> es la primera de la lista. Reúne
 <em>Buscar actualizaciones al iniciar</em> y el registro detallado, que
-estaban en Conexión y en Diagnóstico, y suma:
+estaban en Conexión y en Diagnóstico, y suma varias opciones:
 <ul>
 <li>Preguntar antes de salir si hay un chat conectado o una transmisión
 en curso.</li>
-<li>Recordar la última dirección: al abrir, el campo trae el último
-directo al que te conectaste.</li>
+<li>Recordar el último enlace: al abrir, el campo trae el último directo
+al que te conectaste.</li>
 <li>Reproducir el sonido de inicio.</li>
 <li>Abrir la carpeta de datos.</li>
-<li>Exportar e importar las preferencias, para pasarlas a otra
-computadora o guardar una copia. Las claves de tus cuentas no se
-exportan.</li>
+<li>Exportar e importar las preferencias, para pasarlas a otro equipo o
+guardar una copia. Las claves de tus cuentas no se exportan.</li>
 <li>Restablecer todas las preferencias a los valores de fábrica.</li>
 </ul></li>
 <li>Antes de importar o restablecer se guarda una copia de las
@@ -928,723 +945,689 @@ preferencias actuales en la carpeta de datos.</li>
 </ul>
 <h2 id="230-octubre-de-2026">2.3.0, octubre de 2026</h2>
 <p>Más voces para leer el chat y más opciones al crear un directo de
-YouTube.</p>
+YouTube desde la aplicación.</p>
 <h3 id="voces">Voces</h3>
 <ul>
-<li><strong>Página Voces en Preferencias.</strong> Ahí eliges el motor
-de voz, la voz, la velocidad, el volumen y el tono. <em>Probar voz</em>
-te deja oír cómo suena antes de guardar, y al guardar el cambio se
-aplica sin reiniciar.</li>
-<li><strong>Tres motores de voz.</strong> Las voces de Windows de
-siempre (SAPI 5), las voces OneCore de Windows, y ElevenLabs, que genera
-la voz en internet con la clave de tu cuenta.</li>
-<li><strong>ElevenLabs no deja el chat mudo.</strong> Si se corta
-internet, la clave no sirve o se acaba el saldo, el mensaje se lee con
-la voz de Windows y la aplicación te lo avisa una vez. Puedes ponerle un
-tope de caracteres por sesión y usarlo solo con Super Chats, miembros,
-cofres, el dueño del canal y los moderadores. <em>Comprobar clave</em>
-te dice cuántas voces tiene tu cuenta y cuántos caracteres usaste este
+<li>La página <em>Voces</em> de <em>Preferencias</em> permite elegir el
+motor de voz, la voz, la velocidad, el volumen y el tono. <em>Probar
+voz</em> te deja reproducir una muestra antes de guardar, y al guardar
+el cambio se aplica sin reiniciar.</li>
+<li>Hay tres motores de voz. Las voces de Windows de siempre (SAPI 5),
+las voces OneCore de Windows, y ElevenLabs, que genera la voz en
+internet con la clave de tu cuenta.</li>
+<li>ElevenLabs no deja el chat mudo. Si falla internet, la clave no
+sirve o se acaba el saldo, el mensaje se lee con la voz de Windows y la
+aplicación te lo avisa una vez. Puedes ponerle un límite de caracteres
+por sesión y usarlo solo con Super Chats, miembros, cofres, el
+propietario del canal y los moderadores. <em>Comprobar clave</em> te
+dice cuántas voces tiene tu cuenta y cuántos caracteres usaste este
 mes.</li>
-<li><strong>Tu voz ya no cambia sola al instalar otra.</strong> Antes se
-guardaba el lugar de la voz en la lista, y una voz nueva corría la
-lista. Ahora se guarda el nombre. La primera vez que abras esta versión,
-tu voz guardada se convierte sola.</li>
-<li><strong>La velocidad va de 0 a 100.</strong> F9 y F10 la mueven de 5
-en 5 y la aplicación dice el número. La velocidad que tenías suena igual
-que antes.</li>
-<li><strong>Los anuncios vuelven solos si reinicias el lector de
-pantalla.</strong> Si abres o reinicias NVDA o JAWS con la aplicación ya
-abierta, los anuncios vuelven a sonar a los pocos segundos.</li>
+<li>Tu voz ya no cambia sola al instalar otra. Antes se guardaba el
+lugar de la voz en la lista, y una voz nueva corría la lista. Ahora se
+guarda el nombre. La primera vez que abras esta versión, tu voz guardada
+se convierte sola.</li>
+<li>La velocidad va de 0 a 100. <code>F9</code> y <code>F10</code> la
+mueven de 5 en 5 y la aplicación dice el número. La velocidad que tenías
+suena igual que antes.</li>
+<li>Los anuncios vuelven solos si reinicias el lector de pantalla. Si
+abres o reinicias NVDA o JAWS con la aplicación ya abierta, los anuncios
+vuelven a sonar a los pocos segundos.</li>
 </ul>
 <h3 id="preferencias-1">Preferencias</h3>
 <ul>
-<li><strong>Guardar es instantáneo y se oye.</strong> Antes tardaba un
-momento y el aviso se perdía al cerrarse la ventana. Ahora guarda todo
-de una vez, suena el sonido al pulsar <em>Guardar</em> y, ya de vuelta
-en la ventana principal, la aplicación dice «Preferencias guardadas»
-junto con cualquier otro aviso.</li>
+<li>Guardar es instantáneo y se oye. Antes tardaba un momento y el aviso
+se perdía al cerrarse la ventana. Ahora guarda todo de una vez, suena el
+sonido al pulsar <em>Guardar</em> y, ya de vuelta en la ventana
+principal, la aplicación dice «Preferencias guardadas» junto con
+cualquier otro aviso.</li>
 </ul>
 <h3 id="actualizaciones-y-avisos">Actualizaciones y avisos</h3>
 <ul>
-<li><strong>Si hay una versión nueva, se abre su ventana al iniciar la
-aplicación.</strong> Muestra las novedades y tiene dos botones:
-<em>Descargar e instalar</em> y <em>Más tarde</em>. Con <em>Más
-tarde</em> se cierra y la próxima vez que abras la aplicación vuelve a
-preguntar. Antes solo lo decía en voz una vez, y si estabas leyendo otra
-cosa con el lector, te lo perdías.</li>
-<li><strong>Las novedades se leen bien.</strong> Ya no empiezan con
-líneas en blanco ni traen asteriscos, cada punto va en una sola línea
-con su viñeta y el cursor queda al comienzo.</li>
-<li><strong>Al terminar una actualización se abre una ventana con el
-resultado.</strong> Si en ese momento hay un chat conectado, una
-transmisión u otra ventana abierta, espera a que termines para no
-sacarte del lugar.</li>
-<li><strong>Cada aviso tiene su sonido.</strong> Descarga iniciada,
-terminada, con error y cancelada; directo al aire, transmisión detenida
-y problema en la transmisión; actualización disponible y lista; y una
-campanita para los avisos generales, como el de mensajes descartados.
-Antes varios usaban el mismo sonido y había que esperar a oír el texto
-para saber qué pasó.</li>
-<li><strong>El tema «suave» ya no repite sonidos.</strong> Diez eventos
-que sonaban igual que otro tienen ahora su sonido propio.</li>
-<li><strong>Al iniciar ya no dice «Preparando el reproductor» ni
-«Reproductor listo».</strong> El reproductor se prepara igual, en
-silencio.</li>
+<li>Si hay una versión nueva, se abre su ventana al iniciar la
+aplicación. Muestra las novedades y tiene dos botones: <em>Descargar e
+instalar</em> y <em>Más tarde</em>. Con <em>Más tarde</em> se cierra y
+la próxima vez que abras la aplicación vuelve a preguntar. Antes solo lo
+decía en voz una vez, y si estabas leyendo otra cosa con el lector, te
+lo perdías.</li>
+<li>Las novedades se leen bien. Ya no empiezan con líneas en blanco ni
+traen asteriscos, cada punto va en una sola línea con su viñeta y el
+cursor queda al comienzo.</li>
+<li>Al terminar una actualización se abre una ventana con el resultado.
+Si en ese momento hay un chat conectado, una transmisión u otra ventana
+abierta, espera a que termines para no interrumpirte.</li>
+<li>Cada aviso tiene su sonido. Descarga iniciada, terminada, con error
+y cancelada; directo al aire, transmisión detenida y problema en la
+transmisión; actualización disponible y lista; y una campanita para los
+avisos generales, como el de mensajes descartados. Antes varios usaban
+el mismo sonido y había que esperar a oír el texto para saber qué
+pasó.</li>
+<li>El tema <em>Suave</em> ya no repite sonidos. Diez eventos que
+sonaban igual que otro tienen ahora su sonido propio.</li>
+<li>Al iniciar ya no dice «Preparando el reproductor» ni «Reproductor
+listo». El reproductor se prepara igual, en silencio.</li>
 </ul>
 <h3 id="sonidos">Sonidos</h3>
 <ul>
-<li><strong>El tema «suave» vuelve a sonar distinto.</strong> Desde la
-2.2.0 sus sonidos eran una copia de los del tema «default». Ahora son
-sonidos propios, más cortos y tenues. Se elige en <em>Preferencias,
-Interfaz y sonidos</em>.</li>
+<li>El tema <em>Suave</em> vuelve a sonar distinto. Desde la 2.2.0 sus
+sonidos eran una copia de los del tema <em>Predeterminado</em>. Ahora
+son sonidos propios, más cortos y tenues. Se elige en <em>Preferencias,
+Interfaz</em>.</li>
 </ul>
 <h3 id="directo-de-youtube">Directo de YouTube</h3>
 <ul>
-<li><strong>La ventana del directo tiene más opciones,</strong> y todas
-se recuerdan para la próxima vez:
+<li>La ventana del directo tiene más opciones, y todas se recuerdan para
+la próxima vez:
 <ul>
 <li>latencia normal, baja o ultrabaja. Con ultrabaja el chat llega casi
 en el momento;</li>
-<li>hecho para niños. Si lo marcas, YouTube apaga el chat del
+<li>hecho para niños. Si lo marcas, YouTube desactiva el chat del
 directo;</li>
 <li>permitir rebobinar el directo;</li>
 <li>categoría y etiquetas;</li>
 <li>miniatura, una imagen JPG o PNG de hasta 2 MB que eliges con el
 cuadro de Windows;</li>
 <li>lista de reproducción de tu canal, para que el directo quede
-guardado en ella. Las listas se traen con el botón «Cargar listas».</li>
+guardado en ella. Las listas se traen con el botón <em>Cargar
+listas</em>.</li>
 </ul></li>
-<li><strong>Si YouTube no acepta la miniatura, la categoría, las
-etiquetas o la lista,</strong> el directo sale igual y la aplicación te
-dice por qué.</li>
+<li>Si YouTube no acepta la miniatura, la categoría, las etiquetas o la
+lista, el directo sale igual y la aplicación te dice por qué.</li>
 </ul>
 <h2 id="221-octubre-de-2026">2.2.1, octubre de 2026</h2>
-<p>Arreglos para actualizar sin trabas y un paquete más liviano.</p>
+<p>Arreglos para actualizar sin problemas y un paquete de instalación
+más liviano.</p>
 <ul>
-<li><strong>OBS ya no bloquea las actualizaciones.</strong> El OBS que
-abría la aplicación usaba archivos de la carpeta de YTChat, y mientras
-siguiera abierto la actualización no podía reemplazarlos. Ahora OBS usa
-los suyos.</li>
-<li><strong>Si una actualización no puede completarse porque un archivo
-está en uso,</strong> el aviso dice que puede ser OBS y que lo cierres
-antes de volver a intentarlo. Esto sirve también para pasar de la 2.2.0
-a esta versión: si abriste OBS desde la 2.2.0, ciérralo antes de
-actualizar.</li>
-<li><strong>El paquete baja de 175 a 147 MB.</strong> Ya no lleva
-documentos de otros servicios de Google ni una biblioteca que la
-aplicación no usa.</li>
+<li>OBS ya no bloquea las actualizaciones. El OBS que abría la
+aplicación usaba archivos de la carpeta de YTChat, y mientras siguiera
+abierto la actualización no podía reemplazarlos. Ahora OBS usa los
+suyos.</li>
+<li>Si una actualización no puede completarse porque un archivo está en
+uso, el aviso dice que puede ser OBS y que lo cierres antes de volver a
+intentarlo. Esto sirve también para pasar de la 2.2.0 a esta versión: si
+abriste OBS desde la 2.2.0, ciérralo antes de actualizar.</li>
+<li>El paquete baja de 175 a 147 MB. Ya no lleva documentos de otros
+servicios de Google ni una biblioteca que la aplicación no usa.</li>
 </ul>
 <h2 id="220-octubre-de-2026">2.2.0, octubre de 2026</h2>
 <p>Esta versión permite empezar y terminar un directo de YouTube o de
 TikTok desde la propia aplicación, sin abrir OBS ni la página de
 Restream. Iniciar sesión con Google ya no exige crear credenciales
-propias. La aplicación se actualiza sola, los sonidos son grabaciones
-nuevas y hay sonidos distintos según quién escribe y qué pasa en el
-directo.</p>
+propias en Google Cloud. La aplicación se actualiza sola, los sonidos
+son grabaciones nuevas y hay sonidos distintos según quién escribe y qué
+pasa en el directo.</p>
 <h3 id="transmitir-en-directo">Transmitir en directo</h3>
 <ul>
-<li><strong>Botón Transmitir en directo en la ventana
-principal.</strong> Al pulsarlo se elige el destino, YouTube o TikTok,
-con el de la vez anterior ya seleccionado. La aplicación abre OBS si
-hace falta, sin quitarle el foco al lector de pantalla, pasa al perfil
-de ese destino y lee una revisión antes de salir al aire: formato,
-escena, fuentes, audio y cualquier problema, como una escena vacía o un
-micrófono silenciado. Mientras se transmite, el mismo botón dice
-<strong>Finalizar directo</strong>.</li>
-<li><strong>YouTube sin tocar la página de YouTube.</strong> Una sola
+<li>El botón <em>Transmitir en directo</em> de la ventana principal abre
+la elección de destino, YouTube o TikTok, con el de la vez anterior ya
+seleccionado. La aplicación abre OBS si hace falta, sin mover el foco
+del lector de pantalla, pasa al perfil de ese destino y lee una revisión
+antes de salir al aire. La revisión cubre formato, escena, fuentes,
+audio y cualquier problema, como una escena vacía o un micrófono
+silenciado. Mientras se transmite, el mismo botón dice <em>Finalizar
+directo</em>.</li>
+<li>YouTube se configura sin tocar la página de YouTube. Una sola
 ventana pide el título, la descripción y la privacidad (público, no
 listado o privado), y muestra la revisión de OBS. Al pulsar
 <em>Transmitir</em>, la aplicación crea el directo en el canal, carga la
 clave en OBS, empieza a transmitir, espera a que YouTube lo muestre y
 conecta el chat sola. El título y la descripción se recuerdan para la
 próxima vez.</li>
-<li><strong>TikTok a través de Restream.</strong> La aplicación usa el
+<li>TikTok se transmite a través de Restream. La aplicación usa el
 perfil de OBS llamado <code>TikTok</code>, espera a que TikTok muestre
 el directo y conecta el chat.</li>
-<li><strong>Elegir qué se transmite.</strong> En la ventana
-<em>Transmisión</em> (<code>Ctrl+Mayúsculas+T</code>) se elige la
-ventana que captura la escena, por ejemplo un juego. Esa ventana está
-ordenada por secciones y sus campos dicen qué hacer cuando falta
-algo.</li>
-<li><strong><code>Ctrl+Mayúsculas+E</code> copia el enlace del
-directo</strong> conectado, para pasárselo a alguien.</li>
-<li><strong><code>F2</code> dice primero en qué está el directo</strong>
-que supervisa la aplicación, y si TikTok o YouTube ya lo muestran.</li>
-<li><strong><code>F2</code> dice cómo volver al directo</strong> cuando
-el reproductor va por detrás: «10 segundos por detrás del directo. Pulsa
-Ctrl+Fin para volver al directo.», con el atajo que tengas
-configurado.</li>
-<li><strong>Un corte de internet no termina el directo de
-YouTube.</strong> Si OBS pierde la conexión, por ejemplo al cambiar de
-wifi, YouTube espera a que vuelva la señal en vez de cerrar el directo,
-y la aplicación avisa que OBS está reconectando. Al finalizar desde la
-aplicación o desde OBS, la aplicación cierra el directo en YouTube.</li>
-<li><strong>El panel de chat no queda tapado.</strong> Si otra fuente de
-la escena, como una captura de pantalla o de la cámara, queda encima del
-panel, la aplicación lo pone adelante al salir al aire y durante el
-directo, y dice qué fuente lo tapaba.</li>
-<li><strong><code>Ctrl+F2</code> describe la escena de OBS:</strong> qué
-fuentes tiene, cuál está adelante, dónde está cada una, si se ve y qué
-la tapa. La ventana <em>Transmisión</em> muestra lo mismo en su propia
-sección, <em>Cómo se ve la escena</em>, y el estado del panel tiene su
-propio rótulo.</li>
-<li><strong>Un directo no queda al aire sin imagen.</strong> Al abrir la
-aplicación, si tienes un directo de YouTube al aire mientras OBS no
-transmite, por ejemplo porque cerraste OBS después de cerrar la
-aplicación, te pregunta si finalizarlo.</li>
-<li><strong>La lista de ventanas para capturar ya no trae ventanas sin
-título,</strong> que se leían como «(null)».</li>
+<li>En la ventana <em>Transmisión</em> (<code>Ctrl+Mayús+T</code>) se
+elige la ventana que captura la escena, por ejemplo un juego. Esa
+ventana está ordenada por secciones y sus campos dicen qué hacer cuando
+falta algo.</li>
+<li><code>Ctrl+Mayús+E</code> copia el enlace del directo conectado,
+para pasárselo a alguien.</li>
+<li><code>F2</code> dice primero en qué está el directo que supervisa la
+aplicación, y si TikTok o YouTube ya lo muestran.</li>
+<li><code>F2</code> dice cómo volver al directo cuando el reproductor va
+por detrás: «10 segundos por detrás del directo. Pulsa Ctrl+Fin para
+volver al directo.», con el atajo que tengas configurado.</li>
+<li>Un corte de internet no termina el directo de YouTube. Si OBS pierde
+la conexión, por ejemplo al cambiar de wifi, YouTube espera a que vuelva
+la señal en vez de cerrar el directo, y la aplicación avisa que OBS está
+reconectando. Al finalizar desde la aplicación o desde OBS, la
+aplicación cierra el directo en YouTube.</li>
+<li>El panel de chat no queda tapado. Si otra fuente de la escena queda
+encima del panel, como una captura de pantalla o de la cámara, la
+aplicación lo pone delante al salir al aire y durante el directo.
+También dice qué fuente lo tapaba.</li>
+<li><code>Ctrl+F2</code> describe la escena de OBS: qué fuentes tiene,
+cuál está delante, dónde está cada una, si se ve y qué la tapa. La
+ventana <em>Transmisión</em> muestra lo mismo en su propia sección, y el
+estado del panel tiene su propio rótulo.</li>
+<li>Un directo no queda al aire sin imagen. Al abrir la aplicación, si
+tienes un directo de YouTube al aire mientras OBS no transmite, por
+ejemplo porque cerraste OBS después de cerrar la aplicación, te pregunta
+si finalizarlo.</li>
+<li>La lista de ventanas para capturar ya no trae ventanas sin título,
+que se leían como «(null)».</li>
 </ul>
 <h3 id="iniciar-sesión-con-google">Iniciar sesión con Google</h3>
 <ul>
-<li><strong>Sin credenciales propias.</strong> Antes había que crear un
+<li>Ya no hacen falta credenciales propias. Antes había que crear un
 proyecto en Google Cloud y cargar su cliente. Ahora basta con pulsar
 <em>Iniciar sesión</em> en <em>Preferencias, API y sesión</em>: la
 aplicación trae su propio cliente. Google muestra un aviso de aplicación
-no verificada, que se pasa con <em>Opciones avanzadas</em> y
-<em>Continuar</em>. Quien ya tenía credenciales propias las sigue
-usando.</li>
+no verificada, que se pasa con las opciones avanzadas y el botón de
+continuar. Quien ya tenía credenciales propias las sigue usando.</li>
 </ul>
 <h3 id="actualizaciones-1">Actualizaciones</h3>
 <ul>
-<li><strong>La aplicación se actualiza sola.</strong> En <em>Ayuda,
-Buscar actualizaciones</em> una ventana dice si hay una versión nueva,
-muestra sus novedades en un cuadro que se puede recorrer, y la descarga
-e instala con un botón. La aplicación se cierra y vuelve a abrirse en
+<li>La aplicación se actualiza sola. En <em>Ayuda, Buscar
+actualizaciones</em> una ventana dice si hay una versión nueva, muestra
+sus novedades en un cuadro que se puede recorrer, y la descarga e
+instala con un botón. La aplicación se cierra y vuelve a abrirse en
 alrededor de un minuto. Si la versión nueva no llega a abrirse, se
 vuelve sola a la anterior y lo dice al iniciar. La configuración, la
 sesión, el historial, las descargas y los sonidos que hayas cambiado se
 conservan.</li>
-<li><strong>Aviso al iniciar.</strong> Si hay una versión nueva, se
-anuncia una sola vez.</li>
-<li><strong>Actualizar yt-dlp tiene ventana propia,</strong> con el
-estado, una barra de progreso y cada paso anunciado: buscando,
-descargando y el resultado.</li>
+<li>Si hay una versión nueva, se anuncia una sola vez al iniciar.</li>
+<li>Actualizar yt-dlp tiene ventana propia, con el estado, una barra de
+progreso y cada paso anunciado: buscando, descargando y el
+resultado.</li>
 </ul>
 <h3 id="sonidos-1">Sonidos</h3>
 <ul>
-<li><strong>Sonidos nuevos.</strong> Todos los sonidos son grabaciones
-nuevas, de dominio público, elegidas una por una para que se distingan
-entre sí. El archivo <code>sounds/CREDITOS.md</code> dice de dónde salió
-cada uno.</li>
-<li><strong>Un sonido según quién escribe.</strong> Los mensajes del
-dueño del canal, de un moderador, de una cuenta verificada y de un
-miembro suenan distinto del mensaje común.</li>
-<li><strong>Orilla.</strong> Al llegar con las flechas al principio o al
-final de la lista del chat, de los comentarios o del historial, suena un
-golpe sordo.</li>
-<li><strong>Fin del directo.</strong> Cuando un directo de TikTok
-termina suena una puerta que se cierra, y no el sonido de
-desconexión.</li>
+<li>Todos los sonidos son grabaciones nuevas, de dominio público,
+elegidas una por una para que se distingan entre sí. El archivo
+<code>sounds/CREDITOS.md</code> dice de dónde salió cada uno.</li>
+<li>Hay un sonido según quién escribe. Los mensajes del propietario del
+canal, de un moderador, de una cuenta verificada y de un miembro suenan
+distinto del mensaje común.</li>
+<li>Al llegar con las flechas al principio o al final de la lista del
+chat, de los comentarios o del historial, suena un golpe sordo.</li>
+<li>Cuando un directo de TikTok termina suena una puerta que se cierra,
+y no el sonido de desconexión.</li>
 </ul>
 <h3 id="directos-de-tiktok">Directos de TikTok</h3>
 <ul>
-<li><strong>Más cosas del directo.</strong> Además del chat y los
-regalos, se lee quién sigue el canal, quién comparte el directo y quién
-envía un cofre, cada uno con su sonido. Los «me gusta» solo suenan, como
-mucho uno cada tres segundos, para no tapar el chat.</li>
-<li><strong>Los regalos suenan según su tamaño:</strong> una moneda los
-chicos, varias los medianos y una lluvia de monedas con una melodía los
-grandes.</li>
-<li><strong>Quien entra al directo tiene su propio sonido,</strong> una
-puerta que se abre, cuando la entrada está activada en <em>Preferencias,
+<li>Además del chat y los regalos, se lee quién sigue el canal, quién
+comparte el directo y quién envía un cofre, cada uno con su sonido. Los
+corazones solo suenan, como mucho uno cada tres segundos, para no tapar
+el chat.</li>
+<li>Los regalos suenan según su tamaño: una moneda los chicos, varias
+los medianos y una lluvia de monedas con una melodía los grandes.</li>
+<li>Quien entra al directo tiene su propio sonido, una puerta que se
+abre, cuando la entrada está activada en <em>Preferencias,
 Lectura</em>.</li>
-<li><strong>No se leen los mensajes viejos al conectar.</strong> TikTok
-manda al conectar los últimos mensajes del directo. Ya se descartaban
-los de antes de la conexión, y ahora también los que TikTok marca como
+<li>No se leen los mensajes anteriores al conectar. TikTok manda al
+conectar los últimos mensajes del directo. Ya se descartaban los de
+antes de la conexión, y ahora también los que TikTok marca como
 antiguos.</li>
 </ul>
 <h3 id="otros-cambios">Otros cambios</h3>
 <ul>
-<li><strong><code>F3</code> dice el autor del último mensaje
-leído.</strong></li>
-<li><strong>La aplicación ya no se cierra sola al finalizar un
-directo.</strong> Lo provocaba el propio registro de fallos, que anotaba
-de más.</li>
-<li><strong>Los mensajes automáticos solo se mandan a tu propio
-directo.</strong> Antes se mandaban a cualquier directo de YouTube
-conectado con la sesión iniciada, también al de otro canal. Además, lo
-que cambias en Preferencias se aplica sin reiniciar, un mensaje nuevo
-nace activo y el primero no sale de golpe al conectar.</li>
-<li><strong>Al recorrer los temas de sonido en Preferencias suena una
-muestra</strong> de cada uno, sin cambiar el tema hasta aceptar.</li>
-<li><strong>Al ajustar varias veces el mismo valor se dice solo el
-número.</strong> La primera vez, por ejemplo, «Volumen de la voz: 40%»,
-y las siguientes solo «45%», mientras sigas con el mismo control dentro
-del minuto. Al pasar a otro, como la velocidad, vuelve a decir el
-nombre. En el deslizador de volumen del reproductor el número ya no se
-oye dos veces.</li>
-<li><strong>Los sonidos ya no frenan la ventana,</strong> y el
-reproductor tarda menos en iniciarse la primera vez.</li>
-<li><strong>La configuración admite <code>%</code>, <code>#</code> y
-<code>;</code></strong> en los textos, por ejemplo en un título de
-directo, sin que se pierdan al guardar.</li>
+<li><code>F3</code> dice el autor del último mensaje leído.</li>
+<li>La aplicación ya no se cierra sola al finalizar un directo. Lo
+provocaba el propio registro de errores, que anotaba de más.</li>
+<li>Los mensajes automáticos solo se mandan a tu propio directo. Antes
+se mandaban a cualquier directo de YouTube conectado con la sesión
+iniciada, también al de otro canal. Además, lo que cambias en
+<em>Preferencias</em> se aplica sin reiniciar, un mensaje nuevo nace
+activo y el primero no sale de golpe al conectar.</li>
+<li>Al recorrer los temas de sonido en <em>Preferencias</em> suena una
+muestra de cada uno, sin cambiar el tema hasta aceptar.</li>
+<li>Al ajustar varias veces el mismo valor se dice solo el número. La
+primera vez, por ejemplo, «Volumen de la voz: 40%», y las siguientes
+solo «45%», mientras sigas con el mismo control dentro del minuto. Al
+pasar a otro, como la velocidad, vuelve a decir el nombre. En el
+deslizador de volumen del reproductor el número ya no se oye dos
+veces.</li>
+<li>Los sonidos ya no frenan la ventana, y el reproductor tarda menos en
+iniciarse la primera vez.</li>
+<li>La configuración admite <code>%</code>, <code>#</code> y
+<code>;</code> en los textos, por ejemplo en un título de directo, sin
+que se pierdan al guardar.</li>
 </ul>
 <h2 id="210-octubre-de-2026">2.1.0, octubre de 2026</h2>
-<p>Esta versión añade un panel de chat para la emisión, la posibilidad
-de escribir en el chat desde la propia aplicación y una ventana para
-componer la escena de OBS sin ver la pantalla. El reproductor hace caso
-mucho mejor, las descargas se ordenan y avisan cuando terminan, y los
-datos de la aplicación pasan a una carpeta propia.</p>
+<p>Esta versión incluye un panel de chat para la transmisión, la
+posibilidad de escribir en el chat desde la propia aplicación y una
+ventana para componer la escena de OBS sin ver la pantalla. El
+reproductor responde mucho mejor, las descargas se ordenan y avisan
+cuando terminan, y los datos de la aplicación pasan a una carpeta
+propia.</p>
 <h3 id="reproductor-1">Reproductor</h3>
 <ul>
-<li><strong>El reproductor obedece al instante.</strong> Después de
-adelantar o retroceder, el pausar y el reproducir se perdían durante
-diez o veinte segundos: se anunciaba «pausar» tres veces seguidas y el
-vídeo seguía reproduciéndose. En los vídeos de YouTube el audio viaja
-por separado del vídeo, y al reproductor le llegaban los dos por la red:
-el audio frenaba todo lo demás. Ahora el audio se guarda antes en el
-disco, en la carpeta <code>cache-audio</code> dentro de la carpeta
-<code>data</code>, y las órdenes se cumplen todas. De paso, el vídeo
-empieza a verse en menos de un segundo en vez de en seis.</li>
-<li><strong>Los directos ya no se congelan cada minuto y medio.</strong>
-El vídeo y el audio de un directo llegaban por separado y el reproductor
-perdía la sincronía entre ambos cada 60 o 90 segundos, quedándose parado
-entre 25 y 50 segundos. Ahora se juntan antes de reproducirse, con
-ffmpeg, un programa que viene incluido en la aplicación. Si ffmpeg tarda
-en iniciarse, el reproductor espera a que esté listo en vez de fallar en
-silencio. Si el directo se corta, lo dice y vuelve a conectar solo,
+<li>El reproductor obedece al instante. Después de avanzar o retroceder,
+el pausar y el reproducir se perdían durante diez o veinte segundos: se
+anunciaba «pausar» tres veces seguidas y el vídeo seguía
+reproduciéndose. En los vídeos de YouTube el audio viaja por separado
+del vídeo, y al reproductor le llegaban los dos por la red: el audio
+frenaba todo lo demás. Ahora el audio se guarda antes en el disco, en la
+carpeta <code>cache-audio</code> dentro de la carpeta <code>data</code>,
+y las órdenes se cumplen todas. De paso, el vídeo empieza a verse en
+menos de un segundo en vez de en seis.</li>
+<li>Los directos ya no se congelan cada minuto y medio. El vídeo y el
+audio de un directo llegaban por separado y el reproductor perdía la
+sincronía entre ambos cada 60 o 90 segundos, quedándose parado entre 25
+y 50 segundos. Ahora se juntan antes de reproducirse, con ffmpeg, una
+herramienta que viene incluida en la aplicación. Si ffmpeg tarda en
+iniciarse, el reproductor espera a que esté listo en vez de fallar en
+silencio. Si el directo se interrumpe, lo dice y vuelve a conectar solo,
 hasta dos veces.</li>
-<li><strong>Retroceder y adelantar funcionan en los directos.</strong>
-Los botones de un minuto y las flechas de diez segundos no hacían nada
-cuando el directo llega con las pistas separadas. Ahora cada salto
-reinicia la unión de vídeo y audio unos segundos antes del borde del
-directo, con un corte de dos o tres segundos. Las flechas seguidas se
-acumulan, y cada una anuncia dónde queda: «20 segundos por detrás del
-directo», «En el directo». En los directos con pistas separadas se puede
-retroceder hasta una hora, que es lo que YouTube guarda. Mover el
-deslizador o pedir un porcentaje no está disponible en estos directos, y
-la aplicación lo dice.</li>
-<li><strong>Los directos que YouTube sirve con vídeo y audio juntos
-también se mueven, con menos margen.</strong> Solo permiten retroceder
-unos 30 segundos. Cuando un directo no admite saltos, las flechas lo
-dicen en vez de fallar con un aviso confuso.</li>
-<li><strong>Ir al directo con <code>Ctrl+Fin</code>.</strong> Después de
-retroceder, el menú <em>Reproductor</em> tiene «Ir al directo», con
+<li>Avanzar y retroceder funcionan en los directos. Los botones de un
+minuto y las flechas de diez segundos no hacían nada cuando el directo
+llega con las pistas separadas. Ahora cada salto reinicia la unión de
+vídeo y audio unos segundos antes del borde del directo, con un corte de
+dos o tres segundos. Las flechas seguidas se acumulan, y cada una
+anuncia dónde queda: «20 segundos por detrás del directo», «En el
+directo». En los directos con pistas separadas se puede retroceder hasta
+una hora, que es lo que YouTube guarda. Mover el deslizador o pedir un
+porcentaje no está disponible en estos directos, y la aplicación lo
+dice.</li>
+<li>Los directos que YouTube sirve con vídeo y audio juntos también se
+mueven, con menos margen. Solo permiten retroceder unos 30 segundos.
+Cuando un directo no admite saltos, las flechas lo dicen en vez de
+fallar con un aviso confuso.</li>
+<li>Ir al directo con <code>Ctrl+Fin</code>. Después de retroceder, el
+menú <em>Reproductor</em> tiene <em>Ir al directo</em>, con
 <code>Ctrl+Fin</code>, que vuelve al borde de una vez. Si ya estás en el
 directo, lo dice.</li>
-<li><strong>El deslizador y <code>F2</code> dicen cuánto por detrás del
-directo vas.</strong> Antes el deslizador decía «En directo» aunque se
-hubiera retrocedido. Ahora dice «40 segundos por detrás del directo», y
+<li>El deslizador y <code>F2</code> dicen cuánto por detrás del directo
+vas. Antes el deslizador decía «En directo» aunque se hubiera
+retrocedido. Ahora dice «40 segundos por detrás del directo», y
 <code>F2</code> lo anuncia también cuando vas por detrás.</li>
-<li><strong>Retroceder en un directo ya no salta dos horas
-atrás.</strong> El reproductor usaba una duración equivocada, y un
-retroceso de un minuto acababa al principio de la ventana del
-directo.</li>
-<li><strong>Buscar con el vídeo cargando o detenido dice el
-motivo.</strong> Si pides un salto mientras el vídeo carga, se dice
-«Cargando vídeo» y no que no se puede adelantar. Con el vídeo detenido
-se dice «El vídeo está detenido». Vale para los directos y para los
-vídeos grabados.</li>
-<li><strong>Mover el vídeo en pausa guarda el destino.</strong> Si
-mueves el vídeo estando en pausa, al reanudar sigue desde la posición
-nueva y no desde el principio.</li>
-<li><strong>Los vídeos divididos en pistas se reproducen.</strong>
-Algunos vídeos grabados llegan con el vídeo y el audio en pistas
-separadas. Ahora se reproducen, y se puede saltar sin esperar a que
-termine la descarga. Si un vídeo no empieza a sonar, se vuelve a cargar
-una vez antes de avisar de que no se pudo reproducir.</li>
-<li><strong>El vídeo de los directos vuelve a cargarse.</strong> YouTube
-dejó de ofrecer un único flujo con imagen y sonido juntos y la
-aplicación seguía esperándolo. Ahora junta el vídeo y el audio cuando
-llegan por separado, y si aun así no puede, deja anotado en el registro
-qué encontró.</li>
-<li><strong>La caché de vídeo respeta su tope.</strong> Un vídeo que no
-cabe en el tope configurado ya no se baja entero: la descarga se corta
-enseguida y no deja archivos. La caché baja los vídeos en 720p, y los
-restos de descargas interrumpidas se borran solos.</li>
-<li><strong>La caché de audio ya no puede colgarse.</strong> Si la
-descarga del audio se queda sin avanzar, se corta por tiempo.</li>
-<li><strong>Pulsar muchas veces para adelantar ya no desfasa el
-reproductor.</strong> Algunas pulsaciones se perdían y el tiempo
-anunciado retrocedía solo. Y pulsar reproducir o pausa mientras el vídeo
-cargaba lo hacía empezar de cero.</li>
-<li><strong>El vídeo se corta menos.</strong> El colchón de red era muy
+<li>Retroceder en un directo ya no salta dos horas atrás. El reproductor
+usaba una duración equivocada, y un retroceso de un minuto acababa al
+principio de la ventana del directo.</li>
+<li>Buscar con el vídeo cargando o detenido dice el motivo. Si pides un
+salto mientras el vídeo carga, se dice «Cargando vídeo» y no que no se
+puede avanzar. Con el vídeo detenido se dice «El vídeo está detenido».
+Vale para los directos y para los vídeos grabados.</li>
+<li>Mover el vídeo en pausa guarda el destino. Si mueves el vídeo
+estando en pausa, al reanudar sigue desde la posición nueva y no desde
+el principio.</li>
+<li>Los vídeos divididos en pistas se reproducen. Algunos vídeos
+grabados llegan con el vídeo y el audio en pistas separadas. Ahora se
+reproducen, y se puede saltar sin esperar a que termine la descarga. Si
+un vídeo no empieza a sonar, se vuelve a cargar una vez antes de avisar
+de que no se pudo reproducir.</li>
+<li>El vídeo de los directos vuelve a cargarse. YouTube dejó de ofrecer
+un único flujo con imagen y sonido juntos y la aplicación seguía
+esperándolo. Ahora junta el vídeo y el audio cuando llegan por separado,
+y si aun así no puede, deja anotado en el registro qué encontró.</li>
+<li>La caché de vídeo respeta su límite. Un vídeo que no cabe en el
+límite configurado ya no se descarga entero: la descarga se detiene
+enseguida y no deja archivos. La caché descarga los vídeos en 720p, y
+los restos de descargas interrumpidas se eliminan solos.</li>
+<li>La caché de audio ya no puede colgarse. Si la descarga del audio se
+queda sin avanzar, se interrumpe por tiempo.</li>
+<li>Pulsar muchas veces para avanzar ya no desfasa el reproductor.
+Algunas pulsaciones se perdían y el tiempo anunciado retrocedía solo. Y
+pulsar reproducir o pausar mientras el vídeo cargaba lo hacía empezar de
+cero.</li>
+<li>La reproducción se interrumpe menos. El colchón de red era muy
 pequeño y cualquier fluctuación de la conexión interrumpía la
 reproducción.</li>
 </ul>
 <h3 id="chat-y-voz">Chat y voz</h3>
 <ul>
-<li><strong>Pausar la lectura (<code>F5</code>) pausa de verdad la frase
-en curso</strong>, y mientras está en pausa se atienden cambios de voz,
-velocidad y volumen.</li>
-<li><strong>El primer mensaje tras reconectar ya no se corta.</strong>
-Una orden de callar pendiente se aplicaba al mensaje siguiente.</li>
-<li><strong>La voz configurada que ya no existe no impide iniciar la
-aplicación.</strong> Se usa la primera disponible y se anota en el
-registro.</li>
-<li><strong>Los avisos ya no se cortan a la mitad, tampoco en los
-menús.</strong> Antes el texto de un aviso se perdía si se pulsaba otra
-tecla enseguida. Ahora se oye entero. Los únicos que no interrumpen son
-los que se repiten solos: el aviso de que un vídeo sigue cargando y el
-de que se está consultando a OBS.</li>
-<li><strong>Los sonidos largos de temas personalizados ya no se cortan a
-los 5 segundos.</strong></li>
-<li><strong>Los Super Chats en yenes, wones o rupias suman
-bien.</strong> «¥1,000» sumaba 1.</li>
-<li><strong>Al reconectar a un directo distinto, nada del chat anterior
-llega al nuevo.</strong> Los mensajes automáticos y el cuadro de
-escritura ya no pueden acabar en el chat que se cerró, ni los
-comentarios del vídeo anterior en el nuevo.</li>
-<li><strong>Reconectar de verdad cuenta.</strong> Con la wifi inestable,
-cinco microcortes repartidos en horas agotaban los intentos aunque cada
-reconexión hubiera funcionado. Ahora solo cuentan los fallos seguidos.
+<li>Pausar la lectura (<code>F5</code>) pausa de verdad la frase en
+curso, y mientras está en pausa se atienden cambios de voz, velocidad y
+volumen.</li>
+<li>El primer mensaje tras reconectar ya no se interrumpe. Una orden de
+callar pendiente se aplicaba al mensaje siguiente.</li>
+<li>La voz configurada que ya no existe no impide iniciar la aplicación.
+Se usa la primera disponible y se anota en el registro.</li>
+<li>Los avisos ya no se interrumpen a la mitad, tampoco en los menús.
+Antes el texto de un aviso se perdía si se pulsaba otra tecla enseguida.
+Ahora se oye entero. Los únicos que no interrumpen son los que se
+repiten solos: el aviso de que un vídeo sigue cargando y el de que se
+está consultando a OBS.</li>
+<li>Los sonidos largos de temas personalizados ya no se interrumpen a
+los 5 segundos.</li>
+<li>Los Super Chats en yenes, wones o rupias suman bien. «¥1,000» sumaba
+1.</li>
+<li>Al reconectar a un directo distinto, nada del chat anterior llega al
+nuevo. Los mensajes automáticos y el cuadro de escritura ya no pueden
+acabar en el chat que se cerró, ni los comentarios del vídeo anterior en
+el nuevo.</li>
+<li>Reconectar de verdad cuenta. Con la wifi inestable, cinco
+microcortes repartidos en horas agotaban los intentos aunque cada
+reconexión hubiera funcionado. Ahora solo cuentan los errores seguidos.
 Los valores de fábrica son 15 segundos entre intentos y 20 intentos,
 unos cinco minutos en total, y se cambian en <em>Preferencias,
 Conexión</em>.</li>
-<li><strong>Avisa cuando se están perdiendo mensajes.</strong> Si entra
-más chat del que la voz puede leer, la aplicación descarta los más
-viejos. Ahora lo dice una vez por sesión, recuerda que esos mensajes
-siguen escritos en la lista del chat y sugiere activar la lectura solo
-del nombre, que es lo que hace que la voz alcance. <code>F2</code> puede
-decir además cuántos van, si se activa ese dato en
-<em>Preferencias</em>.</li>
-<li><strong>Una forma más de que le lean el chat: primero el mensaje,
-después quién lo escribió.</strong> En <em>Preferencias, Lectura</em>,
-junto a las tres que ya había. Se oye «hola a todos, de Lucía». Sirve
-cuando llegan muchos mensajes seguidos: se oye el contenido antes que el
-nombre y puede decidirse si interesa sin esperar.</li>
-<li><strong>Alias para los nombres imposibles de escuchar.</strong>
-Muchos nombres de YouTube son cadenas de letras y números que la voz lee
-enteras en cada mensaje. Ahora puede ponérseles un nombre corto: en la
-lista del chat, menú contextual sobre un mensaje y <em>Poner alias</em>.
-Desde ese momento, ese usuario se lee y se ve con el alias. Para
-quitarlo, se abre lo mismo y se deja el campo vacío. El nombre real no
-se pierde: expulsar, banear, silenciar y responder siguen actuando sobre
-la cuenta de verdad.</li>
-<li><strong>Los fallos de la voz quedan anotados.</strong> Si el
-sintetizador falla al anunciar algo, antes no quedaba ni rastro.</li>
+<li>Avisa cuando se están perdiendo mensajes. Si entra más chat del que
+la voz puede leer, la aplicación descarta los más anteriores. Ahora lo
+dice una vez por sesión, recuerda que esos mensajes siguen escritos en
+la lista del chat y sugiere activar la lectura solo del nombre, que es
+lo que hace que la voz alcance. <code>F2</code> puede decir además
+cuántos van, si se activa ese dato en <em>Preferencias</em>.</li>
+<li>Hay una forma más de que te lean el chat: primero el mensaje,
+después quién lo escribió. Está en <em>Preferencias, Lectura</em>, junto
+a las tres que ya había. Se oye «hola a todos, de Lucía». Sirve cuando
+llegan muchos mensajes seguidos: se oye el contenido antes que el nombre
+y puede decidirse si interesa sin esperar.</li>
+<li>Hay alias para los nombres imposibles de escuchar. Muchos nombres de
+YouTube son cadenas de letras y números que la voz lee enteras en cada
+mensaje. Ahora puede ponérseles un nombre corto: en la lista del chat,
+menú contextual sobre un mensaje y la opción de poner alias. Desde ese
+momento, ese usuario se lee y se ve con el alias. Para eliminarlo, se
+abre lo mismo y se deja el campo vacío. El nombre real no se pierde:
+suspender temporalmente, ocultar, silenciar y responder siguen actuando
+sobre la cuenta de verdad.</li>
+<li>Los errores de la voz quedan anotados. Si el sintetizador falla al
+anunciar algo, antes no quedaba ni rastro.</li>
 </ul>
 <h3 id="tiktok-1">TikTok</h3>
 <ul>
-<li><strong>Los directos de TikTok vuelven a conectar con la versión
-6.6.6 de la librería.</strong> Con la versión que instala hoy el
-proyecto, la conexión se quedaba en «Conectando al directo de TikTok»
-sin llegar a nada. Ahora conecta, y si algo falla al prepararse, lo dice
-en vez de quedarse callada. Un usuario que no está en directo se informa
-como tal.</li>
+<li>Los directos de TikTok vuelven a conectar. Con la versión anterior,
+la conexión se quedaba en «Conectando al directo de TikTok» sin llegar a
+nada. Ahora conecta, y si algo falla al prepararse, lo dice en vez de
+quedarse callada. Un usuario que no está en directo se informa como
+tal.</li>
 </ul>
 <h3 id="youtube">YouTube</h3>
 <ul>
-<li><strong>Si la sesión de YouTube caduca, la aplicación lo dice con
-voz.</strong> Antes se leía el texto técnico de Google y la aplicación
-seguía creyendo que había sesión. Ahora avisa, borra la sesión caducada
-y pide volver a entrar en <em>Preferencias, API y sesión</em>. Si el
-fallo vino de algo que hiciste tú, ofrece abrir esa categoría. Los
-mensajes automáticos solo avisan.</li>
-<li><strong>Iniciar sesión otra vez tras cerrarla vuelve a
-funcionar.</strong> Antes Google devolvía un permiso incompleto y
-moderar, comentar o escribir en el chat fallaba con un error de
-formato.</li>
-<li><strong>Moderar actúa sobre el usuario de la fila elegida.</strong>
-Antes la moderación buscaba al usuario por el nombre visible.</li>
-<li><strong>Ya se puede escribir en el chat en vivo.</strong> Debajo de
-la lista de mensajes hay un cuadro de escritura con su botón
-<em>Enviar</em>. <code>Intro</code> envía el mensaje y
-<code>Mayúsculas+Intro</code> inserta un salto de línea. Tras enviarlo,
-el cuadro se vacía y el foco permanece dentro, de modo que puede
-escribirse el siguiente sin tabular. Cuando falta la conexión o la
-sesión de Google, el cuadro y el botón siguen alcanzándose con el
-tabulador, y el motivo forma parte del nombre del botón.</li>
-<li><strong>Cuando no se puede escribir en el chat, ahora dice por
-qué.</strong> Distingue si falta la clave de la API, si el vídeo no
-existe, si no es un directo o si el directo tiene el chat
-desactivado.</li>
-<li><strong>Comentar y responder en los vídeos.</strong> En la pestaña
+<li>Si la sesión de YouTube caduca, la aplicación lo dice con voz. Antes
+se leía el texto técnico de Google y la aplicación seguía creyendo que
+había sesión. Ahora avisa, borra la sesión caducada y pide volver a
+entrar en <em>Preferencias, API y sesión</em>. Si el error vino de algo
+que hiciste tú, ofrece abrir esa categoría. Los mensajes automáticos
+solo avisan.</li>
+<li>Iniciar sesión otra vez tras cerrarla vuelve a funcionar. Antes
+Google devolvía un permiso incompleto y moderar, comentar o escribir en
+el chat fallaba con un error de formato.</li>
+<li>Moderar actúa sobre el usuario de la fila elegida. Antes la
+moderación buscaba al usuario por el nombre visible.</li>
+<li>Ya se puede escribir en el chat del directo. Debajo de la lista de
+mensajes hay un cuadro de escritura con su botón <em>Enviar</em>.
+<code>Intro</code> envía el mensaje y <code>Mayús+Intro</code> inserta
+un salto de línea. Tras enviarlo, el cuadro se vacía y el foco permanece
+dentro, de modo que puede escribirse el siguiente sin tabular. Cuando
+falta la conexión o la sesión de Google, el cuadro y el botón siguen
+alcanzándose con el tabulador, y el motivo forma parte del nombre del
+botón.</li>
+<li>Cuando no se puede escribir en el chat, ahora dice por qué.
+Distingue si falta la clave de la API, si el vídeo no existe, si no es
+un directo o si el directo tiene el chat desactivado.</li>
+<li>Comentar y responder en los vídeos. En la pestaña
 <em>Comentarios</em>, los botones <em>Comentar en el vídeo</em> y
 <em>Responder</em> abren el mismo cuadro en una ventana.</li>
-<li><strong>Publicar un comentario y responder a uno ya
-funcionan.</strong> No hacían nada: se escribía el texto, se pulsaba
-<em>Publicar</em>, la ventana se cerraba y no se enviaba ni se avisaba
-de nada.</li>
-<li><strong>En un vídeo con los comentarios cerrados ya no deja escribir
-uno.</strong> Antes se podía redactar entero y solo al publicarlo se
-descubría que no se podía.</li>
-<li><strong><code>Intro</code> copia el mensaje seleccionado, y
-<code>Alt+Intro</code> abre el cuadro de escritura.</strong> Antes, en
-las listas del chat y de comentarios, <code>Intro</code> no hacía
-nada.</li>
-<li><strong>Conectarse volvió a ser rápido.</strong> Se había vuelto
-lento, de veinte a treinta segundos en algunos equipos.</li>
-<li><strong>Desconectar mientras dice «Conectando…» es posible</strong>,
-y cerrar la aplicación no espera a que termine una consulta a
-YouTube.</li>
-<li><strong><code>F2</code> dice cuánta gente está viendo el directo y
-cuánto lleva emitiendo.</strong> El número de espectadores estaba mal y
-decía cero aunque hubiera gente. Ahora es correcto y se actualiza solo
-cada minuto.</li>
-<li><strong>La guía de configuración de la API está reescrita.</strong>
-Cada paso indica la dirección exacta de la pantalla de Google Cloud
-correspondiente, y se explican los puntos en los que es fácil quedarse
-atascado con un lector de pantalla.</li>
+<li>Publicar un comentario y responder a uno ya funcionan. No hacían
+nada: se escribía el texto, se pulsaba <em>Publicar</em>, la ventana se
+cerraba y no se enviaba ni se avisaba de nada.</li>
+<li>En un vídeo con los comentarios cerrados ya no deja escribir uno.
+Antes se podía redactar entero y solo al publicarlo se descubría que no
+se podía.</li>
+<li><code>Intro</code> copia el mensaje seleccionado, y
+<code>Alt+Intro</code> abre el cuadro de escritura. Antes, en las listas
+del chat y de comentarios, <code>Intro</code> no hacía nada.</li>
+<li>Conectarse volvió a ser rápido. Se había vuelto lento, de veinte a
+treinta segundos en algunos equipos.</li>
+<li>Desconectar mientras dice «Conectando…» es posible, y cerrar la
+aplicación no espera a que termine una consulta a YouTube.</li>
+<li><code>F2</code> dice cuánta gente está viendo el directo y cuánto
+lleva emitiendo. El número de espectadores estaba mal y decía cero
+aunque hubiera gente. Ahora es correcto y se actualiza solo cada
+minuto.</li>
+<li>La guía de configuración de la API está reescrita. Cada paso indica
+la ubicación exacta de la pantalla de Google Cloud correspondiente, y se
+explican los puntos en los que es fácil quedarse atascado con un lector
+de pantalla.</li>
 </ul>
 <h3 id="obs-y-transmisión">OBS y transmisión</h3>
 <ul>
-<li><p><strong>Un panel de chat para que lo vean los
-espectadores.</strong> Los mensajes aparecen en una página con fondo
-transparente que puede añadirse a la emisión, de modo que quien mira el
-directo lee el chat sin salir del vídeo. El panel se enciende en la
-ventana <em>Transmisión</em>, con la casilla <em>Panel de chat para
-transmitir</em>, que se abre desde el menú <em>Transmisión, Panel de
-transmisión…</em> o con <code>Ctrl+Mayúsculas+T</code>. Si queda
-encendido al cerrar la aplicación, se enciende solo al abrirla de
-nuevo.</p></li>
-<li><p><strong>El panel de chat no repite mensajes ni muestra los
-viejos.</strong> Al encender y apagar rápido no se repiten mensajes, y
-si la aplicación se cierra deja de mostrar los que había
-recibido.</p></li>
-<li><p><strong>Componer la escena sin ver la pantalla.</strong> En la
-ventana <em>Transmisión</em> se elige la escena y <strong>cualquiera de
-sus fuentes</strong> (el panel de chat, la cámara, la captura del
-juego), se la lleva a cualquiera de las nueve posiciones habituales, se
-cambia su tamaño, se muestra u oculta, se fija para que no se mueva sin
-querer y se pone por delante de lo demás.</p>
+<li><p>Hay un panel de chat para que lo vean los espectadores. Los
+mensajes aparecen en una página con fondo transparente que puede
+agregarse a la transmisión, de modo que quien mira el directo lee el
+chat sin salir del vídeo. El panel se activa en la ventana
+<em>Transmisión</em>, con la casilla <em>Chat en el vídeo</em>, que se
+abre desde el menú <em>Transmisión, Panel de transmisión…</em> o con
+<code>Ctrl+Mayús+T</code>. Si queda activado al cerrar la aplicación, se
+activa solo al abrirla de nuevo.</p></li>
+<li><p>El panel de chat no repite mensajes ni muestra los anteriores. Al
+activarlo y desactivarlo rápido no se repiten mensajes, y si la
+aplicación se cierra deja de mostrar los que había recibido.</p></li>
+<li><p>Componer la escena sin ver la pantalla. En la ventana
+<em>Transmisión</em> se elige la escena y cualquiera de sus fuentes (el
+panel de chat, la cámara, la captura del juego). Se la lleva a
+cualquiera de las nueve posiciones habituales, se cambia su tamaño, se
+muestra u oculta, se bloquea para que no se mueva sin querer y se pone
+por delante de lo demás.</p>
 <p>Cada cambio se anuncia en voz alta con lo que hace falta saber: en
-qué posición quedó, qué tamaño tiene, qué parte de la pantalla ocupa, si
-se sale del borde y, sobre todo, <strong>si alguna otra fuente lo está
-tapando y cuánto</strong>. Esa es la pregunta que no puede responderse
-mirando.</p>
-<p>Hay además un modo de ajuste fino: se activa con un botón y a partir
-de ahí las flechas mueven el panel, en pasos normales, grandes con
-<code>Control</code> o de un píxel con <code>Mayúsculas</code>.
-<code>Intro</code> confirma y <code>Escape</code> deshace. Y un botón
-guarda una captura de la escena, para poder enseñársela a alguien que
-vea.</p>
+qué posición quedó, qué tamaño tiene, qué parte de la pantalla ocupa y
+si se sale del borde. Sobre todo, se anuncia si alguna otra fuente lo
+está tapando y cuánto. Esa es justo la pregunta que no puede responderse
+mirando la pantalla.</p>
+<p>Hay además un modo de ajuste fino para mover el panel con precisión.
+Se activa con un botón y a partir de ahí las flechas mueven el panel, en
+pasos normales, grandes con <code>Ctrl</code> o de un píxel con
+<code>Mayús</code>. <code>Intro</code> confirma el cambio y
+<code>Esc</code> deshace lo que hayas movido. Y un botón guarda una
+captura de la escena, para poder enseñársela a alguien que vea.</p>
 <p>Así puede armarse una escena completa a ciegas: el juego en el
-centro, la cámara en un recuadro más pequeño arriba a la derecha y el
-chat en una esquina.</p></li>
-<li><p><strong>Transmitir, grabar y poner una escena al aire desde la
-misma ventana.</strong> Hay botones para empezar y parar la transmisión
-y la grabación, pausar, y poner al aire la escena elegida.
-<code>F2</code> puede decir también si OBS está transmitiendo, grabando
-o con una escena al aire, si esos datos se activan en <em>Preferencias,
-Estado (F2)</em>.</p></li>
-<li><p><strong>Silenciar el micrófono de OBS con
-<code>Ctrl+Mayúsculas+M</code>.</strong> La aplicación consulta y
-alterna el silencio de la fuente de micrófono que se elige en
-<em>Preferencias, Transmisión</em>.</p></li>
-<li><p><strong>La casilla del panel de chat funciona aunque OBS no
-esté.</strong> Antes dejaba de responder si OBS no contestaba, aunque el
-panel no necesita OBS para nada.</p></li>
-<li><p><strong>El servidor de OBS se activa desde aquí.</strong>
-<em>Preferencias, Transmisión</em>, botón <em>Activar el servidor
-websocket de OBS</em>, sin tener que buscarlo en los menús de
-OBS.</p></li>
-<li><p><strong>Cuando OBS no se puede activar, dice por qué.</strong>
-Antes salía un mensaje vacío de contenido.</p></li>
-<li><p><strong>Recorrer un desplegable ya no cambia nada.</strong> En la
-ventana <em>Transmisión</em>, pasar por las nueve posiciones con las
-flechas movía el panel dentro de OBS una vez por flecha, en directo.
-Ahora se elige la posición y se aplica con su botón.</p></li>
-<li><p><strong>La ventana <em>Transmisión</em> explica dónde está el
-panel en castellano llano.</strong> Antes mezclaba tres porcentajes que
-medían cosas distintas. Hay un botón nuevo que explica en qué orden se
-usa la ventana.</p></li>
-<li><p><strong>La ventana <em>Transmisión</em> no se queda
-bloqueada</strong> si la fuente elegida ha desaparecido en OBS o si OBS
-cierra la conexión: avisa y deja seguir. «Aplicar tamaño» sobre un panel
-escalado ya no lo encoge a la mitad.</p></li>
-<li><p><strong>OBS: el tiempo de transmisión era mil veces
-mayor.</strong> Un minuto se anunciaba como «16 horas 40
-minutos».</p></li>
+centro, la cámara en un recuadro más pequeño en una esquina y el chat en
+otra.</p></li>
+<li><p>Transmitir, grabar y poner una escena al aire desde la misma
+ventana. Hay botones para empezar y parar la transmisión y la grabación,
+pausar, y poner al aire la escena elegida. <code>F2</code> puede decir
+también si OBS está transmitiendo, grabando o con una escena al aire, si
+esos datos se activan en <em>Preferencias, Estado (F2)</em>.</p></li>
+<li><p>Silenciar el micrófono de OBS con <code>Ctrl+Mayús+M</code>. La
+aplicación consulta y alterna el silencio de la fuente de micrófono que
+se elige en <em>Preferencias, Transmisión</em>.</p></li>
+<li><p>La casilla del panel de chat funciona aunque OBS no esté. Antes
+dejaba de responder si OBS no contestaba, aunque el panel no necesita
+OBS para nada.</p></li>
+<li><p>El servidor de OBS se activa desde aquí. En <em>Preferencias,
+Transmisión</em>, el botón <em>Activar servidor WebSocket de OBS</em> lo
+activa sin tener que buscarlo en los menús de OBS.</p></li>
+<li><p>Cuando OBS no se puede activar, dice por qué. Antes salía un
+mensaje vacío de contenido.</p></li>
+<li><p>Recorrer un desplegable ya no cambia nada. En la ventana
+<em>Transmisión</em>, pasar por las nueve posiciones con las flechas
+movía el panel dentro de OBS una vez por flecha, en directo. Ahora se
+elige la posición y se aplica con su botón.</p></li>
+<li><p>La ventana <em>Transmisión</em> explica dónde está el panel en
+lenguaje llano. Antes mezclaba tres porcentajes que medían cosas
+distintas. Hay un botón nuevo que explica en qué orden se usa la
+ventana.</p></li>
+<li><p>La ventana <em>Transmisión</em> no se queda bloqueada si la
+fuente elegida ha desaparecido en OBS o si OBS cierra la conexión: avisa
+y deja seguir. Aplicar tamaño sobre un panel escalado ya no lo encoge a
+la mitad.</p></li>
+<li><p>OBS: el tiempo de transmisión era mil veces mayor. Un minuto se
+anunciaba como «16 horas 40 minutos».</p></li>
 </ul>
 <h3 id="descargas">Descargas</h3>
 <ul>
-<li><strong>Como mucho dos descargas a la vez.</strong> Antes, encolar
-diez descargas las lanzaba todas a la vez. Ahora corren dos, las demás
-esperan en «en cola», en el orden en que se pidieron, y se pueden
-cancelar mientras esperan.</li>
-<li><strong>Cancelar ya no deja programas abiertos.</strong> Al cancelar
-una descarga, o al cerrar la aplicación, los programas que estaban
-bajando el archivo, incluido ffmpeg, se cierran con ella.</li>
-<li><strong>El nombre de cada descarga es el del archivo final.</strong>
-Antes se anunciaba el de un trozo temporal. Y «Enumerar» ya no pone «NA
-- » delante de los vídeos sueltos.</li>
-<li><strong>Las descargas terminadas tienen su propio
-historial.</strong> La cola y el historial están en dos pestañas del
-gestor, y el historial se conserva entre sesiones. Al reabrir la
-ventana, el progreso de las descargas en curso sigue ahí.</li>
-<li><strong>Las descargas avisan cuando terminan</strong>, esté abierto
-o cerrado el gestor, y la cola ya no se olvida al cerrar la
-ventana.</li>
-<li><strong>La carpeta Descargas siempre está junto a la
-aplicación.</strong> Antes dependía de desde dónde se abriera el
-programa.</li>
-<li><strong>En las descargas se lee primero el progreso.</strong> Las
-columnas pasaron a ser progreso, estado y nombre, que es el orden en que
-interesan.</li>
+<li>Como mucho hay dos descargas a la vez. Antes, encolar diez descargas
+las lanzaba todas a la vez. Ahora corren dos, las demás esperan en «en
+cola», en el orden en que se pidieron, y se pueden cancelar mientras
+esperan.</li>
+<li>Cancelar ya no deja aplicaciones abiertas. Al cancelar una descarga,
+o al cerrar la aplicación, las aplicaciones que estaban bajando el
+archivo, incluido ffmpeg, se cierran con ella.</li>
+<li>El nombre de cada descarga es el del archivo final. Antes se
+anunciaba el de un trozo temporal. Y Enumerar ya no pone «NA - » delante
+de los vídeos sueltos.</li>
+<li>Las descargas terminadas tienen su propio historial. La cola y el
+historial están en dos pestañas del <em>Administrador de descargas</em>,
+y el historial se conserva entre sesiones. Al reabrir la ventana, el
+progreso de las descargas en curso sigue ahí.</li>
+<li>Las descargas avisan cuando terminan, esté abierto o cerrado el
+<em>Administrador de descargas</em>, y la cola ya no se olvida al cerrar
+la ventana.</li>
+<li>La carpeta Descargas siempre está junto a la aplicación. Antes
+dependía de desde dónde se abriera la aplicación.</li>
+<li>En las descargas se lee primero el progreso. Las columnas pasaron a
+ser progreso, estado y nombre, que es el orden en que interesan.</li>
 </ul>
 <h3 id="preferencias-y-atajos">Preferencias y atajos</h3>
 <ul>
-<li><strong>Preferencias se recorre con una lista de
-categorías</strong>, no con pestañas. Con lector de pantalla, las
-flechas anuncian cada categoría al pasar por ella. Son trece, repartidas
-por tema.</li>
-<li><strong>Preferencias guarda de forma segura y avisa si no pudo
-guardar.</strong> Antes escribía directamente sobre el archivo de
-configuración y anunciaba «Preferencias guardadas» pasara lo que pasara.
-Ahora, si el disco no acepta la escritura, lo dice con el sonido de
-error: las opciones siguen aplicadas hasta cerrar la aplicación, pero se
-perderán al cerrarla.</li>
-<li><strong>Los atajos se cambian en un solo paso, y se aplican al
-pulsar <em>Guardar</em>.</strong> Se activa el botón de la acción y se
-pulsa la combinación, sin salir de la lista. La ventana avisa de que el
-cambio se aplica al pulsar <em>Guardar</em>, y <em>Cancelar</em> lo
-descarta. <code>Intro</code> a solas deja la acción sin atajo y
-<code>Escape</code> cancela. Si la combinación no es válida o ya está en
-uso, se indica el motivo por voz y en un aviso en pantalla, y el botón
-sigue esperando otra.</li>
-<li><strong>Restablecer los atajos.</strong> Un botón al final de la
-lista devuelve todas las combinaciones personalizables a sus valores
-originales, y también se aplica al pulsar <em>Guardar</em>.</li>
-<li><strong>Tres atajos nuevos para abrir ventanas</strong>:
-<code>Ctrl+Mayúsculas+P</code> abre Preferencias,
-<code>Ctrl+Mayúsculas+H</code> el historial de directos y
-<code>Ctrl+Mayúsculas+I</code> marca una incidencia en el registro.</li>
-<li><strong>Nueve opciones que existían y no se podían tocar.</strong>
-Cómo se comporta la cola de lectura cuando el chat se acelera, la
-reconexión automática, el puerto del panel de chat, el micrófono de OBS
-que silencia el atajo, y el registro detallado, que hasta ahora solo se
-encendía editando un archivo a mano.</li>
-<li><strong>Los contadores numéricos se pueden reescribir sin borrar
-antes.</strong> Al entrar en uno, su contenido queda seleccionado.</li>
-<li><strong>Nueva paleta clara, de tonos crema y verde salvia.</strong>
-La ventana principal tiene ahora un tamaño mínimo, y los avisos largos
-se ajustan al ancho en vez de salirse de la ventana.</li>
-<li><strong>Los textos que lee el lector de pantalla llevan sus
-tildes.</strong> Quince estaban escritos sin ellas, así que se oían mal
-pronunciados: «maxímo» por «máximo», «transmisiòn» por
-«transmisión».</li>
-<li><strong>Preferencias: la categoría Atajos se ve entera.</strong>
+<li><em>Preferencias</em> se recorre con una lista de categorías, no con
+pestañas. Con lector de pantalla, las flechas anuncian cada categoría al
+pasar por ella. Son trece, repartidas por tema.</li>
+<li><em>Preferencias</em> guarda de forma segura y avisa si no pudo
+guardar. Antes escribía directamente sobre el archivo de configuración y
+anunciaba «Preferencias guardadas» pasara lo que pasara. Ahora, si el
+disco no acepta la escritura, lo dice con el sonido de error: las
+opciones siguen aplicadas hasta cerrar la aplicación, pero se perderán
+al cerrarla.</li>
+<li>Los atajos se cambian en un solo paso, y se aplican al pulsar
+<em>Guardar</em>. Se activa el botón de la acción y se pulsa la
+combinación, sin salir de la lista. La ventana avisa de que el cambio se
+aplica al pulsar <em>Guardar</em>, y <em>Cancelar</em> lo descarta.
+<code>Intro</code> a solas deja la acción sin atajo y <code>Esc</code>
+cancela. Si la combinación no se reconoce o ya está en uso, se indica el
+motivo por voz y en un aviso en pantalla, y el botón sigue esperando
+otra.</li>
+<li>Un botón al final de la lista restablece los atajos. Devuelve todas
+las combinaciones personalizables a sus valores originales, y también se
+aplica al pulsar <em>Guardar</em>.</li>
+<li>Tres atajos nuevos para abrir ventanas: <code>Ctrl+Mayús+P</code>
+abre <em>Preferencias</em>, <code>Ctrl+Mayús+H</code> el <em>Historial
+de directos</em> y <code>Ctrl+Mayús+I</code> marca una incidencia en el
+registro.</li>
+<li>Nueve opciones que existían y no se podían tocar. Son el
+comportamiento de la cola de lectura cuando el chat se acelera, la
+reconexión automática, el puerto del panel de chat y el micrófono de OBS
+que silencia el atajo. También incluyen el registro detallado, que hasta
+ahora solo se activaba editando un archivo a mano.</li>
+<li>Los contadores numéricos se pueden reescribir sin borrar antes. Al
+entrar en uno, su contenido queda seleccionado.</li>
+<li>Nueva paleta clara, de tonos crema y verde salvia. La ventana
+principal tiene ahora un tamaño mínimo, y los avisos largos se ajustan
+al ancho en vez de salirse de la ventana.</li>
+<li>Los textos que lee el lector de pantalla llevan sus tildes. Quince
+estaban escritos sin ellas, así que se oían mal pronunciados: «maxímo»
+por «máximo», «transmisiòn» por «transmisión».</li>
+<li>En <em>Preferencias</em>, la categoría <em>Atajos</em> se ve entera.
 Antes dos tercios de los botones quedaban fuera de la ventana. Ahora la
 ventana se puede agrandar.</li>
-<li><strong>El modo de contraste alto de Windows se respeta.</strong> La
-aplicación dejaba de aplicar sus colores fijos encima del tema del
-sistema.</li>
+<li>El modo de contraste alto de Windows se respeta. La aplicación
+dejaba de aplicar sus colores fijos encima del tema del sistema.</li>
 </ul>
 <h3 id="datos-e-instalación">Datos e instalación</h3>
 <ul>
-<li><strong>Los datos se mudan solos a la carpeta
-<code>data</code>.</strong> La configuración, las credenciales, el
-historial, los alias, los mensajes automáticos y los registros estaban
-junto al programa. Al abrir la versión nueva, esos archivos se mueven a
-la carpeta <code>data</code> sin hacer nada. La carpeta Descargas sigue
-junto al programa.</li>
-<li><strong>Los archivos que la aplicación guarda se escriben de forma
-segura.</strong> Es el caso del historial, las credenciales, los
-mensajes automáticos y la configuración de OBS: un cierre a mitad ya no
-los deja vacíos.</li>
-<li><strong>Se atacaron dos defectos de los cierres inesperados al
-salir.</strong> El reproductor dejaba cabos sueltos al cerrarse, que
-encajan con los cierres bruscos que aparecían en el registro. No se
-puede dar por curado hasta usarlo un tiempo, pero el registro ahora deja
-rastro de ese cierre en vez de callarse.</li>
-<li><strong>El registro detallado viene desactivado.</strong> Es una
-opción de diagnóstico y estaba activa de fábrica, lo que hacía crecer el
-archivo de registro sin necesidad.</li>
-<li><strong>El registro de diagnóstico dejó de llenarse de
-ruido.</strong> Nueve de cada diez líneas eran de librerías internas, y
-con una sesión larga ese ruido borraba el principio del archivo, que es
-justo donde suele estar el problema.</li>
-<li><strong>El archivo de fallos ya no asusta.</strong> Recoge sucesos
-internos de Windows, y muchos son inofensivos. Ahora cada arranque
-escribe una línea que lo explica y dice cuál es la señal de que la
-sesión terminó bien.</li>
-<li><strong>Ya no se abre una ventana negra al iniciar.</strong>
-Aparecía un instante y le robaba el foco al lector de pantalla. Ahora la
-consulta se hace por detrás.</li>
+<li>Los datos se mudan solos a la carpeta <code>data</code>. La
+configuración, las credenciales, el historial, los alias, los mensajes
+automáticos y los registros estaban junto a la aplicación. Al abrir la
+versión nueva, esos archivos se mueven a la carpeta <code>data</code>
+sin hacer nada. La carpeta Descargas sigue junto a la aplicación.</li>
+<li>Los archivos que la aplicación guarda se escriben de forma segura.
+Es el caso del historial, las credenciales, los mensajes automáticos y
+la configuración de OBS: un cierre a mitad ya no los deja vacíos.</li>
+<li>Se atacaron dos defectos de los cierres inesperados al salir. El
+reproductor dejaba cabos sueltos al cerrarse, que encajan con los
+cierres bruscos que aparecían en el registro. No se puede dar por curado
+hasta usarlo un tiempo, pero el registro ahora deja rastro de ese cierre
+en vez de callarse.</li>
+<li>El registro detallado viene desactivado. Es una opción de
+diagnóstico y estaba activa de fábrica, lo que hacía crecer el archivo
+de registro sin necesidad.</li>
+<li>El registro de diagnóstico dejó de llenarse de ruido. Nueve de cada
+diez líneas eran de bibliotecas internas, y con una sesión larga ese
+ruido borraba el principio del archivo, que es justo donde suele estar
+el problema.</li>
+<li>El archivo de errores ya no asusta. Recoge sucesos internos de
+Windows, y muchos son inofensivos. Ahora cada inicio escribe una línea
+que lo explica y dice cuál es la señal de que la sesión terminó
+bien.</li>
+<li>Ya no se abre una ventana negra al iniciar. Aparecía un instante y
+le robaba el foco al lector de pantalla. Ahora la consulta se hace por
+detrás.</li>
 </ul>
 <h2 id="201-agosto-de-2026">2.0.1, agosto de 2026</h2>
-<p>Versión de arreglos. No trae funciones nuevas grandes: trae que las
-que ya había molesten menos y avisen mejor.</p>
+<p>Esta es una versión de arreglos y de mejoras pequeñas. No trae
+funciones nuevas grandes: trae que las que ya había molesten menos y
+avisen mejor.</p>
 <ul>
-<li><strong>El diagnóstico dejó de hablar solo.</strong> Cada treinta
-segundos anunciaba por voz cuántos hilos había vivos. Era información
-para arreglar problemas, no para escucharla mientras miras un directo.
-Ahora se sigue guardando en el registro, pero callado.</li>
-<li><strong>Los controles del reproductor ya no se quedan
-mudos.</strong> Pulsar reproducir, silenciar o buscar sin tener un vídeo
-cargado no hacía absolutamente nada, ni siquiera decirlo. Ahora
-contestan «No hay ningún vídeo cargado» o «El reproductor no está
-disponible», según el caso.</li>
-<li><strong>Los atajos del reproductor funcionan siempre.</strong>
-Estaban apagados hasta conectarte a algo, así que las siete
-combinaciones de Control parecían rotas.</li>
-<li><strong>Avisa al pulsar reproducir.</strong> Antes había un silencio
-largo mientras cargaba, que parecía que se había bloqueado. Ahora dice
-«Cargando vídeo».</li>
-<li><strong>Avisos claros cuando falla la red.</strong> Antes, si
-YouTube no contestaba o el vídeo era privado, no se oía nada. Ahora lo
-dice con palabras: que la red no responde, que el vídeo no está
-disponible, o que hay que esperar unos minutos porque se hicieron
-demasiadas consultas.</li>
-<li><strong>Los atajos de Preferencias van agrupados.</strong> Los
-veinte botones estaban sueltos; ahora el lector anuncia a qué grupo
-pertenece cada uno, «Reproductor» o «Conexión y chat».</li>
-<li><strong>yt-dlp se puede actualizar desde la aplicación.</strong>
-Menú Herramientas → Actualizar yt-dlp. Es la pieza que se rompe cuando
-YouTube cambia algo por dentro, y hasta ahora había que esperar a una
-versión nueva del programa entero. Comprueba qué versión hay publicada,
-la compara con la instalada y la descarga solo si hace falta,
+<li>El diagnóstico dejó de hablar solo. Cada treinta segundos anunciaba
+por voz cuántos hilos había vivos. Era información para arreglar
+problemas, no para escucharla mientras miras un directo. Ahora se sigue
+guardando en el registro, pero callado.</li>
+<li>Los controles del reproductor ya no se quedan mudos. Pulsar
+reproducir, silenciar o buscar sin tener un vídeo cargado no hacía
+absolutamente nada, ni siquiera decirlo. Ahora contestan «No hay ningún
+vídeo cargado» o «El reproductor no está disponible», según el
+caso.</li>
+<li>Los atajos del reproductor funcionan siempre. Estaban desactivados
+hasta conectarte a algo, así que las siete combinaciones de
+<code>Ctrl</code> parecían rotas.</li>
+<li>Avisa al pulsar reproducir. Antes había un silencio largo mientras
+cargaba, que parecía que se había bloqueado. Ahora dice «Cargando
+vídeo».</li>
+<li>Hay avisos claros cuando falla la red. Antes, si YouTube no
+contestaba o el vídeo era privado, no se oía nada. Ahora lo dice con
+palabras: que la red no responde, que el vídeo no está disponible, o que
+hay que esperar unos minutos porque se hicieron demasiadas
+consultas.</li>
+<li>Los atajos de <em>Preferencias</em> van agrupados. Los veinte
+botones estaban sueltos. Ahora el lector anuncia a qué grupo pertenece
+cada uno, «Reproductor» o «Conexión y chat».</li>
+<li>yt-dlp se puede actualizar desde la aplicación. Está en
+<em>Herramientas, Actualizar yt-dlp</em>. Es la pieza que deja de
+funcionar cuando YouTube cambia algo por dentro, y hasta ahora había que
+esperar a una versión nueva de la aplicación. Comprueba qué versión hay
+publicada, la compara con la instalada y la descarga solo si hace falta,
 verificando que el archivo sea el auténtico.</li>
-<li><strong>Las descargas usan ese mismo yt-dlp.</strong> Antes el
-gestor de descargas llevaba su propia copia por dentro, que se quedaba
-vieja aunque actualizaras. Ahora todo usa el mismo, y la versión que
+<li>Las descargas usan ese mismo yt-dlp. Antes el <em>Administrador de
+descargas</em> llevaba su propia copia por dentro, que se quedaba
+anterior aunque actualizaras. Ahora todo usa el mismo, y la versión que
 muestra la aplicación es la de verdad.</li>
-<li><strong>Se arregló una fuga que dejaba el chat leyéndose dos veces
-por dentro.</strong> Si te reconectabas a otro directo sin desconectar
-antes, la conexión anterior seguía viva pidiéndole mensajes a YouTube
-para siempre, en silencio, hasta cerrar el programa.</li>
-<li><strong>La carpeta de descargas ya no se guarda sola.</strong> Se
-escribía en la configuración una ruta de la máquina donde se compiló el
-programa.</li>
-<li>Se quitó una entrada de menú que ya no llevaba a ninguna parte, y
+<li>Se arregló una fuga que dejaba el chat leyéndose dos veces por
+dentro. Si te reconectabas a otro directo sin desconectar antes, la
+conexión anterior seguía viva pidiéndole mensajes a YouTube para
+siempre, en silencio, hasta cerrar la aplicación.</li>
+<li>La carpeta de descargas ya no se guarda sola. Se escribía en la
+configuración una ruta del equipo donde se compiló la aplicación.</li>
+<li>Se eliminó una entrada de menú que ya no llevaba a ninguna parte, y
 los avisos también salen por línea braille.</li>
 </ul>
 <h2 id="200-julio-de-2026">2.0.0, julio de 2026</h2>
 <ul>
-<li><strong>Directos de TikTok, ya finos.</strong> La primera versión
-los estrenó y esta los deja fiables: se leen todos los comentarios con
-su autor, se oye el vídeo del directo, y F2 muestra los espectadores en
-vivo. Opcional: leer quién entra al directo (desactivado por defecto, en
-Preferencias → Lectura).</li>
-<li><strong>Historial de directos</strong> (menú Archivo): guarda lo que
-has visto, en dos pestañas (YouTube y TikTok), para volver a un directo
-con Enter sin recordar el enlace. Los directos se marcan como tales,
-porque al terminar pueden dejar de existir.</li>
-<li><strong>Búsqueda por letras en el chat y los comentarios</strong>:
-escribe unas letras seguidas («mig») y salta al mensaje que empieza así,
-anunciándolo. Da la vuelta a la lista si hace falta y avisa si no hay
-coincidencias.</li>
-<li><strong>Segunda voz para los eventos</strong> (opcional): los Super
-Chats, regalos y miembros nuevos pueden leerse con una voz distinta de
-la de los mensajes.</li>
-<li><strong>Atajos que se capturan pulsándolos</strong>: en Preferencias
-→ Atajos ya no se escribe la combinación a mano; pulsas el botón de la
-acción y luego las teclas, y la app comprueba sola que sea válida y no
-choque con otra.</li>
-<li><strong>Estado por voz (F2) configurable</strong>: dice los datos
-del directo (título, canal, espectadores, mensajes leídos, aportes…) y
-en Preferencias → Estado se elige exactamente qué cuenta.</li>
-<li><strong>Chat más fluido con el lector de pantalla</strong>: navegar
-la lista con las flechas mientras llegan mensajes ya no se bloquea.</li>
-<li><strong>Menús coherentes</strong>: las acciones que necesitan
-conexión se deshabilitan cuando no la hay, y desconectar es instantáneo
-(antes podía congelar la ventana unos segundos).</li>
-<li><strong>Reconexión de YouTube más robusta</strong>: un error de red
-que dejaba la conexión rota hasta reconectar a mano ya se recupera
+<li>Los directos de TikTok quedan fiables. La primera versión los
+estrenó y esta los deja estables: se leen todos los comentarios con su
+autor, se reproduce el vídeo del directo y <code>F2</code> muestra los
+espectadores en directo. Opcional: leer quién entra al directo,
+desactivado de fábrica, en <em>Preferencias</em>, categoría
+<em>Lectura</em>.</li>
+<li>El <em>Historial de directos</em> está en el menú <em>Archivo</em>.
+Guarda lo que has visto, en dos pestañas (YouTube y TikTok), para volver
+a un directo con <code>Intro</code> sin recordar el enlace. Los directos
+se marcan como tales, porque al terminar pueden dejar de existir.</li>
+<li>La búsqueda por letras en el chat y los comentarios salta al mensaje
+que empieza con lo que escribes. Escribe unas letras seguidas («mig») y
+salta al mensaje que empieza así, anunciándolo. Da la vuelta a la lista
+si hace falta y avisa si no hay coincidencias.</li>
+<li>Hay una segunda voz para los eventos, opcional. Los Super Chats,
+regalos y miembros nuevos pueden leerse con una voz distinta de la de
+los mensajes.</li>
+<li>Los atajos se capturan pulsándolos. En <em>Preferencias</em>,
+categoría <em>Atajos</em>, ya no se escribe la combinación a mano:
+pulsas el botón de la acción y luego las teclas, y la aplicación
+comprueba sola que sea válida y no choque con otra.</li>
+<li>El estado por voz (<code>F2</code>) se configura. Dice los datos del
+directo (título, canal, espectadores, mensajes leídos, aportes…) y en
+<em>Preferencias</em>, <em>Estado (F2)</em> se elige exactamente qué
+cuenta.</li>
+<li>El chat es más fluido con el lector de pantalla. Navegar la lista
+con las flechas mientras llegan mensajes ya no se bloquea.</li>
+<li>Los menús son coherentes. Las acciones que necesitan conexión se
+desactivan cuando no la hay, y desconectar es instantáneo. Antes podía
+congelar la ventana unos segundos.</li>
+<li>La reconexión de YouTube es más confiable. Un error de red que
+dejaba la conexión rota hasta reconectar a mano ya se recupera
 solo.</li>
-<li><strong>Reproductor pulido</strong>: reanudar un directo tras
-pausarlo vuelve al momento actual, la pantalla completa lleva el título
-del vídeo, y en los directos se indica «En directo» en lugar de una
-barra de progreso confusa.</li>
+<li>El reproductor está pulido. Reanudar un directo tras pausarlo vuelve
+al momento actual, la pantalla completa lleva el título del vídeo, y en
+los directos se indica «En directo» en lugar de una barra de progreso
+confusa.</li>
 </ul>
 <h2 id="100-julio-de-2026">1.0.0, julio de 2026</h2>
-<p>Primera versión. Lectura del chat de YouTube Live con voces SAPI5;
-comentarios de vídeos con lectura, respuesta y publicación; reproductor
-de vídeo integrado con pantalla completa manejable por teclado;
-moderación y envío al chat con la API oficial; pestaña de información
-del vídeo; y directos de TikTok (solo lectura). Interfaz navegable por
-teclado, con anuncios por voz y braille.</p>
+<p>Esta es la primera versión de la aplicación. Lee el chat de YouTube
+Live con voces SAPI 5 y los comentarios de los vídeos, con lectura,
+respuesta y publicación. Incluye un reproductor de vídeo integrado con
+pantalla completa manejable por teclado, moderación y envío al chat con
+la API oficial, una pestaña de información del vídeo y directos de
+TikTok de solo lectura. La interfaz se maneja con el teclado, con
+anuncios por voz y braille.</p>
 </body>
 </html>

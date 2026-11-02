@@ -9,6 +9,7 @@ from pathlib import Path
 from unittest import mock
 
 from bellbird.ui import gui
+from bellbird.ui import gui_estado
 from bellbird.ui import accesibilidad
 from bellbird.ui import tema
 from bellbird.ui import gui_comentarios
@@ -33,6 +34,7 @@ from bellbird.ai import proveedores
 from bellbird.ai import sondeo_gratis
 from bellbird.core import config
 from bellbird.core import eventos_sonido
+from bellbird.core.doble_pulsacion import DoblePulsacion
 from bellbird.core import paths
 from bellbird.player import reproductor
 from bellbird.core import apagado
@@ -4127,6 +4129,12 @@ class TestLiveChatIdPorSesion(unittest.TestCase):
 
 
 class TestEstadoObsEnF2(unittest.TestCase):
+    def setUp(self):
+        parche = mock.patch.object(gui_estado, "_PULSACIONES",
+                                   DoblePulsacion())
+        parche.start()
+        self.addCleanup(parche.stop)
+
     def _frame(self, toggles, vigilante=None):
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
         frame._config = {"estado_toggles": toggles, "programados_activo": False}
@@ -4149,7 +4157,9 @@ class TestEstadoObsEnF2(unittest.TestCase):
     def test_f2_omite_dato_pasado_y_sin_vigilante(self):
         for toggles, vigilante in (({"estado", *gui._OBS_COMPONENTES}, mock.Mock(estado=lambda: None)),
                                     ({"estado"}, None)):
-            with mock.patch.object(gui, "anunciar") as anunciar:
+            with mock.patch.object(gui_estado, "_PULSACIONES",
+                                   DoblePulsacion()), \
+                    mock.patch.object(gui, "anunciar") as anunciar:
                 self._frame(toggles, vigilante)._anunciar_estado()
             self.assertEqual(anunciar.call_args.args[0], "Desconectado.")
     def test_marca_y_desmarca_los_componentes_de_obs(self):

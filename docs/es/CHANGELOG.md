@@ -30,6 +30,11 @@ Paraguay.
 - *Iniciar o detener grabación* (`Alt+Mayús+G`) y *Pausar o reanudar
   grabación* (`Alt+Mayús+P`), en el menú *Transmisión*. Si OBS no pausa la
   grabación, la app lo dice.
+- Al detener la grabación, la app dice «Grabación guardada» con el nombre del
+  archivo. *Grabaciones guardadas…*, en el menú *Transmisión* y en el panel,
+  permite abrir lo grabado, abrir su carpeta, copiar la ruta y eliminarlo de la
+  lista.
+- Igualar el volumen tarda menos, porque mide varias canciones a la vez.
 - *Canal de actualizaciones*, en Preferencias: *Estable*, de fábrica, ofrece
   solo versiones estables, y *Beta* ofrece también las de prueba.
 - Encuadre de cámara. `Ctrl+F3` dice cómo se te ve en la cámara de la

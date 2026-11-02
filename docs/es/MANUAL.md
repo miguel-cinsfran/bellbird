@@ -311,6 +311,13 @@ panel. Si no hay una grabación en curso, pausar lo dice y no cambia nada en
 OBS. Si OBS no pausa la grabación, la aplicación lo dice: algunos perfiles
 pueden no permitirlo.
 
+Al detener la grabación, desde la aplicación o porque terminó la transmisión, se
+oye «Grabación guardada» con el nombre del archivo. *Grabaciones guardadas…*, en
+el menú *Transmisión* y en el panel, lista lo grabado así, de lo más nuevo a lo
+más viejo. Desde ahí puedes abrir el archivo con `Intro`, abrir su carpeta, copiar
+la ruta o eliminarlo de la lista con `Supr`. Eliminar de la lista no borra el
+archivo. Lo que se detiene desde la ventana de OBS no aparece en la lista.
+
 **El panel de transmisión.** *Estado*, arriba, dice si está todo preparado o qué
 revisar, la escena actual, el micrófono y la grabación. Desde el panel se inicia
 y se finaliza el directo por el mismo camino que el botón de la ventana

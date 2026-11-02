@@ -376,6 +376,32 @@ class TestIniciarIgualacion(unittest.TestCase):
             self.assertEqual(resultado.codigo, sonoridad.INICIO)
             self.assertEqual(resultado.total, 2)
 
+    def test_varias_canciones_quedan_en_la_cache_y_el_progreso_termina(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            temas = [_tema_local(tmp, f"t{i}.mp3",
+                                  contenido=f"audio-{i}".encode())
+                      for i in range(5)]
+            anfitrion = _Anfitrion(biblioteca=_BibliotecaFalsa(temas))
+            with mock.patch.object(musica_sonoridad.diagnostico,
+                                    "crear_hilo",
+                                    _crear_hilo_inmediato), \
+                    mock.patch.object(musica_sonoridad.ffmpeg_bin,
+                                        "ruta_ffmpeg",
+                                        return_value="C:/ffmpeg.exe"), \
+                    mock.patch.object(musica_sonoridad.paths,
+                                        "cache_sonoridad_musica",
+                                        return_value=Path(tmp) / "s.json"), \
+                    mock.patch.object(musica_sonoridad.sonoridad, "medir",
+                                        return_value=1.0):
+                anfitrion.iniciar_igualacion(anfitrion._biblioteca)
+            cache = anfitrion._cache_sonoridad
+            for tema in temas:
+                info = os.stat(tema.origen)
+                self.assertEqual(cache.buscar(tema.origen,
+                                              info.st_mtime_ns,
+                                              info.st_size), 1.0)
+            self.assertIsNone(anfitrion._progreso_sonoridad)
+
     def test_detener_sale_antes_de_la_cancion_siguiente(self):
         with tempfile.TemporaryDirectory() as tmp:
             temas = [_tema_local(tmp, "a.mp3"), _tema_local(tmp, "b.mp3")]
@@ -392,6 +418,9 @@ class TestIniciarIgualacion(unittest.TestCase):
             with mock.patch.object(musica_sonoridad.ffmpeg_bin,
                                     "ruta_ffmpeg",
                                     return_value="C:/ffmpeg.exe"), \
+                    mock.patch.object(musica_sonoridad.medicion_paralela,
+                                        "trabajos_de_medicion",
+                                        return_value=1), \
                     mock.patch.object(musica_sonoridad.sonoridad, "medir",
                                         side_effect=_medir):
                 anfitrion._medir_sonoridad_fondo(tuple(temas), 3)
@@ -456,6 +485,9 @@ class TestIniciarIgualacion(unittest.TestCase):
             with mock.patch.object(musica_sonoridad.ffmpeg_bin,
                                     "ruta_ffmpeg",
                                     return_value="C:/ffmpeg.exe"), \
+                    mock.patch.object(musica_sonoridad.medicion_paralela,
+                                        "trabajos_de_medicion",
+                                        return_value=1), \
                     mock.patch.object(musica_sonoridad.sonoridad, "medir",
                                         side_effect=_medir):
                 anfitrion._medir_sonoridad_fondo(tuple(temas), 3)

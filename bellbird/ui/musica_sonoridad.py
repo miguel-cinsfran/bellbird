@@ -16,12 +16,26 @@ import wx
 from bellbird.core import diagnostico
 from bellbird.core import paths
 from bellbird.downloads import ffmpeg_bin
+from bellbird.music import medicion_paralela
 from bellbird.music import sonoridad
 
 
 logger = diagnostico.obtener_logger(__name__)
 
 _candado_sonoridad = threading.Lock()
+
+
+def _medir_una(ruta_ffmpeg, tema):
+    """El `stat` previo y la ganancia de ese tema, para un trabajo.
+
+    Devuelve `(info, ganancia)`, con `info` None si el archivo no se pudo
+    leer. Es lo único que hacen los trabajos de la medición paralela.
+    """
+    try:
+        info = os.stat(tema.origen)
+    except OSError:
+        return (None, None)
+    return (info, sonoridad.medir(ruta_ffmpeg, tema.origen))
 
 
 class SonoridadMusica:
@@ -273,14 +287,15 @@ class SonoridadMusica:
         return (tuple(pendientes), total)
 
     def _medir_sonoridad_fondo(self, pendientes, generacion) -> None:
-        """Mide las pendientes de a una y guarda cada ganancia en la caché.
+        """Mide las pendientes de a varias y guarda cada ganancia en la caché.
 
-        Corre en el hilo «musica-sonoridad». Antes de cada canción sale si
-        cambió la generación, si se cerró, si se apagó la opción o si se
-        pidió detener. Lo que dio None no se guarda: se reintenta en la
-        próxima apertura. Guarda en disco cada 20 y al final. Deja el
-        progreso en `self._progreso_sonoridad` mientras trabaja y None al
-        salir.
+        Corre en el hilo «musica-sonoridad». Antes de enviar cada canción
+        consulta si puede seguir: si cambió la generación, si se cerró, si
+        se apagó la opción o si se pidió detener. Lo que dio None no se
+        guarda: se reintenta en la próxima apertura. Guarda en disco cada 20
+        y al final. Deja el progreso en `self._progreso_sonoridad` mientras
+        trabaja y None al salir. Los trabajos solo hacen `os.stat` y
+        `sonoridad.medir`; la caché y el progreso quedan en este hilo.
         """
         total = len(pendientes)
         hechas = intentadas = 0
@@ -288,21 +303,17 @@ class SonoridadMusica:
             ruta = ffmpeg_bin.ruta_ffmpeg()
             if ruta is None:
                 return
-            for tema in pendientes:
-                if not self._seguir_midiendo(generacion):
-                    return
-                self._progreso_sonoridad = (intentadas, total)
+            trabajos = medicion_paralela.trabajos_de_medicion(os.cpu_count())
+            mediciones = medicion_paralela.medir_en_paralelo(
+                pendientes, lambda tema: _medir_una(ruta, tema),
+                lambda: self._seguir_midiendo(generacion), trabajos)
+            for tema, resultado in mediciones:
                 intentadas += 1
-                try:
-                    info = os.stat(tema.origen)
-                except OSError:
+                self._progreso_sonoridad = (intentadas, total)
+                if resultado is None:
                     continue
-                try:
-                    ganancia = sonoridad.medir(ruta, tema.origen)
-                except Exception:
-                    logger.exception("No se pudo medir %s", tema.origen)
-                    continue
-                if ganancia is None:
+                info, ganancia = resultado
+                if info is None or ganancia is None:
                     continue
                 try:
                     self._cache_sonoridad.poner(

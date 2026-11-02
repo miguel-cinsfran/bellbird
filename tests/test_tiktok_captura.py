@@ -359,6 +359,21 @@ class TestAutorDeEvento(unittest.TestCase):
         self.assertEqual(ident, "")
 
 
+class TestAutorDeEventoReal(unittest.TestCase):
+    """Autor leído de un usuario y un evento reales de TikTokLive 7."""
+
+    def test_user_real_con_nombre_y_from_user(self):
+        from TikTokLive.events import CommentEvent
+        from TikTokLive.proto.custom_proto import ExtendedUser
+        from TikTokLiveProto.v3.webcast.model.base.user import User
+        usuario = User(nickname="María José", id=7, display_id="mariaj")
+        evento = CommentEvent(user=usuario, content="hola")
+        self.assertEqual(autor_de_evento(evento), ("María José", "7"))
+        extendido = ExtendedUser.from_user(usuario)
+        self.assertIsInstance(extendido, ExtendedUser)
+        self.assertEqual(extendido.nickname, "María José")
+
+
 class TestSinEventosIniciales(unittest.TestCase):
     """Al conectar no se leen los mensajes anteriores: la llamada a
     `connect` ignora el paquete inicial de eventos."""

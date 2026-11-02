@@ -73,7 +73,6 @@ def esta_en_vivo(usuario) -> bool:
     Crea su propio loop de asyncio. Si el usuario no existe lanza
     ValueError; otros errores de red devuelven False y se registran.
     """
-    tiktok_captura._parchear_extended_user()
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:

@@ -53,46 +53,6 @@ def usuario_de_url(entrada: str) -> str:
     return m.group(1).lower() if m else ""
 
 
-def _parchear_extended_user() -> None:
-    """Arregla un choque entre TikTokLive 6.6.5 y betterproto 2.0.0b7.
-
-    `ExtendedUser.from_user` hace `ExtendedUser(**user.to_pydict())`, y en esta
-    betterproto `to_pydict()` devuelve claves camelCase (p. ej. «nickName») que
-    el constructor no acepta → lanza TypeError (que el fallback de la librería
-    NO captura, solo AttributeError). Resultado: leer `evento.user` revienta y se
-    pierden comentarios/regalos según qué campos traiga cada usuario.
-
-    Lo reemplazamos por una copia campo a campo en snake_case (lo que la propia
-    librería ya hace como respaldo). Idempotente y con guardas: si la librería
-    cambia, no rompe nada.
-    """
-    try:
-        from TikTokLive.proto.custom_proto import ExtendedUser
-    except Exception:
-        return
-    if getattr(ExtendedUser, "_from_user_parcheado", False):
-        return
-
-    def _from_user(cls, user, **kwargs):
-        if isinstance(user, cls):
-            return user
-        datos = {}
-        for campo in user.__class__.__dataclass_fields__:
-            try:
-                datos[campo] = getattr(user, campo)
-            except AttributeError as exc:
-                bajo = f"_{campo}"
-                datos[campo] = (getattr(user, bajo, None)
-                                if "is set to None" in str(exc) else None)
-        return cls(**datos)
-
-    try:
-        ExtendedUser.from_user = classmethod(_from_user)
-        ExtendedUser._from_user_parcheado = True
-    except Exception as exc:
-        logger.debug("no se pudo parchear ExtendedUser: %s", exc)
-
-
 def disponible() -> bool:
     """¿Está instalada TikTokLive? Sin importarla, para no frenar el arranque."""
     if getattr(sys, "frozen", False):
@@ -128,14 +88,12 @@ def _g(obj, nombre_attr) -> str:
 
 
 def autor_de_evento(evento) -> tuple[str, str]:
-    """(nombre, id) del autor de un evento de TikTok, sin usar el wrapper
-    `.user` cuando se puede (crashea con betterproto 2.0.0b7).
+    """(nombre, id) del autor de un evento de TikTok.
 
     En eventos reales el usuario llega como `User` plano: el nombre está en el
-    campo REAL `nick_name`, no en el alias `nickname` (que es de ExtendedUser).
-    Probamos ambos y varios respaldos. Para comentarios está `user_info` (proto
-    crudo); regalos/suscripciones caen a `.user` (ya sin crash por el parche).
-    Nunca lanza: mejor «Usuario» que perder el evento.
+    campo REAL `nickname`; `nick_name` y los alias se prueban como respaldo.
+    Para comentarios está `user_info` (proto crudo); regalos/suscripciones caen
+    a `.user`. Nunca lanza: mejor «Usuario» que perder el evento.
     """
     u = getattr(evento, "user_info", None)
     if u is None:
@@ -286,8 +244,8 @@ async def _vigilar_parada(client, parada) -> None:
 def _clase_suscripcion(modulo_eventos):
     """Clase del evento de suscripción según la TikTokLive instalada.
 
-    En 6.6.5 y anteriores es `SubscribeEvent`; en 6.6.6 desapareció y el
-    aviso de suscripción es `SubNotifyEvent`. Si no hay ninguna, None y
+    En TikTokLive 7 el aviso de suscripción es `SubNotifyEvent`; las
+    versiones anteriores usaban `SubscribeEvent`. Si no hay ninguna, None y
     quien llama simplemente no registra ese manejador, sin error."""
     for nombre in ("SubscribeEvent", "SubNotifyEvent"):
         clase = getattr(modulo_eventos, nombre, None)
@@ -392,7 +350,6 @@ def _sesion(usuario, parada, on_evento, on_estado, on_info, on_espectadores,
     sale como excepción: se devuelve como el error de la sesión, igual que
     el de conexión, para que el bucle lo informe en vez de matar el hilo."""
     try:
-        _parchear_extended_user()   # antes de tocar ningún evento (ver la función)
         from TikTokLive import TikTokLiveClient
         from TikTokLive.events import (ConnectEvent, CommentEvent, GiftEvent,
                                        DisconnectEvent, LiveEndEvent,

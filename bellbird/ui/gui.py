@@ -849,8 +849,8 @@ class YTChatFrame(wx.Frame):
     def _on_about(self, event):
         wx.MessageBox(
             _("{app} v{version}\n\n"
-              "Lector accesible del chat de YouTube Live con voz de Windows "
-              "o de ElevenLabs.").format(app=APP_NAME, version=APP_VERSION),
+              "Lee en voz alta el chat de los directos de YouTube y TikTok. Incluye "
+              "moderación, comentarios, reproductor, música, descargas y control de OBS Studio.").format(app=APP_NAME, version=APP_VERSION),
             _("Acerca de"), wx.OK | wx.ICON_INFORMATION, self)
 
     def _on_marcar_incidencia(self, event):

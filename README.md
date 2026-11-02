@@ -5,27 +5,33 @@ directos de YouTube y TikTok. Está pensada para personas ciegas o con baja
 visión que transmiten: todo se maneja con el teclado y se prueba con el
 lector de pantalla NVDA.
 
-La escribo yo, que soy ciego, y la usa en sus directos un amigo que
-también lo es. Hasta la versión 2.5 se llamaba YTChat TTS.
+Hasta la versión 2.5 se llamaba `YTChat TTS`.
 
 [Descargar la última versión](https://github.com/miguel-cinsfran/bellbird/releases/latest)
 · [Manual de uso](docs/es/MANUAL.md) · [Novedades](docs/es/CHANGELOG.md)
 
 ## Qué hace
 
-- Lee el chat de un directo de YouTube o de TikTok con las voces de
-  Windows o de ElevenLabs, con un sonido distinto para cada tipo de
-  mensaje.
-- Lee y publica comentarios en vídeos de YouTube, y modera el chat con la
-  cuenta de Google del usuario.
+- Lee en voz alta el chat de los directos de YouTube y TikTok, y lo modera.
+  También permite escribir en él y publica comentarios en vídeos.
+- Inicia sesión con una cuenta de Google para moderar, comentar y crear el
+  directo de YouTube.
 - Reproduce el vídeo del directo dentro de la aplicación.
 - Pone música de una carpeta, de listas propias o de YouTube, con el
   volumen de las canciones igualado.
-- Empieza y termina el directo con OBS Studio, y muestra el chat a los
-  espectadores en un panel para OBS.
-- Pregunta a un modelo de IA qué se ve en la escena al aire o en una
-  fuente de OBS, y lee la respuesta.
-- Descarga vídeo y audio.
+- Inicia y finaliza el directo con OBS Studio, controla la grabación y
+  organiza la escena.
+- Describe el encuadre de la cámara de OBS y avisa cuando el rostro sale
+  del encuadre.
+- Muestra el chat a los espectadores en un panel para OBS.
+- Manda mensajes automáticos al chat cada cierto tiempo.
+- Resume el estado del directo por voz a pedido.
+- Pregunta a un modelo de IA qué se ve en la escena al aire y lee la
+  respuesta.
+- Descarga vídeo y audio, y guarda el historial de lo descargado y de los
+  directos vistos.
+- Busca e instala las actualizaciones desde la aplicación, con vuelta a la
+  versión anterior si falla.
 
 El manual explica cada función y tiene las tablas de atajos.
 
@@ -40,7 +46,7 @@ Windows para que los lectores de pantalla los lean bien. Además:
 - libVLC (`python-vlc`) para el reproductor y la música.
 - yt-dlp y ffmpeg para los enlaces, las descargas y medir el volumen de
   las canciones.
-- El websocket de OBS para la transmisión.
+- El WebSocket de OBS para la transmisión.
 - PyInstaller para el paquete que se publica.
 
 ## Desde el código

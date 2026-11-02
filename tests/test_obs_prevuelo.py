@@ -142,15 +142,13 @@ class RevisarTest(unittest.TestCase):
                                       "imageFormat": "png", "imageWidth": 64})
         self.assertIsInstance(revision, Revision)
 
-    def test_perfil_distinto_del_destino(self):
-        doble = DoblePrevuelo(perfil="YouTube",
-                              imagen=imagen_dato(png_plano(2, 2, (200, 0, 0, 255))))
+    def test_el_perfil_distinto_ya_no_es_un_problema(self):
+        doble = DoblePrevuelo(
+            perfil="YouTube",
+            imagen=imagen_dato(png_plano(2, 2, (200, 0, 0, 255))))
         revision = revisar(doble, "TikTok")
-        self.assertIn("OBS está en el perfil YouTube, no en TikTok. "
-                      "Pulsa Preparar destino.", revision.problemas)
-        self.assertEqual(revision.problemas[0],
-                         "OBS está en el perfil YouTube, no en TikTok. "
-                         "Pulsa Preparar destino.")
+        self.assertEqual(revision.perfil, "YouTube")
+        self.assertEqual(revision.problemas, ())
 
     def test_microfono_silenciado(self):
         doble = DoblePrevuelo(
@@ -175,8 +173,6 @@ class RevisarTest(unittest.TestCase):
             imagen=imagen_dato(png_plano(2, 2, (0, 0, 0, 0))))
         revision = revisar(doble, "TikTok")
         self.assertEqual(list(revision.problemas), [
-            "OBS está en el perfil YouTube, no en TikTok. "
-            "Pulsa Preparar destino.",
             "El micrófono Mic/Aux está silenciado.",
             "El audio del escritorio Audio del escritorio está silenciado.",
             "La escena no tiene ninguna fuente visible. "
@@ -308,13 +304,11 @@ class FraseRevisionTest(unittest.TestCase):
 
     def test_frase_con_problemas_agrega_atencion(self):
         doble = DoblePrevuelo(
-            perfil="YouTube",
             silencios={"Audio del escritorio": False, "Mic/Aux": True},
             imagen=imagen_dato(png_plano(2, 2, (0, 0, 0, 0))))
         frase = frase_revision(revisar(doble, "TikTok"))
-        self.assertIn("Atención: OBS está en el perfil YouTube, no en "
-                      "TikTok. Pulsa Preparar destino. "
-                      "El micrófono Mic/Aux está silenciado.", frase)
+        self.assertIn("Atención: El micrófono Mic/Aux está silenciado.",
+                      frase)
 
     def test_frase_con_problema_pone_atencion_primero_y_no_nombra_el_perfil(self):
         revision = Revision(
@@ -440,10 +434,11 @@ class AvisosGrabacionTest(unittest.TestCase):
         self.assertTrue(frase.endswith(AVISO_CODIFICADOR), frase)
 
     def test_el_aviso_va_despues_de_atencion(self):
-        doble = DoblePrevuelo(perfil="YouTube", modo="Advanced",
-                              codificador="x264", imagen=self._imagen())
+        doble = DoblePrevuelo(
+            silencios={"Audio del escritorio": False, "Mic/Aux": True},
+            modo="Advanced", codificador="x264", imagen=self._imagen())
         frase = frase_revision(revisar(doble, "TikTok", grabar=True))
-        self.assertIn("Atención: OBS está en el perfil YouTube", frase)
+        self.assertIn("Atención: El micrófono Mic/Aux está silenciado.", frase)
         self.assertTrue(frase.endswith(AVISO_CODIFICADOR), frase)
 
     def test_codificador_compartido_no_avisa(self):
@@ -565,7 +560,7 @@ class TestPseudoFraseRevision(unittest.TestCase):
             imagen=imagen_dato(png_plano(2, 2, (0, 0, 0, 0))))
         with con_pseudo():
             revision = revisar(doble, "TikTok")
-        self.assertEqual(len(revision.problemas), 5)
+        self.assertEqual(len(revision.problemas), 4)
         for problema in revision.problemas:
             self.assertTrue(problema.startswith("[¡"), problema)
 

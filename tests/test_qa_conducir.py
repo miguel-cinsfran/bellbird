@@ -163,28 +163,28 @@ class TestVersionCoherente(unittest.TestCase):
 class TestFaltanHabilitados(unittest.TestCase):
 
     def test_habilitado_y_visible_no_falta(self):
-        controles = [{"nombre": "Preparar panel", "etiqueta": "",
+        controles = [{"nombre": "Actualizar estado", "etiqueta": "",
                       "habilitado": True, "visible": True}]
         self.assertEqual(
-            conducir.faltan_habilitados(controles, ("Preparar panel",)),
+            conducir.faltan_habilitados(controles, ("Actualizar estado",)),
             [])
 
     def test_deshabilitado_falta(self):
-        controles = [{"nombre": "Preparar panel", "etiqueta": "",
+        controles = [{"nombre": "Actualizar estado", "etiqueta": "",
                       "habilitado": False, "visible": True}]
         self.assertEqual(
-            conducir.faltan_habilitados(controles, ("Preparar panel",)),
-            ["Preparar panel"])
+            conducir.faltan_habilitados(controles, ("Actualizar estado",)),
+            ["Actualizar estado"])
 
     def test_ausente_falta(self):
         self.assertEqual(conducir.faltan_habilitados([], ("Restablecer",)),
                          ["Restablecer"])
 
     def test_ignora_la_marca_de_mnemonico(self):
-        controles = [{"nombre": "", "etiqueta": "Preparar pane&l",
+        controles = [{"nombre": "", "etiqueta": "Actualizar e&stado",
                       "habilitado": True, "visible": True}]
         self.assertEqual(
-            conducir.faltan_habilitados(controles, ("Preparar panel",)),
+            conducir.faltan_habilitados(controles, ("Actualizar estado",)),
             [])
 
 

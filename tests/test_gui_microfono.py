@@ -80,7 +80,7 @@ def _aplicar_en(dialogo, senal=None, fallo=None, silenciada=False):
 class TestAbrirMicrofonoObs(unittest.TestCase):
 
     def _abrir(self, frame, conectar=None, microfonos=None,
-               especial="", dispositivos=None):
+               especial="", dispositivos=None, al_cerrar=None):
         cliente = mock.Mock()
         with mock.patch.object(gui_microfono, "_conectar",
                                return_value=cliente) as conectar_mock, \
@@ -99,7 +99,7 @@ class TestAbrirMicrofonoObs(unittest.TestCase):
                 _hilo_sincrono(), _llamada_directa():
             if conectar is not None:
                 conectar_mock.side_effect = conectar
-            gui_microfono.abrir_microfono_obs(frame)
+            gui_microfono.abrir_microfono_obs(frame, al_cerrar=al_cerrar)
         return cliente, dialogo_clase, anunciar
 
     def test_con_datos_abre_el_cuadro_con_la_fuente_elegida(self):
@@ -116,6 +116,15 @@ class TestAbrirMicrofonoObs(unittest.TestCase):
         anunciar.assert_not_called()
         cliente.cerrar.assert_called_once_with()
 
+    def test_al_cerrar_reemplaza_el_foco_del_marco(self):
+        frame = _frame()
+        al_cerrar = mock.Mock()
+        _cliente, _dialogo, _anunciar = self._abrir(
+            frame, microfonos=FUENTES, especial="Mic/Aux",
+            dispositivos=(PARES, "{usb}"), al_cerrar=al_cerrar)
+        al_cerrar.assert_called_once_with()
+        frame.SetFocus.assert_not_called()
+
     def test_sin_obs_no_abre_y_anuncia_el_fallo(self):
         frame = _frame()
         _cliente, dialogo_clase, anunciar = self._abrir(
@@ -131,6 +140,16 @@ class TestAbrirMicrofonoObs(unittest.TestCase):
         dialogo_clase.assert_not_called()
         anunciar.assert_called_once_with(AVISO_SIN_MICROFONO)
         cliente.cerrar.assert_called_once_with()
+
+
+class TestMicrofonoPreferido(unittest.TestCase):
+
+    def test_lee_la_configuracion_del_marco(self):
+        self.assertEqual(gui_microfono.microfono_preferido(_frame()),
+                         "Audio USB")
+
+    def test_sin_configuracion_devuelve_vacio(self):
+        self.assertEqual(gui_microfono.microfono_preferido(object()), "")
 
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")

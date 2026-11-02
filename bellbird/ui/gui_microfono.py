@@ -46,9 +46,57 @@ def _pares_de_elegir(fuentes):
             for nombre in fuentes]
 
 
-def abrir_microfono_obs(frame) -> None:
+def _devolver_foco(frame, al_cerrar) -> None:
+    try:
+        if al_cerrar is not None:
+            al_cerrar()
+        else:
+            frame.SetFocus()
+    except Exception as exc:
+        logger.debug("No se pudo devolver el foco: %s", exc)
+
+
+class ControlSilencio:
+    """Casilla que muestra y alterna el silencio del micrófono de OBS."""
+
+    def __init__(self, gestor, casilla, operaciones, preferido, al_cambiar):
+        self._gestor = gestor
+        self._casilla = casilla
+        self._operaciones = operaciones
+        self._preferido = preferido
+        self._al_cambiar = al_cambiar
+        self.silenciado = False
+        casilla.Bind(wx.EVT_CHECKBOX, self.alternar)
+
+    def fijar(self, silenciado):
+        self.silenciado = bool(silenciado)
+        self._casilla.SetValue(self.silenciado)
+
+    def alternar(self, event):
+        preferido = self._preferido()
+        self._operaciones.en_hilo(
+            lambda: obs_entradas_audio.alternar_microfono(
+                self._gestor, preferido),
+            self._alternado)
+
+    def _alternado(self, resultado):
+        texto, fuente, estado = resultado
+        anunciar(texto)
+        if fuente:
+            self.silenciado = bool(estado)
+        self._casilla.SetValue(self.silenciado)
+        self._al_cambiar()
+
+
+def microfono_preferido(frame) -> str:
+    """El micrófono guardado en la configuración, o "" si el marco no la tiene."""
+    config = getattr(frame, "_config", None) or {}
+    return config.get("obs_microfono", "") or ""
+
+
+def abrir_microfono_obs(frame, al_cerrar=None) -> None:
     """Lee los micrófonos en un hilo y abre el cuadro con lo que elija."""
-    preferido = frame._config.get("obs_microfono", "")
+    preferido = microfono_preferido(frame)
 
     def consultar():
         cliente = None
@@ -76,10 +124,7 @@ def abrir_microfono_obs(frame) -> None:
             dialogo.ShowModal()
         finally:
             dialogo.Destroy()
-        try:
-            frame.SetFocus()
-        except Exception as exc:
-            logger.debug("No se pudo devolver el foco: %s", exc)
+        _devolver_foco(frame, al_cerrar)
 
     diagnostico.crear_hilo(consultar, "MicrofonoObs").start()
 

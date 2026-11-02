@@ -152,7 +152,7 @@ class TestTransmitirSinVentana(unittest.TestCase):
                 mock.patch.object(boton_directo, "anunciar"), \
                 mock.patch.object(boton_directo._snd, "reproducir"), \
                 mock.patch(
-                    "bellbird.ui.gui_transmision.confirmar_transmision",
+                    "bellbird.ui.boton_directo.confirmar_transmision",
                     return_value=True), \
                 mock.patch.object(boton_directo.wx,
                                   "CallAfter",
@@ -185,7 +185,7 @@ class TestRevisionListaSinVentana(unittest.TestCase):
         preparacion = SimpleNamespace(ya_transmitiendo=False,
                                       revision=revision)
         with mock.patch(
-                "bellbird.ui.gui_transmision.confirmar_transmision") as confirmar:
+                "bellbird.ui.boton_directo.confirmar_transmision") as confirmar:
             boton._revision_lista(preparacion, "YouTube", "")
         confirmar.assert_not_called()
         marco._supervisar_transmision.assert_called_once_with(
@@ -197,7 +197,7 @@ class TestRevisionListaSinVentana(unittest.TestCase):
         preparacion = SimpleNamespace(ya_transmitiendo=False,
                                       revision=mock.sentinel.revision)
         with mock.patch(
-                "bellbird.ui.gui_transmision.confirmar_transmision",
+                "bellbird.ui.boton_directo.confirmar_transmision",
                 return_value=True) as confirmar:
             boton._revision_lista(preparacion, "TikTok", "usuario")
         confirmar.assert_called_once_with(marco, preparacion.revision)
@@ -210,7 +210,7 @@ class TestRevisionListaSinVentana(unittest.TestCase):
         preparacion = SimpleNamespace(ya_transmitiendo=False,
                                       revision=mock.sentinel.revision)
         with mock.patch(
-                "bellbird.ui.gui_transmision.confirmar_transmision",
+                "bellbird.ui.boton_directo.confirmar_transmision",
                 return_value=False), \
                 mock.patch.object(boton_directo, "anunciar") as anunciar:
             boton._revision_lista(preparacion, "TikTok", "usuario")
@@ -474,32 +474,20 @@ class TestPseudoAnunciosBotonDirecto(unittest.TestCase):
         preparacion = SimpleNamespace(ya_transmitiendo=False,
                                       revision=mock.sentinel.revision)
         with mock.patch(
-                "bellbird.ui.gui_transmision.confirmar_transmision",
+                "bellbird.ui.boton_directo.confirmar_transmision",
                 return_value=False):
             boton._revision_lista(preparacion, "TikTok", "usuario")
         marco._supervisar_transmision.assert_not_called()
         self._exigir_marcados(1)
 
-    def test_finalizar_pide_confirmacion_marcada_y_sigue_marcado(self):
-        boton, _marco = self._boton()
+    def test_finalizar_pide_confirmacion_y_sigue_marcado(self):
+        boton, marco = self._boton()
         boton._transmitiendo = True
-        captado = {}
-        creados = []
-
-        def fabrica(padre, mensaje, titulo, estilo):
-            captado["mensaje"] = mensaje
-            captado["titulo"] = titulo
-            dialogo = mock.Mock()
-            dialogo.ShowModal.return_value = wx.ID_NO
-            creados.append(dialogo)
-            return dialogo
-
-        with mock.patch.object(self.modulo.wx, "MessageDialog", fabrica):
+        with mock.patch.object(self.modulo, "confirmar_finalizar",
+                               return_value=False) as confirmar:
             boton._finalizar()
-        self.assertTrue(captado["mensaje"].startswith("[¡"))
-        self.assertTrue(captado["titulo"].startswith("[¡"))
-        for etiqueta in creados[0].SetYesNoLabels.call_args.args:
-            self.assertTrue(etiqueta.startswith("[¡"), etiqueta)
+        confirmar.assert_called_once_with(marco)
+        marco._supervisar_transmision.assert_not_called()
         self._exigir_marcados(1)
 
     def test_finalizada_avisa_marcado(self):

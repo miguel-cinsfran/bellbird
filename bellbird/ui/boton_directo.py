@@ -18,6 +18,8 @@ from bellbird.obs import obs_lanzador
 from bellbird.obs import transmision_directa
 from bellbird.obs.obs_panel import GestorPanelObs
 from bellbird.ui.accesibilidad import anunciar
+from bellbird.ui.confirmar_transmision import (
+    confirmar_finalizar, confirmar_transmision)
 from bellbird.ui.tema import _T, _pintar
 from bellbird.voice import sound_player as _snd
 
@@ -130,7 +132,6 @@ class BotonDirecto:
                 revision=preparacion.revision)
             marco._actualizar_boton_directo()
             return
-        from bellbird.ui.gui_transmision import confirmar_transmision
         if not confirmar_transmision(marco, preparacion.revision):
             anunciar(_("No se transmitió."))
             return
@@ -139,17 +140,7 @@ class BotonDirecto:
 
     def _finalizar(self):
         marco = self._marco
-        dialogo = wx.MessageDialog(
-            marco,
-            _("¿Finalizar el directo? Quienes te están viendo dejarán de verte."),
-            _("Finalizar directo"), wx.YES_NO | wx.NO_DEFAULT)
-        try:
-            dialogo.SetYesNoLabels(_("&Finalizar directo"),
-                                   _("&Seguir transmitiendo"))
-            seguir = dialogo.ShowModal() != wx.ID_YES
-        finally:
-            dialogo.Destroy()
-        if seguir:
+        if not confirmar_finalizar(marco):
             anunciar(_("Sigues transmitiendo."))
             return
         if marco._supervisar_transmision("activo"):

@@ -393,6 +393,18 @@ class CableadoDialogoTest(unittest.TestCase):
             def perfil_actual(self):
                 return ""
 
+            def entradas_audio(self):
+                return ()
+
+            def microfono_especial(self):
+                return ""
+
+            def revisar(self, destino, parada=None):
+                return mock.Mock(problemas=())
+
+            def silenciada(self, fuente, parada=None):
+                return False
+
             def descripcion_escena(self, parada=None):
                 return ""
 
@@ -404,7 +416,8 @@ class CableadoDialogoTest(unittest.TestCase):
 
         import types
         falso = types.SimpleNamespace(_gestor=GestorFalso(),
-                                      _asegurar=asegurar_doble)
+                                      _asegurar=asegurar_doble,
+                                      _microfono_preferido=lambda: "")
         with mock.patch.object(gui_transmision.wx, "CallAfter",
                                side_effect=lambda f, *a: llamadas_anuncio.append(
                                    (f, a))) as call_after:

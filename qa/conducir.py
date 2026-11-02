@@ -669,9 +669,7 @@ def auditar_dialogo(app: Aplicacion, res: Resultado, etiqueta_menu: str,
 
     # Un diálogo que consulta algo de fuera nace con sus controles
     # deshabilitados y los habilita cuando la carga inicial termina. Si el
-    # Tab se recorre antes, mide la pantalla de espera: el 29/10/2026 el
-    # cuadro de Transmisión dio 26 paradas sin «Preparar panel» ni
-    # «Restablecer» porque la carga desde OBS aún no había terminado.
+    # Tab se recorre antes, mide la pantalla de espera.
     if esperar_habilitados:
         limite_espera = time.monotonic() + segundos_espera_habilitados
         pendientes = list(esperar_habilitados)
@@ -1852,25 +1850,25 @@ def escenario_transmision(app: Aplicacion, args, res: Resultado):
     # espera, no el diálogo. Medido el 29/09/2026.
     hay_obs = obs_abierto()
     if hay_obs:
-        esperados_tab = ("Preparar panel", "Escena", "Poner al aire",
-                         "Organizar escena", "Actualizar estado",
-                         "Transmitir", "Grabar")
+        esperados_tab = ("Transmitir a", "Transmitir en directo",
+                         "Iniciar grabación", "Silenciar micrófono",
+                         "Elegir micrófono", "Escena", "Cambiar escena",
+                         "Organizar escena", "Mostrar OBS",
+                         "Actualizar estado", "Cerrar")
     else:
-        esperados_tab = ("Transmitir",)
-        res.nota("Transmisión: OBS está cerrado, así que los controles de OBS "
-                 "no se exigen en el orden de Tab")
+        esperados_tab = ("Actualizar estado",)
+        res.nota("Panel de transmisión: OBS está cerrado, así que solo se "
+                 "exige el control que queda habilitado")
     auditar_dialogo(
-        app, res, "Transmisión", "Transmisión",
+        app, res, "Transmisión", "Panel de transmisión",
         vueltas_tab=VUELTAS_TAB_TRANSMISION,
-        esperados=("Estado del panel", "Actualizar estado", "Preparar panel",
-                   "Escena", "Poner al aire", "Organizar escena",
-                   "Transmitir", "Grabar", "Pausar grabación", "Cerrar"),
+        esperados=("Estado", "Transmitir a", "Actualizar estado",
+                   "Organizar escena", "Mostrar OBS", "Cerrar"),
         # Arranca deshabilitado sin grabación y wx lo saca del orden de Tab.
         esperados_en_tab=esperados_tab,
         # Con OBS abierto la carga inicial tarda: el cuadro nace con todo
         # deshabilitado y auditar el Tab antes mide la pantalla de espera.
-        # Se espera a que «Preparar panel» se habilite, sin tocar OBS.
-        esperar_habilitados=(("Preparar panel",) if hay_obs else ()))
+        esperar_habilitados=("Actualizar estado",))
 
 
 def escenario_organizar_escena(app: Aplicacion, args, res: Resultado):
@@ -1895,22 +1893,22 @@ def escenario_organizar_escena(app: Aplicacion, args, res: Resultado):
     except Exception as exc:
         res.fallo(f"Organizar escena: no se pudo abrir Transmisión, {exc}")
         return
-    if app.esperar_ventana("Transmisión", 15) is None:
-        res.fallo("Organizar escena: no se abrió el panel Transmisión")
+    if app.esperar_ventana("Panel de transmisión", 15) is None:
+        res.fallo("Organizar escena: no se abrió el panel de transmisión")
         return
     limite = time.monotonic() + 20
-    while faltan_habilitados(app.arbol("Transmisión"),
+    while faltan_habilitados(app.arbol("Panel de transmisión"),
                              ("Organizar escena",)) and time.monotonic() < limite:
         time.sleep(0.5)
     try:
         app.pedir("pulsar", nombre="Organizar escena…", responder_ya=True)
     except Exception as exc:
         res.fallo(f"Organizar escena: no se pudo pulsar el botón, {exc}")
-        app.pedir("cerrar_ventana", ventana="Transmisión")
+        app.pedir("cerrar_ventana", ventana="Panel de transmisión")
         return
     if app.esperar_ventana("Organizar escena", 15) is None:
         res.fallo("Organizar escena: el botón no abrió la ventana")
-        app.pedir("cerrar_ventana", ventana="Transmisión")
+        app.pedir("cerrar_ventana", ventana="Panel de transmisión")
         return
     res.nota("Organizar escena: abre desde el botón del panel Transmisión")
     controles = app.arbol("Organizar escena")
@@ -1933,8 +1931,8 @@ def escenario_organizar_escena(app: Aplicacion, args, res: Resultado):
     app.pedir("cerrar_ventana", ventana="Organizar escena")
     if app.esperar_ventana("Organizar escena", 4) is not None:
         res.fallo("Organizar escena: la ventana no cerró")
-    app.pedir("cerrar_ventana", ventana="Transmisión")
-    if app.esperar_ventana("Transmisión", 4) is not None:
+    app.pedir("cerrar_ventana", ventana="Panel de transmisión")
+    if app.esperar_ventana("Panel de transmisión", 4) is not None:
         res.fallo("Organizar escena: el panel no cerró")
 
 
@@ -3569,7 +3567,7 @@ def escenario_transmitir_destino(app: Aplicacion, args, res: Resultado):
                 visibles = []
             if any("Directo de YouTube" in t for t in visibles):
                 break
-            if any(t.strip() == "Transmisión" for t in visibles):
+            if any(t.strip() == "Panel de transmisión" for t in visibles):
                 motivo = "tiktok"
                 break
             dichos = " ".join(a.get("texto", "") for a in app.anuncios[n:])
@@ -3588,9 +3586,9 @@ def escenario_transmitir_destino(app: Aplicacion, args, res: Resultado):
             time.sleep(1.0)
 
         if motivo == "tiktok":
-            res.fallo("transmitir_destino: «Continuar» llevó a «Transmisión», "
+            res.fallo("transmitir_destino: «Continuar» llevó al panel de transmisión, "
                       "o sea que el destino no era YouTube")
-            app.pedir("cerrar_ventana", ventana="Transmisión")
+            app.pedir("cerrar_ventana", ventana="Panel de transmisión")
             return
         if motivo in ("sesion", "emitiendo", "obs"):
             porques = {
@@ -4655,7 +4653,7 @@ def escenario_overlay(app: Aplicacion, args, res: Resultado):
     """
     import urllib.request
 
-    etiqueta = "Chat en el vídeo para transmitir"
+    etiqueta = "Mostrar chat en el vídeo"
     puerto = 8730
     url = f"http://127.0.0.1:{puerto}/chat"
 
@@ -4670,27 +4668,27 @@ def escenario_overlay(app: Aplicacion, args, res: Resultado):
         try:
             app.abrir_por_menu("Transmisión")
         except Exception as exc:
-            res.fallo(f"Transmisión: no se pudo abrir el diálogo, {exc}")
+            res.fallo(f"Panel de transmisión: no se pudo abrir el diálogo, {exc}")
             return False
-        if app.esperar_ventana("Transmisión", segundos=15) is None:
-            res.fallo("Transmisión: el menú no abrió el diálogo")
+        if app.esperar_ventana("Panel de transmisión", segundos=15) is None:
+            res.fallo("Panel de transmisión: el menú no abrió el diálogo")
             return False
-        controles = app.arbol("Transmisión")
+        controles = app.arbol("Panel de transmisión")
         casilla = next((c for c in controles
                         if c.get("clase") == "CheckBox" and c.get("nombre") == etiqueta), None)
         if casilla is None or not casilla.get("habilitado"):
             motivo = "no existe" if casilla is None else "está deshabilitada"
-            res.fallo(f"Transmisión: la casilla «{etiqueta}» {motivo}")
-            app.pedir("cerrar_ventana", ventana="Transmisión")
+            res.fallo(f"Panel de transmisión: la casilla «{etiqueta}» {motivo}")
+            app.pedir("cerrar_ventana", ventana="Panel de transmisión")
             return False
         try:
-            app.pedir("foco", ventana="Transmisión", nombre=etiqueta)
+            app.pedir("foco", ventana="Panel de transmisión", nombre=etiqueta)
             app.teclas("space")
         except Exception as exc:
-            res.fallo(f"Transmisión: no se pudo alternar «{etiqueta}», {exc}")
-            app.pedir("cerrar_ventana", ventana="Transmisión")
+            res.fallo(f"Panel de transmisión: no se pudo alternar «{etiqueta}», {exc}")
+            app.pedir("cerrar_ventana", ventana="Panel de transmisión")
             return False
-        app.pedir("cerrar_ventana", ventana="Transmisión")
+        app.pedir("cerrar_ventana", ventana="Panel de transmisión")
         return True
 
     encendido_al_entrar = responde(2.0)

@@ -15,8 +15,8 @@ from bellbird.ui.mover_con_flechas import MoverConFlechas
 from bellbird.ui.operaciones_obs import OperacionesObs
 from bellbird.ui import paleta
 from bellbird.ui.preferencias_comun import (
-    boton, fila_campo, fila_grilla, grilla_campos, lista_con_nombre,
-    nombre_de_etiqueta)
+    boton, fijar_zona, fila_campo, fila_grilla, grilla_campos,
+    lista_con_nombre, nombre_de_etiqueta)
 
 
 class OrganizarEscenaDialog(wx.Dialog):
@@ -50,7 +50,7 @@ class OrganizarEscenaDialog(wx.Dialog):
         self._crear_grupo_escena(zona, contenido)
         self._crear_grupo_ventana(zona, contenido)
         self._crear_grupo_colocar(zona, contenido)
-        self._fijar_zona(zona, contenido)
+        fijar_zona(self, zona, contenido)
         caja.Add(zona, 1, wx.EXPAND)
         caja.Add(self._crear_botones(), 0, wx.EXPAND | wx.ALL, 12)
         self.SetSizer(caja)
@@ -65,14 +65,6 @@ class OrganizarEscenaDialog(wx.Dialog):
         self.Fit()
         self.Centre()
         paleta.pintar_ventana(self)
-
-    def _fijar_zona(self, zona, contenido):
-        zona.SetSizer(contenido)
-        # Fit mide un ScrolledWindow por su mínimo, no por su contenido: sin
-        # este mínimo el diálogo nace colapsado y solo se ven los botones.
-        alto = min(contenido.GetMinSize().GetHeight(),
-                   wx.Display(self).GetClientArea().GetHeight() - 120)
-        zona.SetMinSize((-1, alto))
 
     def _crear_grupo_escena(self, zona, contenido):
         sizer, padre = caja_de_grupo(zona, _("Escena"))

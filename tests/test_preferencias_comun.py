@@ -8,7 +8,8 @@ import unittest
 
 import wx
 
-from bellbird.ui.preferencias_comun import fila_botones, opciones_con_elegida
+from bellbird.ui.preferencias_comun import (
+    fijar_zona, fila_botones, opciones_con_elegida)
 from tests.ventanas_prueba import destruir
 
 
@@ -46,6 +47,37 @@ class TestFilaBotones(unittest.TestCase):
         bordes = [elemento.GetBorder()
                   for elemento in fila.GetChildren()]
         self.assertEqual(bordes, [10] * len(botones))
+
+
+class TestFijarZona(unittest.TestCase):
+
+    def setUp(self):
+        self.app = wx.App.Get() or wx.App(False)
+        self.marco = wx.Frame(None)
+        self.addCleanup(destruir, self.marco)
+        self.zona = wx.ScrolledWindow(self.marco)
+        self.rotulo = wx.StaticText(self.zona, label="Rótulo")
+        self.campo = wx.TextCtrl(self.zona)
+        self.contenido = wx.BoxSizer(wx.VERTICAL)
+        self.contenido.Add(self.rotulo, 0, wx.ALL, 6)
+        self.contenido.Add(self.campo, 0, wx.EXPAND | wx.ALL, 6)
+
+    def test_fija_el_sizer_y_un_alto_que_entra_en_la_pantalla(self):
+        fijar_zona(self.marco, self.zona, self.contenido)
+        self.assertIs(self.zona.GetSizer(), self.contenido)
+        disponible = wx.Display(self.marco).GetClientArea().GetHeight() - 120
+        self.assertEqual(self.zona.GetMinSize().GetHeight(),
+                         min(self.contenido.GetMinSize().GetHeight(),
+                             disponible))
+
+    def test_iguala_el_ancho_de_los_rotulos_de_todos_los_grupos(self):
+        otro = wx.StaticText(self.zona, label="Un rótulo bastante más largo")
+        self.contenido.Add(otro, 0, wx.ALL, 6)
+        fijar_zona(self.marco, self.zona, self.contenido)
+        self.assertEqual(self.rotulo.GetMinSize().GetWidth(),
+                         otro.GetMinSize().GetWidth())
+        self.assertEqual(self.rotulo.GetMinSize().GetWidth(),
+                         otro.GetBestSize().GetWidth())
 
 
 class TestOpcionesConElegida(unittest.TestCase):

@@ -103,13 +103,15 @@ def etiqueta(transmitiendo, deteniendo=False):
 
 
 def preparar(gestor, destino: str, asegurar: Callable, al_anunciar: Callable,
-             parada=None) -> Preparacion:
+             parada=None, cerrar=True) -> Preparacion:
     """Asegura OBS, conecta y deja el destino listo para confirmar.
 
     Devuelve `Preparacion(ya_transmitiendo=True)` si OBS ya emite (sin
     preparar ni revisar). Si no, prepara el destino (siempre, que es
-    idempotente) y devuelve la revisión. Cierra el gestor en `finally`;
-    las excepciones salen tal cual para que las traduzca quien llama.
+    idempotente) y devuelve la revisión. Con `cerrar=True` cierra el gestor
+    en `finally`; el panel lo comparte con Organizar escena y pasa
+    `cerrar=False`. Las excepciones salen tal cual para que las traduzca
+    quien llama.
     """
     try:
         asegurar(gestor.conectar, al_anunciar=al_anunciar, parada=parada)
@@ -126,10 +128,11 @@ def preparar(gestor, destino: str, asegurar: Callable, al_anunciar: Callable,
         revision = gestor.revisar(destino)
         return Preparacion(ya_transmitiendo=False, revision=revision)
     finally:
-        try:
-            gestor.cerrar()
-        except Exception as error:
-            logger.debug("no se pudo cerrar el gestor de OBS: %s", error)
+        if cerrar:
+            try:
+                gestor.cerrar()
+            except Exception as error:
+                logger.debug("no se pudo cerrar el gestor de OBS: %s", error)
 
 
 class FalloCierreYoutube(Exception):

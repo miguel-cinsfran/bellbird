@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from bellbird.obs import obs_audio
 from bellbird.obs import obs_disposicion
+from bellbird.obs.obs_destinos import DESTINOS
 from bellbird.obs.obs_panel import NOMBRE_FUENTE
 
 
@@ -24,19 +26,66 @@ class CargaInicial:
     transmision: object
     grabacion: object
     perfil: object
+    problemas: object = ()
+    microfono: str = ""
+    silenciado: bool = False
 
 
-def cargar_inicial(gestor) -> CargaInicial:
+def _elegir_microfono(gestor, preferido) -> str:
+    return obs_audio.elegir_microfono(
+        gestor.entradas_audio(), preferido, gestor.microfono_especial())
+
+
+def _silencio(gestor, microfono) -> bool:
+    return bool(gestor.silenciada(microfono)) if microfono else False
+
+
+def _problemas(gestor, destino) -> tuple:
+    if destino not in DESTINOS:
+        return ()
+    revision = gestor.revisar(destino)
+    return tuple(getattr(revision, "problemas", ()) or ())
+
+
+def cargar_inicial(gestor, preferido="") -> CargaInicial:
     gestor.conectar()
     escenas = gestor.escenas()
     al_aire = gestor.escena_al_aire()
     escena = al_aire if al_aire in escenas else (escenas[0] if escenas else "")
     fuentes = gestor.fuentes(escena)
+    transmision = gestor.estado_transmision()
+    grabacion = gestor.estado_grabacion()
+    perfil = gestor.perfil_actual()
+    microfono = _elegir_microfono(gestor, preferido)
     return CargaInicial(
         escenas=escenas, escena=escena, al_aire=al_aire, fuentes=fuentes,
-        transmision=gestor.estado_transmision(),
-        grabacion=gestor.estado_grabacion(),
-        perfil=gestor.perfil_actual())
+        transmision=transmision, grabacion=grabacion, perfil=perfil,
+        problemas=_problemas(gestor, perfil), microfono=microfono,
+        silenciado=_silencio(gestor, microfono))
+
+
+@dataclass(frozen=True)
+class EstadoLeido:
+    escena: str
+    transmision: object
+    grabacion: object
+    perfil: object
+    problemas: object
+    microfono: str
+    silenciado: bool
+
+
+def leer_estado(gestor, destino="", preferido="") -> EstadoLeido:
+    """El estado que muestra el panel, también tras cada acción."""
+    escena = gestor.escena_al_aire()
+    transmision = gestor.estado_transmision()
+    grabacion = gestor.estado_grabacion()
+    perfil = gestor.perfil_actual()
+    microfono = _elegir_microfono(gestor, preferido)
+    return EstadoLeido(
+        escena=escena, transmision=transmision, grabacion=grabacion,
+        perfil=perfil, problemas=_problemas(gestor, destino),
+        microfono=microfono, silenciado=_silencio(gestor, microfono))
 
 
 @dataclass(frozen=True)

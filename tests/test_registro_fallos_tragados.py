@@ -137,33 +137,24 @@ class TestDirectoHuerfano(unittest.TestCase):
 class TestTransmision(unittest.TestCase):
 
     def test_guardar_usuario_falla_avisa_y_actualiza(self):
-        from bellbird.ui import gui_transmision
-        from bellbird.obs import transmision_directa
+        from bellbird.ui import directo_panel
         falso_self = SimpleNamespace(
-            _usuario_tiktok="",
-            _transmitiendo=False,
+            _usuario_guardado="",
             _guardar_usuario=mock.Mock(side_effect=RuntimeError("disco lleno")),
-            _supervisar=None,
-            cho_destino=SimpleNamespace(GetStringSelection=lambda: "TikTok"),
-            txt_usuario_tiktok=SimpleNamespace(GetValue=lambda: "nuevo"),
-            _en_hilo=mock.Mock(),
         )
-        with mock.patch.object(transmision_directa, "decidir_transmision",
-                               return_value=transmision_directa.REVISAR), \
-             mock.patch("bellbird.capture.tiktok_vivo.usuario_tiktok",
-                        return_value="nuevo"):
-            with self.assertLogs("bellbird.gui_transmision", level="WARNING") as logs:
-                gui_transmision.TransmisionDialog._transmitir(falso_self, None)
-        self.assertEqual(falso_self._usuario_tiktok, "nuevo")
-        falso_self._en_hilo.assert_called_once()
+        with self.assertLogs("bellbird.directo_panel", level="WARNING") as logs:
+            directo_panel.DirectoPanel._guardar_usuario_tiktok(
+                falso_self, "nuevo")
+        self.assertEqual(falso_self._usuario_guardado, "nuevo")
+        falso_self._guardar_usuario.assert_called_once_with("nuevo")
         self.assertTrue(any("usuario" in mensaje for mensaje in logs.output))
 
     def test_recordar_destino_falla_avisa_y_no_lanza(self):
-        from bellbird.ui import gui_transmision
+        from bellbird.ui import directo_panel
         falso_self = SimpleNamespace(
             _guardar_destino=mock.Mock(side_effect=RuntimeError("disco lleno")))
-        with self.assertLogs("bellbird.gui_transmision", level="WARNING") as logs:
-            gui_transmision.TransmisionDialog._recordar_destino(falso_self, "YouTube")
+        with self.assertLogs("bellbird.directo_panel", level="WARNING") as logs:
+            directo_panel.DirectoPanel._recordar_destino(falso_self, "YouTube")
         falso_self._guardar_destino.assert_called_once_with("YouTube")
         self.assertTrue(any("destino" in mensaje for mensaje in logs.output))
 

@@ -10,6 +10,20 @@ from bellbird.core.idioma import N_, _
 _ETIQUETA_TRANSMITIR = N_("&Transmitir")
 
 
+def confirmar_finalizar(padre) -> bool:
+    """Pide confirmar el fin del directo, con el texto de siempre."""
+    dialogo = wx.MessageDialog(
+        padre,
+        _("¿Finalizar el directo? Quienes te están viendo dejarán de verte."),
+        _("Finalizar directo"), wx.YES_NO | wx.NO_DEFAULT)
+    try:
+        dialogo.SetYesNoLabels(_("&Finalizar directo"),
+                               _("&Seguir transmitiendo"))
+        return dialogo.ShowModal() == wx.ID_YES
+    finally:
+        dialogo.Destroy()
+
+
 def confirmar_transmision(padre, revision) -> bool:
     """Pide confirmar el inicio del directo con la revisión a la vista.
 

@@ -2609,6 +2609,60 @@ msgstr ""
 "Arrows move, Ctrl for big steps, Shift for one-pixel steps. Enter confirms,"
 " Esc undoes, Tab exits."
 
+#: bellbird/obs/estado_panel.py
+#, python-brace-format
+msgid "Transmitiendo a {destino} desde hace {duracion}"
+msgstr "Broadcasting to {destino} for {duracion}"
+
+#: bellbird/obs/estado_panel.py
+msgid "Elige a dónde transmitir"
+msgstr "Choose where to broadcast"
+
+#: bellbird/obs/estado_panel.py
+#, python-brace-format
+msgid "Revisa antes de transmitir: {primer_problema}"
+msgstr "Check before broadcasting: {primer_problema}"
+
+#: bellbird/obs/estado_panel.py
+#, python-brace-format
+msgid "Preparado para transmitir a {destino}"
+msgstr "Ready to broadcast to {destino}"
+
+#: bellbird/obs/estado_panel.py bellbird/obs/obs_estado.py
+#, python-brace-format
+msgid "Escena actual: {escena}"
+msgstr "Current scene: {escena}"
+
+#. Traductores: estado de la fuente de audio; se muestra tras su nombre.
+#: bellbird/obs/estado_panel.py bellbird/obs/obs_audio.py
+#: bellbird/obs/obs_prevuelo.py
+msgid "silenciado"
+msgstr "muted"
+
+#. Traductores: estado de la fuente de audio; se muestra tras su nombre.
+#: bellbird/obs/estado_panel.py bellbird/obs/obs_audio.py
+msgid "activado"
+msgstr "on"
+
+#: bellbird/obs/estado_panel.py
+#, python-brace-format
+msgid "Micrófono {nombre}: {estado}"
+msgstr "Microphone {nombre}: {estado}"
+
+#: bellbird/obs/estado_panel.py
+#, python-brace-format
+msgid "Grabación: en pausa, {tiempo}"
+msgstr "Recording: paused, {tiempo}"
+
+#: bellbird/obs/estado_panel.py
+#, python-brace-format
+msgid "Grabación: en curso, {tiempo}"
+msgstr "Recording: in progress, {tiempo}"
+
+#: bellbird/obs/estado_panel.py
+msgid "Grabación: detenida"
+msgstr "Recording: stopped"
+
 #. Traductores: nombre fijo de la fuente en OBS; no se traduce al usarlo.
 #: bellbird/obs/fuente_chat.py
 msgid "Chat en el vídeo"
@@ -2678,16 +2732,6 @@ msgstr "Microphone muted: {corto}"
 #: bellbird/obs/obs_audio.py
 msgid "Micrófono silenciado"
 msgstr "Microphone muted"
-
-#. Traductores: estado de la fuente de audio; se muestra tras su nombre.
-#: bellbird/obs/obs_audio.py bellbird/obs/obs_prevuelo.py
-msgid "silenciado"
-msgstr "muted"
-
-#. Traductores: estado de la fuente de audio; se muestra tras su nombre.
-#: bellbird/obs/obs_audio.py
-msgid "activado"
-msgstr "on"
 
 #. Traductores: {fuente} es el nombre de la fuente y {estado} su estado.
 #: bellbird/obs/obs_audio.py
@@ -3292,11 +3336,6 @@ msgid "Grabando, {tiempo}"
 msgstr "Recording, {tiempo}"
 
 #: bellbird/obs/obs_estado.py
-#, python-brace-format
-msgid "Escena actual: {escena}"
-msgstr "Current scene: {escena}"
-
-#: bellbird/obs/obs_estado.py
 msgid "transmision_iniciada"
 msgstr "transmision_iniciada"
 
@@ -3423,11 +3462,6 @@ msgstr "scene"
 #: bellbird/obs/obs_prevuelo.py
 msgid "chat en el vídeo de la app"
 msgstr "chat on video from the app"
-
-#: bellbird/obs/obs_prevuelo.py
-#, python-brace-format
-msgid "OBS está en el perfil {perfil}, no en {destino}. Pulsa Preparar destino."
-msgstr "OBS is on the {perfil} profile, not on {destino}. Press Prepare destination."
 
 #: bellbird/obs/obs_prevuelo.py
 #, python-brace-format
@@ -3588,11 +3622,12 @@ msgid "Directo a {destino}: {frase}"
 msgstr "Live to {destino}: {frase}"
 
 #: bellbird/obs/obs_supervisor.py bellbird/ui/boton_directo.py
+#: bellbird/ui/directo_panel.py
 msgid "Transmisión detenida."
 msgstr "Broadcast stopped."
 
 #: bellbird/obs/obs_supervisor.py bellbird/ui/boton_directo.py
-#: bellbird/ui/gui_transmision.py bellbird/ui/gui_transmitir.py
+#: bellbird/ui/directo_panel.py bellbird/ui/gui_transmitir.py
 msgid "Deteniendo la transmisión. Esperando a que OBS confirme."
 msgstr "Stopping the broadcast. Waiting for OBS to confirm."
 
@@ -3663,12 +3698,12 @@ msgstr "Stopping the live stream"
 msgid "Deteniendo el directo, esperando a OBS"
 msgstr "Stopping the live stream, waiting for OBS"
 
-#: bellbird/obs/transmision_directa.py bellbird/ui/boton_directo.py
+#: bellbird/obs/transmision_directa.py bellbird/ui/confirmar_transmision.py
 #: bellbird/ui/gui_directo_huerfano.py
 msgid "&Finalizar directo"
 msgstr "&End live stream"
 
-#: bellbird/obs/transmision_directa.py bellbird/ui/boton_directo.py
+#: bellbird/obs/transmision_directa.py bellbird/ui/confirmar_transmision.py
 msgid "Finalizar directo"
 msgstr "End live stream"
 
@@ -4169,7 +4204,7 @@ msgstr "Mark issue"
 msgid "Abrir Transmisión"
 msgstr "Open Broadcast"
 
-#: bellbird/ui/atajos_captura.py
+#: bellbird/ui/atajos_captura.py bellbird/ui/gui_transmision.py
 msgid "Mostrar OBS"
 msgstr "Show OBS"
 
@@ -4516,28 +4551,20 @@ msgstr "With this keyboard, AltGr+{tecla} types {letra}. Choose another."
 msgid "Capturado: {atajo}. Se aplica al pulsar Guardar."
 msgstr "Captured: {atajo}. It applies when you press Save."
 
-#: bellbird/ui/boton_directo.py bellbird/ui/gui_transmision.py
+#: bellbird/ui/boton_directo.py bellbird/ui/directo_panel.py
 #: bellbird/ui/gui_transmitir.py
 msgid "No se transmitió."
 msgstr "Did not broadcast."
 
-#: bellbird/ui/boton_directo.py
+#: bellbird/ui/boton_directo.py bellbird/ui/directo_panel.py
 msgid "Revisando OBS antes de transmitir."
 msgstr "Checking OBS before broadcasting."
 
-#: bellbird/ui/boton_directo.py
+#: bellbird/ui/boton_directo.py bellbird/ui/directo_panel.py
 msgid "OBS ya está transmitiendo. Con este mismo botón puedes finalizar el directo."
 msgstr "OBS is already broadcasting. This same button can end the live stream."
 
-#: bellbird/ui/boton_directo.py
-msgid "¿Finalizar el directo? Quienes te están viendo dejarán de verte."
-msgstr "End the live stream? People watching you will stop seeing you."
-
-#: bellbird/ui/boton_directo.py
-msgid "&Seguir transmitiendo"
-msgstr "&Keep broadcasting"
-
-#: bellbird/ui/boton_directo.py
+#: bellbird/ui/boton_directo.py bellbird/ui/directo_panel.py
 msgid "Sigues transmitiendo."
 msgstr "Still broadcasting."
 
@@ -4814,6 +4841,14 @@ msgid "&Transmitir"
 msgstr "&Broadcast"
 
 #: bellbird/ui/confirmar_transmision.py
+msgid "¿Finalizar el directo? Quienes te están viendo dejarán de verte."
+msgstr "End the live stream? People watching you will stop seeing you."
+
+#: bellbird/ui/confirmar_transmision.py
+msgid "&Seguir transmitiendo"
+msgstr "&Keep broadcasting"
+
+#: bellbird/ui/confirmar_transmision.py
 msgid "Antes de transmitir"
 msgstr "Before broadcasting"
 
@@ -5053,6 +5088,7 @@ msgstr "Progress"
 
 #. Traductores: nombre del cuadro de estado.
 #: bellbird/ui/descargas_listas.py bellbird/ui/gui_actualizacion.py
+#: bellbird/ui/gui_transmision.py
 msgid "Estado"
 msgstr "Status"
 
@@ -5103,6 +5139,14 @@ msgstr "Cancel &all"
 #: bellbird/ui/descargas_listas.py
 msgid "Eliminar c&ompletadas"
 msgstr "Remove co&mpleted"
+
+#: bellbird/ui/directo_panel.py
+msgid "Elige primero a dónde transmitir, en Transmitir a."
+msgstr "First choose where to broadcast, in Broadcast to."
+
+#: bellbird/ui/directo_panel.py
+msgid "Escribe tu usuario de TikTok en Usuario de TikTok."
+msgstr "Type your TikTok user in TikTok user."
 
 #: bellbird/ui/elegir_formato.py
 msgid "Elegir formato"
@@ -6250,11 +6294,11 @@ msgstr "Missing TikTok user."
 msgid "Transmitir a"
 msgstr "Broadcast to"
 
-#: bellbird/ui/gui_elegir_destino.py bellbird/ui/gui_transmision.py
+#: bellbird/ui/gui_elegir_destino.py
 msgid "Transmitir a:"
 msgstr "Broadcast to:"
 
-#: bellbird/ui/gui_elegir_destino.py bellbird/ui/gui_transmision.py
+#: bellbird/ui/gui_elegir_destino.py
 msgid "Usuario de TikTok:"
 msgstr "TikTok user:"
 
@@ -6956,7 +7000,7 @@ msgstr "Shortcuts"
 msgid "API y sesión"
 msgstr "API and session"
 
-#: bellbird/ui/gui_preferencias.py bellbird/ui/gui_transmision.py
+#: bellbird/ui/gui_preferencias.py
 msgid "Transmisión"
 msgstr "Broadcast"
 
@@ -7161,52 +7205,16 @@ msgid "&{boton}"
 msgstr "&{boton}"
 
 #: bellbird/ui/gui_transmision.py
-msgid "Detener la &transmisión"
-msgstr "Stop the &broadcast"
+msgid "Mostrar &chat en el vídeo"
+msgstr "Show &chat on video"
 
 #: bellbird/ui/gui_transmision.py
-msgid "&Grabar"
-msgstr "R&ecord"
+msgid "Si&lenciar"
+msgstr "&Mute"
 
 #: bellbird/ui/gui_transmision.py
-msgid "Detener la &grabación"
-msgstr "Stop recordin&g"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Transmitir"
-msgstr "Broadcast"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Preparar desti&no"
-msgstr "Prepare destinatio&n"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Preparar destino"
-msgstr "Prepare destination"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Grabar"
-msgstr "Record"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Pausar gra&bación"
-msgstr "Pa&use recording"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Pausar grabación"
-msgstr "Pause recording"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Escena:"
-msgstr "Scene:"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Poner al &aire"
-msgstr "Put &live"
-
-#: bellbird/ui/gui_transmision.py
-msgid "Poner al aire"
-msgstr "Put live"
+msgid "Panel de transmisión"
+msgstr "Broadcast panel"
 
 #: bellbird/ui/gui_transmision.py
 msgid "&Organizar escena…"
@@ -7217,62 +7225,73 @@ msgid "Organizar escena…"
 msgstr "Arrange scene…"
 
 #: bellbird/ui/gui_transmision.py
-msgid "Actualizar e&stado"
-msgstr "Refresh &status"
+msgid "Mostrar O&BS"
+msgstr "Show &OBS"
 
 #: bellbird/ui/gui_transmision.py
-msgid "Panel de chat, solo YouTube"
-msgstr "Chat panel, YouTube only"
+msgid "Ac&tualizar estado"
+msgstr "Re&fresh status"
 
 #: bellbird/ui/gui_transmision.py
-msgid "&Panel de chat para transmitir"
-msgstr "&Chat panel for streaming"
+msgid "Actualizar estado"
+msgstr "Refresh status"
 
 #: bellbird/ui/gui_transmision.py
-msgid "Panel de chat para transmitir"
-msgstr "Chat panel for streaming"
+msgid "&Estado:"
+msgstr "&Status:"
 
 #: bellbird/ui/gui_transmision.py
-msgid "Preparar pane&l"
-msgstr "Pre&pare panel"
+msgid "Directo"
+msgstr "Live"
 
 #: bellbird/ui/gui_transmision.py
-msgid "Preparar panel"
-msgstr "Prepare the panel"
+msgid "Transmitir &a:"
+msgstr "Broadcast &to:"
 
 #: bellbird/ui/gui_transmision.py
-msgid "Estado del panel:"
-msgstr "Panel status:"
+msgid "&Usuario de TikTok:"
+msgstr "TikTok &user:"
 
 #: bellbird/ui/gui_transmision.py
-msgid "Estado del panel"
-msgstr "Panel status"
+msgid "Mostrar chat en el vídeo"
+msgstr "Show chat on video"
 
 #: bellbird/ui/gui_transmision.py
-msgid "Detener la transmisión"
-msgstr "Stop the broadcast"
+msgid "Grabación"
+msgstr "Recording"
 
 #: bellbird/ui/gui_transmision.py
-msgid "Detener la grabación"
-msgstr "Stop the recording"
+msgid "Micrófono"
+msgstr "Microphone"
 
 #: bellbird/ui/gui_transmision.py
-msgid "Elige primero a dónde transmitir, en Transmitir a."
-msgstr "First choose where to broadcast, in Broadcast to."
+msgid "Silenciar micrófono"
+msgstr "Mute microphone"
 
 #: bellbird/ui/gui_transmision.py
-msgid "Escribe tu usuario de TikTok en Usuario de TikTok."
-msgstr "Type your TikTok user in TikTok user."
+msgid "Elegir &micrófono…"
+msgstr "Choose a &device…"
+
+#: bellbird/ui/gui_transmision.py
+msgid "Elegir micrófono…"
+msgstr "Choose a device…"
+
+#: bellbird/ui/gui_transmision.py
+msgid "Esce&na:"
+msgstr "Sce&ne:"
+
+#: bellbird/ui/gui_transmision.py
+msgid "Cambiar e&scena"
+msgstr "&Go to scene"
+
+#: bellbird/ui/gui_transmision.py
+msgid "Cambiar escena"
+msgstr "Go to scene"
 
 #: bellbird/ui/gui_transmision.py
 #, python-brace-format
-msgid "Preparando OBS para {destino}. Puede tardar unos segundos."
-msgstr "Preparing OBS for {destino}. It may take a few seconds."
-
-#: bellbird/ui/gui_transmision.py
-#, python-brace-format
-msgid "No se pudo encender el panel, el puerto {puerto} está ocupado"
-msgstr "Could not turn on the panel, port {puerto} is busy"
+msgid "Chat en el vídeo agregado a la escena {escena}."
+msgstr "Chat on video added to scene {escena}."
 
 #: bellbird/ui/gui_transmitir.py
 #, python-brace-format
@@ -7557,6 +7576,22 @@ msgid "El chat tiene {n} mensaje."
 msgid_plural "El chat tiene {n} mensajes."
 msgstr[0] "The chat has {n} message."
 msgstr[1] "The chat has {n} messages."
+
+#: bellbird/ui/menu_transmision.py
+msgid "Iniciar &grabación"
+msgstr "&Begin recording"
+
+#: bellbird/ui/menu_transmision.py
+msgid "Detener &grabación"
+msgstr "Stop &recording"
+
+#: bellbird/ui/menu_transmision.py
+msgid "&Pausar grabación"
+msgstr "&Pause recording"
+
+#: bellbird/ui/menu_transmision.py
+msgid "&Reanudar grabación"
+msgstr "&Keep recording"
 
 #: bellbird/ui/menu_transmision.py
 msgid "Anunciar en&cuadre de cámara"

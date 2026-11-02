@@ -6,6 +6,7 @@ import wx
 
 from bellbird.core import diagnostico
 from bellbird.ui.accesibilidad import nombre_accesible
+from bellbird.ui import tema
 from bellbird.ui.tema import _T
 
 logger = diagnostico.obtener_logger(__name__)
@@ -85,6 +86,32 @@ def crear_panel(parent, name):
     return p
 
 
+def _rotulos_de(ventana):
+    for hijo in ventana.GetChildren():
+        if isinstance(hijo, wx.StaticText):
+            yield hijo
+        yield from _rotulos_de(hijo)
+
+
+def _igualar_rotulos(zona):
+    rotulos = list(_rotulos_de(zona))
+    ancho = max((rotulo.GetBestSize().GetWidth() for rotulo in rotulos),
+                default=0)
+    for rotulo in rotulos:
+        rotulo.SetMinSize((ancho, -1))
+
+
+def fijar_zona(ventana, zona, contenido):
+    """Fija el sizer de la zona y un alto que no tape la barra de tareas."""
+    zona.SetSizer(contenido)
+    _igualar_rotulos(zona)
+    # Fit mide un ScrolledWindow por su mínimo, no por su contenido: sin
+    # este mínimo el diálogo nace colapsado y solo se ven los botones.
+    alto = min(contenido.GetMinSize().GetHeight(),
+               wx.Display(ventana).GetClientArea().GetHeight() - 120)
+    zona.SetMinSize((-1, alto))
+
+
 def fila_label(p, texto):
     lbl = wx.StaticText(p, label=texto)
     lbl.SetForegroundColour(_T.text)
@@ -98,6 +125,57 @@ def fila_botones(botones, borde=6):
     return fila
 
 
+def fila_horizontal(controles, borde=4):
+    fila = wx.BoxSizer(wx.HORIZONTAL)
+    for control in controles:
+        fila.Add(control, 0, wx.ALL, borde)
+    return fila
+
+
+def mostrar_fila(fila, visible, foco):
+    for hijo in fila.GetChildren():
+        ventana = hijo.GetWindow()
+        if ventana is None:
+            continue
+        if not visible and ventana.HasFocus():
+            foco.SetFocus()
+        fila.Show(ventana, visible)
+    fila.Layout()
+
+
+def mostrar_control(control, visible, foco):
+    if not visible and control.HasFocus():
+        foco.SetFocus()
+    control.Show(visible)
+    sizer = control.GetContainingSizer()
+    if sizer is not None:
+        sizer.Show(control, visible)
+
+
+class CampoEstado(wx.TextCtrl):
+    """Cuadro de solo lectura para el estado, con su primera línea en negrita."""
+
+    def __init__(self, padre, nombre, lineas=5):
+        super().__init__(
+            padre, style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_RICH2
+            | wx.TE_NO_VSCROLL, name=nombre)
+        self.SetMinSize((-1, lineas * self.GetCharHeight() + 8))
+
+    def mostrar(self, estado):
+        self.SetValue("\n".join((estado.titular, *estado.lineas)))
+        color = tema._T.red if estado.tono == "aviso" else tema._T.primary
+        if not tema.ALTO_CONTRASTE:
+            tema._pintar(self, fg=color)
+        self.SetStyle(0, len(estado.titular), self._atributo(color))
+
+    def _atributo(self, color):
+        atributo = wx.TextAttr()
+        atributo.SetFont(self.GetFont().Bold())
+        if not tema.ALTO_CONTRASTE:
+            atributo.SetTextColour(color)
+        return atributo
+
+
 def fila_campo(sizer, rotulo, control, proporcion=0, boton=None):
     fila = wx.BoxSizer(wx.HORIZONTAL)
     fila.Add(rotulo, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 6)
@@ -105,6 +183,7 @@ def fila_campo(sizer, rotulo, control, proporcion=0, boton=None):
     if boton is not None:
         fila.Add(boton, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 6)
     sizer.Add(fila, proporcion, wx.EXPAND, 0)
+    return fila
 
 
 def boton(panel, etiqueta, nombre, identificador=wx.ID_ANY):

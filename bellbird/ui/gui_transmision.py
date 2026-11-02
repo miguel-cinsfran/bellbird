@@ -1,50 +1,42 @@
-"""Diálogo accesible para colocar el panel de chat en OBS."""
+"""Panel accesible para preparar y manejar la transmisión en OBS."""
 
 from __future__ import annotations
 
 import wx
 
-from bellbird.obs import consultas_transmision
-from bellbird.obs import obs_cliente
-from bellbird.obs import obs_destinos
-from bellbird.obs import obs_disposicion
-from bellbird.obs import obs_estado
-from bellbird.obs import obs_lanzador
-from bellbird.obs import transmision_directa
-from bellbird.obs.obs_destinos import DESTINOS
 from bellbird.core import diagnostico
 from bellbird.core.idioma import N_, _
-from bellbird.obs import overlay_servidor
+from bellbird.obs import (consultas_transmision, obs_estado, obs_lanzador,
+                          overlay_servidor, transmision_directa)
+from bellbird.obs.estado_panel import EstadoPanel, resumir
+from bellbird.obs.obs_destinos import DESTINOS
+from bellbird.obs.obs_panel import GestorPanelObs, NOMBRE_FUENTE
+from bellbird.ui import gui_microfono, menu_transmision, paleta, tema
 from bellbird.ui.accesibilidad import anunciar, nombre_accesible
-from bellbird.ui.confirmar_transmision import _ETIQUETA_TRANSMITIR, confirmar_transmision
+from bellbird.ui.directo_panel import DirectoPanel
 from bellbird.ui.gui import caja_de_grupo
 from bellbird.ui.gui_organizar_escena import OrganizarEscenaDialog
 from bellbird.ui.operaciones_obs import OperacionesObs
-from bellbird.ui import paleta
-from bellbird.ui.preferencias_comun import boton, fila_botones, fila_campo
-from bellbird.obs.obs_panel import GestorPanelObs, NOMBRE_FUENTE
-from bellbird.voice import sound_player
+from bellbird.ui.preferencias_comun import (
+    CampoEstado, boton, fijar_zona, fila_campo, fila_horizontal,
+    mostrar_control, mostrar_fila)
 
 logger = diagnostico.obtener_logger(__name__)
-
 
 _PUERTO_PANEL_DEFECTO = 8730
 _RUTA_PANEL_CHAT = "/chat"
 
-_ETIQUETA_DETENER_TRANSMISION = N_("Detener la &transmisión")
-_ETIQUETA_GRABAR = N_("&Grabar")
-_ETIQUETA_DETENER_GRABACION = N_("Detener la &grabación")
+_ETIQUETA_CHAT = N_("Mostrar &chat en el vídeo")
+_ETIQUETA_SILENCIAR = N_("Si&lenciar")
 
 
 class TransmisionDialog(wx.Dialog):
 
-    _transmitiendo = False
-
     def __init__(self, parent, gestor=None, alternar_panel=None,
                  supervisar=None, guardar_usuario=None, usuario_tiktok="",
                  asegurar=None, guardar_destino=None):
-        super().__init__(parent, title=_("Transmisión"), size=(680, 680),
-                          name="DialogoTransmision")
+        super().__init__(parent, title=_("Panel de transmisión"),
+                         name="DialogoTransmision")
         self._gestor = gestor or GestorPanelObs()
         self._asegurar = asegurar if asegurar is not None else obs_lanzador.asegurar_obs
         self._alternar_panel = alternar_panel
@@ -52,9 +44,20 @@ class TransmisionDialog(wx.Dialog):
         self._guardar_usuario = guardar_usuario
         self._guardar_destino = guardar_destino
         self._usuario_tiktok = usuario_tiktok or ""
+        self._estado_actual = EstadoPanel("", "listo", ())
         self._operaciones = OperacionesObs(
             self, self._activar, self._escribir_fallo, self._enfocar_tras_fallo)
         self._crear_controles()
+        self._silencio = gui_microfono.ControlSilencio(
+            self._gestor, self.chk_silenciar, self._operaciones,
+            self._microfono_preferido, self._refrescar_estado)
+        self._directo = DirectoPanel(
+            self, self.btn_directo, self._operaciones, self._gestor,
+            self._supervisar, self._guardar_usuario, self._guardar_destino,
+            self._usuario_tiktok, self._asegurar, self._datos_directo,
+            self._al_cambiar_directo)
+        self._enlazar_eventos()
+        self.SetDefaultItem(None)
         self.Centre()
         paleta.pintar_ventana(self)
         self._en_hilo(self._cargar_inicial, self._inicial_cargada)
@@ -62,131 +65,173 @@ class TransmisionDialog(wx.Dialog):
     def _crear_controles(self):
         panel = wx.Panel(self, name="PanelTransmision")
         caja = wx.BoxSizer(wx.VERTICAL)
-        # Contenido desplazable (solo vertical): el foco (Tab) desplaza solo
-        # hasta el control.
         zona = wx.ScrolledWindow(panel, name="ZonaTransmision",
                                  style=wx.TAB_TRAVERSAL | wx.VSCROLL)
         zona.SetScrollRate(0, 20)
         self._zona_desplazable = zona
         contenido = wx.BoxSizer(wx.VERTICAL)
-        self._crear_seccion_transmitir(zona, contenido)
-        self._crear_seccion_escena(zona, contenido)
-        self._crear_seccion_panel(zona, contenido)
-        ancho_rotulo = max(rotulo.GetBestSize().GetWidth()
-                           for rotulo in self._rotulos_transmision)
-        for rotulo in self._rotulos_transmision:
-            rotulo.SetMinSize((ancho_rotulo, -1))
-        zona.SetSizer(contenido)
+        self._filas = {}
+        self._crear_estado(zona, contenido)
+        self._crear_grupo_directo(zona, contenido)
+        self._crear_grupo_grabacion(zona, contenido)
+        self._crear_grupo_microfono(zona, contenido)
+        self._crear_grupo_escena(zona, contenido)
+        fijar_zona(self, zona, contenido)
         caja.Add(zona, 1, wx.EXPAND)
-        self.btn_cerrar = boton(panel, _("Cerrar"), "CerrarTransmision", wx.ID_CANCEL)
-        caja.Add(self.btn_cerrar, 0, wx.ALIGN_RIGHT | wx.ALL, 10)
+        self.btn_organizar = boton(
+            panel, _("&Organizar escena…"), _("Organizar escena…"))
+        self.btn_mostrar_obs = boton(
+            panel, _("Mostrar O&BS"), _("Mostrar OBS"))
+        self.btn_actualizar = boton(
+            panel, _("Ac&tualizar estado"), _("Actualizar estado"))
+        self.btn_cerrar = boton(
+            panel, _("Cerrar"), _("Cerrar"), wx.ID_CANCEL)
+        caja.Add(fila_horizontal((self.btn_organizar, self.btn_mostrar_obs,
+                                  self.btn_actualizar, self.btn_cerrar)),
+                 0, wx.ALL, 10)
         panel.SetSizer(caja)
-        self._acciones = (self.cho_destino, self.txt_usuario_tiktok, self.btn_destino,
-                          self.btn_transmitir, self.btn_grabar,
-                          self.btn_pausar_grabacion, self.cho_escena,
-                          self.btn_poner_al_aire, self.btn_organizar,
-                          self.btn_actualizar, self.chk_panel_chat,
-                          self.btn_preparar)
-        self._enlazar_eventos()
+        self._acciones = (
+            self.cho_destino, self.txt_usuario_tiktok, self.btn_directo,
+            self.chk_chat, self.btn_grabar, self.btn_pausar,
+            self.chk_silenciar, self.btn_microfono, self.cho_escena,
+            self.btn_cambiar_escena, self.btn_organizar, self.btn_mostrar_obs,
+            self.btn_actualizar, self.btn_cerrar)
+        self.SetMinSize((600, -1))
+        self.Fit()
 
-    def _crear_seccion_transmitir(self, zona, contenido):
-        sizer_transmitir, padre_transmitir = caja_de_grupo(zona, _("Transmitir"))
-        self._sizer_transmitir = sizer_transmitir
-        self._rotulos_transmision = []
-        rotulo_destino = self._nuevo_rotulo(padre_transmitir, _("Transmitir a:"))
-        self.cho_destino = wx.Choice(padre_transmitir, choices=list(DESTINOS),
+    def _crear_estado(self, zona, contenido):
+        rotulo = wx.StaticText(zona, label=_("&Estado:"))
+        self.txt_estado = CampoEstado(zona, _("Estado"))
+        contenido.Add(rotulo, 0, wx.ALL, 6)
+        contenido.Add(self.txt_estado, 0, wx.EXPAND | wx.LEFT | wx.RIGHT
+                      | wx.BOTTOM, 6)
+
+    def _crear_grupo_directo(self, zona, contenido):
+        sizer, padre = caja_de_grupo(zona, _("Directo"))
+        rotulo_destino = wx.StaticText(padre, label=_("Transmitir &a:"))
+        self.cho_destino = wx.Choice(padre, choices=list(DESTINOS),
                                      name=_("Transmitir a"))
         nombre_accesible(self.cho_destino, _("Transmitir a"))
-        fila_campo(sizer_transmitir, rotulo_destino, self.cho_destino)
-        rotulo_usuario = self._nuevo_rotulo(padre_transmitir, _("Usuario de TikTok:"))
+        self._filas["destino"] = fila_campo(
+            sizer, rotulo_destino, self.cho_destino)
+        rotulo_usuario = wx.StaticText(padre, label=_("&Usuario de TikTok:"))
         self.txt_usuario_tiktok = wx.TextCtrl(
-            padre_transmitir, value=self._usuario_tiktok, name=_("Usuario de TikTok"))
+            padre, value=self._usuario_tiktok, name=_("Usuario de TikTok"))
         nombre_accesible(self.txt_usuario_tiktok, _("Usuario de TikTok"))
-        fila_campo(sizer_transmitir, rotulo_usuario, self.txt_usuario_tiktok)
-        self.btn_destino = boton(padre_transmitir, _("Preparar desti&no"), _("Preparar destino"))
-        self.btn_transmitir = boton(
-            padre_transmitir, _(_ETIQUETA_TRANSMITIR), _("Transmitir"))
-        self.btn_grabar = boton(padre_transmitir, _(_ETIQUETA_GRABAR), _("Grabar"))
-        self.btn_pausar_grabacion = boton(
-            padre_transmitir, _("Pausar gra&bación"), _("Pausar grabación"))
-        sizer_transmitir.Add(fila_botones((self.btn_destino, self.btn_transmitir,
-                                           self.btn_grabar, self.btn_pausar_grabacion)),
-                             0, wx.ALL, 6)
-        contenido.Add(sizer_transmitir, 0, wx.EXPAND | wx.ALL, 10)
+        self._filas["usuario"] = fila_campo(
+            sizer, rotulo_usuario, self.txt_usuario_tiktok)
+        etiqueta, nombre = transmision_directa.etiqueta(False)
+        self.btn_directo = boton(padre, etiqueta, nombre)
+        tema.boton_principal(self.btn_directo)
+        sizer.Add(self.btn_directo, 0, wx.ALL, 6)
+        self.chk_chat = wx.CheckBox(
+            padre, label=_(_ETIQUETA_CHAT),
+            name=_("Mostrar chat en el vídeo"))
+        self.chk_chat.SetValue(overlay_servidor.esta_encendido())
+        sizer.Add(self.chk_chat, 0, wx.ALL, 6)
+        contenido.Add(sizer, 0, wx.EXPAND | wx.ALL, 10)
 
-    def _crear_seccion_escena(self, zona, contenido):
-        sizer_escena, padre_escena = caja_de_grupo(zona, _("Escena"))
-        rotulo_escena = self._nuevo_rotulo(padre_escena, _("Escena:"))
-        self.cho_escena = wx.Choice(padre_escena, name=_("Escena"))
+    def _crear_grupo_grabacion(self, zona, contenido):
+        sizer, padre = caja_de_grupo(zona, _("Grabación"))
+        self._grabacion = menu_transmision.ControlGrabacion(
+            padre, self._operaciones, self._gestor, self._refrescar_estado,
+            self.btn_directo)
+        self.btn_grabar = self._grabacion.boton
+        self.btn_pausar = self._grabacion.pausar
+        sizer.Add(fila_horizontal((self.btn_grabar, self.btn_pausar)),
+                  0, wx.ALL, 6)
+        contenido.Add(sizer, 0, wx.EXPAND | wx.ALL, 10)
+
+    def _crear_grupo_microfono(self, zona, contenido):
+        sizer, padre = caja_de_grupo(zona, _("Micrófono"))
+        self.chk_silenciar = wx.CheckBox(
+            padre, label=_(_ETIQUETA_SILENCIAR),
+            name=_("Silenciar micrófono"))
+        self.btn_microfono = boton(
+            padre, _("Elegir &micrófono…"), _("Elegir micrófono…"))
+        sizer.Add(fila_horizontal((self.chk_silenciar, self.btn_microfono)),
+                  0, wx.ALL, 6)
+        contenido.Add(sizer, 0, wx.EXPAND | wx.ALL, 10)
+
+    def _crear_grupo_escena(self, zona, contenido):
+        sizer, padre = caja_de_grupo(zona, _("Escena"))
+        rotulo_escena = wx.StaticText(padre, label=_("Esce&na:"))
+        self.cho_escena = wx.Choice(padre, name=_("Escena"))
         nombre_accesible(self.cho_escena, _("Escena"))
-        self.btn_poner_al_aire = boton(padre_escena, _("Poner al &aire"), _("Poner al aire"))
-        fila_campo(sizer_escena, rotulo_escena, self.cho_escena,
-                   boton=self.btn_poner_al_aire)
-        self.btn_organizar = boton(
-            padre_escena, _("&Organizar escena…"), _("Organizar escena…"))
-        self.btn_actualizar = boton(padre_escena, _("Actualizar e&stado"), "ActualizarEstado")
-        sizer_escena.Add(fila_botones((self.btn_organizar, self.btn_actualizar)),
-                         0, wx.ALL, 6)
-        contenido.Add(sizer_escena, 1, wx.EXPAND | wx.ALL, 10)
-
-    def _crear_seccion_panel(self, zona, contenido):
-        sizer_panel, padre_panel = caja_de_grupo(zona, _("Panel de chat, solo YouTube"))
-        self.chk_panel_chat = wx.CheckBox(
-            padre_panel, label=_("&Panel de chat para transmitir"),
-            name=_("Panel de chat para transmitir"))
-        self.chk_panel_chat.SetValue(overlay_servidor.esta_encendido())
-        self.chk_panel_chat.Enable(self._alternar_panel is not None)
-        sizer_panel.Add(self.chk_panel_chat, 0, wx.ALL, 6)
-        self.btn_preparar = boton(padre_panel, _("Preparar pane&l"), _("Preparar panel"))
-        sizer_panel.Add(self.btn_preparar, 0, wx.ALL, 6)
-        rotulo_estado = self._nuevo_rotulo(padre_panel, _("Estado del panel:"))
-        sizer_panel.Add(rotulo_estado, 0, wx.ALL, 6)
-        self.txt_estado = wx.TextCtrl(
-            padre_panel, style=wx.TE_MULTILINE | wx.TE_READONLY,
-            name=_("Estado del panel"))
-        nombre_accesible(self.txt_estado, _("Estado del panel"))
-        self.txt_estado.SetMinSize((-1, 110))
-        sizer_panel.Add(self.txt_estado, 1, wx.EXPAND | wx.ALL, 6)
-        contenido.Add(sizer_panel, 0, wx.EXPAND | wx.ALL, 10)
+        self._filas["escena"] = fila_campo(
+            sizer, rotulo_escena, self.cho_escena)
+        self.btn_cambiar_escena = boton(
+            padre, _("Cambiar e&scena"), _("Cambiar escena"))
+        sizer.Add(self.btn_cambiar_escena, 0, wx.ALL, 6)
+        contenido.Add(sizer, 0, wx.EXPAND | wx.ALL, 10)
 
     def _enlazar_eventos(self):
         self.btn_actualizar.Bind(wx.EVT_BUTTON, self._actualizar)
-        self.btn_preparar.Bind(wx.EVT_BUTTON, self._preparar)
-        self.chk_panel_chat.Bind(wx.EVT_CHECKBOX, self._alternar_panel_chat)
-        self.btn_poner_al_aire.Bind(wx.EVT_BUTTON, self._poner_al_aire)
+        self.btn_cambiar_escena.Bind(wx.EVT_BUTTON, self._cambiar_escena)
+        self.chk_chat.Bind(wx.EVT_CHECKBOX, self._alternar_chat)
+        self.btn_microfono.Bind(
+            wx.EVT_BUTTON,
+            lambda evento: gui_microfono.abrir_microfono_obs(
+                self.GetParent(), al_cerrar=self.btn_microfono.SetFocus))
         self.btn_organizar.Bind(wx.EVT_BUTTON, self._organizar_escena)
-        self.cho_destino.Bind(wx.EVT_CHOICE, self._al_cambiar_destino)
-        self.btn_destino.Bind(wx.EVT_BUTTON, self._preparar_destino)
-        self.btn_transmitir.Bind(wx.EVT_BUTTON, self._transmitir)
-        self.btn_grabar.Bind(wx.EVT_BUTTON, self._grabar)
-        self.btn_pausar_grabacion.Bind(wx.EVT_BUTTON, self._pausar_grabacion)
+        self.btn_mostrar_obs.Bind(
+            wx.EVT_BUTTON, lambda evento: menu_transmision.mostrar_obs())
         self.btn_cerrar.Bind(wx.EVT_BUTTON, self._cerrar)
+        self.cho_destino.Bind(wx.EVT_CHOICE, self._al_cambiar_destino)
         self.Bind(wx.EVT_CLOSE, self._cerrar)
 
-    def _nuevo_rotulo(self, padre, texto):
-        rotulo = wx.StaticText(padre, label=texto)
-        self._rotulos_transmision.append(rotulo)
-        return rotulo
-
-    def _alternar_panel_chat(self, event):
-        if self._alternar_panel is not None:
-            self.chk_panel_chat.SetValue(
-                self._alternar_panel(self.chk_panel_chat.GetValue()))
-
     def _activar(self, activo):
-        pide_usuario = obs_destinos.usa_usuario_tiktok(self._destino_elegido())
         for control in self._acciones:
-            if control is self.chk_panel_chat:
-                control.Enable(self._alternar_panel is not None)
-                continue
-            control.Enable(activo and (control is not self.txt_usuario_tiktok or pide_usuario))
+            control.Enable(activo)
+        self._aplicar_visibilidad()
 
     def _destino_elegido(self):
-        sel = self.cho_destino.GetSelection()
-        return DESTINOS[sel] if sel != wx.NOT_FOUND else None
+        seleccion = self.cho_destino.GetSelection()
+        return DESTINOS[seleccion] if seleccion != wx.NOT_FOUND else None
+
+    def _datos_directo(self):
+        return (self._destino_elegido() or "",
+                self.txt_usuario_tiktok.GetValue())
+
+    def _microfono_preferido(self):
+        try:
+            return gui_microfono.microfono_preferido(self.GetParent())
+        except Exception:
+            return ""
+
+    def _al_cambiar_destino(self, event):
+        self._directo.recordar_destino(self._destino_elegido() or "")
+        self._aplicar_visibilidad()
+        self._refrescar_estado()
+        event.Skip()
+
+    def _al_cambiar_directo(self, foco=None):
+        self._aplicar_visibilidad()
+        if foco == "usuario" and self.txt_usuario_tiktok.IsShown():
+            self.txt_usuario_tiktok.SetFocus()
+        self._refrescar_estado()
+
+    def _aplicar_visibilidad(self):
+        destino = self._destino_elegido()
+        transmitiendo = self._directo.transmitiendo
+        mostrar_fila(self._filas["destino"], not transmitiendo,
+                     self.btn_directo)
+        mostrar_fila(self._filas["usuario"],
+                     destino == "TikTok" and not transmitiendo,
+                     self.btn_directo)
+        mostrar_control(
+            self.chk_chat,
+            destino == "YouTube" and self._alternar_panel is not None,
+            self.btn_directo)
+        self.Layout()
+        self.Fit()
+
+    def _mostrar_estado(self, estado):
+        self._estado_actual = estado
+        self.txt_estado.mostrar(estado)
 
     def _escribir_fallo(self, mensaje):
-        self.txt_estado.SetValue(mensaje)
+        self._mostrar_estado(EstadoPanel(mensaje, "aviso", ()))
 
     def _enfocar_tras_fallo(self):
         self.btn_actualizar.Enable(True)
@@ -201,11 +246,10 @@ class TransmisionDialog(wx.Dialog):
     def _cargar_inicial(self):
         self._asegurar(lambda: self._gestor.conectar(),
                        al_anunciar=lambda frase: wx.CallAfter(anunciar, frase))
-        return consultas_transmision.cargar_inicial(self._gestor)
+        return consultas_transmision.cargar_inicial(
+            self._gestor, self._microfono_preferido())
 
     def _poblar_inicial(self, datos):
-        # Puebla los controles sin anunciar: la carga inicial anuncia aparte
-        # y el destino preparado reusa esto para refrescar en silencio.
         self.cho_escena.Set(list(datos.escenas))
         if datos.escena:
             self.cho_escena.SetStringSelection(datos.escena)
@@ -213,231 +257,88 @@ class TransmisionDialog(wx.Dialog):
             self.cho_destino.SetStringSelection(datos.perfil)
         else:
             self.cho_destino.SetSelection(wx.NOT_FOUND)
-        self.txt_usuario_tiktok.Enable(obs_destinos.usa_usuario_tiktok(self._destino_elegido()))
-        self._mostrar_estados(datos.transmision, datos.grabacion, datos.al_aire)
+        self.chk_chat.SetValue(overlay_servidor.esta_encendido())
+        self._aplicar_datos(datos)
 
     def _inicial_cargada(self, datos):
         self._poblar_inicial(datos)
-        frase = obs_disposicion.describir_preparacion(
-            True, overlay_servidor.esta_encendido(),
-            overlay_servidor.puerto_actual(), NOMBRE_FUENTE in datos.fuentes)
-        self.txt_estado.SetValue(frase)
-        anunciar(frase)
-        self._anunciar_estados(datos.transmision, datos.grabacion, datos.al_aire)
-        self.cho_destino.SetFocus()
+        anunciar(self._estado_actual.titular)
+        if self.cho_destino.IsShown():
+            self.cho_destino.SetFocus()
+        else:
+            self.btn_directo.SetFocus()
 
     def _escena(self):
         return self.cho_escena.GetStringSelection()
 
-    def _actualizar_boton(self, boton, etiqueta, nombre):
-        boton.SetLabel(etiqueta)
-        boton.SetName(nombre)
+    def _refrescar_estado(self, anunciar_cuadro=False):
+        destino = self._destino_elegido() or ""
+        preferido = self._microfono_preferido()
+        self._en_hilo(
+            lambda: consultas_transmision.leer_estado(
+                self._gestor, destino, preferido),
+            lambda datos: self._estado_leido(datos, anunciar_cuadro))
 
-    def _mostrar_transmision(self, activa):
-        self._transmitiendo = activa
-        self._actualizar_boton(
-            self.btn_transmitir,
-            _(_ETIQUETA_DETENER_TRANSMISION) if activa else _(_ETIQUETA_TRANSMITIR),
-            _("Detener la transmisión") if activa else _("Transmitir"))
-
-    def _mostrar_estados(self, transmision, grabacion, al_aire):
-        self._mostrar_transmision(bool(transmision.get("outputActive", False)))
-        grabando = bool(grabacion.get("outputActive", False))
-        self._actualizar_boton(
-            self.btn_grabar,
-            _(_ETIQUETA_DETENER_GRABACION) if grabando else _(_ETIQUETA_GRABAR),
-            _("Detener la grabación") if grabando else _("Grabar"))
-        self.btn_pausar_grabacion.Enable(grabando)
-
-    @staticmethod
-    def _frase_escena_al_aire(escena):
-        return obs_estado.frase_escena_al_aire(escena)
-
-    def _anunciar_estados(self, transmision, grabacion, al_aire):
-        anunciar(obs_estado.frase_transmision(
-            transmision.get("outputActive", False), transmision.get("outputDuration", 0),
-            transmision.get("outputSkippedFrames", 0), transmision.get("outputTotalFrames", 0)))
-        anunciar(obs_estado.frase_grabacion(
-            grabacion.get("outputActive", False), grabacion.get("outputPaused", False),
-            grabacion.get("outputTimecode", "")))
-        anunciar(self._frase_escena_al_aire(al_aire))
+    def _estado_leido(self, datos, anunciar_cuadro=False):
+        self._aplicar_datos(datos)
+        if anunciar_cuadro:
+            anunciar(self.txt_estado.GetValue())
 
     def _actualizar(self, event):
-        self._en_hilo(self._leer_estados, self._estados_leidos)
+        self._refrescar_estado(anunciar_cuadro=True)
 
-    def _leer_estados(self):
-        return (self._gestor.escena_al_aire(), self._gestor.estado_transmision(),
-                self._gestor.estado_grabacion())
+    def _aplicar_datos(self, datos):
+        self._grabacion.fijar(
+            bool(datos.grabacion.get("outputActive", False)),
+            bool(datos.grabacion.get("outputPaused", False)))
+        self._silencio.fijar(datos.silenciado)
+        if not self._directo.deteniendo:
+            self._directo.sincronizar(
+                bool(datos.transmision.get("outputActive", False)))
+        escena = getattr(datos, "al_aire", "") or getattr(datos, "escena", "")
+        self._mostrar_estado(resumir(
+            self._destino_elegido() or "", datos.transmision, datos.grabacion,
+            escena, datos.microfono, datos.silenciado, datos.problemas))
+        self._aplicar_visibilidad()
 
-    def _estados_leidos(self, datos):
-        al_aire, transmision, grabacion = datos
-        self._mostrar_estados(transmision, grabacion, al_aire)
-        self._anunciar_estados(transmision, grabacion, al_aire)
-
-    def _poner_al_aire(self, event):
+    def _cambiar_escena(self, event):
         escena = self._escena()
         self._en_hilo(lambda: self._gestor.poner_escena_al_aire(escena),
-                      self._escena_puesta_al_aire)
+                      self._escena_cambiada)
 
-    def _escena_puesta_al_aire(self, escena):
-        anunciar(self._frase_escena_al_aire(escena))
+    def _escena_cambiada(self, escena):
+        anunciar(obs_estado.frase_escena_al_aire(escena))
+        self._refrescar_estado()
 
-    def _transmitir(self, event):
-        def _preguntar(accion):
-            try:
-                return bool(self._supervisar(accion))
-            except Exception:
-                return False
-        recordado = {}
-        def _usuario():
-            if "valor" not in recordado:
-                from bellbird.capture import tiktok_vivo
-                recordado["valor"] = tiktok_vivo.usuario_tiktok(
-                    self.txt_usuario_tiktok.GetValue())
-            return recordado["valor"]
-        destino = self.cho_destino.GetStringSelection()
-        decision = transmision_directa.decidir_transmision(hay_supervisor=self._supervisar is not None,
-            deteniendo=lambda: _preguntar("deteniendo"), con_supervisor=lambda: _preguntar("activo"),
-            transmitiendo=self._transmitiendo,
-            destino=destino, usuario_tiktok=_usuario)
-        if decision == transmision_directa.ALTERNAR:
-            self._en_hilo(self._gestor.alternar_transmision, self._transmision_alternada)
+    def _alternar_chat(self, event):
+        if self._alternar_panel is None:
             return
-        if decision == transmision_directa.ESPERAR_DETENCION:
-            anunciar(_("Deteniendo la transmisión. "
-                      "Esperando a que OBS confirme."))
+        encender = self.chk_chat.GetValue()
+        resultado = self._alternar_panel(encender)
+        if not encender or not resultado:
+            self.chk_chat.SetValue(bool(resultado) if not encender else False)
             return
-        if decision == transmision_directa.DETENER_SUPERVISADA:
-            try:
-                self._supervisar("detener")
-            except Exception as error:
-                logger.debug("no se pudo detener la supervisión: %s", error)
-            self._mostrar_transmision(False)
-            return
-        if decision == transmision_directa.FALTA_DESTINO:
-            anunciar(_("Elige primero a dónde transmitir, en Transmitir a."))
-            return
-        if decision == transmision_directa.FALTA_USUARIO:
-            anunciar(_("Escribe tu usuario de TikTok en Usuario de TikTok."))
-            self.txt_usuario_tiktok.SetFocus()
-            return
-        usuario = _usuario() if destino == "TikTok" else ""
-        if destino == "TikTok" and usuario != self._usuario_tiktok and self._guardar_usuario is not None:
-            try:
-                self._guardar_usuario(usuario)
-            except Exception as error:
-                logger.warning("no se pudo guardar el usuario de TikTok: %s", error)
-            self._usuario_tiktok = usuario
-        self._en_hilo(lambda: self._revisar_prevuelo(destino),
-                      lambda revision: self._revision_lista(revision, destino, usuario))
-
-    def _revisar_prevuelo(self, destino):
-        # El destino viaja como argumento: los hilos no leen controles de wx.
-        return self._gestor.revisar(destino)
-
-    def _recordar_destino(self, destino):
-        if self._guardar_destino is not None:
-            try:
-                self._guardar_destino(destino)
-            except Exception as error:
-                logger.warning("no se pudo guardar el destino de transmisión: %s", error)
-
-    def _revision_lista(self, revision, destino, usuario):
-        if not confirmar_transmision(self, revision):
-            anunciar(_("No se transmitió."))
-            return
-        self._recordar_destino(destino)
-        try:
-            self._supervisar("iniciar", destino, usuario)
-        except Exception as error:
-            self._fallo(obs_cliente.mensaje_de_fallo_obs(error))
-            return
-        self._mostrar_transmision(True)
-
-    def _transmision_alternada(self, activa):
-        self._mostrar_transmision(activa)
-        accion = "transmision_iniciada" if activa else "transmision_detenida"
-        sound_player.reproducir(obs_estado.sonido_resultado(accion))
-        anunciar(obs_estado.frase_resultado(accion))
-
-    def _grabar(self, event):
-        self._en_hilo(self._gestor.alternar_grabacion, self._grabacion_alternada)
-
-    def _grabacion_alternada(self, activa):
-        self._actualizar_boton(
-            self.btn_grabar,
-            _(_ETIQUETA_DETENER_GRABACION) if activa else _(_ETIQUETA_GRABAR),
-            _("Detener la grabación") if activa else _("Grabar"))
-        self.btn_pausar_grabacion.Enable(activa)
-        accion = "grabacion_iniciada" if activa else "grabacion_detenida"
-        sound_player.reproducir(obs_estado.sonido_resultado(accion))
-        anunciar(obs_estado.frase_resultado(accion))
-
-    def _pausar_grabacion(self, event):
-        self._en_hilo(self._gestor.alternar_pausa_grabacion, self._pausa_grabacion_alternada)
-
-    def _pausa_grabacion_alternada(self, en_pausa):
-        accion = "grabacion_en_pausa" if en_pausa else "grabacion_reanudada"
-        sound_player.reproducir(obs_estado.sonido_resultado(accion))
-        anunciar(obs_estado.frase_resultado(accion))
-
-    def _al_cambiar_destino(self, event):
-        # Solo guarda lo elegido, sin anunciar ni preparar: recorrerlo
-        # con flechas dispara EVT_CHOICE y preparar ahí saldría al aire.
-        self._recordar_destino(self.cho_destino.GetStringSelection())
-        self.txt_usuario_tiktok.Enable(obs_destinos.usa_usuario_tiktok(self._destino_elegido()))
-        event.Skip()
-
-    def _preparar_destino(self, event):
-        # Como en _al_cambiar_destino: recorrerlo dispara EVT_CHOICE.
-        destino = self.cho_destino.GetStringSelection()
-        if not destino:
-            anunciar(_("Elige primero a dónde transmitir, en Transmitir a."))
-            return
-        anunciar(_("Preparando OBS para {destino}. Puede tardar unos segundos.").format(destino=destino))
-        self._en_hilo(lambda: self._preparar_destino_en_hilo(destino), self._destino_preparado)
-
-    def _preparar_destino_en_hilo(self, destino):
-        # El destino se captura en el hilo principal y viaja como argumento;
-        # los hilos de trabajo no leen controles de wx.
-        resultado = self._gestor.preparar_destino(destino)
-        return resultado, self._cargar_inicial(), destino
-
-    def _destino_preparado(self, datos):
-        resultado, inicial, destino = datos
-        self._poblar_inicial(inicial)
-        self._recordar_destino(destino)
-        anunciar(obs_destinos.frase_destino_listo(resultado))
-        self.btn_transmitir.SetFocus()
-
-    def _preparar(self, event):
         escena = self._escena()
-        self._en_hilo(lambda: self._preparar_panel(escena), self._panel_preparado)
+        self._en_hilo(lambda: self._agregar_chat(escena),
+                      self._chat_agregado)
 
-    def _preparar_panel(self, escena):
+    def _agregar_chat(self, escena):
         puerto = overlay_servidor.puerto_actual() or _PUERTO_PANEL_DEFECTO
-        if not overlay_servidor.esta_encendido():
-            try:
-                overlay_servidor.encender(puerto)
-            except overlay_servidor.OverlayPuertoOcupadoError:
-                return _("No se pudo encender el panel, el puerto {puerto} está ocupado").format(puerto=puerto)
-        puerto = overlay_servidor.puerto_actual() or puerto
-        fuentes = self._gestor.fuentes(escena)
-        if NOMBRE_FUENTE not in fuentes:
-            url = f"http://127.0.0.1:{puerto}{_RUTA_PANEL_CHAT}"
-            self._gestor.asegurar_fuente(escena, url, 460, 620)
-            fuentes = self._gestor.fuentes(escena)
-        return obs_disposicion.describir_preparacion(
-            True, overlay_servidor.esta_encendido(), puerto,
-            NOMBRE_FUENTE in fuentes)
+        if NOMBRE_FUENTE in self._gestor.fuentes(escena):
+            return False, escena
+        url = f"http://127.0.0.1:{puerto}{_RUTA_PANEL_CHAT}"
+        self._gestor.asegurar_fuente(escena, url, 460, 620)
+        return True, escena
 
-    def _panel_preparado(self, frase):
-        self.txt_estado.SetValue(frase)
-        anunciar(frase)
+    def _chat_agregado(self, resultado):
+        agregado, escena = resultado
+        if agregado:
+            anunciar(_("Chat en el vídeo agregado a la escena {escena}.")
+                     .format(escena=escena))
+        self._refrescar_estado()
 
     def _organizar_escena(self, event):
-        escena = self._escena()
-        dialogo = OrganizarEscenaDialog(self, self._gestor, escena)
+        dialogo = OrganizarEscenaDialog(self, self._gestor, self._escena())
         try:
             dialogo.ShowModal()
         finally:
@@ -447,8 +348,10 @@ class TransmisionDialog(wx.Dialog):
     def _cerrar(self, event):
         if self._operaciones.cerrando:
             return
+        self._directo.cerrar()
         self._operaciones.cerrar()
-        diagnostico.crear_hilo(self._cerrar_gestor, "CerrarTransmisionOBS").start()
+        diagnostico.crear_hilo(self._cerrar_gestor,
+                               "CerrarTransmisionOBS").start()
         self.EndModal(wx.ID_CANCEL)
 
     def _cerrar_gestor(self):

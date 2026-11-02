@@ -24,7 +24,7 @@ from tests.ventanas_prueba import destruir
 from bellbird.ai import catalogo
 from bellbird.core import config
 from bellbird.downloads import descargas, formatos_reales
-from bellbird.ui import descargas_listas, operaciones_obs, elegir_formato, gui, gui_comentarios, gui_descargas, gui_directo_youtube, gui_historial, gui_microfono, gui_organizar_escena, gui_transmision, gui_preferencias, mover_con_flechas
+from bellbird.ui import descargas_listas, operaciones_obs, elegir_formato, gui, gui_comentarios, gui_descargas, gui_directo_youtube, gui_historial, gui_microfono, gui_organizar_escena, gui_transmision, gui_preferencias, menu_transmision, mover_con_flechas
 from bellbird.ui import preferencias_ia
 from bellbird.ui import preferencias_ia_clave
 from bellbird.voice import motores
@@ -218,7 +218,7 @@ class TestLetrasAccesoTransmision(unittest.TestCase):
                               lambda *args, **kwargs: None),
             mock.patch.object(operaciones_obs, "anunciar",
                               lambda *args, **kwargs: None),
-            mock.patch.object(gui_transmision.sound_player, "reproducir"),
+            mock.patch.object(menu_transmision.sound_player, "reproducir"),
         ]
         for parche in self.parches:
             parche.start()
@@ -232,6 +232,18 @@ class TestLetrasAccesoTransmision(unittest.TestCase):
             parche.stop()
 
     def test_cuadro_sin_letras_repetidas(self):
+        self.assertEqual(letras_repetidas(self.dialogo), {})
+
+    def test_etiquetas_alternativas_sin_letras_repetidas(self):
+        self.dialogo._grabacion.fijar(True, False)
+        self.assertEqual(letras_repetidas(self.dialogo), {})
+        self.dialogo._grabacion.fijar(True, True)
+        self.assertEqual(letras_repetidas(self.dialogo), {})
+        self.dialogo._directo.sincronizar(True)
+        self.dialogo._aplicar_visibilidad()
+        self.assertEqual(letras_repetidas(self.dialogo), {})
+        self.dialogo._directo.sincronizar(True, deteniendo=True)
+        self.dialogo._aplicar_visibilidad()
         self.assertEqual(letras_repetidas(self.dialogo), {})
 
 

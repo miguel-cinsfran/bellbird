@@ -47,7 +47,7 @@ una captura nunca hace fallar un escenario.
 Qué sale en la corrida completa: la ventana principal desconectada al
 arrancar; cada diálogo que `esperar_ventana` encuentra, una vez por
 título y escenario (Administrador de descargas, Preferencias, Historial de
-directos, Música, Transmisión, Organizar escena, Transmitir a, Directo de YouTube y los que
+directos, Música, Panel de transmisión, Organizar escena, Transmitir a, Directo de YouTube y los que
 abran ayuda, comentarios, conectar y redactar); la ventana principal ya
 conectada al terminar los escenarios que conectan un chat (simulado o
 real); y la ventana Música con la cola oculta y, si el escenario la
@@ -255,7 +255,7 @@ nadie compara con nada no es una medición.
 
 Ahora `recorrer_tab` usa la orden `navegar` de la sonda, que avanza por la
 cadena de foco de wx con `Navigate()`, sin pasar por el sistema. El diálogo de
-Transmisión pasó de 1 parada a 16.
+Panel de transmisión pasó de 1 parada a 16.
 
 `Navigate()` por sí solo tampoco baja dentro de un cuaderno de pestañas: salta
 al siguiente hermano y deja sin auditar todo lo que vive en la página. Por eso
@@ -299,7 +299,7 @@ proceso, iba a otra ventana y, como efecto, desbloqueaba el frente. Medido el
 F24, que no usa ninguna aplicación ni NVDA, repite el `Raise`, y solo da
 `activa` si wx y Windows coinciden.
 
-Transmisión y Organizar escena solo exigen los controles de OBS en el orden de
+Panel de transmisión y Organizar escena solo exigen los controles de OBS en el orden de
 Tab con OBS abierto: sin él nacen deshabilitados a propósito y wx los saca del Tab.
 Organizar escena se abre con el botón del panel y se audita entera, también su Tab.
 

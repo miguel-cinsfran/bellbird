@@ -16,7 +16,12 @@ def _gestor():
     gestor.transformacion.return_value = mock.sentinel.transformacion
     gestor.estado_transmision.return_value = mock.sentinel.transmision
     gestor.estado_grabacion.return_value = mock.sentinel.grabacion
-    gestor.perfil_actual.return_value = mock.sentinel.perfil
+    gestor.perfil_actual.return_value = "YouTube"
+    gestor.entradas_audio.return_value = (
+        ("Mic/Aux", "wasapi_input_capture"),)
+    gestor.microfono_especial.return_value = ""
+    gestor.revisar.return_value = mock.Mock(problemas=("Un problema.",))
+    gestor.silenciada.return_value = False
     gestor.ventanas.return_value = (mock.sentinel.opciones,
                                     mock.sentinel.actual)
     gestor.descripcion_escena.return_value = mock.sentinel.descripcion
@@ -43,7 +48,10 @@ class TestCargarInicial(unittest.TestCase):
         self.assertEqual(datos.fuentes, ("Cámara", "Chat en el vídeo"))
         self.assertIs(datos.transmision, mock.sentinel.transmision)
         self.assertIs(datos.grabacion, mock.sentinel.grabacion)
-        self.assertIs(datos.perfil, mock.sentinel.perfil)
+        self.assertEqual(datos.perfil, "YouTube")
+        self.assertEqual(datos.problemas, ("Un problema.",))
+        self.assertEqual(datos.microfono, "Mic/Aux")
+        self.assertFalse(datos.silenciado)
 
     def test_llama_al_gestor_en_el_mismo_orden(self):
         gestor = _gestor()
@@ -51,7 +59,64 @@ class TestCargarInicial(unittest.TestCase):
         self.assertEqual(
             [llamada[0] for llamada in gestor.mock_calls],
             ["conectar", "escenas", "escena_al_aire", "fuentes",
-             "estado_transmision", "estado_grabacion", "perfil_actual"])
+             "estado_transmision", "estado_grabacion", "perfil_actual",
+             "entradas_audio", "microfono_especial", "revisar", "silenciada"])
+
+    def test_sin_destino_elegido_los_problemas_quedan_vacios(self):
+        gestor = _gestor()
+        gestor.perfil_actual.return_value = "N5000-Grabacion"
+        datos = consultas_transmision.cargar_inicial(gestor)
+        self.assertEqual(datos.problemas, ())
+        gestor.revisar.assert_not_called()
+
+    def test_usa_el_microfono_preferido_y_su_silencio(self):
+        gestor = _gestor()
+        gestor.entradas_audio.return_value = (
+            ("Mic/Aux", "wasapi_input_capture"),
+            ("Micrófono USB", "wasapi_input_capture"))
+        gestor.silenciada.return_value = True
+        datos = consultas_transmision.cargar_inicial(
+            gestor, preferido="Micrófono USB")
+        self.assertEqual(datos.microfono, "Micrófono USB")
+        self.assertTrue(datos.silenciado)
+        gestor.silenciada.assert_called_once_with("Micrófono USB")
+
+    def test_sin_microfono_no_pregunta_silencio(self):
+        gestor = _gestor()
+        gestor.entradas_audio.return_value = ()
+        datos = consultas_transmision.cargar_inicial(gestor)
+        self.assertEqual(datos.microfono, "")
+        self.assertFalse(datos.silenciado)
+        gestor.silenciada.assert_not_called()
+
+
+class TestLeerEstado(unittest.TestCase):
+
+    def test_cada_campo_viene_de_su_llamada(self):
+        datos = consultas_transmision.leer_estado(
+            _gestor(), "YouTube", preferido="Mic/Aux")
+        self.assertEqual(datos.escena, "Juego")
+        self.assertIs(datos.transmision, mock.sentinel.transmision)
+        self.assertIs(datos.grabacion, mock.sentinel.grabacion)
+        self.assertEqual(datos.perfil, "YouTube")
+        self.assertEqual(datos.problemas, ("Un problema.",))
+        self.assertEqual(datos.microfono, "Mic/Aux")
+        self.assertFalse(datos.silenciado)
+
+    def test_sin_destino_no_revisa(self):
+        gestor = _gestor()
+        datos = consultas_transmision.leer_estado(gestor, "", preferido="")
+        self.assertEqual(datos.problemas, ())
+        gestor.revisar.assert_not_called()
+
+    def test_llama_al_gestor_en_el_mismo_orden(self):
+        gestor = _gestor()
+        consultas_transmision.leer_estado(gestor, "TikTok")
+        self.assertEqual(
+            [llamada[0] for llamada in gestor.mock_calls],
+            ["escena_al_aire", "estado_transmision", "estado_grabacion",
+             "perfil_actual", "entradas_audio", "microfono_especial",
+             "revisar", "silenciada"])
 
 
 class TestAplicarVentana(unittest.TestCase):

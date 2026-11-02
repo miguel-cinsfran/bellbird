@@ -1,8 +1,8 @@
 """Revisión de OBS antes de transmitir, en frases para leer en voz alta.
 
 Recibe un cliente con `pedir(tipo, datos=None, parada=None)` como
-`obs_destinos` y no crea conexiones. Nadie lo llama todavía: lo usará la
-ventana Transmisión.
+`obs_destinos` y no crea conexiones. Lo usa la revisión del panel de
+transmisión antes de transmitir.
 """
 
 from __future__ import annotations
@@ -209,11 +209,8 @@ def _audio_obs(cliente, entradas, parada) -> list:
     return audio
 
 
-def _problemas_revision(perfil, destino, audio, fuentes, imagen) -> list:
+def _problemas_revision(audio, fuentes, imagen) -> list:
     problemas = []
-    if perfil != destino:
-        problemas.append(_("OBS está en el perfil {perfil}, no en {destino}. Pulsa "
-                           "Preparar destino.").format(perfil=perfil, destino=destino))
     for entrada in audio:
         if not entrada.escritorio and entrada.silenciada:
             problemas.append(_("El micrófono {nombre} está silenciado.").format(
@@ -239,7 +236,7 @@ def revisar(cliente, destino, parada=None, grabar=False) -> Revision:
     fuentes = _fuentes_obs(cliente, elementos, por_nombre, escenas, parada)
     audio = _audio_obs(cliente, entradas, parada)
     imagen = _leer_imagen_vacia(cliente, escena, parada)
-    problemas = _problemas_revision(perfil, destino, audio, fuentes, imagen)
+    problemas = _problemas_revision(audio, fuentes, imagen)
     avisos = ()
     if grabar and obs_grabacion.codificador_propio_en_obs(
             cliente, parada) is True:

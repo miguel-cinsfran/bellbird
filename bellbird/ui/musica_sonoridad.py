@@ -325,7 +325,8 @@ class SonoridadMusica:
                 hechas += 1
                 if hechas % 20 == 0:
                     self._guardar_sonoridad()
-            self._guardar_sonoridad()
+            if self._seguir_midiendo(generacion):
+                self._guardar_sonoridad()
         finally:
             self._midiendo_sonoridad = False
             self._progreso_sonoridad = None

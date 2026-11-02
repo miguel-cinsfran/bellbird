@@ -34,7 +34,7 @@ def _modulo(nombres):
     return mod
 
 
-def _registrar(nombres, anunciar_entradas=True, descartar=None,
+def _registrar(nombres, evento_entrada="mostrar", descartar=None,
                  on_estado=None, sin_estado=False):
     cliente = _ClienteFalso()
     mod = _modulo(nombres)
@@ -46,7 +46,7 @@ def _registrar(nombres, anunciar_entradas=True, descartar=None,
     registrar_manejadores(
         cliente, mod, on_evento=lambda *a: recibidos.append(a),
         on_espectadores=lambda *a: vistos.append(a),
-        anunciar_entradas=anunciar_entradas,
+        config={"evento_entrada": evento_entrada},
         descartar=(descartar or (lambda evento: False)),
         on_estado=estado)
     return cliente, mod, recibidos, vistos, estados
@@ -78,12 +78,12 @@ class TestRegistrarManejadores(unittest.TestCase):
         cliente, mod, _recibidos, _vistos, _estados = _registrar(nombres)
         self.assertIn(mod.SubNotifyEvent, cliente.manejadores)
 
-    def test_join_solo_con_anunciar_entradas(self):
+    def test_join_solo_si_el_evento_de_entrada_no_esta_desactivado(self):
         cliente, mod, _rec, _vis, _est = _registrar(
-            _TODAS, anunciar_entradas=True)
+            _TODAS, evento_entrada="principal")
         self.assertIn(mod.JoinEvent, cliente.manejadores)
         cliente2, mod2, _r2, _v2, _e2 = _registrar(
-            _TODAS, anunciar_entradas=False)
+            _TODAS, evento_entrada="ocultar")
         self.assertNotIn(mod2.JoinEvent, cliente2.manejadores)
 
     def test_descartar_true_bloquea_el_comentario(self):

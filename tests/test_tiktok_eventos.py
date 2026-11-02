@@ -109,7 +109,7 @@ def _modulos_falsos(cliente):
 class TestManejadoresNuevos(unittest.TestCase):
     CONECTADO = 1750000000.0
 
-    def _sesion(self, recibidos, anunciar_entradas=False):
+    def _sesion(self, recibidos, config=None):
         cliente = _ClienteFalso()
         mod_tiktok, mod_eventos = _modulos_falsos(cliente)
         parada = threading.Event()
@@ -119,7 +119,7 @@ class TestManejadoresNuevos(unittest.TestCase):
             error = tiktok_captura._sesion(
                 "pepe", parada, lambda *a: recibidos.append(a),
                 lambda *a: None, lambda d: None, None,
-                anunciar_entradas=anunciar_entradas)
+                config=config or {})
         self.assertIsNone(error)
         with mock.patch("time.time", return_value=self.CONECTADO):
             asyncio.run(cliente.manejadores[mod_eventos.ConnectEvent](
@@ -179,7 +179,7 @@ class TestManejadoresNuevos(unittest.TestCase):
     def test_suscripcion_y_entrada_tambien_descartan_historico(self):
         recibidos = []
         cliente, mod_eventos = self._sesion(
-            recibidos, anunciar_entradas=True)
+            recibidos, {"evento_entrada": "principal"})
         for nombre_clase in ("SubscribeEvent", "JoinEvent"):
             historico = self._evento((self.CONECTADO + 1) * 1000)
             historico._ytchat_historico = True

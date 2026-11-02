@@ -30,10 +30,9 @@ import time
 
 from bellbird.capture.tiktok_reconexion import (desenlace, espera_tras,
     texto_agotado, texto_reintento)
-from bellbird.core import avisos_tiktok
 from bellbird.core import diagnostico
 from bellbird.core import paths
-from bellbird.core.config import (TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_MIEMBRO, TIPO_ENTRADA,
+from bellbird.core.config import (TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_MIEMBRO,
     TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA)
 from bellbird.core.idioma import _
 
@@ -255,7 +254,7 @@ def _clase_suscripcion(modulo_eventos):
 
 
 def _registrar_manejadores(client, modulo_eventos, on_evento, on_estado,
-                           on_info, on_espectadores, anunciar_entradas,
+                           on_info, on_espectadores, config,
                            hora_conexion):
     """Manejadores de una sesión: conexión, filtrado de previos y cierre.
     `hora_conexion` es la lista compartida entre `_on_connect` y
@@ -283,7 +282,7 @@ def _registrar_manejadores(client, modulo_eventos, on_evento, on_estado,
 
     tiktok_manejadores.registrar_manejadores(
         client, modulo_eventos, on_evento=on_evento,
-        on_espectadores=on_espectadores, anunciar_entradas=anunciar_entradas,
+        on_espectadores=on_espectadores, config=config,
         descartar=descartar, on_estado=on_estado)
 
     @client.on(LiveEndEvent)
@@ -342,7 +341,7 @@ def _correr_cliente(client, parada):
 
 
 def _sesion(usuario, parada, on_evento, on_estado, on_info, on_espectadores,
-            anunciar_entradas=False):
+            config=None):
     """Una conexión completa (bloquea hasta desconectar). Devuelve la excepción
     de conexión si la hubo, o None si terminó con normalidad.
 
@@ -362,7 +361,7 @@ def _sesion(usuario, parada, on_evento, on_estado, on_info, on_espectadores,
         return exc
     hora_conexion: list = [None]
     _registrar_manejadores(client, modulo_eventos, on_evento, on_estado,
-                           on_info, on_espectadores, anunciar_entradas,
+                           on_info, on_espectadores, config,
                            hora_conexion)
     return _correr_cliente(client, parada)
 
@@ -373,8 +372,7 @@ def _sesion_protegida(usuario, parada, on_evento, on_estado, on_info,
     de conexión y sigue la misma política de reintentos."""
     try:
         return _sesion(usuario, parada, on_evento, on_estado, on_info,
-                       on_espectadores,
-                       anunciar_entradas=avisos_tiktok.modo_de(config, TIPO_ENTRADA) != "ocultar")
+                       on_espectadores, config)
     except Exception as exc:
         # Nada de lo que salga de _sesion puede matar el hilo: se trata
         # como un error de conexión y sigue la misma política de reintentos.

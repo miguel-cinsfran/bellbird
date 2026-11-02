@@ -478,10 +478,20 @@ class TestRespaldoElevenLabs(unittest.TestCase):
 
         self.assertEqual(worker._tope_elevenlabs, 5000)
         self.assertTrue(worker._solo_importantes)
-        self.assertEqual(worker._voz_respaldo, "Voz B")
+        self.assertEqual(worker._respaldo.voz, "Voz B")
         # La voz del respaldo ya creado cambia sin recrearlo.
-        self.assertIs(worker._respaldo, sapi)
+        self.assertIs(worker._respaldo.motor, sapi)
         self.assertEqual(sapi.elegidas, [1])
+
+    def test_el_respaldo_nace_con_la_voz_y_los_ajustes_del_worker(self):
+        worker, el, sapi = self._worker(
+            elevenlabs_solo_importantes=True, voz_respaldo="Voz B",
+            velocidad_voz=40, volumen=0.5, tono=30)
+        sapi.elegidas.clear()
+        worker._hablar("mensaje comun", None, False)
+        self.assertEqual(sapi.elegidas, [1])
+        self.assertEqual((sapi.velocidad, sapi.volumen, sapi.tono),
+                         (40, 50, 30))
 
 
 class TestPrismReal(unittest.TestCase):

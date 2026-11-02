@@ -23,6 +23,7 @@ from bellbird.core.idioma import N_, _
 from bellbird.voice import escala_voz
 from bellbird.voice import elevenlabs
 from bellbird.voice import motores
+from bellbird.voice import respaldo_windows
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -118,10 +119,10 @@ class TTSWorker(threading.Thread):
         # Aviso al usuario (lo conecta la GUI con `anunciar`). Con None solo
         # queda el registro en el log.
         self.al_avisar = None
-        # Respaldo de Windows para ElevenLabs: se crea perezoso, en el hilo
-        # del worker, la primera vez que un mensaje tiene que ir ahí.
-        self._respaldo = None
-        self._voz_respaldo = config.get("voz_respaldo") or ""
+        # Respaldo de Windows para ElevenLabs: el objeto guarda su voz y sus
+        # ajustes; el motor se crea perezoso, en el hilo del worker.
+        self._respaldo = respaldo_windows.Respaldo(
+            self._fabrica_motor, config.get("voz_respaldo") or "")
         self._tope_elevenlabs = max(0, _entero(config.get("elevenlabs_tope"), 0))
         self._solo_importantes = bool(config.get("elevenlabs_solo_importantes"))
         # Marca de tiempo del último fallo de ElevenLabs y estado de los avisos.
@@ -240,9 +241,7 @@ class TTSWorker(threading.Thread):
     def _cerrar_motor(self) -> None:
         if self._motor is not None:
             self._motor.cerrar()
-        if self._respaldo is not None:
-            self._respaldo.cerrar()
-            self._respaldo = None
+        self._respaldo.cerrar()
 
     # ── Voz y habla ──────────────────────────────────────────────────────────
 
@@ -322,25 +321,7 @@ class TTSWorker(threading.Thread):
 
     def _conseguir_respaldo(self):
         """Crea (una sola vez) la voz de Windows del respaldo, o None si falla."""
-        if self._respaldo is not None:
-            return self._respaldo
-        try:
-            respaldo = self._fabrica_motor("sapi")
-        except motores.MotorNoDisponible as exc:
-            logger.warning("No se pudo crear la voz de respaldo (%s).", exc)
-            return None
-        voces = list(respaldo.voces())
-        if not voces:
-            respaldo.cerrar()
-            logger.warning("La voz de respaldo no tiene voces instaladas.")
-            return None
-        idx = escala_voz.resolver_voz(self._voz_respaldo, voces)
-        respaldo.elegir_voz(0 if idx is None else idx)
-        respaldo.fijar_velocidad(self._rate)
-        respaldo.fijar_volumen(self._volume)
-        respaldo.fijar_tono(self._tono)
-        self._respaldo = respaldo
-        return respaldo
+        return self._respaldo.conseguir(self._rate, self._volume, self._tono)
 
     def _leer_frase(self, motor, texto: str) -> bool:
         """Manda la frase a `motor` y espera a que termine. True si sonó."""
@@ -421,18 +402,11 @@ class TTSWorker(threading.Thread):
         del hilo del worker (el respaldo y sus ajustes le pertenecen)."""
         self._tope_elevenlabs = max(0, _entero(tope, self._tope_elevenlabs))
         self._solo_importantes = bool(solo_importantes)
-        nueva = voz_respaldo or ""
-        if nueva != self._voz_respaldo:
-            self._voz_respaldo = nueva
-            self._elegir_voz_respaldo()
+        self._elegir_voz_respaldo(voz_respaldo or "")
 
-    def _elegir_voz_respaldo(self) -> None:
-        """Si el respaldo ya existe, le elige la voz nueva sin recrearlo."""
-        if self._respaldo is None:
-            return
-        voces = list(self._respaldo.voces())
-        idx = escala_voz.resolver_voz(self._voz_respaldo, voces)
-        self._respaldo.elegir_voz(0 if idx is None else idx)
+    def _elegir_voz_respaldo(self, voz) -> None:
+        """Cambia la voz del respaldo sin recrearlo."""
+        self._respaldo.cambiar_voz(voz)
 
     def _cambiar_motor(self, motor, voz) -> None:
         """Reemplaza el motor activo dentro del hilo del worker.

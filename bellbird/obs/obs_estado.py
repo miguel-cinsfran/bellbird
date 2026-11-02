@@ -43,7 +43,7 @@ TEXTO_COMO_SE_COLOCA = N_(
     "a otras. Se actualiza solo con cada cambio.\n\n"
     "Restablecer deshace todo lo que hiciste desde que abriste esta ventana.")
 
-_TEXTO_SIN_ESCENA = N_("No se pudo saber que escena está al aire")
+_TEXTO_SIN_ESCENA = N_("No se pudo obtener la escena actual")
 
 
 def frase_transmision(activa, segundos, perdidos, totales) -> str:
@@ -70,7 +70,7 @@ def frase_grabacion(activa, en_pausa, codigo_tiempo) -> str:
 
 def frase_escena_al_aire(escena) -> str:
     """Describe la escena que OBS está mostrando al público."""
-    return _("Al aire: {escena}").format(escena=escena) if escena else _(_TEXTO_SIN_ESCENA)
+    return _("Escena actual: {escena}").format(escena=escena) if escena else _(_TEXTO_SIN_ESCENA)
 
 
 def frase_resultado(accion) -> str:
@@ -82,7 +82,7 @@ def frase_resultado(accion) -> str:
         "grabacion_detenida": N_("Grabación detenida"),
         "grabacion_en_pausa": N_("Grabación en pausa"),
         "grabacion_reanudada": N_("Grabación reanudada"),
-        "escena_cambiada": N_("Escena puesta al aire"),
+        "escena_cambiada": N_("Escena actual cambiada"),
     }[accion])
 
 

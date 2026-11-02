@@ -130,7 +130,7 @@ class RevisarTest(unittest.TestCase):
             Fuente("Captura de ventana", "captura de ventana",
                    "Champions of The Rift", True),
             Fuente("Chat en el vídeo", "navegador",
-                   "panel de chat de la app", True)))
+                   "chat en el vídeo de la app", True)))
         self.assertEqual([(e.nombre, e.silenciada) for e in revision.audio],
                          [("Mic/Aux", False), ("Audio del escritorio", False)])
         self.assertIs(revision.imagen_vacia, False)
@@ -280,7 +280,7 @@ class RevisarTest(unittest.TestCase):
                 silencios={},
                 imagen=imagen_dato(png_plano(1, 1, (200, 0, 0, 255))))
             (fuente,) = revisar(doble, "TikTok").fuentes
-            self.assertEqual(fuente.detalle, "panel de chat de la app")
+            self.assertEqual(fuente.detalle, "chat en el vídeo de la app")
         with self.subTest(caso="otra página"):
             doble = DoblePrevuelo(
                 elementos=[{"sourceName": "F", "sceneItemEnabled": True}],
@@ -299,10 +299,10 @@ class FraseRevisionTest(unittest.TestCase):
                 4, 4, lambda x, y: (200, 100, 50, 255) if (x, y) == (0, 0)
                 else (0, 0, 0, 0))))
         self.assertEqual(frase_revision(revisar(doble, "TikTok")),
-                         "Destino TikTok. Perfil TikTok, formato vertical "
-                         "720 por 1280. Escena al aire: Escena. Fuentes: "
+                         "Destino TikTok. Formato vertical, "
+                         "720 por 1280. Escena actual: Escena. Fuentes: "
                          "captura de ventana Champions of The Rift, "
-                         "navegador panel de chat de la app. "
+                         "navegador chat en el vídeo de la app. "
                          "Micrófono Mic/Aux con sonido. "
                          "Audio del escritorio con sonido.")
 
@@ -316,10 +316,22 @@ class FraseRevisionTest(unittest.TestCase):
                       "TikTok. Pulsa Preparar destino. "
                       "El micrófono Mic/Aux está silenciado.", frase)
 
+    def test_frase_con_problema_pone_atencion_primero_y_no_nombra_el_perfil(self):
+        revision = Revision(
+            "YouTube", "TikTok", "Juego", 1920, 1080, "Juego", (), (),
+            False, ("El micrófono Mic/Aux está silenciado.",))
+        frase = frase_revision(revision)
+        self.assertEqual(
+            frase,
+            "Atención: El micrófono Mic/Aux está silenciado. Destino YouTube. "
+            "Formato horizontal, 1920 por 1080. Escena actual: Juego. "
+            "Sin fuentes visibles.")
+        self.assertNotIn("Perfil", frase)
+
     def test_frase_horizontal(self):
         revision = Revision("YouTube", "YouTube", "Juego", 1280, 720,
                             "Escena", (), (), False, ())
-        self.assertIn("formato horizontal 1280 por 720",
+        self.assertIn("Formato horizontal, 1280 por 720",
                       frase_revision(revision))
 
 
@@ -342,14 +354,15 @@ class RamasRevisarTest(unittest.TestCase):
     def test_formato_cuadrado(self):
         revision = Revision("YouTube", "YouTube", "Juego", 1280, 1280,
                             "Escena", (), (), False, ())
-        self.assertIn("formato cuadrado 1280 por 1280",
+        self.assertIn("Formato cuadrado, 1280 por 1280",
                       frase_revision(revision))
 
     def test_frase_sin_dimensiones(self):
         revision = Revision("TikTok", "TikTok", "Colección", None, None,
                             "Escena", (), (), None, ())
         frase = frase_revision(revision)
-        self.assertIn("Perfil TikTok.", frase)
+        self.assertIn("Destino TikTok.", frase)
+        self.assertNotIn("Perfil", frase)
         self.assertNotIn("formato", frase)
 
     def test_frase_escritorio_con_nombre_propio(self):
@@ -501,7 +514,7 @@ class TestPseudoFraseRevision(unittest.TestCase):
         return Revision(
             "TikTok", "TikTok", "TikTok", 720, 1280, "Escena",
             (Fuente("Juego", "captura de ventana", "Mi Juego", True),
-             Fuente("Chat", "navegador", "panel de chat de la app", True)),
+             Fuente("Chat", "navegador", "chat en el vídeo de la app", True)),
             (EntradaAudio("Mic/Aux", False),
              EntradaAudio("Audio del escritorio", False, True)),
             False, tuple(problemas), tuple(avisos))

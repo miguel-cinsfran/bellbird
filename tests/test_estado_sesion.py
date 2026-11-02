@@ -191,11 +191,11 @@ class TestCoherencia(unittest.TestCase):
         s = SnapshotSesion(overlay_puerto=9000, overlay_clientes=1)
         self.assertEqual(
             formatear_estado(s, {"overlay"}),
-            "Panel de chat activo en el puerto 9000, mostrándose.")
+            "Chat en el vídeo activado, mostrándose.")
         s = SnapshotSesion(overlay_puerto=9000, overlay_clientes=0)
         self.assertEqual(
             formatear_estado(s, {"overlay"}),
-            "Panel de chat activo en el puerto 9000, pero nadie lo está mostrando.")
+            "Chat en el vídeo activado, pero nadie lo está mostrando.")
 
 
 class TestTransmisionSupervisada(unittest.TestCase):

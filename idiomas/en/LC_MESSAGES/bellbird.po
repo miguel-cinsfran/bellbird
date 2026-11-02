@@ -738,9 +738,9 @@ msgid "Aviso de lectura silenciada"
 msgstr "Muted reading notice"
 
 #. Traductores: rótulo en Preferencias del componente de F2.
-#: bellbird/capture/componentes_estado.py bellbird/ui/gui_transmision.py
-msgid "Panel de chat para transmitir"
-msgstr "Chat panel for streaming"
+#: bellbird/capture/componentes_estado.py
+msgid "Chat en el vídeo para transmitir"
+msgstr "Show chat on video"
 
 #. Traductores: rótulo en Preferencias del componente de F2.
 #: bellbird/capture/componentes_estado.py bellbird/ui/gui_preferencias.py
@@ -764,8 +764,8 @@ msgstr "OBS recording state"
 
 #. Traductores: rótulo en Preferencias del componente de F2.
 #: bellbird/capture/componentes_estado.py
-msgid "Escena al aire en OBS"
-msgstr "On-air scene in OBS"
+msgid "Escena actual en OBS"
+msgstr "Current scene in OBS"
 
 #. Traductores: rótulo en Preferencias del componente de F2.
 #: bellbird/capture/componentes_estado.py
@@ -1082,17 +1082,15 @@ msgstr "Voice: speed {velocidad}, volume {volumen}%"
 msgid "Lectura silenciada"
 msgstr "Reading muted"
 
-#. Traductores: componente del estado F2. {puerto} es el puerto del panel.
+#. Traductores: componente del estado F2.
 #: bellbird/capture/estado_sesion.py
-#, python-brace-format
-msgid "Panel de chat activo en el puerto {puerto}, mostrándose"
-msgstr "Chat panel active on port {puerto}, showing"
+msgid "Chat en el vídeo activado, mostrándose"
+msgstr "Chat on video enabled, showing"
 
-#. Traductores: componente del estado F2. {puerto} es el puerto del panel.
+#. Traductores: componente del estado F2.
 #: bellbird/capture/estado_sesion.py
-#, python-brace-format
-msgid "Panel de chat activo en el puerto {puerto}, pero nadie lo está mostrando"
-msgstr "Chat panel active on port {puerto}, but nobody is showing it"
+msgid "Chat en el vídeo activado, pero nadie lo está mostrando"
+msgstr "Chat on video enabled, but nobody is showing it"
 
 #. Traductores: componente del estado F2. {texto} es el encuadre actual.
 #: bellbird/capture/estado_sesion.py
@@ -2860,76 +2858,76 @@ msgid "Se creó en OBS el perfil {destino}."
 msgstr "The {destino} profile was created in OBS."
 
 #: bellbird/obs/obs_disposicion.py
-msgid "Superior izquierda"
+msgid "Arriba a la izquierda"
 msgstr "Top left"
 
 #: bellbird/obs/obs_disposicion.py
-msgid "Superior centro"
+msgid "Arriba al centro"
 msgstr "Top center"
 
 #: bellbird/obs/obs_disposicion.py
-msgid "Superior derecha"
+msgid "Arriba a la derecha"
 msgstr "Top right"
 
 #: bellbird/obs/obs_disposicion.py
-msgid "Centro izquierda"
-msgstr "Middle left"
+msgid "Centro a la izquierda"
+msgstr "Center left"
 
 #: bellbird/obs/obs_disposicion.py
 msgid "Centro"
 msgstr "Middle"
 
 #: bellbird/obs/obs_disposicion.py
-msgid "Centro derecha"
-msgstr "Middle right"
+msgid "Centro a la derecha"
+msgstr "Center right"
 
 #: bellbird/obs/obs_disposicion.py
-msgid "Inferior izquierda"
+msgid "Abajo a la izquierda"
 msgstr "Bottom left"
 
 #: bellbird/obs/obs_disposicion.py
-msgid "Inferior centro"
+msgid "Abajo al centro"
 msgstr "Bottom center"
 
 #: bellbird/obs/obs_disposicion.py
-msgid "Inferior derecha"
+msgid "Abajo a la derecha"
 msgstr "Bottom right"
 
 #: bellbird/obs/obs_disposicion.py
-msgid "esquina superior izquierda"
-msgstr "top left corner"
+msgid "arriba a la izquierda"
+msgstr "top left"
 
 #: bellbird/obs/obs_disposicion.py
-msgid "borde superior, centrado"
-msgstr "top edge, centered"
+msgid "arriba al centro"
+msgstr "top center"
 
 #: bellbird/obs/obs_disposicion.py
-msgid "esquina superior derecha"
-msgstr "top right corner"
+msgid "arriba a la derecha"
+msgstr "top right"
 
 #: bellbird/obs/obs_disposicion.py
-msgid "borde izquierdo, centrado"
-msgstr "left edge, centered"
+msgid "centro a la izquierda"
+msgstr "center left"
 
 #: bellbird/obs/obs_disposicion.py
 msgid "centro"
 msgstr "center"
 
 #: bellbird/obs/obs_disposicion.py
-msgid "borde derecho, centrado"
-msgstr "right edge, centered"
+msgid "centro a la derecha"
+msgstr "center right"
 
 #: bellbird/obs/obs_disposicion.py
-msgid "esquina inferior izquierda"
-msgstr "bottom left corner"
+msgid "abajo a la izquierda"
+msgstr "bottom left"
 
 #: bellbird/obs/obs_disposicion.py
-msgid "borde inferior, centrado"
-msgstr "bottom edge, centered"
+msgid "abajo al centro"
+msgstr "bottom center"
 
 #: bellbird/obs/obs_disposicion.py
-msgid "esquina inferior derecha"
-msgstr "bottom right corner"
+msgid "abajo a la derecha"
+msgstr "bottom right"
 
 #. Traductores: dice por qué lado se sale del lienzo.
 #: bellbird/obs/obs_disposicion.py
@@ -2984,14 +2982,14 @@ msgstr "{porcentaje}% from the {borde} edge"
 #. Traductores: {salidas} son los lados y {distancias} los porcentajes.
 #: bellbird/obs/obs_disposicion.py
 #, python-brace-format
-msgid "se sale del lienzo {salidas}, y {distancias}"
-msgstr "goes off the canvas {salidas}, and {distancias}"
+msgid "se sale del vídeo {salidas}, y {distancias}"
+msgstr "goes off the video {salidas}, and {distancias}"
 
 #. Traductores: {salidas} son los lados por donde se sale.
 #: bellbird/obs/obs_disposicion.py
 #, python-brace-format
-msgid "se sale del lienzo {salidas}"
-msgstr "goes off the canvas {salidas}"
+msgid "se sale del vídeo {salidas}"
+msgstr "goes off the video {salidas}"
 
 #: bellbird/obs/obs_disposicion.py
 #, python-brace-format
@@ -3006,10 +3004,10 @@ msgstr "OBS: connected"
 msgid "Sin conexión con OBS"
 msgstr "No connection to OBS"
 
-#. Traductores: se suma al nombre de la escena cuando no está al aire.
+#. Traductores: se suma al nombre de la escena cuando no es la actual.
 #: bellbird/obs/obs_disposicion.py
-msgid ", no al aire"
-msgstr ", not live"
+msgid ", no es la escena actual"
+msgstr ", not the current scene"
 
 #: bellbird/obs/obs_disposicion.py
 #, python-brace-format
@@ -3027,26 +3025,9 @@ msgid "{ancho} por {alto}, {porcentaje}% del ancho"
 msgstr "{ancho} by {alto}, {porcentaje}% of the width"
 
 #: bellbird/obs/obs_disposicion.py
-msgid "no lo tapa nada"
-msgstr "nothing covers it"
-
-#: bellbird/obs/obs_disposicion.py
 #, python-brace-format
-msgid "lo tapa {fuente}"
+msgid "La tapa {fuente}"
 msgstr "{fuente} covers it"
-
-#: bellbird/obs/obs_disposicion.py
-#, python-brace-format
-msgid "Capa: {valor}"
-msgstr "Layer: {valor}"
-
-#: bellbird/obs/obs_disposicion.py
-msgid "No se superpone con ninguna otra fuente"
-msgstr "It does not overlap any other source"
-
-#: bellbird/obs/obs_disposicion.py
-msgid "Libre"
-msgstr "Free"
 
 #. Traductores: {porcentaje} es un número y {fuente} el nombre de la otra
 #. fuente.
@@ -3061,48 +3042,23 @@ msgstr "{porcentaje}% of {fuente}"
 msgid "Superpone {partes}"
 msgstr "Overlaps {partes}"
 
-#. Traductores: valor de «Visible en OBS».
-#. Traductores: valor de «Fijado».
 #: bellbird/obs/obs_disposicion.py
-msgid "sí"
-msgstr "yes"
-
-#: bellbird/obs/obs_disposicion.py
-msgid "no"
-msgstr "no"
-
-#: bellbird/obs/obs_disposicion.py
-#, python-brace-format
-msgid "Visible en OBS: {valor}"
-msgstr "Visible in OBS: {valor}"
-
-#: bellbird/obs/obs_disposicion.py
-msgid "Oculto en OBS"
+msgid "Oculta en OBS"
 msgstr "Hidden in OBS"
 
 #: bellbird/obs/obs_disposicion.py
-#, python-brace-format
-msgid "Fijado: {valor}"
-msgstr "Locked: {valor}"
-
-#: bellbird/obs/obs_disposicion.py
-msgid "Fijado"
+msgid "Bloqueada"
 msgstr "Locked"
 
 #: bellbird/obs/obs_disposicion.py
 #, python-brace-format, python-format
-msgid "queda fuera del lienzo el {porcentaje}% del panel"
-msgstr "{porcentaje}% of the panel is off the canvas"
+msgid "queda fuera del vídeo el {porcentaje}% de la fuente"
+msgstr "{porcentaje}% of the source is off the video"
 
 #: bellbird/obs/obs_disposicion.py
 #, python-brace-format
-msgid "Recorte: {valor}"
-msgstr "Crop: {valor}"
-
-#: bellbird/obs/obs_disposicion.py
-#, python-brace-format
-msgid "Aspecto: {mensajes} mensajes visibles, tamaño de letra {letra}"
-msgstr "Look: {mensajes} messages shown, font size {letra}"
+msgid "Entran {mensajes} mensajes, letra de tamaño {letra}"
+msgstr "{mensajes} messages fit, font size {letra}"
 
 #: bellbird/obs/obs_disposicion.py
 #, python-brace-format
@@ -3116,6 +3072,10 @@ msgid ""
 msgstr ""
 "The panel background is transparent. Only the message cards show, stacked "
 "against the bottom edge."
+
+#: bellbird/obs/obs_disposicion.py
+msgid "Se ve completa"
+msgstr "Fully visible"
 
 #. Traductores: {nombre} es el nombre de la fuente.
 #: bellbird/obs/obs_disposicion.py
@@ -3139,23 +3099,16 @@ msgstr ""
 "enable the server."
 
 #: bellbird/obs/obs_disposicion.py
-#, python-brace-format
-msgid ""
-"Panel de chat encendido en el puerto {puerto}. La fuente está en esta "
-"escena."
-msgstr "Chat panel on at port {puerto}. The source is in this scene."
+msgid "Chat en el vídeo activado. La fuente está en esta escena."
+msgstr "Chat on video enabled. The source is in this scene."
 
 #: bellbird/obs/obs_disposicion.py
-msgid "El panel de chat está apagado."
-msgstr "The chat panel is off."
+msgid "El chat en el vídeo está desactivado."
+msgstr "Chat on video is disabled."
 
 #: bellbird/obs/obs_disposicion.py
-msgid "La fuente no está en esta escena."
-msgstr "The source is not in this scene."
-
-#: bellbird/obs/obs_disposicion.py
-msgid "Falta preparar el panel."
-msgstr "The panel still needs setup."
+msgid "El chat en el vídeo no está en esta escena."
+msgstr "Chat on video is not in this scene."
 
 #: bellbird/obs/obs_entradas_audio.py
 msgid ""
@@ -3167,13 +3120,8 @@ msgstr ""
 
 #: bellbird/obs/obs_escena.py
 #, python-brace-format
-msgid "cerca de la {texto}"
-msgstr "near the {texto}"
-
-#: bellbird/obs/obs_escena.py
-#, python-brace-format
-msgid "cerca del {texto}"
-msgstr "near the {texto}"
+msgid "cerca de la posición {texto}"
+msgstr "near the {texto} position"
 
 #: bellbird/obs/obs_escena.py
 msgid "sin nombre"
@@ -3184,8 +3132,8 @@ msgid "posición desconocida"
 msgstr "unknown position"
 
 #: bellbird/obs/obs_escena.py
-msgid "ocupa toda la imagen"
-msgstr "fills the whole picture"
+msgid "ocupa todo el vídeo"
+msgstr "fills the whole video"
 
 #: bellbird/obs/obs_escena.py
 msgid "en una posición libre"
@@ -3203,8 +3151,10 @@ msgstr "hidden in OBS"
 
 #: bellbird/obs/obs_escena.py
 #, python-brace-format
-msgid "visible en OBS, pero no aparece en la imagen: la tapa entera {tapa}"
-msgstr "visible in OBS, but not in the picture: {tapa} covers it entirely"
+msgid "visible en OBS, pero no aparece en el vídeo: la tapa entera {tapa}"
+msgstr ""
+"visible in OBS, but it does not appear in the video: {tapa} covers it "
+"entirely"
 
 #: bellbird/obs/obs_escena.py
 #, python-brace-format
@@ -3218,13 +3168,13 @@ msgstr "visible"
 #. Traductores: {p} es un porcentaje.
 #: bellbird/obs/obs_escena.py
 #, python-brace-format
-msgid " y un {p} por ciento queda fuera de la imagen"
-msgstr " and {p} percent is out of the picture"
+msgid " y un {p} por ciento queda fuera del vídeo"
+msgstr " and {p} percent is off the video"
 
 #: bellbird/obs/obs_escena.py
 #, python-brace-format
-msgid "Escena al aire: {escena}. No tiene fuentes."
-msgstr "Live scene: {escena}. It has no sources."
+msgid "Escena actual: {escena}. No tiene fuentes."
+msgstr "Current scene: {escena}. It has no sources."
 
 #. Traductores: {n} es la cantidad de fuentes de la escena.
 #: bellbird/obs/obs_escena.py
@@ -3236,8 +3186,8 @@ msgstr[1] "{n} sources"
 
 #: bellbird/obs/obs_escena.py
 #, python-brace-format
-msgid "Escena al aire: {escena}. {palabra}, de adelante hacia atrás."
-msgstr "Live scene: {escena}. {palabra}, from front to back."
+msgid "Escena actual: {escena}. {palabra}, de adelante hacia atrás."
+msgstr "Current scene: {escena}. {palabra}, from front to back."
 
 # que
 # sonido
@@ -3363,8 +3313,8 @@ msgstr ""
 "Reset undoes everything you did since you opened this window."
 
 #: bellbird/obs/obs_estado.py
-msgid "No se pudo saber que escena está al aire"
-msgstr "Could not tell which scene is live"
+msgid "No se pudo obtener la escena actual"
+msgstr "Could not get the current scene"
 
 #: bellbird/obs/obs_estado.py
 msgid "No estás transmitiendo"
@@ -3401,8 +3351,8 @@ msgstr "Recording, {tiempo}"
 
 #: bellbird/obs/obs_estado.py
 #, python-brace-format
-msgid "Al aire: {escena}"
-msgstr "Live: {escena}"
+msgid "Escena actual: {escena}"
+msgstr "Current scene: {escena}"
 
 #: bellbird/obs/obs_estado.py
 msgid "transmision_iniciada"
@@ -3433,8 +3383,8 @@ msgid "Grabación reanudada"
 msgstr "Recording resumed"
 
 #: bellbird/obs/obs_estado.py
-msgid "Escena puesta al aire"
-msgstr "Scene put live"
+msgid "Escena actual cambiada"
+msgstr "Current scene changed"
 
 #: bellbird/obs/obs_grabacion.py
 msgid ""
@@ -3529,8 +3479,8 @@ msgid "escena"
 msgstr "scene"
 
 #: bellbird/obs/obs_prevuelo.py
-msgid "panel de chat de la app"
-msgstr "app chat panel"
+msgid "chat en el vídeo de la app"
+msgstr "chat on video from the app"
 
 #: bellbird/obs/obs_prevuelo.py
 #, python-brace-format
@@ -3566,23 +3516,23 @@ msgstr ""
 
 #: bellbird/obs/obs_prevuelo.py
 #, python-brace-format
+msgid "Atención: {problemas}"
+msgstr "Warning: {problemas}"
+
+#: bellbird/obs/obs_prevuelo.py
+#, python-brace-format
 msgid "Destino {destino}."
 msgstr "Destination {destino}."
 
 #: bellbird/obs/obs_prevuelo.py
 #, python-brace-format
-msgid "Perfil {perfil}, formato {formato} {ancho} por {alto}."
-msgstr "Profile {perfil}, {formato} format {ancho} by {alto}."
+msgid "Formato {formato}, {ancho} por {alto}."
+msgstr "{formato} format, {ancho} by {alto}."
 
 #: bellbird/obs/obs_prevuelo.py
 #, python-brace-format
-msgid "Perfil {perfil}."
-msgstr "Profile {perfil}."
-
-#: bellbird/obs/obs_prevuelo.py
-#, python-brace-format
-msgid "Escena al aire: {escena}."
-msgstr "Live scene: {escena}."
+msgid "Escena actual: {escena}."
+msgstr "Current scene: {escena}."
 
 #: bellbird/obs/obs_prevuelo.py
 #, python-brace-format
@@ -3611,11 +3561,6 @@ msgstr "Desktop audio {estado}."
 #, python-brace-format
 msgid "Audio del escritorio {nombre} {estado}."
 msgstr "{nombre} desktop audio {estado}."
-
-#: bellbird/obs/obs_prevuelo.py
-#, python-brace-format
-msgid "Atención: {problemas}"
-msgstr "Warning: {problemas}"
 
 #. Traductores: {servicio} es el nombre del servicio de emisión.
 #: bellbird/obs/obs_salida.py
@@ -3647,13 +3592,15 @@ msgstr "Connection to the service is back."
 
 #: bellbird/obs/obs_salida.py
 #, python-brace-format
-msgid "Se están perdiendo cuadros: {porcentaje} por ciento. La red va lenta."
+msgid "Se están perdiendo fotogramas: {porcentaje} por ciento. La red va lenta."
 msgstr "Frames are being dropped: {porcentaje} percent. The network is slow."
 
 #: bellbird/obs/obs_salida.py
 #, python-brace-format
-msgid "OBS no da abasto: se pierde el {porcentaje} por ciento de los cuadros."
-msgstr "OBS cannot keep up: {porcentaje} percent of frames are dropped."
+msgid ""
+"OBS está sobrecargado: se pierde el {porcentaje} por ciento de los "
+"fotogramas."
+msgstr "OBS is overloaded: {porcentaje} percent of the frames are dropped."
 
 #. Traductores: {n} es la cantidad de horas de la posición.
 #: bellbird/obs/obs_supervisor.py bellbird/player/reproductor.py
@@ -3717,8 +3664,8 @@ msgstr "Could not connect to OBS to stop the broadcast."
 
 #: bellbird/obs/obs_supervisor.py
 #, python-brace-format
-msgid "El panel de chat estaba detrás de «{nombre}». Ahora está delante."
-msgstr "The chat panel was behind “{nombre}”. Now it is in front."
+msgid "El chat en el vídeo estaba detrás de «{nombre}». Ahora está delante."
+msgstr "The chat on video was behind “{nombre}”. Now it is in front."
 
 #: bellbird/obs/obs_supervisor.py
 msgid "Comenzando la transmisión."
@@ -3737,16 +3684,16 @@ msgid "Esperando a que TikTok muestre el directo."
 msgstr "Waiting for TikTok to show the live stream."
 
 #: bellbird/obs/obs_supervisor.py
-msgid "Tu directo de TikTok ya está al aire."
-msgstr "Your TikTok live stream is already live."
+msgid "Directo iniciado en TikTok"
+msgstr "Live stream started on TikTok"
 
 #: bellbird/obs/obs_supervisor.py
 msgid "Esperando a que YouTube muestre el directo."
 msgstr "Waiting for YouTube to show the live stream."
 
 #: bellbird/obs/obs_supervisor.py
-msgid "Tu directo de YouTube ya está al aire."
-msgstr "Your YouTube live stream is already live."
+msgid "Directo iniciado en YouTube"
+msgstr "Live stream started on YouTube"
 
 #: bellbird/obs/obs_supervisor.py
 msgid "OBS está transmitiendo, pero YouTube todavía no muestra el directo."
@@ -6238,11 +6185,11 @@ msgid "Latencia"
 msgstr "Latency"
 
 #: bellbird/ui/gui_directo_youtube.py
-msgid "Hecho para &niños (YouTube apaga el chat)"
-msgstr "Made for &kids (YouTube turns off the chat)"
+msgid "Creado para &niños (YouTube desactiva el chat)"
+msgstr "Made for &kids (YouTube disables the chat)"
 
 #: bellbird/ui/gui_directo_youtube.py
-msgid "Hecho para niños"
+msgid "Creado para niños"
 msgstr "Made for kids"
 
 #: bellbird/ui/gui_directo_youtube.py
@@ -7111,10 +7058,10 @@ msgstr "The detailed logging change applies when the application restarts."
 
 #: bellbird/ui/gui_preferencias.py
 msgid ""
-"El puerto nuevo del panel de chat se aplica al apagarlo y volver a "
-"encenderlo desde el panel de transmisión."
+"El puerto del chat en el vídeo se aplica al apagarlo y volver a encenderlo "
+"desde el panel de transmisión."
 msgstr ""
-"The new chat panel port applies when you turn it off and on again from the "
+"The chat on video port applies when you turn it off and on again from the "
 "broadcast panel."
 
 #: bellbird/ui/gui_preferencias.py
@@ -7235,6 +7182,10 @@ msgstr "Chat panel, YouTube only"
 #: bellbird/ui/gui_transmision.py
 msgid "&Panel de chat para transmitir"
 msgstr "&Chat panel for streaming"
+
+#: bellbird/ui/gui_transmision.py
+msgid "Panel de chat para transmitir"
+msgstr "Chat panel for streaming"
 
 #: bellbird/ui/gui_transmision.py
 msgid "Preparar pane&l"
@@ -7406,17 +7357,20 @@ msgstr "Reset"
 
 #: bellbird/ui/gui_transmitir.py
 #, python-brace-format
-msgid "No se pudo activar el panel, el puerto {puerto} está ocupado"
-msgstr "Could not activate the panel, port {puerto} is busy"
+msgid ""
+"No se pudo activar el chat en el vídeo: el puerto {puerto} está en uso. "
+"Cámbialo en Preferencias, Transmisión."
+msgstr ""
+"Could not enable chat on video: port {puerto} is in use. Change it in "
+"Preferences, Broadcast."
 
 #: bellbird/ui/gui_transmitir.py
-#, python-brace-format
-msgid "Panel de chat activo en el puerto {puerto}"
-msgstr "Chat panel active on port {puerto}"
+msgid "Chat en el vídeo activado"
+msgstr "Chat on video enabled"
 
 #: bellbird/ui/gui_transmitir.py
-msgid "Panel de chat apagado"
-msgstr "Chat panel off"
+msgid "Chat en el vídeo desactivado"
+msgstr "Chat on video disabled"
 
 #: bellbird/ui/gui_transmitir.py
 msgid "Avisos de sobrecarga activados"
@@ -7447,7 +7401,7 @@ msgstr ""
 "and session category."
 
 #: bellbird/ui/gui_transmitir.py
-msgid "El directo está marcado como hecho para niños y YouTube no tiene chat."
+msgid "El directo está marcado como creado para niños y YouTube no tiene chat."
 msgstr "The live stream is marked as made for kids and YouTube has no chat."
 
 #: bellbird/ui/gui_transmitir.py
@@ -7698,8 +7652,8 @@ msgid "&Panel de transmisión…"
 msgstr "&Broadcast panel…"
 
 #: bellbird/ui/menu_transmision.py
-msgid "Silenciar el &micrófono de OBS"
-msgstr "Mute the OBS &microphone"
+msgid "Silenciar &micrófono de OBS"
+msgstr "Mute OBS &microphone"
 
 #: bellbird/ui/menu_transmision.py
 msgid "&Elegir micrófono…"
@@ -7710,8 +7664,8 @@ msgid "Mostrar &OBS"
 msgstr "Show &OBS"
 
 #: bellbird/ui/menu_transmision.py
-msgid "&Avisar cuando OBS no da abasto"
-msgstr "&Warn when OBS struggles"
+msgid "&Avisar si OBS se sobrecarga"
+msgstr "&Warn if OBS is overloaded"
 
 #: bellbird/ui/menu_transmision.py
 msgid "&Grabar también al transmitir"
@@ -8732,20 +8686,20 @@ msgid "Sonido"
 msgstr "Sound"
 
 #: bellbird/ui/preferencias_transmision.py
-msgid "A&visar cuando OBS no da abasto"
-msgstr "&Warn when OBS struggles"
+msgid "A&visar si OBS se sobrecarga"
+msgstr "W&arn if OBS is overloaded"
 
 #: bellbird/ui/preferencias_transmision.py
 msgid "Mostrar en el &título de la ventana si se transmite o se graba"
 msgstr "Show streaming or recording in the &title of the window"
 
 #: bellbird/ui/preferencias_transmision.py
-msgid "&Puerto del panel de chat:"
-msgstr "Chat panel &port:"
+msgid "&Puerto del chat en el vídeo:"
+msgstr "Chat on video &port:"
 
 #: bellbird/ui/preferencias_transmision.py
-msgid "Puerto del panel de chat"
-msgstr "Chat panel port"
+msgid "Puerto del chat en el vídeo"
+msgstr "Chat on video port"
 
 #: bellbird/ui/preferencias_transmision.py
 msgid "&Micrófono de OBS:"

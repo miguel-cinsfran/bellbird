@@ -4594,7 +4594,7 @@ def escenario_overlay(app: Aplicacion, args, res: Resultado):
     """
     import urllib.request
 
-    etiqueta = "Panel de chat para transmitir"
+    etiqueta = "Chat en el vídeo para transmitir"
     puerto = 8730
     url = f"http://127.0.0.1:{puerto}/chat"
 
@@ -4637,13 +4637,13 @@ def escenario_overlay(app: Aplicacion, args, res: Resultado):
         res.nota("el panel ya venía encendido; se apaga para probar el ciclo")
         if not alternar_panel():
             return
-        app.esperar_dicho("panel de chat apagado", 8)
+        app.esperar_dicho("chat en el vídeo desactivado", 8)
 
     # Encender
     antes = len(app.anuncios)
     if not alternar_panel():
         return
-    if not app.esperar_dicho("panel de chat activo en el puerto", 10, desde=antes):
+    if not app.esperar_dicho("chat en el vídeo activado", 10, desde=antes):
         dichos = [a["texto"][:60] for a in app.anuncios[antes:]]
         res.fallo(f"al encender no anunció el puerto; dijo: {dichos}")
     if not responde():
@@ -4654,9 +4654,9 @@ def escenario_overlay(app: Aplicacion, args, res: Resultado):
     # F2 distingue si alguien muestra el panel: nadie o fuente en OBS
     antes = len(app.anuncios)
     app.abrir_por_menu("Anunciar estado")
-    app.esperar_dicho("panel", 8, desde=antes)
+    app.esperar_dicho("chat en el vídeo", 8, desde=antes)
     dicho = " ".join(a["texto"].lower() for a in app.anuncios[antes:])
-    if "panel de chat activo" not in dicho:
+    if "chat en el vídeo activado" not in dicho:
         res.fallo("F2 no menciona el panel estando encendido")
     elif "nadie lo est" in dicho:
         res.nota("F2 dice que nadie lo está mostrando")
@@ -4669,7 +4669,7 @@ def escenario_overlay(app: Aplicacion, args, res: Resultado):
     antes = len(app.anuncios)
     if not alternar_panel():
         return
-    if not app.esperar_dicho("panel de chat apagado", 10, desde=antes):
+    if not app.esperar_dicho("chat en el vídeo desactivado", 10, desde=antes):
         res.fallo("al apagar no lo anunció")
     if responde(3.0):
         res.fallo("apagado, el puerto sigue respondiendo")

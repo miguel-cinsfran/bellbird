@@ -31,7 +31,7 @@ class PaginaTransmision:
 
     def _casillas_de_aviso(self, p, vs):
         avisar = wx.CheckBox(
-            p, label=_("A&visar cuando OBS no da abasto"),
+            p, label=_("A&visar si OBS se sobrecarga"),
             name="AvisarSobrecargaObs")
         vs.Add(avisar, 0, wx.ALL, 10)
         titulo = wx.CheckBox(
@@ -46,11 +46,11 @@ class PaginaTransmision:
 
         self.chk_avisar_sobrecarga, self.chk_titulo_estado_obs = self._casillas_de_aviso(p, vs)
 
-        vs.Add(fila_label(p, _("&Puerto del panel de chat:")),
+        vs.Add(fila_label(p, _("&Puerto del chat en el vídeo:")),
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.sp_puerto_overlay = ContadorAccesible(
             p, min=1024, max=65535,
-            name=_("Puerto del panel de chat"))
+            name=_("Puerto del chat en el vídeo"))
         vs.Add(self.sp_puerto_overlay, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         vs.Add(fila_label(p, _("&Micrófono de OBS:")),

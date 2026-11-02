@@ -107,13 +107,13 @@ _FRASE_VUELTA = N_("La conexión con el servicio volvió.")
 
 
 def _frase_red(porcentaje) -> str:
-    return (_("Se están perdiendo cuadros: {porcentaje} por ciento. "
+    return (_("Se están perdiendo fotogramas: {porcentaje} por ciento. "
               "La red va lenta.").format(porcentaje=porcentaje))
 
 
 def _frase_sobrecarga(porcentaje) -> str:
-    return (_("OBS no da abasto: se pierde el {porcentaje} por ciento "
-              "de los cuadros.").format(porcentaje=porcentaje))
+    return (_("OBS está sobrecargado: se pierde el {porcentaje} por ciento "
+              "de los fotogramas.").format(porcentaje=porcentaje))
 
 
 def problemas_en_directo(anterior, actual, estadisticas_anterior=None,

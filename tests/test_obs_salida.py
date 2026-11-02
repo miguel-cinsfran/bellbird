@@ -144,7 +144,7 @@ class ProblemasEnDirectoTest(unittest.TestCase):
         anterior = muestra(True, 10, perdidos=0, totales=1000)
         actual = muestra(True, 20, perdidos=60, totales=1100)
         self.assertEqual(problemas_en_directo(anterior, actual),
-                         [("red", "Se están perdiendo cuadros: 60 por ciento. "
+                         [("red", "Se están perdiendo fotogramas: 60 por ciento. "
                                   "La red va lenta.")])
 
     def test_pocos_cuadros_no_avisa(self):
@@ -161,7 +161,7 @@ class ProblemasEnDirectoTest(unittest.TestCase):
         anterior = muestra(True, 10, perdidos=0, totales=1000)
         actual = muestra(True, 20, perdidos=6, totales=1100)
         self.assertEqual(problemas_en_directo(anterior, actual),
-                         [("red", "Se están perdiendo cuadros: 6 por ciento. "
+                         [("red", "Se están perdiendo fotogramas: 6 por ciento. "
                                   "La red va lenta.")])
 
     def test_cuatro_por_ciento_no_avisa(self):
@@ -195,7 +195,7 @@ class ProblemasEnDirectoTest(unittest.TestCase):
                           "renderSkippedFrames": 10,
                           "renderTotalFrames": 1100})
         self.assertEqual(avisos, [("sobrecarga",
-            "OBS no da abasto: se pierde el 40 por ciento de los cuadros.")])
+            "OBS está sobrecargado: se pierde el 40 por ciento de los fotogramas.")])
 
     def test_sobrecarga_toma_el_dibujo_cuando_supera_al_codificado(self):
         avisos = problemas_en_directo(
@@ -209,7 +209,7 @@ class ProblemasEnDirectoTest(unittest.TestCase):
                           "renderSkippedFrames": 20,
                           "renderTotalFrames": 1100})
         self.assertEqual(avisos, [("sobrecarga",
-            "OBS no da abasto: se pierde el 20 por ciento de los cuadros.")])
+            "OBS está sobrecargado: se pierde el 20 por ciento de los fotogramas.")])
 
     def test_sobrecarga_bajo_umbral_en_los_dos_no_avisa(self):
         avisos = problemas_en_directo(

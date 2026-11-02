@@ -14,11 +14,11 @@ ANCLAJES: dict[str, int] = {
 }
 
 _ETIQUETAS_ANCLAJE = {
-    "superior-izquierda": N_("Superior izquierda"), "superior-centro": N_("Superior centro"),
-    "superior-derecha": N_("Superior derecha"), "centro-izquierda": N_("Centro izquierda"),
-    "centro": N_("Centro"), "centro-derecha": N_("Centro derecha"),
-    "inferior-izquierda": N_("Inferior izquierda"), "inferior-centro": N_("Inferior centro"),
-    "inferior-derecha": N_("Inferior derecha"),
+    "superior-izquierda": N_("Arriba a la izquierda"), "superior-centro": N_("Arriba al centro"),
+    "superior-derecha": N_("Arriba a la derecha"), "centro-izquierda": N_("Centro a la izquierda"),
+    "centro": N_("Centro"), "centro-derecha": N_("Centro a la derecha"),
+    "inferior-izquierda": N_("Abajo a la izquierda"), "inferior-centro": N_("Abajo al centro"),
+    "inferior-derecha": N_("Abajo a la derecha"),
 }
 
 
@@ -126,15 +126,15 @@ def _porcentaje(valor) -> int:
 
 # Traductores: cada valor dice dónde está anclado el panel dentro del lienzo.
 _LUGARES_ANCLADO = {
-    "superior-izquierda": N_("esquina superior izquierda"),
-    "superior-centro": N_("borde superior, centrado"),
-    "superior-derecha": N_("esquina superior derecha"),
-    "centro-izquierda": N_("borde izquierdo, centrado"),
+    "superior-izquierda": N_("arriba a la izquierda"),
+    "superior-centro": N_("arriba al centro"),
+    "superior-derecha": N_("arriba a la derecha"),
+    "centro-izquierda": N_("centro a la izquierda"),
     "centro": N_("centro"),
-    "centro-derecha": N_("borde derecho, centrado"),
-    "inferior-izquierda": N_("esquina inferior izquierda"),
-    "inferior-centro": N_("borde inferior, centrado"),
-    "inferior-derecha": N_("esquina inferior derecha"),
+    "centro-derecha": N_("centro a la derecha"),
+    "inferior-izquierda": N_("abajo a la izquierda"),
+    "inferior-centro": N_("abajo al centro"),
+    "inferior-derecha": N_("abajo a la derecha"),
 }
 
 
@@ -192,13 +192,13 @@ def _lugar_libre(snap):
                 borde=borde_y))
     if salidas and distancias:
         # Traductores: {salidas} son los lados y {distancias} los porcentajes.
-        texto = _("se sale del lienzo {salidas}, y {distancias}").format(
+        texto = _("se sale del vídeo {salidas}, y {distancias}").format(
             salidas=salidas,
             # Traductores: conjunción entre partes de una frase, con sus espacios.
             distancias=_(" y ").join(distancias))
     elif salidas:
         # Traductores: {salidas} son los lados por donde se sale.
-        texto = _("se sale del lienzo {salidas}").format(salidas=salidas)
+        texto = _("se sale del vídeo {salidas}").format(salidas=salidas)
     else:
         # Traductores: conjunción entre partes de una frase, con sus espacios.
         texto = _(" y ").join(distancias)
@@ -228,8 +228,8 @@ def _escena(s, largo) -> str:
     if not s.escena:
         return ""
     valor = s.escena + (
-        # Traductores: se suma al nombre de la escena cuando no está al aire.
-        _(", no al aire") if not s.al_aire else "")
+        # Traductores: se suma al nombre de la escena cuando no es la actual.
+        _(", no es la escena actual") if not s.al_aire else "")
     return _("Escena: {valor}").format(valor=valor) if largo else valor
 
 
@@ -247,19 +247,13 @@ def _tamano(s, largo) -> str:
 
 def _capa(s, largo) -> str:
     if not s.tapada_por:
-        valor = _("no lo tapa nada")
-    else:
-        valor = _("lo tapa {fuente}").format(fuente=s.tapada_por)
-    if largo:
-        return _("Capa: {valor}").format(valor=valor)
-    return valor[0].upper() + valor[1:]
+        return ""
+    return _("La tapa {fuente}").format(fuente=s.tapada_por)
 
 
 def _solape(s, largo) -> str:
     if not s.solapes:
-        # El modo corto se oye en cada pulsación del ajuste fino.
-        return (_("No se superpone con ninguna otra fuente") if largo
-                else _("Libre"))
+        return ""
     # El porcentaje de superposición es de la otra fuente; el de recorte, del propio panel.
     # Traductores: {porcentaje} es un número y {fuente} el nombre de la otra fuente.
     partes = [_("al {porcentaje}% de {fuente}").format(
@@ -270,36 +264,27 @@ def _solape(s, largo) -> str:
 
 
 def _visible(s, largo) -> str:
-    if largo:
-        # Traductores: valor de «Visible en OBS».
-        valor = _("sí") if s.visible else _("no")
-        return _("Visible en OBS: {valor}").format(valor=valor)
-    return "" if s.visible else _("Oculto en OBS")
+    return "" if s.visible else _("Oculta en OBS")
 
 
 def _bloqueada(s, largo) -> str:
-    if largo:
-        # Traductores: valor de «Fijado».
-        valor = _("sí") if s.bloqueada else _("no")
-        return _("Fijado: {valor}").format(valor=valor)
-    return _("Fijado") if s.bloqueada else ""
+    return _("Bloqueada") if s.bloqueada else ""
 
 
 def _fuera(s, largo) -> str:
     if not s.fuera:
         return ""
-    valor = _("queda fuera del lienzo el {porcentaje}% del panel").format(
+    texto = _("queda fuera del vídeo el {porcentaje}% de la fuente").format(
         porcentaje=_porcentaje(s.fuera))
-    return _("Recorte: {valor}").format(valor=valor) if largo else valor.capitalize()
+    return texto[:1].upper() + texto[1:]
 
 
 def _aspecto(s, largo) -> str:
     if not s.mensajes_visibles and not s.tamano_letra:
         return ""
     if largo:
-        return _("Aspecto: {mensajes} mensajes visibles, tamaño de letra "
-                 "{letra}").format(mensajes=s.mensajes_visibles,
-                                   letra=s.tamano_letra)
+        return _("Entran {mensajes} mensajes, letra de tamaño {letra}").format(
+            mensajes=s.mensajes_visibles, letra=s.tamano_letra)
     return _("{mensajes} mensajes, letra {letra}").format(
         mensajes=s.mensajes_visibles, letra=s.tamano_letra)
 
@@ -334,13 +319,23 @@ def _render(nombre: str, s: SnapshotPanel, largo: bool) -> str:
     return funcion(s, largo)
 
 
+def _se_ve_completa(s: SnapshotPanel) -> bool:
+    return bool(s.conectado and s.visible and not s.tapada_por
+                and not s.solapes and not s.fuera)
+
+
 def describir(snap: SnapshotPanel, componentes, modo="corto") -> str:
     partes = []
+    revisa_todo = {"capa", "solape", "visible"} <= set(componentes)
     for nombre in COMPONENTES:
-        if nombre in componentes:
-            texto = _render(nombre, snap, modo == "largo")
-            if texto:
-                partes.append(texto)
+        if nombre not in componentes:
+            continue
+        if nombre == "capa" and revisa_todo and _se_ve_completa(snap):
+            partes.append(_("Se ve completa"))
+            continue
+        texto = _render(nombre, snap, modo == "largo")
+        if texto:
+            partes.append(texto)
     if not partes:
         return ""
     return "\n".join(partes) if modo == "largo" else "; ".join(partes) + "."
@@ -364,11 +359,7 @@ def describir_preparacion(obs_responde, panel_encendido, puerto, fuente_en_escen
         return _("OBS no responde. En OBS, menú Herramientas, Configuración "
                  "del servidor WebSocket, activa el servidor.")
     if panel_encendido and fuente_en_escena:
-        return _("Panel de chat encendido en el puerto {puerto}. "
-                 "La fuente está en esta escena.").format(puerto=puerto)
-    partes = []
+        return _("Chat en el vídeo activado. La fuente está en esta escena.")
     if not panel_encendido:
-        partes.append(_("El panel de chat está apagado."))
-    if not fuente_en_escena:
-        partes.append(_("La fuente no está en esta escena."))
-    return _("Falta preparar el panel.") + " " + " ".join(partes)
+        return _("El chat en el vídeo está desactivado.")
+    return _("El chat en el vídeo no está en esta escena.")

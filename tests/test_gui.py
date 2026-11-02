@@ -2031,7 +2031,7 @@ class TestCategoriasDePreferenciasSoloLectura(unittest.TestCase):
                 ("Reconectar automáticamente", "PagConexion"),
                 ("Espera máxima entre intentos, en segundos", "PagConexion"),
                 ("Número máximo de intentos", "PagConexion"),
-                ("Puerto del panel de chat", "PagTransmision"),
+                ("Puerto del chat en el vídeo", "PagTransmision"),
                 ("Micrófono de OBS", "PagTransmision")):
             control = self._buscar(dialogo, nombre)
             self.assertIsNotNone(control)
@@ -3459,7 +3459,7 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         self._guardar(dialogo)
 
         self.assertIn(
-            "El puerto nuevo del panel de chat se aplica al apagarlo y "
+            "El puerto del chat en el vídeo se aplica al apagarlo y "
             "volver a encenderlo desde el panel de transmisión.",
             dialogo.avisos)
 
@@ -4143,7 +4143,7 @@ class TestEstadoObsEnF2(unittest.TestCase):
             frame._anunciar_estado()
         texto = anunciar.call_args.args[0]
         self.assertTrue(all(x in texto for x in ("Transmitiendo desde hace 1 min, 2 de 10 fotogramas perdidos",
-                                                   "Grabando, 00:01:00", "Al aire: Principal")))
+                                                   "Grabando, 00:01:00", "Escena actual: Principal")))
     def test_f2_omite_dato_pasado_y_sin_vigilante(self):
         for toggles, vigilante in (({"estado", *gui._OBS_COMPONENTES}, mock.Mock(estado=lambda: None)),
                                     ({"estado"}, None)):
@@ -4465,7 +4465,7 @@ class TestCierreVentana(unittest.TestCase):
 
         self.assertFalse(frame._config["overlay_activo"])
         anunciar.assert_called_once_with(
-            "No se pudo activar el panel, el puerto 8730 está ocupado")
+            "No se pudo activar el chat en el vídeo: el puerto 8730 está en uso. Cámbialo en Preferencias, Transmisión.")
 
     def test_el_precalentamiento_se_arranca_solo_con_la_ventana_viva(self):
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
@@ -4687,7 +4687,7 @@ class TestCierreVentana(unittest.TestCase):
         self.assertFalse(resultado)
         self.assertFalse(frame._config["overlay_activo"])
         anunciar.assert_called_once_with(
-            "No se pudo activar el panel, el puerto 8730 está ocupado")
+            "No se pudo activar el chat en el vídeo: el puerto 8730 está en uso. Cámbialo en Preferencias, Transmisión.")
 
     def test_el_puerto_ocupado_no_guarda_el_cambio_de_esta_sesion(self):
         frame = self._frame()
@@ -5764,7 +5764,7 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
         frame._on_conectar.assert_not_called()
         frame.txt_url.SetValue.assert_not_called()
         anunciar.assert_called_once_with(
-            "El directo está marcado como hecho para niños y YouTube no "
+            "El directo está marcado como creado para niños y YouTube no "
             "tiene chat.")
 
 

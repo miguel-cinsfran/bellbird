@@ -66,7 +66,7 @@ class TestCambiarOverlay(unittest.TestCase):
         guardar.assert_called_once_with(
             gui.RUTA_CONFIG, "overlay", "activo", "true")
         anunciar.assert_called_once_with(
-            "Panel de chat activo en el puerto 8730")
+            "Chat en el vídeo activado")
         self._recarga.assert_called_once_with()
         self.assertEqual(len(self._hilos), 1)
         self.assertEqual(self._hilos[0].nombre, "RecargarPanelObs")
@@ -85,7 +85,7 @@ class TestCambiarOverlay(unittest.TestCase):
         self.assertFalse(frame._config["overlay_activo"])
         guardar.assert_not_called()
         anunciar.assert_called_once_with(
-            "No se pudo activar el panel, el puerto 8730 está ocupado")
+            "No se pudo activar el chat en el vídeo: el puerto 8730 está en uso. Cámbialo en Preferencias, Transmisión.")
         self._recarga.assert_not_called()
         self.assertEqual(self._hilos, [])
 
@@ -100,7 +100,7 @@ class TestCambiarOverlay(unittest.TestCase):
         self.assertFalse(frame._config["overlay_activo"])
         guardar.assert_called_once_with(
             gui.RUTA_CONFIG, "overlay", "activo", "false")
-        anunciar.assert_called_once_with("Panel de chat apagado")
+        anunciar.assert_called_once_with("Chat en el vídeo desactivado")
         self._recarga.assert_not_called()
         self.assertEqual(self._hilos, [])
 
@@ -623,7 +623,7 @@ class TestAlConectarChatEnlaceDirecto(unittest.TestCase):
              "ninos": True})
         self.assertEqual(frame.sesion.enlace_directo, self.URL)
         anunciar.assert_called_once_with(
-            "El directo está marcado como hecho para niños y YouTube no "
+            "El directo está marcado como creado para niños y YouTube no "
             "tiene chat.")
 
 

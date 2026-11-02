@@ -87,8 +87,8 @@ class GestorFalso:
         self.instantaneas.append((args, kwargs.get("fuente")))
         return self.snap
     def descripcion_escena(self, parada=None):
-        return ("Escena al aire: Principal. 1 fuente, de adelante hacia atrás.\n"
-                "1: Juego, captura de pantalla, ocupa toda la imagen, se ve.")
+        return ("Escena actual: Principal. 1 fuente, de adelante hacia atrás.\n"
+                "1: Juego, captura de pantalla, ocupa todo el vídeo, se ve.")
     def captura_de_escena(self, *args): self.llamadas.append(("captura_de_escena",) + args)
     def estado_transmision(self):
         return {"outputActive": self.transmitiendo, "outputDuration": 61,
@@ -280,7 +280,7 @@ class TestTransmisionDialog(unittest.TestCase):
 
     def test_mostrar_instantanea_refleja_el_anclaje_real_del_panel(self):
         self.dialogo._mostrar_snap(self.gestor.snap)
-        self.assertEqual(self.dialogo.cho_posicion.GetStringSelection(), "Superior izquierda")
+        self.assertEqual(self.dialogo.cho_posicion.GetStringSelection(), "Arriba a la izquierda")
 
     def test_mostrar_instantanea_fuera_de_anclajes_deja_sin_posicion(self):
         snap = obs_disposicion.SnapshotPanel(
@@ -306,8 +306,8 @@ class TestTransmisionDialog(unittest.TestCase):
             dialogo = gui_transmision.TransmisionDialog(
                 None, gestor, asegurar=_asegurar_sin_obs)
         self.addCleanup(destruir, dialogo)
-        self.assertIn("Falta preparar el panel. El panel de chat está apagado.", self.anuncios)
-        self.assertIn("Al aire: Principal", self.anuncios)
+        self.assertIn("El chat en el vídeo está desactivado.", self.anuncios)
+        self.assertIn("Escena actual: Principal", self.anuncios)
         encender.assert_not_called()
 
     def test_preparar_panel_enciende_y_crea_solo_lo_necesario(self):
@@ -360,7 +360,7 @@ class TestTransmisionDialog(unittest.TestCase):
         self.gestor.escena_resultante = "Principal"
         self.dialogo._poner_al_aire(Evento())
         self.assertIn(("poner_escena_al_aire", "Juego"), self.gestor.llamadas)
-        self.assertEqual(self.anuncios[-1], "Al aire: Principal")
+        self.assertEqual(self.anuncios[-1], "Escena actual: Principal")
 
     def test_boton_poner_al_aire_sigue_a_escena_en_las_acciones(self):
         indice = self.dialogo._acciones.index(self.dialogo.cho_escena)
@@ -553,21 +553,21 @@ class TestTransmisionDialog(unittest.TestCase):
             visible=False, bloqueada=True)
         self.dialogo._frente(Evento())
         self.assertIn("800 por 500", self.anuncios[-1])
-        self.assertIn("Oculto", self.anuncios[-1])
+        self.assertIn("Oculta", self.anuncios[-1])
 
     def test_ajuste_fino_entra_y_anuncia_la_posicion(self):
         self.dialogo._iniciar_ajuste(Evento())
         self.assertTrue(self.dialogo._ajuste.en_curso)
         self.assertEqual(self.dialogo.btn_ajuste.GetLabel(), "Ajustando, flechas para mover")
         self.assertIn("Ajuste fino.", self.anuncios[-2])
-        self.assertEqual(self.anuncios[-1], "Esquina superior izquierda; Libre.")
+        self.assertEqual(self.anuncios[-1], "Arriba a la izquierda.")
 
     def test_flecha_del_ajuste_mueve_y_anuncia_el_conjunto_corto(self):
         self.dialogo._iniciar_ajuste(Evento())
         self.anuncios.clear()
         self.dialogo._tecla_ajuste(EventoTecla(wx.WXK_RIGHT))
         self.assertIn(("mover", "Principal", 10, 0), self.gestor.llamadas)
-        self.assertEqual(self.anuncios[-1], "Esquina superior izquierda; Libre.")
+        self.assertEqual(self.anuncios[-1], "Arriba a la izquierda.")
 
     def test_flecha_se_descarta_si_hay_movimiento_en_vuelo(self):
         self.dialogo._iniciar_ajuste(Evento())
@@ -1049,17 +1049,17 @@ class TestTransmisionDialog(unittest.TestCase):
 
     def test_actualizar_estado_refresca_la_vista(self):
         self.gestor.descripcion_escena = lambda parada=None: (
-            "Escena al aire: Juego. No tiene fuentes.")
+            "Escena actual: Juego. No tiene fuentes.")
         self.dialogo._actualizar(Evento())
         self.assertEqual(self.dialogo.txt_vista_escena.GetValue(),
-                         "Escena al aire: Juego. No tiene fuentes.")
+                         "Escena actual: Juego. No tiene fuentes.")
 
     def test_mostrar_estados_no_agrega_la_escena_al_aire(self):
         self.dialogo._mostrar_snap(self.gestor.snap)
         self.dialogo._mostrar_estados(self.gestor.estado_transmision(),
                                       self.gestor.estado_grabacion(),
                                       "Principal")
-        self.assertNotIn("Al aire: Principal",
+        self.assertNotIn("Escena actual: Principal",
                          self.dialogo.txt_estado.GetValue())
 
     def test_mostrar_estados_sigue_actualizando_los_botones(self):
@@ -1578,10 +1578,20 @@ class TestTablaPosicionesSinVentana(unittest.TestCase):
     # Sin ventana: la tabla vive en el módulo, así no se crea ningún control.
 
     def test_tabla_cubre_los_anclajes_con_el_texto_de_hoy(self):
-        for nombre in obs_disposicion.ANCLAJES:
-            self.assertEqual(
-                obs_disposicion.etiqueta_anclaje(nombre),
-                nombre.replace("-", " ").capitalize())
+        etiquetas = {
+            "superior-izquierda": "Arriba a la izquierda",
+            "superior-centro": "Arriba al centro",
+            "superior-derecha": "Arriba a la derecha",
+            "centro-izquierda": "Centro a la izquierda",
+            "centro": "Centro",
+            "centro-derecha": "Centro a la derecha",
+            "inferior-izquierda": "Abajo a la izquierda",
+            "inferior-centro": "Abajo al centro",
+            "inferior-derecha": "Abajo a la derecha",
+        }
+        self.assertEqual(set(etiquetas), set(obs_disposicion.ANCLAJES))
+        for nombre, etiqueta in etiquetas.items():
+            self.assertEqual(obs_disposicion.etiqueta_anclaje(nombre), etiqueta)
 
 
 # Los nombres de escenas, fuentes y ventanas son datos del gestor de

@@ -274,13 +274,13 @@ _COMENTARIOS: dict[str, str] = {
     "sesion": "# Silenciar lectura al arrancar.\n",
     "tiktok": "# Solo TikTok: anunciar quién entra al directo puede ser muchísimo.\n",
     "diagnostico": "# Registro detallado para diagnosticar fallos (requiere reiniciar).\n",
-    "overlay": "# Panel de chat para transmitir por navegador (overlay web).\n",
+    "overlay": "# Chat en el vídeo para transmitir por navegador (overlay web).\n",
     "obs": "# Integración con OBS: nombre de la fuente de micrófono.\n",
     "transmision": (
         "# Transmisión: destino del directo y datos del directo de\n"
         "# YouTube (se piden al transmitir y se recuerdan). La\n"
         "# descripción guarda los saltos de línea como \\n.\n"
-        "# La cámara de la escena al aire se busca sola; camara_fuente\n"
+        "# La cámara de la escena actual se busca sola; camara_fuente\n"
         "# la fija por nombre. camara_invertir invierte izquierda y\n"
         "# derecha además del espejo que informa OBS.\n"
     ),

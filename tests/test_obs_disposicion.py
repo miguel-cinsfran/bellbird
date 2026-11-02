@@ -49,42 +49,42 @@ class GeometriaTest(unittest.TestCase):
                                  ancho=460, alto=620, lienzo_ancho=1600,
                                  lienzo_alto=900)
         self.assertEqual(obs.describir(snap, ("posicion",)),
-                         "Se sale del lienzo por la izquierda, y a 2% del borde inferior.")
+                         "Se sale del vídeo por la izquierda, y a 2% del borde inferior.")
 
     def test_posicion_fuera_por_la_derecha(self):
         snap = obs.SnapshotPanel(conectado=True, izquierda=1500, arriba=262,
                                  ancho=460, alto=620, lienzo_ancho=1600,
                                  lienzo_alto=900)
         self.assertEqual(obs.describir(snap, ("posicion",)),
-                         "Se sale del lienzo por la derecha, y a 2% del borde inferior.")
+                         "Se sale del vídeo por la derecha, y a 2% del borde inferior.")
 
     def test_posicion_fuera_por_arriba(self):
         snap = obs.SnapshotPanel(conectado=True, izquierda=32, arriba=-200,
                                  ancho=460, alto=620, lienzo_ancho=1600,
                                  lienzo_alto=900)
         self.assertEqual(obs.describir(snap, ("posicion",)),
-                         "Se sale del lienzo por arriba, y a 2% del borde izquierdo.")
+                         "Se sale del vídeo por arriba, y a 2% del borde izquierdo.")
 
     def test_posicion_fuera_por_abajo(self):
         snap = obs.SnapshotPanel(conectado=True, izquierda=32, arriba=500,
                                  ancho=460, alto=620, lienzo_ancho=1600,
                                  lienzo_alto=900)
         self.assertEqual(obs.describir(snap, ("posicion",)),
-                         "Se sale del lienzo por abajo, y a 2% del borde izquierdo.")
+                         "Se sale del vídeo por abajo, y a 2% del borde izquierdo.")
 
     def test_posicion_sale_por_la_derecha_y_mantiene_la_distancia_vertical(self):
         snap = obs.SnapshotPanel(conectado=True, izquierda=1500, arriba=45,
                                  ancho=460, alto=300, lienzo_ancho=1600,
                                  lienzo_alto=900)
         self.assertEqual(obs.describir(snap, ("posicion",)),
-                         "Se sale del lienzo por la derecha, y a 5% del borde superior.")
+                         "Se sale del vídeo por la derecha, y a 5% del borde superior.")
 
     def test_posicion_sale_por_dos_bordes(self):
         snap = obs.SnapshotPanel(conectado=True, izquierda=1500, arriba=800,
                                  ancho=460, alto=300, lienzo_ancho=1600,
                                  lienzo_alto=900)
         self.assertEqual(obs.describir(snap, ("posicion",)),
-                         "Se sale del lienzo por la derecha y por abajo.")
+                         "Se sale del vídeo por la derecha y por abajo.")
 
     def test_posicion_sin_anclaje_nombra_los_dos_bordes(self):
         snap = obs.SnapshotPanel(conectado=True, izquierda=48, arriba=45,
@@ -95,15 +95,15 @@ class GeometriaTest(unittest.TestCase):
 
     def test_posicion_en_los_nueve_anclajes(self):
         lugares = {
-            "superior-izquierda": "esquina superior izquierda",
-            "superior-centro": "borde superior, centrado",
-            "superior-derecha": "esquina superior derecha",
-            "centro-izquierda": "borde izquierdo, centrado",
+            "superior-izquierda": "arriba a la izquierda",
+            "superior-centro": "arriba al centro",
+            "superior-derecha": "arriba a la derecha",
+            "centro-izquierda": "centro a la izquierda",
             "centro": "centro",
-            "centro-derecha": "borde derecho, centrado",
-            "inferior-izquierda": "esquina inferior izquierda",
-            "inferior-centro": "borde inferior, centrado",
-            "inferior-derecha": "esquina inferior derecha",
+            "centro-derecha": "centro a la derecha",
+            "inferior-izquierda": "abajo a la izquierda",
+            "inferior-centro": "abajo al centro",
+            "inferior-derecha": "abajo a la derecha",
         }
         for anclaje, lugar in lugares.items():
             x, y, alineacion = obs.coordenadas(anclaje, 1600, 900)
@@ -164,7 +164,8 @@ class GeometriaTest(unittest.TestCase):
 
     def test_escena_fuera_del_aire(self):
         snap = obs.SnapshotPanel(conectado=True, escena="Juego", al_aire=False)
-        self.assertEqual(obs.describir(snap, ("escena",)), "Juego, no al aire.")
+        self.assertEqual(obs.describir(snap, ("escena",)),
+                         "Juego, no es la escena actual.")
 
     def test_tamano_sin_datos(self):
         self.assertEqual(obs.describir(obs.SnapshotPanel(), ("tamano",)), "")
@@ -198,24 +199,22 @@ class DescripcionTest(unittest.TestCase):
     def test_describir_preparacion_falta_panel_y_fuente(self):
         self.assertEqual(
             obs.describir_preparacion(True, False, 8730, False),
-            "Falta preparar el panel. El panel de chat está apagado. "
-            "La fuente no está en esta escena.")
+            "El chat en el vídeo está desactivado.")
 
     def test_describir_preparacion_falta_solo_el_panel(self):
         self.assertEqual(
             obs.describir_preparacion(True, False, 8730, True),
-            "Falta preparar el panel. El panel de chat está apagado.")
+            "El chat en el vídeo está desactivado.")
 
     def test_describir_preparacion_falta_solo_la_fuente(self):
         self.assertEqual(
             obs.describir_preparacion(True, True, 8730, False),
-            "Falta preparar el panel. La fuente no está en esta escena.")
+            "El chat en el vídeo no está en esta escena.")
 
     def test_describir_preparacion_lista(self):
         self.assertEqual(
             obs.describir_preparacion(True, True, 8730, True),
-            "Panel de chat encendido en el puerto 8730. "
-            "La fuente está en esta escena.")
+            "Chat en el vídeo activado. La fuente está en esta escena.")
 
     def test_describir_fuente_en_corto_y_largo(self):
         snap = obs.SnapshotPanel(conectado=True, escena="Juego", ancho=400, alto=300,
@@ -244,31 +243,30 @@ class DescripcionTest(unittest.TestCase):
                               fuera=12.4, mensajes_visibles=14, tamano_letra=18)
         self.assertEqual(obs.describir(s, ("escena",)), "Juego.")
         self.assertEqual(obs.describir(s, ("tamano",)), "460 por 620, 29% del ancho.")
-        self.assertEqual(obs.describir(s, ("capa",)), "Lo tapa Cámara.")
+        self.assertEqual(obs.describir(s, ("capa",)), "La tapa Cámara.")
         self.assertEqual(obs.describir(s, ("solape",)), "Superpone al 12% de Cámara.")
-        self.assertEqual(obs.describir(s, ("visible",)), "Oculto en OBS.")
-        self.assertEqual(obs.describir(s, ("bloqueada",)), "Fijado.")
-        self.assertEqual(obs.describir(s, ("fuera",)), "Queda fuera del lienzo el 12% del panel.")
+        self.assertEqual(obs.describir(s, ("visible",)), "Oculta en OBS.")
+        self.assertEqual(obs.describir(s, ("bloqueada",)), "Bloqueada.")
+        self.assertEqual(obs.describir(s, ("fuera",)), "Queda fuera del vídeo el 12% de la fuente.")
         self.assertEqual(obs.describir(s, ("aspecto",)), "14 mensajes, letra 18.")
 
     def test_visible_largo_y_corto(self):
         visible = obs.SnapshotPanel(conectado=True, visible=True)
         oculto = obs.SnapshotPanel(conectado=True, visible=False)
-        self.assertEqual(obs.describir(visible, ("visible",), "largo"),
-                         "Visible en OBS: sí")
+        self.assertEqual(obs.describir(visible, ("visible",), "largo"), "")
         self.assertEqual(obs.describir(oculto, ("visible",), "largo"),
-                         "Visible en OBS: no")
+                         "Oculta en OBS")
         self.assertEqual(obs.describir(visible, ("visible",)), "")
-        self.assertEqual(obs.describir(oculto, ("visible",)), "Oculto en OBS.")
+        self.assertEqual(obs.describir(oculto, ("visible",)), "Oculta en OBS.")
 
     def test_fuera_corto_indica_recorte(self):
         snap = obs.SnapshotPanel(conectado=True, fuera=22.4)
-        self.assertEqual(obs.describir(snap, ("fuera",)), "Queda fuera del lienzo el 22% del panel.")
+        self.assertEqual(obs.describir(snap, ("fuera",)), "Queda fuera del vídeo el 22% de la fuente.")
 
     def test_fuera_largo_indica_recorte(self):
         snap = obs.SnapshotPanel(conectado=True, fuera=22.4)
         self.assertEqual(obs.describir(snap, ("fuera",), "largo"),
-                         "Recorte: queda fuera del lienzo el 22% del panel")
+                         "Queda fuera del vídeo el 22% de la fuente")
 
     def test_fuera_cero_no_informa(self):
         snap = obs.SnapshotPanel(conectado=True)
@@ -280,23 +278,45 @@ class DescripcionTest(unittest.TestCase):
                                  ancho=460, alto=620, lienzo_ancho=1600,
                                  lienzo_alto=900, fuera=65.2)
         frase = obs.describir(snap, ("posicion", "fuera"))
-        self.assertEqual(frase, "Se sale del lienzo por la izquierda, y a 2% del borde inferior; "
-                                "Queda fuera del lienzo el 65% del panel.")
+        self.assertEqual(frase, "Se sale del vídeo por la izquierda, y a 2% del borde inferior; "
+                                "Queda fuera del vídeo el 65% de la fuente.")
         self.assertEqual(frase.lower().count("fuera"), 1)
 
     def test_largo_y_union(self):
         s = obs.SnapshotPanel(conectado=True, escena="Juego", al_aire=False,
                               ancho=460, alto=620, lienzo_ancho=1600,
                               mensajes_visibles=14, tamano_letra=18)
-        esperado = ("OBS: conectado\nEscena: Juego, no al aire\nTamaño: 460 por 620 píxeles, "
-                    "29% del ancho de pantalla\nCapa: no lo tapa nada\n"
-                    "No se superpone con ninguna otra fuente\nVisible en OBS: sí\n"
-                    "Fijado: no\nAspecto: 14 mensajes visibles, tamaño de letra 18\n"
+        esperado = ("OBS: conectado\nEscena: Juego, no es la escena actual\n"
+                    "Tamaño: 460 por 620 píxeles, 29% del ancho de pantalla\n"
+                    "Se ve completa\nEntran 14 mensajes, letra de tamaño 18\n"
                     "El fondo del panel es transparente. Solo se ven las tarjetas de los mensajes, "
                     "apiladas contra el borde inferior.")
         self.assertEqual(obs.describir(s, obs.COMPONENTES, "largo"), esperado)
         self.assertEqual(obs.describir(obs.SnapshotPanel(), ("transparencia",), "corto"), "")
         self.assertEqual(obs.describir(obs.SnapshotPanel(), ("transparencia",), "largo"), "")
+
+
+class FuenteCompletaTest(unittest.TestCase):
+    COMPONENTES = ("capa", "solape", "visible", "fuera")
+
+    def test_se_ve_completa_solo_si_no_hay_problema(self):
+        limpia = obs.SnapshotPanel(conectado=True)
+        for modo in ("corto", "largo"):
+            with self.subTest(modo=modo):
+                self.assertIn(
+                    "Se ve completa", obs.describir(limpia, self.COMPONENTES, modo))
+        problemas = {
+            "tapada": obs.SnapshotPanel(conectado=True, tapada_por="Cámara"),
+            "solape": obs.SnapshotPanel(
+                conectado=True, solapes=(("Cámara", 30.4),)),
+            "oculta": obs.SnapshotPanel(conectado=True, visible=False),
+            "recorte": obs.SnapshotPanel(conectado=True, fuera=22.4),
+        }
+        for nombre, snap in problemas.items():
+            for modo in ("corto", "largo"):
+                with self.subTest(problema=nombre, modo=modo):
+                    self.assertNotIn(
+                        "Se ve completa", obs.describir(snap, self.COMPONENTES, modo))
 
 
 class TestFrasesFijadas(unittest.TestCase):
@@ -311,13 +331,10 @@ class TestFrasesFijadas(unittest.TestCase):
     def test_conectado_sin_escena(self):
         snap = obs.SnapshotPanel(conectado=True)
         self.assertEqual(obs.describir(snap, obs.COMPONENTES, "corto"),
-                         "No lo tapa nada; Libre.")
+                         "Se ve completa.")
         self.assertEqual(obs.describir(snap, obs.COMPONENTES, "largo"),
                          "OBS: conectado\n"
-                         "Capa: no lo tapa nada\n"
-                         "No se superpone con ninguna otra fuente\n"
-                         "Visible en OBS: sí\n"
-                         "Fijado: no\n"
+                         "Se ve completa\n"
                          "El fondo del panel es transparente. Solo se ven las tarjetas de los mensajes, "
                          "apiladas contra el borde inferior.")
 
@@ -326,17 +343,14 @@ class TestFrasesFijadas(unittest.TestCase):
                                  izquierda=32, arriba=18, ancho=460, alto=620,
                                  lienzo_ancho=1600, lienzo_alto=900)
         self.assertEqual(obs.describir(snap, obs.COMPONENTES, "corto"),
-                         "Juego; Esquina superior izquierda; 460 por 620, 29% del ancho; "
-                         "No lo tapa nada; Libre.")
+                         "Juego; Arriba a la izquierda; 460 por 620, 29% del ancho; "
+                         "Se ve completa.")
         self.assertEqual(obs.describir(snap, obs.COMPONENTES, "largo"),
                          "OBS: conectado\n"
                          "Escena: Juego\n"
-                         "Posición: esquina superior izquierda\n"
+                         "Posición: arriba a la izquierda\n"
                          "Tamaño: 460 por 620 píxeles, 29% del ancho de pantalla\n"
-                         "Capa: no lo tapa nada\n"
-                         "No se superpone con ninguna otra fuente\n"
-                         "Visible en OBS: sí\n"
-                         "Fijado: no\n"
+                         "Se ve completa\n"
                          "El fondo del panel es transparente. Solo se ven las tarjetas de los mensajes, "
                          "apiladas contra el borde inferior.")
 
@@ -345,17 +359,14 @@ class TestFrasesFijadas(unittest.TestCase):
                                  izquierda=-300, arriba=500, ancho=460, alto=620,
                                  lienzo_ancho=1600, lienzo_alto=900)
         self.assertEqual(obs.describir(snap, obs.COMPONENTES, "corto"),
-                         "Juego, no al aire; Se sale del lienzo por la izquierda y por abajo; "
-                         "460 por 620, 29% del ancho; No lo tapa nada; Libre.")
+                         "Juego, no es la escena actual; Se sale del vídeo por la izquierda y por abajo; "
+                         "460 por 620, 29% del ancho; Se ve completa.")
         self.assertEqual(obs.describir(snap, obs.COMPONENTES, "largo"),
                          "OBS: conectado\n"
-                         "Escena: Juego, no al aire\n"
-                         "Posición: se sale del lienzo por la izquierda y por abajo\n"
+                         "Escena: Juego, no es la escena actual\n"
+                         "Posición: se sale del vídeo por la izquierda y por abajo\n"
                          "Tamaño: 460 por 620 píxeles, 29% del ancho de pantalla\n"
-                         "Capa: no lo tapa nada\n"
-                         "No se superpone con ninguna otra fuente\n"
-                         "Visible en OBS: sí\n"
-                         "Fijado: no\n"
+                         "Se ve completa\n"
                          "El fondo del panel es transparente. Solo se ven las tarjetas de los mensajes, "
                          "apiladas contra el borde inferior.")
 
@@ -365,16 +376,13 @@ class TestFrasesFijadas(unittest.TestCase):
                                  lienzo_ancho=1600, lienzo_alto=900)
         self.assertEqual(obs.describir(snap, obs.COMPONENTES, "corto"),
                          "Juego; A 5% del borde izquierdo y a 3% del borde inferior; "
-                         "460 por 620, 29% del ancho; No lo tapa nada; Libre.")
+                         "460 por 620, 29% del ancho; Se ve completa.")
         self.assertEqual(obs.describir(snap, obs.COMPONENTES, "largo"),
                          "OBS: conectado\n"
                          "Escena: Juego\n"
                          "Posición: a 5% del borde izquierdo y a 3% del borde inferior\n"
                          "Tamaño: 460 por 620 píxeles, 29% del ancho de pantalla\n"
-                         "Capa: no lo tapa nada\n"
-                         "No se superpone con ninguna otra fuente\n"
-                         "Visible en OBS: sí\n"
-                         "Fijado: no\n"
+                         "Se ve completa\n"
                          "El fondo del panel es transparente. Solo se ven las tarjetas de los mensajes, "
                          "apiladas contra el borde inferior.")
 
@@ -387,20 +395,20 @@ class TestFrasesFijadas(unittest.TestCase):
                                  fuera=22.4, mensajes_visibles=14, tamano_letra=18)
         self.assertEqual(obs.describir(snap, obs.COMPONENTES, "corto"),
                          "Juego; A 5% del borde izquierdo y a 3% del borde inferior; "
-                         "460 por 620, 29% del ancho; Lo tapa Cámara; "
-                         "Superpone al 30% de Cámara y al 4% de Juego; Oculto en OBS; Fijado; "
-                         "Queda fuera del lienzo el 22% del panel; 14 mensajes, letra 18.")
+                         "460 por 620, 29% del ancho; La tapa Cámara; "
+                         "Superpone al 30% de Cámara y al 4% de Juego; Oculta en OBS; Bloqueada; "
+                         "Queda fuera del vídeo el 22% de la fuente; 14 mensajes, letra 18.")
         self.assertEqual(obs.describir(snap, obs.COMPONENTES, "largo"),
                          "OBS: conectado\n"
                          "Escena: Juego\n"
                          "Posición: a 5% del borde izquierdo y a 3% del borde inferior\n"
                          "Tamaño: 460 por 620 píxeles, 29% del ancho de pantalla\n"
-                         "Capa: lo tapa Cámara\n"
+                         "La tapa Cámara\n"
                          "Superpone al 30% de Cámara y al 4% de Juego\n"
-                         "Visible en OBS: no\n"
-                         "Fijado: sí\n"
-                         "Recorte: queda fuera del lienzo el 22% del panel\n"
-                         "Aspecto: 14 mensajes visibles, tamaño de letra 18\n"
+                         "Oculta en OBS\n"
+                         "Bloqueada\n"
+                         "Queda fuera del vídeo el 22% de la fuente\n"
+                         "Entran 14 mensajes, letra de tamaño 18\n"
                          "El fondo del panel es transparente. Solo se ven las tarjetas de los mensajes, "
                          "apiladas contra el borde inferior.")
 

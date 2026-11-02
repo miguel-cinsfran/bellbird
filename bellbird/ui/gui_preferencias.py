@@ -476,7 +476,7 @@ class PreferenciasDialog(wx.Dialog):
         # El servidor del panel ya escucha en el puerto viejo; no se reinicia
         # solo, así que se avisa dónde se aplica.
         if puerto_overlay != puerto_anterior and c.get("overlay_activo", False):
-            self.avisos.append(_("El puerto nuevo del panel de chat se aplica al apagarlo y "
+            self.avisos.append(_("El puerto del chat en el vídeo se aplica al apagarlo y "
                                  "volver a encenderlo desde el panel de transmisión."))
         self.EndModal(wx.ID_OK)
 

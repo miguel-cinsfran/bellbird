@@ -226,7 +226,7 @@ class TestDialogoDirectoVentana(unittest.TestCase):
     def test_nombres_accesibles_de_las_opciones(self):
         dialogo = self._dialogo(titulo="Hola")
         self.assertEqual(dialogo.cho_latencia.GetName(), "Latencia")
-        self.assertEqual(dialogo.chk_ninos.GetName(), "Hecho para niños")
+        self.assertEqual(dialogo.chk_ninos.GetName(), "Creado para niños")
         self.assertEqual(dialogo.chk_dvr.GetName(), "Permitir rebobinar")
         self.assertEqual(dialogo.cho_categoria.GetName(), "Categoría")
         self.assertEqual(dialogo.txt_etiquetas.GetName(), "Etiquetas")
@@ -248,7 +248,7 @@ class TestDialogoDirectoVentana(unittest.TestCase):
         self.assertIn("Cate&goría:", textos)
         self.assertIn("&Etiquetas, separadas por comas:", textos)
         self.assertEqual(dialogo.chk_ninos.GetLabel(),
-                         "Hecho para &niños (YouTube apaga el chat)")
+                         "Creado para &niños (YouTube desactiva el chat)")
         self.assertEqual(dialogo.chk_dvr.GetLabel(),
                          "Permitir re&bobinar el directo")
         self.assertEqual(dialogo.btn_elegir_miniatura.GetLabel(),
@@ -270,7 +270,7 @@ class TestDialogoDirectoVentana(unittest.TestCase):
     def test_orden_de_tab_con_las_opciones(self):
         dialogo = self._dialogo(titulo="Hola")
         nombres = ("Título del directo", "Descripción del directo",
-                   "Privacidad", "Latencia", "Hecho para niños",
+                   "Privacidad", "Latencia", "Creado para niños",
                    "Permitir rebobinar", "Categoría", "Etiquetas",
                     "Miniatura", "Elegir miniatura", "Eliminar miniatura",
                    "Lista de reproducción", "Cargar listas",
@@ -464,7 +464,7 @@ class TestDialogoDirectoVentana(unittest.TestCase):
     def test_orden_de_tab_completo_con_el_pie_al_final(self):
         dialogo = self._dialogo(titulo="Hola")
         nombres = ("Título del directo", "Descripción del directo",
-                   "Privacidad", "Latencia", "Hecho para niños",
+                   "Privacidad", "Latencia", "Creado para niños",
                    "Permitir rebobinar", "Categoría", "Etiquetas",
                     "Miniatura", "Elegir miniatura", "Eliminar miniatura",
                    "Lista de reproducción", "Cargar listas",

@@ -118,9 +118,7 @@ def _texto_anclaje(rect, lienzo_ancho, lienzo_alto) -> str:
         texto = _texto_de_anclaje(nombre, rect, lienzo_ancho, lienzo_alto)
         if not texto:
             return ""
-        if texto.startswith("esquina"):
-            return _("cerca de la {texto}").format(texto=texto)
-        return _("cerca del {texto}").format(texto=texto)
+        return _("cerca de la posición {texto}").format(texto=texto)
     snap = obs_disposicion.SnapshotPanel(
         conectado=True, izquierda=rect[0], arriba=rect[1],
         ancho=int(round(rect[2])), alto=int(round(rect[3])),
@@ -155,7 +153,7 @@ def _frase_fuente(numero, elemento, rect, delanteros, lienzo_ancho,
     if rect is None or not lienzo_ancho or not lienzo_alto:
         posicion, tamano = _("posición desconocida"), ""
     elif rect[2] * rect[3] / (lienzo_ancho * lienzo_alto) * 100 >= _UMBRAL_TODO:
-        posicion, tamano = _("ocupa toda la imagen"), ""
+        posicion, tamano = _("ocupa todo el vídeo"), ""
     else:
         posicion = _texto_anclaje(rect, lienzo_ancho, lienzo_alto) or _("en una posición libre")
         # Traductores: {a} es el ancho en píxeles y {h} el alto.
@@ -165,7 +163,7 @@ def _frase_fuente(numero, elemento, rect, delanteros, lienzo_ancho,
     else:
         tapa, porcentaje = _quien_mas_tapa(rect, delanteros) if rect is not None else (None, 0.0)
         if tapa is not None and porcentaje >= _UMBRAL_TAPA_ENTERA:
-            estado = (_("visible en OBS, pero no aparece en la imagen: "
+            estado = (_("visible en OBS, pero no aparece en el vídeo: "
                         "la tapa entera {tapa}").format(tapa=tapa))
         elif tapa is not None and porcentaje >= _UMBRAL_AVISO:
             estado = _("se ve en parte: {nombre} tapa el {porcentaje} por ciento").format(
@@ -176,7 +174,7 @@ def _frase_fuente(numero, elemento, rect, delanteros, lienzo_ancho,
         fuera = obs_disposicion.fuera_del_lienzo(rect, lienzo_ancho, lienzo_alto)
         if fuera >= _UMBRAL_AVISO:
             # Traductores: {p} es un porcentaje.
-            estado += _(" y un {p} por ciento queda fuera de la imagen").format(p=int(round(fuera)))
+            estado += _(" y un {p} por ciento queda fuera del vídeo").format(p=int(round(fuera)))
     partes = [f"{numero}: {nombre}"]
     if tipo:
         partes.append(str(tipo))
@@ -198,12 +196,12 @@ def describir_escena(escena, elementos, lienzo_ancho, lienzo_alto, tipos) -> str
                        key=lambda elemento: elemento.get("sceneItemIndex", 0),
                        reverse=True)
     if not ordenados:
-        return _("Escena al aire: {escena}. No tiene fuentes.").format(
+        return _("Escena actual: {escena}. No tiene fuentes.").format(
             escena=escena)
     # Traductores: {n} es la cantidad de fuentes de la escena.
     palabra = ngettext("1 fuente", "{n} fuentes", len(ordenados)).format(
         n=len(ordenados))
-    lineas = [_("Escena al aire: {escena}. {palabra}, "
+    lineas = [_("Escena actual: {escena}. {palabra}, "
                 "de adelante hacia atrás.").format(
                     escena=escena, palabra=palabra)]
     rects = [_rectangulo_de(elemento) for elemento in ordenados]

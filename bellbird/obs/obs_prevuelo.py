@@ -151,7 +151,7 @@ def _detalle_fuente(cliente, nombre, clase, parada) -> str:
             ajustes = {}
         url = str(ajustes.get("url", "") or "").strip()
         if url.endswith("/chat"):
-            return _("panel de chat de la app")
+            return _("chat en el vídeo de la app")
         return ""
     return ""
 
@@ -238,14 +238,16 @@ def revisar(cliente, destino, parada=None, grabar=False) -> Revision:
 
 def frase_revision(revision) -> str:
     """Resume la revisión en frases para leer antes de confirmar."""
-    partes = [_("Destino {destino}.").format(destino=revision.destino)]
+    partes = []
+    if revision.problemas:
+        partes.append(_("Atención: {problemas}").format(
+            problemas=" ".join(revision.problemas)))
+    partes.append(_("Destino {destino}.").format(destino=revision.destino))
     if isinstance(revision.ancho, int) and isinstance(revision.alto, int):
-        partes.append(_("Perfil {perfil}, formato {formato} {ancho} por {alto}.").format(
-            perfil=revision.perfil, formato=_formato(revision.ancho, revision.alto),
+        partes.append(_("Formato {formato}, {ancho} por {alto}.").format(
+            formato=_formato(revision.ancho, revision.alto),
             ancho=revision.ancho, alto=revision.alto))
-    else:
-        partes.append(_("Perfil {perfil}.").format(perfil=revision.perfil))
-    partes.append(_("Escena al aire: {escena}.").format(escena=revision.escena))
+    partes.append(_("Escena actual: {escena}.").format(escena=revision.escena))
     visibles = [fuente for fuente in revision.fuentes if fuente.visible]
     if visibles:
         nombres = [(f"{fuente.tipo} {fuente.detalle or fuente.nombre}".strip()
@@ -263,8 +265,6 @@ def frase_revision(revision) -> str:
         else:
             partes.append(_("Audio del escritorio {nombre} {estado}.").format(
                 nombre=entrada.nombre, estado=estado))
-    if revision.problemas:
-        partes.append(_("Atención: {problemas}").format(problemas=" ".join(revision.problemas)))
     if revision.avisos:
         partes.append(" ".join(revision.avisos))
     return " ".join(partes)

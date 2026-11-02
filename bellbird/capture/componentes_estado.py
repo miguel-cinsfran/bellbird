@@ -70,7 +70,7 @@ ETIQUETAS = {
     # Traductores: rótulo en Preferencias del componente de F2.
     "lectura_silenciada": N_("Aviso de lectura silenciada"),
     # Traductores: rótulo en Preferencias del componente de F2.
-    "overlay": N_("Panel de chat para transmitir"),
+    "overlay": N_("Chat en el vídeo para transmitir"),
     # Traductores: rótulo en Preferencias del componente de F2.
     "programados": N_("Mensajes automáticos"),
     # Traductores: rótulo en Preferencias del componente de F2.
@@ -80,7 +80,7 @@ ETIQUETAS = {
     # Traductores: rótulo en Preferencias del componente de F2.
     "obs_grabacion": N_("Estado de la grabación de OBS"),
     # Traductores: rótulo en Preferencias del componente de F2.
-    "obs_escena": N_("Escena al aire en OBS"),
+    "obs_escena": N_("Escena actual en OBS"),
     # Traductores: rótulo en Preferencias del componente de F2.
     "musica": N_("Música que suena"),
     # Traductores: rótulo en Preferencias del componente de F2.

@@ -162,7 +162,7 @@ class CaminoFelizTest(BaseSupervisor):
             ("Comenzando la transmisión.", "conectando"),
             ("OBS está enviando la señal a Restream.", "conectado"),
             ("Esperando a que TikTok muestre el directo.", None),
-            ("Tu directo de TikTok ya está al aire.", "al_aire"),
+            ("Directo iniciado en TikTok", "al_aire"),
         ])
         self.assertEqual(chats, ["https://www.tiktok.com/@amigo/live"])
         self.assertEqual(vivo, [("amigo", 120.0)])
@@ -268,7 +268,7 @@ class ProblemaRepetidoTest(BaseSupervisor):
                             intervalo=5.0)
         supervisor, anuncios, _, _, _, _, reloj = armado
         self.iniciar_y_esperar_fin(supervisor, plazo=3.0)
-        frase = ("Se están perdiendo cuadros: 60 por ciento. "
+        frase = ("Se están perdiendo fotogramas: 60 por ciento. "
                  "La red va lenta.")
         apariciones = [a for a in anuncios if a[0] == frase]
         # 19 sondeos con problema en 95 s de reloj falso: avisa a los 5 s y
@@ -366,7 +366,7 @@ class AvisosDeEquipoTest(BaseSupervisor):
                             estadisticas=self._estadisticas_con_sobrecarga())
         supervisor, anuncios, _, _, _, _, reloj = armado
         self.iniciar_y_esperar_fin(supervisor, plazo=3.0)
-        frases = [f for f, _ in anuncios if f.startswith("OBS no da abasto")]
+        frases = [f for f, _ in anuncios if f.startswith("OBS está sobrecargado")]
         self.assertEqual(len(frases), 1)
         self.assertIn("40 por ciento", frases[0])
         self.assertLess(reloj.ahora, 300.0)
@@ -382,7 +382,7 @@ class AvisosDeEquipoTest(BaseSupervisor):
                             estadisticas=estadisticas)
         supervisor, anuncios, _, _, _, _, _ = armado
         self.iniciar_y_esperar_fin(supervisor, plazo=3.0)
-        self.assertFalse(any(f.startswith("OBS no da abasto")
+        self.assertFalse(any(f.startswith("OBS está sobrecargado")
                              for f, _ in anuncios))
 
     def test_estadisticas_que_fallan_no_cortan_la_vigilancia(self):
@@ -416,13 +416,13 @@ class AvisosDeEquipoTest(BaseSupervisor):
     def test_sobrecarga_no_se_repite_antes_de_cinco_minutos(self):
         supervisor, anuncios, _, _, _, _, _ = self._armar_dos_sobrecargas(60.0)
         self.iniciar_y_esperar_fin(supervisor, plazo=3.0)
-        frases = [f for f, _ in anuncios if f.startswith("OBS no da abasto")]
+        frases = [f for f, _ in anuncios if f.startswith("OBS está sobrecargado")]
         self.assertEqual(len(frases), 1)
 
     def test_sobrecarga_se_repite_a_los_trescientos_un_segundos(self):
         supervisor, anuncios, _, _, _, _, _ = self._armar_dos_sobrecargas(301.0)
         self.iniciar_y_esperar_fin(supervisor, plazo=3.0)
-        frases = [f for f, _ in anuncios if f.startswith("OBS no da abasto")]
+        frases = [f for f, _ in anuncios if f.startswith("OBS está sobrecargado")]
         self.assertEqual(len(frases), 2)
 
     def _armar_sobrecarga_y_red(self):
@@ -438,9 +438,9 @@ class AvisosDeEquipoTest(BaseSupervisor):
         supervisor, anuncios, _, _, _, _, _ = self._armar_sobrecarga_y_red()
         supervisor._avisar_sobrecarga = lambda: False
         self.iniciar_y_esperar_fin(supervisor, plazo=3.0)
-        self.assertFalse(any(f.startswith("OBS no da abasto")
+        self.assertFalse(any(f.startswith("OBS está sobrecargado")
                              for f, _ in anuncios))
-        self.assertTrue(any("Se están perdiendo cuadros" in f
+        self.assertTrue(any("Se están perdiendo fotogramas" in f
                             for f, _ in anuncios))
 
     def test_pasar_de_falso_a_verdadero_anuncia_sin_esperar_el_plazo(self):
@@ -453,7 +453,7 @@ class AvisosDeEquipoTest(BaseSupervisor):
 
         supervisor._avisar_sobrecarga = avisar
         self.iniciar_y_esperar_fin(supervisor, plazo=3.0)
-        frases = [f for f, _ in anuncios if f.startswith("OBS no da abasto")]
+        frases = [f for f, _ in anuncios if f.startswith("OBS está sobrecargado")]
         self.assertEqual(len(frases), 1)
 
 
@@ -983,7 +983,7 @@ class YouTubeEmisionTest(BaseSupervisor):
             ("Creando el directo en YouTube.", None),
             ("OBS está enviando la señal a YouTube.", "conectado"),
             ("Esperando a que YouTube muestre el directo.", None),
-            ("Tu directo de YouTube ya está al aire.", "al_aire"),
+            ("Directo iniciado en YouTube", "al_aire"),
         ])
         self.assertEqual(
             chats, ["https://www.youtube.com/watch?v=vid123"])
@@ -1201,7 +1201,7 @@ class FinalizarYoutubeTest(BaseSupervisor):
 
 
 class PanelAdelanteTest(BaseSupervisor):
-    FRASE = ("El panel de chat estaba detrás de "
+    FRASE = ("El chat en el vídeo estaba detrás de "
              "«Captura de pantalla». Ahora está delante.")
 
     def armar_con_panel(self, respuestas, estados=None, intervalo=5.0):
@@ -1291,7 +1291,7 @@ class PanelAdelanteTest(BaseSupervisor):
         self.iniciar_y_esperar_fin(supervisor)
         self.assertIn(("OBS está enviando la señal a YouTube.", "conectado"),
                       anuncios)
-        self.assertFalse(any(frase.startswith("El panel de chat")
+        self.assertFalse(any(frase.startswith("El chat en el vídeo")
                              for frase, _ in anuncios))
 
 
@@ -1623,7 +1623,7 @@ class TestPseudoAnunciosSupervisor(BaseSupervisor):
             self.iniciar_y_esperar_fin(supervisor)
         marcados = self._exigir_marcados(anuncios)
         self.assertIn("[¡Comenzando la transmisión.!]", marcados)
-        self.assertIn("[¡Tu directo de TikTok ya está al aire.!]", marcados)
+        self.assertIn("[¡Directo iniciado en TikTok!]", marcados)
         self.assertEqual(chats, ["https://www.tiktok.com/@amigo/live"])
 
     def test_tiktok_sin_usuario_marca_el_aviso(self):
@@ -1660,7 +1660,7 @@ class TestPseudoAnunciosSupervisor(BaseSupervisor):
             self.iniciar_y_esperar_fin(supervisor)
         marcados = self._exigir_marcados(anuncios)
         self.assertIn("[¡Creando el directo en YouTube.!]", marcados)
-        self.assertIn("[¡Tu directo de YouTube ya está al aire.!]", marcados)
+        self.assertIn("[¡Directo iniciado en YouTube!]", marcados)
         self.assertEqual(chats, ["https://www.youtube.com/watch?v=vid123"])
 
     def test_youtube_sin_confirmar_marca_el_aviso_y_la_frase(self):

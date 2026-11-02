@@ -267,12 +267,10 @@ def _render_overlay(s: SnapshotSesion, largo: bool) -> str:
     if s.overlay_puerto is None:
         return ""
     if s.overlay_clientes:
-        # Traductores: componente del estado F2. {puerto} es el puerto del panel.
-        return _("Panel de chat activo en el puerto {puerto}, mostrándose").format(
-            puerto=s.overlay_puerto)
-    # Traductores: componente del estado F2. {puerto} es el puerto del panel.
-    return (_("Panel de chat activo en el puerto {puerto}, pero nadie "
-              "lo está mostrando").format(puerto=s.overlay_puerto))
+        # Traductores: componente del estado F2.
+        return _("Chat en el vídeo activado, mostrándose")
+    # Traductores: componente del estado F2.
+    return _("Chat en el vídeo activado, pero nadie lo está mostrando")
 
 
 def _render_programados(s: SnapshotSesion, largo: bool) -> str:

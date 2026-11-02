@@ -40,13 +40,13 @@ def construir(frame, mb):
     frame.mi_transmision = m.Append(
         wx.ID_ANY, _("&Panel de transmisión…") + frame._accel("abrir_transmision"))
     frame.mi_obs_micro = m.AppendCheckItem(
-        wx.ID_ANY, _("Silenciar el &micrófono de OBS") + frame._accel("obs_micro"))
+        wx.ID_ANY, _("Silenciar &micrófono de OBS") + frame._accel("obs_micro"))
     frame.mi_micro_obs = m.Append(wx.ID_ANY, _("&Elegir micrófono…"))
     frame.mi_mostrar_obs = m.Append(
         wx.ID_ANY, _("Mostrar &OBS") + frame._accel("mostrar_obs"))
     frame.mi_avisos_sobrecarga = m.AppendCheckItem(
         wx.ID_ANY,
-        _("&Avisar cuando OBS no da abasto") + frame._accel("avisos_sobrecarga"))
+        _("&Avisar si OBS se sobrecarga") + frame._accel("avisos_sobrecarga"))
     frame.mi_avisos_sobrecarga.Check(bool(frame._config.get("avisar_sobrecarga", True)))
     frame.mi_grabar_al_transmitir = m.AppendCheckItem(
         wx.ID_ANY, _("&Grabar también al transmitir"))

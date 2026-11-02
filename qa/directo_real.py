@@ -76,7 +76,7 @@ VENTANA_CAMARA = ("Cámara de prueba", "00C000")
 VENTANA_APLICACION = ("Aplicación de prueba", "C000C0")
 FUENTE_CAMARA = "Prueba YTChat cámara"
 FUENTE_APLICACION = "Prueba YTChat aplicación"
-ANUNCIO_PANEL_ADELANTE = "el panel de chat estaba detrás de"
+ANUNCIO_PANEL_ADELANTE = "el chat en el vídeo estaba detrás de"
 COMENTARIOS_PRUEBA = ("Comentario de prueba 1", "Comentario de prueba 2",
                       "Comentario de prueba 3")
 # Tamaño con el que se crea el panel si la escena no lo tenía, igual que
@@ -87,7 +87,7 @@ COLORES_VENTANAS = ((0, 192, 0), (192, 0, 192))
 
 # Fragmentos que anuncian un error al salir al aire, en vez del éxito.
 ERRORES_AL_AIRE = ("no se pudo", "error", "falló", "no tiene")
-OK_AL_AIRE = "ya está al aire"
+OK_AL_AIRE = "directo iniciado en"
 OK_CHAT = "conectado al directo"
 OK_FIN = ("detenid", "finaliz", "terminó")
 
@@ -1222,7 +1222,7 @@ def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
             anotar("panel adelante", True, "la app lo puso adelante")
         else:
             anotar("panel adelante", False,
-                   "sin «El panel de chat estaba detrás de» en los anuncios")
+                   "sin «El chat en el vídeo estaba detrás de» en los anuncios")
             return (salida, 1)
 
         try:

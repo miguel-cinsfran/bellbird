@@ -309,7 +309,7 @@ class SupervisorTransmision:
             return None
 
     def _anunciar_panel_tapado(self, nombre) -> None:
-        frase = _("El panel de chat estaba detrás de «{nombre}». Ahora está delante.")
+        frase = _("El chat en el vídeo estaba detrás de «{nombre}». Ahora está delante.")
         self._anunciar(frase.format(nombre=nombre), "aviso")
 
     def _probar_obs(self) -> None:
@@ -401,7 +401,7 @@ class SupervisorTransmision:
             return False
         if resultado.en_vivo:
             self._destino_confirmado = True
-            self._anunciar(_("Tu directo de TikTok ya está al aire."), "al_aire")
+            self._anunciar(_("Directo iniciado en TikTok"), "al_aire")
             self._al_conectar_chat(
                 tiktok_vivo.url_directo(self._usuario))
         else:
@@ -417,7 +417,7 @@ class SupervisorTransmision:
             return False
         if ok:
             self._destino_confirmado = True
-            self._anunciar(_("Tu directo de YouTube ya está al aire."), "al_aire")
+            self._anunciar(_("Directo iniciado en YouTube"), "al_aire")
             self._al_conectar_chat(
                 emision.url_video(self._id_video))
         else:
@@ -477,8 +477,8 @@ class SupervisorTransmision:
                 self._anunciar(frase, SONIDOS_AVISO[tipo])
             nombre = self._panel_tapado(gestor)
             if nombre:
-                frase_panel = (_("El panel de chat estaba detrás de «{nombre}». Ahora está "
-                                 "delante.").format(nombre=nombre))
+                frase_panel = (_("El chat en el vídeo estaba detrás de «{nombre}». Ahora "
+                                 "está delante.").format(nombre=nombre))
                 ahora = self._reloj()
                 ultimo = ultimos_avisos.get(frase_panel)
                 if ultimo is None or ahora - ultimo >= PLAZO_REPETICION:

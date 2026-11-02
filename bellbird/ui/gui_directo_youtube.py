@@ -176,10 +176,10 @@ class DialogoDirectoYoutube(wx.Dialog):
     def _contenido_opciones(self, zona, contenido, ninos, dvr, categoria,
                             etiquetas):
         self.chk_ninos = wx.CheckBox(
-            zona, label=_("Hecho para &niños (YouTube apaga el chat)"),
-            name=_("Hecho para niños"))
+            zona, label=_("Creado para &niños (YouTube desactiva el chat)"),
+            name=_("Creado para niños"))
         self.chk_ninos.SetValue(bool(ninos))
-        nombre_accesible(self.chk_ninos, _("Hecho para niños"))
+        nombre_accesible(self.chk_ninos, _("Creado para niños"))
         contenido.Add(self.chk_ninos, 0, wx.LEFT | wx.RIGHT | wx.TOP, 6)
 
         self.chk_dvr = wx.CheckBox(

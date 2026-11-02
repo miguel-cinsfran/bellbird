@@ -273,11 +273,11 @@ class GestorPanelObsTest(unittest.TestCase):
             self.assertIn(pedido, tipos)
         self.assertEqual(
             frase,
-            "Escena al aire: Escena. 2 fuentes, de adelante hacia atrás.\n"
-            "1: Juego, captura de juego, ocupa toda la imagen, se ve.\n"
-            "2: Chat en el vídeo, navegador, esquina inferior izquierda, "
+            "Escena actual: Escena. 2 fuentes, de adelante hacia atrás.\n"
+            "1: Juego, captura de juego, ocupa todo el vídeo, se ve.\n"
+            "2: Chat en el vídeo, navegador, abajo a la izquierda, "
             "460 por 620 píxeles, visible en OBS, pero no aparece en "
-            "la imagen: la tapa entera Juego.")
+            "el vídeo: la tapa entera Juego.")
 
     def test_descripcion_escena_con_clase_desconocida_no_muestra_la_clase(self):
         doble = DobleObs(
@@ -285,7 +285,7 @@ class GestorPanelObsTest(unittest.TestCase):
                       alineacion=0)],
             entradas=[{"inputName": "Rara", "inputKind": "clase_nueva"}])
         frase = self.gestor(doble).descripcion_escena()
-        self.assertIn("1: Rara, ocupa toda la imagen, se ve.", frase)
+        self.assertIn("1: Rara, ocupa todo el vídeo, se ve.", frase)
         self.assertNotIn("clase_nueva", frase)
 
     def test_fuentes_devuelve_vacio_sin_fuentes_o_escena(self):

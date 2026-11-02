@@ -49,11 +49,11 @@ class FrasesObsTest(unittest.TestCase):
                          "Grabando, 00:01:02")
 
     def test_escena_al_aire_con_nombre(self):
-        self.assertEqual(obs_estado.frase_escena_al_aire("Escena"), "Al aire: Escena")
+        self.assertEqual(obs_estado.frase_escena_al_aire("Escena"), "Escena actual: Escena")
 
     def test_escena_al_aire_sin_nombre(self):
         self.assertEqual(obs_estado.frase_escena_al_aire(""),
-                         "No se pudo saber que escena está al aire")
+                         "No se pudo obtener la escena actual")
 
     def test_frases_de_resultado(self):
         esperadas = {
@@ -63,7 +63,7 @@ class FrasesObsTest(unittest.TestCase):
             "grabacion_detenida": "Grabación detenida",
             "grabacion_en_pausa": "Grabación en pausa",
             "grabacion_reanudada": "Grabación reanudada",
-            "escena_cambiada": "Escena puesta al aire",
+            "escena_cambiada": "Escena actual cambiada",
         }
         self.assertEqual({accion: obs_estado.frase_resultado(accion)
                           for accion in esperadas}, esperadas)

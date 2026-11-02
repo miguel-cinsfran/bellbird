@@ -26,13 +26,14 @@ def cambiar_overlay(frame, encender):
         try:
             _gui.overlay_servidor.encender(puerto)
         except _gui.overlay_servidor.OverlayPuertoOcupadoError:
-            _gui.anunciar(_("No se pudo activar el panel, el puerto {puerto} está ocupado").format(puerto=puerto))
+            _gui.anunciar(_("No se pudo activar el chat en el vídeo: el puerto {puerto} "
+                            "está en uso. Cámbialo en Preferencias, Transmisión.").format(puerto=puerto))
             # El puerto ocupado solo afecta esta sesión, no la preferencia guardada.
             frame._config["overlay_activo"] = False
             return False
         frame._config["overlay_activo"] = True
         _gui.guardar_opcion(_gui.RUTA_CONFIG, "overlay", "activo", "true")
-        _gui.anunciar(_("Panel de chat activo en el puerto {puerto}").format(puerto=puerto))
+        _gui.anunciar(_("Chat en el vídeo activado"))
         from bellbird.obs import obs_panel_recarga
         _gui.diagnostico.crear_hilo(
             obs_panel_recarga.recargar_fuente_panel,
@@ -41,7 +42,7 @@ def cambiar_overlay(frame, encender):
     _gui.overlay_servidor.apagar()
     frame._config["overlay_activo"] = False
     _gui.guardar_opcion(_gui.RUTA_CONFIG, "overlay", "activo", "false")
-    _gui.anunciar(_("Panel de chat apagado"))
+    _gui.anunciar(_("Chat en el vídeo desactivado"))
     return False
 
 
@@ -335,7 +336,7 @@ def supervisar_transmision(frame, accion, destino="", usuario="",
                     if guardados.get("ninos"):
                         frame.sesion.enlace_directo = url
                         _gui.anunciar(
-                            _("El directo está marcado como hecho para "
+                            _("El directo está marcado como creado para "
                               "niños y YouTube no tiene chat."))
                         return
                     if not _emision.chat_legible(

@@ -37,11 +37,11 @@ def abrir_restream(frame) -> None:
 
 
 def abrir_obs(frame) -> None:
-    """Abre el panel de OBS en su pestaña Escena."""
+    """Abre el panel de OBS en su pestaña Transmisión."""
     from bellbird.ui import obs_ventana
 
     obs_ventana.abrir_obs(
-        frame, frame, pestana=obs_ventana.PESTANA_ESCENA)
+        frame, frame, pestana=obs_ventana.PESTANA_TRANSMISION)
 
 
 def abrir_escena(frame) -> None:

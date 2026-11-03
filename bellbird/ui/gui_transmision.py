@@ -1,26 +1,22 @@
-"""Panel accesible para preparar y manejar la transmisión en OBS."""
+"""Pestaña Transmisión del Panel de OBS: preparar y manejar el directo."""
 
 from __future__ import annotations
 
 import wx
 
-from bellbird.core import diagnostico
-from bellbird.core.idioma import N_, _
+from bellbird.core.idioma import N_, _, pgettext
 from bellbird.obs import (consultas_transmision, obs_lanzador,
                           overlay_servidor, transmision_directa)
 from bellbird.obs.estado_panel import EstadoPanel, resumir
 from bellbird.obs.obs_destinos import DESTINOS
-from bellbird.obs.obs_panel import GestorPanelObs, NOMBRE_FUENTE
-from bellbird.ui import gui_microfono, menu_transmision, paleta, tema
+from bellbird.obs.obs_panel import NOMBRE_FUENTE
+from bellbird.ui import gui_microfono, menu_transmision, tema
 from bellbird.ui.accesibilidad import anunciar, nombre_accesible
 from bellbird.ui.directo_panel import DirectoPanel
 from bellbird.ui.gui import caja_de_grupo
-from bellbird.ui.operaciones_obs import OperacionesObs
 from bellbird.ui.preferencias_comun import (
-    CampoEstado, ajustar_zona, boton, fijar_zona, fila_campo,
-    fila_horizontal, mostrar_control, mostrar_fila)
-
-logger = diagnostico.obtener_logger(__name__)
+    CampoEstado, boton, fila_campo, fila_horizontal, mostrar_control,
+    mostrar_fila)
 
 _PUERTO_PANEL_DEFECTO = 8730
 _RUTA_PANEL_CHAT = "/chat"
@@ -28,80 +24,59 @@ _RUTA_PANEL_CHAT = "/chat"
 _ETIQUETA_CHAT = N_("Mostrar &chat en el vídeo")
 
 
-class TransmisionDialog(wx.Dialog):
+class PaginaTransmision(wx.Panel):
+    """Lo que hace la pestaña Transmisión: el directo y su estado."""
 
-    def __init__(self, parent, gestor=None, alternar_panel=None,
-                 supervisar=None, guardar_usuario=None, usuario_tiktok="",
-                 asegurar=None, guardar_destino=None):
-        super().__init__(parent, title=_("Panel de transmisión"),
-                         name="DialogoTransmision")
-        self._gestor = gestor or GestorPanelObs()
-        self._asegurar = asegurar if asegurar is not None else obs_lanzador.asegurar_obs
-        self._alternar_panel = alternar_panel
-        self._supervisar = supervisar
-        self._guardar_usuario = guardar_usuario
-        self._guardar_destino = guardar_destino
-        self._usuario_tiktok = usuario_tiktok or ""
+    def __init__(self, parent, principal, gestor, operaciones):
+        super().__init__(parent, name="PaginaTransmision")
+        self._principal = principal
+        self._gestor = gestor
+        self._operaciones = operaciones
+        config = getattr(principal, "_config", None) or {}
+        self._alternar_panel = getattr(principal, "_cambiar_overlay", None)
+        self._supervisar = getattr(
+            principal, "_supervisar_transmision", None)
+        self._guardar_usuario = getattr(
+            principal, "_guardar_usuario_tiktok", None)
+        self._guardar_destino = getattr(
+            principal, "_guardar_destino_transmision", None)
+        self._usuario_tiktok = config.get("tiktok_usuario", "") or ""
         self._estado_actual = EstadoPanel("", "listo", ())
         self._escena_al_aire = ""
-        self._operaciones = OperacionesObs(
-            self, self._activar, self._escribir_fallo, self._enfocar_tras_fallo)
         self._crear_controles()
         self._directo = DirectoPanel(
-            self, self.btn_directo, self._operaciones, self._gestor,
+            self, self.btn_directo, operaciones, gestor,
             self._supervisar, self._guardar_usuario, self._guardar_destino,
-            self._usuario_tiktok, self._asegurar, self._datos_directo,
-            self._al_cambiar_directo)
+            self._usuario_tiktok, obs_lanzador.asegurar_obs,
+            self._datos_directo, self._al_cambiar_directo)
         self._enlazar_eventos()
-        self.SetDefaultItem(None)
-        self.Centre()
-        paleta.pintar_ventana(self)
-        self._en_hilo(self._cargar_inicial, self._inicial_cargada)
 
     def _crear_controles(self):
-        panel = wx.Panel(self, name="PanelTransmision")
         caja = wx.BoxSizer(wx.VERTICAL)
-        zona = wx.ScrolledWindow(panel, name="ZonaTransmision",
-                                 style=wx.TAB_TRAVERSAL | wx.VSCROLL)
-        zona.SetScrollRate(0, 20)
-        self._zona_desplazable = zona
-        contenido = wx.BoxSizer(wx.VERTICAL)
         self._filas = {}
-        self._crear_estado(zona, contenido)
-        self._crear_grupo_directo(zona, contenido)
-        fijar_zona(self, zona, contenido)
-        caja.Add(zona, 1, wx.EXPAND)
-        self.btn_escena = boton(
-            panel, _("Esce&na…"), _("Escena…"))
-        self.btn_grabacion = boton(
-            panel, _("Gra&bación…"), _("Grabación…"))
-        self.btn_mostrar_obs = boton(
-            panel, _("Mostrar &OBS"), _("Mostrar OBS"))
+        self._crear_estado(caja)
+        self._crear_grupo_directo(caja)
+        self.btn_restream = boton(
+            self, pgettext("pestaña Transmisión", "Re&stream…"),
+            _("Restream…"))
         self.btn_actualizar = boton(
-            panel, _("Ac&tualizar estado"), _("Actualizar estado"))
-        self.btn_cerrar = boton(
-            panel, _("Cerrar"), _("Cerrar"), wx.ID_CANCEL)
-        caja.Add(fila_horizontal((self.btn_escena, self.btn_grabacion,
-                                  self.btn_mostrar_obs, self.btn_actualizar,
-                                  self.btn_cerrar)),
+            self, _("Ac&tualizar estado"), _("Actualizar estado"))
+        caja.Add(fila_horizontal((self.btn_restream, self.btn_actualizar)),
                  0, wx.ALL, 10)
-        panel.SetSizer(caja)
-        self._acciones = (
+        self.SetSizer(caja)
+        self.acciones = (
             self.cho_destino, self.txt_usuario_tiktok, self.btn_directo,
-            self.chk_chat, self.btn_escena, self.btn_grabacion,
-            self.btn_mostrar_obs, self.btn_actualizar, self.btn_cerrar)
-        self.SetMinSize((600, -1))
-        self._acomodar()
+            self.chk_chat, self.btn_restream, self.btn_actualizar)
 
-    def _crear_estado(self, zona, contenido):
-        rotulo = wx.StaticText(zona, label=_("&Estado:"))
-        self.txt_estado = CampoEstado(zona, _("Estado"))
+    def _crear_estado(self, contenido):
+        rotulo = wx.StaticText(self, label=_("&Estado:"))
+        self.txt_estado = CampoEstado(self, _("Estado"))
         contenido.Add(rotulo, 0, wx.ALL, 6)
         contenido.Add(self.txt_estado, 0, wx.EXPAND | wx.LEFT | wx.RIGHT
                       | wx.BOTTOM, 6)
 
-    def _crear_grupo_directo(self, zona, contenido):
-        sizer, padre = caja_de_grupo(zona, _("Directo"))
+    def _crear_grupo_directo(self, contenido):
+        sizer, padre = caja_de_grupo(self, _("Directo"))
         rotulo_destino = wx.StaticText(padre, label=_("Transmitir &a:"))
         self.cho_destino = wx.Choice(padre, choices=list(DESTINOS),
                                      name=_("Transmitir a"))
@@ -127,19 +102,9 @@ class TransmisionDialog(wx.Dialog):
 
     def _enlazar_eventos(self):
         self.btn_actualizar.Bind(wx.EVT_BUTTON, self._actualizar)
+        self.btn_restream.Bind(wx.EVT_BUTTON, self._abrir_restream)
         self.chk_chat.Bind(wx.EVT_CHECKBOX, self._alternar_chat)
-        self.btn_escena.Bind(wx.EVT_BUTTON, self._abrir_escena)
-        self.btn_grabacion.Bind(wx.EVT_BUTTON, self._abrir_grabacion)
-        self.btn_mostrar_obs.Bind(
-            wx.EVT_BUTTON, lambda evento: menu_transmision.mostrar_obs())
-        self.btn_cerrar.Bind(wx.EVT_BUTTON, self._cerrar)
         self.cho_destino.Bind(wx.EVT_CHOICE, self._al_cambiar_destino)
-        self.Bind(wx.EVT_CLOSE, self._cerrar)
-
-    def _activar(self, activo):
-        for control in self._acciones:
-            control.Enable(activo)
-        self._aplicar_visibilidad()
 
     def _destino_elegido(self):
         seleccion = self.cho_destino.GetSelection()
@@ -151,7 +116,7 @@ class TransmisionDialog(wx.Dialog):
 
     def _microfono_preferido(self):
         try:
-            return gui_microfono.microfono_preferido(self.GetParent())
+            return gui_microfono.microfono_preferido(self._principal)
         except Exception:
             return ""
 
@@ -179,40 +144,27 @@ class TransmisionDialog(wx.Dialog):
             self.chk_chat,
             destino == "YouTube" and self._alternar_panel is not None,
             self.btn_directo)
-        ajustar_zona(self, self._zona_desplazable,
-                     self._zona_desplazable.GetSizer())
-        self._acomodar()
-
-    def _acomodar(self):
         self.Layout()
-        self.Fit()
-        self.SetSize((max(600, self.GetSize().GetWidth()),
-                      self.GetSize().GetHeight()))
 
     def _mostrar_estado(self, estado):
         self._estado_actual = estado
         self.txt_estado.mostrar(estado)
 
-    def _escribir_fallo(self, mensaje):
+    def mostrar_fallo(self, mensaje):
         self._mostrar_estado(EstadoPanel(mensaje, "aviso", ()))
 
-    def _enfocar_tras_fallo(self):
+    def enfocar_actualizar(self):
         self.btn_actualizar.Enable(True)
         self.btn_actualizar.SetFocus()
 
     def _en_hilo(self, funcion, al_terminar=None):
         self._operaciones.en_hilo(funcion, al_terminar)
 
-    def _fallo(self, mensaje):
-        self._operaciones.fallo(mensaje)
+    def _escena(self):
+        return self._escena_al_aire
 
-    def _cargar_inicial(self):
-        self._asegurar(lambda: self._gestor.conectar(),
-                       al_anunciar=lambda frase: wx.CallAfter(anunciar, frase))
-        return consultas_transmision.cargar_inicial(
-            self._gestor, self._microfono_preferido())
-
-    def _poblar_inicial(self, datos):
+    def cargar(self, datos):
+        """Pone el estado y el destino iniciales que leyó la ventana."""
         if datos.perfil in DESTINOS:
             self.cho_destino.SetStringSelection(datos.perfil)
         else:
@@ -220,16 +172,15 @@ class TransmisionDialog(wx.Dialog):
         self.chk_chat.SetValue(overlay_servidor.esta_encendido())
         self._aplicar_datos(datos)
 
-    def _inicial_cargada(self, datos):
-        self._poblar_inicial(datos)
+    def enfocar_inicial(self):
         anunciar(self._estado_actual.titular)
         if self.cho_destino.IsShown():
             self.cho_destino.SetFocus()
         else:
             self.btn_directo.SetFocus()
 
-    def _escena(self):
-        return self._escena_al_aire
+    def cerrar_directo(self):
+        self._directo.cerrar()
 
     def _refrescar_estado(self, anunciar_cuadro=False):
         destino = self._destino_elegido() or ""
@@ -285,46 +236,13 @@ class TransmisionDialog(wx.Dialog):
                      .format(escena=escena))
         self._refrescar_estado()
 
-    def _abrir_escena(self, event):
-        from bellbird.ui import obs_ventana
-        obs_ventana.abrir_obs(
-            self, self.GetParent(), gestor=self._gestor,
-            pestana=obs_ventana.PESTANA_ESCENA)
-        self._refrescar_estado()
-        self.btn_escena.SetFocus()
-
-    def _abrir_grabacion(self, event):
-        from bellbird.ui import obs_ventana
-        obs_ventana.abrir_obs(
-            self, self.GetParent(), gestor=self._gestor,
-            pestana=obs_ventana.PESTANA_GRABACION)
-        self._refrescar_estado()
-        self.btn_grabacion.SetFocus()
-
-    def _cerrar(self, event):
-        if self._operaciones.cerrando:
-            return
-        self._directo.cerrar()
-        self._operaciones.cerrar()
-        diagnostico.crear_hilo(self._cerrar_gestor,
-                               "CerrarTransmisionOBS").start()
-        self.EndModal(wx.ID_CANCEL)
-
-    def _cerrar_gestor(self):
-        try:
-            self._gestor.cerrar()
-        except Exception as error:
-            logger.debug("no se pudo cerrar el gestor de OBS: %s", error)
+    def _abrir_restream(self, event):
+        menu_transmision.abrir_restream(self._principal)
 
 
-def abrir_transmision(parent, alternar_panel=None, supervisar=None,
-                      guardar_usuario=None, usuario_tiktok="",
-                      guardar_destino=None) -> None:
-    dialogo = TransmisionDialog(
-        parent, alternar_panel=alternar_panel, supervisar=supervisar,
-        guardar_usuario=guardar_usuario, usuario_tiktok=usuario_tiktok,
-        guardar_destino=guardar_destino)
-    try:
-        dialogo.ShowModal()
-    finally:
-        dialogo.Destroy()
+def abrir_transmision(parent) -> None:
+    """Abre el Panel de OBS en la pestaña Transmisión."""
+    from bellbird.ui import obs_ventana
+
+    obs_ventana.abrir_obs(
+        parent, parent, pestana=obs_ventana.PESTANA_TRANSMISION)

@@ -19,7 +19,7 @@ from tests.letras_acceso import (
     ingles, letras_repetidas, repetidas_con_lo_de_fuera)
 from tests.test_gui_microfono import FUENTES, PARES
 from tests.test_gui_transmision import (
-    GestorFalso, HiloInmediato, _asegurar_sin_obs)
+    GestorFalso, HiloInmediato, OperacionesFalsas, PrincipalFalsa)
 from tests.ventanas_prueba import destruir
 from bellbird.ai import catalogo
 from bellbird.core import config
@@ -248,8 +248,10 @@ class TestLetrasAccesoTransmision(unittest.TestCase):
         for parche in self.parches:
             parche.start()
         self.addCleanup(self._frenar_parches)
-        self.dialogo = gui_transmision.TransmisionDialog(
-            None, GestorFalso(), asegurar=_asegurar_sin_obs)
+        self.marco = wx.Frame(None)
+        self.addCleanup(destruir, self.marco)
+        self.dialogo = gui_transmision.PaginaTransmision(
+            self.marco, PrincipalFalsa(), GestorFalso(), OperacionesFalsas())
         self.addCleanup(destruir, self.dialogo)
 
     def _frenar_parches(self):

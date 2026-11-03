@@ -14,7 +14,7 @@ from bellbird.obs import obs_lanzador
 from bellbird.obs.obs_lanzador import ObsNoInstalado, abrir_obs, asegurar_obs, ruta_obs
 
 try:
-    from bellbird.ui import gui_transmision
+    from bellbird.ui import obs_ventana
     _HAY_GUI = True
 except Exception:
     _HAY_GUI = False
@@ -357,14 +357,22 @@ class AsegurarObsTest(unittest.TestCase):
 
 
 @unittest.skipUnless(_HAY_GUI, "wxPython no está instalado")
-class CableadoDialogoTest(unittest.TestCase):
+class CableadoPanelObsTest(unittest.TestCase):
     def test_cargar_inicial_asegura_antes_de_conectar(self):
         orden = []
         llamadas_anuncio = []
 
         class GestorFalso:
+            def __init__(self):
+                self._conectado = False
+
             def conectar(self):
                 orden.append("conectar")
+                self._conectado = True
+
+            @property
+            def conectado(self):
+                return self._conectado
 
             def escenas(self):
                 return ("Principal",)
@@ -393,6 +401,9 @@ class CableadoDialogoTest(unittest.TestCase):
             def perfil_actual(self):
                 return ""
 
+            def estadisticas(self, parada=None):
+                return {}
+
             def entradas_audio(self):
                 return ()
 
@@ -417,15 +428,15 @@ class CableadoDialogoTest(unittest.TestCase):
         import types
         falso = types.SimpleNamespace(_gestor=GestorFalso(),
                                       _asegurar=asegurar_doble,
-                                      _microfono_preferido=lambda: "")
-        with mock.patch.object(gui_transmision.wx, "CallAfter",
+                                      _preferido=lambda: "")
+        with mock.patch.object(obs_ventana.wx, "CallAfter",
                                side_effect=lambda f, *a: llamadas_anuncio.append(
                                    (f, a))) as call_after:
-            gui_transmision.TransmisionDialog._cargar_inicial(falso)
-        self.assertEqual(orden[:3], ["asegurar", "conectar", "conectar"])
+            obs_ventana.VentanaObs._cargar_inicial(falso)
+        self.assertEqual(orden[:2], ["asegurar", "conectar"])
         self.assertTrue(call_after.called)
         funcion, argumentos = llamadas_anuncio[0]
-        self.assertIs(funcion, gui_transmision.anunciar)
+        self.assertIs(funcion, obs_ventana.anunciar)
         self.assertEqual(argumentos,
                           ("Abriendo OBS en segundo plano, en el área de "
                            "notificación. Puede tardar hasta un minuto.",))

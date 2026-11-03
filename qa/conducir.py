@@ -1843,38 +1843,15 @@ def cerrar_obs_del_banco(res: Resultado) -> None:
 
 
 def escenario_transmision(app: Aplicacion, args, res: Resultado):
-    """El diálogo que coloca el panel de chat dentro de una escena de OBS.
+    """La pestaña Transmisión dentro del panel de OBS.
 
-    Vale con OBS abierto y sin OBS. Sin él, el diálogo tiene que abrirse
-    IGUAL, decir en su cuadro de estado por qué no puede hacer nada, y que sus
-    controles se sigan anunciando: uno que se rinde y no abre deja a quien no
-    ve sin saber qué pasó. Con OBS abierto se audita además con todos los
-    controles habilitados, que es cuando el orden de Tab es completo.
-
-    La fase 3 del smoke NO llega hasta acá: solo audita la pantalla
-    desconectada. Esta es la única auditoría automática de esta superficie.
+    La abre la app con Ctrl+Mayús+T, que lanza OBS si hace falta, y el final
+    del banco cierra el OBS que abrió. Se audita entera, sin pulsar el botón
+    del directo ni cambiar nada en OBS.
     """
-    # Sin OBS los controles de OBS nacen deshabilitados a propósito, y wx saca
-    # lo deshabilitado del orden de Tab. Exigirlos ahí mide la pantalla de
-    # espera, no el diálogo. Medido el 29/09/2026.
-    hay_obs = obs_abierto()
-    if hay_obs:
-        esperados_tab = ("Transmitir a", "Transmitir en directo",
-                         "Escena…", "Grabación…",
-                         "Mostrar OBS", "Actualizar estado", "Cerrar")
-    else:
-        esperados_tab = ("Actualizar estado",)
-        res.nota("Panel de transmisión: OBS está cerrado, así que solo se "
-                 "exige el control que queda habilitado")
-    auditar_dialogo(
-        app, res, "Transmisión", "Panel de transmisión",
-        vueltas_tab=VUELTAS_TAB_TRANSMISION,
-        esperados=("Estado", "Transmitir a", "Actualizar estado",
-                   "Escena…", "Grabación…", "Mostrar OBS", "Cerrar"),
-        esperados_en_tab=esperados_tab,
-        # Con OBS abierto la carga inicial tarda: el cuadro nace con todo
-        # deshabilitado y auditar el Tab antes mide la pantalla de espera.
-        esperar_habilitados=("Actualizar estado",))
+    ventanas_obs.auditar_transmision(
+        app, res, recorrer_tab, revisar_nombres, faltan_habilitados,
+        VUELTAS_TAB_TRANSMISION)
 
 
 def escenario_escena(app: Aplicacion, args, res: Resultado):
@@ -1890,7 +1867,7 @@ def escenario_escena(app: Aplicacion, args, res: Resultado):
 
 
 def escenario_grabacion(app: Aplicacion, args, res: Resultado):
-    """La ventana para grabar en OBS sin abrir el panel de transmisión.
+    """La pestaña para grabar en OBS sin abrir Transmisión.
 
     La abre la app, que lanza OBS si hace falta, y el final del banco cierra
     el OBS que abrió. Se audita entera, sin pulsar los botones que cambiarían
@@ -3532,7 +3509,7 @@ def escenario_transmitir_destino(app: Aplicacion, args, res: Resultado):
                 visibles = []
             if any("Directo de YouTube" in t for t in visibles):
                 break
-            if any(t.strip() == "Panel de transmisión" for t in visibles):
+            if any(t.strip() == "Panel de OBS" for t in visibles):
                 motivo = "tiktok"
                 break
             dichos = " ".join(a.get("texto", "") for a in app.anuncios[n:])
@@ -3551,9 +3528,9 @@ def escenario_transmitir_destino(app: Aplicacion, args, res: Resultado):
             time.sleep(1.0)
 
         if motivo == "tiktok":
-            res.fallo("transmitir_destino: «Continuar» llevó al panel de transmisión, "
+            res.fallo("transmitir_destino: «Continuar» llevó al Panel de OBS, "
                       "o sea que el destino no era YouTube")
-            app.pedir("cerrar_ventana", ventana="Panel de transmisión")
+            app.pedir("cerrar_ventana", ventana="Panel de OBS")
             return
         if motivo in ("sesion", "emitiendo", "obs"):
             porques = {
@@ -4633,27 +4610,27 @@ def escenario_overlay(app: Aplicacion, args, res: Resultado):
         try:
             app.abrir_por_menu("Transmisión")
         except Exception as exc:
-            res.fallo(f"Panel de transmisión: no se pudo abrir el diálogo, {exc}")
+            res.fallo(f"Panel de OBS: no se pudo abrir el panel, {exc}")
             return False
-        if app.esperar_ventana("Panel de transmisión", segundos=15) is None:
-            res.fallo("Panel de transmisión: el menú no abrió el diálogo")
+        if app.esperar_ventana("Panel de OBS", segundos=15) is None:
+            res.fallo("Panel de OBS: el menú no abrió el panel")
             return False
-        controles = app.arbol("Panel de transmisión")
+        controles = app.arbol("Panel de OBS")
         casilla = next((c for c in controles
                         if c.get("clase") == "CheckBox" and c.get("nombre") == etiqueta), None)
         if casilla is None or not casilla.get("habilitado"):
             motivo = "no existe" if casilla is None else "está deshabilitada"
-            res.fallo(f"Panel de transmisión: la casilla «{etiqueta}» {motivo}")
-            app.pedir("cerrar_ventana", ventana="Panel de transmisión")
+            res.fallo(f"Panel de OBS: la casilla «{etiqueta}» {motivo}")
+            app.pedir("cerrar_ventana", ventana="Panel de OBS")
             return False
         try:
-            app.pedir("foco", ventana="Panel de transmisión", nombre=etiqueta)
+            app.pedir("foco", ventana="Panel de OBS", nombre=etiqueta)
             app.teclas("space")
         except Exception as exc:
-            res.fallo(f"Panel de transmisión: no se pudo alternar «{etiqueta}», {exc}")
-            app.pedir("cerrar_ventana", ventana="Panel de transmisión")
+            res.fallo(f"Panel de OBS: no se pudo alternar «{etiqueta}», {exc}")
+            app.pedir("cerrar_ventana", ventana="Panel de OBS")
             return False
-        app.pedir("cerrar_ventana", ventana="Panel de transmisión")
+        app.pedir("cerrar_ventana", ventana="Panel de OBS")
         return True
 
     encendido_al_entrar = responde(2.0)

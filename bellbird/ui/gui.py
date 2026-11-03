@@ -778,11 +778,7 @@ class YTChatFrame(wx.Frame):
 
     def _on_transmision(self, event):
         from bellbird.ui.gui_transmision import abrir_transmision
-        abrir_transmision(self, self._cambiar_overlay,
-                          supervisar=self._supervisar_transmision,
-                          guardar_usuario=self._guardar_usuario_tiktok,
-                          usuario_tiktok=self._config.get("tiktok_usuario", ""),
-                          guardar_destino=self._guardar_destino_transmision)
+        abrir_transmision(self)
 
     def _on_obs_micro(self, event):
         def avisar(texto, sonido):

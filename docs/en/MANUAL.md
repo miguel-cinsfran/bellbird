@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md 29412626854ba1aad510778491dd20354eee0495 -->
+<!-- original: es/MANUAL.md 98c1cc81ca7c7e7b3519f029814284939fee5da6 -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -276,8 +276,8 @@ For TikTok you need an OBS profile called `TikTok` with Restream, and for
 YouTube, the Google session started and live streams enabled on your channel;
 the `YouTube` OBS profile is created by the application.
 
-In the *Scene* window (`Ctrl+Shift+E`), on the *Add* tab, choose which window
-is captured, for example a game. The live stream shows that window, but its
+In the *OBS panel*, on the *Add* tab (`Ctrl+Shift+E`), choose which window is
+captured, for example a game. The live stream shows that window, but its
 capture does not carry sound: the sound comes from the desktop audio and the
 OBS microphone.
 
@@ -338,7 +338,7 @@ With *Show streaming or recording in the title of the window*, in *Preferences*,
 on the *Broadcast* category, the title starts with that state, and the check box
 is cleared by default.
 
-You can also record without opening the broadcast panel. The *Recording* window
+You can also record without opening the *Broadcast* tab. The *Recording* tab
 (`Ctrl+Shift+G`) has the same buttons, and the *Broadcast* menu keeps *Start or
 stop recording* with `Alt+Shift+G` and *Pause or resume recording* with
 `Alt+Shift+P`, which announce and sound the same as the window buttons. If no
@@ -348,18 +348,23 @@ allow it.
 
 When you stop the recording, from the application or because the broadcast
 ended, you hear “Recording saved” with the file name. *Saved recordings…*, in
-the *Broadcast* menu and in the *Recording* window, lists what was recorded that
+the *Broadcast* menu and in the *Recording* tab, lists what was recorded that
 way, from newest to oldest. From there you can open the file with `Enter`, open
 its folder, copy the path or remove it from the list with `Delete`. Removing it
 from the list does not delete the file, and what is stopped from the OBS window
 does not appear in the list.
 
-### The broadcast panel
+### The Broadcast tab
+
+The *OBS panel* (`Ctrl+Shift+O`) brings together in tabs what is done with OBS.
+The first one, *Broadcast* (`Ctrl+Shift+T`), starts and stops the live stream,
+chooses where it is broadcast and shows the chat on video. *Restream…* opens
+the Restream window. With `Ctrl+Tab` you move to *Scene* or *Audio* without
+closing anything, also with a live stream running.
 
 The *Status* field says whether everything is ready or what to check, the
-current scene, the microphone and whether it is recording. From the panel the
+current scene, the microphone and whether it is recording. From the tab the
 live stream is started and ended the same way as with the button in the main
-window. *Scene…* opens the *Scene* window and *Recording…* opens the *Recording*
 window. Only what is useful at that moment appears: *TikTok user* with TikTok
 and *Show chat on video* with YouTube, and `Enter` never starts or ends a live
 stream.
@@ -420,16 +425,15 @@ same category.
 If OBS has no camera, you can add one in *Preferences*, on the *Camera*
 category, with *Add camera to OBS…*: it uses a Windows camera and leaves it at
 the bottom right of the video, in front of the other sources. To move it, use
-the *Sources* tab of the *Scene* window.
+the *Sources* tab of the *OBS panel*.
 
 ## Scene
 
-The *Scene* window (`Ctrl+Shift+E`), in the *Broadcast* menu, brings together
-what is seen and heard in OBS in four tabs.
-
-*Scene* chooses which scene is edited and says what it has. Browsing the list
-does not change what is broadcast. *Change scene* changes the scene that is
-broadcast and *Save image…* saves an image of it.
+The *OBS panel* (`Ctrl+Shift+O`) brings together in tabs what is seen and
+heard in OBS. The *Scene* tab (`Ctrl+Shift+E`) chooses which scene is edited
+and says what it has. Browsing the list does not change what is broadcast.
+*Change scene* changes the scene that is broadcast and *Save image…* saves an
+image of it.
 
 *Sources* chooses a source of the scene and moves it to one of the nine
 positions, changes its size, hides it, locks it or changes its layer: brings
@@ -443,13 +447,13 @@ next to the list, says where it is, how big it is and what covers it.
 current scene. *Audio* mutes the OBS microphone and chooses which one is used.
 When it finishes, the source lists and the description update by themselves.
 
-If OBS is closed, the window opens it. If it does not respond, it says so in
-the description and does not freeze. The window help explains each tab.
+If OBS is closed, the panel opens it. If it does not respond, it says so in
+the description and does not freeze. The panel help explains each tab.
 
 ## Recording
 
-The *Recording* window (`Ctrl+Shift+G`), in the *Broadcast* menu, records in OBS
-without going through the broadcast panel. *Status* says whether it is
+The *Recording* tab (`Ctrl+Shift+G`), in the *OBS panel*, records in OBS
+without going through the *Broadcast* tab. *Status* says whether it is
 recording, paused or not recording, how long it has been going, the live scene,
 the microphone and whether it is also broadcasting.
 
@@ -457,11 +461,10 @@ the microphone and whether it is also broadcasting.
 their sounds and announcements. *Pause recording* appears while recording and
 becomes *Resume recording* when the recording is paused. *Saved recordings…*
 lists what the application stopped. *Record while broadcasting* is the same
-preference as in the *Broadcast* menu: changing one changes the other. *Scene…*
-opens the *Scene* window with the same OBS connection and, on return, the status
-updates. *Update status* reads it again.
+preference as in the *Broadcast* menu: changing one changes the other.
+*Update status* reads it again.
 
-If OBS is closed, the window opens it. If it does not respond, it says so in
+If OBS is closed, the panel opens it. If it does not respond, it says so in
 *Status* and does not freeze.
 
 ## Chat panel for streaming
@@ -472,15 +475,15 @@ link:
 
     http://127.0.0.1:8730/chat
 
-It is turned on with *Show chat on video*, in the *Broadcast panel*, and if the
-current scene does not have the source, it adds it. Each message appears on a
-card with the initial and a color for each person, and donations in gold with
-the amount. It is only used with YouTube: TikTok already shows the comments over
+It is turned on with *Show chat on video*, in the *Broadcast* tab of the *OBS
+panel*, and if the current scene does not have the source, it adds it. Each
+message appears on a card with the initial and a color for each person, and
+donations in gold with the amount. It is only used with YouTube: TikTok already shows the comments over
 the video.
 
 What does not fit in the video is not broadcast, and a source that is partly
 outside is cropped without warning. OBS calls that rectangle the canvas, and
-that is why the *Scene* window says how much is cropped. If another source covers
+that is why the *Scene* tab says how much is cropped. If another source covers
 the panel, the application puts it in front when the scene is current and tells you
 which one was covering it. `F2` says whether the panel is active and whether OBS
 is showing it, and the server only listens on your computer.

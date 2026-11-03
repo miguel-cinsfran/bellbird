@@ -16,15 +16,22 @@ SEGUNDOS_CARGA_OBS = 90.0
 
 TITULO_VENTANA = "Panel de OBS"
 
-PESTANAS_OBS = ("Escena", "Audio", "Grabación", "Fuentes", "Agregar",
-                "General")
+PESTANAS_OBS = ("Transmisión", "Escena", "Audio", "Grabación", "Fuentes",
+                "Agregar", "General")
 
-PESTANA_ESCENA = 0
-PESTANA_GRABACION = 2
+PESTANA_TRANSMISION = 0
+PESTANA_ESCENA = 1
+PESTANA_GRABACION = 3
 
 ESPERADOS_EN_TODAS = ("Ayuda", "Cerrar")
 
+ORDEN_TRANSMISION = ("Estado", "Transmitir a", "Usuario de TikTok",
+                     "Transmitir en directo", "Mostrar chat en el vídeo",
+                     "Restream…", "Actualizar estado")
+
 ESPERADOS_POR_PESTANA = {
+    "Transmisión": ("Estado", "Transmitir a", "Transmitir en directo",
+                    "Restream…", "Actualizar estado"),
     "Escena": ("Escena", "Cambiar escena", "Descripción de la escena",
                "Guardar imagen"),
     "Audio": ("Silenciar micrófono", "Elegir micrófono"),
@@ -76,6 +83,27 @@ def faltan_en_tab(esperados: tuple[str, ...],
     juntos = " ".join(str(parada) for parada in orden).replace("&", "").casefold()
     return [nombre for nombre in esperados
             if str(nombre).casefold() not in juntos]
+
+
+def _nombre_de_parada(parada: str) -> str:
+    texto = str(parada).split(": ", 1)[-1]
+    return texto.replace("&", "").strip().casefold()
+
+
+def orden_de_transmision(orden: list[str]) -> str | None:
+    """El desorden de los controles de Transmisión, o `None` si están en orden.
+
+    Solo mira los controles que aparecen, porque el destino y el chat se
+    ocultan según el estado del directo.
+    """
+    queridos = [nombre.casefold() for nombre in ORDEN_TRANSMISION]
+    vistos = [_nombre_de_parada(parada) for parada in orden]
+    encontrados = [nombre for nombre in vistos if nombre in queridos]
+    esperados = [nombre for nombre in queridos if nombre in encontrados]
+    if encontrados == esperados:
+        return None
+    return ("el orden de Tab de Transmisión es " + ", ".join(encontrados)
+            + " y debería ser " + ", ".join(esperados))
 
 
 def esperar_habilitado(app, faltan_habilitados, nombre: str, segundos: float,
@@ -177,6 +205,37 @@ def auditar_grabacion(app, res, recorrer_tab, revisar_nombres,
         for falta in faltan_en_tab(esperados_de_pestana("Grabación"), orden):
             res.fallo("Panel de OBS/Grabación: "
                       f"«{falta}» no aparece en el orden de Tab")
+    finally:
+        _cerrar(app, res)
+
+
+def auditar_transmision(app, res, recorrer_tab, revisar_nombres,
+                        faltan_habilitados, vueltas_tab: int) -> None:
+    """Abre el panel con Ctrl+Mayús+T y audita la pestaña Transmisión."""
+    if not _abrir_con_atajo(app, res, "t", PESTANA_TRANSMISION):
+        return
+    try:
+        paginas = app.pedir("pestanas", ventana=TITULO_VENTANA).get(
+            "datos", {}).get("paginas", [])
+        descuadre = descuadre_de_pestanas(paginas)
+        if descuadre:
+            res.fallo(f"Panel de OBS: {descuadre}")
+        if not esperar_habilitado(app, faltan_habilitados, "Actualizar estado",
+                                  SEGUNDOS_CARGA_OBS, res):
+            return
+        visibles = [c for c in app.arbol(TITULO_VENTANA)
+                    if c.get("en_pantalla")]
+        revisar_nombres(visibles, res, "Panel de OBS/Transmisión")
+        orden = recorrer_tab(app, res, "Panel de OBS/Transmisión",
+                             vueltas=vueltas_tab, ventana=TITULO_VENTANA)
+        res.nota("Panel de OBS/Transmisión, orden de Tab, "
+                 f"{len(orden)} paradas: " + " > ".join(orden))
+        for falta in faltan_en_tab(esperados_de_pestana("Transmisión"), orden):
+            res.fallo("Panel de OBS/Transmisión: "
+                      f"«{falta}» no aparece en el orden de Tab")
+        descuadre = orden_de_transmision(orden)
+        if descuadre:
+            res.fallo(f"Panel de OBS/Transmisión: {descuadre}")
     finally:
         _cerrar(app, res)
 

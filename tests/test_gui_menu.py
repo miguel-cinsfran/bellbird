@@ -717,7 +717,7 @@ class TestCableadoEscena(unittest.TestCase):
         abrir.assert_called_once_with(
             frame, frame, pestana=obs_ventana.PESTANA_ESCENA)
 
-    def test_abrir_obs_abre_el_panel_en_escena(self):
+    def test_abrir_obs_abre_el_panel_en_transmision(self):
         from bellbird.ui import menu_transmision
         from bellbird.ui import obs_ventana
 
@@ -730,7 +730,60 @@ class TestCableadoEscena(unittest.TestCase):
             frame.GetEventHandler().ProcessEvent(evento)
 
         abrir.assert_called_once_with(
-            frame, frame, pestana=obs_ventana.PESTANA_ESCENA)
+            frame, frame, pestana=obs_ventana.PESTANA_TRANSMISION)
+
+
+class TestCableadoPanelTransmision(unittest.TestCase):
+    """El comando Panel de transmisión abre el panel en Transmisión."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+
+    @classmethod
+    def tearDownClass(cls):
+        del cls.app
+
+    def _frame_con_menu(self):
+        from bellbird.ui import menu_transmision
+
+        frame = wx.Frame(None)
+        self.addCleanup(destruir, frame)
+        frame._accel = lambda _accion: ""
+        frame._bind_menu = gui.YTChatFrame._bind_menu.__get__(frame)
+        frame._config = {"avisar_sobrecarga": True}
+        frame._on_transmision = gui.YTChatFrame._on_transmision.__get__(frame)
+        frame._on_obs_micro = mock.Mock()
+        frame._alternar_aviso_sobrecarga = mock.Mock()
+        barra = wx.MenuBar()
+        menu_transmision.construir(frame, barra)
+        frame.SetMenuBar(barra)
+        return frame
+
+    def test_el_comando_abre_el_panel_en_transmision(self):
+        from bellbird.ui import menu_transmision
+        from bellbird.ui import obs_ventana
+
+        frame = self._frame_con_menu()
+        with mock.patch.object(obs_ventana, "abrir_obs") as abrir, \
+                mock.patch.object(menu_transmision.wx, "CallAfter",
+                                  side_effect=lambda fn, *a: fn(*a)):
+            evento = wx.CommandEvent(
+                wx.EVT_MENU.typeId, frame.mi_transmision.GetId())
+            frame.GetEventHandler().ProcessEvent(evento)
+
+        abrir.assert_called_once_with(
+            frame, frame, pestana=obs_ventana.PESTANA_TRANSMISION)
+
+    def test_abrir_transmision_abre_el_panel_en_transmision(self):
+        from bellbird.ui import gui_transmision
+        from bellbird.ui import obs_ventana
+
+        padre = mock.sentinel.padre
+        with mock.patch.object(obs_ventana, "abrir_obs") as abrir:
+            gui_transmision.abrir_transmision(padre)
+        abrir.assert_called_once_with(
+            padre, padre, pestana=obs_ventana.PESTANA_TRANSMISION)
 
 
 class TestCableadoPanelGrabacion(unittest.TestCase):

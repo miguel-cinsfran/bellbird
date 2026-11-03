@@ -505,10 +505,11 @@ el foco del lector de pantalla.</p>
 con Restream, y para YouTube, la sesión de Google iniciada y los
 directos activados en tu canal; el perfil <code>YouTube</code> de OBS lo
 crea la aplicación.</p>
-<p>En la ventana <em>Escena</em> (<code>Ctrl+Mayús+E</code>), en la
-pestaña <em>Agregar</em>, elige qué ventana se captura, por ejemplo un
-juego. En el directo se ve esa ventana, pero su captura no lleva sonido:
-el sonido sale del audio del escritorio y del micrófono de OBS.</p>
+<p>En el <em>Panel de OBS</em>, en la pestaña <em>Agregar</em>
+(<code>Ctrl+Mayús+E</code>), elige qué ventana se captura, por ejemplo
+un juego. En el directo se ve esa ventana, pero su captura no lleva
+sonido: el sonido sale del audio del escritorio y del micrófono de
+OBS.</p>
 <h3 id="para-transmitir-en-directo">Para transmitir en directo</h3>
 <p>Para transmitir, pulsa <em>Transmitir en directo</em>, junto a
 <em>Conectar</em>.</p>
@@ -563,9 +564,9 @@ transmisión, y la casilla viene desmarcada.</p>
 propios. Con <em>Mostrar en el título de la ventana si se transmite o se
 graba</em>, en <em>Preferencias</em>, categoría <em>Transmisión</em>, el
 título empieza por ese estado, y la casilla viene desmarcada.</p>
-<p>También se puede grabar sin abrir el panel de transmisión. La ventana
-<em>Grabación</em> (<code>Ctrl+Mayús+G</code>) tiene los mismos botones,
-y el menú <em>Transmisión</em> conserva <em>Iniciar o detener
+<p>También se puede grabar sin abrir la pestaña <em>Transmisión</em>. La
+pestaña <em>Grabación</em> (<code>Ctrl+Mayús+G</code>) tiene los mismos
+botones, y el menú <em>Transmisión</em> conserva <em>Iniciar o detener
 grabación</em> con <code>Alt+Mayús+G</code> y <em>Pausar o reanudar
 grabación</em> con <code>Alt+Mayús+P</code>, que anuncian y suenan igual
 que los botones de la ventana. Si no hay una grabación en curso, pausar
@@ -574,20 +575,25 @@ aplicación lo dice: algunos perfiles pueden no permitirlo.</p>
 <p>Al detener la grabación, desde la aplicación o porque terminó la
 transmisión, se oye «Grabación guardada» con el nombre del archivo.
 <em>Grabaciones guardadas…</em>, en el menú <em>Transmisión</em> y en la
-ventana <em>Grabación</em>, lista lo grabado así, de lo más nuevo a lo
+pestaña <em>Grabación</em>, lista lo grabado así, de lo más nuevo a lo
 más antiguo. Desde ahí puedes abrir el archivo con <code>Intro</code>,
 abrir su carpeta, copiar la ruta o eliminarlo de la lista con
 <code>Supr</code>. Eliminar de la lista no borra el archivo, y lo que se
 detiene desde la ventana de OBS no aparece en la lista.</p>
-<h3 id="el-panel-de-transmisión">El panel de transmisión</h3>
+<h3 id="la-pestaña-transmisión">La pestaña Transmisión</h3>
+<p>El <em>Panel de OBS</em> (<code>Ctrl+Mayús+O</code>) reúne en
+pestañas lo que se hace con OBS. La primera, <em>Transmisión</em>
+(<code>Ctrl+Mayús+T</code>), inicia y detiene el directo, elige adónde
+se transmite y muestra el chat en el vídeo. <em>Restream…</em> abre la
+ventana de Restream. Con <code>Ctrl+Tab</code> pasas a <em>Escena</em> o
+a <em>Audio</em> sin cerrar nada, también con un directo en marcha.</p>
 <p>El campo <em>Estado</em> dice si está todo preparado o qué revisar,
-la escena actual, el micrófono y si se está grabando. Desde el panel se
-inicia y se finaliza el directo por el mismo camino que el botón de la
-ventana principal. <em>Escena…</em> abre la ventana <em>Escena</em> y
-<em>Grabación…</em> abre la ventana <em>Grabación</em>. Solo aparece lo
-que sirve en ese momento: <em>Usuario de TikTok</em> con TikTok y
-<em>Mostrar chat en el vídeo</em> con YouTube, y <code>Intro</code>
-nunca inicia ni finaliza un directo.</p>
+la escena actual, el micrófono y si se está grabando. Desde la pestaña
+se inicia y se finaliza el directo por el mismo camino que el botón de
+la ventana principal. Solo aparece lo que sirve en ese momento:
+<em>Usuario de TikTok</em> con TikTok y <em>Mostrar chat en el
+vídeo</em> con YouTube, y <code>Intro</code> nunca inicia ni finaliza un
+directo.</p>
 <p>Todo se puede seguir haciendo a mano en OBS, y la aplicación no
 interrumpe el complemento de OBS para NVDA.</p>
 <h2 id="encuadre-de-cámara">Encuadre de cámara</h2>
@@ -640,16 +646,15 @@ se activan desde la misma categoría.</p>
 <p>Si OBS no tiene ninguna cámara, <em>Preferencias</em>, categoría
 <em>Cámara</em>, la agrega con <em>Agregar cámara a OBS…</em>: usa una
 cámara de Windows y la deja abajo a la derecha del vídeo, delante de las
-demás fuentes. Para moverla, usa la pestaña <em>Fuentes</em> de la
-ventana <em>Escena</em>.</p>
+demás fuentes. Para moverla, usa la pestaña <em>Fuentes</em> del
+<em>Panel de OBS</em>.</p>
 <h2 id="escena">Escena</h2>
-<p>La ventana <em>Escena</em> (<code>Ctrl+Mayús+E</code>), en el menú
-<em>Transmisión</em>, reúne lo que se ve y se oye en OBS en cuatro
-pestañas.</p>
-<p><em>Escena</em> elige qué escena se edita y dice qué tiene. Recorrer
-la lista no cambia lo que se emite. <em>Cambiar escena</em> cambia la
-escena que se emite y <em>Guardar imagen…</em> guarda una imagen de
-ella.</p>
+<p>El <em>Panel de OBS</em> (<code>Ctrl+Mayús+O</code>) reúne en
+pestañas lo que se ve y se oye en OBS. La pestaña <em>Escena</em>
+(<code>Ctrl+Mayús+E</code>) elige qué escena se edita y dice qué tiene.
+Recorrer la lista no cambia lo que se emite. <em>Cambiar escena</em>
+cambia la escena que se emite y <em>Guardar imagen…</em> guarda una
+imagen de ella.</p>
 <p><em>Fuentes</em> elige una fuente de la escena y la mueve a una de
 las nueve posiciones, la cambia de tamaño, la oculta, la bloquea o
 cambia su capa: la trae al frente, la trae adelante, la envía atrás o la
@@ -663,37 +668,37 @@ al abrir la ventana.</p>
 de Windows a la escena actual. <em>Audio</em> silencia el micrófono de
 OBS y elige cuál se usa. Al terminar, las listas de fuentes y la
 descripción se actualizan solas.</p>
-<p>Si OBS está cerrado, la ventana lo abre. Si no responde, lo dice en
-la descripción y no se queda congelada. La ayuda de la ventana explica
-cada pestaña.</p>
+<p>Si OBS está cerrado, el panel lo abre. Si no responde, lo dice en la
+descripción y no se queda congelado. La ayuda del panel explica cada
+pestaña.</p>
 <h2 id="grabación">Grabación</h2>
-<p>La ventana <em>Grabación</em> (<code>Ctrl+Mayús+G</code>), en el menú
-<em>Transmisión</em>, sirve para grabar en OBS sin pasar por el panel de
-transmisión. <em>Estado</em> dice si se está grabando, en pausa o sin
-grabar, cuánto lleva, la escena al aire, el micrófono y si además se
-está transmitiendo.</p>
+<p>La pestaña <em>Grabación</em> (<code>Ctrl+Mayús+G</code>), en el
+<em>Panel de OBS</em>, sirve para grabar en OBS sin pasar por la pestaña
+<em>Transmisión</em>. <em>Estado</em> dice si se está grabando, en pausa
+o sin grabar, cuánto lleva, la escena al aire, el micrófono y si además
+se está transmitiendo.</p>
 <p><em>Iniciar grabación</em> y <em>Detener grabación</em> hacen lo
 mismo que los botones del panel, con sus sonidos y sus anuncios.
 <em>Pausar grabación</em> aparece mientras se graba y pasa a
 <em>Reanudar grabación</em> cuando la grabación está en pausa.
 <em>Grabaciones guardadas…</em> lista lo que la aplicación detuvo.
 <em>Grabar también al transmitir</em> es la misma preferencia del menú
-<em>Transmisión</em>: cambiar una cambia la otra. <em>Escena…</em> abre
-la ventana <em>Escena</em> con la misma conexión con OBS y, al volver,
-el estado se actualiza. <em>Actualizar estado</em> lo vuelve a leer.</p>
-<p>Si OBS está cerrado, la ventana lo abre. Si no responde, lo dice en
-<em>Estado</em> y no se queda congelada.</p>
+<em>Transmisión</em>: cambiar una cambia la otra. <em>Actualizar
+estado</em> lo vuelve a leer.</p>
+<p>Si OBS está cerrado, el panel lo abre. Si no responde, lo dice en
+<em>Estado</em> y no se queda congelado.</p>
 <h2 id="panel-de-chat-para-transmitir">Panel de chat para
 transmitir</h2>
 <p>Muestra el chat en grande, con fondo transparente, para tus
 espectadores. Se agrega en OBS (o Streamlabs, o Prism Live Studio) como
 fuente de navegador con este enlace:</p>
 <pre><code>http://127.0.0.1:8730/chat</code></pre>
-<p>Se activa con <em>Mostrar chat en el vídeo</em>, en el <em>Panel de
-transmisión</em>, y si la escena actual no tiene la fuente, la agrega.
-Cada mensaje sale en una tarjeta con la inicial y un color por persona,
-y las donaciones en dorado con el importe. Solo se usa con YouTube:
-TikTok ya muestra los comentarios sobre el vídeo.</p>
+<p>Se activa con <em>Mostrar chat en el vídeo</em>, en la pestaña
+<em>Transmisión</em> del <em>Panel de OBS</em>, y si la escena actual no
+tiene la fuente, la agrega. Cada mensaje sale en una tarjeta con la
+inicial y un color por persona, y las donaciones en dorado con el
+importe. Solo se usa con YouTube: TikTok ya muestra los comentarios
+sobre el vídeo.</p>
 <p>Lo que no cabe en el vídeo no se emite, y una fuente que queda en
 parte fuera se recorta sin aviso. OBS llama lienzo a ese rectángulo, y
 por eso la ventana <em>Escena</em> dice cuánto se recorta. Si otra

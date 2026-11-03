@@ -275,7 +275,7 @@ Para TikTok necesitas un perfil de OBS llamado `TikTok` con Restream, y para
 YouTube, la sesión de Google iniciada y los directos activados en tu canal; el
 perfil `YouTube` de OBS lo crea la aplicación.
 
-En la ventana *Escena* (`Ctrl+Mayús+E`), en la pestaña *Agregar*, elige qué
+En el *Panel de OBS*, en la pestaña *Agregar* (`Ctrl+Mayús+E`), elige qué
 ventana se captura, por ejemplo un juego. En el directo se ve esa ventana, pero
 su captura no lleva sonido: el sonido sale del audio del escritorio y del
 micrófono de OBS.
@@ -336,7 +336,7 @@ Iniciar, pausar, reanudar y detener la grabación tienen sonidos propios. Con
 categoría *Transmisión*, el título empieza por ese estado, y la casilla viene
 desmarcada.
 
-También se puede grabar sin abrir el panel de transmisión. La ventana
+También se puede grabar sin abrir la pestaña *Transmisión*. La pestaña
 *Grabación* (`Ctrl+Mayús+G`) tiene los mismos botones, y el menú *Transmisión*
 conserva *Iniciar o detener grabación* con `Alt+Mayús+G` y *Pausar o reanudar
 grabación* con `Alt+Mayús+P`, que anuncian y suenan igual que los botones de la
@@ -346,18 +346,23 @@ pueden no permitirlo.
 
 Al detener la grabación, desde la aplicación o porque terminó la transmisión,
 se oye «Grabación guardada» con el nombre del archivo. *Grabaciones guardadas…*,
-en el menú *Transmisión* y en la ventana *Grabación*, lista lo grabado así, de
+en el menú *Transmisión* y en la pestaña *Grabación*, lista lo grabado así, de
 lo más nuevo a lo más antiguo. Desde ahí puedes abrir el archivo con `Intro`,
 abrir su carpeta, copiar la ruta o eliminarlo de la lista con `Supr`. Eliminar
 de la lista no borra el archivo, y lo que se detiene desde la ventana de OBS no
 aparece en la lista.
 
-### El panel de transmisión
+### La pestaña Transmisión
+
+El *Panel de OBS* (`Ctrl+Mayús+O`) reúne en pestañas lo que se hace con OBS.
+La primera, *Transmisión* (`Ctrl+Mayús+T`), inicia y detiene el directo,
+elige adónde se transmite y muestra el chat en el vídeo. *Restream…* abre la
+ventana de Restream. Con `Ctrl+Tab` pasas a *Escena* o a *Audio* sin cerrar
+nada, también con un directo en marcha.
 
 El campo *Estado* dice si está todo preparado o qué revisar, la escena actual, el
-micrófono y si se está grabando. Desde el panel se inicia y se finaliza el
-directo por el mismo camino que el botón de la ventana principal. *Escena…*
-abre la ventana *Escena* y *Grabación…* abre la ventana *Grabación*. Solo
+micrófono y si se está grabando. Desde la pestaña se inicia y se finaliza el
+directo por el mismo camino que el botón de la ventana principal. Solo
 aparece lo que sirve en ese momento: *Usuario de TikTok* con TikTok y *Mostrar
 chat en el vídeo* con YouTube, y `Intro` nunca inicia ni finaliza un directo.
 
@@ -416,16 +421,14 @@ categoría.
 Si OBS no tiene ninguna cámara, *Preferencias*, categoría *Cámara*, la agrega
 con *Agregar cámara a OBS…*: usa una cámara de Windows y la deja abajo a la
 derecha del vídeo, delante de las demás fuentes. Para moverla, usa la pestaña
-*Fuentes* de la ventana *Escena*.
+*Fuentes* del *Panel de OBS*.
 
 ## Escena
 
-La ventana *Escena* (`Ctrl+Mayús+E`), en el menú *Transmisión*, reúne lo que se
-ve y se oye en OBS en cuatro pestañas.
-
-*Escena* elige qué escena se edita y dice qué tiene. Recorrer la lista no
-cambia lo que se emite. *Cambiar escena* cambia la escena que se emite y
-*Guardar imagen…* guarda una imagen de ella.
+El *Panel de OBS* (`Ctrl+Mayús+O`) reúne en pestañas lo que se ve y se oye en
+OBS. La pestaña *Escena* (`Ctrl+Mayús+E`) elige qué escena se edita y dice qué
+tiene. Recorrer la lista no cambia lo que se emite. *Cambiar escena* cambia
+la escena que se emite y *Guardar imagen…* guarda una imagen de ella.
 
 *Fuentes* elige una fuente de la escena y la mueve a una de las nueve
 posiciones, la cambia de tamaño, la oculta, la bloquea o cambia su capa: la
@@ -439,14 +442,13 @@ de la fuente*, junto a la lista, dice dónde está, cuánto mide y qué la tapa.
 escena actual. *Audio* silencia el micrófono de OBS y elige cuál se usa. Al
 terminar, las listas de fuentes y la descripción se actualizan solas.
 
-Si OBS está cerrado, la ventana lo abre. Si no responde, lo dice en la
-descripción y no se queda congelada. La ayuda de la ventana explica cada
-pestaña.
+Si OBS está cerrado, el panel lo abre. Si no responde, lo dice en la
+descripción y no se queda congelado. La ayuda del panel explica cada pestaña.
 
 ## Grabación
 
-La ventana *Grabación* (`Ctrl+Mayús+G`), en el menú *Transmisión*, sirve para
-grabar en OBS sin pasar por el panel de transmisión. *Estado* dice si se está
+La pestaña *Grabación* (`Ctrl+Mayús+G`), en el *Panel de OBS*, sirve para
+grabar en OBS sin pasar por la pestaña *Transmisión*. *Estado* dice si se está
 grabando, en pausa o sin grabar, cuánto lleva, la escena al aire, el micrófono
 y si además se está transmitiendo.
 
@@ -455,11 +457,10 @@ panel, con sus sonidos y sus anuncios. *Pausar grabación* aparece mientras se
 graba y pasa a *Reanudar grabación* cuando la grabación está en pausa.
 *Grabaciones guardadas…* lista lo que la aplicación detuvo. *Grabar también al
 transmitir* es la misma preferencia del menú *Transmisión*: cambiar una cambia
-la otra. *Escena…* abre la ventana *Escena* con la misma conexión con OBS y,
-al volver, el estado se actualiza. *Actualizar estado* lo vuelve a leer.
+la otra. *Actualizar estado* lo vuelve a leer.
 
-Si OBS está cerrado, la ventana lo abre. Si no responde, lo dice en *Estado* y
-no se queda congelada.
+Si OBS está cerrado, el panel lo abre. Si no responde, lo dice en *Estado* y
+no se queda congelado.
 
 ## Panel de chat para transmitir
 
@@ -469,7 +470,8 @@ este enlace:
 
     http://127.0.0.1:8730/chat
 
-Se activa con *Mostrar chat en el vídeo*, en el *Panel de transmisión*, y si la
+Se activa con *Mostrar chat en el vídeo*, en la pestaña *Transmisión* del
+*Panel de OBS*, y si la
 escena actual no tiene la fuente, la agrega. Cada mensaje sale en una tarjeta
 con la inicial y un color por persona, y las donaciones en dorado con el
 importe. Solo se usa con YouTube: TikTok ya muestra los comentarios sobre el

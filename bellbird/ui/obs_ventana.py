@@ -11,6 +11,7 @@ from bellbird.obs import obs_disposicion
 from bellbird.obs import obs_general
 from bellbird.obs import obs_lanzador
 from bellbird.obs.estado_panel import EstadoPanel
+from bellbird.obs.obs_destinos import DESTINOS
 from bellbird.obs.obs_panel import GestorPanelObs
 from bellbird.obs.restablecimiento import RegistroRestablecimiento
 from bellbird.ui import gui_microfono, paleta
@@ -20,6 +21,7 @@ from bellbird.ui.escena_pagina_agregar import PaginaAgregar
 from bellbird.ui.escena_pagina_audio import PaginaAudio
 from bellbird.ui.escena_pagina_escena import PaginaEscena
 from bellbird.ui.escena_pagina_fuentes import PaginaFuentes
+from bellbird.ui.gui_transmision import PaginaTransmision
 from bellbird.ui.obs_pagina_grabacion import PaginaGrabacion
 from bellbird.ui.obs_pagina_general import PaginaGeneral
 from bellbird.ui.operaciones_obs import OperacionesObs
@@ -27,16 +29,19 @@ from bellbird.ui.preferencias_comun import boton, nombre_de_etiqueta
 
 logger = diagnostico.obtener_logger(__name__)
 
-PESTANA_ESCENA = 0
-PESTANA_AUDIO = 1
-PESTANA_GRABACION = 2
-PESTANA_FUENTES = 3
-PESTANA_AGREGAR = 4
-PESTANA_GENERAL = 5
+PESTANA_TRANSMISION = 0
+PESTANA_ESCENA = 1
+PESTANA_AUDIO = 2
+PESTANA_GRABACION = 3
+PESTANA_FUENTES = 4
+PESTANA_AGREGAR = 5
+PESTANA_GENERAL = 6
 
 TEXTO_AYUDA_OBS = N_(
     "Esta ventana reúne en pestañas lo que se hace con OBS. Ctrl+Tab pasa a "
     "la pestaña siguiente y Ctrl+Mayús+Tab a la anterior.\n\n"
+    "Transmisión inicia y detiene el directo, elige adónde se transmite y "
+    "muestra el chat en el vídeo. Restream abre la ventana de Restream.\n\n"
     "Escena elige cuál se edita, dice qué tiene y cambia cuál se emite. "
     "Recorrer la lista no cambia nada en el directo.\n\n"
     "Audio silencia el micrófono de OBS y elige cuál se usa.\n\n"
@@ -69,7 +74,7 @@ class VentanaObs(wx.Dialog):
             self, self._activar, self._escribir_fallo, self._enfocar_tras_fallo,
             self._tras_operacion)
         self._pestana_inicial = (
-            pestana if 0 <= pestana < 6 else PESTANA_ESCENA)
+            pestana if 0 <= pestana < 7 else PESTANA_ESCENA)
         self._crear_controles()
         self._en_hilo(self._cargar_inicial, self._inicial_cargada)
 
@@ -77,6 +82,8 @@ class VentanaObs(wx.Dialog):
         panel = wx.Panel(self, name="PanelObs")
         caja = wx.BoxSizer(wx.VERTICAL)
         self.nb = wx.Notebook(panel, name="PestanasObs")
+        self._pagina_transmision = PaginaTransmision(
+            self.nb, self._principal, self._gestor, self._operaciones)
         self._pagina_escena = PaginaEscena(
             self.nb, self._gestor, self._operaciones, self._elegir_escena)
         self._pagina_audio = PaginaAudio(
@@ -92,6 +99,7 @@ class VentanaObs(wx.Dialog):
             self._escena_elegida, self._recargar_escena)
         self._pagina_general = PaginaGeneral(
             self.nb, self._actualizar_general, self._mostrar_obs)
+        self.nb.AddPage(self._pagina_transmision, _("Transmisión"))
         self.nb.AddPage(self._pagina_escena, _("Escena"))
         self.nb.AddPage(self._pagina_audio, _("Audio"))
         self.nb.AddPage(self._pagina_grabacion, _("Grabación"))
@@ -100,16 +108,10 @@ class VentanaObs(wx.Dialog):
         self.nb.AddPage(self._pagina_general, _("General"))
         self.nb.SetSelection(self._pestana_inicial)
         caja.Add(self.nb, 1, wx.EXPAND | wx.ALL, 10)
-        self.btn_ayuda = boton(
-            panel, _("A&yuda"), nombre_de_etiqueta(_("A&yuda")))
-        self.btn_cerrar = boton(panel, _("Cerrar"), _("Cerrar"), wx.ID_CANCEL)
-        fila = wx.BoxSizer(wx.HORIZONTAL)
-        fila.Add(self.btn_ayuda, 0, wx.RIGHT, 8)
-        fila.AddStretchSpacer(1)
-        fila.Add(self.btn_cerrar, 0)
-        caja.Add(fila, 0, wx.EXPAND | wx.ALL, 10)
+        self._crear_pie(panel, caja)
         panel.SetSizer(caja)
         self._acciones = (
+            *self._pagina_transmision.acciones,
             *self._pagina_escena.acciones, *self._pagina_audio.acciones,
             *self._pagina_grabacion.acciones, *self._pagina_fuentes.acciones,
             *self._pagina_agregar.acciones, *self._pagina_general.acciones,
@@ -118,6 +120,16 @@ class VentanaObs(wx.Dialog):
         self.SetMinSize((620, -1))
         self.Centre()
         paleta.pintar_ventana(self)
+
+    def _crear_pie(self, panel, caja):
+        self.btn_ayuda = boton(
+            panel, _("A&yuda"), nombre_de_etiqueta(_("A&yuda")))
+        self.btn_cerrar = boton(panel, _("Cerrar"), _("Cerrar"), wx.ID_CANCEL)
+        fila = wx.BoxSizer(wx.HORIZONTAL)
+        fila.Add(self.btn_ayuda, 0, wx.RIGHT, 8)
+        fila.AddStretchSpacer(1)
+        fila.Add(self.btn_cerrar, 0)
+        caja.Add(fila, 0, wx.EXPAND | wx.ALL, 10)
 
     def _enlazar_eventos(self):
         enlazar_anuncio_de_pestana(self.nb)
@@ -128,6 +140,7 @@ class VentanaObs(wx.Dialog):
 
     def _primer_control(self, indice):
         controles = (
+            self._pagina_transmision.cho_destino,
             self._pagina_escena.cho_escena,
             self._pagina_audio.chk_silenciar,
             self._pagina_grabacion.txt_estado,
@@ -154,8 +167,10 @@ class VentanaObs(wx.Dialog):
         al_aire = self._gestor.escena_al_aire()
         escena = al_aire if al_aire in escenas else (escenas[0] if escenas else "")
         leida = consultas_transmision.leer_escena(self._gestor, escena)
+        perfil = self._gestor.perfil_actual()
+        destino = perfil if perfil in DESTINOS else ""
         estado = consultas_transmision.leer_estado(
-            self._gestor, "", self._preferido())
+            self._gestor, destino, self._preferido())
         estadisticas = self._gestor.estadisticas()
         return escenas, escena, leida, estado, estadisticas
 
@@ -166,9 +181,12 @@ class VentanaObs(wx.Dialog):
         self._pagina_agregar.cargar_ventanas(leida.opciones, leida.actual)
         self._pagina_audio.fijar(estado.silenciado)
         self._pagina_grabacion.aplicar(estado)
+        self._pagina_transmision.cargar(estado)
         self._pagina_general.mostrar(
             obs_general.lineas(estado.perfil, estadisticas))
-        if self._pestana_inicial == PESTANA_GRABACION:
+        if self._pestana_inicial == PESTANA_TRANSMISION:
+            self._pagina_transmision.enfocar_inicial()
+        elif self._pestana_inicial == PESTANA_GRABACION:
             anunciar(self._pagina_grabacion.titular)
             self._pagina_grabacion._grabacion.boton.SetFocus()
         elif self._pestana_inicial == PESTANA_ESCENA:
@@ -245,12 +263,16 @@ class VentanaObs(wx.Dialog):
             self._pagina_fuentes.mostrar_snap(resultado)
 
     def _escribir_fallo(self, mensaje):
+        self._pagina_transmision.mostrar_fallo(mensaje)
         self._pagina_escena.mostrar_fallo(mensaje)
         self._pagina_grabacion.mostrar_estado(
             EstadoPanel(mensaje, "aviso", ()))
 
     def _enfocar_tras_fallo(self):
-        self.btn_cerrar.SetFocus()
+        if self.nb.GetSelection() == PESTANA_TRANSMISION:
+            self._pagina_transmision.enfocar_actualizar()
+        else:
+            self.btn_cerrar.SetFocus()
 
     def _en_hilo(self, funcion, al_terminar=None):
         self._operaciones.en_hilo(funcion, al_terminar)
@@ -303,6 +325,7 @@ class VentanaObs(wx.Dialog):
     def _cerrar(self, event):
         if self._operaciones.cerrando:
             return
+        self._pagina_transmision.cerrar_directo()
         self._operaciones.cerrar()
         if self._propio:
             diagnostico.crear_hilo(

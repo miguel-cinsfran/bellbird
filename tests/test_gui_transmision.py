@@ -1,4 +1,4 @@
-"""Pruebas del panel de transmisión sin conectar con OBS."""
+"""Pruebas de la pestaña Transmisión dentro del panel de OBS."""
 
 import pathlib
 import threading
@@ -14,9 +14,15 @@ from bellbird.obs import obs_prevuelo
 from bellbird.ui import confirmar_transmision as modulo_confirmar
 from bellbird.ui import control_grabacion
 from bellbird.ui import directo_panel
+from bellbird.ui import escena_pagina_agregar
+from bellbird.ui import escena_pagina_escena
+from bellbird.ui import escena_pagina_fuentes
+from bellbird.ui import gui_grabaciones
 from bellbird.ui import gui_microfono
 from bellbird.ui import gui_transmision
 from bellbird.ui import menu_transmision
+from bellbird.ui import mover_con_flechas
+from bellbird.ui import obs_ventana
 from bellbird.ui import operaciones_obs
 from bellbird.ui import tema
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
@@ -66,7 +72,7 @@ class GestorFalso:
 
     def cerrar(self): self.llamadas.append(("cerrar",))
     @property
-    def conectado(self): return True
+    def conectado(self): return not self.fallo
     def escenas(self): return ("Principal", "Juego")
     def escena_al_aire(self): return self.escena_resultante
     def poner_escena_al_aire(self, escena):
@@ -190,10 +196,65 @@ def _asegurar_sin_obs(*args, **kwargs):
     return False
 
 
+def _asegurar_conecta(probar_conexion, al_anunciar=None, parada=None):
+    return probar_conexion()
+
+
 def _revision(problemas=()):
     return obs_prevuelo.Revision(
         "TikTok", "TikTok", "TikTok", 720, 1280, "Principal",
         (), (), None, tuple(problemas))
+
+
+class PrincipalFalsa:
+
+    def __init__(self, config=None):
+        self._config = {"tiktok_usuario": "", "obs_microfono": "Mic/Aux",
+                        "grabar_al_transmitir": False}
+        self._config.update(config or {})
+        self._atajos = {}
+        self.alternar_panel = mock.Mock(return_value=True)
+        self.supervisar = mock.Mock(return_value=False)
+        self.guardar_usuario = mock.Mock()
+        self.guardar_destino = mock.Mock()
+
+    def _cambiar_overlay(self, encender):
+        return self.alternar_panel(encender)
+
+    def _supervisar_transmision(self, *args, **kwargs):
+        return self.supervisar(*args, **kwargs)
+
+    def _guardar_usuario_tiktok(self, usuario):
+        return self.guardar_usuario(usuario)
+
+    def _guardar_destino_transmision(self, destino):
+        return self.guardar_destino(destino)
+
+
+class OperacionesFalsas:
+
+    def __init__(self):
+        self.cerrando = False
+        self.en_vuelo = False
+        self.mensajes = []
+
+    def en_hilo(self, funcion, al_terminar=None):
+        self.en_vuelo = True
+        try:
+            resultado = funcion()
+        except Exception as error:
+            self.fallo(str(error))
+            return
+        self.en_vuelo = False
+        if al_terminar is not None:
+            al_terminar(resultado)
+
+    def fallo(self, mensaje):
+        self.en_vuelo = False
+        self.mensajes.append(mensaje)
+
+    def cerrar(self):
+        self.cerrando = True
 
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
@@ -208,31 +269,64 @@ class TestPanelTransmision(unittest.TestCase):
             self.categorias.append(categoria)
         self.parches = [
             mock.patch.object(threading, "Thread", HiloInmediato),
+            mock.patch.object(obs_ventana.wx, "CallAfter",
+                              lambda funcion, *args: funcion(*args)),
             mock.patch.object(gui_transmision.wx, "CallAfter",
                               lambda funcion, *args: funcion(*args)),
+            mock.patch.object(obs_ventana, "anunciar", anunciar),
             mock.patch.object(gui_transmision, "anunciar", anunciar),
             mock.patch.object(operaciones_obs, "anunciar", anunciar),
             mock.patch.object(control_grabacion, "anunciar", anunciar),
             mock.patch.object(gui_microfono, "anunciar", anunciar),
+            mock.patch.object(escena_pagina_escena, "anunciar", anunciar),
+            mock.patch.object(escena_pagina_fuentes, "anunciar", anunciar),
+            mock.patch.object(escena_pagina_agregar, "anunciar", anunciar),
+            mock.patch.object(mover_con_flechas, "anunciar", anunciar),
+            mock.patch.object(directo_panel, "anunciar", anunciar),
             mock.patch.object(operaciones_obs.sound_player, "reproducir"),
             mock.patch.object(control_grabacion.sound_player, "reproducir"),
-            mock.patch.object(directo_panel, "anunciar", anunciar),
             mock.patch.object(directo_panel.sound_player, "reproducir"),
+            mock.patch.object(gui_grabaciones.grabaciones, "existentes",
+                              return_value=[]),
+            mock.patch.object(gui_microfono, "abrir_microfono_obs"),
         ]
-        for parche in self.parches: parche.start()
+        for parche in self.parches:
+            parche.start()
         self.addCleanup(self._frenar)
+        self.asegurar = mock.patch.object(
+            obs_ventana.obs_lanzador, "asegurar_obs", _asegurar_sin_obs)
+        self.asegurar_mock = self.asegurar.start()
+        self.addCleanup(self.asegurar.stop)
+        self.principal = PrincipalFalsa()
         self.gestor = GestorFalso()
-        self.dialogo = self._crear()
+        self.ventana = self._crear()
+        self.dialogo = self.ventana._pagina_transmision
 
     def _frenar(self):
-        for parche in reversed(self.parches): parche.stop()
+        for parche in reversed(self.parches):
+            parche.stop()
 
-    def _crear(self, **kwargs):
-        datos = dict(gestor=self.gestor, asegurar=_asegurar_sin_obs)
-        datos.update(kwargs)
-        dialogo = gui_transmision.TransmisionDialog(None, **datos)
-        self.addCleanup(destruir, dialogo)
-        return dialogo
+    def _crear(self, gestor=None, principal=None,
+               pestana=obs_ventana.PESTANA_TRANSMISION, alternar_panel=None,
+               supervisar=None, guardar_usuario=None, guardar_destino=None,
+               usuario_tiktok=None, asegurar=None):
+        principal = principal or self.principal
+        if alternar_panel is not None:
+            principal.alternar_panel = alternar_panel
+        if supervisar is not None:
+            principal.supervisar = supervisar
+        if guardar_usuario is not None:
+            principal.guardar_usuario = guardar_usuario
+        if guardar_destino is not None:
+            principal.guardar_destino = guardar_destino
+        if usuario_tiktok is not None:
+            principal._config["tiktok_usuario"] = usuario_tiktok
+        self.asegurar_mock.side_effect = asegurar or _asegurar_sin_obs
+        ventana = obs_ventana.VentanaObs(
+            None, principal, gestor=self.gestor if gestor is None else gestor,
+            pestana=pestana)
+        self.addCleanup(destruir, ventana)
+        return ventana
 
     def _nombres_en_orden(self, ventana):
         nombres = []
@@ -271,7 +365,7 @@ class TestPanelTransmision(unittest.TestCase):
                 self.assertNotIn("Preparar panel", texto)
 
     def test_titulo_y_grupos(self):
-        self.assertEqual(self.dialogo.GetTitle(), "Panel de transmisión")
+        self.assertEqual(self.ventana.GetTitle(), "Panel de OBS")
         titulos = [caja.GetLabel() for caja in self._cajas(self.dialogo)]
         self.assertEqual(titulos, ["Directo"])
 
@@ -284,20 +378,16 @@ class TestPanelTransmision(unittest.TestCase):
         return cajas
 
     def test_orden_de_tab_con_youtube_en_reposo(self):
-        self.dialogo._alternar_panel = mock.Mock(return_value=True)
         self._elegir("YouTube")
-        self.dialogo._aplicar_visibilidad()
         self.assertEqual(self._nombres_en_orden(self.dialogo), [
             "Estado", "Transmitir a", "Transmitir en directo",
-            "Mostrar chat en el vídeo", "Escena…", "Grabación…",
-            "Mostrar OBS", "Actualizar estado", "Cerrar"])
+            "Mostrar chat en el vídeo", "Restream…", "Actualizar estado"])
 
     def test_orden_de_tab_con_tiktok_en_reposo(self):
         self._elegir("TikTok")
         self.assertEqual(self._nombres_en_orden(self.dialogo), [
             "Estado", "Transmitir a", "Usuario de TikTok",
-            "Transmitir en directo", "Escena…", "Grabación…",
-            "Mostrar OBS", "Actualizar estado", "Cerrar"])
+            "Transmitir en directo", "Restream…", "Actualizar estado"])
 
     def test_durante_el_directo_se_ocultan_destino_y_usuario(self):
         self._elegir("TikTok")
@@ -310,11 +400,10 @@ class TestPanelTransmision(unittest.TestCase):
 
     def test_intro_con_el_foco_en_cualquier_control_no_transmite(self):
         supervisar = mock.Mock(return_value=False)
-        dialogo = self._crear(supervisar=supervisar)
-        self.assertIsNone(dialogo.GetDefaultItem())
-        for control in (dialogo.txt_estado, dialogo.cho_destino,
-                        dialogo.btn_escena,
-                        dialogo.btn_directo, dialogo.btn_actualizar):
+        ventana = self._crear(supervisar=supervisar)
+        pagina = ventana._pagina_transmision
+        for control in (pagina.txt_estado, pagina.cho_destino,
+                        pagina.btn_directo, pagina.btn_actualizar):
             with self.subTest(control=control.GetName()):
                 control.SetFocus()
                 evento = wx.KeyEvent(wx.wxEVT_KEY_DOWN)
@@ -324,10 +413,18 @@ class TestPanelTransmision(unittest.TestCase):
 
     def test_al_abrir_se_anuncia_solo_el_titular(self):
         self.anuncios.clear()
-        dialogo = self._crear()
+        self._crear()
         self.assertEqual(self.anuncios, ["Elige a dónde transmitir"])
-        self.assertEqual(dialogo.txt_estado.GetValue().splitlines()[0],
+        self.assertEqual(self.dialogo.txt_estado.GetValue().splitlines()[0],
                          "Elige a dónde transmitir")
+
+    def test_al_abrir_en_transmision_enfoca_el_boton_si_el_destino_esta_oculto(self):
+        pagina = self.dialogo
+        pagina._directo.sincronizar(True)
+        pagina._aplicar_visibilidad()
+        with mock.patch.object(pagina.btn_directo, "SetFocus") as foco:
+            pagina.enfocar_inicial()
+        foco.assert_called_once_with()
 
     def test_estado_alto_para_seis_lineas_y_sin_barra_vertical(self):
         estilo = self.dialogo.txt_estado.GetWindowStyleFlag()
@@ -355,24 +452,7 @@ class TestPanelTransmision(unittest.TestCase):
             self.assertNotEqual(segunda.GetTextColour(), tema._T.red)
 
     def test_ventana_mide_al_menos_600_de_ancho(self):
-        self.assertGreaterEqual(self.dialogo.GetSize().GetWidth(), 600)
-        self._elegir("TikTok")
-        self.assertGreaterEqual(self.dialogo.GetSize().GetWidth(), 600)
-
-    def test_al_pasar_de_tiktok_a_youtube_baja_el_alto(self):
-        self._elegir("TikTok")
-        alto_tiktok = self.dialogo.GetSize().GetHeight()
-        self._elegir("YouTube")
-        alto_youtube = self.dialogo.GetSize().GetHeight()
-        self.assertLess(alto_youtube, alto_tiktok)
-        zona = self.dialogo._zona_desplazable
-        self.assertGreaterEqual(zona.GetClientSize().GetHeight(),
-                                zona.GetVirtualSize().GetHeight())
-
-    def test_zona_sin_barra_vertical_al_abrir(self):
-        zona = self.dialogo._zona_desplazable
-        self.assertGreaterEqual(zona.GetClientSize().GetHeight(),
-                                zona.GetVirtualSize().GetHeight())
+        self.assertGreaterEqual(self.ventana.GetSize().GetWidth(), 600)
 
     def test_actualizar_estado_anuncia_el_cuadro_entero(self):
         self._elegir("YouTube")
@@ -385,7 +465,7 @@ class TestPanelTransmision(unittest.TestCase):
 
     def test_fallo_se_escribe_en_estado_con_tono_aviso(self):
         with mock.patch.object(tema, "ALTO_CONTRASTE", False):
-            self.dialogo._fallo("OBS no contesta")
+            self.dialogo.mostrar_fallo("OBS no contesta")
         self.assertEqual(self.dialogo.txt_estado.GetValue(), "OBS no contesta")
         if not tema.ALTO_CONTRASTE:
             attr = wx.TextAttr()
@@ -394,23 +474,25 @@ class TestPanelTransmision(unittest.TestCase):
 
     def test_fallo_enfoca_actualizar_estado(self):
         with mock.patch.object(self.dialogo.btn_actualizar, "SetFocus") as foco:
-            self.dialogo._fallo("OBS no contesta")
+            self.ventana._escribir_fallo("OBS no contesta")
+            self.ventana._enfocar_tras_fallo()
         self.assertTrue(self.dialogo.btn_actualizar.IsEnabled())
         foco.assert_called_once_with()
 
     def test_fallo_al_abrir_desactiva_controles_y_muestra_error(self):
         gestor = GestorFalso(fallo=True)
-        dialogo = self._crear(gestor=gestor)
-        self.assertEqual(dialogo.txt_estado.GetValue(),
+        ventana = self._crear(gestor=gestor, asegurar=_asegurar_conecta)
+        pagina = ventana._pagina_transmision
+        self.assertEqual(pagina.txt_estado.GetValue(),
                          "OBS no está disponible")
-        self.assertFalse(dialogo.btn_escena.IsEnabled())
+        self.assertFalse(pagina.btn_restream.IsEnabled())
 
     def test_una_excepcion_no_prevista_libera_el_dialogo_y_avisa(self):
         def falla():
             raise TypeError("'NoneType' object is not subscriptable")
         with mock.patch.object(operaciones_obs.logger, "warning"):
-            self.dialogo._en_hilo(falla)
-        self.assertFalse(self.dialogo._operaciones.en_vuelo)
+            self.ventana._en_hilo(falla)
+        self.assertFalse(self.ventana._operaciones.en_vuelo)
         self.assertIn("OBS no pudo completar la operación",
                       self.dialogo.txt_estado.GetValue())
 
@@ -418,11 +500,12 @@ class TestPanelTransmision(unittest.TestCase):
         self.gestor.tiene_panel = False
         self.gestor.llamadas.clear()
         alternar = mock.Mock(return_value=True)
-        dialogo = self._crear(alternar_panel=alternar)
-        dialogo.chk_chat.SetValue(True)
+        ventana = self._crear(alternar_panel=alternar)
+        pagina = ventana._pagina_transmision
+        pagina.chk_chat.SetValue(True)
         with mock.patch.object(gui_transmision.overlay_servidor,
                                "puerto_actual", return_value=8730):
-            dialogo._alternar_chat(Evento())
+            pagina._alternar_chat(Evento())
         alternar.assert_called_once_with(True)
         self.assertIn(("asegurar_fuente", "Principal",
                        "http://127.0.0.1:8730/chat", 460, 620),
@@ -433,26 +516,29 @@ class TestPanelTransmision(unittest.TestCase):
     def test_chat_no_repone_la_fuente_si_ya_esta(self):
         self.gestor.tiene_panel = True
         self.gestor.llamadas.clear()
-        dialogo = self._crear(alternar_panel=mock.Mock(return_value=True))
-        dialogo.chk_chat.SetValue(True)
+        ventana = self._crear(alternar_panel=mock.Mock(return_value=True))
+        pagina = ventana._pagina_transmision
+        pagina.chk_chat.SetValue(True)
         with mock.patch.object(gui_transmision.overlay_servidor,
                                "puerto_actual", return_value=8730):
-            dialogo._alternar_chat(Evento())
+            pagina._alternar_chat(Evento())
         self.assertNotIn("asegurar_fuente",
                          [llamada[0] for llamada in self.gestor.llamadas])
 
     def test_apagar_el_chat_no_elimina_la_fuente(self):
-        dialogo = self._crear(alternar_panel=mock.Mock(return_value=False))
-        dialogo.chk_chat.SetValue(False)
-        dialogo._alternar_chat(Evento())
+        ventana = self._crear(alternar_panel=mock.Mock(return_value=False))
+        pagina = ventana._pagina_transmision
+        pagina.chk_chat.SetValue(False)
+        pagina._alternar_chat(Evento())
         self.assertNotIn("eliminar",
                          [llamada[0] for llamada in self.gestor.llamadas])
 
     def test_chat_si_el_puerto_esta_ocupado_queda_apagado(self):
-        dialogo = self._crear(alternar_panel=mock.Mock(return_value=False))
-        dialogo.chk_chat.SetValue(True)
-        dialogo._alternar_chat(Evento())
-        self.assertFalse(dialogo.chk_chat.GetValue())
+        ventana = self._crear(alternar_panel=mock.Mock(return_value=False))
+        pagina = ventana._pagina_transmision
+        pagina.chk_chat.SetValue(True)
+        pagina._alternar_chat(Evento())
+        self.assertFalse(pagina.chk_chat.GetValue())
         self.assertNotIn("asegurar_fuente",
                          [llamada[0] for llamada in self.gestor.llamadas])
 
@@ -465,25 +551,11 @@ class TestPanelTransmision(unittest.TestCase):
         self.assertIn("Escena actual: Principal", texto)
         self.assertIn("Micrófono Mic/Aux: silenciado", texto)
 
-    def test_el_panel_ya_no_tiene_los_botones_de_grabacion(self):
+    def test_la_pestana_no_tiene_el_panel_de_grabacion(self):
         for nombre in ("_grabacion", "btn_grabar", "btn_pausar",
                        "btn_grabaciones"):
             with self.subTest(nombre=nombre):
                 self.assertFalse(hasattr(self.dialogo, nombre))
-
-    def test_boton_grabacion_abre_el_panel_en_grabacion(self):
-        from bellbird.ui import obs_ventana
-
-        with mock.patch.object(obs_ventana, "abrir_obs") as abrir, \
-                mock.patch.object(self.dialogo, "_refrescar_estado") as refrescar, \
-                mock.patch.object(self.dialogo.btn_grabacion,
-                                  "SetFocus") as foco:
-            self._pulsar(self.dialogo.btn_grabacion)
-        abrir.assert_called_once_with(
-            self.dialogo, self.dialogo.GetParent(), gestor=self.gestor,
-            pestana=obs_ventana.PESTANA_GRABACION)
-        refrescar.assert_called_once_with()
-        foco.assert_called_once_with()
 
     def test_el_estado_sigue_diciendo_si_se_graba(self):
         self.dialogo._aplicar_datos(SimpleNamespace(
@@ -497,39 +569,22 @@ class TestPanelTransmision(unittest.TestCase):
 
     def test_consulta_rapida_no_anuncia_la_espera(self):
         temporizador = mock.Mock()
-        self.dialogo._operaciones._temporizador_consulta = temporizador
+        self.ventana._operaciones._temporizador_consulta = temporizador
         self._pulsar(self.dialogo.btn_actualizar)
         temporizador.StartOnce.assert_called_once_with(400)
         temporizador.Stop.assert_called_once_with()
         self.assertNotIn("Consultando OBS", self.anuncios)
 
-    def test_mostrar_obs_llama_al_comando_del_menu(self):
-        with mock.patch.object(menu_transmision, "mostrar_obs") as mostrar:
-            self._pulsar(self.dialogo.btn_mostrar_obs)
-        mostrar.assert_called_once_with()
-
-    def test_el_panel_no_tiene_los_controles_que_salieron_y_si_el_de_escena(self):
-        for nombre in ("chk_silenciar", "cho_escena", "btn_organizar",
-                       "btn_microfono", "btn_cambiar_escena"):
+    def test_la_pestana_no_tiene_los_botones_que_salieron(self):
+        for nombre in ("btn_escena", "btn_grabacion", "btn_mostrar_obs",
+                       "btn_cerrar"):
             with self.subTest(nombre=nombre):
                 self.assertFalse(hasattr(self.dialogo, nombre))
-        self.assertEqual(self.dialogo.btn_escena.GetLabel(), "Esce&na…")
-        self.assertEqual(self.dialogo.btn_escena.GetName(), "Escena…")
-        self.assertEqual(self.dialogo.btn_grabacion.GetLabel(), "Gra&bación…")
-        self.assertEqual(self.dialogo.btn_grabacion.GetName(), "Grabación…")
 
-    def test_boton_escena_abre_el_panel_en_escena(self):
-        from bellbird.ui import obs_ventana
-
-        with mock.patch.object(obs_ventana, "abrir_obs") as abrir, \
-                mock.patch.object(self.dialogo, "_refrescar_estado") as refrescar, \
-                mock.patch.object(self.dialogo.btn_escena, "SetFocus") as foco:
-            self._pulsar(self.dialogo.btn_escena)
-        abrir.assert_called_once_with(
-            self.dialogo, self.dialogo.GetParent(), gestor=self.gestor,
-            pestana=obs_ventana.PESTANA_ESCENA)
-        refrescar.assert_called_once_with()
-        foco.assert_called_once_with()
+    def test_restream_abre_la_ventana_como_el_menu(self):
+        with mock.patch.object(menu_transmision, "abrir_restream") as abrir:
+            self._pulsar(self.dialogo.btn_restream)
+        abrir.assert_called_once_with(self.principal)
 
     def test_el_panel_ya_no_tiene_los_controles_que_salieron(self):
         for nombre in ("Preparar destino", "Preparar panel",
@@ -597,64 +652,61 @@ class TestPanelTransmision(unittest.TestCase):
                          "Usuario de TikTok")
         self.assertEqual(self.dialogo.btn_directo.GetName(),
                          "Transmitir en directo")
+        self.assertEqual(self.dialogo.btn_restream.GetName(), "Restream…")
 
     def test_destino_inicial_muestra_el_perfil_actual_si_es_un_destino(self):
         self.gestor.perfil = "YouTube"
-        dialogo = self._crear()
-        self.assertEqual(dialogo.cho_destino.GetStringSelection(), "YouTube")
+        ventana = self._crear()
+        self.assertEqual(
+            ventana._pagina_transmision.cho_destino.GetStringSelection(),
+            "YouTube")
 
     def test_destino_inicial_sin_seleccion_si_el_perfil_no_es_un_destino(self):
         self.gestor.perfil = "N5000-Grabacion"
-        dialogo = self._crear()
-        self.assertEqual(dialogo.cho_destino.GetSelection(), wx.NOT_FOUND)
+        ventana = self._crear()
+        self.assertEqual(
+            ventana._pagina_transmision.cho_destino.GetSelection(),
+            wx.NOT_FOUND)
 
     def test_cambiar_la_lista_guarda_el_destino_sin_anunciar(self):
         guardar = mock.Mock()
-        dialogo = self._crear(guardar_destino=guardar)
-        dialogo.cho_destino.SetStringSelection("YouTube")
-        dialogo.cho_destino.GetEventHandler().ProcessEvent(
+        ventana = self._crear(guardar_destino=guardar)
+        pagina = ventana._pagina_transmision
+        pagina.cho_destino.SetStringSelection("YouTube")
+        pagina.cho_destino.GetEventHandler().ProcessEvent(
             wx.CommandEvent(wx.EVT_CHOICE.typeId,
-                            dialogo.cho_destino.GetId()))
+                            pagina.cho_destino.GetId()))
         guardar.assert_called_once_with("YouTube")
 
     def test_campo_usuario_arranca_con_el_guardado(self):
-        dialogo = self._crear(usuario_tiktok="amigo")
-        self.assertEqual(dialogo.txt_usuario_tiktok.GetValue(), "amigo")
+        ventana = self._crear(usuario_tiktok="amigo")
+        self.assertEqual(
+            ventana._pagina_transmision.txt_usuario_tiktok.GetValue(),
+            "amigo")
 
     def test_cerrar_no_anuncia_ni_depende_del_error_de_obs(self):
+        with mock.patch.object(obs_ventana, "GestorPanelObs",
+                               return_value=self.gestor):
+            ventana = obs_ventana.VentanaObs(None, self.principal)
+        self.addCleanup(destruir, ventana)
         self.gestor.cerrar = mock.Mock(side_effect=obs_cliente.ObsError("sin red"))
-        self.dialogo.EndModal = mock.Mock()
-        self.dialogo._cerrar(Evento())
+        ventana.EndModal = mock.Mock()
+        ventana._cerrar(Evento())
         self.gestor.cerrar.assert_called_once_with()
-        self.dialogo.EndModal.assert_called_once_with(wx.ID_CANCEL)
+        ventana.EndModal.assert_called_once_with(wx.ID_CANCEL)
         self.assertNotIn("Consultando OBS", self.anuncios)
 
     def test_cerrar_detiene_el_aviso_pendiente(self):
         temporizador = mock.Mock()
-        self.dialogo._operaciones._temporizador_consulta = temporizador
-        self.dialogo.EndModal = mock.Mock()
-        self.dialogo._cerrar(Evento())
+        self.ventana._operaciones._temporizador_consulta = temporizador
+        self.ventana.EndModal = mock.Mock()
+        self.ventana._cerrar(Evento())
         temporizador.Stop.assert_called_once_with()
 
     def test_consulta_lenta_anuncia_la_espera(self):
-        self.dialogo._operaciones.en_vuelo = True
-        self.dialogo._operaciones._anunciar_consulta(Evento())
+        self.ventana._operaciones.en_vuelo = True
+        self.ventana._operaciones._anunciar_consulta(Evento())
         self.assertIn("Consultando OBS", self.anuncios)
-
-    def test_contenido_en_zona_desplazable_y_cerrar_fuera(self):
-        zona = self.dialogo._zona_desplazable
-        self.assertIsInstance(zona, wx.ScrolledWindow)
-        self.assertTrue(self._esta_dentro(self.dialogo.cho_destino, zona))
-        self.assertFalse(self._esta_dentro(self.dialogo.btn_cerrar, zona))
-
-    @staticmethod
-    def _esta_dentro(control, antecesor):
-        ventana = control.GetParent()
-        while ventana is not None:
-            if ventana is antecesor:
-                return True
-            ventana = ventana.GetParent()
-        return False
 
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
@@ -681,13 +733,15 @@ class TestPseudoTransmisionVentana(unittest.TestCase):
             self.addCleanup(parche.stop)
 
     def test_no_queda_ningun_texto_visible_sin_envolver(self):
+        marco = wx.Frame(None)
+        self.addCleanup(destruir, marco)
         with con_pseudo():
-            dialogo = gui_transmision.TransmisionDialog(
-                None, GestorFalso(), asegurar=_asegurar_sin_obs)
-            sin_marcar = textos_sin_marcar(dialogo, propios=(
+            pagina = gui_transmision.PaginaTransmision(
+                marco, PrincipalFalsa(), GestorFalso(), OperacionesFalsas())
+            sin_marcar = textos_sin_marcar(pagina, propios=(
                 "TikTok", "YouTube", "Principal", "Juego", "Mic/Aux",
                 "Finalizando el directo", "Finalizando el directo, esperando a OBS"))
-        self.addCleanup(destruir, dialogo)
+        self.addCleanup(destruir, pagina)
         self.assertEqual([], sin_marcar)
 
 
@@ -706,16 +760,30 @@ class TestPanelSinConsultasDeFuente(unittest.TestCase):
         gestor.ventanas.assert_not_called()
         gestor.descripcion_escena.assert_not_called()
 
-    def test_inicial_cargada_anuncia_solo_el_titular(self):
-        falso = mock.Mock()
-        datos = SimpleNamespace(
-            escenas=("Principal",), escena="Principal", al_aire="Principal",
-            fuentes=(), transmision={"outputActive": False},
-            grabacion={"outputActive": False}, perfil="",
-            problemas=(), microfono="", silenciado=False)
-        with mock.patch.object(gui_transmision, "anunciar") as anunciar:
-            gui_transmision.TransmisionDialog._inicial_cargada(falso, datos)
+
+@unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
+class TestEnfocarInicialDeLaPagina(unittest.TestCase):
+
+    def test_enfocar_inicial_anuncia_solo_el_titular(self):
+        app = wx.App() if not wx.App.Get() else wx.App.Get()
+        marco = wx.Frame(None)
+        self.addCleanup(destruir, marco)
+        with mock.patch.object(gui_transmision, "anunciar") as anunciar, \
+                mock.patch.object(gui_transmision.overlay_servidor,
+                                  "esta_encendido", return_value=False):
+            pagina = gui_transmision.PaginaTransmision(
+                marco, PrincipalFalsa(), mock.Mock(), OperacionesFalsas())
+            self.addCleanup(destruir, pagina)
+            datos = SimpleNamespace(
+                escenas=("Principal",), escena="Principal",
+                al_aire="Principal", fuentes=(),
+                transmision={"outputActive": False},
+                grabacion={"outputActive": False}, perfil="",
+                problemas=(), microfono="", silenciado=False)
+            pagina.cargar(datos)
+            pagina.enfocar_inicial()
         anunciar.assert_called_once()
+        self.assertIsNotNone(app)
 
 
 class TestConfirmarFinalizarSinVentana(unittest.TestCase):

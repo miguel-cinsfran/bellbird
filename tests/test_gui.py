@@ -4479,7 +4479,7 @@ class TestCierreVentana(unittest.TestCase):
 
         self.assertFalse(frame._config["overlay_activo"])
         anunciar.assert_called_once_with(
-            "No se pudo activar el chat en el vídeo: el puerto 8730 está en uso. Cámbialo en Preferencias, Transmisión.")
+            "No se pudo activar el chat en el vídeo: el puerto 8730 está en uso. Cámbialo en Preferencias, categoría Transmisión.")
 
     def test_el_precalentamiento_se_arranca_solo_con_la_ventana_viva(self):
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
@@ -4701,7 +4701,7 @@ class TestCierreVentana(unittest.TestCase):
         self.assertFalse(resultado)
         self.assertFalse(frame._config["overlay_activo"])
         anunciar.assert_called_once_with(
-            "No se pudo activar el chat en el vídeo: el puerto 8730 está en uso. Cámbialo en Preferencias, Transmisión.")
+            "No se pudo activar el chat en el vídeo: el puerto 8730 está en uso. Cámbialo en Preferencias, categoría Transmisión.")
 
     def test_el_puerto_ocupado_no_guarda_el_cambio_de_esta_sesion(self):
         frame = self._frame()

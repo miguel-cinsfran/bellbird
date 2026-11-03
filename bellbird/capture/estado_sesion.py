@@ -182,10 +182,10 @@ def _render_desfase_directo(s: SnapshotSesion, largo: bool) -> str:
     atajo = (s.atajo_directo or "").strip()
     if atajo:
         # Traductores: parte del estado F2 del desfase. {atajo} es el atajo de teclado.
-        vuelta = _("Pulsa {atajo} para volver al directo").format(atajo=atajo)
+        vuelta = _("Pulsa {atajo} para ir al directo").format(atajo=atajo)
     else:
         # Traductores: parte del estado F2 del desfase cuando no hay atajo.
-        vuelta = _("Para volver: menú Reproductor, Ir al directo")
+        vuelta = _("Menú Reproductor, Ir al directo")
     # En largo la línea es una frase completa y lleva su punto; en corto
     # lo pone el punto final de la frase armada.
     if largo:

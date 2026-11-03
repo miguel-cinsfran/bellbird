@@ -82,10 +82,10 @@ class TestDesfaseEnF2(unittest.TestCase):
         s = SnapshotSesion(desfase_directo="30 segundos por detrás del directo")
         self.assertEqual(formatear_estado(s, {"desfase_directo"}),
                          "30 segundos por detrás del directo. "
-                         "Para volver: menú Reproductor, Ir al directo.")
+                         "Menú Reproductor, Ir al directo.")
         self.assertEqual(formatear_estado(s, {"desfase_directo"}, "largo"),
                          "Reproductor: 30 segundos por detrás del directo. "
-                         "Para volver: menú Reproductor, Ir al directo.")
+                         "Menú Reproductor, Ir al directo.")
 
     def test_vacio_se_omite(self):
         self.assertEqual(formatear_estado(SnapshotSesion(), {"desfase_directo"}), "")
@@ -163,7 +163,7 @@ class TestSnapshotDesfase(unittest.TestCase):
             accion="rep_directo", texto="ctrl+end", tecla="end")}
         snap = gui.YTChatFrame._snapshot_sesion(frame)
         self.assertEqual(snap.atajo_directo, "Ctrl+Fin")
-        self.assertIn("Pulsa Ctrl+Fin para volver al directo",
+        self.assertIn("Pulsa Ctrl+Fin para ir al directo",
                       formatear_estado(snap, {"desfase_directo"}))
 
 

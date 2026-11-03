@@ -18,7 +18,7 @@ class TestMensajeDeFallo(unittest.TestCase):
         self.assertEqual(
             mensaje_de_fallo("Connection timed out"),
             "No se pudo consultar el vídeo porque la red no responde. "
-            "Comprueba la conexión e inténtalo de nuevo.")
+            "Comprueba la conexión y vuelve a intentarlo.")
 
     def test_video_no_disponible(self):
         self.assertEqual(
@@ -29,10 +29,10 @@ class TestMensajeDeFallo(unittest.TestCase):
     def test_motivo_desconocido(self):
         self.assertEqual(
             mensaje_de_fallo("fallo inesperado"),
-            "No se pudo consultar la información del vídeo. Inténtalo de nuevo más tarde.")
+            "No se pudo consultar la información del vídeo. Vuelve a intentarlo más tarde.")
 
     def test_motivo_vacio(self):
-        general = "No se pudo consultar la información del vídeo. Inténtalo de nuevo más tarde."
+        general = "No se pudo consultar la información del vídeo. Vuelve a intentarlo más tarde."
         self.assertEqual(mensaje_de_fallo(None), general)
         self.assertEqual(mensaje_de_fallo(""), general)
 

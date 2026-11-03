@@ -460,7 +460,7 @@ class TestAvisoAutomatico(unittest.TestCase):
                 musica_sonido_tema=False, musica_decir="nada"))
             control._aviso_automatico(Resultado(
                 True, FIN_LISTA, _estado(actual=False)))
-        env.anunciar.assert_called_once_with("Fin de la lista de música")
+        env.anunciar.assert_called_once_with("Fin de la cola de música")
         self.assertEqual(env.snd.sonidos, ["musica_fin"])
 
     def test_aviso_automatico_tema_fallido(self):
@@ -1318,7 +1318,7 @@ class TestOperacionesDeCola(unittest.TestCase):
             control = self._con_cola("A")
             env.anunciar.reset_mock()
             control.quitar_de_cola(0)
-        env.anunciar.assert_called_once_with("Fin de la lista de música")
+        env.anunciar.assert_called_once_with("Fin de la cola de música")
         self.assertEqual(env.snd.sonidos, [])
         self.assertEqual(control.estado().cola, ())
 

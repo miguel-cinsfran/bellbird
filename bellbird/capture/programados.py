@@ -32,7 +32,7 @@ def validar_mensaje(texto: str, minutos_min: int, minutos_max: int) -> tuple[str
         return _("El mensaje no puede estar vacío."), ""
     if len(texto) > MAX_CARACTERES:
         # Traductores: validación de mensajes programados (error). {actual} es el largo y {maximo} el tope.
-        return (_("El mensaje tiene {actual} caracteres y el máximo son "
+        return (_("El mensaje tiene {actual} caracteres y el máximo es "
                   "{maximo}.").format(actual=len(texto), maximo=MAX_CARACTERES)), ""
     if minutos_min < MINUTOS_MINIMOS:
         # Traductores: validación de mensajes programados (error). {minimo} es el mínimo.

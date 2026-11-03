@@ -238,7 +238,7 @@ class TestDesfaseConVuelta(unittest.TestCase):
         self.assertEqual(
             formatear_estado(s, {"desfase_directo"}),
             "10 segundos por detrás del directo. "
-            "Pulsa Ctrl+Fin para volver al directo.")
+            "Pulsa Ctrl+Fin para ir al directo.")
 
     def test_largo_agrega_la_vuelta(self):
         s = SnapshotSesion(desfase_directo="10 segundos por detrás del directo",
@@ -246,12 +246,12 @@ class TestDesfaseConVuelta(unittest.TestCase):
         self.assertEqual(
             formatear_estado(s, {"desfase_directo"}, "largo"),
             "Reproductor: 10 segundos por detrás del directo. "
-            "Pulsa Ctrl+Fin para volver al directo.")
+            "Pulsa Ctrl+Fin para ir al directo.")
 
     def test_atajo_cambiado_usa_el_configurado(self):
         s = SnapshotSesion(desfase_directo="10 segundos por detrás del directo",
                            atajo_directo="Alt+D")
-        self.assertIn("Pulsa Alt+D para volver al directo.",
+        self.assertIn("Pulsa Alt+D para ir al directo.",
                       formatear_estado(s, {"desfase_directo"}))
 
     def test_sin_atajo_da_la_ruta_del_menu(self):
@@ -260,7 +260,7 @@ class TestDesfaseConVuelta(unittest.TestCase):
         self.assertEqual(
             formatear_estado(s, {"desfase_directo"}),
             "10 segundos por detrás del directo. "
-            "Para volver: menú Reproductor, Ir al directo.")
+            "Menú Reproductor, Ir al directo.")
 
     def test_sin_desfase_no_agrega_nada(self):
         s = SnapshotSesion(desfase_directo="", atajo_directo="Ctrl+Fin")
@@ -447,7 +447,7 @@ class TestRamasSinCubrir(unittest.TestCase):
         self.assertEqual(
             formatear_estado(s, {"desfase_directo"}, "largo"),
             "Reproductor: 10 segundos por detrás del directo. "
-            "Para volver: menú Reproductor, Ir al directo.")
+            "Menú Reproductor, Ir al directo.")
 
     def test_obs_grabacion_y_escena(self):
         s = SnapshotSesion(obs_grabacion="Grabando desde hace 2 min",

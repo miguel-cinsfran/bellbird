@@ -110,7 +110,7 @@ def mensaje_de_fallo_obs(motivo, obs_abierto=None):
     if any(clave in texto for clave in ("600", "not found", "no scene")):
         return _("OBS no encuentra la escena o la fuente indicada.")
     # Se comparte la forma de avisos_red, pero OBS necesita una taxonomía propia.
-    return _("OBS no pudo completar la operación. Inténtalo de nuevo.")
+    return _("OBS no pudo completar la operación. Vuelve a intentarlo.")
 
 
 class ClienteObs:
@@ -203,7 +203,7 @@ class ClienteObs:
                 raise
             except ConnectionClosed as error:
                 # OBS colgó: si el transporte se quedara, conectado seguiría en
-                # True y cada petición fallaría con «Inténtalo de nuevo».
+                # True y cada petición fallaría con «Vuelve a intentarlo».
                 self.cerrar()
                 raise ObsError(_(MENSAJE_CONEXION_PERDIDA)) from error
             except Exception as error:

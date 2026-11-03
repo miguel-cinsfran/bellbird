@@ -103,7 +103,7 @@ class TestAvisoAutomatico(unittest.TestCase):
     def test_fin_lista_siempre_avisa(self):
         r = _resultado(FIN_LISTA)
         aviso = anuncios.aviso_automatico(r, False, "nada")
-        self.assertEqual(aviso.texto, "Fin de la lista de música")
+        self.assertEqual(aviso.texto, "Fin de la cola de música")
         self.assertEqual(aviso.sonido, "musica_fin")
 
     def test_tema_fallido_siempre_avisa_sin_artista(self):
@@ -138,11 +138,11 @@ class TestAvisoAccion(unittest.TestCase):
 
     def test_siguiente_fin_de_lista(self):
         aviso = anuncios.aviso_accion("siguiente", _resultado(FIN_LISTA), False)
-        self.assertEqual(aviso.texto, "Última canción de la lista")
+        self.assertEqual(aviso.texto, "Última canción de la cola")
 
     def test_anterior_inicio_de_lista(self):
         aviso = anuncios.aviso_accion("anterior", _resultado(INICIO_LISTA), False)
-        self.assertEqual(aviso.texto, "Primera canción de la lista")
+        self.assertEqual(aviso.texto, "Primera canción de la cola")
 
     def test_anterior_reiniciado_dice_desde_el_comienzo(self):
         r = _resultado(REINICIADO, cola=[_tema(1)], posicion=0)

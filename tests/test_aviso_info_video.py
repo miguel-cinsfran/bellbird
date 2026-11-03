@@ -12,7 +12,7 @@ class TestAnuncioDeFalloVideo(unittest.TestCase):
     @mock.patch.object(accesibilidad, "anunciar")
     def test_anuncia_el_fallo_una_sola_vez(self, anunciar):
         call_after = mock.Mock()
-        fallo = "No se pudo consultar la información del vídeo. Inténtalo de nuevo más tarde."
+        fallo = "No se pudo consultar la información del vídeo. Vuelve a intentarlo más tarde."
 
         main._anunciar_fallo_video({"titulo": "", "fallo": fallo}, call_after)
 

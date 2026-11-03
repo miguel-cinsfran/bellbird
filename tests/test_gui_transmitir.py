@@ -85,7 +85,7 @@ class TestCambiarOverlay(unittest.TestCase):
         self.assertFalse(frame._config["overlay_activo"])
         guardar.assert_not_called()
         anunciar.assert_called_once_with(
-            "No se pudo activar el chat en el vídeo: el puerto 8730 está en uso. Cámbialo en Preferencias, Transmisión.")
+            "No se pudo activar el chat en el vídeo: el puerto 8730 está en uso. Cámbialo en Preferencias, categoría Transmisión.")
         self._recarga.assert_not_called()
         self.assertEqual(self._hilos, [])
 

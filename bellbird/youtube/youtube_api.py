@@ -136,7 +136,7 @@ def mensaje_error_api(exc) -> str:
     if "commentsdisabled" in low or "disabled comments" in low:
         return _("Los comentarios están desactivados en este vídeo.")
     if "videonotfound" in low or "video not found" in low:
-        return _("No se encontró el vídeo. Revisa el enlace o el ID.")
+        return _("No se encontró el vídeo. Comprueba el enlace o el ID.")
     if "keyinvalid" in low or "api key not valid" in low or "badrequest" in low and "key" in low:
         return _("YouTube no acepta la clave de API. Revísala en Preferencias, categoría API y sesión.")
     if "livestreamingnotenabled" in low:

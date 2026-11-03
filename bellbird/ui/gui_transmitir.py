@@ -27,7 +27,8 @@ def cambiar_overlay(frame, encender):
             _gui.overlay_servidor.encender(puerto)
         except _gui.overlay_servidor.OverlayPuertoOcupadoError:
             _gui.anunciar(_("No se pudo activar el chat en el vídeo: el puerto {puerto} "
-                            "está en uso. Cámbialo en Preferencias, Transmisión.").format(puerto=puerto))
+                            "está en uso. Cámbialo en Preferencias, categoría "
+                            "Transmisión.").format(puerto=puerto))
             # El puerto ocupado solo afecta esta sesión, no la preferencia guardada.
             frame._config["overlay_activo"] = False
             return False

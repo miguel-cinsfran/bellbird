@@ -74,7 +74,7 @@ class TestMensajesDeError(unittest.TestCase):
         self.assertTrue(_es_error_permanente(exc))
         self.assertIn("No se encontró", _mensaje_error(exc))
         self.assertEqual(_mensaje_error(exc),
-                         "No se encontró ese usuario de TikTok. Revisa el enlace.")
+                         "No se encontró ese usuario de TikTok. Comprueba el enlace.")
 
     def test_error_generico_no_es_permanente(self):
         exc = Exception("connection reset by peer")
@@ -669,7 +669,7 @@ class TestFinDirecto(unittest.TestCase):
                 "pepe", config, parada, lambda *a: None,
                 on_estado=lambda *a: estados.append(a))
         self.assertIn(
-            ("fin_directo", "El directo de TikTok ha terminado."), estados)
+            ("fin_directo", "El directo de TikTok terminó."), estados)
         self.assertTrue(parada.is_set())
 
     def test_parada_durante_la_sesion_sale_callada(self):

@@ -17,7 +17,7 @@ from bellbird.obs import obs_cliente
 MENSAJE_SIN_PERFIL = N_("OBS no tiene un perfil llamado {destino}.")
 MENSAJE_EN_TRANSMISION = N_(
     "No se puede cambiar de destino mientras se transmite.")
-MENSAJE_SIN_APLICAR = N_("OBS no aplicó el destino. Inténtalo de nuevo.")
+MENSAJE_SIN_APLICAR = N_("OBS no aplicó el destino. Vuelve a intentarlo.")
 
 
 DESTINOS = ("TikTok", "YouTube")

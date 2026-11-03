@@ -478,7 +478,8 @@ class TestParsearAtajos(unittest.TestCase):
             "ir_lista", "alt+f4", {"ir_lista": "alt+l", "salir": "alt+f4"})
         self.assertEqual(resultado, (
             "rechazado", None,
-            "Ya lo usa: Salir de la aplicación. Elige otra."))
+            "Alt+F4 ya está asignado a Salir de la aplicación. "
+            "Elige otro atajo."))
 
     def test_rechazo_muestra_aviso_y_vuelve_a_capturar(self):
         import wx
@@ -492,7 +493,8 @@ class TestParsearAtajos(unittest.TestCase):
         evento = mock.Mock()
         evento.GetKeyCode.return_value = wx.WXK_F4
         evento.GetModifiers.return_value = wx.MOD_ALT
-        texto = "Ya lo usa: Salir de la aplicación. Elige otra."
+        texto = ("Alt+F4 ya está asignado a Salir de la aplicación. "
+                 "Elige otro atajo.")
         anuncios = []
         with mock.patch.object(preferencias_atajos, "anunciar",
                                side_effect=anuncios.append), \

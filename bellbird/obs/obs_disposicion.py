@@ -283,7 +283,7 @@ def _aspecto(s, largo) -> str:
     if not s.mensajes_visibles and not s.tamano_letra:
         return ""
     if largo:
-        return _("Entran {mensajes} mensajes, letra de tamaño {letra}").format(
+        return _("Entran {mensajes} mensajes, tamaño de letra {letra}").format(
             mensajes=s.mensajes_visibles, letra=s.tamano_letra)
     return _("{mensajes} mensajes, letra {letra}").format(
         mensajes=s.mensajes_visibles, letra=s.tamano_letra)

@@ -32,7 +32,7 @@ TEXTO_CLAVE_CARACTERES = N_("La clave tiene espacios o caracteres "
                             "que una clave no lleva. Cópiala de nuevo.")
 # Traductores: aviso de clave ajena; {proveedor} es su nombre y {prefijo} su inicio.
 TEXTO_CLAVE_PREFIJO = N_("Las claves de {proveedor} empiezan con "
-                         "{prefijo}. Revisa que sea la clave de "
+                         "{prefijo}. Comprueba que sea la clave de "
                          "este proveedor.")
 # Traductores: confirmación de borrado; {proveedor} es su nombre.
 TEXTO_CONFIRMAR_BORRADO = N_("Se eliminará la clave guardada de {proveedor} "
@@ -49,7 +49,7 @@ TEXTO_LISTA_ACTUALIZADA = N_("Lista de modelos actualizada: {n} modelos "
                              "de {proveedor}.")
 TEXTO_LISTA_ACTUALIZADA_SIN_PROVEEDOR = N_("Lista de modelos actualizada.")
 TEXTO_LISTA_FALLO = N_("No se pudo actualizar la lista de modelos. "
-                       "Revisa la conexión y vuelve a intentarlo.")
+                       "Comprueba la conexión y vuelve a intentarlo.")
 # Traductores: anuncio de lista nueva; {n} modelos, {g} gratis, {proveedor} su nombre.
 TEXTO_LISTA_CON_GRATIS = N_("Lista de modelos actualizada: {n} modelos "
                             "de {proveedor}, {g} gratis con tu clave.")

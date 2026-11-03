@@ -22,7 +22,7 @@ class TestValidarMensaje(unittest.TestCase):
 
     def test_rechaza_texto_largo(self):
         error, _ = programados.validar_mensaje("x" * 201, 10, 10)
-        self.assertEqual(error, "El mensaje tiene 201 caracteres y el máximo son 200.")
+        self.assertEqual(error, "El mensaje tiene 201 caracteres y el máximo es 200.")
 
     def test_rechaza_minimo_bajo(self):
         error, _ = programados.validar_mensaje("Hola", 4, 10)

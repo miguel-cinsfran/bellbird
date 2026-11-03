@@ -441,11 +441,11 @@ class PruebasFinDirectoTiktok(unittest.TestCase):
         # las llamadas de on_estado.
         self.vista.llamadas.clear()
         callbacks["on_estado"](
-            "desconectado", "El directo de TikTok ha terminado.")
+            "desconectado", "El directo de TikTok terminó.")
         llamadas_desc = list(self.vista.llamadas)
         self.vista.llamadas.clear()
         callbacks["on_estado"](
-            "fin_directo", "El directo de TikTok ha terminado.")
+            "fin_directo", "El directo de TikTok terminó.")
         llamadas_fin = list(self.vista.llamadas)
         # Los mismos métodos en el mismo orden (cierra sesión, borra
         # título y anuncia con el mismo texto).

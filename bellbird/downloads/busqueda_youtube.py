@@ -266,8 +266,8 @@ def buscar(texto: str, filtros: Filtros, inicio: int,
             return RespuestaBusqueda([], motivo, False)
         logger.debug("buscar: %s", getattr(terminado, "returncode", "sin proceso"))
         return RespuestaBusqueda(
-            [], _("No se pudo completar la búsqueda. Comprueba la conexión e "
-                 "inténtalo de nuevo."), False)
+            [], _("No se pudo completar la búsqueda. Comprueba la conexión y "
+                 "vuelve a intentarlo."), False)
     brutos = interpretar(getattr(terminado, "stdout", ""))
     hay_mas = len(brutos) >= cantidad
     return RespuestaBusqueda(refiltrar(brutos, filtros, time.time()), "", hay_mas)
@@ -292,8 +292,8 @@ def contenido(url, inicio, cantidad) -> RespuestaBusqueda:
     marcas = ("/channel/", "/@", "/c/", "/user/")
     intentos = [url + "/videos", url] if any(m in bajo for m in marcas) else [url]
     ultima = RespuestaBusqueda(
-        [], _("No se pudo leer el contenido. Comprueba la conexión e "
-              "inténtalo de nuevo."), False, "", 0)
+        [], _("No se pudo leer el contenido. Comprueba la conexión y "
+              "vuelve a intentarlo."), False, "", 0)
     for intento in intentos:
         terminado = _correr([
             ruta, *ytdlp_bin.argumentos_comunes(), "-J", "--flat-playlist",

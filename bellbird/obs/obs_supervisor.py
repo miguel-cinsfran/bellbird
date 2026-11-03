@@ -325,7 +325,7 @@ class SupervisorTransmision:
     def _supervisar(self) -> None:
         gestor = None
         try:
-            self._anunciar(_("Comenzando la transmisión."), "conectando")
+            self._anunciar(_("Iniciando la transmisión."), "conectando")
             if self._parada.is_set():
                 return
             self._asegurar(self._probar_obs,

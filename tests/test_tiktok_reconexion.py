@@ -56,7 +56,7 @@ class TestDesenlace(unittest.TestCase):
     def test_fin_de_directo(self):
         tipo, texto = rec.desenlace(**self._base(err=None))
         self.assertEqual(tipo, "fin_directo")
-        self.assertEqual(texto, "El directo de TikTok ha terminado.")
+        self.assertEqual(texto, "El directo de TikTok terminó.")
 
     def test_reconectar_desactivado_termina_con_error(self):
         tipo, texto = rec.desenlace(**self._base(

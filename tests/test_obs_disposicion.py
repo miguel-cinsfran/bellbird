@@ -288,7 +288,7 @@ class DescripcionTest(unittest.TestCase):
                               mensajes_visibles=14, tamano_letra=18)
         esperado = ("OBS: conectado\nEscena: Juego, no es la escena actual\n"
                     "Tamaño: 460 por 620 píxeles, 29% del ancho de pantalla\n"
-                    "Se ve completa\nEntran 14 mensajes, letra de tamaño 18\n"
+                    "Se ve completa\nEntran 14 mensajes, tamaño de letra 18\n"
                     "El fondo del panel es transparente. Solo se ven las tarjetas de los mensajes, "
                     "apiladas contra el borde inferior.")
         self.assertEqual(obs.describir(s, obs.COMPONENTES, "largo"), esperado)
@@ -420,7 +420,7 @@ class TestFrasesFijadas(unittest.TestCase):
                          "Oculta en OBS\n"
                          "Bloqueada\n"
                          "Queda fuera del vídeo el 22% de la fuente\n"
-                         "Entran 14 mensajes, letra de tamaño 18\n"
+                         "Entran 14 mensajes, tamaño de letra 18\n"
                          "El fondo del panel es transparente. Solo se ven las tarjetas de los mensajes, "
                          "apiladas contra el borde inferior.")
 

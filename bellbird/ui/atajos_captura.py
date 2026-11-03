@@ -129,6 +129,9 @@ NOTA_PAGINA = N_(
     "coincida con otra. F6, Mayús+F6, F9 a F12 y Alt+F4 son fijas, y se "
     "muestran para que no se puedan reemplazar.")
 
+TEXTO_ATAJO_OCUPADO = N_(
+    "{teclas} ya está asignado a {otra}. Elige otro atajo.")
+
 
 def mostrar_atajo(valor: str) -> str:
     """Devuelve el texto legible de un atajo, en español."""
@@ -206,6 +209,12 @@ def texto_de_espera(etiqueta: str, ayuda_area: str) -> str:
                   etiqueta=etiqueta, ayuda=_(ayuda_area) if ayuda_area else ""))
 
 
+def _aviso_atajo_ocupado(valor: str, otra: str) -> str:
+    """Aviso del atajo que otra acción ya usa, con las teclas legibles."""
+    return _(TEXTO_ATAJO_OCUPADO).format(
+        teclas=mostrar_atajo(valor), otra=etiqueta_de_accion(otra))
+
+
 def resolver(accion: str, combo: str | None,
              valores: dict[str, str],
              altgr=None) -> tuple[str, str | None, str]:
@@ -217,8 +226,7 @@ def resolver(accion: str, combo: str | None,
     # Hay fijas que la gramática editable no admite; por eso este choque va antes.
     for otra, valor in valores.items():
         if otra != accion and valor and valor == combo:
-            otra_etiqueta = etiqueta_de_accion(otra)
-            return "rechazado", None, _("Ya lo usa: {otra}. Elige otra.").format(otra=otra_etiqueta)
+            return "rechazado", None, _aviso_atajo_ocupado(valor, otra)
 
     normalizado = cfg._normalizar_atajo(combo)
     if normalizado is None:
@@ -241,8 +249,7 @@ def resolver(accion: str, combo: str | None,
 
     for otra, valor in valores.items():
         if otra != accion and valor and valor == normalizado:
-            otra_etiqueta = etiqueta_de_accion(otra)
-            return "rechazado", None, _("Ya lo usa: {otra}. Elige otra.").format(otra=otra_etiqueta)
+            return "rechazado", None, _aviso_atajo_ocupado(valor, otra)
     return "capturado", normalizado, (
         _("Capturado: {atajo}. Se aplica al pulsar Guardar.").format(
             atajo=mostrar_atajo(normalizado)))

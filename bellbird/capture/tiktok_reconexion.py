@@ -37,7 +37,7 @@ def desenlace(err, *, parado, conecto_alguna, offline_pasajero, reconectar):
         # Suena «fin_directo», no «desconectado» (ese sigue para YouTube
         # y el resto de los cortes).
         # Traductores: estado final que se anuncia y se muestra en la barra de estado.
-        return ("fin_directo", _("El directo de TikTok ha terminado."))
+        return ("fin_directo", _("El directo de TikTok terminó."))
     if not reconectar:
         return ("error", mensaje_error(err))
     return None

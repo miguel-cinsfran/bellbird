@@ -670,9 +670,9 @@ def _mensaje_error_amigable(exc) -> str:
     if "members only" in t:
         return _("El chat está restringido a miembros del canal.")
     if "finished" in t or "unavailable" in t:
-        return _("El directo ha terminado o no está disponible.")
+        return _("El directo terminó o no está disponible.")
     if "does not exist" in t:
-        return _("El vídeo no existe. Revisa el enlace.")
+        return _("El vídeo no existe. Comprueba el enlace.")
     # Traductores: {error} es el detalle técnico.
     return _("No se pudo conectar: {error}").format(error=exc)
 

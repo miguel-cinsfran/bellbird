@@ -159,7 +159,7 @@ class CaminoFelizTest(BaseSupervisor):
         supervisor, anuncios, chats, gestores, _, vivo, _ = armado
         self.iniciar_y_esperar_fin(supervisor)
         self.assertEqual(anuncios, [
-            ("Comenzando la transmisión.", "conectando"),
+            ("Iniciando la transmisión.", "conectando"),
             ("OBS está enviando la señal a Restream.", "conectado"),
             ("Esperando a que TikTok muestre el directo.", None),
             ("Directo iniciado en TikTok", "al_aire"),
@@ -177,7 +177,7 @@ class SalidaFallidaTest(BaseSupervisor):
         supervisor, anuncios, chats, _, _, vivo, _ = armado
         self.iniciar_y_esperar_fin(supervisor)
         self.assertEqual(anuncios, [
-            ("Comenzando la transmisión.", "conectando"),
+            ("Iniciando la transmisión.", "conectando"),
             ("OBS no empezó a transmitir.", "transmision_problema"),
         ])
         self.assertEqual(chats, [])
@@ -192,7 +192,7 @@ class TikTokAusenteTest(BaseSupervisor):
         self.iniciar_y_esperar_fin(supervisor)
         self.assertEqual(chats, [])
         self.assertEqual(anuncios[0],
-                         ("Comenzando la transmisión.", "conectando"))
+                         ("Iniciando la transmisión.", "conectando"))
         self.assertEqual(anuncios[1][1], "conectado")
         self.assertEqual(anuncios[2],
                          ("Esperando a que TikTok muestre el directo.", None))
@@ -234,7 +234,7 @@ class DestinoYouTubeTest(BaseSupervisor):
         supervisor, anuncios, chats, _, _, vivo, _ = armado
         self.iniciar_y_esperar_fin(supervisor)
         self.assertEqual(anuncios, [
-            ("Comenzando la transmisión.", "conectando"),
+            ("Iniciando la transmisión.", "conectando"),
             ("OBS está enviando la señal a YouTube.", "conectado"),
         ])
         self.assertEqual(chats, [])
@@ -247,7 +247,7 @@ class SinUsuarioTest(BaseSupervisor):
         supervisor, anuncios, chats, _, _, vivo, _ = armado
         self.iniciar_y_esperar_fin(supervisor)
         self.assertEqual(anuncios, [
-            ("Comenzando la transmisión.", "conectando"),
+            ("Iniciando la transmisión.", "conectando"),
             ("OBS está enviando la señal a Restream.", "conectado"),
             ("No hay usuario de TikTok guardado: conecta el chat manualmente.",
              None),
@@ -702,7 +702,7 @@ class AsegurarObsTest(BaseSupervisor):
         supervisor._asegurar = asegurar
         self.iniciar_y_esperar_fin(supervisor)
         self.assertEqual(anuncios[0],
-                         ("Comenzando la transmisión.", "conectando"))
+                         ("Iniciando la transmisión.", "conectando"))
         self.assertEqual(anuncios[1],
                          ("Abriendo OBS. Puede tardar hasta un minuto.", None))
         self.assertEqual(anuncios[2][1], "conectado")
@@ -722,7 +722,7 @@ class AsegurarObsTest(BaseSupervisor):
         supervisor._asegurar = asegurar
         self.iniciar_y_esperar_fin(supervisor)
         self.assertEqual(anuncios[0],
-                         ("Comenzando la transmisión.", "conectando"))
+                         ("Iniciando la transmisión.", "conectando"))
         self.assertEqual(anuncios[1], (
             "OBS no está instalado en este equipo. Instálalo desde "
             "obsproject.com y vuelve a intentarlo.", "transmision_problema"))
@@ -979,7 +979,7 @@ class YouTubeEmisionTest(BaseSupervisor):
          llamadas_preparar, llamadas_espera) = armado
         self.iniciar_y_esperar_fin(supervisor)
         self.assertEqual(anuncios, [
-            ("Comenzando la transmisión.", "conectando"),
+            ("Iniciando la transmisión.", "conectando"),
             ("Creando el directo en YouTube.", None),
             ("OBS está enviando la señal a YouTube.", "conectado"),
             ("Esperando a que YouTube muestre el directo.", None),
@@ -999,7 +999,7 @@ class YouTubeEmisionTest(BaseSupervisor):
          _preparar, espera) = armado
         self.iniciar_y_esperar_fin(supervisor)
         self.assertEqual(anuncios, [
-            ("Comenzando la transmisión.", "conectando"),
+            ("Iniciando la transmisión.", "conectando"),
             ("Creando el directo en YouTube.", None),
             ("falla youtube", "transmision_problema"),
         ])
@@ -1622,7 +1622,7 @@ class TestPseudoAnunciosSupervisor(BaseSupervisor):
         with con_pseudo():
             self.iniciar_y_esperar_fin(supervisor)
         marcados = self._exigir_marcados(anuncios)
-        self.assertIn("[¡Comenzando la transmisión.!]", marcados)
+        self.assertIn("[¡Iniciando la transmisión.!]", marcados)
         self.assertIn("[¡Directo iniciado en TikTok!]", marcados)
         self.assertEqual(chats, ["https://www.tiktok.com/@amigo/live"])
 

@@ -1436,7 +1436,7 @@ class ReproductorPanel(wx.Panel):
         """Pone icono + texto del botón play/pausa según el estado."""
         self.btn_play.SetBitmap(self._ic_pause if reproduciendo else self._ic_play)
         # Traductores: botón de pausa y reproducción.
-        self.btn_play.SetLabel(_("Pausa") if reproduciendo else _("Reproducir"))
+        self.btn_play.SetLabel(_("Pausar") if reproduciendo else _("Reproducir"))
 
     def _hay_medio(self) -> bool:
         """Hay un vídeo o un directo cargado en el panel."""

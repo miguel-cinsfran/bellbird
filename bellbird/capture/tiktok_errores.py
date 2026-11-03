@@ -81,7 +81,7 @@ def _mensaje_conocido(exc, nombre_exc, t):
         return _("Ese usuario de TikTok no está en directo ahora mismo.")
     if nombre_exc in CLASES_NO_EXISTE:
         # Traductores: error permanente que se anuncia y se muestra en la barra de estado.
-        return _("No se encontró ese usuario de TikTok. Revisa el enlace.")
+        return _("No se encontró ese usuario de TikTok. Comprueba el enlace.")
     if "sign" in t or "euler" in t or "rate" in t and "limit" in t:
         return _(TEXTO_ERROR_FIRMAS)
     if "captcha" in t or "blocked" in t:

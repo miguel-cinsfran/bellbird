@@ -30,12 +30,12 @@ SONIDO_FALLO = "musica_fallo"
 SONIDO_ERROR = "error"
 SONIDO_ATAJOS_OCUPADOS = "atajos_ocupados"
 
-TEXTO_FIN_LISTA = N_("Fin de la lista de música")
+TEXTO_FIN_LISTA = N_("Fin de la cola de música")
 TEXTO_FALLO = N_("No se pudo reproducir: {nombre}. Se pasa al siguiente")
 TEXTO_SIN_TEMA = N_("No hay música sonando")
 TEXTO_COLA_VACIA = N_("No hay canciones para reproducir")
-TEXTO_ULTIMO = N_("Última canción de la lista")
-TEXTO_PRIMERO = N_("Primera canción de la lista")
+TEXTO_ULTIMO = N_("Última canción de la cola")
+TEXTO_PRIMERO = N_("Primera canción de la cola")
 TEXTO_REINICIADO = N_("Desde el comienzo")
 TEXTO_PAUSA = N_("Música en pausa")
 TEXTO_REANUDADA = N_("Música reanudada")

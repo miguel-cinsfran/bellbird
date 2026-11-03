@@ -64,7 +64,25 @@ class TestAtajosCaptura(unittest.TestCase):
     def test_choque_con_otra_accion(self):
         resultado = atajos_captura.resolver("rep_play", "ctrl+k", self.valores)
         self.assertEqual(resultado, (
-            "rechazado", None, "Ya lo usa: Retroceder 1 minuto. Elige otra."))
+            "rechazado", None,
+            "Ctrl+K ya está asignado a Retroceder 1 minuto. "
+            "Elige otro atajo."))
+
+    def test_atajo_ocupado_nombra_las_teclas_sin_normalizar(self):
+        valores = {"salir": "ctrl+q", "rep_play": "ctrl+p"}
+        resultado = atajos_captura.resolver("rep_play", "ctrl+q", valores)
+        self.assertEqual(resultado, (
+            "rechazado", None,
+            "Ctrl+Q ya está asignado a Salir de la aplicación. "
+            "Elige otro atajo."))
+
+    def test_atajo_ocupado_nombra_las_teclas_normalizado(self):
+        valores = {"salir": "ctrl+q", "rep_play": "ctrl+p"}
+        resultado = atajos_captura.resolver("rep_play", "Ctrl+Q", valores)
+        self.assertEqual(resultado, (
+            "rechazado", None,
+            "Ctrl+Q ya está asignado a Salir de la aplicación. "
+            "Elige otro atajo."))
 
     def test_todas_las_acciones_tienen_etiqueta(self):
         for accion in config.todos_los_atajos_default():
@@ -84,7 +102,8 @@ class TestAtajosCaptura(unittest.TestCase):
             "abrir_preferencias", "ctrl+shift+m", valores)
         self.assertEqual(resultado, (
             "rechazado", None,
-            "Ya lo usa: Silenciar el micrófono de OBS. Elige otra."))
+            "Ctrl+Mayús+M ya está asignado a Silenciar el micrófono de OBS. "
+            "Elige otro atajo."))
 
     def test_desactivado(self):
         resultado = atajos_captura.resolver("rep_play", None, self.valores)

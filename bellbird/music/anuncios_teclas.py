@@ -7,7 +7,7 @@ from bellbird.music.anuncios import Aviso
 from bellbird.music.vista import texto_duracion
 
 TEXTO_SILENCIADA = N_("Música silenciada")
-TEXTO_RESTAURADA = N_("Sonido de la música activado")
+TEXTO_RESTAURADA = N_("Audio de la música activado")
 
 
 def aviso_silencio(activo: bool) -> Aviso:

@@ -444,7 +444,7 @@ class TestBuscarArgumentos(unittest.TestCase):
     def test_fallo_generico_y_tiempo_agotado(self):
         from subprocess import TimeoutExpired
         generico = ("No se pudo completar la búsqueda. Comprueba la "
-                    "conexión e inténtalo de nuevo.")
+                    "conexión y vuelve a intentarlo.")
         terminado = mock.Mock()
         terminado.returncode = 1
         terminado.stdout = ""
@@ -515,8 +515,8 @@ class TestBuscarRealConFalso(unittest.TestCase):
         self.assertEqual(respuesta.resultados, [])
         self.assertEqual(
             respuesta.error,
-            "No se pudo completar la búsqueda. Comprueba la conexión e "
-            "inténtalo de nuevo.")
+            "No se pudo completar la búsqueda. Comprueba la conexión y "
+            "vuelve a intentarlo.")
 
 
 class TestEsEnlaceDeLista(unittest.TestCase):
